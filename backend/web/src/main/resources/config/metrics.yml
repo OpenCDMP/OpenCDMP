@@ -1,0 +1,38 @@
+metrics:
+  task:
+    enable: false
+    intervalSeconds: null
+    nexusDate: null
+    usersLoginClient: ${IDP_APIKEY_CLIENT_ID_UUID}
+    referenceTypes:
+      funderIds: []
+      grantIds: []
+      projectIds: []
+      researcherIds: []
+management:
+  endpoint:
+    metrics:
+      enabled: true
+    prometheus:
+      enabled: true
+    health:
+      show-details: always
+  endpoints:
+    web:
+      base-path: /
+      exposure:
+        include: prometheus,health,metrics
+  
+  metrics:
+    enabled: true
+    export:
+      prometheus:
+        enabled: true
+    enable:
+      http: true
+      jvm: true
+      jdbc: true
+      tomcat: true
+      logback: true
+      hikaricp: true
+      cache: true

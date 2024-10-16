@@ -1,0 +1,15 @@
+.invite-users-wrapper {
+	display: flex;
+	flex-direction: column;
+	align-items: baseline;
+}
+
+.drag-handle {
+	cursor: move; 
+	color: var(--primary-color);
+}
+
+.drag-handle-disabled {
+	cursor: auto; 
+	color: rgba(0, 0, 0, 0.38);;
+}

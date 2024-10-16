@@ -1,0 +1,94 @@
+<div class="col-6" >
+	<mat-form-field class="chip-list">
+		<mat-label>{{'NOTIFICATION-SERVICE.NOTIFICATION-TEMPLATE-EDITOR.FIELDS.MANDATORY' | translate}}</mat-label>
+		<mat-chip-grid #chipGrid [formControl]="form.get('mandatory')">
+		<mat-chip-row *ngFor="let field of mandatoryFields"
+						(removed)="removeChipListValues(field)"
+						[editable]="true"
+						(edited)="editChipListValues($event, field)">
+			{{field}}
+			<button matChipRemove>
+			<mat-icon>cancel</mat-icon>
+			</button>
+		</mat-chip-row>
+		<input placeholder="{{'NOTIFICATION-SERVICE.NOTIFICATION-TEMPLATE-EDITOR.FIELDS.MANDATORY-PLACEHOLDER' | translate}}" 
+				[matChipInputFor]="chipGrid"
+				[matChipInputSeparatorKeyCodes]="separatorKeysCodes"
+				[matChipInputAddOnBlur]="true"
+				(matChipInputTokenEnd)="addChipListValues($event)"/>
+		</mat-chip-grid>
+		<mat-error *ngIf="form.get('mandatory').hasError('backendError')">{{form.get('mandatory').getError('backendError').message}}</mat-error>
+	</mat-form-field>
+</div>
+
+<h4 class="col-md-12">{{'NOTIFICATION-SERVICE.NOTIFICATION-TEMPLATE-EDITOR.FIELDS.OPTIONAL-TITLE' | translate}}</h4>					
+<div class="d-flex flex-column">
+	<ng-container *ngFor="let options of form.get('optional')['controls']; let i = index">
+		<div class="d-flex flex-wrap">
+			<div class="col-12 col-md">
+				<mat-form-field class="w-100">
+					<mat-label>{{'NOTIFICATION-SERVICE.NOTIFICATION-TEMPLATE-EDITOR.FIELDS.KEY' | translate}}</mat-label>
+					<input matInput [formControl]="options.get('key')">
+					<mat-error *ngIf="options.get('key').hasError('backendError')">{{options.get('key').getError('backendError').message}}</mat-error>
+					<mat-error *ngIf="options.get('key').hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
+				</mat-form-field>
+			</div>
+			<div class="col-12 col-md-3">
+				<mat-form-field class="w-100">
+					<mat-label>{{'NOTIFICATION-SERVICE.NOTIFICATION-TEMPLATE-EDITOR.FIELDS.DATA-TYPE' | translate}}</mat-label>
+					<mat-select name="channel" [formControl]="options.get('type')">
+						<mat-option *ngFor="let type of notificationDataTypeEnum" [value]="type">
+							{{enumUtils.toNotificationTemplateDataTypeString(type)}}
+						</mat-option>
+					</mat-select>
+					<mat-error *ngIf="options.get('type').hasError('backendError')">{{options.get('type').getError('backendError').message}}</mat-error>
+					<mat-error *ngIf="options.get('type').hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
+				</mat-form-field>
+			</div>
+			<div class="col-12 col-md-3">
+				<mat-form-field class="w-100">
+					<mat-label>{{'NOTIFICATION-SERVICE.NOTIFICATION-TEMPLATE-EDITOR.FIELDS.VALUE' | translate}}</mat-label>
+					<input matInput [formControl]="options.get('value')">
+					<mat-error *ngIf="options.get('value').hasError('backendError')">{{options.get('value').getError('backendError').message}}</mat-error>
+					<mat-error *ngIf="options.get('value').hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
+				</mat-form-field>
+			</div>
+			<div class="col-12 col-md-auto">
+				<button mat-icon-button (click)="removeSubjectOptionalItem(i)" [disabled]="form.disabled">
+					<mat-icon>remove</mat-icon>
+				</button>
+			</div>
+		</div>
+	</ng-container>
+	<div class="col-auto">
+		<button mat-icon-button (click)="addOptionalItem()" [disabled]="form.disabled">
+			<mat-icon>add</mat-icon>
+		</button>
+	</div>
+</div>
+
+<h4 class="col-md-12">{{'NOTIFICATION-SERVICE.NOTIFICATION-TEMPLATE-EDITOR.FIELDS.FORMATTING' | translate}}</h4>	
+<div class="d-flex flex-wrap" *ngFor="let item of form.get('mandatory').value; let i = index">
+	<mat-form-field class="col-6">
+		<mat-label>{{'NOTIFICATION-SERVICE.NOTIFICATION-TEMPLATE-EDITOR.FIELDS.KEY' | translate}}</mat-label>
+		<input matInput [value]="item" [disabled] = "true">
+	</mat-form-field>
+	<mat-form-field class="col-6">
+		<mat-label>{{'NOTIFICATION-SERVICE.NOTIFICATION-TEMPLATE-EDITOR.FIELDS.VALUE' | translate}}</mat-label>
+		<input matInput [value] ="formatting[item]" (change)="formattingValueChange($event, item)">
+		<mat-error *ngIf="form.get('formatting').hasError('backendError')">{{form.get('formatting').getError('backendError').message}}</mat-error>
+	</mat-form-field>
+</div>
+<div class="d-flex flex-wrap" *ngFor="let item of form.get('optional')['controls']; let i = index">
+	<ng-container *ngIf="item.valid">
+		<mat-form-field class="col-6">
+			<mat-label>{{'NOTIFICATION-SERVICE.NOTIFICATION-TEMPLATE-EDITOR.FIELDS.KEY' | translate}}</mat-label>
+			<input matInput [value]="item.value.key" [disabled] = "true">
+		</mat-form-field>
+		<mat-form-field class="col-6">
+			<mat-label>{{'NOTIFICATION-SERVICE.NOTIFICATION-TEMPLATE-EDITOR.FIELDS.VALUE' | translate}}</mat-label>
+			<input matInput [value]="formatting[item]" (change)="formattingValueChange($event, item)">
+			<mat-error *ngIf="form.get('formatting').hasError('backendError')">{{form.get('formatting').getError('backendError').message}}</mat-error>
+		</mat-form-field>
+	</ng-container>
+</div>

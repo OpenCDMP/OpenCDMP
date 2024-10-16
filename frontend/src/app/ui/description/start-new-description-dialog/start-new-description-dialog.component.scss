@@ -1,0 +1,58 @@
+::ng-deep .mat-dialog-container {
+	border-radius: 8px;
+}
+
+.form-container {
+	width: 33rem;
+	min-height: 14rem;
+	padding: 2.0rem;
+}
+
+.logo {
+	width: 8.44rem;
+}
+
+.content {
+	margin: 2.17rem 0rem 1.1875rem 0rem;
+}
+
+.title,
+.text {
+	font-size: 1.25rem;
+	font-weight: lighter;
+	color: #000000;
+	opacity: 0.8;
+}
+
+.title {
+	text-align: left;
+	font-weight: 500;
+	font-size: 1.25rem;
+	letter-spacing: 0px;
+	color: #212121;
+	opacity: 1;
+}
+
+.text {
+	margin-bottom: 2.9375rem;
+	line-height: 1.9rem;
+}
+
+.actions {
+	display: flex;
+	flex-direction: row;
+}
+
+.new-plan {
+	text-align: left;
+	text-decoration: underline;
+	letter-spacing: 0px;
+	color: var(--primary-color);
+	cursor: pointer;
+}
+
+::ng-deep .plan-form .mat-form-field-appearance-outline .mat-form-field-outline {
+}
+
+::ng-deep .plan-form .mat-form-field-appearance-outline .mat-form-field-infix {
+}

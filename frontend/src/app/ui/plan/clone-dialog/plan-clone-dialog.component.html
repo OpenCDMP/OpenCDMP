@@ -1,0 +1,60 @@
+<div class="clone-dialog container-fluid">
+	<div class="row align-items-center mt-3">
+		<div class="col heading-1">{{'PLAN-CLONE-DIALOG.TITLE' | translate}}</div>
+		<div class="col-auto">
+			<button mat-icon-button tabindex="-1" (click)="close()"><mat-icon>close</mat-icon></button>
+		</div>
+	</div>
+	<!-- Title Field -->
+	<div class="row">
+		<div class="col-12">
+			<div class="heading">{{'PLAN-CLONE-DIALOG.FIELDS.LABEL' | translate}}*</div>
+		</div>
+		<div class="col-12 title-form">
+			<mat-form-field class="w-100">
+				<input matInput placeholder="{{'PLAN-CLONE-DIALOG.FIELDS.LABEL' | translate}}" type="text" name="label" [formControl]="formGroup.get('label')" required>
+				<mat-error *ngIf="formGroup.get('label').hasError('backendError')">{{formGroup.get('label').getError('backendError').message}}</mat-error>
+				<mat-error *ngIf="formGroup.get('label').hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
+			</mat-form-field>
+		</div>
+	</div>
+	<!-- Description field -->
+	<div class="row">
+		<div class="col-12 pb-2">
+			<div class="heading">{{'PLAN-CLONE-DIALOG.FIELDS.DESCRIPTION' | translate}}</div>
+		</div>
+		<div class="col-12 hint">{{'PLAN-CLONE-DIALOG.FIELDS.DESCRIPTION-HINT' | translate}}</div>
+		<div class="col-12 basic-info-input">
+			<rich-text-editor-component [form]="formGroup.get('description')" [placeholder]="'PLAN-CLONE-DIALOG.FIELDS.DESCRIPTION-PLACEHOLDER'">
+			</rich-text-editor-component>
+		</div>
+	</div>
+	<div class="row">
+		<div class="col-12 pt-3 pb-2">
+			<div class="heading">{{'PLAN-CLONE-DIALOG.FIELDS.DESCRIPTIONS' | translate}}</div>
+		</div>
+		<div class="col-12 hint" *ngIf="hasDescriptions()">
+			{{'PLAN-CLONE-DIALOG.FIELDS.DESCRIPTIONS-HINT' | translate}}
+		</div>
+		<div class="col-12" *ngIf="hasDescriptions()">
+			<mat-card class="mat-card">
+				<mat-card-header>
+					<mat-checkbox [checked]="allDescriptionsCompleted" [indeterminate]="someDescriptionsCompleted" (change)="toggleAllDescriptions($event.checked)">{{ 'PLAN-CLONE-DIALOG.ACTIONS.TOGGLE-DESCRIPTIONS' | translate }}</mat-checkbox>
+				</mat-card-header>
+				<mat-selection-list #selectedItems [formControl]="formGroup.get('descriptions')">
+					<mat-list-option *ngFor="let description of plan.descriptions;" [value]="description.id">
+						<span class="text-truncate" [matTooltip]="description.label">{{description.label}}</span>
+					</mat-list-option>
+				</mat-selection-list>
+			</mat-card>
+		</div>
+		<div class="col-12" *ngIf="!hasDescriptions()">
+			<h5 mat-subheader class="p-3">{{'PLAN-CLONE-DIALOG.NO-DESCRIPTIONS' | translate}}</h5>
+		</div>
+	</div>
+	<div class="row pt-4">
+		<div class="col"></div>
+		<div class="col-auto"><button mat-button type="button" class="rounded-btn neutral" (click)="cancel()">{{'PLAN-CLONE-DIALOG.ACTIONS.CANCEL' | translate}}</button></div>
+		<div class="col-auto"><button mat-button type="button" class="rounded-btn primary-inverted primary-inverted-hover" (click)="confirm()" color="accent">{{'PLAN-CLONE-DIALOG.ACTIONS.CLONE' | translate}}</button></div>
+	</div>
+</div>

@@ -1,0 +1,207 @@
+
+<mat-card #wrapperCard [class.negate-card]="HybridListingMode.Card === mode" class="d-flex flex-column main-card" [class.gap-1-rem]="HybridListingMode.Card === mode">
+
+		<!-- * ACTIONS BAR -->
+		<mat-card [class.negate-card]="HybridListingMode.Card !== mode" class="actions-bar-card">
+			<mat-card-content class="filters-card-content">
+				<div class="d-flex flex-column actions-bar-container">
+					<div class="d-flex justify-content-between flex-wrap">
+						<div>
+							<ng-content select="[hybrid-listing-filters]"/>
+						</div>
+						<div class="d-flex align-items-center">
+
+							<ng-content select=".left-actions">
+
+							</ng-content>
+
+							<ng-container *ngIf="(forceShowShorting || (mode === HybridListingMode.List)) && _defaultSort?.[0]">
+								<button mat-icon-button (click)="toggleSortListViewSort()">
+									<mat-icon [class.rotate-180]="_defaultSort?.[0].dir === SortDirection.Ascending">
+										sort
+									</mat-icon>
+								</button>
+
+								<ng-template #currentSort>
+									<span>
+										{{'HYBRID-LISTING.ORDER-BY' | translate}} {{getPropertyName(_defaultSort?.[0].prop)}}
+									</span>
+								</ng-template>
+								<button mat-button [matMenuTriggerFor]="columnListOrdering" *ngIf="!(sortableListColumns?.length === 1) else currentSort">
+									<mat-icon iconPositionEnd>
+										expand_more
+									</mat-icon>
+									{{'HYBRID-LISTING.ORDER-BY' | translate}} {{getPropertyName(_defaultSort?.[0].prop)}}
+								</button>
+
+
+								<mat-menu #columnListOrdering>
+									<button mat-menu-item *ngFor="let column of sortableListColumns" (click)="onListViewSort(column.property)">{{column.name}}</button>
+								</mat-menu>
+
+
+							</ng-container>
+
+
+							<ng-content select="[user-preference-settings]"/>
+
+							<div *ngIf="availableColumns?.length">
+								<button mat-icon-button [matMenuTriggerFor]="selectionFields" *ngIf="propertySelectable"><mat-icon>display_settings</mat-icon></button>
+							</div>
+
+							<mat-menu #selectionFields="matMenu">
+								<div class="p-3" (click)="$event?.stopPropagation?.()">
+									<div class="d-flex align-items-center mb-2" style="gap: 1rem">
+										<mat-icon >display_settings</mat-icon>
+										{{'HYBRID-LISTING.DISPLAY-SETTINGS' | translate}}
+									</div>
+									<ul class="list-unstyled mb-0">
+										<li *ngFor="let column of availableColumns">
+											<mat-checkbox [checked]="columnSelections?.has(column.property)" (change)="onColumnSelectionChange($event, column.property)">{{column.name}}</mat-checkbox>
+										</li>
+									</ul>
+								</div>
+							</mat-menu>
+
+							<!-- <button mat-icon-button (click)="toggleMode()" *ngIf="(listItemTemplate || cardItemTemplate) && !hideModeSelection" >
+								<ng-container [ngSwitch]="mode">
+									<mat-icon *ngSwitchCase="HybridListingMode.List">table_view</mat-icon>
+									<mat-icon *ngSwitchCase="HybridListingMode.Table">list</mat-icon>
+									<mat-icon *ngSwitchCase="HybridListingMode.Card">table_view</mat-icon>
+								</ng-container>
+							</button> -->
+
+							<ng-content select="[download-listing-report]" />
+						</div>
+					</div>
+					<mat-divider *ngIf="HybridListingMode.Card !== mode"/>
+					<ng-container *ngIf="batchActions?.rowIdentity && batchActions?.selectedCount">
+						<div  class="d-flex">
+							<div style="flex-grow: 1;">
+								<ng-content select="[batch-actions]"/>
+							</div>
+							<div>
+								<mat-chip (removed)="emptySelections()">
+									{{batchActions?.selectedCount}} {{'HYBRID-LISTING.SELECTED' | translate}}
+									<mat-icon matChipRemove>cancel</mat-icon>
+								</mat-chip>
+							</div>
+						</div>
+					</ng-container>
+				</div>
+			</mat-card-content>
+		</mat-card>
+	<mat-card-content class="main-card-content">
+		<ngx-datatable #dataTable
+			*ngIf="mode === HybridListingMode.Table"
+			class="material hybrid-listing-component"
+			[class.hybrid-listing-component-row-cursor]="rowActivated?.observers?.length > 0"
+			[columnMode]="columnMode"
+			[columns]="internalColumns"
+			[rows]="rows"
+			[headerHeight]="headerHeight"
+			[footerHeight]="footerHeight"
+			[rowHeight]="rowHeight"
+			[messages]="messages"
+			[externalPaging]="externalPaging"
+			[count]="count"
+			[offset]="offset"
+			[limit]="limit"
+			[sorts]="_defaultSort"
+			[loadingIndicator]="loadingIndicator"
+			[externalSorting]="externalSorting"
+			(activate)="onRowActivated($event)"
+			[selected]="selected"
+          	[selectionType]="SelectionType.checkbox"
+			[rowIdentity]="rowIdentity"
+			(sort)="onColumnSort($event)">
+
+			<ngx-datatable-footer>
+				<ng-template ngx-datatable-footer-template>
+					<div class="flex-grow-1 d-flex flex-column" *ngIf="count">
+						<ng-container *ngTemplateOutlet="paginator" />
+					</div>
+				</ng-template>
+			</ngx-datatable-footer>
+
+		</ngx-datatable>
+
+
+
+		<div *ngIf="mode === HybridListingMode.List" class="item-listing-container" >
+			<ng-container *ngIf="listItemTemplate">
+				<div *ngFor="let item of rows; let isOdd = odd; trackBy: rowIdentity"  [class.bg-gray]="isOdd" class="listing-item">
+					<div *ngIf="batchActions?.rowIdentity">
+						<mat-checkbox [checked]="isListingItemSelected(item)" (change)="onSelectionListChange($event,item)"></mat-checkbox>
+					</div>
+					<div (click)="onListItemActivated(item)" class="flex-grow-1" style="max-width: 100%;"  [class.cursor-pointer]="rowActivated?.observers?.length">
+						<ng-container *ngTemplateOutlet="listItemTemplate; context: {item, isColumnSelected : this.isColumnSelected}"/>
+					</div>
+				</div>
+			</ng-container>
+			<div *ngIf="!count" class="pl-1 pr-1">
+				<span>{{'HYBRID-LISTING.NO-DATA-TO-DISPLAY' | translate}}</span>
+			</div>
+			<div *ngIf="count" class="d-flex flex-column">
+
+				<div class="mb-1">
+					<mat-divider></mat-divider>
+				</div>
+				<ng-container *ngTemplateOutlet="paginator" />
+			</div>
+		</div>
+	</mat-card-content>
+
+
+	<ng-container *ngIf="mode === HybridListingMode.Card">
+		<div class="item-card-container" *ngIf="count && rows?.length">
+			<ng-container *ngIf="cardItemTemplate">
+				<mat-card *ngFor="let item of rows;trackBy: rowIdentity"class="d-flex">
+					<mat-card-content class="flex-grow-1 d-flex">
+						<div *ngIf="batchActions?.rowIdentity">
+							<mat-checkbox [checked]="isListingItemSelected(item)" (change)="onSelectionListChange($event,item)"></mat-checkbox>
+						</div>
+						<div (click)="onListItemActivated(item)" class="cursor-pointer flex-grow-1 d-flex">
+							<ng-container *ngTemplateOutlet="cardItemTemplate; context: {item, isColumnSelected : this.isColumnSelected}"/>
+						</div>
+					</mat-card-content>
+				</mat-card>
+			</ng-container>
+		</div>
+		<div *ngIf="!count || !rows?.length" class="pl-2 pr-1">
+			<span>{{'HYBRID-LISTING.NO-DATA-TO-DISPLAY' | translate}}</span>
+		</div>
+		<div *ngIf="count" class="d-flex flex-column mt-2">
+			<ng-container *ngTemplateOutlet="paginator; context: {pageSizeOptions: [9, 18, 45, 90]}" />
+		</div>
+	</ng-container>
+</mat-card>
+
+
+
+<ng-template #paginator let-pageSizeOptions="pageSizeOptions">
+	<mat-paginator
+		[length]="count"
+		[pageSize]="limit"
+		[pageIndex]="offset"
+		(page)="onsomePage($event)"
+		[pageSizeOptions]="pageSizeOptions ?? [10, 25, 50, 100]"
+		>
+	</mat-paginator>
+</ng-template>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<ng-template #functionValueTemplate ngx-datatable-cell-template let-row="row" let-value="value" let-column="column">
+	{{column.valueFunction(row)}}
+</ng-template>

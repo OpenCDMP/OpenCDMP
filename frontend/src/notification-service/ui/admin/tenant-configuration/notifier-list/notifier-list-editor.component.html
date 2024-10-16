@@ -1,0 +1,36 @@
+<div *ngIf="formGroup" class="container-fluid notifier-list ">
+	<div class="row">
+		<div class="col-12">
+			<div class="row">
+				<div class="col-12" *ngFor="let notificationType of availableNotifiersKeys">
+					<div class="row">
+						<mat-selection-list class="col-12" [formControl]="formGroup.get('notifierList')?.get('notifiers')?.get(notificationType)" cdkDropList (cdkDropListDropped)="dropped($event, notificationType)">
+							<h3 mat-subheader>{{notificationServiceEnumUtils.toNotificationTypeString(notificationType)}}</h3>
+							<mat-list-option *ngFor="let contactType of availableNotifiers[notificationType]" [value]="contactType" cdkDrag>
+								<div class="d-flex align-items-center">
+									<mat-icon matListIcon cdkDragHandle>unfold_more</mat-icon>
+									{{notificationServiceEnumUtils.toContactTypeString(contactType)}}
+								</div>
+							</mat-list-option>
+						</mat-selection-list>
+					</div>
+				</div>
+			</div>
+		</div>
+		<div class="col-12">
+			<div class="row actions-row">
+				<div class="ml-auto col-auto" *ngIf="editorModel.id">
+                    <button mat-button class="rounded-btn primary-inverted" (click)="delete()">
+						{{'TENANT-CONFIGURATION-EDITOR.ACTIONS.RESET-TO-DEFAULT' | translate}}
+					</button>
+				</div>
+				<div class="ml-auto col-auto">
+                    <button mat-button class="rounded-btn primary" (click)="formSubmit()">
+						{{'TENANT-CONFIGURATION-EDITOR.ACTIONS.SAVE' | translate}}
+					</button>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+

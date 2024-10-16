@@ -1,0 +1,4 @@
+publicapi:
+  host: test.opencdmp.eu
+  basePath: /srv
+  schema: https

@@ -1,0 +1,20 @@
+springdoc:
+  apiDocs:
+    groups:
+      enabled: true
+  groupConfigs:
+    - group: legacy-api
+      displayName: Legacy
+      packagesToScan: org.opencdmp.controllers.publicapi
+      pathsToMatch: "/api/public/dmps/**, /api/public/datasets/**"
+    - group: current-api
+      displayName: Current
+      packagesToScan: org.opencdmp.controllers
+      packagesToExclude: org.opencdmp.controllers.publicapi
+      pathsToMatch: "/api/plan/**, /api/description/**, /api/description-template/**, /api/description-template-type/**, /api/plan-blueprint/**, /api/entity-doi/**, /api/deposit/**, /api/file-transformer/**, /api/tag/**, /api/reference/**, /api/reference-type/**, /api/lock/**, /api/user/**, /api/principal/**"
+  swaggerUi:
+    enabled: true
+    useRootPath: true
+    docExpansion: none
+    oauth:
+      clientId: dmp_swagger

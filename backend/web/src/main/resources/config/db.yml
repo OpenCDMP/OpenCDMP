@@ -1,0 +1,28 @@
+spring:
+  jpa:
+    properties:
+      org:
+        hibernate:
+          flushMode: MANUAL
+      hibernate:
+        globally_quoted_identifiers: true
+        ddl-auto: validate
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+    hibernate:
+      naming:
+        physical-strategy: org.opencdmp.data.namingstrategy.PrefixPhysicalNamingStrategy
+        implicit-strategy: org.springframework.boot.orm.jpa.hibernate.SpringImplicitNamingStrategy
+  datasource:
+    url: ${DB_URL}
+    username: ${DB_USER}
+    password: ${DB_PASS}
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      connection-timeout: 30000
+      minimum-idle: 3
+      maximum-pool-size: 10
+      idle-timeout: 600000
+      max-lifetime: 1800000
+
+naming-strategy:
+  prefix: 

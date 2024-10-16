@@ -1,0 +1,23 @@
+:host::ng-deep{
+
+	.mdc-notched-outline{
+		transition: 600ms opacity ease-out;
+	}
+	.mat-mdc-form-field-infix{
+		transition: 600ms width ease-out;
+	}
+
+
+
+	.hidden-element{
+		.mat-mdc-text-field-wrapper{
+			padding: 0px;
+		}
+		.mat-mdc-form-field-infix{
+			width: 0px !important;
+		}
+		.mdc-notched-outline{
+			opacity: 0;
+		}
+	}
+}

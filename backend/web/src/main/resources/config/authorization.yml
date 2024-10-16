@@ -1,0 +1,18 @@
+authorization:
+  globalAdminRoles:
+    - Admin
+    - InstallationAdmin
+  adminRole: Admin
+  tenantAdminRole: TenantAdmin
+  globalUserRole: User
+  tenantUserRole: TenantUser
+  autoAssignGlobalAdminToNewTenants: true
+  allowedTenantRoles:
+    - TenantAdmin
+    - TenantUser
+    - TenantPlanManager
+    - TenantConfigManager
+  allowedGlobalRoles:
+    - Admin
+    - InstallationAdmin
+    - User

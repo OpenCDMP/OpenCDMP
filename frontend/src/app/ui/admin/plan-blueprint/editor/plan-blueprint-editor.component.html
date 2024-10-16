@@ -1,0 +1,363 @@
+<div class="container-fluid">
+	<div class="row plan-blueprint-editor">
+		<div class="col-md-10 offset-md-1">
+			<div class="row align-items-center mt-4 mb-4" *ngIf="formGroup">
+				<div class="col-md col-12">
+					<app-navigation-breadcrumb />
+				</div>
+				<div class="col-md-auto mb-md-0 col-12 mb-2" *ngIf="canDelete">
+					<button [disabled]="isLocked" mat-button class="rounded-btn secondary" type="button" (click)="delete()">
+						<mat-icon>delete</mat-icon>
+						{{'PLAN-BLUEPRINT-EDITOR.ACTIONS.DELETE' | translate}}
+					</button>
+				</div>
+				<div class="col-md-auto col-12" *ngIf="canDownloadXML">
+					<button mat-button class="rounded-btn secondary" (click)="downloadXML()" type="button">{{'PLAN-BLUEPRINT-EDITOR.ACTIONS.DOWNLOAD-XML' | translate }}</button>
+				</div>
+				<div *ngIf="!hideEditActions && canFinalize" class="col-auto">
+					<button mat-button class="rounded-btn secondary" (click)="finalize()" [disabled]="this.isLocked || !this.isFormValid()" type="button">{{'PLAN-BLUEPRINT-EDITOR.ACTIONS.FINALIZE' | translate }}</button>
+				</div>
+			</div>
+			<form *ngIf="formGroup">
+				<mat-card class="pt-3 pb-3">
+					<mat-card-content>
+						<div class="row">
+							<div class="col-6">
+								<mat-form-field class="w-100">
+									<mat-label>{{'PLAN-BLUEPRINT-EDITOR.FIELDS.NAME' | translate}}</mat-label>
+									<input matInput type="text" name="label" [formControl]="formGroup.get('label')" required>
+									<mat-error *ngIf="formGroup.get('label').hasError('backendError')">{{formGroup.get('label').getError('backendError').message}}</mat-error>
+									<mat-error *ngIf="formGroup.get('label').hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
+								</mat-form-field>
+							</div>
+							<div class="col-6">
+								<mat-form-field class="w-100">
+									<mat-label>{{'PLAN-BLUEPRINT-EDITOR.FIELDS.CODE' | translate}}</mat-label>
+									<input matInput type="text" name="CODE" [formControl]="formGroup.get('code')" required>
+									<mat-error *ngIf="formGroup.get('code').hasError('backendError')">{{formGroup.get('code').getError('backendError').message}}</mat-error>
+									<mat-error *ngIf="formGroup.get('code').hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
+								</mat-form-field>
+							</div>
+							<h4 class="col-12">{{'PLAN-BLUEPRINT-EDITOR.FIELDS.SECTIONS' | translate}}
+								<mat-error *ngIf="formGroup?.get('definition')?.touched && formGroup.get('definition').get('sections').hasError('planBlueprintSystemFieldRequired')"> {{'PLAN-BLUEPRINT-EDITOR.SYSTEM-FIELDS-REQUIRED' | translate}} </mat-error>
+							</h4>
+							<div class="col-12" cdkDropList (cdkDropListDropped)="dropSections($event)">
+								<div *ngFor="let section of formGroup.get('definition').get('sections').controls; let sectionIndex=index;" class="row mb-3" cdkDrag [cdkDragDisabled]="hideEditActions">
+									<div class="col-12">
+										<mat-card class="pt-3 pb-3">
+											<mat-card-header>
+												<div class="row mb-3 d-flex align-items-center">
+													<div class="col-auto d-flex">
+														<mat-card-title>{{'PLAN-BLUEPRINT-EDITOR.FIELDS.SECTION-PREFIX' | translate}} {{sectionIndex + 1}}</mat-card-title>
+													</div>
+													<div class="col-auto d-flex"><mat-icon [ngClass]="{'drag-handle-disabled': hideEditActions}" cdkDragHandle class="drag-handle">drag_indicator</mat-icon></div>
+
+													<div class="col-auto d-flex" *ngIf="!hideEditActions">
+														<button mat-icon-button matTooltip="{{'PLAN-BLUEPRINT-EDITOR.ACTIONS.REMOVE-SECTION' | translate}}" (click)="removeSection(sectionIndex)">
+															<mat-icon>delete</mat-icon>
+														</button>
+													</div>
+												</div>
+											</mat-card-header>
+											<mat-card-content>
+												<div class="row">
+													<div class="col-6">
+														<mat-form-field class="w-100">
+															<mat-label>{{'PLAN-BLUEPRINT-EDITOR.FIELDS.SECTION-NAME' | translate}}</mat-label>
+															<input matInput type="text" name="label" [formControl]="section.get('label')" required>
+															<mat-error *ngIf="section.get('label').hasError('backendError')">{{section.get('label').getError('backendError').message}}</mat-error>
+															<mat-error *ngIf="section.get('label').hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
+														</mat-form-field>
+													</div>
+													<div class="col-6">
+														<mat-form-field class="w-100">
+															<mat-label>{{'PLAN-BLUEPRINT-EDITOR.FIELDS.SECTION-DESCRIPTION' | translate}}</mat-label>
+															<input matInput type="text" name="description" [formControl]="section.get('description')">
+															<mat-error *ngIf="section.get('description').hasError('backendError')">{{section.get('description').getError('backendError').message}}</mat-error>
+															<mat-error *ngIf="section.get('description').hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
+														</mat-form-field>
+													</div>
+													<div class="col-auto mb-3" *ngIf="!hideEditActions">
+														<button mat-button class="rounded-btn secondary" type="button" (click)="addField(sectionIndex)">{{'PLAN-BLUEPRINT-EDITOR.ACTIONS.ADD-FIELD' | translate}}</button>
+													</div>
+												</div>
+												<div class="row">
+													<div cdkDropList class="col-12 mt-3" (cdkDropListDropped)="dropFields($event, sectionIndex)">
+														<div *ngFor="let field of section.get('fields').controls; let fieldIndex=index;" cdkDrag class="section-fields-wrapper row align-items-center mt-1" [cdkDragDisabled]="hideEditActions" (mouseenter)="onSectionHover(fieldIndex)" (mouseleave)="clearHoveredSection()">
+															<div class="col-auto section-options-vertical">
+																<div class="row justify-content-center">
+																	<div class="col-auto">
+																		<span *ngIf="!isSectionSelected(fieldIndex)" style="font-size: 18px; box-sizing: border-box; display: inline-block; padding: 0.85rem 0.42rem 0 0.45rem;">{{fieldIndex + 1}}</span>
+																		<mat-icon *ngIf="isSectionSelected(fieldIndex)" [ngClass]="{'drag-handle-disabled': hideEditActions}" cdkDragHandle class="drag-handle" style="margin-top: 0.9rem;">drag_indicator</mat-icon>
+																	</div>
+																	<div class="col-auto" *ngIf="!hideEditActions">
+																		<button mat-icon-button matTooltip="{{'PLAN-BLUEPRINT-EDITOR.ACTIONS.REMOVE-FIELD' | translate}}" (click)="removeField(sectionIndex, fieldIndex)">
+																			<mat-icon>delete</mat-icon>
+																		</button>
+																	</div>
+																</div>
+															</div>
+															<div class="col-auto pr-0 section-options-horizontal">
+																<span *ngIf="!isSectionSelected(fieldIndex)" style="font-size: 18px; box-sizing: border-box; display: inline-block; padding: 0.85rem 0.45rem;">{{fieldIndex + 1}}</span>
+																<mat-icon *ngIf="isSectionSelected(fieldIndex)" [ngClass]="{'drag-handle-disabled': hideEditActions}" cdkDragHandle class="drag-handle">drag_indicator</mat-icon>
+															</div>
+															<div class="col">
+																<div class="row align-items-center">
+																	<!-- FIELD TYPE -->
+																	<div class="col-12 col-xl-4">
+																		<mat-form-field class="mt-3 w-100">
+																			<mat-label>{{'PLAN-BLUEPRINT-EDITOR.FIELDS.CATEGORY' | translate}}</mat-label>
+																			<mat-select [formControl]="field.get('category')" (selectionChange)="fieldCategoryChanged(sectionIndex, fieldIndex)">
+																				<mat-option *ngFor="let fieldCategory of planBlueprintFieldCategoryEnum" [value]="fieldCategory">{{enumUtils.toPlanBlueprintFieldCategoryString(fieldCategory)}}</mat-option>
+																			</mat-select>
+																			<mat-error *ngIf="field.get('category').hasError('backendError')">{{field.get('category').getError('backendError').message}}</mat-error>
+																			<mat-error *ngIf="field.get('category').hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
+																		</mat-form-field>
+																	</div>
+																	@switch(field.get('category').value){
+																	@case(planBlueprintSectionFieldCategory.System){
+																	<div class="col-12 col-xl-4">
+																		<mat-form-field class="mt-3 w-100">
+																			<mat-label>{{'PLAN-BLUEPRINT-EDITOR.FIELDS.SYSTEM-FIELD-TYPE' | translate}}</mat-label>
+																			<mat-select [formControl]="field.get('systemFieldType')">
+																				<mat-option *ngFor="let systemFieldType of planBlueprintSystemFieldTypeEnum" [disabled]="systemFieldDisabled(systemFieldType)" [value]="systemFieldType">{{enumUtils.toPlanBlueprintSystemFieldTypeString(systemFieldType)}}</mat-option>
+																			</mat-select>
+																			<mat-error *ngIf="field.get('systemFieldType').hasError('backendError')">{{field.get('systemFieldType').getError('backendError').message}}</mat-error>
+																			<mat-error *ngIf="field.get('systemFieldType').hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
+																		</mat-form-field>
+																	</div>
+																	}
+																	@case(planBlueprintSectionFieldCategory.Extra){
+																	<div class="col-12 col-xl-4">
+																		<mat-form-field class="mt-3 w-100">
+																			<mat-label>{{'PLAN-BLUEPRINT-EDITOR.FIELDS.DATA-TYPE' | translate}}</mat-label>
+																			<mat-select [formControl]="field.get('dataType')">
+																				<mat-option *ngFor="let extraFieldDataType of planBlueprintExtraFieldDataTypeEnum" [value]="extraFieldDataType">
+																					{{enumUtils.toPlanBlueprintExtraFieldDataTypeString(extraFieldDataType)}}
+																				</mat-option>
+																			</mat-select>
+																			<mat-error *ngIf="field.get('dataType').hasError('backendError')">{{field.get('dataType').getError('backendError').message}}</mat-error>
+																			<mat-error *ngIf="field.get('dataType').hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
+																		</mat-form-field>
+																	</div>
+																	}
+																	@case(planBlueprintSectionFieldCategory.ReferenceType){
+																	<div class="col-12 col-xl-4">
+																		<mat-form-field class="mt-3 w-100">
+																			<mat-label>{{'PLAN-BLUEPRINT-EDITOR.FIELDS.REFERENCE-TYPE' | translate}}</mat-label>
+																			<app-single-auto-complete placeholder="{{'PLAN-BLUEPRINT-EDITOR.FIELDS.REFERENCE-TYPE' | translate}}" [required]="true" [formControl]="field.get('referenceTypeId')" [configuration]="referenceTypeService.singleAutocompleteConfiguration"></app-single-auto-complete>
+																			<mat-error *ngIf="field.get('referenceTypeId').hasError('backendError')">{{field.get('referenceTypeId').getError('backendError').message}}</mat-error>
+																			<mat-error *ngIf="field.get('referenceTypeId').hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
+																		</mat-form-field>
+																	</div>
+																	}
+																	}
+																	@if(field.get('category').value != null){
+																	<div class="col-12 col-xl-4">
+																		<mat-form-field class="mt-3 w-100">
+																			<mat-label>{{'PLAN-BLUEPRINT-EDITOR.FIELDS.FIELD-LABEL' | translate}}</mat-label>
+																			<input matInput type="text" name="label" [formControl]="field.get('label')">
+																			<mat-error *ngIf="field.get('label').hasError('backendError')">{{field.get('label').getError('backendError').message}}</mat-error>
+																			<mat-error *ngIf="field.get('label').hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
+																		</mat-form-field>
+																	</div>
+																	<div class="col-12 col-xl-4">
+																		<mat-form-field class="mt-3 w-100">
+																			<mat-label>{{'PLAN-BLUEPRINT-EDITOR.FIELDS.FIELD-PLACEHOLDER' | translate}}</mat-label>
+																			<input matInput type="text" name="placeholder" [formControl]="field.get('placeholder')">
+																			<mat-error *ngIf="field.get('placeholder').hasError('backendError')">{{field.get('placeholder').getError('backendError').message}}</mat-error>
+																			<mat-error *ngIf="field.get('placeholder').hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
+																		</mat-form-field>
+																	</div>
+																	<div class="col-12 col-xl-4">
+																		<mat-form-field class="mt-3 w-100">
+																			<mat-label>{{'PLAN-BLUEPRINT-EDITOR.FIELDS.FIELD-DESCRIPTION' | translate}}</mat-label>
+																			<input matInput type="text" name="description" [formControl]="field.get('description')">
+																			<mat-error *ngIf="field.get('description').hasError('backendError')">{{field.get('description').getError('backendError').message}}</mat-error>
+																			<mat-error *ngIf="field.get('description').hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
+																		</mat-form-field>
+																	</div>
+																	<div class="col-12 order-xl-8">
+																		<mat-form-field class="mt-3 w-100">
+																			<mat-label>{{'PLAN-BLUEPRINT-EDITOR.FIELDS.SEMANTICS' | translate}}</mat-label>
+																			<app-multiple-auto-complete placeholder="{{'PLAN-BLUEPRINT-EDITOR.FIELDS.SEMANTICS' | translate}}" [required]="false" [separatorKeysCodes]="separatorKeysCodes" [formControl]="field.get('semantics')" [configuration]="semanticsService.multipleAutocompleteConfiguration">
+																			</app-multiple-auto-complete>
+																			<mat-error *ngIf="field.get('semantics').hasError('backendError')">{{field.get('semantics').getError('backendError').message}}</mat-error>
+																			<mat-error *ngIf="field.get('semantics').hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
+																		</mat-form-field>
+																	</div>
+																	<div class="col-auto col-xl-2 section-field">
+																		@if (isMandatorySystemField(field?.value)) {
+																		<app-noop-checkbox [control]="field.get('required')" label="{{'PLAN-BLUEPRINT-EDITOR.FIELDS.FIELD-REQUIRED' | translate}}" tooltipText="{{'PLAN-BLUEPRINT-EDITOR.FIELDS.SYSTEM-FIELD-REQUIRED' | translate}}"></app-noop-checkbox>
+																		}
+																		@else {
+																		<mat-checkbox [formControl]="field.get('required')"><span>{{'PLAN-BLUEPRINT-EDITOR.FIELDS.FIELD-REQUIRED' | translate}}</span></mat-checkbox>
+																		}
+																		<mat-error *ngIf="field.get('required').hasError('backendError')">{{field.get('required').getError('backendError').message}}</mat-error>
+																		<mat-error *ngIf="field.get('required').hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
+																	</div>
+																	}
+																	<div class="col-auto col-xl-2">
+																		@if(field.get('category').value === planBlueprintSectionFieldCategory.ReferenceType){
+																		<div>
+																			<mat-checkbox [formControl]="field.get('multipleSelect')"><span>{{'PLAN-BLUEPRINT-EDITOR.FIELDS.FIELD-MULTIPLE-SELECT' | translate}}</span></mat-checkbox>
+																			<mat-error *ngIf="field.get('multipleSelect')?.hasError('backendError')">{{field.get('multipleSelect')?.getError('backendError').message}}</mat-error>
+																			<mat-error *ngIf="field.get('multipleSelect')?.hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
+																		</div>
+																		}
+																	</div>
+																</div>
+															</div>
+															<div [hidden]="viewOnly" class="col-12 col-xl-auto section-options-horizontal" *ngIf="!hideEditActions">
+																<button mat-icon-button matTooltip="{{'PLAN-BLUEPRINT-EDITOR.ACTIONS.REMOVE-FIELD' | translate}}" (click)="removeField(sectionIndex, fieldIndex)">
+																	<mat-icon>delete</mat-icon>
+																</button>
+															</div>
+															<div *ngIf="fieldIndex != section.get('fields').controls.length-1" class="col-12">
+																<div class="pr-2 pl-2 mt-xl-1 mt-2 mb-1">
+																	<mat-divider></mat-divider>
+																</div>
+															</div>
+														</div>
+														<mat-error *ngIf="section.get('fields').dirty && section.get('fields').hasError('required')">{{'PLAN-BLUEPRINT-EDITOR.FIELDS-REQUIRED' | translate}}</mat-error>
+														<mat-error *ngIf="section.get('fields').hasError('backendError')">{{section.get('fields').getError('backendError').message}}</mat-error>
+													</div>
+												</div>
+
+												<div class="row">
+													<div class="col-12">
+														<div class="row d-flex flex-column">
+															<div class="col-auto">
+																<mat-checkbox [formControl]="section.get('hasTemplates')" (change)="removeAllDescriptionTemplates($event, sectionIndex)">
+																	{{'PLAN-BLUEPRINT-EDITOR.FIELDS.DESCRIPTION-TEMPLATES' | translate}}
+																</mat-checkbox>
+																<mat-error *ngIf="section.get('hasTemplates').hasError('backendError')">{{section.get('hasTemplates').getError('backendError').message}}</mat-error>
+																<mat-error *ngIf="section.get('hasTemplates').hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
+															</div>
+															<div class="col-auto" *ngIf="!hideEditActions && section.get('hasTemplates').value">
+																<button mat-button class="rounded-btn secondary" type="button" (click)="addDescriptionTemplate(sectionIndex)">{{'PLAN-BLUEPRINT-EDITOR.ACTIONS.ADD-DESCRIPTION-TEMPLATE' | translate}}</button>
+															</div>
+														</div>
+													</div>
+												</div>
+
+												<div class="row">
+													<div cdkDropList class="col-12 mt-3" (cdkDropListDropped)="dropDescriptionTemplates($event, sectionIndex)">
+														<div *ngFor="let descriptionTemplate of section.get('descriptionTemplates').controls; let descriptionTemplateIndex=index;" cdkDrag class="description-fields-wrapper row align-items-center mt-1" [cdkDragDisabled]="hideEditActions" (mouseenter)="onDescriptionTemplateHover(descriptionTemplateIndex)" (mouseleave)="clearHoveredDescriptionTemplate()">
+
+															<div class="col-auto section-options-vertical">
+																<div class="row justify-content-center">
+																	<div class="col-auto">
+																		<span *ngIf="!isDescriptionTemplateSelected(descriptionTemplateIndex)" style="font-size: 18px; box-sizing: border-box; display: inline-block; padding: 0.85rem 0.42rem 0 0.45rem;">{{descriptionTemplateIndex + 1}}</span>
+																		<mat-icon *ngIf="isDescriptionTemplateSelected(descriptionTemplateIndex)" [ngClass]="{'drag-handle-disabled': hideEditActions}" cdkDragHandle class="drag-handle" style="margin-top: 0.9rem;">drag_indicator</mat-icon>
+																	</div>
+																	<div class="col-auto" *ngIf="!hideEditActions">
+																		<button mat-icon-button matTooltip="{{'PLAN-BLUEPRINT-EDITOR.ACTIONS.REMOVE-DESCRIPTION-TEMPLATE' | translate}}" (click)="removeDescriptionTemplate(sectionIndex, descriptionTemplateIndex)">
+																			<mat-icon>delete</mat-icon>
+																		</button>
+																	</div>
+																</div>
+															</div>
+															<div class="col-auto pr-0 section-options-horizontal">
+																<span *ngIf="!isDescriptionTemplateSelected(descriptionTemplateIndex)" style="font-size: 18px; box-sizing: border-box; display: inline-block; padding: 0.85rem 0.45rem;">{{descriptionTemplateIndex + 1}}</span>
+																<mat-icon *ngIf="isDescriptionTemplateSelected(descriptionTemplateIndex)" [ngClass]="{'drag-handle-disabled': hideEditActions}" cdkDragHandle class="drag-handle">drag_indicator</mat-icon>
+															</div>
+
+															<div class="col">
+																<div class="row">
+																	<div class="col-12 col-lg-6">
+																		<mat-form-field class="w-100 mt-3">
+																			<mat-label>{{'PLAN-BLUEPRINT-EDITOR.FIELDS.DESCRIPTION-TEMPLATE' | translate}}</mat-label>
+																			<app-single-auto-complete [formControl]="descriptionTemplate.get('descriptionTemplateGroupId')" [configuration]="descriptionTemplateGroupIdsConfigBySection.get(section.get('id').value)" (optionActionClicked)="onPreviewDescriptionTemplate($event, sectionIndex, descriptionTemplateIndex)" (optionSelected)="selectedDescriptionTemplate($event, section.get('id').value)"></app-single-auto-complete>
+																			<mat-error *ngIf="descriptionTemplate.get('descriptionTemplateGroupId').hasError('backendError')">{{descriptionTemplate.get('descriptionTemplateGroupId').getError('backendError').message}}</mat-error>
+																			<mat-error *ngIf="descriptionTemplate.get('descriptionTemplateGroupId').hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
+																		</mat-form-field>
+																	</div>
+																	<!-- <div class="col-12 col-lg-6 col-xl-4">
+																		<mat-form-field class="w-100 mt-3">
+																			<mat-label>{{'PLAN-BLUEPRINT-EDITOR.FIELDS.DESCRIPTION-TEMPLATE-LABEL' | translate}}</mat-label>
+																			<input matInput type="text" name="label" [formControl]="descriptionTemplate.get('label')">
+																			<mat-error *ngIf="descriptionTemplate.get('label').hasError('backendError')">{{descriptionTemplate.get('label').getError('backendError').message}}</mat-error>
+																			<mat-error *ngIf="descriptionTemplate.get('label').hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
+																		</mat-form-field>
+																	</div> -->
+																	<div class="col-12 col-lg-3">
+																		<mat-form-field class="w-100 mt-3">
+																			<mat-label>{{'PLAN-BLUEPRINT-EDITOR.FIELDS.DESCRIPTION-TEMPLATE-MIN-MULTIPLICITY' | translate}}</mat-label>
+																			<input matInput type="number" min="0" [max]="descriptionTemplate.get('maxMultiplicity').value" name="minMultiplicity" [formControl]="descriptionTemplate.get('minMultiplicity')">
+																			<mat-error *ngIf="descriptionTemplate.get('minMultiplicity').hasError('backendError')">{{descriptionTemplate.get('minMultiplicity').getError('backendError').message}}</mat-error>
+																			<mat-error *ngIf="descriptionTemplate.get('minMultiplicity').hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
+																		</mat-form-field>
+																	</div>
+																	<div class="col-12 col-lg-3">
+																		<mat-form-field class="w-100 mt-3">
+																			<mat-label>{{'PLAN-BLUEPRINT-EDITOR.FIELDS.DESCRIPTION-TEMPLATE-MAX-MULTIPLICITY' | translate}}</mat-label>
+																			<input matInput type="number" [min]="descriptionTemplate.get('minMultiplicity').value != null && descriptionTemplate.get('minMultiplicity').value != 0 ? descriptionTemplate.get('minMultiplicity').value : 1" name="maxMultiplicity" [formControl]="descriptionTemplate.get('maxMultiplicity')">
+																			<mat-error *ngIf="descriptionTemplate.get('maxMultiplicity').hasError('backendError')">{{descriptionTemplate.get('maxMultiplicity').getError('backendError').message}}</mat-error>
+																			<mat-error *ngIf="descriptionTemplate.get('maxMultiplicity').hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
+																		</mat-form-field>
+																	</div>
+																</div>
+															</div>
+															<div class="col-12 col-xl-auto section-options-horizontal">
+																<div class="row">
+																	<div class="col-auto" *ngIf="!hideEditActions">
+																		<button mat-icon-button matTooltip="{{'PLAN-BLUEPRINT-EDITOR.ACTIONS.REMOVE-DESCRIPTION-TEMPLATE' | translate}}" (click)="removeDescriptionTemplate(sectionIndex, descriptionTemplateIndex)">
+																			<mat-icon>delete</mat-icon>
+																		</button>
+																	</div>
+																</div>
+															</div>
+														</div>
+														<mat-error *ngIf="section.get('descriptionTemplates').hasError('backendError')">{{section.get('descriptionTemplates').getError('backendError').message}}</mat-error>
+													</div>
+												</div>
+												<div class="row">
+													<ng-container *ngIf="section.get('hasTemplates').value == true" class="col-12">
+														<div class="col-12">
+															<mat-checkbox [formControl]="section.get('prefillingSourcesEnabled')" (change)="removeAllPrefillingSources($event, sectionIndex)">
+																{{'PLAN-BLUEPRINT-EDITOR.FIELDS.ENABLE-PREFILLING-SOURCES' | translate}}
+															</mat-checkbox>
+														</div>
+														<div class="col-12" *ngIf="section.get('prefillingSourcesEnabled')?.value == true">
+															<mat-form-field class="w-100 mt-3">
+																<mat-label>{{'PLAN-BLUEPRINT-EDITOR.FIELDS.PREFILLING-SOURCES' | translate}}</mat-label>
+																<app-multiple-auto-complete [formControl]="section.get('prefillingSourcesIds')" [configuration]="prefillingSourceService.multipleAutocompleteConfiguration"></app-multiple-auto-complete>
+																<mat-error *ngIf="section.get('prefillingSourcesIds').hasError('backendError')">{{section.get('prefillingSourcesIds').getError('backendError').message}}</mat-error>
+															</mat-form-field>
+														</div>
+													</ng-container>
+												</div>
+											</mat-card-content>
+										</mat-card>
+									</div>
+								</div>
+							</div>
+
+							<div class="col-12">
+								<div class="row">
+									<div class="col-auto" *ngIf="!hideEditActions">
+										<button mat-button class="rounded-btn secondary" type="button" (click)="addSection()">{{'PLAN-BLUEPRINT-EDITOR.ACTIONS.ADD-SECTION' | translate}}</button>
+										<mat-error *ngIf="formGroup.get('definition').get('sections').dirty && formGroup.get('definition').get('sections').hasError('required')">{{'PLAN-BLUEPRINT-EDITOR.SECTIONS-REQUIRED' | translate}}</mat-error>
+										<mat-error *ngIf="formGroup.get('definition').get('sections').hasError('backendError')">{{formGroup.get('definition').get('sections').getError('backendError').message}}</mat-error>
+									</div>
+								</div>
+							</div>
+						</div>
+						<div class="row mt-4">
+							<div class="col-auto">
+								<button mat-button class="rounded-btn secondary" (click)="cancel()" type="button">{{'PLAN-BLUEPRINT-EDITOR.ACTIONS.CANCEL' | translate}}</button>
+							</div>
+							<div class="col"></div>
+							<div class="col-auto" *ngIf="!hideEditActions">
+								<button mat-button class="rounded-btn secondary" [disabled]="isLocked" type="submit" (click)="save(); formSubmit()">
+									{{'PLAN-BLUEPRINT-EDITOR.ACTIONS.SAVE' | translate}}
+								</button>
+							</div>
+						</div>
+					</mat-card-content>
+				</mat-card>
+			</form>
+		</div>
+	</div>
+</div>

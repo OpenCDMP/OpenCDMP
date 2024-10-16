@@ -1,0 +1,38 @@
+{
+	"compileOnSave": false,
+	"compilerOptions": {
+    "baseUrl": "./src",
+    "outDir": "./dist/out-tsc",
+    "esModuleInterop": true,
+    "sourceMap": true,
+    "declaration": false,
+    "module": "es2020",
+    "moduleResolution": "node",
+    "experimentalDecorators": true,
+    "importHelpers": true,
+    "skipLibCheck": true,
+    "target": "ES2022",
+    "typeRoots": [
+      "node_modules/@types"
+    ],
+    "lib": [
+      "es2018",
+      "dom"
+    ],
+    "paths": {
+      "@app/*": [
+        "./app/*"
+      ],
+      "@common/*": [
+        "./common/*"
+      ],
+      "@annotation-service/*":[
+        "./annotation-service/*"
+      ],
+      "@notification-service/*":[
+        "./notification-service/*"
+      ]
+    },
+    "useDefineForClassFields": false
+  }
+}

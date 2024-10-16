@@ -1,0 +1,322 @@
+<div class="container-fluid">
+	<div class="row notification-template-editor">
+		<div class="col-md-10 offset-md-1 colums-gapped">
+			<div class="row align-items-center mt-4 mb-4" *ngIf="formGroup">
+				<div class="col-md col-12">
+					<app-navigation-breadcrumb />
+				</div>
+				<div class="col-auto">
+					<button mat-button class="rounded-btn secondary" (click)="cancel()" type="button">{{'NOTIFICATION-SERVICE.NOTIFICATION-TEMPLATE-EDITOR.ACTIONS.CANCEL' | translate}}</button>
+				</div>
+				<div class="col-auto" *ngIf="canDelete">
+					<button mat-button class="rounded-btn secondary" type="button" (click)="delete()">
+						<mat-icon>delete</mat-icon>
+						{{'NOTIFICATION-SERVICE.NOTIFICATION-TEMPLATE-EDITOR.ACTIONS.DELETE' | translate}}
+					</button>
+				</div>
+				<div class="col-auto" *ngIf="canSave">
+					<button mat-button class="rounded-btn secondary" (click)="formSubmit()">
+						<mat-icon>save</mat-icon>
+						{{'NOTIFICATION-SERVICE.NOTIFICATION-TEMPLATE-EDITOR.ACTIONS.SAVE' | translate}}
+					</button>
+				</div>
+			</div>
+
+			<form *ngIf="formGroup" (ngSubmit)="formSubmit()" >
+				<mat-card appearance="outlined" class="pt-3 pb-3">
+					<mat-card-content>
+						<div class="row">
+							<div class="col-12">
+								<div class="container-fluid">
+									<div class="row flex-wrap">
+										<div class="col-md-12">
+											<mat-form-field class="w-100">
+												<mat-label>{{'NOTIFICATION-SERVICE.NOTIFICATION-TEMPLATE-EDITOR.FIELDS.NOTIFICATION-TYPE' | translate}}</mat-label>
+												<mat-select [formControl]="formGroup.get('notificationType')" name="notificationType" required>
+													<mat-option *ngFor="let type of notificationTypeEnum" [value]="type">
+														{{enumUtils.toNotificationTypeString(type)}}
+													</mat-option>
+												</mat-select>
+												<mat-error *ngIf="formGroup.get('notificationType').hasError('backendError')">{{formGroup.get('notificationType').getError('backendError').message}}</mat-error>
+												<mat-error *ngIf="formGroup.get('notificationType').hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
+											</mat-form-field>
+										</div>
+										<div class="col-12 col-lg-4">
+											<mat-form-field class="w-100">
+												<mat-label>{{'NOTIFICATION-SERVICE.NOTIFICATION-TEMPLATE-EDITOR.FIELDS.LANGUAGE' | translate}}</mat-label>
+												<mat-select [formControl]="formGroup.get('languageCode')" name="language" required>
+													<mat-option *ngFor="let language of languages" [value]="language.code">
+														{{language.code}}
+													</mat-option>
+												</mat-select>
+												<mat-error *ngIf="formGroup.get('languageCode').hasError('backendError')">{{formGroup.get('languageCode').getError('backendError').message}}</mat-error>
+												<mat-error *ngIf="formGroup.get('languageCode').hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
+											</mat-form-field>
+										</div>
+										<div class="col-12 col-lg-4">
+											<mat-form-field class="w-100">
+												<mat-label>{{'NOTIFICATION-SERVICE.NOTIFICATION-TEMPLATE-EDITOR.FIELDS.KIND' | translate}}</mat-label>
+												<mat-select name="kind" [formControl]="formGroup.get('kind')" required>
+													<mat-option *ngFor="let kind of notificationTemplateKindEnum" [value]="kind">
+														{{enumUtils.toNotificationTemplateKindString(kind)}}
+													</mat-option>
+												</mat-select>
+												<mat-error *ngIf="formGroup.get('kind').hasError('backendError')">{{formGroup.get('kind').getError('backendError').message}}</mat-error>
+												<mat-error *ngIf="formGroup.get('kind').hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
+											</mat-form-field>
+										</div>
+										<div class="col-12 col-lg-4">
+											<mat-form-field class="w-100">
+												<mat-label>{{'NOTIFICATION-SERVICE.NOTIFICATION-TEMPLATE-EDITOR.FIELDS.CHANNEL' | translate}}</mat-label>
+												<mat-select name="channel" [formControl]="formGroup.get('channel')" required>
+													<mat-option *ngFor="let channel of notificationTemplateChannelEnum" [value]="channel">
+														{{enumUtils.toNotificationTemplateChannelString(channel)}}
+													</mat-option>
+												</mat-select>
+												<mat-error *ngIf="formGroup.get('channel').hasError('backendError')">{{formGroup.get('channel').getError('backendError').message}}</mat-error>
+												<mat-error *ngIf="formGroup.get('channel').hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
+											</mat-form-field>
+										</div>
+									</div>
+								</div>
+							</div>
+						</div>
+
+						<!-- Subject -->
+						<div class="row">
+							<div class="col-12">
+								<div class="container-fluid">
+									<div class="row flex-wrap">									
+										<h3 class="col-md-12">{{'NOTIFICATION-SERVICE.NOTIFICATION-TEMPLATE-EDITOR.FIELDS.SUBJECT-SECTION' | translate}}</h3>
+										<div class="col-md-6">
+											<mat-form-field class="w-100">
+												<mat-label>{{'NOTIFICATION-SERVICE.NOTIFICATION-TEMPLATE-EDITOR.FIELDS.SUBJECT-TEXT' | translate}}</mat-label>
+												<input matInput [formControl]="formGroup.get('value').get('subjectText')">
+												<mat-error *ngIf="formGroup.get('value').get('subjectText').hasError('backendError')">{{formGroup.get('value').get('subjectText').getError('backendError').message}}</mat-error>
+												<mat-error *ngIf="formGroup.get('value').get('subjectText').hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
+											</mat-form-field>
+										</div>
+										<div class="col-md-6">
+											<mat-form-field class="w-100">
+												<mat-label>{{'NOTIFICATION-SERVICE.NOTIFICATION-TEMPLATE-EDITOR.FIELDS.SUBJECT-KEY' | translate}}</mat-label>
+												<input matInput [formControl]="formGroup.get('value').get('subjectKey')">
+												<mat-error *ngIf="formGroup.get('value').get('subjectKey').hasError('backendError')">{{formGroup.get('value').get('subjectKey').getError('backendError').message}}</mat-error>
+												<mat-error *ngIf="formGroup.get('value').get('subjectKey').hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
+											</mat-form-field>
+										</div>
+									</div>
+								</div>
+							</div>
+						</div>
+						<div class="row">
+							<div class="col-12">
+								<div class="container-fluid">
+									<div class="row">
+										<h4 class="col-md-12">{{'NOTIFICATION-SERVICE.NOTIFICATION-TEMPLATE-EDITOR.FIELDS.SUBJECT-FIELD-OPTIONS' | translate}}
+											<mat-checkbox [checked]="subjectFieldOptionsEnabled" (change)="subjectFieldOptionsSelectionChanged($event)" [disabled]="formGroup.disabled"></mat-checkbox>
+										</h4>
+									</div>
+								</div>
+							</div>
+						</div>
+						<ng-container *ngIf="subjectFieldOptionsEnabled == true">
+							<app-notification-template-field-options-component
+								[form]="formGroup.get('value').get('subjectFieldOptions')"
+								[validationErrorModel]="editorModel.validationErrorModel"
+								[validationRootPath]="'value.subjectFieldOptions.'"
+								[mandatoryFields]="subjectMandatoryFields"
+								[formatting]="subjectFormatting">
+							</app-notification-template-field-options-component>
+						</ng-container>
+
+						<!-- Body -->
+						<div class="row">
+							<div class="col-12">
+								<div class="container-fluid">
+									<div class="row">		
+										<h3 class="col-md-12">{{'NOTIFICATION-SERVICE.NOTIFICATION-TEMPLATE-EDITOR.FIELDS.BODY-SECTION' | translate}}</h3>
+										<div class="col-md-6">
+											<mat-form-field class="w-100">
+												<mat-label>{{'NOTIFICATION-SERVICE.NOTIFICATION-TEMPLATE-EDITOR.FIELDS.BODY-KEY' | translate}}</mat-label>
+												<input matInput [formControl]="formGroup.get('value').get('bodyKey')">
+												<mat-error *ngIf="formGroup.get('value').get('bodyKey').hasError('backendError')">{{formGroup.get('value').get('bodyKey').getError('backendError').message}}</mat-error>
+												<mat-error *ngIf="formGroup.get('value').get('bodyKey').hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
+											</mat-form-field>
+										</div>
+										<div class="col-12">
+											<mat-label>{{'NOTIFICATION-SERVICE.NOTIFICATION-TEMPLATE-EDITOR.FIELDS.BODY-TEXT' | translate}}</mat-label>
+											<editor class="w-100 mt-2" [init]="{
+											base_url: '/tinymce',
+											suffix: '.min',
+											height: 800,
+											menubar: true,
+											plugins: [
+											'advlist', 'autolink', 'lists', 'link', 'image', 'charmap', 'print', 'preview', 'anchor',
+											'searchreplace', 'visualblocks', 'fullpage',
+											'insertdatetime', 'media', 'table' ,'paste', 'code', 'help', 'wordcount','importcss',
+											],
+											extended_valid_elements: '*[*]',
+											forced_root_block: '',
+											valid_children: '+body[script],ol[li|div|p|a|ol|table],h2[span],h3[span]',
+											save_enablewhendirty: false,
+											toolbar:
+											'undo redo | formatselect | bold italic backcolor | \
+											alignleft aligncenter alignright alignjustify | \
+											bullist numlist outdent indent | code | searchreplace | preview | removeformat | help | link | image'
+										}" [formControl]="formGroup.get('value').get('bodyText')"></editor>
+										<mat-error *ngIf="formGroup.get('value').get('bodyText').hasError('backendError')">{{formGroup.get('value').get('bodyText').getError('backendError').message}}</mat-error>
+										<mat-error *ngIf="formGroup.get('value').get('bodyText').hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
+										</div>
+									</div>
+								</div>
+							</div>
+						</div>
+						<div class="row">
+							<div class="col-12">
+								<div class="container-fluid">
+									<div class="row">
+										<h4 class="col-md-12">{{'NOTIFICATION-SERVICE.NOTIFICATION-TEMPLATE-EDITOR.FIELDS.BODY-FIELD-OPTIONS' | translate}}
+											<mat-checkbox [checked]="bodyFieldOptionsEnabled" (change)="bodyFieldOptionsSelectionChanged($event)" [disabled]="formGroup.disabled"></mat-checkbox>
+										</h4>
+									</div>
+								</div>
+							</div>
+						</div>
+						<ng-container *ngIf="bodyFieldOptionsEnabled == true">
+							<app-notification-template-field-options-component
+								[form]="formGroup.get('value').get('bodyFieldOptions')"
+								[validationErrorModel]="editorModel.validationErrorModel"
+								[validationRootPath]="'value.bodyFieldOptions.'"
+								[bodyMandatoryFields]="subjectMandatoryFields"
+								[formatting]="bodyFormatting">
+							</app-notification-template-field-options-component>
+						</ng-container>
+						<!--Extra Options -->
+						<div class="row">
+							<div class="col-12">
+								<div class="container-fluid">
+									<div class="row">
+										<h3 class="col-md-12">{{'NOTIFICATION-SERVICE.NOTIFICATION-TEMPLATE-EDITOR.FIELDS.EXTRA-OPTIONS' | translate}}</h3>
+										<div>
+											<h4 class="col-md-12">{{'NOTIFICATION-SERVICE.NOTIFICATION-TEMPLATE-EDITOR.FIELDS.ALLOW-ATTACHMENTS' | translate}}
+												<mat-checkbox [formControl]="formGroup.get('value').get('allowAttachments')"></mat-checkbox>
+												<mat-error *ngIf="formGroup.get('value').get('allowAttachments').hasError('backendError')">{{formGroup.get('value').get('allowAttachments').getError('backendError').message}}</mat-error>
+											</h4>
+										</div>
+									</div>
+								</div>
+							</div>
+						</div>
+						<div class="row">
+							<div class="col-12">
+								<div class="container-fluid">
+									<div class="row">
+										<div class="col-12 col-lg-4">
+											<mat-form-field class="w-100">
+												<mat-label>{{'NOTIFICATION-SERVICE.NOTIFICATION-TEMPLATE-EDITOR.FIELDS.PRIORITY-KEY' | translate}}</mat-label>
+												<input matInput [formControl]="formGroup.get('value').get('priorityKey')">
+												<mat-error *ngIf="formGroup.get('value').get('priorityKey').hasError('backendError')">{{formGroup.get('value').get('priorityKey').getError('backendError').message}}</mat-error>
+												<mat-error *ngIf="formGroup.get('value').get('priorityKey').hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
+											</mat-form-field>
+										</div>
+										<div class="col-12 col-lg-4">
+											<mat-form-field class="w-100 chip-list">
+												<mat-label>{{'NOTIFICATION-SERVICE.NOTIFICATION-TEMPLATE-EDITOR.FIELDS.CC' | translate}}</mat-label>
+												<mat-chip-grid #cc [formControl]="formGroup.get('value').get('cc')">
+												<mat-chip-row *ngFor="let field of ccValues"
+																(removed)="removeChipListValues('cc', field)"
+																[editable]="true"
+																(edited)="editChipListValues('cc', $event, field)">
+													{{field}}
+													<button matChipRemove>
+													<mat-icon>cancel</mat-icon>
+													</button>
+												</mat-chip-row>
+												<input placeholder="{{'NOTIFICATION-SERVICE.NOTIFICATION-TEMPLATE-EDITOR.FIELDS.MANDATORY-PLACEHOLDER' | translate}}"
+														[matChipInputFor]="cc"
+														[matChipInputSeparatorKeyCodes]="separatorKeysCodes"
+														[matChipInputAddOnBlur]="true"
+														(matChipInputTokenEnd)="addChipListValues('cc',$event)"/>
+												</mat-chip-grid>
+												<mat-error *ngIf="formGroup.get('value').get('cc').hasError('backendError')">{{formGroup.get('value').get('cc').getError('backendError').message}}</mat-error>
+											</mat-form-field>
+										</div>
+										<div class="col-12 col-lg-4">
+											<mat-form-field class="w-100">
+												<mat-label>{{'NOTIFICATION-SERVICE.NOTIFICATION-TEMPLATE-EDITOR.FIELDS.CC-MODE' | translate}}</mat-label>
+												<mat-select name="ccMode" [formControl]="formGroup.get('value').get('ccMode')">
+													<mat-option *ngFor="let emailOverrideMode of emailOverrideModeEnum" [value]="emailOverrideMode">
+														{{enumUtils.toEmailOverrideModeString(emailOverrideMode)}}
+													</mat-option>
+												</mat-select>
+												<mat-error *ngIf="formGroup.get('value').get('ccMode').hasError('backendError')">{{formGroup.get('value').get('ccMode').getError('backendError').message}}</mat-error>
+												<mat-error *ngIf="formGroup.get('value').get('ccMode').hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
+											</mat-form-field>
+										</div>
+										<div class="col-12 col-lg-4">
+											<mat-form-field class="w-100 chip-list">
+												<mat-label>{{'NOTIFICATION-SERVICE.NOTIFICATION-TEMPLATE-EDITOR.FIELDS.BCC' | translate}}</mat-label>
+												<mat-chip-grid #bcc [formControl]="formGroup.get('value').get('bcc')">
+												<mat-chip-row *ngFor="let field of bccValues"
+																(removed)="removeChipListValues('bcc', field)"
+																[editable]="true"
+																(edited)="editChipListValues('bcc', $event, field)">
+													{{field}}
+													<button matChipRemove>
+													<mat-icon>cancel</mat-icon>
+													</button>
+												</mat-chip-row>
+												<input placeholder="{{'NOTIFICATION-SERVICE.NOTIFICATION-TEMPLATE-EDITOR.FIELDS.MANDATORY-PLACEHOLDER' | translate}}"
+														[matChipInputFor]="bcc"
+														[matChipInputSeparatorKeyCodes]="separatorKeysCodes"
+														[matChipInputAddOnBlur]="true"
+														(matChipInputTokenEnd)="addChipListValues('bcc',$event)"/>
+												</mat-chip-grid>
+												<mat-error *ngIf="formGroup.get('value').get('bcc').hasError('backendError')">{{formGroup.get('value').get('bcc').getError('backendError').message}}</mat-error>
+											</mat-form-field>
+										</div>
+										<div class="col-12 col-lg-4">
+											<mat-form-field class="w-100">
+												<mat-label>{{'NOTIFICATION-SERVICE.NOTIFICATION-TEMPLATE-EDITOR.FIELDS.BCC-MODE' | translate}}</mat-label>
+												<mat-select name="bccMode" [formControl]="formGroup.get('value').get('bccMode')">
+													<mat-option *ngFor="let emailOverrideMode of emailOverrideModeEnum" [value]="emailOverrideMode">
+														{{enumUtils.toEmailOverrideModeString(emailOverrideMode)}}
+													</mat-option>
+												</mat-select>
+												<mat-error *ngIf="formGroup.get('value').get('bccMode').hasError('backendError')">{{formGroup.get('value').get('bccMode').getError('backendError').message}}</mat-error>
+												<mat-error *ngIf="formGroup.get('value').get('bccMode').hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
+											</mat-form-field>
+										</div>
+										<div class="col-12 col-lg-4">
+											<mat-form-field class="w-100 chip-list">
+												<mat-label>{{'NOTIFICATION-SERVICE.NOTIFICATION-TEMPLATE-EDITOR.FIELDS.EXTRA-DATA-KEYS' | translate}}</mat-label>
+												<mat-chip-grid #extraDataKeysGrid [formControl]="formGroup.get('value').get('extraDataKeys')">
+												<mat-chip-row *ngFor="let field of extraDataKeys"
+																(removed)="removeChipListValues('extraDataKeys', field)"
+																[editable]="true"
+																(edited)="editChipListValues('extraDataKeys', $event, field)">
+													{{field}}
+													<button matChipRemove>
+													<mat-icon>cancel</mat-icon>
+													</button>
+												</mat-chip-row>
+												<input placeholder="{{'NOTIFICATION-SERVICE.NOTIFICATION-TEMPLATE-EDITOR.FIELDS.MANDATORY-PLACEHOLDER' | translate}}"
+														[matChipInputFor]="extraDataKeysGrid"
+														[matChipInputSeparatorKeyCodes]="separatorKeysCodes"
+														[matChipInputAddOnBlur]="true"
+														(matChipInputTokenEnd)="addChipListValues('extraDataKeys',$event)"/>
+												</mat-chip-grid>
+												<mat-error *ngIf="formGroup.get('value').get('extraDataKeys').hasError('backendError')">{{formGroup.get('value').get('extraDataKeys').getError('backendError').message}}</mat-error>
+											</mat-form-field>
+										</div>
+									</div>
+								</div>
+							</div>
+						</div>
+					</mat-card-content>
+				</mat-card>
+			</form>
+
+		</div>
+	</div>
+</div>

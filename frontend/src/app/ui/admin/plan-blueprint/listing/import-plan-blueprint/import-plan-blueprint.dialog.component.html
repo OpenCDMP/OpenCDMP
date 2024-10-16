@@ -1,0 +1,46 @@
+<div class="container-fluid">
+	<div class="row d-flex mt-2">
+		<div class="confirmation-message col-auto align-self-center">
+			<h4>{{ data.message }}</h4>
+		</div>
+		<div class="col-auto ml-auto">
+            <button mat-icon-button tabindex="-1" (click)="cancel()">
+                <mat-icon>close</mat-icon>
+            </button>
+		</div>
+	</div>
+	<mat-dialog-content>
+		<div class="row">
+			<div class="col-12">
+				<ngx-dropzone class="drop-file" (change)="selectXML($event)" [accept]="'text/xml'" [multiple]="false">
+					<ngx-dropzone-preview class="file-preview" [removable]="true" *ngIf="hasBlueprint()" (removed)="onRemove()">
+						<ngx-dropzone-label class="file-label">{{ selectedFileName }}</ngx-dropzone-label>
+					</ngx-dropzone-preview>
+				</ngx-dropzone>
+			</div>
+		</div>
+		<div class="row">
+			<div class="col-12 d-flex justify-content-center attach-btn">
+				<button mat-button type="button" class="col-auto attach-file" (click)="imgFileInput.click()">
+					<mat-icon class="mr-2">input</mat-icon>
+					<span *ngIf="!hasBlueprint()">{{'GENERAL.START-NEW-PLAN-DIALOG.UPLOAD-FILE' | translate}}</span>
+					<span *ngIf="hasBlueprint()">{{'GENERAL.START-NEW-PLAN-DIALOG.REPLACE-FILE' | translate}}</span>
+				</button>
+				<input class="hidden" type="file" #imgFileInput (change)="selectXML($event)" accept="text/xml" />
+			</div>
+		</div>
+		<div class="row">
+			<mat-form-field class="col-12">
+				<input matInput placeholder="{{'PLAN-BLUEPRINT-LISTING.IMPORT.UPLOAD-XML-NAME'| translate}}" name="descriptionBlueprintName" [(ngModel)]="data.name">
+			</mat-form-field>
+			<div class="col-auto">
+				<button mat-button type="button" class="rounded-btn neutral" (click)="cancel()">{{ data.cancelButton }}</button>
+			</div>
+			<div class="col"></div>
+			<div class="col-auto">
+				<button mat-button color="primary" class="rounded-btn primary" type="button" (click)="confirm()" [disabled]="!hasBlueprint()">{{ data.confirmButton }}</button>
+			</div>
+		</div>
+	</mat-dialog-content>
+
+</div>

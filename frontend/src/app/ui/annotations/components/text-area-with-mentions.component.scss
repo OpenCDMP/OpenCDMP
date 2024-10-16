@@ -1,0 +1,29 @@
+.relative-block-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.relative-block-container div{
+  width: 300px;
+}
+
+.relative-block-container textarea {
+  line-height: 1.4;
+  word-spacing:2px;
+}
+
+.formatted-text {
+  margin: 3rem 0;
+  width: 300px;
+  line-height: 1.4;
+  font-size: 16px;
+}
+
+::ng-deep.ngx-selectable-list {
+  max-height: 150px !important;
+}
+
+::ng-deep.ngx-text-highlight-tag {
+  letter-spacing: -0.01rem !important;
+}

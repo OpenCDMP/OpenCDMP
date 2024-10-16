@@ -1,0 +1,58 @@
+idpclient:
+  claims:
+    mapping:
+      Subject:
+        - type: sub
+      Name:
+        - type: name
+      Client:
+        - type: client_id
+      AuthenticationMethod:
+        - type: amr
+      NotBefore:
+        - type: nbf
+      AuthenticatedAt:
+        - type: auth_time
+      ExpiresAt:
+        - type: exp
+      Email:
+        - type: email
+      Roles:
+        - type: resource_access
+          path: dmp_web.roles
+        - type: tenant_roles
+          filterBy: "(.*):::TenantCode::"
+          extractByExpression: "(.*):(.*)"
+          extractExpressionValue: "[[g1]]"
+      GlobalRoles:
+        - type: resource_access
+          path: dmp_web.roles
+      TenantRoles:
+        - type: tenant_roles
+          filterBy: "(.*):::TenantCode::"
+          extractByExpression: "(.*):(.*)"
+          extractExpressionValue: "[[g1]]"
+      Scope:
+        - type: scope
+      AccessToken:
+        - type: x-access-token
+          visibility: SENSITIVE
+      Tenant:
+        - type: x-tenant
+      IssuedAt:
+        - type: iat
+      Issuer:
+        - type: iss
+      Audience:
+        - type: aud
+      TokenType:
+        - type: typ
+      AuthorizedParty:
+        - type: azp
+      Authorities:
+        - type: authorities
+      TenantCodes:
+        - type: tenant_roles
+          filterBy: "(.*):(.*)"
+          extractByExpression: "(.*):(.*)"
+          extractExpressionValue: "[[g2]]"

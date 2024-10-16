@@ -1,0 +1,61 @@
+<div class="row align-items-center" *ngFor="let ruleFormGroup of form['controls'] let i=index;" [formGroup]="ruleFormGroup">
+	<div class="col-auto mb-3"><span>{{i + 1}}</span></div>
+
+	<div class="col" *ngIf="isTextType(fieldTypeForCheck) || isTextListType(fieldTypeForCheck)" >
+		<app-description-template-editor-default-value-component [fieldType]="fieldTypeForCheck" [form]="ruleFormGroup.get('textValue')" [formArrayOptions]="formArrayOptionsForCheck" placeHolder="{{'DESCRIPTION-TEMPLATE-EDITOR.STEPS.FORM.RULE.FIELDS.RULE-IF'| translate}}" required="true"></app-description-template-editor-default-value-component>
+	</div>
+	<div class="col" *ngIf="isDateType(fieldTypeForCheck)">
+		<app-description-template-editor-default-value-component [fieldType]="fieldTypeForCheck" [form]="ruleFormGroup.get('dateValue')" [formArrayOptions]="formArrayOptionsForCheck" placeHolder="{{'DESCRIPTION-TEMPLATE-EDITOR.STEPS.FORM.RULE.FIELDS.RULE-IF'| translate}}" required="true"></app-description-template-editor-default-value-component>
+	</div>
+	<div class="col" *ngIf="isBooleanType(fieldTypeForCheck)">
+		<app-description-template-editor-default-value-component [fieldType]="fieldTypeForCheck" [form]="ruleFormGroup.get('booleanValue')" [formArrayOptions]="formArrayOptionsForCheck" placeHolder="{{'DESCRIPTION-TEMPLATE-EDITOR.STEPS.FORM.RULE.FIELDS.RULE-IF'| translate}}" required="true"></app-description-template-editor-default-value-component>
+	</div>
+
+	<!-- SELECTION -->
+	<div class="col">
+		<mat-form-field class="w-100">
+			<mat-label>{{'DESCRIPTION-TEMPLATE-EDITOR.STEPS.FORM.RULE.FIELDS.RULE-THEN'| translate}}</mat-label>
+			<mat-select formControlName="target" (openedChange)="computeOptions($event)">
+				<!-- SHOW FIELDSETS -->
+				<mat-optgroup [label]="'DESCRIPTION-TEMPLATE-EDITOR.STEPS.FORM.RULE.FIELDS.FIELDSETS' | translate">
+					<mat-option *ngFor="let option of fieldSetOptions" [value]="option.id" style="line-height: normal;" [disabled]="parentIds.includes(option.id) || hiddenBy.includes(option.id) || option.id == fieldSetId" [matTooltip]="getToolTipMessage(option.id)" [matTooltipShowDelay]="700">
+						<div class="row mt-2 mb-2">
+							<div class="col">
+								<span class="title-text">
+									{{option.label? option.label:'<'+ ('DESCRIPTION-TEMPLATE-EDITOR.STEPS.GENERAL-INFO.UNTITLED' | translate) + '>' }} 
+								</span> <br>
+								<span class="subtitle-text">
+									{{option.id}}
+								</span>
+							</div>
+						</div>
+					</mat-option>
+				</mat-optgroup>
+				<!-- SHOW FIELDS -->
+				<mat-optgroup [label]="'DESCRIPTION-TEMPLATE-EDITOR.STEPS.FORM.RULE.FIELDS.FIELDS' | translate">
+					<mat-option *ngFor="let option of fieldOptions" [value]="option.id" style="line-height: normal;" [disabled]="parentIds.includes(option.id) ||hiddenBy.includes(option.id) || option.id == fieldId" [matTooltip]="getToolTipMessage(option.id)" [matTooltipShowDelay]="700">
+						<div class="row mt-2 mb-2">
+							<div class="col">
+								<span class="title-text">
+									{{option.label? option.label:'<'+ ('DESCRIPTION-TEMPLATE-EDITOR.STEPS.GENERAL-INFO.UNTITLED' | translate) + '>' }} 
+								</span> <br>
+								<span class="subtitle-text">
+									{{option.id}}
+								</span>
+							</div>
+						</div>
+					</mat-option>
+				</mat-optgroup>
+
+
+			</mat-select>
+			<mat-error *ngIf="ruleFormGroup.get('target').hasError('backendError')">{{ruleFormGroup.get('target').getError('backendError').message}}</mat-error>
+			<mat-error *ngIf="ruleFormGroup.get('target').hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
+		</mat-form-field>
+	</div>
+
+	<div class="col-auto mb-4"><button mat-icon-button type="button" (click)="deleteRule(i);" [disabled]="viewOnly">
+			<mat-icon>delete</mat-icon>
+		</button>
+	</div>
+</div>

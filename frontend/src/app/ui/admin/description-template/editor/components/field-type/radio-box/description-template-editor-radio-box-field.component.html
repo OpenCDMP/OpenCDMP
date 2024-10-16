@@ -1,0 +1,38 @@
+<div class="row" *ngIf="form.get('data')">
+	<div class="col-12">
+		<h5 style="font-weight: bold; display: inline-block; margin-right: 2em;">{{'DESCRIPTION-TEMPLATE-EDITOR.STEPS.FORM.FIELD.FIELDS.FIELD-RADIO-BOX-TITLE'
+			| translate}}</h5>
+			<ng-container *ngIf="form.get('data').get('options').dirty && form.get('data').get('options').hasError('required')">
+				<mat-icon class="text-danger translateY-3">warning_amber</mat-icon>
+				<small class="text-danger">{{'DESCRIPTION-TEMPLATE-EDITOR.STEPS.FORM.FIELD.ERROR-MESSAGES.FIELD-RADIO-AT-LEAST-ONE-REQUIRED'| translate}}</small>
+			</ng-container>
+			<mat-error *ngIf="form.get('data').get('options').hasError('backendError')">{{form.get('data').get('options').getError('backendError').message}}</mat-error>
+	</div>
+
+	<div class="col-12">
+		<div *ngFor="let option of form.get('data').get('options')['controls'] index as i" class="row">
+			<mat-form-field class="col">
+				<mat-label>{{'DESCRIPTION-TEMPLATE-EDITOR.STEPS.FORM.FIELD.FIELDS.FIELD-RADIO-BOX-LABEL' | translate}}</mat-label>
+				<input matInput type="string" [formControl]="option.get('label')" required="true">
+				<mat-error *ngIf="option.get('label').hasError('backendError')">{{option.get('label').getError('backendError').message}}</mat-error>
+				<mat-error *ngIf="option.get('label').hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
+			</mat-form-field>
+			<mat-form-field class="col">
+				<mat-label>{{'DESCRIPTION-TEMPLATE-EDITOR.STEPS.FORM.FIELD.FIELDS.FIELD-RADIO-BOX-VALUE' | translate}}</mat-label>
+				<input matInput type="string" [formControl]="option.get('value')" required="true" (change)="applyNewVisibilityValueListener()">
+				<mat-error *ngIf="option.get('value').hasError('backendError')">{{option.get('value').getError('backendError').message}}</mat-error>
+				<mat-error *ngIf="option.get('value').hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
+			</mat-form-field>
+			<button mat-icon-button class="col-auto" (click)="deleteRow(i)" type="button"
+				[disabled]="this.form.disabled">
+				<mat-icon>delete</mat-icon>
+			</button>
+		</div>
+	</div>
+	<div class="col-auto">
+		<button mat-icon-button [disabled]="this.form.disabled" (click)="addNewRow()" type="button">
+			<mat-icon>add</mat-icon>
+		</button>
+
+	</div>
+</div>

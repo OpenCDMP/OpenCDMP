@@ -1,0 +1,44 @@
+<!-- custom add: isStepUnique -->
+<div *ngIf="currentTourStep && !isOrbShowing">
+    <div class="guided-tour-user-input-mask" (click)="backdropClick($event)"></div>
+    <div class="guided-tour-spotlight-overlay"
+        [style.top.px]="overlayTop"
+        [style.left.px]="overlayLeft"
+        [style.height.px]="currentTourStep.isStepUnique ? overlayWidth : overlayHeight"
+        [style.width.px]="overlayWidth">
+    </div>
+</div>
+<div *ngIf="currentTourStep && !isOrbShowing">
+    <div #tourStep *ngIf="currentTourStep"
+        class="tour-step tour-{{ currentTourStep.orientation }}"
+        [ngClass]="{ 'page-tour-step': !currentTourStep.selector }"
+        [style.top.px]="(currentTourStep.selector && selectedElementRect ? topPosition : null)"
+        [style.left.px]="(currentTourStep.selector && selectedElementRect ? leftPosition : null)"
+        [style.width.px]="(currentTourStep.selector && selectedElementRect ? calculatedTourStepWidth : null)"
+        [style.transform]="(currentTourStep.selector && selectedElementRect ? transform : null)">
+        <div *ngIf="currentTourStep.selector" class="tour-arrow"></div>
+        <div class="row tour-block d-flex">
+            <div class="col p-0">
+                <h3 class="tour-title" *ngIf="currentTourStep.title && currentTourStep.selector">
+                    {{currentTourStep.title}}
+                </h3>
+                <h2 class="tour-title" *ngIf="currentTourStep.title && !currentTourStep.selector">
+                    {{ currentTourStep.title }}
+                </h2>
+                <div class="tour-buttons">
+                    <button *ngIf="!guidedTourService.onResizeMessage" mat-button type="button" class="rounded-btn primary"
+                        (click)="guidedTourService.nextStep()">
+                        {{ nextText }}
+                    </button>
+                    <button *ngIf="!guidedTourService.onResizeMessage && !currentTourStep.isStepUnique"
+                        (click)="guidedTourService.skipTour()" class="rounded-btn primary-inverted">
+                        {{ skipText }}
+                    </button>
+                </div>
+            </div>
+            <div class="col-auto p-0 d-flex align-items-end">
+				<img src="../../../assets/images/guided-tour-side.png">
+			</div>
+        </div>
+    </div>
+</div>

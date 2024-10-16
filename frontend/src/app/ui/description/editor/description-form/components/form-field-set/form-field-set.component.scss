@@ -1,0 +1,19 @@
+.fieldSet {
+  padding-left: 0em !important;
+}
+
+.actions {
+
+	@media (min-width: 1300px) {
+		width: 110px;		
+	}
+}
+
+.annotation-icon{
+	width: auto;
+	height: auto;
+}
+.text-truncated {
+	overflow: hidden; 
+	text-overflow: ellipsis; 
+}

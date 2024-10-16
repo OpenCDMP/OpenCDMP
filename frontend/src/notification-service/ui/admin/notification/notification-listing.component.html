@@ -1,0 +1,96 @@
+<div class="container-fluid">
+	<div class="row notification-listing">
+		<div class="col-md-10 offset-md-1">
+			<div class="row mb-4 mt-4">
+				<div class="col">
+					<app-navigation-breadcrumb />
+				</div>
+			</div>
+
+			<app-hybrid-listing [rows]="gridRows" [columns]="gridColumns" [visibleColumns]="visibleColumns"
+				[count]="totalElements" [offset]="currentPageNumber" [limit]="lookup.page.size"
+				[defaultSort]="lookup.order?.items" [externalSorting]="true" 
+				(pageLoad)="alterPage($event)" (columnSort)="onColumnSort($event)"
+				(columnsChanged)="onColumnsChanged($event)" [listItemTemplate]="listItemTemplate">
+
+				<app-notification-listing-filters hybrid-listing-filters [(filter)]="lookup"
+					(filterChange)="filterChanged($event)" />
+
+				<app-user-settings-picker [key]="userSettingsKey" [userPreference]="lookup"
+					(onSettingSelected)="changeSetting($event)" [autoSelectUserSettings]="autoSelectUserSettings"
+					user-preference-settings />
+			</app-hybrid-listing>
+
+		</div>
+	</div>
+</div>
+
+
+<ng-template #listItemTemplate let-item="item" let-isColumnSelected="isColumnSelected">
+
+
+	<div class="d-flex align-items-center p-3 gap-1-rem">
+		<div class="row">
+			<ng-container *ngIf="isColumnSelected('type')">
+				<span class="col-12">
+					{{'NOTIFICATION-SERVICE.NOTIFICATION-LISTING.FIELDS.NOTIFICATION-TYPE' | translate}}:
+					<small>
+						{{enumUtils.toNotificationTypeString(item.type) | nullifyValue}}
+					</small>
+				</span>
+				<br>
+			</ng-container>
+			<ng-container *ngIf="isColumnSelected('contactTypeHint')">
+				<span class="col-12">
+					{{'NOTIFICATION-SERVICE.NOTIFICATION-LISTING.FIELDS.CONTACT-TYPE' | translate}}:
+					<small>
+						{{enumUtils.toNotificationContactTypeString(item.contactTypeHint) | nullifyValue}}
+					</small>
+				</span>
+				<br>
+			</ng-container>
+			<ng-container *ngIf="isColumnSelected('notifyState')">
+				<span class="col-12">
+					{{'NOTIFICATION-SERVICE.NOTIFICATION-LISTING.FIELDS.NOTIFY-STATE' | translate}}:
+					<small>
+						{{enumUtils.toNotificationNotifyStateString(item.notifyState) | nullifyValue}}
+					</small>
+				</span>
+				<br>
+			</ng-container>
+			<ng-container *ngIf="isColumnSelected('notifiedAt')">
+				<span class="col-12">
+					{{'NOTIFICATION-SERVICE.NOTIFICATION-LISTING.FIELDS.NOTIFIED-AT' | translate}}:
+					<small>
+						{{item?.notifiedAt | dateTimeFormatter : 'short' | nullifyValue}}
+					</small>
+				</span>
+				<br>
+			</ng-container>
+			<ng-container *ngIf="isColumnSelected('createdAt')">
+				<span class="col-12">
+					{{'NOTIFICATION-SERVICE.NOTIFICATION-LISTING.FIELDS.CREATED-AT' | translate}}:
+					<small>
+						{{item?.createdAt | dateTimeFormatter : 'short' | nullifyValue}}
+					</small>
+				</span>
+			</ng-container>
+		</div>
+	</div>
+</ng-template>
+
+<ng-template #actions let-row="row" let-item>
+	<div *ngIf="canDelete(row)" class="row" (click)="$event.stopPropagation()">
+		<div class="col-auto">
+			<button mat-icon-button [matMenuTriggerFor]="actionsMenu">
+				<mat-icon>more_horiz</mat-icon>
+			</button>
+			<mat-menu #actionsMenu="matMenu">
+				<button *ngIf="canDelete(row)" mat-menu-item (click)="deleteType(row.id)">
+					<mat-icon>delete</mat-icon>
+					{{'NOTIFICATION-SERVICE.NOTIFICATION-LISTING.ACTIONS.DELETE' | translate}}
+				</button>
+			</mat-menu>
+		</div>
+	</div>
+</ng-template>

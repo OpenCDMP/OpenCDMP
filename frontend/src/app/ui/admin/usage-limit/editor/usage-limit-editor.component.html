@@ -1,0 +1,78 @@
+<div class="container-fluid">
+	<div class="row">
+		<div class="col-md-10 offset-md-1 usage-limit-editor">
+			<div class="row align-items-center mb-4 mt-4" *ngIf="formGroup">
+				<div class="col-md col-12">
+					<app-navigation-breadcrumb />
+				</div>
+				<div class="col-auto">
+					<button mat-button class="rounded-btn neutral" (click)="cancel()" type="button">{{'USAGE-LIMIT-EDITOR.ACTIONS.CANCEL' | translate}}</button>
+				</div>
+				<div class="col-auto" *ngIf="canDelete">
+					<button mat-button class="rounded-btn delete-inverted" type="button" (click)="delete()">
+						<mat-icon>delete</mat-icon>
+						{{'USAGE-LIMIT-EDITOR.ACTIONS.DELETE' | translate}}
+					</button>
+				</div>
+				<div class="col-auto" *ngIf="canSave">
+					<button mat-button class="rounded-btn primary" (click)="formSubmit()">
+						<mat-icon>save</mat-icon>
+						{{'USAGE-LIMIT-EDITOR.ACTIONS.SAVE' | translate}}
+					</button>
+				</div>
+			</div>
+
+			<form *ngIf="formGroup" (ngSubmit)="formSubmit()">
+				<mat-card appearance="outlined" class="pt-3 pb-3">
+					<mat-card-content>
+						<div class="row">
+							<div class="col-4">
+								<mat-form-field class="w-100">
+									<mat-label>{{'USAGE-LIMIT-EDITOR.FIELDS.LABEL' | translate}}</mat-label>
+									<input matInput type="text" name="label" [formControl]="formGroup.get('label')">
+									<mat-error *ngIf="formGroup.get('label').hasError('backendError')">{{formGroup.get('label').getError('backendError').message}}</mat-error>
+									<mat-error *ngIf="formGroup.get('label').hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
+								</mat-form-field>
+							</div>
+							<div class="col-4">
+								<mat-form-field class="w-100">
+									<mat-label>{{'USAGE-LIMIT-EDITOR.FIELDS.TARGET-METRIC' | translate}}</mat-label>
+										<mat-select [formControl]="formGroup.get('targetMetric')">
+											<mat-option *ngFor="let metric of targetMetricEnum" [value]="metric">{{enumUtils.toUsageLimitTargetMetricString(metric)}}</mat-option>
+										</mat-select>
+										<mat-error *ngIf="formGroup.get('targetMetric').hasError('targetMetric')">{{formGroup.get('targetMetric').getError('backendError').message}}</mat-error>
+										<mat-error *ngIf="formGroup.get('targetMetric').hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
+								</mat-form-field>
+							</div>
+							<div class="col-4">
+								<mat-form-field class="col pl-0 underline-line-field">
+									<mat-label>{{'USAGE-LIMIT-EDITOR.FIELDS.VALUE' | translate}}</mat-label>
+									<input matInput min="1" type="number" [formControl]="formGroup.get('value')">
+									<mat-error *ngIf="formGroup.get('value').hasError('backendError')">{{formGroup.get('value').getError('backendError').message}}</mat-error>
+									<mat-error *ngIf="formGroup.get('value').hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
+								</mat-form-field>
+							</div>
+							<div class="col-4">
+								<mat-checkbox [formControl]="formGroup.get('definition').get('hasPeriodicity')">
+									{{'USAGE-LIMIT-EDITOR.FIELDS.HAS-PERIODICITY' | translate}}
+									<mat-error *ngIf="formGroup.get('definition').get('hasPeriodicity').hasError('backendError')">{{formGroup.get('definition').get('hasPeriodicity').getError('backendError').message}}</mat-error>
+									<mat-error *ngIf="formGroup.get('definition').get('hasPeriodicity').hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
+								</mat-checkbox>
+							</div>
+							<div class="col-4" *ngIf="formGroup.get('definition').get('hasPeriodicity').value">
+								<mat-form-field class="w-100">
+									<mat-label>{{'USAGE-LIMIT-EDITOR.FIELDS.PERIODICITY-RANGE' | translate}}</mat-label>
+										<mat-select [formControl]="formGroup.get('definition').get('periodicityRange')">
+											<mat-option *ngFor="let range of periodicityRangeEnum" [value]="range">{{enumUtils.toUsageLimitPeriodicityRangeString(range)}}</mat-option>
+										</mat-select>
+										<mat-error *ngIf="formGroup.get('definition').get('periodicityRange').hasError('backendError')">{{formGroup.get('definition').get('periodicityRange').getError('backendError').message}}</mat-error>
+										<mat-error *ngIf="formGroup.get('definition').get('periodicityRange').hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
+								</mat-form-field>
+							</div>
+						</div>
+					</mat-card-content>
+				</mat-card>
+			</form>
+		</div>
+	</div>
+</div>

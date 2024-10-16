@@ -1,0 +1,25 @@
+@media (max-width: 768px) {
+	.dynamic-form-editor {
+		.form-container {
+			padding: 0px;
+		}
+	}
+}
+
+.form-container {
+}
+
+.intro {
+	text-align: left;
+	font-weight: 400;
+	letter-spacing: 0px;
+	color: #212121;
+	opacity: 1;
+	margin: 3rem 0rem 3rem 0rem;
+}
+
+.dynamic-form-editor {
+	mat-vertical-stepper {
+		background-color: #ffffff;
+	}
+}

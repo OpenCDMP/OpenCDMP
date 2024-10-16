@@ -1,0 +1,140 @@
+
+<div class="plan-criteria">
+	<div class="filters container-fluid">
+		<div class="row justify-content-center">
+			<div class="col-10">
+				<h6 class="criteria-title">{{'DESCRIPTION-LISTING.FILTERS.NAME'| translate}}</h6>
+			</div>
+		</div>
+		<div class="row justify-content-center" *ngIf="formGroup">
+
+			<!-- Status Filter-->
+			<div class="col-10" *ngIf="!isPublic">
+				<h6 class="category-title">{{ 'DESCRIPTION-LISTING.FILTERS.STATUS.NAME' | translate}}</h6>
+				<mat-radio-group aria-label="Select an option" [formControl]="formGroup.get('status')" class="row">
+					<mat-radio-button [value]="null" [checked]="formGroup.get('status')?.value == null" class="col-12">{{ 'DESCRIPTION-LISTING.FILTERS.STATUS.TYPES.ANY' | translate }}</mat-radio-button>
+					<mat-radio-button [value]="statuses.Draft" class="col-12">{{ 'DESCRIPTION-LISTING.FILTERS.STATUS.TYPES.DRAFT' | translate }}</mat-radio-button>
+					<mat-radio-button [value]="statuses.Finalized" class="col-12">{{ 'DESCRIPTION-LISTING.FILTERS.STATUS.TYPES.FINALIZED' | translate }}</mat-radio-button>
+					<mat-radio-button [value]="statuses.Canceled" class="col-12">{{ 'DESCRIPTION-LISTING.FILTERS.STATUS.TYPES.CANCELED' | translate }}</mat-radio-button>
+				</mat-radio-group>
+				<hr>
+			</div>
+			<!-- End of Status Filter-->
+
+			<!-- Tenant Filter -->
+			<div *ngIf="!isPublic && hasSelectedTenant" class="col-10">
+				<h6 class="category-title">{{ 'DESCRIPTION-LISTING.FILTERS.RELATED-TENANT.NAME' | translate}}</h6>
+				<mat-slide-toggle [formControl]="formGroup.get('viewOnlyTenant')">{{ 'DESCRIPTION-LISTING.FILTERS.RELATED-TENANT.FILTER-BY-TENANT' | translate }}</mat-slide-toggle>
+				<hr>
+			</div>
+			<!-- End of Tenant Filter -->
+
+			<!-- Related Dataset Templates Filters -->
+			<div class="col-10">
+				<h6 class="category-title">{{'DESCRIPTION-LISTING.FILTERS.RELATED-DESCRIPTION-TEMPLATES.NAME' | translate}}</h6>
+				<mat-form-field class="w-100">
+					<mat-label>{{'DESCRIPTION-LISTING.FILTERS.RELATED-DESCRIPTION-TEMPLATES.PLACEHOLDER' | translate }}</mat-label>
+					<app-multiple-auto-complete [formControl]="formGroup.get('descriptionTemplates')" [configuration]="descriptionTemplateAutoCompleteConfiguration"></app-multiple-auto-complete>
+				</mat-form-field>
+				<hr>
+			</div>
+			<!-- End of Related Dataset Templates Filters -->
+
+			<!-- Related Plan Filters -->
+			<div class="col-10">
+				<h6 class="category-title">{{'DESCRIPTION-LISTING.FILTERS.ASSOCIATED-PLANS.NAME' | translate}}</h6>
+				<mat-form-field class="w-100">
+					<mat-label>{{'DESCRIPTION-LISTING.FILTERS.ASSOCIATED-PLANS.PLACEHOLDER' | translate }}</mat-label>
+					<app-multiple-auto-complete [formControl]="formGroup.get('associatedPlanIds')" [configuration]="planAutoCompleteConfiguration"></app-multiple-auto-complete>
+				</mat-form-field>
+				<hr>
+			</div>
+			<!-- End of Related Plan Filters -->
+
+			<!-- All Versions Filter-->
+			 <!-- TODO -->
+			<!-- <div class="col-10" *ngIf="!isPublic">
+				<h6 class="category-title">{{'DESCRIPTION-LISTING.FILTERS.ALL-VERSIONS'| translate}}</h6>
+				<mat-slide-toggle [formControl]="formGroup.get('showAllVersions')"></mat-slide-toggle>
+				<hr>
+			</div> -->
+			<!-- End of All Versions Filter-->
+
+			<!-- Role Filter -->
+			<div class="col-10" *ngIf="isAuthenticated()">
+				<h6 class="category-title">{{'DESCRIPTION-LISTING.FILTERS.ROLE.NAME' | translate }}</h6>
+				<mat-radio-group aria-label="Select an option" [formControl]="formGroup.get('role')" class="row">
+					<mat-radio-button [value]="null" [checked]="formGroup.get('role').value == null" class="col-12">{{ 'DESCRIPTION-LISTING.FILTERS.ROLE.TYPES.ANY' | translate }}</mat-radio-button>
+					<mat-radio-button [value]="planRole.Owner" class="col-12">{{ 'DESCRIPTION-LISTING.FILTERS.ROLE.TYPES.OWNER' | translate }}</mat-radio-button>
+					<mat-radio-button [value]="planRole.Viewer" class="col-12">{{ 'DESCRIPTION-LISTING.FILTERS.ROLE.TYPES.VIEWER' | translate }}</mat-radio-button>
+					<mat-radio-button [value]="planRole.DescriptionContributor" class="col-12">{{ 'DESCRIPTION-LISTING.FILTERS.ROLE.TYPES.DESCRIPTION-CONTRIBUTOR' | translate }}</mat-radio-button>
+					<mat-radio-button [value]="planRole.Reviewer" class="col-12">{{ 'DESCRIPTION-LISTING.FILTERS.ROLE.TYPES.REVIEWER' | translate }}</mat-radio-button>
+				</mat-radio-group>
+				<hr>
+			</div>
+			<!-- End of Role Filter -->
+
+			<!-- Tags Filter -->
+			<div class="col-10">
+				<h6 class="category-title">{{'DESCRIPTION-LISTING.FILTERS.TAGS.NAME' | translate }}</h6>
+				<mat-form-field class="w-100 mb-4">
+					<mat-label>{{'DESCRIPTION-LISTING.FILTERS.TAGS.PLACEHOLDER' | translate}}</mat-label>
+					<app-multiple-auto-complete [formControl]="formGroup.get('tags')" [configuration]="tagAutoCompleteConfiguration">
+					</app-multiple-auto-complete>
+				</mat-form-field>
+			</div>
+			<!-- End of Tags Filter -->
+
+			<!-- Reference Types -->
+			<div class="col-10 mb-1">
+				<h6 class="category-title">{{'DESCRIPTION-LISTING.FILTERS.REFERENCE-TYPES.NAME' | translate }}</h6>
+				<ng-container *ngFor="let referenceForm of formGroup.get('references')?.controls; let i=index">
+					<div class="row">
+						<div class="col-12">
+							<mat-form-field class="w-100" *ngIf="referenceForm.get('referenceTypeId')">
+								<mat-label>{{'DESCRIPTION-LISTING.FILTERS.REFERENCE-TYPES.REFERENCE-TYPE' | translate}}</mat-label>
+								<app-single-auto-complete [formControl]="referenceForm.get('referenceTypeId')" [configuration]="referenceTypeAutocompleteConfiguration">
+								</app-single-auto-complete>
+							</mat-form-field>
+						</div>
+					</div>
+					<div class="row" *ngIf="referenceForm.get('referenceTypeId')?.value && selectReferenceAutocompleteConfiguration(referenceForm.get('referenceTypeId').value)">
+						<div class="col-12">
+							<mat-form-field class="w-100 mb-2">
+								<mat-label>{{'DESCRIPTION-LISTING.FILTERS.REFERENCE-TYPES.REFERENCE' | translate}}</mat-label>
+								<app-multiple-auto-complete [formControl]="referenceForm.get('referenceIds')" [configuration]="selectReferenceAutocompleteConfiguration(referenceForm.get('referenceTypeId').value)">
+								</app-multiple-auto-complete>
+							</mat-form-field>
+						</div>
+					</div>
+					
+					<button mat-icon-button class="col-auto" (click)="deleteRow(i)" type="button">
+						<mat-icon>delete</mat-icon>
+					</button>
+				</ng-container>
+
+				<div class="col-10">
+					<div class="row align-items-center">
+						<button mat-icon-button color="primary" [disabled]="false" (click)="addReferenceType()">
+							<mat-icon>add_circle</mat-icon>
+						</button>
+						<span>
+							<span class="mt-1">{{'DESCRIPTION-LISTING.ACTIONS.ADD-REFERENCE-TYPE' | translate}}</span>
+						</span>
+					</div>
+				</div>
+			</div>
+			<!-- End of Reference Types -->
+
+			<div class="col-10 d-flex justify-content-between mb-4">
+				<button mat-button class="rounded-btn primary-inverted" (click)="resetFilters()" style="font-size: 0.87rem;">
+					{{'DESCRIPTION-LISTING.FILTERS.RESET-FILTERS' | translate}} 
+				</button>
+
+				<button mat-button class="rounded-btn primary" (click)="controlModified()">
+					{{'DESCRIPTION-LISTING.FILTERS.APPLY-FILTERS' | translate}}
+				</button>
+			</div>
+		</div>
+	</div>
+</div>

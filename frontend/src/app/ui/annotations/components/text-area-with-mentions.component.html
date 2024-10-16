@@ -1,0 +1,44 @@
+<div class="relative-block-container w-100">
+    <mat-form-field appearance="outline" class="w-100">
+      <mat-label>{{'ANNOTATION-DIALOG.THREADS.NEW-THREAD' | translate}}</mat-label>
+      <textarea
+        [formControl]="internalForm"
+        placeholder="{{'ANNOTATION-DIALOG.THREADS.NEW-THREAD' | translate}}"
+        class="w-100"
+        rows="2"
+        matInput  
+        appTextareaAutoresize
+        #textareaRef
+      ></textarea>
+      <ngx-mentions [textInputElement]="textareaRef" style="position: absolute; left: 0;" class="w-100"
+        [menuTemplate]="menuTemplate"
+        [mentionsConfig]="mentionsConfig"
+        [searchRegexp]="searchRegexp"
+        [mentions]="mentions"
+        [removeWholeTagOnBackspace]="true"
+        (search)="loadChoices($event)"
+        (selectedChoicesChange)="onSelectedChoicesChange($event)"
+        (menuShow)="onMenuShow()"
+        (menuHide)="onMenuHide()"
+      ></ngx-mentions>
+      <mat-error *ngIf="form.hasError('backendError')">{{form.getError('backendError')?.message}}</mat-error>
+      <mat-error *ngIf="form.hasError('required')">{{'COMMONS.VALIDATION.REQUIRED' | translate}}</mat-error>
+    </mat-form-field>
+
+    <ng-template #menuTemplate
+      let-selectChoice="selectChoice"
+      >
+      <div cdkOverlayOrigin #trigger="cdkOverlayOrigin">
+        <ng-template
+        cdkConnectedOverlay
+        [cdkConnectedOverlayOrigin]="trigger"
+        cdkConnectedOverlayOpen="true"
+        >
+          <ngx-text-input-autocomplete-menu *ngIf="choices" [choices]="choices"
+            [getDisplayLabel]="getDisplayLabel"
+            (selectChoice)="selectChoice($event)">
+          </ngx-text-input-autocomplete-menu>
+        </ng-template>
+      </div>
+    </ng-template>
+</div>

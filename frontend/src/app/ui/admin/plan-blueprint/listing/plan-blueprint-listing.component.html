@@ -1,0 +1,111 @@
+<div class="container-fluid">
+	<div class="row plan-blueprint-listing">
+		<div class="col-md-10 offset-md-1">
+			<div class="row mb-4 mt-4">
+				<div class="col">
+					<app-navigation-breadcrumb />
+				</div>
+				<div class="col-auto">
+					<button mat-button class="rounded-btn import" (click)="import()">
+						<span class="button-text">
+							{{'PLAN-BLUEPRINT-LISTING.IMPORT.UPLOAD-XML' | translate}}
+						</span>
+					</button>
+				</div>
+
+				<div class="col-auto">
+					<button mat-button class="rounded-btn secondary" *ngIf="authService.hasPermission(authService.permissionEnum.EditDescriptionTemplateType)" [routerLink]="routerUtils.generateUrl(['/plan-blueprints/new'])">
+						<mat-icon>add</mat-icon>
+						{{'PLAN-BLUEPRINT-LISTING.CREATE-PLAN-BLUEPRINT' | translate}}
+					</button>
+				</div>
+			</div>
+
+			<app-hybrid-listing [rows]="gridRows" [columns]="gridColumns" [visibleColumns]="visibleColumns" [count]="totalElements" [offset]="currentPageNumber" [limit]="lookup.page.size" [defaultSort]="lookup.order?.items" [externalSorting]="true" (rowActivated)="onRowActivated($event, routerUtils.generateUrl('/plan-blueprints'))" (pageLoad)="alterPage($event)" (columnSort)="onColumnSort($event)" (columnsChanged)="onColumnsChanged($event)" [listItemTemplate]="listItemTemplate">
+
+				<app-plan-blueprint-listing-filters hybrid-listing-filters [(filter)]="lookup" (filterChange)="filterChanged($event)" />
+
+				<app-user-settings-picker [key]="userSettingsKey" [userPreference]="lookup" (onSettingSelected)="changeSetting($event)" [autoSelectUserSettings]="autoSelectUserSettings" user-preference-settings />
+			</app-hybrid-listing>
+		</div>
+	</div>
+</div>
+
+<ng-template #listItemTemplate let-item="item" let-isColumnSelected="isColumnSelected">
+
+
+	<div class="d-flex align-items-center p-3 gap-1-rem">
+		<div class="row">
+			<ng-container *ngIf="isColumnSelected('label')">
+				<a class="buttonLinkClass" [routerLink]="routerUtils.generateUrl('./' + item?.id)" class="col-12" (click)="$event.stopPropagation()">{{item?.label | nullifyValue}}</a>
+				<br />
+			</ng-container>
+
+			<ng-container *ngIf="isColumnSelected('status')">
+				<div class="col-auto">
+					<div class="status-chip" [ngClass]="{'status-chip-finalized': item.status === planBlueprintStatuses.Finalized, 'status-chip-draft' : item.status === planBlueprintStatuses.Draft}">
+						{{enumUtils.toPlanBlueprintStatusString(item.status) | nullifyValue}}
+					</div>
+				</div>
+			</ng-container>
+
+			<ng-container *ngIf="isColumnSelected('createdAt')">
+				<span class="col-12">
+					{{'PLAN-BLUEPRINT-LISTING.FIELDS.CREATED-AT' | translate}}:
+					<small>
+						{{item?.createdAt | dateTimeFormatter : 'short' | nullifyValue}}
+					</small>
+				</span>
+				<br>
+			</ng-container>
+			<ng-container *ngIf="isColumnSelected('updatedAt')">
+				<span class="col-12">
+					{{'PLAN-BLUEPRINT-LISTING.FIELDS.UPDATED-AT' | translate}}:
+					<small>
+						{{item?.updatedAt | dateTimeFormatter : 'short' | nullifyValue}}
+					</small>
+				</span>
+			</ng-container>
+		</div>
+	</div>
+</ng-template>
+
+<ng-template #planBlueprintStatus let-row="row" let-item>
+	<div class="row">
+		<div class="col-auto status-chip" [ngClass]="{'status-chip-finalized': row.status === planBlueprintStatuses.Finalized, 'status-chip-draft' : row.status === planBlueprintStatuses.Draft}">
+			{{enumUtils.toPlanBlueprintStatusString(row.status) | nullifyValue}}
+		</div>
+	</div>
+</ng-template>
+
+<ng-template #actions let-row="row" let-item>
+	<div class="row" (click)="$event.stopPropagation()">
+		<div class="col-auto">
+			<button mat-icon-button [matMenuTriggerFor]="actionsMenu">
+				<mat-icon>more_horiz</mat-icon>
+			</button>
+			<mat-menu #actionsMenu="matMenu">
+				<a *ngIf="canEdit(row)" mat-menu-item [routerLink]="routerUtils.generateUrl(['/plan-blueprints/', row.id])">
+					<mat-icon>edit</mat-icon>{{'PLAN-BLUEPRINT-LISTING.ACTIONS.EDIT' | translate}}
+				</a>
+				<a *ngIf="canCreateNewVersion(row)" mat-menu-item [routerLink]="routerUtils.generateUrl(['/plan-blueprints/new-version/', row.id])">
+					<mat-icon>queue</mat-icon>{{'PLAN-BLUEPRINT-LISTING.ACTIONS.NEW-VERSION' | translate}}
+				</a>
+				<a mat-menu-item [routerLink]="routerUtils.generateUrl(['/plan-blueprints/clone/', row.id])">
+					<mat-icon>content_copy</mat-icon>{{'PLAN-BLUEPRINT-LISTING.ACTIONS.CLONE' | translate}}
+				</a>
+				<a *ngIf="row.isActive == isActive.Active" mat-menu-item [routerLink]="routerUtils.generateUrl(['/plan-blueprints/versions/', row.groupId])">
+					<mat-icon>library_books</mat-icon>
+					{{'PLAN-BLUEPRINT-LISTING.ACTIONS.VIEW-VERSIONS' | translate}}
+				</a>
+				<button mat-menu-item (click)="export($event, row.id)" *ngIf="canDownloadXML(row)">
+					<mat-icon>download</mat-icon>{{'PLAN-BLUEPRINT-LISTING.ACTIONS.DOWNLOAD-XML' | translate}}
+				</button>
+				<button *ngIf="canDelete(row)" mat-menu-item (click)="delete(row.id)">
+					<mat-icon>delete</mat-icon>
+					{{'PLAN-BLUEPRINT-LISTING.ACTIONS.DELETE' | translate}}
+				</button>
+			</mat-menu>
+		</div>
+	</div>
+</ng-template>

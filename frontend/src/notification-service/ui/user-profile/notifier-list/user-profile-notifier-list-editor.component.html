@@ -1,0 +1,40 @@
+<div class="main-tab-content row" *ngIf="availableNotifiersKeys" [ngClass]="preferencesNotCompleted() ? 'd-none' : ''">
+	<ng-container *ngFor="let notificationType of availableNotifiersKeys">
+		<div class="col-12" *ngIf="hasMoreThanOneNotifiers(notificationType)">
+			<div class="row">
+				<mat-list class="col-12" cdkDropList (cdkDropListDropped)="dropped($event, notificationType)">
+					<h3 mat-subheader>{{notificationServiceEnumUtils.toNotificationTypeString(notificationType)}}</h3>
+					<mat-list-item *ngFor="let contactType of availableNotifiers[notificationType]" cdkDrag>
+						<div class="d-flex align-items-center">
+							<mat-icon matListIcon cdkDragHandle>unfold_more</mat-icon>
+							{{notificationServiceEnumUtils.toContactTypeString(contactType)}}
+						</div>
+					</mat-list-item>
+				</mat-list>
+			</div>
+		</div>
+	</ng-container>
+
+	<div class="col-12">
+		<div class="row">
+			<div class="col"></div>
+			<div class="col-auto">
+				<button mat-button class="rounded-btn primary" (click)="formSubmit()">
+					{{'NOTIFICATION-SERVICE.USER-PROFILE.NOTIFIER-LIST-EDITOR.ACTIONS.SAVE' | translate}}
+				</button>
+			</div>
+		</div>
+	</div>
+</div>
+
+<div class="main-tab-content row" [ngClass]="preferencesNotPending() ? 'd-none' : ''">
+	<div class="col-12 d-flex justify-content-center">
+		<mat-spinner [diameter]="20"></mat-spinner>
+	</div>
+</div>
+<div class="main-tab-content row" [ngClass]="preferencesNotWithErrors() ? 'd-none' : ''">
+	<div class="col-12">
+		<span>{{ 'NOTIFICATION-SERVICE.USER-PROFILE.NOTIFIER-LIST-EDITOR.MESSAGES.ERROR' | translate}}</span>
+	</div>
+</div>
+

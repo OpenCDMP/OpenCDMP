@@ -1,0 +1,26 @@
+<div class="row" *ngIf="form.get('data')">
+	<h5 style="font-weight: bold" class="col-12">{{'DESCRIPTION-TEMPLATE-EDITOR.STEPS.FORM.FIELD.FIELDS.FIELD-EXTERNAL-DESCRIPTIONS-TITLE'
+		| translate}}</h5>
+	<mat-checkbox class="col-auto" [formControl]="this.form.get('data').get('multipleSelect')">
+		{{'DESCRIPTION-TEMPLATE-EDITOR.STEPS.FORM.FIELD.FIELDS.FIELD-MULTIPLE-AUTOCOMPLETE' | translate}}
+	</mat-checkbox>
+
+	<div class="col-6">
+		<mat-form-field class="w-100">
+			<mat-label>{{'DESCRIPTION-TEMPLATE-EDITOR.STEPS.FORM.FIELD.FIELDS.FIELD-EXTERNAL-DESCRIPTIONS-PLACEHOLDER' | translate}}</mat-label>
+			<input matInput type="string" [formControl]="form.get('data').get('label')">
+			<mat-error *ngIf="form.get('data').get('label').hasError('backendError')">{{form.get('data').get('label').getError('backendError').message}}</mat-error>
+		</mat-form-field>
+	</div>
+	<div class="col-6">
+		<mat-form-field class="w-100">
+			<mat-label>
+				{{'DESCRIPTION-TEMPLATE-EDITOR.STEPS.FORM.FIELD.FIELDS.EXTERNAL-DATASET-TYPE-NAME' | translate}}
+			</mat-label>
+			<mat-select [formControl]="form.get('data').get('type')">
+				<mat-option *ngFor="let type of externalDatasetTypeEnumValues" [value]="type">{{enumUtils.toDescriptionTemplateFieldDataExternalDatasetTypeString(type)}}</mat-option>
+			</mat-select>
+			<mat-error *ngIf="form.get('data').get('type').hasError('backendError')">{{form.get('data').get('type').getError('backendError').message}}</mat-error>
+		</mat-form-field>
+	</div>
+</div>

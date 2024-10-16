@@ -1,0 +1,181 @@
+error-thesaurus:
+  hash-conflict:
+    code: 100
+    message: there is a hash conflict for the item modified. please reload to get the latest changes
+  forbidden:
+    code: 101
+    message: insufficient rights
+  system-error:
+    code: 102
+    message: an unexpected system error occurred
+  missing-tenant:
+    code: 103
+    message: tenant scope not provided
+  model-validation:
+    code: 106
+    message: validation error
+#  tenant-code-required:
+#    code: 108
+#    message: tenant code required
+#  tenant-name-required:
+#    code: 109
+#    message: tenant name required
+#  index-already-exists:
+#    code: 110
+#    message: index already exists
+  tenant-not-allowed:
+    code: 112
+    message: tenant not allowed
+  description-template-new-version-conflict:
+    code: 113
+    message: version to update not the latest
+  description-template-is-not-finalized:
+    code: 114
+    message: the selected description template is not finalized
+  multiple-description-template-versions-not-supported:
+    code: 115
+    message: multiple versions of the selected description where found
+  plan-new-version-conflict:
+    code: 116
+    message: version to update not the latest
+  plan-is-not-finalized:
+    code: 117
+    message: the selected plan is not finalized
+  multiple-plan-versions-not-supported:
+    code: 118
+    message: multiple versions of the plan where found
+  plan-is-finalized:
+    code: 119
+    message: To perform this action you will need to revert Plan's finalisation
+  plan-can-not-change:
+    code: 120
+    message: plan can not change
+  plan-description-template-can-not-change:
+    code: 121
+    message: plan description template can not change
+  invalid-description-template:
+    code: 122
+    message: invalid description template id
+  description-is-finalized:
+    code: 123
+    message: To perform this action you will need to revert description finalisation
+  plan-blueprint-has-no-description-templates:
+    code: 124
+    message: You need to select Has Description Templates field to at least one Section.
+  plan-blueprint-new-version-conflict:
+    code: 125
+    message: version to update not the latest
+  plan-description-template-can-not-remove:
+    code: 126
+    message: Can not remove description template that is already in use.
+  tenant-tampering:
+    code: 127
+    message: Tenant tampering
+  tenant-configuration-type-can-not-change:
+    code: 128
+    message: Tenant configuration type can not change
+  multiple-tenant-configuration-type-not-allowed:
+    code: 129
+    message: Multiple Tenant Configuration Type Not Allowed
+  tenant-code-exists:
+    code: 130
+    message: Tenant code exists
+  plan-new-version-already-created-draft:
+    code: 131
+    message: Already created draft for this plan
+  description-template-inactive-user:
+    code: 132
+    message: user dont exist
+  description-template-missing-user-contact-info:
+    code: 133
+    message: missing contact info for this user
+  plan-inactive-user:
+    code: 134
+    message: user dont exist
+  plan-missing-user-contact-info:
+    code: 135
+    message: missing contact info for this user
+  import-description-without-plan-description-template:
+    code: 136
+    message: Error creating description without plan description template
+  duplicate-plan-user:
+    code: 137
+    message: Duplicate Plan User not allowed
+  descriptionTemplateNewVersionAlreadyCreatedDraft:
+    code: 138
+    message: Already created draft for this description template
+  planBlueprintNewVersionAlreadyCreatedDraft:
+    code: 139
+    message: Already created draft for this blueprint
+  referenceTypeCodeExists:
+    code: 140
+    message: Reference type exists
+  prefillingSourceCodeExists:
+    code: 141
+    message: Prefilling source code exists
+  inviteUserAlreadyConfirmed:
+    code: 142
+    message: Invite user already confirmed
+  requestHasExpired:
+    code: 143
+    message: Request has expired
+  maxDescriptionsExceeded:
+    code: 144
+    message: Max descriptions exceeded for this plan
+  usageLimitException:
+    code: 145
+    message: Usage limit exception for this target metric
+  usageLimitMetricAlreadyExists:
+    code: 146
+    message: Usage limit metric is already selected as target
+  descriptionTemplateTypeCodeExists:
+    code: 147
+    message: Description template type code exists
+  descriptionTemplateTypeImportNotFound:
+    code: 148
+    message: Description template type not found
+  referenceTypeImportNotFound:
+    code: 149
+    message: Reference type not found
+  descriptionTemplateCodeExists:
+    code: 150
+    message: Description template code exists
+  descriptionTemplateImportNotFound:
+    code: 151
+    message: Description template not found
+  planBlueprintCodeExists:
+    code: 152
+    message: Plan blueprint code exists
+  planBlueprintImportNotFound:
+    code: 153
+    message: Plan blueprint code not found
+  blueprintDescriptionTemplateImportDraft:
+    code: 154
+    message: Description template is not finalised
+  planDescriptionTemplateImportDraft:
+    code: 155
+    message: Description template is not finalised
+  descriptionTemplateTypeImportDraft:
+    code: 156
+    message: Description template type is not finalised
+  planBlueprintImportDraft:
+    code: 157
+    message: Plan blueprint is not finalised
+  missingTenantRole:
+    code: 158
+    message: tenant role is missing
+  missingGlobalRole:
+    code: 159
+    message: Global role is missing
+  userProfileInactive:
+    code: 160
+    message: User account has not been activated
+  planInvitationAlreadyConfirmed:
+    code: 161
+    message: Plan invitation already confirmed
+  anotherUserToken:
+    code: 162
+    message: This token is for another user
+  tokenNotExist:
+    code: 163
+    message: This token does not exist

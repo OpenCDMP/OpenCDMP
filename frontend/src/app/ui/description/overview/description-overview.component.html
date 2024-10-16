@@ -1,0 +1,214 @@
+<div class="main-content pl-5 pr-5">
+	<div class="container-fluid pl-0 pr-0">
+		<div *ngIf="description">
+			<div class="row">
+				<div class="col-12 pl-2 mb-3">
+					<app-navigation-breadcrumb />
+				</div>
+				<div class="col-12 mb-4 pl-1">
+					<a (click)="goBack()" role="button">
+						<mat-icon class="back-icon pointer">chevron_left</mat-icon>
+						<span class="label-txt pointer">{{'DESCRIPTION-OVERVIEW.ACTIONS.BACK' | translate}}</span>
+					</a>
+				</div>
+			</div>
+			<div class="row">
+				<div class="col-12 col-lg-8 pl-2">
+					<div class="row">
+						<div class="col-auto"><span class="description-logo">{{ 'DESCRIPTION-OVERVIEW.TITLE' | translate }}</span></div>
+						<div class="col-auto d-flex"><span class="description-label">{{ description.label }}</span></div>
+					</div>
+					<div class="row d-flex align-items-center mt-3 mb-4 label-txt">
+						<div *ngIf="!isPublicView" class="col-auto d-flex">
+							<p class="ml-0 mb-0 label2-txt">{{ enumUtils.toPlanUserRolesString(planService.getCurrentUserRolesInPlan(description?.plan?.planUsers)) }}</p>
+						</div>
+						<div *ngIf="canEdit" class="col-auto"><span>.</span></div>
+						<div *ngIf="description.status === descriptionStatusEnum.Finalized && description.plan.accessType === planAccessTypeEnum.Public" class="col-auto d-flex">
+							<mat-icon class="status-icon">public</mat-icon>
+							{{'DESCRIPTION-OVERVIEW.PUBLIC' | translate}}
+						</div>
+						<div *ngIf="description.status === descriptionStatusEnum.Finalized && description.plan.accessType === planAccessTypeEnum.Public" class="col-auto d-flex"><span>.</span></div>
+						<div *ngIf="isLocked" class="col-auto d-flex flex-row">
+							<mat-icon class="status-icon">lock_outline</mat-icon>
+							{{'DESCRIPTION-OVERVIEW.LOCKED' | translate}}
+						</div>
+						<div *ngIf="isLocked" class="col-auto"><span>.</span></div>
+						<div class="col-auto d-flex mr-2" [class.deleted-item]="!isActive">
+							{{(isActive ? 'DESCRIPTION-OVERVIEW.EDITED' : 'DESCRIPTION-OVERVIEW.DELETED') | translate}} :
+							{{description.updatedAt | dateTimeFormatter: "d MMMM y"}}
+						</div>
+						<div *ngIf="description.status === descriptionStatusEnum.Finalized" class="col-auto d-flex">
+							<div class="d-flex flex-row uppercase">
+								<mat-icon class="status-icon check-icon">check</mat-icon>
+								{{'DESCRIPTION-OVERVIEW.FINALISED' | translate}}
+							</div>
+						</div>
+					</div>
+					<div class="row mb-4 pb-3">
+                        <div class="col-auto pr-0">
+                            @if(isActive && (canEdit || canAnnotate) && isDraftDescription(description) && !isLocked){
+                                <button (click)="editClicked(description)" mat-mini-fab class="mr-3 actions-btn" matTooltip="{{'DESCRIPTION-OVERVIEW.ACTIONS.EDIT' | translate}}" matTooltipPosition="above">
+                                    <mat-icon class="mat-mini-fab-icon">create</mat-icon>
+                                </button>
+                            }@else {
+                                @if(!isPublicView){
+                                    <button (click)="editClicked(description)" mat-mini-fab class="mr-3 actions-btn" matTooltip="{{'DESCRIPTION-OVERVIEW.ACTIONS.PREVIEW' | translate}}" matTooltipPosition="above">
+                                        <mat-icon class="mat-mini-fab-icon">visibility</mat-icon>
+                                    </button>
+                                }
+                            }
+                        </div>
+						<div *ngIf="canCopy" class="col-auto pr-0">
+							<button (click)="openCopyToPlanDialog()" mat-mini-fab class="mr-3 actions-btn" matTooltip="{{'DESCRIPTION-OVERVIEW.ACTIONS.CLONE' | translate}}" matTooltipPosition="above">
+								<mat-icon class="mat-mini-fab-icon">content_copy</mat-icon>
+							</button>
+						</div>
+						<div *ngIf="canDelete && !isLocked" class="col-auto pr-0">
+							<button (click)="deleteClicked()" mat-mini-fab class="mr-3 actions-btn" matTooltip="{{'DESCRIPTION-OVERVIEW.ACTIONS.DELETE' | translate}}" matTooltipPosition="above">
+								<mat-icon class="mat-mini-fab-icon">delete</mat-icon>
+							</button>
+						</div>
+					</div>
+					<div class="row header">
+						<div class="col-auto">{{'DESCRIPTION-OVERVIEW.PART-OF' | translate}}</div>
+					</div>
+					<div class="row">
+						<div class="col-12 col-lg-7">
+							<button class="w-100 plan-btn p-1" (click)="planClicked(description.plan)">
+								<div class="plan-btn-label">
+									{{ this.description.plan.label }}
+								</div>
+								<div class="w-auto">
+									<mat-icon>launch</mat-icon>
+								</div>
+							</button>
+						</div>
+					</div>
+					<ng-container *ngIf="referenceService.hasRerefenceOfTypes(description?.plan?.planReferences, [this.referenceTypeService.getGrantReferenceType()])">
+						<div class="row header mt-3">
+							<div class="col-auto">{{'DESCRIPTION-OVERVIEW.GRANT' | translate}}</div>
+						</div>
+						<div class="row description-label">
+							<div class="col-auto">{{referenceService.getReferencesForTypesFirstSafe(description?.plan?.planReferences, [this.referenceTypeService.getGrantReferenceType()])?.reference?.label}}</div>
+						</div>
+					</ng-container>
+					<div class="row header mt-3">
+						<div class="col-auto">{{'DESCRIPTION-OVERVIEW.RESEARCHERS' | translate}}</div>
+					</div>
+					<div class="row">
+						<div class="col-12" *ngFor="let planReference of researchers let last = last">
+							<span *ngIf="isOrcid(planReference.reference)">
+								<a href="{{ getOrcidPathForResearcher(planReference.reference?.reference) }}" target="blank" class="researcher align-items-center">
+									<div class="id-btn" [matTooltip]="unauthorizedTootipText">&nbsp;</div>
+									<div *ngIf="!last">{{ planReference.reference?.label }}, </div>
+									<div *ngIf="last">{{ planReference.reference?.label }}</div>
+								</a>
+							</span>
+							<span *ngIf="!isOrcid(planReference.reference)">
+								<div *ngIf="!last">{{ planReference.reference?.label }}, </div>
+								<div *ngIf="last">{{ planReference.reference?.label }}</div>
+							</span>
+						</div>
+					</div>
+					<div class="row">
+						<div class="col-12">
+							<span *ngIf="!researchers || researchers.length === 0" class="material-icons">horizontal_rule</span>
+						</div>
+					</div>
+					<div class="row header mt-3">
+						<div class="col-auto">{{'DESCRIPTION-OVERVIEW.DESCRIPTION' | translate}}</div>
+					</div>
+					<div class="row" *ngIf="description.description">
+						<div class="col-12">
+							<p [innerHTML]="description.description"></p>
+						</div>
+					</div>
+					<div class="row" *ngIf="!description.description">
+						<div class="col-12">
+							<span class="material-icons">horizontal_rule</span>
+						</div>
+					</div>
+				</div>
+				<div class="col-12 col-lg-4">
+					<ng-container *ngIf="isAuthenticated()">
+						<div class="row">
+							<div class="col-12">
+								<div class="frame mb-3 pt-4 pl-4 pr-5 pb-3">
+									<ng-container *ngIf="canFinalize && isDraftDescription(description) && !isLocked">
+										<div class="row align-items-center" (click)="finalize(description)">
+											<div class="col-auto pr-0">
+												<button mat-mini-fab class="finalize-btn">
+													<mat-icon class="mat-mini-fab-icon check-icon">check</mat-icon>
+												</button>
+											</div>
+											<div class="col-auto pl-0">
+												<p class="mb-0 pl-2 frame-txt">{{ 'DESCRIPTION-OVERVIEW.ACTIONS.FINALIZE' | translate }}</p>
+											</div>
+										</div>
+										<div class="row align-items-center">
+											<div class="col-12">
+												<hr class="hr-line">
+											</div>
+										</div>
+									</ng-container>
+									<ng-container *ngIf="hasReversableStatus(description)">
+										<div class="row mb-3 align-items-center" (click)="reverseFinalization(description)">
+											<div class="col-auto pr-0">
+												<button mat-mini-fab class="frame-btn">
+													<mat-icon class="mat-mini-fab-icon">unarchive</mat-icon>
+												</button>
+											</div>
+											<div class="col-auto pl-0">
+												<p class="mb-0 mr-0 pl-2 frame-txt">{{ 'DESCRIPTION-OVERVIEW.ACTIONS.REVERSE' | translate }}</p>
+											</div>
+										</div>
+									</ng-container>
+									<ng-container *ngIf="fileTransformerService.availableFormatsFor(fileTransformerEntityTypeEnum.Description).length > 0">
+										<div class="row mb-3 align-items-center">
+											<div class="col-auto pr-0">
+												<button mat-mini-fab class="frame-btn" [matMenuTriggerFor]="exportMenu">
+													<mat-icon class="mat-mini-fab-icon">open_in_new</mat-icon>
+												</button>
+											</div>
+											<div class="col-auto pl-0">
+												<p class="mb-0 mr-0 pl-2 frame-txt" [matMenuTriggerFor]="exportMenu">{{ 'DESCRIPTION-OVERVIEW.ACTIONS.EXPORT' | translate }}</p>
+											</div>
+										</div>
+									</ng-container>
+									<mat-menu #exportMenu="matMenu" xPosition="before">
+											<button mat-menu-item *ngFor='let fileTransformer of fileTransformerService.availableFormatsFor(fileTransformerEntityTypeEnum.Description)' (click)="fileTransformerService.exportDescription(description.id, fileTransformer.repositoryId, fileTransformer.format, isPublicView)">
+													<i class="fa pr-2" [ngClass]="fileTransformer.icon ? fileTransformer.icon : 'fa-file-o'"></i>
+													<span>{{'GENERAL.FILE-TRANSFORMER.' + fileTransformer.format.toUpperCase() | translate}}</span>
+											</button>
+									</mat-menu>
+								</div>
+							</div>
+						</div>
+					</ng-container>
+					<div class="row">
+						<div class="col-12">
+							<div class="frame mb-3 pt-4 pl-3 pr-3 pb-3">
+								<div class="col-12 header">
+									{{ 'DESCRIPTION-OVERVIEW.DESCRIPTION-AUTHORS' | translate }}
+								</div>
+                                <app-plan-authors
+                                    [planUsers]="description.plan?.planUsers"
+									[planBlueprint]="description.plan?.blueprint"
+                                    [username]="userName"
+                                    [removeUser]="canAssignPlanUsers"
+                                    (deleteAuthor)="removeUserFromPlan($event)"
+                                />
+								<div *ngIf="canInvitePlanUsers" class="col-12 d-flex justify-content-center mt-2">
+									<button mat-raised-button class="invite-btn" (click)="openShareDialog()">
+										<mat-icon>group_add</mat-icon>
+										{{'DESCRIPTION-OVERVIEW.ACTIONS.INVITE-SHORT' | translate}}
+									</button>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>

@@ -1,0 +1,116 @@
+<div class="plan-criteria">
+	<div class="filters container-fluid">
+		<div class="row justify-content-center">
+			<div class="col-10">
+				<h6 class="criteria-title">{{'PLAN-LISTING.FILTERS.NAME'| translate}}</h6>
+			</div>
+		</div>
+		<div class="row" style="justify-content: center;" *ngIf="formGroup">
+			<!-- Visibility Filter-->
+			<div *ngIf="!isPublic" class="col-10">
+				<h6 class="category-title">{{ 'PLAN-LISTING.FILTERS.STATUS.NAME' | translate }}</h6>
+				<mat-radio-group aria-label="Select an option" [formControl]="formGroup.get('status')" class="row">
+					<mat-radio-button [value]="null" [checked]="formGroup.get('status')?.value == null" class="col-12">{{ 'PLAN-LISTING.FILTERS.STATUS.TYPE.ANY' | translate }}</mat-radio-button>
+					<mat-radio-button [value]="status.Draft" class="col-12">{{ 'PLAN-LISTING.FILTERS.STATUS.TYPE.DRAFT' | translate }}</mat-radio-button>
+					<mat-radio-button [value]="status.Finalized" class="col-12">{{ 'PLAN-LISTING.FILTERS.STATUS.TYPE.FINALIZED' | translate }}</mat-radio-button>
+				</mat-radio-group>
+				<hr>
+			</div>
+			<!-- End of Visibility Filter-->
+
+			<!-- Tenant Filter -->
+			<div *ngIf="!isPublic && hasSelectedTenant" class="col-10">
+				<h6 class="category-title">{{ 'PLAN-LISTING.FILTERS.RELATED-TENANT.NAME' | translate}}</h6>
+				<mat-slide-toggle [formControl]="formGroup.get('viewOnlyTenant')">{{ 'PLAN-LISTING.FILTERS.RELATED-TENANT.FILTER-BY-TENANT' | translate }}</mat-slide-toggle>
+				<hr>
+			</div>
+			<!-- End of Tenant Filter -->
+
+			<!-- Related Dataset Templates Filter -->
+			<div class="col-10">
+				<h6 class="category-title">{{ 'PLAN-LISTING.FILTERS.RELATED-DESCRIPTION-TEMPLATES.NAME' | translate}}</h6>
+				<mat-form-field class="w-100">
+					<mat-label>{{ 'PLAN-LISTING.FILTERS.RELATED-DESCRIPTION-TEMPLATES.PLACEHOLDER' | translate }}</mat-label>
+					<app-multiple-auto-complete [formControl]="formGroup.get('descriptionTemplates')" [configuration]="descriptionTemplateAutoCompleteConfiguration"></app-multiple-auto-complete>
+				</mat-form-field>
+				<hr>
+			</div>
+			<!-- End of Related Dataset Templates Filter -->
+			
+			<!-- Plan Blueprint Filter -->
+			<div class="col-10">
+				<h6 class="category-title">{{ 'PLAN-LISTING.FILTERS.ASSOCIATED-PLAN-BLUEPRINTS.NAME' | translate}}</h6>
+				<mat-form-field class="w-100">
+					<mat-label>{{ 'PLAN-LISTING.FILTERS.ASSOCIATED-PLAN-BLUEPRINTS.PLACEHOLDER' | translate }}</mat-label>
+					<app-multiple-auto-complete [formControl]="formGroup.get('planBlueprints')" [configuration]="planBlueprintAutoCompleteConfiguration"></app-multiple-auto-complete>
+				</mat-form-field>
+				<hr>
+			</div>
+			<!-- End of Plan Blueprint Filter -->
+
+			<!-- Role Filter -->
+			<div *ngIf="isAuthenticated()" class="col-10">
+				<h6 class="category-title">{{ 'PLAN-LISTING.FILTERS.ROLE.NAME' | translate }}</h6>
+				<mat-radio-group aria-label="Select an option" [formControl]="formGroup.get('role')" class="row">
+					<mat-radio-button [value]="null" [checked]="formGroup.get('role')?.value == null" class="col-12">{{ 'PLAN-LISTING.FILTERS.ROLE.TYPE.ANY' | translate }}</mat-radio-button>
+					<mat-radio-button [value]="role.Owner" class="col-12">{{ 'PLAN-LISTING.FILTERS.ROLE.TYPE.OWNER' | translate }}</mat-radio-button>
+					<mat-radio-button [value]="role.Viewer" class="col-12">{{ 'PLAN-LISTING.FILTERS.ROLE.TYPE.VIEWER' | translate }}</mat-radio-button>
+					<mat-radio-button [value]="role.DescriptionContributor" class="col-12">{{ 'PLAN-LISTING.FILTERS.ROLE.TYPE.DESCRIPTION-CONTRIBUTOR' | translate }}</mat-radio-button>
+					<mat-radio-button [value]="role.Reviewer" class="col-12">{{ 'PLAN-LISTING.FILTERS.ROLE.TYPE.REVIEWER' | translate }}</mat-radio-button>
+				</mat-radio-group>
+				<hr>
+			</div>
+			<!-- End of Role Filter -->
+
+			<!-- Reference Types -->
+			<div class="col-10 mb-1">
+				<h6 class="category-title">{{'DESCRIPTION-LISTING.FILTERS.REFERENCE-TYPES.NAME' | translate }}</h6>
+				<ng-container *ngFor="let referenceForm of formGroup.get('references')?.controls; let i=index">
+					<div class="row">
+						<div class="col-12">
+							<mat-form-field class="w-100" *ngIf="referenceForm.get('referenceTypeId')">
+								<mat-label>{{'DESCRIPTION-LISTING.FILTERS.REFERENCE-TYPES.REFERENCE-TYPE' | translate}}</mat-label>
+								<app-single-auto-complete [formControl]="referenceForm.get('referenceTypeId')" [configuration]="referenceTypeAutocompleteConfiguration">
+								</app-single-auto-complete>
+							</mat-form-field>
+						</div>
+					</div>
+					<div class="row" *ngIf="referenceForm.get('referenceTypeId')?.value && selectReferenceAutocompleteConfiguration(referenceForm.get('referenceTypeId').value)">
+						<div class="col-12">
+							<mat-form-field class="w-100 mb-2">
+								<mat-label>{{'DESCRIPTION-LISTING.FILTERS.REFERENCE-TYPES.REFERENCE' | translate}}</mat-label>
+								<app-multiple-auto-complete [formControl]="referenceForm.get('referenceIds')" [configuration]="selectReferenceAutocompleteConfiguration(referenceForm.get('referenceTypeId').value)">
+								</app-multiple-auto-complete>
+							</mat-form-field>
+						</div>
+					</div>
+					
+					<button mat-icon-button class="col-auto" (click)="deleteRow(i)" type="button">
+						<mat-icon>delete</mat-icon>
+					</button>
+				</ng-container>
+
+				<div class="col-10">
+					<div class="row align-items-center">
+						<button mat-icon-button color="primary" [disabled]="false" (click)="addReferenceType()">
+							<mat-icon>add_circle</mat-icon>
+						</button>
+						<span>
+							<span class="mt-1">{{'DESCRIPTION-LISTING.ACTIONS.ADD-REFERENCE-TYPE' | translate}}</span>
+						</span>
+					</div>
+				</div>
+			</div>
+			<!-- End of Reference Types -->
+			
+			<div class="col-10 d-flex justify-content-between mb-4">
+                <button  mat-button class="rounded-btn primary-inverted" (click)="resetFilters()" style="font-size: 0.87rem;">
+					{{'PLAN-LISTING.FILTERS.RESET-FILTERS' | translate}} 
+				</button>
+				<button  mat-button class="rounded-btn primary" (click)="controlModified()">
+					{{'PLAN-LISTING.FILTERS.APPLY-FILTERS' | translate}}
+				</button>
+			</div>
+		</div>
+	</div>
+</div>

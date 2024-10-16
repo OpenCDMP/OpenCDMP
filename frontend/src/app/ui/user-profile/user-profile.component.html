@@ -1,0 +1,219 @@
+<div class="profile">
+	<div class="container-fluid">
+		<div *ngIf="user | async  as userProfile; else loading" class="user-profile">
+			<div class="row user-profile-title">
+				<div class="col mb-2">
+					{{'USER-DIALOG.USER-PROFILE' | translate}}
+				</div>
+
+				<div *ngIf="tenantFormGroup" class="col-auto mr-5">
+					<div class="row">
+						<div class="col">
+							<mat-form-field class="w-100">
+								<mat-label>Tenant</mat-label>
+								<mat-select placeholder="Tenant" [formControl]="this.tenantFormGroup.get('tenantCode')">
+									<ng-container *ngFor="let tenant of tenants | async">
+										<mat-option [value]="tenant.code">{{ tenant.name }}</mat-option>
+									</ng-container>
+								</mat-select>
+							</mat-form-field>
+						</div>
+						<div class="col-12 col-lg-auto mt-1">
+							<button mat-mini-fab (click)="switchTenant()">
+								<mat-icon class="mat-mini-fab-icon">refresh</mat-icon>
+							</button>
+						</div>
+					</div>
+				</div>
+			</div>
+			<div class="row profile-content" [formGroup]="formGroup">
+				<div class="col">
+					<div class="row mb-4">
+						<div class="col-auto">
+							<img mat-card-avatar class="avatar" [src]="userProfile.avatarUrl" (error)="applyFallbackAvatar($event)">
+						</div>
+						<div class="col-auto d-flex flex-column justify-content-center main-info">
+							<div class="name">{{formGroup.get('name').value}}</div>
+						</div>
+					</div>
+					<!-- Name -->
+					<div class="row mb-5">
+						<div class="col">
+							<div class="row">
+								<div class="col-auto mb-1 field-title">{{'USER-PROFILE.SETTINGS.NAME' | translate}} *</div>
+							</div>
+							<div class="row">
+								<div class="col name-form">
+									<mat-form-field>
+										<input matInput type="text" name="name" placeholder="{{'USER-PROFILE.SETTINGS.NAME' | translate}}" [formControl]="formGroup.get('name')" required>
+										<mat-error *ngIf="formGroup.get('name').hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
+									</mat-form-field>
+								</div>
+							</div>
+						</div>
+					</div>
+					<!-- Accounts -->
+					<!-- TODO: How to present these. -->
+					<div class="row mb-5">
+						<div class="col">
+							<div class="row">
+								<div class="col-auto field-title">{{'USER-PROFILE.SETTINGS.ACCOUNTS' | translate}}</div>
+							</div>
+							<div class="row mt-3">
+								<div class="col-auto">
+									<span class="email-title">{{'USER-PROFILE.SETTINGS.EMAILS' | translate}}</span>
+								</div>
+								<div class="col-auto vertical-line">
+									<div *ngIf="userCredentials">
+										<div *ngFor="let userCredential of userCredentials | async; index as i">
+											<div class="row user-credential" *ngIf="userCredential.data">
+												<div class="col-auto mail-text pr-0">{{userCredential.data.email}}</div>
+												<ng-container *ngFor="let providerIcon of getProviderIcons(userCredential,  userLanguage)">
+													<span [ngClass]="providerIcon"></span>
+												</ng-container>
+												<div *ngIf="i != 0" class="col-auto d-flex align-items-center unlink-mail" (click)="userCredential.data.email !== firstEmail && removeAccount(userCredential)">
+													<mat-icon [matTooltip]="(userCredential.data?.email !== firstEmail ) ? ('USER-PROFILE.ACTIONS.UNLINK-ACCOUNT' | translate) : ('USER-PROFILE.ACTIONS.UNLINK-ACCOUNT-DISABLED' | translate)" matTooltipPosition="right" [ngClass]="{'disable-unlink':userCredential.data.email === firstEmail}">link_off</mat-icon>
+												</div>
+											</div>
+										</div>
+									</div>
+									<div class="row add-new-btn">
+										<div class="col-auto add-mail" (click)="addAccount()">
+											<mat-icon class="mr-1">add</mat-icon>
+											<span>{{'USER-PROFILE.ACTIONS.LINK-NEW' | translate}}</span>
+										</div>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+					<!-- Organization -->
+					<div class="row mb-5">
+						<div class="col-12 col-lg-6">
+							<div class="row">
+								<div class="col-auto mb-1 field-title">{{'USER-PROFILE.SETTINGS.ORGANIZATION' | translate}}</div>
+							</div>
+							<div class="row">
+								<div class="col organization-form">
+									<mat-form-field class="w-100">
+										<app-single-auto-complete placeholder="{{'PLAN-EDITOR.PLACEHOLDER.ORGANIZATION' | translate}}" [formControl]="this.formGroup.get('additionalInfo').get('organization')" [configuration]="organisationsSingleAutoCompleteConfiguration"></app-single-auto-complete>
+									</mat-form-field>
+								</div>
+							</div>
+						</div>
+						<!-- Role -->
+						<div class="col-12 col-lg-6">
+							<div class="row">
+								<div class="col-auto mb-1 field-title">{{'USER-PROFILE.SETTINGS.ROLE' | translate}}</div>
+							</div>
+							<div class="row">
+								<div class="col role-form">
+									<mat-form-field class="w-100">
+										<mat-select placeholder="{{'USER-PROFILE.SETTINGS.SELECT-ROLE' | translate}}" [formControl]="this.formGroup.get('additionalInfo').get('roleOrganization')">
+											<mat-option [value]="roleOrganizationEnum.Faculty">{{enumUtils.toRoleOrganizationString(roleOrganizationEnum.Faculty)}}</mat-option>
+											<mat-option [value]="roleOrganizationEnum.Librarian">{{enumUtils.toRoleOrganizationString(roleOrganizationEnum.Librarian)}}</mat-option>
+											<mat-option [value]="roleOrganizationEnum.Researcher">{{enumUtils.toRoleOrganizationString(roleOrganizationEnum.Researcher)}}</mat-option>
+											<mat-option [value]="roleOrganizationEnum.Student">{{enumUtils.toRoleOrganizationString(roleOrganizationEnum.Student)}}</mat-option>
+											<mat-option [value]="roleOrganizationEnum.EarlyCareerResearcher">{{enumUtils.toRoleOrganizationString(roleOrganizationEnum.EarlyCareerResearcher)}}</mat-option>
+											<mat-option [value]="roleOrganizationEnum.ResearchAdministrator">{{enumUtils.toRoleOrganizationString(roleOrganizationEnum.ResearchAdministrator)}}</mat-option>
+											<mat-option [value]="roleOrganizationEnum.RepositoryManager">{{enumUtils.toRoleOrganizationString(roleOrganizationEnum.RepositoryManager)}}</mat-option>
+											<mat-option [value]="roleOrganizationEnum.ResearchInfrastructure">{{enumUtils.toRoleOrganizationString(roleOrganizationEnum.ResearchInfrastructure)}}</mat-option>
+											<mat-option [value]="roleOrganizationEnum.ServiceProvider">{{enumUtils.toRoleOrganizationString(roleOrganizationEnum.ServiceProvider)}}</mat-option>
+											<mat-option [value]="roleOrganizationEnum.Publisher">{{enumUtils.toRoleOrganizationString(roleOrganizationEnum.Publisher)}}</mat-option>
+											<mat-option [value]="roleOrganizationEnum.ResearchFunder">{{enumUtils.toRoleOrganizationString(roleOrganizationEnum.ResearchFunder)}}</mat-option>
+											<mat-option [value]="roleOrganizationEnum.Policymaker">{{enumUtils.toRoleOrganizationString(roleOrganizationEnum.Policymaker)}}</mat-option>
+											<mat-option [value]="roleOrganizationEnum.SMEIndustry">{{enumUtils.toRoleOrganizationString(roleOrganizationEnum.SMEIndustry)}}</mat-option>
+											<mat-option [value]="roleOrganizationEnum.Other">{{enumUtils.toRoleOrganizationString(roleOrganizationEnum.Other)}}</mat-option>
+										</mat-select>
+									</mat-form-field>
+								</div>
+							</div>
+						</div>
+					</div>
+					<!-- Timezone -->
+					<div class="row mb-5">
+						<div class="col-12 col-lg-4">
+							<div class="row">
+								<div class="col-auto mb-1 field-title">{{'USER-PROFILE.SETTINGS.TIMEZONE' | translate}} *</div>
+							</div>
+							<div class="row">
+								<div class="col timezone-form">
+									<mat-form-field class="w-100">
+										<input matInput autocomplete="off" placeholder="{{'USER-PROFILE.SETTINGS.TIMEZONE' | translate}}" [matAutocomplete]="timezoneAuto" type="text" name="timezone" [formControl]="formGroup.get('additionalInfo').get('timezone')">
+										<mat-error *ngIf="formGroup.get('additionalInfo').get('timezone').hasError('backendError')">{{formGroup.get('additionalInfo').get('timezone').getError('backendError').message}}</mat-error>
+										<mat-error *ngIf="formGroup.get('additionalInfo').get('timezone').hasError('required')">{{'COMMONS.VALIDATION.REQUIRED' | translate}}</mat-error>
+										<mat-autocomplete autoActiveFirstOption #timezoneAuto="matAutocomplete">
+											<mat-option *ngFor="let timezone of filteredTimezones" [value]="timezone">{{timezone | timezoneInfoDisplay}}</mat-option>
+										</mat-autocomplete>
+									</mat-form-field>
+								</div>
+							</div>
+						</div>
+						<!-- Culture -->
+						<div class="col-12 col-lg-4">
+							<div class="row">
+								<div class="col-auto mb-1 field-title">{{'USER-PROFILE.SETTINGS.CULTURE' | translate}} *</div>
+							</div>
+							<div class="row">
+								<div class="col culture-form">
+									<mat-form-field class="w-100">
+										<input matInput autocomplete="off" placeholder="{{'USER-PROFILE.SETTINGS.CULTURE' | translate}}" [matAutocomplete]="cultureAuto" type="text" name="culture" [formControl]="formGroup.get('additionalInfo').get('culture')">
+										<mat-error *ngIf="formGroup.get('additionalInfo').get('culture').hasError('backendError')">{{formGroup.get('additionalInfo').get('culture').getError('backendError').message}}</mat-error>
+										<mat-error *ngIf="formGroup.get('additionalInfo').get('culture').hasError('required')">{{'COMMONS.VALIDATION.REQUIRED' | translate}}</mat-error>
+										<mat-autocomplete autoActiveFirstOption #cultureAuto="matAutocomplete" [displayWith]="displayCultureFn.bind(this)">
+											<mat-option *ngFor="let culture of filteredCultures" [value]="culture.name">{{culture | cultureInfoDisplay}}</mat-option>
+										</mat-autocomplete>
+									</mat-form-field>
+								</div>
+							</div>
+						</div>
+						<!-- Language -->
+						<div class="col-12 col-lg-4">
+							<div class="row">
+								<div class="col-auto mb-1 field-title">{{'USER-PROFILE.SETTINGS.LANGUAGE' | translate}} *</div>
+							</div>
+							<div class="row">
+								<div class="col language-form">
+
+									<mat-form-field class="w-100">
+										<mat-select [formControl]="this.formGroup.get('additionalInfo').get('language')" name="language">
+											<mat-option *ngFor="let language of languages" [value]="language">
+												{{ "GENERAL.LANGUAGES."+ language | translate }}
+											</mat-option>
+										</mat-select>
+										<mat-error *ngIf="this.formGroup.get('additionalInfo').get('language').hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
+									</mat-form-field>
+								</div>
+							</div>
+						</div>
+					</div>
+					<div class="row d-flex mb-5">
+						<div class="col-auto ml-auto"><button mat-button class="rounded-btn primary" type="button" (click)="save()">{{'USER-PROFILE.ACTIONS.SAVE' | translate}}</button></div>
+					</div>
+					<div class="row mb-5">
+						<div class="col-12">
+							<mat-accordion class="w-100">
+								<mat-expansion-panel (opened)="expandPreferences()">
+									<mat-expansion-panel-header>
+										<mat-panel-title>
+											<span>{{ 'NOTIFICATION-SERVICE.USER-PROFILE.TITLE' | translate}}</span>
+										</mat-panel-title>
+									</mat-expansion-panel-header>
+									<div class="row">
+										<div class="col-12">
+											<ng-container *ngIf="expandedPreferences">
+												<app-user-profile-notifier-list-editor></app-user-profile-notifier-list-editor>
+											</ng-container>
+										</div>
+									</div>
+								</mat-expansion-panel>
+							</mat-accordion>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+		<ng-template #loading>
+		</ng-template>
+	</div>
+</div>

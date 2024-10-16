@@ -1,0 +1,130 @@
+﻿<div id="topofcontainer"></div>
+<div class="row" [id]="idprefix+form.get('id').value" *ngIf="form" [@fade-in-fast]>
+	<div class="col-12">
+		<div class="row fieldset">
+			<!-- SECTION INFO -->
+			<div class="col-9 p-0" style="margin-bottom:2em;">
+				<mat-card style="padding: 2em;">
+                    <mat-error *ngIf="form.touched && form.hasError('sectionMustHaveOneChild')">{{'DESCRIPTION-TEMPLATE-EDITOR.STEPS.FORM.FIELD.ERROR-MESSAGES.SECTION-CHILD-REQUIRED' | translate}}</mat-error>
+					<mat-card-content>
+						<app-description-template-editor-section-component [form]="form" [viewOnly]="viewOnly">
+						</app-description-template-editor-section-component>
+					</mat-card-content>
+				</mat-card>
+				<div class="row justify-content-center mt-4 mb-2">
+					<div class="col-auto add-question" (click)="addFieldSetAfter(-9999,0)" *ngIf="!viewOnly">
+						<img src="/assets/images/editor/icons/add_input_set.svg" class="question-icon mr-2"
+							alt="Add Question icon">
+						<span>{{'DESCRIPTION-TEMPLATE-EDITOR.STEPS.TOOLKIT.NEW-INPUT-SET' | translate}}</span>
+					</div>
+				</div>
+			</div>
+			<div class="col-2 col-xl-auto ml-4" *ngIf="!selectedFieldSetId && !viewOnly">
+
+				<div class="row bg-white actions-list">
+					<nav>
+						<label class="action-list-label">{{'DESCRIPTION-TEMPLATE-EDITOR.STEPS.TOOLKIT.GENERAL-TOOLS' |
+							translate}}</label>
+						<ul class="list-unstyled">
+							<li class="mli">
+								<div class="action-list-item" (click)="onAddFieldSet()">
+									<!-- <mat-icon class="action-list-icon">folder</mat-icon> -->
+									<img src="/assets/images/editor/icons/add_input_set.svg" class="input_icon"
+										alt="Add Question icon">
+									<span
+										class="action-list-text">{{'DESCRIPTION-TEMPLATE-EDITOR.STEPS.TOOLKIT.NEW-INPUT-SET'
+										| translate}}</span>
+								</div>
+							</li>
+						</ul>
+					</nav>
+				</div>
+			</div>
+		</div>
+
+	</div>
+
+	<!-- FIELDSET INFO -->
+	<div class="col-12" dragula="FIELDSETS" [(dragulaModel)]="form.get('fieldSets').controls">
+
+		<div style="margin-bottom: 2em; position: relative;" class="row fieldset"
+			*ngFor="let fieldset of form.get('fieldSets')?.controls ; let i=index"
+			[id]="dragula_prefix+fieldset.get('id').value">
+			<div [id]="idprefix+fieldset.get('id').value" style="position: absolute; top: -13.5em; visibility: hidden;">
+			</div>
+			<div class="col-9 p-0">
+				<mat-card (click)="selectedFieldSetId = fieldset.get('id').value"
+					[ngClass]="{'field-container-active': fieldset.get('id').value === selectedFieldSetId}">
+					<mat-card-content>
+
+						<mat-card-header *ngIf="!viewOnly">
+							<mat-icon *ngIf="reorderingMode" class="handle dragpan enabled-dragpan">drag_indicator</mat-icon>
+							<button mat-icon-button class="ml-auto mr-auto" *ngIf="!reorderingMode && (fieldset.get('id').value === selectedFieldSetId)" (click)="enableReordering()">
+								<mat-icon class="handle dragpan">drag_indicator</mat-icon>
+							</button>
+						</mat-card-header>
+						<app-description-template-editor-field-set-component [reorderingMode]="reorderingMode" [form]="fieldset"
+							[availableReferenceTypes]="availableReferenceTypes"
+							[viewOnly]="viewOnly" [numbering]="numbering + '.'+ (i+1)"
+							[hasFocus]="fieldset.get('id').value === selectedFieldSetId"
+							[descriptionTemplateId]="descriptionTemplateId"
+							[validationErrorModel]="validationErrorModel"
+							[validationRootPath]="validationRootPath + '.fieldSets[' + i + ']'"
+							>
+						</app-description-template-editor-field-set-component>
+					</mat-card-content>
+				</mat-card>
+			</div>
+
+			<div class="col-2 col-xl-auto ml-4" *ngIf="selectedFieldSetId === fieldset.get('id').value &&(!viewOnly)">
+				<div class="row bg-white actions-list stick-list">
+					<nav *ngIf="!viewOnly">
+						<label class="action-list-label">{{'DESCRIPTION-TEMPLATE-EDITOR.STEPS.TOOLKIT.GENERAL-TOOLS' |
+							translate}}</label>
+						<ul class="list-unstyled">
+							<li class="mli">
+								<div class="action-list-item" (click)="onAddFieldSet()">
+									<!-- <mat-icon class="action-list-icon">folder</mat-icon> -->
+									<img src="/assets/images/editor/icons/add_input_set.svg" class="input_icon"
+										alt="Add Question icon">
+									<span
+										class="action-list-text">{{'DESCRIPTION-TEMPLATE-EDITOR.STEPS.TOOLKIT.NEW-INPUT-SET'
+										| translate}}</span>
+								</div>
+							</li>
+
+
+							<li class="mli">
+								<div class="action-list-item" (click)="onCloneFieldSet(fieldset)">
+									<!-- <mat-icon class="action-list-icon">file_copy</mat-icon> -->
+									<img src="/assets/images/editor/icons/clone.svg" class="input_icon"
+										alt="Clone icon">
+									<span class="action-list-text">{{'DESCRIPTION-TEMPLATE-EDITOR.STEPS.TOOLKIT.CLONE' |
+										translate}}</span>
+								</div>
+							</li>
+
+							<li class="mli">
+								<div class="action-list-item" (click)="onRemoveFieldSet(selectedFieldSetId)">
+									<mat-icon class="action-list-icon">delete</mat-icon>
+									<span class="action-list-text">{{'DESCRIPTION-TEMPLATE-EDITOR.STEPS.TOOLKIT.DELETE' |
+										translate}}</span>
+								</div>
+							</li>
+						</ul>
+					</nav>
+				</div>
+			</div>
+			<div class="col-9">
+				<div class="row justify-content-center mt-4 mb-2">
+					<div class="col-auto add-question" (click)="addFieldSetAfter(fieldset.get('ordinal').value, i)"
+						*ngIf="!viewOnly">
+						<img src="/assets/images/editor/icons/add_input_set.svg" class="question-icon mr-2"
+							alt="Add Question icon">
+						<span>{{'DESCRIPTION-TEMPLATE-EDITOR.STEPS.TOOLKIT.NEW-INPUT-SET' | translate}}</span>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>

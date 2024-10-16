@@ -1,0 +1,56 @@
+$mat-card-header-size: 40px !default;
+.my-mat-card-avatar {
+  height: $mat-card-header-size;
+  width: $mat-card-header-size;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.top-divider {
+  border-top-style: none !important;
+}
+
+.profile, .logout {
+  padding-left: 1.1875rem;
+  font-weight: 300;
+  color: #212121;
+  height: 1.875rem;
+  line-height: 1.875rem;
+  text-align: left;
+}
+
+.email-btn {
+  cursor: auto;
+  display: inline-block;
+  line-height: 2.25rem;
+  font-size: 0.875rem;
+}
+
+.dropdown-top {
+  width: 0rem;
+  border-bottom: 0.625rem solid #FFFFFF;
+  border-left: 0.625rem solid transparent;
+  border-right: 0.625rem solid transparent;
+  position: fixed;
+  transform: translate(11.85rem, -0.6rem);
+}
+
+.dropdown-options {
+	background-color: #FFFFFF;
+	min-width: 10rem;
+	width: 13.625rem;
+}
+
+.dropdown-options a:hover {
+	background-color: #ececec8c  !important;
+}
+
+.dropdown-options a:hover {
+	background-color: #ddd;
+}
+
+.check-icon {
+  color: var(--primary-color);
+  transform: scale(0.7);
+}
+

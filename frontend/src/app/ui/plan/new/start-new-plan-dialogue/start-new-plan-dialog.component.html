@@ -1,0 +1,52 @@
+<div class="start-new-plan-dialog-wrapper">
+	<div class="d-flex justify-content-between">
+		<div class="pl-0 col-auto"><a class="logo"><img class="logo" src="../../../assets/images/new-plan-logo.png" onerror="this.style.display='none'"></a></div>
+		<div class="col-auto">
+			<button mat-icon-button tabindex="-1" (click)="close()"><mat-icon>close</mat-icon></button>
+		</div>
+	</div>
+
+	<div class="content">
+		<div class="col-12 p-0">
+			<h1 class="title p-0">{{'START-NEW-PLAN-DIALOG.TITLE' | translate}}</h1>
+		</div>
+		<div class="col-12 p-0">
+			<p class="text">{{'START-NEW-PLAN-DIALOG.MESSAGE' | translate}}</p>
+		</div>
+		<div class="col-12">
+			<div class="d-flex justify-content-between align-items-center">
+				<div class="import-file col-auto p-0">
+					<div class="pr-2">
+						<button mat-button tabindex="-1" type="button" class="rounded-btn upload-btn d-flex flex-row align-items-center" (click)="uploadFile($event)">
+							<mat-icon class="pr-2">file_upload</mat-icon>
+							{{ 'START-NEW-PLAN-DIALOG.IMPORT-FROM-FILE' | translate }}
+						</button>
+					</div>
+				</div>
+				<div class="col-auto">
+					<p class="m-0">{{ 'START-NEW-PLAN-DIALOG.OR' | translate }}</p>
+				</div>
+				<div class="start-wizard col-auto p-0">
+					<div class="pr-2">
+						<button mat-button class="rounded-btn primary font-weight-bold d-flex flex-row align-items-center" (click)="startWizard()">
+							<mat-icon>chevron_right</mat-icon>
+							{{ 'START-NEW-PLAN-DIALOG.START-NEW-PLAN' | translate }}
+						</button>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<div class="d-flex justify-content-between pt-4">
+		<div class="pr-2">
+			<mat-icon class="material-icons-outlined warn">info</mat-icon>
+		</div>
+		<span>
+			<b>{{'START-NEW-PLAN-DIALOG.IMPORT' | translate }}</b> {{'START-NEW-PLAN-DIALOG.FUNCTION-SUPPORTS' | translate }}
+			<b>{{'START-NEW-PLAN-DIALOG.JSON-FILES' | translate }}</b> {{'START-NEW-PLAN-DIALOG.PRODUCED' | translate }}
+			<b><a href="https://github.com/RDA-PLAN-Common/RDA-PLAN-Common-Standard" target="_blank">{{'START-NEW-PLAN-DIALOG.RDA-SPECIFICATIONS' | translate }}</a></b>
+			{{'START-NEW-PLAN-DIALOG.MACHINE-ACTIONABLE' | translate }}
+		</span>
+	</div>
+</div>

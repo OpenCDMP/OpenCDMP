@@ -1,0 +1,33 @@
+<div class="description-copy-dialog">
+	<div mat-dialog-title class="row d-flex align-items-center">
+		<div class="col"><span>{{'DESCRIPTION-COPY-DIALOG.TITLE' | translate}}</span></div>
+		<div class="col-auto">
+			<button mat-icon-button tabindex="-1" (click)="close()"><mat-icon>close</mat-icon></button>
+		</div>
+	</div>
+
+	<div mat-dialog-content class="confirmation-message">
+		<div class="row mt-3">
+			<div class="col-12">
+				<mat-form-field class="w-100">
+					<app-single-auto-complete [formControl]="data.formGroup.get('planId')" placeholder="{{'DESCRIPTION-COPY-DIALOG.SELECT-PLAN' | translate}}" [configuration]="planAutoCompleteConfiguration">
+					</app-single-auto-complete>
+				</mat-form-field>
+			</div>
+		</div>
+		<div *ngIf="this.sections.length > 1" class="row">
+			<div class="col-12">
+				<mat-form-field class="w-100">
+					<mat-label>{{'DESCRIPTION-COPY-DIALOG.PLAN-SECTION' | translate}}</mat-label>
+					<mat-select [formControl]="data.formGroup.get('sectionId')">
+						<mat-option *ngFor="let section of sections" [value]="section.id">{{section.label}}</mat-option>
+					</mat-select>
+				</mat-form-field>
+			</div>
+		</div>
+	</div>
+	<div mat-dialog-actions class="row">
+		<div class="col-auto ml-auto"><button mat-button class="rounded-btn neutral" type="button" (click)="cancel()">{{ data.cancelButton }}</button></div>
+		<div class="col-auto"><button mat-button class="confirm-btn" type="button" [disabled]="!data.formGroup.valid" (click)="confirm()">{{ data.confirmButton }}</button></div>
+	</div>
+</div>

@@ -1,0 +1,19 @@
+<div class="form">
+	<div class="row d-flex flex-row">
+		<div mat-dialog-title class="col-auto">
+			{{'CONTACT.SUPPORT.SUBTITLE' | translate}}
+		</div>
+		<div class="col-auto ml-auto">
+            <button mat-icon-button (click)="close()" tabindex="-1">
+                <mat-icon>close</mat-icon>
+            </button>
+		</div>
+	</div>
+	<div mat-dialog-content class="row">
+		<app-contact-content [isDialog]="data.isDialog" [form]="data.formGroup"></app-contact-content>
+	</div>
+	<div mat-dialog-actions class="row">
+		<div class="ml-auto col-auto"><button mat-raised-button type="button" mat-dialog-close (click)="cancel()">{{'CONTACT.SUPPORT.CANCEL' | translate}}</button></div>
+		<div class="col-auto"><button mat-raised-button color="primary" type="button" [disabled]="!data.formGroup.valid" (click)="send()"><i class="fa fa-paper-plane pr-2"></i>{{'CONTACT.SUPPORT.SEND' | translate}}</button></div>
+	</div>
+</div>

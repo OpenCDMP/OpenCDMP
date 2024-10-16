@@ -1,0 +1,31 @@
+<div *ngFor="let entry of tocentries; index as idx">
+	<!-- check if is visible -->
+	<ng-container *ngIf="visibilityRulesService.isVisibleMap[entry.visibilityRuleKey] ?? true">
+		<ng-container >
+
+			<span class="table-entry" 
+			(click)="toggleExpand(idx); onEntrySelected(entry);"
+			[ngStyle]="calculateStyle(entry)"
+			[ngClass]="calculateClass(entry)"
+			>
+				<span [class.text-danger]="!isTocEntryValid(entry) && showErrors">
+					{{entry.numbering}}. {{entry.label}} 
+				</span>	
+			
+			</span>
+			<div class="internal-table">
+				<table-of-contents-internal 
+				[tocentries]="entry.subEntries" 
+				*ngIf="entry.subEntries && entry.subEntries.length && expandChildren[idx]"
+				(entrySelected)="onEntrySelected($event)"
+				[selected]="selected"
+				[visibilityRulesService]="visibilityRulesService"
+				[propertiesFormGroup]="propertiesFormGroup"
+				[showErrors]="showErrors"
+				>
+				</table-of-contents-internal>
+			</div>
+		</ng-container>
+	</ng-container>
+
+</div>

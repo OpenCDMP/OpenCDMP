@@ -1,0 +1,104 @@
+<div class="row" *ngIf="form.get('data')">
+
+	<h5 style="font-weight: bold" class="col-auto">{{'DESCRIPTION-TEMPLATE-EDITOR.STEPS.FORM.FIELD.FIELDS.FIELD-AUTOCOMPLETE-TITLE' | translate}}</h5>
+	<mat-checkbox class="col-auto" [formControl]="this.form.get('data').get('multipleSelect')">
+		{{'DESCRIPTION-TEMPLATE-EDITOR.STEPS.FORM.FIELD.FIELDS.FIELD-MULTIPLE-AUTOCOMPLETE' | translate}}
+		<mat-error *ngIf="form.get('data').get('multipleSelect').hasError('backendError')">{{form.get('data').get('multipleSelect').getError('backendError').message}}</mat-error> 
+	</mat-checkbox>
+
+	<mat-form-field class="col-12">
+		<mat-label>{{'DESCRIPTION-TEMPLATE-EDITOR.STEPS.FORM.FIELD.FIELDS.FIELD-AUTOCOMPLETE-PLACEHOLDER' | translate}}</mat-label>
+		<input matInput type="string" [formControl]="form.get('data').get('label')">
+		<mat-error *ngIf="form.get('data').get('label').hasError('backendError')">{{form.get('data').get('label').getError('backendError').message}}</mat-error> 
+	</mat-form-field>
+
+
+	<h6 class="col-12" style="font-weight: bold">{{'DESCRIPTION-TEMPLATE-EDITOR.STEPS.FORM.FIELD.FIELDS.FIELD-AUTOCOMPLETE-SOURCE-TITLE' | translate}}</h6>
+	<div class="col-12 d-flex align-items-center" style="margin-bottom: 1em;">
+		<button mat-raised-button type="button" (click)="addSource()" style="margin-right: 2em;">
+			{{'DESCRIPTION-TEMPLATE-EDITOR.STEPS.FORM.FIELD.FIELDS.FIELD-AUTOCOMPLETE-ADD_SOURCE' | translate}}
+		</button>
+
+		<div class="d-flex" *ngIf="form.get('data').errors?.emptyArray && form.get('data').touched">
+			<mat-icon class="text-danger" matTooltip="At least one source must be provided.">warning_amber</mat-icon>
+			<small class="text-danger">{{'DESCRIPTION-TEMPLATE-EDITOR.STEPS.FORM.FIELD.ERROR-MESSAGES.FIELD-OTHER-SOURCES-REQUIRED'| translate}}</small>
+		</div>
+
+	</div>
+</div>
+<div *ngFor="let singleForm of this.form.get('data').get('sources')?.controls; let i = index" class="row">
+	<mat-form-field class="col-md-6">
+		<mat-label>{{'DESCRIPTION-TEMPLATE-EDITOR.STEPS.FORM.FIELD.FIELDS.FIELD-AUTOCOMPLETE-AUTH-METHOD' | translate}}</mat-label>
+		<mat-select [formControl]="singleForm.get('method')">
+			<mat-option *ngFor="let method of methodTypeValues" [value]="method">{{enumUtils.toDescriptionTemplateExternalSelectHttpMethodTypeString(method)}}</mat-option>
+		</mat-select>
+		<mat-error *ngIf="singleForm.get('method').hasError('backendError')">{{singleForm.get('method').getError('backendError').message}}</mat-error> 
+	</mat-form-field>
+
+	<mat-form-field class="col-md-6">
+		<mat-label>{{'DESCRIPTION-TEMPLATE-EDITOR.STEPS.FORM.FIELD.FIELDS.FIELD-AUTOCOMPLETE-URL' | translate}}</mat-label>
+		<input matInput [formControl]="singleForm.get('url')">
+		<mat-error *ngIf="singleForm.get('url').hasError('backendError')">{{singleForm.get('url').getError('backendError').message}}</mat-error> 
+		<mat-error *ngIf="singleForm.get('url').hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
+	</mat-form-field>
+	<mat-form-field class="col-md-3">
+		<mat-label>{{'DESCRIPTION-TEMPLATE-EDITOR.STEPS.FORM.FIELD.FIELDS.FIELD-AUTOCOMPLETE-OPTIONS-ROOT' | translate}}</mat-label>
+		<input matInput [formControl]="singleForm.get('optionsRoot')">
+		<mat-error *ngIf="singleForm.get('optionsRoot').hasError('backendError')">{{singleForm.get('optionsRoot').getError('backendError').message}}</mat-error> 
+		<mat-error *ngIf="singleForm.get('optionsRoot').hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
+	</mat-form-field>
+	<mat-form-field class="col-md-3">
+		<mat-label>{{'DESCRIPTION-TEMPLATE-EDITOR.STEPS.FORM.FIELD.FIELDS.FIELD-AUTOCOMPLETE-LABEL' | translate}}</mat-label>
+		<input matInput [formControl]="singleForm.get('sourceBinding').get('label')">
+		<mat-error *ngIf="singleForm.get('sourceBinding').get('label').hasError('backendError')">{{singleForm.get('sourceBinding').get('label').getError('backendError').message}}</mat-error> 
+		<mat-error *ngIf="singleForm.get('sourceBinding').get('label').hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
+	</mat-form-field>
+	<mat-form-field class="col-md-3">
+		<mat-label>{{'DESCRIPTION-TEMPLATE-EDITOR.STEPS.FORM.FIELD.FIELDS.FIELD-AUTOCOMPLETE-VALUE' | translate}}</mat-label>
+		<input matInput [formControl]="singleForm.get('sourceBinding').get('value')">
+		<mat-error *ngIf="singleForm.get('sourceBinding').get('value').hasError('backendError')">{{singleForm.get('sourceBinding').get('value').getError('backendError').message}}</mat-error> 
+	</mat-form-field>
+	<mat-form-field class="col-md-3">
+		<mat-label>{{'DESCRIPTION-TEMPLATE-EDITOR.STEPS.FORM.FIELD.FIELDS.FIELD-AUTOCOMPLETE-SOURCE' | translate}}</mat-label>
+		<input matInput [formControl]="singleForm.get('sourceBinding').get('source')">
+		<mat-error *ngIf="singleForm.get('sourceBinding').get('source').hasError('backendError')">{{singleForm.get('sourceBinding').get('source').getError('backendError').message}}</mat-error> 
+		<mat-error *ngIf="singleForm.get('sourceBinding').get('source').hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
+	</mat-form-field>
+	<mat-checkbox class="col-12" [formControl]="singleForm.get('hasAuth')">{{'DESCRIPTION-TEMPLATE-EDITOR.STEPS.FORM.FIELD.FIELDS.FIELD-AUTOCOMPLETE-HAS-AUTH' | translate}}</mat-checkbox>
+	<div *ngIf="singleForm.get('hasAuth').value === true" class="col-12">
+		<mat-form-field class="col-md-6">
+			<mat-label>{{'DESCRIPTION-TEMPLATE-EDITOR.STEPS.FORM.FIELD.FIELDS.FIELD-AUTOCOMPLETE-AUTH-METHOD' | translate}}</mat-label>
+			<mat-select [formControl]="singleForm.get('auth').get('method')">
+			<mat-option *ngFor="let method of methodTypeValues" [value]="method">{{enumUtils.toDescriptionTemplateExternalSelectHttpMethodTypeString(method)}}</mat-option>
+			</mat-select>
+			<mat-error *ngIf="singleForm.get('auth').get('method').hasError('backendError')">{{singleForm.get('auth').get('method').getError('backendError').message}}</mat-error> 
+		</mat-form-field>
+		<mat-form-field class="col-md-6">
+			<mat-label>{{'DESCRIPTION-TEMPLATE-EDITOR.STEPS.FORM.FIELD.FIELDS.FIELD-AUTOCOMPLETE-URL' | translate}}</mat-label>
+			<input matInput [formControl]="singleForm.get('auth').get('url')">
+			<mat-error *ngIf="singleForm.get('auth').get('url').hasError('backendError')">{{singleForm.get('auth').get('url').getError('backendError').message}}</mat-error> 
+			<mat-error *ngIf="singleForm.get('auth').get('url').hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
+		</mat-form-field>
+		<mat-form-field class="col-md-6">
+			<mat-label>{{'DESCRIPTION-TEMPLATE-EDITOR.STEPS.FORM.FIELD.FIELDS.FIELD-AUTOCOMPLETE-AUTH-TYPE' | translate}}</mat-label>
+			<mat-select [formControl]="singleForm.get('auth').get('type')">
+				<mat-option *ngFor="let type of authTypeValues" [value]="type">{{enumUtils.toDescriptionTemplateExternalSelectAuthTypeString(type)}}</mat-option>
+			</mat-select>
+			<mat-error *ngIf="singleForm.get('auth').get('type').hasError('backendError')">{{singleForm.get('auth').get('type').getError('backendError').message}}</mat-error> 
+		</mat-form-field>
+		<mat-form-field class="col-md-6">
+			<mat-label>{{'DESCRIPTION-TEMPLATE-EDITOR.STEPS.FORM.FIELD.FIELDS.FIELD-AUTOCOMPLETE-OPTIONS-ROOT' | translate}}</mat-label>
+			<input matInput [formControl]="singleForm.get('auth').get('path')">
+			<mat-error *ngIf="singleForm.get('auth').get('path').hasError('backendError')">{{singleForm.get('auth').get('path').getError('backendError').message}}</mat-error> 
+			<mat-error *ngIf="singleForm.get('auth').get('path').hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
+		</mat-form-field>
+		<mat-form-field class="col-md-12">
+			<mat-label>{{'DESCRIPTION-TEMPLATE-EDITOR.STEPS.FORM.FIELD.FIELDS.FIELD-AUTOCOMPLETE-AUTH-BODY' | translate}}</mat-label>
+			<textarea matInput [formControl]="singleForm.get('auth').get('body')"></textarea>
+			<mat-error *ngIf="singleForm.get('auth').get('body').hasError('backendError')">{{singleForm.get('auth').get('body').getError('backendError').message}}</mat-error> 
+			<mat-error *ngIf="singleForm.get('auth').get('body').hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
+		</mat-form-field>
+	</div>
+
+	<button mat-button type="button" (click)="removeSource(i)"><mat-icon>delete</mat-icon></button>
+</div>

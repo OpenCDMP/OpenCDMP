@@ -1,0 +1,17 @@
+<div class="dropdown-top"></div>
+
+<form>
+	<div class="mt-2 col-12 dropdown-options">
+		<mat-divider class="top-divider"></mat-divider>
+		<div class="profile-settings">
+			<a mat-button class="profile mt-2 w-100 ml-0 pl-1 d-inline-block" (click)="navigateToProfile()">{{'USER-DIALOG.USER-PROFILE-SETTINGS' | translate}}</a>
+			<a mat-button class="profile mb-2 w-100 ml-0 pl-1 d-inline-block" (click)="navigateToMyPlans()">{{'USER-PROFILE.ASSOCIATED-PLANS' | translate}}</a>
+		</div>
+		<mat-divider></mat-divider>
+		<div>
+			<a mat-button class="logout mt-2 w-100 ml-0 pl-1 d-inline-block" (click)="logout()">
+				{{ 'USER-DIALOG.LOG-OUT' | translate }}
+			</a>
+		</div>
+	</div>
+</form>

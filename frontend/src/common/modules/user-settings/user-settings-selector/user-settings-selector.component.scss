@@ -1,0 +1,24 @@
+.document-listing-filters {
+  margin: 0 0;
+
+  .filter-actions {
+    display: flex;
+  }
+
+  .toggle {
+    font-weight: 400;
+    height: 49px;
+    min-height: 53.59px;
+    background-color: white;
+    border-radius: 0.4em;
+    border: 1px solid #e0e0e0;
+  }
+
+  .no-padding-right {
+    padding-right: 0;
+  }
+
+  .no-padding-left {
+    padding-left: 0;
+  }
+}

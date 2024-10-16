@@ -1,0 +1,91 @@
+.auto-complete {
+	margin-left: inherit;
+	margin-right: inherit;
+
+	.not-loading {
+		display: none;
+	}
+
+	.chip-item {
+		transition: none;
+		background-color: transparent;
+		padding: 0;
+		box-shadow: none !important;
+		border-radius: unset;
+		min-height: auto;
+		height: auto;
+	}
+
+	.chip-list {
+		width: 100%;
+	}
+
+	.progress-loader {
+		position: absolute;
+		right: 0;
+	}
+
+	.align-arrow-right {
+		position: absolute;
+		right: 0;
+		vertical-align: middle;
+		cursor: pointer;
+		align-self: center;
+		color: rgba(0, 0, 0, 0.54);
+	}
+}
+
+::ng-deep .autocomplete-option > .mdc-list-item__primary-text {
+	margin: 0 !important;
+	width: 100%;
+}
+
+.option-icon {
+	mat-icon {
+		margin: 0px 5px 0px 10px;
+	}
+	mat-icon:hover {
+		color: var(--primary-color);
+	}
+}
+
+.chip-list {
+	width: auto;
+}
+
+.two-line-mat-option {
+	line-height: 1.2em;
+}
+
+.mat-standard-chip:hover::after {
+	opacity: 0;
+}
+
+.mat-standard-chip:focus::after {
+	opacity: 0;
+}
+
+.option-text-container {
+	min-width: 0;
+}
+
+.truncate-option-text {
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	max-width: 100%;
+	display: inline-block;
+}
+
+.title-text {
+	font-weight: 300;
+	line-height: 1.2em;
+	text-align: left;
+	font-size: 16px;
+}
+
+.subtitle-text {
+	font-weight: 400;
+	font-size: 14px;
+	line-height: 1.2em;
+}

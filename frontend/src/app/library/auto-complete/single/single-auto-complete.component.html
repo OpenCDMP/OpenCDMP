@@ -1,0 +1,56 @@
+<div class="row auto-complete">
+	<input matInput #autocompleteInput class="col-12" [name]="id" autocomplete="off" #autocompleteTrigger="matAutocompleteTrigger" [placeholder]="placeholder" [matAutocomplete]="autocomplete" [value]="inputValue" (keyup)="onKeyUp($event)" [disabled]="disabled" (focus)="_onInputFocus()" (blur)="onBlur($event)">
+	<!-- The attribute autocomplete="nope", set by downshift, is ignored in Chrome 67 and Opera 54 (latest at the time of writing)
+	<input matInput #autocompleteInput class="col-12" [name]="id" autocomplete="nope" #autocompleteTrigger="matAutocompleteTrigger" [placeholder]="placeholder" [matAutocomplete]="autocomplete" [value]="inputValue" (keyup)="onKeyUp($event)" [disabled]="disabled" (focus)="_onInputFocus()" (blur)="onBlur($event)"> -->
+	<mat-icon *ngIf="!disabled" class="align-arrow-right" matSuffix>arrow_drop_down</mat-icon>
+	<mat-autocomplete #autocomplete="matAutocomplete" [displayWith]="_displayFn.bind(this)" (optionSelected)="_optionSelected($event)">
+		<div (mouseover)="isMouseOverPanel=true" (mouseout)="isMouseOverPanel=false">
+			<span *ngIf="_groupedItems">
+				<mat-optgroup *ngFor="let group of _groupedItems | async" [label]="group.title">
+					<mat-option *ngFor="let item of group.items" [value]="item" class="autocomplete-option" [class.two-line-mat-option]="_subtitleFn(item) && !_optionTemplate(item)">
+						<ng-template #cellTemplate *ngIf="_optionTemplate(item)" [ngTemplateOutlet]="_optionTemplate(item)" [ngTemplateOutletContext]="{
+								item: item
+							}"></ng-template>
+						<div *ngIf="!_optionTemplate(item)" class="row mt-2 mb-2">
+							<div class="col option-text-container">
+								<span class="title-text truncate-option-text">{{_titleFn(item)}}</span>
+								<br *ngIf="_subtitleFn(item)">
+								<small *ngIf="_subtitleFn(item)" class="subtitle-text truncate-option-text">{{_subtitleFn(item) | removeHtmlTags}}</small>
+							</div>
+							<div class="col-auto">
+								<span *ngIf="popupItemActionIcon" class="option-icon" (click)="_optionActionClick(item, $event)"><mat-icon>{{popupItemActionIcon}}</mat-icon></span>
+							</div>
+						</div>
+					</mat-option>
+				</mat-optgroup>
+			</span>
+			<span *ngIf="!_groupedItems">
+				<div *ngIf="_items | async as autocompleteItems; else loading">
+					<ng-container *ngIf="autocompleteItems.length; else noItems">
+						<mat-option *ngFor="let item of autocompleteItems" [value]="item" class="autocomplete-option" [class.two-line-mat-option]="_subtitleFn(item) && !_optionTemplate(item)">
+							<ng-template #cellTemplate *ngIf="_optionTemplate(item)" [ngTemplateOutlet]="_optionTemplate(item)" [ngTemplateOutletContext]="{
+											item: item
+										}"></ng-template>
+							<div *ngIf="!_optionTemplate(item)" class="row mt-2 mb-2">
+								<div class="col option-text-container">
+									<span *ngIf="!_optionTemplate(item)" class="title-text truncate-option-text">{{_titleFn(item)}}</span>
+									<br *ngIf="_subtitleFn(item)">
+									<small *ngIf="_subtitleFn(item)" class="subtitle-text truncate-option-text">{{_subtitleFn(item) | removeHtmlTags}}</small>
+								</div>
+								<div class="col-auto align-self-center">
+									<span *ngIf="popupItemActionIcon" class="option-icon" (click)="_optionActionClick(item, $event)"><mat-icon>{{popupItemActionIcon}}</mat-icon></span>
+								</div>
+							</div>
+						</mat-option>
+					</ng-container>
+					<ng-template #noItems>
+						<mat-option disabled="true">No results found!</mat-option>
+					</ng-template>
+				</div>
+				<ng-template #loading>
+					<mat-option disabled="true">loading...</mat-option>
+				</ng-template>
+			</span>
+		</div>
+	</mat-autocomplete>
+</div>

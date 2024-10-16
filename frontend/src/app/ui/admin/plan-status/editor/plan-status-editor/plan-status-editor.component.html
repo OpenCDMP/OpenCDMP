@@ -1,0 +1,114 @@
+<div class="container-fluid">
+	<div class="row">
+		<div class="col-md-10 offset-md-1 colums-gapped">
+			<div class="row align-items-center mt-4 mb-4" *ngIf="formGroup">
+				<div class="col-md col-12">
+					<app-navigation-breadcrumb />
+				</div>
+				<div class="col-auto">
+					<button mat-button class="rounded-btn primary-inverted" (click)="cancel()" type="button">{{'PLAN-STATUS-EDITOR.ACTIONS.CANCEL' | translate}}</button>
+				</div>
+                <div class="col-auto" *ngIf="canDelete">
+                    <button mat-raised-button class="rounded-btn delete-inverted" type="button" (click)="delete()">
+                        <mat-icon>delete</mat-icon>
+                        {{'PLAN-STATUS-EDITOR.ACTIONS.DELETE' | translate}}
+                    </button>
+                </div>
+                <div class="col-auto" *ngIf="canSave">
+                    <button mat-button class="rounded-btn primary" (click)="formSubmit()" [disabled]="!formGroup.touched">
+                        <mat-icon>save</mat-icon>
+                        {{'PLAN-STATUS-EDITOR.ACTIONS.SAVE' | translate}}
+                    </button>
+                </div>
+			</div>
+
+			<form *ngIf="formGroup" (ngSubmit)="formSubmit()">
+				<mat-card class="pt-3 pb-3" appearance="outlined">
+					<mat-card-content>
+						<div class="row">
+							<div class="col-12">
+								<mat-form-field class="w-100">
+									<mat-label>{{'PLAN-STATUS-EDITOR.FIELDS.NAME' | translate}}</mat-label>
+									<input matInput type="text" name="name" [formControl]="formGroup.controls.name" required>
+									<mat-error *ngIf="formGroup.controls.name.hasError('backendError')">{{formGroup.controls.name.getError('backendError').message}}</mat-error>
+									<mat-error *ngIf="formGroup.controls.name.hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
+								</mat-form-field>
+							</div>
+                            <div class="col-12">
+                                <mat-form-field class="w-100">
+                                    <mat-label>{{'PLAN-STATUS-EDITOR.FIELDS.INTERNAL-STATUS' | translate}}</mat-label>
+                                    <mat-select [formControl]="formGroup.controls.internalStatus">
+                                        <mat-option *ngFor="let internalStatus of internalStatusEnum" [value]="internalStatus">{{enumUtils.toPlanStatusString(internalStatus)}}</mat-option>
+                                        <mat-option [value]="null">{{'PLAN-STATUS-EDITOR.DEFAULT-VALUE.NONE' | translate}}</mat-option>
+                                    </mat-select>
+                                    <mat-error *ngIf="formGroup.controls.internalStatus.hasError('backendError')">{{formGroup.controls.internalStatus.getError('backendError').message}}</mat-error>
+                                </mat-form-field>
+                            </div>
+							<div class="col-12">
+								<h3>{{'PLAN-STATUS-EDITOR.FIELDS.DESCRIPTION' | translate}}</h3>
+								<div class="col-12">
+									<rich-text-editor-component 
+                                        [form]="formGroup.controls.description" 
+                                        [placeholder]="'PLAN-STATUS-EDITOR.FIELDS.DESCRIPTION'" 
+                                        [editable]="!formGroup.controls.description.disabled"
+                                        [wrapperClasses]="(formGroup.controls.description.touched && formGroup.controls.description.hasError('backendError')) ? 'required' : ''" 
+                                    />
+                                    @if(formGroup.controls.description.hasError('backendError')){                                        
+                                        <div class="mat-form-field formGroup-field-subscript-wrapper">
+                                            <mat-error>{{formGroup.controls.description.getError('backendError').message}}</mat-error>
+                                        </div>
+                                    }
+								</div>
+							</div>
+
+							<div class="col-12">
+								<h3>
+									{{'PLAN-STATUS-EDITOR.FIELDS.AUTHORIZATION' | translate}}
+								</h3>
+                                <div id="Edit">
+                                    <mat-card>
+                                        <mat-card-header>
+                                            <mat-card-title class="pb-2">{{'PLAN-STATUS-EDITOR.FIELDS.EDIT' | translate}}</mat-card-title>
+                                        </mat-card-header>
+                                        <mat-card-content>
+                                            <div class="col-12">
+                                                <mat-form-field class="w-100">
+                                                    <mat-label>{{'PLAN-STATUS-EDITOR.FIELDS.ROLES' | translate}}*</mat-label>
+                                                    <mat-select [formControl]="editAuthenticationForm.controls.roles" [multiple]="true">
+                                                        <mat-option *ngFor="let userRole of userRolesEnum" [value]="userRole">{{enumUtils.toAppRoleString(userRole)}}</mat-option>
+                                                    </mat-select>
+                                                    <mat-error *ngIf="editAuthenticationForm.controls.roles.hasError('backendError')">{{"editAuthenticationForm.controls.roles.getError('backendError').message}}</mat-error>
+                                                    <mat-error *ngIf="editAuthenticationForm.controls.roles.hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
+                                                </mat-form-field>
+                                            </div>
+                                            <div class="col-12">
+                                                <mat-form-field class="w-100">
+                                                    <mat-label>{{'PLAN-STATUS-EDITOR.FIELDS.PLAN-ROLES' | translate}}*</mat-label>
+                                                    <mat-select [formControl]="editAuthenticationForm.controls.planRoles" [multiple]="true">
+                                                        <mat-option *ngFor="let planRole of planRolesEnum" [value]="planRole">{{enumUtils.toPlanUserRoleString(planRole)}}</mat-option>
+                                                    </mat-select>
+                                                    <mat-error *ngIf="editAuthenticationForm.controls.planRoles.hasError('backendError')">{{"editAuthenticationForm.controls.planRoles.getError('backendError').message}}</mat-error>
+                                                    <mat-error *ngIf="editAuthenticationForm.controls.planRoles.hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
+                                                </mat-form-field>
+                                            </div>
+                                            <div class="d-flex" style="gap: 0.5rem">
+                                                <div>
+                                                    <mat-checkbox [formControl]="editAuthenticationForm.controls.allowAuthenticated">{{'PLAN-STATUS-EDITOR.FIELDS.ALLOW-AUTHENTICATED' | translate}}</mat-checkbox>
+                                                    <mat-error *ngIf="editAuthenticationForm.controls.allowAuthenticated.hasError('backendError')">{{editAuthenticationForm.controls.allowAuthenticated.getError('backendError').message}}</mat-error>
+                                                </div>
+                                                <div>
+                                                    <mat-checkbox [formControl]="editAuthenticationForm.controls.allowAnonymous">{{'PLAN-STATUS-EDITOR.FIELDS.ALLOW-ANONYMOUS' | translate}}</mat-checkbox>
+                                                    <mat-error *ngIf="editAuthenticationForm.controls.allowAnonymous.hasError('backendError')">{{editAuthenticationForm.controls.allowAnonymous.getError('backendError').message}}</mat-error>
+                                                </div>
+                                            </div>
+                                        </mat-card-content>
+                                    </mat-card>
+                                </div>
+							</div>
+						</div>
+					</mat-card-content>
+				</mat-card>
+			</form>
+		</div>
+	</div>
+</div>

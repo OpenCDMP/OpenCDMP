@@ -1,0 +1,24 @@
+<div class="row" *ngIf="form.get('data')">
+	<h5 style="font-weight: bold" class="col-12">{{'DESCRIPTION-TEMPLATE-EDITOR.STEPS.FORM.FIELD.FIELDS.REFERENCE-TYPE-TITLE'
+		| translate}}</h5>
+	<div class="col-6">
+		<mat-form-field class="w-100">
+			<mat-label>{{'DESCRIPTION-TEMPLATE-EDITOR.STEPS.FORM.FIELD.FIELDS.FIELD-PLACEHOLDER' | translate}}</mat-label>
+			<input matInput type="string" [formControl]="form.get('data').get('label')">
+			<mat-error *ngIf="form.get('data').get('label').hasError('backendError')">{{form.get('data').get('label').getError('backendError').message}}</mat-error>
+		</mat-form-field>
+	</div>
+	<div class="col-6">
+		<mat-form-field class="w-100">
+			<mat-label>{{'DESCRIPTION-TEMPLATE-EDITOR.STEPS.FORM.FIELD.FIELDS.REFERENCE-TYPE' | translate}}</mat-label>
+			<app-single-auto-complete placeholder="{{'DESCRIPTION-TEMPLATE-EDITOR.STEPS.FORM.FIELD.FIELDS.REFERENCE-TYPE' | translate}}" [required]="true" [formControl]="form.get('data').get('referenceTypeId')" [configuration]="referenceTypeService.singleAutocompleteConfiguration"></app-single-auto-complete>
+			<mat-error *ngIf="form.get('data').get('referenceTypeId').hasError('backendError')">{{form.get('data').get('referenceTypeId').getError('backendError').message}}</mat-error>
+			<mat-error *ngIf="form.get('data').get('referenceTypeId').hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
+		</mat-form-field>
+	</div>
+	<div class="col-12">
+		<mat-checkbox [formControl]="this.form.get('data').get('multipleSelect')">
+			{{'DESCRIPTION-TEMPLATE-EDITOR.STEPS.FORM.FIELD.FIELDS.MULTIPLE-SELECT' | translate}}
+		</mat-checkbox>
+	</div>
+</div>

@@ -1,0 +1,302 @@
+@use '@angular/material'as mat;
+
+.container-fluid {
+	margin: 2em 4em;
+	padding: 2em;
+}
+
+// ********ICONS********
+
+.back-icon {
+	opacity: 0.4;
+}
+
+.mat-mdc-mini-fab {
+	width: 2.5em;
+	height: 2.5em;
+	background-color: var(--primary-color);
+	color: white;
+}
+
+.mat-mini-fab-icon,
+.status-icon {
+	font-size: 1.2em;
+}
+
+.status-icon {
+	color: #a7a7a7;
+}
+
+.account-icon {
+	font-size: 2.5em;
+	height: auto;
+	width: auto;
+}
+
+// ********BUTTONS********
+
+.id-btn {
+	background: url("../../../../assets/images/orcid_unauth.png") no-repeat center;
+	width: 1rem;
+	height: 1rem;
+	margin-right: 0.3em;
+	align-self: center;
+}
+
+.description-btn {
+	padding: 0 1.1em;
+	background-color: var(--secondary-color);
+	border-radius: 4px;
+	justify-content: space-between;
+	color: #212121;
+}
+
+.description-finalized-btn {
+	padding: 0 1.1em;
+	background-color: #b2f772;
+	border-radius: 4px;
+	justify-content: space-between;
+	color: #212121;
+}
+
+.show-more-btn {
+	width: 31.6em;
+	padding: 0 1em;
+	background-color: #ffffff00;
+	color: var(--primary-color);
+	font-weight: 700;
+}
+
+.frame-btn {
+	border: 1px solid #212121;
+	color: black;
+}
+
+.finalize-btn {
+	border: 1px solid var(--primary-color);
+	color: var(--primary-color);
+}
+
+.grant-title {
+	width: 130px;
+	color: #089dbb;
+	background-color: white;
+	padding: 0px 10px;
+	margin-top: -16px;
+	cursor: default;
+	text-transform: uppercase;
+}
+
+.frame-btn,
+.finalize-btn {
+	background: #ffffff;
+	box-shadow: 0px 2px 6px #00000029;
+}
+
+.invite-btn {
+	width: 9.4em;
+	height: 2.9em;
+	background: #ffffff;
+	box-shadow: 0px 3px 6px #1e202029;
+	border: 2px solid #212121;
+	border-radius: 30px;
+}
+// ********TEXT********
+
+.plan-logo {
+	padding: 10px;
+	min-width: 4.8em;
+	height: 2.6em;
+	background: var(--primary-color);
+	border-radius: 4px;
+	font-size: 0.875em;
+	color: #ffffff;
+}
+
+.label-txt {
+	font-size: 0.875em;
+}
+
+.label2-txt {
+	font-size: 1em;
+}
+
+.label-txt,
+.label2-txt {
+	color: #848484;
+	font-weight: 400;
+}
+
+.plan-label {
+	font-weight: bold;
+}
+
+.uppercase {
+	text-transform: uppercase;
+}
+
+.researcher {
+	font-size: 0.875em;
+	color: var(--primary-color);
+	padding-right: 0.5em;
+	align-self: center;
+}
+
+.header {
+	opacity: 0.6;
+	margin-bottom: 0.5em;
+}
+
+.plan-label,
+.header {
+	font-size: 1.25em;
+	color: #212121;
+}
+
+.desc-txt {
+	font-size: 1em;
+	color: #212121;
+	margin-bottom: 1.875em;
+}
+
+.description-btn-label {
+	margin-right: 1em;
+	overflow: hidden;
+	white-space: nowrap;
+	text-overflow: ellipsis;
+	letter-spacing: 0px;
+	color: #212121;
+	opacity: 0.8;
+	font-style: normal;
+	padding-bottom: 0.5rem;
+	padding-top: 0.5rem;
+	max-width: 85%;
+}
+
+.doi-label {
+	font-size: 1em;
+	color: rgba(33, 33, 33, 0.6);
+	margin-bottom: 0.3em;
+}
+
+.doi-txt {
+	font-size: 1em;
+	letter-spacing: 0.009em;
+	color: #7d7d7d;
+	width: 12em;
+	height: 1.2em;
+	overflow: hidden;
+	border: none;
+	padding: 0px;
+	background-color: transparent;
+}
+
+.doi-panel {
+	background: #fafafa;
+	border: 1px solid #d1d1d1;
+	border-radius: 4px;
+	flex-direction: row;
+	justify-content: space-between;
+}
+
+.doi-link {
+	color: white;
+}
+
+.frame {
+	background: #ffffff;
+	box-shadow: 0px 1px 5px #00000026;
+	border-radius: 4px;
+	overflow: hidden;
+}
+
+.frame-txt {
+	color: #000000;
+}
+
+.finalize-txt {
+	color: var(--primary-color);
+}
+
+.frame-txt,
+.finalize-txt {
+	font-size: 0.75em;
+	font-weight: bold;
+	letter-spacing: 0px;
+	text-transform: uppercase;
+	cursor: pointer;
+}
+
+.hr-line {
+	border: 1px solid #dbdbdb;
+	width: 100%;
+}
+
+// ********CENTER ELEMENTS********
+
+.mat-mini-fab,
+.mat-mini-fab-icon,
+.status-icon,
+.plan-logo,
+.frame-btn,
+.finalize-btn {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+}
+
+.description-btn,
+.description-finalized-btn,
+.add-description-btn,
+.doi-panel,
+.researcher {
+	display: flex;
+	align-items: center;
+}
+
+.add-description-btn {
+	color: #212121 !important;
+}
+
+.add-description-btn:hover {
+	color: var(--primary-color) !important;
+}
+
+.show-more-btn {
+	display: flex;
+	justify-content: center;
+}
+
+::ng-deep .mat-select-value {
+	color: #848484 !important;
+}
+
+.versions-select {
+	width: 8em;
+}
+
+.select-repo {
+	border-bottom: 1px solid #212121;
+}
+
+.plan-btn {
+  min-height: 2.3em;
+  background-color: var(--secondary-color);
+  border-radius: 4px;
+  flex-direction: row;
+  justify-content: space-between;
+  border: none;
+}
+
+.plan-finalized-btn {
+  min-height: 2.3em;
+  background-color: #b2f772;
+  border-radius: 4px;
+  flex-direction: row;
+  justify-content: space-between;
+  border: none;
+}
+
+.deleted-item {
+    color: #cf1407;
+}

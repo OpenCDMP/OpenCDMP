@@ -1,0 +1,18 @@
+<div class="guide">
+	<div class="row d-flex flex-row">
+		<div mat-dialog-title class="col-auto">
+			{{'GUIDE.TITLE' | translate}}
+		</div>
+		<div class="col-auto ml-auto">
+            <button mat-icon-button tabindex="-1" (click)="close()">
+                <mat-icon>close</mat-icon>
+            </button>
+		</div>
+	</div>
+	<div mat-dialog-content class="row">
+		<app-user-guide-content></app-user-guide-content>
+	</div>
+	<div mat-dialog-actions class="row">
+		<div class="ml-auto col-auto"><button mat-button mat-dialog-close mat-raised-button color="primary" (click)="cancel()">{{'GUIDE.CLOSE' | translate}}</button></div>
+	</div>
+</div>

@@ -1,0 +1,101 @@
+<div class="container-fluid">
+	<div class="row inapp-notification-listing">
+		<div class="col-md-10 offset-md-1">
+
+			<div class="row mb-4 mt-4">
+				<div class="col">
+					<h4>{{'NOTIFICATION-SERVICE.INAPP-NOTIFICATION-LISTING.TITLE' | translate}}</h4>
+					<app-navigation-breadcrumb />
+
+				</div>
+			</div>
+
+			<app-hybrid-listing [rows]="gridRows" [columns]="gridColumns" [visibleColumns]="visibleColumns"
+				[count]="totalElements" [offset]="currentPageNumber" [limit]="lookup.page.size"
+				[defaultSort]="lookup.order?.items" [externalSorting]="true" (rowActivated)="onRowActivated($event)"
+				(pageLoad)="alterPage($event)" (columnSort)="onColumnSort($event)"
+				(columnsChanged)="onColumnsChanged($event)" [listItemTemplate]="listItemTemplate">
+
+				<app-mine-inapp-notification-listing-filters hybrid-listing-filters [(filter)]="lookup"
+					(filterChange)="filterChanged($event)" />
+
+				<app-user-settings-picker [key]="userSettingsKey" [userPreference]="lookup"
+					(onSettingSelected)="changeSetting($event)" [autoSelectUserSettings]="autoSelectUserSettings"
+					user-preference-settings />
+			</app-hybrid-listing>
+
+		</div>
+	</div>
+</div>
+
+<ng-template #listItemTemplate let-item="item" let-isColumnSelected="isColumnSelected">
+
+	<div class="d-flex align-items-center p-3 gap-1-rem">
+		<div class="row">
+			<ng-container *ngIf="isColumnSelected('trackingState')">
+				<span class="col-12">
+					<small>
+						<mat-icon *ngIf="item?.trackingState == notificationInAppTracking.Delivered" mat-list-icon>drafts</mat-icon>
+						<mat-icon *ngIf="item?.trackingState == notificationInAppTracking.Stored" mat-list-icon>mail</mat-icon>
+					</small>
+				</span>
+				<br>
+			</ng-container>
+
+			<ng-container *ngIf="isColumnSelected('subject')">
+				<span class="col-12">
+					{{'NOTIFICATION-SERVICE.INAPP-NOTIFICATION-LISTING.FIELDS.SUBJECT' | translate}}:
+					<small>
+						{{item?.subject | nullifyValue}}
+					</small>
+				</span>
+				<br>
+			</ng-container>
+
+			<ng-container *ngIf="isColumnSelected('type')">
+				<span class="col-12">
+					{{'NOTIFICATION-SERVICE.INAPP-NOTIFICATION-LISTING.FIELDS.NOTIFICATION-TYPE' | translate}}:
+					<small>
+						{{enumUtils.toNotificationTypeString(item.type) | nullifyValue}}
+					</small>
+				</span>
+				<br>
+			</ng-container>
+
+			<ng-container *ngIf="isColumnSelected('createdAt')">
+				<span class="col-12">
+					{{'NOTIFICATION-SERVICE.INAPP-NOTIFICATION-LISTING.FIELDS.CREATED-AT' | translate}}:
+					<small>
+						{{item?.createdAt | dateTimeFormatter : 'short' | nullifyValue}}
+					</small>
+				</span>
+				<br>
+			</ng-container>
+		</div>
+	</div>
+</ng-template>
+
+<ng-template #actions let-row="row" let-item>
+	<div class="row" (click)="$event.stopPropagation()">
+		<div class="col-auto">
+			<button mat-icon-button [matMenuTriggerFor]="actionsMenu">
+				<mat-icon>more_horiz</mat-icon>
+			</button>
+			<mat-menu #actionsMenu="matMenu">
+				<button mat-menu-item (click)="deleteType(row.id)">
+					<mat-icon>delete</mat-icon>
+					{{'NOTIFICATION-SERVICE.INAPP-NOTIFICATION-LISTING.ACTIONS.DELETE' | translate}}
+				</button>
+			</mat-menu>
+		</div>
+	</div>
+</ng-template>
+
+<ng-template #state let-row="row" let-item>
+	<div class="row">
+		<div class="col-auto">
+			<mat-icon *ngIf="row.trackingState === notificationInAppTracking.Delivered" mat-list-icon>drafts</mat-icon>
+			<mat-icon *ngIf="row.trackingState === notificationInAppTracking.Stored" mat-list-icon>mail</mat-icon>		
+		</div>
+	</div>
+</ng-template>

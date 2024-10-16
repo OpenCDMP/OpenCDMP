@@ -1,0 +1,21 @@
+
+<div class="user-invite">
+	<div class="container-fluid">
+		<div class="row">
+			<div class="col user-invite-title">{{'USER-INVITE.TITLE' | translate}}</div>
+		</div>
+    <div *ngIf="showForm" class="row user-invite-content">
+      <div class="col">
+        <div class="row justify-content-center">
+          <div class="col-auto">
+            <span>
+              {{ 'USER-INVITE.IN-PROGRESS' | translate }}
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+		<ng-template #loading>
+		</ng-template>
+	</div>
+</div>

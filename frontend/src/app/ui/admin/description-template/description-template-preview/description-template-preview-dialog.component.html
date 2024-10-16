@@ -1,0 +1,19 @@
+<div class="template-container" *ngIf="descriptionTemplate && formGroup">
+	<div mat-dialog-title class="row d-flex align-items-center header">
+		<div class="col"><span class="template-title align-self-center" matTooltip="{{descriptionTemplate.label}}">{{'DESCRIPTION-TEMPLATE-PREVIEW.TEMPLATE' | translate}} - {{descriptionTemplate.label}}</span></div>
+		<div class="col-auto">
+			<button mat-icon-button tabindex="-1" (click)="closeDialog()"><mat-icon>close</mat-icon></button>
+		</div>
+	</div>
+	<div *ngIf="progressIndication" class="progress-bar">
+		<mat-progress-bar color="primary" mode="indeterminate"></mat-progress-bar>
+	</div>
+	<div mat-dialog-content class="definition-content">
+		<app-description-form *ngIf="formGroup && formGroup.get('properties')" [propertiesFormGroup]="previewPropertiesFormGroup" [descriptionId]="descriptionId" [descriptionTemplate]="descriptionTemplate" [canAnnotate]="false" [visibilityRulesService]="visibilityRulesService" [isNew]="true"></app-description-form>
+	</div>
+	<div mat-dialog-actions *ngIf="formGroup" class="row d-flex pb-2 pt-3">
+		<div class="col-auto ml-auto">
+			<button mat-button type="button" class="rounded-btn primary" (click)="select()">{{'TYPES.EXTERNAL-DATASET-TYPE.SELECT' | translate}}</button>
+		</div>
+	</div>
+</div>

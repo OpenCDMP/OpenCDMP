@@ -1,0 +1,63 @@
+<div class="container-fluid">
+	<div class="row">
+		<div class="col-md-10 offset-md-1 tenant-editor">
+			<div class="row align-items-center mb-4 mt-4" *ngIf="formGroup">
+				<div class="col-md col-12">
+					<app-navigation-breadcrumb />
+				</div>
+				<div class="col-auto">
+					<button mat-button class="rounded-btn neutral" (click)="cancel()" type="button">{{'TENANT-EDITOR.ACTIONS.CANCEL' | translate}}</button>
+				</div>
+				<div class="col-auto" *ngIf="!isNew">
+					<button mat-button class="rounded-btn delete-inverted" type="button" (click)="delete()">
+						<mat-icon>delete</mat-icon>
+						{{'TENANT-EDITOR.ACTIONS.DELETE' | translate}}
+					</button>
+				</div>
+				<div class="col-auto" *ngIf="canSave">
+					<button mat-button class="rounded-btn primary" (click)="formSubmit()">
+						<mat-icon>save</mat-icon>
+						{{'TENANT-EDITOR.ACTIONS.SAVE' | translate}}
+					</button>
+				</div>
+			</div>
+
+			<form *ngIf="formGroup" (ngSubmit)="formSubmit()">
+				<mat-card appearance="outlined" class="pt-3 pb-3">
+					<mat-card-content>
+						<div class="row">
+							<div class="col-4">
+								<mat-form-field class="w-100">
+									<mat-label>{{'TENANT-EDITOR.FIELDS.NAME' | translate}}</mat-label>
+									<input matInput type="text" name="name" [formControl]="formGroup.get('name')" required>
+									<mat-error *ngIf="formGroup.get('name').hasError('backendError')">{{formGroup.get('name').getError('backendError').message}}</mat-error>
+									<mat-error *ngIf="formGroup.get('name').hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
+								</mat-form-field>
+							</div>
+							<div class="col-4">
+								<mat-form-field class="w-100">
+									<mat-label>{{'TENANT-EDITOR.FIELDS.CODE' | translate}}</mat-label>
+									<input matInput type="text" name="code" [formControl]="formGroup.get('code')" required>
+									<mat-error *ngIf="formGroup.get('code').hasError('backendError')">{{formGroup.get('code').getError('backendError').message}}</mat-error>
+									<mat-error *ngIf="formGroup.get('code').hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
+									<mat-error *ngIf="formGroup.get('code').hasError('pattern')">{{'TENANT-EDITOR.VALIDATION.INVALID-CODE' | translate}}</mat-error>
+								</mat-form-field>
+							</div>
+							<div class="col-12">
+								<h3>{{'TENANT-EDITOR.FIELDS.DESCRIPTION' | translate}} *</h3>
+								<div class="col-12">
+									<rich-text-editor-component [form]="formGroup.get('description')" [placeholder]="'TENANT-EDITOR.FIELDS.DESCRIPTION-PLACEHOLDER'" [wrapperClasses]="(formGroup.get('description').touched && formGroup.get('description').hasError('required')) ? 'required' : ''" [editable]="formGroup.controls['description'].status !== 'DISABLED'">
+									</rich-text-editor-component>
+									<div [class]="(formGroup.get('description').touched && formGroup.get('description').hasError('required')) ? 'visible' : 'invisible'" class="mat-form-field formGroup-field-subscript-wrapper">
+										<mat-error *ngIf="formGroup.get('description').hasError('backendError')">{{formGroup.get('description').getError('backendError').message}}</mat-error>
+										<mat-error>{{'GENERAL.VALIDATION.REQUIRED'| translate}}</mat-error>
+									</div>
+								</div>
+							</div>
+						</div>
+					</mat-card-content>
+				</mat-card>
+			</form>
+		</div>
+	</div>
+</div>

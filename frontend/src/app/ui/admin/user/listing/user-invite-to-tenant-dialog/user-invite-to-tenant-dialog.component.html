@@ -1,0 +1,58 @@
+<div class="user-invite-to-tenant-dialog container-fluid" *ngIf="formGroup">
+	<div class="row align-items-center">
+		<div class="col">
+			<h1 class="title">{{'USER-INVITE-TO-TENANT-DIALOG.TITLE' | translate}}</h1>
+		</div>
+		<div class="col-auto">
+			<button mat-icon-button tabindex="-1" (click)="closeDialog()"><mat-icon>close</mat-icon></button>
+		</div>
+	</div>
+	<div mat-dialog-content class="row">
+		<div *ngFor="let user of formGroup.get('users').controls; let userIndex=index;" class="row align-items-center mb-2">
+			<div class="col-12 col-xl mt-3">
+				<mat-form-field class="w-100">
+					<mat-label>{{'USER-INVITE-TO-TENANT-DIALOG.FIELDS.EMAIL' | translate}}</mat-label>
+					<input matInput type="text" name="email" [formControl]="user.get('email')">
+					<mat-error *ngIf="user.get('email').hasError('backendError')">{{user.get('email').getError('backendError').message}}</mat-error>
+					<mat-error *ngIf="user.get('email').hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
+				</mat-form-field>
+			</div>
+
+			<div class="col-12 col-xl mt-3">
+				<mat-form-field class="w-100">
+					<mat-label>{{'USER-INVITE-TO-TENANT-DIALOG.FIELDS.ROLES' | translate}}</mat-label>
+					<mat-select multiple [formControl]="user.get('roles')">
+						<mat-option [value]="appRoleEnum.TenantAdmin">{{enumUtils.toAppRoleString(appRoleEnum.TenantAdmin)}}</mat-option>
+						<mat-option [value]="appRoleEnum.TenantPlanManager">{{enumUtils.toAppRoleString(appRoleEnum.TenantPlanManager)}}</mat-option>
+						<mat-option [value]="appRoleEnum.TenantConfigManager">{{enumUtils.toAppRoleString(appRoleEnum.TenantConfigManager)}}</mat-option>
+						<mat-option [value]="appRoleEnum.TenantUser">{{enumUtils.toAppRoleString(appRoleEnum.TenantUser)}}</mat-option>
+					</mat-select>
+					<mat-error *ngIf="user.get('roles').hasError('backendError')">{{user.get('roles').getError('backendError').message}}</mat-error>
+					<mat-error *ngIf="user.get('roles').hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
+				</mat-form-field>
+			</div>
+			<div class="col-12 col-xl-auto">
+				<button mat-icon-button class="action-list-icon" matTooltip="{{'USER-INVITE-TO-TENANT-DIALOG.ACTIONS.REMOVE-USER' | translate}}" (click)="removeUser(userIndex)" [disabled]="formGroup.get('users').controls.length == 1">
+					<mat-icon>delete</mat-icon>
+				</button>
+			</div>
+		</div>
+
+		<mat-error *ngIf="formGroup.get('users').dirty && formGroup.get('users').hasError('required')">{{'USER-INVITE-TO-TENANT-DIALOG.USERS-REQUIRED' | translate}}</mat-error>
+		<mat-error *ngIf="formGroup.get('users').hasError('backendError')">{{formGroup.get('users').getError('backendError').message}}</mat-error>
+		<div class="row">
+			<div class="col-12">
+				<button mat-icon-button (click)="addUser()">
+					<mat-icon>add</mat-icon>
+				</button>
+			</div>
+		</div>
+	</div>
+	<div mat-dialog-actions class="row d-flex">
+		<div class="col-auto ml-auto">
+			<button mat-button [disabled]="inProgressSendButton || !formGroup.valid" (click)="send()" type="button" class="rounded-btn primary-inverted primary-inverted-hover">{{'USER-INVITE-TO-TENANT-DIALOG.ACTIONS.INVITE' | translate}}</button>
+			<mat-error *ngIf="formGroup.get('users').hasError('backendError')">{{formGroup.get('users').getError('backendError').message}}</mat-error>
+			<mat-error *ngIf="formGroup.get('users').hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
+		</div>
+	</div>
+</div>

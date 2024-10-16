@@ -1,0 +1,79 @@
+<div class="template-container">
+	<div mat-dialog-title class="row d-flex p-0 m-0 header">
+		<span class="col template-title align-self-center">{{'NEW-DESCRIPTION-DIALOG.TITLE' | translate}}</span>
+		<span class="col-auto d-flex ml-auto align-self-center">
+            <button mat-icon-button  (click)="closeDialog()" tabindex="-1">
+                <mat-icon>close</mat-icon>
+            </button>
+        </span>
+	</div>
+	<div *ngIf="progressIndication" class="progress-bar">
+		<mat-progress-bar color="primary" mode="indeterminate"></mat-progress-bar>
+	</div>
+	<div mat-dialog-content *ngIf="prefillForm" [formGroup]="prefillForm" class="definition-content">
+		<div class="row d-flex align-items-center">
+			<div class="pb-4 pl-4 pr-4">
+				{{'NEW-DESCRIPTION-DIALOG.DESCRIPTION-TEMPLATE-HINT' | translate}}
+			</div>
+		</div>
+		<div class="row">
+			<mat-form-field class="col-md-12 pb-2 pl-4 pr-4">
+				<mat-select placeholder="{{'NEW-DESCRIPTION-DIALOG.DESCRIPTION-TEMPLATE'| translate}}" [required]="true" [compareWith]="compareWith" [formControl]="prefillForm.get('descriptionTemplateId')">
+					<mat-option *ngFor="let descriptionTemplate of availableDescriptionTemplates" [value]="descriptionTemplate.id">
+						<div>
+							<span>{{descriptionTemplate.label}}, </span>
+							<span>{{'DESCRIPTION-EDITOR.BASE-INFO.FIELDS.DESCRIPTION-TEMPLATE-VERSION'| translate}} {{descriptionTemplate.version}}</span>
+						</div>
+					</mat-option>
+				</mat-select>
+				<mat-error *ngIf="prefillForm.get('descriptionTemplateId').hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
+			</mat-form-field>
+		</div>
+
+		<ng-container *ngIf="prefillingSourcesEnabled">
+			<div class="row d-flex align-items-center justify-content-center">
+				<div class="pb-4 pl-4 pr-4">
+					{{'NEW-DESCRIPTION-DIALOG.PREFILL-HINT' | translate}}
+				</div>
+			</div>
+
+			<div class="row d-flex align-items-center justify-content-center" [class.pb-4]="prefillSelected">
+				<button mat-button type="button" class="rounded-btn neutral" (click)="manuallySelected()">{{'NEW-DESCRIPTION-DIALOG.ACTIONS.MANUALLY' | translate}}</button>
+				<div class="ml-2 mr-2">{{'NEW-DESCRIPTION-DIALOG.OR' | translate}}</div>
+				<button mat-button type="button" class="rounded-btn secondary" (click)="prefillSelected = true">{{'NEW-DESCRIPTION-DIALOG.ACTIONS.PREFILL' | translate}}</button>
+			</div>
+			<div *ngIf="prefillSelected" class="row">
+				<div class="col-12 pl-0 pr-0 pb-2 d-flex flex-row">
+					<h4 class="col-auto heading">{{'NEW-DESCRIPTION-DIALOG.PREFILLING-SOURCE' | translate}}</h4>
+				</div>
+				<mat-form-field class="col-md-12">
+					<app-single-auto-complete [required]="true" [formControl]="prefillForm.get('prefillingSourceId')" placeholder="{{'NEW-DESCRIPTION-DIALOG.PREFILLING-SOURCE' | translate}}" [configuration]="singlePrefillingSourceAutoCompleteConfiguration" (optionSelected)="changePreffillingSource($event)">
+					</app-single-auto-complete>
+					<mat-error *ngIf="prefillForm.get('prefillingSourceId').hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
+				</mat-form-field>
+			</div>
+			<div *ngIf="prefillForm.get('prefillingSourceId').value != null" class="row">
+				<div class="col-12 pl-0 pr-0 pb-2 d-flex flex-row">
+					<h4 class="col-auto heading">{{'NEW-DESCRIPTION-DIALOG.SEARCH-HEADER' | translate}}</h4>
+				</div>
+				<mat-form-field class="col-md-12">
+					<app-single-auto-complete [required]="true" [formControl]="prefillForm.get('data')" placeholder="{{'NEW-DESCRIPTION-DIALOG.SEARCH' | translate}}" [configuration]="prefillObjectAutoCompleteConfiguration">
+					</app-single-auto-complete>
+				</mat-form-field>
+			</div>
+		</ng-container>
+	</div>
+	<!-- <div *ngIf="prefillSelected || !prefillingSourcesEnabled"> -->
+	<div *ngIf="!prefillingSourcesEnabled else goToNextWithPrefillingSources">
+		<div class="col-auto d-flex pb-4 pt-2">
+			<button mat-button type="button" class="rounded-btn secondary ml-auto" [disabled]="prefillForm.get('descriptionTemplateId').invalid" (click)="manuallySelected()">{{'NEW-DESCRIPTION-DIALOG.ACTIONS.NEXT' | translate}}</button>
+		</div>
+	</div>
+	<ng-template #goToNextWithPrefillingSources>
+		<div *ngIf="prefillSelected">
+			<div class="col-auto d-flex pb-4 pt-2">
+				<button mat-button type="button" class="rounded-btn secondary ml-auto" [disabled]="prefillForm.invalid" (click)="next()">{{'NEW-DESCRIPTION-DIALOG.ACTIONS.NEXT' | translate}}</button>
+			</div>
+		</div>
+	</ng-template>
+</div>

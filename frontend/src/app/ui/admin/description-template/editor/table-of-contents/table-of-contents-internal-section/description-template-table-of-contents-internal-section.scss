@@ -1,0 +1,53 @@
+.link-info{
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+
+.border-left-active{
+  border-left: 1px solid #000;
+}
+
+
+.side-bolder{
+  border-left: 1px solid red;
+}
+
+
+.cdk-link-list {
+
+  display: block;
+  overflow: hidden;
+}
+
+
+
+$blue-color : var(--primary-color);
+$blue-color-light: #5cf7f2;
+$yellow: var(--secondary-color);
+.badge-ball{
+  display: inline-block;
+  border-radius: 50%;
+  background-color: #FFF;
+  font-size: small;
+  font-weight: bold;
+  min-width: 2em;
+  text-align: center;
+}
+
+.table-label-element{
+  cursor: pointer;
+}
+
+
+.table-label-element-active{
+  font-weight: bold;
+}
+.add-input-icon{
+  width: 20px;
+}
+
+.link-info-error {
+  color: red;
+}

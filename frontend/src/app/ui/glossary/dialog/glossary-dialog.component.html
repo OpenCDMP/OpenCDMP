@@ -1,0 +1,18 @@
+<div class="glossary">
+	<div class="row d-flex flex-row">
+		<div mat-dialog-title class="col-auto">
+			{{'GLOSSARY.TITLE' | translate}}
+		</div>
+		<div class="col-auto ml-auto">
+            <button mat-icon-button tabindex="-1" (click)="close()">
+                <mat-icon>close</mat-icon>
+            </button>
+		</div>
+	</div>
+	<div mat-dialog-content class="row">
+		<app-glossary-content [isDialog]="isDialog"></app-glossary-content>
+	</div>
+	<div mat-dialog-actions class="row">
+		<div class="ml-auto col-auto"><button mat-button mat-dialog-close mat-raised-button color="primary" (click)="cancel()">{{'GLOSSARY.CLOSE' | translate}}</button></div>
+	</div>
+</div>

@@ -1,0 +1,317 @@
+<!-- MAIN CONTENT -->
+<div class="main-content-page" [ngClass]="{'pb-2': !hasFocus}">
+	<!-- TITLE -->
+	<div class="">
+		<div class="row fielset-header">
+			<div class="col-auto pr-0">
+				<div class="row flex-column h-100">
+					<div class="col">
+						<div class="container h-100 text-center">
+							<div class="row">
+								<div class="col-12 numbering"><span>{{numbering}}</span></div>
+							</div>
+						</div>
+					</div>
+					<div class="mat-mdc-form-field-subscript-wrapper mat-mdc-form-field-bottom-align">
+					</div> 
+				</div>
+			</div>
+			<!-- <mat-form-field class="numbering-label" [ngStyle]="calculateLabelWidth(numbering)">
+				<input [ngClass]="{'text-danger':form.get('title').invalid &&form.get('title').touched}" matInput type="text" [value]="numbering" disabled>
+			</mat-form-field> -->
+			<div class="col pl-0">
+				<mat-form-field class="w-100 field-title not-outlined-form-field" floatLabel="never">
+					<textarea 
+                        class="question-title"
+                        [class.error]="this.form.get('title').hasError('backendError') || this.form.get('title').hasError('required')" 
+                        rows="1" matInput 
+                        type="text" 
+                        [placeholder]="('DESCRIPTION-TEMPLATE-EDITOR.STEPS.GENERAL-INFO.UNTITLED' | translate)+' '+('DESCRIPTION-TEMPLATE-EDITOR.STEPS.GENERAL-INFO.QUESTION'| translate)" 
+                        #titleControl="matInput" 
+                        [formControl]="this.form.get('title')" 
+                    ></textarea>
+					<mat-error *ngIf="this.form.get('title').hasError('backendError')">{{form.get('title').getError('backendError').message}}</mat-error>
+					<mat-error *ngIf="this.form.get('title').hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
+				</mat-form-field>
+			</div>
+		</div>
+	</div>
+	<ng-container *ngIf="!reorderingMode">
+		<div style="position: relative;" class="col-12" *ngIf="hasFocus" [@fade-in]>
+			<div *ngIf="showDescription" class="mb-4">
+				<h5 style="font-weight: bold" class="row">{{'DESCRIPTION-TEMPLATE-EDITOR.STEPS.FORM.FIELD-SET.FIELDS.DESCRIPTION' | translate}}</h5>
+				<rich-text-editor-component [form]="form.get('description')" [placeholder]="'DESCRIPTION-TEMPLATE-EDITOR.STEPS.FORM.FIELD-SET.FIELDS.DESCRIPTION'" [wrapperClasses]="'row'" [editable]="!viewOnly">
+				</rich-text-editor-component>
+				<mat-error *ngIf="this.form.get('description').hasError('backendError')">{{form.get('description').getError('backendError').message}}</mat-error>
+			</div>
+			<div *ngIf="showExtendedDescription" class="mb-4">
+				<h5 style="font-weight: bold" class="row">{{'DESCRIPTION-TEMPLATE-EDITOR.STEPS.FORM.FIELD-SET.FIELDS.EXTENDED-DESCRIPTION' | translate}}</h5>
+				<rich-text-editor-component [form]="form.get('extendedDescription')" [placeholder]="'DESCRIPTION-TEMPLATE-EDITOR.STEPS.FORM.FIELD-SET.FIELDS.EXTENDED-DESCRIPTION'" [wrapperClasses]="'row'" [editable]="!viewOnly">
+				</rich-text-editor-component>
+				<mat-error *ngIf="this.form.get('extendedDescription').hasError('backendError')">{{form.get('extendedDescription').getError('backendError').message}}</mat-error>
+			</div>
+			<div class="row" *ngIf="showAdditionalInfo">
+				<mat-form-field class="col p-0 underline-line-field">
+					<input matInput type="text" placeholder="{{'DESCRIPTION-TEMPLATE-EDITOR.STEPS.FORM.FIELD-SET.FIELDS.ADDITIONAL-INFORMATION' | translate}}" [formControl]="this.form.get('additionalInformation')" />
+					<mat-error *ngIf="this.form.get('additionalInformation').hasError('backendError')">{{form.get('additionalInformation').getError('backendError').message}}</mat-error>
+				</mat-form-field>
+			</div>
+
+			<div class="row">
+				<mat-form-field *ngIf="this.form.get('hasMultiplicity')?.value" class="col pl-0 underline-line-field">
+					<mat-label>{{'DESCRIPTION-TEMPLATE-EDITOR.STEPS.FORM.FIELD-SET.FIELDS.MULTIPLICITY-MIN' | translate}}</mat-label>
+					<input matInput min="0" [max]="this.form.get('multiplicity').get('max').value" type="number" [formControl]="form.get('multiplicity').get('min')">
+					<mat-error *ngIf="form.get('multiplicity').get('min').hasError('backendError')">{{form.get('multiplicity').get('min').getError('backendError').message}}</mat-error>
+					<mat-error *ngIf="form.get('multiplicity').get('min').hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
+				</mat-form-field>
+				<mat-form-field *ngIf="this.form.get('hasMultiplicity')?.value" class="col pr-0 underline-line-field">
+					<mat-label>{{'DESCRIPTION-TEMPLATE-EDITOR.STEPS.FORM.FIELD-SET.FIELDS.MULTIPLICITY-MAX' | translate}}</mat-label>
+					<input matInput [min]="this.form.get('multiplicity').get('min').value != null && this.form.get('multiplicity').get('min').value != 0? this.form.get('multiplicity').get('min').value != null : 1" type="number" [formControl]="this.form.get('multiplicity').get('max')">
+					<mat-error *ngIf="form.get('multiplicity').get('max').hasError('backendError')">{{form.get('multiplicity').get('max').getError('backendError').message}}</mat-error>
+					<mat-error *ngIf="form.get('multiplicity').get('max').hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
+				</mat-form-field>
+			</div>
+			<div class="row">
+				<mat-form-field *ngIf="this.form.get('hasMultiplicity')?.value" class="col pl-0 underline-line-field">
+					<mat-label>{{'DESCRIPTION-TEMPLATE-EDITOR.STEPS.FORM.FIELD-SET.FIELDS.MULTIPLICITY-PLACEHOLDER' | translate}}</mat-label>
+					<input matInput type="text" [formControl]="form.get('multiplicity').get('placeholder')">
+					<mat-error *ngIf="form.get('multiplicity').get('placeholder').hasError('backendError')">{{form.get('placeholder').get('multiplicity').getError('backendError').message}}</mat-error>
+				</mat-form-field>
+			</div>
+			<div class="row">
+				<mat-checkbox *ngIf="this.form.get('hasMultiplicity')?.value" class="col pl-0 underline-line-field fieldset-checkbox-action-description-template-editor" [formControl]="form.get('multiplicity').get('tableView')">
+					{{'DESCRIPTION-TEMPLATE-EDITOR.STEPS.FORM.FIELD-SET.FIELDS.MULTIPLICITY-TABLEVIEW' | translate}}
+					<mat-error *ngIf="form.get('multiplicity').get('tableView').hasError('backendError')">{{form.get('multiplicity').get('tableView').getError('backendError').message}}</mat-error>
+				</mat-checkbox>
+			</div>
+		</div>
+
+
+		<!-- FIELDS DETAILS AND ACTIONS -->
+		<div class="row">
+
+			<!-- FIELDS -->
+			<div #inputs transition-group class="col-12" *ngIf="hasFocus" [@fade-in]>
+				<div *ngFor="let field of fieldsArray.controls; let i=index;" class="row bg-white field-input mt-3" (click)="setTargetField(field)" transition-group-item>
+					<app-description-template-editor-field-component class="col-12" [form]="field" [showOrdinal]="false" [viewOnly]="viewOnly" [expandView]="hasFocus" [canBeDeleted]="fieldsArray.length !=1" [validationErrorModel]="validationErrorModel" [validationRootPath]="validationRootPath + '.fields[' + i + '].'" [fieldSetId]="form.get('id').value" (delete)="deleteField(i)">
+						<div class="arrows mt-2">
+							<ul class="list-unstyled list-inline d-flex align-items-center">
+								<li *ngIf="canGoUp(i)" class="text-muted">
+									<mat-icon style="cursor: pointer;" (click)="move(i)" [matTooltip]="'DESCRIPTION-TEMPLATE-EDITOR.ACTIONS.FIELD.MOVE-UP' | translate">keyboard_arrow_up</mat-icon>
+								</li>
+								<li *ngIf="canGoDown(i)" class="text-muted">
+									<mat-icon style="cursor: pointer;" (click)="move(i, 'down')" [matTooltip]="'DESCRIPTION-TEMPLATE-EDITOR.ACTIONS.FIELD.MOVE-DOWN' | translate">keyboard_arrow_down</mat-icon>
+								</li>
+							</ul>
+						</div>
+					</app-description-template-editor-field-component>
+					<hr>
+				</div>
+			</div>
+
+			<!-- PREVIEW -->
+
+			<div class="col-12">
+				<div class="container-fluid previewer">
+					<div class="row">
+						<div class="col-12">
+							<div *ngIf="hasFocus" class="row justify-content-between mb-3">
+								<div class="col-auto">
+									<span class="previewer-text">{{'DESCRIPTION-TEMPLATE-EDITOR.ACTIONS.FIELD.PREVIEW' | translate}}</span>
+								</div>
+								<div class="col-auto">
+									<span [@fadeElement]="updatedClass" *ngIf="firstField?.get('data')?.get('fieldType')?.value">
+										<ng-container *ngIf="!previewDirty">
+											{{'DESCRIPTION-TEMPLATE-EDITOR.STEPS.FORM.FIELD.STATUS.PREVIEW-UPDATED' | translate}}
+										</ng-container>
+										<ng-container *ngIf="previewDirty">
+											{{'DESCRIPTION-TEMPLATE-EDITOR.STEPS.FORM.FIELD.STATUS.CALCULATING-PREVIEW' | translate}}
+										</ng-container>
+									</span>
+								</div>
+							</div>
+							<div [id]="'preview_container'+ form.get('id').value" class="row">
+								<div *ngIf="previewFieldSet && showPreview && firstField?.get('data')?.get('fieldType')?.value" class="col-12" [@fade-in-fast]>
+									<app-description-form-field-set class="w-100" [canAnnotate]="false" [propertiesFormGroup]="previewPropertiesFormGroup" [fieldSet]="previewFieldSet" [visibilityRulesService]="visibilityRulesService" [numbering]="numbering" [hideAnnotations]="true" [validationErrorModel]="validationErrorModel"></app-description-form-field-set>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+
+
+				<div class="w-100" *ngIf="!firstField?.get('data')?.get('fieldType')?.value">
+					<em>
+						{{'DESCRIPTION-TEMPLATE-EDITOR.ACTIONS.FIELD.NOT-INITIALIZED' | translate}}
+					</em>
+				</div>
+
+			</div>
+			<div class="col-12">
+				<hr *ngIf="hasFocus">
+			</div>
+		</div>
+
+
+		<ng-container *ngIf="hasFocus">
+			<div class="row justify-content-end pt-2">
+				<div class="col-auto">
+					<ul class="list-unstyled list-inline fieldset-actions-list d-flex align-items-center text-primary-blue">
+						<li class="list-inline-item" *ngIf="!viewOnly">
+
+							<span [matMenuTriggerFor]="inputmenu" class="inputMenuTrigger">
+								<img src="/assets/images/editor/icons/add_input.svg" style="width: 18px;transform: translateY(-1px);" class="input_icon" alt="'DESCRIPTION-TEMPLATE-EDITOR.ACTIONS.FIELDSET.ADD-INPUT' | translate" />
+								<span class="fieldset-new-input-action">{{'DESCRIPTION-TEMPLATE-EDITOR.ACTIONS.FIELDSET.ADD-INPUT' | translate}}</span>
+							</span>
+							<mat-menu #inputmenu="matMenu" [class]="'add_input_menu'">
+								<mat-action-list>
+									<button mat-list-item (click)="addNewInput(descriptionTemplateFieldTypeEnum.TEXT_AREA)">
+
+										<img src="/assets/images/editor/icons/text_area.svg" class="input_icon" alt="Text Area icon">
+
+										{{enumUtils.toDescriptionTemplateFieldTypeString(descriptionTemplateFieldTypeEnum.TEXT_AREA)}}
+									</button>
+									<button mat-list-item (click)="addNewInput(descriptionTemplateFieldTypeEnum.RICH_TEXT_AREA)">
+
+										<img src="/assets/images/editor/icons/text_area.svg" class="input_icon" alt="Rich Text Area icon">
+
+										{{enumUtils.toDescriptionTemplateFieldTypeString(descriptionTemplateFieldTypeEnum.RICH_TEXT_AREA)}}
+									</button>
+									<button mat-list-item (click)="addNewInput(descriptionTemplateFieldTypeEnum.FREE_TEXT)">
+										<img src="/assets/images/editor/icons/free_text.svg" class="input_icon" alt="Free Text icon">
+										{{enumUtils.toDescriptionTemplateFieldTypeString(descriptionTemplateFieldTypeEnum.FREE_TEXT)}}
+									</button>
+									<mat-divider></mat-divider>
+									<button mat-list-item (click)="addNewInput(descriptionTemplateFieldTypeEnum.UPLOAD)">
+										<mat-icon class="input_icon" style="font-size: 14px; color: #129d99; display: inline-flex; align-items: center">upload</mat-icon>
+										{{enumUtils.toDescriptionTemplateFieldTypeString(descriptionTemplateFieldTypeEnum.UPLOAD)}}
+									</button>
+									<mat-divider></mat-divider>
+									<button mat-list-item (click)="addNewInput(descriptionTemplateFieldTypeEnum.BOOLEAN_DECISION)">
+										<img src="/assets/images/editor/icons/boolean.svg" class="input_icon" alt="Boolean icon">
+										{{enumUtils.toDescriptionTemplateFieldTypeString(descriptionTemplateFieldTypeEnum.BOOLEAN_DECISION)}}
+									</button>
+									<button mat-list-item (click)="addNewInput(descriptionTemplateFieldTypeEnum.RADIO_BOX)">
+										<img src="/assets/images/editor/icons/radio_box.svg" class="input_icon" alt="RadioBox icon">
+										{{enumUtils.toDescriptionTemplateFieldTypeString(descriptionTemplateFieldTypeEnum.RADIO_BOX)}}
+									</button>
+									<button mat-list-item (click)="addNewInput(descriptionTemplateFieldTypeEnum.SELECT)">
+										<span class="input_icon">
+											<img src="/assets/images/editor/icons/select.svg" alt="Select icon">
+										</span>
+										{{enumUtils.toDescriptionTemplateFieldTypeString(descriptionTemplateFieldTypeEnum.SELECT)}}
+									</button>
+									<button mat-list-item (click)="addNewInput(descriptionTemplateFieldTypeEnum.CHECK_BOX)">
+										<img src="/assets/images/editor/icons/checkbox.svg" class="input_icon" alt="CheckBox Icon">
+										{{enumUtils.toDescriptionTemplateFieldTypeString(descriptionTemplateFieldTypeEnum.CHECK_BOX)}}
+									</button>
+
+									<mat-divider></mat-divider>
+
+									<button mat-list-item (click)="addNewInput(descriptionTemplateFieldTypeEnum.DATE_PICKER)">
+										<img src="/assets/images/editor/icons/date_picker.svg" class="input_icon" alt="DatePicker Icon">
+										{{enumUtils.toDescriptionTemplateFieldTypeString(descriptionTemplateFieldTypeEnum.DATE_PICKER)}}
+									</button>
+
+									<mat-divider></mat-divider>
+
+									<button mat-list-item (click)="$event.stopPropagation();" style="font-style: italic;">
+										<img src="/assets/images/editor/icons/api.svg" class="input_icon" alt="APIs icon">
+
+										APIs
+									</button>
+									<mat-action-list class="ml-4">
+										<button mat-list-item (click)="addNewInput(descriptionTemplateFieldTypeEnum.REFERENCE_TYPES)">
+											<img src="/assets/images/editor/icons/api_entity.svg" class="input_icon" alt="Reference types icon">
+											{{enumUtils.toDescriptionTemplateFieldTypeString(descriptionTemplateFieldTypeEnum.REFERENCE_TYPES)}}
+										</button>
+									</mat-action-list>
+
+									<mat-divider></mat-divider>
+									<button mat-list-item (click)="$event.stopPropagation();" style="font-style: italic;">
+										<img src="/assets/images/editor/icons/internal_entities.svg" class="input_icon" alt="Internal Entities icon">
+										{{'DESCRIPTION-TEMPLATE-EDITOR.STEPS.FORM.FIELD.FIELDS.INTERNAL-ENTITIES' | translate}}
+									</button>
+									<mat-action-list class="ml-4">
+										<button mat-list-item (click)="addNewInput(descriptionTemplateFieldTypeEnum.INTERNAL_ENTRIES_PLANS)">
+											<img src="/assets/images/editor/icons/api_entity.svg" class="input_icon" alt="Internal Plan icon">
+											{{enumUtils.toDescriptionTemplateFieldTypeString(descriptionTemplateFieldTypeEnum.INTERNAL_ENTRIES_PLANS)}}
+										</button>
+										<button mat-list-item (click)="addNewInput(descriptionTemplateFieldTypeEnum.INTERNAL_ENTRIES_DESCRIPTIONS)">
+											<img src="/assets/images/editor/icons/api_entity.svg" class="input_icon" alt="Internal Plan icon">
+											{{enumUtils.toDescriptionTemplateFieldTypeString(descriptionTemplateFieldTypeEnum.INTERNAL_ENTRIES_DESCRIPTIONS)}}
+										</button>
+										<button mat-list-item (click)="addNewInput(descriptionTemplateFieldTypeEnum.TAGS)">
+											<img src="/assets/images/editor/icons/api_entity.svg" class="input_icon" alt="Tags icon">
+											{{enumUtils.toDescriptionTemplateFieldTypeString(descriptionTemplateFieldTypeEnum.TAGS)}}
+										</button>
+										<button mat-list-item (click)="addNewInput(descriptionTemplateFieldTypeEnum.DATASET_IDENTIFIER)">
+											<img src="/assets/images/editor/icons/api_entity.svg" class="input_icon" alt="Datset Identifier icon">
+											{{enumUtils.toDescriptionTemplateFieldTypeString(descriptionTemplateFieldTypeEnum.DATASET_IDENTIFIER)}}
+										</button>
+										<button mat-list-item (click)="addNewInput(descriptionTemplateFieldTypeEnum.VALIDATION)">
+											<img src="/assets/images/editor/icons/api_entity.svg" class="input_icon" alt="Validation icon">
+											{{enumUtils.toDescriptionTemplateFieldTypeString(descriptionTemplateFieldTypeEnum.VALIDATION)}}
+										</button>
+									</mat-action-list>
+								</mat-action-list>
+							</mat-menu>
+						</li>
+
+
+						<li class="list-inline-item">
+							<mat-checkbox 
+                                class="fieldset-checkbox-action-description-template-editor" 
+                                [formControl]="this.form.get('hasCommentField')" 
+                                [matTooltip]="'DESCRIPTION-TEMPLATE-EDITOR.ACTIONS.FIELDSET.INCLUDE-COMMENT-FIELD' | translate" 
+                            >
+                                {{'DESCRIPTION-TEMPLATE-EDITOR.ACTIONS.FIELDSET.COMMENT-FIELD' | translate}}
+                            </mat-checkbox>
+							<mat-error *ngIf="form.get('hasCommentField').hasError('backendError')">{{form.get('hasCommentField').getError('backendError').message}}</mat-error>
+						</li>
+						<li class="list-inline-item">
+							<mat-checkbox 
+                                class="fieldset-checkbox-action-description-template-editor" 
+                                [formControl]="this.form.get('hasMultiplicity')" 
+                                (change)="onIsMultiplicityEnabledChange($event)" 
+                                [matTooltip]="'DESCRIPTION-TEMPLATE-EDITOR.ACTIONS.FIELDSET.ENABLE-MULTIPLICITY' | translate" 
+                            >
+								{{'DESCRIPTION-TEMPLATE-EDITOR.ACTIONS.FIELDSET.MULTIPLICITY' | translate}}
+							</mat-checkbox>
+						</li>
+						<li class="list-inline-item">
+							<mat-icon [matMenuTriggerFor]="menu" [matTooltip]="'DESCRIPTION-TEMPLATE-EDITOR.ACTIONS.FIELDSET.MORE' | translate" style="transform: translateY(-1px);">more_vert</mat-icon>
+							<mat-menu #menu="matMenu">
+								<!-- TODO to check -->
+								<mat-checkbox 
+                                    class="mat-menu-item" 
+                                    [disabled]="viewOnly" 
+                                    (click)="$event.stopPropagation()" 
+                                    [(ngModel)]="showDescription"
+                                >
+                                    {{'DESCRIPTION-TEMPLATE-EDITOR.STEPS.FORM.FIELD-SET.FIELDS.DESCRIPTION' | translate}}
+                                </mat-checkbox>
+								<mat-checkbox 
+                                    class="mat-menu-item" 
+                                    [disabled]="viewOnly" 
+                                    (click)="$event.stopPropagation()" 
+                                    [(ngModel)]="showExtendedDescription"
+                                >
+                                    {{'DESCRIPTION-TEMPLATE-EDITOR.STEPS.FORM.FIELD-SET.FIELDS.EXTENDED-DESCRIPTION' | translate}}
+                                </mat-checkbox>
+								<mat-checkbox 
+                                    class="mat-menu-item" 
+                                    [disabled]="viewOnly" 
+                                    (click)="$event.stopPropagation()" 
+                                    [(ngModel)]="showAdditionalInfo"
+                                >
+                                    {{'DESCRIPTION-TEMPLATE-EDITOR.STEPS.FORM.FIELD-SET.FIELDS.ADDITIONAL-INFORMATION' | translate}}
+                                </mat-checkbox>
+							</mat-menu>
+						</li>
+					</ul>
+				</div>
+			</div>
+		</ng-container>
+	</ng-container>
+</div>

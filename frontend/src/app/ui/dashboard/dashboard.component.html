@@ -1,0 +1,230 @@
+<div class="main-content dashboard-main-container h-100">
+	<div *ngIf="this.isAuthenticated()" class="container-fluid">
+		<div *ngIf="this.dashboardStatistics" class="main-content">
+			<div class="container-fluid">
+				<div class="row flex-column-reverse flex-xl-row">
+					<div class="col-12 col-xl-10">
+						<div class="row">
+							<div *ngIf="newReleaseNotificationVisible" class="new-releases-card col-auto mt-0 mr-4">
+								<a class="col-auto d-flex" (click)="dismissNewReleaseNotification()"><span class="ml-auto mt-3 material-icons clear-icon">clear</span></a>
+								<div class="row new-releases-hint-container m-0">
+									<p class="new-releases-chip mb-0 col-auto">{{'NEW-RELEASE-NOTIFICATION.HINT' | translate}}</p>
+								</div>
+								<p class="new-releases-title mb-0 pt-4">{{'NEW-RELEASE-NOTIFICATION.TITLE' | translate}}</p>
+								<p class="new-releases-content mb-0">{{'NEW-RELEASE-NOTIFICATION.BODY' | translate}}</p>
+
+								<div class="row d-flex align-items-center mt-4" *ngIf="this.configurationService.newReleaseNotificationLink">
+									<div class="col-auto d-flex">
+										<a mat-button class="rounded-btn primary new-releases-btn" href="{{this.configurationService.newReleaseNotificationLink}}" target="_blank">
+											{{'NEW-RELEASE-NOTIFICATION.ACTIONS.LEARN-MORE' | translate}}
+										</a>
+									</div>
+									<span class="new-releases-logo">
+										<img src="../../../assets/images/new-releases-logo.png">
+									</span>
+								</div>
+							</div>
+							<div class="card col-auto mt-0" [style.display]="isIntroCardVisible ? 'block' : 'none'">
+								<a *ngIf="this.hasPlans()" class="col-auto d-flex" (click)="dismissIntroCard()"><span class="ml-auto mt-3 material-icons clear-icon">clear</span></a>
+
+								<p *ngIf="!this.hasPlans()" class="card-title mb-0 pt-4">{{'DASHBOARD.PLAN-QUESTION' | translate}}</p>
+								<p *ngIf="!this.hasPlans()" class="card-content mb-0">{{'DASHBOARD.INFO-PLAN-TEXT' | translate}}</p>
+
+								<p *ngIf="!this.hasPlans()" class="card-content pt-3 mb-0">
+									{{'DASHBOARD.NEW-QUESTION' | translate}} <a href="https://www.openaire.eu/how-to-create-a-data-management-plan" target="_blank"><u>{{'DASHBOARD.OPEN-AIR-GUIDE' | translate}}</u></a> {{'DASHBOARD.LEARN-MORE' | translate}}
+								</p>
+								<p *ngIf="this.hasPlans()" class="card-content mb-0 pt-0">{{'DASHBOARD.PLAN-ABOUT-BEG' | translate}}
+									<b>{{'DASHBOARD.DESCRIPTIONS-DASHBOARD-TEXT' | translate}}</b>
+									{{'DASHBOARD.PLAN-ABOUT-END' | translate}}
+								</p>
+
+								<div class="row d-flex align-items-center">
+									<div *ngIf="!this.hasPlans()" class="col-auto p-0 add-description-btn d-flex">
+										<div class="pr-2">
+											<button type="button" mat-button class="align-self-center rounded-btn primary" (click)="openNewPlanDialog()">{{'DASHBOARD.START-YOUR-FIRST-PLAN' | translate}}</button>
+										</div>
+									</div>
+									<div *ngIf="this.hasPlans()" class="col-auto p-0 new-description-tour add-description-btn col-auto d-flex">
+										<div class="pr-2">
+											<button mat-button type="button" class="align-self-center rounded-btn secondary" (click)="addNewDescription()">{{'DASHBOARD.ACTIONS.ADD-DESCRIPTION' | translate}}</button>
+										</div>
+									</div>
+									<span class="col-auto ml-auto">
+										<img class="laptop-img\6" src="../../../assets/images/dashboard-popup.png">
+									</span>
+								</div>
+							</div>
+						</div>
+						<div *ngIf="this.hasPlans()" class="col">
+							<div class="latest-activity-title">{{'DASHBOARD.LATEST-ACTIVITY' | translate}}</div>
+							<mat-tab-group dynamicHeight color="#00000" mat-stretch-tabs="false" mat-align-tabs="start" class="my-mat-tab remove-border-bottom" [selectedIndex]="indexFromCurrentType" (selectedTabChange)="currentType = $event.tab.ariaLabel">
+								<mat-tab aria-label="recent" label="{{'DASHBOARD.ALL' | translate}}">
+									<app-recent-edited-activity 
+                                        [currentType]="currentType" 
+                                        [type]="ActivityListingType.Recent"
+                                    ></app-recent-edited-activity>
+								</mat-tab>
+								<mat-tab aria-label="drafts" label="{{'DASHBOARD.DRAFTS' | translate}}">
+									<app-recent-edited-activity 
+                                        [currentType]="currentType" 
+                                        [type]="ActivityListingType.Drafts" 
+                                    ></app-recent-edited-activity>
+								</mat-tab>
+								<mat-tab aria-label="plans" label="{{'DASHBOARD.PLANS' | translate}}">
+									<app-recent-edited-activity 
+                                        [currentType]="currentType" 
+                                        [type]="ActivityListingType.Plans" 
+                                    ></app-recent-edited-activity>
+								</mat-tab>
+								<mat-tab aria-label="descriptions" label="{{'DASHBOARD.DESCRIPTIONS' | translate}}">
+									<app-recent-edited-activity 
+                                        [currentType]="currentType" 
+                                        [type]="ActivityListingType.Descriptions" 
+                                        [hasPlans]="this.hasPlans()" 
+                                        (addNewDescription)="addNewDescription($event)"
+                                    ></app-recent-edited-activity>
+								</mat-tab>
+							</mat-tab-group>
+						</div>
+					</div>
+					<!-- Right Sidebar -->
+					<div *ngIf="!this.hasPlans()" class="col-12 col-xl-2 mb-4 stats">
+						<div class="row">
+							<div class="col-12">
+								<div class="personal-usage" style="width: fit-content;">
+									<span>
+										{{'DASHBOARD.PERSONAL-USAGE' | translate}}
+									</span>
+								</div>
+							</div>
+							<div class="col-auto col-xl-12">
+								<div class="counter-zero" style="width: fit-content;"><span>0</span></div>
+								<a [routerLink]="routerUtils.generateUrl(['/plans'])" class="link">{{'DASHBOARD.PLANS' | translate}}</a>
+							</div>
+							<div class="col-auto col-xl-12">
+								<div class="counter-zero" style="width: fit-content;"><span>0</span></div>
+								<a [routerLink]="routerUtils.generateUrl(['/descriptions'])" class="link">{{'DASHBOARD.DESCRIPTIONS' | translate}}</a>
+							</div>
+							<div class="col-auto col-xl-12">
+								<div class="counter-zero" style="width: fit-content;"><span>0</span></div>
+								<a class="link-disabled">{{'DASHBOARD.GRANTS' | translate}}</a>
+							</div>
+							<div class="col-auto col-xl-12">
+								<div class="counter-zero" style="width: fit-content;"><span>0</span></div>
+								<a class="link-disabled">{{'DASHBOARD.RELATED-ORGANISATIONS' | translate}}</a>
+							</div>
+						</div>
+					</div>
+					<div *ngIf="this.hasPlans()" class="col-12 col-xl-2 mb-4 stats">
+						<div class="row">
+							<div class="col-12">
+								<div class="personal-usage" style="width: fit-content;"><span>{{'DASHBOARD.PERSONAL-USAGE' | translate}}</span></div>
+							</div>
+							<div class="col-auto col-xl-12">
+								<div [ngClass]="{'counter': dashboardStatistics?.planCount != 0, 'counter-zero': dashboardStatistics?.planCount == 0}" style="width: fit-content;">
+									<span>{{dashboardStatistics?.planCount}}</span>
+								</div>
+								<a [routerLink]="routerUtils.generateUrl(['/plans'])" class="link">{{'DASHBOARD.PLANS' | translate}}</a>
+							</div>
+							<div class="col-auto col-xl-12">
+								<div [ngClass]="{'counter': dashboardStatistics?.descriptionCount != 0, 'counter-zero': dashboardStatistics?.descriptionCount == 0}" style="width: fit-content;">
+									<span>{{dashboardStatistics?.descriptionCount}}</span>
+								</div>
+								<a [routerLink]="routerUtils.generateUrl(['/descriptions'])" class="link">{{'DASHBOARD.DESCRIPTIONS' | translate}}</a>
+							</div>
+							<div class="col-auto col-xl-12">
+								<div [ngClass]="{'counter': grantCount != 0, 'counter-zero': grantCount == 0}" style="width: fit-content;">
+									<span>{{grantCount}}</span>
+								</div>
+								<a href="#" class="link-disabled">{{'DASHBOARD.GRANTS' | translate}}</a>
+							</div>
+							<div class="col-auto col-xl-12">
+								<div [ngClass]="{'counter': organizationCount != 0, 'counter-zero': organizationCount == 0}" style="width: fit-content;">
+									<span>{{organizationCount}}</span>
+								</div>
+								<a href="#" class="link-disabled">{{'DASHBOARD.RELATED-ORGANISATIONS' | translate}}</a>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+		<div>
+			<div class="main-content">
+
+			</div>
+		</div>
+	</div>
+
+	<!-- Home screen on log out -->
+	<div class="container-fluid" *ngIf="!this.isAuthenticated()">
+		<div class="main-content">
+			<div class="container-fluid">
+				<div class="row flex-column-reverse flex-xl-row">
+					<div class="col-12 col-xl">
+						<div class="row">
+							<div class="col-auto card" [style.display]="isIntroCardVisible ? 'block' : 'none'">
+								<a class="col-auto d-flex" (click)="dismissIntroCard()"><span class="ml-auto mt-3 material-icons clear-icon">clear</span></a>
+								<div class="d-flex flex-column align-items-center non-auth-title-container">
+									<h4 class="pt-4">{{'DASHBOARD.TITLE' | translate}}</h4>
+									<p class="col-auto app-info">{{'DASHBOARD.INFO-TEXT' | translate}}</p>
+								</div>
+								<div class="d-flex">
+									<img class="col-auto ml-auto laptop-img" src="../../../assets/images/dashboard-popup.png">
+								</div>
+							</div>
+						</div>
+					</div>
+					<div class="col-12 col-xl-auto mb-4 stats">
+						<div *ngIf="!hasPlans()" class="row flex-xl-column">
+							<div class="col-12">
+								<div class="personal-usage"><span>{{'DASHBOARD.PUBLIC-USAGE' | translate}}</span></div>
+							</div>
+							<div class="col-auto">
+								<div class="counter-zero"><span>0</span></div>
+								<a class="link">{{'DASHBOARD.PUBLIC-PLANS' | translate}}</a>
+							</div>
+							<div class="col-auto">
+								<div class="counter-zero"><span>0</span></div>
+								<a class="link">{{'DASHBOARD.PUBLIC-DESCRIPTIONS' | translate}}</a>
+							</div>
+							<div class="col-auto">
+								<div class="counter-zero"><span>0</span></div>
+								<a class="link-disabled">{{'DASHBOARD.GRANTS' | translate}}</a>
+							</div>
+							<div class="col-auto">
+								<div class="counter-zero"><span>0</span></div>
+								<a class="link-disabled">{{'DASHBOARD.RELATED-ORGANISATIONS' | translate}}</a>
+							</div>
+						</div>
+
+						<div *ngIf="hasPlans()" class="row flex-xl-column">
+							<div class="col-12">
+								<div class="personal-usage"><span>{{'DASHBOARD.PUBLIC-USAGE' | translate}}</span></div>
+							</div>
+							<div class="col-auto">
+								<div [ngClass]="{'counter': dashboardStatistics?.planCount != 0, 'counter-zero': dashboardStatistics?.planCount == 0}"><span>{{dashboardStatistics?.planCount}}</span></div>
+								<a [routerLink]="['/explore-plans']" class="link">{{'DASHBOARD.PUBLIC-PLANS' | translate}}</a>
+							</div>
+
+							<div class="col-auto">
+								<div [ngClass]="{'counter': dashboardStatistics?.descriptionCount != 0, 'counter-zero': dashboardStatistics?.descriptionCount == 0}"><span>{{dashboardStatistics?.descriptionCount}}</span></div>
+								<a [routerLink]="['/explore-descriptions']" class="link">{{'DASHBOARD.PUBLIC-DESCRIPTIONS' | translate}}</a>
+							</div>
+
+							<div class="col-auto">
+								<div [ngClass]="{'counter': grantCount != 0, 'counter-zero': grantCount == 0}"><span>{{grantCount}}</span></div>
+								<a href="#" class="link-disabled">{{'DASHBOARD.GRANTS' | translate}}</a>
+							</div>
+
+							<div class="col-auto">
+								<div [ngClass]="{'counter': organizationCount != 0, 'counter-zero': organizationCount == 0}"><span>{{organizationCount}}</span></div>
+								<a href="#" class="link-disabled">{{'DASHBOARD.RELATED-ORGANISATIONS' | translate}}</a>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>

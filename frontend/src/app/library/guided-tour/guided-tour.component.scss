@@ -1,0 +1,141 @@
+ngx-guided-tour {
+	.guided-tour-user-input-mask {
+		position: fixed;
+		top: 0;
+		left: 0;
+		display: block;
+		height: 100%;
+		width: 100%;
+		max-height: 100vh;
+		text-align: center;
+		opacity: 0;
+	}
+
+	.guided-tour-spotlight-overlay {
+		position: fixed;
+		box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.7), 0 0 1.5rem rgba(0, 0, 0, 0.5);
+		border-radius: 44px; /*custom add*/
+	}
+
+	.tour-step {
+		position: fixed;
+		&.page-tour-step {
+			max-width: 1043px; /*custom add*/
+			width: 50%;
+			left: 50%;
+			top: 50%;
+			border-radius: 5px;
+			transform: translate(-50%, -50%);
+		}
+		&.tour-bottom,
+		&.tour-bottom-right,
+		&.tour-bottom-left {
+			.tour-arrow::before {
+				position: absolute;
+			}
+			.tour-block {
+				margin-top: 10px;
+			}
+		}
+
+		&.tour-top,
+		&.tour-top-right,
+		&.tour-top-left {
+			margin-bottom: 10px;
+
+			.tour-arrow::before {
+				position: absolute;
+				bottom: 0;
+			}
+			.tour-block {
+				margin-bottom: 10px;
+			}
+		}
+
+		&.tour-bottom,
+		&.tour-top {
+			.tour-arrow::before {
+				/*custom add*/
+				transform: scale(2);
+				left: 494px;
+			}
+			/*custom add*/
+			margin-top: 20px;
+			margin-left: 10px;
+		}
+
+		&.tour-bottom-right,
+		&.tour-top-right {
+			.tour-arrow::before {
+				transform: translateX(-100%);
+				left: calc(100% - 15px);
+			}
+		}
+
+		&.tour-bottom-left,
+		&.tour-top-left {
+			.tour-arrow::before {
+				left: 5px;
+			}
+		}
+
+		&.tour-left {
+			.tour-arrow::before {
+				position: absolute;
+				left: 100%;
+				transform: translateX(-100%);
+				top: 5px;
+			}
+			.tour-block {
+				margin-right: 10px;
+			}
+		}
+
+		&.tour-right {
+			margin-left: 10px; /*custom add*/
+			.tour-arrow::before {
+				transform: scale(1.5); /*custom add*/
+				position: absolute;
+				left: 0;
+				top: 5px;
+			}
+			.tour-block {
+				margin-top: -15px; /*custom add*/
+				margin-left: 10px;
+			}
+		}
+
+		.tour-block {
+			/*custom add*/
+			padding: 15px 25px 15px 0px;
+			max-height: 348px;
+			border-radius: 5px;
+		}
+
+		.tour-title {
+			/*custom add*/
+			font-weight: lighter !important;
+			font-size: 16px !important;
+			padding: 28px 5px 25px 65px;
+			overflow: auto;
+			text-align: left;
+			color: #212121;
+			line-height: 26px;
+			white-space: pre-line;
+		}
+
+		h3.tour-title {
+			font-size: 20px;
+		}
+		h2.tour-title {
+			font-size: 30px;
+		}
+
+		.tour-buttons {
+			overflow: hidden; // clearfix
+			padding: 10px 70px 18px 65px; /*custom add*/
+			display: flex;
+			justify-content: space-between;
+		}
+	}
+}

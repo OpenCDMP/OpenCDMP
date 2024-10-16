@@ -1,0 +1,397 @@
+<div class="main-content">
+	<div class="container-fluid">
+		<div *ngIf="formGroup" class="form-container">
+			<div class="fixed-editor-header">
+				<div class="card editor-header">
+					<div class="col">
+						<div class="row">
+							<div class="col-auto info">
+								<div class="title">{{(canEdit ? 'PLAN-EDITOR.TITLE-EDIT' : 'PLAN-EDITOR.TITLE-PREVIEW') | translate}}</div>
+								<div class="subtitle">{{ formGroup.get('label').value }} <span *ngIf="isDirty()" class="changes">({{'PLAN-EDITOR.UNSAVED-CHANGES' | translate}})</span></div>
+							</div>
+							<div *ngIf="step > 0" class="ml-auto d-flex flex-row">
+
+								<div *ngIf="formGroup.get('id').value" class="col-auto d-flex align-items-center">
+									<button [disabled]="isDirty()" [matTooltipDisabled]="!isDirty()" mat-button class="rounded-btn primary-inverted" type="button" [matMenuTriggerFor]="exportMenu" (click)="$event.stopPropagation();" [matTooltip]="'PLAN-EDITOR.ACTIONS.EXPORT.CAN-NOT-EXPORT' | translate">
+										{{ 'PLAN-EDITOR.ACTIONS.EXPORT.EXPORT' | translate }}
+										<mat-icon [disabled]="isDirty()" style="width: 14px;" iconPositionEnd>expand_more</mat-icon>
+									</button>
+									<mat-menu #exportMenu="matMenu" xPosition="before">
+										<button mat-menu-item *ngFor='let fileTransformer of fileTransformerService.availableFormatsFor(fileTransformerEntityTypeEnum.Plan)' (click)="fileTransformerService.exportPlan(formGroup.get('id').value, fileTransformer.repositoryId, fileTransformer.format)">
+											<i class="fa pr-2" [ngClass]="fileTransformer.icon ? fileTransformer.icon : 'fa-file-o'"></i>
+											<span>{{'GENERAL.FILE-TRANSFORMER.' + fileTransformer?.format?.toUpperCase() | translate}}</span>
+										</button>
+									</mat-menu>
+								</div>
+								<mat-divider *ngIf="formGroup.get('id').value && canEdit && ((!isLockedByUser && canEdit) || isLockedByUser || (hasReversableStatus() && !isLockedByUser))" [vertical]="true" class="ml-2 mr-2"></mat-divider>
+
+								<div *ngIf="isDirty()" class="col-auto d-flex align-items-center">
+									<button [disabled]="saving" type="button" mat-button class="rounded-btn discard-btn mr-3" (click)="discardChanges()">
+										{{'PLAN-EDITOR.ACTIONS.DISCARD.DISCARD' | translate}}
+									</button>
+								</div>
+
+								<div class="col-auto d-flex align-items-center">
+									<button [disabled]="saving" *ngIf="isNew" mat-button type="button" (click)="formSubmit()" class="rounded-btn primary-inverted">
+										{{'PLAN-EDITOR.ACTIONS.SAVE' | translate}}
+									</button>
+									<button [disabled]="saving" *ngIf="!isNew && formGroup.enabled && !lockStatus && canSave" mat-raised-button class="rounded-btn primary-inverted mr-2" type="button">
+										<span class="d-flex flex-row row">
+											<span (click)="!saving?formSubmit():null" class="col">{{ 'PLAN-EDITOR.ACTIONS.SAVE' | translate }}</span>
+											<mat-divider [vertical]="true"></mat-divider>
+											<span *ngIf="!saving" class="align-items-center justify-content-center col d-flex" (click)="$event.stopPropagation();" [matMenuTriggerFor]="menu">
+												<mat-icon>expand_more</mat-icon>
+											</span>
+											<span *ngIf="saving" class="align-items-center justify-content-center col d-flex">
+												<mat-icon>expand_more</mat-icon>
+											</span>
+										</span>
+									</button>
+									<mat-menu #menu="matMenu">
+										<button [disabled]="saving" mat-menu-item (click)="saveAndClose()" type="button">{{ 'PLAN-EDITOR.ACTIONS.SAVE-AND-CLOSE' | translate }}</button>
+										<button [disabled]="saving" mat-menu-item (click)="formSubmit()" type="button">{{ 'PLAN-EDITOR.ACTIONS.SAVE-AND-CONTINUE' | translate }}</button>
+									</mat-menu>
+								</div>
+								<div class="col-auto d-flex align-items-center" *ngIf="canFinalize && this.hasNotDoi() && formGroup.enabled" [matTooltipDisabled]="canFinalize && formGroup.pristine" matTooltip="{{'PLAN-EDITOR.ACTIONS.FINALIZE.CAN-NOT-FINALIZE' | translate}}">
+									<button [disabled]="!formGroup.pristine" mat-button class="rounded-btn primary-inverted mr-2" type="button" (click)="finalize()">{{ 'PLAN-EDITOR.ACTIONS.FINALIZE.FINALIZE' | translate }}</button>
+								</div>
+								<div *ngIf="formGroup.pristine" class="col-auto d-flex align-items-center">
+									<button [disabled]="saving" *ngIf="isLocked" mat-button class="rounded-btn primary-inverted mr-2" type="button">{{ 'PLAN-EDITOR.ACTIONS.LOCKED' | translate}}</button>
+									<button [disabled]="saving" *ngIf="canReverseFinalize && this.hasNotDoi()" mat-button class="rounded-btn primary-inverted mr-2" type="button" (click)="reverseFinalization()">{{ 'PLAN-EDITOR.ACTIONS.REVERSE' | translate }}</button>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+
+			<div class="container-fluid">
+				<div class="row pt-2">
+					<div class="col-12">
+						<app-navigation-breadcrumb />
+					</div>
+				</div>
+			</div>
+
+			<!-- First Step -->
+			<div class="container-fluid">
+				<div class="row" id="editor-form" *ngIf="this.step === 0 && this.isNew">
+					<div class="col-12 blueprint-section">
+						<div class="row">
+							<div class="heading2 col-12">{{'PLAN-EDITOR.FIELDS.TITLE' | translate}} *</div>
+							<div class="col-12">
+								<mat-form-field class="w-100">
+									<mat-label>{{'PLAN-EDITOR.FIELDS.TITLE' | translate}}</mat-label>
+									<input matInput type="text" name="label" [formControl]="formGroup.get('label')" required>
+									<mat-error *ngIf="formGroup.get('label').hasError('backendError')">{{formGroup.get('label').getError('backendError').message}}</mat-error>
+									<mat-error *ngIf="formGroup.get('label').hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
+								</mat-form-field>
+							</div>
+						</div>
+						<div class="row">
+							<div class="heading2 col-12">{{'PLAN-EDITOR.FIELDS.DESCRIPTION' | translate}}</div>
+							<div class="col-12">
+								<rich-text-editor-component [form]="formGroup.get('description')" placeholder="{{'PLAN-EDITOR.PLACEHOLDER.DESCRIPTION' | translate}}" [required]="false">
+								</rich-text-editor-component>
+							</div>
+						</div>
+						<div class="plan-blueprint-form" style="margin-top: 3%;">
+							<div class="heading2">{{'PLAN-EDITOR.FIELDS.BLUEPRINT' | translate}} *</div>
+							<mat-form-field class="w-100">
+								<mat-label>{{'PLAN-EDITOR.FIELDS.BLUEPRINT' | translate}}</mat-label>
+								<app-single-auto-complete [required]="false" [formControl]="formGroup.get('blueprint')" placeholder="{{'PLAN-EDITOR.PLACEHOLDER.BLUEPRINT' | translate}}" [configuration]="singleAutocompleteBlueprintConfiguration">
+								</app-single-auto-complete>
+							</mat-form-field>
+						</div>
+						<div class="row">
+							<div class="col-5">
+								<button mat-button class="rounded-btn secondary" [disabled]="!(formGroup.get('blueprint').value && formGroup.get('label').value)" (click)="selectBlueprint()">
+                                    {{'PLAN-EDITOR.STEPPER.NEXT' | translate}}
+                                </button>
+							</div>
+							<div class="col-7" *ngIf="formGroup.get('blueprint').value == null || (formGroup.get('blueprint').value && formGroup.get('blueprint').value.id !== defaultBlueprintId)">
+								<div class="row">
+									<div class="col-6">
+										<p>{{'PLAN-EDITOR.ACTIONS.OR-CONTINUE-WITH' | translate}}</p>
+									</div>
+									<div class="col-6">
+										<button mat-button class="rounded-btn secondary" style="float: right;" (click)="selectDefaultBlueprint()">{{'PLAN-EDITOR.ACTIONS.DEFAULT-BLUEPRINT' | translate}}</button>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+
+			<div class="container-fluid">
+				<div class="row">
+					<div *ngIf="this.step != 0" style="width: 22em;" class="d-flex flex-column justify-content-center">
+						<div class="row stepper-title">
+							<div class="col-12 pl-0 mb-1">
+								<span>{{'PLAN-EDITOR.TITLE' | translate}}</span>
+							</div>
+						</div>
+						<div class="row stepper-options">
+							<div class="col-auto">
+								<ol class="stepper-list" start="1">
+                                    @if(selectedBlueprint?.definition && this.step !== 0){
+										<ng-container *ngFor="let section of selectedBlueprint?.definition?.sections; let i=index">
+											<li (click)="changeStep(i + 1)" [ngClass]="{'active': this.step === (i + 1), 'text-danger': hasErrors(section.id) }"><span class="d-flex align-items-center">{{section.label}}
+													<mat-icon *ngIf="section.description" class="ml-1 w-auto h-auto" style="font-size: 1rem; font-weight: 700;" [matTooltip]="section.description">info</mat-icon>
+												</span></li>
+											<ol class="descriptionsInSection">
+												<li *ngFor="let description of descriptionsInSection(section.id); let descriptionIndex = index" (click)="editDescription(description.id, false)" class="active-description">
+													<div class="d-flex flex-direction-row">
+														<div class="label" matTooltip="{{description.label}}" matTooltipPosition="right">{{'PLAN-EDITOR.DESCRIPTION' | translate}}: {{ description.label }}</div>
+														<div (click)="$event.stopPropagation(); removeDescription(description.id)"><mat-icon *ngIf="description.status !== descriptionStatusEnum.Finalized && canDeleteSection(section.id) && !formGroup.disabled" [ngClass]="{'drag-handle-disabled': formGroup.disabled}" class="ml-2 mr-2 remove-description size-16" matTooltip="{{'PLAN-EDITOR.ACTIONS.DELETE' | translate}}">close</mat-icon></div>
+														<mat-icon *ngIf="description.status === descriptionStatusEnum.Finalized" class="ml-2 mr-2 status-icon check-icon size-16" matTooltip="{{'TYPES.DESCRIPTION-STATUS.FINALIZED' | translate}}">check</mat-icon>
+													</div>
+												</li>
+											</ol>
+											<ul *ngIf="item.id && section.hasTemplates && (canEdit || canEditSection(section.id)) && hasDescriptionTemplates(section)" 
+												class="add-description-option"
+												[matTooltipDisabled]="hasValidMultiplicity(section)"
+												[matTooltip]="'PLAN-EDITOR.DESCRIPTION-TEMPLATES.MAX-MULTIPLICITY' | translate"
+												>
+												<li>
+													<a class="add-description-action" [ngClass]="{'drag-handle-disabled': !hasValidMultiplicity(section)}" [routerLink]="hasDescriptionTemplates(section) && hasValidMultiplicity(section) ? this.routerUtils.generateUrl(['/descriptions/edit/', item.id, '/', section.id]) : null">
+														<ng-container>
+															<mat-icon>add</mat-icon>{{'PLAN-EDITOR.ACTIONS.ADD-DESCRIPTION-IN-SECTION' | translate}}
+														</ng-container>
+													</a>
+												</li>
+											</ul>
+										</ng-container>
+                                    }
+								</ol>
+							</div>
+						</div>
+
+						<div class="row mt-auto">
+							<div class="col-12">
+								<div class="row justify-content-center" *ngIf="this.step !== 0">
+									<div class="col-auto mb-1">
+										<button mat-button type="button" class="rounded-btn neutral stepper mr-2" [disabled]="step === 1" (click)="previousStep()">
+											<span class="material-icons">chevron_left</span>
+											<div>{{'PLAN-EDITOR.ACTIONS.PREVIOUS-STEP' | translate}}</div>
+                                        </button>
+									</div>
+									<div *ngIf="this.step < this.maxSteps" class="col-auto mb-1">
+										<button mat-button type="button" class="rounded-btn primary stepper" (click)="nextStep()">
+											<div>{{'PLAN-EDITOR.ACTIONS.NEXT-STEP' | translate}}</div>
+											<span class="material-icons" iconPositionEnd>chevron_right</span>
+                                        </button>
+									</div>
+								</div>
+								<div class="row" *ngIf="this.step !== 0 && formGroup && !viewOnly && canEdit">
+									<div class="col-12">
+										<app-plan-form-progress-indication class="col-12" *ngIf="formGroup && !formGroup.disabled && !lockStatus" [formGroup]="formGroup"></app-plan-form-progress-indication>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+
+					<div class="col-12 col-md form" id="editor-form" *ngIf="this.step !== 0">
+						<div *ngIf="selectedBlueprint?.definition">
+							<div *ngFor="let section of selectedBlueprint?.definition?.sections; let i=index">
+								<div class="section-info" [hidden]="this.step !== (i + 1)">
+									<div class="col-12 card" *ngIf="section.fields?.length > 0">
+										<div class="row">
+											<div class="col-12">
+												<div *ngFor="let field of section.fields; let j=index">
+													<div class="heading-wrapper row align-items-start" [id]="field.id">
+														<div class="col-auto">
+															<div class="heading" *ngIf="!field.label && field.category === planBlueprintSectionFieldCategoryEnum.System">{{i + 1}}.{{j + 1}} {{enumUtils.toPlanBlueprintSystemFieldTypeString(field.systemFieldType)}}<span *ngIf="field.required">*</span></div>
+															<div class="heading" *ngIf="!field.label && field.category === planBlueprintSectionFieldCategoryEnum.ReferenceType">{{i + 1}}.{{j + 1}} {{field.referenceType.name}}<span *ngIf="field.required">*</span></div>
+															<div class="heading" *ngIf="field.label">{{i + 1}}.{{j + 1}} {{field.label}}<span *ngIf="field.required">*</span></div>
+														</div>
+														<div class="col-auto link-icon" style="margin-top: 1rem;">
+															<button *ngIf="!hildeLink" mat-icon-button type="button" matTooltip="{{ 'PLAN-EDITOR.ACTIONS.COPY-LINK' | translate }}" (click)="copyLink(field?.id)">
+																<mat-icon>link</mat-icon>
+															</button>
+														</div>
+                                                        @if(!isNew){
+                                                            <div class="ml-auto col-auto" style="margin-top: 1rem;">
+                                                                <button mat-icon-button class="col-auto annotation-icon" (click)="showAnnotations(field.id)" matTooltip="{{ 'PLAN-EDITOR.ACTIONS.ANNOTATIONS' | translate }}" [disabled]="!canAnnotate(section.id)">
+                                                                    <mat-icon [matBadge]="annotationsPerAnchor?.get(field.id)" [matBadgeHidden]="annotationsPerAnchor?.get(field.id) <= 0" matBadgeColor="warn">comment</mat-icon>
+                                                                </button>
+                                                            </div>
+                                                        }
+													</div>
+
+													<div *ngIf="field.description != null && field.description.length > 0" class="hint">{{field.description}}</div>
+
+													<div class="input-form">
+														<div *ngIf="field.category === planBlueprintSectionFieldCategoryEnum.System">
+															<div *ngIf="field.systemFieldType == planBlueprintSystemFieldTypeEnum.Title">
+																<mat-form-field class="w-100">
+																	<input matInput placeholder="{{field.placeholder && field.placeholder != '' ? field.placeholder : field.label && field.label != '' ? field.label : 'PLAN-EDITOR.FIELDS.TITLE' | translate}}" type="text" name="label" [formControl]="formGroup.get('label')" required>
+																	<mat-error *ngIf="formGroup.get('label').hasError('backendError')">
+																		{{formGroup.get('label').getError('backendError').message}}</mat-error>
+																	<mat-error *ngIf="formGroup.get('label').hasError('required')">
+																		{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
+																</mat-form-field>
+															</div>
+															<div *ngIf="field.systemFieldType == planBlueprintSystemFieldTypeEnum.Description">
+																<rich-text-editor-component [form]="formGroup.get('description')" [editable]="formGroup.get('description').status !== 'DISABLED'" [placeholder]="field.placeholder && field.placeholder != '' ? field.placeholder : 'PLAN-EDITOR.PLACEHOLDER.DESCRIPTION'" [required]="field.required">
+																</rich-text-editor-component>
+															</div>
+															<div *ngIf="field.systemFieldType == planBlueprintSystemFieldTypeEnum.Language">
+																<mat-form-field class="w-100">
+																	<mat-select [formControl]="formGroup.get('language')" placeholder="{{field.placeholder && field.placeholder != '' ? field.placeholder : 'PLAN-EDITOR.FIELDS.LANGUAGE' | translate}}" required>
+																		<mat-option *ngFor="let lang of getLanguageInfos()" [value]="lang.code">
+																			{{ lang.name }}
+																		</mat-option>
+																	</mat-select>
+																	<mat-error *ngIf="formGroup.get('language').hasError('backendError')">{{formGroup.get('language').getError('backendError').message}}</mat-error>
+																	<mat-error *ngIf="formGroup.get('language').hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
+																</mat-form-field>
+															</div>
+															<div *ngIf="field.systemFieldType == planBlueprintSystemFieldTypeEnum.Contact" class="row">
+																<div cdkDropList class="col-12" (cdkDropListDropped)="dropContacts($event)">
+																	<div *ngFor="let contact of formGroup.get('properties').get('contacts').controls; let contactIndex=index;" cdkDrag class="row align-items-center" [cdkDragDisabled]="formGroup.disabled || !canEdit" (mouseenter)="onContactHover(contactIndex)" (mouseleave)="clearHoveredContact()">
+																		<div class="col-12 col-xl-auto pr-0">
+																			<span *ngIf="!isContactSelected(contactIndex)" class="ml-2" style="font-size: 18px; box-sizing: border-box; display: inline-block; padding: 0.15rem 0.435rem 0.3rem 0.435rem;">{{contactIndex + 1}}</span>
+																			<span *ngIf="isContactSelected(contactIndex)" class="ml-2">
+																				<mat-icon [ngClass]="{'drag-handle-disabled': formGroup.disabled || !canEdit}" cdkDragHandle class="drag-handle">drag_indicator</mat-icon>
+																			</span>
+																		</div>
+																		<div class="col pt-3">
+																			<div class="row">
+																				<div class="col">
+																					<mat-form-field class="w-100">
+																						<mat-label>{{'PLAN-EDITOR.FIELDS.FIRST-NAME' | translate}}</mat-label>
+																						<input matInput type="text" name="firstName" [formControl]="contact.get('firstName')">
+																						<mat-error *ngIf="contact.get('firstName').hasError('backendError')">{{contact.get('firstName').getError('backendError').message}}</mat-error>
+																						<mat-error *ngIf="contact.get('firstName').hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
+																					</mat-form-field>
+																				</div>
+																				<div class="col">
+																					<mat-form-field class="w-100">
+																						<mat-label>{{'PLAN-EDITOR.FIELDS.LAST-NAME' | translate}}</mat-label>
+																						<input matInput type="text" name="lastName" [formControl]="contact.get('lastName')">
+																						<mat-error *ngIf="contact.get('lastName').hasError('backendError')">{{contact.get('lastName').getError('backendError').message}}</mat-error>
+																						<mat-error *ngIf="contact.get('lastName').hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
+																					</mat-form-field>
+																				</div>
+																				<div class="col">
+																					<mat-form-field class="w-100">
+																						<mat-label>{{'PLAN-EDITOR.FIELDS.EMAIL' | translate}}</mat-label>
+																						<input matInput type="text" name="email" [formControl]="contact.get('email')">
+																						<mat-error *ngIf="contact.get('email').hasError('backendError')">{{contact.get('email').getError('backendError').message}}</mat-error>
+																						<mat-error *ngIf="contact.get('email').hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
+																					</mat-form-field>
+																				</div>
+																			</div>
+																		</div>
+																		<div *ngIf="canSave || isNew" class="col-12 col-xl-auto">
+																			<button mat-icon-button class="action-list-icon" matTooltip="{{'PLAN-EDITOR.ACTIONS.SEARCH-CONTACT' | translate}}" (click)="searchContact(contactIndex, field)" [disabled]="formGroup.disabled || (!isNew && !this.canSave)">
+																				<mat-icon>search</mat-icon>
+																			</button>
+																		</div>
+																		<div *ngIf="canSave || isNew" class="col-12 col-xl-auto">
+																			<button mat-icon-button class="action-list-icon" matTooltip="{{'PLAN-EDITOR.ACTIONS.REMOVE-CONTACT' | translate}}" (click)="removeContact(contactIndex)" [disabled]="formGroup.disabled || (!isNew && !this.canSave)">
+																				<mat-icon>delete</mat-icon>
+																			</button>
+																		</div>
+																	</div>
+																	<mat-error *ngIf="formGroup.get('properties').get('contacts').hasError('backendError')">{{formGroup.get('properties').get('contacts').getError('backendError').message}}</mat-error>
+																	<mat-error *ngIf="formGroup.get('properties').get('contacts').hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
+																</div>
+																<div class="col-12">
+																	<button mat-icon-button (click)="addContact()" [disabled]="formGroup.disabled || isFinalized || (!this.canSave && !isNew)">
+																		<mat-icon>add</mat-icon>
+																	</button>
+																</div>
+															</div>
+															<div *ngIf="field.systemFieldType == planBlueprintSystemFieldTypeEnum.AccessRights">
+																<mat-form-field class="w-100">
+																	<mat-select [formControl]="formGroup.get('accessType')" placeholder="{{ field.placeholder && field.placeholder != '' ? field.placeholder : 'PLAN-EDITOR.FIELDS.ACCESS-TYPE' | translate}}">
+																		<mat-option *ngFor="let planAccessType of planAccessTypeEnumValues" [value]="planAccessType">
+																			{{enumUtils.toPlanAccessTypeString(planAccessType)}}
+																		</mat-option>
+																	</mat-select>
+																	<mat-error *ngIf="formGroup.get('accessType').hasError('backendError')">{{formGroup.get('accessType').getError('backendError').message}}</mat-error>
+																	<mat-error *ngIf="formGroup.get('accessType').hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
+																</mat-form-field>
+															</div>
+															<div *ngIf="field.systemFieldType == planBlueprintSystemFieldTypeEnum.User">
+																<div>
+																	<app-plan-user-field-component [form]="formGroup" [validationErrorModel]="editorModel.validationErrorModel" [sections]="selectedBlueprint.definition.sections" [viewOnly]="formGroup.disabled || !canEdit"></app-plan-user-field-component>
+																</div>
+															</div>
+														</div>
+														<div *ngIf="field.category === planBlueprintSectionFieldCategoryEnum.ReferenceType">
+															<ng-container *ngIf="field.multipleSelect">
+																<app-reference-field-component [form]="formGroup.get('properties').get('planBlueprintValues').get(field.id).get('references')" [dependencies]="formGroup.get('properties').get('planBlueprintValues')" [label]="field.label" [placeholder]="field.placeholder && field.placeholder != '' ? field.placeholder : field.label" [referenceType]="field.referenceType" [multiple]="true"></app-reference-field-component>
+															</ng-container>
+															<ng-container *ngIf="!(field.multipleSelect)">
+																<app-reference-field-component [form]="formGroup.get('properties').get('planBlueprintValues').get(field.id).get('reference')" [dependencies]="formGroup.get('properties').get('planBlueprintValues')" [label]="field.label" [placeholder]="field.placeholder && field.placeholder != '' ? field.placeholder : field.label" [referenceType]="field.referenceType" [multiple]="false"></app-reference-field-component>
+															</ng-container>
+														</div>
+														<div *ngIf="field.category === planBlueprintSectionFieldCategoryEnum.Extra">
+															<div *ngIf="field.dataType === planBlueprintExtraFieldDataTypeEnum.Text">
+																<mat-form-field class="w-100">
+																	<mat-label>{{field.label}}</mat-label>
+																	<input matInput placeholder="{{field.placeholder && field.placeholder != '' ? field.placeholder : field.label}}" type="text" name="value" [formControl]="formGroup.get('properties').get('planBlueprintValues').get(field.id).get('fieldValue')" [required]="field.required">
+																	<mat-error *ngIf="formGroup.get('properties').get('planBlueprintValues').get(field.id).get('fieldValue').hasError('backendError')">{{formGroup.get('properties').get('planBlueprintValues').get(field.id).get('fieldValue').getError('backendError').message}}</mat-error>
+																	<mat-error *ngIf="formGroup.get('properties').get('planBlueprintValues').get(field.id).get('fieldValue').hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
+																</mat-form-field>
+															</div>
+															<div *ngIf="field.dataType === planBlueprintExtraFieldDataTypeEnum.RichText">
+																<rich-text-editor-component [form]="formGroup.get('properties').get('planBlueprintValues').get(field.id).get('fieldValue')" placeholder="{{field.placeholder && field.placeholder != '' ? field.placeholder : field.label}}" [required]="field.required"></rich-text-editor-component>
+															</div>
+															<div *ngIf="field.dataType === planBlueprintExtraFieldDataTypeEnum.Date">
+																<mat-form-field class="w-100">
+																	<mat-label>{{field.label}}</mat-label>
+																	<input matInput placeholder="{{field.placeholder && field.placeholder != '' ? field.placeholder : field.label}}" name="value" [formControl]="formGroup.get('properties').get('planBlueprintValues').get(field.id).get('dateValue')" [matDatepicker]="date" [required]="field.required">
+																	<mat-datepicker-toggle matSuffix [for]="date"></mat-datepicker-toggle>
+																	<mat-datepicker #date></mat-datepicker>
+																	<mat-error *ngIf="formGroup.get('properties').get('planBlueprintValues').get(field.id).get('dateValue').hasError('backendError')">{{formGroup.get('properties').get('planBlueprintValues').get(field.id).get('dateValue').getError('backendError').message}}</mat-error>
+																	<mat-error *ngIf="formGroup.get('properties').get('planBlueprintValues').get(field.id).get('dateValue').hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
+																</mat-form-field>
+															</div>
+															<div *ngIf="field.dataType === planBlueprintExtraFieldDataTypeEnum.Number">
+																<mat-form-field class="w-100">
+																	<mat-label>{{field.label}}</mat-label>
+																	<input matInput placeholder="{{field.placeholder && field.placeholder != '' ? field.placeholder : field.label}}" type="number" name="value" [formControl]="formGroup.get('properties').get('planBlueprintValues').get(field.id).get('numberValue')" [required]="field.required">
+																	<mat-error *ngIf="formGroup.get('properties').get('planBlueprintValues').get(field.id).get('numberValue').hasError('backendError')">{{formGroup.get('properties').get('planBlueprintValues').get(field.id).get('numberValue').getError('backendError').message}}</mat-error>
+																	<mat-error *ngIf="formGroup.get('properties').get('planBlueprintValues').get(field.id).get('numberValue').hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
+																</mat-form-field>
+															</div>
+														</div>
+													</div>
+												</div>
+											</div>
+										</div>
+									</div>
+									<div class="col-12 card" *ngIf="section.hasTemplates">
+										<div class="row">
+											<div class="col-12">
+												<div class="input-form">
+													<div class="heading">{{'PLAN-EDITOR.FIELDS.DESCRIPTION-TEMPLATES' | translate}}</div>
+													<mat-form-field class="w-100">
+														<mat-label>{{'PLAN-EDITOR.FIELDS.DESCRIPTION-TEMPLATES-HINT' | translate}}</mat-label>
+														<app-multiple-auto-complete placeholder="{{'PLAN-EDITOR.FIELDS.DESCRIPTION-TEMPLATES-HINT' | translate}}" required='true' [formControl]="formGroup.get('descriptionTemplates').get(section.id)" [configuration]="getDescriptionTemplateMultipleAutoCompleteConfiguration(section.id)" (optionActionClicked)="onPreviewDescriptionTemplate($event, section.id)" (optionRemoved)="onRemoveDescriptionTemplate($event, section.id)">
+														</app-multiple-auto-complete>
+														<mat-error *ngIf="formGroup.get('descriptionTemplates').get(section.id).hasError('backendError')">{{formGroup.get('descriptionTemplates').get(section.id).getError('backendError').message}}</mat-error>
+														<mat-error *ngIf="formGroup.get('descriptionTemplates').get(section.id).hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
+													</mat-form-field>
+													<div class="col pl-0 pt-0 pb-0 d-flex">
+														<span class="not-found-template">{{'PLAN-EDITOR.NO-TEMPLATE-MESSAGE' | translate}}</span>
+													</div>
+												</div>
+											</div>
+										</div>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>

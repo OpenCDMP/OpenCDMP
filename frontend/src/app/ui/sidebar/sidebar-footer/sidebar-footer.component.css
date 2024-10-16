@@ -1,0 +1,29 @@
+.sidebar-footer {
+	padding: white;
+	font-weight: 700;
+	font-size: 0.75rem;
+
+}
+
+.sidebar-footer .option {
+	margin: 0px;
+	padding-top: 2px;
+	padding-bottom: 2px;
+	border-radius: 0px;
+	cursor: pointer;
+	display: inline-flex;
+	font-size: small;
+}
+
+.sidebar-footer .option:hover {
+	color: var(--primary-color-3);
+}
+
+.sidebar-footer .vl {
+	border-right: 1px solid #d4d4d4;
+	color: white;
+}
+
+.option-active {
+	color: var(--primary-color-3) !important;
+}

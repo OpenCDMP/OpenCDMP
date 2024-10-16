@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="14" height="12" viewBox="0 0 14 12">
+  <g id="Group_11867" data-name="Group 11867" transform="translate(-583 -1464)">
+    <g id="Rectangle_2753" data-name="Rectangle 2753" transform="translate(583 1464)" fill="none" stroke="#129d99" stroke-width="1">
+      <rect width="14" height="5" stroke="none"/>
+      <rect x="0.5" y="0.5" width="13" height="4" fill="none"/>
+    </g>
+    <g id="Ellipse_402" data-name="Ellipse 402" transform="translate(583 1472)" fill="none" stroke="#129d99" stroke-width="0.3">
+      <circle cx="2" cy="2" r="2" stroke="none"/>
+      <circle cx="2" cy="2" r="1.85" fill="none"/>
+    </g>
+    <g id="Ellipse_403" data-name="Ellipse 403" transform="translate(588 1472)" fill="none" stroke="#129d99" stroke-width="0.3">
+      <circle cx="2" cy="2" r="2" stroke="none"/>
+      <circle cx="2" cy="2" r="1.85" fill="none"/>
+    </g>
+    <g id="Ellipse_404" data-name="Ellipse 404" transform="translate(593 1472)" fill="none" stroke="#129d99" stroke-width="0.3">
+      <circle cx="2" cy="2" r="2" stroke="none"/>
+      <circle cx="2" cy="2" r="1.85" fill="none"/>
+    </g>
+    <circle id="Ellipse_405" data-name="Ellipse 405" cx="1" cy="1" r="1" transform="translate(584 1473)" fill="#129d99"/>
+  </g>
+</svg>

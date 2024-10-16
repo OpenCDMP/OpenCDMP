@@ -1,0 +1,25 @@
+storage:
+  task:
+    enable: true
+    intervalSeconds: 600
+  service:
+    defaultLanguage: en
+    storages:
+      - type: Temp
+        basePath: ${FILE_STORAGE}/temp
+      - type: Main
+        basePath: ${FILE_STORAGE}/main
+      - type: Transformer
+        basePath: ${FILE_STORAGE}/transformer
+      - type: Deposit
+        basePath: ${FILE_STORAGE}/deposit
+    tempStoreLifetimeSeconds: 7200
+    material-files:
+      localizedNameLanguageKey: "{lang}"
+      userGuideNamePattern: "UserGuide_{lang}.html"
+      aboutNamePattern: "About_{lang}.html"
+      termsOfServiceNamePattern: "TermsOfService_{lang}.html"
+      glossaryNamePattern: "Glossary_{lang}.html"
+      faqNamePattern: "Faq_{lang}.html"
+      languageNamePattern: "{lang}.json"
+      cookiePolicyNamePattern: "CookiePolicy_{lang}.html"

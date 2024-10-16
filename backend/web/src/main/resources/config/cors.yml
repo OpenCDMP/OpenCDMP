@@ -1,0 +1,7 @@
+web:
+  cors:
+    enabled: true
+    allowed-methods: [ HEAD, GET, POST, PUT, DELETE, PATCH ]
+    allowed-headers: [ Authorization, Cache-Control, Content-Type, Content-Disposition, x-tenant ]
+    exposed-headers: [ Authorization, Cache-Control, Content-Type, Content-Disposition ]
+    allow-credentials: false

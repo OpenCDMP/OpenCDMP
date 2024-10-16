@@ -1,0 +1,62 @@
+:host ::ng-deep {
+	display: block;
+	padding: 24px;
+}
+
+.start-new-plan-dialog-wrapper {
+	width: 33.0rem;
+	min-height: 14rem;
+	padding: 0.28rem 0.34rem 0.875rem 0.625rem;
+}
+
+.form-container {
+	width: 33rem;
+	min-height: 14rem;
+	padding: 0.28rem 0.34rem 0.875rem 0.625rem;
+}
+
+.logo {
+	width: 8.44rem;
+}
+
+.content {
+	margin: 2.17rem 2.304rem 1.1875rem 3.065rem;
+}
+
+.title,
+.text {
+	font-size: 1.25rem;
+	font-weight: lighter;
+	color: #000000;
+	opacity: 0.8;
+}
+
+.title {
+	font-size: 2.375rem;
+	line-height: 2.0rem;
+	margin-bottom: 1.1875rem;
+}
+
+.text {
+	margin-bottom: 2.9375rem;
+	line-height: 1.9rem;
+}
+
+.upload-btn {
+	background-color: white;
+	color: #212121;
+	font-weight: bold;
+	border: 2px solid #212121;
+}
+
+.actions {
+	width: 26.667rem;
+	display: flex;
+	flex-direction: row;
+	justify-content: space-between;
+	align-items: center;
+}
+
+.warn {
+	color: #f16868;
+}

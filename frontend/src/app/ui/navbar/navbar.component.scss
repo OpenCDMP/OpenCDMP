@@ -1,0 +1,169 @@
+$mat-card-header-size: 40px !default;
+
+.my-mat-card-avatar {
+  height: $mat-card-header-size;
+  width: $mat-card-header-size;
+  border-radius: 50%;
+  flex-shrink: 0;
+  margin: 0;
+}
+
+.progress-bar {
+  top: 80px;
+  left: 0;
+  width: 100%;
+  position: fixed;
+  z-index: 4;
+}
+
+.fixed-navbar {
+  position: fixed;
+  z-index: 1000;
+  height: 80px;
+
+  display: flex;
+  background: #ffffff 0% 0% no-repeat padding-box;
+  box-shadow: 0px 0px 6px #00000029;
+  opacity: 1;
+  top: 0;
+  left: 0;
+  right: 0;
+}
+
+.logo {
+  margin-left: 5px;
+  height: 100%;
+}
+
+.extra-logo {
+  margin-left: 5px;
+  height: 100%;
+}
+.logo-image {
+	height: 100%;
+}
+.extra-logo-image {
+	height: 100%;
+}
+
+.faq-title {
+  text-align: left;
+  font: Bold 15px/18px "Roboto";
+  letter-spacing: 0px;
+  color: #000000;
+  opacity: 1;
+  cursor: pointer;
+  text-decoration: none !important;
+}
+
+.faq-title:hover,
+.lang:hover {
+  color: var(--primary-color-2) !important;
+}
+
+.lang {
+  opacity: 0.8;
+}
+
+.hamburger {
+  display: inline-block;
+  cursor: pointer;
+  padding: 0.6rem;
+  margin-left: 0.8rem;
+  margin-right: 0.8rem;
+}
+
+.hamburger:hover {
+  background-color: #ececec !important;
+  border-radius: 50%;
+}
+
+.icon-bar1,
+.icon-bar2,
+.icon-bar3 {
+  width: 18px;
+  height: 2px;
+  background-color: #333;
+  margin: 3px 0;
+  transition: 0.4s;
+}
+
+.change .icon-bar1 {
+  -webkit-transform: rotate(-45deg) translate(-3px, 3px);
+  transform: rotate(-45deg) translate(-3px, 3px);
+}
+
+.change .icon-bar2 {
+  opacity: 0;
+}
+
+.change .icon-bar3 {
+  -webkit-transform: rotate(45deg) translate(-4px, -4px);
+  transform: rotate(45deg) translate(-4px, -4px);
+}
+
+::ng-deep.nav-mat-menu {
+  width: fit-content !important;
+  min-width: auto !important;
+}
+
+.mat-dialog-container {
+  display: block;
+  padding: 24px;
+  border-radius: 4px;
+  box-sizing: border-box;
+  overflow: auto;
+  outline: 0;
+  width: 100%;
+  height: 100%;
+  min-height: inherit;
+  max-height: inherit;
+}
+
+.toggle-icon {
+  transform: scale(1.5);
+}
+
+.list {
+  list-style-type: none;
+  padding-left: 0px;
+}
+
+.list > li {
+  padding: 5px;
+}
+
+.avatar {
+  cursor: pointer;
+}
+
+.login-label {
+  text-transform: uppercase;
+  font-weight: 500;
+}
+
+.navbar-nav:hover {
+  background-color: #ececec;
+  border-radius: 6px;
+}
+
+.new-plan-dialog {
+	padding: 0em .5em 0em 0em;
+}
+::ng-deep .mat-option-text {
+	text-overflow: unset !important;
+  white-space: normal;
+  line-height: 1.2em;
+}
+
+::ng-deep .mat-option {
+  padding-top: 1em !important;
+  padding-bottom: 1em !important;
+  height: auto !important;
+}
+
+::ng-deep .nav-mat-menu {
+  .mat-mdc-menu-content {
+    padding: 0 !important;
+  }
+}

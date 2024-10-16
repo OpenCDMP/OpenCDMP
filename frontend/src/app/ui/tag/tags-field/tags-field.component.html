@@ -1,0 +1,19 @@
+<mat-form-field class="w-100">
+	<mat-label>{{label}}</mat-label>
+	<mat-chip-grid #chipGrid [disabled]="form.disabled">
+		<mat-chip-row *ngFor="let tag of tags" (removed)="remove(tag)">
+			{{tag}}
+			<button matChipRemove>
+				<mat-icon>cancel</mat-icon>
+			</button>
+		</mat-chip-row>
+	</mat-chip-grid>
+	<input placeholder="{{placeholder}}" #tagInput [formControl]="tagsCtrl" [matChipInputFor]="chipGrid" [matAutocomplete]="auto" [matChipInputSeparatorKeyCodes]="separatorKeysCodes" (matChipInputTokenEnd)="add($event)" [readOnly]="form.disabled"/>
+	<mat-autocomplete #auto="matAutocomplete" (optionSelected)="selected($event)">
+		<mat-option *ngFor="let tag of filteredTags | async" [value]="tag">
+			{{tag}}
+		</mat-option>
+	</mat-autocomplete>
+	<mat-error *ngIf="form.hasError('backendError')">{{ form.getError('backendError')?.message}}</mat-error>
+	<mat-error *ngIf="form.hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
+</mat-form-field>

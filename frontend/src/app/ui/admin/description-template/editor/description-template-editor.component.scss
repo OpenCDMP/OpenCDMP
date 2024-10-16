@@ -1,0 +1,275 @@
+.description-template-editor {
+	.full-width {
+		width: 100%;
+	}
+}
+
+.deleteBtn{
+	margin-right:2em;
+}
+
+
+
+// REFACTORED CSS
+
+.stepper{
+	background-color: transparent;
+	min-height: 500px;
+}
+.content-displayer{
+	background-color: #fff;
+	border-radius: 7px;
+	box-shadow: 0px 1px 2px #bfbfbf;
+	padding: 0em;
+	overflow: visible;
+}
+
+.heading {
+	text-align: left;
+	font-weight: 700;
+	font-size: 18px;
+	letter-spacing: 0px;
+	color: #212121;
+	opacity: 0.81;
+	margin-bottom: 0.625rem;
+}
+
+.hint {
+	text-align: left;
+	font-weight: 400;
+	font-size: 16px;
+	letter-spacing: 0px;
+	color: #212121;
+	opacity: 0.81;
+	margin-bottom: 0.125rem;
+}
+
+//TO CHECK
+:host ::ng-deep .mat-horizontal-content-container {
+    overflow: visible;
+}
+:host ::ng-deep .mat-form-field-outline{
+    background-color: #ffffff4f;
+}
+
+:host ::ng-deep .mat-horizontal-stepper-header-container {
+	display: none !important;
+}
+
+#progress{
+	position: absolute;
+	height: 100%;
+	width: 100%;
+	clip-path: polygon(0 0, 0 0, 0 0, 0 0);
+	transition-property: clip-path;
+	transition-duration: 600ms;
+	transition-timing-function: ease-out;
+	transition-delay: 50ms;
+	box-shadow: 0px 1px 2px #bfbfbf;
+	background-color: var(--secondary-color);
+}
+#progress-container{
+	box-shadow: 1px 1px 6px #00000029;;
+}
+
+
+
+$blue-color : var(--primary-color);
+$blue-color-light: #5cf7f2;
+
+
+
+
+
+.stepper-title-label{
+	cursor: pointer;
+	transition-property: color, opacity;
+	transition-duration: 200ms;
+	transition-delay: 50ms;
+	transition-timing-function: ease-in-out;
+	color: #212121;
+	font-size: 0.9em;
+}
+
+.stepper-title-label-locked{
+	color: #DEDEDE;
+}
+
+.stepper-title-label-completed{
+	opacity: 0.5;
+}
+.page-infos{
+	padding: 2em;
+}
+.mat-subheader{
+	padding: 0px;
+}
+
+
+.actions-list{
+	box-shadow: 0px 3px 12px var(--primary-color)99;
+	border-radius: 4px;
+	padding: 1em 0.9em;
+	min-width: 166px;
+
+	.mat-list-item-content{
+		padding: 0px;
+	}
+
+
+	.action-list-item{
+		display: flex;
+		align-items: center;
+		cursor: pointer;
+
+
+		.action-list-icon{
+			font-size: 1.2em;
+			width: 14px;
+			margin-right: 0.5em;
+			margin-left: -.09em;
+			height: auto;
+			color: var(--primary-color);;
+		}
+		.input_icon{
+			width: 14px;
+			margin-right: .5em;
+		}
+		.action-list-text{
+			font-size: 0.9em;
+		}
+	}
+	.action-list-label{
+	 color: #212121;
+	 font-size: small;
+	 opacity: 0.6;
+	}
+	.list-unstyled{
+		margin-bottom: 0.2rem;
+	}
+}
+
+
+:host ::ng-deep .mat-form-field-appearance-outline .mat-form-field-outline {
+	background: #fafafa !important;
+}
+
+:host ::ng-deep .mat-form-field-appearance-outline .mat-form-field-infix {
+	font-size: 1rem;
+	padding: 0.6em 0 1em 0 !important;
+}
+
+.basic-info-input{
+	margin-top: 2em;
+	margin-bottom: 2em;
+}
+
+.email-input {
+	border-color: black;
+	border-style: solid;
+	border-width: thin;
+	border-radius: 4px;
+	margin-right: 5px;
+	background-color: white;
+	padding-top: 10px;
+	padding-bottom: 10px;
+}
+
+
+.user-table {
+	background-color: white;
+	border-radius: 4px;
+	padding-bottom: 1em;
+	box-shadow: -1px 1px 11px -3px #00000017;
+}
+
+.user-table-header {
+	text-align: center;
+	display: revert;
+	background-color: rgb(243 245 248);
+}
+
+.user-table-header th {
+	padding-top: 10px;
+	padding-bottom: 10px;
+}
+
+.user-table-row {
+	background-color: #fafafa;
+	td{
+		padding-top: .5em;
+		padding-bottom: .5em;
+	}
+	&:hover{
+		background-color: #eef5f6;
+	}
+	border-top:1px solid rgba(0, 0, 0, 0.12);
+}
+
+.user-table-row:nth-child(even) {
+}
+.user-table-body{
+	text-align: center;
+}
+.scroll-on-top{
+	position: fixed;
+	bottom: 20em;
+	right: 2em;
+	color: var(--primary-color) !important;
+	cursor: pointer;
+	font-size: 1rem;
+	font-weight: 400;
+}
+
+.floating-btn {
+	position: fixed;
+	bottom: 2em;
+	right: 2em;
+}
+
+.progress-min-height {
+	min-height: 35px;
+}
+
+
+#stepper-navigation-wrapper{
+	z-index: 99;
+	width: 100%;
+	#stepper-navigation{
+		background-color: #f4f4f4;
+		z-index: 99;
+	}
+}
+
+.actions-template{
+	align-self:flex-end;
+	display: flex;
+	justify-content: space-between;
+	width: 100%;
+	padding-left: 15px;
+	padding-right: 15px;
+}
+.stepper-navigation-outer-wrapper{
+	padding: 2em;
+	margin-bottom: 1em;
+}
+
+#header-outer-wrapper {
+	padding-top: 1.3rem;
+	background: #f4f4f4;
+	position: sticky;
+	top: 0.01em;
+	z-index: 9999;
+}
+
+#title-column{
+	justify-content: space-between;
+	align-items: baseline;
+	padding-right: 15px;
+}
+.side-actions{
+	display: flex;
+	height: 40vh;
+	position: sticky;
+	top: 2em;
+}

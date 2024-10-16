@@ -1,0 +1,28 @@
+.percentage {
+	color: #212121;
+	opacity: 0.7;
+	font-weight: 400;
+	font-size: 0.875rem;
+}
+
+// Bar container
+.progress-bar {
+	--mdc-linear-progress-active-indicator-height: 11px !important;
+	height: 11px;
+	border-radius: 20px;
+}
+
+//Progress bar
+::ng-deep .mdc-linear-progress__bar-inner {
+	--mdc-linear-progress-active-indicator-color: var(--primary-color) !important;
+	border-radius: 20px !important;
+}
+
+// Buffer bar
+::ng-deep .mdc-linear-progress__buffer {
+	--mdc-linear-progress-track-height: 11px !important;
+}
+
+::ng-deep .mdc-linear-progress__buffer-bar {
+	--mdc-linear-progress-track-color: #e0e2ec !important;
+}

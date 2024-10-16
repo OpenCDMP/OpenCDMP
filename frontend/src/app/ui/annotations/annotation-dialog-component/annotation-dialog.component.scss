@@ -1,0 +1,147 @@
+$mat-card-header-size: 40px !default;
+
+::ng-deep .mat-dialog-container {
+	border-radius: 8px;
+}
+
+.dialog-container {
+	padding: 0 1.5rem;
+
+	.title {
+		font-size: 18px;
+		font-weight: 400;
+	}
+}
+
+.logo {
+	width: 8.44rem;
+}
+
+.reply-btn {
+	color: rgba(0, 0, 0, 0.6);
+}
+
+.content {
+	margin: 2.17rem 2.304rem 1.1875rem 3.065rem;
+}
+
+.title,
+.text {
+	font-size: 1.25rem;
+	font-weight: lighter;
+	color: #000000;
+	opacity: 0.8;
+}
+
+.title {
+	font-size: 2.375rem;
+	margin-bottom: 1.1875rem;
+}
+
+.text {
+	margin-bottom: 2.9375rem;
+	line-height: 1.9rem;
+}
+
+.upload-btn {
+	background-color: white;
+	color: #212121;
+	font-weight: bold;
+	box-shadow: 0px 3px 6px #1e202029;
+	border: 2px solid #212121;
+}
+
+.actions {
+	width: 26.667rem;
+	display: flex;
+	flex-direction: row;
+	justify-content: space-between;
+	align-items: center;
+}
+
+.warn {
+	color: #f16868;
+}
+
+.comments-count {
+	background-color: var(--primary-color) !important;// #129D99;
+	color: #FFFFFF !important;
+	min-width: 2rem;
+	border-radius: 15px;
+}
+
+.account-icon-wrapper {
+  color: #d5d5d5;
+}
+
+.account-icon {
+  font-size: 2.5em;
+  height: auto;
+  width: auto;
+}
+
+.comment-wrapper {
+	border-radius: 4px;
+	border: .1rem solid #cecece54;
+
+	&.focus-thread {
+		animation-name: threadFocus;
+		animation-duration: 5s;
+	}
+
+	.thread-replies {
+		border-top: 1px solid #cecece54;
+	}
+}
+
+@keyframes threadFocus {
+  0% {
+    background-color: #fff;
+  }
+	50% {
+		background-color: #F5F5F5;
+	}
+  100% {
+    background-color: #fff;
+  }
+}
+
+
+.user {
+	font-weight: bold;
+	font-size: 16px;
+}
+
+.paper-plane {
+	height: 21px;
+	width: 20.5px;
+}
+
+.action-button {
+	font-weight: 400;
+	border-radius: 20px;
+	color: var(--primary-color);
+	font-weight: 500;
+	
+	&.active-action {
+		display: none;
+	}
+}
+
+.selected {
+	background-color: #18488f3d;
+}
+
+::ng-deep .statuses-menu.mat-mdc-menu-panel {
+  min-width: initial !important;
+}
+
+::ng-deep .highlight-user-mention {
+  padding: 1px 2px;
+  margin: -1px -2px;
+  border-radius: 6px;
+  overflow-wrap: break-word;
+  background-color: #e1f2fe;
+  color: #3f5163;
+  opacity: .6;
+}

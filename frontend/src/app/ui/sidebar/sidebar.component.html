@@ -1,0 +1,52 @@
+<div class="sidebar-wrapper">
+
+	<mat-list class="nav mat-list" *ngFor="let groupMenuItem of groupMenuItems; let firstGroup = first; let i = index" [class.nav-list-item]="showItem(groupMenuItem)" [class.nav-list-item-hidden]="!showItem(groupMenuItem)" [ngClass]="{'flex-grow-1': i == groupMenuItems.length - 2}">
+		<div *ngIf="showItem(groupMenuItem);">
+			<hr *ngIf="!firstGroup">
+			<mat-list-item routerLinkActive="active" [isActiveMatchOptions]="{ paths: 'exact', queryParams: 'ignored' }" *ngFor="let groupMenuRoute of groupMenuItem.routes; let first = first" class="nav-item" [ngClass]="{'mt-4': first && firstGroup}">
+				<ng-container *ngIf="groupMenuRoute.routeType == routeType.System; else infoItems">
+					
+					<a class="new-plan nav-link nav-row" *ngIf="groupMenuRoute.path !== '/descriptions'; else description" [routerLink]="[routerUtils.generateUrl(groupMenuRoute.path)]"  [ngClass]="{'plan-tour': groupMenuRoute.path == '/plans'}">
+						<i class="material-symbols-outlined icon">{{ groupMenuRoute.icon }}</i>
+						<i *ngIf="groupMenuRoute.path == '/plans'" class="material-symbols-outlined icon-mask">person</i>
+						<span [ngClass]="{'pl-0': groupMenuRoute.path == '/plans'}" style="text-wrap: wrap;">{{groupMenuRoute.title | translate}}</span>
+					</a>
+					
+					<ng-template #description>
+						<a class="nav-link nav-row" *ngIf="groupMenuRoute.path === '/descriptions'" [routerLink]="[routerUtils.generateUrl(groupMenuRoute.path)]">
+							<span class="mb-3 inner-line"></span>
+							<div class="pl-0 pt-1 pb-1 container-fluid nav-subrow description-tour">
+								<i class="mb-1 material-symbols-outlined icon">{{ groupMenuRoute.icon }}</i>
+								<i class="mb-1 material-symbols-outlined icon-mask">person</i>
+								<span class="pl-0 mt-1" style="text-wrap: wrap;">{{groupMenuRoute.title | translate}}</span>
+							</div>
+						</a>
+					</ng-template>
+				</ng-container>
+
+				<ng-template #infoItems>
+
+					<ng-container *ngIf="groupMenuRoute.path && groupMenuRoute.path != ''; else externalLink">
+						<a class="nav-link nav-row" [routerLink]="[routerUtils.generateUrl(groupMenuRoute.path)]">
+							<i class="material-symbols-outlined icon">{{ groupMenuRoute.icon }}</i>
+							<span>{{groupMenuRoute.title | translate}}</span>
+						</a>						
+					</ng-container>
+
+					<ng-template #externalLink>
+						<a class="nav-link nav-row" *ngIf="groupMenuRoute.externalUrl && groupMenuRoute.externalUrl!=''" href="{{groupMenuRoute.externalUrl}}" target="_blank">
+							<i class="material-symbols-outlined icon">{{ groupMenuRoute.icon }}</i>
+							<span>{{groupMenuRoute.title | translate}} <span class="material-symbols-outlined icon-external">open_in_new</span></span>
+						</a>		
+					</ng-template>
+				</ng-template>
+			</mat-list-item>
+		</div>
+	</mat-list>
+
+	<!-- Sidebar Footer -->
+	<div class="sidebar-footer pb-2">
+		<hr>
+		<app-sidebar-footer></app-sidebar-footer>
+	</div>
+</div>

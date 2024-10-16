@@ -1,0 +1,32 @@
+<div class="form-container">
+	<div mat-dialog-title class="row d-flex align-items-center p-0 mb-4">
+		<div class="col p-0">
+			<span class="title">{{'DASHBOARD.SELECT-PLAN' | translate}}</span>
+		</div>
+		<div class="col-auto p-0">
+			<button mat-icon-button tabindex="-1" (click)="close()"><mat-icon>close</mat-icon></button>
+		</div>
+	</div>
+	<div class="row mt-2 mb-4">
+		<div class="col-12">
+			<mat-form-field class="w-100">
+				<app-single-auto-complete [required]="true" [formControl]="formGroup.get('planId')" placeholder="{{'START-NEW-DESCRIPTION-DIALOG.SELECT-PLAN' | translate}}" [configuration]="planAutoCompleteConfiguration"></app-single-auto-complete>
+			</mat-form-field>
+		</div>
+	</div>
+	<div class="row mt-2">
+		<div class="col-auto pb-4">
+			<span>{{'DASHBOARD.ADD-NEW-DESCRIPTION.OPTIONS-NOT-ENOUGH' | translate}}</span>&nbsp;<span class="new-plan" (click)="startNewPlan()">{{'DASHBOARD.ADD-NEW-DESCRIPTION.START-NEW-PLAN' | translate}}</span>
+		</div>
+	</div>
+	<div class="row">
+		<div class="col actions">
+			<div class="col-auto ml-auto">
+				<button mat-button type="button" class="rounded-btn neutral" (click)="cancel()">{{ 'START-NEW-DESCRIPTION-DIALOG.ACTIONS.CANCEL' | translate }}</button>
+			</div>
+			<div class="col-auto p-0">
+				<button mat-button [disabled]="!formGroup.valid" type="button" class="rounded-btn primary-inverted primary-inverted-hover" (click)="next()">{{ 'START-NEW-DESCRIPTION-DIALOG.ACTIONS.NEXT' | translate }}</button>
+			</div>
+		</div>
+	</div>
+</div>

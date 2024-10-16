@@ -1,0 +1,25 @@
+.idea/
+*.iml
+backend/web/target/
+*.class
+*.tar
+*.gz
+final/
+temp/
+*.jar
+*.lst
+*.docx
+
+backend/logging/target/
+
+# Eclipse
+.project
+.settings/
+bin/
+*.classpath
+.run
+logs/
+storage/
+backend/target/classes/
+backend/core/target/maven-archiver/
+backend/node_modules/.yarn-integrity

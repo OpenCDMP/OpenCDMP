@@ -1,0 +1,164 @@
+@use 'sass:math';
+@import "assets/scss/core/_variables.scss";
+
+.full-width{
+    width: 100%;
+}
+
+.deleteBtn{
+	margin-right:0.7em;
+}
+
+.titleStile{
+    font-weight: bold;
+}
+
+//REFACTOR SECTION
+
+
+//Palete
+
+$blue-color : var(--primary-color);
+$blue-color-light: #5cf7f2;
+
+.actions-list{
+    border-radius: 7px;
+    box-shadow: 0 1px 0.8em $blue-color;
+    padding: 1em 0em;
+    font-size: small;
+}
+
+.field-container{
+    box-shadow: 0px 1px 2px rgb(173, 173, 173) ;
+    padding: 3em;
+    border-radius: .3em;
+    padding-bottom: 2em;
+    margin-bottom: 2em;
+
+}
+.field-container-active{
+    box-shadow: 0px 1px 2px rgb(173, 173, 173) ;
+    padding: 3em;
+    border-radius: .3em;
+    border-left: 0.3em solid $blue-color;
+    padding-bottom: 2em;
+    margin-bottom: 2em;
+
+}
+.field-id-container{
+    background-color: $blue-color-light;
+    position: absolute;
+    right: 0;
+    top: 0;
+    padding: .6em 1.2em;
+    overflow: visible;
+    .field-id-container-icon{
+        position: absolute;
+        top: -50%;
+
+    }
+}
+
+.main-content-page{
+	padding: 0em 1.5em;
+}
+
+.fielset-header{
+    font-size: 1.5em;
+    font-weight: bold;
+}
+
+.fieldset-actions-list{
+    margin: 0;
+    cursor: pointer;
+}
+
+
+.numbering-label .mat-input-element:disabled{
+    color: #212121;
+}
+
+:host ::ng-deep .fieldset-checkbox-action-description-template-editor
+{
+  .mat-checkbox-label{
+    font-size: 0.8em;
+    color: #212121;
+    transform: translateY(3px);
+  }
+  .mat-checkbox-frame{
+      border: 1px solid $blue-color ;
+  }
+}
+
+.fieldset-new-input-action {
+    font-size: 0.8em;
+    font-weight: 400;
+    color: #212121;
+    display: inline-block;
+    transform: translateY(1px);
+}
+.inputMenuTrigger {
+    margin-bottom: 0.3rem;
+    display: inline-block;
+}
+
+.previewer{
+    background-color: #129d9811;
+    padding: 2em;
+    border: 1px solid #70707015;
+    border-radius: 4px;
+}
+
+.input_icon{
+    width: 14px;
+    margin-right: 0.5em;
+}
+
+::ng-deep .mat-menu-panel{
+    max-height: 32em;
+}
+:host ::ng-deep  .fielset-header .mat-form-field-wrapper{
+    padding-bottom: 0px;
+}
+
+.previewer-text{
+    font-weight: bold;
+    font-style: italic;
+}
+
+.field-input {
+	position: relative;
+}
+
+.field-input .arrows {
+	position: absolute;
+	top: 0;
+	left: 50%;
+	transform: translateX(-50%);
+}
+
+::ng-deep label {
+    margin: 0;
+    color: #212121;
+}
+
+.numbering {
+    font-size: 21px; 
+    font-weight: 400;
+    line-height: $bmd-line-height !important;
+    padding-top: var(--mat-form-field-container-vertical-padding);
+    padding-bottom: var(--mat-form-field-container-vertical-padding);
+    overflow-x: hidden;
+    text-overflow: ellipsis;
+}
+
+.question-title {
+    font-size: 21px;
+    &.error {
+        border-bottom: 1px solid #fd3434 !important;
+    }
+}
+
+::ng-deep .not-outlined-form-field > .mdc-text-field--outlined .mdc-notched-outline {
+	display: none;
+}

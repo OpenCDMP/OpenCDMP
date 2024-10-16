@@ -1,0 +1,73 @@
+spring:
+  rabbitmq:
+    host: ${RABBIT_HOST}
+    port: ${RABBIT_PORT}
+    username: ${RABBIT_USER}
+    password: ${RABBIT_PASS}
+    ssl:
+      enabled: false
+queue:
+  rabbitmq:
+    enable: false
+    appId: ${QUEUE_APP_ID}
+    durable: null
+    queue: null
+    exchange: null
+    listenerEnabled: true
+    publisherEnabled: true
+    #TODO
+    connection-recovery:
+      enable: true
+      network-recovery-interval: 5000
+      unreachable-recovery-interval: 5000
+  task:
+    publisher:
+      enable: true
+      options:
+        exchange: null
+        handleAckRetries: 3
+        handleNackRetries: 3
+        handleAckWaitInMilliSeconds: 50
+        handleNackWaitInMilliSeconds: 50
+        tenant-default-locale-removal-topic: tenant_default_locale.remove
+        tenant-default-locale-touched-topic: tenant_default_locale.touch
+        forget-me-completed-topic: forgetme.completed
+        notify-topic: notification.notify
+        tenant-reactivation-topic: tenant.reactivated
+        tenant-removal-topic: tenant.remove
+        tenant-touch-topic: tenant.touch
+        tenant-user-invite-topic: tenant.invite
+        user-touch-topic: user.touch
+        user-removal-topic: user.remove
+        annotation-entities-touch-topic: annotation.entities.touch
+        annotation-entities-removal-topic: annotation.entities.remove
+        what-you-know-about-me-completed-topic: whatyouknowaboutme.completed
+        accounting-entry-created-topic: accountingentry.create
+        indicator-topic: indicator.entry
+        indicator-reset-topic: indicator_reset.entry
+        indicator-point-topic: indicator_point.entry
+        indicator-access-topic: indicator_access.entry
+        generate-file-topic: generate.file
+      rabbitmq:
+        enable: true
+        interval-seconds: 3
+        options:
+          retry-threashold: 20
+          retry-delay-step-seconds: 20
+          max-retry-delay-seconds: 600
+          too-old-to-send-seconds: 604800
+          confirm-timeout-seconds: 30
+    listener:
+      enable: true
+      options:
+        exchange: null
+        annotation-created-topic: annotation.created
+        annotation-status-changed-topic: annotationStatus.changed
+      rabbitmq:
+        enable: true
+        interval-seconds: 3
+        options:
+          retry-threashold: 20
+          retry-delay-step-seconds: 20
+          max-retry-delay-seconds: 600
+          too-old-to-send-seconds: 604800

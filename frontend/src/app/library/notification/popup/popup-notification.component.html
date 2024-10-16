@@ -1,0 +1,19 @@
+<div mat-dialog-title class="row d-flex mt-2 mb-4">
+	<div class="col">
+		<span>
+			{{notification.title}}
+		</span>
+	</div>
+</div>
+<div mat-dialog-content class="row d-flex">
+	<div class="col-12">
+		<span>
+			{{notification.message}}
+		</span>
+	</div>
+</div>
+<div mat-dialog-actions class="row d-flex">
+	<div class="ml-auto col-auto">
+		<button mat-button tabindex="-1" class="rounded-btn primary-inverted" (click)="close()">{{'GENERAL.NOTIFICATION-DIALOG.POPUP.CLOSE' | translate}}</button>
+	</div>
+</div>

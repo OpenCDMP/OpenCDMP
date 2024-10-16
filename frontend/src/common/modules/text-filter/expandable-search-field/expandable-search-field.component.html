@@ -1,0 +1,6 @@
+<mat-form-field subscriptSizing="dynamic" [class.hidden-element]="!(a$ | async) && !inputValue"  (focusout)="onClose()" (focusin)="onOpen()">
+	<input type="text" matInput [(ngModel)]="inputValue">
+	<button mat-icon-button matSuffix [disabled]="inputValue || (a$ | async)">
+		<mat-icon>search</mat-icon>
+	</button>
+</mat-form-field>

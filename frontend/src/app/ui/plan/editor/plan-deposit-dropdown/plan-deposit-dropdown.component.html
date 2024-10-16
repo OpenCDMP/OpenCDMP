@@ -1,0 +1,17 @@
+<div [matMenuTriggerFor]="depositMenu" class="row pb-3 align-items-center">
+	<div class="col-auto pr-0">
+		<button mat-mini-fab class="frame-btn">
+			<mat-icon class="mat-mini-fab-icon">archive</mat-icon>
+		</button>
+	</div>
+	<div class="col-auto pl-0">
+		<p class="mb-0 pl-2 frame-txt">{{ 'PLAN-LISTING.ACTIONS.DEPOSIT' | translate }}</p>
+	</div>
+</div>
+<mat-menu #depositMenu="matMenu">
+	<button mat-menu-item *ngFor="let repo of inputRepos" (click)="deposit(repo)">
+		<img *ngIf="repo.hasLogo" class="logo" [src]="logos.get(repo.repositoryId)">
+		<img *ngIf="!repo.hasLogo" class="logo" src="assets/images/repository-placeholder.png">
+		<span>{{ repo.repositoryId }}</span>
+	</button>
+</mat-menu>

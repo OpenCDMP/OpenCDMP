@@ -1,0 +1,33 @@
+<settings>
+	<pluginGroups>
+		<pluginGroup>org.sonarsource.scanner.maven</pluginGroup>
+	</pluginGroups>
+	<servers>
+		<server>
+			<id>cite-repo</id>
+			<username>${server_username}</username>
+			<password>${server_password}</password>
+		</server>
+	</servers>
+	<profiles>
+        <profile>
+			<id>release</id>
+			<repositories>
+				<repository>
+					<id>central</id>
+					<name>Central Repository</name>
+					<url>https://repo.maven.apache.org/maven2</url>
+					<layout>default</layout>
+					<snapshots>
+						<enabled>false</enabled>
+					</snapshots>
+				</repository>
+				<repository>
+					<id>cite-repo</id>
+					<name>CITE Maven Repo</name>
+					<url>${citeMavenRepoUrl}</url>
+				</repository>
+			</repositories>
+		</profile>
+	</profiles>
+</settings>

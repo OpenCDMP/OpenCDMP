@@ -1,0 +1,34 @@
+
+.internal-table{
+  margin-left: 1em;
+  padding-left: 0.2rem;
+  
+}
+.table-entry{
+
+  text-overflow: ellipsis;
+  overflow: hidden;
+  padding-left: 0.2rem;
+  color: rgba(0, 0, 0, 0.54);
+  transition: color 100ms;
+
+  display: block;
+  span{
+    white-space: nowrap;
+  }
+}
+
+.table-entry:hover{
+  background-color: #ececec;
+  border-radius: 6px;
+}
+
+.selected {
+  color: #212121;
+  font-weight: 700 !important;
+  opacity: 1 !important;
+}
+
+.section{
+  line-height: 1.7em;
+}

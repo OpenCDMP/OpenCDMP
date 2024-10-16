@@ -1,0 +1,35 @@
+logging:
+  context:
+    request:
+      requestIdKey: req.id
+      requestRemoteHostKey: req.remoteHost
+      requestUriKey: req.requestURI
+      requestQueryStringKey: req.queryString
+      requestUrlKey : req.requestURL
+      requestMethodKey: req.method
+      requestUserAgentKey: req.userAgent
+      requestForwardedForKey: req.xForwardedFor
+      requestSchemeKey: req.scheme
+      requestRemoteAddressKey: req.remoteAddr
+      requestRemotePortKey: req.remotePort
+      requestRemoteUserKey: req.remoteUser
+    principal:
+      subjectKey: usr.subject
+      nameKey: usr.name
+      clientKey: usr.client
+audit:
+  enable: true
+  requestRemoteHostKey: req.remoteHost
+  requestUriKey: req.requestURI
+  requestQueryStringKey: req.queryString
+  requestUrlKey : req.requestURL
+  requestMethodKey: req.method
+  requestUserAgentKey: req.userAgent
+  requestForwardedForKey: req.xForwardedFor
+  requestSchemeKey: req.scheme
+  requestRemoteAddressKey: req.remoteAddr
+  requestRemotePortKey: req.remotePort
+  requestRemoteUserKey: req.remoteUser
+  principalSubjectKey: usr.subject
+  principalNameKey: usr.name
+  principalClientKey: usr.client

@@ -1,0 +1,194 @@
+[
+	{
+		"name": "af",
+		"displayName": "Afrikaans"
+	},
+	{
+		"name": "am",
+		"displayName": "Amharic"
+	},
+	{
+		"name": "ar-SA",
+		"displayName": "Arabic"
+	},
+	{
+		"name": "bg",
+		"displayName": "Bulgarian"
+	},
+	{
+		"name": "cs",
+		"displayName": "Czech"
+	},
+	{
+		"name": "da",
+		"displayName": "Danish"
+	},
+	{
+		"name": "de",
+		"displayName": "German"
+	},
+	{
+		"name": "el",
+		"displayName": "Greek"
+	},
+	{
+		"name": "en-GB",
+		"displayName": "English (UK)"
+	},
+	{
+		"name": "en",
+		"displayName": "English (US)"
+	},
+	{
+		"name": "es-419",
+		"displayName": "Spanish (Latin America)"
+	},
+	{
+		"name": "es-ES",
+		"displayName": "Spanish (Spain)"
+	},
+	{
+		"name": "et-EE",
+		"displayName": "Estonian"
+	},
+	{
+		"name": "fa-IR",
+		"displayName": "Persian"
+	},
+	{
+		"name": "fi-FI",
+		"displayName": "Finnish"
+	},
+	{
+		"name": "fil-PH",
+		"displayName": "Filipino"
+	},
+	{
+		"name": "fr-CA",
+		"displayName": "French (Canada)"
+	},
+	{
+		"name": "fr",
+		"displayName": "French (France)"
+	},
+	{
+		"name": "he",
+		"displayName": "Hebrew"
+	},
+	{
+		"name": "hi",
+		"displayName": "Hindi"
+	},
+	{
+		"name": "hr",
+		"displayName": "Croatian"
+	},
+	{
+		"name": "hu",
+		"displayName": "Hungarian"
+	},
+	{
+		"name": "id",
+		"displayName": "Indonesian"
+	},
+	{
+		"name": "is",
+		"displayName": "Icelandic"
+	},
+	{
+		"name": "it",
+		"displayName": "Italian"
+	},
+	{
+		"name": "ja",
+		"displayName": "Japanese"
+	},
+	{
+		"name": "ko",
+		"displayName": "Korean"
+	},
+	{
+		"name": "lt",
+		"displayName": "Lithuanian"
+	},
+	{
+		"name": "lv",
+		"displayName": "Latvian"
+	},
+	{
+		"name": "ms",
+		"displayName": "Malay"
+	},
+	{
+		"name": "ne",
+		"displayName": "Nepali"
+	},
+	{
+		"name": "nl",
+		"displayName": "Dutch"
+	},
+	{
+		"name": "no",
+		"displayName": "Norwegian Bokmål"
+	},
+	{
+		"name": "pl",
+		"displayName": "Polish"
+	},
+	{
+		"name": "pt",
+		"displayName": "Portuguese (Brazil)"
+	},
+	{
+		"name": "pt-PT",
+		"displayName": "Portuguese (Portugal)"
+	},
+	{
+		"name": "ro",
+		"displayName": "Romanian"
+	},
+	{
+		"name": "ru",
+		"displayName": "Russian"
+	},
+	{
+		"name": "sk",
+		"displayName": "Slovak"
+	},
+	{
+		"name": "sl",
+		"displayName": "Slovenian"
+	},
+	{
+		"name": "sv",
+		"displayName": "Swedish"
+	},
+	{
+		"name": "sw-KE",
+		"displayName": "Swahili (Kenya)"
+	},
+	{
+		"name": "sw",
+		"displayName": "Swahili (Tanzania)"
+	},
+	{
+		"name": "th",
+		"displayName": "Thai"
+	},
+	{
+		"name": "tr",
+		"displayName": "Turkish"
+	},
+	{
+		"name": "uk",
+		"displayName": "Ukrainian"
+	},
+	{
+		"name": "vi",
+		"displayName": "Vietnamese"
+	},
+	{
+		"name": "zh",
+		"displayName": "Chinese"
+	}
+]

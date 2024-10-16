@@ -1,0 +1,156 @@
+.user-role-editor {
+	align-items: center;
+	margin-top: 1.125rem;
+	justify-content: space-between;
+	padding-left: 15px;
+	padding-right: 15px;
+
+	.roles {
+		min-width: 90px;
+		display: flex;
+		flex-direction: column;
+	}
+
+	.roles-width-180 {
+		width: 180px;
+		margin-right: 8px;
+	}
+
+	.user-role{
+		text-align: center;
+		width: auto;
+		padding-top: 0.2em;
+		padding-left: 1em;
+		padding-right: 1em;
+		display: inline-block;
+	}
+	.user {
+		min-width: 67px;
+		min-height: 28px;
+		color: #00c4ff;
+		background: #d3f5ff 0% 0% no-repeat padding-box;
+		border-radius: 44px;
+		letter-spacing: 0.11px;
+		font-weight: 400;
+		opacity: 1;
+		margin-top: 0.5em;
+		margin-bottom: 0.5em;
+		padding-left: 10px;
+		padding-right: 10px;
+	}
+
+	.tenant-plan-manager {
+		min-width: 77px;
+		min-height: 28px;
+		color: #568b5a;
+		background: #9dd1a1 0% 0% no-repeat padding-box;
+		border-radius: 44px;
+		letter-spacing: 0.11px;
+		font-weight: 400;
+		opacity: 1;
+		margin-top: 0.5em;
+		margin-bottom: 0.5em;
+		padding-left: 10px;
+		padding-right: 10px;
+	}
+
+	.admin {
+		min-width: 77px;
+		min-height: 28px;
+		color: #ff3d33;
+		background: #ffd5d3 0% 0% no-repeat padding-box;
+		border-radius: 44px;
+		letter-spacing: 0.11px;
+		font-weight: 400;
+		opacity: 1;
+		margin-top: 0.5em;
+		margin-bottom: 0.5em;
+		padding-left: 10px;
+		padding-right: 10px;
+	}
+
+	.installation-admin {
+		min-width: 67px;
+		min-height: 28px;
+		color: #e75d01;
+		background: #dbaa4e3a 0% 0% no-repeat padding-box;
+		border-radius: 44px;
+		letter-spacing: 0.11px;
+		font-weight: 400;
+		opacity: 1;
+		margin-top: 0.5em;
+		margin-bottom: 0.5em;
+		padding-left: 10px;
+		padding-right: 10px;
+	}
+
+	.tenant-admin {
+		min-width: 77px;
+		min-height: 28px;
+		color: #ffa631;
+		background: #ffe6c6 0% 0% no-repeat padding-box;
+		border-radius: 44px;
+		letter-spacing: 0.11px;
+		font-weight: 400;
+		opacity: 1;
+		margin-top: 0.5em;
+		margin-bottom: 0.5em;
+		padding-left: 10px;
+		padding-right: 10px;
+	}
+
+	.tenant-config-manager {
+		min-width: 77px;
+		min-height: 28px;
+		color: #d633ff;
+		background: #fad3ff 0% 0% no-repeat padding-box;
+		border-radius: 44px;
+		letter-spacing: 0.11px;
+		font-weight: 400;
+		opacity: 1;
+		margin-top: 0.5em;
+		margin-bottom: 0.5em;
+		padding-left: 10px;
+		padding-right: 10px;
+	}
+
+
+	.tenant-user {
+		min-width: 67px;
+		min-height: 28px;
+		color: #00c4ff;
+		background: #d3f5ff3a 0% 0% no-repeat padding-box;
+		border-radius: 44px;
+		letter-spacing: 0.11px;
+		font-weight: 400;
+		opacity: 1;
+		margin-top: 0.5em;
+		margin-bottom: 0.5em;
+		padding-left: 10px;
+		padding-right: 10px;
+	}
+
+	.tenant-admin {
+		min-width: 77px;
+		min-height: 28px;
+		color: #ff3d33;
+		background: #ffe6e5 0% 0% no-repeat padding-box;
+		border-radius: 44px;
+		letter-spacing: 0.11px;
+		font-weight: 400;
+		opacity: 1;
+		margin-top: 0.5em;
+		margin-bottom: 0.5em;
+		padding-left: 10px;
+		padding-right: 10px;
+	}
+}
+
+:host ::ng-deep .mat-form-field-wrapper {
+	background-color: white !important;
+	padding-bottom: 0 !important;
+}
+
+:host ::ng-deep .mat-form-field-appearance-outline .mat-form-field-infix {
+	padding: 0.3rem 0rem 0.6rem 0rem !important;
+}

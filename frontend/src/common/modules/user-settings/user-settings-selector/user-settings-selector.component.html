@@ -1,0 +1,23 @@
+<div class="row document-listing-filters mb-4">
+	<mat-form-field class="col pl-0" subscriptSizing="dynamic" >
+		<mat-label>{{'COMMONS.CUSTOM-USER-SETTINGS.LABEL' | translate}}</mat-label>
+		<mat-select name="thread-annotationProtectionType" [(ngModel)]="currentUserSetting" (ngModelChange)="settingSelected($event)" [compareWith]="compareFn">
+			<mat-option *ngFor="let setting of availableUserSettings" [value]="setting">{{getSettingName(setting)}}</mat-option>
+		</mat-select>
+	</mat-form-field>
+	<div class="col-auto p-0 align-self-center">
+		<button matTooltip="{{'COMMONS.CUSTOM-USER-SETTINGS.ACTIONS.UPDATE-FILTER' | translate}}" mat-icon-button (click)="updateFilter()" type="button" color="accent" [disabled]="!(currentUserSetting && currentUserSetting.id)">
+			<mat-icon>save</mat-icon>
+		</button>
+	</div>
+	<div class="col-auto p-0 align-self-center">
+		<button matTooltip="{{'COMMONS.CUSTOM-USER-SETTINGS.ACTIONS.SAVE-FILTER-AS' | translate}}" mat-icon-button (click)="saveFilter()" type="button" color="accent">
+			<mat-icon>add_circle_outline</mat-icon>
+		</button>
+	</div>
+	<div class="col-auto pl-0 align-self-center">
+		<button matTooltip="{{'COMMONS.CUSTOM-USER-SETTINGS.ACTIONS.DELETE' | translate}}" mat-icon-button (click)="settingDeleted()" type="button" color="accent" [disabled]="!(currentUserSetting && currentUserSetting.id)">
+			<mat-icon>delete</mat-icon>
+		</button>
+	</div>
+</div>

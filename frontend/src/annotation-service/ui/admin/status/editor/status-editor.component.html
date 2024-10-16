@@ -1,0 +1,72 @@
+<div class="container-fluid">
+	<div class="row status-editor">
+		<div class="col-md-10 offset-md-1 colums-gapped">
+
+			<div class="row justify-content-between align-items-center mb-4 mt-4">
+				<div class="col">
+					<app-navigation-breadcrumb />
+				</div>
+
+				<div class="col-auto">
+					<button mat-button class="rounded-btn neutral" (click)="cancel()" type="button">{{'ANNOTATION-SERVICE.STATUS-EDITOR.ACTIONS.CANCEL' | translate}}</button>
+				</div>
+				<div class="col-auto " *ngIf="canDelete">
+					<button mat-button (click)="delete()" class="rounded-btn delete-inverted" type="button">
+						<mat-icon>delete</mat-icon>
+						{{'ANNOTATION-SERVICE.STATUS-EDITOR.ACTIONS.DELETE' | translate}}
+					</button>
+				</div>
+				<div class="col-auto" *ngIf="canSave">
+					<button mat-button class="rounded-btn primary" [disabled]="!formGroup?.touched" (click)="save(); formSubmit()">
+						<mat-icon>save</mat-icon>
+						{{'ANNOTATION-SERVICE.STATUS-EDITOR.ACTIONS.SAVE' | translate}}
+					</button>
+				</div>
+			</div>
+
+			<mat-card appearance="outlined">
+				<mat-card-content>
+					<form (ngSubmit)="formSubmit()" [formGroup]="formGroup" *ngIf="formGroup">
+						<div class="row">
+							<div class="col-12">
+								<div class="container-fluid">
+									<div class="row">
+										<div class="col-12 pt-1 pb-1">
+											<span>
+												{{'ANNOTATION-SERVICE.STATUS-EDITOR.FIELDS.LABEL' | translate}}
+											</span>
+										</div>
+									</div>
+								</div>
+							</div>
+							<div class="col-12 mt-1">
+								<div class="container-fluid">
+									<div class="row">
+										<div class="col-12">
+											<mat-form-field class="w-100">
+												<input matInput placeholder="{{'ANNOTATION-SERVICE.STATUS-EDITOR.FIELDS.LABEL' | translate}}" [formControl]="formGroup.get('label')" required>
+												<mat-error *ngIf="formGroup.get('label').hasError('backendError')">{{formGroup.get('label').getError('backendError').message}}</mat-error>
+												<mat-error *ngIf="formGroup.get('label').hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
+											</mat-form-field>
+										</div>
+										<div class="col-12">
+											<mat-form-field class="w-100">
+												<mat-label>{{'ANNOTATION-SERVICE.STATUS-EDITOR.FIELDS.INTERNAL-STATUS' | translate}}</mat-label>
+													<mat-select [formControl]="formGroup.get('internalStatus')">
+														<mat-option *ngFor="let internalStatus of internalStatusEnum" [value]="internalStatus">{{enumUtils.toInternalStatusString(internalStatus)}}</mat-option>
+														<mat-option [value]="null">{{'ANNOTATION-SERVICE.STATUS-EDITOR.DEFAULT-VALUE.NONE' | translate}}</mat-option>
+													</mat-select>
+													<mat-error *ngIf="formGroup.get('internalStatus').hasError('backendError')">{{formGroup.get('internalStatus').getError('backendError').message}}</mat-error>
+													<mat-error *ngIf="formGroup.get('internalStatus').hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
+											</mat-form-field>
+										</div>
+									</div>
+								</div>
+							</div>
+						</div>
+					</form>
+				</mat-card-content>
+			</mat-card>
+		</div>
+	</div>
+</div>

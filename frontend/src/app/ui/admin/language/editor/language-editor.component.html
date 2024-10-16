@@ -1,0 +1,80 @@
+<div class="container-fluid">
+	<div class="row tenant-editor">
+		<div class="col-md-10 offset-md-1 colums-gapped">
+			<div class="row align-items-center mt-4 mb-4" *ngIf="formGroup">
+				<div class="col">
+					<app-navigation-breadcrumb />
+				</div>
+				<div class="col-auto">
+					<button mat-button class="rounded-btn neutral" (click)="cancel()" type="button">{{'LANGUAGE-EDITOR.ACTIONS.CANCEL' | translate}}</button>
+				</div>
+				<div class="col-auto" *ngIf="!isNew && this.editorModel.belongsToCurrentTenant != false && canDelete">
+					<button mat-button class="rounded-btn delete-inverted" type="button" (click)="delete()">
+						<mat-icon>delete</mat-icon>
+						{{'LANGUAGE-EDITOR.ACTIONS.DELETE' | translate}}
+					</button>
+				</div>
+				<div class="col-auto" *ngIf="canSave">
+					<button mat-button class="rounded-btn primary" (click)="formSubmit()">
+						<mat-icon>save</mat-icon>
+						{{'LANGUAGE-EDITOR.ACTIONS.SAVE' | translate}}
+					</button>
+				</div>
+			</div>
+
+			<form *ngIf="formGroup" (ngSubmit)="formSubmit()">
+				<mat-card appearance="outlined" class="pt-3 pb-3">
+					<mat-card-content>
+						<div class="row">
+							<div class="col-12">
+								<div class="container-fluid">
+									<div class="row">
+										<div class="col-6" *ngIf="isNew">
+											<mat-form-field class="w-100">
+												<mat-label>{{'LANGUAGE-EDITOR.FIELDS.CODE' | translate}}</mat-label>
+												<input matInput type="text" name="code" [formControl]="formGroup.get('code')" required>
+												<mat-error *ngIf="formGroup.get('code').hasError('backendError')">{{formGroup.get('code').getError('backendError').message}}</mat-error>
+												<mat-error *ngIf="formGroup.get('code').hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
+											</mat-form-field>
+										</div>
+										<div class="col-6" *ngIf="!isNew">
+											<mat-form-field class="w-100">
+												<mat-label>{{'LANGUAGE-EDITOR.FIELDS.CODE' | translate}}</mat-label>
+												<mat-select (selectionChange)="selectedCodeChanged($event.value)" name= "code" [formControl]="formGroup.get('code')">
+													<mat-option *ngFor="let languageCode of availableLanguageCodes" [value]="languageCode">
+														{{languageCode}}
+													</mat-option>
+												</mat-select>
+												<mat-error *ngIf="formGroup.get('code').hasError('backendError')">{{formGroup.get('code').getError('backendError').message}}</mat-error>
+												<mat-error *ngIf="formGroup.get('code').hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
+											</mat-form-field>
+										</div>
+										<div class="col-6">
+											<mat-form-field class="w-100">
+												<mat-label>{{'LANGUAGE-EDITOR.FIELDS.ORDINAL' | translate}}</mat-label>
+												<input matInput type="text" name="ordinal" [formControl]="formGroup.get('ordinal')" required>
+												<mat-error *ngIf="formGroup.get('ordinal').hasError('backendError')">{{formGroup.get('ordinal').getError('backendError').message}}</mat-error>
+												<mat-error *ngIf="formGroup.get('ordinal').hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
+											</mat-form-field>
+										</div>
+										<div class="col-12">
+											<mat-form-field class="w-100">
+												<mat-label>{{'LANGUAGE-EDITOR.FIELDS.PAYLOAD' | translate}}</mat-label>
+												<input matInput type="text" name="payload" [formControl]="formGroup.get('payload')">
+												<mat-error *ngIf="formGroup.get('payload').hasError('backendError')">{{formGroup.get('payload').getError('backendError').message}}</mat-error>
+												<mat-error *ngIf="formGroup.get('payload').hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
+											</mat-form-field>
+											<h9 class="col-12">{{'LANGUAGE-EDITOR.FIELDS.OVERRIDE' | translate}}
+												<mat-checkbox [disabled]="this.editorModel.belongsToCurrentTenant == false || isDeleted" (change)="overrideFromFile($event, formGroup.get('code').value)"></mat-checkbox>
+											</h9>
+										</div>
+									</div>
+								</div>
+							</div>
+						</div>
+					</mat-card-content>
+				</mat-card>
+			</form>
+		</div>
+	</div>
+</div>

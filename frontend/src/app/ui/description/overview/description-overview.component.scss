@@ -1,0 +1,276 @@
+.container-fluid {
+  margin: 2em 4em;
+  padding: 2em;
+}
+
+// ********ICONS********
+
+.back-icon {
+  opacity: 0.4;
+}
+
+.mat-mini-fab {
+  width: 2.5em;
+  height: 2.5em;
+  color: #212121;
+  background-color: var(--secondary-color);
+}
+
+.mat-mini-fab-icon,
+.status-icon {
+  font-size: 1.2em;
+}
+
+.actions-btn:hover,
+.finalize-btn:hover {
+  background-color: var(--primary-color);
+  color: #ffffff;
+}
+
+.status-icon {
+  color: #a7a7a7;
+}
+
+.check-icon {
+  font-weight: bold;
+}
+
+.account-icon {
+  font-size: 2.5em;
+  height: auto;
+  width: auto;
+}
+
+// ********BUTTONS********
+
+.version-btn {
+  height: 1.8em;
+  border: 1px solid #707070;
+  border-radius: 4px;
+  background-color: transparent;
+}
+
+.id-btn {
+  background: url("../../../../assets/images/orcid_unauth.png") no-repeat center;
+  width: 1rem;
+  height: 1rem;
+  margin-right: 0.3em;
+  align-self: center;
+}
+
+.plan-btn {
+  width: 35em;
+  min-height: 2.3em;
+  background-color: var(--primary-color);
+  border-radius: 4px;
+  flex-direction: row;
+  justify-content: space-between;
+  border: none;
+}
+
+.plan-btn,
+.plan-btn > mat-icon {
+  color: #ffffff;
+}
+
+.show-more-btn {
+  width: 31.6em;
+  padding: 0 1em;
+  background-color: #ffffff00;
+  color: var(--primary-color);
+  font-weight: 700;
+}
+
+.frame-btn {
+  border: 1px solid #212121;
+  color: black;
+  background: #ffffff;
+}
+
+.finalize-btn {
+}
+
+.frame-btn,
+.finalize-btn {
+  box-shadow: 0px 2px 6px #00000029;
+}
+
+.remove-btn {
+  border: none;
+  background-color: transparent;
+  font-size: 0.875em;
+  font-weight: bold;
+  margin-left: auto;
+}
+
+.invite-btn {
+  width: 9.4em;
+  height: 2.9em;
+  background: #ffffff;
+  box-shadow: 0px 3px 6px #1e202029;
+  border: 2px solid #212121;
+  border-radius: 30px;
+}
+
+.account_btn {
+  background: transparent;
+  color: #d5d5d5;
+  border: none;
+  height: 2.9em;
+}
+
+// ********TEXT********
+
+.description-logo {
+  width: 6em;
+  height: 2.6em;
+  background: var(--secondary-color);
+  border-radius: 4px;
+  font-size: 0.875em;
+}
+
+.label-txt {
+  font-size: 0.875em;
+}
+
+.label2-txt {
+  font-size: 1em;
+}
+
+.label-txt,
+.label2-txt {
+  color: #848484;
+  font-weight: 400;
+}
+
+.description-label {
+  font-weight: bold;
+  width: auto;
+}
+
+.uppercase {
+  text-transform: uppercase;
+}
+
+.researcher {
+  font-size: 0.875em;
+  color: var(--primary-color);
+  padding-right: 0.5em;
+  align-self: center;
+}
+
+.header {
+  opacity: 0.6;
+  margin-bottom: 0.5em;
+}
+
+.description-label,
+.header {
+  font-size: 1.25em;
+  color: #212121;
+}
+
+.desc-txt {
+  width: 48.25em;
+  font-size: 1em;
+  color: #212121;
+  margin-bottom: 1.875em;
+}
+
+.plan-btn-label {
+  margin-right: 1em;
+  color: #ffffff;
+  opacity: 0.8;
+  text-align: left;
+  min-width: 0;
+  text-wrap: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+	max-width: 85%;
+}
+
+.doi-label {
+  font-size: 1em;
+  color: #212121;
+  opacity: 0.6;
+  margin-bottom: 0.3em;
+}
+
+.doi-txt {
+  font-size: 0.8em;
+  letter-spacing: 0.009em;
+  color: #7d7d7d;
+  width: 12em;
+  height: 1em;
+  overflow: hidden;
+  border: none;
+  padding: 0px;
+}
+
+.doi-panel {
+  height: 3.5em;
+  background: #fafafa;
+  border: 1px solid #d1d1d1;
+  border-radius: 4px;
+  flex-direction: row;
+  justify-content: space-between;
+}
+
+.doi-link {
+  color: white;
+}
+
+.frame {
+  background: #ffffff;
+  box-shadow: 0px 1px 5px #00000026;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.frame-txt {
+  color: #000000;
+}
+
+.frame-txt,
+.finalize-txt {
+  font-size: 0.75em;
+  font-weight: bold;
+  letter-spacing: 0px;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.hr-line {
+  border: 1px solid #dbdbdb;
+  width: 100%;
+}
+
+// ********CENTER ELEMENTS********
+
+.mat-mini-fab,
+.mat-mini-fab-icon,
+.actions-btn,
+.status-icon,
+.description-logo,
+.frame-btn,
+.finalize-btn {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.description-label,
+.plan-btn,
+.doi-panel,
+.researcher {
+  display: flex;
+  align-items: center;
+}
+
+.show-more-btn {
+  display: flex;
+  justify-content: center;
+}
+.deleted-item {
+    color: #cf1407;
+}

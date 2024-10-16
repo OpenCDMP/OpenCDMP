@@ -1,0 +1,62 @@
+<div class="container-fluid">
+	<div class="row root">
+		<div class="col-md-10 offset-md-1">
+			<div class="row mt-4 mb-4">
+				<div class="col">
+					<app-navigation-breadcrumb />
+				</div>
+			</div>
+			<mat-accordion multi>
+				<mat-expansion-panel>
+					<mat-expansion-panel-header>
+						<mat-panel-title>
+							{{language.instant('MAINTENANCE-TASKS.SECTIONS.INDEXES.TITLE')}}
+						</mat-panel-title>
+						<mat-panel-description>
+							{{language.instant('MAINTENANCE-TASKS.SECTIONS.INDEXES.DESCRIPTION')}}
+						</mat-panel-description>
+					</mat-expansion-panel-header>
+					<div class="mt-2">
+						<button mat-button color="primary" (click)="generateIndex($event)" class="mb-1 mr-1 rounded-btn primary">{{language.instant('MAINTENANCE-TASKS.SECTIONS.INDEXES.ACTIONS.GENERATE-INDEX')}}</button>
+						<button mat-button color="primary" (click)="clearIndex($event)" class="mb-1 mr-1 rounded-btn primary">{{language.instant('MAINTENANCE-TASKS.SECTIONS.INDEXES.ACTIONS.CLEAR-INDEX')}}</button>
+					</div>
+				</mat-expansion-panel>
+				<mat-expansion-panel>
+					<mat-expansion-panel-header>
+						<mat-panel-title>
+							{{language.instant('MAINTENANCE-TASKS.SECTIONS.EVENTS.TITLE')}}
+						</mat-panel-title>
+						<mat-panel-description>
+							{{language.instant('MAINTENANCE-TASKS.SECTIONS.EVENTS.DESCRIPTION')}}
+						</mat-panel-description>
+					</mat-expansion-panel-header>
+					<div class="mt-2">
+						<h3>{{language.instant('MAINTENANCE-TASKS.SECTIONS.EVENTS.MAIN-TITLE')}}</h3>
+						<button mat-button (click)="sendTenantTouchEvents($event)" class="mb-1 mr-1 rounded-btn primary">{{language.instant('MAINTENANCE-TASKS.SECTIONS.EVENTS.ACTIONS.SEND-TENANT-TOUCH')}}</button>
+						<button mat-button (click)="sendUserTouchEvents($event)" class="mb-1 mr-1 rounded-btn primary">{{language.instant('MAINTENANCE-TASKS.SECTIONS.EVENTS.ACTIONS.SEND-USER-TOUCH')}}</button>
+						<button mat-button (click)="sendDescriptionTouchEvents($event)" class="mb-1 mr-1 rounded-btn primary">{{language.instant('MAINTENANCE-TASKS.SECTIONS.EVENTS.ACTIONS.SEND-DESCRIPTION-TOUCH')}}</button>
+						<button mat-button (click)="sendPlanTouchEvents($event)" class="mb-1 mr-1 rounded-btn primary">{{language.instant('MAINTENANCE-TASKS.SECTIONS.EVENTS.ACTIONS.SEND-PLAN-TOUCH')}}</button>
+					</div>
+					<div class="mt-2">
+						<h3>{{language.instant('MAINTENANCE-TASKS.SECTIONS.EVENTS.ACCOUNTING-TITLE')}}</h3>
+						<button mat-button (click)="sendPlanAccountingEntriesEvents($event)" class="mb-1 mr-1 rounded-btn primary">{{language.instant('MAINTENANCE-TASKS.SECTIONS.EVENTS.ACTIONS.SEND-PLAN-ACCOUNTING-ENTRIES')}}</button>
+						<button mat-button (click)="sendDescriptionAccountingEntriesEvents($event)" class="mb-1 mr-1 rounded-btn primary">{{language.instant('MAINTENANCE-TASKS.SECTIONS.EVENTS.ACTIONS.SEND-DESCRIPTION-ACCOUNTING-ENTRIES')}}</button>
+						<button mat-button (click)="sendBlueprintAccountingEntriesEvents($event)" class="mb-1 mr-1 rounded-btn primary">{{language.instant('MAINTENANCE-TASKS.SECTIONS.EVENTS.ACTIONS.SEND-PLAN-BLUEPRINT-ACCOUNTING-ENTRIES')}}</button>
+						<button mat-button (click)="sendDescriptionTemplateAccountingEntriesEvents($event)" class="mb-1 mr-1 rounded-btn primary">{{language.instant('MAINTENANCE-TASKS.SECTIONS.EVENTS.ACTIONS.SEND-DESCRIPTION-TEMPLATE-ACCOUNTING-ENTRIES')}}</button>
+						<button mat-button (click)="sendDescriptionTemplateTypeAccountingEntriesEvents($event)" class="mb-1 mr-1 rounded-btn primary">{{language.instant('MAINTENANCE-TASKS.SECTIONS.EVENTS.ACTIONS.SEND-DESCRIPTION-TEMPLATE-TYPE-ACCOUNTING-ENTRIES')}}</button>
+						<button mat-button (click)="sendPrefillingSourceAccountingEntriesEvents($event)" class="mb-1 mr-1 rounded-btn primary">{{language.instant('MAINTENANCE-TASKS.SECTIONS.EVENTS.ACTIONS.SEND-PREFILLING-SOURCE-ACCOUNTING-ENTRIES')}}</button>
+						<button mat-button (click)="sendReferenceTypeAccountingEntriesEvents($event)" class="mb-1 mr-1 rounded-btn primary">{{language.instant('MAINTENANCE-TASKS.SECTIONS.EVENTS.ACTIONS.SEND-REFERENCE-TYPE-ACCOUNTING-ENTRIES')}}</button>
+						<button mat-button (click)="sendUserAccountingEntriesEvents($event)" class="mb-1 mr-1 rounded-btn primary">{{language.instant('MAINTENANCE-TASKS.SECTIONS.EVENTS.ACTIONS.SEND-USER-ACCOUNTING-ENTRIES')}}</button>
+					</div>
+					<div class="mt-2">
+						<h3>{{language.instant('MAINTENANCE-TASKS.SECTIONS.EVENTS.INDICATOR-TITLE')}}</h3>
+						<button mat-button (click)="sendIndicatorCreateEvents($event)" class="mb-1 mr-1 rounded-btn primary">{{language.instant('MAINTENANCE-TASKS.SECTIONS.EVENTS.ACTIONS.SEND-INDICATOR-CREATE-ENTRY')}}</button>					
+						<button mat-button (click)="sendIndicatorResetEvents($event)" class="mb-1 mr-1 rounded-btn primary">{{language.instant('MAINTENANCE-TASKS.SECTIONS.EVENTS.ACTIONS.SEND-INDICATOR-RESET-ENTRY')}}</button>					
+						<button mat-button (click)="sendIndicatorAccessEvents($event)" class="mb-1 mr-1 rounded-btn primary">{{language.instant('MAINTENANCE-TASKS.SECTIONS.EVENTS.ACTIONS.SEND-INDICATOR-ACCESS-ENTRY')}}</button>					
+						<button mat-button (click)="sendIndicatorPointEvents($event)" class="mb-1 mr-1 rounded-btn primary">{{language.instant('MAINTENANCE-TASKS.SECTIONS.EVENTS.ACTIONS.SEND-INDICATOR-POINT-ENTRY')}}</button>					
+					</div>
+				</mat-expansion-panel>
+			</mat-accordion>
+		</div>
+	</div>
+</div>

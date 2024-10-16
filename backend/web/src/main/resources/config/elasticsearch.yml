@@ -1,0 +1,23 @@
+elastic:
+  enabled: ${ELASTIC_ENABLED}
+  hosts:
+    - ${ELASTIC_HOST}
+  username: ${ELASTIC_USER}
+  password: ${ELASTIC_PASS}
+  useSSL: ${ELASTIC_USE_SSL}
+  socketTimeoutMillis: 30000
+  connectTimeoutMillis: 30000
+  defaultResultSize: 100
+  defaultCollectAllResultSize: 1000
+  defaultScrollSize: 100
+  defaultScrollSeconds: 120
+  defaultCompositeAggregationResultSize: 200000
+  disableHostnameVerifier: false
+app-elastic:
+  enabled: ${ELASTIC_ENABLED}
+  planIndexName: ${ELASTIC_PLAN_INDEX}
+  descriptionIndexName: ${ELASTIC_DESCRIPTION_INDEX}
+  enableIcuAnalysisPlugin: false
+  resetBatchSize: 1000
+elastic-query-helper:
+  enableDbFallback: true

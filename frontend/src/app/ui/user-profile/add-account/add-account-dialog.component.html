@@ -1,0 +1,36 @@
+<div class="template-container">
+	<div mat-dialog-title class="mb-3">
+		<div class="row">
+			<div class="col">
+				<span class="title">{{'USER-PROFILE.ACTIONS.LINK-NEW-ACCOUNT' | translate}}</span>
+			</div>
+			<div class="col-auto">
+				<button mat-icon-button tabindex="-1" (click)="closeDialog()"><mat-icon>close</mat-icon></button>
+			</div>
+		</div>
+	</div>
+	
+	<div mat-dialog-content class="mb-3">
+		<div class="row mt-2 mb-4">
+			<div class="col-12">
+				<mat-form-field class="w-100">
+					<input required matInput [formControl]="form.get('email')" placeholder="{{'USER-PROFILE.SETTINGS.YOUR-EMAIL' | translate}}">
+				</mat-form-field>
+			</div>
+		</div>
+	</div>
+	
+	<div mat-dialog-actions class="mb-2">
+		<div class="container-fluid">
+			<div class="row justify-content-center">
+				<div class="col-xl"></div>
+				<div class="col-auto">
+					<button mat-button class="rounded-btn neutral ml-auto" (click)="cancel()">{{'USER-PROFILE.ACTIONS.CANCEL' | translate}}</button>
+				</div>
+				<div class="col-auto">
+					<button mat-button class="rounded-btn primary-inverted" (click)="add()" [disabled]="!form.valid">{{'USER-PROFILE.ACTIONS.ADD' | translate}}</button>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>

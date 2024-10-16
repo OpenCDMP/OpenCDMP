@@ -1,0 +1,66 @@
+.hybrid-listing-component {
+	box-shadow: unset !important;
+}
+
+.hybrid-listing-component-row-cursor {
+	.datatable-body-row {
+		cursor: pointer;
+
+	}
+}
+
+
+.actions-bar-container{
+	gap: .6rem;
+}
+
+.rotate-180{
+	transform: rotate(180deg);
+}
+
+.bg-gray{
+	background-color: #f5f5f5;
+}
+
+
+.mat-mdc-paginator-container{
+	justify-content: space-between !important;
+}
+
+
+.datatable-footer-inner{
+	height: auto !important;
+	min-height: 56px;
+}
+
+
+.flex-grow-1{
+	flex-grow: 1;
+}
+
+
+.item-listing-container{
+	display: flex;
+	flex-direction: column;
+	gap: 1rem;
+
+	.listing-item{
+		display: flex;
+		align-items: center;
+		padding: 1rem;
+	}
+}
+
+
+.item-card-container{
+	display: grid;
+	grid-gap: 1rem;
+	grid-template-columns: repeat(3, 1fr);
+}
+
+
+
+.negate-card{
+	background-color: transparent !important;
+	box-shadow: unset !important;
+}

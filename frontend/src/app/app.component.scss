@@ -1,0 +1,37 @@
+.fixed {
+  position: fixed;
+  top: 0;
+  /* Sets the sticky toolbar to be on top */
+  z-index: 1000;
+  width: 100%;
+}
+
+.main-container {
+	top: 80px !important;
+	left: 0;
+	right: 0;
+}
+
+.sidenav {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 260px;
+	background: #ffffff 0% 0% no-repeat padding-box;
+	box-shadow: 0px 0px 16px 2px #00000029;
+	border-right-width: 0px;
+	opacity: 1;
+}
+
+.sidenav-content {
+	background-color: whitesmoke;
+}
+
+.sidebar-shadow {
+  box-shadow: 0 4px 18px 0px rgba(0, 0, 0, 0.12), 0 7px 10px -5px rgba(0, 0, 0, 0.15);
+  z-index: 100;
+}
+
+::ng-deep .mat-chip {
+  height: auto !important;
+}

@@ -1,0 +1,15 @@
+web:
+  security:
+    enabled: true
+    authorized-endpoints: [ api ]
+    allowed-endpoints: [ api/public, api/plan/public, api/description/public, /api/supportive-material/public, api/language/public, api/contact-support/public, api/dashboard/public, prometheus, health, metrics, swagger-ui, v3/api-docs ]
+    idp:
+      api-key:
+        enabled: false
+      resource:
+        token-type: JWT #| opaque
+        jwt:
+          claims: [ role, x-role ]
+          issuer-uri: ${IDP_ISSUER_URI}
+          audiences: [ "dmp_web" ]
+          validIssuer: ${IDP_ISSUER_URI}

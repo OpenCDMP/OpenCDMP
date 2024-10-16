@@ -1,0 +1,1439 @@
+permissions:
+  extendedClaims: [ ]
+  policies:
+    # Affiliation
+    DeferredAffiliation:
+      roles:
+        - TenantAdmin
+        - TenantUser
+        - TenantPlanManager
+        - TenantConfigManager
+      clients: [ ]
+      allowAnonymous: false
+      allowAuthenticated: false
+    AllowNoTenant:
+      roles:
+        - Admin
+        - InstallationAdmin
+      clients: [ ]
+      allowAnonymous: false
+      allowAuthenticated: false
+    # public
+    PublicBrowseDescription:
+      roles: [ ]
+      clients: [ ]
+      allowAnonymous: true
+      allowAuthenticated: true
+    PublicBrowseDescriptionTemplate:
+      roles: [ ]
+      clients: [ ]
+      allowAnonymous: true
+      allowAuthenticated: true
+    PublicBrowsePlan:
+      roles: [ ]
+      clients: [ ]
+      allowAnonymous: true
+      allowAuthenticated: true
+    PublicBrowsePlanReference:
+      roles: [ ]
+      clients: [ ]
+      allowAnonymous: true
+      allowAuthenticated: true
+    PublicBrowsePlanUser:
+      roles: [ ]
+      clients: [ ]
+      allowAnonymous: true
+      allowAuthenticated: true
+    PublicBrowseReference:
+      roles: [ ]
+      clients: [ ]
+      allowAnonymous: true
+      allowAuthenticated: true
+    PublicBrowseUser:
+      roles: [ ]
+      clients: [ ]
+      allowAnonymous: true
+      allowAuthenticated: true
+    PublicBrowseDashboardStatistics:
+      roles: [ ]
+      clients: [ ]
+      allowAnonymous: true
+      allowAuthenticated: true
+    PublicSendContactSupport:
+      roles: [ ]
+      clients: [ ]
+      allowAnonymous: true
+      allowAuthenticated: true
+    PublicBrowseReferenceType:
+      roles: [ ]
+      clients: [ ]
+      allowAnonymous: true
+      allowAuthenticated: true
+    PublicClonePlan:
+      roles: [ ]
+      clients: [ ]
+      allowAnonymous: false
+      allowAuthenticated: true
+    PublicCloneDescription:
+      roles: [ ]
+      clients: [ ]
+      allowAnonymous: false
+      allowAuthenticated: true
+    BrowsePublicStatistics:
+      roles: [ ]
+      clients: [ ]
+      allowAnonymous: true
+      allowAuthenticated: true
+    # Elastic
+    ManageElastic:
+      roles:
+        - Admin
+      clients: [ ]
+      allowAnonymous: false
+      allowAuthenticated: false
+
+    # Queue Events
+    ManageQueueEvents:
+      roles:
+        - Admin
+      clients: [ ]
+      allowAnonymous: false
+      allowAuthenticated: false
+
+    # Deposit
+    BrowseDeposit:
+      roles:
+        - Admin
+        - TenantAdmin
+      clients: [ ]
+      allowAnonymous: false
+      allowAuthenticated: false
+    EditDeposit:
+      roles:
+        - Admin
+        - TenantAdmin
+      clients: [ ]
+      allowAnonymous: false
+      allowAuthenticated: false
+
+    #DescriptionStatus
+    BrowseDescriptionStatus:
+      roles:
+        - Admin
+        - TenantAdmin
+        - TenantConfigManager
+      clients: [ ]
+      allowAnonymous: false
+      allowAuthenticated: false
+    EditDescriptionStatus:
+      roles:
+        - Admin
+        - TenantAdmin
+        - TenantConfigManager
+      clients: [ ]
+      allowAnonymous: false
+      allowAuthenticated: false
+    DeleteDescriptionStatus:
+      roles:
+        - Admin
+        - TenantAdmin
+        - TenantConfigManager
+      claims: [ ]
+      clients: [ ]
+      allowAnonymous: false
+      allowAuthenticated: false
+
+    #DescriptionWorkflow
+    BrowseDescriptionWorkflow:
+      roles:
+        - Admin
+        - TenantAdmin
+        - TenantConfigManager
+      clients: [ ]
+      allowAnonymous: false
+      allowAuthenticated: false
+    EditDescriptionWorkflow:
+      roles:
+        - Admin
+        - TenantAdmin
+        - TenantConfigManager
+      clients: [ ]
+      allowAnonymous: false
+      allowAuthenticated: false
+    DeleteDescriptionWorkflow:
+      roles:
+        - Admin
+        - TenantAdmin
+        - TenantConfigManager
+      claims: [ ]
+      clients: [ ]
+      allowAnonymous: false
+      allowAuthenticated: false
+
+    #PlanStatus
+    BrowsePlanStatus:
+      roles:
+        - Admin
+        - TenantAdmin
+        - TenantConfigManager
+      clients: [ ]
+      allowAnonymous: false
+      allowAuthenticated: false
+    EditPlanStatus:
+      roles:
+        - Admin
+        - TenantAdmin
+        - TenantConfigManager
+      clients: [ ]
+      allowAnonymous: false
+      allowAuthenticated: false
+    DeletePlanStatus:
+      roles:
+        - Admin
+        - TenantAdmin
+        - TenantConfigManager
+      claims: [ ]
+      clients: [ ]
+      allowAnonymous: false
+      allowAuthenticated: false
+
+
+    #PlanWorkflow
+    BrowsePlanWorkflow:
+      roles:
+        - Admin
+        - TenantAdmin
+        - TenantConfigManager
+      clients: [ ]
+      allowAnonymous: false
+      allowAuthenticated: false
+    EditPlanWorkflow:
+      roles:
+        - Admin
+        - TenantAdmin
+        - TenantConfigManager
+      clients: [ ]
+      allowAnonymous: false
+      allowAuthenticated: false
+    DeletePlanWorkflow:
+      roles:
+        - Admin
+        - TenantAdmin
+        - TenantConfigManager
+      claims: [ ]
+      clients: [ ]
+      allowAnonymous: false
+      allowAuthenticated: false
+
+    # NotificationTemplate
+    BrowseNotificationTemplate:
+      roles: [ ]
+      clients: [ ]
+      allowAnonymous: false
+      allowAuthenticated: false
+    EditNotificationTemplate:
+      roles:
+        - Admin
+        - TenantAdmin
+        - TenantConfigManager
+      clients: [ ]
+      allowAnonymous: false
+      allowAuthenticated: false
+    DeleteNotificationTemplate:
+      roles:
+        - Admin
+        - TenantAdmin
+        - TenantConfigManager
+      claims: [ ]
+      clients: [ ]
+      allowAnonymous: false
+      allowAuthenticated: false
+    # TenantConfiguration
+    BrowseTenantConfiguration:
+      roles:
+        - Admin
+        - InstallationAdmin
+        - User
+        - TenantAdmin
+        - TenantUser
+        - TenantPlanManager
+        - TenantConfigManager
+      claims: [ ]
+      clients: [ ]
+      allowAnonymous: false
+      allowAuthenticated: false
+    EditTenantConfiguration:
+      roles:
+        - Admin
+        - TenantAdmin
+      clients: [ ]
+      allowAnonymous: false
+      allowAuthenticated: false
+    DeleteTenantConfiguration:
+      roles:
+        - Admin
+        - TenantAdmin
+      clients: [ ]
+      allowAnonymous: false
+      allowAuthenticated: false
+    # Language
+    BrowseLanguage:
+      roles: [ ]
+      clients: [ ]
+      allowAnonymous: true
+      allowAuthenticated: true
+    EditLanguage:
+      roles:
+        - Admin
+        - TenantAdmin
+        - TenantConfigManager
+      clients: [ ]
+      allowAnonymous: false
+      allowAuthenticated: false
+    DeleteLanguage:
+      roles:
+        - Admin
+        - TenantAdmin
+        - TenantConfigManager
+      claims: [ ]
+      clients: [ ]
+      allowAnonymous: false
+      allowAuthenticated: false
+    # Statistics
+    BrowseStatistics:
+      roles: [ ]
+      clients: [ ]
+      allowAnonymous: false
+      allowAuthenticated: true
+    # Description
+    BrowseDescription:
+      roles:
+        - Admin
+        - TenantAdmin
+      plan:
+        roles:
+          - Owner
+          - Viewer
+          - DescriptionContributor
+          - Reviewer
+      clients: [ ]
+      allowAnonymous: false
+      allowAuthenticated: false
+    AnnotateDescription:
+      roles:
+        - Admin
+        - TenantAdmin
+      plan:
+        roles:
+          - Owner
+          - DescriptionContributor
+          - Reviewer
+      clients: [ ]
+      allowAnonymous: false
+      allowAuthenticated: false
+    EditDescription:
+      roles:
+        - Admin
+        - TenantAdmin
+      plan:
+        roles:
+          - Owner
+          - DescriptionContributor
+      clients: [ ]
+      allowAnonymous: false
+      allowAuthenticated: false
+    FinalizeDescription:
+      roles:
+        - Admin
+        - TenantAdmin
+      plan:
+        roles:
+          - Owner
+          - DescriptionContributor
+      clients: [ ]
+      allowAnonymous: false
+      allowAuthenticated: false
+    DeleteDescription:
+      roles:
+        - Admin
+        - TenantAdmin
+      plan:
+        roles:
+          - Owner
+          - DescriptionContributor
+      claims: [ ]
+      clients: [ ]
+      allowAnonymous: false
+      allowAuthenticated: false
+    CloneDescription:
+      roles:
+        - Admin
+        - TenantAdmin
+      plan:
+        roles:
+          - Owner
+          - DescriptionContributor
+      claims: [ ]
+      clients: [ ]
+      allowAnonymous: false
+      allowAuthenticated: false
+    ExportDescription:
+      roles: []
+      clients: [ ]
+      allowAnonymous: false
+      allowAuthenticated: true
+    # Tag
+    BrowseTag:
+      roles:
+        - Admin
+        - TenantAdmin
+      clients: [ ]
+      allowAnonymous: false
+      allowAuthenticated: false
+    EditTag:
+      roles:
+        - Admin
+        - TenantAdmin
+      clients: [ ]
+      allowAnonymous: false
+      allowAuthenticated: false
+    DeleteTag:
+      roles:
+        - Admin
+        - TenantAdmin
+      claims: [ ]
+      clients: [ ]
+      allowAnonymous: false
+      allowAuthenticated: false
+    # User
+    BrowseUser:
+      roles:
+        - Admin
+        - InstallationAdmin
+        - TenantAdmin
+        - TenantPlanManager
+      clients: [ ]
+      allowAnonymous: false
+      allowAuthenticated: false
+    EditUser:
+      roles:
+        - Admin
+        - InstallationAdmin
+      clients: [ ]
+      allowAnonymous: false
+      allowAuthenticated: false
+    DeleteUser:
+      roles:
+        - Admin
+        - InstallationAdmin
+      claims: [ ]
+      clients: [ ]
+      allowAnonymous: false
+      allowAuthenticated: false
+    ExportUsers:
+      roles:
+        - Admin
+        - InstallationAdmin
+        - TenantAdmin
+      claims: [ ]
+      clients: [ ]
+      allowAnonymous: false
+      allowAuthenticated: false
+    EditTenantUserRole:
+      roles:
+        - Admin
+        - TenantAdmin
+      clients: [ ]
+      allowAnonymous: false
+      allowAuthenticated: false
+    InviteTenantUser:
+      roles:
+        - Admin
+        - TenantAdmin
+      clients: [ ]
+      allowAnonymous: false
+      allowAuthenticated: false
+    BrowsePlanAssociatedUser:
+      roles:
+        - Admin
+        - TenantAdmin
+      plan:
+        roles:
+          - Owner
+          - Viewer
+          - DescriptionContributor
+          - Reviewer
+      claims: [ ]
+      clients: [ ]
+      allowAnonymous: false
+      allowAuthenticated: false
+    # DescriptionTemplateType
+    BrowseDescriptionTemplateType:
+      roles:
+        - Admin
+        - TenantPlanManager
+        - TenantAdmin
+        - TenantUser
+      clients: [ ]
+      allowAnonymous: false
+      allowAuthenticated: false
+    EditDescriptionTemplateType:
+      roles:
+        - Admin
+        - TenantAdmin
+        - TenantPlanManager
+      clients: [ ]
+      allowAnonymous: false
+      allowAuthenticated: false
+    DeleteDescriptionTemplateType:
+      roles:
+        - Admin
+        - TenantAdmin
+        - TenantPlanManager
+      claims: [ ]
+      clients: [ ]
+      allowAnonymous: false
+      allowAuthenticated: false
+    # StorageFile
+    BrowseStorageFile:
+      roles: [ ]
+      claims: [ ]
+      clients: [ ]
+      allowAnonymous: false
+      allowAuthenticated: true
+    EditStorageFile:
+      roles:
+        - Admin
+        - InstallationAdmin
+        - TenantPlanManager
+        - TenantConfigManager
+        - TenantAdmin
+      claims: [ ]
+      clients: [ ]
+      allowAnonymous: false
+      allowAuthenticated: false
+    DeleteStorageFile:
+      roles:
+        - Admin
+        - InstallationAdmin
+        - TenantPlanManager
+        - TenantConfigManager
+        - TenantAdmin
+      claims: [ ]
+      clients: [ ]
+      allowAnonymous: false
+      allowAuthenticated: false
+    # DescriptionTemplate
+    BrowseDescriptionTemplate:
+      roles:
+        - Admin
+        - InstallationAdmin
+        - TenantPlanManager
+        - TenantConfigManager
+        - TenantAdmin
+        - TenantUser
+      clients: [ ]
+      allowAnonymous: false
+      allowAuthenticated: false
+    EditDescriptionTemplate:
+      roles:
+        - Admin
+        - TenantAdmin
+        - TenantPlanManager
+      descriptionTemplate:
+        roles:
+          - Owner
+          - Member
+      clients: [ ]
+      allowAnonymous: false
+      allowAuthenticated: false
+    DeleteDescriptionTemplate:
+      roles:
+        - Admin
+        - TenantAdmin
+        - TenantPlanManager
+      claims: [ ]
+      clients: [ ]
+      allowAnonymous: false
+      allowAuthenticated: false
+    CloneDescriptionTemplate:
+      roles:
+        - Admin
+        - TenantAdmin
+        - TenantPlanManager
+      claims: [ ]
+      clients: [ ]
+      allowAnonymous: false
+      allowAuthenticated: false
+    CreateNewVersionDescriptionTemplate:
+      roles:
+        - Admin
+        - TenantAdmin
+        - TenantPlanManager
+      claims: [ ]
+      clients: [ ]
+      allowAnonymous: false
+      allowAuthenticated: false
+    ImportDescriptionTemplate:
+      roles:
+        - Admin
+        - TenantAdmin
+        - TenantPlanManager
+      claims: [ ]
+      clients: [ ]
+      allowAnonymous: false
+      allowAuthenticated: false
+    ExportDescriptionTemplate:
+      roles:
+        - Admin
+        - TenantAdmin
+        - TenantPlanManager
+      descriptionTemplate:
+        roles:
+          - Owner
+      claims: [ ]
+      clients: [ ]
+      allowAnonymous: false
+      allowAuthenticated: false
+    # Plan
+    BrowsePlan:
+      roles:
+        - Admin
+        - TenantAdmin
+      plan:
+        roles:
+          - Owner
+          - Viewer
+          - DescriptionContributor
+          - Reviewer
+      clients: [ ]
+      allowAnonymous: false
+      allowAuthenticated: false
+    EditPlan:
+      roles:
+        - Admin
+        - TenantAdmin
+      plan:
+        roles:
+          - Owner
+      clients: [ ]
+      allowAnonymous: false
+      allowAuthenticated: false
+    NewPlan:
+      roles:
+        - Admin
+        - InstallationAdmin
+        - TenantPlanManager
+        - TenantConfigManager
+        - TenantAdmin
+        - TenantUser
+      clients: [ ]
+      allowAnonymous: false
+      allowAuthenticated: false
+    DeletePlan:
+      roles:
+        - Admin
+        - TenantAdmin
+      plan:
+        roles:
+          - Owner
+      claims: [ ]
+      clients: [ ]
+      allowAnonymous: false
+      allowAuthenticated: false
+    DepositPlan:
+      roles:
+        - Admin
+        - TenantAdmin
+      plan:
+        roles:
+          - Owner
+      claims: [ ]
+      clients: [ ]
+      allowAnonymous: false
+      allowAuthenticated: false
+    ClonePlan:
+      roles:
+        - Admin
+        - TenantAdmin
+      plan:
+        roles:
+          - Owner
+      claims: [ ]
+      clients: [ ]
+      allowAnonymous: false
+      allowAuthenticated: false
+    ExportPlan:
+      roles: [ ]
+      claims: [ ]
+      clients: [ ]
+      allowAnonymous: false
+      allowAuthenticated: true
+    CreateNewVersionPlan:
+      roles:
+        - Admin
+        - TenantAdmin
+      plan:
+        roles:
+          - Owner
+      claims: [ ]
+      clients: [ ]
+      allowAnonymous: false
+      allowAuthenticated: false
+    FinalizePlan:
+      roles:
+        - Admin
+        - TenantAdmin
+      plan:
+        roles:
+          - Owner
+      claims: [ ]
+      clients: [ ]
+      allowAnonymous: false
+      allowAuthenticated: false
+    UndoFinalizePlan:
+      roles:
+        - Admin
+        - TenantAdmin
+      plan:
+        roles:
+          - Owner
+      claims: [ ]
+      clients: [ ]
+      allowAnonymous: false
+      allowAuthenticated: false
+    AssignPlanUsers:
+      roles:
+        - Admin
+        - TenantAdmin
+      plan:
+        roles:
+          - Owner
+      claims: [ ]
+      clients: [ ]
+      allowAnonymous: false
+      allowAuthenticated: false
+    InvitePlanUsers:
+      roles:
+        - Admin
+        - TenantAdmin
+      plan:
+        roles:
+          - Owner
+      claims: [ ]
+      clients: [ ]
+      allowAnonymous: false
+      allowAuthenticated: false
+    AnnotatePlan:
+      roles:
+        - Admin
+        - TenantAdmin
+      plan:
+        roles:
+          - Owner
+          - DescriptionContributor
+          - Reviewer
+      clients: [ ]
+      allowAnonymous: false
+      allowAuthenticated: false
+    # PlanBlueprint
+    BrowsePlanBlueprint:
+      roles:
+        - Admin
+        - InstallationAdmin
+        - TenantPlanManager
+        - TenantConfigManager
+        - TenantAdmin
+        - TenantUser
+      clients: [ ]
+      allowAnonymous: false
+      allowAuthenticated: false
+    EditPlanBlueprint:
+      roles:
+        - Admin
+        - TenantAdmin
+        - TenantPlanManager
+      clients: [ ]
+      allowAnonymous: false
+      allowAuthenticated: false
+    ClonePlanBlueprint:
+      roles:
+        - Admin
+        - TenantAdmin
+        - TenantPlanManager
+      clients: [ ]
+      allowAnonymous: false
+      allowAuthenticated: false
+    CreateNewVersionPlanBlueprint:
+      roles:
+        - Admin
+        - TenantAdmin
+        - TenantPlanManager
+      clients: [ ]
+      allowAnonymous: false
+      allowAuthenticated: false
+    ExportPlanBlueprint:
+      roles:
+        - TenantAdmin
+        - TenantPlanManager
+        - Admin
+      clients: [ ]
+      allowAnonymous: false
+      allowAuthenticated: false
+    ImportPlanBlueprint:
+      roles:
+        - Admin
+        - TenantAdmin
+        - TenantPlanManager
+      claims: [ ]
+      clients: [ ]
+      allowAnonymous: false
+      allowAuthenticated: false
+    DeletePlanBlueprint:
+      roles:
+        - Admin
+        - TenantAdmin
+        - TenantPlanManager
+      claims: [ ]
+      clients: [ ]
+      allowAnonymous: false
+      allowAuthenticated: false
+    # EntityDoi
+    BrowseEntityDoi:
+      roles:
+        - Admin
+        - TenantAdmin
+      clients: [ ]
+      allowAnonymous: false
+      allowAuthenticated: false
+    EditEntityDoi:
+      roles:
+        - Admin
+        - TenantAdmin
+      clients: [ ]
+      allowAnonymous: false
+      allowAuthenticated: false
+    DeleteEntityDoi:
+      roles:
+        - Admin
+        - TenantAdmin
+      claims: [ ]
+      clients: [ ]
+      allowAnonymous: false
+      allowAuthenticated: false
+
+
+    # Reference Permissions
+    BrowseReference:
+      roles:
+        - Admin
+        - TenantAdmin
+      clients: [ ]
+      allowAnonymous: false
+      allowAuthenticated: false
+    BrowseExternalReference:
+      roles: [ ]
+      clients: [ ]
+      allowAnonymous: false
+      allowAuthenticated: true
+    EditReference:
+      roles:
+        - Admin
+      clients: [ ]
+      allowAnonymous: false
+      allowAuthenticated: false
+    DeleteReference:
+      roles:
+        - Admin
+      claims: [ ]
+      clients: [ ]
+      allowAnonymous: false
+      allowAuthenticated: false
+
+    # PlanReference Permissions
+    BrowsePlanReference:
+      roles:
+        - Admin
+        - TenantAdmin
+      clients: [ ]
+      allowAnonymous: false
+      allowAuthenticated: false
+    EditPlanReference:
+      roles:
+        - Admin
+        - TenantAdmin
+      clients: [ ]
+      allowAnonymous: false
+      allowAuthenticated: false
+    DeletePlanReference:
+      roles:
+        - Admin
+        - TenantAdmin
+      claims: [ ]
+      clients: [ ]
+      allowAnonymous: false
+      allowAuthenticated: false
+
+    # PlanUser Permissions
+    BrowsePlanUser:
+      roles:
+        - Admin
+        - TenantAdmin
+      clients: [ ]
+      allowAnonymous: false
+      allowAuthenticated: false
+    EditPlanUser:
+      roles:
+        - Admin
+        - TenantAdmin
+      clients: [ ]
+      allowAnonymous: false
+      allowAuthenticated: false
+    DeletePlanUser:
+      roles:
+        - Admin
+        - TenantAdmin
+      claims: [ ]
+      clients: [ ]
+      allowAnonymous: false
+      allowAuthenticated: false
+
+    # SupportiveMaterial Permissions
+    BrowseSupportiveMaterial:
+      roles:
+        - Admin
+        - InstallationAdmin
+        - TenantPlanManager
+        - TenantConfigManager
+        - TenantAdmin
+        - TenantUser
+        - User
+      clients: [ ]
+      allowAnonymous: yes
+      allowAuthenticated: yes
+    EditSupportiveMaterial:
+      roles:
+        - Admin
+        - TenantAdmin
+        - TenantConfigManager
+      clients: [ ]
+      allowAnonymous: false
+      allowAuthenticated: false
+    DeleteSupportiveMaterial:
+      roles:
+        - Admin
+        - TenantAdmin
+        - TenantConfigManager
+      claims: [ ]
+      clients: [ ]
+      allowAnonymous: false
+      allowAuthenticated: false
+
+    # ReferenceType Permissions
+    BrowseReferenceType:
+      roles:
+        - Admin
+        - InstallationAdmin
+        - TenantPlanManager
+        - TenantConfigManager
+        - TenantAdmin
+        - TenantUser
+      clients: [ ]
+      allowAnonymous: false
+      allowAuthenticated: false
+    EditReferenceType:
+      roles:
+        - Admin
+        - TenantAdmin
+      clients: [ ]
+      allowAnonymous: false
+      allowAuthenticated: false
+    DeleteReferenceType:
+      roles:
+        - Admin
+        - TenantAdmin
+      claims: [ ]
+      clients: [ ]
+      allowAnonymous: false
+      allowAuthenticated: false
+
+    # Tenant Permissions
+    BrowseTenant:
+      roles:
+        - Admin
+        - InstallationAdmin
+      clients: [ ]
+      allowAnonymous: false
+      allowAuthenticated: false
+    EditTenant:
+      roles:
+        - Admin
+        - InstallationAdmin
+      clients: [ ]
+      allowAnonymous: false
+      allowAuthenticated: false
+    DeleteTenant:
+      roles:
+        - Admin
+        - InstallationAdmin
+      claims: [ ]
+      clients: [ ]
+      allowAnonymous: false
+      allowAuthenticated: false
+
+    # TenantUser Permissions
+    BrowseTenantUser:
+      roles:
+        - Admin
+        - InstallationAdmin
+      clients: [ ]
+      allowAnonymous: false
+      allowAuthenticated: false
+    EditTenantUser:
+      roles:
+        - Admin
+        - InstallationAdmin
+      clients: [ ]
+      allowAnonymous: false
+      allowAuthenticated: false
+    DeleteTenantUser:
+      roles:
+        - Admin
+        - InstallationAdmin
+      claims: [ ]
+      clients: [ ]
+      allowAnonymous: false
+      allowAuthenticated: false
+
+    # PlanDescriptionTemplate Permissions
+    BrowsePlanDescriptionTemplate:
+      roles:
+        - Admin
+        - TenantAdmin
+      clients: [ ]
+      allowAnonymous: false
+      allowAuthenticated: false
+    EditPlanDescriptionTemplate:
+      roles:
+        - Admin
+        - TenantAdmin
+      clients: [ ]
+      allowAnonymous: false
+      allowAuthenticated: false
+    DeletePlanDescriptionTemplate:
+      roles:
+        - Admin
+        - TenantAdmin
+      claims: [ ]
+      clients: [ ]
+      allowAnonymous: false
+      allowAuthenticated: false
+
+    # DescriptionReference Permissions
+    BrowseDescriptionReference:
+      roles:
+        - Admin
+        - TenantAdmin
+      clients: [ ]
+      allowAnonymous: false
+      allowAuthenticated: false
+    EditDescriptionReference:
+      roles:
+        - Admin
+        - TenantAdmin
+      clients: [ ]
+      allowAnonymous: false
+      allowAuthenticated: false
+    DeleteDescriptionReference:
+      roles:
+        - Admin
+        - TenantAdmin
+      claims: [ ]
+      clients: [ ]
+      allowAnonymous: false
+      allowAuthenticated: false
+
+    # DescriptionReference Permissions
+    BrowseDescriptionTag:
+      roles:
+        - Admin
+        - TenantAdmin
+      clients: [ ]
+      allowAnonymous: false
+      allowAuthenticated: false
+    EditDescriptionTag:
+      roles:
+        - Admin
+        - TenantAdmin
+      clients: [ ]
+      allowAnonymous: false
+      allowAuthenticated: false
+    DeleteDescriptionTag:
+      roles:
+        - Admin
+        - TenantAdmin
+      claims: [ ]
+      clients: [ ]
+      allowAnonymous: false
+      allowAuthenticated: false
+    # Prefilling
+    BrowsePrefilling:
+      roles:
+        - Admin
+        - InstallationAdmin
+        - TenantPlanManager
+        - TenantConfigManager
+        - TenantAdmin
+        - TenantUser
+      claims: [ ]
+      clients: [ ]
+      allowAnonymous: false
+      allowAuthenticated: false
+
+    # Lock Permissions
+    BrowseLock:
+      roles:
+        - Admin
+        - InstallationAdmin
+        - TenantPlanManager
+        - TenantConfigManager
+        - TenantAdmin
+        - TenantUser
+      clients: [ ]
+      allowAnonymous: false
+      allowAuthenticated: false
+    EditLock:
+      roles:
+        - Admin
+        - TenantAdmin
+      plan:
+        roles:
+          - Owner
+          - Viewer
+          - DescriptionContributor
+          - Reviewer
+      descriptionTemplate:
+        roles:
+          - Owner
+          - Member
+      clients: [ ]
+      allowAnonymous: false
+      allowAuthenticated: false
+    DeleteLock:
+      roles:
+        - Admin
+        - TenantAdmin
+      plan:
+        roles:
+          - Owner
+          - Viewer
+          - DescriptionContributor
+          - Reviewer
+      descriptionTemplate:
+        roles:
+          - Owner
+          - Member
+      claims: [ ]
+      clients: [ ]
+      allowAnonymous: false
+      allowAuthenticated: false
+
+    # Contact Permissions
+    SendContactSupport:
+      roles: []
+      clients: [ ]
+      allowAnonymous: false
+      allowAuthenticated: true
+    # ActionConfirmation Permissions
+    BrowseActionConfirmation:
+      roles:
+        - Admin
+        - TenantAdmin
+      clients: [ ]
+      allowAnonymous: false
+      allowAuthenticated: false
+    EditActionConfirmation:
+      roles:
+        - Admin
+        - TenantAdmin
+      clients: [ ]
+      allowAnonymous: false
+      allowAuthenticated: false
+    DeleteActionConfirmation:
+      roles:
+        - Admin
+        - TenantAdmin
+      claims: [ ]
+      clients: [ ]
+      allowAnonymous: false
+      allowAuthenticated: false
+
+    # PrefillingSource Permissions
+    BrowsePrefillingSource:
+      roles:
+        - Admin
+        - InstallationAdmin
+        - TenantPlanManager
+        - TenantConfigManager
+        - TenantAdmin
+        - TenantUser
+      clients: [ ]
+      allowAnonymous: false
+      allowAuthenticated: false
+    EditPrefillingSource:
+      roles:
+        - Admin
+        - TenantAdmin
+      clients: [ ]
+      allowAnonymous: false
+      allowAuthenticated: false
+    DeletePrefillingSource:
+      roles:
+        - Admin
+        - TenantAdmin
+      claims: [ ]
+      clients: [ ]
+      allowAnonymous: false
+      allowAuthenticated: false
+
+    # Tenant Permissions
+    BrowseUsageLimit:
+      roles:
+        - Admin
+      clients: [ ]
+      allowAnonymous: false
+      allowAuthenticated: false
+    EditUsageLimit:
+      roles:
+        - Admin
+      clients: [ ]
+      allowAnonymous: false
+      allowAuthenticated: false
+    DeleteUsageLimit:
+      roles:
+        - Admin
+      claims: [ ]
+      clients: [ ]
+      allowAnonymous: false
+      allowAuthenticated: false
+
+    # Status
+    BrowseStatus:
+      roles:
+        - Admin
+        - TenantAdmin
+      clients: [ ]
+      allowAnonymous: false
+      allowAuthenticated: false
+    EditStatus:
+      roles:
+        - Admin
+        - TenantAdmin
+      clients: [ ]
+      allowAnonymous: false
+      allowAuthenticated: false
+    DeleteStatus:
+      roles:
+        - Admin
+        - TenantAdmin
+      claims: [ ]
+      clients: [ ]
+      allowAnonymous: false
+      allowAuthenticated: false
+
+    # ViewPage Permissions
+    ViewDescriptionTemplateTypePage:
+      roles:
+        - Admin
+        - TenantAdmin
+        - TenantPlanManager
+      clients: [ ]
+      allowAnonymous: false
+      allowAuthenticated: false
+    ViewMaintenancePage:
+      roles:
+        - Admin
+      clients: [ ]
+      allowAnonymous: false
+      allowAuthenticated: false
+    ViewNotificationPage:
+      roles:
+        - Admin
+      clients: [ ]
+      allowAnonymous: false
+      allowAuthenticated: false
+    ViewNotificationTemplatePage:
+      roles:
+        - Admin
+        - TenantAdmin
+        - TenantConfigManager
+      clients: [ ]
+      allowAnonymous: false
+      allowAuthenticated: false
+    ViewSupportiveMaterialPage:
+      roles:
+        - Admin
+        - TenantAdmin
+        - TenantConfigManager
+      clients: [ ]
+      allowAnonymous: false
+      allowAuthenticated: false
+    ViewLanguagePage:
+      roles:
+        - Admin
+        - TenantAdmin
+        - TenantConfigManager
+      clients: [ ]
+      allowAnonymous: false
+      allowAuthenticated: false
+    ViewUserPage:
+      roles:
+        - Admin
+        - InstallationAdmin
+      clients: [ ]
+      allowAnonymous: false
+      allowAuthenticated: false
+    ViewTenantUserPage:
+      roles:
+        - Admin
+        - TenantAdmin
+      clients: [ ]
+      allowAnonymous: false
+      allowAuthenticated: false
+    ViewTenantPage:
+      roles:
+        - Admin
+        - InstallationAdmin
+      clients: [ ]
+      allowAnonymous: false
+      allowAuthenticated: false
+    ViewPrefillingSourcePage:
+      roles:
+        - Admin
+        - TenantAdmin
+      clients: [ ]
+      allowAnonymous: false
+      allowAuthenticated: false
+    ViewReferenceTypePage:
+      roles:
+        - Admin
+        - TenantAdmin
+      clients: [ ]
+      allowAnonymous: false
+      allowAuthenticated: false
+    ViewReferencePage:
+      roles:
+        - Admin
+      clients: [ ]
+      allowAnonymous: false
+      allowAuthenticated: false
+    ViewEntityLockPage:
+      roles:
+        - Admin
+      clients: [ ]
+      allowAnonymous: false
+      allowAuthenticated: false
+    ViewUsageLimitPage:
+      roles:
+        - Admin
+      clients: [ ]
+      allowAnonymous: false
+      allowAuthenticated: false
+    ViewDescriptionTemplatePage:
+      roles:
+        - Admin
+        - TenantAdmin
+        - TenantPlanManager
+      clients: [ ]
+      allowAnonymous: false
+      allowAuthenticated: false
+    ViewPlanBlueprintPage:
+      roles:
+        - Admin
+        - TenantAdmin
+        - TenantPlanManager
+      clients: [ ]
+      allowAnonymous: false
+      allowAuthenticated: false
+    ViewPublicDescriptionPage:
+      roles: [ ]
+      clients: [ ]
+      allowAnonymous: true
+      allowAuthenticated: true
+    ViewPublicPlanPage:
+      roles: [ ]
+      clients: [ ]
+      allowAnonymous: true
+      allowAuthenticated: true
+    ViewMyDescriptionPage:
+      roles:
+        - Admin
+        - TenantAdmin
+        - TenantUser
+      clients: [ ]
+      allowAnonymous: false
+      allowAuthenticated: false
+    ViewMyPlanPage:
+      roles:
+        - Admin
+        - TenantAdmin
+        - TenantUser
+      clients: [ ]
+      allowAnonymous: false
+      allowAuthenticated: false
+    ViewHomePage:
+      roles: [ ]
+      clients: [ ]
+      allowAnonymous: true
+      allowAuthenticated: true
+    ViewMineInAppNotificationPage:
+      roles: [ ]
+      clients: [ ]
+      allowAnonymous: false
+      allowAuthenticated: true
+    ViewTenantConfigurationPage:
+      roles:
+        - Admin
+        - TenantAdmin
+      clients: [ ]
+      allowAnonymous: false
+      allowAuthenticated: false
+    ViewStatusPage:
+      roles:
+        - Admin
+        - TenantAdmin
+      clients: [ ]
+      allowAnonymous: false
+      allowAuthenticated: false
+    ViewPlanStatusPage:
+      roles:
+        - Admin
+        - TenantAdmin
+        - TenantConfigManager
+      clients: [ ]
+      allowAnonymous: false
+      allowAuthenticated: false
+    ViewPlanWorkflowPage:
+      roles:
+        - Admin
+        - TenantAdmin
+        - TenantConfigManager
+      clients: [ ]
+      allowAnonymous: false
+      allowAuthenticated: false
+    ViewDescriptionWorkflowPage:
+      roles:
+        - Admin
+        - TenantAdmin
+        - TenantConfigManager
+      clients: [ ]
+      allowAnonymous: false
+      allowAuthenticated: false
+    ViewDescriptionStatusPage:
+      roles:
+        - Admin
+        - TenantAdmin
+        - TenantConfigManager
+      clients: [ ]
+      allowAnonymous: false
+      allowAuthenticated: false

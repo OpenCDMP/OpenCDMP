@@ -1,0 +1,97 @@
+<div class="p-2">
+
+	<div cdkDropList (cdkDropListDropped)="dropUsers($event)" *ngIf="enableSorting===true; else sortingDisabled" class="row">
+		<div class="col-12">
+			<div *ngFor="let user of form.get('users').controls; let userIndex = index" cdkDrag class="row align-items-center user-fields" [cdkDragDisabled]="viewOnly" (mouseenter)="onUserHover(userIndex)" (mouseleave)="clearHoveredUser()">
+				<ng-container *ngTemplateOutlet="userForm; context: {$implicit: user, index: userIndex}"></ng-container>
+			</div>
+		</div>
+	</div>
+
+	<ng-template #sortingDisabled>
+		<div class="row">
+			<div class="col-12">
+				<div *ngFor="let user of form.get('users').controls; let userIndex = index" class="row align-items-center user-fields">
+					<ng-container *ngTemplateOutlet="userForm; context: {$implicit: user, index: userIndex}"></ng-container>
+				</div>
+			</div>
+		</div>
+	</ng-template>
+
+	<div class="row">
+		<div class="col">
+			<button mat-icon-button (click)="addUser()" [disabled]="viewOnly">
+				<mat-icon>add</mat-icon>
+			</button>
+		</div>
+	</div>
+</div>
+
+<ng-template #userForm let-user let-userIndex="index">
+
+
+	<div class="col-12 col-xl-auto pb-1">
+		<span *ngIf="!isUserSelected(userIndex)" style="font-size: 18px; box-sizing: border-box; display: inline-block; padding: 0.85rem 0.435rem 0 0.435rem;">{{userIndex + 1}}</span>
+		<mat-icon *ngIf="isUserSelected(userIndex)" [ngClass]="{'drag-handle-disabled': viewOnly}" cdkDragHandle class="drag-handle">drag_indicator</mat-icon>
+	</div>
+	<div class="col-12 col-xl-auto">
+		<mat-button-toggle-group name="fontStyle" aria-label="Font Style" [formControl]="user.get('userType')" (change)="userTypeChange($event, userIndex)" class="w-100">
+			<div *ngFor="let userType of planUserTypeEnumValues" class="col p-0">
+				<mat-button-toggle class="lang-button w-100" [value]="userType">{{enumUtils.toPlanUserTypeString(userType)}}</mat-button-toggle>
+			</div>
+		</mat-button-toggle-group>
+	</div>
+	<div class="col-12 col-xl mt-3" *ngIf="user.get('userType').value == planUserTypeEnum.Internal">
+		<mat-form-field class="w-100">
+			<mat-label>{{'PLAN-EDITOR.FIELDS.USER' | translate}}</mat-label>
+			<app-single-auto-complete [formControl]="user.get('user')" [configuration]="userService.singleAutoCompletePlanAssociatedUserConfiguration"></app-single-auto-complete>
+			<mat-error *ngIf="user.get('user').hasError('backendError')">{{user.get('user').getError('backendError').message}}</mat-error>
+			<mat-error *ngIf="user.get('user').hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
+		</mat-form-field>
+	</div>
+	<div class="col-12 col-xl mt-3" *ngIf="user.get('userType').value == planUserTypeEnum.External">
+		<mat-form-field class="w-100">
+			<mat-label>{{'PLAN-EDITOR.FIELDS.EMAIL' | translate}}</mat-label>
+			<input matInput type="text" name="email" [formControl]="user.get('email')">
+			<mat-error *ngIf="user.get('email').hasError('backendError')">{{user.get('email').getError('backendError').message}}</mat-error>
+			<mat-error *ngIf="user.get('email').hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
+		</mat-form-field>
+	</div>
+	<div class="col-12 col-xl mt-3">
+		<mat-form-field class="w-100">
+			<mat-label>{{'PLAN-EDITOR.FIELDS.USER-ROLE' | translate}}</mat-label>
+			<mat-select [formControl]="user.get('role')">
+				<mat-option *ngFor="let userRole of planUserRoleEnumValues" [value]="userRole">{{enumUtils.toPlanUserRoleString(userRole)}}</mat-option>
+			</mat-select>
+			<mat-error *ngIf="user.get('role').hasError('backendError')">{{user.get('role').getError('backendError').message}}</mat-error>
+			<mat-error *ngIf="user.get('role').hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
+		</mat-form-field>
+	</div>
+	<div class="col-12 col-xl mt-3" *ngIf="sections || hasTemplatesSections">
+		<mat-form-field class="w-100">
+			<mat-label>{{'PLAN-EDITOR.FIELDS.SECTIONS' | translate}}</mat-label>
+			<mat-select *ngIf="user.get('role').value != planUserRoleEnum.DescriptionContributor && sections" [formControl]="user.get('sectionId')">
+				<mat-option value="">{{'PLAN-EDITOR.FIELDS.ALL-SECTIONS' | translate}}</mat-option>
+				<mat-option *ngFor="let section of sections" [value]="section.id">
+					{{ section.label }}
+				</mat-option>
+			</mat-select>
+			<mat-select *ngIf="user.get('role').value === planUserRoleEnum.DescriptionContributor && hasTemplatesSections" [formControl]="user.get('sectionId')">
+				<mat-option value="">{{'PLAN-EDITOR.FIELDS.ALL-SECTIONS' | translate}}</mat-option>
+				<mat-option *ngFor="let section of hasTemplatesSections" [value]="section.id">
+					{{ section.label }}
+				</mat-option>
+			</mat-select>
+			<mat-error *ngIf="user.get('sectionId').hasError('backendError')">{{user.get('sectionId').getError('backendError').message}}</mat-error>
+			<mat-error *ngIf="user.get('sectionId').hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' |translate}}</mat-error>
+		</mat-form-field>
+	</div>
+	<div class="col-12 col-xl-auto">
+		<button mat-icon-button class="action-list-icon" matTooltip="{{'PLAN-EDITOR.ACTIONS.REMOVE-USER' | translate}}" (click)="removeUser(userIndex)" [disabled]="viewOnly">
+			<mat-icon>delete</mat-icon>
+		</button>
+	</div>
+
+	<mat-error *ngIf="form.get('users').dirty && form.get('users').hasError('required')">{{'PLAN-EDITOR.USERS-REQUIRED' | translate}}</mat-error>
+	<mat-error *ngIf="form.get('users').hasError('backendError')">{{form.get('users').getError('backendError').message}}</mat-error>
+</ng-template>

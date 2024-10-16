@@ -1,0 +1,49 @@
+.hidden {
+    display: none;
+}
+
+
+
+//ngx dropzone
+.drop-file {
+	background-color: #fafafa;
+	border: 1px dashed #d1d1d1;
+	border-radius: 4px;
+	max-width: 480px;
+	height: 98px;
+	margin-top: 0.5rem;
+}
+
+.file-preview {
+	height: auto !important;
+	width: auto !important;
+	max-width: 500px !important;
+	min-height: 1rem !important;
+
+	background-color: #e0e0e0 !important;
+	background-image: none !important;
+	color: rgba(0, 0, 0, 0.87) !important;
+	font-weight: 500 !important;
+	border-radius: 24px !important;
+	line-height: 1.25 !important;
+}
+
+.file-label {
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	font-size: 14px !important;
+}
+
+::ng-deep ngx-dropzone-remove-badge {
+	opacity: 1 !important;
+	margin-left: .5rem !important;
+	position: initial !important;
+}
+
+
+//attach file
+
+.attach-btn {
+	top: -20px;
+}

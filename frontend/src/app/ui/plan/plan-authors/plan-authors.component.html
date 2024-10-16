@@ -1,0 +1,27 @@
+@if(planUsers()){
+    <div *ngFor="let planUser of planUsers(); let i=index;" class="d-flex author">
+        <mat-icon class="author-icon">account_circle</mat-icon>
+        <div style="min-width: 0;">
+            <ng-container *ngIf="!isUserAuthor(planUser.user?.id); else you">
+                <span class="author-label">{{ planUser.user?.name }}</span>
+            </ng-container>
+            <ng-template #you>
+                <div *ngIf="username()" class="author-label"> {{ username() }}
+                    <span >
+                        ({{ 'PLAN-OVERVIEW.YOU' | translate }})
+                    </span>
+                </div>
+            </ng-template>
+            <div class="author-role">
+                <span>{{ enumUtils.toPlanUserRoleString(planUser.role) }} - </span>
+                <span *ngIf="!planUser.sectionId">{{ 'PLAN-OVERVIEW.ROLES.ALL-SECTIONS' | translate}}</span>
+                <span *ngIf="planUser.sectionId">{{ getSectionNameById(planUser.sectionId) }}</span>
+            </div>
+        </div>
+        @if(removeUser() && planUser.role != planUserRoleEnum.Owner){
+            <button (click)="removeUserFromPlan(planUser)" mat-mini-fab class="secondary ml-auto" matTooltip="{{ 'PLAN-OVERVIEW.ACTIONS.REMOVE-AUTHOR' | translate}}" matTooltipPosition="above">
+                <mat-icon>delete</mat-icon>
+            </button>
+        }
+    </div>
+}

@@ -1,0 +1,22 @@
+<div mat-dialog-title class="mt-2 row d-flex align-items-center">
+	<div class="col"><span class="text-danger">{{'PLAN-DELETE-DIALOG.WARNING' | translate}}</span></div>
+	<div>
+		<button mat-icon-button tabindex="-1" (click)="close()"><mat-icon>close</mat-icon></button>
+	</div>
+</div>
+<mat-dialog-content>
+	<div class="row d-flex flex-row mb-2">
+		<div class="col message pb-4 pl-3">{{'PLAN-DELETE-DIALOG.DELETE-ITEM' | translate}}</div>
+	</div>
+	<div class="row mt-3 mr-3 mb-3">
+			<ng-container *ngIf="descriptions">
+				<ul class="error-list">
+					<li *ngFor="let description of descriptions">{{description.label}}</li>
+				</ul>
+			</ng-container>
+	</div>
+	<div class="row" style="justify-content: space-between;">
+		<div class="col-auto"><button mat-button type="button" tabindex="-1" class="rounded-btn neutral" (click)="cancel()">{{'PLAN-DELETE-DIALOG.ACTIONS.CANCEL' | translate}}</button></div>
+		<div class="col-auto"><button mat-button type="button" tabindex="-1" (click)="confirm()" class="rounded-btn delete-inverted">{{'PLAN-DELETE-DIALOG.ACTIONS.DELETE' | translate}}</button></div>
+	</div>
+</mat-dialog-content>

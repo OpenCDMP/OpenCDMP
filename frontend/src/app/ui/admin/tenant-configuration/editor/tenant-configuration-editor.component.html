@@ -1,0 +1,103 @@
+<div class="container-fluid">
+	<div class="row">
+		<div class="col-md-10 offset-md-1">
+			<div class="row align-items-center mb-4 mt-4" >
+				<div class="col-md col-12">
+					<app-navigation-breadcrumb />
+				</div>
+			</div>
+
+			<div class="row">
+				<div class="col-12">
+					<mat-card appearance="outlined">
+						<mat-card-header>
+							<mat-card-title>{{'TENANT-CONFIGURATION-EDITOR.TITLE' | translate}}</mat-card-title>
+						</mat-card-header>
+						<mat-card-content>
+							<div class="row mt-3">
+								<div class="col-12">
+									<mat-accordion class="headers-align">
+										<mat-expansion-panel>
+											<mat-expansion-panel-header>
+												<mat-panel-title>{{'TENANT-CONFIGURATION-EDITOR.DEFAULT-USER-LOCALE.TITLE' | translate}}</mat-panel-title>
+												<mat-panel-description>{{'TENANT-CONFIGURATION-EDITOR.DEFAULT-USER-LOCALE.HINT' | translate}}</mat-panel-description>
+											</mat-expansion-panel-header>
+											<ng-template matExpansionPanelContent>
+												<div class="mt-3">
+													<app-tenant-configuration-default-user-locale-editor></app-tenant-configuration-default-user-locale-editor>
+												</div>
+											</ng-template>
+										</mat-expansion-panel>
+										<mat-expansion-panel>
+											<mat-expansion-panel-header>
+												<mat-panel-title>{{'TENANT-CONFIGURATION-EDITOR.CSS-COLORS.TITLE' | translate}}</mat-panel-title>
+												<mat-panel-description>{{'TENANT-CONFIGURATION-EDITOR.CSS-COLORS.HINT' | translate}}</mat-panel-description>
+											</mat-expansion-panel-header>
+											<ng-template matExpansionPanelContent>
+												<app-tenant-configuration-css-colors-editor></app-tenant-configuration-css-colors-editor>
+											</ng-template>
+										</mat-expansion-panel>
+										<mat-expansion-panel>
+											<mat-expansion-panel-header>
+												<mat-panel-title>{{'TENANT-CONFIGURATION-EDITOR.DEPOSIT-PLUGINS.TITLE' | translate}}</mat-panel-title>
+												<mat-panel-description>{{'TENANT-CONFIGURATION-EDITOR.DEPOSIT-PLUGINS.HINT' | translate}}</mat-panel-description>
+											</mat-expansion-panel-header>
+											<ng-template matExpansionPanelContent>
+												<app-tenant-configuration-deposit-editor></app-tenant-configuration-deposit-editor>
+											</ng-template>
+										</mat-expansion-panel>
+										<mat-expansion-panel>
+											<mat-expansion-panel-header>
+												<mat-panel-title>{{'TENANT-CONFIGURATION-EDITOR.FILE-TRANSFORMER-PLUGINS.TITLE' | translate}}</mat-panel-title>
+												<mat-panel-description>{{'TENANT-CONFIGURATION-EDITOR.FILE-TRANSFORMER-PLUGINS.HINT' | translate}}</mat-panel-description>
+											</mat-expansion-panel-header>
+											<ng-template matExpansionPanelContent>
+												<app-tenant-configuration-file-transformer-editor></app-tenant-configuration-file-transformer-editor>
+											</ng-template>
+										</mat-expansion-panel>
+										<mat-expansion-panel>
+											<mat-expansion-panel-header>
+												<mat-panel-title>{{'TENANT-CONFIGURATION-EDITOR.LOGO.TITLE' | translate}}</mat-panel-title>
+												<mat-panel-description>{{'TENANT-CONFIGURATION-EDITOR.LOGO.HINT' | translate}}</mat-panel-description>
+											</mat-expansion-panel-header>
+											<ng-template matExpansionPanelContent>
+												<app-tenant-configuration-logo-editor></app-tenant-configuration-logo-editor>
+											</ng-template>
+										</mat-expansion-panel>
+										<mat-expansion-panel>
+											<mat-expansion-panel-header>
+												<mat-panel-title>{{'TENANT-CONFIGURATION-EDITOR.NOTIFIER-LIST.TITLE' | translate}}</mat-panel-title>
+												<mat-panel-description>{{'TENANT-CONFIGURATION-EDITOR.NOTIFIER-LIST.HINT' | translate}}</mat-panel-description>
+											</mat-expansion-panel-header>
+											<ng-template matExpansionPanelContent>
+												<app-tenant-configuration-notifier-list-editor></app-tenant-configuration-notifier-list-editor>
+											</ng-template>
+										</mat-expansion-panel>
+                                        <mat-expansion-panel>
+                                            <mat-expansion-panel-header>
+                                                <mat-panel-title>{{'TENANT-CONFIGURATION-EDITOR.PLAN-WORKFLOW.TITLE' | translate}}</mat-panel-title>
+                                                <mat-panel-description>{{'TENANT-CONFIGURATION-EDITOR.PLAN-WORKFLOW.HINT' | translate}}</mat-panel-description>
+                                            </mat-expansion-panel-header>
+                                            <ng-template matExpansionPanelContent>
+												<app-plan-workflow-editor></app-plan-workflow-editor>
+											</ng-template>
+                                        </mat-expansion-panel>
+                                        <mat-expansion-panel>
+                                            <mat-expansion-panel-header>
+                                                <mat-panel-title>{{'TENANT-CONFIGURATION-EDITOR.DESCRIPTION-WORKFLOW.TITLE' | translate}}</mat-panel-title>
+                                                <mat-panel-description>{{'TENANT-CONFIGURATION-EDITOR.DESCRIPTION-WORKFLOW.HINT' | translate}}</mat-panel-description>
+                                            </mat-expansion-panel-header>
+                                            <ng-template matExpansionPanelContent>
+												<app-description-workflow-editor></app-description-workflow-editor>
+											</ng-template>
+                                        </mat-expansion-panel>
+									</mat-accordion>
+								</div>
+							</div>
+						</mat-card-content>
+					</mat-card>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>

@@ -1,0 +1,10 @@
+keycloak-client:
+  serverUrl: ${KEYCLOAK_API_SERVER_URL}
+  realm: ${KEYCLOAK_API_REALM}
+  username: ${KEYCLOAK_API_USERNAME}
+  password: ${KEYCLOAK_API_PASSWORD}
+  clientId: ${KEYCLOAK_API_CLIENT_ID}
+  clientSecret: ${KEYCLOAK_API_CLIENT_SECRET}
+
+keycloak-resources:
+  authorities: null

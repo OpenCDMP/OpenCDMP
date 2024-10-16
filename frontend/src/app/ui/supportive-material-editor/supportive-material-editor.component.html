@@ -1,0 +1,76 @@
+<div class="container-fluid">
+	<div class="row supportive-material-editor">
+		<div class="col-md-10 offset-md-1">
+			<div class="row mb-4 mt-4">
+				<div class="col">
+					<app-navigation-breadcrumb />
+				</div>
+			</div>
+			<form *ngIf="formGroup" (ngSubmit)="formSubmit()">
+				<div>
+					<mat-card class="p-1">
+						<div class="container-fluid mt-3">
+							<div class="row">
+								<div class="col">
+									<mat-form-field class="w-100">
+										<mat-label>{{'SUPPORTIVE-MATERIAL-EDITOR.FIELDS.MATERIAL-TYPE' | translate}}</mat-label>
+										<mat-select (selectionChange)="selectedMaterialChanged($event.value)" name="type" [formControl]="formGroup.get('type')" required>
+											<mat-option *ngFor="let type of supportiveMaterialTypeEnum" [value]="type">
+												{{enumUtils.toSupportiveMaterialTypeString(type)}}
+											</mat-option>
+										</mat-select>
+										<mat-error *ngIf="formGroup.get('type').hasError('backendError')">{{formGroup.get('type').getError('backendError').message}}</mat-error>
+										<mat-error *ngIf="formGroup.get('type').hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
+									</mat-form-field>
+								</div>
+								<div class="col">
+									<mat-form-field class="w-100">
+										<mat-label>{{'SUPPORTIVE-MATERIAL-EDITOR.FIELDS.LANGUAGE' | translate}}</mat-label>
+										<mat-select (selectionChange)="selectedLangChanged($event.value)" name="languageCode" [formControl]="formGroup.get('languageCode')">
+											<mat-option *ngFor="let languageCode of availableLanguageCodes" [value]="languageCode">
+												{{languageCode}}
+											</mat-option>
+										</mat-select>
+										<mat-error *ngIf="formGroup.get('languageCode').hasError('backendError')">{{formGroup.get('languageCode').getError('backendError').message}}</mat-error>
+										<mat-error *ngIf="formGroup.get('languageCode').hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
+									</mat-form-field>
+								</div>
+							</div>
+							<div class="row" *ngIf="formGroup.get('type').value != null && formGroup.get('languageCode').value">
+								<div class="col">
+									<editor class="w-100" [init]="{
+									base_url: '/tinymce',
+									suffix: '.min',
+									height: 800,
+									menubar: true,
+									plugins: [
+									'advlist autolink lists link image charmap print preview anchor',
+									'searchreplace visualblocks fullscreen fullpage',
+									'insertdatetime media table paste code help wordcount importcss ',
+									'codesample toc visualchars'
+									],
+									extended_valid_elements: '*[*]',
+									forced_root_block: '',
+									valid_children: '+body[script],ol[li|div|p|a|ol|table],h2[span],h3[span]',
+									save_enablewhendirty: false,
+									toolbar:
+									'undo redo | formatselect | bold italic backcolor | \
+									alignleft aligncenter alignright alignjustify | \
+									bullist numlist outdent indent | code codesample | searchreplace | preview | removeformat | help'
+								}" [formControl]="formGroup.get('payload')"></editor>
+								<mat-error *ngIf="formGroup.get('payload').hasError('backendError')">{{formGroup.get('payload').getError('backendError').message}}</mat-error>
+								<mat-error *ngIf="formGroup.get('payload').hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
+								</div>
+							</div>
+						</div>
+					</mat-card>
+					<button mat-fab class="mat-fab-bottom-right save-btn" matTooltip="{{'SUPPORTIVE-MATERIAL-EDITOR.ACTIONS.SAVE' | translate}}" type="submit">
+						<mat-icon class="mat-24">save</mat-icon>
+					</button>
+				</div>
+			</form>
+		</div>
+	</div>
+</div>
+
+

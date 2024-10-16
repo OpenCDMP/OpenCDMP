@@ -1,0 +1,9 @@
+<div class="sidebar-footer col-12">
+
+	<div *ngFor="let footerItems of nestedFooterItems" class="row ml-2">
+		<div *ngFor="let item of footerItems; let index = index;" class="col-auto" [ngClass]="{'ml-3': index%2==1}">
+			<p class="option" [ngClass]="{'option-active': this.router.url === item.routerPath}" [routerLink]="routerUtils.generateUrl(item.routerPath)">
+				{{ item.title | translate}}</p>
+		</div>
+	</div>
+</div>

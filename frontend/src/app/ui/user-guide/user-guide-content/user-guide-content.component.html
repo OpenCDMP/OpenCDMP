@@ -1,0 +1,6 @@
+<div class="container-fluid">
+	<div class="row">
+		<iframe *ngIf="!useInnerHTML && guideHTMLUrl" class="iframe" id='userguide' [src]="guideHTMLUrl" (load)="onIFrameLoad(iframe)" #iframe></iframe>
+		<span #guide *ngIf="useInnerHTML" id='userguide' [innerHTML]="guideHTML"></span>
+	</div>
+</div>

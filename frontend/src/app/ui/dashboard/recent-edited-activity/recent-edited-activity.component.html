@@ -1,0 +1,51 @@
+<div class="container-fluid">
+	<div class="row">
+		<div class="col-md-12 d-flex justify-content-center" *ngIf="listingItems == null">
+			<span class="empty-list">{{'PLAN-LISTING.EMPTY-LIST' | translate}}</span>
+		</div>
+		<div *ngIf="listingItems != null" id="results" class="col-12" #results>
+			<div class="row pt-4">
+				<!-- Sort by -->
+				<div class="col-12 col-xl-auto pr-0 d-flex align-items-center">
+					<span class="mb-4">{{'PLAN-LISTING.SORT-BY' | translate}}:</span>
+				</div>
+				<div class="col-12 col-xl-auto">
+					<mat-form-field appearance="outline" class="w-100 sort-form">
+						<mat-select placeholder="{{'GENERAL.CRITERIA.LIKE'| translate}}" [formControl]="formGroup.get('order')">
+							<mat-option *ngIf="!publicMode" [value]="order.UpdatedAt">{{enumUtils.toRecentActivityOrderString(order.UpdatedAt)}}</mat-option>
+							<mat-option [value]="order.Label">{{enumUtils.toRecentActivityOrderString(order.Label)}}</mat-option>
+							<mat-option *ngIf="!publicMode" [value]="order.Status">{{enumUtils.toRecentActivityOrderString(order.Status)}}</mat-option>
+						</mat-select>
+					</mat-form-field>
+				</div>
+				<!-- End of Sort by -->
+				<!-- Search Filter-->
+				<div class="col-12 col-xl-auto ml-auto">
+					<mat-form-field appearance="outline" class="search-form pr-0" floatLabel="never">
+						<mat-icon matSuffix>search</mat-icon>
+						<input matInput placeholder="{{'GENERAL.CRITERIA.LIKE'| translate}}" name="likeCriteria" [formControl]="formGroup.get('like')">
+						<mat-error *ngIf="formGroup.get('like').hasError('backendError')">{{formGroup.get('like').getError('backendError').message}}</mat-error>
+					</mat-form-field>
+				</div>
+				<!-- End of Search Filter -->
+			</div>
+			<div *ngFor="let item of listingItems; let i = index">
+				<app-plan-listing-item-component *ngIf="item.plan" [showDivider]="i != (listingItems.length - 1)" [plan]="item.plan" [isPublic]="false"></app-plan-listing-item-component>
+				<app-description-listing-item-component *ngIf="item?.description" [showDivider]="i != (listingItems.length - 1)" [description]="item?.description" [isPublic]="false"  ></app-description-listing-item-component>
+			</div>
+			<div class="text-muted d-flex justify-content-center mt-5" *ngIf="!loading && listingItems && listingItems.length > 0 && this.lookup.page.offset >= currentPage*pageSize">
+				{{'GENERAL.ACTIONS.NO-MORE-AVAILABLE' | translate}}
+			</div>
+
+			<div class="row justify-content-center mt-5" *ngIf="listingItems?.length == 0 && onlyDescriptions && hasPlans">
+				<div class="col-auto p-0 add-description">
+						<button mat-button type="button" class="rounded-btn secondary" (click)="addDescription()">{{'DASHBOARD.ACTIONS.ADD-DESCRIPTION' | translate}}</button>
+				</div>
+			</div>
+
+			<div *ngIf="listingItems && listingItems.length > 0 && this.lookup.page.offset < currentPage*pageSize" class="d-flex justify-content-center pb-1">
+				<button type="button" mat-button class="rounded-btn load-more" (click)="loadMore()">{{'GENERAL.ACTIONS.LOAD-MORE' | translate}}</button>
+			</div>
+		</div>
+	</div>
+</div>

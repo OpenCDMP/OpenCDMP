@@ -1,0 +1,58 @@
+.reference-type-editor {
+
+  .remove {
+	background-color: white;
+    color: black;
+  }
+
+  .add {
+	background-color: white;
+    color: #009700;
+  }
+}
+
+::ng-deep .mat-checkbox-checked.mat-accent .mat-checkbox-background, .mat-checkbox-indeterminate.mat-accent .mat-checkbox-background {
+	background-color: var(--primary-color-3);
+}
+
+::ng-deep .mat-checkbox-disabled.mat-checkbox-checked .mat-checkbox-background, .mat-checkbox-disabled.mat-checkbox-indeterminate .mat-checkbox-background {
+    background-color: #b0b0b0;
+}
+
+
+.dlt-section-btn {
+	margin: 0;
+	position: absolute;
+	top: 50%;
+	-ms-transform: translateY(-50%);
+	transform: translateY(-50%);
+}
+
+.section-input {
+	position: relative;
+}
+
+.section-input .arrows {
+	position: absolute;
+	top: 0;
+	left: 50%;
+	transform: translateX(-50%);
+}
+
+.field-delete{
+    align-items: center;
+	display: flex;
+    cursor: pointer;
+  
+    .field-delete-icon{
+      font-size: 1.2em;
+      width: 14px;
+      color: var(--primary-color);
+    }
+    
+    .field-delete-text{
+      font-size: 1em;
+	  margin-left: 0.5em;
+	  color: var(--primary-color);
+    }
+}

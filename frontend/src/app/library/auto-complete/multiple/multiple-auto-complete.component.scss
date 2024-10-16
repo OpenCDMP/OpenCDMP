@@ -1,0 +1,145 @@
+.multiple-auto-complete {
+
+	.not-loading {
+		display: none;
+	}
+
+
+	.align-arrow-right {
+		right: 0;
+		cursor: pointer;
+		align-self: center;
+		color: rgba(0, 0, 0, 0.54);
+	}
+
+}
+
+.chip-row {
+	height: auto;
+	min-height: 32px;
+}
+
+.chip-text {
+	white-space: normal;
+	word-break: break-word;
+}
+
+.title-subtitle-fn {
+	height: auto;
+	width: calc(100% - 46px);
+}
+
+.title-fn-inner {
+	width: inherit;
+	overflow: unset;
+	white-space: normal;
+}
+
+.title-fn {
+	width: 100%;
+	overflow: hidden;
+	text-overflow: unset !important;
+	white-space: normal;
+}
+
+
+.subtitle-fn-inner {
+	width: inherit;
+	height: inherit;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+.subtitle-fn {
+	width: 100%;
+	overflow: hidden;
+	white-space: nowrap;
+	display: -webkit-box;
+	-webkit-box-orient: vertical;
+	-moz-box-orient: vertical;
+	-ms-box-orient: vertical;
+	box-orient: vertical;
+	-webkit-line-clamp: 1;
+	-moz-line-clamp: 1;
+	-ms-line-clamp: 1;
+	line-clamp: 1;
+}
+
+::ng-deep .autocomplete-option > .mdc-list-item__primary-text {
+	margin: 0 !important;
+	width: 100%;
+}
+
+.option {
+	line-height: 1rem;
+}
+
+.option-icon {
+	mat-icon {
+		margin: 0px 5px 0px 10px;
+	}
+
+	mat-icon:hover {
+		color: var(--primary-color);
+	}
+}
+
+.two-line-mat-option {
+	line-height: 1.2em;
+}
+
+::ng-deep .mat-chip-list-wrapper {
+	max-height: 4.8em !important;
+	overflow: auto !important;
+}
+
+.hide-placeholder {
+	&::-webkit-input-placeholder {
+		/* WebKit browsers */
+		color: transparent;
+	}
+
+	&:-moz-placeholder {
+		/* Mozilla Firefox 4 to 18 */
+		color: transparent;
+	}
+
+	&::-moz-placeholder {
+		/* Mozilla Firefox 19+ */
+		color: transparent;
+	}
+
+	&:-ms-input-placeholder {
+		/* Internet Explorer 10+ */
+		color: transparent;
+	}
+
+	&::placeholder {
+		color: transparent;
+	}
+}
+
+.option-text-container {
+	min-width: 0;
+}
+
+.title-text {
+	font-weight: 300;
+	line-height: 1.2em;
+	text-align: left;
+	font-size: 16px;
+}
+
+.subtitle-text {
+	font-weight: 400;
+	font-size: 14px;
+	line-height: 1.2em;
+}
+
+.truncate-option-text {
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	max-width: 100%;
+	display: inline-block;
+}

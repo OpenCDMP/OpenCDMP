@@ -1,0 +1,381 @@
+@media (max-width: 768px) {
+    .main-content {
+        padding: 30px 0px;
+    }
+
+    button {
+        font-size: small;
+    }
+}
+
+.form-container {
+    height: calc(100vh - 124px);
+    margin-top: 6rem;
+}
+
+.fixed-editor-header {
+    z-index: 3;
+    background-color: whitesmoke;
+}
+
+.editor-header {
+    height: 64px;
+    background: var(--unnamed-color-var(--primary-color)) 0% 0% no-repeat padding-box;
+    background: var(--primary-color) 0% 0% no-repeat padding-box;
+    box-shadow: 0px 3px 6px #00000029;
+    padding: 0.6rem;
+    margin: 30px 0px 0px 0px;
+    border-radius: 4px;
+    opacity: 1;
+  
+    .info {
+      flex: 2;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+}
+
+.descriptionsInSection {
+    counter-reset: item
+}
+
+.title {
+    text-align: left;
+    font-weight: 400;
+    font-size: 14px;
+    color: #ffffff;
+    opacity: 0.75;
+}
+
+.subtitle {
+    text-align: left;
+    color: #ffffff;
+    font-weight: 700;
+    font-size: 16px;
+    opacity: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.save-btn, .plan-export-btn {
+    background: #ffffff 0% 0% no-repeat padding-box !important;
+    border-radius: 30px;
+    opacity: 1;
+    width: auto; 
+    min-width: 110px;
+    height: 40px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: var(--primary-color);
+    &:disabled {
+        color: #CBCBCB;
+    }
+}
+
+.plan-stepper {
+    position: fixed;
+    display: flex;
+    flex-direction: column;
+    height: calc(100vh - 190px);
+    overflow-y: auto;
+}
+
+.stepper-options {
+	height: calc(100vh - 550px);
+    overflow-y: auto;
+}
+
+.stepper-title {
+    text-align: left;
+    font-weight: 300;
+    font-size: 20px;
+    letter-spacing: 0px;
+    color: #212121;
+    opacity: 0.6;
+    margin: 2.875rem 0rem 2.875rem 0rem;
+    padding-left: 1rem;
+}
+
+.stepper-list li {
+    text-align: left;
+    font-weight: 400;
+    letter-spacing: 0px;
+    color: #212121;
+    padding: 0.3rem 0.1rem;
+    opacity: 0.6;
+    cursor: pointer;
+    max-width: 290px;
+}
+  
+.stepper-list li:hover {
+    background-color: #ececec;
+    border-radius: 6px;
+}
+  
+.stepper-list .active {
+    color: #212121;
+    font-weight: 700;
+    opacity: 1;
+}
+  
+.stepper-list .active-description {
+    color: #212121;
+    font-weight: 700;
+    opacity: 1;
+    .label {
+      width: 100%;
+      height: 27px;
+      line-height: 27px;
+      background-color: var(--secondary-color);
+      color: #5d5d5d;
+      border-radius: 4px;
+      font-weight: 400;
+      font-size: 14px;
+      justify-content: left;
+      display: flex;
+      align-items: center;
+      padding-left: 0.625rem;
+      padding-right: 0.625rem;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      display: inline-block;
+    }
+}
+  
+mat-icon.size-16 {
+    width: 16px;
+    height: 16px;
+    line-height: 16px;
+    font-size: 16px;
+    margin-top: 0.4rem;
+}
+  
+.remove-description {
+    color: #f16868;
+}
+  
+.remove-description:hover {
+    color: #f16868;
+}
+
+.stepper-actions {
+    display: flex;
+    padding-left: 1rem;
+    margin-top: auto;
+    margin-bottom: 0.5rem;
+}
+  
+.stepper-btn {
+    border-radius: 30px;
+    opacity: 1;
+    width: 154px;
+    min-height: 40px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 14px;
+}
+  
+.previous {
+    color: #212121;
+    background: #f5f5f5 0% 0% no-repeat padding-box;
+    box-shadow: 0px 3px 6px #1e202029;
+    border: 2px solid #212121;
+    font-weight: 500;
+    cursor: pointer;
+}
+  
+.add-description-btn {
+    background: var(--secondary-color) 0% 0% no-repeat padding-box;
+    box-shadow: 0px 3px 6px #1e202029;
+    font-weight: 500;
+    white-space: normal;
+    word-wrap: break-word;
+    line-height: normal;
+    text-align: left;
+    font-size: 13.8px;
+}
+
+.add-description-option {
+    list-style-type: none;
+}
+  
+.add-description-action {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+}
+
+.form {
+    position: relative;
+    width: calc(100% - 366px);
+    overflow-y: auto;
+    height: calc(100vh - 250px);
+}
+
+.formForStep0 {
+    position: relative;
+    width: 100%;
+    overflow-y: auto;
+    height: calc(100vh - 250px);
+}
+
+
+.blueprint-section {
+    text-align: left;
+    font-weight: 400;
+    letter-spacing: 0px;
+    color: #212121;
+    opacity: 1;
+    margin: 1rem 0rem 3rem 0rem;
+}
+
+.changes {
+    font-weight: 400;
+    color: #ffffff;
+}
+
+.discard-btn {
+    background: transparent;
+    border: 1px solid #ffffff;
+    color: white;
+    width: 110px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+a {
+    color: #000000;
+}
+
+a:hover {
+    color: var(--primary-color-3);
+}
+
+.main-content {
+    height: 100vh !important;
+    margin-top: -80px;
+}
+
+.plan-blueprint-form {
+    text-align: left;
+    font-weight: 400;
+    font-size: 16px;
+    letter-spacing: 0.15px;
+    color: #7d7d7d;
+    opacity: 1;
+    margin-bottom: 1rem;
+}
+
+.section-info {
+    .intro {
+		text-align: left;
+		font-weight: 400;
+		letter-spacing: 0px;
+		color: #212121;
+		opacity: 1;
+		margin: 3rem 0rem 3rem 0rem;
+	}
+    
+    .link-icon {
+        margin-top: 1rem;
+        visibility: hidden;
+    }      
+
+    .heading-wrapper:hover {
+        & > .link-icon {
+          visibility: visible;
+        }
+    } 
+
+    .heading {
+		text-align: left;
+		font-weight: 700;
+		font-size: 18px;
+		letter-spacing: 0px;
+		color: #212121;
+		opacity: 0.81;
+		margin-top: 1.625rem;
+		margin-bottom: 0.625rem;
+	}
+
+    .hint {
+		text-align: left;
+		font-weight: 400;
+		font-size: 16px;
+		letter-spacing: 0px;
+		color: #212121;
+		opacity: 0.81;
+		margin-bottom: 2.125rem;
+	}
+
+    .input-form {
+		text-align: left;
+		font-weight: 400;
+		font-size: 16px;
+		letter-spacing: 0.15px;
+		color: #7d7d7d;
+		opacity: 1;
+		margin-bottom: 1rem;
+	}
+
+    .not-found-template {
+        font-size: 0.875rem;
+        font-weight: 400;
+        padding: 0rem 0.5rem 0rem 0rem;
+        color: #212121;
+    }
+
+    .disabled-toggle {
+        font-size: 1rem;
+        font-weight: 400;
+        padding: 0rem 0.5rem 0rem 0rem;
+        color: #e0e0e0 !important;
+        text-decoration: none;
+    }
+
+    .input-btn {
+        border: none;
+        color: #aaaaaa;
+        background-color: #ffffff00;
+        cursor: pointer;
+    }
+
+    .input-btn :hover {
+        color: var(--primary-color-3) !important;
+    }
+}
+
+.heading2 {
+    text-align: left;
+    font-weight: 700;
+    font-size: 18px;
+    letter-spacing: 0px;
+    color: #212121;
+    opacity: 0.81;
+    margin-top: 1.625rem;
+    margin-bottom: 0.625rem;
+}
+
+::ng-deep .input-form .mat-form-field-appearance-outline .mat-form-field-outline {
+	background: #fafafa !important;
+}
+
+::ng-deep .input-form .mat-form-field-appearance-outline .mat-form-field-infix {
+	font-size: 1rem;
+	padding: 0.6em 0 1em 0 !important;
+}
+
+.drag-handle {
+	cursor: move; 
+	color: var(--primary-color);
+}
+.drag-handle-disabled {
+	cursor: auto; 
+	color: rgba(0, 0, 0, 0.38);;
+}

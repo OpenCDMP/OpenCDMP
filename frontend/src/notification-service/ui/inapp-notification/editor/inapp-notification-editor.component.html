@@ -1,0 +1,28 @@
+<div *ngIf="inappNotification" class="inapp-notification-editor">
+	<div class="col-md-10 offset-md-1 colums-gapped">
+	<div class="row align-items-center mb-4">
+	<div class="col-md-12">
+		<mat-card class="pt-3 pb-3">
+			<mat-card-title class="pl-2 pb-2">
+				<div [innerHTML]="inappNotification.subject"></div>
+			</mat-card-title>
+			<mat-card-content class="mt-2">
+				<div [innerHTML]="inappNotification.body"></div>
+			</mat-card-content>
+		</mat-card>
+		<div class="row editor-actions">
+			<div class="col"></div>
+			<div class="col-auto" *ngIf="!this.isDeleted && !isNew">
+                <button mat-raised-button type="button" (click)="delete()" mat-button class="rounded-btn delete-inverted">
+                    {{'NOTIFICATION-SERVICE.INAPP-NOTIFICATION-EDITOR.ACTIONS.DELETE' | translate}}
+                </button>
+            </div>
+			<div class="col-auto">
+                <button mat-raised-button (click)="cancel()" type="button" mat-button class="rounded-btn inverted">
+                    {{'NOTIFICATION-SERVICE.INAPP-NOTIFICATION-EDITOR.ACTIONS.CANCEL' | translate}}
+                </button>
+            </div>
+		</div>
+	</div>
+	</div>
+</div>

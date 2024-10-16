@@ -1,0 +1,8 @@
+tenant:
+  multitenancy:
+    is-multitenant: false
+  interceptor:
+    white-listed-clients: [ ]
+    enforce-trusted-tenant: false
+    auto-create-tenant-user: false
+    white-listed-endpoints: [ '/api/principal/my-tenants',  '/api/principal/me' ]

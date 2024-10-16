@@ -1,0 +1,79 @@
+<div class="container-fluid">
+	<div class="row description-template-type-editor">
+		<div class="col-md-10 offset-md-1 colums-gapped">
+
+			<div class="row justify-content-between align-items-center mb-4 mt-4">
+				<div class="col">
+					<app-navigation-breadcrumb />
+				</div>
+
+				<div class="col-auto">
+					<button mat-button class="rounded-btn neutral" (click)="cancel()" type="button">{{'DESCRIPTION-TEMPLATE-TYPE-EDITOR.ACTIONS.CANCEL' | translate}}</button>
+				</div>
+				<div class="col-auto" *ngIf="canDelete">
+					<button mat-button (click)="delete()" class="rounded-btn delete-inverted" type="button">
+						<mat-icon>delete</mat-icon>
+						{{'DESCRIPTION-TEMPLATE-TYPE-EDITOR.ACTIONS.DELETE' | translate}}
+					</button>
+				</div>
+				<div class="col-auto" *ngIf="canFinalize">
+					<button mat-button class="rounded-btn secondary" (click)="save(); finalize()">
+						<mat-icon>save</mat-icon>
+						{{'DESCRIPTION-TEMPLATE-TYPE-EDITOR.ACTIONS.FINALIZE' | translate}}
+					</button>
+				</div>
+				<div class="col-auto" *ngIf="canSave">
+					<button mat-button class="rounded-btn primary" (click)="save(); formSubmit()">
+						<mat-icon>save</mat-icon>
+						{{'DESCRIPTION-TEMPLATE-TYPE-EDITOR.ACTIONS.SAVE' | translate}}
+					</button>
+				</div>
+			</div>
+
+			<mat-card appearance="outlined">
+				<mat-card-content>
+					<form (ngSubmit)="formSubmit()" [formGroup]="formGroup" *ngIf="formGroup">
+						<div class="row">
+							<div class="col-12">
+								<div class="container-fluid">
+									<div class="row">
+										<div class="col-12 pt-1 pb-1">
+											<span>
+												{{'DESCRIPTION-TEMPLATE-TYPE-EDITOR.FIELDS.NAME' | translate}}
+											</span>
+										</div>
+									</div>
+								</div>
+							</div>
+							<div class="col-12 mt-1">
+								<div class="container-fluid">
+									<div class="row">
+										<div class="col-12">
+											<mat-form-field class="w-100">
+												<input matInput placeholder="{{'DESCRIPTION-TEMPLATE-TYPE-EDITOR.FIELDS.NAME' | translate}}" type="text" name="name" [formControl]="formGroup.get('name')" required>
+												<mat-error *ngIf="formGroup.get('name').hasError('backendError')">{{formGroup.get('name').getError('backendError').message}}</mat-error>
+												<mat-error *ngIf="formGroup.get('name').hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
+											</mat-form-field>
+										</div>
+										<div class="col-12 pt-1 pb-1">
+											<span>
+												{{'DESCRIPTION-TEMPLATE-TYPE-EDITOR.FIELDS.CODE' | translate}}
+											</span>
+										</div>
+										<div class="col-12">
+											<mat-form-field class="w-100">
+												<input matInput placeholder="{{'DESCRIPTION-TEMPLATE-TYPE-EDITOR.FIELDS.CODE' | translate}}" type="text" name="code" [formControl]="formGroup.get('code')" required>
+												<mat-error *ngIf="formGroup.get('code').hasError('backendError')">{{formGroup.get('code').getError('backendError').message}}</mat-error>
+												<mat-error *ngIf="formGroup.get('code').hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
+											</mat-form-field>
+										</div>
+									</div>
+								</div>
+							</div>
+						</div>
+					</form>
+				</mat-card-content>
+			</mat-card>
+		</div>
+	</div>
+</div>

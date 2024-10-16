@@ -1,0 +1,41 @@
+<div class="container-fluid">
+    <div class="row align-items-center">
+        <ng-container *ngFor="let item of breadCrumbs; let index = index; first as isFirst; last as isLast">
+            <ng-container *ngIf="!item?.hideItem">
+                <div class="col-auto mt-1 pl-0 pr-0" *ngIf="!isFirst">
+                    <mat-icon>chevron_right</mat-icon>
+                </div>
+                
+                <div class="col-auto p-0" [ngClass]="{'mb-1': item.title == HOME_SYMBOL}">
+                    <a *ngIf="(!item?.skipNavigation && !isLast) else skipNavigation" [routerLink]="computePath(index)" class=" text-black" disabled>
+                        <ng-container *ngIf="item.title !== HOME_SYMBOL else homeIcon">
+                            <span class="breadcrumb-item p-2">
+                                {{ item.title | translate:item.translateParams }}
+                            </span>
+                        </ng-container>
+                    </a>
+                    <ng-template #skipNavigation>
+                        <ng-container *ngIf="item?.skipNavigation && !isLast else last">
+                            <ng-container *ngIf="item.title !== HOME_SYMBOL else homeIcon">
+                                <span class="p-2">
+                                    {{ item.title | translate:item.translateParams }}
+                                </span>
+                            </ng-container>
+                        </ng-container>
+                    </ng-template>
+                    <ng-template #last>
+                        <ng-container *ngIf="item.title !== HOME_SYMBOL else homeIcon">
+                            <span class="p-2">
+                                {{ item.title | translate:item.translateParams }}
+                            </span>
+                        </ng-container>
+                    </ng-template>
+                </div>
+            </ng-container>
+        </ng-container>
+    </div>
+</div>
+
+<ng-template #homeIcon>
+    <mat-icon style="width: auto; height: auto; font-size: 1.2rem; color: #949597" class="text-muted breadcrumb-item p-2">home</mat-icon>
+</ng-template>

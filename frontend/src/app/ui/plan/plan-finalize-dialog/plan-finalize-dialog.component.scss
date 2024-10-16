@@ -1,0 +1,132 @@
+.finalize-dialog-wrapper {
+	padding: 1.0rem;
+}
+
+.styleBorder {
+	border: 0.2em solid lightgray;
+	border-radius: 0.5em;
+	margin-bottom: 0.5em;
+}
+
+.confirmation-dialog {
+	.confirmation-message {
+		padding-bottom: 20px;
+	}
+
+	.close-btn {
+		margin-left: auto;
+		cursor: pointer;
+	}
+
+	.cancel {
+		background-color: #aaaaaa;
+		color: #ffffff;
+	}
+
+	.confirm {
+		background-color: #ba2c2c;
+		color: #ffffff;
+	}
+}
+
+.description-card {
+	display: flex;
+	flex-direction: column;
+	min-width: 0;
+	word-wrap: break-word;
+	border-radius: 6px;
+	color: #333333;
+	background: #fff;
+	width: 100%;
+	min-height: 90%;
+	max-height: 90%;
+	margin-top: 1em;
+	margin-bottom: 1em;
+	cursor: pointer;
+	box-shadow: 0 1px 4px 0 rgba(0, 0, 0, 0.14);
+}
+
+.draft-bookmark {
+	color: #e7e6e6;
+	display: inline;
+	padding: 0;
+}
+
+.finalized-bookmark {
+	color: #08bd63;
+	display: inline;
+	padding: 0;
+}
+
+.plan-title {
+	font-weight: 500;
+	color: black;
+}
+
+.close-btn {
+	margin-left: auto;
+	cursor: pointer;
+}
+
+.descriptions span {
+	color: var(--primary-color-3);
+}
+
+.emptyList {
+	font-style: italic;
+	color: rgba(0, 0, 0, 0.26);
+}
+
+.save-btn {
+	background: var(--primary-color) 0% 0% no-repeat padding-box;
+	border-radius: 30px;
+	opacity: 1;
+	width: auto;
+	height: 40px;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	font-weight: 700;
+	color: #ffffff;
+	cursor: pointer;
+}
+
+.submit-btn {
+	min-width: 84px;
+	height: 43px;
+	background: #ffffff;
+	color: var(--primary-color);
+	border: 1px solid var(--primary-color);
+	border-radius: 30px;
+	opacity: 1;
+}
+
+.submit-btn[disabled] {
+	border: 1px solid #b5b5b5 !important;
+}
+
+.submit-btn:not([disabled]):hover {
+	background-color: var(--primary-color);
+    color: #ffffff;
+}
+
+.default-btn {
+	background: #ffffff 0% 0% no-repeat padding-box;
+	box-shadow: 0px 3px 6px #1e202029;
+	border: 1px solid #b5b5b5;
+	border-radius: 30px;
+	opacity: 1;
+	font-size: 0.87rem;
+	font-weight: 500;
+	color: #212121;
+	cursor: pointer;
+}
+
+.cancel-btn {
+min-width: 101px;
+	height: 43px;
+	background: #ffffff;
+	border: 1px solid #b5b5b5;
+	border-radius: 30px;
+	opacity: 1;
+}

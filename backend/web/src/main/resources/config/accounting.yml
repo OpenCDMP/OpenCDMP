@@ -1,0 +1,7 @@
+accounting:
+  enabled: ${ACCOUNTING_ENABLED}
+  serviceId: ${SERVICE_ID}
+  subjectId: unknown
+  fromInstant: 1990-01-01T05:47:26.853Z
+  projectFields:
+    - sum

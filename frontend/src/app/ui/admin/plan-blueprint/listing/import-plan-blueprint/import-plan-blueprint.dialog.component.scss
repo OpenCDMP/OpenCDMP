@@ -1,0 +1,88 @@
+.hidden {
+    display: none;
+}
+
+
+.cancel-btn {
+	background: #ffffff 0% 0% no-repeat padding-box;
+	border: 1px solid #b5b5b5;
+	border-radius: 30px;
+min-width: 101px;
+	height: 43px;
+	color: #212121;
+	font-weight: 500;
+}
+
+.next-btn {
+	background: #ffffff 0% 0% no-repeat padding-box;
+	border: 1px solid var(--primary-color);
+	border-radius: 30px;
+	opacity: 1;
+min-width: 101px;
+	height: 43px;
+	color: var(--primary-color);
+	font-weight: 500;
+}
+
+.next-btn[disabled] {
+	width: 100px;
+	height: 43px;
+	background: #ffffff 0% 0% no-repeat padding-box;
+	border: 1px solid #b5b5b5;
+	border-radius: 30px;
+	opacity: 1;
+}
+
+.next-btn:not([disabled]):hover {
+	background-color: var(--primary-color);
+	color: #ffffff;
+}
+
+//ngx dropzone
+.drop-file {
+	background-color: #fafafa;
+	border: 1px dashed #d1d1d1;
+	border-radius: 4px;
+	max-width: 480px;
+	height: 98px;
+	margin-top: 0.5rem;
+}
+
+.file-preview {
+	height: auto !important;
+	width: auto !important;
+	max-width: 500px !important;
+	min-height: 1rem !important;
+
+	background-color: #e0e0e0 !important;
+	background-image: none !important;
+	color: rgba(0, 0, 0, 0.87) !important;
+	font-weight: 500 !important;
+	border-radius: 24px !important;
+	line-height: 1.25 !important;
+}
+
+.file-label {
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	font-size: 14px !important;
+}
+
+::ng-deep ngx-dropzone-remove-badge {
+	opacity: 1 !important;
+	margin-left: .5rem !important;
+	position: initial !important;
+}
+
+
+//attach file
+
+.attach-btn {
+	top: -20px;
+}
+
+
+.close-btn:hover{
+    cursor: pointer;
+}

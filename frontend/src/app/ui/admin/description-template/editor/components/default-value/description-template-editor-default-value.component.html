@@ -1,0 +1,86 @@
+<div class="row">
+	<!-- BooleanDecision -->
+	<mat-form-field class="col-md-12" *ngIf="fieldType === descriptionTemplateFieldTypeEnum.BOOLEAN_DECISION">
+		<mat-label>{{placeHolder}}</mat-label>
+		<mat-select [formControl]="form" [placeholder]="placeHolder" [required]="required">
+			<mat-option [value]="null">{{'DESCRIPTION-TEMPLATE-EDITOR.STEPS.FORM.FIELD.DEFAULT-VALUES.NONE' |
+				translate}}</mat-option>
+			<mat-option [value]="true">{{'DESCRIPTION-TEMPLATE-EDITOR.STEPS.FORM.FIELD.DEFAULT-VALUES.BOOLEAN-DECISION.YES'
+				|
+				translate}}</mat-option>
+			<mat-option [value]="false">{{'DESCRIPTION-TEMPLATE-EDITOR.STEPS.FORM.FIELD.DEFAULT-VALUES.BOOLEAN-DECISION.NO'
+				|
+				translate}}</mat-option>
+		</mat-select>
+		<mat-error *ngIf="form.hasError('backendError')">{{form.getError('backendError').message}}</mat-error>
+		<mat-error *ngIf="form.hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
+	</mat-form-field>
+
+	<!-- CheckBox -->
+	<mat-form-field class="col-md-12" *ngIf="fieldType === descriptionTemplateFieldTypeEnum.CHECK_BOX">
+		<mat-label>{{placeHolder}}</mat-label>
+		<mat-select [formControl]="form" [placeholder]="placeHolder" [required]="required">
+			<mat-option [value]="true">{{'DESCRIPTION-TEMPLATE-EDITOR.STEPS.FORM.FIELD.DEFAULT-VALUES.CHECK-BOX.CHECKED' | translate}}</mat-option>
+			<mat-option [value]="false">{{'DESCRIPTION-TEMPLATE-EDITOR.STEPS.FORM.FIELD.DEFAULT-VALUES.CHECK-BOX.UNCHECKED' | translate}}</mat-option>
+		</mat-select>
+		<mat-error *ngIf="form.hasError('backendError')">{{form.getError('backendError').message}}</mat-error>
+		<mat-error *ngIf="form.hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
+	</mat-form-field>
+
+	<!-- SELECT -->
+	<mat-form-field class="col-md-12" *ngIf="fieldType === descriptionTemplateFieldTypeEnum.SELECT">
+		<mat-label>{{placeHolder}}</mat-label>
+		<mat-select [formControl]="form" [placeholder]="placeHolder" [required]="required">
+			<mat-option [value]="null">{{'DESCRIPTION-TEMPLATE-EDITOR.STEPS.FORM.FIELD.DEFAULT-VALUES.NONE' | translate }}</mat-option>
+			<mat-option *ngFor="let opt of formArrayOptions['controls']" [value]="opt.get('value').value">{{opt.get('label').value}}</mat-option>
+		</mat-select>
+		<mat-error *ngIf="form.hasError('backendError')">{{form.getError('backendError').message}}</mat-error>
+		<mat-error *ngIf="form.hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
+	</mat-form-field>
+
+	<!-- FreeText -->
+	<mat-form-field class="col-md-12" *ngIf="fieldType === descriptionTemplateFieldTypeEnum.FREE_TEXT">
+		<mat-label>{{placeHolder}}</mat-label>
+		<input matInput type="text" [placeholder]="placeHolder" [formControl]="form" [required]="required">
+		<mat-error *ngIf="form.hasError('backendError')">{{form.getError('backendError').message}}</mat-error>
+		<mat-error *ngIf="form.hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
+	</mat-form-field>
+
+	<!-- RadioBox -->
+	<mat-form-field class="col-md-12" *ngIf="fieldType === descriptionTemplateFieldTypeEnum.RADIO_BOX">
+		<mat-label>{{placeHolder}}</mat-label>
+		<mat-select [formControl]="form" [placeholder]="placeHolder" [required]="required">
+			<mat-option [value]="null">{{'DESCRIPTION-TEMPLATE-EDITOR.STEPS.FORM.FIELD.DEFAULT-VALUES.NONE' | translate}}</mat-option>
+			<mat-option *ngFor="let opt of formArrayOptions['controls']" [value]="opt.get('value').value">{{opt.get('label').value}}</mat-option>
+		</mat-select>
+		<mat-error *ngIf="form.hasError('backendError')">{{form.getError('backendError').message}}</mat-error>
+		<mat-error *ngIf="form.hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
+	</mat-form-field>
+
+	<!-- TextArea -->
+	<mat-form-field class="col-md-12" *ngIf="fieldType === descriptionTemplateFieldTypeEnum.TEXT_AREA">
+		<mat-label>{{placeHolder}}</mat-label>
+		<input matInput type="text" [placeholder]="placeHolder" [formControl]="form" [required]="required">
+		<mat-error *ngIf="form.hasError('backendError')">{{form.getError('backendError').message}}</mat-error>
+		<mat-error *ngIf="form.hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
+	</mat-form-field>
+
+	<!-- RichTextArea -->
+	<mat-form-field class="col-md-12" *ngIf="fieldType === descriptionTemplateFieldTypeEnum.RICH_TEXT_AREA">
+		<mat-label>{{placeHolder}}</mat-label>
+		<input matInput type="text" [placeholder]="placeHolder" [formControl]="form" [required]="required">
+		<mat-error *ngIf="form.hasError('backendError')">{{form.getError('backendError').message}}</mat-error>
+		<mat-error *ngIf="form.hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
+	</mat-form-field>
+
+	<!-- DatePicker -->
+	<mat-form-field class="col-12" *ngIf="fieldType === descriptionTemplateFieldTypeEnum.DATE_PICKER">
+		<mat-label>{{placeHolder}}</mat-label>
+		<input matInput [placeholder]="placeHolder" class="table-input" [matDatepicker]="date" [formControl]="form" [required]="required">
+		<mat-datepicker-toggle matSuffix [for]="date"></mat-datepicker-toggle>
+		<mat-datepicker #date></mat-datepicker>
+		<mat-error *ngIf="form.hasError('backendError')">{{form.getError('backendError').message}}</mat-error>
+		<mat-error *ngIf="form.hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}
+		</mat-error>
+	</mat-form-field>
+</div>

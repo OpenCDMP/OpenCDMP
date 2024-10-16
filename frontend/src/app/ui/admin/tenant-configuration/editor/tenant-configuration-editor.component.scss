@@ -1,0 +1,15 @@
+.tenant-configuration-component {
+	
+	.configuration-container {
+		margin-top: 2em;
+	}
+
+	.nav-list-width {
+		width: 15em;
+	}
+
+	.headers-align .mat-expansion-panel-header-title,
+	.headers-align .mat-expansion-panel-header-description {
+		flex-basis: 0;
+	}
+}

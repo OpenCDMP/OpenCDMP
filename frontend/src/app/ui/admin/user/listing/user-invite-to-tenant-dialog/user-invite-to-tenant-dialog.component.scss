@@ -1,0 +1,89 @@
+.user-invite-to-tenant-dialog {
+	padding: 2.5rem;
+
+	.form-container {
+		width: 33em;
+		min-height: 14em;
+		padding: 0.28em 0.34em 0em 1.125em;
+	}
+
+	.title {
+		font-size: 2.375em;
+		font-weight: lighter;
+		color: #000000;
+		opacity: 0.8;
+	}
+
+	.content {
+		width: 31em;
+		margin: 0px;
+		padding: 0px;
+	}
+
+	.hint {
+		font-size: 0.875rem;
+		font-weight: 500;
+		color: #212121;
+		opacity: 0.81;
+	}
+
+	::ng-deep .mat-dialog-container {
+		border-radius: 8px;
+	}
+
+	.search {
+		padding: 2px !important;
+	}
+
+	::ng-deep .search {
+		.mat-form-field-infix {
+			font-size: 1rem;
+			padding: 0.6em 0 1em 0 !important;
+		}
+	}
+
+	.select-role {
+		width: 50% !important;
+		font-size: 14px;
+		color: #848484;
+		height: min-content;
+		margin-right: 2rem;
+		border: none;
+		background-color: transparent;
+	}
+
+	::ng-deep .select-role {
+
+		.mat-form-field-outline-start,
+		.mat-form-field-outline-gap,
+		.mat-form-field-outline-end {
+			border: none !important;
+		}
+
+		.mat-select-arrow-wrapper {
+			transform: none !important;
+		}
+	}
+
+	::ng-deep .select-role .mat-form-field-wrapper {
+		padding-bottom: 0 !important;
+	}
+
+	@keyframes blink {
+		0% {
+			border: 1px solid rgba(255, 0, 0, 0.2);
+		}
+
+		50% {
+			border: 1px solid rgba(255, 0, 0, 0.5);
+		}
+
+		100% {
+			border: 1px solid rgba(255, 0, 0, 0.2);
+		}
+	}
+
+	:host ::ng-deep .invalid-email {
+		border: 1px solid red;
+	}
+}

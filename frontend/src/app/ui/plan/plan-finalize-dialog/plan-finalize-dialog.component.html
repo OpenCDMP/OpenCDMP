@@ -1,0 +1,96 @@
+<div class="finalize-dialog-wrapper">
+	<div class="row d-flex flex-row">
+		<div mat-dialog-title class="col-auto">{{ 'PLAN-FINALISE-DIALOG.TITLE' | translate }}</div>
+		<div class="col-auto ml-auto">
+            <button mat-icon-button tabindex="-1" (click)="close()">
+                <mat-icon>close</mat-icon>
+            </button>
+		</div>
+	</div>
+	<div mat-dialog-content class="pt-2 pb-2">
+		<div class="d-flex flex-column">
+			<mat-accordion [multi]="true">
+				<mat-expansion-panel>
+					<mat-expansion-panel-header>
+						<mat-panel-title>
+							{{ 'PLAN-FINALISE-DIALOG.PLAN' | translate }}
+						</mat-panel-title>
+						<mat-panel-description class="plan-title">
+							{{ plan.label }}
+						</mat-panel-description>
+					</mat-expansion-panel-header>
+					{{ plan.description }}
+				</mat-expansion-panel>
+				<mat-expansion-panel [expanded]="true" *ngIf="isPlanValid">
+					<mat-expansion-panel-header>
+						<mat-panel-title>
+							{{ 'PLAN-FINALISE-DIALOG.DESCRPIPTIONS' | translate }}
+						</mat-panel-title>
+						<mat-panel-description></mat-panel-description>
+					</mat-expansion-panel-header>
+					<div *ngIf="plan.descriptions && plan.descriptions.length > 0">
+						<div *ngFor="let description of plan.descriptions" class="row pl-3 descriptions">
+							<mat-icon *ngIf="description.status == descriptionStatusEnum.Draft" class="col-1 draft-bookmark">bookmark</mat-icon>
+							<mat-icon *ngIf="description.status == descriptionStatusEnum.Finalized" class="col-1 finalized-bookmark">bookmark</mat-icon>
+							<h4 *ngIf="description.status == descriptionStatusEnum.Draft" class="col-11 ml-auto mt-1 mb-4">
+								<span>{{ 'TYPES.DESCRIPTION-STATUS.DRAFT' | translate }}
+								<ng-container *ngIf="!isDescriptionValid(description.id)">
+									({{'PLAN-FINALISE-DIALOG.INVALID' | translate}})
+								</ng-container>
+								:</span>
+								{{ description.label }}
+								<i *ngIf="(descriptionValidationOutputMap.get(description.id) != descriptionValidationOutputEnum.Invalid) && (descriptionValidationOutputMap.get(description.id) != descriptionValidationOutputEnum.Valid)" class="fa fa-spinner fa-spin" ></i>
+							</h4>
+							<h4 *ngIf="description.status == descriptionStatusEnum.Finalized" class="col-11 ml-auto mt-1 mb-4">{{ description.label }}</h4>
+						</div>
+					</div>
+					<div *ngIf="!plan.descriptions" class="emptyList">{{ 'PLAN-FINALISE-DIALOG.EMPTY' | translate }} </div>
+				</mat-expansion-panel>
+			</mat-accordion>
+
+			<div *ngIf="validDraftDescriptions.length > 0" class="pt-4 pb-2">
+				<h4 class="pl-2">{{'PLAN-FINALISE-DIALOG.FINALISE-TITLE' | translate}}</h4>
+				<mat-selection-list [(ngModel)]="descriptionsToBeFinalized">
+					<div class="styleBorder" *ngFor="let description of validDraftDescriptions">
+						<mat-list-option [value]='description.id' [disabled]="!isDescriptionValid(description.id)">
+							<span class="text-truncate" [matTooltip]="description.label">{{ description.label }}</span>
+						</mat-list-option>
+					</div>
+				</mat-selection-list>
+			</div>
+			@if(isPlanValid == false){
+				<mat-error class="pt-3 pb-1">
+					{{ 'PLAN-FINALISE-DIALOG.VALIDATION.INVALID-PLAN' | translate }}
+				</mat-error>
+				 @for(error of planErrors; track error){
+                    <mat-error  class="d-flex gap-half-rem mt-1 mb-1">
+                        <i class="fa fa-circle mt-auto mb-auto" style="font-size:0.5rem"></i> {{error | titlecase}}
+                    </mat-error>
+                }
+            }
+			<mat-error *ngIf="getFinalizedDescriptions().length === 0 && descriptionsToBeFinalized.length === 0 && isPlanValid">
+				{{'PLAN-FINALISE-DIALOG.VALIDATION.AT-LEAST-ONE-DESCRPIPTION-FINALISED' | translate}}
+			</mat-error>
+		</div>
+	</div>
+	<div *ngIf="getFinalizedDescriptions().length != 0">
+		<div class="row pt-2 pb-2 pl-4 pr-4">
+			{{ 'PLAN-FINALISE-DIALOG.IMPACT' | translate }}
+		</div>
+		<div *ngIf="plan.accessType == planAccessTypeEnum.Public" class="row pl-4 pr-4">
+			{{ 'PLAN-FINALISE-DIALOG.PUBLIC-PLAN-MESSAGE' | translate }}
+		</div>
+		<div *ngIf="plan.accessType == planAccessTypeEnum.Restricted" class="row pl-4 pr-4">
+			{{ 'PLAN-FINALISE-DIALOG.RESTRICTED-PLAN-MESSAGE' | translate }}
+		</div>
+	</div>
+
+	<div mat-dialog-actions class="d-flex justify-content-end mb-1">
+		<div class="col-auto">
+			<button mat-button cdkFocusInitial (click)="close()" class="rounded-btn neutral">{{ 'PLAN-FINALISE-DIALOG.ACTIONS.CANCEL' | translate }}</button>
+		</div>
+		<div class="col-auto">
+			<button mat-button [disabled]="!isPlanValid || getFinalizedDescriptions().length === 0 && descriptionsToBeFinalized.length === 0" class="rounded-btn primary" (click)="onSubmit()">{{ 'PLAN-FINALISE-DIALOG.ACTIONS.SUBMIT' | translate }}</button>
+		</div>
+	</div>
+</div>

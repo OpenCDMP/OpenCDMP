@@ -1,0 +1,59 @@
+<div class="d-flex align-items-center gap-1-rem">
+
+	<button mat-flat-button [matMenuTriggerFor]="filterMenu" #filterMenuTrigger="matMenuTrigger" (click)="updateFilters()" class="filter-button">
+		<mat-icon aria-hidden="false" [matBadgeHidden]="!appliedFilterCount" [matBadge]="appliedFilterCount" matBadgeColor="warn" matBadgeSize="small">filter_alt</mat-icon>
+		{{'COMMONS.LISTING-COMPONENT.SEARCH-FILTER-BTN' | translate}}
+	</button>
+
+
+	<mat-menu #filterMenu>
+		<div class="container-fluid" (click)="$event?.stopPropagation?.()">
+			<div class="row justify-content-between">
+				<div class="col-auto mt-2">
+					<h4>{{'USAGE-LIMIT-LISTING.FILTER.TITLE' | translate}}</h4>
+				</div>
+				<div class="col-auto">
+					<button color="accent" mat-button (click)="clearFilters()">
+						{{'COMMONS.LISTING-COMPONENT.CLEAR-ALL-FILTERS' | translate}}
+					</button>
+				</div>
+			</div>
+
+			<div class="row mt-3">
+				<div class="col-12">
+					<section class="w-100">
+						<mat-slide-toggle labelPosition="before" [(ngModel)]="internalFilters.isActive">
+							{{'USAGE-LIMIT-LISTING.FILTER.IS-ACTIVE' | translate}}
+						</mat-slide-toggle>
+					</section>
+				</div>
+			</div>
+
+			<div class="row mt-3">
+				<div class="col-12">
+					<mat-form-field class="w-100">
+						<mat-label>{{'NOTIFICATION-SERVICE.NOTIFICATION-LISTING.FILTER.NOTIFICATION-TYPE' | translate}}</mat-label>
+						<mat-select multiple [(ngModel)]="internalFilters.usageLimitTargetMetrics">
+							<mat-option *ngFor="let metric of targetMetricEnumValues" [value]="metric">{{enumUtils.toUsageLimitTargetMetricString(metric)}}</mat-option>
+						</mat-select>
+					</mat-form-field>
+				</div>
+			</div>
+
+			<div class="row justify-content-end align-items-center mt-4 mb-1 gap-1-rem">
+				<div class="col-auto">
+					<button mat-button class="rounded-btn primary-inverted" (click)="filterMenuTrigger?.closeMenu()">
+						{{'USAGE-LIMIT-LISTING.FILTER.CANCEL' | translate}}
+					</button>
+				</div>
+				<div class="col-auto">
+					<button mat-button class="rounded-btn primary" (click)="filterMenuTrigger.closeMenu(); applyFilters();">
+						{{'USAGE-LIMIT-LISTING.FILTER.APPLY-FILTERS' | translate}}
+					</button>
+				</div>
+			</div>
+		</div>
+	</mat-menu>
+
+	<app-expandable-search-field [(value)]=internalFilters.like (valueChange)="onSearchTermChange($event)" />
+</div>

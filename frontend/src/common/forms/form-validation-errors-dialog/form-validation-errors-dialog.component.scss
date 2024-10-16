@@ -1,0 +1,91 @@
+.form-content-editor-content {
+	width: 33rem;
+	min-height: 15rem;
+	padding: 0.28rem 0.34rem 0rem 0.625rem;
+}
+
+.logo {
+	width: 8.44rem;
+}
+
+.close-icon {
+	cursor: pointer;
+	padding: .4rem;
+	width: auto !important;
+	height: auto !important;
+}
+
+.close-icon:hover {
+	background-color: #ECECED !important;
+	border-radius: 50%;
+}
+
+.content {
+	margin: 2.17rem 0rem 1.1875rem 0rem;
+}
+
+.text {
+	font-size: 1.25rem;
+	font-weight: lighter;
+	color: #000000;
+	opacity: 0.8;
+}
+
+.title {
+	text-align: left;
+	font-weight: 500;
+	font-size: 1.25rem;
+	letter-spacing: 0px;
+	color: #f16868;
+	opacity: 1;
+}
+
+.text {
+	margin-bottom: 2.9375rem;
+	line-height: 1.9rem;
+}
+
+.cancel-btn {
+	background: #ffffff 0% 0% no-repeat padding-box;
+	border: 1px solid #b5b5b5;
+	border-radius: 30px;
+min-width: 101px;
+	height: 43px;
+	color: #212121;
+	font-weight: 500;
+}
+
+.next-btn {
+	background: #ffffff 0% 0% no-repeat padding-box;
+	border: 1px solid var(--primary-color);
+	border-radius: 30px;
+	opacity: 1;
+min-width: 101px;
+	height: 43px;
+	color: var(--primary-color);
+	font-weight: 500;
+}
+
+.disabled-btn {
+	border: 1px solid #b5b5b5;
+	border-radius: 30px;
+	opacity: 1;
+min-width: 101px;
+	height: 43px;
+	color: #b5b5b5;
+	font-weight: 500;
+}
+
+.error-list {
+	margin-bottom: 0;
+	padding-left: 1.5rem;
+	li {
+		line-height: 1.6rem;
+	}
+}
+
+#warningText {
+	color: red;
+	text-decoration: underline;
+	text-decoration-color: red;
+}

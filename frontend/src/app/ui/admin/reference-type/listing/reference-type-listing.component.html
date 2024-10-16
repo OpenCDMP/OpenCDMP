@@ -1,0 +1,97 @@
+<div class="container-fluid">
+	<div class="row reference-type-listing">
+		<div class="col-md-10 offset-md-1">
+
+			<div class="row mb-4 mt-4">
+				<div class="col">
+					<app-navigation-breadcrumb />
+				</div>
+				<div class="col-auto">
+					<button mat-button class="rounded-btn secondary"
+						*ngIf="authService.hasPermission(authService.permissionEnum.EditReferenceType)"
+						[routerLink]="routerUtils.generateUrl(['/reference-type/new'])">
+						<mat-icon>add</mat-icon>
+						{{'REFERENCE-TYPE-LISTING.CREATE-TYPE' | translate}}
+					</button>
+				</div>
+			</div>
+
+			<app-hybrid-listing [rows]="gridRows" [columns]="gridColumns" [visibleColumns]="visibleColumns"
+				[count]="totalElements" [offset]="currentPageNumber" [limit]="lookup.page.size"
+				[defaultSort]="lookup.order?.items" [externalSorting]="true" (rowActivated)="onRowActivated($event)"
+				(pageLoad)="alterPage($event)" (columnSort)="onColumnSort($event)"
+				(columnsChanged)="onColumnsChanged($event)" [listItemTemplate]="listItemTemplate">
+
+				<app-reference-type-listing-filters hybrid-listing-filters [(filter)]="lookup"
+					(filterChange)="filterChanged($event)" />
+
+				<app-user-settings-picker [key]="userSettingsKey" [userPreference]="lookup"
+					(onSettingSelected)="changeSetting($event)" [autoSelectUserSettings]="autoSelectUserSettings"
+					user-preference-settings />
+			</app-hybrid-listing>
+
+		</div>
+	</div>
+</div>
+
+
+<ng-template #listItemTemplate let-item="item" let-isColumnSelected="isColumnSelected">
+
+
+	<div class="d-flex align-items-center p-3 gap-1-rem">
+		<div class="row">
+			<ng-container *ngIf="isColumnSelected('name')">
+				<a class="buttonLinkClass" [routerLink]="routerUtils.generateUrl('./' + item?.id)" class="col-12"
+					(click)="$event.stopPropagation()">{{item?.name | nullifyValue}}</a>
+				<br />
+			</ng-container>
+
+			<ng-container *ngIf="isColumnSelected('code')">
+				<span class="col-12">
+					{{'REFERENCE-TYPE-LISTING.FIELDS.CODE' | translate}}:
+					<small>
+						{{item?.code | nullifyValue}}
+					</small>
+				</span>
+				<br>
+			</ng-container>
+
+			<ng-container *ngIf="isColumnSelected('createdAt')">
+				<span class="col-12">
+					{{'REFERENCE-TYPE-LISTING.FIELDS.CREATED-AT' | translate}}:
+					<small>
+						{{item?.createdAt | dateTimeFormatter : 'short' | nullifyValue}}
+					</small>
+				</span>
+				<br>
+			</ng-container>
+			<ng-container *ngIf="isColumnSelected('updatedAt')">
+				<span class="col-12">
+					{{'REFERENCE-TYPE-LISTING.FIELDS.UPDATED-AT' | translate}}:
+					<small>
+						{{item?.updatedAt | dateTimeFormatter : 'short' | nullifyValue}}
+					</small>
+				</span>
+			</ng-container>
+		</div>
+	</div>
+</ng-template>
+
+<ng-template #actions let-row="row" let-item>
+	<div *ngIf="row?.belongsToCurrentTenant && !isDeleted(row)" class="row" (click)="$event.stopPropagation()">
+		<div class="col-auto">
+			<button mat-icon-button [matMenuTriggerFor]="actionsMenu">
+				<mat-icon>more_horiz</mat-icon>
+			</button>
+			<mat-menu #actionsMenu="matMenu">
+				<a *ngIf="canEdit(row)" mat-menu-item [routerLink]="routerUtils.generateUrl(['/reference-type/', row.id])">
+					<mat-icon>edit</mat-icon>{{'REFERENCE-TYPE-LISTING.ACTIONS.EDIT' | translate}}
+				</a>
+				<button *ngIf="canDelete(row)" mat-menu-item (click)="deleteType(row.id)">
+					<mat-icon>delete</mat-icon>
+					{{'REFERENCE-TYPE-LISTING.ACTIONS.DELETE' | translate}}
+				</button>
+			</mat-menu>
+		</div>
+	</div>
+</ng-template>

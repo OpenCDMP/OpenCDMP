@@ -1,0 +1,21 @@
+.supportive-material-editor {
+
+	.material{
+        float: left; 
+        margin: 20px; 
+	}
+
+	.lang{
+        float: right; 
+        margin: 20px; 
+	}
+
+	.save-btn {
+		padding-top: inherit !important;
+		top: auto !important;
+		width: 56px !important;
+		bottom: 10px;
+		position: fixed;
+		right: 40px;
+	}
+}

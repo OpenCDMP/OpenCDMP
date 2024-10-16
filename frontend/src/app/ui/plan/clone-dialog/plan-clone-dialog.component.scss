@@ -1,0 +1,27 @@
+.clone-dialog {
+	padding: 1.5rem;
+
+	.heading {
+		text-align: left;
+		font-weight: 700;
+		font-size: 18px;
+		letter-spacing: 0px;
+		color: #212121;
+		opacity: 0.81;
+		margin-bottom: 0.625rem;
+	}
+
+	.heading-1 {
+		text-align: left;
+		font-weight: 700;
+		font-size: 20px;
+		letter-spacing: 0px;
+		color: #212121;
+		opacity: 0.81;
+		margin-bottom: 0.625rem;
+	}
+	
+	::ng-deep label {
+		margin: 0;
+	}
+}

@@ -1,0 +1,28 @@
+.navbar.navbar-transparent {
+  background-color: white !important;
+  -webkit-box-shadow: none;
+  box-shadow: none;
+}
+
+.navbar .navbar-brand {
+  position: relative;
+  color: inherit;
+  height: 50px;
+  font-size: 1rem;
+  line-height: 30px;
+  padding: 0.625rem 0;
+  font-weight: 600;
+  margin-left: 1rem;
+  color:  rgb(117, 117, 117);
+}
+
+.navbar-wrapper i {
+  padding-bottom: 5px;
+  cursor: pointer;
+  color: rgb(117, 117, 117);
+}
+
+.material-icons.md-32 {
+  font-size: 32px !important;
+  color: rgb(117, 117, 117);
+}

@@ -1,0 +1,26 @@
+<div class="mt-3 pl-3 pr-3 pb-2 pt-1">
+  <div class="row align-items-center">
+    <div class="col">
+      <h4 class="mt-1"> {{ 'DESCRIPTION-EDITOR.DEPRECATED-DESCRIPTION-TEMPLATE.TITLE' | translate}} {{ data.label }}</h4>
+    </div>
+    <div class="col-auto">
+      <button mat-icon-button tabindex="-1" (click)="cancel()"><mat-icon>close</mat-icon></button>
+    </div>
+  </div>
+</div>
+
+<mat-dialog-content class="pt-2 pb-2">
+  <div class="row">
+    <div class="col-12">
+      <span>{{ 'DESCRIPTION-EDITOR.DEPRECATED-DESCRIPTION-TEMPLATE.MESSAGE' | translate}}</span>
+    </div>
+  </div>
+</mat-dialog-content>
+<mat-dialog-actions class="mt-3 mb-3 pb-1">
+  <div class="col-auto pb-1">
+    <button mat-button type="button" tabindex="-1" class="rounded-btn primary-inverted" (click)="cancel()"><span>{{ 'DESCRIPTION-EDITOR.DEPRECATED-DESCRIPTION-TEMPLATE.ACTIONS.CANCEL' | translate}}</span></button>
+  </div>
+  <div class="ml-auto col-auto pb-1">
+    <button mat-button type="button" class="rounded-btn primary" (click)="update()"><span>{{ 'DESCRIPTION-EDITOR.DEPRECATED-DESCRIPTION-TEMPLATE.ACTIONS.UPDATE' | translate}}</span></button>
+  </div>
+</mat-dialog-actions>

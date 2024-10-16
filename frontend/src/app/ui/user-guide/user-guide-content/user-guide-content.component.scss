@@ -1,0 +1,30 @@
+:host ::ng-deep .href {
+	color: rgb(0, 0, 238) !important;
+}
+
+:host :hover ::ng-deep .href {
+	cursor: pointer !important;
+}
+
+#userguide {
+}
+
+.custom-header {
+	font-size: 20px;
+	letter-spacing: 0px;
+	color: #212121;
+	margin-top: 67px;
+	margin-bottom: 38px;
+	opacity: 1;
+}
+
+.iframe {
+	width: 100%;
+	height: calc(100vh - 80px);
+	margin: 0px;
+	border: none;
+}
+
+:host :hover ::ng-deep .tocElement {
+	cursor: pointer !important;
+}

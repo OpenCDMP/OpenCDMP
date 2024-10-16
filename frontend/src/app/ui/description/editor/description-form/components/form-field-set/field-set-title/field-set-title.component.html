@@ -1,0 +1,35 @@
+<div *ngIf="!hideTitle" class="row">
+	<div class="col-12">
+		<div class="row title">
+			<h5 *ngIf="fieldSet.title && !isChild" class="col-auto field-set toc-field-set-header" [id]="fieldSet.id" [ngClass]="{'focused': isAnchor}">
+				{{path}}
+				{{fieldSet.title}}
+			</h5>
+			<mat-icon class="col-auto info-icon" *ngIf="fieldSet.additionalInformation && !isChild" matTooltip="{{fieldSet.additionalInformation}}">info</mat-icon>
+			<button *ngIf="!hildeLink" mat-icon-button class="col-auto link-icon" type="button" matTooltip="{{ 'DESCRIPTION-EDITOR.QUESTION.EXTENDED-DESCRIPTION.COPY-LINK' | translate }}" (click)="copyLink()">
+				<mat-icon class="">link</mat-icon>
+			</button>
+		</div>
+	</div>
+</div>
+
+<div class="row">
+	<div class="col-12">
+		<h6 *ngIf="fieldSet.description && !isChild" [innerHTML]="fieldSet.description"></h6>
+	</div>
+</div>
+
+<div class="row">
+	<div *ngIf="fieldSet.extendedDescription  && !isChild" class="col-12 mt-3 mb-3">
+		<div *ngIf="!showExtendedDescription" (click)="showExtendedDescription = !showExtendedDescription">
+			<span class="more d-flex justify-content-center">{{'DESCRIPTION-EDITOR.ACTIONS.VIEW-MORE' | translate}}</span>
+		</div>
+		<div *ngIf="showExtendedDescription">
+			<h6 [innerHTML]="fieldSet.extendedDescription"></h6>
+			<span class="more d-flex justify-content-center" (click)="showExtendedDescription = !showExtendedDescription">
+				{{'DESCRIPTION-EDITOR.ACTIONS.VIEW-LESS' | translate}}
+			</span>
+		</div>
+	</div>
+</div>
+	

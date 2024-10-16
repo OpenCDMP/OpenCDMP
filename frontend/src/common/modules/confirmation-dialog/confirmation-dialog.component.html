@@ -1,0 +1,32 @@
+<div class="confirmation-dialog">
+	<div class="row" *ngIf="data.icon || data.warning">
+		<div class="col-auto" *ngIf="data.icon">
+			<button mat-icon-button><mat-icon color="warn">{{ data.icon }}</mat-icon></button>
+		</div>
+		<div *ngIf="data.warning" class="col justify-content-center warn-text"> <h5><strong>{{ data.warning }}</strong></h5></div>
+		<div class="col-auto">
+			<button mat-icon-button tabindex="-1" (click)="close()"><mat-icon>close</mat-icon></button>
+		</div>
+	</div>
+	<div class="row justify-content-end mb-1" *ngIf="!data.icon && !data.warning">
+		<div class="col-auto">
+			<button mat-icon-button tabindex="-1" (click)="close()"><mat-icon>close</mat-icon></button>
+		</div>
+	</div>
+	<div class="row d-flex flex-row mb-2">
+		<div class="col message pb-4 pl-3">{{ data.message }}</div>
+	</div>
+	<div *ngIf="data.privacyPolicyNames" class="row d-flex flex-col">
+		<div class="col-12 privacy-policy-names">{{ data.privacyPolicyNames }}</div>
+		<mat-checkbox [(ngModel)]="agreePrivacyPolicyNames" required class="checkbox-privacy">
+			{{'GENERAL.CONFIRMATION-DIALOG.ACTIONS.POLICY-AGREE' | translate}}
+		</mat-checkbox>
+		<div *ngIf="!agreePrivacyPolicyNames" class="required-policy">{{'GENERAL.CONFIRMATION-DIALOG.ACTIONS.REQUIRED' | translate}}</div>
+	</div>
+	<div class="row" style="justify-content: space-between;">
+		<div class="col-auto"><button mat-button type="button" class="rounded-btn neutral" (click)="cancel()">{{ data.cancelButton }}</button></div>
+		<div *ngIf="data.isDeleteConfirmation" class="col-auto"><button mat-button type="button" (click)="confirm()" class="rounded-btn delete-inverted">{{ data.confirmButton }}</button></div>
+		<div *ngIf="!data.isDeleteConfirmation && !data.privacyPolicyNames" class="col-auto"><button mat-button type="button" (click)="confirm()" class="rounded-btn primary-inverted primary-inverted-hover">{{ data.confirmButton }}</button></div>
+		<div *ngIf="!data.isDeleteConfirmation && data.privacyPolicyNames" class="col-auto"><button mat-button type="button" [disabled]="!agreePrivacyPolicyNames" (click)="confirm()" class="rounded-btn primary-inverted primary-inverted-hover">{{ data.confirmButton }}</button></div>
+	</div>
+</div>

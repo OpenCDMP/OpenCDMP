@@ -1,0 +1,53 @@
+﻿<form class="row user-role-editor" *ngIf="formGroup" [formGroup]="formGroup" (ngSubmit)="formSubmit()">
+	<div class="container-fluid">
+		<div class="row align-items-center">
+			<div *ngIf="!this.nowEditing"class="roles col-8">
+				<ng-container *ngIf="!hasTenantAdminMode">
+					<div *ngFor="let role of this.formGroup.get('roles').value" class="row">
+						<div class="col-auto p-0">
+							<span class="user-role" [ngClass]="{'user': role == appRole.User, 'tenant-plan-manager': role == appRole.TenantPlanManager, 'admin': role == appRole.Admin, 'installation-admin': role == appRole.InstallationAdmin, 'tenant-config-manager': role == appRole.TenantConfigManager, 'tenant-admin': role == appRole.TenantAdmin, 'tenant-user': role == appRole.TenantUser}">
+								{{enumUtils.toAppRoleString(role)}}
+							</span>
+						</div>
+					</div>
+				</ng-container>
+				<ng-container *ngIf="hasTenantAdminMode">
+					<div *ngFor="let role of this.formGroup.get('roles').value" class="row">
+						<div class="col-auto p-0">
+							<span *ngIf="role != appRole.Admin && role != appRole.InstallationAdmin && role != appRole.User" class="user-role" [ngClass]="{'user': role == appRole.User, 'tenant-plan-manager': role == appRole.TenantPlanManager, 'admin': role == appRole.Admin, 'installation-admin': role == appRole.InstallationAdmin, 'tenant-config-manager': role == appRole.TenantConfigManager, 'tenant-admin': role == appRole.TenantAdmin, 'tenant-user': role == appRole.TenantUser}">
+								{{enumUtils.toAppRoleString(role)}}
+							</span>
+						</div>
+					</div>
+				</ng-container>
+			</div>
+			<div *ngIf="this.nowEditing" class="pl-0 mt-4 col-8">
+				<mat-form-field class="w-100">
+					<mat-select formControlName="roles" [panelWidth]="auto" multiple required>
+						<mat-option *ngIf="!hasTenantAdminMode" [value]="appRole.Admin">{{enumUtils.toAppRoleString(appRole.Admin)}}</mat-option>
+						<mat-option *ngIf="!hasTenantAdminMode" [value]="appRole.InstallationAdmin">{{enumUtils.toAppRoleString(appRole.InstallationAdmin)}}</mat-option>
+						<mat-option *ngIf="!hasTenantAdminMode" [value]="appRole.User">{{enumUtils.toAppRoleString(appRole.User)}}</mat-option>
+						<mat-option [value]="appRole.TenantAdmin">{{enumUtils.toAppRoleString(appRole.TenantAdmin)}}</mat-option>
+						<mat-option [value]="appRole.TenantPlanManager">{{enumUtils.toAppRoleString(appRole.TenantPlanManager)}}</mat-option>
+						<mat-option [value]="appRole.TenantConfigManager">{{enumUtils.toAppRoleString(appRole.TenantConfigManager)}}</mat-option>
+						<mat-option [value]="appRole.TenantUser">{{enumUtils.toAppRoleString(appRole.TenantUser)}}</mat-option>	
+					</mat-select>
+					<mat-error *ngIf="formGroup.get('roles').hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
+				</mat-form-field>
+			</div>
+
+			<div *ngIf="!this.nowEditing" class="col-auto p-0 dense-3">
+				<button mat-icon-button color="primary" type="button" (click)="editItem()" matTooltip="{{'USER-LISTING.ACTIONS.EDIT' | translate}}">
+					<mat-icon>edit</mat-icon>
+				</button>
+			</div>
+			<div *ngIf="this.nowEditing" class="col-auto p-0 dense-3">
+				<button mat-icon-button color="primary" type="submit" matTooltip="{{'USER-LISTING.ACTIONS.SAVE' | translate}}">
+					<mat-icon>save</mat-icon>
+				</button>
+			</div>
+		</div>
+	</div>
+
+
+</form>

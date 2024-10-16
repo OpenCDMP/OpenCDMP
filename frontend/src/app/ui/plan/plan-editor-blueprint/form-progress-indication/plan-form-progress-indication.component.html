@@ -1,0 +1,5 @@
+﻿<div class="demo-progress-bar-container">
+  <div class="percentage d-flex justify-content-center">{{progressSoFar}} {{'GENERAL.PREPOSITIONS.OF' | translate}} {{total}}</div>
+  <mat-progress-bar class="form-progress-bar" [ngClass]="{'progress-bar': true}" mode="determinate" [value]="value"></mat-progress-bar>
+  <div class="percentage" [ngStyle]="{'padding-left': value ? value - 10 + '%' : 0 + '%' }">{{value}}%</div>
+</div>

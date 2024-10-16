@@ -1,0 +1,121 @@
+.remove-border-bottom ::ng-deep .mat-tab-header {
+	border-bottom: none;
+}
+
+input[type="text"] {
+	background: #fafafa 0% 0% no-repeat padding-box;
+	border: 1px solid #d1d1d1;
+	border-radius: 4px;
+	opacity: 1;
+	width: 347px;
+	height: 56px;
+	font-family: Arial, FontAwesome;
+	padding-left: 15px;
+}
+
+.plan-label {
+	background: var(--primary-color) 0% 0% no-repeat padding-box;
+	border-radius: 4px 0px;
+	opacity: 1;
+	min-width: 67px;
+	height: 37px;
+	color: #ffffff;
+	line-height: 2.4;
+}
+
+.icon-align {
+	display: inline-flex;
+	vertical-align: middle;
+}
+
+.description-card-actions,
+.plan-card-actions {
+	display: flex;
+	flex-direction: row;
+	border-top: 1px solid #dbdbdb;
+	line-height: 4;
+	color: #848484;
+}
+
+.description-card-actions,
+.plan-card-actions {
+	display: flex;
+	flex-direction: row;
+	border-top: 1px solid #dbdbdb;
+	line-height: 4;
+	color: #848484;
+}
+
+.description-card-actions a,
+.plan-card-actions a {
+	color: #848484 !important;
+	text-decoration: none !important;
+}
+
+.description-card-actions a:hover,
+.plan-card-actions a:hover {
+	color: var(--primary-color) !important;
+}
+
+.plan-description-descriptions-title {
+	color: #000000;
+	opacity: 0.6;
+	padding-top: 1.5rem;
+	padding-bottom: 0.8rem;
+}
+
+.plan-description-descriptions-name {
+	color: #000000;
+	opacity: 0.6;
+	font-weight: 700;
+}
+
+.show-more {
+	color: black !important;
+}
+
+.show-more:hover {
+	color: var(--primary-color) !important;
+}
+
+.draft {
+	color: #f16868;
+}
+
+.pointer {
+	cursor: pointer;
+}
+
+.search-form {
+	text-align: left;
+	width: 20rem;
+	min-width: 100%;
+}
+
+.search-form mat-icon {
+	color: var(--primary-color);
+}
+
+::ng-deep .search-form .mat-form-field-wrapper {
+	background-color: white !important;
+	padding-bottom: 0 !important;
+}
+
+::ng-deep .sort-form .mat-form-field-wrapper {
+	background-color: white !important;
+	padding-bottom: 0 !important;
+}
+
+::ng-deep .mat-form-field-appearance-outline .mat-form-field-infix {
+	padding: 0.3rem 0rem 0.6rem 0rem !important;
+}
+
+.empty-list {
+	text-align: center;
+	font-weight: 300;
+	font-size: 1.25rem;
+	letter-spacing: 0px;
+	color: #212121;
+	opacity: 0.6;
+  }
+

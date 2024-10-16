@@ -1,0 +1,20 @@
+.insert-manually {
+    text-decoration: underline;
+    color: var(--primary-color-3);
+    cursor: pointer;
+    font-weight: 400;
+}
+
+.not-found {
+    color: #333;
+    font-weight: 400;
+    padding: 0rem 0.5rem 0rem 0rem;
+}
+
+.could-not-finded-container {
+    margin-bottom: 3em;
+}
+
+.inherit-mat-hint { //todo mchouliara move to styles.scss after accessibility refactor merge
+    font-size: var(--mat-form-field-subscript-text-size);
+}

@@ -1,0 +1,34 @@
+<div mat-dialog-title>
+	<div class="row">
+		<div class="col-auto">
+			<h5 class="field-set-title">{{numberingText}} {{fieldSet.title}}</h5>
+		</div>
+		<div class="col-auto ml-auto">
+            <button mat-icon-button tabindex="-1" (click)="close()">
+                <mat-icon>close</mat-icon>
+            </button>
+		</div>
+	</div>
+</div>
+<div mat-dialog-content>
+	<ng-container *ngIf="fieldSet && propertiesFormGroup" class="row">
+		<div class="col-12 mb-2">
+			<app-description-form-field-set-title [fieldSet]="fieldSet" [path]="path" [hideTitle]="true"></app-description-form-field-set-title>
+		</div>
+		<div *ngFor="let field of fieldSet.fields; let i = index;" class="col-12 fieldSet">
+			<div class="row">
+				<h5 *ngIf="placeholderTitle" class="col-auto font-weight-bold">{{field.label}}</h5>
+			</div>
+			<div class="row">
+				<div class="col-12">
+					<app-description-form-field [propertiesFormGroup]="propertiesFormGroup.get('fields')" [field]="field" [fieldSet]="fieldSet"  [visibilityRulesService]="visibilityRulesService" [isChild]="true"></app-description-form-field>
+				</div>
+			</div>
+		</div>
+	</ng-container>
+</div>
+
+<div mat-dialog-actions class="row">
+	<div class="ml-auto col-auto"><button mat-button class="rounded-btn primary-inverted" (click)="cancel()">{{'DESCRIPTION-EDITOR.ACTIONS.CANCEL' | translate}}</button></div>
+	<div class="col-auto"><button mat-button class="rounded-btn primary" [disabled]="!propertiesFormGroup.get('fields').valid" (click)="save()">{{'DESCRIPTION-EDITOR.ACTIONS.SAVE' | translate}}</button></div>
+</div>

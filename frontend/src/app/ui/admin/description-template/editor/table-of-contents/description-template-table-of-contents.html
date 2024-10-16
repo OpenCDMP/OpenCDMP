@@ -1,0 +1,33 @@
+<div class="table-container">
+	<h3 id="guide-steps" [class.opacity-0]="isDragging">{{'DESCRIPTION-TEMPLATE-EDITOR.STEPS.GENERAL-INFO.TEMPLATE-OUTLINE' | translate}}</h3>
+	<div class="scroll-container" id="tocentrytable">
+		
+		<app-description-template-table-of-contents-internal-section [links]="links" (itemClick)="itemClicked($event)"
+			(removeEntry)="deleteEntry($event)"
+			(createFooEntry)="createNewEntry($event)"
+			[parentLink]="{ subEntriesType: tocEntryType.Page, subEntries : links , id: ROOT_ID}"
+			[itemSelected]="itemSelected"
+			[viewOnly]="viewOnly"
+			[showErrors]="showErrors"
+			(dataNeedsRefresh)="onDataNeedsRefresh()"
+			[DRAGULA_ITEM_ID_PREFIX]="DRAGULA_ITEM_ID_PREFIX"
+			[overContainerId]="overcontainer"
+			[isDragging]="isDragging"
+			[draggingItemId]="draggingItemId"
+			[parentRootId]="ROOT_ID"
+			style="padding-right: 1em;"
+			[colorizeInvalid]="colorizeInvalid"
+			>
+		</app-description-template-table-of-contents-internal-section>
+		<div class="top-scroller table-scroller" [hidden]="!isDragging">
+			<div class="col-auto">
+				<mat-icon>keyboard_arrow_up</mat-icon>
+			</div>
+		</div>
+		<div class="bottom-scroller table-scroller" [hidden]="!isDragging">
+			<div class="col-auto">
+				<mat-icon>keyboard_arrow_down</mat-icon>
+			</div>
+		</div>
+	</div>
+</div>

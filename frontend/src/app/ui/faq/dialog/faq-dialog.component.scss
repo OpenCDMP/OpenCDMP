@@ -1,0 +1,31 @@
+.form {
+  min-width: 150px;
+  max-width: 500px;
+  width: 100%;
+}
+
+.full-width {
+  width: 100%;
+}
+
+.close-btn {
+  cursor: pointer;
+}
+
+.clear-icon {
+	cursor: pointer;
+	color: #212121;
+	padding: 0.4rem;
+	width: auto !important;
+	height: auto !important;
+}
+
+.clear-icon:hover {
+	background-color: #ececec !important;
+	border-radius: 50%;
+	padding: 0.4rem;
+}
+
+.faq {
+  margin: 1.125rem 0;
+}

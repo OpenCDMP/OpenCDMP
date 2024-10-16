@@ -1,0 +1,65 @@
+$mat-card-header-size: 30px !default;
+
+.my-mat-card-avatar {
+  height: $mat-card-header-size;
+  width: $mat-card-header-size;
+  border-radius: 50%;
+  flex-shrink: 0;
+  margin-right: 7px;
+}
+
+.nav-list-item {
+}
+
+.nav-list-item-hidden {
+	display: none !important;
+  }
+
+.login {
+  margin-top: 15px !important;
+}
+
+.login-label {
+  text-transform: uppercase;
+}
+
+.firstSubtitle {
+  margin-top: 20px;
+}
+
+.icon-mask {
+  color: #6b6b6b;
+  transform: translate(-8px, 8px);
+}
+
+.active a {
+  font-weight: 700;
+}
+
+.active a i {
+  color: var(--primary-color-2);
+}
+
+.inner-line {
+  margin-left: 12px;
+  margin-right: 10px;
+  width: 20px;
+  height: 13px;
+  border-left: 1px solid #cccccc;
+  border-bottom: 1px solid #cccccc;
+}
+
+.icon-external {
+  font-size: 1rem;
+  padding-left: 0.4rem !important;
+  color: #6b6b6b;
+}
+
+mat-list-item {
+  display: flex !important;
+  height: auto !important;
+}
+
+::ng-deep .mat-list-item-content {
+  width: 100% !important;
+}

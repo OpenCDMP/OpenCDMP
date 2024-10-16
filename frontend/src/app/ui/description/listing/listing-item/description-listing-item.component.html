@@ -1,0 +1,55 @@
+<div class="description-card">
+	<a [routerLink]="getItemLink()" class="pointer">
+		<div class="d-flex flex-direction-row">
+			<div class="col-auto description-label">{{'DESCRIPTION-LISTING.DESCRIPTION' | translate}}</div>
+			<div class="col-auto ml-auto">
+				<div class="row align-items-center">
+					<ng-container *ngIf="description.tenantId">
+						<div  class="col-auto edited-date">{{getTenantName(description.tenantId)}}</div>
+						<div class="col-auto edited-date p-0 mb-2" style="font-weight: 700;">.</div>
+					</ng-container>
+					<div *ngIf="!isPublic" class="col-auto edited-date">{{'DESCRIPTION-LISTING.STATES.EDITED' | translate}}: {{description.updatedAt | dateTimeFormatter: "d MMMM y"}}</div>
+					<div *ngIf="isPublic" class="col-auto edited-date">{{'DESCRIPTION-LISTING.STATES.PUBLISHED' | translate}}: {{description.plan?.finalizedAt | dateTimeFormatter: "d MMMM y"}}</div>
+				</div>
+			</div>
+		</div>
+		<div *ngIf="description.status === descriptionStatusEnum.Finalized" class="col-auto description-title">{{description.label}}</div>
+		<div *ngIf="description.status === descriptionStatusEnum.Draft" class="col-auto description-title-draft">{{description.label}}</div>
+		<div class="description-subtitle">
+			<span *ngIf="isUserPlanRelated()" class="col-auto">{{ enumUtils.toPlanUserRolesString(planService.getCurrentUserRolesInPlan(description?.plan?.planUsers)) }}</span>
+			<span *ngIf="isUserPlanRelated()">.</span>
+			<span class="col-auto" *ngIf="description.status === descriptionStatusEnum.Finalized && description.plan.accessType === planAccessTypeEnum.Public"><span class="material-icons icon-align">public</span>{{'DESCRIPTION-LISTING.STATES.PUBLIC' | translate}}</span>
+			<span *ngIf="description.status === descriptionStatusEnum.Finalized && description.plan.accessType != planAccessTypeEnum.Public; else draft" class="col-auto"><span class="material-icons icon-align">done</span>{{ enumUtils.toDescriptionStatusString(description.status) }}</span>
+			<ng-template #draft><span *ngIf="description.status === descriptionStatusEnum.Draft && canEditDescription(); else preview" class=" col-auto draft"><span class="material-icons icon-align">create</span>{{ enumUtils.toDescriptionStatusString(description.status) }}</span></ng-template>
+			<ng-template #preview><span *ngIf="description.status === descriptionStatusEnum.Draft && !canEditDescription()" class=" col-auto draft"><span class="material-icons-outlined mr-1 icon-align">visibility</span>{{ enumUtils.toDescriptionStatusString(description.status) }}</span></ng-template>
+			<span>.</span>
+			<span class="col">{{'DESCRIPTION-LISTING.GRANT' | translate}}: {{referenceService.getReferencesForTypesFirstSafe(description?.plan?.planReferences, [this.referenceTypeService.getGrantReferenceType()])?.reference?.label}}</span>
+		</div>
+		<div class="d-flex flex-direction-row pt-3 pb-3">
+			<div class="col-auto description-subtitle pr-0">{{'DESCRIPTION-LISTING.PART-OF' | translate}}
+				<div class="col-auto plan-label ml-3">{{'DESCRIPTION-LISTING.PLAN' | translate}}</div>
+			</div>
+			<div class="col plan-title">{{description.plan?.label}}</div>
+		</div>
+	</a>
+	<div class="description-card-actions">
+		<a class="col-auto border-right pointer" *ngIf="fileTransformerService.availableFormatsFor(fileTransformerEntityTypeEnum.Description) && fileTransformerService.availableFormatsFor(fileTransformerEntityTypeEnum.Description).length > 0" [matMenuTriggerFor]="exportMenu"><span class="material-icons icon-align pr-2">open_in_new</span>{{'DESCRIPTION-LISTING.ACTIONS.EXPORT' | translate}}</a>
+		<a class="col-auto border-right pointer" *ngIf="canInvitePlanUsers" (click)="openShareDialog()"><span class="material-icons icon-align pr-2">group_add</span>{{'DESCRIPTION-LISTING.ACTIONS.INVITE-SHORT' | translate}}</a>
+		<a class="col-auto border-right pointer" *ngIf="isAuthenticated()" (click)="copyToPlan(description)"><span class="material-icons icon-align pr-2">file_copy</span>{{'DESCRIPTION-LISTING.ACTIONS.COPY-DESCRIPTION' | translate}}</a>
+		<a class="col-auto border-right pointer" *ngIf="canDelete" (click)="deleteClicked(description.id)"><span class="material-icons icon-align pr-2">delete</span>{{ 'DESCRIPTION-LISTING.ACTIONS.DELETE' | translate }}</a>
+	</div>
+	<mat-menu #actionsMenu="matMenu">
+		<button *ngIf="isAuthenticated()" mat-menu-item (click)="copyToPlan(description)" class="menu-item">
+			<mat-icon>file_copy</mat-icon>{{'DESCRIPTION-LISTING.ACTIONS.COPY-DESCRIPTION' | translate}}
+		</button>
+		<button *ngIf="canDelete" mat-menu-item (click)="deleteClicked(description.id)" class="menu-item">
+			<mat-icon>delete</mat-icon>{{ 'DESCRIPTION-LISTING.ACTIONS.DELETE' | translate }}
+		</button>
+	</mat-menu>
+	<mat-menu #exportMenu="matMenu" xPosition="before">
+		<button mat-menu-item *ngFor='let fileTransformer of fileTransformerService.availableFormatsFor(fileTransformerEntityTypeEnum.Description)' (click)="fileTransformerService.exportDescription(description.id, fileTransformer.repositoryId, fileTransformer.format, isPublic)">
+			<i class="fa pr-2" [ngClass]="fileTransformer.icon ? fileTransformer.icon : 'fa-file-o'"></i>
+			<span>{{'GENERAL.FILE-TRANSFORMER.' + fileTransformer.format.toUpperCase() | translate}}</span>
+		</button>
+	</mat-menu>
+</div>

@@ -1,0 +1,2580 @@
+{
+	"APP_NAME": "OpenCDMP",
+	"APP_NAME_CAPS": "OpenCDMP",
+	"GENERAL": {
+		"VALIDATION": {
+			"REQUIRED": "Obavezno",
+			"INVALID-COLOR": "Invalid color",
+			"URL": {
+				"LABEL": "URL",
+				"MESSAGE": "Molimo unesite ispravni URL"
+			},
+			"MULTIPLICITY": {
+				"MIN": "Please provide at least {{ min }} answers"
+			}
+		},
+		"SNACK-BAR": {
+			"SUCCESSFUL-CREATION": "Uspješno kreirano",
+			"SUCCESSFUL-UPDATE": "Uspješno dopunjeno",
+			"SUCCESSFUL-LOGIN": "Uspješna prijava",
+			"SUCCESSFUL-EMAIL-SEND": "E-mail uspješno poslan",
+			"SUCCESSFUL-COPY-TO-CLIPBOARD": "Spremljeno u međumemoriju",
+			"UNSUCCESSFUL-LOGIN": "Neuspješna prijava",
+			"SIGN-OUT-IN-PROGRESS": "Sign out in progress...",
+			"SUCCESSFUL-DELETE": "Uspješno brisanje",
+			"UNSUCCESSFUL-DELETE": "Neuspješno brisanje",
+			"UNSUCCESSFUL-EMAIL-SEND": "Neuspješno slanje e-maila",
+			"UNSUCCESSFUL-FINALIZE": "Unsuccessful Finalize",
+			"SUCCESSFUL-RESET": "Successful Reset",
+			"NOT-FOUND": "Not found.",
+			"GENERIC-ERROR": "Something unexpected occurred. Please try again later.",
+			"REDIRECT": "You're being redirected.",
+			"BAD-REQUEST": "There was a problem with your request. Please try again.",
+			"FORBIDDEN": "Access restricted."
+		},
+		"BACKEND-ERRORS": {
+			"HASH-CONFLICT": "It looks like someone else has made changes to this page. Please reload to view the latest updates.",
+			"FORBIDDEN": "You do not have the necessary permissions to view this page.",
+			"SYSTEM-ERROR": "An unexpected error has occurred. Please try again later.",
+			"MISSING-TENANT": "Tenant Selection Required. Please select a tenant before proceeding.",
+			"MODEL-VALIDATION": "One or more fields contain invalid data. Please check your input and try again.",
+			"TENANT-NOT-ALLOWED": "You are not allowed to access this page based on your associated tenant. Please reselect your Tenant.",
+			"DESCRIPTION-TEMPLATE-NEW-VERSION-CONFLICT": "You can create a new version only by selected the latest version.",
+			"DESCRIPTION-TEMPLATE-IS-NOT-FINALIZED": "The selected Description Template is not finalized.",
+			"MULTIPLE-DESCRIPTION-TEMPLATE-VERSIONS-NOT-SUPPORTED": "Multiple versions of the selected Description Template where found. Please contact your administrator.",
+			"PLAN-NEW-VERSION-CONFLICT": "You can create a new version only by selected the latest version.",
+			"PLAN-IS-NOT-FINALIZED": "The selected DMP is not finalized.",
+			"MULTIPLE-PLAN-VERSIONS-NOT-SUPPORTED": "Multiple versions of the selected DMP where found. Please contact your administrator.",
+			"PLAN-IS-FINALIZED": "The requested action cannot be completed as the DMP has been finalized. To proceed, please revert the finalization.",
+			"PLAN-CAN-NOT-CHANGE": "While tying to update your Description, a validation error occurred. You cannot modify the Description's associated DMP.",
+			"PLAN-DESCRIPTION-TEMPLATE-CAN-NOT-CHANGE": "While tying to update your Description, a validation error occurred. You cannot modify the Description's associated DMP's Description Template.",
+			"INVALID-DESCRIPTION-TEMPLATE": "While tying to update your Description, a validation error occurred. The Description's associated DMP's Description Template is invalid.",
+			"DESCRIPTION-IS-FINALIZED": "The requested action cannot be completed as the Description has been finalized. To proceed, please revert the finalization.",
+			"PLAN-BLUEPRINT-HAS-NO-DESCRIPTION-TEMPLATES": "You need to select at least one Description Template. Click the 'Has Description Templates' button to proceed.",
+			"PLAN-BLUEPRINT-NEW-VERSION-CONFLICT": "While trying to update your Blueprint, a version conflict occurred. Your Blueprint is not in the latest version.",
+			"PLAN-DESCRIPTION-TEMPLATE-CAN-NOT-REMOVE": "The Description template cannot be removed as it is currently in use.",
+			"TENANT-TAMPERING": "This operation affects data from a Tenant different than your selected. Please reselect your Tenant.",
+			"TENANT-CONFIGURATION-TYPE-CAN-NOT-CHANGE": "The configuration type for this Tenant cannot be changed.",
+			"MULTIPLE-TENANT-CONFIGURATION-TYPE-NOT-ALLOWED": "Tenant Configuration already exists for this Tenant.",
+			"TENANT-CODE-EXISTS": "The Tenant code you provided already exists. Please choose a different code.",
+			"PLAN-NEW-VERSION-ALREADY-CREATED-DRAFT": "You have already created a new draft version for this plan.",
+			"IMPORT-DESCRIPTION-WITHOUT-PLAN-DESCRIPTION-TEMPLATE": "Your plan contains descriptions that are not defined in which section they will exist",
+			"INVALID-API-KEY": "Invalid configurations detected. Please contact your administrator.",
+			"STALE-API-KEY": "A problem occurred while trying to authorize you. Please try refreshing the page or logging in again. Contact the system administrator if the problem persists.",
+			"SENSITIVE-INFO": "You've reached a section that contains sensitive information. To protect your privacy, please head back to the public area of the site or log in with your authorized account to access this information.",
+			"NON-PERSON-PRINCIPAL": "The operation is unavailable. Please contact your administrator.",
+			"BLOCKING-CONSENT": "We cannot complete your request due to missing permissions. Please review your account settings.",
+			"SINGLE-TENANT-CONFIGURATION-PER-TYPE-SUPPORTED": "Could not process your request. Tenant Configuration already exists for this Tenant.",
+			"INCOMPATIBLE-TENANT-CONFIGURATION-TYPES": "Something went wrong while trying to update your tenant configurations. Please try again or contact your administrator.",
+			"MISSING-TOTP-TOKEN": "We could not process your request or the operation is unavailable. Please contact your administrator.",
+			"OVERLAPPING-TENANT-CONFIGURATION-NOTIFIER-LIST": "An error occurred due to overlapping configurations. Please try again or contact your administrator.",
+			"DESCRIPTION-TEMPLATE-INACTIVE-USER": "This description template contains users that are not exist",
+			"DESCRIPTION-TEMPLATE-MISSING-USER-CONTACT-INFO": "This description template contains users that don't have contact info",
+			"PLAN-INACTIVE-USER": "This plan contains users that are not exist",
+			"PLAN-MISSING-USER-CONTACT-INFO": "This plan contains users that don't have contact info",
+			"DESCRIPTION-TEMPLATE-NEW-VERSION-ALREADY-CREATED-DRAFT": "You have already created a new draft version for this description template.",
+			"PLAN-BLUEPRINT-NEW-VERSION-ALREADY-CREATED-DRAFT": "You have already created a new draft version for this blueprint.",
+			"REFERENCE-TYPE-CODE-EXISTS": "The reference type code you provided already exists. Please choose a different code.",
+			"PREFILLING-SOURCE-CODE-EXISTS": "The prefilling source code you provided already exists. Please choose a different code.",
+			"DUPLICATE-PLAN-USER": "You can't invite authors with same role and plan section more than once",
+			"INVITE-USER-ALREADY-CONFIRMED": "Ιnvitation has already confirmed",
+			"REQUEST-HAS-EXPIRED": "Request has expired",
+			"MAX-DESCRIPTION-EXCEEDED": "This plan has reached the maximun descriptions for this description template",
+			"USAGE-LIMIT-EXCEPTION": "Υou have exceeded the {{usageLimitLabel}} usage limit. Please contact your administrator.",
+			"USAGE-LIMIT-METRIC-ALLREADY-EXISTS": "This usage limit metric is already defined in this tenant. Change metric or select other tenant.",
+			"DESCRIPTION-TEMPLATE-TYPE-CODE-EXISTS": "The description template type code you provided already exists. Please choose a different code.",
+			"DESCRIPTION-TEMPLATE-TYPE-IMPORT-NOT-FOUND": "Description template type with code '{{descriptionTemplateTypeLabel}}' not found.",
+			"REFERENCE-TYPE-IMPORT-NOT-FOUND": "Reference type with code '{{referenceTypeCode}}' not found.",
+			"DESCRIPTION-TEMPLATE-CODE-EXISTS": "The description template code you provided already exists. Please choose a different code.",
+			"DESCRIPTION-TEMPLATE-IMPORT-NOT-FOUND": "Description template with code '{{descriptionTemplateLabel}}' not found.",
+			"PLAN-BLUEPRINT-CODE-EXISTS": "The plan blueprint code you provided already exists. Please choose a different code.",
+			"PLAN-BLUEPRINT-IMPORT-NOT-FOUND": "Plan blueprint with code '{{planBlueprintLabel}}' not found.",
+			"BLUEPRINT-DESCRIPTION-TEMPLATE-IMPORT-DRAFT": "Description template with code '{{descriptionTemplateLabel}}' is not finalized yet.",
+			"PLAN-DESCRIPTION-TEMPLATE-IMPORT-DRAFT": "Description template with code '{{descriptionTemplateLabel}}' is not finalized yet.",
+			"DESCRIPTION-TEMPLATE-TYPE-IMPORT-DRAFT": "Description template type with code '{{descriptionTemplateTypeCode}}' is not finalized yet.",
+			"PLAN-BLUEPRINT-IMPORT-DRAFT": "Plan Blueprint with code '{{planBlueprintCode}}' is not finalized yet.",
+			"MISSING-TENANT-ROLE": "Υou must also select a tenant role",
+			"MISSING-GLOBAL-ROLE": "Υou must also select a global role",
+            "CANNOT-PERFORM-ACTION-ON-USER": "Cannot perform action, user account has not been activated",
+			"PLAN-INVITATION-ALREADY-CONFIRMED": "Plan invitation has alreay confirmed",
+			"ANOTHER-USER-TOKEN": "This token is for another user",
+			"TOKEN-NOT-EXIST": "This token does not exist"
+		},
+		"FORM-VALIDATION-DISPLAY-DIALOG": {
+			"WARNING": "Oprez!",
+			"THIS-FIELD": "Polje",
+			"HAS-ERROR": "sadrži grešku",
+			"REQUIRED": "Obavezno",
+			"EMAIL": "Neispravna e-mail adresa",
+			"MIN-VALUE": "Minimalna vrijednost treba biti {{min}}",
+			"MAX-VALUE": "Maksimalna vrijednost treba biti {{max}}",
+			"ACTIONS": {
+				"CANCEL": "Zatvorite"
+			}
+		},
+		"CONFIRMATION-DIALOG": {
+			"DELETE-ITEM": "Obrišite stavku?",
+			"DELETE-USER": "Uklonite suradnika?",
+			"LEAVE-PAGE": "Ukoliko napustite stranicu, izmjene se neće sačuvati.",
+			"LEAVE-WARNING": "Imate nesačuvane izmjene!",
+			"ACTIONS": {
+				"CONFIRM": "Da",
+				"DELETE": "Briši",
+				"REMOVE": "Ukloni",
+				"CANCEL": "Odustani",
+				"LEAVE": "Napusti stranicu",
+				"POLICY-AGREE": "Slažem se da imena budu javno vidljiva.",
+				"REQUIRED": "Potrebno je odabrati odgovor."
+			}
+		},
+		"NOTIFICATION-DIALOG": {
+			"POPUP": {
+				"CLOSE": "Zatvori"
+			}
+		},
+		"PLAN-TO-DESCRIPTION-DIALOG": {
+			"FROM-PLAN": "Uspješno ste kreirali",
+			"PLAN": "PLAN",
+			"TO-DESCRIPTION": "Preusmjeravanje na",
+			"DATASET": "uređivanje",
+			"EDITOR": "skupa podataka",
+			"START": "početak"
+		},
+		"ACTIONS": {
+			"SHOW-MORE": "Prikaži više",
+			"LOAD-MORE": "Učitaj još",
+			"LOG-IN": "Prijava",
+			"TAKE-A-TOUR": "Pokreni virtualni obilazak {{ APP_NAME }}a",
+			"NO-MORE-AVAILABLE": "No more results available"
+		},
+		"PREPOSITIONS": {
+			"OF": "od"
+		},
+		"TITLES": {
+			"PREFIX": "Otvorite Plan upravljanja podacima -",
+			"GENERAL": "Uređivač Plana upravljanja podacima",
+			"ABOUT": "O {{ APP_NAME }}u",
+			"PRIVACY": "Politika privatnosti",
+			"OPENSOURCE-LICENCES": "Licencije otvorenog koda",
+			"TERMS": "Uvjeti korištenja",
+			"COOKIES-POLICY": "Politika kolačića",
+			"PLANS": "Moji Planovi",
+			"EXPLORE-PLANS": "Objavljeni Planovi upravljanja podacima",
+			"DESCRIPTIONS": "My Descriptions",
+			"BLUEPRINTS": "Blueprints",
+			"DESCRIPTION-TEMPLATES": "Description Templates",
+			"DESCRIPTION-TEMPLATE-TYPES": "Description Types",
+			"ENTITY-LOCKS": "Entity Locks",
+			"REFERENCES": "References",
+			"LANGUAGES": "Languages",
+			"REFERENCE-TYPES": "Reference Types",
+			"PREFILLING-SOURCES": "Prefilling Sources",
+			"TENANT-CONFIGURATION": "Tenant Configuration",
+			"NOTIFICATIONS": "Notifications",
+			"NOTIFICATION-TEMPLATES": "Notification Templates",
+			"EXPLORE": "Published Descriptions",
+			"USERS": "Korisnici",
+			"TENANT-USERS": "Tenant Users",
+			"PROFILE": "Moj profil",
+			"LOGIN": "Prijava",
+			"PLAN-OVERVIEW": "Plan Overview",
+			"DESCRIPTION-OVERVIEW": "Description Overview",
+			"MAINTENANCE-TASKS": "Maintenance",
+			"HOME": "Home",
+			"ANNOTATION-STATUSES": "Annotation Statuses",
+			"SUPPORTIVE-MATERIAL": "Supportive Material",
+			"USAGE-LIMITS": "Usage Limits",
+            "PLAN-STATUSES": "Plan Statuses",
+            "DESCRIPTION-STATUSES": "Description Statuses"
+		},
+		"FILE-TRANSFORMER": {
+			"PDF": "PDF",
+			"XML": "XML",
+			"JSON": "RDA JSON",
+			"DOCX": "Document"
+		},
+		"LANGUAGES": {
+			"en": "English",
+			"gr": "Greek",
+			"es": "Spanish",
+			"de": "German",
+			"tr": "Turkish",
+			"sk": "Slovak",
+			"sr": "Serbian",
+			"pt": "Portuguese",
+			"hr": "Croatian",
+			"pl": "Polish",
+			"baq": "Basque"
+		},
+		"CRITERIA": {
+			"LIKE": "Search..."
+		},
+		"START-NEW-PLAN-DIALOG": {
+			"UPLOAD-FILE": "Prenesi datoteku",
+			"REPLACE-FILE": "Zamijeni datoteku"
+		}
+	},
+	"HYBRID-LISTING": {
+		"ORDER-BY": "Order by",
+		"DISPLAY-SETTINGS": "Display settings",
+		"SELECTED": "selected",
+		"NO-DATA-TO-DISPLAY": "No data to display"
+	},
+	"COMMONS": {
+		"ERRORS": {
+			"DEFAULT": "An Unexpected Error Has Occurred"
+		},
+		"VALIDATION": {
+			"REQUIRED": "Required"
+		},
+		"LISTING-COMPONENT": {
+			"SEARCH-FILTER-BTN": "Filter Results",
+			"CLEAR-ALL-FILTERS": "clear all filters",
+			"FILTERS-SAVE-AS": "Save as",
+			"MESSAGE": {
+				"EMPTY": "No data to display",
+				"TOTAL": "Total",
+				"SELECTED": "Selected"
+			}
+		},
+		"PENDING-FORM-CHANGES-DIALOG": {
+			"TITLE": "You have unsaved changes!",
+			"MESSAGE": "If you leave, your changes will be lost.",
+			"ACTIONS": {
+				"CANCEL": "Cancel",
+				"LEAVE": "Leave"
+			}
+		},
+        "FIELDS": {
+            "NAME": "Name",
+            "CODE": "Code",
+            "DESCRIPTION": "Description",
+            "STATUS": "Status",
+            "IS-ACTIVE": "Is Active",
+            "CREATED": "Created",
+            "UPDATED": "Updated"
+        },
+        "ACTIONS": {
+            "SAVE": "Save",
+            "EDIT": "Edit",
+            "CANCEL": "Cancel",
+            "DELETE": "Delete",
+            "NEW": "New",
+            "CREATE": "Create",
+            "BOOLEAN": {
+                "YES": "Yes",
+                "NO": "No"
+            }
+        },
+        "FILTERS": {
+			"TITLE": "Filters",
+			"IS-ACTIVE": "Is Active",
+			"CANCEL": "Cancel",
+			"APPLY-FILTERS": "Apply filters"
+		}
+	},
+	"SETTINGS-PICKER": {
+		"DRAFT-FILTERS": "Draft profile",
+		"RENAME": "Rename"
+	},
+	"BREADCRUMBS": {
+		"DESCRIPTION-TEMPLATE-TYPES": "Description Types",
+		"DESCRIPTION-TEMPLATES": "Description Templates",
+		"NEW-DESCRIPTION-TEMPLATE-TYPE": "New",
+		"PLAN-BLUEPRINTS": "Plan Blueprints",
+		"NEW-PLAN-BLUEPRINT": "New",
+		"NEW-DESCRIPTION-TEMPLATES": "New",
+		"REFERENCE-TYPES": "Reference Types",
+		"NEW-REFERENCE-TYPE": "New",
+		"TENANTS": "Tenants",
+		"NEW-TENANT": "New",
+		"REFERENCES": "References",
+		"NEW-REFERENCE": "New",
+		"LANGUAGES": "Languages",
+		"NEW-LANGUAGE": "New",
+		"NOTIFICATION-TEMPLATES": "Notification Templates",
+		"INAPP-NOTIFICATIONS": "Notifications",
+		"NOTIFICATIONS": "Notifications",
+		"PREFILLING-SOURCES": "Prefilling Sources",
+		"NEW-PREFILLING-SOURCE": "New",
+		"TENANT-CONFIGURATION": "Tenant Configuration",
+		"ENTITY-LOCKS": "Entity Locks",
+		"ANNOTATION-STATUSES": "Annotation Statuses",
+		"USERS": "Users",
+		"TENANT-USERS": "Tenant Users",
+		"NEW-USAGE-LIMIT": "New",
+		"USAGE-LIMITS": "Usage Limits"
+	},
+	"COOKIE": {
+		"MESSAGE": "Ova web-stranica koristi kolačiće za poboljšanje iskustva korisnika.",
+		"DISMISS": "Omogućite kolačiće",
+		"DENY": "Onemogućite kolačiće",
+		"LINK": "Više o kolačićima",
+		"POLICY": "Politika kolačića"
+	},
+	"EMAIL-CONFIRMATION": {
+		"EXPIRED-EMAIL": "Poziv je istekao",
+		"EMAIL-FOUND": "E-mail adresa već postoji u bazi"
+	},
+	"START-NEW-PLAN-DIALOG": {
+		"TITLE": "Start new Plan",
+		"MESSAGE": "Start fresh or continue work in {{ APP_NAME }}! Create a new Plan or upload an existing Plan to {{ APP_NAME }}",
+		"IMPORT-FROM-FILE": "Import from file",
+		"OR": "OR",
+		"START-NEW-PLAN": "Start new Plan",
+		"IMPORT": "Import",
+		"FUNCTION-SUPPORTS": "function supports",
+		"JSON-FILES": ".json files",
+		"PRODUCED": "produced",
+		"RDA-SPECIFICATIONS": "according to RDA specifications",
+		"MACHINE-ACTIONABLE": "for machine-actionable DMPs"
+	},
+	"NAV-BAR": {
+		"START-NEW-PLAN": "Kreirajte novi Plan",
+		"INAPP-NOTIFICATIONS": "All Notifications",
+		"READ-ALL-INAPP-NOTIFICATIONS": "Read All"
+	},
+	"SIDE-BAR": {
+		"GENERAL": "OPĆENITO",
+		"DASHBOARD": "Početak",
+		"PLAN": "PLANOVI UPRAVLJANJA PODACIMA",
+		"MY-PLANS": "Moji Planovi",
+		"DESCRIPTIONS": "OPISI SKUPOVA PODATAKA",
+		"MY-DESCRIPTIONS": "My Descriptions",
+		"PUBLIC": "OBJAVLJENO",
+		"PUBLIC-PLANS": "Javno dostupni Planovi",
+		"PUBLIC-DESC": "Public Descriptions",
+		"ADMIN": "ADMINISTRATOR",
+		"DESCRIPTION-TEMPLATES": "Description Templates",
+		"DESCRIPTION-TEMPLATE-TYPES": "Description Types",
+		"PLAN-BLUEPRINTS": "DMP Blueprints",
+		"USERS": "Korisnici",
+		"TENANT-USERS": "Tenant Users",
+		"CO-BRANDING": "Razvoj i suradnja",
+		"SUPPORT": "Podrška",
+		"FEEDBACK": "Molimo pošaljite nam svoje sugestije i komentare",
+		"SUPPORTIVE-MATERIAL": "Supportive Material",
+		"REFERENCE-TYPES": "Reference Types",
+		"TENANTS": "Tenants",
+		"REFERENCES": "References",
+		"LANGUAGES": "Languages",
+		"MAINTENANCE": "Maintenance",
+		"NOTIFICATION-TEMPLATES": "Notification Templates",
+		"NOTIFICATIONS": "Notifications",
+		"PREFILLING-SOURCES": "Prefilling Sources",
+		"TENANT-CONFIGURATION": "Tenant Configuration",
+		"ENTITY-LOCKS": "Entity Locks",
+		"ANNOTATION-STATUSES": "Annotation Statuses",
+		"USAGE-LIMITS": "Usage Limits",
+        "DESCRIPTION-STATUSES": "Description Statuses",
+        "PLAN-STATUSES": "Plan Statuses"
+	},
+	"DESCRIPTION-TEMPLATE-PREVIEW": {
+		"TEMPLATE": "Template"
+	},
+	"ANNOTATION-DIALOG": {
+		"TITLE": "Comments",
+		"SUCCESS": "Comment successfully saved",
+		"THREADS": {
+			"NEW-THREAD": "New comment",
+			"SEND": "Send",
+			"CANCEL": "Cancel",
+			"REPLY": "Reply",
+			"REPLIES": "Replies",
+			"PROTECTION": {
+				"TITLE": "Visibility"
+			}
+		},
+		"PROTECTION": {
+			"ENTITY-ACCESSORS": "Visible",
+			"PRIVATE": "Hidden"
+		},
+		"ANNOTATION-STATUS": {
+			"TITLE": "Status",
+			"SUCCESS": "Comment Status successfully saved",
+			"ACTIONS": {
+				"EDIT": "Change status"
+			}
+		}
+	},
+	"MAINTENANCE-TASKS": {
+		"SECTIONS": {
+			"INDEXES": {
+				"TITLE": "Manage indexes",
+				"DESCRIPTION": "From here you can manage the Elastic indexes",
+				"ACTIONS": {
+					"GENERATE-INDEX": "Generate Index",
+					"CLEAR-INDEX": "Clear Index"
+				}
+			},
+			"EVENTS": {
+				"TITLE": "Manage events",
+				"MAIN-TITLE": "Main events",
+				"ACCOUNTING-TITLE": "Accounting events",
+				"INDICATOR-TITLE": "Indicator events",
+				"DESCRIPTION": "From here you can manage the Message Queue events",
+				"ACTIONS": {
+					"SEND-USER-TOUCH": "Send user touch events",
+					"SEND-TENANT-TOUCH": "Send tenant touch events",
+					"SEND-PLAN-TOUCH": "Send plan touch events",
+					"SEND-DESCRIPTION-TOUCH": "Send description touch events",
+					"SEND-PLAN-ACCOUNTING-ENTRIES": "Send plan accounting entries events",
+					"SEND-PLAN-BLUEPRINT-ACCOUNTING-ENTRIES": "Send plan blueprint accounting entries events",
+					"SEND-DESCRIPTION-ACCOUNTING-ENTRIES": "Send description accounting entries events",
+					"SEND-DESCRIPTION-TEMPLATE-ACCOUNTING-ENTRIES": "Send description template accounting entries events",
+					"SEND-DESCRIPTION-TEMPLATE-TYPE-ACCOUNTING-ENTRIES": "Send description template types accounting entries events",
+					"SEND-PREFILLING-SOURCE-ACCOUNTING-ENTRIES": "Send prefilling source accounting entries events",
+					"SEND-REFERENCE-TYPE-ACCOUNTING-ENTRIES": "Send reference type accounting entries events",
+					"SEND-USER-ACCOUNTING-ENTRIES": "Send user accounting entries events",
+					"SEND-INDICATOR-CREATE-ENTRY": "Send indicator create entry events",
+					"SEND-INDICATOR-RESET-ENTRY": "Send indicator reset entry events",
+					"SEND-INDICATOR-ACCESS-ENTRY": "Send indicator access entry events",
+					"SEND-INDICATOR-POINT-ENTRY": "Send indicator point entry events"
+				}
+			}
+		},
+		"CONFIRMATION": {
+			"MESSAGE": "Are you sure you want to perform this action?"
+		}
+	},
+	"TENANT-CONFIGURATION-EDITOR": {
+		"TITLE": "Tenant Configuration",
+		"DEFAULT-USER-LOCALE": {
+			"TITLE": "Default Tenant Locale",
+			"HINT": "Default tenant locale"
+		},
+		"CSS-COLORS": {
+			"TITLE": "App Colors",
+			"HINT": "App color theme"
+		},
+		"LOGO": {
+			"TITLE": "Extra Logo",
+			"HINT": "Add extra logo"
+		},
+		"NOTIFIER-LIST": {
+			"TITLE": "Notification Preferences",
+			"HINT": "Select available notifiers for Notification Types"
+		},
+		"DEPOSIT-PLUGINS": {
+			"TITLE": "Deposit Plugins",
+			"HINT": "Change deposit plugins"
+		},
+		"FILE-TRANSFORMER-PLUGINS": {
+			"TITLE": "File Transformer Plugins",
+			"HINT": "Change file transformer plugins"
+		},
+		"FIELDS": {
+			"TIMEZONE": "Timezone",
+			"CULTURE": "Format",
+			"LANGUAGE": "Language",
+			"PRIMARY-COLOR": "Primary Color",
+			"PRIMARY-COLOR-2": "Primary Color 2",
+			"PRIMARY-COLOR-3": "Primary Color 3",
+			"SECONDARY-COLOR": "Secondary Color",
+			"DISABLE-SYSTEM-SOURCES": "Disable System Sources",
+			"DEPOSIT-PLUGINS": "Plugin",
+			"FILE-TRANSFORMER-PLUGINS": "Plugin",
+			"REPOSITORY-ID": "Repository Id",
+			"TRANSFORMER-ID": "Transformer Id",
+			"URL": "Url",
+			"ISSUER-URL": "Issuer Url",
+			"CLIENT-ID": "Client Id",
+			"CLIENT-SECRET": "Client Secret",
+			"SCOPE": "Scope",
+			"PDF-TRANSFORMER-ID": "Pdf Transformer Id",
+			"RDA-TRANSFORMER-ID": "Rda Transformer Id"
+		},
+		"RESET-TO-DEFAULT-DIALOG": {
+			"RESET-TO-DEFAULT": "Reset To Default"
+		},
+        "PLAN-WORKFLOW": {
+            "TITLE": "Plan Workflow",
+            "HINT": "Configure the workflow for this tenant's plans"
+        },
+        "DESCRIPTION-WORKFLOW": {
+            "TITLE": "Description Workflow",
+            "HINT": "Configure the workflow for this tenant's descriptions"
+        },
+		"ACTIONS": {
+			"SAVE": "Save",
+			"UPLOAD": "Upload",
+			"DOWNLOAD": "Download",
+			"ADD-SOURCE": "Add Source",
+            "REMOVE-SOURCE": "Remove Source",
+			"RESET-TO-DEFAULT": "Reset To Default"
+		}
+	},
+	"DESCRIPTION-TEMPLATE-EDITOR": {
+		"TITLE": {
+			"NEW": "Novi API klijent",
+			"NEW-PROFILE": "New Description Template",
+			"NEW-PROFILE-VERSION": "Nova verzija",
+			"NEW-PROFILE-CLONE": "Nova kopija"
+		},
+		"TITLE-EDIT-DESCRIPTION-TEMPLATE": "Editing Description Template",
+		"FIELDS": {
+			"TITLE": "Description Template Name",
+			"CODE": "Description Template Code",
+			"DESCRIPTION": "Opis"
+		},
+		"STEPS": {
+			"GENERAL-INFO": {
+				"TITLE": "Opće informacije",
+				"DESCRIPTION-TEMPLATE-NAME": "Description template name",
+				"DESCRIPTION-TEMPLATE-NAME-HINT": "A title that determines the Description template.",
+				"DESCRIPTION-TEMPLATE-CODE": "Description template code",
+				"DESCRIPTION-TEMPLATE-CODE-HINT": "A unique code that distinguishes the Description template.",
+				"DESCRIPTION-TEMPLATE-DESCRIPTION": "Opis predloška",
+				"DESCRIPTION-TEMPLATE-DESCRIPTION-HINT": "Kratki opis skupa podataka, njegov opseg i ciljevi.",
+				"DESCRIPTION-TEMPLATE-TYPE": "Description template type",
+				"DESCRIPTION-TEMPLATE-SELECT-TYPE": "Select a type",
+				"DESCRIPTION-TEMPLATE-LANGUAGE-HINT": "",
+				"DESCRIPTION-TEMPLATE-TYPE-HINT": "",
+				"DESCRIPTION-TEMPLATE-LANGUAGE": "Description template language",
+				"DESCRIPTION-TEMPLATE-SELECT-LANGUAGE": "Izaberi jezik predloška",
+				"DESCRIPTION-TEMPLATE-USERS": "Korisnici predloška",
+				"DESCRIPTION-TEMPLATE-USERS-HINT": "Kako biste obavijestili korisnike, dodajte korisnike i spremite promjene.",
+				"DESCRIPTION-TEMPLATE-REMOVE-USER": "Izbriši korisnika",
+				"DESCRIPTION-TEMPLATE-NO-USERS-YET": "... Nije unesen niti jedan korisnik",
+				"DESCRIPTION-TEMPLATE-VALIDATE-AND-ADD-USER": "Potvrdi i dodaj korisnika",
+				"DESCRIPTION-TEMPLATE-DESCRIPTION-PLACEHOLDER": "Opis predloška skupa podataka",
+				"UNTITLED": "Neimenovano",
+				"QUESTION": "Upit",
+				"TEMPLATE-OUTLINE": "Skica predloška",
+				"USERS": {
+					"NAME": "Name",
+					"ROLE": "Role"
+				}
+			},
+			"PAGE-INFO": {
+				"PAGE-NAME": "Naziv poglavlja",
+				"PAGE-NAME-HINT": "Set a name for the desciption chapter.",
+				"ACTIONS": {
+					"CREATE-NEW-SUBSECTION": "Odjeljak",
+					"CREATE-NEW-SECTION": "Poglavlje",
+					"CREATE-FIRST-SECTION": "Izradi prvo poglavlje",
+					"NOTHING-HERE-HINT": "Još ništa.",
+					"START-CREATING-PAGE-START": "Počni sa",
+					"START-CREATING-PAGE-END": "Stvaranje prvog poglavlja.",
+					"CREATE-SECTION": "Izradi odjeljak"
+				},
+				"PAGE": "Poglavlje"
+			},
+			"SECTION-INFO": {
+				"SECTION-NAME": "Naziv odjeljka",
+				"SECTION-NAME-HINT": "Odaberite ime za odjeljak.",
+				"SECTION-DESCRIPTION": "Opis",
+				"SECTION-DESCRIPTION-HINT": "Napišite kratki opis onoga o čemu se radi u ovom odjeljku.",
+				"SECTION": "Odjeljak"
+			},
+			"FORM": {
+				"TITLE": "Opis predloška",
+				"SECTION": {
+					"FIELDS": {
+						"DESCRIPTION": "Opis"
+					}
+				},
+				"FIELD-SET": {
+					"FIELDS": {
+						"DESCRIPTION": "Opis",
+						"EXTENDED-DESCRIPTION": "Prošireni opis",
+						"ADDITIONAL-INFORMATION": "Dodatne informacije",
+						"MULTIPLICITY-MIN": "Višestrukost, minimalno polja",
+						"MULTIPLICITY-MAX": "Višestrukost, maksimalno polja",
+						"MULTIPLICITY-PLACEHOLDER": "",
+						"MULTIPLICITY-TABLEVIEW": "Pogledajte unose u tablici",
+						"SEMANTICS": "Semantics",
+						"EXPORT": "Uključi u izvoz"
+					}
+				},
+				"FIELD": {
+					"FIELDS": {
+						"FIELD-PLACEHOLDER": "Input Placeholder Text",
+						"REFERENCE-TYPE": "Reference Type",
+						"REFERENCE-TYPE-TITLE": "Reference Type",
+						"MULTIPLE-SELECT": "Multiple Select",
+						"RULES-TITLE": "Uvjetna pitanja",
+						"VIEW-STYLE": "Prijedlog",
+						"DEFAULT-VALUE": "Zadana vrijednost",
+						"NO-FILES-SELECTED": "There is no selected file to upload",
+						"FIELD-UPLOAD-TITLE": "Odaberi",
+						"FIELD-UPLOAD-PLACEHOLDER": "Primjer teksta za slanje datoteke",
+						"LARGE-FILE-OR-UNACCEPTED-TYPE": "The file is too large or its type is not supported.",
+						"ACCEPTED-FILE-TRANSFOMER": "Supported media types are: ",
+						"FIELD-UPLOAD-MAX-FILE-SIZE": "Maksimalna veličina datoteke (do {{maxfilesize}} MB)",
+						"FIELD-UPLOAD-CUSTOM-FILETYPE": "Ostali formati datoteka",
+						"FIELD-UPLOAD-SELECT-FILETYPE": "Odaberi format datoteke",
+						"FIELD-UPLOAD-LABEL": "Naziv",
+						"FIELD-UPLOAD-VALUE": "Vrsta",
+						"FIELD-FREE-TEXT-TITLE": "Podaci za slobodan tekst",
+						"FIELD-SELECT-TITLE": "Word List Data",
+						"FIELD-SELECT-PLACEHOLDER": "Input Placeholder Text",
+						"FIELD-SELECT-LABEL": "Label",
+						"FIELD-SELECT-VALUE": "Value",
+						"FIELD-RADIO-BOX-TITLE": "Podaci polja za unos",
+						"FIELD-RADIO-BOX-PLACEHOLDER": "Polje za unos",
+						"FIELD-RADIO-BOX-LABEL": "Oznaka",
+						"FIELD-RADIO-BOX-VALUE": "Vrijednost",
+						"FIELD-AUTOCOMPLETE-TITLE": "Automatski unos podataka",
+						"FIELD-AUTOCOMPLETE-PLACEHOLDER": "Polje za unos",
+						"FIELD-AUTOCOMPLETE-SOURCE-TITLE": "Izvori",
+						"FIELD-AUTOCOMPLETE-ADD_SOURCE": "Dodajte izvore",
+						"FIELD-AUTOCOMPLETE-LABEL": "Oznaka",
+						"FIELD-AUTOCOMPLETE-VALUE": "Vrijednost",
+						"FIELD-AUTOCOMPLETE-SOURCE": "Izvor",
+						"FIELD-AUTOCOMPLETE-URL": "Url",
+						"FIELD-AUTOCOMPLETE-OPTIONS-ROOT": "Opcija",
+						"FIELD-AUTOCOMPLETE-HAS-AUTH": "Has Authentication",
+						"FIELD-AUTOCOMPLETE-AUTH-METHOD": "Method",
+						"FIELD-AUTOCOMPLETE-AUTH-BODY": "Request Body",
+						"FIELD-AUTOCOMPLETE-AUTH-TYPE": "Authentication Type",
+						"FIELD-MULTIPLE-AUTOCOMPLETE": "Višestruki automatski unos",
+						"FIELD-MULTIPLE-WORDLIST": "Višestruki odabir",
+						"FIELD-EXTERNAL-DESCRIPTIONS-TITLE": "Podaci o vanjskim podacima (skupovima podataka)",
+						"FIELD-EXTERNAL-DESCRIPTIONS-PLACEHOLDER": "Primjer unosa",
+						"FIELD-LICENSES-TITLE": "Licencirani podaci",
+						"EXTERNAL-DATASET-TYPE-NAME": "Vrsta",
+						"INTERNAL-ENTITIES": "{{ APP_NAME_CAPS }} Entities"
+					},
+					"ERROR-MESSAGES": {
+						"FIELD-OTHER-SOURCES-REQUIRED": "Mora biti naveden barem jedan izvor.",
+						"FIELD-RADIO-AT-LEAST-ONE-REQUIRED": "Mora biti navedena barem jedna opcija.",
+						"FIELD-SELECT-AT-LEAST-ONE-REQUIRED": "Mora biti navedena barem jedna opcija.",
+                        "SECTION-AT-LEAST-ONE-REQUIRED": "There must be at least one section provided.",
+                        "SECTION-CHILD-REQUIRED": "Section must have at least one question"
+					},
+					"DEFAULT-VALUES": {
+						"NONE": "Niti jedan",
+						"BOOLEAN-DECISION": {
+							"YES": "Da",
+							"NO": "Ne"
+						},
+						"CHECK-BOX": {
+							"CHECKED": "Označeno",
+							"UNCHECKED": "Neoznačeno"
+						}
+					},
+					"ACTIONS": {
+						"ADD-RULE": "Dodajte pravilo vidljivosti +"
+					},
+					"STATUS": {
+						"CALCULATING-PREVIEW": "... pripremam verziju za pregled",
+						"PREVIEW-UPDATED": "Pregled je osvježen!"
+					}
+				},
+				"RULE": {
+					"FIELDS": {
+						"RULE-IF": "Ako je vrijednost",
+						"RULE-THEN": "onda pokaži pitanje",
+						"FIELDSETS": "Pitanja",
+						"FIELDS": "Unosi"
+					},
+					"HINTS": {
+						"ELEMENT-CHILD-OF-TARGET": "Ovaj element je nadređen odabranom unosu",
+						"ELEMENT-HIDDEN-FROM-ELEMENT": "Ovaj element skriva dio ili nadređeni dio unosa na kojeg želite primjeniti pravilo vidljivosti."
+					}
+				},
+				"TABLE-OF-CONTENTS": {
+					"ERROR-MESSAGES": {
+						"GENERIC-GRAD-AND-DROP-ERROR": "Invalid action.",
+						"FIELDSET-MUST-HAVE-PARENT-SECTION": "Mora postojati nadređena sekcija.",
+						"INPUT-SECTION-SAME-LEVEL": "Ne mogu postojati pitanje i odjeljak na istom nivou.",
+						"DRAG-NOT-SUPPORTED": "Radnja povuci - ispusti (engl. drag ‘n’ drop) odlomka nije podržana za ovo odredište.",
+						"PAGE-ELEMENT-ONLY-TOP-LEVEL": "Elementi poglavlja mogu biti samo na najvišoj razini"
+					}
+				}
+			},
+			"TOOLKIT": {
+				"GENERAL-TOOLS": "Alati za pitanja",
+				"NEW-INPUT-SET": "Dodaj pitanje",
+				"CLONE": "Kopiraj",
+				"DELETE": "Izbriši"
+			}
+		},
+		"ACTIONS": {
+			"SAVE": "Snimi",
+			"SAVE-AND-CONTINUE": "Spremi i nastavi",
+			"SAVE-AND-CLOSE": "Spremi i zatvori",
+			"FINALIZE": "Završi",
+			"UPDATE": "Dopuni",
+			"UPDATE-AND-CONTINUE": "Dopuni i nastavi",
+			"UPDATE-AND-CLOSE": "Dopuni i zatvori",
+			"PREVIEW-AND-FINALIZE": "Pregledaj i završi",
+			"PREVIEW": "Preview",
+			"BACK-TO-TOP": "Natrag na vrh",
+			"CLOSE": "Close",
+			"PREVIOUS": "Previous",
+			"NEXT": "Next",
+			"FIELD": {
+				"MAKE-IT-REQUIRED": "Postavi kao obavezno polje",
+				"ADD-VISIBILITY-RULE": "Dodaj uvjetno pitanje",
+				"DELETE-INPUT": "Izbriši unos",
+				"PREVIEW": "Pregledaj",
+				"NOT-INITIALIZED": "Još nije aktivirano",
+				"MOVE-UP": "Premjesti iznad",
+				"MOVE-DOWN": "Premjesti ispod"
+			},
+			"FIELDSET": {
+				"ADD-INPUT": "Dodaj",
+				"COMMENT-FIELD": "Polje komentara",
+				"INCLUDE-COMMENT-FIELD": "Ovom pitanju dodaj i polje za komentar",
+				"ENABLE-MULTIPLICITY": "Korisnik može odgovoriti više puta na isto pitanje.",
+				"MULTIPLICITY": "Višestrukost",
+				"MORE": "Više.."
+			}
+		},
+		"ERRORS": {
+			"INVALID-VISIBILITY-RULES": {
+				"MESSAGE-START": "Neka pravila za prikaza nisu valjana",
+				"MESSAGE-END": "Želite li ih popraviti?",
+				"CONFIRM-YES": "Da, izbriši nevažeća pravila",
+				"CONFIRM-NO": "Želim ih zadržati.",
+				"REMOVE-SUCCESS": "Nevažeća pravila prikaza su uspješno izbrisana."
+			}
+		},
+		"LOCKED-DIALOG": {
+			"TITLE": "Description Template is locked",
+			"MESSAGE": "Somebody else is modifying the description template at this moment. You may view the description template but you cannot make any changes. If you would like to modify it please come back later."
+		}
+	},
+	"PLAN-LISTING": {
+		"PLAN": "Plan upravljanja podacima",
+		"GRANT": "Potpora",
+		"EDITED": "Izmijenjeno",
+		"PUBLISHED": "Objavljeno",
+		"VERSION": "Verzija",
+		"CONTAINED-DESCRIPTIONS": "Contained Descriptions",
+		"TEXT-INFO": "Plan upravljanja podacima (eng. Data Management Plan, skraćeno DMP) sadrži informacije o tome kako su skupovi podataka prikupljeni i/ili generirani, obrađeni i analizirani (uz pomoću kojih alata, standarda, metodologija i sl.), gdje i kako su pohranjene sigurnosne kopije, gdje su podaci objavljeni i gdje se dugoročno čuvaju. Treba navesti i sve troškove nastale angažmanom suradnika koji su zaduženi za upravljanje podacima, kao i troškove osiguravanja infrastrukture za upravljanje podacima.",
+		"TEXT-INFO-QUESTION": "Ako niste sigurni kako plan upravljanja podacima treba izgledati, pogledajte javno dostupne Planove i",
+		"LINK-ZENODO": "LIBER zajednicu u Zenodu",
+		"GET-IDEA": "kako biste dobili inspiraciju!",
+		"SORT-BY": "Poredaj po",
+		"COLUMNS": {
+			"PROFILE": "Predložak"
+		},
+		"ACTIONS": {
+			"NEW": "Novi Plan",
+			"INVITE": "Pozovite suradnike",
+			"INVITE-SHORT": "Pozovi",
+			"ADD-DESCRIPTION-SHORT": "Add Description",
+			"NEW-VERSION": "Nova verzija",
+			"VIEW-VERSION": "Sve verzije Plana",
+			"CLONE": "Napravi kopiju",
+			"DELETE": "Obriši",
+			"DEPOSIT": "Pohrani",
+			"EXPORT": "Preuzmi",
+			"TOGGLE-DESCENDING": "Order by ascending",
+			"TOGGLE-ΑSCENDING": "Order by descending"
+		},
+		"FILTERS": {
+			"NAME": "Filters",
+			"APPLY-FILTERS": "Apply filters",
+            "RESET-FILTERS": "Reset",
+			"NO-ITEMS-FOUND": "Your search didn't match any items.",
+			"STATUS": {
+				"NAME": "Status",
+				"TYPE": {
+					"ANY": "Any",
+					"PUBLIC": "Published",
+					"FINALIZED": "Finalized",
+					"DRAFT": "Draft"
+				}
+			},
+			"RELATED-TENANT": {
+				"NAME": "Related Tenant",
+				"FILTER-BY-TENANT": "Filter by tenant"
+			},
+			"RELATED-DESCRIPTION-TEMPLATES": {
+				"NAME": "Related Description Templates",
+				"PLACEHOLDER": "Select Description Templates"
+			},
+			"ASSOCIATED-PLAN-BLUEPRINTS": {
+				"NAME": "Related Plan Blueprints",
+				"PLACEHOLDER": "Select Plan Blueprints"
+			},
+			"ROLE": {
+				"NAME": "Role",
+				"TYPE": {
+					"ANY": "Any",
+					"OWNER": "Owner",
+					"VIEWER": "Viewer",
+					"DESCRIPTION-CONTRIBUTOR": "Description Contributor",
+					"REVIEWER": "Reviewer"
+				}
+			}
+		},
+		"EMPTY-LIST": "Ništa još nije dostupno."
+	},
+	"PLAN-UPLOAD": {
+		"TITLE": "Uvezi plan upravljanja podacima",
+		"UPLOAD-SUCCESS": "Uspješan prijenos",
+		"ANALYZING-FILE": "Analyzing file",
+		"FIELDS": {
+			"BLUEPRINT-PLACEHOLDER": "Select Plan Blueprint",
+			"DESCRIPTION-TEMPLATE": "Description Template",
+			"DESCRIPTION-TEMPLATE-PLACHOLDER": "Select description template",
+			"SECTION": "Plan Section",
+			"SECTION-PLACEHOLDER": "Select plan section"
+		},
+		"ACTIONS": {
+			"IMPORT": "Uvezi",
+			"CANCEL": "Poništi"
+		},
+		"PLACEHOLDER": "Naslov Plana"
+	},
+	"PLAN-DELETE-DIALOG": {
+		"WARNING": "Warning!",
+		"DELETE-ITEM": "Are you sure to delete this plan? The following descriptions will also be removed:",
+		"ACTIONS": {
+			"DELETE": "Delete",
+			"CANCEL": "Cancel"
+		}
+	},
+	"PLAN-OVERVIEW": {
+		"TITLE": "Plan",
+		"PUBLIC": "Javno",
+		"LOCKED": "Zaključano",
+		"VERSION": "Version",
+		"EDITED": "Edited",
+		"DELETED": "Deleted",
+		"FINALISED": "Finalized",
+		"GRANT": "Potpora",
+		"DESCRIPTION": "Description",
+		"DESCRIPTIONS": "Descriptions included",
+		"DOI-PROVIDED": "DOI provided by",
+		"PLAN-AUTHORS": "Autor/i Plana",
+		"YOU": "Vi",
+		"ACTIONS": {
+			"BACK": "Back",
+			"EDIT": "Edit",
+			"CLONE": "Clone",
+			"DELETE": "Delete",
+			"COPY": "Copy",
+			"FINALIZE": "Finalize",
+			"VISIT-WEBSITE": "Visit Website",
+			"REVERSE": "Undo Finalization",
+			"EXPORT": "Export",
+			"NEW-VERSION": "Start new version",
+			"INVITE-SHORT": "Invite",
+			"REMOVE-AUTHOR": "Remove",
+			"PREVIEW": "Preview"
+		},
+		"UNDO-FINALIZATION-DIALOG": {
+			"TITLE": "Undo Finalization?",
+			"CONFIRM": "Yes",
+			"NEGATIVE": "No"
+		},
+		"LOCK": "Zaključaj",
+		"MULTIPLE-DIALOG": {
+			"USE-DEFAULT": "Koristite zadanu opciju"
+		},
+		"DEPOSIT": {
+			"ACCOUNT-LOGIN": "Koji račun želite koristiti?",
+			"LOGIN": "Prijavite se s { {repozitorija} }"
+		},
+		"LOCKED-DIALOG": {
+			"TITLE": "PUP je zaključan",
+			"MESSAGE": "U ovom trenutku netko drugi uređuje informacije o skupu podataka. Ako želite pregledati zapis ili napraviti izmjenu, pričekajte i pokušajte ponovo kasnije."
+		},
+		"ROLES": {
+			"ALL-SECTIONS": "All Sections"
+		},
+		"INFOS": {
+			"UNAUTHORIZED-ORCID": "This ORCID is entered by the Plan creators, without further acknowledgement of the owner."
+		}
+	},
+    "DESCRIPTION-STATUS-LISTING": {
+        "FIELDS": {
+			"NAME": "Name",
+			"DESCRIPTION": "Description",
+			"INTERNAL-STATUS": "Internal Status",
+			"UPDATED-AT": "Updated",
+			"CREATED-AT": "Created",
+			"IS-ACTIVE": "Is Active"
+		},
+		"FILTER": {
+			"TITLE": "Filters",
+			"IS-ACTIVE": "Is Active",
+			"CANCEL": "Cancel",
+			"APPLY-FILTERS": "Apply filters"
+		},
+		"ACTIONS": {
+			"DELETE": "Delete",
+			"EDIT": "Edit",
+            "CREATE-DESCRIPTION-STATUS": "Create Description Status"
+		}
+    },
+    "DESCRIPTION-STATUS-EDITOR": {
+        "TITLE": {
+            "NEW": "New Description Status",
+            "EDIT": "Edit Description Status"
+        },
+        "FIELDS": {
+            "NAME": "Name",
+            "DESCRIPTION": "Description",
+            "DEFINITION": "Definition",
+            "INTERNAL-STATUS": "Internal Status",
+            "AUTHORIZATION": "Authorization",
+            "EDIT": "Edit",
+            "ALLOW-AUTHENTICATED": "Allow authenticated users",
+            "ALLOW-ANONYMOUS": "Allow anonymous users",
+            "ROLES": "User roles",
+            "PLAN-ROLES": "User plan roles"
+        },
+		"DEFAULT-VALUE": {
+			"NONE": "None"
+		}
+    },
+    "PLAN-STATUS-LISTING": {
+        "FIELDS": {
+			"NAME": "Name",
+			"DESCRIPTION": "Description",
+			"INTERNAL-STATUS": "Internal Status",
+			"UPDATED-AT": "Updated",
+			"CREATED-AT": "Created",
+			"IS-ACTIVE": "Is Active"
+		},
+		"FILTER": {
+			"TITLE": "Filters",
+			"IS-ACTIVE": "Is Active",
+			"CANCEL": "Cancel",
+			"APPLY-FILTERS": "Apply filters"
+		},
+		"ACTIONS": {
+			"DELETE": "Delete",
+			"EDIT": "Edit",
+            "CREATE-PLAN-STATUS": "Create Plan Status"
+		}
+    },
+     "PLAN-STATUS-EDITOR": {
+        "TITLE": {
+            "NEW": "New Plan Status",
+            "EDIT": "Edit Plan Status"
+        },
+        "FIELDS": {
+            "NAME": "Name",
+            "DESCRIPTION": "Description",
+            "DEFINITION": "Definition",
+            "INTERNAL-STATUS": "Internal Status",
+            "AUTHORIZATION": "Authorization",
+            "EDIT": "Edit",
+            "ALLOW-AUTHENTICATED": "Allow authenticated users",
+            "ALLOW-ANONYMOUS": "Allow anonymous users",
+            "ROLES": "User roles",
+            "PLAN-ROLES": "User plan roles"
+        },
+		"DEFAULT-VALUE": {
+			"NONE": "None"
+		},
+        "ACTIONS": {
+            "SAVE": "Save",
+            "CANCEL": "Cancel",
+            "DELETE": "Delete"
+        },
+        "LOCKED-DIALOG": {
+            "TITLE": "Plan Status is locked",
+            "MESSAGE": "Somebody else is modifying the Plan Status at this moment. You may view the Plan Status but you cannot make any changes. If you would like to modify it please come back later."
+        }
+    },
+	"DESCRIPTION-OVERVIEW": {
+		"TITLE": "Description",
+		"PUBLIC": "Public",
+		"LOCKED": "Locked",
+		"EDITED": "Edited",
+		"DELETED": "Deleted",
+		"FINALISED": "Finalized",
+		"PART-OF": "Part of",
+		"GRANT": "Grant",
+		"RESEARCHERS": "Researchers",
+		"DESCRIPTION": "Description",
+		"DESCRIPTION-AUTHORS": "Description authors",
+		"YOU": "you",
+		"ACTIONS": {
+			"BACK": "Back",
+			"EDIT": "Edit",
+			"CLONE": "Clone",
+			"DELETE": "Delete",
+			"FINALIZE": "Finalize",
+			"REVERSE": "Undo Finalization",
+			"EXPORT": "Export",
+			"INVITE-SHORT": "Invite",
+			"REMOVE-AUTHOR": "Remove",
+			"PREVIEW": "Preview"
+		},
+		"COPY-DIALOG": {
+			"COPY": "Copy",
+			"CANCEL": "Cancel"
+		},
+		"FINALIZE-DIALOG": {
+			"TITLE": "Finalize this item?",
+			"CONFIRM": "Confirm",
+			"NEGATIVE": "Cancel"
+		},
+		"UNDO-FINALIZATION-DIALOG": {
+			"TITLE": "Undo Finalization?",
+			"CONFIRM": "Yes",
+			"NEGATIVE": "No"
+		},
+		"LOCKED-DIALOG": {
+			"TITLE": "Description is locked",
+			"MESSAGE": "Somebody else is modifying the description at this moment. If you would like to modify or view it, please come back later."
+		},
+		"ROLES": {
+			"ALL-SECTIONS": "All Sections"
+		},
+		"INFOS": {
+			"UNAUTHORIZED-ORCID": "This ORCID is entered by the Plan creators, without further acknowledgement of the owner."
+		}
+	},
+	"DESCRIPTION-LISTING": {
+		"TEXT-INFO": "Skupovi podataka se opisuju prema unaprijed određenim predlošcima. U {{ APP_NAME }}u, Plan može sadržavati onoliko opisa koliko ima skupova podataka. Pretražite",
+		"TEXT-INFO-REST": "za pregled skupova podataka opisanih u Planovima u {{ APP_NAME }}u",
+		"LINK-PUBLIC-DESCRIPTIONS": "Pretražite javno dostupne skupove podataka",
+		"TEXT-INFO-PAR": "Novi Opisi skupova podataka mogu se dodati u postojeće Planove upravljanja podacima u bilo kojem trenutku, a za njihovo opisivanje može se koristiti više od jednog predloška. Generirati možete kopije skupova podataka, koje možete koristiti i u drugim planovima. Skupovi podataka mogu se obrisati bez negativnih posljedica po Plan u cjelini.",
+		"TEXT-INFO-QUESTION": "New descriptions can be added to existing DMPs at any time and be described with more than one template. ",
+		"GET-IDEA": " Descriptions can also be cloned and re-used in other DMPs as well as be deleted without negatively affecting the DMP as a whole.",
+		"DESCRIPTION": "Description",
+		"GRANT": "Grant",
+		"LOCKED": "Description is Locked by another user",
+		"PART-OF": "Part of",
+		"PLAN": "Plan",
+		"EMPTY-LIST": "Ništa još nije dostupno.",
+		"ACTIONS": {
+			"ADD-REFERENCE-TYPE": "Add a Reference Type",
+			"ADD-DESCRIPTION": "Add Description",
+			"TAKE-A-TOUR": "Do you need help? Take a tour..",
+			"LOAD-MORE": "Load more",
+			"EXPORT": "Preuzmi",
+			"INVITE-SHORT": "Pozovi",
+			"DELETE": "Delete",
+			"COPY-DESCRIPTION": "Copy Description",
+			"TOGGLE-DESCENDING": "Order by ascending",
+			"TOGGLE-ΑSCENDING": "Order by descending"
+		},
+		"STATES": {
+			"EDITED": "Izmijenjeno",
+			"PUBLIC": "Javno",
+			"PUBLISHED": "Objavljeno"
+		},
+		"COPY-DIALOG": {
+			"COPY": "Copy",
+			"CANCEL": "Cancel"
+		},
+		"FILTERS": {
+			"NAME": "Filters",
+			"APPLY-FILTERS": "Apply filters",
+			"RESET-FILTERS": "Reset",
+			"STATUS": {
+				"NAME": "Status",
+				"TYPES": {
+					"ANY": "Any",
+					"DRAFT": "Draft",
+					"FINALIZED": "Finalized",
+					"CANCELED": "Canceled"
+				}
+			},
+			"RELATED-TENANT": {
+				"NAME": "Related Tenant",
+				"FILTER-BY-TENANT": "Filter by tenant"
+			},
+			"RELATED-DESCRIPTION-TEMPLATES": {
+				"NAME": "Related Description Templates",
+				"PLACEHOLDER": "Select Description Templates"
+			},
+			"ASSOCIATED-PLANS": {
+				"NAME": "Related Plans",
+				"PLACEHOLDER": "Select Plans"
+			},
+			"ALL-VERSIONS": "From All Versions",
+			"ROLE": {
+				"NAME": "Role",
+				"TYPES": {
+					"ANY": "Any",
+					"OWNER": "Owner",
+					"VIEWER": "Viewer",
+					"DESCRIPTION-CONTRIBUTOR": "Description Contributor",
+					"REVIEWER": "Reviewer"
+				}
+			},
+			"TAGS": {
+				"NAME": "Tags",
+				"PLACEHOLDER": "Select Tags"
+			},
+			"REFERENCE-TYPES": {
+				"NAME": "Reference Types",
+				"REFERENCE-TYPE": "Select Reference Type",
+				"REFERENCE": "Select Reference"
+			}
+		}
+	},
+	"DESCRIPTION-EDITOR": {
+		"TITLE-NEW": "New Description",
+		"TITLE-ADD-DESCRIPTION": "Adding Description",
+		"TITLE-EDIT-DESCRIPTION": "Editing Description",
+		"TITLE-PREVIEW-DESCRIPTION": "Previewing Description",
+		"TO-PLAN": "Previewing Plan",
+		"UNSAVED-CHANGES": "(unsaved changes)",
+		"PLAN": "Plan",
+		"TOC": {
+			"TITLE": "Guide steps",
+			"MAIN-INFO": "Main info",
+			"PREVIOUS": "Previous",
+			"NEXT": "Next"
+		},
+		"BASE-INFO": {
+			"INTRO": "You are using the Description editor. Answer here questions that describe your data management activities.",
+			"INTRO-TIP": "Tip: Add new descriptions to describe different types of data or disciplinary data to avoid mixing information.",
+			"FIELDS": {
+				"TITLE": "Title of Description",
+				"DESCRIPTION": "Description",
+				"TAGS": "Tags",
+				"TAGS-PLACEHOLDER": "New Tag...",
+				"DESCRIPTION-HINT": "Briefly describe the context and purpose of the Description",
+				"DESCRIPTION-TEMPLATE": "Template",
+				"DESCRIPTION-TEMPLATE-PLACEHOLDER": "Description Template",
+				"DESCRIPTION-TEMPLATE-VERSION": "Version"
+			}
+		},
+		"FIELDS": {
+			"COMMENT-PLACEHOLDER": "Please Specify"
+		},
+		"ACTIONS": {
+			"BACK-TO": "Back to",
+			"EXPORT": {
+				"EXPORT": "Export",
+				"CAN-NOT-EXPORT": "Export"
+			},
+			"SAVE": "Save",
+			"CANCEL": "Cancel",
+			"SAVE-AND-CONTINUE": "Save & Continue",
+			"SAVE-AND-CLOSE": "Save & Close",
+			"FINALIZE": "Finalize",
+			"DISCARD": {
+				"DISCARD": "Discard",
+				"DISCARD-NEW-MESSAGE": "All unsaved changes will be lost. Would you like to proceed?",
+				"DISCARD-NEW-CONFIRM": "Yes, revert changes.",
+				"DISCARD-NEW-DENY": "No.",
+				"DISCARD-EDITED-MESSAGE": "All unsaved changes will be lost. Would you like to proceed?",
+				"DISCARD-EDITED-CONFIRM": "Yes, revert changes.",
+				"DISCARD-EDITED-DENY": "No."
+			},
+			"REVERSE": "Undo Finalization",
+			"UNDO-FINALIZATION-QUESTION": "Undo finalization?",
+			"CONFIRM": "Yes",
+			"REJECT": "No",
+			"MULTIPLICITY-ADD-ONE-FIELD": "Add more",
+			"MULTIPLICITY-ADD-ONE-FIELD-TABLEVIEW": "Add row",
+			"VIEW-MORE": "View more",
+			"VIEW-LESS": "View less"
+		},
+		"MESSAGES": {
+			"MISSING-FIELDS": "There are some required fields left unfilled. Please check the Plan and make sure that all required questions are answered and URLs are provided with valid input. (Missing fields are marked in red color)"
+		},
+		"LOCKED-DIALOG": {
+			"TITLE": "Description is locked",
+			"MESSAGE": "Somebody else is modifying the description at this moment. You may view the description but you cannot make any changes. If you would like to modify it please come back later."
+		},
+		"DEPRECATED-DESCRIPTION-TEMPLATE": {
+			"TITLE": "New Version available for",
+			"MESSAGE": "Would you like to update to the new version?",
+			"ACTIONS": {
+				"CANCEL": "Cancel",
+				"UPDATE": "Update"
+			}
+		},
+		"QUESTION": {
+			"EXTENDED-DESCRIPTION": {
+				"COPY-LINK": "Copy Link",
+				"COPY-LINK-SUCCESSFUL": "Link copied",
+				"ANNOTATIONS": "Comment"
+			}
+		}
+	},
+	"DESCRIPTION-COPY-DIALOG": {
+		"TITLE": "Copy Description to Plan",
+		"SELECT-PLAN": "Select Plan",
+		"PLAN-SECTION": "Select Section"
+	},
+	"NEW-DESCRIPTION-DIALOG": {
+		"TITLE": "Initialize your Description",
+		"OR": "OR",
+		"DESCRIPTION-TEMPLATE-HINT": "Select the Template to be used for your Description.",
+		"PREFILL-HINT": "Select the item from Zenodo to automatically retrieve answers to some questions in your template or start by answering the questions manually.",
+		"DESCRIPTION-TEMPLATE": "Description Template",
+		"PREFILLING-SOURCE": "Prefilling Source",
+		"SEARCH-HEADER": "Prefilled object",
+		"SEARCH": "Start typing to search for an entity to use for prefilling",
+		"ACTIONS": {
+			"NEXT": "Next",
+			"PREFILL": "Prefill",
+			"MANUALLY": "Manually"
+		}
+	},
+	"DESCRIPTION-TEMPLATE-LISTING": {
+		"CREATE-DESCRIPTION-TEMPLATE": "Create Description Template",
+		"MESSAGES": {
+			"TEMPLATE-UPLOAD-SUCCESS": "Template successfully uploaded"
+		},
+		"FIELDS": {
+			"NAME": "Name",
+			"CODE": "Code",
+			"DESCRIPTION": "Description",
+			"STATUS": "Status",
+			"VERSION": "Version",
+			"UPDATED-AT": "Updated",
+			"CREATED-AT": "Created",
+			"IS-ACTIVE": "Is Active"
+		},
+		"FILTER": {
+			"TITLE": "Filters",
+			"IS-ACTIVE": "Is Active",
+			"STATUS": "Status",
+			"CANCEL": "Cancel",
+			"APPLY-FILTERS": "Apply filters"
+		},
+		"ACTIONS": {
+			"DELETE": "Izbriši",
+			"EDIT": "Uredi",
+			"CLONE": "Napravi kopiju",
+			"DOWNLOAD-XML": "Download XML",
+			"NEW-VERSION": "Nova verzija",
+			"VIEW-VERSIONS": "All Description Template Versions"
+		},
+		"IMPORT": {
+			"UPLOAD-XML": "Import",
+			"UPLOAD-XML-FILE-TITLE": "Import Description Template",
+			"UPLOAD-XML-NAME": "Name Of Description Template",
+			"UPLOAD-XML-FILE-CANCEL": "Cancel",
+			"UPLOAD-FILE": "Upload File",
+			"REPLACE-FILE": "Replace File"
+		}
+	},
+	"DESCRIPTION-TEMPLATE-TYPE-LISTING": {
+		"CREATE-TYPE": "Create Description Type",
+		"FIELDS": {
+			"NAME": "Name",
+			"CODE": "Code",
+			"STATUS": "Status",
+			"UPDATED-AT": "Updated",
+			"CREATED-AT": "Created",
+			"IS-ACTIVE": "Is Active"
+		},
+		"FILTER": {
+			"TITLE": "Filters",
+			"IS-ACTIVE": "Is Active",
+			"STATUS": "Status",
+			"CANCEL": "Cancel",
+			"APPLY-FILTERS": "Apply filters",
+			"CLEAR-ALL-FILTERS": "clear all filters",
+			"SEARCH-FILTER-BTN": "Filter Results"
+		},
+		"ACTIONS": {
+			"DELETE": "Delete",
+			"EDIT": "Edit"
+		}
+	},
+	"REFERENCE-TYPE-LISTING": {
+		"CREATE-TYPE": "Create Reference Type",
+		"FIELDS": {
+			"NAME": "Name",
+			"CODE": "Code",
+			"UPDATED-AT": "Updated",
+			"CREATED-AT": "Created",
+			"IS-ACTIVE": "Is Active"
+		},
+		"FILTER": {
+			"TITLE": "Filters",
+			"IS-ACTIVE": "Is Active",
+			"CANCEL": "Cancel",
+			"APPLY-FILTERS": "Apply filters"
+		},
+		"ACTIONS": {
+			"DELETE": "Delete",
+			"EDIT": "Edit"
+		}
+	},
+	"TENANT-LISTING": {
+		"CREATE": "Create Tenant",
+		"FIELDS": {
+			"NAME": "Name",
+			"CODE": "Code",
+			"UPDATED-AT": "Updated",
+			"CREATED-AT": "Created",
+			"IS-ACTIVE": "Is Active"
+		},
+		"FILTER": {
+			"TITLE": "Filters",
+			"IS-ACTIVE": "Is Active",
+			"CANCEL": "Cancel",
+			"APPLY-FILTERS": "Apply filters"
+		},
+		"ACTIONS": {
+			"DELETE": "Delete",
+			"EDIT": "Edit"
+		}
+	},
+	"PREFILLING-SOURCE-LISTING": {
+		"CREATE": "Create Prefilling Source",
+		"FIELDS": {
+			"LABEL": "Label",
+			"CODE": "Code",
+			"UPDATED-AT": "Updated",
+			"CREATED-AT": "Created",
+			"IS-ACTIVE": "Is Active"
+		},
+		"FILTER": {
+			"TITLE": "Filters",
+			"IS-ACTIVE": "Is Active",
+			"CANCEL": "Cancel",
+			"APPLY-FILTERS": "Apply filters"
+		},
+		"ACTIONS": {
+			"DELETE": "Delete",
+			"EDIT": "Edit"
+		}
+	},
+	"REFERENCE-LISTING": {
+		"CREATE": "Create Reference",
+		"FIELDS": {
+			"LABEL": "Label",
+			"SOURCE": "Source",
+			"SOURCE-TYPE": "Source Type",
+			"TYPE": "Reference Type",
+			"UPDATED-AT": "Updated",
+			"CREATED-AT": "Created",
+			"IS-ACTIVE": "Is Active"
+		},
+		"FILTER": {
+			"TITLE": "Filters",
+			"IS-ACTIVE": "Is Active",
+			"TYPE": "Type",
+			"SOURCE-TYPE": "Source Type",
+			"CANCEL": "Cancel",
+			"APPLY-FILTERS": "Apply filters"
+		},
+		"ACTIONS": {
+			"DELETE": "Delete",
+			"EDIT": "Edit"
+		}
+	},
+	"LOCK-LISTING": {
+		"FIELDS": {
+			"TARGET": "Target",
+			"TARGET-TYPE": "Type",
+			"LOCKED-BY": "Locked By",
+			"LOCKED-AT": "Locked At",
+			"TOUCHED-AT": "Touched At"
+		},
+		"FILTER": {
+			"TITLE": "Filters",
+			"TARGET-TYPE": "Type",
+			"USERS": "Users",
+			"CANCEL": "Cancel",
+			"APPLY-FILTERS": "Apply filters"
+		},
+		"ACTIONS": {
+			"DELETE": "Delete"
+		}
+	},
+	"LANGUAGE-LISTING": {
+		"CREATE": "Create Language",
+		"FIELDS": {
+			"CODE": "Code",
+			"UPDATED-AT": "Updated",
+			"CREATED-AT": "Created",
+			"IS-ACTIVE": "Is Active"
+		},
+		"FILTER": {
+			"TITLE": "Filters",
+			"IS-ACTIVE": "Is Active",
+			"CANCEL": "Cancel",
+			"APPLY-FILTERS": "Apply filters"
+		},
+		"ACTIONS": {
+			"DELETE": "Delete",
+			"EDIT": "Edit"
+		}
+	},
+	"USAGE-LIMIT-LISTING": {
+		"CREATE": "Create Usage Limit",
+		"FIELDS": {
+			"LABEL": "Label",
+			"TARGET-METRIC": "Target Metric",
+			"VALUE": "Value",
+			"UPDATED-AT": "Updated",
+			"CREATED-AT": "Created",
+			"IS-ACTIVE": "Is Active"
+		},
+		"FILTER": {
+			"TITLE": "Filters",
+			"IS-ACTIVE": "Is Active",
+			"CANCEL": "Cancel",
+			"APPLY-FILTERS": "Apply filters"
+		},
+		"ACTIONS": {
+			"DELETE": "Delete",
+			"EDIT": "Edit"
+		}
+	},
+	"SUPPORTIVE-MATERIAL-EDITOR": {
+		"FIELDS": {
+			"MATERIAL-TYPE": "Material Type",
+			"LANGUAGE": "Language"
+		},
+		"ACTIONS": {
+			"SAVE": "Save"
+		}
+	},
+	"LANGUAGE-EDITOR": {
+		"TITLE-EDIT-LANGUAGE": "Editing Language",
+		"FIELDS": {
+			"CODE": "Code",
+			"PAYLOAD": "Payload",
+			"ORDINAL": "Ordinal",
+			"OVERRIDE": "Override from file"
+		},
+		"ACTIONS": {
+			"SAVE": "Save",
+			"CANCEL": "Cancel",
+			"DELETE": "Delete"
+		}
+	},
+	"ANNOTATION-SERVICE": {
+		"TYPES": {
+			"INTERNAL-STATUS": {
+				"RESOLVED": "Resolved"
+			},
+			"IS-ACTIVE": {
+				"ACTIVE": "Active",
+				"INACTIVE": "Inactive"
+			}
+		},
+		"STATUS-LISTING": {
+			"CREATE": "Create Annotation Status",
+			"TITLE": "Annotation Statuses",
+			"FIELDS": {
+				"LABEL": "Label",
+				"INTERNAL-STATUS": "Internal Status",
+				"CREATED-AT": "Created",
+				"UPDATED-AT": "Updated",
+				"IS-ACTIVE": "Is Active"
+			},
+			"FILTER": {
+				"TITLE": "Filters",
+				"IS-ACTIVE": "Is Active",
+				"INTERNAL-STATUS": "Internal Status",
+				"CANCEL": "Cancel",
+				"APPLY-FILTERS": "Apply filters"
+			},
+			"ACTIONS": {
+				"EDIT": "Edit",
+				"DELETE": "Delete"
+			}
+		},
+		"STATUS-EDITOR": {
+			"TITLE-EDIT-ANNOTATION-STATUS": "Editing Annotation Status",
+			"FIELDS": {
+				"LABEL": "Label",
+				"INTERNAL-STATUS":"Internal Status"
+			},
+			"DEFAULT-VALUE": {
+				"NONE": "None"
+			},
+			"ACTIONS": {
+				"SAVE": "Save",
+				"CANCEL": "Cancel",
+				"DELETE": "Delete"
+			}
+		}
+	},
+	"NOTIFICATION-SERVICE": {
+		"INAPP-NOTIFICATION-LISTING": {
+			"TITLE": "Notifications",
+			"FIELDS": {
+				"SUBJECT": "Subject",
+				"TRACKING-STATE": "State",
+				"NOTIFICATION-TYPE": "Type",
+				"CREATED-AT": "Created"
+			},
+			"FILTER": {
+				"TITLE": "Filters",
+				"TRACKING-STATE": "State",
+				"NOTIFICATION-TYPE": "Type",
+				"CANCEL": "Cancel",
+				"APPLY-FILTERS": "Apply filters"
+			},
+			"ACTIONS": {
+				"DELETE": "Delete"
+			}
+		},
+		"INAPP-NOTIFICATION-EDITOR": {
+			"ACTIONS": {
+				"CANCEL": "Cancel",
+				"DELETE": "Delete"
+			}
+		},
+		"NOTIFICATION-TEMPLATE-LISTING": {
+			"CREATE": "Create Notification Template",
+			"FIELDS": {
+				"NOTIFICATION-TYPE": "Type",
+				"KIND": "Kind",
+				"CHANNEL": "Channel",
+				"UPDATED-AT": "Updated",
+				"CREATED-AT": "Created",
+				"IS-ACTIVE": "Is Active"
+			},
+			"FILTER": {
+				"TITLE": "Filters",
+				"NOTIFICATION-TYPE": "Type",
+				"IS-ACTIVE": "Is Active",
+				"KIND": "Kind",
+				"CHANNEL": "Channel",
+				"CANCEL": "Cancel",
+				"APPLY-FILTERS": "Apply filters"
+			},
+			"ACTIONS": {
+				"DELETE": "Delete",
+				"EDIT": "Edit"
+			}
+		},
+		"NOTIFICATION-TEMPLATE-EDITOR": {
+			"TITLE-EDIT-NOTIFICATION-TEMPLATE": "Editing Notification Template",
+			"FIELDS": {
+				"NOTIFICATION-TYPE": "Notification Type",
+				"LANGUAGE": "Language",
+				"CHANNEL": "Channel",
+				"KIND": "Kind",
+				"OPTIONAL-TITLE": "Optional Fields",
+				"KEY": "Key",
+				"DATA-TYPE": "Data Type",
+				"VALUE": "Value",
+				"SUBJECT-SECTION": "Subject Section",
+				"SUBJECT-TEXT": "Subject Text",
+				"SUBJECT-KEY": "Subject Key",
+				"SUBJECT-FIELD-OPTIONS": "Subject Field Options",
+				"BODY-SECTION": "Body Section",
+				"BODY-TEXT": "Body Text",
+				"BODY-KEY": "Body Key",
+				"BODY-FIELD-OPTIONS": "Body Field Options",
+				"MANDATORY": "Mandatory",
+				"MANDATORY-PLACEHOLDER": "New field..",
+				"EXTRA-OPTIONS": "Extra Options",
+				"PRIORITY-KEY": "Priority Key",
+				"ALLOW-ATTACHMENTS": "Allow Attachments",
+				"CC": "CC",
+				"CC-MODE": "CC Mode",
+				"BCC": "BCC",
+				"BCC-MODE": "BCC Mode",
+				"EXTRA-DATA-KEYS": "Extra Data Keys",
+				"FORMATTING": "Formatting"
+			},
+			"ACTIONS": {
+				"SAVE": "Save",
+				"CANCEL": "Cancel",
+				"DELETE": "Delete"
+			}
+		},
+		"NOTIFICATION-LISTING": {
+			"FIELDS": {
+				"NOTIFICATION-TYPE": "Type",
+				"NOTIFY-STATE": "Notify State",
+				"NOTIFIED-WITH": "Notified With",
+				"CONTACT-TYPE": "Contact Type",
+				"TRACKING-STATE": "Tracking State",
+				"TRACKING-PROCESS": "Tracking Process",
+				"RETRY-COUNT": "Retry Count",
+				"NOTIFIED-AT": "Notified At",
+				"USER": "User",
+				"UPDATED-AT": "Updated",
+				"CREATED-AT": "Created",
+				"IS-ACTIVE": "Is Active"
+			},
+			"FILTER": {
+				"TITLE": "Filters",
+				"NOTIFICATION-TYPE": "Type",
+				"IS-ACTIVE": "Is Active",
+				"NOTIFY-STATE": "Notify State",
+				"CONTACT-TYPE": "Contact Type",
+				"TRACKING-STATE": "Tracking State",
+				"TRACKING-PROCESS": "Tracking Process",
+				"USERS": "Users",
+				"CANCEL": "Cancel",
+				"APPLY-FILTERS": "Apply filters"
+			},
+			"ACTIONS": {
+				"DELETE": "Delete"
+			}
+		},
+		"TYPES": {
+			"CONTACT-TYPE": {
+				"EMAIL": "Email",
+				"IN-APP": "In App"
+			},
+			"IS-ACTIVE": {
+				"ACTIVE": "Active",
+				"INACTIVE": "Inactive"
+			},
+			"NOTIFICATION-NOTIFY-STATE": {
+				"PENDING": "Pending",
+				"PROCESSING": "Processing",
+				"SUCCESSFUL": "Successful",
+				"ERROR": "Error",
+				"OMITTED": "Omitted"
+			}
+		},
+		"USER-PROFILE": {
+			"TITLE": "Notification Preferences",
+			"NOTIFIER-LIST-EDITOR": {
+				"ACTIONS": {
+					"SAVE": "Save"
+				},
+				"MESSAGES": {
+					"ERROR": "Something went wrong while trying to load your notification preferences."
+				}
+			}
+		}
+	},
+	"DESCRIPTION-TEMPLATE-TYPE-EDITOR": {
+		"TITLE-EDIT-DESCRIPTION-TEMPLATE-TYPE": "Editing Description Template Type",
+		"FIELDS": {
+			"NAME": "Name",
+			"CODE": "Code"
+		},
+		"ACTIONS": {
+			"SAVE": "Save",
+			"FINALIZE": "Finalize",
+			"CANCEL": "Cancel",
+			"DELETE": "Delete"
+		},
+		"MESSAGES": {
+			"MISSING-FIELDS": "There are some required fields left unfilled. Please check the Template and make sure that all required questions are answered and URLs are provided with valid input. (Missing fields are marked in red color)"
+		},
+		"FINALIZE-DIALOG": {
+			"TITLE": "Finalize this item?",
+			"CONFIRM": "Confirm",
+			"NEGATIVE": "Cancel"
+		}
+	},
+	"REFERENCE-TYPE-EDITOR": {
+		"TITLE-EDIT-REFERENCE-TYPE": "Editing Reference Type",
+		"SOURCES-REQUIRED": "Required",
+		"FIELDS": {
+			"SOURCE-CONFIGURATION": "Source Configuration",
+			"FIELDS": "Fields",
+			"SOURCES": "Sources",
+			"NAME": "Name",
+			"CODE": "Code",
+			"DATA-TYPE": "Data Type",
+			"LABEL": "Label",
+			"DESCRIPTION": "Description"
+		},
+		"ACTIONS": {
+			"SAVE": "Save",
+			"CANCEL": "Cancel",
+			"DELETE": "Delete",
+			"ADD-FIELD": "Add Field",
+			"REMOVE-FIELD": "Remove Field",
+			"ADD-SOURCE": "Add Source",
+			"REMOVE-SOURCE": "Remove Source",
+			"SUBMIT-FIELDS": "Update Fields"
+		}
+	},
+	"EXTERNAL-FETCHER-SOURCE-EDITOR": {
+		"FIELDS": {
+			"RESULTS": "Results",
+			"FIELD-MAPPINGS": "Field Mappings",
+			"AUTHENTICATION": "Authentication",
+			"QUERIES": "Queries",
+			"QUERY": "Query",
+			"STATIC-ITEMS": "Static Items",
+			"STATIC-ITEM": "Item",
+			"NAME": "Name",
+			"CODE": "Code",
+			"VALUE": "Value",
+			"RESPONSE-PATH": "Response Path",
+			"KEY": "Key",
+			"LABEL": "Label",
+			"ORDINAL": "Ordinal",
+			"URL": "Url",
+			"SOURCE-TYPE": "Source Type",
+			"PAGINATION-PATH": "Pagination Path",
+			"CONTENT-TYPE": "Content Type",
+			"HTTP-METHOD": "HTTP Method",
+			"FIRST-PAGE": "First Page",
+			"REQUEST-BODY": "Request Body",
+			"FILTER-TYPE": "Filter Type",
+			"RESULTS-PATH": "Results Path",
+			"TOKEN-PATH": "Token Path",
+			"TYPE": "Type",
+			"SEPARATOR": "Separator",
+			"DEPENDENCIES": "Dependencies",
+			"DEPENDENCY": "Dependency",
+			"DEFAULT-VALUE": "Default Value",
+			"CASES": "Cases",
+			"LIKE-PATTERN": "Condition",
+			"SOURCE-KEY": "Source Key"
+		},
+		"ACTIONS": {
+			"ADD-QUERY": "Add Query",
+			"REMOVE-QUERY": "Remove Query",
+			"ADD-CASE": "Add Case",
+			"REMOVE-CASE": "Remove Case",
+			"ADD-STATIC-ITEM": "Add Item",
+			"REMOVE-STATIC-ITEM": "Remove Item"
+		}
+	},
+	"TENANT-EDITOR": {
+		"VALIDATION": {
+			"INVALID-CODE": "Invalid code"
+		},
+		"FIELDS": {
+			"NAME": "Name",
+			"CODE": "Code",
+			"DESCRIPTION": "Description",
+			"DESCRIPTION-PLACEHOLDER": "Tenant description"
+		},
+		"ACTIONS": {
+			"SAVE": "Save",
+			"CANCEL": "Cancel",
+			"DELETE": "Delete"
+		}
+	},
+	"PREFILLING-SOURCE-EDITOR": {
+		"TITLE-EDIT-PREFILLING-SOURCE": "Editing Prefilling Source",
+		"FIELDS": {
+			"FIXED-VALUE-FIELDS": "Fixed Value Fields",
+			"FIELDS": "API Fields",
+			"SOURCE-CONFIGURATION": "Search Source Configuration",
+			"GET-SOURCE-CONFIGURATION": "Get Source Configuration",
+			"LABEL": "Label",
+			"FIELD": "Field",
+			"CODE": "Code",
+			"SYSTEM-TARGET": "System Target",
+			"SEMANTIC-TARGET": "Semantic Target",
+			"TRIM-REGEX": "Trim Regex",
+			"FIXED-VALUE": "Fixed Value"
+		},
+		"ACTIONS": {
+			"SAVE": "Save",
+			"CANCEL": "Cancel",
+			"DELETE": "Delete",
+			"ADD-FIELD": "Add Field",
+			"REMOVE-FIELD": "Remove Field",
+			"SUBMIT-FIELDS": "Submit Fields"
+		}
+	},
+	"REFERENCE-EDITOR": {
+		"TITLE-EDIT-REFERENCE": "Editing Reference",
+		"FIELDS": {
+			"LABEL": "Label",
+			"TYPE": "Type",
+			"DESCRIPTION-PLACEHOLDER": "Reference description",
+			"REFERENCE": "Reference",
+			"ABBREVIATION": "Abbreviation",
+			"SOURCE": "Source",
+			"SOURCE-TYPE": "Source Type",
+			"FIELDS": "Fields",
+			"CODE": "Code",
+			"DATA-TYPE": "Data Type",
+			"VALUE": "Value"
+		},
+		"ACTIONS": {
+			"SAVE": "Save",
+			"CANCEL": "Cancel",
+			"DELETE": "Delete",
+			"ADD-FIELD": "Add Field",
+			"REMOVE-FIELD": "Remove Field"
+		}
+	},
+	"USAGE-LIMIT-EDITOR": {
+		"TITLE-EDIT-USAGE-LIMIT": "Editing Usage Limit",
+		"FIELDS": {
+			"LABEL": "Label",
+			"TARGET-METRIC": "Target Metric",
+			"VALUE": "Value",
+			"HAS-PERIODICITY": "Periodicity",
+			"PERIODICITY-RANGE": "Periodicity Range"
+		},
+		"ACTIONS": {
+			"SAVE": "Save",
+			"CANCEL": "Cancel",
+			"DELETE": "Delete"
+		}
+	},
+	"PLAN-BLUEPRINT-EDITOR": {
+		"TITLE": {
+			"NEW": "New DMP Blueprint",
+			"CLONE": "Clone Plan Blueprint",
+			"NEW-VERSION": "Create New Version of Plan Blueprint"
+		},
+		"TITLE-EDIT-BLUEPRINT": "Editing Blueprint",
+		"SECTIONS-REQUIRED": "Required",
+		"FIELDS-REQUIRED": "Required",
+		"SYSTEM-FIELDS-REQUIRED": "Title, Description, Language and  Access are required",
+		"FIELDS": {
+			"NAME": "Name",
+			"CODE": "Code",
+			"SECTIONS": "Sections",
+			"SECTION-PREFIX": "Section",
+			"SECTION-NAME": "Section Name",
+			"SECTION-DESCRIPTION": "Section Description",
+			"REFERENCE-TYPE": "Reference Type",
+			"SYSTEM-FIELD-TYPE": "System Field",
+			"FIELD-LABEL": "Label",
+			"FIELD-PLACEHOLDER": "Placeholder",
+			"FIELD-DESCRIPTION": "Description",
+			"DATA-TYPE": "Data Type",
+			"CATEGORY": "Field Type",
+			"FIELD-REQUIRED": "Required",
+			"FIELD-MULTIPLE-SELECT": "Multiple",
+			"SEMANTICS": "Semantics",
+			"DESCRIPTION-TEMPLATES": "Description Templates",
+			"DESCRIPTION-TEMPLATE": "Description Template",
+			"DESCRIPTION-TEMPLATE-LABEL": "Label",
+			"DESCRIPTION-TEMPLATE-MIN-MULTIPLICITY": "Min Multiplicity",
+			"DESCRIPTION-TEMPLATE-MAX-MULTIPLICITY": "Max Multiplicity",
+			"PREFILLING-SOURCES": "Prefilling Sources",
+			"ENABLE-PREFILLING-SOURCES": "Prefilling Sources",
+			"SYSTEM-FIELD-REQUIRED": "This is a required system field"
+		},
+		"ACTIONS": {
+			"ADD-FIELD": "Add Field",
+			"REMOVE-FIELD": "Delete",
+			"REMOVE-SECTION": "Remove Section",
+			"ADD-DESCRIPTION-TEMPLATE": "Add Description Template",
+			"REMOVE-DESCRIPTION-TEMPLATE": "Remove Description Template",
+			"ADD-SECTION": "Add Section",
+			"SAVE": "Spremi",
+			"CANCEL": "Poništi",
+			"DELETE": "Obriši",
+			"FINALIZE": "Dovrši",
+			"DOWNLOAD-XML": "Preuzimanje XML datoteke"
+		},
+		"LOCKED-DIALOG": {
+			"TITLE": "Plan Blueprint is locked",
+			"MESSAGE": "Somebody else is modifying the Plan Blueprint at this moment. You may view the Plan Blueprint but you cannot make any changes. If you would like to modify it please come back later."
+		},
+		"FORM-VALIDATION-DISPLAY-DIALOG": {
+			"TITLE-REQUIRED": "Title should be set.",
+			"DESCRIPTION-REQUIRED": "Description should be set.",
+			"LANGUAGE-REQUIRED": "Language should be set.",
+			"ACCESS-REQUIRED": "Access should be set.",
+			"DESCRIPTION-TEMPLATES-REQUIRED": "At least one section should have description templates."
+		}
+	},
+	"PLAN-EDITOR": {
+		"TITLE-NEW": "New Plan",
+		"TITLE-EDIT": "Editing Plan",
+		"TITLE-PREVIEW": "Previewing Plan",
+		"TITLE": "Plan Template",
+		"UNSAVED-CHANGES": "unsaved changes",
+		"LOCKED": "Locked",
+		"DESCRIPTION": "Description",
+		"NO-TEMPLATE-MESSAGE": "If you can't find a template or if you want to create a personalized template for your institution, research community or training needs, please contact us.",
+		"DESCRIPTION-TEMPLATES": {
+			"EMPTY": "Description templates not found",
+			"MAX-MULTIPLICITY": "Description Templates has reached the maximun multiplicity"
+		},
+		"UNSUCCESSFUL-REMOVE-TEMPLATE": "Cannot remove template, because it's already being used by one or more Descriptions.",
+		"FIELDS": {
+			"TITLE": "Title of Plan",
+			"DESCRIPTION": "Opis",
+			"BLUEPRINT": "Blueprint",
+			"ACCESS-TYPE": "Access Rights",
+			"LANGUAGE": "Jezik",
+			"DESCRIPTION-TEMPLATES": "Description templates",
+			"DESCRIPTION-TEMPLATES-HINT": "Select a template to describe your descriptions",
+			"FIRST-NAME": "First Name",
+			"LAST-NAME": "Last Name",
+			"EMAIL": "Email",
+			"USER": "User",
+			"USER-ROLE": "Role",
+			"SECTIONS": "Plan Sections",
+			"ALL-SECTIONS": "All",
+			"PLAN-BLUEPRINT-VERSION": "Version"
+		},
+		"ACTIONS": {
+			"DISCARD": {
+				"DISCARD": "Discard",
+				"DISCARD-NEW-MESSAGE": "All unsaved changes will be lost. Would you like to proceed?",
+				"DISCARD-NEW-CONFIRM": "Yes, revert changes.",
+				"DISCARD-NEW-DENY": "No.",
+				"DISCARD-EDITED-MESSAGE": "All unsaved changes will be lost. Would you like to proceed?",
+				"DISCARD-EDITED-CONFIRM": "Yes, revert changes.",
+				"DISCARD-EDITED-DENY": "No."
+			},
+			"FINALIZE": {
+				"FINALIZE": "Finalize",
+				"CAN-NOT-FINALIZE": "Save your changes first"
+			},
+			"EXPORT": {
+				"EXPORT": "Export",
+				"CAN-NOT-EXPORT": "Export"
+			},
+			"SAVE": "Spremi",
+			"DELETE": "Obriši",
+			"ADD-DESCRIPTION-IN-SECTION": "Add Description",
+			"PREVIOUS-STEP": "Previous",
+			"NEXT-STEP": "Next",
+			"DEFAULT-BLUEPRINT": "Default Blueprint",
+			"OR-CONTINUE-WITH": "or continue with",
+			"REMOVE-CONTACT": "Remove Contact",
+			"SEARCH-CONTACT": "Search Contact",
+			"REMOVE-USER": "Remove User",
+			"SAVE-AND-CLOSE": "Save & Close",
+			"SAVE-AND-CONTINUE": "Save & Continue",
+			"REVERSE": "Undo Finalization",
+			"LOCKED": "Locked",
+			"ANNOTATIONS": "Comment",
+			"COPY-LINK":"Copy Link"
+		},
+		"PLACEHOLDER": {
+			"DESCRIPTION": "Dodajte opis",
+			"ORGANIZATION": "Odaberite ustanovu",
+			"BLUEPRINT": "Select Blueprint"
+		},
+		"SNACK-BAR": {
+			"UNSUCCESSFUL-DOI": "Neuspješno generiran DOI",
+			"SUCCESSFUL-DOI": "Uspješno generiran DOI",
+			"SUCCESSFUL-PLAN-CONTACT": "User added"
+		},
+		"DESCRIPTION-TEMPLATE-LIST": {
+			"TITLE": "Available Description Templates",
+			"TEXT": "Descriptions selected: ",
+			"OK": "OK"
+		},
+		"STEPPER": {
+			"NEXT": "Sljedeće"
+		},
+		"MAIN-INFO": {
+			"HINT": "Kratki opis Plana s namjenom i ciljevima."
+		},
+		"LOCKED-DIALOG": {
+			"TITLE": "Plan is locked",
+			"MESSAGE": "Somebody else is modifying the Plan at this moment. You may view the Plan but you cannot make any changes."
+		}
+	},
+	"REFERENCE-FIELD": {
+		"COULD-NOT-FIND-MESSAGE": "Couldn't find it?",
+		"ACTIONS": {
+			"INSERT-MANUALLY": "Insert it manually"
+		},
+		"REFERENCE-DIALOG-EDITOR": {
+			"TITLE": "Add ",
+			"IDENTIFIER-EXISTS": "Reference Identifier Exists!",
+			"REFERENCE-ID": "reference id",
+			"LABEL": "label",
+			"DESCRIPTION": "description",
+			"SYSTEM-INFORMATION": "System Information",
+			"TYPE-INFORMATION": " Information"
+		}
+	},
+	"PLAN-CLONE-DIALOG": {
+		"TITLE": "Clone",
+		"FIELDS": {
+			"LABEL": "Title of Plan",
+			"DESCRIPTION": "Description",
+			"DESCRIPTION-HINT": "A brief description of what the Plan is about, it’s scope and objectives.",
+			"DESCRIPTION-PLACEHOLDER": "Fill with Description",
+			"DESCRIPTIONS": "Descriptions",
+			"DESCRIPTIONS-HINT": "Select which descriptions to include in the new Plan. Selected descriptions will be editable."
+		},
+		"NO-DESCRIPTIONS": "Not available Descriptions for this Plan.",
+		"ACTIONS": {
+			"CANCEL": "Cancel",
+			"CLONE": "Clone",
+			"TOGGLE-DESCRIPTIONS": "Check/Uncheck"
+		}
+	},
+	"PLAN-NEW-VERSION-DIALOG": {
+		"TITLE": "New Version",
+		"FIELDS": {
+			"LABEL": "Title of Plan",
+			"DESCRIPTION": "Description",
+			"DESCRIPTION-HINT": "A brief description of what the Plan is about, it’s scope and objectives.",
+			"DESCRIPTION-PLACEHOLDER": "Fill with Description",
+			"DESCRIPTIONS": "Descriptions",
+			"DESCRIPTIONS-HINT": "Select which descriptions to include in the new Plan. Selected descriptions will be editable.",
+			"BLUEPRINT": "Plan Blueprint",
+			"BLUEPRINT-PLACEHOLDER": "Plan Blueprint"
+		},
+		"NO-DESCRIPTIONS": "Not available Descriptions for this Plan.",
+		"ACTIONS": {
+			"CANCEL": "Cancel",
+			"NEW-VERSION": "Create New Version",
+			"TOGGLE-DESCRIPTIONS": "Check/Uncheck"
+		}
+	},
+	"PLAN-CONTACT-PREFILL-DIALOG": {
+		"TITLE": "Add ",
+		"TEXT": "Search an existing user where associated with your plans",
+		"FIELDS": {
+			"USER": "User"
+		},
+		"ACTIONS": {
+			"CANCEL": "Cancel",
+			"CONFIRM": "Confirm"
+		}
+	},
+	"PLAN-USER-INVITATION-DIALOG": {
+		"TITLE": "Invite authors",
+		"ACTIONS": {
+			"INVITE": "Invite"
+		},
+		"SUCCESS": "Invitation Success",
+		"ERROR": "Invitation Error"
+	},
+	"PLAN-BLUEPRINT-LISTING": {
+		"CREATE-PLAN-BLUEPRINT": "Create DMP Blueprint",
+		"FIELDS": {
+			"NAME": "Name",
+			"CODE": "Code",
+			"STATUS": "Status",
+			"VERSION": "Version",
+			"UPDATED-AT": "Updated",
+			"CREATED-AT": "Created",
+			"IS-ACTIVE": "Is Active"
+		},
+		"FILTER": {
+			"TITLE": "Filters",
+			"IS-ACTIVE": "Is Active",
+			"STATUS": "Status",
+			"CANCEL": "Cancel",
+			"APPLY-FILTERS": "Apply filters"
+		},
+		"ACTIONS": {
+			"DELETE": "Delete",
+			"EDIT": "Edit",
+			"CLONE": "Clone",
+			"NEW-VERSION": "New Version",
+			"DOWNLOAD-XML": "Download XML",
+			"VIEW-VERSIONS": "All Plan Blueprint Versions"
+		},
+		"IMPORT": {
+			"UPLOAD-XML": "Import",
+			"UPLOAD-XML-FILE-TITLE": "Import Plan Blueprint",
+			"UPLOAD-XML-NAME": "Name Of Plan Blueprint",
+			"UPLOAD-XML-FILE-CANCEL": "Cancel"
+		},
+		"MESSAGES": {
+			"BLUEPRINT-UPLOAD-SUCCESS": "Blueprint successfully uploaded"
+		}
+	},
+	"USER-LISTING": {
+		"FIELDS": {
+			"CONTACT-INFO": "Email",
+			"ROLES": "Roles",
+			"NAME": "Name",
+			"UPDATED-AT": "Updated",
+			"CREATED-AT": "Created",
+			"IS-ACTIVE": "Is Active"
+		},
+		"FILTER": {
+			"TITLE": "Filters",
+			"IS-ACTIVE": "Is Active",
+			"ROLES": "Roles",
+			"CANCEL": "Cancel",
+			"APPLY-FILTERS": "Apply filters"
+		},
+		"ACTIONS": {
+			"EDIT": "Edit",
+			"SAVE": "Save",
+			"EXPORT": "Export users",
+			"INVITE": "Invite users"
+		}
+	},
+	"REFERENCE-FIELD-COMPONENT": {
+		"EXTERNAL-SOURCE": "Source",
+		"INTERNAL-SOURCE": "Internal"
+	},
+	"TYPES": {
+		"ANNOTATION-PROTECTION-TYPE": {
+			"PRIVATE": "Hidden",
+			"ENTITY-ACCESSORS": "Visible"
+		},
+		"APP-ROLE": {
+			"ADMIN": "Administrator",
+			"INSTALLATION-ADMIN": "Installation Admin",
+			"USER": "Korisnik",
+			"TENANT-ADMIN": "Tenant Admin",
+			"TENANT-USER": "Tenant User",
+			"TENANT-PLAN-MANAGER": "Tenant Plan Manager",
+			"TENANT-CONFIG-MANAGER": "Tenant Configuration Manager"
+		},
+		"IS-ACTIVE": {
+			"ACTIVE": "Active",
+			"INACTIVE": "Inactive"
+		},
+		"DESCRIPTION-STATUS": {
+			"DRAFT": "Draft",
+			"FINALIZED": "Finalized",
+			"CANCELED": "Canceled"
+		},
+		"PLAN-USER-ROLE": {
+			"OWNER": "Owner",
+			"VIEWER": "Viewer",
+			"DESCRIPTION-CONTRIBUTOR": "Description Contributor",
+			"REVIEWER": "Reviewer"
+		},
+		"EXTERNAL-DATASET-TYPE": {
+			"SELECT": "Odaberite"
+		},
+		"PLAN": {
+			"FINALISED": "Završeno",
+			"DRAFT": "Nacrt"
+		},
+		"PLAN-VISIBILITY": {
+			"PUBLIC": "Objavljeno"
+		},
+		"DESCRIPTION-TEMPLATE-FIELD-VALIDATION-TYPE": {
+			"NONE": "Nijedan",
+			"REQUIRED": "Obavezno"
+		},
+		"DESCRIPTION-TEMPLATE-FIELD-TYPE": {
+			"SELECT": "Select",
+			"BOOLEAN-DECISION": "Boolean Decision",
+			"RADIO-BOX": "Radio Box",
+			"INTERNAL-PLAN-ENTITIES-PLANS": "Internal Plans",
+			"INTERNAL-PLAN-ENTITIES-DESCRIPTIONS": "Internal Descriptions",
+			"CHECKBOX": "Checkbox",
+			"FREE-TEXT": "Free Text",
+			"TEXT-AREA": "Text Area",
+			"RICH-TEXT-AREA": "Rich Text Area",
+			"UPLOAD": "Upload",
+			"DATE-PICKER": "Date Picker",
+			"REFERENCE-TYPES": "Reference Types",
+			"TAGS": "Tags",
+			"DATASET-IDENTIFIER": "Dataset Identifier",
+			"VALIDATION": "Validator"
+		},
+		"USER-DESCRIPTION-TEMPLATE-ROLE": {
+			"OWNER": "Owner",
+			"MEMBER": "Member"
+		},
+		"DESCRIPTION-TEMPLATE-UPLOAD-TYPE": {
+			"DOWNLOAD": "Preuzmi datoteku"
+		},
+		"DESCRIPTION-TEMPLATE-COMBO-BOX-TYPE": {
+			"EXTERNAL-SOURCE-HINT": "Popis vrijednosti ponuđenih iz vanjskih izvora",
+			"ACTIONS": {
+				"YES": "Da",
+				"NO": "Ne"
+			}
+		},
+		"DESCRIPTION-TEMPLATE-VALIDATOR": {
+			"ACTION": "Potvrdi",
+			"REPOSITORIES-PLACEHOLDER": "Repozitoriji"
+		},
+		"RECENT-ACTIVITY-ORDER": {
+			"LABEL": "Oznaka",
+			"MODIFIED": "Izmijenjeno",
+			"STATUS": "Status",
+			"PUBLISHED-AT": "Published"
+		},
+		"DESCRIPTION-TEMPLATE-TYPE-STATUS": {
+			"FINALIZED": "Finalized",
+			"DRAFT": "Draft"
+		},
+		"DESCRIPTION-TEMPLATE-STATUS": {
+			"FINALIZED": "Finalized",
+			"DRAFT": "Draft"
+		},
+		"PLAN-BLUEPRINT-STATUS": {
+			"FINALIZED": "Finalized",
+			"DRAFT": "Draft"
+		},
+		"PLAN-BLUEPRINT-SYSTEM-FIELD-TYPE": {
+			"TITLE": "Title",
+			"DESCRIPTION": "Description",
+			"LANGUAGE": "Language",
+			"CONTACT": "Contact",
+			"ACCESS_RIGHTS": "Access",
+			"USER": "User"
+		},
+		"PLAN-BLUEPRINT-EXTRA-FIELD-DATA-TYPE": {
+			"DATE": "Date",
+			"NUMBER": "Number",
+			"TEXT": "Text",
+			"RICH-TEXT": "Rich Text"
+		},
+		"REFERENCE-FIELD-DATA-TYPE": {
+			"TEXT": "Text",
+			"DATE": "Date"
+		},
+		"EXTERNAL-FETCHER-SOURCE-TYPE": {
+			"API": "API",
+			"STATIC": "Static"
+		},
+		"EXTERNAL-FETCHER-API-HTTP-METHOD-TYPE": {
+			"GET": "GET",
+			"POST": "POST"
+		},
+		"DESCRIPTION-TEMPLATE-EXTERNAL-SELECT-HTTP-METHOD-TYPE": {
+			"GET": "GET",
+			"POST": "POST"
+		},
+		"DESCRIPTION-TEMPLATE-EXTERNAL-SELECT-AUTH-TYPE": {
+			"BEARER": "Bearer"
+		},
+		"REFERENCE-SOURCE-TYPE": {
+			"INTERNAL": "Internal",
+			"EXTERNAL": "External"
+		},
+		"NOTIFICATION-TEMPLATE-KIND": {
+			"DRAFT": "Draft",
+			"SECONDARY": "Secondary",
+			"PRIMARY": "Primary",
+			"DEFAULT": "Default"
+		},
+		"NOTIFICATION-TEMPLATE-CHANNEL": {
+			"EMAIL": "Email",
+			"INAPP": "In App"
+		},
+		"NOTIFICATION-TEMPLATE-DATA-TYPE": {
+			"INTEGER": "Integer",
+			"DEMICAL": "Demical",
+			"DOUBLE": "Double",
+			"DATE-TIME": "Date Time",
+			"STRING": "String"
+		},
+		"NOTIFICATION-TEMPLATE-EMAIL-OVERRIDE-MODE": {
+			"NOT": "Not Override",
+			"ADDITIVE": "Additive",
+			"REPLACE": "Replace"
+		},
+		"NOTIFICATION-TEMPLATE-NOTIFICATION-TYPE": {
+			"PLAN-INVITATION-EXTERNAL-USER": "Plan Invitation External User",
+			"PLAN-INVITATION-EXISTING-USER": "Plan Invitation Existing User",
+			"PLAN-MODIFIED": "Plan Modified",
+			"PLAN-FINALISED": "Plan Finalised",
+			"PLAN-ANNOTATION-CREATED": "Plan Annotation Created",
+			"PLAN-ANNOTATION-STATUS-CHANGED": "Plan Annotation Status Changed",
+			"DESCRIPTION-CREATED": "Description Created",
+			"DESCRIPTION-MODIFIED": "Description Modified",
+			"DESCRIPTION-FINALISED": "Description Finalised",
+			"DESCRIPTION-ANNOTATION-CREATED": "Description Annotation Created",
+			"DESCRIPTION-ANNOTATION-STATUS-CHANGED": "Description Annotation Status Changed",
+			"MERGE-ACCOUNT-CONFIRMATION": "Merge Account Confirmation",
+			"REMOVE-CREDENTIAL-CONFIRMATION": "Remove Credential Confirmation",
+			"PLAN-DEPOSIT": "Plan Deposit",
+			"DESCRIPTION-TEMPLATE-INVITATION": "Description Template Invitation",
+			"CONTACT-SUPPORT": "Contact Support",
+			"PUBLIC-CONTACT-SUPPORT": "Public Contact Support",
+			"TENANT-SPECIFIC-INVITATION-EXTERNAL-USER": "Invitation External User",
+			"TENANT-SPECIFIC-INVITATION-EXISTING-USER": "Invitation Existing User"
+		},
+		"NOTIFICATION-INAPP-TRACKING": {
+			"STORED": "Unread",
+			"DELIVERED": "Read"
+		},
+		"NOTIFICATION-CONTACT-TYPE": {
+			"EMAIL": "Email",
+			"INAPP": "In App"
+		},
+		"NOTIFICATION-TRACKING-STATE": {
+			"UNDEFINED": "Undefined",
+			"NA": "NA",
+			"QUEUED": "Queued",
+			"SENT": "Sent",
+			"DELIVERED": "Delivered",
+			"UNDELIVERED": "Undelivered",
+			"FAILED": "Failed",
+			"UNSENT": "Unsent"
+		},
+		"NOTIFICATION-TRACKING-PROCESS": {
+			"PENDING": "Pending",
+			"PROCESSING": "Processing",
+			"SUCCESSFUL": "Successful",
+			"ERROR": "Error",
+			"OMITTED": "Omitted"
+		},
+		"PLAN-ACCESS-TYPE": {
+			"PUBLIC": "Public",
+			"RESTRICTED": "Restricted Access"
+		},
+		"DESCRIPTION-TEMPLATE-FIELD-EXTERNAL-DATASET-TYPE": {
+			"PRODUCED": "Produced dataset",
+			"REUSED": "Reused dataset",
+			"OTHER": "Other"
+		},
+		"PLAN-USER-TYPE": {
+			"INTERNAL": "Internal",
+			"EXTERNAL": "External"
+		},
+		"PLAN-BLUEPRINT-FIELD-CATEGORY": {
+			"SYSTEM": "System",
+			"EXTRA": "Custom",
+			"REFERENCE-TYPE": "External Reference"
+		},
+		"PREFILLING-SOURCE-SYSTEM-TARGET-TYPE": {
+			"LABEL": "Label",
+			"DESCRIPTION": "Description",
+			"TAGS": "Tags"
+		},
+		"LOCK-TARGET-TYPE": {
+			"PLAN": "Plan",
+			"DESCRIPTION": "Description",
+			"PLAN-BLUEPRINT": "Plan Blueprint",
+			"DESCRIPTION-TEMPLATE": "Description Template"
+		},
+		"USAGE-LIMIT-TARGET-METRIC": {
+			"USER-COUNT": "Users",
+			"PLAN-COUNT": "Plans",
+			"BLUEPRINT-COUNT": "Plan Blueprints",
+			"DESCRIPTION-COUNT": "Descriptions",
+			"DESCRIPTION-TEMPLATE-COUNT": "Description Templates",
+			"DESCRIPTION-TEMPLATE-TYPE-COUNT": "Description Template Types",
+			"PREFILLING-SOURCES-COUNT": "Prefillings Sources",
+			"REFERENCE-TYPE-COUNT": "Reference Types"
+		},
+		"USAGE-LIMIT-PERIODICITY-RANGE": {
+			"MONTHLY": "Monthly",
+			"YEARLY": "Yearly"
+		}
+	},
+	"FOOTER": {
+		"CONTACT-SUPPORT": "Kontaktirajte podršku",
+		"FAQ": "Česta pitanja",
+		"GUIDE": "Upute za korisnike",
+		"GLOSSARY": "Rječnik",
+		"TERMS-OF-SERVICE": "Uvjeti korištenja",
+		"ABOUT": "O {{ APP_NAME }}u",
+		"PRIVACY-POLICY": "Politika privatnosti",
+		"COOKIE-POLICY": "Cookie Policy"
+	},
+	"GLOSSARY": {
+		"TITLE": "Rječnik",
+		"CLOSE": "Zatvori"
+	},
+	"FAQ": {
+		"TITLE": "Česta pitanja",
+		"CLOSE": "Zatvori"
+	},
+	"GUIDE": {
+		"TITLE": "Upute za korisnike",
+		"CLOSE": "Zatvori"
+	},
+	"PRIVACY-POLICY": {
+		"TITLE": "-Politika privatnosti-",
+		"MAIN-CONTENT": ""
+	},
+	"OPENSOURCE-LICENCES": {
+		"TITLE": "Politika kolačića"
+	},
+	"COOKIES-POLICY": {
+		"TITLE": "Licencije otvorenog koda"
+	},
+	"CONTACT": {
+		"SUPPORT": {
+			"TITLE": "Podrška",
+			"SUBTITLE": "Kako Vam možemo pomoći?",
+			"SUBJECT": "Tema",
+			"DESCRIPTION": "Opis",
+			"CANCEL": "Poništi",
+			"SEND": "Pošalji"
+		}
+	},
+	"LANGUAGE": {
+		"TITLE": "Jezik",
+		"CLOSE": "Zatvori"
+	},
+	"DASHBOARD": {
+		"GRANTS": "Potpore",
+		"TITLE": "Što je {{ APP_NAME_CAPS }}?",
+		"PLAN-QUESTION": "Što je Plan upravljanja podacima u {{ APP_NAME_CAPS }}U?",
+		"INFO-TEXT": "{{ APP_NAME_CAPS }} je otvorena modularna aplikacija koja pojednostavljuje izradu Planova upravljanja podacima (eng. Data Management Plan), kao i njihovu provjeru, praćenje i održavanje. Uz pomoć {{ APP_NAME_CAPS }}a, svi sudionici u istraživanju (istraživači, administratori, nadzorna tijela i drugi) mogu izraditi primjenjive Planove koji se mogu slobodno razmjenjivati kroz različite infrastrukture radi provođenja određenih dijelova procesa upravljanja podacima u skladu s namjerama i obvezama vlasnika podataka.",
+		"INFO-PLAN-TEXT": "Plan upravljanja podacima (eng. Data Management Plan, skraćeno DMP) je živi dokument koji opisuje skupove podataka prikupljene ili korištene tijekom i nakon istraživanja. Planovi sadrže osnovne informacije o mogućnostima za ponovnu upotrebu i naknadnu distribuciju rezultata istraživanja, kao i za njihovo korištenje u novim kontekstima, čime se potvrđuje njihova valjanost i osigurava njihovo ponovno korištenje.",
+		"NEW-QUESTION": "Potrebna Vam je pomoć pri izradi Plana upravljanja podacima? Posjetite",
+		"START-YOUR-FIRST-PLAN": "Započnite Vaš prvi Plan upravljanja podacima",
+		"OPEN-AIR-GUIDE": "OpenAIRE Upute za istraživače",
+		"LEARN-MORE": "kako biste naučili kako izraditi vlastiti Plan!",
+		"PLANS": "Planovi upravljanja podacima",
+		"PERSONAL-USAGE": "Osobna upotreba",
+		"PUBLIC-USAGE": "Javna upotreba",
+		"DESCRIPTIONS": "Descriptions",
+		"DESCRIPTIONS-DASHBOARD-TEXT": "Opisi skupova podataka",
+		"PUBLIC-PLANS": "Javno dostupni Planovi",
+		"PUBLIC-DESCRIPTIONS": "Public Descriptions",
+		"RELATED-ORGANISATIONS": "Povezane ustanove",
+		"DRAFTS": "Nacrti",
+		"ALL": "Sve",
+		"EMPTY-LIST": "Ništa još nije dostupno.",
+		"LATEST-ACTIVITY": "Posljednja aktivnost",
+		"PLAN-ABOUT-BEG": "Plan upravljanja podacima u {{ APP_NAME }}u sadrži osnovne informacije o istraživanju (kao što su svrha i ciljevi istraživanja), uključenim istraživačima te dokumentaciju o skupovima istraživačkih podataka",
+		"PLAN-ABOUT-END": " (informacije koje ukazuju na procedure i sredstva korištena prilikom upravljanja podacima).",
+		"SELECT-PLAN": "Odaberite odgovarajući Plan za Vaš skup podataka",
+		"ACTIONS": {
+			"ADD-DESCRIPTION": "Add Description"
+		},
+		"TOUR-GUIDE": {
+			"PLAN": "Ovo je Vaša kontrolna ploča. Ovdje možete pregledavati i uređivati sve Planove upravljanja podacima kojima ste doprinijeli ili koje ste sami izradili.",
+			"START-NEW": "Izradite svoj Plan upravljanja podacima pritiskom na Započni novi Plan upravljanja podacima.",
+			"IMPORT-PLAN": "Plan možete uvesti",
+			"START-NEW-PLAN": "ili stvoriti novi u {{ APP_NAME }}u.",
+			"DESCRIPTION": "This is your dashboard. You can view and edit all Descriptions that you have either contributed to or created yourself.",
+			"NEW-DESCRIPTION": "With Add Description you can describe new items anytime in the research process.",
+			"GOT-IT": "Razumijem!",
+			"LEAVE-TOUR": "Napusti obilazak"
+		},
+		"ADD-NEW-DESCRIPTION": {
+			"OPTIONS-NOT-ENOUGH": "Ako niste pronašli odgovarajući Plan,",
+			"START-NEW-PLAN": "započnite novi.",
+			"OPTIONS": {
+				"CREATED-AT": "Created At:"
+			}
+		}
+	},
+	"USER-DIALOG": {
+		"USER-PROFILE": "Moj profil",
+		"USER-PROFILE-SETTINGS": "Postavke profila...",
+		"LOG-OUT": "Odjava"
+	},
+	"USER-INVITE": {
+		"IN-PROGRESS": "User Invitation in progress..",
+		"TITLE": "User Invitation"
+	},
+	"USER-INVITE-TO-TENANT-DIALOG": {
+		"TITLE": "Invite Users",
+		"FIELDS": {
+			"EMAIL": "Email",
+			"ROLES": "Roles"
+		},
+		"ACTIONS": {
+			"REMOVE-USER": "Remove User",
+			"INVITE": "Invite"
+		},
+		"USERS-REQUIRED": "Required at leat on user",
+		"SUCCESS": "Invitation Success",
+		"ERROR": "Invitation Error"
+	},
+	"USER-PROFILE": {
+		"MERGING-EMAILS-DIALOG": {
+			"TITLE": "Potvrdi povezani korisnički račun",
+			"MESSAGE": "Potvrdu za ovu radnju poslali smo Vam putem elektroničke pošte. Kada potvrdite, korisnički računi biti će povezani. Posljednji račun elektroničke pošte koji povežete biti će onaj koji sadrži sve podatke o Planu upravljanja podacima i aktivnostima u {{ APP_NAME }}u."
+		},
+		"UNLINK-ACCOUNT": {
+			"TITLE": "Verify account to be unlinked",
+			"MESSAGE": "An email to verify this action has been sent to your main account. Once accepted, {{accountToBeUnlinked}} will be no longer connected to your current {{ APP_NAME_CAPS }} profile."
+		},
+		"UNLINK-ACCOUNT-DIALOG": {
+			"MESSAGE": "By clicking \"Confirm\", you accept the transfer of your {{ APP_NAME_CAPS }} activity performed from this account to your main {{ APP_NAME_CAPS }} account, which is the one that is listed first. By logging in again with the unlinked account, you will be able to start your {{ APP_NAME_CAPS }} experience from scratch, in an empty dashboard.",
+			"CONFIRM": "Confirm",
+			"CANCEL": "Cancel"
+		},
+		"SETTINGS": {
+			"TIMEZONE": "Vremenska zona",
+			"CULTURE": "Format",
+			"LANGUAGE": "Jezik",
+			"NAME": "Ime i prezime",
+			"ORGANIZATION": "Ustanova",
+			"ROLE": "Uloga",
+			"SELECT-ROLE": "Odabir uloge",
+			"ACCOUNTS": "Korisnički računi",
+			"EMAILS": "E-mail adrese",
+			"YOUR-EMAIL": "Vaš e-mail"
+		},
+		"ASSOCIATED-PLANS": "Povezani Planovi",
+		"ROLE-ORGANIZATION": {
+			"FACULTY": "Fakultet",
+			"LIBRARIAN": "Knjižničar/ka",
+			"RESEARCHER": "Istraživač/ica",
+			"STUDENT": "Student/ica (bacc., dipl.)",
+			"EARLY-CAREER-RESEARCHER": "Mladi istraživač/ica (doktorand/ica, asistent/ica)",
+			"RESEARCH-ADMINISTRATOR": "Administrator/ica istraživanja",
+			"REPOSITORY-MANAGER": "Upravitelj/ica repozitorija",
+			"RESEARCH-INFRASTRUCTURE": "Istraživačka infrastruktura",
+			"SERVICE-PROVIDER": "Pružatelj usluga",
+			"PUBLISHER": "Izdavač",
+			"RESEARCH-FUNDER": "Financijer istraživanja",
+			"POLICY-MAKER": "Donositelj politike",
+			"SME-INDUSTRY": "Mala ili srednja tvrtka",
+			"OTHER": "Drugo"
+		},
+		"ACTIONS": {
+			"SAVE": "Spremi",
+			"LINK-NEW": "Link {{ APP_NAME_CAPS }} accounts",
+			"LINK-NEW-ACCOUNT": "Poveži novi korisnički račun",
+			"UNLINK-ACCOUNT": "Unlink",
+			"UNLINK-ACCOUNT-DISABLED": "You can't unlink your main profile's email",
+			"ADD": "Unesi",
+			"CANCEL": "Poništi"
+		}
+	},
+	"PLAN-FINALISE-DIALOG": {
+		"TITLE": "Finalize this item?",
+		"PLAN": "Plan upravljanja podacima",
+		"DESCRPIPTIONS": "Descriptions",
+		"EMPTY": "U Planu nije opisan nijedan skup podataka?",
+		"FINALISE-TITLE": "Želite li završiti kreiranje radnih verzija skupova podataka?",
+		"VALIDATION": {
+			"AT-LEAST-ONE-DESCRPIPTION-FINALISED": "You need to have at least one Description Finalized",
+			"INVALID-PLAN": "This Plan can not be finalized "
+		},
+		"IMPACT": "Ovim korakom se završava proces kreiranja Plana upravljanja podacima, više ga nećete moći uređivati.",
+		"PUBLIC-PLAN-MESSAGE": "After finalizing your Plan, it'll be published and be publicly available to the {{ APP_NAME_CAPS }} tool.",
+		"RESTRICTED-PLAN-MESSAGE": "Your Plan can be published and be publicly available to the {{ APP_NAME_CAPS }} tool after finalization when its access rights are opened. Current access rights: restricted",
+		"INVALID": "Greška",
+		"ACTIONS": {
+			"SUBMIT": "Submit",
+			"CANCEL": "Cancel"
+		}
+	},
+	"START-NEW-DESCRIPTION-DIALOG": {
+		"SELECT-PLAN": "Select Plan",
+		"ACTIONS": {
+			"NEXT": "Next",
+			"CANCEL": "Cancel"
+		}
+	},
+	"NEW-RELEASE-NOTIFICATION": {
+		"TITLE": "New {{ APP_NAME_CAPS }} Release!",
+		"HINT": "Discover the all-new {{ APP_NAME }} version",
+		"BODY": "Discover the latest enhancements and improvements with our brand-new {{ APP_NAME }} release! Use the Default Blueprint to create plans that include funders information. Contact us to create Blueprints for institutional plans that connect to local services or for training activities. Adopt the output management plan as an overarching plan that combines different templates, e.g. data and software. Don’t miss out – explore now!",
+		"ACTIONS": {
+			"LEARN-MORE": "Learn more"
+		}
+	},
+	"MERGE-ACCOUNT": {
+		"TITLE": "Merge Your Account",
+		"MESSAGES": {
+			"CONFIRMATION": "Are you sure that you want to merge this account?"
+		},
+		"ACTIONS": {
+			"CONFIRM": "Confirm"
+		},
+		"MERGE-DIALOG": {
+			"TITLE": "Please wait while we are merging your account.",
+			"MESSAGE": "Please keep this tab open and allow {{ s }} seconds while we are setting things up for you. Be sure to close any other opened tab."
+		}
+	},
+	"UNLINK-ACCOUNT": {
+		"TITLE": "Unlink Your Account",
+		"MESSAGES": {
+			"CONFIRMATION": "Are you sure that you want to unlink this account?"
+		},
+		"ACTIONS": {
+			"CONFIRM": "Confirm"
+		}
+	},
+    "WORKFLOW-EDITOR": {
+        "ACTIONS": {
+            "SELECT-PLAN-STATUS": "Select plan status",
+            "SELECT-DESCRIPTION-STATUS": "Select description status",
+            "ADD-STATUS-TRANSITION": "Add status transition",
+            "REMOVE-STATUS-TRANSITION": "Remove status transition"
+        },
+        "FIELDS": {
+            "STARTING-STATUS": "Starting Status",
+            "STATUS-TRANSITION": "Status Transition",
+            "FROM-STATUS": "From Status",
+            "TO-STATUS": "To Status"
+        },
+        "ERRORS": {
+            "DIFFERENT-STATUS": "Transition statuses must be different",
+            "STATUS-TRANSITION-REQUIRED": "At least one Status transition pair must be defined"
+        }
+    },
+	"copy": "Copy",
+	"clone": "Clone",
+	"new-version": "New Version"
+}

@@ -1,0 +1,180 @@
+<div class="container-fluid">
+	<div class="row prefilling-source-editor">
+		<div class="col-md-10 offset-md-1 colums-gapped" *ngIf="formGroup">
+
+			<div class="row justify-content-between align-items-center mt-4 mb-4">
+				<div class="col">
+					<app-navigation-breadcrumb />
+				</div>
+				<div class="col-auto">
+					<button mat-button class="rounded-btn neutral" (click)="cancel()" type="button">{{'PREFILLING-SOURCE-EDITOR.ACTIONS.CANCEL' | translate}}</button>
+				</div>
+				<div class="col-auto" *ngIf="canDelete">
+					<button mat-button class="rounded-btn delete-inverted" type="button" (click)="delete()">
+						<mat-icon>delete</mat-icon>
+						{{'PREFILLING-SOURCE-EDITOR.ACTIONS.DELETE' | translate}}
+					</button>
+				</div>
+				<div class="col-auto" *ngIf="canSave">
+					<button mat-button class="rounded-btn primary" (click)="formSubmit()">
+						<mat-icon>save</mat-icon>
+						{{'PREFILLING-SOURCE-EDITOR.ACTIONS.SAVE' | translate}}
+					</button>
+				</div>
+			</div>
+
+			<form *ngIf="formGroup" (ngSubmit)="formSubmit()">
+				<mat-card appearance="outlined" class="pt-3 pb-3">
+					<mat-card-content>
+						<div class="row">
+							<div class="col-12">
+								<div class="container-fluid">
+									<div class="row">
+										<div class="col-6">
+											<mat-form-field class="w-100">
+												<mat-label>{{'PREFILLING-SOURCE-EDITOR.FIELDS.LABEL' | translate}}</mat-label>
+												<input matInput type="text" name="label" [formControl]="formGroup.get('label')" required>
+												<mat-error *ngIf="formGroup.get('label').hasError('backendError')">{{formGroup.get('label').getError('backendError').message}}</mat-error>
+												<mat-error *ngIf="formGroup.get('label').hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
+											</mat-form-field>
+										</div>
+										<div class="col-6">
+											<mat-form-field class="w-100">
+												<mat-label>{{'PREFILLING-SOURCE-EDITOR.FIELDS.CODE' | translate}}</mat-label>
+												<input matInput type="text" name="code" [formControl]="formGroup.get('code')" required>
+												<mat-error *ngIf="formGroup.get('code').hasError('backendError')">{{formGroup.get('code').getError('backendError').message}}</mat-error>
+												<mat-error *ngIf="formGroup.get('code').hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
+											</mat-form-field>
+										</div>
+									</div>
+								</div>
+							</div>
+						</div>
+					</mat-card-content>
+				</mat-card>
+				<mat-card appearance="outlined" class="mb-1">
+					<mat-card-header>
+						<mat-card-title>{{'PREFILLING-SOURCE-EDITOR.FIELDS.FIXED-VALUE-FIELDS' | translate}}</mat-card-title>
+					</mat-card-header>
+					<mat-card-content>
+						<div class="row">
+							<!-- Fixed Value Fields -->
+							<div class="col-12">
+								<div class="container-fluid">
+									<div class="row">
+										<div class="col-12">
+											<div *ngFor="let field of formGroup.get('definition').get('fixedValueFields').controls; let fieldIndex=index;" class="row mb-3">
+												<div class="col-12">
+													<div class="row mb-3 d-flex align-items-center">
+														<div class="col-auto d-flex">
+															<mat-card-title>{{'PREFILLING-SOURCE-EDITOR.FIELDS.FIELD' | translate}} {{fieldIndex + 1}}</mat-card-title>
+														</div>
+														<div class="col-auto d-flex">
+															<button mat-icon-button matTooltip="{{'PREFILLING-SOURCE-EDITOR.ACTIONS.REMOVE-FIELD' | translate}}" (click)="removeFixedValueField(fieldIndex)" [disabled]="formGroup.disabled">
+																<mat-icon>delete</mat-icon>
+															</button>
+														</div>
+													</div>
+													<div class="row">
+														<div class="col-9">
+															<app-prefilling-source-field-component [form]="field"></app-prefilling-source-field-component>
+														</div>
+														<div class="col-3">
+															<mat-form-field class="w-100">
+																<mat-label>{{'PREFILLING-SOURCE-EDITOR.FIELDS.FIXED-VALUE' | translate}}</mat-label>
+																<input matInput type="text" name="fixedValue" [formControl]="field.get('fixedValue')">
+																<mat-error *ngIf="field.get('fixedValue').hasError('backendError')">{{field.get('fixedValue').getError('backendError').message}}</mat-error>
+																<mat-error *ngIf="field.get('fixedValue').hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
+															</mat-form-field>
+														</div>
+													</div>
+												</div>
+											</div>
+											<button mat-button class="rounded-btn secondary" type="button" (click)="addFixedValiueField()" [disabled]="formGroup.disabled">{{'PREFILLING-SOURCE-EDITOR.ACTIONS.ADD-FIELD' | translate}}</button>
+										</div>
+									</div>
+								</div>
+							</div>
+						</div>
+					</mat-card-content>
+				</mat-card>
+				<mat-card appearance="outlined" class="mb-1">
+					<mat-card-header>
+						<mat-card-title>{{'PREFILLING-SOURCE-EDITOR.FIELDS.FIELDS' | translate}}</mat-card-title>
+					</mat-card-header>
+					<mat-card-content>
+						<!-- Fields -->
+						<div class="col-12">
+							<div *ngFor="let field of formGroup.get('definition').get('fields').controls; let fieldIndex=index;" class="row mb-3">
+								<div class="col-12">
+									<div class="row mb-3 d-flex align-items-center">
+										<div class="col-auto d-flex">
+											<mat-card-title>{{'PREFILLING-SOURCE-EDITOR.FIELDS.FIELD' | translate}} {{fieldIndex + 1}}</mat-card-title>
+										</div>
+										<div class="col-auto d-flex">
+											<button mat-icon-button matTooltip="{{'PREFILLING-SOURCE-EDITOR.ACTIONS.REMOVE-FIELD' | translate}}" (click)="removeField(fieldIndex)" [disabled]="formGroup.disabled">
+												<mat-icon>delete</mat-icon>
+											</button>
+										</div>
+									</div>
+									<div class="row">
+										<div class="col-3">
+											<mat-form-field class="w-100">
+												<mat-label>{{'PREFILLING-SOURCE-EDITOR.FIELDS.CODE' | translate}}</mat-label>
+												<input matInput type="text" name="code" [formControl]="field.get('code')">
+												<mat-error *ngIf="field.get('code').hasError('backendError')">{{field.get('code').getError('backendError').message}}</mat-error>
+												<mat-error *ngIf="field.get('code').hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
+											</mat-form-field>
+										</div>
+										<div class="col-9">
+											<app-prefilling-source-field-component [form]="field"></app-prefilling-source-field-component>
+										</div>
+									</div>
+								</div>
+							</div>
+                            <div class="row d-flex gap-half-rem">
+                                <button mat-button class="rounded-btn secondary" type="button" (click)="addField()" [disabled]="formGroup.disabled">{{'PREFILLING-SOURCE-EDITOR.ACTIONS.ADD-FIELD' | translate}}</button>
+                                <button mat-button class="rounded-btn secondary" *ngIf="formGroup.get('definition').get('fields').value != ''" type="button" (click)="submitFields()" [disabled]="!formGroup.get('definition').get('fields').valid">{{'PREFILLING-SOURCE-EDITOR.ACTIONS.SUBMIT-FIELDS' | translate}}</button>
+                            </div>
+						</div>
+					</mat-card-content>
+				</mat-card>
+
+				<mat-card appearance="outlined" class="mb-1">
+					<mat-card-header>
+						<mat-card-title>{{'PREFILLING-SOURCE-EDITOR.FIELDS.SOURCE-CONFIGURATION' | translate}}</mat-card-title>
+					</mat-card-header>
+					<mat-card-content>
+						<div class="row mt-3">
+							<div class="col-12">
+								<div class="container-fluid">
+									<div class="row">
+										<div class="col-12">
+											<app-external-fetcher-source-component [formGroup]="formGroup.get('definition').get('searchConfiguration')" [validationErrorModel]="editorModel.validationErrorModel" [validationRootPath]="'definition.searchConfiguration.'"></app-external-fetcher-source-component>
+											<div>
+												<mat-checkbox [formControl]="formGroup.get('definition').get('getEnabled')" (change)="getEnabledChanged($event)">
+													{{'PREFILLING-SOURCE-EDITOR.FIELDS.GET-SOURCE-CONFIGURATION' | translate}}
+													<mat-error *ngIf="formGroup.get('definition').get('getEnabled').hasError('backendError')">{{formGroup.get('definition').get('getEnabled').getError('backendError').message}}</mat-error>
+													<mat-error *ngIf="formGroup.get('definition').get('getEnabled').hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
+												</mat-checkbox>
+											</div>
+										</div>
+									</div>
+								</div>
+							</div>
+						</div>
+					</mat-card-content>
+				</mat-card>
+				<mat-card appearance="outlined" *ngIf="formGroup.get('definition').get('getEnabled').value == true" class="mb-1">
+					<mat-card-header>
+						<mat-card-title>{{'PREFILLING-SOURCE-EDITOR.FIELDS.GET-SOURCE-CONFIGURATION' | translate}}</mat-card-title>
+					</mat-card-header>
+					<mat-card-content>
+						<app-external-fetcher-source-component [formGroup]="formGroup.get('definition').get('getConfiguration')" [validationErrorModel]="editorModel.validationErrorModel" [validationRootPath]="'definition.getConfiguration.'"></app-external-fetcher-source-component>
+					</mat-card-content>
+				</mat-card>
+			</form>
+
+		</div>
+	</div>
+</div>

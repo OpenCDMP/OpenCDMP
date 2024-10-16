@@ -1,0 +1,36 @@
+.frame-btn {
+	border: 1px solid #212121;
+	color: black;
+	background: #ffffff;
+	box-shadow: 0px 2px 6px #00000029;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+}
+
+.frame-txt {
+	color: #000000;
+	font-size: 0.75em;
+	font-weight: bold;
+	letter-spacing: 0px;
+	text-transform: uppercase;
+	cursor: pointer;
+}
+
+.mat-mini-fab {
+	width: 2.5em;
+	height: 2.5em;
+}
+
+.mat-mini-fab-icon {
+	font-size: 1.2em;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+}
+
+.logo {
+	margin-right: 16px;
+	max-width: 24px;
+	max-height: 24px;
+}

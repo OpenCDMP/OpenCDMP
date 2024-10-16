@@ -1,0 +1,41 @@
+spring:
+  jackson:
+    default-property-inclusion: non_null
+    deserialization:
+      fail-on-unknown-properties: false
+    serialization:
+      write-dates-as-timestamps: false
+  config:
+    import: optional:classpath:config/app.env[.properties], optional:file:../config/app.env[.properties],
+      optional:classpath:config/db.yml[.yml], optional:classpath:config/db-${spring.profiles.active}.yml[.yml], optional:file:../config/db-${spring.profiles.active}.yml[.yml],
+      optional:classpath:config/permissions.yml[.yml], optional:classpath:config/permissions-${spring.profiles.active}.yml[.yml], optional:file:../config/permissions-${spring.profiles.active}.yml[.yml],
+      optional:classpath:config/security.yml[.yml], optional:classpath:config/security-${spring.profiles.active}.yml[.yml], optional:file:../config/security-${spring.profiles.active}.yml[.yml],
+      optional:classpath:config/server.yml[.yml], optional:classpath:config/server-${spring.profiles.active}.yml[.yml], optional:file:../config/server-${spring.profiles.active}.yml[.yml],
+      optional:classpath:config/keycloak.yml[.yml], optional:classpath:config/keycloak-${spring.profiles.active}.yml[.yml], optional:file:../config/keycloak-${spring.profiles.active}.yml[.yml],
+      optional:classpath:config/logging.yml[.yml], optional:classpath:config/logging-${spring.profiles.active}.yml[.yml], optional:file:../config/logging-${spring.profiles.active}.yml[.yml],
+      optional:classpath:config/cache.yml[.yml], optional:classpath:config/cache-${spring.profiles.active}.yml[.yml], optional:file:../config/cache-${spring.profiles.active}.yml[.yml],
+      optional:classpath:config/elasticsearch.yml[.yml], optional:classpath:config/elasticsearch-${spring.profiles.active}.yml[.yml], optional:file:../config/elasticsearch-${spring.profiles.active}.yml[.yml],
+      optional:classpath:config/idpclaims.yml[.yml], optional:classpath:config/idpclaims-${spring.profiles.active}.yml[.yml], optional:file:../config/idpclaims-${spring.profiles.active}.yml[.yml],
+      optional:classpath:config/external.yml[.yml], optional:classpath:config/external-${spring.profiles.active}.yml[.yml], optional:file:../config/external-${spring.profiles.active}.yml[.yml],
+      optional:classpath:config/cors.yml[.yml], optional:classpath:config/cors-${spring.profiles.active}.yml[.yml], optional:file:../config/cors-${spring.profiles.active}.yml[.yml],
+      optional:classpath:config/swagger.yml[.yml], optional:classpath:config/swagger-${spring.profiles.active}.yml[.yml], optional:file:../config/swagger-${spring.profiles.active}.yml[.yml],
+      optional:classpath:config/deposit.yml[.yml], optional:classpath:config/deposit-${spring.profiles.active}.yml[.yml], optional:file:../config/deposit-${spring.profiles.active}.yml[.yml],
+      optional:classpath:config/errors.yml[.yml], optional:classpath:config/errors-${spring.profiles.active}.yml[.yml], optional:file:../config/errors-${spring.profiles.active}.yml[.yml],
+      optional:classpath:config/storage.yml[.yml], optional:classpath:config/storage-${spring.profiles.active}.yml[.yml], optional:file:../config/storage-${spring.profiles.active}.yml[.yml],
+      optional:classpath:config/tenant.yml[.yml], optional:classpath:config/tenant-${spring.profiles.active}.yml[.yml], optional:file:../config/tenant-${spring.profiles.active}.yml[.yml],
+      optional:classpath:config/queue.yml[.yml], optional:classpath:config/queue-${spring.profiles.active}.yml[.yml], optional:file:../config/queue-${spring.profiles.active}.yml[.yml],
+      optional:classpath:config/notification.yml[.yml], optional:classpath:config/notification-${spring.profiles.active}.yml[.yml], optional:file:../config/notification-${spring.profiles.active}.yml[.yml],
+      optional:classpath:config/locale.yml[.yml], optional:classpath:config/locale-${spring.profiles.active}.yml[.yml], optional:file:../config/locale-${spring.profiles.active}.yml[.yml],
+      optional:classpath:config/public-api.yml[.yml], optional:classpath:config/public-api-${spring.profiles.active}.yml[.yml], optional:file:../config/public-api-${spring.profiles.active}.yml[.yml],
+      optional:classpath:config/dashboard.yml[.yml], optional:classpath:config/dashboard-${spring.profiles.active}.yml[.yml], optional:file:../config/dashboard-${spring.profiles.active}.yml[.yml],
+      optional:classpath:config/file-transformer.yml[.yml], optional:classpath:config/file-transformer-${spring.profiles.active}.yml[.yml], optional:file:../config/file-transformer-${spring.profiles.active}.yml[.yml],
+      optional:classpath:config/authorization.yml[.yml], optional:classpath:config/authorization-${spring.profiles.active}.yml[.yml], optional:file:../config/authorization-${spring.profiles.active}.yml[.yml],
+      optional:classpath:config/metrics.yml[.yml], optional:classpath:config/metrics-${spring.profiles.active}.yml[.yml], optional:file:../config/metrics-${spring.profiles.active}.yml[.yml],
+      optional:classpath:config/field-set-expander.yml[.yml], optional:classpath:config/field-set-expander-${spring.profiles.active}.yml[.yml], optional:file:../config/field-set-expander-${spring.profiles.active}.yml[.yml],
+      optional:classpath:config/lock.yml[.yml], optional:classpath:config/lock-${spring.profiles.active}.yml[.yml], optional:file:../config/lock-${spring.profiles.active}.yml[.yml],
+      optional:classpath:config/usage-limits.yml[.yml], optional:classpath:config/usage-limits-${spring.profiles.active}.yml[.yml], optional:file:../config/usage-limits-${spring.profiles.active}.yml[.yml],
+      optional:classpath:config/accounting.yml[.yml], optional:classpath:config/accounting-${spring.profiles.active}.yml[.yml], optional:file:../config/accounting-${spring.profiles.active}.yml[.yml],
+      optional:classpath:config/kpi.yml[.yml], optional:classpath:config/kpi-${spring.profiles.active}.yml[.yml], optional:file:../config/kpi-${spring.profiles.active}.yml[.yml]
+
+  
+  

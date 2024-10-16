@@ -1,0 +1,8 @@
+
+<a class="col-auto d-flex pointer" (click)="onClose()"><span class="ml-auto mt-3 material-icons clear-icon">clear</span></a>
+<app-description-filter-component 
+  [filters]="filters"
+  [isPublic]="data.isPublic"
+  [hasSelectedTenant]="data.hasSelectedTenant"
+  (filterChanged)="onFilterChanged($event)" 
+  ></app-description-filter-component>

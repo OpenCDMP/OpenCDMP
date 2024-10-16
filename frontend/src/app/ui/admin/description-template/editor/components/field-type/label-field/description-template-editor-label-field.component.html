@@ -1,0 +1,10 @@
+<div class="row" *ngIf="form.get('data')">
+
+	<!-- <h5 style="font-weight: bold" class="col-12">{{'DESCRIPTION-TEMPLATE-EDITOR.STEPS.FORM.FIELD.FIELDS.FIELD-FREE-TEXT-TITLE' | translate}}</h5> -->
+
+	<mat-form-field class="col-12">
+		<mat-label>{{'DESCRIPTION-TEMPLATE-EDITOR.STEPS.FORM.FIELD.FIELDS.FIELD-PLACEHOLDER' | translate}}</mat-label>
+		<input matInput type="string" [formControl]="form.get('data').get('label')">
+		<mat-error *ngIf="form.get('data').get('label').hasError('backendError')">{{form.get('data').get('label').getError('backendError').message}}</mat-error>
+	</mat-form-field>
+</div>

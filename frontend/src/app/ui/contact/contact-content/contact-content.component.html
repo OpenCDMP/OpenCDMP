@@ -1,0 +1,29 @@
+<form class="form" [formGroup]="formGroup">
+	<div [ngClass]="{'container contact-component': !isDialog}">
+		<div *ngIf="!isDialog" class="row">
+			<div class="col-md-12">
+				<h1>{{ 'CONTACT.SUPPORT.TITLE' | translate}}</h1>
+			</div>
+		</div>
+		<div [ngClass]="{'contact-container': !isDialog}" class="row">
+			<div class="col-md-12">
+				<mat-form-field class="mat-form-field">
+					<input matInput placeholder="{{'CONTACT.SUPPORT.SUBJECT' | translate}}" type="text" name="subject" formControlName="subject" required>
+					<mat-error *ngIf="formGroup.get('subject').hasError('backendError')">{{formGroup.get('subject').getError('backendError').message}}</mat-error>
+					<mat-error *ngIf="formGroup.get('subject').hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
+				</mat-form-field>
+			</div>
+			<div class="col-md-12">
+				<mat-form-field class="mat-form-field">
+					<textarea matInput placeholder="{{'CONTACT.SUPPORT.DESCRIPTION' | translate}}" type="text" name="description" formControlName="description" required></textarea>
+					<mat-error *ngIf="formGroup.get('description').hasError('backendError')">{{formGroup.get('description').getError('backendError').message}}</mat-error>
+					<mat-error *ngIf="formGroup.get('description').hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
+				</mat-form-field>
+			</div>
+		</div>
+		<div *ngIf="!isDialog" class="row contact-actions">
+			<div class="ml-auto col-auto"><button mat-button type="button" class="rounded-btn neutral" (click)="cancel()">{{'CONTACT.SUPPORT.CANCEL' | translate}}</button></div>
+			<div class="col-auto"><button mat-button type="button" class="rounded-btn primary-inverted" [disabled]="!formGroup.valid" (click)="send()"><i class="fa fa-paper-plane pr-2"></i>{{'CONTACT.SUPPORT.SEND' | translate}}</button></div>
+		</div>
+	</div>
+</form>

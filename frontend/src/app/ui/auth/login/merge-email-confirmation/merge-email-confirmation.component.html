@@ -1,0 +1,25 @@
+<div class="merge-account">
+	<div class="container-fluid">
+		<div class="row">
+			<div class="col merge-account-title">{{'MERGE-ACCOUNT.TITLE' | translate}}</div>
+		</div>
+    <div *ngIf="showForm" class="row merge-account-content">
+      <div class="col">
+        <div class="row justify-content-center">
+          <div class="col-auto">
+            <span>
+              {{ 'MERGE-ACCOUNT.MESSAGES.CONFIRMATION' | translate }}
+            </span>
+          </div>
+        </div>
+        <div class="row justify-content-center">
+          <div class="col-auto mt-4">
+            <button type="button" mat-button class="rounded-btn primary" (click)="onConfirm()">{{ 'MERGE-ACCOUNT.ACTIONS.CONFIRM' | translate }}</button>
+          </div>
+        </div>
+      </div>
+    </div>
+		<ng-template #loading>
+		</ng-template>
+	</div>
+</div>

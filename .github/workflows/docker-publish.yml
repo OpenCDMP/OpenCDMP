@@ -14,8 +14,10 @@ jobs:
       matrix:
         include:
           - dockerfile: ./backend/Dockerfile
+            context: backend/
             image: opencdmp/opencdmp-api
           - dockerfile: ./frontend/Dockerfile
+            context: frontend/
             image: opencdmp/opencdmp-webapp
     permissions:
       packages: write
@@ -44,7 +46,7 @@ jobs:
         id: push
         uses: docker/build-push-action@v6
         with:
-          context: .
+          context: ${{ matrix.context }}
           file: ${{ matrix.dockerfile }}
           push: true
           tags: ${{ steps.meta.outputs.tags }}

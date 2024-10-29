@@ -37,6 +37,9 @@
 								</div>
 							</div>
 							<div class="row" *ngIf="formGroup.get('type').value != null && formGroup.get('languageCode').value">
+								<h9 class="col-12">{{'SUPPORTIVE-MATERIAL-EDITOR.FIELDS.OVERRIDE' | translate}}
+									<mat-checkbox (change)="overridePayloadFromFile($event)"></mat-checkbox>
+								</h9>
 								<div class="col">
 									<editor class="w-100" [init]="{
 									base_url: '/tinymce',

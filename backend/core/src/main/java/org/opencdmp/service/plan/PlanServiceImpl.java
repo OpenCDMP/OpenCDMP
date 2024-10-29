@@ -59,6 +59,7 @@ import org.opencdmp.commons.types.planblueprint.importexport.BlueprintSectionImp
 import org.opencdmp.commons.types.planreference.PlanReferenceDataEntity;
 import org.opencdmp.commons.types.reference.DefinitionEntity;
 import org.opencdmp.commons.types.reference.FieldEntity;
+import org.opencdmp.commons.users.UsersProperties;
 import org.opencdmp.convention.ConventionService;
 import org.opencdmp.data.*;
 import org.opencdmp.errorcode.ErrorThesaurusProperties;
@@ -180,6 +181,7 @@ public class PlanServiceImpl implements PlanService {
     private final PlanBlueprintService planBlueprintService;
     private final UsageLimitService usageLimitService;
     private final AccountingService accountingService;
+    private final UsersProperties usersProperties;
 
     @Autowired
     public PlanServiceImpl(
@@ -202,7 +204,7 @@ public class PlanServiceImpl implements PlanService {
             FileTransformerService fileTransformerService,
             ValidatorFactory validatorFactory,
             ElasticService elasticService, DescriptionTemplateService descriptionTemplateService,
-            AnnotationEntityTouchedIntegrationEventHandler annotationEntityTouchedIntegrationEventHandler, AnnotationEntityRemovalIntegrationEventHandler annotationEntityRemovalIntegrationEventHandler, AuthorizationContentResolver authorizationContentResolver, TenantScope tenantScope, ResponseUtilsService responseUtilsService, PlanBlueprintService planBlueprintService, UsageLimitService usageLimitService, AccountingService accountingService) {
+            AnnotationEntityTouchedIntegrationEventHandler annotationEntityTouchedIntegrationEventHandler, AnnotationEntityRemovalIntegrationEventHandler annotationEntityRemovalIntegrationEventHandler, AuthorizationContentResolver authorizationContentResolver, TenantScope tenantScope, ResponseUtilsService responseUtilsService, PlanBlueprintService planBlueprintService, UsageLimitService usageLimitService, AccountingService accountingService, UsersProperties usersProperties) {
         this.entityManager = entityManager;
         this.authorizationService = authorizationService;
         this.deleterFactory = deleterFactory;
@@ -231,6 +233,7 @@ public class PlanServiceImpl implements PlanService {
 	    this.planBlueprintService = planBlueprintService;
         this.usageLimitService = usageLimitService;
         this.accountingService = accountingService;
+        this.usersProperties = usersProperties;
     }
 
     public Plan persist(PlanPersist model, FieldSet fields) throws MyForbiddenException, MyValidationException, MyApplicationException, MyNotFoundException, InvalidApplicationException, JAXBException, IOException {
@@ -1969,7 +1972,7 @@ public class PlanServiceImpl implements PlanService {
         persist.setStatus(ActionConfirmationStatus.Requested);
         persist.setToken(UUID.randomUUID().toString());
         persist.setPlanInvitation(new PlanInvitationPersist(email, plan.getId(), sectionId, role));
-        persist.setExpiresAt(Instant.now().plusSeconds(this.notificationProperties.getEmailExpirationTimeSeconds()));
+        persist.setExpiresAt(Instant.now().plusSeconds(this.usersProperties.getEmailExpirationTimeSeconds().getPlanInvitationExternalUserExpiration()));
 	    this.validatorFactory.validator(ActionConfirmationPersist.ActionConfirmationPersistValidator.class).validateForce(persist);
         this.actionConfirmationService.persist(persist, null);
 

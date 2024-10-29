@@ -27,27 +27,23 @@ export class SupportiveMaterialService {
 
 	private get apiBase(): string { return `${this.configurationService.server}supportive-material`; }
 
-	getPayload(type: SupportiveMaterialFieldType, language: string): Observable<HttpResponse<Blob>> {
-		if (this.authService.isLoggedIn() && this.authService.currentAccountIsAuthenticated() ) {
-			return this.getPayloadLogin(type, language);
-		} else {
-			return this.getPayloadPublic(type, language);
-		}
-	}
+	getPayload(type: SupportiveMaterialFieldType, language: string, tenantCode: string | null): Observable<HttpResponse<Blob>> {
+		let url = `${this.apiBase}/public/get-payload/${type}/${language}`;
+		if (tenantCode) url += `/${tenantCode}`;
 
-	getPayloadLogin(type: SupportiveMaterialFieldType, language: string): Observable<HttpResponse<Blob>> {
-		const url = `${this.apiBase}/get-payload/${type}/${language}`;
-		return this.http.get<HttpResponse<Blob>>(url, { responseType: 'blob', observe: 'response' });
-	}
-
-	getPayloadPublic(type: SupportiveMaterialFieldType, language: string): Observable<HttpResponse<Blob>> {
-		const url = `${this.apiBase}/public/get-payload/${type}/${language}`;
 		const params = new BaseHttpParams();
 		params.interceptorContext = {
 			excludedInterceptors: [InterceptorType.AuthToken,
 				InterceptorType.TenantHeaderInterceptor]
 		};
 		return this.http.get(url, { params: params, responseType: 'blob', observe: 'response' });
+	}
+
+	getPayloadFromFile(type: SupportiveMaterialFieldType, language: string): Observable<HttpResponse<string>> {
+		const url = `${this.apiBase}/get-payload-from-file/${type}/${language}`;
+
+		const params = new BaseHttpParams();
+		return this.http.get(url, { params: params, responseType: 'string', observe: 'response' });
 	}
 
 	query(q: SupportiveMaterialLookup): Observable<QueryResult<SupportiveMaterial>> {
@@ -64,11 +60,12 @@ export class SupportiveMaterialService {
 				catchError((error: any) => throwError(error)));
 	}
 
-	persist(item: SupportiveMaterialPersist): Observable<SupportiveMaterial> {
+	persist(item: SupportiveMaterialPersist, reqFields: string[] = []): Observable<SupportiveMaterial> {
 		const url = `${this.apiBase}/persist`;
+		const options = { params: { f: reqFields } };
 
 		return this.http
-			.post<SupportiveMaterial>(url, item).pipe(
+			.post<SupportiveMaterial>(url, item, options).pipe(
 				catchError((error: any) => throwError(error)));
 	}
 
@@ -83,7 +80,7 @@ export class SupportiveMaterialService {
 
 	// LOOKUP
 
-	public static DefaultSupportiveMaterialLookup(): SupportiveMaterialLookup {
+	public getDefaultSupportiveMaterialLookup(): SupportiveMaterialLookup {
 		const lookup = new SupportiveMaterialLookup();
 
 		lookup.project = {
@@ -94,12 +91,15 @@ export class SupportiveMaterialService {
 				nameof<SupportiveMaterial>(x => x.payload),
 				nameof<SupportiveMaterial>(x => x.createdAt),
 				nameof<SupportiveMaterial>(x => x.updatedAt),
-				nameof<SupportiveMaterial>(x => x.isActive)
+				nameof<SupportiveMaterial>(x => x.isActive),
+				nameof<SupportiveMaterial>(x => x.hash)
 			]
 		};
 		lookup.order = { items: [nameof<SupportiveMaterial>(x => x.type)] };
 		lookup.page = { offset: 0, size: 10 };
 		lookup.isActive = [IsActive.Active];
+		const tenantId = this.authService.getSelectedTenantId();
+		if (tenantId != null) lookup.tenantIds = [tenantId];
 		return lookup;
 	}
 

@@ -18,6 +18,7 @@ import jakarta.transaction.Transactional;
 import jakarta.xml.bind.JAXBException;
 import org.opencdmp.audit.AuditableAction;
 import org.opencdmp.authorization.AuthorizationFlags;
+import org.opencdmp.commons.enums.IsActive;
 import org.opencdmp.commons.scope.tenant.TenantScope;
 import org.opencdmp.data.LanguageEntity;
 import org.opencdmp.data.TenantEntity;
@@ -62,6 +63,8 @@ public class LanguageController {
 
     private final LanguageService languageService;
 
+    private final TenantScope tenantScope;
+
     @Autowired
     public LanguageController(
             BuilderFactory builderFactory,
@@ -69,13 +72,14 @@ public class LanguageController {
             CensorFactory censorFactory,
             QueryFactory queryFactory,
             MessageSource messageSource,
-            LanguageService languageService) {
+            LanguageService languageService, TenantScope tenantScope) {
         this.builderFactory = builderFactory;
         this.auditService = auditService;
         this.censorFactory = censorFactory;
         this.queryFactory = queryFactory;
         this.messageSource = messageSource;
         this.languageService = languageService;
+        this.tenantScope = tenantScope;
     }
 
     @PostMapping("query")
@@ -119,10 +123,10 @@ public class LanguageController {
 
         this.censorFactory.censor(LanguageCensor.class).censor(fieldSet, null);
 
-        LanguageQuery query = this.queryFactory.query(LanguageQuery.class).disableTracking().authorize(EnumSet.of(Public)).codes(code).tenantIsSet(false);
+        LanguageQuery query = this.queryFactory.query(LanguageQuery.class).disableTracking().authorize(EnumSet.of(Public)).codes(code).tenantIsSet(false).isActive(IsActive.Active);
         Language model = null;
 
-        if (tenantCode != null && !tenantCode.isEmpty()) {
+        if (tenantCode != null && !tenantCode.isEmpty() && !tenantCode.equals(this.tenantScope.getDefaultTenantCode())) {
             TenantEntity tenant = this.queryFactory.query(TenantQuery.class).codes(tenantCode).firstAs(new BaseFieldSet(Tenant._id));
             if (tenant == null)
                 throw new MyNotFoundException(this.messageSource.getMessage("General_ItemNotFound", new Object[]{tenantCode, Tenant.class.getSimpleName()}, LocaleContextHolder.getLocale()));
@@ -163,7 +167,7 @@ public class LanguageController {
         query.tenantIsSet(false);
 
         List<LanguageEntity> data = query.collectAs(new BaseFieldSet(Language._code));
-        if (tenantCode != null && !tenantCode.isBlank()) {
+        if (tenantCode != null && !tenantCode.isBlank() && !tenantCode.equals(this.tenantScope.getDefaultTenantCode())) {
             TenantEntity tenant = this.queryFactory.query(TenantQuery.class).codes(tenantCode).firstAs(new BaseFieldSet(Tenant._id));
             if (tenant == null)
                 throw new MyNotFoundException(this.messageSource.getMessage("General_ItemNotFound", new Object[]{tenantCode, Tenant.class.getSimpleName()}, LocaleContextHolder.getLocale()));

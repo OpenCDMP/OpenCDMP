@@ -102,7 +102,7 @@ export class MergeEmailConfirmation extends BaseComponent implements OnInit {
 		this.httpErrorHandlingService.handleBackedRequestError(errorResponse, errorOverrides, SnackBarNotificationLevel.Error)
 
 		const error: HttpError = this.httpErrorHandlingService.getError(errorResponse);
-		if (error.statusCode === 302) {
+		if (error.statusCode === 302 || error.statusCode === 400) {
 			this.router.navigate([this.routerUtils.generateUrl('home')]);
 		}
 	}

@@ -37,6 +37,10 @@ public class SupportiveMaterialQuery extends QueryBase<SupportiveMaterialEntity>
 
     private Collection<UUID> excludedIds;
 
+    private Collection<UUID> tenantIds;
+
+    private Boolean tenantIsSet;
+
     private EnumSet<AuthorizationFlags> authorize = EnumSet.of(AuthorizationFlags.None);
 
     public SupportiveMaterialQuery like(String value) {
@@ -101,6 +105,31 @@ public class SupportiveMaterialQuery extends QueryBase<SupportiveMaterialEntity>
 
     public SupportiveMaterialQuery languageCodes(Collection<String> values) {
         this.languageCodes = values;
+        return this;
+    }
+
+    public SupportiveMaterialQuery clearTenantIds() {
+        this.tenantIds = null;
+        return this;
+    }
+
+    public SupportiveMaterialQuery tenantIds(UUID value) {
+        this.tenantIds = List.of(value);
+        return this;
+    }
+
+    public SupportiveMaterialQuery tenantIds(UUID... value) {
+        this.tenantIds = Arrays.asList(value);
+        return this;
+    }
+
+    public SupportiveMaterialQuery tenantIds(Collection<UUID> values) {
+        this.tenantIds = values;
+        return this;
+    }
+
+    public SupportiveMaterialQuery tenantIsSet(Boolean value) {
+        this.tenantIsSet = value;
         return this;
     }
 
@@ -195,6 +224,16 @@ public class SupportiveMaterialQuery extends QueryBase<SupportiveMaterialEntity>
             for (UUID item : this.excludedIds)
                 notInClause.value(item);
             predicates.add(notInClause.not());
+        }
+        if (this.tenantIsSet != null) {
+            if (this.tenantIsSet) predicates.add(queryContext.CriteriaBuilder.isNotNull(queryContext.Root.get(SupportiveMaterialEntity._tenantId)));
+            else predicates.add(queryContext.CriteriaBuilder.isNull(queryContext.Root.get(SupportiveMaterialEntity._tenantId)));
+        }
+        if (this.tenantIds != null) {
+            CriteriaBuilder.In<UUID> inClause = queryContext.CriteriaBuilder.in(queryContext.Root.get(SupportiveMaterialEntity._tenantId));
+            for (UUID item : this.tenantIds)
+                inClause.value(item);
+            predicates.add(inClause);
         }
         if (!predicates.isEmpty()) {
             Predicate[] predicatesArray = predicates.toArray(new Predicate[0]);

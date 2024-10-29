@@ -27,6 +27,7 @@ import { SupportiveMaterialEditorModel } from './supportive-material-editor.mode
 import { SupportiveMaterialEditorResolver } from './supportive-material-editor.resolver';
 import { SupportiveMaterialEditorService } from './supportive-material-editor.service';
 import { RouterUtilsService } from '@app/core/services/router/router-utils.service';
+import { MatCheckboxChange } from '@angular/material/checkbox';
 
 
 @Component({
@@ -40,7 +41,8 @@ export class SupportiveMaterialEditorComponent extends BaseEditor<SupportiveMate
 	isDeleted = false;
 	formGroup: UntypedFormGroup = null;
 	showInactiveDetails = false;
-	availableLanguageCodes: string[] = []
+	availableLanguageCodes: string[] = [];
+	currentPayload: string = null;
 
 	public supportiveMaterialTypeEnum = this.enumUtils.getEnumValues(SupportiveMaterialFieldType);
 
@@ -92,6 +94,8 @@ export class SupportiveMaterialEditorComponent extends BaseEditor<SupportiveMate
 		try {
 			this.editorModel = data ? new SupportiveMaterialEditorModel().fromModel(data) : new SupportiveMaterialEditorModel();
 			this.isDeleted = data ? data.isActive === IsActive.Inactive : false;
+			this.currentPayload = data?.payload;
+			this.isNew = data?.id === null;
 			this.buildForm();
 		} catch (error) {
 			this.logger.error('Could not parse Supportive Material item: ' + data + error);
@@ -117,9 +121,11 @@ export class SupportiveMaterialEditorComponent extends BaseEditor<SupportiveMate
 	persistEntity(onSuccess?: (response) => void): void {
 		const formData = this.formService.getValue(this.formGroup.value) as SupportiveMaterialPersist;
 
-		this.supportiveMaterialService.persist(formData)
+		this.supportiveMaterialService.persist(formData, this.supportiveMaterialService.getDefaultSupportiveMaterialLookup()?.project?.fields)
 			.pipe(takeUntil(this._destroyed)).subscribe(
-				complete => onSuccess ? onSuccess(complete) : this.onCallbackSuccess(complete),
+				complete => {
+					this.uiNotificationService.snackBarNotification(this.isNew ? this.language.instant('GENERAL.SNACK-BAR.SUCCESSFUL-CREATION') : this.language.instant('GENERAL.SNACK-BAR.SUCCESSFUL-UPDATE'), SnackBarNotificationLevel.Success);
+					this.prepareForm(complete)},
 				error => this.onCallbackError(error)
 			);
 	}
@@ -167,18 +173,35 @@ export class SupportiveMaterialEditorComponent extends BaseEditor<SupportiveMate
 	private getSupportiveMaterialData() {
 
 		if (this.formGroup.get('type').value >= 0 && this.formGroup.get('languageCode').value) {
-			const lookup = SupportiveMaterialService.DefaultSupportiveMaterialLookup();
+			const lookup = this.supportiveMaterialService.getDefaultSupportiveMaterialLookup();
 			lookup.types = [this.formGroup.get('type').value];
 			lookup.languageCodes = [this.formGroup.get('languageCode').value];
-			this.supportiveMaterialService.query(lookup).pipe(takeUntil(this._destroyed)).subscribe(data => { //TODO HANDLE-ERRORS
+			this.supportiveMaterialService.query(lookup).pipe(takeUntil(this._destroyed)).subscribe(data => {
 				if (data.count == 1) {
-					this.formGroup.get('id').patchValue(data.items[0].id);
-					this.formGroup.get('payload').patchValue(data.items[0].payload);
+					this.prepareForm(data.items[0])
 				} else {
 					this.formGroup.get('id').patchValue(null);
-					this.formGroup.get('payload').patchValue('');
+					this.formGroup.get('payload').patchValue(null);
+					this.formGroup.get('hash').patchValue(null);
+					this.currentPayload = null;
 				}
 			});
+		}
+	}
+
+	public overridePayloadFromFile(matCheckBox: MatCheckboxChange) {
+		if (matCheckBox.checked == true) {
+			this.supportiveMaterialService.getPayloadFromFile(this.formGroup.get('type').value, this.formGroup.get('languageCode').value)
+			.pipe(takeUntil(this._destroyed))
+			.subscribe(response => {
+				if(response) this.formGroup.get('payload').patchValue(response.body);
+			},
+			error => {
+				matCheckBox.source.checked = false;
+				this.httpErrorHandlingService.handleBackedRequestError(error);
+			});
+		} else {
+			this.formGroup.get('payload').patchValue(this.currentPayload);
 		}
 	}
 

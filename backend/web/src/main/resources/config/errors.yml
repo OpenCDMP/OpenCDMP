@@ -179,3 +179,6 @@ error-thesaurus:
   tokenNotExist:
     code: 163
     message: This token does not exist
+  accountRequestAlreadyConfirmed:
+    code: 165
+    message: Account request already confirmed

@@ -1416,7 +1416,8 @@
 	"SUPPORTIVE-MATERIAL-EDITOR": {
 		"FIELDS": {
 			"MATERIAL-TYPE": "Material Type",
-			"LANGUAGE": "Language"
+			"LANGUAGE": "Language",
+			"OVERRIDE": "Override from file"
 		},
 		"ACTIONS": {
 			"SAVE": "Save"

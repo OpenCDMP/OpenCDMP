@@ -3,6 +3,7 @@ import { Component, ElementRef, OnInit, ViewChild } from '@angular/core';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { Router } from '@angular/router';
 import { SupportiveMaterialFieldType } from '@app/core/common/enum/supportive-material-field-type';
+import { AuthService } from '@app/core/services/auth/auth.service';
 import { ConfigurationService } from '@app/core/services/configuration/configuration.service';
 import { LanguageService } from '@app/core/services/language/language.service';
 import { AnalyticsService } from '@app/core/services/matomo/analytics-service';
@@ -32,6 +33,7 @@ export class UserGuideContentComponent extends BaseComponent implements OnInit {
 	@ViewChild('guide') guide: ElementRef;
 
 	constructor(
+		private authService: AuthService,
 		private supportiveMaterialService: SupportiveMaterialService,
 		private sanitizer: DomSanitizer,
 		private languageService: LanguageService,
@@ -51,10 +53,18 @@ export class UserGuideContentComponent extends BaseComponent implements OnInit {
 			this.activeToc(ev);
 			this.scroll(ev);
 		});
+
 		this.translate.onLangChange.subscribe((event: LangChangeEvent) => {
-			this.router.navigate(['/reload'], { skipLocationChange: true }).then(() => this.router.navigate([this.routerUtils.generateUrl('/user-guide')]));
+			this.router.navigate([this.routerUtils.generateUrl('/user-guide')], { skipLocationChange: true }).then(() => {
+				this.getPayload();
+			});
 		});
-		this.supportiveMaterialService.getPayload(SupportiveMaterialFieldType.UserGuide, this.languageService.getCurrentLanguage())
+		
+		this.getPayload();
+	}
+
+	getPayload() {
+		this.supportiveMaterialService.getPayload(SupportiveMaterialFieldType.UserGuide, this.languageService.getCurrentLanguage(), this.authService.selectedTenant())
 			.pipe(takeUntil(this._destroyed))
 			.subscribe(response => { //TODO HANDLE-ERRORS
 				const blob = new Blob([response.body], { type: 'text/html' });

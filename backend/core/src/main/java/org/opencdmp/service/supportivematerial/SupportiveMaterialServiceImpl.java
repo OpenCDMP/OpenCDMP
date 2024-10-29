@@ -27,6 +27,7 @@ import org.opencdmp.model.persist.SupportiveMaterialPersist;
 import org.opencdmp.query.SupportiveMaterialQuery;
 import org.opencdmp.service.planblueprint.PlanBlueprintServiceImpl;
 import org.opencdmp.service.storage.StorageFileService;
+import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.MessageSource;
 import org.springframework.context.i18n.LocaleContextHolder;
@@ -42,6 +43,7 @@ import java.util.UUID;
 public class SupportiveMaterialServiceImpl implements SupportiveMaterialService{
 
     private static final LoggerService logger = new LoggerService(LoggerFactory.getLogger(PlanBlueprintServiceImpl.class));
+    private static final Logger log = LoggerFactory.getLogger(PlanBlueprintServiceImpl.class);
     private final TenantEntityManager entityManager;
     private final AuthorizationService authorizationService;
     private final DeleterFactory deleterFactory;
@@ -51,11 +53,12 @@ public class SupportiveMaterialServiceImpl implements SupportiveMaterialService{
     private final QueryFactory queryFactory;
     private final SupportiveMaterialCacheService supportiveMaterialCacheService;
     private final StorageFileService storageFileService;
+    private final TenantEntityManager tenantEntityManager;
 
     public SupportiveMaterialServiceImpl(
             TenantEntityManager entityManager, AuthorizationService authorizationService, DeleterFactory deleterFactory, BuilderFactory builderFactory,
-		    ConventionService conventionService, MessageSource messageSource, QueryFactory queryFactory,
-		    SupportiveMaterialCacheService supportiveMaterialCacheService, StorageFileService storageFileService
+            ConventionService conventionService, MessageSource messageSource, QueryFactory queryFactory,
+            SupportiveMaterialCacheService supportiveMaterialCacheService, StorageFileService storageFileService, TenantEntityManager tenantEntityManager
     ) {
         this.entityManager = entityManager;
         this.authorizationService = authorizationService;
@@ -66,6 +69,7 @@ public class SupportiveMaterialServiceImpl implements SupportiveMaterialService{
         this.queryFactory = queryFactory;
         this.supportiveMaterialCacheService = supportiveMaterialCacheService;
 	    this.storageFileService = storageFileService;
+        this.tenantEntityManager = tenantEntityManager;
     }
 
     public byte[] loadFromFile(String language, SupportiveMaterialFieldType type)  {
@@ -87,6 +91,18 @@ public class SupportiveMaterialServiceImpl implements SupportiveMaterialService{
 
         this.authorizationService.authorizeForce(Permission.EditSupportiveMaterial);
 
+        List<SupportiveMaterialEntity> existingSupportiveMaterials;
+        try {
+            this.tenantEntityManager.loadExplicitTenantFilters();
+            existingSupportiveMaterials = this.queryFactory.query(SupportiveMaterialQuery.class).disableTracking().isActive(IsActive.Active).collect();
+
+        } catch (InvalidApplicationException e) {
+            log.error(e.getMessage(), e);
+            throw new MyApplicationException(e.getMessage());
+        } finally {
+            this.tenantEntityManager.reloadTenantFilters();
+        }
+
         Boolean isUpdate = this.conventionService.isValidGuid(model.getId());
 
         SupportiveMaterialEntity d;
@@ -95,11 +111,7 @@ public class SupportiveMaterialServiceImpl implements SupportiveMaterialService{
             if (d == null)
                 throw new MyNotFoundException(this.messageSource.getMessage("General_ItemNotFound", new Object[]{model.getId(), SupportiveMaterial.class.getSimpleName()}, LocaleContextHolder.getLocale()));
         } else {
-            List<SupportiveMaterialEntity> data = this.queryFactory.query(SupportiveMaterialQuery.class).disableTracking().languageCodes(model.getLanguageCode()).types(model.getType()).collect();
-
-            if(data != null && !data.isEmpty()){
-                throw new MyApplicationException("Could not create a new Data with same type and lang code !");
-            }
+            if (existingSupportiveMaterials != null && !existingSupportiveMaterials.isEmpty() && existingSupportiveMaterials.stream().filter(x -> x.getLanguageCode().equals(model.getLanguageCode()) && x.getType().equals(model.getType())).findFirst().orElse(null) != null) throw new MyApplicationException("Could not create a new Data with same type and lang code !");;
 
             d = new SupportiveMaterialEntity();
             d.setId(UUID.randomUUID());

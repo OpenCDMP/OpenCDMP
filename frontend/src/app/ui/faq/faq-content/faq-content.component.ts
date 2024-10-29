@@ -6,6 +6,7 @@ import { BaseComponent } from '@common/base/base.component';
 import { takeUntil } from 'rxjs/operators';
 import { SupportiveMaterialFieldType } from '@app/core/common/enum/supportive-material-field-type';
 import { AnalyticsService } from '@app/core/services/matomo/analytics-service';
+import { AuthService } from '@app/core/services/auth/auth.service';
 
 @Component({
 	selector: 'app-faq-content',
@@ -20,6 +21,7 @@ export class FaqContentComponent extends BaseComponent implements OnInit {
 	sanitizedGuideUrl: any;
 
 	constructor(
+		private authService: AuthService,
 		private supportiveMaterialService: SupportiveMaterialService,
 		private sanitizer: DomSanitizer,
 		private languageService: LanguageService,
@@ -29,7 +31,7 @@ export class FaqContentComponent extends BaseComponent implements OnInit {
 	ngOnInit() {
 		this.analyticsService.trackPageView(AnalyticsService.FAQ);
 
-		this.supportiveMaterialService.getPayload(SupportiveMaterialFieldType.Faq, this.languageService.getCurrentLanguage())
+		this.supportiveMaterialService.getPayload(SupportiveMaterialFieldType.Faq, this.languageService.getCurrentLanguage(), this.authService.selectedTenant())
 			.pipe(takeUntil(this._destroyed))
 			.subscribe(response => { //TODO HANDLE-ERRORS
 				const blob = new Blob([response.body], { type: 'text/html' });

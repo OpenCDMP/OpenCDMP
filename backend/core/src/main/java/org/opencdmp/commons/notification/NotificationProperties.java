@@ -26,7 +26,6 @@ public class NotificationProperties {
 	private UUID publicContactSupportType;
 	private UUID tenantSpecificInvitationExternalUserType;
 	private UUID tenantSpecificInvitationExistingUserType;
-	private int emailExpirationTimeSeconds;
 	private String contactSupportEmail;
 
 	public UUID getPlanInvitationExternalUserType() {
@@ -131,14 +130,6 @@ public class NotificationProperties {
 
 	public void setDescriptionTemplateInvitationType(UUID descriptionTemplateInvitationType) {
 		this.descriptionTemplateInvitationType = descriptionTemplateInvitationType;
-	}
-
-	public int getEmailExpirationTimeSeconds() {
-		return this.emailExpirationTimeSeconds;
-	}
-
-	public void setEmailExpirationTimeSeconds(int emailExpirationTimeSeconds) {
-		this.emailExpirationTimeSeconds = emailExpirationTimeSeconds;
 	}
 
 	public UUID getContactSupportType() {

@@ -18,13 +18,17 @@ import jakarta.xml.bind.JAXBException;
 import org.opencdmp.audit.AuditableAction;
 import org.opencdmp.authorization.AuthorizationFlags;
 import org.opencdmp.commons.enums.SupportiveMaterialFieldType;
+import org.opencdmp.commons.scope.tenant.TenantScope;
 import org.opencdmp.data.SupportiveMaterialEntity;
+import org.opencdmp.data.TenantEntity;
 import org.opencdmp.model.SupportiveMaterial;
+import org.opencdmp.model.Tenant;
 import org.opencdmp.model.builder.SupportiveMaterialBuilder;
 import org.opencdmp.model.censorship.SupportiveMaterialCensor;
 import org.opencdmp.model.persist.SupportiveMaterialPersist;
 import org.opencdmp.model.result.QueryResult;
 import org.opencdmp.query.SupportiveMaterialQuery;
+import org.opencdmp.query.TenantQuery;
 import org.opencdmp.query.lookup.SupportiveMaterialLookup;
 import org.opencdmp.service.supportivematerial.SupportiveMaterialService;
 import org.slf4j.LoggerFactory;
@@ -41,7 +45,10 @@ import javax.management.InvalidApplicationException;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.TransformerException;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
+
+import static org.opencdmp.authorization.AuthorizationFlags.Public;
 
 @RestController
 @RequestMapping(path = "/api/supportive-material")
@@ -61,17 +68,19 @@ public class SupportiveMaterialController {
     private final MessageSource messageSource;
 
     private final SupportiveMaterialService supportiveMaterialService;
-    
+
+    private final TenantScope tenantScope;
 
     @Autowired
     public SupportiveMaterialController(SupportiveMaterialService supportiveMaterialService, BuilderFactory builderFactory,
-                                        AuditService auditService, CensorFactory censorFactory, QueryFactory queryFactory, MessageSource messageSource) {
+                                        AuditService auditService, CensorFactory censorFactory, QueryFactory queryFactory, MessageSource messageSource, TenantScope tenantScope) {
         this.supportiveMaterialService = supportiveMaterialService;
         this.builderFactory = builderFactory;
         this.auditService = auditService;
         this.censorFactory = censorFactory;
         this.queryFactory = queryFactory;
         this.messageSource = messageSource;
+        this.tenantScope = tenantScope;
     }
 
     @PostMapping("query")
@@ -109,32 +118,40 @@ public class SupportiveMaterialController {
         return model;
     }
 
-    @GetMapping("get-payload/{type}/{language}")
-    public ResponseEntity<byte[]> getPayload(@PathVariable("type") Short type, @PathVariable("type") String language) throws IOException {
-        logger.debug("querying {}", SupportiveMaterial.class.getSimpleName());
+    @GetMapping("get-payload-from-file/{type}/{language}")
+    public String getPayloadFromFile(@PathVariable("type") Short type, @PathVariable("language") String language) throws IOException {
+        logger.debug("get payload from file {}", SupportiveMaterial.class.getSimpleName());
 
+        byte[] content = this.supportiveMaterialService.loadFromFile(language, SupportiveMaterialFieldType.of(type));
 
-        SupportiveMaterialQuery query = this.queryFactory.query(SupportiveMaterialQuery.class).disableTracking().types(SupportiveMaterialFieldType.of(type)).languageCodes(language).authorize(AuthorizationFlags.AllExceptPublic);
-        List<SupportiveMaterialEntity> data = query.collectAs(new BaseFieldSet().ensure(SupportiveMaterial._id).ensure(SupportiveMaterial._payload));
-        byte[] content;
-        if (data.size() == 1) content = data.getFirst().getPayload().getBytes();
-        else content = this.supportiveMaterialService.loadFromFile(language, SupportiveMaterialFieldType.of(type));
-
-        HttpHeaders responseHeaders = new HttpHeaders();
-        responseHeaders.setContentLength(content.length);
-        responseHeaders.setContentType(MediaType.TEXT_HTML);
-        responseHeaders.set("Content-Disposition", "attachment;filename=" + SupportiveMaterialFieldType.of(type).name().toLowerCase(Locale.ROOT) + "_" + language + "html");
-        responseHeaders.set("Access-Control-Expose-Headers", "Content-Disposition");
-        responseHeaders.get("Access-Control-Expose-Headers").add("Content-Type");
-        
-        return new ResponseEntity<>(content, responseHeaders, HttpStatus.OK);
+        return new String(content, StandardCharsets.UTF_8);
     }
 
-    @GetMapping("public/get-payload/{type}/{language}")
-    public ResponseEntity<byte[]> getPayloadPublic(@PathVariable("type") Short type, @PathVariable("type") String language) throws IOException {
+    @GetMapping(value = {"public/get-payload/{type}/{language}/{tenantCode}", "public/get-payload/{type}/{language}"})
+    public ResponseEntity<byte[]> getPayload(@PathVariable("type") Short type, @PathVariable("language") String language, @PathVariable(value = "tenantCode", required = false) String tenantCode) throws IOException {
         logger.debug("querying {}", SupportiveMaterial.class.getSimpleName());
-        
-        byte[] content = this.supportiveMaterialService.loadFromFile(language, SupportiveMaterialFieldType.of(type));
+
+        SupportiveMaterialQuery query = this.queryFactory.query(SupportiveMaterialQuery.class).disableTracking().types(SupportiveMaterialFieldType.of(type)).languageCodes(language).authorize(EnumSet.of(Public)).tenantIsSet(false);
+        SupportiveMaterialEntity data = null;
+
+        if (tenantCode != null && !tenantCode.isEmpty() && !tenantCode.equals(this.tenantScope.getDefaultTenantCode())) {
+            TenantEntity tenant = this.queryFactory.query(TenantQuery.class).codes(tenantCode).firstAs(new BaseFieldSet(Tenant._id));
+            if (tenant == null)
+                throw new MyNotFoundException(this.messageSource.getMessage("General_ItemNotFound", new Object[]{tenantCode, Tenant.class.getSimpleName()}, LocaleContextHolder.getLocale()));
+
+            query.tenantIds(tenant.getId()).tenantIsSet(true);
+            data = query.firstAs(new BaseFieldSet().ensure(SupportiveMaterial._id).ensure(SupportiveMaterial._payload));
+            if (data == null) {
+                query.clearTenantIds().tenantIsSet(false);
+                data = query.firstAs(new BaseFieldSet().ensure(SupportiveMaterial._id).ensure(SupportiveMaterial._payload));
+            }
+        } else {
+            data = query.firstAs(new BaseFieldSet().ensure(SupportiveMaterial._id).ensure(SupportiveMaterial._payload));
+        }
+
+        byte[] content;
+        if (data != null && data.getPayload() != null && !data.getPayload().isEmpty()) content = data.getPayload().getBytes();
+        else content = this.supportiveMaterialService.loadFromFile(language, SupportiveMaterialFieldType.of(type));
 
         HttpHeaders responseHeaders = new HttpHeaders();
         responseHeaders.setContentLength(content.length);

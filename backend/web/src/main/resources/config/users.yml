@@ -1,0 +1,6 @@
+users:
+  emailExpirationTimeSeconds:
+    mergeAccountExpiration: 14400
+    removeCredentialExpiration: 14400
+    tenantSpecificInvitationExpiration: 14400
+    planInvitationExternalUserExpiration: 14400

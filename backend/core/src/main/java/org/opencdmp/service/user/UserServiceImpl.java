@@ -38,6 +38,7 @@ import org.opencdmp.commons.types.notification.*;
 import org.opencdmp.commons.types.reference.DefinitionEntity;
 import org.opencdmp.commons.types.user.AdditionalInfoEntity;
 import org.opencdmp.commons.types.usercredential.UserCredentialDataEntity;
+import org.opencdmp.commons.users.UsersProperties;
 import org.opencdmp.convention.ConventionService;
 import org.opencdmp.data.*;
 import org.opencdmp.data.tenant.TenantScopedBaseEntity;
@@ -118,6 +119,7 @@ public class UserServiceImpl implements UserService {
     private final AnnotationEntityTouchedIntegrationEventHandler annotationEntityTouchedIntegrationEventHandler;
     private final UsageLimitService usageLimitService;
     private final AccountingService accountingService;
+    private final UsersProperties usersProperties;
     @Autowired
     public UserServiceImpl(
             TenantEntityManager entityManager,
@@ -130,7 +132,7 @@ public class UserServiceImpl implements UserService {
             EventBroker eventBroker,
             JsonHandlingService jsonHandlingService,
             XmlHandlingService xmlHandlingService, QueryFactory queryFactory,
-            UserScope userScope, KeycloakService keycloakService, ActionConfirmationService actionConfirmationService, NotificationProperties notificationProperties, NotifyIntegrationEventHandler eventHandler, ValidatorFactory validatorFactory, ElasticService elasticService, UserTouchedIntegrationEventHandler userTouchedIntegrationEventHandler, UserRemovalIntegrationEventHandler userRemovalIntegrationEventHandler, AuthorizationConfiguration authorizationConfiguration, TenantScope tenantScope, AnnotationEntityTouchedIntegrationEventHandler annotationEntityTouchedIntegrationEventHandler, UsageLimitService usageLimitService, AccountingService accountingService) {
+            UserScope userScope, KeycloakService keycloakService, ActionConfirmationService actionConfirmationService, NotificationProperties notificationProperties, NotifyIntegrationEventHandler eventHandler, ValidatorFactory validatorFactory, ElasticService elasticService, UserTouchedIntegrationEventHandler userTouchedIntegrationEventHandler, UserRemovalIntegrationEventHandler userRemovalIntegrationEventHandler, AuthorizationConfiguration authorizationConfiguration, TenantScope tenantScope, AnnotationEntityTouchedIntegrationEventHandler annotationEntityTouchedIntegrationEventHandler, UsageLimitService usageLimitService, AccountingService accountingService, UsersProperties usersProperties) {
         this.entityManager = entityManager;
         this.authorizationService = authorizationService;
         this.deleterFactory = deleterFactory;
@@ -156,6 +158,7 @@ public class UserServiceImpl implements UserService {
 	    this.annotationEntityTouchedIntegrationEventHandler = annotationEntityTouchedIntegrationEventHandler;
         this.usageLimitService = usageLimitService;
         this.accountingService = accountingService;
+        this.usersProperties = usersProperties;
     }
 
     //region persist
@@ -574,8 +577,9 @@ public class UserServiceImpl implements UserService {
         NotificationFieldData data = new NotificationFieldData();
         List<FieldInfo> fieldInfoList = new ArrayList<>();
         fieldInfoList.add(new FieldInfo("{recipient}", DataType.String, currentUser.getName()));
+        fieldInfoList.add(new FieldInfo("{userName}", DataType.String, user.getName()));
         fieldInfoList.add(new FieldInfo("{confirmationToken}", DataType.String, token));
-        fieldInfoList.add(new FieldInfo("{expiration_time}", DataType.String, this.secondsToTime(this.notificationProperties.getEmailExpirationTimeSeconds())));
+        fieldInfoList.add(new FieldInfo("{expiration_time}", DataType.String, this.secondsToTime(this.usersProperties.getEmailExpirationTimeSeconds().getMergeAccountExpiration())));
         data.setFields(fieldInfoList);
         event.setData(this.jsonHandlingService.toJsonSafe(data));
 	    this.eventHandler.handle(event);
@@ -592,14 +596,18 @@ public class UserServiceImpl implements UserService {
     }
 
     private void createRemoveCredentialNotificationEvent(String token, UUID userId) throws InvalidApplicationException {
+        UserEntity user = this.entityManager.find(UserEntity.class, userId, true);
+        if (user == null) throw new MyNotFoundException(this.messageSource.getMessage("General_ItemNotFound", new Object[]{userId, UserEntity.class.getSimpleName()}, LocaleContextHolder.getLocale()));
+
         NotifyIntegrationEvent event = new NotifyIntegrationEvent();
         event.setUserId(userId);
         event.setContactTypeHint(NotificationContactType.EMAIL);
         event.setNotificationType(this.notificationProperties.getRemoveCredentialConfirmationType());
         NotificationFieldData data = new NotificationFieldData();
         List<FieldInfo> fieldInfoList = new ArrayList<>();
+        fieldInfoList.add(new FieldInfo("{recipient}", DataType.String, user.getName()));
         fieldInfoList.add(new FieldInfo("{confirmationToken}", DataType.String, token));
-        fieldInfoList.add(new FieldInfo("{expiration_time}", DataType.String, this.secondsToTime(this.notificationProperties.getEmailExpirationTimeSeconds())));
+        fieldInfoList.add(new FieldInfo("{expiration_time}", DataType.String, this.secondsToTime(this.usersProperties.getEmailExpirationTimeSeconds().getRemoveCredentialExpiration())));
         data.setFields(fieldInfoList);
         event.setData(this.jsonHandlingService.toJsonSafe(data));
 	    this.eventHandler.handle(event);
@@ -612,7 +620,7 @@ public class UserServiceImpl implements UserService {
         persist.setToken(UUID.randomUUID().toString());
         persist.setMergeAccountConfirmation(new MergeAccountConfirmationPersist());
         persist.getMergeAccountConfirmation().setEmail(email);
-        persist.setExpiresAt(Instant.now().plusSeconds(this.notificationProperties.getEmailExpirationTimeSeconds()));
+        persist.setExpiresAt(Instant.now().plusSeconds(this.usersProperties.getEmailExpirationTimeSeconds().getMergeAccountExpiration()));
         this.validatorFactory.validator(ActionConfirmationPersist.ActionConfirmationPersistValidator.class).validateForce(persist);
         this.actionConfirmationService.persist(persist, null);
         
@@ -631,7 +639,7 @@ public class UserServiceImpl implements UserService {
         persist.setToken(UUID.randomUUID().toString());
         persist.setRemoveCredentialRequest(new RemoveCredentialRequestPersist());
         persist.getRemoveCredentialRequest().setCredentialId(credentialId);
-        persist.setExpiresAt(Instant.now().plusSeconds(this.notificationProperties.getEmailExpirationTimeSeconds()));
+        persist.setExpiresAt(Instant.now().plusSeconds(this.usersProperties.getEmailExpirationTimeSeconds().getRemoveCredentialExpiration()));
         this.validatorFactory.validator(ActionConfirmationPersist.ActionConfirmationPersistValidator.class).validateForce(persist);
         try {
             this.entityManager.disableTenantFilters();
@@ -672,7 +680,7 @@ public class UserServiceImpl implements UserService {
 
         if (userToBeMerge == null) throw new MyNotFoundException(this.messageSource.getMessage("General_ItemNotFound", new Object[]{userContactInfoEntity.getUserId(), User.class.getSimpleName()}, LocaleContextHolder.getLocale()));
 
-        if (!this.userScope.getUserIdSafe().equals(userToBeMerge.getId())) throw new MyForbiddenException("Only requested user can approve");
+        if (!this.userScope.getUserIdSafe().equals(userToBeMerge.getId())) throw new MyValidationException(this.errors.getAnotherUserToken().getCode(), this.errors.getAnotherUserToken().getMessage());
 
         return this.userScope.getUserIdSafe().equals(userToBeMerge.getId());
     }
@@ -697,7 +705,7 @@ public class UserServiceImpl implements UserService {
         UserEntity userToBeMerge = this.queryFactory.query(UserQuery.class).ids(userContactInfoEntity.getUserId()).isActive(IsActive.Active).first();
         if (userToBeMerge == null) throw new MyNotFoundException(this.messageSource.getMessage("General_ItemNotFound", new Object[]{userContactInfoEntity.getUserId(), User.class.getSimpleName()}, LocaleContextHolder.getLocale()));
 
-        if (!this.userScope.getUserIdSafe().equals(userToBeMerge.getId())) throw new MyForbiddenException("Only requested user can approve");
+        if (!this.userScope.getUserIdSafe().equals(userToBeMerge.getId())) throw new MyValidationException(this.errors.getAnotherUserToken().getCode(), this.errors.getAnotherUserToken().getMessage());;
 
         UserEntity newUser = this.queryFactory.query(UserQuery.class).ids(action.getCreatedById()).isActive(IsActive.Active).first();
         if (newUser == null) throw new MyNotFoundException(this.messageSource.getMessage("General_ItemNotFound", new Object[]{action.getCreatedById(), User.class.getSimpleName()}, LocaleContextHolder.getLocale()));
@@ -906,8 +914,8 @@ public class UserServiceImpl implements UserService {
 
         UserCredentialEntity userCredentialEntity = this.queryFactory.query(UserCredentialQuery.class).ids(removeCredentialRequestEntity.getCredentialId()).first();
         if (userCredentialEntity == null) throw new MyNotFoundException(this.messageSource.getMessage("General_ItemNotFound", new Object[]{removeCredentialRequestEntity.getCredentialId(), UserCredential.class.getSimpleName()}, LocaleContextHolder.getLocale()));
-        
-        if (!this.userScope.getUserIdSafe().equals(userCredentialEntity.getUserId())) throw new MyForbiddenException("Only requested user can approve");
+
+        if (!this.userScope.getUserIdSafe().equals(userCredentialEntity.getUserId())) throw new MyValidationException(this.errors.getAnotherUserToken().getCode(), this.errors.getAnotherUserToken().getMessage());
 
         if (userCredentialEntity.getData() != null){
             UserCredentialDataEntity userCredentialDataEntity = this.jsonHandlingService.fromJsonSafe(UserCredentialDataEntity.class, userCredentialEntity.getData());
@@ -939,7 +947,7 @@ public class UserServiceImpl implements UserService {
         this.eventBroker.emit(new UserCredentialTouchedEvent(userCredentialEntity.getId(), userCredentialEntity.getExternalId()));
         this.eventBroker.emit(new UserTouchedEvent(userCredentialEntity.getUserId()));
     }
-    
+
     private void addToDefaultUserGroups(String subjectId){
         this.keycloakService.addUserToGlobalRoleGroup(subjectId, this.authorizationConfiguration.getAuthorizationProperties().getGlobalUserRole());
         this.keycloakService.addUserToTenantRoleGroup(subjectId, this.tenantScope.getDefaultTenantCode(), this.authorizationConfiguration.getAuthorizationProperties().getTenantUserRole());
@@ -948,7 +956,7 @@ public class UserServiceImpl implements UserService {
     private void checkActionState(ActionConfirmationEntity action, boolean isUserInvite) throws MyApplicationException {
         if (action.getStatus().equals(ActionConfirmationStatus.Accepted)){
             if (isUserInvite)  throw new MyValidationException(this.errors.getInviteUserAlreadyConfirmed().getCode(), this.errors.getInviteUserAlreadyConfirmed().getMessage());
-            else throw new MyApplicationException("Account is already confirmed!");
+            else throw new MyValidationException(this.errors.getAccountRequestAlreadyConfirmed().getCode(), this.errors.getAccountRequestAlreadyConfirmed().getMessage());
         }
         if (action.getExpiresAt().compareTo(Instant.now()) < 0){
             throw new MyValidationException(this.errors.getRequestHasExpired().getCode(), this.errors.getRequestHasExpired().getMessage());
@@ -998,7 +1006,7 @@ public class UserServiceImpl implements UserService {
         persist.getUserInviteToTenantRequest().setEmail(model.getEmail());
         persist.getUserInviteToTenantRequest().setRoles(model.getRoles());
         persist.getUserInviteToTenantRequest().setTenantCode(tenantCode);
-        persist.setExpiresAt(Instant.now().plusSeconds(this.notificationProperties.getEmailExpirationTimeSeconds()));
+        persist.setExpiresAt(Instant.now().plusSeconds(this.usersProperties.getEmailExpirationTimeSeconds().getTenantSpecificInvitationExpiration()));
         this.validatorFactory.validator(ActionConfirmationPersist.ActionConfirmationPersistValidator.class).validateForce(persist);
         this.actionConfirmationService.persist(persist, null);
 
@@ -1034,7 +1042,7 @@ public class UserServiceImpl implements UserService {
         List<FieldInfo> fieldInfoList = new ArrayList<>();
         fieldInfoList.add(new FieldInfo("{userName}", DataType.String, sender.getName()));
         fieldInfoList.add(new FieldInfo("{confirmationToken}", DataType.String, token));
-        fieldInfoList.add(new FieldInfo("{expiration_time}", DataType.String, this.secondsToTime(this.notificationProperties.getEmailExpirationTimeSeconds())));
+        fieldInfoList.add(new FieldInfo("{expiration_time}", DataType.String, this.secondsToTime(this.usersProperties.getEmailExpirationTimeSeconds().getTenantSpecificInvitationExpiration())));
         if (!this.conventionService.isNullOrEmpty(tenantName)) fieldInfoList.add(new FieldInfo("{tenantName}", DataType.String, tenantName));
 
         data.setFields(fieldInfoList);

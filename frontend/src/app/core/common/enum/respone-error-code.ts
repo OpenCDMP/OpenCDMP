@@ -59,6 +59,7 @@ export enum ResponseErrorCode {
   planInvitationAlreadyConfirmed = 161,
   anotherUserToken = 162,
   tokenNotExist = 163,
+  accountRequestAlreadyConfirmed = 165,
 
   // Notification & Annotation Errors
   InvalidApiKey = 200,
@@ -209,6 +210,8 @@ export class ResponseErrorCodeHelper {
         return language.instant("GENERAL.BACKEND-ERRORS.ANOTHER-USER-TOKEN");
 	  case ResponseErrorCode.tokenNotExist: 
         return language.instant("GENERAL.BACKEND-ERRORS.TOKEN-NOT-EXIST");
+	  case ResponseErrorCode.accountRequestAlreadyConfirmed: 
+        return language.instant("GENERAL.BACKEND-ERRORS.ACCOUNT-REQUEST-ALREADY-CONFIRMED");
   	  default:
   	  	return language.instant("GENERAL.SNACK-BAR.NOT-FOUND");
   	}

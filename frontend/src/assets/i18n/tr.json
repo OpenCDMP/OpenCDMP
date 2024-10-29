@@ -97,6 +97,7 @@
 			"MISSING-GLOBAL-ROLE": "Υou must also select a global role",
             "CANNOT-PERFORM-ACTION-ON-USER": "Cannot perform action, user account has not been activated",
 			"PLAN-INVITATION-ALREADY-CONFIRMED": "Plan invitation has alreay confirmed",
+			"ACCOUNT-REQUEST-ALREADY-CONFIRMED": "Account request is already confirmed.",
 			"ANOTHER-USER-TOKEN": "This token is for another user",
 			"TOKEN-NOT-EXIST": "This token does not exist"
 		},
@@ -1419,7 +1420,8 @@
 	"SUPPORTIVE-MATERIAL-EDITOR": {
 		"FIELDS": {
 			"MATERIAL-TYPE": "Material Type",
-			"LANGUAGE": "Language"
+			"LANGUAGE": "Language",
+			"OVERRIDE": "Override from file"
 		},
 		"ACTIONS": {
 			"SAVE": "Save"

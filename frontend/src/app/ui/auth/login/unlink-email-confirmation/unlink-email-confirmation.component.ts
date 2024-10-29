@@ -1,6 +1,7 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
+import { AuthService } from '@app/core/services/auth/auth.service';
 import { RouterUtilsService } from '@app/core/services/router/router-utils.service';
 import { UserService } from '@app/core/services/user/user.service';
 import { BaseComponent } from '@common/base/base.component';
@@ -27,7 +28,8 @@ export class UnlinkEmailConfirmation extends BaseComponent implements OnInit {
 		private router: Router,
 		private language: TranslateService,
 		private routerUtils: RouterUtilsService,
-		private httpErrorHandlingService: HttpErrorHandlingService
+		private httpErrorHandlingService: HttpErrorHandlingService,
+		private authentication: AuthService,
 	) { super(); }
 
 	ngOnInit() {
@@ -37,6 +39,10 @@ export class UnlinkEmailConfirmation extends BaseComponent implements OnInit {
 				const token = params['token']
 				if (token != null) {
 					this.token = token;
+				}
+				if(!this.authentication.currentAccountIsAuthenticated()){
+					let returnUrl = `login/unlink/confirmation/${this.token}`;
+					this.router.navigate([this.routerUtils.generateUrl('login')], {queryParams:{returnUrl: this.routerUtils.generateUrl(returnUrl)}});	
 				}
 			});
 	}
@@ -70,7 +76,7 @@ export class UnlinkEmailConfirmation extends BaseComponent implements OnInit {
 		this.httpErrorHandlingService.handleBackedRequestError(errorResponse, errorOverrides)
 
 		const error: HttpError = this.httpErrorHandlingService.getError(errorResponse);
-		if (error.statusCode === 302) {
+		if (error.statusCode === 302 || error.statusCode === 400) {
 			this.router.navigate([this.routerUtils.generateUrl('home')]);
 		}
 	}

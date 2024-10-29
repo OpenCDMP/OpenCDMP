@@ -10,6 +10,7 @@ export class SupportiveMaterialLookup extends Lookup implements SupportiveMateri
 	isActive: IsActive[];
 	types: SupportiveMaterialFieldType[];
     languageCodes: string[];
+	tenantIds: Guid[];
 
 	constructor() {
 		super();
@@ -23,4 +24,5 @@ export interface SupportiveMaterialFilter {
 	isActive: IsActive[];
 	types: SupportiveMaterialFieldType[];
     languageCodes: string[];
+	tenantIds: Guid[];
 }

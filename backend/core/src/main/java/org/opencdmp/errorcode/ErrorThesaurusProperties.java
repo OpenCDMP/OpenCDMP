@@ -574,4 +574,14 @@ public class ErrorThesaurusProperties {
     public void setTokenNotExist(ErrorDescription tokenNotExist) {
         this.tokenNotExist = tokenNotExist;
     }
+
+    private ErrorDescription accountRequestAlreadyConfirmed;
+
+    public ErrorDescription getAccountRequestAlreadyConfirmed() {
+        return accountRequestAlreadyConfirmed;
+    }
+
+    public void setAccountRequestAlreadyConfirmed(ErrorDescription accountRequestAlreadyConfirmed) {
+        this.accountRequestAlreadyConfirmed = accountRequestAlreadyConfirmed;
+    }
 }

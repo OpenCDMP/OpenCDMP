@@ -123,7 +123,11 @@ public class UserInterceptor implements WebRequestInterceptor {
                     try {
                         status = this.transactionManager.getTransaction(definition);
 
-                        userId = this.findExistingUserFromDb(subjectId);
+                        userId = this.findExistingUserFromDbBySubject(subjectId);
+                        if (userId == null) {
+                            userId = this.findExistingUserFromDbByEmailAndAddCredentail(subjectId, email);
+                            shouldSendUserTouchedIntegrationEvent = userId != null;
+                        }
                         boolean isNewUser = userId == null;
                         if (isNewUser) {
                             UserEntity user = this.addNewUser(subjectId, email);
@@ -219,23 +223,23 @@ public class UserInterceptor implements WebRequestInterceptor {
         return hasChanges;
     }
 
-    private UUID findExistingUserFromDb(String subjectId) {
+    private UUID findExistingUserFromDbBySubject(String subjectId) {
         UserCredentialEntity userCredential = this.queryFactory.query(UserCredentialQuery.class).externalIds(subjectId).firstAs(new BaseFieldSet().ensure(UserCredential._user));
-        if (userCredential != null) {
-            return userCredential.getUserId();
-        } else {
-            String email = this.getEmailFromClaims();
-            if (email != null && !email.isBlank()) {
-                UserContactInfoEntity userContactInfo = this.queryFactory.query(UserContactInfoQuery.class).types(ContactInfoType.Email).values(email).firstAs(new BaseFieldSet().ensure(UserContactInfo._user));
-                if (userContactInfo != null) {
-                    UserCredentialEntity credential = this.buildCredential(userContactInfo.getUserId(), subjectId);
-                    this.entityManager.persist(credential);
+        if (userCredential != null)  return userCredential.getUserId();
+        return null;
+    }
 
-                    return credential.getUserId();
-                }
-            } else {
-                throw new MyForbiddenException("Email is required");
+    private UUID findExistingUserFromDbByEmailAndAddCredentail(String subjectId, String email) {
+        if (email != null && !email.isBlank()) {
+            UserContactInfoEntity userContactInfo = this.queryFactory.query(UserContactInfoQuery.class).types(ContactInfoType.Email).values(email).firstAs(new BaseFieldSet().ensure(UserContactInfo._user));
+            if (userContactInfo != null) {
+                UserCredentialEntity credential = this.buildCredential(userContactInfo.getUserId(), subjectId);
+                this.entityManager.persist(credential);
+
+                return credential.getUserId();
             }
+        } else {
+            throw new MyForbiddenException("Email is required");
         }
         return null;
     }

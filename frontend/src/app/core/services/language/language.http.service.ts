@@ -38,10 +38,10 @@ export class LanguageHttpService {
 				catchError((error: any) => throwError(error)));
 	}
 
-	getSingleWithCode(code: string, tenantCode: string | null, reqFields: string[] = []): Observable<Language> {
+	getSingleWithCode(code: string, tenantCode: string | null, reqFields: string[] = [], overrideFromFile: boolean = false): Observable<Language> {
 		let url = `${this.apiBase}/public/code/${code}`;
 		if (tenantCode) url += `/${tenantCode}`;
-		const options: HttpParamsOptions = { fromObject: { f: reqFields } };
+		const options: HttpParamsOptions = { fromObject: { f: reqFields,  overrideFromFile: overrideFromFile} };
 
 		let params: BaseHttpParams = new BaseHttpParams(options);
 		params.interceptorContext = {

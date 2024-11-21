@@ -1,4 +1,4 @@
-import { HttpHeaders } from '@angular/common/http';
+import { HttpHeaders, HttpResponse } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { DepositConfiguration } from '@app/core/model/deposit/deposit-configuration';
 import { DepositAuthenticateRequest, DepositRequest } from '@app/core/model/deposit/deposit-request';
@@ -49,9 +49,8 @@ export class DepositService {
 		return this.http.post<EntityDoi>(url, item).pipe(catchError((error: any) => throwError(error)));
 	}
 
-	getLogo(repositoryId: string): Observable<string> {
+	getLogo(repositoryId: string): Observable<HttpResponse<string>> {
 		const url = `${this.apiBase}/repositories/${repositoryId}/logo`;
-		return this.http
-			.get<string>(url).pipe(catchError((error: any) => throwError(error)));
+		return this.http.get(url, { responseType: 'string', observe: 'response' });
 	}
 }

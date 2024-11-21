@@ -118,7 +118,7 @@ public class LanguageController {
     }
 
     @GetMapping(value = {"public/code/{code}/{tenantCode}", "public/code/{code}"})
-    public Language get(@PathVariable("code") String code, @PathVariable(value = "tenantCode", required = false) String tenantCode, FieldSet fieldSet) throws MyApplicationException, MyForbiddenException, MyNotFoundException, IOException {
+    public Language get(@PathVariable("code") String code, @PathVariable(value = "tenantCode", required = false) String tenantCode, FieldSet fieldSet, boolean overrideFromFile) throws MyApplicationException, MyForbiddenException, MyNotFoundException, IOException {
         logger.debug(new MapLogEntry("retrieving" + Language.class.getSimpleName()).And("code", code).And("fields", fieldSet));
 
         this.censorFactory.censor(LanguageCensor.class).censor(fieldSet, null);
@@ -126,24 +126,29 @@ public class LanguageController {
         LanguageQuery query = this.queryFactory.query(LanguageQuery.class).disableTracking().authorize(EnumSet.of(Public)).codes(code).tenantIsSet(false).isActive(IsActive.Active);
         Language model = null;
 
-        if (tenantCode != null && !tenantCode.isEmpty() && !tenantCode.equals(this.tenantScope.getDefaultTenantCode())) {
-            TenantEntity tenant = this.queryFactory.query(TenantQuery.class).codes(tenantCode).firstAs(new BaseFieldSet(Tenant._id));
-            if (tenant == null)
-                throw new MyNotFoundException(this.messageSource.getMessage("General_ItemNotFound", new Object[]{tenantCode, Tenant.class.getSimpleName()}, LocaleContextHolder.getLocale()));
+        if (!overrideFromFile) {
+            if (tenantCode != null && !tenantCode.isEmpty() && !tenantCode.equals(this.tenantScope.getDefaultTenantCode())) {
+                TenantEntity tenant = this.queryFactory.query(TenantQuery.class).codes(tenantCode).firstAs(new BaseFieldSet(Tenant._id));
+                if (tenant == null)
+                    throw new MyNotFoundException(this.messageSource.getMessage("General_ItemNotFound", new Object[]{tenantCode, Tenant.class.getSimpleName()}, LocaleContextHolder.getLocale()));
 
-            query.tenantIds(tenant.getId()).tenantIsSet(true);
-            model = this.builderFactory.builder(LanguageBuilder.class).authorize(EnumSet.of(Public)).build(fieldSet, query.firstAs(fieldSet));
-            if (model == null) {
-                query.clearTenantIds().tenantIsSet(false);
+                query.tenantIds(tenant.getId()).tenantIsSet(true);
+                model = this.builderFactory.builder(LanguageBuilder.class).authorize(EnumSet.of(Public)).build(fieldSet, query.firstAs(fieldSet));
+                if (model == null) {
+                    query.clearTenantIds().tenantIsSet(false);
+                    model = this.builderFactory.builder(LanguageBuilder.class).authorize(EnumSet.of(Public)).build(fieldSet, query.firstAs(fieldSet));
+                }
+            }
+            else {
                 model = this.builderFactory.builder(LanguageBuilder.class).authorize(EnumSet.of(Public)).build(fieldSet, query.firstAs(fieldSet));
             }
-        }
-        else {
-            model = this.builderFactory.builder(LanguageBuilder.class).authorize(EnumSet.of(Public)).build(fieldSet, query.firstAs(fieldSet));
-        }
+            if (model == null)
+                throw new MyNotFoundException(this.messageSource.getMessage("General_ItemNotFound", new Object[]{code, Language.class.getSimpleName()}, LocaleContextHolder.getLocale()));
 
-        if (model == null)
-            throw new MyNotFoundException(this.messageSource.getMessage("General_ItemNotFound", new Object[]{code, Language.class.getSimpleName()}, LocaleContextHolder.getLocale()));
+        } else {
+            model = new Language();
+            model.setCode(code);
+        }
 
         if (model.getPayload() == null) {
             model.setPayload(this.languageService.getPayload(code));

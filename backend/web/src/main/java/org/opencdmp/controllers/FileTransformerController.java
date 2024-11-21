@@ -29,6 +29,8 @@ import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
 import javax.management.InvalidApplicationException;
 import java.io.IOException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
@@ -78,7 +80,7 @@ public class FileTransformerController {
         HttpHeaders headers = new HttpHeaders();
 
         FileEnvelope fileEnvelope = this.fileTransformerService.exportPlan(requestModel.getId(), requestModel.getRepositoryId(), requestModel.getFormat(), false);
-        headers.add("Content-Disposition", "attachment;filename=" + fileEnvelope.getFilename());
+        headers.add("Content-Disposition", "attachment;filename=" + URLEncoder.encode(fileEnvelope.getFilename(), StandardCharsets.UTF_8).replace("+", "_"));
         byte[] data = fileEnvelope.getFile();
         headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
         return new ResponseEntity<>(data, headers, HttpStatus.OK);
@@ -92,7 +94,7 @@ public class FileTransformerController {
         HttpHeaders headers = new HttpHeaders();
 
         FileEnvelope fileEnvelope = this.fileTransformerService.exportPlan(requestModel.getId(), requestModel.getRepositoryId(), requestModel.getFormat(), true);
-        headers.add("Content-Disposition", "attachment;filename=" + fileEnvelope.getFilename());
+        headers.add("Content-Disposition", "attachment;filename=" + URLEncoder.encode(fileEnvelope.getFilename(), StandardCharsets.UTF_8).replace("+", "_"));
         byte[] data = fileEnvelope.getFile();
         headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
         return new ResponseEntity<>(data, headers, HttpStatus.OK);
@@ -106,7 +108,7 @@ public class FileTransformerController {
         HttpHeaders headers = new HttpHeaders();
 
         FileEnvelope fileEnvelope = this.fileTransformerService.exportDescription(requestModel.getId(), requestModel.getRepositoryId(), requestModel.getFormat(), false);
-        headers.add("Content-Disposition", "attachment;filename=" + fileEnvelope.getFilename());
+        headers.add("Content-Disposition", "attachment;filename=" + URLEncoder.encode(fileEnvelope.getFilename(), StandardCharsets.UTF_8).replace("+", "_"));
         byte[] data = fileEnvelope.getFile();
         headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
         return new ResponseEntity<>(data, headers, HttpStatus.OK);
@@ -120,7 +122,7 @@ public class FileTransformerController {
         HttpHeaders headers = new HttpHeaders();
 
         FileEnvelope fileEnvelope = this.fileTransformerService.exportDescription(requestModel.getId(), requestModel.getRepositoryId(), requestModel.getFormat(), true);
-        headers.add("Content-Disposition", "attachment;filename=" + fileEnvelope.getFilename());
+        headers.add("Content-Disposition", "attachment;filename=" + URLEncoder.encode(fileEnvelope.getFilename(), StandardCharsets.UTF_8).replace("+", "_"));
         byte[] data = fileEnvelope.getFile();
         headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
         return new ResponseEntity<>(data, headers, HttpStatus.OK);

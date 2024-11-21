@@ -165,7 +165,7 @@ public class FieldCommonModelBuilder extends BaseCommonModelBuilder<FieldModel, 
 
         Map<UUID, String> itemMap = new HashMap<>();
         for (UUID tag : tagIds){
-            existingTags.stream().filter(x -> x.getId().equals(tag)).findFirst().ifPresent(existingTag -> itemMap.put(tag, existingTag.getId().toString()));
+            existingTags.stream().filter(x -> x.getId().equals(tag)).findFirst().ifPresent(existingTag -> itemMap.put(tag, existingTag.getLabel()));
         }
         return itemMap;
     }

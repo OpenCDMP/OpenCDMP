@@ -55,7 +55,7 @@ export class PlanDepositDropdown extends BaseComponent implements OnInit {
 		this.inputRepos.forEach(repo => {
 			if (repo.hasLogo) {
 				this.depositRepositoriesService.getLogo(repo.repositoryId).subscribe(logo => {
-					this.logos.set(repo.repositoryId, this.sanitizer.bypassSecurityTrustResourceUrl('data:image/png;base64, ' + logo));
+					this.logos.set(repo.repositoryId, this.sanitizer.bypassSecurityTrustResourceUrl('data:image/png;base64, ' + logo.body));
 				})
 			}
 		})

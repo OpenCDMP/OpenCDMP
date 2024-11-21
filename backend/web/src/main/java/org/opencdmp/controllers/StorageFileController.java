@@ -39,6 +39,8 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.net.URLConnection;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.*;
 
@@ -145,7 +147,7 @@ public class StorageFileController {
         HttpHeaders responseHeaders = new HttpHeaders();
         responseHeaders.setContentLength(file.length);
         responseHeaders.setContentType(MediaType.valueOf(contentType));
-        responseHeaders.set("Content-Disposition", "attachment; filename=\"" + storageFile.getName() + (storageFile.getExtension().startsWith(".") ? "" : ".") + storageFile.getExtension()  + "\"");
+        responseHeaders.set("Content-Disposition", "attachment; filename=\"" + URLEncoder.encode(storageFile.getName() + (storageFile.getExtension().startsWith(".") ? "" : ".") + storageFile.getExtension(), StandardCharsets.UTF_8).replace("+", "_")  + "\"");
         responseHeaders.set("Access-Control-Expose-Headers", "Content-Disposition");
         responseHeaders.get("Access-Control-Expose-Headers").add("Content-Type");
 

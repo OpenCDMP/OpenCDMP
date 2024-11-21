@@ -17,6 +17,7 @@ import jakarta.xml.bind.JAXBException;
 import org.jetbrains.annotations.NotNull;
 import org.opencdmp.authorization.AuthorizationFlags;
 import org.opencdmp.authorization.Permission;
+import org.opencdmp.commons.JsonHandlingService;
 import org.opencdmp.commons.XmlHandlingService;
 import org.opencdmp.commons.enums.IsActive;
 import org.opencdmp.commons.enums.ReferenceFieldDataType;
@@ -65,17 +66,18 @@ public class ReferenceServiceImpl implements ReferenceService {
     private final MessageSource messageSource;
     private final QueryFactory queryFactory;
     private final XmlHandlingService xmlHandlingService;
+    private final JsonHandlingService jsonHandlingService;
 
     public final ExternalFetcherService externalFetcherService;
     public ReferenceServiceImpl(
             TenantEntityManager entityManager,
-		    AuthorizationService authorizationService,
-		    DeleterFactory deleterFactory,
-		    BuilderFactory builderFactory,
-		    ConventionService conventionService,
-		    MessageSource messageSource,
-		    QueryFactory queryFactory,
-		    XmlHandlingService xmlHandlingService, ExternalFetcherService externalFetcherService) {
+            AuthorizationService authorizationService,
+            DeleterFactory deleterFactory,
+            BuilderFactory builderFactory,
+            ConventionService conventionService,
+            MessageSource messageSource,
+            QueryFactory queryFactory,
+            XmlHandlingService xmlHandlingService, JsonHandlingService jsonHandlingService, ExternalFetcherService externalFetcherService) {
         this.entityManager = entityManager;
         this.authorizationService = authorizationService;
         this.deleterFactory = deleterFactory;
@@ -84,7 +86,8 @@ public class ReferenceServiceImpl implements ReferenceService {
         this.messageSource = messageSource;
         this.queryFactory = queryFactory;
         this.xmlHandlingService = xmlHandlingService;
-	    this.externalFetcherService = externalFetcherService;
+        this.jsonHandlingService = jsonHandlingService;
+        this.externalFetcherService = externalFetcherService;
     }
 
     @Override
@@ -178,7 +181,7 @@ public class ReferenceServiceImpl implements ReferenceService {
         if (data == null) throw new MyNotFoundException(this.messageSource.getMessage("General_ItemNotFound", new Object[]{lookup.getTypeId(), ReferenceType.class.getSimpleName()}, LocaleContextHolder.getLocale()));
 
         String like;
-        if (lookup.getLike() != null){
+        if (!this.conventionService.isNullOrEmpty(lookup.getLike())){
             like = lookup.getLike().replaceAll("%", "");
         } else {
             like = null;
@@ -193,6 +196,11 @@ public class ReferenceServiceImpl implements ReferenceService {
             for (Map<String, String> result : remoteRepos.getResults()){
                 if (result == null || result.isEmpty()) continue;
 	            ReferenceEntity referenceEntity = this.buildReferenceEntityFromExternalData(result, data);
+                //filter elements if label or reference don't exist
+                if (this.conventionService.isNullOrEmpty(referenceEntity.getLabel()) || this.conventionService.isNullOrEmpty(referenceEntity.getReference())) {
+                    logger.warn("reference or label not found "+ this.jsonHandlingService.toJsonSafe(data) + this.jsonHandlingService.toJsonSafe(lookup));
+                    continue;
+                }
                 referenceEntities.add(referenceEntity);
             }
             externalModels = this.builderFactory.builder(ReferenceBuilder.class).authorize(AuthorizationFlags.AllExceptPublic).build(lookup.getProject(), referenceEntities);

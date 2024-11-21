@@ -193,27 +193,27 @@ public class ExternalFetcherServiceImpl implements ExternalFetcherService {
                     if (dependencyReference != null){
                         
                         for (Field field : dependencyReference.getDefinition().getFields()){
-                            filterValue = filterValue.replaceAll("\\{" + field.getCode() + "}", field.getValue());
+                            filterValue = filterValue.replaceAll("\\{" + Matcher.quoteReplacement(field.getCode()) + "}", Matcher.quoteReplacement(field.getValue()));
                         }
-                        filterValue = filterValue.replaceAll("\\{" + Reference._reference + "}", dependencyReference.getReference());
-                        filterValue = filterValue.replaceAll("\\{" + Reference._label + "}", dependencyReference.getLabel());
-                        filterValue = filterValue.replaceAll("\\{" + Reference._source + "}", dependencyReference.getSource());
+                        filterValue = filterValue.replaceAll("\\{" + Reference._reference + "}", Matcher.quoteReplacement(dependencyReference.getReference()));
+                        filterValue = filterValue.replaceAll("\\{" + Reference._label + "}", Matcher.quoteReplacement(dependencyReference.getLabel()));
+                        filterValue = filterValue.replaceAll("\\{" + Reference._source + "}", Matcher.quoteReplacement(dependencyReference.getSource()));
                         
                     }
                 } else  if (!this.conventionService.isNullOrEmpty(likeValue)) {
                     if (caseConfig.getSeparator() != null) {
                         String[] likes = likeValue.split(caseConfig.getSeparator());
                         for (int i = 0; i < likes.length; i++) {
-                            filterValue = filterValue.replaceAll("\\{like" + (i + 1) + "}", likes[i]);
+                            filterValue = filterValue.replaceAll("\\{like" + (i + 1) + "}", Matcher.quoteReplacement(likes[i]));
                         }
                     } else {
-                        filterValue = filterValue.replaceAll("\\{like}", likeValue);
+                        filterValue = filterValue.replaceAll("\\{like}", Matcher.quoteReplacement(likeValue));
                     }
                 } else {
                     filterValue = queryConfig.getDefaultValue() == null ? "" : queryConfig.getDefaultValue();
                 }
             }
-            finalQuery = finalQuery.replaceAll("\\{" + queryConfig.getName() + "}",  filterValue);
+            finalQuery = finalQuery.replaceAll("\\{" + queryConfig.getName() + "}",  Matcher.quoteReplacement(filterValue));
         }
         
         return finalQuery;

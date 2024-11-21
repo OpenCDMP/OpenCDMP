@@ -199,7 +199,7 @@ export class LanguageEditorComponent extends BaseEditor<LanguageEditorModel, Lan
 
 	public overrideFromFile(matCheckBox: MatCheckboxChange, code: string) {
 		if (matCheckBox.checked == true) {
-			this.languageHttpService.getSingleWithCode(code, this.authService.selectedTenant(), LanguageEditorResolver.lookupFields())
+			this.languageHttpService.getSingleWithCode(code, this.authService.selectedTenant(), LanguageEditorResolver.lookupFields(), true)
 				.pipe(takeUntil(this._destroyed))
 				.subscribe(language => {
 					this.formGroup.get('payload').patchValue(language.payload);

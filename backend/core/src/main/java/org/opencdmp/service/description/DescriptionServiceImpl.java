@@ -99,6 +99,8 @@ import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.TransformerException;
 import java.io.IOException;
 import java.net.URLConnection;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
@@ -844,6 +846,7 @@ public class DescriptionServiceImpl implements DescriptionService {
                     existingTag.setIsActive(IsActive.Active);
                     existingTag.setCreatedAt(Instant.now());
                     existingTag.setUpdatedAt(Instant.now());
+                    existingTag.setCreatedById(this.userScope.getUserId());
                     this.entityManager.persist(existingTag);
                 }
 
@@ -915,7 +918,7 @@ public class DescriptionServiceImpl implements DescriptionService {
         HttpHeaders headers = new HttpHeaders();
 
         FileEnvelope fileEnvelope = this.fileTransformerService.exportDescription(id, null, exportType, isPublic); //TODO get repo from config
-        headers.add("Content-Disposition", "attachment;filename=" + fileEnvelope.getFilename());
+        headers.add("Content-Disposition", "attachment;filename=" + URLEncoder.encode(fileEnvelope.getFilename(), StandardCharsets.UTF_8).replace("+", "_"));
         byte[] data = fileEnvelope.getFile();
         headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
         return new ResponseEntity<>(data, headers, HttpStatus.OK);

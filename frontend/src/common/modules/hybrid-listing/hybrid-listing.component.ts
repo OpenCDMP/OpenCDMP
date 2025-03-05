@@ -11,10 +11,11 @@ import { Subject } from 'rxjs';
 import { CollectionUtils } from '@app/core/services/utilities/collection-utils.service';
 
 @Component({
-	selector: 'app-hybrid-listing',
-	templateUrl: './hybrid-listing.component.html',
-	styleUrls: ['./hybrid-listing.component.scss'],
-	encapsulation: ViewEncapsulation.None,
+    selector: 'app-hybrid-listing',
+    templateUrl: './hybrid-listing.component.html',
+    styleUrls: ['./hybrid-listing.component.scss'],
+    encapsulation: ViewEncapsulation.None,
+    standalone: false
 })
 export class HybridListingComponent extends BaseComponent implements OnInit, OnChanges {
 

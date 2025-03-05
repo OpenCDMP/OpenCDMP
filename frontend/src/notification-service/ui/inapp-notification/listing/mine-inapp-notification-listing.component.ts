@@ -25,9 +25,10 @@ import { InAppNotification } from '@notification-service/core/model/inapp-notifi
 import { DataTableDateTimeFormatPipe } from '@app/core/pipes/date-time-format.pipe';
 
 @Component({
-	selector: 'app-mine-inapp-notification-listing',
-	templateUrl: './mine-inapp-notification-listing.component.html',
-	styleUrls: ['./mine-inapp-notification-listing.component.scss']
+    selector: 'app-mine-inapp-notification-listing',
+    templateUrl: './mine-inapp-notification-listing.component.html',
+    styleUrls: ['./mine-inapp-notification-listing.component.scss'],
+    standalone: false
 })
 export class MineInAppNotificationListingComponent extends BaseListingComponent<InAppNotification, InAppNotificationLookup> implements OnInit {
 	publish = false;

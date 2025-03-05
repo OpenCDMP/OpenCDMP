@@ -1,7 +1,6 @@
 package org.opencdmp.model;
 
 import org.opencdmp.commons.enums.PlanAccessType;
-import org.opencdmp.commons.enums.PlanStatus;
 
 import java.time.Instant;
 import java.util.List;
@@ -36,7 +35,7 @@ public class PublicPlan {
 
     public static final String _publishedAt = "publishedAt";
 
-    private PlanStatus status;
+    private PublicPlanStatus status;
     public static final String _status = "status";
 
     private UUID groupId;
@@ -118,11 +117,11 @@ public class PublicPlan {
         this.publishedAt = publishedAt;
     }
 
-    public PlanStatus getStatus() {
+    public PublicPlanStatus getStatus() {
         return status;
     }
 
-    public void setStatus(PlanStatus status) {
+    public void setStatus(PublicPlanStatus status) {
         this.status = status;
     }
 

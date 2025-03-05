@@ -4,6 +4,7 @@ import gr.cite.tools.data.query.Lookup;
 import gr.cite.tools.data.query.QueryFactory;
 import org.opencdmp.commons.enums.IsActive;
 import org.opencdmp.commons.enums.PlanStatus;
+import org.opencdmp.elastic.query.InnerObjectPlanStatusElasticQuery;
 import org.opencdmp.query.PlanStatusQuery;
 
 import java.util.List;
@@ -64,6 +65,18 @@ public class PlanStatusLookup extends Lookup {
         if (this.excludedIds != null) query.excludedIds(this.excludedIds);
         if (this.isActive != null) query.isActives(this.isActive);
         if (this.internalStatuses != null) query.internalStatuses(this.internalStatuses);
+
+        this.enrichCommon(query);
+
+        return query;
+    }
+
+    public InnerObjectPlanStatusElasticQuery enrichElasticInner(QueryFactory queryFactory){
+        InnerObjectPlanStatusElasticQuery query = queryFactory.query(InnerObjectPlanStatusElasticQuery.class);
+        if (this.ids != null) query.ids(this.ids);
+        if (this.internalStatuses != null) query.internalStatuses(this.internalStatuses);
+        if (this.excludedIds != null ) throw new UnsupportedOperationException();
+        if (this.like != null) throw new UnsupportedOperationException();
 
         this.enrichCommon(query);
 

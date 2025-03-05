@@ -7,6 +7,6 @@ import org.opencdmp.service.externalfetcher.models.ExternalDataResult;
 import java.util.List;
 
 public interface ExternalFetcherService {
-	ExternalDataResult getExternalData(List<SourceBaseConfiguration> sources, ExternalReferenceCriteria externalReferenceCriteria, String key);
-	Integer countExternalData(List<SourceBaseConfiguration> sources, ExternalReferenceCriteria externalReferenceCriteria, String key);
+	ExternalDataResult getExternalData(List<SourceBaseConfiguration> sources, ExternalReferenceCriteria externalReferenceCriteria, String key ,boolean isTestMode);
+	Integer countExternalData(List<SourceBaseConfiguration> sources, ExternalReferenceCriteria externalReferenceCriteria, String key, boolean isTestMode);
 }

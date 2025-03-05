@@ -9,10 +9,12 @@ import org.opencdmp.commons.enums.IsActive;
 import org.opencdmp.data.TenantConfigurationEntity;
 import org.opencdmp.data.TenantEntity;
 import org.opencdmp.data.TenantEntityManager;
+import org.opencdmp.data.TenantUserEntity;
 import org.opencdmp.event.EventBroker;
 import org.opencdmp.event.TenantTouchedEvent;
 import org.opencdmp.query.TenantConfigurationQuery;
 import org.opencdmp.query.TenantQuery;
+import org.opencdmp.query.TenantUserQuery;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
@@ -76,6 +78,12 @@ public class TenantDeleter implements Deleter {
             logger.debug("checking related - {}", TenantConfigurationEntity.class.getSimpleName());
             List<TenantConfigurationEntity> items = this.queryFactory.query(TenantConfigurationQuery.class).tenantIds(ids).collect();
             TenantConfigurationDeleter deleter = this.deleterFactory.deleter(TenantConfigurationDeleter.class);
+            deleter.delete(items);
+        }
+        {
+            logger.debug("checking related - {}", TenantUserEntity.class.getSimpleName());
+            List<TenantUserEntity> items = this.queryFactory.query(TenantUserQuery.class).tenantIds(ids).collect();
+            TenantUserDeleter deleter = this.deleterFactory.deleter(TenantUserDeleter.class);
             deleter.delete(items);
         }
         

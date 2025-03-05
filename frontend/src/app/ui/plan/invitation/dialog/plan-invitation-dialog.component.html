@@ -1,20 +1,18 @@
-<div class="plan-invitation-dialog container-fluid" *ngIf="formGroup">
-	<div class="row align-items-center">
-		<div class="col">
-			<h1 class="title">{{'PLAN-USER-INVITATION-DIALOG.TITLE' | translate}}</h1>
-		</div>
-		<div class="col-auto">
-			<button mat-icon-button tabindex="-1" (click)="closeDialog()"><mat-icon>close</mat-icon></button>
+<div class="plan-invitation-dialog" *ngIf="formGroup">
+	<div mat-dialog-title class="d-flex align-items-center">
+		<div>{{'PLAN-USER-INVITATION-DIALOG.TITLE' | translate}}</div>
+		<div class="ml-auto">
+			<button mat-icon-button (click)="closeDialog()" [attr.aria-label]="'ALT-TEXT.CLOSE-DIALOG'  | translate"><mat-icon aria-hidden>close</mat-icon></button>
 		</div>
 	</div>
-	<div mat-dialog-content class="row">
-		<div>
-			<app-plan-user-field-component [form]="formGroup" [validationErrorModel]="editorModel.validationErrorModel" [sections]="selectedBlueprint?.definition?.sections" [viewOnly]="false" [initializeUsers]="true" [enableSorting]="false"></app-plan-user-field-component>
-		</div>
-		<div class="col mt-2">
-			<button mat-button *ngIf="hasValue()" [disabled]="inProgressSendButton" (click)="send()" type="button" class="rounded-btn primary-inverted primary-inverted-hover">{{'PLAN-USER-INVITATION-DIALOG.ACTIONS.INVITE' | translate}}</button>
-			<mat-error *ngIf="formGroup.get('users').hasError('backendError')">{{formGroup.get('users').getError('backendError').message}}</mat-error>
-			<mat-error *ngIf="formGroup.get('users').hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
-		</div>
+	<div mat-dialog-content>
+        <div class="p-2">
+            <app-plan-user-field-component [form]="formGroup.get('users')" [validationErrorModel]="editorModel.validationErrorModel" [sections]="selectedBlueprint?.definition?.sections" [viewOnly]="false" [initializeUsers]="true" [enableSorting]="false"></app-plan-user-field-component>
+        </div>
 	</div>
+    <div mat-dialog-actions>
+        <button mat-stroked-button color="primary" *ngIf="hasValue()" [disabled]="inProgressSendButton" (click)="send()" type="button" class="padded-shadow-btn primary-inverted-hover">{{'PLAN-USER-INVITATION-DIALOG.ACTIONS.INVITE' | translate}}</button>
+        <mat-error *ngIf="formGroup.get('users').hasError('backendError')">{{formGroup.get('users').getError('backendError').message}}</mat-error>
+        <mat-error *ngIf="formGroup.get('users').hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
+    </div>
 </div>

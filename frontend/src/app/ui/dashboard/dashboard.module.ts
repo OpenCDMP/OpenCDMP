@@ -9,6 +9,7 @@ import { DescriptionListingModule } from '../description/listing/description-lis
 import { PlanListingModule } from '../plan/listing/plan-listing.module';
 import { StartNewPlanDialogModule } from '../plan/new/start-new-plan-dialogue/start-new-plan-dialog.module';
 import { RecentEditedActivityComponent } from './recent-edited-activity/recent-edited-activity.component';
+import {TopPlanBlueprintsComponent} from "@app/ui/dashboard/top-plan-blueprints/top-plan-blueprints.component";
 
 @NgModule({
 	imports: [
@@ -26,6 +27,7 @@ import { RecentEditedActivityComponent } from './recent-edited-activity/recent-e
 	declarations: [
 		DashboardComponent,
         RecentEditedActivityComponent,
+		TopPlanBlueprintsComponent,
 	]
 })
 export class DashboardModule { }

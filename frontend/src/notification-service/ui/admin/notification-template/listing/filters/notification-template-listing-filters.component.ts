@@ -7,11 +7,13 @@ import { NotificationTemplateChannel } from '@notification-service/core/enum/not
 import { NotificationTemplateKind } from '@notification-service/core/enum/notification-template-kind.enum';
 import { NotificationType } from '@notification-service/core/enum/notification-type.enum';
 import { nameof } from 'ts-simple-nameof';
+import { FormControl, FormGroup } from '@angular/forms';
 
 @Component({
-	selector: 'app-notification-template-listing-filters',
-	templateUrl: './notification-template-listing-filters.component.html',
-	styleUrls: ['./notification-template-listing-filters.component.scss']
+    selector: 'app-notification-template-listing-filters',
+    templateUrl: './notification-template-listing-filters.component.html',
+    styleUrls: ['./notification-template-listing-filters.component.scss'],
+    standalone: false
 })
 export class NotificationTemplateListingFiltersComponent extends BaseComponent implements OnInit, OnChanges {
 
@@ -20,9 +22,15 @@ export class NotificationTemplateListingFiltersComponent extends BaseComponent i
 	notificationTemplateKindEnumValues = this.enumUtils.getEnumValues<NotificationTemplateKind>(NotificationTemplateKind)
 	notificationTemplateChannelEnumValues = this.enumUtils.getEnumValues<NotificationTemplateChannel>(NotificationTemplateChannel);
 	notificationTypeEnumValues = this.enumUtils.getEnumValues<NotificationType>(NotificationType);
+    
 
 	// * State
-	internalFilters: NotificationTemplateListingFilters = this._getEmptyFilters();
+	internalFilters: FormGroup<NotificationTemplateListingFilters> = new FormGroup({
+        isActive: new FormControl(true),
+        kinds: new FormControl(null),
+        channels: new FormControl(null),
+        notificationTypes: new FormControl(null)
+    })
 
 	protected appliedFilterCount: number = 0;
 	constructor(
@@ -46,49 +54,50 @@ export class NotificationTemplateListingFiltersComponent extends BaseComponent i
 
 
 	protected updateFilters(): void {
-		this.internalFilters = this._parseToInternalFilters(this.filter);
+		this._parseToInternalFilters(this.filter);
 		this.appliedFilterCount = this._computeAppliedFilters(this.internalFilters);
 	}
 
 	protected applyFilters(): void {
-		const { isActive, kinds, channels, notificationTypes } = this.internalFilters ?? {}
+		const { isActive, kinds, channels, notificationTypes } = this.internalFilters?.value ?? {}
 		this.filterChange.emit({
 			...this.filter,
 			isActive: isActive ? [IsActive.Active] : [IsActive.Inactive],
 			kinds: kinds?.length > 0 ? kinds : null,
 			channels: channels?.length > 0 ? channels : null,
 			notificationTypes: notificationTypes?.length > 0 ? notificationTypes : null,
-		})
+		});
+        this.internalFilters.markAsPristine();
 	}
 
 
-	private _parseToInternalFilters(inputFilter: NotificationTemplateFilter): NotificationTemplateListingFilters {
+	private _parseToInternalFilters(inputFilter: NotificationTemplateFilter) {
 		if (!inputFilter) {
-			return this._getEmptyFilters();
+			this._getEmptyFilters();
 		}
 
 		let { isActive, kinds, channels, notificationTypes } = inputFilter;
 
-		return {
+		this.internalFilters.setValue({
 			isActive: (isActive ?? [])?.includes(IsActive.Active) || !isActive?.length,
-			kinds: kinds,
-			channels: channels,
-			notificationTypes: notificationTypes
-		}
-
+			kinds: kinds ?? null,
+			channels: channels ?? null,
+			notificationTypes: notificationTypes ?? null
+		});
 	}
 
-	private _getEmptyFilters(): NotificationTemplateListingFilters {
-		return {
+	private _getEmptyFilters() {
+		this.internalFilters.setValue({
 			isActive: true,
 			kinds: null,
 			channels: null,
 			notificationTypes: null
-		}
+		});
 	}
 
-	private _computeAppliedFilters(filters: NotificationTemplateListingFilters): number {
-		let count = 0;
+	private _computeAppliedFilters(formGroup: FormGroup<NotificationTemplateListingFilters>): number {
+		const filters = formGroup?.value
+        let count = 0;
 		if (!filters?.isActive) {
 			count++
 		}
@@ -106,13 +115,14 @@ export class NotificationTemplateListingFiltersComponent extends BaseComponent i
 	}
 
 	clearFilters() {
-		this.internalFilters = this._getEmptyFilters();
+		this._getEmptyFilters();
+        this.internalFilters.markAsDirty();
 	}
 }
 
 interface NotificationTemplateListingFilters {
-	isActive: boolean;
-	kinds: NotificationTemplateKind[];
-	channels: NotificationTemplateChannel[];
-	notificationTypes: NotificationType[];
+	isActive: FormControl<boolean>;
+	kinds: FormControl<NotificationTemplateKind[]>;
+	channels: FormControl<NotificationTemplateChannel[]>;
+	notificationTypes: FormControl<NotificationType[]>;
 }

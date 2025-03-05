@@ -325,21 +325,24 @@ public class MetricsServiceImpl implements MetricsService {
     }
 
     private double calculateDraftDmps(boolean forNexus) {
-        PlanQuery planQuery = this.queryFactory.query(PlanQuery.class).disableTracking().statuses(PlanStatus.Draft).isActive(IsActive.Active);
+        PlanStatusQuery statusQuery = this.queryFactory.query(PlanStatusQuery.class).disableTracking().internalStatuses(PlanStatus.Draft).isActives(IsActive.Active);
+        PlanQuery planQuery = this.queryFactory.query(PlanQuery.class).disableTracking().planStatusSubQuery(statusQuery).isActive(IsActive.Active);
         if (forNexus)
             planQuery.after(this._config.getNexusDate());
         return planQuery.count();
     }
 
     private double calculateFinalizedDmps(boolean forNexus) {
-        PlanQuery planQuery = this.queryFactory.query(PlanQuery.class).disableTracking().statuses(PlanStatus.Finalized).isActive(IsActive.Active);
+        PlanStatusQuery statusQuery = this.queryFactory.query(PlanStatusQuery.class).disableTracking().internalStatuses(PlanStatus.Finalized).isActives(IsActive.Active);
+        PlanQuery planQuery = this.queryFactory.query(PlanQuery.class).disableTracking().planStatusSubQuery(statusQuery).isActive(IsActive.Active);
         if (forNexus)
             planQuery.after(this._config.getNexusDate());
         return planQuery.count();
     }
 
     private double calculatePublishedDmps(boolean forNexus) {
-        PlanQuery planQuery = this.queryFactory.query(PlanQuery.class).disableTracking().statuses(PlanStatus.Finalized).accessTypes(PlanAccessType.Public).isActive(IsActive.Active);
+        PlanStatusQuery statusQuery = this.queryFactory.query(PlanStatusQuery.class).disableTracking().internalStatuses(PlanStatus.Finalized).isActives(IsActive.Active);
+        PlanQuery planQuery = this.queryFactory.query(PlanQuery.class).disableTracking().planStatusSubQuery(statusQuery).accessTypes(PlanAccessType.Public).isActive(IsActive.Active);
         if (forNexus)
             planQuery.after(this._config.getNexusDate());
         return planQuery.count();
@@ -355,8 +358,10 @@ public class MetricsServiceImpl implements MetricsService {
         return planQuery.count();
     }
 
-    private double calculateDraftDmpsWithGrant(boolean forNexus) {
-        PlanQuery planQuery = this.queryFactory.query(PlanQuery.class).statuses(PlanStatus.Draft).disableTracking().isActive(IsActive.Active);
+    private double calculateDraftDmpsWithGrant(boolean forNexus)
+    {
+        PlanStatusQuery statusQuery = this.queryFactory.query(PlanStatusQuery.class).disableTracking().internalStatuses(PlanStatus.Draft).isActives(IsActive.Active);
+        PlanQuery planQuery = this.queryFactory.query(PlanQuery.class).planStatusSubQuery(statusQuery).disableTracking().isActive(IsActive.Active);
         if (forNexus)
             planQuery.after(this._config.getNexusDate());
         ReferenceQuery referenceQuery = this.queryFactory.query(ReferenceQuery.class).disableTracking().typeIds(this._config.getReferenceTypes().getGrantIds()).isActive(IsActive.Active);
@@ -366,7 +371,8 @@ public class MetricsServiceImpl implements MetricsService {
     }
 
     private double calculateFinalizedDmpsWithGrant(boolean forNexus) {
-        PlanQuery planQuery = this.queryFactory.query(PlanQuery.class).disableTracking().statuses(PlanStatus.Finalized).isActive(IsActive.Active);
+        PlanStatusQuery statusQuery = this.queryFactory.query(PlanStatusQuery.class).disableTracking().internalStatuses(PlanStatus.Finalized).isActives(IsActive.Active);
+        PlanQuery planQuery = this.queryFactory.query(PlanQuery.class).disableTracking().planStatusSubQuery(statusQuery).isActive(IsActive.Active);
         if (forNexus)
             planQuery.after(this._config.getNexusDate());
         ReferenceQuery referenceQuery = this.queryFactory.query(ReferenceQuery.class).disableTracking().typeIds(this._config.getReferenceTypes().getGrantIds()).isActive(IsActive.Active);
@@ -376,7 +382,8 @@ public class MetricsServiceImpl implements MetricsService {
     }
 
     private double calculatePublishedDmpsWithGrant(boolean forNexus) {
-        PlanQuery planQuery = this.queryFactory.query(PlanQuery.class).statuses(PlanStatus.Finalized).disableTracking().accessTypes(PlanAccessType.Public).isActive(IsActive.Active);
+        PlanStatusQuery statusQuery = this.queryFactory.query(PlanStatusQuery.class).disableTracking().internalStatuses(PlanStatus.Finalized).isActives(IsActive.Active);
+        PlanQuery planQuery = this.queryFactory.query(PlanQuery.class).planStatusSubQuery(statusQuery).disableTracking().accessTypes(PlanAccessType.Public).isActive(IsActive.Active);
         if (forNexus)
             planQuery.after(this._config.getNexusDate());
         ReferenceQuery referenceQuery = this.queryFactory.query(ReferenceQuery.class).disableTracking().typeIds(this._config.getReferenceTypes().getGrantIds()).isActive(IsActive.Active);
@@ -426,30 +433,35 @@ public class MetricsServiceImpl implements MetricsService {
     }
 
     private double calculateDraftDatasets(boolean forNexus) {
-        DescriptionQuery descriptionQuery = this.queryFactory.query(DescriptionQuery.class).disableTracking().statuses(DescriptionStatus.Draft).isActive(IsActive.Active);
+        DescriptionStatusQuery descriptionStatusQuery = this.queryFactory.query(DescriptionStatusQuery.class).disableTracking().internalStatuses(DescriptionStatus.Draft).isActive(IsActive.Active);
+        DescriptionQuery descriptionQuery = this.queryFactory.query(DescriptionQuery.class).disableTracking().descriptionStatusSubQuery(descriptionStatusQuery).isActive(IsActive.Active);
         if (forNexus)
             descriptionQuery.createdAfter(this._config.getNexusDate());
         return descriptionQuery.count();
     }
 
     private double calculateFinalizedDatasets(boolean forNexus) {
-        DescriptionQuery descriptionQuery = this.queryFactory.query(DescriptionQuery.class).disableTracking().statuses(DescriptionStatus.Finalized).isActive(IsActive.Active);
+        DescriptionStatusQuery descriptionStatusQuery = this.queryFactory.query(DescriptionStatusQuery.class).disableTracking().internalStatuses(DescriptionStatus.Finalized).isActive(IsActive.Active);
+        DescriptionQuery descriptionQuery = this.queryFactory.query(DescriptionQuery.class).disableTracking().descriptionStatusSubQuery(descriptionStatusQuery).isActive(IsActive.Active);
         if (forNexus)
             descriptionQuery.createdAfter(this._config.getNexusDate());
         return descriptionQuery.count();
     }
 
     private double calculatePublishedDatasets(boolean forNexus) {
-        DescriptionQuery descriptionQuery = this.queryFactory.query(DescriptionQuery.class).disableTracking().statuses(DescriptionStatus.Finalized).isActive(IsActive.Active);
+        DescriptionStatusQuery descriptionStatusQuery = this.queryFactory.query(DescriptionStatusQuery.class).disableTracking().internalStatuses(DescriptionStatus.Finalized).isActive(IsActive.Active);
+        DescriptionQuery descriptionQuery = this.queryFactory.query(DescriptionQuery.class).disableTracking().descriptionStatusSubQuery(descriptionStatusQuery).isActive(IsActive.Active);
         if (forNexus)
             descriptionQuery.createdAfter(this._config.getNexusDate());
-        PlanQuery planQuery = this.queryFactory.query(PlanQuery.class).isActive(IsActive.Active).disableTracking().statuses(PlanStatus.Finalized).accessTypes(PlanAccessType.Public);
+        PlanStatusQuery statusQuery = this.queryFactory.query(PlanStatusQuery.class).disableTracking().internalStatuses(PlanStatus.Finalized).isActives(IsActive.Active);
+        PlanQuery planQuery = this.queryFactory.query(PlanQuery.class).isActive(IsActive.Active).disableTracking().planStatusSubQuery(statusQuery).accessTypes(PlanAccessType.Public);
         descriptionQuery.planSubQuery(planQuery);
         return descriptionQuery.count();
     }
 
     private double calculateDoiedDatasets(boolean forNexus) {
-        DescriptionQuery descriptionQuery = this.queryFactory.query(DescriptionQuery.class).disableTracking().statuses(DescriptionStatus.Finalized).isActive(IsActive.Active);
+        DescriptionStatusQuery descriptionStatusQuery = this.queryFactory.query(DescriptionStatusQuery.class).disableTracking().internalStatuses(DescriptionStatus.Finalized).isActive(IsActive.Active);
+        DescriptionQuery descriptionQuery = this.queryFactory.query(DescriptionQuery.class).disableTracking().descriptionStatusSubQuery(descriptionStatusQuery).isActive(IsActive.Active);
         if (forNexus)
             descriptionQuery.createdAfter(this._config.getNexusDate());
         PlanQuery planQuery = this.queryFactory.query(PlanQuery.class).isActive(IsActive.Active);

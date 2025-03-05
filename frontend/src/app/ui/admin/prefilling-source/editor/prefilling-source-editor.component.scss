@@ -11,14 +11,6 @@
   }
 }
 
-::ng-deep .mat-checkbox-checked.mat-accent .mat-checkbox-background, .mat-checkbox-indeterminate.mat-accent .mat-checkbox-background {
-	background-color: var(--primary-color-3);
-}
-
-::ng-deep .mat-checkbox-disabled.mat-checkbox-checked .mat-checkbox-background, .mat-checkbox-disabled.mat-checkbox-indeterminate .mat-checkbox-background {
-    background-color: #b0b0b0;
-}
-
 ::ng-deep .mdc-form-field {
 	label {
 		margin: 0;

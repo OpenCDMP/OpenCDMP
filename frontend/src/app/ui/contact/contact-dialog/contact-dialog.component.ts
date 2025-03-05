@@ -3,9 +3,10 @@ import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { FormGroup } from '@angular/forms';
 
 @Component({
-	selector: 'app-contact-dialog',
-	templateUrl: './contact-dialog.component.html',
-	styleUrls: ['./contact-dialog.component.scss']
+    selector: 'app-contact-dialog',
+    templateUrl: './contact-dialog.component.html',
+    styleUrls: ['./contact-dialog.component.scss'],
+    standalone: false
 })
 export class ContactDialogComponent {
 

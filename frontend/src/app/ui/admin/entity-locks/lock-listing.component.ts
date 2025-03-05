@@ -26,8 +26,9 @@ import { RouterUtilsService } from '@app/core/services/router/router-utils.servi
 import { AppPermission } from '@app/core/common/enum/permission.enum';
 
 @Component({
-	templateUrl: './lock-listing.component.html',
-	styleUrls: ['./lock-listing.component.scss']
+    templateUrl: './lock-listing.component.html',
+    styleUrls: ['./lock-listing.component.scss'],
+    standalone: false
 })
 export class LockListingComponent extends BaseListingComponent<Lock, LockLookup> implements OnInit {
 	publish = false;

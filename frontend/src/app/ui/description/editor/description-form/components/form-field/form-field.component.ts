@@ -28,10 +28,11 @@ import { nameof } from 'ts-simple-nameof';
 import { DescriptionFormService } from '../services/description-form.service';
 
 @Component({
-	selector: 'app-description-form-field',
-	templateUrl: './form-field.component.html',
-	styleUrls: ['./form-field.component.scss'],
-	changeDetection: ChangeDetectionStrategy.OnPush
+    selector: 'app-description-form-field',
+    templateUrl: './form-field.component.html',
+    styleUrls: ['./form-field.component.scss'],
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    standalone: false
 })
 export class DescriptionFormFieldComponent extends BaseComponent implements OnInit {
 
@@ -39,13 +40,12 @@ export class DescriptionFormFieldComponent extends BaseComponent implements OnIn
 	@Input() fieldSet: DescriptionTemplateFieldSet;
 	@Input() propertiesFormGroup: UntypedFormGroup;
 	@Input() visibilityRulesService: VisibilityRulesService;
-	isRequired: boolean = false;
 
 	@Input() descriptionTemplateId: any;
 	@Input() isChild: Boolean = false;
 
 	@Input() detectChangesObservable: Observable<any>;
-
+    @Input() path: string;
 	visible: boolean = true;
 	descriptionTemplateFieldTypeEnum = DescriptionTemplateFieldType;
 
@@ -93,11 +93,6 @@ export class DescriptionFormFieldComponent extends BaseComponent implements OnIn
 		super();
 	}
 
-	ngOnChanges(changes: SimpleChanges) {
-		if (changes['form']) {
-		}
-	}
-
 	ngOnInit() {
 
 		if (this.field?.data?.fieldType == DescriptionTemplateFieldType.UPLOAD && this.field && this.field.id && (this.propertiesFormGroup?.get(this.field.id).get('textValue').value != undefined) && !this.fileNameDisplay) {
@@ -119,8 +114,11 @@ export class DescriptionFormFieldComponent extends BaseComponent implements OnIn
 		this.descriptionFormService.getDetectChangesObservable().pipe(takeUntil(this._destroyed)).subscribe(x => this.changeDetectorRef.markForCheck());
 	}
 
+    get isRequired() {
+        return this.field.validations?.includes(DescriptionTemplateFieldValidationType.Required)
+    }
+
 	private applyFieldType() {
-		this.isRequired = this.field.validations?.includes(DescriptionTemplateFieldValidationType.Required);
 
 		this.propertiesFormGroup.get(this.field.id).valueChanges
 			.pipe(

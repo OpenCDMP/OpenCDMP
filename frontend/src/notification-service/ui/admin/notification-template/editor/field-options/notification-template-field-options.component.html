@@ -8,7 +8,7 @@
 						(edited)="editChipListValues($event, field)">
 			{{field}}
 			<button matChipRemove>
-			<mat-icon>cancel</mat-icon>
+			<mat-icon [attr.aria-label]="'COMMONS.ACTIONS.REMOVE' | translate">cancel</mat-icon>
 			</button>
 		</mat-chip-row>
 		<input placeholder="{{'NOTIFICATION-SERVICE.NOTIFICATION-TEMPLATE-EDITOR.FIELDS.MANDATORY-PLACEHOLDER' | translate}}" 

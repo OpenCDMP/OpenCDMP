@@ -26,8 +26,9 @@ import { nameof } from 'ts-simple-nameof';
 import { AppPermission } from '@app/core/common/enum/permission.enum';
 
 @Component({
-	templateUrl: './language-listing.component.html',
-	styleUrls: ['./language-listing.component.scss']
+    templateUrl: './language-listing.component.html',
+    styleUrls: ['./language-listing.component.scss'],
+    standalone: false
 })
 export class LanguageListingComponent extends BaseListingComponent<Language, LanguageLookup> implements OnInit {
 	publish = false;
@@ -116,7 +117,7 @@ export class LanguageListingComponent extends BaseListingComponent<Language, Lan
 		},
 		{
 			prop: nameof<Language>(x => x.isActive),
-			sortable: true,
+			sortable: false,
 			languageName: 'LANGUAGE-LISTING.FIELDS.IS-ACTIVE',
 			pipe: this.pipeService.getPipe<IsActiveTypePipe>(IsActiveTypePipe)
 		},

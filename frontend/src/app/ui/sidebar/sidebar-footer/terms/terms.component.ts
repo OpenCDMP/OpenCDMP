@@ -12,9 +12,10 @@ import { LangChangeEvent, TranslateService } from '@ngx-translate/core';
 import { takeUntil } from 'rxjs/operators';
 
 @Component({
-	selector: 'app-terms',
-	templateUrl: './terms.component.html',
-	styleUrls: ['./terms.component.scss']
+    selector: 'app-terms',
+    templateUrl: './terms.component.html',
+    styleUrls: ['./terms.component.scss'],
+    standalone: false
 })
 export class TermsComponent extends BaseComponent implements OnInit {
 

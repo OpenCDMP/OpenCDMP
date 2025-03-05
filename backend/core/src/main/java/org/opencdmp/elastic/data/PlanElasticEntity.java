@@ -35,9 +35,9 @@ public class PlanElasticEntity {
 	private Short version;
 	public final static String _version = "version";
 
-	@Field(value = PlanElasticEntity._status, type = FieldType.Short)
-	private PlanStatus status;
-	public final static String _status = "status";
+	@Field(value = PlanElasticEntity._planStatus, type = FieldType.Object)
+	private NestedPlanStatusElasticEntity planStatus;
+	public final static String _planStatus = "planStatus";
 
 	@Field(value = PlanElasticEntity._accessType, type = FieldType.Short)
 	private PlanAccessType accessType;
@@ -130,12 +130,12 @@ public class PlanElasticEntity {
 		this.version = version;
 	}
 
-	public PlanStatus getStatus() {
-		return this.status;
+	public NestedPlanStatusElasticEntity getPlanStatus() {
+		return planStatus;
 	}
 
-	public void setStatus(PlanStatus status) {
-		this.status = status;
+	public void setPlanStatus(NestedPlanStatusElasticEntity planStatus) {
+		this.planStatus = planStatus;
 	}
 
 	public PlanAccessType getAccessType() {

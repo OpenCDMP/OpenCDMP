@@ -28,8 +28,9 @@ import { UsageLimitTargetMetric } from '@app/core/common/enum/usage-limit-target
 import { AppPermission } from '@app/core/common/enum/permission.enum';
 
 @Component({
-	templateUrl: './usage-limit-listing.component.html',
-	styleUrls: ['./usage-limit-listing.component.scss']
+    templateUrl: './usage-limit-listing.component.html',
+    styleUrls: ['./usage-limit-listing.component.scss'],
+    standalone: false
 })
 export class UsageLimitListingComponent extends BaseListingComponent<UsageLimit, UsageLimitLookup> implements OnInit {
 	publish = false;
@@ -130,7 +131,7 @@ export class UsageLimitListingComponent extends BaseListingComponent<UsageLimit,
 		},
 		{
 			prop: nameof<UsageLimit>(x => x.isActive),
-			sortable: true,
+			sortable: false,
 			languageName: 'USAGE-LIMIT-LISTING.FIELDS.IS-ACTIVE',
 			pipe: this.pipeService.getPipe<IsActiveTypePipe>(IsActiveTypePipe)
 		},

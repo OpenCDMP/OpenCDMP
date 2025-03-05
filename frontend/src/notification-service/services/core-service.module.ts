@@ -5,12 +5,13 @@ import { HttpErrorHandlingService } from '@common/modules/errors/error-handling/
 import { UserNotificationPreferenceService } from '@notification-service/services/http/user-notification-preference.service';
 import { LoggingService } from '@app/core/services/logging/logging-service';
 import { FilterService } from '@common/modules/text-filter/filter-service';
-import { PrincipalService } from '@app/core/services/http/principal.service';
 import { NotificationServiceEnumUtils } from '@notification-service/core/formatting/enum-utils.service';
 import { InAppNotificationService } from './http/inapp-notification.service';
 import { NotificationService } from './http/notification-service';
 import { NotificationTemplateService } from './http/notification-template.service';
 import { TenantConfigurationService } from './http/tenant-configuration.service';
+import { NotificationPrincipalService } from './http/principal.service';
+import { PrincipalService } from '@app/core/services/http/principal.service';
 
 //
 //
@@ -40,7 +41,8 @@ export class CoreNotificationServiceModule {
 				InAppNotificationService,
 				NotificationTemplateService,
 				TenantConfigurationService,
-				UserNotificationPreferenceService
+				UserNotificationPreferenceService,
+				NotificationPrincipalService
 			],
 		};
 	}

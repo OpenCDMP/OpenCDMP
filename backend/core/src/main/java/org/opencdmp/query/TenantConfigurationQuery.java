@@ -69,6 +69,11 @@ public class TenantConfigurationQuery extends QueryBase<TenantConfigurationEntit
         return this;
     }
 
+    public TenantConfigurationQuery clearTenantIds() {
+        this.tenantIds = null;
+        return this;
+    }
+
     public TenantConfigurationQuery tenantIsSet(Boolean values) {
         this.tenantIsSet = values;
         return this;
@@ -175,8 +180,6 @@ public class TenantConfigurationQuery extends QueryBase<TenantConfigurationEntit
             else predicates.add(queryContext.CriteriaBuilder.isNull(queryContext.Root.get(TenantConfigurationEntity._tenantId)));
         }
 
-
-
         if (this.types != null) {
             CriteriaBuilder.In<TenantConfigurationType> inClause = queryContext.CriteriaBuilder.in(queryContext.Root.get(TenantConfigurationEntity._type));
             for (TenantConfigurationType item : this.types) inClause.value(item);
@@ -222,10 +225,16 @@ public class TenantConfigurationQuery extends QueryBase<TenantConfigurationEntit
         else if (item.match(TenantConfiguration._depositPlugins)) return TenantConfigurationEntity._value;
         else if (item.prefix(TenantConfiguration._defaultUserLocale)) return TenantConfigurationEntity._value;
         else if (item.match(TenantConfiguration._defaultUserLocale)) return TenantConfigurationEntity._value;
+        else if (item.prefix(TenantConfiguration._evaluatorPlugins)) return TenantConfigurationEntity._value;
+        else if (item.match(TenantConfiguration._evaluatorPlugins)) return TenantConfigurationEntity._value;
         else if (item.prefix(TenantConfiguration._fileTransformerPlugins)) return TenantConfigurationEntity._value;
         else if (item.match(TenantConfiguration._fileTransformerPlugins)) return TenantConfigurationEntity._value;
         else if (item.prefix(TenantConfiguration._logo)) return TenantConfigurationEntity._value;
         else if (item.match(TenantConfiguration._logo)) return TenantConfigurationEntity._value;
+        else if (item.prefix(TenantConfiguration._featuredEntities)) return TenantConfigurationEntity._value;
+        else if (item.match(TenantConfiguration._featuredEntities)) return TenantConfigurationEntity._value;
+        else if (item.prefix(TenantConfiguration._defaultPlanBlueprint)) return TenantConfigurationEntity._value;
+        else if (item.match(TenantConfiguration._defaultPlanBlueprint)) return TenantConfigurationEntity._value;
         else if (item.match(TenantConfiguration._createdAt)) return TenantConfigurationEntity._createdAt;
         else if (item.match(TenantConfiguration._updatedAt)) return TenantConfigurationEntity._updatedAt;
         else if (item.match(TenantConfiguration._isActive)) return TenantConfigurationEntity._isActive;

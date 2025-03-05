@@ -42,6 +42,6 @@ export class LogoEditorResolver extends BaseEditorResolver {
 			...LogoEditorResolver.lookupFields()
 		];
 
-		return this.tenantConfigurationService.getCurrentTenantType(TenantConfigurationType.Logo, fields).pipe(takeUntil(this._destroyed));
+		return this.tenantConfigurationService.getType(TenantConfigurationType.Logo, fields).pipe(takeUntil(this._destroyed));
 	}
 }

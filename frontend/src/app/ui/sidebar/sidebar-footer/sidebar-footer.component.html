@@ -1,9 +1,13 @@
 <div class="sidebar-footer col-12">
-
-	<div *ngFor="let footerItems of nestedFooterItems" class="row ml-2">
-		<div *ngFor="let item of footerItems; let index = index;" class="col-auto" [ngClass]="{'ml-3': index%2==1}">
-			<p class="option" [ngClass]="{'option-active': this.router.url === item.routerPath}" [routerLink]="routerUtils.generateUrl(item.routerPath)">
-				{{ item.title | translate}}</p>
-		</div>
-	</div>
+    @for(footerItems of nestedFooterItems; track footerItems){
+        <ul class="row horizontal-list">
+            @for(item of footerItems; track item; let index=$index){
+                <li>
+                    <a class="col-auto option" [routerLink]="routerUtils.generateUrl(item.routerPath)" [ngClass]="{'option-active': router.url === item.routerPath}" tabindex="0">
+                        {{ item.title | translate}}
+                    </a>
+                </li>
+            }
+        </ul>
+    }
 </div>

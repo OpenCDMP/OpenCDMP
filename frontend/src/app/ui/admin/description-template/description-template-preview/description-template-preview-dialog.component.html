@@ -1,19 +1,27 @@
 <div class="template-container" *ngIf="descriptionTemplate && formGroup">
-	<div mat-dialog-title class="row d-flex align-items-center header">
-		<div class="col"><span class="template-title align-self-center" matTooltip="{{descriptionTemplate.label}}">{{'DESCRIPTION-TEMPLATE-PREVIEW.TEMPLATE' | translate}} - {{descriptionTemplate.label}}</span></div>
-		<div class="col-auto">
-			<button mat-icon-button tabindex="-1" (click)="closeDialog()"><mat-icon>close</mat-icon></button>
-		</div>
+	<div mat-dialog-title class="header">
+		<span class="template-title align-self-center" matTooltip="{{descriptionTemplate.label}}">{{'DESCRIPTION-TEMPLATE-PREVIEW.TEMPLATE' | translate}} - {{descriptionTemplate.label}}</span>
+		<button mat-icon-button (click)="closeDialog()" class="ml-auto" [attr.aria-label]="'ALT-TEXT.CLOSE-DIALOG'  | translate"><mat-icon aria-hidden>close</mat-icon></button>
 	</div>
-	<div *ngIf="progressIndication" class="progress-bar">
-		<mat-progress-bar color="primary" mode="indeterminate"></mat-progress-bar>
-	</div>
-	<div mat-dialog-content class="definition-content">
-		<app-description-form *ngIf="formGroup && formGroup.get('properties')" [propertiesFormGroup]="previewPropertiesFormGroup" [descriptionId]="descriptionId" [descriptionTemplate]="descriptionTemplate" [canAnnotate]="false" [visibilityRulesService]="visibilityRulesService" [isNew]="true"></app-description-form>
-	</div>
-	<div mat-dialog-actions *ngIf="formGroup" class="row d-flex pb-2 pt-3">
+    <div mat-dialog-content class="p-0">
+        <div *ngIf="progressIndication" class="progress-bar">
+            <mat-progress-bar color="primary" mode="indeterminate" [attr.aria-label]="'ALT-TEXT.PROGRESS-BAR' | translate"></mat-progress-bar>
+        </div>
+        <div class="definition-content">
+            <app-description-form 
+                *ngIf="formGroup && formGroup.get('properties')" 
+                [propertiesFormGroup]="previewPropertiesFormGroup" 
+                [descriptionId]="descriptionId" 
+                [descriptionTemplate]="descriptionTemplate" 
+                [canAnnotate]="false" 
+                [visibilityRulesService]="visibilityRulesService" 
+                [isNew]="true"
+                ></app-description-form>
+        </div>
+    </div>
+	<div mat-dialog-actions *ngIf="formGroup && showSelect" class="row d-flex">
 		<div class="col-auto ml-auto">
-			<button mat-button type="button" class="rounded-btn primary" (click)="select()">{{'TYPES.EXTERNAL-DATASET-TYPE.SELECT' | translate}}</button>
+			<button mat-flat-button color="primary"  type="button" class="padded-shadow-btn" (click)="select()">{{'TYPES.EXTERNAL-DATASET-TYPE.SELECT' | translate}}</button>
 		</div>
 	</div>
 </div>

@@ -20,6 +20,7 @@ import org.opencdmp.commons.enums.SupportiveMaterialFieldType;
 import org.opencdmp.convention.ConventionService;
 import org.opencdmp.data.SupportiveMaterialEntity;
 import org.opencdmp.data.TenantEntityManager;
+import org.opencdmp.errorcode.ErrorThesaurusProperties;
 import org.opencdmp.model.SupportiveMaterial;
 import org.opencdmp.model.builder.SupportiveMaterialBuilder;
 import org.opencdmp.model.deleter.SupportiveMaterialDeleter;
@@ -54,11 +55,12 @@ public class SupportiveMaterialServiceImpl implements SupportiveMaterialService{
     private final SupportiveMaterialCacheService supportiveMaterialCacheService;
     private final StorageFileService storageFileService;
     private final TenantEntityManager tenantEntityManager;
+    private final ErrorThesaurusProperties errors;
 
     public SupportiveMaterialServiceImpl(
             TenantEntityManager entityManager, AuthorizationService authorizationService, DeleterFactory deleterFactory, BuilderFactory builderFactory,
             ConventionService conventionService, MessageSource messageSource, QueryFactory queryFactory,
-            SupportiveMaterialCacheService supportiveMaterialCacheService, StorageFileService storageFileService, TenantEntityManager tenantEntityManager
+            SupportiveMaterialCacheService supportiveMaterialCacheService, StorageFileService storageFileService, TenantEntityManager tenantEntityManager, ErrorThesaurusProperties errors
     ) {
         this.entityManager = entityManager;
         this.authorizationService = authorizationService;
@@ -70,6 +72,7 @@ public class SupportiveMaterialServiceImpl implements SupportiveMaterialService{
         this.supportiveMaterialCacheService = supportiveMaterialCacheService;
 	    this.storageFileService = storageFileService;
         this.tenantEntityManager = tenantEntityManager;
+        this.errors = errors;
     }
 
     public byte[] loadFromFile(String language, SupportiveMaterialFieldType type)  {
@@ -91,18 +94,6 @@ public class SupportiveMaterialServiceImpl implements SupportiveMaterialService{
 
         this.authorizationService.authorizeForce(Permission.EditSupportiveMaterial);
 
-        List<SupportiveMaterialEntity> existingSupportiveMaterials;
-        try {
-            this.tenantEntityManager.loadExplicitTenantFilters();
-            existingSupportiveMaterials = this.queryFactory.query(SupportiveMaterialQuery.class).disableTracking().isActive(IsActive.Active).collect();
-
-        } catch (InvalidApplicationException e) {
-            log.error(e.getMessage(), e);
-            throw new MyApplicationException(e.getMessage());
-        } finally {
-            this.tenantEntityManager.reloadTenantFilters();
-        }
-
         Boolean isUpdate = this.conventionService.isValidGuid(model.getId());
 
         SupportiveMaterialEntity d;
@@ -111,8 +102,6 @@ public class SupportiveMaterialServiceImpl implements SupportiveMaterialService{
             if (d == null)
                 throw new MyNotFoundException(this.messageSource.getMessage("General_ItemNotFound", new Object[]{model.getId(), SupportiveMaterial.class.getSimpleName()}, LocaleContextHolder.getLocale()));
         } else {
-            if (existingSupportiveMaterials != null && !existingSupportiveMaterials.isEmpty() && existingSupportiveMaterials.stream().filter(x -> x.getLanguageCode().equals(model.getLanguageCode()) && x.getType().equals(model.getType())).findFirst().orElse(null) != null) throw new MyApplicationException("Could not create a new Data with same type and lang code !");;
-
             d = new SupportiveMaterialEntity();
             d.setId(UUID.randomUUID());
             d.setIsActive(IsActive.Active);
@@ -128,6 +117,20 @@ public class SupportiveMaterialServiceImpl implements SupportiveMaterialService{
         else this.entityManager.persist(d);
 
         this.entityManager.flush();
+
+        List<SupportiveMaterialEntity> existingSupportiveMaterials;
+        try {
+            this.tenantEntityManager.loadExplicitTenantFilters();
+            existingSupportiveMaterials = this.queryFactory.query(SupportiveMaterialQuery.class).disableTracking().isActive(IsActive.Active).excludedIds(d.getId()).collect();
+        } catch (InvalidApplicationException e) {
+            log.error(e.getMessage(), e);
+            throw new MyApplicationException(e.getMessage());
+        } finally {
+            this.tenantEntityManager.reloadTenantFilters();
+        }
+
+        if (existingSupportiveMaterials != null && !existingSupportiveMaterials.isEmpty() && existingSupportiveMaterials.stream().filter(x -> x.getLanguageCode().equals(model.getLanguageCode()) && x.getType().equals(model.getType())).findFirst().orElse(null) != null)
+            throw new MyValidationException(this.errors.getSupportiveMaterialAlreadyExists().getCode(), this.errors.getSupportiveMaterialAlreadyExists().getMessage());
 
         return this.builderFactory.builder(SupportiveMaterialBuilder.class).authorize(AuthorizationFlags.AllExceptPublic).build(BaseFieldSet.build(fields, SupportiveMaterial._id), d);
     }

@@ -1,4 +1,5 @@
 import { Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges } from '@angular/core';
+import { FormControl, FormGroup } from '@angular/forms';
 import { AppRole } from '@app/core/common/enum/app-role';
 import { IsActive } from '@app/core/common/enum/is-active.enum';
 import { UserRoleLookup } from '@app/core/query/user-role.lookup';
@@ -8,9 +9,10 @@ import { BaseComponent } from '@common/base/base.component';
 import { nameof } from 'ts-simple-nameof';
 
 @Component({
-	selector: 'app-user-listing-filters',
-	templateUrl: './user-listing-filters.component.html',
-	styleUrls: ['./user-listing-filters.component.scss']
+    selector: 'app-user-listing-filters',
+    templateUrl: './user-listing-filters.component.html',
+    styleUrls: ['./user-listing-filters.component.scss'],
+    standalone: false
 })
 export class UserListingFiltersComponent extends BaseComponent implements OnInit, OnChanges {
 
@@ -23,7 +25,12 @@ export class UserListingFiltersComponent extends BaseComponent implements OnInit
 	appRoleEnumValues = this.enumUtils.getEnumValues<AppRole>(AppRole);
 
 	// * State
-	internalFilters: UserListingFilters = this._getEmptyFilters();
+	internalFilters: FormGroup<UserListingFilters> = new FormGroup({
+        isActive: new FormControl(true),
+        like: new FormControl(null),
+        roles: new FormControl(null)
+    });
+    
 
 	protected appliedFilterCount: number = 0;
 	constructor(
@@ -47,59 +54,56 @@ export class UserListingFiltersComponent extends BaseComponent implements OnInit
 
 
 	protected updateFilters(): void {
-		this.internalFilters = this._parseToInternalFilters(this.filter);
+		this._parseToInternalFilters(this.filter);
 		this.appliedFilterCount = this._computeAppliedFilters(this.internalFilters);
 	}
 
 	protected applyFilters(): void {
-		const { isActive, like, userRoleSubQuery } = this.internalFilters ?? {};
+		const { isActive, like, roles } = this.internalFilters?.value ?? {};
 		let filter = {
 			...this.filter,
 			like,
 			isActive: isActive ? [IsActive.Active] : [IsActive.Inactive],
-		}
-		if (userRoleSubQuery && userRoleSubQuery?.roles != null && userRoleSubQuery?.roles?.length > 0) {
-			filter = {
-				...filter,
-				userRoleSubQuery
-			}
+            userRoleSubQuery: roles?.length ? {...new UserRoleLookup(), roles} : null
 		}
 		this.filterChange.emit(filter);
+        this.internalFilters.markAsPristine();
 	}
 
 
-	private _parseToInternalFilters(inputFilter: UserFilter): UserListingFilters {
+	private _parseToInternalFilters(inputFilter: UserFilter) {
 		if (!inputFilter) {
-			return this._getEmptyFilters();
+			this._getEmptyFilters();
 		}
 
-		let { excludedIds, ids, isActive, like, userRoleSubQuery } = inputFilter;
+		let { isActive, like, userRoleSubQuery } = inputFilter;
 
-		return {
+		this.internalFilters.setValue({
 			isActive: (isActive ?? [])?.includes(IsActive.Active) || !isActive?.length,
-			like: like,
-			userRoleSubQuery: userRoleSubQuery ?? new UserRoleLookup()
-		}
+			like: like ?? null,
+			roles: userRoleSubQuery?.roles ?? null
+		});
 
 	}
 
-	private _getEmptyFilters(): UserListingFilters {
-		return {
+	private _getEmptyFilters() {
+		this.internalFilters.setValue({
 			isActive: true,
 			like: null,
-			userRoleSubQuery: new UserRoleLookup()
-		}
+			roles: null
+		});
 	}
 
-	private _computeAppliedFilters(filters: UserListingFilters): number {
-		let count = 0;
+	private _computeAppliedFilters(formGroup: FormGroup<UserListingFilters>): number {
+		const filters = formGroup?.value;
+        let count = 0;
 		if (!filters?.isActive) {
 			count++
 		}
 		if (filters?.like) {
 			count++;
 		}
-		if (filters?.userRoleSubQuery?.roles?.length) {
+		if (filters?.roles?.length) {
 			count++;
 		}
 
@@ -107,12 +111,13 @@ export class UserListingFiltersComponent extends BaseComponent implements OnInit
 	}
 
 	clearFilters() {
-		this.internalFilters = this._getEmptyFilters();
+		this._getEmptyFilters();
+        this.internalFilters.markAsDirty();
 	}
 }
 
 interface UserListingFilters {
-	isActive: boolean;
-	like: string;
-	userRoleSubQuery: UserRoleLookup;
+	isActive: FormControl<boolean>;
+	like: FormControl<string>;
+	roles: FormControl<string[]>;
 }

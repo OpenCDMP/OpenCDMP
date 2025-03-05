@@ -3,9 +3,12 @@
 		display: flex;
 		width: 100%;
 		height: 60px;
-		background-color: var(--secondary-color);
-		color: #212121;
-		font-size: 1.25rem;
+		background-color: var(--sys-tertiary);
+		color: var(--sys-on-tertiary);
+		font-size: var(--sys-headline-medium-size);
+        button{
+            color: var(--sys-on-tertiary); 
+        }
 	}
 
 	.template-title {

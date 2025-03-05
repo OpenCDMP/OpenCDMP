@@ -107,6 +107,20 @@ export class MaintenanceService extends BaseService {
 				catchError((error: any) => throwError(error)));
 	}
 
+	sendPlanStatusAccountingEntriesEvents(): Observable<any> {
+		const url = `${this.apiBase}/events/plan-statuses/accounting-entry`;
+		return this.http
+			.post<any>(url, null).pipe(
+				catchError((error: any) => throwError(error)));
+	}
+
+	sendDescriptionStatusAccountingEntriesEvents(): Observable<any> {
+		const url = `${this.apiBase}/events/description-statuses/accounting-entry`;
+		return this.http
+			.post<any>(url, null).pipe(
+				catchError((error: any) => throwError(error)));
+	}
+
 	sendUserAccountingEntriesEvents(): Observable<any> {
 		const url = `${this.apiBase}/events/users/accounting-entry`;
 		return this.http
@@ -135,8 +149,57 @@ export class MaintenanceService extends BaseService {
 				catchError((error: any) => throwError(error)));
 	}
 
-	sendIndicatorPointEvents(): Observable<any> {
-		const url = `${this.apiBase}/events/indicator-point-entry`;
+	sendIndicatorPlanPointEvents(): Observable<any> {
+		const url = `${this.apiBase}/events/indicator-point-plan-entry`;
+		return this.http
+			.post<any>(url, null).pipe(
+				catchError((error: any) => throwError(error)));
+	}
+
+	sendIndicatorDescriptionPointEvents(): Observable<any> {
+		const url = `${this.apiBase}/events/indicator-point-description-entry`;
+		return this.http
+			.post<any>(url, null).pipe(
+				catchError((error: any) => throwError(error)));
+	}
+
+	sendIndicatorReferencePointEvents(): Observable<any> {
+		const url = `${this.apiBase}/events/indicator-point-reference-entry`;
+		return this.http
+			.post<any>(url, null).pipe(
+				catchError((error: any) => throwError(error)));
+	}
+
+	sendIndicatorUserPointEvents(): Observable<any> {
+		const url = `${this.apiBase}/events/indicator-point-user-entry`;
+		return this.http
+			.post<any>(url, null).pipe(
+				catchError((error: any) => throwError(error)));
+	}
+
+	sendIndicatorPlanBlueprintPointEvents(): Observable<any> {
+		const url = `${this.apiBase}/events/indicator-point-plan-blueprint-entry`;
+		return this.http
+			.post<any>(url, null).pipe(
+				catchError((error: any) => throwError(error)));
+	}
+
+	sendIndicatorDescriptionTemplatePointEvents(): Observable<any> {
+		const url = `${this.apiBase}/events/indicator-point-description-template-entry`;
+		return this.http
+			.post<any>(url, null).pipe(
+				catchError((error: any) => throwError(error)));
+	}
+	
+	sendEvaluationPlanAccountingEntriesEvents(): Observable<any> {
+		const url = `${this.apiBase}/events/evaluation-plan/accounting-entry`;
+		return this.http
+			.post<any>(url, null).pipe(
+				catchError((error: any) => throwError(error)));
+	}
+
+	sendEvaluationDescriptionAccountingEntriesEvents(): Observable<any> {
+		const url = `${this.apiBase}/events/evaluation-description/accounting-entry`;
 		return this.http
 			.post<any>(url, null).pipe(
 				catchError((error: any) => throwError(error)));

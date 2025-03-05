@@ -22,6 +22,10 @@ export interface LockPersist extends BaseEntityPersist {
 }
 
 export interface LockStatus {
-	status: Boolean;
+	status: boolean;
 	lock: Lock;
+}
+
+export interface UnlockMultipleTargetsPersist {
+	targetIds: Guid[];
 }

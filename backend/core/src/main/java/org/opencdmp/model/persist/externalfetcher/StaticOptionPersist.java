@@ -4,6 +4,7 @@ import org.opencdmp.commons.validation.BaseValidator;
 import gr.cite.tools.validation.specification.Specification;
 import org.opencdmp.convention.ConventionService;
 import org.opencdmp.errorcode.ErrorThesaurusProperties;
+import org.opencdmp.service.externalfetcher.config.entities.StaticOption;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.Scope;
@@ -13,7 +14,7 @@ import org.springframework.stereotype.Component;
 import java.util.Arrays;
 import java.util.List;
 
-public class StaticOptionPersist {
+public class StaticOptionPersist implements StaticOption {
 
     private String code;
 

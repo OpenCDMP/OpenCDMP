@@ -1,4 +1,4 @@
-$blue-color : var(--primary-color);
+$blue-color : var(--sys-primary);
 $blue-color-light: #5cf7f2;
 
 
@@ -48,31 +48,37 @@ $blue-color-light: #5cf7f2;
     align-items: center;
     cursor: pointer;
   
-  
-    .action-list-icon{
-      font-size: 1.2em;
-      width: 14px;
-      margin-right: 0.5em;
-      margin-left: -.09em;
-      height: auto;
-      color: var(--primary-color);;
     }
-    .input_icon{
-      width: 14px;
-      margin-right: .5em;
+    .action-list-icon{
+        font-size: 1.2em;
+        width: 1.2rem;
+        margin-right: 0.5em;
+        margin-left: -.09em;
+        height: auto;
+        color: var(--sys-primary);
     }
     .action-list-text{
-      font-size: 0.9em;
+        font-size: var(--sys-headline-small-size);
+        color: var(--sys-on-surface) !important;
     }
-  }
+  .input_icon{
+        width: 1.2rem;
+        height: 1.2rem;
+        margin-right: .5em;
+        color: var(--sys-primary);
+    }
   .action-list-label{
-    color: #212121;
+    color: var(--dark-text);
     font-size: small;
     opacity: 0.6;
   }
   .list-unstyled{
     margin-bottom: 0.2rem;
   }
+}
+
+.padded-card {
+    padding: 2em; padding-top: 1em
 }
 
 .dragpan {
@@ -83,7 +89,15 @@ $blue-color-light: #5cf7f2;
     display:inline-block; 
     margin: 0px auto; 
     cursor: grab;
-    color: var(--secondary-color);
+    color: var(--sys-tertiary);
     opacity: 0.6 !important;
   }
+}
+
+::ng-deep {
+    @container main-page (inline-size < 750px){
+        .padded-card{
+            padding: 0.5rem !important;
+        }
+    }
 }

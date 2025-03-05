@@ -11,7 +11,10 @@ public enum TenantConfigurationType implements DatabaseEnum<Short> {
     FileTransformerPlugins((short) 1),
     DefaultUserLocale((short) 2),
     Logo((short) 3),
-    CssColors((short) 4);
+    CssColors((short) 4),
+    EvaluatorPlugins((short) 5),
+    FeaturedEntities((short) 6),
+    DefaultPlanBlueprint((short) 7);
 
     private final Short value;
 

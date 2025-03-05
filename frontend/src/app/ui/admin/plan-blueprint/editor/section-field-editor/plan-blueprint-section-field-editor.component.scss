@@ -1,0 +1,10 @@
+.field-preview {
+    background-color: rgba(18, 157, 152, 0.0666666667);
+    padding: 2em;
+    border: 1px solid rgba(112, 112, 112, 0.0823529412);
+    border-radius: 4px;
+    .previewer-text{
+        font-weight: bold;
+        font-style: italic;
+    }
+}

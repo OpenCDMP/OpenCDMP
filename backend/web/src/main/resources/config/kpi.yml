@@ -1,10 +1,33 @@
 kpi:
-  user-indicator:
-    id: 97c2d685-d7d2-4bd1-a287-ba329ad45d74
-    label: test
-    description: test
-    url: url test
-    code: test
+  task:
+    enable: ${KPI_VIEWER_TASK_ENABLED}
+    intervalSeconds: 86400
+    startTimeSeconds: 3600
+  indicator:
+    id: ${KPI_VIEWER_INDICATOR_ID:97c2d685-d7d2-4bd1-a287-ba329ad45d74}
+    metadata:
+      label: opencdmp
+      code: opencdmp
+    schema:
+      fields:
+        - code: tenant_code
+          name: Tenant Code
+          baseType: keyword
+        - code: created_at
+          name: Created at
+          baseType: date
+        - code: value
+          name: Value
+          baseType: integer
+        - code: entity_type
+          name: Entity Type
+          baseType: keyword
+        - code: reference_type_code
+          name: Reference Type Code
+          baseType: keyword
+        - code: metric_type
+          name: Metric Type
+          baseType: keyword
     roles:
       - Admin
       - InstallationAdmin

@@ -4,11 +4,13 @@ import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { TranslateService } from '@ngx-translate/core';
 
 @Component({
-	selector: 'app-form-validation-errors-dialog',
-	templateUrl: './form-validation-errors-dialog.component.html',
-	styleUrls: ['./form-validation-errors-dialog.component.scss']
+    selector: 'app-form-validation-errors-dialog',
+    templateUrl: './form-validation-errors-dialog.component.html',
+    styleUrls: ['./form-validation-errors-dialog.component.scss'],
+    standalone: false
 })
 export class FormValidationErrorsDialogComponent {
+   
 
 	formGroup: UntypedFormGroup;
 	errorMessages: string[] = [];
@@ -64,7 +66,7 @@ export class FormValidationErrorsDialogComponent {
 			else if (key === 'email') { errors.push(this.language.instant('GENERAL.FORM-VALIDATION-DISPLAY-DIALOG.THIS-FIELD') + ' "' + name + '" ' + this.language.instant('GENERAL.FORM-VALIDATION-DISPLAY-DIALOG.HAS-ERROR') + ', ' + this.language.instant('GENERAL.FORM-VALIDATION-DISPLAY-DIALOG.EMAIL')); }
 			else if (key === 'min') { errors.push(this.language.instant('GENERAL.FORM-VALIDATION-DISPLAY-DIALOG.THIS-FIELD') + ' "' + name + '" ' + this.language.instant('GENERAL.FORM-VALIDATION-DISPLAY-DIALOG.HAS-ERROR') + ', ' + this.language.instant('GENERAL.FORM-VALIDATION-DISPLAY-DIALOG.MIN-VALUE', { 'min': formControl.getError('min').min })); }
 			else if (key === 'max') { errors.push(this.language.instant('GENERAL.FORM-VALIDATION-DISPLAY-DIALOG.THIS-FIELD') + ' "' + name + '" ' + this.language.instant('GENERAL.FORM-VALIDATION-DISPLAY-DIALOG.HAS-ERROR') + ', ' + this.language.instant('GENERAL.FORM-VALIDATION-DISPLAY-DIALOG.MAX-VALUE', { 'max': formControl.getError('max').max })); }
-			else { errors.push(this.language.instant('GENERAL.FORM-VALIDATION-DISPLAY-DIALOG.THIS-FIELD') + ' "' + name + '" ' + this.language.instant('GENERAL.FORM-VALIDATION-DISPLAY-DIALOG.HAS-ERROR') + ', ' + formControl.errors[key].message); }
+			else { errors.push(name + ': ' + formControl.errors[key].message); }
 		});
 		return errors;
 	}

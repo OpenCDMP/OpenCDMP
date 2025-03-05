@@ -11,18 +11,24 @@ import { DescriptionStatusRoutingModule } from "./description-status.routing";
 import { DescriptionStatusListingComponent } from "./listing/description-status-listing/description-status-listing.component";
 import { DescriptionStatusEditorComponent } from "./editor/description-status-editor/description-status-editor.component";
 import { DescriptionStatusListingFiltersComponent } from "./listing/description-status-listing-filters/description-status-listing-filters.component";
+import { NgxDropzoneModule } from "ngx-dropzone";
+import { NgxColorsModule } from "ngx-colors";
+import { FormFocusDirective } from "@common/forms/form-focus.directive";
 
 @NgModule({
 	imports: [
-		CommonUiModule,
-		CommonFormsModule,
+	CommonUiModule,
+	CommonFormsModule,
         DescriptionStatusRoutingModule,
         ConfirmationDialogModule,
         HybridListingModule,
         UserSettingsModule,
         CommonFormattingModule,
         TextFilterModule,
-        RichTextEditorModule
+        RichTextEditorModule,
+        NgxDropzoneModule,
+        NgxColorsModule,
+        FormFocusDirective
 	],
 	declarations: [
         DescriptionStatusListingComponent,

@@ -30,10 +30,11 @@ import { RouterUtilsService } from '@app/core/services/router/router-utils.servi
 
 
 @Component({
-	selector: 'app-tenant-editor-component',
-	templateUrl: 'tenant-editor.component.html',
-	styleUrls: ['./tenant-editor.component.scss'],
-	providers: [TenantEditorService]
+    selector: 'app-tenant-editor-component',
+    templateUrl: 'tenant-editor.component.html',
+    styleUrls: ['./tenant-editor.component.scss'],
+    providers: [TenantEditorService],
+    standalone: false
 })
 export class TenantEditorComponent extends BaseEditor<TenantEditorModel, Tenant> implements OnInit {
 

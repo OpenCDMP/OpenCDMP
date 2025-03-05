@@ -1,13 +1,14 @@
-import { Component, Inject } from '@angular/core';
+import { Component, computed, HostBinding, Inject } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 
 
 @Component({
-	templateUrl: './import-description-template.dialog.component.html',
-	styleUrls: ['./import-description-template.dialog.component.scss']
+    templateUrl: './import-description-template.dialog.component.html',
+    styleUrls: ['./import-description-template.dialog.component.scss'],
+    standalone: false
 })
 export class ImportDescriptionTemplateDialogComponent {
-
+   
 	sizeError = false;
 	selectFile = false;
 	maxFileSize: number = 1048576;

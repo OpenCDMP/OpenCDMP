@@ -5,12 +5,8 @@ $mat-card-header-size: 40px !default;
 }
 
 .dialog-container {
-	padding: 0 1.5rem;
+	padding: 1rem;
 
-	.title {
-		font-size: 18px;
-		font-weight: 400;
-	}
 }
 
 .logo {
@@ -25,18 +21,6 @@ $mat-card-header-size: 40px !default;
 	margin: 2.17rem 2.304rem 1.1875rem 3.065rem;
 }
 
-.title,
-.text {
-	font-size: 1.25rem;
-	font-weight: lighter;
-	color: #000000;
-	opacity: 0.8;
-}
-
-.title {
-	font-size: 2.375rem;
-	margin-bottom: 1.1875rem;
-}
 
 .text {
 	margin-bottom: 2.9375rem;
@@ -45,10 +29,10 @@ $mat-card-header-size: 40px !default;
 
 .upload-btn {
 	background-color: white;
-	color: #212121;
+	color: var(--dark-text);
 	font-weight: bold;
 	box-shadow: 0px 3px 6px #1e202029;
-	border: 2px solid #212121;
+	border: 2px solid var(--dark-text);
 }
 
 .actions {
@@ -60,14 +44,15 @@ $mat-card-header-size: 40px !default;
 }
 
 .warn {
-	color: #f16868;
+	color: var(--sys-error);
 }
 
 .comments-count {
-	background-color: var(--primary-color) !important;// #129D99;
-	color: #FFFFFF !important;
-	min-width: 2rem;
+	background-color: var(--sys-primary) !important;// #129D99;
+	color: var(--sys-on-primary) !important;
+    padding: 0 0.75rem;
 	border-radius: 15px;
+    font-size: var(--sys-body-medium-size);
 }
 
 .account-icon-wrapper {
@@ -83,7 +68,7 @@ $mat-card-header-size: 40px !default;
 .comment-wrapper {
 	border-radius: 4px;
 	border: .1rem solid #cecece54;
-
+    font-size: var(--sys-body-medium-size);
 	&.focus-thread {
 		animation-name: threadFocus;
 		animation-duration: 5s;
@@ -109,7 +94,6 @@ $mat-card-header-size: 40px !default;
 
 .user {
 	font-weight: bold;
-	font-size: 16px;
 }
 
 .paper-plane {
@@ -120,7 +104,7 @@ $mat-card-header-size: 40px !default;
 .action-button {
 	font-weight: 400;
 	border-radius: 20px;
-	color: var(--primary-color);
+	color: var(--sys-primary);
 	font-weight: 500;
 	
 	&.active-action {

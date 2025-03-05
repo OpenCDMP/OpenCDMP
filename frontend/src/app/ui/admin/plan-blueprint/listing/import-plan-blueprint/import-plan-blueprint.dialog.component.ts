@@ -3,10 +3,12 @@ import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 
 
 @Component({
-	templateUrl: './import-plan-blueprint.dialog.component.html',
-	styleUrls: ['./import-plan-blueprint.dialog.component.scss']
+    templateUrl: './import-plan-blueprint.dialog.component.html',
+    styleUrls: ['./import-plan-blueprint.dialog.component.scss'],
+    standalone: false
 })
 export class ImportPlanBlueprintDialogComponent {
+   
 
 	sizeError = false;
 	selectFile = false;

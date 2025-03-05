@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges, ViewChild } from '@angular/core';
 import { UntypedFormGroup } from '@angular/forms';
 import { DescriptionTemplateSection } from '@app/core/model/description-template/description-template';
 import { PlanUser } from '@app/core/model/plan/plan';
@@ -11,13 +11,15 @@ import { LinkToScroll } from '../../../table-of-contents/table-of-contents.compo
 import { VisibilityRulesService } from '../../visibility-rules/visibility-rules.service';
 import { DescriptionFormService } from '../services/description-form.service';
 import { takeUntil } from 'rxjs';
+import { MatExpansionPanel } from '@angular/material/expansion';
 
 
 @Component({
-	selector: 'app-description-form-section',
-	templateUrl: './form-section.component.html',
-	styleUrls: ['./form-section.component.scss'],
-	changeDetection: ChangeDetectionStrategy.OnPush
+    selector: 'app-description-form-section',
+    templateUrl: './form-section.component.html',
+    styleUrls: ['./form-section.component.scss'],
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    standalone: false
 })
 export class DescriptionFormSectionComponent extends BaseComponent implements OnInit, OnChanges {
 
@@ -28,12 +30,12 @@ export class DescriptionFormSectionComponent extends BaseComponent implements On
 	@Input() visibilityRulesService: VisibilityRulesService;
 	@Input() path: string;
 	@Input() descriptionId: Guid;
+	@Input() planId: Guid;
 	@Input() planUsers: PlanUser[] = [];
 	@Input() tocentry: ToCEntry;
 	@Input() pathName: string;
 	@Input() linkToScroll: LinkToScroll;
 	@Input() hiddenEntriesIds: string[] = [];
-	panelExpanded = true;
 	subsectionLinkToScroll: LinkToScroll;
 	@Output() askedToScroll = new EventEmitter<string>();
 	tocentriesType = ToCEntryType;
@@ -52,23 +54,13 @@ export class DescriptionFormSectionComponent extends BaseComponent implements On
 	}
 
 	ngOnChanges(changes: SimpleChanges) {
-
-		if (changes['linkToScroll']) {
-			if (changes['linkToScroll'].currentValue && changes['linkToScroll'].currentValue.section) {
-
-				if (this.pathName === changes['linkToScroll'].currentValue.section) {
-					this.panelExpanded = true;
-				} else if (changes['linkToScroll'].currentValue.section.includes(this.pathName)) {
-					this.subsectionLinkToScroll = changes['linkToScroll'].currentValue;
-					this.panelExpanded = true;
-				}
-			}
-		}
+        if (changes['linkToScroll']?.currentValue?.section?.includes(this.pathName)) {
+            this.subsectionLinkToScroll = changes['linkToScroll'].currentValue;
+        }
 	}
 
 	onAskedToScroll(event: MouseEvent, id: string) {
 		event?.stopPropagation();
-		this.panelExpanded = true;
 		this.askedToScroll.emit(id);
 	}
 }

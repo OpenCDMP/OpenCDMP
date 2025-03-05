@@ -1,7 +1,7 @@
 import { CdkDragDrop, moveItemInArray } from '@angular/cdk/drag-drop';
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, EventEmitter, OnInit, Output } from '@angular/core';
-import { FormGroup, UntypedFormGroup } from '@angular/forms';
+import { Component, computed, OnInit, signal } from '@angular/core';
+import { UntypedFormGroup } from '@angular/forms';
 import { AppPermission } from '@app/core/common/enum/permission.enum';
 import { AuthService } from '@app/core/services/auth/auth.service';
 import { LoggingService } from '@app/core/services/logging/logging-service';
@@ -14,27 +14,25 @@ import { NotificationContactType } from '@notification-service/core/enum/notific
 import { NotificationTrackingProcess } from '@notification-service/core/enum/notification-tracking-process.enum';
 import { NotificationType } from '@notification-service/core/enum/notification-type.enum';
 import { NotificationServiceEnumUtils } from '@notification-service/core/formatting/enum-utils.service';
-import { UserNotificationPreference } from '@notification-service/core/model/user-notification-preference.model';
 import { NotifierListLookup } from '@notification-service/core/query/notifier-list.lookup';
-import { UserNotificationPreferenceService } from '@notification-service/services/http/user-notification-preference.service';
 import { Observable } from 'rxjs';
-import { map, takeUntil } from 'rxjs/operators';
-import { nameof } from 'ts-simple-nameof';
+import { takeUntil } from 'rxjs/operators';
 import { TenantConfigurationEditorModel } from './notifier-list-editor.model';
 import { TenantConfiguration, TenantConfigurationPersist } from '@notification-service/core/model/tenant-configuration';
 import { TenantConfigurationService } from '@notification-service/services/http/tenant-configuration.service';
 import { TenantConfigurationType } from '@notification-service/core/enum/tenant-configuration-type';
 import { NotifierListEditorResolver } from './notifier-list-editor.resolver';
-import { ResponseErrorCode } from '@app/core/common/enum/respone-error-code';
 import { NotifierListEditorService } from './notifier-list-editor.service';
 import { ConfirmationDialogComponent } from '@common/modules/confirmation-dialog/confirmation-dialog.component';
 import { MatDialog } from '@angular/material/dialog';
+import { DragAndDropAccessibilityService } from '@app/core/services/accessibility/drag-and-drop-accessibility.service';
 
 @Component({
-	selector: 'app-tenant-configuration-notifier-list-editor',
-	templateUrl: './notifier-list-editor.component.html',
-	styleUrls: ['./notifier-list-editor.component.scss'],
-	providers: [NotifierListEditorService]
+    selector: 'app-tenant-configuration-notifier-list-editor',
+    templateUrl: './notifier-list-editor.component.html',
+    styleUrls: ['./notifier-list-editor.component.scss'],
+    providers: [NotifierListEditorService],
+    standalone: false
 })
 export class NotifierListEditorComponent extends BasePendingChangesComponent implements OnInit {
 
@@ -50,6 +48,11 @@ export class NotifierListEditorComponent extends BasePendingChangesComponent imp
 	isNew = true;
 	formGroup: UntypedFormGroup = null;
 
+    reorderAssistiveText = computed(() => this.dragAndDropService.assistiveTextSignal());
+    get reorderMode(){
+        return this.dragAndDropService.reorderMode;
+    }
+    
 	protected get canDelete(): boolean {
 		return !this.isNew && this.hasPermission(this.authService.permissionEnum.DeleteTenantConfiguration);
 	}
@@ -72,7 +75,8 @@ export class NotifierListEditorComponent extends BasePendingChangesComponent imp
 		private logger: LoggingService,
 		private tenantConfigurationService: TenantConfigurationService,
 		public notificationServiceEnumUtils: NotificationServiceEnumUtils,
-		public notifierListEditorService: NotifierListEditorService
+		public notifierListEditorService: NotifierListEditorService,
+        private dragAndDropService: DragAndDropAccessibilityService
 	) {
 		super();
 	}
@@ -238,4 +242,21 @@ export class NotifierListEditorComponent extends BasePendingChangesComponent imp
 		this.editorModel.validationErrorModel.clear();
 		this.formService.validateAllFormFields(this.formGroup);
 	}
+
+    onKeyDown($event: KeyboardEvent, index: number, type: NotificationType, item: string) {
+        this.dragAndDropService.onKeyDown({
+            $event,
+            currentIndex: index,
+            listLength: this.availableNotifiers[type].length,
+            itemName: item,
+            moveDownFn: () => {
+                moveItemInArray(this.availableNotifiers[type], index, index + 1);
+                document.getElementById(`${type}-${index + 1}`)?.focus();
+            },
+            moveUpFn: () => {
+                moveItemInArray(this.availableNotifiers[type], index, index - 1);
+                document.getElementById(`${type}-${index - 1}`)?.focus();
+            }
+        })
+    }
 }

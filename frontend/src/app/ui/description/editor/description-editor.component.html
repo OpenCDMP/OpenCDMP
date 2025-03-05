@@ -1,12 +1,12 @@
 <div class="main-content">
 	<div class="container-fluid description-editor">
-		<form *ngIf="formGroup" [formGroup]="formGroup">
+		<form *ngIf="formGroup" [formGroup]="formGroup" class="main-form">
 			<!-- Description Header -->
 			<div class="fixed-editor-header">
 				<div class="card description-editor-header">
 					<div class="col-12">
 						<div class="row">
-							<div class="col info">
+							<div class="col info pb-2">
                                 @if(!viewOnly){
 									<div *ngIf="isNew" class="description-title">{{'DESCRIPTION-EDITOR.TITLE-ADD-DESCRIPTION' | translate}}</div>
 									<div *ngIf="!isNew" class="description-title">{{'DESCRIPTION-EDITOR.TITLE-EDIT-DESCRIPTION' | translate}}</div>
@@ -16,21 +16,21 @@
                                 }@else {
                                     <div class="description-title">{{'DESCRIPTION-EDITOR.TITLE-PREVIEW-DESCRIPTION' | translate}}</div>
                                 }
-								<div *ngIf="item?.plan?.id" class="d-flex flex-direction-row plan-info">
-									<div class="col-auto description-to-plan">{{'DESCRIPTION-EDITOR.TO-PLAN' | translate}}</div>
-									<div class="plan-title p-0">:&nbsp;{{ item?.plan?.label }}</div>
+								<div *ngIf="item?.plan?.id" class=" d-flex flex-direction-row flex-wrap plan-info">
+                                    <div class="col-auto description-to-plan">{{'DESCRIPTION-EDITOR.TO-PLAN' | translate}}</div>
+                                    <div class="plan-title p-0">:&nbsp;{{ item?.plan?.label }}</div>
 									<div class="col-auto d-flex align-items-center">
-										<a [routerLink]="routerUtils.generateUrl(['/plans/overview/', item.plan.id])" target="_blank" class="pointer open-in-new-icon">
+										<a [routerLink]="routerUtils.generateUrl(['/plans/overview/', item.plan.id])" target="_blank" class="pointer open-in-new-icon" [attr.aria-label]="'ALT-TEXT.OPEN-PLAN-OVERVIEW' | translate">
 											<mat-icon class="size-18">open_in_new</mat-icon>
 										</a>
 									</div>
 								</div>
 							</div>
 							<div class="col-auto">
-								<div class="row h-100">
+								<div *ngIf="!isDeleted" class="row h-100 action-btns">
 
 									<div class="col-auto d-flex align-items-center">
-										<button *ngIf="formGroup.get('id').value" [disabled]="isDirty()" [matTooltipDisabled]="!isDirty()" mat-button class="rounded-btn neutral" type="button" [matMenuTriggerFor]="exportMenu" (click)="$event.stopPropagation();" [matTooltip]="'DESCRIPTION-EDITOR.ACTIONS.EXPORT.CAN-NOT-EXPORT' | translate">
+										<button mat-raised-button color="accent" *ngIf="formGroup.get('id').value && canExport" [disabled]="isDirty()" [matTooltipDisabled]="!isDirty()" class="padded-shadow-btn" type="button" [matMenuTriggerFor]="exportMenu" (click)="$event.stopPropagation();" [matTooltip]="'DESCRIPTION-EDITOR.ACTIONS.EXPORT.CAN-NOT-EXPORT' | translate">
 											{{ 'DESCRIPTION-EDITOR.ACTIONS.EXPORT.EXPORT' | translate }}
 											<mat-icon [disabled]="isDirty()" style="width: 14px;" iconPositionEnd>expand_more</mat-icon>
 										</button>
@@ -46,30 +46,36 @@
 									<mat-divider *ngIf="formGroup.get('id').value && canEdit && (!viewOnly || (!isLocked && canEdit && !viewOnly) || isLocked || (hasReversableStatus() && !isLocked))" [vertical]="true" class="ml-2 mr-2"></mat-divider>
 
 									<div *ngIf="!isPristine() && !viewOnly" class="col-auto d-flex align-items-center pr-0">
-										<button [disabled]="saving" type="button" mat-button class="rounded-btn description-discard-btn" (click)="discardChanges()">
+										<button mat-raised-button color="accent" [disabled]="saving" type="button" class="padded-shadow-btn description-discard-btn" (click)="discardChanges()">
 											{{'DESCRIPTION-EDITOR.ACTIONS.DISCARD.DISCARD' | translate}}
 										</button>
 									</div>
 									<div class="col-auto d-flex align-items-center">
-										<button [disabled]="saving" *ngIf="canEdit && !isLocked && !viewOnly && hasReversableStatus() == false" mat-button class="rounded-btn neutral mr-2" type="button">
+										<button mat-raised-button color="accent" [disabled]="saving" *ngIf="canEdit && !isLocked && !viewOnly && hasReversableStatus() == false" class="padded-shadow-btn save-btn mr-2" type="button">
 											<span class="d-flex flex-row row">
 												<span (click)="!saving?formSubmit():null" class="col">{{ 'DESCRIPTION-EDITOR.ACTIONS.SAVE' | translate }}</span>
 												<mat-divider [vertical]="true"></mat-divider>
-												<span *ngIf="!saving" class="align-items-center justify-content-center col d-flex" (click)="$event.stopPropagation();" [matMenuTriggerFor]="menu">
-													<mat-icon>expand_more</mat-icon>
-												</span>
-												<span *ngIf="saving" class="align-items-center justify-content-center col d-flex">
-													<mat-icon>expand_more</mat-icon>
-												</span>
+                                                <span 
+                                                    role="button" 
+                                                    class="align-items-center justify-content-center col d-flex" 
+                                                    (click)="$event.stopPropagation();" 
+                                                    [matMenuTriggerFor]="!saving? menu : null"
+                                                    [attr.aria-label]="'GENERAL.ACTIONS.SHOW-MORE' | translate"
+                                                >
+                                                    <mat-icon>expand_more</mat-icon>
+                                                </span>
 											</span>
 										</button>
 										<mat-menu #menu="matMenu">
 											<button [disabled]="saving" mat-menu-item (click)="saveAndClose()" type="button">{{ 'DESCRIPTION-EDITOR.ACTIONS.SAVE-AND-CLOSE' | translate }}</button>
 											<button [disabled]="saving" mat-menu-item (click)="saveAndContinue()" type="button">{{ 'DESCRIPTION-EDITOR.ACTIONS.SAVE-AND-CONTINUE' | translate }}</button>
 										</mat-menu>
-										<button [disabled]="saving" *ngIf="canEdit && !isLocked && !viewOnly && hasReversableStatus() == false && canEdit" mat-button class="rounded-btn neutral mr-2" type="button" (click)="finalize()">{{ 'DESCRIPTION-EDITOR.ACTIONS.FINALIZE' | translate }}</button>
-										<button [disabled]="saving" *ngIf="isLocked" mat-button disabled class="rounded-btn neutral cursor-default" type="button">{{ 'PLAN-OVERVIEW.LOCKED' | translate}}</button>
-										<button [disabled]="saving" *ngIf="hasReversableStatus() && !isLocked && canEdit" mat-button class="rounded-btn neutral mr-2" (click)="reverse()" type="button">{{ 'DESCRIPTION-EDITOR.ACTIONS.REVERSE' | translate }}</button>
+										<ng-container *ngIf="canEditStatus && !isNew && item.availableStatuses && item.availableStatuses.length > 0 && !isLocked && item.id && isNotFinalizedPlan() && item.belongsToCurrentTenant != false">
+                                            @for(status of item.availableStatuses; track status){
+                                                <button mat-raised-button color="accent" [disabled]="saving" class="padded-shadow-btn mr-2" type="button" (click)="persistStatus(status)">{{ status.action?.length > 0 ? status.action : status.name }}</button>
+                                            }
+										</ng-container>
+										<button *ngIf="isLocked" mat-raised-button disabled class="padded-shadow-btn cursor-default" type="button">{{ 'PLAN-OVERVIEW.LOCKED' | translate}}</button>
 									</div>
 								</div>
 							</div>
@@ -87,97 +93,108 @@
 				<div class="row editor-content">
 					<div style="width: 22em;" class="d-flex flex-column">
 						<div class="stepper-back row">
-							<div class="col-auto d-flex align-items-center back-to-plan" (click)="backToPlan(this.formGroup.get('planId').value)">
+							<div role="link" class="col-auto d-flex align-items-center back-to-plan" (click)="backToPlan(formGroup.get('planId').value)" tabindex="0">
 								<mat-icon class="back-icon pointer">chevron_left</mat-icon>
 								<span class="pointer">{{'DESCRIPTION-EDITOR.ACTIONS.BACK-TO' | translate}}</span>
 							</div>
 							<div class="col-auto plan-label ml-1">{{'DESCRIPTION-EDITOR.PLAN' | translate}}</div>
 						</div>
-						<div class="row stepper-title">
-							<div class="col-12 pl-0 mb-1"><span>{{'DESCRIPTION-EDITOR.TOC.TITLE' | translate}}</span></div>
-						</div>
-						<div class="row stepper-options" id="stepper-options">
-							<div class="col-12">
-								<div class="container stepper-list ml-1">
-									<div class="row" *ngIf="!descriptionInfoValid()">
-										<div (click)="table0fContents.onToCentrySelected()" class="col-12 main-info" [ngClass]="{'active': reachedBase, 'text-danger': countErrorsOfBaseInfoPage > 0}">{{'DESCRIPTION-EDITOR.TOC.MAIN-INFO' | translate}} <span *ngIf="countErrorsOfBaseInfoPage > 0">({{ countErrorsOfBaseInfoPage }})</span></div>
-									</div>
-									<div class="row" *ngIf="descriptionInfoValid()">
-										<div (click)="table0fContents.onToCentrySelected()" class="col-12 main-info" [ngClass]="{'active': reachedBase}">{{'DESCRIPTION-EDITOR.TOC.MAIN-INFO' | translate}} (<mat-icon class="done-icon">done</mat-icon>)</div>
-									</div>
-									<div class="row toc-pane-container">
-										<div></div>
-										<div class="col-12">
-											<app-table-of-contents 
-												*ngIf="formGroup" 
-												stickyThing 
-												[visibilityRulesService]="visibilityRulesService" 
-												[showErrors]="showTocEntriesErrors" 
-												[hasFocus]="reachedBase == false" 
-												[formGroup]="formGroup.get('properties')" 
-												[descriptionTemplate]="item.descriptionTemplate" 
-												[anchorFieldsetId]="anchorFieldsetId"
-												(entrySelected)="changeStep($event.entry, $event.execute)" 
-												#table0fContents 
-											></app-table-of-contents>
-
-										</div>
-									</div>
-								</div>
-							</div>
-						</div>
-
-						<div class="row mb-4">
-							<div class="col-12">
-								<div class="row mt-3 stepper-actions justify-content-center">
-									<div class="col-auto mb-1">
-										<button mat-button type="button" class="rounded-btn neutral stepper mr-2" [disabled]="reachedBase" (click)="previousStep()">
-											<span class="material-icons">chevron_left</span>
-											<div>{{'DESCRIPTION-EDITOR.TOC.PREVIOUS' | translate}}</div>
-										</button>
-									</div>
-                                    <div class="col-auto mb-1">
-                                        @if(reachedLast){
-                                            @if(!isLocked && formGroup.get('descriptionTemplateId').value && !viewOnly) {
-                                                <button mat-button [disabled]="saving" (click)="saveAndClose()" mat-button type="button" class="rounded-btn secondary ml-auto">
-                                                    {{ 'DESCRIPTION-EDITOR.ACTIONS.SAVE-AND-CLOSE' | translate }}
-                                                </button>
-                                            }
-                                        }@else{
-                                            <button mat-button type="button" class="rounded-btn secondary stepper ml-auto" (click)="nextStep()" [disabled]="!formGroup.get('descriptionTemplateId').value">
-                                                <div>{{'DESCRIPTION-EDITOR.TOC.NEXT' | translate}}</div>
-                                                <span class="material-icons" iconPositionEnd>chevron_right</span>
-                                            </button>
-                                        }
-                                    </div>
-
-								</div>
-								<div class="row mb-4 mt-4" *ngIf="formGroup && !viewOnly">
-									<div class="col-12">
-										<app-form-progress-indication class="mt-2" [formGroup]="formGroup" [checkVisibility]="true"></app-form-progress-indication>
-									</div>
-								</div>
-							</div>
-						</div>
+                        <div class="description-template-lg" >
+                            <div class="row stepper-title">
+                                <div class="col-12 pl-0 mb-1"><span>{{'DESCRIPTION-EDITOR.TOC.TITLE' | translate}}</span></div>
+                            </div>
+                            <div role="menu" class="row stepper-options" id="stepper-options">
+                                <ng-container *ngTemplateOutlet="descriptionStepperOptions"></ng-container>
+                            </div>
+                            <ng-container *ngTemplateOutlet="descriptionProgressTemplate"></ng-container>
+                        </div>
+                        
 					</div>
-					<div class="col-12 col-md form" id="description-editor-form">
+
+                    <div class="description-template-sm col-12 mt-2 mb-2">
+                        <mat-expansion-panel>
+                            <mat-expansion-panel-header>
+                                <mat-panel-title>{{'DESCRIPTION-EDITOR.TOC.TITLE' | translate}}</mat-panel-title>
+                            </mat-expansion-panel-header>
+                            <ng-container *ngTemplateOutlet="descriptionStepperOptions"></ng-container>
+                        </mat-expansion-panel>
+                    </div>
+					<div class="col-12 col-md form" id="description-editor-form" tabindex="0">
 						<app-description-base-fields-editor-component [hidden]="!reachedBase" [formGroup]="formGroup" [description]="item" (formChanged)="formChanged()" (refresh)="fireRefreshDataEvent($event)"></app-description-base-fields-editor-component>
-						<app-description-form
-						*ngIf="formGroup && formGroup.get('properties')"
-						[propertiesFormGroup]="formGroup.get('properties')"
-						[descriptionId]="formGroup.get('id').value"
-						[descriptionTemplate]="item.descriptionTemplate"
-						[visibilityRulesService]="visibilityRulesService"
-						[hidden]="reachedBase"
-						[linkToScroll]="linkToScroll"
-						[validationErrorModel]="editorModel.validationErrorModel"
-						[isNew]="isNew || isCopy"
-						[canAnnotate]="canAnnotate"
-						[planUsers]="item?.plan?.planUsers ?? []"
+						<app-description-form #descriptionForm
+                            *ngIf="formGroup && formGroup.get('properties')"
+                            [propertiesFormGroup]="formGroup.get('properties')"
+                            [descriptionId]="formGroup.get('id').value"
+                            [descriptionTemplate]="item.descriptionTemplate"
+                            [visibilityRulesService]="visibilityRulesService"
+                            [hidden]="reachedBase"
+                            [linkToScroll]="linkToScroll"
+                            [validationErrorModel]="editorModel.validationErrorModel"
+                            [isNew]="isNew || isCopy"
+                            [canAnnotate]="canAnnotate"
+                            [planUsers]="item?.plan?.planUsers ?? []"
 						></app-description-form>
 					</div>
+                    <div class="description-progress-sm">
+                        <ng-container *ngTemplateOutlet="descriptionProgressTemplate"></ng-container>
+                    </div>
 				</div>
 			</div>
 		</form>
 	</div>
 </div>
+
+<ng-template #descriptionStepperOptions>
+    @if(descriptionInfoValid()){
+        <div role="button" (click)="table0fContents.onToCentrySelected()" class="col-12 main-info" [ngClass]="{'active': reachedBase}">{{'DESCRIPTION-EDITOR.TOC.MAIN-INFO' | translate}} (<mat-icon class="done-icon">done</mat-icon>)</div>
+    }@else{
+        <div role="button" (click)="table0fContents.onToCentrySelected()" class="col-12 main-info" [ngClass]="{'active': reachedBase, 'text-danger': countErrorsOfBaseInfoPage > 0}">{{'DESCRIPTION-EDITOR.TOC.MAIN-INFO' | translate}} <span *ngIf="countErrorsOfBaseInfoPage > 0">({{ countErrorsOfBaseInfoPage }})</span></div>
+    }
+    @if(formGroup){
+        <app-table-of-contents 
+            stickyThing 
+            class="col-12"
+            [visibilityRulesService]="visibilityRulesService" 
+            [showErrors]="showTocEntriesErrors" 
+            [hasFocus]="reachedBase == false" 
+            [formGroup]="formGroup.get('properties')" 
+            [descriptionTemplate]="item.descriptionTemplate" 
+            [anchorFieldsetId]="anchorFieldsetId"
+            (entrySelected)="changeStep($event.entry, $event.execute)" 
+            #table0fContents 
+        ></app-table-of-contents>
+    }
+</ng-template>
+
+<ng-template #descriptionProgressTemplate>
+    <div class="row mt-auto">
+        <div class="col-12">
+            <ul class="horizontal-list justify-content-between mt-3 stepper-actions">
+                <li class="col-auto mb-1">
+                    <button mat-stroked-button type="button" class="padded-shadow-btn stepper" [disabled]="reachedBase" (click)="previousStep()">
+                        <span class="material-icons">chevron_left</span>
+                        <div>{{'DESCRIPTION-EDITOR.TOC.PREVIOUS' | translate}}</div>
+                    </button>
+                </li>
+                <li class="col-auto mb-1">
+                    @if(reachedLast){
+                        @if(!isLocked && formGroup.get('descriptionTemplateId').value && !viewOnly) {
+                            <button mat-flat-button color="accent" [disabled]="saving" (click)="saveAndClose()" type="button" class="padded-shadow-btn ml-auto">
+                                {{ 'DESCRIPTION-EDITOR.ACTIONS.SAVE-AND-CLOSE' | translate }}
+                            </button>
+                        }
+                    }@else{
+                        <button mat-flat-button color="accent"  type="button" class="padded-shadow-btn stepper ml-auto" (click)="nextStep()" [disabled]="!formGroup.get('descriptionTemplateId').value">
+                            <div>{{'DESCRIPTION-EDITOR.TOC.NEXT' | translate}}</div>
+                            <span class="material-icons" iconPositionEnd>chevron_right</span>
+                        </button>
+                    }
+                </li>
+
+            </ul>
+            @if(formGroup && !viewOnly){
+                <app-form-progress-indication [formGroup]="formGroup" [checkVisibility]="true"></app-form-progress-indication>
+            }
+        </div>
+    </div>
+</ng-template>

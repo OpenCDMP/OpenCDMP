@@ -24,7 +24,7 @@ import org.opencdmp.commons.XmlHandlingService;
 import org.opencdmp.commons.enums.*;
 import org.opencdmp.commons.scope.tenant.TenantScope;
 import org.opencdmp.commons.types.planblueprint.*;
-import org.opencdmp.commons.types.planblueprint.DescriptionTemplateEntity;
+import org.opencdmp.commons.types.planblueprint.BlueprintDescriptionTemplateEntity;
 import org.opencdmp.commons.types.planblueprint.importexport.*;
 import org.opencdmp.convention.ConventionService;
 import org.opencdmp.data.*;
@@ -43,6 +43,7 @@ import org.opencdmp.model.prefillingsource.PrefillingSource;
 import org.opencdmp.model.referencetype.ReferenceType;
 import org.opencdmp.query.*;
 import org.opencdmp.service.accounting.AccountingService;
+import org.opencdmp.service.lock.LockService;
 import org.opencdmp.service.responseutils.ResponseUtilsService;
 import org.opencdmp.service.usagelimit.UsageLimitService;
 import org.slf4j.LoggerFactory;
@@ -92,6 +93,8 @@ public class PlanBlueprintServiceImpl implements PlanBlueprintService {
 
     private final UsageLimitService usageLimitService;
     private final AccountingService accountingService;
+
+    private final LockService lockService;
     @Autowired
     public PlanBlueprintServiceImpl(
             TenantEntityManager entityManager,
@@ -103,7 +106,7 @@ public class PlanBlueprintServiceImpl implements PlanBlueprintService {
             ResponseUtilsService responseUtilsService,
             XmlHandlingService xmlHandlingService,
             ErrorThesaurusProperties errors,
-            ValidatorFactory validatorFactory, TenantScope tenantScope, UsageLimitService usageLimitService, AccountingService accountingService) {
+            ValidatorFactory validatorFactory, TenantScope tenantScope, UsageLimitService usageLimitService, AccountingService accountingService, LockService lockService) {
         this.entityManager = entityManager;
         this.authorizationService = authorizationService;
         this.deleterFactory = deleterFactory;
@@ -118,6 +121,7 @@ public class PlanBlueprintServiceImpl implements PlanBlueprintService {
 	    this.tenantScope = tenantScope;
         this.usageLimitService = usageLimitService;
         this.accountingService = accountingService;
+        this.lockService = lockService;
     }
 
     //region Persist
@@ -134,6 +138,7 @@ public class PlanBlueprintServiceImpl implements PlanBlueprintService {
             data = this.entityManager.find(PlanBlueprintEntity.class, model.getId());
             if (data == null)
                 throw new MyNotFoundException(this.messageSource.getMessage("General_ItemNotFound", new Object[]{model.getId(), PlanBlueprint.class.getSimpleName()}, LocaleContextHolder.getLocale()));
+            if (this.lockService.isLocked(data.getId(), null).getStatus()) throw new MyApplicationException(this.errors.getLockedPlanBlueprint().getCode(), this.errors.getLockedPlanBlueprint().getMessage());
             if (!this.conventionService.hashValue(data.getUpdatedAt()).equals(model.getHash()))
                 throw new MyValidationException(this.errors.getHashConflict().getCode(), this.errors.getHashConflict().getMessage());
             if (data.getStatus().equals(PlanBlueprintStatus.Finalized))
@@ -168,6 +173,7 @@ public class PlanBlueprintServiceImpl implements PlanBlueprintService {
         data.setCode(model.getCode());
         data.setStatus(model.getStatus());
         data.setUpdatedAt(Instant.now());
+        data.setDescription(model.getDescription());
         data.setDefinition(this.xmlHandlingService.toXml(this.buildDefinitionEntity(model.getDefinition())));
 
         if (isUpdate) {
@@ -261,7 +267,7 @@ public class PlanBlueprintServiceImpl implements PlanBlueprintService {
 
         if (!this.conventionService.isListNullOrEmpty(persist.getDescriptionTemplates())) {
             data.setDescriptionTemplates(new ArrayList<>());
-            for (DescriptionTemplatePersist descriptionTemplatePersist : persist.getDescriptionTemplates()) {
+            for (BlueprintDescriptionTemplatePersist descriptionTemplatePersist : persist.getDescriptionTemplates()) {
                 data.getDescriptionTemplates().add(this.buildDescriptionTemplateEntity(descriptionTemplatePersist));
             }
         }
@@ -269,13 +275,12 @@ public class PlanBlueprintServiceImpl implements PlanBlueprintService {
         return data;
     }
 
-    private @NotNull DescriptionTemplateEntity buildDescriptionTemplateEntity(DescriptionTemplatePersist persist) {
-        DescriptionTemplateEntity data = new DescriptionTemplateEntity();
+    private @NotNull BlueprintDescriptionTemplateEntity buildDescriptionTemplateEntity(BlueprintDescriptionTemplatePersist persist) {
+        BlueprintDescriptionTemplateEntity data = new BlueprintDescriptionTemplateEntity();
         if (persist == null)
             return data;
 
         data.setDescriptionTemplateGroupId(persist.getDescriptionTemplateGroupId());
-        data.setLabel(persist.getLabel());
         data.setMaxMultiplicity(persist.getMaxMultiplicity());
         data.setMinMultiplicity(persist.getMinMultiplicity());
 
@@ -476,6 +481,7 @@ public class PlanBlueprintServiceImpl implements PlanBlueprintService {
         PlanBlueprintEntity data = new PlanBlueprintEntity();
         data.setId(UUID.randomUUID());
         data.setLabel(model.getLabel());
+        data.setDescription(model.getDescription());
         data.setStatus(PlanBlueprintStatus.Draft);
         data.setDefinition(this.xmlHandlingService.toXml(this.buildDefinitionEntity(model.getDefinition())));
         data.setGroupId(oldPlanBlueprintEntity.getGroupId());
@@ -533,6 +539,7 @@ public class PlanBlueprintServiceImpl implements PlanBlueprintService {
         BlueprintImportExport xml = new BlueprintImportExport();
         xml.setId(entity.getId());
         xml.setLabel(entity.getLabel());
+        xml.setDescription(entity.getDescription());
         xml.setCode(entity.getCode());
         xml.setGroupId(entity.getGroupId());
         DefinitionEntity planBlueprintDefinition = this.xmlHandlingService.fromXml(DefinitionEntity.class, entity.getDefinition());
@@ -589,9 +596,9 @@ public class PlanBlueprintServiceImpl implements PlanBlueprintService {
 
         List<BlueprintDescriptionTemplateImportExport> planBlueprintDescriptionTemplates = new LinkedList<>();
         if (!this.conventionService.isListNullOrEmpty(entity.getDescriptionTemplates())) {
-            List<org.opencdmp.data.DescriptionTemplateEntity> templatesWithCode = this.queryFactory.query(DescriptionTemplateQuery.class).disableTracking().groupIds(entity.getDescriptionTemplates().stream().map(DescriptionTemplateEntity::getDescriptionTemplateGroupId).distinct().collect(Collectors.toList())).disableTracking().collectAs(new BaseFieldSet().ensure(org.opencdmp.data.DescriptionTemplateEntity._code).ensure(org.opencdmp.data.DescriptionTemplateEntity._groupId));
+            List<org.opencdmp.data.DescriptionTemplateEntity> templatesWithCode = this.queryFactory.query(DescriptionTemplateQuery.class).disableTracking().groupIds(entity.getDescriptionTemplates().stream().map(BlueprintDescriptionTemplateEntity::getDescriptionTemplateGroupId).distinct().collect(Collectors.toList())).disableTracking().collectAs(new BaseFieldSet().ensure(org.opencdmp.data.DescriptionTemplateEntity._code).ensure(org.opencdmp.data.DescriptionTemplateEntity._groupId).ensure(DescriptionTemplateEntity._label));
 
-            for (DescriptionTemplateEntity descriptionTemplate : entity.getDescriptionTemplates()) {
+            for (BlueprintDescriptionTemplateEntity descriptionTemplate : entity.getDescriptionTemplates()) {
                 planBlueprintDescriptionTemplates.add(this.blueprintDescriptionTemplateXmlToExport(descriptionTemplate, templatesWithCode));
             }
         }
@@ -607,17 +614,18 @@ public class PlanBlueprintServiceImpl implements PlanBlueprintService {
         return xml;
     }
 
-    private BlueprintDescriptionTemplateImportExport blueprintDescriptionTemplateXmlToExport(DescriptionTemplateEntity entity, List<org.opencdmp.data.DescriptionTemplateEntity> templatesWithCode) {
+    private BlueprintDescriptionTemplateImportExport blueprintDescriptionTemplateXmlToExport(BlueprintDescriptionTemplateEntity entity, List<org.opencdmp.data.DescriptionTemplateEntity> templatesWithCode) {
         BlueprintDescriptionTemplateImportExport xml = new BlueprintDescriptionTemplateImportExport();
 
         if (entity == null) return xml;
 
         if (!this.conventionService.isListNullOrEmpty(templatesWithCode)) {
             org.opencdmp.data.DescriptionTemplateEntity code = templatesWithCode.stream().filter(x -> x.getGroupId().equals(entity.getDescriptionTemplateGroupId())).findFirst().orElse(null);
-            if (code != null) xml.setDescriptionTemplateCode(code.getCode());
+            if (code != null){
+                xml.setDescriptionTemplateCode(code.getCode());
+                xml.setLabel(code.getLabel());}
         }
         xml.setDescriptionTemplateGroupId(entity.getDescriptionTemplateGroupId());
-        xml.setLabel(entity.getLabel());
         if (entity.getMinMultiplicity() != null ) xml.setMinMultiplicity(entity.getMinMultiplicity());
         if (entity.getMaxMultiplicity() != null ) xml.setMaxMultiplicity(entity.getMaxMultiplicity());
         return xml;
@@ -705,6 +713,7 @@ public class PlanBlueprintServiceImpl implements PlanBlueprintService {
             PlanBlueprintPersist persist = new PlanBlueprintPersist();
 
             persist.setLabel(label);
+            persist.setDescription(planBlueprintDefinition.getDescription());
             persist.setCode(planBlueprintDefinition.getCode());
             persist.setStatus(PlanBlueprintStatus.Draft);
             persist.setDefinition(this.xmlDefinitionToPersist(planBlueprintDefinition.getPlanBlueprintDefinition()));
@@ -735,6 +744,7 @@ public class PlanBlueprintServiceImpl implements PlanBlueprintService {
             NewVersionPlanBlueprintPersist persist = new NewVersionPlanBlueprintPersist();
             persist.setId(latestVersionPlanBlueprint.getId());
             persist.setLabel(label);
+            persist.setDescription(planBlueprintDefinition.getDescription());
             persist.setStatus(PlanBlueprintStatus.Draft);
             persist.setDefinition(this.xmlDefinitionToPersist(planBlueprintDefinition.getPlanBlueprintDefinition()));
             persist.setHash(this.conventionService.hashValue(latestVersionPlanBlueprint.getUpdatedAt()));
@@ -751,8 +761,13 @@ public class PlanBlueprintServiceImpl implements PlanBlueprintService {
 
         this.authorizationService.authorizeForce(Permission.ImportPlanBlueprint);
 
-        BlueprintImportExport planBlueprintDefinition = this.xmlHandlingService.fromXml(BlueprintImportExport.class, new String(bytes, StandardCharsets.UTF_8));
-        
+        BlueprintImportExport planBlueprintDefinition = this.xmlHandlingService.fromXmlSafe(BlueprintImportExport.class, new String(bytes, StandardCharsets.UTF_8));
+
+        if (planBlueprintDefinition == null) {
+            logger.warn("Plan blueprint import xml failed. Input: " + new String(bytes, StandardCharsets.UTF_8));
+            throw new MyApplicationException(this.errors.getInvalidPlanBlueprintImportXml().getCode(), this.errors.getInvalidPlanBlueprintImportXml().getMessage());
+        }
+
         return this.importXml(planBlueprintDefinition, groupId, label, fields);
     }
 
@@ -796,7 +811,7 @@ public class PlanBlueprintServiceImpl implements PlanBlueprintService {
             }
         }
         persist.setFields(planBlueprintFieldModels);
-        List<DescriptionTemplatePersist> planBlueprintDescriptionTemplates = new LinkedList<>();
+        List<BlueprintDescriptionTemplatePersist> planBlueprintDescriptionTemplates = new LinkedList<>();
         if (!this.conventionService.isListNullOrEmpty(importXml.getDescriptionTemplates())) {
             for (BlueprintDescriptionTemplateImportExport descriptionTemplate : importXml.getDescriptionTemplates()) {
                 planBlueprintDescriptionTemplates.add(this.xmlDescriptionTemplateToPersist(descriptionTemplate));
@@ -814,16 +829,16 @@ public class PlanBlueprintServiceImpl implements PlanBlueprintService {
         return persist;
     }
 
-    private DescriptionTemplatePersist xmlDescriptionTemplateToPersist(BlueprintDescriptionTemplateImportExport importXml) {
-        DescriptionTemplatePersist persist = new DescriptionTemplatePersist();
+    private BlueprintDescriptionTemplatePersist xmlDescriptionTemplateToPersist(BlueprintDescriptionTemplateImportExport importXml) {
+        BlueprintDescriptionTemplatePersist persist = new BlueprintDescriptionTemplatePersist();
 
-        org.opencdmp.data.DescriptionTemplateEntity data = importXml.getDescriptionTemplateGroupId() != null ? this.queryFactory.query(DescriptionTemplateQuery.class).isActive(IsActive.Active).disableTracking().groupIds(importXml.getDescriptionTemplateGroupId()).disableTracking().firstAs(new BaseFieldSet().ensure(DescriptionTemplate._code).ensure(DescriptionTemplate._groupId).ensure(DescriptionTemplate._status)) : null;
+        org.opencdmp.data.DescriptionTemplateEntity data = importXml.getDescriptionTemplateGroupId() != null ? this.queryFactory.query(DescriptionTemplateQuery.class).versionStatuses(DescriptionTemplateVersionStatus.Current).isActive(IsActive.Active).disableTracking().groupIds(importXml.getDescriptionTemplateGroupId()).disableTracking().firstAs(new BaseFieldSet().ensure(DescriptionTemplate._code).ensure(DescriptionTemplate._groupId).ensure(DescriptionTemplate._status)) : null;
         if (data != null ) {
             if (!data.getStatus().equals(DescriptionTemplateStatus.Finalized)) throw new MyValidationException(this.errors.getBlueprintDescriptionTemplateImportDraft().getCode(), data.getCode());
             persist.setDescriptionTemplateGroupId(importXml.getDescriptionTemplateGroupId());
         } else {
             if (!this.conventionService.isNullOrEmpty(importXml.getDescriptionTemplateCode())) {
-                data = this.queryFactory.query(DescriptionTemplateQuery.class).disableTracking().codes(importXml.getDescriptionTemplateCode()).isActive(IsActive.Active).disableTracking().firstAs(new BaseFieldSet().ensure(DescriptionTemplate._code).ensure(DescriptionTemplate._groupId).ensure(DescriptionTemplate._status));
+                data = this.queryFactory.query(DescriptionTemplateQuery.class).disableTracking().codes(importXml.getDescriptionTemplateCode()).versionStatuses(DescriptionTemplateVersionStatus.Current).isActive(IsActive.Active).disableTracking().firstAs(new BaseFieldSet().ensure(DescriptionTemplate._code).ensure(DescriptionTemplate._groupId).ensure(DescriptionTemplate._status));
                 if (data != null) {
                     if (!data.getStatus().equals(DescriptionTemplateStatus.Finalized)) throw new MyValidationException(this.errors.getBlueprintDescriptionTemplateImportDraft().getCode(), data.getCode());
                     persist.setDescriptionTemplateGroupId(data.getGroupId());
@@ -833,7 +848,6 @@ public class PlanBlueprintServiceImpl implements PlanBlueprintService {
 
         if (data == null) throw new MyValidationException(this.errors.getDescriptionTemplateImportNotFound().getCode(), importXml.getDescriptionTemplateCode());
 
-        persist.setLabel(importXml.getLabel());
         persist.setMinMultiplicity(importXml.getMinMultiplicity());
         persist.setMaxMultiplicity(importXml.getMaxMultiplicity());
         return persist;

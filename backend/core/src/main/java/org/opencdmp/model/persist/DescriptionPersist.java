@@ -7,6 +7,7 @@ import org.opencdmp.commons.XmlHandlingService;
 import org.opencdmp.commons.enums.DescriptionStatus;
 import org.opencdmp.commons.enums.IsActive;
 import org.opencdmp.commons.types.descriptiontemplate.DefinitionEntity;
+import org.opencdmp.commons.types.planblueprint.BlueprintDescriptionTemplateEntity;
 import org.opencdmp.commons.types.planblueprint.SectionEntity;
 import org.opencdmp.commons.validation.BaseValidator;
 import org.opencdmp.convention.ConventionService;
@@ -46,9 +47,9 @@ public class DescriptionPersist {
 
     public static final String _descriptionTemplateId = "descriptionTemplateId";
 
-    private DescriptionStatus status;
+    private UUID statusId;
 
-    public static final String _status = "status";
+    public static final String _statusId = "statusId";
 
     private String description;
 
@@ -97,12 +98,12 @@ public class DescriptionPersist {
         this.planDescriptionTemplateId = planDescriptionTemplateId;
     }
 
-    public DescriptionStatus getStatus() {
-        return this.status;
+    public UUID getStatusId() {
+        return statusId;
     }
 
-    public void setStatus(DescriptionStatus status) {
-        this.status = status;
+    public void setStatusId(UUID statusId) {
+        this.statusId = statusId;
     }
 
     public String getDescription() {
@@ -178,16 +179,19 @@ public class DescriptionPersist {
 	        DescriptionTemplateEntity descriptionTemplate  = null;
             PlanEntity planEntity = null;
             PlanBlueprintEntity planBlueprintEntity = null;
+            DescriptionStatusEntity statusEntity = null;
             try {
 		        descriptionTemplate = this.isValidGuid(item.getDescriptionTemplateId()) ? this.entityManager.find(DescriptionTemplateEntity.class, item.getDescriptionTemplateId(), true) : null;
                 planEntity = this.isValidGuid(item.getPlanId()) ? this.entityManager.find(PlanEntity.class, item.getPlanId(), true) : null;
                 planBlueprintEntity = planEntity == null ? null : this.entityManager.find(PlanBlueprintEntity.class, planEntity.getBlueprintId());
+                statusEntity = this.isValidGuid(item.getStatusId()) ? this.entityManager.find(DescriptionStatusEntity.class, item.getStatusId(), true) : null;
 
             } catch (InvalidApplicationException e) {
 		        throw new RuntimeException(e);
 	        }
 	        DefinitionEntity definition = descriptionTemplate == null ? null : this.xmlHandlingService.fromXmlSafe(DefinitionEntity.class, descriptionTemplate.getDefinition());
             PlanBlueprintEntity finalPlanBlueprintEntity = planBlueprintEntity;
+            DescriptionStatusEntity finalStatusEntity = statusEntity;
             return Arrays.asList(
                     this.spec()
                             .iff(() -> this.isValidGuid(item.getId()))
@@ -214,21 +218,22 @@ public class DescriptionPersist {
                             .must(() -> this.isValidGuid(item.getPlanDescriptionTemplateId()))
                             .failOn(DescriptionPersist._planDescriptionTemplateId).failWith(this.messageSource.getMessage("Validation_Required", new Object[]{DescriptionPersist._planDescriptionTemplateId}, LocaleContextHolder.getLocale())),
                     this.spec()
-                            .must(() -> !this.isNull(item.getStatus()))
-                            .failOn(DescriptionPersist._status).failWith(this.messageSource.getMessage("Validation_Required", new Object[]{DescriptionPersist._status}, LocaleContextHolder.getLocale())),
+                            .iff(() -> this.isValidGuid(item.getId()))
+                            .must(() -> this.isValidGuid(item.getStatusId()))
+                            .failOn(DescriptionPersist._statusId).failWith(this.messageSource.getMessage("Validation_Required", new Object[]{DescriptionPersist._statusId}, LocaleContextHolder.getLocale())),
                     this.spec()
-                            .iff(() -> item.getStatus() == DescriptionStatus.Finalized)
+                            .iff(() -> finalStatusEntity != null && finalStatusEntity.getInternalStatus() != null && finalStatusEntity.getInternalStatus() == DescriptionStatus.Finalized)
                             .must(() -> !this.isNull(item.getProperties()))
                             .failOn(DescriptionPersist._properties).failWith(this.messageSource.getMessage("Validation_Required", new Object[]{DescriptionPersist._properties}, LocaleContextHolder.getLocale())),
                     this.spec()
-                            .iff(() -> item.getStatus() == DescriptionStatus.Finalized)
+                            .iff(() -> finalStatusEntity != null && finalStatusEntity.getInternalStatus() != null && finalStatusEntity.getInternalStatus() == DescriptionStatus.Finalized)
                             .must(() -> this.isDescriptionTemplateMaxMultiplicityValid(finalPlanBlueprintEntity, item.getPlanId(), item.getPlanDescriptionTemplateId(), this.isValidGuid(item.getId())))
                             .failOn(DescriptionPersist._descriptionTemplateId).failWith(this.messageSource.getMessage("Validation.InvalidDescriptionTemplateMultiplicity", new Object[]{DescriptionPersist._descriptionTemplateId}, LocaleContextHolder.getLocale())),
                     this.refSpec()
-                            .iff(() -> item.getStatus() == DescriptionStatus.Finalized)
+                            .iff(() -> finalStatusEntity != null && finalStatusEntity.getInternalStatus() != null && finalStatusEntity.getInternalStatus() == DescriptionStatus.Finalized)
                             .on(DescriptionPersist._properties)
                             .over(item.getProperties())
-                            .using(() -> this.validatorFactory.validator(PropertyDefinitionPersist.PropertyDefinitionPersistValidator.class).setStatus(item.getStatus()).withDefinition(definition).setVisibilityService(definition, item.getProperties()))
+                            .using(() -> this.validatorFactory.validator(PropertyDefinitionPersist.PropertyDefinitionPersistValidator.class).setStatus(finalStatusEntity.getInternalStatus()).withDefinition(definition).setVisibilityService(definition, item.getProperties()))
 //                    this.navSpec()
 //                            .iff(() -> !this.isNull(item.getTags()))
 //                            .on(DescriptionPersist._tags)
@@ -252,7 +257,7 @@ public class DescriptionPersist {
                     if (isUpdate) descriptionsCount = -1;
                     else descriptionsCount = 0;
 
-                    for (org.opencdmp.commons.types.planblueprint.DescriptionTemplateEntity sectionDescriptionTemplate: section.getDescriptionTemplates()) {
+                    for (BlueprintDescriptionTemplateEntity sectionDescriptionTemplate: section.getDescriptionTemplates()) {
                         if (sectionDescriptionTemplate.getDescriptionTemplateGroupId().equals(planDescriptionTemplateEntity.getDescriptionTemplateGroupId())){
                             for (DescriptionEntity description: descriptionEntities){
                                 if (description.getPlanDescriptionTemplateId().equals(planDescriptionTemplateEntity.getId())) descriptionsCount++;

@@ -1,20 +1,27 @@
 .frame-btn {
-	border: 1px solid #212121;
-	color: black;
-	background: #ffffff;
-	box-shadow: 0px 2px 6px #00000029;
-	display: flex;
+    display: flex;
 	justify-content: center;
 	align-items: center;
+	border: 1px solid #1b1b1b;
+	color: var(--sys-on-surface);
+    background: transparent;
+    box-shadow: 0px 2px 6px rgba(0, 0, 0, 0.16078);
+    &:hover {
+        box-shadow: var(--mdc-fab-small-hover-container-elevation-shadow, var(--mat-app-level4)); //default material button 
+    }
 }
 
 .frame-txt {
-	color: #000000;
-	font-size: 0.75em;
+	font-size: var(--sys-body-small-size);
 	font-weight: bold;
 	letter-spacing: 0px;
 	text-transform: uppercase;
 	cursor: pointer;
+}
+
+
+.frame-txt:hover {
+    color: var(--sys-primary)
 }
 
 .mat-mini-fab {

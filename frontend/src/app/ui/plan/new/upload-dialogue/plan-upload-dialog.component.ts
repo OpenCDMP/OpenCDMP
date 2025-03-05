@@ -1,5 +1,4 @@
-import { HttpClient } from '@angular/common/http';
-import { Component, Inject } from '@angular/core';
+import { Component, computed, HostBinding, Inject } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialog, MatDialogRef } from '@angular/material/dialog';
 import { DescriptionTemplate } from '@app/core/model/description-template/description-template';
 import { PlanBlueprint, PlanBlueprintDefinitionSection } from '@app/core/model/plan-blueprint/plan-blueprint';
@@ -18,15 +17,18 @@ import { IsActive } from '@notification-service/core/enum/is-active.enum';
 import { SingleAutoCompleteConfiguration } from '@app/library/auto-complete/single/single-auto-complete-configuration';
 import { SnackBarNotificationLevel, UiNotificationService } from '@app/core/services/notification/ui-notification-service';
 import { TranslateService } from '@ngx-translate/core';
-import { Guid } from '@common/types/guid';
 import { DescriptionTemplatePreviewDialogComponent } from '@app/ui/admin/description-template/description-template-preview/description-template-preview-dialog.component';
+import { HttpErrorHandlingService } from '@common/modules/errors/error-handling/http-error-handling.service';
 
 @Component({
-	selector: 'plan-upload-dialog',
-	templateUrl: './plan-upload-dialog.component.html',
-	styleUrls: ['./plan-upload-dialog.component.scss']
+    selector: 'plan-upload-dialog',
+    templateUrl: './plan-upload-dialog.component.html',
+    styleUrls: ['./plan-upload-dialog.component.scss'],
+    standalone: false
 })
 export class PlanUploadDialogComponent extends BaseComponent {
+   
+
 	planTitle: string;
 	planBlueprints: any[] = [];
 	files: File[] = [];
@@ -34,9 +36,17 @@ export class PlanUploadDialogComponent extends BaseComponent {
 	formGroup: UntypedFormGroup;
 
 	descriptionTemplateSingleAutocompleteConfiguration: SingleAutoCompleteConfiguration = {
-		initialItems: (data?: any) => this.descriptionTemplateService.query(this.descriptionTemplateService.buildDescriptionTempalteGroupAutocompleteLookup([IsActive.Active])).pipe(map(x => x.items)),
-		filterFn: (searchQuery: string, data?: any) => this.descriptionTemplateService.query(this.descriptionTemplateService.buildDescriptionTempalteGroupAutocompleteLookup([IsActive.Active], searchQuery)).pipe(map(x => x.items)),
-		getSelectedItem: (selectedItem: any) => this.descriptionTemplateService.query(this.descriptionTemplateService.buildDescriptionTempalteGroupAutocompleteLookup([IsActive.Active, IsActive.Inactive], null, null, [selectedItem])).pipe(map(x => x.items[0])),
+		initialItems: (data?: any) => this.descriptionTemplateService.query(this.descriptionTemplateService.buildDescriptionTemplateGroupAutocompleteLookup({
+            isActive: [IsActive.Active]
+        })).pipe(map(x => x.items)),
+		filterFn: (searchQuery: string, data?: any) => this.descriptionTemplateService.query(this.descriptionTemplateService.buildDescriptionTemplateGroupAutocompleteLookup({
+            isActive: [IsActive.Active], 
+            like: searchQuery
+        })).pipe(map(x => x.items)),
+		getSelectedItem: (selectedItem: any) => this.descriptionTemplateService.query(this.descriptionTemplateService.buildDescriptionTemplateGroupAutocompleteLookup({
+            isActive: [IsActive.Active, IsActive.Inactive], 
+            groupIds:[selectedItem]
+        })).pipe(map(x => x.items[0])),
 		displayFn: (item: DescriptionTemplate) => item.label,
 		titleFn: (item: DescriptionTemplate) => item.label,
 		subtitleFn: (item: DescriptionTemplate) => item.description,
@@ -47,9 +57,7 @@ export class PlanUploadDialogComponent extends BaseComponent {
 
 	constructor(
 		public dialogRef: MatDialogRef<PlanUploadDialogComponent>,
-		private _service: PlanService,
 		private dialog: MatDialog,
-		private httpClient: HttpClient,
 		private analyticsService: AnalyticsService,
 		private formService: FormService,
 		public descriptionTemplateService: DescriptionTemplateService,
@@ -58,7 +66,7 @@ export class PlanUploadDialogComponent extends BaseComponent {
 		private storageFileStorage: StorageFileService,
 		private uiNotificationService: UiNotificationService,
 		private language: TranslateService,
-
+		private httpErrorHandlingService: HttpErrorHandlingService,
 		@Inject(MAT_DIALOG_DATA) public data: any,
 	) {
 		super();
@@ -125,7 +133,10 @@ export class PlanUploadDialogComponent extends BaseComponent {
 							(preprocessingData) => {
 								this.formGroup = new PlanImportRdaConfigEditorModel().fromModel(preprocessingData, storageFile[0].id,).buildForm();
 							},
-							(error) => this.onCallbackEror(error.error)
+							(error) => {
+								this.httpErrorHandlingService.handleBackedRequestError(error)
+								this.close();
+							}
 						);
 					}
 					
@@ -174,8 +185,8 @@ export class PlanUploadDialogComponent extends BaseComponent {
 			},
 			panelClass: 'custom-modalbox'
 		});
-		dialogRef.afterClosed().pipe(takeUntil(this._destroyed)).subscribe(groupId => {
-			if (groupId) {
+		dialogRef.afterClosed().pipe(takeUntil(this._destroyed)).subscribe(descTemplate => {
+			if (descTemplate) {
 				(this.formGroup.get('descriptions') as UntypedFormArray).at(descriptionIndex).get('templateId').patchValue(event.id);
 			}
 		});

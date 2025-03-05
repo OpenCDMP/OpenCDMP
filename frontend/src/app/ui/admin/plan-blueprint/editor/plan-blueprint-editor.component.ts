@@ -1,7 +1,7 @@
 
 import { CdkDragDrop, moveItemInArray } from '@angular/cdk/drag-drop';
-import { Component, OnInit } from '@angular/core';
-import { FormArray, UntypedFormArray, UntypedFormGroup } from '@angular/forms';
+import { Component, OnInit, signal, ViewChild } from '@angular/core';
+import { FormArray, FormGroup, UntypedFormArray, UntypedFormGroup } from '@angular/forms';
 import { MatCheckboxChange } from '@angular/material/checkbox';
 import { MatDialog } from '@angular/material/dialog';
 import { Title } from '@angular/platform-browser';
@@ -25,7 +25,6 @@ import { AnalyticsService } from '@app/core/services/matomo/analytics-service';
 import { SnackBarNotificationLevel, UiNotificationService } from '@app/core/services/notification/ui-notification-service';
 import { PrefillingSourceService } from '@app/core/services/prefilling-source/prefilling-source.service';
 import { ReferenceTypeService } from '@app/core/services/reference-type/reference-type.service';
-import { SemanticsService } from '@app/core/services/semantic/semantics.service';
 import { EnumUtils } from '@app/core/services/utilities/enum-utils.service';
 import { FileUtils } from '@app/core/services/utilities/file-utils.service';
 import { QueryParamsService } from '@app/core/services/utilities/query-params.service';
@@ -41,21 +40,30 @@ import { TranslateService } from '@ngx-translate/core';
 import * as FileSaver from 'file-saver';
 import { map, takeUntil } from 'rxjs/operators';
 import { DescriptionTemplatePreviewDialogComponent } from '../../description-template/description-template-preview/description-template-preview-dialog.component';
-import { PlanBlueprintEditorModel, FieldInSectionEditorModel } from './plan-blueprint-editor.model';
+import { PlanBlueprintEditorModel, FieldInSectionEditorModel, PlanBlueprintForm } from './plan-blueprint-editor.model';
 import { PlanBlueprintEditorResolver } from './plan-blueprint-editor.resolver';
 import { PlanBlueprintEditorService } from './plan-blueprint-editor.service';
 import { RouterUtilsService } from '@app/core/services/router/router-utils.service';
+import { StepperSelectionEvent } from '@angular/cdk/stepper';
+import { MatStepper } from '@angular/material/stepper';
+import { GENERAL_ANIMATIONS, STEPPER_ANIMATIONS } from '@app/library/animations/animations';
+import { PlanBlueprintTocComponent } from './table-of-content/plan-blueprint-toc.component';
+import { ReferenceType } from '@app/core/model/reference-type/reference-type';
+import { PlanEditorForm, PlanEditorModel } from '@app/ui/plan/plan-editor-blueprint/plan-editor.model';
+import { Plan } from '@app/core/model/plan/plan';
 
 
 @Component({
-	selector: 'app-plan-blueprint-editor-component',
-	templateUrl: 'plan-blueprint-editor.component.html',
-	styleUrls: ['./plan-blueprint-editor.component.scss'],
-	providers: [PlanBlueprintEditorService]
+    selector: 'app-plan-blueprint-editor-component',
+    templateUrl: 'plan-blueprint-editor.component.html',
+    styleUrls: ['./plan-blueprint-editor.component.scss'],
+    providers: [PlanBlueprintEditorService],
+    animations: [...STEPPER_ANIMATIONS, ...GENERAL_ANIMATIONS],
+    standalone: false
 })
 export class PlanBlueprintEditorComponent extends BaseEditor<PlanBlueprintEditorModel, PlanBlueprint> implements OnInit {
-
-	formGroup: UntypedFormGroup = null;
+    @ViewChild('stepper') stepper: MatStepper;
+	formGroup: FormGroup<PlanBlueprintForm>;
 	showInactiveDetails = false;
 
 	hoveredSectionIndex: number = -1;
@@ -63,10 +71,7 @@ export class PlanBlueprintEditorComponent extends BaseEditor<PlanBlueprintEditor
 
 	planBlueprintSectionFieldCategory = PlanBlueprintFieldCategory;
 	planBlueprintSystemFieldType = PlanBlueprintSystemFieldType;
-	public planBlueprintSystemFieldTypeEnum = this.enumUtils.getEnumValues<PlanBlueprintSystemFieldType>(PlanBlueprintSystemFieldType);
 	planBlueprintExtraFieldDataType = PlanBlueprintExtraFieldDataType;
-	public planBlueprintExtraFieldDataTypeEnum = this.enumUtils.getEnumValues<PlanBlueprintExtraFieldDataType>(PlanBlueprintExtraFieldDataType);
-	public planBlueprintFieldCategoryEnum = this.enumUtils.getEnumValues<PlanBlueprintFieldCategory>(PlanBlueprintFieldCategory);
 	public usedDescriptionTemplateGroupIdsBySection: Map<Guid, Guid[]> = new Map<Guid, Guid[]>;
 	public descriptionTemplateGroupIdsConfigBySection: Map<Guid, SingleAutoCompleteConfiguration> = new Map<Guid, SingleAutoCompleteConfiguration>;
 
@@ -77,6 +82,13 @@ export class PlanBlueprintEditorComponent extends BaseEditor<PlanBlueprintEditor
 	isDeleted = false;
 	belongsToCurrentTenant = true;
 
+    reorderingMode = signal<boolean>(false);
+
+    selectedSection: number = 0;
+    selectedField: number = null;
+
+    previewEditorModel = new PlanEditorModel();
+    
 	protected get isTransient(): boolean {
 		return this.isNew || this.isClone || this.isNewVersion;
 	}
@@ -100,6 +112,10 @@ export class PlanBlueprintEditorComponent extends BaseEditor<PlanBlueprintEditor
 	protected get isFinalized(): boolean {
 		return this.editorModel.status == PlanBlueprintStatus.Finalized;
 	}
+
+    protected fieldIsActive(sectionIndex: number, fieldIndex: number){
+        return this.selectedSection === sectionIndex && this.selectedField === fieldIndex;
+    }
 
 	private hasPermission(permission: AppPermission): boolean {
 		return this.authService.hasPermission(permission) || this.editorModel?.permissions?.includes(permission);
@@ -127,7 +143,6 @@ export class PlanBlueprintEditorComponent extends BaseEditor<PlanBlueprintEditor
 		private fileUtils: FileUtils,
 		public descriptionTemplateService: DescriptionTemplateService,
 		public referenceTypeService: ReferenceTypeService,
-		public semanticsService: SemanticsService,
 		public prefillingSourceService: PrefillingSourceService,
 		public titleService: Title,
 		private analyticsService: AnalyticsService,
@@ -201,7 +216,7 @@ export class PlanBlueprintEditorComponent extends BaseEditor<PlanBlueprintEditor
 	}
 
 	buildForm() {
-		this.formGroup = this.editorModel.buildForm(null, this.hideEditActions, (this.isNew || this.isClone));
+		this.formGroup = this.editorModel.buildForm(this._destroyed, null, this.hideEditActions, (this.isNew || this.isClone));
 		this.planBlueprintEditorService.setValidationErrorModel(this.editorModel.validationErrorModel);
 		if (this.isNewVersion) {
 			this.formGroup.get('code').disable();
@@ -225,7 +240,7 @@ export class PlanBlueprintEditorComponent extends BaseEditor<PlanBlueprintEditor
 
 	persistEntity(onSuccess?: (response) => void): void {
 		if (!this.isNewVersion) {
-			const formData = this.formService.getValue(this.formGroup.value) as PlanBlueprintPersist;
+			const formData = JSON.parse(JSON.stringify(this.formGroup.value)) as PlanBlueprintPersist;
 			formData.code = this.formGroup.get('code').getRawValue();
 
 			this.planBlueprintService.persist(formData)
@@ -237,7 +252,7 @@ export class PlanBlueprintEditorComponent extends BaseEditor<PlanBlueprintEditor
 					}
 				});
 		} else if (!this.isNew && !this.isClone) {
-			const formData = this.formService.getValue(this.formGroup.value) as NewVersionPlanBlueprintPersist;
+			const formData = JSON.parse(JSON.stringify(this.formGroup.value)) as NewVersionPlanBlueprintPersist;
 
 			this.planBlueprintService.newVersion(formData)
 				.pipe(takeUntil(this._destroyed)).subscribe({
@@ -286,62 +301,104 @@ export class PlanBlueprintEditorComponent extends BaseEditor<PlanBlueprintEditor
 		this.formService.validateAllFormFields(this.formGroup);
 	}
 
-	//
-	//
-	// Sections
-	//
-	//
+    protected changeStep(params: {
+        section: number,
+        field?: number
+    }) {
+        const {section, field} = params;
+        this.selectedSection = section;
+        this.selectedField = field;
+        if(field != null){
+            this.scrollToSelected({section, field})  
+        }else {
+            this.scrollOnTop();
+        }
+    }
 
-	isSectionSelected(sectionId: number): boolean {
-		return this.hoveredSectionIndex === sectionId;
-	}
+    protected scrollToSelected(params:{section: number, field: number}) {
+        const {section, field} = params;
+        if (section == null || section == undefined) return;
+        const id = (field != null && field != undefined) ? `section-${section}-field-${field}` : `section-${section}`
+        this.selectedSection = section;
+        this.selectedField = field;
+        setTimeout(() => {
+            const element = document.getElementById(id);
+            if (element) {
+                element.scrollIntoView({ behavior: 'smooth' });
+            }
+        });
+    }
 
-	onSectionHover(sectionId: any): void {
-		this.hoveredSectionIndex = sectionId;
-	}
-
-	clearHoveredSection(): void {
-		this.hoveredSectionIndex = -1;
+    protected scrollOnTop() {
+		try {
+			const topPage = document.getElementById('editor-top');
+			topPage.scrollIntoView({ behavior: 'smooth' });
+		} catch (e) {
+			console.log(e);
+			console.log('could not scroll');
+		}
 	}
 
 	addSection(): void {
 		const formArray = this.formGroup.get('definition').get('sections') as FormArray;
-		formArray.push(this.editorModel.createChildSection(formArray.length));
-	}
+		formArray.push(this.editorModel.createChildSection(this._destroyed, formArray.length));
+        formArray.markAsDirty();
+        setTimeout(() => {
+            this.changeStep({section: formArray?.length - 1})
+	    });
+    }
 
 	removeSection(sectionIndex: number): void {
-		(this.formGroup.get('definition').get('sections') as FormArray).removeAt(sectionIndex);
-		(this.formGroup.get('definition').get('sections') as FormArray).controls.forEach((section, index) => {
-			section.get('ordinal').setValue(index + 1);
-		});
-
-		//Reapply validators
-		PlanBlueprintEditorModel.reApplySectionValidators(
-			{
-				formGroup: this.formGroup,
-				validationErrorModel: this.editorModel.validationErrorModel
+        const dialogRef = this.dialog.open(ConfirmationDialogComponent, {
+			restoreFocus: false,
+			data: {
+				message: this.language.instant('GENERAL.CONFIRMATION-DIALOG.DELETE-ITEM'),
+				confirmButton: this.language.instant('GENERAL.CONFIRMATION-DIALOG.ACTIONS.CONFIRM'),
+				cancelButton: this.language.instant('GENERAL.CONFIRMATION-DIALOG.ACTIONS.CANCEL'),
+				isDeleteConfirmation: true
 			}
-		);
-		this.formGroup.get('definition').get('sections').markAsDirty();
-
+		});
+		dialogRef.afterClosed().pipe(takeUntil(this._destroyed)).subscribe(result => {
+			if (result) {
+                (this.formGroup.get('definition').get('sections') as FormArray).removeAt(sectionIndex);
+                (this.formGroup.get('definition').get('sections') as FormArray).controls.forEach((section, index) => {
+                    section.get('ordinal').setValue(index + 1);
+                });
+        
+                //Reapply validators
+                PlanBlueprintEditorModel.reApplySectionValidators(
+                    {
+                        formGroup: this.formGroup,
+                        validationErrorModel: this.editorModel.validationErrorModel
+                    }
+                );
+                this.formGroup.get('definition').get('sections').markAsDirty();
+			}
+		});
 	}
+    
 
 	dropSections(event: CdkDragDrop<string[]>) {
 		const sectionsFormArray = (this.formGroup.get('definition').get('sections') as FormArray);
 
 		moveItemInArray(sectionsFormArray.controls, event.previousIndex, event.currentIndex);
-		sectionsFormArray.updateValueAndValidity();
-		sectionsFormArray.controls.forEach((section, index) => {
-			section.get('ordinal').setValue(index + 1);
-		});
-		PlanBlueprintEditorModel.reApplySectionValidators(
+        sectionsFormArray.updateValueAndValidity();
+        this.reapplySectionOrdinals();
+        this.formGroup.get('definition').get('sections').markAsDirty();
+        PlanBlueprintEditorModel.reApplySectionValidators(
 			{
 				formGroup: this.formGroup,
 				validationErrorModel: this.editorModel.validationErrorModel
 			}
 		);
-		this.formGroup.get('definition').get('sections').markAsDirty();
 	}
+
+    reapplySectionOrdinals(){
+        const sectionsFormArray = (this.formGroup.get('definition').get('sections') as FormArray);
+		sectionsFormArray.controls.forEach((section, index) => {
+			section.get('ordinal').setValue(index + 1);
+		});
+    }
 
 
 	//
@@ -350,70 +407,96 @@ export class PlanBlueprintEditorComponent extends BaseEditor<PlanBlueprintEditor
 	//
 	//
 
-	addField(sectionIndex: number) {
-		((this.formGroup.get('definition').get('sections') as FormArray).at(sectionIndex).get('fields') as FormArray)
-			.push(this.editorModel.createChildField(sectionIndex, ((this.formGroup.get('definition').get('sections') as FormArray).at(sectionIndex).get('fields') as FormArray).length));
+	addField(section: number, fieldIndex?: number) {
+        const sectionFields = (this.formGroup.get('definition').get('sections') as FormArray).at(section).get('fields') as FormArray;
+        const newField = this.editorModel.createChildField(this._destroyed, section, ((this.formGroup.get('definition').get('sections') as FormArray).at(section).get('fields') as FormArray).length);
+        const newIndex = fieldIndex != null ? fieldIndex : sectionFields.length
+        if(newIndex < sectionFields.length){
+            sectionFields.controls.splice(newIndex, 0, newField);
+            this.reapplyFieldOrdinals(section);
+        }else {
+            sectionFields.push(newField);
+        }
+        sectionFields.markAsDirty();
+        setTimeout(() => {
+            this.changeStep({section, field: newIndex})
+        });
 	}
 
-	removeField(sectionIndex: number, fieldIndex: number): void {
-		const formArray = ((this.formGroup.get('definition').get('sections') as FormArray).at(sectionIndex).get('fields') as FormArray);
-		formArray.removeAt(fieldIndex);
-		formArray.controls.forEach((section, index) => {
-			section.get('ordinal').setValue(index + 1);
-		});
-
-		//Reapply validators
-		PlanBlueprintEditorModel.reApplySectionValidators(
-			{
-				formGroup: this.formGroup,
-				validationErrorModel: this.editorModel.validationErrorModel
+	removeField(params:{section: number, field: number}): void {
+        const dialogRef = this.dialog.open(ConfirmationDialogComponent, {
+			restoreFocus: false,
+			data: {
+				message: this.language.instant('GENERAL.CONFIRMATION-DIALOG.DELETE-ITEM'),
+				confirmButton: this.language.instant('GENERAL.CONFIRMATION-DIALOG.ACTIONS.CONFIRM'),
+				cancelButton: this.language.instant('GENERAL.CONFIRMATION-DIALOG.ACTIONS.CANCEL'),
+				isDeleteConfirmation: true
 			}
-		);
-		(this.formGroup.get('definition').get('sections') as FormArray).at(sectionIndex).get('fields').markAsDirty();
+		});
+		dialogRef.afterClosed().pipe(takeUntil(this._destroyed)).subscribe(result => {
+			if (result) {
+                const {section, field} = params
+                const formArray = ((this.formGroup.get('definition').get('sections') as FormArray).at(section).get('fields') as FormArray);
+                formArray.removeAt(field);
+                formArray.controls.forEach((section, index) => {
+                    section.get('ordinal').setValue(index + 1);
+                });
+        
+                //Reapply validators
+                PlanBlueprintEditorModel.reApplySectionValidators(
+                    {
+                        formGroup: this.formGroup,
+                        validationErrorModel: this.editorModel.validationErrorModel
+                    }
+                );
+                (this.formGroup.get('definition').get('sections') as FormArray).at(section).get('fields').markAsDirty();
+			}
+		});
 	}
 
-	systemFieldDisabled(systemField: PlanBlueprintSystemFieldType) {
-		return (this.formGroup.get('definition').get('sections') as FormArray)?.controls.some(x => (x.get('fields') as FormArray).controls.some(y => (y as UntypedFormGroup).get('systemFieldType')?.value === systemField));
-	}
+    // systemFieldDisabled(systemField: PlanBlueprintSystemFieldType) {
+	// 	return (this.formGroup.get('definition').get('sections') as FormArray)?.controls.some(x => (x.get('fields') as FormArray).controls.some(y => (y as UntypedFormGroup).get('systemFieldType')?.value === systemField));
+	// }
+
+    get disabledSystemFields(): Set<PlanBlueprintSystemFieldType>{
+        const sectionSystemFields = this.formGroup.controls.definition.controls.sections.controls
+            .map((x) => x.controls.fields?.value?.filter((x) => x.category === PlanBlueprintFieldCategory.System)?.map((x) => x.systemFieldType as PlanBlueprintSystemFieldType) ?? []);
+        return new Set(sectionSystemFields?.reduce((a,b) => [...a, ...b])?.filter((x) => x != null && x != undefined) ?? [])
+    }
 
 	fieldCategoryChanged(sectionIndex: number, fieldIndex: number) {
 		//Reapply validators
-		PlanBlueprintEditorModel.reApplySectionValidators(
-			{
-				formGroup: this.formGroup,
-				validationErrorModel: this.editorModel.validationErrorModel
-			}
-		);
+		// PlanBlueprintEditorModel.reApplySectionValidators(
+		// 	{
+		// 		formGroup: this.formGroup,
+		// 		validationErrorModel: this.editorModel.validationErrorModel
+		// 	}
+		// );
 		(this.formGroup.get('definition').get('sections') as FormArray).at(sectionIndex).get('fields').markAsDirty();
 	}
 
-	get alwaysRequiredSystemFieldTypes(): PlanBlueprintSystemFieldType[] {
-		return FieldInSectionEditorModel.alwaysRequiredSystemFieldTypes;
-	}
 
-
-	dropFields(event: CdkDragDrop<string[]>, sectionIndex: number) {
+	dropFields(params: {event: CdkDragDrop<string[]>, sectionIndex: number}) {
+        const {event, sectionIndex} = params;
 		const fieldsFormArray = ((this.formGroup.get('definition').get('sections') as FormArray).at(sectionIndex).get('fields') as FormArray);
-
 		moveItemInArray(fieldsFormArray.controls, event.previousIndex, event.currentIndex);
-		fieldsFormArray.updateValueAndValidity();
-		fieldsFormArray.controls.forEach((section, index) => {
-			section.get('ordinal').setValue(index + 1);
-		});
-
-		PlanBlueprintEditorModel.reApplySectionValidators({
+        fieldsFormArray.updateValueAndValidity();
+        this.reapplyFieldOrdinals(sectionIndex);
+        PlanBlueprintEditorModel.reApplySectionValidators({
 			formGroup: this.formGroup,
 			validationErrorModel: this.editorModel.validationErrorModel
-		}
-		);
-		(this.formGroup.get('definition').get('sections') as FormArray).at(sectionIndex).get('fields').markAsDirty();
+		});
+        (this.formGroup.get('definition').get('sections') as FormArray).at(sectionIndex).get('fields').markAsDirty();
+        this.changeStep({section: sectionIndex, field: event.currentIndex});
+        this.reorderingMode.set(false);
 	}
 
-	isMandatorySystemField(field: FieldInSectionEditorModel): boolean {
-		return field != null &&
-			field.category == this.planBlueprintSectionFieldCategory.System &&
-			this.alwaysRequiredSystemFieldTypes.includes(field.systemFieldType);
-	}
+    reapplyFieldOrdinals(sectionIndex: number){
+        const fieldsFormArray = ((this.formGroup.get('definition').get('sections') as FormArray).at(sectionIndex).get('fields') as FormArray);
+        fieldsFormArray.controls.forEach((field, index) => {
+			field.get('ordinal').setValue(index + 1);
+		});
+    }
 
 	//Description Templates
 
@@ -464,15 +547,30 @@ export class PlanBlueprintEditorComponent extends BaseEditor<PlanBlueprintEditor
 		if (!this.descriptionTemplateGroupIdsConfigBySection.has(sectionId)) this.descriptionTemplateGroupIdsConfigBySection.set(sectionId, this.getdescriptionTemplateGroupSingleAutocompleteConfiguration(sectionId));
 	}
 
+
+    private descriptionTemplateMap = new Map<Guid, DescriptionTemplate>([]);
 	public getdescriptionTemplateGroupSingleAutocompleteConfiguration(sectionId: Guid): SingleAutoCompleteConfiguration {
 		return {
-			initialItems: (data?: any) => this.descriptionTemplateService.query(this.descriptionTemplateService.buildDescriptionTempalteGroupAutocompleteLookup([IsActive.Active], null, null, null, this.getUsedDescriptionTemplateGroupIds(sectionId))).pipe(map(x => x.items)),
-			filterFn: (searchQuery: string, data?: any) => this.descriptionTemplateService.query(this.descriptionTemplateService.buildDescriptionTempalteGroupAutocompleteLookup([IsActive.Active], searchQuery, null, null, this.getUsedDescriptionTemplateGroupIds(sectionId) ? this.getUsedDescriptionTemplateGroupIds(sectionId) : null)).pipe(map(x => x.items)),
-			getSelectedItem: (selectedItem: any) => this.descriptionTemplateService.query(this.descriptionTemplateService.buildDescriptionTempalteGroupAutocompleteLookup([IsActive.Active, IsActive.Inactive], null, null, [selectedItem])).pipe(map(x => x.items[0])),
+			initialItems: (data?: any) => this.descriptionTemplateService.query(this.descriptionTemplateService.buildDescriptionTemplateGroupAutocompleteLookup({
+                isActive: [IsActive.Active], 
+                excludedGroupIds: this.getUsedDescriptionTemplateGroupIds(sectionId)
+            })).pipe(map(x => x.items)),
+			filterFn: (searchQuery: string, data?: any) => this.descriptionTemplateService.query(this.descriptionTemplateService.buildDescriptionTemplateGroupAutocompleteLookup({
+                isActive: [IsActive.Active], 
+                like: searchQuery, 
+                excludedGroupIds: this.getUsedDescriptionTemplateGroupIds(sectionId) ? this.getUsedDescriptionTemplateGroupIds(sectionId) : null
+            })).pipe(map(x => x.items)),
+			getSelectedItem: (selectedItem: any) => this.descriptionTemplateService.query(this.descriptionTemplateService.buildDescriptionTemplateGroupAutocompleteLookup({
+                isActive: [IsActive.Active, IsActive.Inactive], 
+                groupIds: [selectedItem]
+            })).pipe(map(x => x.items[0])),
 			displayFn: (item: DescriptionTemplate) => item.label,
 			titleFn: (item: DescriptionTemplate) => item.label,
 			subtitleFn: (item: DescriptionTemplate) => item.description,
-			valueAssign: (item: DescriptionTemplate) => item.groupId,
+			valueAssign: (item: DescriptionTemplate) => { 
+                this.descriptionTemplateMap.set(item.groupId, item);
+                return item.groupId;
+            },
 			popupItemActionIcon: 'visibility'
 		};
 	}
@@ -558,7 +656,7 @@ export class PlanBlueprintEditorComponent extends BaseEditor<PlanBlueprintEditor
 
 	onPreviewDescriptionTemplate(event: DescriptionTemplate, sectionIndex: number, descriptionTemplateIndex: number) {
 		const dialogRef = this.dialog.open(DescriptionTemplatePreviewDialogComponent, {
-			width: '590px',
+			width: 'min(800px, 95vw)',
 			minHeight: '200px',
 			restoreFocus: false,
 			data: {
@@ -566,9 +664,9 @@ export class PlanBlueprintEditorComponent extends BaseEditor<PlanBlueprintEditor
 			},
 			panelClass: 'custom-modalbox'
 		});
-		dialogRef.afterClosed().pipe(takeUntil(this._destroyed)).subscribe(groupId => {
-			if (groupId) {
-				((this.formGroup.get('definition').get('sections') as UntypedFormArray).at(sectionIndex).get('descriptionTemplates') as UntypedFormArray).at(descriptionTemplateIndex).get('descriptionTemplateGroupId').patchValue(groupId);
+		dialogRef.afterClosed().pipe(takeUntil(this._destroyed)).subscribe(descTemplate => {
+			if (descTemplate) {
+				((this.formGroup.get('definition').get('sections') as UntypedFormArray).at(sectionIndex).get('descriptionTemplates') as UntypedFormArray).at(descriptionTemplateIndex).get('descriptionTemplateGroupId').patchValue(descTemplate.groupId);
 			}
 		});
 	}
@@ -601,27 +699,27 @@ export class PlanBlueprintEditorComponent extends BaseEditor<PlanBlueprintEditor
 	}
 
 	hasTitle(): boolean {
-		const planBlueprint: PlanBlueprintPersist = this.formGroup.value;
+		const planBlueprint = this.formGroup.value as PlanBlueprintPersist;
 		return planBlueprint.definition.sections.some(section => section.fields.some(field => (field.category == PlanBlueprintFieldCategory.System) && (field as SystemFieldInSection).systemFieldType === PlanBlueprintSystemFieldType.Title));
 	}
 
 	hasDescription(): boolean {
-		const planBlueprint: PlanBlueprintPersist = this.formGroup.value;
+		const planBlueprint = this.formGroup.value as PlanBlueprintPersist;
 		return planBlueprint.definition.sections.some(section => section.fields.some(field => (field.category == PlanBlueprintFieldCategory.System) && (field as SystemFieldInSection).systemFieldType === PlanBlueprintSystemFieldType.Description));
 	}
 
 	hasLanguage(): boolean {
-		const planBlueprint: PlanBlueprintPersist = this.formGroup.value;
+		const planBlueprint = this.formGroup.value as PlanBlueprintPersist;
 		return planBlueprint.definition.sections.some(section => section.fields.some(field => (field.category == PlanBlueprintFieldCategory.System) && (field as SystemFieldInSection).systemFieldType === PlanBlueprintSystemFieldType.Language));
 	}
 
 	hasAccess(): boolean {
-		const planBlueprint: PlanBlueprintPersist = this.formGroup.value;
+		const planBlueprint = this.formGroup.value as PlanBlueprintPersist;
 		return planBlueprint.definition.sections.some(section => section.fields.some(field => (field.category == PlanBlueprintFieldCategory.System) && (field as SystemFieldInSection).systemFieldType === PlanBlueprintSystemFieldType.AccessRights));
 	}
 
 	hasDescriptionTemplates(): boolean {
-		const planBlueprint: PlanBlueprintPersist = this.formGroup.value;
+		const planBlueprint = this.formGroup.value as PlanBlueprintPersist;
 		return planBlueprint.definition.sections.some(section => section.hasTemplates == true);
 	}
 
@@ -629,7 +727,6 @@ export class PlanBlueprintEditorComponent extends BaseEditor<PlanBlueprintEditor
 
 		const dialogRef = this.dialog.open(FormValidationErrorsDialogComponent, {
 			disableClose: true,
-			autoFocus: false,
 			restoreFocus: false,
 			data: {
 				errorMessages: errmess,
@@ -663,5 +760,58 @@ export class PlanBlueprintEditorComponent extends BaseEditor<PlanBlueprintEditor
 				FileSaver.saveAs(blob, filename);
 			},
 				error => this.httpErrorHandlingService.handleBackedRequestError(error));
+	}
+
+    finalPreviewFormGroup: FormGroup<PlanEditorForm>;
+    finalPreviewBlueprint: PlanBlueprint;
+
+    onMatStepperSelectionChange(event: StepperSelectionEvent) {
+        if (event.selectedIndex === (this.stepper?.steps.length - 1)) {//preview selected
+            const formData = this.formGroup.getRawValue();
+			this.finalPreviewBlueprint = {
+                ...formData,
+                version: 0,
+                groupId: null,
+                definition: {
+                    sections: formData.definition.sections.map((section) => { return {
+                        ...section,
+                        prefillingSources: [],
+						descriptionTemplates: section.descriptionTemplates?.map((item) => { return {
+                                descriptionTemplate: this.descriptionTemplateMap.get(item.descriptionTemplateGroupId),
+                                maxMultiplicity: item.maxMultiplicity,
+                                minMultiplicity: item.minMultiplicity
+                            }
+                        }) ?? [],
+                        fields: section.fields.map((field) => { return {
+                            id: field.id,
+                            category: field.category,
+                            label: field.label,
+                            placeholder: field.placeholder,
+                            description: field.description,
+                            semantics: field.semantics,
+                            required: field.required,
+                            ordinal: field.ordinal,
+                            systemFieldType: field.systemFieldType,
+                            dataType: field.dataType,
+                            referenceType: field.referenceTypeId ? this.referenceTypeMap.get(field.referenceTypeId) : null,
+                            multipleSelect: field.multipleSelect,
+                        }})
+                    }})
+                }
+            };
+            let finalPreviewPlan: Plan = {
+                blueprint: this.finalPreviewBlueprint
+            }
+            this.previewEditorModel = new PlanEditorModel();
+            this.finalPreviewFormGroup = this.previewEditorModel.fromModel(finalPreviewPlan).buildForm();
+		}
+    }
+
+    protected referenceTypeMap = new Map<Guid, ReferenceType>([]);
+
+    protected enableReordering($event: MouseEvent): void {
+		this.reorderingMode.set(true);
+        this.selectedField = null; //deselect field
+        $event.stopPropagation();
 	}
 }

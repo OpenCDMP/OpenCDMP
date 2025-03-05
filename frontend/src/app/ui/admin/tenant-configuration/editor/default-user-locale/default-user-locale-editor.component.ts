@@ -29,10 +29,11 @@ import { DefaultUserLocaleEditorService } from './default-user-locale-editor.ser
 
 
 @Component({
-	selector: 'app-tenant-configuration-default-user-locale-editor',
-	templateUrl: 'default-user-locale-editor.component.html',
-	styleUrls: ['./default-user-locale-editor.component.scss'],
-	providers: [DefaultUserLocaleEditorService]
+    selector: 'app-tenant-configuration-default-user-locale-editor',
+    templateUrl: 'default-user-locale-editor.component.html',
+    styleUrls: ['./default-user-locale-editor.component.scss'],
+    providers: [DefaultUserLocaleEditorService],
+    standalone: false
 })
 export class DefaultUserLocaleEditorComponent extends BasePendingChangesComponent implements OnInit {
 
@@ -102,7 +103,7 @@ export class DefaultUserLocaleEditorComponent extends BasePendingChangesComponen
 	}
 
 	getItem(successFunction: (item: TenantConfiguration) => void) {
-		this.tenantConfigurationService.getCurrentTenantType(TenantConfigurationType.DefaultUserLocale, DefaultUserLocaleEditorResolver.lookupFields())
+		this.tenantConfigurationService.getType(TenantConfigurationType.DefaultUserLocale, DefaultUserLocaleEditorResolver.lookupFields())
 			.pipe(map(data => data as TenantConfiguration), takeUntil(this._destroyed))
 			.subscribe(
 				data => successFunction(data),

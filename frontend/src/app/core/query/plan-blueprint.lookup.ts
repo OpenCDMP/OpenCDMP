@@ -7,6 +7,7 @@ import { PlanBlueprintVersionStatus } from '../common/enum/plan-blueprint-versio
 export class PlanBlueprintLookup extends Lookup implements PlanBlueprintFilter {
 	ids: Guid[];
 	excludedIds: Guid[];
+	excludedGroupIds: Guid[];
 	like: string;
 	isActive: IsActive[];
 	statuses: PlanBlueprintStatus[];

@@ -1,25 +1,25 @@
 <div class="profile">
 	<div class="container-fluid">
-		<div *ngIf="user | async  as userProfile; else loading" class="user-profile">
+		<div *ngIf="user | async  as userProfile" class="user-profile">
 			<div class="row user-profile-title">
-				<div class="col mb-2">
+				<div class="col title mb-2">
 					{{'USER-DIALOG.USER-PROFILE' | translate}}
 				</div>
 
-				<div *ngIf="tenantFormGroup" class="col-auto mr-5">
+				<div *ngIf="tenantFormGroup" class="col-auto tenant-selection">
 					<div class="row">
 						<div class="col">
 							<mat-form-field class="w-100">
 								<mat-label>Tenant</mat-label>
-								<mat-select placeholder="Tenant" [formControl]="this.tenantFormGroup.get('tenantCode')">
+								<mat-select placeholder="Tenant" [formControl]="tenantFormGroup.get('tenantCode')">
 									<ng-container *ngFor="let tenant of tenants | async">
 										<mat-option [value]="tenant.code">{{ tenant.name }}</mat-option>
 									</ng-container>
 								</mat-select>
 							</mat-form-field>
 						</div>
-						<div class="col-12 col-lg-auto mt-1">
-							<button mat-mini-fab (click)="switchTenant()">
+						<div class="col mt-1">
+							<button mat-mini-fab (click)="switchTenant()" [matTooltip]="'USER-PROFILE.ACTIONS.REFRESH-TENANT' | translate" [attr.aria-label]="'USER-PROFILE.ACTIONS.REFRESH-TENANT' | translate">
 								<mat-icon class="mat-mini-fab-icon">refresh</mat-icon>
 							</button>
 						</div>
@@ -27,10 +27,11 @@
 				</div>
 			</div>
 			<div class="row profile-content" [formGroup]="formGroup">
-				<div class="col">
+                <div class="col">
+                    <small class="row mb-4">{{'COMMONS.VALIDATION.REQUIRED-FIELDS-HINT' | translate}}</small>
 					<div class="row mb-4">
 						<div class="col-auto">
-							<img mat-card-avatar class="avatar" [src]="userProfile.avatarUrl" (error)="applyFallbackAvatar($event)">
+							<img mat-card-avatar class="avatar" [src]="userProfile.avatarUrl" (error)="applyFallbackAvatar($event)" alt="{{('ALT-TEXT.USER-AVATAR' | translate) ?? 'user avatar'}}">
 						</div>
 						<div class="col-auto d-flex flex-column justify-content-center main-info">
 							<div class="name">{{formGroup.get('name').value}}</div>
@@ -40,13 +41,15 @@
 					<div class="row mb-5">
 						<div class="col">
 							<div class="row">
-								<div class="col-auto mb-1 field-title">{{'USER-PROFILE.SETTINGS.NAME' | translate}} *</div>
+								<label class="col-auto mb-1 field-title" for="nameInput">{{'USER-PROFILE.SETTINGS.NAME' | translate}} *
+                                </label>
 							</div>
 							<div class="row">
 								<div class="col name-form">
 									<mat-form-field>
-										<input matInput type="text" name="name" placeholder="{{'USER-PROFILE.SETTINGS.NAME' | translate}}" [formControl]="formGroup.get('name')" required>
-										<mat-error *ngIf="formGroup.get('name').hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
+										<input id="nameInput" matInput type="text" name="name" placeholder="{{'USER-PROFILE.SETTINGS.NAME' | translate}}" [formControl]="formGroup.get('name')" required>
+                                        <mat-error *ngIf="formGroup.get('name').hasError('backendError')">{{formGroup.get('name').getError('backendError').message}}</mat-error>
+                                        <mat-error *ngIf="formGroup.get('name').hasError('required')">{{'COMMONS.VALIDATION.REQUIRED' | translate}}</mat-error>
 									</mat-form-field>
 								</div>
 							</div>
@@ -91,12 +94,12 @@
 					<div class="row mb-5">
 						<div class="col-12 col-lg-6">
 							<div class="row">
-								<div class="col-auto mb-1 field-title">{{'USER-PROFILE.SETTINGS.ORGANIZATION' | translate}}</div>
+								<label for="organizationInput" class="col-auto mb-1 field-title">{{'USER-PROFILE.SETTINGS.ORGANIZATION' | translate}}</label>
 							</div>
 							<div class="row">
 								<div class="col organization-form">
 									<mat-form-field class="w-100">
-										<app-single-auto-complete placeholder="{{'PLAN-EDITOR.PLACEHOLDER.ORGANIZATION' | translate}}" [formControl]="this.formGroup.get('additionalInfo').get('organization')" [configuration]="organisationsSingleAutoCompleteConfiguration"></app-single-auto-complete>
+										<app-single-auto-complete [id]="'organizationInput'" placeholder="{{'PLAN-EDITOR.PLACEHOLDER.ORGANIZATION' | translate}}" [formControl]="formGroup.get('additionalInfo').get('organization')" [configuration]="organisationsSingleAutoCompleteConfiguration"></app-single-auto-complete>
 									</mat-form-field>
 								</div>
 							</div>
@@ -104,12 +107,12 @@
 						<!-- Role -->
 						<div class="col-12 col-lg-6">
 							<div class="row">
-								<div class="col-auto mb-1 field-title">{{'USER-PROFILE.SETTINGS.ROLE' | translate}}</div>
+								<label [appFor]="'roleInput'" class="col-auto mb-1 field-title">{{'USER-PROFILE.SETTINGS.ROLE' | translate}}</label>
 							</div>
 							<div class="row">
 								<div class="col role-form">
 									<mat-form-field class="w-100">
-										<mat-select placeholder="{{'USER-PROFILE.SETTINGS.SELECT-ROLE' | translate}}" [formControl]="this.formGroup.get('additionalInfo').get('roleOrganization')">
+										<mat-select id="roleInput" placeholder="{{'USER-PROFILE.SETTINGS.SELECT-ROLE' | translate}}" [formControl]="formGroup.get('additionalInfo').get('roleOrganization')">
 											<mat-option [value]="roleOrganizationEnum.Faculty">{{enumUtils.toRoleOrganizationString(roleOrganizationEnum.Faculty)}}</mat-option>
 											<mat-option [value]="roleOrganizationEnum.Librarian">{{enumUtils.toRoleOrganizationString(roleOrganizationEnum.Librarian)}}</mat-option>
 											<mat-option [value]="roleOrganizationEnum.Researcher">{{enumUtils.toRoleOrganizationString(roleOrganizationEnum.Researcher)}}</mat-option>
@@ -134,14 +137,15 @@
 					<div class="row mb-5">
 						<div class="col-12 col-lg-4">
 							<div class="row">
-								<div class="col-auto mb-1 field-title">{{'USER-PROFILE.SETTINGS.TIMEZONE' | translate}} *</div>
+								<label for="timeZoneInput" class="col-auto mb-1 field-title">{{'USER-PROFILE.SETTINGS.TIMEZONE' | translate}} *
+                                </label>
 							</div>
 							<div class="row">
 								<div class="col timezone-form">
 									<mat-form-field class="w-100">
-										<input matInput autocomplete="off" placeholder="{{'USER-PROFILE.SETTINGS.TIMEZONE' | translate}}" [matAutocomplete]="timezoneAuto" type="text" name="timezone" [formControl]="formGroup.get('additionalInfo').get('timezone')">
+										<input id="timeZoneInput" matInput autocomplete="off" placeholder="{{'USER-PROFILE.SETTINGS.TIMEZONE' | translate}}" [matAutocomplete]="timezoneAuto" type="text" name="timezone" [formControl]="formGroup.get('additionalInfo').get('timezone')" required>
 										<mat-error *ngIf="formGroup.get('additionalInfo').get('timezone').hasError('backendError')">{{formGroup.get('additionalInfo').get('timezone').getError('backendError').message}}</mat-error>
-										<mat-error *ngIf="formGroup.get('additionalInfo').get('timezone').hasError('required')">{{'COMMONS.VALIDATION.REQUIRED' | translate}}</mat-error>
+                                        <mat-error *ngIf="formGroup.get('additionalInfo').get('timezone').hasError('required')">{{'COMMONS.VALIDATION.REQUIRED' | translate}}</mat-error>
 										<mat-autocomplete autoActiveFirstOption #timezoneAuto="matAutocomplete">
 											<mat-option *ngFor="let timezone of filteredTimezones" [value]="timezone">{{timezone | timezoneInfoDisplay}}</mat-option>
 										</mat-autocomplete>
@@ -152,12 +156,13 @@
 						<!-- Culture -->
 						<div class="col-12 col-lg-4">
 							<div class="row">
-								<div class="col-auto mb-1 field-title">{{'USER-PROFILE.SETTINGS.CULTURE' | translate}} *</div>
+								<label for="cultureInput" class="col-auto mb-1 field-title">{{'USER-PROFILE.SETTINGS.CULTURE' | translate}} *
+                                </label>
 							</div>
 							<div class="row">
 								<div class="col culture-form">
 									<mat-form-field class="w-100">
-										<input matInput autocomplete="off" placeholder="{{'USER-PROFILE.SETTINGS.CULTURE' | translate}}" [matAutocomplete]="cultureAuto" type="text" name="culture" [formControl]="formGroup.get('additionalInfo').get('culture')">
+										<input id="cultureInput" matInput autocomplete="off" placeholder="{{'USER-PROFILE.SETTINGS.CULTURE' | translate}}" [matAutocomplete]="cultureAuto" type="text" name="culture" [formControl]="formGroup.get('additionalInfo').get('culture')" required>
 										<mat-error *ngIf="formGroup.get('additionalInfo').get('culture').hasError('backendError')">{{formGroup.get('additionalInfo').get('culture').getError('backendError').message}}</mat-error>
 										<mat-error *ngIf="formGroup.get('additionalInfo').get('culture').hasError('required')">{{'COMMONS.VALIDATION.REQUIRED' | translate}}</mat-error>
 										<mat-autocomplete autoActiveFirstOption #cultureAuto="matAutocomplete" [displayWith]="displayCultureFn.bind(this)">
@@ -170,50 +175,47 @@
 						<!-- Language -->
 						<div class="col-12 col-lg-4">
 							<div class="row">
-								<div class="col-auto mb-1 field-title">{{'USER-PROFILE.SETTINGS.LANGUAGE' | translate}} *</div>
+								<label [appFor]="'languageInput'" class="col-auto mb-1 field-title">{{'USER-PROFILE.SETTINGS.LANGUAGE' | translate}} *
+                                </label>
 							</div>
 							<div class="row">
 								<div class="col language-form">
 
 									<mat-form-field class="w-100">
-										<mat-select [formControl]="this.formGroup.get('additionalInfo').get('language')" name="language">
+										<mat-select id="languageInput" [formControl]="formGroup.get('additionalInfo').get('language')" name="language" required>
 											<mat-option *ngFor="let language of languages" [value]="language">
 												{{ "GENERAL.LANGUAGES."+ language | translate }}
 											</mat-option>
 										</mat-select>
-										<mat-error *ngIf="this.formGroup.get('additionalInfo').get('language').hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
+										<mat-error *ngIf="formGroup.get('additionalInfo').get('language').hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
+                                        <mat-error *ngIf="formGroup.get('additionalInfo').get('language').hasError('backendError')">{{formGroup.get('additionalInfo').get('language').getError('backendError').message}}</mat-error>
+
 									</mat-form-field>
 								</div>
 							</div>
 						</div>
 					</div>
 					<div class="row d-flex mb-5">
-						<div class="col-auto ml-auto"><button mat-button class="rounded-btn primary" type="button" (click)="save()">{{'USER-PROFILE.ACTIONS.SAVE' | translate}}</button></div>
+						<div class="col-auto ml-auto"><button mat-flat-button color="primary" class="padded-shadow-btn" type="button" (click)="save()">{{'USER-PROFILE.ACTIONS.SAVE' | translate}}</button></div>
 					</div>
-					<div class="row mb-5">
-						<div class="col-12">
-							<mat-accordion class="w-100">
-								<mat-expansion-panel (opened)="expandPreferences()">
-									<mat-expansion-panel-header>
-										<mat-panel-title>
-											<span>{{ 'NOTIFICATION-SERVICE.USER-PROFILE.TITLE' | translate}}</span>
-										</mat-panel-title>
-									</mat-expansion-panel-header>
-									<div class="row">
-										<div class="col-12">
-											<ng-container *ngIf="expandedPreferences">
-												<app-user-profile-notifier-list-editor></app-user-profile-notifier-list-editor>
-											</ng-container>
-										</div>
-									</div>
-								</mat-expansion-panel>
-							</mat-accordion>
-						</div>
-					</div>
+                    <mat-accordion class="w-100 mb-5 ml-1 mr-1" tabindex="0">
+                        <mat-expansion-panel (opened)="expandPreferences()">
+                            <mat-expansion-panel-header>
+                                <mat-panel-title>
+                                    <span>{{ 'NOTIFICATION-SERVICE.USER-PROFILE.TITLE' | translate}}</span>
+                                </mat-panel-title>
+                            </mat-expansion-panel-header>
+                            <div class="row">
+                                <div class="col-12">
+                                    <ng-container *ngIf="expandedPreferences">
+                                        <app-user-profile-notifier-list-editor></app-user-profile-notifier-list-editor>
+                                    </ng-container>
+                                </div>
+                            </div>
+                        </mat-expansion-panel>
+                    </mat-accordion>
 				</div>
 			</div>
 		</div>
-		<ng-template #loading>
-		</ng-template>
 	</div>
 </div>

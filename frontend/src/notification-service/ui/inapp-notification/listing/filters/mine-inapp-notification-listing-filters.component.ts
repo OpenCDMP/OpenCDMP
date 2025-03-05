@@ -5,10 +5,12 @@ import { InAppNotificationFilter } from '@notification-service/core/query/inapp-
 import { nameof } from 'ts-simple-nameof';
 import { NotificationInAppTracking } from '@notification-service/core/enum/notification-inapp-tracking.enum';
 import { NotificationType } from '@notification-service/core/enum/notification-type.enum';
+import { FormControl, FormGroup } from '@angular/forms';
 @Component({
-	selector: 'app-mine-inapp-notification-listing-filters',
-	templateUrl: './mine-inapp-notification-listing-filters.component.html',
-	styleUrls: ['./mine-inapp-notification-listing-filters.component.scss']
+    selector: 'app-mine-inapp-notification-listing-filters',
+    templateUrl: './mine-inapp-notification-listing-filters.component.html',
+    styleUrls: ['./mine-inapp-notification-listing-filters.component.scss'],
+    standalone: false
 })
 export class MineInAppNotificationListingFiltersComponent extends BaseComponent implements OnInit, OnChanges {
 
@@ -19,11 +21,16 @@ export class MineInAppNotificationListingFiltersComponent extends BaseComponent 
 	notificationTypeEnumValues = this.enumUtils.getEnumValues<NotificationType>(NotificationType);
 
 	// * State
-	internalFilters: InAppNotificationListingFilters = this._getEmptyFilters();
+	internalFilters: FormGroup<InAppNotificationListingFilters> = new FormGroup({
+        like: new FormControl(null),
+        trackingState: new FormControl(null),
+        type: new FormControl(null)
+    })
+    
 
 	protected appliedFilterCount: number = 0;
 	constructor(
-		public enumUtils: NotificationServiceEnumUtils,
+		public enumUtils: NotificationServiceEnumUtils
 	) { super(); }
 
 	ngOnInit() {
@@ -43,56 +50,68 @@ export class MineInAppNotificationListingFiltersComponent extends BaseComponent 
 
 
 	protected updateFilters(): void {
-		this.internalFilters = this._parseToInternalFilters(this.filter);
+		this._parseToInternalFilters(this.filter);
 		this.appliedFilterCount = this._computeAppliedFilters(this.internalFilters);
 	}
 
 	protected applyFilters(): void {
-		const { like, trackingState, type } = this.internalFilters ?? {}
+		const { like, trackingState, type } = this.internalFilters?.value ?? {}
 		this.filterChange.emit({
 			...this.filter,
 			like,
 			trackingState,
 			type
-		})
+		});
+        this.internalFilters.markAsPristine();
 	}
 
 
-	private _parseToInternalFilters(inputFilter: InAppNotificationFilter): InAppNotificationListingFilters {
+	private _parseToInternalFilters(inputFilter: InAppNotificationFilter) {
 		if (!inputFilter) {
-			return this._getEmptyFilters();
+			this._getEmptyFilters();
 		}
 
 		let { like, trackingState, type } = inputFilter;
 
-		return {
-			like: like,
-			trackingState: trackingState,
-			type: type
-		}
+		this.internalFilters.setValue({
+			like: like ?? null,
+			trackingState: trackingState ?? null,
+			type: type ?? null
+		});
 
 	}
 
-	private _getEmptyFilters(): InAppNotificationListingFilters {
-		return {
+	private _getEmptyFilters() {
+		this.internalFilters.setValue({
 			like: null,
 			trackingState: null,
 			type: null
-		}
+		});
 	}
 
-	private _computeAppliedFilters(filters: InAppNotificationListingFilters): number {
-		let count = 0;
-		return count;
+	private _computeAppliedFilters(formGroup: FormGroup<InAppNotificationListingFilters>): number {
+		const filters = formGroup?.value;
+        let count = 0;
+        if(filters?.like){
+            count++;
+        }
+        if(filters?.trackingState?.length){
+            count++;
+        }
+        if(filters?.type?.length){
+            count++;
+        }
+        return count;
 	}
 
 	clearFilters() {
-		this.internalFilters = this._getEmptyFilters();
+		this._getEmptyFilters();
+        this.internalFilters.markAsDirty();
 	}
 }
 
 interface InAppNotificationListingFilters {
-	like: string;
-	trackingState: NotificationInAppTracking[];
-	type: NotificationType[];
+	like: FormControl<string>;
+	trackingState: FormControl<NotificationInAppTracking[]>;
+	type: FormControl<NotificationType[]>;
 }

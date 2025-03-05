@@ -1,0 +1,17 @@
+<div class="p-3">
+    <app-navigation-breadcrumb />
+    <div class="p-2">
+        <div class="d-flex justify-content-between align-items-center pl-1 pr-1">
+            <h2>{{'GENERAL.TITLES.INDICATOR-DASHBOARD' | translate}}</h2>
+            <mat-button-toggle-group appearance="standard" hideSingleSelectionIndicator="true" [(ngModel)]="viewType" (change)="viewChange($event)">
+                <mat-button-toggle [value]="viewTypeEnum.List" [matTooltip]="'INDICATOR-DASHBOARD.LIST-VIEW' | translate" [attr.aria-label]="'INDICATOR-DASHBOARD.LIST-VIEW' | translate"><mat-icon aria-hidden>splitscreen</mat-icon></mat-button-toggle>
+                <mat-button-toggle [value]="viewTypeEnum.Grid" [matTooltip]="'INDICATOR-DASHBOARD.GRID-VIEW' | translate" [attr.aria-label]="'INDICATOR-DASHBOARD.GRID-VIEW' | translate"><mat-icon aria-hidden>window</mat-icon></mat-button-toggle>
+            </mat-button-toggle-group>
+        </div>
+        <div class="w-100 kpi-dashboard">
+            <kpi-dashboard
+              [indicatorQueryParams]="indicatorQueryParams"
+            ></kpi-dashboard>
+        </div>
+    </div>
+</div>

@@ -3,6 +3,7 @@ package org.opencdmp.service.planworkflow;
 import gr.cite.commons.web.authz.service.AuthorizationService;
 import gr.cite.tools.data.builder.BuilderFactory;
 import gr.cite.tools.data.deleter.DeleterFactory;
+import gr.cite.tools.data.query.QueryFactory;
 import gr.cite.tools.exception.MyApplicationException;
 import gr.cite.tools.exception.MyForbiddenException;
 import gr.cite.tools.exception.MyNotFoundException;
@@ -12,9 +13,11 @@ import gr.cite.tools.fieldset.FieldSet;
 import gr.cite.tools.logging.LoggerService;
 import gr.cite.tools.logging.MapLogEntry;
 import jakarta.xml.bind.JAXBException;
+import org.opencdmp.authorization.AuthorizationFlags;
 import org.opencdmp.authorization.Permission;
 import org.opencdmp.commons.XmlHandlingService;
 import org.opencdmp.commons.enums.IsActive;
+import org.opencdmp.commons.scope.tenant.TenantScope;
 import org.opencdmp.commons.types.planworkflow.PlanWorkflowDefinitionEntity;
 import org.opencdmp.commons.types.planworkflow.PlanWorkflowDefinitionTransitionEntity;
 import org.opencdmp.convention.ConventionService;
@@ -27,6 +30,7 @@ import org.opencdmp.model.persist.planworkflow.PlanWorkflowDefinitionPersist;
 import org.opencdmp.model.persist.planworkflow.PlanWorkflowDefinitionTransitionPersist;
 import org.opencdmp.model.persist.planworkflow.PlanWorkflowPersist;
 import org.opencdmp.model.planworkflow.PlanWorkflow;
+import org.opencdmp.query.PlanWorkflowQuery;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.MessageSource;
 import org.springframework.context.i18n.LocaleContextHolder;
@@ -51,7 +55,10 @@ public class PlanWorkflowServiceImpl implements PlanWorkflowService {
     private final DeleterFactory deleterFactory;
     private final MessageSource messageSource;
     private final ErrorThesaurusProperties errors;
-    public PlanWorkflowServiceImpl(AuthorizationService authorizationService, ConventionService conventionService, XmlHandlingService xmlHandlingService, TenantEntityManager entityManager, BuilderFactory builderFactory, DeleterFactory deleterFactory, MessageSource messageSource, ErrorThesaurusProperties errors) {
+    private final TenantScope tenantScope;
+    private final QueryFactory queryFactory;
+
+    public PlanWorkflowServiceImpl(AuthorizationService authorizationService, ConventionService conventionService, XmlHandlingService xmlHandlingService, TenantEntityManager entityManager, BuilderFactory builderFactory, DeleterFactory deleterFactory, MessageSource messageSource, ErrorThesaurusProperties errors, TenantScope tenantScope, QueryFactory queryFactory) {
         this.authorizationService = authorizationService;
         this.conventionService = conventionService;
         this.xmlHandlingService = xmlHandlingService;
@@ -60,6 +67,8 @@ public class PlanWorkflowServiceImpl implements PlanWorkflowService {
         this.deleterFactory = deleterFactory;
         this.messageSource = messageSource;
         this.errors = errors;
+        this.tenantScope = tenantScope;
+        this.queryFactory = queryFactory;
     }
 
     @Override
@@ -135,5 +144,27 @@ public class PlanWorkflowServiceImpl implements PlanWorkflowService {
         }
 
         return data;
+    }
+
+    @Override
+    public PlanWorkflowDefinitionEntity getActiveWorkFlowDefinition() throws InvalidApplicationException {
+
+        PlanWorkflowQuery query = this.queryFactory.query(PlanWorkflowQuery.class).disableTracking().authorize(AuthorizationFlags.AllExceptPublic).isActives(IsActive.Active);
+        if (this.tenantScope.isDefaultTenant()) query = query.tenantIsSet(false);
+        else query.tenantIsSet(true).tenantIds(this.tenantScope.getTenant());
+
+        PlanWorkflowEntity entity = query.first();
+
+        if (entity == null && !this.tenantScope.isDefaultTenant()) {
+            query.clearTenantIds().tenantIsSet(false);
+            entity = query.first();
+        }
+
+        if (entity == null) throw new MyApplicationException("Plan workflow not found!");
+
+        PlanWorkflowDefinitionEntity definition = this.xmlHandlingService.fromXmlSafe(PlanWorkflowDefinitionEntity.class, entity.getDefinition());
+        if (definition == null) throw new MyNotFoundException(this.messageSource.getMessage("General_ItemNotFound", new Object[]{entity.getId(), PlanWorkflowDefinitionEntity.class.getSimpleName()}, LocaleContextHolder.getLocale()));
+
+        return definition;
     }
 }

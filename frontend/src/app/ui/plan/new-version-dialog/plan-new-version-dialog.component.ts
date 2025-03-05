@@ -1,12 +1,12 @@
 import { Component, Inject } from '@angular/core';
 import { AbstractControl, FormArray, UntypedFormGroup } from '@angular/forms';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
-import { Plan, PlanDescriptionTemplate, NewVersionPlanDescriptionPersist, NewVersionPlanPersist } from '@app/core/model/plan/plan';
+import { Plan, NewVersionPlanDescriptionPersist, NewVersionPlanPersist } from '@app/core/model/plan/plan';
 import { PlanService } from '@app/core/services/plan/plan.service';
-import { SnackBarNotificationLevel, UiNotificationService } from '@app/core/services/notification/ui-notification-service';
+import { SnackBarNotificationLevel } from '@app/core/services/notification/ui-notification-service';
 import { BaseComponent } from '@common/base/base.component';
 import { TranslateService } from '@ngx-translate/core';
-import { map, takeUntil } from 'rxjs/operators';
+import { catchError, map, takeUntil, tap } from 'rxjs/operators';
 import { PlanNewVersionDialogEditorModel } from './plan-new-version-dialog.editor.model';
 import { PlanBlueprintService } from '@app/core/services/plan/plan-blueprint.service';
 import { PlanEditorEntityResolver } from '../plan-editor-blueprint/resolvers/plan-editor-enitity.resolver';
@@ -24,13 +24,18 @@ import { MatSelectionListChange } from '@angular/material/list';
 import { HttpErrorHandlingService } from '@common/modules/errors/error-handling/http-error-handling.service';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Description } from '@app/core/model/description/description';
+import { of } from 'rxjs';
+import { DescriptionTemplate } from '@app/core/model/description-template/description-template';
+import { DescriptionStatusEnum } from '@app/core/common/enum/description-status';
 
 @Component({
-	selector: 'app-plan-new-version-dialog',
-	templateUrl: './plan-new-version-dialog.component.html',
-	styleUrls: ['./plan-new-version-dialog.component.scss']
+    selector: 'app-plan-new-version-dialog',
+    templateUrl: './plan-new-version-dialog.component.html',
+    styleUrls: ['./plan-new-version-dialog.component.scss'],
+    standalone: false
 })
 export class NewVersionPlanDialogComponent extends BaseComponent {
+   
 
 	plan: Plan;
 	editorModel: PlanNewVersionDialogEditorModel;
@@ -62,7 +67,7 @@ export class NewVersionPlanDialogComponent extends BaseComponent {
 				[nameof<PlanBlueprint>(x => x.definition), nameof<PlanBlueprintDefinition>(x => x.sections), nameof<PlanBlueprintDefinitionSection>(x => x.id)].join('.'),
 				[nameof<PlanBlueprint>(x => x.definition), nameof<PlanBlueprintDefinition>(x => x.sections), nameof<PlanBlueprintDefinitionSection>(x => x.label)].join('.'),
 				[nameof<PlanBlueprint>(x => x.definition), nameof<PlanBlueprintDefinition>(x => x.sections), nameof<PlanBlueprintDefinitionSection>(x => x.hasTemplates)].join('.'),
-				[nameof<PlanBlueprint>(x => x.definition), nameof<PlanBlueprintDefinition>(x => x.sections), nameof<PlanBlueprintDefinitionSection>(x => x.descriptionTemplates), nameof<DescriptionTemplatesInSection>(x => x.descriptionTemplateGroupId)].join('.'),
+				[nameof<PlanBlueprint>(x => x.definition), nameof<PlanBlueprintDefinition>(x => x.sections), nameof<PlanBlueprintDefinitionSection>(x => x.descriptionTemplates), nameof<DescriptionTemplatesInSection>(x => x.descriptionTemplate), nameof<DescriptionTemplate>(x => x.groupId)].join('.'),
 			]
 		};
 		lookup.order = { items: [nameof<PlanBlueprint>(x => x.label)] };
@@ -71,11 +76,12 @@ export class NewVersionPlanDialogComponent extends BaseComponent {
 		return lookup;
 	}
 
+    IsActiveEnum = IsActive;
+	descriptionStatusEnum = DescriptionStatusEnum;
 	constructor(
 		public dialogRef: MatDialogRef<NewVersionPlanDialogComponent>,
 		private planService: PlanService,
 		public planBlueprintService: PlanBlueprintService,
-		private uiNotificationService: UiNotificationService,
 		private httpErrorHandlingService: HttpErrorHandlingService,
 		private language: TranslateService,
 		private filterService: FilterService,
@@ -181,17 +187,20 @@ export class NewVersionPlanDialogComponent extends BaseComponent {
 		this.dialogRef.close(null);
 	}
 
-	confirm() {
+	confirm = () => {
 		if (!this.formGroup.valid) { return; }
 		const formData = this.formService.getValue(this.formGroup.value) as NewVersionPlanPersist;
 		if (formData.descriptions.length > 0){
 			formData.descriptions = formData.descriptions.filter(x => x.blueprintSectionId != null)
 		}
-		this.planService.newVersion(formData, PlanEditorEntityResolver.lookupFields()).pipe(takeUntil(this._destroyed)).subscribe(
-			plan => this.dialogRef.close(plan),
-			error => this.onCallbackError(error)
-		);
-
+        return this.planService.newVersion(formData, PlanEditorEntityResolver.lookupFields())
+        .pipe(
+            takeUntil(this._destroyed),
+            catchError((error) => {this.onCallbackError(error); return of(null)}),
+            tap((plan) => {
+                this.dialogRef.close(plan);
+            })
+        );
 	}
 
 	toggleAllDescriptions(event: any) {

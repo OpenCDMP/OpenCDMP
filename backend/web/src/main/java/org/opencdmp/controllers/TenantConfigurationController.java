@@ -114,9 +114,9 @@ public class TenantConfigurationController {
         return model;
     }
 
-    @GetMapping("current-tenant/{type}")
-    public TenantConfiguration getCurrentTenantType(@PathVariable("type") Short type, FieldSet fieldSet) throws MyApplicationException, MyForbiddenException, MyNotFoundException, InvalidApplicationException {
-        logger.debug(new MapLogEntry("retrieving" + TenantConfiguration.class.getSimpleName()).And("type", type).And("fields", fieldSet));
+    @GetMapping("type/{type}")
+    public TenantConfiguration getType(@PathVariable("type") Short type, FieldSet fieldSet) throws MyApplicationException, MyForbiddenException, MyNotFoundException, InvalidApplicationException {
+        logger.debug(new MapLogEntry("retrieving type" + TenantConfiguration.class.getSimpleName()).And("type", type).And("fields", fieldSet));
 
         this.censorFactory.censor(TenantConfigurationCensor.class).censor(fieldSet, null);
 
@@ -127,6 +127,22 @@ public class TenantConfigurationController {
         TenantConfiguration model = this.builderFactory.builder(TenantConfigurationBuilder.class).authorize(AuthorizationFlags.AllExceptPublic).build(fieldSet, query.firstAs(fieldSet));
 
         this.auditService.track(AuditableAction.TenantConfiguration_LookupByType, Map.ofEntries(
+                new AbstractMap.SimpleEntry<String, Object>("type", type),
+                new AbstractMap.SimpleEntry<String, Object>("fields", fieldSet)
+        ));
+
+        return model;
+    }
+
+    @GetMapping("active-type/{type}")
+    public TenantConfiguration getActiveType(@PathVariable("type") Short type, FieldSet fieldSet) throws MyApplicationException, MyForbiddenException, MyNotFoundException, InvalidApplicationException {
+        logger.debug(new MapLogEntry("retrieving active type" + TenantConfiguration.class.getSimpleName()).And("type", type).And("fields", fieldSet));
+
+        this.censorFactory.censor(TenantConfigurationCensor.class).censor(fieldSet, null);
+
+        TenantConfiguration model = this.builderFactory.builder(TenantConfigurationBuilder.class).authorize(AuthorizationFlags.AllExceptPublic).build(fieldSet, this.tenantConfigurationService.getActiveType(TenantConfigurationType.of(type), fieldSet));
+
+        this.auditService.track(AuditableAction.TenantConfiguration_LookupBActiveType, Map.ofEntries(
                 new AbstractMap.SimpleEntry<String, Object>("type", type),
                 new AbstractMap.SimpleEntry<String, Object>("fields", fieldSet)
         ));

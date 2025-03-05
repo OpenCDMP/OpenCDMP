@@ -41,7 +41,7 @@ public class SectionPersist {
 
     public static final String _fields = "fields";
 
-    private List<DescriptionTemplatePersist> descriptionTemplates;
+    private List<BlueprintDescriptionTemplatePersist> descriptionTemplates;
 
     public static final String _descriptionTemplates = "descriptionTemplates";
 
@@ -100,11 +100,11 @@ public class SectionPersist {
         this.fields = fields;
     }
 
-    public List<DescriptionTemplatePersist> getDescriptionTemplates() {
+    public List<BlueprintDescriptionTemplatePersist> getDescriptionTemplates() {
         return this.descriptionTemplates;
     }
 
-    public void setDescriptionTemplates(List<DescriptionTemplatePersist> descriptionTemplates) { this.descriptionTemplates = descriptionTemplates; }
+    public void setDescriptionTemplates(List<BlueprintDescriptionTemplatePersist> descriptionTemplates) { this.descriptionTemplates = descriptionTemplates; }
 
     public List<UUID> getPrefillingSourcesIds() {
         return this.prefillingSourcesIds;
@@ -174,10 +174,10 @@ public class SectionPersist {
                             .iff(() -> !this.isListNullOrEmpty(item.getDescriptionTemplates()))
                             .on(SectionPersist._descriptionTemplates)
                             .over(item.getDescriptionTemplates())
-                            .using((itm) -> this.validatorFactory.validator(DescriptionTemplatePersist.DescriptionTemplatePersistValidator.class)),
+                            .using((itm) -> this.validatorFactory.validator(BlueprintDescriptionTemplatePersist.DescriptionTemplatePersistValidator.class)),
                     this.spec()
                             .iff(() -> !this.isListNullOrEmpty(item.getDescriptionTemplates()))
-                            .must(() -> item.getDescriptionTemplates().stream().map(DescriptionTemplatePersist::getDescriptionTemplateGroupId).distinct().collect(Collectors.toList()).size() == item.getDescriptionTemplates().size())
+                            .must(() -> item.getDescriptionTemplates().stream().map(BlueprintDescriptionTemplatePersist::getDescriptionTemplateGroupId).distinct().collect(Collectors.toList()).size() == item.getDescriptionTemplates().size())
                             .failOn(SectionPersist._descriptionTemplates).failWith(this.messageSource.getMessage("Validation_Unique", new Object[]{SectionPersist._descriptionTemplates}, LocaleContextHolder.getLocale())),
                     this.spec()
                             .iff(() -> !this.isListNullOrEmpty(item.getDescriptionTemplates()))

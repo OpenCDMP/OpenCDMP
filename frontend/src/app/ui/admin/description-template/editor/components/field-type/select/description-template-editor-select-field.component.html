@@ -8,7 +8,7 @@
 			<small class="text-danger">{{'DESCRIPTION-TEMPLATE-EDITOR.STEPS.FORM.FIELD.ERROR-MESSAGES.FIELD-SELECT-AT-LEAST-ONE-REQUIRED' | translate}}</small>
 		</ng-container>
 	</div>
-	<mat-checkbox class="col-auto" [formControl]="this.form.get('data').get('multipleSelect')">
+	<mat-checkbox class="col-auto" [formControl]="form.get('data').get('multipleSelect')">
 		{{'DESCRIPTION-TEMPLATE-EDITOR.STEPS.FORM.FIELD.FIELDS.FIELD-MULTIPLE-WORDLIST' | translate}}
 		<mat-error *ngIf="form.get('data').get('multipleSelect').hasError('backendError')">{{form.get('data').get('multipleSelect').getError('backendError').message}}</mat-error>
 	</mat-checkbox>
@@ -31,13 +31,13 @@
 				<input matInput [formControl]="form.get('data').get('options').get(''+i).get('value')" (change)="applyNewVisibilityValueListener()">
 				<mat-error *ngIf="form.get('data').get('options').get(''+i).get('value').hasError('backendError')">{{form.get('data').get('options').get(''+i).get('value').getError('backendError').message}}</mat-error>
 			</mat-form-field>
-			<button mat-icon-button class="col-auto" (click)="deleteRow(i)" type="button" [disabled]="this.form.disabled || viewOnly">
-				<mat-icon>delete</mat-icon>
+			<button mat-icon-button class="col-auto" (click)="deleteRow(i)" type="button" [disabled]="form.disabled || viewOnly" [attr.aria-label]="'COMMONS.ACTIONS.REMOVE' | translate">
+				<mat-icon aria-hidden>delete</mat-icon>
 			</button>
 		</div>
 	</div>
 	<mat-error *ngIf="form.get('data').get('options').hasError('backendError')">{{form.get('data').get('options').getError('backendError').message}}</mat-error>
-	<div class="col-auto"><button mat-icon-button [disabled]="this.form.disabled || viewOnly" (click)="addNewRow()">
+	<div class="col-auto"><button mat-icon-button [disabled]="form.disabled || viewOnly" (click)="addNewRow()">
 			<mat-icon>add</mat-icon>
 		</button></div>
 </div>

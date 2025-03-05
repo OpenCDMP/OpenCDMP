@@ -89,7 +89,7 @@ public class MultiplicityPersist {
                             .failOn(MultiplicityPersist._max).failWith(messageSource.getMessage("Validation_UnexpectedValue", new Object[]{MultiplicityPersist._max}, LocaleContextHolder.getLocale())),
                     this.spec()
                             .iff(() -> !this.isNull(item.getMax()))
-                            .must(() -> !this.isNull(item.getMin()) && (item.getMax() >= item.getMin()))
+                            .must(() -> this.isNull(item.getMin()) || (!this.isNull(item.getMin()) && (item.getMax() >= item.getMin())))
                             .failOn(MultiplicityPersist._max).failWith(messageSource.getMessage("Validation.LowerThanMin", new Object[]{MultiplicityPersist._min}, LocaleContextHolder.getLocale()))
             );
         }

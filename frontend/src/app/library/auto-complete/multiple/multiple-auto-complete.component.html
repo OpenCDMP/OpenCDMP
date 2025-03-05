@@ -4,14 +4,23 @@
 			<div class="col-12">
 				<mat-chip-grid #chipList ngDefaultControl class="chip-list">
 					<ng-container *ngIf="value as values;">
-						<mat-chip-row *ngFor="let value of values" [disabled]="disabled" [selectable]="selectable" [removable]="true" [ngClass]="computeClass(value)" class="chip-row" [matTooltip]="_canRemoveItemMessage(getSelectedItem(value)) | translate" >
+						<mat-chip-row 
+                            *ngFor="let value of values" 
+                            [disabled]="disabled" 
+                            [selectable]="selectable" 
+                            [removable]="true" 
+                            [ngClass]="computeClass(value)" 
+                            class="chip-row" 
+                            [matTooltip]="_canRemoveItemMessage(getSelectedItem(value)) | translate"
+                            (removed)="_removeSelectedItem(getSelectedItem(value))"
+                        >
 							<ng-container *ngIf="getSelectedItem(value) as selectedItem;">
 								<ng-template #cellTemplate *ngIf="_selectedValueTemplate(selectedItem)" [ngTemplateOutlet]="_selectedValueTemplate(selectedItem)" [ngTemplateOutletContext]="{
 							item: selectedItem
 						}" />
 								<span *ngIf="!_selectedValueTemplate(selectedItem)" class="chip-text" [title]="_displayFn(selectedItem)">{{_displayFn(selectedItem)}}</span>
 							</ng-container>
-							<button matChipRemove *ngIf="!disabled && _canRemoveItem(getSelectedItem(value))" (click)="_removeSelectedItem(getSelectedItem(value), $event)">
+							<button matChipRemove *ngIf="!disabled && _canRemoveItem(getSelectedItem(value))" [attr.aria-label]="'COMMONS.ACTIONS.REMOVE' | translate">
 								<mat-icon>cancel</mat-icon>
 							</button>
 						</mat-chip-row>
@@ -19,7 +28,7 @@
 				</mat-chip-grid>
 			</div>
 			<div class="col-12">
-				<input matInput #autocompleteInput [name]="id" autocomplete="nope" #autocompleteTrigger="matAutocompleteTrigger" autocomplete="off" [placeholder]="placeholder" [matAutocomplete]="autocomplete" [value]="inputValue" (keyup)="onKeyUp($event)" [disabled]="disabled" (focus)="_onInputFocus()" (blur)="onBlur($event)" [matChipInputFor]="chipList" [matChipInputSeparatorKeyCodes]="separatorKeysCodes" [matChipInputAddOnBlur]="autoSelectFirstOptionOnBlur" (matChipInputTokenEnd)="_addItem($event)">
+				<input matInput #autocompleteInput [id]="id" [name]="id" #autocompleteTrigger="matAutocompleteTrigger" autocomplete="off" [placeholder]="placeholder" [matAutocomplete]="autocomplete" [value]="inputValue" (keyup)="onKeyUp($event)" [disabled]="disabled" [required]="required" (focus)="_onInputFocus()" (blur)="onBlur($event)" [matChipInputFor]="chipList" [matChipInputSeparatorKeyCodes]="separatorKeysCodes" [matChipInputAddOnBlur]="autoSelectFirstOptionOnBlur" (matChipInputTokenEnd)="_addItem($event)">
 			</div>
 			<mat-autocomplete #autocomplete="matAutocomplete" [displayWith]="_displayFn.bind(this)" (optionSelected)="_optionSelected($event)" [classList]="['myClass']">
 				<div (mouseover)="isMouseOverPanel=true" (mouseout)="isMouseOverPanel=false">

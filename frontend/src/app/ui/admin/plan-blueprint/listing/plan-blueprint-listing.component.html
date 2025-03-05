@@ -6,7 +6,7 @@
 					<app-navigation-breadcrumb />
 				</div>
 				<div class="col-auto">
-					<button mat-button class="rounded-btn import" (click)="import()">
+					<button mat-button class="padded-shadow-btn import" (click)="import()">
 						<span class="button-text">
 							{{'PLAN-BLUEPRINT-LISTING.IMPORT.UPLOAD-XML' | translate}}
 						</span>
@@ -14,7 +14,7 @@
 				</div>
 
 				<div class="col-auto">
-					<button mat-button class="rounded-btn secondary" *ngIf="authService.hasPermission(authService.permissionEnum.EditDescriptionTemplateType)" [routerLink]="routerUtils.generateUrl(['/plan-blueprints/new'])">
+					<button mat-flat-button color="accent" class="padded-shadow-btn" *ngIf="authService.hasPermission(authService.permissionEnum.EditDescriptionTemplateType)" [routerLink]="routerUtils.generateUrl(['/plan-blueprints/new'])">
 						<mat-icon>add</mat-icon>
 						{{'PLAN-BLUEPRINT-LISTING.CREATE-PLAN-BLUEPRINT' | translate}}
 					</button>
@@ -81,28 +81,28 @@
 <ng-template #actions let-row="row" let-item>
 	<div class="row" (click)="$event.stopPropagation()">
 		<div class="col-auto">
-			<button mat-icon-button [matMenuTriggerFor]="actionsMenu">
+			<button mat-icon-button [matMenuTriggerFor]="actionsMenu" [attr.aria-label]="'ALT-TEXT.MORE-ACTIONS' | translate">
 				<mat-icon>more_horiz</mat-icon>
 			</button>
 			<mat-menu #actionsMenu="matMenu">
 				<a *ngIf="canEdit(row)" mat-menu-item [routerLink]="routerUtils.generateUrl(['/plan-blueprints/', row.id])">
-					<mat-icon>edit</mat-icon>{{'PLAN-BLUEPRINT-LISTING.ACTIONS.EDIT' | translate}}
+					<mat-icon aria-hidden>edit</mat-icon>{{'PLAN-BLUEPRINT-LISTING.ACTIONS.EDIT' | translate}}
 				</a>
 				<a *ngIf="canCreateNewVersion(row)" mat-menu-item [routerLink]="routerUtils.generateUrl(['/plan-blueprints/new-version/', row.id])">
-					<mat-icon>queue</mat-icon>{{'PLAN-BLUEPRINT-LISTING.ACTIONS.NEW-VERSION' | translate}}
+					<mat-icon aria-hidden>queue</mat-icon>{{'PLAN-BLUEPRINT-LISTING.ACTIONS.NEW-VERSION' | translate}}
 				</a>
 				<a mat-menu-item [routerLink]="routerUtils.generateUrl(['/plan-blueprints/clone/', row.id])">
-					<mat-icon>content_copy</mat-icon>{{'PLAN-BLUEPRINT-LISTING.ACTIONS.CLONE' | translate}}
+					<mat-icon aria-hidden>content_copy</mat-icon>{{'PLAN-BLUEPRINT-LISTING.ACTIONS.CLONE' | translate}}
 				</a>
 				<a *ngIf="row.isActive == isActive.Active" mat-menu-item [routerLink]="routerUtils.generateUrl(['/plan-blueprints/versions/', row.groupId])">
-					<mat-icon>library_books</mat-icon>
+					<mat-icon aria-hidden>library_books</mat-icon>
 					{{'PLAN-BLUEPRINT-LISTING.ACTIONS.VIEW-VERSIONS' | translate}}
 				</a>
 				<button mat-menu-item (click)="export($event, row.id)" *ngIf="canDownloadXML(row)">
-					<mat-icon>download</mat-icon>{{'PLAN-BLUEPRINT-LISTING.ACTIONS.DOWNLOAD-XML' | translate}}
+					<mat-icon aria-hidden>download</mat-icon>{{'PLAN-BLUEPRINT-LISTING.ACTIONS.DOWNLOAD-XML' | translate}}
 				</button>
 				<button *ngIf="canDelete(row)" mat-menu-item (click)="delete(row.id)">
-					<mat-icon>delete</mat-icon>
+					<mat-icon aria-hidden>delete</mat-icon>
 					{{'PLAN-BLUEPRINT-LISTING.ACTIONS.DELETE' | translate}}
 				</button>
 			</mat-menu>

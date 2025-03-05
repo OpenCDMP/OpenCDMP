@@ -61,7 +61,6 @@ public class AccountingServiceImpl implements AccountingService {
     private final TenantScope tenantScope;
     private final MessageSource messageSource;
     private final ConventionService conventionService;
-    private final Map<String, AccountingClient> clients;
     private final TokenExchangeCacheService tokenExchangeCacheService;
     private final AccountingProperties accountingProperties;
     private final ValidatorFactory validatorFactory;
@@ -80,15 +79,13 @@ public class AccountingServiceImpl implements AccountingService {
         this.tokenExchangeCacheService = tokenExchangeCacheService;
         this.accountingProperties = accountingProperties;
         this.validatorFactory = validatorFactory;
-        this.clients = new HashMap<>();
         this.isEnabled = this.accountingProperties.getEnabled();
     }
 
-    private AccountingClient getAccountingClient(String repositoryId) throws InvalidApplicationException, InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
-        if (this.clients.containsKey(repositoryId)) return this.clients.get(repositoryId);
+    private AccountingClient getAccountingClient() throws InvalidApplicationException, InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
 
         //GK: It's register time
-        AccountingSourceEntity source = this.accountingProperties.getSources().stream().filter(x -> x.getRepositoryId().equals(repositoryId)).findFirst().orElse(null);
+        AccountingSourceEntity source = this.accountingProperties.getSource();
         if (source != null) {
             TokenExchangeModel tokenExchangeModel = new TokenExchangeModel("accounting:" + source, source.getIssuerUrl(), source.getClientId(), source.getClientSecret(), source.getScope());
             TokenExchangeFilterFunction apiKeyExchangeFilterFunction = new TokenExchangeFilterFunction(this.tokenExchangeCacheService, tokenExchangeModel);
@@ -102,7 +99,6 @@ public class AccountingServiceImpl implements AccountingService {
                         codecs.defaultCodecs().jackson2JsonEncoder(new Jackson2JsonEncoder(new ObjectMapper().configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false).registerModule(new JavaTimeModule()), MediaType.APPLICATION_JSON));
                     }).build();
             AccountingClientImpl accounting = new AccountingClientImpl(webClient);
-            this.clients.put(repositoryId, accounting);
             return accounting;
         }
         return null;
@@ -129,11 +125,11 @@ public class AccountingServiceImpl implements AccountingService {
         });
     }
 
-    public Integer getCurrentMetricValue(UsageLimitTargetMetric metric, DefinitionEntity definition, boolean userIdEnabled) throws InvalidApplicationException {
+    public Integer getCurrentMetricValue(UsageLimitTargetMetric metric, DefinitionEntity definition) throws InvalidApplicationException {
         if (this.isEnabled) {
             AccountingClient accountingClient = null;
             try {
-                accountingClient = this.getAccountingClient(this.accountingProperties.getSources().getFirst().getRepositoryId());
+                accountingClient = this.getAccountingClient();
             } catch (InvalidApplicationException e) {
                 throw new RuntimeException(e);
             } catch (InvalidAlgorithmParameterException e) {
@@ -150,7 +146,7 @@ public class AccountingServiceImpl implements AccountingService {
                 throw new RuntimeException(e);
             }
             if (accountingClient == null)
-                throw new MyNotFoundException(this.messageSource.getMessage("General_ItemNotFound", new Object[]{this.accountingProperties.getSources().getFirst().getRepositoryId(), AccountingClient.class.getSimpleName()}, LocaleContextHolder.getLocale()));
+                throw new MyNotFoundException(this.messageSource.getMessage("General_ItemNotFound", new Object[]{this.accountingProperties.getSource(), AccountingClient.class.getSimpleName()}, LocaleContextHolder.getLocale()));
 
             AccountingInfoLookup lookup = new AccountingInfoLookup();
             if (definition != null && definition.getHasPeriodicity()) {
@@ -177,8 +173,6 @@ public class AccountingServiceImpl implements AccountingService {
             fields.add(AccountingEntryCreatedIntegrationEvent._serviceId);
             fields.add(AccountingEntryCreatedIntegrationEvent._action);
             fields.add(AccountingEntryCreatedIntegrationEvent._resource);
-
-            if (userIdEnabled) fields.add(AccountingEntryCreatedIntegrationEvent._userId);
 
             lookup.setGroupingFields(new FieldSet(fields));
 

@@ -17,14 +17,22 @@
 	align-items: center;
 	justify-content: center;
 	width: 260px;
-	background: #ffffff 0% 0% no-repeat padding-box;
+	background: var(--sys-surface) 0% 0% no-repeat padding-box;
 	box-shadow: 0px 0px 16px 2px #00000029;
 	border-right-width: 0px;
 	opacity: 1;
+    border-radius: 0;
+
+}
+
+@media (max-width: 500px) {
+    .sidenav {
+        width: 100% !important;
+    }
 }
 
 .sidenav-content {
-	background-color: whitesmoke;
+	background-color: var(--sys-background);
 }
 
 .sidebar-shadow {
@@ -34,4 +42,16 @@
 
 ::ng-deep .mat-chip {
   height: auto !important;
+}
+
+.skip-to-main-content {
+    position: fixed;
+    left: -190px;
+    z-index: -1;
+   &:focus, &:active {
+        background-color: var(--sys-primary);
+        z-index: 1001;
+        left: 50vw;
+        color: var(--sys-on-primary);
+   } 
 }

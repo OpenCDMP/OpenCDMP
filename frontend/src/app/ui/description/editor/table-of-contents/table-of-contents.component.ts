@@ -1,27 +1,44 @@
-import { Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges } from '@angular/core';
-import { UntypedFormGroup } from '@angular/forms';
+import { Component, computed, effect, EventEmitter, input, OnInit, Output, untracked } from '@angular/core';
+import {toSignal} from '@angular/core/rxjs-interop'
 import { DescriptionTemplate, DescriptionTemplateFieldSet, DescriptionTemplateSection } from '@app/core/model/description-template/description-template';
 import { VisibilityRulesService } from '@app/ui/description/editor/description-form/visibility-rules/visibility-rules.service';
 import { BaseComponent } from '@common/base/base.component';
-import { Observable, debounceTime, distinctUntilChanged, filter, mergeMap, take, takeUntil } from 'rxjs';
+import { Observable, Subscription, debounceTime, distinctUntilChanged, filter, mergeMap, startWith, take, takeUntil } from 'rxjs';
 import { ToCEntry } from './models/toc-entry';
 import { ToCEntryType } from './models/toc-entry-type.enum';
 import { TableOfContentsService } from './services/table-of-contents-service';
+import { Guid } from '@common/types/guid';
+import { PlanTempStorageService } from '@app/ui/plan/plan-editor-blueprint/plan-temp-storage.service';
+import { PropertiesFormGroup } from '../description-editor.model';
 
 @Component({
-	selector: 'app-table-of-contents',
-	styleUrls: ['./table-of-contents.component.scss'],
-	templateUrl: './table-of-contents.component.html'
+    selector: 'app-table-of-contents',
+    styleUrls: ['./table-of-contents.component.scss'],
+    templateUrl: './table-of-contents.component.html',
+    standalone: false
 })
-export class TableOfContentsComponent extends BaseComponent implements OnInit, OnChanges {
+export class TableOfContentsComponent extends BaseComponent{
 
 	@Output() entrySelected = new EventEmitter<any>();
-	@Input() showErrors: boolean = false;
-	@Input() formGroup: UntypedFormGroup;
-	@Input() descriptionTemplate: DescriptionTemplate;
-	@Input() hasFocus: boolean = false;
-	@Input() visibilityRulesService: VisibilityRulesService;
-	@Input() anchorFieldsetId: string;
+	showErrors = input<boolean>(false);
+    descriptionId = input<Guid>();
+    isVisible = input<boolean>(false);
+    selectedFieldId = input<string>();
+
+    descriptionData = computed(() => this.planTempStorage.descriptions()?.get(this.descriptionId()?.toString()));
+    formGroup = computed(() => this.descriptionData()?.formGroup);
+    visibilityRulesService = computed(() => this.descriptionData()?.visibilityRulesService);
+
+    private descriptionTemplate(id: Guid){
+        return this.planTempStorage.getDescriptionTemplate(id);
+    } 
+
+	// formGroup = input<UntypedFormGroup>();
+	// hasFocus = input<boolean>(false);
+	// visibilityRulesService = input<VisibilityRulesService>();
+	// descriptionTemplate = input<DescriptionTemplate>(null);
+    ordinal = input<string>();
+
 
 	tocentries: ToCEntry[] = null;
 	
@@ -37,90 +54,169 @@ export class TableOfContentsComponent extends BaseComponent implements OnInit, O
 	}
 
 
+    templateValueChange$: Subscription;
+
 	constructor(
 		private tableOfContentsService: TableOfContentsService,
+        private planTempStorage: PlanTempStorageService
 	) {
 		super();
+        effect(() => {
+            if(!this.formGroup()){
+                return;
+            }
+            const templateControl = this.formGroup()?.controls?.descriptionTemplateId;
+
+            if(templateControl.value) {
+                this.tocentries = this.getTocEntries(this.descriptionTemplate(templateControl.value));
+                if(untracked(this.selectedFieldId) && untracked(this.isVisible)){
+                    this.selectField(untracked(this.selectedFieldId), false);
+                }
+                this._resetObserver();
+            }else {
+                this._cleanUpObserver();
+            }
+
+            this.templateValueChange$?.unsubscribe();
+            this.templateValueChange$= templateControl.valueChanges.pipe(takeUntil(this._destroyed))
+            .subscribe((newDescriptionTemplateId) => {
+                if(newDescriptionTemplateId) {
+                    this.tocentries = this.getTocEntries(this.descriptionTemplate(newDescriptionTemplateId));
+                    this.onToCentrySelected(null);
+                    this._resetObserver();
+                }else {
+                    this._cleanUpObserver();
+                }
+            })
+        });
+        effect(() => {
+            const isVisible = this.isVisible();
+            if(isVisible && this.tocentries?.length){
+                this._resetObserver();
+            } else {
+                this._cleanUpObserver();
+            }
+        })
 	}
 
 
-	ngOnInit(): void {
+	// ngOnInit(): void {
+	// 	this.tableOfContentsService.getNextClickedEventObservable().pipe(takeUntil(this._destroyed)).subscribe(x => {
+	// 		let next: ToCEntry;
 
-		if (this.descriptionTemplate) {
-			this.tocentries = this.getTocEntries(this.descriptionTemplate);
-			if (this.anchorFieldsetId) {
-				const anchorTocentry = TableOfContentsComponent._findTocEntryById(this.anchorFieldsetId, this.tocentries);
-				if (anchorTocentry) setTimeout(() => { this.onToCentrySelected(anchorTocentry) }, 300);
-			}
-		}
+	// 		if (!this.tocentrySelected) next = this._getHeadField(this.tocentries[0]);
+	// 		else if (this.tocentrySelected?.subEntries && this.tocentrySelected?.subEntries.length > 0) {
+	// 			next = this.tocentrySelected;
+	// 			while (next?.subEntries && next?.subEntries?.length > 0 && !next?.nextEntry) {
+	// 				next = next?.subEntries[0];
+	// 			}
+	// 		}
+	// 		else next = this.tocentrySelected?.nextEntry;
 
-		this.tableOfContentsService.getNextClickedEventObservable().pipe(takeUntil(this._destroyed)).subscribe(x => {
-			let next: ToCEntry;
+	// 		while (!this._isVisible(next?.id) && !next?.isLastEntry) {
+	// 			next = next?.nextEntry;
+	// 		}
 
-			if (!this.tocentrySelected) next = this._getHeadField(this.tocentries[0]);
-			else if (this.tocentrySelected?.subEntries && this.tocentrySelected?.subEntries.length > 0) {
-				next = this.tocentrySelected;
-				while (next?.subEntries && next?.subEntries?.length > 0 && !next?.nextEntry) {
-					next = next?.subEntries[0];
-				}
-			}
-			else next = this.tocentrySelected?.nextEntry;
+	// 		if (!next || !this._isVisible(next?.id)) {
+	// 			this.onToCentrySelected(null);
+	// 		} else {
+	// 			this.onToCentrySelected(next);
+	// 		}
+	// 	});
 
-			while (!this._isVisible(next?.id) && !next?.isLastEntry) {
-				next = next?.nextEntry;
-			}
+	// 	this.tableOfContentsService.getPreviousEventObservable().pipe(takeUntil(this._destroyed)).subscribe(x => {
+	// 		let previous: ToCEntry;
 
-			if (!next || !this._isVisible(next?.id)) {
-				this.onToCentrySelected(null);
-			} else {
-				this.onToCentrySelected(next);
-			}
-		});
+	// 		if (!this.tocentrySelected) previous = this._getHeadField(this.tocentries[0]);
+	// 		else if (this.tocentrySelected?.subEntries && this.tocentrySelected?.subEntries.length > 0) {
+	// 			previous = this.tocentrySelected;
+	// 			while (previous?.subEntries && previous?.subEntries?.length > 0 && !previous?.previousEntry) {
+	// 				previous = previous?.subEntries[0];
+	// 			}
+	// 			previous = previous.previousEntry;
+	// 		}
+	// 		else previous = this.tocentrySelected?.previousEntry;
 
-		this.tableOfContentsService.getPreviousEventObservable().pipe(takeUntil(this._destroyed)).subscribe(x => {
-			let previous: ToCEntry;
+	// 		while (!this._isVisible(previous?.id) && !previous?.isFirstEntry) {
+	// 			previous = previous.previousEntry;
+	// 		}
 
-			if (!this.tocentrySelected) previous = this._getHeadField(this.tocentries[0]);
-			else if (this.tocentrySelected?.subEntries && this.tocentrySelected?.subEntries.length > 0) {
-				previous = this.tocentrySelected;
-				while (previous?.subEntries && previous?.subEntries?.length > 0 && !previous?.previousEntry) {
-					previous = previous?.subEntries[0];
-				}
-				previous = previous.previousEntry;
-			}
-			else previous = this.tocentrySelected?.previousEntry;
+	// 		if (!previous || !this._isVisible(previous?.id)) {
+	// 			this.onToCentrySelected(null);
+	// 		} else {
+	// 			this.onToCentrySelected(previous);
+	// 		}
+	// 	});
+	// }
 
-			while (!this._isVisible(previous?.id) && !previous?.isFirstEntry) {
-				previous = previous.previousEntry;
-			}
+    public selectPrevious(){
+        let previous: ToCEntry;
 
-			if (!previous || !this._isVisible(previous?.id)) {
-				this.onToCentrySelected(null);
-			} else {
-				this.onToCentrySelected(previous);
-			}
-		});
-	}
+        if (!this.tocentrySelected) previous = this._getHeadField(this.tocentries[0]);
+        else if (this.tocentrySelected?.subEntries && this.tocentrySelected?.subEntries.length > 0) {
+            previous = this.tocentrySelected;
+            while (previous?.subEntries && previous?.subEntries?.length > 0 && !previous?.previousEntry) {
+                previous = previous?.subEntries[0];
+            }
+            previous = previous.previousEntry;
+        }
+        else previous = this.tocentrySelected?.previousEntry;
 
-	ngOnChanges(changes: SimpleChanges) {
+        while (!this._isVisible(previous?.id) && !previous?.isFirstEntry) {
+            previous = previous.previousEntry;
+        }
 
-		if (changes['hasFocus'] && changes.hasFocus.currentValue) {
-			this._resetObserver();
-		}
-		if (changes['descriptionTemplate'] && changes.descriptionTemplate != null) {
-			this.tocentries = this.getTocEntries(this.descriptionTemplate);
-		}
-		if (changes['anchorFieldsetId'] && changes.anchorFieldsetId != null) {
-			const anchorTocentry = TableOfContentsComponent._findTocEntryById(this.anchorFieldsetId, this.tocentries);
-			if (anchorTocentry) setTimeout(() => { this.onToCentrySelected(anchorTocentry) }, 300);
-		}
-	}
+        if (!previous || !this._isVisible(previous?.id)) {
+            this.onToCentrySelected(null);
+        } else {
+            this.onToCentrySelected(previous);
+        }
+    }
 
-	private _resetObserver() {
-		if (this._intersectionObserver) {//clean up
+    public selectNext(){
+        let next: ToCEntry;
+
+        if (!this.tocentrySelected) next = this._getHeadField(this.tocentries[0]);
+        else if (this.tocentrySelected?.subEntries && this.tocentrySelected?.subEntries.length > 0) {
+            next = this.tocentrySelected;
+            while (next?.subEntries && next?.subEntries?.length > 0 && !next?.nextEntry) {
+                next = next?.subEntries[0];
+            }
+        }
+        else next = this.tocentrySelected?.nextEntry;
+
+        while (!this._isVisible(next?.id) && !next?.isLastEntry) {
+            next = next?.nextEntry;
+        }
+
+        if (!next || !this._isVisible(next?.id)) {
+            return;
+        } else {
+            this.onToCentrySelected(next);
+        }
+    }
+
+    
+    public selectField(fieldId: string, execute: boolean = true){
+        if(!fieldId) { 
+            this.onToCentrySelected(null);
+            return;
+        }
+        const tocEntry = TableOfContentsComponent._findTocEntryById(fieldId, this.tocentries);
+        if(tocEntry){
+            this.onToCentrySelected(tocEntry, execute);
+        }
+    }
+
+    private _cleanUpObserver(){
+        if (this._intersectionObserver) {
 			this._intersectionObserver.disconnect();
 			this._intersectionObserver = null;
 		}
+    }
+
+	private _resetObserver() {
+		this._cleanUpObserver();
 
 		new Observable(observer => {
 			const options = {
@@ -153,16 +249,18 @@ export class TableOfContentsComponent extends BaseComponent implements OnInit, O
 			debounceTime(300),
 			distinctUntilChanged(),
 		).subscribe(x => {
-			if (x.isIntersecting && !this.pauseIntersectionObserver) {
+			if (!this.pauseIntersectionObserver) {
 				const target_id = x.target.id;
 				if (this._isVisible(target_id)) {
 					this.tocentrySelected = TableOfContentsComponent._findTocEntryById(target_id, this.tocentries);
+                    this.entrySelected.emit({entry: this.tocentrySelected,  execute: false})
 				}
 			}
 		});
 	}
 
-	private _buildRecursivelySection(item: DescriptionTemplateSection, previousTocentry?: ToCEntry): ToCEntry {
+	private _buildRecursivelySection(params: {item: DescriptionTemplateSection, previousTocEntry?: ToCEntry, path: string[]}): ToCEntry {
+        let {item, previousTocEntry, path} = params;
 		if (!item) return null;
 
 		const sections = item.sections;
@@ -170,28 +268,29 @@ export class TableOfContentsComponent extends BaseComponent implements OnInit, O
 
 		const tempResult: ToCEntry[] = [];
 
+
 		if (sections && sections.length) {
 			sections.forEach(section => {
-				if (previousTocentry == null) {
-					let tocentry = this._buildRecursivelySection(section);
+				if (previousTocEntry == null) {
+					let tocentry = this._buildRecursivelySection({item: section, path: [...path, item.id]});
 					if (tocentry != null) {
 						tempResult.push(tocentry);
 
-						previousTocentry = this._getTailField(tocentry);
+						previousTocEntry = this._getTailField(tocentry);
 					}
 				} else {
-					let tocentry = this._buildRecursivelySection(section, previousTocentry); // the nested fieldsets inherit the previousTocEntry
+					let tocentry = this._buildRecursivelySection({item: section, previousTocEntry, path: [...path, item.id]}); // the nested fieldsets inherit the previousTocEntry
 					if (tocentry) {
 
 						// explanation: previous-section[last-field].next = current-section[first-field] 
 						let firstTocentryOfCurrentSection = this._getHeadField(tocentry);
 						if (tempResult.length > 0) {
-							tempResult[tempResult.length - 1] = this._setTocentryNext(tempResult[tempResult.length - 1], firstTocentryOfCurrentSection);
+							tempResult[tempResult.length - 1] = this._setTocEntryNext(tempResult[tempResult.length - 1], firstTocentryOfCurrentSection);
 						}
 						
 						tempResult.push(tocentry);
 				
-						previousTocentry = this._getTailField(tocentry);
+						previousTocEntry = this._getTailField(tocentry);
 					}
 				}
 			});
@@ -199,16 +298,16 @@ export class TableOfContentsComponent extends BaseComponent implements OnInit, O
 		} else if (fieldsets && fieldsets.length) {
 
 			fieldsets.forEach(fieldset => {
-				if (previousTocentry == null) {
-					let tocentry = this._buildRecursivelyFieldSet(fieldset);
+				if (previousTocEntry == null) {
+					let tocentry = this._buildRecursivelyFieldSet({item: fieldset, path: [...path, item.id]});
 
 					if (tocentry != null) {
 						tempResult.push(tocentry);
 
-						previousTocentry = tocentry;
+						previousTocEntry = tocentry;
 					}
 				} else {			
-					let tocentry = this._buildRecursivelyFieldSet(fieldset, previousTocentry, null);
+					let tocentry = this._buildRecursivelyFieldSet({item: fieldset, previousEntry: previousTocEntry, path: [...path, item.id]});
 					if (tocentry) {
 						if (tempResult.length > 0) { 
 							tempResult[tempResult.length-1].nextEntry = tocentry;
@@ -216,7 +315,7 @@ export class TableOfContentsComponent extends BaseComponent implements OnInit, O
 						}
 						tempResult.push(tocentry);
 				
-						previousTocentry = tocentry;
+						previousTocEntry = tocentry;
 					}
 				}
 			});
@@ -230,11 +329,13 @@ export class TableOfContentsComponent extends BaseComponent implements OnInit, O
 			type: ToCEntryType.Section,
 			ordinal: item.ordinal,
 			visibilityRuleKey: item.id,
-			validityAbstractControl: this.formGroup.get('fieldSets')?.get(item.id),
+			validityAbstractControl: (this.formGroup().controls.properties as PropertiesFormGroup)?.get(item.id),
+            pathToEntry: path
 		}
 	}
 
-	private _buildRecursivelyFieldSet(item: DescriptionTemplateFieldSet, previousEntry?: ToCEntry, nextEntry?: ToCEntry): ToCEntry {
+	private _buildRecursivelyFieldSet(params: {item: DescriptionTemplateFieldSet, previousEntry?: ToCEntry, nextEntry?: ToCEntry, path?: string[]}): ToCEntry {
+        const {item, previousEntry, nextEntry, path} = params;
 		if (!item) return null;
 
 		return {
@@ -246,11 +347,12 @@ export class TableOfContentsComponent extends BaseComponent implements OnInit, O
 			type: ToCEntryType.FieldSet,
 			ordinal: item.ordinal,
 			visibilityRuleKey: item.id,
-			validityAbstractControl: this.formGroup.get('fieldSets')?.get(item.id),
+			validityAbstractControl: (this.formGroup().controls.properties as PropertiesFormGroup)?.get('fieldSets')?.get(item.id),
 			isLastEntry: nextEntry == null,
 			isFirstEntry: previousEntry == null ,
 			previousEntry: previousEntry,
-			nextEntry: nextEntry
+			nextEntry: nextEntry,
+            pathToEntry: path
 		};
 	}
 
@@ -287,7 +389,7 @@ export class TableOfContentsComponent extends BaseComponent implements OnInit, O
 		if (descriptionTemplate == null) { return []; }
 		const result: ToCEntry[] = [];
 
-		let previousTocentry: ToCEntry = null;
+		let previousTocEntry: ToCEntry = null;
 
 		//build parent pages
 		descriptionTemplate.definition.pages.forEach((pageElement, i) => {
@@ -300,39 +402,38 @@ export class TableOfContentsComponent extends BaseComponent implements OnInit, O
 				subEntries: [],
 				ordinal: pageElement.ordinal,
 				visibilityRuleKey: pageElement.id,
-				validityAbstractControl: null
+				validityAbstractControl: null,
+                pathToEntry: []
 			};
 
 			const sections = pageElement.sections;
 
 			sections.forEach(section => {
-				const tempResults = this._buildRecursivelySection(section, previousTocentry);
+				const tempResults = this._buildRecursivelySection({item: section, previousTocEntry, path: [pageElement.id]});
 
 				// explanation: previous-section[last-field].next = current-section[first-field] 
 				let firstTocentryOfCurrentSection = this._getHeadField(tempResults);
 				if (tocEntry.subEntries.length > 0) {
-					tocEntry.subEntries[tocEntry.subEntries.length - 1] = this._setTocentryNext(tocEntry.subEntries[tocEntry.subEntries.length - 1], firstTocentryOfCurrentSection);
+					tocEntry.subEntries[tocEntry.subEntries.length - 1] = this._setTocEntryNext(tocEntry.subEntries[tocEntry.subEntries.length - 1], firstTocentryOfCurrentSection);
 				}
 
 				tocEntry.subEntries.push(tempResults);
 
-				previousTocentry = this._getTailField(tempResults);
+				previousTocEntry = this._getTailField(tempResults);
 			});
 			
 			// explanation: previous-page[last-section][last-field].next = current-page[first-section][first-field] 
 			let firstTocentryOfCurrentPage = this._getHeadField(tocEntry);
 			if (result.length > 0) {
-				result[result.length - 1] = this._setTocentryNext(result[result.length - 1], firstTocentryOfCurrentPage);
+				result[result.length - 1] = this._setTocEntryNext(result[result.length - 1], firstTocentryOfCurrentPage);
 			}
 
 			result.push(tocEntry);
 		});
-
 		this._sortByOrdinal(result);
 		//calculate numbering
 		this._calculateNumbering(result);
 		return result;
-
 	}
 
 	onToCentrySelected(entry: ToCEntry = null, execute: boolean = true) {
@@ -403,12 +504,12 @@ export class TableOfContentsComponent extends BaseComponent implements OnInit, O
 		else return item;
 	}
 
-	private _setTocentryNext(previous: ToCEntry, next: ToCEntry): ToCEntry {
+	private _setTocEntryNext(previous: ToCEntry, next: ToCEntry): ToCEntry {
 		if (!previous) return null;
 
 		if (previous.subEntries && previous.subEntries.length) {
 			let last: number = previous.subEntries.length-1;
-			previous.subEntries[last] = this._setTocentryNext(previous.subEntries[last], next);
+			previous.subEntries[last] = this._setTocEntryNext(previous.subEntries[last], next);
 			return previous;
 		}
 		else {
@@ -419,7 +520,7 @@ export class TableOfContentsComponent extends BaseComponent implements OnInit, O
 	}
 
 	private _isVisible(entryId: string): boolean {
-		return this.visibilityRulesService.isVisibleMap[entryId] ?? true;
+		return this.visibilityRulesService().isVisibleMap[entryId] ?? true;
 	}
 }
 

@@ -50,6 +50,7 @@ public class AuditableAction {
     public static final EventId Plan_GetPublicXml = new EventId(5017, "Plan_GetPublicXml");
     public static final EventId Plan_ExportPublic = new EventId(5018, "Plan_ExportPublic");
     public static final EventId Plan_PublicClone = new EventId(5019, "Plan_PublicClone");
+    public static final EventId Plan_SetStatus = new EventId(5020, "Plan_SetStatus");
 
 
     public static final EventId Description_Query = new EventId(6000, "Description_Query");
@@ -66,6 +67,8 @@ public class AuditableAction {
     public static final EventId Description_UpdateDescriptionTemplate = new EventId(6011, "Description_UpdateDescriptionTemplate");
     public static final EventId Description_GetXml = new EventId(6012, "Description_GetXml");
     public static final EventId Description_GetPublicXml = new EventId(6013, "Description_GetPublicXml");
+    public static final EventId Description_PersistMultiple = new EventId(6014, "Description_PersistMultiple");
+    public static final EventId Description_Clone = new EventId(6015, "Description_Clone");
 
 
     public static final EventId Reference_Query = new EventId(7000, "Reference_Query");
@@ -73,6 +76,7 @@ public class AuditableAction {
     public static final EventId Reference_Persist = new EventId(7002, "Reference_Persist");
     public static final EventId Reference_Delete = new EventId(7003, "Reference_Delete");
     public static final EventId Reference_Search = new EventId(7004, "Reference_Search");
+    public static final EventId Reference_Test = new EventId(7005, "Reference_Test");
     
     public static final EventId DescriptionTemplate_Query = new EventId(8000, "DescriptionTemplate_Query");
     public static final EventId DescriptionTemplate_Lookup = new EventId(8001, "DescriptionTemplate_Lookup");
@@ -140,6 +144,8 @@ public class AuditableAction {
     public static final EventId Lock_UnLocked = new EventId(17005, "Lock_UnLocked");
     public static final EventId Lock_Touched = new EventId(17006, "Lock_Touched");
     public static final EventId Lock_Locked = new EventId(17007, "Lock_Locked");
+    public static final EventId Lock_UnLockedMultiple = new EventId(17008, "Lock_UnLockedMultiple");
+    public static final EventId Lock_CheckLock = new EventId(17009, "Lock_CheckLock");
 
     public static final EventId Deposit_GetAvailableRepositories = new EventId(18000, "Deposit_GetAvailableRepositories");
     public static final EventId Deposit_GetAccessToken = new EventId(18001, "Deposit_GetAccessToken");
@@ -153,6 +159,13 @@ public class AuditableAction {
     public static final EventId Tag_Delete = new EventId(19003, "Tag_Delete");
 
     public static final EventId FileTransformer_GetAvailableConfigurations = new EventId(20000, "FileTransformer_GetAvailableConfigurations");
+
+    public static final EventId Evaluation_Query = new EventId(7000, "Evaluation_Query");
+    public static final EventId Evaluation_Lookup = new EventId(10001, "Evaluation_Lookup");
+    public static final EventId Evaluation_Persist = new EventId(10002, "Evaluation_Persist");
+    public static final EventId Evaluation_Delete = new EventId(10003, "Evaluation_Delete");
+
+    public static final EventId Evaluator_GetAvailableConfigurations = new EventId(20001, "Evaluator_GetAvailableConfigurations");
 
     public static final EventId ContactSupport_Sent = new EventId(210000, "ContactSupport_Sent");
     public static final EventId ContactSupport_PublicSent = new EventId(210001, "ContactSupport_PublicSent");
@@ -174,8 +187,16 @@ public class AuditableAction {
     public static final EventId Maintenance_SendIndicatorCreateEntryEvents = new EventId(230013, "Maintenance_SendIndicatorCreateEntryEvents");
     public static final EventId Maintenance_SendIndicatorResetEntryEvents = new EventId(230014, "Maintenance_SendIndicatorResetEntryEvents");
     public static final EventId Maintenance_SendIndicatorAccessEntryEvents = new EventId(230015, "Maintenance_SendIndicatorAccessEntryEvents");
-    public static final EventId Maintenance_SendIndicatorPointEntryEvents = new EventId(230016, "Maintenance_SendIndicatorPointEntryEvents");
-
+    public static final EventId Maintenance_SendIndicatorPointPlanEntryEvents = new EventId(230016, "Maintenance_SendIndicatorPointPlanEntryEvents");
+    public static final EventId Maintenance_SendIndicatorPointDescriptionEntryEvents = new EventId(230017, "Maintenance_SendIndicatorPointDescriptionEntryEvents");
+    public static final EventId Maintenance_SendIndicatorPointReferenceEntryEvents = new EventId(230018, "Maintenance_SendIndicatorPointReferenceEntryEvents");
+    public static final EventId Maintenance_SendIndicatorPointUserEntryEvents = new EventId(230019, "Maintenance_SendIndicatorPointUserEntryEvents");
+    public static final EventId Maintenance_SendIndicatorPointPlanBlueprintEntryEvents = new EventId(230020, "Maintenance_SendIndicatorPointPlanBlueprintEntryEvents");
+    public static final EventId Maintenance_SendIndicatorPointDescriptionTemplateEntryEvents = new EventId(230021, "Maintenance_SendIndicatorPointDescriptionTemplateEntryEvents");
+    public static final EventId Maintenance_SendPlanStatusAccountingEntriesEvents = new EventId(230022, "Maintenance_SendPlanStatusAccountingEntriesEvents");
+    public static final EventId Maintenance_SendDescriptionStatusAccountingEntriesEvents = new EventId(230023, "Maintenance_SendDescriptionStatusAccountingEntriesEvents");
+    public static final EventId Maintenance_SendEvaluationPlanAccountingEntriesEvents = new EventId(230024, "Maintenance_SendEvaluationPlanAccountingEntriesEvents");
+    public static final EventId Maintenance_SendEvaluationDescriptionAccountingEntriesEvents = new EventId(230025, "Maintenance_SendEvaluationDescriptionAccountingEntriesEvents");
 
     public static final EventId Principal_Lookup = new EventId(240000, "Principal_Lookup");
     public static final EventId Principal_MyTenants = new EventId(240001, "Principal_MyTenants");
@@ -193,6 +214,7 @@ public class AuditableAction {
     public static final EventId TenantConfiguration_Persist = new EventId(270002, "TenantConfiguration_Persist");
     public static final EventId TenantConfiguration_Delete = new EventId(270003, "TenantConfiguration_Delete");
     public static final EventId TenantConfiguration_LookupByType = new EventId(270004, "TenantConfiguration_LookupByType");
+    public static final EventId TenantConfiguration_LookupBActiveType = new EventId(270005, "TenantConfiguration_LookupBActiveType");
 
     public static final EventId Annotation_Created_Notify = new EventId(280000, "Annotation_Created_Notify");
 

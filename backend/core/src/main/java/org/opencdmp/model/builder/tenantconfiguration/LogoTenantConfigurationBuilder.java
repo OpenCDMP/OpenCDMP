@@ -84,6 +84,7 @@ public class LogoTenantConfigurationBuilder extends BaseBuilder<LogoTenantConfig
                     StorageFile::getId);
         } else {
             FieldSet clone = new BaseFieldSet(fields.getFields()).ensure(StorageFile._id);
+            if (fields.hasField(StorageFile._fullName)) clone.ensure(StorageFile._name).ensure(StorageFile._extension);
             StorageFileQuery q = this.queryFactory.query(StorageFileQuery.class).disableTracking().authorize(this.authorize).ids(data.stream().map(LogoTenantConfigurationEntity::getStorageFileId).distinct().collect(Collectors.toList()));
             itemMap = this.builderFactory.builder(StorageFileBuilder.class).authorize(this.authorize).asForeignKey(q, clone, StorageFile::getId);
         }
@@ -91,6 +92,20 @@ public class LogoTenantConfigurationBuilder extends BaseBuilder<LogoTenantConfig
             itemMap.forEach((id, item) -> {
                 if (item != null)
                     item.setId(null);
+            });
+        }
+
+        if (!fields.hasField(StorageFile._name)) {
+            itemMap.forEach((id, item) -> {
+                if (item != null)
+                    item.setName(null);
+            });
+        }
+
+        if (!fields.hasField(StorageFile._extension)) {
+            itemMap.forEach((id, item) -> {
+                if (item != null)
+                    item.setExtension(null);
             });
         }
 

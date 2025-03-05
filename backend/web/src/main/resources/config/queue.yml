@@ -8,13 +8,13 @@ spring:
       enabled: false
 queue:
   rabbitmq:
-    enable: false
+    enable: ${QUEUE_ENABLED:true}
     appId: ${QUEUE_APP_ID}
-    durable: null
-    queue: null
-    exchange: null
-    listenerEnabled: true
-    publisherEnabled: true
+    durable: true
+    queue: ${QUEUE_NAME}
+    exchange: ${QUEUE_EXCHANGE}
+    listenerEnabled: ${QUEUE_ENABLED:true}
+    publisherEnabled: ${QUEUE_ENABLED:true}
     #TODO
     connection-recovery:
       enable: true
@@ -22,9 +22,9 @@ queue:
       unreachable-recovery-interval: 5000
   task:
     publisher:
-      enable: true
+      enable: ${QUEUE_ENABLED:true}
       options:
-        exchange: null
+        exchange: ${QUEUE_EXCHANGE}
         handleAckRetries: 3
         handleNackRetries: 3
         handleAckWaitInMilliSeconds: 50
@@ -49,7 +49,7 @@ queue:
         indicator-access-topic: indicator_access.entry
         generate-file-topic: generate.file
       rabbitmq:
-        enable: true
+        enable: ${QUEUE_ENABLED:true}
         interval-seconds: 3
         options:
           retry-threashold: 20
@@ -58,13 +58,13 @@ queue:
           too-old-to-send-seconds: 604800
           confirm-timeout-seconds: 30
     listener:
-      enable: true
+      enable: ${QUEUE_ENABLED:true}
       options:
-        exchange: null
+        exchange: ${QUEUE_EXCHANGE}
         annotation-created-topic: annotation.created
         annotation-status-changed-topic: annotationStatus.changed
       rabbitmq:
-        enable: true
+        enable: ${QUEUE_ENABLED:true}
         interval-seconds: 3
         options:
           retry-threashold: 20

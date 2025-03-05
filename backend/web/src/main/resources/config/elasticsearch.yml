@@ -17,7 +17,7 @@ app-elastic:
   enabled: ${ELASTIC_ENABLED}
   planIndexName: ${ELASTIC_PLAN_INDEX}
   descriptionIndexName: ${ELASTIC_DESCRIPTION_INDEX}
-  enableIcuAnalysisPlugin: false
+  enableIcuAnalysisPlugin: true
   resetBatchSize: 1000
 elastic-query-helper:
-  enableDbFallback: true
+  enableDbFallback: ${ELASTIC_ENABLE_DB_FALLBACK:true}

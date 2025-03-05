@@ -8,12 +8,13 @@ import { RouterUtilsService } from "@app/core/services/router/router-utils.servi
 
 
 @Component({
-	selector: 'app-navigation-breadcrumb',
-	styleUrls: [
-		'./navigation-breadcrumb.component.scss'
-	],
-	templateUrl: './navigation-breadcrumb.component.html',
-	changeDetection: ChangeDetectionStrategy.OnPush,
+    selector: 'app-navigation-breadcrumb',
+    styleUrls: [
+        './navigation-breadcrumb.component.scss'
+    ],
+    templateUrl: './navigation-breadcrumb.component.html',
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    standalone: false
 })
 export class NavigationBreadcrumbComponent extends BaseComponent {
 

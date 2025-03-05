@@ -32,11 +32,13 @@ export class NotificationServiceEnumUtils extends BaseEnumUtilsService {
 			case NotificationType.planInvitationExistingUserType: return this.language.instant('TYPES.NOTIFICATION-TEMPLATE-NOTIFICATION-TYPE.PLAN-INVITATION-EXISTING-USER');
 			case NotificationType.planModifiedType: return this.language.instant('TYPES.NOTIFICATION-TEMPLATE-NOTIFICATION-TYPE.PLAN-MODIFIED');
 			case NotificationType.planFinalisedType: return this.language.instant('TYPES.NOTIFICATION-TEMPLATE-NOTIFICATION-TYPE.PLAN-FINALISED');
+			case NotificationType.planStatusChangedType: return this.language.instant('TYPES.NOTIFICATION-TEMPLATE-NOTIFICATION-TYPE.PLAN-STATUS-CHANGED');
 			case NotificationType.planAnnotationCreatedType: return this.language.instant('TYPES.NOTIFICATION-TEMPLATE-NOTIFICATION-TYPE.PLAN-ANNOTATION-CREATED');
 			case NotificationType.planAnnotationStatusChangedType: return this.language.instant('TYPES.NOTIFICATION-TEMPLATE-NOTIFICATION-TYPE.PLAN-ANNOTATION-STATUS-CHANGED');
 			case NotificationType.descriptionCreatedType: return this.language.instant('TYPES.NOTIFICATION-TEMPLATE-NOTIFICATION-TYPE.DESCRIPTION-CREATED');
 			case NotificationType.descriptionModifiedType: return this.language.instant('TYPES.NOTIFICATION-TEMPLATE-NOTIFICATION-TYPE.DESCRIPTION-MODIFIED');
 			case NotificationType.descriptionFinalisedType: return this.language.instant('TYPES.NOTIFICATION-TEMPLATE-NOTIFICATION-TYPE.DESCRIPTION-FINALISED');
+			case NotificationType.descriptionStatusChangedType: return this.language.instant('TYPES.NOTIFICATION-TEMPLATE-NOTIFICATION-TYPE.DESCRIPTION-STATUS-CHANGED');
 			case NotificationType.descriptionAnnotationCreatedType: return this.language.instant('TYPES.NOTIFICATION-TEMPLATE-NOTIFICATION-TYPE.DESCRIPTION-ANNOTATION-CREATED');
 			case NotificationType.descriptionAnnotationStatusChangedType: return this.language.instant('TYPES.NOTIFICATION-TEMPLATE-NOTIFICATION-TYPE.DESCRIPTION-ANNOTATION-STATUS-CHANGED');
 			case NotificationType.mergeAccountConfirmationType: return this.language.instant('TYPES.NOTIFICATION-TEMPLATE-NOTIFICATION-TYPE.MERGE-ACCOUNT-CONFIRMATION');

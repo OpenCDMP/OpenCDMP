@@ -27,7 +27,7 @@ public class Section {
 	private List<Field> fields;
 
 	public final static String _descriptionTemplates = "descriptionTemplates";
-	private List<DescriptionTemplate> descriptionTemplates;
+	private List<BlueprintDescriptionTemplate> descriptionTemplates;
 
 	public final static String _prefillingSourcesEnabled = "prefillingSourcesEnabled";
 	private Boolean prefillingSourcesEnabled;
@@ -87,11 +87,11 @@ public class Section {
 		this.fields = fields;
 	}
 
-	public List<DescriptionTemplate> getDescriptionTemplates() {
+	public List<BlueprintDescriptionTemplate> getDescriptionTemplates() {
 		return descriptionTemplates;
 	}
 
-	public void setDescriptionTemplates(List<DescriptionTemplate> descriptionTemplates) {
+	public void setDescriptionTemplates(List<BlueprintDescriptionTemplate> descriptionTemplates) {
 		this.descriptionTemplates = descriptionTemplates;
 	}
 

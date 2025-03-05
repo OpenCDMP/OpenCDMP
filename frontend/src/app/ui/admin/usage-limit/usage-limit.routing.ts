@@ -1,22 +1,22 @@
-import { NgModule } from '@angular/core';
-import { RouterModule, Routes } from '@angular/router';
+import { inject, NgModule } from '@angular/core';
+import { ActivatedRouteSnapshot, RouterModule, RouterStateSnapshot, Routes } from '@angular/router';
 import { UsageLimitEditorComponent } from './editor/usage-limit-editor.component';
 import { UsageLimitListingComponent } from './listing/usage-limit-listing.component';
 import { AppPermission } from '@app/core/common/enum/permission.enum';
-import { AuthGuard } from '@app/core/auth-guard.service';
 import { BreadcrumbService } from '@app/ui/misc/breadcrumb/breadcrumb.service';
 import { PendingChangesGuard } from '@common/forms/pending-form-changes/pending-form-changes-guard.service';
 import { UsageLimitEditorResolver } from './editor/usage-limit-editor.resolver';
+import { AccountingAuthGuard } from '@app/core/services/accounting-auth-guard.service';
 
 const routes: Routes = [
 	{
 		path: '',
 		component: UsageLimitListingComponent,
-		canActivate: [AuthGuard]
+		canActivate: [(next: ActivatedRouteSnapshot, state: RouterStateSnapshot) => inject(AccountingAuthGuard).accountingCanActivate(next, state)]
 	},
 	{
 		path: 'new',
-		canActivate: [AuthGuard],
+		canActivate: [(next: ActivatedRouteSnapshot, state: RouterStateSnapshot) => inject(AccountingAuthGuard).accountingCanActivate(next, state)],
 		component: UsageLimitEditorComponent,
 		canDeactivate: [PendingChangesGuard],
 		data: {
@@ -30,7 +30,7 @@ const routes: Routes = [
 	},
 	{
 		path: ':id',
-		canActivate: [AuthGuard],
+		canActivate: [(next: ActivatedRouteSnapshot, state: RouterStateSnapshot) => inject(AccountingAuthGuard).accountingCanActivate(next, state)],
 		component: UsageLimitEditorComponent,
 		canDeactivate: [PendingChangesGuard],
 		resolve: {

@@ -6,7 +6,8 @@ import { CultureService } from '../services/culture/culture-service';
 import { TimezoneService } from '../services/timezone/timezone-service';
 
 @Pipe({
-	name: 'dateTimeFormatter'
+    name: 'dateTimeFormatter',
+    standalone: false
 })
 export class DateTimeFormatPipe implements PipeTransform {
 
@@ -26,7 +27,8 @@ export class DateTimeFormatPipe implements PipeTransform {
 
 
 @Pipe({
-	name: 'dataTableDateTimeFormatter'
+    name: 'dataTableDateTimeFormatter',
+    standalone: false
 })
 // This is only used for the DataTable Column definition.
 // It's a hacky way to apply format to the pipe because it only supports passing a pipe instance and calls transform in it without params.

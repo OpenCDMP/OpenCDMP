@@ -56,12 +56,12 @@
         <dependency>
             <groupId>org.opencdmp</groupId>
             <artifactId>repository-deposit-base</artifactId>
-            <version>1.0.0</version>
+            <version>1.1.0</version>
         </dependency>
         <dependency>
             <groupId>org.opencdmp</groupId>
             <artifactId>common-models</artifactId>
-            <version>1.0.0</version>
+            <version>1.1.0</version>
         </dependency>
         <dependency>
             <groupId>gr.cite</groupId>
@@ -71,7 +71,7 @@
         <dependency>
             <groupId>org.opencdmp</groupId>
             <artifactId>file-transformer-base</artifactId>
-            <version>1.0.0</version>
+            <version>1.1.0</version>
         </dependency>
         <dependency>
             <groupId>gr.cite</groupId>
@@ -94,11 +94,16 @@
             <artifactId>oidc-authn</artifactId>
             <version>2.2.2</version>
         </dependency>
+        <dependency>
+            <groupId>org.opencdmp</groupId>
+            <artifactId>evaluator-base</artifactId>
+            <version>1.1.0</version>
+        </dependency>
 
         <dependency>
             <groupId>gr.cite</groupId>
             <artifactId>keycloak-api</artifactId>
-            <version>2.5.0</version>
+            <version>2.5.1</version>
             <exclusions>
                 <exclusion>
                     <groupId>commons-logging</groupId>

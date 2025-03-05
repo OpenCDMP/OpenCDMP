@@ -36,7 +36,9 @@ public interface DescriptionService {
 	Map<UUID, List<String>> getDescriptionSectionPermissions(DescriptionSectionPermissionResolver model);
 
 	Description persist(DescriptionPersist model, FieldSet fields) throws MyForbiddenException, MyValidationException, MyApplicationException, MyNotFoundException, InvalidApplicationException, IOException;
+    List<Description> persistMultiple(DescriptionMultiplePersist model, FieldSet fields) throws MyForbiddenException, MyValidationException, MyApplicationException, MyNotFoundException, InvalidApplicationException, IOException;
     Description persistStatus(DescriptionStatusPersist model, FieldSet fields) throws IOException, InvalidApplicationException;
+    Description buildClone(UUID id, FieldSet fields) throws MyForbiddenException, MyValidationException, MyApplicationException, MyNotFoundException, InvalidApplicationException, IOException;
 
     void deleteAndSave(UUID id) throws MyForbiddenException, InvalidApplicationException, IOException;
 

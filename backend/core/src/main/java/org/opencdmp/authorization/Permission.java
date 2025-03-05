@@ -89,6 +89,7 @@ public final class Permission {
 	public static String AssignPlanUsers = "AssignPlanUsers";
 	public static String InvitePlanUsers = "InvitePlanUsers";
 	public static String AnnotatePlan = "AnnotatePlan";
+	public static String EvaluatePlan = "EvaluatePlan";
 
 	//PlanStatus
 	public static String BrowsePlanStatus = "BrowsePlanStatus";
@@ -137,6 +138,7 @@ public final class Permission {
 	public static String DeleteDescription = "DeleteDescription";
 	public static String CloneDescription = "CloneDescription";
 	public static String ExportDescription = "ExportDescription";
+	public static String EvaluateDescription = "EvaluateDescription";
 
 	//DescriptionTag
 	public static String BrowseDescriptionTag = "BrowseDescriptionTag";
@@ -180,6 +182,11 @@ public final class Permission {
 	public static String BrowseSupportiveMaterial = "BrowseSupportiveMaterial";
 	public static String EditSupportiveMaterial= "EditSupportiveMaterial";
 	public static String DeleteSupportiveMaterial = "DeleteSupportiveMaterial";
+
+	//Evaluation
+	public static String BrowseEvaluation = "BrowseEvaluation";
+	public static String EditEvaluation= "EditEvaluation";
+	public static String DeleteEvaluation = "DeleteEvaluation";
 
 	//ReferenceType
 	public static String BrowseReferenceType = "BrowseReferenceType";
@@ -263,5 +270,6 @@ public final class Permission {
 	public static String ViewPlanStatusPage = "ViewPlanStatusPage";
 	public static String ViewPlanWorkflowPage = "ViewPlanWorkflowPage";
 	public static String ViewDescriptionStatusPage = "ViewPlanStatusPage";
+	public static String ViewIndicatorDashboardPage = "ViewIndicatorDashboardPage";
 
 }

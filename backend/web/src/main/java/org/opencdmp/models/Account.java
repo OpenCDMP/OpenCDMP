@@ -171,6 +171,8 @@ public class Account {
 
 	public final static String _isAuthenticated = "isAuthenticated";
 	private Boolean isAuthenticated;
+	public static final String _userExists = "userExists";
+	private Boolean userExists;
 
 	public Boolean getIsAuthenticated() {
 		return isAuthenticated;
@@ -230,5 +232,13 @@ public class Account {
 
 	public void setSelectedTenant(Tenant selectedTenant) {
 		this.selectedTenant = selectedTenant;
+	}
+
+	public Boolean getUserExists() {
+		return userExists;
+	}
+
+	public void setUserExists(Boolean userExists) {
+		this.userExists = userExists;
 	}
 }

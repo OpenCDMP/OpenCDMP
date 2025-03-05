@@ -7,9 +7,10 @@ import { Subject } from 'rxjs';
 import { debounceTime, takeUntil } from 'rxjs/operators';
 
 @Component({
-	selector: 'app-text-filter',
-	templateUrl: './text-filter.component.html',
-	styleUrls: ['./text-filter.component.scss']
+    selector: 'app-text-filter',
+    templateUrl: './text-filter.component.html',
+    styleUrls: ['./text-filter.component.scss'],
+    standalone: false
 })
 export class TextFilterComponent extends BaseComponent implements OnInit, OnChanges {
 	@Input() typeaheadMS = 700;

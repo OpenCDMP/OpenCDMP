@@ -1,12 +1,12 @@
 .user-invite {
 	height: fit-content;
 	min-height: 100vh;
-	background-color: #ffffff;
+	background-color: var(--sys-surface);
 }
 
 .user-invite-title {
-  font-size: 1.25rem;
-  color: #212121;
+  font-size: var(--sys-headline-medium-size);
+  color: var(--dark-text);
   padding-top: 4.1875rem;
   padding-left: 3.75rem;
   padding-bottom: 4.0625rem;

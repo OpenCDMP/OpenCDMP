@@ -8,9 +8,10 @@ import { BaseComponent } from '@common/base/base.component';
 import { takeUntil } from 'rxjs/operators';
 
 @Component({
-	selector: 'app-notification',
-	templateUrl: './notification.component.html',
-	styleUrls: ['./notification.component.scss']
+    selector: 'app-notification',
+    templateUrl: './notification.component.html',
+    styleUrls: ['./notification.component.scss'],
+    standalone: false
 })
 export class NotificationComponent extends BaseComponent implements OnInit {
 

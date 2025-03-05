@@ -7,7 +7,7 @@
 				</div>
 
 				<div class="col-auto">
-					<button mat-button class="rounded-btn secondary" *ngIf="authService.hasPermission(authService.permissionEnum.EditPlanStatus)" [routerLink]="routerUtils.generateUrl(['/plan-statuses/new'])">
+					<button mat-flat-button color="accent" class="padded-shadow-btn" *ngIf="authService.hasPermission(authService.permissionEnum.EditPlanStatus)" [routerLink]="routerUtils.generateUrl(['/plan-statuses/new'])">
 						<mat-icon>add</mat-icon>
 						{{'PLAN-STATUS-LISTING.ACTIONS.CREATE-PLAN-STATUS' | translate}}
 					</button>
@@ -38,26 +38,20 @@
 </div>
 
 <ng-template #status let-row="row" let-item>
-    <div 
-        class="status-chip"
-        [class.status-chip-finalized]="row.internalStatus === PlanStatusEnum.Finalized"
-        [class.status-chip-draft]="row.internalStatus === PlanStatusEnum.Draft"
-    >
-        {{enumUtils.toPlanStatusString(row.internalStatus)}}
-    </div>
+    {{enumUtils.toPlanStatusString(row.internalStatus)}}
 </ng-template>
 <ng-template #actions let-row="row" let-item>
 	<div class="row" (click)="$event.stopPropagation()">
 		<div class="col-auto" *ngIf="row?.belongsToCurrentTenant && !isDeleted(row)">
-			<button mat-icon-button [matMenuTriggerFor]="actionsMenu">
+			<button mat-icon-button [matMenuTriggerFor]="actionsMenu" [attr.aria-label]="'ALT-TEXT.MORE-ACTIONS' | translate">
 				<mat-icon>more_horiz</mat-icon>
 			</button>
 			<mat-menu #actionsMenu="matMenu">
 				<a *ngIf="canEdit(row)" mat-menu-item [routerLink]="routerUtils.generateUrl(['/plan-statuses/', row.id])"> 
-					<mat-icon>edit</mat-icon>{{'PLAN-STATUS-LISTING.ACTIONS.EDIT' | translate}}
+					<mat-icon aria-hidden>edit</mat-icon>{{'PLAN-STATUS-LISTING.ACTIONS.EDIT' | translate}}
 				</a>
 				<button *ngIf="canDelete(row)" mat-menu-item (click)="delete(row.id)">
-					<mat-icon>delete</mat-icon>
+					<mat-icon aria-hidden>delete</mat-icon>
 					{{'PLAN-STATUS-LISTING.ACTIONS.DELETE' | translate}}
 				</button>
 			</mat-menu>

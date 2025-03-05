@@ -7,9 +7,12 @@ import { Reference, ReferencePersist } from "../reference/reference";
 import { Tag, TagPersist } from "../tag/tag";
 import { User } from "../user/user";
 import { AppPermission } from "@app/core/common/enum/permission.enum";
+import { DescriptionStatus, DescriptionStatusDefinition } from "../description-status/description-status";
+import { DescriptionStatusPermission } from "@app/core/common/enum/description-status-permission.enum";
 
 export interface Description extends BaseDescription {
 	label?: string;
+	status?: DescriptionStatus;
 	properties?: DescriptionPropertyDefinition;
 	description?: string;
 	createdBy?: User;
@@ -19,7 +22,9 @@ export interface Description extends BaseDescription {
 	descriptionTemplate?: DescriptionTemplate;
 	planDescriptionTemplate?: PlanDescriptionTemplate;
 	plan?: Plan;
+	availableStatuses?: DescriptionStatus[];
 	authorizationFlags?: AppPermission[];
+	statusAuthorizationFlags?: DescriptionStatusPermission[];
 }
 
 
@@ -71,12 +76,16 @@ export interface DescriptionTag extends BaseEntity {
 //
 // Persist
 //
+export interface DescriptionMultiplePersist {
+	descriptions: DescriptionPersist[];
+}
+
 export interface DescriptionPersist extends BaseEntityPersist {
 	label: string;
 	planId: Guid;
 	planDescriptionTemplateId: Guid;
 	descriptionTemplateId: Guid;
-	status: DescriptionStatusEnum;
+	statusId: Guid;
 	description: string;
 	properties: DescriptionPropertyDefinitionPersist;
 	tags: string[];
@@ -120,7 +129,7 @@ export interface DescriptionReferencePersist {
 
 export interface DescriptionStatusPersist {
 	id: Guid;
-	status: DescriptionStatusEnum;
+	statusId?: Guid;
 	hash: string;
 }
 
@@ -130,7 +139,7 @@ export interface DescriptionStatusPersist {
 
 export interface PublicDescription extends BaseDescription {
 	label?: string;
-	status?: DescriptionStatusEnum;
+	status?: PublicDescriptionStatus;
 	description?: string;
 	finalizedAt?: Date;
 	descriptionTemplate?: PublicDescriptionTemplate;
@@ -148,6 +157,14 @@ export interface PublicDescriptionTemplate {
 	label: string;
 	description: string;
 }
+
+export interface PublicDescriptionStatus {
+	id: Guid;
+    name: string;
+    internalStatus: DescriptionStatusEnum;
+	definition: DescriptionStatusDefinition;
+}
+
 export interface DescriptionSectionPermissionResolver {
 	planId: Guid;
 	sectionIds: Guid[];
@@ -161,5 +178,4 @@ export interface UpdateDescriptionTemplatePersist {
 
 export interface BaseDescription extends BaseEntity {
 	tenantId?: Guid;
-	status?: DescriptionStatusEnum;
 }

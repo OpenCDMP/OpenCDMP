@@ -16,8 +16,8 @@
 		</button>
 	</div>
 	<div class="col-auto pl-0 align-self-center">
-		<button matTooltip="{{'COMMONS.CUSTOM-USER-SETTINGS.ACTIONS.DELETE' | translate}}" mat-icon-button (click)="settingDeleted()" type="button" color="accent" [disabled]="!(currentUserSetting && currentUserSetting.id)">
-			<mat-icon>delete</mat-icon>
+		<button matTooltip="{{'COMMONS.CUSTOM-USER-SETTINGS.ACTIONS.DELETE' | translate}}" [attr.aria-label]="'COMMONS.CUSTOM-USER-SETTINGS.ACTIONS.DELETE' | translate" mat-icon-button (click)="settingDeleted()" type="button" color="accent" [disabled]="!(currentUserSetting && currentUserSetting.id)">
+			<mat-icon aria-hidden>delete</mat-icon>
 		</button>
 	</div>
 </div>

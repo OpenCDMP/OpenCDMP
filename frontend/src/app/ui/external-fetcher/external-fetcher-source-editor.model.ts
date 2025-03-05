@@ -1,11 +1,12 @@
-import { FormArray, UntypedFormArray, UntypedFormBuilder, UntypedFormGroup, Validators } from "@angular/forms";
+import { FormArray, FormControl, FormGroup, UntypedFormArray, UntypedFormBuilder, UntypedFormGroup, Validators } from "@angular/forms";
 import { ValidationErrorModel } from "@common/forms/validation/error-model/validation-error-model";
 import { Validation, ValidationContext } from "@common/forms/validation/validation-context";
 import { BackendErrorValidator } from "@common/forms/validation/custom-validator";
 import { ExternalFetcherApiHTTPMethodType } from "@app/core/common/enum/external-fetcher-api-http-method-type";
 import { ExternalFetcherSourceType } from "@app/core/common/enum/external-fetcher-source-type";
-import { AuthenticationConfiguration, AuthenticationConfigurationPersist, ExternalFetcherBaseSourceConfiguration, ExternalFetcherBaseSourceConfigurationPersist, QueryCaseConfig, QueryCaseConfigPersist, QueryConfig, QueryConfigPersist, ResultFieldsMappingConfiguration, ResultFieldsMappingConfigurationPersist, ResultsConfiguration, ResultsConfigurationPersist, Static, StaticOption, StaticOptionPersist, StaticPersist } from "@app/core/model/external-fetcher/external-fetcher";
+import { AuthenticationConfiguration, AuthenticationConfigurationPersist, ExternalFetcherBaseSourceConfiguration, ExternalFetcherBaseSourceConfigurationPersist, HeaderConfig, HeadersConfigPersist, QueryCaseConfig, QueryCaseConfigPersist, QueryConfig, QueryConfigPersist, ResultFieldsMappingConfiguration, ResultFieldsMappingConfigurationPersist, ResultsConfiguration, ResultsConfigurationPersist, Static, StaticOption, StaticOptionPersist, StaticPersist } from "@app/core/model/external-fetcher/external-fetcher";
 import { Guid } from "@common/types/guid";
+import { ExternalFetcherApiHeaderType } from "@app/core/common/enum/ExternalFetcherApiHeader.enum";
 
 export class ExternalFetcherBaseSourceConfigurationEditorModel implements ExternalFetcherBaseSourceConfigurationPersist {
 	type: ExternalFetcherSourceType = ExternalFetcherSourceType.API;
@@ -23,6 +24,7 @@ export class ExternalFetcherBaseSourceConfigurationEditorModel implements Extern
 	filterType?: string;
 	auth: AuthenticationConfigurationEditorModel = new AuthenticationConfigurationEditorModel(this.validationErrorModel);
 	queries?: QueryConfigEditorModel[] = [];
+	headers?: HeaderConfigEditorModel[] = [];
 
 	items: StaticEditorModel[] = [];
 
@@ -51,6 +53,7 @@ export class ExternalFetcherBaseSourceConfigurationEditorModel implements Extern
 			if (item.filterType) this.filterType = item.filterType;
 			if (item.auth) this.auth = new AuthenticationConfigurationEditorModel(this.validationErrorModel).fromModel(item.auth);
 			if (item.queries) { item.queries.map(x => this.queries.push(new QueryConfigEditorModel(this.validationErrorModel).fromModel(x))); }
+			if (item.headers) { item.headers.map(x => this.headers.push(new HeaderConfigEditorModel(this.validationErrorModel).fromModel(x))); }
 
 			if (item.items) item.items.map(x => this.items.push(new StaticEditorModel(this.validationErrorModel).fromModel(x)));
 
@@ -101,6 +104,14 @@ export class ExternalFetcherBaseSourceConfigurationEditorModel implements Extern
 					})
 				), context.getValidation('queries').validators
 			),
+			headers: this.formBuilder.array(
+				(this.headers ?? []).map(
+					(item, index) => item.buildForm({
+						rootPath: `${rootPath}headers[${index}].`,
+						disabled: disabled
+					})
+				), context.getValidation('headers').validators
+			),
 			items: this.formBuilder.array(
 				(this.items ?? []).map(
 					(item, index) => item.buildForm({
@@ -136,6 +147,8 @@ export class ExternalFetcherBaseSourceConfigurationEditorModel implements Extern
 		baseValidationArray.push({ key: 'filterType', validators: [BackendErrorValidator(validationErrorModel, `${rootPath}filterType`)] });
 		baseValidationArray.push({ key: 'results', validators: [BackendErrorValidator(validationErrorModel, `${rootPath}results`)] });
 		baseValidationArray.push({ key: 'queries', validators: [BackendErrorValidator(validationErrorModel, `${rootPath}queries`)] });
+		baseValidationArray.push({ key: 'headers', validators: [BackendErrorValidator(validationErrorModel, `${rootPath}headers`)] });
+
 
 		baseValidationArray.push({ key: 'items', validators: [BackendErrorValidator(validationErrorModel, `${rootPath}items`)] });
 
@@ -188,6 +201,14 @@ export class ExternalFetcherBaseSourceConfigurationEditorModel implements Extern
 			(control, index) => QueryConfigEditorModel.reapplyValidators({
 				formGroup: control as UntypedFormGroup,
 				rootPath: `${rootPath}queries[${index}].`,
+				validationErrorModel: validationErrorModel
+			})
+		);
+
+		(formGroup.get('headers') as FormArray).controls?.forEach(
+			(control, index) => HeaderConfigEditorModel.reapplyValidators({
+				formGroup: control as UntypedFormGroup,
+				rootPath: `${rootPath}headers[${index}].`,
 				validationErrorModel: validationErrorModel
 			})
 		);
@@ -550,12 +571,13 @@ export class QueryCaseConfigEditorModel implements QueryCaseConfigPersist {
 	) { }
 
 	fromModel(item: QueryCaseConfig): QueryCaseConfigEditorModel {
-		this.likePattern = item.likePattern;
-		this.separator = item.separator;
-		this.value = item.value;
-		if(item?.referenceType?.id) this.referenceTypeId = item.referenceType.id;
-		this.referenceTypeSourceKey = item.referenceTypeSourceKey;
-
+		if(item != null){
+			this.likePattern = item.likePattern;
+			this.separator = item.separator;
+			this.value = item.value;
+			if(item?.referenceType?.id) this.referenceTypeId = item.referenceType.id;
+			this.referenceTypeSourceKey = item.referenceTypeSourceKey;
+		}
 		return this;
 	}
 
@@ -616,6 +638,80 @@ export class QueryCaseConfigEditorModel implements QueryCaseConfigPersist {
 			control?.clearValidators();
 			control?.addValidators(context.getValidation(keyField).validators);
 		})
+	}
+}
+
+export class HeaderConfigEditorModel implements HeadersConfigPersist {
+	public key: ExternalFetcherApiHeaderType;
+	public value: string;
+	
+	protected formBuilder: UntypedFormBuilder = new UntypedFormBuilder();
+
+	constructor(
+		public validationErrorModel: ValidationErrorModel = new ValidationErrorModel()
+	) { }
+
+	fromModel(item: HeaderConfig): HeaderConfigEditorModel {	
+		if (item != null){ 
+			this.key = item.key;
+			this.value = item.value;
+		}
+
+		return this;
+	}
+
+	buildForm(params?: {
+		context?: ValidationContext,
+		disabled?: boolean,
+		rootPath?: string
+	}): UntypedFormGroup {
+		let { context = null, disabled = false, rootPath } = params ?? {}
+		if (context == null) {
+			context = HeaderConfigEditorModel.createValidationContext({
+				validationErrorModel: this.validationErrorModel,
+				rootPath
+			});
+		}
+
+		return this.formBuilder.group({
+			key: [{ value: this.key, disabled: disabled }, context.getValidation('key').validators],
+			value: [{ value: this.value, disabled: disabled }, context.getValidation('value').validators],
+		});
+	}
+
+	static createValidationContext(params: {
+		rootPath?: string,
+		validationErrorModel: ValidationErrorModel
+	}): ValidationContext {
+		const { rootPath = '', validationErrorModel } = params;
+
+		const baseContext: ValidationContext = new ValidationContext();
+		const baseValidationArray: Validation[] = new Array<Validation>();
+		baseValidationArray.push({ key: 'key', validators: [Validators.required, BackendErrorValidator(validationErrorModel, `${rootPath}key`)] });
+		baseValidationArray.push({ key: 'value', validators: [Validators.required, BackendErrorValidator(validationErrorModel, `${rootPath}value`)] });
+
+		baseContext.validation = baseValidationArray;
+		return baseContext;
+	}
+
+	static reapplyValidators(params: {
+		formGroup: UntypedFormGroup,
+		validationErrorModel: ValidationErrorModel,
+		rootPath: string
+	}): void {
+
+		const { formGroup, rootPath, validationErrorModel } = params;
+		const context = HeaderConfigEditorModel.createValidationContext({
+			rootPath,
+			validationErrorModel
+		});
+
+		['key', 'value'].forEach(keyField => {
+			const control = formGroup?.get(keyField);
+			control?.clearValidators();
+			control?.addValidators(context.getValidation(keyField).validators);
+		});
+
 	}
 }
 
@@ -767,4 +863,17 @@ export class StaticOptionEditorModel implements StaticOptionPersist {
 		});
 
 	}
+}
+
+export interface ItemsFormGroup{
+    options: FormArray<FormGroup<OptionsFormGroup>>
+}
+export interface OptionsFormGroup{
+    code: FormControl<string>;
+    value: FormControl<string>;
+}
+
+export interface FieldMappingFormGroup{
+    code: FormControl<string>;
+	responsePath: FormControl<string>;
 }

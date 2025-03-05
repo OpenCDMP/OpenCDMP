@@ -45,6 +45,7 @@ public class ExternalFetcherApiSourceConfigurationBuilder extends ExternalFetche
         FieldSet resultsFields = fields.extractPrefixed(this.asPrefix(ExternalFetcherApiSourceConfiguration._results));
         FieldSet authFields = fields.extractPrefixed(this.asPrefix(ExternalFetcherApiSourceConfiguration._auth));
         FieldSet queriesFields = fields.extractPrefixed(this.asPrefix(ExternalFetcherApiSourceConfiguration._queries));
+        FieldSet headerFields = fields.extractPrefixed(this.asPrefix(ExternalFetcherApiSourceConfiguration._headers));
         if(!this.authorizationService.authorize(Permission.EditReferenceType)) return m;
         
         if (fields.hasField(this.asIndexer(ExternalFetcherApiSourceConfiguration._url))) m.setUrl(d.getUrl());
@@ -63,6 +64,9 @@ public class ExternalFetcherApiSourceConfigurationBuilder extends ExternalFetche
         }
         if (!queriesFields.isEmpty() && d.getQueries() != null) {
             m.setQueries(this.builderFactory.builder(QueryConfigBuilder.class).authorize(this.authorize).build(queriesFields, d.getQueries()));
+        }
+        if (!headerFields.isEmpty() && d.getQueries() != null){
+            m.setHeaders(this.builderFactory.builder(ExternalFetcherApiHeaderConfigurationBuilder.class).authorize(this.authorize).build(headerFields, d.getHeaders()));
         }
 
         return m;

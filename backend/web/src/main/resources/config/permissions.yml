@@ -120,8 +120,11 @@ permissions:
     BrowseDescriptionStatus:
       roles:
         - Admin
-        - TenantAdmin
+        - InstallationAdmin
+        - TenantPlanManager
         - TenantConfigManager
+        - TenantAdmin
+        - TenantUser
       clients: [ ]
       allowAnonymous: false
       allowAuthenticated: false
@@ -174,8 +177,11 @@ permissions:
     BrowsePlanStatus:
       roles:
         - Admin
-        - TenantAdmin
+        - InstallationAdmin
+        - TenantPlanManager
         - TenantConfigManager
+        - TenantAdmin
+        - TenantUser
       clients: [ ]
       allowAnonymous: false
       allowAuthenticated: false
@@ -365,6 +371,17 @@ permissions:
       clients: [ ]
       allowAnonymous: false
       allowAuthenticated: false
+    EvaluateDescription:
+       roles:
+         - Admin
+         - TenantAdmin
+       plan:
+         roles:
+           - Owner
+       claims: [ ]
+       clients: [ ]
+       allowAnonymous: false
+       allowAuthenticated: false
     CloneDescription:
       roles:
         - Admin
@@ -642,6 +659,17 @@ permissions:
       allowAnonymous: false
       allowAuthenticated: false
     DepositPlan:
+      roles:
+        - Admin
+        - TenantAdmin
+      plan:
+        roles:
+          - Owner
+      claims: [ ]
+      clients: [ ]
+      allowAnonymous: false
+      allowAuthenticated: false
+    EvaluatePlan:
       roles:
         - Admin
         - TenantAdmin
@@ -1241,6 +1269,42 @@ permissions:
       allowAnonymous: false
       allowAuthenticated: false
 
+    #Evaluation
+    BrowseEvaluation:
+      roles:
+        - Admin
+        - TenantAdmin
+      plan:
+        roles:
+          - Owner
+          - DescriptionContributor
+      clients: [ ]
+      allowAnonymous: false
+      allowAuthenticated: false
+    EditEvaluation:
+      roles:
+        - Admin
+        - TenantAdmin
+      plan:
+        roles:
+          - Owner
+          - DescriptionContributor
+      clients: [ ]
+      allowAnonymous: false
+      allowAuthenticated: false
+    DeleteEvaluation:
+      roles:
+        - Admin
+        - TenantAdmin
+      plan:
+        roles:
+          - Owner
+          - DescriptionContributor
+      claims: [ ]
+      clients: [ ]
+      allowAnonymous: false
+      allowAuthenticated: false
+
     # ViewPage Permissions
     ViewDescriptionTemplateTypePage:
       roles:
@@ -1434,6 +1498,14 @@ permissions:
         - Admin
         - TenantAdmin
         - TenantConfigManager
+      clients: [ ]
+      allowAnonymous: false
+      allowAuthenticated: false
+    ViewIndicatorDashboardPage:
+      roles:
+        - Admin
+        - InstallationAdmin
+        - TenantAdmin
       clients: [ ]
       allowAnonymous: false
       allowAuthenticated: false

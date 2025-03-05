@@ -5,6 +5,7 @@ import gr.cite.tools.exception.MyNotFoundException;
 import gr.cite.tools.fieldset.BaseFieldSet;
 import gr.cite.tools.logging.LoggerService;
 import org.opencdmp.commons.JsonHandlingService;
+import org.opencdmp.commons.enums.IsActive;
 import org.opencdmp.commons.types.user.AdditionalInfoEntity;
 import org.opencdmp.data.*;
 import org.opencdmp.integrationevent.outbox.OutboxIntegrationEvent;
@@ -69,7 +70,7 @@ public class UserTouchedIntegrationEventHandlerImpl implements UserTouchedIntegr
 		    List<UserCredentialEntity> userCredentialEntities = this.queryFactory.query(UserCredentialQuery.class).disableTracking().userIds(userId)
 				    .collectAs(new BaseFieldSet().ensure(UserCredential._id, UserCredential._externalId));
 
-		    List<TenantUserEntity> tenantUserEntities = this.queryFactory.query(TenantUserQuery.class).disableTracking().userIds(userId)
+		    List<TenantUserEntity> tenantUserEntities = this.queryFactory.query(TenantUserQuery.class).disableTracking().userIds(userId).isActive(IsActive.Active)
 				    .collectAs(new BaseFieldSet().ensure(TenantUser._id, TenantUser._tenant));
 
 		    UserTouchedIntegrationEvent event = new UserTouchedIntegrationEvent();

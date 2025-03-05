@@ -1,29 +1,30 @@
 <div class="table-item row align-items-center" *ngIf="!(parentLink.type == undefined)">
-	<div class="col link-info">
-		<span class="table-label-element" 
-			[ngClass]="{
-                'table-label-element-active': itemSelected?.id == parentLink?.id, 
-                'text-danger': colorError() ||( (parentLink?.subEntriesType === tocEntryType.FieldSet )&& !colorError() && !selectedItemInLinks && parentLink?.form.invalid && colorizeInvalid && (itemSelected?.id != parentLink?.id) && !_findTocEntryById(itemSelected?.id, parentLink?.subEntries)), 
-                'link-info-error': showErrors && !parentLink?.form?.valid
-            }" 
-			(click)="itemClicked(parentLink)" [ngStyle]="{'font-size' : (parentLink.type == tocEntryType.FieldSet? '.9rem':'1rem')}" [id]="'TABLE_ENTRY'+parentLink.id">
-			{{parentLink?.numbering}} {{parentLink?.form.get('title').value? parentLink?.form.get('title').value : 'DESCRIPTION-TEMPLATE-EDITOR.STEPS.GENERAL-INFO.UNTITLED' | translate}}
-			<ng-container *ngIf="!parentLink.form.get('title').value" [ngSwitch]="parentLink.type">
-				<ng-container *ngSwitchCase="tocEntryType.FieldSet">
-					{{'DESCRIPTION-TEMPLATE-EDITOR.STEPS.GENERAL-INFO.QUESTION' | translate |lowercase}}
-				</ng-container>
-				<ng-container *ngSwitchCase="tocEntryType.Section">
-					{{'DESCRIPTION-TEMPLATE-EDITOR.STEPS.SECTION-INFO.SECTION' | translate |lowercase}}
-				</ng-container>
-				<ng-container *ngSwitchCase="tocEntryType.Page">
-					{{'DESCRIPTION-TEMPLATE-EDITOR.STEPS.PAGE-INFO.PAGE' | translate | lowercase}}
-				</ng-container>
+	<!-- <div class="col link-info"> -->
+    <span role="button" (click)="itemClicked(parentLink)" class="col link-info table-label-element" 
+        [ngClass]="{
+            'table-label-element-active': itemSelected?.id == parentLink?.id, 
+            'text-danger': colorError() ||( (parentLink?.subEntriesType === tocEntryType.FieldSet )&& !colorError() && !selectedItemInLinks && parentLink?.form.invalid && colorizeInvalid && (itemSelected?.id != parentLink?.id) && !_findTocEntryById(itemSelected?.id, parentLink?.subEntries)), 
+            'link-info-error': showErrors && !parentLink?.form?.valid
+        }" 
+        [ngStyle]="{'font-size' : (parentLink.type == tocEntryType.FieldSet? '.9rem':'1rem')}" [id]="'TABLE_ENTRY'+parentLink.id"
+    >
+        {{parentLink?.numbering}} {{parentLink?.form.get('title').value? parentLink?.form.get('title').value : 'DESCRIPTION-TEMPLATE-EDITOR.STEPS.GENERAL-INFO.UNTITLED' | translate}}
+        <ng-container *ngIf="!parentLink.form.get('title').value" [ngSwitch]="parentLink.type">
+            <ng-container *ngSwitchCase="tocEntryType.FieldSet">
+                {{'DESCRIPTION-TEMPLATE-EDITOR.STEPS.GENERAL-INFO.QUESTION' | translate |lowercase}}
+            </ng-container>
+            <ng-container *ngSwitchCase="tocEntryType.Section">
+                {{'DESCRIPTION-TEMPLATE-EDITOR.STEPS.SECTION-INFO.SECTION' | translate |lowercase}}
+            </ng-container>
+            <ng-container *ngSwitchCase="tocEntryType.Page">
+                {{'DESCRIPTION-TEMPLATE-EDITOR.STEPS.PAGE-INFO.PAGE' | translate | lowercase}}
+            </ng-container>
 
-			</ng-container>
-		</span>
+        </ng-container>
+    </span>
 
 
-	</div>
+	<!-- </div> -->
 	<div class="col-auto d-flex align-items-center">
 
 		<ng-container *ngIf="!(!((parentLink?.subEntriesType == tocEntryType.FieldSet) && !selectedItemInLinks) || itemSelected?.id == parentLink.id ||isDragging)">
@@ -33,21 +34,41 @@
 		</ng-container>
 
 
-		<span style="cursor: pointer;" (click)="deleteEntry(parentLink)" [hidden]="!(!viewOnly && (itemSelected?.id == parentLink?.id) && (parentLink?.type != tocEntryType.FieldSet))">
-			<mat-icon style="font-size: 1.4em;">delete</mat-icon>
-		</span>
+		<button 
+            role="button" 
+            tabindex="0" 
+            class="unstyled-btn delete-btn"
+            (click)="deleteEntry(parentLink)" 
+            [hidden]="!(!viewOnly && (itemSelected?.id == parentLink?.id) && (parentLink?.type != tocEntryType.FieldSet))"
+            [matTooltip]="'COMMONS.ACTIONS.DELETE' | translate"
+            [attr.aria-label]="'COMMONS.ACTIONS.DELETE' | translate"
+        >
+			<mat-icon style="font-size: 1.4em;" aria-hidden>delete</mat-icon>
+    </button>
 	</div>
 </div>
 
 <!-- When item is not selected then show only the pages (first level) -->
-<div dragula="TABLEDRAG" class="ml-2" [ngClass]="{'border-left-active':itemSelected?.id == parentLink?.id, 'ml-1':itemSelected?.id == parentLink?.id, 'pb-4': isDragging && (parentLink?.type!= tocEntryType.FieldSet) && (parentLink?.id != draggingItemId) }" [hidden]="!((parentLink?.subEntriesType!= tocEntryType.FieldSet) || selectedItemInLinks || parentLink?.id === itemSelected?.id ||isDragging)" class="cdk-link-list" [id]="parentLink.id" [ngStyle]="{'border': overContainerId === parentLink?.id? '1px solid #129D99': '', 'min-height': ((!links?.length||(links.length ==1) ) && (parentLink?.type != tocEntryType.FieldSet) && (isDragging) && (draggingItemId != parentLink?.id)) ? '3em':'inherit'}">
-	<ng-container *ngIf="draggingItemId != parentLink?.id">
+<ul dragula="TABLEDRAG" 
+    class="unstyled-list cdk-link-list" 
+    [ngClass]="{
+        'border-left-active':itemSelected?.id == parentLink?.id,
+        'ml-1':itemSelected?.id == parentLink?.id,
+        'pb-4': isDragging && (parentLink?.type!= tocEntryType.FieldSet) && (parentLink?.id != draggingItemId)
+    }" 
+    [hidden]="!((parentLink?.subEntriesType!= tocEntryType.FieldSet) || selectedItemInLinks || parentLink?.id === itemSelected?.id ||isDragging)" 
+    [id]="parentLink.id" 
+    [ngStyle]="{
+        'border': overContainerId === parentLink?.id? '1px solid #129D99': '',
+        'min-height': ((!links?.length||(links.length ==1) ) && (parentLink?.type != tocEntryType.FieldSet) && (isDragging) && (draggingItemId != parentLink?.id)) ? '3em':'inherit'
+    }">
+	@if(draggingItemId != parentLink?.id){
 
-		<div *ngFor="let link of links; last as isLast" [ngClass]="{'mb-3': link.type === tocEntryType.Page}" [id]="DRAGULA_ITEM_ID_PREFIX + link.id">
+		<li *ngFor="let link of links; last as isLast" [ngClass]="{'mb-3': link.type === tocEntryType.Page}" [id]="DRAGULA_ITEM_ID_PREFIX + link.id">
 			<div class="docs-link mt-0">
 
 				<div [ngClass]="{'ml-3': link.type != tocEntryType.Page }">
-					<app-description-template-table-of-contents-internal-section 
+					<app-description-template-table-of-contents-internal-section  tabindex="0"
 						[links]="link.subEntries" 
 						[parentLink]="link" 
 						[itemSelected]="itemSelected" 
@@ -71,11 +92,11 @@
 					<ng-container *ngIf="!isDragging">
 
 						<ng-container *ngIf="selectedItemInLinks && (link.type != tocEntryType.Page) && isLast  && (!viewOnly)">
-							<button mat-button style="padding-left: 0px;" (click)="createNewEntry({childType:link.type,parent:parentLink})">
+							<button role="button" mat-button style="margin-left: 0px;" (click)="createNewEntry({childType:link.type,parent:parentLink})">
 								<ng-container [ngSwitch]="link.type">
 									<ng-container *ngSwitchCase="tocEntryType.Section">
-										<div class="d-flex" style="align-items: center;">
-											<mat-icon color="accent" style="font-size: 1.6em;margin-left: -0.3em;">add</mat-icon>
+										<div class="d-flex gap-quarter-rem" style="align-items: center;">
+											<mat-icon color="primary" style="font-size: 1.6em;">add</mat-icon>
 											<!-- Create new subsection -->
 											{{'DESCRIPTION-TEMPLATE-EDITOR.STEPS.PAGE-INFO.ACTIONS.CREATE-NEW-SUBSECTION' | translate}}
 										</div>
@@ -84,7 +105,7 @@
 										<!-- Subsection + -->
 									</ng-container>
 									<ng-container *ngSwitchCase="tocEntryType.FieldSet">
-										<img src="/assets/images/editor/icons/add_input_set.svg" alt="" style="margin-left: 0.1em;" class="add-input-icon">
+										<img src="/assets/images/editor/icons/add_input_set.svg" alt="New input icon" style="margin-left: 0.1em;" class="add-input-icon">
 										{{'DESCRIPTION-TEMPLATE-EDITOR.STEPS.TOOLKIT.NEW-INPUT-SET' | translate}}
 									</ng-container>
 
@@ -95,11 +116,11 @@
 				</div>
 			</div>
 
-		</div> <!-- END OF LOOP-->
+		</li> <!-- END OF LOOP-->
 
-	</ng-container>
+	}
 
-</div>
+</ul>
 
 
 <ng-container *ngIf="!isDragging">
@@ -110,9 +131,9 @@
 	<ng-container *ngIf="parentLink?.type != tocEntryType.FieldSet && !viewOnly && parentLink?.id == itemSelected?.id" >
 		<div *ngIf="parentLink?.type == tocEntryType.Page; else notAPage" class="docs-link mt-0">
 			<div class="ml-3">
-				<button mat-button style="padding-left: 0px; display: block;" (click)="createNewEntry({childType:tocEntryType.Section,parent:parentLink})">
-					<div class="d-flex" style="align-items: center;">
-						<mat-icon color="accent" style="font-size: 1.6em;margin-left: -0.3em;">add</mat-icon>
+				<button mat-button role="button" style="margin-left: 0px; display: block;" (click)="createNewEntry({childType:tocEntryType.Section,parent:parentLink})">
+					<div class="d-flex gap-quarter-rem" style="align-items: center;">
+						<mat-icon color="primary" style="font-size: 1.6em;">add</mat-icon>
 						<!-- Create new subsection -->
 						{{'DESCRIPTION-TEMPLATE-EDITOR.STEPS.PAGE-INFO.ACTIONS.CREATE-NEW-SUBSECTION' | translate}}
 					</div>
@@ -123,17 +144,17 @@
 			<div *ngIf="!links; else withSubItems" class="docs-link mt-0">
 				<div class="ml-3">
 					<!-- Give option to generate fieldset (only if parent is section) -->
-					<button *ngIf="parentLink.type == tocEntryType.Section" mat-button style="padding-left: 0px;" (click)="createNewEntry({childType:tocEntryType.FieldSet,parent:parentLink})">
-						<img src="/assets/images/editor/icons/add_input_set.svg" alt="" class="add-input-icon">
+					<button mat-button role="button" *ngIf="parentLink.type == tocEntryType.Section"  style="margin-left: 0px;" (click)="createNewEntry({childType:tocEntryType.FieldSet,parent:parentLink})">
+						<img src="/assets/images/editor/icons/add_input_set.svg" alt="New input icon" class="add-input-icon">
 						{{'DESCRIPTION-TEMPLATE-EDITOR.STEPS.TOOLKIT.NEW-INPUT-SET' | translate}}
-					</button>
+                    </button>
 
 					<!-- Give option to generate section -->
-					<button mat-button style="padding-left: 0px; display: block;" (click)="createNewEntry({childType:tocEntryType.Section,parent:parentLink})">
+					<button mat-button style="margin-left: 0px; display: block;" role="button" (click)="createNewEntry({childType:tocEntryType.Section,parent:parentLink})">
 						<!-- Subsection + -->
 
-						<div class="d-flex" style="align-items: center;">
-							<mat-icon color="accent" style="font-size: 1.6em;margin-left: -0.3em;">add</mat-icon>
+						<div class="d-flex gap-quarter-rem" style="align-items: center;">
+							<mat-icon color="primary" style="font-size: 1.6em;">add</mat-icon>
 							<!-- Create new subsection -->
 							{{'DESCRIPTION-TEMPLATE-EDITOR.STEPS.PAGE-INFO.ACTIONS.CREATE-NEW-SUBSECTION' | translate}}
 						</div>
@@ -147,17 +168,17 @@
 				<div class="ml-3">
 					<ng-container [ngSwitch]="linksType">
 						<ng-container *ngSwitchCase="tocEntryType.Section">
-							<button mat-button style="padding-left: 0px; display: block;" (click)="createNewEntry({childType:tocEntryType.Section,parent:parentLink})">
-								<div class="d-flex" style="align-items: center;">
-									<mat-icon color="accent" style="font-size: 1.6em;margin-left: -0.3em;">add</mat-icon>
+							<button mat-button style="margin-left: 0px; display: block;" role="button" (click)="createNewEntry({childType:tocEntryType.Section,parent:parentLink})">
+								<div class="d-flex gap-quarter-rem" style="align-items: center;">
+									<mat-icon color="primary" style="font-size: 1.6em">add</mat-icon>
 									<!-- Create new subsection -->
 									{{'DESCRIPTION-TEMPLATE-EDITOR.STEPS.PAGE-INFO.ACTIONS.CREATE-NEW-SUBSECTION' | translate}}
 								</div>
 							</button>
 						</ng-container>
 						<ng-container *ngSwitchCase="tocEntryType.FieldSet">
-							<button *ngIf="parentLink.type == tocEntryType.Section" mat-button style="padding-left: 0px;" (click)="createNewEntry({childType:tocEntryType.FieldSet,parent:parentLink})">
-								<img src="/assets/images/editor/icons/add_input_set.svg" alt="" class="add-input-icon">
+							<button *ngIf="parentLink.type == tocEntryType.Section" mat-button style="margin-left: 0px;" role="button" (click)="createNewEntry({childType:tocEntryType.FieldSet,parent:parentLink})">
+								<img src="/assets/images/editor/icons/add_input_set.svg" alt="New input set icon" class="add-input-icon">
 								{{'DESCRIPTION-TEMPLATE-EDITOR.STEPS.TOOLKIT.NEW-INPUT-SET' | translate}}
 							</button>
 						</ng-container>
@@ -171,10 +192,10 @@
 
 	<!-- Only for the page -->
 	<div *ngIf="parentLink?.subEntriesType == tocEntryType.Page && !viewOnly">
-		<button mat-button class="mt-2" (click)="createNewEntry({childType:parentLink.subEntriesType,parent:parentLink})" style="padding-left:0px">
+		<button mat-button role="button" class="mt-2" (click)="createNewEntry({childType:parentLink.subEntriesType,parent:parentLink})" style="padding-left:0px">
 			<!-- <mat-icon>add</mat-icon>  -->
-			<div class="d-flex" style="align-items: center;">
-				<mat-icon color="accent" style="font-size: 1.6em;margin-left: -0.3em;">add</mat-icon>
+			<div class="d-flex gap-quarter-rem" style="align-items: center;">
+				<mat-icon style="font-size: 1.6em">add</mat-icon>
 				<ng-container *ngIf="!links?.length else createsection">
 					{{'DESCRIPTION-TEMPLATE-EDITOR.STEPS.PAGE-INFO.ACTIONS.CREATE-FIRST-SECTION'| translate}}
 					<!-- Create the first section -->

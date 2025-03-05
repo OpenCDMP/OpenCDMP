@@ -6,16 +6,16 @@
 					<app-navigation-breadcrumb />
 				</div>
 				<div class="col-auto">
-					<button mat-button class="rounded-btn neutral" (click)="cancel()" type="button">{{'USAGE-LIMIT-EDITOR.ACTIONS.CANCEL' | translate}}</button>
+					<button mat-stroked-button class="padded-shadow-btn" (click)="cancel()" type="button">{{'USAGE-LIMIT-EDITOR.ACTIONS.CANCEL' | translate}}</button>
 				</div>
 				<div class="col-auto" *ngIf="canDelete">
-					<button mat-button class="rounded-btn delete-inverted" type="button" (click)="delete()">
-						<mat-icon>delete</mat-icon>
+					<button mat-stroked-button color="warn" class="padded-shadow-btn" type="button" (click)="delete()">
+						<mat-icon aria-hidden>delete</mat-icon>
 						{{'USAGE-LIMIT-EDITOR.ACTIONS.DELETE' | translate}}
 					</button>
 				</div>
 				<div class="col-auto" *ngIf="canSave">
-					<button mat-button class="rounded-btn primary" (click)="formSubmit()">
+					<button mat-flat-button color="primary" class="padded-shadow-btn" (click)="formSubmit()">
 						<mat-icon>save</mat-icon>
 						{{'USAGE-LIMIT-EDITOR.ACTIONS.SAVE' | translate}}
 					</button>
@@ -23,8 +23,9 @@
 			</div>
 
 			<form *ngIf="formGroup" (ngSubmit)="formSubmit()">
-				<mat-card appearance="outlined" class="pt-3 pb-3">
-					<mat-card-content>
+				<mat-card appearance="outlined" class="pb-3">
+                    <mat-card-content>
+                        <div class="pb-3"><small>{{'COMMONS.VALIDATION.REQUIRED-FIELDS-HINT' | translate}}</small></div>
 						<div class="row">
 							<div class="col-4">
 								<mat-form-field class="w-100">

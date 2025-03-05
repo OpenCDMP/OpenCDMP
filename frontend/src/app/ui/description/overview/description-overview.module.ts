@@ -8,6 +8,7 @@ import { DescriptionCopyDialogModule } from '../description-copy-dialog/descript
 import { DescriptionOverviewComponent } from './description-overview.component';
 import { DescriptionOverviewRoutingModule } from './description-overview.routing';
 import { PlanAuthorsComponent } from '@app/ui/plan/plan-authors/plan-authors.component';
+import { PlanEvaluationHistoryComponent } from '@app/ui/plan/listing/plan-evaluation-history/plan-evaluation-history.component';
 
 @NgModule({
 	imports: [
@@ -18,7 +19,8 @@ import { PlanAuthorsComponent } from '@app/ui/plan/plan-authors/plan-authors.com
 		AutoCompleteModule,
 		DescriptionCopyDialogModule,
 		DescriptionOverviewRoutingModule,
-        PlanAuthorsComponent
+        PlanAuthorsComponent,
+        PlanEvaluationHistoryComponent
 	],
 	declarations: [
 		DescriptionOverviewComponent

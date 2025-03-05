@@ -14,12 +14,14 @@ import org.opencdmp.authorization.authorizationcontentresolver.AuthorizationCont
 import org.opencdmp.commons.JsonHandlingService;
 import org.opencdmp.commons.XmlHandlingService;
 import org.opencdmp.commons.enums.EntityType;
+import org.opencdmp.commons.enums.IsActive;
 import org.opencdmp.commons.scope.tenant.TenantScope;
 import org.opencdmp.commons.types.plan.PlanPropertiesEntity;
 import org.opencdmp.commons.types.planblueprint.DefinitionEntity;
 import org.opencdmp.convention.ConventionService;
 import org.opencdmp.data.PlanBlueprintEntity;
 import org.opencdmp.data.PlanEntity;
+import org.opencdmp.data.PlanStatusEntity;
 import org.opencdmp.model.PlanDescriptionTemplate;
 import org.opencdmp.model.PlanUser;
 import org.opencdmp.model.EntityDoi;
@@ -27,12 +29,17 @@ import org.opencdmp.model.builder.*;
 import org.opencdmp.model.builder.description.DescriptionBuilder;
 import org.opencdmp.model.builder.planblueprint.PlanBlueprintBuilder;
 import org.opencdmp.model.builder.planreference.PlanReferenceBuilder;
+import org.opencdmp.model.builder.planstatus.PlanStatusBuilder;
 import org.opencdmp.model.description.Description;
 import org.opencdmp.model.plan.Plan;
 import org.opencdmp.model.planblueprint.PlanBlueprint;
 import org.opencdmp.model.planreference.PlanReference;
+import org.opencdmp.model.planstatus.PlanStatus;
+import org.opencdmp.model.planstatus.PlanStatusDefinitionAuthorization;
 import org.opencdmp.model.user.User;
 import org.opencdmp.query.*;
+import org.opencdmp.service.custompolicy.CustomPolicyService;
+import org.opencdmp.service.planstatus.PlanStatusService;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
@@ -54,13 +61,15 @@ public class PlanBuilder extends BaseBuilder<Plan, PlanEntity> {
     private final AuthorizationService authorizationService;
     private final AuthorizationContentResolver authorizationContentResolver;
     private final TenantScope tenantScope;
+    private final CustomPolicyService customPolicyService;
+    private final PlanStatusService planStatusService;
 
     private EnumSet<AuthorizationFlags> authorize = EnumSet.of(AuthorizationFlags.None);
 
     @Autowired
     public PlanBuilder(ConventionService conventionService,
                        QueryFactory queryFactory,
-                       BuilderFactory builderFactory, JsonHandlingService jsonHandlingService, XmlHandlingService xmlHandlingService, AuthorizationService authorizationService, AuthorizationContentResolver authorizationContentResolver, TenantScope tenantScope) {
+                       BuilderFactory builderFactory, JsonHandlingService jsonHandlingService, XmlHandlingService xmlHandlingService, AuthorizationService authorizationService, AuthorizationContentResolver authorizationContentResolver, TenantScope tenantScope, CustomPolicyService customPolicyService, PlanStatusService planStatusService) {
         super(conventionService, new LoggerService(LoggerFactory.getLogger(PlanBuilder.class)));
         this.queryFactory = queryFactory;
         this.builderFactory = builderFactory;
@@ -69,6 +78,8 @@ public class PlanBuilder extends BaseBuilder<Plan, PlanEntity> {
         this.authorizationService = authorizationService;
 	    this.authorizationContentResolver = authorizationContentResolver;
 	    this.tenantScope = tenantScope;
+        this.customPolicyService = customPolicyService;
+        this.planStatusService = planStatusService;
     }
 
     public PlanBuilder authorize(EnumSet<AuthorizationFlags> values) {
@@ -84,6 +95,12 @@ public class PlanBuilder extends BaseBuilder<Plan, PlanEntity> {
             return new ArrayList<>();
 
         List<Plan> models = new ArrayList<>();
+
+        FieldSet statusFields = fields.extractPrefixed(this.asPrefix(Plan._status));
+        Map<UUID, PlanStatus> statusItemsMap = this.collectPlanStatuses(statusFields, data);
+
+        FieldSet availableStatusesFields = fields.extractPrefixed(this.asPrefix(Plan._availableStatuses));
+        Map<UUID, List<PlanStatus>> avaialbleStatusesItemsMap = this.collectAvailablePlanStatuses(availableStatusesFields, data);
 
         FieldSet entityDoisFields = fields.extractPrefixed(this.asPrefix(Plan._entityDois));
         Map<UUID, List<EntityDoi>> entityDoisMap = this.collectEntityDois(entityDoisFields, data);
@@ -114,14 +131,16 @@ public class PlanBuilder extends BaseBuilder<Plan, PlanEntity> {
 
         Set<String> authorizationFlags = this.extractAuthorizationFlags(fields, Plan._authorizationFlags, this.authorizationContentResolver.getPermissionNames());
         Map<UUID, AffiliatedResource>  affiliatedResourceMap = authorizationFlags == null || authorizationFlags.isEmpty() ? null : this.authorizationContentResolver.plansAffiliation(data.stream().map(PlanEntity::getId).collect(Collectors.toList()));
-        
+
+        FieldSet statusAuthorizationFlags = fields.extractPrefixed(this.asPrefix(Plan._statusAuthorizationFlags));
         for (PlanEntity d : data) {
             Plan m = new Plan();
             if (fields.hasField(this.asIndexer(Plan._id))) m.setId(d.getId());
             if (fields.hasField(this.asIndexer(Plan._tenantId))) m.setTenantId(d.getTenantId());
             if (fields.hasField(this.asIndexer(Plan._label))) m.setLabel(d.getLabel());
             if (fields.hasField(this.asIndexer(Plan._version))) m.setVersion(d.getVersion());
-            if (fields.hasField(this.asIndexer(Plan._status))) m.setStatus(d.getStatus());
+            if (!statusFields.isEmpty() && statusItemsMap != null && statusItemsMap.containsKey(d.getStatusId())) m.setStatus(statusItemsMap.get(d.getStatusId()));
+            if (avaialbleStatusesItemsMap != null && !avaialbleStatusesItemsMap.isEmpty() && avaialbleStatusesItemsMap.containsKey(d.getId())) m.setAvailableStatuses(avaialbleStatusesItemsMap.get(d.getId()));
             if (fields.hasField(this.asIndexer(Plan._groupId))) m.setGroupId(d.getGroupId());
             if (fields.hasField(this.asIndexer(Plan._description))) m.setDescription(d.getDescription());
             if (fields.hasField(this.asIndexer(Plan._createdAt))) m.setCreatedAt(d.getCreatedAt());
@@ -150,11 +169,66 @@ public class PlanBuilder extends BaseBuilder<Plan, PlanEntity> {
                 m.setProperties(this.builderFactory.builder(PlanPropertiesBuilder.class).withDefinition(definitionEntityMap != null ? definitionEntityMap.getOrDefault(d.getBlueprintId(), null) : null).authorize(this.authorize).build(planPropertiesFields, propertyDefinition));
             }
             if (affiliatedResourceMap != null && !authorizationFlags.isEmpty()) m.setAuthorizationFlags(this.evaluateAuthorizationFlags(this.authorizationService, authorizationFlags, affiliatedResourceMap.getOrDefault(d.getId(), null)));
+            if (!statusAuthorizationFlags.isEmpty() && !this.conventionService.isListNullOrEmpty(m.getAvailableStatuses())) {
+                m.setStatusAuthorizationFlags(this.evaluateStatusAuthorizationFlags(this.authorizationService, statusAuthorizationFlags, d));
+            }
             models.add(m);
         }
         this.logger.debug("build {} items", Optional.of(models).map(List::size).orElse(0));
 
         return models;
+    }
+
+    private Map<UUID, PlanStatus> collectPlanStatuses(FieldSet fields, List<PlanEntity> data) throws MyApplicationException {
+        if (fields.isEmpty() || data.isEmpty())
+            return null;
+        this.logger.debug("checking related - {}", PlanStatus.class.getSimpleName());
+
+        Map<UUID, PlanStatus> itemMap;
+        if (!fields.hasOtherField(this.asIndexer(PlanStatus._id))) {
+            itemMap = this.asEmpty(
+                    data.stream().map(PlanEntity::getStatusId).distinct().collect(Collectors.toList()),
+                    x -> {
+                        PlanStatus item = new PlanStatus();
+                        item.setId(x);
+                        return item;
+                    },
+                    PlanStatus::getId);
+        } else {
+            FieldSet clone = new BaseFieldSet(fields.getFields()).ensure(PlanStatus._id);
+            PlanStatusQuery q = this.queryFactory.query(PlanStatusQuery.class).disableTracking().authorize(this.authorize).ids(data.stream().map(PlanEntity::getStatusId).distinct().collect(Collectors.toList()));
+            itemMap = this.builderFactory.builder(PlanStatusBuilder.class).authorize(this.authorize).asForeignKey(q, clone, PlanStatus::getId);
+        }
+        if (!fields.hasField(PlanStatus._id)) {
+            itemMap.forEach((id, item) -> {
+                if (item != null)
+                    item.setId(null);
+            });
+        }
+
+        return itemMap;
+    }
+
+    private Map<UUID, List<PlanStatus>> collectAvailablePlanStatuses(FieldSet fields, List<PlanEntity> data) throws MyApplicationException {
+        if (fields.isEmpty() || data.isEmpty()) return null;
+        this.logger.debug("checking related - {}", PlanStatus.class.getSimpleName());
+
+        Map<UUID, List<PlanStatus>> itemMap = new HashMap<>();
+        FieldSet fieldSet = new BaseFieldSet(fields.getFields()).ensure(PlanStatus._id);
+        Map<UUID, List<UUID>> itemStatusIdsMap = this.planStatusService.getAuthorizedAvailableStatusIds(data.stream().map(PlanEntity::getId).collect(Collectors.toList()));
+
+        List<PlanStatusEntity> statusEntities = this.queryFactory.query(PlanStatusQuery.class).authorize(this.authorize).isActives(IsActive.Active).ids(itemStatusIdsMap.values().stream().flatMap(List::stream).distinct().collect(Collectors.toList())).collectAs(fieldSet);
+        List<PlanStatus> planStatuses = this.builderFactory.builder(PlanStatusBuilder.class).authorize(this.authorize).build(fieldSet, statusEntities);
+
+        for (PlanEntity entity: data) {
+            itemMap.put(entity.getId(), new ArrayList<>());
+            List<UUID> statusIds = itemStatusIdsMap.getOrDefault(entity.getId(), new ArrayList<>());
+            for (UUID statusId: statusIds) {
+                itemMap.get(entity.getId()).addAll(planStatuses.stream().filter(x -> x.getId().equals(statusId)).collect(Collectors.toList()));
+            }
+        }
+
+        return itemMap;
     }
 
     private Map<UUID, List<PlanReference>> collectPlanReferences(FieldSet fields, List<PlanEntity> data) throws MyApplicationException {
@@ -340,6 +414,24 @@ public class PlanBuilder extends BaseBuilder<Plan, PlanEntity> {
         }
 
         return itemMap;
+    }
+
+    private List<String> evaluateStatusAuthorizationFlags(AuthorizationService authorizationService, FieldSet statusAuthorizationFlags, PlanEntity plan) {
+        List<String> allowed = new ArrayList<>();
+        if (statusAuthorizationFlags == null) return allowed;
+        if (authorizationService == null) return allowed;
+        if (plan == null) return allowed;
+
+        String editPermission = this.customPolicyService.getPlanStatusCanEditStatusPermission(plan.getStatusId());
+        AffiliatedResource affiliatedResource = this.authorizationContentResolver.planAffiliation(plan.getId());
+        for (String permission : statusAuthorizationFlags.getFields()) {
+            if (statusAuthorizationFlags.hasField(this.asIndexer(PlanStatusDefinitionAuthorization._edit))) {
+                Boolean isAllowed = affiliatedResource == null ? this.authorizationService.authorize(editPermission) : this.authorizationService.authorizeAtLeastOne(List.of(affiliatedResource), editPermission);
+                if (isAllowed) allowed.add(permission);
+            }
+        }
+
+        return allowed;
     }
 
 }

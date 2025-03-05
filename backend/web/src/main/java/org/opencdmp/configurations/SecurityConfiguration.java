@@ -39,10 +39,10 @@ public class SecurityConfiguration  {
 
 	@Autowired
 	public SecurityConfiguration(WebSecurityProperties webSecurityProperties,
-								 @Qualifier("tokenAuthenticationResolver") AuthenticationManagerResolver<HttpServletRequest> authenticationManagerResolver,
-								 @Qualifier("apiKeyFilter") Filter apiKeyFilter,
-								 @Qualifier("ownedAuthorizationHandler") OwnedAuthorizationHandler ownedAuthorizationHandler,
-								 @Qualifier("affiliatedAuthorizationHandler") AffiliatedAuthorizationHandler affiliatedAuthorizationHandler) {
+	                             @Qualifier("tokenAuthenticationResolver") AuthenticationManagerResolver<HttpServletRequest> authenticationManagerResolver,
+	                             @Qualifier("apiKeyFilter") Filter apiKeyFilter,
+	                             @Qualifier("ownedAuthorizationHandler") OwnedAuthorizationHandler ownedAuthorizationHandler,
+	                             @Qualifier("affiliatedAuthorizationHandler") AffiliatedAuthorizationHandler affiliatedAuthorizationHandler) {
 		this.webSecurityProperties = webSecurityProperties;
 		this.authenticationManagerResolver = authenticationManagerResolver;
 		this.apiKeyFilter = apiKeyFilter;
@@ -150,3 +150,4 @@ public class SecurityConfiguration  {
 		return endpoint;
 	}
 }
+

@@ -10,10 +10,11 @@ import { VisibilityRulesService } from '@app/ui/description/editor/description-f
 
 
 @Component({
-	selector: 'app-final-preview-component',
-	templateUrl: './final-preview.component.html',
-	styleUrls: ['./final-preview.component.scss'],
-	providers: [VisibilityRulesService]
+    selector: 'app-final-preview-component',
+    templateUrl: './final-preview.component.html',
+    styleUrls: ['./final-preview.component.scss'],
+    providers: [VisibilityRulesService],
+    standalone: false
 })
 
 export class FinalPreviewComponent implements OnInit {

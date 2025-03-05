@@ -1,14 +1,15 @@
-import { Component, Inject, OnInit } from '@angular/core';
+import { Component,  Inject, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, UntypedFormGroup, Validators } from '@angular/forms';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 
 @Component({
-	selector: 'app-add-account-dialog-component',
-	templateUrl: 'add-account-dialog.component.html',
-	styleUrls: ['./add-account-dialog.component.scss'],
+    selector: 'app-add-account-dialog-component',
+    templateUrl: 'add-account-dialog.component.html',
+    styleUrls: ['./add-account-dialog.component.scss'],
+    standalone: false
 })
 export class AddAccountDialogComponent implements OnInit {
-
+   
 	descriptionTemplateDefinitionModel: any;
 	descriptionTemplateDefinitionFormGroup: UntypedFormGroup;
 	progressIndication = false;

@@ -1,21 +1,34 @@
-import { Component, effect, EventEmitter, input, Output } from '@angular/core';
+import { Component, computed, effect, EventEmitter, HostBinding, input, Output } from '@angular/core';
+import { FormControl, FormGroup } from '@angular/forms';
 import { DescriptionStatusEnum } from '@app/core/common/enum/description-status';
 import { DescriptionStatusFilter } from '@app/core/query/description-status.lookup';
 import { EnumUtils } from '@app/core/services/utilities/enum-utils.service';
 import { BaseComponent } from '@common/base/base.component';
+import { FormService } from '@common/forms/form-service';
 import { IsActive } from '@notification-service/core/enum/is-active.enum';
 
 @Component({
-  selector: 'app-description-status-listing-filters',
-  templateUrl: './description-status-listing-filters.component.html',
-  styleUrl: './description-status-listing-filters.component.scss'
+    selector: 'app-description-status-listing-filters',
+    templateUrl: './description-status-listing-filters.component.html',
+    styleUrl: './description-status-listing-filters.component.scss',
+    standalone: false
 })
 export class DescriptionStatusListingFiltersComponent extends BaseComponent{
+    
     readonly filter = input<DescriptionStatusFilter>();
 	@Output() filterChange = new EventEmitter<DescriptionStatusFilter>();
 
-    internalFilters: DescriptionStatusListingFilters = this._getEmptyFilters();
+    internalFilters: FormGroup<DescriptionStatusListingFilters> = new FormGroup({
+        internalStatuses: new FormControl<DescriptionStatusEnum[]>(null),
+        isActive: new FormControl<boolean>(true),
+        like: new FormControl<string>(null)
+    })
     appliedFilterCount: number = 0;
+
+    get formIsDirty(): boolean {
+        return this.internalFilters.controls.isActive.dirty || this.internalFilters.controls.internalStatuses.dirty;
+    }
+
 
     internalStatusEnum = this.enumUtils.getEnumValues<DescriptionStatusEnum>(DescriptionStatusEnum);
 
@@ -30,67 +43,76 @@ export class DescriptionStatusListingFiltersComponent extends BaseComponent{
     }
 
 
-	private _parseToInternalFilters(inputFilter: DescriptionStatusFilter): DescriptionStatusListingFilters {
+	private _parseToInternalFilters(inputFilter: DescriptionStatusFilter) {
 		if (!inputFilter) {
-			return this._getEmptyFilters();
+			this._getEmptyFilters();
 		}
 
 		let { isActive, like, internalStatuses } = inputFilter;
 
-		return {
+		this.internalFilters.setValue({
 			isActive: (isActive ?? [])?.includes(IsActive.Active) || !isActive?.length,
-			like,
-            internalStatuses: internalStatuses?.length ? internalStatuses : null
-		}
+			internalStatuses: internalStatuses ?? null,
+			like: like ?? null
+		});
+        this.internalFilters.markAsPristine();
 
 	}
 
-	private _computeAppliedFilters(filters: DescriptionStatusListingFilters): number {
-		let count = 0;
-		if (!filters?.isActive) {
-			count++
-		}
-        if(filters?.like){
-            count++;
+    private _computeAppliedFilters(form: FormGroup<DescriptionStatusListingFilters>): number {
+        const filters = form.value;
+        let count = 0;
+        if (!filters?.isActive) {
+            count++
         }
-		return count;
-	}
+        if (filters?.like) {
+            count++
+        }
+        if (filters?.internalStatuses?.length) {
+            count++
+        }
 
-    private _getEmptyFilters(): DescriptionStatusListingFilters {
-		return {
+        return count;
+    }
+
+    private _getEmptyFilters() {
+		this.internalFilters.setValue({
 			isActive: true,
+			internalStatuses: null,
 			like: null,
-            internalStatuses: null
-		}
+		})
 	}
 
     protected updateFilters(): void {
-		this.internalFilters = this._parseToInternalFilters(this.filter());
+		this._parseToInternalFilters(this.filter());
 		this.appliedFilterCount = this._computeAppliedFilters(this.internalFilters);
 	}
 
     protected applyFilters(): void {
-		const { isActive, like, internalStatuses } = this.internalFilters ?? {}
+		const { isActive, like, internalStatuses } = this.internalFilters.value ?? {}
 		this.filterChange.emit({
 			...this.filter(),
 			like,
 			isActive: isActive ? [IsActive.Active] : [IsActive.Inactive],
             internalStatuses: internalStatuses?.length ? internalStatuses : null
-		})
+		});
+        this.internalFilters.markAsPristine();
 	}
 
-    protected onSearchTermChange(searchTerm: string): void {
+    protected onSearchTermChange(): void {
 		this.applyFilters();
 	}
 
 
     protected clearFilters() {
-		this.internalFilters = this._getEmptyFilters();
+		this._getEmptyFilters();
+        this.internalFilters.controls.internalStatuses.markAsDirty();
+        this.internalFilters.controls.isActive.markAsDirty();
 	}
 }
 
 interface DescriptionStatusListingFilters {
-	isActive: boolean;
-	like: string;
-    internalStatuses: DescriptionStatusEnum[];
+	isActive: FormControl<boolean>;
+	like: FormControl<string>;
+    internalStatuses: FormControl<DescriptionStatusEnum[]>;
 }

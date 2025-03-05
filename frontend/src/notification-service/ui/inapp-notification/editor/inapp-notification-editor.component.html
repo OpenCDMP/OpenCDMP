@@ -12,13 +12,13 @@
 		</mat-card>
 		<div class="row editor-actions">
 			<div class="col"></div>
-			<div class="col-auto" *ngIf="!this.isDeleted && !isNew">
-                <button mat-raised-button type="button" (click)="delete()" mat-button class="rounded-btn delete-inverted">
+			<div class="col-auto" *ngIf="!isDeleted && !isNew">
+                <button mat-raised-button type="button" (click)="delete()" mat-stroked-button color="warn" class="padded-shadow-btn">
                     {{'NOTIFICATION-SERVICE.INAPP-NOTIFICATION-EDITOR.ACTIONS.DELETE' | translate}}
                 </button>
             </div>
 			<div class="col-auto">
-                <button mat-raised-button (click)="cancel()" type="button" mat-button class="rounded-btn inverted">
+                <button mat-raised-button (click)="cancel()" type="button" mat-stroked-button  class="padded-shadow-btn">
                     {{'NOTIFICATION-SERVICE.INAPP-NOTIFICATION-EDITOR.ACTIONS.CANCEL' | translate}}
                 </button>
             </div>

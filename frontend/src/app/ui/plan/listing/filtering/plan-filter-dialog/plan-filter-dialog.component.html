@@ -1,4 +1,7 @@
-<a class="col-auto d-flex pointer" (click)="onClose()"><span class="ml-auto mt-3 material-icons clear-icon">clear</span></a>
+<div mat-dialog-title class="d-flex align-items-center">
+    <div class="criteria-title ml-2">{{'PLAN-LISTING.FILTERS.NAME'| translate}}</div>
+    <button mat-icon-button class="ml-auto d-flex pointer" (click)="onClose()"  [attr.aria-label]="'ALT-TEXT.CLOSE-DIALOG'  | translate"><mat-icon aria-hidden>close</mat-icon></button>
+</div>
 <app-plan-filter-component 
   [filters]="filters"
   [isPublic]="data.isPublic" 

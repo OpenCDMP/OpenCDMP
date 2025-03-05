@@ -46,15 +46,15 @@
 					<input matInput type="string" [formControl]="type.get('value')">
 					<mat-error *ngIf="type.get('value').hasError('backendError')">{{type.get('value').getError('backendError').message}}</mat-error>
 				</mat-form-field>
-				<button mat-icon-button class="col-auto" (click)="deleteRow(i)" type="button" [disabled]="form.get('data').get('types').disabled">
-					<mat-icon>delete</mat-icon>
+				<button mat-icon-button class="col-auto" (click)="deleteRow(i)" type="button" [disabled]="form.get('data').get('types').disabled" [attr.aria-label]="'COMMONS.ACTIONS.REMOVE' | translate">
+					<mat-icon aria-hidden>delete</mat-icon>
 				</button>
 			</div>
 		</ng-container>
 	</div>
 	<div class="col-auto">
-		<button mat-icon-button (click)="addNewRow()" type="button" [disabled]="form.get('data').get('types').disabled">
-			<mat-icon>add</mat-icon>
+		<button mat-icon-button (click)="addNewRow()" type="button" [disabled]="form.get('data').get('types').disabled" [attr.aria-label]="('ALT-TEXT.ADD' | translate) + ('DESCRIPTION-TEMPLATE-EDITOR.STEPS.FORM.FIELD.FIELDS.FIELD-UPLOAD-CUSTOM-FILETYPE' | translate)">
+			<mat-icon aria-hidden>add</mat-icon>
 		</button>
 	</div>
 </form>

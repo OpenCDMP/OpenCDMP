@@ -71,6 +71,9 @@ public class PublicPlanBuilder extends BaseBuilder<PublicPlan, PlanEntity> {
         FieldSet otherPlanVersionsFields = fields.extractPrefixed(this.asPrefix(PublicPlan._otherPlanVersions));
         Map<UUID, List<PublicPlan>> otherPlanVersionsMap = this.collectOtherPlanVersions(otherPlanVersionsFields, data);
 
+        FieldSet planStatusFields = fields.extractPrefixed(this.asPrefix(PublicPlan._status));
+        Map<UUID, PublicPlanStatus> planStatusItemsMap = this.collectPlanStatuses(planStatusFields, data);
+
         for (PlanEntity d : data) {
             PublicPlan m = new PublicPlan();
             if (fields.hasField(this.asIndexer(PublicPlan._id))) m.setId(d.getId());
@@ -80,7 +83,7 @@ public class PublicPlanBuilder extends BaseBuilder<PublicPlan, PlanEntity> {
             if (fields.hasField(this.asIndexer(PublicPlan._finalizedAt))) m.setFinalizedAt(d.getFinalizedAt());
             if (fields.hasField(this.asIndexer(PublicPlan._updatedAt))) m.setUpdatedAt(d.getUpdatedAt());
             if (fields.hasField(this.asIndexer(PublicPlan._accessType))) m.setAccessType(d.getAccessType());
-            if (fields.hasField(this.asIndexer(PublicPlan._status))) m.setStatus(d.getStatus());
+            if (!planStatusFields.isEmpty() && planStatusItemsMap != null && planStatusItemsMap.containsKey(d.getStatusId()))  m.setStatus(planStatusItemsMap.get(d.getStatusId()));
             if (fields.hasField(this.asIndexer(PublicPlan._groupId))) m.setGroupId(d.getGroupId());
             if (fields.hasField(this.asIndexer(PublicPlan._accessType))) m.setAccessType(d.getAccessType());
 
@@ -184,6 +187,36 @@ public class PublicPlanBuilder extends BaseBuilder<PublicPlan, PlanEntity> {
         if (!fields.hasField(PublicPlan._id)) {
             itemMap.values().stream().flatMap(List::stream).filter(Objects::nonNull).forEach(x -> {
                 x.setId(null);
+            });
+        }
+
+        return itemMap;
+    }
+
+    private Map<UUID, PublicPlanStatus> collectPlanStatuses(FieldSet fields, List<PlanEntity> data) throws MyApplicationException {
+        if (fields.isEmpty() || data.isEmpty())
+            return null;
+        this.logger.debug("checking related - {}", PublicPlanStatus.class.getSimpleName());
+
+        Map<UUID, PublicPlanStatus> itemMap;
+        if (!fields.hasOtherField(this.asIndexer(PublicPlanStatus._id))) {
+            itemMap = this.asEmpty(
+                    data.stream().map(PlanEntity::getStatusId).distinct().collect(Collectors.toList()),
+                    x -> {
+                        PublicPlanStatus item = new PublicPlanStatus();
+                        item.setId(x);
+                        return item;
+                    },
+                    PublicPlanStatus::getId);
+        } else {
+            FieldSet clone = new BaseFieldSet(fields.getFields()).ensure(PublicPlanStatus._id);
+            PlanStatusQuery q = this.queryFactory.query(PlanStatusQuery.class).disableTracking().authorize(this.authorize).ids(data.stream().map(PlanEntity::getStatusId).distinct().collect(Collectors.toList()));
+            itemMap = this.builderFactory.builder(PublicPlanStatusBuilder.class).authorize(this.authorize).asForeignKey(q, clone, PublicPlanStatus::getId);
+        }
+        if (!fields.hasField(PublicPlanStatus._id)) {
+            itemMap.forEach((id, item) -> {
+                if (item != null)
+                    item.setId(null);
             });
         }
 

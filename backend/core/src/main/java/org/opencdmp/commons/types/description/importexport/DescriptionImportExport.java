@@ -22,6 +22,9 @@ public class DescriptionImportExport {
     @XmlElement(name = "label")
     private String  label;
 
+    @XmlElement(name = "status")
+    private DescriptionStatusImportExport status;
+
     @XmlElement(name = "finalizedAt")
     @XmlJavaTypeAdapter(InstantXmlAdapter.class)
     private Instant finalizedAt;
@@ -65,6 +68,14 @@ public class DescriptionImportExport {
 
     public void setLabel(String label) {
         this.label = label;
+    }
+
+    public DescriptionStatusImportExport getStatus() {
+        return status;
+    }
+
+    public void setStatus(DescriptionStatusImportExport status) {
+        this.status = status;
     }
 
     public Instant getFinalizedAt() {

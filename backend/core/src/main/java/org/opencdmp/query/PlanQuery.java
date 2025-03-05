@@ -39,7 +39,7 @@ public class PlanQuery extends QueryBase<PlanEntity> {
 
     private Collection<IsActive> isActives;
 
-    private Collection<PlanStatus> statuses;
+    private Collection<UUID> statusIds;
 
     private Collection<PlanVersionStatus> versionStatuses;
 
@@ -60,6 +60,8 @@ public class PlanQuery extends QueryBase<PlanEntity> {
     private PlanReferenceQuery planReferenceQuery;
 
     private EntityDoiQuery entityDoiQuery;
+
+    private PlanStatusQuery planStatusQuery;
 
     private EnumSet<AuthorizationFlags> authorize = EnumSet.of(AuthorizationFlags.None);
 
@@ -177,18 +179,18 @@ public class PlanQuery extends QueryBase<PlanEntity> {
         return this;
     }
 
-    public PlanQuery statuses(PlanStatus value) {
-        this.statuses = List.of(value);
+    public PlanQuery statusIds(UUID value) {
+        this.statusIds = List.of(value);
         return this;
     }
 
-    public PlanQuery statuses(PlanStatus... value) {
-        this.statuses = Arrays.asList(value);
+    public PlanQuery statusIds(UUID... value) {
+        this.statusIds = Arrays.asList(value);
         return this;
     }
 
-    public PlanQuery statuses(Collection<PlanStatus> values) {
-        this.statuses = values;
+    public PlanQuery statusIds(Collection<UUID> values) {
+        this.statusIds = values;
         return this;
     }
 
@@ -253,6 +255,11 @@ public class PlanQuery extends QueryBase<PlanEntity> {
         return this;
     }
 
+    public PlanQuery planStatusSubQuery(PlanStatusQuery subQuery) {
+        this.planStatusQuery = subQuery;
+        return this;
+    }
+
     public PlanQuery authorize(EnumSet<AuthorizationFlags> values) {
         this.authorize = values;
         return this;
@@ -275,7 +282,7 @@ public class PlanQuery extends QueryBase<PlanEntity> {
 
     @Override
     protected Boolean isFalseQuery() {
-        return this.isEmpty(this.ids) || this.isEmpty(this.creatorIds) || this.isEmpty(this.isActives) || this.isEmpty(this.versionStatuses) || this.isEmpty(this.excludedIds) || this.isEmpty(this.accessTypes) || this.isEmpty(this.statuses) || this.isFalseQuery(this.planDescriptionTemplateQuery) || this.isFalseQuery(this.planUserQuery);
+        return this.isEmpty(this.ids) || this.isEmpty(this.creatorIds) || this.isEmpty(this.isActives) || this.isEmpty(this.versionStatuses) || this.isEmpty(this.excludedIds) || this.isEmpty(this.accessTypes) || this.isEmpty(this.statusIds) || this.isFalseQuery(this.planDescriptionTemplateQuery) || this.isFalseQuery(this.planUserQuery);
     }
 
     @Override
@@ -298,7 +305,7 @@ public class PlanQuery extends QueryBase<PlanEntity> {
         if (userId != null || usePublic) {
             predicates.add(queryContext.CriteriaBuilder.or(
                     usePublic ? queryContext.CriteriaBuilder.and(
-                            queryContext.CriteriaBuilder.equal(queryContext.Root.get(PlanEntity._status), PlanStatus.Finalized),
+                            queryContext.CriteriaBuilder.in(queryContext.Root.get(PlanEntity._statusId)).value(this.queryUtilsService.buildPlanStatusAuthZSubQuery(queryContext.Query, queryContext.CriteriaBuilder, PlanStatus.Finalized)),
                             queryContext.CriteriaBuilder.equal(queryContext.Root.get(PlanEntity._accessType), PlanAccessType.Public)
                     )
                             : queryContext.CriteriaBuilder.or(),  //Creates a false query
@@ -347,9 +354,9 @@ public class PlanQuery extends QueryBase<PlanEntity> {
                 inClause.value(item);
             predicates.add(inClause);
         }
-        if (this.statuses != null) {
-            CriteriaBuilder.In<PlanStatus> inClause = queryContext.CriteriaBuilder.in(queryContext.Root.get(PlanEntity._status));
-            for (PlanStatus item : this.statuses)
+        if (this.statusIds != null) {
+            CriteriaBuilder.In<UUID> inClause = queryContext.CriteriaBuilder.in(queryContext.Root.get(PlanEntity._statusId));
+            for (UUID item : this.statusIds)
                 inClause.value(item);
             predicates.add(inClause);
         }
@@ -407,6 +414,11 @@ public class PlanQuery extends QueryBase<PlanEntity> {
             predicates.add(queryContext.CriteriaBuilder.in(queryContext.Root.get(PlanEntity._id)).value(subQuery.Query));
         }
 
+        if (this.planStatusQuery != null) {
+            QueryContext<PlanStatusEntity, UUID> subQuery = this.applySubQuery(this.planStatusQuery, queryContext, UUID.class, planStatusEntityRoot -> planStatusEntityRoot.get(PlanStatusEntity._id));
+            predicates.add(queryContext.CriteriaBuilder.in(queryContext.Root.get(PlanEntity._statusId)).value(subQuery.Query));
+        }
+
         if (!predicates.isEmpty()) {
             Predicate[] predicatesArray = predicates.toArray(new Predicate[0]);
             return queryContext.CriteriaBuilder.and(predicatesArray);
@@ -424,7 +436,9 @@ public class PlanQuery extends QueryBase<PlanEntity> {
         else if (item.match(Plan._version) || item.match(PublicPlan._version))
             return PlanEntity._version;
         else if (item.match(Plan._status))
-            return PlanEntity._status;
+            return PlanEntity._statusId;
+        else if (item.prefix(Plan._status))
+            return PlanEntity._statusId;
         else if (item.match(Plan._properties))
             return PlanEntity._properties;
         else if (item.prefix(Plan._properties))
@@ -474,7 +488,7 @@ public class PlanQuery extends QueryBase<PlanEntity> {
         item.setTenantId(QueryBase.convertSafe(tuple, columns, PlanEntity._tenantId, UUID.class));
         item.setLabel(QueryBase.convertSafe(tuple, columns, PlanEntity._label, String.class));
         item.setVersion(QueryBase.convertSafe(tuple, columns, PlanEntity._version, Short.class));
-        item.setStatus(QueryBase.convertSafe(tuple, columns, PlanEntity._status, PlanStatus.class));
+        item.setStatusId(QueryBase.convertSafe(tuple, columns, PlanEntity._statusId, UUID.class));
         item.setVersionStatus(QueryBase.convertSafe(tuple, columns, PlanEntity._versionStatus, PlanVersionStatus.class));
         item.setProperties(QueryBase.convertSafe(tuple, columns, PlanEntity._properties, String.class));
         item.setGroupId(QueryBase.convertSafe(tuple, columns, PlanEntity._groupId, UUID.class));

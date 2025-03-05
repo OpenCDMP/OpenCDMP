@@ -1,0 +1,27 @@
+.description-editor {
+    display: flex;
+    height: 100%;
+
+    #description-editor-form {
+        flex: 1;
+        overflow-y: scroll;
+        overflow-x: hidden;
+    }
+
+    .description-actions{
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .action-btns{
+        display: flex;
+        z-index: 1;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        padding: 0 0.5rem;
+        width: fit-content;
+        margin-left: auto;
+    }
+
+}

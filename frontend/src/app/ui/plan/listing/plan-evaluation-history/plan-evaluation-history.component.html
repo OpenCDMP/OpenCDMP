@@ -1,0 +1,29 @@
+@for(evaluation of evaluations(); track $index; let index = $index){
+    @if(index < pageSize() || showMore()){
+        <div class="evaluation pb-1 d-flex justify-content-between">
+            <div class="title">
+                <div class="header">
+                    {{'GENERAL.EVALUATOR.' + evaluation.data?.evaluatorId?.toUpperCase() | translate }}
+                </div>
+                <div class="date">
+                    {{evaluation.evaluatedAt | dateTimeFormatter : 'short'}}
+                </div>
+            </div>
+            <span class="fit-content" 
+                [matTooltip]="'PLAN-OVERVIEW.DISABLED-TOOLTIP.EVALUATION-IN-PROGRESS' | translate" 
+                [matTooltipDisabled]="evaluation.status != EvaluationStatusEnum.ExecutionFailed"
+            >
+                <button mat-icon-button [attr.aria-label]="'ALT-TEXT.OPEN-INFO-DIALOG' | translate" [disabled]="evaluation.status === EvaluationStatusEnum.ExecutionFailed" (click)="openEvaluationInfo(evaluation)">
+                    <mat-icon>content_paste</mat-icon>
+                </button>
+            </span>
+        </div>
+    }    
+}
+@if(evaluations()?.length > pageSize()){
+    <span class="link-color d-flex justify-content-center show-more" role="button" (click)="toggleShowMore()">
+        {{(!showMore() ? 'GENERAL.ACTIONS.SHOW-MORE' : 'GENERAL.ACTIONS.SHOW-LESS') | translate | lowercase}}
+    </span>
+}@else if(evaluations() && !evaluations().length){
+    <span class="secondary-info">{{'PLAN-OVERVIEW.NO-EVALUATIONS' | translate}}</span>
+}

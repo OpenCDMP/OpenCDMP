@@ -35,9 +35,9 @@ public class NestedPlanElasticEntity {
 	private PlanVersionStatus versionStatus;
 	public final static String _versionStatus = "versionStatus";
 
-	@Field(value = NestedPlanElasticEntity._status, type = FieldType.Short)
-	private PlanStatus status;
-	public final static String _status = "status";
+	@Field(value = NestedPlanElasticEntity._statusId, type = FieldType.Keyword)
+	private UUID statusId;
+	public final static String _statusId = "statusId";
 
 	@Field(value = NestedPlanElasticEntity._accessType, type = FieldType.Short)
 	private PlanAccessType accessType;
@@ -103,12 +103,12 @@ public class NestedPlanElasticEntity {
 		this.version = version;
 	}
 
-	public PlanStatus getStatus() {
-		return status;
+	public UUID getStatusId() {
+		return statusId;
 	}
 
-	public void setStatus(PlanStatus status) {
-		this.status = status;
+	public void setStatusId(UUID statusId) {
+		this.statusId = statusId;
 	}
 
 	public PlanAccessType getAccessType() {

@@ -1,5 +1,5 @@
 
-<div class="row">
+<div class="row" style="row-gap: 0.5rem">
 	<div class="col-3">
 		<mat-form-field class="w-100">
 			<mat-label>{{'EXTERNAL-FETCHER-SOURCE-EDITOR.FIELDS.KEY' | translate}}</mat-label>
@@ -19,7 +19,7 @@
 	<div class="col-3">
 		<mat-form-field class="w-100">
 			<mat-label>{{'EXTERNAL-FETCHER-SOURCE-EDITOR.FIELDS.ORDINAL' | translate}}</mat-label>
-			<input matInput type="number" name="ordinal" [formControl]="formGroup.get('ordinal')" required>
+			<input matInput type="number" name="ordinal" min="1" [formControl]="formGroup.get('ordinal')" required>
 			<mat-error *ngIf="formGroup.get('ordinal').hasError('backendError')">{{formGroup.get('ordinal').getError('backendError').message}}</mat-error>
 			<mat-error *ngIf="formGroup.get('ordinal').hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
 		</mat-form-field>
@@ -47,199 +47,231 @@
 		</mat-form-field>
 	</div>
 	<ng-container *ngIf="formGroup.get('type').value == externalFetcherSourceType.API">
-		<div class="col-12">
-			<div class="row">
-				<div class="col-6">
-					<mat-form-field class="w-100">
-						<mat-label>{{'EXTERNAL-FETCHER-SOURCE-EDITOR.FIELDS.URL' | translate}}</mat-label>
-						<input matInput type="text" name="ordinal" [formControl]="formGroup.get('url')">
-						<mat-error *ngIf="formGroup.get('url').hasError('backendError')">{{formGroup.get('url').getError('backendError').message}}</mat-error>
-						<mat-error *ngIf="formGroup.get('url').hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
-					</mat-form-field>
-				</div>
-				<div class="col-6">
-					<mat-form-field class="w-100">
-						<mat-label>{{'EXTERNAL-FETCHER-SOURCE-EDITOR.FIELDS.PAGINATION-PATH' | translate}}</mat-label>
-						<input matInput type="text" name="paginationPath" [formControl]="formGroup.get('paginationPath')">
-						<mat-error *ngIf="formGroup.get('paginationPath').hasError('backendError')">{{formGroup.get('paginationPath').getError('backendError').message}}</mat-error>
-						<mat-error *ngIf="formGroup.get('paginationPath').hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
-					</mat-form-field>
-				</div>
-				<div class="col-3">
-					<mat-form-field class="w-100">
-						<mat-label>{{'EXTERNAL-FETCHER-SOURCE-EDITOR.FIELDS.CONTENT-TYPE' | translate}}</mat-label>
-						<input matInput type="text" name="contentType" [formControl]="formGroup.get('contentType')">
-						<mat-error *ngIf="formGroup.get('contentType').hasError('backendError')">{{formGroup.get('contentType').getError('backendError').message}}</mat-error>
-						<mat-error *ngIf="formGroup.get('contentType').hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
-					</mat-form-field>
-				</div>
-				<div class="col-3">
-					<mat-form-field class="w-100">
-						<mat-label>{{'EXTERNAL-FETCHER-SOURCE-EDITOR.FIELDS.FIRST-PAGE' | translate}}</mat-label>
-						<input matInput type="text" name="firstPage" [formControl]="formGroup.get('firstPage')">
-						<mat-error *ngIf="formGroup.get('firstPage').hasError('backendError')">{{formGroup.get('firstPage').getError('backendError').message}}</mat-error>
-						<mat-error *ngIf="formGroup.get('firstPage').hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
-					</mat-form-field>
-				</div>
-				<div class="col-3">
-					<mat-form-field class="w-100">
-						<mat-label>{{'EXTERNAL-FETCHER-SOURCE-EDITOR.FIELDS.HTTP-METHOD' | translate}}</mat-label>
-						<mat-select name="httpMethod" [formControl]="formGroup.get('httpMethod')">
-							<mat-option *ngFor="let httpMethod of externalFetcherApiHTTPMethodTypeEnum" [value]="httpMethod">
-								{{enumUtils.toExternalFetcherApiHTTPMethodTypeString(httpMethod)}}
-							</mat-option>
-						</mat-select>
-						<mat-error *ngIf="formGroup.get('httpMethod').hasError('backendError')">{{formGroup.get('httpMethod').getError('backendError').message}}</mat-error>
-						<mat-error *ngIf="formGroup.get('httpMethod').hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
-					</mat-form-field>
-				</div>
-				<div class="col-3" *ngIf="formGroup.get('httpMethod').value == externalFetcherApiHTTPMethodType.POST">
-					<mat-form-field class="w-100">
-						<mat-label>{{'EXTERNAL-FETCHER-SOURCE-EDITOR.FIELDS.REQUEST-BODY' | translate}}</mat-label>
-						<input matInput type="text" name="requestBody" [formControl]="formGroup.get('requestBody')">
-						<mat-error *ngIf="formGroup.get('requestBody').hasError('backendError')">{{formGroup.get('requestBody').getError('backendError').message}}</mat-error>
-						<mat-error *ngIf="formGroup.get('requestBody').hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
-					</mat-form-field>
-				</div>
-				<div class="col-3">
-					<mat-form-field class="w-100">
-						<mat-label>{{'EXTERNAL-FETCHER-SOURCE-EDITOR.FIELDS.FILTER-TYPE' | translate}}</mat-label>
-						<input matInput type="text" name="filterType" [formControl]="formGroup.get('filterType')">
-						<mat-error *ngIf="formGroup.get('filterType').hasError('backendError')">{{formGroup.get('filterType').getError('backendError').message}}</mat-error>
-						<mat-error *ngIf="formGroup.get('filterType').hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
-					</mat-form-field>
-				</div>
-			</div>
-		</div>
+        <div class="row col-12">
+            <div class="col-6">
+                <mat-form-field class="w-100">
+                    <mat-label>{{'EXTERNAL-FETCHER-SOURCE-EDITOR.FIELDS.URL' | translate}}</mat-label>
+                    <input matInput type="text" name="ordinal" [formControl]="formGroup.get('url')">
+                    <mat-error *ngIf="formGroup.get('url').hasError('backendError')">{{formGroup.get('url').getError('backendError').message}}</mat-error>
+                    <mat-error *ngIf="formGroup.get('url').hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
+                </mat-form-field>
+            </div>
+            <div class="col-6">
+                <mat-form-field class="w-100">
+                    <mat-label>{{'EXTERNAL-FETCHER-SOURCE-EDITOR.FIELDS.PAGINATION-PATH' | translate}}</mat-label>
+                    <input matInput type="text" name="paginationPath" [formControl]="formGroup.get('paginationPath')">
+                    <mat-error *ngIf="formGroup.get('paginationPath').hasError('backendError')">{{formGroup.get('paginationPath').getError('backendError').message}}</mat-error>
+                    <mat-error *ngIf="formGroup.get('paginationPath').hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
+                </mat-form-field>
+            </div>
+            <div class="col-3">
+                <mat-form-field class="w-100">
+                    <mat-label>{{'EXTERNAL-FETCHER-SOURCE-EDITOR.FIELDS.CONTENT-TYPE' | translate}}</mat-label>
+                    <input matInput type="text" name="contentType" [formControl]="formGroup.get('contentType')">
+                    <mat-error *ngIf="formGroup.get('contentType').hasError('backendError')">{{formGroup.get('contentType').getError('backendError').message}}</mat-error>
+                    <mat-error *ngIf="formGroup.get('contentType').hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
+                </mat-form-field>
+            </div>
+            <div class="col-3">
+                <mat-form-field class="w-100">
+                    <mat-label>{{'EXTERNAL-FETCHER-SOURCE-EDITOR.FIELDS.FIRST-PAGE' | translate}}</mat-label>
+                    <input matInput type="text" name="firstPage" [formControl]="formGroup.get('firstPage')">
+                    <mat-error *ngIf="formGroup.get('firstPage').hasError('backendError')">{{formGroup.get('firstPage').getError('backendError').message}}</mat-error>
+                    <mat-error *ngIf="formGroup.get('firstPage').hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
+                </mat-form-field>
+            </div>
+            <div class="col-3">
+                <mat-form-field class="w-100">
+                    <mat-label>{{'EXTERNAL-FETCHER-SOURCE-EDITOR.FIELDS.HTTP-METHOD' | translate}}</mat-label>
+                    <mat-select name="httpMethod" [formControl]="formGroup.get('httpMethod')">
+                        <mat-option *ngFor="let httpMethod of externalFetcherApiHTTPMethodTypeEnum" [value]="httpMethod">
+                            {{enumUtils.toExternalFetcherApiHTTPMethodTypeString(httpMethod)}}
+                        </mat-option>
+                    </mat-select>
+                    <mat-error *ngIf="formGroup.get('httpMethod').hasError('backendError')">{{formGroup.get('httpMethod').getError('backendError').message}}</mat-error>
+                    <mat-error *ngIf="formGroup.get('httpMethod').hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
+                </mat-form-field>
+            </div>
+            <div class="col-3" *ngIf="formGroup.get('httpMethod').value == externalFetcherApiHTTPMethodType.POST">
+                <mat-form-field class="w-100">
+                    <mat-label>{{'EXTERNAL-FETCHER-SOURCE-EDITOR.FIELDS.REQUEST-BODY' | translate}}</mat-label>
+                    <input matInput type="text" name="requestBody" [formControl]="formGroup.get('requestBody')">
+                    <mat-error *ngIf="formGroup.get('requestBody').hasError('backendError')">{{formGroup.get('requestBody').getError('backendError').message}}</mat-error>
+                    <mat-error *ngIf="formGroup.get('requestBody').hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
+                </mat-form-field>
+            </div>
+            <div class="col-3">
+                <mat-form-field class="w-100">
+                    <mat-label>{{'EXTERNAL-FETCHER-SOURCE-EDITOR.FIELDS.FILTER-TYPE' | translate}}</mat-label>
+                    <input matInput type="text" name="filterType" [formControl]="formGroup.get('filterType')">
+                    <mat-error *ngIf="formGroup.get('filterType').hasError('backendError')">{{formGroup.get('filterType').getError('backendError').message}}</mat-error>
+                    <mat-error *ngIf="formGroup.get('filterType').hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
+                </mat-form-field>
+            </div>
+            <section class="col-12">
+                <div class=" d-flex align-items-center gap-1-rem">                
+                    {{'EXTERNAL-FETCHER-SOURCE-EDITOR.FIELDS.HEADERS' | translate}}
+                    <button mat-flat-button color="accent" type="button" class="padded-shadow-btn" (click)="addHeader()" [disabled]="formGroup.get('headers').disabled">{{'EXTERNAL-FETCHER-SOURCE-EDITOR.ACTIONS.ADD-HEADER' | translate}}</button>
+                </div>
+                <mat-divider *ngIf="formGroup.get('headers').controls?.length" class="mt-1 mb-3"></mat-divider>
+            </section>
+            <div class="col-12">
+                <mat-card *ngFor="let header of formGroup.get('headers').controls; let headerIndex=index;" class="col-12 mb-3">
+                    <mat-card-title class="row align-items-center gap-1-rem p-3 mb-1 ">
+                        {{'EXTERNAL-FETCHER-SOURCE-EDITOR.FIELDS.HEADER' | translate}} {{headerIndex + 1}}
+                        <button mat-icon-button matTooltip="{{'EXTERNAL-FETCHER-SOURCE-EDITOR.ACTIONS.REMOVE-HEADER' | translate}}" (click)="removeHeader(headerIndex)" [disabled]="formGroup.get('headers').disabled" [attr.aria-label]="'EXTERNAL-FETCHER-SOURCE-EDITOR.ACTIONS.REMOVE-HEADER' | translate">
+                            <mat-icon aria-hidden>delete</mat-icon>
+                        </button>
+                    </mat-card-title>
+                    <mat-card-content class="col-12">
+                        <div class="row">
+                            <div class="col-6">
+                                <mat-form-field class="w-100">
+                                    <mat-label>{{'EXTERNAL-FETCHER-SOURCE-EDITOR.FIELDS.HEADER-METHOD' | translate}}</mat-label>
+                                    <mat-select name="headerMethod" [formControl]="header.get('key')">
+                                        <mat-option *ngFor="let keyMethod of externalFetcherApiHeaderTypeEnum" [disabled]="headerFieldDisabled(keyMethod)" [value]="keyMethod">
+                                            {{enumUtils.toExternalFetcherApHeaderTypeString(keyMethod)}}
+                                        </mat-option>
+                                    </mat-select>
+                                    <mat-error *ngIf="header.get('key').hasError('backendError')">{{header.get('key').getError('backendError').message}}</mat-error>
+                                    <mat-error *ngIf="header.get('key').hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
+                                </mat-form-field>
+                            </div>
+                            <div class="col-6">
+                                <mat-form-field class="w-100">
+                                    <mat-label>{{'EXTERNAL-FETCHER-SOURCE-EDITOR.FIELDS.VALUE' | translate}}</mat-label>
+                                    <input matInput type="text" name="value" [formControl]="header.get('value')"  required>
+                                    <mat-error *ngIf="header.get('value').hasError('backendError')">{{header.get('value').getError('backendError').message}}</mat-error>
+                                    <mat-error *ngIf="header.get('value').hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
+                                </mat-form-field>
+                            </div>
+                        </div>
+                    </mat-card-content>
+                </mat-card>
+            </div>           
+        </div>
 		<!-- Results info -->
-		<div class="col-12">
-			<div class="row">
-				<h3 class="col-12">{{'EXTERNAL-FETCHER-SOURCE-EDITOR.FIELDS.RESULTS' | translate}}</h3>
-				<div class="col-12">
-					<mat-form-field class="w-100">
-						<mat-label>{{'EXTERNAL-FETCHER-SOURCE-EDITOR.FIELDS.RESULTS-PATH' | translate}}</mat-label>
-						<input matInput type="text" name="resultsArrayPath" [formControl]="formGroup.get('results').get('resultsArrayPath')">
-						<mat-error *ngIf="formGroup.get('results').get('resultsArrayPath').hasError('backendError')">{{formGroup.get('results').get('resultsArrayPath').getError('backendError').message}}</mat-error>
-						<mat-error *ngIf="formGroup.get('results').get('resultsArrayPath').hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
-					</mat-form-field>
-				</div>
-			</div>
-		</div>
+        <section class="col-12">
+            {{'EXTERNAL-FETCHER-SOURCE-EDITOR.FIELDS.RESULTS' | translate}}
+            <mat-divider class="mt-1 mb-3"></mat-divider>
+        </section>
+
+        <div class="col-12">
+            <mat-form-field class="w-100">
+                <mat-label>{{'EXTERNAL-FETCHER-SOURCE-EDITOR.FIELDS.RESULTS-PATH' | translate}}</mat-label>
+                <input matInput type="text" name="resultsArrayPath" [formControl]="formGroup.get('results').get('resultsArrayPath')">
+                <mat-error *ngIf="formGroup.get('results').get('resultsArrayPath').hasError('backendError')">{{formGroup.get('results').get('resultsArrayPath').getError('backendError').message}}</mat-error>
+                <mat-error *ngIf="formGroup.get('results').get('resultsArrayPath').hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
+            </mat-form-field>
+        </div>
 		<!-- fields mapping -->
-		<div class="col-12">
-			<div class="row">
-				<div class="col-12">
-					<h3>{{'EXTERNAL-FETCHER-SOURCE-EDITOR.FIELDS.FIELD-MAPPINGS' | translate}}</h3>
-				</div>
-				<div class="col-12">
-					<div *ngFor="let field of formGroup.get('results').get('fieldsMapping').controls; let fieldMappingIndex=index;" class="row mb-3">
-						<div class="col-12">
-							<div class="row d-flex align-items-center">
-								<div class="col-auto pb-3 d-flex">
-									<span>{{fieldMappingIndex + 1}}</span>
-								</div>
-								<div class="col">
-									<mat-form-field class="w-100">
-										<mat-label>{{'EXTERNAL-FETCHER-SOURCE-EDITOR.FIELDS.CODE' | translate}}</mat-label>
-										<input matInput type="text" [readonly]="true" name="code" [formControl]="field.get('code')">
-										<mat-error *ngIf="field.get('code').hasError('backendError')">{{field.get('code').getError('backendError').message}}</mat-error>
-										<mat-error *ngIf="field.get('code').hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
-									</mat-form-field>
-								</div>
-								<div class="col">
-									<mat-form-field class="w-100">
-										<mat-label>{{'EXTERNAL-FETCHER-SOURCE-EDITOR.FIELDS.RESPONSE-PATH' | translate}}</mat-label>
-										<input matInput type="text" name="responsePath" [formControl]="field.get('responsePath')">
-										<mat-error *ngIf="field.get('responsePath').hasError('backendError')">{{field.get('responsePath').getError('backendError').message}}</mat-error>
-										<mat-error *ngIf="field.get('responsePath').hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
-									</mat-form-field>
-								</div>
-							</div>
-						</div>
-					</div>
-				</div>
-			</div>
-		</div>
+        @if(formGroup.get('results').get('fieldsMapping').controls?.length){
+            <section class="col-12">
+                {{'EXTERNAL-FETCHER-SOURCE-EDITOR.FIELDS.FIELD-MAPPINGS' | translate}}
+                <mat-divider class="mt-1 mb-3"></mat-divider>
+            </section>
+            <div *ngFor="let field of formGroup.get('results').get('fieldsMapping').controls; let fieldMappingIndex=index;" class="col-12 mb-3">
+                <div class="col-12">
+                    <div class="row d-flex align-items-center">
+                        <div class="col-auto pb-3 d-flex">
+                            <span>{{fieldMappingIndex + 1}}</span>
+                        </div>
+                        <div class="col">
+                            <mat-form-field class="w-100">
+                                <mat-label>{{'EXTERNAL-FETCHER-SOURCE-EDITOR.FIELDS.CODE' | translate}}</mat-label>
+                                <input matInput type="text" [readonly]="true" name="code" [formControl]="field.get('code')">
+                                <mat-error *ngIf="field.get('code').hasError('backendError')">{{field.get('code').getError('backendError').message}}</mat-error>
+                                <mat-error *ngIf="field.get('code').hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
+                            </mat-form-field>
+                        </div>
+                        <div class="col">
+                            <mat-form-field class="w-100">
+                                <mat-label>{{'EXTERNAL-FETCHER-SOURCE-EDITOR.FIELDS.RESPONSE-PATH' | translate}}</mat-label>
+                                <input matInput type="text" name="responsePath" [formControl]="field.get('responsePath')">
+                                <mat-error *ngIf="field.get('responsePath').hasError('backendError')">{{field.get('responsePath').getError('backendError').message}}</mat-error>
+                                <mat-error *ngIf="field.get('responsePath').hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
+                            </mat-form-field>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
 		<!-- Auth info -->
-		<div class="col-12">
-			<div class="row">
-				<h3 class="col-12">{{'EXTERNAL-FETCHER-SOURCE-EDITOR.FIELDS.AUTHENTICATION' | translate}}
-					<mat-checkbox [formControl]="formGroup.get('auth').get('enabled')"></mat-checkbox>
-				</h3>
-				<div class="col-12" *ngIf="formGroup.get('auth').get('enabled').value == true">
-					<div class="row">
-						<div class="col-12">
-							<mat-form-field class="w-100">
-								<mat-label>{{'EXTERNAL-FETCHER-SOURCE-EDITOR.FIELDS.URL' | translate}}</mat-label>
-								<input matInput type="text" name="authUrl" [formControl]="formGroup.get('auth').get('authUrl')">
-								<mat-error *ngIf="formGroup.get('auth').get('authUrl').hasError('backendError')">{{formGroup.get('auth').get('authUrl').getError('backendError').message}}</mat-error>
-								<mat-error *ngIf="formGroup.get('auth').get('authUrl').hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
-							</mat-form-field>
-						</div>
-						<div class="col-4">
-							<mat-form-field class="w-100">
-								<mat-label>{{'EXTERNAL-FETCHER-SOURCE-EDITOR.FIELDS.HTTP-METHOD' | translate}}</mat-label>
-								<mat-select name="httpMethod" [formControl]="formGroup.get('auth').get('authMethod')">
-									<mat-option *ngFor="let httpMethod of externalFetcherApiHTTPMethodTypeEnum" [value]="httpMethod">
-										{{enumUtils.toExternalFetcherApiHTTPMethodTypeString(httpMethod)}}
-									</mat-option>
-								</mat-select>
-								<mat-error *ngIf="formGroup.get('auth').get('authMethod').hasError('backendError')">{{formGroup.get('auth').get('authMethod').getError('backendError').message}}</mat-error>
-								<mat-error *ngIf="formGroup.get('auth').get('authMethod').hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
-							</mat-form-field>
-						</div>
-						<div class="col-4">
-							<mat-form-field class="w-100">
-								<mat-label>{{'EXTERNAL-FETCHER-SOURCE-EDITOR.FIELDS.TOKEN-PATH' | translate}}</mat-label>
-								<input matInput type="text" name="authTokenPath" [formControl]="formGroup.get('auth').get('authTokenPath')">
-								<mat-error *ngIf="formGroup.get('auth').get('authTokenPath').hasError('backendError')">{{formGroup.get('auth').get('authTokenPath').getError('backendError').message}}</mat-error>
-								<mat-error *ngIf="formGroup.get('auth').get('authTokenPath').hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
-							</mat-form-field>
-						</div>
-						<div class="col-4">
-							<mat-form-field class="w-100">
-								<mat-label>{{'EXTERNAL-FETCHER-SOURCE-EDITOR.FIELDS.TYPE' | translate}}</mat-label>
-								<input matInput type="text" name="type" [formControl]="formGroup.get('auth').get('type')">
-								<mat-error *ngIf="formGroup.get('auth').get('type').hasError('backendError')">{{formGroup.get('auth').get('type').getError('backendError').message}}</mat-error>
-								<mat-error *ngIf="formGroup.get('auth').get('type').hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
-							</mat-form-field>
-						</div>
-						<div class="col-12">
-							<mat-form-field class="w-100">
-								<mat-label>{{'EXTERNAL-FETCHER-SOURCE-EDITOR.FIELDS.REQUEST-BODY' | translate}}</mat-label>
-								<input matInput type="text" name="authRequestBody" [formControl]="formGroup.get('auth').get('authRequestBody')">
-								<mat-error *ngIf="formGroup.get('auth').get('authRequestBody').hasError('backendError')">{{formGroup.get('auth').get('authRequestBody').getError('backendError').message}}</mat-error>
-								<mat-error *ngIf="formGroup.get('auth').get('authRequestBody').hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
-							</mat-form-field>
-						</div>
-					</div>
-				</div>
-			</div>
-		</div>
+        <div class="col-12 d-flex align-items-center">
+            <mat-label>
+                {{'EXTERNAL-FETCHER-SOURCE-EDITOR.FIELDS.INCLUDE-AUTHENTICATION' | translate}}
+            </mat-label>
+            <mat-checkbox [formControl]="formGroup.get('auth').get('enabled')"></mat-checkbox>
+        </div>
+        @if(formGroup.get('auth').get('enabled').value){
+            <section class="col-12">
+                {{'EXTERNAL-FETCHER-SOURCE-EDITOR.FIELDS.AUTHENTICATION' | translate}}
+                <mat-divider class="mt-1 mb-3"></mat-divider>
+            </section>
+            <div class="row col-12">
+                <div class="col-12">
+                    <mat-form-field class="w-100">
+                        <mat-label>{{'EXTERNAL-FETCHER-SOURCE-EDITOR.FIELDS.URL' | translate}}</mat-label>
+                        <input matInput type="text" name="authUrl" [formControl]="formGroup.get('auth').get('authUrl')">
+                        <mat-error *ngIf="formGroup.get('auth').get('authUrl').hasError('backendError')">{{formGroup.get('auth').get('authUrl').getError('backendError').message}}</mat-error>
+                        <mat-error *ngIf="formGroup.get('auth').get('authUrl').hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
+                    </mat-form-field>
+                </div>
+                <div class="col-4">
+                    <mat-form-field class="w-100">
+                        <mat-label>{{'EXTERNAL-FETCHER-SOURCE-EDITOR.FIELDS.HTTP-METHOD' | translate}}</mat-label>
+                        <mat-select name="httpMethod" [formControl]="formGroup.get('auth').get('authMethod')">
+                            <mat-option *ngFor="let httpMethod of externalFetcherApiHTTPMethodTypeEnum" [value]="httpMethod">
+                                {{enumUtils.toExternalFetcherApiHTTPMethodTypeString(httpMethod)}}
+                            </mat-option>
+                        </mat-select>
+                        <mat-error *ngIf="formGroup.get('auth').get('authMethod').hasError('backendError')">{{formGroup.get('auth').get('authMethod').getError('backendError').message}}</mat-error>
+                        <mat-error *ngIf="formGroup.get('auth').get('authMethod').hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
+                    </mat-form-field>
+                </div>
+                <div class="col-4">
+                    <mat-form-field class="w-100">
+                        <mat-label>{{'EXTERNAL-FETCHER-SOURCE-EDITOR.FIELDS.TOKEN-PATH' | translate}}</mat-label>
+                        <input matInput type="text" name="authTokenPath" [formControl]="formGroup.get('auth').get('authTokenPath')">
+                        <mat-error *ngIf="formGroup.get('auth').get('authTokenPath').hasError('backendError')">{{formGroup.get('auth').get('authTokenPath').getError('backendError').message}}</mat-error>
+                        <mat-error *ngIf="formGroup.get('auth').get('authTokenPath').hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
+                    </mat-form-field>
+                </div>
+                <div class="col-4">
+                    <mat-form-field class="w-100">
+                        <mat-label>{{'EXTERNAL-FETCHER-SOURCE-EDITOR.FIELDS.TYPE' | translate}}</mat-label>
+                        <input matInput type="text" name="type" [formControl]="formGroup.get('auth').get('type')">
+                        <mat-error *ngIf="formGroup.get('auth').get('type').hasError('backendError')">{{formGroup.get('auth').get('type').getError('backendError').message}}</mat-error>
+                        <mat-error *ngIf="formGroup.get('auth').get('type').hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
+                    </mat-form-field>
+                </div>
+                <div class="col-12">
+                    <mat-form-field class="w-100">
+                        <mat-label>{{'EXTERNAL-FETCHER-SOURCE-EDITOR.FIELDS.REQUEST-BODY' | translate}}</mat-label>
+                        <input matInput type="text" name="authRequestBody" [formControl]="formGroup.get('auth').get('authRequestBody')">
+                        <mat-error *ngIf="formGroup.get('auth').get('authRequestBody').hasError('backendError')">{{formGroup.get('auth').get('authRequestBody').getError('backendError').message}}</mat-error>
+                        <mat-error *ngIf="formGroup.get('auth').get('authRequestBody').hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
+                    </mat-form-field>
+                </div>
+            </div>
+        }
 		<!-- Queries info -->
+        <section class="col-12">
+            <div class=" d-flex align-items-center gap-1-rem">                
+                {{'EXTERNAL-FETCHER-SOURCE-EDITOR.FIELDS.QUERIES' | translate}}
+                <button mat-flat-button color="accent" type="button" class="padded-shadow-btn" (click)="addQuery()" [disabled]="formGroup.get('queries').disabled">{{'EXTERNAL-FETCHER-SOURCE-EDITOR.ACTIONS.ADD-QUERY' | translate}}</button>
+            </div>
+            <mat-divider *ngIf="formGroup.get('queries').controls?.length" class="mt-1 mb-3"></mat-divider>
+        </section>
 		<div class="col-12">
-			<div class="row align-items-center">
-				<div class="col-auto pr-0">
-					<h3 class="m-0">{{'EXTERNAL-FETCHER-SOURCE-EDITOR.FIELDS.QUERIES' | translate}}</h3>
-				</div>
-				<div class="col-auto">
-					<button mat-button type="button" class="rounded-btn secondary" (click)="addQuery()" [disabled]="formGroup.get('queries').disabled">{{'EXTERNAL-FETCHER-SOURCE-EDITOR.ACTIONS.ADD-QUERY' | translate}}</button>
-				</div>
-			</div>
-		</div>
-		<div class="col-12">
-			<div *ngFor="let query of formGroup.get('queries').controls; let queryIndex=index;" class="row">
-				<div class="col-12">
-					<div class="row align-items-center">
-						<div class="col-auto d-flex">
-							<h4 class="m-0">{{'EXTERNAL-FETCHER-SOURCE-EDITOR.FIELDS.QUERY' | translate}} {{queryIndex + 1}}</h4>
-						</div>
-						<div class="col-auto d-flex">
-							<button mat-icon-button matTooltip="{{'EXTERNAL-FETCHER-SOURCE-EDITOR.ACTIONS.REMOVE-QUERY' | translate}}" (click)="removeQuery(queryIndex)" [disabled]="formGroup.get('queries').disabled">
-								<mat-icon>delete</mat-icon>
-							</button>
-						</div>
-					</div>
+			<mat-card *ngFor="let query of formGroup.get('queries').controls; let queryIndex=index;" class="col-12 mb-3">
+				<mat-card-title class="row align-items-center gap-1-rem p-3 mb-1 ">
+                    {{'EXTERNAL-FETCHER-SOURCE-EDITOR.FIELDS.QUERY' | translate}} {{queryIndex + 1}}
+                    <button mat-icon-button matTooltip="{{'EXTERNAL-FETCHER-SOURCE-EDITOR.ACTIONS.REMOVE-QUERY' | translate}}" (click)="removeQuery(queryIndex)" [disabled]="formGroup.get('queries').disabled" [attr.aria-label]="'EXTERNAL-FETCHER-SOURCE-EDITOR.ACTIONS.REMOVE-QUERY' | translate">
+                        <mat-icon aria-hidden>delete</mat-icon>
+                    </button>
+                </mat-card-title>
+                <mat-card-content class="col-12">
 					<div class="row">
 						<div class="col-6">
 							<mat-form-field class="w-100">
@@ -260,14 +292,13 @@
 					</div>
 
 					<!-- Query Cases -->
-					<div class="row align-items-center mb-2">
-						<div class="col-auto pr-0">
-							<h3 class="m-0">{{'EXTERNAL-FETCHER-SOURCE-EDITOR.FIELDS.CASES' | translate}}</h3>
-						</div>
-						<div class="col-auto">
-							<button mat-button class="rounded-btn secondary" type="button" (click)="addCase(queryIndex)" [disabled]="query.disabled">{{'EXTERNAL-FETCHER-SOURCE-EDITOR.ACTIONS.ADD-CASE' | translate}}</button>
-						</div>
-					</div>
+                    <section class="col-12">
+                        <div class=" d-flex align-items-center gap-1-rem">
+                            {{'EXTERNAL-FETCHER-SOURCE-EDITOR.FIELDS.CASES' | translate}}
+                            <button mat-flat-button color="accent" class="padded-shadow-btn" type="button" (click)="addCase(queryIndex)" [disabled]="query.disabled">{{'EXTERNAL-FETCHER-SOURCE-EDITOR.ACTIONS.ADD-CASE' | translate}}</button>
+                        </div>
+                        <mat-divider *ngIf="query.get('cases').controls?.length" class="mt-1 mb-3"></mat-divider>
+                    </section>
 					<div *ngFor="let case of query.get('cases').controls; let caseIndex=index;" class="row">
 						<div class="col-12">
 							<div class="row mb d-flex align-items-center">
@@ -327,77 +358,68 @@
 									</div>
 								</div>
 								<div class="col-auto mb-4">
-									<button mat-icon-button matTooltip="{{'EXTERNAL-FETCHER-SOURCE-EDITOR.ACTIONS.REMOVE-CASE' | translate}}" (click)="removeCase(queryIndex, caseIndex)" [disabled]="query.disabled">
-										<mat-icon>delete</mat-icon>
+									<button mat-icon-button matTooltip="{{'EXTERNAL-FETCHER-SOURCE-EDITOR.ACTIONS.REMOVE-CASE' | translate}}" (click)="removeCase(queryIndex, caseIndex)" [disabled]="query.disabled" [attr.aria-label]="'EXTERNAL-FETCHER-SOURCE-EDITOR.ACTIONS.REMOVE-CASE' | translate">
+										<mat-icon aria-hidden>delete</mat-icon>
 									</button>
 								</div>
 							</div>
 						</div>
 					</div>
-				</div>
-			</div>
+				</mat-card-content>
+			</mat-card>
 		</div>
 	</ng-container>
 
 
 	<!-- Static Items -->
 	<div class="col-12" *ngIf="formGroup.get('type').value == externalFetcherSourceType.STATIC">
-		<div class="row">
-			<h3 class="col-12">{{'EXTERNAL-FETCHER-SOURCE-EDITOR.FIELDS.STATIC-ITEMS' | translate}}</h3>
-			<div class="col-12">
-				<div *ngFor="let staticItem of formGroup.get('items').controls; let staticIndex=index;" class="row mb-3">
-					<div class="col-12">
-						<mat-card-header>
-							<div class="row mb-3 d-flex align-items-center">
-								<div class="col-auto d-flex">
-									<h4 class="col-12">{{'EXTERNAL-FETCHER-SOURCE-EDITOR.FIELDS.STATIC-ITEM' | translate}} {{staticIndex + 1}}</h4>
-								</div>
-							</div>
-							<div class="col-auto d-flex">
-								<button mat-icon-button matTooltip="{{'EXTERNAL-FETCHER-SOURCE-EDITOR.ACTIONS.REMOVE-STATIC-ITEM' | translate}}" (click)="removeStaticItem(staticIndex)" [disabled]="formGroup.get('items').disabled">
-									<mat-icon>delete</mat-icon>
-								</button>
-							</div>
-						</mat-card-header>
-						<mat-card-content>
-							<!-- Static Options -->
-							<div *ngFor="let option of staticItem.get('options').controls; let optionIndex=index;" class="row">
-								<div class="col-12">
-									<div class="row mb d-flex align-items-center">
-										<div class="col-auto d-flex">
-											<span>{{optionIndex + 1}}</span>
-										</div>
-										<div class="col">
-											<div class="row">
-												<div class="col-6">
-													<mat-form-field class="w-100">
-														<mat-label>{{'EXTERNAL-FETCHER-SOURCE-EDITOR.FIELDS.CODE' | translate}}</mat-label>
-														<input matInput type="text" [readonly]="true" name="code" [formControl]="option.get('code')">
-														<mat-error *ngIf="option.get('code').hasError('backendError')">{{option.get('code').getError('backendError').message}}</mat-error>
-														<mat-error *ngIf="option.get('code').hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
-													</mat-form-field>
-												</div>
-												<div class="col-6">
-													<mat-form-field class="w-100">
-														<mat-label>{{'EXTERNAL-FETCHER-SOURCE-EDITOR.FIELDS.VALUE' | translate}}</mat-label>
-														<input matInput type="text" name="value" [formControl]="option.get('value')">
-														<mat-error *ngIf="option.get('value').hasError('backendError')">{{option.get('value').getError('backendError').message}}</mat-error>
-														<mat-error *ngIf="option.get('value').hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
-													</mat-form-field>
-												</div>
-											</div>
-										</div>
-									</div>
-								</div>
-							</div>
-						</mat-card-content>
-					</div>
-				</div>
-				<button mat-button class="rounded-btn secondary" type="button" (click)="addStaticItem()" [disabled]="formGroup.get('items').disabled">{{'EXTERNAL-FETCHER-SOURCE-EDITOR.ACTIONS.ADD-STATIC-ITEM' | translate}}</button>
-			</div>
-			<mat-error *ngIf="formGroup.get('items').dirty && formGroup.get('items').hasError('required')">{{'EXTERNAL-FETCHER-SOURCE-EDITOR.STATIC-ITEMS-REQUIRED' | translate}}</mat-error>
-			<mat-error *ngIf="formGroup.get('items').hasError('backendError')">{{formGroup.get('items').getError('backendError').message}}</mat-error>
-		</div>
+        <section class="col-12">
+            <div class=" d-flex align-items-center gap-1-rem">
+                {{'EXTERNAL-FETCHER-SOURCE-EDITOR.FIELDS.STATIC-ITEMS' | translate}}
+                <button mat-flat-button color="accent" class="padded-shadow-btn" type="button" (click)="addStaticItem()" [disabled]="formGroup.get('items').disabled">{{'EXTERNAL-FETCHER-SOURCE-EDITOR.ACTIONS.ADD-STATIC-ITEM' | translate}}</button>
+            </div>
+            <mat-divider *ngIf="formGroup.get('items').controls?.length" class="mt-1 mb-3"></mat-divider>
+        </section>
+        <mat-card *ngFor="let staticItem of formGroup.get('items').controls; let staticIndex=index;" class="col-12 mb-3">
+            <mat-card-title class="row align-items-center gap-1-rem p-3 mb-1 ">                        
+                {{'EXTERNAL-FETCHER-SOURCE-EDITOR.FIELDS.STATIC-ITEM' | translate}} {{staticIndex + 1}}
+                <button mat-icon-button matTooltip="{{'EXTERNAL-FETCHER-SOURCE-EDITOR.ACTIONS.REMOVE-STATIC-ITEM' | translate}}" (click)="removeStaticItem(staticIndex)" [disabled]="formGroup.get('items').disabled" [attr.aria-label]="'EXTERNAL-FETCHER-SOURCE-EDITOR.ACTIONS.REMOVE-STATIC-ITEM' | translate">
+                    <mat-icon aria-hidden>delete</mat-icon>
+                </button>
+            </mat-card-title>
+            <mat-card-content>
+                <!-- Static Options -->
+                <div *ngFor="let option of staticItem.get('options').controls; let optionIndex=index;" class="row col-12">
+                    <div class="row mb d-flex align-items-center">
+                        <div class="col-auto d-flex">
+                            <span>{{optionIndex + 1}}</span>
+                        </div>
+                        <div class="col">
+                            <div class="row">
+                                <div class="col-6">
+                                    <mat-form-field class="w-100">
+                                        <mat-label>{{'EXTERNAL-FETCHER-SOURCE-EDITOR.FIELDS.CODE' | translate}}</mat-label>
+                                        <input matInput type="text" [readonly]="true" name="code" [formControl]="option.get('code')">
+                                        <mat-error *ngIf="option.get('code').hasError('backendError')">{{option.get('code').getError('backendError').message}}</mat-error>
+                                        <mat-error *ngIf="option.get('code').hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
+                                    </mat-form-field>
+                                </div>
+                                <div class="col-6">
+                                    <mat-form-field class="w-100">
+                                        <mat-label>{{'EXTERNAL-FETCHER-SOURCE-EDITOR.FIELDS.VALUE' | translate}}</mat-label>
+                                        <input matInput type="text" name="value" [formControl]="option.get('value')">
+                                        <mat-error *ngIf="option.get('value').hasError('backendError')">{{option.get('value').getError('backendError').message}}</mat-error>
+                                        <mat-error *ngIf="option.get('value').hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
+                                    </mat-form-field>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </mat-card-content>
+        </mat-card>
+        <mat-error *ngIf="formGroup.get('items').dirty && formGroup.get('items').hasError('required')">{{'EXTERNAL-FETCHER-SOURCE-EDITOR.STATIC-ITEMS-REQUIRED' | translate}}</mat-error>
+        <mat-error *ngIf="formGroup.get('items').hasError('backendError')">{{formGroup.get('items').getError('backendError').message}}</mat-error>
 	</div>
 
 </div>

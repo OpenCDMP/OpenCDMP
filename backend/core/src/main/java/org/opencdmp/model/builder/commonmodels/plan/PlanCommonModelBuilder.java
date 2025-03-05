@@ -15,6 +15,7 @@ import org.opencdmp.commonmodels.models.FileEnvelopeModel;
 import org.opencdmp.commonmodels.models.UserModel;
 import org.opencdmp.commonmodels.models.description.DescriptionModel;
 import org.opencdmp.commonmodels.models.plan.PlanModel;
+import org.opencdmp.commonmodels.models.plan.PlanStatusModel;
 import org.opencdmp.commonmodels.models.planblueprint.PlanBlueprintModel;
 import org.opencdmp.commonmodels.models.planreference.PlanReferenceModel;
 import org.opencdmp.commons.JsonHandlingService;
@@ -60,6 +61,7 @@ public class PlanCommonModelBuilder extends BaseCommonModelBuilder<PlanModel, Pl
     private FileEnvelopeModel pdfFile;
     private FileEnvelopeModel rdaJsonFile;
     private String repositoryId;
+    private String evaluatorId;
     private boolean disableDescriptions;
     private EnumSet<AuthorizationFlags> authorize = EnumSet.of(AuthorizationFlags.None);
 
@@ -95,6 +97,11 @@ public class PlanCommonModelBuilder extends BaseCommonModelBuilder<PlanModel, Pl
         return this;
     }
 
+    public PlanCommonModelBuilder setEvaluatorId(String evaluatorId){
+        this.evaluatorId = evaluatorId;
+        return this;
+    }
+
     public PlanCommonModelBuilder setDisableDescriptions(boolean disableDescriptions) {
         this.disableDescriptions = disableDescriptions;
         return this;
@@ -127,6 +134,7 @@ public class PlanCommonModelBuilder extends BaseCommonModelBuilder<PlanModel, Pl
         Map<UUID, UserModel> creators = this.collectCreators(data);
         Map<UUID, PlanBlueprintModel> planBlueprints = this.collectPlanBlueprints(data);
         Map<UUID, DefinitionEntity> definitionEntityMap =  this.collectPlanBlueprintDefinitions(data);
+        Map<UUID, PlanStatusModel> planStatuses = this.collectPlanStatuses(data);
 
         for (PlanEntity d : data) {
             PlanModel m = new PlanModel();
@@ -137,11 +145,7 @@ public class PlanCommonModelBuilder extends BaseCommonModelBuilder<PlanModel, Pl
             m.setFinalizedAt(d.getFinalizedAt());
             m.setCreatedAt(d.getCreatedAt());
             m.setLanguage(d.getLanguage());
-            switch (d.getStatus()){
-                case Finalized -> m.setStatus(PlanStatus.Finalized);
-                case Draft -> m.setStatus(PlanStatus.Draft);
-                default -> throw new MyApplicationException("unrecognized type " + d.getStatus());
-            }
+            if (planStatuses != null && !planStatuses.isEmpty() && d.getStatusId() != null && planStatuses.containsKey(d.getStatusId())) m.setStatus(planStatuses.get(d.getStatusId()));
             if (entityDois != null && !entityDois.isEmpty() && entityDois.containsKey(d.getId())) m.setEntityDois(entityDois.get(d.getId()));
             if (creators != null && !creators.isEmpty() && d.getCreatorId() != null && creators.containsKey(d.getCreatorId())) m.setCreator(creators.get(d.getCreatorId()));
             if (planBlueprints != null && !planBlueprints.isEmpty() && d.getBlueprintId() != null && planBlueprints.containsKey(d.getBlueprintId())) m.setPlanBlueprint(planBlueprints.get(d.getBlueprintId()));
@@ -194,7 +198,7 @@ public class PlanCommonModelBuilder extends BaseCommonModelBuilder<PlanModel, Pl
         this.logger.debug("checking related - {}", PlanUser.class.getSimpleName());
 
         Map<UUID, List<PlanUserModel>> itemMap;
-        PlanUserQuery query = this.queryFactory.query(PlanUserQuery.class).disableTracking().isActives(IsActive.Active).authorize(this.authorize).planIds(data.stream().map(PlanEntity::getId).distinct().collect(Collectors.toList()));
+        PlanUserQuery query = this.queryFactory.query(PlanUserQuery.class).disableTracking().isActives(IsActive.Active).planIds(data.stream().map(PlanEntity::getId).distinct().collect(Collectors.toList()));
         itemMap = this.builderFactory.builder(PlanUserCommonModelBuilder.class).authorize(this.authorize).asMasterKey(query, PlanUserEntity::getPlanId);
 
         return itemMap;
@@ -219,7 +223,8 @@ public class PlanCommonModelBuilder extends BaseCommonModelBuilder<PlanModel, Pl
         if (this.isPublic) {
             try {
                 this.entityManager.disableTenantFilters();
-                query = this.queryFactory.query(DescriptionQuery.class).disableTracking().authorize(EnumSet.of(Public)).planIds(data.stream().map(PlanEntity::getId).distinct().collect(Collectors.toList())).planSubQuery(this.queryFactory.query(PlanQuery.class).isActive(IsActive.Active).statuses(org.opencdmp.commons.enums.PlanStatus.Finalized).accessTypes(org.opencdmp.commons.enums.PlanAccessType.Public));
+                PlanStatusQuery statusQuery = this.queryFactory.query(PlanStatusQuery.class).disableTracking().internalStatuses(org.opencdmp.commons.enums.PlanStatus.Finalized).isActives(IsActive.Active);
+                query = this.queryFactory.query(DescriptionQuery.class).disableTracking().authorize(EnumSet.of(Public)).planIds(data.stream().map(PlanEntity::getId).distinct().collect(Collectors.toList())).planSubQuery(this.queryFactory.query(PlanQuery.class).isActive(IsActive.Active).planStatusSubQuery(statusQuery).accessTypes(org.opencdmp.commons.enums.PlanAccessType.Public));
                 itemMap = this.builderFactory.builder(DescriptionCommonModelBuilder.class).setRepositoryId(this.repositoryId).useSharedStorage(this.useSharedStorage).isPublic(this.isPublic).authorize(this.authorize).asMasterKey(query, DescriptionEntity::getPlanId);
                 try {
                     this.entityManager.reloadTenantFilters();
@@ -287,6 +292,17 @@ public class PlanCommonModelBuilder extends BaseCommonModelBuilder<PlanModel, Pl
             itemMap.put(item.getId(), definition);
         }
 
+        return itemMap;
+    }
+
+    private Map<UUID, PlanStatusModel> collectPlanStatuses(List<PlanEntity> data) throws MyApplicationException {
+        if (data.isEmpty())
+            return null;
+        this.logger.debug("checking related - {}", PlanStatusModel.class.getSimpleName());
+
+        Map<UUID, PlanStatusModel> itemMap;
+        PlanStatusQuery q = this.queryFactory.query(PlanStatusQuery.class).isActives(IsActive.Active).authorize(this.authorize).ids(data.stream().filter(x-> x.getStatusId() != null).map(PlanEntity::getStatusId).distinct().collect(Collectors.toList()));
+        itemMap = this.builderFactory.builder(PlanStatusCommonModelBuilder.class).authorize(this.authorize).asForeignKey(q, PlanStatusEntity::getId);
         return itemMap;
     }
 

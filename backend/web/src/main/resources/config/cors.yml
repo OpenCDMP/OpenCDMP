@@ -5,3 +5,5 @@ web:
     allowed-headers: [ Authorization, Cache-Control, Content-Type, Content-Disposition, x-tenant ]
     exposed-headers: [ Authorization, Cache-Control, Content-Type, Content-Disposition ]
     allow-credentials: false
+    allowed-origins:
+      - ${CORS_ALLOWED_ORIGIN}

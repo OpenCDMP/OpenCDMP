@@ -1,0 +1,95 @@
+<div *ngIf="planBlueprints" id="planBlueprintsPreview" class="col-auto mb-5">
+<div class="card">
+	<div id="planBlueprintsPreviewCarousel" class="carousel slide">
+		<!-- Indicators -->
+		<ol class="carousel-indicators">
+            <li *ngFor="let blueprint of planBlueprints; let i=index" 
+                [attr.data-slide-to]="i" 
+                [class.active]="i == activeItem"
+                (click)="activeItem = i"
+            ></li>
+		</ol>
+
+		<div class="carousel-inner">
+			<div class="carousel-item pb-5 " *ngFor="let blueprint of planBlueprints; let i=index" [class.active]="i == activeItem">
+				<div>
+					<h2 class="text-center pt-4 blueprintLabel" style = "cursor: pointer">{{blueprint.label}}</h2>
+
+					<div class="p-1 bg-light m-3 overflow-auto blueprint-preview" style="height: 220px;" >
+						<div *ngIf="blueprint.description && blueprint.description != blueprint.label " class="sectionDescription font-italic pl-2" [innerHTML]="blueprint.description"></div>
+                        <mat-accordion multi>
+                            @for(section of blueprint?.definition?.sections; track $index; let sectionI=$index){
+                                <ng-container *ngIf="(section.fields && section.fields.length > 0) || section.hasTemplates">
+                                    <mat-expansion-panel class="section-expansion-panel unstyled"  [id]="'collapseSection-' + i + '-' + sectionI" [togglePosition]="'before'">
+                                        <mat-expansion-panel-header>
+                                            <mat-panel-title>
+                                                <div class="section-label d-flex align-items-center  justify-content-lg-start">
+                                                    {{section.label}}
+                                                </div>
+                                            </mat-panel-title>
+                                        </mat-expansion-panel-header>
+                                        <div>
+                                            <div *ngFor="let field of section.fields; let last = last" class="field-label" [class.pb-2]="!last || section.hasTemplates">
+                                                @if(!field.label){
+                                                    @switch(field.category){
+                                                        @case(planBlueprintSectionFieldCategoryEnum.System){
+                                                            {{enumUtils.toPlanBlueprintSystemFieldTypeString(field.systemFieldType)}}
+                                                        }
+                                                        @case(planBlueprintSectionFieldCategoryEnum.ReferenceType){
+                                                            {{field.referenceType?.name}}
+                                                        }
+                                                    }
+                                               }@else {
+                                                {{field.label}}
+                                               }
+                                            </div>
+                                            <ng-container *ngIf="section.hasTemplates">
+                                                @if(section.descriptionTemplates?.length){
+                                                    <div class="sectionTemplatesHeader">
+                                                        {{'PLAN-BLUEPRINT-PREVIEW.TOP-PLAN-BLUEPRINTS.SUGGESTED-TEMPLATES' | translate}}
+                                                    </div>
+                                                }@else{
+                                                    <div class="field-label">{{'PLAN-BLUEPRINT-EDITOR.FIELDS.DESCRIPTION-TEMPLATES' | translate}}:</div>
+                                                    <div class="sectionTemplatesHeader">
+                                                        {{'PLAN-BLUEPRINT-PREVIEW.TOP-PLAN-BLUEPRINTS.USE-ANY' | translate}}
+                                                    </div>
+                                                }
+                                                <div>
+                                                    <div *ngFor="let descriptionTemplate of section.descriptionTemplates" class="sectionDescriptionLabel">
+                                                        {{descriptionTemplate.descriptionTemplate?.label}}
+                                                    </div>
+                                                </div>
+                                            </ng-container>
+                                        </div>
+                                    </mat-expansion-panel>
+                                </ng-container>
+                                <ng-container
+                                    *ngIf="(!section.fields || section.fields.length == 0) && !section.hasTemplates">
+                                    <div class="section-label pl-1 d-flex align-items-center  justify-content-lg-start">
+                                        {{section.label}}</div>
+                                    <div *ngIf="section.description"
+                                         class="sectionDescription font-italic pl-2">{{section.description}}</div>
+                                </ng-container>
+                            }
+                        </mat-accordion>
+					</div>
+				</div>
+			</div>
+
+		</div>
+		<!--<a class="" href="#planBlueprintsPreviewCarousel" role="button" data-slide="prev">
+			<span class="carousel-control-prev-icon" aria-hidden="true"></span>
+			<span class="sr-only">Previous</span>
+		</a>
+		<a class="" href="#planBlueprintsPreviewCarousel" role="button" data-slide="next">
+			<span class="carousel-control-next-icon" aria-hidden="true"></span>
+			<span class="sr-only">Next</span>
+		</a>-->
+	</div>
+	<div class="m-2 pb-2 text-center d-flex align-items-center justify-content-center ">
+		<a routerLink="/plans/new"
+		   class=" padded-shadow-btn mdc-button mdc-button--unelevated mat-mdc-unelevated-button mat-primary mat-mdc-button-base">
+			{{'PLAN-BLUEPRINT-PREVIEW.TOP-PLAN-BLUEPRINTS.VIEW-ALL' | translate}}</a>
+	</div>
+</div>
+</div>

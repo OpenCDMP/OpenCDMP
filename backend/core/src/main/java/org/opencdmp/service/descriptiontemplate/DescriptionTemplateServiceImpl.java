@@ -60,6 +60,7 @@ import org.opencdmp.service.accounting.AccountingService;
 import org.opencdmp.service.descriptiontemplatetype.DescriptionTemplateTypeService;
 import org.opencdmp.service.fielddatahelper.FieldDataHelperService;
 import org.opencdmp.service.fielddatahelper.FieldDataHelperServiceProvider;
+import org.opencdmp.service.lock.LockService;
 import org.opencdmp.service.responseutils.ResponseUtilsService;
 import org.opencdmp.service.usagelimit.UsageLimitService;
 import org.slf4j.LoggerFactory;
@@ -122,6 +123,7 @@ public class DescriptionTemplateServiceImpl implements DescriptionTemplateServic
     private final AuthorizationContentResolver authorizationContentResolver;
     private final UsageLimitService usageLimitService;
     private final AccountingService accountingService;
+    private final LockService lockService;
 
     @Autowired
     public DescriptionTemplateServiceImpl(
@@ -139,7 +141,7 @@ public class DescriptionTemplateServiceImpl implements DescriptionTemplateServic
             JsonHandlingService jsonHandlingService,
             NotifyIntegrationEventHandler eventHandler,
             NotificationProperties notificationProperties,
-            ValidatorFactory validatorFactory, DescriptionTemplateTypeService descriptionTemplateTypeService, AuthorizationContentResolver authorizationContentResolver, UsageLimitService usageLimitService, AccountingService accountingService) {
+            ValidatorFactory validatorFactory, DescriptionTemplateTypeService descriptionTemplateTypeService, AuthorizationContentResolver authorizationContentResolver, UsageLimitService usageLimitService, AccountingService accountingService, LockService lockService) {
         this.entityManager = entityManager;
         this.userScope = userScope;
         this.authorizationService = authorizationService;
@@ -161,6 +163,7 @@ public class DescriptionTemplateServiceImpl implements DescriptionTemplateServic
 	    this.authorizationContentResolver = authorizationContentResolver;
         this.usageLimitService = usageLimitService;
         this.accountingService = accountingService;
+        this.lockService = lockService;
     }
 
     //region Persist
@@ -177,6 +180,7 @@ public class DescriptionTemplateServiceImpl implements DescriptionTemplateServic
             data = this.entityManager.find(DescriptionTemplateEntity.class, model.getId());
             if (data == null)
                 throw new MyNotFoundException(this.messageSource.getMessage("General_ItemNotFound", new Object[]{model.getId(), DescriptionTemplate.class.getSimpleName()}, LocaleContextHolder.getLocale()));
+            if (this.lockService.isLocked(data.getId(), null).getStatus()) throw new MyApplicationException(this.errors.getLockedDescriptionTemplate().getCode(), this.errors.getLockedDescriptionTemplate().getMessage());
             if (!this.conventionService.hashValue(data.getUpdatedAt()).equals(model.getHash()))
                 throw new MyValidationException(this.errors.getHashConflict().getCode(), this.errors.getHashConflict().getMessage());
             if (data.getStatus().equals(DescriptionTemplateStatus.Finalized))
@@ -861,8 +865,12 @@ public class DescriptionTemplateServiceImpl implements DescriptionTemplateServic
 
         this.authorizationService.authorizeForce(Permission.ImportDescriptionTemplate);
 
-        DescriptionTemplateImportExport importXml = this.xmlHandlingService.fromXml(DescriptionTemplateImportExport.class, new String(bytes, StandardCharsets.UTF_8));
-        
+        DescriptionTemplateImportExport importXml = this.xmlHandlingService.fromXmlSafe(DescriptionTemplateImportExport.class, new String(bytes, StandardCharsets.UTF_8));
+
+        if (importXml == null) {
+            logger.warn("Description template import xml failed. Input: " + new String(bytes, StandardCharsets.UTF_8));
+            throw new MyApplicationException(this.errors.getInvalidDescriptionTemplateImportXml().getCode(), this.errors.getInvalidDescriptionTemplateImportXml().getMessage());
+        }
         return this.importXml(importXml, groupId, label, fields);
     }
 
@@ -1154,6 +1162,9 @@ public class DescriptionTemplateServiceImpl implements DescriptionTemplateServic
 
     private DescriptionTemplateDefaultValueImportExport toDefaultValueModel(DefaultValueEntity entity) {
         DescriptionTemplateDefaultValueImportExport xml = new DescriptionTemplateDefaultValueImportExport();
+
+        if (entity == null) return xml;
+
         xml.setDateValue(entity.getDateValue());
         xml.setBooleanValue(entity.getBooleanValue());
         xml.setTextValue(entity.getTextValue());
@@ -1162,6 +1173,9 @@ public class DescriptionTemplateServiceImpl implements DescriptionTemplateServic
 
     private DescriptionTemplateRuleImportExport toRuleModel(RuleEntity entity) {
         DescriptionTemplateRuleImportExport xml = new DescriptionTemplateRuleImportExport();
+
+        if (entity == null) return xml;
+
         xml.setTarget(entity.getTarget());
         xml.setDateValue(entity.getDateValue());
         xml.setBooleanValue(entity.getBooleanValue());
@@ -1171,6 +1185,9 @@ public class DescriptionTemplateServiceImpl implements DescriptionTemplateServic
 
     private DescriptionTemplateMultiplicityImportExport multiplicityXmlToExport(MultiplicityEntity entity) {
         DescriptionTemplateMultiplicityImportExport xml = new DescriptionTemplateMultiplicityImportExport();
+
+        if (entity == null) return xml;
+
         xml.setMax(entity.getMax());
         xml.setMin(entity.getMin());
         xml.setPlaceholder(entity.getPlaceholder());

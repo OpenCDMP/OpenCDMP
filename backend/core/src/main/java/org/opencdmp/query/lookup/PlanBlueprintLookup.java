@@ -24,6 +24,8 @@ public class PlanBlueprintLookup extends Lookup {
 
     private List<UUID> groupIds;
 
+    private List<UUID> excludedGroupIds;
+
     private List<PlanBlueprintVersionStatus> versionStatuses;
 
     public String getLike() {
@@ -82,6 +84,14 @@ public class PlanBlueprintLookup extends Lookup {
         this.groupIds = groupIds;
     }
 
+    public List<UUID> getExcludedGroupIds() {
+        return excludedGroupIds;
+    }
+
+    public void setExcludedGroupIds(List<UUID> excludedGroupIds) {
+        this.excludedGroupIds = excludedGroupIds;
+    }
+
     public PlanBlueprintQuery enrich(QueryFactory queryFactory) {
         PlanBlueprintQuery query = queryFactory.query(PlanBlueprintQuery.class);
         if (this.like != null)
@@ -96,6 +106,8 @@ public class PlanBlueprintLookup extends Lookup {
             query.excludedIds(this.excludedIds);
         if (this.groupIds != null)
             query.groupIds(this.groupIds);
+        if (this.excludedGroupIds != null)
+            query.excludedGroupIds(this.excludedGroupIds);
         if (this.versionStatuses != null)
             query.versionStatuses(this.versionStatuses);
 

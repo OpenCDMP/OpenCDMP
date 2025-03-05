@@ -2,11 +2,13 @@ import { Component, Inject } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 
 @Component({
-	selector: 'app-glossary-dialog',
-	templateUrl: './glossary-dialog.component.html',
-	styleUrls: ['./glossary-dialog.component.scss']
+    selector: 'app-glossary-dialog',
+    templateUrl: './glossary-dialog.component.html',
+    styleUrls: ['./glossary-dialog.component.scss'],
+    standalone: false
 })
 export class GlossaryDialogComponent {
+   
 
 	public isDialog: boolean;
 

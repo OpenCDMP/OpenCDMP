@@ -6,9 +6,10 @@ import { Observable, Subscription } from "rxjs";
 
 
 @Component({
-  selector: 'text-area-with-mentions',
-  templateUrl: './text-area-with-mentions.component.html',
-  styleUrls: ['./text-area-with-mentions.component.scss'],
+    selector: 'text-area-with-mentions',
+    templateUrl: './text-area-with-mentions.component.html',
+    styleUrls: ['./text-area-with-mentions.component.scss'],
+    standalone: false
 })
 export class TextAreaWithMentionsComponent implements OnInit, OnDestroy {
   USER_TRIGGER_CHARACTER: string = '@'
@@ -104,17 +105,17 @@ export class TextAreaWithMentionsComponent implements OnInit, OnDestroy {
       const formattedText = `@{{userid:${selection?.choice?.id}}}`;
 
       const newReplace = formattedContent
-        .substring(replaceContentIndex)
-        .replace(selectionText, formattedText);
+        ?.substring(replaceContentIndex)
+        ?.replace(selectionText, formattedText);
         formattedContent =
         replaceContentIndex === 0
           ? newReplace
-          : formattedContent.substring(0, replaceContentIndex) + newReplace;
+          : formattedContent?.substring(0, replaceContentIndex) + newReplace;
 
-      replaceContentIndex = formattedContent.lastIndexOf('}}') + 2;
+      replaceContentIndex = formattedContent?.lastIndexOf('}}') + 2;
     });
 
-    formattedContent = formattedContent.replace(/\n/g, '<br>');
+    formattedContent = formattedContent?.replace(/\n/g, '<br>');
 
     return formattedContent;
   }  

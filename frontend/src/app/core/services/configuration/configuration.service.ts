@@ -2,13 +2,11 @@ import { Injectable } from '@angular/core';
 import { BaseHttpParams } from '@common/http/base-http-params';
 import { InterceptorType } from '@common/http/interceptors/interceptor-type';
 import { BaseComponent } from '@common/base/base.component';
-import { catchError, takeUntil } from 'rxjs/operators';
-import { Observable, throwError } from 'rxjs';
-import { HelpService } from '@app/core/model/configuration-models/help-service.model';
+import { catchError, combineLatestWith, takeUntil } from 'rxjs/operators';
+import { combineLatest, Observable, of, throwError } from 'rxjs';
 import { Logging } from '@app/core/model/configuration-models/logging.model';
 import { HttpClient } from '@angular/common/http';
 import { KeycloakConfiguration } from '@app/core/model/configuration-models/keycloak-configuration.model';
-import { Guid } from '@common/types/guid';
 import { AuthProviders } from '@app/core/model/configuration-models/auth-providers.model';
 import { AnalyticsProviders } from '@app/core/model/configuration-models/analytics-providers.model';
 import { CssColorsTenantConfiguration } from '@app/core/model/tenant-configuaration/tenant-configuration';
@@ -32,11 +30,6 @@ export class ConfigurationService extends BaseComponent {
 		return this._app;
 	}
 
-	private _helpService: HelpService;
-	get helpService(): HelpService {
-		return this._helpService;
-	}
-
 	private _defaultCulture: string;
 	get defaultCulture(): string {
 		return this._defaultCulture || 'en';
@@ -52,11 +45,6 @@ export class ConfigurationService extends BaseComponent {
 		return this._navLogoExtension || '.svg';
 	}
 
-	private _defaultBlueprintId: Guid;
-	get defaultBlueprintId(): Guid {
-		return this._defaultBlueprintId;
-	}
-
 	private _logging: Logging;
 	get logging(): Logging {
 		return this._logging;
@@ -67,34 +55,9 @@ export class ConfigurationService extends BaseComponent {
 		return this._lockInterval;
 	}
 
-	private _guideAssets: string;
-	get guideAssets(): string {
-		return this._guideAssets;
-	}
-
-	private _allowOrganizationCreator: boolean;
-	get allowOrganizationCreator(): boolean {
-		return this._allowOrganizationCreator;
-	}
-
 	private _orcidPath: string;
 	get orcidPath(): string {
 		return this._orcidPath;
-	}
-
-	private _matomoEnabled: boolean;
-	get matomoEnabled(): boolean {
-		return this._matomoEnabled;
-	}
-
-	private _matomoSiteUrl: string;
-	get matomoSiteUrl(): string {
-		return this._matomoSiteUrl;
-	}
-
-	private _matomoSiteId: number;
-	get matomoSiteId(): number {
-		return this._matomoSiteId;
 	}
 
 	private _maxFileSizeInMB: number;
@@ -210,6 +173,31 @@ export class ConfigurationService extends BaseComponent {
 
 
 
+	private _kpiServiceAddress: string;
+	get kpiServiceAddress(): string {
+		return this._kpiServiceAddress || './';
+	}
+
+	private _kpiServiceEnabled: boolean;
+	get kpiServiceEnabled(): boolean {
+		return this._kpiServiceEnabled;
+	}
+
+	private _kpiDashboardId: string;
+	get kpiDashboardId(): string {
+		return this._kpiDashboardId;
+	}
+
+	private _keywordFilter: string;
+	get keywordFilter(): string {
+		return this._keywordFilter;
+	}
+
+	private _accountingServiceEnabled: boolean;
+	get accountingServiceEnabled(): boolean {
+		return this._accountingServiceEnabled;
+	}
+
 	public loadConfiguration(): Promise<any> {
 		return new Promise((r, e) => {
 			// We need to exclude all interceptors here, for the initial configuration request.
@@ -226,53 +214,66 @@ export class ConfigurationService extends BaseComponent {
 				],
 			};
 
-			this.http
-				.get("./assets/config/config.json", { params: params })
-				.pipe(
-					catchError((err: any, caught: Observable<any>) =>
-						throwError(err)
-					)
-				)
-				.pipe(takeUntil(this._destroyed))
-				.subscribe(
-					(content: ConfigurationService) => {
-						this.parseResponse(content);
-						r(this);
-					},
-					(reason) => e(reason)
-				);
+            combineLatest([
+                this.http.get("./assets/config/config.json", { params: params })
+                .pipe(
+                    catchError((err: any) =>
+                        throwError(() => err)
+                    )
+                ),
+                this.http.get("./assets/config/config-override.json", { params: params })
+                .pipe(
+                    catchError((err: any) => {
+                        return of(new Object());
+                    })
+                )
+            ])
+            .pipe(takeUntil(this._destroyed))
+            .subscribe({
+                next: ([content, overrides]) => {
+                    const objectType = typeof(new Object());
+                    let response = this.overrideValues(content, overrides);
+                    this.parseResponse(response);
+                    r(this);
+                },
+                error: (reason) => e(reason)
+            })
 		});
 	}
 
-
+    private overrideValues(content: any, override: any){
+        let nullSet = new Set([null, undefined]);
+        let response = {}
+        const objectType = typeof(new Object());
+        if(nullSet.has(content)){ return override; }
+        if(typeof(content) === objectType && !Array.isArray(content)){
+            Object.keys(content)?.forEach((key) => {
+                response[key] = this.overrideValues(content[key], override?.[key])
+            })
+        }else {
+            response = nullSet.has(override) ? content : override
+        }
+        return response;
+    }
 
 	private parseResponse(config: any) {
 		this._server = config.Server;
 		this._app = config.App;
-		this._helpService = HelpService.parseValue(config.HelpService);
 		this._defaultCulture = config.defaultCulture;
-		this._defaultBlueprintId = config.defaultBlueprintId;
 		this._defaultTimezone = config.defaultTimezone;
 		this._keycloak = KeycloakConfiguration.parseValue(config.keycloak);
 		this._logging = Logging.parseValue(config.logging);
 		this._lockInterval = config.lockInterval;
-		this._guideAssets = config.guideAssets;
 		this._navLogoExtension = config.navLogoExtension;
-		this._allowOrganizationCreator = config.allowOrganizationCreator;
 		this._orcidPath = config.orcidPath;
-		if (config.matomo) {
-			this._matomoEnabled = config.matomo.enabled;
-			this._matomoSiteUrl = config.matomo.url;
-			this._matomoSiteId = config.matomo.siteId;
-		}
 		this._maxFileSizeInMB = config.maxFileSizeInMB;
 		this._userSettingsVersion = config.userSettingsVersion;
 		if (config.notification_service) {
-			this._notificationServiceEnabled = config.notification_service.enabled;
+			this._notificationServiceEnabled = config.notification_service.enabled === true || config.notification_service.enabled === "true";
 			this._notificationServiceAddress = config.notification_service.address;
 		}
 		if (config.annotation_service) {
-			this._annotationServiceEnabled = config.annotation_service.enabled;
+			this._annotationServiceEnabled = config.annotation_service.enabled === true || config.annotation_service.enabled === "true";
 			this._annotationServiceAddress = config.annotation_service.address;
 			this._statusIcons = [];
 			config.annotation_service?.statusIcons?.forEach(statusIcon => this._statusIcons.push(StatusIcon.parseValue(statusIcon)));
@@ -294,10 +295,19 @@ export class ConfigurationService extends BaseComponent {
 		if (config.defaultCssColors) {
 			this._cssColorsTenantConfiguration =  {
 				primaryColor: config.defaultCssColors.primaryColor,
-				primaryColor2: config.defaultCssColors.primaryColor2,
-				primaryColor3: config.defaultCssColors.primaryColor3,
-				secondaryColor: config.defaultCssColors.secondaryColor,
+				cssOverride: config.defaultCssColors.cssOverride
 			}
+		}
+
+		if (config.kpi_service) {
+			this._kpiServiceEnabled = config.kpi_service.enabled === true || config.kpi_service.enabled === "true";
+			this._kpiServiceAddress = config.kpi_service.address;
+			this._kpiDashboardId = config.kpi_service.dashboardId;
+			this._keywordFilter = config.kpi_service.keywordFilter;
+		}
+
+		if (config.accounting_service) {
+			this._accountingServiceEnabled = config.accounting_service.enabled === true || config.accounting_service.enabled === "true";
 		}
 	}
 

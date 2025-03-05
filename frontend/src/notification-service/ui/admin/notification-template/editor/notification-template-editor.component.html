@@ -6,16 +6,16 @@
 					<app-navigation-breadcrumb />
 				</div>
 				<div class="col-auto">
-					<button mat-button class="rounded-btn secondary" (click)="cancel()" type="button">{{'NOTIFICATION-SERVICE.NOTIFICATION-TEMPLATE-EDITOR.ACTIONS.CANCEL' | translate}}</button>
+					<button mat-stroked-button class="padded-shadow-btn" (click)="cancel()" type="button">{{'NOTIFICATION-SERVICE.NOTIFICATION-TEMPLATE-EDITOR.ACTIONS.CANCEL' | translate}}</button>
 				</div>
 				<div class="col-auto" *ngIf="canDelete">
-					<button mat-button class="rounded-btn secondary" type="button" (click)="delete()">
-						<mat-icon>delete</mat-icon>
+					<button mat-stroked-button color="warn" class="padded-shadow-btn" type="button" (click)="delete()">
+						<mat-icon aria-hidden>delete</mat-icon>
 						{{'NOTIFICATION-SERVICE.NOTIFICATION-TEMPLATE-EDITOR.ACTIONS.DELETE' | translate}}
 					</button>
 				</div>
 				<div class="col-auto" *ngIf="canSave">
-					<button mat-button class="rounded-btn secondary" (click)="formSubmit()">
+					<button mat-flat-button color="primary" class="padded-shadow-btn" (click)="formSubmit()">
 						<mat-icon>save</mat-icon>
 						{{'NOTIFICATION-SERVICE.NOTIFICATION-TEMPLATE-EDITOR.ACTIONS.SAVE' | translate}}
 					</button>
@@ -23,8 +23,9 @@
 			</div>
 
 			<form *ngIf="formGroup" (ngSubmit)="formSubmit()" >
-				<mat-card appearance="outlined" class="pt-3 pb-3">
+				<mat-card appearance="outlined" class="pb-3">
 					<mat-card-content>
+                        <div class="pb-3"><small>{{'COMMONS.VALIDATION.REQUIRED-FIELDS-HINT' | translate}}</small></div>
 						<div class="row">
 							<div class="col-12">
 								<div class="container-fluid">
@@ -228,7 +229,7 @@
 																[editable]="true"
 																(edited)="editChipListValues('cc', $event, field)">
 													{{field}}
-													<button matChipRemove>
+													<button matChipRemove [attr.aria-label]="'COMMONS.ACTIONS.REMOVE' | translate">
 													<mat-icon>cancel</mat-icon>
 													</button>
 												</mat-chip-row>
@@ -262,7 +263,7 @@
 																[editable]="true"
 																(edited)="editChipListValues('bcc', $event, field)">
 													{{field}}
-													<button matChipRemove>
+													<button matChipRemove [attr.aria-label]="'COMMONS.ACTIONS.REMOVE' | translate">
 													<mat-icon>cancel</mat-icon>
 													</button>
 												</mat-chip-row>
@@ -292,11 +293,11 @@
 												<mat-label>{{'NOTIFICATION-SERVICE.NOTIFICATION-TEMPLATE-EDITOR.FIELDS.EXTRA-DATA-KEYS' | translate}}</mat-label>
 												<mat-chip-grid #extraDataKeysGrid [formControl]="formGroup.get('value').get('extraDataKeys')">
 												<mat-chip-row *ngFor="let field of extraDataKeys"
-																(removed)="removeChipListValues('extraDataKeys', field)"
-																[editable]="true"
-																(edited)="editChipListValues('extraDataKeys', $event, field)">
+                                                    (removed)="removeChipListValues('extraDataKeys', field)"
+                                                    [editable]="true"
+                                                    (edited)="editChipListValues('extraDataKeys', $event, field)">
 													{{field}}
-													<button matChipRemove>
+													<button matChipRemove [attr.aria-label]="'COMMONS.ACTIONS.REMOVE' | translate">
 													<mat-icon>cancel</mat-icon>
 													</button>
 												</mat-chip-row>

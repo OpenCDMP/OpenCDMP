@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration debug="false">
+    <springProperty name="LOGGING_DEFAULT_LOG_LEVEL" source="LOGGING_DEFAULT_LOG_LEVEL"/>
+    <springProperty name="LOGGING_PATH" source="LOGGING_PATH"/>
+    <appender name="TROUBLESHOOTING" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${LOGGING_PATH}/logging.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>logs/logging.%d{yyyy-MM-dd}.%i.log</fileNamePattern>
+            <timeBasedFileNamingAndTriggeringPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedFileNamingAndTriggeringPolicy">
+                <maxFileSize>100MB</maxFileSize>
+            </timeBasedFileNamingAndTriggeringPolicy>
+            <maxHistory>15</maxHistory>
+        </rollingPolicy>
+        <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+            <Pattern>%date{ISO8601} [%thread] %-5level %logger{36} [%X{req.id}] - %message%n</Pattern>
+        </encoder>
+    </appender>
+
+    <appender name="AUDITING" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${LOGGING_PATH}/auditing.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>logs/auditing.%d{yyyy-MM-dd}.%i.log</fileNamePattern>
+            <timeBasedFileNamingAndTriggeringPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedFileNamingAndTriggeringPolicy">
+                <maxFileSize>100MB</maxFileSize>
+            </timeBasedFileNamingAndTriggeringPolicy>
+            <maxHistory>15</maxHistory>
+        </rollingPolicy>
+        <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+            <Pattern>%date{ISO8601} - %X{req.id} - %message%n</Pattern>
+        </encoder>
+    </appender>
+
+    <logger name="org.springframework.web" level="${LOGGING_DEFAULT_LOG_LEVEL}" additivity="false">
+        <appender-ref ref="TROUBLESHOOTING"/>
+    </logger>
+    <logger name="org.hibernate" level="${LOGGING_DEFAULT_LOG_LEVEL}" additivity="false">
+        <appender-ref ref="TROUBLESHOOTING"/>
+    </logger>
+    <logger name="gr.cite" level="${LOGGING_DEFAULT_LOG_LEVEL}" additivity="false">
+        <appender-ref ref="TROUBLESHOOTING"/>
+    </logger>
+    <logger name="org.springframework.data.elasticsearch.client.WIRE" level="${LOGGING_DEFAULT_LOG_LEVEL}" additivity="false">
+        <appender-ref ref="TROUBLESHOOTING"/>
+    </logger>
+    <logger name="audit" level="INFO" additivity="false">
+        <appender-ref ref="AUDITING"/>
+    </logger>
+    <root level="INFO">
+        <appender-ref ref="TROUBLESHOOTING"/>
+    </root>
+</configuration>

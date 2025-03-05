@@ -12,6 +12,7 @@ import { MultipleChoiceDialogModule } from '@common/modules/multiple-choice-dial
 import { PlanDeleteDialogModule } from '../plan-delete-dialog/plan-delete-dialog.module';
 import { PlanOverviewComponent } from './plan-overview.component';
 import { PlanAuthorsComponent } from '../plan-authors/plan-authors.component';
+import { PlanEvaluationHistoryComponent } from '../listing/plan-evaluation-history/plan-evaluation-history.component';
 
 @NgModule({
 	imports: [
@@ -24,7 +25,8 @@ import { PlanAuthorsComponent } from '../plan-authors/plan-authors.component';
 		AutoCompleteModule,
 		PlanOverviewRoutingModule,
 		PlanFinalizeDialogModule,
-        PlanAuthorsComponent
+        PlanAuthorsComponent,
+        PlanEvaluationHistoryComponent
 	],
 	declarations: [
 		PlanOverviewComponent,

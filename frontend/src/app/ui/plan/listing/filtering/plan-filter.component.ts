@@ -1,5 +1,5 @@
-import { Component, Input, OnInit, Output, EventEmitter, OnChanges, SimpleChanges } from '@angular/core';
-import { AbstractControl, FormArray, FormControl, FormGroup, UntypedFormArray, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
+import { Component, Input, OnInit, Output, EventEmitter } from '@angular/core';
+import { FormArray, FormControl, FormGroup, UntypedFormBuilder } from '@angular/forms';
 import { BaseCriteriaComponent } from '@app/ui/misc/criteria/base-criteria.component';
 import { ValidationErrorModel } from '@common/forms/validation/error-model/validation-error-model';
 import { TranslateService } from '@ngx-translate/core';
@@ -12,20 +12,21 @@ import { PlanUserRole } from '@app/core/common/enum/plan-user-role';
 import { SingleAutoCompleteConfiguration } from '@app/library/auto-complete/single/single-auto-complete-configuration';
 import { Guid } from '@common/types/guid';
 import { ReferenceTypeService } from '@app/core/services/reference-type/reference-type.service';
-import { filter, map, Observable, takeUntil } from 'rxjs';
+import { map, takeUntil } from 'rxjs';
 import { ReferenceService } from '@app/core/services/reference/reference.service';
 import { ReferenceLookup } from '@app/core/query/reference.lookup';
 import { IsActive } from '@notification-service/core/enum/is-active.enum';
 import { nameof } from 'ts-simple-nameof';
 import { Reference } from '@app/core/model/reference/reference';
 import { ReferenceType } from '@app/core/model/reference-type/reference-type';
-import { QueryResult } from '@common/model/query-result';
 import { ReferencesWithType } from '@app/core/query/description.lookup';
+import { PlanStatusService } from '@app/core/services/plan/plan-status.service';
 
 @Component({
-	selector: 'app-plan-filter-component',
-	templateUrl: './plan-filter.component.html',
-	styleUrls: ['./plan-filter.component.scss'],
+    selector: 'app-plan-filter-component',
+    templateUrl: './plan-filter.component.html',
+    styleUrls: ['./plan-filter.component.scss'],
+    standalone: false
 })
 export class PlanFilterComponent extends BaseCriteriaComponent<PlanListingFilterForm> implements OnInit {
 
@@ -56,6 +57,7 @@ export class PlanFilterComponent extends BaseCriteriaComponent<PlanListingFilter
 	planBlueprintAutoCompleteConfiguration: MultipleAutoCompleteConfiguration = this.planBlueprintService.multipleAutocompleteConfiguration;
 	referenceTypeAutocompleteConfiguration: SingleAutoCompleteConfiguration = this.getReferenceTypeAutocompleteConfiguration();
 	referenceAutocompleteConfiguration: Map<Guid, MultipleAutoCompleteConfiguration>;
+	planStatusAutoCompleteConfiguration: SingleAutoCompleteConfiguration = this.planStatusService.singleAutocompleteConfiguration;
 
 	constructor(
 		public language: TranslateService,
@@ -65,6 +67,7 @@ export class PlanFilterComponent extends BaseCriteriaComponent<PlanListingFilter
 		private planBlueprintService: PlanBlueprintService,
 		private referenceTypeService: ReferenceTypeService,
 		private referenceService: ReferenceService,
+		private planStatusService: PlanStatusService
 	) {
 		super(new ValidationErrorModel());
 	}
@@ -75,7 +78,8 @@ export class PlanFilterComponent extends BaseCriteriaComponent<PlanListingFilter
 
     buildForm(filters: PlanListingFilters){
         this.formGroup = new FormGroup<PlanListingFilterForm>({
-            status: new FormControl(filters?.status),
+            statusId: new FormControl(filters?.statusId),
+			isActive: new FormControl(filters?.isActive),
             descriptionTemplates: new FormControl(filters?.descriptionTemplates),
             planBlueprints: new FormControl(filters?.planBlueprints),
             role: new FormControl(filters?.role),
@@ -107,10 +111,11 @@ export class PlanFilterComponent extends BaseCriteriaComponent<PlanListingFilter
         this.formGroup.reset();
         this.formGroup.patchValue({
             descriptionTemplates: null,
+			isActive: true,
             planBlueprints: null,
             references: null,
             role: null,
-            status: null,
+            statusId: null,
             viewOnlyTenant: null
         });
         this.referenceAutocompleteConfiguration.clear();
@@ -208,7 +213,8 @@ export class PlanFilterComponent extends BaseCriteriaComponent<PlanListingFilter
 }
 
 export interface PlanListingFilters {
-    status: PlanStatusEnum,
+    statusId: Guid,
+	isActive: boolean,
     viewOnlyTenant: boolean,
     descriptionTemplates: Guid[],
     planBlueprints: Guid[],
@@ -217,7 +223,8 @@ export interface PlanListingFilters {
 }
 
 interface PlanListingFilterForm {
-    status: FormControl<PlanStatusEnum>,
+    statusId: FormControl<Guid>,
+	isActive: FormControl<boolean>,
     viewOnlyTenant: FormControl<boolean>,
     descriptionTemplates: FormControl<Guid[]>,
     planBlueprints: FormControl<Guid[]>,

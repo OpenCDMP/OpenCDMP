@@ -1,19 +1,21 @@
 ﻿<div [formGroup]="form" class="row description-template-editor">
 	
-	<div class="heading col-12">{{'DESCRIPTION-TEMPLATE-EDITOR.STEPS.SECTION-INFO.SECTION-NAME' | translate}} *</div>
+	<label class="heading col-12" for="sectionName">{{'DESCRIPTION-TEMPLATE-EDITOR.STEPS.SECTION-INFO.SECTION-NAME' | translate}} *
+    </label>
 	<div class="hint col-12">{{'DESCRIPTION-TEMPLATE-EDITOR.STEPS.SECTION-INFO.SECTION-NAME-HINT' | translate}}</div>
 	<mat-form-field class="col-12">
-		<input matInput type="text" [placeholder]="('DESCRIPTION-TEMPLATE-EDITOR.STEPS.GENERAL-INFO.UNTITLED' | translate)+ ' '+ ('DESCRIPTION-TEMPLATE-EDITOR.STEPS.SECTION-INFO.SECTION' | translate)"formControlName="title">
+		<input id="sectionName" matInput type="text" [placeholder]="('DESCRIPTION-TEMPLATE-EDITOR.STEPS.GENERAL-INFO.UNTITLED' | translate)+ ' '+ ('DESCRIPTION-TEMPLATE-EDITOR.STEPS.SECTION-INFO.SECTION' | translate)"formControlName="title" required>
 		<mat-error *ngIf="form.get('title').hasError('backendError')">{{form.get('title').getError('backendError').message}}</mat-error> 
 		<mat-error *ngIf="form.get('title').hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
 	</mat-form-field>
-	<div class="heading col-12">{{'DESCRIPTION-TEMPLATE-EDITOR.STEPS.SECTION-INFO.SECTION-DESCRIPTION' | translate}} </div>
+	<label class="heading col-12" [appFor]="'sectionDescription'">{{'DESCRIPTION-TEMPLATE-EDITOR.STEPS.SECTION-INFO.SECTION-DESCRIPTION' | translate}} </label>
 	<div class="hint col-12">{{'DESCRIPTION-TEMPLATE-EDITOR.STEPS.SECTION-INFO.SECTION-DESCRIPTION-HINT' | translate}}</div>
 	<div class="col-12">
-		<rich-text-editor-component [form]="form.get('description')"
-									[placeholder]="'DESCRIPTION-TEMPLATE-EDITOR.STEPS.FORM.SECTION.FIELDS.DESCRIPTION'"
-									[editable]="!form.disabled">
-		</rich-text-editor-component>
+		<rich-text-editor-component 
+            [form]="form.get('description')"
+            [id]="'sectionDescription'"
+            [placeholder]="'DESCRIPTION-TEMPLATE-EDITOR.STEPS.FORM.SECTION.FIELDS.DESCRIPTION'"
+        ></rich-text-editor-component>
 		<mat-error *ngIf="form.get('description').hasError('backendError')">{{form.get('description').getError('backendError').message}}</mat-error> 
 	</div>
 </div>

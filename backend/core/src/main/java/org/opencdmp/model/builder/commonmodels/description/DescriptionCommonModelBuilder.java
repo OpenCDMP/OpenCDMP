@@ -8,6 +8,7 @@ import gr.cite.tools.logging.LoggerService;
 import org.opencdmp.authorization.AuthorizationFlags;
 import org.opencdmp.commonmodels.enums.DescriptionStatus;
 import org.opencdmp.commonmodels.models.description.DescriptionModel;
+import org.opencdmp.commonmodels.models.description.DescriptionStatusModel;
 import org.opencdmp.commonmodels.models.descriptiotemplate.DescriptionTemplateModel;
 import org.opencdmp.commonmodels.models.plan.PlanModel;
 import org.opencdmp.commons.JsonHandlingService;
@@ -25,9 +26,7 @@ import org.opencdmp.model.builder.commonmodels.CommonModelBuilderItemResponse;
 import org.opencdmp.model.builder.commonmodels.descriptiontemplate.DescriptionTemplateCommonModelBuilder;
 import org.opencdmp.model.builder.commonmodels.plan.PlanCommonModelBuilder;
 import org.opencdmp.model.descriptiontemplate.DescriptionTemplate;
-import org.opencdmp.query.DescriptionTemplateQuery;
-import org.opencdmp.query.PlanDescriptionTemplateQuery;
-import org.opencdmp.query.PlanQuery;
+import org.opencdmp.query.*;
 import org.opencdmp.service.visibility.VisibilityService;
 import org.opencdmp.service.visibility.VisibilityServiceImpl;
 import org.slf4j.LoggerFactory;
@@ -103,18 +102,15 @@ public class DescriptionCommonModelBuilder extends BaseCommonModelBuilder<Descri
         Map<UUID, DefinitionEntity> definitionEntityMap =  this.collectDescriptionTemplateDefinitions(data);
         Map<UUID, UUID> planDescriptionTemplateSections =  this.collectPlanDescriptionTemplateSections(data);
 
+        Map<UUID, DescriptionStatusModel> descriptionStatuses =  this.collectDescriptionStatuses(data);
+
         List<CommonModelBuilderItemResponse<DescriptionModel, DescriptionEntity>> models = new ArrayList<>();
         for (DescriptionEntity d : data) {
             DescriptionModel m = new DescriptionModel();
             m.setId(d.getId());
             m.setLabel(d.getLabel());
             m.setDescription(d.getDescription());
-            switch (d.getStatus()){
-                case Finalized -> m.setStatus(DescriptionStatus.Finalized);
-                case Draft -> m.setStatus(DescriptionStatus.Draft);
-                case Canceled -> m.setStatus(DescriptionStatus.Canceled);
-                default -> throw new MyApplicationException("unrecognized type " + d.getStatus());
-            }
+            if (descriptionStatuses != null && d.getStatusId() != null && descriptionStatuses.containsKey(d.getStatusId())) m.setStatus(descriptionStatuses.get(d.getStatusId()));
             m.setCreatedAt(d.getCreatedAt());
             m.setDescription(d.getDescription());
             if (plans != null && d.getPlanId() != null && plans.containsKey(d.getPlanId())) m.setPlan(plans.get(d.getPlanId()));
@@ -197,7 +193,8 @@ public class DescriptionCommonModelBuilder extends BaseCommonModelBuilder<Descri
         if (this.isPublic) {
             try {
                 this.entityManager.disableTenantFilters();
-                q = this.queryFactory.query(PlanQuery.class).disableTracking().authorize(EnumSet.of(Public)).ids(data.stream().map(DescriptionEntity::getPlanId).distinct().collect(Collectors.toList())).isActive(IsActive.Active).statuses(PlanStatus.Finalized).accessTypes(PlanAccessType.Public);
+                PlanStatusQuery statusQuery = this.queryFactory.query(PlanStatusQuery.class).disableTracking().internalStatuses(PlanStatus.Finalized).isActives(IsActive.Active);
+                q = this.queryFactory.query(PlanQuery.class).disableTracking().authorize(EnumSet.of(Public)).ids(data.stream().map(DescriptionEntity::getPlanId).distinct().collect(Collectors.toList())).isActive(IsActive.Active).planStatusSubQuery(statusQuery).accessTypes(PlanAccessType.Public);
                 itemMap = this.builderFactory.builder(PlanCommonModelBuilder.class).setRepositoryId(this.repositoryId).useSharedStorage(this.useSharedStorage).setDisableDescriptions(true).authorize(this.authorize).asForeignKey(q, PlanEntity::getId);
                 try {
                     this.entityManager.reloadTenantFilters();
@@ -227,6 +224,18 @@ public class DescriptionCommonModelBuilder extends BaseCommonModelBuilder<Descri
         Map<UUID, DescriptionTemplateModel> itemMap;
         DescriptionTemplateQuery q = this.queryFactory.query(DescriptionTemplateQuery.class).disableTracking().authorize(this.authorize).ids(data.stream().map(DescriptionEntity::getDescriptionTemplateId).distinct().collect(Collectors.toList()));
         itemMap = this.builderFactory.builder(DescriptionTemplateCommonModelBuilder.class).authorize(this.authorize).asForeignKey(q, DescriptionTemplateEntity::getId);
+
+        return itemMap;
+    }
+
+    private Map<UUID, DescriptionStatusModel> collectDescriptionStatuses(List<DescriptionEntity> data) throws MyApplicationException {
+        if (data.isEmpty())
+            return null;
+        this.logger.debug("checking related - {}", DescriptionStatusModel.class.getSimpleName());
+
+        Map<UUID, DescriptionStatusModel> itemMap;
+        DescriptionStatusQuery q = this.queryFactory.query(DescriptionStatusQuery.class).disableTracking().authorize(this.authorize).ids(data.stream().map(DescriptionEntity::getStatusId).distinct().collect(Collectors.toList()));
+        itemMap = this.builderFactory.builder(DescriptionStatusCommonModelBuilder.class).authorize(this.authorize).asForeignKey(q, DescriptionStatusEntity::getId);
 
         return itemMap;
     }

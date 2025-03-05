@@ -1,25 +1,18 @@
-@media (max-width: 768px) {
-	.dynamic-form-editor {
-		.form-container {
-			padding: 0px;
-		}
-	}
+.dynamic-form-editor {
+    background-color: var(--sys-surface);
+    color: var(--sys-on-surface);
 }
 
-.form-container {
+.panel-title {
+    font-size: var(--sys-headline-large-size);
+    font-weight: 700;
+    padding: 1rem;
 }
-
 .intro {
 	text-align: left;
 	font-weight: 400;
 	letter-spacing: 0px;
-	color: #212121;
+	color: var(--dark-text);
 	opacity: 1;
-	margin: 3rem 0rem 3rem 0rem;
-}
-
-.dynamic-form-editor {
-	mat-vertical-stepper {
-		background-color: #ffffff;
-	}
+	margin: 2rem 0rem 2rem 0rem;
 }

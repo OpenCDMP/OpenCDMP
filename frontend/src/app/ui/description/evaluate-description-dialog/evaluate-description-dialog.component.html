@@ -1,0 +1,35 @@
+<h1 mat-dialog-title>{{ 'DESCRIPTION-EVALUATE-DIALOG.HEADER' | translate }}</h1>
+<div mat-dialog-content>
+  <mat-card>
+    <mat-card-header>
+      <mat-card-title>{{'DESCRIPTION-EVALUATE-DIALOG.DETAILS-SUB-HEADER' | translate}}</mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      <div *ngIf="data.rankData" class="dialog-content">
+        <mat-form-field appearance="fill">
+          <mat-label>{{'DESCRIPTION-EVALUATE-DIALOG.RANK-BODY' | translate}}</mat-label>
+          <input matInput [value]="data.rankData.body.rank" disabled>
+        </mat-form-field>
+        <mat-form-field appearance="fill">
+          <mat-label>{{'DESCRIPTION-EVALUATE-DIALOG.DETAILS-BODY' | translate}}</mat-label>
+          <textarea matInput [value]="data.rankData.body.details" rows="4" disabled></textarea>
+        </mat-form-field>
+
+        <div *ngIf="data.rankData.body.messages">
+          <mat-card-header>
+            <mat-card-title>{{'DESCRIPTION-EVALUATE-DIALOG.MESSAGES-BODY' | translate}}</mat-card-title>
+          </mat-card-header>
+          <mat-card>
+            <mat-card-content>
+              <ul>
+                <li *ngFor="let entry of data.rankData.body.messages | keyvalue">
+                  <strong>{{ entry.key }}:</strong> {{ entry.value }}
+                </li>
+              </ul>
+            </mat-card-content>
+          </mat-card>
+        </div>
+      </div>
+    </mat-card-content>
+  </mat-card>
+</div>

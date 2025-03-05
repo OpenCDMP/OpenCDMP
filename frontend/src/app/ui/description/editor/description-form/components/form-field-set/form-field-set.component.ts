@@ -23,18 +23,20 @@ import { TranslateService } from '@ngx-translate/core';
 import { PlanUser } from '@app/core/model/plan/plan';
 
 @Component({
-	selector: 'app-description-form-field-set',
-	templateUrl: './form-field-set.component.html',
-	styleUrls: ['./form-field-set.component.scss'],
+    selector: 'app-description-form-field-set',
+    templateUrl: './form-field-set.component.html',
+    styleUrls: ['./form-field-set.component.scss'],
+    standalone: false
 })
 export class DescriptionFormFieldSetComponent extends BaseComponent {
 
 	@Input() fieldSet: DescriptionTemplateFieldSet;
 	@Input() propertiesFormGroup: UntypedFormGroup;
 	@Input() descriptionId: Guid;
+    @Input() planId: Guid;
 	@Input() hideAnnotations: boolean = false;
 	@Input() canAnnotate: boolean = false;
-	@Input() numbering: string;
+	@Input() isNew: boolean = false;
 	@Input() planUsers: PlanUser[] = [];
 
 	get isMultiplicityEnabled() {
@@ -51,7 +53,7 @@ export class DescriptionFormFieldSetComponent extends BaseComponent {
 	@Input() tableRow: boolean = false;
 	@Input() showTitle: boolean = true;
 	@Input() placeholderTitle: boolean = false;
-	@Input() validationErrorModel: ValidationErrorModel;
+	@Input() validationErrorModel: ValidationErrorModel = new ValidationErrorModel();
 
 	annotationsCount: number = 0;
 	descriptionTemplateFieldType = DescriptionTemplateFieldType;
@@ -80,16 +82,16 @@ export class DescriptionFormFieldSetComponent extends BaseComponent {
 			}
 		});
 
-		this.formAnnotationService.getOpenAnnotationSubjectObservable().pipe(takeUntil(this._destroyed)).subscribe((anchorFieldsetId: string) => {
-			if (anchorFieldsetId && anchorFieldsetId == this.fieldSet.id) this.showAnnotations(anchorFieldsetId);
-		});
-
 		this.descriptionFormService.getScrollingToAnchorObservable().pipe(takeUntil(this._destroyed)).subscribe((anchorFieldsetId: string) => {
 			if (anchorFieldsetId && anchorFieldsetId == this.fieldSet.id) {
 				this.isAnchor = true;
 			}
 		});
 	}
+
+    showAnnotations(fieldSetId: string){
+        this.formAnnotationService.οpenAnnotationDialog(fieldSetId);
+    }
 
 	canAddMultiplicityField(): boolean{
 		if (!this.fieldSet.hasMultiplicity) return false;
@@ -137,11 +139,11 @@ export class DescriptionFormFieldSetComponent extends BaseComponent {
 	editTableMultiplicityFieldInDialog(fieldSetIndex: number) {
 		const dialogRef = this.dialog.open(FormFieldSetEditorDialogComponent, {
 			disableClose: true,
-			minWidth: '49%',
+            minWidth: 'min(90vw, 750px)',
 			data: {
 				fieldSet: this.fieldSet,
 				propertiesFormGroup: cloneAbstractControl((this.propertiesFormGroup?.get('items') as UntypedFormArray).at(fieldSetIndex)),
-				numberingText: this.numbering,
+				numberingText: this.path,
 				visibilityRulesService: this.visibilityRulesService
 			}
 		});
@@ -157,7 +159,7 @@ export class DescriptionFormFieldSetComponent extends BaseComponent {
 		const el = document.createElement('textarea');
 		let domain = `${window.location.protocol}//${window.location.hostname}`;
 		if (window.location.port && window.location.port != '') domain += `:${window.location.port}`
-		const descriptionSectionPath = this.routerUtils.generateUrl(['descriptions/edit', this.descriptionId.toString(), 'f', fieldsetId].join('/'));
+		const descriptionSectionPath = this.routerUtils.generateUrl(['plans/edit', this.planId.toString(), 'd', this.descriptionId.toString(), 'f', fieldsetId].join('/'));
 		el.value = domain + descriptionSectionPath;
 		el.setAttribute('readonly', '');
 		el.style.position = 'absolute';
@@ -170,31 +172,5 @@ export class DescriptionFormFieldSetComponent extends BaseComponent {
 			this.language.instant('DESCRIPTION-EDITOR.QUESTION.EXTENDED-DESCRIPTION.COPY-LINK-SUCCESSFUL'), 
 			SnackBarNotificationLevel.Success
 		);
-	}
-
-	//
-	//
-	// Annotations
-	//
-	//
-	showAnnotations(fieldSetId: string) {
-		const dialogRef = this.dialog.open(AnnotationDialogComponent, {
-			width: '40rem',
-			maxWidth: '90vw',
-			maxHeight: '90vh',
-			data: {
-				entityId: this.descriptionId,
-				anchor: fieldSetId,
-				entityType: AnnotationEntityType.Description,
-				planUsers: this.planUsers,
-				queryIncludesField: this.descriptionFormService.queryIncludesField,
-				queryIncludesAnnotation: this.descriptionFormService.queryIncludesAnnotation,
-			}
-		});
-		dialogRef.afterClosed().pipe(takeUntil(this._destroyed)).subscribe(changesMade => {
-			if (changesMade) {
-				this.formAnnotationService.refreshAnnotations();
-			}
-		});
 	}
 }

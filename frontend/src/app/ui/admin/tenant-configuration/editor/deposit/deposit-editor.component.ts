@@ -25,10 +25,11 @@ import { AnalyticsService } from '@app/core/services/matomo/analytics-service';
 
 
 @Component({
-	selector: 'app-tenant-configuration-deposit-editor',
-	templateUrl: 'deposit-editor.component.html',
-	styleUrls: ['./deposit-editor.component.scss'],
-	providers: [DepositEditorService]
+    selector: 'app-tenant-configuration-deposit-editor',
+    templateUrl: 'deposit-editor.component.html',
+    styleUrls: ['./deposit-editor.component.scss'],
+    providers: [DepositEditorService],
+    standalone: false
 })
 export class DepositEditorComponent extends BasePendingChangesComponent implements OnInit {
 
@@ -82,7 +83,7 @@ export class DepositEditorComponent extends BasePendingChangesComponent implemen
 	}
 
 	getItem(successFunction: (item: TenantConfiguration) => void) {
-		this.tenantConfigurationService.getCurrentTenantType(TenantConfigurationType.DepositPlugins, DepositEditorResolver.lookupFields())
+		this.tenantConfigurationService.getType(TenantConfigurationType.DepositPlugins, DepositEditorResolver.lookupFields())
 			.pipe(map(data => data as TenantConfiguration), takeUntil(this._destroyed))
 			.subscribe(
 				data => successFunction(data),

@@ -1,13 +1,7 @@
 <form *ngIf="formGroup" [formGroup]="formGroup">
-	<div mat-dialog-title>
-		<div class="row">
-			<div class="col">
-				{{'REFERENCE-FIELD.REFERENCE-DIALOG-EDITOR.TITLE' | translate}} {{label}}
-			</div>
-			<div class="col-auto">
-				<button mat-icon-button tabindex="-1" (click)="close()"><mat-icon>close</mat-icon></button>
-			</div>
-		</div>
+	<div mat-dialog-title class="d-flex align-items-center">
+		{{'REFERENCE-FIELD.REFERENCE-DIALOG-EDITOR.TITLE' | translate}} {{label}}
+		<button class="ml-auto" mat-icon-button (click)="close()" [attr.aria-label]="'ALT-TEXT.CLOSE-DIALOG'  | translate"><mat-icon aria-hidden>close</mat-icon></button>
 	</div>
 	<mat-dialog-content class="pt-4">
 		<div class="row">
@@ -18,9 +12,9 @@
 				<mat-form-field class="w-100 form-input" *ngIf="formGroup.get('reference_id')">
 					<mat-label>{{'REFERENCE-FIELD.REFERENCE-DIALOG-EDITOR.REFERENCE-ID' | translate}}</mat-label>
 					<input matInput type="text" [name]="'reference_id'" [formControl]="formGroup.get('reference_id')">
-					<i matSuffix class="fa fa-spinner fa-spin" *ngIf="'reference_id' == systemFields[0] && formGroup.get('reference_id').pending && !referenceExists"></i>
-					<mat-icon *ngIf="'reference_id' == systemFields[0] && !formGroup.get('reference_id').pending && formGroup.get('reference_id').dirty && formGroup.get('reference_id').valid && !referenceExists" class="text-success" matSuffix>check</mat-icon>
-					<mat-icon *ngIf="'reference_id' == systemFields[0] && !formGroup.get('reference_id').pending && formGroup.get('reference_id').dirty && (formGroup.get('reference_id').invalid || referenceExists)" class="text-danger" matSuffix>clear</mat-icon>
+					<i matSuffix class="fa fa-spinner fa-spin" *ngIf="'reference_id' == systemFields[0] && formGroup.get('reference_id').pending && !referenceExists" aria-hidden></i>
+					<mat-icon *ngIf="'reference_id' == systemFields[0] && !formGroup.get('reference_id').pending && formGroup.get('reference_id').dirty && formGroup.get('reference_id').valid && !referenceExists" class="text-success" matSuffix aria-hidden>check</mat-icon>
+					<mat-icon *ngIf="'reference_id' == systemFields[0] && !formGroup.get('reference_id').pending && formGroup.get('reference_id').dirty && (formGroup.get('reference_id').invalid || referenceExists)" class="text-danger" matSuffix aria-hidden>clear</mat-icon>
 					<small *ngIf="'reference_id' == systemFields[0] && referenceExists" class="text-danger">{{'REFERENCE-FIELD.REFERENCE-DIALOG-EDITOR.IDENTIFIER-EXISTS' | translate}}</small>
 					<mat-error *ngIf="formGroup.get('reference_id').hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
 				</mat-form-field>
@@ -29,9 +23,9 @@
 				<mat-form-field class="w-100 form-input" *ngIf="formGroup.get('label')">
 					<mat-label>{{'REFERENCE-FIELD.REFERENCE-DIALOG-EDITOR.LABEL' | translate}}</mat-label>
 					<input matInput type="text" [name]="'label'" [formControl]="formGroup.get('label')">
-					<i matSuffix class="fa fa-spinner fa-spin" *ngIf="'label' == systemFields[0] && formGroup.get('label').pending && !referenceExists"></i>
-					<mat-icon *ngIf="'label' == systemFields[0] && !formGroup.get('label').pending && formGroup.get('label').dirty && formGroup.get('label').valid && !referenceExists" class="text-success" matSuffix>check</mat-icon>
-					<mat-icon *ngIf="'label' == systemFields[0] && !formGroup.get('label').pending && formGroup.get('label').dirty && (formGroup.get('label').invalid || referenceExists)" class="text-danger" matSuffix>clear</mat-icon>
+					<i matSuffix class="fa fa-spinner fa-spin" *ngIf="'label' == systemFields[0] && formGroup.get('label').pending && !referenceExists" aria-hidden></i>
+					<mat-icon *ngIf="'label' == systemFields[0] && !formGroup.get('label').pending && formGroup.get('label').dirty && formGroup.get('label').valid && !referenceExists" class="text-success" matSuffix aria-hidden>check</mat-icon>
+					<mat-icon *ngIf="'label' == systemFields[0] && !formGroup.get('label').pending && formGroup.get('label').dirty && (formGroup.get('label').invalid || referenceExists)" class="text-danger" matSuffix aria-hidden>clear</mat-icon>
 					<small *ngIf="'label' == systemFields[0] && referenceExists" class="text-danger">{{'REFERENCE-FIELD.REFERENCE-DIALOG-EDITOR.IDENTIFIER-EXISTS' | translate}}</small>
 					<mat-error *ngIf="formGroup.get('label').hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
 				</mat-form-field>
@@ -40,9 +34,9 @@
 				<mat-form-field class="w-100 form-input" *ngIf="formGroup.get('description')">
 					<mat-label>{{'REFERENCE-FIELD.REFERENCE-DIALOG-EDITOR.DESCRIPTION' | translate}}</mat-label>
 					<textarea matInput type="text" [name]="'description'" [formControl]="formGroup.get('description')"></textarea>
-					<i matSuffix class="fa fa-spinner fa-spin" *ngIf="'description' == systemFields[0] && formGroup.get('description').pending && !referenceExists"></i>
-					<mat-icon *ngIf="'description' == systemFields[0] && !formGroup.get('description').pending && formGroup.get('description').dirty && formGroup.get('description').valid && !referenceExists" class="text-success" matSuffix>check</mat-icon>
-					<mat-icon *ngIf="'description' == systemFields[0] && !formGroup.get('description').pending && formGroup.get('description').dirty && (formGroup.get('description').invalid || referenceExists)" class="text-danger" matSuffix>clear</mat-icon>
+					<i matSuffix class="fa fa-spinner fa-spin" *ngIf="'description' == systemFields[0] && formGroup.get('description').pending && !referenceExists" aria-hidden></i>
+					<mat-icon *ngIf="'description' == systemFields[0] && !formGroup.get('description').pending && formGroup.get('description').dirty && formGroup.get('description').valid && !referenceExists" class="text-success" matSuffix aria-hidden>check</mat-icon>
+					<mat-icon *ngIf="'description' == systemFields[0] && !formGroup.get('description').pending && formGroup.get('description').dirty && (formGroup.get('description').invalid || referenceExists)" class="text-danger" matSuffix aria-hidden>clear</mat-icon>
 					<small *ngIf="'description' == systemFields[0] && referenceExists" class="text-danger">{{'REFERENCE-FIELD.REFERENCE-DIALOG-EDITOR.IDENTIFIER-EXISTS' | translate}}</small>
 					<mat-error *ngIf="formGroup.get('description').hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
 				</mat-form-field>
@@ -64,7 +58,7 @@
 		</ng-container>
 	</mat-dialog-content>
 	<mat-dialog-actions>
-		<div class="ml-auto col-auto"><button mat-button class="rounded-btn primary-inverted" mat-dialog-close>{{'COMMONS.ACTIONS.CANCEL' | translate}}</button></div>
-		<div class="col-auto"><button [disabled]="!isFormValid()" (click)="send()" mat-button class="rounded-btn primary">{{'COMMONS.ACTIONS.SAVE' | translate}}</button></div>
+		<div class="ml-auto col-auto"><button mat-stroked-button class="padded-shadow-btn" mat-dialog-close>{{'COMMONS.ACTIONS.CANCEL' | translate}}</button></div>
+		<div class="col-auto"><button [disabled]="!isFormValid()" (click)="send()" mat-flat-button color="primary" class="padded-shadow-btn">{{'COMMONS.ACTIONS.SAVE' | translate}}</button></div>
 	</mat-dialog-actions>
 </form>

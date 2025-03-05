@@ -14,8 +14,9 @@ import { BehaviorSubject, Observable, Subject } from 'rxjs';
 import { switchMap, takeUntil, tap } from 'rxjs/operators';
 
 @Component({
-	selector: 'app-base-listing-component',
-	template: ''
+    selector: 'app-base-listing-component',
+    template: '',
+    standalone: false
 })
 export abstract class BaseListingComponent<ItemModel, LookupModel extends Lookup> extends BaseComponent implements OnInit {
 

@@ -9,6 +9,7 @@ import gr.cite.tools.exception.MyForbiddenException;
 import gr.cite.tools.exception.MyNotFoundException;
 import gr.cite.tools.exception.MyValidationException;
 import gr.cite.tools.fieldset.FieldSet;
+import org.opencdmp.model.persist.UnlockMultipleTargetsPersist;
 
 import javax.management.InvalidApplicationException;
 import java.util.UUID;
@@ -21,9 +22,13 @@ public interface LockService {
 
     void lock(UUID target, LockTargetType targetType) throws InvalidApplicationException;
 
+    boolean checkLock(UUID target, LockTargetType targetType) throws InvalidApplicationException;
+
     void touch(UUID target) throws InvalidApplicationException;
 
     void unlock(UUID target) throws InvalidApplicationException;
+
+    void unlockMultipleTargets(UnlockMultipleTargetsPersist model) throws InvalidApplicationException;
 
     void deleteAndSave(UUID id, UUID target) throws MyForbiddenException, InvalidApplicationException;
 }

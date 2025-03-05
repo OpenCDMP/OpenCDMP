@@ -1,15 +1,17 @@
-import { Component, EventEmitter, Input, OnDestroy, OnInit, Output, SimpleChanges } from '@angular/core';
+import { booleanAttribute, Component, EventEmitter, input, Input, OnDestroy, OnInit, Output, SimpleChanges } from '@angular/core';
 import { UntypedFormGroup } from '@angular/forms';
 import { VisibilityRulesService } from '@app/ui/description/editor/description-form/visibility-rules/visibility-rules.service';
 import { BaseComponent } from '@common/base/base.component';
 import { ToCEntry } from '../models/toc-entry';
 import { ToCEntryType } from '../models/toc-entry-type.enum';
 import { TableOfContentsComponent } from '../table-of-contents.component';
+import { Guid } from '@common/types/guid';
 
 @Component({
-	selector: 'table-of-contents-internal',
-	styleUrls: ['./table-of-contents-internal.scss'],
-	templateUrl: './table-of-contents-internal.html'
+    selector: 'table-of-contents-internal',
+    styleUrls: ['./table-of-contents-internal.scss'],
+    templateUrl: './table-of-contents-internal.html',
+    standalone: false
 })
 export class TableOfContentsInternal extends BaseComponent implements OnInit, OnDestroy {
 
@@ -21,6 +23,9 @@ export class TableOfContentsInternal extends BaseComponent implements OnInit, On
 	expandChildren: boolean[];
 	@Input() showErrors: boolean = false;
 	@Input() visibilityRulesService: VisibilityRulesService;
+    @Input({transform: booleanAttribute}) isTopLevel: boolean = false;
+
+    ordinal = input<string>();
 
 	constructor() { super(); }
 
@@ -57,8 +62,11 @@ export class TableOfContentsInternal extends BaseComponent implements OnInit, On
 		super.ngOnDestroy();
 	}
 
-	toggleExpand(index) {
+	toggleExpand(index, entry: ToCEntry) {
 		this.expandChildren[index] = !this.expandChildren[index];
+        if(this.expandChildren[index]) {
+            this.onEntrySelected(entry);
+        }
 	}
 
 	onEntrySelected(entry: ToCEntry) {
@@ -73,16 +81,11 @@ export class TableOfContentsInternal extends BaseComponent implements OnInit, On
 	}
 
 	calculateClass(entry: ToCEntry) {
-		const myClass = {};
-
-		if (this.selected && entry.id === this.selected.id) {
-			myClass['selected'] = true;
-		}
-
-		if (entry.type != ToCEntryType.FieldSet) {
-			myClass['section'] = true;
-		}
-		return myClass;
+		return {
+            'selected': this.selected && (entry.id === this.selected.id || this.selected.pathToEntry?.[0] === entry.id),
+            'section': entry.type != ToCEntryType.FieldSet,
+            'field-set': entry.type === ToCEntryType.FieldSet
+        };
 	}
 
 	isTocEntryValid(entry: ToCEntry): boolean {

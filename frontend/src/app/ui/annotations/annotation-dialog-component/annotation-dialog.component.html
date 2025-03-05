@@ -1,184 +1,191 @@
 <div class="dialog-container">
-	<div class="row mt-2 justify-content-between align-items-center">
-		<div class="col-auto">
-      <h3 class="title">{{'ANNOTATION-DIALOG.TITLE' | translate}}</h3>
-    </div>
-		<div *ngIf="threads?.size > 0" class="col-auto mt-1 pl-0">
-			<button class="comments-count" mat-min-fab extended disabled>
-				<span>{{ annotationsCount }}</span>
-      </button>
-		</div>
-		<div class="col-auto pr-0 ml-auto dense-4">
-			<button mat-icon-button matTooltip="{{ 'DESCRIPTION-EDITOR.QUESTION.EXTENDED-DESCRIPTION.COPY-LINK' | translate }}" (click)="copyLink()">
-				<mat-icon>link</mat-icon>
-			</button>
-		</div>
-		<div class="col-auto pl-0 dense-4" >	
-			<button mat-icon-button tabindex="-1" (click)="close()">
-				<mat-icon>close</mat-icon>
+    <div mat-dialog-title  class="d-flex align-items-center">
+        <div class="d-flex gap-half-rem align-items-center">
+          <span class="title">{{'ANNOTATION-DIALOG.TITLE' | translate}}</span>
+          @if(threads?.size > 0){
+              <div class="comments-count">
+                  {{ annotationsCount }}
+              </div>
+          }
+        </div>
+        <div class="ml-auto d-flex justify-content-end gap-quarter-rem align-items-center">
+            <button mat-icon-button matTooltip="{{ 'DESCRIPTION-EDITOR.QUESTION.EXTENDED-DESCRIPTION.COPY-LINK' | translate }}" (click)="copyLink()" [attr.aria-label]="'DESCRIPTION-EDITOR.QUESTION.EXTENDED-DESCRIPTION.COPY-LINK' | translate">
+                <mat-icon aria-hidden>link</mat-icon>
             </button>
-		</div>
-	</div>
+            <button mat-icon-button (click)="close()" [attr.aria-label]="'ALT-TEXT.CLOSE-DIALOG'  | translate">
+                <mat-icon aria-hidden>close</mat-icon>
+            </button>
+        </div>
+    </div>
+    <mat-dialog-content>
+        <div class="row">
+            <!-- Create New Thread -->
+            <div class="col-12" *ngIf="canAnnotate">
+                <form [formGroup]="threadFormGroup">
+                    <div class="row mt-2 mb-3">
+                        <div class="col-12 pb-1">
+                            <text-area-with-mentions 
+                                [form]="threadFormGroup.get('text')" 
+                                [planUsers]="planUsers"
+                                [clearCommentObservable]="clearCommentSubject.asObservable()"
+                                [threadId]="ROOT_COMMENT"
+                            ></text-area-with-mentions>
+                        </div>
+                        <div class="col-6">
+                            <mat-button-toggle-group appearance="standard" name="fontStyle" hideSingleSelectionIndicator="true" [formControl]="threadFormGroup.get('protectionType')" aria-label="Font Style" required>
+                                <mat-button-toggle [value]="annotationProtectionTypeEnum.Private" [matTooltip]="enumUtils.toAnnotationProtectionTypeString(annotationProtectionTypeEnum.Private)" [attr.aria-label]="enumUtils.toAnnotationProtectionTypeString(annotationProtectionTypeEnum.Private)"><mat-icon aria-hidden>visibility_off</mat-icon></mat-button-toggle>
+                                <mat-button-toggle [value]="annotationProtectionTypeEnum.EntityAccessors" [matTooltip]="enumUtils.toAnnotationProtectionTypeString(annotationProtectionTypeEnum.EntityAccessors)" [attr.aria-label]="enumUtils.toAnnotationProtectionTypeString(annotationProtectionTypeEnum.EntityAccessors)"><mat-icon aria-hidden>public</mat-icon></mat-button-toggle>
+                            </mat-button-toggle-group>
+                        </div>
+                        <div class="col-auto  ml-auto pr-1">
+                            <button type="button" mat-stroked-button color="primary" class="padded-shadow-btn mt-2" (click)="close()">{{ 'ANNOTATION-DIALOG.THREADS.CANCEL' | translate }}</button>
+                        </div>
+                        <div class="col-auto">
+                            <button type="button" mat-flat-button color="primary" class="padded-shadow-btn mt-2" (click)="createThread()" [disabled]="!canAnnotate">{{ 'ANNOTATION-DIALOG.THREADS.SEND' | translate }} <i class="fa fa-paper-plane ml-2"></i></button>
+                        </div>
+                    </div>	
+                </form>
+            </div>
+            <div class="col-12">
+                @if(!threads?.size && !loadingResults){
+                    <div class="p-2" style="text-align: center">{{'ANNOTATION-DIALOG.NO-COMMENTS' | translate}}</div>
+                }
+                <ng-container *ngFor="let thread of threads; first as isFirst">
+                    <div class="row" *ngIf="getParentAnnotation(thread).protectionType === annotationProtectionTypeEnum.Private">
+                        <div class="col-auto">
+                            <div class="d-flex align-items-center" matTooltip="{{'ANNOTATION-DIALOG.PROTECTION.PRIVATE' | translate}}">
+                                    <mat-icon class="material-icons-outlined">visibility_off</mat-icon>
+                                    <div class="ml-1 mt-1">
+                                        {{getAnnotationProtectionType(thread)}}
+                                    </div>
+                            </div>
+                        </div>
+                    </div>
+                     <div class="row mt-2 mb-3">
+                        <!-- Parent Thread -->
+                        <div class="col-12">
+                            <div class="container">
+                                <div class="row comment-wrapper pt-2 pb-2 h-100" [ngClass]="{'focus-thread': isFirst && changesMade}">
+                                    <div class="col-12 pt-1">
+                                        <div class="row">
+                                            <div class="col-12">
+                                                <div class="row h-100">
+                                                    <div class="col-12">
+                                                        <div class="row pt-1 pb-2">
+                                                            <div class="col-auto pr-0 account-icon-wrapper"><mat-icon class="account-icon">account_circle</mat-icon></div>
+                                                            <div class="col">
+                                                                <div class="row mt-2 align-items-center">
+                                                                    <span class="col user">{{getParentAnnotation(thread).author.name}}</span>
+                                                                    <div class="col-auto annotation-time">{{getParentAnnotation(thread).timeStamp | dateTimeFormatter: "d MMMM, y 'at' h:mm a"}}</div>
+                                                                    <div *ngIf="listingStatuses?.length" class="col-auto pl-0 dense-10">
+                                                                        <button 
+                                                                            mat-icon-button 
+                                                                            [matMenuTriggerFor]="annotationStatuses" 
+                                                                            matTooltip="{{ 'ANNOTATION-DIALOG.ANNOTATION-STATUS.ACTIONS.EDIT' | translate }}"
+                                                                            [matTooltipDisabled]="!canAnnotate"
+                                                                            [disabled]="!canAnnotate"
+                                                                        >
+                                                                            <mat-icon *ngIf="getSelectedStatusIcon(getParentAnnotation(thread).id); else noStatus">{{getSelectedStatusIcon(getParentAnnotation(thread).id)}}</mat-icon>
+                                                                            <ng-template #noStatus> <mat-icon>edit_note</mat-icon></ng-template>
+                                                                        </button>
+                                                                        <mat-menu class="statuses-menu" #annotationStatuses>
+                                                                            <button *ngFor="let status of listingStatuses" mat-menu-item
+                                                                                class="w-auto"
+                                                                                [matTooltip]="status?.label" matTooltipPosition="left"
+                                                                                (click)="setAnnotationStatus(annotationStatusFormGroup?.get('annotationsStatusArray'), getParentAnnotation(thread).id, status?.id); persistAnnotationStatus(annotationStatusFormGroup.get('annotationsStatusArray'), getParentAnnotation(thread).id)"
+                                                                            >
+                                                                                <span>
+                                                                                    <mat-icon style="margin-left: auto; margin-right: auto;">{{getStatusIcon(status)}}</mat-icon>
+                                                                                </span>
+                                                                            </button>
+                                                                        </mat-menu>
+                                                                    </div>
+                                                                </div>
+                                                                <div class="row mt-3">
+                                                                    <div class="col-12" [innerHTML]="getParentAnnotation(thread).payload"></div>
+                                                                    <div class="col-12 align-self-end" *ngIf="canAnnotate">
+                                                                        <div class="row mt-1">
+                                                                            <button mat-button (click)="enableReply(thread)" class="action-button" [ngClass]="replyEnabledPerThread[thread] ? 'active-action' : ''" [disabled]="replyEnabledPerThread[thread]">{{ 'ANNOTATION-DIALOG.THREADS.REPLY' | translate}}</button>
+                                                                        </div>
+                                                                    </div>
+                                                                    <div class="row">
+                                                                        <ng-container *ngIf="annotationsPerThread[thread].length === 1 && !showRepliesPerThread[thread]">
+                                                                            <button mat-button class="action-button mt-3" (click)="showReplies(thread)">
+                                                                                <img src="/assets/images/annotations/reply.png" alt="{{ ('ANNOTATION-DIALOG.THREADS.REPLY' | translate) ?? 'reply'}}"> <span class="mt-1 reply-btn"> 1 {{ 'ANNOTATION-DIALOG.THREADS.REPLY' | translate}} </span> 
+                                                                            </button>
+                                                                        </ng-container>
+                                                                        <ng-container *ngIf="annotationsPerThread[thread].length > 1 && !showRepliesPerThread[thread]">
+                                                                            <button mat-button class="action-button mt-3" (click)="showReplies(thread)">
+                                                                                <img src="/assets/images/annotations/reply.png" alt="{{ ('ANNOTATION-DIALOG.THREADS.REPLY' | translate) ?? 'reply'}}"> <span class="mt-1 reply-btn"> {{ annotationsPerThread[thread].length }} {{ 'ANNOTATION-DIALOG.THREADS.REPLIES' | translate}} </span> 
+                                                                            </button>
+                                                                        </ng-container>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+    
+                                                        </div>
+                                                        <!-- Previous Replies -->
+                                                        <div *ngIf="showRepliesPerThread[thread]" class="row pt-1 thread-replies">
+                                                            <div *ngFor="let annotation of annotationsPerThread[thread]; let i = index;" class="col-12">
+                                                                <div  class="row m-0 mt-2 h-100">
+                                                                    <div class="col-auto pr-0 pl-0">
+                                                                        <div class="side-color"></div>
+                                                                    </div>
+                                                                    <div class="col pt-1">
+                                                                        <div class="row">
+                                                                            <div class="col-12">
+                                                                                <div class="row h-100">
+                                                                                    <div class="col-auto p-0 account-icon-wrapper">
+                                                                                        <mat-icon class="account-icon">account_circle</mat-icon>
+                                                                                    </div>
+                                                                                    <div class="col">
+                                                                                        <div class="row mt-2">
+                                                                                            <span class="col user">{{annotation.author.name}}</span>
+                                                                                            <div class="col-auto annotation-time">{{annotation.timeStamp |  dateTimeFormatter:"d MMMM, y 'at' h:mm a"}}</div>
+                                                                                        </div>
+    
+                                                                                        <div class="row mt-3 pt-1 pb-1">
+                                                                                            <div class="col-12" [innerHTML]="annotation.payload"></div>
+                                                                                        </div>
+                                                                                    </div>
+                                                                                </div>
+                                                                            </div>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    <!-- Type reply in thread -->
+                                                        <div *ngIf="replyEnabledPerThread[thread] && canAnnotate" class="row">
+                                                            <div class="col-12 mt-2">
+                                                                <div class="row new-reply mr-0">
+                                                                    <div class="col">
+                                                                        <text-area-with-mentions 
+                                                                            [form]="threadReplyTextsFG[thread.toString()].get('replyText')" 
+                                                                            [planUsers]="planUsers"
+                                                                            [clearCommentObservable]="clearCommentSubject.asObservable()"
+                                                                            [threadId]="thread"
+                                                                        ></text-area-with-mentions>
+                                                                    </div>			
+                                                                    <div class="col-auto p-0 send-msg">
+                                                                        <button mat-icon-button (click)="replyThread(thread)" matTooltip="{{'ANNOTATION-DIALOG.THREADS.REPLY' | translate}}">
+                                                                            <mat-icon svgIcon="paperPlane"></mat-icon>
+                                                                        </button>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </ng-container>
+            </div>
+        </div>
+    </mat-dialog-content> 
 </div>
-<mat-dialog-content class="pt-1">
-	<div class="row">
-		<!-- Create New Thread -->
-		<div class="col-12">
-			<form [formGroup]="threadFormGroup">
-				<div class="row mt-2 mb-3">
-					<div class="col-12">
-						<text-area-with-mentions 
-							[form]="threadFormGroup.get('text')" 
-							[planUsers]="planUsers"
-							[clearCommentObservable]="clearCommentSubject.asObservable()"
-							[threadId]="ROOT_COMMENT"
-						></text-area-with-mentions>
-					</div>
-					<div class="col-6">
-						<mat-button-toggle-group appearance="standard" name="fontStyle" hideSingleSelectionIndicator="true" [formControl]="threadFormGroup.get('protectionType')" aria-label="Font Style" required>
-							<mat-button-toggle [value]="annotationProtectionTypeEnum.Private" [matTooltip]="enumUtils.toAnnotationProtectionTypeString(annotationProtectionTypeEnum.Private)"><mat-icon>visibility_off</mat-icon></mat-button-toggle>
-							<mat-button-toggle [value]="annotationProtectionTypeEnum.EntityAccessors" [matTooltip]="enumUtils.toAnnotationProtectionTypeString(annotationProtectionTypeEnum.EntityAccessors)"><mat-icon>public</mat-icon></mat-button-toggle>
-						</mat-button-toggle-group>
-					</div>
-					<div class="col-auto ml-auto pr-1">
-						<button type="button" mat-button class="rounded-btn primary mt-2" (click)="createThread()">{{ 'ANNOTATION-DIALOG.THREADS.SEND' | translate }} <i class="fa fa-paper-plane ml-2"></i></button>
-					</div>
-					<div class="col-auto pl-1">
-						<button type="button" mat-button class="rounded-btn primary-inverted mt-2" (click)="close()">{{ 'ANNOTATION-DIALOG.THREADS.CANCEL' | translate }}</button>
-					</div>
-				</div>	
-			</form>
-		</div>
-		<div class="col-12">
-			<ng-container *ngFor="let thread of threads; first as isFirst">
-				<div class="row" *ngIf="getParentAnnotation(thread).protectionType === annotationProtectionTypeEnum.Private">
-					<div class="col-auto">
-						<div class="d-flex align-items-center" matTooltip="{{'ANNOTATION-DIALOG.PROTECTION.PRIVATE' | translate}}">
-								<mat-icon class="material-icons-outlined">visibility_off</mat-icon>
-								<div class="ml-1 mt-1">
-									{{getAnnotationProtectionType(thread)}}
-								</div>
-						</div>
-					</div>
-				</div>
- 				<div class="row mt-2 mb-3">
-					<!-- Parent Thread -->
-					<div class="col-12">
-						<div class="container">
-							<div class="row comment-wrapper pt-2 pb-2 h-100" [ngClass]="{'focus-thread': isFirst && changesMade}">
-								<div class="col-12 pt-1">
-									<div class="row">
-										<div class="col-12">
-											<div class="row h-100">
-												<div class="col-12">
-													<div class="row pt-1 pb-2">
-														<div class="col-auto pr-0 account-icon-wrapper"><mat-icon class="account-icon">account_circle</mat-icon></div>
-														<div class="col">
-															<div class="row mt-2 align-items-center">
-																<span class="col user">{{getParentAnnotation(thread).author.name}}</span>
-																<div class="col-auto annotation-time">{{getParentAnnotation(thread).timeStamp | dateTimeFormatter: "d MMMM, y 'at' h:mm a"}}</div>
-																<div *ngIf="listingStatuses && listingStatuses?.length > 0" class="col-auto pl-0 dense-10">
-																	<button mat-icon-button [matMenuTriggerFor]="annotationStatuses" matTooltip="{{ 'ANNOTATION-DIALOG.ANNOTATION-STATUS.ACTIONS.EDIT' | translate }}">
-																		<mat-icon *ngIf="getSelectedStatusIcon(getParentAnnotation(thread).id); else noStatus">{{getSelectedStatusIcon(getParentAnnotation(thread).id)}}</mat-icon>
-																		<ng-template #noStatus> <mat-icon>edit_note</mat-icon></ng-template>
-																	</button>
-																	<mat-menu class="statuses-menu" #annotationStatuses>
-																		<button *ngFor="let status of listingStatuses" mat-menu-item
-																			class="w-auto"
-																			[matTooltip]="status?.label" matTooltipPosition="left"
-																			(click)="setAnnotationStatus(annotationStatusFormGroup?.get('annotationsStatusArray'), getParentAnnotation(thread).id, status?.id); persistAnnotationStatus(annotationStatusFormGroup.get('annotationsStatusArray'), getParentAnnotation(thread).id)"
-																		>
-																			<span>
-																				<mat-icon style="margin-left: auto; margin-right: auto;">{{getStatusIcon(status)}}</mat-icon>
-																			</span>
-																		</button>
-																	</mat-menu>
-																</div>
-															</div>
-															<div class="row mt-3">
-																<div class="col-12" [innerHtml]="getParentAnnotation(thread).payload"></div>
-																<div class="col-12 align-self-end">
-																	<div class="row mt-1">
-																		<button mat-button (click)="enableReply(thread)" class="action-button" [ngClass]="this.replyEnabledPerThread[thread] ? 'active-action' : ''" [disabled]="this.replyEnabledPerThread[thread]">{{ 'ANNOTATION-DIALOG.THREADS.REPLY' | translate}}</button>
-																	</div>
-																</div>
-																<div class="row">
-																	<ng-container *ngIf="annotationsPerThread[thread].length === 1 && !this.showRepliesPerThread[thread]">
-																		<button mat-button class="action-button mt-3" (click)="showReplies(thread)">
-																			<img src="/assets/images/annotations/reply.png" alt="reply"> <span class="mt-1 reply-btn"> 1 {{ 'ANNOTATION-DIALOG.THREADS.REPLY' | translate}} </span> 
-																		</button>
-																	</ng-container>
-																	<ng-container *ngIf="annotationsPerThread[thread].length > 1 && !this.showRepliesPerThread[thread]">
-																		<button mat-button class="action-button mt-3" (click)="showReplies(thread)">
-																			<img src="/assets/images/annotations/reply.png" alt="reply"> <span class="mt-1 reply-btn"> {{ annotationsPerThread[thread].length }} {{ 'ANNOTATION-DIALOG.THREADS.REPLIES' | translate}} </span> 
-																		</button>
-																	</ng-container>
-																</div>
-															</div>
-														</div>
-
-													</div>
-													<!-- Previous Replies -->
-													<div *ngIf="this.showRepliesPerThread[thread]" class="row pt-1 thread-replies">
-														<div *ngFor="let annotation of annotationsPerThread[thread]; let i = index;" class="col-12">
-															<div  class="row m-0 mt-2 h-100">
-																<div class="col-auto pr-0 pl-0">
-																	<div class="side-color"></div>
-																</div>
-																<div class="col pt-1">
-																	<div class="row">
-																		<div class="col-12">
-																			<div class="row h-100">
-																				<div class="col-auto p-0 account-icon-wrapper">
-																					<mat-icon class="account-icon">account_circle</mat-icon>
-																				</div>
-																				<div class="col">
-																					<div class="row mt-2">
-																						<span class="col user">{{annotation.author.name}}</span>
-																						<div class="col-auto annotation-time">{{annotation.timeStamp |  dateTimeFormatter:"d MMMM, y 'at' h:mm a"}}</div>
-																					</div>
-
-																					<div class="row mt-3 pt-1 pb-1">
-																						<div class="col-12" [innerHtml]="annotation.payload"></div>
-																					</div>
-																				</div>
-																			</div>
-																		</div>
-																	</div>
-																</div>
-															</div>
-														</div>
-													</div>
-												<!-- Type reply in thread -->
-													<div *ngIf="this.replyEnabledPerThread[thread]" class="row">
-														<div class="col-12 mt-2">
-															<div class="row new-reply mr-0">
-																<div class="col">
-																	<text-area-with-mentions 
-																		[form]="this.threadReplyTextsFG[thread.toString()].get('replyText')" 
-																		[planUsers]="planUsers"
-																		[clearCommentObservable]="clearCommentSubject.asObservable()"
-																		[threadId]="thread"
-																	></text-area-with-mentions>
-																</div>			
-																<div class="col-auto p-0 send-msg">
-																	<button mat-icon-button (click)="replyThread(thread)" matTooltip="{{'ANNOTATION-DIALOG.THREADS.REPLY' | translate}}">
-																		<mat-icon svgIcon="paperPlane"></mat-icon>
-																	</button>
-																</div>
-															</div>
-														</div>
-													</div>
-												</div>
-											</div>
-										</div>
-									</div>
-								</div>
-							</div>
-						</div>
-					</div>
-				</div>
-			</ng-container>
-		</div>
-	</div>
-</mat-dialog-content> 

@@ -1,0 +1,38 @@
+<div id="stepper-navigation">
+    <div class="col-lg-7 col-12 bg-white" style="overflow: hidden; padding: 0px" id="progress-container">
+        <div id="progress" [ngStyle]="progressStyle" aria-hidden></div>
+        <ul class="horizontal-list h-100 progress-min-height">
+            <li class="col text-center align-self-center" *ngFor="let step of steps(); index as idx" >
+                <button role="button" tabindex="0" (click)="changeStep(idx)" class="stepper-title-label" [disabled]="!isStepUnlocked(idx)"
+                    [ngClass]="{
+                        'stepper-title-label-locked': !isStepUnlocked(idx),
+                        'stepper-title-label-completed':idx < stepper()?.selectedIndex,
+                        'stepper-title-label-current': idx === stepper()?.selectedIndex
+                    }"
+                >
+                    <ng-container *ngIf="(step.completed &&(idx!=steps().length-1))">
+                        <mat-icon style="font-size: 0.7em; height: 0px;">done</mat-icon>
+                    </ng-container>
+                    {{step.label}}
+                </button>
+            </li>
+        </ul>
+    </div>
+</div>
+<ng-content select="[stepper-content]"></ng-content>
+<ng-container *ngIf="stepper()">
+    <ul class=" horizontal-list floating-btn">
+        <li>
+            <button role="button" *ngIf="stepper()?.selectedIndex > 0" [@previous_btn] mat-stroked-button color="accent" class="padded-shadow-btn accent" (click)="stepper()?.previous()">
+                <mat-icon class="back-icon pointer">chevron_left</mat-icon>
+                {{'DESCRIPTION-TEMPLATE-EDITOR.ACTIONS.PREVIOUS' | translate}}
+            </button>
+        </li>
+        <li>
+            <button role="button" *ngIf="stepper()?.selectedIndex < (steps()?.length-1)" mat-flat-button color="accent" class="padded-shadow-btn ml-3" [@next_btn] (click)="stepper()?.next();" [disabled]="!isStepCompleted(stepper()?.selectedIndex)">
+                <span>{{'DESCRIPTION-TEMPLATE-EDITOR.ACTIONS.NEXT' | translate}}</span>
+                <mat-icon class="back-icon pointer" iconPositionEnd>chevron_right</mat-icon>
+            </button>
+        </li>
+    </ul>
+</ng-container>

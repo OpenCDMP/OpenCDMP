@@ -17,14 +17,14 @@
 			[parentRootId]="ROOT_ID"
 			style="padding-right: 1em;"
 			[colorizeInvalid]="colorizeInvalid"
-			>
+		>
 		</app-description-template-table-of-contents-internal-section>
-		<div class="top-scroller table-scroller" [hidden]="!isDragging">
+		<div class="top-scroller table-scroller" [hidden]="!isDragging" aria-hidden>
 			<div class="col-auto">
 				<mat-icon>keyboard_arrow_up</mat-icon>
 			</div>
 		</div>
-		<div class="bottom-scroller table-scroller" [hidden]="!isDragging">
+		<div class="bottom-scroller table-scroller" [hidden]="!isDragging" aria-hidden>
 			<div class="col-auto">
 				<mat-icon>keyboard_arrow_down</mat-icon>
 			</div>

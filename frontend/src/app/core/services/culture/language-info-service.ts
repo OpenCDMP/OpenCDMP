@@ -59,13 +59,13 @@ export class LanguageInfoService {
 		// This is a very hacky way to map cultures with angular cultures, since there is no mapping. We first try to
 		// use the culture with the specialization (ex en-US), and if not exists we import the base culture (first part).
 		let locale = newLanguageInfo.code;
-		import(`/node_modules/@angular/common/locales/${locale}.mjs`).catch(reason => {
+		import(`../../../../../node_modules/@angular/common/locales/${locale}.mjs`).catch(reason => {
 			this.logger.error('Could not load locale: ' + locale);
 		}).then(selectedLocale => {
 			if (selectedLocale) {
 				registerLocaleData(selectedLocale.default);
 			} else {
-				import(`/node_modules/@angular/common/locales/${locale}.mjs`).catch(reason => {
+				import(`../../../../../node_modules/@angular/common/locales/${locale}.mjs`).catch(reason => {
 					this.logger.error('Could not load locale: ' + locale);
 				}).then(selectedDefaultLocale => {
 					if (selectedDefaultLocale !== undefined) {

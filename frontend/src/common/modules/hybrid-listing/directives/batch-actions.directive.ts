@@ -3,7 +3,8 @@ import {Directive, Input} from '@angular/core';
 
 @Directive({
     selector: '[batch-actions]',
-    exportAs: 'batchActions'
+    exportAs: 'batchActions',
+    standalone: false
 })
 export class BatchActionsDirective{
 

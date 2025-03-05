@@ -7,12 +7,12 @@ import { Observable, Subscription, fromEvent } from 'rxjs';
 import { RouterUtilsService } from '@app/core/services/router/router-utils.service';
 
 @Component({
-	selector: 'app-user-dialog-component',
-	templateUrl: 'user-dialog.component.html',
-	styleUrls: ['user-dialog.component.scss']
+    selector: 'app-user-dialog-component',
+    templateUrl: 'user-dialog.component.html',
+    styleUrls: ['user-dialog.component.scss'],
+    standalone: false
 })
 export class UserDialogComponent implements OnInit, OnDestroy  {
-
 	public formGroup: UntypedFormGroup;
 
 	resizeObservable: Observable<Event>;
@@ -22,7 +22,7 @@ export class UserDialogComponent implements OnInit, OnDestroy  {
 		private authentication: AuthService,
 		private router: Router,
 		public dialogRef: MatDialogRef<UserDialogComponent>,
-		private routerUtils: RouterUtilsService,
+		protected routerUtils: RouterUtilsService,
 		@Inject(MAT_DIALOG_DATA) public data: any
 	) { }
 
@@ -61,15 +61,5 @@ export class UserDialogComponent implements OnInit, OnDestroy  {
 
 	public applyFallbackAvatar(ev: Event) {
 		(ev.target as HTMLImageElement).src = this.getDefaultAvatar();
-	}
-
-	public navigateToProfile() {
-		this.dialogRef.close();
-		this.router.navigate([this.routerUtils.generateUrl('/profile')]);
-	}
-
-	public navigateToMyPlans() {
-		this.dialogRef.close();
-		this.router.navigate([this.routerUtils.generateUrl('/plans')]);
 	}
 }

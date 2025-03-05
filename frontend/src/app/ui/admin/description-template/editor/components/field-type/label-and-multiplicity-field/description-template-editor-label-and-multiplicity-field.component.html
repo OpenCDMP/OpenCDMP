@@ -1,5 +1,5 @@
 <div class="row" *ngIf="form.get('data')">
-	<mat-checkbox class="col-auto" [formControl]="this.form.get('data').get('multipleSelect')">
+	<mat-checkbox class="col-auto" [formControl]="form.get('data').get('multipleSelect')">
 		{{'DESCRIPTION-TEMPLATE-EDITOR.STEPS.FORM.FIELD.FIELDS.FIELD-MULTIPLE-AUTOCOMPLETE' | translate}}
 	</mat-checkbox>
 	<mat-form-field class="col-12">

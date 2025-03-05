@@ -16,6 +16,12 @@ import { PlanBlueprintListingFiltersComponent } from "./listing/filters/plan-blu
 import { ImportPlanBlueprintDialogComponent } from './listing/import-plan-blueprint/import-plan-blueprint.dialog.component';
 import { DescriptionTemplatePreviewDialogModule } from '../description-template/description-template-preview/description-template-preview-dialog.module';
 import { CheckboxFieldModule } from '@common/modules/checkbox-field/checkbox-field.module';
+import { RichTextEditorModule } from '@app/library/rich-text-editor/rich-text-editor.module';
+import { FormFocusDirective } from '@common/forms/form-focus.directive';
+import { PlanBlueprintTocComponent } from './editor/table-of-content/plan-blueprint-toc.component';
+import { CustomMatStepperHeaderComponent } from '@app/library/custom-mat-stepper-header/custom-mat-stepper-header.component';
+import { PlanInternalBlueprintEditorModule } from '@app/ui/plan/plan-editor-blueprint/internal-blueprint-editor/internal-blueprint-editor.module';
+import { PlanBlueprintSectionFieldEditorComponent } from './editor/section-field-editor/plan-blueprint-section-field-editor.component';
 
 @NgModule({
 	imports: [
@@ -32,12 +38,18 @@ import { CheckboxFieldModule } from '@common/modules/checkbox-field/checkbox-fie
 		CommonFormattingModule,
 		DescriptionTemplatePreviewDialogModule,
 		CheckboxFieldModule,
-	],
+        RichTextEditorModule,
+        FormFocusDirective,
+        CustomMatStepperHeaderComponent,
+        PlanInternalBlueprintEditorModule
+    ],
 	declarations: [
 		PlanBlueprintEditorComponent,
 		PlanBlueprintListingComponent,
 		PlanBlueprintListingFiltersComponent,
-		ImportPlanBlueprintDialogComponent
+		ImportPlanBlueprintDialogComponent,
+        PlanBlueprintTocComponent,
+        PlanBlueprintSectionFieldEditorComponent
 	]
 })
 export class PlanBlueprintModule { }

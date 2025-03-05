@@ -53,18 +53,18 @@
 
 .more-horiz {
   font-size: 28px;
-  color: #aaaaaa;
+  color: var(--link-color);
 }
 
 .more-icon :hover {
-  color: var(--primary-color-3);
+  color: var(--sys-primary);
 }
 
 .header-title {
   text-align: left;
-  font-size: 1.25rem;
+  font-size: var(--sys-headline-medium-size);
   font-weight: 300;
-  color: #212121;
+  color: var(--dark-text);
   padding: 0px;
 }
 
@@ -83,7 +83,7 @@
 }
 
 .main-content {
-  background-color: #f5f5f5;
+  background-color: var(--sys-background);
   padding-top: 4.68rem;
   padding-bottom: 3rem;
   padding-left: 3rem;
@@ -94,7 +94,7 @@
 }
 
 .card {
-  background: #ffffff 0% 0% no-repeat padding-box;
+  background: var(--sys-surface) 0% 0% no-repeat padding-box;
   box-shadow: 0px 3px 6px #00000029;
   border-radius: 4px;
   margin-bottom: 3.75rem;
@@ -105,7 +105,7 @@
   text-align: left;
   font: Bold 20px/30px Roboto;
   letter-spacing: 0px;
-  color: #212121;
+  color: var(--dark-text);
   padding-left: 40px;
   padding-right: 55px;
   opacity: 1;
@@ -115,7 +115,7 @@
   text-align: left;
   font-weight: 300;
   letter-spacing: 0px;
-  color: #212121;
+  color: var(--dark-text);
   padding-left: 40px;
   padding-top: 38px;
   padding-right: 55px;
@@ -124,12 +124,12 @@
 
 .clear-icon {
 	cursor: pointer;
-	color: #212121;
+	color: var(--dark-text);
 	padding: 0.4rem;
 }
 
 .clear-icon:hover {
-	background-color: #ececec !important;
+	background-color: rgb(0,0,0,0.05) !important;
 	border-radius: 50%;
 	padding: 0.4rem;
 }
@@ -138,9 +138,8 @@
 .info-text {
   text-align: left;
   font-weight: 300;
-  font-size: 1rem;
   letter-spacing: 0px;
-  color: #212121;
+  color: var(--dark-text);
 }
 
 .filter-btn {
@@ -148,19 +147,24 @@
   right: 0px;
   z-index: 100;
   width: 37px;
-  transition: right 0.3s;
-  transition-timing-function: ease-in-out;
+  transition: 0.3s ease-in-out;
+  -webkit-transition: 0.3s ease-in-out;
+  -moz-transition: 0.3s ease-in-out;
 
   .filter-icon {
     width: 1.5rem;
     height: 1.5rem;
     font-size: 1.5rem;
   }
+
+  &.right {
+    right: 446px;
+  }
 }
 
 .filter-btn button {
   color: white;
-  background-color: var(--primary-color-2);
+  background-color: var(--sys-primary);
   width: 37px;
   height: 45px;
 }
@@ -171,15 +175,15 @@
 }
 
 .search-form mat-icon {
-  color: var(--primary-color);
+  color: var(--sys-primary);
 }
 
 .empty-list {
   text-align: center;
   font-weight: 300;
-  font-size: 1.25rem;
+  font-size: var(--sys-headline-medium-size);
   letter-spacing: 0px;
-  color: #212121;
+  color: var(--dark-text);
   opacity: 0.6;
 }
 
@@ -190,7 +194,7 @@
 
 .pointer:hover,
 .zenodo-link:hover {
-  color: var(--primary-color-3);
+  color: var(--sys-primary);
 }
 
 ::ng-deep .search-form .mat-form-field-wrapper {
@@ -208,10 +212,13 @@
 }
 
 .center-content {
-  font-size: 0.875rem;
+  font-size: var(--sys-title-small-size);
   font-weight: 600;
   letter-spacing: 0.02rem;
-  color: #2d72d6;
+  color: var(--link-color);
+  &:hover {
+    color: var(--sys-primary)
+  }
   cursor: pointer;
 }
 
@@ -221,9 +228,12 @@
   margin: auto;
   padding: 0px;
   text-align: left;
-  font-size: 0.875rem;
+  font-size: var(--sys-title-small-size);
   font-weight: 600;
   letter-spacing: 0.02rem;
-  color: #2d72d6;
+  color: var(--link-color);
+  &:hover {
+    color: var(--sys-primary)
+  }
   cursor: pointer;
 }

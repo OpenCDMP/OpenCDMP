@@ -114,7 +114,7 @@ export class ReferenceTypeService {
 		};
 	}
 
-	private buildAutocompleteLookup(like?: string, excludedIds?: Guid[], ids?: Guid[]): ReferenceTypeLookup {
+	public buildAutocompleteLookup(like?: string, excludedIds?: Guid[], ids?: Guid[]): ReferenceTypeLookup {
 		const lookup: ReferenceTypeLookup = new ReferenceTypeLookup();
 		lookup.page = { size: 100, offset: 0 };
 		if (excludedIds && excludedIds.length > 0) { lookup.excludedIds = excludedIds; }

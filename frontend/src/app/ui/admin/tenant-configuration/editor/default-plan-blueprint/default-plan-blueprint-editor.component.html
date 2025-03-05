@@ -1,0 +1,32 @@
+<div *ngIf="formGroup" class="container-fluid feature-entities">
+
+	<div class="row">
+		<div class="col-12">
+
+			<div class="row">
+				<div class="col">
+					<mat-form-field class="w-100">
+						<mat-label>{{'TENANT-CONFIGURATION-EDITOR.DEFAULT-PLAN-BLUEPRINT.PLAN-BLUEPRINT' | translate}}</mat-label>
+						<app-single-auto-complete [formControl]="formGroup.get('defaultPlanBlueprint').get('groupId')" [configuration]="planBlueprintService.planBlueprintGroupSingleAutocompleteConfiguration"></app-single-auto-complete>
+					</mat-form-field>
+				</div>
+			</div>
+
+		</div>
+		<div class="col-12">
+			<div class="row actions-row">
+				<div class="ml-auto col-auto" *ngIf="editorModel.id">
+                    <button mat-stroked-button color="warn" class="padded-shadow-btn" (click)="delete()">
+						{{'TENANT-CONFIGURATION-EDITOR.ACTIONS.RESET-TO-DEFAULT' | translate}}
+					</button>
+				</div>
+				<div class="ml-auto col-auto">
+                    <button mat-flat-button color="primary" class="padded-shadow-btn" (click)="formSubmit()">
+						{{'TENANT-CONFIGURATION-EDITOR.ACTIONS.SAVE' | translate}}
+					</button>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+

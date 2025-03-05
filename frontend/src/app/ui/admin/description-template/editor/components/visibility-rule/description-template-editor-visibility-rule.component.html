@@ -54,8 +54,8 @@
 		</mat-form-field>
 	</div>
 
-	<div class="col-auto mb-4"><button mat-icon-button type="button" (click)="deleteRule(i);" [disabled]="viewOnly">
-			<mat-icon>delete</mat-icon>
+	<div class="col-auto mb-4"><button mat-icon-button type="button" (click)="deleteRule(i);" [disabled]="viewOnly" [attr.aria-label]="'COMMONS.ACTIONS.REMOVE' | translate">
+			<mat-icon aria-hidden>delete</mat-icon>
 		</button>
 	</div>
 </div>

@@ -19,6 +19,7 @@ import { PlanBlueprintStatus } from '@app/core/common/enum/plan-blueprint-status
 import { error } from 'console';
 import { PlanBlueprintVersionStatus } from '@app/core/common/enum/plan-blueprint-version-status';
 import { TranslateService } from '@ngx-translate/core';
+import { DescriptionTemplate } from '@app/core/model/description-template/description-template';
 
 @Injectable()
 export class PlanBlueprintService {
@@ -169,11 +170,82 @@ export class PlanBlueprintService {
 				[nameof<PlanBlueprint>(x => x.definition), nameof<PlanBlueprintDefinition>(x => x.sections), nameof<PlanBlueprintDefinitionSection>(x => x.id)].join('.'),
 				[nameof<PlanBlueprint>(x => x.definition), nameof<PlanBlueprintDefinition>(x => x.sections), nameof<PlanBlueprintDefinitionSection>(x => x.label)].join('.'),
 				[nameof<PlanBlueprint>(x => x.definition), nameof<PlanBlueprintDefinition>(x => x.sections), nameof<PlanBlueprintDefinitionSection>(x => x.hasTemplates)].join('.'),
-				[nameof<PlanBlueprint>(x => x.definition), nameof<PlanBlueprintDefinition>(x => x.sections), nameof<PlanBlueprintDefinitionSection>(x => x.descriptionTemplates), nameof<DescriptionTemplatesInSection>(x => x.descriptionTemplateGroupId)].join('.'),
+				[nameof<PlanBlueprint>(x => x.definition), nameof<PlanBlueprintDefinition>(x => x.sections), nameof<PlanBlueprintDefinitionSection>(x => x.descriptionTemplates), nameof<DescriptionTemplatesInSection>(x => x.descriptionTemplate), nameof<DescriptionTemplate>(x => x.groupId)].join('.'),
 			]
 		};
 		lookup.order = { items: [nameof<PlanBlueprint>(x => x.label)] };
 		lookup.versionStatuses = [PlanBlueprintVersionStatus.Previous, PlanBlueprintVersionStatus.Current];
+		if (like) { lookup.like = this.filterService.transformLike(like); }
+		return lookup;
+	}
+
+	//
+	// Plan Blueprint Group Autocomplete Commons
+	//
+	// tslint:disable-next-line: member-ordering
+	planBlueprintGroupSingleAutocompleteConfiguration: SingleAutoCompleteConfiguration = {
+		initialItems: (data?: any) => this.query(this.buildPlanBlueprintGroupAutocompleteLookup({isActive: [IsActive.Active]})).pipe(map(x => x.items)),
+		filterFn: (searchQuery: string, data?: any) => this.query(this.buildPlanBlueprintGroupAutocompleteLookup({
+            isActive: [IsActive.Active], 
+            like: searchQuery
+        })).pipe(map(x => x.items)),
+		getSelectedItem: (selectedItem: any) => this.query(this.buildPlanBlueprintGroupAutocompleteLookup({
+            isActive: [IsActive.Active, IsActive.Inactive], 
+            groupIds: [selectedItem]
+        })).pipe(map(x => x.items[0])),
+		displayFn: (item: PlanBlueprint) => item.label,
+		titleFn: (item: PlanBlueprint) => item.label,
+		subtitleFn: (item: PlanBlueprint) => this.language.instant('PLAN-EDITOR.FIELDS.PLAN-BLUEPRINT-VERSION') + ' '+ item.version,
+		valueAssign: (item: PlanBlueprint) => item.groupId,
+	};
+
+	// tslint:disable-next-line: member-ordering
+	planBlueprintGroupMultipleAutocompleteConfiguration: MultipleAutoCompleteConfiguration = {
+		initialItems: (excludedItems: any[], data?: any) => this.query(this.buildPlanBlueprintGroupAutocompleteLookup({
+            isActive: [IsActive.Active], 
+            excludedIds: excludedItems ? excludedItems : null
+        })).pipe(map(x => x.items)),
+		filterFn: (searchQuery: string, excludedItems: any[]) => this.query(this.buildPlanBlueprintGroupAutocompleteLookup({
+            isActive: [IsActive.Active], 
+            like: searchQuery, 
+            excludedIds: excludedItems
+        })).pipe(map(x => x.items)),
+		getSelectedItems: (selectedItems: any[]) => this.query(this.buildPlanBlueprintGroupAutocompleteLookup({
+            isActive: [IsActive.Active, IsActive.Inactive],
+            groupIds: selectedItems
+        })).pipe(map(x => x.items)),
+		displayFn: (item: PlanBlueprint) => item.label,
+		titleFn: (item: PlanBlueprint) => item.label,
+		subtitleFn: (item: PlanBlueprint) => this.language.instant('PLAN-EDITOR.FIELDS.PLAN-BLUEPRINT-VERSION') + ' '+ item.version,
+		valueAssign: (item: PlanBlueprint) => item.groupId,
+	};
+
+	public buildPlanBlueprintGroupAutocompleteLookup(params?: {
+        isActive: IsActive[], 
+        like?: string, 
+        excludedIds?: Guid[], 
+        groupIds?: Guid[],
+        excludedGroupIds?: Guid[]
+    }): PlanBlueprintLookup {
+        const {isActive, like, excludedIds, groupIds, excludedGroupIds} = params ?? {};
+		const lookup: PlanBlueprintLookup = new PlanBlueprintLookup();
+		lookup.page = { size: 100, offset: 0 };
+		if (excludedIds && excludedIds.length > 0) { lookup.excludedIds = excludedIds; }
+		if (excludedGroupIds && excludedGroupIds.length > 0) { lookup.excludedGroupIds = excludedGroupIds; }
+		if (groupIds && groupIds.length > 0) { lookup.groupIds = groupIds; }
+
+		lookup.isActive = isActive;
+		lookup.versionStatuses = [PlanBlueprintVersionStatus.Current];
+		lookup.statuses = [PlanBlueprintStatus.Finalized];
+		lookup.project = {
+			fields: [
+				nameof<PlanBlueprint>(x => x.id),
+				nameof<PlanBlueprint>(x => x.label),
+				nameof<PlanBlueprint>(x => x.groupId),
+				nameof<PlanBlueprint>(x => x.version),
+			]
+		};
+		lookup.order = { items: [nameof<PlanBlueprint>(x => x.label)] };
 		if (like) { lookup.like = this.filterService.transformLike(like); }
 		return lookup;
 	}

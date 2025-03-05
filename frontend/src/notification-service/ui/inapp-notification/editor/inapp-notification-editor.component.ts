@@ -20,9 +20,10 @@ import { map, takeUntil } from 'rxjs/operators';
 import { nameof } from 'ts-simple-nameof';
 
 @Component({
-	selector: 'app-inapp-notification-editor',
-	templateUrl: './inapp-notification-editor.component.html',
-	styleUrls: ['./inapp-notification-editor.component.scss']
+    selector: 'app-inapp-notification-editor',
+    templateUrl: './inapp-notification-editor.component.html',
+    styleUrls: ['./inapp-notification-editor.component.scss'],
+    standalone: false
 })
 export class InAppNotificationEditorComponent extends BaseComponent implements OnInit {
 

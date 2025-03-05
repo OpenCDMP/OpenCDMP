@@ -1,13 +1,21 @@
 <div class="container p-0">
 	<div *ngIf="fieldSet" class="row">
-		<div *ngIf="showTitle" class="col-12">
-			<div class="row align-items-start">
+		<div *ngIf="showTitle" class="col-12 pb-2">
+			<div class="row align-items-center">
 				<div class="col">
-					<app-description-form-field-set-title [fieldSet]="fieldSet" [path]="path" [isChild]="isChild" [hildeLink]="hideAnnotations" (copyLinkEvent)="copyLink(fieldSet.id)" [isAnchor]="isAnchor"></app-description-form-field-set-title>
+					<app-description-form-field-set-title [fieldSet]="fieldSet" [path]="path" [isChild]="isChild" [hideLink]="isNew" (copyLinkEvent)="copyLink(fieldSet.id)" [isAnchor]="isAnchor"></app-description-form-field-set-title>
 				</div>
-				<div *ngIf="!hideAnnotations" class="col-auto" style="margin-top: 1rem;">
-					<button mat-icon-button class="col-auto annotation-icon" (click)="showAnnotations(fieldSet.id)" matTooltip="{{ 'DESCRIPTION-EDITOR.QUESTION.EXTENDED-DESCRIPTION.ANNOTATIONS' | translate }}" [disabled]="!canAnnotate">
-						<mat-icon [matBadge]="annotationsCount" [matBadgeHidden]="annotationsCount <= 0" matBadgeColor="warn">comment</mat-icon>
+				<div *ngIf="!isNew" class="col-lg-auto col-md-auto col-3" style="margin-top: 1rem;">
+					<button mat-icon-button class="annotation-icon" (click)="showAnnotations(fieldSet.id)" matTooltip="{{ 'DESCRIPTION-EDITOR.QUESTION.EXTENDED-DESCRIPTION.ANNOTATIONS' | translate }}" [attr.aria-label]="'PLAN-EDITOR.ACTIONS.ANNOTATIONS' | translate">
+						<mat-icon 
+                            [matBadge]="annotationsCount" 
+                            [matBadgeHidden]="annotationsCount <= 0" 
+                            matBadgeColor="warn" 
+                            [attr.aria-label]="(annotationsPerAnchor?.get(field.id) ?? 0) + ' ' + ('ANNOTATION-DIALOG.TITLE' | translate)"
+                            aria-hidden="false"
+                        >
+                            comment
+                        </mat-icon>
 					</button>
 				</div>
 			</div>
@@ -19,28 +27,33 @@
 						<div *ngFor="let field of fieldSet.fields; let i = index;" class="col-12">
 							<ng-container  *ngIf="visibilityRulesService && visibilityRulesService.isVisibleMap[field.id + '_' + fieldSetItemPropertiesControl.get('ordinal').value] ?? true">
 								<div class="row">
-									<h5 *ngIf="placeholderTitle" class="col-auto font-weight-bold">{{field.label}}</h5>
+									<label *ngIf="placeholderTitle" class="col-auto font-weight-bold">{{field.label}}</label>
 								</div>
-								<app-description-form-field [propertiesFormGroup]="fieldSetItemPropertiesControl.get('fields')" [field]="field" [fieldSet]="fieldSet" [visibilityRulesService]="visibilityRulesService" [descriptionTemplateId]="descriptionTemplateId" [isChild]="true"></app-description-form-field>
+								<app-description-form-field [propertiesFormGroup]="fieldSetItemPropertiesControl.get('fields')" [path]="path" [field]="field" [fieldSet]="fieldSet" [visibilityRulesService]="visibilityRulesService" [descriptionTemplateId]="descriptionTemplateId" [isChild]="true"></app-description-form-field>
 							</ng-container>
 						</div>
 					</div>
 				</div>
 				<div *ngIf="propertiesFormGroup.get('items').length > 1" class="col-auto align-self-center">
-					<button mat-icon-button type="button" class="deleteBtn" (click)="deleteMultiplicityField(i);" [disabled]="fieldSetItemPropertiesControl.disabled">
-						<mat-icon>delete</mat-icon>
+					<button mat-icon-button type="button" class="deleteBtn" (click)="deleteMultiplicityField(i);" [disabled]="fieldSetItemPropertiesControl.disabled" [attr.aria-label]="'COMMONS.ACTIONS.REMOVE' | translate">
+						<mat-icon aria-hidden>delete</mat-icon>
 					</button>
 				</div>
 			</div>
 			<div *ngIf="canAddMultiplicityField()" class="col-12 mt-1 ml-0 mr-0 addOneFieldButton">
 				<mat-error *ngIf="fieldSet.hasMultiplicity && fieldSet?.multiplicity?.min && propertiesFormGroup.get('items').hasError('minlength')">{{'GENERAL.VALIDATION.MULTIPLICITY.MIN' | translate: { min: fieldSet.multiplicity.min} }}</mat-error>
 					<mat-error *ngIf="fieldSet.hasMultiplicity && fieldSet?.multiplicity?.max && propertiesFormGroup.get('items').hasError('maxlength')">{{'GENERAL.VALIDATION,MULTIPLICITY.MAX' | translate: { max: fieldSet.multiplicity.max} }}</mat-error>
-				<span class="d-inline-flex align-items-center" [ngClass]="propertiesFormGroup.disabled ? '' : 'pointer'" (click)="addMultiplicityField()">
-					<button mat-icon-button color="primary" [disabled]="propertiesFormGroup.disabled">
-						<mat-icon>add_circle</mat-icon>
+				<span class="d-inline-flex align-items-center">
+					<button class="add-more-btn" mat-button [disabled]="propertiesFormGroup.disabled" (click)="addMultiplicityField()">
+						<mat-icon aria-hidden>add_circle</mat-icon>
+                        <span>
+                            @if(fieldSet?.multiplicity?.placeholder){
+                                {{fieldSet?.multiplicity?.placeholder}}
+                            }@else{
+                                {{'DESCRIPTION-EDITOR.ACTIONS.MULTIPLICITY-ADD-ONE-FIELD' | translate}}
+                            }
+                        </span>
 					</button>
-					<span class="mt-1" *ngIf="fieldSet?.multiplicity?.placeholder">{{fieldSet.multiplicity.placeholder}}</span>
-					<span class="mt-1" *ngIf="!fieldSet?.multiplicity?.placeholder">{{'DESCRIPTION-EDITOR.ACTIONS.MULTIPLICITY-ADD-ONE-FIELD' | translate}}</span>
 				</span>
 			</div>
 		</div>
@@ -58,7 +71,10 @@
 					<th class="actions"></th>
 				</tr>
 				<ng-container *ngFor="let fieldSetItemPropertiesControl of propertiesFormGroup?.get('items')?.controls; let j = index">
-					<tr *ngIf="visibilityRulesService && visibilityRulesService.isVisibleMap[fieldSet.id + '_' + fieldSetItemPropertiesControl.get('ordinal').value] ?? true">
+					<tr 
+                        *ngIf="visibilityRulesService && visibilityRulesService.isVisibleMap[fieldSet.id + '_' + fieldSetItemPropertiesControl.get('ordinal').value] ?? true"
+                        [class.error-row]="fieldSetItemPropertiesControl.touched && fieldSetItemPropertiesControl.invalid"
+                    >
 						<td *ngFor="let field of fieldSet.fields;" class="text-wrap">
 							<ng-container  *ngIf="visibilityRulesService && visibilityRulesService.isVisibleMap[field.id + '_' + fieldSetItemPropertiesControl.get('ordinal').value] ?? true">
 								{{ fieldSetItemPropertiesControl.get('fields')?.get(field.id)?.getRawValue() | fieldValue: field | async }}
@@ -69,8 +85,8 @@
 								<button mat-icon-button type="button" class="deleteBtn btn-sm" (click)="editTableMultiplicityFieldInDialog(j)" [disabled]="fieldSetItemPropertiesControl.disabled">
 									<mat-icon>edit</mat-icon>
 								</button>
-								<button *ngIf="propertiesFormGroup.get('items').length > 1" mat-icon-button type="button" class="deleteBtn" (click)="deleteMultiplicityField(j);" [disabled]="fieldSetItemPropertiesControl.disabled">
-									<mat-icon>delete</mat-icon>
+								<button *ngIf="propertiesFormGroup.get('items').length > 1" mat-icon-button type="button" class="deleteBtn" (click)="deleteMultiplicityField(j);" [disabled]="fieldSetItemPropertiesControl.disabled" [attr.aria-label]="'COMMONS.ACTIONS.REMOVE' | translate">
+									<mat-icon aria-hidden>delete</mat-icon>
 								</button>
 							</div>
 						</td>
@@ -82,11 +98,16 @@
 						<mat-error *ngIf="fieldSet.hasMultiplicity && fieldSet?.multiplicity?.min && propertiesFormGroup.get('items').hasError('minlength')">{{'GENERAL.VALIDATION.MULTIPLICITY.MIN' | translate: { min: fieldSet.multiplicity.min} }}</mat-error>
 						<mat-error *ngIf="fieldSet.hasMultiplicity && fieldSet?.multiplicity?.max && propertiesFormGroup.get('items').hasError('maxlength')">{{'GENERAL.VALIDATION,MULTIPLICITY.MAX' | translate: { max: fieldSet.multiplicity.max} }}</mat-error>
 						<span class="d-inline-flex align-items-center" [ngClass]="propertiesFormGroup.disabled ? '' : 'pointer'" (click)="addMultiplicityField()">
-							<button mat-icon-button color="primary" [disabled]="propertiesFormGroup.disabled">
+							<button class="add-more-btn" mat-button [disabled]="propertiesFormGroup.disabled">
 								<mat-icon>add_circle</mat-icon>
+                                <span class="mt-1">
+                                    @if(fieldSet?.multiplicity?.placeholder){
+                                        {{fieldSet?.multiplicity?.placeholder}}
+                                    } @else{
+                                        {{'DESCRIPTION-EDITOR.ACTIONS.MULTIPLICITY-ADD-ONE-FIELD-TABLEVIEW' | translate}}
+                                    }
+                                </span>
 							</button>
-							<span class="mt-1" *ngIf="fieldSet.multiplicity.placeholder">{{fieldSet.multiplicity.placeholder}}</span>
-							<span class="mt-1" *ngIf="!fieldSet.multiplicity.placeholder">{{'DESCRIPTION-EDITOR.ACTIONS.MULTIPLICITY-ADD-ONE-FIELD-TABLEVIEW' | translate}}</span>
 						</span>
 					</td>
 				</tr>
@@ -95,7 +116,7 @@
 	</div>
 	<div class="row">
 		<div *ngIf="fieldSet.hasCommentField && propertiesFormGroup?.get('comment')" class="col-12">
-			<rich-text-editor-component [form]="propertiesFormGroup?.get('comment')" [id]="'editor1'" [placeholder]="'DESCRIPTION-EDITOR.FIELDS.COMMENT-PLACEHOLDER' | translate" [wrapperClasses]="'mb-2'" [editable]="!propertiesFormGroup?.get('comment').disabled" [required]="isRequired"></rich-text-editor-component>
+			<rich-text-editor-component [form]="propertiesFormGroup?.get('comment')" [placeholder]="'DESCRIPTION-EDITOR.FIELDS.COMMENT-PLACEHOLDER' | translate" [wrapperClasses]="'mb-2'" [required]="isRequired"></rich-text-editor-component>
 		</div>
 	</div>
 </div>

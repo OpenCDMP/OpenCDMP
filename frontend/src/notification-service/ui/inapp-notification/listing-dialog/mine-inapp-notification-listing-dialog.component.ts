@@ -1,11 +1,10 @@
 import { fromEvent, Observable, Subscription } from "rxjs";
-import { HttpErrorResponse } from '@angular/common/http';
 import { Component, EventEmitter, Inject, OnDestroy, OnInit } from '@angular/core';
 import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { Router } from '@angular/router';
 import { AuthService } from '@app/core/services/auth/auth.service';
-import { HttpError, HttpErrorHandlingService } from '@common/modules/errors/error-handling/http-error-handling.service';
-import { SnackBarNotificationLevel, UiNotificationService } from '@app/core/services/notification/ui-notification-service';
+import { HttpErrorHandlingService } from '@common/modules/errors/error-handling/http-error-handling.service';
+import {  UiNotificationService } from '@app/core/services/notification/ui-notification-service';
 import { BaseComponent } from '@common/base/base.component';
 import { InAppNotificationLookup } from '@notification-service/core/query/inapp-notification.lookup';
 import { InAppNotificationService } from '@notification-service/services/http/inapp-notification.service';
@@ -17,11 +16,14 @@ import { InAppNotification } from "@notification-service/core/model/inapp-notifi
 import { RouterUtilsService } from "@app/core/services/router/router-utils.service";
 
 @Component({
-	selector: 'app-mine-inapp-notification-listing-dialog',
-	templateUrl: './mine-inapp-notification-listing-dialog.component.html',
-	styleUrls: ['./mine-inapp-notification-listing-dialog.component.scss']
+    selector: 'app-mine-inapp-notification-listing-dialog',
+    templateUrl: './mine-inapp-notification-listing-dialog.component.html',
+    styleUrls: ['./mine-inapp-notification-listing-dialog.component.scss'],
+    standalone: false
 })
 export class MineInAppNotificationListingDialogComponent extends BaseComponent implements OnInit, OnDestroy {
+   
+
 	public inappNotifications = new Array<InAppNotification>();
 	public notificationInAppTrackingEnum = NotificationInAppTracking;
 

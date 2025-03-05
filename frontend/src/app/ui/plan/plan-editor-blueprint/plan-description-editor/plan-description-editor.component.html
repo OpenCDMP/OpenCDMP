@@ -1,0 +1,50 @@
+@if(id() && formGroup()){
+    <div class="description-editor">
+        <div class="description-actions">
+            <div class="action-btns" *ngIf="!viewOnly()">
+                @if(formGroup()?.dirty){
+                    <button mat-stroked-button [disabled]="isLoading || isLocked" type="button" class="padded-shadow-btn description-discard-btn" (click)="discardChanges()">
+                        {{'DESCRIPTION-EDITOR.ACTIONS.DISCARD.DISCARD' | translate}}
+                    </button>
+                }
+                @if(canEditStatus() && !isNew() && description().availableStatuses && description().availableStatuses.length > 0 && !isLocked && planNotFinalized() && description().belongsToCurrentTenant){
+                    @for(status of description().availableStatuses; track $index){
+                        <span [matTooltip]="'PLAN-EDITOR.ACTIONS.FINALIZE.CAN-NOT-FINALIZE' | translate" [matTooltipDisabled]="!formGroup().dirty">
+                            <button 
+                                mat-flat-button 
+                                color="accent"
+                                [disabled]="isLoading || formGroup().dirty" 
+                                class="padded-shadow-btn mr-2" 
+                                type="button" 
+                                (click)="changeStatus(status)"
+                            >
+                                {{ status.action?.length > 0 ? status.action : status.name }}
+                            </button>
+                        </span>
+                    }
+                }
+                <button *ngIf="isLocked" mat-raised-button disabled class="padded-shadow-btn cursor-default" type="button">{{ 'PLAN-OVERVIEW.LOCKED' | translate}}</button>
+            </div>
+            <div class="form" id="description-editor-form" tabindex="0">
+                <app-description-base-fields-editor-component 
+                    [class.d-none]="!atBaseEditor()" 
+                    [descriptionId]="id()"
+                    (refresh)="onDescriptionTemplateChange($event)"
+                ></app-description-base-fields-editor-component>
+                <app-description-form #descriptionForm
+                    [class.d-none]="atBaseEditor()"
+                    [descriptionId]="id()"
+                    [planId]="plan()?.id"
+                    [canAnnotate]="canAnnotate()"
+                    [planUsers]="plan()?.planUsers ?? []"
+                    [ordinal]="ordinal()"
+                    [propertiesFormGroup]="formGroup()?.controls?.properties"
+                    [descriptionTemplate]="descriptionTemplate()"
+                    [visibilityRulesService]="visibilityRulesService()"
+                    [validationErrorModel]="validationErrorModel()"
+                    [isNew]="isNew()"
+            ></app-description-form>
+            </div>
+        </div>
+    </div>
+}

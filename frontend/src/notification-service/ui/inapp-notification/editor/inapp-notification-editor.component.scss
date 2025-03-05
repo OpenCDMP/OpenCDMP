@@ -11,11 +11,11 @@
 	max-width: 256px;
 	height: 40px;
 	cursor: pointer;
-	background: var(--primary-color) 0% 0% no-repeat padding-box;
+	background: var(--sys-primary) 0% 0% no-repeat padding-box;
 	box-shadow: 0px 3px 6px #1E202029;
 	border-radius: 30px;
 	border: none;
-	color: #FFFFFF;
+	color: var(--sys-on-primary);
 	opacity: 1;
 	font-size: 0.87rem;
 	padding: 0.62rem 1.87rem;

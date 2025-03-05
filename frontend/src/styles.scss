@@ -1,114 +1,173 @@
 @use '@angular/material'as mat;
+@use '../node_modules/@citesa/kpi-client/src/theme.scss' as kpiTheme;
 
-// Be sure that you only ever include this mixin once!
-@include mat.core();
+// @use "@covalent/core/theming/all-theme";
+@use '../node_modules/@swimlane/ngx-datatable/themes/material.scss';
+@use '../node_modules/@swimlane/ngx-datatable/assets/icons.css';
 
-:root {
-	--primary-color: #18488F;
-	--primary-color-2: #1E59B1;
-	--primary-color-3: #246AD3;
-	--secondary-color: #36900B;
-    --warning-color: #f44336;
-}
-
-// Define your theme with color palettes, typography and density
-
-$mat-theme-primary-palette: map-merge(mat.$m2-cyan-palette, (501: var(--primary-color), contrast: (100: black, )));
-$mat-theme-primary: mat.m2-define-palette($mat-theme-primary-palette,
-	$default: 501,
-	$lighter: 100,
-	$darker: 700,
-	$text: 500);
-
-$mat-theme-accent-palette: map-merge(mat.$m2-teal-palette, (501: var(--secondary-color), contrast: (A100: white, A200: white, )));
-$mat-theme-accent: mat.m2-define-palette($mat-theme-accent-palette,
-	$default: 501,
-	$lighter: A100,
-	$darker: A200,
-	$text: 600);
-
-$mat-theme-warn-palette: map-merge(mat.$m2-pink-palette, ());
-$mat-theme-warn: mat.m2-define-palette($mat-theme-warn-palette,
-	$default: A200,
-	$lighter: 500,
-	$darker: 500,
-	$text: A700);
-
-$mat-dark-theme-primary-palette: map-merge(mat.$m2-lime-palette, (contrast: (200: #030844, A100: rgba(0, 0, 0, 0.87), A700: rgba(0, 0, 0, 0.87), )));
-$mat-dark-theme-primary: mat.m2-define-palette($mat-dark-theme-primary-palette,
-	$default: 200,
-	$lighter: A100,
-	$darker: A700,
-	$text: 700);
-
-$mat-dark-theme-accent-palette: map-merge(mat.$m2-green-palette, (contrast: (A200: black, 50: black, A400: black, )));
-$mat-dark-theme-accent: mat.m2-define-palette($mat-dark-theme-accent-palette,
-	$default: A200,
-	$lighter: 50,
-	$darker: A400,
-	$text: A100);
-
-$mat-dark-theme-warn-palette: map-merge(mat.$m2-pink-palette, (contrast: (A100: black, 100: white, )));
-$mat-dark-theme-warn: mat.m2-define-palette($mat-dark-theme-warn-palette,
-	$default: A100,
-	$lighter: 100,
-	$darker: A700,
-	$text: 100);
-
-$mat-typography: mat.m2-define-typography-config($font-family: 'Roboto, sans-serif;',
-	//   $display-4:     mat.m2-define-typography-level($font-size: 96px, $font-weight: 300, $font-family: 'Roboto, sans-serif;'),
-	//   $display-3:     mat.m2-define-typography-level($font-size: 60px, $font-weight: 500, $font-family: 'Roboto, sans-serif;'),
-	//   $display-2:     mat.m2-define-typography-level($font-size: 48px, $font-weight: 500, $font-family: 'Roboto, sans-serif;'),
-	//   $display-1:     mat.m2-define-typography-level($font-size: 34px, $font-weight: 500, $font-family: 'Roboto, sans-serif;'),
-	//   $headline:      mat.m2-define-typography-level($font-size: 24px, $font-weight: 500, $font-family: 'Roboto, sans-serif;'),
-	//   $title:         mat.m2-define-typography-level($font-size: 20px, $font-weight: 500, $font-family: 'Roboto, sans-serif;'),
-	//   $subheading-2:  mat.m2-define-typography-level($font-size: 18px, $font-weight: 500, $font-family: 'Roboto, sans-serif;'),
-	//   $subheading-1:  mat.m2-define-typography-level($font-size: 20px, $font-weight: 500, $font-family: 'Roboto, sans-serif;'),
-	$body-2: mat.m2-define-typography-level($font-size: 16px, $font-weight: 400, $font-family: 'Roboto, sans-serif;'),
-	$body-1: mat.m2-define-typography-level($font-size: 18px, $font-weight: 400, $font-family: 'Roboto, sans-serif;'),
-	// $caption: mat.m2-define-typography-level($font-size: 16px, $font-weight: Medium, $font-family: 'Roboto, sans-serif;'),
-	$button: mat.m2-define-typography-level($font-size: 0.87rem, $font-weight: 400, $font-family: 'Roboto, sans-serif;'),
-	// Line-height must be unit-less fraction of the font-size.
-	//   $input:         mat.m2-define-typography-level($font-size: inherit, $line-height: 1.125, $font-weight: 500, $font-family: 'Roboto, sans-serif;'),
-);
-
-$mat-density: 0;
-// @include mat.elevation(
-//   $zValue: 12,
-//   $color: #000,
-//   $opacity: 0.5
-// );
-
-$mat-core-theme: mat.m2-define-light-theme((color: (primary: $mat-theme-primary,
-			accent: $mat-theme-accent,
-			warn: $mat-theme-warn),
-		typography: $mat-typography,
-		density: $mat-density));
-
-$mat-dark-theme: mat.m2-define-dark-theme((color: (primary: $mat-dark-theme-primary,
-			accent: $mat-dark-theme-accent,
-			warn: $mat-dark-theme-warn,
-		)));
-
-@include mat.all-component-themes($mat-core-theme);
-
-.dark-theme {
-	@include mat.all-component-colors($mat-dark-theme);
-}
-
-
-
-// @import "@covalent/core/theming/all-theme";
-// @import "@angular/material/theming"; // @import '../node_modules/@angular/material/theming';
-@import '../node_modules/@swimlane/ngx-datatable/index.css';
-@import '../node_modules/@swimlane/ngx-datatable/themes/material.scss';
-@import '../node_modules/@swimlane/ngx-datatable/assets/icons.css';
-
-//Material-Bootstrap configuration
-@import "assets/scss/bootstrap-material";
 
 // Guided Tour style
-@import '../node_modules/ngx-guided-tour/scss/guided-tour-base-theme.scss';
+@use '../node_modules/ngx-guided-tour/scss/guided-tour-base-theme.scss';
+
+// Be sure that you only ever include this mixin once!
+// (included in material-theme)
+//@include mat.core();
+
+@use './assets/scss/material-theme.scss';
+@use './assets/scss/material-theme-overrides.scss';
+ 
+$primary: green;
+$accent: #53cfab;
+@include kpiTheme.theme-kpi-client($primary, $accent);
+
+// <!-- assets/core/_type.scss -->
+html * {
+-webkit-font-smoothing: antialiased;
+-moz-osx-font-smoothing: grayscale;
+}
+//<!-- assets/core/boostrap-material.scss --> 
+* {
+
+	&:active,
+	:focus {
+		outline: none !important;
+	}
+}
+
+label {
+	margin-bottom: 0;
+}
+
+body {
+    font-size: var(--sys-body-medium-size);
+    font-family: var(--sys-body-medium-font);
+}
+
+//<!--------   m3 styles overwrites  ------------>
+.mat-mdc-mini-fab {
+    border-radius: 50% !important;
+}
+.mat-mdc-dialog-surface {
+    border-radius: 8px !important;
+}
+.mat-button-toggle-group.mat-button-toggle-group-appearance-standard{
+    border-radius: 4px;
+    .mat-button-toggle-label-content{
+        padding: 3px 12px;
+    }
+    .mat-button-toggle .mat-pseudo-checkbox{
+        padding-right: 8px;
+    }
+}
+.mdc-icon-button {
+    line-height: 1 !important;
+}
+.mat-primary.mat-mdc-outlined-button:not(:disabled){
+    border-color: var(--sys-primary);
+    background-color: var(--sys-surface);
+    color: hsl(from var(--sys-primary) h s calc(l - 15));
+}
+.mat-accent.mat-mdc-outlined-button:not(:disabled){
+    border-color: var(--sys-tertiary);
+    background-color: var(--sys-surface);
+    color: hsl(from var(--sys-tertiary) h s calc(l - 15));
+}
+.mat-warn.mat-mdc-outlined-button:not(:disabled){
+    border-color: var(--sys-error);
+    background-color: var(--sys-surface);
+}
+.mat-unthemed.mat-mdc-outlined-button:not(:disabled) {
+    color: var(--sys-on-surface);
+    border-color: var(--sys-outline);
+    background-color: var(--sys-surface);
+}
+.mat-divider.mat-divider-vertical{
+    border-right-color: rgba(0, 0, 0, .12) !important;
+}
+.mat-divider:not(.mat-divider-vertical){
+    border-top-color: rgba(0, 0, 0, .12) !important;
+}
+.mdc-switch.mdc-switch--checked{
+    .mdc-switch__handle {
+        .mdc-switch__shadow{
+            background-color: var(--sys-on-tertiary);;
+        }
+        .mdc-switch__icon--on{
+            fill: var(--sys-tertiary);
+        }
+    }
+}
+.mat-mdc-slide-toggle .mdc-switch {
+    transform: scale(0.75);
+}
+
+.mat-mdc-checkbox.mat-mdc-checkbox-disabled label {
+    color: var(--mdc-outlined-text-field-disabled-input-text-color) !important; //because it refuses to override the correct way
+}
+
+.ngx-datatable, .ngx-datatable.material .datatable-header .datatable-header-cell {
+    background-color: var(--sys-surface) !important;
+    color: var(--sys-on-surface);
+}
+
+.ngx-datatable.material .datatable-body .datatable-body-row .datatable-body-cell {
+    color: var(--sys-on-surface);
+}
+
+.ngx-datatable.material .datatable-header .datatable-header-cell {
+    color: var(--sys-on-surface);
+}
+
+.ngx-datatable.material .datatable-body .datatable-body-row .datatable-body-cell{
+    font-size: var(--sys-body-medium-size);
+}
+.ngx-datatable.material .datatable-header .datatable-header-cell{
+    font-size: var(--sys-label-medium-size);
+}
+
+//<!--------   m3 styles overwrites end ------------>
+
+a {
+    color: var(--link-color);
+    &:hover {
+        color: var(--sys-primary);
+        text-decoration: none;
+    }
+    &.color-unset {
+        color: var(--sys-on-surface);
+    }
+    & .material-icons { //_misc.scss
+        vertical-align: middle;
+    }
+}
+
+
+.badge-accent .mat-badge-content{
+    background-color: var(--sys-tertiary) !important;
+    color: var(--sys-on-tertiary) !important;
+}
+
+.badge-lg .mat-badge-content {
+    transform: scale(1.25) !important;
+}
+
+.card {
+    border: 0;
+}
+
+//<!--------     ------------>
+.accessibility-theme {
+    .mdc-button.padded-shadow-btn {
+        line-height: 1.25rem;
+    }
+}
+
+.action-list-label, .actions-list, small {
+    font-size: var(--sys-body-small-size) !important;
+}
+
+
+
 
 //TODO: angular update @import '../node_modules/dragula/dist/dragula.css';
 /* in-flight clone */
@@ -138,13 +197,13 @@ $mat-dark-theme: mat.m2-define-dark-theme((color: (primary: $mat-dark-theme-prim
 /* added to the source element while its mirror is dragged */
 .gu-transit {
 	opacity: 0;
-	border: 1px dashed red;
+	border: 1px dashed var(--sys-error);
 	-ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=20)";
 	filter: alpha(opacity=20);
 }
 
 .cc-btn {
-	background-color: var(--primary-color-3) !important;
+	background-color: var(--sys-primary) !important;
 }
 
 .snackbar-warning {
@@ -158,96 +217,12 @@ $mat-dark-theme: mat.m2-define-dark-theme((color: (primary: $mat-dark-theme-prim
 }
 
 .snackbar-error {
-	background-color: #cf1407;
+	background-color:var(--sys-error);
 	color: #111010;
 }
 
-.listing-item {
-	margin-top: 0.5em;
-	padding: 0.5em;
-	cursor: pointer;
-	border: 3px solid #f2f2f2;
-
-	.title {
-		color: black;
-	}
-
-	.grant-title {
-		color: rgb(93, 125, 173);
-	}
-
-	.gray-icon {
-		color: rgb(191, 191, 191);
-	}
-
-	.chip {
-		padding: 0.1em 1em;
-		border-radius: 10em;
-		background-color: #0d7489;
-		color: #fff;
-		text-transform: uppercase;
-		font-weight: 500;
-		max-width: 160px;
-		white-space: nowrap;
-		overflow: hidden;
-		text-overflow: ellipsis;
-	}
-
-	.bordered-chip {
-		padding: 0.1em 1em;
-		border: 0.1em solid rgb(218, 227, 243);
-		border-radius: 10em;
-		background-color: rgb(236, 241, 249);
-		color: var(--primary-color);
-		text-transform: uppercase;
-		font-weight: 500;
-		max-width: 160px;
-		white-space: nowrap;
-		overflow: hidden;
-		text-overflow: ellipsis;
-	}
-
-	.squared-chip {
-		padding: 0.1em 1em;
-		border: 0.1em solid rgb(236, 241, 249);
-		border-radius: 0.5em;
-		background-color: rgb(246, 246, 246);
-		color: rgb(127, 127, 127);
-		max-width: 160px;
-		white-space: nowrap;
-		overflow: hidden;
-		text-overflow: ellipsis;
-	}
-
-	mat-icon {
-		width: auto;
-		height: auto;
-	}
-
-	.mr-5 {
-		margin-right: 2rem !important;
-	}
-
-	.info {
-		background-color: #f6f6f6;
-		padding: 8px 15px;
-		margin-bottom: 15px;
-	}
-
-	.info p {
-		margin-bottom: 0px;
-		color: rgb(37, 35, 140);
-		font-weight: 600;
-	}
-
-	.chip p {
-		margin-bottom: 0px;
-	}
-
-	h4 span {
-		color: #089dbb;
-		font-weight: 600;
-	}
+.text-success {
+    color: #109204
 }
 
 .listing {
@@ -261,13 +236,9 @@ $mat-dark-theme: mat.m2-define-dark-theme((color: (primary: $mat-dark-theme-prim
 	}
 }
 
-.gray-container {
-	background: linear-gradient(180deg, #f6f6f6, #fff);
-	margin: 5px 0px;
-}
 
 .main-content {
-	background-color: #f5f5f5;
+	background-color: var(--sys-background);
 	padding-bottom: 3rem;
 	padding-left: 1rem;
 	margin: 0;
@@ -275,12 +246,12 @@ $mat-dark-theme: mat.m2-define-dark-theme((color: (primary: $mat-dark-theme-prim
 	flex-grow: 1;
 }
 
-::ng-deep .mat-form-field-wrapper {
-	background-color: white !important;
+.mat-form-field-wrapper {
+	background-color: var(--sys-surface) !important;
 	padding-bottom: 0 !important;
 }
 
-::ng-deep .mat-form-field-appearance-outline .mat-form-field-infix {
+.mat-form-field-appearance-outline .mat-form-field-infix {
 	padding: 0.3rem 0rem 0.6rem 0rem !important;
 }
 
@@ -291,7 +262,7 @@ $mat-dark-theme: mat.m2-define-dark-theme((color: (primary: $mat-dark-theme-prim
 .mdc-notched-outline__notch,
 .mdc-notched-outline__leading,
 .mdc-notched-outline__trailing {
-	background-color: white;
+	background-color: var(--sys-surface);
 }
 
 .custom-userbox>mat-dialog-container {
@@ -322,11 +293,6 @@ $mat-dark-theme: mat.m2-define-dark-theme((color: (primary: $mat-dark-theme-prim
 }
 
 
-.text-primary-blue {
-	color: var(--primary-color);
-}
-
-
 .translateY-3 {
 	transform: translateY(3px);
 }
@@ -337,6 +303,39 @@ $mat-dark-theme: mat.m2-define-dark-theme((color: (primary: $mat-dark-theme-prim
 	padding: 0 1em;
 	margin-top: 8px;
 }
+
+label.disabled, mat-label.disabled {
+    color: var(--mdc-outlined-text-field-disabled-label-text-color);
+}
+
+angular-editor {
+    .angular-editor {
+        border: 1px solid var(--sys-outline) !important;
+        &:focus-within {
+            border: 2px solid var(--sys-primary) !important;
+        }
+        border-radius: var(--mdc-outlined-text-field-container-shape);
+        background-color: var(--sys-surface);
+        .angular-editor-wrapper .angular-editor-placeholder{
+            color: var(--mdc-outlined-text-field-disabled-input-text-color) !important;
+            opacity: 1 !important;
+        }
+    }
+    .angular-editor-textarea.disabled{
+        color: var(--mdc-outlined-text-field-disabled-input-text-color);
+        pointer-events: none;
+    }
+    &.disabled {
+        .angular-editor {
+            border: 1px solid var(--mdc-outlined-text-field-disabled-outline-color) !important;
+
+        }
+        &:focus-within {
+            border: none !important;
+        }
+    }
+}
+
 
 /* Transition Group */
 .list-move {
@@ -411,74 +410,34 @@ $mat-dark-theme: mat.m2-define-dark-theme((color: (primary: $mat-dark-theme-prim
 	@include mat.all-component-densities(-10); 
 }
 
-button, .mdc-button, .mat-mdc-button, .mdc-button:has(.material-icons,mat-icon,[matButtonIcon]), .md-button, .mat-mdc-button:not(:disabled) {
+.listing-filters {
+    .mat-mdc-button.filter-button {
+        color: var(--sys-color-on-surface);
+    }
+}
+.listing-filters-container {
+    padding: 0.5rem 1rem;
+}
 
-    &.rounded-btn{
+button.mdc-button, .mat-mdc-button, .md-button, .mat-mdc-button:not(:disabled) {
+
+    &.squared-btn {
+        border-radius: 4px;
+    }
+    &.padded-shadow-btn{
         padding: 0.62rem 1.87rem;
-        height: 40px;
-
-        border-radius: 30px;
-        opacity: 1;
-        // padding-left: 2em;
-        // padding-right: 2em;
-        box-shadow: 0px 3px 6px #1E202029;
-    }
-    &.primary {
-        background: var(--primary-color) 0% 0% no-repeat padding-box;
-        color: #ffffff;
-        border: none;
-        &:disabled, &.mat-mdc-button.mat-mdc-button-disabled{
-            background: #CBCBCB;
-            color: #ffffff;
-            border: none;
-        }
+        min-height: 40px;
+        box-shadow: 0px 3px 6px #1E202029 !important;
     }
 
-    &.secondary {
-        background: var(--secondary-color) 0% 0% no-repeat padding-box;
-        color: #000000;
-        border: none;
-        &:disabled, &.mat-mdc-button.mat-mdc-button-disabled{
-            background: #CBCBCB;
-            color: #ffffff;
-            border: none;
-        }
-    }
-
-    &.primary-inverted {
-        color: var(--primary-color);
-        border: 1px solid var(--primary-color);
-        background: #fafafafa;
-        &:disabled, &.mat-mdc-button.mat-mdc-button-disabled{
-            border: 1px solid #CBCBCB;
-            color: #CBCBCB;
-        }
-				&.primary-inverted-hover:hover {
-					background-color: var(--primary-color);
-					color: white;
-				}
+    &.primary-inverted-hover:hover {
+        background-color: var(--sys-primary);
+        color: var(--sys-on-primary);
     }
 
 
-    &.neutral{
-        border: 1px solid #CBCBCB;
-        background: #fafafafa;
-        color: #000000;
-        &:disabled, &.mat-mdc-button.mat-mdc-button-disabled{
-            color: #CBCBCB;
-        }
-    }
-
-    &.delete {
-        background: var(--warning-color);
-        border: none;
-        color: #ffffff;
-    }
-
-    &.delete-inverted {
-        background: #fafafafa;
-        border: 1px solid var(--warning-color);
-        color: var(--warning-color);
+    &.on-primary-outline {
+        border: 1px solid var(--sys-on-primary) !important;
     }
 
     &.import {
@@ -495,7 +454,8 @@ button, .mdc-button, .mat-mdc-button, .mdc-button:has(.material-icons,mat-icon,[
     &.load-more {
         border: 2px solid #212121;
         min-width: 132px;
-        margin-top: 4.125rem;
+        margin-top: 2rem;
+        color: black;
         
         &:hover {
             background-color: black;
@@ -507,19 +467,18 @@ button, .mdc-button, .mat-mdc-button, .mdc-button:has(.material-icons,mat-icon,[
         min-width: 156px;
         height: 44px;
         color: #ffffff;
-        background: var(--primary-color) 0% 0% no-repeat padding-box;
+        background: var(--sys-primary) 0% 0% no-repeat padding-box;
+        color: var(--sys-on-primary);
         box-shadow: 0px 3px 6px #1e202029;
         border-radius: 30px;
         &:hover {
-            background-color: #ffffff;
-            border: 1px solid var(--primary-color);
-            color: var(--primary-color);
+            background-color: var(--sys-on-primary);
+            border: 1px solid var(--sys-primary);
+            color: var(--sys-primary);
         }
     
         &.attach-file.mdc-button-disabled, &.attach-file.mdc-button-disabled:hover {
-            background-color: #ffffff;
-            border: 1px solid darkgray;
-            color: darkgrey !important;
+            opacity: 0.7;
         }
     }
 
@@ -533,25 +492,22 @@ button, .mdc-button, .mat-mdc-button, .mdc-button:has(.material-icons,mat-icon,[
         justify-content: center;
         align-items: center;
     }
-    &.primary{
-        background-color: var(--primary-color);
-        color: #ffffff;
-        &:hover {
-            background-color: var(--secondary-color);
-            color: #000000;
-        }
+    &.mat-primary:not(:hover) {
+        background-color: var(--sys-primary);
+        color: var(--sys-on-primary);
     }
-
-    &.secondary{
-        background-color: var(--secondary-color);
-        
-        color: #000000;
-        &:hover {
-            background-color: var(--primary-color);
-            color: #ffffff;
-        }
+    &.mat-primary:hover {
+        background-color: hsl(from var(--sys-primary) h s calc(l + 4));
+        color: var(--sys-on-primary)
     }
-    
+    &.mat-accent:not(:hover) {
+        background: var(--sys-tertiary);
+        color: var(--sys-on-tertiary)
+    } 
+    &.mat-accent:hover{
+        background-color: hsl(from var(--sys-tertiary) h s calc(l + 4));
+        color: var(--sys-on-tertiary)
+    }
 }
 
 .status-chip {
@@ -559,23 +515,28 @@ button, .mdc-button, .mat-mdc-button, .mdc-button:has(.material-icons,mat-icon,[
     border-radius: 20px;
 	padding-left: 1em;
 	padding-right: 1em;
-	padding-top: 0.2em;
-	font-size: .8em;
-    &.status-chip-finalized {
-        color: #568b5a;
-        background: #9dd1a1 0% 0% no-repeat padding-box;
-    }
-
-    &.status-chip-draft {
-        color: #00c4ff;
-        background: #d3f5ff 0% 0% no-repeat padding-box;
-    }
-
-    &.status-chip-error {
-        color: var(--warning-color);
-        background: #ffe6e5 0% 0% no-repeat padding-box;
-    }
+	font-size: var(--sys-label-medium-size);
 }
+.status-chip-finalized, .user-role.tenant-plan-manager {
+    color: #235727;
+    background: #cee9d0  0% 0% no-repeat padding-box;
+}
+
+.status-chip-draft, .user-role.user, .user-role.tenant-user {
+    color: #00607d;
+    background: #d3f5ff 0% 0% no-repeat padding-box;
+}
+
+.status-chip-error, .user-role.admin, .user-role.tenant-admin, .user-role.installation-admin {
+    color: var(--sys-error);
+    background: hsl(from var(--sys-error) h calc(s + 25) calc(l + 52));
+}
+
+.user-role.tenant-config-manager{
+    color: #8100a1;
+    background: #fbdeff  0% 0% no-repeat padding-box;
+}
+
 
 ////////* FROM DEMO.CSS*/////
 .pointer {
@@ -586,6 +547,11 @@ button, .mdc-button, .mat-mdc-button, .mdc-button:has(.material-icons,mat-icon,[
 	padding: 0px;
 }
 
+@media(min-width: 300px){
+    .mat-button-toggle-group.horizontal-toggle-group{
+        flex-direction: row !important;
+    }
+}
 
 @media (min-width: 576px) {
 	.container {
@@ -611,3 +577,110 @@ button, .mdc-button, .mat-mdc-button, .mdc-button:has(.material-icons,mat-icon,[
 	}
 }
 ////////*////////
+/// 
+/// 
+/// 
+///
+
+
+
+ul.horizontal-list {
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    li {
+        float: left;
+    }
+}
+
+ul.unstyled-list, ol.unstyled-list {
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+
+}
+
+button { //remove bootstrap styling !
+    background-color: unset;
+    font-size: unset;
+    color: unset;
+    border: unset;
+}
+
+.mat-mdc-action-list.unset-font-size {
+    .mdc-list-item__--sys-on-primary{
+        font-size: unset;
+    }
+}
+
+.mat-button-toggle.no-borders{
+    border-top: none !important;
+    border: none;
+}
+
+.mat-expansion-panel.unstyled {
+    background-color: transparent !important;
+    box-shadow: none !important;
+    border-top-right-radius: 0 !important;
+    border-top-left-radius: 0 !important;
+    border-bottom-left-radius: 0 !important;
+    border-bottom-right-radius: 0 !important;
+    margin-top: 0 !important;
+    .mat-expansion-panel-header {
+        height: unset !important;
+        padding: 0.5rem 1rem;
+    }
+    .mat-expansion-panel-body {
+        padding: 0 1.25rem;
+    }
+}
+
+.laptop-img {
+    max-width: 100%;
+}
+
+#main-page {
+    container-name: main-page;
+    container-type: inline-size;
+
+    background-color: var(--sys-background);
+
+}
+
+.padded-container {
+    padding: 1.5rem 1rem 0;
+}
+
+@container main-page (inline-size < 550px){
+    .main-content {
+        padding: 1rem 0 !important;
+    }
+    .mat-expansion-panel{
+        padding-top: 0.5rem;
+        padding-bottom: 0.5rem;
+    }
+    // .container-fluid:first-child {
+    //     padding: 0 !important;
+    // }
+}
+
+.fit-content {
+    width: fit-content;
+    height: fit-content;
+}
+.link-color {
+    color: var(--link-color);
+}
+.assistive-text {
+    position: absolute;
+    margin: -1px;
+    border: 0;
+    padding: 0;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+}

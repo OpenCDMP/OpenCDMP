@@ -1,8 +1,8 @@
 
-import { of as observableOf, Subscription } from 'rxjs';
+import { of as observableOf, Subscription, timer } from 'rxjs';
 
-import { AfterViewInit, Component, OnInit, ViewChild } from '@angular/core';
-import { ActivatedRoute, NavigationEnd, NavigationStart, Router } from '@angular/router';
+import { AfterViewInit, Component, effect, OnInit, ViewChild } from '@angular/core';
+import { ActivatedRoute, NavigationEnd, Router } from '@angular/router';
 import { TranslateService } from '@ngx-translate/core';
 import { filter, map, switchMap } from 'rxjs/operators';
 import { AuthService, LoginStatus } from './core/services/auth/auth.service';
@@ -26,25 +26,27 @@ declare const gapi: any;
 declare var $: any;
 
 @Component({
-	selector: 'app-root',
-	templateUrl: './app.component.html',
-	styleUrls: ['./app.component.scss']
+    selector: 'app-root',
+    templateUrl: './app.component.html',
+    styleUrls: ['./app.component.scss'],
+    standalone: false
 })
 export class AppComponent implements OnInit, AfterViewInit {
 
 	hasBreadCrumb = observableOf(false);
 	private sideNavSubscription: Subscription;
-	helpContentEnabled: boolean;
 	private statusChangeSubscription: Subscription;
 	showOnlyRouterOutlet = false;
 	cssConfigLoaded = false;
 
 	@ViewChild('sidenav') sidenav: MatSidenav;
 
+    private languageSignal = this.language.getCurrentLanguageSignal();
+
 	constructor(
 		private router: Router,
 		private route: ActivatedRoute,
-		private authentication: AuthService,
+		protected authentication: AuthService,
 		private translate: TranslateService,
 		private titleService: Title,
 		private cultureService: CultureService,
@@ -62,10 +64,14 @@ export class AppComponent implements OnInit, AfterViewInit {
 	) {
 		this.initializeServices();
 		this.matomoService.init();
-		this.helpContentEnabled = configurationService.helpService.enabled;
 
 		const paperPlaneIconSrc = this.sanitizer.bypassSecurityTrustResourceUrl('/assets/images/annotations/paper-plane.svg');
 		iconRegistry.addSvgIcon('paperPlane', paperPlaneIconSrc);
+
+        effect(() => {
+            const language = this.languageSignal();
+            document.querySelector('html')?.setAttribute('lang', language);
+        })
 	}
 	ngAfterViewInit(): void {
 		setTimeout(() => {
@@ -134,6 +140,7 @@ export class AppComponent implements OnInit, AfterViewInit {
 						if (child.snapshot.data && child.snapshot.data.showOnlyRouterOutlet) {
 							this.showOnlyRouterOutlet = true;
 							this.ccService.getConfig().enabled = false;
+                            this.ccService.getConfig().container = document.getElementById('cookies-consent');
 							this.ccService.destroy();
 							this.ccService.init(this.ccService.getConfig());
 						} else {
@@ -143,6 +150,7 @@ export class AppComponent implements OnInit, AfterViewInit {
 							} else {
 								this.ccService.getConfig().enabled = true;
 							}
+                            this.ccService.getConfig().container = document.getElementById('cookies-consent');
 							this.ccService.destroy();
 							this.ccService.init(this.ccService.getConfig());
 						}
@@ -261,5 +269,10 @@ export class AppComponent implements OnInit, AfterViewInit {
 	toggleNavbar(event) {
 		document.getElementById('hamburger').classList.toggle("change");
 	}
+
+    skipToMain() {
+        document.getElementById('main-page')?.focus();
+	}
+
 }
 

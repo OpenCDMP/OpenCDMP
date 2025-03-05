@@ -1,23 +1,23 @@
 <div class="plan-contact-prefill-dialog">
-	<div class="row mt-3">
-		<div mat-dialog-title *ngIf="label">
-			<span class="mr-3 title">{{'PLAN-CONTACT-PREFILL-DIALOG.TITLE' | translate}}{{label}}</span>
-		</div>
-		<div mat-dialog-title *ngIf="!label">
-			<span class="mr-3 title">{{'PLAN-CONTACT-PREFILL-DIALOG.TITLE' | translate}}{{enumUtils.toPlanBlueprintSystemFieldTypeString(3)}}</span>
-		</div>
-	</div>
-	<div class="row d-flex flex-row mb-2">
-		<div class="col message pb-4 pl-3">{{'PLAN-CONTACT-PREFILL-DIALOG.TEXT' | translate}}</div>
-	</div>
-	<div class="col-12 col-xl mt-3">
-		<mat-form-field class="w-100">
-			<mat-label>{{'PLAN-CONTACT-PREFILL-DIALOG.FIELDS.USER' | translate}}</mat-label>
-			<app-single-auto-complete [(ngModel)]="selectedUser" [configuration]="singleAutoCompletePlanAssociatedUserConfiguration"></app-single-auto-complete>
-		</mat-form-field>
-	</div>
-	<div class="row" style="justify-content: space-between;">
-		<div class="col-auto"><button mat-button type="button" class="rounded-btn neutral" (click)="cancel()">{{'PLAN-CONTACT-PREFILL-DIALOG.ACTIONS.CANCEL' | translate}}</button></div>
-		<div class="col-auto"><button mat-button type="button" [disabled]="!selectedUser" (click)="confirm()" class="rounded-btn primary-inverted">{{'PLAN-CONTACT-PREFILL-DIALOG.ACTIONS.CONFIRM' | translate}}</button></div>
-	</div>
+    <div mat-dialog-title *ngIf="label">
+        <span class="mr-3 title">{{'PLAN-CONTACT-PREFILL-DIALOG.TITLE' | translate}}{{label}}</span>
+    </div>
+    <div mat-dialog-title *ngIf="!label">
+        <span class="mr-3 title">{{'PLAN-CONTACT-PREFILL-DIALOG.TITLE' | translate}}{{enumUtils.toPlanBlueprintSystemFieldTypeString(3)}}</span>
+    </div>
+    <mat-dialog-content>
+        <div class="row d-flex flex-row mb-2">
+            <div class="col message pb-4 pl-3">{{'PLAN-CONTACT-PREFILL-DIALOG.TEXT' | translate}}</div>
+        </div>
+        <div class="col-12 col-xl mt-3">
+            <mat-form-field class="w-100">
+                <mat-label>{{'PLAN-CONTACT-PREFILL-DIALOG.FIELDS.USER' | translate}}</mat-label>
+                <app-single-auto-complete [(ngModel)]="selectedUser" [configuration]="singleAutoCompletePlanAssociatedUserConfiguration"></app-single-auto-complete>
+            </mat-form-field>
+        </div>
+    </mat-dialog-content>
+    <div mat-dialog-actions class="row" style="justify-content: space-between;">
+        <div class="col-auto"><button mat-stroked-button type="button" class="padded-shadow-btn" (click)="cancel()">{{'PLAN-CONTACT-PREFILL-DIALOG.ACTIONS.CANCEL' | translate}}</button></div>
+        <div class="col-auto"><button mat-stroked-button color="primary" type="button" [disabled]="!selectedUser" (click)="confirm()" class="padded-shadow-btn">{{'PLAN-CONTACT-PREFILL-DIALOG.ACTIONS.CONFIRM' | translate}}</button></div>
+    </div>
 </div>

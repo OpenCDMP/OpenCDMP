@@ -16,6 +16,7 @@ import { DescriptionFormComponent } from './description-form.component';
 import { FormAnnotationService } from '../../../annotations/annotation-dialog-component/form-annotation.service';
 import { TagsFieldModule } from '@app/ui/tag/tags-field/tags-field.module';
 import { DescriptionFormService } from './components/services/description-form.service';
+import { FormFocusDirective } from '@common/forms/form-focus.directive';
 
 
 @NgModule({
@@ -28,7 +29,8 @@ import { DescriptionFormService } from './components/services/description-form.s
 		FormattingModule,
 		ReferenceFieldModule,
 		AnnotationDialogModule,
-		TagsFieldModule
+		TagsFieldModule,
+        FormFocusDirective,
 	],
 	declarations: [
 		DescriptionFormComponent,

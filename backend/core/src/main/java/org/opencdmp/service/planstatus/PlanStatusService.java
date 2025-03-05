@@ -10,10 +10,14 @@ import org.opencdmp.model.persist.planstatus.PlanStatusPersist;
 import org.opencdmp.model.planstatus.PlanStatus;
 
 import javax.management.InvalidApplicationException;
+import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 public interface PlanStatusService {
     PlanStatus persist(PlanStatusPersist model, FieldSet fields) throws MyForbiddenException, MyValidationException, MyApplicationException, MyNotFoundException, InvalidApplicationException, JAXBException;
 
     void deleteAndSave(UUID id) throws MyForbiddenException, InvalidApplicationException;
+
+    Map<UUID, List<UUID>> getAuthorizedAvailableStatusIds(List<UUID> planIds);
 }

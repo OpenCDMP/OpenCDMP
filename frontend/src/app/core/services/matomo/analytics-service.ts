@@ -51,6 +51,8 @@ export class AnalyticsService {
     public static PlanStatusEditor: string = 'Plan Status Editor';
     public static DescriptionStatusListing: string = 'Description Status Listing';
     public static DescriptionStatusEditor: string = 'Description Status Editor';
+	public static SupportiveMaterialEditor: string = 'SupportiveMaterialEditor';
+
 	//#endregion
 
 	//#region trackDownload

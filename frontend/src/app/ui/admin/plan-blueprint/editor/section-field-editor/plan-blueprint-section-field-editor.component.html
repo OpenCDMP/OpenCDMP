@@ -1,0 +1,139 @@
+<div *ngIf="field()">
+    <div role="button" (click)="stepChange.emit()" [class.d-none]="!previewMode() && !reorderingMode()" class="field-preview" [matTooltip]="'ALT-TEXT.CLICK-TO-EDIT' | translate" [matTooltipDisabled]="reorderingMode()">
+        <ng-container *ngTemplateOutlet="previewTemplate"></ng-container>
+    </div>
+    <div [class.d-none]="previewMode() || reorderingMode()" class="row align-items-center">
+        <div class="col-12 col-xl-4">
+            <mat-form-field class="mt-3 w-100">
+                <mat-label>{{'PLAN-BLUEPRINT-EDITOR.FIELDS.CATEGORY' | translate}}</mat-label>
+                <mat-select [formControl]="field().get('category')" (selectionChange)="fieldCategoryChanged.emit()">
+                    <mat-option *ngFor="let fieldCategory of planBlueprintFieldCategoryEnum" [value]="fieldCategory">{{enumUtils.toPlanBlueprintFieldCategoryString(fieldCategory)}}</mat-option>
+                </mat-select>
+                <mat-error *ngIf="field().get('category').hasError('backendError')">{{field().get('category').getError('backendError').message}}</mat-error>
+                <mat-error *ngIf="field().get('category').hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
+            </mat-form-field>
+        </div>
+        @switch(field().get('category').getRawValue()){
+            @case(planBlueprintFieldCategory.System){
+                <div class="col-12 col-xl-4">
+                    <mat-form-field class="mt-3 w-100">
+                        <mat-label>{{'PLAN-BLUEPRINT-EDITOR.FIELDS.SYSTEM-FIELD-TYPE' | translate}}</mat-label>
+                        <mat-select [formControl]="field().get('systemFieldType')">
+                            <mat-option *ngFor="let systemFieldType of planBlueprintSystemFieldTypeEnum" [disabled]="disabledSystemFields().has(systemFieldType)" [value]="systemFieldType">{{enumUtils.toPlanBlueprintSystemFieldTypeString(systemFieldType)}}</mat-option>
+                        </mat-select>
+                        <mat-error *ngIf="field().get('systemFieldType').hasError('backendError')">{{field().get('systemFieldType').getError('backendError').message}}</mat-error>
+                        <mat-error *ngIf="field().get('systemFieldType').hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
+                    </mat-form-field>
+                </div>
+            }
+            @case(planBlueprintFieldCategory.Extra){
+                <div class="col-12 col-xl-4">
+                    <mat-form-field class="mt-3 w-100">
+                        <mat-label>{{'PLAN-BLUEPRINT-EDITOR.FIELDS.DATA-TYPE' | translate}}</mat-label>
+                        <mat-select [formControl]="field().get('dataType')">
+                            <mat-option *ngFor="let extraFieldDataType of planBlueprintExtraFieldDataTypeEnum" [value]="extraFieldDataType">
+                                {{enumUtils.toPlanBlueprintExtraFieldDataTypeString(extraFieldDataType)}}
+                            </mat-option>
+                        </mat-select>
+                        <mat-error *ngIf="field().get('dataType').hasError('backendError')">{{field().get('dataType').getError('backendError').message}}</mat-error>
+                        <mat-error *ngIf="field().get('dataType').hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
+                    </mat-form-field>
+                </div>
+            }
+            @case(planBlueprintFieldCategory.ReferenceType){
+                <div class="col-12 col-xl-4">
+                    <mat-form-field class="mt-3 w-100">
+                        <mat-label>{{'PLAN-BLUEPRINT-EDITOR.FIELDS.REFERENCE-TYPE' | translate}}</mat-label>
+                        <app-single-auto-complete placeholder="{{'PLAN-BLUEPRINT-EDITOR.FIELDS.REFERENCE-TYPE' | translate}}" [required]="true" [formControl]="field().get('referenceTypeId')" [configuration]="referenceTypeSingleAutocompleteConfiguration"></app-single-auto-complete>
+                        <mat-error *ngIf="field().get('referenceTypeId').hasError('backendError')">{{field().get('referenceTypeId').getError('backendError').message}}</mat-error>
+                        <mat-error *ngIf="field().get('referenceTypeId').hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
+                    </mat-form-field>
+                </div>
+            }
+        }
+        @if(field().get('category').getRawValue() != null){
+            <div class="col-auto col-xl-2 section-field">
+                @if (isMandatorySystemField(field()?.getRawValue())) {
+                    <app-noop-checkbox [control]="field().get('required')" label="{{'PLAN-BLUEPRINT-EDITOR.FIELDS.FIELD-REQUIRED' | translate}}" tooltipText="{{'PLAN-BLUEPRINT-EDITOR.FIELDS.SYSTEM-FIELD-REQUIRED' | translate}}"></app-noop-checkbox>
+                }
+                @else {
+                    <mat-checkbox [formControl]="field().get('required')"><span>{{'PLAN-BLUEPRINT-EDITOR.FIELDS.FIELD-REQUIRED' | translate}}</span></mat-checkbox>
+                }
+                <mat-error *ngIf="field().get('required').hasError('backendError')">{{field().get('required').getError('backendError').message}}</mat-error>
+                <mat-error *ngIf="field().get('required').hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
+            </div>
+            @if(field().get('category').getRawValue() === planBlueprintFieldCategory.ReferenceType){
+                <div class="col-auto col-xl-2">
+                    <mat-checkbox [formControl]="field().get('multipleSelect')"><span>{{'PLAN-BLUEPRINT-EDITOR.FIELDS.FIELD-MULTIPLE-SELECT' | translate}}</span></mat-checkbox>
+                    <mat-error *ngIf="field().get('multipleSelect')?.hasError('backendError')">{{field().get('multipleSelect')?.getError('backendError').message}}</mat-error>
+                    <mat-error *ngIf="field().get('multipleSelect')?.hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
+                </div>
+            }
+            <div class="col-12 col-xl-4">
+                <mat-form-field class="mt-3 w-100">
+                    <mat-label>{{'PLAN-BLUEPRINT-EDITOR.FIELDS.FIELD-LABEL' | translate}}</mat-label>
+                    <input matInput type="text" name="label" [formControl]="field().get('label')">
+                    <mat-error *ngIf="field().get('label').hasError('backendError')">{{field().get('label').getError('backendError').message}}</mat-error>
+                    <mat-error *ngIf="field().get('label').hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
+                </mat-form-field>
+            </div>
+            <div class="col-12 col-xl-4">
+                <mat-form-field class="mt-3 w-100">
+                    <mat-label>{{'PLAN-BLUEPRINT-EDITOR.FIELDS.FIELD-PLACEHOLDER' | translate}}</mat-label>
+                    <input matInput type="text" name="placeholder" [formControl]="field().get('placeholder')">
+                    <mat-error *ngIf="field().get('placeholder').hasError('backendError')">{{field().get('placeholder').getError('backendError').message}}</mat-error>
+                    <mat-error *ngIf="field().get('placeholder').hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
+                </mat-form-field>
+            </div>
+            <div class="col-12">
+                <mat-form-field class="mt-3 w-100">
+                    <mat-label>{{'PLAN-BLUEPRINT-EDITOR.FIELDS.SEMANTICS' | translate}}</mat-label>
+                    <app-multiple-auto-complete placeholder="{{'PLAN-BLUEPRINT-EDITOR.FIELDS.SEMANTICS' | translate}}" [required]="false" [separatorKeysCodes]="separatorKeysCodes" [formControl]="field().get('semantics')" [configuration]="semanticsService.multipleAutocompleteConfiguration">
+                    </app-multiple-auto-complete>
+                    <mat-error *ngIf="field().get('semantics').hasError('backendError')">{{field().get('semantics').getError('backendError').message}}</mat-error>
+                    <mat-error *ngIf="field().get('semantics').hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
+                </mat-form-field>
+            </div>
+            <div class="col-12">
+                <mat-label class="ml-1" [appFor]="'field-description-' + id">{{'PLAN-BLUEPRINT-EDITOR.FIELDS.FIELD-DESCRIPTION' | translate}}</mat-label>
+                <rich-text-editor-component
+                    [id]="'field-description-' + id"
+                    [form]="field().get('description')"
+                    [placeholder]="'PLAN-BLUEPRINT-EDITOR.FIELDS.FIELD-DESCRIPTION'"
+                ></rich-text-editor-component>
+                <mat-error *ngIf="field().get('description').hasError('backendError')"  class="mat-mdc-form-field-subscript-wrapper">{{field().get('description').getError('backendError').message}}</mat-error>
+                <mat-error *ngIf="field().get('description').hasError('required')"  class="mat-mdc-form-field-subscript-wrapper">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
+            </div>
+        }
+
+        <div class="field-preview w-100 m-3" *ngIf="hasBaseValues">
+            <div class="col-auto">
+                <span class="previewer-text">{{'DESCRIPTION-TEMPLATE-EDITOR.ACTIONS.FIELD.PREVIEW' | translate}}</span>
+            </div>
+            <!-- <div class="col-auto">
+                <span [@fadeElement]="updatedClass" *ngIf="firstField?.get('data')?.get('fieldType')?.value">
+                    <ng-container *ngIf="!previewDirty">
+                        {{'DESCRIPTION-TEMPLATE-EDITOR.STEPS.FORM.FIELD.STATUS.PREVIEW-UPDATED' | translate}}
+                    </ng-container>
+                    <ng-container *ngIf="previewDirty">
+                        {{'DESCRIPTION-TEMPLATE-EDITOR.STEPS.FORM.FIELD.STATUS.CALCULATING-PREVIEW' | translate}}
+                    </ng-container>
+                </span>
+            </div> -->
+            <ng-container *ngTemplateOutlet="previewTemplate"></ng-container>
+        </div>
+    </div>
+</div>
+
+<ng-template #previewTemplate>
+    @if(previewModeForm){
+        <app-plan-internal-blueprint-field-editor
+            [field]="field().getRawValue()"
+            [fieldPath]="field().getRawValue().ordinal"
+            [formGroup]="previewModeForm"
+            [isNew]="true"
+            [editorModel]="previewEditorModel"
+            [referenceType]="field().get('referenceTypeId')?.getRawValue() ? referenceTypeMap().get(field().get('referenceTypeId').getRawValue()) : null"
+        />
+    }
+</ng-template>

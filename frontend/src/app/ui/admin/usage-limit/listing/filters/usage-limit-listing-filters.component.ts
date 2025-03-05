@@ -1,4 +1,5 @@
-import { Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges } from '@angular/core';
+import { Component, computed, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges } from '@angular/core';
+import { FormControl, FormGroup } from '@angular/forms';
 import { IsActive } from '@app/core/common/enum/is-active.enum';
 import { UsageLimitTargetMetric } from '@app/core/common/enum/usage-limit-target-metric';
 import { UsageLimitFilter } from '@app/core/query/usage-limit.lookup';
@@ -7,9 +8,10 @@ import { BaseComponent } from '@common/base/base.component';
 import { nameof } from 'ts-simple-nameof';
 
 @Component({
-	selector: 'app-usage-limit-listing-filters',
-	templateUrl: './usage-limit-listing-filters.component.html',
-	styleUrls: ['./usage-limit-listing-filters.component.scss']
+    selector: 'app-usage-limit-listing-filters',
+    templateUrl: './usage-limit-listing-filters.component.html',
+    styleUrls: ['./usage-limit-listing-filters.component.scss'],
+    standalone: false
 })
 export class UsageLimitListingFiltersComponent extends BaseComponent implements OnInit, OnChanges {
 
@@ -19,7 +21,12 @@ export class UsageLimitListingFiltersComponent extends BaseComponent implements 
 
 
 	// * State
-	internalFilters: UsageLimitListingFilters = this._getEmptyFilters();
+	internalFilters: FormGroup<UsageLimitListingFilters> = new FormGroup({
+			isActive: new FormControl(true),
+			like: new FormControl(null),
+			usageLimitTargetMetrics: new FormControl(null)
+		})
+    
 
 	protected appliedFilterCount: number = 0;
 	constructor(
@@ -43,46 +50,48 @@ export class UsageLimitListingFiltersComponent extends BaseComponent implements 
 
 
 	protected updateFilters(): void {
-		this.internalFilters = this._parseToInternalFilters(this.filter);
+		this._parseToInternalFilters(this.filter);
 		this.appliedFilterCount = this._computeAppliedFilters(this.internalFilters);
 	}
 
 	protected applyFilters(): void {
-		const { isActive, like, usageLimitTargetMetrics} = this.internalFilters ?? {}
+		const { isActive, like, usageLimitTargetMetrics} = this.internalFilters?.value ?? {}
 		this.filterChange.emit({
 			...this.filter,
 			like,
 			isActive: isActive ? [IsActive.Active] : [IsActive.Inactive],
 			usageLimitTargetMetrics: usageLimitTargetMetrics?.length > 0 ? usageLimitTargetMetrics : null,
-		})
+		});
+        this.internalFilters.markAsPristine();
 	}
 
 
-	private _parseToInternalFilters(inputFilter: UsageLimitFilter): UsageLimitListingFilters {
+	private _parseToInternalFilters(inputFilter: UsageLimitFilter) {
 		if (!inputFilter) {
-			return this._getEmptyFilters();
+			this._getEmptyFilters();
 		}
 
-		let { excludedIds, ids, isActive, like, usageLimitTargetMetrics } = inputFilter;
+		let { isActive, like, usageLimitTargetMetrics } = inputFilter;
 
-		return {
+		this.internalFilters.setValue({
 			isActive: (isActive ?? [])?.includes(IsActive.Active) || !isActive?.length,
-			like: like,
-			usageLimitTargetMetrics: usageLimitTargetMetrics
-		}
+			like: like ?? null,
+			usageLimitTargetMetrics: usageLimitTargetMetrics ?? null
+		});
 
 	}
 
-	private _getEmptyFilters(): UsageLimitListingFilters {
-		return {
+	private _getEmptyFilters() {
+		this.internalFilters.setValue({
 			isActive: true,
 			like: null,
 			usageLimitTargetMetrics: null
-		}
+		});
 	}
 
-	private _computeAppliedFilters(filters: UsageLimitListingFilters): number {
-		let count = 0;
+	private _computeAppliedFilters(formGroup: FormGroup<UsageLimitListingFilters>): number {
+		const filters = formGroup?.value;
+        let count = 0;
 		if (!filters?.isActive) {
 			count++
 		}
@@ -97,12 +106,13 @@ export class UsageLimitListingFiltersComponent extends BaseComponent implements 
 	}
 
 	clearFilters() {
-		this.internalFilters = this._getEmptyFilters();
+		this._getEmptyFilters();
+        this.internalFilters.markAsDirty();
 	}
 }
 
 interface UsageLimitListingFilters {
-	isActive: boolean;
-	usageLimitTargetMetrics: UsageLimitTargetMetric[];
-	like: string;
+	isActive: FormControl<boolean>;
+	usageLimitTargetMetrics: FormControl<UsageLimitTargetMetric[]>;
+	like: FormControl<string>;
 }

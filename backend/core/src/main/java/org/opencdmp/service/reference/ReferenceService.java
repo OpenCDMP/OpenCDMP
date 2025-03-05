@@ -10,6 +10,7 @@ import gr.cite.tools.exception.MyNotFoundException;
 import gr.cite.tools.exception.MyValidationException;
 import gr.cite.tools.fieldset.FieldSet;
 import jakarta.xml.bind.JAXBException;
+import org.opencdmp.query.lookup.ReferenceTestLookup;
 
 import javax.management.InvalidApplicationException;
 import javax.xml.parsers.ParserConfigurationException;
@@ -23,6 +24,8 @@ public interface ReferenceService {
 	void deleteAndSave(UUID id) throws MyForbiddenException, InvalidApplicationException;
 
 	List<Reference> searchReferenceData(ReferenceSearchLookup lookup) throws MyNotFoundException, InvalidApplicationException;
+
+	List<Reference> testReferenceData(ReferenceTestLookup lookup) throws MyNotFoundException, InvalidApplicationException;
 
 	Boolean findReference(String reference, UUID referenceTypeId);
 }

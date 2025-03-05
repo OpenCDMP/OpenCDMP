@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
 import { Router } from '@angular/router';
+import { ConfigurationService } from '@app/core/services/configuration/configuration.service';
 import { MaintenanceService } from '@app/core/services/maintenance/maintenance.service';
 import { SnackBarNotificationLevel, UiNotificationService } from '@app/core/services/notification/ui-notification-service';
 import { RouterUtilsService } from '@app/core/services/router/router-utils.service';
@@ -10,9 +11,10 @@ import { TranslateService } from '@ngx-translate/core';
 import { takeUntil } from 'rxjs/operators';
 
 @Component({
-	selector: 'app-maintenance-tasks',
-	templateUrl: './maintenance-tasks.component.html',
-	styleUrls: ['./maintenance-tasks.component.scss']
+    selector: 'app-maintenance-tasks',
+    templateUrl: './maintenance-tasks.component.html',
+    styleUrls: ['./maintenance-tasks.component.scss'],
+    standalone: false
 })
 export class MaintenanceTasksComponent extends BaseComponent implements OnInit {
 
@@ -24,6 +26,7 @@ export class MaintenanceTasksComponent extends BaseComponent implements OnInit {
 		private translate: TranslateService,
 		private router: Router,
 		private routerUtils: RouterUtilsService,
+		public configurationService: ConfigurationService
 	) {
 		super();
 	}
@@ -434,6 +437,68 @@ export class MaintenanceTasksComponent extends BaseComponent implements OnInit {
 		);
 	}
 
+	sendPlanStatusAccountingEntriesEvents(ev: Event) {
+		this.dialog.open(ConfirmationDialogComponent, {
+			data: {
+				message: this.language.instant('MAINTENANCE-TASKS.CONFIRMATION.MESSAGE'),
+				confirmButton: this.language.instant('GENERAL.CONFIRMATION-DIALOG.ACTIONS.CONFIRM'),
+				cancelButton: this.language.instant('GENERAL.CONFIRMATION-DIALOG.ACTIONS.CANCEL')
+			},
+			maxWidth: '30em'
+		})
+			.afterClosed()
+			.subscribe(confirm => {
+				if (confirm) {
+					this.doSendPlanStatusAccountingEntriesEvents(ev);
+				}
+			});
+	}
+
+	private doSendPlanStatusAccountingEntriesEvents(ev: Event) {
+		(ev.target as HTMLButtonElement).disabled = true;
+		this.maintenanceService.sendPlanStatusAccountingEntriesEvents().pipe(takeUntil(this._destroyed)).subscribe(
+			_ => {
+				(ev.target as HTMLButtonElement).disabled = false;
+				this.onCallbackSuccess();
+			},
+			error => {
+				(ev.target as HTMLButtonElement).disabled = false;
+				this.onCallbackError(error);
+			}
+		);
+	}
+
+	sendDescriptionStatusAccountingEntriesEvents(ev: Event) {
+		this.dialog.open(ConfirmationDialogComponent, {
+			data: {
+				message: this.language.instant('MAINTENANCE-TASKS.CONFIRMATION.MESSAGE'),
+				confirmButton: this.language.instant('GENERAL.CONFIRMATION-DIALOG.ACTIONS.CONFIRM'),
+				cancelButton: this.language.instant('GENERAL.CONFIRMATION-DIALOG.ACTIONS.CANCEL')
+			},
+			maxWidth: '30em'
+		})
+			.afterClosed()
+			.subscribe(confirm => {
+				if (confirm) {
+					this.doSendDescriptionStatusAccountingEntriesEvents(ev);
+				}
+			});
+	}
+
+	private doSendDescriptionStatusAccountingEntriesEvents(ev: Event) {
+		(ev.target as HTMLButtonElement).disabled = true;
+		this.maintenanceService.sendDescriptionStatusAccountingEntriesEvents().pipe(takeUntil(this._destroyed)).subscribe(
+			_ => {
+				(ev.target as HTMLButtonElement).disabled = false;
+				this.onCallbackSuccess();
+			},
+			error => {
+				(ev.target as HTMLButtonElement).disabled = false;
+				this.onCallbackError(error);
+			}
+		);
+	}
+
 	sendUserAccountingEntriesEvents(ev: Event) {
 		this.dialog.open(ConfirmationDialogComponent, {
 			data: {
@@ -560,7 +625,7 @@ export class MaintenanceTasksComponent extends BaseComponent implements OnInit {
 		);
 	}
 
-	sendIndicatorPointEvents(ev: Event) {
+	sendIndicatorPlanPointEvents(ev: Event) {
 		this.dialog.open(ConfirmationDialogComponent, {
 			data: {
 				message: this.language.instant('MAINTENANCE-TASKS.CONFIRMATION.MESSAGE'),
@@ -572,16 +637,241 @@ export class MaintenanceTasksComponent extends BaseComponent implements OnInit {
 			.afterClosed()
 			.subscribe(confirm => {
 				if (confirm) {
-					this.doSendIndicatorPointEvents(ev);
+					this.doSendIndicatorPlanPointEvents(ev);
 				}
 			});
 	}
 
 	
 
-	private doSendIndicatorPointEvents(ev: Event) {
+	private doSendIndicatorPlanPointEvents(ev: Event) {
 		(ev.target as HTMLButtonElement).disabled = true;
-		this.maintenanceService.sendIndicatorPointEvents().pipe(takeUntil(this._destroyed)).subscribe(
+		this.maintenanceService.sendIndicatorPlanPointEvents().pipe(takeUntil(this._destroyed)).subscribe(
+			_ => {
+				(ev.target as HTMLButtonElement).disabled = false;
+				this.onCallbackSuccess();
+			},
+			error => {
+				(ev.target as HTMLButtonElement).disabled = false;
+				this.onCallbackError(error);
+			}
+		);
+	}
+
+	sendIndicatorDescriptionPointEvents(ev: Event) {
+		this.dialog.open(ConfirmationDialogComponent, {
+			data: {
+				message: this.language.instant('MAINTENANCE-TASKS.CONFIRMATION.MESSAGE'),
+				confirmButton: this.language.instant('GENERAL.CONFIRMATION-DIALOG.ACTIONS.CONFIRM'),
+				cancelButton: this.language.instant('GENERAL.CONFIRMATION-DIALOG.ACTIONS.CANCEL')
+			},
+			maxWidth: '30em'
+		})
+			.afterClosed()
+			.subscribe(confirm => {
+				if (confirm) {
+					this.doSendIndicatorDescriptionPointEvents(ev);
+				}
+			});
+	}
+
+	private doSendIndicatorDescriptionPointEvents(ev: Event) {
+		(ev.target as HTMLButtonElement).disabled = true;
+		this.maintenanceService.sendIndicatorDescriptionPointEvents().pipe(takeUntil(this._destroyed)).subscribe(
+			_ => {
+				(ev.target as HTMLButtonElement).disabled = false;
+				this.onCallbackSuccess();
+			},
+			error => {
+				(ev.target as HTMLButtonElement).disabled = false;
+				this.onCallbackError(error);
+			}
+		);
+	}
+
+	sendIndicatorReferencePointEvents(ev: Event) {
+		this.dialog.open(ConfirmationDialogComponent, {
+			data: {
+				message: this.language.instant('MAINTENANCE-TASKS.CONFIRMATION.MESSAGE'),
+				confirmButton: this.language.instant('GENERAL.CONFIRMATION-DIALOG.ACTIONS.CONFIRM'),
+				cancelButton: this.language.instant('GENERAL.CONFIRMATION-DIALOG.ACTIONS.CANCEL')
+			},
+			maxWidth: '30em'
+		})
+			.afterClosed()
+			.subscribe(confirm => {
+				if (confirm) {
+					this.doSendIndicatorReferencePointEvents(ev);
+				}
+			});
+	}
+
+	
+
+	private doSendIndicatorReferencePointEvents(ev: Event) {
+		(ev.target as HTMLButtonElement).disabled = true;
+		this.maintenanceService.sendIndicatorReferencePointEvents().pipe(takeUntil(this._destroyed)).subscribe(
+			_ => {
+				(ev.target as HTMLButtonElement).disabled = false;
+				this.onCallbackSuccess();
+			},
+			error => {
+				(ev.target as HTMLButtonElement).disabled = false;
+				this.onCallbackError(error);
+			}
+		);
+	}
+
+	sendIndicatorUserPointEvents(ev: Event) {
+		this.dialog.open(ConfirmationDialogComponent, {
+			data: {
+				message: this.language.instant('MAINTENANCE-TASKS.CONFIRMATION.MESSAGE'),
+				confirmButton: this.language.instant('GENERAL.CONFIRMATION-DIALOG.ACTIONS.CONFIRM'),
+				cancelButton: this.language.instant('GENERAL.CONFIRMATION-DIALOG.ACTIONS.CANCEL')
+			},
+			maxWidth: '30em'
+		})
+			.afterClosed()
+			.subscribe(confirm => {
+				if (confirm) {
+					this.doSendIndicatorUserPointEvents(ev);
+				}
+			});
+	}
+
+	
+
+	private doSendIndicatorUserPointEvents(ev: Event) {
+		(ev.target as HTMLButtonElement).disabled = true;
+		this.maintenanceService.sendIndicatorUserPointEvents().pipe(takeUntil(this._destroyed)).subscribe(
+			_ => {
+				(ev.target as HTMLButtonElement).disabled = false;
+				this.onCallbackSuccess();
+			},
+			error => {
+				(ev.target as HTMLButtonElement).disabled = false;
+				this.onCallbackError(error);
+			}
+		);
+	}
+	
+	sendIndicatorPlanBlueprintPointEvents(ev: Event) {
+		this.dialog.open(ConfirmationDialogComponent, {
+			data: {
+				message: this.language.instant('MAINTENANCE-TASKS.CONFIRMATION.MESSAGE'),
+				confirmButton: this.language.instant('GENERAL.CONFIRMATION-DIALOG.ACTIONS.CONFIRM'),
+				cancelButton: this.language.instant('GENERAL.CONFIRMATION-DIALOG.ACTIONS.CANCEL')
+			},
+			maxWidth: '30em'
+		})
+			.afterClosed()
+			.subscribe(confirm => {
+				if (confirm) {
+					this.doSendIndicatorPlanBlueprintPointEvents(ev);
+				}
+			});
+	}
+
+	
+
+	private doSendIndicatorPlanBlueprintPointEvents(ev: Event) {
+		(ev.target as HTMLButtonElement).disabled = true;
+		this.maintenanceService.sendIndicatorPlanBlueprintPointEvents().pipe(takeUntil(this._destroyed)).subscribe(
+			_ => {
+				(ev.target as HTMLButtonElement).disabled = false;
+				this.onCallbackSuccess();
+			},
+			error => {
+				(ev.target as HTMLButtonElement).disabled = false;
+				this.onCallbackError(error);
+			}
+		);
+	}
+
+	sendIndicatorDescriptionTemplatePointEvents(ev: Event) {
+		this.dialog.open(ConfirmationDialogComponent, {
+			data: {
+				message: this.language.instant('MAINTENANCE-TASKS.CONFIRMATION.MESSAGE'),
+				confirmButton: this.language.instant('GENERAL.CONFIRMATION-DIALOG.ACTIONS.CONFIRM'),
+				cancelButton: this.language.instant('GENERAL.CONFIRMATION-DIALOG.ACTIONS.CANCEL')
+			},
+			maxWidth: '30em'
+		})
+			.afterClosed()
+			.subscribe(confirm => {
+				if (confirm) {
+					this.doSendIndicatorDescriptionTemplatePointEvents(ev);
+				}
+			});
+	}
+
+	
+
+	private doSendIndicatorDescriptionTemplatePointEvents(ev: Event) {
+		(ev.target as HTMLButtonElement).disabled = true;
+		this.maintenanceService.sendIndicatorDescriptionTemplatePointEvents().pipe(takeUntil(this._destroyed)).subscribe(
+			_ => {
+				(ev.target as HTMLButtonElement).disabled = false;
+				this.onCallbackSuccess();
+			},
+			error => {
+				(ev.target as HTMLButtonElement).disabled = false;
+				this.onCallbackError(error);
+			}
+		);
+	}
+	
+	sendEvaluationPlanAccountingEntriesEvents(ev: Event) {
+		this.dialog.open(ConfirmationDialogComponent, {
+			data: {
+				message: this.language.instant('MAINTENANCE-TASKS.CONFIRMATION.MESSAGE'),
+				confirmButton: this.language.instant('GENERAL.CONFIRMATION-DIALOG.ACTIONS.CONFIRM'),
+				cancelButton: this.language.instant('GENERAL.CONFIRMATION-DIALOG.ACTIONS.CANCEL')
+			},
+			maxWidth: '30em'
+		})
+			.afterClosed()
+			.subscribe(confirm => {
+				if (confirm) {
+					this.dosendEvaluationPlanAccountingEntriesEvents(ev);
+				}
+			});
+	}
+
+	private dosendEvaluationPlanAccountingEntriesEvents(ev: Event) {
+		(ev.target as HTMLButtonElement).disabled = true;
+		this.maintenanceService.sendEvaluationPlanAccountingEntriesEvents().pipe(takeUntil(this._destroyed)).subscribe(
+			_ => {
+				(ev.target as HTMLButtonElement).disabled = false;
+				this.onCallbackSuccess();
+			},
+			error => {
+				(ev.target as HTMLButtonElement).disabled = false;
+				this.onCallbackError(error);
+			}
+		);
+	}
+
+	sendEvaluationDescriptionAccountingEntriesEvents(ev: Event) {
+		this.dialog.open(ConfirmationDialogComponent, {
+			data: {
+				message: this.language.instant('MAINTENANCE-TASKS.CONFIRMATION.MESSAGE'),
+				confirmButton: this.language.instant('GENERAL.CONFIRMATION-DIALOG.ACTIONS.CONFIRM'),
+				cancelButton: this.language.instant('GENERAL.CONFIRMATION-DIALOG.ACTIONS.CANCEL')
+			},
+			maxWidth: '30em'
+		})
+			.afterClosed()
+			.subscribe(confirm => {
+				if (confirm) {
+					this.dosendEvaluationDescriptionAccountingEntriesEvents(ev);
+				}
+			});
+	}
+
+	private dosendEvaluationDescriptionAccountingEntriesEvents(ev: Event) {
+		(ev.target as HTMLButtonElement).disabled = true;
+		this.maintenanceService.sendEvaluationDescriptionAccountingEntriesEvents().pipe(takeUntil(this._destroyed)).subscribe(
 			_ => {
 				(ev.target as HTMLButtonElement).disabled = false;
 				this.onCallbackSuccess();

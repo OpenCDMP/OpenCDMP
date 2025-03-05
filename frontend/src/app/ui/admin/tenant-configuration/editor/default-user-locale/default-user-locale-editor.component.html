@@ -25,22 +25,22 @@
 		<div class="col-12 col-md-4">
 			<mat-form-field class="w-100">
 				<mat-label>{{'TENANT-CONFIGURATION-EDITOR.FIELDS.LANGUAGE' | translate}}</mat-label>
-				<mat-select [formControl]="this.formGroup.get('defaultUserLocale')?.get('language')"  name="language">
+				<mat-select [formControl]="formGroup.get('defaultUserLocale')?.get('language')"  name="language">
 					<mat-option *ngFor="let language of languages" [value]="language">
 						{{ "GENERAL.LANGUAGES."+ language | translate }}
 					</mat-option>
 				</mat-select>
-				<mat-error *ngIf="this.formGroup.get('defaultUserLocale')?.get('language')?.hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
+				<mat-error *ngIf="formGroup.get('defaultUserLocale')?.get('language')?.hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
 				<mat-error *ngIf="formGroup.get('defaultUserLocale')?.get('language')?.hasError('backendError')">{{formGroup.get('defaultUserLocale')?.get('language')?.getError('backendError').message}}</mat-error>
 			</mat-form-field>
 		</div>
 		<div class="col-12">
 			<div class="row actions-row">
-				<div class="ml-auto col-auto" *ngIf="editorModel.id"><button mat-button class="rounded-btn primary-inverted" (click)="delete()">
+				<div class="ml-auto col-auto" *ngIf="editorModel.id"><button mat-stroked-button color="warn" class="padded-shadow-btn" (click)="delete()">
 						{{'TENANT-CONFIGURATION-EDITOR.ACTIONS.RESET-TO-DEFAULT' | translate}}
 					</button>
 				</div>
-				<div class="ml-auto col-auto"><button mat-button class="rounded-btn primary" (click)="formSubmit()">
+				<div class="ml-auto col-auto"><button mat-flat-button color="primary" class="padded-shadow-btn" (click)="formSubmit()">
 						{{'TENANT-CONFIGURATION-EDITOR.ACTIONS.SAVE' | translate}}
 					</button>
 				</div>

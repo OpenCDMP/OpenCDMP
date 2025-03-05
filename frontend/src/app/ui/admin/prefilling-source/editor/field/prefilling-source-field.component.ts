@@ -7,9 +7,10 @@ import { BaseComponent } from '@common/base/base.component';
 import { ValidationErrorModel } from '@common/forms/validation/error-model/validation-error-model';
 
 @Component({
-	selector: 'app-prefilling-source-field-component',
-	templateUrl: 'prefilling-source-field.component.html',
-	styleUrls: ['./prefilling-source-field.component.scss']
+    selector: 'app-prefilling-source-field-component',
+    templateUrl: 'prefilling-source-field.component.html',
+    styleUrls: ['./prefilling-source-field.component.scss'],
+    standalone: false
 })
 export class PrefillingSourceComponent extends BaseComponent implements OnInit {
 

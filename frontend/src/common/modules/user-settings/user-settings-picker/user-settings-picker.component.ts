@@ -11,9 +11,10 @@ import { takeUntil } from 'rxjs/operators';
 import { nameof } from 'ts-simple-nameof';
 
 @Component({
-	selector: 'app-user-settings-picker',
-	templateUrl: './user-settings-picker.component.html',
-	styleUrls: ['./user-settings-picker.component.scss']
+    selector: 'app-user-settings-picker',
+    templateUrl: './user-settings-picker.component.html',
+    styleUrls: ['./user-settings-picker.component.scss'],
+    standalone: false
 })
 export class UserSettingsPickerComponent extends BaseComponent implements OnInit, OnChanges {
 

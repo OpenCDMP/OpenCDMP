@@ -8,9 +8,10 @@ import { DescriptionTemplateRuleEditorModel } from '../../description-template-e
 import { ValidationErrorModel } from '@common/forms/validation/error-model/validation-error-model';
 
 @Component({
-	selector: 'app-description-template-editor-visibility-rule-component',
-	templateUrl: './description-template-editor-visibility-rule.component.html',
-	styleUrls: ['./description-template-editor-visibility-rule.component.scss']
+    selector: 'app-description-template-editor-visibility-rule-component',
+    templateUrl: './description-template-editor-visibility-rule.component.html',
+    styleUrls: ['./description-template-editor-visibility-rule.component.scss'],
+    standalone: false
 })
 
 export class DescriptionTemplateEditorRuleComponent implements OnInit {

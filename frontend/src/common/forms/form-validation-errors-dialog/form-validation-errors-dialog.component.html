@@ -1,13 +1,13 @@
 <div class="container-fluid">
 	<div mat-dialog-title class="row d-flex mt-3">
 		<div class="col">
-			<span class="mr-3 title">{{'GENERAL.FORM-VALIDATION-DISPLAY-DIALOG.WARNING' | translate}}</span>
+			<span class="title">{{'GENERAL.FORM-VALIDATION-DISPLAY-DIALOG.WARNING' | translate}}</span>
 		</div>
 		<div class="col-auto">
-			<button mat-icon-button tabindex="-1" (click)="onClose()"><mat-icon>close</mat-icon></button>
+			<button mat-icon-button (click)="onClose()"  [attr.aria-label]="'ALT-TEXT.CLOSE-DIALOG'  | translate"><mat-icon aria-hidden>close</mat-icon></button>
 		</div>
 	</div>
-	<div class="row mt-3 mr-3 mb-3">
+	<div class="row" mat-dialog-content>
 		<div class="col-12">
 			<ng-container *ngIf="errorMessages">
 				<ul class="error-list" *ngIf="errorMessages.length > 1 else singleError">
@@ -19,9 +19,9 @@
 			</ng-template>
 		</div>
 	</div>
-	<div class="row mt-3 mb-3">
+	<div class="row" mat-dialog-actions>
 		<div class="ml-auto col-auto">
-			<button mat-button type="button" tabindex="-1" class="rounded-btn neutral" (click)="onClose()">{{'GENERAL.FORM-VALIDATION-DISPLAY-DIALOG.ACTIONS.CANCEL' | translate}}</button>
+			<button mat-stroked-button type="button" class="padded-shadow-btn" (click)="onClose()">{{'GENERAL.FORM-VALIDATION-DISPLAY-DIALOG.ACTIONS.CANCEL' | translate}}</button>
 		</div>
 	</div>
 </div>

@@ -44,9 +44,7 @@ public class CssColorsTenantConfigurationBuilder extends BaseBuilder<CssColorsTe
         for (CssColorsTenantConfigurationEntity d : data) {
             CssColorsTenantConfiguration m = new CssColorsTenantConfiguration();
             if (fields.hasField(this.asIndexer(CssColorsTenantConfiguration._primaryColor))) m.setPrimaryColor(d.getPrimaryColor());
-            if (fields.hasField(this.asIndexer(CssColorsTenantConfiguration._primaryColor2))) m.setPrimaryColor2(d.getPrimaryColor2());
-            if (fields.hasField(this.asIndexer(CssColorsTenantConfiguration._primaryColor3))) m.setPrimaryColor3(d.getPrimaryColor3());
-            if (fields.hasField(this.asIndexer(CssColorsTenantConfiguration._secondaryColor))) m.setSecondaryColor(d.getSecondaryColor());
+            if (fields.hasField(this.asIndexer(CssColorsTenantConfiguration._cssOverride))) m.setCssOverride(d.getCssOverride());
             models.add(m);
         }
         this.logger.debug("build {} items", Optional.of(models).map(List::size).orElse(0));

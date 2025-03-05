@@ -25,8 +25,9 @@ import { Guid } from '../types/guid';
 import { BaseEditorModel } from './base-form-editor-model';
 
 @Component({
-	selector: 'app-base-editor-component',
-	template: ''
+    selector: 'app-base-editor-component',
+    template: '',
+    standalone: false
 })
 export abstract class BaseEditor<EditorModelType extends BaseEditorModel, EntityType> extends BasePendingChangesComponent implements OnInit {
 
@@ -193,7 +194,7 @@ export abstract class BaseEditor<EditorModelType extends BaseEditorModel, Entity
 		this.lockService.unlockTarget(targetId).pipe(takeUntil(this._destroyed)).subscribe(async result => { }); //TODO HANDLE-ERRORS
 	}
 
-	private touchLock(targetId: Guid) {
+	protected touchLock(targetId: Guid) {
 		this.lockService.touchLock(targetId).pipe(takeUntil(this._destroyed)).subscribe(async result => { }); //TODO HANDLE-ERRORS
 	}
 

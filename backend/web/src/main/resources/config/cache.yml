@@ -50,7 +50,19 @@ cache:
         maximumSize: 500
         enableRecordStats: false
         expireAfterWriteSeconds: 600
+      - names: [ "evaluatorConfigById" ]
+        allowNullValues: true
+        initialCapacity: 100
+        maximumSize: 500
+        enableRecordStats: false
+        expireAfterWriteSeconds: 600
       - names: [ "fileTransformerSourcesByTenant" ]
+        allowNullValues: true
+        initialCapacity: 100
+        maximumSize: 500
+        enableRecordStats: false
+        expireAfterWriteSeconds: 600
+      - names: [ "evaluatorSourcesByTenant" ]
         allowNullValues: true
         initialCapacity: 100
         maximumSize: 500
@@ -86,6 +98,12 @@ cache:
         maximumSize: 500
         enableRecordStats: false
         expireAfterWriteSeconds: 20
+      - names: [ "customPolicyByTenant" ]
+        allowNullValues: true
+        initialCapacity: 100
+        maximumSize: 500
+        enableRecordStats: false
+        expireAfterWriteSeconds: 600
     mapCaches:
   userBySubjectId:
     name: userBySubjectId
@@ -120,12 +138,21 @@ cache:
   fileTransformerConfigById:
     name: fileTransformerConfigById
     keyPattern: file_transformer_config_by_id_$transformerId$_$tenantCode$:v0
+  evaluatorConfigById:
+    name: evaluatorConfigById
+    keyPattern: evaluator_config_by_id_$evaluatorId$_$tenantCode$:v0
   fileTransformerSourcesByTenant:
     name: fileTransformerSourcesByTenant
     keyPattern: ile_transformer_sources_by_tenant_$tenantCode$:v0
+  evaluatorSourcesByTenant:
+    name: evaluatorSourcesByTenant
+    keyPattern: evaluator_sources_by_tenant_$tenantCode$:v0
   token-exchange-key:
     name: tokenExchangeKey
     keyPattern: resolve_$keyhash$:v0
   affiliation:
     name: affiliation
     keyPattern: affiliation_$entity$_$user$_$tenant$_$type$:v0
+  customPolicyByTenant:
+    name: customPolicyByTenant
+    keyPattern: custom_policy_by_tenant$tenant_code$:v0

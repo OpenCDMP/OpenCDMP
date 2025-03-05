@@ -50,7 +50,7 @@ public class DescriptionElasticQuery extends ElasticQuery<DescriptionElasticEnti
 	private Instant finalizedBefore;
 	private Collection<UUID> excludedIds;
 	private Collection<UUID> tenantIds;
-	private Collection<DescriptionStatus> statuses;
+	private Collection<UUID> statusIds;
 	private NestedDescriptionTemplateElasticQuery descriptionTemplateSubQuery;
 	private NestedReferenceElasticQuery referenceSubQuery;
 	private NestedTagElasticQuery tagSubQuery;
@@ -133,18 +133,18 @@ public class DescriptionElasticQuery extends ElasticQuery<DescriptionElasticEnti
 		return this;
 	}
 
-	public DescriptionElasticQuery statuses(DescriptionStatus value) {
-		this.statuses = List.of(value);
+	public DescriptionElasticQuery statusIds(UUID value) {
+		this.statusIds = List.of(value);
 		return this;
 	}
 
-	public DescriptionElasticQuery statuses(DescriptionStatus... value) {
-		this.statuses = Arrays.asList(value);
+	public DescriptionElasticQuery statusIds(UUID... value) {
+		this.statusIds = Arrays.asList(value);
 		return this;
 	}
 
-	public DescriptionElasticQuery statuses(Collection<DescriptionStatus> values) {
-		this.statuses = values;
+	public DescriptionElasticQuery statusIds(Collection<UUID> values) {
+		this.statusIds = values;
 		return this;
 	}
 
@@ -189,7 +189,7 @@ public class DescriptionElasticQuery extends ElasticQuery<DescriptionElasticEnti
 	protected Boolean isFalseQuery() {
 		return  this.isEmpty(this.ids) ||
 				this.isEmpty(this.excludedIds) ||
-				this.isEmpty(this.statuses);
+				this.isEmpty(this.statusIds);
 	}
 
 	@Override
@@ -230,7 +230,6 @@ public class DescriptionElasticQuery extends ElasticQuery<DescriptionElasticEnti
 		List<Query> predicates = new ArrayList<>();
 		if (usePublic ) {
 			predicates.add(this.and(
-					this.equals(new ElasticField(DescriptionElasticEntity._plan + "." + PlanElasticEntity._status, this.entityClass()).disableInfer(true), PlanStatus.Finalized.getValue()),
 					this.equals(new ElasticField(DescriptionElasticEntity._plan + "." + PlanElasticEntity._accessType, this.entityClass()).disableInfer(true), PlanAccessType.Public.getValue())
 			));
 		}
@@ -284,8 +283,8 @@ public class DescriptionElasticQuery extends ElasticQuery<DescriptionElasticEnti
 		if (this.tenantIds != null) {
 			predicates.add(this.containsUUID(this.elasticFieldOf(DescriptionElasticEntity._tenantId), this.tenantIds)._toQuery());
 		}
-		if (this.statuses != null) {
-			predicates.add(this.contains(this.elasticFieldOf(DescriptionElasticEntity._status), this.statuses.stream().map(DescriptionStatus::getValue).toList().toArray(new Short[this.statuses.size()]))._toQuery());
+		if (this.statusIds != null) {
+			predicates.add(this.containsUUID(this.elasticFieldOf(DescriptionElasticEntity._statusId), this.statusIds)._toQuery());
 		}
 		if (this.finalizedAfter != null) {
 			predicates.add(this.dateGreaterThanQuery(this.elasticFieldOf(DescriptionElasticEntity._finalizedAt), this.finalizedAfter)._toQuery());
@@ -324,7 +323,7 @@ public class DescriptionElasticQuery extends ElasticQuery<DescriptionElasticEnti
 		if (columns.contains(DescriptionElasticEntity._id)) mocDoc.setId(FieldBasedMapper.shallowSafeConversion(rawData.get(DescriptionElasticEntity._id), UUID.class));
 		if (columns.contains(DescriptionElasticEntity._label)) mocDoc.setLabel(FieldBasedMapper.shallowSafeConversion(rawData.get(DescriptionElasticEntity._label), String.class));
 		if (columns.contains(DescriptionElasticEntity._description)) mocDoc.setDescription(FieldBasedMapper.shallowSafeConversion(rawData.get(DescriptionElasticEntity._description), String.class));
-		if (columns.contains(DescriptionElasticEntity._status)) mocDoc.setStatus(FieldBasedMapper.shallowSafeConversion(rawData.get(DescriptionElasticEntity._status), DescriptionStatus.class));
+		if (columns.contains(DescriptionElasticEntity._statusId)) mocDoc.setStatusId(FieldBasedMapper.shallowSafeConversion(rawData.get(DescriptionElasticEntity._statusId), UUID.class));
 		if (columns.contains(DescriptionElasticEntity._finalizedAt)) mocDoc.setFinalizedAt(FieldBasedMapper.shallowSafeConversion(rawData.get(DescriptionElasticEntity._finalizedAt), Date.class));
 		if (columns.contains(DescriptionElasticEntity._createdAt)) mocDoc.setCreatedAt(FieldBasedMapper.shallowSafeConversion(rawData.get(DescriptionElasticEntity._createdAt), Date.class));
 		if (columns.contains(DescriptionElasticEntity._updatedAt)) mocDoc.setUpdatedAt(FieldBasedMapper.shallowSafeConversion(rawData.get(DescriptionElasticEntity._updatedAt), Date.class));
@@ -340,7 +339,7 @@ public class DescriptionElasticQuery extends ElasticQuery<DescriptionElasticEnti
 		if (item.match(DescriptionElasticEntity._id)) return this.elasticFieldOf(DescriptionElasticEntity._id);
 		else if (item.match(DescriptionElasticEntity._label)) return item instanceof OrderingFieldResolver ?  this.elasticFieldOf(DescriptionElasticEntity._label).subfield(ElasticConstants.SubFields.keyword) : this.elasticFieldOf(DescriptionElasticEntity._label);
 		else if (item.match(DescriptionElasticEntity._description)) return this.elasticFieldOf(DescriptionElasticEntity._description);
-		else if (item.match(DescriptionElasticEntity._status)) return this.elasticFieldOf(DescriptionElasticEntity._status);
+		else if (item.match(DescriptionElasticEntity._statusId)) return this.elasticFieldOf(DescriptionElasticEntity._statusId);
 		else if (item.match(DescriptionElasticEntity._finalizedAt)) return this.elasticFieldOf(DescriptionElasticEntity._finalizedAt);
 		else if (item.match(DescriptionElasticEntity._createdAt)) return this.elasticFieldOf(DescriptionElasticEntity._createdAt);
 		else if (item.match(DescriptionElasticEntity._updatedAt)) return this.elasticFieldOf(DescriptionElasticEntity._updatedAt);

@@ -6,9 +6,10 @@ import { debounceTime, distinctUntilChanged, takeUntil } from 'rxjs';
 import { BaseComponent } from '@common/base/base.component';
 
 @Component({
-	selector: 'app-description-template-editor-radio-box-field-component',
-	styleUrls: ['./description-template-editor-radio-box-field.component.scss'],
-	templateUrl: './description-template-editor-radio-box-field.component.html'
+    selector: 'app-description-template-editor-radio-box-field-component',
+    styleUrls: ['./description-template-editor-radio-box-field.component.scss'],
+    templateUrl: './description-template-editor-radio-box-field.component.html',
+    standalone: false
 })
 export class DescriptionTemplateEditorRadioBoxFieldComponent extends BaseComponent implements OnInit {
 

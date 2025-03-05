@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { FormGroup } from '@angular/forms';
 import { MatDialog } from '@angular/material/dialog';
 import { Router, ActivatedRoute } from '@angular/router';
@@ -6,7 +6,6 @@ import { AppRole } from '@app/core/common/enum/app-role';
 import { DescriptionStatusEnum } from '@app/core/common/enum/description-status';
 import { AppPermission } from '@app/core/common/enum/permission.enum';
 import { DescriptionStatus } from '@app/core/model/description-status/description-status';
-import { DescriptionStatusPersist } from '@app/core/model/description/description';
 import { AuthService } from '@app/core/services/auth/auth.service';
 import { ConfigurationService } from '@app/core/services/configuration/configuration.service';
 import { DescriptionStatusService } from '@app/core/services/description-status/description-status.service';
@@ -29,17 +28,31 @@ import { DescriptionStatusForm, DescriptionStatusDefinitionAuthorizationItemForm
 import { DescriptionStatusEditorResolver } from './description-status-editor.resolver';
 import { BaseEditor } from '@common/base/base-editor';
 import { PlanUserRole } from '@app/core/common/enum/plan-user-role';
+import { DescriptionStatusAvailableActionType } from '@app/core/common/enum/description-status-available-action-type';
+import { StorageFileService } from '@app/core/services/storage-file/storage-file.service';
+import { FileUtils } from '@app/core/services/utilities/file-utils.service';
+import { StorageFile } from '@app/core/model/storage-file/storage-file';
+import { nameof } from 'ts-simple-nameof';
+import FileSaver from 'file-saver';
+import { DescriptionStatusPersist } from '@app/core/model/description-status/description-status-persist';
+import { CssColorsEditorService } from '@app/ui/admin/tenant-configuration/editor/css-colors/css-colors-editor.service';
 
 @Component({
-  selector: 'app-description-status-editor',
-  templateUrl: './description-status-editor.component.html',
-  styleUrl: './description-status-editor.component.scss'
+    selector: 'app-description-status-editor',
+    templateUrl: './description-status-editor.component.html',
+    styleUrl: './description-status-editor.component.scss',
+    providers: [CssColorsEditorService],
+    standalone: false
 })
 export class DescriptionStatusEditorComponent extends BaseEditor<DescriptionStatusEditorModel, DescriptionStatus> implements OnInit{
     protected internalStatusEnum = this.enumUtils.getEnumValues<DescriptionStatusEnum>(DescriptionStatusEnum);
     protected userRolesEnum = this.enumUtils.getEnumValues<AppRole>(AppRole);
     protected planRolesEnum = this.enumUtils.getEnumValues<PlanUserRole>(PlanUserRole);
+	protected descriptionStatusAvailableActionTypeEnumValues = this.enumUtils.getEnumValues<DescriptionStatusAvailableActionType>(DescriptionStatusAvailableActionType);
     protected belongsToCurrentTenant: boolean;
+	fileNameDisplay: string = null;
+	isUsingDropzone: boolean = true; 
+	filesToUpload: FileList;
 
     constructor(
         protected enumUtils: EnumUtils,
@@ -59,6 +72,10 @@ export class DescriptionStatusEditorComponent extends BaseEditor<DescriptionStat
         private descriptionStatusService: DescriptionStatusService,
         private logger: LoggingService,
         private routerUtils: RouterUtilsService,
+		private storageFileService: StorageFileService,
+		private cdr: ChangeDetectorRef,
+		private fileUtils: FileUtils,
+		private cssColorsEditorService: CssColorsEditorService
     ){
         super(dialog, language, formService, router, uiNotificationService, httpErrorHandlingService, filterService, route, queryParamsService, lockService, authService, configurationService);
     }
@@ -88,7 +105,9 @@ export class DescriptionStatusEditorComponent extends BaseEditor<DescriptionStat
 			this.editorModel = data ? new DescriptionStatusEditorModel().fromModel(data) : new DescriptionStatusEditorModel();
 			this.isDeleted = data ? data.isActive === IsActive.Inactive : false;
             this.belongsToCurrentTenant = data?.belongsToCurrentTenant;
+			this.fileNameDisplay = data?.definition.storageFile.name;
 			this.buildForm();
+			this.bindColorInputs();
 		} catch (error) {
 			this.logger.error('Could not parse descriptionStatus item: ' + data + error);
 			this.uiNotificationService.snackBarNotification(this.language.instant('COMMONS.ERRORS.DEFAULT'), SnackBarNotificationLevel.Error);
@@ -97,7 +116,23 @@ export class DescriptionStatusEditorComponent extends BaseEditor<DescriptionStat
 
     buildForm(): void {
         this.formGroup = this.editorModel.buildForm({disabled: !this.isNew && (!this.belongsToCurrentTenant || this.isDeleted || !this.authService.hasPermission(AppPermission.EditDescriptionStatus))});
-    }
+		this.cssColorsEditorService.setValidationErrorModel(this.editorModel.validationErrorModel);
+		
+		if ((this.formGroup?.controls.definition.controls.storageFileId.value != undefined)) {
+			
+
+			const fields = [
+				nameof<StorageFile>(x => x.id),
+				nameof<StorageFile>(x => x.name),
+				nameof<StorageFile>(x => x.extension),
+			]
+			this.storageFileService.getSingle(this.formGroup?.controls.definition.controls.storageFileId.value, fields).pipe(takeUntil(this._destroyed)).subscribe(storageFile => {
+				this.createFileNameDisplay(storageFile.name, storageFile.extension);
+			});
+		
+		}
+	
+	}
 
     formSubmit(): void {
         this.formService.removeAllBackEndErrors(this.formGroup);
@@ -150,12 +185,78 @@ export class DescriptionStatusEditorComponent extends BaseEditor<DescriptionStat
 	persistEntity(onSuccess?: (response) => void): void {
 		const formData = this.formGroup.value as DescriptionStatusPersist;
 
+		if (this.isUsingDropzone) formData.definition.matIconName = null;
+		else formData.definition.storageFileId = null;
+
 		this.descriptionStatusService.persist(formData)
 			.pipe(takeUntil(this._destroyed)).subscribe({
 				next: (complete) => onSuccess ? onSuccess(complete) : this.onCallbackSuccess(complete),
                 error: (error) => this.onCallbackError(error)
             });
 	}
+
+	fileChangeEvent(fileInput: any, dropped: boolean = false) {
+
+		if (dropped) {
+			this.filesToUpload = fileInput.addedFiles;
+		} else {
+			this.filesToUpload = fileInput.target.files;
+		}
+
+		this.upload();
+	}
+
+
+	public upload() {
+		this.storageFileService.uploadTempFiles(this.filesToUpload[0])
+		.pipe(takeUntil(this._destroyed)).subscribe((response) => {
+			this.formGroup?.controls?.definition?.controls?.storageFileId.setValue(response[0].id);
+			this.formGroup?.controls?.definition?.controls?.storageFileId.markAsTouched();
+			this.fileNameDisplay = response[0].name;
+			this.cdr.detectChanges();
+		}, error => {
+			this.onCallbackError(error.error);
+		})
+	}
+
+	private createFileNameDisplay(name: string, extension: string) {
+		if (extension.startsWith('.')) this.fileNameDisplay = name + extension;
+		else this.fileNameDisplay = name + '.' + extension;
+		this.cdr.markForCheck();
+	}
+
+	download(fileId: Guid): void {
+
+		if (fileId) {
+
+			this.storageFileService.download(fileId).pipe(takeUntil(this._destroyed))
+				.subscribe(response => {
+					const blob = new Blob([response.body]);
+					const filename = this.fileUtils.getFilenameFromContentDispositionHeader(response.headers.get('Content-Disposition'));
+					FileSaver.saveAs(blob, filename);
+				},
+				error => this.httpErrorHandlingService.handleBackedRequestError(error));
+		}
+	}
+
+	onRemove(makeFilesNull: boolean = true) {
+		this.makeFilesNull()
+		this.cdr.detectChanges();
+
+	}
+
+	makeFilesNull() {
+		this.filesToUpload = null;
+		this.formGroup?.controls?.definition?.controls?.storageFileId.setValue(null);
+		this.formGroup?.controls?.definition?.controls?.storageFileId.markAsTouched();
+		this.formGroup.updateValueAndValidity();
+		this.fileNameDisplay = null;
+	}
+
+    toggleInputMethod(): void {
+        this.isUsingDropzone = !this.isUsingDropzone; 
+    }
+
 
     protected get canSave(): boolean {
         const editDescriptionStatus = this.authService.permissionEnum.EditDescriptionStatus;
@@ -166,4 +267,17 @@ export class DescriptionStatusEditorComponent extends BaseEditor<DescriptionStat
         const deletedDescriptionStatus = this.authService.permissionEnum.DeleteDescriptionStatus;
         return this.belongsToCurrentTenant && !this.isNew && !this.isDeleted && this.authService.hasPermission(deletedDescriptionStatus);
     }
+
+	private bindColorInputs() {
+		this.formGroup?.controls?.definition?.controls?.statusColor?.valueChanges.subscribe((color) => {
+			this.formGroup?.controls?.definition?.controls?.statusColor.setValue(color, {
+				emitEvent: false,
+			});
+		});
+		this.formGroup?.controls?.definition?.controls?.statusColor?.valueChanges.subscribe((color) =>
+			this.formGroup?.controls?.definition?.controls?.statusColor?.setValue(color, {
+				emitEvent: false,
+			})
+		);
+	}
 }

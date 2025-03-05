@@ -29,6 +29,15 @@ public class DescriptionStatusEntity extends TenantScopedBaseEntity {
     private String description;
     public static final String _description = "description";
 
+    @Column(name = "action", length = DescriptionStatusEntity._nameLength, nullable = true)
+    private String action;
+    public static final String _action = "action";
+    public static final int _actionLength = 250;
+
+    @Column(name = "ordinal")
+    private Integer ordinal;
+    public static final String _ordinal = "ordinal";
+
     @Column(name = "created_at", nullable = false)
     private Instant createdAt;
     public static final String _createdAt = "createdAt";
@@ -72,6 +81,22 @@ public class DescriptionStatusEntity extends TenantScopedBaseEntity {
     }
     public void setCreatedAt(Instant createdAt) {
         this.createdAt = createdAt;
+    }
+
+    public String getAction() {
+        return action;
+    }
+
+    public void setAction(String action) {
+        this.action = action;
+    }
+
+    public Integer getOrdinal() {
+        return ordinal;
+    }
+
+    public void setOrdinal(Integer ordinal) {
+        this.ordinal = ordinal;
     }
 
     public Instant getUpdatedAt() {

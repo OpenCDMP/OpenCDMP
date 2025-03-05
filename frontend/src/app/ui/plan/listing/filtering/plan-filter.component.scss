@@ -12,7 +12,7 @@
 	color: black;
 	font-weight: 500;
 	text-transform: none;
-    font-size: 1.25rem;
+    font-size: var(--sys-headline-medium-size);
     margin-bottom: 1.5em;
     opacity: 0.8;
   }
@@ -35,16 +35,14 @@
   margin-top: 8px;
   margin-bottom: 12px;
   text-transform: none;
-  font-size: 1rem;
   font-weight: 400;
 }
 
-.filters {
-}
+
 
 .filters-title {
   width: 93px;
-  color: var(--primary-color-2);
+  color: var(--sys-primary);
   background-color: white;
   padding: 0px 20px;
   margin-top: -10px;
@@ -57,17 +55,9 @@
 }
 
 ::ng-deep .mat-checkbox .mat-checkbox-frame {
-  border: 1px solid #aaaaaa;
+  border: 1px solid var(--light-gray);
 }
 
-::ng-deep .mat-checkbox-checked.mat-accent .mat-checkbox-background,
-.mat-checkbox-indeterminate.mat-accent .mat-checkbox-background,
-.mat-accent .mat-pseudo-checkbox-checked,
-.mat-accent .mat-pseudo-checkbox-indeterminate,
-.mat-pseudo-checkbox-checked,
-.mat-pseudo-checkbox-indeterminate {
-  background-color: var(--primary-color-3);
-}
 
 ::ng-deep .mat-ripple-element {
   background-color: #2e74b649 !important;
@@ -79,7 +69,7 @@
 }
 
 ::ng-deep .mat-radio-button .mat-radio-outer-circle {
-  border: 1px solid #aaaaaa;
+  border: 1px solid var(--light-gray);
 }
 
 ::ng-deep .mat-radio-button.mat-accent.mat-radio-checked .mat-radio-outer-circle {

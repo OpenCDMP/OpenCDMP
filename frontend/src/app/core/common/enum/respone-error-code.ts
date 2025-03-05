@@ -59,7 +59,17 @@ export enum ResponseErrorCode {
   planInvitationAlreadyConfirmed = 161,
   anotherUserToken = 162,
   tokenNotExist = 163,
+  supportiveMaterialAlreadyExists = 164,
   accountRequestAlreadyConfirmed = 165,
+  invalidPlanImportXml = 167,
+  invalidPlanImportRdaJson = 168,
+  invalidPlanBlueprintImportXml = 169,
+  invalidDescriptionTemplateImportXml = 170,
+  lockedPlan = 171,
+  lockedDescription = 172,
+  lockedPlanBlueprint = 173,
+  lockedDescriptionTemplate = 174,
+  invalidUserEmail = 175,
 
   // Notification & Annotation Errors
   InvalidApiKey = 200,
@@ -210,8 +220,28 @@ export class ResponseErrorCodeHelper {
         return language.instant("GENERAL.BACKEND-ERRORS.ANOTHER-USER-TOKEN");
 	  case ResponseErrorCode.tokenNotExist: 
         return language.instant("GENERAL.BACKEND-ERRORS.TOKEN-NOT-EXIST");
+	  case ResponseErrorCode.supportiveMaterialAlreadyExists: 
+        return language.instant("GENERAL.BACKEND-ERRORS.SUPPORTIVE-MATERIAL-ALREADY-EXISTS");
 	  case ResponseErrorCode.accountRequestAlreadyConfirmed: 
         return language.instant("GENERAL.BACKEND-ERRORS.ACCOUNT-REQUEST-ALREADY-CONFIRMED");
+	  case ResponseErrorCode.invalidPlanImportXml: 
+        return language.instant("GENERAL.BACKEND-ERRORS.INVALID-PLAN-IMPORT-XML");
+	  case ResponseErrorCode.invalidPlanImportRdaJson: 
+        return language.instant("GENERAL.BACKEND-ERRORS.INVALID-PLAN-IMPORT-RDA-JSON");
+	  case ResponseErrorCode.invalidPlanBlueprintImportXml: 
+        return language.instant("GENERAL.BACKEND-ERRORS.INVALID-PLAN-BLUEPRINT-IMPORT-XML");
+	  case ResponseErrorCode.invalidDescriptionTemplateImportXml: 
+        return language.instant("GENERAL.BACKEND-ERRORS.INVALID-DESCRIPTION-TEMPLATE-IMPORT-XML");
+	  case ResponseErrorCode.lockedPlan: 
+        return language.instant("GENERAL.BACKEND-ERRORS.LOCKED-PLAN");
+	  case ResponseErrorCode.lockedDescription: 
+        return language.instant("GENERAL.BACKEND-ERRORS.LOCKED-DESCRIPTION");
+	  case ResponseErrorCode.lockedPlanBlueprint: 
+        return language.instant("GENERAL.BACKEND-ERRORS.LOCKED-PLAN-BLUEPRINT");
+	  case ResponseErrorCode.lockedDescriptionTemplate: 
+        return language.instant("GENERAL.BACKEND-ERRORS.LOCKED-DESCRIPTION-TEMPLATE");
+	  case ResponseErrorCode.invalidUserEmail: 
+        return language.instant("GENERAL.BACKEND-ERRORS.INVALID-USER-EMAIL");
   	  default:
   	  	return language.instant("GENERAL.SNACK-BAR.NOT-FOUND");
   	}

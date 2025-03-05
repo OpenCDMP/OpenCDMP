@@ -5,9 +5,10 @@ import { BaseComponent } from '@common/base/base.component';
 import { NewEntryType, ToCEntry, ToCEntryType } from '../description-template-table-of-contents-entry';
 
 @Component({
-	selector: 'app-description-template-table-of-contents-internal-section',
-	styleUrls: ['./description-template-table-of-contents-internal-section.scss'],
-	templateUrl: './description-template-table-of-contents-internal-section.html'
+    selector: 'app-description-template-table-of-contents-internal-section',
+    styleUrls: ['./description-template-table-of-contents-internal-section.scss'],
+    templateUrl: './description-template-table-of-contents-internal-section.html',
+    standalone: false
 })
 export class DescriptionTemplateTableOfContentsInternalSection extends BaseComponent implements OnInit {
 

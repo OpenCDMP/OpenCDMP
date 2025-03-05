@@ -1,4 +1,5 @@
-import { FormArray, UntypedFormArray, UntypedFormBuilder, UntypedFormGroup, Validators } from "@angular/forms";
+import { FormArray, FormControl, FormGroup, UntypedFormArray, UntypedFormBuilder, UntypedFormGroup, Validators } from "@angular/forms";
+import { IsActive } from "@app/core/common/enum/is-active.enum";
 import { PlanBlueprintFieldCategory } from "@app/core/common/enum/plan-blueprint-field-category";
 import { PlanBlueprintExtraFieldDataType } from "@app/core/common/enum/plan-blueprint-field-type";
 import { PlanBlueprintStatus } from "@app/core/common/enum/plan-blueprint-status";
@@ -10,6 +11,7 @@ import { BackendErrorValidator, PlanBlueprintSystemFieldRequiredValidator } from
 import { ValidationErrorModel } from "@common/forms/validation/error-model/validation-error-model";
 import { Validation, ValidationContext } from "@common/forms/validation/validation-context";
 import { Guid } from "@common/types/guid";
+import { startWith, Subject, takeUntil } from "rxjs";
 
 export class PlanBlueprintEditorModel extends BaseEditorModel implements PlanBlueprintPersist {
 	label: string;
@@ -30,6 +32,7 @@ export class PlanBlueprintEditorModel extends BaseEditorModel implements PlanBlu
 		if (item) {
 			super.fromModel(item);
 			this.label = item.label;
+			this.description = item.description
 			this.code = item.code;
 			this.status = item.status;
 			this.versionStatus = item.versionStatus;
@@ -38,15 +41,17 @@ export class PlanBlueprintEditorModel extends BaseEditorModel implements PlanBlu
 		return this;
 	}
 
-	buildForm(context: ValidationContext = null, disabled: boolean = false, isNewOrClone: boolean = false): UntypedFormGroup {
+	buildForm(destroyRef: Subject<any>, context: ValidationContext = null, disabled: boolean = false, isNewOrClone: boolean = false): UntypedFormGroup {
 		if (context == null) { context = this.createValidationContext(); }
 
 		const formGroup = this.formBuilder.group({
 			id: [{ value: this.id, disabled }, context.getValidation('id').validators],
 			label: [{ value: this.label, disabled }, context.getValidation('label').validators],
+			description: [{ value: this.description, disabled }, context.getValidation('description').validators],
 			code: [{ value: this.code, disabled: !isNewOrClone }, context.getValidation('code').validators],
 			status: [{ value: this.status, disabled }, context.getValidation('status').validators],
 			definition: this.definition.buildForm({
+                destroyRef,
 				rootPath: `definition.`,
 				disabled
 			}),
@@ -60,6 +65,7 @@ export class PlanBlueprintEditorModel extends BaseEditorModel implements PlanBlu
 		const baseValidationArray: Validation[] = new Array<Validation>();
 		baseValidationArray.push({ key: 'id', validators: [BackendErrorValidator(this.validationErrorModel, 'id')] });
 		baseValidationArray.push({ key: 'label', validators: [Validators.required, BackendErrorValidator(this.validationErrorModel, 'label')] });
+		baseValidationArray.push({ key: 'description', validators: [BackendErrorValidator(this.validationErrorModel, 'description')] });
 		baseValidationArray.push({ key: 'code', validators: [Validators.required, BackendErrorValidator(this.validationErrorModel, 'code')] });
 		baseValidationArray.push({ key: 'status', validators: [Validators.required, BackendErrorValidator(this.validationErrorModel, 'status')] });
 		baseValidationArray.push({ key: 'hash', validators: [] });
@@ -68,21 +74,21 @@ export class PlanBlueprintEditorModel extends BaseEditorModel implements PlanBlu
 		return baseContext;
 	}
 
-	createChildSection(index: number): UntypedFormGroup {
+	createChildSection(destroyRef: Subject<any>,index: number): UntypedFormGroup {
 		const section: PlanBlueprintDefinitionSectionEditorModel = new PlanBlueprintDefinitionSectionEditorModel(this.validationErrorModel);
 		section.id = Guid.create();
 		section.ordinal = index + 1;
 		section.hasTemplates = false;
 		section.prefillingSourcesEnabled = false;
-		return section.buildForm({ rootPath: 'definition.sections[' + index + '].' });
+		return section.buildForm({ destroyRef, rootPath: 'definition.sections[' + index + '].' });
 	}
 
-	createChildField(sectionIndex: number, index: number): UntypedFormGroup {
+	createChildField(destroyRef, sectionIndex: number, index: number): UntypedFormGroup {
 		const field: FieldInSectionEditorModel = new FieldInSectionEditorModel(this.validationErrorModel);
 		field.id = Guid.create();
 		field.ordinal = index + 1;
 		field.multipleSelect = false;
-		return field.buildForm({ rootPath: 'definition.sections[' + sectionIndex + '].fields[' + index + '].' });
+		return field.buildForm({ destroyRef, rootPath: 'definition.sections[' + sectionIndex + '].fields[' + index + '].' });
 	}
 
 	createChildDescriptionTemplate(sectionIndex: number, index: number, item?: any): UntypedFormGroup {
@@ -104,6 +110,23 @@ export class PlanBlueprintEditorModel extends BaseEditorModel implements PlanBlu
 		});
 		formGroup.updateValueAndValidity();
 	}
+
+    static createEmptyBlueprint(): PlanBlueprint {
+        return {
+            code: null,
+            description: null,
+            groupId: null,
+            label: null,
+            definition: {
+                sections: []
+            },
+            status: null,
+            version: null,
+            versionStatus: null,
+            id: null,
+            isActive: IsActive.Active
+        }
+    }
 }
 
 export class PlanBlueprintDefinitionEditorModel implements PlanBlueprintDefinitionPersist {
@@ -121,12 +144,13 @@ export class PlanBlueprintDefinitionEditorModel implements PlanBlueprintDefiniti
 		return this;
 	}
 
-	buildForm(params?: {
+	buildForm(params: {
+        destroyRef: Subject<any>,
 		context?: ValidationContext,
 		disabled?: boolean,
 		rootPath?: string
 	}): UntypedFormGroup {
-		let { context = null, disabled = false, rootPath } = params ?? {}
+		let { destroyRef, context = null, disabled = false, rootPath } = params ?? {}
 		if (context == null) {
 			context = PlanBlueprintDefinitionEditorModel.createValidationContext({
 				validationErrorModel: this.validationErrorModel,
@@ -138,6 +162,7 @@ export class PlanBlueprintDefinitionEditorModel implements PlanBlueprintDefiniti
 			sections: this.formBuilder.array(
 				(this.sections ?? []).map(
 					(item, index) => item.buildForm({
+                        destroyRef,
 						rootPath: `${rootPath}sections[${index}].`,
 						disabled: disabled
 					})
@@ -209,12 +234,13 @@ export class PlanBlueprintDefinitionSectionEditorModel implements PlanBlueprintD
 		return this;
 	}
 
-	buildForm(params?: {
+	buildForm(params: {
+        destroyRef: Subject<any>,
 		context?: ValidationContext,
 		disabled?: boolean,
 		rootPath?: string
 	}): UntypedFormGroup {
-		let { context = null, disabled = false, rootPath } = params ?? {}
+		let { destroyRef, context = null, disabled = false, rootPath } = params ?? {}
 		if (context == null) {
 			context = PlanBlueprintDefinitionSectionEditorModel.createValidationContext({
 				validationErrorModel: this.validationErrorModel,
@@ -232,6 +258,7 @@ export class PlanBlueprintDefinitionSectionEditorModel implements PlanBlueprintD
 			fields: this.formBuilder.array(
 				(this.fields ?? []).map(
 					(item, index) => item.buildForm({
+                        destroyRef,
 						rootPath: `${rootPath}fields[${index}].`,
 						disabled: disabled
 					})
@@ -309,6 +336,19 @@ export class PlanBlueprintDefinitionSectionEditorModel implements PlanBlueprintD
 
 	}
 
+    static createEmptySection(): PlanBlueprintDefinitionSection {
+        return {
+            description: null,
+            hasTemplates: null,
+            id: null,
+            label: null,
+            ordinal: null,
+            prefillingSourcesEnabled: false,
+            prefillingSources: null,
+            fields: []
+        }
+    }
+
 }
 
 export class FieldInSectionEditorModel implements FieldInSectionPersist {
@@ -360,12 +400,13 @@ export class FieldInSectionEditorModel implements FieldInSectionPersist {
 		return this;
 	}
 
-	buildForm(params?: {
+	buildForm(params: {
+        destroyRef: Subject<any>,
 		context?: ValidationContext,
 		disabled?: boolean,
-		rootPath?: string
+		rootPath?: string,
 	}): UntypedFormGroup {
-		let { context = null, disabled = false, rootPath } = params ?? {}
+		let { destroyRef, context = null, disabled = false, rootPath } = params ?? {}
 		if (context == null) {
 			context = FieldInSectionEditorModel.createValidationContext({
 				validationErrorModel: this.validationErrorModel,
@@ -377,7 +418,7 @@ export class FieldInSectionEditorModel implements FieldInSectionPersist {
 			id: [{ value: this.id, disabled: disabled }, context.getValidation('id').validators],
 
 			category: [{ value: this.category, disabled: disabled }, context.getValidation('category').validators],
-			label: [{ value: this.label, disabled: disabled }, this.category === PlanBlueprintFieldCategory.System ? context.getValidation('label-system').validators : ( this.category === PlanBlueprintFieldCategory.Extra ? context.getValidation('label-extra').validators : context.getValidation('label-external-reference').validators)],
+			label: [{ value: this.label, disabled: disabled }, context.getValidation('label').validators],
 			placeholder: [{ value: this.placeholder, disabled: disabled }, context.getValidation('placeholder').validators],
 			description: [{ value: this.description, disabled: disabled }, context.getValidation('description').validators],
 			required: [{ value: this.required, disabled: disabled }, context.getValidation('required').validators],
@@ -386,19 +427,47 @@ export class FieldInSectionEditorModel implements FieldInSectionPersist {
 			dataType: [{ value: this.dataType, disabled: disabled }, context.getValidation('dataType').validators],
 			systemFieldType: [{ value: this.systemFieldType, disabled: disabled }, context.getValidation('systemFieldType').validators],
 			referenceTypeId: [{ value: this.referenceTypeId, disabled: disabled }, context.getValidation('referenceTypeId').validators],
-			multipleSelect: [{ value: this.multipleSelect, disabled: disabled }, context.getValidation('multipleSelect').validators],
+			multipleSelect: [{ value: this.multipleSelect ?? false, disabled: disabled }, context.getValidation('multipleSelect').validators],
 		});
-
-        formGroup.get('systemFieldType').valueChanges.subscribe((systemFieldType: PlanBlueprintSystemFieldType) => {
-            const required = formGroup.get('required');
-            if(systemFieldType != null && FieldInSectionEditorModel.alwaysRequiredSystemFieldTypes.includes(systemFieldType)){
-                required.setValue(true);
-            } else {
-                if(required.disabled){
-                    required.enable();
+        if(!disabled){
+            formGroup.get('systemFieldType').valueChanges.pipe(takeUntil(destroyRef)).subscribe((systemFieldType: PlanBlueprintSystemFieldType) => {
+                const required = formGroup.get('required');
+                if(systemFieldType != null && FieldInSectionEditorModel.alwaysRequiredSystemFieldTypes.includes(systemFieldType)){
+                    required.setValue(true);
+                } else {
+                    if(required.disabled){
+                        required.enable();
+                    }
                 }
-            }
-        })
+            })
+            formGroup.get('category').valueChanges.pipe(takeUntil(destroyRef), startWith(formGroup.controls.category.value))
+            .subscribe((category: PlanBlueprintFieldCategory) => {
+                switch(category){
+                    case PlanBlueprintFieldCategory.System:
+                        formGroup.get('systemFieldType').enable();
+                        formGroup.get('referenceTypeId').disable();
+                        formGroup.get('dataType').disable();
+                        formGroup.get('multipleSelect').disable();
+                        formGroup.get('label').removeValidators(Validators.required);
+                        break;
+                    case PlanBlueprintFieldCategory.Extra:
+                        formGroup.get('dataType').enable();
+                        formGroup.get('systemFieldType').disable();
+                        formGroup.get('referenceTypeId').disable();
+                        formGroup.get('multipleSelect').disable();
+                        formGroup.get('label').addValidators(Validators.required);
+                        break;
+                    case PlanBlueprintFieldCategory.ReferenceType:
+                        formGroup.get('referenceTypeId').enable();
+                        formGroup.get('multipleSelect').enable();
+                        formGroup.get('systemFieldType').disable();
+                        formGroup.get('dataType').disable();
+                        formGroup.get('label').removeValidators(Validators.required);
+                        break;
+                }
+                formGroup.get('label').updateValueAndValidity();
+            })
+        }
         return formGroup;
 	}
 
@@ -413,18 +482,16 @@ export class FieldInSectionEditorModel implements FieldInSectionPersist {
 		baseValidationArray.push({ key: 'id', validators: [BackendErrorValidator(validationErrorModel, `${rootPath}id`)] });
 
 		baseValidationArray.push({ key: 'category', validators: [Validators.required, BackendErrorValidator(validationErrorModel, `${rootPath}category`)] });
-		baseValidationArray.push({ key: 'label-system', validators: [BackendErrorValidator(validationErrorModel, `${rootPath}label`)] });
-		baseValidationArray.push({ key: 'label-extra', validators: [BackendErrorValidator(validationErrorModel, `${rootPath}label`)] });
-		baseValidationArray.push({ key: 'label-external-reference', validators: [BackendErrorValidator(validationErrorModel, `${rootPath}label`)] });
+		baseValidationArray.push({ key: 'label', validators: [BackendErrorValidator(validationErrorModel, `${rootPath}label`)] });
 		baseValidationArray.push({ key: 'placeholder', validators: [BackendErrorValidator(validationErrorModel, `${rootPath}placeholder`)] });
 		baseValidationArray.push({ key: 'description', validators: [BackendErrorValidator(validationErrorModel, `${rootPath}description`)] });
 		baseValidationArray.push({ key: 'semantics', validators: [BackendErrorValidator(validationErrorModel, `${rootPath}semantics`)] });
 		baseValidationArray.push({ key: 'required', validators: [BackendErrorValidator(validationErrorModel, `${rootPath}required`)] });
 		baseValidationArray.push({ key: 'ordinal', validators: [Validators.required, BackendErrorValidator(validationErrorModel, `${rootPath}ordinal`)] });
-		baseValidationArray.push({ key: 'dataType', validators: [BackendErrorValidator(validationErrorModel, `${rootPath}dataType`)] });
-		baseValidationArray.push({ key: 'systemFieldType', validators: [BackendErrorValidator(validationErrorModel, `${rootPath}systemFieldType`)] });
-		baseValidationArray.push({ key: 'referenceTypeId', validators: [BackendErrorValidator(validationErrorModel, `${rootPath}referenceTypeId`)] });
-		baseValidationArray.push({ key: 'multipleSelect', validators: [BackendErrorValidator(validationErrorModel, `${rootPath}multipleSelect`)] });
+		baseValidationArray.push({ key: 'dataType', validators: [Validators.required, BackendErrorValidator(validationErrorModel, `${rootPath}dataType`)] });
+		baseValidationArray.push({ key: 'systemFieldType', validators: [Validators.required, BackendErrorValidator(validationErrorModel, `${rootPath}systemFieldType`)] });
+		baseValidationArray.push({ key: 'referenceTypeId', validators: [Validators.required, BackendErrorValidator(validationErrorModel, `${rootPath}referenceTypeId`)] });
+		baseValidationArray.push({ key: 'multipleSelect', validators: [Validators.required, BackendErrorValidator(validationErrorModel, `${rootPath}multipleSelect`)] });
 
 		baseContext.validation = baseValidationArray;
 		return baseContext;
@@ -441,34 +508,16 @@ export class FieldInSectionEditorModel implements FieldInSectionPersist {
 			rootPath,
 			validationErrorModel
 		});
-
 		['id', 'category', 'dataType', 'systemFieldType', 'referenceTypeId', 'multipleSelect', 'label', 'placeholder', 'description', 'semantics', 'required', 'ordinal'].forEach(keyField => {
 			const control = formGroup?.get(keyField);
 			control?.clearValidators();
-			if (keyField == 'label') {
-				control?.addValidators(context.has('label-system') ? context.getValidation('label-system').validators : (context.has('label-extra') ? context.getValidation('label-extra').validators : context.getValidation('label-external-reference').validators));
-			} else if (keyField == 'referenceTypeId') {
-				if (formGroup.get('category').value === PlanBlueprintFieldCategory.ReferenceType) control?.addValidators([Validators.required, ...context.getValidation('referenceTypeId').validators]);
-				else control?.addValidators([...context.getValidation('referenceTypeId').validators]);
-			} else if (keyField == 'multipleSelect') {
-				if (formGroup.get('category').value === PlanBlueprintFieldCategory.ReferenceType) control?.addValidators([Validators.required, ...context.getValidation('multipleSelect').validators]);
-				else control?.addValidators([...context.getValidation('multipleSelect').validators]);
-			}else if (keyField == 'systemFieldType') {
-				if (formGroup.get('category').value === PlanBlueprintFieldCategory.System) control?.addValidators([Validators.required, ...context.getValidation('systemFieldType').validators]);
-				else control?.addValidators([...context.getValidation('systemFieldType').validators]);
-			} else if (keyField == 'dataType') {
-				if (formGroup.get('category').value === PlanBlueprintFieldCategory.Extra) control?.addValidators([Validators.required, ...context.getValidation('dataType').validators]);
-				else control?.addValidators([...context.getValidation('dataType').validators]);
-			} else {
-				control?.addValidators(context.getValidation(keyField).validators);
-			}
+			control?.addValidators(context.getValidation(keyField).validators);
 		})
 	}
 }
 
 export class DescriptionTemplatesInSectionEditorModel implements DescriptionTemplatesInSectionPersist {
 	descriptionTemplateGroupId: Guid;
-	label: string;
 	minMultiplicity: number;
 	maxMultiplicity: number;
 
@@ -479,10 +528,11 @@ export class DescriptionTemplatesInSectionEditorModel implements DescriptionTemp
 	) { }
 
 	fromModel(item: DescriptionTemplatesInSection): DescriptionTemplatesInSectionEditorModel {
-		this.descriptionTemplateGroupId = item.descriptionTemplateGroupId;
-		this.label = item.label;
-		this.minMultiplicity = item.minMultiplicity;
-		this.maxMultiplicity = item.maxMultiplicity;
+		if (item) {
+			this.descriptionTemplateGroupId = item.descriptionTemplate?.groupId;
+			this.minMultiplicity = item.minMultiplicity;
+			this.maxMultiplicity = item.maxMultiplicity;
+		}
 		return this;
 	}
 
@@ -501,7 +551,6 @@ export class DescriptionTemplatesInSectionEditorModel implements DescriptionTemp
 
 		return this.formBuilder.group({
 			descriptionTemplateGroupId: [{ value: this.descriptionTemplateGroupId, disabled: disabled }, context.getValidation('descriptionTemplateGroupId').validators],
-			label: [{ value: this.label, disabled: disabled }, context.getValidation('label').validators],
 			minMultiplicity: [{ value: this.minMultiplicity, disabled: disabled }, context.getValidation('minMultiplicity').validators],
 			maxMultiplicity: [{ value: this.maxMultiplicity, disabled: disabled }, context.getValidation('maxMultiplicity').validators],
 		});
@@ -516,7 +565,6 @@ export class DescriptionTemplatesInSectionEditorModel implements DescriptionTemp
 		const baseContext: ValidationContext = new ValidationContext();
 		const baseValidationArray: Validation[] = new Array<Validation>();
 		baseValidationArray.push({ key: 'descriptionTemplateGroupId', validators: [Validators.required, BackendErrorValidator(validationErrorModel, `${rootPath}descriptionTemplateGroupId`)] });
-		baseValidationArray.push({ key: 'label', validators: [BackendErrorValidator(validationErrorModel, `${rootPath}label`)] });
 		baseValidationArray.push({ key: 'minMultiplicity', validators: [BackendErrorValidator(validationErrorModel, `${rootPath}minMultiplicity`)] });
 		baseValidationArray.push({ key: 'maxMultiplicity', validators: [BackendErrorValidator(validationErrorModel, `${rootPath}maxMultiplicity`)] });
 
@@ -536,10 +584,60 @@ export class DescriptionTemplatesInSectionEditorModel implements DescriptionTemp
 			validationErrorModel
 		});
 
-		['descriptionTemplateGroupId', 'label', 'minMultiplicity', 'maxMultiplicity'].forEach(keyField => {
+		['descriptionTemplateGroupId', 'minMultiplicity', 'maxMultiplicity'].forEach(keyField => {
 			const control = formGroup?.get(keyField);
 			control?.clearValidators();
 			control?.addValidators(context.getValidation(keyField).validators);
 		})
 	}
+}
+
+export interface PlanBlueprintForm {
+    id: FormControl<Guid>;
+    hash: FormControl<string>;
+    label: FormControl<string>;
+	code: FormControl<string>;
+	definition: FormGroup<PlanBlueprintDefinitionForm>;
+	status: FormControl<PlanBlueprintStatus>;
+	versionStatus: FormControl<PlanBlueprintVersionStatus>;
+	description: FormControl<string>;
+	permissions: FormControl<string[]>;
+}
+
+export interface PlanBlueprintDefinitionForm {
+    sections: FormArray<FormGroup<PlanBlueprintSectionForm>>;
+}
+
+export interface PlanBlueprintSectionForm {
+	id: FormControl<Guid>;
+	label: FormControl<string>;
+	description: FormControl<string>;
+	ordinal: FormControl<number>;
+	fields: FormArray<FormGroup<PlanBlueprintSectionFieldForm>>;
+	hasTemplates: FormControl<boolean>;
+	descriptionTemplates?: FormArray<FormGroup<PlanBlueprintSectionDescriptionTemplatesForm>>;
+	prefillingSourcesEnabled: FormControl<boolean>;
+	prefillingSourcesIds: FormControl<Guid[]>
+}
+
+export interface PlanBlueprintSectionFieldForm {
+	id: FormControl<Guid>;
+	category: FormControl<PlanBlueprintFieldCategory>;
+	label: FormControl<string>;
+	placeholder: FormControl<string>;
+	description: FormControl<string>;
+	semantics: FormControl<string[]>;
+	required: FormControl<boolean>;
+	ordinal: FormControl<number>;
+	dataType: FormControl<PlanBlueprintExtraFieldDataType>;
+	systemFieldType: FormControl<PlanBlueprintSystemFieldType>;
+	referenceTypeId: FormControl<Guid>;
+	multipleSelect: FormControl<boolean>;
+}
+
+export interface PlanBlueprintSectionDescriptionTemplatesForm {
+	descriptionTemplateGroupId: FormControl<Guid>;
+	label: FormControl<string>;
+	minMultiplicity: FormControl<number>;
+	maxMultiplicity: FormControl<number>;
 }

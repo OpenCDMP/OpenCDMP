@@ -14,13 +14,13 @@ input[type="text"] {
 }
 
 .plan-label {
-	background: var(--primary-color) 0% 0% no-repeat padding-box;
+	background: var(--sys-primary) 0% 0% no-repeat padding-box;
 	border-radius: 4px 0px;
 	opacity: 1;
 	min-width: 67px;
 	height: 37px;
-	color: #ffffff;
-	line-height: 2.4;
+	color: var(--sys-on-primary);
+	align-content: center;
 }
 
 .icon-align {
@@ -34,7 +34,7 @@ input[type="text"] {
 	flex-direction: row;
 	border-top: 1px solid #dbdbdb;
 	line-height: 4;
-	color: #848484;
+	color: var(--gray);
 }
 
 .description-card-actions,
@@ -43,43 +43,22 @@ input[type="text"] {
 	flex-direction: row;
 	border-top: 1px solid #dbdbdb;
 	line-height: 4;
-	color: #848484;
+	color: var(--gray);
 }
 
 .description-card-actions a,
 .plan-card-actions a {
-	color: #848484 !important;
+	color: var(--gray) !important;
 	text-decoration: none !important;
 }
 
 .description-card-actions a:hover,
 .plan-card-actions a:hover {
-	color: var(--primary-color) !important;
-}
-
-.plan-description-descriptions-title {
-	color: #000000;
-	opacity: 0.6;
-	padding-top: 1.5rem;
-	padding-bottom: 0.8rem;
-}
-
-.plan-description-descriptions-name {
-	color: #000000;
-	opacity: 0.6;
-	font-weight: 700;
-}
-
-.show-more {
-	color: black !important;
+	color: var(--sys-primary) !important;
 }
 
 .show-more:hover {
-	color: var(--primary-color) !important;
-}
-
-.draft {
-	color: #f16868;
+	color: var(--sys-primary) !important;
 }
 
 .pointer {
@@ -93,7 +72,7 @@ input[type="text"] {
 }
 
 .search-form mat-icon {
-	color: var(--primary-color);
+	color: var(--sys-primary);
 }
 
 ::ng-deep .search-form .mat-form-field-wrapper {
@@ -113,9 +92,9 @@ input[type="text"] {
 .empty-list {
 	text-align: center;
 	font-weight: 300;
-	font-size: 1.25rem;
+	font-size: var(--sys-headline-medium-size);
 	letter-spacing: 0px;
-	color: #212121;
+	color: var(--dark-text);
 	opacity: 0.6;
   }
 

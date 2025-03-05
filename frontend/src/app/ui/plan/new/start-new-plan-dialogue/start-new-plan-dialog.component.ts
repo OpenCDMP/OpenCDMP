@@ -1,5 +1,5 @@
 import { HttpClient } from '@angular/common/http';
-import { Component, Inject } from '@angular/core';
+import { Component, computed, HostBinding, Inject } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialog, MatDialogRef } from '@angular/material/dialog';
 import { Router } from '@angular/router';
 import { PlanService } from '@app/core/services/plan/plan.service';
@@ -13,11 +13,13 @@ import { RouterUtilsService } from '@app/core/services/router/router-utils.servi
 import { HttpErrorHandlingService } from '@common/modules/errors/error-handling/http-error-handling.service';
 
 @Component({
-	selector: 'app-start-new-plan',
-	templateUrl: './start-new-plan-dialog.component.html',
-	styleUrls: ['./start-new-plan-dialog.component.scss']
+    selector: 'app-start-new-plan',
+    templateUrl: './start-new-plan-dialog.component.html',
+    styleUrls: ['./start-new-plan-dialog.component.scss'],
+    standalone: false
 })
 export class StartNewPlanDialogComponent extends BaseComponent {
+   
 
 	public isDialog: boolean = false;
 
@@ -32,7 +34,7 @@ export class StartNewPlanDialogComponent extends BaseComponent {
 		private httpClient: HttpClient,
 		private analyticsService: AnalyticsService,
 		private routerUtils: RouterUtilsService,
-		private httpErrorHandlingService: HttpErrorHandlingService,
+		private httpErrorHandlingService: HttpErrorHandlingService
 	) {
 		super();
 		this.isDialog = data.isDialog;
@@ -61,7 +63,7 @@ export class StartNewPlanDialogComponent extends BaseComponent {
 
 	uploadFile(event) {
 		const dialogRef = this.dialog.open(PlanUploadDialogComponent, {
-			width: '528px',
+			maxWidth: '528px',
 			data: {
 				fileList: FileList,
 				success: Boolean,

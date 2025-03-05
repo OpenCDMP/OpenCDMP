@@ -2,32 +2,30 @@
 <div class="notification-popup-wrapper">
 	<div class="row">
 		<div class="col-12">
-			<mat-nav-list class="inapp-notification-listing-dialog">
+			<mat-action-list class="inapp-notification-listing-dialog unset-font-size">
 				<ng-container *ngFor="let inappNotification of inappNotifications; last as last;">
-					<a mat-list-item (click)="goToNotification(inappNotification)">
-						<div class="row justify-content-between">
-							<div class="col-auto">
-								<mat-icon *ngIf="inappNotification.trackingState === notificationInAppTrackingEnum.Delivered" mat-list-icon>drafts</mat-icon>
-								<mat-icon *ngIf="inappNotification.trackingState === notificationInAppTrackingEnum.Stored" mat-list-icon>mail</mat-icon>
-							</div>
-							<div class="col mt-1 pl-0" style="overflow: hidden; text-overflow: ellipsis;">
-								<span mat-line>{{ inappNotification.subject }}</span>
-							</div>
-							
-							<div class="col-auto mt-1">
-								<span mat-line class="secondary-text">{{ inappNotification.createdAt | date : 'short'}}</span>
-							</div>
-						</div>
-					</a>
-					<mat-divider *ngIf="!last"></mat-divider>
+                    <button mat-list-item (click)="goToNotification(inappNotification)">
+                        <div class="row justify-content-between">
+                            <div class="col-auto">
+                                <mat-icon *ngIf="inappNotification.trackingState === notificationInAppTrackingEnum.Delivered" mat-list-icon>drafts</mat-icon>
+                                <mat-icon *ngIf="inappNotification.trackingState === notificationInAppTrackingEnum.Stored" mat-list-icon>mail</mat-icon>
+                            </div>
+                            <div class="col mt-1 pl-0" style="overflow: hidden; text-overflow: ellipsis;">
+                                <span mat-line>{{ inappNotification.subject }}</span>
+                            </div>
+                            
+                            <div class="col-auto mt-1">
+                                <span mat-line class="secondary-text">{{ inappNotification.createdAt | date : 'short'}}</span>
+                            </div>
+                        </div>
+                    </button>
+                    <mat-divider></mat-divider>
 				</ng-container>
-				<a *ngIf="authService.hasPermission(authService.permissionEnum.ViewMineInAppNotificationPage)" (click)="goToNotifications()">
-					<mat-list-item>{{'NAV-BAR.INAPP-NOTIFICATIONS' | translate}}</mat-list-item>
-				</a>
-				<a *ngIf="authService.hasPermission(authService.permissionEnum.ViewMineInAppNotificationPage)" (click)="readAllNotifications()">
-					<mat-list-item>{{'NAV-BAR.READ-ALL-INAPP-NOTIFICATIONS' | translate}}</mat-list-item>
-				</a>
-			</mat-nav-list>
+                @if(authService.hasPermission(authService.permissionEnum.ViewMineInAppNotificationPage)){
+                    <button  mat-list-item (click)="goToNotifications()">{{'NAV-BAR.INAPP-NOTIFICATIONS' | translate}}</button>
+                    <button  mat-list-item (click)="readAllNotifications()">{{'NAV-BAR.READ-ALL-INAPP-NOTIFICATIONS' | translate}}</button>
+                }
+			</mat-action-list>
 		</div>
 	</div>
 </div>

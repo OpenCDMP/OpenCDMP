@@ -62,10 +62,10 @@ export class DescriptionTemplateEditorModel extends BaseEditorModel implements D
 	buildForm(context: ValidationContext = null, disabled: boolean = false): FormGroup<DescriptionTemplateForm> {
 		if (context == null) { context = this.createValidationContext(); }
 
-		return this.formBuilder.group({
+		const formGroup = this.formBuilder.group({
 			id: [{ value: this.id, disabled }, context.getValidation('id').validators],
 			label: [{ value: this.label, disabled }, context.getValidation('label').validators],
-			code: [{ value: this.code, disabled: !!this.id ?? disabled }, context.getValidation('code').validators],
+			code: [{ value: this.code, disabled: !!this.id }, context.getValidation('code').validators],
 			description: [{ value: this.description, disabled }, context.getValidation('description').validators],
 			language: [{ value: this.language, disabled }, context.getValidation('language').validators],
 			type: [{ value: this.type, disabled }, context.getValidation('type').validators],
@@ -83,6 +83,10 @@ export class DescriptionTemplateEditorModel extends BaseEditorModel implements D
 			),
 			hash: [{ value: this.hash, disabled }, context.getValidation('hash').validators]
 		});
+        if(disabled){
+            formGroup.disable();
+        }
+        return formGroup;
 	}
 
 	createValidationContext(): ValidationContext {
@@ -93,7 +97,6 @@ export class DescriptionTemplateEditorModel extends BaseEditorModel implements D
 		baseValidationArray.push({ key: 'code', validators: [Validators.required, BackendErrorValidator(this.validationErrorModel, 'code')] });
 		baseValidationArray.push({ key: 'description', validators: [Validators.required, BackendErrorValidator(this.validationErrorModel, 'description')] });
 		baseValidationArray.push({ key: 'language', validators: [Validators.required, BackendErrorValidator(this.validationErrorModel, 'language')] });
-		baseValidationArray.push({ key: 'type', validators: [Validators.required, BackendErrorValidator(this.validationErrorModel, 'type')] });
 		baseValidationArray.push({ key: 'type', validators: [Validators.required, BackendErrorValidator(this.validationErrorModel, 'type')] });
 		baseValidationArray.push({ key: 'status', validators: [Validators.required, BackendErrorValidator(this.validationErrorModel, 'status')] });
 		baseValidationArray.push({ key: 'users', validators: [BackendErrorValidator(this.validationErrorModel, 'users')] });

@@ -1,4 +1,5 @@
 .dynamic-form-section {
+    padding: 0 1rem;
 	.expansion-panel {
 		background-color: white;
 		margin-top: 1em;
@@ -7,25 +8,24 @@
 	.addOneFieldButton {
 		margin-top: -15px;
 		margin-left: -11px;
-		color: var(--primary-color);
+		color: var(--sys-primary);
 	}
-	.panel-title,
-	.panel-desc {
-		text-align: left;
-		font-weight: 700;
-		font-size: 1rem;
-		letter-spacing: 0px;
-		color: #212121;
-		opacity: 0.81;
-		margin-top: 1.625rem;
-		margin-bottom: 0.625rem;
+	.panel-title
+	{
+        font-size: var(--sys-headline-medium-size);
+        margin: 0.5rem 0;
 	}
 
 	.panel-desc {
+        font-size: var(--sys-body-medium-size);
 		text-transform: none;
-		font-weight: 400;
 		margin-top: .5rem;
 	}
+    .field-sets {
+        margin-left: 0.5rem;
+        padding-left: 1rem;
+        border-left: 2px solid var(--sys-primary);
+    }
 }
 .styleBorder {
 	border: 0.2em solid lightgray;
@@ -40,4 +40,12 @@
 ::ng-deep .mat-expansion-panel-header {
 	height: auto !important;
 	min-height: 48px;
+}
+
+::ng-deep {
+    @container main-page (inline-size < 750px){
+        .mat-expansion-panel-body {
+            padding: 0 10px 16px !important;
+        }
+    }
 }

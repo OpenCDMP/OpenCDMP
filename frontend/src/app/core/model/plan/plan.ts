@@ -14,6 +14,8 @@ import { PlanReference } from './plan-reference';
 import { IsActive } from '@app/core/common/enum/is-active.enum';
 import { AppPermission } from '@app/core/common/enum/permission.enum';
 import { EntityType } from '@app/core/common/enum/entity-type';
+import { PlanStatus } from '../plan-status/plan-status';
+import { PlanStatusPermission } from '@app/core/common/enum/plan-status-permission.enum';
 
 export interface BasePlan extends BaseEntity {
     label?: string;
@@ -26,7 +28,7 @@ export interface BasePlan extends BaseEntity {
 	planReferences?: PlanReference[];
 	entityDois?: EntityDoi[];
 	tenantId?: Guid;
-	status?: PlanStatusEnum;
+	status?: PlanStatus;
 	descriptions?: BaseDescription[];
 }
 export interface Plan extends BasePlan {
@@ -40,7 +42,9 @@ export interface Plan extends BasePlan {
 	descriptions?: Description[];
 	planDescriptionTemplates?: PlanDescriptionTemplate[];
 	otherPlanVersions?: Plan[];
+	availableStatuses?: PlanStatus[];
 	authorizationFlags?: AppPermission[];
+	statusAuthorizationFlags?: PlanStatusPermission[];
 }
 
 export interface PublicPlan extends BasePlan {
@@ -96,7 +100,7 @@ export interface PlanDescriptionTemplate extends BaseEntity {
 //
 export interface PlanPersist extends BaseEntityPersist {
 	label: string;
-	status: PlanStatusEnum;
+	statusId: Guid;
 	properties: PlanPropertiesPersist;
 	description: String;
 	language: String;

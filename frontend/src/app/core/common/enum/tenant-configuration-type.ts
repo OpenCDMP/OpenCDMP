@@ -4,4 +4,7 @@ export enum TenantConfigurationType {
 	DefaultUserLocale = 2,
 	Logo = 3,
 	CssColors = 4,
+	EvaluatorPlugins = 5,
+	FeaturedEntities = 6,
+	DefaultPlanBlueprint = 7
 }

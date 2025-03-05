@@ -2,21 +2,26 @@ package org.opencdmp.service.storage;
 
 import gr.cite.commons.web.authz.service.AuthorizationService;
 import gr.cite.tools.data.builder.BuilderFactory;
+import gr.cite.tools.data.query.QueryFactory;
 import gr.cite.tools.exception.MyApplicationException;
 import gr.cite.tools.fieldset.BaseFieldSet;
 import gr.cite.tools.fieldset.FieldSet;
 import gr.cite.tools.logging.LoggerService;
+import gr.cite.tools.validation.ValidatorFactory;
+import jakarta.transaction.Transactional;
 import org.opencdmp.authorization.AuthorizationFlags;
 import org.opencdmp.authorization.Permission;
 import org.opencdmp.commons.enums.StorageFilePermission;
 import org.opencdmp.commons.enums.StorageType;
 import org.opencdmp.commons.enums.SupportiveMaterialFieldType;
 import org.opencdmp.commons.scope.user.UserScope;
+import org.opencdmp.commons.types.storagefile.importexport.StorageFileImportExport;
 import org.opencdmp.data.StorageFileEntity;
 import org.opencdmp.data.TenantEntityManager;
 import org.opencdmp.model.StorageFile;
 import org.opencdmp.model.builder.StorageFileBuilder;
 import org.opencdmp.model.persist.StorageFilePersist;
+import org.opencdmp.query.StorageFileQuery;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
@@ -30,7 +35,9 @@ import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.Duration;
 import java.time.Instant;
+import java.util.Base64;
 import java.util.Locale;
 import java.util.UUID;
 
@@ -43,6 +50,8 @@ public class StorageFileServiceImpl implements StorageFileService {
     private final BuilderFactory builderFactory;
     private final UserScope userScope;
     private final StorageFileProperties config;
+    private final ValidatorFactory validatorFactory;
+    private final QueryFactory queryFactory;
 
     @Autowired
     public StorageFileServiceImpl(
@@ -50,14 +59,16 @@ public class StorageFileServiceImpl implements StorageFileService {
             AuthorizationService authorizationService,
             BuilderFactory builderFactory,
             UserScope userScope,
-            StorageFileProperties config
+            StorageFileProperties config, ValidatorFactory validatorFactory, QueryFactory queryFactory
     ) {
         this.entityManager = entityManager;
         this.authorizationService = authorizationService;
         this.builderFactory = builderFactory;
         this.userScope = userScope;
         this.config = config;
-        
+
+        this.validatorFactory = validatorFactory;
+        this.queryFactory = queryFactory;
     }
 
     //region storage management
@@ -188,6 +199,30 @@ public class StorageFileServiceImpl implements StorageFileService {
             logger.warn("problem reading byte content of storage file " + fileId, ex);
             return null;
         }
+    }
+
+    @Transactional
+    @Override
+    public StorageFile cloneStorageFile(StorageFile model) {
+        if (model == null) throw new MyApplicationException("file not fount");
+        try {
+            byte[] bytes = this.readAsBytesSafe(model.getId());
+            if (bytes != null) {
+                StorageFilePersist storageFilePersist = new StorageFilePersist();
+                storageFilePersist.setName(model.getName());
+                storageFilePersist.setExtension(model.getExtension());
+                storageFilePersist.setMimeType(model.getMimeType());
+                storageFilePersist.setOwnerId(this.userScope.getUserIdSafe());
+                storageFilePersist.setStorageType(StorageType.Temp);
+                storageFilePersist.setLifetime(Duration.ofSeconds(this.config.getTempStoreLifetimeSeconds()));
+                this.validatorFactory.validator(StorageFilePersist.StorageFilePersistValidator.class).validateForce(storageFilePersist);
+                return this.persistBytes(storageFilePersist, bytes, new BaseFieldSet(StorageFile._id, StorageFile._name, StorageFile._extension, StorageFile._fullName, StorageFile._mimeType));
+
+            }
+        } catch (Exception e) {
+            throw new MyApplicationException(e.getMessage());
+        }
+        return null;
     }
 
     @Override
@@ -364,6 +399,43 @@ public class StorageFileServiceImpl implements StorageFileService {
             }
             default -> throw new InternalError("unknown type: " + type);
         }
+    }
+
+    @Override
+    public StorageFileImportExport storageFileXmlToExport(UUID fileId) {
+        if (fileId == null) return null;
+
+        StorageFileImportExport xml = new StorageFileImportExport();
+
+        xml.setFileValue(Base64.getEncoder().encodeToString(this.readAsBytesSafe(fileId)));
+        var storageFile = this.queryFactory.query(StorageFileQuery.class).ids(fileId).disableTracking().firstAs(new BaseFieldSet().ensure(StorageFile._name).ensure(StorageFile._extension).ensure(StorageFile._mimeType));
+
+        if(storageFile != null)  {
+            xml.setFileName(storageFile.getName());
+            xml.setExtension(storageFile.getExtension());
+            xml.setMimeType(storageFile.getMimeType());
+        }
+
+        return xml;
+    }
+
+    @Override
+    public UUID xmlUploadFieldToPersist(StorageFileImportExport importXml) throws IOException {
+        if (importXml == null) return null;
+
+        StorageFilePersist storageFilePersist = new StorageFilePersist();
+
+        byte[] fileValue = Base64.getDecoder().decode(importXml.getFileValue());
+
+        storageFilePersist.setExtension(importXml.getExtension());
+        storageFilePersist.setMimeType(importXml.getMimeType());
+        storageFilePersist.setName(importXml.getFileName());
+        storageFilePersist.setStorageType(StorageType.Temp);
+        storageFilePersist.setOwnerId(this.userScope.getUserIdSafe());
+
+        StorageFile storageFile = this.persistBytes(storageFilePersist, fileValue, new BaseFieldSet(StorageFile._id, StorageFile._fileRef, StorageFile._mimeType, StorageFile._extension, StorageFile._name));
+
+        return storageFile.getId();
     }
 
     @Override

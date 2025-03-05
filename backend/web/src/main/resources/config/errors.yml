@@ -179,6 +179,39 @@ error-thesaurus:
   tokenNotExist:
     code: 163
     message: This token does not exist
+  supportiveMaterialAlreadyExists:
+    code: 164
+    message: Already created Supportive Material with this type and lang code
   accountRequestAlreadyConfirmed:
     code: 165
     message: Account request already confirmed
+  invalidReferenceTypeDefinitionSource:
+    code: 166
+    message: Invalid Reference type definition sources
+  invalidPlanImportXml:
+    code: 167
+    message: Invalid plan import xml
+  invalidPlanImportRdaJson:
+    code: 168
+    message: Invalid plan import rda json
+  invalidPlanBlueprintImportXml:
+    code: 169
+    message: Invalid plan blueprint import xml
+  invalidDescriptionTemplateImportXml:
+    code: 170
+    message: Invalid description template import xml
+  lockedPlan:
+    code: 171
+    message: This plan is locked by another user
+  lockedDescription:
+    code: 172
+    message: This description is locked by another user
+  lockedPlanBlueprint:
+    code: 173
+    message: This plan blueprint is locked by another user
+  lockedDescriptionTemplate:
+    code: 174
+    message: This description template is locked by another user
+  invalidUserEmail:
+    code: 175
+    message: No user found with this email

@@ -5,10 +5,7 @@ import gr.cite.tools.validation.ValidatorFactory;
 import gr.cite.tools.validation.specification.Specification;
 import org.opencdmp.commons.XmlHandlingService;
 import org.opencdmp.commons.enums.*;
-import org.opencdmp.commons.types.planblueprint.DefinitionEntity;
-import org.opencdmp.commons.types.planblueprint.FieldEntity;
-import org.opencdmp.commons.types.planblueprint.SectionEntity;
-import org.opencdmp.commons.types.planblueprint.SystemFieldEntity;
+import org.opencdmp.commons.types.planblueprint.*;
 import org.opencdmp.commons.validation.BaseValidator;
 import org.opencdmp.convention.ConventionService;
 import org.opencdmp.data.*;
@@ -36,9 +33,9 @@ public class PlanPersist {
 
     public static final String _label = "label";
 
-    private PlanStatus status;
+    private UUID statusId;
 
-    public static final String _status = "status";
+    public static final String _statusId = "statusId";
 
     private PlanPropertiesPersist properties;
 
@@ -84,12 +81,12 @@ public class PlanPersist {
         this.label = label;
     }
 
-    public PlanStatus getStatus() {
-        return this.status;
+    public UUID getStatusId() {
+        return statusId;
     }
 
-    public void setStatus(PlanStatus status) {
-        this.status = status;
+    public void setStatusId(UUID statusId) {
+        this.statusId = statusId;
     }
 
     public PlanPropertiesPersist getProperties() {
@@ -186,9 +183,10 @@ public class PlanPersist {
         @Override
         protected List<Specification> specifications(PlanPersist item) {
             PlanBlueprintEntity planBlueprintEntity = null;
+            PlanStatusEntity statusEntity = null;
             try {
                 planBlueprintEntity = this.isValidGuid(item.getBlueprint()) ? this.entityManager.find(PlanBlueprintEntity.class, item.getBlueprint(), true) : null;
-
+                statusEntity = this.isValidGuid(item.getStatusId()) ? this.entityManager.find(PlanStatusEntity.class, item.getStatusId(), true) : null;
             } catch (InvalidApplicationException e) {
                 throw new RuntimeException(e);
             }
@@ -203,6 +201,7 @@ public class PlanPersist {
                 accessFieldLabel = this.getSystemFieldLabel(definition, PlanBlueprintSystemFieldType.AccessRights);
             }
 
+            PlanStatusEntity finalStatusEntity = statusEntity;
             return Arrays.asList(
                     this.spec()
                             .iff(() -> this.isValidGuid(item.getId()))
@@ -220,40 +219,41 @@ public class PlanPersist {
                             .must(() -> this.lessEqualLength(item.getLabel(), PlanEntity._labelLength))
                             .failOn(PlanPersist._label).failWith(this.messageSource.getMessage("Validation_MaxLength", new Object[]{PlanPersist._label}, LocaleContextHolder.getLocale())),
                     this.spec()
-                            .iff(() -> item.getStatus() == PlanStatus.Finalized)
+                            .iff(() -> finalStatusEntity != null && finalStatusEntity.getInternalStatus() != null && finalStatusEntity.getInternalStatus() == PlanStatus.Finalized)
                             .must(() -> !this.isEmpty(item.getDescription()))
                             .failOn(PlanPersist._description).failWith(this.messageSource.getMessage("Validation_Required", new Object[]{PlanPersist._description}, LocaleContextHolder.getLocale())),
                     this.spec()
-                            .must(() -> !this.isNull(item.getStatus()))
-                            .failOn(PlanPersist._status).failWith(this.messageSource.getMessage("Validation_Required", new Object[]{PlanPersist._status}, LocaleContextHolder.getLocale())),
+                            .iff(() -> this.isValidGuid(item.getId()))
+                            .must(() -> !this.isNull(item.getStatusId()))
+                            .failOn(PlanPersist._statusId).failWith(this.messageSource.getMessage("Validation_Required", new Object[]{PlanPersist._statusId}, LocaleContextHolder.getLocale())),
                     this.spec()
-                            .iff(() -> item.getStatus() == PlanStatus.Finalized)
+                            .iff(() -> finalStatusEntity != null && finalStatusEntity.getInternalStatus() != null && finalStatusEntity.getInternalStatus() == PlanStatus.Finalized)
                             .must(() -> this.isValidGuid(item.getBlueprint()))
                             .failOn(PlanPersist._blueprint).failWith(this.messageSource.getMessage("Validation_Required", new Object[]{PlanPersist._blueprint}, LocaleContextHolder.getLocale())),
 
                     this.spec()
-                            .iff(() -> item.getStatus() == PlanStatus.Finalized)
+                            .iff(() -> finalStatusEntity != null && finalStatusEntity.getInternalStatus() != null && finalStatusEntity.getInternalStatus() == PlanStatus.Finalized)
                             .must(() -> !this.isNull(item.getProperties()))
                             .failOn(PlanPersist._properties).failWith(this.messageSource.getMessage("Validation_Required", new Object[]{PlanPersist._properties}, LocaleContextHolder.getLocale())),
                     this.spec()
-                            .iff(() -> item.getStatus() == PlanStatus.Finalized)
+                            .iff(() -> finalStatusEntity != null && finalStatusEntity.getInternalStatus() != null && finalStatusEntity.getInternalStatus() == PlanStatus.Finalized)
                             .must(() -> this.isDescriptionTemplateMultiplicityValid(finalPlanBlueprintEntity, item.getId()))
                             .failOn(PlanPersist._descriptionTemplates).failWith(this.messageSource.getMessage("Validation.InvalidDescriptionTemplateMultiplicityOnPlan", new Object[]{PlanPersist._descriptionTemplates}, LocaleContextHolder.getLocale())),
                     this.refSpec()
-                            .iff(() -> !this.isNull(item.getProperties()))
+                            .iff(() -> !this.isNull(item.getProperties()) && finalStatusEntity != null)
                             .on(PlanPersist._properties)
                             .over(item.getProperties())
-                            .using(() -> this.validatorFactory.validator(PlanPropertiesPersist.PlanPropertiesPersistValidator.class).setStatus(item.getStatus()).withDefinition(definition)),
+                            .using(() -> this.validatorFactory.validator(PlanPropertiesPersist.PlanPropertiesPersistValidator.class).setStatus(finalStatusEntity.getInternalStatus()).withDefinition(definition)),
                     this.spec()
-                            .iff(() -> item.getStatus() == PlanStatus.Finalized)
+                            .iff(() -> finalStatusEntity != null && finalStatusEntity.getInternalStatus() != null && finalStatusEntity.getInternalStatus() == PlanStatus.Finalized)
                             .must(() -> !this.isNull(item.getLanguage()))
                             .failOn(PlanPersist._language).failWith(this.messageSource.getMessage("Validation_Required", new Object[]{languageFieldLabel != null ? languageFieldLabel :  PlanBlueprintSystemFieldType.Language.name()}, LocaleContextHolder.getLocale())),
                     this.spec()
-                            .iff(() -> item.getStatus() == PlanStatus.Finalized)
+                            .iff(() -> finalStatusEntity != null && finalStatusEntity.getInternalStatus() != null && finalStatusEntity.getInternalStatus() == PlanStatus.Finalized)
                             .must(() -> !this.isNull(item.getAccessType()))
                             .failOn(PlanPersist._accessType).failWith(this.messageSource.getMessage("Validation_Required", new Object[]{accessFieldLabel != null ? accessFieldLabel :  PlanBlueprintSystemFieldType.AccessRights.name()}, LocaleContextHolder.getLocale())),
                     this.spec()
-                            .iff(() -> item.getStatus() == PlanStatus.Finalized)
+                            .iff(() -> finalStatusEntity != null && finalStatusEntity.getInternalStatus() != null && finalStatusEntity.getInternalStatus() == PlanStatus.Finalized)
                             .must(() -> !this.isListNullOrEmpty(item.getDescriptionTemplates()))
                             .failOn(PlanPersist._descriptionTemplates).failWith(this.messageSource.getMessage("Validation_Required", new Object[]{PlanPersist._descriptionTemplates}, LocaleContextHolder.getLocale())),
                     this.navSpec()
@@ -279,7 +279,7 @@ public class PlanPersist {
             for (SectionEntity section: definition.getSections()) {
                 if (section.getHasTemplates() && !this.isListNullOrEmpty(section.getDescriptionTemplates())){
 
-                    for (org.opencdmp.commons.types.planblueprint.DescriptionTemplateEntity sectionDescriptionTemplate: section.getDescriptionTemplates()) {
+                    for (BlueprintDescriptionTemplateEntity sectionDescriptionTemplate: section.getDescriptionTemplates()) {
                         if (sectionDescriptionTemplate.getMaxMultiplicity() == null && sectionDescriptionTemplate.getMinMultiplicity() == null ) continue;
 
                         int descriptionsCount = 0;

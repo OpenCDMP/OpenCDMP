@@ -11,6 +11,7 @@ import org.opencdmp.authorization.AuthorizationFlags;
 import org.opencdmp.commons.enums.IsActive;
 import org.opencdmp.commons.enums.SupportiveMaterialFieldType;
 import org.opencdmp.data.SupportiveMaterialEntity;
+import org.opencdmp.data.TenantEntity;
 import org.opencdmp.data.TenantEntityManager;
 import org.opencdmp.model.SupportiveMaterial;
 import org.opencdmp.query.utils.QueryUtilsService;
@@ -40,6 +41,8 @@ public class SupportiveMaterialQuery extends QueryBase<SupportiveMaterialEntity>
     private Collection<UUID> tenantIds;
 
     private Boolean tenantIsSet;
+
+    private TenantQuery tenantQuery;
 
     private EnumSet<AuthorizationFlags> authorize = EnumSet.of(AuthorizationFlags.None);
 
@@ -130,6 +133,11 @@ public class SupportiveMaterialQuery extends QueryBase<SupportiveMaterialEntity>
 
     public SupportiveMaterialQuery tenantIsSet(Boolean value) {
         this.tenantIsSet = value;
+        return this;
+    }
+
+    public SupportiveMaterialQuery tenantSubQuery(TenantQuery tenantQuery) {
+        this.tenantQuery = tenantQuery;
         return this;
     }
 
@@ -234,6 +242,10 @@ public class SupportiveMaterialQuery extends QueryBase<SupportiveMaterialEntity>
             for (UUID item : this.tenantIds)
                 inClause.value(item);
             predicates.add(inClause);
+        }
+        if (this.tenantQuery != null) {
+            QueryContext<TenantEntity, UUID> subQuery = this.applySubQuery(this.tenantQuery, queryContext, UUID.class, tenantEntityRoot -> tenantEntityRoot.get(TenantEntity._id));
+            predicates.add(queryContext.CriteriaBuilder.in(queryContext.Root.get(SupportiveMaterialEntity._tenantId)).value(subQuery.Query));
         }
         if (!predicates.isEmpty()) {
             Predicate[] predicatesArray = predicates.toArray(new Predicate[0]);

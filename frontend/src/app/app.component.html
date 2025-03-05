@@ -1,20 +1,21 @@
-<div class="wrapper" *ngIf="!showOnlyRouterOutlet">
-	<app-navbar (sidebarToggled)="sidenav.toggle(); toggleNavbar($event);"></app-navbar>
-	<mat-sidenav-container fullscreen class="main-container">
-		<mat-sidenav #sidenav mode="side" opened class="sidenav" [fixedInViewport]="true" [fixedTopGap]="80">
-			<app-sidebar></app-sidebar>
-		</mat-sidenav>
-		<mat-sidenav-content class="sidenav-content">
-			<div id="main-page">
-				<router-outlet (activate)='onActivate($event)' (deactivate)='onDeactivate($event)'></router-outlet>
-			</div>
-		</mat-sidenav-content>
-	</mat-sidenav-container>
-</div>
-<app-notification *ngIf="!showOnlyRouterOutlet"></app-notification>
-<router-outlet *ngIf="showOnlyRouterOutlet"></router-outlet>
-
 <ngx-guided-tour *ngIf="!showOnlyRouterOutlet"
-	[skipText]="'DASHBOARD.TOUR-GUIDE.LEAVE-TOUR'| translate"
-	[nextText]="'DASHBOARD.TOUR-GUIDE.GOT-IT'| translate"
+    [skipText]="'DASHBOARD.TOUR-GUIDE.LEAVE-TOUR'| translate"
+    [nextText]="'DASHBOARD.TOUR-GUIDE.GOT-IT'| translate"
 ></ngx-guided-tour>
+<button class="skip-to-main-content" (click)="skipToMain()" tabindex="0">{{'ALT-TEXT.SKIP-TO-MAIN-CONTENT' | translate}}</button>
+<div id="cookies-consent"></div>
+<div class="wrapper" *ngIf="!showOnlyRouterOutlet">
+    <app-navbar (sidebarToggled)="sidenav.toggle(); toggleNavbar($event);"></app-navbar>
+    <mat-sidenav-container fullscreen class="main-container">
+        <mat-sidenav #sidenav mode="side" opened class="sidenav" [fixedInViewport]="true" [fixedTopGap]="80">
+            <app-sidebar></app-sidebar>
+        </mat-sidenav>
+        <mat-sidenav-content class="sidenav-content">
+            <div id="main-page" tabindex="0">
+                <router-outlet  *ngIf="!authentication.appsNotAlreadyUserCreated()" (activate)='onActivate($event)' (deactivate)='onDeactivate($event)'></router-outlet>
+            </div>
+        </mat-sidenav-content>
+    </mat-sidenav-container>
+</div>
+<app-notification *ngIf="!showOnlyRouterOutlet && !authentication.appsNotAlreadyUserCreated()"></app-notification>
+<router-outlet *ngIf="showOnlyRouterOutlet && !authentication.appsNotAlreadyUserCreated()"></router-outlet>

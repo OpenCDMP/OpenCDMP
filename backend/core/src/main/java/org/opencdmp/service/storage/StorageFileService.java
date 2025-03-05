@@ -2,6 +2,7 @@ package org.opencdmp.service.storage;
 
 import org.opencdmp.commons.enums.StorageType;
 import org.opencdmp.commons.enums.SupportiveMaterialFieldType;
+import org.opencdmp.commons.types.storagefile.importexport.StorageFileImportExport;
 import org.opencdmp.model.StorageFile;
 import org.opencdmp.model.persist.StorageFilePersist;
 import gr.cite.tools.fieldset.FieldSet;
@@ -20,6 +21,7 @@ public interface StorageFileService extends ApplicationListener<ApplicationReady
 	StorageFile persistString(StorageFilePersist model, String payload, FieldSet fields, Charset charset) throws IOException;
 	StorageFile moveToStorage(UUID fileId, StorageType storageType, boolean replaceDestination, FieldSet fields);
 	StorageFile copyToStorage(UUID fileId, StorageType storageType, boolean replaceDestination, FieldSet fields);
+	StorageFile cloneStorageFile(StorageFile model);
 
 	boolean exists(UUID fileId);
 
@@ -35,6 +37,10 @@ public interface StorageFileService extends ApplicationListener<ApplicationReady
 	byte[] getSemanticsFile();
 
 	byte[] getSupportiveMaterial(SupportiveMaterialFieldType type, String language);
+
+	StorageFileImportExport storageFileXmlToExport(UUID fileId);
+
+	UUID xmlUploadFieldToPersist(StorageFileImportExport importXml) throws IOException;
 
 	byte[] getCookiePolicy(String language);
 

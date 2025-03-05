@@ -1,31 +1,29 @@
-<div *ngFor="let entry of tocentries; index as idx">
-	<!-- check if is visible -->
-	<ng-container *ngIf="visibilityRulesService.isVisibleMap[entry.visibilityRuleKey] ?? true">
-		<ng-container >
-
-			<span class="table-entry" 
-			(click)="toggleExpand(idx); onEntrySelected(entry);"
-			[ngStyle]="calculateStyle(entry)"
-			[ngClass]="calculateClass(entry)"
-			>
-				<span [class.text-danger]="!isTocEntryValid(entry) && showErrors">
-					{{entry.numbering}}. {{entry.label}} 
-				</span>	
-			
-			</span>
-			<div class="internal-table">
-				<table-of-contents-internal 
-				[tocentries]="entry.subEntries" 
-				*ngIf="entry.subEntries && entry.subEntries.length && expandChildren[idx]"
-				(entrySelected)="onEntrySelected($event)"
-				[selected]="selected"
-				[visibilityRulesService]="visibilityRulesService"
-				[propertiesFormGroup]="propertiesFormGroup"
-				[showErrors]="showErrors"
-				>
-				</table-of-contents-internal>
-			</div>
-		</ng-container>
-	</ng-container>
-
-</div>
+@for(entry of tocentries; track entry; let idx = $index){
+    @if(visibilityRulesService.isVisibleMap[entry.visibilityRuleKey] !== false){
+        <div 
+            role="button" 
+            class="table-entry" 
+            (click)="toggleExpand(idx, entry);"
+            [ngClass]="calculateClass(entry)"
+            tabindex="0"
+        >
+            <span [class.text-danger]="!isTocEntryValid(entry) && showErrors" [id]="entry.id + '-label'">
+                {{ordinal() ? ordinal() + '.' : ''}}{{entry.numbering}}. {{entry.label}} 
+            </span>	
+        </div>
+        <div class="internal-table" [class.top-level-child]="isTopLevel">
+            <table-of-contents-internal 
+                *ngIf="entry.subEntries?.length"
+                [class.d-none]="!expandChildren[idx]"
+                [tocentries]="entry.subEntries"
+                (entrySelected)="onEntrySelected($event)"
+                [selected]="selected"
+                [visibilityRulesService]="visibilityRulesService"
+                [propertiesFormGroup]="propertiesFormGroup"
+                [showErrors]="showErrors"
+                [ordinal]="ordinal()"
+            >
+            </table-of-contents-internal>
+        </div>
+    }
+}

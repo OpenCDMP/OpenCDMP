@@ -1,3 +1,17 @@
+.unstyled-btn {
+    background: none;
+	color: inherit;
+	border: none;
+	font: inherit;
+	cursor: pointer;
+	outline: inherit;
+}
+
+.table-item:hover, .table-label-element:focus {
+    background: rgb(0, 0, 0, 0.05);
+    border-radius: 4px;
+}
+
 .link-info{
   overflow: hidden;
   white-space: nowrap;
@@ -11,7 +25,7 @@
 
 
 .side-bolder{
-  border-left: 1px solid red;
+  border-left: 1px solid (--sys-error);
 }
 
 
@@ -21,19 +35,21 @@
   overflow: hidden;
 }
 
+.delete-btn {
+    cursor: pointer;
+}
 
 
-$blue-color : var(--primary-color);
-$blue-color-light: #5cf7f2;
-$yellow: var(--secondary-color);
 .badge-ball{
   display: inline-block;
   border-radius: 50%;
-  background-color: #FFF;
+  background-color: var(--sys-primary);
+  color: var(--sys-on-primary);
   font-size: small;
   font-weight: bold;
-  min-width: 2em;
   text-align: center;
+  width: 1.2rem;
+  height: 1.2rem;
 }
 
 .table-label-element{
@@ -49,5 +65,5 @@ $yellow: var(--secondary-color);
 }
 
 .link-info-error {
-  color: red;
+  color: (--sys-error);
 }

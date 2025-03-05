@@ -26,8 +26,9 @@ import { RouterUtilsService } from '@app/core/services/router/router-utils.servi
 import { AppPermission } from '@app/core/common/enum/permission.enum';
 
 @Component({
-	templateUrl: './reference-type-listing.component.html',
-	styleUrls: ['./reference-type-listing.component.scss']
+    templateUrl: './reference-type-listing.component.html',
+    styleUrls: ['./reference-type-listing.component.scss'],
+    standalone: false
 })
 export class ReferenceTypeListingComponent extends BaseListingComponent<ReferenceType, ReferenceTypeLookup> implements OnInit {
 	publish = false;
@@ -121,7 +122,7 @@ export class ReferenceTypeListingComponent extends BaseListingComponent<Referenc
 		},
 		{
 			prop: nameof<ReferenceType>(x => x.isActive),
-			sortable: true,
+			sortable: false,
 			languageName: 'REFERENCE-TYPE-LISTING.FIELDS.IS-ACTIVE',
 			pipe: this.pipeService.getPipe<IsActiveTypePipe>(IsActiveTypePipe)
 		},

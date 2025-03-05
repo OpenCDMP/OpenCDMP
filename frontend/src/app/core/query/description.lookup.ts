@@ -1,7 +1,6 @@
 import { Lookup } from '@common/model/lookup';
 import { Guid } from '@common/types/guid';
 import { IsActive } from '../common/enum/is-active.enum';
-import { DescriptionStatusEnum } from '../common/enum/description-status';
 import { PlanLookup } from './plan.lookup';
 import { DescriptionReferenceLookup } from './reference.lookup';
 import { DescriptionTagLookup } from './tag.lookup';
@@ -17,7 +16,7 @@ export class DescriptionLookup extends Lookup implements DescriptionFilter {
 	finalizedAfter: Date;
 	finalizedBefore: Date;
 	isActive: IsActive[];
-	statuses: DescriptionStatusEnum[];
+	statusIds: Guid[];
 	
 	planSubQuery: PlanLookup;
 	tenantSubQuery: TenantLookup;
@@ -39,7 +38,7 @@ export interface DescriptionFilter {
 	finalizedAfter: Date;
 	finalizedBefore: Date;
 	isActive: IsActive[];
-	statuses: DescriptionStatusEnum[];
+	statusIds: Guid[];
 
 	planSubQuery: PlanLookup;
 	descriptionTemplateSubQuery: DescriptionTemplateLookup;

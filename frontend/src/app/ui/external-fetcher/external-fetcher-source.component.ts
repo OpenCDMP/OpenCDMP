@@ -6,13 +6,15 @@ import { ReferenceType } from '@app/core/model/reference-type/reference-type';
 import { EnumUtils } from '@app/core/services/utilities/enum-utils.service';
 import { BaseComponent } from '@common/base/base.component';
 import { ValidationErrorModel } from '@common/forms/validation/error-model/validation-error-model';
-import { ExternalFetcherBaseSourceConfigurationEditorModel, QueryCaseConfigEditorModel, QueryConfigEditorModel, StaticEditorModel, StaticOptionEditorModel } from './external-fetcher-source-editor.model';
+import { ExternalFetcherBaseSourceConfigurationEditorModel, HeaderConfigEditorModel, QueryCaseConfigEditorModel, QueryConfigEditorModel, StaticEditorModel, StaticOptionEditorModel } from './external-fetcher-source-editor.model';
 import { Guid } from '@common/types/guid';
+import { ExternalFetcherApiHeaderType } from '@app/core/common/enum/ExternalFetcherApiHeader.enum';
 
 @Component({
-	selector: 'app-external-fetcher-source-component',
-	templateUrl: 'external-fetcher-source.component.html',
-	styleUrls: ['./external-fetcher-source.component.scss']
+    selector: 'app-external-fetcher-source-component',
+    templateUrl: 'external-fetcher-source.component.html',
+    styleUrls: ['./external-fetcher-source.component.scss'],
+    standalone: false
 })
 export class ExternalFetcherSourceComponent extends BaseComponent implements OnInit, OnChanges {
 
@@ -28,6 +30,8 @@ export class ExternalFetcherSourceComponent extends BaseComponent implements OnI
 	externalFetcherApiHTTPMethodType = ExternalFetcherApiHTTPMethodType;
 	externalFetcherSourceTypeEnum = this.enumUtils.getEnumValues<ExternalFetcherSourceType>(ExternalFetcherSourceType);
 	externalFetcherApiHTTPMethodTypeEnum = this.enumUtils.getEnumValues<ExternalFetcherApiHTTPMethodType>(ExternalFetcherApiHTTPMethodType);
+	externalFetcherApiHeaderType = ExternalFetcherApiHeaderType;
+	externalFetcherApiHeaderTypeEnum = this.enumUtils.getEnumValues<ExternalFetcherApiHeaderType>(ExternalFetcherApiHeaderType);
 	referenceTypeDependenciesMap: Map<number, ReferenceType[]> = new Map<number, ReferenceType[]>();
 
 	constructor(
@@ -55,6 +59,28 @@ export class ExternalFetcherSourceComponent extends BaseComponent implements OnI
 				rootPath: this.validationRootPath
 			}
 		)
+	}
+
+	//
+	//
+	// headers
+	//
+	//
+	addHeader(): void {
+		const formArray= this.formGroup.get('headers') as FormArray;
+		const header: HeaderConfigEditorModel = new HeaderConfigEditorModel(this.validationErrorModel);
+		formArray.push(header.buildForm({rootPath: this.validationRootPath + 'headers[' + formArray.length + '].'}));
+	}
+
+	removeHeader(headerIndex: number): void {
+		const formArray = (this.formGroup.get('headers') as FormArray);
+		formArray.removeAt(headerIndex);
+		this.reApplyValidators();
+		formArray.markAsDirty();
+	}
+
+	headerFieldDisabled(keyMethod: ExternalFetcherApiHeaderType) {
+		return (this.formGroup.get('headers') as FormArray)?.controls.some(x => (x.get('key') as FormArray)?.value === keyMethod);
 	}
 
 	//

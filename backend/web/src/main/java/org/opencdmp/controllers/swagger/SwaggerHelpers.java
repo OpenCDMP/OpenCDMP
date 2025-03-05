@@ -2589,6 +2589,24 @@ public final class SwaggerHelpers {
 
     }
 
+    public static final class Evaluator {
+
+        public static final String endpoint_get_available_evaluators =
+                """
+                        This endpoint is used to fetch all the available evaluators.</br>
+                        """;
+
+        public static final String endpoint_rank_plans =
+                """
+                        This endpoint is used to rank a plan using a specific evaluator.</br>
+                        """;
+
+        public static final String endpoint_rank_descriptions =
+                """
+                        This endpoint is used to rank a description using a specific evaluator.</br>
+                        """;
+    }
+
     public static final class EntityDoi {
 
         public static final String endpoint_query =
@@ -3370,6 +3388,11 @@ public final class SwaggerHelpers {
                 """
                         This endpoint is used to fetch all the available references.<br/>
                         It also allows to restrict the results using a query object passed in the request body.<br/>
+                        """;
+
+        public static final String endpoint_test =
+                """
+                        This endpoint is used to test reference results from external APIs configuration.<br/>
                         """;
 
         public static final String endpoint_search_request_body =

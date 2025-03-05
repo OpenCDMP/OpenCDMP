@@ -10,6 +10,8 @@ import org.opencdmp.model.descriptionstatus.DescriptionStatus;
 import org.opencdmp.model.persist.descriptionstatus.DescriptionStatusPersist;
 
 import javax.management.InvalidApplicationException;
+import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 public interface DescriptionStatusService {
@@ -17,4 +19,6 @@ public interface DescriptionStatusService {
     DescriptionStatus persist(DescriptionStatusPersist model, FieldSet fields) throws MyForbiddenException, MyValidationException, MyApplicationException, MyNotFoundException, InvalidApplicationException, JAXBException;
 
     void deleteAndSave(UUID id) throws MyForbiddenException, InvalidApplicationException;
+
+    Map<UUID, List<UUID>> getAuthorizedAvailableStatusIds(List<UUID> descriptionsIds);
 }

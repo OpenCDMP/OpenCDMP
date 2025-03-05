@@ -20,12 +20,13 @@ import { takeUntil } from 'rxjs/operators';
 import { PlanEditorModel } from '../../plan-editor-blueprint/plan-editor.model';
 
 @Component({
-	selector: 'app-invitation-dialog-component',
-	templateUrl: 'plan-invitation-dialog.component.html',
-	styleUrls: ['./plan-invitation-dialog.component.scss']
+    selector: 'app-invitation-dialog-component',
+    templateUrl: 'plan-invitation-dialog.component.html',
+    styleUrls: ['./plan-invitation-dialog.component.scss'],
+    standalone: false
 })
 export class PlanInvitationDialogComponent extends BaseComponent implements OnInit {
-
+   
 	planId: Guid;
 	editorModel: PlanEditorModel;
 	formGroup: UntypedFormGroup;

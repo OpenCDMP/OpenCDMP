@@ -34,9 +34,9 @@ public class PlanWorkflowQuery extends QueryBase<PlanWorkflowEntity> {
 
     private Collection<UUID> tenantIds;
 
-    private EnumSet<AuthorizationFlags> authorize = EnumSet.of(AuthorizationFlags.None);
+    private Boolean tenantIsSet;
 
-    private boolean defaultTenant;
+    private EnumSet<AuthorizationFlags> authorize = EnumSet.of(AuthorizationFlags.None);
 
     protected boolean noTracking;
 
@@ -106,13 +106,18 @@ public class PlanWorkflowQuery extends QueryBase<PlanWorkflowEntity> {
         return this;
     }
 
-    public PlanWorkflowQuery authorize(EnumSet<AuthorizationFlags> values) {
-        this.authorize = values;
+    public PlanWorkflowQuery clearTenantIds() {
+        this.tenantIds = null;
         return this;
     }
 
-    public PlanWorkflowQuery defaultTenant(Boolean value) {
-        this.defaultTenant = value;
+    public PlanWorkflowQuery tenantIsSet(Boolean values) {
+        this.tenantIsSet = values;
+        return this;
+    }
+
+    public PlanWorkflowQuery authorize(EnumSet<AuthorizationFlags> values) {
+        this.authorize = values;
         return this;
     }
 
@@ -175,13 +180,15 @@ public class PlanWorkflowQuery extends QueryBase<PlanWorkflowEntity> {
                 notInClause.value(item);
             predicates.add(notInClause.not());
         }
-        if (this.defaultTenant) {
-            predicates.add(queryContext.CriteriaBuilder.isNull(queryContext.Root.get(PlanWorkflowEntity._tenantId)));
-        } else if (this.tenantIds != null) {
+        if (this.tenantIds != null) {
             CriteriaBuilder.In<UUID> inClause = queryContext.CriteriaBuilder.in(queryContext.Root.get(PlanWorkflowEntity._tenantId));
             for (UUID item : this.tenantIds)
                 inClause.value(item);
             predicates.add(inClause);
+        }
+        if (this.tenantIsSet != null) {
+            if (this.tenantIsSet) predicates.add(queryContext.CriteriaBuilder.isNotNull(queryContext.Root.get(PlanWorkflowEntity._tenantId)));
+            else predicates.add(queryContext.CriteriaBuilder.isNull(queryContext.Root.get(PlanWorkflowEntity._tenantId)));
         }
 
         if (!predicates.isEmpty()) {

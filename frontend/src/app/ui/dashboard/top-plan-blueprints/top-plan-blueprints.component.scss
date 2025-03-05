@@ -1,0 +1,37 @@
+
+.card {
+    box-shadow: 0px 3px 6px rgba(0, 0, 0, 0.1019607843);
+}
+#planBlueprintsPreviewCarousel .carousel-indicators li {
+	background-color: #343a40; /* Dark indicator dots */
+}
+
+#planBlueprintsPreviewCarousel .carousel-indicators .active {
+	background-color:  var(--sys-primary);
+}
+
+.blueprintLabel{
+	font-size: var(--sys-headline-medium-size);
+	font-weight: bolder;
+}
+
+.field-label{
+	font-size: var(--sys-body-medium-size);
+}
+.sectionDescription{
+	font-size: var(--sys-label-medium-size);
+}
+.sectionDescriptionLabel{
+	font-size: var(--sys-label-medium-size);
+
+}
+
+.sectionTemplatesHeader{
+	font-size: var(--sys-label-large-size);
+	font-weight:bold;
+}
+
+.blueprint-preview {
+    scrollbar-color: var(--sys-primary) var(--sys-surface);
+    scrollbar-width: thin;
+}

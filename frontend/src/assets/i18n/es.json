@@ -43,12 +43,12 @@
 			"DESCRIPTION-TEMPLATE-IS-NOT-FINALIZED": "The selected Description Template is not finalized.",
 			"MULTIPLE-DESCRIPTION-TEMPLATE-VERSIONS-NOT-SUPPORTED": "Multiple versions of the selected Description Template where found. Please contact your administrator.",
 			"PLAN-NEW-VERSION-CONFLICT": "You can create a new version only by selected the latest version.",
-			"PLAN-IS-NOT-FINALIZED": "The selected DMP is not finalized.",
-			"MULTIPLE-PLAN-VERSIONS-NOT-SUPPORTED": "Multiple versions of the selected DMP where found. Please contact your administrator.",
-			"PLAN-IS-FINALIZED": "The requested action cannot be completed as the DMP has been finalized. To proceed, please revert the finalization.",
-			"PLAN-CAN-NOT-CHANGE": "While tying to update your Description, a validation error occurred. You cannot modify the Description's associated DMP.",
-			"PLAN-DESCRIPTION-TEMPLATE-CAN-NOT-CHANGE": "While tying to update your Description, a validation error occurred. You cannot modify the Description's associated DMP's Description Template.",
-			"INVALID-DESCRIPTION-TEMPLATE": "While tying to update your Description, a validation error occurred. The Description's associated DMP's Description Template is invalid.",
+			"PLAN-IS-NOT-FINALIZED": "The selected Plan is not finalized.",
+			"MULTIPLE-PLAN-VERSIONS-NOT-SUPPORTED": "Multiple versions of the selected Plan where found. Please contact your administrator.",
+			"PLAN-IS-FINALIZED": "The requested action cannot be completed as the Plan has been finalized. To proceed, please revert the finalization.",
+			"PLAN-CAN-NOT-CHANGE": "While tying to update your Description, a validation error occurred. You cannot modify the Description's associated Plan.",
+			"PLAN-DESCRIPTION-TEMPLATE-CAN-NOT-CHANGE": "While tying to update your Description, a validation error occurred. You cannot modify the Description's associated Plan's Description Template.",
+			"INVALID-DESCRIPTION-TEMPLATE": "While tying to update your Description, a validation error occurred. The Description's associated Plan's Description Template is invalid.",
 			"DESCRIPTION-IS-FINALIZED": "The requested action cannot be completed as the Description has been finalized. To proceed, please revert the finalization.",
 			"PLAN-BLUEPRINT-HAS-NO-DESCRIPTION-TEMPLATES": "You need to select at least one Description Template. Click the 'Has Description Templates' button to proceed.",
 			"PLAN-BLUEPRINT-NEW-VERSION-CONFLICT": "While trying to update your Blueprint, a version conflict occurred. Your Blueprint is not in the latest version.",
@@ -99,7 +99,17 @@
 			"PLAN-INVITATION-ALREADY-CONFIRMED": "Plan invitation has alreay confirmed",
 			"ACCOUNT-REQUEST-ALREADY-CONFIRMED": "Account request is already confirmed.",
 			"ANOTHER-USER-TOKEN": "This token is for another user",
-			"TOKEN-NOT-EXIST": "This token does not exist"
+			"TOKEN-NOT-EXIST": "This token does not exist",
+			"SUPPORTIVE-MATERIAL-ALREADY-EXISTS": "Already created Supportive Material with this type and language code",
+			"INVALID-PLAN-IMPORT-XML": "Input xml is not valid plan.",
+			"INVALID-PLAN-IMPORT-RDA-JSON": "Input is not valid plan according to RDA specifications.",
+			"INVALID-PLAN-BLUEPRINT-IMPORT-XML": "Input xml is not valid plan blueprint.",
+			"INVALID-DESCRIPTION-TEMPLATE-IMPORT-XML": "Input xml is not valid description template.",
+			"LOCKED-PLAN": "Cannot perform this action because another user modifying the plan.",
+			"LOCKED-DESCRIPTION": "Cannot perform this action because another user modifying the description {{descriptionLabel}}.",
+			"LOCKED-PLAN-BLUEPRINT": "Cannot perform this action because another user modifying the plan blueprint.",
+			"LOCKED-DESCRIPTION-TEMPLATE": "Cannot perform this action because another user modifying the description template.",
+			"INVALID-USER-EMAIL": "No user found with this email."
 		},
 		"FORM-VALIDATION-DISPLAY-DIALOG": {
 			"WARNING": "Atención!",
@@ -118,6 +128,7 @@
 			"DELETE-USER": "¿Borrar este colaborador?",
 			"LEAVE-PAGE": "Si sale, perderá los cambios.",
 			"LEAVE-WARNING": "¡Tiene cambios sin grabar!",
+            "CANNOT-BE-UNDONE": "This action cannot be undone.",
 			"ACTIONS": {
 				"CONFIRM": "Sí",
 				"DELETE": "Borrar",
@@ -146,7 +157,8 @@
 			"LOAD-MORE": "Cargar más",
 			"LOG-IN": "Iniciar sesión",
 			"TAKE-A-TOUR": "Necesita ayuda? Hagamos una visita virtual..",
-			"NO-MORE-AVAILABLE": "No more results available"
+			"NO-MORE-AVAILABLE": "No more results available",
+            "SHOW-LESS": "Show less"
 		},
 		"PREPOSITIONS": {
 			"OF": "de"
@@ -161,7 +173,7 @@
 			"COOKIES-POLICY": "Política de cookies",
 			"PLANS": "Mis PGDs",
 			"EXPLORE-PLANS": "PGDs Publicados",
-			"DESCRIPTIONS": "My Descriptions",
+			"DESCRIPTIONS": "Descriptions",
 			"BLUEPRINTS": "Blueprints",
 			"DESCRIPTION-TEMPLATES": "Description Templates",
 			"DESCRIPTION-TEMPLATE-TYPES": "Description Types",
@@ -186,13 +198,18 @@
 			"SUPPORTIVE-MATERIAL": "Supportive Material",
 			"USAGE-LIMITS": "Usage Limits",
             "PLAN-STATUSES": "Plan Statuses",
-            "DESCRIPTION-STATUSES": "Description Statuses"
+            "DESCRIPTION-STATUSES": "Description Statuses",
+			"INDICATOR-DASHBOARD": "Statistics"
 		},
 		"FILE-TRANSFORMER": {
 			"PDF": "PDF",
 			"XML": "XML",
 			"JSON": "RDA JSON",
 			"DOCX": "Document"
+		},
+		"EVALUATOR": {
+			"FAIR": "FAIR Evaluator",
+			"RDA-MADMP": "RDA MADMP Evaluator"
 		},
 		"LANGUAGES": {
 			"en": "English",
@@ -226,11 +243,12 @@
 			"DEFAULT": "An Unexpected Error Has Occurred"
 		},
 		"VALIDATION": {
-			"REQUIRED": "Required"
+			"REQUIRED": "Required",
+            "REQUIRED-FIELDS-HINT": "Fields marked with * are mandatory"
 		},
 		"LISTING-COMPONENT": {
 			"SEARCH-FILTER-BTN": "Filter Results",
-			"CLEAR-ALL-FILTERS": "clear all filters",
+			"CLEAR-ALL-FILTERS": "Clear all",
 			"FILTERS-SAVE-AS": "Save as",
 			"MESSAGE": {
 				"EMPTY": "No data to display",
@@ -260,6 +278,7 @@
             "EDIT": "Edit",
             "CANCEL": "Cancel",
             "DELETE": "Delete",
+            "REMOVE": "Remove",
             "NEW": "New",
             "CREATE": "Create",
             "BOOLEAN": {
@@ -272,6 +291,9 @@
 			"IS-ACTIVE": "Is Active",
 			"CANCEL": "Cancel",
 			"APPLY-FILTERS": "Apply filters"
+		},
+		"SPINNER":{
+			"LOADING": "Initializing your profile. Please wait..."
 		}
 	},
 	"SETTINGS-PICKER": {
@@ -304,7 +326,9 @@
 		"USERS": "Users",
 		"TENANT-USERS": "Tenant Users",
 		"NEW-USAGE-LIMIT": "New",
-		"USAGE-LIMITS": "Usage Limits"
+		"USAGE-LIMITS": "Usage Limits",
+		"NEW-SUPPORTIVE-MATERIAL": "New",
+		"SUPPORTIVE-MATERIALS": "Supportive Materials"
 	},
 	"COOKIE": {
 		"MESSAGE": "Esta web utiliza cookies para mejorar su experiecia de usuario.",
@@ -321,19 +345,25 @@
 		"TITLE": "Start new Plan",
 		"MESSAGE": "Start fresh or continue work in {{ APP_NAME }}! Create a new Plan or upload an existing Plan to {{ APP_NAME }}",
 		"IMPORT-FROM-FILE": "Import from file",
-		"OR": "OR",
+		"OR": "or",
 		"START-NEW-PLAN": "Start new Plan",
 		"IMPORT": "Import",
 		"FUNCTION-SUPPORTS": "function supports",
-		"JSON-FILES": ".json files",
-		"PRODUCED": "produced",
-		"RDA-SPECIFICATIONS": "according to RDA specifications",
-		"MACHINE-ACTIONABLE": "for machine-actionable DMPs"
+		"XML": ".xml",
+		"AND": "and",
+		"JSON": ".json",
+		"FILES": "files",
+		"NOTE": "Note: The file formats should conform to {{ APP_NAME_CAPS }} and",
+		"RDA": "RDA DMP",
+		"SPECIFICATIONS": "specifications"
 	},
 	"NAV-BAR": {
 		"START-NEW-PLAN": "Iniciar un nuevo PGD",
 		"INAPP-NOTIFICATIONS": "All Notifications",
-		"READ-ALL-INAPP-NOTIFICATIONS": "Read All"
+		"READ-ALL-INAPP-NOTIFICATIONS": "Read All",
+        "TOGGLE-TEXT-SIZE": "Toggle font size to  ",
+        "SMALLER": "smaller",
+        "LARGER": "larger"
 	},
 	"SIDE-BAR": {
 		"GENERAL": "GENERAL",
@@ -368,7 +398,8 @@
 		"ANNOTATION-STATUSES": "Annotation Statuses",
 		"USAGE-LIMITS": "Usage Limits",
         "DESCRIPTION-STATUSES": "Description Statuses",
-        "PLAN-STATUSES": "Plan Statuses"
+        "PLAN-STATUSES": "Plan Statuses",
+		"INDICATOR-DASHBOARD": "Statistics"
 	},
 	"DESCRIPTION-TEMPLATE-PREVIEW": {
 		"TEMPLATE": "Template"
@@ -376,6 +407,7 @@
 	"ANNOTATION-DIALOG": {
 		"TITLE": "Comments",
 		"SUCCESS": "Comment successfully saved",
+        "NO-COMMENTS": "No comments",
 		"THREADS": {
 			"NEW-THREAD": "New comment",
 			"SEND": "Send",
@@ -426,12 +458,21 @@
 					"SEND-DESCRIPTION-TEMPLATE-TYPE-ACCOUNTING-ENTRIES": "Send description template types accounting entries events",
 					"SEND-PREFILLING-SOURCE-ACCOUNTING-ENTRIES": "Send prefilling source accounting entries events",
 					"SEND-REFERENCE-TYPE-ACCOUNTING-ENTRIES": "Send reference type accounting entries events",
+					"SEND-PLAN-STATUS-ACCOUNTING-ENTRIES": "Send plan status accounting entries events",
+					"SEND-DESCRIPTION-STATUS-ACCOUNTING-ENTRIES": "Send description status accounting entries events",
+					"SEND-PLAN-EVALUATION-ACCOUNTING-ENTRIES": "Send plan evaluation accounting entries events",
+					"SEND-DESCRIPTION-EVALUATION-ACCOUNTING-ENTRIES": "Send description evaluation accounting entries events",
 					"SEND-USER-ACCOUNTING-ENTRIES": "Send user accounting entries events",
 					"SEND-INDICATOR-CREATE-ENTRY": "Send indicator create entry events",
 					"SEND-INDICATOR-RESET-ENTRY": "Send indicator reset entry events",
 					"SEND-INDICATOR-ACCESS-ENTRY": "Send indicator access entry events",
-					"SEND-INDICATOR-POINT-ENTRY": "Send indicator point entry events"
-				}
+	                "SEND-INDICATOR-POINT-ENTRY": "Send indicator point entry events",
+					"SEND-INDICATOR-POINT-PLAN-ENTRY": "Send indicator point plan entry events",
+					"SEND-INDICATOR-POINT-DESCRIPTION-ENTRY": "Send indicator point description entry events",
+					"SEND-INDICATOR-POINT-REFERENCE-ENTRY": "Send indicator point reference entry events",
+					"SEND-INDICATOR-POINT-USER-ENTRY": "Send indicator point user entry events",
+					"SEND-INDICATOR-POINT-PLAN-BLUEPRINT-ENTRY": "Send indicator point plan blueprint entry events",
+					"SEND-INDICATOR-POINT-DESCRIPTION-TEMPLATE-ENTRY": "Send indicator point description template entry events"				}
 			}
 		},
 		"CONFIRMATION": {
@@ -445,8 +486,8 @@
 			"HINT": "Default tenant locale"
 		},
 		"CSS-COLORS": {
-			"TITLE": "App Colors",
-			"HINT": "App color theme"
+			"TITLE": "App Theme",
+			"HINT": "Change the application's theme"
 		},
 		"LOGO": {
 			"TITLE": "Extra Logo",
@@ -456,10 +497,14 @@
 			"TITLE": "Notification Preferences",
 			"HINT": "Select available notifiers for Notification Types"
 		},
-		"DEPOSIT-PLUGINS": {
+				"DEPOSIT-PLUGINS": {
 			"TITLE": "Deposit Plugins",
 			"HINT": "Change deposit plugins"
 		},
+		"EVALUATOR-PLUGINS": {
+            "TITLE": "Evaluator Plugins",
+            "HINT": "Change evaluator plugins"
+        },
 		"FILE-TRANSFORMER-PLUGINS": {
 			"TITLE": "File Transformer Plugins",
 			"HINT": "Change file transformer plugins"
@@ -469,13 +514,14 @@
 			"CULTURE": "Format",
 			"LANGUAGE": "Language",
 			"PRIMARY-COLOR": "Primary Color",
-			"PRIMARY-COLOR-2": "Primary Color 2",
-			"PRIMARY-COLOR-3": "Primary Color 3",
-			"SECONDARY-COLOR": "Secondary Color",
+            "PRIMARY-COLOR-HINT": "This color generates a theme based on it. Any changes to the theme can be made using the CSS override",
+            "CSS-OVERRIDE": "CSS Override (json)",
 			"DISABLE-SYSTEM-SOURCES": "Disable System Sources",
 			"DEPOSIT-PLUGINS": "Plugin",
+			"EVALUATOR-PLUGINS": "Plugin",
 			"FILE-TRANSFORMER-PLUGINS": "Plugin",
 			"REPOSITORY-ID": "Repository Id",
+			"EVALUATOR-ID": "Evaluator Id",
 			"TRANSFORMER-ID": "Transformer Id",
 			"URL": "Url",
 			"ISSUER-URL": "Issuer Url",
@@ -496,6 +542,17 @@
             "TITLE": "Description Workflow",
             "HINT": "Configure the workflow for this tenant's descriptions"
         },
+		"FEATURED-ENTITIES": {
+            "TITLE": "Featured Entities",
+            "HINT": "Select featured plan blueprints and description templates",
+			"PLAN-BLUEPRINTS":"Plan Blueprints",
+			"DESCRIPTION-TEMPLATES":"Description Templates"
+        },
+		"DEFAULT-PLAN-BLUEPRINT": {
+            "TITLE": "Default Plan Blueprint",
+            "HINT": "Select default plan blueprint",
+			"PLAN-BLUEPRINT":"Plan Blueprint"
+        },
 		"ACTIONS": {
 			"SAVE": "Save",
 			"UPLOAD": "Upload",
@@ -503,7 +560,10 @@
 			"ADD-SOURCE": "Add Source",
             "REMOVE-SOURCE": "Remove Source",
 			"RESET-TO-DEFAULT": "Reset To Default"
-		}
+		},
+        "ERRORS": {
+            "INVALID-JSON": "Invalid JSON format"
+        }
 	},
 	"DESCRIPTION-TEMPLATE-EDITOR": {
 		"TITLE": {
@@ -722,7 +782,9 @@
 				"ENABLE-MULTIPLICITY": "El usuario debe dar más de una respuesta a la pregunta.",
 				"MULTIPLICITY": "Multiplicidad",
 				"MORE": "More.."
-			}
+			},
+            "SCROLL": "SCROLL",
+            "ENABLE-REORDERING": "Enable field reordering"
 		},
 		"ERRORS": {
 			"INVALID-VISIBILITY-RULES": {
@@ -774,6 +836,7 @@
 			"NO-ITEMS-FOUND": "Your search didn't match any items.",
 			"STATUS": {
 				"NAME": "Status",
+				"PLACEHOLDER":"Select Status",
 				"TYPE": {
 					"ANY": "Any",
 					"PUBLIC": "Published",
@@ -781,6 +844,7 @@
 					"DRAFT": "Draft"
 				}
 			},
+			"IS-ACTIVE": "Active Filter",
 			"RELATED-TENANT": {
 				"NAME": "Related Tenant",
 				"FILTER-BY-TENANT": "Filter by tenant"
@@ -836,13 +900,17 @@
 		"PUBLIC": "Publicado",
 		"LOCKED": "Bloqueado",
 		"VERSION": "Version",
+        "VERSIONS": "Versions",
 		"EDITED": "Edited",
 		"DELETED": "Deleted",
 		"FINALISED": "Finalized",
 		"GRANT": "Subvención",
 		"DESCRIPTION": "Description",
 		"DESCRIPTIONS": "Descriptions included",
-		"DOI-PROVIDED": "DOI provided by",
+		"DOI-PROVIDED": "DOI provided",
+        "EVALUATION": "Evaluation",
+        "EVALUATION-HISTORY": "Evaluation history",
+        "NO-EVALUATIONS": "No evaluations.",
 		"PLAN-AUTHORS": "Autores del PGD",
 		"YOU": "tú",
 		"ACTIONS": {
@@ -858,8 +926,18 @@
 			"NEW-VERSION": "Start new version",
 			"INVITE-SHORT": "Invite",
 			"REMOVE-AUTHOR": "Remove",
-			"PREVIEW": "Preview"
+			"PREVIEW": "Preview",
+			"EVALUATE": "Evaluate",
+            "CHANGE-STATUS": "Change status",
+            "DUPLICATE": "Duplicate"
 		},
+        "DISABLED-TOOLTIP": {
+            "NEW-VERSION": "You cannot add a new version in this plan status state",
+            "EVALUATION": "You cannot evaluate in this plan status state",
+            "DEPOSIT": "You cannot deposit in this plan status state",
+            "INVITE": "You cannot invite plan authors in this plan status state",
+            "EVALUATION-IN-PROGRSES": "Evaluation is currently in progress"
+        },
 		"UNDO-FINALIZATION-DIALOG": {
 			"TITLE": "Undo Finalization?",
 			"CONFIRM": "Yes",
@@ -913,6 +991,8 @@
         "FIELDS": {
             "NAME": "Name",
             "DESCRIPTION": "Description",
+			"ACTION": "Action",
+			"ORDINAL": "Ordinal",
             "DEFINITION": "Definition",
             "INTERNAL-STATUS": "Internal Status",
             "AUTHORIZATION": "Authorization",
@@ -920,7 +1000,15 @@
             "ALLOW-AUTHENTICATED": "Allow authenticated users",
             "ALLOW-ANONYMOUS": "Allow anonymous users",
             "ROLES": "User roles",
-            "PLAN-ROLES": "User plan roles"
+            "PLAN-ROLES": "User plan roles",
+			"AVAILABLE-ACTIONS": "Available Actions",
+            "MAT-ICON-NAME": "Mat-Icon Name",
+			"MAT-ICON-ACTIONS": "Available Mat-Icon Actions",
+			"MAT-ICON-INPUT": "Switch to Form Field",
+			"MAT-ICON-UPLOAD": "Switch to Upload",
+			"STATUS-COLOR-ACTIONS": "Availabe Status Color",
+			"STATUS-COLOR-HINT": "Status Color Theme",
+			"STATUS-COLOR": "Status Colors"
         },
 		"DEFAULT-VALUE": {
 			"NONE": "None"
@@ -955,6 +1043,8 @@
         "FIELDS": {
             "NAME": "Name",
             "DESCRIPTION": "Description",
+			"ACTION": "Action",
+			"ORDINAL": "Ordinal",
             "DEFINITION": "Definition",
             "INTERNAL-STATUS": "Internal Status",
             "AUTHORIZATION": "Authorization",
@@ -962,7 +1052,15 @@
             "ALLOW-AUTHENTICATED": "Allow authenticated users",
             "ALLOW-ANONYMOUS": "Allow anonymous users",
             "ROLES": "User roles",
-            "PLAN-ROLES": "User plan roles"
+            "PLAN-ROLES": "User plan roles",
+			"AVAILABLE-ACTIONS": "Available Actions",
+            "MAT-ICON-NAME": "Mat-Icon Name",
+			"MAT-ICON-ACTIONS": "Available Mat-Icon Actions",
+			"MAT-ICON-INPUT": "Switch to Form Field",
+			"MAT-ICON-UPLOAD": "Switch to Upload",
+			"STATUS-COLOR-ACTIONS": "Availabe Status Color",
+			"STATUS-COLOR-HINT": "Status Color Theme",
+			"STATUS-COLOR": "Status Colors"
         },
 		"DEFAULT-VALUE": {
 			"NONE": "None"
@@ -1000,7 +1098,8 @@
 			"EXPORT": "Export",
 			"INVITE-SHORT": "Invite",
 			"REMOVE-AUTHOR": "Remove",
-			"PREVIEW": "Preview"
+			"PREVIEW": "Preview",
+			"EVALUATE": "Evaluate"
 		},
 		"COPY-DIALOG": {
 			"COPY": "Copy",
@@ -1043,7 +1142,7 @@
 		"ACTIONS": {
 			"ADD-REFERENCE-TYPE": "Add a Reference Type",
 			"ADD-DESCRIPTION": "Add Description",
-			"TAKE-A-TOUR": "Do you need help? Take a tour..",
+			"TAKE-A-TOUR": "Do you need help? Take a tour.",
 			"LOAD-MORE": "Load more",
 			"EXPORT": "Exportar",
 			"INVITE-SHORT": "Invitar",
@@ -1067,6 +1166,7 @@
 			"RESET-FILTERS": "Reset",
 			"STATUS": {
 				"NAME": "Status",
+				"PLACEHOLDER":"Select Status",
 				"TYPES": {
 					"ANY": "Any",
 					"DRAFT": "Draft",
@@ -1074,6 +1174,7 @@
 					"CANCELED": "Canceled"
 				}
 			},
+			"IS-ACTIVE": "Active Filter",
 			"RELATED-TENANT": {
 				"NAME": "Related Tenant",
 				"FILTER-BY-TENANT": "Filter by tenant"
@@ -1117,7 +1218,7 @@
 		"UNSAVED-CHANGES": "(unsaved changes)",
 		"PLAN": "Plan",
 		"TOC": {
-			"TITLE": "Guide steps",
+			"TITLE": "Description Sections",
 			"MAIN-INFO": "Main info",
 			"PREVIOUS": "Previous",
 			"NEXT": "Next"
@@ -1169,7 +1270,7 @@
 			"VIEW-LESS": "View less"
 		},
 		"MESSAGES": {
-			"MISSING-FIELDS": "There are some required fields left unfilled. Please check the Plan and make sure that all required questions are answered and URLs are provided with valid input. (Missing fields are marked in red color)"
+			"MISSING-FIELDS": "There are some fields that contain errors. Please check the Description and make sure that all required questions are answered and URLs are provided with valid input."
 		},
 		"LOCKED-DIALOG": {
 			"TITLE": "Description is locked",
@@ -1198,7 +1299,7 @@
 	},
 	"NEW-DESCRIPTION-DIALOG": {
 		"TITLE": "Initialize your Description",
-		"OR": "OR",
+		"OR": "or",
 		"DESCRIPTION-TEMPLATE-HINT": "Select the Template to be used for your Description.",
 		"PREFILL-HINT": "Select the item from Zenodo to automatically retrieve answers to some questions in your template or start by answering the questions manually.",
 		"DESCRIPTION-TEMPLATE": "Description Template",
@@ -1266,7 +1367,7 @@
 			"STATUS": "Status",
 			"CANCEL": "Cancel",
 			"APPLY-FILTERS": "Apply filters",
-			"CLEAR-ALL-FILTERS": "clear all filters",
+			"CLEAR-ALL-FILTERS": "Clear all",
 			"SEARCH-FILTER-BTN": "Filter Results"
 		},
 		"ACTIONS": {
@@ -1388,6 +1489,7 @@
 		"FILTER": {
 			"TITLE": "Filters",
 			"IS-ACTIVE": "Is Active",
+			"TENANT": "By Tenant",
 			"CANCEL": "Cancel",
 			"APPLY-FILTERS": "Apply filters"
 		},
@@ -1417,7 +1519,30 @@
 			"EDIT": "Edit"
 		}
 	},
+	"SUPPORTIVE-MATERIAL-LISTING": {
+		"CREATE": "Create Supportive Material",
+		"FIELDS": {
+			"TYPE": "Type",
+			"LANGUAGE-CODE": "Language Code",
+			"UPDATED-AT": "Updated",
+			"CREATED-AT": "Created",
+			"IS-ACTIVE": "Is Active"
+		},
+		"FILTER": {
+			"TITLE": "Filters",
+			"IS-ACTIVE": "Is Active",
+			"TYPE": "Type",
+			"TENANT": "By Tenant",
+			"CANCEL": "Cancel",
+			"APPLY-FILTERS": "Apply filters"
+		},
+		"ACTIONS": {
+			"DELETE": "Delete",
+			"EDIT": "Edit"
+		}
+	},
 	"SUPPORTIVE-MATERIAL-EDITOR": {
+		"TITLE-EDIT-SUPPORTIVE-MATERIAL": "Editing Supportive Material",
 		"FIELDS": {
 			"MATERIAL-TYPE": "Material Type",
 			"LANGUAGE": "Language",
@@ -1636,6 +1761,22 @@
 			}
 		}
 	},
+	"KPI-SERVICE": {
+		"KPI_DASHBOARD": {
+			"NOT-FOUND":"Dashboard not found",
+			"INVALID-CONFIGURATION": "Invalid Dashboard Configuration"
+		},
+		"KPI_DASHBOARD_CHART": {
+			"UNEXPECTED_ERROR": "Something unexpected occurred. Please try again later.",
+			"INVALID-CONFIGURATION": "Invalid Chart Configuration"
+		},
+		"KPI_CHART_FILTERS": {
+			"FILTERS_FOR_TITLE": "Select reference type",
+			"REQUIRED": "Required",
+			"CANCEL": "Cancel",
+			"SUBMIT": "Submit"
+		}
+	},
 	"DESCRIPTION-TEMPLATE-TYPE-EDITOR": {
 		"TITLE-EDIT-DESCRIPTION-TEMPLATE-TYPE": "Editing Description Template Type",
 		"FIELDS": {
@@ -1674,11 +1815,19 @@
 			"SAVE": "Save",
 			"CANCEL": "Cancel",
 			"DELETE": "Delete",
-			"ADD-FIELD": "Add Field",
+			"ADD-FIELD": "Add field",
 			"REMOVE-FIELD": "Remove Field",
 			"ADD-SOURCE": "Add Source",
 			"REMOVE-SOURCE": "Remove Source",
-			"SUBMIT-FIELDS": "Update Fields"
+			"SUBMIT-FIELDS": "Update Fields",
+			"TEST-SOURCE": "Test Source",
+			"TEST-ALL-SOURCES": "Test all Sources",
+			"DISABLED-ALL-SOURCES": "Add Source to Enable"
+		},
+		"DIALOG": {
+			"RESULTS": "Results",
+			"KEY-NAME": "Source Key Name:"
+
 		}
 	},
 	"EXTERNAL-FETCHER-SOURCE-EDITOR": {
@@ -1714,7 +1863,10 @@
 			"DEFAULT-VALUE": "Default Value",
 			"CASES": "Cases",
 			"LIKE-PATTERN": "Condition",
-			"SOURCE-KEY": "Source Key"
+			"SOURCE-KEY": "Source Key",
+			"HEADERS": "Headers",
+            "HEADER": "Header",
+			"HEADER-METHOD": "Header Method"
 		},
 		"ACTIONS": {
 			"ADD-QUERY": "Add Query",
@@ -1722,7 +1874,9 @@
 			"ADD-CASE": "Add Case",
 			"REMOVE-CASE": "Remove Case",
 			"ADD-STATIC-ITEM": "Add Item",
-			"REMOVE-STATIC-ITEM": "Remove Item"
+			"REMOVE-STATIC-ITEM": "Remove Item",
+			"ADD-HEADER": "Add Header",
+			"REMOVE-HEADER": "Remove Header"
 		}
 	},
 	"TENANT-EDITOR": {
@@ -1760,7 +1914,7 @@
 			"SAVE": "Save",
 			"CANCEL": "Cancel",
 			"DELETE": "Delete",
-			"ADD-FIELD": "Add Field",
+			"ADD-FIELD": "Add field",
 			"REMOVE-FIELD": "Remove Field",
 			"SUBMIT-FIELDS": "Submit Fields"
 		}
@@ -1784,7 +1938,7 @@
 			"SAVE": "Save",
 			"CANCEL": "Cancel",
 			"DELETE": "Delete",
-			"ADD-FIELD": "Add Field",
+			"ADD-FIELD": "Add field",
 			"REMOVE-FIELD": "Remove Field"
 		}
 	},
@@ -1810,8 +1964,8 @@
 			"NEW-VERSION": "Create New Version of Plan Blueprint"
 		},
 		"TITLE-EDIT-BLUEPRINT": "Editing Blueprint",
-		"SECTIONS-REQUIRED": "Required",
-		"FIELDS-REQUIRED": "Required",
+		"SECTIONS-REQUIRED": "At least one section required",
+		"FIELDS-REQUIRED": "At least one field required",
 		"SYSTEM-FIELDS-REQUIRED": "Title, Description, Language and  Access are required",
 		"FIELDS": {
 			"NAME": "Name",
@@ -1837,20 +1991,22 @@
 			"DESCRIPTION-TEMPLATE-MAX-MULTIPLICITY": "Max Multiplicity",
 			"PREFILLING-SOURCES": "Prefilling Sources",
 			"ENABLE-PREFILLING-SOURCES": "Prefilling Sources",
-			"SYSTEM-FIELD-REQUIRED": "This is a required system field"
+			"SYSTEM-FIELD-REQUIRED": "This is a required system field",
+            "SECTION-FIELD": "Field"
 		},
 		"ACTIONS": {
-			"ADD-FIELD": "Add Field",
-			"REMOVE-FIELD": "Delete",
-			"REMOVE-SECTION": "Remove Section",
+			"ADD-FIELD": "Add field",
+			"REMOVE-FIELD": "Remove field",
+			"REMOVE-SECTION": "Remove section",
 			"ADD-DESCRIPTION-TEMPLATE": "Add Description Template",
 			"REMOVE-DESCRIPTION-TEMPLATE": "Remove Description Template",
-			"ADD-SECTION": "Add Section",
+			"ADD-SECTION": "Add section",
 			"SAVE": "Grabar",
 			"CANCEL": "Cancelar",
 			"DELETE": "Borrar",
 			"FINALIZE": "Finalizar",
-			"DOWNLOAD-XML": "Descargar XML"
+			"DOWNLOAD-XML": "Descargar XML",
+            "ENABLE-REORDERING": "Enable field reordering"
 		},
 		"LOCKED-DIALOG": {
 			"TITLE": "Plan Blueprint is locked",
@@ -1875,7 +2031,8 @@
 		"NO-TEMPLATE-MESSAGE": "If you can't find a template or if you want to create a personalized template for your institution, research community or training needs, please contact us.",
 		"DESCRIPTION-TEMPLATES": {
 			"EMPTY": "Description templates not found",
-			"MAX-MULTIPLICITY": "Description Templates has reached the maximun multiplicity"
+			"MAX-MULTIPLICITY": "Description Templates has reached the maximun multiplicity",
+            "TEMPLATES-TOUCHED": "Save plan changes to enable adding descriptions"
 		},
 		"UNSUCCESSFUL-REMOVE-TEMPLATE": "Cannot remove template, because it's already being used by one or more Descriptions.",
 		"FIELDS": {
@@ -1915,12 +2072,14 @@
 			},
 			"SAVE": "Grabar",
 			"DELETE": "Borrar",
-			"ADD-DESCRIPTION-IN-SECTION": "Add Description",
+            "ADD-DESCRIPTION": "Add Description",
+			"ADD-DESCRIPTION-IN-SECTION": "Add Description in section",
 			"PREVIOUS-STEP": "Previous",
 			"NEXT-STEP": "Next",
 			"DEFAULT-BLUEPRINT": "Default Blueprint",
 			"OR-CONTINUE-WITH": "or continue with",
 			"REMOVE-CONTACT": "Remove Contact",
+            "ADD-CONTACT": "Add Contact",
 			"SEARCH-CONTACT": "Search Contact",
 			"REMOVE-USER": "Remove User",
 			"SAVE-AND-CLOSE": "Save & Close",
@@ -1938,7 +2097,9 @@
 		"SNACK-BAR": {
 			"UNSUCCESSFUL-DOI": "Fallo en la creación del DOI",
 			"SUCCESSFUL-DOI": "Creación del DOI correcta",
-			"SUCCESSFUL-PLAN-CONTACT": "User added"
+			"SUCCESSFUL-PLAN-CONTACT": "User added",
+			"SUCCESSFUL-EVALUATION": "Successful evaluation",
+			"UNSUCCESSFUL-EVALUATION":"Unsuccessful evaluation"
 		},
 		"DESCRIPTION-TEMPLATE-LIST": {
 			"TITLE": "Available Description Templates",
@@ -1955,6 +2116,21 @@
 			"TITLE": "Plan is locked",
 			"MESSAGE": "Somebody else is modifying the Plan at this moment. You may view the Plan but you cannot make any changes."
 		}
+	},
+	"PLAN-EVALUATE-DIALOG": {
+		"HEADER": "Evaluation Result",
+		"DETAILS-SUB-HEADER": "Details",
+		"RANK-BODY": "Rank",
+		"DETAILS-BODY": "Details",
+		"MESSAGES-BODY": "Messages",
+		"ERROR":"Error"
+	},
+	"DESCRIPTION-EVALUATE-DIALOG": {
+		"HEADER": "Evaluation Result",
+		"DETAILS-SUB-HEADER": "Details",
+		"RANK-BODY": "Rank",
+		"DETAILS-BODY": "Details",
+		"MESSAGES-BODY": "Messages"
 	},
 	"REFERENCE-FIELD": {
 		"COULD-NOT-FIND-MESSAGE": "Couldn't find it?",
@@ -1997,6 +2173,7 @@
 			"DESCRIPTION-PLACEHOLDER": "Fill with Description",
 			"DESCRIPTIONS": "Descriptions",
 			"DESCRIPTIONS-HINT": "Select which descriptions to include in the new Plan. Selected descriptions will be editable.",
+            "CANCELLED-DESCRIPTIONS-HINT": "This description is cancelled, and not part of the finalized plan. It is not included in the new plan version by default.",
 			"BLUEPRINT": "Plan Blueprint",
 			"BLUEPRINT-PLACEHOLDER": "Plan Blueprint"
 		},
@@ -2112,6 +2289,9 @@
 			"FINALIZED": "Finalized",
 			"CANCELED": "Canceled"
 		},
+		"DESCRIPTION-STATUS-AVAILABLE-ACTION-TYPE": {
+			"EXPORT": "Export"
+		},
 		"PLAN-USER-ROLE": {
 			"OWNER": "Owner",
 			"VIEWER": "Viewer",
@@ -2124,6 +2304,11 @@
 		"PLAN": {
 			"FINALISED": "Finalizado",
 			"DRAFT": "Borrador"
+		},
+		"PLAN-STATUS-AVAILABLE-ACTION-TYPE": {
+			"DEPOSIT": "Deposit",
+			"EXPORT": "Export",
+			"EVALUATE": "Evaluate"
 		},
 		"PLAN-VISIBILITY": {
 			"PUBLIC": "Publicado"
@@ -2207,9 +2392,17 @@
 			"API": "API",
 			"STATIC": "Static"
 		},
-		"EXTERNAL-FETCHER-API-HTTP-METHOD-TYPE": {
+				"EXTERNAL-FETCHER-API-HTTP-METHOD-TYPE": {
 			"GET": "GET",
 			"POST": "POST"
+		},
+		"EXTERNAL-FETCHER-API-HEADER-METHOD-TYPE": {
+			"ACCEPT": "ACCEPT",
+			"CONNECTION": "CONNECTION",
+			"ALLOW_HEADER": "ALLOW HEADER",
+			"ALLOW_ORIGIN": "ALLOW ORIGIN",
+			"ALLOW_CREDENTIALS": "ALLOW CREDENTIALS",
+			"ORIGIN": "ORIGIN"
 		},
 		"DESCRIPTION-TEMPLATE-EXTERNAL-SELECT-HTTP-METHOD-TYPE": {
 			"GET": "GET",
@@ -2249,11 +2442,13 @@
 			"PLAN-INVITATION-EXISTING-USER": "Plan Invitation Existing User",
 			"PLAN-MODIFIED": "Plan Modified",
 			"PLAN-FINALISED": "Plan Finalised",
+			"PLAN-STATUS-CHANGED": "Plan Status Changed",
 			"PLAN-ANNOTATION-CREATED": "Plan Annotation Created",
 			"PLAN-ANNOTATION-STATUS-CHANGED": "Plan Annotation Status Changed",
 			"DESCRIPTION-CREATED": "Description Created",
 			"DESCRIPTION-MODIFIED": "Description Modified",
 			"DESCRIPTION-FINALISED": "Description Finalised",
+			"DESCRIPTION-STATUS-CHANGED": "Description Status Changed",
 			"DESCRIPTION-ANNOTATION-CREATED": "Description Annotation Created",
 			"DESCRIPTION-ANNOTATION-STATUS-CHANGED": "Description Annotation Status Changed",
 			"MERGE-ACCOUNT-CONFIRMATION": "Merge Account Confirmation",
@@ -2322,16 +2517,24 @@
 		"USAGE-LIMIT-TARGET-METRIC": {
 			"USER-COUNT": "Users",
 			"PLAN-COUNT": "Plans",
+			"PLAN-STATUS-COUNT": "Plan Statuses",
 			"BLUEPRINT-COUNT": "Plan Blueprints",
 			"DESCRIPTION-COUNT": "Descriptions",
+			"DESCRIPTION-STATUS-COUNT": "Description Statuses",
 			"DESCRIPTION-TEMPLATE-COUNT": "Description Templates",
 			"DESCRIPTION-TEMPLATE-TYPE-COUNT": "Description Template Types",
 			"PREFILLING-SOURCES-COUNT": "Prefillings Sources",
-			"REFERENCE-TYPE-COUNT": "Reference Types"
+			"REFERENCE-TYPE-COUNT": "Reference Types",
+			"EVALUATION-PLAN-COUNT": "Evaluation Plan",
+			"EVALUATION-DESCRIPTION-COUNT": "Evaluation Description"
 		},
 		"USAGE-LIMIT-PERIODICITY-RANGE": {
 			"MONTHLY": "Monthly",
 			"YEARLY": "Yearly"
+		},
+		"EVALUATOR-SUCCESS-STATUS": {
+			"FAIL": "Failed",
+			"PASS": "Passed"
 		}
 	},
 	"FOOTER": {
@@ -2499,7 +2702,8 @@
 			"UNLINK-ACCOUNT": "Unlink",
 			"UNLINK-ACCOUNT-DISABLED": "You can't unlink your main profile's email",
 			"ADD": "Añadir",
-			"CANCEL": "Cancelar"
+			"CANCEL": "Cancelar",
+            "REFRESH-TENANT": "Refresh tenant"
 		}
 	},
 	"PLAN-FINALISE-DIALOG": {
@@ -2578,5 +2782,96 @@
     },
 	"copy": "Copy",
 	"clone": "Clone",
-	"new-version": "New Version"
+	"new-version": "New Version",
+    "INDICATOR-DASHBOARD": {
+        "LIST-VIEW": "List view",
+        "GRID-VIEW": "Grid view"
+    },
+    "ALT-TEXT": {
+        "HAMBURGER": "hide or show navigation sidebar",
+        "GO-TO-MAIN": "Go to home page",
+        "DASHBOARD-POPUP-IMAGE": "colorful art of a person working on an oversized computer",
+        "USER-OPTIONS": "Open user options",
+        "NEW-RELEASES": "New releases",
+        "LANGUAGE-SELECT": "Select Language",
+        "TENANT-SELECT": "Select Tenant",
+        "NOTIFICATIONS": "Notifications",
+        "USER-AVATAR": "User avatar",
+        "SELECT-OPTION": "Select an option",
+        "SELECT": "Select {{item}}",
+        "INTERNAL-EXTERNAL-USER": "Select internal or external user",
+        "OPEN-FILTERS": "Open filters",
+        "OPEN-PLAN-OVERVIEW-FOR": "Open plan overview for",
+        "OPEN-DESCRIPTION-OVERVIEW-FOR": "Open description overview for",
+        "MORE-ACTIONS": "More actions",
+        "OPEN-MENU-FOR": "Open menu for:",
+        "CLOSE-RELEASE": "Close release notifications",
+        "CLOSE-INTRO-CARD": "Close intro card",
+        "GUIDED-TOUR-IMG": "cartoon tour pointing to text with raised arm",
+        "PROGRESS-BAR": "Percentage of the form that is completed",
+        "SKIP-TO-MAIN-CONTENT": "Skip to main content",
+        "ADD": "Add an element of type: ",
+        "REORDER-TABLE": {
+            "MAIN-INFO": "This is a sortable list. You can reorder the elements inside it. Navigate with arrow keys.",
+            "ITEM-INFO": "Item {{index}} of {{length}}",
+            "BEGIN-EDITING": "Press Shift to start and stop reordering.",
+            "SELECT-ITEM": "Press Enter to select/ deselect the item.",
+            "ITEM-MOVED": "{{item}} moved. New position: {{index}} of {{length}}",
+            "ITEM-AT-END": "{{item}} is already at the end of the list",
+            "ITEM-AT-TOP": "{{item}} is already at the top of the list"
+        },
+        "CLEAR": "Clear",
+        "OPEN-DIALOG": "Open pop up",
+        "CLOSE-DIALOG": "Cancel and close pop up",
+        "OPEN-INFO-DIALOG": "Open pop up for more information",
+        "CLICK-TO-EDIT": "Click to edit"
+    },
+	"PLAN-BLUEPRINT-PREVIEW": {
+		"TOP-PLAN-BLUEPRINTS": {
+			"VIEW-ALL": "View all plan blueprints",
+            "SUGGESTED-TEMPLATES": "Suggested templates:",
+            "USE-ANY": "Use any available."
+		},
+		"LIST-OF-BLUEPRINTS": {
+			"QUESTION": "Which blueprint would best describe your plan?",
+			"PROMPT-TO-USE-DEFAULT": "Not specific requirements? Select the default",
+			"OR": "or",
+			"SELECT-FROM-AVAILABLE": "Select a blueprint prepared by our collaborators:"
+		},
+		"SELECTED-BLUEPRINT": {
+			"TITLE": "Preview of blueprint: {{ title }}",
+			"NO-TEMPLATES-IN-SECTION": {
+				"MESSAGE": "You can select any of the ",
+				"LINK-TEXT": "available description templates."
+			},
+			"TEMPLATES-IN-SECTION": {
+				"MESSAGE": "Use the templates provided by the blueprint or select any of the ",
+				"LINK-TEXT": "available description templates."
+			},
+			"ACTIONS": {
+				"COLLAPSE": "Collapse all",
+				"EXPAND": "Expand",
+				"EXPAND-MORE": "Expand more",
+				"DOWNLOAD-PDF": "Download PDF"
+			},
+			"PROCEED": "Proceed with this blueprint"
+
+		}
+	},
+	"DESCRIPTION-TEMPLATES-TABLE-LIST": {
+		"TEMPLATES-LIST-TITLE": "List of available templates",
+		"FIELDS": {
+			"NAME": "Name",
+			"LANGUAGE": "Language",
+			"TYPE": "Type",
+			"UPDATED-AT": "Updated"
+		},
+		"ACTIONS": {
+			"SELECT": "Select",
+			"REMOVE": "Remove",
+			"PREVIEW": "Preview",
+			"CLEAR": "Clear",
+			"PICK": "Pick one"
+		}
+	}
 }

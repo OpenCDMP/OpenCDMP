@@ -29,10 +29,11 @@ export class CustomComponentBase extends BaseComponent {
 export const _CustomComponentMixinBase = mixinErrorState(CustomComponentBase);
 
 @Component({
-	selector: 'app-multiple-auto-complete',
-	templateUrl: './multiple-auto-complete.component.html',
-	styleUrls: ['./multiple-auto-complete.component.scss'],
-	providers: [{ provide: MatFormFieldControl, useExisting: MultipleAutoCompleteComponent }]
+    selector: 'app-multiple-auto-complete',
+    templateUrl: './multiple-auto-complete.component.html',
+    styleUrls: ['./multiple-auto-complete.component.scss'],
+    providers: [{ provide: MatFormFieldControl, useExisting: MultipleAutoCompleteComponent }],
+    standalone: false
 })
 export class MultipleAutoCompleteComponent extends _CustomComponentMixinBase implements OnInit, MatFormFieldControl<string>, ControlValueAccessor, OnDestroy, DoCheck, OnChanges {
 
@@ -54,6 +55,7 @@ export class MultipleAutoCompleteComponent extends _CustomComponentMixinBase imp
 
 	@Input()
 	separatorKeysCodes = [];
+	@Input({required: false}) id: string = `multiple-autocomplete-${MultipleAutoCompleteComponent.nextId++}`;
 
 	// Selected Option Event
 	@Output() optionSelected: EventEmitter<any> = new EventEmitter();
@@ -62,7 +64,6 @@ export class MultipleAutoCompleteComponent extends _CustomComponentMixinBase imp
 	@Output() optionActionClicked: EventEmitter<any> = new EventEmitter();
 
 
-	id = `multiple-autocomplete-${MultipleAutoCompleteComponent.nextId++}`;
 	stateChanges = new Subject<void>();
 
 	valueOnBlur = new BehaviorSubject<any>(null);
@@ -272,9 +273,7 @@ export class MultipleAutoCompleteComponent extends _CustomComponentMixinBase imp
 	public onKeyUp(event) {
 		this.inputValue = event.target.value;
 		// prevent filtering results if arrow were pressed
-		if (event.keyCode !== ENTER && (event.keyCode < 37 || event.keyCode > 40)) {
-
-
+		if (event.keyCode !== ENTER && (event.keyCode < 37 || event.keyCode > 40) && !this.separatorKeysCodes?.includes(event.keyCode)) {
 			if (!this._items) { // possibly from an error request here
 				this._onInputFocus();
 			}
@@ -404,10 +403,16 @@ export class MultipleAutoCompleteComponent extends _CustomComponentMixinBase imp
 
 	//Chip Functions
 	_addItem(event: MatChipInputEvent): void {
-		const input = event.input;
-		if (input) {
+		if (!event.value) {
 			this.inputValue = '';
+            return;
 		}
+        this.optionSelectedInternal(event.value);
+        setTimeout(() => {
+            this.inputValue = ''
+            this._items = null; // refresh excluding previous item selected
+            this.autocompleteTrigger.closePanel();
+        });
 	}
 	public reset(): void {
 		this._inputSubject.unsubscribe();
@@ -430,8 +435,7 @@ export class MultipleAutoCompleteComponent extends _CustomComponentMixinBase imp
 		return null;
 	}
 
-	_removeSelectedItem(item: any, event: MouseEvent): void {
-		if (event != null) { event.stopPropagation(); }
+	_removeSelectedItem(item: any): void {
 		const valueToDelete = this._valueToAssign(item);
 		this.value = this.value.filter(x => JSON.stringify(x) !== JSON.stringify(valueToDelete)); //TODO, maybe we need to implement equality here differently.
 		this.optionRemoved.emit(item);

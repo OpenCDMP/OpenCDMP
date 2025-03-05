@@ -35,9 +35,8 @@ public class DescriptionEntity extends TenantScopedBaseEntity  {
 	public static final String _properties = "properties";
 
 	@Column(name = "status", nullable = false)
-	@Convert(converter = DescriptionStatusConverter.class)
-	private DescriptionStatus status;
-	public static final String _status = "status";
+	private UUID statusId;
+	public static final String _statusId = "statusId";
 
 	@Column(name = "description")
 	private String description;
@@ -106,14 +105,6 @@ public class DescriptionEntity extends TenantScopedBaseEntity  {
 
 	public void setProperties(String properties) {
 		this.properties = properties;
-	}
-	
-	public DescriptionStatus getStatus() {
-		return this.status;
-	}
-
-	public void setStatus(DescriptionStatus status) {
-		this.status = status;
 	}
 
 	public String getDescription() {
@@ -186,6 +177,14 @@ public class DescriptionEntity extends TenantScopedBaseEntity  {
 
 	public void setDescriptionTemplateId(UUID descriptionTemplateId) {
 		this.descriptionTemplateId = descriptionTemplateId;
+	}
+
+	public UUID getStatusId() {
+		return statusId;
+	}
+
+	public void setStatusId(UUID statusId) {
+		this.statusId = statusId;
 	}
 }
 

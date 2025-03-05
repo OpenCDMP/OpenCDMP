@@ -10,10 +10,8 @@ import gr.cite.tools.logging.LoggerService;
 import org.opencdmp.authorization.AuthorizationFlags;
 import org.opencdmp.convention.ConventionService;
 import org.opencdmp.data.DescriptionEntity;
-import org.opencdmp.model.PublicDescription;
-import org.opencdmp.model.PublicDescriptionTemplate;
-import org.opencdmp.model.PublicPlan;
-import org.opencdmp.model.PublicPlanDescriptionTemplate;
+import org.opencdmp.model.*;
+import org.opencdmp.query.DescriptionStatusQuery;
 import org.opencdmp.query.DescriptionTemplateQuery;
 import org.opencdmp.query.PlanDescriptionTemplateQuery;
 import org.opencdmp.query.PlanQuery;
@@ -66,12 +64,15 @@ public class PublicDescriptionBuilder extends BaseBuilder<PublicDescription, Des
         FieldSet planFields = fields.extractPrefixed(this.asPrefix(PublicDescription._plan));
         Map<UUID, PublicPlan> planItemsMap = this.collectPlans(planFields, data);
 
+        FieldSet descriptionStatusFields = fields.extractPrefixed(this.asPrefix(PublicDescription._status));
+        Map<UUID, PublicDescriptionStatus> descriptionStatusItemsMap = this.collectDescriptionStatuses(descriptionStatusFields, data);
+
         List<PublicDescription> models = new ArrayList<>();
         for (DescriptionEntity d : data) {
             PublicDescription m = new PublicDescription();
             if (fields.hasField(this.asIndexer(PublicDescription._id))) m.setId(d.getId());
             if (fields.hasField(this.asIndexer(PublicDescription._label)))  m.setLabel(d.getLabel());
-            if (fields.hasField(this.asIndexer(PublicDescription._status))) m.setStatus(d.getStatus());
+            if (!descriptionStatusFields.isEmpty() && descriptionStatusItemsMap != null && descriptionStatusItemsMap.containsKey(d.getStatusId()))  m.setStatus(descriptionStatusItemsMap.get(d.getStatusId()));
             if (fields.hasField(this.asIndexer(PublicDescription._description))) m.setDescription(d.getDescription());
             if (fields.hasField(this.asIndexer(PublicDescription._createdAt))) m.setCreatedAt(d.getCreatedAt());
             if (fields.hasField(this.asIndexer(PublicDescription._updatedAt))) m.setUpdatedAt(d.getUpdatedAt());
@@ -168,6 +169,36 @@ public class PublicDescriptionBuilder extends BaseBuilder<PublicDescription, Des
             itemMap = this.builderFactory.builder(PublicPlanBuilder.class).authorize(this.authorize).asForeignKey(q, clone, PublicPlan::getId);
         }
         if (!fields.hasField(PublicPlan._id)) {
+            itemMap.forEach((id, item) -> {
+                if (item != null)
+                    item.setId(null);
+            });
+        }
+
+        return itemMap;
+    }
+
+    private Map<UUID, PublicDescriptionStatus> collectDescriptionStatuses(FieldSet fields, List<DescriptionEntity> data) throws MyApplicationException {
+        if (fields.isEmpty() || data.isEmpty())
+            return null;
+        this.logger.debug("checking related - {}", PublicDescriptionStatus.class.getSimpleName());
+
+        Map<UUID, PublicDescriptionStatus> itemMap;
+        if (!fields.hasOtherField(this.asIndexer(PublicDescriptionStatus._id))) {
+            itemMap = this.asEmpty(
+                    data.stream().map(DescriptionEntity::getStatusId).distinct().collect(Collectors.toList()),
+                    x -> {
+                        PublicDescriptionStatus item = new PublicDescriptionStatus();
+                        item.setId(x);
+                        return item;
+                    },
+                    PublicDescriptionStatus::getId);
+        } else {
+            FieldSet clone = new BaseFieldSet(fields.getFields()).ensure(PublicDescriptionStatus._id);
+            DescriptionStatusQuery q = this.queryFactory.query(DescriptionStatusQuery.class).disableTracking().authorize(this.authorize).ids(data.stream().map(DescriptionEntity::getStatusId).distinct().collect(Collectors.toList()));
+            itemMap = this.builderFactory.builder(PublicDescriptionStatusBuilder.class).authorize(this.authorize).asForeignKey(q, clone, PublicDescriptionStatus::getId);
+        }
+        if (!fields.hasField(PublicDescriptionStatus._id)) {
             itemMap.forEach((id, item) -> {
                 if (item != null)
                     item.setId(null);

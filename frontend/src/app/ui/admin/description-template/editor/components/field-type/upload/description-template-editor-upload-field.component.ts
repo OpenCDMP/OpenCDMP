@@ -6,9 +6,10 @@ import { DescriptionTemplateUploadDataEditorModel, DescriptionTemplateUploadOpti
 import { ValidationErrorModel } from '@common/forms/validation/error-model/validation-error-model';
 
 @Component({
-	selector: 'app-description-template-editor-upload-field-component',
-	styleUrls: ['./description-template-editor-upload-field.component.scss'],
-	templateUrl: './description-template-editor-upload-field.component.html'
+    selector: 'app-description-template-editor-upload-field-component',
+    styleUrls: ['./description-template-editor-upload-field.component.scss'],
+    templateUrl: './description-template-editor-upload-field.component.html',
+    standalone: false
 })
 export class DescriptionTemplateEditorUploadFieldComponent implements OnInit {
 	types: Array<DescriptionTemplateUploadOption> = [

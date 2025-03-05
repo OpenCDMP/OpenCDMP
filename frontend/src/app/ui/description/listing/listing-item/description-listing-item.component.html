@@ -1,6 +1,6 @@
 <div class="description-card">
-	<a [routerLink]="getItemLink()" class="pointer">
-		<div class="d-flex flex-direction-row">
+	<a [routerLink]="getItemLink()" class="pointer" [attr.aria-label]="('ALT-TEXT.OPEN-DESCRIPTION-OVERVIEW-FOR' | translate) + ' ' + description?.label">
+		<div class="d-flex flex-direction-row flex-wrap">
 			<div class="col-auto description-label">{{'DESCRIPTION-LISTING.DESCRIPTION' | translate}}</div>
 			<div class="col-auto ml-auto">
 				<div class="row align-items-center">
@@ -13,37 +13,66 @@
 				</div>
 			</div>
 		</div>
-		<div *ngIf="description.status === descriptionStatusEnum.Finalized" class="col-auto description-title">{{description.label}}</div>
-		<div *ngIf="description.status === descriptionStatusEnum.Draft" class="col-auto description-title-draft">{{description.label}}</div>
+		<div [ngClass]="{'description-title': !isDraft, 'description-title-draft': isDraft}" class="col-auto description-title" [ngStyle]="{'color': description.status?.definition?.statusColor}">
+            {{description.label}}
+        </div>
 		<div class="description-subtitle">
-			<span *ngIf="isUserPlanRelated()" class="col-auto">{{ enumUtils.toPlanUserRolesString(planService.getCurrentUserRolesInPlan(description?.plan?.planUsers)) }}</span>
+			<span *ngIf="isUserPlanRelated()" class="col-auto">{{ enumUtils.toPlanUserRolesString(planService.getCurrentUserRolesInPlan(description?.plan?.planUsers, isDeleted)) }}</span>
 			<span *ngIf="isUserPlanRelated()">.</span>
-			<span class="col-auto" *ngIf="description.status === descriptionStatusEnum.Finalized && description.plan.accessType === planAccessTypeEnum.Public"><span class="material-icons icon-align">public</span>{{'DESCRIPTION-LISTING.STATES.PUBLIC' | translate}}</span>
-			<span *ngIf="description.status === descriptionStatusEnum.Finalized && description.plan.accessType != planAccessTypeEnum.Public; else draft" class="col-auto"><span class="material-icons icon-align">done</span>{{ enumUtils.toDescriptionStatusString(description.status) }}</span>
-			<ng-template #draft><span *ngIf="description.status === descriptionStatusEnum.Draft && canEditDescription(); else preview" class=" col-auto draft"><span class="material-icons icon-align">create</span>{{ enumUtils.toDescriptionStatusString(description.status) }}</span></ng-template>
-			<ng-template #preview><span *ngIf="description.status === descriptionStatusEnum.Draft && !canEditDescription()" class=" col-auto draft"><span class="material-icons-outlined mr-1 icon-align">visibility</span>{{ enumUtils.toDescriptionStatusString(description.status) }}</span></ng-template>
+            <span class="col-auto">
+                @if(description.status?.internalStatus === descriptionStatusEnum.Finalized && description.plan.accessType === planAccessTypeEnum.Public){
+                    <span class="material-icons icon-align">public</span>{{'DESCRIPTION-LISTING.STATES.PUBLIC' | translate}}
+                } @else {
+                    <ng-container *ngTemplateOutlet="statusTemplate; context: {status: description.status}"></ng-container>
+                }
+            </span>
 			<span>.</span>
-			<span class="col">{{'DESCRIPTION-LISTING.GRANT' | translate}}: {{referenceService.getReferencesForTypesFirstSafe(description?.plan?.planReferences, [this.referenceTypeService.getGrantReferenceType()])?.reference?.label}}</span>
+			<span class="col">{{'DESCRIPTION-LISTING.GRANT' | translate}}: {{referenceService.getReferencesForTypesFirstSafe(description?.plan?.planReferences, [referenceTypeService.getGrantReferenceType()])?.reference?.label}}</span>
 		</div>
-		<div class="d-flex flex-direction-row pt-3 pb-3">
+		<div class="d-flex flex-direction-row flex-wrap pt-3 pb-3">
 			<div class="col-auto description-subtitle pr-0">{{'DESCRIPTION-LISTING.PART-OF' | translate}}
 				<div class="col-auto plan-label ml-3">{{'DESCRIPTION-LISTING.PLAN' | translate}}</div>
 			</div>
-			<div class="col plan-title">{{description.plan?.label}}</div>
+			<div class="col-auto plan-title">{{description.plan?.label}}</div>
 		</div>
 	</a>
 	<div class="description-card-actions">
-		<a class="col-auto border-right pointer" *ngIf="fileTransformerService.availableFormatsFor(fileTransformerEntityTypeEnum.Description) && fileTransformerService.availableFormatsFor(fileTransformerEntityTypeEnum.Description).length > 0" [matMenuTriggerFor]="exportMenu"><span class="material-icons icon-align pr-2">open_in_new</span>{{'DESCRIPTION-LISTING.ACTIONS.EXPORT' | translate}}</a>
-		<a class="col-auto border-right pointer" *ngIf="canInvitePlanUsers" (click)="openShareDialog()"><span class="material-icons icon-align pr-2">group_add</span>{{'DESCRIPTION-LISTING.ACTIONS.INVITE-SHORT' | translate}}</a>
-		<a class="col-auto border-right pointer" *ngIf="isAuthenticated()" (click)="copyToPlan(description)"><span class="material-icons icon-align pr-2">file_copy</span>{{'DESCRIPTION-LISTING.ACTIONS.COPY-DESCRIPTION' | translate}}</a>
-		<a class="col-auto border-right pointer" *ngIf="canDelete" (click)="deleteClicked(description.id)"><span class="material-icons icon-align pr-2">delete</span>{{ 'DESCRIPTION-LISTING.ACTIONS.DELETE' | translate }}</a>
+		<div role="button" 
+            class="col-auto description-action pointer d-flex align-items-center gap-quarter-rem" 
+            *ngIf="canExport && fileTransformerService.availableFormatsFor(fileTransformerEntityTypeEnum.Description)?.length > 0" 
+            [matMenuTriggerFor]="exportMenu"
+        >
+            <mat-icon class="material-icons icon-align pr-2" aria-hidden>open_in_new</mat-icon>
+            {{'DESCRIPTION-LISTING.ACTIONS.EXPORT' | translate}}
+        </div>
+		<div role="button" 
+            class="col-auto description-action pointer d-flex align-items-center gap-quarter-rem" 
+            *ngIf="canInvitePlanUsers" 
+            (click)="openShareDialog()"
+        >
+            <mat-icon class="material-icons icon-align pr-2" aria-hidden>group_add</mat-icon>{{'DESCRIPTION-LISTING.ACTIONS.INVITE-SHORT' | translate}}
+        </div>
+		<div role="button" 
+            class="col-auto description-action pointer d-flex align-items-center gap-quarter-rem" 
+            *ngIf="canCopy" 
+            (click)="copyToPlan(description)"
+        >
+            <mat-icon class="material-icons icon-align pr-2" aria-hidden>file_copy</mat-icon>{{'DESCRIPTION-LISTING.ACTIONS.COPY-DESCRIPTION' | translate}}
+        </div>
+		<div role="button" 
+            class="col-auto pointer d-flex align-items-center gap-quarter-rem" 
+            *ngIf="canDelete" 
+            (click)="deleteClicked(description.id)"
+        >
+            <mat-icon class="material-icons icon-align pr-2" aria-hidden>delete</mat-icon>{{ 'DESCRIPTION-LISTING.ACTIONS.DELETE' | translate }}
+        </div>
 	</div>
 	<mat-menu #actionsMenu="matMenu">
 		<button *ngIf="isAuthenticated()" mat-menu-item (click)="copyToPlan(description)" class="menu-item">
 			<mat-icon>file_copy</mat-icon>{{'DESCRIPTION-LISTING.ACTIONS.COPY-DESCRIPTION' | translate}}
 		</button>
 		<button *ngIf="canDelete" mat-menu-item (click)="deleteClicked(description.id)" class="menu-item">
-			<mat-icon>delete</mat-icon>{{ 'DESCRIPTION-LISTING.ACTIONS.DELETE' | translate }}
+			<mat-icon aria-hidden>delete</mat-icon>{{ 'DESCRIPTION-LISTING.ACTIONS.DELETE' | translate }}
 		</button>
 	</mat-menu>
 	<mat-menu #exportMenu="matMenu" xPosition="before">
@@ -53,3 +82,24 @@
 		</button>
 	</mat-menu>
 </div>
+
+<ng-template #statusTemplate let-status="status">
+    <div class="d-flex align-items-center gap-quarter-rem" [ngStyle]="{'color': status?.definition?.statusColor}">
+        @if(status.definition?.storageFile?.id && statusStorageFile) {
+            <img class="status-logo" [src]="statusStorageFile" aria-hidden>
+        }@else if(status.definition?.matIconName) {
+            <mat-icon >{{status.definition.matIconName}}</mat-icon>
+        }@else {
+            @switch(status.internalStatus){
+                @case(descriptionStatusEnum.Finalized){
+                    <mat-icon>check</mat-icon>
+                }@case(descriptionStatusEnum.Draft){
+                    <mat-icon>edit</mat-icon>
+                }@default {
+                    <mat-icon>arrow_forward</mat-icon>
+                }
+            }
+        }
+        <span>{{ status.action?.length > 0 ? status.action : status.name }}</span>
+    </div>
+</ng-template>

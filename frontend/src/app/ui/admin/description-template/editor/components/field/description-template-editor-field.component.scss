@@ -14,7 +14,7 @@ mat-radio-button{
 }
 
 li.list-inline-item{
-  color: var(--primary-color);
+  color: var(--sys-primary);
   .mat-icon{
     vertical-align: bottom;
   }
@@ -23,11 +23,11 @@ li.list-inline-item{
 :host   ::ng-deep .field-toggler 
 {
   .mat-slide-toggle-content{
-    font-size: 0.8em;
-    color: #212121;
+    font-size: var(--sys-label-medium-size);
+    color: var(--dark-text);
   }
   .mat-slide-toggle.mat-checked .mat-slide-toggle-thumb {
-    background-color:var(--primary-color) ;
+    background-color:var(--sys-primary) ;
   }
   .mat-slide-toggle.mat-checked .mat-slide-toggle-bar {
     background-color:rgba(0,178,159,0.34);
@@ -59,7 +59,7 @@ li.list-inline-item{
   cursor: pointer;
   span{
     font-weight: 400;
-    font-size: 0.8em;
+    font-size: var(--sys-label-medium-size);
   }
 }
 

@@ -27,11 +27,14 @@ import { nameof } from 'ts-simple-nameof';
 import { StartNewPlanDialogComponent } from '../plan/new/start-new-plan-dialogue/start-new-plan-dialog.component';
 import { FaqDialogComponent } from '../faq/dialog/faq-dialog.component';
 import { UserDialogComponent } from './user-dialog/user-dialog.component';
+// import { TranslateService } from '@ngx-translate/core';
+// import { FontAccessibilityService } from '@app/core/services/font-accessibility.service';
 
 @Component({
-	selector: 'app-navbar',
-	templateUrl: './navbar.component.html',
-	styleUrls: ['./navbar.component.css', './navbar.component.scss']
+    selector: 'app-navbar',
+    templateUrl: './navbar.component.html',
+    styleUrls: ['./navbar.component.css', './navbar.component.scss'],
+    standalone: false
 })
 export class NavbarComponent extends BaseComponent implements OnInit {
 	userName: string = '';
@@ -65,12 +68,19 @@ export class NavbarComponent extends BaseComponent implements OnInit {
 		private storageFileService: StorageFileService,
 		private sanitizer: DomSanitizer,
 		private analyticsService: AnalyticsService,
+        // private fontService: FontAccessibilityService,
+        // private language: TranslateService
 	) {
 		super();
 		this.location = location;
 		this.sidebarVisible = false;
 		this.languages = this.languageService.getAvailableLanguagesCodes();
 		this.selectedLanguage = this.languageService.getDefaultLanguagesCode();
+        router.events.subscribe(() => {
+            if(window.innerWidth <= 500){
+                this.sidenavService.setStatus(false);
+            }
+        })
 	}
 
 	ngOnInit() {
@@ -107,7 +117,7 @@ export class NavbarComponent extends BaseComponent implements OnInit {
 
 	private loadLogo() {
 		if (this.authentication.currentAccountIsAuthenticated() && this.authentication.selectedTenant()) {
-			this.tenantConfigurationService.getCurrentTenantType(TenantConfigurationType.Logo, [
+			this.tenantConfigurationService.getActiveType(TenantConfigurationType.Logo, [
 				nameof<TenantConfiguration>(x => x.type),
 				[nameof<TenantConfiguration>(x => x.logo), nameof<LogoTenantConfiguration>(x => x.storageFile), nameof<StorageFile>(x => x.id)].join('.'),
 			])
@@ -247,7 +257,6 @@ export class NavbarComponent extends BaseComponent implements OnInit {
 	openProfile() {
 		const dialogRef = this.dialog.open(UserDialogComponent, {
 			hasBackdrop: true,
-			autoFocus: false,
 			closeOnNavigation: true,
 			disableClose: false,
 			position: { top: '71px', right: '1em' },
@@ -296,7 +305,8 @@ export class NavbarComponent extends BaseComponent implements OnInit {
 				disableClose: false,
 				data: {
 					isDialog: true
-				}
+				},
+                maxWidth: 'min(95vw, 33rem)'
 			});
 		}
 	}
@@ -312,11 +322,11 @@ export class NavbarComponent extends BaseComponent implements OnInit {
 			this.countUnreadInappNotifications();
 			this.inAppNotificationDialog = this.dialog.open(MineInAppNotificationListingDialogComponent, {
 				hasBackdrop: true,
-				autoFocus: false,
 				closeOnNavigation: true,
 				disableClose: false,
 				position: { top: '71px', right: '4.8em' },
-				width: "27.0rem"
+				minWidth: "min(600px, 90vw)",
+                maxWidth: '90vw'
 			});
 			const onReadAllSubscription = this.inAppNotificationDialog.componentInstance.onReadAll.subscribe(() => {
 				this.countUnreadInappNotifications();
@@ -328,5 +338,13 @@ export class NavbarComponent extends BaseComponent implements OnInit {
 			});
 		}
 	}
+
+    // get toggleFontSizeTooltip(): string {
+    //     return this.language.instant('NAV-BAR.TOGGLE-TEXT-SIZE') + this.language.instant(this.fontService.accessibleFontSignal() ? 'NAV-BAR.SMALLER' : 'NAV-BAR.LARGER') 
+    // }
+
+    // toggleFontSize() {
+    //     this.fontService.toggleFontSize();
+    // }
 
 }

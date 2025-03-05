@@ -26,6 +26,12 @@ public class PlanStatusPersist {
     private String description;
     public static final String _description = "description";
 
+    private String action;
+    public static final String _action = "action";
+
+    private Integer ordinal;
+    public static final String _ordinal = "ordinal";
+
     private org.opencdmp.commons.enums.PlanStatus internalStatus;
     public static final String _internalStatus = "internalStatus";
 
@@ -52,6 +58,22 @@ public class PlanStatusPersist {
     public String getDescription() { return description; }
 
     public void setDescription(String description) { this.description = description; }
+
+    public String getAction() {
+        return action;
+    }
+
+    public void setAction(String action) {
+        this.action = action;
+    }
+
+    public Integer getOrdinal() {
+        return ordinal;
+    }
+
+    public void setOrdinal(Integer ordinal) {
+        this.ordinal = ordinal;
+    }
 
     public org.opencdmp.commons.enums.PlanStatus getInternalStatus() { return this.internalStatus; }
     public void setInternalStatus(org.opencdmp.commons.enums.PlanStatus internalStatus) { this.internalStatus = internalStatus; }
@@ -105,6 +127,13 @@ public class PlanStatusPersist {
                             .iff(() -> !this.isEmpty(item.getName()))
                             .must(() -> this.lessEqualLength(item.getName(), PlanStatusEntity._nameLength))
                             .failOn(org.opencdmp.model.persist.planstatus.PlanStatusPersist._name).failWith(this.messageSource.getMessage("Validation_MaxLength", new Object[]{org.opencdmp.model.persist.planstatus.PlanStatusPersist._name}, LocaleContextHolder.getLocale())),
+                    this.spec()
+                            .iff(() -> !this.isEmpty(item.getAction()))
+                            .must(() -> this.lessEqualLength(item.getAction(), PlanStatusEntity._actionLength))
+                            .failOn(PlanStatusPersist._action).failWith(this.messageSource.getMessage("Validation_MaxLength", new Object[]{org.opencdmp.model.persist.planstatus.PlanStatusPersist._action}, LocaleContextHolder.getLocale())),
+                    this.spec()
+                            .must(() -> !this.isNull(item.getOrdinal()))
+                            .failOn(PlanStatusPersist._ordinal).failWith(this.messageSource.getMessage("Validation_Required", new Object[]{org.opencdmp.model.persist.planstatus.PlanStatusPersist._ordinal}, LocaleContextHolder.getLocale())),
                     this.spec()
                             .iff(() -> item.getInternalStatus() == org.opencdmp.commons.enums.PlanStatus.Finalized)
                             .must(() -> !this.isNull(item.getDefinition()))

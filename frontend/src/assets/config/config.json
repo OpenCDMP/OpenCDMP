@@ -1,0 +1,119 @@
+{
+	"Server": "${WEBAPP_API_URL}",
+	"App": "${INSTALLATION_URL}",
+	"defaultCulture": "${DEFAULT_CULTURE}",
+	"keycloak": {
+		"enabled": true,
+		"address": "${KEYCLOAK_ADDRESS}",
+		"realm": "${KEYCLOAK_REALM}",
+		"flow": "standard",
+		"clientId": "${KEYCLOAK_CLIENT_ID}",
+		"scope": "${KEYCLOAK_SCOPE}",
+		"clientSecret": null,
+		"grantType": "code"
+    },
+	"inAppNotificationsCountInterval": "30",
+	"notification_service": {
+		"enabled": true,
+		"address": null
+	},
+	"annotation_service": {
+		"enabled": true,
+		"address": null,
+		"statusIcons": [
+			{
+				"internalStatus": "0",
+				"icon": "check"
+			},
+			{
+				"id": "948fdf9c-6b84-467c-884b-5323c5ea15d7",
+				"icon": "done_all"
+			}
+		],
+		"defaultStatusIcon": "animation"
+	},
+    "kpi_service": {
+		"enabled": "${KPI_SERVICE_ENABLED}",
+		"address": "${KPI_SERVICE_ADDRESS}",
+		"dashboardId": "${KPI_SERVICE_DASHBOARD_ID}",
+		"keywordFilter": "${KPI_SERVICE_KEYWORD_FILTER}"
+	},
+	"accounting_service": {
+		"enabled": "${ACCOUNTING_SERVICE_ENABLED}"
+	},
+	"logging": {
+		"enabled": "${LOGGING_ENABLED}",
+		"logLevels": ["debug", "info", "warning", "error"]
+	},
+	"analytics": {
+		"providers": []
+	},
+	"lockInterval": 60000,
+	"orcidPath": "https://orcid.org/",
+	"maxFileSizeInMB": 10,
+	"authProviders": {
+		"defaultAuthProvider": {
+			"name": "Default",
+			"providerClass": "defaultIcon"
+		},
+		"authProviders": [
+			{
+				"name": "google",
+				"providerClass": "googleIcon",
+				"cultures": ["en"]
+			},
+			{
+				"name": "facebook",
+				"providerClass": "facebookIcon",
+				"cultures": ["en"]
+			}
+		]
+	},
+	"referenceTypes": {
+		"researcherId": "5a2112e7-ea99-4cfe-98a1-68665e26726e",
+		"grantId": "5b9c284f-f041-4995-96cc-fad7ad13289c",
+		"organizationId": "7eeffb98-58fb-4921-82ec-e27f32f8e738"
+	},
+	"deposit":{
+		"recordUrlIdPlaceholder": "{doi_id}"
+	},
+	"sidebar": {
+		"infoItems": [
+			{
+				"title": "SIDE-BAR.SUPPORT",
+				"icon": "help",
+				"routerPath": "/contact-support",
+				"accessLevel": "authenticated"
+			}
+		],
+		"footerItems": [
+			{
+				"routerPath": "/about",
+				"title": "FOOTER.ABOUT",
+				"icon": "feedback",
+				"accessLevel": "public"
+			},
+			{
+				"routerPath": "/terms-and-conditions",
+				"title": "FOOTER.TERMS-OF-SERVICE",
+				"accessLevel": "public"
+			},
+			{
+				"routerPath": "/glossary",
+				"title": "FOOTER.GLOSSARY",
+				"accessLevel": "public"
+			},
+			{
+				"routerPath": "/user-guide",
+				"title": "FOOTER.GUIDE",
+				"accessLevel": "public"
+			},
+			{
+				"routerPath": "/contact-support",
+				"title": "FOOTER.CONTACT-SUPPORT",
+				"accessLevel": "authenticated"
+			}
+		]
+	},
+	"mergeAccountDelayInSeconds": 30
+}

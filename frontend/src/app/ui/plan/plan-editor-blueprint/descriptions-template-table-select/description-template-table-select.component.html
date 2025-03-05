@@ -1,0 +1,158 @@
+<div *ngIf="descTemplatesControl && !previewOnly">
+	<div *ngIf="descTemplatesControl.value.length > 0  && selectedTemplatesInfo.size > 0"  style="max-height:100px;" class="p-1  mb-2 overflow-auto">
+
+		<mat-chip-set aria-label="{{'PLAN-EDITOR.FIELDS.DESCRIPTION-TEMPLATES' | translate}} *">
+			<mat-chip *ngFor="let value of descTemplatesControl.value" (removed)="remove(value)" [matTooltip]="chipRemoveTooltip(value) | translate">
+                {{selectedTemplatesInfo.has(value)?selectedTemplatesInfo.get(value).label:value}}
+				<button matChipRemove aria-label="Remove" *ngIf="!descTemplatesControl.disabled && canRemoveItem(value)">
+					<mat-icon>cancel</mat-icon>
+				</button>
+			</mat-chip>
+		</mat-chip-set>
+	</div>
+</div>
+<mat-card appearance="outlined">
+	<mat-card-content>
+		<app-expandable-search-field [formControl]="termControl" (valueChange)="onSearchTermChange($event)"/>
+		<table class="table">
+			<thead>
+			<tr>
+				<th scope="col">
+					<div role="button" (click)="sortChanged(ColumnName['name'])" class="table-header"  
+                        [attr.aria-label]="(isSorted(ColumnName['name']) && sort.direction === SortDirection.Descending ? 'PLAN-LISTING.ACTIONS.TOGGLE-ASCENDING' : 'PLAN-LISTING.ACTIONS.TOGGLE-DESCENDING') | translate"
+                    >
+                        {{'DESCRIPTION-TEMPLATES-TABLE-LIST.FIELDS.NAME' | translate}}
+						<ng-container *ngTemplateOutlet="sortingIconTemplate;  context:{ fieldIsSorted: isSorted(ColumnName['name']) }"></ng-container>
+                    </div>
+				</th>
+				<th scope="col dropdown">
+					<div role="button" id="dropdownTypes" [matMenuTriggerFor]="allTypes ? dropdownTypesMenu : null" class="d-flex align-items-center table-header"
+                    >
+						<span>{{'DESCRIPTION-TEMPLATES-TABLE-LIST.FIELDS.TYPE' | translate}}</span>
+						<mat-icon  [matBadge]="1" [matBadgeHidden]="!selectedTypesIds" class="small-icon">filter_alt</mat-icon>
+
+                    </div>
+                    <mat-menu #dropdownTypesMenu="matMenu">                        
+                        <div *ngIf="allTypes" class="p-3">
+                            <div *ngIf="selectedTypesIds" class="pb-1 text-right">
+                                <button role="button" mat-button (click)="clearType()">{{'DESCRIPTION-TEMPLATES-TABLE-LIST.ACTIONS.CLEAR' | translate}}</button>
+                            </div>
+                            <form>
+                                <mat-form-field (click)="$event.stopPropagation()">
+                                    <mat-label>{{'DESCRIPTION-TEMPLATES-TABLE-LIST.FIELDS.TYPE' | translate}}</mat-label>
+                                    <input type="text"
+                                           placeholder="{{'DESCRIPTION-TEMPLATES-TABLE-LIST.ACTIONS.PICK' | translate}}"
+                                           matInput
+                                           [formControl]="typeFormControl"
+                                           [matAutocomplete]="auto">
+                                    <mat-autocomplete #auto="matAutocomplete" [displayWith]="displayFn"
+                                                      (optionSelected)="onTypeChanged($event)">
+                                        @for (option of filteredTypeOptions | async; track option) {
+                                        <mat-option [value]="option">{{option.name}}</mat-option>
+                                        }
+                                    </mat-autocomplete>
+                                </mat-form-field>
+                            </form>
+                        </div>
+                    </mat-menu>
+				</th>
+				<th scope="col">
+                    <div id="dropdownLanguages" role="button" [matMenuTriggerFor]="dropdownLanguagesMenu"
+                        class="table-header d-flex align-items-center"
+                    >
+                        <span>{{'DESCRIPTION-TEMPLATES-TABLE-LIST.FIELDS.LANGUAGE' | translate}}</span>
+                        <mat-icon [matBadge]="1" [matBadgeHidden]="!selectedLanguageCodes" class="small-icon">filter_alt</mat-icon>
+                    </div>
+                    <mat-menu #dropdownLanguagesMenu="matMenu">
+                        <div class="p-3">
+                            <div *ngIf="selectedLanguageCodes" class="pb-1 text-right">
+                                <button mat-button (click)="clearLanguage()" >{{'DESCRIPTION-TEMPLATES-TABLE-LIST.ACTIONS.CLEAR' | translate}}</button>
+                            </div>
+                            <form>
+                                <mat-form-field (click)="$event.stopPropagation()">
+                                    <mat-label>{{'DESCRIPTION-TEMPLATES-TABLE-LIST.FIELDS.LANGUAGE' | translate}}</mat-label>
+                                    <input type="text"
+                                            placeholder="{{'DESCRIPTION-TEMPLATES-TABLE-LIST.ACTIONS.PICK' | translate}}"
+                                            matInput
+                                            [formControl]="languageFormControl"
+                                            [matAutocomplete]="auto">
+                                    <mat-autocomplete #auto="matAutocomplete" [displayWith]="displayFn"
+                                                        (optionSelected)="onLanguageChange($event)">
+                                        @for (option of filteredLanguageOptions | async; track option) {
+                                        <mat-option [value]="option">{{option.name}}</mat-option>
+                                        }
+                                    </mat-autocomplete>
+                                </mat-form-field>
+                            </form>
+                        </div>
+                    </mat-menu>
+				</th>
+				<th scope="col">
+                    <div role="button" class="table-header" (click)="sortChanged(ColumnName['updatedAt'])" 
+                    [attr.aria-label]="(isSorted(ColumnName['updatedAt']) && sort.direction === SortDirection.Descending ? 'PLAN-LISTING.ACTIONS.TOGGLE-ASCENDING' : 'PLAN-LISTING.ACTIONS.TOGGLE-DESCENDING') | translate"
+
+                    >
+                        {{'DESCRIPTION-TEMPLATES-TABLE-LIST.FIELDS.UPDATED-AT' | translate}}
+					    <ng-container *ngTemplateOutlet="sortingIconTemplate;  context:{ fieldIsSorted: isSorted(ColumnName['updatedAt'])}"></ng-container>
+                    </div>
+                </th>
+				<th scope="col"><span class="table-header">{{'DESCRIPTION-TEMPLATES-TABLE-LIST.ACTIONS.PREVIEW' | translate}}</span></th>
+				<th *ngIf="!previewOnly" scope="col"><span class="table-header">{{'DESCRIPTION-TEMPLATES-TABLE-LIST.ACTIONS.SELECT' | translate}}</span></th>
+			</tr>
+			</thead>
+			<tbody *ngIf="currentPageDescriptionTemplates.length > 0">
+			<tr *ngFor=" let description of currentPageDescriptionTemplates">
+
+				<td [title]="description.description">{{description.label}}</td>
+				<td>{{description.type.name}}</td>
+				<td>{{getLanguageInfoName(description.language)}}</td>
+				<td>{{description.updatedAt | date:'d/M/yy, h:mm a'}}</td>
+				<td>
+                    <button mat-icon-button (click)="onPreviewDescriptionTemplate(description)" [attr.aria-label]="('DESCRIPTION-TEMPLATES-TABLE-LIST.ACTIONS.PREVIEW' | translate) + ': ' + description.label">
+                        <mat-icon aria-hidden>visibility</mat-icon>
+                    </button>
+                </td>
+				<td *ngIf="!previewOnly">
+                    @if(descTemplatesControl.value.includes(description.groupId)){
+                        <button
+                            (click)="remove(description.groupId)"
+                            mat-stroked-button [disabled]="descTemplatesControl.disabled"
+                        >
+                            {{'DESCRIPTION-TEMPLATES-TABLE-LIST.ACTIONS.REMOVE' | translate}}
+                        </button>
+                    }@else {
+                        <button
+                            (click)="select(description)"
+                            mat-flat-button [disabled]="descTemplatesControl.disabled"
+                        >
+                            {{'DESCRIPTION-TEMPLATES-TABLE-LIST.ACTIONS.SELECT' | translate}}
+                        </button>
+                    }
+                </td>
+			</tr>
+
+			</tbody>
+		</table>
+		<div *ngIf="!totalDescriptionTemplates" class="pl-1 pr-1">
+			<span>{{'HYBRID-LISTING.NO-DATA-TO-DISPLAY' | translate}}</span>
+		</div>
+		<div class="d-flex justify-content-end">
+			<mat-paginator *ngIf="totalDescriptionTemplates>0" [length]="totalDescriptionTemplates" [pageIndex]="currentPage-1" [pageSize]="size"
+				(page)="pageChanged($event.pageIndex+1)" aria-label="Select page">
+			</mat-paginator>
+		</div>
+	</mat-card-content>
+</mat-card>
+
+<ng-template #sortingIconTemplate let-fieldIsSorted="fieldIsSorted" let-item>
+    @if(!fieldIsSorted){
+        <mat-icon class="pr-1 small-icon" aria-hidden>swap_vert</mat-icon>
+    }@else {
+        <mat-icon *ngIf="sort.direction == SortDirection.Ascending" class="pr-1"  aria-hidden>keyboard_arrow_up</mat-icon>
+        <mat-icon *ngIf="sort.direction == SortDirection.Descending" class="pr-1" aria-hidden>keyboard_arrow_down</mat-icon>
+    }
+</ng-template>
+
+
+
+

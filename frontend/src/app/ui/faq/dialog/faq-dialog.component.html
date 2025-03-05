@@ -4,13 +4,13 @@
 			{{'FAQ.TITLE' | translate}}
 		</div>
 		<div class="col-auto">
-			<button mat-icon-button tabindex="-1" (click)="close()"><mat-icon>close</mat-icon></button>
+			<button mat-icon-button (click)="close()"  [attr.aria-label]="'ALT-TEXT.CLOSE-DIALOG'  | translate"><mat-icon aria-hidden>close</mat-icon></button>
 		</div>
 	</div>
 	<div mat-dialog-content class="row pr-0">
 		<app-faq-content [isDialog]="isDialog"></app-faq-content>
 	</div>
 	<div mat-dialog-actions class="row">
-		<div class="ml-auto col-auto"><button mat-button tabindex="-1" mat-dialog-close class="rounded-btn neutral" (click)="cancel()">{{'FAQ.CLOSE' | translate}}</button></div>
+		<div class="ml-auto col-auto"><button mat-stroked-button mat-dialog-close class="padded-shadow-btn" (click)="cancel()">{{'FAQ.CLOSE' | translate}}</button></div>
 	</div>
 </div>

@@ -3,8 +3,9 @@ import { AuthService } from '@app/core/services/auth/auth.service';
 import { KeycloakService } from 'keycloak-angular';
 
 @Component({
-	templateUrl: "./logout.component.html",
-	styleUrls: ["./logout.component.scss"],
+    templateUrl: "./logout.component.html",
+    styleUrls: ["./logout.component.scss"],
+    standalone: false
 })
 export class LogoutComponent implements OnInit {
 	constructor(

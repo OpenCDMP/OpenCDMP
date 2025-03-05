@@ -10,9 +10,10 @@ import { InterceptorType } from "@common/http/interceptors/interceptor-type";
 import { Observable } from "rxjs";
 
 @Component({
-	selector: 'app-tenant-switch',
-	templateUrl: 'tenant-switch.component.html',
-	styleUrls: ['tenant-switch.component.scss']
+    selector: 'app-tenant-switch',
+    templateUrl: 'tenant-switch.component.html',
+    styleUrls: ['tenant-switch.component.scss'],
+    standalone: false
 })
 export class TenantSwitchComponent extends BaseComponent implements OnInit {
 	tenants: Observable<Array<Tenant>>;

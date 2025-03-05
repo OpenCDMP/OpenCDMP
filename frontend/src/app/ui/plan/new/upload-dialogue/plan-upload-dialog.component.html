@@ -1,16 +1,25 @@
-<div class="confirmation-dialog">
-	<div class="d-flex justify-content-between">
-		<div class="confirmation-message align-self-center">
-			<h4>{{'PLAN-UPLOAD.TITLE' | translate}}</h4>
-		</div>
-		<div class="justify-content-end">
-            <button mat-icon-button tabindex="-1" (click)="close()">
-                <mat-icon>close</mat-icon>
-            </button>
+<div mat-dialog-title class="d-flex align-items-center">
+    <div>
+        {{'PLAN-UPLOAD.TITLE' | translate}}
+    </div>
+    <button mat-icon-button (click)="close()" class="ml-auto"  [attr.aria-label]="'ALT-TEXT.CLOSE-DIALOG'  | translate">
+        <mat-icon aria-hidden>close</mat-icon>
+    </button>
+</div>
+<mat-dialog-content class="confirmation-dialog">
+    <div class="d-flex gap-half-rem mb-3">
+        <div>
+            <mat-icon class="material-icons-outlined" aria-hidden>info</mat-icon>
+        </div>
+		<div>
+			<b>{{'START-NEW-PLAN-DIALOG.IMPORT' | translate }}</b> {{'START-NEW-PLAN-DIALOG.FUNCTION-SUPPORTS' | translate }}
+			<b>{{'START-NEW-PLAN-DIALOG.XML' | translate }}</b> {{'START-NEW-PLAN-DIALOG.AND' | translate }}
+			<b>{{'START-NEW-PLAN-DIALOG.JSON' | translate }}</b> {{'START-NEW-PLAN-DIALOG.FILES' | translate }}.
+			{{'START-NEW-PLAN-DIALOG.NOTE' | translate }}
+			<b><a href="https://github.com/RDA-DMP-Common/RDA-DMP-Common-Standard" target="_blank">{{'START-NEW-PLAN-DIALOG.RDA' | translate }}</a></b>
+			{{'START-NEW-PLAN-DIALOG.SPECIFICATIONS' | translate }}.
 		</div>
 	</div>
-</div>
-<mat-dialog-content class="container-fluid confirmation-dialog">
 	<div class="row">
 		<div class="upload-form col-12">
 			<mat-form-field class="w-100" *ngIf="files?.length == 0 || files[0].type.includes('/xml')">
@@ -31,7 +40,7 @@
 				<span *ngIf="hasFile()">{{'GENERAL.START-NEW-PLAN-DIALOG.REPLACE-FILE' | translate}}</span>
 			</button>
 			<form>
-				<input class="hidden" #fileInput type="file" onClick="this.form.reset()" (change)="uploadFile($event)" accept="text/xml, application/json">
+				<input class="hidden" #fileInput type="file" onClick="form.reset()" (change)="uploadFile($event)" accept="text/xml, application/json">
 			</form>
 		</div>
 		<div class="upload-form col-12" *ngIf="formGroup == null && files.length > 0 && files[0].type.includes('/json')">
@@ -77,15 +86,8 @@
 			</ng-container>
 		</div>
 	</div>
-	<div class="d-flex justify-content-between">
-		<div></div>
-		<div class="d-flex justify-content-between">
-			<div class="col-auto">
-				<button mat-button type="button" class="rounded-btn neutral" (click)="cancel()">{{'PLAN-UPLOAD.ACTIONS.CANCEL' | translate}}</button>
-			</div>
-			<div class="col-auto">
-				<button mat-button type="button" (click)="confirm()" [disabled]="disableConfirmButton()" class="rounded-btn primary-inverted primary-inverted-hover">{{'PLAN-UPLOAD.ACTIONS.IMPORT' | translate}}</button>
-			</div>
-		</div>
-	</div>
 </mat-dialog-content>
+<div mat-dialog-actions class="d-flex justify-content-between gap-half-rem">
+    <button mat-stroked-button type="button" class="padded-shadow-btn" (click)="cancel()">{{'PLAN-UPLOAD.ACTIONS.CANCEL' | translate}}</button>
+    <button mat-stroked-button color="primary" type="button" (click)="confirm()" [disabled]="disableConfirmButton()" class="padded-shadow-btn primary-inverted-hover">{{'PLAN-UPLOAD.ACTIONS.IMPORT' | translate}}</button>
+</div>

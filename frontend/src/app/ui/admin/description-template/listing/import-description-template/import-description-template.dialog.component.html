@@ -1,15 +1,15 @@
-<div class="container-fluid">
-	<div class="row d-flex mt-2">
-		<div class="confirmation-message col-auto align-self-center">
-			<h4>{{ data.message }}</h4>
+<div class="p-3">
+	<div mat-dialog-title class=" d-flex align-items-center">
+		<div>
+			{{ data.message }}
 		</div>
-		<div class="col-auto ml-auto">
-            <button mat-icon-button tabindex="-1" (click)="cancel()">
-                <mat-icon>close</mat-icon>
+		<div class="ml-auto">
+            <button mat-icon-button (click)="cancel()" [attr.aria-label]="'ALT-TEXT.CLOSE-DIALOG'  | translate">
+                <mat-icon aria-hidden>close</mat-icon>
             </button>
 		</div>
 	</div>
-	<mat-dialog-content>
+	<div mat-dialog-content>
 		<div class="row">
 			<div class="col-12">
 				<ngx-dropzone class="drop-file" (change)="selectXML($event)" [accept]="'text/xml'" [multiple]="false">
@@ -33,13 +33,10 @@
 			<mat-form-field class="col-12">
 				<input matInput placeholder="{{'DESCRIPTION-TEMPLATE-LISTING.IMPORT.UPLOAD-XML-NAME'| translate}}" name="descriptionBlueprintName" [(ngModel)]="data.name">
 			</mat-form-field>
-			<div class="col-auto">
-				<button mat-button type="button" class="rounded-btn neutral" (click)="cancel()">{{ data.cancelButton }}</button>
-			</div>
-			<div class="col"></div>
-			<div class="col-auto">
-				<button mat-button color="primary" class="rounded-btn primary-inverted" type="button" (click)="confirm()" [disabled]="!hasBlueprint()">{{ data.confirmButton }}</button>
-			</div>
 		</div>
-	</mat-dialog-content>
+	</div>
+    <div mat-dialog-actions class="d-flex justify-content-between gap-half-rem">
+        <button mat-stroked-button type="button" class="padded-shadow-btn" (click)="cancel()">{{ data.cancelButton }}</button>
+        <button mat-stroked-button color="primary" class="padded-shadow-btn" type="button" (click)="confirm()" [disabled]="!hasBlueprint()">{{ data.confirmButton }}</button>
+    </div>
 </div>

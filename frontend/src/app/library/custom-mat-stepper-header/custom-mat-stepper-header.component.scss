@@ -1,0 +1,66 @@
+::ng-deep .mat-horizontal-stepper-header-container {
+	display: none !important;
+}
+
+#stepper-navigation{
+    padding: 1rem 1.5rem;
+	z-index: 99;
+	width: 100%;
+}
+
+
+.progress-min-height {
+	min-height: 35px;
+}
+
+
+#progress{
+	position: absolute;
+	height: 100%;
+	width: 100%;
+	clip-path: polygon(0 0, 0 0, 0 0, 0 0);
+	transition-property: clip-path;
+	transition-duration: 600ms;
+	transition-timing-function: ease-out;
+	transition-delay: 50ms;
+	box-shadow: 0px 1px 2px #bfbfbf;
+	background-color: var(--sys-tertiary);
+}
+#progress-container{
+	box-shadow: 1px 1px 6px #00000029;;
+}
+
+.stepper-title-label{
+	cursor: pointer;
+	transition-property: color, opacity;
+	transition-duration: 200ms;
+	transition-delay: 50ms;
+	transition-timing-function: ease-in-out;
+	font-size: var(--sys-label-large-size);
+    color: var(--sys-on-surface);
+}
+
+.stepper-title-label-locked{
+	opacity: 0.3;
+    cursor: unset;
+}
+
+.stepper-title-label-current, .stepper-title-label-completed {
+    color: var(--sys-on-tertiary);
+}
+
+.stepper-title-label-completed{
+	opacity: 0.5;
+}
+
+.floating-btn {
+    position: fixed;
+    bottom: 1.5em;
+    right: 2em;
+    z-index: 2;
+    padding-bottom: 0.5em;
+}
+
+.padded-shadow-btn.accent {
+    background-color: var(--sys-surface);
+}

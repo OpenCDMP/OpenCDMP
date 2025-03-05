@@ -11,15 +11,19 @@
 			<!-- Status Filter-->
 			<div class="col-10" *ngIf="!isPublic">
 				<h6 class="category-title">{{ 'DESCRIPTION-LISTING.FILTERS.STATUS.NAME' | translate}}</h6>
-				<mat-radio-group aria-label="Select an option" [formControl]="formGroup.get('status')" class="row">
-					<mat-radio-button [value]="null" [checked]="formGroup.get('status')?.value == null" class="col-12">{{ 'DESCRIPTION-LISTING.FILTERS.STATUS.TYPES.ANY' | translate }}</mat-radio-button>
-					<mat-radio-button [value]="statuses.Draft" class="col-12">{{ 'DESCRIPTION-LISTING.FILTERS.STATUS.TYPES.DRAFT' | translate }}</mat-radio-button>
-					<mat-radio-button [value]="statuses.Finalized" class="col-12">{{ 'DESCRIPTION-LISTING.FILTERS.STATUS.TYPES.FINALIZED' | translate }}</mat-radio-button>
-					<mat-radio-button [value]="statuses.Canceled" class="col-12">{{ 'DESCRIPTION-LISTING.FILTERS.STATUS.TYPES.CANCELED' | translate }}</mat-radio-button>
-				</mat-radio-group>
+				<mat-form-field class="w-100">
+					<mat-label>{{'DESCRIPTION-LISTING.FILTERS.STATUS.PLACEHOLDER' | translate }}</mat-label>
+					<app-single-auto-complete [formControl]="formGroup.get('statusId')" [configuration]="descriptionStatusAutocompleteConfiguration"></app-single-auto-complete>
+				</mat-form-field>
 				<hr>
 			</div>
 			<!-- End of Status Filter-->
+
+			<!-- IsActive Filter -->
+			<div class="col-10">
+				<mat-slide-toggle [formControl]="formGroup.get('isActive')">{{ 'DESCRIPTION-LISTING.FILTERS.IS-ACTIVE' | translate }}</mat-slide-toggle>
+				<hr>
+			</div>
 
 			<!-- Tenant Filter -->
 			<div *ngIf="!isPublic && hasSelectedTenant" class="col-10">
@@ -63,7 +67,7 @@
 			<!-- Role Filter -->
 			<div class="col-10" *ngIf="isAuthenticated()">
 				<h6 class="category-title">{{'DESCRIPTION-LISTING.FILTERS.ROLE.NAME' | translate }}</h6>
-				<mat-radio-group aria-label="Select an option" [formControl]="formGroup.get('role')" class="row">
+				<mat-radio-group aria-label="{{'ALT-TEXT.SELECT-OPTION' | translate}}" [formControl]="formGroup.get('role')" class="row">
 					<mat-radio-button [value]="null" [checked]="formGroup.get('role').value == null" class="col-12">{{ 'DESCRIPTION-LISTING.FILTERS.ROLE.TYPES.ANY' | translate }}</mat-radio-button>
 					<mat-radio-button [value]="planRole.Owner" class="col-12">{{ 'DESCRIPTION-LISTING.FILTERS.ROLE.TYPES.OWNER' | translate }}</mat-radio-button>
 					<mat-radio-button [value]="planRole.Viewer" class="col-12">{{ 'DESCRIPTION-LISTING.FILTERS.ROLE.TYPES.VIEWER' | translate }}</mat-radio-button>
@@ -108,30 +112,28 @@
 						</div>
 					</div>
 					
-					<button mat-icon-button class="col-auto" (click)="deleteRow(i)" type="button">
-						<mat-icon>delete</mat-icon>
+					<button mat-icon-button class="col-auto" (click)="deleteRow(i)" type="button" [attr.aria-label]="'COMMONS.ACTIONS.REMOVE' | translate">
+						<mat-icon aria-hidden>delete</mat-icon>
 					</button>
 				</ng-container>
 
 				<div class="col-10">
 					<div class="row align-items-center">
-						<button mat-icon-button color="primary" [disabled]="false" (click)="addReferenceType()">
+						<button mat-button color="primary" [disabled]="false" (click)="addReferenceType()">
 							<mat-icon>add_circle</mat-icon>
-						</button>
-						<span>
 							<span class="mt-1">{{'DESCRIPTION-LISTING.ACTIONS.ADD-REFERENCE-TYPE' | translate}}</span>
-						</span>
+						</button>
 					</div>
 				</div>
 			</div>
 			<!-- End of Reference Types -->
 
 			<div class="col-10 d-flex justify-content-between mb-4">
-				<button mat-button class="rounded-btn primary-inverted" (click)="resetFilters()" style="font-size: 0.87rem;">
+				<button mat-stroked-button color="primary" class="padded-shadow-btn" (click)="resetFilters()">
 					{{'DESCRIPTION-LISTING.FILTERS.RESET-FILTERS' | translate}} 
 				</button>
 
-				<button mat-button class="rounded-btn primary" (click)="controlModified()">
+				<button mat-flat-button color="primary" class="padded-shadow-btn" (click)="controlModified()">
 					{{'DESCRIPTION-LISTING.FILTERS.APPLY-FILTERS' | translate}}
 				</button>
 			</div>

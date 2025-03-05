@@ -1,6 +1,6 @@
 users:
   emailExpirationTimeSeconds:
-    mergeAccountExpiration: 14400
-    removeCredentialExpiration: 14400
-    tenantSpecificInvitationExpiration: 14400
-    planInvitationExternalUserExpiration: 14400
+    mergeAccountExpiration: ${MERGE_ACCOUNT_EXPIRATION:14400}
+    removeCredentialExpiration: ${REMOVE_CREDENTIAL_EXPIRATION:14400}
+    tenantSpecificInvitationExpiration: ${TENANT_SPECIFIC_INVITATION_EXPIRATION:2592000}
+    planInvitationExternalUserExpiration: ${PLAN_INVITATION_EXTERNAL_USER_EXPIRATION:2592000}

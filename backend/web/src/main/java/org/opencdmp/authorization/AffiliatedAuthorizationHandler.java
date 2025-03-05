@@ -19,7 +19,7 @@ public class AffiliatedAuthorizationHandler extends AuthorizationHandler<Affilia
 	@Autowired
 	public AffiliatedAuthorizationHandler(CustomPermissionAttributesConfiguration myConfiguration) {
 		this.myConfiguration = myConfiguration;
-	}
+    }
 
 	@Override
 	public int handleRequirement(AuthorizationHandlerContext context, Object resource, AuthorizationRequirement requirement) {
@@ -44,6 +44,7 @@ public class AffiliatedAuthorizationHandler extends AuthorizationHandler<Affilia
 			CustomPermissionAttributesProperties.MyPermission policy = this.myConfiguration.getMyPolicies().get(permission);
 			boolean hasPlanPermission = policy != null && this.hasPermission(policy.getPlan(), planUserRoles);
 			boolean hasDescriptionTemplatePermission = policy != null && this.hasPermission(policy.getDescriptionTemplate(), userDescriptionTemplateRoles);
+
 			if (hasPlanPermission || hasDescriptionTemplatePermission) hits += 1;
 		}
 		if ((req.getMatchAll() && req.getRequiredPermissions().size() == hits) || (!req.getMatchAll() && hits > 0))

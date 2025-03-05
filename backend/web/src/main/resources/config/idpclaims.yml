@@ -19,14 +19,14 @@ idpclient:
         - type: email
       Roles:
         - type: resource_access
-          path: dmp_web.roles
+          path: ${IDP_CLAIMS_ROLES_PATH}
         - type: tenant_roles
           filterBy: "(.*):::TenantCode::"
           extractByExpression: "(.*):(.*)"
           extractExpressionValue: "[[g1]]"
       GlobalRoles:
         - type: resource_access
-          path: dmp_web.roles
+          path: ${IDP_CLAIMS_ROLES_PATH}
       TenantRoles:
         - type: tenant_roles
           filterBy: "(.*):::TenantCode::"

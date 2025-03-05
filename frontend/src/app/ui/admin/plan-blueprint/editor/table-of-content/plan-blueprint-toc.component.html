@@ -1,0 +1,68 @@
+@if(sections){
+    <ul class="stepper-list" cdkDropList #sectionlist="cdkDropList" (cdkDropListDropped)="sectionsDropped.emit($event)">
+        @for(sectionControl of sections.controls; track $index; let i=$index){
+            @let section = sectionControl.getRawValue();
+            <li class="d-flex flex-column" cdkDrag>
+                <div class="d-flex justify-content-between">
+                    <button 
+                        class="section-handle flex-1 label selectable main-section pl-1" 
+                        (click)="stepChange.emit({section: i})" 
+                        [class.active]="selectedSection() === i" 
+                        [class.text-danger]="!sectionControl.disabled && sectionControl.touched && sectionControl.invalid"
+                        tabindex="0"
+                        cdkDragHandle
+                    >
+                        <span class="expanded-text">
+                            {{section.ordinal}}. {{section.label}}
+                        </span>
+                    </button>
+                    <button mat-mini-fab color="warn" class="remove-btn" *ngIf="!hideEditActions()" (click)="removeSection.emit(i)" matTooltip="{{'PLAN-BLUEPRINT-EDITOR.ACTIONS.REMOVE-SECTION' | translate}}" [attr.aria-label]="'COMMONS.ACTIONS.REMOVE' | translate">
+                        <mat-icon mat-mini-fab-icon aria-hidden>delete</mat-icon>
+                    </button>
+                </div>
+                <ul *ngIf="section.fields?.length" class="flex-1 section-fields" cdkDropList (cdkDropListDropped)="fieldsDropped.emit({event: $event, sectionIndex: i})" id="{{i}}-fields">
+                    <!-- && expandChildrenMap?.get(i+1) -->
+                    @for(fieldControl of sectionControl.controls.fields.controls; track $index; let j = $index){
+                        @let field = fieldControl.getRawValue();
+                        <li class="d-flex justify-content-between" cdkDrag>
+                            <button 
+                                class="label selectable section-field-label field-handle"
+                                (click)="stepChange.emit({section: i, field: j})"
+                                [class.active]="selectedSection() === i && selectedField() === j"
+                                [class.text-danger]="!fieldControl.disabled && fieldControl.touched && fieldControl.invalid"
+                                cdkDragHandle
+                            >
+                                <span class="expanded-text">
+                                    {{section.ordinal}}.{{field.ordinal}}.
+                                    @if(!field.label){
+                                        @switch(field.category){
+                                            @case(planBlueprintSectionFieldCategoryEnum.System){
+                                                {{enumUtils.toPlanBlueprintSystemFieldTypeString(field.systemFieldType)}}
+                                            }
+                                            @case(planBlueprintSectionFieldCategoryEnum.ReferenceType){
+                                                {{referenceTypeMap().get(field.referenceTypeId)?.name}}
+                                            }
+                                        }
+                                    }@else {
+                                        {{field.label}}
+                                    }
+                                </span>
+                            </button>
+                            <button mat-mini-fab color="warn" class="remove-btn" *ngIf="!hideEditActions()" (click)="removeField.emit({section: i, field: j})" matTooltip="{{'PLAN-BLUEPRINT-EDITOR.ACTIONS.REMOVE-FIELD' | translate}}" [attr.aria-label]="'COMMONS.ACTIONS.REMOVE' | translate">
+                                <mat-icon mat-mini-fab-icon aria-hidden>delete</mat-icon>
+                            </button>
+                        </li>
+                    }
+                </ul>
+                <button mat-button *ngIf="!hideEditActions()" class="ml-2 add-more-btn" (click)="addField.emit(i)">
+                    <mat-icon aria-hidden>add</mat-icon>
+                    {{'PLAN-BLUEPRINT-EDITOR.ACTIONS.ADD-FIELD' | translate}}
+                </button>
+            </li>
+        }
+    </ul>
+}
+<button mat-button *ngIf="!hideEditActions()" (click)="addSection.emit()">
+    <mat-icon aria-hidden>add</mat-icon>
+    {{'PLAN-BLUEPRINT-EDITOR.ACTIONS.ADD-SECTION' | translate}}
+</button>

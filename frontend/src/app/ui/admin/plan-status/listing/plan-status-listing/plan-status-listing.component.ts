@@ -28,9 +28,10 @@ import { PlanStatusEnum } from '@app/core/common/enum/plan-status';
 import { AppPermission } from '@app/core/common/enum/permission.enum';
 
 @Component({
-  selector: 'app-plan-status-listing',
-  templateUrl: './plan-status-listing.component.html',
-  styleUrl: './plan-status-listing.component.scss'
+    selector: 'app-plan-status-listing',
+    templateUrl: './plan-status-listing.component.html',
+    styleUrl: './plan-status-listing.component.scss',
+    standalone: false
 })
 export class PlanStatusListingComponent extends BaseListingComponent<PlanStatus, PlanStatusLookup> implements OnInit{
     userSettingsKey: UserSettingsKey = {key: 'PlanStatusListingUserSettings'};
@@ -144,7 +145,7 @@ export class PlanStatusListingComponent extends BaseListingComponent<PlanStatus,
 		},
 		{
 			prop: nameof<PlanStatus>(x => x.isActive),
-			sortable: true,
+			sortable: false,
 			languageName: 'PLAN-STATUS-LISTING.FIELDS.IS-ACTIVE',
 			pipe: this.pipeService.getPipe<IsActiveTypePipe>(IsActiveTypePipe)
 		},

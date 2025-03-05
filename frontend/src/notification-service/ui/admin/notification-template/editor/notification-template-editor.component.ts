@@ -38,10 +38,11 @@ import { NotificationTemplateEditorService } from './notification-template-edito
 import { RouterUtilsService } from '@app/core/services/router/router-utils.service';
 
 @Component({
-	selector: 'app-notification-template-editor',
-	templateUrl: './notification-template-editor.component.html',
-	styleUrls: ['./notification-template-editor.component.scss'],
-	providers: [NotificationTemplateEditorService]
+    selector: 'app-notification-template-editor',
+    templateUrl: './notification-template-editor.component.html',
+    styleUrls: ['./notification-template-editor.component.scss'],
+    providers: [NotificationTemplateEditorService],
+    standalone: false
 })
 export class NotificationTemplateEditorComponent extends BaseEditor<NotificationTemplateEditorModel, NotificationTemplate> implements OnInit {
 

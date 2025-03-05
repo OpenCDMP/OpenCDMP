@@ -35,10 +35,11 @@ import { RouterUtilsService } from '@app/core/services/router/router-utils.servi
 
 
 @Component({
-	selector: 'app-reference-editor-component',
-	templateUrl: 'reference-editor.component.html',
-	styleUrls: ['./reference-editor.component.scss'],
-	providers: [ReferenceEditorService]
+    selector: 'app-reference-editor-component',
+    templateUrl: 'reference-editor.component.html',
+    styleUrls: ['./reference-editor.component.scss'],
+    providers: [ReferenceEditorService],
+    standalone: false
 })
 export class ReferenceEditorComponent extends BaseEditor<ReferenceEditorModel, Reference> implements OnInit {
 

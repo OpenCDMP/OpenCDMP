@@ -5,17 +5,18 @@ import { isNullOrUndefined } from '@swimlane/ngx-datatable';
 import { DragulaService } from 'ng2-dragula';
 import { Subject, Subscription } from 'rxjs';
 import { debounceTime } from 'rxjs/operators';
-import { GENERAL_ANIMATIONS } from '../../animations/animations';
+import { GENERAL_ANIMATIONS } from '../../../../../../library/animations/animations';
 import { DescriptionTemplateFieldEditorModel, DescriptionTemplateFieldSetEditorModel } from '../../description-template-editor.model';
 import { ToCEntry, ToCEntryType } from '../../table-of-contents/description-template-table-of-contents-entry';
 import { ValidationErrorModel } from '@common/forms/validation/error-model/validation-error-model';
 import { ReferenceType } from '@app/core/model/reference-type/reference-type';
 
 @Component({
-	selector: 'app-description-template-editor-section-fieldset-component',
-	templateUrl: './description-template-editor-section-fieldset.component.html',
-	styleUrls: ['./description-template-editor-section-fieldset.component.scss'],
-	animations: [GENERAL_ANIMATIONS]
+    selector: 'app-description-template-editor-section-fieldset-component',
+    templateUrl: './description-template-editor-section-fieldset.component.html',
+    styleUrls: ['./description-template-editor-section-fieldset.component.scss'],
+    animations: [GENERAL_ANIMATIONS],
+    standalone: false
 })
 
 export class DescriptionTemplateEditorSectionFieldSetComponent implements OnInit, OnChanges, OnDestroy {

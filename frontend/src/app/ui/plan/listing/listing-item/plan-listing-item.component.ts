@@ -3,7 +3,7 @@ import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
 import { Router } from '@angular/router';
 import { PlanAccessType } from '@app/core/common/enum/plan-access-type';
-import { Plan } from '@app/core/model/plan/plan';
+import { NewVersionPlanPersist, Plan } from '@app/core/model/plan/plan';
 import { PlanService } from '@app/core/services/plan/plan.service';
 import { FileTransformerService } from '@app/core/services/file-transformer/file-transformer.service';
 import { LockService } from '@app/core/services/lock/lock.service';
@@ -15,7 +15,7 @@ import { BaseComponent } from '@common/base/base.component';
 import { ConfirmationDialogComponent } from '@common/modules/confirmation-dialog/confirmation-dialog.component';
 import { Guid } from '@common/types/guid';
 import { TranslateService } from '@ngx-translate/core';
-import { takeUntil } from 'rxjs/operators';
+import { catchError, switchMap, takeUntil } from 'rxjs/operators';
 import { PlanStatusEnum } from '../../../../core/common/enum/plan-status';
 import { AuthService } from '../../../../core/services/auth/auth.service';
 import { ClonePlanDialogComponent } from '../../clone-dialog/plan-clone-dialog.component';
@@ -29,11 +29,18 @@ import { AnalyticsService } from '@app/core/services/matomo/analytics-service';
 import { HttpErrorHandlingService } from '@common/modules/errors/error-handling/http-error-handling.service';
 import { RouterUtilsService } from '@app/core/services/router/router-utils.service';
 import { Tenant } from '@app/core/model/tenant/tenant';
+import { PlanStatusAvailableActionType } from '@app/core/common/enum/plan-status-available-action-type';
+import { IsActive } from '@notification-service/core/enum/is-active.enum';
+import { PlanEditorEntityResolver } from '../../plan-editor-blueprint/resolvers/plan-editor-enitity.resolver';
+import { of } from 'rxjs';
+import { DomSanitizer, SafeResourceUrl, SafeUrl } from '@angular/platform-browser';
+import { StorageFileService } from '@app/core/services/storage-file/storage-file.service';
 
 @Component({
-	selector: 'app-plan-listing-item-component',
-	templateUrl: './plan-listing-item.component.html',
-	styleUrls: ['./plan-listing-item.component.scss'],
+    selector: 'app-plan-listing-item-component',
+    templateUrl: './plan-listing-item.component.html',
+    styleUrls: ['./plan-listing-item.component.scss'],
+    standalone: false
 })
 export class PlanListingItemComponent extends BaseComponent implements OnInit {
 
@@ -42,8 +49,11 @@ export class PlanListingItemComponent extends BaseComponent implements OnInit {
 	@Input() showAllVersionsAction: boolean = true;
 	@Input() isPublic: boolean;
 	@Input() tenants: Tenant[] = [];
+    @Input() statusStorageFile: SafeUrl;
+
 	@Output() onClick: EventEmitter<Plan> = new EventEmitter();
 
+	isDeleted: boolean;
 	isDraft: boolean;
 	isFinalized: boolean;
 	isPublished: boolean;
@@ -51,43 +61,49 @@ export class PlanListingItemComponent extends BaseComponent implements OnInit {
 	fileTransformerEntityTypeEnum = FileTransformerEntityType;
 
 	get canEditPlan(): boolean {
-		return (this.isDraft) && (this.plan.authorizationFlags?.some(x => x === AppPermission.EditPlan) || this.authentication.hasPermission(AppPermission.EditPlan)) && !this.isPublic && this.plan.belongsToCurrentTenant != false;
+		return (this.isDraft) && (this.plan.authorizationFlags?.some(x => x === AppPermission.EditPlan) || this.authentication.hasPermission(AppPermission.EditPlan)) && !this.isDeleted && !this.isPublic && this.plan.belongsToCurrentTenant != false;
 	}
 
 	get canCreateNewVersion(): boolean {
-		return (this.plan.authorizationFlags?.some(x => x === AppPermission.CreateNewVersionPlan) || this.authentication.hasPermission(AppPermission.CreateNewVersionPlan)) && this.plan.versionStatus === PlanVersionStatus.Current && !this.isPublic &&  this.plan.belongsToCurrentTenant != false;
+		return (this.plan.authorizationFlags?.some(x => x === AppPermission.CreateNewVersionPlan) || this.authentication.hasPermission(AppPermission.CreateNewVersionPlan)) && !this.isDeleted && this.plan.versionStatus === PlanVersionStatus.Current && !this.isPublic &&  this.plan.belongsToCurrentTenant != false;
 	}
 
 	get canDeletePlan(): boolean {
-		return (this.plan.authorizationFlags?.some(x => x === AppPermission.DeletePlan) || this.authentication.hasPermission(AppPermission.DeletePlan)) && !this.isPublic &&  this.plan.belongsToCurrentTenant != false && this.isDraftPlan;
+		return (this.plan.authorizationFlags?.some(x => x === AppPermission.DeletePlan) || this.authentication.hasPermission(AppPermission.DeletePlan)) && !this.isPublic && !this.isDeleted &&this.plan.belongsToCurrentTenant != false && this.isNotFinalizedPlan;
 	}
 
 	get canClonePlan(): boolean {
-		return this.plan.authorizationFlags?.some(x => x === AppPermission.ClonePlan) || this.authentication.hasPermission(AppPermission.ClonePlan) || (this.authentication.hasPermission(AppPermission.PublicClonePlan) && this.isPublic);
+		const authorizationFlags = !this.isPublic ? (this.plan as Plan).authorizationFlags : [];
+		return (
+            (authorizationFlags?.some(x => x === AppPermission.ClonePlan) || 
+            this.authentication.hasPermission(AppPermission.ClonePlan) || 
+            (this.authentication.hasPermission(AppPermission.PublicClonePlan) && this.isPublic))
+        );
 	}
 
 	get canFinalizePlan(): boolean {
-		return (this.plan.authorizationFlags?.some(x => x === AppPermission.FinalizePlan) || this.authentication.hasPermission(AppPermission.FinalizePlan)) && !this.isPublic &&  this.plan.belongsToCurrentTenant != false;
+		return (this.plan.authorizationFlags?.some(x => x === AppPermission.FinalizePlan) || this.authentication.hasPermission(AppPermission.FinalizePlan)) && !this.isDeleted && !this.isPublic &&  this.plan.belongsToCurrentTenant != false;
 	}
 
 	get canExportPlan(): boolean {
-		return this.plan.authorizationFlags?.some(x => x === AppPermission.ExportPlan) || this.authentication.hasPermission(AppPermission.ExportPlan);
+		return (this.plan.authorizationFlags?.some(x => x === AppPermission.ExportPlan) || this.authentication.hasPermission(AppPermission.ExportPlan)) && !this.isDeleted &&
+		this.plan.status?.definition?.availableActions?.filter(x => x === PlanStatusAvailableActionType.Export).length > 0;;
 	}
 
 	get canInvitePlanUsers(): boolean {
-		return (this.plan.authorizationFlags?.some(x => x === AppPermission.InvitePlanUsers) || this.authentication.hasPermission(AppPermission.InvitePlanUsers)) && !this.isPublic &&  this.plan.belongsToCurrentTenant != false;
+		return (this.plan.authorizationFlags?.some(x => x === AppPermission.InvitePlanUsers) || this.authentication.hasPermission(AppPermission.InvitePlanUsers)) && !this.isDeleted && !this.isPublic &&  this.plan.belongsToCurrentTenant != false;
 	}
 
 	get canAssignPlanUsers(): boolean {
-		return (this.plan.authorizationFlags?.some(x => x === AppPermission.AssignPlanUsers) || this.authentication.hasPermission(AppPermission.AssignPlanUsers)) && !this.isPublic &&  this.plan.belongsToCurrentTenant != false;
+		return (this.plan.authorizationFlags?.some(x => x === AppPermission.AssignPlanUsers) || this.authentication.hasPermission(AppPermission.AssignPlanUsers)) && !this.isDeleted && !this.isPublic &&  this.plan.belongsToCurrentTenant != false;
 	}
 
 	get showActionsMenu(): boolean {
-		return this.isAuthenticated() && (this.canCreateNewVersion || this.showAllVersionsAction || this.canDeletePlan)
+		return this.isAuthenticated() && (this.canCreateNewVersion || this.showAllVersionsAction || this.canDeletePlan) && !this.isDeleted;
 	}
 
-	get isDraftPlan(): boolean {
-		return this.plan.status == PlanStatusEnum.Draft;
+	get isNotFinalizedPlan(): boolean {
+		return (this.plan.status?.internalStatus == null || this.plan.status?.internalStatus != PlanStatusEnum.Finalized) && !this.isDeleted;
 	}
 
 	constructor(
@@ -105,25 +121,39 @@ export class PlanListingItemComponent extends BaseComponent implements OnInit {
 		public referenceTypeService: ReferenceTypeService,
 		public fileTransformerService: FileTransformerService,
 		private analyticsService: AnalyticsService,
-		private httpErrorHandlingService: HttpErrorHandlingService,
+		private httpErrorHandlingService: HttpErrorHandlingService
 	) {
 		super();
 	}
 
 	ngOnInit() {
 		this.analyticsService.trackPageView(AnalyticsService.PlanListingItem);
-		if (this.plan.status == PlanStatusEnum.Draft) {
+		if (this.plan.status?.internalStatus == PlanStatusEnum.Draft) {
 			this.isDraft = true;
 			this.isFinalized = false;
 			this.isPublished = false;
 		}
-		else if (this.plan.status == PlanStatusEnum.Finalized) {
+		else if (this.plan.status?.internalStatus == PlanStatusEnum.Finalized) {
 			this.isDraft = false;
 			this.isFinalized = true;
 			this.isPublished = false;
-			if (this.plan.status === PlanStatusEnum.Finalized && this.plan.accessType === PlanAccessType.Public) { this.isPublished = true }
+			if (this.plan.accessType === PlanAccessType.Public) { this.isPublished = true }
+		}
+		if (this.plan.isActive === IsActive.Inactive) {
+			this.isDeleted = true;
 		}
 	}
+    
+    // private loadStatusLogo(){
+	// 	const status = (this.plan as Plan)?.status;
+	// 	if (status && status.definition?.storageFile?.id) {
+    //         this.storageFileService.download(status.definition?.storageFile?.id).pipe(takeUntil(this._destroyed))
+    //         .subscribe(response => {
+    //             this.storageFileLogo = this.sanitizer.bypassSecurityTrustUrl(URL.createObjectURL(response.body));
+    //         });
+	// 	}			
+	// 	return 	
+	// }
 
 	public isAuthenticated(): boolean {
 		return this.authentication.currentAccountIsAuthenticated();
@@ -136,18 +166,18 @@ export class PlanListingItemComponent extends BaseComponent implements OnInit {
 
 	inviteToPlan() {
 		const dialogRef = this.dialog.open(PlanInvitationDialogComponent, {
-			autoFocus: false,
 			restoreFocus: false,
 			data: {
 				planId: this.plan.id,
 				planName: this.plan.label,
 				blueprint: this.plan.blueprint
-			}
+			},
+            minWidth: 'min(65rem, 90vw)'
 		});
 	}
 
 	viewVersions(plan: Plan) {
-		if (plan.accessType == PlanAccessType.Public && plan.status == PlanStatusEnum.Finalized && !this.plan.authorizationFlags?.some(x => x === AppPermission.EditPlan)) {
+		if (plan.accessType == PlanAccessType.Public && plan.status?.internalStatus == PlanStatusEnum.Finalized && !this.plan.authorizationFlags?.some(x => x === AppPermission.EditPlan)) {
 			let url = this.router.createUrlTree(['/explore-plans/versions/', plan.groupId]);
 			window.open(url.toString(), '_blank');
 		} else {
@@ -157,7 +187,7 @@ export class PlanListingItemComponent extends BaseComponent implements OnInit {
 	}
 
 	viewVersionsUrl(plan: Plan): string {
-		if (plan.accessType == PlanAccessType.Public && plan.status == PlanStatusEnum.Finalized && !this.plan.authorizationFlags?.some(x => x === AppPermission.EditPlan)) {
+		if (plan.accessType == PlanAccessType.Public && plan.status?.internalStatus == PlanStatusEnum.Finalized && !this.plan.authorizationFlags?.some(x => x === AppPermission.EditPlan)) {
 			let url = this.router.createUrlTree(['/explore-plans/versions/', plan.groupId]);
 			return url.toString();
 		} else {
@@ -196,8 +226,9 @@ export class PlanListingItemComponent extends BaseComponent implements OnInit {
 				plan: this.plan
 			}
 		});
-		dialogRef.afterClosed().pipe(takeUntil(this._destroyed)).subscribe((result: Plan) => {
-			if (result) {
+		dialogRef.afterClosed().pipe(takeUntil(this._destroyed))
+        .subscribe((result) => {
+            if (result) {
 				this.uiNotificationService.snackBarNotification(this.language.instant('GENERAL.SNACK-BAR.SUCCESSFUL-UPDATE'), SnackBarNotificationLevel.Success);
 				this.router.navigate([this.routerUtils.generateUrl(['/plans/edit', result.id.toString()], '/')]);
 			}

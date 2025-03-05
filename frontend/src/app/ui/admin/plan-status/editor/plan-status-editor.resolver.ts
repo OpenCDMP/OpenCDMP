@@ -1,6 +1,7 @@
 import { Injectable } from "@angular/core";
 import { ActivatedRouteSnapshot, RouterStateSnapshot } from "@angular/router";
 import { PlanStatus, PlanStatusDefinition, PlanStatusDefinitionAuthorization, PlanStatusDefinitionAuthorizationItem } from "@app/core/model/plan-status/plan-status";
+import { StorageFile } from "@app/core/model/storage-file/storage-file";
 import { PlanStatusService } from "@app/core/services/plan/plan-status.service";
 import { BreadcrumbService } from "@app/ui/misc/breadcrumb/breadcrumb.service";
 import { BaseEditorResolver } from "@common/base/base-editor.resolver";
@@ -20,6 +21,8 @@ export class PlanStatusEditorResolver extends BaseEditorResolver{
             nameof<PlanStatus>(x => x.id),
             nameof<PlanStatus>(x => x.name),
             nameof<PlanStatus>(x => x.description),
+            nameof<PlanStatus>(x => x.action),
+            nameof<PlanStatus>(x => x.ordinal),
             nameof<PlanStatus>(x => x.internalStatus),
             nameof<PlanStatus>(x => x.definition),
             [nameof<PlanStatus>(x => x.definition), nameof<PlanStatusDefinition>(x => x.authorization)].join('.'),
@@ -28,6 +31,11 @@ export class PlanStatusEditorResolver extends BaseEditorResolver{
             [nameof<PlanStatus>(x => x.definition), nameof<PlanStatusDefinition>(x => x.authorization), nameof<PlanStatusDefinitionAuthorization>(x => x.edit), nameof<PlanStatusDefinitionAuthorizationItem>(x => x.allowAnonymous)].join('.'),
             [nameof<PlanStatus>(x => x.definition), nameof<PlanStatusDefinition>(x => x.authorization), nameof<PlanStatusDefinitionAuthorization>(x => x.edit), nameof<PlanStatusDefinitionAuthorizationItem>(x => x.allowAuthenticated)].join('.'),
 
+            [nameof<PlanStatus>(x => x.definition), nameof<PlanStatusDefinition>(x => x.availableActions)].join('.'),
+            [nameof<PlanStatus>(x => x.definition), nameof<PlanStatusDefinition>(x => x.matIconName)].join('.'),
+            [nameof<PlanStatus>(x => x.definition), nameof<PlanStatusDefinition>(x => x.storageFile), nameof<StorageFile>(x => x.id), ].join('.'), 
+            [nameof<PlanStatus>(x => x.definition), nameof<PlanStatusDefinition>(x => x.statusColor)].join('.'),
+            
             nameof<PlanStatus>(x => x.updatedAt),
             nameof<PlanStatus>(x => x.createdAt),
             nameof<PlanStatus>(x => x.hash),

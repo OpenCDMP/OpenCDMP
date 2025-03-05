@@ -24,10 +24,11 @@ export class CustomComponentBase extends BaseComponent {
 export const _CustomComponentMixinBase = mixinErrorState(CustomComponentBase);
 
 @Component({
-	selector: 'app-single-auto-complete',
-	templateUrl: './single-auto-complete.component.html',
-	styleUrls: ['./single-auto-complete.component.scss'],
-	providers: [{ provide: MatFormFieldControl, useExisting: SingleAutoCompleteComponent }],
+    selector: 'app-single-auto-complete',
+    templateUrl: './single-auto-complete.component.html',
+    styleUrls: ['./single-auto-complete.component.scss'],
+    providers: [{ provide: MatFormFieldControl, useExisting: SingleAutoCompleteComponent }],
+    standalone: false
 })
 export class SingleAutoCompleteComponent extends _CustomComponentMixinBase implements OnInit, MatFormFieldControl<string>, ControlValueAccessor, OnDestroy, DoCheck, OnChanges {
 
@@ -40,6 +41,8 @@ export class SingleAutoCompleteComponent extends _CustomComponentMixinBase imple
 	@ViewChild('autocompleteInput', { static: true }) autocompleteInput: ElementRef;
 
 	@Input() initialSelectedData: any;
+    @Input({required: false}) id: string = `single-autocomplete-${SingleAutoCompleteComponent.nextId++}`;
+
 	@Input()
 	get configuration(): SingleAutoCompleteConfiguration { return this._configuration; }
 	set configuration(configuration: SingleAutoCompleteConfiguration) {
@@ -55,7 +58,6 @@ export class SingleAutoCompleteComponent extends _CustomComponentMixinBase imple
 	@Output() optionSelected: EventEmitter<any> = new EventEmitter();
 	@Output() optionActionClicked: EventEmitter<any> = new EventEmitter();
 
-	id = `single-autocomplete-${SingleAutoCompleteComponent.nextId++}`;
 	stateChanges = new Subject<void>();
 	focused = false;
 	controlType = 'single-autocomplete';
@@ -212,10 +214,12 @@ export class SingleAutoCompleteComponent extends _CustomComponentMixinBase imple
 		this.optionActionClicked.emit(item);
 	}
 
-	private clearValue(): void {
+	public clearValue(emitEvent: boolean = true): void {
 		this._setValue(null);
 		this.stateChanges.next();
-		this.optionSelected.emit(null);
+        if(emitEvent){
+            this.optionSelected.emit(null);
+        }
 		this.inputValue = null;
 		this._items = null;
 	}

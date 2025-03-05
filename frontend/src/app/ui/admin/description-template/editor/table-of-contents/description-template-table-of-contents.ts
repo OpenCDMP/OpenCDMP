@@ -11,9 +11,10 @@ import { NewEntryType, TableUpdateInfo, ToCEntry, ToCEntryType } from './descrip
 
 
 @Component({
-	selector: 'description-template-table-of-contents',
-	styleUrls: ['./description-template-table-of-contents.scss'],
-	templateUrl: './description-template-table-of-contents.html',
+    selector: 'description-template-table-of-contents',
+    styleUrls: ['./description-template-table-of-contents.scss'],
+    templateUrl: './description-template-table-of-contents.html',
+    standalone: false
 })
 export class DescriptionTemplateTableOfContents extends BaseComponent implements OnInit, AfterViewInit, OnDestroy {
 

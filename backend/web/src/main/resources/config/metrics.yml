@@ -1,33 +1,33 @@
 metrics:
   task:
-    enable: false
-    intervalSeconds: null
-    nexusDate: null
-    usersLoginClient: ${IDP_APIKEY_CLIENT_ID_UUID}
+    enable: ${METRICS_ENABLED:false}
+    usersLoginClient: ${METRICS_USER_COUNT_IDP_CLIENT_ID_UUID}
+    intervalSeconds: 600
+    nexusDate: "2021-01-01T00:00:00.00Z"
     referenceTypes:
-      funderIds: []
-      grantIds: []
-      projectIds: []
-      researcherIds: []
+      funderIds: [ "538928bb-c7c6-452e-b66d-08e539f5f082" ]
+      grantIds: [ "5b9c284f-f041-4995-96cc-fad7ad13289c" ]
+      projectIds: [ "3d372db5-a456-45e6-a845-e41e1a8311f8" ]
+      researcherIds: [ "5a2112e7-ea99-4cfe-98a1-68665e26726e" ]
 management:
   endpoint:
     metrics:
-      enabled: true
+      enabled: ${METRICS_ENABLED:false}
     prometheus:
-      enabled: true
+      enabled: ${METRICS_ENABLED:false}
     health:
       show-details: always
   endpoints:
     web:
-      base-path: /
+      base-path: ${METRICS_ENDPOINT_BASE_PATH:/}
       exposure:
         include: prometheus,health,metrics
   
   metrics:
-    enabled: true
+    enabled: ${METRICS_ENABLED:false}
     export:
       prometheus:
-        enabled: true
+        enabled: ${METRICS_ENABLED:false}
     enable:
       http: true
       jvm: true
@@ -36,3 +36,6 @@ management:
       logback: true
       hikaricp: true
       cache: true
+endpoints:
+  prometheus:
+    sensitive: false

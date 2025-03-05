@@ -5,8 +5,8 @@
 		</div>
 		<div *ngIf="data.warning" class="col justify-content-center warn-text">{{ data.warning }}</div>
 		<div class="col-auto justify-content-end">
-            <button mat-icon-button tabindex="-1" (click)="close()">
-                <mat-icon>close</mat-icon>
+            <button mat-icon-button (click)="close()"  [attr.aria-label]="'ALT-TEXT.CLOSE-DIALOG'  | translate">
+                <mat-icon aria-hidden>close</mat-icon>
             </button>
 		</div>
 	</div>
@@ -14,8 +14,8 @@
 	<div class="row align-items-center">
 		<div class="col message pl-3">{{ data.message }}</div>
 		<div *ngIf="!data.icon" class="col-auto justify-content-end">
-            <button mat-icon-button tabindex="-1" (click)="close()">
-                <mat-icon>close</mat-icon>
+            <button mat-icon-button (click)="close()"  [attr.aria-label]="'ALT-TEXT.CLOSE-DIALOG'  | translate">
+                <mat-icon aria-hidden>close</mat-icon>
             </button>
 		</div>
 	</div>
@@ -34,7 +34,7 @@
 <mat-dialog-actions class="mt-3 mb-3 pb-1">
 	<ng-container *ngFor="let title of data.titles; let i = index">
 		<div class="col-auto mb-2">
-			<button mat-button class="rounded-btn primary" (click)="apply(i)">{{ title }}</button>
+			<button mat-flat-button color="primary" class="padded-shadow-btn" (click)="apply(i)">{{ title }}</button>
 		</div>
 	</ng-container>
 </mat-dialog-actions>

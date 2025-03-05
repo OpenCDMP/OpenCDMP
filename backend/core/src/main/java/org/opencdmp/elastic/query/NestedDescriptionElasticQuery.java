@@ -85,7 +85,7 @@ public class NestedDescriptionElasticQuery extends ElasticNestedQuery<NestedDesc
 		if (columns.contains(NestedDescriptionElasticEntity._label)) mocDoc.setLabel(FieldBasedMapper.shallowSafeConversion(rawData.get(NestedDescriptionElasticEntity._label), String.class));
 		if (columns.contains(NestedDescriptionElasticEntity._planId)) mocDoc.setPlanId(FieldBasedMapper.shallowSafeConversion(rawData.get(NestedDescriptionElasticEntity._planId), UUID.class));
 		if (columns.contains(NestedDescriptionElasticEntity._description)) mocDoc.setDescription(FieldBasedMapper.shallowSafeConversion(rawData.get(NestedDescriptionElasticEntity._description), String.class));
-		if (columns.contains(NestedDescriptionElasticEntity._status)) mocDoc.setStatus(FieldBasedMapper.shallowSafeConversion(rawData.get(NestedDescriptionElasticEntity._status), DescriptionStatus.class));
+		if (columns.contains(NestedDescriptionElasticEntity._statusId)) mocDoc.setStatusId(FieldBasedMapper.shallowSafeConversion(rawData.get(NestedDescriptionElasticEntity._statusId), UUID.class));
 		if (columns.contains(NestedDescriptionElasticEntity._finalizedAt)) mocDoc.setFinalizedAt(FieldBasedMapper.shallowSafeConversion(rawData.get(NestedDescriptionElasticEntity._finalizedAt), Date.class));
 		mocDoc.setReferences(this.convertNested(rawData, columns, this.queryFactory.query(NestedReferenceElasticQuery.class), NestedDescriptionElasticEntity._references, this.getNestedPath()));
 		mocDoc.setTags(this.convertNested(rawData, columns, this.queryFactory.query(NestedTagElasticQuery.class), NestedDescriptionElasticEntity._tags, this.getNestedPath()));
@@ -99,7 +99,7 @@ public class NestedDescriptionElasticQuery extends ElasticNestedQuery<NestedDesc
 		else if (item.match(NestedDescriptionElasticEntity._label)) return this.elasticFieldOf(NestedDescriptionElasticEntity._label);
 		else if (item.match(NestedDescriptionElasticEntity._planId)) return this.elasticFieldOf(NestedDescriptionElasticEntity._planId);
 		else if (item.match(NestedDescriptionElasticEntity._description)) return this.elasticFieldOf(NestedDescriptionElasticEntity._description);
-		else if (item.match(NestedDescriptionElasticEntity._status)) return this.elasticFieldOf(NestedDescriptionElasticEntity._status);
+		else if (item.match(NestedDescriptionElasticEntity._statusId)) return this.elasticFieldOf(NestedDescriptionElasticEntity._statusId);
 		else if (item.match(NestedDescriptionElasticEntity._finalizedAt)) return this.elasticFieldOf(NestedDescriptionElasticEntity._finalizedAt);
 		else if (item.prefix(NestedDescriptionElasticEntity._references)) return this.queryFactory.query(NestedReferenceElasticQuery.class).nestedPath(this.conventionService.asIndexer(this.getNestedPath(), NestedDescriptionElasticEntity._references)).fieldNameOf(this.extractPrefixed(item, NestedDescriptionElasticEntity._references));
 		else if (item.prefix(NestedDescriptionElasticEntity._tags)) return this.queryFactory.query(NestedTagElasticQuery.class).nestedPath(this.conventionService.asIndexer(this.getNestedPath(), NestedDescriptionElasticEntity._tags)).fieldNameOf(this.extractPrefixed(item, NestedDescriptionElasticEntity._tags));

@@ -94,21 +94,11 @@ export class PlanService {
 				catchError((error: any) => throwError(error)));
 	}
 
-	finalize(id: Guid, descriptionIds: Guid[] = []): Observable<Boolean> {
-		const url = `${this.apiBase}/finalize/${id}`;
+	setStatus(id: Guid, newStatusId: Guid, descriptionIds: Guid[] = []): Observable<Boolean> {
+		const url = `${this.apiBase}/set-status/${id}/${newStatusId}`;
 
 		return this.http
 			.post<Boolean>(url, {descriptionIds: descriptionIds}).pipe(
-				catchError((error: any) => throwError(error)));
-	}
-
-	undoFinalize(id: Guid, reqFields: string[] = []): Observable<Boolean> {
-		const url = `${this.apiBase}/undo-finalize/${id}`;
-
-		const options = { params: { f: reqFields } };
-
-		return this.http
-			.get<Boolean>(url, options).pipe(
 				catchError((error: any) => throwError(error)));
 	}
 
@@ -261,13 +251,13 @@ export class PlanService {
 		valueAssign: (item: Plan) => item.id,
 	};
 
-	public buildAutocompleteLookup(isActive: IsActive[], like?: string, excludedIds?: Guid[], ids?: Guid[], statuses?: PlanStatusEnum[], planDescriptionTemplateSubQuery?: PlanDescriptionTemplateLookup): PlanLookup {
+	public buildAutocompleteLookup(isActive: IsActive[], like?: string, excludedIds?: Guid[], ids?: Guid[], statusIds?: Guid[], planDescriptionTemplateSubQuery?: PlanDescriptionTemplateLookup): PlanLookup {
 		const lookup: PlanLookup = new PlanLookup();
 		lookup.page = { size: 100, offset: 0 };
 		if (excludedIds && excludedIds.length > 0) { lookup.excludedIds = excludedIds; }
 		if (ids && ids.length > 0) { lookup.ids = ids; }
 		lookup.isActive = isActive;
-		lookup.statuses = statuses;
+		lookup.statusIds = statusIds;
 		lookup.project = {
 			fields: [
 				nameof<Plan>(x => x.id),
@@ -286,11 +276,15 @@ export class PlanService {
 	//
 	//
 
-	getCurrentUserRolesInPlan(planUsers: PlanUser[]): PlanUserRole[] {
+	getCurrentUserRolesInPlan(planUsers: PlanUser[], isDeletedPlan: boolean = false): PlanUserRole[] {
 		const principalId: Guid = this.authService.userId();
 		let planUserRoles: PlanUserRole[] = null;
 		if (principalId) {
-			planUserRoles = planUsers.filter(element => element.isActive == IsActive.Active && element?.user?.id === principalId).map(x => x.role);
+			if (isDeletedPlan) {
+				planUserRoles = planUsers.filter(element => element?.user?.id === principalId).map(x => x.role);
+			} else {
+				planUserRoles = planUsers.filter(element => element.isActive == IsActive.Active && element?.user?.id === principalId).map(x => x.role);
+			}
 		}
 		return planUserRoles;
 	}

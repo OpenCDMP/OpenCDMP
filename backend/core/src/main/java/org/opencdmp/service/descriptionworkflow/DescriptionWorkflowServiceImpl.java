@@ -3,15 +3,19 @@ package org.opencdmp.service.descriptionworkflow;
 import gr.cite.commons.web.authz.service.AuthorizationService;
 import gr.cite.tools.data.builder.BuilderFactory;
 import gr.cite.tools.data.deleter.DeleterFactory;
+import gr.cite.tools.data.query.QueryFactory;
+import gr.cite.tools.exception.MyApplicationException;
 import gr.cite.tools.exception.MyNotFoundException;
 import gr.cite.tools.exception.MyValidationException;
 import gr.cite.tools.fieldset.BaseFieldSet;
 import gr.cite.tools.fieldset.FieldSet;
 import gr.cite.tools.logging.LoggerService;
 import gr.cite.tools.logging.MapLogEntry;
+import org.opencdmp.authorization.AuthorizationFlags;
 import org.opencdmp.authorization.Permission;
 import org.opencdmp.commons.XmlHandlingService;
 import org.opencdmp.commons.enums.IsActive;
+import org.opencdmp.commons.scope.tenant.TenantScope;
 import org.opencdmp.commons.types.descriptionworkflow.DescriptionWorkflowDefinitionEntity;
 import org.opencdmp.commons.types.descriptionworkflow.DescriptionWorkflowDefinitionTransitionEntity;
 import org.opencdmp.convention.ConventionService;
@@ -24,6 +28,7 @@ import org.opencdmp.model.descriptionworkflow.DescriptionWorkflow;
 import org.opencdmp.model.persist.descriptionworkflow.DescriptionWorkflowDefinitionPersist;
 import org.opencdmp.model.persist.descriptionworkflow.DescriptionWorkflowDefinitionTransitionPersist;
 import org.opencdmp.model.persist.descriptionworkflow.DescriptionWorkflowPersist;
+import org.opencdmp.query.DescriptionWorkflowQuery;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.MessageSource;
 import org.springframework.context.i18n.LocaleContextHolder;
@@ -48,8 +53,10 @@ public class DescriptionWorkflowServiceImpl implements DescriptionWorkflowServic
     private final TenantEntityManager entityManager;
     private final MessageSource messageSource;
     private final ErrorThesaurusProperties errors;
+    private final TenantScope tenantScope;
+    private final QueryFactory queryFactory;
 
-    public DescriptionWorkflowServiceImpl(AuthorizationService authService, ConventionService conventionService, XmlHandlingService xmlHandlingService, BuilderFactory builderFactory, DeleterFactory deleterFactory, TenantEntityManager entityManager, MessageSource messageSource, ErrorThesaurusProperties errors) {
+    public DescriptionWorkflowServiceImpl(AuthorizationService authService, ConventionService conventionService, XmlHandlingService xmlHandlingService, BuilderFactory builderFactory, DeleterFactory deleterFactory, TenantEntityManager entityManager, MessageSource messageSource, ErrorThesaurusProperties errors, TenantScope tenantScope, QueryFactory queryFactory) {
         this.authService = authService;
         this.conventionService = conventionService;
         this.xmlHandlingService = xmlHandlingService;
@@ -58,6 +65,8 @@ public class DescriptionWorkflowServiceImpl implements DescriptionWorkflowServic
         this.entityManager = entityManager;
         this.messageSource = messageSource;
         this.errors = errors;
+        this.tenantScope = tenantScope;
+        this.queryFactory = queryFactory;
     }
 
 
@@ -131,5 +140,27 @@ public class DescriptionWorkflowServiceImpl implements DescriptionWorkflowServic
         }
 
         return data;
+    }
+
+    @Override
+    public DescriptionWorkflowDefinitionEntity getActiveWorkFlowDefinition() throws InvalidApplicationException {
+
+        DescriptionWorkflowQuery query = this.queryFactory.query(DescriptionWorkflowQuery.class).disableTracking().authorize(AuthorizationFlags.AllExceptPublic).isActives(IsActive.Active);
+        if (this.tenantScope.isDefaultTenant()) query = query.tenantIsSet(false);
+        else query.tenantIsSet(true).tenantIds(this.tenantScope.getTenant());
+
+        DescriptionWorkflowEntity entity = query.first();
+
+        if (entity == null && !this.tenantScope.isDefaultTenant()) {
+            query.clearTenantIds().tenantIsSet(false);
+            entity = query.first();
+        }
+
+        if (entity == null) throw new MyApplicationException("Description workflow not found!");
+
+        DescriptionWorkflowDefinitionEntity definition = this.xmlHandlingService.fromXmlSafe(DescriptionWorkflowDefinitionEntity.class, entity.getDefinition());
+        if (definition == null) throw new MyNotFoundException(this.messageSource.getMessage("General_ItemNotFound", new Object[]{entity.getId(), DescriptionWorkflowDefinitionEntity.class.getSimpleName()}, LocaleContextHolder.getLocale()));
+
+        return definition;
     }
 }

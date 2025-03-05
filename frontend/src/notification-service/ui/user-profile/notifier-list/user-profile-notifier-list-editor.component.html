@@ -1,25 +1,46 @@
-<div class="main-tab-content row" *ngIf="availableNotifiersKeys" [ngClass]="preferencesNotCompleted() ? 'd-none' : ''">
-	<ng-container *ngFor="let notificationType of availableNotifiersKeys">
-		<div class="col-12" *ngIf="hasMoreThanOneNotifiers(notificationType)">
-			<div class="row">
-				<mat-list class="col-12" cdkDropList (cdkDropListDropped)="dropped($event, notificationType)">
-					<h3 mat-subheader>{{notificationServiceEnumUtils.toNotificationTypeString(notificationType)}}</h3>
-					<mat-list-item *ngFor="let contactType of availableNotifiers[notificationType]" cdkDrag>
-						<div class="d-flex align-items-center">
-							<mat-icon matListIcon cdkDragHandle>unfold_more</mat-icon>
-							{{notificationServiceEnumUtils.toContactTypeString(contactType)}}
-						</div>
-					</mat-list-item>
-				</mat-list>
-			</div>
-		</div>
-	</ng-container>
+<span aria-live="assertive" class="assistive-text">{{reorderAssistiveText()}}</span>
+<span id="operation" class="assistive-text">{{'ALT-TEXT.REORDER-TABLE.BEGIN-EDITING' | translate}}</span>
+<div class="main-tab-content row" *ngIf="availableNotifiersKeys" [ngClass]="preferencesNotCompleted() ? 'd-none' : ''" >
+    <ul class="unstyled-list" cdkListbox>
+        <ng-container *ngFor="let notificationType of availableNotifiersKeys">
+            <li *ngIf="hasMoreThanOneNotifiers(notificationType)" [cdkOption]="notificationType">
+                <div class="title" mat-subheader>{{notificationServiceEnumUtils.toNotificationTypeString(notificationType)}}</div>
+                <span class="assistive-text">{{'ALT-TEXT.REORDER-TABLE.MAIN-INFO' | translate}}</span>
+                <mat-list  cdkDropList cdkListbox (cdkDropListDropped)="dropped($event, notificationType)" role="listbox">
+                    @for(contactType of availableNotifiers[notificationType]; track $index; let index = $index){
+                        @let itemName = notificationServiceEnumUtils.toContactTypeString(contactType);
+                        <mat-list-item 
+                            [id]="notificationType + '-' + index" 
+                            cdkDrag 
+                            [cdkOption]="notificationType + '.' + contactType"
+                            class="draggable-item" 
+                            tabindex="0" 
+                            (keydown)="onKeyDown($event, index, notificationType, itemName)"
+                            [class.reorder-mode]="reorderMode"
+                            aria-describedby="operation"
+                        >
+                            <div class="d-flex align-items-center ">
+                                <mat-icon matListIcon cdkDragHandle class="drag-icon" draggable="true" aria-hidden>
+                                    drag_indicator
+                                </mat-icon>
+                                <span class="assistive-text">
+                                    {{'ALT-TEXT.REORDER-TABLE.ITEM-INFO' | translate: {index: index + 1, length: availableNotifiers[notificationType].length} }}: 
+                                </span>
+                                <span class="assistive-text">{{index + 1}} {{'GENERAL.PREPOSITIONS.OF' | translate}} {{availableNotifiers[notificationType]?.length}}</span>
+                                {{itemName}}
+                            </div>
+                        </mat-list-item>
+                    }
+                </mat-list>
+            </li>
+        </ng-container>
+    </ul>
 
 	<div class="col-12">
 		<div class="row">
 			<div class="col"></div>
 			<div class="col-auto">
-				<button mat-button class="rounded-btn primary" (click)="formSubmit()">
+				<button mat-flat-button color="primary" class="padded-shadow-btn" (click)="formSubmit()">
 					{{'NOTIFICATION-SERVICE.USER-PROFILE.NOTIFIER-LIST-EDITOR.ACTIONS.SAVE' | translate}}
 				</button>
 			</div>

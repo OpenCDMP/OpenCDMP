@@ -12,21 +12,6 @@
 		padding: 1em;
 	}
 
-	.cancel {
-		background-color: #aaaaaa;
-		color: #ffffff;
-	}
-
-	.confirm {
-		background-color: #2cba6c;
-		color: #ffffff;
-	}
-
-	.delete {
-		background-color: #ba2c2c;
-		color: #ffffff;
-	}
-
 	.checkbox-privacy {
 		padding: 0em 1em;
 	}
@@ -34,6 +19,6 @@
 	.required-policy {
 		padding: 0em 1.2em 1em;
 		font-size: smaller;
-		color: #f44336;
+		color: var(--sys-error);
 	}
 }

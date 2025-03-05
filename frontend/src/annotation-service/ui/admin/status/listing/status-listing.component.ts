@@ -27,8 +27,9 @@ import { IsActiveTypePipe } from '@annotation-service/core/formatting/pipes/is-a
 import { AppPermission } from '@app/core/common/enum/permission.enum';
 
 @Component({
-	templateUrl: './status-listing.component.html',
-	styleUrls: ['./status-listing.component.scss']
+    templateUrl: './status-listing.component.html',
+    styleUrls: ['./status-listing.component.scss'],
+    standalone: false
 })
 export class StatusListingComponent extends BaseListingComponent<Status, StatusLookup> implements OnInit {
 	publish = false;
@@ -124,7 +125,7 @@ export class StatusListingComponent extends BaseListingComponent<Status, StatusL
 		},
 		{
 			prop: nameof<Status>(x => x.isActive),
-			sortable: true,
+			sortable: false,
 			languageName: 'ANNOTATION-SERVICE.STATUS-LISTING.FIELDS.IS-ACTIVE',
 			pipe: this.pipeService.getPipe<IsActiveTypePipe>(IsActiveTypePipe)
 		},

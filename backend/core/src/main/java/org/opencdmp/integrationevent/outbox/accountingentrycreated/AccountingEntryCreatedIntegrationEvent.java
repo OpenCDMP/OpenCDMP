@@ -20,9 +20,6 @@ public class AccountingEntryCreatedIntegrationEvent extends TrackedEvent {
     private String action;
     public static final String _action = "action";
 
-    private String userId;
-    public static final String _userId = "user";
-
     private AccountingMeasureType measure;
 
     private AccountingValueType type;
@@ -61,14 +58,6 @@ public class AccountingEntryCreatedIntegrationEvent extends TrackedEvent {
 
     public void setAction(String action) {
         this.action = action;
-    }
-
-    public String getUserId() {
-        return userId;
-    }
-
-    public void setUserId(String userId) {
-        this.userId = userId;
     }
 
     public AccountingMeasureType getMeasure() {

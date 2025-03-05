@@ -82,5 +82,4 @@ public class PlanUserCommonModelBuilder extends BaseCommonModelBuilder<PlanUserM
         itemMap = this.builderFactory.builder(UserCommonModelBuilder.class).authorize(this.authorize).asForeignKey(q, UserEntity::getId);
         return itemMap;
     }
-
 }

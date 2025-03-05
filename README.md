@@ -5,6 +5,7 @@
 ## 🚀 **Key Features**
 
 - **Modular Architecture**: Easily extend the platform with new modules and plugins to meet specific needs.
+- **Evaluation via Plugins**: Perform evaluation through customizable plugins tailored to specific standards and requirements.
 - **Collaborative Environment**: Supports teamwork with multi-user access, version control, and change tracking.
 - **Role-Based Access Control**: Invite users to a Plan with different roles—Viewer, Contributor, Reviewer, etc.—and set access rights at the Plan or Section level.
 - **Review and Annotation System**: Reviewers can add annotations (comments) to Plans or Desriptions, with statuses to track their lifecycle.

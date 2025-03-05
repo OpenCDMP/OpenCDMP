@@ -35,9 +35,10 @@ import { BreadcrumbService } from '@app/ui/misc/breadcrumb/breadcrumb.service';
 
 
 @Component({
-	selector: 'app-plan-blueprint-listing-component',
-	templateUrl: './plan-blueprint-listing.component.html',
-	styleUrls: ['./plan-blueprint-listing.component.scss']
+    selector: 'app-plan-blueprint-listing-component',
+    templateUrl: './plan-blueprint-listing.component.html',
+    styleUrls: ['./plan-blueprint-listing.component.scss'],
+    standalone: false
 })
 export class PlanBlueprintListingComponent extends BaseListingComponent<PlanBlueprint, PlanBlueprintLookup> implements OnInit {
 	publish = false;
@@ -180,7 +181,7 @@ export class PlanBlueprintListingComponent extends BaseListingComponent<PlanBlue
 		},
 		{
 			prop: nameof<PlanBlueprint>(x => x.isActive),
-			sortable: true,
+			sortable: false,
 			languageName: 'PLAN-BLUEPRINT-LISTING.FIELDS.IS-ACTIVE',
 			pipe: this.pipeService.getPipe<IsActiveTypePipe>(IsActiveTypePipe)
 		},
@@ -274,7 +275,8 @@ export class PlanBlueprintListingComponent extends BaseListingComponent<PlanBlue
 				name: '',
 				file: FileList,
 				sucsess: false
-			}
+			},
+            width: 'min(600px, 90vw)'
 		});
 		dialogRef.afterClosed().pipe(takeUntil(this._destroyed)).subscribe(data => {
 			if (data && data.sucsess && data.name != null && data.file != null) {

@@ -11,7 +11,8 @@ import { MarkedValidatorFn } from "./validation/custom-validator";
  * Input/Select into FormField consider Validator.required from reactive form if the [required] attribute is missing in the template
  */
 @Directive({
-	selector: 'mat-form-field:has(input:not([required])), mat-form-field:has(mat-select:not([required])), mat-form-field:has(app-multiple-auto-complete:not([required])), mat-form-field:has(app-single-auto-complete:not([required]))',
+    selector: 'mat-form-field:has(input:not([required])), mat-form-field:has(mat-select:not([required])), mat-form-field:has(app-multiple-auto-complete:not([required])), mat-form-field:has(app-single-auto-complete:not([required]))',
+    standalone: false
 })
 export class ReactiveAsteriskDirective implements AfterContentChecked {
 	private readonly requiredValidatornames = ['RequiredWithVisibilityRulesValidator', 'required'];

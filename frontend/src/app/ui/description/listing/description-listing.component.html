@@ -6,10 +6,10 @@
 					<p>{{'DESCRIPTION-LISTING.TEXT-INFO' | translate}} <u class="pointer" [routerLink]="routerUtils.generateUrl(['/explore-descriptions'])">{{'DESCRIPTION-LISTING.LINK-PUBLIC-DESCRIPTIONS' | translate}}</u> {{'DESCRIPTION-LISTING.TEXT-INFO-REST' | translate}}</p>
 					<p class="mt-4 pt-2">{{'DESCRIPTION-LISTING.TEXT-INFO-PAR' | translate}}
 					<div class="d-flex">
-						<button mat-button class="rounded-btn secondary align-self-center" (click)="addNewDescription()">
+						<button mat-flat-button color="accent" class="padded-shadow-btn align-self-center" (click)="addNewDescription()">
 							{{'DESCRIPTION-LISTING.ACTIONS.ADD-DESCRIPTION' | translate}}
 						</button>
-						<img class="col-auto ml-auto laptop-img" src="../../../assets/images/dashboard-popup.png">
+						<img class="col-auto ml-auto laptop-img" alt="{{('ALT-TEXT.DASHBOARD-POPUP-IMAGE' | translate) ?? 'dashboard pop up image' }}" src="../../../assets/images/dashboard-popup.png">
 					</div>
 				</div>
 			</div>
@@ -18,15 +18,15 @@
 			</div>
 			<div *ngIf="!isPublic" class="ml-auto">
 				<div class="col-auto">
-					<button mat-button class="rounded-btn secondary align-self-center" (click)="addNewDescription()" [disabled]="isLoading">
+					<button mat-flat-button color="accent" class="padded-shadow-btn align-self-center" (click)="addNewDescription()" [disabled]="isLoading">
 						{{'DESCRIPTION-LISTING.ACTIONS.ADD-DESCRIPTION' | translate}}
 					</button>
 				</div>
 			</div>
 			<div *ngIf="(isLoading || hasListingItems || hasFilters) && !isPublic"
 				class="filter-btn" [style.right]="dialog.getDialogById('filters') ? '446px' : '0px'" [style.width]="listingItems.length > 2 ? '57px' : '37px'" (click)="openFiltersDialog()">
-				<button mat-raised-button class="p-0" [matBadge]="filtersCount" [matBadgeHidden]="filtersCount === 0" matBadgePosition="before">
-					<mat-icon class="mr-4 filter-icon">filter_alt</mat-icon>
+				<button mat-raised-button class="p-0 squared-btn badge-accent badge-lg" [matBadge]="filtersCount" [matBadgeHidden]="filtersCount === 0" matBadgePosition="before" [attr.aria-label]="'ALT-TEXT.OPEN-FILTERS' | translate">
+					<mat-icon class="mr-3 filter-icon">filter_alt</mat-icon>
 				</button>
 			</div>
 		</div>
@@ -48,8 +48,8 @@
 								</mat-select>
 							</mat-form-field>
 						</div>
-						<div class="col-auto order-2 order-xl-3 mb-1 pl-0">
-							<button mat-icon-button (click)="toggleSortDirection()" [matTooltip]="sortingTooltipText">
+						<div class="col-auto order-2 order-xl-3 mb-1 pl-0 mt-2">
+							<button mat-icon-button (click)="toggleSortDirection()" [matTooltip]="sortingTooltipText" [attr.aria-label]="sortingTooltipText">
 								<mat-icon *ngIf="isAscending">keyboard_double_arrow_up</mat-icon>
 								<mat-icon *ngIf="isDescending">keyboard_double_arrow_down</mat-icon>
 							</button>
@@ -58,7 +58,7 @@
 						<div class="col-12 col-xl-auto ml-auto order-4">
 							<div class="row">
 								<!-- Guided Tour -->
-								<div class="col-12 col-xl-auto d-flex align-items-center">
+								<div class="col-12 col-xl-auto d-none d-lg-flex align-items-center tour-prompt">
 									<span *ngIf="!isPublic" class="center-content" (click)="restartTour()">{{ 'DESCRIPTION-LISTING.ACTIONS.TAKE-A-TOUR'| translate }}</span>
 								</div>
 								<!-- End of Guided Tour -->
@@ -80,8 +80,8 @@
                             [showDivider]="i != (listingItems.length - 1)"
                         ></app-description-listing-item-component>
                     </div>
-                    <div *ngIf="hasListingItems && this.lookup?.page?.offset < this.totalCount - 1 && this.pageSize < this.totalCount - 1" class="d-flex justify-content-center pb-1">
-                        <button mat-button type="button" class="rounded-btn load-more" (click)="loadMore()">{{'DESCRIPTION-LISTING.ACTIONS.LOAD-MORE' | translate}}</button>
+                    <div *ngIf="hasListingItems && lookup?.page?.offset < totalCount - 1 && pageSize < totalCount - 1" class="d-flex justify-content-center pb-1">
+                        <button mat-button type="button" class="padded-shadow-btn load-more" (click)="loadMore()">{{'DESCRIPTION-LISTING.ACTIONS.LOAD-MORE' | translate}}</button>
                     </div>
                 </div>
                 <div *ngIf="!hasListingItems && hasFilters" class="col-md-12 d-flex justify-content-center pt-4 mt-4 mb-4 pb-4">

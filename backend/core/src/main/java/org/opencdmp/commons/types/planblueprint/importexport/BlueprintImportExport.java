@@ -26,6 +26,9 @@ public class BlueprintImportExport {
     @XmlElement(name = "groupId")
     private UUID groupId;
 
+    @XmlElement(name = "description")
+    private String description;
+
     public UUID getId() {
         return this.id;
     }
@@ -64,5 +67,13 @@ public class BlueprintImportExport {
 
     public void setGroupId(UUID groupId) {
         this.groupId = groupId;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
     }
 }

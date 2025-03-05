@@ -1,7 +1,7 @@
 <div class="row" *ngIf="form.get('data')">
 
 	<h5 style="font-weight: bold" class="col-auto">{{'DESCRIPTION-TEMPLATE-EDITOR.STEPS.FORM.FIELD.FIELDS.FIELD-AUTOCOMPLETE-TITLE' | translate}}</h5>
-	<mat-checkbox class="col-auto" [formControl]="this.form.get('data').get('multipleSelect')">
+	<mat-checkbox class="col-auto" [formControl]="form.get('data').get('multipleSelect')">
 		{{'DESCRIPTION-TEMPLATE-EDITOR.STEPS.FORM.FIELD.FIELDS.FIELD-MULTIPLE-AUTOCOMPLETE' | translate}}
 		<mat-error *ngIf="form.get('data').get('multipleSelect').hasError('backendError')">{{form.get('data').get('multipleSelect').getError('backendError').message}}</mat-error> 
 	</mat-checkbox>
@@ -26,7 +26,7 @@
 
 	</div>
 </div>
-<div *ngFor="let singleForm of this.form.get('data').get('sources')?.controls; let i = index" class="row">
+<div *ngFor="let singleForm of form.get('data').get('sources')?.controls; let i = index" class="row">
 	<mat-form-field class="col-md-6">
 		<mat-label>{{'DESCRIPTION-TEMPLATE-EDITOR.STEPS.FORM.FIELD.FIELDS.FIELD-AUTOCOMPLETE-AUTH-METHOD' | translate}}</mat-label>
 		<mat-select [formControl]="singleForm.get('method')">
@@ -100,5 +100,5 @@
 		</mat-form-field>
 	</div>
 
-	<button mat-button type="button" (click)="removeSource(i)"><mat-icon>delete</mat-icon></button>
+	<button mat-button type="button" (click)="removeSource(i)" [attr.aria-label]="'COMMONS.ACTIONS.REMOVE' | translate"><mat-icon aria-hiden>delete</mat-icon></button>
 </div>

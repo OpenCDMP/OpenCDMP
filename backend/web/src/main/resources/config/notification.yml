@@ -1,1 +1,23 @@
 notification:
+  planInvitationExternalUserType: 065DEECD-21BB-44AF-9983-E660FDF24BC4
+  planInvitationExistingUserType: 4904dea2-5079-46d3-83be-3a19c9ab45dc
+  planModifiedType: 4542262A-22F8-4BAA-9DB6-1C8E70AC1DBB
+  planFinalisedType: 90DB0B46-42DE-BD89-AEBF-6F27EFEB256E
+  planStatusChangedType: 25bbc307-4fa8-4381-b2d7-a3395f57d575
+  planAnnotationCreatedType: 1cca80f5-2ea9-41ae-a204-9b4332216c24
+  planAnnotationStatusChangedType: 0c8a5c62-e48f-4eca-99ee-a7f262477061
+  descriptionCreatedType: 8965b1d5-99a6-4acf-9016-c0d0ce341364
+  descriptionModifiedType: 4FDBFA80-7A71-4A69-B854-67CBB70648F1
+  descriptionFinalisedType: 33790bad-94d4-488a-8ee2-7f6295ca18ea
+  descriptionStatusChangedType: 8389aca8-43bd-4aac-958d-24daf6ed47b4
+  descriptionAnnotationCreatedType: db1e99d2-a240-4e75-9bb2-ef25b234c1f0
+  descriptionAnnotationStatusChangedType: 3189e3a6-91e6-40c6-8ff8-275a68445aec
+  mergeAccountConfirmationType: BFE68845-CB05-4C5A-A03D-29161A7C9660
+  removeCredentialConfirmationType: C9BC3F16-057E-4BBA-8A5F-36BD835E5604
+  planDepositType: 55736F7A-83AB-4190-AF43-9D031A6F9612
+  descriptionTemplateInvitationType: 223BB607-EFA1-4CE7-99EC-4BEABFEF9A8B
+  contactSupportType: 5B1D6C52-88F9-418B-9B8A-6F1F963D9EAD
+  publicContactSupportType: B542B606-ACC6-4629-ADEF-4D8EE2F01222
+  tenantSpecificInvitationExternalUserType: 497dada5-eccc-4bc0-9e0b-63e22b4eb0be
+  tenantSpecificInvitationExistingUserType: b3809c17-d1e4-420a-919c-828564114191
+  contactSupportEmail: ${CONTACT_SUPPORT_EMAIL_ADDRESS}

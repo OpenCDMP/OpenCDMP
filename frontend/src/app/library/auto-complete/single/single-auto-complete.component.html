@@ -1,5 +1,5 @@
 <div class="row auto-complete">
-	<input matInput #autocompleteInput class="col-12" [name]="id" autocomplete="off" #autocompleteTrigger="matAutocompleteTrigger" [placeholder]="placeholder" [matAutocomplete]="autocomplete" [value]="inputValue" (keyup)="onKeyUp($event)" [disabled]="disabled" (focus)="_onInputFocus()" (blur)="onBlur($event)">
+	<input matInput #autocompleteInput class="col-12" [id]="id" [name]="id" autocomplete="off" #autocompleteTrigger="matAutocompleteTrigger" [placeholder]="placeholder" [matAutocomplete]="autocomplete" [value]="inputValue" [required]="required" (keyup)="onKeyUp($event)" [disabled]="disabled" (focus)="_onInputFocus()" (blur)="onBlur($event)">
 	<!-- The attribute autocomplete="nope", set by downshift, is ignored in Chrome 67 and Opera 54 (latest at the time of writing)
 	<input matInput #autocompleteInput class="col-12" [name]="id" autocomplete="nope" #autocompleteTrigger="matAutocompleteTrigger" [placeholder]="placeholder" [matAutocomplete]="autocomplete" [value]="inputValue" (keyup)="onKeyUp($event)" [disabled]="disabled" (focus)="_onInputFocus()" (blur)="onBlur($event)"> -->
 	<mat-icon *ngIf="!disabled" class="align-arrow-right" matSuffix>arrow_drop_down</mat-icon>

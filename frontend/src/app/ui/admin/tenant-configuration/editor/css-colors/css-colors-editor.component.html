@@ -1,70 +1,44 @@
 <div *ngIf="formGroup" class="container-fluid css-colors">
 	<div class="row">
 		<div class="col-12">
-			<div class="row">
+			<div class="row" style="row-gap: 0.5rem">
 
 				<mat-form-field class="col-12 col-md-6">
-					<mat-label>{{'TENANT-CONFIGURATION-EDITOR.FIELDS.PRIMARY-COLOR' | translate}}</mat-label>
-					<input matInput [formControl]="formGroup.get('cssColors')?.get('primaryColorInput')" required />
+					<mat-label [matTooltip]="'TENANT-CONFIGURATION-EDITOR.FIELDS.PRIMARY-COLOR-HINT' | translate">
+                        {{'TENANT-CONFIGURATION-EDITOR.FIELDS.PRIMARY-COLOR' | translate}}
+                    </mat-label>
+					<input matInput [formControl]="cssColorForm?.get('primaryColorInput')" />
 					<ngx-colors
 						class="suffix"
 						matSuffix
 						ngx-colors-trigger
 						[overlayClassName]="mr-1"
-						[formControl]="formGroup.get('cssColors')?.get('primaryColor')"
+						[formControl]="cssColorForm?.get('primaryColor')"
 					></ngx-colors>
-					<mat-error *ngIf="formGroup.get('cssColors')?.get('primaryColor')?.hasError('backendError')">{{formGroup.get('cssColors')?.get('primaryColor')?.getError('backendError').message}}</mat-error>
-					<mat-error *ngIf="formGroup.get('cssColors')?.get('primaryColor')?.hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
-					<mat-error *ngIf="formGroup.get('cssColors')?.get('primaryColor')?.hasError('invalidColor')">{{'GENERAL.VALIDATION.INVALID-COLOR' | translate}}</mat-error>
+					<mat-error *ngIf="cssColorForm?.get('primaryColor')?.hasError('backendError')">{{cssColorForm?.get('primaryColor')?.getError('backendError').message}}</mat-error>
+					<mat-error *ngIf="cssColorForm?.get('primaryColor')?.hasError('invalidColor')">{{'GENERAL.VALIDATION.INVALID-COLOR' | translate}}</mat-error>
 				</mat-form-field>
-				<mat-form-field class="col-12 col-md-6">
-					<mat-label>{{'TENANT-CONFIGURATION-EDITOR.FIELDS.PRIMARY-COLOR-2' | translate}}</mat-label>
-					<input matInput [formControl]="formGroup.get('cssColors')?.get('primaryColor2Input')" required />
-					<ngx-colors
-						class="suffix"
-						matSuffix
-						ngx-colors-trigger
-						[formControl]="formGroup.get('cssColors')?.get('primaryColor2')"
-					></ngx-colors>
-					<mat-error *ngIf="formGroup.get('cssColors')?.get('primaryColor2')?.hasError('backendError')">{{formGroup.get('cssColors')?.get('primaryColor2')?.getError('backendError').message}}</mat-error>
-					<mat-error *ngIf="formGroup.get('cssColors')?.get('primaryColor2')?.hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
-					<mat-error *ngIf="formGroup.get('cssColors')?.get('primaryColor2')?.hasError('invalidColor')">{{'GENERAL.VALIDATION.INVALID-COLOR' | translate}}</mat-error>
-				</mat-form-field>
-				<mat-form-field class="col-12 col-md-6">
-					<mat-label>{{'TENANT-CONFIGURATION-EDITOR.FIELDS.PRIMARY-COLOR-3' | translate}}</mat-label>
-					<input matInput [formControl]="formGroup.get('cssColors')?.get('primaryColor3Input')" required />
-					<ngx-colors
-						class="suffix"
-						matSuffix
-						ngx-colors-trigger
-						[formControl]="formGroup.get('cssColors')?.get('primaryColor3')"
-					></ngx-colors>
-					<mat-error *ngIf="formGroup.get('cssColors')?.get('primaryColor3')?.hasError('backendError')">{{formGroup.get('cssColors')?.get('primaryColor3')?.getError('backendError').message}}</mat-error>
-					<mat-error *ngIf="formGroup.get('cssColors')?.get('primaryColor3')?.hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
-					<mat-error *ngIf="formGroup.get('cssColors')?.get('primaryColor3')?.hasError('invalidColor')">{{'GENERAL.VALIDATION.INVALID-COLOR' | translate}}</mat-error>
-				</mat-form-field>
-				<mat-form-field class="col-12 col-md-6">
-					<mat-label>{{'TENANT-CONFIGURATION-EDITOR.FIELDS.SECONDARY-COLOR' | translate}}</mat-label>
-					<input matInput [formControl]="formGroup.get('cssColors')?.get('secondaryColorInput')" required />
-					<ngx-colors
-						class="suffix"
-						matSuffix
-						ngx-colors-trigger
-						[formControl]="formGroup.get('cssColors')?.get('secondaryColor')"
-					></ngx-colors>
-					<mat-error *ngIf="formGroup.get('cssColors')?.get('secondaryColor')?.hasError('backendError')">{{formGroup.get('cssColors')?.get('secondaryColor')?.getError('backendError').message}}</mat-error>
-					<mat-error *ngIf="formGroup.get('cssColors')?.get('secondaryColor')?.hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
-					<mat-error *ngIf="formGroup.get('cssColors')?.get('secondaryColor')?.hasError('invalidColor')">{{'GENERAL.VALIDATION.INVALID-COLOR' | translate}}</mat-error>
-				</mat-form-field>
+                <mat-form-field  class="col-12 pt-2 pb-2 ">
+                    <mat-label>
+                        {{'TENANT-CONFIGURATION-EDITOR.FIELDS.CSS-OVERRIDE' | translate}}
+                    </mat-label>
+                    <textarea
+                        matInput
+                        class="w-100 css-override"
+                        [formControl]="cssColorForm?.get('cssOverride')" 
+                    ></textarea>
+                    <mat-error *ngIf="cssColorForm?.get('cssOverride')?.hasError('backendError')">{{cssColorForm?.get('cssOverride')?.getError('backendError').message}}</mat-error>
+                    <mat-error *ngIf="cssColorForm?.get('cssOverride')?.hasError('invalidJson')">{{'TENANT-CONFIGURATION-EDITOR.ERRORS.INVALID-JSON' | translate}}</mat-error>
+                </mat-form-field>
 			</div>
 		</div>
 		<div class="col-12">
 			<div class="row actions-row">
-				<div class="ml-auto col-auto" *ngIf="editorModel.id"><button mat-button class="rounded-btn primary-inverted" (click)="delete()">
+				<div class="ml-auto col-auto" *ngIf="editorModel.id"><button mat-stroked-button color="warn" class="padded-shadow-btn" (click)="delete()">
 						{{'TENANT-CONFIGURATION-EDITOR.ACTIONS.RESET-TO-DEFAULT' | translate}}
 					</button>
 				</div>
-				<div class="col-auto"><button mat-button class="rounded-btn primary" (click)="formSubmit()">
+				<div class="col-auto"><button mat-flat-button color="primary" class="padded-shadow-btn" (click)="formSubmit()">
 						{{'TENANT-CONFIGURATION-EDITOR.ACTIONS.SAVE' | translate}}
 					</button>
 				</div>

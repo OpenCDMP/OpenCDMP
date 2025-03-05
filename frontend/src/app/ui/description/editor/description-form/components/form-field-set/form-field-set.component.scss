@@ -9,11 +9,23 @@
 	}
 }
 
-.annotation-icon{
-	width: auto;
-	height: auto;
-}
 .text-truncated {
 	overflow: hidden; 
 	text-overflow: ellipsis; 
+}
+
+.add-more-button {
+    font-size: var(--sys-title-small-size);
+    color: var(--dark-text);
+}
+
+.error-row {
+    outline: 1px solid var(--sys-error);
+}
+
+::ng-deep .add-more-btn {
+    .mdc-button__label {
+        font-size: var(--sys-body-medium-size);
+        color: var(--sys-on-surface);
+    }
 }

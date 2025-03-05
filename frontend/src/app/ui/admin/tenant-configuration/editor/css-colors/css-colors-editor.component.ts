@@ -1,6 +1,6 @@
 
 import { Component, OnInit } from '@angular/core';
-import { UntypedFormGroup } from '@angular/forms';
+import { FormGroup, UntypedFormGroup } from '@angular/forms';
 import { MatDialog } from '@angular/material/dialog';
 import { SnackBarNotificationLevel, UiNotificationService } from '@app/core/services/notification/ui-notification-service';
 import { AppPermission } from '@app/core/common/enum/permission.enum';
@@ -10,7 +10,7 @@ import { ConfirmationDialogComponent } from '@common/modules/confirmation-dialog
 import { HttpError, HttpErrorHandlingService } from '@common/modules/errors/error-handling/http-error-handling.service';
 import { TranslateService } from '@ngx-translate/core';
 import { map, takeUntil } from 'rxjs/operators';
-import { TenantConfigurationEditorModel } from './css-colors-editor.model';
+import { CssColorForm, TenantConfigurationEditorModel } from './css-colors-editor.model';
 import { TenantConfiguration, TenantConfigurationPersist } from '@app/core/model/tenant-configuaration/tenant-configuration';
 import { TenantConfigurationService } from '@app/core/services/tenant-configuration/tenant-configuration.service';
 import { CssColorsEditorService } from './css-colors-editor.service';
@@ -19,16 +19,17 @@ import { BasePendingChangesComponent } from '@common/base/base-pending-changes.c
 import { Observable } from 'rxjs';
 import { TenantConfigurationType } from '@app/core/common/enum/tenant-configuration-type';
 import { HttpErrorResponse } from '@angular/common/http';
-import { ResponseErrorCode } from '@app/core/common/enum/respone-error-code';
 import { LoggingService } from '@app/core/services/logging/logging-service';
 import { AnalyticsService } from '@app/core/services/matomo/analytics-service';
+import { TenantHandlingService } from '@app/core/services/tenant/tenant-handling.service';
 
 
 @Component({
-	selector: 'app-tenant-configuration-css-colors-editor',
-	templateUrl: 'css-colors-editor.component.html',
-	styleUrls: ['./css-colors-editor.component.scss'],
-	providers: [CssColorsEditorService]
+    selector: 'app-tenant-configuration-css-colors-editor',
+    templateUrl: 'css-colors-editor.component.html',
+    styleUrls: ['./css-colors-editor.component.scss'],
+    providers: [CssColorsEditorService],
+    standalone: false
 })
 export class CssColorsEditorComponent extends BasePendingChangesComponent implements OnInit {
 
@@ -61,7 +62,8 @@ export class CssColorsEditorComponent extends BasePendingChangesComponent implem
 		private logger: LoggingService,
 		private tenantConfigurationService: TenantConfigurationService,
 		private cssColorsEditorService: CssColorsEditorService,
-		private analyticsService: AnalyticsService
+		private analyticsService: AnalyticsService,
+        private tenantHandlingService: TenantHandlingService
 	) {
 		super();
 	}
@@ -81,51 +83,25 @@ export class CssColorsEditorComponent extends BasePendingChangesComponent implem
 
 	}
 
+    get cssColorForm(): FormGroup<CssColorForm> {
+        return this.formGroup.get('cssColors') as FormGroup<CssColorForm>;
+    }
+
 	private bindColorInputs() {
-		this.formGroup.get('cssColors')?.get('primaryColorInput').valueChanges.subscribe((color) => {
-			this.formGroup.get('cssColors')?.get('primaryColor').setValue(color, {
+		this.cssColorForm?.get('primaryColorInput').valueChanges.subscribe((color) => {
+			this.cssColorForm?.get('primaryColor').setValue(color, {
 				emitEvent: false,
 			});
 		});
-		this.formGroup.get('cssColors')?.get('primaryColor').valueChanges.subscribe((color) =>
-			this.formGroup.get('cssColors')?.get('primaryColorInput').setValue(color, {
-				emitEvent: false,
-			})
-		);
-		this.formGroup.get('cssColors')?.get('primaryColor2Input').valueChanges.subscribe((color) => {
-			this.formGroup.get('cssColors')?.get('primaryColor2').setValue(color, {
-				emitEvent: false,
-			});
-		});
-		this.formGroup.get('cssColors')?.get('primaryColor2').valueChanges.subscribe((color) =>
-			this.formGroup.get('cssColors')?.get('primaryColor2Input').setValue(color, {
-				emitEvent: false,
-			})
-		);
-		this.formGroup.get('cssColors')?.get('primaryColor3Input').valueChanges.subscribe((color) => {
-			this.formGroup.get('cssColors')?.get('primaryColor3').setValue(color, {
-				emitEvent: false,
-			});
-		});
-		this.formGroup.get('cssColors')?.get('primaryColor3').valueChanges.subscribe((color) =>
-			this.formGroup.get('cssColors')?.get('primaryColor3Input').setValue(color, {
-				emitEvent: false,
-			})
-		);
-		this.formGroup.get('cssColors')?.get('secondaryColorInput').valueChanges.subscribe((color) => {
-			this.formGroup.get('cssColors')?.get('secondaryColor').setValue(color, {
-				emitEvent: false,
-			});
-		});
-		this.formGroup.get('cssColors')?.get('secondaryColor').valueChanges.subscribe((color) =>
-			this.formGroup.get('cssColors')?.get('secondaryColorInput').setValue(color, {
+		this.cssColorForm?.get('primaryColor').valueChanges.subscribe((color) =>
+			this.cssColorForm?.get('primaryColorInput').setValue(color, {
 				emitEvent: false,
 			})
 		);
 	}
 
 	getItem(successFunction: (item: TenantConfiguration) => void) {
-		this.tenantConfigurationService.getCurrentTenantType(TenantConfigurationType.CssColors, CssColorsEditorResolver.lookupFields())
+		this.tenantConfigurationService.getType(TenantConfigurationType.CssColors, CssColorsEditorResolver.lookupFields())
 			.pipe(map(data => data as TenantConfiguration), takeUntil(this._destroyed))
 			.subscribe(
 				data => successFunction(data),
@@ -144,10 +120,10 @@ export class CssColorsEditorComponent extends BasePendingChangesComponent implem
 		}
 	}
 
-	onCallbackSuccess(data?: any): void {
-
+	onCallbackSuccess(cssColors?: any): void {
 		this.uiNotificationService.snackBarNotification(this.isNew ? this.language.instant('GENERAL.SNACK-BAR.SUCCESSFUL-CREATION') : this.language.instant('GENERAL.SNACK-BAR.SUCCESSFUL-UPDATE'), SnackBarNotificationLevel.Success);
-		this.refreshData();
+        this.tenantHandlingService.applyTenantCssColors(cssColors);
+        this.refreshData();
 	}
 
 
@@ -179,12 +155,15 @@ export class CssColorsEditorComponent extends BasePendingChangesComponent implem
 
 	persistEntity(onSuccess?: (response) => void): void {
 		const formData = this.formService.getValue(this.formGroup.value) as TenantConfigurationPersist;
-
-		this.tenantConfigurationService.persist(formData)
-			.pipe(takeUntil(this._destroyed)).subscribe(
-				complete => onSuccess ? onSuccess(complete) : this.onCallbackSuccess(complete),
-				error => this.onCallbackError(error)
-			);
+        const cssOverride = formData?.cssColors?.cssOverride
+        if(cssOverride && (!cssOverride?.startsWith('{') || !cssOverride?.endsWith('}'))){
+            formData.cssColors.cssOverride = `{${cssOverride.replace(/[{}]+/g, '')}}`
+        }
+        this.tenantConfigurationService.persist(formData)
+            .pipe(takeUntil(this._destroyed)).subscribe({
+                next: (complete) => onSuccess ? onSuccess(complete) : this.onCallbackSuccess(formData?.cssColors),
+                error: (error) => this.onCallbackError(error)
+            });
 	}
 
 	formSubmit(): void {

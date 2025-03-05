@@ -31,6 +31,10 @@ import { PlanStatusEnum } from '../../common/enum/plan-status';
 import { ValidationType } from '../../common/enum/validation-type';
 import { UsageLimitTargetMetric } from '@app/core/common/enum/usage-limit-target-metric';
 import { UsageLimitPeriodicityRange } from '@app/core/common/enum/usage-limit-periodicity-range';
+import { PlanStatusAvailableActionType } from '@app/core/common/enum/plan-status-available-action-type';
+import { DescriptionStatusAvailableActionType } from '@app/core/common/enum/description-status-available-action-type';
+import { SuccessStatus } from '@app/core/model/evaluator/evaluator-success-status.model';
+import { ExternalFetcherApiHeaderType } from '@app/core/common/enum/ExternalFetcherApiHeader.enum';
 
 @Injectable()
 export class EnumUtils {
@@ -73,6 +77,14 @@ export class EnumUtils {
 		switch (status) {
 			case PlanStatusEnum.Draft: return this.language.instant('TYPES.PLAN.DRAFT');
 			case PlanStatusEnum.Finalized: return this.language.instant('TYPES.PLAN.FINALISED');
+		}
+	}
+
+	toPlanStatusAvailableActionTypeString(status: PlanStatusAvailableActionType): string {
+		switch (status) {
+			case PlanStatusAvailableActionType.Deposit: return this.language.instant('TYPES.PLAN-STATUS-AVAILABLE-ACTION-TYPE.DEPOSIT');
+			case PlanStatusAvailableActionType.Export: return this.language.instant('TYPES.PLAN-STATUS-AVAILABLE-ACTION-TYPE.EXPORT');
+			case PlanStatusAvailableActionType.Evaluate: return this.language.instant('TYPES.PLAN-STATUS-AVAILABLE-ACTION-TYPE.EVALUATE');
 		}
 	}
 
@@ -185,6 +197,17 @@ export class EnumUtils {
 		}
 	}
 
+	toExternalFetcherApHeaderTypeString(status: ExternalFetcherApiHeaderType): string {
+		switch (status) {
+			case ExternalFetcherApiHeaderType.ACCEPT: return this.language.instant('TYPES.EXTERNAL-FETCHER-API-HEADER-METHOD-TYPE.ACCEPT');
+			case ExternalFetcherApiHeaderType.CONNECTION: return this.language.instant('TYPES.EXTERNAL-FETCHER-API-HEADER-METHOD-TYPE.CONNECTION');
+			case ExternalFetcherApiHeaderType.ALLOW_HEADER: return this.language.instant('TYPES.EXTERNAL-FETCHER-API-HEADER-METHOD-TYPE.ALLOW_HEADER');
+			case ExternalFetcherApiHeaderType.ALLOW_ORIGIN: return this.language.instant('TYPES.EXTERNAL-FETCHER-API-HEADER-METHOD-TYPE.ALLOW_ORIGIN');
+			case ExternalFetcherApiHeaderType.ALLOW_CREDENTIALS: return this.language.instant('TYPES.EXTERNAL-FETCHER-API-HEADER-METHOD-TYPE.ALLOW_CREDENTIALS');
+			case ExternalFetcherApiHeaderType.ORIGIN: return this.language.instant('TYPES.EXTERNAL-FETCHER-API-HEADER-METHOD-TYPE.ORIGIN');
+		}
+	}
+
 	toUserDescriptionTemplateRoleString(status: UserDescriptionTemplateRole): string {
 		switch (status) {
 			case UserDescriptionTemplateRole.Member: return this.language.instant('TYPES.USER-DESCRIPTION-TEMPLATE-ROLE.MEMBER');
@@ -215,6 +238,12 @@ export class EnumUtils {
 			case DescriptionStatusEnum.Draft: return this.language.instant('TYPES.DESCRIPTION-STATUS.DRAFT');
 			case DescriptionStatusEnum.Finalized: return this.language.instant('TYPES.DESCRIPTION-STATUS.FINALIZED');
 			case DescriptionStatusEnum.Canceled: return this.language.instant('TYPES.DESCRIPTION-STATUS.CANCELED');
+		}
+	}
+
+	toDescriptionStatusAvailableActionTypeString(status: DescriptionStatusAvailableActionType): string {
+		switch (status) {
+			case DescriptionStatusAvailableActionType.Export: return this.language.instant('TYPES.DESCRIPTION-STATUS-AVAILABLE-ACTION-TYPE.EXPORT');
 		}
 	}
 
@@ -313,12 +342,17 @@ export class EnumUtils {
 		switch (value) {
 			case UsageLimitTargetMetric.USER_COUNT: return this.language.instant('TYPES.USAGE-LIMIT-TARGET-METRIC.USER-COUNT');
 			case UsageLimitTargetMetric.PLAN_COUNT: return this.language.instant('TYPES.USAGE-LIMIT-TARGET-METRIC.PLAN-COUNT');
+			case UsageLimitTargetMetric.PLAN_STATUS_Count: return this.language.instant('TYPES.USAGE-LIMIT-TARGET-METRIC.PLAN-STATUS-COUNT');
 			case UsageLimitTargetMetric.BLUEPRINT_COUNT: return this.language.instant('TYPES.USAGE-LIMIT-TARGET-METRIC.BLUEPRINT-COUNT');
 			case UsageLimitTargetMetric.DESCRIPTION_COUNT: return this.language.instant('TYPES.USAGE-LIMIT-TARGET-METRIC.DESCRIPTION-COUNT');
+			case UsageLimitTargetMetric.DESCRIPTION_STATUS_COUNT: return this.language.instant('TYPES.USAGE-LIMIT-TARGET-METRIC.DESCRIPTION-STATUS-COUNT');
 			case UsageLimitTargetMetric.DESCRIPTION_TEMPLATE_COUNT: return this.language.instant('TYPES.USAGE-LIMIT-TARGET-METRIC.DESCRIPTION-TEMPLATE-COUNT');
 			case UsageLimitTargetMetric.DESCRIPTION_TEMPLATE_TYPE_COUNT: return this.language.instant('TYPES.USAGE-LIMIT-TARGET-METRIC.DESCRIPTION-TEMPLATE-TYPE-COUNT');
 			case UsageLimitTargetMetric.PREFILLING_SOURCES_COUNT: return this.language.instant('TYPES.USAGE-LIMIT-TARGET-METRIC.PREFILLING-SOURCES-COUNT');
 			case UsageLimitTargetMetric.REFERENCE_TYPE_COUNT: return this.language.instant('TYPES.USAGE-LIMIT-TARGET-METRIC.REFERENCE-TYPE-COUNT');
+			case UsageLimitTargetMetric.EVALUATION_PLAN_COUNT: return this.language.instant('TYPES.USAGE-LIMIT-TARGET-METRIC.EVALUATION-PLAN-COUNT');
+			case UsageLimitTargetMetric.EVALUATION_DESCRIPTION_COUNT: return this.language.instant('TYPES.USAGE-LIMIT-TARGET-METRIC.EVALUATION-DESCRIPTION-COUNT');
+			
 			default: return '';
 		}
 	}
@@ -327,6 +361,14 @@ export class EnumUtils {
 		switch (value) {
 			case UsageLimitPeriodicityRange.Monthly: return this.language.instant('TYPES.USAGE-LIMIT-PERIODICITY-RANGE.MONTHLY');
 			case UsageLimitPeriodicityRange.Yearly: return this.language.instant('TYPES.USAGE-LIMIT-PERIODICITY-RANGE.YEARLY');
+			default: return '';
+		}
+	}
+
+	public toSuccessStatusString(value: SuccessStatus): string {
+		switch (value) {
+			case SuccessStatus.Fail: return this.language.instant('TYPES.EVALUATOR-SUCCESS-STATUS.FAIL');
+			case SuccessStatus.Pass: return this.language.instant('TYPES.EVALUATOR-SUCCESS-STATUS.PASS');
 			default: return '';
 		}
 	}

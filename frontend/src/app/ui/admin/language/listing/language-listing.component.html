@@ -6,7 +6,7 @@
 					<app-navigation-breadcrumb />
 				</div>
 				<div class="col-auto">
-					<button mat-button class="rounded-btn secondary"
+					<button mat-flat-button color="accent" class="padded-shadow-btn"
 						*ngIf="authService.hasPermission(authService.permissionEnum.EditLanguage)"
 						[routerLink]="routerUtils.generateUrl(['/languages/new'])">
 						<mat-icon>add</mat-icon>
@@ -22,7 +22,7 @@
 				(columnsChanged)="onColumnsChanged($event)" [listItemTemplate]="listItemTemplate">
 
 				<app-language-listing-filters hybrid-listing-filters [(filter)]="lookup"
-					(filterChange)="filterChanged($event)" />
+					(filterChange)="filterChanged($event)" [hasSelectedTenant]="authService.selectedTenant() != 'default'"/>
 
 				<app-user-settings-picker [key]="userSettingsKey" [userPreference]="lookup"
 					(onSettingSelected)="changeSetting($event)" [autoSelectUserSettings]="autoSelectUserSettings"
@@ -77,15 +77,15 @@
 <ng-template #actions let-row="row" let-item>
 	<div *ngIf="canEdit(row) || canDelete(row)" class="row" (click)="$event.stopPropagation()">
 		<div class="col-auto">
-			<button mat-icon-button [matMenuTriggerFor]="actionsMenu">
+			<button mat-icon-button [matMenuTriggerFor]="actionsMenu" [attr.aria-label]="'ALT-TEXT.MORE-ACTIONS' | translate">
 				<mat-icon>more_horiz</mat-icon>
 			</button>
 			<mat-menu #actionsMenu="matMenu">
 				<a *ngIf="canEdit(row)" mat-menu-item [routerLink]="routerUtils.generateUrl(['/languages/', row.id])">
-					<mat-icon>edit</mat-icon>{{'LANGUAGE-LISTING.ACTIONS.EDIT' | translate}}
+					<mat-icon aria-hidden>edit</mat-icon>{{'LANGUAGE-LISTING.ACTIONS.EDIT' | translate}}
 				</a>
 				<button *ngIf="canDelete(row)" mat-menu-item (click)="deleteType(row.id)">
-					<mat-icon>delete</mat-icon>
+					<mat-icon aria-hidden>delete</mat-icon>
 					{{'LANGUAGE-LISTING.ACTIONS.DELETE' | translate}}
 				</button>
 			</mat-menu>

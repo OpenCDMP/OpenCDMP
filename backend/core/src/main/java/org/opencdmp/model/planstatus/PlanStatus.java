@@ -16,6 +16,12 @@ public class PlanStatus {
     public final static String _description = "description";
     private String description;
 
+    public static final String _action = "action";
+    private String action;
+
+    public static final String _ordinal = "ordinal";
+    private Integer ordinal;
+
     public final static String _createdAt = "createdAt";
     private Instant createdAt;
 
@@ -60,6 +66,22 @@ public class PlanStatus {
     public String getDescription() { return this.description; }
 
     public void setDescription(String description) { this.description = description; }
+
+    public String getAction() {
+        return action;
+    }
+
+    public void setAction(String action) {
+        this.action = action;
+    }
+
+    public Integer getOrdinal() {
+        return ordinal;
+    }
+
+    public void setOrdinal(Integer ordinal) {
+        this.ordinal = ordinal;
+    }
 
     public PlanStatusDefinition getDefinition() {
         return this.definition;

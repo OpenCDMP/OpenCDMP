@@ -3,10 +3,12 @@ import { GuidedTourComponent } from './guided-tour.component';
 import { NgModule, ErrorHandler, ModuleWithProviders } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { WindowRefService } from './windowref.service';
+import { TranslateModule } from '@ngx-translate/core';
+import { MatButtonModule } from '@angular/material/button';
 
 @NgModule({
     declarations: [GuidedTourComponent],
-    imports: [CommonModule],
+    imports: [CommonModule, TranslateModule, MatButtonModule],
     providers: [WindowRefService],
     exports: [GuidedTourComponent]
 })

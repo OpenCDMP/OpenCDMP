@@ -2,6 +2,8 @@ import { TenantConfigurationType } from "@app/core/common/enum/tenant-configurat
 import { BaseEntity, BaseEntityPersist } from "@common/base/base-entity.model";
 import { StorageFile } from "../storage-file/storage-file";
 import { Guid } from "@common/types/guid";
+import { PlanBlueprint } from "../plan-blueprint/plan-blueprint";
+import { DescriptionTemplate } from "../description-template/description-template";
 
 export interface TenantConfiguration extends BaseEntity{
 	type?: TenantConfigurationType;
@@ -10,13 +12,14 @@ export interface TenantConfiguration extends BaseEntity{
 	depositPlugins?: DepositTenantConfiguration;
 	fileTransformerPlugins?: FileTransformerTenantConfiguration;
 	logo?: LogoTenantConfiguration;
+	evaluatorPlugins?: EvaluatorTenantConfiguration;
+	featuredEntities?: FeaturedEntities;
+	defaultPlanBlueprint?: DefaultPlanBlueprintConfiguration;
 }
 
 export interface CssColorsTenantConfiguration{
 	primaryColor: string;
-	primaryColor2: string;
-	primaryColor3: string;
-	secondaryColor: string;
+	cssOverride: string;
 }
 
 export interface DefaultUserLocaleTenantConfiguration{
@@ -33,6 +36,12 @@ export interface DepositTenantConfiguration{
 export interface FileTransformerTenantConfiguration{
 	disableSystemSources: boolean;
 	sources: FileTransformerSource[];
+}
+
+export interface EvaluatorTenantConfiguration{
+	disableSystemSources: boolean;
+	sources: EvaluatorSource[];
+
 }
 
 export interface DepositSource{
@@ -54,8 +63,26 @@ export interface FileTransformerSource{
 	clientSecret: string;
     scope: string;
 }
+
+export interface EvaluatorSource{
+	evaluatorId: string;
+	url: string;
+	issuerUrl: string;
+    clientId: string;
+	clientSecret: string;
+    scope: string;
+}
 export interface LogoTenantConfiguration{
 	storageFile: StorageFile;
+}
+
+export interface FeaturedEntities{
+	planBlueprints: PlanBlueprint[];
+	descriptionTemplates: DescriptionTemplate[];
+}
+
+export interface DefaultPlanBlueprintConfiguration{
+	groupId: Guid;
 }
 //persist
 
@@ -66,13 +93,14 @@ export interface TenantConfigurationPersist extends BaseEntityPersist{
 	depositPlugins?: DepositTenantConfigurationPersist;
 	fileTransformerPlugins?: FileTransformerTenantConfigurationPersist;
 	logo?: LogoTenantConfigurationPersist;
+	evaluatorPlugins?: EvaluatorTenantConfigurationPersist;
+	featuredEntities?: FeaturedEntitiesPersist;
+	defaultPlanBlueprint?: DefaultPlanBlueprintConfigurationPersist;
 }
 
 export interface CssColorsTenantConfigurationPersist{
 	primaryColor: string;
-	primaryColor2: string;
-	primaryColor3: string;
-	secondaryColor: string;
+	cssOverride: string;
 }
 
 export interface DefaultUserLocaleTenantConfigurationPersist{
@@ -89,6 +117,11 @@ export interface DepositTenantConfigurationPersist{
 export interface FileTransformerTenantConfigurationPersist{
 	disableSystemSources: boolean;
 	sources: FileTransformerSourcePersist[];
+}
+
+export interface EvaluatorTenantConfigurationPersist{
+	disableSystemSources: boolean;
+	sources: EvaluatorSourcePersist[];
 }
 
 export interface DepositSourcePersist{
@@ -110,6 +143,34 @@ export interface FileTransformerSourcePersist{
 	clientSecret: string;
     scope: string;
 }
+
+export interface EvaluatorSourcePersist{
+	evaluatorId: string;
+	url: string;
+	issuerUrl: string;
+    clientId: string;
+	clientSecret: string;
+    scope: string;
+}
 export interface LogoTenantConfigurationPersist{
 	storageFileId: Guid;
+}
+
+export interface FeaturedEntitiesPersist{
+	planBlueprints: PlanBlueprintPersist[];
+	descriptionTemplates: DescriptionTemplatePersist[];
+}
+
+export interface PlanBlueprintPersist {
+	groupId: Guid;
+	ordinal: number;
+}
+
+export interface DescriptionTemplatePersist {
+	groupId: Guid;
+	ordinal: number;
+}
+
+export interface DefaultPlanBlueprintConfigurationPersist{
+	groupId: Guid;
 }

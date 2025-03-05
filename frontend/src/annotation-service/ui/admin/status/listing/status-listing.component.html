@@ -7,7 +7,7 @@
 					<app-navigation-breadcrumb />
 				</div>
 				<div class="col-auto">
-					<button mat-button class="rounded-btn secondary"
+					<button mat-flat-button color="accent" class="padded-shadow-btn"
 						*ngIf="authService.hasPermission(authService.permissionEnum.EditStatus)"
 						[routerLink]="routerUtils.generateUrl(['/annotation-statuses/new'])">
 						<mat-icon>add</mat-icon>
@@ -76,7 +76,7 @@
 <ng-template #actions let-row="row" let-item>
 	<div *ngIf="row?.belongsToCurrentTenant && !isDeleted(row)" class="row" (click)="$event.stopPropagation()">
 		<div class="col-auto">
-			<button mat-icon-button [matMenuTriggerFor]="actionsMenu">
+			<button mat-icon-button [matMenuTriggerFor]="actionsMenu" [attr.aria-label]="'ALT-TEXT.MORE-ACTIONS' | translate">
 				<mat-icon>more_horiz</mat-icon>
 			</button>
 			<mat-menu #actionsMenu="matMenu">
@@ -84,7 +84,7 @@
 					<mat-icon>edit</mat-icon>{{'ANNOTATION-SERVICE.STATUS-LISTING.ACTIONS.EDIT' | translate}}
 				</a>
 				<button *ngIf="canDelete(row)" mat-menu-item (click)="deleteType(row.id)">
-					<mat-icon>delete</mat-icon>
+					<mat-icon aria-hidden>delete</mat-icon>
 					{{'ANNOTATION-SERVICE.STATUS-LISTING.ACTIONS.DELETE' | translate}}
 				</button>
 			</mat-menu>

@@ -56,7 +56,9 @@ public class DescriptionStatusBuilder extends BaseBuilder<DescriptionStatus, Des
             if (fields.hasField(this.asIndexer(DescriptionStatus._id))) m.setId(d.getId());
             if (fields.hasField(this.asIndexer(DescriptionStatus._name))) m.setName(d.getName());
             if (fields.hasField(this.asIndexer(DescriptionStatus._description))) m.setDescription(d.getDescription());
-            if (fields.hasField(this.asIndexer(DescriptionStatus._updatedAt))) m.setUpdateAt(d.getUpdatedAt());
+            if (fields.hasField(this.asIndexer(DescriptionStatus._action))) m.setAction(d.getAction());
+            if (fields.hasField(this.asIndexer(DescriptionStatus._ordinal))) m.setOrdinal(d.getOrdinal());
+            if (fields.hasField(this.asIndexer(DescriptionStatus._updatedAt))) m.setUpdatedAt(d.getUpdatedAt());
             if (fields.hasField(this.asIndexer(DescriptionStatus._createdAt))) m.setCreatedAt(d.getCreatedAt());
             if (fields.hasField(this.asIndexer(DescriptionStatus._isActive))) m.setIsActive(d.getIsActive());
             if (fields.hasField(this.asIndexer(DescriptionStatus._hash))) m.setHash(this.hashValue(d.getUpdatedAt()));

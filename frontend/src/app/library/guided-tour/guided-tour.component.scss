@@ -115,11 +115,11 @@ ngx-guided-tour {
 		.tour-title {
 			/*custom add*/
 			font-weight: lighter !important;
-			font-size: 16px !important;
+			font-size: var(--sys-body-medium-size) !important;
 			padding: 28px 5px 25px 65px;
 			overflow: auto;
 			text-align: left;
-			color: #212121;
+			color: var(--dark-text);
 			line-height: 26px;
 			white-space: pre-line;
 		}

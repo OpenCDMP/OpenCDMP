@@ -24,7 +24,7 @@ export class CanDeactivateGuard extends BaseComponent implements CanDeactivate<C
 			return true;
 		} else {
 			const dialogRef = this.dialog.open(ConfirmationDialogComponent, {
-				maxWidth: '700px',
+				maxWidth: 'min(700px, 90vw)',
 				data: {
 					message: this.language.instant('GENERAL.CONFIRMATION-DIALOG.LEAVE-PAGE'),
 					warning: this.language.instant('GENERAL.CONFIRMATION-DIALOG.LEAVE-WARNING'),

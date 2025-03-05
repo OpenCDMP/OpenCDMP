@@ -23,14 +23,14 @@
 				<mat-error *ngIf="option.get('value').hasError('backendError')">{{option.get('value').getError('backendError').message}}</mat-error>
 				<mat-error *ngIf="option.get('value').hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
 			</mat-form-field>
-			<button mat-icon-button class="col-auto" (click)="deleteRow(i)" type="button"
-				[disabled]="this.form.disabled">
-				<mat-icon>delete</mat-icon>
+			<button mat-icon-button class="col-auto" (click)="deleteRow(i)" type="button" [attr.aria-label]="'COMMONS.ACTIONS.REMOVE' | translate"
+				[disabled]="form.disabled">
+				<mat-icon aria-hidden>delete</mat-icon>
 			</button>
 		</div>
 	</div>
 	<div class="col-auto">
-		<button mat-icon-button [disabled]="this.form.disabled" (click)="addNewRow()" type="button">
+		<button mat-icon-button [disabled]="form.disabled" (click)="addNewRow()" type="button">
 			<mat-icon>add</mat-icon>
 		</button>
 

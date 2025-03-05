@@ -20,7 +20,6 @@ export class DescriptionFilterService {
   public static initializeReferenceLookup(): DescriptionReferenceLookup {
 		const lookup = new DescriptionReferenceLookup();
 		lookup.metadata = { countAll: true };
-		lookup.isActive = [IsActive.Active];
 		lookup.project = {
 			fields: [
 				[nameof<DescriptionReference>(x => x.reference), nameof<Reference>(x => x.id)].join('.'),
@@ -33,7 +32,6 @@ export class DescriptionFilterService {
 	public static initializeTagLookup(): DescriptionTagLookup {
 		const lookup = new DescriptionTagLookup();
 		lookup.metadata = { countAll: true };
-		lookup.isActive = [IsActive.Active];
 		lookup.project = {
 			fields: [
 				[nameof<DescriptionTag>(x => x.tag), nameof<Tag>(x => x.id)].join('.'),
@@ -46,7 +44,6 @@ export class DescriptionFilterService {
 	public static initializePlanLookup(): PlanLookup {
 		const lookup = new PlanLookup();
 		lookup.metadata = { countAll: true };
-		lookup.isActive = [IsActive.Active];
 		lookup.project = {
 			fields: [
 				[nameof<Description>(x => x.plan), nameof<Plan>(x => x.id)].join('.'),
@@ -59,7 +56,6 @@ export class DescriptionFilterService {
 	public static initializePlanUserLookup(): PlanUserLookup {
 		const lookup = new PlanUserLookup();
 		lookup.metadata = { countAll: true };
-		lookup.isActive = [IsActive.Active];
 		lookup.project = {
 			fields: [
 				[nameof<Plan>(x => x.planUsers), nameof<PlanUser>(x => x.role)].join('.'),

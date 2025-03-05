@@ -4,9 +4,10 @@ import { BaseComponent } from '@common/base/base.component';
 import { takeUntil } from 'rxjs/operators';
 
 @Component({
-  selector: 'app-deposit-oauth2-dialog',
-  templateUrl: './deposit-oauth2-dialog.component.html',
-  styleUrls: ['./deposit-oauth2-dialog.component.scss']
+    selector: 'app-deposit-oauth2-dialog',
+    templateUrl: './deposit-oauth2-dialog.component.html',
+    styleUrls: ['./deposit-oauth2-dialog.component.scss'],
+    standalone: false
 })
 export class DepositOauth2DialogComponent extends BaseComponent implements OnInit{
 

@@ -35,9 +35,7 @@ public interface PlanService {
 
     void deleteAndSave(UUID id) throws MyForbiddenException, InvalidApplicationException, IOException;
 
-    void finalize(UUID id, List<UUID> descriptionIds) throws MyForbiddenException, MyValidationException, MyApplicationException, MyNotFoundException, InvalidApplicationException, IOException;
-
-    void undoFinalize(UUID id, FieldSet fields) throws MyForbiddenException, MyValidationException, MyApplicationException, MyNotFoundException, InvalidApplicationException, IOException;
+    void setStatus(UUID id, UUID newStatusId, List<UUID> descriptionIds) throws InvalidApplicationException, IOException;
 
     PlanValidationResult validate(UUID id) throws InvalidApplicationException;
 

@@ -5,11 +5,13 @@ import { PlanBlueprintFilter } from '@app/core/query/plan-blueprint.lookup';
 import { EnumUtils } from '@app/core/services/utilities/enum-utils.service';
 import { BaseComponent } from '@common/base/base.component';
 import { nameof } from 'ts-simple-nameof';
+import { FormControl, FormGroup } from '@angular/forms';
 
 @Component({
-	selector: 'app-plan-blueprint-listing-filters',
-	templateUrl: './plan-blueprint-listing-filters.component.html',
-	styleUrls: ['./plan-blueprint-listing-filters.component.scss']
+    selector: 'app-plan-blueprint-listing-filters',
+    templateUrl: './plan-blueprint-listing-filters.component.html',
+    styleUrls: ['./plan-blueprint-listing-filters.component.scss'],
+    standalone: false
 })
 export class PlanBlueprintListingFiltersComponent extends BaseComponent implements OnInit, OnChanges {
 
@@ -19,8 +21,12 @@ export class PlanBlueprintListingFiltersComponent extends BaseComponent implemen
 	planBlueprintStatusEnumValues = this.enumUtils.getEnumValues<PlanBlueprintStatus>(PlanBlueprintStatus);
 
 	// * State
-	internalFilters: PlanBlueprintListingFilters = this._getEmptyFilters();
-
+	internalFilters: FormGroup<PlanBlueprintListingFilters> =new FormGroup({
+        isActive: new FormControl(true),
+        like: new FormControl(null),
+        statuses: new FormControl(null)
+    })
+    
 	protected appliedFilterCount: number = 0;
 	constructor(
 		public enumUtils: EnumUtils,
@@ -32,57 +38,59 @@ export class PlanBlueprintListingFiltersComponent extends BaseComponent implemen
 	ngOnChanges(changes: SimpleChanges): void {
 		const filterChange = changes[nameof<PlanBlueprintListingFiltersComponent>(x => x.filter)]?.currentValue as PlanBlueprintFilter;
 		if (filterChange) {
-			this.updateFilters()
+			this.updateFilters();
 		}
 	}
 
 
 	onSearchTermChange(searchTerm: string): void {
-		this.applyFilters()
+		this.applyFilters();
 	}
 
 
 	protected updateFilters(): void {
-		this.internalFilters = this._parseToInternalFilters(this.filter);
+		this._parseToInternalFilters(this.filter);
 		this.appliedFilterCount = this._computeAppliedFilters(this.internalFilters);
 	}
 
 	protected applyFilters(): void {
-		const { isActive, like, statuses } = this.internalFilters ?? {}
+		const { isActive, like, statuses } = this.internalFilters?.value ?? {}
 		this.filterChange.emit({
 			...this.filter,
 			like,
 			isActive: isActive ? [IsActive.Active] : [IsActive.Inactive],
 			statuses: statuses?.length > 0 ? statuses : null,
-		})
+		});
+        this.internalFilters.markAsPristine();
 	}
 
 
-	private _parseToInternalFilters(inputFilter: PlanBlueprintFilter): PlanBlueprintListingFilters {
+	private _parseToInternalFilters(inputFilter: PlanBlueprintFilter) {
 		if (!inputFilter) {
-			return this._getEmptyFilters();
+			this._getEmptyFilters();
 		}
 
 		let { excludedIds, ids, isActive, like, statuses } = inputFilter;
 
-		return {
+		this.internalFilters.setValue({
 			isActive: (isActive ?? [])?.includes(IsActive.Active) || !isActive?.length,
-			like: like,
-			statuses: statuses
-		}
+			like: like ?? null,
+			statuses: statuses ?? null
+		});
 
 	}
 
-	private _getEmptyFilters(): PlanBlueprintListingFilters {
-		return {
+	private _getEmptyFilters() {
+		this.internalFilters.setValue({
 			isActive: true,
 			like: null,
 			statuses: null,
-		}
+		});
 	}
 
-	private _computeAppliedFilters(filters: PlanBlueprintListingFilters): number {
+	private _computeAppliedFilters(form: FormGroup<PlanBlueprintListingFilters>): number {
 		let count = 0;
+        const filters = form.value;
 		if (!filters?.isActive) {
 			count++
 		}
@@ -96,12 +104,13 @@ export class PlanBlueprintListingFiltersComponent extends BaseComponent implemen
 	}
 
 	clearFilters() {
-		this.internalFilters = this._getEmptyFilters();
+		this._getEmptyFilters();
+        this.internalFilters.markAsDirty();
 	}
 }
 
 interface PlanBlueprintListingFilters {
-	isActive: boolean;
-	like: string;
-	statuses: PlanBlueprintStatus[];
+	isActive: FormControl<boolean>;
+	like: FormControl<string>;
+	statuses: FormControl<PlanBlueprintStatus[]>;
 }

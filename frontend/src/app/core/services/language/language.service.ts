@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, Signal, signal } from '@angular/core';
 import { BaseService } from '@common/base/base.service';
 import { TranslateService } from '@ngx-translate/core';
 import { Observable } from 'rxjs';
@@ -7,7 +7,13 @@ import { LanguageHttpService } from './language.http.service';
 
 @Injectable()
 export class LanguageService extends BaseService {
-	private currentLanguage: string;
+    private _languageSignal = signal<string>(null);
+	private get currentLanguage(): string{
+        return this._languageSignal();
+    }
+    private set currentLanguage(language: string) {
+        this._languageSignal.set(language);
+    }
 	private availableLanguageCodes: string[];
 
 	constructor(
@@ -26,6 +32,10 @@ export class LanguageService extends BaseService {
 		if (this.currentLanguage == null) throw new Error("languages not loaded");
 		return this.currentLanguage;
 	}
+
+    public getCurrentLanguageSignal(): Signal<string> {
+        return this._languageSignal;
+    }
 
 	public loadAvailableLanguages(): Observable<string[]> {
 		return this.languageHttpService.queryAvailableCodes(this.languageHttpService.buildAutocompleteLookup())

@@ -2,7 +2,8 @@ import { Pipe, PipeTransform } from "@angular/core";
 
 
 @Pipe({
-  name: 'appTitleCaseTransform'
+    name: 'appTitleCaseTransform',
+    standalone: false
 })
 export class AppTitleCaseFormatPipe implements PipeTransform {
 

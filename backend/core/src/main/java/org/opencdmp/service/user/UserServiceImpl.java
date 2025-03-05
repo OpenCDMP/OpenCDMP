@@ -555,7 +555,7 @@ public class UserServiceImpl implements UserService {
     //notifications
     public void sendMergeAccountConfirmation(UserMergeRequestPersist model) throws InvalidApplicationException, JAXBException {
         UserContactInfoEntity userContactInfoEntity = this.queryFactory.query(UserContactInfoQuery.class).disableTracking().values(model.getEmail()).types(ContactInfoType.Email).first();
-        if (userContactInfoEntity == null) throw new MyNotFoundException(this.messageSource.getMessage("General_ItemNotFound", new Object[]{model.getEmail(), User.class.getSimpleName()}, LocaleContextHolder.getLocale()));
+        if (userContactInfoEntity == null) throw new MyValidationException(this.errors.getInvalidUserEmail().getCode(), this.errors.getInvalidUserEmail().getMessage());
         
         UserEntity user = this.queryFactory.query(UserQuery.class).ids(userContactInfoEntity.getUserId()).isActive(IsActive.Active).first();
         if (user == null) throw new MyNotFoundException(this.messageSource.getMessage("General_ItemNotFound", new Object[]{userContactInfoEntity.getUserId(), User.class.getSimpleName()}, LocaleContextHolder.getLocale()));

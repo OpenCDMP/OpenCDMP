@@ -13,9 +13,10 @@ import { takeUntil } from "rxjs/operators";
 import { MergeEmailLoaderDialogComponent } from "./merge-email-loader-dialog/merge-email-loader-dialog.component";
 
 @Component({
-	selector: 'app-email-confirmation-component',
-	templateUrl: './merge-email-confirmation.component.html',
-	styleUrls: ['./merge-email-confirmation.component.scss']
+    selector: 'app-email-confirmation-component',
+    templateUrl: './merge-email-confirmation.component.html',
+    styleUrls: ['./merge-email-confirmation.component.scss'],
+    standalone: false
 })
 export class MergeEmailConfirmation extends BaseComponent implements OnInit {
 

@@ -1,5 +1,5 @@
 import { CdkDragDrop, moveItemInArray } from '@angular/cdk/drag-drop';
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, computed, Input, OnInit } from '@angular/core';
 import { FormArray } from '@angular/forms';
 import { PlanUserRole } from '@app/core/common/enum/plan-user-role';
 import { PlanUserType } from '@app/core/common/enum/plan-user-type';
@@ -11,15 +11,18 @@ import { BaseComponent } from '@common/base/base.component';
 import { ValidationErrorModel } from '@common/forms/validation/error-model/validation-error-model';
 import { PlanEditorModel, PlanUserEditorModel } from '../plan-editor-blueprint/plan-editor.model';
 import { MatButtonToggleChange } from '@angular/material/button-toggle';
+import { DragAndDropAccessibilityService } from '@app/core/services/accessibility/drag-and-drop-accessibility.service';
+import { TranslateService } from '@ngx-translate/core';
 
 @Component({
-	selector: 'app-plan-user-field-component',
-	templateUrl: 'plan-user-field.component.html',
-	styleUrls: ['./plan-user-field.component.scss']
+    selector: 'app-plan-user-field-component',
+    templateUrl: 'plan-user-field.component.html',
+    styleUrls: ['./plan-user-field.component.scss'],
+    standalone: false,
+    providers: [DragAndDropAccessibilityService]
 })
 export class PlanUserFieldComponent extends BaseComponent implements OnInit {
-
-	@Input() form;
+	@Input() form: FormArray;
 	@Input() validationErrorModel: ValidationErrorModel;
 	@Input() label: string = null;
 	@Input() required: boolean = false;
@@ -28,6 +31,7 @@ export class PlanUserFieldComponent extends BaseComponent implements OnInit {
 	@Input() initializeUsers: boolean = false;
 	@Input() viewOnly: boolean = false;
 	@Input() enableSorting: boolean = true;
+	@Input() isActivePlan: boolean = true;
 	hoveredUser:number = -1;
 	hasTemplatesSections: PlanBlueprintDefinitionSection[] = null;
 
@@ -38,10 +42,15 @@ export class PlanUserFieldComponent extends BaseComponent implements OnInit {
 
 	multipleAutoCompleteSearchConfiguration: MultipleAutoCompleteConfiguration;
 
-
+    reorderAssistiveText = computed(() => this.dragAndDropService.assistiveTextSignal());
+    get reorderMode(){
+        return this.enableSorting && this.dragAndDropService.reorderMode;
+    }
 	constructor(
 		public enumUtils: EnumUtils,
-		public userService: UserService
+		public userService: UserService,
+        private language: TranslateService,
+        private dragAndDropService: DragAndDropAccessibilityService
 	) { super(); }
 
 	ngOnInit() {
@@ -52,21 +61,21 @@ export class PlanUserFieldComponent extends BaseComponent implements OnInit {
 	}
 
 	addUser(): void {
-		const userArray = this.form.get('users') as FormArray;
+		const userArray = this.form as FormArray;
 		const planUser: PlanUserEditorModel = new PlanUserEditorModel(this.validationErrorModel);
-		userArray.push(planUser.buildForm({ rootPath: "users[" + userArray.length + "]." }));
+		userArray?.push(planUser.buildForm({ rootPath: "users[" + userArray.length + "]." }));
 	}
 
 	removeUser(userIndex: number): void {
-		(this.form.get('users') as FormArray).removeAt(userIndex);
+		(this.form as FormArray).removeAt(userIndex);
 
 		PlanEditorModel.reApplyUsersValidators(
 			{
-				formGroup: this.form,
+				usersFormArray: this.form as FormArray,
 				validationErrorModel: this.validationErrorModel,
 			}
 		);
-		this.form.get('users').markAsDirty();
+		this.form.markAsDirty();
 	}
 
 	//
@@ -75,19 +84,19 @@ export class PlanUserFieldComponent extends BaseComponent implements OnInit {
 	//
 	//
 
-	dropUsers(event: CdkDragDrop<string[]>) {
-		const usersFormArray = (this.form.get('users') as FormArray);
+	dropUsers(event: {previousIndex: number, currentIndex: number}) {
+		const usersFormArray = (this.form as FormArray);
 
 		moveItemInArray(usersFormArray.controls, event.previousIndex, event.currentIndex);
 		usersFormArray.updateValueAndValidity();
 
 		PlanEditorModel.reApplyUsersValidators(
 			{
-				formGroup: this.form,
+				usersFormArray: this.form as FormArray,
 				validationErrorModel: this.validationErrorModel
 			}
 		);
-		this.form.get('users').markAsDirty();
+		this.form.markAsDirty();
 	}
 
 	isUserSelected(userId: number): boolean {
@@ -106,9 +115,33 @@ export class PlanUserFieldComponent extends BaseComponent implements OnInit {
 
 	userTypeChange(type: MatButtonToggleChange, userIndex: number){
 		if (type.value === PlanUserType.Internal){
-			(this.form.get('users') as FormArray).at(userIndex).get('email').patchValue(null);
+			(this.form as FormArray).at(userIndex).get('email').patchValue(null);
 		} else {
-			(this.form.get('users') as FormArray).at(userIndex).get('user').patchValue(null);
+			(this.form as FormArray).at(userIndex).get('user').patchValue(null);
 		}
 	}
+
+    onDragKeyDown($event: KeyboardEvent, index: number){
+        const usersFormArray = (this.form as FormArray);
+        this.dragAndDropService.onKeyDown({
+            $event,
+            currentIndex: index,
+            itemName: this.language.instant('PLAN-EDITOR.FIELDS.USER')  + ' ' + (index + 1),
+            listLength: usersFormArray.length,
+            moveDownFn:() => {
+                this.dropUsers({
+                    previousIndex: index,
+                    currentIndex: index + 1
+                });
+                setTimeout(() => document.getElementById('drag-handle-' + (index + 1))?.focus());
+            },
+            moveUpFn: () => { 
+                this.dropUsers({
+                    previousIndex: index,
+                    currentIndex: index - 1
+                });
+                setTimeout(() => document.getElementById('drag-handle-' + (index - 1))?.focus());
+            }
+        })
+    }
 }

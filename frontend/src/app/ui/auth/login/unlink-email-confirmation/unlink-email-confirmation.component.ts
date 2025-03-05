@@ -11,8 +11,9 @@ import { TranslateService } from '@ngx-translate/core';
 import { takeUntil } from "rxjs/operators";
 
 @Component({
-	selector: 'app-unlink-email-confirmation-component',
-	templateUrl: './unlink-email-confirmation.component.html'
+    selector: 'app-unlink-email-confirmation-component',
+    templateUrl: './unlink-email-confirmation.component.html',
+    standalone: false
 })
 export class UnlinkEmailConfirmation extends BaseComponent implements OnInit {
 	private token: Guid;

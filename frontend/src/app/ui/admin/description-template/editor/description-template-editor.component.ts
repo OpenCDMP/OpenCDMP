@@ -37,7 +37,6 @@ import { FilterService } from '@common/modules/text-filter/filter-service';
 import { Guid } from '@common/types/guid';
 import { TranslateService } from '@ngx-translate/core';
 import { map, takeUntil } from 'rxjs/operators';
-import { GENERAL_ANIMATIONS, STEPPER_ANIMATIONS } from './animations/animations';
 import { DescriptionTemplateEditorModel, DescriptionTemplateFieldEditorModel, DescriptionTemplateFieldSetEditorModel, DescriptionTemplateForm, DescriptionTemplatePageEditorModel, DescriptionTemplateSectionEditorModel, UserDescriptionTemplateEditorModel } from './description-template-editor.model';
 import { DescriptionTemplateEditorResolver } from './description-template-editor.resolver';
 import { DescriptionTemplateEditorService } from './description-template-editor.service';
@@ -46,14 +45,16 @@ import { RouterUtilsService } from '@app/core/services/router/router-utils.servi
 import { DescriptionFormService } from '@app/ui/description/editor/description-form/components/services/description-form.service';
 import { ReferenceType } from '@app/core/model/reference-type/reference-type';
 import { ReferenceTypeService } from '@app/core/services/reference-type/reference-type.service';
+import { GENERAL_ANIMATIONS, STEPPER_ANIMATIONS } from '@app/library/animations/animations';
 
 
 @Component({
-	selector: 'app-description-template-editor-component',
-	templateUrl: 'description-template-editor.component.html',
-	styleUrls: ['./description-template-editor.component.scss'],
-	animations: [...STEPPER_ANIMATIONS, ...GENERAL_ANIMATIONS],
-	providers: [DescriptionTemplateEditorService, DescriptionFormService],
+    selector: 'app-description-template-editor-component',
+    templateUrl: 'description-template-editor.component.html',
+    styleUrls: ['./description-template-editor.component.scss'],
+    providers: [DescriptionTemplateEditorService, DescriptionFormService],
+    animations: [...STEPPER_ANIMATIONS, ...GENERAL_ANIMATIONS],
+    standalone: false
 })
 export class DescriptionTemplateEditorComponent extends BaseEditor<DescriptionTemplateEditorModel, DescriptionTemplate> implements OnInit {
 
@@ -67,7 +68,6 @@ export class DescriptionTemplateEditorComponent extends BaseEditor<DescriptionTe
 	availableLanguages: LanguageInfo[] = this.languageInfoService.getLanguageInfoValues();
 
 	showErrors: boolean = false;
-	steps: QueryList<CdkStep>;
 	toCEntries: ToCEntry[];
 	selectedTocEntry: ToCEntry;
 	colorizeInvalid: boolean = false;
@@ -215,9 +215,6 @@ export class DescriptionTemplateEditorComponent extends BaseEditor<DescriptionTe
 
 			if (data && data.id) this.checkLock(data.id, LockTargetType.DescriptionTemplate, 'DESCRIPTION-TEMPLATE-EDITOR.LOCKED-DIALOG.TITLE', 'DESCRIPTION-TEMPLATE-EDITOR.LOCKED-DIALOG.MESSAGE');
 
-			setTimeout(() => {
-				this.steps = this.stepper.steps;
-			});
 			this._initializeToCEntries();
 
 		} catch (error) {
@@ -402,46 +399,10 @@ export class DescriptionTemplateEditorComponent extends BaseEditor<DescriptionTe
 	//
 	onMatStepperSelectionChange(event: StepperSelectionEvent) {
 
-		if (event.selectedIndex === (this.steps.length - 1)) {//preview selected
+		if (event.selectedIndex === (this.stepper?.steps.length - 1)) {//preview selected
 			this.generatePreviewForm();
 		}
 		this.formGroup.markAsUntouched();
-
-	}
-
-	isStepCompleted(stepIndex: number) {
-
-		// let stepCompleted = false;
-		// this.steps.forEach((step, index) => {
-		// 	if (stepIndex === index) {
-		// 		stepCompleted = step.completed;
-		// 	}
-		// });
-
-		return  this.steps.toArray().at(stepIndex)?.completed;
-	}
-
-	isStepUnlocked(stepIndex: number): boolean {
-		if (this.isFinalized) return true;
-
-		if (stepIndex === 0) return true;
-		if (stepIndex < 0) return false;
-		//if previous step is valid then unlock
-		let stepUnlocked: boolean = false;
-
-		if (!this.isStepUnlocked(stepIndex - 1)) return false;
-
-		this.steps.forEach((step, index) => {
-
-			if (index + 1 == stepIndex) {//previous step
-
-				if (step.completed) {
-					stepUnlocked = true;
-				}
-			}
-		});
-
-		return stepUnlocked;
 	}
 
 	validateStep(selectedIndex) {
@@ -1270,22 +1231,6 @@ export class DescriptionTemplateEditorComponent extends BaseEditor<DescriptionTe
                 break;
             }
         }
-	}
-
-	get progressStyle() {
-		const diff = 3;
-
-		return {
-			'clip-path': `polygon(0 0, ${Math.round(this.barPercentage + diff)}% 0, ${Math.round(this.barPercentage)}% 100%, 0 100%)`
-		}
-	}
-
-	get barPercentage() {
-		if (!this.stepper || !this.steps) {
-			return 0;
-		}
-		const selectedIndex = this.stepper.selectedIndex + 1;
-		return (selectedIndex / this.stepper.steps.length) * 100;
 	}
 
 	public cancel(): void {

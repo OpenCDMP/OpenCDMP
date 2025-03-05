@@ -1,6 +1,11 @@
 <div class="container-fluid">
+    <div *ngIf="!isDialog" class="row">
+        <div class="col-md-12">
+            <div class="title">{{ 'GUIDE.TITLE' | translate}}</div>
+        </div>
+    </div>
 	<div class="row">
-		<iframe *ngIf="!useInnerHTML && guideHTMLUrl" class="iframe" id='userguide' [src]="guideHTMLUrl" (load)="onIFrameLoad(iframe)" #iframe></iframe>
+		<iframe *ngIf="!useInnerHTML && guideHTMLUrl" class="iframe" id='userguide' [src]="guideHTMLUrl" title="user guide" (load)="onIFrameLoad(iframe)" #iframe></iframe>
 		<span #guide *ngIf="useInnerHTML" id='userguide' [innerHTML]="guideHTML"></span>
 	</div>
 </div>

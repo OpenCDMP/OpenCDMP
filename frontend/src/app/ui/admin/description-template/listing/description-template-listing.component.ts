@@ -36,9 +36,10 @@ import { BreadcrumbService } from '@app/ui/misc/breadcrumb/breadcrumb.service';
 
 
 @Component({
-	selector: 'app-description-template-listing-component',
-	templateUrl: './description-template-listing.component.html',
-	styleUrls: ['./description-template-listing.component.scss']
+    selector: 'app-description-template-listing-component',
+    templateUrl: './description-template-listing.component.html',
+    styleUrls: ['./description-template-listing.component.scss'],
+    standalone: false
 })
 export class DescriptionTemplateListingComponent extends BaseListingComponent<DescriptionTemplate, DescriptionTemplateLookup> implements OnInit {
 	publish = false;
@@ -185,7 +186,7 @@ export class DescriptionTemplateListingComponent extends BaseListingComponent<De
 		},
 		{
 			prop: nameof<DescriptionTemplate>(x => x.isActive),
-			sortable: true,
+			sortable: false,
 			languageName: 'DESCRIPTION-TEMPLATE-LISTING.FIELDS.IS-ACTIVE',
 			pipe: this.pipeService.getPipe<IsActiveTypePipe>(IsActiveTypePipe)
 		},
@@ -314,7 +315,8 @@ export class DescriptionTemplateListingComponent extends BaseListingComponent<De
 				name: '',
 				file: FileList,
 				sucsess: false
-			}
+			},
+            width: 'min(600px, 90vw)'
 		});
 		dialogRef.afterClosed().pipe(takeUntil(this._destroyed)).subscribe(data => {
 			if (data && data.sucsess && data.name != null && data.file != null) {

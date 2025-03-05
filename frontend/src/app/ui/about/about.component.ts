@@ -13,9 +13,10 @@ import { TranslateService, LangChangeEvent } from '@ngx-translate/core';
 import { takeUntil } from 'rxjs/operators';
 
 @Component({
-	selector: 'app-about-componet',
-	templateUrl: './about.component.html',
-	styleUrls: ['./about.component.scss']
+    selector: 'app-about-componet',
+    templateUrl: './about.component.html',
+    styleUrls: ['./about.component.scss'],
+    standalone: false
 })
 export class AboutComponent extends BaseComponent implements OnInit {
 

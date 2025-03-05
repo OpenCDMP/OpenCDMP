@@ -1,2 +1,10 @@
 public-api:
-  reference-type-map: []
+  reference-type-map:
+    funderTypeId: ${PUBLIC_API_FUNDER_TYPE_ID:538928bb-c7c6-452e-b66d-08e539f5f082}
+    grantTypeId: ${PUBLIC_API_GRANT_TYPE_ID:5b9c284f-f041-4995-96cc-fad7ad13289c}
+    registryTypeId: ${PUBLIC_API_REGISTRY_TYPE_ID:2beacaad-3223-43ad-ad99-1e5f21328e7b}
+    serviceTypeId: ${PUBLIC_API_SERVICE_TYPE_ID:9ec2000d-95c7-452e-b356-755fc8e2574c}
+    dataRepositoryTypeId: ${PUBLIC_API_DATA_REPOSITORY_TYPE_ID:d26b64ba-fda0-4b14-b3ef-9856a492d55a}
+    datasetTypeId: ${PUBLIC_API_DATASET_TYPE_ID:a3ce0fb2-d72c-48bb-b322-7401940cb802}
+    researcherTypeId: ${PUBLIC_API_RESEARCHER_TYPE_ID:5a2112e7-ea99-4cfe-98a1-68665e26726e}
+    organizationTypeId: ${PUBLIC_API_ORGANIZATION_TYPE_ID:7eeffb98-58fb-4921-82ec-e27f32f8e738}

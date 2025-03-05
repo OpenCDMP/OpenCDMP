@@ -55,6 +55,7 @@ public class PlanBlueprintCommonModelBuilder extends BaseCommonModelBuilder<Plan
             PlanBlueprintModel m = new PlanBlueprintModel();
             m.setId(d.getId());
             m.setLabel(d.getLabel());
+            m.setDescription(d.getDescription());
             m.setGroupId(d.getGroupId());
             switch (d.getStatus()){
                 case Finalized -> m.setStatus(PlanBlueprintStatus.Finalized);

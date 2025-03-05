@@ -1,5 +1,5 @@
-<mat-button-toggle-group class="tenant-menu" vertical (change)="onTenantSelected($event)" [value]="this.currentTenant">
-	<div *ngFor="let tenant of tenants | async">
-		<mat-button-toggle class="tenant-button" [value]="tenant.code">{{ tenant.name }}</mat-button-toggle>
-	</div>
+<mat-button-toggle-group class="tenant-menu w-100" vertical (change)="onTenantSelected($event)" [value]="currentTenant">
+	@for(tenant of (tenants | async); track tenant){
+		<mat-button-toggle class="no-borders" [value]="tenant.code">{{ tenant.name }}</mat-button-toggle>
+    }
 </mat-button-toggle-group>

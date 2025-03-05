@@ -14,7 +14,7 @@ public class AccountingProperties {
 	private String subjectId;
 	private List<String> projectFields;
 
-	private List<AccountingSourceEntity> sources;
+	private AccountingSourceEntity source;
 
 	public String getServiceId() {
 		return serviceId;
@@ -56,11 +56,11 @@ public class AccountingProperties {
 		this.projectFields = projectFields;
 	}
 
-	public List<AccountingSourceEntity> getSources() {
-		return sources;
+	public AccountingSourceEntity getSource() {
+		return source;
 	}
 
-	public void setSources(List<AccountingSourceEntity> sources) {
-		this.sources = sources;
+	public void setSource(AccountingSourceEntity source) {
+		this.source = source;
 	}
 }

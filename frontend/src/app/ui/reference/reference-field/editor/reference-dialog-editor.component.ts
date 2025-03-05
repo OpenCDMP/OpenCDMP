@@ -1,4 +1,4 @@
-import { Component, Inject, OnInit } from '@angular/core';
+import { Component, computed, HostBinding, Inject, OnInit } from '@angular/core';
 import { FormControl, UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
 import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { ReferenceSourceType } from '@app/core/common/enum/reference-source-type';
@@ -12,10 +12,13 @@ import { debounceTime, takeUntil } from 'rxjs/operators';
 import { nameof } from 'ts-simple-nameof';
 
 @Component({
-	templateUrl: 'reference-dialog-editor.component.html',
-	styleUrls: ['./reference-dialog-editor.component.scss']
+    templateUrl: 'reference-dialog-editor.component.html',
+    styleUrls: ['./reference-dialog-editor.component.scss'],
+    standalone: false
 })
 export class ReferenceDialogEditorComponent extends BaseComponent implements OnInit {
+   
+
 	formGroup: UntypedFormGroup;
 	referenceType: ReferenceType;
 	systemFields: string[];
@@ -32,7 +35,7 @@ export class ReferenceDialogEditorComponent extends BaseComponent implements OnI
 		private fb: UntypedFormBuilder,
 		public dialogRef: MatDialogRef<ReferenceDialogEditorComponent>,
 		@Inject(MAT_DIALOG_DATA) public data: any,
-		private formService: FormService
+		private formService: FormService,
 	) { 
 		super(); 
 		this.label = data.label;

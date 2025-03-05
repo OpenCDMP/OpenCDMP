@@ -58,7 +58,7 @@ public class NestedDescriptionElasticBuilder extends BaseElasticBuilder<NestedDe
             m.setPlanId(d.getPlanId());
             m.setLabel(d.getLabel());
             m.setDescription(d.getDescription());
-            m.setStatus(d.getStatus());
+            m.setStatusId(d.getStatusId());
             if (d.getFinalizedAt() != null) {
                 m.setFinalizedAt(Date.from(d.getFinalizedAt()));
             }

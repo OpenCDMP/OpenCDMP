@@ -9,7 +9,7 @@ import { DescriptionTemplateFieldType } from '@app/core/common/enum/description-
 
 @Injectable()
 export class VisibilityRulesService {
-	private form: AbstractControl;
+	private propertyDefinitionForm: AbstractControl;
 	private definition: DescriptionTemplateDefinition;
 	private rulesBySources: Map<string, RuleWithTarget[]> ;
 	private rulesByTarget: Map<string, RuleWithTarget[]> ;
@@ -31,9 +31,9 @@ export class VisibilityRulesService {
 		return this.rulesChangedSubject.asObservable();
 	}
 
-	public setContext(definition: DescriptionTemplateDefinition, form: AbstractControl) {
+	public setContext(definition: DescriptionTemplateDefinition, propertyDefinitionForm: AbstractControl) {
 		this.definition = definition;
-		this.form = form;
+		this.propertyDefinitionForm = propertyDefinitionForm;
 		this.allDescriptionTemplateFields = null;
 		this.allDescriptionTemplateFieldSets = null;
 		this.rulesBySources = null;
@@ -74,10 +74,10 @@ export class VisibilityRulesService {
 
 	private calculateVisibility(){
 		if (this._isVisibleMap != null) return;
-		if (this.definition == null || this.form == null) return;
+		if (this.definition == null || this.propertyDefinitionForm == null) return;
 
 		this.initRules();
-		const propertyDefinition: DescriptionPropertyDefinitionPersist = this.formService.getValue(this.form.getRawValue()) as DescriptionPropertyDefinitionPersist;
+		const propertyDefinition: DescriptionPropertyDefinitionPersist = this.formService.getValue(this.propertyDefinitionForm.getRawValue()) as DescriptionPropertyDefinitionPersist;
 
 		this.buildTargetVisibility(propertyDefinition);
 		this.expandVisibilityToChildren(propertyDefinition);
@@ -90,7 +90,7 @@ export class VisibilityRulesService {
 	}
 
 	private initRules(){
-		if (this.definition == null || this.form == null) return;
+		if (this.definition == null || this.propertyDefinitionForm == null) return;
 		if (this.rulesBySources != null && this.rulesByTarget != null) return;
 		this.rulesBySources = new Map();
 		this.rulesByTarget = new Map();
@@ -649,7 +649,7 @@ export class VisibilityRulesService {
 						for (let j = 0; j < propertyDefinitionFieldSet.items.length; j++) {
 							const definitionFieldSetItem = propertyDefinitionFieldSet.items[j];
 							const fieldKey = this.buildVisibilityKey(fieldSetEntity.id, definitionFieldSetItem.ordinal);
-							const isCurrentHidden = !this._isVisibleMap[fieldKey] ?? false;
+							const isCurrentHidden = !this._isVisibleMap[fieldKey];
 							isHidden = isHidden && isCurrentHidden;
 						}
 					}

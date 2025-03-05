@@ -5,6 +5,8 @@ import org.opencdmp.convention.ConventionService;
 import org.opencdmp.errorcode.ErrorThesaurusProperties;
 import gr.cite.tools.validation.ValidatorFactory;
 import gr.cite.tools.validation.specification.Specification;
+import org.opencdmp.model.externalfetcher.ExternalFetcherApiHeaderConfiguration;
+import org.opencdmp.service.externalfetcher.config.entities.SourceExternalApiConfiguration;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.Scope;
@@ -14,7 +16,7 @@ import org.springframework.stereotype.Component;
 import java.util.Arrays;
 import java.util.List;
 
-public class ExternalFetcherApiSourceConfigurationPersist extends ExternalFetcherBaseSourceConfigurationPersist {
+public class ExternalFetcherApiSourceConfigurationPersist extends ExternalFetcherBaseSourceConfigurationPersist implements SourceExternalApiConfiguration<ResultsConfigurationPersist, AuthenticationConfigurationPersist, QueryConfigPersist, ExternalFetcherApiHeaderConfigurationPersist> {
 
     private String url;
 
@@ -47,6 +49,10 @@ public class ExternalFetcherApiSourceConfigurationPersist extends ExternalFetche
     private AuthenticationConfigurationPersist auth;
 
     public static final String _auth = "auth";
+
+    private List<ExternalFetcherApiHeaderConfigurationPersist> headers;
+
+    public static final String _headers = "headers";
 
     private List<QueryConfigPersist> queries;
 
@@ -124,6 +130,14 @@ public class ExternalFetcherApiSourceConfigurationPersist extends ExternalFetche
         this.auth = auth;
     }
 
+    public List<ExternalFetcherApiHeaderConfigurationPersist> getHeaders() {
+        return headers;
+    }
+
+    public void setHeaders(List<ExternalFetcherApiHeaderConfigurationPersist> headers) {
+        this.headers = headers;
+    }
+
     public List<QueryConfigPersist> getQueries() {
         return queries;
     }
@@ -184,7 +198,12 @@ public class ExternalFetcherApiSourceConfigurationPersist extends ExternalFetche
                             .iff(() -> !this.isListNullOrEmpty(item.getQueries()))
                             .on(ExternalFetcherApiSourceConfigurationPersist._queries)
                             .over(item.getQueries())
-                            .using((itm) -> this.validatorFactory.validator(QueryConfigPersist.QueryConfigPersistValidator.class))
+                            .using((itm) -> this.validatorFactory.validator(QueryConfigPersist.QueryConfigPersistValidator.class)),
+                    this.navSpec()
+                            .iff(() -> !this.isListNullOrEmpty(item.getHeaders()))
+                            .on(ExternalFetcherApiSourceConfigurationPersist._headers)
+                            .over(item.getHeaders())
+                            .using((itm) -> this.validatorFactory.validator(ExternalFetcherApiHeaderConfigurationPersist.ExternalFetcherApiHeaderConfigurationPersistValidator.class))
             ));
             return specifications;
         }

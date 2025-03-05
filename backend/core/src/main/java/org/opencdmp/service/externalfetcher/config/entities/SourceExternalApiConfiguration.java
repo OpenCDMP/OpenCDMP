@@ -4,7 +4,7 @@ import org.opencdmp.commons.enums.ExternalFetcherApiHTTPMethodType;
 
 import java.util.List;
 
-public interface SourceExternalApiConfiguration<RsConfig extends ResultsConfiguration<? extends ResultFieldsMappingConfiguration>, AuthConfig extends AuthenticationConfiguration, QConfig extends QueryConfig<? extends QueryCaseConfig>> extends  SourceBaseConfiguration {
+public interface SourceExternalApiConfiguration<RsConfig extends ResultsConfiguration<? extends ResultFieldsMappingConfiguration>, AuthConfig extends AuthenticationConfiguration, QConfig extends QueryConfig<? extends QueryCaseConfig> , HeaderConfig extends ExternalFetcherApiHeaderConfiguration> extends  SourceBaseConfiguration  {
     String getUrl();
 
     RsConfig getResults();
@@ -24,6 +24,8 @@ public interface SourceExternalApiConfiguration<RsConfig extends ResultsConfigur
     AuthConfig getAuth();
 
     List<QConfig> getQueries();
+
+    List<HeaderConfig> getHeaders();
 }
 
 

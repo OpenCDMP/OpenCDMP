@@ -6,7 +6,7 @@ spring:
     serialization:
       write-dates-as-timestamps: false
   config:
-    import: optional:classpath:config/app.env[.properties], optional:file:../config/app.env[.properties],
+    import: optional:classpath:config/app.env[.properties], optional:classpath:config/app-${spring.profiles.active}.env[.properties], optional:file:../config/app.env[.properties], optional:file:../config/app-${spring.profiles.active}.env[.properties],
       optional:classpath:config/db.yml[.yml], optional:classpath:config/db-${spring.profiles.active}.yml[.yml], optional:file:../config/db-${spring.profiles.active}.yml[.yml],
       optional:classpath:config/permissions.yml[.yml], optional:classpath:config/permissions-${spring.profiles.active}.yml[.yml], optional:file:../config/permissions-${spring.profiles.active}.yml[.yml],
       optional:classpath:config/security.yml[.yml], optional:classpath:config/security-${spring.profiles.active}.yml[.yml], optional:file:../config/security-${spring.profiles.active}.yml[.yml],
@@ -29,6 +29,7 @@ spring:
       optional:classpath:config/public-api.yml[.yml], optional:classpath:config/public-api-${spring.profiles.active}.yml[.yml], optional:file:../config/public-api-${spring.profiles.active}.yml[.yml],
       optional:classpath:config/dashboard.yml[.yml], optional:classpath:config/dashboard-${spring.profiles.active}.yml[.yml], optional:file:../config/dashboard-${spring.profiles.active}.yml[.yml],
       optional:classpath:config/file-transformer.yml[.yml], optional:classpath:config/file-transformer-${spring.profiles.active}.yml[.yml], optional:file:../config/file-transformer-${spring.profiles.active}.yml[.yml],
+      optional:classpath:config/evaluator.yml[.yml], optional:classpath:config/evaluator-${spring.profiles.active}.yml[.yml], optional:file:../config/evaluator-${spring.profiles.active}.yml[.yml],
       optional:classpath:config/authorization.yml[.yml], optional:classpath:config/authorization-${spring.profiles.active}.yml[.yml], optional:file:../config/authorization-${spring.profiles.active}.yml[.yml],
       optional:classpath:config/metrics.yml[.yml], optional:classpath:config/metrics-${spring.profiles.active}.yml[.yml], optional:file:../config/metrics-${spring.profiles.active}.yml[.yml],
       optional:classpath:config/field-set-expander.yml[.yml], optional:classpath:config/field-set-expander-${spring.profiles.active}.yml[.yml], optional:file:../config/field-set-expander-${spring.profiles.active}.yml[.yml],

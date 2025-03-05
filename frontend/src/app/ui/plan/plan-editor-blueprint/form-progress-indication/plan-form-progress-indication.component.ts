@@ -5,9 +5,10 @@ import { BaseComponent } from '@common/base/base.component';
 import { takeUntil } from 'rxjs/operators';
 
 @Component({
-	selector: 'app-plan-form-progress-indication',
-	templateUrl: './plan-form-progress-indication.component.html',
-	styleUrls: ['./plan-form-progress-indication.component.scss']
+    selector: 'app-plan-form-progress-indication',
+    templateUrl: './plan-form-progress-indication.component.html',
+    styleUrls: ['./plan-form-progress-indication.component.scss'],
+    standalone: false
 })
 export class PlanFormProgressIndicationComponent extends BaseComponent implements OnInit, OnChanges {
 	@Input() formGroup: UntypedFormGroup;

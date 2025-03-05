@@ -30,9 +30,10 @@ import { DescriptionTemplateTypeEditorService } from './description-template-typ
 import { RouterUtilsService } from '@app/core/services/router/router-utils.service';
 
 @Component({
-	templateUrl: './description-template-type-editor.component.html',
-	styleUrls: ['./description-template-type-editor.component.scss'],
-	providers: [DescriptionTemplateTypeEditorService]
+    templateUrl: './description-template-type-editor.component.html',
+    styleUrls: ['./description-template-type-editor.component.scss'],
+    providers: [DescriptionTemplateTypeEditorService],
+    standalone: false
 })
 export class DescriptionTemplateTypeEditorComponent extends BaseEditor<DescriptionTemplateTypeEditorModel, DescriptionTemplateType> implements OnInit {
 

@@ -1,30 +1,31 @@
-<div class="d-flex flex-column">
-    @if(multipleAutoCompleteSearchConfiguration){
+<div class="d-flex flex-column" *ngIf="singleAutoCompleteSearchConfiguration || multipleAutoCompleteSearchConfiguration">
+    @if(multiple()){
             <mat-form-field class="w-100" subscriptSizing="dynamic">
-                <mat-label>{{label?.length > 0 ? label : referenceType?.name}}</mat-label>
-                <app-multiple-auto-complete placeholder="{{ placeholder?.length > 0 ? placeholder : referenceType?.name}}" [formControl]="form" [configuration]="multipleAutoCompleteSearchConfiguration">
-                </app-multiple-auto-complete>
-                <mat-error *ngIf="form.hasError('backendError')">{{form.getError('backendError').message}}</mat-error>
-                <mat-error *ngIf="form.hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
-                <mat-hint *ngIf="hint" align="start">{{hint}}</mat-hint>
+                <mat-label>{{label?.length ? label : referenceType()?.name}}</mat-label>
+                @if(sources()?.length){
+                    <app-multiple-auto-complete placeholder="{{ placeholder?.length ? placeholder : referenceType()?.name}}" (optionSelected)="onOptionSelected($event)"  [configuration]="multipleAutoCompleteSearchConfiguration" [required]="required"></app-multiple-auto-complete> 
+                }@else {
+                    <app-multiple-auto-complete [id]="id" placeholder="{{ placeholder?.length ? placeholder : referenceType()?.name}}" [formControl]="form" [configuration]="multipleAutoCompleteSearchConfiguration" [required]="required"></app-multiple-auto-complete> 
+                }      
+                <mat-error *ngIf="form?.hasError('backendError')">{{form.getError('backendError').message}}</mat-error>
+                <mat-error *ngIf="form?.hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
+                <mat-hint *ngIf="hint" align="start" class="mb-2">{{hint}}</mat-hint>
             </mat-form-field>
-            <small class="ml-auto inherit-mat-hint could-not-finded-container" *ngIf="!form.disabled">            
-                <span class="not-found">{{'REFERENCE-FIELD.COULD-NOT-FIND-MESSAGE' | translate}} </span>
-                <span class="insert-manually" (click)="addReference($event)">{{'REFERENCE-FIELD.ACTIONS.INSERT-MANUALLY' | translate}}</span>
-            </small>
-    }
-    @if(singleAutoCompleteSearchConfiguration){
+    }@else{
         <mat-form-field class="w-100" subscriptSizing="dynamic">
-            <mat-label>{{label?.length > 0 ? label : referenceType?.name}}</mat-label>
-            <app-single-auto-complete placeholder="{{ placeholder?.length > 0 ? placeholder : referenceType?.name}}" [formControl]="form" [configuration]="singleAutoCompleteSearchConfiguration">
-            </app-single-auto-complete>
-            <mat-error *ngIf="form.hasError('backendError')">{{form.getError('backendError').message}}</mat-error>
-            <mat-error *ngIf="form.hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
-            <mat-hint *ngIf="hint" align="start">{{hint}}</mat-hint>
+            <mat-label>{{label?.length ? label : referenceType()?.name}}</mat-label>
+            @if(sources()?.length){
+                <app-single-auto-complete [id]="id" placeholder="{{ placeholder?.length ? placeholder : referenceType()?.name}}" (optionSelected)="onOptionSelected($event)" [configuration]="singleAutoCompleteSearchConfiguration" [required]="required"></app-single-auto-complete>       
+            }@else {
+                <app-single-auto-complete [id]="id" placeholder="{{ placeholder?.length ? placeholder : referenceType()?.name}}" [formControl]="form" [configuration]="singleAutoCompleteSearchConfiguration" [required]="required"></app-single-auto-complete>
+            }
+            <mat-error *ngIf="form?.hasError('backendError')">{{form.getError('backendError').message}}</mat-error>
+            <mat-error *ngIf="form?.hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
+            <mat-hint *ngIf="hint" align="start" class="mb-2">{{hint}}</mat-hint>
         </mat-form-field>
-        <small class="ml-auto inherit-mat-hint could-not-finded-container" *ngIf="!form.disabled">
-            <span class="not-found">{{'REFERENCE-FIELD.COULD-NOT-FIND-MESSAGE' | translate}} </span>
-            <span class="insert-manually" (click)="addReference($event)">{{'REFERENCE-FIELD.ACTIONS.INSERT-MANUALLY' | translate}}</span>
-        </small>
     }
+    <div class="w-auto ml-auto mt-1 mb-1 mat-mdc-form-field-subscript-wrapper ng-star-inserted" *ngIf="!form?.disabled && !sources()?.length" >            
+        <span class="not-found">{{'REFERENCE-FIELD.COULD-NOT-FIND-MESSAGE' | translate}} </span>
+        <span class="insert-manually" (click)="addReference($event)">{{'REFERENCE-FIELD.ACTIONS.INSERT-MANUALLY' | translate}}</span>
+    </div>
 </div>

@@ -1,0 +1,311 @@
+<div *ngIf="planBlueprints" id="planBlueprintsPreview" class="plan-blueprints-preview">
+    <div class="blueprint-selection">
+        <div class="selection-header">
+            <div class="pb-2 text-center selection-title">
+                {{'PLAN-BLUEPRINT-PREVIEW.LIST-OF-BLUEPRINTS.QUESTION' | translate}}
+            </div>
+            <ng-container *ngIf="defaultBlueprint">
+                <div class="pb-2 text-center">{{'PLAN-BLUEPRINT-PREVIEW.LIST-OF-BLUEPRINTS.PROMPT-TO-USE-DEFAULT' | translate}}</div>
+                <ng-container *ngTemplateOutlet="blueprintButtonTemplate, context: {blueprint: defaultBlueprint}"></ng-container>
+                <div class="pb-2 text-center">{{'PLAN-BLUEPRINT-PREVIEW.LIST-OF-BLUEPRINTS.OR' | translate}}</div>
+            </ng-container>
+            <div class="pb-2 text-center">{{'PLAN-BLUEPRINT-PREVIEW.LIST-OF-BLUEPRINTS.SELECT-FROM-AVAILABLE' | translate}}</div>
+        </div>
+
+        <div class="blueprint-list d-flex flex-column">
+            <ul class="unstyled-list">
+                @for(blueprint of planBlueprints; track $index; let i=$index){
+                    <li *ngIf="defaultBlueprint == null || blueprint.groupId != defaultBlueprint?.groupId">
+                        <ng-container *ngTemplateOutlet="blueprintButtonTemplate, context: {blueprint: blueprint}"></ng-container>
+                    </li>
+                }
+            </ul>
+            <div *ngIf="planBlueprintCount > planBlueprints?.length"   class="d-flex justify-content-center pb-1 pt-2 mt-auto">
+                <button type="button" mat-button class="padded-shadow-btn mt-0 load-more" (click)="loadMore()">{{'GENERAL.ACTIONS.LOAD-MORE' | translate}}</button>
+            </div>
+        </div>
+    </div>
+    @if(selectedBlueprint){
+        <mat-card class="blueprint-preview pl-2 pr-2">
+            <mat-card-header class="justify-content-center pb-3">
+                <mat-card-title id="blueprint-title" class="blueprintLabel mt-2">
+                    {{'PLAN-BLUEPRINT-PREVIEW.SELECTED-BLUEPRINT.TITLE' | translate : {title: selectedBlueprint.label} }}
+                </mat-card-title>
+            </mat-card-header>
+            <mat-card-content class="blueprint-preview-wrapper">
+                <div class="tools">
+                    <button mat-icon-button
+                        [matTooltip]="'PLAN-BLUEPRINT-PREVIEW.SELECTED-BLUEPRINT.ACTIONS.COLLAPSE' | translate"
+                        [attr.aria-label]="'PLAN-BLUEPRINT-PREVIEW.SELECTED-BLUEPRINT.ACTIONS.COLLAPSE' | translate"
+                        [disabled]="exportingPDF"
+                        (click)="collapseAll()"
+                    >
+                        <mat-icon>unfold_less</mat-icon>
+                    </button>
+                    <button mat-icon-button
+                        [matTooltip]="'PLAN-BLUEPRINT-PREVIEW.SELECTED-BLUEPRINT.ACTIONS.EXPAND' | translate"
+                        [attr.aria-label]="'PLAN-BLUEPRINT-PREVIEW.SELECTED-BLUEPRINT.ACTIONS.EXPAND' | translate"
+                        [disabled]="exportingPDF"
+                        (click)="expand()"
+                    >
+                        <mat-icon>unfold_more</mat-icon>
+                    </button>
+                    <button mat-icon-button
+                        [matTooltip]="'PLAN-BLUEPRINT-PREVIEW.SELECTED-BLUEPRINT.ACTIONS.EXPAND-MORE' | translate"
+                        [attr.aria-label]="'PLAN-BLUEPRINT-PREVIEW.SELECTED-BLUEPRINT.ACTIONS.EXPAND-MORE' | translate"
+                        [disabled]="exportingPDF"
+                        (click)="expandAll()"
+                    >
+                        <mat-icon>unfold_more_double</mat-icon>
+                    </button>
+                    <button mat-icon-button
+                        [attr.aria-label]="'PLAN-BLUEPRINT-PREVIEW.SELECTED-BLUEPRINT.ACTIONS.DOWNLOAD-PDF' | translate"
+                        [matTooltip]="'PLAN-BLUEPRINT-PREVIEW.SELECTED-BLUEPRINT.ACTIONS.DOWNLOAD-PDF' | translate "
+                        [disabled]="exportingPDF"
+                        (click)="exportToPDF(selectedBlueprint.label)"
+                    >
+                        @if(!exportingPDF){
+                            <mat-icon aria-hidden>download</mat-icon>
+                        }@else {
+                            <div class="spinner-border  spinner-border-sm" role="status">
+                                <span class="sr-only">Loading...</span>
+                            </div>
+                        }
+                    </button>
+                </div>
+                <div class="blueprint-preview-content">
+                    <div
+                        id="blueprint-description"
+                        class="p-2"
+                        *ngIf="selectedBlueprint.description && selectedBlueprint.description!= selectedBlueprint.label"
+                        [innerHTML]="selectedBlueprint.description"
+                    ></div>
+                    <mat-accordion multi>
+                        <ng-container *ngFor="let section of selectedBlueprint.definition.sections; let sectionI=index">
+                            <ng-container *ngIf="(section.fields && section.fields.length > 0) || section.hasTemplates">
+                                <mat-expansion-panel
+                                    [id]="'blueprint-section-' + sectionI"
+                                    class="unstyled"
+                                    [hideToggle]="!section.fields?.length && !section.hasTemplates"
+                                    [togglePosition]="'before'"
+                                    [expanded]="true"
+                                    #baseExpansionPanel
+                                >
+                                    <mat-expansion-panel-header [class.align-items-start]="section.description && section.label != section.description">
+                                        <mat-panel-title class="d-block">
+                                            <div [id]="'blueprint-section-' + sectionI + '-title'">
+                                                <div class="sectionLabel">
+                                                    {{section.label}}
+                                                </div>
+                                                <div class="sectionDescription font-italic pl-2" *ngIf="section.description && section.label != section.description">
+                                                    {{section.description}}
+                                                </div>
+                                            </div>
+                                        </mat-panel-title>
+                                    </mat-expansion-panel-header>
+                                    @if(section.fields?.length){
+                                        <div class="pl-3" [id]="'blueprint-section-' + sectionI+'-fields'">
+                                            <div *ngFor="let field of section.fields"
+                                                    class="fieldLabel">
+                                                <div>
+                                                    @if(!field.label){
+                                                        @switch(field.category){
+                                                            @case(planBlueprintSectionFieldCategoryEnum.System){
+                                                                {{enumUtils.toPlanBlueprintSystemFieldTypeString(field.systemFieldType)}}
+                                                            }
+                                                            @case(planBlueprintSectionFieldCategoryEnum.ReferenceType){
+                                                                {{field.referenceType?.name}}
+                                                            }
+                                                        }
+                                                   }@else {
+                                                    {{field.label}}
+                                                   }
+                                                </div>
+                                                <div *ngIf="field.description && field.description!=field.label"
+                                                    class="sectionDescription font-italic pl-2"
+                                                    [innerHTML]="field.description"
+                                                >
+                                                </div>
+                                            </div>
+                                        </div>
+                                    }
+                                    @if(section.hasTemplates){
+                                        <div [id]="'blueprint-section-' + sectionI+'-descriptionsMessage'">
+                                            <mat-card appearance="outlined" class="mt-1 mb-1" class="templates-dialog">
+                                                <mat-card-content>
+                                                    @if(!section.descriptionTemplates){
+                                                        {{'PLAN-BLUEPRINT-PREVIEW.SELECTED-BLUEPRINT.NO-TEMPLATES-IN-SECTION.MESSAGE' | translate }}
+                                                        <span role="button" class="templates-dialog-btn" (click)="openDialog()" [attr.aria-label]="'ALT-TEXT.OPEN-DIALOG' | translate">
+                                                            {{'PLAN-BLUEPRINT-PREVIEW.SELECTED-BLUEPRINT.NO-TEMPLATES-IN-SECTION.LINK-TEXT' | translate }}
+                                                        </span>
+                                                    }@else {
+                                                        {{'PLAN-BLUEPRINT-PREVIEW.SELECTED-BLUEPRINT.TEMPLATES-IN-SECTION.MESSAGE' | translate }}
+                                                        <span role="button" class="templates-dialog-btn" (click)="openDialog()" [attr.aria-label]="'ALT-TEXT.OPEN-DIALOG' | translate">
+                                                            {{'PLAN-BLUEPRINT-PREVIEW.SELECTED-BLUEPRINT.TEMPLATES-IN-SECTION.LINK-TEXT' | translate }}
+                                                        </span>
+                                                    }
+                                                </mat-card-content>
+                                            </mat-card>
+                                        </div>
+                                        <div *ngFor="let descriptionTemplate of section.descriptionTemplates ; let templateI=index">
+                                            <mat-accordion multi class="d-flex mt-2 flex-column gap-quarter-rem">
+                                                <ng-container
+                                                    *ngFor="let template of descriptionTemplates.get(descriptionTemplate.descriptionTemplate?.groupId) ">
+                                                    <ng-container
+                                                        *ngTemplateOutlet="descriptionTemplateDiv; context: { descriptionTemplate: template, sectionIndex:sectionI, templateIndex: templateI }"
+                                                    ></ng-container>
+                                                </ng-container>
+                                            </mat-accordion>
+                                        </div>
+                                    }
+                                </mat-expansion-panel>
+                            </ng-container>
+                        </ng-container>
+                    </mat-accordion>
+                    <img id="watermark" src="assets/images/watermark.png" style="display:none;" alt="Watermark">
+                    <!--<div id="watermark" style="font-size: 60px; color: rgba(150, 150, 150, 0.5); transform: rotate(315deg); position: absolute; ">
+                        VIEW ONLY
+                    </div>-->
+                </div>
+                <div class="ml-auto mr-auto select-button">
+                    <button mat-flat-button (click)="proceedWithBlueprint.emit(selectedBlueprint)"
+                        class="mt-2 mb-2">
+                        {{'PLAN-BLUEPRINT-PREVIEW.SELECTED-BLUEPRINT.PROCEED' | translate }}
+                        <mat-icon class="material-icons-outlined" aria-hidden iconPositionEnd>chevron_right</mat-icon>
+                    </button>
+                </div>
+            </mat-card-content>
+        </mat-card>
+    }
+</div>
+
+<ng-template #blueprintButtonTemplate let-blueprint="blueprint">
+    <div
+        role="button"
+        (click)="selectedBlueprint = blueprint"
+        class="blueprint-select-btn w-100"
+        [class.primaryContainer]=" selectedBlueprint && blueprint.groupId == selectedBlueprint.groupId"
+        [class.default]="blueprint.groupId == defaultBlueprint?.groupId"
+    >
+        <div class="d-flex align-items-center gap-half-rem">
+            <mat-icon class="material-icons-outlined" aria-hidden>library_books</mat-icon>
+            <span class="blueprint-label">{{blueprint.label}}</span>
+        </div>
+        <mat-icon *ngIf="selectedBlueprint && blueprint.groupId == selectedBlueprint.groupId" aria-hidden>chevron_right</mat-icon>
+    </div>
+</ng-template>
+
+<ng-template #descriptionTemplateDiv let-descriptionTemplate="descriptionTemplate" let-sectionIndex="sectionIndex" let-templateIndex="templateIndex">
+    <mat-expansion-panel
+        [id]="'blueprint-section-' +sectionIndex +'-template-'+templateIndex"
+        class="unstyled description-template"
+        [togglePosition]="'before'"
+        [expanded]="true"
+        #baseExpansionPanel
+    >
+        <mat-expansion-panel-header class="description-template-header">
+            <mat-panel-title>
+                    <div [id]="'blueprint-section-' +sectionIndex +'-template-'+templateIndex+ '-title'" class="description-template-header">
+                        {{ descriptionTemplate.label }}
+                    </div>
+            </mat-panel-title>
+        </mat-expansion-panel-header>
+        <div *ngFor="let page of descriptionTemplate.definition.pages; let pageIndex = index"
+            class="templateContainer"
+            [id]="'blueprint-section-' +sectionIndex +'-template-'+templateIndex+ '-page-'+pageIndex"
+        >
+            <mat-expansion-panel
+                [id]="'collapseSection-' + descriptionTemplate.groupId + '-' +pageIndex"
+                class="unstyled"
+                [togglePosition]="'before'"
+                [expanded]="false"
+                #nestedExpansionPanel
+            >
+                <mat-expansion-panel-header>
+                    <mat-panel-title>
+                        <div class="page-title">
+                            {{(pageIndex + 1) + '. ' + page.title}}
+                        </div>
+                    </mat-panel-title>
+                </mat-expansion-panel-header>
+				<ng-container
+					*ngTemplateOutlet="descriptionTemplateSectionDiv; context: { listPrefix:(pageIndex + 1) , sections: page.sections }"
+				></ng-container>
+            </mat-expansion-panel>
+            <!-- <app-plan-blueprint-toc-component
+                [id]="'collapseSection-' + descriptionTemplate.groupId + '-' +pageIndex"
+                [isOpen]="expandAll">
+                <div collapsible-title
+                        class="d-flex align-items-center  justify-content-lg-start  p-1 pageTitles">
+
+                    {{(pageIndex + 1) + '. ' + page.title}}
+                </div>
+                <div collapsible-content class=" show pl-4">
+                    <div *ngFor="let section of page.sections ; let sectionIndex = index" class="pl-1 p-1 "
+                            style="font-size: 13px">
+                        <div>{{(pageIndex + 1) + '.' + (sectionIndex + 1) + '. ' + section.title}}</div>
+                        <div *ngIf="section.description" class=" font-italic pl-2 p-1"
+                                [innerHTML]="section.description">
+                            <div *ngFor="let section of section.sections ; let sectionSectionIndex = index">
+                                <div>{{(pageIndex + 1) + '.' + (sectionIndex + 1) + '.' + (sectionSectionIndex + 1) + '. ' + section.title}}</div>
+                                <div *ngIf="section.description" class=" font-italic pl-2 p-1"
+                                        [innerHTML]="section.description"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </app-plan-blueprint-toc-component> -->
+		</div>
+    </mat-expansion-panel>
+		<!-- <app-plan-blueprint-toc-component [id]="'blueprint-section-' +sectionIndex +'-template-'+templateIndex" [isOpen]="expand ||expandAll" titleClass="ml-3 mt-3 " collapsibleHeaderStyle="background-color: var(--sys-tertiary);
+  color: var(--sys-on-tertiary);">
+			<div *ngIf="descriptionTemplate.label" collapsible-title
+				 class="mt-2 tertiaryContainer  descriptionTemplateLabel p-3">
+				{{ descriptionTemplate.label }}</div>
+			<div collapsible-content class="">
+				<div *ngFor="let page of descriptionTemplate.definition.pages; let pageIndex = index"
+					 class=" ng-star-inserted templateContainer pt-2" style="margin-left:16px"
+					 [id]="'blueprint-section-' +sectionIndex +'-template-'+templateIndex+ '-page-'+pageIndex" titleClass="pt-3">
+					<app-plan-blueprint-toc-component
+						[id]="'collapseSection-' + descriptionTemplate.groupId + '-' +pageIndex"
+						[isOpen]="expandAll">
+						<div collapsible-title
+							 class="d-flex align-items-center  justify-content-lg-start  p-1 pageTitles">
+
+							{{(pageIndex + 1) + '. ' + page.title}}
+						</div>
+						<div collapsible-content class=" show pl-4">
+							<div *ngFor="let section of page.sections ; let sectionIndex = index" class="pl-1 p-1 "
+								 style="font-size: 13px">
+								<div>{{(pageIndex + 1) + '.' + (sectionIndex + 1) + '. ' + section.title}}</div>
+								<div *ngIf="section.description" class=" font-italic pl-2 p-1"
+									 [innerHTML]="section.description">
+									<div *ngFor="let section of section.sections ; let sectionSectionIndex = index">
+										<div>{{(pageIndex + 1) + '.' + (sectionIndex + 1) + '.' + (sectionSectionIndex + 1) + '. ' + section.title}}</div>
+										<div *ngIf="section.description" class=" font-italic pl-2 p-1"
+											 [innerHTML]="section.description"></div>
+									</div>
+								</div>
+							</div>
+						</div>
+					</app-plan-blueprint-toc-component>
+				</div>
+			</div>
+		</app-plan-blueprint-toc-component> -->
+</ng-template>
+<ng-template #descriptionTemplateSectionDiv let-listPrefix="listPrefix" let-sections="sections">
+	<div *ngFor="let section of sections ; let sectionIndex = index" class="p-1 page-section">
+		<div>{{listPrefix + '.' + (sectionIndex + 1) + '. ' + section.title}} </div>
+		<div *ngIf="section.description" class="font-italic p-1"
+			[innerHTML]="section.description">
+		</div>
+		<div *ngFor="let field of section.fieldSets ; let fieldIndex = index" class="p-1 font-italic">
+			<div>{{listPrefix + '.' + (sectionIndex + 1) + '.' + (fieldIndex + 1) + '. ' + field.title}} </div>
+		</div>
+		<ng-container *ngIf="section.sections">
+			<ng-container
+				*ngTemplateOutlet="descriptionTemplateSectionDiv; context: { listPrefix:listPrefix + '.' + (sectionIndex + 1), sections: section.sections }"
+			></ng-container>
+		</ng-container>
+	</div>
+</ng-template>

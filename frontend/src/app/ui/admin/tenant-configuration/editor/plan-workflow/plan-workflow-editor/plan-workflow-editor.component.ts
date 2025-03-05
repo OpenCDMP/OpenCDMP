@@ -27,9 +27,10 @@ import { nameof } from 'ts-simple-nameof';
 import { Guid } from '@common/types/guid';
 
 @Component({
-  selector: 'app-plan-workflow-editor',
-  templateUrl: './plan-workflow-editor.component.html',
-  styleUrl: './plan-workflow-editor.component.scss'
+    selector: 'app-plan-workflow-editor',
+    templateUrl: './plan-workflow-editor.component.html',
+    styleUrl: './plan-workflow-editor.component.scss',
+    standalone: false
 })
 export class PlanWorkflowEditorComponent extends BasePendingChangesComponent implements OnInit{
     formGroup: FormGroup<PlanWorkflowForm>;

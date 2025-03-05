@@ -48,6 +48,15 @@
 										</mat-expansion-panel>
 										<mat-expansion-panel>
 											<mat-expansion-panel-header>
+												<mat-panel-title>{{'TENANT-CONFIGURATION-EDITOR.EVALUATOR-PLUGINS.TITLE' | translate}}</mat-panel-title>
+												<mat-panel-description>{{'TENANT-CONFIGURATION-EDITOR.EVALUATOR-PLUGINS.HINT' | translate}}</mat-panel-description>
+											</mat-expansion-panel-header>
+											<ng-template matExpansionPanelContent>
+												<app-tenant-configuration-evaluator-editor></app-tenant-configuration-evaluator-editor>
+											</ng-template>
+										</mat-expansion-panel>
+										<mat-expansion-panel>
+											<mat-expansion-panel-header>
 												<mat-panel-title>{{'TENANT-CONFIGURATION-EDITOR.FILE-TRANSFORMER-PLUGINS.TITLE' | translate}}</mat-panel-title>
 												<mat-panel-description>{{'TENANT-CONFIGURATION-EDITOR.FILE-TRANSFORMER-PLUGINS.HINT' | translate}}</mat-panel-description>
 											</mat-expansion-panel-header>
@@ -91,6 +100,24 @@
 												<app-description-workflow-editor></app-description-workflow-editor>
 											</ng-template>
                                         </mat-expansion-panel>
+										<mat-expansion-panel>
+											<mat-expansion-panel-header>
+												<mat-panel-title>{{'TENANT-CONFIGURATION-EDITOR.FEATURED-ENTITIES.TITLE' | translate}}</mat-panel-title>
+												<mat-panel-description>{{'TENANT-CONFIGURATION-EDITOR.FEATURED-ENTITIES.HINT' | translate}}</mat-panel-description>
+											</mat-expansion-panel-header>
+											<ng-template matExpansionPanelContent>
+												<app-tenant-configuration-featured-entities-editor></app-tenant-configuration-featured-entities-editor>
+											</ng-template>
+										</mat-expansion-panel>
+										<mat-expansion-panel>
+											<mat-expansion-panel-header>
+												<mat-panel-title>{{'TENANT-CONFIGURATION-EDITOR.DEFAULT-PLAN-BLUEPRINT.TITLE' | translate}}</mat-panel-title>
+												<mat-panel-description>{{'TENANT-CONFIGURATION-EDITOR.DEFAULT-PLAN-BLUEPRINT.HINT' | translate}}</mat-panel-description>
+											</mat-expansion-panel-header>
+											<ng-template matExpansionPanelContent>
+												<app-tenant-configuration-default-plan-blueprint-editor></app-tenant-configuration-default-plan-blueprint-editor>
+											</ng-template>
+										</mat-expansion-panel>
 									</mat-accordion>
 								</div>
 							</div>

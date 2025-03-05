@@ -12,6 +12,7 @@ import { HttpErrorHandlingService } from "@common/modules/errors/error-handling/
 import { FilterService } from "@common/modules/text-filter/filter-service";
 import { AnnotationService } from "@annotation-service/services/http/annotation.service";
 import { StatusService } from "./http/status.service";
+import { AnnotationPrincipalService } from "./http/principal.service";
 
 @NgModule({})
 export class CoreAnnotationServiceModule {
@@ -31,6 +32,7 @@ export class CoreAnnotationServiceModule {
 				FormService,
 				LoggingService,
 				PrincipalService,
+				AnnotationPrincipalService,
 				AnnotationService,
 				StatusService
 			],

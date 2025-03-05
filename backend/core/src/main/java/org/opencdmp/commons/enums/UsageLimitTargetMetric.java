@@ -9,14 +9,16 @@ public enum UsageLimitTargetMetric implements DatabaseEnum<String> {
 	USER_COUNT(TargetMetrics.UserCount),
 	PLAN_COUNT(TargetMetrics.PlanCount),
 	PLAN_STATUS_COUNT(TargetMetrics.PlanStatusCount),
-	PLAN_WORKFLOW_COUNT(TargetMetrics.PLAN_WORKFLOW_COUNT),
 	BLUEPRINT_COUNT(TargetMetrics.BlueprintCount),
 	DESCRIPTION_COUNT(TargetMetrics.DescriptionCount),
 	DESCRIPTION_STATUS_COUNT(TargetMetrics.DescriptionStatusCount),
 	DESCRIPTION_TEMPLATE_COUNT(TargetMetrics.DescriptionTemplateCount),
 	DESCRIPTION_TEMPLATE_TYPE_COUNT(TargetMetrics.DescriptionTemplateTypeCount),
-	DESCRIPTION_STATUS_WORKFLOW_COUNT(TargetMetrics.DescriptionStatusWorkflowCount),
 	PREFILLING_SOURCES_COUNT(TargetMetrics.PrefillingSourcesCount),
+	EVALUATION_PLAN_EXECUTION_COUNT(TargetMetrics.EvaluationPlanExecutionCount),
+	EVALUATION_PLAN_EXECUTION_COUNT_FOR(TargetMetrics.EvaluationPlanExecutionCountFor),
+	EVALUATION_DESCRIPTION_EXECUTION_COUNT(TargetMetrics.EvaluationDescriptionExecutionCount),
+	EVALUATION_DESCRIPTION_EXECUTION_COUNT_FOR(TargetMetrics.EvaluationDescriptionExecutionCountFor),
 	REFERENCE_TYPE_COUNT(TargetMetrics.ReferenceTypeCount),
 	DEPOSIT_EXECUTION_COUNT(TargetMetrics.DepositExecutionCount),
 	DEPOSIT_EXECUTION_COUNT_FOR(TargetMetrics.DepositExecutionCountFor_),
@@ -39,14 +41,16 @@ public enum UsageLimitTargetMetric implements DatabaseEnum<String> {
 		public static final String UserCount = "user_count";
 		public static final String PlanCount = "plan_count";
 		public static final String PlanStatusCount = "plan_status_count";
-		public static final String PLAN_WORKFLOW_COUNT = "plan_workflow_count";
 		public static final String BlueprintCount = "blueprint_count";
 		public static final String DescriptionCount = "description_count";
 		public static final String DescriptionStatusCount = "description_status_count";
 		public static final String DescriptionTemplateCount = "description_template_count";
 		public static final String DescriptionTemplateTypeCount = "description_template_type_count";
-		public static final String DescriptionStatusWorkflowCount = "description_status_workflow_count";
 		public static final String PrefillingSourcesCount = "prefilling_sources_count";
+		public static final String EvaluationPlanExecutionCount = "evaluation_plan_execution_count";
+		public static final String EvaluationPlanExecutionCountFor = "evaluation_plan_execution_count_for_";
+		public static final String EvaluationDescriptionExecutionCount = "evaluation_description_execution_count";
+		public static final String EvaluationDescriptionExecutionCountFor = "evaluation_description_execution_count_for_";
 		public static final String ReferenceTypeCount = "reference_type_count";
 		public static final String DepositExecutionCount = "deposit_execution_count";
 		public static final String DepositExecutionCountFor_ = "deposit_execution_count_for_";

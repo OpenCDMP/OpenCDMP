@@ -1,14 +1,16 @@
-import { Component, Inject, OnDestroy, OnInit } from "@angular/core";
+import { Component,Inject, OnDestroy, OnInit } from "@angular/core";
 import { MAT_DIALOG_DATA, MatDialogRef } from "@angular/material/dialog";
 import { ConfigurationService } from "@app/core/services/configuration/configuration.service";
-import { Subscription, takeUntil } from "rxjs";
+import { Subscription } from "rxjs";
 
 @Component({
-  selector: 'merge-email-loader',
-  templateUrl: './merge-email-loader-dialog.component.html',
-  styleUrls: ['./merge-email-loader-dialog.component.scss'],
+    selector: 'merge-email-loader',
+    templateUrl: './merge-email-loader-dialog.component.html',
+    styleUrls: ['./merge-email-loader-dialog.component.scss'],
+    standalone: false
 })
 export class MergeEmailLoaderDialogComponent implements OnInit, OnDestroy {
+   
 
   confirmMergeAccountSubscription: Subscription;
   mergeAccountDelay: number = 60000;
@@ -20,6 +22,7 @@ export class MergeEmailLoaderDialogComponent implements OnInit, OnDestroy {
     private dialogRef: MatDialogRef<MergeEmailLoaderDialogComponent>,
     private configurationService: ConfigurationService,
     @Inject(MAT_DIALOG_DATA) public data: any,
+
   ) {}
   
 

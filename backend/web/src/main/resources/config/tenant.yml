@@ -1,8 +1,15 @@
 tenant:
+  #32byte string
+  configEncryptionAesKey: ${TENANT_CONFIG_ENCRYPTION_AES_KEY:rmpTvZnRWzyisUtFADBcZCn0q7Z75Xdz}
+  #16byte string
+  configEncryptionAesIv: ${TENANT_CONFIG_ENCRYPTION_AES_IV:ec05d521a23f80ad}
   multitenancy:
-    is-multitenant: false
+    is-multitenant: true
+    default-tenant-code: default
+    support-expansion-tenant: true
   interceptor:
-    white-listed-clients: [ ]
+    client-claims-prefix: client_
     enforce-trusted-tenant: false
-    auto-create-tenant-user: false
+    auto-create-tenant-user: true
+    white-listed-clients: [ ]
     white-listed-endpoints: [ '/api/principal/my-tenants',  '/api/principal/me' ]

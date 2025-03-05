@@ -26,8 +26,9 @@ import { RouterUtilsService } from '@app/core/services/router/router-utils.servi
 import { AppPermission } from '@app/core/common/enum/permission.enum';
 
 @Component({
-	templateUrl: './prefilling-source-listing.component.html',
-	styleUrls: ['./prefilling-source-listing.component.scss']
+    templateUrl: './prefilling-source-listing.component.html',
+    styleUrls: ['./prefilling-source-listing.component.scss'],
+    standalone: false
 })
 export class PrefillingSourceListingComponent extends BaseListingComponent<PrefillingSource, PrefillingSourceLookup> implements OnInit {
 	publish = false;
@@ -122,7 +123,7 @@ export class PrefillingSourceListingComponent extends BaseListingComponent<Prefi
 		},
 		{
 			prop: nameof<PrefillingSource>(x => x.isActive),
-			sortable: true,
+			sortable: false,
 			languageName: 'PREFILLING-SOURCE-LISTING.FIELDS.IS-ACTIVE',
 			pipe: this.pipeService.getPipe<IsActiveTypePipe>(IsActiveTypePipe)
 		},

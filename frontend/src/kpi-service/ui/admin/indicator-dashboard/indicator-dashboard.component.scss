@@ -1,0 +1,10 @@
+::ng-deep .indicators-list.grid-view {
+    display: grid !important;
+    grid-template-columns: 49% 49% !important;
+    gap: 0.25rem !important;
+    justify-content: center;
+}
+
+::ng-deep .chart-container > *{
+    max-height: max(260px, 40vh) !important;
+}

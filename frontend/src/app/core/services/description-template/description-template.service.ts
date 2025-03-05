@@ -160,10 +160,17 @@ export class DescriptionTemplateService {
 	// Description Tempalte Group Autocomplete Commons
 	//
 	// tslint:disable-next-line: member-ordering
-	descriptionTempalteGroupSingleAutocompleteConfiguration: SingleAutoCompleteConfiguration = {
-		initialItems: (data?: any) => this.query(this.buildDescriptionTempalteGroupAutocompleteLookup([IsActive.Active])).pipe(map(x => x.items)),
-		filterFn: (searchQuery: string, data?: any) => this.query(this.buildDescriptionTempalteGroupAutocompleteLookup([IsActive.Active], searchQuery)).pipe(map(x => x.items)),
-		getSelectedItem: (selectedItem: any) => this.query(this.buildDescriptionTempalteGroupAutocompleteLookup([IsActive.Active, IsActive.Inactive], null, null, [selectedItem])).pipe(map(x => x.items[0])),
+	descriptionTemplateGroupAutocompleteConfiguration: SingleAutoCompleteConfiguration = {
+		initialItems: (data?: any) => this.query(this.buildDescriptionTemplateGroupAutocompleteLookup({
+            isActive: [IsActive.Active]})).pipe(map(x => x.items)),
+		filterFn: (searchQuery: string, data?: any) => this.query(this.buildDescriptionTemplateGroupAutocompleteLookup({
+            isActive: [IsActive.Active],
+            like: searchQuery
+        })).pipe(map(x => x.items)),
+		getSelectedItem: (selectedItem: any) => this.query(this.buildDescriptionTemplateGroupAutocompleteLookup({
+            isActive: [IsActive.Active, IsActive.Inactive],
+            groupIds: [selectedItem]
+        })).pipe(map(x => x.items[0])),
 		displayFn: (item: DescriptionTemplate) => item.label,
 		titleFn: (item: DescriptionTemplate) => item.label,
 		subtitleFn: (item: DescriptionTemplate) => item.description,
@@ -172,10 +179,20 @@ export class DescriptionTemplateService {
 	};
 
 	// tslint:disable-next-line: member-ordering
-	descriptionTempalteGroupMultipleAutocompleteConfiguration: MultipleAutoCompleteConfiguration = {
-		initialItems: (excludedItems: any[], data?: any) => this.query(this.buildDescriptionTempalteGroupAutocompleteLookup([IsActive.Active], null, excludedItems ? excludedItems : null)).pipe(map(x => x.items)),
-		filterFn: (searchQuery: string, excludedItems: any[]) => this.query(this.buildDescriptionTempalteGroupAutocompleteLookup([IsActive.Active], searchQuery, excludedItems)).pipe(map(x => x.items)),
-		getSelectedItems: (selectedItems: any[]) => this.query(this.buildDescriptionTempalteGroupAutocompleteLookup([IsActive.Active, IsActive.Inactive], null, null, selectedItems)).pipe(map(x => x.items)),
+	descriptionTemplateGroupMultipleAutocompleteConfiguration: MultipleAutoCompleteConfiguration = {
+		initialItems: (excludedItems: any[], data?: any) => this.query(this.buildDescriptionTemplateGroupAutocompleteLookup({
+            isActive: [IsActive.Active],
+            excludedIds: excludedItems ? excludedItems : null
+        })).pipe(map(x => x.items)),
+		filterFn: (searchQuery: string, excludedItems: any[]) => this.query(this.buildDescriptionTemplateGroupAutocompleteLookup({
+            isActive: [IsActive.Active], 
+            like: searchQuery, 
+            excludedIds: excludedItems
+        })).pipe(map(x => x.items)),
+		getSelectedItems: (selectedItems: any[]) => this.query(this.buildDescriptionTemplateGroupAutocompleteLookup({
+            isActive: [IsActive.Active, IsActive.Inactive], 
+            groupIds: selectedItems
+        })).pipe(map(x => x.items)),
 		displayFn: (item: DescriptionTemplate) => item.label,
 		titleFn: (item: DescriptionTemplate) => item.label,
 		subtitleFn: (item: DescriptionTemplate) => item.description,
@@ -186,9 +203,19 @@ export class DescriptionTemplateService {
 	public buildDescriptionTempalteGroupMultipleAutocompleteConfiguration(preview: boolean = false): MultipleAutoCompleteConfiguration {
 
 		return {
-			initialItems: (excludedItems: any[], data?: any) => this.query(this.buildDescriptionTempalteGroupAutocompleteLookup([IsActive.Active], null, excludedItems ? excludedItems : null)).pipe(map(x => x.items)),
-			filterFn: (searchQuery: string, excludedItems: any[]) => this.query(this.buildDescriptionTempalteGroupAutocompleteLookup([IsActive.Active], searchQuery, excludedItems)).pipe(map(x => x.items)),
-			getSelectedItems: (selectedItems: any[]) => this.query(this.buildDescriptionTempalteGroupAutocompleteLookup([IsActive.Active, IsActive.Inactive], null, null, selectedItems)).pipe(map(x => x.items)),
+			initialItems: (excludedItems: any[], data?: any) => this.query(this.buildDescriptionTemplateGroupAutocompleteLookup({
+                isActive: [IsActive.Active], 
+                excludedIds: excludedItems ? excludedItems : null
+            })).pipe(map(x => x.items)),
+			filterFn: (searchQuery: string, excludedItems: any[]) => this.query(this.buildDescriptionTemplateGroupAutocompleteLookup({
+                isActive: [IsActive.Active], 
+                like: searchQuery, 
+                excludedIds: excludedItems
+            })).pipe(map(x => x.items)),
+			getSelectedItems: (selectedItems: any[]) => this.query(this.buildDescriptionTemplateGroupAutocompleteLookup({
+                isActive: [IsActive.Active, IsActive.Inactive], 
+                groupIds: selectedItems
+            })).pipe(map(x => x.items)),
 			displayFn: (item: DescriptionTemplate) => item.label,
 			titleFn: (item: DescriptionTemplate) => item.label,
 			subtitleFn: (item: DescriptionTemplate) => item.description,
@@ -197,7 +224,18 @@ export class DescriptionTemplateService {
 		};
 	}
 
-	public buildDescriptionTempalteGroupAutocompleteLookup(isActive: IsActive[], like?: string, excludedIds?: Guid[], groupIds?: Guid[], excludedGroupIds?: Guid[]): DescriptionTemplateLookup {
+    //isActive: IsActive[], like?: string, excludedIds?: Guid[], groupIds?: Guid[], excludedGroupIds?: Guid[]
+	public buildDescriptionTemplateGroupAutocompleteLookup(
+        params: {
+            isActive: IsActive[], 
+            like?: string, 
+            excludedIds?: Guid[], 
+            groupIds?: Guid[], 
+            excludedGroupIds?: Guid[]
+            lookupFields?: string[]
+        }
+    ): DescriptionTemplateLookup {
+        const {isActive, like, excludedIds, excludedGroupIds, groupIds, lookupFields} = params;
 		const lookup: DescriptionTemplateLookup = new DescriptionTemplateLookup();
 		lookup.page = { size: 100, offset: 0 };
 		if (excludedIds && excludedIds.length > 0) { lookup.excludedIds = excludedIds; }
@@ -208,7 +246,7 @@ export class DescriptionTemplateService {
 		lookup.versionStatuses = [DescriptionTemplateVersionStatus.Current, DescriptionTemplateVersionStatus.NotFinalized];
 		lookup.statuses = [DescriptionTemplateStatus.Finalized];
 		lookup.project = {
-			fields: [
+			fields: lookupFields ?? [
 				nameof<DescriptionTemplate>(x => x.id),
 				nameof<DescriptionTemplate>(x => x.label),
 				nameof<DescriptionTemplate>(x => x.groupId),

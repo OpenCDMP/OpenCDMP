@@ -82,12 +82,12 @@
 <ng-template #actions let-row="row" let-item>
 	<div *ngIf="canDelete(row)" class="row" (click)="$event.stopPropagation()">
 		<div class="col-auto">
-			<button mat-icon-button [matMenuTriggerFor]="actionsMenu">
+			<button mat-icon-button [matMenuTriggerFor]="actionsMenu" [attr.aria-label]="'ALT-TEXT.MORE-ACTIONS' | translate">
 				<mat-icon>more_horiz</mat-icon>
 			</button>
 			<mat-menu #actionsMenu="matMenu">
 				<button *ngIf="canDelete(row)" mat-menu-item (click)="deleteType(row.id)">
-					<mat-icon>delete</mat-icon>
+					<mat-icon aria-hidden>delete</mat-icon>
 					{{'NOTIFICATION-SERVICE.NOTIFICATION-LISTING.ACTIONS.DELETE' | translate}}
 				</button>
 			</mat-menu>

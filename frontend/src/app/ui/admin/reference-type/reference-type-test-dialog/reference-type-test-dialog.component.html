@@ -1,0 +1,20 @@
+<h1 class="header m-0">{{'REFERENCE-TYPE-EDITOR.DIALOG.RESULTS' | translate}}</h1>
+@if(sources.length > 0){
+    <ng-container class="test">
+        <app-reference-field-component class="reference-field" [sources]="sources"  [definitionSourcekey]="key"[multiple]="false" [label]="label"  (selectedReference)="selectedOption($event)"  ></app-reference-field-component>
+    </ng-container>
+    @if(referenceSelected){
+        <div class="info-grid pl-4 pr-4 pb-4">
+            @for(fieldMapping of fieldMappings; track $index){
+                <div class="info-grid-label pt-0">
+                    {{fieldMapping.code}}:
+                </div>
+                <div class="info-grid-value">
+                    {{resultsValue(fieldMapping.code)}}
+                </div>
+            }
+        </div>
+        <!-- <pre class="key">{{ referenceSelected | json }}</pre> -->
+    }
+}
+    

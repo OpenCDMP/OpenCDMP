@@ -1,17 +1,17 @@
-<div *ngIf="field && visible" [id]="field.id" [ngSwitch]="this.field?.data?.fieldType" class="dynamic-form-field row">
-	<h5 *ngIf="fieldSet.title && !isChild">{{fieldSet.title}}</h5>
+<div *ngIf="field && visible" [id]="field.id" [ngSwitch]="field?.data?.fieldType" class="dynamic-form-field row">
+	<label *ngIf="fieldSet.title && !isChild">{{fieldSet.title}}</label>
 	<mat-icon *ngIf="fieldSet.additionalInformation && !isChild" matTooltip="{{fieldSet.additionalInformation}}">info</mat-icon>
 
-	<h5 *ngIf="fieldSet.description && !isChild" class="col-12">{{fieldSet.description}}
-	</h5>
-	<h5 *ngIf="fieldSet.extendedDescription && !isChild" class="col-12">
+	<small *ngIf="fieldSet.description && !isChild" class="col-12">{{fieldSet.description}}
+	</small>
+	<small *ngIf="fieldSet.extendedDescription && !isChild" class="col-12">
 		<i>{{fieldSet.extendedDescription}}</i>
-	</h5>
+	</small>
 	<ng-container *ngSwitchCase="descriptionTemplateFieldTypeEnum.FREE_TEXT">
 		<div class="col-12">
 			<mat-form-field class="w-100">
 				<mat-label>{{ field.data.label }}</mat-label>
-				<input matInput [formControl]="propertiesFormGroup?.get(field.id).get('textValue')">
+				<input [id]="path" matInput [formControl]="propertiesFormGroup?.get(field.id).get('textValue')">
 				<mat-error *ngIf="propertiesFormGroup?.get(field.id).get('textValue').hasError('backendError')">{{propertiesFormGroup?.get(field.id).get('textValue').getError('backendError').message}}</mat-error>
 				<mat-error *ngIf="propertiesFormGroup?.get(field.id).get('textValue').hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
 				<mat-error *ngIf="propertiesFormGroup?.get(field.id).get('textValue').hasError('pattern')">{{'GENERAL.VALIDATION.URL.MESSAGE' | translate}}</mat-error>
@@ -21,10 +21,28 @@
 
 	<div *ngSwitchCase="descriptionTemplateFieldTypeEnum.REFERENCE_TYPES" class="col-12">
 		<ng-container *ngIf="field.data.multipleSelect">
-			<app-reference-field-component [form]="propertiesFormGroup?.get(field.id).get('references')" [label]="field.data.label" [placeholder]="field.data.label" [referenceType]="field.data.referenceType" [multiple]="true" hint="{{ 'TYPES.DESCRIPTION-TEMPLATE-COMBO-BOX-TYPE.EXTERNAL-SOURCE-HINT' | translate }}"></app-reference-field-component>
+			<app-reference-field-component 
+                [id]="path" 
+                [form]="propertiesFormGroup?.get(field.id).get('references')" 
+                [label]="field.data.label" 
+                [placeholder]="field.data.label" 
+                [referenceType]="field.data.referenceType" 
+                [multiple]="true" 
+                [required]="isRequired"
+                hint="{{ 'TYPES.DESCRIPTION-TEMPLATE-COMBO-BOX-TYPE.EXTERNAL-SOURCE-HINT' | translate }}"
+            ></app-reference-field-component>
 		</ng-container>
 		<ng-container *ngIf="!(field.data.multipleSelect)">
-			<app-reference-field-component [form]="propertiesFormGroup?.get(field.id).get('reference')" [label]="field.data.label" [placeholder]="field.data.label" [referenceType]="field.data.referenceType" [multiple]="false" hint="{{ 'TYPES.DESCRIPTION-TEMPLATE-COMBO-BOX-TYPE.EXTERNAL-SOURCE-HINT' | translate }}"></app-reference-field-component>
+			<app-reference-field-component 
+                [id]="path" 
+                [form]="propertiesFormGroup?.get(field.id).get('reference')" 
+                [label]="field.data.label" 
+                [placeholder]="field.data.label" 
+                [referenceType]="field.data.referenceType" 
+                [multiple]="false" 
+                [required]="isRequired"
+                hint="{{ 'TYPES.DESCRIPTION-TEMPLATE-COMBO-BOX-TYPE.EXTERNAL-SOURCE-HINT' | translate }}"
+            ></app-reference-field-component>
 		</ng-container>
 	</div>
 	<div *ngSwitchCase="descriptionTemplateFieldTypeEnum.SELECT" class="col-12">
@@ -32,7 +50,7 @@
 			<ng-container *ngIf="field.data.multipleSelect">
 				<mat-form-field class="col-md-12">
 					<mat-label>{{ field.data.label }}</mat-label>
-					<mat-select [formControl]="propertiesFormGroup?.get(field.id).get('textListValue')" [multiple]="field.data.multipleSelect">
+					<mat-select [id]="path" [formControl]="propertiesFormGroup?.get(field.id).get('textListValue')" [multiple]="field.data.multipleSelect">
 						<mat-option *ngFor="let opt of field.data.options" [value]="opt.value">{{opt.label}}</mat-option>
 					</mat-select>
 					<mat-error *ngIf="propertiesFormGroup?.get(field.id).get('textListValue').hasError('backendError')">{{propertiesFormGroup?.get(field.id).get('textListValue').getError('backendError').message}}</mat-error>
@@ -42,7 +60,7 @@
 			<ng-container *ngIf="!(field.data.multipleSelect)">
 				<mat-form-field class="col-md-12">
 					<mat-label>{{ field.data.label }}</mat-label>
-					<mat-select [formControl]="propertiesFormGroup?.get(field.id).get('textValue')" [multiple]="field.data.multipleSelect">
+					<mat-select [id]="path" [formControl]="propertiesFormGroup?.get(field.id).get('textValue')" [multiple]="field.data.multipleSelect">
 						<mat-option *ngFor="let opt of field.data.options" [value]="opt.value">{{opt.label}}
 						</mat-option>
 					</mat-select>
@@ -57,21 +75,21 @@
 			<ng-container *ngIf="field.data.multipleSelect">
 				<mat-form-field class="col-md-12">
 					<mat-label>{{ field.data.label }}</mat-label>
-					<app-multiple-auto-complete [formControl]="propertiesFormGroup?.get(field.id).get('textListValue')" [configuration]="descriptionService.multipleAutocompleteConfiguration">
+					<app-multiple-auto-complete [id]="path" [formControl]="propertiesFormGroup?.get(field.id).get('textListValue')" [configuration]="descriptionService.multipleAutocompleteConfiguration">
 					</app-multiple-auto-complete>
 					<mat-error *ngIf="propertiesFormGroup?.get(field.id).get('textListValue').hasError('backendError')">{{propertiesFormGroup?.get(field.id).get('textListValue').getError('backendError').message}}</mat-error>
 					<mat-error *ngIf="propertiesFormGroup?.get(field.id).get('textListValue').hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
-					<mat-hint>{{ "TYPES.DESCRIPTION-TEMPLATE-COMBO-BOX-TYPE.EXTERNAL-SOURCE-HINT" | translate }}</mat-hint>
+					<mat-hint class="mb-2">{{ "TYPES.DESCRIPTION-TEMPLATE-COMBO-BOX-TYPE.EXTERNAL-SOURCE-HINT" | translate }}</mat-hint>
 				</mat-form-field>
 			</ng-container>
 			<ng-container *ngIf="!(field.data.multipleSelect)">
 				<mat-form-field class="col-md-12">
 					<mat-label>{{ field.data.label }}</mat-label>
-					<app-single-auto-complete [formControl]="propertiesFormGroup?.get(field.id).get('textValue')" [configuration]="descriptionService.singleAutocompleteConfiguration">
+					<app-single-auto-complete [id]="path" [formControl]="propertiesFormGroup?.get(field.id).get('textValue')" [configuration]="descriptionService.singleAutocompleteConfiguration">
 					</app-single-auto-complete>
 					<mat-error *ngIf="propertiesFormGroup?.get(field.id).get('textValue').hasError('backendError')">{{propertiesFormGroup?.get(field.id).get('textValue').getError('backendError').message}}</mat-error>
 					<mat-error *ngIf="propertiesFormGroup?.get(field.id).get('textValue').hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
-					<mat-hint>{{ "TYPES.DESCRIPTION-TEMPLATE-COMBO-BOX-TYPE.EXTERNAL-SOURCE-HINT" | translate }}</mat-hint>
+					<mat-hint class="mb-2">{{ "TYPES.DESCRIPTION-TEMPLATE-COMBO-BOX-TYPE.EXTERNAL-SOURCE-HINT" | translate }}</mat-hint>
 				</mat-form-field>
 			</ng-container>
 		</div>
@@ -81,27 +99,27 @@
 			<ng-container *ngIf="field.data.multipleSelect">
 				<mat-form-field class="col-md-12">
 					<mat-label>{{ field.data.label }}</mat-label>
-					<app-multiple-auto-complete [formControl]="propertiesFormGroup?.get(field.id).get('textListValue')" [configuration]="planService.multipleAutocompleteConfiguration">
+					<app-multiple-auto-complete [id]="path" [formControl]="propertiesFormGroup?.get(field.id).get('textListValue')" [configuration]="planService.multipleAutocompleteConfiguration">
 					</app-multiple-auto-complete>
 					<mat-error *ngIf="propertiesFormGroup?.get(field.id).get('textListValue').hasError('backendError')">{{propertiesFormGroup?.get(field.id).get('textListValue').getError('backendError').message}}</mat-error>
 					<mat-error *ngIf="propertiesFormGroup?.get(field.id).get('textListValue').hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
-					<mat-hint>{{ "TYPES.DESCRIPTION-TEMPLATE-COMBO-BOX-TYPE.EXTERNAL-SOURCE-HINT" | translate }}</mat-hint>
+					<mat-hint  class="mb-2">{{ "TYPES.DESCRIPTION-TEMPLATE-COMBO-BOX-TYPE.EXTERNAL-SOURCE-HINT" | translate }}</mat-hint>
 				</mat-form-field>
 			</ng-container>
 			<ng-container *ngIf="!(field.data.multipleSelect)">
 				<mat-form-field class="col-md-12">
 					<mat-label>{{ field.data.label }}</mat-label>
-					<app-single-auto-complete [formControl]="propertiesFormGroup?.get(field.id).get('textValue')" [configuration]="planService.singleAutocompleteConfiguration">
+					<app-single-auto-complete [id]="path" [formControl]="propertiesFormGroup?.get(field.id).get('textValue')" [configuration]="planService.singleAutocompleteConfiguration">
 					</app-single-auto-complete>
 					<mat-error *ngIf="propertiesFormGroup?.get(field.id).get('textValue').hasError('backendError')">{{propertiesFormGroup?.get(field.id).get('textValue').getError('backendError').message}}</mat-error>
 					<mat-error *ngIf="propertiesFormGroup?.get(field.id).get('textValue').hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
-					<mat-hint>{{ "TYPES.DESCRIPTION-TEMPLATE-COMBO-BOX-TYPE.EXTERNAL-SOURCE-HINT" | translate }}</mat-hint>
+					<mat-hint  class="mb-2">{{ "TYPES.DESCRIPTION-TEMPLATE-COMBO-BOX-TYPE.EXTERNAL-SOURCE-HINT" | translate }}</mat-hint>
 				</mat-form-field>
 			</ng-container>
 		</div>
 	</div>
 	<div *ngSwitchCase="descriptionTemplateFieldTypeEnum.CHECK_BOX" class="col-12">
-		<mat-checkbox [formControl]="propertiesFormGroup?.get(field.id).get('booleanValue')">
+		<mat-checkbox [id]="path" [formControl]="propertiesFormGroup?.get(field.id).get('booleanValue')">
 			{{field.data.label}}</mat-checkbox>
 		<mat-error *ngIf="propertiesFormGroup?.get(field.id).get('booleanValue').hasError('backendError')">{{propertiesFormGroup?.get(field.id).get('booleanValue').getError('backendError').message}}</mat-error>
 	</div>
@@ -109,9 +127,16 @@
 	<div class="col-12">
 		<mat-form-field *ngSwitchCase="descriptionTemplateFieldTypeEnum.TEXT_AREA" class="w-100">
 			<mat-label>{{ field.data.label }}{{ isRequired ? '*' : ''}}</mat-label>
-			<textarea matInput class="text-area" [formControl]="propertiesFormGroup?.get(field.id).get('textValue')" matTextareaAutosize matAutosizeMinRows="3" matAutosizeMaxRows="15"></textarea>
-			<button mat-icon-button type="button" *ngIf="!propertiesFormGroup?.get(field.id).get('textValue').disabled && propertiesFormGroup?.get(field.id).get('textValue').value" matSuffix aria-label="Clear" (click)="this.propertiesFormGroup?.get(field.id).get('textValue').patchValue('')">
-				<mat-icon>close</mat-icon>
+			<textarea [id]="path" matInput class="text-area" [formControl]="propertiesFormGroup?.get(field.id).get('textValue')" matTextareaAutosize matAutosizeMinRows="3" matAutosizeMaxRows="15"></textarea>
+			<button mat-icon-button 
+                type="button" 
+                *ngIf="!propertiesFormGroup?.get(field.id).get('textValue').disabled && propertiesFormGroup?.get(field.id).get('textValue').value" 
+                matSuffix 
+                aria-label="Clear" 
+                (click)="propertiesFormGroup?.get(field.id).get('textValue').patchValue('')"
+                [attr.aria-label]="'ALT-TEXT.CLEAR'  | translate"
+            >
+				<mat-icon aria-hidden>close</mat-icon>
 			</button>
 			<mat-error *ngIf="propertiesFormGroup?.get(field.id).get('textValue').hasError('backendError')">{{propertiesFormGroup?.get(field.id).get('textValue').getError('backendError').message}}</mat-error>
 			<mat-error *ngIf="propertiesFormGroup?.get(field.id).get('textValue')['errors'] && propertiesFormGroup?.get(field.id).get('textValue').hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
@@ -120,8 +145,14 @@
 
 	<ng-container *ngSwitchCase="descriptionTemplateFieldTypeEnum.RICH_TEXT_AREA">
 		<div class="col-12">
-			<rich-text-editor-component [form]="propertiesFormGroup?.get(field.id).get('textValue')" [placeholder]="field.data.label" [required]="isRequired" [wrapperClasses]="'full-width editor ' +
-															((isRequired && propertiesFormGroup?.get(field.id).get('textValue').touched && propertiesFormGroup?.get(field.id).get('textValue').hasError('required')) ? 'required' : '')" [editable]="!propertiesFormGroup?.get(field.id).get('textValue').disabled">
+			<rich-text-editor-component 
+                [id]="path"
+                [form]="propertiesFormGroup?.get(field.id).get('textValue')" 
+                [placeholder]="field.data.label" 
+                [required]="isRequired" 
+                [wrapperClasses]="'full-width editor ' + ((isRequired && propertiesFormGroup?.get(field.id).get('textValue').touched && propertiesFormGroup?.get(field.id).get('textValue').hasError('required')) ? 
+                'required' : '')" 
+            >
 			</rich-text-editor-component>
 		</div>
 		<div [class]="(propertiesFormGroup?.get(field.id).get('textValue')['errors'] && propertiesFormGroup?.get(field.id).get('textValue').hasError('required') && propertiesFormGroup?.get(field.id).get('textValue').touched) ? 'visible' : 'invisible'" class="col-12">
@@ -133,7 +164,7 @@
 	</ng-container>
 	<ng-container *ngSwitchCase="descriptionTemplateFieldTypeEnum.UPLOAD">
 		<div class="col-12 d-flex justify-content-center">
-			<ngx-dropzone #drop class="drop-file col-12" (change)="fileChangeEvent($event, true)" [multiple]="false" [accept]="typesToString()" [disabled]="propertiesFormGroup?.get(field.id).get('textValue').disabled" [class.drop-file-error]="propertiesFormGroup?.get(field.id).get('textValue').touched && propertiesFormGroup?.get(field.id).get('textValue').hasError('required')">
+			<ngx-dropzone [id]="path" #drop class="drop-file col-12" (change)="fileChangeEvent($event, true)" [multiple]="false" [accept]="typesToString()" [disabled]="propertiesFormGroup?.get(field.id).get('textValue').disabled" [class.drop-file-error]="propertiesFormGroup?.get(field.id).get('textValue').touched && propertiesFormGroup?.get(field.id).get('textValue').hasError('required')">
 				<ngx-dropzone-preview *ngIf="propertiesFormGroup?.get(field.id).get('textValue').value" class="file-preview" [removable]="true" (removed)="onRemove()">
 					<ngx-dropzone-label class="file-label">{{ fileNameDisplay }}</ngx-dropzone-label>
 				</ngx-dropzone-preview>
@@ -152,9 +183,9 @@
 		</div>
 	</ng-container>
 	<div *ngSwitchCase="descriptionTemplateFieldTypeEnum.BOOLEAN_DECISION" class="col-12">
-		<mat-radio-group [formControl]="propertiesFormGroup?.get(field.id).get('booleanValue')">
-			<mat-radio-button class="radio-button-item" [value]="true">{{ "TYPES.DESCRIPTION-TEMPLATE-COMBO-BOX-TYPE.ACTIONS.YES" | translate }}</mat-radio-button>
-			<mat-radio-button class="radio-button-item" [value]="false">{{ "TYPES.DESCRIPTION-TEMPLATE-COMBO-BOX-TYPE.ACTIONS.NO" | translate }}</mat-radio-button>
+		<mat-radio-group  [formControl]="propertiesFormGroup?.get(field.id).get('booleanValue')">
+			<mat-radio-button [id]="path" class="radio-button-item" [value]="true" tabindex="0" aria-label="{{ 'TYPES.DESCRIPTION-TEMPLATE-COMBO-BOX-TYPE.ACTIONS.YES' | translate }}">{{ "TYPES.DESCRIPTION-TEMPLATE-COMBO-BOX-TYPE.ACTIONS.YES" | translate }}</mat-radio-button>
+			<mat-radio-button class="radio-button-item" [value]="false" tabindex="0" aria-label="{{ 'TYPES.DESCRIPTION-TEMPLATE-COMBO-BOX-TYPE.ACTIONS.NO' | translate }}">{{ "TYPES.DESCRIPTION-TEMPLATE-COMBO-BOX-TYPE.ACTIONS.NO" | translate }}</mat-radio-button>
 			<mat-error *ngIf="propertiesFormGroup?.get(field.id).get('booleanValue').hasError('backendError')">{{propertiesFormGroup?.get(field.id).get('booleanValue').getError('backendError').message}}</mat-error>
 		</mat-radio-group>
 		<small class="text-danger d-block" *ngIf="propertiesFormGroup?.get(field.id).get('booleanValue').hasError('required') && propertiesFormGroup?.get(field.id).get('booleanValue').touched">{{'GENERAL.VALIDATION.REQUIRED' | translate}}
@@ -163,8 +194,8 @@
 	</div>
 
 	<div *ngSwitchCase="descriptionTemplateFieldTypeEnum.RADIO_BOX" class="col-12">
-		<mat-radio-group [formControl]="propertiesFormGroup?.get(field.id).get('textValue')">
-			<mat-radio-button *ngFor="let option of field.data.options let index = index" class="radio-button-item" [value]="option.value">{{option.label}}</mat-radio-button>
+		<mat-radio-group  [formControl]="propertiesFormGroup?.get(field.id).get('textValue')">
+			<mat-radio-button id="{{path}}{{index > 0 ? '.' + index : ''}}" *ngFor="let option of field.data.options let index = index" class="radio-button-item" [value]="option.value" tabindex="0" aria-label="{{option.label}}">{{option.label}}</mat-radio-button>
 			<mat-error *ngIf="propertiesFormGroup?.get(field.id).get('textValue').hasError('backendError')">{{propertiesFormGroup?.get(field.id).get('textValue').getError('backendError').message}}</mat-error>
 		</mat-radio-group>
 		<small class="text-danger d-block" *ngIf="propertiesFormGroup?.get(field.id).get('textValue').hasError('required') && propertiesFormGroup?.get(field.id).get('textValue').touched">{{'GENERAL.VALIDATION.REQUIRED' | translate}}
@@ -174,7 +205,7 @@
 
 	<mat-form-field *ngSwitchCase="descriptionTemplateFieldTypeEnum.DATE_PICKER" class="col-12">
 		<mat-label>{{ field.data.label }}</mat-label>
-		<input matInput class="table-input" [matDatepicker]="date" [formControl]="propertiesFormGroup?.get(field.id).get('dateValue')">
+		<input [id]="path" matInput class="table-input" [matDatepicker]="date" [formControl]="propertiesFormGroup?.get(field.id).get('dateValue')">
 		<mat-datepicker-toggle matSuffix [for]="date"></mat-datepicker-toggle>
 		<mat-datepicker #date></mat-datepicker>
 		<mat-error *ngIf="propertiesFormGroup?.get(field.id).get('dateValue').hasError('backendError')">{{propertiesFormGroup?.get(field.id).get('dateValue').getError('backendError').message}}</mat-error>
@@ -189,7 +220,7 @@
 		<div class="row">
 			<mat-form-field class="col-md-12">
 				<mat-label>{{ field.data.label }}</mat-label>
-				<input matInput class="col-md-12" [formControl]="propertiesFormGroup?.get(field.id).get('externalIdentifier')?.get('identifier')">
+				<input [id]="path" matInput class="col-md-12" [formControl]="propertiesFormGroup?.get(field.id).get('externalIdentifier')?.get('identifier')">
 				<mat-error *ngIf="propertiesFormGroup?.get(field.id).get('externalIdentifier')?.get('identifier').hasError('backendError')">{{propertiesFormGroup?.get(field.id).get('externalIdentifier')?.get('identifier').getError('backendError').message}}</mat-error>
 				<mat-error *ngIf="propertiesFormGroup?.get(field.id).get('externalIdentifier')?.get('identifier').hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
 			</mat-form-field>
@@ -210,7 +241,7 @@
 		<div class="row align-items-baseline">
 			<mat-form-field class="col-md-4">
 				<mat-label>{{ field.data.label }}</mat-label>
-				<input matInput class="col-md-12" [formControl]="propertiesFormGroup?.get(field.id).get('externalIdentifier')?.get('identifier')">
+				<input [id]="path" matInput class="col-md-12" [formControl]="propertiesFormGroup?.get(field.id).get('externalIdentifier')?.get('identifier')">
 				<mat-error *ngIf="propertiesFormGroup?.get(field.id).get('externalIdentifier')?.get('identifier').hasError('backendError')">{{propertiesFormGroup?.get(field.id).get('externalIdentifier')?.get('identifier').getError('backendError').message}}</mat-error>
 				<mat-error *ngIf="propertiesFormGroup?.get(field.id).get('externalIdentifier')?.get('identifier').hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
 			</mat-form-field>
@@ -225,12 +256,12 @@
 				<mat-error *ngIf="propertiesFormGroup?.get(field.id).get('externalIdentifier')?.get('type').hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
 			</mat-form-field>
 			<div class="col-md-2">
-				<button type="button" mat-button class="rounded-btn primary" (click)="validateId()" [disabled]="propertiesFormGroup?.get(field.id).get('externalIdentifier')?.get('identifier').disabled">{{ "TYPES.DESCRIPTION-TEMPLATE-VALIDATOR.ACTION" | translate }}</button>
+				<button type="button" mat-flat-button color="primary" class="padded-shadow-btn" (click)="validateId()" [disabled]="propertiesFormGroup?.get(field.id).get('externalIdentifier')?.get('identifier').disabled">{{ "TYPES.DESCRIPTION-TEMPLATE-VALIDATOR.ACTION" | translate }}</button>
 				<mat-error *ngIf="propertiesFormGroup?.get(field.id).get('externalIdentifier')?.get('identifier').hasError('backendError')">{{propertiesFormGroup?.get(field.id).get('externalIdentifier')?.get('identifier').getError('backendError').message}}</mat-error>
 				<mat-error *ngIf="propertiesFormGroup?.get(field.id).get('externalIdentifier')?.get('identifier').hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
 			</div>
 			<div class="col-md-1">
-				<mat-progress-spinner *ngIf="validationIcon === 'loading'" mode="indeterminate" [diameter]="24"></mat-progress-spinner>
+				<mat-progress-spinner *ngIf="validationIcon === 'loading'" mode="indeterminate" [diameter]="24" ></mat-progress-spinner>
 				<mat-icon *ngIf="validationIcon !== 'loading'" [ngClass]="{'success': validationIcon === 'done', 'fail': validationIcon === 'clear'}">{{validationIcon}}</mat-icon>
 			</div>
 		</div>

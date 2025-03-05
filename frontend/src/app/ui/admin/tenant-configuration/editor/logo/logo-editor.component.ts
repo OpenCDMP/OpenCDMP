@@ -28,10 +28,11 @@ import { AnalyticsService } from '@app/core/services/matomo/analytics-service';
 
 
 @Component({
-	selector: 'app-tenant-configuration-logo-editor',
-	templateUrl: 'logo-editor.component.html',
-	styleUrls: ['./logo-editor.component.scss'],
-	providers: [LogoEditorService]
+    selector: 'app-tenant-configuration-logo-editor',
+    templateUrl: 'logo-editor.component.html',
+    styleUrls: ['./logo-editor.component.scss'],
+    providers: [LogoEditorService],
+    standalone: false
 })
 export class LogoEditorComponent extends BasePendingChangesComponent implements OnInit {
 
@@ -91,7 +92,7 @@ export class LogoEditorComponent extends BasePendingChangesComponent implements 
 	}
 
 	getItem(successFunction: (item: TenantConfiguration) => void) {
-		this.tenantConfigurationService.getCurrentTenantType(TenantConfigurationType.Logo, LogoEditorResolver.lookupFields())
+		this.tenantConfigurationService.getType(TenantConfigurationType.Logo, LogoEditorResolver.lookupFields())
 			.pipe(map(data => data as TenantConfiguration), takeUntil(this._destroyed))
 			.subscribe(
 				data => successFunction(data),

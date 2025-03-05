@@ -1,6 +1,7 @@
 import { CdkDragDrop, moveItemInArray } from '@angular/cdk/drag-drop';
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, OnInit } from '@angular/core';
+import { Component, computed, OnInit, signal } from '@angular/core';
+import { DragAndDropAccessibilityService } from '@app/core/services/accessibility/drag-and-drop-accessibility.service';
 import { AuthService } from '@app/core/services/auth/auth.service';
 import { LoggingService } from '@app/core/services/logging/logging-service';
 import { SnackBarNotificationLevel, UiNotificationService } from '@app/core/services/notification/ui-notification-service';
@@ -19,26 +20,30 @@ import { takeUntil } from 'rxjs/operators';
 import { nameof } from 'ts-simple-nameof';
 
 @Component({
-	selector: 'app-user-profile-notifier-list-editor',
-	templateUrl: './user-profile-notifier-list-editor.component.html',
-	styleUrls: ['./user-profile-notifier-list-editor.component.scss']
+    selector: 'app-user-profile-notifier-list-editor',
+    templateUrl: './user-profile-notifier-list-editor.component.html',
+    styleUrls: ['./user-profile-notifier-list-editor.component.scss'],
+    standalone: false
 })
 export class UserProfileNotifierListEditorComponent extends BaseComponent implements OnInit {
-
 	availableNotifiers: { [key: string]: NotificationContactType[] } = {};
 	availableNotifiersKeys: NotificationType[];
 
 	notificationTrackingProcess: NotificationTrackingProcess = NotificationTrackingProcess.PENDING;
-
+    reorderAssistiveText = computed(() => this.dragAndDropService.assistiveTextSignal());
+    get reorderMode(){
+        return this.dragAndDropService.reorderMode;
+    }
+    
 	constructor(
 		private userNotificationPreferenceService: UserNotificationPreferenceService,
 		private uiNotificationService: UiNotificationService,
 		private language: TranslateService,
 		private httpErrorHandlingService: HttpErrorHandlingService,
 		private authService: AuthService,
-		private formService: FormService,
 		private logger: LoggingService,
 		public notificationServiceEnumUtils: NotificationServiceEnumUtils,
+        private dragAndDropService: DragAndDropAccessibilityService
 	) {
 		super();
 	}
@@ -130,6 +135,8 @@ export class UserProfileNotifierListEditorComponent extends BaseComponent implem
 		moveItemInArray(this.availableNotifiers[type], event.previousIndex, event.currentIndex);
 	}
 
+
+
 	preferencesNotPending(): boolean {
 		return ! (this.notificationTrackingProcess === NotificationTrackingProcess.PENDING);
 	}
@@ -143,4 +150,21 @@ export class UserProfileNotifierListEditorComponent extends BaseComponent implem
 	hasMoreThanOneNotifiers(notificationType: NotificationType): boolean {
 		return this.availableNotifiers[notificationType].length > 1;
 	}
+
+    onKeyDown($event: KeyboardEvent, index: number, type: NotificationType, item: string) {
+        this.dragAndDropService.onKeyDown({
+            $event,
+            currentIndex: index,
+            listLength: this.availableNotifiers[type].length,
+            itemName: item,
+            moveDownFn: () => {
+                moveItemInArray(this.availableNotifiers[type], index, index + 1);
+                document.getElementById(`${type}-${index + 1}`)?.focus();
+            },
+            moveUpFn: () => {
+                moveItemInArray(this.availableNotifiers[type], index, index - 1);
+                document.getElementById(`${type}-${index - 1}`)?.focus();
+            }
+        })
+    }
 }

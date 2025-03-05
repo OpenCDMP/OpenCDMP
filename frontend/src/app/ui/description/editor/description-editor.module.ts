@@ -15,6 +15,7 @@ import { TagsFieldModule } from '@app/ui/tag/tags-field/tags-field.module';
 import { NewDescriptionDialogComponent } from './new-description/new-description.component';
 import { AutoCompleteModule } from '@app/library/auto-complete/auto-complete.module';
 import { DeprecatedDescriptionTemplateDialog } from './description-base-fields-editor/dialog-description-template/deprecated-description-template-dialog.component';
+import { FormFocusDirective } from '@common/forms/form-focus.directive';
 
 @NgModule({
 	imports: [
@@ -25,18 +26,20 @@ import { DeprecatedDescriptionTemplateDialog } from './description-base-fields-e
 		TableOfContentsModule,
 		DescriptionFormProgressIndicationModule,
 		DescriptionFormModule,
-		DescriptionEditorRoutingModule,
+		// DescriptionEditorRoutingModule,
 		RichTextEditorModule,
 		TagsFieldModule,
-		AutoCompleteModule
+		AutoCompleteModule,
+        FormFocusDirective,
 	],
 	declarations: [
-		DescriptionEditorComponent,
+		// DescriptionEditorComponent,
 		DescriptionBaseFieldsEditorComponent,
 		NewDescriptionDialogComponent,
 		DeprecatedDescriptionTemplateDialog
 	],
 	exports: [
+        DescriptionBaseFieldsEditorComponent
 	],
 	providers: [
 		VisibilityRulesService,

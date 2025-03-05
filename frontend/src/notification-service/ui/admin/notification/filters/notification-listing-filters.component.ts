@@ -13,11 +13,13 @@ import { NotificationTrackingProcess } from '@notification-service/core/enum/not
 import { NotificationTrackingState } from '@notification-service/core/enum/notification-tracking-state.enum';
 import { NotificationType } from '@notification-service/core/enum/notification-type.enum';
 import { nameof } from 'ts-simple-nameof';
+import { FormControl, FormGroup } from '@angular/forms';
 
 @Component({
-	selector: 'app-notification-listing-filters',
-	templateUrl: './notification-listing-filters.component.html',
-	styleUrls: ['./notification-listing-filters.component.scss']
+    selector: 'app-notification-listing-filters',
+    templateUrl: './notification-listing-filters.component.html',
+    styleUrls: ['./notification-listing-filters.component.scss'],
+    standalone: false
 })
 export class NotificationListingFiltersComponent extends BaseComponent implements OnInit, OnChanges {
 
@@ -31,9 +33,19 @@ export class NotificationListingFiltersComponent extends BaseComponent implement
 	userAutoCompleteConfiguration: MultipleAutoCompleteConfiguration;
 
 	readonly separatorKeysCodes: number[] = [ENTER, COMMA];
+    
 
 	// * State
-	internalFilters: NotificationListingFilters = this._getEmptyFilters();
+	internalFilters: FormGroup<NotificationListingFilters> = new FormGroup({
+        isActive: new FormControl(true),
+        type: new FormControl(null),
+        notifyState: new FormControl(null),
+        notifiedWith: new FormControl(null),
+        contactType: new FormControl(null),
+        trackingState: new FormControl(null),
+        trackingProcess: new FormControl(null),
+        userIds: new FormControl(null)
+    })
 
 	protected appliedFilterCount: number = 0;
 	constructor(
@@ -59,12 +71,12 @@ export class NotificationListingFiltersComponent extends BaseComponent implement
 
 
 	protected updateFilters(): void {
-		this.internalFilters = this._parseToInternalFilters(this.filter);
+		this._parseToInternalFilters(this.filter);
 		this.appliedFilterCount = this._computeAppliedFilters(this.internalFilters);
 	}
 
 	protected applyFilters(): void {
-		const { isActive, type, notifyState, notifiedWith, contactType, trackingState, trackingProcess, userIds } = this.internalFilters ?? {}
+		const { isActive, type, notifyState, notifiedWith, contactType, trackingState, trackingProcess, userIds } = this.internalFilters?.value ?? {}
 		this.filterChange.emit({
 			...this.filter,
 			isActive: isActive ? [IsActive.Active] : [IsActive.Inactive],
@@ -75,32 +87,33 @@ export class NotificationListingFiltersComponent extends BaseComponent implement
 			trackingState: trackingState?.length > 0 ? trackingState : null,
 			trackingProcess: trackingProcess?.length > 0 ? trackingProcess : null,
 			userIds: userIds?.length > 0 ? userIds : null,
-		})
+		});
+        this.internalFilters.markAsPristine();
 	}
 
 
-	private _parseToInternalFilters(inputFilter: NotificationFilter): NotificationListingFilters {
+	private _parseToInternalFilters(inputFilter: NotificationFilter) {
 		if (!inputFilter) {
-			return this._getEmptyFilters();
+			this._getEmptyFilters();
 		}
 
 		let { isActive, type, notifyState, notifiedWith, contactType, trackingState, trackingProcess, userIds } = inputFilter;
 
-		return {
+		this.internalFilters.setValue({
 			isActive: (isActive ?? [])?.includes(IsActive.Active) || !isActive?.length,
-			type: type,
-			notifyState: notifyState,
-			notifiedWith: notifiedWith,
-			contactType: contactType,
-			trackingState: trackingState,
-			trackingProcess: trackingProcess,
-			userIds: userIds
-		}
+			type: type ?? null,
+			notifyState: notifyState ?? null,
+			notifiedWith: notifiedWith ?? null,
+			contactType: contactType ?? null,
+			trackingState: trackingState ?? null,
+			trackingProcess: trackingProcess ?? null,
+			userIds: userIds ?? null
+		});
 
 	}
 
-	private _getEmptyFilters(): NotificationListingFilters {
-		return {
+	private _getEmptyFilters() {
+		this.internalFilters.setValue({
 			isActive: true,
 			type: null,
 			notifyState: null,
@@ -109,11 +122,12 @@ export class NotificationListingFiltersComponent extends BaseComponent implement
 			trackingState: null,
 			trackingProcess: null,
 			userIds: null
-		}
+		});
 	}
 
-	private _computeAppliedFilters(filters: NotificationListingFilters): number {
-		let count = 0;
+	private _computeAppliedFilters(formGroup: FormGroup<NotificationListingFilters>): number {
+		const filters = formGroup?.value;
+        let count = 0;
 		if (!filters?.isActive) {
 			count++;
 		}
@@ -143,17 +157,18 @@ export class NotificationListingFiltersComponent extends BaseComponent implement
 	}
 
 	clearFilters() {
-		this.internalFilters = this._getEmptyFilters();
+		this._getEmptyFilters();
+        this.internalFilters.markAsDirty();
 	}
 }
 
 interface NotificationListingFilters {
-	isActive: boolean;
-	type: NotificationType[];
-	notifyState: NotificationNotifyState[];
-	notifiedWith: NotificationContactType[];
-	contactType: NotificationContactType[];
-	trackingState: NotificationTrackingState[];
-	trackingProcess: NotificationTrackingProcess[];
-	userIds: Guid[];
+	isActive:FormControl<boolean>;
+	type:FormControl<NotificationType[]>;
+	notifyState:FormControl<NotificationNotifyState[]>;
+	notifiedWith:FormControl<NotificationContactType[]>;
+	contactType:FormControl<NotificationContactType[]>;
+	trackingState:FormControl<NotificationTrackingState[]>;
+	trackingProcess:FormControl<NotificationTrackingProcess[]>;
+	userIds:FormControl<Guid[]>;
 }

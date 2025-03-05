@@ -4,9 +4,10 @@ import { DescriptionTemplateFieldDataExternalDatasetType } from '@app/core/commo
 import { EnumUtils } from '@app/core/services/utilities/enum-utils.service';
 
 @Component({
-	selector: 'app-description-template-editor-external-datasets-field-component',
-	styleUrls: ['./description-template-editor-external-datasets-field.component.scss'],
-	templateUrl: './description-template-editor-external-datasets-field.component.html'
+    selector: 'app-description-template-editor-external-datasets-field-component',
+    styleUrls: ['./description-template-editor-external-datasets-field.component.scss'],
+    templateUrl: './description-template-editor-external-datasets-field.component.html',
+    standalone: false
 })
 export class DescriptionTemplateEditorExternalDatasetsFieldComponent implements OnInit {
 

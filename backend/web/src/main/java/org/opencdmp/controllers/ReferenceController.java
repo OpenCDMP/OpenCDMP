@@ -37,6 +37,7 @@ import org.opencdmp.model.result.QueryResult;
 import org.opencdmp.query.ReferenceQuery;
 import org.opencdmp.query.lookup.ReferenceLookup;
 import org.opencdmp.query.lookup.ReferenceSearchLookup;
+import org.opencdmp.query.lookup.ReferenceTestLookup;
 import org.opencdmp.service.reference.ReferenceService;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -144,7 +145,7 @@ public class ReferenceController {
                     value = SwaggerHelpers.Reference.endpoint_search_response_example
             ))))
     @Swagger404
-    public List<Reference> searchReferenceWithDefinition(@RequestBody ReferenceSearchLookup lookup) throws MyNotFoundException, InvalidApplicationException {
+    public List<Reference> searchReference(@RequestBody ReferenceSearchLookup lookup) throws MyNotFoundException, InvalidApplicationException {
         logger.debug("search with db definition {}", Reference.class.getSimpleName());
 
         this.censorFactory.censor(ReferenceCensor.class).censor(lookup.getProject(), null);
@@ -152,6 +153,39 @@ public class ReferenceController {
         List<Reference> references = this.referenceService.searchReferenceData(lookup);
 
         this.auditService.track(AuditableAction.Reference_Search, "lookup", lookup);
+
+        return references;
+    }
+
+    @PostMapping("test")
+    @OperationWithTenantHeader(summary = "Test external APIs reference results", description = SwaggerHelpers.Reference.endpoint_test, requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(description = SwaggerHelpers.Reference.endpoint_search_request_body, content = @Content(
+            examples = {
+                    @ExampleObject(
+                            name = SwaggerHelpers.Commons.pagination_example,
+                            description = SwaggerHelpers.Commons.pagination_example_description,
+                            value = SwaggerHelpers.Reference.endpoint_search_request_body_example
+                    )
+            }
+    )), responses = @ApiResponse(description = "OK", responseCode = "200", content = @Content(
+            array = @ArraySchema(
+                    schema = @Schema(
+                            implementation = Reference.class
+                    )
+            ),
+            examples = @ExampleObject(
+                    name = SwaggerHelpers.Commons.pagination_response_example,
+                    description = SwaggerHelpers.Commons.pagination_response_example_description,
+                    value = SwaggerHelpers.Reference.endpoint_search_response_example
+            ))))
+    @Swagger404
+    public List<Reference> testReferenceWithDefinition(@RequestBody ReferenceTestLookup lookup) throws MyNotFoundException, InvalidApplicationException {
+        logger.debug("search with db definition {}", Reference.class.getSimpleName());
+
+        this.censorFactory.censor(ReferenceCensor.class).censor(lookup.getProject(), null);
+
+        List<Reference> references = this.referenceService.testReferenceData(lookup);
+
+        this.auditService.track(AuditableAction.Reference_Test, "lookup", lookup);
 
         return references;
     }

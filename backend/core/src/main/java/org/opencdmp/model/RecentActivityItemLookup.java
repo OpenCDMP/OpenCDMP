@@ -6,9 +6,7 @@ import org.opencdmp.commons.enums.IsActive;
 import org.opencdmp.commons.enums.RecentActivityOrder;
 import org.opencdmp.model.description.Description;
 import org.opencdmp.model.plan.Plan;
-import org.opencdmp.query.lookup.DescriptionLookup;
-import org.opencdmp.query.lookup.PlanLookup;
-import org.opencdmp.query.lookup.PlanUserLookup;
+import org.opencdmp.query.lookup.*;
 import gr.cite.tools.data.query.Ordering;
 import gr.cite.tools.data.query.Paging;
 import gr.cite.tools.fieldset.BaseFieldSet;
@@ -97,8 +95,12 @@ public class RecentActivityItemLookup{
         DescriptionLookup lookup = new DescriptionLookup();
         lookup.setIsActive(List.of(IsActive.Active));
         if (this.like != null) lookup.setLike(this.like);
-        if (this.onlyDraft != null) lookup.setStatuses(List.of(DescriptionStatus.Draft));
-        else lookup.setStatuses(List.of(DescriptionStatus.Draft, DescriptionStatus.Finalized));
+        if (this.onlyDraft != null) {
+            DescriptionStatusLookup descriptionStatusLookup = new DescriptionStatusLookup();
+            descriptionStatusLookup.setInternalStatuses(List.of(DescriptionStatus.Draft));
+            descriptionStatusLookup.setIsActive(List.of(IsActive.Active));
+            lookup.setDescriptionStatusSubQuery(descriptionStatusLookup);
+        }
         if (this.userIds != null) {
             PlanLookup planLookup = new PlanLookup();
             PlanUserLookup planUserLookup = new PlanUserLookup();
@@ -131,7 +133,12 @@ public class RecentActivityItemLookup{
         PlanLookup lookup = new PlanLookup();
         lookup.setIsActive(List.of(IsActive.Active));
         if (this.like != null) lookup.setLike(this.like);
-        if (this.onlyDraft != null) lookup.setStatuses(List.of(PlanStatus.Draft));
+        if (this.onlyDraft != null) {
+            PlanStatusLookup planStatusLookup = new PlanStatusLookup();
+            planStatusLookup.setInternalStatuses(List.of(PlanStatus.Draft));
+            planStatusLookup.setIsActive(List.of(IsActive.Active));
+            lookup.setPlanStatusSubQuery(planStatusLookup);
+        }
         if (this.userIds != null) {
             PlanUserLookup planUserLookup = new PlanUserLookup();
             planUserLookup.setUserIds(this.userIds);

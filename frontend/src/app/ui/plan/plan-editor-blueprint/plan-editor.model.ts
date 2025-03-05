@@ -1,4 +1,4 @@
-import { FormArray, FormControl, UntypedFormBuilder, UntypedFormGroup, Validators } from "@angular/forms";
+import { FormArray, FormControl, FormGroup, UntypedFormBuilder, UntypedFormGroup, Validators } from "@angular/forms";
 import { PlanAccessType } from "@app/core/common/enum/plan-access-type";
 import { PlanBlueprintFieldCategory } from "@app/core/common/enum/plan-blueprint-field-category";
 import { PlanBlueprintSystemFieldType } from "@app/core/common/enum/plan-blueprint-system-field-type";
@@ -15,10 +15,13 @@ import { BackendErrorValidator } from '@common/forms/validation/custom-validator
 import { ValidationErrorModel } from '@common/forms/validation/error-model/validation-error-model';
 import { Validation, ValidationContext } from '@common/forms/validation/validation-context';
 import { Guid } from "@common/types/guid";
+import { Description } from "@app/core/model/description/description";
+import { DescriptionEditorForm, DescriptionEditorModel } from "@app/ui/description/editor/description-editor.model";
+import { VisibilityRulesService } from "@app/ui/description/editor/description-form/visibility-rules/visibility-rules.service";
 
 export class PlanEditorModel extends BaseEditorModel implements PlanPersist {
 	label: string;
-	status: PlanStatusEnum;
+	statusId: Guid;
 	properties: PlanPropertiesEditorModel = new PlanPropertiesEditorModel(this.validationErrorModel);
 	description: String;
 	language: String;
@@ -27,6 +30,7 @@ export class PlanEditorModel extends BaseEditorModel implements PlanPersist {
 	descriptionTemplates: PlanDescriptionTemplateEditorModel[] = [];
 	users: PlanUserEditorModel[] = [];
 	permissions: string[];
+
 
 	public validationErrorModel: ValidationErrorModel = new ValidationErrorModel();
 	protected formBuilder: UntypedFormBuilder = new UntypedFormBuilder();
@@ -37,18 +41,26 @@ export class PlanEditorModel extends BaseEditorModel implements PlanPersist {
 		if (item) {
 			super.fromModel(item);
 			this.label = item.label;
-			this.status = item.status;
-			this.properties = new PlanPropertiesEditorModel(this.validationErrorModel).fromModel(item.properties, item.planReferences?.filter(x => x.isActive === IsActive.Active), item.blueprint);
+			this.statusId = item.status?.id;
+			this.properties = new PlanPropertiesEditorModel(this.validationErrorModel).fromModel(item.properties, item.isActive != IsActive.Active? item.planReferences: item.planReferences?.filter(x => x.isActive === IsActive.Active), item.blueprint);
 			this.description = item.description;
 			this.language = item.language;
 			this.blueprint = item.blueprint?.id;
 			this.accessType = item.accessType;
-			if (item?.planUsers) { item.planUsers.filter(x => x.isActive === IsActive.Active).map(x => this.users.push(new PlanUserEditorModel(this.validationErrorModel).fromModel(x))); }
+			if (item?.planUsers) { 
+				if (item.isActive != IsActive.Active) item.planUsers.map(x => this.users.push(new PlanUserEditorModel(this.validationErrorModel).fromModel(x)));
+				else item.planUsers.filter(x => x.isActive === IsActive.Active).map(x => this.users.push(new PlanUserEditorModel(this.validationErrorModel).fromModel(x))); 
+			}
 
-			item?.blueprint?.definition?.sections?.forEach(section => {
+			item.blueprint?.definition?.sections?.forEach(section => {
 				if (section.hasTemplates) {
 					const isNew = (item.id == null);
-					const sectionTemplatesFromPlan = item.planDescriptionTemplates?.filter(x => x.sectionId == section.id && x.isActive == IsActive.Active) || [];
+					let sectionTemplatesFromPlan: PlanDescriptionTemplate[];
+					if (item.isActive != IsActive.Active) {
+						sectionTemplatesFromPlan = item.planDescriptionTemplates?.filter(x => x.sectionId == section.id) || [];
+					} else {
+						sectionTemplatesFromPlan = item.planDescriptionTemplates?.filter(x => x.sectionId == section.id && x.isActive == IsActive.Active) || [];
+					}
 
 					if (sectionTemplatesFromPlan.length > 0) {
 						sectionTemplatesFromPlan?.filter(x => x.sectionId == section.id).forEach(planDescriptionTemplate => {
@@ -63,7 +75,7 @@ export class PlanEditorModel extends BaseEditorModel implements PlanPersist {
 							this.descriptionTemplates.push(new PlanDescriptionTemplateEditorModel(this.validationErrorModel).fromModel(
 								{
 									sectionId: section.id,
-									descriptionTemplateGroupId: blueprintDefinedDescriptionTemplate?.descriptionTemplateGroupId,
+									descriptionTemplateGroupId: blueprintDefinedDescriptionTemplate?.descriptionTemplate?.groupId,
 								}));
 						});
 					} else {
@@ -75,17 +87,18 @@ export class PlanEditorModel extends BaseEditorModel implements PlanPersist {
 				}
 
 			});
+
 		}
 		return this;
 	}
 
-	buildForm(context: ValidationContext = null, disabled: boolean = false): UntypedFormGroup {
+	buildForm(context: ValidationContext = null, disabled: boolean = false): FormGroup<PlanEditorForm> {
 		if (context == null) { context = this.createValidationContext(); }
 
-		const formGroup = this.formBuilder.group({
+		const formGroup: FormGroup<PlanEditorForm> = this.formBuilder.group({
 			id: [{ value: this.id, disabled: disabled }, context.getValidation('id').validators],
 			label: [{ value: this.label, disabled: disabled }, context.getValidation('label').validators],
-			status: [{ value: this.status, disabled: disabled }, context.getValidation('status').validators],
+			statusId: [{ value: this.statusId, disabled: disabled }, context.getValidation('statusId').validators],
 			properties: this.properties.buildForm({
 				rootPath: `properties.`,
 				disabled: disabled
@@ -102,26 +115,30 @@ export class PlanEditorModel extends BaseEditorModel implements PlanPersist {
 			language: [{ value: this.language, disabled: disabled }, context.getValidation('language').validators],
 			blueprint: [{ value: this.blueprint, disabled: disabled }, context.getValidation('blueprint').validators],
 			accessType: [{ value: this.accessType, disabled: disabled }, context.getValidation('accessType').validators],
-			hash: [{ value: this.hash, disabled: disabled }, context.getValidation('hash').validators]
+			hash: [{ value: this.hash, disabled: disabled }, context.getValidation('hash').validators],
+            descriptionTemplates: this.buildDescriptionTemplatesForm(context, disabled),
+            descriptions: new FormArray([])
 		});
 
-		const descriptionTemplatesFormGroup = this.formBuilder.group({});
+		return formGroup;
+	}
+
+    buildDescriptionTemplatesForm(context: ValidationContext = null, disabled: boolean = false): UntypedFormGroup {
+        const descriptionTemplatesFormGroup = this.formBuilder.group({});
 		(this.descriptionTemplates ?? []).filter(x => x?.sectionId).map(x => x.sectionId).map(
 			(item, index) => descriptionTemplatesFormGroup.addControl(item.toString(),
 				new FormControl(this.descriptionTemplates?.filter(x => x.sectionId === item)?.filter(x => x.descriptionTemplateGroupId).map(x => x.descriptionTemplateGroupId) || [], context.getValidation('descriptionTemplates').validators))
 		);
 		if (disabled) descriptionTemplatesFormGroup.disable();
-		formGroup.addControl('descriptionTemplates', descriptionTemplatesFormGroup);
-
-		return formGroup;
-	}
+        return descriptionTemplatesFormGroup;
+    }
 
 	createValidationContext(): ValidationContext {
 		const baseContext: ValidationContext = new ValidationContext();
 		const baseValidationArray: Validation[] = new Array<Validation>();
 		baseValidationArray.push({ key: 'id', validators: [BackendErrorValidator(this.validationErrorModel, 'id')] });
 		baseValidationArray.push({ key: 'label', validators: [Validators.required, BackendErrorValidator(this.validationErrorModel, 'label')] });
-		baseValidationArray.push({ key: 'status', validators: [BackendErrorValidator(this.validationErrorModel, 'status')] });
+		baseValidationArray.push({ key: 'statusId', validators: [BackendErrorValidator(this.validationErrorModel, 'status')] });
 		baseValidationArray.push({ key: 'properties', validators: [BackendErrorValidator(this.validationErrorModel, 'properties')] });
 		baseValidationArray.push({ key: 'description', validators: [Validators.required, BackendErrorValidator(this.validationErrorModel, 'description')] });
 		baseValidationArray.push({ key: 'language', validators: [Validators.required, BackendErrorValidator(this.validationErrorModel, 'language')] });
@@ -180,12 +197,12 @@ export class PlanEditorModel extends BaseEditorModel implements PlanPersist {
 	}
 
 	static reApplyUsersValidators(params: {
-		formGroup: UntypedFormGroup,
+		usersFormArray: FormArray,
 		validationErrorModel: ValidationErrorModel,
 	}): void {
 
-		const { formGroup, validationErrorModel } = params;
-		(formGroup.get('users') as FormArray).controls?.forEach(
+		const { usersFormArray, validationErrorModel } = params;
+		usersFormArray.controls?.forEach(
 			(control, index) => PlanUserEditorModel.reapplyValidators({
 				formGroup: control as UntypedFormGroup,
 				rootPath: `users[${index}].`,
@@ -309,7 +326,6 @@ export class PlanPropertiesEditorModel implements PlanPropertiesPersist {
 		);
 	}
 }
-
 export class PlanBlueprintValueEditorModel implements PlanBlueprintValuePersist {
 	fieldId: Guid;
 	fieldValue: string;
@@ -332,7 +348,7 @@ export class PlanBlueprintValueEditorModel implements PlanBlueprintValuePersist 
 		this.fieldValue = item.fieldValue;
 		this.dateValue = item.dateValue;
 		this.numberValue = item.numberValue;
-		const references = planReferences?.filter(x => x.data?.blueprintFieldId == this.fieldId && x.isActive == IsActive.Active).map(x => {
+		const references = planReferences?.filter(x => x.data?.blueprintFieldId == this.fieldId).map(x => {
 			return {
 				data: x.data,
 				reference: {
@@ -736,69 +752,117 @@ export class PlanDescriptionTemplateEditorModel implements PlanDescriptionTempla
 
 export class PlanFieldIndicator {
 
-	private _fieldControlNames;
+	private _fieldControls: PlanFieldIndicatorControls[];
 
-	get fieldControlNames(): string[] {
-		return this._fieldControlNames;
+	get fieldControls(): PlanFieldIndicatorControls[] {
+		return this._fieldControls;
 	}
 
 	constructor(section: PlanBlueprintDefinitionSection) {
-		this._fieldControlNames = [];
+		this._fieldControls = [];
 
 		if (section.hasTemplates) {
-			this._fieldControlNames.push(`descriptionTemplates.${section.id}`);
-		} else {
-
-			if (section.fields == null || section.fields?.length == 0) return;
-
-			section.fields.forEach((field: FieldInSection) => {
-				switch (field.category) {
-					case PlanBlueprintFieldCategory.System:
-						this.buildSystemField(field as SystemFieldInSection);
-						break;
-					case PlanBlueprintFieldCategory.ReferenceType:
-						this.buildReferenceTypeField(field as ReferenceTypeFieldInSection);
-						break;
-					case PlanBlueprintFieldCategory.Extra:
-						this.buildExtraField(field as ExtraFieldInSection);
-						break;
-					}
-			});
+			this._fieldControls.push({formControlName: `descriptionTemplates.${section.id}`});
 		}
+
+        if (!section?.fields?.length) return;
+
+        section.fields.forEach((field: FieldInSection) => {
+            switch (field.category) {
+                case PlanBlueprintFieldCategory.System:
+                    this.buildSystemField(field as SystemFieldInSection);
+                    break;
+                case PlanBlueprintFieldCategory.ReferenceType:
+                    this.buildReferenceTypeField(field as ReferenceTypeFieldInSection);
+                    break;
+                case PlanBlueprintFieldCategory.Extra:
+                    this.buildExtraField(field as ExtraFieldInSection);
+                    break;
+            }
+        });
 	}
 
 	buildSystemField(field: SystemFieldInSection): void {
 		switch (field.systemFieldType) {
 			case PlanBlueprintSystemFieldType.Title:
-				this._fieldControlNames.push("label");
+				this._fieldControls.push({
+                    id: field.id,
+                     formControlName: "label"
+                });
 				break;
 			case PlanBlueprintSystemFieldType.Description:
-				this._fieldControlNames.push("description");
+				this._fieldControls.push({
+                    id: field.id,
+                     formControlName: "description"
+                });
 				break;
 			case PlanBlueprintSystemFieldType.Language:
-				this._fieldControlNames.push("language");
+				this._fieldControls.push({
+                    id: field.id,
+                     formControlName: "language"
+                });
 				break;
 			case PlanBlueprintSystemFieldType.Contact:
-				this._fieldControlNames.push("properties.contacts");
+				this._fieldControls.push({
+                    id: field.id,
+                     formControlName: "properties.contacts"
+                });
 				break;
 			case PlanBlueprintSystemFieldType.AccessRights:
-				this._fieldControlNames.push("accessType");
+				this._fieldControls.push({
+                    id: field.id,
+                     formControlName: "accessType"
+                });
 				break;
 			case PlanBlueprintSystemFieldType.User:
-				this._fieldControlNames.push("users");
+				this._fieldControls.push({
+                    id: field.id,
+                     formControlName: "users"
+                });
 				break;
 		}
 	}
 
 	buildReferenceTypeField(field: ReferenceTypeFieldInSection): void {
 		if (field.multipleSelect) {
-			this._fieldControlNames.push(`properties.planBlueprintValues.${field.id}.references`);
+			this._fieldControls.push({
+                id: field.id,
+                 formControlName: `properties.planBlueprintValues.${field.id}.references`
+            });
 		} else {
-			this._fieldControlNames.push(`properties.planBlueprintValues.${field.id}.reference`);
+			this._fieldControls.push({
+                id: field.id,
+                 formControlName: `properties.planBlueprintValues.${field.id}.reference`
+            });
 		}
 	}
 
 	buildExtraField(field: ExtraFieldInSection): void {
-		this._fieldControlNames.push(`properties.planBlueprintValues.${field.id}.fieldValue`);
+		this._fieldControls.push({
+            id: field.id,
+            formControlName: `properties.planBlueprintValues.${field.id}.fieldValue`
+        });
 	}
+}
+
+export interface PlanFieldIndicatorControls {
+    id?: Guid,
+    formControlName: string;
+}
+
+export interface PlanEditorForm {
+    id: FormControl<Guid>;
+    hash: FormControl<string>;
+    label: FormControl<string>;
+	statusId: FormControl<Guid>;
+	properties: UntypedFormGroup;
+	description: FormControl<String>;
+	language: FormControl<String>;
+	blueprint: FormControl<Guid>;
+	accessType: FormControl<PlanAccessType>;
+	descriptionTemplates: FormArray<UntypedFormGroup>;
+	users: FormArray<UntypedFormGroup>;
+	permissions: FormControl<string[]>;
+
+    descriptions: FormArray<FormGroup<DescriptionEditorForm>>;
 }

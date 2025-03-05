@@ -40,9 +40,11 @@ import org.opencdmp.model.persist.*;
 import org.opencdmp.model.plan.Plan;
 import org.opencdmp.model.result.QueryResult;
 import org.opencdmp.query.PlanQuery;
+import org.opencdmp.query.PlanStatusQuery;
 import org.opencdmp.query.lookup.PlanLookup;
 import org.opencdmp.service.elastic.ElasticQueryHelperService;
 import org.opencdmp.service.plan.PlanService;
+import org.opencdmp.service.fieldsetexpander.FieldSetExpanderService;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.MessageSource;
 import org.springframework.context.i18n.LocaleContextHolder;
@@ -88,6 +90,8 @@ public class PlanController {
 
     private final ElasticQueryHelperService elasticQueryHelperService;
 
+    private final FieldSetExpanderService fieldSetExpanderService;
+
     public PlanController(
             BuilderFactory builderFactory,
             AuditService auditService,
@@ -95,6 +99,7 @@ public class PlanController {
             CensorFactory censorFactory,
             QueryFactory queryFactory,
             MessageSource messageSource,
+            FieldSetExpanderService fieldSetExpanderService,
             ElasticQueryHelperService elasticQueryHelperService) {
         this.builderFactory = builderFactory;
         this.auditService = auditService;
@@ -103,6 +108,7 @@ public class PlanController {
         this.queryFactory = queryFactory;
         this.messageSource = messageSource;
         this.elasticQueryHelperService = elasticQueryHelperService;
+        this.fieldSetExpanderService = fieldSetExpanderService;
     }
 
     @PostMapping("public/query")
@@ -128,7 +134,8 @@ public class PlanController {
 
         this.censorFactory.censor(PublicPlanCensor.class).censor(fieldSet);
 
-        PlanQuery query = this.queryFactory.query(PlanQuery.class).disableTracking().authorize(EnumSet.of(Public)).ids(id).isActive(IsActive.Active).statuses(PlanStatus.Finalized).accessTypes(PlanAccessType.Public);
+        PlanStatusQuery statusQuery = this.queryFactory.query(PlanStatusQuery.class).disableTracking().internalStatuses(PlanStatus.Finalized).isActives(IsActive.Active);
+        PlanQuery query = this.queryFactory.query(PlanQuery.class).disableTracking().authorize(EnumSet.of(Public)).ids(id).isActive(IsActive.Active).planStatusSubQuery(statusQuery).accessTypes(PlanAccessType.Public);
 
         PublicPlan model = this.builderFactory.builder(PublicPlanBuilder.class).authorize(EnumSet.of(Public)).build(fieldSet, query.firstAs(fieldSet));
         if (model == null)
@@ -184,7 +191,7 @@ public class PlanController {
             Locale locale
     ) throws MyApplicationException, MyForbiddenException, MyNotFoundException {
         logger.debug(new MapLogEntry("retrieving" + Plan.class.getSimpleName()).And("id", id).And("fields", fieldSet));
-
+        fieldSet = this.fieldSetExpanderService.expand(fieldSet);
         this.censorFactory.censor(PlanCensor.class).censor(fieldSet, null);
 
         PlanQuery query = this.queryFactory.query(PlanQuery.class).disableTracking().authorize(AuthorizationFlags.AllExceptPublic).ids(id);
@@ -242,44 +249,24 @@ public class PlanController {
         this.auditService.track(AuditableAction.Plan_Delete, "id", id);
     }
 
-    @PostMapping("finalize/{id}")
-    @OperationWithTenantHeader(summary = "Finalize a plan by id", description = "",
+    @PostMapping("set-status/{id}/{newStatusId}")
+    @OperationWithTenantHeader(summary = "set status for a plan", description = "",
             responses = @ApiResponse(description = "OK", responseCode = "200"))
     @Swagger404
     @Transactional
-    public boolean finalize(
-            @Parameter(name = "id", description = "The id of a plan to finalize", example = "c0c163dc-2965-45a5-9608-f76030578609", required = true) @PathVariable("id") UUID id,
+    public boolean SetStatus(
+            @Parameter(name = "id", description = "The id of a plan", example = "c0c163dc-2965-45a5-9608-f76030578609", required = true) @PathVariable("id") UUID id,
+            @Parameter(name = "newStatusId", description = "The new status of a plan", example = "f1a3da63-0bff-438f-8b46-1a81ca176115", required = true) @PathVariable("newStatusId") UUID newStatusId,
             @RequestBody DescriptionsToBeFinalized descriptions
     ) throws MyApplicationException, MyForbiddenException, MyNotFoundException, InvalidApplicationException, IOException {
-        logger.debug(new MapLogEntry("finalizing" + Plan.class.getSimpleName()).And("id", id).And("descriptionIds", descriptions.getDescriptionIds()));
+        logger.debug(new MapLogEntry("set status" + Plan.class.getSimpleName()).And("id", id).And("newStatusId", newStatusId).And("descriptionIds", descriptions.getDescriptionIds()));
 
-        this.planService.finalize(id, descriptions.getDescriptionIds());
+        this.planService.setStatus(id, newStatusId, descriptions.getDescriptionIds());
 
-        this.auditService.track(AuditableAction.Plan_Finalize, Map.ofEntries(
+        this.auditService.track(AuditableAction.Plan_SetStatus, Map.ofEntries(
                 new AbstractMap.SimpleEntry<String, Object>("id", id),
+                new AbstractMap.SimpleEntry<String, Object>("newStatusId", newStatusId),
                 new AbstractMap.SimpleEntry<String, Object>("descriptionIds", descriptions.getDescriptionIds())
-        ));
-
-        return true;
-    }
-
-    @GetMapping("undo-finalize/{id}")
-    @OperationWithTenantHeader(summary = "Undo the finalization of a plan by id (only possible if it is not already deposited)", description = "",
-            responses = @ApiResponse(description = "OK", responseCode = "200"))
-    @Swagger404
-    @Transactional
-    public boolean undoFinalize(
-            @Parameter(name = "id", description = "The id of a plan to revert the finalization", example = "c0c163dc-2965-45a5-9608-f76030578609", required = true) @PathVariable("id") UUID id,
-            @Parameter(name = "fieldSet", description = SwaggerHelpers.Commons.fieldset_description, required = true) FieldSet fieldSet
-    ) throws MyApplicationException, MyForbiddenException, MyNotFoundException, InvalidApplicationException, IOException, JAXBException {
-        logger.debug(new MapLogEntry("undo-finalizing" + Plan.class.getSimpleName()).And("id", id));
-
-        this.censorFactory.censor(PlanCensor.class).censor(fieldSet, null);
-
-        this.planService.undoFinalize(id, fieldSet);
-
-        this.auditService.track(AuditableAction.Plan_Undo_Finalize, Map.ofEntries(
-                new AbstractMap.SimpleEntry<String, Object>("id", id)
         ));
 
         return true;

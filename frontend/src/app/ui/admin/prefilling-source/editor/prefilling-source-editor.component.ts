@@ -17,7 +17,7 @@ import { SnackBarNotificationLevel, UiNotificationService } from '@app/core/serv
 import { PrefillingSourceService } from '@app/core/services/prefilling-source/prefilling-source.service';
 import { EnumUtils } from '@app/core/services/utilities/enum-utils.service';
 import { QueryParamsService } from '@app/core/services/utilities/query-params.service';
-import { ResultFieldsMappingConfigurationEditorModel } from '@app/ui/external-fetcher/external-fetcher-source-editor.model';
+import { FieldMappingFormGroup, ResultFieldsMappingConfigurationEditorModel } from '@app/ui/external-fetcher/external-fetcher-source-editor.model';
 import { BaseEditor } from '@common/base/base-editor';
 import { FormService } from '@common/forms/form-service';
 import { ConfirmationDialogComponent } from '@common/modules/confirmation-dialog/confirmation-dialog.component';
@@ -32,10 +32,11 @@ import { PrefillingSourceEditorService } from './prefilling-source-editor.servic
 import { RouterUtilsService } from '@app/core/services/router/router-utils.service';
 
 @Component({
-	selector: 'app-prefilling-source-editor-component',
-	templateUrl: 'prefilling-source-editor.component.html',
-	styleUrls: ['./prefilling-source-editor.component.scss'],
-	providers: [PrefillingSourceEditorService]
+    selector: 'app-prefilling-source-editor-component',
+    templateUrl: 'prefilling-source-editor.component.html',
+    styleUrls: ['./prefilling-source-editor.component.scss'],
+    providers: [PrefillingSourceEditorService],
+    standalone: false
 })
 export class PrefillingSourceEditorComponent extends BaseEditor<PrefillingSourceEditorModel, PrefillingSource> implements OnInit {
 
@@ -43,6 +44,7 @@ export class PrefillingSourceEditorComponent extends BaseEditor<PrefillingSource
 	isDeleted = false;
 	formGroup: UntypedFormGroup = null;
 	showInactiveDetails = false;
+	private STATIC_FIELD_MAPPINGS = ["reference_id", "label", "description"]
 
 	protected get canDelete(): boolean {
 		return !this.isDeleted && !this.isNew && this.hasPermission(this.authService.permissionEnum.DeletePrefillingSource) && this.editorModel.belongsToCurrentTenant != false;
@@ -117,9 +119,7 @@ export class PrefillingSourceEditorComponent extends BaseEditor<PrefillingSource
 		this.formGroup = this.editorModel.buildForm(null, this.isDeleted || !this.authService.hasPermission(AppPermission.EditPrefillingSource));
 		if (this.isDeleted || !this.authService.hasPermission(AppPermission.EditPrefillingSource)) this.formGroup.disable();
 		this.prefillingSourceEditorService.setValidationErrorModel(this.editorModel.validationErrorModel);
-		this.addFieldMapping("reference_id", "searchConfiguration");
-		this.addFieldMapping("label", "searchConfiguration");
-		this.addFieldMapping("description", "searchConfiguration");
+		this.STATIC_FIELD_MAPPINGS.forEach((code) => this.addFieldMapping(code, "searchConfiguration"));
 
 	}
 
@@ -250,18 +250,28 @@ export class PrefillingSourceEditorComponent extends BaseEditor<PrefillingSource
 		const fieldsFormArray = (this.formGroup.get('definition').get('fields') as FormArray);
 
 		if (fieldsFormArray.valid) {
-			for (let i = 0; i < fieldsFormArray.length; i++) {
-				const code = fieldsFormArray.at(i).get('code').value;
-				if (this.formGroup.get('definition').get('getEnabled').value == true) {
-					this.addFieldMapping(code, "getConfiguration");
-					this.removeFieldMapping((this.formGroup.get('definition').get('searchConfiguration') as FormGroup), code);
-				}
-				else {
-					this.addFieldMapping(code, "searchConfiguration");
-					this.removeFieldMapping((this.formGroup.get('definition').get('getConfiguration') as FormGroup), code);
-				}
-			}
+
+			if (this.formGroup.get('definition').get('getEnabled').value == true) this.updateFieldsMapping(fieldsFormArray, "getConfiguration");
+			else this.updateFieldsMapping(fieldsFormArray, "searchConfiguration");
 		}
+	}
+
+	private updateFieldsMapping(fieldsFormArray: FormArray, controlName: string){
+		// PATCH + ADD FIELD MAPPINGS
+		const fieldMappings = this.formGroup.get('definition').get(controlName).get('results').get('fieldsMapping') as FormArray<FormGroup<FieldMappingFormGroup>>;
+		fieldsFormArray.controls.forEach((field, index) => {
+			let positionInArray = index;
+			if (controlName === "searchConfiguration") positionInArray = positionInArray + this.STATIC_FIELD_MAPPINGS.length;
+			const fieldMappingsLength = fieldMappings?.controls?.length;
+			const code = field.value.code;
+			if(positionInArray < fieldMappingsLength){
+				fieldMappings.controls[positionInArray].controls.code.setValue(code)
+			} else {
+				this.addFieldMapping(code, controlName);
+				const controlNameToRemove = controlName == "searchConfiguration" ? "getConfiguration": "searchConfiguration";
+				this.removeFieldMapping((this.formGroup.get('definition').get(controlNameToRemove) as FormGroup), code);
+			}
+		})
 	}
 
 

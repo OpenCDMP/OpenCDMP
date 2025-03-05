@@ -32,8 +32,17 @@ export class TenantConfigurationService {
 				catchError((error: any) => throwError(error)));
 	}
 
-	getCurrentTenantType(type: TenantConfigurationType, reqFields: string[] = []): Observable<TenantConfiguration> {
-		const url = `${this.apiBase}/current-tenant/${type}`;
+	getType(type: TenantConfigurationType, reqFields: string[] = []): Observable<TenantConfiguration> {
+		const url = `${this.apiBase}/type/${type}`;
+		const options = { params: { f: reqFields } };
+
+		return this.http
+			.get<TenantConfiguration>(url, options).pipe(
+				catchError((error: any) => throwError(error)));
+	}
+
+	getActiveType(type: TenantConfigurationType, reqFields: string[] = []): Observable<TenantConfiguration> {
+		const url = `${this.apiBase}/active-type/${type}`;
 		const options = { params: { f: reqFields } };
 
 		return this.http

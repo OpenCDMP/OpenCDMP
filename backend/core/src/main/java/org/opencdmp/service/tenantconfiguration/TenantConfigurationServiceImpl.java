@@ -22,6 +22,9 @@ import org.opencdmp.commons.enums.StorageType;
 import org.opencdmp.commons.enums.TenantConfigurationType;
 import org.opencdmp.commons.scope.tenant.TenantScope;
 import org.opencdmp.commons.types.deposit.DepositSourceEntity;
+import org.opencdmp.commons.types.evaluator.EvaluatorSourceEntity;
+import org.opencdmp.commons.types.featured.DescriptionTemplateEntity;
+import org.opencdmp.commons.types.featured.PlanBlueprintEntity;
 import org.opencdmp.commons.types.filetransformer.FileTransformerSourceEntity;
 import org.opencdmp.commons.types.tenantconfiguration.*;
 import org.opencdmp.convention.ConventionService;
@@ -39,6 +42,9 @@ import org.opencdmp.model.StorageFile;
 import org.opencdmp.model.builder.tenantconfiguration.TenantConfigurationBuilder;
 import org.opencdmp.model.deleter.TenantConfigurationDeleter;
 import org.opencdmp.model.persist.deposit.DepositSourcePersist;
+import org.opencdmp.model.persist.evaluator.EvaluatorSourcePersist;
+import org.opencdmp.model.persist.featured.DescriptionTemplatePersist;
+import org.opencdmp.model.persist.featured.PlanBlueprintPersist;
 import org.opencdmp.model.persist.filetransformer.FileTransformerSourcePersist;
 import org.opencdmp.model.persist.tenantconfiguration.*;
 import org.opencdmp.model.tenantconfiguration.TenantConfiguration;
@@ -152,11 +158,14 @@ public class TenantConfigurationServiceImpl implements TenantConfigurationServic
             case CssColors -> data.setValue(this.jsonHandlingService.toJson(this.buildCssColorsTenantConfigurationEntity(model.getCssColors())));
             case DefaultUserLocale -> data.setValue(this.jsonHandlingService.toJson(this.buildDefaultUserLocaleTenantConfigurationEntity(model.getDefaultUserLocale())));
             case DepositPlugins -> data.setValue(this.jsonHandlingService.toJson(this.buildDepositTenantConfigurationEntity(model.getDepositPlugins())));
+            case EvaluatorPlugins -> data.setValue(this.jsonHandlingService.toJson(this.buildEvaluatorTenantConfigurationEntity(model.getEvaluatorPlugins())));
             case FileTransformerPlugins -> data.setValue(this.jsonHandlingService.toJson(this.buildFileTransformerTenantConfigurationEntity(model.getFileTransformerPlugins())));
             case Logo -> {
                 LogoTenantConfigurationEntity oldValue = this.conventionService.isNullOrEmpty(data.getValue()) ? null : this.jsonHandlingService.fromJsonSafe(LogoTenantConfigurationEntity.class, data.getValue());
                 data.setValue(this.jsonHandlingService.toJson(this.buildLogoTenantConfigurationEntity(model.getLogo(), oldValue)));
             }
+            case FeaturedEntities -> data.setValue(this.jsonHandlingService.toJson(this.buildFeaturedEntitiesEntity(model.getFeaturedEntities())));
+            case DefaultPlanBlueprint -> data.setValue(this.jsonHandlingService.toJson(this.buildDefaultPlanBlueprintConfigurationEntity(model.getDefaultPlanBlueprint())));
             default -> throw new InternalError("unknown type: " + data.getType());
         }
         data.setUpdatedAt(Instant.now());
@@ -212,6 +221,28 @@ public class TenantConfigurationServiceImpl implements TenantConfigurationServic
         return depositSourceEntity;
     }
 
+    private @NotNull EvaluatorTenantConfigurationEntity buildEvaluatorTenantConfigurationEntity(EvaluatorTenantConfigurationPersist persist) throws InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
+        EvaluatorTenantConfigurationEntity data = new EvaluatorTenantConfigurationEntity();
+        if (persist == null || this.conventionService.isListNullOrEmpty(persist.getSources())) return data;
+        data.setDisableSystemSources(persist.getDisableSystemSources());
+        data.setSources(new ArrayList<>());
+        for (EvaluatorSourcePersist sourcePersist : persist.getSources()) {
+            data.getSources().add(this.buildEvaluatorSourceEntity(sourcePersist));
+        }
+        return data;
+    }
+
+    private EvaluatorSourceEntity buildEvaluatorSourceEntity(EvaluatorSourcePersist sourcePersist) throws InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
+        EvaluatorSourceEntity sourceEntity = new EvaluatorSourceEntity();
+        sourceEntity.setClientId(sourcePersist.getClientId());
+        if (!this.conventionService.isNullOrEmpty(sourcePersist.getClientSecret())) sourceEntity.setClientSecret(this.encryptionService.encryptAES(sourcePersist.getClientSecret(), this.tenantProperties.getConfigEncryptionAesKey(), this.tenantProperties.getConfigEncryptionAesIv()));
+        sourceEntity.setUrl(sourcePersist.getUrl());
+        sourceEntity.setIssuerUrl(sourcePersist.getIssuerUrl());
+        sourceEntity.setScope(sourcePersist.getScope());
+        sourceEntity.setEvaluatorId(sourcePersist.getEvaluatorId());
+        return sourceEntity;
+    }
+
     private @NotNull FileTransformerTenantConfigurationEntity buildFileTransformerTenantConfigurationEntity(FileTransformerTenantConfigurationPersist persist) throws InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
         FileTransformerTenantConfigurationEntity data = new FileTransformerTenantConfigurationEntity();
         if (persist == null || this.conventionService.isListNullOrEmpty(persist.getSources())) return data;
@@ -238,9 +269,7 @@ public class TenantConfigurationServiceImpl implements TenantConfigurationServic
         CssColorsTenantConfigurationEntity data = new CssColorsTenantConfigurationEntity();
         if (persist == null) return data;
         data.setPrimaryColor(persist.getPrimaryColor());
-        data.setPrimaryColor2(persist.getPrimaryColor2());
-        data.setPrimaryColor3(persist.getPrimaryColor3());
-        data.setSecondaryColor(persist.getSecondaryColor());
+        data.setCssOverride(persist.getCssOverride());
         return data;
     }
 
@@ -263,15 +292,62 @@ public class TenantConfigurationServiceImpl implements TenantConfigurationServic
             if (!persist.getStorageFileId().equals(existingFileId)) {
                 StorageFile storageFile = this.storageFileService.copyToStorage(persist.getStorageFileId(), StorageType.Main, true, new BaseFieldSet().ensure(StorageFile._id));
                 this.storageFileService.updatePurgeAt(storageFile.getId(), null);
-                if (existingFileId != null) this.storageFileService.updatePurgeAt(existingFileId,  Instant.now().minusSeconds(60));
+                if (existingFileId != null) this.storageFileService.updatePurgeAt(existingFileId,  Instant.now().plusSeconds(60));
                 data.setStorageFileId(storageFile.getId());
             } else {
                 data.setStorageFileId(existingFileId);
             }
         } else {
-            if (existingFileId != null) this.storageFileService.updatePurgeAt(existingFileId,  Instant.now().minusSeconds(60));
+            if (existingFileId != null) this.storageFileService.updatePurgeAt(existingFileId,  Instant.now().plusSeconds(60));
             data.setStorageFileId(null);
         }
+        return data;
+    }
+
+    private @NotNull FeaturedEntitiesEntity buildFeaturedEntitiesEntity(FeaturedEntitiesPersist persist) {
+        FeaturedEntitiesEntity data = new FeaturedEntitiesEntity();
+        if (persist == null) return data;
+
+        if (!this.conventionService.isListNullOrEmpty(persist.getPlanBlueprints())) {
+            data.setPlanBlueprints(new ArrayList<>());
+            for (PlanBlueprintPersist planBlueprintPersist : persist.getPlanBlueprints()) {
+                data.getPlanBlueprints().add(this.buildFeaturedPlanBlueprintEntity(planBlueprintPersist));
+            }
+        }
+        if (!this.conventionService.isListNullOrEmpty(persist.getDescriptionTemplates())) {
+            data.setDescriptionTemplates(new ArrayList<>());
+            for (DescriptionTemplatePersist descriptionTemplatePersist : persist.getDescriptionTemplates()) {
+                data.getDescriptionTemplates().add(this.buildFeaturedDescriptionTemplateEntity(descriptionTemplatePersist));
+            }
+        }
+        return data;
+    }
+
+    private @NotNull PlanBlueprintEntity buildFeaturedPlanBlueprintEntity(PlanBlueprintPersist persist) {
+        PlanBlueprintEntity data = new PlanBlueprintEntity();
+        if (persist == null) return data;
+
+        data.setGroupId(persist.getGroupId());
+        data.setOrdinal(persist.getOrdinal());
+
+        return data;
+    }
+
+    private @NotNull DescriptionTemplateEntity buildFeaturedDescriptionTemplateEntity(DescriptionTemplatePersist persist) {
+        DescriptionTemplateEntity data = new DescriptionTemplateEntity();
+        if (persist == null) return data;
+
+        data.setGroupId(persist.getGroupId());
+        data.setOrdinal(persist.getOrdinal());
+
+        return data;
+    }
+
+    private @NotNull DefaultPlanBlueprintConfigurationEntity buildDefaultPlanBlueprintConfigurationEntity(DefaultPlanBlueprintConfigurationPersist persist) {
+        DefaultPlanBlueprintConfigurationEntity data = new DefaultPlanBlueprintConfigurationEntity();
+        if (persist == null) return data;
+
+        data.setGroupId(persist.getGroupId());
         return data;
     }
 
@@ -285,7 +361,7 @@ public class TenantConfigurationServiceImpl implements TenantConfigurationServic
 
         if (data.getType().equals(TenantConfigurationType.Logo)){
             LogoTenantConfigurationEntity oldValue = this.conventionService.isNullOrEmpty(data.getValue()) ? null : this.jsonHandlingService.fromJsonSafe(LogoTenantConfigurationEntity.class, data.getValue());
-            if (oldValue != null && oldValue.getStorageFileId() != null) this.storageFileService.updatePurgeAt(oldValue.getStorageFileId(),  Instant.now().minusSeconds(60));
+            if (oldValue != null && oldValue.getStorageFileId() != null) this.storageFileService.updatePurgeAt(oldValue.getStorageFileId(),  Instant.now().plusSeconds(60));
         }
         this.deleterFactory.deleter(TenantConfigurationDeleter.class).deleteAndSaveByIds(List.of(id));
 
@@ -302,6 +378,24 @@ public class TenantConfigurationServiceImpl implements TenantConfigurationServic
             event.setTenantId(data.getTenantId());
             this.tenantDefaultLocaleRemovalIntegrationEventHandler.handle(event);
         }
+    }
+
+    @Override
+    public TenantConfigurationEntity getActiveType(TenantConfigurationType type, FieldSet fieldSet) throws MyApplicationException, MyForbiddenException, MyNotFoundException, InvalidApplicationException {
+
+        if (type == null) throw new MyApplicationException("tenant configuration type is required!");
+
+        TenantConfigurationQuery query = this.queryFactory.query(TenantConfigurationQuery.class).disableTracking().authorize(AuthorizationFlags.AllExceptPublic).isActive(IsActive.Active).types(type);
+        if (this.tenantScope.isDefaultTenant()) query.tenantIsSet(false);
+        else query.tenantIsSet(true).tenantIds(this.tenantScope.getTenant());
+
+        TenantConfigurationEntity entity = query.firstAs(BaseFieldSet.build(fieldSet, TenantConfiguration._id));
+        if (entity == null && !this.tenantScope.isDefaultTenant()) {
+            query.clearTenantIds().tenantIsSet(false);
+            entity = query.firstAs(BaseFieldSet.build(fieldSet, TenantConfiguration._id));
+        }
+
+        return entity;
     }
 
 }

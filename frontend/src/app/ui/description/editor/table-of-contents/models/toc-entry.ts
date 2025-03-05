@@ -17,4 +17,5 @@ export interface ToCEntry {
 	isFirstEntry?: boolean;
 	previousEntry?: ToCEntry;
 	nextEntry?: ToCEntry;
+    pathToEntry: string[]
 }

@@ -41,6 +41,7 @@ export function cloneAbstractControl<T extends AbstractControl>(control: T): T {
 	}
 
 	if (control.disabled) newControl.disable({ emitEvent: false });
+    if(control.touched) newControl.markAsTouched({emitEvent: false});
 
 	return newControl;
 }

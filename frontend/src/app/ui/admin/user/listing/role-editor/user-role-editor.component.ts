@@ -22,10 +22,11 @@ import { AppRole } from '@app/core/common/enum/app-role';
 import { Guid } from '@common/types/guid';
 
 @Component({
-	selector: 'app-user-role-editor-component',
-	templateUrl: './user-role-editor.component.html',
-	styleUrls: ['./user-role-editor.component.scss'],
-	providers: [UserRoleEditorService]
+    selector: 'app-user-role-editor-component',
+    templateUrl: './user-role-editor.component.html',
+    styleUrls: ['./user-role-editor.component.scss'],
+    providers: [UserRoleEditorService],
+    standalone: false
 })
 export class UserRoleEditorComponent extends BaseComponent implements OnInit, OnChanges {
 

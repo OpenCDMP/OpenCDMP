@@ -13,12 +13,12 @@ import org.opencdmp.authorization.AuthorizationFlags;
 import org.opencdmp.authorization.authorizationcontentresolver.AuthorizationContentResolver;
 import org.opencdmp.commons.JsonHandlingService;
 import org.opencdmp.commons.XmlHandlingService;
+import org.opencdmp.commons.enums.IsActive;
 import org.opencdmp.commons.scope.tenant.TenantScope;
 import org.opencdmp.commons.types.description.PropertyDefinitionEntity;
 import org.opencdmp.commons.types.descriptiontemplate.DefinitionEntity;
 import org.opencdmp.convention.ConventionService;
-import org.opencdmp.data.DescriptionEntity;
-import org.opencdmp.data.DescriptionTemplateEntity;
+import org.opencdmp.data.*;
 import org.opencdmp.model.DescriptionTag;
 import org.opencdmp.model.PlanDescriptionTemplate;
 import org.opencdmp.model.builder.BaseBuilder;
@@ -26,14 +26,19 @@ import org.opencdmp.model.builder.DescriptionTagBuilder;
 import org.opencdmp.model.builder.PlanDescriptionTemplateBuilder;
 import org.opencdmp.model.builder.UserBuilder;
 import org.opencdmp.model.builder.descriptionreference.DescriptionReferenceBuilder;
+import org.opencdmp.model.builder.descriptionstatus.DescriptionStatusBuilder;
 import org.opencdmp.model.builder.descriptiontemplate.DescriptionTemplateBuilder;
 import org.opencdmp.model.builder.plan.PlanBuilder;
 import org.opencdmp.model.description.Description;
 import org.opencdmp.model.descriptionreference.DescriptionReference;
+import org.opencdmp.model.descriptionstatus.DescriptionStatus;
+import org.opencdmp.model.descriptionstatus.DescriptionStatusDefinitionAuthorization;
 import org.opencdmp.model.descriptiontemplate.DescriptionTemplate;
 import org.opencdmp.model.plan.Plan;
 import org.opencdmp.model.user.User;
 import org.opencdmp.query.*;
+import org.opencdmp.service.custompolicy.CustomPolicyService;
+import org.opencdmp.service.descriptionstatus.DescriptionStatusService;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
@@ -55,14 +60,16 @@ public class DescriptionBuilder extends BaseBuilder<Description, DescriptionEnti
     private final AuthorizationService authorizationService;
     private final AuthorizationContentResolver authorizationContentResolver;
     private final TenantScope tenantScope;
+    private final CustomPolicyService customPolicyService;
+    private final DescriptionStatusService descriptionStatusService;
 
     private EnumSet<AuthorizationFlags> authorize = EnumSet.of(AuthorizationFlags.None);
 
     @Autowired
     public DescriptionBuilder(
-		    ConventionService conventionService,
-		    QueryFactory queryFactory,
-		    BuilderFactory builderFactory, JsonHandlingService jsonHandlingService, XmlHandlingService xmlHandlingService, AuthorizationService authorizationService, AuthorizationContentResolver authorizationContentResolver, TenantScope tenantScope) {
+            ConventionService conventionService,
+            QueryFactory queryFactory,
+            BuilderFactory builderFactory, JsonHandlingService jsonHandlingService, XmlHandlingService xmlHandlingService, AuthorizationService authorizationService, AuthorizationContentResolver authorizationContentResolver, TenantScope tenantScope, CustomPolicyService customPolicyService, DescriptionStatusService descriptionStatusService) {
         super(conventionService, new LoggerService(LoggerFactory.getLogger(DescriptionBuilder.class)));
         this.queryFactory = queryFactory;
         this.builderFactory = builderFactory;
@@ -71,6 +78,8 @@ public class DescriptionBuilder extends BaseBuilder<Description, DescriptionEnti
 	    this.authorizationService = authorizationService;
 	    this.authorizationContentResolver = authorizationContentResolver;
 	    this.tenantScope = tenantScope;
+        this.customPolicyService = customPolicyService;
+        this.descriptionStatusService = descriptionStatusService;
     }
 
     public DescriptionBuilder authorize(EnumSet<AuthorizationFlags> values) {
@@ -84,6 +93,12 @@ public class DescriptionBuilder extends BaseBuilder<Description, DescriptionEnti
         this.logger.trace(new DataLogEntry("requested fields", fields));
         if (fields == null || data == null || fields.isEmpty())
             return new ArrayList<>();
+
+        FieldSet statusFields = fields.extractPrefixed(this.asPrefix(Description._status));
+        Map<UUID, DescriptionStatus> statusItemsMap = this.collectDescriptionStatuses(statusFields, data);
+
+        FieldSet availableStatusesFields = fields.extractPrefixed(this.asPrefix(Description._availableStatuses));
+        Map<UUID, List<DescriptionStatus>> avaialbleStatusesItemsMap = this.collectAvailableDescriptionStatuses(availableStatusesFields, data);
 
         FieldSet planDescriptionTemplateFields = fields.extractPrefixed(this.asPrefix(Description._planDescriptionTemplate));
         Map<UUID, PlanDescriptionTemplate> planDescriptionTemplateItemsMap = this.collectPlanDescriptionTemplates(planDescriptionTemplateFields, data);
@@ -110,13 +125,15 @@ public class DescriptionBuilder extends BaseBuilder<Description, DescriptionEnti
         Set<String> authorizationFlags = this.extractAuthorizationFlags(fields, Description._authorizationFlags, this.authorizationContentResolver.getPermissionNames());
         Map<UUID, AffiliatedResource>  affiliatedResourceMap = authorizationFlags == null || authorizationFlags.isEmpty() ? null : this.authorizationContentResolver.descriptionsAffiliation(data.stream().map(DescriptionEntity::getId).collect(Collectors.toList()));
 
+        FieldSet statusAuthorizationFlags = fields.extractPrefixed(this.asPrefix(Description._statusAuthorizationFlags));
         List<Description> models = new ArrayList<>();
         for (DescriptionEntity d : data) {
             Description m = new Description();
             if (fields.hasField(this.asIndexer(Description._id))) m.setId(d.getId());
             if (fields.hasField(this.asIndexer(Description._tenantId))) m.setTenantId(d.getTenantId());
             if (fields.hasField(this.asIndexer(Description._label)))  m.setLabel(d.getLabel());
-            if (fields.hasField(this.asIndexer(Description._status))) m.setStatus(d.getStatus());
+            if (!statusFields.isEmpty() && statusItemsMap != null && statusItemsMap.containsKey(d.getStatusId())) m.setStatus(statusItemsMap.get(d.getStatusId()));
+            if (avaialbleStatusesItemsMap != null && !avaialbleStatusesItemsMap.isEmpty() && avaialbleStatusesItemsMap.containsKey(d.getId())) m.setAvailableStatuses(avaialbleStatusesItemsMap.get(d.getId()));
             if (fields.hasField(this.asIndexer(Description._description))) m.setDescription(d.getDescription());
             if (fields.hasField(this.asIndexer(Description._createdAt))) m.setCreatedAt(d.getCreatedAt());
             if (fields.hasField(this.asIndexer(Description._updatedAt))) m.setUpdatedAt(d.getUpdatedAt());
@@ -135,12 +152,67 @@ public class DescriptionBuilder extends BaseBuilder<Description, DescriptionEnti
                 m.setProperties(this.builderFactory.builder(PropertyDefinitionBuilder.class).withDefinition(definitionEntityMap != null ? definitionEntityMap.getOrDefault(d.getDescriptionTemplateId(), null) : null).authorize(this.authorize).build(definitionPropertiesFields, propertyDefinition));
             }
             if (affiliatedResourceMap != null && !authorizationFlags.isEmpty()) m.setAuthorizationFlags(this.evaluateAuthorizationFlags(this.authorizationService, authorizationFlags, affiliatedResourceMap.getOrDefault(d.getId(), null)));
+            if (!statusAuthorizationFlags.isEmpty() && !this.conventionService.isListNullOrEmpty(m.getAvailableStatuses())) {
+                m.setStatusAuthorizationFlags(this.evaluateStatusAuthorizationFlags(this.authorizationService, statusAuthorizationFlags, d));
+            }
             models.add(m);
         }
 
         this.logger.debug("build {} items", Optional.of(models).map(List::size).orElse(0));
 
         return models;
+    }
+
+    private Map<UUID, DescriptionStatus> collectDescriptionStatuses(FieldSet fields, List<DescriptionEntity> data) throws MyApplicationException {
+        if (fields.isEmpty() || data.isEmpty())
+            return null;
+        this.logger.debug("checking related - {}", DescriptionStatus.class.getSimpleName());
+
+        Map<UUID, DescriptionStatus> itemMap;
+        if (!fields.hasOtherField(this.asIndexer(DescriptionStatus._id))) {
+            itemMap = this.asEmpty(
+                    data.stream().map(DescriptionEntity::getStatusId).distinct().collect(Collectors.toList()),
+                    x -> {
+                        DescriptionStatus item = new DescriptionStatus();
+                        item.setId(x);
+                        return item;
+                    },
+                    DescriptionStatus::getId);
+        } else {
+            FieldSet clone = new BaseFieldSet(fields.getFields()).ensure(DescriptionStatus._id);
+            DescriptionStatusQuery q = this.queryFactory.query(DescriptionStatusQuery.class).disableTracking().authorize(this.authorize).ids(data.stream().map(DescriptionEntity::getStatusId).distinct().collect(Collectors.toList()));
+            itemMap = this.builderFactory.builder(DescriptionStatusBuilder.class).authorize(this.authorize).asForeignKey(q, clone, DescriptionStatus::getId);
+        }
+        if (!fields.hasField(DescriptionStatus._id)) {
+            itemMap.forEach((id, item) -> {
+                if (item != null)
+                    item.setId(null);
+            });
+        }
+
+        return itemMap;
+    }
+
+    private Map<UUID, List<DescriptionStatus>> collectAvailableDescriptionStatuses(FieldSet fields, List<DescriptionEntity> data) throws MyApplicationException {
+        if (fields.isEmpty() || data.isEmpty()) return null;
+        this.logger.debug("checking related - {}", DescriptionStatus.class.getSimpleName());
+
+        Map<UUID, List<DescriptionStatus>> itemMap = new HashMap<>();
+        FieldSet fieldSet = new BaseFieldSet(fields.getFields()).ensure(DescriptionStatus._id);
+        Map<UUID, List<UUID>> itemStatusIdsMap = this.descriptionStatusService.getAuthorizedAvailableStatusIds(data.stream().map(DescriptionEntity::getId).collect(Collectors.toList()));
+
+        List<DescriptionStatusEntity> statusEntities = this.queryFactory.query(DescriptionStatusQuery.class).authorize(this.authorize).isActive(IsActive.Active).ids(itemStatusIdsMap.values().stream().flatMap(List::stream).distinct().collect(Collectors.toList())).collectAs(fieldSet);
+        List<DescriptionStatus> descriptionStatuses = this.builderFactory.builder(DescriptionStatusBuilder.class).authorize(this.authorize).build(fieldSet, statusEntities);
+
+        for (DescriptionEntity entity: data) {
+            itemMap.put(entity.getId(), new ArrayList<>());
+            List<UUID> statusIds = itemStatusIdsMap.getOrDefault(entity.getId(), new ArrayList<>());
+            for (UUID statusId: statusIds) {
+                itemMap.get(entity.getId()).addAll(descriptionStatuses.stream().filter(x -> x.getId().equals(statusId)).collect(Collectors.toList()));
+            }
+        }
+
+        return itemMap;
     }
 
     private Map<UUID, User> collectUsers(FieldSet fields, List<DescriptionEntity> data) throws MyApplicationException {
@@ -313,6 +385,24 @@ public class DescriptionBuilder extends BaseBuilder<Description, DescriptionEnti
         }
 
         return itemMap;
+    }
+
+    private List<String> evaluateStatusAuthorizationFlags(AuthorizationService authorizationService, FieldSet statusAuthorizationFlags, DescriptionEntity description) {
+        List<String> allowed = new ArrayList<>();
+        if (statusAuthorizationFlags == null) return allowed;
+        if (authorizationService == null) return allowed;
+        if (description == null) return allowed;
+
+        String editPermission = this.customPolicyService.getDescriptionStatusCanEditStatusPermission(description.getStatusId());
+        AffiliatedResource affiliatedResource = this.authorizationContentResolver.descriptionAffiliation(description.getId());
+        for (String permission : statusAuthorizationFlags.getFields()) {
+            if (statusAuthorizationFlags.hasField(this.asIndexer(DescriptionStatusDefinitionAuthorization._edit))) {
+                Boolean isAllowed = affiliatedResource == null ? this.authorizationService.authorize(editPermission) : this.authorizationService.authorizeAtLeastOne(List.of(affiliatedResource), editPermission);
+                if (isAllowed) allowed.add(permission);
+            }
+        }
+
+        return allowed;
     }
 
 }

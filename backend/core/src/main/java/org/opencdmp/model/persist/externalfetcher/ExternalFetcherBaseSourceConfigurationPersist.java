@@ -8,6 +8,7 @@ import org.opencdmp.convention.ConventionService;
 import org.opencdmp.errorcode.ErrorThesaurusProperties;
 import gr.cite.tools.validation.ValidatorFactory;
 import gr.cite.tools.validation.specification.Specification;
+import org.opencdmp.service.externalfetcher.config.entities.SourceBaseConfiguration;
 import org.springframework.context.MessageSource;
 import org.springframework.context.i18n.LocaleContextHolder;
 
@@ -25,7 +26,7 @@ import java.util.UUID;
         @JsonSubTypes.Type(value = ExternalFetcherApiSourceConfigurationPersist.class, name = "0"),
         @JsonSubTypes.Type(value = ExternalFetcherStaticOptionSourceConfigurationPersist.class, name = "1")
 })
-public abstract class ExternalFetcherBaseSourceConfigurationPersist {
+public abstract class ExternalFetcherBaseSourceConfigurationPersist implements SourceBaseConfiguration {
 
     private String key = null;
 

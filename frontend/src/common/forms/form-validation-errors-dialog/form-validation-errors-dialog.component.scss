@@ -25,7 +25,7 @@
 }
 
 .text {
-	font-size: 1.25rem;
+	font-size: var(--sys-headline-medium-size);
 	font-weight: lighter;
 	color: #000000;
 	opacity: 0.8;
@@ -34,9 +34,8 @@
 .title {
 	text-align: left;
 	font-weight: 500;
-	font-size: 1.25rem;
 	letter-spacing: 0px;
-	color: #f16868;
+	color: var(--sys-error);
 	opacity: 1;
 }
 
@@ -45,36 +44,6 @@
 	line-height: 1.9rem;
 }
 
-.cancel-btn {
-	background: #ffffff 0% 0% no-repeat padding-box;
-	border: 1px solid #b5b5b5;
-	border-radius: 30px;
-min-width: 101px;
-	height: 43px;
-	color: #212121;
-	font-weight: 500;
-}
-
-.next-btn {
-	background: #ffffff 0% 0% no-repeat padding-box;
-	border: 1px solid var(--primary-color);
-	border-radius: 30px;
-	opacity: 1;
-min-width: 101px;
-	height: 43px;
-	color: var(--primary-color);
-	font-weight: 500;
-}
-
-.disabled-btn {
-	border: 1px solid #b5b5b5;
-	border-radius: 30px;
-	opacity: 1;
-min-width: 101px;
-	height: 43px;
-	color: #b5b5b5;
-	font-weight: 500;
-}
 
 .error-list {
 	margin-bottom: 0;
@@ -85,7 +54,7 @@ min-width: 101px;
 }
 
 #warningText {
-	color: red;
+	color: var(--sys-error);
 	text-decoration: underline;
-	text-decoration-color: red;
+	text-decoration-color: var(--sys-error);
 }

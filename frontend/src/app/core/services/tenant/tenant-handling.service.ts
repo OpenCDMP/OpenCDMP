@@ -4,12 +4,16 @@ import { PRIMARY_OUTLET, Router, UrlSegment, UrlSegmentGroup, UrlSerializer, Url
 import { TenantConfigurationType } from '@app/core/common/enum/tenant-configuration-type';
 import { CssColorsTenantConfiguration, TenantConfiguration } from '@app/core/model/tenant-configuaration/tenant-configuration';
 import { BaseService } from '@common/base/base.service';
-import { Observable, takeUntil } from 'rxjs';
+import { BehaviorSubject, Observable, takeUntil, tap } from 'rxjs';
 import { nameof } from 'ts-simple-nameof';
 import { TenantConfigurationService } from '../tenant-configuration/tenant-configuration.service';
+import { generateDynamicTheme, overrideCss } from '@app/ui/misc/theme-helper';
+import { DefaultPlanBlueprintEditorResolver } from '@app/ui/admin/tenant-configuration/editor/default-plan-blueprint/default-plan-blueprint-editor.resolver';
 
 @Injectable()
 export class TenantHandlingService extends BaseService {
+
+	public planBlueprintGroupIdSubject = new BehaviorSubject<TenantConfiguration>(null);
 
 	constructor(
 		@Inject(DOCUMENT) private readonly document: Document,
@@ -71,22 +75,43 @@ export class TenantHandlingService extends BaseService {
 	}
 
 	public loadTenantCssColors(): Observable<TenantConfiguration> {
-		return this.tenantConfigurationService.getCurrentTenantType(TenantConfigurationType.CssColors, [
+		return this.tenantConfigurationService.getActiveType(TenantConfigurationType.CssColors, [
 			nameof<TenantConfiguration>(x => x.type),
 			[nameof<TenantConfiguration>(x => x.cssColors), nameof<CssColorsTenantConfiguration>(x => x.primaryColor)].join('.'),
-			[nameof<TenantConfiguration>(x => x.cssColors), nameof<CssColorsTenantConfiguration>(x => x.primaryColor2)].join('.'),
-			[nameof<TenantConfiguration>(x => x.cssColors), nameof<CssColorsTenantConfiguration>(x => x.primaryColor3)].join('.'),
-			[nameof<TenantConfiguration>(x => x.cssColors), nameof<CssColorsTenantConfiguration>(x => x.secondaryColor)].join('.'),
+			[nameof<TenantConfiguration>(x => x.cssColors), nameof<CssColorsTenantConfiguration>(x => x.cssOverride)].join('.')
 		]);
+	}
+
+	// tenant config default blueprint
+
+	public addPlanBlueprintGroupIdSubject(blueprintTenantConfig: TenantConfiguration) {
+		if (!blueprintTenantConfig) return;
+		
+		this.planBlueprintGroupIdSubject.next(blueprintTenantConfig)
+	}
+
+	public loadAndApplyTenantDefaultPlanBlueprint$(): Observable<TenantConfiguration> {
+			return this.planBlueprintGroupIdSubject.getValue()
+			? this.planBlueprintGroupIdSubject.asObservable()
+			: this.loadDefaultPlanBlueprint();
+	}
+
+	public loadDefaultPlanBlueprint(): Observable<TenantConfiguration> {
+		return this.tenantConfigurationService.getActiveType(TenantConfigurationType.DefaultPlanBlueprint, DefaultPlanBlueprintEditorResolver.lookupFields())
+		.pipe(
+			tap((_result) => this.planBlueprintGroupIdSubject.next(_result))
+		  );
 	}
 
 	public applyTenantCssColors(cssColors: CssColorsTenantConfiguration) {
 
 		if (cssColors) {
-			if (cssColors.primaryColor) document.documentElement.style.setProperty(`--primary-color`, cssColors.primaryColor);
-			if (cssColors.primaryColor2) document.documentElement.style.setProperty(`--primary-color-2`, cssColors.primaryColor2);
-			if (cssColors.primaryColor3) document.documentElement.style.setProperty(`--primary-color-3`, cssColors.primaryColor3);
-			if (cssColors.secondaryColor) document.documentElement.style.setProperty(`--secondary-color`, cssColors.secondaryColor);
+			if (cssColors.primaryColor){
+                generateDynamicTheme(cssColors.primaryColor);
+            }
+			if (cssColors.cssOverride){
+                overrideCss(cssColors.cssOverride);
+            }
 		}
 	}
 }

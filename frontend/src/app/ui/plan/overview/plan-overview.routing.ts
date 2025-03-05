@@ -6,11 +6,27 @@ import { BreadcrumbService } from '@app/ui/misc/breadcrumb/breadcrumb.service';
 const routes: Routes = [
 	{
 		path: ':id',
-		component: PlanOverviewComponent,
-		data: {
-			breadcrumb: true,
-			title: 'GENERAL.TITLES.PLAN-OVERVIEW'
-		},
+        children: [
+            {
+                path: '',
+                component: PlanOverviewComponent,
+                data: {
+                    breadcrumb: true,
+                    title: 'GENERAL.TITLES.PLAN-OVERVIEW'
+                },
+            },
+            {
+                path: 'descriptions',
+                loadChildren: () => import('../../description/overview/description-overview.module').then(m => m.DescriptionOverviewModule),
+                data: {
+                    breadcrumb: true,
+                    ...BreadcrumbService.generateRouteDataConfiguration({
+                        skipNavigation: true,
+                        title: 'GENERAL.TITLES.DESCRIPTIONS'
+                    }),
+                },
+            }
+        ]
 	},
 	{
 		path: 'public/:publicId',

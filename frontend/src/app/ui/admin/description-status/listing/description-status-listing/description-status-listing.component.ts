@@ -27,9 +27,10 @@ import { nameof } from 'ts-simple-nameof';
 import { DescriptionStatusEditorResolver } from '../../editor/description-status-editor/description-status-editor.resolver';
 
 @Component({
-  selector: 'app-description-status-listing',
-  templateUrl: './description-status-listing.component.html',
-  styleUrl: './description-status-listing.component.scss'
+    selector: 'app-description-status-listing',
+    templateUrl: './description-status-listing.component.html',
+    styleUrl: './description-status-listing.component.scss',
+    standalone: false
 })
 export class DescriptionStatusListingComponent extends BaseListingComponent<DescriptionStatus, DescriptionStatusLookup> implements OnInit{
     userSettingsKey: UserSettingsKey = {key: 'DescriptionStatusListingUserSettings'};
@@ -143,7 +144,7 @@ export class DescriptionStatusListingComponent extends BaseListingComponent<Desc
 		},
 		{
 			prop: nameof<DescriptionStatus>(x => x.isActive),
-			sortable: true,
+			sortable: false,
 			languageName: 'PLAN-STATUS-LISTING.FIELDS.IS-ACTIVE',
 			pipe: this.pipeService.getPipe<IsActiveTypePipe>(IsActiveTypePipe)
 		},

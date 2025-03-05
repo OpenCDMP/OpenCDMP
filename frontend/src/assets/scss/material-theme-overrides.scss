@@ -1,0 +1,56 @@
+:root {
+    --sys-surface: #ffffff;
+
+////////////////////////////////////////////
+
+    --sys-headline-large-size: 1.5rem; //!!!!!
+    --sys-headline-large-line-height: 2.5rem;
+
+    --sys-headline-medium-size: 1.25rem; //!!!
+    --sys-headline-medium-line-height: 2.25rem;
+
+    --sys-headline-small-size: 0.93rem; //!!!!!!
+    --sys-headline-small-line-height: 2rem;
+////////////////////////////////////////////
+
+    --sys-title-large-size: 1.312rem; //!!!!!
+    --sys-title-large-line-height: 1.75rem;
+    --sys-title-large-weight: 500;
+
+    --sys-title-medium-size: 1.125rem;
+    --sys-title-medium-line-height: 1.125rem;
+
+    --sys-title-small-size: 0.875rem;
+    --sys-title-small-line-height: 1.25rem;
+////////////////////////////////////////
+
+    // --sys-body-large: 400 1rem / 1.5rem Roboto, sans-serif;
+    // --sys-body-large-weight: 400;
+    --sys-body-large-size: 1.125rem; //!!!!
+    --sys-body-large-line-height: 1.125rem;
+
+    --sys-body-medium-size: 1rem;
+    --sys-body-medium-line-height: 1.25rem;
+
+    --sys-body-small-size: 0.85rem; //!!!!
+    --sys-body-small-line-height: 1rem;
+    --sys-body-small-tracking: 0.025rem;
+////////////////////////////////////////////
+
+    --sys-label-large-size: 0.87rem; //!!!!
+    --sys-label-large-line-height: 1.25rem; //!!!!
+    --sys-label-large-weight-prominent: 700;
+
+    --sys-label-medium-size:  0.8rem;  //!!!!
+    --sys-label-medium-line-height: 1rem;
+
+    --sys-label-medium-weight-prominent: 700;
+
+    --sys-label-small-size: 0.688rem;
+    --sys-label-small-line-height: 1rem;
+
+
+    --mat-standard-button-toggle-label-text-size: var(--sys-body-medium-size);
+    --mat-menu-item-label-text-size: var(--sys-body-medium-size);
+    --mat-badge-small-size-text-size: var(--sys-label-small-size);
+}

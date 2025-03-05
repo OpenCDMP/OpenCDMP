@@ -1,0 +1,45 @@
+@if(formGroup()){
+    
+    <div *ngFor="let section of blueprint()?.definition?.sections; let i=index" [hidden]="hideEditor()">
+        <div class="section-info" [hidden]="!showAllSections() && step() !== (i + 1)">
+            <div class="col-12" *ngIf="section.fields?.length > 0 || section.hasTemplates">
+                <div class="section-title">{{i+1}}. {{section.label}}</div>
+                <small class="pl-2">{{'COMMONS.VALIDATION.REQUIRED-FIELDS-HINT' | translate}}</small>
+                <div *ngFor="let field of section.fields; let j=index" [id]="field.id">
+                    <div class="input-form">
+                        <app-plan-internal-blueprint-field-editor
+                            [field]="field"
+                            [formGroup]="formGroup()"
+                            [fieldPath]="(i + 1) + '.' + (j + 1)"
+                            [canEdit]="canEditPlan()"
+                            [isNew]="isNew()"
+                            [isActivePlan]="!isDeleted"
+                            [editorModel]="editorModel()"
+                            [referenceType]="field.referenceType"
+                            [sections]="blueprint().definition.sections"
+                            [annotationsPerAnchor]="annotationsPerAnchor()"
+                            (reApplyPropertiesValidators)="reApplyPropertiesValidators()"
+                            (showAnnotations)="showAnnotations.emit($event)"
+                        />
+                    </div>
+                </div>
+            </div>
+            <div class="col-12" *ngIf="section.hasTemplates">
+                <div class="row">
+                    <div class="col-12">
+                        <label class="heading">{{'PLAN-EDITOR.FIELDS.DESCRIPTION-TEMPLATES' | translate}} *</label>
+                        <div class="hint">{{'PLAN-EDITOR.FIELDS.DESCRIPTION-TEMPLATES-HINT' | translate}}</div>
+                        <app-description-template-table-select 
+                            [descTemplatesControl]="formGroup()?.get('descriptionTemplates').get(section.id.toString())"
+                            [templatesInUse]="descTemplatesInUseMap()?.get(section.id)"
+                            (descriptionTemplateLoaded)="descriptionTemplateLoaded.emit($event)"
+                        />
+                        <div class="col pl-0 pt-2 pb-0 d-flex">
+                            <span class="not-found-template">{{'PLAN-EDITOR.NO-TEMPLATE-MESSAGE' | translate}}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+}

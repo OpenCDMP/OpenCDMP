@@ -135,7 +135,7 @@
 						<mat-checkbox [checked]="isListingItemSelected(item)" (change)="onSelectionListChange($event,item)"></mat-checkbox>
 					</div>
 					<div (click)="onListItemActivated(item)" class="flex-grow-1" style="max-width: 100%;"  [class.cursor-pointer]="rowActivated?.observers?.length">
-						<ng-container *ngTemplateOutlet="listItemTemplate; context: {item, isColumnSelected : this.isColumnSelected}"/>
+						<ng-container *ngTemplateOutlet="listItemTemplate; context: {item, isColumnSelected : isColumnSelected}"/>
 					</div>
 				</div>
 			</ng-container>
@@ -162,7 +162,7 @@
 							<mat-checkbox [checked]="isListingItemSelected(item)" (change)="onSelectionListChange($event,item)"></mat-checkbox>
 						</div>
 						<div (click)="onListItemActivated(item)" class="cursor-pointer flex-grow-1 d-flex">
-							<ng-container *ngTemplateOutlet="cardItemTemplate; context: {item, isColumnSelected : this.isColumnSelected}"/>
+							<ng-container *ngTemplateOutlet="cardItemTemplate; context: {item, isColumnSelected : isColumnSelected}"/>
 						</div>
 					</mat-card-content>
 				</mat-card>

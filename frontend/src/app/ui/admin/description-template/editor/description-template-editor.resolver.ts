@@ -21,27 +21,20 @@ export class DescriptionTemplateEditorResolver extends BaseEditorResolver {
 		super();
 	}
 
-	public static lookupFields(): string[] {
-		return [
-			...BaseEditorResolver.lookupFields(),
-			nameof<DescriptionTemplate>(x => x.id),
-			nameof<DescriptionTemplate>(x => x.label),
-			nameof<DescriptionTemplate>(x => x.code),
-			nameof<DescriptionTemplate>(x => x.status),
-			nameof<DescriptionTemplate>(x => x.description),
-			nameof<DescriptionTemplate>(x => x.language),
-			nameof<DescriptionTemplate>(x => x.status),
+    public static baseLookupFields(): string[] {
+        return [
+            ...BaseEditorResolver.lookupFields(),
+            nameof<DescriptionTemplate>(x => x.id),
+            nameof<DescriptionTemplate>(x => x.label),
+            nameof<DescriptionTemplate>(x => x.version),
+            nameof<DescriptionTemplate>(x => x.versionStatus),
+            nameof<DescriptionTemplate>(x => x.groupId),
+            nameof<DescriptionTemplate>(x => x.isActive),
+        ]
+    }
 
-			[nameof<DescriptionTemplate>(x => x.authorizationFlags), AppPermission.EditDescriptionTemplate].join('.'),
-			[nameof<DescriptionTemplate>(x => x.authorizationFlags), AppPermission.DeleteDescriptionTemplate].join('.'),
-			[nameof<DescriptionTemplate>(x => x.authorizationFlags), AppPermission.CloneDescriptionTemplate].join('.'),
-			[nameof<DescriptionTemplate>(x => x.authorizationFlags), AppPermission.CreateNewVersionDescriptionTemplate].join('.'),
-			[nameof<DescriptionTemplate>(x => x.authorizationFlags), AppPermission.ImportDescriptionTemplate].join('.'),
-			[nameof<DescriptionTemplate>(x => x.authorizationFlags), AppPermission.ExportDescriptionTemplate].join('.'),
-
-			[nameof<DescriptionTemplate>(x => x.type), nameof<DescriptionTemplateType>(x => x.id)].join('.'),
-			[nameof<DescriptionTemplate>(x => x.type), nameof<DescriptionTemplateType>(x => x.name)].join('.'),
-
+    public static definitionLookupFields(): string[]{
+        return [
 			[nameof<DescriptionTemplate>(x => x.definition), nameof<DescriptionTemplateDefinition>(x => x.pages), nameof<DescriptionTemplatePage>(x => x.id)].join('.'),
 			[nameof<DescriptionTemplate>(x => x.definition), nameof<DescriptionTemplateDefinition>(x => x.pages), nameof<DescriptionTemplatePage>(x => x.ordinal)].join('.'),
 			[nameof<DescriptionTemplate>(x => x.definition), nameof<DescriptionTemplateDefinition>(x => x.pages), nameof<DescriptionTemplatePage>(x => x.title)].join('.'),
@@ -90,6 +83,31 @@ export class DescriptionTemplateEditorResolver extends BaseEditorResolver {
 			[nameof<DescriptionTemplate>(x => x.definition), nameof<DescriptionTemplateDefinition>(x => x.pages), nameof<DescriptionTemplatePage>(x => x.sections), nameof<DescriptionTemplateSection>(x => x.fieldSets), nameof<DescriptionTemplateFieldSet>(x => x.fields), nameof<DescriptionTemplateField>(x => x.data), nameof<DescriptionTemplateUploadData>(x => x.maxFileSizeInMB)].join('.'),
 			[nameof<DescriptionTemplate>(x => x.definition), nameof<DescriptionTemplateDefinition>(x => x.pages), nameof<DescriptionTemplatePage>(x => x.sections), nameof<DescriptionTemplateSection>(x => x.fieldSets), nameof<DescriptionTemplateFieldSet>(x => x.fields), nameof<DescriptionTemplateField>(x => x.data), nameof<DescriptionTemplateUploadData>(x => x.types), nameof<DescriptionTemplateUploadOption>(x => x.label)].join('.'),
 			[nameof<DescriptionTemplate>(x => x.definition), nameof<DescriptionTemplateDefinition>(x => x.pages), nameof<DescriptionTemplatePage>(x => x.sections), nameof<DescriptionTemplateSection>(x => x.fieldSets), nameof<DescriptionTemplateFieldSet>(x => x.fields), nameof<DescriptionTemplateField>(x => x.data), nameof<DescriptionTemplateUploadData>(x => x.types), nameof<DescriptionTemplateUploadOption>(x => x.value)].join('.'),
+        ]
+    }
+
+	public static lookupFields(): string[] {
+		return [
+			...BaseEditorResolver.lookupFields(),
+			nameof<DescriptionTemplate>(x => x.id),
+			nameof<DescriptionTemplate>(x => x.label),
+			nameof<DescriptionTemplate>(x => x.code),
+			nameof<DescriptionTemplate>(x => x.status),
+			nameof<DescriptionTemplate>(x => x.description),
+			nameof<DescriptionTemplate>(x => x.language),
+			nameof<DescriptionTemplate>(x => x.status),
+
+			[nameof<DescriptionTemplate>(x => x.authorizationFlags), AppPermission.EditDescriptionTemplate].join('.'),
+			[nameof<DescriptionTemplate>(x => x.authorizationFlags), AppPermission.DeleteDescriptionTemplate].join('.'),
+			[nameof<DescriptionTemplate>(x => x.authorizationFlags), AppPermission.CloneDescriptionTemplate].join('.'),
+			[nameof<DescriptionTemplate>(x => x.authorizationFlags), AppPermission.CreateNewVersionDescriptionTemplate].join('.'),
+			[nameof<DescriptionTemplate>(x => x.authorizationFlags), AppPermission.ImportDescriptionTemplate].join('.'),
+			[nameof<DescriptionTemplate>(x => x.authorizationFlags), AppPermission.ExportDescriptionTemplate].join('.'),
+
+			[nameof<DescriptionTemplate>(x => x.type), nameof<DescriptionTemplateType>(x => x.id)].join('.'),
+			[nameof<DescriptionTemplate>(x => x.type), nameof<DescriptionTemplateType>(x => x.name)].join('.'),
+
+            ...this.definitionLookupFields(),
 
 			[nameof<DescriptionTemplate>(x => x.users), nameof<UserDescriptionTemplate>(x => x.descriptionTemplate), nameof<DescriptionTemplate>(x => x.id)].join('.'),
 			[nameof<DescriptionTemplate>(x => x.users), nameof<UserDescriptionTemplate>(x => x.user), nameof<User>(x => x.id),].join('.'),

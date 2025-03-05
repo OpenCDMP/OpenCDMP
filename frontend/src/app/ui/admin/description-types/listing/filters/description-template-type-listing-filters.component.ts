@@ -1,4 +1,5 @@
 import { Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges } from '@angular/core';
+import { FormControl, FormGroup } from '@angular/forms';
 import { DescriptionTemplateTypeStatus } from '@app/core/common/enum/description-template-type-status';
 import { IsActive } from '@app/core/common/enum/is-active.enum';
 import { DescriptionTemplateTypeFilter } from '@app/core/query/description-template-type.lookup';
@@ -7,9 +8,10 @@ import { BaseComponent } from '@common/base/base.component';
 import { nameof } from 'ts-simple-nameof';
 
 @Component({
-	selector: 'app-description-template-type-listing-filters',
-	templateUrl: './description-template-type-listing-filters.component.html',
-	styleUrls: ['./description-template-type-listing-filters.component.scss']
+    selector: 'app-description-template-type-listing-filters',
+    templateUrl: './description-template-type-listing-filters.component.html',
+    styleUrls: ['./description-template-type-listing-filters.component.scss'],
+    standalone: false
 })
 export class DescriptionTemplateTypeListingFiltersComponent extends BaseComponent implements OnInit, OnChanges {
 
@@ -19,11 +21,18 @@ export class DescriptionTemplateTypeListingFiltersComponent extends BaseComponen
 	descriptionTemplateTypeStatusEnumValues = this.enumUtils.getEnumValues<DescriptionTemplateTypeStatus>(DescriptionTemplateTypeStatus);
 
 	// * State
-	internalFilters: DescriptionTemplateTypeListingFilters = this._getEmptyFilters();
-
+	internalFilters: FormGroup<DescriptionTemplateTypeListingFilters> = new FormGroup({
+        isActive: new FormControl<boolean>(true),
+        like: new FormControl<string>(null),
+        statuses: new FormControl<DescriptionTemplateTypeStatus[]>(null)
+    })
+    get formIsDirty(): boolean {
+        return this.internalFilters.controls.isActive.dirty || this.internalFilters.controls.statuses.dirty;
+    }
+    
 	protected appliedFilterCount: number = 0;
 	constructor(
-		public enumUtils: EnumUtils,
+		public enumUtils: EnumUtils
 	) { super(); }
 
 	ngOnInit() {
@@ -43,46 +52,48 @@ export class DescriptionTemplateTypeListingFiltersComponent extends BaseComponen
 
 
 	protected updateFilters(): void {
-		this.internalFilters = this._parseToInternalFilters(this.filter);
+		this._parseToInternalFilters(this.filter);
 		this.appliedFilterCount = this._computeAppliedFilters(this.internalFilters);
 	}
 
 	protected applyFilters(): void {
-		const { isActive, like, statuses } = this.internalFilters ?? {}
+		const { isActive, like, statuses } = this.internalFilters.value ?? {}
 		this.filterChange.emit({
 			...this.filter,
 			like,
 			isActive: isActive ? [IsActive.Active] : [IsActive.Inactive],
 			statuses: statuses?.length > 0 ? statuses : null,
-		})
+		});
+        this.internalFilters.markAsPristine();
 	}
 
 
-	private _parseToInternalFilters(inputFilter: DescriptionTemplateTypeFilter): DescriptionTemplateTypeListingFilters {
+	private _parseToInternalFilters(inputFilter: DescriptionTemplateTypeFilter) {
 		if (!inputFilter) {
-			return this._getEmptyFilters();
+			this._getEmptyFilters();
 		}
 
-		let { excludedIds, ids, isActive, like, statuses } = inputFilter;
+		let { isActive, like, statuses } = inputFilter;
 
-		return {
+		this.internalFilters.setValue({
 			isActive: (isActive ?? [])?.includes(IsActive.Active) || !isActive?.length,
-			like: like,
-			statuses: statuses
-		}
+			like: like ?? null,
+			statuses: statuses ?? null
+		});
 
 	}
 
-	private _getEmptyFilters(): DescriptionTemplateTypeListingFilters {
-		return {
+	private _getEmptyFilters(){
+		this.internalFilters.setValue({
 			isActive: true,
 			like: null,
 			statuses: null,
-		}
+		});
 	}
 
-	private _computeAppliedFilters(filters: DescriptionTemplateTypeListingFilters): number {
+	private _computeAppliedFilters(form: FormGroup<DescriptionTemplateTypeListingFilters>): number {
 		let count = 0;
+        const filters = form.value;
 		if (!filters?.isActive) {
 			count++
 		}
@@ -97,12 +108,14 @@ export class DescriptionTemplateTypeListingFiltersComponent extends BaseComponen
 	}
 
 	clearFilters() {
-		this.internalFilters = this._getEmptyFilters();
+		this._getEmptyFilters();
+        this.internalFilters.controls.isActive.markAsDirty();
+        this.internalFilters.controls.statuses.markAsDirty();
 	}
 }
 
 interface DescriptionTemplateTypeListingFilters {
-	isActive: boolean;
-	like: string;
-	statuses: DescriptionTemplateTypeStatus[];
+	isActive: FormControl<boolean>;
+	like: FormControl<string>;
+	statuses: FormControl<DescriptionTemplateTypeStatus[]>;
 }

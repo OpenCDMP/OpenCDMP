@@ -1,5 +1,5 @@
 import { HttpClient } from '@angular/common/http';
-import { Component, ElementRef, OnInit, ViewChild } from '@angular/core';
+import { Component, ElementRef, Input, OnInit, ViewChild } from '@angular/core';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { Router } from '@angular/router';
 import { SupportiveMaterialFieldType } from '@app/core/common/enum/supportive-material-field-type';
@@ -15,11 +15,14 @@ import { Subject, interval } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 
 @Component({
-	selector: 'app-user-guide-content',
-	templateUrl: './user-guide-content.component.html',
-	styleUrls: ['./user-guide-content.component.scss']
+    selector: 'app-user-guide-content',
+    templateUrl: './user-guide-content.component.html',
+    styleUrls: ['./user-guide-content.component.scss'],
+    standalone: false
 })
 export class UserGuideContentComponent extends BaseComponent implements OnInit {
+    @Input() isDialog: boolean;
+    
 	readonly useInnerHTML: boolean = false; //GK: Change for TESTING PURPOSES ONLY
 
 	guideHTML: any;

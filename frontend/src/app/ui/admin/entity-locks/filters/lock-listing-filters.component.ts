@@ -1,5 +1,6 @@
 import { COMMA, ENTER } from '@angular/cdk/keycodes';
-import { Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges } from '@angular/core';
+import { Component, computed, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges } from '@angular/core';
+import { FormControl, FormGroup } from '@angular/forms';
 import { LockTargetType } from '@app/core/common/enum/lock-target-type';
 import { LockFilter } from '@app/core/query/lock.lookup';
 import { UserService } from '@app/core/services/user/user.service';
@@ -9,9 +10,10 @@ import { Guid } from '@common/types/guid';
 import { nameof } from 'ts-simple-nameof';
 
 @Component({
-	selector: 'app-lock-listing-filters',
-	templateUrl: './lock-listing-filters.component.html',
-	styleUrls: ['./lock-listing-filters.component.scss']
+    selector: 'app-lock-listing-filters',
+    templateUrl: './lock-listing-filters.component.html',
+    styleUrls: ['./lock-listing-filters.component.scss'],
+    standalone: false
 })
 export class LockListingFiltersComponent extends BaseComponent implements OnInit, OnChanges {
 
@@ -23,8 +25,15 @@ export class LockListingFiltersComponent extends BaseComponent implements OnInit
 	readonly separatorKeysCodes: number[] = [ENTER, COMMA];
 
 	// * State
-	internalFilters: LockListingFilters = this._getEmptyFilters();
-
+	internalFilters: FormGroup<LockListingFilters> = new FormGroup({
+        like: new FormControl(null),
+        targetTypes: new FormControl(null),
+        userIds: new FormControl(null)
+    });
+    get formIsDirty(): boolean {
+        return this.internalFilters.controls.targetTypes.dirty || this.internalFilters.controls.userIds.dirty;
+    }
+    
 	protected appliedFilterCount: number = 0;
 	constructor(
 		public enumUtils: EnumUtils,
@@ -42,54 +51,49 @@ export class LockListingFiltersComponent extends BaseComponent implements OnInit
 	}
 
 
-	onSearchTermChange(searchTerm: string): void {
-		this.applyFilters()
-	}
-
-
 	protected updateFilters(): void {
-		this.internalFilters = this._parseToInternalFilters(this.filter);
+		this._parseToInternalFilters(this.filter);
 		this.appliedFilterCount = this._computeAppliedFilters(this.internalFilters);
 	}
 
 	protected applyFilters(): void {
-		const { targetTypes, like, userIds } = this.internalFilters ?? {}
+		const { targetTypes, like, userIds } = this.internalFilters.value ?? {}
 		this.filterChange.emit({
 			...this.filter,
 			targetTypes: targetTypes?.length > 0 ? targetTypes : null,
 			like,
 			userIds: userIds?.length > 0 ? userIds : null,
-		})
+		});
+        this.internalFilters.markAsPristine();
 	}
 
 
-	private _parseToInternalFilters(inputFilter: LockFilter): LockListingFilters {
+	private _parseToInternalFilters(inputFilter: LockFilter) {
 		if (!inputFilter) {
 			return this._getEmptyFilters();
 		}
 
 		let { targetTypes, like, userIds } = inputFilter;
 
-		return {
-			targetTypes: targetTypes,
-			like: like,
-			userIds: userIds
-		}
+		this.internalFilters.setValue({
+			targetTypes: targetTypes ?? null,
+			like: like ?? null,
+			userIds: userIds ?? null
+		});
 
 	}
 
-	private _getEmptyFilters(): LockListingFilters {
-		return {
+	private _getEmptyFilters() {
+		this.internalFilters.setValue({
 			targetTypes: null,
 			like: null,
 			userIds: null
-
-		}
+		});
 	}
 
-	private _computeAppliedFilters(filters: LockListingFilters): number {
+	private _computeAppliedFilters(form: FormGroup<LockListingFilters>): number {
 		let count = 0;
-
+        const filters = form.value;
 		if (filters?.like) {
 			count++;
 		}
@@ -104,12 +108,14 @@ export class LockListingFiltersComponent extends BaseComponent implements OnInit
 	}
 
 	clearFilters() {
-		this.internalFilters = this._getEmptyFilters();
+		this._getEmptyFilters();
+        this.internalFilters.controls.targetTypes.markAsDirty();
+        this.internalFilters.controls.userIds.markAsDirty();
 	}
 }
 
 interface LockListingFilters {
-	targetTypes: LockTargetType[];
-	like: string;
-	userIds: Guid[];
+	targetTypes: FormControl<LockTargetType[]>;
+	like: FormControl<string>;
+	userIds: FormControl<Guid[]>;
 }

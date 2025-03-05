@@ -1,11 +1,13 @@
 import { Injectable } from '@angular/core';
 import { ActivatedRouteSnapshot, RouterStateSnapshot } from '@angular/router';
-import { DescriptionStatusEnum } from '@app/core/common/enum/description-status';
+import { DescriptionStatusPermission } from '@app/core/common/enum/description-status-permission.enum';
 import { IsActive } from '@app/core/common/enum/is-active.enum';
 import { AppPermission } from '@app/core/common/enum/permission.enum';
+import { DescriptionStatus, DescriptionStatusDefinition } from '@app/core/model/description-status/description-status';
 import { DescriptionTemplate } from '@app/core/model/description-template/description-template';
 import { Description, DescriptionExternalIdentifier, DescriptionField, DescriptionPropertyDefinition, DescriptionPropertyDefinitionFieldSet, DescriptionPropertyDefinitionFieldSetItem, DescriptionReference, DescriptionReferenceData, DescriptionTag } from '@app/core/model/description/description';
 import { DescriptionTemplatesInSection, PlanBlueprint, PlanBlueprintDefinition, PlanBlueprintDefinitionSection } from '@app/core/model/plan-blueprint/plan-blueprint';
+import { PlanStatus } from '@app/core/model/plan-status/plan-status';
 import { Plan, PlanDescriptionTemplate, PlanUser } from '@app/core/model/plan/plan';
 import { PrefillingSource } from '@app/core/model/prefilling-source/prefilling-source';
 import { ReferenceType } from '@app/core/model/reference-type/reference-type';
@@ -36,30 +38,43 @@ export class DescriptionEditorEntityResolver extends BaseEditorResolver {
 		return [
 			...DescriptionEditorEntityResolver.descriptionLookupFields(),
 			...DescriptionEditorEntityResolver.planLookupFields(nameof<Description>(x => x.plan)),
-			...DescriptionEditorEntityResolver.descriptionTemplateLookupFieldsForDescrption(),
+			...DescriptionEditorEntityResolver.descriptionTemplateLookupFieldsForDescription(),
 		]
 	}
 
 	public static cloneLookupFields(): string[] {
 		return [
 			...DescriptionEditorEntityResolver.descriptionLookupFields(),
-			...DescriptionEditorEntityResolver.descriptionTemplateLookupFieldsForDescrption(),
+			...DescriptionEditorEntityResolver.descriptionTemplateLookupFieldsForDescription(),
 		]
 	}
+
+    public static StatusLookupFields(): string[] {
+        return [
+            [nameof<Description>(x => x.status), nameof<DescriptionStatus>(x => x.id)].join('.'),
+			[nameof<Description>(x => x.status), nameof<DescriptionStatus>(x => x.name)].join('.'),
+			[nameof<Description>(x => x.status), nameof<DescriptionStatus>(x => x.internalStatus)].join('.'),
+			[nameof<Description>(x => x.status), nameof<DescriptionStatus>(x => x.definition), nameof<DescriptionStatusDefinition>(x => x.availableActions)].join('.')
+        ]
+    }
 
 	public static descriptionLookupFields(): string[] {
 		return [
 			...BaseEditorResolver.lookupFields(),
 			nameof<Description>(x => x.id),
 			nameof<Description>(x => x.label),
-			nameof<Description>(x => x.status),
 			nameof<Description>(x => x.description),
-			nameof<Description>(x => x.status),
+			[nameof<Description>(x => x.status), nameof<DescriptionStatus>(x => x.id)].join('.'),
+			[nameof<Description>(x => x.status), nameof<DescriptionStatus>(x => x.name)].join('.'),
+			[nameof<Description>(x => x.status), nameof<DescriptionStatus>(x => x.internalStatus)].join('.'),
+			[nameof<Description>(x => x.status), nameof<DescriptionStatus>(x => x.definition), nameof<DescriptionStatusDefinition>(x => x.availableActions)].join('.'),
 
 			[nameof<Description>(x => x.authorizationFlags), AppPermission.EditDescription].join('.'),
 			[nameof<Description>(x => x.authorizationFlags), AppPermission.DeleteDescription].join('.'),
 			[nameof<Description>(x => x.authorizationFlags), AppPermission.FinalizeDescription].join('.'),
 			[nameof<Description>(x => x.authorizationFlags), AppPermission.AnnotateDescription].join('.'),
+
+			[nameof<Description>(x => x.statusAuthorizationFlags), DescriptionStatusPermission.Edit].join('.'),
 
 			[nameof<Description>(x => x.planDescriptionTemplate), nameof<PlanDescriptionTemplate>(x => x.id)].join('.'),
 			[nameof<Description>(x => x.planDescriptionTemplate), nameof<PlanDescriptionTemplate>(x => x.sectionId)].join('.'),
@@ -100,13 +115,19 @@ export class DescriptionEditorEntityResolver extends BaseEditorResolver {
 
 			nameof<Description>(x => x.createdAt),
 			nameof<Description>(x => x.hash),
-			nameof<Description>(x => x.isActive)
+			nameof<Description>(x => x.isActive),
+
+			[nameof<Description>(x => x.availableStatuses), nameof<DescriptionStatus>(x => x.id)].join('.'),
+			[nameof<Description>(x => x.availableStatuses), nameof<DescriptionStatus>(x => x.name)].join('.'),
+			[nameof<Description>(x => x.availableStatuses), nameof<DescriptionStatus>(x => x.internalStatus)].join('.'),
+			[nameof<Description>(x => x.availableStatuses), nameof<DescriptionStatus>(x => x.action)].join('.'),	
 		]
 	}
 
-	public static descriptionTemplateLookupFieldsForDescrption(): string[] {
+	public static descriptionTemplateLookupFieldsForDescription(): string[] {
 		return [
 			"DescriptionEditorDescriptionTemplateForDescriptionLookupFields"
+            
 		]
 	}
 
@@ -120,7 +141,11 @@ export class DescriptionEditorEntityResolver extends BaseEditorResolver {
 		return [
 			(prefix ? prefix + '.' : '') + [nameof<Plan>(x => x.id)].join('.'),
 			(prefix ? prefix + '.' : '') + [nameof<Plan>(x => x.label)].join('.'),
-			(prefix ? prefix + '.' : '') + [nameof<Plan>(x => x.status)].join('.'),
+
+			(prefix ? prefix + '.' : '') + [nameof<Plan>(x => x.status), nameof<PlanStatus>(x => x.id)].join('.'),
+			(prefix ? prefix + '.' : '') + [nameof<Plan>(x => x.status), nameof<PlanStatus>(x => x.name)].join('.'),			
+			(prefix ? prefix + '.' : '') + [nameof<Plan>(x => x.status), nameof<PlanStatus>(x => x.internalStatus)].join('.'),
+
 			(prefix ? prefix + '.' : '') + [nameof<Plan>(x => x.isActive)].join('.'),
 
 			(prefix ? prefix + '.' : '') + [nameof<Plan>(x => x.authorizationFlags), AppPermission.EditPlan].join('.'),
@@ -132,7 +157,7 @@ export class DescriptionEditorEntityResolver extends BaseEditorResolver {
 			(prefix ? prefix + '.' : '') + [nameof<Plan>(x => x.blueprint), nameof<PlanBlueprint>(x => x.definition), nameof<PlanBlueprintDefinition>(x => x.sections), nameof<PlanBlueprintDefinitionSection>(x => x.label)].join('.'),
 			(prefix ? prefix + '.' : '') + [nameof<Plan>(x => x.blueprint), nameof<PlanBlueprint>(x => x.definition), nameof<PlanBlueprintDefinition>(x => x.sections), nameof<PlanBlueprintDefinitionSection>(x => x.ordinal)].join('.'),
 			(prefix ? prefix + '.' : '') + [nameof<Plan>(x => x.blueprint), nameof<PlanBlueprint>(x => x.definition), nameof<PlanBlueprintDefinition>(x => x.sections), nameof<PlanBlueprintDefinitionSection>(x => x.hasTemplates)].join('.'),
-			(prefix ? prefix + '.' : '') + [nameof<Plan>(x => x.blueprint), nameof<PlanBlueprint>(x => x.definition), nameof<PlanBlueprintDefinition>(x => x.sections), nameof<PlanBlueprintDefinitionSection>(x => x.descriptionTemplates), nameof<DescriptionTemplatesInSection>(x => x.descriptionTemplateGroupId)].join('.'),
+			(prefix ? prefix + '.' : '') + [nameof<Plan>(x => x.blueprint), nameof<PlanBlueprint>(x => x.definition), nameof<PlanBlueprintDefinition>(x => x.sections), nameof<PlanBlueprintDefinitionSection>(x => x.descriptionTemplates), nameof<DescriptionTemplatesInSection>(x => x.descriptionTemplate), nameof<DescriptionTemplate>(x => x.groupId)].join('.'),
 			(prefix ? prefix + '.' : '') + [nameof<Plan>(x => x.blueprint), nameof<PlanBlueprint>(x => x.definition), nameof<PlanBlueprintDefinition>(x => x.sections), nameof<PlanBlueprintDefinitionSection>(x => x.descriptionTemplates), nameof<DescriptionTemplatesInSection>(x => x.maxMultiplicity)].join('.'),
 			(prefix ? prefix + '.' : '') + [nameof<Plan>(x => x.blueprint), nameof<PlanBlueprint>(x => x.definition), nameof<PlanBlueprintDefinition>(x => x.sections), nameof<PlanBlueprintDefinitionSection>(x => x.prefillingSourcesEnabled)].join('.'),
 			(prefix ? prefix + '.' : '') + [nameof<Plan>(x => x.blueprint), nameof<PlanBlueprint>(x => x.definition), nameof<PlanBlueprintDefinition>(x => x.sections), nameof<PlanBlueprintDefinitionSection>(x => x.prefillingSources), nameof<PrefillingSource>(x => x.id)].join('.'),
@@ -203,7 +228,7 @@ export class DescriptionEditorEntityResolver extends BaseEditorResolver {
 					description.hash = null;
 					description.isActive = IsActive.Active;
                     description.belongsToCurrentTenant = true;
-					description.status = DescriptionStatusEnum.Draft;
+					description.status = null;
 					description.plan = plan;
 					description.planDescriptionTemplate = {
 						id: plan.planDescriptionTemplates.filter(x => x.sectionId == Guid.parse(planSectionId) && x.descriptionTemplateGroupId == description.descriptionTemplate.groupId)[0].id,

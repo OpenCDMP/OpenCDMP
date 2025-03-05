@@ -17,6 +17,7 @@ import jakarta.transaction.Transactional;
 import jakarta.xml.bind.JAXBException;
 import org.opencdmp.audit.AuditableAction;
 import org.opencdmp.authorization.AuthorizationFlags;
+import org.opencdmp.commons.enums.IsActive;
 import org.opencdmp.commons.enums.SupportiveMaterialFieldType;
 import org.opencdmp.commons.scope.tenant.TenantScope;
 import org.opencdmp.data.SupportiveMaterialEntity;
@@ -131,7 +132,7 @@ public class SupportiveMaterialController {
     public ResponseEntity<byte[]> getPayload(@PathVariable("type") Short type, @PathVariable("language") String language, @PathVariable(value = "tenantCode", required = false) String tenantCode) throws IOException {
         logger.debug("querying {}", SupportiveMaterial.class.getSimpleName());
 
-        SupportiveMaterialQuery query = this.queryFactory.query(SupportiveMaterialQuery.class).disableTracking().types(SupportiveMaterialFieldType.of(type)).languageCodes(language).authorize(EnumSet.of(Public)).tenantIsSet(false);
+        SupportiveMaterialQuery query = this.queryFactory.query(SupportiveMaterialQuery.class).disableTracking().types(SupportiveMaterialFieldType.of(type)).languageCodes(language).authorize(EnumSet.of(Public)).tenantIsSet(false).isActive(IsActive.Active);
         SupportiveMaterialEntity data = null;
 
         if (tenantCode != null && !tenantCode.isEmpty() && !tenantCode.equals(this.tenantScope.getDefaultTenantCode())) {

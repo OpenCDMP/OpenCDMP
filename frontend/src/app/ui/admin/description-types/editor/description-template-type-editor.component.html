@@ -8,22 +8,22 @@
 				</div>
 
 				<div class="col-auto">
-					<button mat-button class="rounded-btn neutral" (click)="cancel()" type="button">{{'DESCRIPTION-TEMPLATE-TYPE-EDITOR.ACTIONS.CANCEL' | translate}}</button>
+					<button mat-stroked-button class="padded-shadow-btn" (click)="cancel()" type="button">{{'DESCRIPTION-TEMPLATE-TYPE-EDITOR.ACTIONS.CANCEL' | translate}}</button>
 				</div>
 				<div class="col-auto" *ngIf="canDelete">
-					<button mat-button (click)="delete()" class="rounded-btn delete-inverted" type="button">
-						<mat-icon>delete</mat-icon>
+					<button mat-stroked-button color="warn" (click)="delete()" class="padded-shadow-btn" type="button">
+						<mat-icon aria-hidden>delete</mat-icon>
 						{{'DESCRIPTION-TEMPLATE-TYPE-EDITOR.ACTIONS.DELETE' | translate}}
 					</button>
 				</div>
 				<div class="col-auto" *ngIf="canFinalize">
-					<button mat-button class="rounded-btn secondary" (click)="save(); finalize()">
+					<button mat-flat-button color="accent" class="padded-shadow-btn" (click)="save(); finalize()">
 						<mat-icon>save</mat-icon>
 						{{'DESCRIPTION-TEMPLATE-TYPE-EDITOR.ACTIONS.FINALIZE' | translate}}
 					</button>
 				</div>
 				<div class="col-auto" *ngIf="canSave">
-					<button mat-button class="rounded-btn primary" (click)="save(); formSubmit()">
+					<button mat-flat-button color="primary" class="padded-shadow-btn" (click)="save(); formSubmit()">
 						<mat-icon>save</mat-icon>
 						{{'DESCRIPTION-TEMPLATE-TYPE-EDITOR.ACTIONS.SAVE' | translate}}
 					</button>
@@ -32,6 +32,7 @@
 
 			<mat-card appearance="outlined">
 				<mat-card-content>
+                    <div class="pb-2"><small>{{'COMMONS.VALIDATION.REQUIRED-FIELDS-HINT' | translate}}</small></div>
 					<form (ngSubmit)="formSubmit()" [formGroup]="formGroup" *ngIf="formGroup">
 						<div class="row">
 							<div class="col-12">
@@ -39,7 +40,7 @@
 									<div class="row">
 										<div class="col-12 pt-1 pb-1">
 											<span>
-												{{'DESCRIPTION-TEMPLATE-TYPE-EDITOR.FIELDS.NAME' | translate}}
+												{{'DESCRIPTION-TEMPLATE-TYPE-EDITOR.FIELDS.NAME' | translate}} *
 											</span>
 										</div>
 									</div>
@@ -57,7 +58,7 @@
 										</div>
 										<div class="col-12 pt-1 pb-1">
 											<span>
-												{{'DESCRIPTION-TEMPLATE-TYPE-EDITOR.FIELDS.CODE' | translate}}
+												{{'DESCRIPTION-TEMPLATE-TYPE-EDITOR.FIELDS.CODE' | translate}} *
 											</span>
 										</div>
 										<div class="col-12">

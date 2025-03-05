@@ -26,8 +26,9 @@ import { RouterUtilsService } from '@app/core/services/router/router-utils.servi
 import { AppPermission } from '@app/core/common/enum/permission.enum';
 
 @Component({
-	templateUrl: './tenant-listing.component.html',
-	styleUrls: ['./tenant-listing.component.scss']
+    templateUrl: './tenant-listing.component.html',
+    styleUrls: ['./tenant-listing.component.scss'],
+    standalone: false
 })
 export class TenantListingComponent extends BaseListingComponent<Tenant, TenantLookup> implements OnInit {
 	publish = false;
@@ -120,7 +121,7 @@ export class TenantListingComponent extends BaseListingComponent<Tenant, TenantL
 		},
 		{
 			prop: nameof<Tenant>(x => x.isActive),
-			sortable: true,
+			sortable: false,
 			languageName: 'TENANT-LISTING.FIELDS.IS-ACTIVE',
 			pipe: this.pipeService.getPipe<IsActiveTypePipe>(IsActiveTypePipe)
 		},

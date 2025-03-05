@@ -29,12 +29,30 @@ public interface MaintenanceService {
 
 	void sendUserAccountingEntriesEvents() throws InvalidApplicationException;
 
+	void sendPlanStatusAccountingEntriesEvents() throws InvalidApplicationException;
+
+	void sendDescriptionStatusAccountingEntriesEvents() throws InvalidApplicationException;
+
+	void sendEvaluationPlanAccountingEntriesEvents() throws InvalidApplicationException;
+
+	void sendEvaluationDescriptionAccountingEntriesEvents() throws InvalidApplicationException;
+
 	void sendIndicatorCreateEntryEvents() throws InvalidApplicationException;
 
 	void sendIndicatorResetEntryEvents() throws InvalidApplicationException;
 
 	void sendIndicatorAccessEntryEvents() throws InvalidApplicationException;
 
-	void sendIndicatorPointEntryEvents() throws InvalidApplicationException;
+	void sendIndicatorPointPlanEntryEvents() throws InvalidApplicationException;
+
+	void sendIndicatorPointDescriptionEntryEvents() throws InvalidApplicationException;
+
+	void sendIndicatorPointReferenceEntryEvents() throws InvalidApplicationException;
+
+	void sendIndicatorPointUserEntryEvents() throws InvalidApplicationException;
+
+	void sendIndicatorPointPlanBlueprintEntryEvents() throws InvalidApplicationException;
+
+	void sendIndicatorPointDescriptionTemplateEntryEvents() throws InvalidApplicationException;
 
 }

@@ -8,9 +8,10 @@ import { nameof } from 'ts-simple-nameof';
 import { DescriptionEditorModel } from '../description-editor.model';
 
 @Component({
-	selector: 'app-form-progress-indication',
-	templateUrl: './form-progress-indication.component.html',
-	styleUrls: ['./form-progress-indication.component.scss']
+    selector: 'app-form-progress-indication',
+    templateUrl: './form-progress-indication.component.html',
+    styleUrls: ['./form-progress-indication.component.scss'],
+    standalone: false
 })
 export class FormProgressIndicationComponent extends BaseComponent implements OnInit, OnChanges {
 	@Input() formGroup: UntypedFormGroup;

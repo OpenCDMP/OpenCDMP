@@ -1,4 +1,4 @@
-import { FormArray, UntypedFormArray, UntypedFormBuilder, UntypedFormGroup, Validators } from "@angular/forms";
+import { FormArray, FormControl, FormGroup, UntypedFormArray, UntypedFormBuilder, UntypedFormGroup, Validators } from "@angular/forms";
 import { ReferenceFieldDataType } from "@app/core/common/enum/reference-field-data-type";
 import { ReferenceType, ReferenceTypeDefinition, ReferenceTypeDefinitionPersist, ReferenceTypeField, ReferenceTypeFieldPersist, ReferenceTypePersist } from "@app/core/model/reference-type/reference-type";
 import { BaseEditorModel } from "@common/base/base-form-editor-model";
@@ -67,7 +67,8 @@ export class ReferenceTypeEditorModel extends BaseEditorModel implements Referen
 
 	createChildSource(index: number): UntypedFormGroup {
 		const source: ExternalFetcherBaseSourceConfigurationEditorModel = new ExternalFetcherBaseSourceConfigurationEditorModel(this.validationErrorModel);
-		return source.buildForm({ rootPath: 'definition.sources[' + index + '].' });
+		source.ordinal = index + 1;
+        return source.buildForm({ rootPath: 'definition.sources[' + index + '].' });
 	}
 
 	createFieldsMapping(sourceIndex: number, index: number): UntypedFormGroup {
@@ -280,4 +281,11 @@ export class ReferenceTypeFieldEditorModel implements ReferenceTypeFieldPersist 
 			control?.addValidators(context.getValidation(keyField).validators);
 		})
 	}
+}
+
+export interface ReferenceTypeFieldFormGroup{
+    code: FormControl<string>;
+	label: FormControl<string>;
+	description: FormControl<string>;
+	dataType: FormControl<ReferenceFieldDataType>;
 }

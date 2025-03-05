@@ -7,4 +7,25 @@ keycloak-client:
   clientSecret: ${KEYCLOAK_API_CLIENT_SECRET}
 
 keycloak-resources:
-  authorities: null
+  tenantGroupsNamingStrategy: 'tenant-{tenantCode}'
+  tenantRoleAttributeName: 'tenant_role'
+  authorities:
+    User:
+      groupId: ${KEYCLOAK_API_GLOBAL_USER_GROUP_ID}
+    Admin:
+      groupId: ${KEYCLOAK_API_GLOBAL_ADMIN_GROUP_ID}
+    InstallationAdmin:
+      groupId: ${KEYCLOAK_API_GLOBAL_INSTALLATION_ADMIN_GROUP_ID}
+  tenantAuthorities:
+    TenantAdmin:
+      parent: ${KEYCLOAK_API_TENANT_ADMIN_GROUP_ID}
+      roleAttributeValueStrategy: 'TenantAdmin:{tenantCode}'
+    TenantUser:
+      parent: ${KEYCLOAK_API_TENANT_USER_GROUP_ID}
+      roleAttributeValueStrategy: 'TenantUser:{tenantCode}'
+    TenantConfigManager:
+      parent: ${KEYCLOAK_API_TENANT_CONFIG_MANAGER_GROUP_ID}
+      roleAttributeValueStrategy: 'TenantConfigManager:{tenantCode}'
+    TenantPlanManager:
+      parent: ${KEYCLOAK_API_TENANT_PLAN_MANAGER_GROUP_ID}
+      roleAttributeValueStrategy: 'TenantPlanManager:{tenantCode}'

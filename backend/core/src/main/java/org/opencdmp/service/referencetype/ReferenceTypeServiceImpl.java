@@ -189,6 +189,12 @@ public class ReferenceTypeServiceImpl implements ReferenceTypeService {
                     apiEntity.getQueries().add(this.buildQueryConfigEntity(queryConfigPersist));
                 }
             }
+            if (!this.conventionService.isListNullOrEmpty(((ExternalFetcherApiSourceConfigurationPersist) persist).getHeaders())){
+                apiEntity.setHeaders(new ArrayList<>());
+                for (ExternalFetcherApiHeaderConfigurationPersist externalFetcherApiHeaderConfigurationPersist: ((ExternalFetcherApiSourceConfigurationPersist) persist).getHeaders()) {
+                    apiEntity.getHeaders().add(this.buildExternalFetcherApiHeaderConfigurationEntity(externalFetcherApiHeaderConfigurationPersist));
+                }
+            }
 
             data = apiEntity;
         }else {
@@ -253,7 +259,18 @@ public class ReferenceTypeServiceImpl implements ReferenceTypeService {
         return data;
     }
 
-    private @NotNull QueryConfigEntity buildQueryConfigEntity(QueryConfigPersist persist){
+    private @NotNull ExternalFetcherApiHeaderConfigurationEntity buildExternalFetcherApiHeaderConfigurationEntity(ExternalFetcherApiHeaderConfigurationPersist persist){
+        ExternalFetcherApiHeaderConfigurationEntity data = new ExternalFetcherApiHeaderConfigurationEntity();
+        if(persist == null) return data;
+
+        data.setKey(persist.getKey());
+        data.setValue(persist.getValue());
+
+        return data;
+    }
+
+
+        private @NotNull QueryConfigEntity buildQueryConfigEntity(QueryConfigPersist persist){
         QueryConfigEntity data = new QueryConfigEntity();
         if (persist == null) return data;
 

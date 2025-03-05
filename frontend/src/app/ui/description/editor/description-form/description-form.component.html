@@ -1,27 +1,30 @@
-﻿<div *ngIf="datasetDescription" class="col-12 intro" [innerHTML]="datasetDescription"></div>
-<form *ngIf="descriptionTemplate && propertiesFormGroup" novalidate class="col-12 card">
-	<div class="row">
-		<div class="dynamic-form-editor p-0 col-md-12">
-			<div id="form-container">
-				<mat-accordion [multi]="true">
-					<ng-container *ngFor="let page of descriptionTemplate?.definition?.pages; let z = index;">
-						<mat-expansion-panel [expanded]="true" #expansionPanel>
-							<mat-expansion-panel-header>
-								<mat-panel-title>
-									<h4 class="panel-title toc-page-header">
-										{{z+1}}. {{page.title |uppercase}}
-									</h4>
-								</mat-panel-title>
-							</mat-expansion-panel-header>
-							<ng-container *ngFor="let section of page.sections; let i = index;">
-								<div class="row" *ngIf="visibilityRulesService.isVisibleMap[section.id]">
-									<app-description-form-section class="col-12" [section]="section" [canAnnotate]="canAnnotate" [path]="(z+1)+'.'+(i+1)" [pathName]="'pages.'+z+'.sections.'+i" [propertiesFormGroup]="propertiesFormGroup" [descriptionId]="descriptionId" [visibilityRulesService]="visibilityRulesService" (askedToScroll)="onAskedToScroll(expansionPanel, $event)" [linkToScroll]="linkToScroll" [validationErrorModel]="validationErrorModel" [isNew]="isNew" [planUsers]="planUsers"></app-description-form-section>
-								</div>
-							</ng-container>
-						</mat-expansion-panel>
-					</ng-container>
-				</mat-accordion>
-			</div>
-		</div>
-	</div>
-</form>
+﻿<div  class="dynamic-form-editor p-2">
+    <div *ngIf="datasetDescription" class="col-12 intro" [innerHTML]="datasetDescription"></div>
+    @if(descriptionTemplate && propertiesFormGroup){
+        @for(page of descriptionTemplate.definition?.pages; track $index; let z = $index){
+            <div class="panel-title toc-page-header" [id]="page.id">
+                {{ordinal? ordinal + '.' : ''}}{{z+1}}. {{page.title}}
+            </div>
+            @for(section of page.sections; track section; let i = $index){
+                @if(visibilityRulesService.isVisibleMap[section.id]){
+                    <app-description-form-section 
+                        #formSection 
+                        [section]="section" 
+                        [canAnnotate]="canAnnotate"
+                        [isNew]="isNew"
+                        [path]="(ordinal ? ordinal + '.' : '') + (z+1) + '.' + (i+1)" 
+                        [pathName]="'pages.'+z+'.sections.'+i" 
+                        [propertiesFormGroup]="propertiesFormGroup" 
+                        [descriptionId]="descriptionId()" 
+                        [planId]="planId()"
+                        [visibilityRulesService]="visibilityRulesService" 
+                        [linkToScroll]="linkToScroll" 
+                        [validationErrorModel]="validationErrorModel" 
+                        [planUsers]="planUsers"
+                        (askedToScroll)="onAskedToScroll(expansionPanel, $event)" 
+                    ></app-description-form-section>
+                }
+            }
+        }
+    }
+</div>

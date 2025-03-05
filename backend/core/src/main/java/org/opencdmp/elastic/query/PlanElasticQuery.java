@@ -20,8 +20,10 @@ import org.opencdmp.commons.enums.PlanStatus;
 import org.opencdmp.commons.enums.PlanVersionStatus;
 import org.opencdmp.commons.scope.tenant.TenantScope;
 import org.opencdmp.commons.scope.user.UserScope;
+import org.opencdmp.elastic.data.DescriptionElasticEntity;
 import org.opencdmp.elastic.data.PlanElasticEntity;
 import org.opencdmp.elastic.data.nested.NestedDescriptionElasticEntity;
+import org.opencdmp.elastic.data.nested.NestedPlanStatusElasticEntity;
 import org.opencdmp.service.elastic.AppElasticConfiguration;
 import org.opencdmp.service.elastic.ElasticService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,12 +44,13 @@ public class PlanElasticQuery extends ElasticQuery<PlanElasticEntity, UUID> {
 	private String like;
 	private Collection<UUID> ids;
 	private Collection<UUID> excludedIds;
-	private Collection<PlanStatus> statuses;
+	private Collection<UUID> statusIds;
 	private Collection<PlanVersionStatus> versionStatuses;
 	private Collection<PlanAccessType> accessTypes;
 	private Collection<Integer> versions;
 	private Collection<UUID> groupIds;
 	private Collection<UUID> blueprintIds;
+	private InnerObjectPlanStatusElasticQuery planStatusElasticSubQuery;
 	private NestedCollaboratorElasticQuery planUserSubQuery;
 	private NestedDescriptionElasticQuery descriptionSubQuery;
 	private NestedPlanDescriptionTemplateElasticQuery planDescriptionTemplateSubQuery;
@@ -140,18 +143,18 @@ public class PlanElasticQuery extends ElasticQuery<PlanElasticEntity, UUID> {
 		return this;
 	}
 
-	public PlanElasticQuery statuses(PlanStatus value) {
-		this.statuses = List.of(value);
+	public PlanElasticQuery statuses(UUID value) {
+		this.statusIds = List.of(value);
 		return this;
 	}
 
-	public PlanElasticQuery statuses(PlanStatus... value) {
-		this.statuses = Arrays.asList(value);
+	public PlanElasticQuery statuses(UUID... value) {
+		this.statusIds = Arrays.asList(value);
 		return this;
 	}
 
-	public PlanElasticQuery statuses(Collection<PlanStatus> values) {
-		this.statuses = values;
+	public PlanElasticQuery statuses(Collection<UUID> values) {
+		this.statusIds = values;
 		return this;
 	}
 
@@ -172,6 +175,11 @@ public class PlanElasticQuery extends ElasticQuery<PlanElasticEntity, UUID> {
 
 	public PlanElasticQuery groupIds(UUID value) {
 		this.groupIds = List.of(value);
+		return this;
+	}
+
+	public PlanElasticQuery planStatusElasticQuery(InnerObjectPlanStatusElasticQuery subQuery){
+		this.planStatusElasticSubQuery = subQuery;
 		return this;
 	}
 
@@ -224,7 +232,7 @@ public class PlanElasticQuery extends ElasticQuery<PlanElasticEntity, UUID> {
 
 	@Override
 	protected Boolean isFalseQuery() {
-		return this.isEmpty(this.ids) || this.isEmpty(this.versionStatuses) || this.isEmpty(this.excludedIds)  || this.isEmpty(this.accessTypes)|| this.isEmpty(this.statuses);
+		return this.isEmpty(this.ids) || this.isEmpty(this.versionStatuses) || this.isEmpty(this.excludedIds)  || this.isEmpty(this.accessTypes)|| this.isEmpty(this.statusIds);
 	}
 
 	@Override
@@ -265,7 +273,7 @@ public class PlanElasticQuery extends ElasticQuery<PlanElasticEntity, UUID> {
 		List<Query> predicates = new ArrayList<>();
 		if (usePublic) {
 			predicates.add(this.and(
-					this.equals(this.elasticFieldOf(PlanElasticEntity._status), PlanStatus.Finalized.getValue()),
+					this.queryFactory.query(InnerObjectPlanStatusElasticQuery.class).innerPath(PlanElasticEntity._planStatus).internalStatuses(PlanStatus.Finalized).applyFilters(),
 					this.equals(this.elasticFieldOf(PlanElasticEntity._accessType), PlanAccessType.Public.getValue())
 			));
 		}
@@ -328,8 +336,8 @@ public class PlanElasticQuery extends ElasticQuery<PlanElasticEntity, UUID> {
 		if (this.excludedIds != null) {
 			predicates.add(this.not(this.containsUUID(this.elasticFieldOf(PlanElasticEntity._id), this.excludedIds)._toQuery())._toQuery());
 		}
-		if (this.statuses != null) {
-			predicates.add(this.contains(this.elasticFieldOf(PlanElasticEntity._status), this.statuses.stream().map(PlanStatus::getValue).toList().toArray(new Short[this.statuses.size()]))._toQuery());
+		if (this.planStatusElasticSubQuery != null) {
+			predicates.add( this.planStatusElasticSubQuery.innerPath(PlanElasticEntity._planStatus).applyFilters());
 		}
 		if (this.versionStatuses != null) {
 			predicates.add(this.contains(this.elasticFieldOf(PlanElasticEntity._versionStatus), this.versionStatuses.stream().map(PlanVersionStatus::getValue).toList().toArray(new Short[this.versionStatuses.size()]))._toQuery());
@@ -363,7 +371,7 @@ public class PlanElasticQuery extends ElasticQuery<PlanElasticEntity, UUID> {
 		if (columns.contains(PlanElasticEntity._id)) mocDoc.setId(FieldBasedMapper.shallowSafeConversion(rawData.get(PlanElasticEntity._id), UUID.class));
 		if (columns.contains(PlanElasticEntity._label)) mocDoc.setLabel(FieldBasedMapper.shallowSafeConversion(rawData.get(PlanElasticEntity._label), String.class));
 		if (columns.contains(PlanElasticEntity._description)) mocDoc.setDescription(FieldBasedMapper.shallowSafeConversion(rawData.get(PlanElasticEntity._description), String.class));
-		if (columns.contains(PlanElasticEntity._status)) mocDoc.setStatus(FieldBasedMapper.shallowSafeConversion(rawData.get(PlanElasticEntity._status), PlanStatus.class));
+		if (columns.contains(PlanElasticEntity._planStatus)) mocDoc.setPlanStatus(FieldBasedMapper.shallowSafeConversion(rawData.get(PlanElasticEntity._planStatus),  NestedPlanStatusElasticEntity.class ));
 		if (columns.contains(PlanElasticEntity._versionStatus)) mocDoc.setVersionStatus(FieldBasedMapper.shallowSafeConversion(rawData.get(PlanElasticEntity._versionStatus), PlanVersionStatus.class));
 		if (columns.contains(PlanElasticEntity._version)) mocDoc.setVersion(FieldBasedMapper.shallowSafeConversion(rawData.get(PlanElasticEntity._version), Short.class));
 		if (columns.contains(PlanElasticEntity._groupId)) mocDoc.setGroupId(FieldBasedMapper.shallowSafeConversion(rawData.get(PlanElasticEntity._groupId), UUID.class));
@@ -375,6 +383,8 @@ public class PlanElasticQuery extends ElasticQuery<PlanElasticEntity, UUID> {
 		mocDoc.setReferences(this.convertNested(rawData, columns, this.queryFactory.query(NestedReferenceElasticQuery.class), PlanElasticEntity._references, null));
 		mocDoc.setDescriptions(this.convertNested(rawData, columns, this.queryFactory.query(NestedDescriptionElasticQuery.class), PlanElasticEntity._descriptions, null));
 		mocDoc.setPlanDescriptionTemplates(this.convertNested(rawData, columns, this.queryFactory.query(NestedPlanDescriptionTemplateElasticQuery.class), PlanElasticEntity._planDescriptionTemplates, null));
+		mocDoc.setPlanStatus(this.convertInnerObject(rawData, columns, this.queryFactory.query(InnerObjectPlanStatusElasticQuery.class), PlanElasticEntity._planStatus, null));
+
 		return mocDoc;
 	}
 
@@ -383,7 +393,6 @@ public class PlanElasticQuery extends ElasticQuery<PlanElasticEntity, UUID> {
 		if (item.match(PlanElasticEntity._id)) return this.elasticFieldOf(PlanElasticEntity._id);
 		else if (item.match(PlanElasticEntity._label)) return item instanceof OrderingFieldResolver ?  this.elasticFieldOf(PlanElasticEntity._label).subfield(ElasticConstants.SubFields.keyword) : this.elasticFieldOf(PlanElasticEntity._label);
 		else if (item.match(PlanElasticEntity._description)) return this.elasticFieldOf(PlanElasticEntity._description);
-		else if (item.match(PlanElasticEntity._status)) return this.elasticFieldOf(PlanElasticEntity._status);
 		else if (item.match(PlanElasticEntity._version)) return this.elasticFieldOf(PlanElasticEntity._version);
 		else if (item.match(PlanElasticEntity._versionStatus)) return this.elasticFieldOf(PlanElasticEntity._versionStatus);
 		else if (item.match(PlanElasticEntity._groupId)) return this.elasticFieldOf(PlanElasticEntity._groupId);
@@ -395,6 +404,7 @@ public class PlanElasticQuery extends ElasticQuery<PlanElasticEntity, UUID> {
 		else if (item.prefix(PlanElasticEntity._references)) return this.queryFactory.query(NestedReferenceElasticQuery.class).nestedPath(PlanElasticEntity._references).fieldNameOf(this.extractPrefixed(item, PlanElasticEntity._references));
 		else if (item.prefix(PlanElasticEntity._descriptions)) return this.queryFactory.query(NestedDescriptionElasticQuery.class).nestedPath(PlanElasticEntity._descriptions).fieldNameOf(this.extractPrefixed(item, PlanElasticEntity._descriptions));
 		else if (item.prefix(PlanElasticEntity._planDescriptionTemplates)) return this.queryFactory.query(NestedPlanDescriptionTemplateElasticQuery.class).nestedPath(PlanElasticEntity._planDescriptionTemplates).fieldNameOf(this.extractPrefixed(item, PlanElasticEntity._planDescriptionTemplates));
+		else if (item.prefix(PlanElasticEntity._planStatus)) return this.queryFactory.query(InnerObjectPlanStatusElasticQuery.class).innerPath(PlanElasticEntity._planStatus).fieldNameOf(this.extractPrefixed(item, PlanElasticEntity._planStatus));
 		else return null;
 	}
 

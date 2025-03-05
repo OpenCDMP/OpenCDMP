@@ -10,6 +10,7 @@
 </div>
 <div *ngIf="currentTourStep && !isOrbShowing">
     <div #tourStep *ngIf="currentTourStep"
+        role="alert"
         class="tour-step tour-{{ currentTourStep.orientation }}"
         [ngClass]="{ 'page-tour-step': !currentTourStep.selector }"
         [style.top.px]="(currentTourStep.selector && selectedElementRect ? topPosition : null)"
@@ -26,18 +27,18 @@
                     {{ currentTourStep.title }}
                 </h2>
                 <div class="tour-buttons">
-                    <button *ngIf="!guidedTourService.onResizeMessage" mat-button type="button" class="rounded-btn primary"
+                    <button *ngIf="!guidedTourService.onResizeMessage" mat-flat-button color="primary" type="button" class="padded-shadow-btn"
                         (click)="guidedTourService.nextStep()">
                         {{ nextText }}
                     </button>
-                    <button *ngIf="!guidedTourService.onResizeMessage && !currentTourStep.isStepUnique"
-                        (click)="guidedTourService.skipTour()" class="rounded-btn primary-inverted">
+                    <button *ngIf="!guidedTourService.onResizeMessage && !currentTourStep.isStepUnique" mat-stroked-button color="primary" 
+                        (click)="guidedTourService.skipTour()" class="padded-shadow-btn">
                         {{ skipText }}
                     </button>
                 </div>
             </div>
             <div class="col-auto p-0 d-flex align-items-end">
-				<img src="../../../assets/images/guided-tour-side.png">
+				<img src="../../../assets/images/guided-tour-side.png" alt="{{('ALT-TEXT.GUIDED-TOUR-IMG' | translate) ?? 'tour guide image'}}">
 			</div>
         </div>
     </div>

@@ -12,9 +12,10 @@ import { LangChangeEvent, TranslateService } from '@ngx-translate/core';
 import { takeUntil } from 'rxjs/operators';
 
 @Component({
-	selector: 'app-glossary-content',
-	templateUrl: './glossary-content.component.html',
-	styleUrls: ['./glossary-content.component.scss']
+    selector: 'app-glossary-content',
+    templateUrl: './glossary-content.component.html',
+    styleUrls: ['./glossary-content.component.scss'],
+    standalone: false
 })
 export class GlossaryContentComponent extends BaseComponent implements OnInit {
 

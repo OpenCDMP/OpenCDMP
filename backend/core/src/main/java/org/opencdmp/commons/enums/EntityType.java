@@ -7,7 +7,8 @@ import java.util.Map;
 
 public enum EntityType implements DatabaseEnum<Short> {
 
-    Plan((short) 0);
+    Plan((short) 0),
+    Description((short)1);
 
     private final Short value;
 

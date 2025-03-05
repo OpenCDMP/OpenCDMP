@@ -1,4 +1,4 @@
 locale:
-  timezone: UTC
-  language: en
-  culture: en
+  timezone: ${LOCALE_TIMEZONE:UTC}
+  language: ${LOCALE_LANGUAGE:en}
+  culture: ${LOCALE_CULTURE:en}

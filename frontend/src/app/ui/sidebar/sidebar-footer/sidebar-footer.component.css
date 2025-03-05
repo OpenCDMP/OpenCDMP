@@ -1,7 +1,6 @@
 .sidebar-footer {
-	padding: white;
 	font-weight: 700;
-	font-size: 0.75rem;
+	font-size: var(--sys-body-small-size);
 
 }
 
@@ -12,11 +11,18 @@
 	border-radius: 0px;
 	cursor: pointer;
 	display: inline-flex;
-	font-size: small;
+	/* font-size: 13px; */
+	font-size: var(--sys-label-large-size);
 }
 
 .sidebar-footer .option:hover {
-	color: var(--primary-color-3);
+	background-color: rgb(0,0,0,0.05);
+    border-radius: 6px;
+}
+
+.sidebar-footer .option:focus {
+	background-color: rgb(0,0,0,0.05);
+    border-radius: 6px;
 }
 
 .sidebar-footer .vl {
@@ -25,5 +31,5 @@
 }
 
 .option-active {
-	color: var(--primary-color-3) !important;
+	color: var(--sys-primary);
 }

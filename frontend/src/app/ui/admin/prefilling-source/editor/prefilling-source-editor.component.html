@@ -7,25 +7,26 @@
 					<app-navigation-breadcrumb />
 				</div>
 				<div class="col-auto">
-					<button mat-button class="rounded-btn neutral" (click)="cancel()" type="button">{{'PREFILLING-SOURCE-EDITOR.ACTIONS.CANCEL' | translate}}</button>
+					<button mat-stroked-button class="padded-shadow-btn" (click)="cancel()" type="button">{{'PREFILLING-SOURCE-EDITOR.ACTIONS.CANCEL' | translate}}</button>
 				</div>
 				<div class="col-auto" *ngIf="canDelete">
-					<button mat-button class="rounded-btn delete-inverted" type="button" (click)="delete()">
-						<mat-icon>delete</mat-icon>
+					<button mat-stroked-button color="warn" class="padded-shadow-btn" type="button" (click)="delete()">
+						<mat-icon aria-hidden>delete</mat-icon>
 						{{'PREFILLING-SOURCE-EDITOR.ACTIONS.DELETE' | translate}}
 					</button>
 				</div>
 				<div class="col-auto" *ngIf="canSave">
-					<button mat-button class="rounded-btn primary" (click)="formSubmit()">
+					<button mat-flat-button color="primary" class="padded-shadow-btn" (click)="formSubmit()">
 						<mat-icon>save</mat-icon>
 						{{'PREFILLING-SOURCE-EDITOR.ACTIONS.SAVE' | translate}}
 					</button>
 				</div>
 			</div>
 
-			<form *ngIf="formGroup" (ngSubmit)="formSubmit()">
-				<mat-card appearance="outlined" class="pt-3 pb-3">
+			<form *ngIf="formGroup" (ngSubmit)="formSubmit()" class="d-flex flex-column gap-half-rem">
+				<mat-card appearance="outlined" class="pb-3">
 					<mat-card-content>
+                        <div class="pb-3"><small>{{'COMMONS.VALIDATION.REQUIRED-FIELDS-HINT' | translate}}</small></div>
 						<div class="row">
 							<div class="col-12">
 								<div class="container-fluid">
@@ -70,8 +71,8 @@
 															<mat-card-title>{{'PREFILLING-SOURCE-EDITOR.FIELDS.FIELD' | translate}} {{fieldIndex + 1}}</mat-card-title>
 														</div>
 														<div class="col-auto d-flex">
-															<button mat-icon-button matTooltip="{{'PREFILLING-SOURCE-EDITOR.ACTIONS.REMOVE-FIELD' | translate}}" (click)="removeFixedValueField(fieldIndex)" [disabled]="formGroup.disabled">
-																<mat-icon>delete</mat-icon>
+															<button mat-icon-button matTooltip="{{'PREFILLING-SOURCE-EDITOR.ACTIONS.REMOVE-FIELD' | translate}}" (click)="removeFixedValueField(fieldIndex)" [disabled]="formGroup.disabled" [attr.aria-label]="'COMMONS.ACTIONS.REMOVE' | translate">
+																<mat-icon aria-hidden>delete</mat-icon>
 															</button>
 														</div>
 													</div>
@@ -90,7 +91,7 @@
 													</div>
 												</div>
 											</div>
-											<button mat-button class="rounded-btn secondary" type="button" (click)="addFixedValiueField()" [disabled]="formGroup.disabled">{{'PREFILLING-SOURCE-EDITOR.ACTIONS.ADD-FIELD' | translate}}</button>
+											<button mat-flat-button color="accent" class="padded-shadow-btn" type="button" (click)="addFixedValiueField()" [disabled]="formGroup.disabled">{{'PREFILLING-SOURCE-EDITOR.ACTIONS.ADD-FIELD' | translate}}</button>
 										</div>
 									</div>
 								</div>
@@ -112,8 +113,8 @@
 											<mat-card-title>{{'PREFILLING-SOURCE-EDITOR.FIELDS.FIELD' | translate}} {{fieldIndex + 1}}</mat-card-title>
 										</div>
 										<div class="col-auto d-flex">
-											<button mat-icon-button matTooltip="{{'PREFILLING-SOURCE-EDITOR.ACTIONS.REMOVE-FIELD' | translate}}" (click)="removeField(fieldIndex)" [disabled]="formGroup.disabled">
-												<mat-icon>delete</mat-icon>
+											<button mat-icon-button matTooltip="{{'PREFILLING-SOURCE-EDITOR.ACTIONS.REMOVE-FIELD' | translate}}" (click)="removeField(fieldIndex)" [disabled]="formGroup.disabled" [attr.aria-label]="'COMMONS.ACTIONS.REMOVE' | translate">
+												<mat-icon aria-hidden>delete</mat-icon>
 											</button>
 										</div>
 									</div>
@@ -132,9 +133,9 @@
 									</div>
 								</div>
 							</div>
-                            <div class="row d-flex gap-half-rem">
-                                <button mat-button class="rounded-btn secondary" type="button" (click)="addField()" [disabled]="formGroup.disabled">{{'PREFILLING-SOURCE-EDITOR.ACTIONS.ADD-FIELD' | translate}}</button>
-                                <button mat-button class="rounded-btn secondary" *ngIf="formGroup.get('definition').get('fields').value != ''" type="button" (click)="submitFields()" [disabled]="!formGroup.get('definition').get('fields').valid">{{'PREFILLING-SOURCE-EDITOR.ACTIONS.SUBMIT-FIELDS' | translate}}</button>
+                            <div class="d-flex gap-half-rem">
+                                <button mat-flat-button color="accent" class="padded-shadow-btn" type="button" (click)="addField()" [disabled]="formGroup.disabled">{{'PREFILLING-SOURCE-EDITOR.ACTIONS.ADD-FIELD' | translate}}</button>
+                                <button mat-flat-button color="accent" class="padded-shadow-btn" *ngIf="formGroup.get('definition').get('fields').value != ''" type="button" (click)="submitFields()" [disabled]="!formGroup.get('definition').get('fields').valid">{{'PREFILLING-SOURCE-EDITOR.ACTIONS.SUBMIT-FIELDS' | translate}}</button>
                             </div>
 						</div>
 					</mat-card-content>

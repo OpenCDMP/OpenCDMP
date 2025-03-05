@@ -7,16 +7,19 @@ import { Guid } from "@common/types/guid";
 import { ReferenceType } from "../reference-type/reference-type";
 import { PrefillingSource } from "../prefilling-source/prefilling-source";
 import { PlanBlueprintVersionStatus } from "@app/core/common/enum/plan-blueprint-version-status";
+import { DescriptionTemplate } from "../description-template/description-template";
 
 
 export interface PlanBlueprint extends BaseEntity {
 	label: string;
+	description: string;
 	code: string;
 	definition: PlanBlueprintDefinition;
 	status: PlanBlueprintStatus;
 	version: number;
 	versionStatus: PlanBlueprintVersionStatus;
 	groupId: Guid;
+	ordinal?: number;
 }
 
 export interface PlanBlueprintDefinition {
@@ -29,7 +32,7 @@ export interface PlanBlueprintDefinitionSection {
 	label: string;
 	description: string;
 	ordinal: number;
-	fields: FieldInSection[];
+	fields: (SystemFieldInSection | ExtraFieldInSection | ReferenceTypeFieldInSection)[];
 	hasTemplates: boolean;
 	descriptionTemplates?: DescriptionTemplatesInSection[];
 	prefillingSourcesEnabled: boolean;
@@ -37,8 +40,7 @@ export interface PlanBlueprintDefinitionSection {
 }
 
 export interface DescriptionTemplatesInSection {
-	descriptionTemplateGroupId: Guid;
-	label: string;
+	descriptionTemplate: DescriptionTemplate;
 	minMultiplicity: number;
 	maxMultiplicity: number;
 }
@@ -72,6 +74,7 @@ export interface ReferenceTypeFieldInSection extends FieldInSection {
 //
 export interface PlanBlueprintPersist extends BaseEntityPersist {
 	label: string;
+	description: string;
 	code: string;
 	definition: PlanBlueprintDefinitionPersist;
 	status: PlanBlueprintStatus;
@@ -101,7 +104,6 @@ export interface PlanBlueprintDefinitionSectionPersist {
 
 export interface DescriptionTemplatesInSectionPersist {
 	descriptionTemplateGroupId: Guid;
-	label: string;
 	minMultiplicity: number;
 	maxMultiplicity: number;
 }

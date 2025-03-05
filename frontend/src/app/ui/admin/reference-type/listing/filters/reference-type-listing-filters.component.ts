@@ -1,4 +1,5 @@
-import { Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges } from '@angular/core';
+import { Component, computed, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges } from '@angular/core';
+import { FormControl, FormGroup } from '@angular/forms';
 import { IsActive } from '@app/core/common/enum/is-active.enum';
 import { ReferenceTypeFilter } from '@app/core/query/reference-type.lookup';
 import { EnumUtils } from '@app/core/services/utilities/enum-utils.service';
@@ -6,9 +7,10 @@ import { BaseComponent } from '@common/base/base.component';
 import { nameof } from 'ts-simple-nameof';
 
 @Component({
-	selector: 'app-reference-type-listing-filters',
-	templateUrl: './reference-type-listing-filters.component.html',
-	styleUrls: ['./reference-type-listing-filters.component.scss']
+    selector: 'app-reference-type-listing-filters',
+    templateUrl: './reference-type-listing-filters.component.html',
+    styleUrls: ['./reference-type-listing-filters.component.scss'],
+    standalone: false
 })
 export class ReferenceTypeListingFiltersComponent extends BaseComponent implements OnInit, OnChanges {
 
@@ -16,11 +18,15 @@ export class ReferenceTypeListingFiltersComponent extends BaseComponent implemen
 	@Output() filterChange = new EventEmitter<ReferenceTypeFilter>();
 
 	// * State
-	internalFilters: ReferenceTypeListingFilters = this._getEmptyFilters();
+	internalFilters: FormGroup<ReferenceTypeListingFilters> = new FormGroup({
+        isActive: new FormControl(true),
+        like: new FormControl(null),
+    })
+    
 
 	protected appliedFilterCount: number = 0;
 	constructor(
-		public enumUtils: EnumUtils,
+		public enumUtils: EnumUtils
 	) { super(); }
 
 	ngOnInit() {
@@ -40,43 +46,45 @@ export class ReferenceTypeListingFiltersComponent extends BaseComponent implemen
 
 
 	protected updateFilters(): void {
-		this.internalFilters = this._parseToInternalFilters(this.filter);
+		this._parseToInternalFilters(this.filter);
 		this.appliedFilterCount = this._computeAppliedFilters(this.internalFilters);
 	}
 
 	protected applyFilters(): void {
-		const { isActive, like } = this.internalFilters ?? {}
+		const { isActive, like } = this.internalFilters?.value ?? {}
 		this.filterChange.emit({
 			...this.filter,
 			like,
 			isActive: isActive ? [IsActive.Active] : [IsActive.Inactive]
-		})
+		});
+        this.internalFilters.markAsPristine();
 	}
 
 
-	private _parseToInternalFilters(inputFilter: ReferenceTypeFilter): ReferenceTypeListingFilters {
+	private _parseToInternalFilters(inputFilter: ReferenceTypeFilter) {
 		if (!inputFilter) {
 			return this._getEmptyFilters();
 		}
 
 		let { excludedIds, ids, isActive, like } = inputFilter;
 
-		return {
+		this.internalFilters.setValue({
 			isActive: (isActive ?? [])?.includes(IsActive.Active) || !isActive?.length,
-			like: like
-		}
+			like: like ?? null
+		});
 
 	}
 
-	private _getEmptyFilters(): ReferenceTypeListingFilters {
-		return {
+	private _getEmptyFilters() {
+		this.internalFilters.setValue({
 			isActive: true,
 			like: null,
-		}
+		});
 	}
 
-	private _computeAppliedFilters(filters: ReferenceTypeListingFilters): number {
-		let count = 0;
+	private _computeAppliedFilters(formGroup: FormGroup<ReferenceTypeListingFilters>): number {
+		const filters = formGroup?.value;
+        let count = 0;
 		if (!filters?.isActive) {
 			count++
 		}
@@ -88,11 +96,12 @@ export class ReferenceTypeListingFiltersComponent extends BaseComponent implemen
 	}
 
 	clearFilters() {
-		this.internalFilters = this._getEmptyFilters();
+		this._getEmptyFilters();
+        this.internalFilters.markAsDirty();
 	}
 }
 
 interface ReferenceTypeListingFilters {
-	isActive: boolean;
-	like: string;
+    isActive: FormControl<boolean>;
+    like: FormControl<string>;
 }

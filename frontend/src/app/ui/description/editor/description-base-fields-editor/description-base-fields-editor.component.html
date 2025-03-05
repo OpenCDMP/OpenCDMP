@@ -1,18 +1,20 @@
-<form class="description-base-fields-editor" *ngIf="formGroup" [formGroup]="formGroup">
+<form class="description-base-fields-editor" *ngIf="formGroup()" [formGroup]="formGroup()">
 	<div class="col-12 intro">
 		<p>{{'DESCRIPTION-EDITOR.BASE-INFO.INTRO' | translate}}</p>
-		<span>{{'DESCRIPTION-EDITOR.BASE-INFO.INTRO-TIP' | translate}}</span>
+		{{'DESCRIPTION-EDITOR.BASE-INFO.INTRO-TIP' | translate}}
 	</div>
 	<div class="col-12 card">
+        <small>{{'COMMONS.VALIDATION.REQUIRED-FIELDS-HINT' | translate}}</small>
 		<!-- Title Field -->
 		<div class="row">
 			<div class="col-12">
-				<div class="heading">{{'DESCRIPTION-EDITOR.BASE-INFO.FIELDS.TITLE' | translate}}*</div>
+				<label for="titleInput" class="heading">{{'DESCRIPTION-EDITOR.BASE-INFO.FIELDS.TITLE' | translate}} *
+                </label>
 				<div class="title-form">
 					<mat-form-field class="w-100">
-						<input matInput placeholder="{{'DESCRIPTION-EDITOR.BASE-INFO.FIELDS.TITLE' | translate}}" type="text" name="label" formControlName="label" required>
-						<mat-error *ngIf="formGroup.get('label').hasError('backendError')"> {{formGroup.get('label').getError('backendError').message}}</mat-error>
-						<mat-error *ngIf="formGroup.get('label').hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
+						<input id="titleInput" matInput placeholder="{{'DESCRIPTION-EDITOR.BASE-INFO.FIELDS.TITLE' | translate}}" type="text" name="label" formControlName="label" required>
+						<mat-error *ngIf="formGroup().get('label').hasError('backendError')"> {{formGroup().get('label').getError('backendError').message}}</mat-error>
+						<mat-error *ngIf="formGroup().get('label').hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
 					</mat-form-field>
 				</div>
 			</div>
@@ -20,15 +22,16 @@
 		<!-- Description field -->
 		<div class="row">
 			<div class="col-12">
-				<div class="heading">{{'DESCRIPTION-EDITOR.BASE-INFO.FIELDS.DESCRIPTION' | translate}}</div>
-				<span class="hint">{{'DESCRIPTION-EDITOR.BASE-INFO.FIELDS.DESCRIPTION-HINT' | translate}}</span>
+				<label (click)="descriptionInput?.focus()" class="heading">{{'DESCRIPTION-EDITOR.BASE-INFO.FIELDS.DESCRIPTION' | translate}}</label>
+				<div class="hint">{{'DESCRIPTION-EDITOR.BASE-INFO.FIELDS.DESCRIPTION-HINT' | translate}}</div>
 				<div class="description-form">
-					<rich-text-editor-component [form]="formGroup.get('description')" [placeholder]="'PLAN-EDITOR.PLACEHOLDER.DESCRIPTION'" [wrapperClasses]="'full-width editor ' +
-													((formGroup.get('description').touched && (formGroup.get('description').hasError('required') || formGroup.get('description').hasError('backendError'))) ? 'required' : '')" [editable]="!formGroup.get('description').disabled">
+					<rich-text-editor-component #descriptionInput [form]="formGroup().get('description')" [placeholder]="'PLAN-EDITOR.PLACEHOLDER.DESCRIPTION'" 
+                        [wrapperClasses]="'full-width editor ' + ((formGroup().get('description').touched && (formGroup().get('description').hasError('required') || formGroup().get('description').hasError('backendError'))) ? 'required' : '')"
+                    >
 					</rich-text-editor-component>
-					<div [class]="(formGroup.get('description').touched && (formGroup.get('description').hasError('required') || formGroup.get('description').hasError('backendError'))) ? 'visible' : 'invisible'" class="mat-form-field form-field-subscript-wrapper">
-						<mat-error *ngIf="formGroup.get('description').hasError('backendError')">{{formGroup.get('description').getError('backendError').message}}</mat-error>
-						<mat-error *ngIf="formGroup.get('description').hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
+					<div [class]="(formGroup().get('description').touched && (formGroup().get('description').hasError('required') || formGroup().get('description').hasError('backendError'))) ? 'visible' : 'invisible'" class="mat-form-field form-field-subscript-wrapper">
+						<mat-error *ngIf="formGroup().get('description').hasError('backendError')">{{formGroup().get('description').getError('backendError').message}}</mat-error>
+						<mat-error *ngIf="formGroup().get('description').hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
 					</div>
 				</div>
 			</div>
@@ -36,19 +39,29 @@
 		<!-- Tags -->
 		<div class="row">
 			<div class="col-12">
-				<div class="heading">{{'DESCRIPTION-EDITOR.BASE-INFO.FIELDS.TAGS' | translate}}</div>
+				<label for="tagInput" class="heading">{{'DESCRIPTION-EDITOR.BASE-INFO.FIELDS.TAGS' | translate}}</label>
 				<div class="profile-form">
-					<app-tags-field-component label="{{'DESCRIPTION-EDITOR.BASE-INFO.FIELDS.TAGS' | translate}}" placeholder="{{'DESCRIPTION-EDITOR.BASE-INFO.FIELDS.TAGS-PLACEHOLDER' | translate}}" [form]="formGroup.get('tags')"></app-tags-field-component>
+					<app-tags-field-component [name]="'tagInput'" label="{{'DESCRIPTION-EDITOR.BASE-INFO.FIELDS.TAGS' | translate}}" placeholder="{{'DESCRIPTION-EDITOR.BASE-INFO.FIELDS.TAGS-PLACEHOLDER' | translate}}" [form]="formGroup().get('tags')"></app-tags-field-component>
 				</div>
 			</div>
 		</div>
 		<!-- Template Field -->
 		<div class="row">
 			<div class="col-12">
-				<div class="heading">{{'DESCRIPTION-EDITOR.BASE-INFO.FIELDS.DESCRIPTION-TEMPLATE' | translate}}*</div>
+				<label for="templateFieldInput"  (click)="templateFieldInput?.focus()" class="heading">
+                    {{'DESCRIPTION-EDITOR.BASE-INFO.FIELDS.DESCRIPTION-TEMPLATE' | translate}} *
+                </label>
 				<div class="profile-form">
 					<mat-form-field class="w-100">
-						<mat-select placeholder="{{'DESCRIPTION-EDITOR.BASE-INFO.FIELDS.DESCRIPTION-TEMPLATE-PLACEHOLDER'| translate}}" [required]="true" [compareWith]="compareWith" [formControl]="formGroup.get('descriptionTemplateId')">
+						<mat-select 
+                            id="templateFieldInput"  
+                            #templateFieldInput 
+                            placeholder="{{'DESCRIPTION-EDITOR.BASE-INFO.FIELDS.DESCRIPTION-TEMPLATE-PLACEHOLDER'| translate}}" 
+                            [required]="true" 
+                            [compareWith]="compareWith" 
+                            [formControl]="formGroup().get('descriptionTemplateId')"
+                            (selectionChange)="refresh.emit($event.value)"
+                        >
 							<mat-option *ngFor="let descriptionTemplate of availableDescriptionTemplates" [value]="descriptionTemplate.id" class="multiline-mat-option">
 								<div>
 									<span>{{descriptionTemplate.label}}, </span>
@@ -56,8 +69,8 @@
 								</div>
 							</mat-option>
 						</mat-select>
-						<mat-error *ngIf="formGroup.get('descriptionTemplateId').hasError('backendError')">{{formGroup.get('descriptionTemplateId').getError('backendError').message}}</mat-error>
-						<mat-error *ngIf="formGroup.get('descriptionTemplateId').hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
+						<mat-error *ngIf="formGroup().get('descriptionTemplateId').hasError('backendError')">{{formGroup().get('descriptionTemplateId').getError('backendError').message}}</mat-error>
+						<mat-error *ngIf="formGroup().get('descriptionTemplateId').hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
 					</mat-form-field>
 				</div>
 			</div>

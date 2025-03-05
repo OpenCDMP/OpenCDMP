@@ -30,8 +30,9 @@ import { RouterUtilsService } from '@app/core/services/router/router-utils.servi
 import { AppPermission } from '@app/core/common/enum/permission.enum';
 
 @Component({
-	templateUrl: './notification-template-listing.component.html',
-	styleUrls: ['./notification-template-listing.component.scss']
+    templateUrl: './notification-template-listing.component.html',
+    styleUrls: ['./notification-template-listing.component.scss'],
+    standalone: false
 })
 export class NotificationTemplateListingComponent extends BaseListingComponent<NotificationTemplate, NotificationTemplateLookup> implements OnInit {
 	publish = false;
@@ -135,7 +136,7 @@ export class NotificationTemplateListingComponent extends BaseListingComponent<N
 		},
 		{
 			prop: nameof<NotificationTemplate>(x => x.isActive),
-			sortable: true,
+			sortable: false,
 			languageName: 'NOTIFICATION-SERVICE.NOTIFICATION-TEMPLATE-LISTING.FIELDS.IS-ACTIVE',
 			pipe: this.pipeService.getPipe<IsActiveTypePipe>(IsActiveTypePipe)
 		},

@@ -1,7 +1,10 @@
 import { Pipe, PipeTransform } from '@angular/core';
 import { EnumUtils } from '@app/core/services/utilities/enum-utils.service';
 
-@Pipe({ name: 'UsageLimitTargetMetricFormat' })
+@Pipe({
+    name: 'UsageLimitTargetMetricFormat',
+    standalone: false
+})
 export class UsageLimitTargetMetricPipe implements PipeTransform {
 	constructor(private enumUtils: EnumUtils) { }
 

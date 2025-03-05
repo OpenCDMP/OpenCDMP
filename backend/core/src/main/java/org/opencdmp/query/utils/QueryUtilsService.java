@@ -1,6 +1,8 @@
 package org.opencdmp.query.utils;
 
 import jakarta.persistence.criteria.*;
+import org.opencdmp.commons.enums.DescriptionStatus;
+import org.opencdmp.commons.enums.PlanStatus;
 
 import java.util.UUID;
 
@@ -16,6 +18,10 @@ public interface QueryUtilsService {
     Subquery<UUID> buildPublicPlanAuthZSubQuery(AbstractQuery<?> query,
                                                 CriteriaBuilder criteriaBuilder,
                                                 Boolean usePublic);
+
+    Subquery<UUID> buildPlanStatusAuthZSubQuery(AbstractQuery<?> query, CriteriaBuilder criteriaBuilder, PlanStatus internalStatus);
+
+    Subquery<UUID> buildDescriptionStatusAuthZSubQuery(AbstractQuery<?> query, CriteriaBuilder criteriaBuilder, DescriptionStatus internalStatus);
 
     Subquery<UUID> buildPlanUserAuthZSubQuery(AbstractQuery<?> query,
                                               CriteriaBuilder criteriaBuilder,

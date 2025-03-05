@@ -1,19 +1,19 @@
-<div class="d-flex align-items-center gap-1-rem">
+<div class="d-flex align-items-center gap-1-rem listing-filters">
 
-	<button mat-flat-button [matMenuTriggerFor]="filterMenu" #filterMenuTrigger="matMenuTrigger" (click)="updateFilters()" class="filter-button">
+	<button mat-button [matMenuTriggerFor]="filterMenu" #filterMenuTrigger="matMenuTrigger" (click)="updateFilters()" class="filter-button">
 		<mat-icon aria-hidden="false" [matBadgeHidden]="!appliedFilterCount" [matBadge]="appliedFilterCount" matBadgeColor="warn" matBadgeSize="small">filter_alt</mat-icon>
 		{{'COMMONS.LISTING-COMPONENT.SEARCH-FILTER-BTN' | translate}}
 	</button>
 
 
 	<mat-menu #filterMenu>
-		<div class="container-fluid" (click)="$event?.stopPropagation?.()">
+		<div class="container-fluid listing-filters-container"  (click)="$event?.stopPropagation?.()">
 			<div class="row justify-content-between">
 				<div class="col-auto mt-2">
 					<h4>{{'LOCK-LISTING.FILTER.TITLE' | translate}}</h4>
 				</div>
 				<div class="col-auto">
-					<button color="accent" mat-button (click)="clearFilters()">
+					<button color="primary" mat-button (click)="clearFilters()">
 						{{'COMMONS.LISTING-COMPONENT.CLEAR-ALL-FILTERS' | translate}}
 					</button>
 				</div>
@@ -23,7 +23,7 @@
 				<div class="col-12">
 					<mat-form-field class="w-100">
 						<mat-label>{{'LOCK-LISTING.FILTER.USERS' | translate}}</mat-label>
-						<app-multiple-auto-complete [(ngModel)]="internalFilters.userIds" [separatorKeysCodes]="separatorKeysCodes" [configuration]="userService.multipleAutocompleteConfiguration">
+						<app-multiple-auto-complete [formControl]="internalFilters.controls.userIds" [separatorKeysCodes]="separatorKeysCodes" [configuration]="userService.multipleAutocompleteConfiguration">
 						</app-multiple-auto-complete>
 					</mat-form-field>
 				</div>
@@ -33,7 +33,7 @@
 				<div class="col-12">
 					<mat-form-field class="w-100">
 						<mat-label>{{'LOCK-LISTING.FILTER.TARGET-TYPE' | translate}}</mat-label>
-						<mat-select multiple [(ngModel)]="internalFilters.targetTypes">
+						<mat-select multiple [formControl]="internalFilters.controls.targetTypes">
 							<mat-option *ngFor="let targetType of lockTargetTypeEnumValues" [value]="targetType">{{enumUtils.toLockTargetTypeString(targetType)}}</mat-option>
 						</mat-select>
 					</mat-form-field>
@@ -42,12 +42,12 @@
 
 			<div class="row justify-content-between mt-4 mb-1 gap-1-rem">
 				<div class="col-auto">
-					<button mat-button class="rounded-btn primary-inverted" (click)="filterMenuTrigger?.closeMenu()">
+					<button mat-stroked-button color="primary" class="padded-shadow-btn" (click)="filterMenuTrigger?.closeMenu()">
 						{{'LOCK-LISTING.FILTER.CANCEL' | translate}}
 					</button>
 				</div>
 				<div class="col-auto">
-					<button mat-button class="rounded-btn primary" (click)="filterMenuTrigger.closeMenu(); applyFilters();">
+					<button mat-flat-button color="primary" class="padded-shadow-btn" (click)="filterMenuTrigger.closeMenu(); applyFilters();" [disabled]="!formIsDirty">
 						{{'LOCK-LISTING.FILTER.APPLY-FILTERS' | translate}}
 					</button>
 				</div>
@@ -55,5 +55,5 @@
 		</div>
 	</mat-menu>
 
-	<app-expandable-search-field [(value)]=internalFilters.like (valueChange)="onSearchTermChange($event)" />
+	<app-expandable-search-field [formControl]=internalFilters.controls.like (valueChange)="applyFilters()" />
 </div>

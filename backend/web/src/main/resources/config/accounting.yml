@@ -1,7 +1,13 @@
 accounting:
   enabled: ${ACCOUNTING_ENABLED}
-  serviceId: ${SERVICE_ID}
+  serviceId: ${ACCOUNTING_SERVICE_ID:opencdmp}
   subjectId: unknown
   fromInstant: 1990-01-01T05:47:26.853Z
   projectFields:
     - sum
+  source:
+    url: ${ACCOUNTING_URL}
+    issuer-url: ${ACCOUNTING_AUTH_TOKEN_ENDPOINT}
+    client-id: ${ACCOUNTING_AUTH_CLIENT_ID}
+    client-secret: ${ACCOUNTING_AUTH_CLIENT_SECRET}
+    scope: ${ACCOUNTING_AUTH_SCOPE}

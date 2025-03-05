@@ -1,6 +1,7 @@
 import { Injectable } from "@angular/core";
 import { ActivatedRouteSnapshot, RouterStateSnapshot } from "@angular/router";
 import { DescriptionStatus, DescriptionStatusDefinition, DescriptionStatusDefinitionAuthorization, DescriptionStatusDefinitionAuthorizationItem } from "@app/core/model/description-status/description-status";
+import { StorageFile } from "@app/core/model/storage-file/storage-file";
 import { DescriptionStatusService } from "@app/core/services/description-status/description-status.service";
 import { BreadcrumbService } from "@app/ui/misc/breadcrumb/breadcrumb.service";
 import { BaseEditorResolver } from "@common/base/base-editor.resolver";
@@ -20,6 +21,8 @@ export class DescriptionStatusEditorResolver extends BaseEditorResolver{
             nameof<DescriptionStatus>(x => x.id),
             nameof<DescriptionStatus>(x => x.name),
             nameof<DescriptionStatus>(x => x.description),
+            nameof<DescriptionStatus>(x => x.action),
+            nameof<DescriptionStatus>(x => x.ordinal),
             nameof<DescriptionStatus>(x => x.internalStatus),
             nameof<DescriptionStatus>(x => x.definition),
             [nameof<DescriptionStatus>(x => x.definition), nameof<DescriptionStatusDefinition>(x => x.authorization)].join('.'),
@@ -27,6 +30,12 @@ export class DescriptionStatusEditorResolver extends BaseEditorResolver{
             [nameof<DescriptionStatus>(x => x.definition), nameof<DescriptionStatusDefinition>(x => x.authorization), nameof<DescriptionStatusDefinitionAuthorization>(x => x.edit), nameof<DescriptionStatusDefinitionAuthorizationItem>(x => x.planRoles)].join('.'),
             [nameof<DescriptionStatus>(x => x.definition), nameof<DescriptionStatusDefinition>(x => x.authorization), nameof<DescriptionStatusDefinitionAuthorization>(x => x.edit), nameof<DescriptionStatusDefinitionAuthorizationItem>(x => x.allowAnonymous)].join('.'),
             [nameof<DescriptionStatus>(x => x.definition), nameof<DescriptionStatusDefinition>(x => x.authorization), nameof<DescriptionStatusDefinitionAuthorization>(x => x.edit), nameof<DescriptionStatusDefinitionAuthorizationItem>(x => x.allowAuthenticated)].join('.'),
+
+            [nameof<DescriptionStatus>(x => x.definition), nameof<DescriptionStatusDefinition>(x => x.availableActions)].join('.'),
+            [nameof<DescriptionStatus>(x => x.definition), nameof<DescriptionStatusDefinition>(x => x.matIconName)].join('.'),
+            [nameof<DescriptionStatus>(x => x.definition), nameof<DescriptionStatusDefinition>(x => x.storageFile), nameof<StorageFile>(x => x.id), ].join('.'), 
+            [nameof<DescriptionStatus>(x => x.definition), nameof<DescriptionStatusDefinition>(x => x.statusColor)].join('.'),
+
 
             nameof<DescriptionStatus>(x => x.updatedAt),
             nameof<DescriptionStatus>(x => x.createdAt),

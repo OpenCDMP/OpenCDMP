@@ -1,0 +1,214 @@
+@if(formGroup()){
+    <div class="heading-wrapper row align-items-center">
+        <div class="col-auto">
+            <label  [appFor]="fieldPath()" class="heading">
+               @if(!field().label){
+                    @switch(field().category){
+                        @case(planBlueprintSectionFieldCategoryEnum.System){
+                            {{fieldPath()}}. {{enumUtils.toPlanBlueprintSystemFieldTypeString(field().systemFieldType)}}
+                        }
+                        @case(planBlueprintSectionFieldCategoryEnum.ReferenceType){
+                            {{fieldPath()}}. {{referenceType()?.name}}
+                        }
+                    }
+               }@else {
+                {{fieldPath()}}. {{field().label}}
+               }
+               <span *ngIf="field().required">*</span>
+            </label>
+        </div>
+        <div class="col-auto link-icon" style="margin-top: 1rem;">
+            <button *ngIf="!isNew()" mat-icon-button type="button" matTooltip="{{ 'PLAN-EDITOR.ACTIONS.COPY-LINK' | translate }}" (click)="copyLink(field()?.id)">
+                <mat-icon>link</mat-icon>
+            </button>
+        </div>
+        @if(!isNew()){
+            <div class="ml-auto col-auto" style="margin-top: 1rem;">
+                <button mat-icon-button class="col-auto annotation-icon" (click)="showAnnotations.emit(field().id)" matTooltip="{{ 'PLAN-EDITOR.ACTIONS.ANNOTATIONS' | translate }}" [attr.aria-label]="'PLAN-EDITOR.ACTIONS.ANNOTATIONS' | translate">
+                    <mat-icon 
+                        [matBadge]="annotationsPerAnchor()?.get(field().id)" 
+                        [matBadgeHidden]="annotationsPerAnchor()?.get(field().id) <= 0" 
+                        matBadgeColor="warn" 
+                        [attr.aria-label]="(annotationsPerAnchor()?.get(field().id) ?? 0) + ' ' + ('ANNOTATION-DIALOG.TITLE' | translate)"
+                        [attr.aria-hidden]="false"
+                    >comment</mat-icon>
+                </button>
+            </div>
+        }
+    </div>
+    @if(field().description){
+        <div class="hint" [innerHTML]="field().description"></div>
+    }
+    <div class="input-form">
+        @switch(field()?.category){
+            @case(planBlueprintSectionFieldCategoryEnum.System){
+                @switch(field().systemFieldType){
+                    @case(planBlueprintSystemFieldTypeEnum.Title){
+                        <mat-form-field class="w-100">
+                            <input 
+                                [id]="fieldPath()" matInput 
+                                placeholder="{{field().placeholder && field().placeholder != '' ? field().placeholder : field().label && field().label != '' ? field().label : 'PLAN-EDITOR.FIELDS.TITLE' | translate}}" 
+                                type="text" name="label" 
+                                [formControl]="formGroup()?.get('label')" required
+                            >
+                            <mat-error *ngIf="formGroup()?.get('label')?.hasError('backendError')">
+                                {{formGroup()?.get('label')?.getError('backendError').message}}</mat-error>
+                            <mat-error *ngIf="formGroup()?.get('label')?.hasError('required')">
+                                {{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
+                        </mat-form-field>
+                    }
+                    @case(planBlueprintSystemFieldTypeEnum.Description){
+                        <rich-text-editor-component [id]="(i + 1) + '.' + (j + 1)" [form]="formGroup()?.get('description')" [placeholder]="field().placeholder && field().placeholder != '' ? field().placeholder : 'PLAN-EDITOR.PLACEHOLDER.DESCRIPTION'" [required]="field().required">
+                        </rich-text-editor-component>
+                        <mat-error class="mat-mdc-form-field-subscript-wrapper" *ngIf="formGroup()?.get('description')?.touched && formGroup()?.get('description')?.hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
+                    }
+                    @case(planBlueprintSystemFieldTypeEnum.Language){
+                        <mat-form-field class="w-100">
+                            <mat-select [id]="fieldPath()" [formControl]="formGroup()?.get('language')" placeholder="{{field().placeholder && field().placeholder != '' ? field().placeholder : 'PLAN-EDITOR.FIELDS.LANGUAGE' | translate}}" required>
+                                <mat-option *ngFor="let lang of getLanguageInfos()" [value]="lang.code">
+                                    {{ lang.name }}
+                                </mat-option>
+                            </mat-select>
+                            <mat-error *ngIf="formGroup()?.get('language')?.hasError('backendError')">{{formGroup()?.get('language')?.getError('backendError').message}}</mat-error>
+                            <mat-error *ngIf="formGroup()?.get('language')?.hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
+                        </mat-form-field>
+                    }
+                    @case(planBlueprintSystemFieldTypeEnum.Contact){
+                        <div class="row">
+                            <span aria-live="assertive" class="assistive-text">{{reorderAssistiveText()}}.</span>
+                            <span id="operation" class="assistive-text"> {{'ALT-TEXT.REORDER-TABLE.BEGIN-EDITING' | translate}}</span>
+                            <ul cdkDropList id="contact-list" class="col-12 unstyled-list" (cdkDropListDropped)="dropContacts($event)" tabindex="0">
+                                <li *ngFor="let contact of formGroup()?.get('properties').get('contacts')?.controls; let contactIndex=index;" 
+                                    cdkDrag 
+                                    class="d-flex gap-quarter-rem align-items-center pb-1 pr-2" 
+                                    [cdkDragDisabled]="formGroup()?.disabled || !canEdit()" 
+                                >
+                                    <button  
+                                        class="mb-3"
+                                        [id]="'drag-handle-' + contactIndex"
+                                        (keydown)="onContactKeyDown($event, contactIndex, contact.get('firstName').value)" 
+                                        cdkDragHandle 
+                                        [disabled]="formGroup()?.disabled || !canEdit()" 
+                                        mat-icon-button aria-labelledby="operation"    
+                                        [class.reorder-mode]="reorderMode"
+                                    >
+                                        <mat-icon aria-hidden>drag_indicator</mat-icon>
+                                    </button>
+                                    <span class="mb-3 title-size-md">{{contactIndex + 1}}</span>
+                                    <mat-form-field class="w-100">
+                                        <mat-label>{{'PLAN-EDITOR.FIELDS.FIRST-NAME' | translate}}</mat-label>
+                                        <input id="{{i + 1}}.{{j + 1}}{{contactIndex > 0 ? '.' + contactIndex : ''}}" matInput type="text" name="firstName" [formControl]="contact.get('firstName')" required>
+                                        <mat-error *ngIf="contact.get('firstName').hasError('backendError')">{{contact.get('firstName').getError('backendError').message}}</mat-error>
+                                        <mat-error *ngIf="contact.get('firstName').hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
+                                    </mat-form-field>
+                                    <mat-form-field class="w-100">
+                                        <mat-label>{{'PLAN-EDITOR.FIELDS.LAST-NAME' | translate}}</mat-label>
+                                        <input matInput type="text" name="lastName" [formControl]="contact.get('lastName')" required>
+                                        <mat-error *ngIf="contact.get('lastName').hasError('backendError')">{{contact.get('lastName').getError('backendError').message}}</mat-error>
+                                        <mat-error *ngIf="contact.get('lastName').hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
+                                    </mat-form-field>
+                                    <mat-form-field class="w-100">
+                                        <mat-label>{{'PLAN-EDITOR.FIELDS.EMAIL' | translate}}</mat-label>
+                                        <input matInput type="text" name="email" [formControl]="contact.get('email')" required>
+                                        <mat-error *ngIf="contact.get('email').hasError('backendError')">{{contact.get('email').getError('backendError').message}}</mat-error>
+                                        <mat-error *ngIf="contact.get('email').hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
+                                    </mat-form-field>
+                                    @if(canEdit()){
+                                        <button mat-icon-button class="action-list-icon mb-3" matTooltip="{{'PLAN-EDITOR.ACTIONS.SEARCH-CONTACT' | translate}}" (click)="searchContact(contactIndex, field)" [disabled]="fieldFormControl?.disabled || !canEdit()" [attr.aria-label]="'PLAN-EDITOR.ACTIONS.SEARCH-CONTACT' | translate">
+                                            <mat-icon aria-hidden>search</mat-icon>
+                                        </button>
+                                    }
+                                    @if(canEdit()){
+                                        <button mat-icon-button class="action-list-icon mb-3" matTooltip="{{'PLAN-EDITOR.ACTIONS.REMOVE-CONTACT' | translate}}" (click)="removeContact(contactIndex)" [disabled]="fieldFormControl?.disabled || !canEdit()" [attr.aria-label]="'PLAN-EDITOR.ACTIONS.REMOVE-CONTACT' | translate">
+                                            <mat-icon aria-hidden>delete</mat-icon>
+                                        </button>
+                                    }
+                                </li>
+                            </ul>
+                            <button mat-icon-button (click)="addContact()" [disabled]="formGroup()?.disabled || !canEdit()" matTooltip="{{'PLAN-EDITOR.ACTIONS.ADD-CONTACT' | translate}}" [attr.aria-label]="'PLAN-EDITOR.ACTIONS.ADD-CONTACT' | translate">
+                                <mat-icon aria-hidden>add</mat-icon>
+                            </button>
+                            <mat-error *ngIf="formGroup()?.get('properties').get('contacts')?.hasError('backendError')">{{formGroup()?.get('properties').get('contacts').getError('backendError').message}}</mat-error>
+                            <mat-error *ngIf="formGroup()?.get('properties').get('contacts')?.hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
+                        </div>
+                    }
+                    @case(planBlueprintSystemFieldTypeEnum.AccessRights){
+                        <mat-form-field class="w-100">
+                            <mat-select [id]="fieldPath()" [formControl]="formGroup()?.get('accessType')" placeholder="{{ field().placeholder && field().placeholder != '' ? field().placeholder : 'PLAN-EDITOR.FIELDS.ACCESS-TYPE' | translate}}" [required]="field().required">
+                                <mat-option *ngFor="let planAccessType of planAccessTypeEnumValues" [value]="planAccessType">
+                                    {{enumUtils.toPlanAccessTypeString(planAccessType)}}
+                                </mat-option>
+                            </mat-select>
+                            <mat-error *ngIf="formGroup()?.get('accessType')?.hasError('backendError')">{{formGroup()?.get('accessType').getError('backendError').message}}</mat-error>
+                            <mat-error *ngIf="formGroup()?.get('accessType')?.hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
+                        </mat-form-field>
+                    }
+                    @case(planBlueprintSystemFieldTypeEnum.User){
+                        <app-plan-user-field-component [form]="formGroup()?.get('users')" [validationErrorModel]="editorModel()?.validationErrorModel" [sections]="sections()" [viewOnly]="formGroup()?.get('accessType')?.disabled || !canEdit()" [isActivePlan]="isActivePlan" [required]="required"></app-plan-user-field-component>
+                    }
+                }
+            }
+            @case(planBlueprintSectionFieldCategoryEnum.ReferenceType){
+                <app-reference-field-component 
+                    [id]="fieldPath()" 
+                    [form]="field().multipleSelect ? planBlueprintValueControl?.get('references') : planBlueprintValueControl?.get('reference')" 
+                    [dependencies]="dependencies()" 
+                    [label]="field().label" 
+                    [placeholder]="field().placeholder && field().placeholder != '' ? field().placeholder : field().label" 
+                    [referenceType]="referenceType()" 
+                    [multiple]="field().multipleSelect" 
+                    [required]="field().required"
+                ></app-reference-field-component>
+            }
+            @case(planBlueprintSectionFieldCategoryEnum.Extra){
+                @switch(field().dataType){
+                    @case(planBlueprintExtraFieldDataTypeEnum.Text){
+                        <mat-form-field class="w-100">
+                            <mat-label>{{field().label}}</mat-label>
+                            <input [id]="fieldPath()" matInput placeholder="{{field().placeholder && field().placeholder != '' ? field().placeholder : field().label}}" type="text" name="value" [formControl]="planBlueprintValueControl?.get('fieldValue')" [required]="field().required">
+                            <mat-error *ngIf="planBlueprintValueControl?.get('fieldValue')?.hasError('backendError')">{{planBlueprintValueControl?.get('fieldValue')?.getError('backendError').message}}</mat-error>
+                            <mat-error *ngIf="planBlueprintValueControl?.get('fieldValue')?.hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
+                        </mat-form-field>
+                    }
+                    @case(planBlueprintExtraFieldDataTypeEnum.RichText){
+                        <rich-text-editor-component [form]="planBlueprintValueControl?.get('fieldValue')" placeholder="{{field().placeholder && field().placeholder != '' ? field().placeholder : field().label}}" [required]="field().required"></rich-text-editor-component>
+                    }
+                    @case(planBlueprintExtraFieldDataTypeEnum.Date){
+                        <mat-form-field class="w-100">
+                            <mat-label>{{field().label}}</mat-label>
+                            <input 
+                                [id]="fieldPath()" 
+                                matInput 
+                                placeholder="{{field().placeholder && field().placeholder != '' ? field().placeholder : field().label}}"
+                                name="value" 
+                                [formControl]="planBlueprintValueControl?.get('dateValue')" 
+                                [matDatepicker]="date" 
+                                [required]="field().required"
+                            >
+                            <mat-datepicker-toggle matSuffix [for]="date"></mat-datepicker-toggle>
+                            <mat-datepicker #date></mat-datepicker>
+                            <mat-error *ngIf="planBlueprintValueControl?.get('dateValue')?.hasError('backendError')">{{planBlueprintValueControl?.get('dateValue').getError('backendError').message}}</mat-error>
+                            <mat-error *ngIf="planBlueprintValueControl?.get('dateValue')?.hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
+                        </mat-form-field>
+                    }
+                    @case(planBlueprintExtraFieldDataTypeEnum.Number){
+                        <mat-form-field class="w-100">
+                            <mat-label>{{field().label}}</mat-label>
+                            <input 
+                                [id]="fieldPath()" 
+                                matInput 
+                                placeholder="{{field().placeholder && field().placeholder != '' ? field().placeholder : field().label}}" 
+                                type="number" 
+                                name="value" 
+                                [formControl]="planBlueprintValueControl?.get('numberValue')" 
+                                [required]="field().required"
+                            >
+                            <mat-error *ngIf="planBlueprintValueControl?.get('numberValue')?.hasError('backendError')">{{planBlueprintValueControl?.get('numberValue').getError('backendError').message}}</mat-error>
+                            <mat-error *ngIf="planBlueprintValueControl?.get('numberValue')?.hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
+                        </mat-form-field>
+                    }
+                }
+            }
+        }
+    </div>
+}

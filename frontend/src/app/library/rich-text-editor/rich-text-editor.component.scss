@@ -1,15 +1,12 @@
 ::ng-deep .angular-editor-textarea {
 	min-height: 150px !important;
 	font-weight: 400;
-	font-size: 16px;
+	font-size: var(--sys-body-medium-size);
 	line-height: 1.5rem;
-	color: #7d7d7d;
 }
 
 .editor-wrapper {
 	position: relative;
-	border: 1px solid transparent !important;
-	border-radius: 5px;
 }
 
 ::ng-deep .angular-editor-toolbar {
@@ -21,32 +18,37 @@
 	border: none !important;
 }
 
-::ng-deep .angular-editor {
-	border: 1px solid #ddd !important;
-	border-radius: 5px;
-	background-color: #fff;
+::ng-deep angular-editor.error {
+    .angular-editor {
+        border: 1px solid var(--sys-error) !important; 
+    }
 }
+// ::ng-deep .angular-editor {
+// 	border: 1px solid #ddd !important;
+// 	border-radius: 5px;
+// 	background-color: #fff;
+// }
 
-.editor-wrapper :not(.disabled) {
-	.editor-wrapper:hover, ::ng-deep .angular-editor:hover {
-		border: 1px solid #000 !important;
-	}
+// .editor-wrapper :not(.disabled) {
+// 	.editor-wrapper:hover, ::ng-deep .angular-editor:hover {
+// 		border: 1px solid #000 !important;
+// 	}
 
-	.editor-wrapper:focus-within, ::ng-deep .angular-editor:focus-within {
-		border: 1px solid #034459 !important;
-	}
-}
+// 	.editor-wrapper:focus-within, ::ng-deep .angular-editor:focus-within {
+// 		border: 1px solid #034459 !important;
+// 	}
+// }
 
-.editor-wrapper .disabled {
-	color: rgba(0, 0, 0, 0.38);
-}
+// .editor-wrapper .disabled {
+// 	color: rgba(0, 0, 0, 0.38);
+// }
 
 .editor-wrapper .disabled ::ng-deep button {
 	pointer-events: none;
 }
 
 .required.editor-wrapper, .required .editor ::ng-deep .angular-editor {
-	border: 1px solid #f44336 !important;
+	border: 1px solid var(--sys-error) !important;
 }
 
 .clear {

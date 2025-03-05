@@ -1,0 +1,147 @@
+<div class="side-panel" *ngIf="plan() && formGroup()">
+    <div class="stepper-options">
+        <ul class="stepper-list mr-2"  tabindex="0">
+            @if(selectedBlueprint()?.definition){
+                <ng-container *ngFor="let section of selectedBlueprint()?.definition?.sections; let i=index">
+                    <li class="d-flex flex-column">
+                        <button 
+                            class="flex-1 label selectable main-section" 
+                            (click)="changePlanStep({section: i + 1})" 
+                            [ngClass]="{
+                                'active': step() === (i + 1), 
+                                'text-danger': showPlanErrors() && showSectionErrors(section.id)
+                            }" 
+                            tabindex="0"
+                        >
+                            <!-- toggleExpand(i); -->
+                            {{i+1}}
+                            <span class="expanded-text">. {{section.label}}
+                                @if(section.description){
+                                    <mat-icon class="ml-1 w-auto h-auto" style="font-size: 1rem;" [matTooltip]="section.description" [attr.aria-label]="section.description" role="note">info</mat-icon>
+                                }
+                            </span>
+                        </button>
+                        <ul *ngIf="section.fields?.length && step() === (i+1)" class="flex-1 section-fields">
+                            <!-- && expandChildrenMap?.get(i+1) -->
+                            @for(field of section.fields; track field; let j = $index){
+                                <li>
+                                    <button 
+                                        class="label selectable section-field-label"
+                                        (click)="changePlanStep({section: i+1, fieldId: field.id})"
+                                        [class.active]="selectedFieldId === field.id"
+                                        [class.text-danger]="showPlanErrors() && showFieldError(section.id, field.id)"
+                                    >
+                                        {{i+1}}.{{j+1}}.
+                                        <span class="expanded-text">
+                                            @if(!field.label){
+                                                @switch(field.category){
+                                                    @case(planBlueprintSectionFieldCategoryEnum.System){
+                                                        {{enumUtils.toPlanBlueprintSystemFieldTypeString(field.systemFieldType)}}
+                                                    }
+                                                    @case(planBlueprintSectionFieldCategoryEnum.ReferenceType){
+                                                        {{field.referenceType.name}}
+                                                    }
+                                                }
+                                            }@else {
+                                                {{field.label}}
+                                            }
+                                        </span>
+                                    </button>
+                                </li>
+                            }
+    
+                        </ul>
+                        <ul class="section-descriptions" *ngIf="section.hasTemplates && hasDescriptionTemplates(section)">
+                            @for(descInfo of descriptionsInSection().get(section.id); track $index; let descriptionIndex = $index;){
+                                <li>
+                                    <div class="plan-description">
+                                        <button 
+                                            (click)="changePlanStep({section: i + 1, descriptionId: descInfo.lastPersist.id});" 
+                                            class= "label selectable desc-label" 
+                                            [matTooltip]="descInfo.formGroup?.getRawValue()?.label"
+                                            [class.active-description]="selectedDescription() === descInfo.lastPersist.id"  
+                                            [class.text-danger]="showDescriptionErrors().has(descInfo.lastPersist.id) && invalidDescription(descInfo)"
+                                        >
+                                            {{descriptionOrdinal(section, descInfo.ordinal)}}. {{ descInfo.formGroup?.getRawValue()?.label }}
+                                        </button>
+                                        <!--descInfo.lastPersist.status?.internalStatus !== descriptionStatusEnum.Finalized -->
+                                        <mat-icon 
+                                            color="success"
+                                            class="finalized-desc-icon"
+                                            *ngIf="descInfo.lastPersist.status?.internalStatus === descriptionStatusEnum.Finalized" 
+                                            matTooltip="{{'TYPES.DESCRIPTION-STATUS.FINALIZED' | translate}}"
+                                            [attr.aria-label]="'TYPES.DESCRIPTION-STATUS.FINALIZED' | translate"
+                                        >
+                                            check
+                                        </mat-icon>
+                                        @if(canDeleteInSection(section.id)){
+                                            <button mat-mini-fab type="button" color="warn"
+                                                (click)="$event.stopPropagation(); onRemoveDescription.emit(descInfo)" 
+                                                class="remove-description" 
+                                                matTooltip="{{'PLAN-EDITOR.ACTIONS.DELETE' | translate}}"
+                                                matTooltipPosition="right"
+                                                [attr.aria-label]="'PLAN-EDITOR.ACTIONS.DELETE' | translate"
+                                            >
+                                                <mat-icon mat-mini-fab-icon aria-hidden class="mr-0 ml-0">delete</mat-icon>
+                                            </button>
+                                        }
+                                    </div>
+                                    <div class="ml-2  mr-2" [class.d-none]="selectedDescription() != descInfo.lastPersist.id">
+                                        <app-table-of-contents 
+                                            #descriptionToC
+                                            stickyThing
+                                            [selectedFieldId]="selectedDescription() ? selectedFieldId : null"
+                                            [descriptionId]="descInfo.lastPersist?.id"
+                                            (entrySelected)="changeDescriptionStep($event.entry, $event.execute)"
+                                            [showErrors]="showDescriptionErrors()?.has(descInfo.lastPersist.id)"
+                                            [ordinal]="descriptionOrdinal(section, descInfo.ordinal)"
+                                            [isVisible]="selectedDescription() === descInfo.lastPersist.id"
+                                        ></app-table-of-contents>
+                                            <!--showDescriptionErrors().has(descInfo.lastPersist.id) -->
+                                    </div>
+                                </li>
+                            }
+                            <li 
+                                *ngIf="canEditInSection(section.id)" 
+                                class="d-flex"
+                                [matTooltipDisabled]="hasValidMultiplicity(section) && !descTemplatesTouched(section)"
+                                [matTooltip]="(!descTemplatesTouched(section) ? 'PLAN-EDITOR.DESCRIPTION-TEMPLATES.MAX-MULTIPLICITY' : 'PLAN-EDITOR.DESCRIPTION-TEMPLATES.TEMPLATES-TOUCHED') | translate"
+                            >
+                                <button mat-button 
+                                    class="add-description-btn"
+                                    [disabled]="!hasValidMultiplicity(section) || descTemplatesTouched(section)"
+                                    [attr.aria-label]="'PLAN-EDITOR.ACTIONS.ADD-DESCRIPTION-IN-SECTION' | translate"
+                                    (click)="onAddDescription.emit(section.id)"
+                                >
+                                    <mat-icon aria-hidden>add</mat-icon>
+                                    <span class="expanded-text">{{'PLAN-EDITOR.ACTIONS.ADD-DESCRIPTION' | translate}}</span>
+                                </button>
+                            </li>
+                        </ul>
+                    </li>
+                </ng-container>
+            }
+        </ul>
+    </div>
+    <div class="navigation">
+        <ul class="horizontal-list justify-content-between progress-btns">
+            <li class="mb-1">
+                <button mat-stroked-button type="button" class="padded-shadow-btn stepper mr-2" [disabled]="step() === 1" (click)="previousStep()">
+                    <span class="material-icons">chevron_left</span>
+                    <div>{{'PLAN-EDITOR.ACTIONS.PREVIOUS-STEP' | translate}}</div>
+                </button>
+            </li>
+            <li class="mb-1">
+                <button mat-flat-button color="primary" type="button" class="padded-shadow-btn stepper" (click)="nextStep()">
+                    <div>{{'PLAN-EDITOR.ACTIONS.NEXT-STEP' | translate}}</div>
+                    <span class="material-icons" iconPositionEnd>chevron_right</span>
+                </button>
+            </li>
+        </ul>
+        @if(formGroup() && !formGroup().disabled && canEdit()){
+            <div class="progress-indication-bar">
+                <app-plan-form-progress-indication [formGroup]="formGroup()"></app-plan-form-progress-indication>
+            </div>
+        }
+    </div>
+</div>

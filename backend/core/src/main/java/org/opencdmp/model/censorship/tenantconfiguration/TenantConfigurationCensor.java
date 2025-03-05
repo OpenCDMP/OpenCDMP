@@ -48,6 +48,9 @@ public class TenantConfigurationCensor extends BaseCensor {
         FieldSet depositPluginsFields = fields.extractPrefixed(this.asIndexerPrefix(TenantConfiguration._depositPlugins));
         this.censorFactory.censor(DepositTenantConfigurationCensor.class).censor(depositPluginsFields, userId);
 
+        FieldSet evaluatorPluginsFields = fields.extractPrefixed(this.asIndexerPrefix(TenantConfiguration._evaluatorPlugins));
+        this.censorFactory.censor(EvaluatorTenantConfigurationCensor.class).censor(evaluatorPluginsFields, userId);
+
         FieldSet fileTransformerPluginsFields = fields.extractPrefixed(this.asIndexerPrefix(TenantConfiguration._fileTransformerPlugins));
         this.censorFactory.censor(FileTransformerTenantConfigurationCensor.class).censor(fileTransformerPluginsFields, userId);
 

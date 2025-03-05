@@ -7,9 +7,10 @@ import { UserService } from '@app/core/services/user/user.service';
 import { BaseComponent } from '@common/base/base.component';
 
 @Component({
-	selector: 'app-language',
-	templateUrl: './language.component.html',
-	styleUrls: ['./language.component.scss']
+    selector: 'app-language',
+    templateUrl: './language.component.html',
+    styleUrls: ['./language.component.scss'],
+    standalone: false
 })
 export class LanguageComponent extends BaseComponent implements OnInit {
 

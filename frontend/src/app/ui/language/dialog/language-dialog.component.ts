@@ -2,12 +2,13 @@ import { Component, Inject } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 
 @Component({
-	selector: 'app-language-dialog',
-	templateUrl: './language-dialog.component.html',
-	styleUrls: ['./language-dialog.component.scss']
+    selector: 'app-language-dialog',
+    templateUrl: './language-dialog.component.html',
+    styleUrls: ['./language-dialog.component.scss'],
+    standalone: false
 })
 export class LanguageDialogComponent {
-
+   
 	public isDialog: boolean;
 
 	constructor(

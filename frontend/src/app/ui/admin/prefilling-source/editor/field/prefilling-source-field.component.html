@@ -12,7 +12,7 @@
 		<mat-form-field class="w-100">
 			<mat-label>{{'PREFILLING-SOURCE-EDITOR.FIELDS.SEMANTIC-TARGET' | translate}}</mat-label>
 			<app-single-auto-complete placeholder="{{'PREFILLING-SOURCE-EDITOR.FIELDS.SEMANTIC-TARGET' | translate}}" [formControl]="form.get('semanticTarget')" [configuration]="semanticsService.singleAutocompleteConfiguration"> </app-single-auto-complete>
-			<mat-error *ngIf="form.get('semanticTarget').hasError('backendError')">{{formGroup.get('semanticTarget').getError('backendError').message}}</mat-error>
+			<mat-error *ngIf="form.get('semanticTarget').hasError('backendError')">{{form.get('semanticTarget').getError('backendError').message}}</mat-error>
 			<mat-error *ngIf="form.get('semanticTarget').hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
 		</mat-form-field>
 	</div>
@@ -20,7 +20,7 @@
 		<mat-form-field class="w-100">
 			<mat-label>{{'PREFILLING-SOURCE-EDITOR.FIELDS.TRIM-REGEX' | translate}}</mat-label>
 			<input matInput type="text" name="trimRegex" [formControl]="form.get('trimRegex')">
-			<mat-error *ngIf="form.get('trimRegex').hasError('backendError')">{{formGroup.get('trimRegex').getError('backendError').message}}</mat-error>
+			<mat-error *ngIf="form.get('trimRegex').hasError('backendError')">{{form.get('trimRegex').getError('backendError').message}}</mat-error>
 			<mat-error *ngIf="form.get('trimRegex').hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
 		</mat-form-field>
 	</div>

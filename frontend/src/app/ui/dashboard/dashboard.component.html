@@ -1,86 +1,97 @@
 <div class="main-content dashboard-main-container h-100">
-	<div *ngIf="this.isAuthenticated()" class="container-fluid">
-		<div *ngIf="this.dashboardStatistics" class="main-content">
+	<div *ngIf="isAuthenticated()" class="container-fluid">
+		<div *ngIf="dashboardStatistics" class="main-content">
 			<div class="container-fluid">
 				<div class="row flex-column-reverse flex-xl-row">
-					<div class="col-12 col-xl-10">
+					<div class="col-12 col-xl-9">
 						<div class="row">
-							<div *ngIf="newReleaseNotificationVisible" class="new-releases-card col-auto mt-0 mr-4">
-								<a class="col-auto d-flex" (click)="dismissNewReleaseNotification()"><span class="ml-auto mt-3 material-icons clear-icon">clear</span></a>
+							<div *ngIf="newReleaseNotificationVisible" class="new-releases-card col-auto mt-0 pt-2 mr-4">
+								<button mat-icon-button [attr.aria-label]="'ALT-TEXT.CLOSE-RELEASE' | translate" (click)="dismissNewReleaseNotification()">
+                                    <mat-icon aria-hidden>close</mat-icon>
+                                </button>
 								<div class="row new-releases-hint-container m-0">
 									<p class="new-releases-chip mb-0 col-auto">{{'NEW-RELEASE-NOTIFICATION.HINT' | translate}}</p>
 								</div>
 								<p class="new-releases-title mb-0 pt-4">{{'NEW-RELEASE-NOTIFICATION.TITLE' | translate}}</p>
 								<p class="new-releases-content mb-0">{{'NEW-RELEASE-NOTIFICATION.BODY' | translate}}</p>
 
-								<div class="row d-flex align-items-center mt-4" *ngIf="this.configurationService.newReleaseNotificationLink">
+								<div class="row d-flex align-items-center mt-4" *ngIf="configurationService.newReleaseNotificationLink">
 									<div class="col-auto d-flex">
-										<a mat-button class="rounded-btn primary new-releases-btn" href="{{this.configurationService.newReleaseNotificationLink}}" target="_blank">
+										<a mat-flat-button color="primary" class="padded-shadow-btn new-releases-btn" href="{{configurationService.newReleaseNotificationLink}}" target="_blank">
 											{{'NEW-RELEASE-NOTIFICATION.ACTIONS.LEARN-MORE' | translate}}
 										</a>
 									</div>
 									<span class="new-releases-logo">
-										<img src="../../../assets/images/new-releases-logo.png">
+										<img src="../../../assets/images/new-releases-logo.png" alt="{{('ALT-TEXT.NEW-RELEASES' | translate) ?? 'new releases'}}">
 									</span>
 								</div>
 							</div>
-							<div class="card col-auto mt-0" [style.display]="isIntroCardVisible ? 'block' : 'none'">
-								<a *ngIf="this.hasPlans()" class="col-auto d-flex" (click)="dismissIntroCard()"><span class="ml-auto mt-3 material-icons clear-icon">clear</span></a>
+							<div class="card col-auto mt-0 pt-2 pb-2" [style.display]="isIntroCardVisible ? 'block' : 'none'">
+								<button mat-icon-button  [attr.aria-label]="'ALT-TEXT.CLOSE-INTRO-CARD' | translate" *ngIf="hasPlans()" (click)="dismissIntroCard()">
+                                    <mat-icon aria-hidden>close</mat-icon>
+                                </button>
 
-								<p *ngIf="!this.hasPlans()" class="card-title mb-0 pt-4">{{'DASHBOARD.PLAN-QUESTION' | translate}}</p>
-								<p *ngIf="!this.hasPlans()" class="card-content mb-0">{{'DASHBOARD.INFO-PLAN-TEXT' | translate}}</p>
+								<p *ngIf="!hasPlans()" class="card-title mb-0 pt-4">{{'DASHBOARD.PLAN-QUESTION' | translate}}</p>
+								<p *ngIf="!hasPlans()" class="card-content mb-0">{{'DASHBOARD.INFO-PLAN-TEXT' | translate}}</p>
 
-								<p *ngIf="!this.hasPlans()" class="card-content pt-3 mb-0">
+								<p *ngIf="!hasPlans()" class="card-content pt-3 mb-0">
 									{{'DASHBOARD.NEW-QUESTION' | translate}} <a href="https://www.openaire.eu/how-to-create-a-data-management-plan" target="_blank"><u>{{'DASHBOARD.OPEN-AIR-GUIDE' | translate}}</u></a> {{'DASHBOARD.LEARN-MORE' | translate}}
 								</p>
-								<p *ngIf="this.hasPlans()" class="card-content mb-0 pt-0">{{'DASHBOARD.PLAN-ABOUT-BEG' | translate}}
+								<p *ngIf="hasPlans()" class="card-content mb-0 pt-0">{{'DASHBOARD.PLAN-ABOUT-BEG' | translate}}
 									<b>{{'DASHBOARD.DESCRIPTIONS-DASHBOARD-TEXT' | translate}}</b>
 									{{'DASHBOARD.PLAN-ABOUT-END' | translate}}
 								</p>
 
 								<div class="row d-flex align-items-center">
-									<div *ngIf="!this.hasPlans()" class="col-auto p-0 add-description-btn d-flex">
+									<div *ngIf="!hasPlans()" class="col-auto p-0 add-description-btn d-flex">
 										<div class="pr-2">
-											<button type="button" mat-button class="align-self-center rounded-btn primary" (click)="openNewPlanDialog()">{{'DASHBOARD.START-YOUR-FIRST-PLAN' | translate}}</button>
+											<button type="button" color="accent" mat-flat-button class="align-self-center padded-shadow-btn" (click)="openNewPlanDialog()">{{'DASHBOARD.START-YOUR-FIRST-PLAN' | translate}}</button>
 										</div>
 									</div>
-									<div *ngIf="this.hasPlans()" class="col-auto p-0 new-description-tour add-description-btn col-auto d-flex">
+									<div *ngIf="hasPlans()" class="col-auto p-0 add-description-btn col-auto d-flex">
 										<div class="pr-2">
-											<button mat-button type="button" class="align-self-center rounded-btn secondary" (click)="addNewDescription()">{{'DASHBOARD.ACTIONS.ADD-DESCRIPTION' | translate}}</button>
+											<button mat-flat-button color="accent" type="button" class="new-description-tour align-self-center padded-shadow-btn" (click)="addNewDescription()">{{'DASHBOARD.ACTIONS.ADD-DESCRIPTION' | translate}}</button>
 										</div>
 									</div>
 									<span class="col-auto ml-auto">
-										<img class="laptop-img\6" src="../../../assets/images/dashboard-popup.png">
+										<img class="laptop-img" alt="{{('ALT-TEXT.DASHBOARD-POPUP-IMAGE' | translate) ?? 'dashboard popup image' }}" src="../../../assets/images/dashboard-popup.png">
 									</span>
 								</div>
 							</div>
 						</div>
-						<div *ngIf="this.hasPlans()" class="col">
+						<div *ngIf="hasPlans()" class="col">
 							<div class="latest-activity-title">{{'DASHBOARD.LATEST-ACTIVITY' | translate}}</div>
-							<mat-tab-group dynamicHeight color="#00000" mat-stretch-tabs="false" mat-align-tabs="start" class="my-mat-tab remove-border-bottom" [selectedIndex]="indexFromCurrentType" (selectedTabChange)="currentType = $event.tab.ariaLabel">
-								<mat-tab aria-label="recent" label="{{'DASHBOARD.ALL' | translate}}">
+							<mat-tab-group 
+                                #tabGroup="matTabGroup" 
+                                dynamicHeight 
+                                mat-stretch-tabs="false" 
+                                mat-align-tabs="start" 
+                                class="my-mat-tab remove-border-bottom" 
+                                [selectedIndex]="initTab"
+                            >
+								<mat-tab #recentsTab [attr.aria-label]="'DASHBOARD.ALL' | translate" label="{{'DASHBOARD.ALL' | translate}}">
 									<app-recent-edited-activity 
-                                        [currentType]="currentType" 
+                                        [isActive]="recentsTab?.isActive"
                                         [type]="ActivityListingType.Recent"
                                     ></app-recent-edited-activity>
 								</mat-tab>
-								<mat-tab aria-label="drafts" label="{{'DASHBOARD.DRAFTS' | translate}}">
+								<mat-tab #draftsTab [attr.aria-label]="'DASHBOARD.DRAFTS' | translate" label="{{'DASHBOARD.DRAFTS' | translate}}">
 									<app-recent-edited-activity 
-                                        [currentType]="currentType" 
+                                        [isActive]="draftsTab?.isActive"
                                         [type]="ActivityListingType.Drafts" 
                                     ></app-recent-edited-activity>
 								</mat-tab>
-								<mat-tab aria-label="plans" label="{{'DASHBOARD.PLANS' | translate}}">
+								<mat-tab #plansTab [attr.aria-label]="'DASHBOARD.PLANS' | translate" label="{{'DASHBOARD.PLANS' | translate}}">
 									<app-recent-edited-activity 
-                                        [currentType]="currentType" 
+                                        [isActive]="plansTab?.isActive"
                                         [type]="ActivityListingType.Plans" 
                                     ></app-recent-edited-activity>
 								</mat-tab>
-								<mat-tab aria-label="descriptions" label="{{'DASHBOARD.DESCRIPTIONS' | translate}}">
+								<mat-tab #descriptionsTab [attr.aria-label]="'DASHBOARD.DESCRIPTIONS' | translate" label="{{'DASHBOARD.DESCRIPTIONS' | translate}}">
 									<app-recent-edited-activity 
-                                        [currentType]="currentType" 
+                                        [isActive]="descriptionsTab?.isActive"
                                         [type]="ActivityListingType.Descriptions" 
-                                        [hasPlans]="this.hasPlans()" 
+                                        [hasPlans]="hasPlans()" 
                                         (addNewDescription)="addNewDescription($event)"
                                     ></app-recent-edited-activity>
 								</mat-tab>
@@ -88,8 +99,14 @@
 						</div>
 					</div>
 					<!-- Right Sidebar -->
-					<div *ngIf="!this.hasPlans()" class="col-12 col-xl-2 mb-4 stats">
-						<div class="row">
+					<div  class="col-12 col-xl-3 mb-4">
+						<div   class="row">
+							<div class="col-12">
+								<app-top-plan-blueprints-component></app-top-plan-blueprints-component>
+							</div>
+
+						</div>
+						<div *ngIf="!hasPlans()" class="row stats">
 							<div class="col-12">
 								<div class="personal-usage" style="width: fit-content;">
 									<span>
@@ -107,16 +124,14 @@
 							</div>
 							<div class="col-auto col-xl-12">
 								<div class="counter-zero" style="width: fit-content;"><span>0</span></div>
-								<a class="link-disabled">{{'DASHBOARD.GRANTS' | translate}}</a>
+								<div>{{'DASHBOARD.GRANTS' | translate}}</div>
 							</div>
 							<div class="col-auto col-xl-12">
 								<div class="counter-zero" style="width: fit-content;"><span>0</span></div>
-								<a class="link-disabled">{{'DASHBOARD.RELATED-ORGANISATIONS' | translate}}</a>
+								<div>{{'DASHBOARD.RELATED-ORGANISATIONS' | translate}}</div>
 							</div>
 						</div>
-					</div>
-					<div *ngIf="this.hasPlans()" class="col-12 col-xl-2 mb-4 stats">
-						<div class="row">
+						<div *ngIf="hasPlans()" class="row stats">
 							<div class="col-12">
 								<div class="personal-usage" style="width: fit-content;"><span>{{'DASHBOARD.PERSONAL-USAGE' | translate}}</span></div>
 							</div>
@@ -136,13 +151,13 @@
 								<div [ngClass]="{'counter': grantCount != 0, 'counter-zero': grantCount == 0}" style="width: fit-content;">
 									<span>{{grantCount}}</span>
 								</div>
-								<a href="#" class="link-disabled">{{'DASHBOARD.GRANTS' | translate}}</a>
+								<div>{{'DASHBOARD.GRANTS' | translate}}</div>
 							</div>
 							<div class="col-auto col-xl-12">
 								<div [ngClass]="{'counter': organizationCount != 0, 'counter-zero': organizationCount == 0}" style="width: fit-content;">
 									<span>{{organizationCount}}</span>
 								</div>
-								<a href="#" class="link-disabled">{{'DASHBOARD.RELATED-ORGANISATIONS' | translate}}</a>
+								<div>{{'DASHBOARD.RELATED-ORGANISATIONS' | translate}}</div>
 							</div>
 						</div>
 					</div>
@@ -157,20 +172,22 @@
 	</div>
 
 	<!-- Home screen on log out -->
-	<div class="container-fluid" *ngIf="!this.isAuthenticated()">
+	<div class="container-fluid" *ngIf="!isAuthenticated()">
 		<div class="main-content">
 			<div class="container-fluid">
 				<div class="row flex-column-reverse flex-xl-row">
 					<div class="col-12 col-xl">
 						<div class="row">
 							<div class="col-auto card" [style.display]="isIntroCardVisible ? 'block' : 'none'">
-								<a class="col-auto d-flex" (click)="dismissIntroCard()"><span class="ml-auto mt-3 material-icons clear-icon">clear</span></a>
+								<button mat-icon-button (click)="dismissIntroCard()" [attr.aria-label]="'ALT-TEXT.CLOSE-INTRO-CARD' | translate">
+                                    <mat-icon aria-hidden>close</mat-icon>
+                                </button>
 								<div class="d-flex flex-column align-items-center non-auth-title-container">
-									<h4 class="pt-4">{{'DASHBOARD.TITLE' | translate}}</h4>
+									<p class="dashboard-title pt-4">{{'DASHBOARD.TITLE' | translate}}</p>
 									<p class="col-auto app-info">{{'DASHBOARD.INFO-TEXT' | translate}}</p>
 								</div>
 								<div class="d-flex">
-									<img class="col-auto ml-auto laptop-img" src="../../../assets/images/dashboard-popup.png">
+									<img class="col-auto ml-auto laptop-img" alt="{{('ALT-TEXT.DASHBOARD-POPUP-IMAGE' | translate) ?? 'dashboard popup image' }}" src="../../../assets/images/dashboard-popup.png">
 								</div>
 							</div>
 						</div>
@@ -182,19 +199,19 @@
 							</div>
 							<div class="col-auto">
 								<div class="counter-zero"><span>0</span></div>
-								<a class="link">{{'DASHBOARD.PUBLIC-PLANS' | translate}}</a>
+								<div>{{'DASHBOARD.PUBLIC-PLANS' | translate}}</div>
 							</div>
 							<div class="col-auto">
 								<div class="counter-zero"><span>0</span></div>
-								<a class="link">{{'DASHBOARD.PUBLIC-DESCRIPTIONS' | translate}}</a>
+								<div>{{'DASHBOARD.PUBLIC-DESCRIPTIONS' | translate}}</div>
 							</div>
 							<div class="col-auto">
 								<div class="counter-zero"><span>0</span></div>
-								<a class="link-disabled">{{'DASHBOARD.GRANTS' | translate}}</a>
+								<div>{{'DASHBOARD.GRANTS' | translate}}</div>
 							</div>
 							<div class="col-auto">
 								<div class="counter-zero"><span>0</span></div>
-								<a class="link-disabled">{{'DASHBOARD.RELATED-ORGANISATIONS' | translate}}</a>
+								<div>{{'DASHBOARD.RELATED-ORGANISATIONS' | translate}}</div>
 							</div>
 						</div>
 
@@ -214,12 +231,12 @@
 
 							<div class="col-auto">
 								<div [ngClass]="{'counter': grantCount != 0, 'counter-zero': grantCount == 0}"><span>{{grantCount}}</span></div>
-								<a href="#" class="link-disabled">{{'DASHBOARD.GRANTS' | translate}}</a>
+								<div>{{'DASHBOARD.GRANTS' | translate}}</div>
 							</div>
 
 							<div class="col-auto">
 								<div [ngClass]="{'counter': organizationCount != 0, 'counter-zero': organizationCount == 0}"><span>{{organizationCount}}</span></div>
-								<a href="#" class="link-disabled">{{'DASHBOARD.RELATED-ORGANISATIONS' | translate}}</a>
+								<div>{{'DASHBOARD.RELATED-ORGANISATIONS' | translate}}</div>
 							</div>
 						</div>
 					</div>

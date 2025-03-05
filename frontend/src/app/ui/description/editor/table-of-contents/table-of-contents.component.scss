@@ -3,9 +3,8 @@
   padding: 5px 0 10px 0px;
   cursor: pointer;
 
-  .scroll-container {
     overflow-y: auto;
-  }
+  
 
   .docs-link {
     color: rgba(0, 0, 0, 0.54);
@@ -14,7 +13,7 @@
     &:hover,
     &.docs-active {
       .link-name {
-        background-color: #ececec;
+        background-color: rgb(0,0,0,0.05);
         border-radius: 6px;
       }
     }
@@ -24,7 +23,8 @@
 .docs-toc-heading {
   margin: 0;
   padding: 0;
-  font-size: 13px;
+//   font-size: 13px;
+    font-size: var(--sys-label-large-size);
   font-weight: bold;
 }
 
@@ -35,7 +35,7 @@ span {
   text-decoration: none;
   display: block;
   overflow: hidden;
-  color: #21212194;
+  color: var(--dark-text)94;
   font-weight: 400;
 
   span {
@@ -48,7 +48,7 @@ span {
 }
 
 .selected {
-  color: #212121 !important;
+  color: var(--dark-text) !important;
   font-weight: 700 !important;
   opacity: 1 !important;
 }

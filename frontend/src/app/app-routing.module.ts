@@ -19,20 +19,6 @@ const appRoutes: Routes = [
 		}
 	},
 	{
-		path: 'descriptions',
-		loadChildren: () => import('./ui/description/description.module').then(m => m.DescriptionModule),
-		data: {
-			authContext: {
-				permissions: [AppPermission.ViewMyDescriptionPage]
-			},
-			breadcrumb: true,
-			...BreadcrumbService.generateRouteDataConfiguration({
-				title: 'GENERAL.TITLES.DESCRIPTIONS'
-			}),
-			title: 'GENERAL.TITLES.DESCRIPTIONS'
-		}
-	},
-	{
 		path: 'explore-descriptions',
 		loadChildren: () => import('./ui/description/description.module').then(m => m.PublicDescriptionModule),
 		data: {
@@ -231,15 +217,16 @@ const appRoutes: Routes = [
 		},
 	},
 	{
-		path: 'supportive-material',
-		loadChildren: () => import('./ui/supportive-material-editor/supportive-material-editor.module').then(m => m.SupportiveMaterialEditorModule),
+		path: 'supportive-materials',
+		loadChildren: () => import('./ui/admin/supportive-material/supportive-material.module').then(m => m.SupportiveMaterialModule),
 		data: {
 			authContext: {
 				permissions: [AppPermission.ViewSupportiveMaterialPage]
 			},
 			...BreadcrumbService.generateRouteDataConfiguration({
-				title: 'GENERAL.TITLES.SUPPORTIVE-MATERIAL'
-			})
+				title: 'BREADCRUMBS.SUPPORTIVE-MATERIALS'
+			}),
+			title: 'GENERAL.TITLES.SUPPORTIVE-MATERIAL'
 		},
 	},
 	{
@@ -422,6 +409,20 @@ const appRoutes: Routes = [
 				title: 'GENERAL.TITLES.DESCRIPTION-STATUSES'
 			}),
             title: 'GENERAL.TITLES.DESCRIPTION-STATUSES'
+		}
+	},
+	{
+		path: 'indicator-dashboard',
+		loadChildren: () => import('../kpi-service/ui/admin/indicator-dashboard/indicator-dashboard.module').then(m => m.IndicatorDashboardModule),
+		data: {
+			authContext: {
+				permissions: [AppPermission.ViewIndicatorDashboardPage]
+			},
+            breadcrumb: true,
+			...BreadcrumbService.generateRouteDataConfiguration({
+				title: 'GENERAL.TITLES.INDICATOR-DASHBOARD'
+			}),
+            title: 'GENERAL.TITLES.INDICATOR-DASHBOARD'
 		}
 	},
 	{

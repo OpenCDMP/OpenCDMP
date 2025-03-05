@@ -13,7 +13,8 @@ import { StorageFileService } from "../services/storage-file/storage-file.servic
 import { DateTimeFormatPipe } from "./date-time-format.pipe";
 
 @Pipe({
-	name: 'fieldValue'
+    name: 'fieldValue',
+    standalone: false
 })
 export class FieldValuePipe implements PipeTransform {
 

@@ -48,6 +48,7 @@ public class DescriptionTemplateBuilder extends BaseBuilder<DescriptionTemplate,
     private final TenantScope tenantScope;
     private final AuthorizationService authorizationService;
     private final AuthorizationContentResolver authorizationContentResolver;
+    private Map<UUID, Integer> featuredOrdinalMap;
 
     @Autowired
     public DescriptionTemplateBuilder(
@@ -63,6 +64,11 @@ public class DescriptionTemplateBuilder extends BaseBuilder<DescriptionTemplate,
 
     public DescriptionTemplateBuilder authorize(EnumSet<AuthorizationFlags> values) {
         this.authorize = values;
+        return this;
+    }
+
+    public DescriptionTemplateBuilder featuredOrdinalMap(Map<UUID, Integer> featuredOrdinalMap) {
+        this.featuredOrdinalMap = featuredOrdinalMap;
         return this;
     }
 
@@ -122,6 +128,9 @@ public class DescriptionTemplateBuilder extends BaseBuilder<DescriptionTemplate,
             if (!descriptionTemplateTypeFields.isEmpty() && descriptionTemplateTypeMap != null && descriptionTemplateTypeMap.containsKey(d.getTypeId()))
                 m.setType(descriptionTemplateTypeMap.get(d.getTypeId()));
             if (affiliatedResourceMap != null && !authorizationFlags.isEmpty()) m.setAuthorizationFlags(this.evaluateAuthorizationFlags(this.authorizationService, authorizationFlags, affiliatedResourceMap.getOrDefault(d.getId(), null)));
+            if (fields.hasField(this.asIndexer(DescriptionTemplate._ordinal)) && this.featuredOrdinalMap != null && this.featuredOrdinalMap.containsKey(d.getGroupId())) {
+                m.setOrdinal(this.featuredOrdinalMap.get(d.getGroupId()));
+            }
             models.add(m);
         }
         this.logger.debug("build {} items", Optional.of(models).map(List::size).orElse(0));

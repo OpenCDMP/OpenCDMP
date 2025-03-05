@@ -6,16 +6,16 @@
 					<app-navigation-breadcrumb />
 				</div>
 				<div class="col-auto">
-					<button mat-button class="rounded-btn neutral" (click)="cancel()" type="button">{{'REFERENCE-EDITOR.ACTIONS.CANCEL' | translate}}</button>
+					<button mat-stroked-button class="padded-shadow-btn" (click)="cancel()" type="button">{{'REFERENCE-EDITOR.ACTIONS.CANCEL' | translate}}</button>
 				</div>
 				<div class="col-auto" *ngIf="canDelete">
-					<button mat-button class="rounded-btn delete-inverted" type="button" (click)="delete()">
-						<mat-icon>delete</mat-icon>
+					<button mat-stroked-button color="warn" class="padded-shadow-btn" type="button" (click)="delete()">
+						<mat-icon aria-hidden>delete</mat-icon>
 						{{'REFERENCE-EDITOR.ACTIONS.DELETE' | translate}}
 					</button>
 				</div>
 				<div class="col-auto" *ngIf="canSave">
-					<button mat-button class="rounded-btn primary" (click)="formSubmit()">
+					<button mat-flat-button color="primary" class="padded-shadow-btn" (click)="formSubmit()">
 						<mat-icon>save</mat-icon>
 						{{'REFERENCE-EDITOR.ACTIONS.SAVE' | translate}}
 					</button>
@@ -23,9 +23,10 @@
 			</div>
 
 			<form *ngIf="formGroup" (ngSubmit)="formSubmit()">
-				<mat-card class="pt-3 pb-3" appearance="outlined">
+				<mat-card class="pb-3" appearance="outlined">
 					<mat-card-content>
-						<div class="row">
+                        <div class="pb-3"><small>{{'COMMONS.VALIDATION.REQUIRED-FIELDS-HINT' | translate}}</small></div>
+						<div class="row" style="row-gap: 0.5rem">
 							<div class="col-4">
 								<mat-form-field class="w-100">
 									<mat-label>{{'REFERENCE-EDITOR.FIELDS.LABEL' | translate}}</mat-label>
@@ -80,7 +81,7 @@
 								</mat-form-field>
 							</div>
 							<div class="col-12">
-								<rich-text-editor-component [form]="formGroup.get('description')" [placeholder]="'REFERENCE-EDITOR.FIELDS.DESCRIPTION-PLACEHOLDER'" [wrapperClasses]="(formGroup.get('description').touched && formGroup.get('description').hasError('required')) ? 'required' : ''" [editable]="formGroup.controls['description'].status !== 'DISABLED'">
+								<rich-text-editor-component [form]="formGroup.controls.description" [placeholder]="'REFERENCE-EDITOR.FIELDS.DESCRIPTION-PLACEHOLDER'" [wrapperClasses]="(formGroup.get('description').touched && formGroup.get('description').hasError('required')) ? 'required' : ''" >
 								</rich-text-editor-component>
 								<div [class]="(formGroup.get('description').touched && formGroup.get('description').hasError('required')) ? 'visible' : 'invisible'" class="mat-form-field formGroup-field-subscript-wrapper">
 									<mat-error *ngIf="formGroup.get('description').hasError('backendError')">{{formGroup.get('description').getError('backendError').message}}</mat-error>
@@ -92,7 +93,7 @@
 							<div class="col-12">
 								<h3 class="mb-4">
 									{{'REFERENCE-EDITOR.FIELDS.FIELDS' | translate}}
-									<button mat-button class="rounded-btn secondary" type="button" (click)="addField()" [disabled]="formGroup.disabled">{{'REFERENCE-EDITOR.ACTIONS.ADD-FIELD' | translate}}</button>
+									<button mat-flat-button color="accent" class="padded-shadow-btn" type="button" (click)="addField()" [disabled]="formGroup.disabled">{{'REFERENCE-EDITOR.ACTIONS.ADD-FIELD' | translate}}</button>
 								</h3>
 								<div *ngFor="let field of formGroup.get('definition').get('fields').controls; let fieldIndex=index;" class="row mb-3">
 									<div class="col-12">
@@ -129,8 +130,8 @@
 												</mat-form-field>
 											</div>
 											<div class="col-auto pb-3 d-flex">
-												<button mat-icon-button matTooltip="{{'REFERENCE-EDITOR.ACTIONS.REMOVE-FIELD' | translate}}" (click)="removeField(fieldIndex)" [disabled]="formGroup.disabled">
-													<mat-icon>delete</mat-icon>
+												<button mat-icon-button matTooltip="{{'REFERENCE-EDITOR.ACTIONS.REMOVE-FIELD' | translate}}" (click)="removeField(fieldIndex)" [disabled]="formGroup.disabled" [attr.aria-label]="'COMMONS.ACTIONS.REMOVE' | translate">
+													<mat-icon aria-hidden>delete</mat-icon>
 												</button>
 											</div>
 										</div>

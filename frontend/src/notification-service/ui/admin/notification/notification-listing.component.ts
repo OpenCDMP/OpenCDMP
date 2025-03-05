@@ -30,8 +30,9 @@ import { DataTableDateTimeFormatPipe } from '@app/core/pipes/date-time-format.pi
 import { AppPermission } from '@app/core/common/enum/permission.enum';
 
 @Component({
-	templateUrl: './notification-listing.component.html',
-	styleUrls: ['./notification-listing.component.scss']
+    templateUrl: './notification-listing.component.html',
+    styleUrls: ['./notification-listing.component.scss'],
+    standalone: false
 })
 export class NotificationListingComponent extends BaseListingComponent<Notification, NotificationLookup> implements OnInit {
 	publish = false;
@@ -171,7 +172,7 @@ export class NotificationListingComponent extends BaseListingComponent<Notificat
 		},
 		{
 			prop: nameof<Notification>(x => x.isActive),
-			sortable: true,
+			sortable: false,
 			languageName: 'NOTIFICATION-SERVICE.NOTIFICATION-LISTING.FIELDS.IS-ACTIVE',
 			pipe: this.pipeService.getPipe<IsActiveTypePipe>(IsActiveTypePipe)
 		},

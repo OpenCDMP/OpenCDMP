@@ -1,7 +1,10 @@
 import { Pipe, PipeTransform } from '@angular/core';
 import { EnumUtils } from '@app/core/services/utilities/enum-utils.service';
 
-@Pipe({ name: 'IsActiveTypeFormat' })
+@Pipe({
+    name: 'IsActiveTypeFormat',
+    standalone: false
+})
 export class IsActiveTypePipe implements PipeTransform {
 	constructor(private enumUtils: EnumUtils) { }
 

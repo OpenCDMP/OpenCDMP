@@ -7,12 +7,12 @@
 
 				</div>
 				<div class="col-auto">
-					<button mat-button class="rounded-btn primary" (click)="invite()" *ngIf="hasTenantAdminMode">
+					<button mat-flat-button color="primary" class="padded-shadow-btn" (click)="invite()" *ngIf="hasTenantAdminMode">
 						{{'USER-LISTING.ACTIONS.INVITE' | translate}}
 					</button>
 				</div>
 				<div class="col-auto">
-					<button mat-button class="rounded-btn secondary" (click)="export()" *ngIf="authService.hasPermission(authService.permissionEnum.ExportUsers)">
+					<button mat-flat-button color="accent" class="padded-shadow-btn" (click)="export()" *ngIf="authService.hasPermission(authService.permissionEnum.ExportUsers)">
 						<mat-icon>download</mat-icon>
 						{{'USER-LISTING.ACTIONS.EXPORT' | translate}}
 					</button>
@@ -68,8 +68,8 @@
 <ng-template #nameCellTemplate let-row="row" let-item>
 	<div class="row align-items-center">
 		<div class="col-auto">
-			<img *ngIf="row?.additionalInfo?.avatarUrl" class="user-avatar" [src]="row?.additionalInfo?.avatarUrl" (error)="this.setDefaultAvatar($event)">
-			<img *ngIf="!row?.additionalInfo?.avatarUrl" class="user-avatar" [src]="'assets/images/profile-placeholder.png'">
+			<img *ngIf="row?.additionalInfo?.avatarUrl" class="user-avatar" [src]="row?.additionalInfo?.avatarUrl" (error)="setDefaultAvatar($event)" aria-hidden>
+			<img *ngIf="!row?.additionalInfo?.avatarUrl" class="user-avatar" [src]="'assets/images/profile-placeholder.png'" aria-hidden>
 		</div>
 		<div class="col">{{row.name}}</div>
 

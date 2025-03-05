@@ -9,9 +9,10 @@ import { isNullOrUndefined } from '@swimlane/ngx-datatable';
 import { takeUntil } from 'rxjs/operators';
 
 @Component({
-	selector: 'app-user-settings-selector',
-	templateUrl: './user-settings-selector.component.html',
-	styleUrls: ['./user-settings-selector.component.scss']
+    selector: 'app-user-settings-selector',
+    templateUrl: './user-settings-selector.component.html',
+    styleUrls: ['./user-settings-selector.component.scss'],
+    standalone: false
 })
 export class UserSettingsSelectorComponent extends BaseComponent implements OnInit, OnChanges {
 

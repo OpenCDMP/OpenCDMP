@@ -1,4 +1,4 @@
-import { Component, Inject } from '@angular/core';
+import { Component, computed, HostBinding, Inject } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { BaseComponent } from '@common/base/base.component';
 import { UserService } from '@app/core/services/user/user.service';
@@ -8,11 +8,13 @@ import { PlanAssociatedUser } from '@app/core/model/user/user';
 import { EnumUtils } from '@app/core/services/utilities/enum-utils.service';
 
 @Component({
-	selector: 'app-plan-contact-prefill-dialog',
-	templateUrl: './plan-contact-prefill-dialog.component.html',
-	styleUrls: ['./plan-contact-prefill-dialog.component.scss']
+    selector: 'app-plan-contact-prefill-dialog',
+    templateUrl: './plan-contact-prefill-dialog.component.html',
+    styleUrls: ['./plan-contact-prefill-dialog.component.scss'],
+    standalone: false
 })
 export class PlanContactPrefillDialogComponent extends BaseComponent {
+   
 
 	label: string;
 	selectedUser: PlanAssociatedUser; 
@@ -23,7 +25,7 @@ export class PlanContactPrefillDialogComponent extends BaseComponent {
 		private userService: UserService,
 		public enumUtils: EnumUtils,
 		public dialogRef: MatDialogRef<PlanContactPrefillDialogComponent>,
-		@Inject(MAT_DIALOG_DATA) public data: any
+		@Inject(MAT_DIALOG_DATA) public data: any,
 	) {
 		super();
 		this.label = data.label;

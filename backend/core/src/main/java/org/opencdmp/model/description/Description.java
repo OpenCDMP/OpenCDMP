@@ -1,6 +1,6 @@
 package org.opencdmp.model.description;
 
-import org.opencdmp.commons.enums.DescriptionStatus;
+import org.opencdmp.model.descriptionstatus.DescriptionStatus;
 import org.opencdmp.commons.enums.IsActive;
 import org.opencdmp.model.*;
 import org.opencdmp.model.descriptionreference.DescriptionReference;
@@ -85,6 +85,12 @@ public class Description {
     private Plan plan;
 
     public static final String _plan = "plan";
+
+    private List<DescriptionStatus> availableStatuses;
+    public static final String _availableStatuses = "availableStatuses";
+
+    private List<String> statusAuthorizationFlags;
+    public static final String _statusAuthorizationFlags = "statusAuthorizationFlags";
 
     private Boolean belongsToCurrentTenant;
     public static final String _belongsToCurrentTenant = "belongsToCurrentTenant";
@@ -229,6 +235,22 @@ public class Description {
 
     public void setAuthorizationFlags(List<String> authorizationFlags) {
         this.authorizationFlags = authorizationFlags;
+    }
+
+    public List<DescriptionStatus> getAvailableStatuses() {
+        return availableStatuses;
+    }
+
+    public void setAvailableStatuses(List<DescriptionStatus> availableStatuses) {
+        this.availableStatuses = availableStatuses;
+    }
+
+    public List<String> getStatusAuthorizationFlags() {
+        return statusAuthorizationFlags;
+    }
+
+    public void setStatusAuthorizationFlags(List<String> statusAuthorizationFlags) {
+        this.statusAuthorizationFlags = statusAuthorizationFlags;
     }
 
     public Boolean getBelongsToCurrentTenant() {

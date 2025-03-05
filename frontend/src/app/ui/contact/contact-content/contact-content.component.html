@@ -2,7 +2,7 @@
 	<div [ngClass]="{'container contact-component': !isDialog}">
 		<div *ngIf="!isDialog" class="row">
 			<div class="col-md-12">
-				<h1>{{ 'CONTACT.SUPPORT.TITLE' | translate}}</h1>
+				<div class="title">{{ 'CONTACT.SUPPORT.TITLE' | translate}}</div>
 			</div>
 		</div>
 		<div [ngClass]="{'contact-container': !isDialog}" class="row">
@@ -22,8 +22,8 @@
 			</div>
 		</div>
 		<div *ngIf="!isDialog" class="row contact-actions">
-			<div class="ml-auto col-auto"><button mat-button type="button" class="rounded-btn neutral" (click)="cancel()">{{'CONTACT.SUPPORT.CANCEL' | translate}}</button></div>
-			<div class="col-auto"><button mat-button type="button" class="rounded-btn primary-inverted" [disabled]="!formGroup.valid" (click)="send()"><i class="fa fa-paper-plane pr-2"></i>{{'CONTACT.SUPPORT.SEND' | translate}}</button></div>
+			<div class="ml-auto col-auto"><button mat-stroked-button type="button" class="padded-shadow-btn" (click)="cancel()">{{'CONTACT.SUPPORT.CANCEL' | translate}}</button></div>
+			<div class="col-auto"><button mat-stroked-button color="primary" type="button" class="padded-shadow-btn" [disabled]="!formGroup.valid" (click)="send()"><i class="fa fa-paper-plane pr-2"></i>{{'CONTACT.SUPPORT.SEND' | translate}}</button></div>
 		</div>
 	</div>
 </form>

@@ -71,6 +71,7 @@ public class PrincipalController {
         if (fieldSet == null || fieldSet.isEmpty()) {
             fieldSet = new BaseFieldSet(
                     Account._isAuthenticated,
+                    Account._userExists,
                     BaseFieldSet.asIndexer(Account._principal, Account.PrincipalInfo._subject),
                     BaseFieldSet.asIndexer(Account._principal, Account.PrincipalInfo._userId),
                     BaseFieldSet.asIndexer(Account._principal, Account.PrincipalInfo._name),

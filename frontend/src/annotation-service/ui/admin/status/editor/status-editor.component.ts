@@ -29,9 +29,10 @@ import { StatusEditorResolver } from './status-editor.resolver';
 import { InternalStatus } from '@annotation-service/core/enum/internal-status.enum';
 
 @Component({
-	templateUrl: './status-editor.component.html',
-	styleUrls: ['./status-editor.component.scss'],
-	providers: [StatusEditorService]
+    templateUrl: './status-editor.component.html',
+    styleUrls: ['./status-editor.component.scss'],
+    providers: [StatusEditorService],
+    standalone: false
 })
 export class StatusEditorComponent extends BaseEditor<StatusEditorModel, Status> implements OnInit {
 

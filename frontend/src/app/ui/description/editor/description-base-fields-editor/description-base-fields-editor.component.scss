@@ -1,20 +1,16 @@
 .description-base-fields-editor {
 
 	.intro {
-		text-align: left;
-		font-weight: 400;
-		letter-spacing: 0px;
-		color: #212121;
-		opacity: 1;
-		margin: 3rem 0rem 3rem 0rem;
+        color: var(--sys-on-surface);
+        opacity: 0.85;
+		margin: 2rem 0rem 1rem 0rem;
 	}
 
 	.heading {
 		text-align: left;
 		font-weight: 700;
-		font-size: 18px;
+        font-size: var(--sys-headline-medium-size);
 		letter-spacing: 0px;
-		color: #212121;
 		opacity: 0.81;
 		margin-top: 1.625rem;
 		margin-bottom: 0.625rem;
@@ -23,9 +19,8 @@
 	.hint {
 		text-align: left;
 		font-weight: 400;
-		font-size: 16px;
+		font-size: var(--sys-body-medium-size);
 		letter-spacing: 0px;
-		color: #212121;
 		opacity: 0.81;
 		margin-bottom: 2.125rem;
 	}
@@ -35,28 +30,16 @@
 	.profile-form {
 		text-align: left;
 		font-weight: 400;
-		font-size: 16px;
+		font-size: var(--sys-body-medium-size);
 		letter-spacing: 0.15px;
-		color: #7d7d7d;
 		opacity: 1;
 		margin-bottom: 1rem;
-	}
-
-	.input-btn {
-		border: none;
-		color: #aaaaaa;
-		background-color: #ffffff00;
-		cursor: pointer;
-	}
-
-	.input-btn :hover {
-		color: var(--primary-color-3) !important;
-	}
+    }
 
 	.plan-link {
-		color: #3fafac;
+		color: var(--link-color);
 		font-weight: 400;
-		font-size: 16px;
+		font-size: var(--sys-body-medium-size);
 		cursor: pointer;
 	}
 
@@ -68,51 +51,4 @@
 .multiline-mat-option.mat-option {
 	white-space: normal;
 	line-height: normal;
-}
-
-::ng-deep .title-form .mat-form-field-appearance-outline .mat-form-field-outline {
-	background: #fafafa !important;
-}
-
-::ng-deep .description-form .mat-form-field-appearance-outline .mat-form-field-outline {
-	background: #fafafa !important;
-}
-
-::ng-deep .uri-form .mat-form-field-appearance-outline .mat-form-field-outline {
-	background: #fafafa !important;
-}
-
-::ng-deep .tags-form .mat-form-field-appearance-outline .mat-form-field-outline {
-	background: #fafafa !important;
-}
-
-::ng-deep .profile-form .mat-form-field-appearance-outline .mat-form-field-outline {
-	background: #fafafa !important;
-}
-
-
-
-
-::ng-deep .title-form .mat-form-field-appearance-outline .mat-form-field-infix {
-	font-size: 1rem;
-	padding: 0.6em 0 1em 0 !important;
-}
-
-::ng-deep .description-form .mat-form-field-appearance-outline .mat-form-field-infix {
-	padding: 0.6em 0 1em 0 !important;
-}
-
-::ng-deep .uri-form .mat-form-field-appearance-outline .mat-form-field-infix {
-	font-size: 1rem;
-	padding: 0.6em 0 1em 0 !important;
-}
-
-::ng-deep .tags-form .mat-form-field-appearance-outline .mat-form-field-infix {
-	font-size: 1rem;
-	padding: 0.6em 0 1em 0 !important;
-}
-
-::ng-deep .profile-form .mat-form-field-appearance-outline .mat-form-field-infix {
-	font-size: 1rem;
-	padding: 0.6em 0 1em 0 !important;
 }

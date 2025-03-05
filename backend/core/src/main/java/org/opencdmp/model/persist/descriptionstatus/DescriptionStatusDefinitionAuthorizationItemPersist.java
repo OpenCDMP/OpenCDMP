@@ -62,11 +62,6 @@ public class DescriptionStatusDefinitionAuthorizationItemPersist {
         @Override
         protected List<Specification> specifications(DescriptionStatusDefinitionAuthorizationItemPersist item) {
             return Arrays.asList(
-                    this.spec()
-                            .must(() -> !this.isListNullOrEmpty(item.getRoles()))
-                            .failOn(PlanStatusDefinitionAuthorizationItemPersist._roles).failWith(messageSource.getMessage("Validation_Required", new Object[]{PlanStatusDefinitionAuthorizationItemPersist._roles}, LocaleContextHolder.getLocale())),                    this.spec()
-                            .must(() -> !this.isListNullOrEmpty(item.getPlanRoles()))
-                            .failOn(PlanStatusDefinitionAuthorizationItemPersist._planRoles).failWith(messageSource.getMessage("Validation_Required", new Object[]{PlanStatusDefinitionAuthorizationItemPersist._planRoles}, LocaleContextHolder.getLocale()))
             );
         }
     }

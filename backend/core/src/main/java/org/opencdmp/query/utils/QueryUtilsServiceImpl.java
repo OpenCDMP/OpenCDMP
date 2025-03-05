@@ -6,10 +6,7 @@ import org.opencdmp.commons.enums.DescriptionStatus;
 import org.opencdmp.commons.enums.PlanAccessType;
 import org.opencdmp.commons.enums.PlanStatus;
 import org.opencdmp.commons.enums.IsActive;
-import org.opencdmp.data.DescriptionEntity;
-import org.opencdmp.data.PlanEntity;
-import org.opencdmp.data.PlanUserEntity;
-import org.opencdmp.data.UserDescriptionTemplateEntity;
+import org.opencdmp.data.*;
 import org.springframework.stereotype.Component;
 
 import java.util.UUID;
@@ -35,7 +32,7 @@ public class QueryUtilsServiceImpl implements QueryUtilsService {
                         .filterFunc((subQueryRoot, cb) -> cb.or(
                                     usePublic ? cb.and(
                                             cb.equal(subQueryRoot.get(PlanEntity._accessType), PlanAccessType.Public),
-                                            cb.equal(subQueryRoot.get(PlanEntity._status),  PlanStatus.Finalized),
+                                            cb.in(subQueryRoot.get(PlanEntity._statusId)).value(this.buildPlanStatusAuthZSubQuery(query, criteriaBuilder, PlanStatus.Finalized)),
                                             cb.equal(subQueryRoot.get(PlanEntity._isActive), IsActive.Active)
                                     ): cb.or(), //Creates a false query
                                     userId != null ? cb.in(subQueryRoot.get(PlanEntity._id)).value(this.buildPlanUserAuthZSubQuery(query, criteriaBuilder, userId)) : cb.or() //Creates a false query
@@ -69,7 +66,7 @@ public class QueryUtilsServiceImpl implements QueryUtilsService {
                         .keyPathFunc((subQueryRoot) -> subQueryRoot.get(DescriptionEntity._id))
                         .filterFunc((subQueryRoot, cb) -> cb.or(
                                         usePublic ? cb.and(
-                                                cb.equal(subQueryRoot.get(DescriptionEntity._status), DescriptionStatus.Finalized),
+                                                cb.in(subQueryRoot.get(DescriptionEntity._statusId)).value(this.buildDescriptionStatusAuthZSubQuery(query, criteriaBuilder, DescriptionStatus.Finalized)),
                                                 cb.equal(subQueryRoot.get(DescriptionEntity._isActive), IsActive.Active),
                                                 cb.in(subQueryRoot.get(DescriptionEntity._planId)).value(this.buildPublicPlanAuthZSubQuery(query, criteriaBuilder, usePublic))
                                         ): cb.or(), //Creates a false query
@@ -93,9 +90,41 @@ public class QueryUtilsServiceImpl implements QueryUtilsService {
                         .filterFunc((subQueryRoot, cb) -> 
                                 usePublic ? cb.and(
                                         cb.equal(subQueryRoot.get(PlanEntity._accessType), PlanAccessType.Public),
-                                        cb.equal(subQueryRoot.get(PlanEntity._status),  PlanStatus.Finalized),
+                                        cb.in(subQueryRoot.get(PlanEntity._statusId)).value(this.buildPlanStatusAuthZSubQuery(query, criteriaBuilder, PlanStatus.Finalized)),
                                         cb.equal(subQueryRoot.get(PlanEntity._isActive), IsActive.Active)
                                 ): cb.or() //Creates a false query
+                        )
+        ));
+    }
+
+    @Override
+    public Subquery<UUID> buildPlanStatusAuthZSubQuery(AbstractQuery<?> query, CriteriaBuilder criteriaBuilder, PlanStatus internalStatus){
+        return this.buildSubQuery(new BuildSubQueryInput<>(
+                new BuildSubQueryInput.Builder<>(PlanStatusEntity.class, UUID.class)
+                        .query(query)
+                        .criteriaBuilder(criteriaBuilder)
+                        .keyPathFunc((subQueryRoot) -> subQueryRoot.get(PlanStatusEntity._id))
+                        .filterFunc((subQueryRoot, cb) ->
+                                cb.and(
+                                        cb.equal(subQueryRoot.get(PlanStatusEntity._internalStatus), internalStatus),
+                                        cb.equal(subQueryRoot.get(PlanStatusEntity._isActive), IsActive.Active)
+                                )
+                        )
+        ));
+    }
+
+    @Override
+    public Subquery<UUID> buildDescriptionStatusAuthZSubQuery(AbstractQuery<?> query, CriteriaBuilder criteriaBuilder, DescriptionStatus internalStatus){
+        return this.buildSubQuery(new BuildSubQueryInput<>(
+                new BuildSubQueryInput.Builder<>(DescriptionStatusEntity.class, UUID.class)
+                        .query(query)
+                        .criteriaBuilder(criteriaBuilder)
+                        .keyPathFunc((subQueryRoot) -> subQueryRoot.get(DescriptionStatusEntity._id))
+                        .filterFunc((subQueryRoot, cb) ->
+                                        cb.and(
+                                                cb.equal(subQueryRoot.get(DescriptionStatusEntity._internalStatus), internalStatus),
+                                                cb.equal(subQueryRoot.get(DescriptionStatusEntity._isActive), IsActive.Active)
+                                        )
                         )
         ));
     }
@@ -108,8 +137,7 @@ public class QueryUtilsServiceImpl implements QueryUtilsService {
                 .keyPathFunc((subQueryRoot) -> subQueryRoot.get(PlanUserEntity._planId))
                 .filterFunc((subQueryRoot, cb) -> 
                         userId != null ? cb.and(
-                            cb.equal(subQueryRoot.get(PlanUserEntity._userId), userId),
-                            cb.equal(subQueryRoot.get(PlanUserEntity._isActive), IsActive.Active)
+                            cb.equal(subQueryRoot.get(PlanUserEntity._userId), userId)
                         ) : cb.or() //Creates a false query
                 )
         ));

@@ -1,6 +1,8 @@
 package org.opencdmp.service.tenantconfiguration;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import org.opencdmp.commons.enums.TenantConfigurationType;
+import org.opencdmp.data.TenantConfigurationEntity;
 import org.opencdmp.model.persist.tenantconfiguration.TenantConfigurationPersist;
 import org.opencdmp.model.tenantconfiguration.TenantConfiguration;
 import gr.cite.tools.exception.MyApplicationException;
@@ -23,5 +25,7 @@ public interface TenantConfigurationService {
     TenantConfiguration persist(TenantConfigurationPersist model, FieldSet fields) throws MyForbiddenException, MyValidationException, MyApplicationException, MyNotFoundException, InvalidApplicationException, JsonProcessingException, InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException;
 
     void deleteAndSave(UUID id) throws MyForbiddenException, InvalidApplicationException;
+
+    TenantConfigurationEntity getActiveType(TenantConfigurationType type, FieldSet fieldSet) throws MyApplicationException, MyForbiddenException, MyNotFoundException, InvalidApplicationException;
 
 }

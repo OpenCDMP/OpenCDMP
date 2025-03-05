@@ -1,12 +1,12 @@
 .unlink-account {
 	height: fit-content;
 	min-height: 100vh;
-	background-color: #ffffff;
+	background-color: var(--sys-surface);
 }
 
 .unlink-account-title {
-  font-size: 1.25rem;
-  color: #212121;
+  font-size: var(--sys-headline-medium-size);
+  color: var(--sys-on-surface);
   padding-top: 4.1875rem;
   padding-left: 3.75rem;
   padding-bottom: 4.0625rem;

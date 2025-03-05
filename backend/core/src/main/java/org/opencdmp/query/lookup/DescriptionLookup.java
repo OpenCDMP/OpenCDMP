@@ -3,7 +3,6 @@ package org.opencdmp.query.lookup;
 import gr.cite.tools.data.query.Lookup;
 import gr.cite.tools.data.query.QueryFactory;
 import org.apache.commons.lang3.StringUtils;
-import org.opencdmp.commons.enums.DescriptionStatus;
 import org.opencdmp.commons.enums.IsActive;
 import org.opencdmp.elastic.query.DescriptionElasticQuery;
 import org.opencdmp.query.DescriptionQuery;
@@ -31,7 +30,8 @@ public class DescriptionLookup extends Lookup {
 
     private List<IsActive> isActive;
 
-    private List<DescriptionStatus> statuses;
+    private List<UUID> statusIds;
+    private DescriptionStatusLookup descriptionStatusSubQuery;
 
     public String getLike() {
         return this.like;
@@ -65,12 +65,12 @@ public class DescriptionLookup extends Lookup {
         this.isActive = isActive;
     }
 
-    public List<DescriptionStatus> getStatuses() {
-        return this.statuses;
+    public List<UUID> getStatusIds() {
+        return statusIds;
     }
 
-    public void setStatuses(List<DescriptionStatus> statuses) {
-        this.statuses = statuses;
+    public void setStatusIds(List<UUID> statusIds) {
+        this.statusIds = statusIds;
     }
 
     public PlanLookup getPlanSubQuery() {
@@ -127,6 +127,14 @@ public class DescriptionLookup extends Lookup {
         this.finalizedBefore = finalizedBefore;
     }
 
+    public DescriptionStatusLookup getDescriptionStatusSubQuery() {
+        return descriptionStatusSubQuery;
+    }
+
+    public void setDescriptionStatusSubQuery(DescriptionStatusLookup descriptionStatusSubQuery) {
+        this.descriptionStatusSubQuery = descriptionStatusSubQuery;
+    }
+
     public DescriptionQuery enrich(QueryFactory queryFactory) {
         DescriptionQuery query = queryFactory.query(DescriptionQuery.class);
         if (this.like != null) query.like(this.like);
@@ -138,11 +146,12 @@ public class DescriptionLookup extends Lookup {
         if (this.descriptionReferenceSubQuery != null) query.descriptionReferenceSubQuery(this.descriptionReferenceSubQuery.enrich(queryFactory));
         if (this.descriptionTagSubQuery != null) query.descriptionTagSubQuery(this.descriptionTagSubQuery.enrich(queryFactory));
         if (this.isActive != null) query.isActive(this.isActive);
-        if (this.statuses != null) query.statuses(this.statuses);
+        if (this.statusIds != null) query.statusIds(this.statusIds);
         if (this.createdAfter != null) query.createdAfter(this.createdAfter);
         if (this.createdBefore != null) query.createdBefore(this.createdBefore);
         if (this.finalizedAfter != null) query.finalizedAfter(this.finalizedAfter);
         if (this.finalizedBefore != null) query.finalizedBefore(this.finalizedBefore);
+        if (this.descriptionStatusSubQuery != null) query.descriptionStatusSubQuery(this.descriptionStatusSubQuery.enrich(queryFactory));
 
         this.enrichCommon(query);
 
@@ -154,7 +163,7 @@ public class DescriptionLookup extends Lookup {
         if (this.like != null) query.like(StringUtils.strip(this.like, "%"));
         if (this.ids != null) query.ids(this.ids);
         if (this.excludedIds != null) query.excludedIds(this.excludedIds);
-        if (this.statuses != null) query.statuses(this.statuses);
+        if (this.statusIds != null) query.statusIds(this.statusIds);
         if (this.createdAfter != null) query.createdAfter(this.createdAfter);
         if (this.createdBefore != null) query.createdBefore(this.createdBefore);
         if (this.finalizedAfter != null) query.finalizedAfter(this.finalizedAfter);

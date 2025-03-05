@@ -1,52 +1,29 @@
-<div class="start-new-plan-dialog-wrapper">
-	<div class="d-flex justify-content-between">
-		<div class="pl-0 col-auto"><a class="logo"><img class="logo" src="../../../assets/images/new-plan-logo.png" onerror="this.style.display='none'"></a></div>
-		<div class="col-auto">
-			<button mat-icon-button tabindex="-1" (click)="close()"><mat-icon>close</mat-icon></button>
-		</div>
-	</div>
-
-	<div class="content">
-		<div class="col-12 p-0">
-			<h1 class="title p-0">{{'START-NEW-PLAN-DIALOG.TITLE' | translate}}</h1>
-		</div>
-		<div class="col-12 p-0">
-			<p class="text">{{'START-NEW-PLAN-DIALOG.MESSAGE' | translate}}</p>
-		</div>
-		<div class="col-12">
-			<div class="d-flex justify-content-between align-items-center">
-				<div class="import-file col-auto p-0">
-					<div class="pr-2">
-						<button mat-button tabindex="-1" type="button" class="rounded-btn upload-btn d-flex flex-row align-items-center" (click)="uploadFile($event)">
-							<mat-icon class="pr-2">file_upload</mat-icon>
-							{{ 'START-NEW-PLAN-DIALOG.IMPORT-FROM-FILE' | translate }}
-						</button>
-					</div>
-				</div>
-				<div class="col-auto">
-					<p class="m-0">{{ 'START-NEW-PLAN-DIALOG.OR' | translate }}</p>
-				</div>
-				<div class="start-wizard col-auto p-0">
-					<div class="pr-2">
-						<button mat-button class="rounded-btn primary font-weight-bold d-flex flex-row align-items-center" (click)="startWizard()">
-							<mat-icon>chevron_right</mat-icon>
-							{{ 'START-NEW-PLAN-DIALOG.START-NEW-PLAN' | translate }}
-						</button>
-					</div>
-				</div>
-			</div>
-		</div>
-	</div>
-
-	<div class="d-flex justify-content-between pt-4">
-		<div class="pr-2">
-			<mat-icon class="material-icons-outlined warn">info</mat-icon>
-		</div>
-		<span>
-			<b>{{'START-NEW-PLAN-DIALOG.IMPORT' | translate }}</b> {{'START-NEW-PLAN-DIALOG.FUNCTION-SUPPORTS' | translate }}
-			<b>{{'START-NEW-PLAN-DIALOG.JSON-FILES' | translate }}</b> {{'START-NEW-PLAN-DIALOG.PRODUCED' | translate }}
-			<b><a href="https://github.com/RDA-PLAN-Common/RDA-PLAN-Common-Standard" target="_blank">{{'START-NEW-PLAN-DIALOG.RDA-SPECIFICATIONS' | translate }}</a></b>
-			{{'START-NEW-PLAN-DIALOG.MACHINE-ACTIONABLE' | translate }}
-		</span>
-	</div>
+<div mat-dialog-title class="d-flex align-items-center justify-content-between">
+    <div class="d-flex align-items-center gap-1-rem">
+        <img class="logo" src="../../../assets/images/new-plan-logo.png" onerror="style.display='none'">
+        <span>{{'START-NEW-PLAN-DIALOG.TITLE' | translate}}</span>
+    </div>
+    <button mat-icon-button (click)="close()" class="ml-auto" [attr.aria-label]="'ALT-TEXT.CLOSE-DIALOG'  | translate">
+        <mat-icon aria-hidden>close</mat-icon>
+    </button>
 </div>
+<mat-dialog-content class="start-new-plan-dialog-wrapper">
+    <div class="p-3">
+        <div class="pb-3">
+            {{'START-NEW-PLAN-DIALOG.MESSAGE' | translate}}
+        </div>
+        <div class="pt-3 d-flex flex-wrap gap-1-rem justify-content-center align-items-center">
+            <button mat-button type="button" class="import-file padded-shadow-btn upload-btn d-flex flex-row align-items-center" (click)="uploadFile($event)">
+                <mat-icon class="pr-2" aria-hidden>file_upload</mat-icon>
+                {{ 'START-NEW-PLAN-DIALOG.IMPORT-FROM-FILE' | translate }}
+            </button>
+            <div class="pt-1 pb-1">
+                {{ 'START-NEW-PLAN-DIALOG.OR' | translate }}
+            </div>
+            <button mat-flat-button color="primary" class="start-wizard padded-shadow-btn font-weight-bold d-flex flex-row align-items-center" (click)="startWizard()">
+                <mat-icon class="material-icons-outlined" aria-hidden>add_box</mat-icon>
+                {{ 'START-NEW-PLAN-DIALOG.START-NEW-PLAN' | translate }}
+            </button>
+        </div>
+    </div>
+</mat-dialog-content>

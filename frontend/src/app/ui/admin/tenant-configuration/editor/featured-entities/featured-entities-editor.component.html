@@ -1,0 +1,86 @@
+<div *ngIf="formGroup" class="container-fluid feature-entities">
+    <span aria-live="assertive" class="assistive-text">{{reorderAssistiveText()}}</span>
+    <span id="operation" class="assistive-text">{{'ALT-TEXT.REORDER-TABLE.BEGIN-EDITING' | translate}}</span>
+	<div class="row">
+		<div class="col-12">
+			<div class="row">
+                <h3 class="col-12">{{'TENANT-CONFIGURATION-EDITOR.FEATURED-ENTITIES.PLAN-BLUEPRINTS' | translate}}</h3>
+				<div class="col">
+					<mat-form-field class="w-100">
+						<mat-label>{{'TENANT-CONFIGURATION-EDITOR.FEATURED-ENTITIES.PLAN-BLUEPRINTS' | translate}}</mat-label>
+						<app-single-auto-complete #planBlueprintSelect [configuration]="planBlueprintAutoCompleteConfiguration" (optionSelected)="addPlanBlueprint($event)"></app-single-auto-complete>
+					</mat-form-field>
+				</div>
+				<mat-list class="col-12 pt-0" cdkDropList cdkListbox (cdkDropListDropped)="droppedPlanBlueprints($event)"  role="listbox">
+					<mat-list-item  
+                        *ngFor="let planBlueprint of orderedPlanBlueprintList; let index = index" 
+                        [id]="planBlueprint.id"
+                        class="draggable-item" 
+                        (keydown)="onBlueprintKeyDown($event, index, planBlueprint)"
+                        [cdkOption]="planBlueprint" 
+                        cdkDrag 
+                        [class.reorder-mode]="reorderMode"
+                        aria-describedby="operation"
+                        tabindex="0"
+                    >
+						<div class="d-flex align-items-center gap-quarter-rem">
+                            <mat-icon matListIcon cdkDragHandle class="drag-icon" aria-hidden>drag_indicator</mat-icon>
+							{{planBlueprint.label}}
+							<button mat-icon-button (click)="removePlanBlueprint(planBlueprint)" [attr.aria-label]="'COMMONS.ACTIONS.DELETE' | translate">
+								<mat-icon matListIcon aria-hidden>delete</mat-icon>
+							</button>
+						</div>
+					</mat-list-item>
+				</mat-list>
+			</div>
+
+			<div class="row mt-2">
+                <h3 class="col-12">{{'TENANT-CONFIGURATION-EDITOR.FEATURED-ENTITIES.DESCRIPTION-TEMPLATES' | translate}}</h3>
+				<div class="col">
+					<mat-form-field class="w-100">
+						<mat-label>{{'TENANT-CONFIGURATION-EDITOR.FEATURED-ENTITIES.DESCRIPTION-TEMPLATES' | translate}}</mat-label>
+						<app-single-auto-complete #descriptionTemplateSelect [configuration]="descriptionTemplateAutoCompleteConfiguration" (optionSelected)="addDescriptionTemplate($event)" (optionActionClicked)="onPreviewDescriptionTemplate($event)"></app-single-auto-complete>
+					</mat-form-field>
+				</div>
+				<mat-list class="col-12 pt-0" cdkDropList cdkListbox (cdkDropListDropped)="droppedDescriptionTemplates($event)">
+					<mat-list-item 
+                        class="draggable-item" 
+                        *ngFor="let descriptionTemplate of orderedDescriptionTemplateList; let index = index" 
+                        cdkDrag
+                        [id]="descriptionTemplate.id"
+                        (keydown)="onDescTemplateKeyDown($event, index, descriptionTemplate)"
+                        [cdkOption]="descriptionTemplate" 
+                        cdkDrag 
+                        [class.reorder-mode]="reorderMode"
+                        aria-describedby="operation"
+                        tabindex="0"
+                    >
+						<div class="d-flex align-items-center gap-quarter-rem">
+							<mat-icon  mat-icon-button  cdkDragHandle class="drag-icon">drag_indicator</mat-icon>
+							{{descriptionTemplate.label}}
+							<button mat-icon-button (click)="removeDescriptionTemplate(descriptionTemplate)" [attr.aria-label]="'COMMONS.ACTIONS.DELETE' | translate">
+								<mat-icon matListIcon aria-hidden>delete</mat-icon>
+							</button>
+						</div>
+					</mat-list-item>
+				</mat-list>
+			</div>
+
+		</div>
+		<div class="col-12">
+			<div class="row actions-row">
+				<div class="ml-auto col-auto" *ngIf="editorModel.id">
+                    <button mat-stroked-button color="warn" class="padded-shadow-btn" (click)="delete()">
+						{{'TENANT-CONFIGURATION-EDITOR.ACTIONS.RESET-TO-DEFAULT' | translate}}
+					</button>
+				</div>
+				<div class="ml-auto col-auto">
+                    <button mat-flat-button color="primary" class="padded-shadow-btn" (click)="formSubmit()">
+						{{'TENANT-CONFIGURATION-EDITOR.ACTIONS.SAVE' | translate}}
+					</button>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+

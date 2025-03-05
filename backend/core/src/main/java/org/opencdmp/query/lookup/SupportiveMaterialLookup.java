@@ -6,7 +6,6 @@ import org.opencdmp.query.SupportiveMaterialQuery;
 import gr.cite.tools.data.query.Lookup;
 import gr.cite.tools.data.query.QueryFactory;
 
-import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
 
@@ -25,6 +24,8 @@ public class SupportiveMaterialLookup extends Lookup {
     private List<UUID> excludedIds;
 
     private List<UUID> tenantIds;
+
+    private TenantLookup tenantSubQuery;
 
     public String getLike() {
         return like;
@@ -82,6 +83,14 @@ public class SupportiveMaterialLookup extends Lookup {
         this.tenantIds = tenantIds;
     }
 
+    public TenantLookup getTenantSubQuery() {
+        return tenantSubQuery;
+    }
+
+    public void setTenantSubQuery(TenantLookup tenantSubQuery) {
+        this.tenantSubQuery = tenantSubQuery;
+    }
+
     public SupportiveMaterialQuery enrich(QueryFactory queryFactory) {
         SupportiveMaterialQuery query = queryFactory.query(SupportiveMaterialQuery.class);
         if (this.like != null) query.like(this.like);
@@ -90,7 +99,8 @@ public class SupportiveMaterialLookup extends Lookup {
         if (this.languageCodes != null) query.languageCodes(this.languageCodes);
         if (this.ids != null) query.ids(this.ids);
         if (this.excludedIds != null) query.excludedIds(this.excludedIds);
-        if (this.tenantIds != null) query.tenantIds(this.tenantIds);
+        if (this.tenantIds != null) query.tenantIds(this.tenantIds).tenantIsSet(true);
+        if (this.tenantSubQuery != null) query.tenantSubQuery(this.tenantSubQuery.enrich(queryFactory));
 
         this.enrichCommon(query);
 

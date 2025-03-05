@@ -1,7 +1,7 @@
 import { HttpClient, HttpHeaders, HttpParamsOptions, HttpResponse } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { IsActive } from '@app/core/common/enum/is-active.enum';
-import { Description, DescriptionPersist, DescriptionSectionPermissionResolver, DescriptionStatusPersist, PublicDescription, UpdateDescriptionTemplatePersist } from '@app/core/model/description/description';
+import { Description, DescriptionMultiplePersist, DescriptionPersist, DescriptionSectionPermissionResolver, DescriptionStatusPersist, PublicDescription, UpdateDescriptionTemplatePersist } from '@app/core/model/description/description';
 import { DescriptionLookup } from '@app/core/query/description.lookup';
 import { MultipleAutoCompleteConfiguration } from '@app/library/auto-complete/multiple/multiple-auto-complete-configuration';
 import { SingleAutoCompleteConfiguration } from '@app/library/auto-complete/single/single-auto-complete-configuration';
@@ -16,6 +16,7 @@ import { BaseHttpV2Service } from '../http/base-http-v2.service';
 import { BaseHttpParams } from '@common/http/base-http-params';
 import { InterceptorType } from '@common/http/interceptors/interceptor-type';
 import { DescriptionValidationResult } from '@app/ui/plan/plan-finalize-dialog/plan-finalize-dialog.component';
+import { ResolutionContext } from '../auth/auth.service';
 
 @Injectable()
 export class DescriptionService {
@@ -72,19 +73,41 @@ export class DescriptionService {
 				catchError((error: any) => throwError(error)));
 	}
 
-	persist(item: DescriptionPersist): Observable<Description> {
+	persist(item: DescriptionPersist, fieldSet: string[] = []): Observable<Description> {
 		const url = `${this.apiBase}/persist`;
-
+        const options: HttpParamsOptions = { fromObject: { f: fieldSet } };
+        let params: BaseHttpParams = new BaseHttpParams(options);
 		return this.http
-			.post<Description>(url, item).pipe(
+			.post<Description>(url, item, { params: params }).pipe(
 				catchError((error: any) => throwError(error)));
 	}
 
-	persistStatus(item: DescriptionStatusPersist, reqFields: string[] = []): Observable<Description> {
+	persistMultiple(item: DescriptionMultiplePersist, fieldSet: string[] = []): Observable<Description[]> {
+		const url = `${this.apiBase}/persist-multiple`;
+        const options: HttpParamsOptions = { fromObject: { f: fieldSet } };
+        let params: BaseHttpParams = new BaseHttpParams(options);
+		return this.http
+			.post<Description[]>(url, item, { params: params }).pipe(
+				catchError((error: any) => throwError(error)));
+	}
+
+	persistStatus(item: DescriptionStatusPersist, fieldSet: string[] = []): Observable<Description> {
 		const url = `${this.apiBase}/persist-status`;
+        const options: HttpParamsOptions = { fromObject: { f: fieldSet } };
+        let params: BaseHttpParams = new BaseHttpParams(options);
+		return this.http
+			.post<Description>(url, item, { params: params }).pipe(
+				catchError((error: any) => throwError(error)));
+	}
+
+	clone(id: Guid, reqFields: string[] = []): Observable<Description> {
+		const url = `${this.apiBase}/clone/${id}`;
+		const options: HttpParamsOptions = { fromObject: { f: reqFields } };
+
+		let params: BaseHttpParams = new BaseHttpParams(options);
 
 		return this.http
-			.post<Description>(url, item).pipe(
+			.get<Description>(url, { params: params }).pipe(
 				catchError((error: any) => throwError(error)));
 	}
 

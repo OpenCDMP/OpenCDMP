@@ -34,14 +34,11 @@ public class PlanWorkflowDeleter implements Deleter {
 
     protected final DeleterFactory deleterFactory;
 
-    protected final AccountingService accountingService;
-
     @Autowired
-    public PlanWorkflowDeleter(TenantEntityManager entityManager, QueryFactory queryFactory, DeleterFactory deleterFactory, AccountingService accountingService) {
+    public PlanWorkflowDeleter(TenantEntityManager entityManager, QueryFactory queryFactory, DeleterFactory deleterFactory) {
         this.entityManager = entityManager;
         this.queryFactory = queryFactory;
         this.deleterFactory = deleterFactory;
-        this.accountingService = accountingService;
     }
 
     public void deleteAndSaveByIds(List<UUID> ids) throws InvalidApplicationException {
@@ -72,7 +69,6 @@ public class PlanWorkflowDeleter implements Deleter {
             logger.trace("updating item");
             this.entityManager.merge(item);
             logger.trace("updated item");
-            this.accountingService.decrease(UsageLimitTargetMetric.PLAN_WORKFLOW_COUNT.getValue());
         }
 
     }

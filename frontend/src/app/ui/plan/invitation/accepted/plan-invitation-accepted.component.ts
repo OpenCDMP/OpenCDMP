@@ -11,9 +11,9 @@ import { TranslateService } from '@ngx-translate/core';
 import { takeUntil } from 'rxjs/operators';
 
 @Component({
-	selector: 'app-plan-invitation-accepted-component',
-	templateUrl: 'plan-invitation-accepted.component.html',
-
+    selector: 'app-plan-invitation-accepted-component',
+    templateUrl: 'plan-invitation-accepted.component.html',
+    standalone: false
 })
 export class InvitationAcceptedComponent extends BaseComponent implements OnInit {
 	constructor(

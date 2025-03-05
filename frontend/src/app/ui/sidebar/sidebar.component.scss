@@ -1,63 +1,141 @@
 $mat-card-header-size: 30px !default;
-
-.my-mat-card-avatar {
-  height: $mat-card-header-size;
-  width: $mat-card-header-size;
-  border-radius: 50%;
-  flex-shrink: 0;
-  margin-right: 7px;
-}
-
-.nav-list-item {
-}
-
-.nav-list-item-hidden {
-	display: none !important;
-  }
-
-.login {
-  margin-top: 15px !important;
-}
-
-.login-label {
-  text-transform: uppercase;
-}
-
-.firstSubtitle {
-  margin-top: 20px;
-}
-
-.icon-mask {
-  color: #6b6b6b;
-  transform: translate(-8px, 8px);
-}
-
-.active a {
-  font-weight: 700;
-}
-
-.active a i {
-  color: var(--primary-color-2);
-}
-
-.inner-line {
-  margin-left: 12px;
-  margin-right: 10px;
-  width: 20px;
-  height: 13px;
-  border-left: 1px solid #cccccc;
-  border-bottom: 1px solid #cccccc;
-}
-
-.icon-external {
-  font-size: 1rem;
-  padding-left: 0.4rem !important;
-  color: #6b6b6b;
-}
-
-mat-list-item {
-  display: flex !important;
-  height: auto !important;
+.sidebar-wrapper {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    .logo-img {
+        width: 60px;
+        display: block;
+        max-height: none;
+        margin-left: 50px;
+    }
+    
+    .logo-img img {
+        width: 155px;
+        top: 0px;
+        position: inherit;
+    }
+    
+    .sidebarSubtitle p {
+        margin-left: 20px;
+        color: rgb(166, 166, 166);
+    }
+    
+    .nav hr {
+        border-top: 1px solid #fff;
+        border-bottom: 1px solid #E1E1E1;
+    }
+    
+    .sidebar-footer {
+        margin-top: auto;
+    }
+    
+    .nav-row {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        width: 100%;
+        padding: 0.5rem 0.8rem 0.5rem 1.2rem;
+        text-align: left;
+        letter-spacing: 0px;
+        color: var(--sys-on-surface);
+        opacity: 1;
+        font-size: var(--sys-headline-small-size);
+    }
+    
+    .nav-subrow {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        width: 100%;
+        text-align: left;
+        letter-spacing: 0px;
+        color: var(--sys-on-surface);
+        opacity: 1;
+        font-size: var(--sys-headline-small-size);
+    }
+    
+    .nav-row:hover, .nav-row:focus {
+        background-color: rgb(0,0,0,0.05);
+        border-radius: 6px;
+    }
+    
+    .icon {
+        width: 24px;
+        height: 24px;
+        vertical-align: middle;
+        color: #6B6B6B;
+    }
+    
+    .nav-row span {
+        padding-left: 1.5rem;
+    }
+    
+    .mat-list {
+        padding-top: 0px !important;
+    }
+    
+    .mat-list div {
+        width: 100%;
+    }
+    
+    
+    .my-mat-card-avatar {
+      height: $mat-card-header-size;
+      width: $mat-card-header-size;
+      border-radius: 50%;
+      flex-shrink: 0;
+      margin-right: 7px;
+    }
+    
+    .nav-list-item-hidden {
+        display: none !important;
+      }
+    
+    .login {
+      margin-top: 15px !important;
+    }
+    
+    .login-label {
+      text-transform: uppercase;
+    }
+    
+    .firstSubtitle {
+      margin-top: 20px;
+    }
+    
+    .icon-mask {
+      color: #6b6b6b;
+      transform: translate(-8px, 8px);
+    }
+    
+    .active a {
+      font-weight: 700;
+    }
+    
+    .active a i {
+      color: var(--sys-primary);
+    }
+    
+    .inner-line {
+      margin-left: 12px;
+      margin-right: 10px;
+      width: 20px;
+      height: 13px;
+      border-left: 1px solid #cccccc;
+      border-bottom: 1px solid #cccccc;
+    }
+    
+    .icon-external {
+      font-size: 1rem;
+      padding-left: 0.4rem !important;
+      color: #6b6b6b;
+    }
+    
+    mat-list-item {
+      display: flex !important;
+      height: auto !important;
+    }
 }
 
 ::ng-deep .mat-list-item-content {

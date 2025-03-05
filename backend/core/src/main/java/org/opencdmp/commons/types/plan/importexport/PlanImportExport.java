@@ -30,6 +30,9 @@ public class PlanImportExport {
     @XmlElement(name = "access")
     private PlanAccessType access;
 
+    @XmlElement(name = "status")
+    private PlanStatusImportExport status;
+
     @XmlElement(name = "version")
     private Short version;
 
@@ -107,6 +110,14 @@ public class PlanImportExport {
 
     public void setAccess(PlanAccessType access) {
         this.access = access;
+    }
+
+    public PlanStatusImportExport getStatus() {
+        return status;
+    }
+
+    public void setStatus(PlanStatusImportExport status) {
+        this.status = status;
     }
 
     public List<PlanContactImportExport> getContacts() {

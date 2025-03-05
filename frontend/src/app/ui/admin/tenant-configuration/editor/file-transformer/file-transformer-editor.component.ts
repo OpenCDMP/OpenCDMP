@@ -25,10 +25,11 @@ import { AnalyticsService } from '@app/core/services/matomo/analytics-service';
 
 
 @Component({
-	selector: 'app-tenant-configuration-file-transformer-editor',
-	templateUrl: 'file-transformer-editor.component.html',
-	styleUrls: ['./file-transformer-editor.component.scss'],
-	providers: [FileTransformerEditorService]
+    selector: 'app-tenant-configuration-file-transformer-editor',
+    templateUrl: 'file-transformer-editor.component.html',
+    styleUrls: ['./file-transformer-editor.component.scss'],
+    providers: [FileTransformerEditorService],
+    standalone: false
 })
 export class FileTransformerEditorComponent extends BasePendingChangesComponent implements OnInit {
 
@@ -81,7 +82,7 @@ export class FileTransformerEditorComponent extends BasePendingChangesComponent 
 	}
 
 	getItem(successFunction: (item: TenantConfiguration) => void) {
-		this.tenantConfigurationService.getCurrentTenantType(TenantConfigurationType.FileTransformerPlugins, FileTransformerEditorResolver.lookupFields())
+		this.tenantConfigurationService.getType(TenantConfigurationType.FileTransformerPlugins, FileTransformerEditorResolver.lookupFields())
 			.pipe(map(data => data as TenantConfiguration), takeUntil(this._destroyed))
 			.subscribe(
 				data => successFunction(data),

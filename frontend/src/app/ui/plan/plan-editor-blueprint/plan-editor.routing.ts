@@ -77,6 +77,66 @@ const routes: Routes = [
 			openAnnotation: true,
 		}
 	},
+	{
+		path: ':id/d/:descriptionId/f/:fieldId',
+		canActivate: [AuthGuard],
+		component: PlanEditorComponent,
+		canDeactivate: [PendingChangesGuard],
+		resolve: {
+			'entity': PlanEditorEntityResolver,
+			'permissions': PlanEditorPermissionsResolver,
+		},
+		data: {
+			breadcrumbs: true,
+			getFromTitleService: true,
+			usePrefix: false,
+			...BreadcrumbService.generateRouteDataConfiguration({
+				skipNavigation: true,
+			}),
+			title: 'PLAN-EDITOR.TITLE-EDIT',
+			scrollToDescriptionField: true,
+		}
+	},
+	{
+		path: ':id/d/:descriptionId/f/:fieldId/annotation',
+		canActivate: [AuthGuard],
+		component: PlanEditorComponent,
+		canDeactivate: [PendingChangesGuard],
+		resolve: {
+			'entity': PlanEditorEntityResolver,
+			'permissions': PlanEditorPermissionsResolver,
+		},
+		data: {
+			breadcrumbs: true,
+			getFromTitleService: true,
+			usePrefix: false,
+			...BreadcrumbService.generateRouteDataConfiguration({
+				skipNavigation: true,
+			}),
+			title: 'PLAN-EDITOR.TITLE-EDIT',
+			openDescriptionAnnotation: true,
+		}
+	},
+    {
+		path: ':id/d/:descriptionId/finalize',
+		canActivate: [AuthGuard],
+		component: PlanEditorComponent,
+		canDeactivate: [PendingChangesGuard],
+		resolve: {
+			'entity': PlanEditorEntityResolver,
+			'permissions': PlanEditorPermissionsResolver,
+		},
+		data: {
+			breadcrumbs: true,
+			getFromTitleService: true,
+			usePrefix: false,
+			...BreadcrumbService.generateRouteDataConfiguration({
+				skipNavigation: true,
+			}),
+			title: 'PLAN-EDITOR.TITLE-EDIT',
+            finalizeDescription: true
+		}
+	}
 ];
 
 @NgModule({

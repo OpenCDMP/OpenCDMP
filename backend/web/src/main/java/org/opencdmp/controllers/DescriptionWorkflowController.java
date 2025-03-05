@@ -152,10 +152,8 @@ public class DescriptionWorkflowController {
 
         DescriptionWorkflowQuery query = this.queryFactory.query(DescriptionWorkflowQuery.class).authorize(AuthorizationFlags.AllExceptPublic).isActives(IsActive.Active);
 
-        if (this.tenantScope.isDefaultTenant())
-            query = query.defaultTenant(true);
-        else
-            query = query.tenantIds(this.tenantScope.getTenant());
+        if (this.tenantScope.isDefaultTenant()) query.tenantIsSet(false);
+        else query.tenantIsSet(true).tenantIds(this.tenantScope.getTenant());
 
         DescriptionWorkflow model = this.builderFactory.builder(DescriptionWorkflowBuilder.class).build(fieldSet, query.firstAs(fieldSet));
 

@@ -1,7 +1,8 @@
 import {Pipe, PipeTransform} from "@angular/core";
 
 @Pipe({
-	name: 'columnClass'
+    name: 'columnClass',
+    standalone: false
 })
 export class ColumnClassPipe implements PipeTransform{
 

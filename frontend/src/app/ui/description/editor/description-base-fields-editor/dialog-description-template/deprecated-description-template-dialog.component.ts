@@ -2,9 +2,10 @@ import { Component, Inject, OnInit } from "@angular/core";
 import { MAT_DIALOG_DATA, MatDialogRef } from "@angular/material/dialog";
 
 @Component({
-  selector: 'app-deprecated-description-template-dialog',
-  templateUrl: 'deprecated-description-template-dialog.component.html',
-  styleUrls: ['deprecated-description-template-dialog.component.scss']
+    selector: 'app-deprecated-description-template-dialog',
+    templateUrl: 'deprecated-description-template-dialog.component.html',
+    styleUrls: ['deprecated-description-template-dialog.component.scss'],
+    standalone: false
 })
 export class DeprecatedDescriptionTemplateDialog implements OnInit {
   constructor(

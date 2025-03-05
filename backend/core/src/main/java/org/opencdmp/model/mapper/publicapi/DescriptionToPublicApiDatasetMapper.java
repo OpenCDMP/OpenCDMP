@@ -30,7 +30,7 @@ public class DescriptionToPublicApiDatasetMapper {
         model.setDescription(description.getDescription());
         model.setReference("");
         model.setUri("");
-        model.setStatus(description.getStatus());
+// TODO status       model.setStatus(description.getStatus());
 
         model.setDmp(dmp);
         model.setDatasetProfileDefinition(descriptionTemplateToPublicApiDatasetProfileMapper.toPublicModel(description.getDescriptionTemplate()));

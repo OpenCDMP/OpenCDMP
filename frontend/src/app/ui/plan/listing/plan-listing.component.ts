@@ -22,7 +22,7 @@ import { EnumUtils } from '@app/core/services/utilities/enum-utils.service';
 import { GuidedTour, Orientation } from '@app/library/guided-tour/guided-tour.constants';
 import { GuidedTourService } from '@app/library/guided-tour/guided-tour.service';
 import { HttpErrorHandlingService } from '@common/modules/errors/error-handling/http-error-handling.service';
-import { PageLoadEvent, SortDirection } from '@common/modules/hybrid-listing/hybrid-listing.component';
+import { PageLoadEvent } from '@common/modules/hybrid-listing/hybrid-listing.component';
 import { TranslateService } from '@ngx-translate/core';
 import { NgDialogAnimationService } from "ng-dialog-animation";
 import {  takeUntil, tap } from 'rxjs/operators';
@@ -44,11 +44,17 @@ import { PlanFilterDialogComponent } from './filtering/plan-filter-dialog/plan-f
 import { PlanListingFilters } from './filtering/plan-filter.component';
 import { Lookup } from '@common/model/lookup';
 import { MatSelectChange } from '@angular/material/select';
+import { DescriptionStatus } from '@app/core/model/description-status/description-status';
+import { PlanStatus, PlanStatusDefinition } from '@app/core/model/plan-status/plan-status';
+import { StorageFile } from '@app/core/model/storage-file/storage-file';
+import { StorageFileService } from '@app/core/services/storage-file/storage-file.service';
+import { DomSanitizer, SafeUrl } from '@angular/platform-browser';
 
 @Component({
-	selector: 'app-plan-listing-component',
-	templateUrl: 'plan-listing.component.html',
-	styleUrls: ['./plan-listing.component.scss'],
+    selector: 'app-plan-listing-component',
+    templateUrl: 'plan-listing.component.html',
+    styleUrls: ['./plan-listing.component.scss'],
+    standalone: false
 })
 export class PlanListingComponent extends BaseListingComponent<BasePlan, PlanLookup> implements OnInit {
 
@@ -95,10 +101,10 @@ export class PlanListingComponent extends BaseListingComponent<BasePlan, PlanLoo
 		return this.listingItems != null && this.listingItems.length > 0;
 	}
 	get hasFilters(): boolean {
-		return (this.lookup.like != null && this.lookup.like != '') || this.lookup.statuses  != null ||
+		return (this.lookup.like != null && this.lookup.like != '') || this.lookup.statusIds  != null ||
 			this.lookup.planReferenceSubQuery  != null || this.lookup.planDescriptionTemplateSubQuery  != null ||
 			this.lookup.planBlueprintSubQuery  != null || this.lookup.planUserSubQuery  != null ||
-			this.lookup.tenantSubQuery != null;
+			this.lookup.tenantSubQuery != null || this.lookup.isActive != null;
 	}
 	get versionsModeEnabled(): boolean {
 		return this.groupId != null;
@@ -120,6 +126,8 @@ export class PlanListingComponent extends BaseListingComponent<BasePlan, PlanLoo
 		private analyticsService: AnalyticsService,
 		private principalService: PrincipalService,
 		private breadcrumbService: BreadcrumbService,
+        private storageFileService: StorageFileService,
+        private sanitizer: DomSanitizer
 	) {
 		super(router, route, uiNotificationService, httpErrorHandlingService, queryParamsService);
 		this.mode = this.route.snapshot?.data['mode'];
@@ -216,12 +224,35 @@ export class PlanListingComponent extends BaseListingComponent<BasePlan, PlanLoo
 
 					if (!result) { return []; }
 					this.totalCount = result.count;
-					if (this.lookup?.page?.offset === 0) this.listingItems = [];
-					const plans = this._filterPlan([...result.items]);
+					if (this.lookup?.page?.offset === 0) {
+                        this.listingItems = [];
+                        this.storageFileMap = new Map([]);
+                    };
+					let plans: any[];
+					if (this.lookup?.isActive[0] == IsActive.Inactive) {
+						plans = result.items;
+					} else {
+						plans = this._filterPlan([...result.items]);
+					}
 					this.listingItems.push(...plans);
+                    this.downloadStorageFiles(plans.map((x) => x.status?.definition?.storageFile?.id)?.filter((x) => x) ?? [])
 				}));
 		}
 	}
+
+    protected storageFileMap = new Map<Guid, SafeUrl>([]);
+    protected downloadStorageFiles(storageFileIds: Guid[]){
+        const newIds = new Set(storageFileIds.filter((id) => !this.storageFileMap.has(id)));
+        newIds.forEach((id) => {
+            this.storageFileService.download(id).pipe(takeUntil(this._destroyed))
+            .subscribe({
+                next: response => {
+                    this.storageFileMap.set(id, this.sanitizer.bypassSecurityTrustUrl(URL.createObjectURL(response.body)));
+                },
+                error: error => this.onCallbackError(error)
+            });
+        })
+    }
 
 	protected initializeLookup(): PlanLookup {
 		const lookup = new PlanLookup();
@@ -413,7 +444,9 @@ export class PlanListingComponent extends BaseListingComponent<BasePlan, PlanLoo
 
 	private _patchLookupFromFilters(filters: PlanListingFilters): PlanLookup {
 
-		this.lookup.statuses = filters?.status != null ? [filters.status] : null;
+		this.lookup.statusIds = filters?.statusId != null ? [filters.statusId] : null;
+
+		this.lookup.isActive = filters?.isActive ? [IsActive.Active] : [IsActive.Inactive];
 
 		// Tenants
 		let viewOnlyTenant = filters?.viewOnlyTenant ?? false;
@@ -430,6 +463,7 @@ export class PlanListingComponent extends BaseListingComponent<BasePlan, PlanLoo
 		let descriptionTemplates = filters?.descriptionTemplates ?? null;
 		if (descriptionTemplates && descriptionTemplates?.length > 0) {
 			this.lookup.planDescriptionTemplateSubQuery = PlanFilterService.initializePlanDescriptionTemplateLookup();
+			this.lookup.planDescriptionTemplateSubQuery.isActive = filters.isActive == true ? [IsActive.Active] : [IsActive.Inactive];
 			this.lookup.planDescriptionTemplateSubQuery.descriptionTemplateGroupIds = descriptionTemplates;
 		} else this.lookup.planDescriptionTemplateSubQuery = null;
 
@@ -446,6 +480,9 @@ export class PlanListingComponent extends BaseListingComponent<BasePlan, PlanLoo
 		if (roles && roles?.length > 0) {
 			this.lookup.planUserSubQuery = PlanFilterService.initializePlanUserLookup();
 				this.lookup.planUserSubQuery.userRoles = roles;
+				this.lookup.planUserSubQuery.isActive = filters.isActive == true ? [IsActive.Active] : [IsActive.Inactive];
+				const principalId: Guid = this.authService.userId();
+				if (principalId) this.lookup.planUserSubQuery.userIds = [principalId];
 		} else this.lookup.planUserSubQuery = null;
 
 		let references: Guid[] = filters?.references
@@ -454,6 +491,7 @@ export class PlanListingComponent extends BaseListingComponent<BasePlan, PlanLoo
 
 		if (references && references?.length > 0) {
 			this.lookup.planReferenceSubQuery = PlanFilterService.initializePlanReferenceLookup();
+			this.lookup.planReferenceSubQuery.isActive = filters.isActive == true ? [IsActive.Active] : [IsActive.Inactive];
 			this.lookup.planReferenceSubQuery.referenceIds = references;
 		} else this.lookup.planReferenceSubQuery = null;
 
@@ -470,7 +508,8 @@ export class PlanListingComponent extends BaseListingComponent<BasePlan, PlanLoo
 	private _countFilters(lookup: PlanLookup): number {
 		let count = 0;
 
-		if (lookup.statuses) count += lookup.statuses.length;
+		if (lookup.statusIds) count += lookup.statusIds.length;
+		if (lookup.isActive[0] == IsActive.Inactive) count += lookup.isActive.length;
 		if (lookup.tenantSubQuery) count += 1;
 		if (lookup.planDescriptionTemplateSubQuery) count += lookup.planDescriptionTemplateSubQuery.descriptionTemplateGroupIds?.length;
 		if (lookup.planBlueprintSubQuery) count += lookup.planBlueprintSubQuery.ids?.length;
@@ -492,7 +531,16 @@ export class PlanListingComponent extends BaseListingComponent<BasePlan, PlanLoo
 			nameof<Plan>(x => x.id),
 			nameof<Plan>(x => x.label),
 			nameof<Plan>(x => x.description),
-			nameof<Plan>(x => x.status),
+			nameof<Plan>(x => x.isActive),
+			
+			[nameof<Plan>(x => x.status), nameof<PlanStatus>(x => x.id)].join('.'),
+			[nameof<Plan>(x => x.status), nameof<PlanStatus>(x => x.name)].join('.'),
+			[nameof<Plan>(x => x.status), nameof<PlanStatus>(x => x.internalStatus)].join('.'),	
+			[nameof<Plan>(x => x.status), nameof<PlanStatus>(x => x.definition), nameof<PlanStatusDefinition>(x => x.statusColor)].join('.'),	
+			[nameof<Plan>(x => x.status), nameof<PlanStatus>(x => x.definition), nameof<PlanStatusDefinition>(x => x.availableActions)].join('.'),			
+			[nameof<Plan>(x => x.status), nameof<PlanStatus>(x => x.definition), nameof<PlanStatusDefinition>(x => x.matIconName)].join('.'),			
+			[nameof<Plan>(x => x.status), nameof<PlanStatus>(x => x.definition), nameof<PlanStatusDefinition>(x => x.storageFile), nameof<StorageFile>(x => x.id)].join('.'),			
+			
 			nameof<Plan>(x => x.accessType),
 			nameof<Plan>(x => x.version),
 			nameof<Plan>(x => x.versionStatus),
@@ -513,7 +561,10 @@ export class PlanListingComponent extends BaseListingComponent<BasePlan, PlanLoo
 
 			[nameof<Plan>(x => x.descriptions), nameof<Description>(x => x.id)].join('.'),
 			[nameof<Plan>(x => x.descriptions), nameof<Description>(x => x.label)].join('.'),
-			[nameof<Plan>(x => x.descriptions), nameof<Description>(x => x.status)].join('.'),
+			[nameof<Plan>(x => x.descriptions), nameof<Description>(x => x.status), nameof<DescriptionStatus>(x => x.id)].join('.'),
+			[nameof<Plan>(x => x.descriptions), nameof<Description>(x => x.status), nameof<DescriptionStatus>(x => x.name)].join('.'),
+			[nameof<Plan>(x => x.descriptions), nameof<Description>(x => x.status), nameof<DescriptionStatus>(x => x.internalStatus)].join('.'),			
+			
 			[nameof<Plan>(x => x.descriptions), nameof<Description>(x => x.descriptionTemplate), nameof<DescriptionTemplate>(x => x.groupId)].join('.'),
 			[nameof<Plan>(x => x.descriptions), nameof<Description>(x => x.planDescriptionTemplate), nameof<PlanDescriptionTemplate>(x => x.sectionId)].join('.'),
 			[nameof<Plan>(x => x.descriptions), nameof<Description>(x => x.isActive)].join('.'),
@@ -523,7 +574,7 @@ export class PlanListingComponent extends BaseListingComponent<BasePlan, PlanLoo
 			[nameof<Plan>(x => x.blueprint), nameof<PlanBlueprint>(x => x.definition), nameof<PlanBlueprintDefinition>(x => x.sections), nameof<PlanBlueprintDefinitionSection>(x => x.id)].join('.'),
 			[nameof<Plan>(x => x.blueprint), nameof<PlanBlueprint>(x => x.definition), nameof<PlanBlueprintDefinition>(x => x.sections), nameof<PlanBlueprintDefinitionSection>(x => x.label)].join('.'),
 			[nameof<Plan>(x => x.blueprint), nameof<PlanBlueprint>(x => x.definition), nameof<PlanBlueprintDefinition>(x => x.sections), nameof<PlanBlueprintDefinitionSection>(x => x.hasTemplates)].join('.'),
-			[nameof<Plan>(x => x.blueprint), nameof<PlanBlueprint>(x => x.definition), nameof<PlanBlueprintDefinition>(x => x.sections), nameof<PlanBlueprintDefinitionSection>(x => x.descriptionTemplates), nameof<DescriptionTemplatesInSection>(x => x.descriptionTemplateGroupId)].join('.'),
+			[nameof<Plan>(x => x.blueprint), nameof<PlanBlueprint>(x => x.definition), nameof<PlanBlueprintDefinition>(x => x.sections), nameof<PlanBlueprintDefinitionSection>(x => x.descriptionTemplates), nameof<DescriptionTemplatesInSection>(x => x.descriptionTemplate), nameof<DescriptionTemplate>(x => x.groupId)].join('.'),
 
 			[nameof<Plan>(x => x.planUsers), nameof<PlanUser>(x => x.id)].join('.'),
 			[nameof<Plan>(x => x.planUsers), nameof<PlanUser>(x => x.user.id)].join('.'),

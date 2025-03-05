@@ -1,14 +1,13 @@
-<div *ngIf="tocentries" class="row docs-toc-container">
+@if(tocentries){
+    <table-of-contents-internal #internalTable 
+        isTopLevel
+        [tocentries]="tocentries"
+        [showErrors]="showErrors()"
+        (entrySelected)="onToCentrySelected($event)"
+        [selected]="tocentrySelected"
+        [visibilityRulesService]="visibilityRulesService()"
+        [propertiesFormGroup]="formGroup()"
+        [ordinal]="ordinal()"
+    />
+}
 
-	<div class="scroll-container col-12 internal-table">
-		<table-of-contents-internal #internalTable [tocentries]="tocentries"
-		[showErrors]="showErrors"
-		(entrySelected)="onToCentrySelected($event)"
-		[selected]="tocentrySelected"
-		[visibilityRulesService]="visibilityRulesService"
-		[propertiesFormGroup]="formGroup"
-		>
-
-		</table-of-contents-internal>
-	</div>
-</div>

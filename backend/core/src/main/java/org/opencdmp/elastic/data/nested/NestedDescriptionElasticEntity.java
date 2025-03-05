@@ -32,9 +32,9 @@ public class NestedDescriptionElasticEntity {
 	private String description;
 	public final static String _description = "description";
 
-	@Field(value = NestedDescriptionElasticEntity._status, type = FieldType.Short )
-	private DescriptionStatus status;
-	public final static String _status = "status";
+	@Field(value = NestedDescriptionElasticEntity._statusId, type = FieldType.Keyword)
+	private UUID statusId;
+	public final static String _statusId = "statusId";
 
 	@Field(value = NestedDescriptionElasticEntity._finalizedAt, type = FieldType.Date)
 	private Date finalizedAt;
@@ -84,12 +84,12 @@ public class NestedDescriptionElasticEntity {
 		this.description = description;
 	}
 
-	public DescriptionStatus getStatus() {
-		return this.status;
+	public UUID getStatusId() {
+		return statusId;
 	}
 
-	public void setStatus(DescriptionStatus status) {
-		this.status = status;
+	public void setStatusId(UUID statusId) {
+		this.statusId = statusId;
 	}
 
 	public Date getFinalizedAt() {

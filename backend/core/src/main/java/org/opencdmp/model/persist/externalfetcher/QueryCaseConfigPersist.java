@@ -4,6 +4,7 @@ import org.opencdmp.commons.validation.BaseValidator;
 import gr.cite.tools.validation.specification.Specification;
 import org.opencdmp.convention.ConventionService;
 import org.opencdmp.errorcode.ErrorThesaurusProperties;
+import org.opencdmp.service.externalfetcher.config.entities.QueryCaseConfig;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.Scope;
@@ -14,7 +15,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
-public class QueryCaseConfigPersist {
+public class QueryCaseConfigPersist implements QueryCaseConfig {
 
     private String likePattern;
     public static final String _likePattern = "likePattern";

@@ -105,7 +105,7 @@ public class ConventionServiceImpl implements ConventionService {
 
     @Override
     public boolean isNullOrEmpty(String value) {
-        return value == null || value.isEmpty();
+        return value == null || value.isBlank();
     }
 
     @Override

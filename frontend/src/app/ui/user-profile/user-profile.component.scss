@@ -1,15 +1,9 @@
 .profile {
 	height: fit-content;
 	min-height: 100vh;
-	background-color: #ffffff;
+	background-color: var(--sys-surface);
 }
 
-.clickable {
-	cursor: pointer;
-}
-.clickable:hover {
-	color: var(--primary-color-3) !important;
-}
 .user-profile {
 	.profile-card-center-row {
 		justify-content: center;
@@ -20,21 +14,20 @@
 	}
 
 	.user-profile-title {
-		font-size: 1.25rem;
-		color: #212121;
-		padding-top: 4.1875rem;
-		padding-left: 3.75rem;
-		padding-bottom: 4.0625rem;
+        font-size: var(--sys-headline-medium-size);
+		padding: 3rem;
+        .title {
+            font-size: var(--sys-display-small-size);
+        }
 	}
 
 	.profile-content {
-		margin-left: 9rem;
-		margin-right: 11rem;
+        padding: 0 4rem;
 
 		.avatar {
 			border-radius: 50%;
-			width: 122px;
-			height: 122px;
+			width: 5rem;
+			height: 5rem;
 			box-shadow: 0px 3px 6px #00000029;
 		}
 	}
@@ -51,15 +44,10 @@
 			-webkit-background-clip: text;
 		}
 	}
-
-	.main-info {
-		margin-bottom: 34px;
-	}
-
 	.name {
-		color: var(--primary-color);
+		color: var(--sys-primary);
 		font-weight: 500;
-		font-size: 1.25rem;
+		font-size: var(--sys-headline-medium-size);
 		line-height: 3rem;
 	}
 
@@ -68,14 +56,14 @@
 	}
 
 	.mail {
-		color: var(--primary-color);
+		color: var(--sys-primary);
 		font-weight: 500;
 	}
 
 	.field-title {
-		color: #212121;
+		color: var(--dark-text);
 		opacity: 0.81;
-		font-size: 1.125rem;
+		font-size: var(--sys-headline-medium-size);
 		font-weight: 500;
 	}
 }
@@ -104,36 +92,36 @@
 }
 
 .vertical-line {
-	border-left: 2px solid var(--primary-color);
+	border-left: 2px solid var(--sys-primary);
 }
 
 .email-title {
 	margin-top: 1.6875rem;
 	letter-spacing: 0.15px;
-	color: #a8a8a8;
+	color: var(--dark-text);
 	opacity: 1;
 }
 
 .mail-text {
 	line-height: 2;
 	letter-spacing: 0.15px;
-	color: #212121;
+	color: var(--dark-text);
 }
 
 .check-icon {
-	color: var(--primary-color);
+	color: var(--sys-primary);
 	transform: scale(0.75);
 	padding: 0.4rem;
 }
 
 .clear-icon {
 	cursor: pointer;
-	color: #212121;
+	color: var(--dark-text);
 	padding: 0.4rem;
 }
 
 .clear-icon:hover {
-	background-color: #ececec !important;
+	background-color: rgb(0,0,0,0.05) !important;
     border-radius: 50%;
 }
 
@@ -142,7 +130,7 @@
 	cursor: pointer;
 
 	mat-icon {
-		color: var(--primary-color);
+		color: var(--sys-primary);
 		display: inline-flex;
 		vertical-align: middle;
 	}
@@ -174,7 +162,7 @@
 	cursor: pointer;
 
 	mat-icon {
-		color: var(--primary-color);
+		color: var(--sys-primary);
 		display: inline-flex;
 		vertical-align: middle;
 	}
@@ -182,7 +170,7 @@
 	span {
 		font-weight: 500;
 		letter-spacing: -0.35px;
-		color: #212121;
+		color: var(--dark-text);
 		opacity: 1;
 	}
 }
@@ -213,56 +201,21 @@
 	}
 }
 
-::ng-deep .name-form .mat-form-field-appearance-outline .mat-form-field-outline {
-	background: #fafafa !important;
+.tenant-selection {
+    margin-right: 3rem;
 }
 
-::ng-deep .name-form .mat-form-field-appearance-outline .mat-form-field-infix {
-	font-size: 1rem;
-	padding: 0.6em 0 1em 0 !important;
-}
 
-::ng-deep .organization-form .mat-form-field-appearance-outline .mat-form-field-outline {
-	background: #fafafa !important;
-}
-
-::ng-deep .organization-form .mat-form-field-appearance-outline .mat-form-field-infix {
-	font-size: 1rem;
-	padding: 0.6em 0 1em 0 !important;
-}
-
-::ng-deep .timezone-form .mat-form-field-appearance-outline .mat-form-field-outline {
-	background: #fafafa !important;
-}
-
-::ng-deep .timezone-form .mat-form-field-appearance-outline .mat-form-field-infix {
-	font-size: 1rem;
-	padding: 0.6em 0 1em 0 !important;
-}
-
-::ng-deep .culture-form .mat-form-field-appearance-outline .mat-form-field-outline {
-	background: #fafafa !important;
-}
-
-::ng-deep .culture-form .mat-form-field-appearance-outline .mat-form-field-infix {
-	font-size: 1rem;
-	padding: 0.6em 0 1em 0 !important;
-}
-
-::ng-deep .language-form .mat-form-field-appearance-outline .mat-form-field-outline {
-	background: #fafafa !important;
-}
-
-::ng-deep .language-form .mat-form-field-appearance-outline .mat-form-field-infix {
-	font-size: 1rem;
-	padding: 0.6em 0 1em 0 !important;
-}
-
-::ng-deep .role-form .mat-form-field-appearance-outline .mat-form-field-outline {
-	background: #fafafa !important;
-}
-
-::ng-deep .role-form .mat-form-field-appearance-outline .mat-form-field-infix {
-	font-size: 1rem;
-	padding: 0.6em 0 1em 0 !important;
+@media screen and (max-width: 430px){
+    .user-profile-title {
+        padding-left: 0 !important;
+    }
+    .profile-content {
+        margin-left: 0 !important;
+        margin-right: 0 !important;
+    }
+    
+    .tenant-selection{
+        margin-right: 0 !important;
+    }
 }

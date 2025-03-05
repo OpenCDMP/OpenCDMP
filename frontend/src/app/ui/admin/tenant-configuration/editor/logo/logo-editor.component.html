@@ -7,12 +7,12 @@
 				</ngx-dropzone-preview>
 			</ngx-dropzone>
 			<div class="col-12 d-flex justify-content-center attach-btn">
-				<button *ngIf="!formGroup.get('logo')?.get('storageFileId')?.value" (click)="drop.showFileSelector()" mat-button type="button" class="attach-file" [disabled]="formGroup.get('logo')?.get('storageFileId')?.disabled">
+				<button *ngIf="!formGroup.get('logo')?.get('storageFileId')?.value" (click)="drop.showFileSelector()" mat-button color="primary"  class="attach-file"  [disabled]="formGroup.get('logo')?.get('storageFileId')?.disabled">
 					<mat-icon class="mr-2">upload</mat-icon>
 					<span>{{ "TENANT-CONFIGURATION-EDITOR.ACTIONS.UPLOAD" | translate }}</span>
 				</button>
 
-				<button *ngIf="formGroup.get('logo')?.get('storageFileId')?.value" (click)="download(formGroup.get('logo')?.get('storageFileId')?.value)" mat-button type="button" class="attach-file">
+				<button *ngIf="formGroup.get('logo')?.get('storageFileId')?.value" (click)="download(formGroup.get('logo')?.get('storageFileId')?.value)" mat-button color="primary" class="attach-file" type="button">
 					<mat-icon class="mr-2">download</mat-icon>
 					<span>{{ "TENANT-CONFIGURATION-EDITOR.ACTIONS.DOWNLOAD" | translate }}</span>
 				</button>
@@ -21,11 +21,11 @@
 		<div class="col-12">
 			<div class="row actions-row">
 				<div class="col"></div>
-				<div class="col-auto" *ngIf="editorModel.id"><button mat-button class="rounded-btn primary-inverted" (click)="delete()">
+				<div class="col-auto" *ngIf="editorModel.id"><button mat-stroked-button color="warn" class="padded-shadow-btn" (click)="delete()">
 						{{'TENANT-CONFIGURATION-EDITOR.ACTIONS.RESET-TO-DEFAULT' | translate}}
 					</button>
 				</div>
-				<div class="col-auto"><button mat-button class="rounded-btn primary" (click)="formSubmit()">
+				<div class="col-auto"><button mat-flat-button color="primary" class="padded-shadow-btn" (click)="formSubmit()">
 						{{'TENANT-CONFIGURATION-EDITOR.ACTIONS.SAVE' | translate}}
 					</button>
 				</div>

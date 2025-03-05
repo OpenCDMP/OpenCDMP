@@ -184,7 +184,7 @@ public class UsageLimitServiceImpl implements UsageLimitService {
                 DefinitionEntity definition = this.xmlHandlingService.fromXmlSafe(DefinitionEntity.class, usageLimitEntity.getDefinition());
                 if (definition == null) throw new MyNotFoundException(this.messageSource.getMessage("General_ItemNotFound", new Object[]{usageLimitEntity.getId(), DefinitionEntity.class.getSimpleName()}, LocaleContextHolder.getLocale()));
 
-                Integer currentValue = this.accountingService.getCurrentMetricValue(metric, definition, true);
+                Integer currentValue = this.accountingService.getCurrentMetricValue(metric, definition);
                 if (currentValue >= usageLimitEntity.getValue()) throw new MyValidationException(this.errors.getUsageLimitException().getCode(), usageLimitEntity.getLabel());
             }
         } catch (InvalidApplicationException e) {

@@ -17,6 +17,8 @@ import { ConfigurationService } from '../configuration/configuration.service';
 import { BaseHttpV2Service } from '../http/base-http-v2.service';
 import { TranslateService } from '@ngx-translate/core';
 import { ReferenceType } from '@app/core/model/reference-type/reference-type';
+import { ReferenceTestLookup } from '@app/core/query/reference-test.lookup';
+import { ExternalFetcherBaseSourceConfigurationPersist } from '@app/core/model/external-fetcher/external-fetcher';
 
 @Injectable()
 export class ReferenceService {
@@ -38,6 +40,11 @@ export class ReferenceService {
 
 	searchWithDefinition(q: ReferenceSearchDefinitionLookup): Observable<Reference[]> {
 		const url = `${this.apiBase}/search`;
+		return this.http.post<Reference[]>(url, q).pipe(catchError((error: any) => throwError(error)));
+	}
+
+	testDefinition(q: ReferenceTestLookup): Observable<Reference[]> {
+		const url = `${this.apiBase}/test`;
 		return this.http.post<Reference[]>(url, q).pipe(catchError((error: any) => throwError(error)));
 	}
 
@@ -172,6 +179,57 @@ export class ReferenceService {
 		return lookup;
 	}
 
+	public getSingleAutocompleteTestSearchConfiguration( dependencyReferences: Reference[],  key: string, sources: ExternalFetcherBaseSourceConfigurationPersist[]): SingleAutoCompleteConfiguration {
+		return {
+			initialItems: (data?: any) => this.testDefinition(this.buildAutocompleteTestSearchLookup( dependencyReferences, key, sources, null)).pipe(map(x => x)),
+			filterFn: (searchQuery: string, data?: any) => this.testDefinition(this.buildAutocompleteTestSearchLookup( dependencyReferences, key, sources, searchQuery)).pipe(map(x => x)),
+			displayFn: (item: Reference) => item.label,
+			subtitleFn: (item: Reference) => item?.sourceType === ReferenceSourceType.External ? this.language.instant('REFERENCE-FIELD-COMPONENT.EXTERNAL-SOURCE') + ': ' + item.source : this.language.instant('REFERENCE-FIELD-COMPONENT.INTERNAL-SOURCE'),
+			titleFn: (item: Reference) => item.label,
+			valueAssign: (item: Reference) => item,
+			uniqueAssign: (item: Reference) => item.source + '_' + item.reference,
+		};
+	};
+
+	public getMultipleAutoCompleteTestSearchConfiguration( dependencyReferences: Reference[],  key: string, sources: ExternalFetcherBaseSourceConfigurationPersist[]): MultipleAutoCompleteConfiguration {
+		return {
+			initialItems: (excludedItems: any[], data?: any) => this.testDefinition(this.buildAutocompleteTestSearchLookup(dependencyReferences, key, sources, null)).pipe(map(x => x)),
+			filterFn: (searchQuery: string, excludedItems: any[]) => this.testDefinition(this.buildAutocompleteTestSearchLookup( dependencyReferences, key, sources, searchQuery)).pipe(map(x => x)),
+			displayFn: (item: Reference) => item.label,
+			titleFn: (item: Reference) => item.label,
+			subtitleFn: (item: Reference) => item?.sourceType === ReferenceSourceType.External ? this.language.instant('REFERENCE-FIELD-COMPONENT.EXTERNAL-SOURCE') + ': ' + item.source : this.language.instant('REFERENCE-FIELD-COMPONENT.INTERNAL-SOURCE'),
+			valueAssign: (item: Reference) => item,
+			uniqueAssign: (item: Reference) => item.source + '_' + item.reference,
+		};
+	}
+
+	private buildAutocompleteTestSearchLookup(dependencyReferences: Reference[], key: string, sources: ExternalFetcherBaseSourceConfigurationPersist[], like?: string ): ReferenceTestLookup {
+		const lookup: ReferenceTestLookup = new ReferenceTestLookup();
+		lookup.key = key;
+		lookup.sources = sources;
+		lookup.page = { size: 100, offset: 0 };
+		lookup.project = {
+			fields: [
+				nameof<Reference>(x => x.hash),
+				nameof<Reference>(x => x.label),
+				nameof<Reference>(x => x.type),
+				[nameof<Reference>(x => x.type), nameof<ReferenceType>(x => x.id)].join('.'),
+				nameof<Reference>(x => x.description),
+				[nameof<Reference>(x => x.definition), nameof<Definition>(x => x.fields), nameof<Field>(x => x.code)].join('.'),
+				[nameof<Reference>(x => x.definition), nameof<Definition>(x => x.fields), nameof<Field>(x => x.dataType)].join('.'),
+				[nameof<Reference>(x => x.definition), nameof<Definition>(x => x.fields), nameof<Field>(x => x.value)].join('.'),
+				nameof<Reference>(x => x.reference),
+				nameof<Reference>(x => x.abbreviation),
+				nameof<Reference>(x => x.source),
+				nameof<Reference>(x => x.sourceType),
+			]
+		};
+		lookup.dependencyReferences = dependencyReferences;
+		lookup.order = { items: [nameof<Reference>(x => x.label)] };
+		if (like) { lookup.like = this.filterService.transformLike(like); }
+		return lookup;
+	}
+
 
 	//
 	//
@@ -184,7 +242,7 @@ export class ReferenceService {
 	}
 
 	getReferencesForTypes(planReferences: PlanReference[], referenceTypeIds?: Guid[]): PlanReference[] {
-		return planReferences?.filter(x => referenceTypeIds?.includes(x?.reference?.type?.id)).filter(x=> x.isActive === IsActive.Active);;
+		return planReferences?.filter(x => referenceTypeIds?.includes(x?.reference?.type?.id));
 	}
 
 	getReferencesForTypesFirstSafe(planReferences: PlanReference[], referenceTypeIds?: Guid[]): PlanReference {

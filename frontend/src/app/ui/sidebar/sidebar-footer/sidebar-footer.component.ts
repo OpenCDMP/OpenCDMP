@@ -23,9 +23,10 @@ import { ConfigurationService } from '@app/core/services/configuration/configura
 import { AccessLevel, SidebarItem } from '@app/core/model/configuration-models/sidebar.model';
 
 @Component({
-	selector: 'app-sidebar-footer',
-	templateUrl: './sidebar-footer.component.html',
-	styleUrls: ['./sidebar-footer.component.css']
+    selector: 'app-sidebar-footer',
+    templateUrl: './sidebar-footer.component.html',
+    styleUrls: ['./sidebar-footer.component.css'],
+    standalone: false
 })
 export class SidebarFooterComponent extends BaseComponent implements OnInit {
 

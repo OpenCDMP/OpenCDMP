@@ -77,9 +77,9 @@ public class DashboardServiceImpl implements DashboardService {
             descriptionLookup.getPage().setOffset(0);
             descriptionLookup.getPage().setSize(model.getPage().getSize()+model.getPage().getOffset());
 
-            QueryResult<Description> descriptions = this.elasticQueryHelperService.collect(descriptionLookup, AuthorizationFlags.AllExceptPublic, new BaseFieldSet().ensure(Description._id).ensure(Description._updatedAt).ensure(Description._status).ensure(Description._label));
+            QueryResult<Description> descriptions = this.elasticQueryHelperService.collect(descriptionLookup, AuthorizationFlags.AllExceptPublic, new BaseFieldSet().ensure(Description._id).ensure(Description._updatedAt).ensure(String.join(".",Description._status, org.opencdmp.model.descriptionstatus.DescriptionStatus._id)).ensure(Description._label));
             if (!this.conventionService.isListNullOrEmpty(descriptions.getItems())) {
-                for (Description description : descriptions.getItems()) recentActivityItemEntities.add(new RecentActivityItemEntity(RecentActivityItemType.Description, description.getId(), description.getUpdatedAt(), description.getLabel(), description.getStatus().getValue()));
+                for (Description description : descriptions.getItems()) recentActivityItemEntities.add(new RecentActivityItemEntity(RecentActivityItemType.Description, description.getId(), description.getUpdatedAt(), description.getLabel(), description.getStatus().getId()));
             }
         }
         
@@ -88,9 +88,9 @@ public class DashboardServiceImpl implements DashboardService {
             planLookup.getPage().setOffset(0);
             planLookup.getPage().setSize(model.getPage().getSize()+model.getPage().getOffset());
 
-            QueryResult<Plan> plans = this.elasticQueryHelperService.collect(planLookup, AuthorizationFlags.AllExceptPublic, new BaseFieldSet().ensure(Plan._id).ensure(Plan._updatedAt).ensure(Plan._label).ensure(Plan._status));
+            QueryResult<Plan> plans = this.elasticQueryHelperService.collect(planLookup, AuthorizationFlags.AllExceptPublic, new BaseFieldSet().ensure(Plan._id).ensure(Plan._updatedAt).ensure(Plan._label).ensure(String.join(".",Plan._status, org.opencdmp.model.planstatus.PlanStatus._id)));
             if (!this.conventionService.isListNullOrEmpty(plans.getItems())) {
-                for (Plan plan : plans.getItems()) recentActivityItemEntities.add(new RecentActivityItemEntity(RecentActivityItemType.Plan, plan.getId(), plan.getUpdatedAt(), plan.getLabel(), plan.getStatus().getValue()));
+                for (Plan plan : plans.getItems()) recentActivityItemEntities.add(new RecentActivityItemEntity(RecentActivityItemType.Plan, plan.getId(), plan.getUpdatedAt(), plan.getLabel(), plan.getStatus().getId()));
             }
         }
 
@@ -100,7 +100,7 @@ public class DashboardServiceImpl implements DashboardService {
             switch (model.getOrderField()){
                 case Label -> comparator = Comparator.comparing(RecentActivityItemEntity::getLabel).thenComparing(RecentActivityItemEntity::getUpdatedAt);
                 case UpdatedAt -> comparator = Comparator.comparing(RecentActivityItemEntity::getUpdatedAt);
-                case Status -> comparator = Comparator.comparing(RecentActivityItemEntity::getStatusValue).thenComparing(RecentActivityItemEntity::getUpdatedAt);
+                case Status -> comparator = Comparator.comparing(RecentActivityItemEntity::getStatusId).thenComparing(RecentActivityItemEntity::getUpdatedAt);
                 default -> throw  new IllegalArgumentException("Type not found" + model.getOrderField()) ;
             }
         }
@@ -118,10 +118,12 @@ public class DashboardServiceImpl implements DashboardService {
 
         DashboardStatisticsCacheService.DashboardStatisticsCacheValue cacheValue = this.dashboardStatisticsCacheService.lookup(this.dashboardStatisticsCacheService.buildKey(DashboardStatisticsCacheService.publicKey));
         if (cacheValue == null || cacheValue.getDashboardStatistics() == null) {
-            PlanQuery planQuery = this.queryFactory.query(PlanQuery.class).disableTracking().isActive(IsActive.Active).versionStatuses(PlanVersionStatus.Current).statuses(PlanStatus.Finalized).accessTypes(PlanAccessType.Public);
+            PlanStatusQuery planStatusQuery = this.queryFactory.query(PlanStatusQuery.class).disableTracking().internalStatuses(PlanStatus.Finalized).isActives(IsActive.Active);
+            PlanQuery planQuery = this.queryFactory.query(PlanQuery.class).disableTracking().isActive(IsActive.Active).versionStatuses(PlanVersionStatus.Current).planStatusSubQuery(planStatusQuery).accessTypes(PlanAccessType.Public);
             DashboardStatistics statistics = new DashboardStatistics();
             statistics.setPlanCount(planQuery.authorize(EnumSet.of(Public)).count());
-            statistics.setDescriptionCount(this.queryFactory.query(DescriptionQuery.class).disableTracking().isActive(IsActive.Active).planSubQuery(planQuery).statuses(DescriptionStatus.Finalized).authorize(EnumSet.of(Public)).count());
+            DescriptionStatusQuery descriptionStatusQuery = this.queryFactory.query(DescriptionStatusQuery.class).disableTracking().internalStatuses(DescriptionStatus.Finalized).isActive(IsActive.Active);
+            statistics.setDescriptionCount(this.queryFactory.query(DescriptionQuery.class).disableTracking().isActive(IsActive.Active).planSubQuery(planQuery).descriptionStatusSubQuery(descriptionStatusQuery).authorize(EnumSet.of(Public)).count());
 
             statistics.setReferenceTypeStatistics(new ArrayList<>());
             if (!this.conventionService.isListNullOrEmpty(this.config.getReferenceTypeCounters())){

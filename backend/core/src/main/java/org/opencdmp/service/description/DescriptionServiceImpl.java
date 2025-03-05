@@ -24,6 +24,7 @@ import org.opencdmp.commonmodels.models.reference.ReferenceModel;
 import org.opencdmp.commons.JsonHandlingService;
 import org.opencdmp.commons.XmlHandlingService;
 import org.opencdmp.commons.enums.*;
+import org.opencdmp.commons.enums.DescriptionStatus;
 import org.opencdmp.commons.notification.NotificationProperties;
 import org.opencdmp.commons.scope.tenant.TenantScope;
 import org.opencdmp.commons.scope.user.UserScope;
@@ -39,6 +40,7 @@ import org.opencdmp.commons.types.descriptiontemplate.importexport.fielddata.Ref
 import org.opencdmp.commons.types.notification.DataType;
 import org.opencdmp.commons.types.notification.FieldInfo;
 import org.opencdmp.commons.types.notification.NotificationFieldData;
+import org.opencdmp.commons.types.planblueprint.BlueprintDescriptionTemplateEntity;
 import org.opencdmp.commons.types.planblueprint.SectionEntity;
 import org.opencdmp.commons.types.reference.DefinitionEntity;
 import org.opencdmp.convention.ConventionService;
@@ -51,11 +53,13 @@ import org.opencdmp.integrationevent.outbox.annotationentitytouch.AnnotationEnti
 import org.opencdmp.integrationevent.outbox.notification.NotifyIntegrationEvent;
 import org.opencdmp.integrationevent.outbox.notification.NotifyIntegrationEventHandler;
 import org.opencdmp.model.*;
+import org.opencdmp.model.builder.StorageFileBuilder;
 import org.opencdmp.model.builder.description.DescriptionBuilder;
 import org.opencdmp.model.deleter.DescriptionDeleter;
 import org.opencdmp.model.deleter.DescriptionReferenceDeleter;
 import org.opencdmp.model.deleter.DescriptionTagDeleter;
 import org.opencdmp.model.description.Description;
+import org.opencdmp.model.description.PropertyDefinitionFieldSetItem;
 import org.opencdmp.model.descriptiontemplate.DescriptionTemplate;
 import org.opencdmp.model.file.FileEnvelope;
 import org.opencdmp.model.persist.*;
@@ -68,9 +72,12 @@ import org.opencdmp.model.reference.Reference;
 import org.opencdmp.model.referencetype.ReferenceType;
 import org.opencdmp.query.*;
 import org.opencdmp.service.accounting.AccountingService;
+import org.opencdmp.service.custompolicy.CustomPolicyService;
 import org.opencdmp.service.descriptiontemplate.DescriptionTemplateService;
+import org.opencdmp.service.descriptionworkflow.DescriptionWorkflowService;
 import org.opencdmp.service.elastic.ElasticService;
 import org.opencdmp.service.filetransformer.FileTransformerService;
+import org.opencdmp.service.lock.LockService;
 import org.opencdmp.service.responseutils.ResponseUtilsService;
 import org.opencdmp.service.storage.StorageFileProperties;
 import org.opencdmp.service.storage.StorageFileService;
@@ -143,6 +150,9 @@ public class DescriptionServiceImpl implements DescriptionService {
     private final TagService tagService;
     private final UsageLimitService usageLimitService;
     private final AccountingService accountingService;
+    private final DescriptionWorkflowService descriptionWorkflowService;
+    private final CustomPolicyService customPolicyService;
+    private final LockService lockService;
     
     @Autowired
     public DescriptionServiceImpl(
@@ -157,7 +167,7 @@ public class DescriptionServiceImpl implements DescriptionService {
             QueryFactory queryFactory,
             JsonHandlingService jsonHandlingService,
             UserScope userScope,
-            XmlHandlingService xmlHandlingService, NotifyIntegrationEventHandler eventHandler, NotificationProperties notificationProperties, FileTransformerService fileTransformerService, ElasticService elasticService, ValidatorFactory validatorFactory, StorageFileProperties storageFileConfig, StorageFileService storageFileService, AuthorizationContentResolver authorizationContentResolver, AnnotationEntityTouchedIntegrationEventHandler annotationEntityTouchedIntegrationEventHandler, AnnotationEntityRemovalIntegrationEventHandler annotationEntityRemovalIntegrationEventHandler, TenantScope tenantScope, ResponseUtilsService responseUtilsService, DescriptionTemplateService descriptionTemplateService, TagService tagService, UsageLimitService usageLimitService, AccountingService accountingService) {
+            XmlHandlingService xmlHandlingService, NotifyIntegrationEventHandler eventHandler, NotificationProperties notificationProperties, FileTransformerService fileTransformerService, ElasticService elasticService, ValidatorFactory validatorFactory, StorageFileProperties storageFileConfig, StorageFileService storageFileService, AuthorizationContentResolver authorizationContentResolver, AnnotationEntityTouchedIntegrationEventHandler annotationEntityTouchedIntegrationEventHandler, AnnotationEntityRemovalIntegrationEventHandler annotationEntityRemovalIntegrationEventHandler, TenantScope tenantScope, ResponseUtilsService responseUtilsService, DescriptionTemplateService descriptionTemplateService, TagService tagService, UsageLimitService usageLimitService, AccountingService accountingService, DescriptionWorkflowService descriptionWorkflowService, CustomPolicyService customPolicyService, LockService lockService) {
         this.entityManager = entityManager;
         this.authorizationService = authorizationService;
         this.deleterFactory = deleterFactory;
@@ -186,6 +196,9 @@ public class DescriptionServiceImpl implements DescriptionService {
 	    this.tagService = tagService;
         this.usageLimitService = usageLimitService;
         this.accountingService = accountingService;
+        this.descriptionWorkflowService = descriptionWorkflowService;
+        this.customPolicyService = customPolicyService;
+        this.lockService = lockService;
     }
 
     @Override
@@ -224,10 +237,19 @@ public class DescriptionServiceImpl implements DescriptionService {
         if (isUpdate) {
             data = this.entityManager.find(DescriptionEntity.class, model.getId());
             if (data == null) throw new MyNotFoundException(this.messageSource.getMessage("General_ItemNotFound", new Object[]{model.getId(), Description.class.getSimpleName()}, LocaleContextHolder.getLocale()));
+            if (this.lockService.isLocked(data.getId(), null).getStatus()) throw new MyApplicationException(this.errors.getLockedDescription().getCode(), data.getLabel());
             if (!this.conventionService.hashValue(data.getUpdatedAt()).equals(model.getHash())) throw new MyValidationException(this.errors.getHashConflict().getCode(), this.errors.getHashConflict().getMessage());
-            if (data.getStatus().equals(DescriptionStatus.Finalized)) throw new MyValidationException(this.errors.getDescriptionIsFinalized().getCode(), this.errors.getDescriptionIsFinalized().getMessage());
+            DescriptionStatusEntity oldDescriptionStatusEntity = this.entityManager.find(DescriptionStatusEntity.class, data.getStatusId(), true);
+            if (oldDescriptionStatusEntity == null) throw new MyNotFoundException(this.messageSource.getMessage("General_ItemNotFound", new Object[]{data.getStatusId(), org.opencdmp.model.descriptionstatus.DescriptionStatus.class.getSimpleName()}, LocaleContextHolder.getLocale()));
+            if (oldDescriptionStatusEntity.getInternalStatus() != null && oldDescriptionStatusEntity.getInternalStatus().equals(DescriptionStatus.Finalized)) throw new MyValidationException(this.errors.getDescriptionIsFinalized().getCode(), this.errors.getDescriptionIsFinalized().getMessage());
             if (!data.getPlanId().equals(model.getPlanId())) throw new MyValidationException(this.errors.getPlanCanNotChange().getCode(), this.errors.getPlanCanNotChange().getMessage());
             if (!data.getPlanDescriptionTemplateId().equals(model.getPlanDescriptionTemplateId())) throw new MyValidationException(this.errors.getPlanDescriptionTemplateCanNotChange().getCode(), this.errors.getPlanDescriptionTemplateCanNotChange().getMessage());
+            if (model.getStatusId() != null && !model.getStatusId().equals(data.getStatusId())) {
+                data.setStatusId(model.getStatusId());
+                DescriptionStatusEntity newDescriptionStatusEntity = this.entityManager.find(DescriptionStatusEntity.class, model.getStatusId(), true);
+                if (newDescriptionStatusEntity == null) throw new MyNotFoundException(this.messageSource.getMessage("General_ItemNotFound", new Object[]{model.getStatusId(), org.opencdmp.model.descriptionstatus.DescriptionStatus.class.getSimpleName()}, LocaleContextHolder.getLocale()));
+                if (newDescriptionStatusEntity.getInternalStatus() != null && newDescriptionStatusEntity.getInternalStatus().equals(DescriptionStatus.Finalized)) data.setFinalizedAt(Instant.now());
+            }
         } else {
             this.usageLimitService.checkIncrease(UsageLimitTargetMetric.DESCRIPTION_COUNT);
 
@@ -246,6 +268,7 @@ public class DescriptionServiceImpl implements DescriptionService {
             data.setCreatedById(this.userScope.getUserId());
             data.setPlanId(model.getPlanId());
             data.setPlanDescriptionTemplateId(model.getPlanDescriptionTemplateId());
+            data.setStatusId(this.descriptionWorkflowService.getActiveWorkFlowDefinition().getStartingStatusId());
         }
 
         DescriptionTemplateEntity descriptionTemplateEntity = this.entityManager.find(DescriptionTemplateEntity.class, model.getDescriptionTemplateId(), true);
@@ -255,12 +278,12 @@ public class DescriptionServiceImpl implements DescriptionService {
 
         PlanEntity plan = this.entityManager.find(PlanEntity.class, data.getPlanId(), true);
         if (plan == null) throw new MyNotFoundException(this.messageSource.getMessage("General_ItemNotFound", new Object[]{data.getPlanId(), Plan.class.getSimpleName()}, LocaleContextHolder.getLocale()));
+        PlanStatusEntity planStatusEntity = this.entityManager.find(PlanStatusEntity.class, plan.getStatusId(), true);
+        if (planStatusEntity == null) throw new MyNotFoundException(this.messageSource.getMessage("General_ItemNotFound", new Object[]{plan.getStatusId(), PlanStatusEntity.class.getSimpleName()}, LocaleContextHolder.getLocale()));
 
-        if (plan.getStatus().equals(PlanStatus.Finalized)) throw new MyValidationException(this.errors.getPlanIsFinalized().getCode(), this.errors.getPlanIsFinalized().getMessage());
+        if (planStatusEntity.getInternalStatus() != null && planStatusEntity.getInternalStatus().equals(PlanStatus.Finalized)) throw new MyValidationException(this.errors.getPlanIsFinalized().getCode(), this.errors.getPlanIsFinalized().getMessage());
 
         data.setLabel(model.getLabel());
-        data.setStatus(model.getStatus());
-        if (model.getStatus() == DescriptionStatus.Finalized) data.setFinalizedAt(Instant.now());
         data.setDescription(model.getDescription());
         data.setDescriptionTemplateId(model.getDescriptionTemplateId());
         data.setUpdatedAt(Instant.now());
@@ -297,6 +320,16 @@ public class DescriptionServiceImpl implements DescriptionService {
         return this.builderFactory.builder(DescriptionBuilder.class).authorize(AuthorizationFlags.AllExceptPublic).build(BaseFieldSet.build(fields, Description._id), data);
     }
 
+    @Override
+    public List<Description> persistMultiple(DescriptionMultiplePersist model, FieldSet fields) throws MyForbiddenException, MyValidationException, MyApplicationException, MyNotFoundException, InvalidApplicationException, IOException {
+        List<Description> descriptions = new ArrayList<>();
+        for (DescriptionPersist descriptionPersist: model.getDescriptions()){
+            descriptions.add(this.persist(descriptionPersist, fields));
+        }
+
+        return descriptions;
+    }
+
     private boolean isDescriptionTemplateMaxMultiplicityValid(PlanBlueprintEntity planBlueprintEntity, UUID planId, UUID planDescriptionTemplateId, Boolean isUpdate){
         org.opencdmp.commons.types.planblueprint.DefinitionEntity definition = this.xmlHandlingService.fromXmlSafe(org.opencdmp.commons.types.planblueprint.DefinitionEntity.class, planBlueprintEntity.getDefinition());
         if (definition == null || this.conventionService.isListNullOrEmpty(definition.getSections())) return true;
@@ -312,7 +345,7 @@ public class DescriptionServiceImpl implements DescriptionService {
                 if (isUpdate) descriptionsCount = -1;
                 else descriptionsCount = 0;
 
-                for (org.opencdmp.commons.types.planblueprint.DescriptionTemplateEntity sectionDescriptionTemplate: section.getDescriptionTemplates()) {
+                for (BlueprintDescriptionTemplateEntity sectionDescriptionTemplate: section.getDescriptionTemplates()) {
                     if (sectionDescriptionTemplate.getDescriptionTemplateGroupId().equals(planDescriptionTemplateEntity.getDescriptionTemplateGroupId())){
                         for (DescriptionEntity description: descriptionEntities){
                             if (description.getPlanDescriptionTemplateId().equals(planDescriptionTemplateEntity.getId())) descriptionsCount++;
@@ -378,6 +411,10 @@ public class DescriptionServiceImpl implements DescriptionService {
     }
 
     private void sendNotification(DescriptionEntity description, Boolean isUpdate) throws InvalidApplicationException {
+        DescriptionStatusEntity descriptionStatusEntity = this.entityManager.find(DescriptionStatusEntity.class, description.getStatusId(), true);
+        if (descriptionStatusEntity == null) throw new MyNotFoundException(this.messageSource.getMessage("General_ItemNotFound", new Object[]{description, DescriptionStatus.class.getSimpleName()}, LocaleContextHolder.getLocale()));
+        if (descriptionStatusEntity.getInternalStatus() != null && descriptionStatusEntity.getInternalStatus().equals(DescriptionStatus.Canceled)) return;
+
         List<PlanUserEntity> existingUsers = this.queryFactory.query(PlanUserQuery.class).disableTracking()
                 .planIds(description.getPlanId())
                 .isActives(IsActive.Active)
@@ -390,7 +427,7 @@ public class DescriptionServiceImpl implements DescriptionService {
             if (!planUser.getUserId().equals(this.userScope.getUserIdSafe())){
                 UserEntity user = this.queryFactory.query(UserQuery.class).disableTracking().ids(planUser.getUserId()).first();
                 if (user == null || user.getIsActive().equals(IsActive.Inactive)) throw new MyValidationException(this.errors.getPlanInactiveUser().getCode(), this.errors.getPlanInactiveUser().getMessage());
-                this.createDescriptionNotificationEvent(description, user, isUpdate);
+                this.createDescriptionNotificationEvent(description, descriptionStatusEntity, user, isUpdate);
             }
         }
     }
@@ -438,17 +475,19 @@ public class DescriptionServiceImpl implements DescriptionService {
         return cleanData;
     }
     
-    private void createDescriptionNotificationEvent(DescriptionEntity description, UserEntity user, Boolean isUpdate) throws InvalidApplicationException {
+    private void createDescriptionNotificationEvent(DescriptionEntity description, DescriptionStatusEntity descriptionStatus, UserEntity user, Boolean isUpdate) throws InvalidApplicationException {
         NotifyIntegrationEvent event = new NotifyIntegrationEvent();
         event.setUserId(user.getId());
 
-        this.applyNotificationType(description.getStatus(), event, isUpdate);
+        if (descriptionStatus.getInternalStatus() == null) event.setNotificationType(this.notificationProperties.getDescriptionStatusChangedType());
+        else this.applyNotificationType(descriptionStatus.getInternalStatus(), event, isUpdate);
         NotificationFieldData data = new NotificationFieldData();
         List<FieldInfo> fieldInfoList = new ArrayList<>();
         fieldInfoList.add(new FieldInfo("{recipient}", DataType.String, user.getName()));
         fieldInfoList.add(new FieldInfo("{reasonName}", DataType.String, this.queryFactory.query(UserQuery.class).disableTracking().ids(this.userScope.getUserId()).first().getName()));
         fieldInfoList.add(new FieldInfo("{name}", DataType.String, description.getLabel()));
         fieldInfoList.add(new FieldInfo("{id}", DataType.String, description.getId().toString()));
+        if (descriptionStatus.getInternalStatus() == null) fieldInfoList.add(new FieldInfo("{statusName}", DataType.String, descriptionStatus.getName()));
         if(this.tenantScope.getTenantCode() != null && !this.tenantScope.getTenantCode().equals(this.tenantScope.getDefaultTenantCode())){
             fieldInfoList.add(new FieldInfo("{tenant-url-path}", DataType.String, String.format("/t/%s", this.tenantScope.getTenantCode())));
         }
@@ -478,21 +517,30 @@ public class DescriptionServiceImpl implements DescriptionService {
     public Description persistStatus(DescriptionStatusPersist model, FieldSet fields) throws IOException, InvalidApplicationException {
         logger.debug(new MapLogEntry("persisting data").And("model", model).And("fields", fields));
 
-        this.authorizationService.authorizeAtLeastOneForce(List.of(this.authorizationContentResolver.descriptionAffiliation(model.getId())), Permission.EditDescription);
+        this.authorizationService.authorizeAtLeastOneForce(List.of(this.authorizationContentResolver.descriptionAffiliation(model.getId())), Permission.EditDescription, this.customPolicyService.getDescriptionStatusCanEditStatusPermission(model.getStatusId()));
 
-        DescriptionEntity data = this.entityManager.find(DescriptionEntity.class, model.getId());
+        DescriptionEntity data = this.queryFactory.query(DescriptionQuery.class).authorize(AuthorizationFlags.AllExceptPublic).ids(model.getId()).isActive(IsActive.Active).first();
         if (data == null) throw new MyNotFoundException(this.messageSource.getMessage("General_ItemNotFound", new Object[]{model.getId(), Description.class.getSimpleName()}, LocaleContextHolder.getLocale()));
+
+        if (this.lockService.isLocked(data.getId(), null).getStatus()) throw new MyApplicationException(this.errors.getLockedDescription().getCode(), data.getLabel());
+
         if (!this.conventionService.hashValue(data.getUpdatedAt()).equals(model.getHash())) throw new MyValidationException(this.errors.getHashConflict().getCode(), this.errors.getHashConflict().getMessage());
-        if (!data.getStatus().equals(model.getStatus())){
-            if (data.getStatus().equals(DescriptionStatus.Finalized)){
+        if (!data.getStatusId().equals(model.getStatusId())){
+            DescriptionStatusEntity oldStatusEntity = this.queryFactory.query(DescriptionStatusQuery.class).disableTracking().ids(data.getStatusId()).isActive(IsActive.Active).firstAs(new BaseFieldSet().ensure(org.opencdmp.model.descriptionstatus.DescriptionStatus._id).ensure(org.opencdmp.model.descriptionstatus.DescriptionStatus._internalStatus));
+            if (oldStatusEntity == null) throw new MyNotFoundException(this.messageSource.getMessage("General_ItemNotFound", new Object[]{data.getStatusId(), DescriptionStatusEntity.class.getSimpleName()}, LocaleContextHolder.getLocale()));
+            if (oldStatusEntity.getInternalStatus() != null && oldStatusEntity.getInternalStatus().equals(DescriptionStatus.Finalized)){
                 this.authorizationService.authorizeAtLeastOneForce(List.of(this.authorizationContentResolver.descriptionAffiliation(model.getId())), Permission.FinalizeDescription);
                 PlanEntity planEntity = this.entityManager.find(PlanEntity.class, data.getPlanId(), true);
                 if (planEntity == null) throw new MyNotFoundException(this.messageSource.getMessage("General_ItemNotFound", new Object[]{data.getPlanId(), PlanEntity.class.getSimpleName()}, LocaleContextHolder.getLocale()));
-                if(!planEntity.getStatus().equals(PlanStatus.Draft)) throw new MyValidationException(this.errors.getPlanIsFinalized().getCode(), this.errors.getPlanIsFinalized().getMessage());
+                PlanStatusEntity planStatusEntity = this.entityManager.find(PlanStatusEntity.class, planEntity.getStatusId(), true);
+                if (planStatusEntity == null) throw new MyNotFoundException(this.messageSource.getMessage("General_ItemNotFound", new Object[]{planEntity.getStatusId(), PlanStatusEntity.class.getSimpleName()}, LocaleContextHolder.getLocale()));
+                if (planStatusEntity.getInternalStatus() != null && planStatusEntity.getInternalStatus().equals(PlanStatus.Finalized)) throw new MyValidationException(this.errors.getPlanIsFinalized().getCode(), this.errors.getPlanIsFinalized().getMessage());
             }
 
-            data.setStatus(model.getStatus());
-            if (model.getStatus() == DescriptionStatus.Finalized) data.setFinalizedAt(Instant.now());
+            data.setStatusId(model.getStatusId());
+            DescriptionStatusEntity newStatusEntity = this.queryFactory.query(DescriptionStatusQuery.class).disableTracking().ids(model.getStatusId()).isActive(IsActive.Active).firstAs(new BaseFieldSet().ensure(org.opencdmp.model.descriptionstatus.DescriptionStatus._id).ensure(org.opencdmp.model.descriptionstatus.DescriptionStatus._internalStatus));
+            if (newStatusEntity == null) throw new MyNotFoundException(this.messageSource.getMessage("General_ItemNotFound", new Object[]{model.getStatusId(), DescriptionStatusEntity.class.getSimpleName()}, LocaleContextHolder.getLocale()));
+            if (newStatusEntity.getInternalStatus() != null && newStatusEntity.getInternalStatus().equals(DescriptionStatus.Finalized)) data.setFinalizedAt(Instant.now());
             data.setUpdatedAt(Instant.now());
             this.entityManager.merge(data);
 
@@ -502,9 +550,51 @@ public class DescriptionServiceImpl implements DescriptionService {
             this.eventBroker.emit(new DescriptionTouchedEvent(data.getId()));
 
             this.annotationEntityTouchedIntegrationEventHandler.handleDescription(data.getId());
-            if (data.getStatus().equals(DescriptionStatus.Finalized)) this.sendNotification(data, true);
+            this.sendNotification(data, true);
         }
         return this.builderFactory.builder(DescriptionBuilder.class).authorize(AuthorizationFlags.AllExceptPublic).build(BaseFieldSet.build(fields, Description._id), data);
+    }
+
+    @Override
+    public Description buildClone(UUID id, FieldSet fields) throws MyForbiddenException, MyValidationException, MyApplicationException, MyNotFoundException, InvalidApplicationException, IOException {
+
+        DescriptionQuery query = this.queryFactory.query(DescriptionQuery.class).disableTracking().ids(id);
+        Description model = this.builderFactory.builder(DescriptionBuilder.class).build(fields.ensure(), query.firstAs(fields));
+        if (model == null)
+            throw new MyNotFoundException(this.messageSource.getMessage("General_ItemNotFound", new Object[]{id, Description.class.getSimpleName()}, LocaleContextHolder.getLocale()));
+
+        if (model.getProperties() != null && model.getDescriptionTemplate() != null && model.getDescriptionTemplate().getId() != null) {
+            DescriptionTemplateEntity descriptionTemplateEntity = this.queryFactory.query(DescriptionTemplateQuery.class).disableTracking().ids(model.getDescriptionTemplate().getId()).first();
+            org.opencdmp.commons.types.descriptiontemplate.DefinitionEntity definition =  this.xmlHandlingService.fromXmlSafe(org.opencdmp.commons.types.descriptiontemplate.DefinitionEntity.class, descriptionTemplateEntity.getDefinition());
+            if (definition != null && model.getProperties().getFieldSets() != null) {
+                StorageFileQuery storageFileQuery = this.queryFactory.query(StorageFileQuery.class).disableTracking();
+                FieldSet storageFileFields = new BaseFieldSet().ensure(StorageFile._id).ensure(StorageFile._name).ensure(StorageFile._extension).ensure(StorageFile._mimeType);
+                List<StorageFile> storageFiles = this.builderFactory.builder(StorageFileBuilder.class).authorize(AuthorizationFlags.AllExceptPublic).build(storageFileFields, storageFileQuery.collectAs(storageFileFields));
+
+                for (String filedSetKey : model.getProperties().getFieldSets().keySet()) {
+                    if (model.getProperties().getFieldSets().get(filedSetKey).getItems() != null) {
+                        for (PropertyDefinitionFieldSetItem fieldSetItem : model.getProperties().getFieldSets().get(filedSetKey).getItems()) {
+                            if (fieldSetItem.getFields() != null) {
+                                for (String fieldKey : fieldSetItem.getFields().keySet()) {
+                                    if (!definition.getFieldById(fieldKey).isEmpty()) {
+                                        org.opencdmp.commons.types.descriptiontemplate.FieldEntity fieldEntity = definition.getFieldById(fieldKey).getFirst();
+                                        // check if we have an upload value and clone the file
+                                        if (fieldEntity.getData().getFieldType().equals(FieldType.UPLOAD) && fieldSetItem.getFields().get(fieldKey).getTextValue() != null) {
+                                            StorageFile oldstorageFile = storageFiles.stream().filter(x -> x.getId().toString().equals(fieldSetItem.getFields().get(fieldKey).getTextValue())).findFirst().orElse(null);
+                                            if (oldstorageFile != null) {
+                                                StorageFile newStorageFile = this.storageFileService.cloneStorageFile(oldstorageFile);
+                                                if (newStorageFile != null && newStorageFile.getId() != null) fieldSetItem.getFields().get(fieldKey).setTextValue(newStorageFile.getId().toString());
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return model;
     }
 
     public List<DescriptionValidationResult> validate(List<UUID> descriptionIds) throws InvalidApplicationException {
@@ -515,11 +605,14 @@ public class DescriptionServiceImpl implements DescriptionService {
             return null;
         }
 
+        DescriptionStatusEntity statusEntity = this.queryFactory.query(DescriptionStatusQuery.class).disableTracking().internalStatuses(DescriptionStatus.Finalized).isActive(IsActive.Active).firstAs(new BaseFieldSet().ensure(org.opencdmp.model.descriptionstatus.DescriptionStatus._id));
+        if (statusEntity == null) throw new MyApplicationException("finalized status not found");
+
         for (DescriptionEntity description: descriptions) {
             DescriptionValidationResult descriptionValidationResult = new DescriptionValidationResult(description.getId(), DescriptionValidationOutput.Invalid);
 
             DescriptionPersist.DescriptionPersistValidator validator = this.validatorFactory.validator(DescriptionPersist.DescriptionPersistValidator.class);
-            validator.validate(this.buildDescriptionPersist(description));
+            validator.validate(this.buildDescriptionPersist(description, statusEntity.getId()));
             if (validator.result().isValid()) descriptionValidationResult.setResult(DescriptionValidationOutput.Valid);
             
             descriptionValidationResults.add(descriptionValidationResult);
@@ -996,7 +1089,7 @@ public class DescriptionServiceImpl implements DescriptionService {
 
     //region build persist
 
-    private @NotNull DescriptionPersist buildDescriptionPersist(DescriptionEntity data) throws InvalidApplicationException {
+    private @NotNull DescriptionPersist buildDescriptionPersist(DescriptionEntity data, UUID statusId) throws InvalidApplicationException {
         DescriptionPersist persist = new DescriptionPersist();
         if (data == null) return persist;
 
@@ -1005,7 +1098,7 @@ public class DescriptionServiceImpl implements DescriptionService {
 
         persist.setId(data.getId());
         persist.setLabel(data.getLabel());
-        persist.setStatus(DescriptionStatus.Finalized);
+        persist.setStatusId(statusId);
         persist.setDescription(data.getDescription());
         persist.setDescriptionTemplateId(data.getDescriptionTemplateId());
         persist.setPlanId(data.getPlanId());
@@ -1176,7 +1269,8 @@ public class DescriptionServiceImpl implements DescriptionService {
         } else {
             try {
                 this.entityManager.disableTenantFilters();
-                data = this.queryFactory.query(DescriptionQuery.class).disableTracking().authorize(EnumSet.of(Public)).ids(id).planSubQuery(this.queryFactory.query(PlanQuery.class).isActive(IsActive.Active).statuses(PlanStatus.Finalized).accessTypes(PlanAccessType.Public)).first();
+                PlanStatusQuery statusQuery = this.queryFactory.query(PlanStatusQuery.class).disableTracking().internalStatuses(PlanStatus.Finalized).isActives(IsActive.Active);
+                data = this.queryFactory.query(DescriptionQuery.class).disableTracking().authorize(EnumSet.of(Public)).ids(id).planSubQuery(this.queryFactory.query(PlanQuery.class).isActive(IsActive.Active).planStatusSubQuery(statusQuery).accessTypes(PlanAccessType.Public)).first();
                 this.entityManager.reloadTenantFilters();
             } finally {
                 this.entityManager.reloadTenantFilters();
@@ -1209,7 +1303,8 @@ public class DescriptionServiceImpl implements DescriptionService {
         DescriptionEntity data = null;
         try {
             this.entityManager.disableTenantFilters();
-            data = this.queryFactory.query(DescriptionQuery.class).disableTracking().authorize(EnumSet.of(Public)).ids(id).planSubQuery(this.queryFactory.query(PlanQuery.class).isActive(IsActive.Active).statuses(PlanStatus.Finalized).accessTypes(PlanAccessType.Public)).first();
+            PlanStatusQuery statusQuery = this.queryFactory.query(PlanStatusQuery.class).disableTracking().internalStatuses(PlanStatus.Finalized).isActives(IsActive.Active);
+            data = this.queryFactory.query(DescriptionQuery.class).disableTracking().authorize(EnumSet.of(Public)).ids(id).planSubQuery(this.queryFactory.query(PlanQuery.class).isActive(IsActive.Active).planStatusSubQuery(statusQuery).accessTypes(PlanAccessType.Public)).first();
             this.entityManager.reloadTenantFilters();
         } finally {
             this.entityManager.reloadTenantFilters();
@@ -1227,6 +1322,7 @@ public class DescriptionServiceImpl implements DescriptionService {
         xml.setId(data.getId());
         xml.setDescription(data.getDescription());
         xml.setLabel(data.getLabel());
+        xml.setStatus(this.descriptionStatusImportExportToExport(data.getStatusId()));
         xml.setFinalizedAt(data.getFinalizedAt());
 
         PlanDescriptionTemplateEntity planDescriptionTemplateEntity = this.queryFactory.query(PlanDescriptionTemplateQuery.class).disableTracking().ids(data.getPlanDescriptionTemplateId()).authorize(AuthorizationFlags.All).isActive(IsActive.Active).first();
@@ -1244,8 +1340,9 @@ public class DescriptionServiceImpl implements DescriptionService {
             xml.setDescriptionTemplate(this.descriptionTemplateService.exportXmlEntity(descriptionTemplateEntity.getId(), true));
         }
 
-        if (propertiesEntity != null) {
-            xml.setProperties(this.descriptionPropertyDefinitionToExport(propertiesEntity));
+        if (propertiesEntity != null && descriptionTemplateEntity != null) {
+            org.opencdmp.commons.types.descriptiontemplate.DefinitionEntity definition =  this.xmlHandlingService.fromXmlSafe(org.opencdmp.commons.types.descriptiontemplate.DefinitionEntity.class, descriptionTemplateEntity.getDefinition());
+            xml.setProperties(this.descriptionPropertyDefinitionToExport(propertiesEntity, definition));
         }
 
         List<DescriptionReferenceEntity> planReferences = this.queryFactory.query(DescriptionReferenceQuery.class).disableTracking().descriptionIds(data.getId()).authorize(AuthorizationFlags.All).isActive(IsActive.Active).collect();
@@ -1260,6 +1357,17 @@ public class DescriptionServiceImpl implements DescriptionService {
             }
             xml.setReferences(descriptionReferenceImportExports);
         }
+        return xml;
+    }
+
+    private DescriptionStatusImportExport descriptionStatusImportExportToExport(UUID statusId) throws InvalidApplicationException {
+        DescriptionStatusImportExport xml = new DescriptionStatusImportExport();
+        if (statusId == null) return xml;
+        DescriptionStatusEntity statusEntity = this.entityManager.find(DescriptionStatusEntity.class, statusId, true);
+        if (statusEntity == null) throw new MyNotFoundException(this.messageSource.getMessage("General_ItemNotFound", new Object[]{statusId, DescriptionStatusEntity.class.getSimpleName()}, LocaleContextHolder.getLocale()));
+
+        xml.setId(statusEntity.getId());
+        xml.setName(statusEntity.getName());
         return xml;
     }
 
@@ -1296,14 +1404,18 @@ public class DescriptionServiceImpl implements DescriptionService {
     }
 
 
-    private DescriptionPropertyDefinitionImportExport descriptionPropertyDefinitionToExport(PropertyDefinitionEntity entity) {
+    private DescriptionPropertyDefinitionImportExport descriptionPropertyDefinitionToExport(PropertyDefinitionEntity entity, org.opencdmp.commons.types.descriptiontemplate.DefinitionEntity definition) {
         DescriptionPropertyDefinitionImportExport xml = new DescriptionPropertyDefinitionImportExport();
         if (entity == null) return xml;
 
         if (entity.getFieldSets() != null && !entity.getFieldSets().isEmpty()) {
+
+            List<TagEntity> tags = this.queryFactory.query(TagQuery.class).disableTracking().authorize(AuthorizationFlags.All).isActive(IsActive.Active).collect();
+            Map<UUID, TagEntity> tagEntityMap = tags == null ? new HashMap<>() : tags.stream().collect(Collectors.toMap(TagEntity::getId, x -> x));
+
             List<DescriptionPropertyDefinitionFieldSetImportExport> exports = new LinkedList<>();
             for (Map.Entry<String, PropertyDefinitionFieldSetEntity> fieldSetEntityEntry : entity.getFieldSets().entrySet()) {
-                exports.add(this.descriptionPropertyDefinitionFieldSetToExport(fieldSetEntityEntry.getValue(), fieldSetEntityEntry.getKey()));
+                exports.add(this.descriptionPropertyDefinitionFieldSetToExport(fieldSetEntityEntry.getValue(), fieldSetEntityEntry.getKey(), definition, tagEntityMap));
             }
             xml.setFieldSets(exports);
         }
@@ -1311,7 +1423,7 @@ public class DescriptionServiceImpl implements DescriptionService {
         return xml;
     }
 
-    private DescriptionPropertyDefinitionFieldSetImportExport descriptionPropertyDefinitionFieldSetToExport(PropertyDefinitionFieldSetEntity entity, String fieldSetId) {
+    private DescriptionPropertyDefinitionFieldSetImportExport descriptionPropertyDefinitionFieldSetToExport(PropertyDefinitionFieldSetEntity entity, String fieldSetId, org.opencdmp.commons.types.descriptiontemplate.DefinitionEntity definition, Map<UUID, TagEntity> tagEntityMap) {
         DescriptionPropertyDefinitionFieldSetImportExport xml = new DescriptionPropertyDefinitionFieldSetImportExport();
         xml.setFieldSetId(fieldSetId);
         if (entity == null) return xml;
@@ -1320,7 +1432,7 @@ public class DescriptionServiceImpl implements DescriptionService {
         if (entity.getItems() != null && !entity.getItems().isEmpty()) {
             List<DescriptionPropertyDefinitionFieldSetItemImportExport> exports = new LinkedList<>();
             for (PropertyDefinitionFieldSetItemEntity propertyDefinitionFieldSetItemEntity : entity.getItems()) {
-                exports.add(this.descriptionPropertyDefinitionFieldSetItemToExport(propertyDefinitionFieldSetItemEntity));
+                exports.add(this.descriptionPropertyDefinitionFieldSetItemToExport(propertyDefinitionFieldSetItemEntity, definition, tagEntityMap));
             }
             xml.setItems(exports);
         }
@@ -1328,7 +1440,7 @@ public class DescriptionServiceImpl implements DescriptionService {
         return xml;
     }
 
-    private DescriptionPropertyDefinitionFieldSetItemImportExport descriptionPropertyDefinitionFieldSetItemToExport(PropertyDefinitionFieldSetItemEntity entity) {
+    private DescriptionPropertyDefinitionFieldSetItemImportExport descriptionPropertyDefinitionFieldSetItemToExport(PropertyDefinitionFieldSetItemEntity entity, org.opencdmp.commons.types.descriptiontemplate.DefinitionEntity definition, Map<UUID, TagEntity> tagEntityMap) {
         DescriptionPropertyDefinitionFieldSetItemImportExport xml = new DescriptionPropertyDefinitionFieldSetItemImportExport();
         if (entity == null) return xml;
 
@@ -1336,7 +1448,7 @@ public class DescriptionServiceImpl implements DescriptionService {
         if (entity.getFields() != null && !entity.getFields().isEmpty()) {
             List<DescriptionFieldImportExport> exports = new LinkedList<>();
             for (Map.Entry<String, FieldEntity> fieldSetEntityEntry : entity.getFields().entrySet()) {
-                exports.add(this.descriptionFieldImportExportToExport(fieldSetEntityEntry.getValue(), fieldSetEntityEntry.getKey()));
+                exports.add(this.descriptionFieldImportExportToExport(fieldSetEntityEntry.getValue(), fieldSetEntityEntry.getKey(), definition, tagEntityMap));
             }
             xml.setFields(exports);
         }
@@ -1344,17 +1456,36 @@ public class DescriptionServiceImpl implements DescriptionService {
         return xml;
     }
 
-    private DescriptionFieldImportExport descriptionFieldImportExportToExport(FieldEntity entity, String fieldId) {
+    private DescriptionFieldImportExport descriptionFieldImportExportToExport(FieldEntity entity, String fieldId, org.opencdmp.commons.types.descriptiontemplate.DefinitionEntity definition, Map<UUID, TagEntity> tagEntityMap) {
         DescriptionFieldImportExport xml = new DescriptionFieldImportExport();
         xml.setFieldId(fieldId);
         if (entity == null) return xml;
 
-        xml.setDateValue(entity.getDateValue());
-        xml.setBooleanValue(entity.getBooleanValue());
-        xml.setTextValue(entity.getTextValue());
-        xml.setTextListValue(entity.getTextListValue());
-        if (entity.getExternalIdentifier() != null) {
-            xml.setExternalIdentifier(this.descriptionExternalIdentifierToExport(entity.getExternalIdentifier()));
+        org.opencdmp.commons.types.descriptiontemplate.FieldEntity fieldEntity = definition.getFieldById(fieldId).stream().findFirst().orElse(null);
+        if (fieldEntity == null) return xml;
+
+        if (fieldEntity.getData().getFieldType().equals(FieldType.UPLOAD)){
+            if (entity.getTextValue() != null){
+                xml.setStorageFile(this.storageFileService.storageFileXmlToExport(UUID.fromString(entity.getTextValue())));
+            }
+        } else if (fieldEntity.getData().getFieldType().equals(FieldType.TAGS)){
+            List<String> descriptionTagImportExports = new LinkedList<>();
+            if (entity.getTextListValue() != null){
+                for (String value : entity.getTextListValue()) {
+                    descriptionTagImportExports.add(this.descriptionTagToExport(UUID.fromString(value), tagEntityMap));
+                }
+            } else if (entity.getTextValue() != null) descriptionTagImportExports.add(this.descriptionTagToExport(UUID.fromString(entity.getTextValue()), tagEntityMap));
+            xml.setTags(descriptionTagImportExports);
+        }
+        else{
+            xml.setDateValue(entity.getDateValue());
+            xml.setBooleanValue(entity.getBooleanValue());
+            xml.setTextValue(entity.getTextValue());
+            xml.setTextListValue(entity.getTextListValue());
+
+            if (entity.getExternalIdentifier() != null) {
+                xml.setExternalIdentifier(this.descriptionExternalIdentifierToExport(entity.getExternalIdentifier()));
+            }
         }
 
         return xml;
@@ -1368,6 +1499,15 @@ public class DescriptionServiceImpl implements DescriptionService {
         xml.setType(entity.getType());
 
         return xml;
+    }
+
+    private String descriptionTagToExport(UUID tagId, Map<UUID, TagEntity> tagEntityMap) {
+        if (tagId == null) return null;
+
+        TagEntity tag = tagEntityMap.getOrDefault(tagId, null);
+
+        if (tag != null) return tag.getLabel();
+        return null;
     }
 
     //endregion
@@ -1384,7 +1524,6 @@ public class DescriptionServiceImpl implements DescriptionService {
         DescriptionPersist persist = new DescriptionPersist();
         persist.setLabel(descriptionXml.getLabel());
         persist.setDescription(descriptionXml.getDescription());
-        persist.setStatus(DescriptionStatus.Draft);
         persist.setPlanId(planId);
         persist.setDescriptionTemplateId(this.xmlToDescriptionTemplatePersist(descriptionXml));
         persist.setPlanDescriptionTemplateId(this.xmlToPlanDescriptionTemplatePersist(descriptionXml, planId));
@@ -1534,6 +1673,14 @@ public class DescriptionServiceImpl implements DescriptionService {
             persist.setDateValue(importXml.getDateValue());
             persist.setTextValue(importXml.getTextValue());
             persist.setTextListValue(importXml.getTextListValue());
+            persist.setTags(importXml.getTags());
+
+            try {
+                UUID fileId = this.storageFileService.xmlUploadFieldToPersist(importXml.getStorageFile());
+                if(fileId != null) persist.setTextValue(fileId.toString());
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
 
             if (importXml.getExternalIdentifier() != null){
                 persist.setExternalIdentifier(this.xmlExternalIdentifierToPersist(importXml.getExternalIdentifier()));
@@ -1598,7 +1745,6 @@ public class DescriptionServiceImpl implements DescriptionService {
         DescriptionPersist persist = new DescriptionPersist();
         persist.setLabel(model.getLabel());
         persist.setDescription(model.getDescription());
-        persist.setStatus(DescriptionStatus.Draft);
         persist.setPlanId(planId);
         persist.setDescriptionTemplateId(this.commonModelToDescriptionTemplatePersist(model));
         persist.setPlanDescriptionTemplateId(this.commonModelTToPlanDescriptionTemplatePersist(model, planId));

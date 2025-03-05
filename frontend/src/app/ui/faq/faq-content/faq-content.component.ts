@@ -9,9 +9,10 @@ import { AnalyticsService } from '@app/core/services/matomo/analytics-service';
 import { AuthService } from '@app/core/services/auth/auth.service';
 
 @Component({
-	selector: 'app-faq-content',
-	templateUrl: './faq-content.component.html',
-	styleUrls: ['./faq-content.component.scss']
+    selector: 'app-faq-content',
+    templateUrl: './faq-content.component.html',
+    styleUrls: ['./faq-content.component.scss'],
+    standalone: false
 })
 export class FaqContentComponent extends BaseComponent implements OnInit {
 

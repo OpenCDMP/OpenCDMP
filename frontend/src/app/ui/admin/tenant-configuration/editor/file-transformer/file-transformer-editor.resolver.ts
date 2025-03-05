@@ -43,6 +43,6 @@ export class FileTransformerEditorResolver extends BaseEditorResolver {
 			...FileTransformerEditorResolver.lookupFields()
 		];
 
-		return this.tenantConfigurationService.getCurrentTenantType(TenantConfigurationType.FileTransformerPlugins, fields).pipe(takeUntil(this._destroyed));
+		return this.tenantConfigurationService.getType(TenantConfigurationType.FileTransformerPlugins, fields).pipe(takeUntil(this._destroyed));
 	}
 }

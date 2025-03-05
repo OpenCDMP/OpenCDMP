@@ -68,7 +68,7 @@ public class SectionBuilder extends BaseBuilder<Section, SectionEntity> {
             if (fields.hasField(this.asIndexer(Section._ordinal))) m.setOrdinal(d.getOrdinal());
             if (fields.hasField(this.asIndexer(Section._hasTemplates))) m.setHasTemplates(d.getHasTemplates());
             if (fields.hasField(this.asIndexer(Section._prefillingSourcesEnabled))) m.setPrefillingSourcesEnabled(d.getPrefillingSourcesEnabled());
-            if (!descriptionTemplatesFields.isEmpty() && d.getDescriptionTemplates() != null) m.setDescriptionTemplates(this.builderFactory.builder(DescriptionTemplateBuilder.class).authorize(this.authorize).build(descriptionTemplatesFields, d.getDescriptionTemplates()));
+            if (!descriptionTemplatesFields.isEmpty() && d.getDescriptionTemplates() != null) m.setDescriptionTemplates(this.builderFactory.builder(BlueprintDescriptionTemplateBuilder.class).authorize(this.authorize).build(descriptionTemplatesFields, d.getDescriptionTemplates()));
             if (!fieldsFields.isEmpty() && d.getFields() != null) {
                 m.setFields(new ArrayList<>());
                 List<SystemFieldEntity> systemFieldEntities = d.getFields().stream().filter(x-> PlanBlueprintFieldCategory.System.equals(x.getCategory())).map(x-> (SystemFieldEntity)x).toList();

@@ -26,9 +26,10 @@ import { DescriptionWorkflowForm, DescriptionWorkflowEditorModel, DescriptionWor
 import { DescriptionWorkflowEditorResolver } from '../description-workflow-editor.resolver';
 
 @Component({
-  selector: 'app-description-workflow-editor',
-  templateUrl: './description-workflow-editor.component.html',
-  styleUrl: './description-workflow-editor.component.scss'
+    selector: 'app-description-workflow-editor',
+    templateUrl: './description-workflow-editor.component.html',
+    styleUrl: './description-workflow-editor.component.scss',
+    standalone: false
 })
 export class DescriptionWorkflowEditorComponent extends BasePendingChangesComponent implements OnInit{
     formGroup: FormGroup<DescriptionWorkflowForm>;

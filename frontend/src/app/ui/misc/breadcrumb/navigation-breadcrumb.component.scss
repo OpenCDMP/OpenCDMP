@@ -4,7 +4,7 @@
 }
 
 .text-black{
-    color: #000;
+    color: #000000;
 }
 
 .mat-icon{
@@ -12,8 +12,27 @@
     height: 1rem;
 }
 
+.breadcrumb-container {
+    text-overflow: ellipsis;
+    max-width: min(50ch, 90%);
+    text-wrap: nowrap;
+    overflow: hidden;
+    .current-item{
+        font-weight: bold;
+    }
+}
 
-.breadcrumb-item:hover {
-	background-color: #ececec;
+.breadcrumb-item {
+
+    &.text-padding {
+        padding: 0.25rem 0.5rem;
+    }
+    &.icon-padding {
+        padding: 0.5rem;
+    }
+}
+
+.breadcrumb-item:hover, .breadcrumb-item:focus {
+	background-color: rgb(0,0,0,0.05);
 	border-radius: 16px;
 }

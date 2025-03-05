@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { ActivatedRouteSnapshot, RouterStateSnapshot } from '@angular/router';
-import { AuthenticationConfiguration, ExternalFetcherBaseSourceConfiguration, QueryCaseConfig, QueryConfig, ResultFieldsMappingConfiguration, ResultsConfiguration, Static, StaticOption } from '@app/core/model/external-fetcher/external-fetcher';
+import { AuthenticationConfiguration, ExternalFetcherBaseSourceConfiguration, HeaderConfig, QueryCaseConfig, QueryConfig, ResultFieldsMappingConfiguration, ResultsConfiguration, Static, StaticOption } from '@app/core/model/external-fetcher/external-fetcher';
 import { ReferenceType, ReferenceTypeDefinition, ReferenceTypeField } from '@app/core/model/reference-type/reference-type';
 import { ReferenceTypeService } from '@app/core/services/reference-type/reference-type.service';
 import { BreadcrumbService } from '@app/ui/misc/breadcrumb/breadcrumb.service';
@@ -64,6 +64,9 @@ export class ReferenceTypeEditorResolver extends BaseEditorResolver {
 			[nameof<ReferenceType>(x => x.definition), nameof<ReferenceTypeDefinition>(x => x.sources), nameof<ExternalFetcherBaseSourceConfiguration>(x => x.queries),nameof<QueryConfig>(x => x.cases),nameof<QueryCaseConfig>(x => x.referenceType),nameof<ReferenceType>(x => x.id)].join('.'),
 			[nameof<ReferenceType>(x => x.definition), nameof<ReferenceTypeDefinition>(x => x.sources), nameof<ExternalFetcherBaseSourceConfiguration>(x => x.queries),nameof<QueryConfig>(x => x.cases),nameof<QueryCaseConfig>(x => x.referenceType),nameof<ReferenceType>(x => x.name)].join('.'),
 			[nameof<ReferenceType>(x => x.definition), nameof<ReferenceTypeDefinition>(x => x.sources), nameof<ExternalFetcherBaseSourceConfiguration>(x => x.queries),nameof<QueryConfig>(x => x.cases),nameof<QueryCaseConfig>(x => x.referenceTypeSourceKey)].join('.'),
+
+			[nameof<ReferenceType>(x => x.definition), nameof<ReferenceTypeDefinition>(x => x.sources), nameof<ExternalFetcherBaseSourceConfiguration>(x => x.headers),nameof<HeaderConfig>(x => x.key)].join('.'),
+			[nameof<ReferenceType>(x => x.definition), nameof<ReferenceTypeDefinition>(x => x.sources), nameof<ExternalFetcherBaseSourceConfiguration>(x => x.headers),nameof<HeaderConfig>(x => x.value)].join('.'),
 
 			[nameof<ReferenceType>(x => x.definition), nameof<ReferenceTypeDefinition>(x => x.sources), nameof<ExternalFetcherBaseSourceConfiguration>(x => x.items),nameof<Static>(x => x.options),nameof<StaticOption>(x => x.code)].join('.'),
 			[nameof<ReferenceType>(x => x.definition), nameof<ReferenceTypeDefinition>(x => x.sources), nameof<ExternalFetcherBaseSourceConfiguration>(x => x.items),nameof<Static>(x => x.options),nameof<StaticOption>(x => x.value)].join('.'),

@@ -32,6 +32,9 @@ public class DescriptionTemplateLookup extends Lookup {
     private List<UUID> excludedIds;
 
     private List<UUID> excludedGroupIds;
+
+    private List<String> languages;
+
     private Boolean onlyCanEdit;
 
     public String getLike() {
@@ -114,6 +117,14 @@ public class DescriptionTemplateLookup extends Lookup {
         this.excludedGroupIds = excludedGroupIds;
     }
 
+    public List<String> getLanguages() {
+        return languages;
+    }
+
+    public void setLanguages(List<String> languages) {
+        this.languages = languages;
+    }
+
     public Boolean getOnlyCanEdit() {
         return this.onlyCanEdit;
     }
@@ -144,6 +155,8 @@ public class DescriptionTemplateLookup extends Lookup {
             query.versions(this.versions);
         if (this.versionStatuses != null)
             query.versionStatuses(this.versionStatuses);
+        if (this.languages != null)
+            query.languages(this.languages);
         if (this.onlyCanEdit != null)
             query.onlyCanEdit(this.onlyCanEdit);
         this.enrichCommon(query);

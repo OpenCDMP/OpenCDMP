@@ -1,8 +1,13 @@
+.demo-progress-bar-container {
+    container-name: demo-progress-bar-container;
+    container-type: inline-size;
+}
+
 .percentage {
-	color: #212121;
+	color: var(--dark-text);
 	opacity: 0.7;
 	font-weight: 400;
-	font-size: 0.875rem;
+	font-size: var(--sys-title-small-size);
 }
 
 
@@ -15,7 +20,7 @@
 
 //Progress bar
 ::ng-deep .mdc-linear-progress__bar-inner {
-	--mdc-linear-progress-active-indicator-color: var(--primary-color) !important;
+	--mdc-linear-progress-active-indicator-color: var(--sys-primary) !important;
 	border-radius: 20px !important;
 }
 
@@ -26,4 +31,13 @@
 
 ::ng-deep .mdc-linear-progress__buffer-bar {
 	--mdc-linear-progress-track-color: #e0e2ec !important;
+}
+
+@container demo-progress-bar-container (inline-size < 60px){
+    .percentage-info {
+        display: none !important;
+    }
+    .percentage {
+        padding-left: 0.25rem !important;
+    }
 }

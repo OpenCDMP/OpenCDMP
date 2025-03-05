@@ -10,14 +10,14 @@ public class RecentActivityItemEntity {
 	private UUID id;
 	private Instant updatedAt;
 	private String label;
-	private Short statusValue;
+	private UUID statusId;
 
-	public RecentActivityItemEntity(RecentActivityItemType type, UUID id, Instant updatedAt, String label, Short statusValue) {
+	public RecentActivityItemEntity(RecentActivityItemType type, UUID id, Instant updatedAt, String label, UUID statusId) {
 		this.type = type;
 		this.id = id;
 		this.updatedAt = updatedAt;
 		this.label = label;
-		this.statusValue = statusValue;
+		this.statusId = statusId;
 	}
 
 	public RecentActivityItemType getType() {
@@ -52,11 +52,11 @@ public class RecentActivityItemEntity {
 		this.label = label;
 	}
 
-	public Short getStatusValue() {
-		return statusValue;
+	public UUID getStatusId() {
+		return statusId;
 	}
 
-	public void setStatusValue(Short statusValue) {
-		this.statusValue = statusValue;
+	public void setStatusId(UUID statusId) {
+		this.statusId = statusId;
 	}
 }

@@ -84,6 +84,7 @@ export enum AppPermission {
 	AssignPlanUsers = "AssignPlanUsers",
 	InvitePlanUsers = "InvitePlanUsers",
 	AnnotatePlan = "AnnotatePlan",
+	EvaluatePlan = "EvaluatePlan",
 
 	//PlanStatus
 	BrowsePlanStatus = "BrowsePlanStatus",
@@ -121,6 +122,7 @@ export enum AppPermission {
 	DeleteDescription = "DeleteDescription",
 	CloneDescription = "CloneDescription",
 	ExportDescription = "ExportDescription",
+	EvaluateDescription = "EvaluateDescription",
 
 	//DescriptionTag
 	BrowseDescriptionTag = "BrowseDescriptionTag",
@@ -253,6 +255,7 @@ export enum AppPermission {
     ViewPlanStatusPage = "ViewPlanStatusPage",
     ViewDescriptionStatusPage = "ViewDescriptionStatusPage",
     ViewPlanWorkflowPage = "ViewPlanWorkflowPage",//TODO remove if workflows remain in tenant config view
-    ViewDescriptionWorkflowPage = "ViewDescriptionWorkflowPage"//TODO remove if workflows remain in tenant config view
+    ViewDescriptionWorkflowPage = "ViewDescriptionWorkflowPage",//TODO remove if workflows remain in tenant config view
+	ViewIndicatorDashboardPage = "ViewIndicatorDashboardPage",
 }
 

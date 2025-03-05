@@ -34,6 +34,9 @@ public class ExternalFetcherApiSourceConfiguration extends ExternalFetcherBaseSo
     public final static String _auth = "auth";
     private AuthenticationConfiguration auth;
 
+    public final static String _headers = "headers";
+    private List<ExternalFetcherApiHeaderConfiguration> headers;
+
     public final static String _queries = "queries";
     private List<QueryConfig> queries;
 
@@ -68,7 +71,6 @@ public class ExternalFetcherApiSourceConfiguration extends ExternalFetcherBaseSo
     public void setContentType(String contentType) {
         this.contentType = contentType;
     }
-
 
     public String getFirstPage() {
         return firstPage;
@@ -108,6 +110,14 @@ public class ExternalFetcherApiSourceConfiguration extends ExternalFetcherBaseSo
 
     public void setAuth(AuthenticationConfiguration auth) {
         this.auth = auth;
+    }
+
+    public List<ExternalFetcherApiHeaderConfiguration> getHeaders() {
+        return headers;
+    }
+
+    public void setHeaders(List<ExternalFetcherApiHeaderConfiguration> headers) {
+        this.headers = headers;
     }
 
     public List<QueryConfig> getQueries() {

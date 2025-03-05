@@ -1,6 +1,6 @@
 import { OverlayModule } from '@angular/cdk/overlay';
 import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
-import { APP_INITIALIZER, Injector, LOCALE_ID, NgModule } from '@angular/core';
+import { Injector, LOCALE_ID, NgModule, inject, provideAppInitializer } from '@angular/core';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MAT_MOMENT_DATE_FORMATS, MatMomentDateModule } from '@angular/material-moment-adapter';
 import { DateAdapter, MAT_DATE_FORMATS, MAT_DATE_LOCALE } from '@angular/material/core';
@@ -44,6 +44,8 @@ import { GuidedTourModule } from './library/guided-tour/guided-tour.module';
 import { DepositOauth2DialogModule } from './ui/misc/deposit-oauth2-dialog/deposit-oauth2-dialog.module';
 import { OpenCDMPCustomTranslationCompiler } from './utilities/translate/opencdmp-custom-translation-compiler';
 import { Router } from '@angular/router';
+import { CoreKpiServiceModule } from 'kpi-service/services/core-service.module';
+import { SpinnerModule } from './ui/common/spinner/spinner.module';
 
 // AoT requires an exported function for factories
 export function HttpLoaderFactory(languageHttpService: LanguageHttpService, authService: AuthService) {
@@ -131,8 +133,10 @@ export function InstallationConfigurationFactory(appConfig: ConfigurationService
 		CoreServiceModule.forRoot(),
 		CoreAnnotationServiceModule.forRoot(),
 		CoreNotificationServiceModule.forRoot(),
+		CoreKpiServiceModule.forRoot(),
 		AppRoutingModule,
 		CommonUiModule,
+		SpinnerModule,
 		TranslateModule.forRoot({
 			compiler: { provide: TranslateCompiler, useClass: OpenCDMPCustomTranslationCompiler },
 			loader: {
@@ -160,12 +164,10 @@ export function InstallationConfigurationFactory(appConfig: ConfigurationService
 		})],
 	providers: [
 		ConfigurationService,
-		{
-			provide: APP_INITIALIZER,
-			useFactory: InstallationConfigurationFactory,
-			deps: [ConfigurationService, KeycloakService, AuthService, LanguageService, TenantHandlingService, Router],
-			multi: true
-		},
+		provideAppInitializer(() => {
+        const initializerFn = (InstallationConfigurationFactory)(inject(ConfigurationService), inject(KeycloakService), inject(AuthService), inject(LanguageService), inject(TenantHandlingService), inject(Router));
+        return initializerFn();
+      }),
 		{
 			provide: MAT_DATE_LOCALE,
 			deps: [CultureService],

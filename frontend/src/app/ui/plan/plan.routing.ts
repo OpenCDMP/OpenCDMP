@@ -3,6 +3,7 @@ import { RouterModule, Routes } from '@angular/router';
 import { BreadcrumbService } from '../misc/breadcrumb/breadcrumb.service';
 import { AuthGuard } from '@app/core/auth-guard.service';
 import { InvitationAcceptedComponent } from './invitation/accepted/plan-invitation-accepted.component';
+import { AppPermission } from '@app/core/common/enum/permission.enum';
 
 const routes: Routes = [
 	{

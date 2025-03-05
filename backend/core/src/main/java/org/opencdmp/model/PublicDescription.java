@@ -1,6 +1,5 @@
 package org.opencdmp.model;
 
-import org.opencdmp.commons.enums.DescriptionStatus;
 
 import java.time.Instant;
 import java.util.UUID;
@@ -15,7 +14,7 @@ public class PublicDescription {
 
     public static final String _label = "label";
 
-    private DescriptionStatus status;
+    private PublicDescriptionStatus status;
 
     public static final String _status = "status";
 
@@ -65,11 +64,11 @@ public class PublicDescription {
     }
 
 
-    public DescriptionStatus getStatus() {
+    public PublicDescriptionStatus getStatus() {
         return status;
     }
 
-    public void setStatus(DescriptionStatus status) {
+    public void setStatus(PublicDescriptionStatus status) {
         this.status = status;
     }
 

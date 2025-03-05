@@ -1,2 +1,4 @@
 dashboard:
-  reference-type-counters: []
+  reference-type-counters:
+    - "7eeffb98-58fb-4921-82ec-e27f32f8e738"
+    - "5b9c284f-f041-4995-96cc-fad7ad13289c"

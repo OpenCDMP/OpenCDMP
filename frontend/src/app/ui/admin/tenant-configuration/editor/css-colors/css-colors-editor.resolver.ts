@@ -23,9 +23,7 @@ export class CssColorsEditorResolver extends BaseEditorResolver {
 			nameof<TenantConfiguration>(x => x.cssColors),
 
 			[nameof<TenantConfiguration>(x => x.cssColors), nameof<CssColorsTenantConfiguration>(x => x.primaryColor)].join('.'),
-			[nameof<TenantConfiguration>(x => x.cssColors), nameof<CssColorsTenantConfiguration>(x => x.primaryColor2)].join('.'),
-			[nameof<TenantConfiguration>(x => x.cssColors), nameof<CssColorsTenantConfiguration>(x => x.primaryColor3)].join('.'),
-			[nameof<TenantConfiguration>(x => x.cssColors), nameof<CssColorsTenantConfiguration>(x => x.secondaryColor)].join('.'),
+			[nameof<TenantConfiguration>(x => x.cssColors), nameof<CssColorsTenantConfiguration>(x => x.cssOverride)].join('.'),
 
 
 			nameof<TenantConfiguration>(x => x.createdAt),
@@ -41,6 +39,6 @@ export class CssColorsEditorResolver extends BaseEditorResolver {
 			...CssColorsEditorResolver.lookupFields()
 		];
 
-		return this.tenantConfigurationService.getCurrentTenantType(TenantConfigurationType.CssColors, fields).pipe(takeUntil(this._destroyed));
+		return this.tenantConfigurationService.getType(TenantConfigurationType.CssColors, fields).pipe(takeUntil(this._destroyed));
 	}
 }

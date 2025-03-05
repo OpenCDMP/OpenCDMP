@@ -65,6 +65,7 @@ public class PropertyDefinitionFieldSetPersist {
 
         @Override
         protected List<Specification> specifications(PropertyDefinitionFieldSetPersist item) {
+            boolean isVisible =  this.fieldSetEntity != null ? this.visibilityService.isVisible(this.fieldSetEntity.getId(), 0) : true;
             int min = fieldSetEntity != null && fieldSetEntity.getHasMultiplicity() && fieldSetEntity.getMultiplicity() != null && fieldSetEntity.getMultiplicity().getMin() != null ? fieldSetEntity.getMultiplicity().getMin() : 0;
             int max = fieldSetEntity != null && fieldSetEntity.getHasMultiplicity()  && fieldSetEntity.getMultiplicity() != null && fieldSetEntity.getMultiplicity().getMax() != null ? fieldSetEntity.getMultiplicity().getMax() : Integer.MAX_VALUE;
 
@@ -75,11 +76,11 @@ public class PropertyDefinitionFieldSetPersist {
                             .over(item.getItems())
                             .using((itm) -> this.validatorFactory.validator(PropertyDefinitionFieldSetItemPersist.PersistValidator.class).withFieldSetEntity(this.fieldSetEntity).withVisibilityService(this.visibilityService).setStatus(this.status)),
                     this.spec()
-                            .iff(() -> DescriptionStatus.Finalized.equals(this.status) && fieldSetEntity.getHasMultiplicity())
+                            .iff(() -> DescriptionStatus.Finalized.equals(this.status) && isVisible && fieldSetEntity.getHasMultiplicity())
                             .must(() -> !this.isListNullOrEmpty(item.getItems()) && min <= item.getItems().size())
                             .failOn(PropertyDefinitionFieldSetPersist._items).failWith(messageSource.getMessage("Validation.LargerThenEqual", new Object[]{PropertyDefinitionFieldSetPersist._items, min}, LocaleContextHolder.getLocale())),
                     this.spec()
-                            .iff(() -> DescriptionStatus.Finalized.equals(this.status) && fieldSetEntity.getHasMultiplicity())
+                            .iff(() -> DescriptionStatus.Finalized.equals(this.status) && isVisible && fieldSetEntity.getHasMultiplicity())
                             .must(() -> !this.isListNullOrEmpty(item.getItems()) && max >= item.getItems().size())
                             .failOn(PropertyDefinitionFieldSetPersist._items).failWith(messageSource.getMessage("Validation.LessThenEqual", new Object[]{PropertyDefinitionFieldSetPersist._items, max}, LocaleContextHolder.getLocale()))
                     );

@@ -30,9 +30,10 @@ class GroupMenuItem {
 }
 
 @Component({
-	selector: 'app-sidebar',
-	templateUrl: './sidebar.component.html',
-	styleUrls: ['./sidebar.component.css', './sidebar.component.scss']
+    selector: 'app-sidebar',
+    templateUrl: './sidebar.component.html',
+    styleUrls: ['./sidebar.component.scss'],
+    standalone: false
 })
 export class SidebarComponent implements OnInit {
 	generalItems: GroupMenuItem;
@@ -87,7 +88,9 @@ export class SidebarComponent implements OnInit {
 		}
 
 		if (this.authentication.hasPermission(AppPermission.ViewMyPlanPage)) this.planItems.routes.push({ path: '/plans', title: 'SIDE-BAR.MY-PLANS', icon: 'library_books', routeType: RouteType.System });
-		if (this.authentication.hasPermission(AppPermission.ViewMyDescriptionPage)) this.planItems.routes.push({ path: '/descriptions', title: 'SIDE-BAR.MY-DESCRIPTIONS', icon: 'dns', routeType: RouteType.System });
+        if (this.authentication.hasPermission(AppPermission.ViewIndicatorDashboardPage) && this.configurationService.kpiServiceEnabled == true) this.planItems.routes.push({ path: '/indicator-dashboard', title: 'SIDE-BAR.INDICATOR-DASHBOARD', icon: 'monitoring', routeType: RouteType.System });
+
+		// if (this.authentication.hasPermission(AppPermission.ViewMyDescriptionPage)) this.planItems.routes.push({ path: '/descriptions', title: 'SIDE-BAR.MY-DESCRIPTIONS', icon: 'dns', routeType: RouteType.System });
 		this.groupMenuItems.push(this.planItems);
 
 		this.descriptionItems = {
@@ -120,13 +123,13 @@ export class SidebarComponent implements OnInit {
 		if (this.authentication.hasPermission(AppPermission.ViewReferencePage)) this.adminItems.routes.push({ path: '/references', title: 'SIDE-BAR.REFERENCES', icon: 'dataset_linked', routeType: RouteType.System });
 		if (this.authentication.hasPermission(AppPermission.ViewReferenceTypePage)) this.adminItems.routes.push({ path: '/reference-type', title: 'SIDE-BAR.REFERENCE-TYPES', icon: 'add_link', routeType: RouteType.System });
 		if (this.authentication.hasPermission(AppPermission.ViewPrefillingSourcePage)) this.adminItems.routes.push({ path: '/prefilling-sources', title: 'SIDE-BAR.PREFILLING-SOURCES', icon: 'quick_reference_all', routeType: RouteType.System });
-		if (this.authentication.hasPermission(AppPermission.ViewUsageLimitPage)) this.adminItems.routes.push({ path: '/usage-limits', title: 'SIDE-BAR.USAGE-LIMITS', icon: 'quick_reference_all', routeType: RouteType.System });
+		if (this.authentication.hasPermission(AppPermission.ViewUsageLimitPage) && this.configurationService.accountingServiceEnabled == true) this.adminItems.routes.push({ path: '/usage-limits', title: 'SIDE-BAR.USAGE-LIMITS', icon: 'quick_reference_all', routeType: RouteType.System });
 		if (this.authentication.hasPermission(AppPermission.ViewTenantPage)) this.adminItems.routes.push({ path: '/tenants', title: 'SIDE-BAR.TENANTS', icon: 'tenancy', routeType: RouteType.System });
 		if (this.authentication.hasPermission(AppPermission.ViewTenantConfigurationPage)) this.adminItems.routes.push({ path: '/tenant-configuration', title: 'SIDE-BAR.TENANT-CONFIGURATION', icon: 'settings', routeType: RouteType.System });
 		if (this.authentication.hasPermission(AppPermission.ViewUserPage)) this.adminItems.routes.push({ path: '/users', title: 'SIDE-BAR.USERS', icon: 'people', routeType: RouteType.System });
 		if (this.authentication.hasPermission(AppPermission.ViewTenantUserPage)) this.adminItems.routes.push({ path: '/tenant-users', title: 'SIDE-BAR.TENANT-USERS', icon: 'people', routeType: RouteType.System });
 		if (this.authentication.hasPermission(AppPermission.ViewLanguagePage)) this.adminItems.routes.push({ path: '/languages', title: 'SIDE-BAR.LANGUAGES', icon: 'language', routeType: RouteType.System });
-		if (this.authentication.hasPermission(AppPermission.ViewSupportiveMaterialPage)) this.adminItems.routes.push({ path: '/supportive-material', title: 'SIDE-BAR.SUPPORTIVE-MATERIAL', icon: 'help_center', routeType: RouteType.System });
+		if (this.authentication.hasPermission(AppPermission.ViewSupportiveMaterialPage)) this.adminItems.routes.push({ path: '/supportive-materials', title: 'SIDE-BAR.SUPPORTIVE-MATERIAL', icon: 'help_center', routeType: RouteType.System });
 		if (this.authentication.hasPermission(AppPermission.ViewNotificationTemplatePage)) this.adminItems.routes.push({ path: '/notification-templates', title: 'SIDE-BAR.NOTIFICATION-TEMPLATES', icon: 'grid_guides', routeType: RouteType.System });
 		if (this.authentication.hasPermission(AppPermission.ViewNotificationPage)) this.adminItems.routes.push({ path: '/notifications', title: 'SIDE-BAR.NOTIFICATIONS', icon: 'notifications', routeType: RouteType.System });
 		if (this.authentication.hasPermission(AppPermission.ViewStatusPage)) this.adminItems.routes.push({ path: '/annotation-statuses', title: 'SIDE-BAR.ANNOTATION-STATUSES', icon: 'notifications', routeType: RouteType.System });
@@ -184,7 +187,6 @@ export class SidebarComponent implements OnInit {
 	openProfile() {
 		const dialogRef = this.dialog.open(UserDialogComponent, {
 			hasBackdrop: true,
-			autoFocus: false,
 			closeOnNavigation: true,
 			disableClose: false,
 			position: { top: '64px', right: '1em' },

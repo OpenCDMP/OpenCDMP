@@ -9,7 +9,8 @@ import { WindowRefService } from "./windowref.service";
     selector: 'ngx-guided-tour',
     templateUrl: './guided-tour.component.html',
     styleUrls: ['./guided-tour.component.scss'],
-    encapsulation: ViewEncapsulation.None
+    encapsulation: ViewEncapsulation.None,
+    standalone: false
 })
 export class GuidedTourComponent implements AfterViewInit, OnDestroy {
     @Input() public topOfPageAdjustment?= 0;
@@ -363,7 +364,7 @@ export class GuidedTourComponent implements AfterViewInit, OnDestroy {
 
     public get overlayWidth(): number {
         if (this.selectedElementRect) {
-            return (this.selectedElementRect.width + (this.getHighlightPadding() * 2)) * 0.95;
+            return this.selectedElementRect.width + (this.getHighlightPadding() * 2);
         }
         return 0;
     }

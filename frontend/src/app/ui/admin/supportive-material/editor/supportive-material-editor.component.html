@@ -1,0 +1,94 @@
+<div class="container-fluid">
+	<div class="row supportive-material-editor">
+		<div class="col-md-10 offset-md-1 colums-gapped">
+			<div class="row align-items-center mt-4 mb-4" *ngIf="formGroup">
+				<div class="col">
+					<app-navigation-breadcrumb />
+				</div>
+				<div class="col-auto">
+					<button mat-stroked-button class="padded-shadow-btn" (click)="cancel()" type="button">{{'LANGUAGE-EDITOR.ACTIONS.CANCEL' | translate}}</button>
+				</div>
+				<div class="col-auto" *ngIf="!isNew && editorModel.belongsToCurrentTenant != false && canDelete">
+					<button mat-stroked-button color="warn" class="padded-shadow-btn" type="button" (click)="delete()">
+						<mat-icon aria-hidden>delete</mat-icon>
+						{{'LANGUAGE-EDITOR.ACTIONS.DELETE' | translate}}
+					</button>
+				</div>
+				<div class="col-auto" *ngIf="canSave">
+					<button mat-flat-button color="primary" class="padded-shadow-btn" (click)="formSubmit()">
+						<mat-icon>save</mat-icon>
+						{{'LANGUAGE-EDITOR.ACTIONS.SAVE' | translate}}
+					</button>
+				</div>
+			</div>
+
+			<form *ngIf="formGroup" (ngSubmit)="formSubmit()">
+				<mat-card appearance="outlined" class="pb-3">
+					<mat-card-content>
+                        <div class="pb-3"><small>{{'COMMONS.VALIDATION.REQUIRED-FIELDS-HINT' | translate}}</small></div>
+						<div class="row">
+							<div class="col-12">
+								<div class="container-fluid">
+									<div class="row" style="row-gap: 0.5rem">
+										<div class="col-6">
+											<mat-form-field class="w-100">
+												<mat-label>{{'SUPPORTIVE-MATERIAL-EDITOR.FIELDS.MATERIAL-TYPE' | translate}}</mat-label>
+												<mat-select name="type" [formControl]="formGroup.get('type')" required>
+													<mat-option *ngFor="let type of supportiveMaterialTypeEnum" [value]="type">
+														{{enumUtils.toSupportiveMaterialTypeString(type)}}
+													</mat-option>
+												</mat-select>
+												<mat-error *ngIf="formGroup.get('type').hasError('backendError')">{{formGroup.get('type').getError('backendError').message}}</mat-error>
+												<mat-error *ngIf="formGroup.get('type').hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
+											</mat-form-field>
+										</div>
+										<div class="col-6">
+											<mat-form-field class="w-100">
+												<mat-label>{{'SUPPORTIVE-MATERIAL-EDITOR.FIELDS.LANGUAGE' | translate}}</mat-label>
+												<mat-select name="languageCode" [formControl]="formGroup.get('languageCode')" required>
+													<mat-option *ngFor="let languageCode of availableLanguageCodes" [value]="languageCode">
+														{{languageCode}}
+													</mat-option>
+												</mat-select>
+												<mat-error *ngIf="formGroup.get('languageCode').hasError('backendError')">{{formGroup.get('languageCode').getError('backendError').message}}</mat-error>
+												<mat-error *ngIf="formGroup.get('languageCode').hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
+											</mat-form-field>
+										</div>
+										<div class="col">
+											<h9 *ngIf="formGroup.get('type').value != null && formGroup.get('languageCode').value" class="col-12">{{'SUPPORTIVE-MATERIAL-EDITOR.FIELDS.OVERRIDE' | translate}}
+												<mat-checkbox [disabled]="editorModel.belongsToCurrentTenant == false || isDeleted" (change)="overridePayloadFromFile($event)"></mat-checkbox>
+											</h9>
+											<editor class="w-100" [init]="{
+											base_url: '/tinymce',
+											suffix: '.min',
+											height: 800,
+											menubar: true,
+											plugins: [
+											'advlist autolink lists link image charmap print preview anchor',
+											'searchreplace visualblocks fullscreen fullpage',
+											'insertdatetime media table paste code help wordcount importcss ',
+											'codesample toc visualchars'
+											],
+											extended_valid_elements: '*[*]',
+											forced_root_block: '',
+											valid_children: '+body[script],ol[li|div|p|a|ol|table],h2[span],h3[span]',
+											save_enablewhendirty: false,
+											toolbar:
+											'undo redo | formatselect | bold italic backcolor | \
+											alignleft aligncenter alignright alignjustify | \
+											bullist numlist outdent indent | code codesample | searchreplace | preview | removeformat | help'
+										}" [formControl]="formGroup.get('payload')"></editor>
+										<mat-error *ngIf="formGroup.get('payload').hasError('backendError')">{{formGroup.get('payload').getError('backendError').message}}</mat-error>
+										<mat-error *ngIf="formGroup.get('payload').hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
+										</div>
+										
+									</div>
+								</div>
+							</div>
+						</div>
+					</mat-card-content>
+				</mat-card>
+			</form>
+		</div>
+	</div>
+</div>

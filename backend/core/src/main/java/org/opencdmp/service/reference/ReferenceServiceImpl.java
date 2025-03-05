@@ -29,6 +29,7 @@ import org.opencdmp.convention.ConventionService;
 import org.opencdmp.data.ReferenceEntity;
 import org.opencdmp.data.ReferenceTypeEntity;
 import org.opencdmp.data.TenantEntityManager;
+import org.opencdmp.errorcode.ErrorThesaurusProperties;
 import org.opencdmp.model.builder.reference.ReferenceBuilder;
 import org.opencdmp.model.deleter.ReferenceDeleter;
 import org.opencdmp.model.persist.ReferencePersist;
@@ -38,6 +39,7 @@ import org.opencdmp.model.reference.Reference;
 import org.opencdmp.model.referencetype.ReferenceType;
 import org.opencdmp.query.ReferenceQuery;
 import org.opencdmp.query.lookup.ReferenceSearchLookup;
+import org.opencdmp.query.lookup.ReferenceTestLookup;
 import org.opencdmp.service.externalfetcher.ExternalFetcherService;
 import org.opencdmp.service.externalfetcher.config.entities.SourceBaseConfiguration;
 import org.opencdmp.service.externalfetcher.criteria.ExternalReferenceCriteria;
@@ -67,6 +69,7 @@ public class ReferenceServiceImpl implements ReferenceService {
     private final QueryFactory queryFactory;
     private final XmlHandlingService xmlHandlingService;
     private final JsonHandlingService jsonHandlingService;
+    private final ErrorThesaurusProperties errors;
 
     public final ExternalFetcherService externalFetcherService;
     public ReferenceServiceImpl(
@@ -77,7 +80,7 @@ public class ReferenceServiceImpl implements ReferenceService {
             ConventionService conventionService,
             MessageSource messageSource,
             QueryFactory queryFactory,
-            XmlHandlingService xmlHandlingService, JsonHandlingService jsonHandlingService, ExternalFetcherService externalFetcherService) {
+            XmlHandlingService xmlHandlingService, JsonHandlingService jsonHandlingService, ErrorThesaurusProperties errors, ExternalFetcherService externalFetcherService) {
         this.entityManager = entityManager;
         this.authorizationService = authorizationService;
         this.deleterFactory = deleterFactory;
@@ -87,6 +90,7 @@ public class ReferenceServiceImpl implements ReferenceService {
         this.queryFactory = queryFactory;
         this.xmlHandlingService = xmlHandlingService;
         this.jsonHandlingService = jsonHandlingService;
+        this.errors = errors;
         this.externalFetcherService = externalFetcherService;
     }
 
@@ -190,21 +194,7 @@ public class ReferenceServiceImpl implements ReferenceService {
 
         ExternalDataResult remoteRepos = this.getReferenceData(data, externalReferenceCriteria, lookup.getKey());
 
-        List<Reference> externalModels = new ArrayList<>();
-        if (remoteRepos != null && !this.conventionService.isListNullOrEmpty(remoteRepos.getResults())){
-            List<ReferenceEntity> referenceEntities = new ArrayList<>();
-            for (Map<String, String> result : remoteRepos.getResults()){
-                if (result == null || result.isEmpty()) continue;
-	            ReferenceEntity referenceEntity = this.buildReferenceEntityFromExternalData(result, data);
-                //filter elements if label or reference don't exist
-                if (this.conventionService.isNullOrEmpty(referenceEntity.getLabel()) || this.conventionService.isNullOrEmpty(referenceEntity.getReference())) {
-                    logger.warn("reference or label not found "+ this.jsonHandlingService.toJsonSafe(data) + this.jsonHandlingService.toJsonSafe(lookup));
-                    continue;
-                }
-                referenceEntities.add(referenceEntity);
-            }
-            externalModels = this.builderFactory.builder(ReferenceBuilder.class).authorize(AuthorizationFlags.AllExceptPublic).build(lookup.getProject(), referenceEntities);
-        }
+        List<Reference> externalModels = this.getReferences(remoteRepos, this.jsonHandlingService.toJsonSafe(data), this.jsonHandlingService.toJsonSafe(lookup), lookup.getProject());
         
         List<Reference> models = this.fetchReferenceFromDb(lookup);
         models.addAll(externalModels);
@@ -212,6 +202,54 @@ public class ReferenceServiceImpl implements ReferenceService {
 
         if (lookup.getPage() != null && !lookup.getPage().isEmpty()){
             models = models.stream().skip(initialOffset).limit(lookup.getPage().getSize()).toList();
+        }
+
+        return models;
+    }
+
+    @Override
+    public List<Reference> testReferenceData(ReferenceTestLookup lookup) throws MyNotFoundException {
+        if (this.conventionService.isListNullOrEmpty(lookup.getSources()))
+            throw new MyValidationException(this.errors.getInvalidReferenceTypeDefinitionSource().getCode(), this.errors.getInvalidReferenceTypeDefinitionSource().getMessage());
+
+        int initialOffset = 0;
+        if (lookup.getPage() != null && !lookup.getPage().isEmpty()){
+            initialOffset =  lookup.getPage().getOffset();
+            lookup.getPage().setOffset(0);
+        }
+
+        String like;
+        if (!this.conventionService.isNullOrEmpty(lookup.getLike())){
+            like = lookup.getLike().replaceAll("%", "");
+        } else {
+            like = null;
+        }
+        ExternalReferenceCriteria externalReferenceCriteria = new ExternalReferenceCriteria(like, lookup.getDependencyReferences());
+        ExternalDataResult remoteRepos = this.externalFetcherService.getExternalData(lookup.getSources().stream().map(x -> (SourceBaseConfiguration)x).collect(Collectors.toList()), externalReferenceCriteria,  lookup.getKey(), true);
+        List<Reference> models = this.getReferences(remoteRepos, null, this.jsonHandlingService.toJsonSafe(lookup), lookup.getProject());
+
+        if (lookup.getPage() != null && !lookup.getPage().isEmpty()){
+            models = models.stream().skip(initialOffset).limit(lookup.getPage().getSize()).toList();
+        }
+
+        return models;
+    }
+
+    private List<Reference> getReferences(ExternalDataResult remoteRepos, String data, String lookup, BaseFieldSet fieldSet) {
+        List<Reference> models = new ArrayList<>();
+        if (remoteRepos != null && !this.conventionService.isListNullOrEmpty(remoteRepos.getResults())){
+            List<ReferenceEntity> referenceEntities = new ArrayList<>();
+            for (Map<String, String> result : remoteRepos.getResults()){
+                if (result == null || result.isEmpty()) continue;
+                ReferenceEntity referenceEntity = this.buildReferenceEntityFromExternalData(result, new ReferenceTypeEntity());
+                //filter elements if label or reference don't exist
+                if (this.conventionService.isNullOrEmpty(referenceEntity.getLabel()) || this.conventionService.isNullOrEmpty(referenceEntity.getReference())) {
+                    logger.warn("reference or label not found " + data + lookup);
+                    continue;
+                }
+                referenceEntities.add(referenceEntity);
+            }
+            models = this.builderFactory.builder(ReferenceBuilder.class).authorize(AuthorizationFlags.AllExceptPublic).build(fieldSet, referenceEntities);
         }
 
         return models;
@@ -257,7 +295,7 @@ public class ReferenceServiceImpl implements ReferenceService {
         ReferenceTypeDefinitionEntity referenceTypeDefinition = this.xmlHandlingService.fromXmlSafe(ReferenceTypeDefinitionEntity.class, referenceType.getDefinition());
         if (referenceTypeDefinition == null || this.conventionService.isListNullOrEmpty(referenceTypeDefinition.getSources())) return new ExternalDataResult();
 
-        ExternalDataResult results = this.externalFetcherService.getExternalData(referenceTypeDefinition.getSources().stream().map(x -> (SourceBaseConfiguration)x).collect(Collectors.toList()), externalReferenceCriteria,  key);
+        ExternalDataResult results = this.externalFetcherService.getExternalData(referenceTypeDefinition.getSources().stream().map(x -> (SourceBaseConfiguration)x).collect(Collectors.toList()), externalReferenceCriteria,  key, false);
         for (Map<String, String> result: results.getResults()) {
             result.put("referenceType", referenceType.getName());
         }

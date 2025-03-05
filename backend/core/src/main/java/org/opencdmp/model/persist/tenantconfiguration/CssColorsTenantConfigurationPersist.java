@@ -16,12 +16,8 @@ import java.util.List;
 public class CssColorsTenantConfigurationPersist {
 	private String primaryColor;
 	public static final String _primaryColor = "primaryColor";
-	private String primaryColor2;
-	public static final String _primaryColor2 = "primaryColor2";
-	private String primaryColor3;
-	public static final String _primaryColor3 = "primaryColor3";
-	private String secondaryColor;
-	public static final String _secondaryColor = "secondaryColor";
+	private String cssOverride;
+	public static final String _cssOverride = "cssOverride";
 
 	public String getPrimaryColor() {
 		return primaryColor;
@@ -31,31 +27,13 @@ public class CssColorsTenantConfigurationPersist {
 		this.primaryColor = primaryColor;
 	}
 
-	public String getPrimaryColor2() {
-		return primaryColor2;
+	public String getCssOverride() {
+		return cssOverride;
 	}
 
-	public void setPrimaryColor2(String primaryColor2) {
-		this.primaryColor2 = primaryColor2;
+	public void setCssOverride(String cssOverride) {
+		this.cssOverride = cssOverride;
 	}
-
-	public String getPrimaryColor3() {
-		return primaryColor3;
-	}
-
-	public void setPrimaryColor3(String primaryColor3) {
-		this.primaryColor3 = primaryColor3;
-	}
-
-	public String getSecondaryColor() {
-		return secondaryColor;
-	}
-
-	public void setSecondaryColor(String secondaryColor) {
-		this.secondaryColor = secondaryColor;
-	}
-
-
 
 	@Component(CssColorsTenantConfigurationPersist.CssColorsTenantConfigurationPersistValidator.ValidatorName)
 	@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
@@ -78,18 +56,6 @@ public class CssColorsTenantConfigurationPersist {
 		@Override
 		protected List<Specification> specifications(CssColorsTenantConfigurationPersist item) {
 			return Arrays.asList(
-					this.spec()
-							.must(() -> !this.isEmpty(item.getPrimaryColor()))
-							.failOn(CssColorsTenantConfigurationPersist._primaryColor).failWith(messageSource.getMessage("Validation_Required", new Object[]{CssColorsTenantConfigurationPersist._primaryColor}, LocaleContextHolder.getLocale())),
-					this.spec()
-							.must(() -> !this.isEmpty(item.getPrimaryColor2()))
-							.failOn(CssColorsTenantConfigurationPersist._primaryColor2).failWith(messageSource.getMessage("Validation_Required", new Object[]{CssColorsTenantConfigurationPersist._primaryColor2}, LocaleContextHolder.getLocale())),
-					this.spec()
-							.must(() -> !this.isEmpty(item.getPrimaryColor3()))
-							.failOn(CssColorsTenantConfigurationPersist._primaryColor3).failWith(messageSource.getMessage("Validation_Required", new Object[]{CssColorsTenantConfigurationPersist._primaryColor3}, LocaleContextHolder.getLocale())),
-					this.spec()
-							.must(() -> !this.isEmpty(item.getSecondaryColor()))
-							.failOn(CssColorsTenantConfigurationPersist._secondaryColor).failWith(messageSource.getMessage("Validation_Required", new Object[]{CssColorsTenantConfigurationPersist._secondaryColor}, LocaleContextHolder.getLocale()))
 			);
 		}
 	}

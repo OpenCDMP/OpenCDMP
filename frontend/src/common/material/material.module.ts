@@ -10,6 +10,7 @@ import { MatChipsModule } from '@angular/material/chips';
 import { MatOptionModule } from '@angular/material/core';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatDialogModule } from '@angular/material/dialog';
+import { MatDividerModule } from '@angular/material/divider';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatGridListModule } from '@angular/material/grid-list';
@@ -68,7 +69,8 @@ import { DomSanitizer } from '@angular/platform-browser';
 		MatPaginatorModule,
 		CdkTableModule,
 		MatSortModule,
-		MatBadgeModule
+		MatBadgeModule,
+        MatDividerModule
 	],
 	exports: [
 		MatToolbarModule,
@@ -103,7 +105,8 @@ import { DomSanitizer } from '@angular/platform-browser';
 		MatPaginatorModule,
 		CdkTableModule,
 		MatSortModule,
-		MatBadgeModule
+		MatBadgeModule,
+        MatDividerModule
 	]
 })
 export class MaterialModule {

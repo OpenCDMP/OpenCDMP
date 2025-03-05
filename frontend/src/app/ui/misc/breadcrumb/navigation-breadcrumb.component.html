@@ -6,10 +6,15 @@
                     <mat-icon>chevron_right</mat-icon>
                 </div>
                 
-                <div class="col-auto p-0" [ngClass]="{'mb-1': item.title == HOME_SYMBOL}">
-                    <a *ngIf="(!item?.skipNavigation && !isLast) else skipNavigation" [routerLink]="computePath(index)" class=" text-black" disabled>
+                <div class="col-auto p-0 breadcrumb-container"  [ngClass]="{'mb-1': item.title == HOME_SYMBOL}">
+                    <a *ngIf="(!item?.skipNavigation && !isLast) else skipNavigation" 
+                        [routerLink]="computePath(index)" 
+                        [attr.aria-label]="item.title !== HOME_SYMBOL ? item.title : ('ALT-TEXT.GO-TO-MAIN' | translate)" 
+                        class="color-unset breadcrumb-item" 
+                        [class]="item.title !== HOME_SYMBOL ? 'text-padding' : 'icon-padding'"
+                    >
                         <ng-container *ngIf="item.title !== HOME_SYMBOL else homeIcon">
-                            <span class="breadcrumb-item p-2">
+                            <span>
                                 {{ item.title | translate:item.translateParams }}
                             </span>
                         </ng-container>
@@ -17,7 +22,7 @@
                     <ng-template #skipNavigation>
                         <ng-container *ngIf="item?.skipNavigation && !isLast else last">
                             <ng-container *ngIf="item.title !== HOME_SYMBOL else homeIcon">
-                                <span class="p-2">
+                                <span>
                                     {{ item.title | translate:item.translateParams }}
                                 </span>
                             </ng-container>
@@ -25,7 +30,7 @@
                     </ng-template>
                     <ng-template #last>
                         <ng-container *ngIf="item.title !== HOME_SYMBOL else homeIcon">
-                            <span class="p-2">
+                            <span class="current-item">
                                 {{ item.title | translate:item.translateParams }}
                             </span>
                         </ng-container>
@@ -37,5 +42,5 @@
 </div>
 
 <ng-template #homeIcon>
-    <mat-icon style="width: auto; height: auto; font-size: 1.2rem; color: #949597" class="text-muted breadcrumb-item p-2">home</mat-icon>
+    <mat-icon style="width: auto; height: auto; font-size: 1.2rem; color: #949597" class="text-muted">home</mat-icon>
 </ng-template>

@@ -6,9 +6,10 @@ import { debounceTime, distinctUntilChanged, takeUntil } from 'rxjs';
 import { BaseComponent } from '@common/base/base.component';
 
 @Component({
-	selector: 'app-description-template-editor-select-field-component',
-	styleUrls: ['./description-template-editor-select-field.component.scss'],
-	templateUrl: './description-template-editor-select-field.component.html'
+    selector: 'app-description-template-editor-select-field-component',
+    styleUrls: ['./description-template-editor-select-field.component.scss'],
+    templateUrl: './description-template-editor-select-field.component.html',
+    standalone: false
 })
 export class DescriptionTemplateEditorSelectFieldComponent extends BaseComponent implements OnInit {
 

@@ -27,11 +27,6 @@ export class KeycloakConfiguration {
 		return this._clientId;
 	}
 
-	private _silentCheckSsoRedirectUri: string
-	get silentCheckSsoRedirectUri(): string {
-		return this._silentCheckSsoRedirectUri;
-	}
-
 	private _scope: string
 	get scope(): string {
 		return this._scope;
@@ -46,7 +41,6 @@ export class KeycloakConfiguration {
 		obj._realm = value.realm;
 		obj._flow = value.flow;
 		obj._clientId = value.clientId;
-		obj._silentCheckSsoRedirectUri = value.silentCheckSsoRedirectUri;
 		obj._scope = value.scope;
 		return obj;
 	}

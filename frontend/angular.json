@@ -27,7 +27,6 @@
 						"styles": [
 							"node_modules/bootstrap/dist/css/bootstrap.min.css",
 							"src/styles.scss",
-							"src/assets/scss/material-dashboard.scss",
 							"node_modules/cookieconsent/build/cookieconsent.min.css"
 						],
 						"scripts": [
@@ -113,8 +112,8 @@
 						"tsConfig": "src/tsconfig.spec.json",
 						"scripts": [],
 						"styles": [
+                            "src/assets/scss/material-dashboard.scss",
 							"src/styles.scss",
-							"src/assets/scss/material-dashboard.scss",
 							"node_modules/tinymce/tinymce.min.js"
 						],
 						"assets": [

@@ -1,4 +1,4 @@
-import { AbstractControl, UntypedFormArray, UntypedFormControl, UntypedFormGroup, ValidatorFn, Validators } from '@angular/forms';
+import { AbstractControl, FormControl, UntypedFormArray, UntypedFormControl, UntypedFormGroup, ValidatorFn, Validators } from '@angular/forms';
 import { ValidationErrorModel } from '@common/forms/validation/error-model/validation-error-model';
 import { isNullOrUndefined } from '@app/utilities/enhancers/utils';
 import { PlanBlueprintSystemFieldType } from '@app/core/common/enum/plan-blueprint-system-field-type';
@@ -82,6 +82,16 @@ export function RequiredWithVisibilityRulesValidator(visibilityRulesService: Vis
 		FormService.removeError(control, 'required');
 		return null;
 	};
+}
+
+export function ValidateIfVisible(visibilityRulesService: VisibilityRulesService, visibilityRulesKey: string, validator: ValidatorFn, errorName: string) {
+    return (control: UntypedFormControl): { [key: string]: any } => {
+        if (visibilityRulesService.isVisibleMap[visibilityRulesKey] ?? true) {
+			return validator(control);
+		}
+		FormService.removeError(control, errorName);
+		return null;
+    };
 }
 
 export function UrlValidator(): ValidatorFn {
@@ -190,4 +200,22 @@ export function PlanBlueprintSystemFieldRequiredValidator(): ValidatorFn {
 		return foundTitle && foundDescription && foundAccess && foundLanguage ? null : { 'planBlueprintSystemFieldRequired': true };
 
 	};
+}
+
+export function JsonValidator(): ValidatorFn {
+    return (control: FormControl<string>): { [key: string]: any} => {
+        if(!control?.value){ return;}
+        try {
+            const value = CleanupJsonString(control.value);
+            const json = JSON.parse(value);
+        }
+        catch (error){
+            return {'invalidJson': true};
+        }
+        return;
+    }
+}
+
+export function CleanupJsonString(input: string): string {
+    return input.replace(/(\r\n\s|\n|\r|\s)/gm, "");
 }

@@ -20,6 +20,8 @@ public class LanguageLookup extends Lookup {
 
     private List<UUID> excludedIds;
 
+    private TenantLookup tenantSubQuery;
+
     public String getLike() {
         return like;
     }
@@ -60,6 +62,14 @@ public class LanguageLookup extends Lookup {
         this.codes = codes;
     }
 
+    public TenantLookup getTenantSubQuery() {
+        return tenantSubQuery;
+    }
+
+    public void setTenantSubQuery(TenantLookup tenantSubQuery) {
+        this.tenantSubQuery = tenantSubQuery;
+    }
+
     public LanguageQuery enrich(QueryFactory queryFactory) {
         LanguageQuery query = queryFactory.query(LanguageQuery.class);
         if (this.like != null) query.like(this.like);
@@ -67,6 +77,7 @@ public class LanguageLookup extends Lookup {
         if (this.codes != null) query.codes(this.codes);
         if (this.ids != null) query.ids(this.ids);
         if (this.excludedIds != null) query.excludedIds(this.excludedIds);
+        if (this.tenantSubQuery != null) query.tenantSubQuery(this.tenantSubQuery.enrich(queryFactory));
 
         this.enrichCommon(query);
 

@@ -1,24 +1,6 @@
 .gray-container {
   letter-spacing: 5px;
-  color: #aaaaaa;
-}
-
-.container-header {
-  display: flex;
-  align-items: baseline;
-  margin-top: 0px;
-  text-transform: uppercase;
-}
-
-.container-header p {
-  letter-spacing: 5px;
-  color: #aaaaaa;
-  padding-top: 10px;
-  margin-bottom: 0px;
-}
-
-.container-header :hover {
-  color: var(--primary-color-3);
+  color: var(--gray);
 }
 
 h4 {
@@ -36,37 +18,16 @@ h4 > span {
   line-height: 2em;
 }
 
-.about-item {
-  display: flex;
-  flex-wrap: wrap;
-}
 
 .links :hover {
-  color: var(--primary-color-3);
+  color: var(--sys-primary);
 }
 
-.about-item .length {
-  color: var(--primary-color-3);
-}
-
-.about-item .title {
-  margin: 2px 10px;
-}
-
-.about-item p {
-  margin-left: auto;
-  margin-bottom: 0px;
-  padding-top: 7px;
-  color: #aaaaaa;
-}
 
 p {
   color: #333333;
 }
 
-.storage :hover {
-  color: var(--primary-color-3);
-}
 
 .draft-bookmark {
   color: #e7e6e6;
@@ -78,8 +39,8 @@ p {
 
 .plan-card,
 .description-card {
-	min-width: 712px;
-	background: #ffffff 0% 0% no-repeat padding-box;
+	min-width: min(100%, 712px);
+	background: var(--sys-surface) 0% 0% no-repeat padding-box;
 	box-shadow: 0px 3px 6px #0000001a;
 	border-radius: 4px;
 	opacity: 1;
@@ -106,61 +67,62 @@ input[type="text"] {
 	font-weight: 300;
 	line-height: 2.4;
 	letter-spacing: 0px;
-	color: #212121;
-	opacity: 0.6;
+	color: var(--dark-text);
+	opacity: 0.7;
 }
 
 .plan-label {
-	background: var(--primary-color) 0% 0% no-repeat padding-box;
+	background: var(--sys-primary) 0% 0% no-repeat padding-box;
 	border-radius: 4px 0px;
 	opacity: 1;
 	min-width: 67px;
 	height: 37px;
-	color: #ffffff;
-	line-height: 2.4;
+	color: var(--sys-on-primary);
+    align-content: center;
 }
 
 .description-label {
 	width: auto;
 	height: 37px;
-	background: var(--secondary-color) 0% 0% no-repeat padding-box;
+	background: var(--sys-tertiary) 0% 0% no-repeat padding-box;
 	border-radius: 4px 0px;
 	text-align: left;
 	line-height: 2.8;
-	font-size: 0.875rem;
+	font-size: var(--sys-title-small-size);
 	font-weight: 400;
 	letter-spacing: 0px;
-	color: #212121;
+	color: var(--sys-on-tertiary);
 }
 
 .plan-title,
-.description-title {
-	text-align: left;
-	font-weight: 600;
-	font-size: 1rem;
-	padding-top: 0.75rem;
-	padding-bottom: 0.55rem;
-	color: #212121;
-}
-
-.description-subtitle {
-	display: flex;
-	flex-direction: row;
-	text-align: left;
-	font-weight: 400;
-	font-size: 0.875rem;
-	opacity: 1;
-	align-items: center;
-	color: #848484;
-}
-
+.description-title,
 .description-title-draft {
 	text-align: left;
 	font-weight: 600;
-	font-size: 1rem;
 	padding-top: 0.75rem;
 	padding-bottom: 0.55rem;
-	color: #f16868;
+	color: var(--dark-text);
+    word-break: break-word;
+}
+.description-title,
+.description-title-draft {
+    font-size: var(--sys-title-medium-size);
+
+}
+.description-subtitle {
+	display: flex;
+	flex-direction: row;
+    flex-wrap: wrap;
+	text-align: left;
+	font-weight: 400;
+	font-size: var(--sys-title-small-size);
+	opacity: 1;
+	align-items: center;
+	color: var(--gray);
+}
+
+.description-title-draft {
+	color: var(--draft-color);
 }
 
 .icon-align {
@@ -181,52 +143,54 @@ input[type="text"] {
 
 .description-card-actions,
 .plan-card-actions {
+    container-name: description-card-actions;
+    container-type: inline-size;
 	display: flex;
 	flex-direction: row;
+    flex-wrap: wrap;
 	border-top: 1px solid #dbdbdb;
 	line-height: 4;
-	color: #848484;
+	color: var(--gray);
+    .description-action {
+        border-right: 1px solid #dee2e6;
+    }
 }
 
-.description-card-actions a,
-.plan-card-actions a {
-	color: #848484 !important;
+@container description-card-actions (inline-size < 30rem){
+    .description-action{
+        border-right: none !important;
+    }
+}
+
+.description-card-actions div,
+.plan-card-actions div {
+	color: var(--gray) !important;
 	text-decoration: none !important;
 }
 
-.description-card-actions a:hover,
-.plan-card-actions a:hover {
-	color: var(--primary-color) !important;
+.description-card-actions div:hover,
+.plan-card-actions div:hover {
+	color: var(--sys-primary) !important;
 }
 
-.plan-description-descriptions-title {
-	color: #000000;
-	opacity: 0.6;
-	padding-top: 1.5rem;
-	padding-bottom: 0.8rem;
-}
 
-.plan-description-descriptions-name {
-	color: #000000;
-	opacity: 0.6;
-	font-weight: 700;
-}
-
-.show-more {
-	color: black !important;
-}
 
 .show-more:hover {
-	color: var(--primary-color) !important;
+	color: var(--sys-primary) !important;
 }
 
 
 .draft {
-	color: #f16868;
+	color: var(--draft-color);
 }
 
 .pointer {
 	cursor: pointer;
+}
+
+.status-logo {
+	height: 1.25rem;
+	width:  1.25rem; 
 }
 
 ::ng-deep .mat-menu-panel {

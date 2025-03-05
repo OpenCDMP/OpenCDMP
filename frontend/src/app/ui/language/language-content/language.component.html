@@ -1,5 +1,5 @@
-<mat-button-toggle-group class="lang-menu" vertical (change)="onLanguageSelected($event)" [value]="this.getCurrentLanguage()">
-	<div *ngFor="let lang of languages">
-		<mat-button-toggle class="lang-button" [value]="lang">{{'GENERAL.LANGUAGES.' + lang | translate}}</mat-button-toggle>
-	</div>
+<mat-button-toggle-group class="lang-menu" vertical (change)="onLanguageSelected($event)" [value]="getCurrentLanguage()">
+    @for(lang of languages; track lang){
+        <mat-button-toggle class="no-borders" [value]="lang">{{'GENERAL.LANGUAGES.' + lang | translate}}</mat-button-toggle>
+    }
 </mat-button-toggle-group>

@@ -16,29 +16,35 @@ import { AutoCompleteModule } from '@app/library/auto-complete/auto-complete.mod
 import { CommonFormattingModule } from '@common/formatting/common-formatting.module';
 import { ReferenceTypeListingComponent } from './listing/reference-type-listing.component';
 import { ExternalFetcherSourceModule } from '@app/ui/external-fetcher/external-fetcher-source.module';
+import { MatDialogModule } from '@angular/material/dialog';
+import { ReferenceTypeTestDialogComponent } from './reference-type-test-dialog/reference-type-test-dialog.component';
+import { ReferenceFieldModule } from "../../reference/reference-field/reference-field.module";
 
 
 @NgModule({
   declarations: [
 	ReferenceTypeEditorComponent,
 	ReferenceTypeListingComponent,
-	ReferenceTypeListingFiltersComponent
+	ReferenceTypeListingFiltersComponent,
+	ReferenceTypeTestDialogComponent,
 ],
   imports: [
-	CommonModule,
-	CommonUiModule,
-	CommonFormsModule,
-	ConfirmationDialogModule,
-	ReferenceTypeRoutingModule,
-	EditorModule,
-	HybridListingModule,
-	TextFilterModule,
-	UserSettingsModule,
-	NgxDropzoneModule,
-	DragDropModule,
-	AutoCompleteModule,
-	CommonFormattingModule,
-	ExternalFetcherSourceModule
-  ]
+    CommonModule,
+    CommonUiModule,
+    CommonFormsModule,
+    ConfirmationDialogModule,
+    ReferenceTypeRoutingModule,
+    EditorModule,
+    HybridListingModule,
+    TextFilterModule,
+    UserSettingsModule,
+    NgxDropzoneModule,
+    DragDropModule,
+    AutoCompleteModule,
+    CommonFormattingModule,
+    ExternalFetcherSourceModule,
+    MatDialogModule,
+    ReferenceFieldModule
+]
 })
 export class ReferenceTypeModule { }

@@ -1,13 +1,13 @@
 package org.opencdmp.model.plan;
 
 import org.opencdmp.commons.enums.PlanAccessType;
-import org.opencdmp.commons.enums.PlanStatus;
 import org.opencdmp.commons.enums.PlanVersionStatus;
 import org.opencdmp.commons.enums.IsActive;
 import org.opencdmp.model.*;
 import org.opencdmp.model.description.Description;
 import org.opencdmp.model.planblueprint.PlanBlueprint;
 import org.opencdmp.model.planreference.PlanReference;
+import org.opencdmp.model.planstatus.PlanStatus;
 import org.opencdmp.model.user.User;
 
 import java.time.Instant;
@@ -97,6 +97,11 @@ public class Plan {
     private List<Plan> otherPlanVersions;
     public static final String _otherPlanVersions = "otherPlanVersions";
 
+    private List<PlanStatus> availableStatuses;
+    public static final String _availableStatuses = "availableStatuses";
+
+    private List<String> statusAuthorizationFlags;
+    public static final String _statusAuthorizationFlags = "statusAuthorizationFlags";
 
     private Boolean belongsToCurrentTenant;
     public static final String _belongsToCurrentTenant = "belongsToCurrentTenant";
@@ -317,5 +322,21 @@ public class Plan {
 
     public void setOtherPlanVersions(List<Plan> otherPlanVersions) {
         this.otherPlanVersions = otherPlanVersions;
+    }
+
+    public List<PlanStatus> getAvailableStatuses() {
+        return availableStatuses;
+    }
+
+    public void setAvailableStatuses(List<PlanStatus> availableStatuses) {
+        this.availableStatuses = availableStatuses;
+    }
+
+    public List<String> getStatusAuthorizationFlags() {
+        return statusAuthorizationFlags;
+    }
+
+    public void setStatusAuthorizationFlags(List<String> statusAuthorizationFlags) {
+        this.statusAuthorizationFlags = statusAuthorizationFlags;
     }
 }

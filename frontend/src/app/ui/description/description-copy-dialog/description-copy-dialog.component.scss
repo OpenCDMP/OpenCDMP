@@ -2,32 +2,7 @@
 	padding-bottom: 20px;
 }
 
-.description-copy-dialog {
-	margin: 1.125rem 0;
-}
-
-.cancel-btn {
-	background: #ffffff 0% 0% no-repeat padding-box;
-	border: 1px solid #b5b5b5;
-	border-radius: 30px;
-min-width: 101px;
-	height: 43px;
-	color: #212121;
-	font-weight: 500;
-}
-
 .confirm-btn {
-	background: #ffffff 0% 0% no-repeat padding-box;
-	border: 1px solid var(--primary-color);
-	border-radius: 30px;
-	opacity: 1;
-min-width: 101px;
+    min-width: 101px;
 	height: 43px;
-	color: var(--primary-color);
-	font-weight: 500;
-}
-
-.confirm-btn:hover {
-	background-color: var(--primary-color);
-	color: #ffffff;
 }

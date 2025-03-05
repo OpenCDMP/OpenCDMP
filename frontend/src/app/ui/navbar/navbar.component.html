@@ -1,110 +1,129 @@
 <ng-container>
-	<nav class="navbar navbar-expand-lg fixed-navbar">
-		<div class="container-fluid h-100">
+	<nav class="fixed-navbar">
+		<div class="container-fluid d-flex align-items-center h-100">
+            <button class="hamburger change" id="hamburger" (click)="toggleMyNav($event)" [attr.aria-label]="'ALT-TEXT.HAMBURGER' | translate">
+                <div class="icon-bar1"></div>
+                <div class="icon-bar2"></div>
+                <div class="icon-bar3"></div>
+            </button>
+            <h1 class="logo mb-0" >
+                <a [routerLink]="routerUtils.generateUrl(['home'])">
+                    <img class="logo-image" alt="{{('ALT-TEXT.GO-TO-MAIN' | translate) ?? 'go to main page'}}" [src]="'../../../assets/images/nav-logo' + configurationService.navLogoExtension">
+                </a>
+            </h1>
+            @if(extraImageURL){
+                <a class="extra-logo" [routerLink]="routerUtils.generateUrl(['home'])">
+                    <img aria-hidden class="extra-logo-image" [src]="extraImageURL" alt="{{('ALT-TEXT.GO-TO-MAIN' | translate) ?? 'go to main page'}}" >
+                </a>
+            }
 
-			<div class="hamburger change" id="hamburger" (click)="toggleMyNav($event)">
-				<div class="icon-bar1"></div>
-				<div class="icon-bar2"></div>
-				<div class="icon-bar3"></div>
-			</div>
-			<a class="logo" [routerLink]="routerUtils.generateUrl(['home'])"><img class="logo-image" [src]="'../../../assets/images/nav-logo' + configurationService.navLogoExtension"></a>
-			<ng-container>
-				<a class="extra-logo" [routerLink]="routerUtils.generateUrl(['home'])"><img class="extra-logo-image" [src]="extraImageURL"></a>
-			</ng-container>
-			<button class="navbar-toggler ml-auto" type="button" [matMenuTriggerFor]="toggleMenu">
-				<img *ngIf="this.isAuthenticated();else loginoption" mat-card-avatar class="my-mat-card-avatar" [src]="getPrincipalAvatar() ?? getDefaultAvatar()" (error)="this.applyFallbackAvatar($event)">
-			</button>
+			<ul class="ml-auto horizontal-list justify-content-end" id="navigation">
+                <li class="navbar-item-sm ml-auto">
+                    <button mat-icon-button [matMenuTriggerFor]="toggleMenu" [attr.aria-label]="'ALT-TEXT.USER-OPTIONS' | translate">
+                        <mat-icon aria-hidden>more_horiz</mat-icon>
+                    </button>
+                </li>
 
-			<div class="collapse navbar-collapse justify-content-end" id="navigation">
-
-				<div class="new-plan-dialog col-md-auto ml-auto">
-					<button type="button" mat-button class="rounded-btn primary" (click)="openNewPlanDialog()">{{ 'NAV-BAR.START-NEW-PLAN' | translate }}</button>
-				</div>
-				<div class="col-md-auto p-0" *ngIf="!(isAuthenticated() && onInvalidUrl())">
-					<a class="ml-4 mr-4 faq-title" (click)="openFaqDialog()"><b>{{ 'FAQ.TITLE' | translate }}</b></a>
-					<button mat-button [matMenuTriggerFor]="languageMenu" class="lang">
-						<mat-icon>language</mat-icon><span class="text-uppercase" style="font-weight: 500;">{{selectedLanguage}}</span>
-						<mat-icon iconPositionEnd>arrow_drop_down</mat-icon>
+				<li class="new-plan-dialog col-md-auto ml-auto navbar-item-lg">
+					<button type="button" mat-flat-button color="primary" class="start-new-plan-btn padded-shadow-btn" (click)="openNewPlanDialog()">{{ 'NAV-BAR.START-NEW-PLAN' | translate }}</button>
+				<!-- </li>
+                <li class="navbar-item-lg">
+                    <button mat-icon-button 
+                        (click)="toggleFontSize()" 
+                        [matTooltip]="toggleFontSizeTooltip" 
+                        [attr.aria-label]="toggleFontSizeTooltip"
+                    >
+                        <mat-icon aria-hidden>format_size</mat-icon>
+                    </button>
+                </li> -->
+				<li class="navbar-item-lg" *ngIf="!(isAuthenticated() && onInvalidUrl())">
+					<button mat-button class="faq-title" (click)="openFaqDialog()">{{ 'FAQ.TITLE' | translate }}</button>
+				</li>
+                <li class="navbar-item-lg" *ngIf="!(isAuthenticated() && onInvalidUrl())">
+					<button mat-button [matMenuTriggerFor]="languageMenu" class="lang" [attr.aria-label]="'ALT-TEXT.LANGUAGE-SELECT' | translate">
+						<mat-icon aria-hidden>language</mat-icon><span class="text-uppercase" style="font-weight: 500;">{{selectedLanguage}}</span>
+						<mat-icon iconPositionEnd aria-hidden>arrow_drop_down</mat-icon>
 					</button>
-					<mat-menu #languageMenu="matMenu" class="nav-mat-menu">
+                    <mat-menu #languageMenu="matMenu" class="nav-mat-menu">
 						<app-language (languageChange)="getLanguage($event)" class="d-lg-block d-none"></app-language>
 					</mat-menu>
-				</div>
-				<div class="col-md-auto p-0" *ngIf="isAuthenticated()">
-					<button mat-button [matMenuTriggerFor]="tenantMenu" class="p-0 lang">
-						<mat-icon class="m-0 material-symbols-outlined">tenancy</mat-icon>
-						<mat-icon class="m-0">arrow_drop_down</mat-icon>
+                </li>
+				<li class="navbar-item-lg" *ngIf="isAuthenticated()">
+					<button mat-button [matMenuTriggerFor]="tenantMenu" class="p-0 lang" [attr.aria-label]="'ALT-TEXT.TENANT-SELECT' | translate">
+						<mat-icon aria-hidden class="m-0 material-symbols-outlined">tenancy</mat-icon>
+						<mat-icon aria-hidden class="m-0">arrow_drop_down</mat-icon>
 					</button>
-					<mat-menu #tenantMenu="matMenu" class="nav-mat-menu">
+					<mat-menu #tenantMenu="matMenu">
 						<app-tenant-switch class="d-lg-block d-none"></app-tenant-switch>
 					</mat-menu>
-				</div>
-				<div class="col-auto p-0" *ngIf="isAuthenticated() && authentication.hasPermission(authentication.permissionEnum.ViewMineInAppNotificationPage)">
+				</li>
+				<li class="navbar-item-lg" *ngIf="isAuthenticated() && authentication.hasPermission(authentication.permissionEnum.ViewMineInAppNotificationPage)">
 					<mat-menu #languageMenu="matMenu" class="nav-mat-menu">
 						<app-language (languageChange)="getLanguage($event)"></app-language>
 					</mat-menu>
-					<button mat-icon-button matTooltip="{{'NAV-BAR.INAPP-NOTIFICATIONS' | translate}}" (click)="toggleInAppNotifications()">
-						<mat-icon [matBadge]="inAppNotificationCount" [matBadgeHidden]="inAppNotificationCount <= 0" matBadgeColor="warn">mail</mat-icon>
+					<button mat-icon-button class="notification-button" color="primary" matTooltip="{{'NAV-BAR.INAPP-NOTIFICATIONS' | translate}}" (click)="toggleInAppNotifications()" [attr.aria-label]="'ALT-TEXT.NOTIFICATIONS' | translate">
+						<mat-icon 
+                            [matBadge]="inAppNotificationCount" 
+                            [matBadgeHidden]="inAppNotificationCount <= 0" 
+                            matBadgeColor="warn" aria-hidden="false" 
+                            [attr.aria-label]="inAppNotificationCount + ('ALT-TEXT.NOTIFICATIONS' | translate)"
+                            class="notifications-icon"
+                        >
+                            mail
+                        </mat-icon>
 					</button>
-				</div>
+				</li>
 
-				<div class="col-auto pr-0">
-					<ul class="navbar-nav">
-						<!-- Login -->
-						<li class="nav-item" *ngIf="this.isAuthenticated();else loginoption">
-							<img mat-card-avatar class="my-mat-card-avatar" [src]="getPrincipalAvatar() ?? getDefaultAvatar()" (error)="this.applyFallbackAvatar($event)" (click)="openProfile()" [matTooltip]="userName">
-						</li>
-						<ng-template #loginoption>
-							<button mat-button [routerLink]=" ['/login'] ">
-								<span class="login-label">{{ 'GENERAL.ACTIONS.LOG-IN' | translate }}</span>
-							</button>
-						</ng-template>
-					</ul>
-				</div>
+                <!-- Login -->
+				<li class="navbar-item-lg pl-2">
+                    <ng-container *ngTemplateOutlet="userSettingsTemplate"/>
+				</li>
+			</ul>
 
-			</div>
+            <ng-template #userSettingsTemplate>
+                @if(isAuthenticated()) {
+                    <button (click)="openProfile()" [matTooltip]="userName" style="border: none; background-color: transparent; min-width: 48px; min-height: 48px">
+                        <img alt="{{('ALT-TEXT.USER-OPTIONS' | translate) ?? 'user options'}}" mat-card-avatar class="my-mat-card-avatar" [src]="getPrincipalAvatar() ?? getDefaultAvatar()" (error)="applyFallbackAvatar($event)">
+                    </button>
+                }@else {
+                    <button mat-button [routerLink]=" ['/login'] ">
+                        <span class="login-label">{{ 'GENERAL.ACTIONS.LOG-IN' | translate }}</span>
+                    </button>
+                }
+            </ng-template>
 
 			<mat-menu #toggleMenu="matMenu">
-				<div *ngIf="!(isAuthenticated() && onInvalidUrl())">
-					<ul class="list m-2">
-						<ng-template #loginoption>
-							<li class="d-flex justify-content-center avatar">
-								<button mat-button [routerLink]=" ['/login'] " class="d-flex justify-content-center">
-									<span class="login-label">{{ 'GENERAL.ACTIONS.LOG-IN' | translate }}</span>
-								</button>
-							</li>
-						</ng-template>
-						<li class="ml-3 d-flex justify-content-around align-items-center" (click)="$event.stopPropagation()">
-							<a class="mr-2 faq-title" (click)="openFaqDialog()"><b>{{ 'FAQ.TITLE' | translate }}</b></a>
-							<button mat-button [matMenuTriggerFor]="languageMenu" class="p-0 lang" (click)="$event.stopPropagation();">
-								<mat-icon class="mr-2">language</mat-icon><span class="text-uppercase" style="font-weight: 500;">{{selectedLanguage}}</span>
-								<mat-icon>arrow_drop_down</mat-icon>
-							</button>
-							<mat-menu #languageMenu="matMenu" class="nav-mat-menu">
-								<app-language (languageChange)="getLanguage($event)"></app-language>
-							</mat-menu>
-							<ng-container *ngIf="isAuthenticated()">
-								<button mat-button [matMenuTriggerFor]="tenantMenu" class="p-0">
-									<mat-icon class="m-0 material-symbols-outlined">tenancy</mat-icon>
-									<mat-icon class="m-0">arrow_drop_down</mat-icon>
-								</button>
-								<mat-menu #tenantMenu="matMenu" class="nav-mat-menu">
-									<app-tenant-switch></app-tenant-switch>
-								</mat-menu>
-							</ng-container>
-						</li>
-						<li class="d-flex justify-content-center">
-							<button type="button" mat-button class="rounded-btn primary" (click)="openNewPlanDialog()">{{ 'NAV-BAR.START-NEW-PLAN' | translate }}</button>
-						</li>
-						<li *ngIf="isAuthenticated()" class="d-flex justify-content-center">
-							<button type="button" mat-button class="rounded-btn neutral" (click)="logout()">{{ 'USER-DIALOG.LOG-OUT' | translate }}</button>
-						</li>
-					</ul>
-				</div>
+                <ul class="list m-2">       
+                    <li class="d-flex justify-content-center">
+                        <ng-container *ngTemplateOutlet="userSettingsTemplate" tabindex="0"/>
+                    </li>
+                    <li class="ml-3 d-flex justify-content-around align-items-center" (click)="$event.stopPropagation()" tabindex="0">
+                        <button mat-button class="faq-title" (click)="openFaqDialog()" [attr.aria-label]="'FAQ.TITLE' | translate">{{ 'FAQ.TITLE' | translate }}</button>
+                        <button mat-button [matMenuTriggerFor]="languageMenu" class="lang" [attr.aria-label]="'ALT-TEXT.LANGUAGE-SELECT' | translate" (click)="$event.stopPropagation();">
+                            <mat-icon aria-hidden>language</mat-icon><span class="text-uppercase" style="font-weight: 500;">{{selectedLanguage}}</span>
+                            <mat-icon aria-hidden iconPositionEnd>arrow_drop_down</mat-icon>
+                        </button>
+                        <mat-menu #languageMenu="matMenu" class="nav-mat-menu">
+                            <app-language (languageChange)="getLanguage($event)"></app-language>
+                        </mat-menu>
+                        <ng-container *ngIf="isAuthenticated()">
+                            <button mat-button [matMenuTriggerFor]="tenantMenu" class="p-0" [attr.aria-label]="'ALT-TEXT.TENANT-SELECT' | translate">
+                                <mat-icon aria-hidden class="m-0 material-symbols-outlined">tenancy</mat-icon>
+                                <mat-icon aria-hidden class="m-0">arrow_drop_down</mat-icon>
+                            </button>
+                            <mat-menu #tenantMenu="matMenu">
+                                <app-tenant-switch></app-tenant-switch>
+                            </mat-menu>
+                        </ng-container>
+                    </li>
+                    <li class="d-flex justify-content-center">
+                        <button mat-flat-button type="button" color="primary" class="padded-shadow-btn" (click)="openNewPlanDialog()">{{ 'NAV-BAR.START-NEW-PLAN' | translate }}</button>
+                    </li>
+                </ul>
 			</mat-menu>
 		</div>
 	</nav>
 	<div *ngIf="progressIndication" class="progress-bar">
-		<mat-progress-bar color="primary" mode="indeterminate"></mat-progress-bar>
+		<mat-progress-bar color="primary" mode="indeterminate" [attr.aria-label]="'ALT-TEXT.PROGRESS-BAR' | translate"></mat-progress-bar>
 	</div>
 </ng-container>

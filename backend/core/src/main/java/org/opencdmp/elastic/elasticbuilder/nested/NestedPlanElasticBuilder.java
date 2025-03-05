@@ -60,7 +60,7 @@ public class NestedPlanElasticBuilder extends BaseElasticBuilder<NestedPlanElast
             m.setLabel(d.getLabel());
             m.setDescription(d.getDescription());
             m.setVersion(d.getVersion());
-            m.setStatus(d.getStatus());
+            m.setStatusId(d.getStatusId());
             m.setAccessType(d.getAccessType());
             m.setLanguage(d.getLanguage());
             m.setBlueprintId(d.getBlueprintId());

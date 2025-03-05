@@ -166,10 +166,8 @@ public class PlanWorkflowController {
 
         PlanWorkflowQuery query = this.queryFactory.query(PlanWorkflowQuery.class).disableTracking().authorize(AuthorizationFlags.AllExceptPublic).isActives(IsActive.Active);
 
-        if (this.tenantScope.isDefaultTenant())
-            query = query.defaultTenant(true);
-        else
-            query = query.tenantIds(this.tenantScope.getTenant());
+        if (this.tenantScope.isDefaultTenant()) query.tenantIsSet(false);
+        else query.tenantIsSet(true).tenantIds(this.tenantScope.getTenant());
 
         PlanWorkflow model = this.builderFactory.builder(PlanWorkflowBuilder.class).build(fieldSet, query.firstAs(fieldSet));
 

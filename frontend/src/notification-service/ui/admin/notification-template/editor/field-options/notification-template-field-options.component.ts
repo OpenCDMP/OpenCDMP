@@ -9,9 +9,10 @@ import { COMMA, ENTER } from '@angular/cdk/keycodes';
 import { NotificationDataType } from '@notification-service/core/enum/notification-data-type';
 
 @Component({
-	selector: 'app-notification-template-field-options-component',
-	templateUrl: 'notification-template-field-options.component.html',
-	styleUrls: ['./notification-template-field-options.component.scss']
+    selector: 'app-notification-template-field-options-component',
+    templateUrl: 'notification-template-field-options.component.html',
+    styleUrls: ['./notification-template-field-options.component.scss'],
+    standalone: false
 })
 export class NotificationTemplateFieldOptionsComponent extends BaseComponent implements OnInit {
 

@@ -533,7 +533,6 @@ public class OutboxRepositoryImpl implements OutboxRepository {
         queueMessage.setNotifyStatus(QueueOutboxNotifyStatus.PENDING);
         queueMessage.setRetryCount(0);
         queueMessage.setCreatedAt(Instant.now());
-        queueMessage.setUpdatedAt(Instant.now());
 
         return queueMessage;
     }

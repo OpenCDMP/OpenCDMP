@@ -2,7 +2,6 @@ import { debounceTime, delay } from 'rxjs/operators';
 import { ErrorHandler, Inject, Injectable } from '@angular/core';
 import { Observable, Subject, fromEvent } from 'rxjs';
 import { GuidedTour, TourStep, Orientation, OrientationConfiguration } from './guided-tour.constants';
-import { cloneDeep } from 'lodash';
 import { DOCUMENT } from "@angular/common";
 import { WindowRefService } from "./windowref.service";
 
@@ -122,7 +121,7 @@ export class GuidedTourService {
 	}
 
 	public startTour(tour: GuidedTour): void {
-		this._currentTour = cloneDeep(tour);
+		this._currentTour = JSON.parse(JSON.stringify(tour)); //replaced lodash deepClone
 		this._currentTour.steps = this._currentTour.steps.filter(step => !step.skipStep);
 		this._currentTourStepIndex = 0;
 		this._setFirstAndLast();
@@ -199,7 +198,7 @@ export class GuidedTourService {
 	}
 
 	private setTourOrientation(step: TourStep): TourStep {
-		const convertedStep = cloneDeep(step);
+		const convertedStep = JSON.parse(JSON.stringify(step));
 		if (
 			convertedStep.orientation
 			&& !(typeof convertedStep.orientation === 'string')

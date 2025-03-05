@@ -1,4 +1,4 @@
-import { Component, Inject, OnInit } from '@angular/core';
+import {Component, computed, HostBinding, Inject, Input, OnInit} from '@angular/core';
 import { UntypedFormGroup } from '@angular/forms';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { DescriptionTemplate } from '@app/core/model/description-template/description-template';
@@ -8,22 +8,23 @@ import { LoggingService } from '@app/core/services/logging/logging-service';
 import { SnackBarNotificationLevel, UiNotificationService } from '@app/core/services/notification/ui-notification-service';
 import { ProgressIndicationService } from '@app/core/services/progress-indication/progress-indication-service';
 import { DescriptionEditorModel } from '@app/ui/description/editor/description-editor.model';
-import { DescriptionEditorEntityResolver } from '@app/ui/description/editor/resolvers/description-editor-entity.resolver';
 import { DescriptionFormService } from '@app/ui/description/editor/description-form/components/services/description-form.service';
 import { VisibilityRulesService } from '@app/ui/description/editor/description-form/visibility-rules/visibility-rules.service';
 import { BaseComponent } from '@common/base/base.component';
 import { HttpErrorHandlingService } from '@common/modules/errors/error-handling/http-error-handling.service';
 import { TranslateService } from '@ngx-translate/core';
 import { takeUntil } from 'rxjs/operators';
+import { DescriptionEditorHelper } from '@app/ui/plan/plan-editor-blueprint/plan-description-editor/plan-description-editor-helper';
 
 @Component({
-	selector: 'app-description-template-preview-dialog-component',
-	templateUrl: 'description-template-preview-dialog.component.html',
-	styleUrls: ['./description-template-preview-dialog.component.scss'],
-	providers: [DescriptionFormService],
+    selector: 'app-description-template-preview-dialog-component',
+    templateUrl: 'description-template-preview-dialog.component.html',
+    styleUrls: ['./description-template-preview-dialog.component.scss'],
+    providers: [DescriptionFormService],
+    standalone: false
 })
 export class DescriptionTemplatePreviewDialogComponent extends BaseComponent implements OnInit {
-
+   	showSelect: boolean = true;
 	descriptionTemplateDefinitionFormGroup: UntypedFormGroup;
 	progressIndication = false;
 	editorModel: DescriptionEditorModel;
@@ -52,7 +53,7 @@ export class DescriptionTemplatePreviewDialogComponent extends BaseComponent imp
 
 		if (this.data && this.data.descriptionTemplateId) {
 
-			this.descriptionTemplateService.getSingle(this.data.descriptionTemplateId, DescriptionEditorEntityResolver.descriptionTemplateLookupFields())
+			this.descriptionTemplateService.getSingle(this.data.descriptionTemplateId, DescriptionEditorHelper.DescriptionTemplateLookupFields())
 				.pipe(takeUntil(this._destroyed))
 				.subscribe(item => {
 					this.descriptionTemplate = item;
@@ -61,6 +62,9 @@ export class DescriptionTemplatePreviewDialogComponent extends BaseComponent imp
 					this.dialogRef.close();
 					this.httpErrorHandlingService.handleBackedRequestError(error);
 				});
+		}
+		if (this.data && this.data.showSelect == false){
+			this.showSelect = false;
 		}
 	}
 
@@ -84,7 +88,7 @@ export class DescriptionTemplatePreviewDialogComponent extends BaseComponent imp
 	}
 
 	select(): void {
-		this.dialogRef.close(this.descriptionTemplate.groupId);
+		this.dialogRef.close(this.descriptionTemplate);
 	}
 
 	closeDialog(): void {

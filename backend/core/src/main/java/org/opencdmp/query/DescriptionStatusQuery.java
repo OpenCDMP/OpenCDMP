@@ -188,6 +188,10 @@ public class DescriptionStatusQuery extends QueryBase<DescriptionStatusEntity> {
             return DescriptionStatusEntity._name;
         else if (item.match(DescriptionStatus._description))
             return DescriptionStatusEntity._description;
+        else if (item.match(DescriptionStatus._action))
+            return DescriptionStatusEntity._action;
+        else if (item.match(DescriptionStatus._ordinal))
+            return DescriptionStatusEntity._ordinal;
         else if (item.match(DescriptionStatus._createdAt))
             return DescriptionStatusEntity._createdAt;
         else if (item.match(DescriptionStatus._updatedAt))
@@ -200,6 +204,8 @@ public class DescriptionStatusQuery extends QueryBase<DescriptionStatusEntity> {
             return DescriptionStatusEntity._internalStatus;
         else if (item.match(DescriptionStatusEntity._definition))
             return DescriptionStatusEntity._definition;
+        else if (item.prefix(DescriptionStatusEntity._definition))
+            return DescriptionStatusEntity._definition;
         else
             return null;
     }
@@ -210,6 +216,8 @@ public class DescriptionStatusQuery extends QueryBase<DescriptionStatusEntity> {
         item.setId(QueryBase.convertSafe(tuple, columns, DescriptionStatusEntity._id, UUID.class));
         item.setName(QueryBase.convertSafe(tuple, columns, DescriptionStatusEntity._name, String.class));
         item.setDescription(QueryBase.convertSafe(tuple, columns, DescriptionStatusEntity._description, String.class));
+        item.setAction(QueryBase.convertSafe(tuple, columns, DescriptionStatusEntity._action, String.class));
+        item.setOrdinal(QueryBase.convertSafe(tuple, columns, DescriptionStatusEntity._ordinal, Integer.class));
         item.setTenantId(QueryBase.convertSafe(tuple, columns, DescriptionStatusEntity._tenantId, UUID.class));
         item.setCreatedAt(QueryBase.convertSafe(tuple, columns, DescriptionStatusEntity._createdAt, Instant.class));
         item.setUpdatedAt(QueryBase.convertSafe(tuple, columns, DescriptionStatusEntity._updatedAt, Instant.class));

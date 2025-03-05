@@ -1,0 +1,92 @@
+<div *ngIf="formGroup" class="container-fluid">
+	<div class="row">
+		<div class="col-12">
+			<div class="row">{{label}}</div>
+			<div class="row">
+				<mat-checkbox [formControl]="formGroup.get('evaluatorPlugins').get('disableSystemSources')">
+					{{'TENANT-CONFIGURATION-EDITOR.FIELDS.DISABLE-SYSTEM-SOURCES' | translate}}
+					<mat-error *ngIf=" formGroup.get('evaluatorPlugins')?.get('disableSystemSources')?.hasError('backendError')">{{ formGroup?.get('evaluatorPlugins')?.get('disableSystemSources')?.getError('backendError')?.message}}</mat-error>
+					<mat-error *ngIf=" formGroup.get('evaluatorPlugins')?.get('disableSystemSources')?.hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
+				</mat-checkbox>
+			</div>
+			<button mat-flat-button color="accent" class="padded-shadow-btn" type="button" (click)="addSource()" [disabled]="formGroup.disabled">{{'TENANT-CONFIGURATION-EDITOR.ACTIONS.ADD-SOURCE' | translate}}</button>
+			<div *ngFor="let source of formGroup.get('evaluatorPlugins').get('sources').controls; let sourceIndex=index;" class="row mb-3">
+				<div class="col-12">
+						<div class="row mb-3 d-flex align-items-center">
+							<div class="col-auto d-flex">
+								<mat-card-title>{{'TENANT-CONFIGURATION-EDITOR.FIELDS.EVALUATOR-PLUGINS' | translate}} {{sourceIndex + 1}}</mat-card-title>
+							</div>
+							<div class="col-auto d-flex">
+								<button mat-icon-button matTooltip="{{'TENANT-CONFIGURATION-EDITOR.ACTIONS.REMOVE-SOURCE' | translate}}" (click)="removeSource(sourceIndex)" [disabled]="formGroup.disabled" [attr.aria-label]="'TENANT-CONFIGURATION-EDITOR.ACTIONS.REMOVE-SOURCE' | translate">
+									<mat-icon aria-hidden>delete</mat-icon>
+								</button>
+							</div>
+						</div>
+						<div class="row" >
+							<div class="col-12 col-md-6">
+								<mat-form-field class="w-100">
+									<mat-label>{{'TENANT-CONFIGURATION-EDITOR.FIELDS.EVALUATOR-ID' | translate}}</mat-label>
+									<input matInput type="text" name="evaluatorId" [formControl]="source.get('evaluatorId')" required>
+									<mat-error *ngIf="source.get('evaluatorId').hasError('backendError')">{{source.get('evaluatorId').getError('backendError').message}}</mat-error>
+									<mat-error *ngIf="source.get('evaluatorId').hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
+								</mat-form-field>
+							</div>
+							<div class="col-12 col-md-6">
+								<mat-form-field class="w-100">
+									<mat-label>{{'TENANT-CONFIGURATION-EDITOR.FIELDS.URL' | translate}}</mat-label>
+									<input matInput type="text" name="url" [formControl]="source.get('url')" required>
+									<mat-error *ngIf="source.get('url').hasError('backendError')">{{source.get('url').getError('backendError').message}}</mat-error>
+									<mat-error *ngIf="source.get('url').hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
+								</mat-form-field>
+							</div>
+							<div class="col-12 col-md-6">
+								<mat-form-field class="w-100">
+									<mat-label>{{'TENANT-CONFIGURATION-EDITOR.FIELDS.ISSUER-URL' | translate}}</mat-label>
+									<input matInput type="text" name="issuerUrl" [formControl]="source.get('issuerUrl')" required>
+									<mat-error *ngIf="source.get('issuerUrl').hasError('backendError')">{{source.get('issuerUrl').getError('backendError').message}}</mat-error>
+									<mat-error *ngIf="source.get('issuerUrl').hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
+								</mat-form-field>
+							</div>
+							<div class="col-12 col-md-6">
+								<mat-form-field class="w-100">
+									<mat-label>{{'TENANT-CONFIGURATION-EDITOR.FIELDS.CLIENT-ID' | translate}}</mat-label>
+									<input matInput type="text" name="clientId" [formControl]="source.get('clientId')" required>
+									<mat-error *ngIf="source.get('clientId').hasError('backendError')">{{source.get('clientId').getError('backendError').message}}</mat-error>
+									<mat-error *ngIf="source.get('clientId').hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
+								</mat-form-field>
+							</div>
+							<div class="col-12 col-md-6">
+								<mat-form-field class="w-100">
+									<mat-label>{{'TENANT-CONFIGURATION-EDITOR.FIELDS.CLIENT-SECRET' | translate}}</mat-label>
+									<input matInput type="text" name="clientSecret" [formControl]="source.get('clientSecret')" required>
+									<mat-error *ngIf="source.get('clientSecret').hasError('backendError')">{{source.get('clientSecret').getError('backendError').message}}</mat-error>
+									<mat-error *ngIf="source.get('clientSecret').hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
+								</mat-form-field>
+							</div>
+							<div class="col-12 col-md-6">
+								<mat-form-field class="w-100">
+									<mat-label>{{'TENANT-CONFIGURATION-EDITOR.FIELDS.SCOPE' | translate}}</mat-label>
+									<input matInput type="text" name="scope" [formControl]="source.get('scope')" required>
+									<mat-error *ngIf="source.get('scope').hasError('backendError')">{{source.get('scope').getError('backendError').message}}</mat-error>
+									<mat-error *ngIf="source.get('scope').hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
+								</mat-form-field>
+							</div>
+						</div>
+				</div>
+			</div>
+		</div>
+		<div class="col-12">
+			<div class="row actions-row">
+				<div class="col"></div>
+				<div class="col-auto" *ngIf="editorModel.id"><button mat-stroked-button class="warn" class="padded-shadow-btn" (click)="delete()">
+						{{'TENANT-CONFIGURATION-EDITOR.ACTIONS.RESET-TO-DEFAULT' | translate}}
+					</button>
+				</div>
+				<div class="col-auto"><button mat-flat-button class="primary" class="padded-shadow-btn" (click)="formSubmit()">
+						{{'TENANT-CONFIGURATION-EDITOR.ACTIONS.SAVE' | translate}}
+					</button>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>

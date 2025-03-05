@@ -30,7 +30,7 @@ public class InnerObjectPlanElasticQuery extends ElasticInnerObjectQuery<InnerOb
 	private String like;
 	private Collection<UUID> ids;
 	private Collection<UUID> excludedIds;
-	private Collection<PlanStatus> statuses;
+	private Collection<UUID> statusIds;
 	private Collection<PlanVersionStatus> versionStatuses;
 	private Collection<PlanAccessType> accessTypes;
 	private Collection<Integer> versions;
@@ -108,18 +108,18 @@ public class InnerObjectPlanElasticQuery extends ElasticInnerObjectQuery<InnerOb
 		return this;
 	}
 
-	public InnerObjectPlanElasticQuery statuses(PlanStatus value) {
-		this.statuses = List.of(value);
+	public InnerObjectPlanElasticQuery statusIds(UUID value) {
+		this.statusIds = List.of(value);
 		return this;
 	}
 
-	public InnerObjectPlanElasticQuery statuses(PlanStatus... value) {
-		this.statuses = Arrays.asList(value);
+	public InnerObjectPlanElasticQuery statusIds(UUID... value) {
+		this.statusIds = Arrays.asList(value);
 		return this;
 	}
 
-	public InnerObjectPlanElasticQuery statuses(Collection<PlanStatus> values) {
-		this.statuses = values;
+	public InnerObjectPlanElasticQuery statusIds(Collection<UUID> values) {
+		this.statusIds = values;
 		return this;
 	}
 
@@ -203,8 +203,8 @@ public class InnerObjectPlanElasticQuery extends ElasticInnerObjectQuery<InnerOb
 		if (this.excludedIds != null) {
 			predicates.add(this.not(this.containsUUID(this.elasticFieldOf(NestedPlanElasticEntity._id).disableInfer(true), this.excludedIds)._toQuery())._toQuery());
 		}
-		if (this.statuses != null) {
-			predicates.add(this.contains(this.elasticFieldOf(NestedPlanElasticEntity._status).disableInfer(true), this.statuses.stream().map(x-> x.getValue()).collect(Collectors.toList()).toArray(new Short[this.statuses.size()]))._toQuery());
+		if (this.statusIds != null) {
+			predicates.add(this.containsUUID(this.elasticFieldOf(NestedPlanElasticEntity._id).disableInfer(true), this.statusIds)._toQuery());
 		}
 		if (this.versionStatuses != null) {
 			predicates.add(this.contains(this.elasticFieldOf(NestedPlanElasticEntity._versionStatus).disableInfer(true), this.versionStatuses.stream().map(x-> x.getValue()).collect(Collectors.toList()).toArray(new Short[this.versionStatuses.size()]))._toQuery());
@@ -229,7 +229,7 @@ public class InnerObjectPlanElasticQuery extends ElasticInnerObjectQuery<InnerOb
 		if (columns.contains(NestedPlanElasticEntity._id)) mocDoc.setId(FieldBasedMapper.shallowSafeConversion(rawData.get(NestedPlanElasticEntity._id), UUID.class));
 		if (columns.contains(NestedPlanElasticEntity._label)) mocDoc.setLabel(FieldBasedMapper.shallowSafeConversion(rawData.get(NestedPlanElasticEntity._label), String.class));
 		if (columns.contains(NestedPlanElasticEntity._description)) mocDoc.setDescription(FieldBasedMapper.shallowSafeConversion(rawData.get(NestedPlanElasticEntity._description), String.class));
-		if (columns.contains(NestedPlanElasticEntity._status)) mocDoc.setStatus(FieldBasedMapper.shallowSafeConversion(rawData.get(NestedPlanElasticEntity._status), PlanStatus.class));
+		if (columns.contains(NestedPlanElasticEntity._statusId)) mocDoc.setStatusId(FieldBasedMapper.shallowSafeConversion(rawData.get(NestedPlanElasticEntity._statusId), UUID.class));
 		if (columns.contains(NestedPlanElasticEntity._versionStatus)) mocDoc.setVersionStatus(FieldBasedMapper.shallowSafeConversion(rawData.get(NestedPlanElasticEntity._versionStatus), PlanVersionStatus.class));
 		if (columns.contains(NestedPlanElasticEntity._version)) mocDoc.setVersion(FieldBasedMapper.shallowSafeConversion(rawData.get(NestedPlanElasticEntity._version), Short.class));
 		if (columns.contains(NestedPlanElasticEntity._groupId)) mocDoc.setGroupId(FieldBasedMapper.shallowSafeConversion(rawData.get(NestedPlanElasticEntity._groupId), UUID.class));
@@ -245,7 +245,7 @@ public class InnerObjectPlanElasticQuery extends ElasticInnerObjectQuery<InnerOb
 		if (item.match(NestedPlanElasticEntity._id)) return this.elasticFieldOf(NestedPlanElasticEntity._id);
 		else if (item.match(NestedPlanElasticEntity._label)) return this.elasticFieldOf(NestedPlanElasticEntity._label);
 		else if (item.match(NestedPlanElasticEntity._description)) return this.elasticFieldOf(NestedPlanElasticEntity._description);
-		else if (item.match(NestedPlanElasticEntity._status)) return this.elasticFieldOf(NestedPlanElasticEntity._status);
+		else if (item.match(NestedPlanElasticEntity._statusId)) return this.elasticFieldOf(NestedPlanElasticEntity._statusId);
 		else if (item.match(NestedPlanElasticEntity._versionStatus)) return this.elasticFieldOf(NestedPlanElasticEntity._versionStatus);
 		else if (item.match(NestedPlanElasticEntity._version)) return this.elasticFieldOf(NestedPlanElasticEntity._version);
 		else if (item.match(NestedPlanElasticEntity._groupId)) return this.elasticFieldOf(NestedPlanElasticEntity._groupId);

@@ -8,9 +8,10 @@ import { BaseComponent } from '@common/base/base.component';
 import { takeUntil } from 'rxjs';
 
 @Component({
-	selector: 'app-cookies-policy',
-	templateUrl: './cookies-policy.component.html',
-	styleUrls: ['./cookies-policy.component.scss']
+    selector: 'app-cookies-policy',
+    templateUrl: './cookies-policy.component.html',
+    styleUrls: ['./cookies-policy.component.scss'],
+    standalone: false
 })
 export class CookiesPolicyComponent extends BaseComponent implements OnInit {
 

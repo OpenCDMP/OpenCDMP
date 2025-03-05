@@ -1,31 +1,44 @@
 <div *ngIf="formGroup" class="container-fluid notifier-list ">
+    <span aria-live="assertive" class="assistive-text">{{reorderAssistiveText()}}</span>
+    <span id="operation" class="assistive-text">{{'ALT-TEXT.REORDER-TABLE.BEGIN-EDITING' | translate}} {{'ALT-TEXT.REORDER-TABLE.SELECT-ITEM' | translate}}</span>
 	<div class="row">
 		<div class="col-12">
-			<div class="row">
-				<div class="col-12" *ngFor="let notificationType of availableNotifiersKeys">
-					<div class="row">
-						<mat-selection-list class="col-12" [formControl]="formGroup.get('notifierList')?.get('notifiers')?.get(notificationType)" cdkDropList (cdkDropListDropped)="dropped($event, notificationType)">
-							<h3 mat-subheader>{{notificationServiceEnumUtils.toNotificationTypeString(notificationType)}}</h3>
-							<mat-list-option *ngFor="let contactType of availableNotifiers[notificationType]" [value]="contactType" cdkDrag>
-								<div class="d-flex align-items-center">
-									<mat-icon matListIcon cdkDragHandle>unfold_more</mat-icon>
-									{{notificationServiceEnumUtils.toContactTypeString(contactType)}}
-								</div>
-							</mat-list-option>
-						</mat-selection-list>
-					</div>
-				</div>
-			</div>
+			<ul class="unstyled-list">
+				<li *ngFor="let notificationType of availableNotifiersKeys">
+                    <mat-selection-list 
+                        class="col-12" [formControl]="formGroup.get('notifierList')?.get('notifiers')?.get(notificationType)" 
+                        cdkDropList (cdkDropListDropped)="dropped($event, notificationType)"
+                    >
+                        <div class="title" mat-subheader>{{notificationServiceEnumUtils.toNotificationTypeString(notificationType)}}</div>
+                        @for(contactType of availableNotifiers[notificationType]; track contactType; let index = $index){
+                            <mat-list-option 
+                                [id]="notificationType + '-' + index"  
+                                [value]="contactType" 
+                                cdkDrag 
+                                aria-describedby="operation" 
+                                [class.reorder-mode]="reorderMode" 
+                                (keydown)="onKeyDown($event, index, notificationType, notificationServiceEnumUtils.toContactTypeString(contactType))"
+                            >
+                                <div class="d-flex align-items-center">
+                                    <mat-icon matListIcon cdkDragHandle class="drag-icon" aria-hidden>drag_indicator</mat-icon>
+                                    <span class="assistive-text">{{index + 1}} {{'GENERAL.PREPOSITIONS.OF' | translate}} {{availableNotifiers[notificationType]?.length}}</span>
+                                    {{notificationServiceEnumUtils.toContactTypeString(contactType)}}
+                                </div>
+                            </mat-list-option>
+                        }
+                    </mat-selection-list>
+				</li>
+			</ul>
 		</div>
 		<div class="col-12">
 			<div class="row actions-row">
 				<div class="ml-auto col-auto" *ngIf="editorModel.id">
-                    <button mat-button class="rounded-btn primary-inverted" (click)="delete()">
+                    <button mat-stroked-button color="warn" class="padded-shadow-btn" (click)="delete()">
 						{{'TENANT-CONFIGURATION-EDITOR.ACTIONS.RESET-TO-DEFAULT' | translate}}
 					</button>
 				</div>
 				<div class="ml-auto col-auto">
-                    <button mat-button class="rounded-btn primary" (click)="formSubmit()">
+                    <button mat-flat-button color="primary" class="padded-shadow-btn" (click)="formSubmit()">
 						{{'TENANT-CONFIGURATION-EDITOR.ACTIONS.SAVE' | translate}}
 					</button>
 				</div>

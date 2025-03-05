@@ -33,10 +33,11 @@ import { RouterUtilsService } from '@app/core/services/router/router-utils.servi
 
 
 @Component({
-	selector: 'app-language-editor-component',
-	templateUrl: 'language-editor.component.html',
-	styleUrls: ['./language-editor.component.scss'],
-	providers: [LanguageEditorService]
+    selector: 'app-language-editor-component',
+    templateUrl: 'language-editor.component.html',
+    styleUrls: ['./language-editor.component.scss'],
+    providers: [LanguageEditorService],
+    standalone: false
 })
 export class LanguageEditorComponent extends BaseEditor<LanguageEditorModel, Language> implements OnInit {
 

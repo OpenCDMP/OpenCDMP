@@ -20,13 +20,15 @@ import { takeUntil } from 'rxjs/operators';
 import { nameof } from 'ts-simple-nameof';
 
 @Component({
-	selector: 'app-plan-deposit-dropdown',
-	templateUrl: './plan-deposit-dropdown.component.html',
-	styleUrls: ['./plan-deposit-dropdown.component.scss']
+    selector: 'app-plan-deposit-dropdown',
+    templateUrl: './plan-deposit-dropdown.component.html',
+    styleUrls: ['./plan-deposit-dropdown.component.scss'],
+    standalone: false
 })
 export class PlanDepositDropdown extends BaseComponent implements OnInit {
 	@Input() inputRepos: DepositConfiguration[];
 	@Input() plan: Plan;
+    @Input() disabled: boolean = false;
 	outputRepos = [];
 	logos: Map<string, SafeResourceUrl> = new Map<string, SafeResourceUrl>();
 	@Output() outputReposEmitter: EventEmitter<EntityDoi[]> = new EventEmitter<EntityDoi[]>();

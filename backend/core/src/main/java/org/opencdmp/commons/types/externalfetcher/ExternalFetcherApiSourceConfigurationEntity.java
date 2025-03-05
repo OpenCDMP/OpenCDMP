@@ -2,12 +2,13 @@ package org.opencdmp.commons.types.externalfetcher;
 
 
 import org.opencdmp.commons.enums.ExternalFetcherApiHTTPMethodType;
+import org.opencdmp.service.externalfetcher.config.entities.ExternalFetcherApiHeaderConfiguration;
 import org.opencdmp.service.externalfetcher.config.entities.SourceExternalApiConfiguration;
 import jakarta.xml.bind.annotation.XmlElement;
 import jakarta.xml.bind.annotation.XmlElementWrapper;
 
 import java.util.List;
-public class ExternalFetcherApiSourceConfigurationEntity extends ExternalFetcherBaseSourceConfigurationEntity implements SourceExternalApiConfiguration<ResultsConfigurationEntity, AuthenticationConfigurationEntity, QueryConfigEntity> {
+public class ExternalFetcherApiSourceConfigurationEntity extends ExternalFetcherBaseSourceConfigurationEntity implements SourceExternalApiConfiguration<ResultsConfigurationEntity, AuthenticationConfigurationEntity, QueryConfigEntity, ExternalFetcherApiHeaderConfigurationEntity> {
 
     private String url;
     private ResultsConfigurationEntity results;
@@ -19,6 +20,7 @@ public class ExternalFetcherApiSourceConfigurationEntity extends ExternalFetcher
     private String filterType = "remote";
     private AuthenticationConfigurationEntity auth;
 
+    private List<ExternalFetcherApiHeaderConfigurationEntity> headers;
     private List<QueryConfigEntity> queries;
 
     public String getUrl() {
@@ -101,5 +103,15 @@ public class ExternalFetcherApiSourceConfigurationEntity extends ExternalFetcher
     @XmlElement(name="authentication")
     public void setAuth(AuthenticationConfigurationEntity auth) {
         this.auth = auth;
+    }
+
+    public List<ExternalFetcherApiHeaderConfigurationEntity> getHeaders() {
+        return headers;
+    }
+
+    @XmlElementWrapper
+    @XmlElement(name = "headers")
+    public void setHeaders(List<ExternalFetcherApiHeaderConfigurationEntity> headers) {
+        this.headers = headers;
     }
 }

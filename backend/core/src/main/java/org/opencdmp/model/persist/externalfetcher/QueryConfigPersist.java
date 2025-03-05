@@ -5,6 +5,7 @@ import org.opencdmp.convention.ConventionService;
 import org.opencdmp.errorcode.ErrorThesaurusProperties;
 import gr.cite.tools.validation.ValidatorFactory;
 import gr.cite.tools.validation.specification.Specification;
+import org.opencdmp.service.externalfetcher.config.entities.QueryConfig;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.Scope;
@@ -14,7 +15,7 @@ import org.springframework.stereotype.Component;
 import java.util.Arrays;
 import java.util.List;
 
-public class QueryConfigPersist {
+public class QueryConfigPersist implements QueryConfig<QueryCaseConfigPersist> {
 
     private String name;
     public static final String _name = "name";

@@ -2,6 +2,7 @@ import { Lookup } from '@common/model/lookup';
 import { Guid } from '@common/types/guid';
 import { IsActive } from '../common/enum/is-active.enum';
 import { SupportiveMaterialFieldType } from '../common/enum/supportive-material-field-type';
+import { TenantLookup } from './tenant.lookup';
 
 export class SupportiveMaterialLookup extends Lookup implements SupportiveMaterialFilter {
 	ids: Guid[];
@@ -11,6 +12,7 @@ export class SupportiveMaterialLookup extends Lookup implements SupportiveMateri
 	types: SupportiveMaterialFieldType[];
     languageCodes: string[];
 	tenantIds: Guid[];
+	tenantSubQuery: TenantLookup;
 
 	constructor() {
 		super();
@@ -25,4 +27,6 @@ export interface SupportiveMaterialFilter {
 	types: SupportiveMaterialFieldType[];
     languageCodes: string[];
 	tenantIds: Guid[];
+	viewOnlyTenant?: boolean;
+	tenantSubQuery: TenantLookup;
 }

@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, input, output } from '@angular/core';
+import { Component, computed, input, model, output, signal } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
@@ -12,21 +12,25 @@ import { Guid } from '@common/types/guid';
 import { TranslateModule } from '@ngx-translate/core';
 
 @Component({
-  selector: 'app-plan-authors',
-  standalone: true,
-  imports: [TranslateModule, CommonModule, MatIconModule, MatButtonModule, MatTooltipModule],
-  templateUrl: './plan-authors.component.html',
-  styleUrl: './plan-authors.component.scss'
+    selector: 'app-plan-authors',
+    imports: [TranslateModule, CommonModule, MatIconModule, MatButtonModule, MatTooltipModule],
+    templateUrl: './plan-authors.component.html',
+    styleUrl: './plan-authors.component.scss'
 })
 export class PlanAuthorsComponent {
     planUsers = input.required<PlanUser[]>();
     username = input.required<string>();
     planBlueprint = input<PlanBlueprint>(null);
     removeUser = input<boolean>(false);
-
+    pageSize = input<number>(5);
     deleteAuthor = output<PlanUser>();
-
+    
     planUserRoleEnum = PlanUserRole;
+
+    showMore = signal<boolean>(false);
+    toggleShowMore(){
+        this.showMore.update((value) => !value);
+    }
 
     constructor(
         protected enumUtils: EnumUtils,

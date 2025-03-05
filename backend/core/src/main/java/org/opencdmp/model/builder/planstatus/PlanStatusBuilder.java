@@ -68,6 +68,10 @@ public class PlanStatusBuilder extends BaseBuilder<PlanStatus, PlanStatusEntity>
                 m.setIsActive(d.getIsActive());
             if (fields.hasField(this.asIndexer(PlanStatus._description)))
                 m.setDescription(d.getDescription());
+            if (fields.hasField(this.asIndexer(PlanStatus._action)))
+                m.setAction(d.getAction());
+            if (fields.hasField(this.asIndexer(PlanStatus._ordinal)))
+                m.setOrdinal(d.getOrdinal());
             if (fields.hasField(this.asIndexer(PlanStatus._internalStatus)))
                 m.setInternalStatus(d.getInternalStatus());
             if (fields.hasField(this.asIndexer(PlanStatus._hash)))

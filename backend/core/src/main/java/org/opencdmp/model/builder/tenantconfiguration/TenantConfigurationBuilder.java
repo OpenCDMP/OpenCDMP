@@ -2,7 +2,6 @@ package org.opencdmp.model.builder.tenantconfiguration;
 
 import org.opencdmp.authorization.AuthorizationFlags;
 import org.opencdmp.commons.JsonHandlingService;
-import org.opencdmp.commons.XmlHandlingService;
 import org.opencdmp.commons.enums.TenantConfigurationType;
 import org.opencdmp.commons.scope.tenant.TenantScope;
 import org.opencdmp.commons.types.tenantconfiguration.*;
@@ -11,7 +10,6 @@ import org.opencdmp.data.TenantConfigurationEntity;
 import org.opencdmp.model.builder.BaseBuilder;
 import org.opencdmp.model.tenantconfiguration.TenantConfiguration;
 import gr.cite.tools.data.builder.BuilderFactory;
-import gr.cite.tools.data.query.QueryFactory;
 import gr.cite.tools.exception.MyApplicationException;
 import gr.cite.tools.fieldset.FieldSet;
 import gr.cite.tools.logging.DataLogEntry;
@@ -58,10 +56,12 @@ public class TenantConfigurationBuilder extends BaseBuilder<TenantConfiguration,
         FieldSet cssColorsFields = fields.extractPrefixed(this.asPrefix(TenantConfiguration._cssColors));
         FieldSet defaultUserLocaleFields = fields.extractPrefixed(this.asPrefix(TenantConfiguration._defaultUserLocale));
         FieldSet depositPluginsFields = fields.extractPrefixed(this.asPrefix(TenantConfiguration._depositPlugins));
+        FieldSet evaluatorPluginsFields = fields.extractPrefixed(this.asPrefix(TenantConfiguration._evaluatorPlugins));
         FieldSet fileTransformerPluginsFields = fields.extractPrefixed(this.asPrefix(TenantConfiguration._fileTransformerPlugins));
         FieldSet logoFields = fields.extractPrefixed(this.asPrefix(TenantConfiguration._logo));
-        
-        
+        FieldSet featuredEntitiesFields = fields.extractPrefixed(this.asPrefix(TenantConfiguration._featuredEntities));
+        FieldSet defaultPlanBlueprintFields = fields.extractPrefixed(this.asPrefix(TenantConfiguration._defaultPlanBlueprint));
+
         List<TenantConfiguration> models = new ArrayList<>();
         for (TenantConfigurationEntity d : data) {
             TenantConfiguration m = new TenantConfiguration();
@@ -79,6 +79,10 @@ public class TenantConfigurationBuilder extends BaseBuilder<TenantConfiguration,
                 DepositTenantConfigurationEntity valueTyped = this.jsonHandlingService.fromJsonSafe(DepositTenantConfigurationEntity.class, d.getValue());
                 m.setDepositPlugins(this.builderFactory.builder(DepositTenantConfigurationBuilder.class).authorize(this.authorize).build(depositPluginsFields, valueTyped));
             }
+            if( !evaluatorPluginsFields.isEmpty() && !this.conventionService.isNullOrEmpty(d.getValue()) && TenantConfigurationType.EvaluatorPlugins.equals(d.getType())){
+                EvaluatorTenantConfigurationEntity valuedTyped = this.jsonHandlingService.fromJsonSafe(EvaluatorTenantConfigurationEntity.class, d.getValue());
+                m.setEvaluatorPlugins(this.builderFactory.builder(EvaluatorTenantConfigurationBuilder.class).authorize(this.authorize).build(evaluatorPluginsFields, valuedTyped));
+            }
             if (!fileTransformerPluginsFields.isEmpty() && !this.conventionService.isNullOrEmpty(d.getValue()) && TenantConfigurationType.FileTransformerPlugins.equals(d.getType())){
                 FileTransformerTenantConfigurationEntity valueTyped = this.jsonHandlingService.fromJsonSafe(FileTransformerTenantConfigurationEntity.class, d.getValue());
                 m.setFileTransformerPlugins(this.builderFactory.builder(FileTransformerTenantConfigurationBuilder.class).authorize(this.authorize).build(fileTransformerPluginsFields, valueTyped));
@@ -86,6 +90,14 @@ public class TenantConfigurationBuilder extends BaseBuilder<TenantConfiguration,
             if (!logoFields.isEmpty() && !this.conventionService.isNullOrEmpty(d.getValue()) && TenantConfigurationType.Logo.equals(d.getType())){
                 LogoTenantConfigurationEntity valueTyped = this.jsonHandlingService.fromJsonSafe(LogoTenantConfigurationEntity.class, d.getValue());
                 m.setLogo(this.builderFactory.builder(LogoTenantConfigurationBuilder.class).authorize(this.authorize).build(logoFields, valueTyped));
+            }
+            if (!featuredEntitiesFields.isEmpty() && !this.conventionService.isNullOrEmpty(d.getValue()) && TenantConfigurationType.FeaturedEntities.equals(d.getType())){
+                FeaturedEntitiesEntity valueTyped = this.jsonHandlingService.fromJsonSafe(FeaturedEntitiesEntity.class, d.getValue());
+                m.setFeaturedEntities(this.builderFactory.builder(FeaturedEntitiesBuilder.class).authorize(this.authorize).build(featuredEntitiesFields, valueTyped));
+            }
+            if (!defaultPlanBlueprintFields.isEmpty() && !this.conventionService.isNullOrEmpty(d.getValue()) && TenantConfigurationType.DefaultPlanBlueprint.equals(d.getType())){
+                DefaultPlanBlueprintConfigurationEntity valueTyped = this.jsonHandlingService.fromJsonSafe(DefaultPlanBlueprintConfigurationEntity.class, d.getValue());
+                m.setDefaultPlanBlueprint(this.builderFactory.builder(DefaultPlanBlueprintConfigurationBuilder.class).authorize(this.authorize).build(defaultPlanBlueprintFields, valueTyped));
             }
             if (fields.hasField(this.asIndexer(TenantConfiguration._createdAt))) m.setCreatedAt(d.getCreatedAt());
             if (fields.hasField(this.asIndexer(TenantConfiguration._updatedAt))) m.setUpdatedAt(d.getUpdatedAt());

@@ -45,6 +45,6 @@ export class DepositEditorResolver extends BaseEditorResolver {
 			...DepositEditorResolver.lookupFields()
 		];
 
-		return this.tenantConfigurationService.getCurrentTenantType(TenantConfigurationType.DepositPlugins, fields).pipe(takeUntil(this._destroyed));
+		return this.tenantConfigurationService.getType(TenantConfigurationType.DepositPlugins, fields).pipe(takeUntil(this._destroyed));
 	}
 }

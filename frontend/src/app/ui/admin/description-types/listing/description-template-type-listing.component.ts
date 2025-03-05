@@ -27,8 +27,9 @@ import { nameof } from 'ts-simple-nameof';
 import { AppPermission } from '@app/core/common/enum/permission.enum';
 
 @Component({
-	templateUrl: './description-template-type-listing.component.html',
-	styleUrls: ['./description-template-type-listing.component.scss']
+    templateUrl: './description-template-type-listing.component.html',
+    styleUrls: ['./description-template-type-listing.component.scss'],
+    standalone: false
 })
 export class DescriptionTemplateTypeListingComponent extends BaseListingComponent<DescriptionTemplateType, DescriptionTemplateTypeLookup> implements OnInit {
 	publish = false;
@@ -132,7 +133,7 @@ export class DescriptionTemplateTypeListingComponent extends BaseListingComponen
 		},
 		{
 			prop: nameof<DescriptionTemplateType>(x => x.isActive),
-			sortable: true,
+			sortable: false,
 			languageName: 'DESCRIPTION-TEMPLATE-TYPE-LISTING.FIELDS.IS-ACTIVE',
 			pipe: this.pipeService.getPipe<IsActiveTypePipe>(IsActiveTypePipe)
 		},

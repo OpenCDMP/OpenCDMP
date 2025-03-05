@@ -4,7 +4,7 @@ import { Observable, Subject } from 'rxjs';
 import { ConfigurationService } from '../configuration/configuration.service';
 import { LoggingService } from '../logging/logging-service';
 import { TypeUtils } from '../utilities/type-utils.service';
-
+import 'moment/min/locales';
 const availableCultures: CultureInfo[] = require('../../../../assets/localization/available-cultures.json');
 
 export interface CultureInfo {

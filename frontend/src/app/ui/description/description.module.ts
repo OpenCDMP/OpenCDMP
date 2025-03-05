@@ -3,6 +3,7 @@ import { FormattingModule } from '@app/core/formatting.module';
 import { DescriptionRoutingModule, PublicDescriptionRoutingModule } from '@app/ui/description/description.routing';
 import { CommonFormsModule } from '@common/forms/common-forms.module';
 import { CommonUiModule } from '@common/ui/common-ui.module';
+import { EvaluateDescriptionDialogModule } from './evaluate-description-dialog/evaluate-description-dialog.module';
 
 @NgModule({
 	imports: [
@@ -24,6 +25,7 @@ export class DescriptionModule { }
 		CommonFormsModule,
 		FormattingModule,
 		PublicDescriptionRoutingModule,
+		EvaluateDescriptionDialogModule,
 	],
 	declarations: [
 	],

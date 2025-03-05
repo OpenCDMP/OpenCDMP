@@ -12,7 +12,6 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.stereotype.Component;
 
-import java.time.Instant;
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
@@ -39,6 +38,10 @@ public class TenantConfigurationPersist {
 
     public static final String _depositPlugins = "depositPlugins";
 
+    private EvaluatorTenantConfigurationPersist evaluatorPlugins;
+
+    public static final String _evaluatorPlugins = "evaluatorPlugins";
+
     private FileTransformerTenantConfigurationPersist fileTransformerPlugins;
 
     public static final String _fileTransformerPlugins = "fileTransformerPlugins";
@@ -46,6 +49,14 @@ public class TenantConfigurationPersist {
     private LogoTenantConfigurationPersist logo;
 
     public static final String _logo = "logo";
+
+    private FeaturedEntitiesPersist featuredEntities;
+
+    public static final String _featuredEntities = "featuredEntities";
+
+    private DefaultPlanBlueprintConfigurationPersist defaultPlanBlueprint;
+
+    public static final String _defaultPlanBlueprint = "defaultPlanBlueprint";
 
     private String hash;
 
@@ -83,6 +94,14 @@ public class TenantConfigurationPersist {
         this.depositPlugins = depositPlugins;
     }
 
+    public EvaluatorTenantConfigurationPersist getEvaluatorPlugins() {
+        return evaluatorPlugins;
+    }
+
+    public void setEvaluatorPlugins(EvaluatorTenantConfigurationPersist evaluatorPlugins) {
+        this.evaluatorPlugins = evaluatorPlugins;
+    }
+
     public FileTransformerTenantConfigurationPersist getFileTransformerPlugins() {
         return fileTransformerPlugins;
     }
@@ -97,6 +116,22 @@ public class TenantConfigurationPersist {
 
     public void setLogo(LogoTenantConfigurationPersist logo) {
         this.logo = logo;
+    }
+
+    public FeaturedEntitiesPersist getFeaturedEntities() {
+        return featuredEntities;
+    }
+
+    public void setFeaturedEntities(FeaturedEntitiesPersist featuredEntities) {
+        this.featuredEntities = featuredEntities;
+    }
+
+    public DefaultPlanBlueprintConfigurationPersist getDefaultPlanBlueprint() {
+        return defaultPlanBlueprint;
+    }
+
+    public void setDefaultPlanBlueprint(DefaultPlanBlueprintConfigurationPersist defaultPlanBlueprint) {
+        this.defaultPlanBlueprint = defaultPlanBlueprint;
     }
 
     public String getHash() {
@@ -192,6 +227,12 @@ public class TenantConfigurationPersist {
                             .using(() -> this.validatorFactory.validator(DepositTenantConfigurationPersist.DepositTenantConfigurationPersistValidator.class)),
 
                     this.refSpec()
+                            .iff(() -> !this.isNull(item.getEvaluatorPlugins()) && TenantConfigurationType.EvaluatorPlugins.equals(item.getType()))
+                            .on(TenantConfigurationPersist._evaluatorPlugins)
+                            .over(item.getDepositPlugins())
+                            .using(() -> this.validatorFactory.validator(EvaluatorTenantConfigurationPersist.EvaluatorTenantConfigurationPersistValidator.class)),
+
+                    this.refSpec()
                             .iff(() -> !this.isNull(item.getFileTransformerPlugins()) && TenantConfigurationType.FileTransformerPlugins.equals(item.getType()))
                             .on(TenantConfigurationPersist._fileTransformerPlugins)
                             .over(item.getFileTransformerPlugins())
@@ -201,7 +242,18 @@ public class TenantConfigurationPersist {
                             .iff(() -> !this.isNull(item.getLogo()) && TenantConfigurationType.Logo.equals(item.getType()))
                             .on(TenantConfigurationPersist._logo)
                             .over(item.getLogo())
-                            .using(() -> this.validatorFactory.validator(LogoTenantConfigurationPersist.LogoTenantConfigurationPersistValidator.class))
+                            .using(() -> this.validatorFactory.validator(LogoTenantConfigurationPersist.LogoTenantConfigurationPersistValidator.class)),
+
+                    this.refSpec()
+                            .iff(() -> !this.isNull(item.getFeaturedEntities()) && TenantConfigurationType.FeaturedEntities.equals(item.getType()))
+                            .on(TenantConfigurationPersist._featuredEntities)
+                            .over(item.getFeaturedEntities())
+                            .using(() -> this.validatorFactory.validator(FeaturedEntitiesPersist.FeaturedEntitiesPersistValidator.class)),
+                    this.refSpec()
+                            .iff(() -> !this.isNull(item.getDefaultPlanBlueprint()) && TenantConfigurationType.DefaultPlanBlueprint.equals(item.getType()))
+                            .on(TenantConfigurationPersist._defaultPlanBlueprint)
+                            .over(item.getDefaultPlanBlueprint())
+                            .using(() -> this.validatorFactory.validator(DefaultPlanBlueprintConfigurationPersist.DefaultPlanBlueprintConfigurationPersistValidator.class))
             );
         }
     }

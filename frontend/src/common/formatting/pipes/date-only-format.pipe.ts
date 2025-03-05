@@ -4,7 +4,8 @@ import { CultureService } from '@app/core/services/culture/culture-service';
 import 'moment-timezone';
 
 @Pipe({
-	name: 'dateOnly'
+    name: 'dateOnly',
+    standalone: false
 })
 export class DateOnlyPipe implements PipeTransform {
 
@@ -23,7 +24,8 @@ export class DateOnlyPipe implements PipeTransform {
 }
 
 @Pipe({
-	name: 'dataTableDateOnlyFormatter'
+    name: 'dataTableDateOnlyFormatter',
+    standalone: false
 })
 // This is only used for the DataTable Column definition.
 // It's a hacky way to apply format to the pipe because it only supports passing a pipe instance and calls transform in it without params.

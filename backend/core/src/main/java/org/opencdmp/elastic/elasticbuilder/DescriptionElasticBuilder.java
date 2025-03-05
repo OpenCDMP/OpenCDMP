@@ -63,7 +63,7 @@ public class DescriptionElasticBuilder extends BaseElasticBuilder<DescriptionEla
             m.setId(d.getId());
             m.setLabel(d.getLabel());
             m.setDescription(d.getDescription());
-            m.setStatus(d.getStatus());
+            m.setStatusId(d.getStatusId());
             m.setCreatedAt(Date.from(d.getCreatedAt()));
             m.setUpdatedAt(Date.from(d.getUpdatedAt()));
             if (d.getFinalizedAt() != null) {

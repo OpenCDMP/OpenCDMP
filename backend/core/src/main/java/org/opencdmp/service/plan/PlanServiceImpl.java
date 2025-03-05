@@ -21,8 +21,6 @@ import org.jetbrains.annotations.NotNull;
 import org.opencdmp.authorization.AuthorizationFlags;
 import org.opencdmp.authorization.Permission;
 import org.opencdmp.authorization.authorizationcontentresolver.AuthorizationContentResolver;
-import org.opencdmp.commonmodels.models.PlanUserModel;
-import org.opencdmp.commonmodels.models.UserModel;
 import org.opencdmp.commonmodels.models.description.DescriptionModel;
 import org.opencdmp.commonmodels.models.plan.PlanBlueprintValueModel;
 import org.opencdmp.commonmodels.models.plan.PlanContactModel;
@@ -49,7 +47,7 @@ import org.opencdmp.commons.types.plan.PlanBlueprintValueEntity;
 import org.opencdmp.commons.types.plan.PlanContactEntity;
 import org.opencdmp.commons.types.plan.PlanPropertiesEntity;
 import org.opencdmp.commons.types.plan.importexport.*;
-import org.opencdmp.commons.types.planblueprint.DescriptionTemplateEntity;
+import org.opencdmp.commons.types.planblueprint.BlueprintDescriptionTemplateEntity;
 import org.opencdmp.commons.types.planblueprint.ExtraFieldEntity;
 import org.opencdmp.commons.types.planblueprint.ReferenceTypeFieldEntity;
 import org.opencdmp.commons.types.planblueprint.SectionEntity;
@@ -94,11 +92,15 @@ import org.opencdmp.model.referencetype.ReferenceType;
 import org.opencdmp.query.*;
 import org.opencdmp.service.accounting.AccountingService;
 import org.opencdmp.service.actionconfirmation.ActionConfirmationService;
+import org.opencdmp.service.custompolicy.CustomPolicyService;
 import org.opencdmp.service.description.DescriptionService;
 import org.opencdmp.service.descriptiontemplate.DescriptionTemplateService;
+import org.opencdmp.service.descriptionworkflow.DescriptionWorkflowService;
 import org.opencdmp.service.elastic.ElasticService;
 import org.opencdmp.service.filetransformer.FileTransformerService;
+import org.opencdmp.service.lock.LockService;
 import org.opencdmp.service.planblueprint.PlanBlueprintService;
+import org.opencdmp.service.planworkflow.PlanWorkflowService;
 import org.opencdmp.service.responseutils.ResponseUtilsService;
 import org.opencdmp.service.usagelimit.UsageLimitService;
 import org.slf4j.LoggerFactory;
@@ -182,7 +184,11 @@ public class PlanServiceImpl implements PlanService {
     private final PlanBlueprintService planBlueprintService;
     private final UsageLimitService usageLimitService;
     private final AccountingService accountingService;
+    private final DescriptionWorkflowService descriptionWorkflowService;
+    private final PlanWorkflowService planWorkflowService;
+    private final CustomPolicyService customPolicyService;
     private final UsersProperties usersProperties;
+    private final LockService lockService;
 
     @Autowired
     public PlanServiceImpl(
@@ -205,7 +211,7 @@ public class PlanServiceImpl implements PlanService {
             FileTransformerService fileTransformerService,
             ValidatorFactory validatorFactory,
             ElasticService elasticService, DescriptionTemplateService descriptionTemplateService,
-            AnnotationEntityTouchedIntegrationEventHandler annotationEntityTouchedIntegrationEventHandler, AnnotationEntityRemovalIntegrationEventHandler annotationEntityRemovalIntegrationEventHandler, AuthorizationContentResolver authorizationContentResolver, TenantScope tenantScope, ResponseUtilsService responseUtilsService, PlanBlueprintService planBlueprintService, UsageLimitService usageLimitService, AccountingService accountingService, UsersProperties usersProperties) {
+            AnnotationEntityTouchedIntegrationEventHandler annotationEntityTouchedIntegrationEventHandler, AnnotationEntityRemovalIntegrationEventHandler annotationEntityRemovalIntegrationEventHandler, AuthorizationContentResolver authorizationContentResolver, TenantScope tenantScope, ResponseUtilsService responseUtilsService, PlanBlueprintService planBlueprintService, UsageLimitService usageLimitService, AccountingService accountingService, DescriptionWorkflowService descriptionWorkflowService, PlanWorkflowService planWorkflowService, CustomPolicyService customPolicyService, UsersProperties usersProperties, LockService lockService) {
         this.entityManager = entityManager;
         this.authorizationService = authorizationService;
         this.deleterFactory = deleterFactory;
@@ -234,7 +240,11 @@ public class PlanServiceImpl implements PlanService {
 	    this.planBlueprintService = planBlueprintService;
         this.usageLimitService = usageLimitService;
         this.accountingService = accountingService;
+        this.descriptionWorkflowService = descriptionWorkflowService;
+        this.planWorkflowService = planWorkflowService;
+        this.customPolicyService = customPolicyService;
         this.usersProperties = usersProperties;
+        this.lockService = lockService;
     }
 
     public Plan persist(PlanPersist model, FieldSet fields) throws MyForbiddenException, MyValidationException, MyApplicationException, MyNotFoundException, InvalidApplicationException, JAXBException, IOException {
@@ -309,6 +319,9 @@ public class PlanServiceImpl implements PlanService {
     }
 
     private void sendNotification(PlanEntity plan) throws InvalidApplicationException {
+        PlanStatusEntity planStatusEntity = this.entityManager.find(PlanStatusEntity.class, plan.getStatusId(), true);
+        if (planStatusEntity == null) throw new MyNotFoundException(this.messageSource.getMessage("General_ItemNotFound", new Object[]{plan.getStatusId(), PlanStatusEntity.class.getSimpleName()}, LocaleContextHolder.getLocale()));
+
         List<PlanUserEntity> existingUsers = this.queryFactory.query(PlanUserQuery.class).disableTracking()
                 .planIds(plan.getId())
                 .isActives(IsActive.Active)
@@ -322,22 +335,25 @@ public class PlanServiceImpl implements PlanService {
             if (!planUser.getUserId().equals(this.userScope.getUserIdSafe())){
                 UserEntity user = this.queryFactory.query(UserQuery.class).disableTracking().ids(planUser.getUserId()).first();
                 if (user == null || user.getIsActive().equals(IsActive.Inactive)) throw new MyValidationException(this.errors.getPlanInactiveUser().getCode(), this.errors.getPlanInactiveUser().getMessage());
-	            this.createPlanNotificationEvent(plan, user);
+	            this.createPlanNotificationEvent(plan, planStatusEntity, user);
             }
         }
     }
 
-    private void createPlanNotificationEvent(PlanEntity plan, UserEntity user) throws InvalidApplicationException {
+    private void createPlanNotificationEvent(PlanEntity plan, PlanStatusEntity planStatus, UserEntity user) throws InvalidApplicationException {
         NotifyIntegrationEvent event = new NotifyIntegrationEvent();
         event.setUserId(user.getId());
 
-        this.applyNotificationType(plan.getStatus(), event);
+        if (planStatus.getInternalStatus() == null) event.setNotificationType(this.notificationProperties.getPlanStatusChangedType());
+        else this.applyNotificationType(planStatus.getInternalStatus(), event);
+
         NotificationFieldData data = new NotificationFieldData();
         List<FieldInfo> fieldInfoList = new ArrayList<>();
         fieldInfoList.add(new FieldInfo("{recipient}", DataType.String, user.getName()));
         fieldInfoList.add(new FieldInfo("{reasonName}", DataType.String, this.queryFactory.query(UserQuery.class).disableTracking().ids(this.userScope.getUserId()).first().getName()));
         fieldInfoList.add(new FieldInfo("{name}", DataType.String, plan.getLabel()));
         fieldInfoList.add(new FieldInfo("{id}", DataType.String, plan.getId().toString()));
+        if (planStatus.getInternalStatus() == null) fieldInfoList.add(new FieldInfo("{statusName}", DataType.String, planStatus.getName()));
         if(this.tenantScope.getTenantCode() != null && !this.tenantScope.getTenantCode().equals(this.tenantScope.getDefaultTenantCode())){
             fieldInfoList.add(new FieldInfo("{tenant-url-path}", DataType.String, String.format("/t/%s", this.tenantScope.getTenantCode())));
         }
@@ -381,7 +397,10 @@ public class PlanServiceImpl implements PlanService {
             planQuery.setOrder(new Ordering().addDescending(Plan._version));
             previousPlan = planQuery.count() > 0 ? planQuery.collect().getFirst() : null;
             if (previousPlan != null){
-                if (previousPlan.getStatus().equals(PlanStatus.Finalized)) previousPlan.setVersionStatus(PlanVersionStatus.Current);
+                PlanStatusEntity previousPlanStatusEntity = this.entityManager.find(PlanStatusEntity.class, previousPlan.getStatusId(), true);
+                if (previousPlanStatusEntity == null) throw new MyNotFoundException(this.messageSource.getMessage("General_ItemNotFound", new Object[]{previousPlan.getStatusId(), PlanStatusEntity.class.getSimpleName()}, LocaleContextHolder.getLocale()));
+
+                if (previousPlanStatusEntity.getInternalStatus() != null && previousPlanStatusEntity.getInternalStatus().equals(PlanStatus.Finalized)) previousPlan.setVersionStatus(PlanVersionStatus.Current);
                 else previousPlan.setVersionStatus(PlanVersionStatus.NotFinalized);
                 this.entityManager.merge(previousPlan);
             }
@@ -423,6 +442,9 @@ public class PlanServiceImpl implements PlanService {
                 .count();
         if (notFinalizedCount > 0) throw new MyValidationException(this.errors.getPlanNewVersionAlreadyCreatedDraft().getCode(), this.errors.getPlanNewVersionAlreadyCreatedDraft().getMessage());
 
+        PlanStatusEntity startingPlanStatusEntity = this.entityManager.find(PlanStatusEntity.class, this.planWorkflowService.getActiveWorkFlowDefinition().getStartingStatusId(), true);
+        if (startingPlanStatusEntity == null) throw new MyNotFoundException(this.messageSource.getMessage("General_ItemNotFound", new Object[]{this.planWorkflowService.getActiveWorkFlowDefinition().getStartingStatusId(), PlanStatusEntity.class.getSimpleName()}, LocaleContextHolder.getLocale()));
+
         PlanEntity newPlan = new PlanEntity();
         newPlan.setId(UUID.randomUUID());
         newPlan.setIsActive(IsActive.Active);
@@ -434,7 +456,7 @@ public class PlanServiceImpl implements PlanService {
         newPlan.setDescription(model.getDescription());
         newPlan.setLabel(model.getLabel());
         newPlan.setLanguage(oldPlanEntity.getLanguage());
-        newPlan.setStatus(PlanStatus.Draft);
+        newPlan.setStatusId(startingPlanStatusEntity.getId());
         newPlan.setProperties(oldPlanEntity.getProperties());
         newPlan.setBlueprintId(model.getBlueprintId());
         newPlan.setAccessType(oldPlanEntity.getAccessType());
@@ -488,16 +510,18 @@ public class PlanServiceImpl implements PlanService {
 
         org.opencdmp.commons.types.planblueprint.DefinitionEntity definition =  this.xmlHandlingService.fromXmlSafe(org.opencdmp.commons.types.planblueprint.DefinitionEntity.class, blueprintEntity.getDefinition());
 
-        List<DescriptionEntity> descriptionEntities = this.queryFactory.query(DescriptionQuery.class).disableTracking().ids(model.getDescriptions().stream().map(NewVersionPlanDescriptionPersist::getDescriptionId).distinct().collect(Collectors.toList())).isActive(IsActive.Active).collect();
+        List<DescriptionEntity> descriptionEntities = this.queryFactory.query(DescriptionQuery.class).disableTracking().ids(model.getDescriptions().stream().map(NewVersionPlanDescriptionPersist::getDescriptionId).distinct().collect(Collectors.toList())).collect();
 
-        FieldSet fieldSet = new BaseFieldSet(Description._id, BaseFieldSet.asIndexer(Description._descriptionTemplate, DescriptionTemplate._groupId));
+        FieldSet fieldSet = new BaseFieldSet(Description._id, BaseFieldSet.asIndexer(Description._descriptionTemplate, DescriptionTemplate._groupId), Description._isActive, BaseFieldSet.asIndexer(Description._status, org.opencdmp.model.descriptionstatus.DescriptionStatus._id));
         List<Description> models = this.builderFactory.builder(DescriptionBuilder.class).authorize(AuthorizationFlags.AllExceptPublic).build(fieldSet, descriptionEntities);
 
+        DescriptionStatusEntity canceledStatusEntity = this.findDescriptionStatus(DescriptionStatus.Canceled);
+        if (canceledStatusEntity == null) throw new MyApplicationException("canceled status not found");
 
         if (!this.conventionService.isListNullOrEmpty(models) && !this.conventionService.isListNullOrEmpty(model.getDescriptions())){
             for (NewVersionPlanDescriptionPersist newVersionPlanDescriptionPersist : model.getDescriptions()) {
                 Description description = models.stream().filter(x -> x.getId().equals(newVersionPlanDescriptionPersist.getDescriptionId())).findFirst().orElse(null);
-                if (description != null){
+                if (description != null && (description.getIsActive().equals(IsActive.Active) || canceledStatusEntity.getId().equals(description.getStatus().getId()))){
                     PlanDescriptionTemplateEntity existingPlanDescriptionTemplateEntity = this.queryFactory.query(PlanDescriptionTemplateQuery.class).disableTracking().planIds(newPlan.getId()).isActive(IsActive.Active).sectionIds(newVersionPlanDescriptionPersist.getBlueprintSectionId()).descriptionTemplateGroupIds(description.getDescriptionTemplate().getGroupId()).first();
                     if (existingPlanDescriptionTemplateEntity == null){
                         PlanDescriptionTemplateEntity newTemplate = new PlanDescriptionTemplateEntity();
@@ -510,9 +534,9 @@ public class PlanServiceImpl implements PlanService {
                         newTemplate.setIsActive(IsActive.Active);
                         this.entityManager.persist(newTemplate);
                         this.entityManager.flush();
-                        this.cloneDescription(newPlan.getId(), null, newVersionPlanDescriptionPersist.getDescriptionId(), newTemplate.getId());
+                        this.cloneDescription(newPlan.getId(), null, newVersionPlanDescriptionPersist.getDescriptionId(), newTemplate.getId(), description.getIsActive().equals(IsActive.Active));
                     } else{
-                        this.cloneDescription(newPlan.getId(), null, newVersionPlanDescriptionPersist.getDescriptionId(), existingPlanDescriptionTemplateEntity.getId());
+                        this.cloneDescription(newPlan.getId(), null, newVersionPlanDescriptionPersist.getDescriptionId(), existingPlanDescriptionTemplateEntity.getId(), description.getIsActive().equals(IsActive.Active));
                     }
                 }
             }
@@ -556,7 +580,7 @@ public class PlanServiceImpl implements PlanService {
                 for (SectionEntity section: sections) {
                     if (!this.conventionService.isListNullOrEmpty(section.getDescriptionTemplates()) && section.getHasTemplates()){
                         // new blueprint templates
-                        for (DescriptionTemplateEntity blueprintDescriptionTemplate: section.getDescriptionTemplates()) {
+                        for (BlueprintDescriptionTemplateEntity blueprintDescriptionTemplate: section.getDescriptionTemplates()) {
 
                             boolean isDescriptionTemplateAlreadyInPlan = false;
 
@@ -586,7 +610,7 @@ public class PlanServiceImpl implements PlanService {
         
         this.entityManager.flush();
 
-        this.updateVersionStatusAndSave(newPlan, PlanStatus.Draft, newPlan.getStatus());
+        this.updateVersionStatusAndSave(newPlan, PlanStatus.Draft, startingPlanStatusEntity.getInternalStatus());
 
         this.entityManager.flush();
 
@@ -601,7 +625,7 @@ public class PlanServiceImpl implements PlanService {
         return this.builderFactory.builder(PlanBuilder.class).build(BaseFieldSet.build(fields, Plan._id), newPlan);
     }
 
-    public void cloneDescription(UUID planId, Map<UUID, UUID> planDescriptionTemplateRemap, UUID descriptionId, UUID newPlanDescriptionTemplateId) throws InvalidApplicationException, IOException {
+    public void cloneDescription(UUID planId, Map<UUID, UUID> planDescriptionTemplateRemap, UUID descriptionId, UUID newPlanDescriptionTemplateId, boolean isActive) throws InvalidApplicationException, IOException {
         logger.debug("cloning description: {} with description: {}", descriptionId, planId);
 
         this.usageLimitService.checkIncrease(UsageLimitTargetMetric.DESCRIPTION_COUNT);
@@ -612,7 +636,7 @@ public class PlanServiceImpl implements PlanService {
         if (planEntity.getAccessType() != null && !planEntity.getAccessType().equals(PlanAccessType.Public)) this.authorizationService.authorizeAtLeastOneForce(List.of(this.authorizationContentResolver.descriptionAffiliation(descriptionId)), Permission.CloneDescription);
         else this.authorizationService.authorizeAtLeastOneForce(List.of(this.authorizationContentResolver.descriptionAffiliation(descriptionId)), Permission.PublicCloneDescription);
 
-        DescriptionEntity existing = this.queryFactory.query(DescriptionQuery.class).disableTracking().ids(descriptionId).isActive(IsActive.Active).first();
+        DescriptionEntity existing = this.queryFactory.query(DescriptionQuery.class).disableTracking().ids(descriptionId).isActive(isActive ?  IsActive.Active : IsActive.Inactive).first();
 
         if (existing == null) throw new MyNotFoundException(this.messageSource.getMessage("General_ItemNotFound", new Object[]{descriptionId, Description.class.getSimpleName()}, LocaleContextHolder.getLocale()));
 
@@ -620,7 +644,7 @@ public class PlanServiceImpl implements PlanService {
         newDescription.setId(UUID.randomUUID());
         newDescription.setLabel(existing.getLabel());
         newDescription.setDescription(existing.getDescription());
-        newDescription.setStatus(DescriptionStatus.Draft);
+        newDescription.setStatusId(this.descriptionWorkflowService.getActiveWorkFlowDefinition().getStartingStatusId());
         newDescription.setProperties(existing.getProperties());
         newDescription.setPlanId(planId);
         if (newPlanDescriptionTemplateId == null && planDescriptionTemplateRemap != null) newDescription.setPlanDescriptionTemplateId(planDescriptionTemplateRemap.get(existing.getPlanDescriptionTemplateId()));
@@ -635,12 +659,12 @@ public class PlanServiceImpl implements PlanService {
 
         List<DescriptionReferenceEntity> descriptionReferences = this.queryFactory.query(DescriptionReferenceQuery.class).disableTracking()
                 .descriptionIds(existing.getId())
-                .isActive(IsActive.Active)
+                .isActive(isActive ?  IsActive.Active : IsActive.Inactive)
                 .collect();
 
         List<DescriptionTagEntity> descriptionTags = this.queryFactory.query(DescriptionTagQuery.class).disableTracking()
                 .descriptionIds(existing.getId())
-                .isActive(IsActive.Active)
+                .isActive(isActive ?  IsActive.Active : IsActive.Inactive)
                 .collect();
 
         for (DescriptionReferenceEntity descriptionReference : descriptionReferences) {
@@ -693,7 +717,8 @@ public class PlanServiceImpl implements PlanService {
         List<TagEntity> tags = new ArrayList<>();
         try {
             this.entityManager.disableTenantFilters();
-            existing = this.queryFactory.query(DescriptionQuery.class).disableTracking().authorize(EnumSet.of(Public)).ids(descriptionId).planSubQuery(this.queryFactory.query(PlanQuery.class).isActive(IsActive.Active).statuses(PlanStatus.Finalized).accessTypes(PlanAccessType.Public)).first();
+            PlanStatusQuery statusQuery = this.queryFactory.query(PlanStatusQuery.class).disableTracking().internalStatuses(PlanStatus.Finalized).isActives(IsActive.Active);
+            existing = this.queryFactory.query(DescriptionQuery.class).disableTracking().authorize(EnumSet.of(Public)).ids(descriptionId).planSubQuery(this.queryFactory.query(PlanQuery.class).isActive(IsActive.Active).planStatusSubQuery(statusQuery).accessTypes(PlanAccessType.Public)).first();
 
             if (existing == null) throw new MyNotFoundException(this.messageSource.getMessage("General_ItemNotFound", new Object[]{descriptionId, Description.class.getSimpleName()}, LocaleContextHolder.getLocale()));
 
@@ -740,7 +765,7 @@ public class PlanServiceImpl implements PlanService {
             newDescription.setId(UUID.randomUUID());
             newDescription.setLabel(existing.getLabel());
             newDescription.setDescription(existing.getDescription());
-            newDescription.setStatus(DescriptionStatus.Draft);
+            newDescription.setStatusId(this.descriptionWorkflowService.getActiveWorkFlowDefinition().getStartingStatusId());
             newDescription.setProperties(existing.getProperties());
             newDescription.setPlanId(planId);
             if (planDescriptionTemplateRemap != null) newDescription.setPlanDescriptionTemplateId(planDescriptionTemplateRemap.get(existing.getPlanDescriptionTemplateId()));
@@ -845,25 +870,25 @@ public class PlanServiceImpl implements PlanService {
 
     }
 
-
-
     private void updateVersionStatusAndSave(PlanEntity data, PlanStatus previousStatus, PlanStatus newStatus) throws InvalidApplicationException {
-        if (previousStatus.equals(newStatus))
+        if (previousStatus == null && newStatus == null)
             return;
-        if (previousStatus.equals(PlanStatus.Finalized) && newStatus.equals(PlanStatus.Draft)){
+        if (previousStatus != null && previousStatus.equals(newStatus))
+            return;
+        if (previousStatus != null && previousStatus.equals(PlanStatus.Finalized) && (newStatus == null || newStatus.equals(PlanStatus.Draft))){
             boolean alreadyCreatedNewVersion = this.queryFactory.query(PlanQuery.class).disableTracking()
                     .versionStatuses(PlanVersionStatus.NotFinalized, PlanVersionStatus.Current)
                     .excludedIds(data.getId())
                     .isActive(IsActive.Active)
                     .groupIds(data.getGroupId())
                     .count() > 0;
-            if (alreadyCreatedNewVersion) throw new MyValidationException("Already new version is created");
+            if (alreadyCreatedNewVersion) throw new MyValidationException(this.errors.getPlanNewVersionAlreadyCreatedDraft().getCode(), this.errors.getPlanNewVersionAlreadyCreatedDraft().getMessage());;
 
             data.setVersionStatus(PlanVersionStatus.NotFinalized);
             this.entityManager.merge(data);
         }
 
-        if (newStatus.equals(PlanStatus.Finalized)) {
+        if (newStatus != null && newStatus.equals(PlanStatus.Finalized)) {
             List<PlanEntity> latestVersionPlans = this.queryFactory.query(PlanQuery.class)
                     .versionStatuses(PlanVersionStatus.Current).excludedIds(data.getId())
                     .isActive(IsActive.Active).groupIds(data.getGroupId()).collect();
@@ -889,9 +914,11 @@ public class PlanServiceImpl implements PlanService {
 
         this.usageLimitService.checkIncrease(UsageLimitTargetMetric.PLAN_COUNT);
 
-        PlanEntity existingPlanEntity = this.queryFactory.query(PlanQuery.class).disableTracking().ids(model.getId()).firstAs(fields);
+        PlanEntity existingPlanEntity = this.queryFactory.query(PlanQuery.class).disableTracking().ids(model.getId()).firstAs(fields.ensure(Plan._isActive));
 
         if (existingPlanEntity == null) throw new MyNotFoundException(this.messageSource.getMessage("General_ItemNotFound", new Object[]{model.getId(), Plan.class.getSimpleName()}, LocaleContextHolder.getLocale()));
+
+        boolean isActive =  existingPlanEntity.getIsActive() != null && existingPlanEntity.getIsActive().equals(IsActive.Active);
 
         if (existingPlanEntity.getAccessType() != null && !existingPlanEntity.getAccessType().equals(PlanAccessType.Public)) this.authorizationService.authorizeAtLeastOneForce(List.of(this.authorizationContentResolver.planAffiliation( model.getId())), Permission.ClonePlan);
         else this.authorizationService.authorizeAtLeastOneForce(List.of(this.authorizationContentResolver.planAffiliation( model.getId())), Permission.PublicClonePlan);
@@ -907,7 +934,7 @@ public class PlanServiceImpl implements PlanService {
         newPlan.setDescription(model.getDescription());
         newPlan.setLabel(model.getLabel());
         newPlan.setLanguage(existingPlanEntity.getLanguage());
-        newPlan.setStatus(PlanStatus.Draft);
+        newPlan.setStatusId(this.planWorkflowService.getActiveWorkFlowDefinition().getStartingStatusId());
         newPlan.setProperties(existingPlanEntity.getProperties());
         newPlan.setBlueprintId(existingPlanEntity.getBlueprintId());
         newPlan.setAccessType(existingPlanEntity.getAccessType());
@@ -917,15 +944,15 @@ public class PlanServiceImpl implements PlanService {
 
         List<PlanUserEntity> planUsers = this.queryFactory.query(PlanUserQuery.class).disableTracking()
                 .planIds(model.getId())
-                .isActives(IsActive.Active)
+                .isActives(isActive ?  IsActive.Active : IsActive.Inactive )
                 .collect();
         List<PlanReferenceEntity> planReferences = this.queryFactory.query(PlanReferenceQuery.class).disableTracking()
                 .planIds(model.getId())
-                .isActives(IsActive.Active)
+                .isActives(isActive ?  IsActive.Active : IsActive.Inactive )
                 .collect();
         List<PlanDescriptionTemplateEntity> planDescriptionTemplates = this.queryFactory.query(PlanDescriptionTemplateQuery.class).disableTracking()
                 .planIds(model.getId())
-                .isActive(IsActive.Active)
+                .isActive(isActive ?  IsActive.Active : IsActive.Inactive )
                 .collect();
 
         UUID currentUserId = this.userScope.getUserId();
@@ -996,7 +1023,7 @@ public class PlanServiceImpl implements PlanService {
         PlanEntity resultingPlanEntity = this.queryFactory.query(PlanQuery.class).disableTracking().ids(newPlan.getId()).firstAs(fields);
         if (!this.conventionService.isListNullOrEmpty(model.getDescriptions())){
             for (UUID description: model.getDescriptions()) {
-	            this.cloneDescription(newPlan.getId(), planDescriptionTemplateRemap, description, null);
+	            this.cloneDescription(newPlan.getId(), planDescriptionTemplateRemap, description, null, isActive);
             }
         }
         return this.builderFactory.builder(PlanBuilder.class).build(fields, resultingPlanEntity);
@@ -1019,7 +1046,8 @@ public class PlanServiceImpl implements PlanService {
         try {
             this.entityManager.disableTenantFilters();
             // query for public plan
-            existingPlanEntity = this.queryFactory.query(PlanQuery.class).disableTracking().authorize(EnumSet.of(Public)).ids(model.getId()).isActive(IsActive.Active).statuses(PlanStatus.Finalized).accessTypes(PlanAccessType.Public).firstAs(fields);
+            PlanStatusQuery statusQuery = this.queryFactory.query(PlanStatusQuery.class).disableTracking().internalStatuses(PlanStatus.Finalized).isActives(IsActive.Active);
+            existingPlanEntity = this.queryFactory.query(PlanQuery.class).disableTracking().authorize(EnumSet.of(Public)).ids(model.getId()).isActive(IsActive.Active).planStatusSubQuery(statusQuery).accessTypes(PlanAccessType.Public).firstAs(fields);
 
             if (existingPlanEntity == null) throw new MyNotFoundException(this.messageSource.getMessage("General_ItemNotFound", new Object[]{model.getId(), PublicPlan.class.getSimpleName()}, LocaleContextHolder.getLocale()));
 
@@ -1095,7 +1123,7 @@ public class PlanServiceImpl implements PlanService {
                 newPlan.setDescription(model.getDescription());
                 newPlan.setLabel(model.getLabel());
                 newPlan.setLanguage(existingPlanEntity.getLanguage());
-                newPlan.setStatus(PlanStatus.Draft);
+                newPlan.setStatusId(this.planWorkflowService.getActiveWorkFlowDefinition().getStartingStatusId());
                 newPlan.setProperties(existingPlanEntity.getProperties());
                 newPlan.setBlueprintId(blueprintEntityByTenant.getId());
                 newPlan.setAccessType(existingPlanEntity.getAccessType());
@@ -1274,6 +1302,7 @@ public class PlanServiceImpl implements PlanService {
         PlanEntity data = this.entityManager.find(PlanEntity.class, model.getPlanId(), true);
         if (data == null) throw new MyNotFoundException(this.messageSource.getMessage("General_ItemNotFound", new Object[]{model.getId(), Plan.class.getSimpleName()}, LocaleContextHolder.getLocale()));
 
+        if (data.getIsActive().equals(IsActive.Inactive)) throw new MyApplicationException("Plan is not Active");
         List<PlanUserEntity> existingUsers = this.queryFactory.query(PlanUserQuery.class)
             .planIds(model.getPlanId()).ids(model.getId()).userRoles(model.getRole())
             .collect();
@@ -1309,10 +1338,15 @@ public class PlanServiceImpl implements PlanService {
         if (isUpdate) {
             data = this.entityManager.find(PlanEntity.class, model.getId());
             if (data == null) throw new MyNotFoundException(this.messageSource.getMessage("General_ItemNotFound", new Object[]{model.getId(), Plan.class.getSimpleName()}, LocaleContextHolder.getLocale()));
+            if (this.lockService.isLocked(data.getId(), null).getStatus()) throw new MyApplicationException(this.errors.getLockedPlan().getCode(), this.errors.getLockedPlan().getMessage());
             if (!this.conventionService.hashValue(data.getUpdatedAt()).equals(model.getHash())) throw new MyValidationException(this.errors.getHashConflict().getCode(), this.errors.getHashConflict().getMessage());
-            if (model.getStatus() != null && model.getStatus() == PlanStatus.Finalized && data.getStatus() != PlanStatus.Finalized) {
+            PlanStatusEntity oldPlanStatusEntity = this.entityManager.find(PlanStatusEntity.class, data.getStatusId(), true);
+            if (oldPlanStatusEntity == null) throw new MyNotFoundException(this.messageSource.getMessage("General_ItemNotFound", new Object[]{data.getStatusId(), PlanStatusEntity.class.getSimpleName()}, LocaleContextHolder.getLocale()));
+            PlanStatusEntity newPlanStatusEntity = this.entityManager.find(PlanStatusEntity.class, model.getStatusId(), true);
+            if (newPlanStatusEntity == null) throw new MyNotFoundException(this.messageSource.getMessage("General_ItemNotFound", new Object[]{data.getStatusId(), PlanStatusEntity.class.getSimpleName()}, LocaleContextHolder.getLocale()));
+            if (newPlanStatusEntity.getInternalStatus() != null && newPlanStatusEntity.getInternalStatus().equals(PlanStatus.Finalized) && oldPlanStatusEntity.getInternalStatus() != null && oldPlanStatusEntity.getInternalStatus().equals(PlanStatus.Finalized)) {
                 this.authorizationService.authorizeAtLeastOneForce(List.of(this.authorizationContentResolver.planAffiliation(model.getId())), Permission.FinalizePlan);
-                data.setStatus(model.getStatus());
+                data.setStatusId(model.getStatusId());
                 data.setFinalizedAt(Instant.now());
             }
         } else {
@@ -1320,14 +1354,14 @@ public class PlanServiceImpl implements PlanService {
             data.setId(UUID.randomUUID());
             data.setGroupId(UUID.randomUUID());
             data.setVersion((short) 1);
-            data.setStatus(PlanStatus.Draft);
+            data.setStatusId(this.planWorkflowService.getActiveWorkFlowDefinition().getStartingStatusId());
             data.setVersionStatus(PlanVersionStatus.NotFinalized);
             data.setCreatorId(this.userScope.getUserId());
             data.setBlueprintId(model.getBlueprint());
             data.setIsActive(IsActive.Active);
             data.setCreatedAt(Instant.now());
         }
-        PlanStatus previousStatus = data.getStatus();
+//        PlanStatus previousStatus = data.getStatus();
 
         PlanBlueprintEntity planBlueprintEntity = this.entityManager.find(PlanBlueprintEntity.class, model.getBlueprint(), true);
         if (planBlueprintEntity == null) throw new MyNotFoundException(this.messageSource.getMessage("General_ItemNotFound", new Object[]{model.getBlueprint(), PlanBlueprint.class.getSimpleName()}, LocaleContextHolder.getLocale()));
@@ -1349,7 +1383,7 @@ public class PlanServiceImpl implements PlanService {
 
         this.entityManager.flush();
 
-        this.updateVersionStatusAndSave(data, previousStatus, data.getStatus());
+//        this.updateVersionStatusAndSave(data, previousStatus, data.getStatus());
 
         this.entityManager.flush();
 
@@ -1575,51 +1609,95 @@ public class PlanServiceImpl implements PlanService {
         return data;
     }
 
-    public void finalize(UUID id, List<UUID> descriptionIds) throws MyForbiddenException, MyValidationException, MyApplicationException, MyNotFoundException, InvalidApplicationException, IOException {
-        this.authorizationService.authorizeAtLeastOneForce(List.of(this.authorizationContentResolver.planAffiliation(id)), Permission.FinalizePlan);
+    public void setStatus(UUID id, UUID newStatusId, List<UUID> descriptionIds) throws InvalidApplicationException, IOException {
         PlanEntity plan = this.queryFactory.query(PlanQuery.class).authorize(AuthorizationFlags.AllExceptPublic).ids(id).isActive(IsActive.Active).first();
+        if (plan == null) throw new MyNotFoundException(this.messageSource.getMessage("General_ItemNotFound", new Object[]{id, Plan.class.getSimpleName()}, LocaleContextHolder.getLocale()));
 
-        if (plan == null){
-            throw new MyNotFoundException(this.messageSource.getMessage("General_ItemNotFound", new Object[]{id, Plan.class.getSimpleName()}, LocaleContextHolder.getLocale()));
+        this.authorizationService.authorizeAtLeastOneForce(List.of(this.authorizationContentResolver.planAffiliation(id)), Permission.EditPlan, this.customPolicyService.getPlanStatusCanEditStatusPermission(newStatusId));
+
+        if (this.lockService.isLocked(plan.getId(), null).getStatus()) throw new MyApplicationException(this.errors.getLockedPlan().getCode(), this.errors.getLockedPlan().getMessage());
+
+        List<DescriptionEntity> descriptions = this.queryFactory.query(DescriptionQuery.class).authorize(AuthorizationFlags.AllExceptPublic).planIds(plan.getId()).isActive(IsActive.Active).collectAs(new BaseFieldSet().ensure(Description._id).ensure(Description._label));
+        if (descriptions == null) throw new MyApplicationException("Descriptions not found ");
+        for (DescriptionEntity description: descriptions)
+            if (this.lockService.isLocked(description.getId(), null).getStatus()) throw new MyApplicationException(this.errors.getLockedDescription().getCode(), description.getLabel());
+
+        EntityDoiQuery entityDoiQuery = this.queryFactory.query(EntityDoiQuery.class).types(EntityType.Plan).entityIds(plan.getId()).isActive(IsActive.Active);
+        if (entityDoiQuery.count() > 0) throw new MyApplicationException("Plan is deposited");
+
+        if (plan.getStatusId().equals(newStatusId)) throw new MyApplicationException("Old status equals with new");
+
+        PlanStatusEntity oldPlanStatusEntity = this.entityManager.find(PlanStatusEntity.class, plan.getStatusId(), true);
+        if (oldPlanStatusEntity == null) throw new MyNotFoundException(this.messageSource.getMessage("General_ItemNotFound", new Object[]{plan.getStatusId(), PlanStatusEntity.class.getSimpleName()}, LocaleContextHolder.getLocale()));
+
+        PlanStatusEntity newPlanStatusEntity = this.entityManager.find(PlanStatusEntity.class, newStatusId, true);
+        if (newPlanStatusEntity == null) throw new MyNotFoundException(this.messageSource.getMessage("General_ItemNotFound", new Object[]{newStatusId, PlanStatusEntity.class.getSimpleName()}, LocaleContextHolder.getLocale()));
+
+        if (oldPlanStatusEntity.getInternalStatus() != null && oldPlanStatusEntity.getInternalStatus().equals(PlanStatus.Finalized)) {
+            this.undoFinalize(plan, oldPlanStatusEntity, newPlanStatusEntity);
+        } else if (newPlanStatusEntity.getInternalStatus() != null && newPlanStatusEntity.getInternalStatus().equals(PlanStatus.Finalized)) {
+            this.finalize(plan, descriptionIds ,oldPlanStatusEntity, newPlanStatusEntity);
+        } else {
+            plan.setStatusId(newPlanStatusEntity.getId());
+            plan.setUpdatedAt(Instant.now());
+
+            this.entityManager.merge(plan);
+            this.entityManager.flush();
+            this.sendNotification(plan);
         }
+    }
 
-        if (plan.getStatus().equals(PlanStatus.Finalized)){
+    private void finalize(PlanEntity plan, List<UUID> descriptionIds, PlanStatusEntity oldPlanStatusEntity, PlanStatusEntity newPlanStatusEntity) throws MyForbiddenException, MyValidationException, MyApplicationException, MyNotFoundException, InvalidApplicationException, IOException {
+        this.authorizationService.authorizeAtLeastOneForce(List.of(this.authorizationContentResolver.planAffiliation(plan.getId())), Permission.FinalizePlan, this.customPolicyService.getPlanStatusCanEditStatusPermission(newPlanStatusEntity.getId()));
+
+        if (oldPlanStatusEntity.getInternalStatus() != null && oldPlanStatusEntity.getInternalStatus().equals(PlanStatus.Finalized)){
             throw new MyApplicationException("Plan is already finalized");
         }
 
-        if (this.validate(id).getResult().equals(PlanValidationOutput.Invalid)){
+        if (this.validate(plan.getId()).getResult().equals(PlanValidationOutput.Invalid)){
             throw new MyApplicationException("Plan is invalid");
         }
 
         List<DescriptionEntity> descriptions = this.queryFactory.query(DescriptionQuery.class)
-                .authorize(AuthorizationFlags.AllExceptPublic).planIds(id).isActive(IsActive.Active).collect();
+                .authorize(AuthorizationFlags.AllExceptPublic).planIds(plan.getId()).isActive(IsActive.Active).collect();
 
-        for (DescriptionEntity description: descriptions) {
-            if (descriptionIds.contains(description.getId())){
-                // description to be finalized
-                if (description.getStatus().equals(DescriptionStatus.Finalized)){
-                    throw new MyApplicationException("Description is already finalized");
-                 }
-                if (this.descriptionService.validate(List.of(description.getId())).getFirst().getResult().equals(DescriptionValidationOutput.Invalid)){
-                    throw new MyApplicationException("Description is invalid");
+        if (!this.conventionService.isListNullOrEmpty(descriptions)) {
+            List<DescriptionStatusEntity> statusEntities = this.queryFactory.query(DescriptionStatusQuery.class).authorize(AuthorizationFlags.AllExceptPublic).ids(descriptions.stream().map(DescriptionEntity::getStatusId).distinct().toList()).isActive(IsActive.Active).collect();
+
+            if (this.conventionService.isListNullOrEmpty(statusEntities)) throw new MyApplicationException("Not found description statuses");
+            DescriptionStatusEntity descriptionFinalizedStatusEntity = this.findDescriptionStatus(DescriptionStatus.Finalized);
+            if (descriptionFinalizedStatusEntity == null) throw new MyApplicationException("finalized status not found");
+
+            DescriptionStatusEntity canceledStatusEntity = this.findDescriptionStatus(DescriptionStatus.Canceled);
+            if (canceledStatusEntity == null) throw new MyApplicationException("canceled status not found");
+
+            for (DescriptionEntity description: descriptions) {
+                DescriptionStatusEntity currentStatusEntity = statusEntities.stream().filter(x -> x.getId().equals(description.getStatusId())).findFirst().orElse(null);
+                if (descriptionIds.contains(description.getId())){
+                    // description to be finalized
+                    if (currentStatusEntity != null && currentStatusEntity.getInternalStatus()!= null && currentStatusEntity.getInternalStatus().equals(DescriptionStatus.Finalized)){
+                        throw new MyApplicationException("Description is already finalized");
+                     }
+                    if (this.descriptionService.validate(List.of(description.getId())).getFirst().getResult().equals(DescriptionValidationOutput.Invalid)){
+                        throw new MyApplicationException("Description is invalid");
+                    }
+                    description.setStatusId(descriptionFinalizedStatusEntity.getId());
+                    description.setUpdatedAt(Instant.now());
+                    description.setFinalizedAt(Instant.now());
+                    this.entityManager.merge(description);
+                } else if (currentStatusEntity != null && currentStatusEntity.getInternalStatus()!= null && !currentStatusEntity.getInternalStatus().equals(DescriptionStatus.Finalized)) {
+                    // description to be canceled
+                    description.setStatusId(canceledStatusEntity.getId());
+                    this.deleterFactory.deleter(DescriptionDeleter.class).delete(List.of(description), false);
                 }
-                description.setStatus(DescriptionStatus.Finalized);
-                description.setUpdatedAt(Instant.now());
-                description.setFinalizedAt(Instant.now());
-                this.entityManager.merge(description);
-            } else if (description.getStatus().equals(DescriptionStatus.Draft)) {
-                // description to be canceled
-                description.setStatus(DescriptionStatus.Canceled);
-                this.deleterFactory.deleter(DescriptionDeleter.class).delete(List.of(description), true);
             }
         }
-        
-        PlanStatus previousStatus = plan.getStatus();
-        plan.setStatus(PlanStatus.Finalized);
+
+        plan.setStatusId(newPlanStatusEntity.getId());
         plan.setUpdatedAt(Instant.now());
         plan.setFinalizedAt(Instant.now());
 
-        this.updateVersionStatusAndSave(plan, previousStatus, plan.getStatus());
+        this.updateVersionStatusAndSave(plan, oldPlanStatusEntity.getInternalStatus(), newPlanStatusEntity.getInternalStatus());
         plan.setVersionStatus(PlanVersionStatus.Current);
 
         this.entityManager.merge(plan);
@@ -1631,24 +1709,40 @@ public class PlanServiceImpl implements PlanService {
         this.sendNotification(plan);
     }
 
-    public void undoFinalize(UUID id, FieldSet fields) throws MyForbiddenException, MyValidationException, MyApplicationException, MyNotFoundException, InvalidApplicationException {
-        this.authorizationService.authorizeAtLeastOneForce(List.of(this.authorizationContentResolver.planAffiliation(id)), Permission.UndoFinalizePlan);
-        PlanEntity plan = this.queryFactory.query(PlanQuery.class).authorize(AuthorizationFlags.AllExceptPublic).ids(id).isActive(IsActive.Active).firstAs(fields);
+    private DescriptionStatusEntity findDescriptionStatus(DescriptionStatus internalStatus){
+        DescriptionStatusEntity status;
 
-        if (plan == null) throw new MyNotFoundException(this.messageSource.getMessage("General_ItemNotFound", new Object[]{id, Plan.class.getSimpleName()}, LocaleContextHolder.getLocale()));
+        DescriptionStatusQuery descriptionStatusQuery = this.queryFactory.query(DescriptionStatusQuery.class).disableTracking().internalStatuses(internalStatus).isActive(IsActive.Active);
+        descriptionStatusQuery.setOrder(new Ordering().addAscending(org.opencdmp.model.descriptionstatus.DescriptionStatus._ordinal));
+        List<DescriptionStatusEntity> descriptionStatusEntities = descriptionStatusQuery.collectAs(new BaseFieldSet().ensure(org.opencdmp.model.descriptionstatus.DescriptionStatus._id).ensure(org.opencdmp.model.descriptionstatus.DescriptionStatus._belongsToCurrentTenant).ensure(org.opencdmp.model.descriptionstatus.DescriptionStatus._ordinal));
+        if (this.conventionService.isListNullOrEmpty(descriptionStatusEntities)) throw new MyApplicationException("status not found");
+        if (!this.tenantScope.isDefaultTenant()) {
+            status = descriptionStatusEntities.stream().filter(x -> {
+                try {
+                    return this.tenantScope.getTenant().equals(x.getTenantId());
+                } catch (InvalidApplicationException e) {
+                    throw new RuntimeException(e);
+                }
+            }).findFirst().orElse(null);
+            if (status == null) status = descriptionStatusEntities.getFirst();
+        } else {
+            status = descriptionStatusEntities.getFirst();
+        }
+        return status;
+    }
 
-        if (!plan.getStatus().equals(PlanStatus.Finalized)) throw new MyApplicationException("Plan is already drafted");
+    private void undoFinalize(PlanEntity plan, PlanStatusEntity oldPlanStatusEntity, PlanStatusEntity newPlanStatusEntity) throws MyForbiddenException, MyValidationException, MyApplicationException, MyNotFoundException, InvalidApplicationException {
+        this.authorizationService.authorizeAtLeastOneForce(List.of(this.authorizationContentResolver.planAffiliation(plan.getId())), Permission.UndoFinalizePlan, this.customPolicyService.getPlanStatusCanEditStatusPermission(newPlanStatusEntity.getId()));
 
-        EntityDoiQuery entityDoiQuery = this.queryFactory.query(EntityDoiQuery.class).types(EntityType.Plan).entityIds(plan.getId()).isActive(IsActive.Active);
-        if (entityDoiQuery.count() > 0) throw new MyApplicationException("Plan is deposited");
+        if (oldPlanStatusEntity.getInternalStatus() == null && !oldPlanStatusEntity.getInternalStatus().equals(PlanStatus.Finalized)) throw new MyApplicationException("Plan is already non finalized");
 
-        plan.setStatus(PlanStatus.Draft);
+        plan.setStatusId(newPlanStatusEntity.getId());
         plan.setUpdatedAt(Instant.now());
 
         this.entityManager.merge(plan);
         this.entityManager.flush();
 
-        this.updateVersionStatusAndSave(plan, PlanStatus.Finalized, plan.getStatus());
+        this.updateVersionStatusAndSave(plan, PlanStatus.Finalized, newPlanStatusEntity.getInternalStatus());
         this.entityManager.flush();
 
         PlanQuery planQuery = this.queryFactory.query(PlanQuery.class).disableTracking()
@@ -1660,7 +1754,10 @@ public class PlanServiceImpl implements PlanService {
         planQuery.setOrder(new Ordering().addDescending(Plan._version));
         PlanEntity previousPlan = planQuery.count() > 0 ? planQuery.collect().getFirst() : null;
         if (previousPlan != null){
-            if (previousPlan.getStatus().equals(PlanStatus.Finalized)) previousPlan.setVersionStatus(PlanVersionStatus.Current);
+            PlanStatusEntity previousPlanStatusEntity = this.entityManager.find(PlanStatusEntity.class, previousPlan.getStatusId(), true);
+            if (previousPlanStatusEntity == null) throw new MyNotFoundException(this.messageSource.getMessage("General_ItemNotFound", new Object[]{previousPlan.getStatusId(), PlanStatusEntity.class.getSimpleName()}, LocaleContextHolder.getLocale()));
+
+            if (previousPlanStatusEntity.getInternalStatus() != null && previousPlanStatusEntity.getInternalStatus().equals(PlanStatus.Finalized)) previousPlan.setVersionStatus(PlanVersionStatus.Current);
             else previousPlan.setVersionStatus(PlanVersionStatus.NotFinalized);
             this.entityManager.merge(previousPlan);
         }
@@ -1698,7 +1795,10 @@ public class PlanServiceImpl implements PlanService {
         persist.setId(data.getId());
         persist.setHash(data.getId().toString());
         persist.setLabel(data.getLabel());
-        persist.setStatus(PlanStatus.Finalized);
+        PlanStatusQuery planStatusQuery = this.queryFactory.query(PlanStatusQuery.class).disableTracking().internalStatuses(PlanStatus.Finalized).isActives(IsActive.Active);
+        planStatusQuery.setOrder(new Ordering().addAscending(org.opencdmp.model.planstatus.PlanStatus._ordinal));
+        PlanStatusEntity statusEntity = planStatusQuery.firstAs(new BaseFieldSet().ensure(org.opencdmp.model.planstatus.PlanStatus._id));
+        if (statusEntity != null) persist.setStatusId(statusEntity.getId());
         persist.setDescription(data.getDescription());
         persist.setBlueprint(data.getBlueprintId());
         persist.setAccessType(data.getAccessType());
@@ -2041,7 +2141,8 @@ public class PlanServiceImpl implements PlanService {
         } else {
             try {
                 this.entityManager.disableTenantFilters();
-                data = this.queryFactory.query(PlanQuery.class).disableTracking().authorize(EnumSet.of(Public)).ids(id).isActive(IsActive.Active).statuses(PlanStatus.Finalized).accessTypes(PlanAccessType.Public).first();
+                PlanStatusQuery statusQuery = this.queryFactory.query(PlanStatusQuery.class).disableTracking().internalStatuses(PlanStatus.Finalized).isActives(IsActive.Active);
+                data = this.queryFactory.query(PlanQuery.class).disableTracking().authorize(EnumSet.of(Public)).ids(id).isActive(IsActive.Active).planStatusSubQuery(statusQuery).accessTypes(PlanAccessType.Public).first();
                 this.entityManager.reloadTenantFilters();
             } finally {
                 this.entityManager.reloadTenantFilters();
@@ -2075,7 +2176,8 @@ public class PlanServiceImpl implements PlanService {
         PlanEntity data = null;
         try {
             this.entityManager.disableTenantFilters();
-            data = this.queryFactory.query(PlanQuery.class).disableTracking().authorize(EnumSet.of(Public)).ids(id).isActive(IsActive.Active).statuses(PlanStatus.Finalized).accessTypes(PlanAccessType.Public).first();
+            PlanStatusQuery statusQuery = this.queryFactory.query(PlanStatusQuery.class).disableTracking().internalStatuses(PlanStatus.Finalized).isActives(IsActive.Active);
+            data = this.queryFactory.query(PlanQuery.class).disableTracking().authorize(EnumSet.of(Public)).ids(id).isActive(IsActive.Active).planStatusSubQuery(statusQuery).accessTypes(PlanAccessType.Public).first();
             this.entityManager.reloadTenantFilters();
         } finally {
             this.entityManager.reloadTenantFilters();
@@ -2098,6 +2200,7 @@ public class PlanServiceImpl implements PlanService {
         xml.setTitle(data.getLabel());
         xml.setLanguage(data.getLanguage());
         xml.setAccess(data.getAccessType());
+        xml.setStatus(this.planStatusImportExportToExport(data.getStatusId()));
         xml.setFinalizedAt(data.getFinalizedAt());
         xml.setPublicAfter(data.getPublicAfter());
         xml.setVersion(data.getVersion());
@@ -2109,6 +2212,17 @@ public class PlanServiceImpl implements PlanService {
         xml.setReferences(this.planReferencesToExport(data));
         xml.setDescriptions(this.descriptionsToExport(data, isPublic));
         
+        return xml;
+    }
+
+    private PlanStatusImportExport planStatusImportExportToExport(UUID statusId) throws InvalidApplicationException {
+        PlanStatusImportExport xml = new PlanStatusImportExport();
+        if (statusId == null) return xml;
+        PlanStatusEntity planStatusEntity = this.entityManager.find(PlanStatusEntity.class, statusId, true);
+        if (planStatusEntity == null) throw new MyNotFoundException(this.messageSource.getMessage("General_ItemNotFound", new Object[]{statusId, PlanStatusEntity.class.getSimpleName()}, LocaleContextHolder.getLocale()));
+
+        xml.setId(planStatusEntity.getId());
+        xml.setName(planStatusEntity.getName());
         return xml;
     }
     
@@ -2305,11 +2419,22 @@ public class PlanServiceImpl implements PlanService {
         logger.debug(new MapLogEntry("import data").And("bytes", bytes).And("label", label).And("fields", fields));
 
         this.authorizationService.authorizeForce(Permission.NewPlan);
-        PlanImportExport planXml = this.xmlHandlingService.fromXml(PlanImportExport.class, new String(bytes, StandardCharsets.UTF_8));
 
+        PlanImportExport planXml;
+        try {
+            planXml = this.xmlHandlingService.fromXml(PlanImportExport.class, new String(bytes, StandardCharsets.UTF_8));
+        } catch (Exception e) {
+            logger.warn("Plan import xml failed. Input: " + new String(bytes, StandardCharsets.UTF_8));
+            throw new MyApplicationException(this.errors.getInvalidPlanImportXml().getCode(), this.errors.getInvalidPlanImportXml().getMessage());
+        }
+
+        if (planXml == null) {
+            logger.warn("Plan import xml failed. Input: " + new String(bytes, StandardCharsets.UTF_8));
+            throw new MyApplicationException(this.errors.getInvalidPlanImportXml().getCode(), this.errors.getInvalidPlanImportXml().getMessage());
+        }
+        
         PlanPersist persist = new PlanPersist();
         persist.setLabel(label);
-        persist.setStatus(PlanStatus.Draft);
         persist.setDescription(planXml.getDescription());
         persist.setAccessType(planXml.getAccess());
         persist.setLanguage(planXml.getLanguage());
@@ -2506,7 +2631,7 @@ public class PlanServiceImpl implements PlanService {
                 List<SectionEntity> sections = definition.getSections().stream().filter(SectionEntity::getHasTemplates).collect(Collectors.toList());
                 for (SectionEntity section: sections) {
                     if (section.getHasTemplates() && !this.conventionService.isListNullOrEmpty(section.getDescriptionTemplates())){
-                        for (DescriptionTemplateEntity descriptionTemplateEntity: section.getDescriptionTemplates()){
+                        for (BlueprintDescriptionTemplateEntity descriptionTemplateEntity: section.getDescriptionTemplates()){
                             if (descriptionTemplates.stream().filter(x -> x.getDescriptionTemplateGroupId().equals(descriptionTemplateEntity.getDescriptionTemplateGroupId()) && x.getSectionId().equals(section.getId())).findFirst().orElse(null) == null) {
                                 PlanDescriptionTemplateImportExport model = new PlanDescriptionTemplateImportExport();
                                 model.setDescriptionTemplateGroupId(descriptionTemplateEntity.getDescriptionTemplateGroupId());
@@ -2529,13 +2654,13 @@ public class PlanServiceImpl implements PlanService {
 
         PlanDescriptionTemplatePersist persist = new PlanDescriptionTemplatePersist();
 
-        org.opencdmp.data.DescriptionTemplateEntity data = importXml.getDescriptionTemplateGroupId() != null ? this.queryFactory.query(DescriptionTemplateQuery.class).disableTracking().groupIds(importXml.getDescriptionTemplateGroupId()).isActive(IsActive.Active).disableTracking().firstAs(new BaseFieldSet().ensure(DescriptionTemplate._groupId).ensure(DescriptionTemplate._status).ensure(DescriptionTemplate._code)) : null;
+        org.opencdmp.data.DescriptionTemplateEntity data = importXml.getDescriptionTemplateGroupId() != null ? this.queryFactory.query(DescriptionTemplateQuery.class).disableTracking().versionStatuses(DescriptionTemplateVersionStatus.Current).groupIds(importXml.getDescriptionTemplateGroupId()).isActive(IsActive.Active).disableTracking().firstAs(new BaseFieldSet().ensure(DescriptionTemplate._groupId).ensure(DescriptionTemplate._status).ensure(DescriptionTemplate._code)) : null;
         if (data != null ) {
             if (!data.getStatus().equals(DescriptionTemplateStatus.Finalized)) throw new MyValidationException(this.errors.getPlanDescriptionTemplateImportDraft().getCode(), data.getCode());
             persist.setDescriptionTemplateGroupId(importXml.getDescriptionTemplateGroupId());
         } else {
             if (!this.conventionService.isNullOrEmpty(importXml.getDescriptionTemplateCode())) {
-                data = this.queryFactory.query(DescriptionTemplateQuery.class).disableTracking().codes(importXml.getDescriptionTemplateCode()).isActive(IsActive.Active).disableTracking().firstAs(new BaseFieldSet().ensure(DescriptionTemplate._code).ensure(DescriptionTemplate._groupId).ensure(DescriptionTemplate._status));
+                data = this.queryFactory.query(DescriptionTemplateQuery.class).disableTracking().codes(importXml.getDescriptionTemplateCode()).isActive(IsActive.Active).versionStatuses(DescriptionTemplateVersionStatus.Current).disableTracking().firstAs(new BaseFieldSet().ensure(DescriptionTemplate._code).ensure(DescriptionTemplate._groupId).ensure(DescriptionTemplate._status));
                 if (data != null) {
                     if (!data.getStatus().equals(DescriptionTemplateStatus.Finalized)) throw new MyValidationException(this.errors.getPlanDescriptionTemplateImportDraft().getCode(), data.getCode());
                     persist.setDescriptionTemplateGroupId(data.getGroupId());
@@ -2580,7 +2705,6 @@ public class PlanServiceImpl implements PlanService {
         PlanPersist persist = new PlanPersist();
 
         persist.setLabel(planCommonModelConfig.getLabel());
-        persist.setStatus(PlanStatus.Draft);
         persist.setDescription(model.getDescription());
         switch (model.getAccessType()) {
             case Public -> persist.setAccessType(PlanAccessType.Public);
@@ -2631,7 +2755,7 @@ public class PlanServiceImpl implements PlanService {
                 List<SectionEntity> sections = definition.getSections().stream().filter(SectionEntity::getHasTemplates).collect(Collectors.toList());
                 for (SectionEntity section: sections) {
                     if (section.getHasTemplates() && !this.conventionService.isListNullOrEmpty(section.getDescriptionTemplates())){
-                        for (DescriptionTemplateEntity descriptionTemplateEntity: section.getDescriptionTemplates()){
+                        for (BlueprintDescriptionTemplateEntity descriptionTemplateEntity: section.getDescriptionTemplates()){
                             if (descriptionTemplates.stream().filter(x -> x.getDescriptionTemplateGroupId().equals(descriptionTemplateEntity.getDescriptionTemplateGroupId()) && x.getSectionId().equals(section.getId())).findFirst().orElse(null) == null) {
                                 PlanDescriptionTemplateModel model = new PlanDescriptionTemplateModel();
                                 model.setDescriptionTemplateGroupId(descriptionTemplateEntity.getDescriptionTemplateGroupId());

@@ -10,6 +10,8 @@ import org.opencdmp.data.*;
 import org.opencdmp.elastic.data.PlanElasticEntity;
 import org.opencdmp.elastic.data.nested.*;
 import org.opencdmp.elastic.elasticbuilder.nested.*;
+import org.opencdmp.model.PlanDescriptionTemplate;
+import org.opencdmp.model.descriptiontemplate.DescriptionTemplate;
 import org.opencdmp.model.planreference.PlanReference;
 import org.opencdmp.query.*;
 import org.slf4j.LoggerFactory;
@@ -46,7 +48,8 @@ public class PlanElasticBuilder extends BaseElasticBuilder<PlanElasticEntity, Pl
         Map<UUID, List<NestedCollaboratorElasticEntity>> collaboratorElasticEntityMap = this.collectCollaborators(data);
         Map<UUID, List<NestedDoiElasticEntity>> doiElasticEntityMap = this.collectDois(data);
         Map<UUID, List<NestedPlanDescriptionTemplateElasticEntity>> planDescriptionTemplateElasticEntityMap = this.collectPlanDescriptionTemplates(data);
-        
+        Map<UUID, NestedPlanStatusElasticEntity> planStatusElasticEntityMap = this.collectPlanStatus(data);
+
         List<PlanElasticEntity> models = new ArrayList<>();
         for (PlanEntity d : data) {
             PlanElasticEntity m = new PlanElasticEntity();
@@ -55,7 +58,6 @@ public class PlanElasticBuilder extends BaseElasticBuilder<PlanElasticEntity, Pl
             m.setDescription(d.getDescription());
             m.setVersion(d.getVersion());
             m.setVersionStatus(d.getVersionStatus());
-            m.setStatus(d.getStatus());
             m.setAccessType(d.getAccessType());
             m.setLanguage(d.getLanguage());
             m.setBlueprintId(d.getBlueprintId());
@@ -74,6 +76,7 @@ public class PlanElasticBuilder extends BaseElasticBuilder<PlanElasticEntity, Pl
             if (planDescriptionTemplateElasticEntityMap != null) m.setPlanDescriptionTemplates(planDescriptionTemplateElasticEntityMap.getOrDefault(d.getId(), null));
             if (collaboratorElasticEntityMap != null) m.setCollaborators(collaboratorElasticEntityMap.getOrDefault(d.getId(), null));
             if (doiElasticEntityMap != null) m.setDois(doiElasticEntityMap.getOrDefault(d.getId(), null));
+            if (planStatusElasticEntityMap != null) m.setPlanStatus(planStatusElasticEntityMap.getOrDefault(d.getStatusId(), null));
             models.add(m);
         }
         this.logger.debug("build {} items", Optional.of(models).map(List::size).orElse(0));
@@ -159,6 +162,18 @@ public class PlanElasticBuilder extends BaseElasticBuilder<PlanElasticEntity, Pl
             NestedDoiElasticEntity item = itemMapById.getOrDefault(associationEntity.getId(), null);
             if (item != null) itemMap.get(associationEntity.getEntityId()).add(item);
         }
+        return itemMap;
+    }
+
+    private Map<UUID, NestedPlanStatusElasticEntity> collectPlanStatus(List<PlanEntity> data) throws MyApplicationException {
+        if (data.isEmpty())
+            return null;
+        this.logger.debug("checking related - {}", PlanDescriptionTemplate.class.getSimpleName());
+
+        Map<UUID, NestedPlanStatusElasticEntity> itemMap;
+        PlanStatusQuery q = this.queryFactory.query(PlanStatusQuery.class).disableTracking().isActives(IsActive.Active).ids(data.stream().map(PlanEntity::getStatusId).distinct().collect(Collectors.toList()));
+        itemMap = this.builderFactory.builder(NestedPlanStatusElasticBuilder.class).asForeignKey(q, NestedPlanStatusElasticEntity::getId);
+
         return itemMap;
     }
 }

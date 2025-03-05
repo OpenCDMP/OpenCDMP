@@ -28,8 +28,9 @@ import { nameof } from 'ts-simple-nameof';
 import { AppPermission } from '@app/core/common/enum/permission.enum';
 
 @Component({
-	templateUrl: './reference-listing.component.html',
-	styleUrls: ['./reference-listing.component.scss']
+    templateUrl: './reference-listing.component.html',
+    styleUrls: ['./reference-listing.component.scss'],
+    standalone: false
 })
 export class ReferenceListingComponent extends BaseListingComponent<Reference, ReferenceLookup> implements OnInit {
 	publish = false;
@@ -141,7 +142,7 @@ export class ReferenceListingComponent extends BaseListingComponent<Reference, R
 		},
 		{
 			prop: nameof<Reference>(x => x.isActive),
-			sortable: true,
+			sortable: false,
 			languageName: 'REFERENCE-LISTING.FIELDS.IS-ACTIVE',
 			pipe: this.pipeService.getPipe<IsActiveTypePipe>(IsActiveTypePipe)
 		},

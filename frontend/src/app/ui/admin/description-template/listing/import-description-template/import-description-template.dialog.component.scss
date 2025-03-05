@@ -32,7 +32,7 @@
 	white-space: nowrap;
 	overflow: hidden;
 	text-overflow: ellipsis;
-	font-size: 14px !important;
+	font-size: var(--sys-title-small-size) !important;
 }
 
 ::ng-deep ngx-dropzone-remove-badge {

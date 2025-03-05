@@ -2,7 +2,8 @@
 import { Directive, ElementRef, HostListener, OnInit } from '@angular/core';
 
 @Directive({
-	selector: '[appTextareaAutoresize]'
+    selector: '[appTextareaAutoresize]',
+    standalone: false
 })
 export class TextareaAutoresizeDirective implements OnInit {
 

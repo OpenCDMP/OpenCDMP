@@ -29,8 +29,9 @@ import { AppPermission } from '@app/core/common/enum/permission.enum';
 import { TenantUserLookup } from '@app/core/query/tenant-user.lookup';
 
 @Component({
-	templateUrl: './user-listing.component.html',
-	styleUrls: ['./user-listing.component.scss']
+    templateUrl: './user-listing.component.html',
+    styleUrls: ['./user-listing.component.scss'],
+    standalone: false
 })
 export class UserListingComponent extends BaseListingComponent<User, UserLookup> implements OnInit {
 	publish = false;
@@ -140,7 +141,7 @@ export class UserListingComponent extends BaseListingComponent<User, UserLookup>
 		},
 		{
 			prop: nameof<User>(x => x.isActive),
-			sortable: true,
+			sortable: false,
 			languageName: 'USER-LISTING.FIELDS.IS-ACTIVE',
 			pipe: this.pipeService.getPipe<IsActiveTypePipe>(IsActiveTypePipe)
 		},
@@ -240,7 +241,6 @@ export class UserListingComponent extends BaseListingComponent<User, UserLookup>
 
 	invite() {
 		const dialogRef = this.dialog.open(UserInviteToTenantDialogComponent, {
-			autoFocus: false,
 			restoreFocus: false,
 		});
 	}

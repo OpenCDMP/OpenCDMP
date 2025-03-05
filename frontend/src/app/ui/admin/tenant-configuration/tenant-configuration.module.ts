@@ -22,6 +22,9 @@ import { NgxColorsModule } from 'ngx-colors';
 import { NotifierListModule } from '@notification-service/ui/admin/tenant-configuration/notifier-list/notifier-list-editor.module';
 import { PlanWorkflowEditorComponent } from './editor/plan-workflow/plan-workflow-editor/plan-workflow-editor.component';
 import { DescriptionWorkflowEditorComponent } from './editor/description-workflow/description-workflow-editor/description-workflow-editor.component';
+import { EvaluatorEditorComponent } from './editor/evaluator/evaluator-editor.component';
+import { FeaturedEntitiesEditorComponent } from './editor/featured-entities/featured-entities-editor.component';
+import { DefaultPlanBlueprintEditorComponent } from './editor/default-plan-blueprint/default-plan-blueprint-editor.component';
 
 @NgModule({
 	imports: [
@@ -49,7 +52,10 @@ import { DescriptionWorkflowEditorComponent } from './editor/description-workflo
 		FileTransformerEditorComponent,
 		LogoEditorComponent,
         PlanWorkflowEditorComponent,
-        DescriptionWorkflowEditorComponent
+        DescriptionWorkflowEditorComponent,
+		EvaluatorEditorComponent,
+		FeaturedEntitiesEditorComponent,
+		DefaultPlanBlueprintEditorComponent
 	]
 })
 export class TenantConfigurationModule { }

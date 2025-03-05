@@ -39,6 +39,8 @@ public class PlanBlueprintQuery extends QueryBase<PlanBlueprintEntity> {
 
     private Collection<UUID> groupIds;
 
+    private Collection<UUID> excludedGroupIds;
+
     private Collection<Short> versions;
 
     private Collection<String> codes;
@@ -79,6 +81,21 @@ public class PlanBlueprintQuery extends QueryBase<PlanBlueprintEntity> {
 
     public PlanBlueprintQuery excludedIds(UUID... value) {
         this.excludedIds = Arrays.asList(value);
+        return this;
+    }
+
+    public PlanBlueprintQuery excludedGroupIds(Collection<UUID> values) {
+        this.excludedGroupIds = values;
+        return this;
+    }
+
+    public PlanBlueprintQuery excludedGroupIds(UUID value) {
+        this.excludedGroupIds = List.of(value);
+        return this;
+    }
+
+    public PlanBlueprintQuery excludedGroupIds(UUID... value) {
+        this.excludedGroupIds = Arrays.asList(value);
         return this;
     }
 
@@ -208,7 +225,7 @@ public class PlanBlueprintQuery extends QueryBase<PlanBlueprintEntity> {
 
     @Override
     protected Boolean isFalseQuery() {
-        return this.isEmpty(this.ids) || this.isEmpty(this.isActives) || this.isEmpty(this.excludedIds) || this.isEmpty(this.statuses);
+        return this.isEmpty(this.ids) || this.isEmpty(this.isActives) || this.isEmpty(this.excludedIds) || this.isEmpty(this.statuses) || this.isEmpty(this.groupIds) || this.isEmpty(this.excludedGroupIds);
     }
 
     @Override
@@ -231,7 +248,8 @@ public class PlanBlueprintQuery extends QueryBase<PlanBlueprintEntity> {
 
         if (this.like != null && !this.like.isBlank()) {
             predicates.add(queryContext.CriteriaBuilder.or(this.queryUtilsService.ilike(queryContext.CriteriaBuilder, queryContext.Root.get(PlanBlueprintEntity._label), this.like),
-                    this.queryUtilsService.ilike(queryContext.CriteriaBuilder, queryContext.Root.get(PlanBlueprintEntity._code), this.like)
+                    this.queryUtilsService.ilike(queryContext.CriteriaBuilder, queryContext.Root.get(PlanBlueprintEntity._code), this.like),
+                    this.queryUtilsService.ilike(queryContext.CriteriaBuilder, queryContext.Root.get(PlanBlueprintEntity._description), this.like)
             ));
         }
 
@@ -254,6 +272,13 @@ public class PlanBlueprintQuery extends QueryBase<PlanBlueprintEntity> {
             for (UUID item : this.groupIds)
                 inClause.value(item);
             predicates.add(inClause);
+        }
+
+        if (this.excludedGroupIds != null) {
+            CriteriaBuilder.In<UUID> notInClause = queryContext.CriteriaBuilder.in(queryContext.Root.get(PlanBlueprintEntity._groupId));
+            for (UUID item : this.excludedGroupIds)
+                notInClause.value(item);
+            predicates.add(notInClause.not());
         }
 
         if (this.versions != null) {
@@ -300,6 +325,8 @@ public class PlanBlueprintQuery extends QueryBase<PlanBlueprintEntity> {
         item.setCreatedAt(QueryBase.convertSafe(tuple, columns, PlanBlueprintEntity._createdAt, Instant.class));
         item.setUpdatedAt(QueryBase.convertSafe(tuple, columns, PlanBlueprintEntity._updatedAt, Instant.class));
         item.setIsActive(QueryBase.convertSafe(tuple, columns, PlanBlueprintEntity._isActive, IsActive.class));
+        item.setDescription(QueryBase.convertSafe(tuple, columns, PlanBlueprintEntity._description, String.class));
+
         return item;
     }
 
@@ -333,6 +360,8 @@ public class PlanBlueprintQuery extends QueryBase<PlanBlueprintEntity> {
             return PlanBlueprintEntity._updatedAt;
         else if (item.match(PlanBlueprint._belongsToCurrentTenant))
             return PlanBlueprintEntity._tenantId;
+        else if (item.match(PlanBlueprint._description))
+            return PlanBlueprintEntity._description;
         else
             return null;
     }

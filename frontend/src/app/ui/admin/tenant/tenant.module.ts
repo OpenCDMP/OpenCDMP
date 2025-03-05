@@ -14,6 +14,7 @@ import { TenantEditorComponent } from './editor/tenant-editor.component';
 import { TenantListingComponent } from './listing/tenant-listing.component';
 import { TenantListingFiltersComponent } from "./listing/filters/tenant-listing-filters.component";
 import { RichTextEditorModule } from '@app/library/rich-text-editor/rich-text-editor.module';
+import { FormFocusDirective } from '@common/forms/form-focus.directive';
 
 @NgModule({
 	imports: [
@@ -28,7 +29,8 @@ import { RichTextEditorModule } from '@app/library/rich-text-editor/rich-text-ed
 		TextFilterModule,
 		UserSettingsModule,
 		CommonFormattingModule,
-		RichTextEditorModule
+		RichTextEditorModule,
+        FormFocusDirective
 	],
 	declarations: [
 		TenantEditorComponent,

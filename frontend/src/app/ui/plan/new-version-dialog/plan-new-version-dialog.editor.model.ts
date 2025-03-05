@@ -1,4 +1,5 @@
 import { UntypedFormBuilder, UntypedFormGroup, Validators } from "@angular/forms";
+import { IsActive } from "@app/core/common/enum/is-active.enum";
 import { PlanBlueprint } from "@app/core/model/plan-blueprint/plan-blueprint";
 import { Plan, NewVersionPlanDescriptionPersist, NewVersionPlanPersist } from "@app/core/model/plan/plan";
 import { BackendErrorValidator } from '@common/forms/validation/custom-validator';
@@ -34,14 +35,16 @@ export class PlanNewVersionDialogEditorModel implements NewVersionPlanPersist {
 
 				if (item.planDescriptionTemplates?.length > 0 && blueprint.id === item.blueprint.id) { // plan's first blueprint
 					item.descriptions.forEach(description => {
-						this.descriptions.push(new NewVersionPlanDescriptionEditorModel(this.validationErrorModel).fromModel(description.id, description.planDescriptionTemplate.sectionId));
+                        const isActive = description.isActive === IsActive.Active;
+						this.descriptions.push(new NewVersionPlanDescriptionEditorModel(this.validationErrorModel).fromModel(description.id, isActive ? description.planDescriptionTemplate.sectionId : null));
 					})
 				} else { // in case the user changes the blueprint from the dropdown and the new blueprint has prefilled templates
 					const selectedBlueprintSections = blueprint.definition?.sections?.filter(x => x.hasTemplates) || null;
 					if (selectedBlueprintSections != null){
 						item.descriptions.forEach(description => {
-							const matchingSection = selectedBlueprintSections.find(blueprintSection => blueprintSection.descriptionTemplates != null && blueprintSection.descriptionTemplates.map(y => y.descriptionTemplateGroupId).includes(description.descriptionTemplate.groupId)) || null;
-							this.descriptions.push(new NewVersionPlanDescriptionEditorModel(this.validationErrorModel).fromModel(description.id, matchingSection != null ? matchingSection.id : null));
+                            const isActive = description.isActive === IsActive.Active;
+							const matchingSection = selectedBlueprintSections.find(blueprintSection => blueprintSection.descriptionTemplates != null && blueprintSection.descriptionTemplates.map(y => y.descriptionTemplate?.groupId).includes(description.descriptionTemplate?.groupId)) || null;
+							this.descriptions.push(new NewVersionPlanDescriptionEditorModel(this.validationErrorModel).fromModel(description.id, matchingSection != null && isActive ? matchingSection.id : null));
 						})
 					}
 				}

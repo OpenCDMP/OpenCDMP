@@ -3,7 +3,7 @@
 }
 
 .form-container {
-	width: 33rem;
+	width: min(100%, 33rem);
 	min-height: 14rem;
 	padding: 2.0rem;
 }
@@ -16,21 +16,11 @@
 	margin: 2.17rem 0rem 1.1875rem 0rem;
 }
 
-.title,
 .text {
-	font-size: 1.25rem;
+	font-size: var(--sys-headline-medium-size);
 	font-weight: lighter;
 	color: #000000;
 	opacity: 0.8;
-}
-
-.title {
-	text-align: left;
-	font-weight: 500;
-	font-size: 1.25rem;
-	letter-spacing: 0px;
-	color: #212121;
-	opacity: 1;
 }
 
 .text {
@@ -38,16 +28,12 @@
 	line-height: 1.9rem;
 }
 
-.actions {
-	display: flex;
-	flex-direction: row;
-}
 
 .new-plan {
 	text-align: left;
 	text-decoration: underline;
 	letter-spacing: 0px;
-	color: var(--primary-color);
+	color: var(--sys-primary);
 	cursor: pointer;
 }
 

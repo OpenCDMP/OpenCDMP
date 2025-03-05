@@ -36,9 +36,21 @@ public class TenantConfiguration {
 
     public static final String _fileTransformerPlugins = "fileTransformerPlugins";
 
+    private EvaluatorTenantConfiguration evaluatorPlugins;
+
+    public static final String _evaluatorPlugins = "evaluatorPlugins";
+
     private LogoTenantConfiguration logo;
 
     public static final String _logo = "logo";
+
+    private FeaturedEntities featuredEntities;
+
+    public static final String _featuredEntities = "featuredEntities";
+
+    private DefaultPlanBlueprintConfiguration defaultPlanBlueprint;
+
+    public static final String _defaultPlanBlueprint = "defaultPlanBlueprint";
 
     private Instant updatedAt;
 
@@ -149,5 +161,29 @@ public class TenantConfiguration {
 
     public void setType(TenantConfigurationType type) {
         this.type = type;
+    }
+
+    public EvaluatorTenantConfiguration getEvaluatorPlugins() {
+        return evaluatorPlugins;
+    }
+
+    public void setEvaluatorPlugins(EvaluatorTenantConfiguration evaluatorPlugins) {
+        this.evaluatorPlugins = evaluatorPlugins;
+    }
+
+    public FeaturedEntities getFeaturedEntities() {
+        return featuredEntities;
+    }
+
+    public void setFeaturedEntities(FeaturedEntities featuredEntities) {
+        this.featuredEntities = featuredEntities;
+    }
+
+    public DefaultPlanBlueprintConfiguration getDefaultPlanBlueprint() {
+        return defaultPlanBlueprint;
+    }
+
+    public void setDefaultPlanBlueprint(DefaultPlanBlueprintConfiguration defaultPlanBlueprint) {
+        this.defaultPlanBlueprint = defaultPlanBlueprint;
     }
 }

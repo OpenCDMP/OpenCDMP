@@ -17,8 +17,8 @@
 						</mat-panel-description>
 					</mat-expansion-panel-header>
 					<div class="mt-2">
-						<button mat-button color="primary" (click)="generateIndex($event)" class="mb-1 mr-1 rounded-btn primary">{{language.instant('MAINTENANCE-TASKS.SECTIONS.INDEXES.ACTIONS.GENERATE-INDEX')}}</button>
-						<button mat-button color="primary" (click)="clearIndex($event)" class="mb-1 mr-1 rounded-btn primary">{{language.instant('MAINTENANCE-TASKS.SECTIONS.INDEXES.ACTIONS.CLEAR-INDEX')}}</button>
+						<button mat-flat-button color="primary" (click)="generateIndex($event)" class="mb-1 mr-1 padded-shadow-btn">{{language.instant('MAINTENANCE-TASKS.SECTIONS.INDEXES.ACTIONS.GENERATE-INDEX')}}</button>
+						<button mat-flat-button color="primary" (click)="clearIndex($event)" class="mb-1 mr-1 padded-shadow-btn">{{language.instant('MAINTENANCE-TASKS.SECTIONS.INDEXES.ACTIONS.CLEAR-INDEX')}}</button>
 					</div>
 				</mat-expansion-panel>
 				<mat-expansion-panel>
@@ -32,28 +32,37 @@
 					</mat-expansion-panel-header>
 					<div class="mt-2">
 						<h3>{{language.instant('MAINTENANCE-TASKS.SECTIONS.EVENTS.MAIN-TITLE')}}</h3>
-						<button mat-button (click)="sendTenantTouchEvents($event)" class="mb-1 mr-1 rounded-btn primary">{{language.instant('MAINTENANCE-TASKS.SECTIONS.EVENTS.ACTIONS.SEND-TENANT-TOUCH')}}</button>
-						<button mat-button (click)="sendUserTouchEvents($event)" class="mb-1 mr-1 rounded-btn primary">{{language.instant('MAINTENANCE-TASKS.SECTIONS.EVENTS.ACTIONS.SEND-USER-TOUCH')}}</button>
-						<button mat-button (click)="sendDescriptionTouchEvents($event)" class="mb-1 mr-1 rounded-btn primary">{{language.instant('MAINTENANCE-TASKS.SECTIONS.EVENTS.ACTIONS.SEND-DESCRIPTION-TOUCH')}}</button>
-						<button mat-button (click)="sendPlanTouchEvents($event)" class="mb-1 mr-1 rounded-btn primary">{{language.instant('MAINTENANCE-TASKS.SECTIONS.EVENTS.ACTIONS.SEND-PLAN-TOUCH')}}</button>
+						<button mat-flat-button color="primary" (click)="sendTenantTouchEvents($event)" class="mb-1 mr-1 padded-shadow-btn">{{language.instant('MAINTENANCE-TASKS.SECTIONS.EVENTS.ACTIONS.SEND-TENANT-TOUCH')}}</button>
+						<button mat-flat-button color="primary" (click)="sendUserTouchEvents($event)" class="mb-1 mr-1 padded-shadow-btn">{{language.instant('MAINTENANCE-TASKS.SECTIONS.EVENTS.ACTIONS.SEND-USER-TOUCH')}}</button>
+						<button mat-flat-button color="primary" (click)="sendDescriptionTouchEvents($event)" class="mb-1 mr-1 padded-shadow-btn">{{language.instant('MAINTENANCE-TASKS.SECTIONS.EVENTS.ACTIONS.SEND-DESCRIPTION-TOUCH')}}</button>
+						<button mat-flat-button color="primary" (click)="sendPlanTouchEvents($event)" class="mb-1 mr-1 padded-shadow-btn">{{language.instant('MAINTENANCE-TASKS.SECTIONS.EVENTS.ACTIONS.SEND-PLAN-TOUCH')}}</button>
 					</div>
-					<div class="mt-2">
+					<div class="mt-2" *ngIf="configurationService.accountingServiceEnabled == true">
 						<h3>{{language.instant('MAINTENANCE-TASKS.SECTIONS.EVENTS.ACCOUNTING-TITLE')}}</h3>
-						<button mat-button (click)="sendPlanAccountingEntriesEvents($event)" class="mb-1 mr-1 rounded-btn primary">{{language.instant('MAINTENANCE-TASKS.SECTIONS.EVENTS.ACTIONS.SEND-PLAN-ACCOUNTING-ENTRIES')}}</button>
-						<button mat-button (click)="sendDescriptionAccountingEntriesEvents($event)" class="mb-1 mr-1 rounded-btn primary">{{language.instant('MAINTENANCE-TASKS.SECTIONS.EVENTS.ACTIONS.SEND-DESCRIPTION-ACCOUNTING-ENTRIES')}}</button>
-						<button mat-button (click)="sendBlueprintAccountingEntriesEvents($event)" class="mb-1 mr-1 rounded-btn primary">{{language.instant('MAINTENANCE-TASKS.SECTIONS.EVENTS.ACTIONS.SEND-PLAN-BLUEPRINT-ACCOUNTING-ENTRIES')}}</button>
-						<button mat-button (click)="sendDescriptionTemplateAccountingEntriesEvents($event)" class="mb-1 mr-1 rounded-btn primary">{{language.instant('MAINTENANCE-TASKS.SECTIONS.EVENTS.ACTIONS.SEND-DESCRIPTION-TEMPLATE-ACCOUNTING-ENTRIES')}}</button>
-						<button mat-button (click)="sendDescriptionTemplateTypeAccountingEntriesEvents($event)" class="mb-1 mr-1 rounded-btn primary">{{language.instant('MAINTENANCE-TASKS.SECTIONS.EVENTS.ACTIONS.SEND-DESCRIPTION-TEMPLATE-TYPE-ACCOUNTING-ENTRIES')}}</button>
-						<button mat-button (click)="sendPrefillingSourceAccountingEntriesEvents($event)" class="mb-1 mr-1 rounded-btn primary">{{language.instant('MAINTENANCE-TASKS.SECTIONS.EVENTS.ACTIONS.SEND-PREFILLING-SOURCE-ACCOUNTING-ENTRIES')}}</button>
-						<button mat-button (click)="sendReferenceTypeAccountingEntriesEvents($event)" class="mb-1 mr-1 rounded-btn primary">{{language.instant('MAINTENANCE-TASKS.SECTIONS.EVENTS.ACTIONS.SEND-REFERENCE-TYPE-ACCOUNTING-ENTRIES')}}</button>
-						<button mat-button (click)="sendUserAccountingEntriesEvents($event)" class="mb-1 mr-1 rounded-btn primary">{{language.instant('MAINTENANCE-TASKS.SECTIONS.EVENTS.ACTIONS.SEND-USER-ACCOUNTING-ENTRIES')}}</button>
+						<button mat-flat-button color="primary" (click)="sendPlanAccountingEntriesEvents($event)" class="mb-1 mr-1 padded-shadow-btn">{{language.instant('MAINTENANCE-TASKS.SECTIONS.EVENTS.ACTIONS.SEND-PLAN-ACCOUNTING-ENTRIES')}}</button>
+						<button mat-flat-button color="primary" (click)="sendDescriptionAccountingEntriesEvents($event)" class="mb-1 mr-1 padded-shadow-btn">{{language.instant('MAINTENANCE-TASKS.SECTIONS.EVENTS.ACTIONS.SEND-DESCRIPTION-ACCOUNTING-ENTRIES')}}</button>
+						<button mat-flat-button color="primary" (click)="sendBlueprintAccountingEntriesEvents($event)" class="mb-1 mr-1 padded-shadow-btn">{{language.instant('MAINTENANCE-TASKS.SECTIONS.EVENTS.ACTIONS.SEND-PLAN-BLUEPRINT-ACCOUNTING-ENTRIES')}}</button>
+						<button mat-flat-button color="primary" (click)="sendDescriptionTemplateAccountingEntriesEvents($event)" class="mb-1 mr-1 padded-shadow-btn">{{language.instant('MAINTENANCE-TASKS.SECTIONS.EVENTS.ACTIONS.SEND-DESCRIPTION-TEMPLATE-ACCOUNTING-ENTRIES')}}</button>
+						<button mat-flat-button color="primary" (click)="sendDescriptionTemplateTypeAccountingEntriesEvents($event)" class="mb-1 mr-1 padded-shadow-btn">{{language.instant('MAINTENANCE-TASKS.SECTIONS.EVENTS.ACTIONS.SEND-DESCRIPTION-TEMPLATE-TYPE-ACCOUNTING-ENTRIES')}}</button>
+						<button mat-flat-button color="primary" (click)="sendPrefillingSourceAccountingEntriesEvents($event)" class="mb-1 mr-1 padded-shadow-btn">{{language.instant('MAINTENANCE-TASKS.SECTIONS.EVENTS.ACTIONS.SEND-PREFILLING-SOURCE-ACCOUNTING-ENTRIES')}}</button>
+						<button mat-flat-button color="primary" (click)="sendReferenceTypeAccountingEntriesEvents($event)" class="mb-1 mr-1 padded-shadow-btn">{{language.instant('MAINTENANCE-TASKS.SECTIONS.EVENTS.ACTIONS.SEND-REFERENCE-TYPE-ACCOUNTING-ENTRIES')}}</button>
+						<button mat-flat-button color="primary" (click)="sendPlanStatusAccountingEntriesEvents($event)" class="mb-1 mr-1 padded-shadow-btn">{{language.instant('MAINTENANCE-TASKS.SECTIONS.EVENTS.ACTIONS.SEND-PLAN-STATUS-ACCOUNTING-ENTRIES')}}</button>
+						<button mat-flat-button color="primary" (click)="sendDescriptionStatusAccountingEntriesEvents($event)" class="mb-1 mr-1 padded-shadow-btn">{{language.instant('MAINTENANCE-TASKS.SECTIONS.EVENTS.ACTIONS.SEND-DESCRIPTION-STATUS-ACCOUNTING-ENTRIES')}}</button>
+						<button mat-flat-button color="primary" (click)="sendUserAccountingEntriesEvents($event)" class="mb-1 mr-1 padded-shadow-btn">{{language.instant('MAINTENANCE-TASKS.SECTIONS.EVENTS.ACTIONS.SEND-USER-ACCOUNTING-ENTRIES')}}</button>
+						<button mat-flat-button color="primary" (click)="sendEvaluationPlanAccountingEntriesEvents($event)" class="mb-1 mr-1 padded-shadow-btn">{{language.instant('MAINTENANCE-TASKS.SECTIONS.EVENTS.ACTIONS.SEND-PLAN-EVALUATION-ACCOUNTING-ENTRIES')}}</button>
+						<button mat-flat-button color="primary" (click)="sendEvaluationDescriptionAccountingEntriesEvents($event)" class="mb-1 mr-1 padded-shadow-btn">{{language.instant('MAINTENANCE-TASKS.SECTIONS.EVENTS.ACTIONS.SEND-DESCRIPTION-EVALUATION-ACCOUNTING-ENTRIES')}}</button>
 					</div>
-					<div class="mt-2">
+					<div class="mt-2" *ngIf="configurationService.kpiServiceEnabled == true">
 						<h3>{{language.instant('MAINTENANCE-TASKS.SECTIONS.EVENTS.INDICATOR-TITLE')}}</h3>
-						<button mat-button (click)="sendIndicatorCreateEvents($event)" class="mb-1 mr-1 rounded-btn primary">{{language.instant('MAINTENANCE-TASKS.SECTIONS.EVENTS.ACTIONS.SEND-INDICATOR-CREATE-ENTRY')}}</button>					
-						<button mat-button (click)="sendIndicatorResetEvents($event)" class="mb-1 mr-1 rounded-btn primary">{{language.instant('MAINTENANCE-TASKS.SECTIONS.EVENTS.ACTIONS.SEND-INDICATOR-RESET-ENTRY')}}</button>					
-						<button mat-button (click)="sendIndicatorAccessEvents($event)" class="mb-1 mr-1 rounded-btn primary">{{language.instant('MAINTENANCE-TASKS.SECTIONS.EVENTS.ACTIONS.SEND-INDICATOR-ACCESS-ENTRY')}}</button>					
-						<button mat-button (click)="sendIndicatorPointEvents($event)" class="mb-1 mr-1 rounded-btn primary">{{language.instant('MAINTENANCE-TASKS.SECTIONS.EVENTS.ACTIONS.SEND-INDICATOR-POINT-ENTRY')}}</button>					
+						<button mat-flat-button color="primary" (click)="sendIndicatorCreateEvents($event)" class="mb-1 mr-1 padded-shadow-btn">{{language.instant('MAINTENANCE-TASKS.SECTIONS.EVENTS.ACTIONS.SEND-INDICATOR-CREATE-ENTRY')}}</button>					
+						<button mat-flat-button color="primary" (click)="sendIndicatorResetEvents($event)" class="mb-1 mr-1 padded-shadow-btn">{{language.instant('MAINTENANCE-TASKS.SECTIONS.EVENTS.ACTIONS.SEND-INDICATOR-RESET-ENTRY')}}</button>					
+						<button mat-flat-button color="primary" (click)="sendIndicatorAccessEvents($event)" class="mb-1 mr-1 padded-shadow-btn">{{language.instant('MAINTENANCE-TASKS.SECTIONS.EVENTS.ACTIONS.SEND-INDICATOR-ACCESS-ENTRY')}}</button>					
+						<button mat-flat-button color="primary" (click)="sendIndicatorPlanPointEvents($event)" class="mb-1 mr-1 padded-shadow-btn">{{language.instant('MAINTENANCE-TASKS.SECTIONS.EVENTS.ACTIONS.SEND-INDICATOR-POINT-PLAN-ENTRY')}}</button>
+						<button mat-flat-button color="primary" (click)="sendIndicatorDescriptionPointEvents($event)" class="mb-1 mr-1 padded-shadow-btn">{{language.instant('MAINTENANCE-TASKS.SECTIONS.EVENTS.ACTIONS.SEND-INDICATOR-POINT-DESCRIPTION-ENTRY')}}</button>					
+						<button mat-flat-button color="primary" (click)="sendIndicatorReferencePointEvents($event)" class="mb-1 mr-1 padded-shadow-btn">{{language.instant('MAINTENANCE-TASKS.SECTIONS.EVENTS.ACTIONS.SEND-INDICATOR-POINT-REFERENCE-ENTRY')}}</button>					
+						<button mat-flat-button color="primary" (click)="sendIndicatorUserPointEvents($event)" class="mb-1 mr-1 padded-shadow-btn">{{language.instant('MAINTENANCE-TASKS.SECTIONS.EVENTS.ACTIONS.SEND-INDICATOR-POINT-USER-ENTRY')}}</button>					
+						<button mat-flat-button color="primary" (click)="sendIndicatorPlanBlueprintPointEvents($event)" class="mb-1 mr-1 padded-shadow-btn">{{language.instant('MAINTENANCE-TASKS.SECTIONS.EVENTS.ACTIONS.SEND-INDICATOR-POINT-PLAN-BLUEPRINT-ENTRY')}}</button>					
+						<button mat-flat-button color="primary" (click)="sendIndicatorDescriptionTemplatePointEvents($event)" class="mb-1 mr-1 padded-shadow-btn">{{language.instant('MAINTENANCE-TASKS.SECTIONS.EVENTS.ACTIONS.SEND-INDICATOR-POINT-DESCRIPTION-TEMPLATE-ENTRY')}}</button>						
 					</div>
 				</mat-expansion-panel>
 			</mat-accordion>

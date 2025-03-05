@@ -4,8 +4,8 @@
 			{{'CONTACT.SUPPORT.SUBTITLE' | translate}}
 		</div>
 		<div class="col-auto ml-auto">
-            <button mat-icon-button (click)="close()" tabindex="-1">
-                <mat-icon>close</mat-icon>
+            <button mat-icon-button (click)="close()" [attr.aria-label]="'ALT-TEXT.CLOSE-DIALOG'  | translate">
+                <mat-icon aria-hidden>close</mat-icon>
             </button>
 		</div>
 	</div>

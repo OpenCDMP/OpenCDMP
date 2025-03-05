@@ -53,6 +53,14 @@ public class EventBroker {
         this.applicationEventPublisher.publishEvent(event);
     }
 
+    public void emit(PlanStatusTouchedEvent event) {
+        this.applicationEventPublisher.publishEvent(event);
+    }
+
+    public void emit(DescriptionStatusTouchedEvent event) {
+        this.applicationEventPublisher.publishEvent(event);
+    }
+
     public void emit(TagTouchedEvent event) {
         this.applicationEventPublisher.publishEvent(event);
     }

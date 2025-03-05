@@ -4,6 +4,7 @@ import { Tenant } from "../tenant/tenant";
 
 export interface AppAccount {
 	isAuthenticated: boolean;
+	userExists: boolean;
 	permissions: AppPermission[];
 	principal: AppPrincipalInfo;
 	profile: UserProfileInfo;

@@ -1,93 +1,99 @@
-<div class="new-version-dialog container-fluid">
-	<div class="row align-items-center mt-3">
-		<div class="col heading-1">{{'PLAN-NEW-VERSION-DIALOG.TITLE' | translate}}</div>
-		<div class="col-auto">
-			<button mat-icon-button tabindex="-1" (click)="close()"><mat-icon>close</mat-icon></button>
-		</div>
+<div class="new-version-dialog">
+	<div mat-dialog-title class="d-flex align-items-center gap-half-rem">
+		<div>{{'PLAN-NEW-VERSION-DIALOG.TITLE' | translate}}</div>
+		<button mat-icon-button (click)="close()" class="ml-auto" [attr.aria-label]="'ALT-TEXT.CLOSE-DIALOG'  | translate"><mat-icon aria-hidden>close</mat-icon></button>
 	</div>
-	<!-- Title Field -->
-	<div class="row">
-		<div class="col-12">
-			<div class="heading">{{'PLAN-NEW-VERSION-DIALOG.FIELDS.LABEL' | translate}}*</div>
-		</div>
-		<div class="col-12 title-form">
-			<mat-form-field class="w-100">
-				<input matInput placeholder="{{'PLAN-NEW-VERSION-DIALOG.FIELDS.LABEL' | translate}}" type="text" name="label" [formControl]="formGroup.get('label')" required>
-				<mat-error *ngIf="formGroup.get('label').hasError('backendError')">{{formGroup.get('label').getError('backendError').message}}</mat-error>
-				<mat-error *ngIf="formGroup.get('label').hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
-			</mat-form-field>
-		</div>
-	</div>
-	<!-- Description field -->
-	<div class="row">
-		<div class="col-12 pb-4">
-			<div class="heading">{{'PLAN-NEW-VERSION-DIALOG.FIELDS.DESCRIPTION' | translate}}</div>
-		</div>
-		<div class="col-12 hint">{{'PLAN-NEW-VERSION-DIALOG.FIELDS.DESCRIPTION-HINT' | translate}}</div>
-		<div class="col-12 basic-info-input">
-			<rich-text-editor-component [form]="formGroup.get('description')" [placeholder]="'PLAN-NEW-VERSION-DIALOG.FIELDS.DESCRIPTION-PLACEHOLDER'">
-			</rich-text-editor-component>
-		</div>
-	</div>
-	<!-- Blueprint field -->
-	<div class="row">
-		<div class="col-12">
-			<div class="heading">{{'PLAN-NEW-VERSION-DIALOG.FIELDS.BLUEPRINT' | translate}}*</div>
-		</div>
-		<div class="col-12 title-form">
-			<mat-form-field class="w-100">
-				<app-single-auto-complete [required]="false" [formControl]="formGroup.get('blueprintId')" placeholder="{{'PLAN-NEW-VERSION-DIALOG.FIELDS.BLUEPRINT-PLACEHOLDER' | translate}}" [configuration]="singleAutocompleteBlueprintConfiguration" (optionSelected)="selectedBlueprintChanged($event)">
-				</app-single-auto-complete>
-			</mat-form-field>
-		</div>
-	</div>
-	<div class="row">
-		<div class="col-12">
-			<div class="heading">{{'PLAN-NEW-VERSION-DIALOG.FIELDS.DESCRIPTIONS' | translate}}</div>
-		</div>
-		<div class="col-12" *ngIf="hasDescriptions()">
-			<h5>{{'PLAN-NEW-VERSION-DIALOG.FIELDS.DESCRIPTIONS-HINT' | translate}}</h5>
-		</div>
-		<div class="col-12" *ngIf="hasDescriptions()">
-			<mat-card class="mat-card">
-				<mat-card-header>
-					<mat-checkbox [checked]="allDescriptionsCompleted" [indeterminate]="someDescriptionsCompleted" (change)="toggleAllDescriptions($event.checked)">{{ 'PLAN-NEW-VERSION-DIALOG.ACTIONS.TOGGLE-DESCRIPTIONS' | translate }}</mat-checkbox>
-				</mat-card-header>
-				<mat-selection-list #selectedItems (selectionChange)="descriptionSelectionChanged($event)">
-						<ng-container *ngFor="let description of plan.descriptions;">
-							<mat-list-option [value]="description.id" [selected]="isDefaultSelected(formGroup.get('descriptions'), description.id)" class="h-auto">
-								<div class="mat-mdc-form-field-bottom-align w-100"></div>
-								<mat-form-field class="w-100" (click)="selectTemplate($event)" floatLabel="never">
-									<mat-select [formControl]="getDescriptionSectionFormControl(formGroup.get('descriptions'), description.id)" [placeholder]="description.label">	
-										<mat-select-trigger>
-											<span style="font-size: 1rem;">
-												{{description.label}}
-											</span>
-											<br>
-											<span style="font-size: .8rem;">
-												{{ getDescriptionSectionLabel(formGroup.get('descriptions'), description.id) }}
-											</span>
-										</mat-select-trigger>
-									
-										<mat-option *ngFor="let section of selectedBlueprintSections" [value]="section.id">
-											<span style="font-size: 1rem;">
-												{{ section.label }}
-											</span>
-										</mat-option>
-									</mat-select>						
-								</mat-form-field>
-							</mat-list-option>
-						</ng-container>
-				</mat-selection-list>
-			</mat-card>
-		</div>
-		<div class="col-12" *ngIf="!hasDescriptions()">
-			<h5 mat-subheader class="p-3">{{'PLAN-NEW-VERSION-DIALOG.NO-DESCRIPTIONS' | translate}}</h5>
-		</div>
-	</div>
-	<div class="row pt-4">
+    <div class="dialog-content">
+        <div class="pb-2"><small>{{'COMMONS.VALIDATION.REQUIRED-FIELDS-HINT' | translate}}</small></div>
+        <!-- Title Field -->
+        <div class="row">
+            <div class="col-12">
+                <div class="heading">{{'PLAN-NEW-VERSION-DIALOG.FIELDS.LABEL' | translate}} *
+                </div>
+            </div>
+            <div class="col-12 title-form">
+                <mat-form-field class="w-100">
+                    <input matInput placeholder="{{'PLAN-NEW-VERSION-DIALOG.FIELDS.LABEL' | translate}}" type="text" name="label" [formControl]="formGroup.get('label')" required>
+                    <mat-error *ngIf="formGroup.get('label').hasError('backendError')">{{formGroup.get('label').getError('backendError').message}}</mat-error>
+                    <mat-error *ngIf="formGroup.get('label').hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
+                </mat-form-field>
+            </div>
+        </div>
+        <!-- Description field -->
+        <div class="row">
+            <div class="col-12 pb-4">
+                <div class="heading">{{'PLAN-NEW-VERSION-DIALOG.FIELDS.DESCRIPTION' | translate}}</div>
+            </div>
+            <div class="col-12 hint">{{'PLAN-NEW-VERSION-DIALOG.FIELDS.DESCRIPTION-HINT' | translate}}</div>
+            <div class="col-12 basic-info-input">
+                <rich-text-editor-component [form]="formGroup.get('description')" [placeholder]="'PLAN-NEW-VERSION-DIALOG.FIELDS.DESCRIPTION-PLACEHOLDER'">
+                </rich-text-editor-component>
+            </div>
+        </div>
+        <!-- Blueprint field -->
+        <div class="row">
+            <div class="col-12">
+                <div class="heading">{{'PLAN-NEW-VERSION-DIALOG.FIELDS.BLUEPRINT' | translate}} *
+                </div>
+            </div>
+            <div class="col-12 title-form">
+                <mat-form-field class="w-100">
+                    <app-single-auto-complete [required]="false" [formControl]="formGroup.get('blueprintId')" placeholder="{{'PLAN-NEW-VERSION-DIALOG.FIELDS.BLUEPRINT-PLACEHOLDER' | translate}}" [configuration]="singleAutocompleteBlueprintConfiguration" (optionSelected)="selectedBlueprintChanged($event)">
+                    </app-single-auto-complete>
+                </mat-form-field>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-12">
+                <div class="heading">{{'PLAN-NEW-VERSION-DIALOG.FIELDS.DESCRIPTIONS' | translate}}</div>
+            </div>
+            <div class="col-12" *ngIf="hasDescriptions()">
+                <h5>{{'PLAN-NEW-VERSION-DIALOG.FIELDS.DESCRIPTIONS-HINT' | translate}}</h5>
+            </div>
+            <div class="col-12" *ngIf="hasDescriptions()">
+                <mat-card class="mat-card">
+                    <mat-card-header>
+                        <mat-checkbox [checked]="allDescriptionsCompleted" [indeterminate]="someDescriptionsCompleted" (change)="toggleAllDescriptions($event.checked)">{{ 'PLAN-NEW-VERSION-DIALOG.ACTIONS.TOGGLE-DESCRIPTIONS' | translate }}</mat-checkbox>
+                    </mat-card-header>
+                    <mat-selection-list #selectedItems (selectionChange)="descriptionSelectionChanged($event)">
+                            <ng-container *ngFor="let description of plan.descriptions;">
+                                <mat-list-option [value]="description.id" [selected]="isDefaultSelected(formGroup.get('descriptions'), description.id)" class="h-auto">
+                                    @if(description.isActive === IsActiveEnum.Inactive && description.status?.internalStatus === descriptionStatusEnum.Canceled ){
+                                        <small class="text-wrap">{{ 'PLAN-NEW-VERSION-DIALOG.FIELDS.CANCELLED-DESCRIPTIONS-HINT' | translate }}</small>
+                                    }
+                                    <div class="mat-mdc-form-field-bottom-align w-100"></div>
+                                    <mat-form-field class="w-100" (click)="selectTemplate($event)" floatLabel="never">
+                                        <mat-select [formControl]="getDescriptionSectionFormControl(formGroup.get('descriptions'), description.id)" [placeholder]="description.label">	
+                                            <mat-select-trigger>
+                                                <span style="font-size: 1rem;">
+                                                    {{description.label}}
+                                                </span>
+                                                <br>
+                                                <span style="font-size: .8rem;">
+                                                    {{ getDescriptionSectionLabel(formGroup.get('descriptions'), description.id) }}
+                                                </span>
+                                            </mat-select-trigger>
+                                        
+                                            <mat-option *ngFor="let section of selectedBlueprintSections" [value]="section.id">
+                                                <span style="font-size: 1rem;">
+                                                    {{ section.label }}
+                                                </span>
+                                            </mat-option>
+                                        </mat-select>
+                                    </mat-form-field>
+                                </mat-list-option>
+                            </ng-container>
+                    </mat-selection-list>
+                </mat-card>
+            </div>
+            <div class="col-12" *ngIf="!hasDescriptions()">
+                <h5 mat-subheader class="p-3">{{'PLAN-NEW-VERSION-DIALOG.NO-DESCRIPTIONS' | translate}}</h5>
+            </div>
+        </div>
+    </div>
+	<div mat-dialog-actions class="row">
 		<div class="col"></div>
-		<div class="col-auto"><button mat-raised-button type="button" class="rounded-btn neutral" (click)="cancel()">{{'PLAN-NEW-VERSION-DIALOG.ACTIONS.CANCEL' | translate}}</button></div>
-		<div class="col-auto"><button mat-raised-button type="button" class="rounded-btn primary-inverted primary-inverted-hover" (click)="confirm()">{{'PLAN-NEW-VERSION-DIALOG.ACTIONS.NEW-VERSION' | translate}}</button></div>
+		<div class="col-auto"><button mat-stroked-button type="button" class="padded-shadow-btn" (click)="cancel()">{{'PLAN-NEW-VERSION-DIALOG.ACTIONS.CANCEL' | translate}}</button></div>
+		<div class="col-auto"><button mat-stroked-button color="primary" type="button" class="padded-shadow-btn primary-inverted-hover"  appAwaitServerResponse [clickFn]="confirm">{{'PLAN-NEW-VERSION-DIALOG.ACTIONS.NEW-VERSION' | translate}}</button></div>
 	</div>
 </div>

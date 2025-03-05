@@ -20,15 +20,6 @@
 	}
 }
 
-::ng-deep .mat-form-field-appearance-outline .mat-form-field-outline {
-	background: #fafafa !important;
-}
-
-::ng-deep .mat-form-field-appearance-outline .mat-form-field-infix {
-	font-size: 1rem;
-	padding: 0.6em 0 1em 0 !important;
-}
-
 
 .attach-btn {
 	top: -20px;
@@ -64,20 +55,11 @@
 	white-space: nowrap;
 	overflow: hidden;
 	text-overflow: ellipsis;
-	font-size: 14px !important;
+	font-size: var(--sys-title-small-size) !important;
 }
 
 ::ng-deep ngx-dropzone-remove-badge {
 	opacity: 1 !important;
 	margin-left: .5rem !important;
 	position: initial !important;
-}
-
-::ng-deep .upload-form .mat-form-field-appearance-outline .mat-form-field-outline {
-	background: #fafafa !important;
-}
-
-::ng-deep .upload-form .mat-form-field-appearance-outline .mat-form-field-infix {
-	font-size: 1rem;
-	padding: 0.6em 0 1em 0 !important;
 }

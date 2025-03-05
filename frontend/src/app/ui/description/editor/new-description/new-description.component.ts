@@ -1,10 +1,10 @@
-import { Component, Inject, OnInit } from "@angular/core";
+import { Component, computed, HostBinding, Inject, OnInit } from "@angular/core";
 import { UntypedFormGroup } from "@angular/forms";
 import { MAT_DIALOG_DATA, MatDialogRef } from "@angular/material/dialog";
 import { IsActive } from "@app/core/common/enum/is-active.enum";
 import { DescriptionPrefillingRequest, PrefillingSearchRequest } from "@app/core/model/description-prefilling-request/description-prefilling-request";
 import { DescriptionTemplate } from "@app/core/model/description-template/description-template";
-import { Description } from "@app/core/model/description/description";
+import { Description, DescriptionPersist } from "@app/core/model/description/description";
 import { Plan } from "@app/core/model/plan/plan";
 import { Prefilling } from "@app/core/model/prefilling-source/prefilling-source";
 import { PrefillingSourceService } from "@app/core/services/prefilling-source/prefilling-source.service";
@@ -16,16 +16,18 @@ import { HttpErrorHandlingService } from "@common/modules/errors/error-handling/
 import { Guid } from "@common/types/guid";
 import { Observable } from "rxjs";
 import { takeUntil } from "rxjs/operators";
-import { DescriptionEditorEntityResolver } from "../resolvers/description-editor-entity.resolver";
 import { DescriptionPrefillingRequestEditorModel } from "./new-description-editor.model";
+import { DescriptionEditorHelper } from "@app/ui/plan/plan-editor-blueprint/plan-description-editor/plan-description-editor-helper";
+import { AppPermission } from "@app/core/common/enum/permission.enum";
 
 @Component({
-	selector: 'new-description-component',
-	templateUrl: 'new-description.component.html',
-	styleUrls: ['new-description.component.scss']
+    selector: 'new-description-component',
+    templateUrl: 'new-description.component.html',
+    styleUrls: ['new-description.component.scss'],
+    standalone: false
 })
 export class NewDescriptionDialogComponent extends BaseComponent implements OnInit {
-
+   
 	progressIndication = false;
 	singlePrefillingSourceAutoCompleteConfiguration: SingleAutoCompleteConfiguration;
 	prefillObjectAutoCompleteConfiguration: SingleAutoCompleteConfiguration;
@@ -95,23 +97,54 @@ export class NewDescriptionDialogComponent extends BaseComponent implements OnIn
 	next() {
 		const formData = this.formService.getValue(this.prefillForm.value) as DescriptionPrefillingRequest;
 
-		this.prefillingSourceService.generate(formData, DescriptionEditorEntityResolver.descriptionTemplateLookupFieldsForDescrption())
-			.pipe(takeUntil(this._destroyed)).subscribe(description => {
-				if (description) {
-					this.closeDialog({ description: description });
-				} else {
-					this.closeDialog();
-				}
-			},
-				error => {
-					this.httpErrorHandlingService.handleBackedRequestError(error);
-					this.dialogRef.close();
-				});
+		this.prefillingSourceService.generate(formData, DescriptionEditorHelper.DescriptionTemplateInDescriptionLookupFields())
+			.pipe(takeUntil(this._destroyed)).subscribe({
+                next: (description) => {
+                    if (description) {
+                        const planDescriptionTemplate = this.plan.planDescriptionTemplates?.find((x) => 
+                            x.sectionId === this.planSectionId && x.currentDescriptionTemplate?.id === description.descriptionTemplate?.id);
+
+                        this.closeDialog({ 
+                            description: {
+                                ...description,
+                                label: description.label ?? description.descriptionTemplate?.label,
+                                plan: this.plan,
+                                planDescriptionTemplate,
+                                authorizationFlags: [AppPermission.EditDescription, AppPermission.DeleteDescription, AppPermission.FinalizeDescription, AppPermission.AnnotateDescription],
+                                isActive: IsActive.Active,
+                                belongsToCurrentTenant: true
+                            } 
+                        });
+                    } else {
+                        this.closeDialog();
+                    }
+                },
+                error: (error) => {
+                    this.httpErrorHandlingService.handleBackedRequestError(error);
+                    this.dialogRef.close();
+                }
+            });
 	}
 
 	manuallySelected() {
 		if (!this.prefillForm.get('descriptionTemplateId').valid) return;
-		this.closeDialog({ descriptionTemplateId: this.prefillForm.get('descriptionTemplateId').value });
+        const descriptionTemplateId = this.prefillForm.get('descriptionTemplateId').value;
+
+        const planDescriptionTemplate = this.plan.planDescriptionTemplates?.find((x) => x.sectionId === this.planSectionId && x.currentDescriptionTemplate?.id === descriptionTemplateId);
+        const label = planDescriptionTemplate?.currentDescriptionTemplate?.label;
+        const description: Description = {
+            description: null,
+            descriptionTemplate: this.availableDescriptionTemplates?.find((x) => x.id === descriptionTemplateId),
+            label,
+            planDescriptionTemplate,
+            plan: this.plan,
+            authorizationFlags: [AppPermission.EditDescription, AppPermission.DeleteDescription, AppPermission.FinalizeDescription, AppPermission.AnnotateDescription],
+            isActive: IsActive.Active,
+            belongsToCurrentTenant: true
+        };
+		this.closeDialog({ 
+            description
+        });
 	}
 
 	closeDialog(result = null): void {
@@ -120,6 +153,5 @@ export class NewDescriptionDialogComponent extends BaseComponent implements OnIn
 }
 
 export class NewDescriptionDialogComponentResult {
-	description: Description;
-	descriptionTemplateId: Guid;
+    description: Description;
 }

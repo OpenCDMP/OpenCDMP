@@ -31,6 +31,7 @@ public class PlanBlueprintBuilder extends BaseBuilder<PlanBlueprint, PlanBluepri
     private final TenantScope tenantScope;
 
     private EnumSet<AuthorizationFlags> authorize = EnumSet.of(AuthorizationFlags.None);
+    private Map<UUID, Integer> featuredOrdinalMap;
 
     @Autowired
     public PlanBlueprintBuilder(
@@ -44,6 +45,11 @@ public class PlanBlueprintBuilder extends BaseBuilder<PlanBlueprint, PlanBluepri
 
     public PlanBlueprintBuilder authorize(EnumSet<AuthorizationFlags> values) {
         this.authorize = values;
+        return this;
+    }
+
+    public PlanBlueprintBuilder featuredOrdinalMap(Map<UUID, Integer> featuredOrdinalMap) {
+        this.featuredOrdinalMap = featuredOrdinalMap;
         return this;
     }
 
@@ -80,10 +86,15 @@ public class PlanBlueprintBuilder extends BaseBuilder<PlanBlueprint, PlanBluepri
                 m.setIsActive(d.getIsActive());
             if (fields.hasField(this.asIndexer(PlanBlueprint._hash)))
                 m.setHash(this.hashValue(d.getUpdatedAt()));
+            if (fields.hasField(this.asIndexer(PlanBlueprint._description)))
+                m.setDescription(d.getDescription());
             if (fields.hasField(this.asIndexer(PlanBlueprint._belongsToCurrentTenant))) m.setBelongsToCurrentTenant(this.getBelongsToCurrentTenant(d, this.tenantScope));
             if (!definitionFields.isEmpty() && d.getDefinition() != null) {
                 DefinitionEntity definition = this.xmlHandlingService.fromXmlSafe(DefinitionEntity.class, d.getDefinition());
                 m.setDefinition(this.builderFactory.builder(DefinitionBuilder.class).authorize(this.authorize).build(definitionFields, definition));
+            }
+            if (fields.hasField(this.asIndexer(PlanBlueprint._ordinal)) && this.featuredOrdinalMap != null && this.featuredOrdinalMap.containsKey(d.getGroupId())) {
+                m.setOrdinal(this.featuredOrdinalMap.get(d.getGroupId()));
             }
             models.add(m);
         }

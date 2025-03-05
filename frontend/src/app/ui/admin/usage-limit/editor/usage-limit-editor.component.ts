@@ -32,10 +32,11 @@ import { UsageLimitPeriodicityRange } from '@app/core/common/enum/usage-limit-pe
 
 
 @Component({
-	selector: 'app-usage-limit-editor-component',
-	templateUrl: 'usage-limit-editor.component.html',
-	styleUrls: ['./usage-limit-editor.component.scss'],
-	providers: [UsageLimitEditorService]
+    selector: 'app-usage-limit-editor-component',
+    templateUrl: 'usage-limit-editor.component.html',
+    styleUrls: ['./usage-limit-editor.component.scss'],
+    providers: [UsageLimitEditorService],
+    standalone: false
 })
 export class UsageLimitEditorComponent extends BaseEditor<UsageLimitEditorModel, UsageLimit> implements OnInit {
 

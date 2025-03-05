@@ -4,8 +4,9 @@ import {Subscription} from "rxjs";
 import Timeout = NodeJS.Timeout;
 
 @Component({
-  selector: '[transition-group]',
-  template: '<ng-content></ng-content>'
+    selector: '[transition-group]',
+    template: '<ng-content></ng-content>',
+    standalone: false
 })
 export class TransitionGroupComponent implements AfterViewInit, OnDestroy {
   @ContentChildren(TransitionGroupItemDirective) items: QueryList<TransitionGroupItemDirective>;

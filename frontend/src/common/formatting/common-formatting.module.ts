@@ -1,7 +1,6 @@
 import { NgModule } from '@angular/core';
 import { ArrayToStringPipe } from '@common/formatting/pipes/array-to-string.pipe';
 import { DataTableDateOnlyFormatPipe, DateOnlyPipe } from '@common/formatting/pipes/date-only-format.pipe';
-import { LowercaseFirstLetterPipe } from '@common/formatting/pipes/lowercase-first-letter.pipe';
 import { IsActiveTypePipe } from './pipes/is-active-type.pipe';
 import { NotificationContactTypePipe } from './pipes/notification-contact-type.pipe';
 import { NotificationNotifyStatePipe } from './pipes/notification-notify-state.pipe';
@@ -13,6 +12,7 @@ import { NotificationTypePipe } from './pipes/notification-type.pipe';
 import { ReferenceSourceTypePipe } from './pipes/reference-source-type.pipe';
 import { LockTargetTypePipe } from './pipes/lock-target-type.pipe';
 import { UsageLimitTargetMetricPipe } from './pipes/usage-limits-target-metric.pipe';
+import { SupportiveMaterialFieldTypePipe } from './pipes/supportive-material-field-type.pipe';
 
 //
 //
@@ -21,7 +21,6 @@ import { UsageLimitTargetMetricPipe } from './pipes/usage-limits-target-metric.p
 //
 @NgModule({
 	declarations: [
-		LowercaseFirstLetterPipe,
 		ArrayToStringPipe,
 		DateOnlyPipe,
 		DataTableDateOnlyFormatPipe,
@@ -35,10 +34,10 @@ import { UsageLimitTargetMetricPipe } from './pipes/usage-limits-target-metric.p
 		NotificationTrackingProcessPipe,
 		NotificationTrackingStatePipe,
 		LockTargetTypePipe,
-		UsageLimitTargetMetricPipe
+		UsageLimitTargetMetricPipe,
+		SupportiveMaterialFieldTypePipe
 	],
 	exports: [
-		LowercaseFirstLetterPipe,
 		ArrayToStringPipe,
 		DateOnlyPipe,
 		DataTableDateOnlyFormatPipe,
@@ -52,10 +51,10 @@ import { UsageLimitTargetMetricPipe } from './pipes/usage-limits-target-metric.p
 		NotificationTrackingProcessPipe,
 		NotificationTrackingStatePipe,
 		LockTargetTypePipe,
-		UsageLimitTargetMetricPipe
+		UsageLimitTargetMetricPipe,
+		SupportiveMaterialFieldTypePipe
 	],
 	providers: [
-		LowercaseFirstLetterPipe,
 		ArrayToStringPipe,
 		DateOnlyPipe,
 		DataTableDateOnlyFormatPipe,
@@ -69,7 +68,8 @@ import { UsageLimitTargetMetricPipe } from './pipes/usage-limits-target-metric.p
 		NotificationTrackingProcessPipe,
 		NotificationTrackingStatePipe,
 		LockTargetTypePipe,
-		UsageLimitTargetMetricPipe
+		UsageLimitTargetMetricPipe,
+		SupportiveMaterialFieldTypePipe
 	]
 })
 export class CommonFormattingModule { }

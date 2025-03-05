@@ -1,4 +1,4 @@
-import { FormControl, UntypedFormArray, UntypedFormBuilder, UntypedFormGroup, Validators } from "@angular/forms";
+import { FormArray, FormControl, FormGroup, UntypedFormArray, UntypedFormBuilder, UntypedFormGroup, Validators } from "@angular/forms";
 import { DescriptionStatusEnum } from "@app/core/common/enum/description-status";
 import { DescriptionTemplateFieldType } from "@app/core/common/enum/description-template-field-type";
 import { DescriptionTemplateFieldValidationType } from "@app/core/common/enum/description-template-field-validation-type";
@@ -7,22 +7,24 @@ import { DescriptionTemplate, DescriptionTemplateField, DescriptionTemplateField
 import { Description, DescriptionExternalIdentifier, DescriptionExternalIdentifierPersist, DescriptionField, DescriptionFieldPersist, DescriptionPersist, DescriptionPropertyDefinition, DescriptionPropertyDefinitionFieldSet, DescriptionPropertyDefinitionFieldSetItem, DescriptionPropertyDefinitionFieldSetItemPersist, DescriptionPropertyDefinitionFieldSetPersist, DescriptionPropertyDefinitionPersist, DescriptionReference, DescriptionReferencePersist } from "@app/core/model/description/description";
 import { ReferencePersist } from "@app/core/model/reference/reference";
 import { BaseEditorModel } from "@common/base/base-form-editor-model";
-import { BackendErrorValidator, CustomValidators, RequiredWithVisibilityRulesValidator, UrlValidator } from '@common/forms/validation/custom-validator';
+import { BackendErrorValidator, CustomValidators, RequiredWithVisibilityRulesValidator, UrlValidator, ValidateIfVisible } from '@common/forms/validation/custom-validator';
 import { ValidationErrorModel } from '@common/forms/validation/error-model/validation-error-model';
 import { Validation, ValidationContext } from '@common/forms/validation/validation-context';
 import { Guid } from "@common/types/guid";
 import { VisibilityRulesService } from "./description-form/visibility-rules/visibility-rules.service";
+import { AppPermission } from "@app/core/common/enum/permission.enum";
 
 export class DescriptionEditorModel extends BaseEditorModel implements DescriptionPersist {
 	label: string;
 	planId: Guid;
 	planDescriptionTemplateId: Guid;
 	descriptionTemplateId: Guid;
-	status: DescriptionStatusEnum;
+	statusId: Guid;
 	description: string;
 	properties: DescriptionPropertyDefinitionEditorModel = new DescriptionPropertyDefinitionEditorModel(this.validationErrorModel);
 	tags: string[] = [];
-	permissions: string[];
+
+    isEditable: boolean;
 
 	public validationErrorModel: ValidationErrorModel = new ValidationErrorModel();
 	protected formBuilder: UntypedFormBuilder = new UntypedFormBuilder();
@@ -36,34 +38,40 @@ export class DescriptionEditorModel extends BaseEditorModel implements Descripti
 			this.planId = item.plan?.id;
 			this.planDescriptionTemplateId = item.planDescriptionTemplate?.id;
 			this.descriptionTemplateId = item.descriptionTemplate?.id;
-			this.status = item.status ?? DescriptionStatusEnum.Draft;
+			this.statusId = item.status?.id;
 			this.description = item.description;
-			this.tags = item.descriptionTags?.filter(x => x.isActive === IsActive.Active).map(x => x.tag?.label);
-			this.properties = new DescriptionPropertyDefinitionEditorModel(this.validationErrorModel).fromModel(item.properties, descriptionTemplate, item.descriptionReferences);
-		}
+			this.tags = item.isActive === IsActive.Active ? item.descriptionTags?.filter(x => x.isActive === IsActive.Active).map(x => x.tag?.label): item.descriptionTags?.map(x => x.tag?.label);
+			this.properties = new DescriptionPropertyDefinitionEditorModel(this.validationErrorModel).fromModel(item.properties, descriptionTemplate, item.isActive === IsActive.Active ? item.descriptionReferences?.filter(x => x.isActive == IsActive.Active): item.descriptionReferences);
+            this.isEditable = item.isActive === IsActive.Active && item.status?.internalStatus != DescriptionStatusEnum.Finalized && item.authorizationFlags?.includes(AppPermission.EditDescription);
+        }
 		return this;
 	}
 
-	buildForm(context: ValidationContext = null, disabled: boolean = false, visibilityRulesService: VisibilityRulesService): UntypedFormGroup {
+	buildForm(context: ValidationContext = null, disabled: boolean = false, visibilityRulesService: VisibilityRulesService): FormGroup<DescriptionEditorForm> {
 		if (context == null) { context = this.createValidationContext(); }
 
-		return this.formBuilder.group({
+		const formGroup = this.formBuilder.group({
 			id: [{ value: this.id, disabled: disabled }, context.getValidation('id').validators],
 			label: [{ value: this.label, disabled: disabled }, context.getValidation('label').validators],
 			planId: [{ value: this.planId, disabled: disabled }, context.getValidation('planId').validators],
 			planDescriptionTemplateId: [{ value: this.planDescriptionTemplateId, disabled: disabled }, context.getValidation('planDescriptionTemplateId').validators],
 			descriptionTemplateId: [{ value: this.descriptionTemplateId, disabled: disabled }, context.getValidation('descriptionTemplateId').validators],
-			status: [{ value: this.status, disabled: disabled }, context.getValidation('status').validators],
+			statusId: [{ value: this.statusId, disabled: disabled }, context.getValidation('statusId').validators],
 			description: [{ value: this.description, disabled: disabled }, context.getValidation('description').validators],
 			tags: [{ value: this.tags, disabled: disabled }, context.getValidation('tags').validators],
-			properties: this.buildProperties(visibilityRulesService),
+			properties: this.buildProperties(visibilityRulesService, disabled),
 			hash: [{ value: this.hash, disabled: disabled }, context.getValidation('hash').validators]
 		});
+        if(!this.isEditable){
+            formGroup.disable();
+        }
+        return formGroup;
 	}
 
-	buildProperties(visibilityRulesService: VisibilityRulesService) {
+	buildProperties(visibilityRulesService: VisibilityRulesService, disabled: boolean = false) {
 		return this.properties.buildForm({
 			rootPath: `properties.`,
+            disabled,
 			visibilityRulesService: visibilityRulesService
 		});
 	}
@@ -76,7 +84,7 @@ export class DescriptionEditorModel extends BaseEditorModel implements Descripti
 		baseValidationArray.push({ key: 'planId', validators: [CustomValidators.required(), BackendErrorValidator(this.validationErrorModel, 'planId')] });
 		baseValidationArray.push({ key: 'planDescriptionTemplateId', validators: [CustomValidators.required(), BackendErrorValidator(this.validationErrorModel, 'planDescriptionTemplateId')] });
 		baseValidationArray.push({ key: 'descriptionTemplateId', validators: [CustomValidators.required(), BackendErrorValidator(this.validationErrorModel, 'descriptionTemplateId')] });
-		baseValidationArray.push({ key: 'status', validators: [CustomValidators.required(), BackendErrorValidator(this.validationErrorModel, 'status')] });
+		baseValidationArray.push({ key: 'statusId', validators: [BackendErrorValidator(this.validationErrorModel, 'statusId')] });
 		baseValidationArray.push({ key: 'description', validators: [BackendErrorValidator(this.validationErrorModel, 'description')] });
 		baseValidationArray.push({ key: 'tags', validators: [BackendErrorValidator(this.validationErrorModel, 'tags')] });
 		baseValidationArray.push({ key: 'hash', validators: [] });
@@ -117,7 +125,22 @@ export class DescriptionEditorModel extends BaseEditorModel implements Descripti
 				return 'tags';
 		}
 	}
+
+    static isViewOnlyDescription(description: Description): boolean {
+        return description?.status?.internalStatus == DescriptionStatusEnum.Finalized || description?.isActive === IsActive.Inactive || 
+        !description.belongsToCurrentTenant || !description?.authorizationFlags?.some((x) => x === AppPermission.EditDescription) 
+    }
+
+    static baseFieldsAreInvalid(formGroup: FormGroup<DescriptionEditorForm>): boolean{
+        if(!formGroup){ return false; }
+        const baseControls = [formGroup.controls.label, formGroup.controls.planId, formGroup.controls.planDescriptionTemplateId, formGroup.controls.descriptionTemplateId]
+        return baseControls.some((x) => !x.disabled && !x?.valid);
+    }
 }
+
+export interface PropertiesFormGroup extends FormGroup<
+    {fieldSets: FormGroup<{[key: string]: FieldSetsFormGroup}>}
+>{}
 
 export class DescriptionPropertyDefinitionEditorModel implements DescriptionPropertyDefinitionPersist {
 	fieldSets: Map<string, DescriptionPropertyDefinitionFieldSetEditorModel> = new Map<string, DescriptionPropertyDefinitionFieldSetEditorModel>;
@@ -137,8 +160,8 @@ export class DescriptionPropertyDefinitionEditorModel implements DescriptionProp
 		disabled?: boolean,
 		rootPath?: string,
 		visibilityRulesService: VisibilityRulesService
-	}): UntypedFormGroup {
-		let { context = null, disabled = false, rootPath } = params ?? {}
+	}): PropertiesFormGroup {
+		let { context = null, disabled = false, rootPath, visibilityRulesService } = params ?? {}
 		if (context == null) {
 			context = DescriptionPropertyDefinitionEditorModel.createValidationContext({
 				validationErrorModel: this.validationErrorModel,
@@ -152,10 +175,17 @@ export class DescriptionPropertyDefinitionEditorModel implements DescriptionProp
 		if (this.fieldSets.size > 0) {
 			this.fieldSets.forEach((value, key) => fieldSetsFormGroup.addControl(key.toString(), value.buildForm({
 				rootPath: `${rootPath}fieldSets[${key}].`,
-				visibilityRulesService: params.visibilityRulesService
+				visibilityRulesService,
+                disabled
 			})), context.getValidation('fieldSets'));
+            if(disabled){
+                fieldSetsFormGroup.disable();
+            }
 			formGroup.addControl('fieldSets', fieldSetsFormGroup);
 		}
+        if(disabled){
+            formGroup.disable();
+        }
 		return formGroup;
 	}
 
@@ -217,7 +247,7 @@ export class DescriptionPropertyDefinitionEditorModel implements DescriptionProp
 		if (definitionFieldSet == null) return null;
 
 		// current saved values
-		const fieldSetValue: DescriptionPropertyDefinitionFieldSet = item?.fieldSets[definitionFieldSet.id] ?? {};
+		const fieldSetValue: DescriptionPropertyDefinitionFieldSet = item?.fieldSets?.[definitionFieldSet.id] ?? {};
 
 		// new item case, where we need to add controls for all the containing fields.
 		if (fieldSetValue.items == null || fieldSetValue.items?.length == 0) {
@@ -248,10 +278,10 @@ export class DescriptionPropertyDefinitionEditorModel implements DescriptionProp
 				const descriptionField = fieldSetValueItem.fields[definitionField.id];
 				if (!descriptionField) {
 					fieldSetValueItem.fields[definitionField.id] = {
-						textValue: undefined,
-						textListValue: undefined,
-						dateValue: undefined,
-						booleanValue: undefined,
+						textValue: definitionField.defaultValue ? definitionField.defaultValue.textValue : undefined,
+						textListValue:  definitionField.defaultValue && definitionField.defaultValue.textValue && definitionField.defaultValue.textValue.length > 0 ? [definitionField.defaultValue.textValue] : undefined,
+						dateValue: definitionField.defaultValue ? definitionField.defaultValue.dateValue : undefined,
+						booleanValue: definitionField.defaultValue ? definitionField.defaultValue.booleanValue : undefined,
 						externalIdentifier: undefined,
 						references: undefined,
 						tags: undefined
@@ -265,6 +295,11 @@ export class DescriptionPropertyDefinitionEditorModel implements DescriptionProp
 	}
 
 }
+
+export interface FieldSetsFormGroup extends FormGroup<{
+    items: FormArray<FieldSetItemsFormGroup>;
+    comment: FormControl<string>;
+}>{}
 
 export class DescriptionPropertyDefinitionFieldSetEditorModel implements DescriptionPropertyDefinitionFieldSetPersist {
 	items?: DescriptionPropertyDefinitionFieldSetItemEditorModel[] = [];
@@ -290,13 +325,14 @@ export class DescriptionPropertyDefinitionFieldSetEditorModel implements Descrip
 		context?: ValidationContext,
 		disabled?: boolean,
 		rootPath?: string,
-		visibilityRulesService: VisibilityRulesService
+		visibilityRulesService: VisibilityRulesService,
 	}): UntypedFormGroup {
-		let { context = null, disabled = false, rootPath } = params ?? {}
+		let { context = null, disabled = false, rootPath, visibilityRulesService } = params ?? {}
 		if (context == null) {
 			context = DescriptionPropertyDefinitionFieldSetEditorModel.createValidationContext({
 				validationErrorModel: this.validationErrorModel,
 				rootPath,
+                visibilityRulesService,
 				fieldSetDefinition: this.fieldSetDefinition
 			});
 		}
@@ -306,7 +342,7 @@ export class DescriptionPropertyDefinitionFieldSetEditorModel implements Descrip
 				(this.items ?? []).map(
 					(item, index) => item.buildForm({
 						rootPath: `${rootPath}items[${index}].`,
-						visibilityRulesService: params.visibilityRulesService
+						visibilityRulesService
 					})
 				), context.getValidation('items').validators
 			),
@@ -317,24 +353,25 @@ export class DescriptionPropertyDefinitionFieldSetEditorModel implements Descrip
 	static createValidationContext(params: {
 		rootPath?: string,
 		validationErrorModel: ValidationErrorModel,
+        visibilityRulesService: VisibilityRulesService,
 		fieldSetDefinition: DescriptionTemplateFieldSet
 	}): ValidationContext {
-		const { rootPath = '', validationErrorModel } = params;
+		const { rootPath = '', validationErrorModel, visibilityRulesService } = params;
 
 		const baseContext: ValidationContext = new ValidationContext();
 		const baseValidationArray: Validation[] = new Array<Validation>();
 		const validators = [];
 		validators.push(BackendErrorValidator(validationErrorModel, `${rootPath}items`));
-
+        
 		if (params.fieldSetDefinition?.hasMultiplicity) {
 			if (params.fieldSetDefinition?.multiplicity?.min >= 0 && params.fieldSetDefinition?.multiplicity?.max >= 0) {
-				validators.push(Validators.minLength(params.fieldSetDefinition.multiplicity.min));
+				validators.push(ValidateIfVisible(visibilityRulesService, params.fieldSetDefinition.id, Validators.minLength(params.fieldSetDefinition.multiplicity.min), 'minlength'));
 				validators.push(Validators.maxLength(params.fieldSetDefinition.multiplicity.max));
 
 			} else if (params.fieldSetDefinition?.multiplicity?.min >= 0) {
-				validators.push(Validators.minLength(params.fieldSetDefinition.multiplicity.min));
+				validators.push(ValidateIfVisible(visibilityRulesService, params.fieldSetDefinition.id, Validators.minLength(params.fieldSetDefinition.multiplicity.min), 'minlength'));
 			} else if (params.fieldSetDefinition?.multiplicity?.max >= 0) {
-				validators.push(Validators.maxLength(params.fieldSetDefinition.multiplicity.max));
+				validators.push(ValidateIfVisible(visibilityRulesService, params.fieldSetDefinition.id, Validators.maxLength(params.fieldSetDefinition.multiplicity.max), 'maxlength'));
 			}
 		}
 
@@ -349,21 +386,26 @@ export class DescriptionPropertyDefinitionFieldSetEditorModel implements Descrip
 		validationErrorModel: ValidationErrorModel,
 		rootPath: string,
 		fieldSetDefinition: DescriptionTemplateFieldSet,
-		visibilityRulesService: VisibilityRulesService
+		visibilityRulesService: VisibilityRulesService,
 	}): void {
-		const { validationErrorModel, rootPath, formArray, fieldSetDefinition } = params;
+		const { validationErrorModel, rootPath, formArray, fieldSetDefinition, visibilityRulesService } = params;
 		formArray?.controls?.forEach(
 			(control, index) => DescriptionPropertyDefinitionFieldSetItemEditorModel.reapplyValidators({
 				formGroup: control as UntypedFormGroup,
 				rootPath: `${rootPath}items[${index}].`,
 				validationErrorModel: validationErrorModel,
 				fieldSetDefinition: fieldSetDefinition,
-				visibilityRulesService: params.visibilityRulesService
+				visibilityRulesService
 			})
 		);
 	}
 
 }
+
+export interface FieldSetItemsFormGroup extends FormGroup <{
+    ordinal: FormControl<number>;
+    fields: FormGroup<{ [key: string]: DescriptionFieldFormGroup }>
+}>{}
 
 export class DescriptionPropertyDefinitionFieldSetItemEditorModel implements DescriptionPropertyDefinitionFieldSetItemPersist {
 	fields: Map<string, DescriptionFieldEditorModel> = new Map<string, DescriptionFieldEditorModel>;
@@ -378,15 +420,22 @@ export class DescriptionPropertyDefinitionFieldSetItemEditorModel implements Des
 		if (item) {
 			this.ordinal = item.ordinal;
 			if (item.fields) {
-				//TODO: don't like it. Find a common way to parse it either its Map or json.
-				if (item.fields instanceof Map)
-					new Map(item.fields)?.forEach((value, key) => this.fields.set(key, new DescriptionFieldEditorModel(this.validationErrorModel).fromModel(value, item.ordinal, definitionFieldSet?.fields?.find(x => x.id == key), descriptionReferences)));
-				else
-					Object.keys(item.fields)?.forEach((key) => {
+                let iterable = item.fields instanceof Map ? Object.fromEntries(item.fields) : item.fields;
+                Object.keys(iterable)?.forEach((key) => {
 					if ( definitionFieldSet?.fields?.find(x => x.id == key) != null){
 						this.fields.set(key, new DescriptionFieldEditorModel(this.validationErrorModel).fromModel(item.fields[key], item.ordinal, definitionFieldSet?.fields?.find(x => x.id == key), descriptionReferences))
 					}
-				});
+                });
+				// if (item.fields instanceof Map){ 
+                //     console.log(Object.fromEntries(item.fields))
+				// 	new Map(item.fields)?.forEach((value, key) => this.fields.set(key, new DescriptionFieldEditorModel(this.validationErrorModel).fromModel(value, item.ordinal, definitionFieldSet?.fields?.find(x => x.id == key), descriptionReferences)));
+                // }
+				// else
+				// 	Object.keys(item.fields)?.forEach((key) => {
+				// 	if ( definitionFieldSet?.fields?.find(x => x.id == key) != null){
+				// 		this.fields.set(key, new DescriptionFieldEditorModel(this.validationErrorModel).fromModel(item.fields[key], item.ordinal, definitionFieldSet?.fields?.find(x => x.id == key), descriptionReferences))
+				// 	}
+				// });
 			}
 		}
 		return this;
@@ -397,7 +446,7 @@ export class DescriptionPropertyDefinitionFieldSetItemEditorModel implements Des
 		disabled?: boolean,
 		rootPath?: string,
 		visibilityRulesService: VisibilityRulesService
-	}): UntypedFormGroup {
+	}): FieldSetItemsFormGroup {
 		let { context = null, disabled = false, rootPath } = params ?? {}
 		if (context == null) {
 			context = DescriptionPropertyDefinitionFieldSetItemEditorModel.createValidationContext({
@@ -406,7 +455,7 @@ export class DescriptionPropertyDefinitionFieldSetItemEditorModel implements Des
 			});
 		}
 
-		const formGroup = this.formBuilder.group({});
+		const formGroup = this.formBuilder.group({}) as FieldSetItemsFormGroup;
 		formGroup.addControl('ordinal', new FormControl({ value: this.ordinal, disabled: disabled }, context.getValidation('ordinal').validators));
 
 
@@ -474,6 +523,9 @@ export class DescriptionPropertyDefinitionFieldSetItemEditorModel implements Des
 
 }
 
+export interface DescriptionFieldFormGroup extends FormGroup<{
+    [key: string]: FormControl<string | string[] | boolean | Date | ReferencePersist[] | ReferencePersist> | DescriptionExternalIdentifierForm}
+>{}
 export class DescriptionFieldEditorModel implements DescriptionFieldPersist {
 	textValue: string;
 	textListValue: string[];
@@ -500,7 +552,7 @@ export class DescriptionFieldEditorModel implements DescriptionFieldPersist {
 			this.dateValue = item.dateValue;
 			this.booleanValue = item.booleanValue;
 			this.tags = item.tags?.map(x => x.label);
-			const references = descriptionReferences?.filter(x => x.data?.fieldId == descriptionTemplateField?.id && x.data.ordinal == ordinal && x.isActive == IsActive.Active).map(x => {
+			const references = descriptionReferences?.filter(x => x.data?.fieldId == descriptionTemplateField?.id && x.data.ordinal == ordinal).map(x => {
 				return {
 					id: x.reference.id,
 					label: x.reference.label,
@@ -518,7 +570,7 @@ export class DescriptionFieldEditorModel implements DescriptionFieldPersist {
 			} else {
 				if (references?.length == 1) this.reference = references[0];
 				if (references?.length > 1) {
-					console.error("multiple references on single reference field: " + references);
+					console.error("multiple references on single reference field: " + references.map((x) => x.id));
 					this.reference = references[0];
 				}
 			}
@@ -535,7 +587,7 @@ export class DescriptionFieldEditorModel implements DescriptionFieldPersist {
 		rootPath?: string,
 		visibilityRulesService: VisibilityRulesService,
 		visibilityRulesKey: string
-	}): UntypedFormGroup {
+	}): DescriptionFieldFormGroup {
 		let { context = null, disabled = false, rootPath } = params ?? {}
 		if (context == null) {
 			context = DescriptionFieldEditorModel.createValidationContext({
@@ -550,7 +602,7 @@ export class DescriptionFieldEditorModel implements DescriptionFieldPersist {
 		const fieldType = this.fieldDefinition.data.fieldType;
 		const multipleSelect = this.fieldDefinition.data.multipleSelect;
 		const fieldValueControlName = DescriptionEditorModel.getFieldValueControlName(fieldType, multipleSelect);
-		const formGroup = this.formBuilder.group({});
+		const formGroup = this.formBuilder.group({}) as DescriptionFieldFormGroup;
 		switch (fieldType) {
 			case DescriptionTemplateFieldType.FREE_TEXT:
 			case DescriptionTemplateFieldType.TEXT_AREA:
@@ -658,6 +710,10 @@ export class DescriptionFieldEditorModel implements DescriptionFieldPersist {
 	}
 }
 
+export interface DescriptionExternalIdentifierForm extends FormGroup <{
+    identifier: FormControl<string>;
+    type: FormControl<string>;
+}>{}
 export class DescriptionExternalIdentifierEditorModel implements DescriptionExternalIdentifierPersist {
 	identifier: string;
 	type: string;
@@ -683,7 +739,7 @@ export class DescriptionExternalIdentifierEditorModel implements DescriptionExte
 		fieldDefinition: DescriptionTemplateField,
 		visibilityRulesService: VisibilityRulesService,
 		visibilityRulesKey: string
-	}): UntypedFormGroup {
+	}): DescriptionExternalIdentifierForm {
 		let { context = null, disabled = false, rootPath } = params ?? {}
 		if (context == null) {
 			context = DescriptionExternalIdentifierEditorModel.createValidationContext({
@@ -698,7 +754,7 @@ export class DescriptionExternalIdentifierEditorModel implements DescriptionExte
 		return this.formBuilder.group({
 			identifier: [{ value: this.identifier, disabled: disabled }, context.getValidation('identifier').validators],
 			type: [{ value: this.type, disabled: disabled }, context.getValidation('type').validators],
-		});
+		}) as DescriptionExternalIdentifierForm; 
 	}
 
 	static createValidationContext(params: {
@@ -853,4 +909,25 @@ export class DescriptionFieldIndicator {
 		this.fieldId = fieldId;
 		this.type = DescriptionEditorModel.getFieldValueControlName(type, multipleSelect);
 	}
+}
+
+export interface DescriptionEditorForm {
+	id: FormControl<Guid>;
+	hash: FormControl<string>;
+	label: FormControl<string>;
+	planId: FormControl<Guid>;
+	planDescriptionTemplateId: FormControl<Guid>;
+	descriptionTemplateId: FormControl<Guid>;
+	statusId: FormControl<Guid>;
+	description: FormControl<string>;
+	properties: PropertiesFormGroup | FormGroup<any>;
+	tags: FormControl<string[]>;
+}
+
+export interface PlanDescriptionTemplateForm {
+
+}
+
+export interface DescriptionTemplateForm {
+
 }

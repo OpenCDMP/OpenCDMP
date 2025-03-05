@@ -1,6 +1,5 @@
 package org.opencdmp.models;
 
-import gr.cite.commons.web.authz.configuration.AuthorizationConfiguration;
 import gr.cite.commons.web.authz.configuration.Permission;
 import gr.cite.commons.web.authz.configuration.PermissionPolicyContext;
 import gr.cite.commons.web.oidc.principal.CurrentPrincipalResolver;
@@ -35,7 +34,6 @@ public class AccountBuilder {
     private final Set<String> excludeMoreClaim;
     private final CurrentPrincipalResolver currentPrincipalResolver;
     private final PermissionPolicyContext permissionPolicyContext;
-    private final AuthorizationConfiguration authorizationConfiguration;
     private final AuthorizationContentResolver authorizationContentResolver;
     private final JsonHandlingService jsonHandlingService;
     private final UserScope userScope;
@@ -44,11 +42,10 @@ public class AccountBuilder {
     private final QueryFactory queryFactory;
     private final BuilderFactory builderFactory;
 
-    public AccountBuilder(ClaimExtractor claimExtractor, CurrentPrincipalResolver currentPrincipalResolver,  PermissionPolicyContext permissionPolicyContext, AuthorizationConfiguration authorizationConfiguration, AuthorizationContentResolver authorizationContentResolver, JsonHandlingService jsonHandlingService, UserScope userScope, TenantEntityManager entityManager, TenantScope tenantScope, QueryFactory queryFactory, BuilderFactory builderFactory) {
+    public AccountBuilder(ClaimExtractor claimExtractor, CurrentPrincipalResolver currentPrincipalResolver, PermissionPolicyContext permissionPolicyContext, AuthorizationContentResolver authorizationContentResolver, JsonHandlingService jsonHandlingService, UserScope userScope, TenantEntityManager entityManager, TenantScope tenantScope, QueryFactory queryFactory, BuilderFactory builderFactory) {
         this.claimExtractor = claimExtractor;
         this.currentPrincipalResolver = currentPrincipalResolver;
         this.permissionPolicyContext = permissionPolicyContext;
-        this.authorizationConfiguration = authorizationConfiguration;
 	    this.authorizationContentResolver = authorizationContentResolver;
 	    this.jsonHandlingService = jsonHandlingService;
         this.userScope = userScope;
@@ -132,9 +129,11 @@ public class AccountBuilder {
         }
 
         FieldSet profileFields = fields.extractPrefixed(BaseFieldSet.asIndexerPrefix(Account._profile));
-        if (!profileFields.isEmpty() && this.userScope.getUserIdSafe() != null){
+
+        UserEntity data = (fields.hasField(Account._userExists)  || !profileFields.isEmpty()) && this.userScope.getUserIdSafe() != null ? this.entityManager.find(UserEntity.class, this.userScope.getUserIdSafe()) : null;
+        if (fields.hasField(Account._userExists)) model.setUserExists(data != null);
+        if (!profileFields.isEmpty()){
             model.setProfile(new Account.UserProfileInfo());
-            UserEntity data = this.entityManager.find(UserEntity.class, this.userScope.getUserIdSafe());
             AdditionalInfoEntity additionalInfoEntity = data == null ? null : this.jsonHandlingService.fromJsonSafe(AdditionalInfoEntity.class, data.getAdditionalInfo());
             if (profileFields.hasField(Account.UserProfileInfo._avatarUrl) && additionalInfoEntity != null) model.getProfile().setAvatarUrl(additionalInfoEntity.getAvatarUrl());
             if (profileFields.hasField(Account.UserProfileInfo._language) && additionalInfoEntity != null) model.getProfile().setLanguage(additionalInfoEntity.getLanguage());

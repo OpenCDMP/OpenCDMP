@@ -1,6 +1,6 @@
 
 import { Component, OnInit } from '@angular/core';
-import { FormArray, UntypedFormGroup } from '@angular/forms';
+import { FormArray, FormGroup, UntypedFormArray, UntypedFormGroup } from '@angular/forms';
 import { MatDialog } from '@angular/material/dialog';
 import { Title } from '@angular/platform-browser';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -9,7 +9,7 @@ import { ExternalFetcherSourceType } from '@app/core/common/enum/external-fetche
 import { IsActive } from '@app/core/common/enum/is-active.enum';
 import { AppPermission } from '@app/core/common/enum/permission.enum';
 import { ReferenceFieldDataType } from '@app/core/common/enum/reference-field-data-type';
-import { ReferenceType, ReferenceTypePersist } from '@app/core/model/reference-type/reference-type';
+import { ReferenceType, ReferenceTypeField, ReferenceTypePersist } from '@app/core/model/reference-type/reference-type';
 import { AuthService } from '@app/core/services/auth/auth.service';
 import { ConfigurationService } from '@app/core/services/configuration/configuration.service';
 import { LockService } from '@app/core/services/lock/lock.service';
@@ -26,17 +26,20 @@ import { FilterService } from '@common/modules/text-filter/filter-service';
 import { Guid } from '@common/types/guid';
 import { TranslateService } from '@ngx-translate/core';
 import { map, takeUntil } from 'rxjs/operators';
-import { ReferenceTypeEditorModel } from './reference-type-editor.model';
+import { ReferenceTypeEditorModel, ReferenceTypeFieldFormGroup } from './reference-type-editor.model';
 import { ReferenceTypeEditorResolver } from './reference-type-editor.resolver';
 import { ReferenceTypeEditorService } from './reference-type-editor.service';
 import { RouterUtilsService } from '@app/core/services/router/router-utils.service';
-import { StaticEditorModel, StaticOptionEditorModel } from '@app/ui/external-fetcher/external-fetcher-source-editor.model';
+import { FieldMappingFormGroup, ItemsFormGroup, StaticEditorModel, StaticOptionEditorModel } from '@app/ui/external-fetcher/external-fetcher-source-editor.model';
+import { ReferenceTypeTestDialogComponent } from '../reference-type-test-dialog/reference-type-test-dialog.component';
+import { ExternalFetcherBaseSourceConfigurationPersist } from '@app/core/model/external-fetcher/external-fetcher';
 
 @Component({
-	selector: 'app-reference-type-editor-component',
-	templateUrl: 'reference-type-editor.component.html',
-	styleUrls: ['./reference-type-editor.component.scss'],
-	providers: [ReferenceTypeEditorService]
+    selector: 'app-reference-type-editor-component',
+    templateUrl: 'reference-type-editor.component.html',
+    styleUrls: ['./reference-type-editor.component.scss'],
+    providers: [ReferenceTypeEditorService],
+    standalone: false
 })
 export class ReferenceTypeEditorComponent extends BaseEditor<ReferenceTypeEditorModel, ReferenceType> implements OnInit {
 
@@ -51,6 +54,8 @@ export class ReferenceTypeEditorComponent extends BaseEditor<ReferenceTypeEditor
 	public referenceTypeExternalApiHTTPMethodTypeEnum = this.enumUtils.getEnumValues<ExternalFetcherApiHTTPMethodType>(ExternalFetcherApiHTTPMethodType);
 	referenceTypes: ReferenceType[] = null;
 	sourceKeysMap: Map<Guid, string[]> = new Map<Guid, string[]>();
+
+    prevFields: ReferenceTypeField[] = [];
 
 	protected get canDelete(): boolean {
 		return !this.isDeleted && !this.isNew && this.hasPermission(this.authService.permissionEnum.DeleteReferenceType) && this.editorModel.belongsToCurrentTenant != false;
@@ -133,6 +138,7 @@ export class ReferenceTypeEditorComponent extends BaseEditor<ReferenceTypeEditor
 	buildForm() {
 		this.formGroup = this.editorModel.buildForm(null, this.isDeleted || !this.authService.hasPermission(AppPermission.EditReferenceType));
 		this.referenceTypeEditorService.setValidationErrorModel(this.editorModel.validationErrorModel);
+        this.prevFields = this.formGroup.controls.definition.get('fields')?.getRawValue() ?? [];
 	}
 
 	refreshData(): void {
@@ -242,33 +248,71 @@ export class ReferenceTypeEditorComponent extends BaseEditor<ReferenceTypeEditor
 	}
 
 	submitFields(): void {
-		const fieldsFormArray = (this.formGroup.get('definition').get('fields') as FormArray);
+		const fieldsFormArray = (this.formGroup.get('definition').get('fields') as FormArray<FormGroup<ReferenceTypeFieldFormGroup>>);
+        this.prevFields = fieldsFormArray?.getRawValue() ?? [];
 
-		if (fieldsFormArray.valid) {
+		if (fieldsFormArray?.valid) {
 			const sourcesFormArray = (this.formGroup.get('definition').get('sources') as FormArray);
+            const staticFieldsLength = this.STATIC_FIELD_MAPPINGS.length;
 
 			if (fieldsFormArray.length > 0) {
-				for (let j = 0; j < sourcesFormArray.length; j++) {
-					for (let i = 0; i < fieldsFormArray.length; i++) {
-						this.addFieldMapping(j, fieldsFormArray.at(i).get('code').value);
-						const staticFormArray = (this.formGroup.get('definition').get('sources') as FormArray).at(j).get('items') as FormArray;
-						for (let k = 0; k < staticFormArray.length; k++) {
-							this.addOption(j, k, fieldsFormArray.at(i).get('code').value);
-						}
-					}
-				}
+                sourcesFormArray.controls.forEach((sourceConfig, sourceIndex) => {
+                    // PATCH + ADD FIELD MAPPINGS
+                    const fieldMappings = sourceConfig.get('results').get('fieldsMapping') as FormArray<FormGroup<FieldMappingFormGroup>>;
+                    fieldsFormArray.controls.forEach((field, index) => {
+                        const positionInArray = index + staticFieldsLength
+                        const fieldMappingsLength = fieldMappings?.controls?.length;
+                        const code = field.value.code;
+                        if(positionInArray < fieldMappingsLength){
+                            fieldMappings.controls[positionInArray].controls.code.setValue(code)
+                        } else {
+                            this.addFieldMapping(sourceIndex, field.value.code);
+                        }
+                    })
+                    // // PATCH + ADD STATIC ITEM OPTIONS
+                    const staticItems = sourceConfig?.get('items') as FormArray<FormGroup<ItemsFormGroup>>;
+                    staticItems?.controls?.forEach((item) => {
+                        if(!item.controls?.options){
+                            return;
+                        }
+                        fieldsFormArray.controls.forEach((field, index) => {
+                            const positionInArray = index + staticFieldsLength
+                            const staticItemLength = item.controls?.options?.length;
+                            if(positionInArray < staticItemLength){
+                                item.controls.options.controls[positionInArray].controls.code.setValue(field.value.code)
+                            } else {
+                                this.addOption(sourceIndex, staticItemLength, field.value.code);
+                            }
+                        })
+                    })
+
+                })
 			}
 		}
+        // if (fieldsFormArray.valid) {
+		// 	const sourcesFormArray = (this.formGroup.get('definition').get('sources') as FormArray);
+
+		// 	if (fieldsFormArray.length > 0) {
+		// 		for (let j = 0; j < sourcesFormArray.length; j++) {
+		// 			for (let i = 0; i < fieldsFormArray.length; i++) {
+		// 				this.addFieldMapping(j, fieldsFormArray.at(i).get('code').value);
+		// 				const staticFormArray = (this.formGroup.get('definition').get('sources') as FormArray).at(j).get('items') as FormArray;
+		// 				for (let k = 0; k < staticFormArray.length; k++) {
+		// 					this.addOption(j, k, fieldsFormArray.at(i).get('code').value);
+		// 				}
+		// 			}
+		// 		}
+		// 	}
+		// }
 	}
 
 
+    private STATIC_FIELD_MAPPINGS = ["reference_id", "label", "description"]
 	addSource(): void {
 		(this.formGroup.get('definition').get('sources') as FormArray).push(this.editorModel.createChildSource((this.formGroup.get('definition').get('sources') as FormArray).length));
 		const sourceIndex = (this.formGroup.get('definition').get('sources') as FormArray).length - 1;
 
-		this.addFieldMapping(sourceIndex, "reference_id");
-		this.addFieldMapping(sourceIndex, "label");
-		this.addFieldMapping(sourceIndex, "description");
+        this.STATIC_FIELD_MAPPINGS.forEach((code) => this.addFieldMapping(sourceIndex, code))
 
 		const fieldsFormArray = (this.formGroup.get('definition').get('fields') as FormArray);
 		if (fieldsFormArray && fieldsFormArray.length > 0) {
@@ -298,7 +342,7 @@ export class ReferenceTypeEditorComponent extends BaseEditor<ReferenceTypeEditor
 	//
 	//
 	addFieldMapping(sourceIndex: number, code: string): void {
-		const fieldMappingSize = ((this.formGroup.get('definition').get('sources') as FormArray).at(sourceIndex).get('results').get('fieldsMapping') as FormArray).length;
+		const fieldMappingSize = ((this.formGroup.get('definition').get('sources') as FormArray).controls[sourceIndex]?.get('results')?.get('fieldsMapping') as FormArray)?.length;
 
 		if (fieldMappingSize > 0) {
 			for (let i = 0; i < fieldMappingSize; i++) {
@@ -373,9 +417,7 @@ export class ReferenceTypeEditorComponent extends BaseEditor<ReferenceTypeEditor
 		const staticItem = new StaticEditorModel(this.editorModel.validationErrorModel);
 		formArray.push(staticItem.buildForm({rootPath: 'definition.sources[' + sourceIndex + '].items[' + formArray.length + '].'}));
 
-		this.addOption(sourceIndex, formArray.length -1 , "reference_id");
-		this.addOption(sourceIndex, formArray.length -1, "label");
-		this.addOption(sourceIndex, formArray.length -1, "description");
+        this.STATIC_FIELD_MAPPINGS.forEach((code) => this.addOption(sourceIndex, formArray.length -1 , code))
 
 		const fieldsFormArray = (this.formGroup.get('definition').get('fields') as FormArray);
 		if (fieldsFormArray && fieldsFormArray.length > 0) {
@@ -429,4 +471,23 @@ export class ReferenceTypeEditorComponent extends BaseEditor<ReferenceTypeEditor
 		);		
 		formArray.markAsDirty();
 	}
+
+	 hasSources() : boolean{
+		return (this.formGroup.get('definition').get('sources') as UntypedFormArray).length > 0;
+	}
+
+	openReferenceTestDialog(params?: {key?: string, index?: number}): void {
+        const {key = null, index = null} = params ?? {};
+		const sourceArray = (this.formGroup.get('definition').get('sources') as FormArray<UntypedFormGroup>)?.getRawValue();
+        const sources = (index != null && index != undefined && sourceArray?.length >= index) ? [sourceArray[index]] : sourceArray;
+		
+		this.dialog.open(ReferenceTypeTestDialogComponent, {
+		  data: {
+			sources: JSON.parse(JSON.stringify(sources)) as ExternalFetcherBaseSourceConfigurationPersist[],
+			key: key,
+			label: this.formGroup.get('name').value
+		  },
+          maxHeight: 'min(650px, 100vh)',
+		});
+	  }
 }

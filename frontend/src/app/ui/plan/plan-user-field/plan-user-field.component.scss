@@ -1,3 +1,7 @@
+.user-container {
+    container-name: main-container;
+    container-type: inline-size;
+}
 .invite-users-wrapper {
 	display: flex;
 	flex-direction: column;
@@ -6,10 +10,46 @@
 
 .drag-handle {
 	cursor: move; 
-	color: var(--primary-color);
+	color: var(--sys-primary);
 }
 
 .drag-handle-disabled {
 	cursor: auto; 
 	color: rgba(0, 0, 0, 0.38);;
+}
+
+.user-fields {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem
+}
+@container main-container (inline-size < 500px){
+    .user-fields {
+        flex-wrap: wrap;
+    }
+}
+
+.title-size-md {
+    font-size: var(--sys-headline-medium-size)
+}
+
+.horizontal-toggle-group {
+    min-width: fit-content;
+}
+
+.assistive-text {
+    position: absolute;
+    margin: -1px;
+    border: 0;
+    padding: 0;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+}
+
+
+
+.reorder-mode:focus {
+    border: 1px solid var(--sys-primary)
 }

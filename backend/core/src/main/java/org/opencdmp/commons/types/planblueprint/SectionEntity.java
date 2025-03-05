@@ -38,7 +38,7 @@ public class SectionEntity {
 
     @XmlElementWrapper(name = "descriptionTemplates")
     @XmlElement(name = "descriptionTemplate")
-    private List<DescriptionTemplateEntity> descriptionTemplates;
+    private List<BlueprintDescriptionTemplateEntity> descriptionTemplates;
 
     @XmlElementWrapper(name = "prefillingSourcesIds")
     @XmlElement(name = "id")
@@ -86,10 +86,10 @@ public class SectionEntity {
         this.hasTemplates = hasTemplates;
     }
 
-    public List<DescriptionTemplateEntity> getDescriptionTemplates() {
+    public List<BlueprintDescriptionTemplateEntity> getDescriptionTemplates() {
         return this.descriptionTemplates;
     }
-    public void setDescriptionTemplates(List<DescriptionTemplateEntity> descriptionTemplates) {
+    public void setDescriptionTemplates(List<BlueprintDescriptionTemplateEntity> descriptionTemplates) {
         this.descriptionTemplates = descriptionTemplates;
     }
 

@@ -26,6 +26,7 @@ export interface DescriptionTemplate extends BaseEntity {
 	users?: UserDescriptionTemplate[];
 	versionStatus?: DescriptionTemplateVersionStatus;
 	authorizationFlags?: AppPermission[];
+	ordinal?: number;
 }
 
 export interface UserDescriptionTemplate extends BaseEntity {

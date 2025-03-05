@@ -42,10 +42,8 @@ public class PlanEntity extends TenantScopedBaseEntity {
     public static final String _versionStatus = "versionStatus";
 
     @Column(name = "status", nullable = false)
-    @Convert(converter = PlanStatusConverter.class)
-    private PlanStatus status;
-
-    public static final String _status = "status";
+    private UUID statusId;
+    public static final String _statusId = "statusId";
 
     @Column(name = "properties", nullable = true)
     private String properties;
@@ -133,12 +131,12 @@ public class PlanEntity extends TenantScopedBaseEntity {
         this.version = version;
     }
 
-    public PlanStatus getStatus() {
-        return this.status;
+    public UUID getStatusId() {
+        return statusId;
     }
 
-    public void setStatus(PlanStatus status) {
-        this.status = status;
+    public void setStatusId(UUID statusId) {
+        this.statusId = statusId;
     }
 
     public String getProperties() {

@@ -1,6 +1,6 @@
-import { HttpHeaders } from '@angular/common/http';
+import { HttpHeaders, HttpParamsOptions } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { Lock, LockPersist, LockStatus } from '@app/core/model/lock/lock.model';
+import { Lock, LockPersist, LockStatus, UnlockMultipleTargetsPersist } from '@app/core/model/lock/lock.model';
 import { LockLookup } from '@app/core/query/lock.lookup';
 import { QueryResult } from '@common/model/query-result';
 import { FilterService } from '@common/modules/text-filter/filter-service';
@@ -10,6 +10,7 @@ import { catchError } from 'rxjs/operators';
 import { ConfigurationService } from '../configuration/configuration.service';
 import { BaseHttpV2Service } from '../http/base-http-v2.service';
 import { LockTargetType } from '@app/core/common/enum/lock-target-type';
+import { BaseHttpParams } from '@common/http/base-http-params';
 
 @Injectable()
 export class LockService {
@@ -59,8 +60,8 @@ export class LockService {
 			.pipe(catchError((error: any) => throwError(error)));
 	}
 	
-	lock(targetId: Guid, targetType: LockTargetType): Observable<Boolean> {
-		return this.http.get<Boolean>(`${this.apiBase}/target/lock/${targetId}/${targetType}`)
+	lock(targetId: Guid, targetType: LockTargetType): Observable<boolean> {
+		return this.http.get<boolean>(`${this.apiBase}/target/lock/${targetId}/${targetType}`)
 			.pipe(catchError((error: any) => throwError(error)));
 	}
 
@@ -80,6 +81,17 @@ export class LockService {
 
 		return this.http
 			.get<Lock>(url, options).pipe(
+				catchError((error: any) => throwError(error)));
+	}
+
+	checkAndLock(targetId: Guid, targetType: LockTargetType): Observable<Boolean> {
+		return this.http.get<Boolean>(`${this.apiBase}/target/check-lock/${targetId}/${targetType}`)
+			.pipe(catchError((error: any) => throwError(error)));
+	}
+
+	unlockTargetMultiple(item: UnlockMultipleTargetsPersist): Observable<boolean> {
+		const url = `${this.apiBase}/target/unlock-multiple`;
+		return this.http.post<boolean>(url, item).pipe(
 				catchError((error: any) => throwError(error)));
 	}
 }

@@ -1,7 +1,7 @@
 
 import { COMMA, ENTER } from '@angular/cdk/keycodes';
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, Inject, OnInit } from '@angular/core';
+import { Component, computed, HostBinding, Inject, OnInit } from '@angular/core';
 import { UntypedFormArray, UntypedFormGroup } from '@angular/forms';
 import { MatDialogRef } from '@angular/material/dialog';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -18,12 +18,13 @@ import { UserService } from '@app/core/services/user/user.service';
 import { AppRole } from '@app/core/common/enum/app-role';
 
 @Component({
-	selector: 'app-user-invite-to-tenant-dialog.component',
-	templateUrl: 'user-invite-to-tenant-dialog.component.html',
-	styleUrls: ['./user-invite-to-tenant-dialog.component.scss']
+    selector: 'app-user-invite-to-tenant-dialog.component',
+    templateUrl: 'user-invite-to-tenant-dialog.component.html',
+    styleUrls: ['./user-invite-to-tenant-dialog.component.scss'],
+    standalone: false
 })
 export class UserInviteToTenantDialogComponent extends BaseComponent implements OnInit {
-
+   
 	editorModel: UserTenantUsersInviteRequestEditorModel;
 	formGroup: any;
 	inProgressSendButton = false;

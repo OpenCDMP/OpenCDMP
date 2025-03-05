@@ -8,7 +8,7 @@ import java.util.UUID;
 
 public interface AccountingService {
 
-    Integer getCurrentMetricValue(UsageLimitTargetMetric metric, DefinitionEntity definition, boolean userIdEnabled) throws InvalidApplicationException;
+    Integer getCurrentMetricValue(UsageLimitTargetMetric metric, DefinitionEntity definition) throws InvalidApplicationException;
 
     void set(String metric, UUID tenantId, String tenantCode, Integer value) throws InvalidApplicationException;
 

@@ -21,7 +21,6 @@ public class PlanBlueprint {
 
     public final static String _code = "code";
 
-
     private Definition definition;
 
     public static final String _definition = "definition";
@@ -58,8 +57,15 @@ public class PlanBlueprint {
 
     public static final String _hash = "hash";
 
+    private String description;
+
+    public static final String _description = "description";
+
     private Boolean belongsToCurrentTenant;
     public static final String _belongsToCurrentTenant = "belongsToCurrentTenant";
+
+    private Integer ordinal;
+    public static final String _ordinal = "ordinal";
 
     public UUID getId() {
         return id;
@@ -163,5 +169,21 @@ public class PlanBlueprint {
 
     public void setBelongsToCurrentTenant(Boolean belongsToCurrentTenant) {
         this.belongsToCurrentTenant = belongsToCurrentTenant;
+    }
+
+    public Integer getOrdinal() {
+        return ordinal;
+    }
+
+    public void setOrdinal(Integer ordinal) {
+        this.ordinal = ordinal;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
     }
 }

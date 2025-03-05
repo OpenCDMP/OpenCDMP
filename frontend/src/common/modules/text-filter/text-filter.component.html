@@ -1,5 +1,5 @@
 <mat-form-field subscriptSizing="dynamic" [floatLabel]="floatLabel" class="w-100">
 	<mat-icon *ngIf="suffixIcon" matSuffix>{{suffixIcon}}</mat-icon>
 	<mat-label *ngIf="label">{{label}}</mat-label>
-	<input autocomplete="nope" matInput class="search-box" [placeholder]="textPlaceholder" [(ngModel)]="inputValue">
+	<input autocomplete="off" matInput class="search-box" [placeholder]="textPlaceholder" [(ngModel)]="inputValue">
 </mat-form-field>

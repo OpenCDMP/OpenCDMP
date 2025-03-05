@@ -1,10 +1,8 @@
-<div mat-dialog-title class="mt-2 row d-flex align-items-center">
-	<div class="col"><span class="text-danger">{{'PLAN-DELETE-DIALOG.WARNING' | translate}}</span></div>
-	<div>
-		<button mat-icon-button tabindex="-1" (click)="close()"><mat-icon>close</mat-icon></button>
-	</div>
+<div mat-dialog-title class="d-flex align-items-center">
+	<span class="text-danger">{{'PLAN-DELETE-DIALOG.WARNING' | translate}}</span>
+	<button class="ml-auto" mat-icon-button (click)="close()" [attr.aria-label]="'ALT-TEXT.CLOSE-DIALOG'  | translate"><mat-icon aria-hidden>close</mat-icon></button>
 </div>
-<mat-dialog-content>
+<div mat-dialog-content>
 	<div class="row d-flex flex-row mb-2">
 		<div class="col message pb-4 pl-3">{{'PLAN-DELETE-DIALOG.DELETE-ITEM' | translate}}</div>
 	</div>
@@ -15,8 +13,8 @@
 				</ul>
 			</ng-container>
 	</div>
-	<div class="row" style="justify-content: space-between;">
-		<div class="col-auto"><button mat-button type="button" tabindex="-1" class="rounded-btn neutral" (click)="cancel()">{{'PLAN-DELETE-DIALOG.ACTIONS.CANCEL' | translate}}</button></div>
-		<div class="col-auto"><button mat-button type="button" tabindex="-1" (click)="confirm()" class="rounded-btn delete-inverted">{{'PLAN-DELETE-DIALOG.ACTIONS.DELETE' | translate}}</button></div>
-	</div>
-</mat-dialog-content>
+</div>
+<div mat-dialog-actions class="d-flex justify-content-between gap-half-rem">
+    <button mat-stroked-button type="button" class="padded-shadow-btn" (click)="cancel()">{{'PLAN-DELETE-DIALOG.ACTIONS.CANCEL' | translate}}</button>
+    <button mat-stroked-button color="warn" type="button" (click)="confirm()" class="padded-shadow-btn">{{'PLAN-DELETE-DIALOG.ACTIONS.DELETE' | translate}}</button>
+</div>

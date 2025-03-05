@@ -4,9 +4,10 @@ import { AutoCompleteModule } from '@app/library/auto-complete/auto-complete.mod
 import { RichTextEditorModule } from "@app/library/rich-text-editor/rich-text-editor.module";
 import { CommonUiModule } from '@common/ui/common-ui.module';
 import { NewVersionPlanDialogComponent } from './plan-new-version-dialog.component';
+import { AwaitServerResponseDirective } from '@app/library/await-server-response.directive';
 
 @NgModule({
-	imports: [CommonUiModule, FormsModule, ReactiveFormsModule, AutoCompleteModule, RichTextEditorModule],
+	imports: [CommonUiModule, FormsModule, ReactiveFormsModule, AutoCompleteModule, RichTextEditorModule, AwaitServerResponseDirective],
 	declarations: [NewVersionPlanDialogComponent],
 	exports: [NewVersionPlanDialogComponent]
 })

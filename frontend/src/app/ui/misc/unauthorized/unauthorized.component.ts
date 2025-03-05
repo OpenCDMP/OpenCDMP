@@ -6,8 +6,9 @@ import { BaseComponent } from '@common/base/base.component';
 import { takeUntil } from 'rxjs/operators';
 
 @Component({
-	selector: 'app-unauthorized-component',
-	templateUrl: './unauthorized.component.html'
+    selector: 'app-unauthorized-component',
+    templateUrl: './unauthorized.component.html',
+    standalone: false
 })
 export class UnauthorizedComponent extends BaseComponent implements AfterViewInit {
 	@Input()

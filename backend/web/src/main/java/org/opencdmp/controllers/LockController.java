@@ -37,8 +37,8 @@ import org.opencdmp.model.LockStatus;
 import org.opencdmp.model.builder.LockBuilder;
 import org.opencdmp.model.censorship.LockCensor;
 import org.opencdmp.model.persist.LockPersist;
+import org.opencdmp.model.persist.UnlockMultipleTargetsPersist;
 import org.opencdmp.model.result.QueryResult;
-import org.opencdmp.model.user.User;
 import org.opencdmp.query.LockQuery;
 import org.opencdmp.query.lookup.LockLookup;
 import org.opencdmp.service.lock.LockService;
@@ -271,6 +271,31 @@ public class LockController {
     }
 
     @Transactional
+    @GetMapping("target/check-lock/{id}/{targetType}")
+    @OperationWithTenantHeader(summary = "Checks and locks in one operation", description = "",
+            responses = @ApiResponse(description = "OK", responseCode = "200", content = @Content(
+                    schema = @Schema(
+                            implementation = Boolean.class
+                    ))
+            ))
+    public boolean checkLock(
+            @Parameter(name = "id", description = "The target id to be checked and locked", example = "c0c163dc-2965-45a5-9608-f76030578609", required = true) @PathVariable("id") UUID targetId,
+            @Parameter(name = "targetType", description = "The type of target ", example = "0", required = true) @PathVariable("targetType") int targetType
+    ) throws Exception {
+        AffiliatedResource affiliatedResourcePlan = this.authorizationContentResolver.planAffiliation(targetId);
+        AffiliatedResource affiliatedResourceDescription = this.authorizationContentResolver.descriptionAffiliation(targetId);
+        AffiliatedResource affiliatedResourceDescriptionTemplate = this.authorizationContentResolver.descriptionTemplateAffiliation(targetId);
+        this.authService.authorizeAtLeastOneForce(List.of(affiliatedResourcePlan, affiliatedResourceDescription, affiliatedResourceDescriptionTemplate), Permission.EditLock);
+
+        boolean result = this.lockService.checkLock(targetId, LockTargetType.of((short) targetType));
+        this.auditService.track(AuditableAction.Lock_CheckLock, Map.ofEntries(
+                new AbstractMap.SimpleEntry<String, Object>("targetId", targetId),
+                new AbstractMap.SimpleEntry<String, Object>("targetType", targetType)
+        ));
+        return result;
+    }
+
+    @Transactional
     @GetMapping("target/touch/{id}")
     @OperationWithTenantHeader(summary = "Touch a locked target", description = "",
             responses = @ApiResponse(description = "OK", responseCode = "200", content = @Content(
@@ -312,6 +337,27 @@ public class LockController {
         this.lockService.unlock(targetId);
         this.auditService.track(AuditableAction.Lock_UnLocked, Map.ofEntries(
                 new AbstractMap.SimpleEntry<String, Object>("targetId", targetId)
+        ));
+        return true;
+    }
+
+    @PostMapping("target/unlock-multiple")
+    @OperationWithTenantHeader(summary = "Unlock multiple targets", description = "",
+            responses = @ApiResponse(description = "OK", responseCode = "200", content = @Content(
+                    schema = @Schema(
+                            implementation = Boolean.class
+                    ))
+            ))
+    @Swagger400
+    @Swagger404
+    @Transactional
+    @ValidationFilterAnnotation(validator = UnlockMultipleTargetsPersist.UnlockMultipleTargetsPersistValidator.ValidatorName, argumentName = "model")
+    public boolean unlockTargetMultiple(@RequestBody UnlockMultipleTargetsPersist model) throws Exception {
+        logger.debug(new MapLogEntry("unlock multiple targets" + Lock.class.getSimpleName()).And("model", model));
+
+        this.lockService.unlockMultipleTargets(model);
+        this.auditService.track(AuditableAction.Lock_UnLockedMultiple, Map.ofEntries(
+                new AbstractMap.SimpleEntry<String, Object>("model", model)
         ));
         return true;
     }

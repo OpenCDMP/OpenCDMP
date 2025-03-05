@@ -59,6 +59,8 @@ public class DescriptionTemplateQuery extends QueryBase<DescriptionTemplateEntit
 
     private Collection<String> codes;
 
+    private Collection<String> languages;
+
     public DescriptionTemplateQuery like(String value) {
         this.like = value;
         return this;
@@ -229,6 +231,21 @@ public class DescriptionTemplateQuery extends QueryBase<DescriptionTemplateEntit
         return this;
     }
 
+    public DescriptionTemplateQuery languages(String value) {
+        this.languages = List.of(value);
+        return this;
+    }
+
+    public DescriptionTemplateQuery languages(String... value) {
+        this.languages = Arrays.asList(value);
+        return this;
+    }
+
+    public DescriptionTemplateQuery languages(Collection<String> values) {
+        this.languages = values;
+        return this;
+    }
+
     public DescriptionTemplateQuery authorize(EnumSet<AuthorizationFlags> values) {
         this.authorize = values;
         return this;
@@ -376,6 +393,12 @@ public class DescriptionTemplateQuery extends QueryBase<DescriptionTemplateEntit
         if (this.codes != null) {
             CriteriaBuilder.In<String> inClause = queryContext.CriteriaBuilder.in(queryContext.Root.get(DescriptionTemplateEntity._code));
             for (String item : this.codes)
+                inClause.value(item);
+            predicates.add(inClause);
+        }
+        if (this.languages != null) {
+            CriteriaBuilder.In<String> inClause = queryContext.CriteriaBuilder.in(queryContext.Root.get(DescriptionTemplateEntity._language));
+            for (String item : this.languages)
                 inClause.value(item);
             predicates.add(inClause);
         }

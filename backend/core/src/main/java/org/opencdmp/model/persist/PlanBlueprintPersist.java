@@ -46,6 +46,10 @@ public class PlanBlueprintPersist {
 
     public static final String _hash = "hash";
 
+    private String description;
+
+    public static final String _description = "description";
+
     public UUID getId() {
         return this.id;
     }
@@ -92,6 +96,14 @@ public class PlanBlueprintPersist {
 
     public void setHash(String hash) {
         this.hash = hash;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
     }
 
     @Component(PlanBlueprintPersistValidator.ValidatorName)

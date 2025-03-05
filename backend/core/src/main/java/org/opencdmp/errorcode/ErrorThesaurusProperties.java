@@ -575,6 +575,16 @@ public class ErrorThesaurusProperties {
         this.tokenNotExist = tokenNotExist;
     }
 
+    private ErrorDescription supportiveMaterialAlreadyExists;
+
+    public ErrorDescription getSupportiveMaterialAlreadyExists() {
+        return supportiveMaterialAlreadyExists;
+    }
+
+    public void setSupportiveMaterialAlreadyExists(ErrorDescription supportiveMaterialAlreadyExists) {
+        this.supportiveMaterialAlreadyExists = supportiveMaterialAlreadyExists;
+    }
+
     private ErrorDescription accountRequestAlreadyConfirmed;
 
     public ErrorDescription getAccountRequestAlreadyConfirmed() {
@@ -583,5 +593,105 @@ public class ErrorThesaurusProperties {
 
     public void setAccountRequestAlreadyConfirmed(ErrorDescription accountRequestAlreadyConfirmed) {
         this.accountRequestAlreadyConfirmed = accountRequestAlreadyConfirmed;
+    }
+
+    private ErrorDescription invalidReferenceTypeDefinitionSource;
+
+    public ErrorDescription getInvalidReferenceTypeDefinitionSource() {
+        return invalidReferenceTypeDefinitionSource;
+    }
+
+    public void setInvalidReferenceTypeDefinitionSource(ErrorDescription invalidReferenceTypeDefinitionSource) {
+        this.invalidReferenceTypeDefinitionSource = invalidReferenceTypeDefinitionSource;
+    }
+
+    private ErrorDescription invalidPlanImportXml;
+
+    public ErrorDescription getInvalidPlanImportXml() {
+        return invalidPlanImportXml;
+    }
+
+    public void setInvalidPlanImportXml(ErrorDescription invalidPlanImportXml) {
+        this.invalidPlanImportXml = invalidPlanImportXml;
+    }
+
+    private ErrorDescription invalidPlanImportRdaJson;
+
+    public ErrorDescription getInvalidPlanImportRdaJson() {
+        return invalidPlanImportRdaJson;
+    }
+
+    public void setInvalidPlanImportRdaJson(ErrorDescription invalidPlanImportRdaJson) {
+        this.invalidPlanImportRdaJson = invalidPlanImportRdaJson;
+    }
+
+    private ErrorDescription invalidPlanBlueprintImportXml;
+
+    public ErrorDescription getInvalidPlanBlueprintImportXml() {
+        return invalidPlanBlueprintImportXml;
+    }
+
+    public void setInvalidPlanBlueprintImportXml(ErrorDescription invalidPlanBlueprintImportXml) {
+        this.invalidPlanBlueprintImportXml = invalidPlanBlueprintImportXml;
+    }
+
+    public ErrorDescription invalidDescriptionTemplateImportXml;
+
+    public ErrorDescription getInvalidDescriptionTemplateImportXml() {
+        return invalidDescriptionTemplateImportXml;
+    }
+
+    public void setInvalidDescriptionTemplateImportXml(ErrorDescription invalidDescriptionTemplateImportXml) {
+        this.invalidDescriptionTemplateImportXml = invalidDescriptionTemplateImportXml;
+    }
+
+    public ErrorDescription lockedPlan;
+
+    public ErrorDescription getLockedPlan() {
+        return lockedPlan;
+    }
+
+    public void setLockedPlan(ErrorDescription lockedPlan) {
+        this.lockedPlan = lockedPlan;
+    }
+
+    public ErrorDescription lockedDescription;
+
+    public ErrorDescription getLockedDescription() {
+        return lockedDescription;
+    }
+
+    public void setLockedDescription(ErrorDescription lockedDescription) {
+        this.lockedDescription = lockedDescription;
+    }
+
+    public ErrorDescription lockedPlanBlueprint;
+
+    public ErrorDescription getLockedPlanBlueprint() {
+        return lockedPlanBlueprint;
+    }
+
+    public void setLockedPlanBlueprint(ErrorDescription lockedPlanBlueprint) {
+        this.lockedPlanBlueprint = lockedPlanBlueprint;
+    }
+
+    public ErrorDescription lockedDescriptionTemplate;
+
+    public ErrorDescription getLockedDescriptionTemplate() {
+        return lockedDescriptionTemplate;
+    }
+
+    public void setLockedDescriptionTemplate(ErrorDescription lockedDescriptionTemplate) {
+        this.lockedDescriptionTemplate = lockedDescriptionTemplate;
+    }
+
+    public ErrorDescription invalidUserEmail;
+
+    public ErrorDescription getInvalidUserEmail() {
+        return invalidUserEmail;
+    }
+
+    public void setInvalidUserEmail(ErrorDescription invalidUserEmail) {
+        this.invalidUserEmail = invalidUserEmail;
     }
 }

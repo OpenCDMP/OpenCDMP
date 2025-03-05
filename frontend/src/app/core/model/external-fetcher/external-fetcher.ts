@@ -2,6 +2,7 @@ import { ExternalFetcherApiHTTPMethodType } from "@app/core/common/enum/external
 import { ReferenceType } from "../reference-type/reference-type";
 import { ExternalFetcherSourceType } from "@app/core/common/enum/external-fetcher-source-type";
 import { Guid } from "@common/types/guid";
+import { ExternalFetcherApiHeaderType } from "@app/core/common/enum/ExternalFetcherApiHeader.enum";
 
 export interface ExternalFetcherBaseSourceConfiguration extends ExternalFetcherApiSourceConfiguration, ExternalFetcherStaticOptionSourceConfiguration {
 	type: ExternalFetcherSourceType;
@@ -22,6 +23,7 @@ export interface ExternalFetcherApiSourceConfiguration {
 	filterType?: string;
 	auth: AuthenticationConfiguration;
 	queries?: QueryConfig[];
+	headers?: HeaderConfig[];
 }
 
 export interface ResultsConfiguration {
@@ -42,6 +44,11 @@ export interface AuthenticationConfiguration {
 	authTokenPath: string;
 	authRequestBody: string;
 	type: string;
+}
+
+export interface HeaderConfig {
+	key: ExternalFetcherApiHeaderType;
+	value: string;
 }
 
 export interface QueryConfig {
@@ -94,6 +101,7 @@ export interface ExternalFetcherApiSourceConfigurationPersist {
 	filterType?: string;
 	auth: AuthenticationConfigurationPersist;
 	queries?: QueryConfigPersist[];
+	headers?: HeadersConfigPersist[];
 }
 
 export interface ResultsConfigurationPersist {
@@ -114,6 +122,11 @@ export interface AuthenticationConfigurationPersist {
 	authTokenPath: string;
 	authRequestBody: string;
 	type: string;
+}
+
+export interface HeadersConfigPersist {
+	key: ExternalFetcherApiHeaderType;
+	value: string;
 }
 
 export interface QueryConfigPersist {

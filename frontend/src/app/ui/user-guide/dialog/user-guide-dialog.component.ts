@@ -2,12 +2,13 @@ import { Component, Inject } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 
 @Component({
-	selector: 'app-user-guide-dialog',
-	templateUrl: './user-guide-dialog.component.html',
-	styleUrls: ['./user-guide-dialog.component.scss']
+    selector: 'app-user-guide-dialog',
+    templateUrl: './user-guide-dialog.component.html',
+    styleUrls: ['./user-guide-dialog.component.scss'],
+    standalone: false
 })
 export class UserGuideDialogComponent {
-
+   
 	public isDialog: boolean = false;
 
 	constructor(

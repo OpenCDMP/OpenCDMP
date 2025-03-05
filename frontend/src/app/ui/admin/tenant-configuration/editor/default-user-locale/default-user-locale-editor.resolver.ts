@@ -40,6 +40,6 @@ export class DefaultUserLocaleEditorResolver extends BaseEditorResolver {
 			...DefaultUserLocaleEditorResolver.lookupFields()
 		];
 
-		return this.tenantConfigurationService.getCurrentTenantType(TenantConfigurationType.DefaultUserLocale, fields).pipe(takeUntil(this._destroyed));
+		return this.tenantConfigurationService.getType(TenantConfigurationType.DefaultUserLocale, fields).pipe(takeUntil(this._destroyed));
 	}
 }

@@ -1,4 +1,4 @@
-<div class="container-fluid description-template-editor" id="main-content">
+<div class="padded-container description-template-editor" id="main-content">
 	<div id="header-outer-wrapper" *ngIf="formGroup">
 		<div class="row">
 			<div class="col-12 d-flex" id="title-column">
@@ -8,285 +8,246 @@
 				<ng-container *ngTemplateOutlet="actions"></ng-container>
 			</div>
 		</div>
-		<div class="row stepper-navigation-outer-wrapper">
-			<!-- Steps Navigation -->
-			<div id="stepper-navigation-wrapper">
-				<div class="col-12 d-flex" *ngIf="steps" id="stepper-navigation">
-					<div class="col-7 bg-white" style="overflow: hidden; padding: 0px" id="progress-container">
-						<div id="progress" [ngStyle]="progressStyle"></div>
-						<div class="row h-100 progress-min-height">
-							<div class="col text-center align-self-center" *ngFor="let step of steps; index as idx">
-								<span (click)="stepper.selectedIndex=idx" class="stepper-title-label" [ngClass]="{'stepper-title-label-locked': !isStepUnlocked(idx),'stepper-title-label-completed':idx < stepper.selectedIndex} ">
-									<ng-container *ngIf="(step.completed &&(idx!=steps.length-1))">
-										<mat-icon style="font-size:0.7em; height: 0px;">done</mat-icon>
-									</ng-container>
-									{{step.label}}
-								</span>
-							</div>
-						</div>
-					</div>
-				</div>
-			</div>
-		</div>
+        <!-- Steps Navigation -->
+            <app-custom-mat-stepper-header [linear]="!isFinalized" [stepper]="stepper">
+                <mat-horizontal-stepper stepper-content id="stepper" [linear]="!isFinalized" #stepper class="stepper" (selectionChange)="onMatStepperSelectionChange($event)" style="padding-left: 8px; padding-right: 15px;">
+                    <mat-step [label]="generalInfoStepperLabel" [completed]="(!formGroup.get('code').invalid && !formGroup.get('label').invalid && !formGroup.get('description').invalid && !formGroup.get('language').invalid)">
+                        <div class="col-12 col-lg-9 mat-step general-info" tabindex="0">
+                            <div class="p-3"><small>{{'COMMONS.VALIDATION.REQUIRED-FIELDS-HINT' | translate}}</small></div>
+                            <div class="col">
+                                <div class="col-12">
+                                    <label class="heading" for="nameInput">1.1 {{'DESCRIPTION-TEMPLATE-EDITOR.STEPS.GENERAL-INFO.DESCRIPTION-TEMPLATE-NAME'| translate}} *
+                                    </label>
+                                    <div class="hint">{{'DESCRIPTION-TEMPLATE-EDITOR.STEPS.GENERAL-INFO.DESCRIPTION-TEMPLATE-NAME-HINT'| translate}}</div>
+                                    <mat-form-field class="full-width basic-info-input">
+                                        <input id="nameInput" matInput [formControl]="formGroup.get('label')" placeholder="{{'DESCRIPTION-TEMPLATE-EDITOR.FIELDS.TITLE' | translate}}">
+                                        <mat-error *ngIf="formGroup.get('label').hasError('backendError')">{{formGroup.get('label').getError('backendError').message}}</mat-error>
+                                        <mat-error *ngIf="formGroup.get('label').hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
+                                    </mat-form-field>
+                                </div>
+                                <div class="col-12">
+                                    <label class="heading" for="codeInput">1.2 {{'DESCRIPTION-TEMPLATE-EDITOR.STEPS.GENERAL-INFO.DESCRIPTION-TEMPLATE-CODE'| translate}} *
+                                    </label>
+                                    <div class="hint">{{'DESCRIPTION-TEMPLATE-EDITOR.STEPS.GENERAL-INFO.DESCRIPTION-TEMPLATE-CODE-HINT'| translate}}</div>
+                                    <mat-form-field class="full-width basic-info-input">
+                                        <input id="codeInput" matInput [formControl]="formGroup.get('code')" placeholder="{{'DESCRIPTION-TEMPLATE-EDITOR.FIELDS.CODE' | translate}}" required>
+                                        <mat-error *ngIf="formGroup.get('code').hasError('backendError')">{{formGroup.get('code').getError('backendError').message}}</mat-error>
+                                        <mat-error *ngIf="formGroup.get('code').hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
+                                    </mat-form-field>
+                                </div>
+                                <div class="col-12">
+                                    <label class="heading" [appFor]="'descriptionInput'">
+                                        1.3 {{'DESCRIPTION-TEMPLATE-EDITOR.STEPS.GENERAL-INFO.DESCRIPTION-TEMPLATE-DESCRIPTION'| translate}} *
+                                    </label>
+                                    <div class="hint">{{'DESCRIPTION-TEMPLATE-EDITOR.STEPS.GENERAL-INFO.DESCRIPTION-TEMPLATE-DESCRIPTION-HINT'| translate}}</div>
+                                    <div class="full-width basic-info-input">
+                                        <rich-text-editor-component [id]="'descriptionInput'" [form]="formGroup.get('description')" [placeholder]="'DESCRIPTION-TEMPLATE-EDITOR.STEPS.GENERAL-INFO.DESCRIPTION-TEMPLATE-DESCRIPTION-PLACEHOLDER'" [wrapperClasses]="(formGroup.get('description').touched && formGroup.get('description').hasError('required')) ? 'required' : ''" [required]="true">
+                                        </rich-text-editor-component>
+                                        <div [class]="(formGroup.get('description').touched && formGroup.get('description').hasError('required')) ? 'visible' : 'invisible'" class="mat-form-field formGroup-field-subscript-wrapper">
+                                            <mat-error>{{'GENERAL.VALIDATION.REQUIRED'| translate}}</mat-error>
+                                            <mat-error *ngIf="formGroup.get('description').hasError('backendError')">{{formGroup.get('description').getError('backendError').message}}</mat-error>
+                                        </div>
+                                    </div>
+                                </div>
+            
+                                <div class="col-12">
+                                    <label class="heading" for="typeInput">1.4 {{'DESCRIPTION-TEMPLATE-EDITOR.STEPS.GENERAL-INFO.DESCRIPTION-TEMPLATE-TYPE'| translate}} *
+                                    </label>
+                                    <div class="hint">{{'DESCRIPTION-TEMPLATE-EDITOR.STEPS.GENERAL-INFO.DESCRIPTION-TEMPLATE-TYPE-HINT'| translate}}</div>
+                                    <mat-form-field class="full-width basic-info-input">
+                                        <mat-label>{{'DESCRIPTION-TEMPLATE-EDITOR.STEPS.GENERAL-INFO.DESCRIPTION-TEMPLATE-SELECT-TYPE' | translate}}</mat-label>
+                                        <app-single-auto-complete [id]="'typeInput'" [required]="true" [formControl]="formGroup.get('type')" placeholder="{{'DESCRIPTION-TEMPLATE-EDITOR.STEPS.GENERAL-INFO.DESCRIPTION-TEMPLATE-SELECT-TYPE' | translate}}" [configuration]="singleAutocompleteDescriptionTemplateTypeConfiguration">
+                                        </app-single-auto-complete>
+                                        <mat-error *ngIf="formGroup.get('type').hasError('backendError')">{{formGroup.get('type').getError('backendError').message}}</mat-error>
+                                        <mat-error *ngIf="formGroup.get('type').hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
+                                    </mat-form-field>
+                                </div>
+                                <div class="col-12">
+                                    <label class="heading" [appFor]="'languageInput'">1.5 {{'DESCRIPTION-TEMPLATE-EDITOR.STEPS.GENERAL-INFO.DESCRIPTION-TEMPLATE-LANGUAGE'| translate}} *
+                                    </label>
+                                    <div class="hint">{{'DESCRIPTION-TEMPLATE-EDITOR.STEPS.GENERAL-INFO.DESCRIPTION-TEMPLATE-LANGUAGE-HINT'| translate}}</div>
+                                    <mat-form-field class="full-width basic-info-input">
+                                        <mat-select id="languageInput" [formControl]="formGroup.get('language')" placeholder="{{'DESCRIPTION-TEMPLATE-EDITOR.STEPS.GENERAL-INFO.DESCRIPTION-TEMPLATE-SELECT-LANGUAGE'| translate}}" required>
+                                            <mat-option *ngFor="let lang of availableLanguages" [value]="lang.code">
+                                                {{ lang.name }}
+                                            </mat-option>
+                                        </mat-select>
+                                        <mat-error *ngIf="formGroup.get('language').hasError('backendError')">{{formGroup.get('language').getError('backendError').message}}</mat-error>
+                                        <mat-error *ngIf="formGroup.get('language').hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
+                                    </mat-form-field>
+                                </div>
+                                <div class="col-12">
+                                    <label class="heading" for="templateUsersInput">1.6 {{'DESCRIPTION-TEMPLATE-EDITOR.STEPS.GENERAL-INFO.DESCRIPTION-TEMPLATE-USERS'| translate}}</label>
+                                    <div class="hint">{{'DESCRIPTION-TEMPLATE-EDITOR.STEPS.GENERAL-INFO.DESCRIPTION-TEMPLATE-USERS-HINT'| translate}}</div>
+                                    <div class="full-width basic-info-input">
+                                        <table class="col-12 user-table">
+                                            <thead class="user-table-header">
+                                                <tr>
+                                                    <th>{{'DESCRIPTION-TEMPLATE-EDITOR.STEPS.GENERAL-INFO.USERS.NAME' | translate}}</th>
+                                                    <th>{{'DESCRIPTION-TEMPLATE-EDITOR.STEPS.GENERAL-INFO.USERS.ROLE' | translate}}</th>
+                                                    <th></th>
+                                                </tr>
+                                            </thead>
+                                            <tbody class="user-table-body">
+                                                <tr *ngFor="let user of formGroup?.get('users')?.controls; let i=index;" class="user-table-row">
+                                                    <td>{{usersMap.get(user?.get('userId')?.value)?.name}}</td>
+                                                    <td>{{enumUtils.toUserDescriptionTemplateRoleString(user?.get('role')?.value)}}</td>
+                                                    <td *ngIf="!viewOnly">
+                                                        <button mat-stroked-button color="warn" class="padded-shadow-btn" (click)="verifyAndRemoveUser(i)" [matTooltip]="'DESCRIPTION-TEMPLATE-EDITOR.STEPS.GENERAL-INFO.DESCRIPTION-TEMPLATE-REMOVE-USER'| translate"><mat-icon>person_remove</mat-icon></button>
+                                                    </td>
+                                                </tr>
+                                                <tr *ngIf="formGroup.get('users')?.controls?.length === 0">
+                                                    <td style="text-align: end; line-height: 3em;" colspan="2">
+                                                        {{'DESCRIPTION-TEMPLATE-EDITOR.STEPS.GENERAL-INFO.DESCRIPTION-TEMPLATE-NO-USERS-YET' | translate}}
+                                                    </td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+            
+                                <div class="col-12">
+                                    <div class="row justify-content-end">
+                                        <div class="col-12 col-lg-4 d-flex justify-content-end" style="overflow: hidden;">
+                                            <mat-form-field class="full-width basic-info-input" *ngIf="!viewOnly">
+                                                <mat-label>{{'DESCRIPTION-TEMPLATE-EDITOR.STEPS.GENERAL-INFO.DESCRIPTION-TEMPLATE-USERS' | translate}}</mat-label>
+                                                <app-single-auto-complete [id]="'templateUsersInput'" [required]="false" [formControl]="userFormControl" (optionSelected)="addUser($event)" placeholder="{{'DESCRIPTION-TEMPLATE-EDITOR.STEPS.GENERAL-INFO.DESCRIPTION-TEMPLATE-USERS' | translate}}" [configuration]="userService.singleAutocompleteConfiguration">
+                                                </app-single-auto-complete>
+                                                <mat-error *ngIf="formGroup.get('type').hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
+                                            </mat-form-field>
+                                        </div>
+                                    </div>
+                                </div>
+            
+                            </div>
+                        </div>
+                    </mat-step>
+                    <mat-step [label]="fromStepperLabel" [completed]="viewOnly || formGroup.valid">
+                        <div class="row mat-step table-of-contents">
+            
+                            <!-- TABLE -->
+                            <div class="col-3 col-md-3 col-12">
+                                <div class="row sticky-top table-container">
+                                    <description-template-table-of-contents class="toc-pane-container col"
+                                        [links]="toCEntries"
+                                        [itemSelected]="selectedTocEntry"
+                                        [viewOnly]="viewOnly"
+                                        [colorizeInvalid]="colorizeInvalid"
+                                        [showErrors]="showErrors"
+                                        (dataNeedsRefresh)="onDataNeedsRefresh($event)"
+                                        (itemClick)="displayItem($event)"
+                                        (createEntry)="addNewEntry($event)"
+                                        (removeEntry)="onRemoveEntry($event)"
+                                    >
+                                    </description-template-table-of-contents>
+                                </div>
+                            </div>
+            
+            
+                            <!-- DISPLAYER -->
+                            <div class="col">
+                                <div class="col-12" *ngIf="selectedTocEntry" tabindex="0">
+            
+                                    <div class="col-auto pt-2 mr-4 content-displayer page-infos" *ngIf="selectedTocEntry.type === tocEntryEnumValues.Page" [@fade-in-fast]>
+                                        <div class="pb-2"><small>{{'COMMONS.VALIDATION.REQUIRED-FIELDS-HINT' | translate}}</small></div>
+                                        <formGroup [formGroup]="selectedTocEntry.form">
+                                            <div class="row">
+                                                <div class="col-12">
+                                                    <label for="pageNameInput" class="heading">{{'DESCRIPTION-TEMPLATE-EDITOR.STEPS.PAGE-INFO.PAGE-NAME' | translate}} *
+                                                    </label>
+                                                </div>
+                                                <div class="col-12">
+                                                    <div class="hint">{{'DESCRIPTION-TEMPLATE-EDITOR.STEPS.PAGE-INFO.PAGE-NAME-HINT' | translate}}</div>
+                                                </div>
+                                                <div class="col-12">
+                                                    <mat-form-field class="w-100">
+                                                        <input id="pageNameInput" type="text" matInput formControlName="title" [placeholder]="('DESCRIPTION-TEMPLATE-EDITOR.STEPS.GENERAL-INFO.UNTITLED' | translate) +' '+ ('DESCRIPTION-TEMPLATE-EDITOR.STEPS.PAGE-INFO.PAGE' |translate)" required>
+                                                        <mat-error *ngIf="selectedTocEntry.form.get('title').hasError('backendError')">{{selectedTocEntry.form.get('title').getError('backendError').message}}</mat-error>
+                                                        <mat-error *ngIf="selectedTocEntry.form.get('title').hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
+                                                    </mat-form-field>
+                                                </div>
+                                                @if(!viewOnly &&!selectedTocEntry?.subEntries?.length){
+                                                    <div class="col-12">
+                                                        <button mat-flat-button color="accent" class="padded-shadow-btn" (click)="addNewEntry({parent:selectedTocEntry, childType: tocEntryEnumValues.Section})">{{'DESCRIPTION-TEMPLATE-EDITOR.STEPS.PAGE-INFO.ACTIONS.CREATE-SECTION' | translate}}</button>
+                                                    </div>
+                                                    <mat-error *ngIf="selectedTocEntry.form.invalid && showErrors">{{'DESCRIPTION-TEMPLATE-EDITOR.STEPS.FORM.FIELD.ERROR-MESSAGES.FIELD-SELECT-AT-LEAST-ONE-REQUIRED' | translate}}</mat-error>
+                                                }
+                                            </div>
+                                        </formGroup>
+                                    </div>
+            
+                                    <div class="col-auto fieldset-container" *ngIf="(selectedTocEntry.type === tocEntryEnumValues.Section) || (selectedTocEntry.type === tocEntryEnumValues.FieldSet)">
+            
+                                        <app-description-template-editor-section-fieldset-component
+                                        [tocentry]="selectedTocEntry"
+                                        [viewOnly]="viewOnly"
+                                        [descriptionTemplateId]="descriptionTemplateId"
+                                        [validationErrorModel]="editorModel.validationErrorModel"
+                                        [validationRootPath]="selectedTocEntry.validationRootPath"
+                                        [availableReferenceTypes]="availableReferenceTypes"
+                                        (addNewFieldSet)="addNewEntry({childType: tocEntryEnumValues.FieldSet,parent: {formGroup: $event}})" (removeFieldSet)="onRemoveEntry(_findTocEntryById($event, toCEntries))" (cloneFieldSet)="cloneFieldSet($event, selectedTocEntry.validationRootPath)" (selectedEntryId)="displayItem(_findTocEntryById($event, toCEntries))" (dataNeedsRefresh)="onDataNeedsRefresh()"
+                                        >
+            
+                                        </app-description-template-editor-section-fieldset-component>
+                                    </div>
+            
+            
+                                </div>
+            
+                                <div class="content-displayer row justify-content-center" *ngIf="!numOfPages" style="min-height: 30em;">
+                                    <div class="col-auto align-self-center">
+                                        <div class="row w-100 justify-content-center">
+                                            <div class="col-auto">
+                                                {{'DESCRIPTION-TEMPLATE-EDITOR.STEPS.PAGE-INFO.ACTIONS.NOTHING-HERE-HINT'| translate}}
+                                                <p *ngIf="formGroup.get('definition').get('pages').dirty && formGroup.get('definition').get('pages').hasError('required')">{{'PLAN-BLUEPRINT-EDITOR.FIELDS-REQUIRED' | translate}}</p>
+                                                <p *ngIf="formGroup.get('definition').get('pages').hasError('backendError')">{{formGroup.get('definition').get('pages').getError('backendError').message}}</p>
+                                            </div>
+                                        </div>
+                                        <div class="row justify-content-center">
+                                            <div class="col-auto d-flex aling-contents-center">
+                                                {{'DESCRIPTION-TEMPLATE-EDITOR.STEPS.PAGE-INFO.ACTIONS.START-CREATING-PAGE-START'| translate}}
+            
+                                                <mat-icon color="primary" style="font-size: 1.5em; text-align: center; width: 1.5em;">add</mat-icon>
+                                                <strong style="cursor: pointer;" (click)="addNewEntry({childType: tocEntryEnumValues.Page,parent: null})">
+                                                    {{'DESCRIPTION-TEMPLATE-EDITOR.STEPS.PAGE-INFO.ACTIONS.START-CREATING-PAGE-END'| translate}}
+                                                </strong>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </mat-step>
+                    <mat-step [label]="previewLabel">
+                        <ng-container *ngIf="formGroup">
+                            <div class="col-10 mat-step content-displayer pt-2">
+                                <app-final-preview-component [descriptionTemplatePersist]="finalPreviewDescriptionTemplatePersist" [availableReferenceTypes]="availableReferenceTypes"></app-final-preview-component>
+                            </div>
+                        </ng-container>
+                    </mat-step>
+                </mat-horizontal-stepper>
+            </app-custom-mat-stepper-header>
 	</div>
 
-	<mat-horizontal-stepper [linear]="!isFinalized" #stepper class="stepper" (selectionChange)="onMatStepperSelectionChange($event)" style="padding-left: 8px; padding-right: 15px;">
-
-		<mat-step [label]="generalInfoStepperLabel" [completed]="(!formGroup.get('code').invalid && !formGroup.get('label').invalid && !formGroup.get('description').invalid && !formGroup.get('language').invalid)">
-			<div class="col-9">
-				<div class="col">
-					<div class="col-12">
-						<div class="heading">1.1 {{'DESCRIPTION-TEMPLATE-EDITOR.STEPS.GENERAL-INFO.DESCRIPTION-TEMPLATE-NAME'| translate}} *</div>
-						<div class="hint">{{'DESCRIPTION-TEMPLATE-EDITOR.STEPS.GENERAL-INFO.DESCRIPTION-TEMPLATE-NAME-HINT'| translate}}</div>
-						<mat-form-field class="full-width basic-info-input">
-							<input matInput [formControl]="formGroup.get('label')" placeholder="{{'DESCRIPTION-TEMPLATE-EDITOR.FIELDS.TITLE' | translate}}">
-							<mat-error *ngIf="formGroup.get('label').hasError('backendError')">{{formGroup.get('label').getError('backendError').message}}</mat-error>
-							<mat-error *ngIf="formGroup.get('label').hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
-						</mat-form-field>
-					</div>
-					<div class="col-12">
-						<div class="heading">1.2 {{'DESCRIPTION-TEMPLATE-EDITOR.STEPS.GENERAL-INFO.DESCRIPTION-TEMPLATE-CODE'| translate}} *</div>
-						<div class="hint">{{'DESCRIPTION-TEMPLATE-EDITOR.STEPS.GENERAL-INFO.DESCRIPTION-TEMPLATE-CODE-HINT'| translate}}</div>
-						<mat-form-field class="full-width basic-info-input">
-							<input matInput [formControl]="formGroup.get('code')" placeholder="{{'DESCRIPTION-TEMPLATE-EDITOR.FIELDS.CODE' | translate}}">
-							<mat-error *ngIf="formGroup.get('code').hasError('backendError')">{{formGroup.get('code').getError('backendError').message}}</mat-error>
-							<mat-error *ngIf="formGroup.get('code').hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
-						</mat-form-field>
-					</div>
-					<div class="col-12">
-						<div class="heading">1.3 {{'DESCRIPTION-TEMPLATE-EDITOR.STEPS.GENERAL-INFO.DESCRIPTION-TEMPLATE-DESCRIPTION'| translate}} *</div>
-						<div class="hint">{{'DESCRIPTION-TEMPLATE-EDITOR.STEPS.GENERAL-INFO.DESCRIPTION-TEMPLATE-DESCRIPTION-HINT'| translate}}</div>
-						<div class="full-width basic-info-input">
-							<rich-text-editor-component [form]="formGroup.get('description')" [placeholder]="'DESCRIPTION-TEMPLATE-EDITOR.STEPS.GENERAL-INFO.DESCRIPTION-TEMPLATE-DESCRIPTION-PLACEHOLDER'" [wrapperClasses]="(formGroup.get('description').touched && formGroup.get('description').hasError('required')) ? 'required' : ''" [editable]="formGroup.controls['description'].status !== 'DISABLED'">
-							</rich-text-editor-component>
-							<div [class]="(formGroup.get('description').touched && formGroup.get('description').hasError('required')) ? 'visible' : 'invisible'" class="mat-form-field formGroup-field-subscript-wrapper">
-								<mat-error>{{'GENERAL.VALIDATION.REQUIRED'| translate}}</mat-error>
-								<mat-error *ngIf="formGroup.get('description').hasError('backendError')">{{formGroup.get('description').getError('backendError').message}}</mat-error>
-							</div>
-						</div>
-					</div>
-
-					<div class="col-12">
-						<div class="heading">1.4 {{'DESCRIPTION-TEMPLATE-EDITOR.STEPS.GENERAL-INFO.DESCRIPTION-TEMPLATE-TYPE'| translate}} *</div>
-						<div class="hint">{{'DESCRIPTION-TEMPLATE-EDITOR.STEPS.GENERAL-INFO.DESCRIPTION-TEMPLATE-TYPE-HINT'| translate}}</div>
-						<mat-form-field class="full-width basic-info-input">
-							<mat-label>{{'DESCRIPTION-TEMPLATE-EDITOR.STEPS.GENERAL-INFO.DESCRIPTION-TEMPLATE-SELECT-TYPE' | translate}}</mat-label>
-							<app-single-auto-complete [required]="false" [formControl]="formGroup.get('type')" placeholder="{{'DESCRIPTION-TEMPLATE-EDITOR.STEPS.GENERAL-INFO.DESCRIPTION-TEMPLATE-SELECT-TYPE' | translate}}" [configuration]="singleAutocompleteDescriptionTemplateTypeConfiguration">
-							</app-single-auto-complete>
-							<mat-error *ngIf="formGroup.get('type').hasError('backendError')">{{formGroup.get('type').getError('backendError').message}}</mat-error>
-							<mat-error *ngIf="formGroup.get('type').hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
-						</mat-form-field>
-					</div>
-					<div class="col-12">
-						<div class="heading">1.5 {{'DESCRIPTION-TEMPLATE-EDITOR.STEPS.GENERAL-INFO.DESCRIPTION-TEMPLATE-LANGUAGE'| translate}} *</div>
-						<div class="hint">{{'DESCRIPTION-TEMPLATE-EDITOR.STEPS.GENERAL-INFO.DESCRIPTION-TEMPLATE-LANGUAGE-HINT'| translate}}</div>
-						<mat-form-field class="full-width basic-info-input">
-							<mat-select [formControl]="formGroup.get('language')" placeholder="{{'DESCRIPTION-TEMPLATE-EDITOR.STEPS.GENERAL-INFO.DESCRIPTION-TEMPLATE-SELECT-LANGUAGE'| translate}}">
-								<mat-option *ngFor="let lang of availableLanguages" [value]="lang.code">
-									{{ lang.name }}
-								</mat-option>
-							</mat-select>
-							<mat-error *ngIf="formGroup.get('language').hasError('backendError')">{{formGroup.get('language').getError('backendError').message}}</mat-error>
-							<mat-error *ngIf="formGroup.get('language').hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
-						</mat-form-field>
-					</div>
-					<div class="col-12">
-						<div class="heading">1.6 {{'DESCRIPTION-TEMPLATE-EDITOR.STEPS.GENERAL-INFO.DESCRIPTION-TEMPLATE-USERS'| translate}}</div>
-						<div class="hint">{{'DESCRIPTION-TEMPLATE-EDITOR.STEPS.GENERAL-INFO.DESCRIPTION-TEMPLATE-USERS-HINT'| translate}}</div>
-						<div class="full-width basic-info-input">
-							<table class="col-12 user-table">
-								<thead class="user-table-header">
-									<tr>
-										<th>{{'DESCRIPTION-TEMPLATE-EDITOR.STEPS.GENERAL-INFO.USERS.NAME' | translate}}</th>
-										<th>{{'DESCRIPTION-TEMPLATE-EDITOR.STEPS.GENERAL-INFO.USERS.ROLE' | translate}}</th>
-										<th></th>
-									</tr>
-								</thead>
-								<tbody class="user-table-body">
-									<tr *ngFor="let user of formGroup?.get('users')?.controls; let i=index;" class="user-table-row">
-										<td>{{usersMap.get(user?.get('userId')?.value)?.name}}</td>
-										<td>{{enumUtils.toUserDescriptionTemplateRoleString(user?.get('role')?.value)}}</td>
-										<td *ngIf="!viewOnly">
-											<button mat-button class="rounded-btn delete-inverted" (click)="verifyAndRemoveUser(i)" [matTooltip]="'DESCRIPTION-TEMPLATE-EDITOR.STEPS.GENERAL-INFO.DESCRIPTION-TEMPLATE-REMOVE-USER'| translate"><mat-icon>person_remove</mat-icon></button>
-										</td>
-									</tr>
-									<tr *ngIf="formGroup.get('users')?.controls?.length === 0">
-										<td style="text-align: end; line-height: 3em;" colspan="2">
-											{{'DESCRIPTION-TEMPLATE-EDITOR.STEPS.GENERAL-INFO.DESCRIPTION-TEMPLATE-NO-USERS-YET' | translate}}
-										</td>
-									</tr>
-								</tbody>
-							</table>
-						</div>
-					</div>
-
-					<div class="col-12">
-						<div class="row justify-content-end">
-							<div class="col-12 col-lg-4 d-flex justify-content-end" style="overflow: hidden;">
-								<mat-form-field class="full-width basic-info-input" *ngIf="!viewOnly">
-									<mat-label>{{'DESCRIPTION-TEMPLATE-EDITOR.STEPS.GENERAL-INFO.DESCRIPTION-TEMPLATE-USERS' | translate}}</mat-label>
-									<app-single-auto-complete [required]="false" [formControl]="userFormControl" (optionSelected)="addUser($event)" placeholder="{{'DESCRIPTION-TEMPLATE-EDITOR.STEPS.GENERAL-INFO.DESCRIPTION-TEMPLATE-USERS' | translate}}" [configuration]="userService.singleAutocompleteConfiguration">
-									</app-single-auto-complete>
-									<mat-error *ngIf="formGroup.get('type').hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
-								</mat-form-field>
-							</div>
-						</div>
-					</div>
-
-				</div>
-			</div>
-		</mat-step>
-		<mat-step [label]="fromStepperLabel" [completed]="viewOnly || formGroup.valid">
-			<div class="row pr-4">
-
-				<!-- TABLE -->
-				<div class="col-3">
-
-
-					<div class="row sticky-top table-container" style="top : 7em;">
-						<description-template-table-of-contents class="toc-pane-container col" style="margin-bottom: 2em;"
-							[links]="toCEntries"
-							[itemSelected]="selectedTocEntry"
-							[viewOnly]="viewOnly"
-							[colorizeInvalid]="colorizeInvalid"
-							[showErrors]="showErrors"
-							(dataNeedsRefresh)="onDataNeedsRefresh($event)"
-							(itemClick)="displayItem($event)"
-							(createEntry)="addNewEntry($event)"
-							(removeEntry)="onRemoveEntry($event)"
-						>
-						</description-template-table-of-contents>
-					</div>
-				</div>
-
-
-				<!-- DISPLAYER -->
-				<div class="col ml-3">
-
-					<div class="row">
-
-						<div class="col">
-							<div class="col-12" *ngIf="selectedTocEntry">
-
-								<div class="col-12 content-displayer page-infos" *ngIf="selectedTocEntry.type === tocEntryEnumValues.Page" [@fade-in-fast]>
-									<formGroup [formGroup]="selectedTocEntry.form">
-										<div class="row">
-											<div class="col-12">
-												<div class="heading">{{'DESCRIPTION-TEMPLATE-EDITOR.STEPS.PAGE-INFO.PAGE-NAME' | translate}} *</div>
-											</div>
-											<div class="col-12">
-												<div class="hint">{{'DESCRIPTION-TEMPLATE-EDITOR.STEPS.PAGE-INFO.PAGE-NAME-HINT' | translate}}</div>
-											</div>
-											<div class="col-12">
-												<mat-form-field class="w-100">
-													<input type="text" matInput formControlName="title" [placeholder]="('DESCRIPTION-TEMPLATE-EDITOR.STEPS.GENERAL-INFO.UNTITLED' | translate) +' '+ ('DESCRIPTION-TEMPLATE-EDITOR.STEPS.PAGE-INFO.PAGE' |translate)">
-													<mat-error *ngIf="selectedTocEntry.form.get('title').hasError('backendError')">{{selectedTocEntry.form.get('title').getError('backendError').message}}</mat-error>
-													<mat-error *ngIf="selectedTocEntry.form.get('title').hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
-												</mat-form-field>
-											</div>
-                                            @if(!viewOnly &&!selectedTocEntry?.subEntries?.length){
-                                                <div class="col-12">
-                                                    <button mat-button class="rounded-btn secondary" (click)="addNewEntry({parent:selectedTocEntry, childType: tocEntryEnumValues.Section})">{{'DESCRIPTION-TEMPLATE-EDITOR.STEPS.PAGE-INFO.ACTIONS.CREATE-SECTION' | translate}}</button>
-                                                </div>
-                                                <mat-error *ngIf="selectedTocEntry.form.invalid && showErrors">{{'DESCRIPTION-TEMPLATE-EDITOR.STEPS.FORM.FIELD.ERROR-MESSAGES.FIELD-SELECT-AT-LEAST-ONE-REQUIRED' | translate}}</mat-error>
-                                            }
-										</div>
-									</formGroup>
-								</div>
-
-								<div class="col-12" *ngIf="(selectedTocEntry.type === tocEntryEnumValues.Section) || (selectedTocEntry.type === tocEntryEnumValues.FieldSet)">
-
-									<app-description-template-editor-section-fieldset-component
-									[tocentry]="selectedTocEntry"
-									[viewOnly]="viewOnly"
-									[descriptionTemplateId]="descriptionTemplateId"
-									[validationErrorModel]="editorModel.validationErrorModel"
-									[validationRootPath]="selectedTocEntry.validationRootPath"
-									[availableReferenceTypes]="availableReferenceTypes"
-									(addNewFieldSet)="addNewEntry({childType: tocEntryEnumValues.FieldSet,parent: {formGroup: $event}})" (removeFieldSet)="onRemoveEntry(_findTocEntryById($event, toCEntries))" (cloneFieldSet)="cloneFieldSet($event, selectedTocEntry.validationRootPath)" (selectedEntryId)="displayItem(_findTocEntryById($event, toCEntries))" (dataNeedsRefresh)="onDataNeedsRefresh()"
-									>
-
-									</app-description-template-editor-section-fieldset-component>
-								</div>
-
-
-							</div>
-
-							<div class="content-displayer row justify-content-center" *ngIf="!numOfPages" style="min-height: 30em;">
-								<div class="col-auto align-self-center">
-									<div class="row w-100 justify-content-center">
-										<div class="col-auto">
-											{{'DESCRIPTION-TEMPLATE-EDITOR.STEPS.PAGE-INFO.ACTIONS.NOTHING-HERE-HINT'| translate}}
-											<p *ngIf="formGroup.get('definition').get('pages').dirty && formGroup.get('definition').get('pages').hasError('required')">{{'PLAN-BLUEPRINT-EDITOR.FIELDS-REQUIRED' | translate}}</p>
-											<p *ngIf="formGroup.get('definition').get('pages').hasError('backendError')">{{formGroup.get('definition').get('pages').getError('backendError').message}}</p>
-										</div>
-									</div>
-									<div class="row justify-content-center">
-										<div class="col-auto d-flex aling-contents-center">
-											{{'DESCRIPTION-TEMPLATE-EDITOR.STEPS.PAGE-INFO.ACTIONS.START-CREATING-PAGE-START'| translate}}
-
-											<mat-icon color="accent" style="font-size: 1.5em; text-align: center; width: 1.5em;">add</mat-icon>
-											<strong style="cursor: pointer;" (click)="addNewEntry({childType: tocEntryEnumValues.Page,parent: null})">
-												{{'DESCRIPTION-TEMPLATE-EDITOR.STEPS.PAGE-INFO.ACTIONS.START-CREATING-PAGE-END'| translate}}
-											</strong>
-										</div>
-									</div>
-								</div>
-							</div>
-						</div>
-					</div>
-				</div>
-			</div>
-		</mat-step>
-		<mat-step [label]="previewLabel">
-			<ng-container *ngIf="formGroup">
-				<div class="col-9">
-					<div class="col">
-						<div class="col-12">
-							<app-final-preview-component [descriptionTemplatePersist]="finalPreviewDescriptionTemplatePersist" [availableReferenceTypes]="availableReferenceTypes">
-
-							</app-final-preview-component>
-						</div>
-					</div>
-				</div>
-			</ng-container>
-		</mat-step>
-
-	</mat-horizontal-stepper>
-
-
-	<a class="scroll-on-top d-flex flex-column align-items-center" (click)="scrollOnTop()" [@scroll-on-top-btn] [matTooltip]="'DESCRIPTION-TEMPLATE-EDITOR.ACTIONS.BACK-TO-TOP'| translate">
+	<button role="button" class="scroll-on-top d-flex flex-column align-items-center" (click)="scrollOnTop()" [@scroll-on-top-btn] [matTooltip]="'DESCRIPTION-TEMPLATE-EDITOR.ACTIONS.BACK-TO-TOP'| translate" tabindex="0">
 		<mat-icon>
 			arrow_upward
 		</mat-icon>
-		<div>SCROLL</div>
-	</a>
-
-	<ng-container *ngIf="steps && stepper">
-		<div class="floating-btn">
-			<button *ngIf="stepper?.selectedIndex > 0" [@previous_btn] mat-button class="rounded-btn secondary " (click)="stepper?.previous()">
-				<mat-icon class="back-icon pointer">chevron_left</mat-icon>
-				{{'DESCRIPTION-TEMPLATE-EDITOR.ACTIONS.PREVIOUS' | translate}}
-			</button>
-			<button *ngIf="stepper?.selectedIndex < (steps.length-1)" mat-button class="rounded-btn secondary ml-3" [@next_btn] (click)="stepper?.next();" [disabled]="!isStepCompleted(stepper?.selectedIndex)">
-				<span>{{'DESCRIPTION-TEMPLATE-EDITOR.ACTIONS.NEXT' | translate}}</span>
-				<mat-icon class="back-icon pointer" iconPositionEnd>chevron_right</mat-icon>
-			</button>
-		</div>
-	</ng-container>
+		<div class="scroll-on-top-text">{{'DESCRIPTION-TEMPLATE-EDITOR.ACTIONS.SCROLL' | translate}}</div>
+	</button>
 </div>
 
 
 
 <ng-template #actions>
 	<div>
-		<button mat-button class="rounded-btn primary-inverted mr-3" (click)="cancel()">{{'DESCRIPTION-TEMPLATE-EDITOR.ACTIONS.CLOSE' | translate}}</button>
-		<button *ngIf="!viewOnly" mat-button class="rounded-btn secondary" type="button">
-			<span class="d-flex flex-row row">
+		<button mat-stroked-button color="primary" class="padded-shadow-btn mr-3" (click)="cancel()">{{'DESCRIPTION-TEMPLATE-EDITOR.ACTIONS.CLOSE' | translate}}</button>
+		<button [disabled]= "isLocked" *ngIf="!viewOnly" mat-flat-button color="accent" class="padded-shadow-btn" type="button">
+			<span class="d-flex flex-row row pt-1">
 				<span (click)="save(); formSubmit()" class="col">{{'DESCRIPTION-TEMPLATE-EDITOR.ACTIONS.SAVE' | translate}}</span>
 				<mat-divider [vertical]="true"></mat-divider>
-				<span class="align-items-center justify-content-center mw-100 col-4 d-flex" (click)="$event.stopPropagation();" [matMenuTriggerFor]="menuSave">
-					<mat-icon>expand_more</mat-icon>
+				<span role="button" class="align-items-center justify-content-center mw-100 col-4 d-flex" (click)="$event.stopPropagation();" [matMenuTriggerFor]="menuSave" [attr.aria-label]="'GENERAL.ACTIONS.SHOW-MORE' | translate">
+					<mat-icon aria-hidden>expand_more</mat-icon>
 				</span>
 			</span>
 		</button>
@@ -295,7 +256,7 @@
 			<button mat-menu-item (click)="saveWithClose(false)" type="button">{{ 'DESCRIPTION-TEMPLATE-EDITOR.ACTIONS.SAVE-AND-CONTINUE' | translate }}</button>
 		</mat-menu>
 
-		<button *ngIf="!viewOnly && steps?.length-1 === stepper?.selectedIndex" [@finalize_btn] mat-button class="rounded-btn primary ml-3" [disabled]="!formGroup.valid" [class.invisible]="steps?.length-1 !== stepper?.selectedIndex" (click)="finalize()">
+		<button *ngIf="!viewOnly && stepper?.steps?.length-1 === stepper?.selectedIndex" [@finalize_btn] mat-flat-button color="primary" class="padded-shadow-btn ml-3" [disabled]="!formGroup.valid" [class.invisible]="stepper?.steps?.length-1 !== stepper?.selectedIndex" (click)="finalize()">
 			{{'DESCRIPTION-TEMPLATE-EDITOR.ACTIONS.FINALIZE' | translate}}
 		</button>
 	</div>

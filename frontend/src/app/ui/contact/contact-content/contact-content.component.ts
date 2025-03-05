@@ -14,9 +14,10 @@ import { AnalyticsService } from '@app/core/services/matomo/analytics-service';
 import { HttpErrorHandlingService } from '@common/modules/errors/error-handling/http-error-handling.service';
 
 @Component({
-	selector: 'app-contact-content',
-	templateUrl: './contact-content.component.html',
-	styleUrls: ['./contact-content.component.scss']
+    selector: 'app-contact-content',
+    templateUrl: './contact-content.component.html',
+    styleUrls: ['./contact-content.component.scss'],
+    standalone: false
 })
 export class ContactContentComponent extends BaseComponent implements OnInit {
 

@@ -80,6 +80,11 @@ public class PlanBlueprintEntity extends TenantScopedBaseEntity {
 
     public static final String _isActive = "isActive";
 
+    @Column(name = "description")
+    private String description;
+
+    public static final String _description = "description";
+
     public UUID getId() {
         return this.id;
     }
@@ -166,5 +171,13 @@ public class PlanBlueprintEntity extends TenantScopedBaseEntity {
 
     public void setIsActive(IsActive isActive) {
         this.isActive = isActive;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
     }
 }

@@ -14,18 +14,14 @@
 
 .clear-icon {
 	cursor: pointer;
-	color: #212121;
+	color: var(--dark-text);
 	padding: 0.4rem;
 	width: auto !important;
 	height: auto !important;
 }
 
 .clear-icon:hover {
-	background-color: #ececec !important;
+	background-color: rgb(0,0,0,0.05) !important;
 	border-radius: 50%;
 	padding: 0.4rem;
-}
-
-.faq {
-  margin: 1.125rem 0;
 }

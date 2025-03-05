@@ -19,6 +19,6 @@ export class FileUtils {
 				break;
 			}
 		}
-		return filename;
+		return decodeURIComponent(filename ?? '');
 	}
 }

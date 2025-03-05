@@ -11,11 +11,13 @@ public class NotificationProperties {
 	private UUID planInvitationExistingUserType;
 	private UUID planModifiedType;
 	private UUID planFinalisedType;
+	private UUID planStatusChangedType;
 	private UUID planAnnotationCreatedType;
 	private UUID planAnnotationStatusChangedType;
 	private UUID descriptionCreatedType;
 	private UUID descriptionModifiedType;
 	private UUID descriptionFinalisedType;
+	private UUID descriptionStatusChangedType;
 	private UUID descriptionAnnotationCreatedType;
 	private UUID descriptionAnnotationStatusChangedType;
 	private UUID mergeAccountConfirmationType;
@@ -60,6 +62,14 @@ public class NotificationProperties {
 		this.planFinalisedType = planFinalisedType;
 	}
 
+	public UUID getPlanStatusChangedType() {
+		return planStatusChangedType;
+	}
+
+	public void setPlanStatusChangedType(UUID planStatusChangedType) {
+		this.planStatusChangedType = planStatusChangedType;
+	}
+
 	public UUID getPlanAnnotationCreatedType() {
 		return planAnnotationCreatedType;
 	}
@@ -98,6 +108,14 @@ public class NotificationProperties {
 
 	public void setDescriptionFinalisedType(UUID descriptionFinalisedType) {
 		this.descriptionFinalisedType = descriptionFinalisedType;
+	}
+
+	public UUID getDescriptionStatusChangedType() {
+		return descriptionStatusChangedType;
+	}
+
+	public void setDescriptionStatusChangedType(UUID descriptionStatusChangedType) {
+		this.descriptionStatusChangedType = descriptionStatusChangedType;
 	}
 
 	public UUID getMergeAccountConfirmationType() {

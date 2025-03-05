@@ -11,16 +11,17 @@ import { Observable } from 'rxjs';
 import { map, mergeMap, startWith, takeUntil } from 'rxjs/operators';
 
 @Component({
-	selector: 'app-tags-field-component',
-	templateUrl: 'tags-field.component.html',
-	styleUrls: ['./tags-field.component.scss']
+    selector: 'app-tags-field-component',
+    templateUrl: 'tags-field.component.html',
+    styleUrls: ['./tags-field.component.scss'],
+    standalone: false
 })
 export class TagsComponent extends BaseComponent implements OnInit, OnChanges {
-
+    static nextId: number = 0;
 	@Input() form: UntypedFormControl = null;
 	@Input() label: string;
 	@Input() placeholder: string;
-
+    @Input() name: string = `tag-field-${TagsComponent.nextId++}`;
 	separatorKeysCodes: number[] = [ENTER, COMMA];
 	filteredTags: Observable<string[]>;
 	tags: string[] = [];
@@ -80,6 +81,7 @@ export class TagsComponent extends BaseComponent implements OnInit, OnChanges {
 		if (index >= 0) {
 			this.tags.splice(index, 1);
 			this.form.setValue(this.tags);
+            this.form.markAsDirty();
 		}
 	}
 
@@ -87,5 +89,6 @@ export class TagsComponent extends BaseComponent implements OnInit, OnChanges {
 		this.tags.push(event.option.viewValue);
 		this.tagInput.nativeElement.value = '';
 		this.form.setValue(this.tags);
+        this.form.markAsDirty();
 	}
 }

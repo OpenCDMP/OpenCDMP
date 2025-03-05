@@ -1,0 +1,22 @@
+<div mat-dialog-title class="d-flex gap-1-rem align-items-center">
+    @if(!isValid){
+        <span class="title">{{'GENERAL.FORM-VALIDATION-DISPLAY-DIALOG.WARNING' | translate}}</span>
+    }
+    <button mat-icon-button (click)="onClose()" class="ml-auto" [attr.aria-label]="'ALT-TEXT.CLOSE-DIALOG'  | translate"><mat-icon aria-hidden>close</mat-icon></button>
+</div>
+<div mat-dialog-content>
+    @if(isValid){
+        <span>{{'DESCRIPTION-OVERVIEW.FINALIZE-DIALOG.TITLE' | translate }}</span>
+    }@else {
+        <span>{{'DESCRIPTION-EDITOR.MESSAGES.MISSING-FIELDS' | translate }}:</span>
+    }
+    <ul *ngIf="errorFields?.length" class="pt-1 text-danger">
+        <li class="error-field" *ngFor="let error of errorFields">{{error}}</li>
+    </ul>
+</div>
+<div mat-dialog-actions>
+    <div class="ml-auto">
+        <button mat-stroked-button type="button" class="padded-shadow-btn" (click)="onClose()">{{'GENERAL.FORM-VALIDATION-DISPLAY-DIALOG.ACTIONS.CANCEL' | translate}}</button>
+        <button *ngIf="isValid" mat-stroked-button type="button" color="primary" class="padded-shadow-btn" (click)="onFinalize()">{{'DESCRIPTION-OVERVIEW.FINALIZE-DIALOG.CONFIRM' | translate}}</button>
+    </div>
+</div>

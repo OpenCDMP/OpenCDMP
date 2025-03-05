@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges } from '@angular/core';
+import { booleanAttribute, Component, computed, effect, EventEmitter, Injector, input, Input, Output } from '@angular/core';
 import { UntypedFormGroup } from '@angular/forms';
 import { MatExpansionPanel } from '@angular/material/expansion';
 import { AnnotationEntityType } from '@app/core/common/enum/annotation-entity-type';
@@ -10,49 +10,56 @@ import { Guid } from '@common/types/guid';
 import { FormAnnotationService } from '../../../annotations/annotation-dialog-component/form-annotation.service';
 import { LinkToScroll } from '../table-of-contents/table-of-contents.component';
 import { VisibilityRulesService } from './visibility-rules/visibility-rules.service';
+import { PlanTempStorageService } from '@app/ui/plan/plan-editor-blueprint/plan-temp-storage.service';
 
 @Component({
-	selector: 'app-description-form',
-	templateUrl: './description-form.component.html',
-	styleUrls: ['./description-form.component.scss']
+    selector: 'app-description-form',
+    templateUrl: './description-form.component.html',
+    styleUrls: ['./description-form.component.scss'],
+    standalone: false
 })
-export class DescriptionFormComponent extends BaseComponent implements OnInit, OnChanges {
+export class DescriptionFormComponent extends BaseComponent {
+    descriptionId = input<Guid>(null);
+    planId = input<Guid>(null);
 
-	@Input() propertiesFormGroup: UntypedFormGroup;
-	@Input() descriptionTemplate: DescriptionTemplate;
-	@Input() visibilityRulesService: VisibilityRulesService;
-	@Input() descriptionId: Guid;
-	@Input() isNew: boolean = false;
 	@Input() canAnnotate: boolean = false;
-	@Input() path: string;
 	@Input() datasetDescription: String;
 	@Input() linkToScroll: LinkToScroll;
-	@Input() validationErrorModel: ValidationErrorModel;
 	@Input() planUsers: PlanUser[] = [];
+    @Input() ordinal: string;
+    @Input() propertiesFormGroup: UntypedFormGroup;
+	@Input() descriptionTemplate: DescriptionTemplate;
+	@Input() visibilityRulesService: VisibilityRulesService;
+    @Input() validationErrorModel: ValidationErrorModel;
+	@Input() isNew: boolean = false;
 
-	@Output() formChanged: EventEmitter<any> = new EventEmitter();
+
+    // selectedEntry = input<ToCEntry>(null);
+
+    @Output() formChanged: EventEmitter<any> = new EventEmitter();
 
 	constructor(
 		public formAnnotationService: FormAnnotationService,
 	) {
 		super();
-
-	}
-
-	ngOnInit() {
-		this.init();
-	}
-
-	ngOnChanges(changes: SimpleChanges) {
-		this.init();
-		if (this.descriptionId != null) {
-			this.formAnnotationService.init(this.descriptionId, AnnotationEntityType.Description);
-		}
-	}
-
-	init() {
 	}
 
 	onAskedToScroll(panel: MatExpansionPanel, id?: string) {
 	}
+
+    // selectedPage(pageId: string): boolean{
+    //     return this.selectedEntry()?.id === pageId || (this.selectedEntry()?.pathToEntry?.length && this.selectedEntry().pathToEntry[0] === pageId)
+    // }
+
+    // public toggleExpand(selected: string){
+    //     if(!selected){return;}
+    //     const index = selected?.split('.');
+    //     if(index?.length) {
+    //         this.expansionPanels?.toArray()?.[Number(index[0])-1]?.open();
+    //         if(index.length > 1){
+    //             const sectionPath = index[0] + '.' + index[1];
+    //             this.formSections?.find((component) => component.path === sectionPath)?.toggleExpand();
+    //         }
+    //     }
+    // }
 }

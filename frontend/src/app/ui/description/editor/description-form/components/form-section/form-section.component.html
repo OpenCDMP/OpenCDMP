@@ -1,44 +1,34 @@
-<div class="dynamic-form-section row" [id]="section.id">
-	<mat-accordion class="col-12">
-		<mat-expansion-panel class="row expansion-panel toc-section-header" [id]="path" [(expanded)]="panelExpanded">
-			<mat-expansion-panel-header>
-				<mat-panel-title>
-					<h6 class='panel-title' *ngIf="section?.sections?.length > 0">{{path}}.section {{section.title}}</h6>
-					<h6 class='panel-title' *ngIf="section?.fieldSets?.length > 0">{{path}} {{section.title}}</h6>
-				</mat-panel-title>
-			</mat-expansion-panel-header>
-			<mat-panel-description class="col-12">
-				<h6 class='panel-desc' *ngIf="section.description" [innerHTML]="section.description"></h6>
-			</mat-panel-description>
-			<div *ngFor="let fieldSet of section.fieldSets; let i = index;" class="col-12" [id]="fieldSet.id" (click)="onAskedToScroll($event, fieldSet.id)">
-				<div class="row"  *ngIf="visibilityRulesService.isVisibleMap[fieldSet.id] ?? true">
-					<div class="col-12">
-						<div class="row">
-							<app-description-form-field-set class="align-self-center col"
-							[propertiesFormGroup]="propertiesFormGroup.get('fieldSets')?.get(fieldSet.id)"
-							[fieldSet]="fieldSet"
-							[descriptionId]="descriptionId"
-							[path]="path + '.' + (i+1)"
-							[numbering]="path + '.' + (i+1)"
-							[visibilityRulesService]="visibilityRulesService"
-							[validationErrorModel]="validationErrorModel"
-							[isChild]="false"
-							[hideAnnotations]="isNew"
-							[canAnnotate]="canAnnotate"
-							[planUsers]="planUsers"
-							></app-description-form-field-set>
-						</div>
-					</div>
-				</div>
-			</div>
+<div class="dynamic-form-section" [id]="section.id">
+    <div class="toc-section-header" [id]="path">
+        <div class='panel-title'>{{path}}. {{section.title}}</div>
+        <div class='panel-desc' *ngIf="section.description" [innerHTML]="section.description"></div>
+        <div class="field-sets">
+            <div *ngFor="let fieldSet of section.fieldSets; let i = index;" [id]="fieldSet.id" (click)="onAskedToScroll($event, fieldSet.id)">
+                @if(visibilityRulesService.isVisibleMap[fieldSet.id] ?? true){
+                    <app-description-form-field-set class="align-self-center"
+                        [propertiesFormGroup]="propertiesFormGroup.get('fieldSets')?.get(fieldSet.id)"
+                        [fieldSet]="fieldSet"
+                        [descriptionId]="descriptionId"
+                        [planId]="planId"
+                        [path]="path + '.' + (i+1)"
+                        [numbering]="path + '.' + (i+1)"
+                        [visibilityRulesService]="visibilityRulesService"
+                        [validationErrorModel]="validationErrorModel"
+                        [isChild]="false"
+                        [isNew]="isNew"
+                        [canAnnotate]="canAnnotate"
+                        [planUsers]="planUsers"
+                    ></app-description-form-field-set>
+                }
+            </div>
+        </div>
 
-			<div *ngIf="section?.sections?.length > 0" class="col-12">
-				<ng-container *ngFor="let innerSection of section.sections; let j = index;">
-					<div class="row" *ngIf="visibilityRulesService.isVisibleMap[innerSection.id]">
-						<app-description-form-section class="col-12" [section]="innerSection" [canAnnotate]="canAnnotate" [path]="path+'.'+(j+1)" [pathName]="pathName+'.sections.'+j" (askedToScroll)="onAskedToScroll(null, $event)" [propertiesFormGroup]="propertiesFormGroup" [descriptionId]="descriptionId" [visibilityRulesService]="visibilityRulesService" [linkToScroll]="subsectionLinkToScroll"></app-description-form-section>
-					</div>
-				</ng-container>
-			</div>
-		</mat-expansion-panel>
-	</mat-accordion>
+        <div *ngIf="section?.sections?.length > 0">
+            <ng-container *ngFor="let innerSection of section.sections; let j = index;">
+                <div *ngIf="visibilityRulesService.isVisibleMap[innerSection.id]">
+                    <app-description-form-section [section]="innerSection" [canAnnotate]="canAnnotate" [isNew]="isNew" [path]="path+'.'+(j+1)" [pathName]="pathName+'.sections.'+j" (askedToScroll)="onAskedToScroll(null, $event)" [propertiesFormGroup]="propertiesFormGroup" [descriptionId]="descriptionId" [planId]="planId" [visibilityRulesService]="visibilityRulesService" [linkToScroll]="subsectionLinkToScroll"></app-description-form-section>
+                </div>
+            </ng-container>
+        </div>
+    </div>
 </div>

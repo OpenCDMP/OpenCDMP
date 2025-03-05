@@ -39,12 +39,14 @@ import org.opencdmp.model.builder.PublicDescriptionBuilder;
 import org.opencdmp.model.builder.description.DescriptionBuilder;
 import org.opencdmp.model.censorship.PublicDescriptionCensor;
 import org.opencdmp.model.censorship.description.DescriptionCensor;
+import org.opencdmp.model.censorship.plan.PlanCensor;
 import org.opencdmp.model.description.Description;
-import org.opencdmp.model.planblueprint.PlanBlueprint;
 import org.opencdmp.model.persist.*;
+import org.opencdmp.model.plan.Plan;
 import org.opencdmp.model.result.QueryResult;
 import org.opencdmp.query.DescriptionQuery;
 import org.opencdmp.query.PlanQuery;
+import org.opencdmp.query.PlanStatusQuery;
 import org.opencdmp.query.lookup.DescriptionLookup;
 import org.opencdmp.service.description.DescriptionService;
 import org.opencdmp.service.elastic.ElasticQueryHelperService;
@@ -147,7 +149,8 @@ public class DescriptionController {
 
         this.censorFactory.censor(PublicDescriptionCensor.class).censor(fieldSet);
 
-        DescriptionQuery query = this.queryFactory.query(DescriptionQuery.class).disableTracking().authorize(EnumSet.of(Public)).ids(id).planSubQuery(this.queryFactory.query(PlanQuery.class).isActive(IsActive.Active).statuses(PlanStatus.Finalized).accessTypes(PlanAccessType.Public));
+        PlanStatusQuery statusQuery = this.queryFactory.query(PlanStatusQuery.class).disableTracking().internalStatuses(PlanStatus.Finalized).isActives(IsActive.Active);
+        DescriptionQuery query = this.queryFactory.query(DescriptionQuery.class).disableTracking().authorize(EnumSet.of(Public)).ids(id).planSubQuery(this.queryFactory.query(PlanQuery.class).isActive(IsActive.Active).planStatusSubQuery(statusQuery).accessTypes(PlanAccessType.Public));
 
         PublicDescription model = this.builderFactory.builder(PublicDescriptionBuilder.class).authorize(EnumSet.of(Public)).build(fieldSet, query.firstAs(fieldSet));
         if (model == null)
@@ -251,6 +254,36 @@ public class DescriptionController {
         return persisted;
     }
 
+    @PostMapping("persist-multiple")
+    @OperationWithTenantHeader(summary = "Create or update multiple descriptions", description = "",
+            responses = @ApiResponse(description = "OK", responseCode = "200", content = @Content(
+                    array = @ArraySchema(
+                            schema = @Schema(
+                                    implementation = Description.class
+                            )
+                    )
+            )))
+    @Swagger400
+    @Swagger404
+    @Transactional
+    @ValidationFilterAnnotation(validator = DescriptionMultiplePersist.DescriptionMultiplePersistValidator.ValidatorName, argumentName = "model")
+    public List<Description> persistMultiple(
+            @RequestBody DescriptionMultiplePersist model,
+            @Parameter(name = "fieldSet", description = SwaggerHelpers.Commons.fieldset_description, required = true) FieldSet fieldSet
+    ) throws MyApplicationException, MyForbiddenException, MyNotFoundException, InvalidApplicationException, IOException {
+        logger.debug(new MapLogEntry("persisting multiple descriptions" + Description.class.getSimpleName()).And("model", model).And("fieldSet", fieldSet));
+        fieldSet = this.fieldSetExpanderService.expand(fieldSet);
+
+        List<Description> persisted = this.descriptionService.persistMultiple(model, fieldSet);
+
+        this.auditService.track(AuditableAction.Description_PersistMultiple, Map.ofEntries(
+                new AbstractMap.SimpleEntry<String, Object>("model", model),
+                new AbstractMap.SimpleEntry<String, Object>("fields", fieldSet)
+        ));
+
+        return persisted;
+    }
+
     @PostMapping("persist-status")
     @OperationWithTenantHeader(summary = "Update the status of an existing description", description = "",
             responses = @ApiResponse(description = "OK", responseCode = "200", content = @Content(
@@ -277,6 +310,34 @@ public class DescriptionController {
         ));
 
         return persisted;
+    }
+
+    @GetMapping("clone/{id}")
+    @OperationWithTenantHeader(summary = "Create a clone of an existing description", description = "",
+            responses = @ApiResponse(description = "OK", responseCode = "200", content = @Content(
+                    schema = @Schema(
+                            implementation = Description.class
+                    ))
+            ))
+    @Swagger400
+    @Swagger404
+    public Description buildClone(
+            @Parameter(name = "id", description = "The id of a description to clone", example = "c0c163dc-2965-45a5-9608-f76030578609", required = true) @PathVariable("id") UUID id,
+            @Parameter(name = "fieldSet", description = SwaggerHelpers.Commons.fieldset_description, required = true) FieldSet fieldSet
+    ) throws MyApplicationException, MyForbiddenException, MyNotFoundException, IOException, InvalidApplicationException {
+        logger.debug(new MapLogEntry("clone" + Description.class.getSimpleName()).And("id", id).And("fields", fieldSet));
+        fieldSet = this.fieldSetExpanderService.expand(fieldSet);
+
+        this.censorFactory.censor(DescriptionCensor.class).censor(fieldSet, null);
+
+        Description clone = this.descriptionService.buildClone(id, fieldSet);
+
+        this.auditService.track(AuditableAction.Description_Clone, Map.ofEntries(
+                new AbstractMap.SimpleEntry<String, Object>("id", id),
+                new AbstractMap.SimpleEntry<String, Object>("fields", fieldSet)
+        ));
+
+        return clone;
     }
 
     @PostMapping("get-description-section-permissions")

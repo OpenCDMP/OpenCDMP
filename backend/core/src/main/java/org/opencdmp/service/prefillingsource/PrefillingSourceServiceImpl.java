@@ -259,6 +259,13 @@ public class PrefillingSourceServiceImpl implements PrefillingSourceService {
             }
         }
 
+        if (!this.conventionService.isListNullOrEmpty(persist.getHeaders())){
+            data.setHeaders(new ArrayList<>());
+            for (ExternalFetcherApiHeaderConfigurationPersist externalFetcherApiHeaderConfigurationPersist: (persist.getHeaders())){
+                data.getHeaders().add(this.buildExternalFetcherApiHeaderConfigurationEntity((externalFetcherApiHeaderConfigurationPersist)));
+            }
+        }
+
         return data;
     }
 
@@ -298,6 +305,16 @@ public class PrefillingSourceServiceImpl implements PrefillingSourceService {
         data.setAuthRequestBody(persist.getAuthRequestBody());
         data.setType(persist.getType());
         data.setAuthTokenPath(persist.getAuthTokenPath());
+
+        return data;
+    }
+
+    private @NotNull ExternalFetcherApiHeaderConfigurationEntity buildExternalFetcherApiHeaderConfigurationEntity(ExternalFetcherApiHeaderConfigurationPersist persist){
+        ExternalFetcherApiHeaderConfigurationEntity data = new ExternalFetcherApiHeaderConfigurationEntity();
+        if (persist == null) return data;
+
+        data.setValue(persist.getValue());
+        data.setKey(persist.getKey());
 
         return data;
     }
@@ -351,7 +368,7 @@ public class PrefillingSourceServiceImpl implements PrefillingSourceService {
         ExternalReferenceCriteria externalReferenceCriteria = new ExternalReferenceCriteria();
         externalReferenceCriteria.setLike(model.getLike());
 
-        ExternalDataResult externalData = this.externalFetcherService.getExternalData(Stream.of(prefillingSourceDefinition.getSearchConfiguration()).collect(Collectors.toList()), externalReferenceCriteria, null);
+        ExternalDataResult externalData = this.externalFetcherService.getExternalData(Stream.of(prefillingSourceDefinition.getSearchConfiguration()).collect(Collectors.toList()), externalReferenceCriteria, null, false);
         if (externalData == null || this.conventionService.isListNullOrEmpty(externalData.getResults())) {
             return null;
         }
@@ -385,7 +402,7 @@ public class PrefillingSourceServiceImpl implements PrefillingSourceService {
         if (prefillingSourceDefinition.getGetConfiguration() != null){
             ExternalReferenceCriteria externalReferenceCriteria = new ExternalReferenceCriteria();
             externalReferenceCriteria.setLike(model.getData().getId());
-            ExternalDataResult externalData = this.externalFetcherService.getExternalData(Stream.of(prefillingSourceDefinition.getGetConfiguration()).collect(Collectors.toList()), externalReferenceCriteria, null);
+            ExternalDataResult externalData = this.externalFetcherService.getExternalData(Stream.of(prefillingSourceDefinition.getGetConfiguration()).collect(Collectors.toList()), externalReferenceCriteria, null, false);
             if (externalData != null && !this.conventionService.isListNullOrEmpty(externalData.getResults())) {
                 data = externalData.getResults().getFirst();
             }

@@ -35,6 +35,8 @@ export class HttpErrorHandlingService {
 				this.uiNotificationService.snackBarNotification(this.language.instant('GENERAL.BACKEND-ERRORS.DESCRIPTION-TEMPLATE-TYPE-IMPORT-DRAFT', { 'descriptionTemplateTypeCode': errorResponse.error.error }), SnackBarNotificationLevel.Error);
 			} else if (errorResponse.error.code === ResponseErrorCode.planBlueprintImportDraft){
 				this.uiNotificationService.snackBarNotification(this.language.instant('GENERAL.BACKEND-ERRORS.PLAN-BLUEPRINT-IMPORT-DRAFT', { 'planBlueprintCode': errorResponse.error.error }), SnackBarNotificationLevel.Error);
+			} else if (errorResponse.error.code === ResponseErrorCode.lockedDescription && errorResponse.error.error){
+				this.uiNotificationService.snackBarNotification(this.language.instant('GENERAL.BACKEND-ERRORS.LOCKED-DESCRIPTION', { 'descriptionLabel': errorResponse.error.error }), SnackBarNotificationLevel.Error);
 			} else {
 				this.uiNotificationService.snackBarNotification(ResponseErrorCodeHelper.getErrorMessageByBackendStatusCode(errorResponse.error.code, this.language), SnackBarNotificationLevel.Error);
 			}

@@ -2,7 +2,7 @@
 <div class="main-content-page" [ngClass]="{'pb-2': !hasFocus}">
 	<!-- TITLE -->
 	<div class="">
-		<div class="row fielset-header">
+		<h4 class="row fielset-header">
 			<div class="col-auto pr-0">
 				<div class="row flex-column h-100">
 					<div class="col">
@@ -23,63 +23,63 @@
 				<mat-form-field class="w-100 field-title not-outlined-form-field" floatLabel="never">
 					<textarea 
                         class="question-title"
-                        [class.error]="this.form.get('title').hasError('backendError') || this.form.get('title').hasError('required')" 
+                        [class.error]="form.get('title').hasError('backendError') || form.get('title').hasError('required')" 
                         rows="1" matInput 
                         type="text" 
                         [placeholder]="('DESCRIPTION-TEMPLATE-EDITOR.STEPS.GENERAL-INFO.UNTITLED' | translate)+' '+('DESCRIPTION-TEMPLATE-EDITOR.STEPS.GENERAL-INFO.QUESTION'| translate)" 
                         #titleControl="matInput" 
-                        [formControl]="this.form.get('title')" 
+                        [formControl]="form.get('title')" 
                     ></textarea>
-					<mat-error *ngIf="this.form.get('title').hasError('backendError')">{{form.get('title').getError('backendError').message}}</mat-error>
-					<mat-error *ngIf="this.form.get('title').hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
+					<mat-error *ngIf="form.get('title').hasError('backendError')">{{form.get('title').getError('backendError').message}}</mat-error>
+					<mat-error *ngIf="form.get('title').hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
 				</mat-form-field>
 			</div>
-		</div>
+		</h4>
 	</div>
 	<ng-container *ngIf="!reorderingMode">
 		<div style="position: relative;" class="col-12" *ngIf="hasFocus" [@fade-in]>
 			<div *ngIf="showDescription" class="mb-4">
 				<h5 style="font-weight: bold" class="row">{{'DESCRIPTION-TEMPLATE-EDITOR.STEPS.FORM.FIELD-SET.FIELDS.DESCRIPTION' | translate}}</h5>
-				<rich-text-editor-component [form]="form.get('description')" [placeholder]="'DESCRIPTION-TEMPLATE-EDITOR.STEPS.FORM.FIELD-SET.FIELDS.DESCRIPTION'" [wrapperClasses]="'row'" [editable]="!viewOnly">
+				<rich-text-editor-component [form]="form.get('description')" [placeholder]="'DESCRIPTION-TEMPLATE-EDITOR.STEPS.FORM.FIELD-SET.FIELDS.DESCRIPTION'" [wrapperClasses]="'row'">
 				</rich-text-editor-component>
-				<mat-error *ngIf="this.form.get('description').hasError('backendError')">{{form.get('description').getError('backendError').message}}</mat-error>
+				<mat-error *ngIf="form.get('description').hasError('backendError')">{{form.get('description').getError('backendError').message}}</mat-error>
 			</div>
 			<div *ngIf="showExtendedDescription" class="mb-4">
 				<h5 style="font-weight: bold" class="row">{{'DESCRIPTION-TEMPLATE-EDITOR.STEPS.FORM.FIELD-SET.FIELDS.EXTENDED-DESCRIPTION' | translate}}</h5>
-				<rich-text-editor-component [form]="form.get('extendedDescription')" [placeholder]="'DESCRIPTION-TEMPLATE-EDITOR.STEPS.FORM.FIELD-SET.FIELDS.EXTENDED-DESCRIPTION'" [wrapperClasses]="'row'" [editable]="!viewOnly">
+				<rich-text-editor-component [form]="form.get('extendedDescription')" [placeholder]="'DESCRIPTION-TEMPLATE-EDITOR.STEPS.FORM.FIELD-SET.FIELDS.EXTENDED-DESCRIPTION'" [wrapperClasses]="'row'">
 				</rich-text-editor-component>
-				<mat-error *ngIf="this.form.get('extendedDescription').hasError('backendError')">{{form.get('extendedDescription').getError('backendError').message}}</mat-error>
+				<mat-error *ngIf="form.get('extendedDescription').hasError('backendError')">{{form.get('extendedDescription').getError('backendError').message}}</mat-error>
 			</div>
 			<div class="row" *ngIf="showAdditionalInfo">
 				<mat-form-field class="col p-0 underline-line-field">
-					<input matInput type="text" placeholder="{{'DESCRIPTION-TEMPLATE-EDITOR.STEPS.FORM.FIELD-SET.FIELDS.ADDITIONAL-INFORMATION' | translate}}" [formControl]="this.form.get('additionalInformation')" />
-					<mat-error *ngIf="this.form.get('additionalInformation').hasError('backendError')">{{form.get('additionalInformation').getError('backendError').message}}</mat-error>
+					<input matInput type="text" placeholder="{{'DESCRIPTION-TEMPLATE-EDITOR.STEPS.FORM.FIELD-SET.FIELDS.ADDITIONAL-INFORMATION' | translate}}" [formControl]="form.get('additionalInformation')" />
+					<mat-error *ngIf="form.get('additionalInformation').hasError('backendError')">{{form.get('additionalInformation').getError('backendError').message}}</mat-error>
 				</mat-form-field>
 			</div>
 
 			<div class="row">
-				<mat-form-field *ngIf="this.form.get('hasMultiplicity')?.value" class="col pl-0 underline-line-field">
+				<mat-form-field *ngIf="form.get('hasMultiplicity')?.value" class="col pl-0 underline-line-field">
 					<mat-label>{{'DESCRIPTION-TEMPLATE-EDITOR.STEPS.FORM.FIELD-SET.FIELDS.MULTIPLICITY-MIN' | translate}}</mat-label>
-					<input matInput min="0" [max]="this.form.get('multiplicity').get('max').value" type="number" [formControl]="form.get('multiplicity').get('min')">
+					<input matInput min="0" [max]="form.get('multiplicity').get('max').value" type="number" [formControl]="form.get('multiplicity').get('min')">
 					<mat-error *ngIf="form.get('multiplicity').get('min').hasError('backendError')">{{form.get('multiplicity').get('min').getError('backendError').message}}</mat-error>
 					<mat-error *ngIf="form.get('multiplicity').get('min').hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
 				</mat-form-field>
-				<mat-form-field *ngIf="this.form.get('hasMultiplicity')?.value" class="col pr-0 underline-line-field">
+				<mat-form-field *ngIf="form.get('hasMultiplicity')?.value" class="col pr-0 underline-line-field">
 					<mat-label>{{'DESCRIPTION-TEMPLATE-EDITOR.STEPS.FORM.FIELD-SET.FIELDS.MULTIPLICITY-MAX' | translate}}</mat-label>
-					<input matInput [min]="this.form.get('multiplicity').get('min').value != null && this.form.get('multiplicity').get('min').value != 0? this.form.get('multiplicity').get('min').value != null : 1" type="number" [formControl]="this.form.get('multiplicity').get('max')">
+					<input matInput [min]="form.get('multiplicity').get('min').value != null && form.get('multiplicity').get('min').value != 0? form.get('multiplicity').get('min').value != null : 1" type="number" [formControl]="form.get('multiplicity').get('max')">
 					<mat-error *ngIf="form.get('multiplicity').get('max').hasError('backendError')">{{form.get('multiplicity').get('max').getError('backendError').message}}</mat-error>
 					<mat-error *ngIf="form.get('multiplicity').get('max').hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
 				</mat-form-field>
 			</div>
 			<div class="row">
-				<mat-form-field *ngIf="this.form.get('hasMultiplicity')?.value" class="col pl-0 underline-line-field">
+				<mat-form-field *ngIf="form.get('hasMultiplicity')?.value" class="col pl-0 underline-line-field">
 					<mat-label>{{'DESCRIPTION-TEMPLATE-EDITOR.STEPS.FORM.FIELD-SET.FIELDS.MULTIPLICITY-PLACEHOLDER' | translate}}</mat-label>
 					<input matInput type="text" [formControl]="form.get('multiplicity').get('placeholder')">
 					<mat-error *ngIf="form.get('multiplicity').get('placeholder').hasError('backendError')">{{form.get('placeholder').get('multiplicity').getError('backendError').message}}</mat-error>
 				</mat-form-field>
 			</div>
 			<div class="row">
-				<mat-checkbox *ngIf="this.form.get('hasMultiplicity')?.value" class="col pl-0 underline-line-field fieldset-checkbox-action-description-template-editor" [formControl]="form.get('multiplicity').get('tableView')">
+				<mat-checkbox *ngIf="form.get('hasMultiplicity')?.value" class="col pl-0 underline-line-field fieldset-checkbox-action-description-template-editor" [formControl]="form.get('multiplicity').get('tableView')">
 					{{'DESCRIPTION-TEMPLATE-EDITOR.STEPS.FORM.FIELD-SET.FIELDS.MULTIPLICITY-TABLEVIEW' | translate}}
 					<mat-error *ngIf="form.get('multiplicity').get('tableView').hasError('backendError')">{{form.get('multiplicity').get('tableView').getError('backendError').message}}</mat-error>
 				</mat-checkbox>
@@ -132,7 +132,16 @@
 							</div>
 							<div [id]="'preview_container'+ form.get('id').value" class="row">
 								<div *ngIf="previewFieldSet && showPreview && firstField?.get('data')?.get('fieldType')?.value" class="col-12" [@fade-in-fast]>
-									<app-description-form-field-set class="w-100" [canAnnotate]="false" [propertiesFormGroup]="previewPropertiesFormGroup" [fieldSet]="previewFieldSet" [visibilityRulesService]="visibilityRulesService" [numbering]="numbering" [hideAnnotations]="true" [validationErrorModel]="validationErrorModel"></app-description-form-field-set>
+									<app-description-form-field-set 
+                                        class="w-100" 
+                                        [canAnnotate]="false" 
+                                        [propertiesFormGroup]="previewPropertiesFormGroup" 
+                                        [fieldSet]="previewFieldSet" 
+                                        [visibilityRulesService]="visibilityRulesService" 
+                                        [path]="numbering" 
+                                        [validationErrorModel]="validationErrorModel" 
+                                        [isNew]="true"
+                                    ></app-description-form-field-set>
 								</div>
 							</div>
 						</div>
@@ -156,11 +165,11 @@
 		<ng-container *ngIf="hasFocus">
 			<div class="row justify-content-end pt-2">
 				<div class="col-auto">
-					<ul class="list-unstyled list-inline fieldset-actions-list d-flex align-items-center text-primary-blue">
+					<ul class="list-unstyled list-inline fieldset-actions-list d-flex align-items-center text-primary">
 						<li class="list-inline-item" *ngIf="!viewOnly">
 
-							<span [matMenuTriggerFor]="inputmenu" class="inputMenuTrigger">
-								<img src="/assets/images/editor/icons/add_input.svg" style="width: 18px;transform: translateY(-1px);" class="input_icon" alt="'DESCRIPTION-TEMPLATE-EDITOR.ACTIONS.FIELDSET.ADD-INPUT' | translate" />
+							<span role="button" [matMenuTriggerFor]="inputmenu" class="inputMenuTrigger">
+								<img src="/assets/images/editor/icons/add_input.svg" style="width: 18px;transform: translateY(-1px);" class="input_icon" alt="{{('DESCRIPTION-TEMPLATE-EDITOR.ACTIONS.FIELDSET.ADD-INPUT' | translate) ?? 'add input'}}" />
 								<span class="fieldset-new-input-action">{{'DESCRIPTION-TEMPLATE-EDITOR.ACTIONS.FIELDSET.ADD-INPUT' | translate}}</span>
 							</span>
 							<mat-menu #inputmenu="matMenu" [class]="'add_input_menu'">
@@ -183,7 +192,7 @@
 									</button>
 									<mat-divider></mat-divider>
 									<button mat-list-item (click)="addNewInput(descriptionTemplateFieldTypeEnum.UPLOAD)">
-										<mat-icon class="input_icon" style="font-size: 14px; color: #129d99; display: inline-flex; align-items: center">upload</mat-icon>
+										<mat-icon class="input_icon" style="font-size: var(--sys-label-large-size); color: #129d99; display: inline-flex; align-items: center">upload</mat-icon>
 										{{enumUtils.toDescriptionTemplateFieldTypeString(descriptionTemplateFieldTypeEnum.UPLOAD)}}
 									</button>
 									<mat-divider></mat-divider>
@@ -262,7 +271,7 @@
 						<li class="list-inline-item">
 							<mat-checkbox 
                                 class="fieldset-checkbox-action-description-template-editor" 
-                                [formControl]="this.form.get('hasCommentField')" 
+                                [formControl]="form.get('hasCommentField')" 
                                 [matTooltip]="'DESCRIPTION-TEMPLATE-EDITOR.ACTIONS.FIELDSET.INCLUDE-COMMENT-FIELD' | translate" 
                             >
                                 {{'DESCRIPTION-TEMPLATE-EDITOR.ACTIONS.FIELDSET.COMMENT-FIELD' | translate}}
@@ -272,7 +281,7 @@
 						<li class="list-inline-item">
 							<mat-checkbox 
                                 class="fieldset-checkbox-action-description-template-editor" 
-                                [formControl]="this.form.get('hasMultiplicity')" 
+                                [formControl]="form.get('hasMultiplicity')" 
                                 (change)="onIsMultiplicityEnabledChange($event)" 
                                 [matTooltip]="'DESCRIPTION-TEMPLATE-EDITOR.ACTIONS.FIELDSET.ENABLE-MULTIPLICITY' | translate" 
                             >
@@ -280,7 +289,7 @@
 							</mat-checkbox>
 						</li>
 						<li class="list-inline-item">
-							<mat-icon [matMenuTriggerFor]="menu" [matTooltip]="'DESCRIPTION-TEMPLATE-EDITOR.ACTIONS.FIELDSET.MORE' | translate" style="transform: translateY(-1px);">more_vert</mat-icon>
+							<mat-icon role="button" [matMenuTriggerFor]="menu" [matTooltip]="'DESCRIPTION-TEMPLATE-EDITOR.ACTIONS.FIELDSET.MORE' | translate" style="transform: translateY(-1px);">more_vert</mat-icon>
 							<mat-menu #menu="matMenu">
 								<!-- TODO to check -->
 								<mat-checkbox 

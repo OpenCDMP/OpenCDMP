@@ -61,6 +61,7 @@ import org.opencdmp.service.filetransformer.FileTransformerService;
 import org.opencdmp.service.storage.StorageFileProperties;
 import org.opencdmp.service.storage.StorageFileService;
 import org.opencdmp.service.tenant.TenantProperties;
+import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
@@ -90,6 +91,7 @@ import java.util.stream.Collectors;
 @Service
 public class DepositServiceImpl implements DepositService {
     private static final LoggerService logger = new LoggerService(LoggerFactory.getLogger(DepositServiceImpl.class));
+    private static final Logger log = LoggerFactory.getLogger(DepositServiceImpl.class);
 
     private final DepositProperties depositProperties;
     private final Map<String, DepositClient> clients;
@@ -317,10 +319,16 @@ public class DepositServiceImpl implements DepositService {
         //GK: Fifth Transform them to the DepositModel
         PlanModel depositModel = this.builderFactory.builder(PlanCommonModelBuilder.class).useSharedStorage(depositClient.getConfiguration().isUseSharedStorage()).authorize(AuthorizationFlags.All)
                 .setRepositoryId(planDepositModel.getRepositoryId()).setPdfFile(pdfEnvelope).setRdaJsonFile(jsonEnvelope).build(planEntity);
-        
 
-        //GK: Sixth Perform the deposit
-        String doi = depositClient.deposit(depositModel, accessToken);
+        String doi;
+        try {
+            //GK: Sixth Perform the deposit
+            doi = depositClient.deposit(depositModel, accessToken);
+        } catch (Exception e) {
+            log.error("deposit failed for plan model: " + this.jsonHandlingService.toJsonSafe(depositModel));
+            throw e;
+        }
+
         //GK: Something has gone wrong return null
         if (doi.isEmpty()) return null;
         //GK: doi is fine store it in database

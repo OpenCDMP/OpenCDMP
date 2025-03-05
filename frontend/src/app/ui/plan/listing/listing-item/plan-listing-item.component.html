@@ -1,6 +1,10 @@
 <div class="plan-card">
-	<a [routerLink]="isPublic ? this.routerUtils.generateUrl(['/explore-plans/overview/public/', plan.id]) : this.routerUtils.generateUrl(['/plans/overview/', plan.id])" class="pointer">
-		<div class="d-flex flex-direction-row">
+	<a 
+        [routerLink]="isPublic ? routerUtils.generateUrl(['/explore-plans/overview/public/', plan.id]) : routerUtils.generateUrl(['/plans/overview/', plan.id])" 
+        class="pointer" 
+        [attr.aria-label]="('ALT-TEXT.OPEN-PLAN-OVERVIEW-FOR' | translate) + ' ' + plan?.label"
+    >
+		<div class="d-flex flex-direction-row flex-wrap">
 			<div class="col-auto plan-label">{{ 'PLAN-LISTING.PLAN' | translate }}</div>
 			<div class="col-auto ml-auto">
 				<div class="row align-items-center">
@@ -13,42 +17,55 @@
 				</div>
 			</div>
 		</div>
-		<div class="col-auto" [ngClass]="{'plan-title': !isDraft, 'plan-title-draft': isDraft}">{{plan.label}}</div>
+		<div class="col-auto" [ngClass]="{'plan-title': !isDraft, 'plan-title-draft': isDraft}" [ngStyle]="{'color': plan.status?.definition?.statusColor}">{{plan.label}}</div>
 		<div class="plan-subtitle">
-			<span *ngIf="isUserPlanRelated()" class="col-auto">{{ enumUtils.toPlanUserRolesString(planService.getCurrentUserRolesInPlan(plan?.planUsers)) }}</span>
+			<span *ngIf="isUserPlanRelated()" class="col-auto">{{ enumUtils.toPlanUserRolesString(planService.getCurrentUserRolesInPlan(plan?.planUsers, isDeleted)) }}</span>
 			<span *ngIf="isUserPlanRelated()">.</span>
-			<span class="col-auto" *ngIf="plan.status === planStatusEnum.Finalized && isPublic"><span class="material-icons icon-align">public</span>{{'TYPES.PLAN-VISIBILITY.PUBLIC' | translate}}</span>
-			<span *ngIf="plan.status === planStatusEnum.Finalized && !isPublic; else draft" class="col-auto"><span class="material-icons icon-align">done</span>{{ enumUtils.toPlanStatusString(plan.status) }}</span>
-			<ng-template #draft>
-				<span *ngIf="plan.status === planStatusEnum.Draft && canEditPlan; else preview" class=" col-auto draft"><span class="material-icons icon-align">create</span>{{ enumUtils.toPlanStatusString(plan.status) }}</span>
-			</ng-template>
-			<ng-template #preview>
-				<span *ngIf="plan.status === planStatusEnum.Draft && !canEditPlan" class=" col-auto draft"><span class="material-icons-outlined mr-1 icon-align">visibility</span>{{ enumUtils.toPlanStatusString(plan.status) }}</span>
-			</ng-template>
+            <span class="col-auto">
+                @if(plan.status.internalStatus === planStatusEnum.Finalized && isPublic){
+                    <span class="material-icons icon-align">public</span>{{'TYPES.PLAN-VISIBILITY.PUBLIC' | translate}}
+                }@else {
+                    <ng-container *ngTemplateOutlet="statusTemplate; context: {status: plan.status}"></ng-container>
+                }
+            </span>
 			<span>.</span>
 			<span class="col-auto">{{'PLAN-LISTING.VERSION' | translate}} {{plan.version}}</span>
 			<span>.</span>
-			<span class="col">{{ 'PLAN-LISTING.GRANT' | translate }}: {{referenceService.getReferencesForTypesFirstSafe(plan?.planReferences, [this.referenceTypeService.getGrantReferenceType()])?.reference?.label}}</span>
+			<span class="col">{{ 'PLAN-LISTING.GRANT' | translate }}: {{referenceService.getReferencesForTypesFirstSafe(plan?.planReferences, [referenceTypeService.getGrantReferenceType()])?.reference?.label}}</span>
 		</div>
-		<div class="col-auto plan-description-descriptions-title">{{'PLAN-LISTING.CONTAINED-DESCRIPTIONS' | translate}}: ({{ plan.descriptions?.length }})
+		<div class="col-auto plan-description-descriptions-title">{{'PLAN-LISTING.CONTAINED-DESCRIPTIONS' | translate}}: ({{ plan.descriptions?.length ?? 0 }})
 		</div>
 		<div *ngFor="let description of plan.descriptions; let i = index; let last = last" [ngClass]="{'pb-3': i === plan.descriptions?.length - 1}">
 			<div *ngIf="i < 3">
-				<div class="col-auto plan-description-descriptions-name" *ngIf="!last && i !== 2">{{description.label}},</div>
+				<div class="col-auto plan-description-descriptions-name pb-1" *ngIf="!last && i !== 2">{{description.label}},</div>
 				<div class="col-auto plan-description-descriptions-name" *ngIf="last || i == 2">{{description.label}}</div>
 			</div>
 		</div>
-		<a class="d-flex justify-content-center pb-3 show-more" *ngIf="plan.descriptions?.length > 3" [routerLink]="isPublic ? this.routerUtils.generateUrl(['/explore-plans/overview/public/', plan.id]) : this.routerUtils.generateUrl(['/plans/overview/', plan.id])"><u>{{'GENERAL.ACTIONS.SHOW-MORE' | translate}}</u></a>
+		<a class="d-flex justify-content-center pb-3 show-more" *ngIf="plan.descriptions?.length > 3" [routerLink]="isPublic ? routerUtils.generateUrl(['/explore-plans/overview/public/', plan.id]) : routerUtils.generateUrl(['/plans/overview/', plan.id])"><u>{{'GENERAL.ACTIONS.SHOW-MORE' | translate}}</u></a>
 	</a>
 	<div class="plan-card-actions">
-		<a class="col-auto border-right pointer" *ngIf="canExportPlan && fileTransformerService.availableFormatsFor(fileTransformerEntityTypeEnum.Plan).length > 0" [matMenuTriggerFor]="exportMenu"><span class="material-icons icon-align pr-2">open_in_new</span>{{'PLAN-LISTING.ACTIONS.EXPORT' | translate}}</a>
-		<a class="col-auto border-right pointer" *ngIf="canEditPlan" [routerLink]="this.routerUtils.generateUrl(['/plans/edit/', plan.id])" target="_blank"><span class="material-icons icon-align">add</span>{{'PLAN-LISTING.ACTIONS.ADD-DESCRIPTION-SHORT' | translate}}</a>
-		<a class="col-auto border-right pointer" *ngIf="canInvitePlanUsers" (click)="inviteToPlan()"><span class="material-icons icon-align pr-2">group_add</span>{{'PLAN-LISTING.ACTIONS.INVITE-SHORT' | translate}}</a>
-		<a class="col-auto border-right pointer" *ngIf="canClonePlan" (click)="cloneClicked()"><span class="material-icons icon-align pr-2">filter_none</span>{{'PLAN-LISTING.ACTIONS.CLONE' | translate}}</a>
-		<a class="col-auto border-right pointer" *ngIf="!isAuthenticated() && showAllVersionsAction" (click)="viewVersions(plan)"><span class="material-icons icon-align pr-2">library_books</span>{{'PLAN-LISTING.ACTIONS.VIEW-VERSION' | translate}}</a>
+		<div role="button" class="col-auto plan-action pointer d-flex align-items-center gap-quarter-rem" *ngIf="canExportPlan && fileTransformerService.availableFormatsFor(fileTransformerEntityTypeEnum.Plan).length > 0" [matMenuTriggerFor]="exportMenu">
+            <mat-icon class="material-icons icon-align pr-2" aria-hidden>open_in_new</mat-icon>{{'PLAN-LISTING.ACTIONS.EXPORT' | translate}}
+        </div>
+		<div role="button" class="col-auto plan-action pointer d-flex align-items-center gap-quarter-rem" *ngIf="canEditPlan" [routerLink]="routerUtils.generateUrl(['/plans/edit/', plan.id])" target="_blank">
+            <mat-icon class="material-icons icon-align">add</mat-icon>{{'PLAN-LISTING.ACTIONS.ADD-DESCRIPTION-SHORT' | translate}}
+        </div>
+		<div role="button" class="col-auto plan-action pointer d-flex align-items-center gap-quarter-rem" *ngIf="canInvitePlanUsers" (click)="inviteToPlan()">
+            <mat-icon class="material-icons icon-align pr-2" aria-hidden>group_add</mat-icon>{{'PLAN-LISTING.ACTIONS.INVITE-SHORT' | translate}}
+        </div>
+		<div role="button" class="col-auto plan-action pointer d-flex align-items-center gap-quarter-rem" *ngIf="canClonePlan" (click)="cloneClicked()">
+            <mat-icon class="material-icons icon-align pr-2" aria-hidden>filter_none</mat-icon>{{'PLAN-LISTING.ACTIONS.CLONE' | translate}}
+        </div>
+		<div role="button" class="col-auto plan-action pointer d-flex align-items-center gap-quarter-rem" *ngIf="!isAuthenticated() && showAllVersionsAction" (click)="viewVersions(plan)">
+            <mat-icon class="material-icons icon-align pr-2" aria-hidden>library_books</mat-icon>{{'PLAN-LISTING.ACTIONS.VIEW-VERSION' | translate}}
+        </div>
 
-		<a class="col-auto border-right pointer" *ngIf="canDeletePlan" (click)="deleteClicked(plan.id)"><span class="material-icons icon-align pr-2">delete</span>{{ 'PLAN-LISTING.ACTIONS.DELETE' | translate }}</a>
-		<a class="col-auto pointer" *ngIf="showActionsMenu" [matMenuTriggerFor]="actionsMenu"><span class="material-icons icon-align pl-2">more_horiz</span></a>
+		<div role="button" class="col-auto plan-action pointer d-flex align-items-center gap-quarter-rem" *ngIf="canDeletePlan" (click)="deleteClicked(plan.id)">
+            <mat-icon class="material-icons icon-align pr-2" aria-hidden>delete</mat-icon>{{ 'PLAN-LISTING.ACTIONS.DELETE' | translate }}
+        </div>
+		<div role="button" class="col-auto pointer d-flex align-items-center" *ngIf="showActionsMenu" [matMenuTriggerFor]="actionsMenu" [attr.aria-label]="'ALT-TEXT.MORE-ACTIONS' | translate">
+            <mat-icon>more_horiz</mat-icon>
+        </div>
 	</div>
 	<mat-menu #exportMenu="matMenu" xPosition="before">
 		<button mat-menu-item *ngFor='let fileTransformer of fileTransformerService.availableFormatsFor(fileTransformerEntityTypeEnum.Plan)' (click)="fileTransformerService.exportPlan(plan.id, fileTransformer.repositoryId, fileTransformer.format, isPublic)">
@@ -63,8 +80,26 @@
 		<a *ngIf="showAllVersionsAction" mat-menu-item [routerLink]="viewVersionsUrl(plan)" target="_blank">
 			<mat-icon>library_books</mat-icon>{{'PLAN-LISTING.ACTIONS.VIEW-VERSION' | translate}}
 		</a>
-		<button mat-menu-item *ngIf="canDeletePlan" (click)="deleteClicked(plan.id)" class="menu-item">
-			<mat-icon>delete</mat-icon>{{ 'PLAN-LISTING.ACTIONS.DELETE' | translate }}
-		</button>
 	</mat-menu>
 </div>
+
+<ng-template #statusTemplate let-status="status">
+    <div class="d-flex align-items-center gap-quarter-rem" [ngStyle]="{'color': status?.definition?.statusColor}">
+        @if(status.definition?.storageFile?.id && statusStorageFile) {
+            <img class="status-logo" [src]="statusStorageFile" aria-hidden>
+        }@else if(status.definition?.matIconName) {
+            <mat-icon >{{status.definition.matIconName}}</mat-icon>
+        }@else {
+            @switch(status.internalStatus){
+                @case(planStatusEnum.Finalized){
+                    <mat-icon>check</mat-icon>
+                }@case(planStatusEnum.Draft){
+                    <mat-icon>edit</mat-icon>
+                }@default {
+                    <mat-icon>arrow_forward</mat-icon>
+                }
+            }
+        }
+        <span>{{ status.action?.length > 0 ? status.action : status.name }}</span>
+    </div>
+</ng-template>

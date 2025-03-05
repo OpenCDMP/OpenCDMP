@@ -17,9 +17,10 @@ import { SemanticsService } from '@app/core/services/semantic/semantics.service'
 import { takeUntil } from 'rxjs';
 
 @Component({
-	selector: 'app-description-template-editor-field-component',
-	templateUrl: './description-template-editor-field.component.html',
-	styleUrls: ['./description-template-editor-field.component.scss']
+    selector: 'app-description-template-editor-field-component',
+    templateUrl: './description-template-editor-field.component.html',
+    styleUrls: ['./description-template-editor-field.component.scss'],
+    standalone: false
 })
 export class DescriptionTemplateEditorFieldComponent extends BaseComponent implements OnInit, ErrorStateMatcher {
 	@Input() viewOnly: boolean;

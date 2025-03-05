@@ -1,5 +1,5 @@
 import { Location } from '@angular/common';
-import { Component, computed, effect, input, Input, OnInit, Output } from '@angular/core';
+import { Component, input, Input, OnInit, Output } from '@angular/core';
 import { UntypedFormBuilder, UntypedFormControl } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { DescriptionStatusEnum } from '@app/core/common/enum/description-status';
@@ -18,21 +18,28 @@ import { Reference } from '@app/core/model/reference/reference';
 import { RecentActivityItemLookup } from '@app/core/query/recent-activity-item-lookup.lookup';
 import { AuthService } from '@app/core/services/auth/auth.service';
 import { DashboardService } from '@app/core/services/dashboard/dashboard.service';
-import { PlanService } from '@app/core/services/plan/plan.service';
 import { AnalyticsService } from '@app/core/services/matomo/analytics-service';
 import { EnumUtils } from '@app/core/services/utilities/enum-utils.service';
 import { BaseComponent } from '@common/base/base.component';
-import { Lookup } from '@common/model/lookup';
 import { HttpErrorHandlingService } from '@common/modules/errors/error-handling/http-error-handling.service';
-import { BehaviorSubject } from 'rxjs';
-import { debounceTime, map, takeUntil } from 'rxjs/operators';
+import { BehaviorSubject, Observable } from 'rxjs';
+import { debounceTime, takeUntil } from 'rxjs/operators';
 import { nameof } from 'ts-simple-nameof';
 import { ActivityListingType } from '../dashboard.component';
+import { DescriptionStatus, DescriptionStatusDefinition } from '@app/core/model/description-status/description-status';
+import { PlanStatus, PlanStatusDefinition } from '@app/core/model/plan-status/plan-status';
+import { StorageFile } from '@app/core/model/storage-file/storage-file';
+import { StorageFileService } from '@app/core/services/storage-file/storage-file.service';
+import { DomSanitizer, SafeUrl } from '@angular/platform-browser';
+import { Guid } from '@common/types/guid';
+import { FilterService } from '@common/modules/text-filter/filter-service';
+import { toObservable } from '@angular/core/rxjs-interop';
 
 @Component({
-	selector: 'app-recent-edited-activity',
-	templateUrl: './recent-edited-activity.component.html',
-	styleUrls: ['./recent-edited-activity.component.scss']
+    selector: 'app-recent-edited-activity',
+    templateUrl: './recent-edited-activity.component.html',
+    styleUrls: ['./recent-edited-activity.component.scss'],
+    standalone: false
 })
 export class RecentEditedActivityComponent extends BaseComponent implements OnInit {
 	
@@ -49,8 +56,7 @@ export class RecentEditedActivityComponent extends BaseComponent implements OnIn
     
 	@Output() addNewDescription: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(false);
     
-    currentType = input<ActivityListingType>();
-    isActive = computed(() => this.currentType() === this.type);
+    isActive = input<boolean>();
 
     get onlyDrafts(): boolean {
         return this.type === ActivityListingType.Drafts;
@@ -86,10 +92,12 @@ export class RecentEditedActivityComponent extends BaseComponent implements OnIn
 	});
 	publicMode = false;
 
-	order = RecentActivityOrder;
+	RecentActivityOrder = RecentActivityOrder;
 
 	totalCount: number;
 	offsetLess: number = 0;
+
+    tabChange: Observable<boolean>;
 	
 	constructor(
 		private route: ActivatedRoute,
@@ -98,69 +106,70 @@ export class RecentEditedActivityComponent extends BaseComponent implements OnIn
 		private authentication: AuthService,
 		private dashboardService: DashboardService,
 		private location: Location,
-		private planService: PlanService,
 		private analyticsService: AnalyticsService,
-		private httpErrorHandlingService: HttpErrorHandlingService
+		private httpErrorHandlingService: HttpErrorHandlingService,
+        private storageFileService: StorageFileService,
+        private sanitizer: DomSanitizer,
+        private filterService: FilterService
 	) {
 		super();
-        effect(() => {
-            if(this.isActive()){  //on Type Changes
-                this.updateUrl();
-            }
-        })
+        this.tabChange = toObservable(this.isActive);
 	}
 
 	ngOnInit() {
 		this.analyticsService.trackPageView(AnalyticsService.RecentEditedActivity);
-		this.route.queryParams.subscribe(params => {
-			if (this.isActive()) {
+		this.route.queryParams.pipe(takeUntil(this._destroyed)).subscribe(params => {
+			if ((params['type'] == null && this.isDefault) || params['type'] === this.type) {
 				let page = (params['page'] === undefined) ? 0 : + params['page'];
 				this.currentPage = (page <= 0) ? 0 : page;
 
 
 				let order = params['order'];
-				if (this.isAuthenticated()) {
-					if (order === undefined || (order != this.order.UpdatedAt && order != this.order.Label && order != this.order.Status)) {
-						order = this.order.UpdatedAt;
-					}
-				} else {
-					//TODO refactor
-					// if (order === undefined || (order != this.order.PUBLISHED && order != this.order.LABEL)) {
-					// 	order = this.order.PUBLISHED;
-					// }
-				}
+                if (order == null || (order != this.RecentActivityOrder.UpdatedAt && order != this.RecentActivityOrder.Label && order != this.RecentActivityOrder.Status)) {
+                    order = this.RecentActivityOrder.UpdatedAt;
+                } else {
+                    order = Number(order);
+                }
 				this.formGroup.get('order').setValue(order);
+                this.formGroup.get('order').updateValueAndValidity();
 
 				let keyword = (params['keyword'] === undefined || params['keyword'].length <= 0) ? "" : params['keyword'];
 				this.formGroup.get("like").setValue(keyword);
-
-				this.updateUrl();
 			}
-		});
 
-		this.formGroup.get('like').valueChanges
-		.pipe(takeUntil(this._destroyed), debounceTime(500))
-		.pipe(map(value => value + '%'))
-		.subscribe(x => {
-			this.refresh()
-		});
-		
-		if (!this.formGroup.get('order').value){
-            this.formGroup.get('order').setValue(this.order.UpdatedAt);
-        }
-        
-		this.formGroup.get('order').valueChanges
-		.pipe(takeUntil(this._destroyed))
-		.subscribe(x => {this.refresh()});
+            if (this.formGroup.get('order').value == null){
+                this.formGroup.get('order').setValue(this.RecentActivityOrder.UpdatedAt);
+            }
 
-		this.refresh();
+            this.refresh();
+
+            this.formGroup.get('like').valueChanges
+            .pipe(takeUntil(this._destroyed), debounceTime(500))
+            .subscribe(x => {
+                this.refresh(true);
+            });
+            this.formGroup.get('order').valueChanges
+            .pipe(takeUntil(this._destroyed))
+            .subscribe(x => {
+                this.refresh(true);
+            });
+            
+            this.tabChange.pipe(takeUntil(this._destroyed))
+            .subscribe((isActive) => {
+                if(isActive){
+                    this.updateUrl();
+                }
+            })
+		});
 	}
 
 	updateUrl() {
+        if(!this.isActive()){ return; }
 		let parametersArray: string[] = [
 			...( !this.isDefault && this.isActive() ? ["type=" + this.type] : []),
 			...(this.currentPage > 1 ? ["page=" + this.currentPage] : []),
-			...(this.formGroup.get("like").value ? ["keyword=" + this.formGroup.get("like").value] : [])
+			...(this.formGroup.get("like").value ? ["keyword=" + this.formGroup.get("like").value] : []),
+            ...(this.formGroup.get("order").value ? ["order=" + this.formGroup.get("order").value] : [])
 		]
 
 		let parameters = "";
@@ -178,12 +187,12 @@ export class RecentEditedActivityComponent extends BaseComponent implements OnIn
 		return this.authentication.currentAccountIsAuthenticated();
 	}
 
-	refresh(): void {
+	refresh(refreshUrl: boolean = false): void {
 		this.lookup.onlyDraft = this.onlyDrafts ? this.onlyDrafts : null;
 		this.lookup.onlyPlan = this.onlyPlans ? this.onlyPlans : null;
 		this.lookup.onlyDescription = this.onlyDescriptions ? this.onlyDescriptions : null;
-		this.lookup.orderField = this.formGroup.get('order').value ?? this.order.UpdatedAt;
-		this.lookup.like = this.formGroup.get('like').value;
+		this.lookup.orderField = this.formGroup.get('order').value ?? this.RecentActivityOrder.UpdatedAt;
+		this.lookup.like = this.formGroup.get('like').value ? this.filterService.transformLike(this.formGroup.get('like').value) : null;
 		this.lookup.project = {
 			fields : [ 
 				...(this.includePlans ? this._getPlanLookup() : []), 
@@ -191,33 +200,20 @@ export class RecentEditedActivityComponent extends BaseComponent implements OnIn
 			]
 		};
 		
-		this.loadMore({ size: this.currentPage == 0 ? this.pageSize : this.pageSize*this.currentPage, offset: 0 });
+		this.lookup.page = { size: this.currentPage == 0 ? this.pageSize : this.pageSize*this.currentPage, offset: 0 };
+        this.loadItems(refreshUrl);
 	}
 
-	loadMore(page?: Lookup.Paging) {
-		if (!page) page = { size: this.pageSize, offset: this.pageSize*this.currentPage };
-		this.lookup.page = page;
-		this.loadItems(PaginationAction.LoadMore);
-	}
-
-	loadLess() {
-		this.loadItems(PaginationAction.LoadLess);
+	loadMore() {
+		this.lookup.page = { size: this.pageSize, offset: this.pageSize*this.currentPage };
+		this.loadItems(true);
 	}
 
 	addDescription(): void {
 		this.addNewDescription.next(true);
 	}
 
-	private loadItems(action: PaginationAction){
-		if (action == PaginationAction.LoadLess) {
-			let latestBatchCount = this.listingItems.length%this.pageSize == 0 ? this.pageSize : this.listingItems.length%this.pageSize; 
-			this.listingItems = this.listingItems.slice(0, this.listingItems.length-latestBatchCount);
-			
-			this._setPage(this.currentPage-1);
-			
-			return;
-		}
-
+	private loadItems(refreshUrl: boolean = false){
         this.loading = true;
 		this.dashboardService
 		.getMyRecentActivityItems(this.lookup)
@@ -226,29 +222,38 @@ export class RecentEditedActivityComponent extends BaseComponent implements OnIn
             next: (response) => {
                 if (response == null) return;
 
-                if (this.lookup.page.offset == 0) this.listingItems = [];
+                if (this.lookup.page.offset == 0){
+                    this.listingItems = [];
+                    this.storageFileMap = new Map([])
+                }
     
                 response.forEach(item => {
                     if (item.plan){
                         if (item.plan.descriptions) {
-                            if (item.plan.status == PlanStatusEnum.Finalized) {
-                                item.plan.descriptions = item.plan.descriptions.filter(x => x.isActive === IsActive.Active && x.status === DescriptionStatusEnum.Finalized);
+                            if (item.plan.status.internalStatus == PlanStatusEnum.Finalized) {
+                                item.plan.descriptions = item.plan.descriptions.filter(x => x.isActive === IsActive.Active && x.status?.internalStatus === DescriptionStatusEnum.Finalized);
                             } else {
-                                item.plan.descriptions = item.plan.descriptions.filter(x => x.isActive === IsActive.Active && x.status != DescriptionStatusEnum.Canceled);
+                                item.plan.descriptions = item.plan.descriptions.filter(x => x.isActive === IsActive.Active && x.status?.internalStatus != DescriptionStatusEnum.Canceled);
                             }
                         }
                         item.plan.planUsers = item.plan.planUsers.filter(x=> x.isActive === IsActive.Active);
                         this.listingItems.push(item);
                     }
                     if (item.description){
-                        if (item.description.status != DescriptionStatusEnum.Canceled) this.listingItems.push(item);
+                        if (item.description?.status?.internalStatus != DescriptionStatusEnum.Canceled) this.listingItems.push(item);
                     }
                 })
     
                 if (this.lookup.page.offset != 0 && response.length > 0 && this.listingItems.length >= this.currentPage*this.pageSize) this._setPage(this.currentPage+1);
                 else this._resetPagination();
-
+                if(refreshUrl){
+                    this.updateUrl();
+                }
                 this.loading = false;
+
+                this.downloadStorageFiles(this.listingItems.map(
+                    (x) => x.description ? x.description?.status?.definition?.storageFile?.id : x.plan?.status?.definition?.storageFile?.id
+                ).filter((x) => x));
             },
             error: (error) => {this.loading = false; this.httpErrorHandlingService.handleBackedRequestError(error)}
         });
@@ -257,20 +262,39 @@ export class RecentEditedActivityComponent extends BaseComponent implements OnIn
 	private _resetPagination(): void {
 		if (this.listingItems.length == 0) this.currentPage = 0;
 		else this.currentPage = Math.ceil(this.listingItems.length/this.pageSize);
-		this.updateUrl();
 	}
 
 	private _setPage(page: number) {
 		this.currentPage = page;
-		this.updateUrl();
 	}
+
+    
+    protected storageFileMap = new Map<Guid, SafeUrl>([]);
+    protected downloadStorageFiles(storageFileIds: Guid[]){
+        const newIds = new Set(storageFileIds.filter((id) => !this.storageFileMap.has(id)));
+        newIds.forEach((id) => {
+            this.storageFileService.download(id).pipe(takeUntil(this._destroyed))
+            .subscribe({
+                next: response => {
+                    this.storageFileMap.set(id, this.sanitizer.bypassSecurityTrustUrl(URL.createObjectURL(response.body)));
+                },
+                error: error => this.httpErrorHandlingService.handleBackedRequestError(error)
+            });
+        })
+    }
 	
 	private _getPlanLookup(): string[] {
 		return [
 			[nameof<RecentActivityItem>(x => x.plan), nameof<Plan>(x => x.id)].join('.'),
 			[nameof<RecentActivityItem>(x => x.plan), nameof<Plan>(x => x.label)].join('.'),
 			[nameof<RecentActivityItem>(x => x.plan), nameof<Plan>(x => x.description)].join('.'),
-			[nameof<RecentActivityItem>(x => x.plan), nameof<Plan>(x => x.status)].join('.'),
+			[nameof<RecentActivityItem>(x => x.plan), nameof<Plan>(x => x.status), nameof<PlanStatus>(x => x.id)].join('.'),
+			[nameof<RecentActivityItem>(x => x.plan), nameof<Plan>(x => x.status), nameof<PlanStatus>(x => x.name)].join('.'),
+			[nameof<RecentActivityItem>(x => x.plan), nameof<Plan>(x => x.status), nameof<PlanStatus>(x => x.internalStatus)].join('.'),			
+			[nameof<RecentActivityItem>(x => x.plan), nameof<Plan>(x => x.status), nameof<PlanStatus>(x => x.definition), nameof<PlanStatusDefinition>(x => x.availableActions)].join('.'),
+            [nameof<RecentActivityItem>(x => x.plan), nameof<Plan>(x => x.status), nameof<PlanStatus>(x => x.definition), nameof<PlanStatusDefinition>(x => x.statusColor)].join('.'),	
+            [nameof<RecentActivityItem>(x => x.plan), nameof<Plan>(x => x.status), nameof<PlanStatus>(x => x.definition), nameof<PlanStatusDefinition>(x => x.matIconName)].join('.'),			
+            [nameof<RecentActivityItem>(x => x.plan), nameof<Plan>(x => x.status), nameof<PlanStatus>(x => x.definition), nameof<PlanStatusDefinition>(x => x.storageFile), nameof<StorageFile>(x => x.id)].join('.'),				
 			[nameof<RecentActivityItem>(x => x.plan), nameof<Plan>(x => x.accessType)].join('.'),
 			[nameof<RecentActivityItem>(x => x.plan), nameof<Plan>(x => x.version)].join('.'),
 			[nameof<RecentActivityItem>(x => x.plan), nameof<Plan>(x => x.versionStatus)].join('.'),
@@ -288,14 +312,16 @@ export class RecentEditedActivityComponent extends BaseComponent implements OnIn
 			[nameof<RecentActivityItem>(x => x.plan), nameof<Plan>(x => x.authorizationFlags), AppPermission.EditPlan].join('.'),
 			[nameof<RecentActivityItem>(x => x.plan), nameof<Plan>(x => x.descriptions), nameof<Description>(x => x.id)].join('.'),
 			[nameof<RecentActivityItem>(x => x.plan), nameof<Plan>(x => x.descriptions), nameof<Description>(x => x.label)].join('.'),
-			[nameof<RecentActivityItem>(x => x.plan), nameof<Plan>(x => x.descriptions), nameof<Description>(x => x.status)].join('.'),
+			[nameof<RecentActivityItem>(x => x.plan), nameof<Plan>(x => x.descriptions), nameof<Description>(x => x.status), nameof<DescriptionStatus>(x => x.id)].join('.'),
+			[nameof<RecentActivityItem>(x => x.plan), nameof<Plan>(x => x.descriptions), nameof<Description>(x => x.status), nameof<DescriptionStatus>(x => x.name)].join('.'),
+			[nameof<RecentActivityItem>(x => x.plan), nameof<Plan>(x => x.descriptions), nameof<Description>(x => x.status), nameof<DescriptionStatus>(x => x.internalStatus)].join('.'),
 			[nameof<RecentActivityItem>(x => x.plan), nameof<Plan>(x => x.descriptions), nameof<Description>(x => x.isActive)].join('.'),
 			[nameof<RecentActivityItem>(x => x.plan), nameof<Plan>(x => x.blueprint), nameof<PlanBlueprint>(x => x.id)].join('.'),
 			[nameof<RecentActivityItem>(x => x.plan), nameof<Plan>(x => x.blueprint), nameof<PlanBlueprint>(x => x.label)].join('.'),
 			[nameof<RecentActivityItem>(x => x.plan), nameof<Plan>(x => x.blueprint), nameof<PlanBlueprint>(x => x.definition), nameof<PlanBlueprintDefinition>(x => x.sections), nameof<PlanBlueprintDefinitionSection>(x => x.hasTemplates)].join('.'),
 			[nameof<RecentActivityItem>(x => x.plan), nameof<Plan>(x => x.blueprint), nameof<PlanBlueprint>(x => x.definition), nameof<PlanBlueprintDefinition>(x => x.sections), nameof<PlanBlueprintDefinitionSection>(x => x.id)].join('.'),
 			[nameof<RecentActivityItem>(x => x.plan), nameof<Plan>(x => x.blueprint), nameof<PlanBlueprint>(x => x.definition), nameof<PlanBlueprintDefinition>(x => x.sections), nameof<PlanBlueprintDefinitionSection>(x => x.label)].join('.'),
-			[nameof<RecentActivityItem>(x => x.plan), nameof<Plan>(x => x.blueprint), nameof<PlanBlueprint>(x => x.definition), nameof<PlanBlueprintDefinition>(x => x.sections), nameof<PlanBlueprintDefinitionSection>(x => x.descriptionTemplates), nameof<DescriptionTemplatesInSection>(x => x.descriptionTemplateGroupId)].join('.'),
+			[nameof<RecentActivityItem>(x => x.plan), nameof<Plan>(x => x.blueprint), nameof<PlanBlueprint>(x => x.definition), nameof<PlanBlueprintDefinition>(x => x.sections), nameof<PlanBlueprintDefinitionSection>(x => x.descriptionTemplates), nameof<DescriptionTemplatesInSection>(x => x.descriptionTemplate), nameof<DescriptionTemplate>(x => x.groupId)].join('.'),
 			[nameof<RecentActivityItem>(x => x.plan), nameof<Plan>(x => x.planUsers), nameof<PlanUser>(x => x.id)].join('.'),
 			[nameof<RecentActivityItem>(x => x.plan), nameof<Plan>(x => x.planUsers), nameof<PlanUser>(x => x.user.id)].join('.'),
 			[nameof<RecentActivityItem>(x => x.plan), nameof<Plan>(x => x.planUsers), nameof<PlanUser>(x => x.role)].join('.'),
@@ -318,12 +344,19 @@ export class RecentEditedActivityComponent extends BaseComponent implements OnIn
 		return [
 			[nameof<RecentActivityItem>(x => x.description), nameof<Description>(x => x.id)].join('.'),
 				[nameof<RecentActivityItem>(x => x.description), nameof<Description>(x => x.label)].join('.'),
-				[nameof<RecentActivityItem>(x => x.description), nameof<Description>(x => x.status)].join('.'),
+				[nameof<RecentActivityItem>(x => x.description), nameof<Description>(x => x.status), nameof<DescriptionStatus>(x => x.id)].join('.'),
+				[nameof<RecentActivityItem>(x => x.description), nameof<Description>(x => x.status), nameof<DescriptionStatus>(x => x.name)].join('.'),
+				[nameof<RecentActivityItem>(x => x.description), nameof<Description>(x => x.status), nameof<DescriptionStatus>(x => x.internalStatus)].join('.'),	
+				[nameof<RecentActivityItem>(x => x.description), nameof<Description>(x => x.status), nameof<DescriptionStatus>(x => x.definition), nameof<DescriptionStatusDefinition>(x => x.availableActions)].join('.'),
+                [nameof<RecentActivityItem>(x => x.description), nameof<Description>(x => x.status), nameof<DescriptionStatus>(x => x.definition), nameof<DescriptionStatusDefinition>(x => x.statusColor)].join('.'),	
+                [nameof<RecentActivityItem>(x => x.description), nameof<Description>(x => x.status), nameof<DescriptionStatus>(x => x.definition), nameof<DescriptionStatusDefinition>(x => x.matIconName)].join('.'),			
+                [nameof<RecentActivityItem>(x => x.description), nameof<Description>(x => x.status), nameof<DescriptionStatus>(x => x.definition), nameof<DescriptionStatusDefinition>(x => x.storageFile), nameof<StorageFile>(x => x.id)].join('.'),			
 				[nameof<RecentActivityItem>(x => x.description), nameof<Description>(x => x.updatedAt)].join('.'),
 				[nameof<RecentActivityItem>(x => x.description), nameof<Description>(x => x.isActive)].join('.'),
 				[nameof<RecentActivityItem>(x => x.description), nameof<Description>(x => x.authorizationFlags), AppPermission.EditDescription].join('.'),
 				[nameof<RecentActivityItem>(x => x.description), nameof<Description>(x => x.authorizationFlags), AppPermission.DeleteDescription].join('.'),
 				[nameof<RecentActivityItem>(x => x.description), nameof<Description>(x => x.authorizationFlags), AppPermission.InvitePlanUsers].join('.'),
+				[nameof<RecentActivityItem>(x => x.description), nameof<Description>(x => x.authorizationFlags), AppPermission.CloneDescription].join('.'),
 				[nameof<RecentActivityItem>(x => x.description), nameof<Description>(x => x.descriptionTemplate), nameof<DescriptionTemplate>(x => x.id)].join('.'),
 				[nameof<RecentActivityItem>(x => x.description), nameof<Description>(x => x.descriptionTemplate), nameof<DescriptionTemplate>(x => x.label)].join('.'),
 				[nameof<RecentActivityItem>(x => x.description), nameof<Description>(x => x.descriptionTemplate), nameof<DescriptionTemplate>(x => x.groupId)].join('.'),
@@ -347,9 +380,4 @@ export class RecentEditedActivityComponent extends BaseComponent implements OnIn
 				[nameof<RecentActivityItem>(x => x.description), nameof<Description>(x => x.plan), nameof<Plan>(x => x.planReferences), nameof<PlanReference>(x => x.isActive)].join('.'),
 		]
 	}
-}
-
-export enum PaginationAction {
-	LoadMore = 0,
-	LoadLess = 1
 }

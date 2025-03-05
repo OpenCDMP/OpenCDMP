@@ -3,12 +3,9 @@ package org.opencdmp.model.tenantconfiguration;
 public class CssColorsTenantConfiguration {
 	private String primaryColor;
 	public static final String _primaryColor = "primaryColor";
-	private String primaryColor2;
-	public static final String _primaryColor2 = "primaryColor2";
-	private String primaryColor3;
-	public static final String _primaryColor3 = "primaryColor3";
-	private String secondaryColor;
-	public static final String _secondaryColor = "secondaryColor";
+
+	private String cssOverride;
+	public static final String _cssOverride = "cssOverride";
 
 	public String getPrimaryColor() {
 		return primaryColor;
@@ -18,27 +15,11 @@ public class CssColorsTenantConfiguration {
 		this.primaryColor = primaryColor;
 	}
 
-	public String getPrimaryColor2() {
-		return primaryColor2;
+	public String getCssOverride() {
+		return cssOverride;
 	}
 
-	public void setPrimaryColor2(String primaryColor2) {
-		this.primaryColor2 = primaryColor2;
-	}
-
-	public String getPrimaryColor3() {
-		return primaryColor3;
-	}
-
-	public void setPrimaryColor3(String primaryColor3) {
-		this.primaryColor3 = primaryColor3;
-	}
-
-	public String getSecondaryColor() {
-		return secondaryColor;
-	}
-
-	public void setSecondaryColor(String secondaryColor) {
-		this.secondaryColor = secondaryColor;
+	public void setCssOverride(String cssOverride) {
+		this.cssOverride = cssOverride;
 	}
 }

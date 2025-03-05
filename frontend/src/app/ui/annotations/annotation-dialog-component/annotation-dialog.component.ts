@@ -1,4 +1,4 @@
-import { Component, Inject, SecurityContext, ViewChild } from '@angular/core';
+import { Component, computed, HostBinding, Inject, SecurityContext, ViewChild } from '@angular/core';
 import { FormBuilder, FormControl, UntypedFormArray, UntypedFormGroup, Validators } from '@angular/forms';
 import { MAT_DIALOG_DATA, MatDialog, MatDialogRef } from '@angular/material/dialog';
 import { Router } from '@angular/router';
@@ -34,12 +34,13 @@ interface AnnotationPayloadItem {
 }
 
 @Component({
-	selector: 'app-annotation-dialog',
-	templateUrl: './annotation-dialog.component.html',
-	styleUrls: ['./annotation-dialog.component.scss']
+    selector: 'app-annotation-dialog',
+    templateUrl: './annotation-dialog.component.html',
+    styleUrls: ['./annotation-dialog.component.scss'],
+    standalone: false
 })
 export class AnnotationDialogComponent extends BaseComponent {
-
+   
 	annotationProtectionTypeEnumValues = this.enumUtils.getEnumValues<AnnotationProtectionType>(AnnotationProtectionType);
 	annotationProtectionTypeEnum = AnnotationProtectionType;
 
@@ -48,6 +49,9 @@ export class AnnotationDialogComponent extends BaseComponent {
 	private entityType: string;
 
 	private changesMade: boolean = false;
+
+    protected canAnnotate: boolean = false;
+    protected generateLink: (anchor: string, entityId: Guid) => string;
 
 	public comments = new Array<Annotation>();
 	public threads = new Set<Guid>();
@@ -63,8 +67,6 @@ export class AnnotationDialogComponent extends BaseComponent {
 	public listingStatuses: Status[] = [];
 	public planUsers: PlanUser[] = [];
 	
-	queryIncludesField: boolean = false;
-	queryIncludesAnnotation: boolean = false;
 	MENTION_CLASS: string = "highlight-user-mention" 
 
 	@ViewChild('annotationStatus') annotationStatus: MatSelectionList;
@@ -91,8 +93,8 @@ export class AnnotationDialogComponent extends BaseComponent {
 		this.anchor = data.anchor;
 		this.entityType = data.entityType;
 		this.planUsers = data.planUsers;
-		this.queryIncludesField = data.queryIncludesField;
-		this.queryIncludesAnnotation = data.queryIncludesAnnotation;
+        this.canAnnotate = data.canAnnotate;
+        this.generateLink = data.generateLink;
 		dialogRef.backdropClick().pipe(takeUntil(this._destroyed)).subscribe(() => dialogRef.close(this.changesMade));
 	}
 
@@ -101,6 +103,9 @@ export class AnnotationDialogComponent extends BaseComponent {
 			text: new FormControl(null, [Validators.required]),
 			protectionType: new FormControl(AnnotationProtectionType.EntityAccessors, [Validators.required])
 		});
+        if(!this.canAnnotate){
+            this.threadFormGroup.disable();
+        }
 		if (this.entityId != null) {
 			this.loadThreads();
 		}
@@ -163,6 +168,7 @@ export class AnnotationDialogComponent extends BaseComponent {
 		this.loadThreads();
 	}
 
+    protected loadingResults = false;
 	private loadThreads() {
 		const lookup: AnnotationLookup = new AnnotationLookup();
 		lookup.entityIds = [this.entityId];
@@ -186,7 +192,7 @@ export class AnnotationDialogComponent extends BaseComponent {
 				[nameof<Annotation>(x => x.annotationStatuses), nameof<AnnotationStatus>(x => x.hash)].join('.'),
 			]
 		};
-
+        this.loadingResults = true;
 		this.annotationService.query(lookup)
 			.pipe(takeUntil(this._destroyed))
 			.subscribe(
@@ -216,8 +222,9 @@ export class AnnotationDialogComponent extends BaseComponent {
 					});
 					// create annotation status array to handle each annotation
 					this.annotationStatusFormGroup = new AnnotationStatusArrayEditorModel().fromModel(this.comments, this.listingStatuses).buildForm();
+                    this.loadingResults = false;
 				},
-				error => this.onCallbackError(error),
+				error => {this.onCallbackError(error); this.loadingResults = false;},
 			);
 	}
 
@@ -299,18 +306,18 @@ export class AnnotationDialogComponent extends BaseComponent {
 		const el = document.createElement('textarea');
 		let domain = `${window.location.protocol}//${window.location.hostname}`;
 		if (window.location.port && window.location.port != '') domain += `:${window.location.port}`
-		
-		let currentPath = window.location.pathname;
-		if (this.queryIncludesAnnotation) {
-			currentPath = currentPath.split('/').slice(0, currentPath.split('/').length-4).join('/')
-		} else if (this.queryIncludesField) {
-			currentPath = currentPath.split('/').slice(0, currentPath.split('/').length-3).join('/')			
-		} else {
-			currentPath = currentPath.split('/').slice(0, currentPath.split('/').length-1).join('/')			
-		}
+		const path = this.generateLink(this.anchor, this.entityId);
+		// let currentPath = window.location.pathname;
+        // const rgx = /\/f\/|\/d\/|\/annotation/;
+        // currentPath = currentPath.split(rgx)?.[0]; //get base of route, remove any descriptionid, fieldId, or annotation it might contain
 
-		const sectionPath = this.routerUtils.generateUrl([currentPath, this.entityId, 'f', this.anchor, 'annotation'].join('/'));
-		el.value = domain + sectionPath;
+        // let sectionPath: string;
+        // if(this.entityType === AnnotationEntityType.Description){
+        //     sectionPath = this.routerUtils.generateUrl([currentPath, 'd', this.entityId, 'f', this.anchor, 'annotation'].join('/'));
+        // } else {
+        //     sectionPath = this.routerUtils.generateUrl([currentPath, 'f', this.anchor, 'annotation'].join('/'));
+        // }
+		el.value = domain + path;
 		el.setAttribute('readonly', '');
 		el.style.position = 'absolute';
 		el.style.left = '-9999px';

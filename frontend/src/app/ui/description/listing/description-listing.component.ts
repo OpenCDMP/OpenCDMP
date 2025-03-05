@@ -43,11 +43,15 @@ import { InterceptorType } from '@common/http/interceptors/interceptor-type';
 import { PrincipalService } from '@app/core/services/http/principal.service';
 import { DescriptionListingFilters } from './filtering/description-filter.component';
 import { MatSelectChange } from '@angular/material/select';
+import { DescriptionStatus, DescriptionStatusDefinition } from '@app/core/model/description-status/description-status';
+import { PlanStatus } from '@app/core/model/plan-status/plan-status';
+import { StorageFile } from '@app/core/model/storage-file/storage-file';
 
 @Component({
-	selector: 'app-description-listing-component',
-	templateUrl: 'description-listing.component.html',
-	styleUrls: ['./description-listing.component.scss']
+    selector: 'app-description-listing-component',
+    templateUrl: 'description-listing.component.html',
+    styleUrls: ['./description-listing.component.scss'],
+    standalone: false
 })
 export class DescriptionListingComponent extends BaseListingComponent<BaseDescription, DescriptionLookup> implements OnInit {
 
@@ -95,10 +99,10 @@ export class DescriptionListingComponent extends BaseListingComponent<BaseDescri
 		return this.listingItems != null && this.listingItems.length > 0;
 	}
 	get hasFilters(): boolean {
-		return (this.lookup.like != null && this.lookup.like != '') || this.lookup.statuses  != null ||
+		return (this.lookup.like != null && this.lookup.like != '') || this.lookup.statusIds  != null ||
 			this.lookup.planSubQuery  != null || this.lookup.descriptionTemplateSubQuery  != null ||
 			this.lookup.descriptionTagSubQuery  != null || this.lookup.descriptionReferenceSubQuery  != null ||
-			this.lookup.tenantSubQuery != null;
+			this.lookup.tenantSubQuery != null || this.lookup.isActive != null;
 	}
 
 	constructor(
@@ -329,7 +333,8 @@ export class DescriptionListingComponent extends BaseListingComponent<BaseDescri
 				disableClose: false,
 				data: {
 					isDialog: true
-				}
+				},
+                maxWidth: 'min(95vw, 33rem)'
 			});
 		}
 	}
@@ -345,7 +350,8 @@ export class DescriptionListingComponent extends BaseListingComponent<BaseDescri
 			data: {
 				startNewPlan: false,
 				formGroup: formGroup,
-			}
+			},
+            maxWidth: '600px'
 		});
 		dialogRef.afterClosed().pipe(takeUntil(this._destroyed)).subscribe(result => {
 			if (result) {
@@ -413,7 +419,8 @@ export class DescriptionListingComponent extends BaseListingComponent<BaseDescri
 	}
 
 	_patchLookupFromFilters(filters: DescriptionListingFilters): DescriptionLookup {
-		this.lookup.statuses = filters?.status != null ? [filters?.status] : null;
+		this.lookup.statusIds = filters?.statusId != null ? [filters?.statusId] : null;
+		this.lookup.isActive = filters?.isActive ? [IsActive.Active] : [IsActive.Inactive];
 
 		// Tenants
 		let viewOnlyTenant = filters?.viewOnlyTenant ?? false;
@@ -436,11 +443,14 @@ export class DescriptionListingComponent extends BaseListingComponent<BaseDescri
 		// Plans
 		if (filters?.role || filters?.associatedPlanIds?.length) {
 			this.lookup.planSubQuery = DescriptionFilterService.initializePlanLookup();
-
+			this.lookup.planSubQuery.isActive = filters.isActive == true ? [IsActive.Active] : [IsActive.Active, IsActive.Inactive];
 			if (filters?.associatedPlanIds?.length) this.lookup.planSubQuery.ids = filters?.associatedPlanIds ?? null;
 
 			if (filters?.role) {
 				this.lookup.planSubQuery.planUserSubQuery = DescriptionFilterService.initializePlanUserLookup();
+				this.lookup.planSubQuery.planUserSubQuery.isActive = filters.isActive == true ? [IsActive.Active] : [IsActive.Active, IsActive.Inactive];
+				const principalId: Guid = this.authService.userId();
+				if (principalId) this.lookup.planSubQuery.planUserSubQuery.userIds = [principalId];
 				this.lookup.planSubQuery.planUserSubQuery.userRoles = [filters?.role];
 			}
 		} else this.lookup.planSubQuery = null;
@@ -449,6 +459,7 @@ export class DescriptionListingComponent extends BaseListingComponent<BaseDescri
 		let tags = filters?.tags ?? null;
 		if (tags && tags?.length > 0) {
 			this.lookup.descriptionTagSubQuery = DescriptionFilterService.initializeTagLookup();
+			this.lookup.descriptionTagSubQuery.isActive = filters.isActive == true ? [IsActive.Active] : [IsActive.Inactive];
 			this.lookup.descriptionTagSubQuery.tagIds = tags;
 		} else this.lookup.descriptionTagSubQuery = null;
 
@@ -459,6 +470,7 @@ export class DescriptionListingComponent extends BaseListingComponent<BaseDescri
 
 		if (references && references?.length > 0) {
 			this.lookup.descriptionReferenceSubQuery = DescriptionFilterService.initializeReferenceLookup();
+			this.lookup.descriptionReferenceSubQuery.isActive = filters.isActive == true ? [IsActive.Active] : [IsActive.Inactive];
 			this.lookup.descriptionReferenceSubQuery.referenceIds = references;
 		} else this.lookup.descriptionReferenceSubQuery = null;
 
@@ -472,7 +484,8 @@ export class DescriptionListingComponent extends BaseListingComponent<BaseDescri
 	private _countFilters(lookup: DescriptionLookup): number {
 		let count = 0;
 
-		if (lookup.statuses) count += lookup.statuses.length;
+		if (lookup.statusIds) count += lookup.statusIds.length;
+		if (lookup.isActive[0] == IsActive.Inactive) count += lookup.isActive.length;
 		if (lookup.tenantSubQuery) count += 1;
 		if (lookup.descriptionTemplateSubQuery) count += lookup.descriptionTemplateSubQuery.ids?.length;
 		if (lookup.descriptionTagSubQuery) count += lookup.descriptionTagSubQuery.tagIds?.length;
@@ -490,7 +503,15 @@ export class DescriptionListingComponent extends BaseListingComponent<BaseDescri
 			nameof<Description>(x => x.id),
 			nameof<Description>(x => x.tenantId),
 			nameof<Description>(x => x.label),
-			nameof<Description>(x => x.status),
+			nameof<Description>(x => x.isActive),
+			[nameof<Description>(x => x.status), nameof<DescriptionStatus>(x => x.id)].join('.'),
+			[nameof<Description>(x => x.status), nameof<DescriptionStatus>(x => x.name)].join('.'),
+			[nameof<Description>(x => x.status), nameof<DescriptionStatus>(x => x.internalStatus)].join('.'),	
+			[nameof<Description>(x => x.status), nameof<DescriptionStatus>(x => x.definition), nameof<DescriptionStatusDefinition>(x => x.availableActions)].join('.'),			
+			[nameof<Description>(x => x.status), nameof<DescriptionStatus>(x => x.definition), nameof<DescriptionStatusDefinition>(x => x.statusColor)].join('.'),
+                    [nameof<Plan>(x => x.status), nameof<PlanStatus>(x => x.definition), nameof<DescriptionStatusDefinition>(x => x.matIconName)].join('.'),			
+                    [nameof<Plan>(x => x.status), nameof<PlanStatus>(x => x.definition), nameof<DescriptionStatusDefinition>(x => x.storageFile), nameof<StorageFile>(x => x.id)].join('.'),	
+		
 			nameof<Description>(x => x.updatedAt),
 			nameof<Description>(x => x.belongsToCurrentTenant),
 			nameof<Description>(x => x.finalizedAt),
@@ -498,13 +519,16 @@ export class DescriptionListingComponent extends BaseListingComponent<BaseDescri
 			[nameof<Description>(x => x.authorizationFlags), AppPermission.EditDescription].join('.'),
 			[nameof<Description>(x => x.authorizationFlags), AppPermission.DeleteDescription].join('.'),
 			[nameof<Description>(x => x.authorizationFlags), AppPermission.InvitePlanUsers].join('.'),
+			[nameof<Description>(x => x.authorizationFlags), AppPermission.CloneDescription].join('.'),
 
 			[nameof<Description>(x => x.descriptionTemplate), nameof<DescriptionTemplate>(x => x.id)].join('.'),
 			[nameof<Description>(x => x.descriptionTemplate), nameof<DescriptionTemplate>(x => x.label)].join('.'),
 			[nameof<Description>(x => x.descriptionTemplate), nameof<DescriptionTemplate>(x => x.groupId)].join('.'),
 			[nameof<Description>(x => x.plan), nameof<Plan>(x => x.id)].join('.'),
 			[nameof<Description>(x => x.plan), nameof<Plan>(x => x.label)].join('.'),
-			[nameof<Description>(x => x.plan), nameof<Plan>(x => x.status)].join('.'),
+			[nameof<Description>(x => x.plan), nameof<Plan>(x => x.status), nameof<PlanStatus>(x => x.id)].join('.'),
+			[nameof<Description>(x => x.plan), nameof<Plan>(x => x.status), nameof<PlanStatus>(x => x.name)].join('.'),
+			[nameof<Description>(x => x.plan), nameof<Plan>(x => x.status), nameof<PlanStatus>(x => x.internalStatus)].join('.'),
 			[nameof<Description>(x => x.plan), nameof<Plan>(x => x.accessType)].join('.'),
 			[nameof<Description>(x => x.plan), nameof<Plan>(x => x.finalizedAt)].join('.'),
 			[nameof<Description>(x => x.plan), nameof<Plan>(x => x.blueprint), nameof<PlanBlueprint>(x => x.id)].join('.'),

@@ -58,7 +58,7 @@ public class DescriptionQuery extends QueryBase<DescriptionEntity> {
 
     private Collection<IsActive> isActives;
 
-    private Collection<DescriptionStatus> statuses;
+    private Collection<UUID> statusIds;
 
     private Collection<UUID> planIds;
 
@@ -71,6 +71,8 @@ public class DescriptionQuery extends QueryBase<DescriptionEntity> {
     private final QueryUtilsService queryUtilsService;
 
     private Collection<UUID> planDescriptionTemplateIds;
+
+    private DescriptionStatusQuery descriptionStatusQuery;
 
     private final TenantEntityManager tenantEntityManager;
     public DescriptionQuery(UserScope userScope, AuthorizationService authService, QueryUtilsService queryUtilsService, TenantEntityManager tenantEntityManager) {
@@ -210,18 +212,18 @@ public class DescriptionQuery extends QueryBase<DescriptionEntity> {
         return this;
     }
 
-    public DescriptionQuery statuses(DescriptionStatus value) {
-        this.statuses = List.of(value);
+    public DescriptionQuery statusIds(UUID value) {
+        this.statusIds = List.of(value);
         return this;
     }
 
-    public DescriptionQuery statuses(DescriptionStatus... value) {
-        this.statuses = Arrays.asList(value);
+    public DescriptionQuery statusIds(UUID... value) {
+        this.statusIds = Arrays.asList(value);
         return this;
     }
 
-    public DescriptionQuery statuses(Collection<DescriptionStatus> values) {
-        this.statuses = values;
+    public DescriptionQuery statusIds(Collection<UUID> values) {
+        this.statusIds = values;
         return this;
     }
 
@@ -250,6 +252,11 @@ public class DescriptionQuery extends QueryBase<DescriptionEntity> {
         return this;
     }
 
+    public DescriptionQuery descriptionStatusSubQuery(DescriptionStatusQuery subQuery) {
+        this.descriptionStatusQuery = subQuery;
+        return this;
+    }
+
     @Override
     protected EntityManager entityManager(){
         return this.tenantEntityManager.getEntityManager();
@@ -261,7 +268,7 @@ public class DescriptionQuery extends QueryBase<DescriptionEntity> {
                 this.isEmpty(this.ids) ||
                         this.isEmpty(this.isActives) || this.isEmpty(this.createdByIds) ||
                         this.isEmpty(this.excludedIds) || this.isFalseQuery(this.planQuery) ||
-                        this.isEmpty(this.statuses) || this.isFalseQuery(this.planDescriptionTemplateQuery);
+                        this.isEmpty(this.statusIds) || this.isFalseQuery(this.planDescriptionTemplateQuery);
     }
 
     @Override
@@ -349,9 +356,9 @@ public class DescriptionQuery extends QueryBase<DescriptionEntity> {
                 inClause.value(item);
             predicates.add(inClause);
         }
-        if (this.statuses != null) {
-            CriteriaBuilder.In<DescriptionStatus> inClause = queryContext.CriteriaBuilder.in(queryContext.Root.get(DescriptionEntity._status));
-            for (DescriptionStatus item : this.statuses)
+        if (this.statusIds != null) {
+            CriteriaBuilder.In<UUID> inClause = queryContext.CriteriaBuilder.in(queryContext.Root.get(DescriptionEntity._statusId));
+            for (UUID item : this.statusIds)
                 inClause.value(item);
             predicates.add(inClause);
         }
@@ -381,6 +388,10 @@ public class DescriptionQuery extends QueryBase<DescriptionEntity> {
                 inClause.value(item);
             predicates.add(inClause);
         }
+        if (this.descriptionStatusQuery != null) {
+            QueryContext<DescriptionStatusEntity, UUID> subQuery = this.applySubQuery(this.descriptionStatusQuery, queryContext, UUID.class, descriptionStatusEntityRoot -> descriptionStatusEntityRoot.get(DescriptionStatusEntity._id));
+            predicates.add(queryContext.CriteriaBuilder.in(queryContext.Root.get(DescriptionEntity._statusId)).value(subQuery.Query));
+        }
 
         if (!predicates.isEmpty()) {
             Predicate[] predicatesArray = predicates.toArray(new Predicate[0]);
@@ -399,7 +410,9 @@ public class DescriptionQuery extends QueryBase<DescriptionEntity> {
         else if (item.prefix(Description._properties))
             return DescriptionEntity._properties;
         else if (item.match(Description._status) || item.match(PublicDescription._status))
-            return DescriptionEntity._status;
+            return DescriptionEntity._statusId;
+        else if (item.prefix(Description._status) || item.prefix(PublicDescription._status))
+            return DescriptionEntity._statusId;
         else if (item.match(Description._description) || item.match(PublicDescription._description))
             return DescriptionEntity._description;
         else if (item.match(Description._createdBy))
@@ -443,7 +456,7 @@ public class DescriptionQuery extends QueryBase<DescriptionEntity> {
         item.setTenantId(QueryBase.convertSafe(tuple, columns, DescriptionEntity._tenantId, UUID.class));
         item.setLabel(QueryBase.convertSafe(tuple, columns, DescriptionEntity._label, String.class));
         item.setProperties(QueryBase.convertSafe(tuple, columns, DescriptionEntity._properties, String.class));
-        item.setStatus(QueryBase.convertSafe(tuple, columns, DescriptionEntity._status, DescriptionStatus.class));
+        item.setStatusId(QueryBase.convertSafe(tuple, columns, DescriptionEntity._statusId, UUID.class));
         item.setDescription(QueryBase.convertSafe(tuple, columns, DescriptionEntity._description, String.class));
         item.setCreatedAt(QueryBase.convertSafe(tuple, columns, DescriptionEntity._createdAt, Instant.class));
         item.setUpdatedAt(QueryBase.convertSafe(tuple, columns, DescriptionEntity._updatedAt, Instant.class));

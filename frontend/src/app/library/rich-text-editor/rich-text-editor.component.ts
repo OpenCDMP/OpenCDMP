@@ -1,37 +1,39 @@
-import { ChangeDetectionStrategy, Component, EventEmitter, Input, OnChanges, OnDestroy, OnInit, SimpleChanges } from "@angular/core";
+import { ChangeDetectionStrategy, Component, effect, EventEmitter, input, Input, OnChanges, OnDestroy, OnInit, SimpleChanges, ViewChild } from "@angular/core";
 import { FormControl } from "@angular/forms";
-import { AngularEditorConfig } from "@kolkov/angular-editor";
+import { AngularEditorComponent, AngularEditorConfig } from "@kolkov/angular-editor";
 import { Subscription } from "rxjs";
 
 @Component({
-	selector: 'rich-text-editor-component',
-	template: `
-		<div class="editor-wrapper" [class]="wrapperClasses">
-			<angular-editor class="full-width editor" [ngClass]="editable ? '': 'disabled'" [id]="id"
-							[config]="editorConfig" [formControl]="form" [required]="required"
-							placeholder="{{(placeholder? (placeholder | translate) : '') + (required ? ' *': '')}}"
+    selector: 'rich-text-editor-component',
+    template: `
+		<div class="editor-wrapper" [class]="wrapperClasses()" [id]="id()">
+			<angular-editor class="full-width editor" [class.disabled]="form()?.disabled" [class.error]="form()?.touched && form()?.invalid"
+							[config]="editorConfig" [formControl]="form()" [required]="required()"
+							placeholder="{{(placeholder()? (placeholder() | translate) : '') + (required() ? ' *': '')}}"
 							(paste)="pasteWithoutFormatting($event)"></angular-editor>
-			<mat-icon *ngIf="form.value && editable" (click)="parentFormGroup.get(controlName).patchValue('')" class="clear">close</mat-icon>
+			<mat-icon *ngIf="form()?.value && !form()?.disabled" (click)="form().patchValue('')" class="clear">close</mat-icon>
 		</div>
 	`,
-	styleUrls: ['./rich-text-editor.component.scss'],
-	// TODO: performance issue with this control. changed the change detection strategy in case it improves
-	changeDetection: ChangeDetectionStrategy.OnPush
+    styleUrls: ['./rich-text-editor.component.scss'],
+    // TODO: performance issue with this control. changed the change detection strategy in case it improves
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    standalone: false
 })
-export class RichTextEditorComponent implements OnInit, OnChanges, OnDestroy {
+export class RichTextEditorComponent implements OnDestroy {
+    static nextId = 0;
+    @ViewChild(AngularEditorComponent) editor: AngularEditorComponent
 
-	@Input() form: FormControl;
-	@Input() id: string = "editor1";
-	@Input() placeholder: string = "Enter text";
-	@Input() required: boolean = false;
-	@Input() wrapperClasses: string = "";
-	@Input() editable: boolean = true;
+	form = input<FormControl>();
+	id = input<string>(`rich-text-editor${RichTextEditorComponent.nextId++}`);
+	placeholder = input<string>("Enter text");
+	required = input<boolean>(false);
+	wrapperClasses = input<string>("");
 
-	@Input() formTouchEvent: EventEmitter<any>;
+	formTouchEvent = input<EventEmitter<any>>();
 	private formTouchSubscription: Subscription;
 
 	editorConfig: AngularEditorConfig = {
-		editable: this.editable,
+		editable: !this.form()?.disabled,
 		spellcheck: true,
 		height: 'auto',
 		minHeight: '0',
@@ -76,17 +78,17 @@ export class RichTextEditorComponent implements OnInit, OnChanges, OnDestroy {
 	};
 
 
-	ngOnInit(): void {
-		if (this.formTouchEvent) {
-			this.observeFormStatus();
-		}
-	}
+    constructor(){
+        effect(() => {
+            const form = this.form();
+            if(!form){ return; }
+            if (this.formTouchEvent()) {
+                this.observeFormStatus();
+            }
+            this.editorConfig.editable = !this.form()?.disabled;
+        })
+    }
 
-	ngOnChanges(changes: SimpleChanges): void {
-		if (changes['editable']) {
-			this.editorConfig.editable = this.editable;
-		}
-	}
 
 	ngOnDestroy(): void {
 		if (this.formTouchSubscription) {
@@ -94,9 +96,6 @@ export class RichTextEditorComponent implements OnInit, OnChanges, OnDestroy {
 		}
 	}
 
-	ngAfterContentInit() {
-		this.editorConfig.editable = this.editable;
-	}
 
 	pasteWithoutFormatting($event) {
 		$event.preventDefault();
@@ -104,13 +103,18 @@ export class RichTextEditorComponent implements OnInit, OnChanges, OnDestroy {
 		window.document.execCommand("insertText", false, text);
 	}
 
+    focus(){
+        this.editor?.focus();
+    }
+
 	private observeFormStatus(): void {
-		this.formTouchSubscription = this.formTouchEvent
+        this.formTouchSubscription?.unsubscribe();
+		this.formTouchSubscription = this.formTouchEvent()
 			.subscribe(
 				next => {
 					if (next) {
-						this.form.markAsTouched();
-						this.form.updateValueAndValidity();
+						this.form().markAsTouched();
+						this.form().updateValueAndValidity();
 					}
 				}
 			);

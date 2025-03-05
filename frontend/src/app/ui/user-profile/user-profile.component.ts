@@ -38,9 +38,10 @@ import { AddAccountDialogComponent } from './add-account/add-account-dialog.comp
 import { UserProfileEditorModel } from './user-profile-editor.model';
 
 @Component({
-	selector: 'app-user-profile',
-	templateUrl: './user-profile.component.html',
-	styleUrls: ['./user-profile.component.scss'],
+    selector: 'app-user-profile',
+    templateUrl: './user-profile.component.html',
+    styleUrls: ['./user-profile.component.scss'],
+    standalone: false
 })
 export class UserProfileComponent extends BaseComponent implements OnInit, OnDestroy {
 
@@ -234,7 +235,6 @@ export class UserProfileComponent extends BaseComponent implements OnInit, OnDes
 	private showValidationErrorsDialog(projectOnly?: boolean) {
 		const dialogRef = this.dialog.open(FormValidationErrorsDialogComponent, {
 			disableClose: true,
-			autoFocus: false,
 			restoreFocus: false,
 			data: {
 				errorMessages: this.errorMessages,
@@ -276,8 +276,7 @@ export class UserProfileComponent extends BaseComponent implements OnInit, OnDes
 	public addAccount() {
 		const dialogRef = this.dialog.open(AddAccountDialogComponent, {
 			restoreFocus: false,
-			autoFocus: false,
-			width: '30%',
+			width: 'min(30vw, 600px)',
 			minWidth: 'fit-content',
 			data: {
 				email: ''
@@ -296,7 +295,7 @@ export class UserProfileComponent extends BaseComponent implements OnInit, OnDes
 							});
 						}
 					},
-						error => this.httpErrorHandlingService.handleBackedRequestError(error)); //TODO how to handle this
+						error => this.httpErrorHandlingService.handleBackedRequestError(error));
 			}
 		});
 	}
@@ -317,9 +316,13 @@ export class UserProfileComponent extends BaseComponent implements OnInit, OnDes
 					}
 					Object.keys(errors).forEach(keyError => {
 						if (typeof errors[keyError] === 'boolean') {
-							this.errorMessages.push(numbering + ' ' + key + ' is ' + keyError);
+							this.errorMessages.push(
+                                numbering + ' ' + this.language.instant(this.formLabelMap.get(key)?? '') + ' ' + (keyError === 'required'? this.language.instant('GENERAL.FORM-VALIDATION-DISPLAY-DIALOG.REQUIRED') : keyError)
+                            );
 						} else {
-							this.errorMessages.push(numbering + ' ' + key + ': ' + keyError + ': ' + JSON.stringify(errors[keyError]));
+							this.errorMessages.push(
+                                numbering + ' ' + this.language.instant(this.formLabelMap.get(key)?? '') + ': ' + keyError + ': ' + JSON.stringify(errors[keyError])
+                            );
 						}
 					});
 				} else {
@@ -374,5 +377,15 @@ export class UserProfileComponent extends BaseComponent implements OnInit, OnDes
 
 		return culture.displayName + ' [' + culture.name + ']';
 	}
+
+    formLabelMap = new Map([
+        ['name', 'USER-PROFILE.SETTINGS.NAME'], 
+        ['avatarUrl', 'ALT-TEXT.USER-AVATAR'],
+        ['timezone', 'USER-PROFILE.SETTINGS.TIMEZONE'],
+        ['culture', 'USER-PROFILE.SETTINGS.CULTURE'],
+        ['language', 'USER-PROFILE.SETTINGS.LANGUAGE'],
+        ['roleOrganization', 'USER-PROFILE.SETTINGS.ROLE'],
+        ['organization', 'USER-PROFILE.SETTINGS.ORGANIZATION'],
+    ])
 
 }

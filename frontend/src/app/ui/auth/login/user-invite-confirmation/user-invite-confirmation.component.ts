@@ -12,8 +12,9 @@ import { TranslateService } from '@ngx-translate/core';
 import { takeUntil } from "rxjs/operators";
 
 @Component({
-	selector: 'app-user-invite-confirmation-component',
-	templateUrl: './user-invite-confirmation.component.html'
+    selector: 'app-user-invite-confirmation-component',
+    templateUrl: './user-invite-confirmation.component.html',
+    standalone: false
 })
 export class UserInviteConfirmation extends BaseComponent implements OnInit {
 	private token: Guid;

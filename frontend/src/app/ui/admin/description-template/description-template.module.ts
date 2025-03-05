@@ -34,6 +34,8 @@ import { DescriptionFormModule } from '@app/ui/description/editor/description-fo
 import { FinalPreviewComponent } from './editor/components/final-preview/final-preview.component';
 import { DragulaModule } from 'ng2-dragula';
 import { TransitionGroupModule } from '@app/ui/transition-group/transition-group.module';
+import { FormFocusDirective } from '@common/forms/form-focus.directive';
+import { CustomMatStepperHeaderComponent } from '@app/library/custom-mat-stepper-header/custom-mat-stepper-header.component';
 
 @NgModule({
 	imports: [
@@ -52,6 +54,8 @@ import { TransitionGroupModule } from '@app/ui/transition-group/transition-group
 		DescriptionFormModule,
 		TransitionGroupModule,
 		DragulaModule.forRoot(),
+        FormFocusDirective,
+        CustomMatStepperHeaderComponent
 	],
 	declarations: [
 		DescriptionTemplateEditorComponent,

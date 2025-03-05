@@ -1,0 +1,228 @@
+@use 'sass:map';
+@use '@angular/material' as mat;
+
+// Be sure that you only ever include this mixin once!
+@include mat.core();
+
+
+:root {
+	--link-color: #1E59B1;
+	--draft-color: #f16868;
+    
+    --gray: #707070; //previously #848484
+    --light-gray: #aaaaaa;
+    --dark-text: #212121;
+
+    --mat-badge-legacy-large-size-container-size: 1.2rem;
+}
+
+$_palettes: (
+  primary: (
+    0: #000000,
+    10: #001a41,
+    20: #002e68,
+    25: #00397d,
+    30: #13458c,
+    35: #245198,
+    40: #335da5,
+    50: #4e76c0,
+    60: #6990dc,
+    70: #84abf8,
+    80: #adc6ff,
+    90: #d8e2ff,
+    95: #edf0ff,
+    98: #f9f9ff,
+    99: #fefbff,
+    100: #ffffff,
+  ),
+  secondary: (
+    0: #000000,
+    10: #0c1b35,
+    20: #22304b,
+    25: #2e3b57,
+    30: #394763,
+    35: #45526f,
+    40: #515e7c,
+    50: #697796,
+    60: #8391b1,
+    70: #9dabcc,
+    80: #b8c6e9,
+    90: #d8e2ff,
+    95: #edf0ff,
+    98: #f9f9ff,
+    99: #fefbff,
+    100: #ffffff,
+  ),
+  tertiary: (
+    0: #000000,
+    10: #002200,
+    20: #003a00,
+    25: #004600,
+    30: #005301,
+    35: #006101,
+    40: #006e01,
+    50: #198a12,
+    60: #3ba52e,
+    70: #57c147,
+    80: #73de60,
+    90: #8efb79,
+    95: #caffb9,
+    98: #edffe2,
+    99: #f7ffee,
+    100: #ffffff,
+  ),
+  neutral: (
+    0: #000000,
+    10: #1a1b20,
+    20: #2f3035,
+    25: #3a3b41,
+    30: #45474c,
+    35: #515258,
+    40: #5d5e64,
+    50: #76777d,
+    60: #909096,
+    70: #aaabb1,
+    80: #c6c6cc,
+    90: #e2e2e9,
+    95: #f0f0f7,
+    98: #f9f9ff,
+    99: #fefbff,
+    100: #ffffff,
+    4: #0c0e13,
+    6: #111318,
+    12: #1e1f24,
+    17: #282a2f,
+    22: #33353a,
+    24: #37393e,
+    87: #dad9e0,
+    92: #e8e7ee,
+    94: #eeedf4,
+    96: #f3f3fa,
+  ),
+  neutral-variant: (
+    0: #000000,
+    10: #181c24,
+    20: #2c303a,
+    25: #373b45,
+    30: #434751,
+    35: #4f525d,
+    40: #5b5e69,
+    50: #737782,
+    60: #8d909c,
+    70: #a8abb7,
+    80: #c3c6d2,
+    90: #dfe2ef,
+    95: #eef0fd,
+    98: #f9f9ff,
+    99: #fefbff,
+    100: #ffffff,
+  ),
+  error: (
+    0: #000000,
+    10: #410002,
+    20: #690005,
+    25: #7e0007,
+    30: #93000a,
+    35: #a80710,
+    40: #ba1a1a,
+    50: #de3730,
+    60: #ff5449,
+    70: #ff897d,
+    80: #ffb4ab,
+    90: #ffdad6,
+    95: #ffedea,
+    98: #fff8f7,
+    99: #fffbff,
+    100: #ffffff,
+  ),
+);
+
+$_rest: (
+  secondary: map.get($_palettes, secondary),
+  neutral: map.get($_palettes, neutral),
+  neutral-variant: map.get($_palettes,  neutral-variant),
+  error: map.get($_palettes, error),
+);
+$_primary: map.merge(map.get($_palettes, primary), $_rest);
+$_tertiary: map.merge(map.get($_palettes, tertiary), $_rest);
+
+$angular-material-3-theme: mat.define-theme((
+    color: (
+        theme-type: light,
+        primary: $_primary,
+        tertiary: $_tertiary,
+        use-system-variables: true,
+    ),
+    typography: (
+        plain-family: 'Roboto, sans-serif',
+        brand-family: 'Roboto, sans-serif',
+        regular-weight: 400,
+        medium-weight: 400,
+        bold-weight: 700,
+        use-system-variables: true
+    ),
+    density: (
+        scale: 0
+    )
+));
+
+$disabled-form-field-color: color-mix(in srgb, var(--sys-on-surface) 60%, transparent);
+:root {
+    @include mat.all-component-themes($angular-material-3-theme);
+    @include mat.color-variants-backwards-compatibility($angular-material-3-theme);
+    @include mat.system-level-colors($angular-material-3-theme);
+    @include mat.system-level-typography($angular-material-3-theme);
+    //1.2rem is ICON SIZE
+
+    @include mat.dialog-overrides((
+        subhead-size: var(--sys-headline-large-size),
+        headline-padding: 1rem 1em 0.5rem
+    ));
+    @include mat.list-overrides((
+        list-item-label-text-size: var(--sys-body-medium-size)
+    ));
+    @include mat.expansion-overrides((
+        container-text-size: var(--sys-body-medium-size)
+    ));
+    @include mat.checkbox-overrides((
+        label-text-size: var(--sys-body-medium-size),
+        disabled-label-color: $disabled-form-field-color,
+    ));
+    @include mat.badge-overrides((
+        small-size-text-size: var(--sys-body-medium-size),
+        small-size-container-padding: 0.25rem
+    ));
+    @include mat.form-field-overrides((
+        disabled-label-text-color: $disabled-form-field-color,
+        disabled-input-text-color: $disabled-form-field-color,
+        disabled-active-indicator-color: $disabled-form-field-color,
+        select-disabled-option-text-color: $disabled-form-field-color,
+        disabled-leading-icon-color: $disabled-form-field-color,
+        disabled-trailing-icon-color: $disabled-form-field-color,
+        disabled-select-arrow-color: $disabled-form-field-color
+    ));
+    @include mat.select-overrides((
+        disabled-trigger-text-color: $disabled-form-field-color,
+        disabled-arrow-color: $disabled-form-field-color
+    ));
+    @include mat.datepicker-overrides((
+        calendar-date-disabled-state-text-color: $disabled-form-field-color,
+        range-input-disabled-state-text-color: $disabled-form-field-color,
+        range-input-disabled-state-separator-color: $disabled-form-field-color,
+        calendar-date-today-disabled-state-outline-color:  $disabled-form-field-color
+    ));
+    @include mat.chips-overrides((
+        disabled-outline-color: $disabled-form-field-color,
+        disabled-label-text-color: $disabled-form-field-color,
+        with-icon-disabled-icon-color: $disabled-form-field-color,
+        with-trailing-icon-disabled-trailing-icon-color: $disabled-form-field-color,
+        selected-disabled-trailing-icon-color: $disabled-form-field-color
+    ));
+    @include mat.radio-overrides((
+        disabled-label-color:$disabled-form-field-color
+    ));
+    @include mat.card-overrides((
+        container-color: var(--sys-surface),
+    ))
+}
+

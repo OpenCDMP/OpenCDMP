@@ -2,20 +2,11 @@ package org.opencdmp.commons.types.accounting;
 
 public class AccountingSourceEntity {
 
-	private String repositoryId;
 	private String url;
 	private String issuerUrl;
 	private String clientId;
 	private String clientSecret;
 	private String scope;
-
-	public String getRepositoryId() {
-		return this.repositoryId;
-	}
-
-	public void setRepositoryId(String repositoryId) {
-		this.repositoryId = repositoryId;
-	}
 
 	public String getUrl() {
 		return this.url;

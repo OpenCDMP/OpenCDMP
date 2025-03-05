@@ -2,7 +2,10 @@ import { Pipe, PipeTransform } from '@angular/core';
 import moment from 'moment';
 import 'moment-timezone';
 
-@Pipe({ name: 'timezoneInfoDisplay' })
+@Pipe({
+    name: 'timezoneInfoDisplay',
+    standalone: false
+})
 export class TimezoneInfoDisplayPipe implements PipeTransform {
 	constructor() { }
 

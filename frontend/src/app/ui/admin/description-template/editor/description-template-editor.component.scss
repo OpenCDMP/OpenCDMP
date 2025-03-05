@@ -10,14 +10,17 @@
 
 
 
-// REFACTORED CSS
-
 .stepper{
-	background-color: transparent;
-	min-height: 500px;
+    min-height: calc(100vh - 20rem);
+    background-color: var(--sys-background);
 }
-.content-displayer{
-	background-color: #fff;
+
+.table-container {
+    top: 2rem;
+}
+
+.content-displayer, .general-info{
+	background-color: var(--sys-surface);
 	border-radius: 7px;
 	box-shadow: 0px 1px 2px #bfbfbf;
 	padding: 0em;
@@ -27,20 +30,18 @@
 .heading {
 	text-align: left;
 	font-weight: 700;
-	font-size: 18px;
+	font-size: var(--sys-headline-medium-size);
 	letter-spacing: 0px;
-	color: #212121;
-	opacity: 0.81;
+	opacity: 0.9;
 	margin-bottom: 0.625rem;
 }
 
 .hint {
 	text-align: left;
 	font-weight: 400;
-	font-size: 16px;
+	font-size: var(--sys-body-medium-size);
 	letter-spacing: 0px;
-	color: #212121;
-	opacity: 0.81;
+	opacity: 0.9;
 	margin-bottom: 0.125rem;
 }
 
@@ -52,52 +53,14 @@
     background-color: #ffffff4f;
 }
 
-:host ::ng-deep .mat-horizontal-stepper-header-container {
-	display: none !important;
-}
-
-#progress{
-	position: absolute;
-	height: 100%;
-	width: 100%;
-	clip-path: polygon(0 0, 0 0, 0 0, 0 0);
-	transition-property: clip-path;
-	transition-duration: 600ms;
-	transition-timing-function: ease-out;
-	transition-delay: 50ms;
-	box-shadow: 0px 1px 2px #bfbfbf;
-	background-color: var(--secondary-color);
-}
-#progress-container{
-	box-shadow: 1px 1px 6px #00000029;;
-}
 
 
 
-$blue-color : var(--primary-color);
+
+$blue-color : var(--sys-primary);
 $blue-color-light: #5cf7f2;
 
 
-
-
-
-.stepper-title-label{
-	cursor: pointer;
-	transition-property: color, opacity;
-	transition-duration: 200ms;
-	transition-delay: 50ms;
-	transition-timing-function: ease-in-out;
-	color: #212121;
-	font-size: 0.9em;
-}
-
-.stepper-title-label-locked{
-	color: #DEDEDE;
-}
-
-.stepper-title-label-completed{
-	opacity: 0.5;
-}
 .page-infos{
 	padding: 2em;
 }
@@ -107,7 +70,7 @@ $blue-color-light: #5cf7f2;
 
 
 .actions-list{
-	box-shadow: 0px 3px 12px var(--primary-color)99;
+	box-shadow: 0px 3px 12px var(--sys-primary)99;
 	border-radius: 4px;
 	padding: 1em 0.9em;
 	min-width: 166px;
@@ -129,20 +92,19 @@ $blue-color-light: #5cf7f2;
 			margin-right: 0.5em;
 			margin-left: -.09em;
 			height: auto;
-			color: var(--primary-color);;
+			color: var(--sys-primary);;
 		}
 		.input_icon{
 			width: 14px;
 			margin-right: .5em;
 		}
 		.action-list-text{
-			font-size: 0.9em;
+			font-size: var(--sys-headline-small-size);
 		}
 	}
 	.action-list-label{
-	 color: #212121;
 	 font-size: small;
-	 opacity: 0.6;
+	 opacity: 0.9;
 	}
 	.list-unstyled{
 		margin-bottom: 0.2rem;
@@ -155,7 +117,7 @@ $blue-color-light: #5cf7f2;
 }
 
 :host ::ng-deep .mat-form-field-appearance-outline .mat-form-field-infix {
-	font-size: 1rem;
+	font-size: var(--sys-body-medium-size);
 	padding: 0.6em 0 1em 0 !important;
 }
 
@@ -215,31 +177,20 @@ $blue-color-light: #5cf7f2;
 	position: fixed;
 	bottom: 20em;
 	right: 2em;
-	color: var(--primary-color) !important;
+	color: var(--sys-primary) !important;
 	cursor: pointer;
-	font-size: 1rem;
+	font-size: var(--sys-body-medium-size);
 	font-weight: 400;
-}
-
-.floating-btn {
-	position: fixed;
-	bottom: 2em;
-	right: 2em;
-}
-
-.progress-min-height {
-	min-height: 35px;
+    border: none;
+    background-color: transparent;
+    &:focus, &:hover {
+        color: hsl(from var(--sys-primary) h s calc(l + 4)) !important;
+    }
 }
 
 
-#stepper-navigation-wrapper{
-	z-index: 99;
-	width: 100%;
-	#stepper-navigation{
-		background-color: #f4f4f4;
-		z-index: 99;
-	}
-}
+
+
 
 .actions-template{
 	align-self:flex-end;
@@ -248,18 +199,6 @@ $blue-color-light: #5cf7f2;
 	width: 100%;
 	padding-left: 15px;
 	padding-right: 15px;
-}
-.stepper-navigation-outer-wrapper{
-	padding: 2em;
-	margin-bottom: 1em;
-}
-
-#header-outer-wrapper {
-	padding-top: 1.3rem;
-	background: #f4f4f4;
-	position: sticky;
-	top: 0.01em;
-	z-index: 9999;
 }
 
 #title-column{
@@ -272,4 +211,32 @@ $blue-color-light: #5cf7f2;
 	height: 40vh;
 	position: sticky;
 	top: 2em;
+}
+.table-of-contents {
+    padding-right: 1.5rem;
+}
+::ng-deep {
+    @container main-page (inline-size < 750px){
+        #header-outer-wrapper{
+            position: relative;
+        }
+        .table-of-contents{
+            padding-right: 0 !important;
+        }
+        .mat-step {
+            padding-bottom: 2.5rem; 
+        }
+        .sticky-top {
+            position: static;
+            z-index: 0;
+        }
+        .scroll-on-top{
+            right: 1.25rem !important;
+            transform: scale(1.825);
+            bottom: 10em !important;
+            .scroll-on-top-text {
+                display: none;
+            }
+        }
+    }
 }

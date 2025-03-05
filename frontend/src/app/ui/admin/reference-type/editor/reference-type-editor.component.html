@@ -7,162 +7,155 @@
 				</div>
 
 				<div class="col-auto">
-					<button mat-button class="rounded-btn neutral" (click)="cancel()" type="button">{{'REFERENCE-TYPE-EDITOR.ACTIONS.CANCEL' | translate}}</button>
+					<div matTooltip="{{ hasSources() ? ('REFERENCE-TYPE-EDITOR.ACTIONS.TEST-ALL-SOURCES' | translate) :  ('REFERENCE-TYPE-EDITOR.ACTIONS.DISABLED-ALL-SOURCES' | translate)}}"  [matTooltipDisabled]="false"  style="display: inline-block;">
+ 					 	<button mat-icon-button type="button" [disabled]="!hasSources()" (click)="openReferenceTestDialog()" [attr.aria-label]="'COMMONS.ACTIONS.TEST' | translate">
+   							 <mat-icon aria-hidden>bug_report</mat-icon>
+  					</button>
+					</div>
+				</div>
+				<div class="col-auto">
+					<button mat-stroked-button class="padded-shadow-btn" (click)="cancel()" type="button">{{'REFERENCE-TYPE-EDITOR.ACTIONS.CANCEL' | translate}}</button>
 				</div>
 				<div class="col-auto" *ngIf="canDelete">
-					<button mat-button (click)="delete()" class="rounded-btn delete-inverted" type="button">
-						<mat-icon>delete</mat-icon>
+					<button mat-stroked-button color="warn" (click)="delete()" class="padded-shadow-btn" type="button">
+						<mat-icon aria-hidden>delete</mat-icon>
 						{{'REFERENCE-TYPE-EDITOR.ACTIONS.DELETE' | translate}}
 					</button>
 				</div>
 				<div class="col-auto" *ngIf="canSave">
-					<button mat-button class="rounded-btn primary" (click)="formSubmit()">
+					<button mat-flat-button color="primary" class="padded-shadow-btn" (click)="formSubmit()">
 						<mat-icon>save</mat-icon>
 						{{'REFERENCE-TYPE-EDITOR.ACTIONS.SAVE' | translate}}
 					</button>
 				</div>
 			</div>
-
-			<mat-card appearance="outlined" class="pt-3 pb-3">
-				<mat-card-content>
-					<form (ngSubmit)="formSubmit()" [formGroup]="formGroup" *ngIf="formGroup">
-						<div class="row">
-							<div class="col-12">
-								<div class="container-fluid">
-									<div class="row">									
-										<div class="col-6">
-											<mat-form-field class="w-100">
-												<mat-label>{{'REFERENCE-TYPE-EDITOR.FIELDS.NAME' | translate}}</mat-label>
-												<input matInput type="text" name="name" [formControl]="formGroup.get('name')" required>
-												<mat-error *ngIf="formGroup.get('name').hasError('backendError')">{{formGroup.get('name').getError('backendError').message}}</mat-error>
-												<mat-error *ngIf="formGroup.get('name').hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
-											</mat-form-field>
-										</div>
-										<div class="col-6">
-											<mat-form-field class="w-100">
-												<mat-label>{{'REFERENCE-TYPE-EDITOR.FIELDS.CODE' | translate}}</mat-label>
-												<input matInput type="text" name="name" [formControl]="formGroup.get('code')" required>
-												<mat-error *ngIf="formGroup.get('code').hasError('backendError')">{{formGroup.get('code').getError('backendError').message}}</mat-error>
-												<mat-error *ngIf="formGroup.get('code').hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
-											</mat-form-field>
-										</div>
-									</div>
-								</div>
-							</div>
-						</div>
-						<div class="row">
-							<div class="col-12">
-								<div class="container-fluid">
-									<div class="row">		
-										<div class="col-12 mt-3 mb-3">
-											<div class="row d-flex align-items-center">
-												<div class="col-auto">
-													<h3 class="m-0">{{'REFERENCE-TYPE-EDITOR.FIELDS.FIELDS' | translate}}</h3>
-												</div>
-												<div class="col-auto">
-													<button mat-button class="rounded-btn secondary" type="button" (click)="addField()" [disabled]="formGroup.get('definition').get('fields').disabled">{{'REFERENCE-TYPE-EDITOR.ACTIONS.ADD-FIELD' | translate}}</button>
-												</div>
-											</div>
-										</div>
-									</div>
-								</div>
-							</div>
-						</div>
-							<!-- FIELDS  -->
-						<div class="row">
-							<div class="col-12">
-								<div class="container-fluid">
-									<div class="row">		
-										<div class="col-12">
-											<div *ngFor="let field of formGroup.get('definition').get('fields').controls; let fieldIndex=index;" class="row mb-3">
-												<div class="col-12">
-													<div class="row d-flex align-items-center">
-														<div class="col-auto pb-3 d-flex">
-															<span>{{fieldIndex + 1}}</span>
-														</div>
-														<div class="col">
-															<mat-form-field class="w-100">
-																<mat-label>{{'REFERENCE-TYPE-EDITOR.FIELDS.LABEL' | translate}}</mat-label>
-																<input matInput type="text" name="label" [formControl]="field.get('label')" required>
-																<mat-error *ngIf="field.get('label').hasError('backendError')">{{field.get('label').getError('backendError').message}}</mat-error>
-																<mat-error *ngIf="field.get('label').hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
-															</mat-form-field>
-														</div>
-														<div class="col">
-															<mat-form-field class="w-100">
-																<mat-label>{{'REFERENCE-TYPE-EDITOR.FIELDS.DESCRIPTION' | translate}}</mat-label>
-																<input matInput type="text" name="description" [formControl]="field.get('description')">
-																<mat-error *ngIf="field.get('description').hasError('backendError')">{{field.get('description').getError('backendError').message}}</mat-error>
-																<mat-error *ngIf="field.get('description').hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
-															</mat-form-field>
-														</div>
-														<div class="col">
-															<mat-form-field class="w-100">
-																<mat-label>{{'REFERENCE-TYPE-EDITOR.FIELDS.CODE' | translate}}</mat-label>
-																<input matInput type="text" name="code" [formControl]="field.get('code')" required>
-																<mat-error *ngIf="field.get('code').hasError('backendError')">{{field.get('code').getError('backendError').message}}</mat-error>
-																<mat-error *ngIf="field.get('code').hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
-															</mat-form-field>
-														</div>
-														<div class="col">
-															<mat-form-field class="w-100">
-																<mat-label>{{'REFERENCE-TYPE-EDITOR.FIELDS.DATA-TYPE' | translate}}</mat-label>
-																<mat-select name="dataType" [formControl]="field.get('dataType')">
-																	<mat-option *ngFor="let fieldDataType of referenceFieldDataTypeEnum" [value]="fieldDataType">
-																		{{enumUtils.toReferenceFieldDataTypeString(fieldDataType)}}
-																	</mat-option>
-																</mat-select>
-																<mat-error *ngIf="field.get('dataType').hasError('backendError')">{{field.get('dataType').getError('backendError').message}}</mat-error>
-																<mat-error *ngIf="field.get('dataType').hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
-															</mat-form-field>
-														</div>
-														<div class="col-auto pb-3 d-flex">
-															<button mat-icon-button matTooltip="{{'REFERENCE-TYPE-EDITOR.ACTIONS.REMOVE-FIELD' | translate}}" (click)="removeField(fieldIndex)" [disabled]="formGroup.get('definition').get('fields').disabled">
-																<mat-icon>delete</mat-icon>
-															</button>
-														</div>
-													</div>
-												</div>
-											</div>
-											<button mat-button class="rounded-btn secondary" *ngIf="formGroup.get('definition').get('fields').value != ''" type="button" (click)="submitFields()" [disabled]="!formGroup.get('definition').get('fields').valid">{{'REFERENCE-TYPE-EDITOR.ACTIONS.SUBMIT-FIELDS' | translate}}</button>
-										</div>
-										<div class="col-12 mt-3 mb-3">
-											<div class="row d-flex align-items-center">
-												<div class="col-auto">
-													<h3 class="m-0">{{'REFERENCE-TYPE-EDITOR.FIELDS.SOURCES' | translate}}</h3>
-												</div>
-												<div class="col-auto">
-													<button mat-button class="rounded-btn secondary" type="button" (click)="addSource()" [disabled]="formGroup.get('definition').get('fields').disabled">{{'REFERENCE-TYPE-EDITOR.ACTIONS.ADD-SOURCE' | translate}}</button>
-												</div>
-											</div>
-										</div>
-										<div class="col-12">
-											<div *ngFor="let source of formGroup.get('definition').get('sources').controls; let sourceIndex=index;" class="row">
-												<div class="col-12">
-													<div class="row mb-3 d-flex align-items-center">
-														<div class="col-auto d-flex">
-															<mat-card-title>{{'REFERENCE-TYPE-EDITOR.FIELDS.SOURCE-CONFIGURATION' | translate}} {{sourceIndex + 1}}</mat-card-title>
-														</div>
-														<div class="col-auto d-flex">
-															<button mat-icon-button matTooltip="{{'REFERENCE-TYPE-EDITOR.ACTIONS.REMOVE-SOURCE' | translate}}" (click)="removeSource(sourceIndex)" [disabled]="formGroup.get('definition').get('fields').disabled">
-																<mat-icon>delete</mat-icon>
-															</button>
-														</div>
-													</div>
-													<app-external-fetcher-source-component [formGroup]="source" [fieldsForm]="formGroup.get('definition').get('fields')" [validationErrorModel]="editorModel.validationErrorModel" [validationRootPath]="'definition.sources[' + sourceIndex + '].'" [referenceTypeSourceIndex]="sourceIndex" [referenceTypes]="referenceTypes" [sourceKeysMap]="sourceKeysMap">
-													</app-external-fetcher-source-component>
-												</div>
-											</div>
-											<mat-error *ngIf="formGroup.get('definition').get('sources').dirty && formGroup.get('definition').get('sources').hasError('required')">{{'REFERENCE-TYPE-EDITOR.SOURCES-REQUIRED' | translate}}</mat-error>
-											<mat-error *ngIf="formGroup.get('definition').get('sources').hasError('backendError')">{{formGroup.get('definition').get('sources').getError('backendError').message}}</mat-error>
-										</div>
-									</div>
-								</div>
-							</div>
-						</div>
-					</form>
-				</mat-card-content>
-			</mat-card>
+            <form (ngSubmit)="formSubmit()" [formGroup]="formGroup" *ngIf="formGroup">
+                <mat-card appearance="outlined" class="mb-3">
+                    <mat-card-content>
+                        <div class="pb-3"><small>{{'COMMONS.VALIDATION.REQUIRED-FIELDS-HINT' | translate}}</small></div>
+                        <div class="row">
+                            <div class="col-12">
+                                <div class="container-fluid">
+                                    <div class="row">									
+                                        <div class="col-6">
+                                            <mat-form-field class="w-100">
+                                                <mat-label>{{'REFERENCE-TYPE-EDITOR.FIELDS.NAME' | translate}}</mat-label>
+                                                <input matInput type="text" name="name" [formControl]="formGroup.get('name')" required>
+                                                <mat-error *ngIf="formGroup.get('name').hasError('backendError')">{{formGroup.get('name').getError('backendError').message}}</mat-error>
+                                                <mat-error *ngIf="formGroup.get('name').hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
+                                            </mat-form-field>
+                                        </div>
+                                        <div class="col-6">
+                                            <mat-form-field class="w-100">
+                                                <mat-label>{{'REFERENCE-TYPE-EDITOR.FIELDS.CODE' | translate}}</mat-label>
+                                                <input matInput type="text" name="name" [formControl]="formGroup.get('code')" required>
+                                                <mat-error *ngIf="formGroup.get('code').hasError('backendError')">{{formGroup.get('code').getError('backendError').message}}</mat-error>
+                                                <mat-error *ngIf="formGroup.get('code').hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
+                                            </mat-form-field>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </mat-card-content>
+                </mat-card>
+                <!-- FIELDS  -->
+                <mat-card appearance="outlined" class="mb-3">
+                    <mat-card-title class="p-3 mb-1">
+                        <div class="row d-flex align-items-center">
+                            <div class="col-auto">
+                                <h3 class="m-0">{{'REFERENCE-TYPE-EDITOR.FIELDS.FIELDS' | translate}}</h3>
+                            </div>
+                            <div class="col-auto">
+                                <button mat-flat-button color="accent" class="padded-shadow-btn" type="button" (click)="addField()" [disabled]="formGroup.get('definition').get('fields').disabled">{{'REFERENCE-TYPE-EDITOR.ACTIONS.ADD-FIELD' | translate}}</button>
+                            </div>
+                        </div>
+                    </mat-card-title>
+                    <mat-card-content>
+                        <div class="col-12">
+                            <div *ngFor="let field of formGroup.get('definition').get('fields').controls; let fieldIndex=index;" class="d-flex justify-content-between mb-3">
+                                <div class="pt-3 pr-2">
+                                    <span>{{fieldIndex + 1}}</span>
+                                </div>
+                                <div class="d-flex flex-wrap gap-half-rem align-items-center">
+                                    <mat-form-field>
+                                        <mat-label>{{'REFERENCE-TYPE-EDITOR.FIELDS.LABEL' | translate}}</mat-label>
+                                        <input matInput type="text" name="label" [formControl]="field.get('label')" required>
+                                        <mat-error *ngIf="field.get('label').hasError('backendError')">{{field.get('label').getError('backendError').message}}</mat-error>
+                                        <mat-error *ngIf="field.get('label').hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
+                                    </mat-form-field>
+                                    <mat-form-field>
+                                        <mat-label>{{'REFERENCE-TYPE-EDITOR.FIELDS.DESCRIPTION' | translate}}</mat-label>
+                                        <input matInput type="text" name="description" [formControl]="field.get('description')">
+                                        <mat-error *ngIf="field.get('description').hasError('backendError')">{{field.get('description').getError('backendError').message}}</mat-error>
+                                        <mat-error *ngIf="field.get('description').hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
+                                    </mat-form-field>
+                                    <mat-form-field>
+                                        <mat-label>{{'REFERENCE-TYPE-EDITOR.FIELDS.CODE' | translate}}</mat-label>
+                                        <input matInput type="text" name="code" [formControl]="field.get('code')" required>
+                                        <mat-error *ngIf="field.get('code').hasError('backendError')">{{field.get('code').getError('backendError').message}}</mat-error>
+                                        <mat-error *ngIf="field.get('code').hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
+                                    </mat-form-field>
+                                    <mat-form-field>
+                                        <mat-label>{{'REFERENCE-TYPE-EDITOR.FIELDS.DATA-TYPE' | translate}}</mat-label>
+                                        <mat-select name="dataType" [formControl]="field.get('dataType')">
+                                            <mat-option *ngFor="let fieldDataType of referenceFieldDataTypeEnum" [value]="fieldDataType">
+                                                {{enumUtils.toReferenceFieldDataTypeString(fieldDataType)}}
+                                            </mat-option>
+                                        </mat-select>
+                                        <mat-error *ngIf="field.get('dataType').hasError('backendError')">{{field.get('dataType').getError('backendError').message}}</mat-error>
+                                        <mat-error *ngIf="field.get('dataType').hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
+                                    </mat-form-field>
+                                </div>
+                                <div class="pl-2 pt-2">
+                                    <button mat-icon-button matTooltip="{{'REFERENCE-TYPE-EDITOR.ACTIONS.REMOVE-FIELD' | translate}}" (click)="removeField(fieldIndex)" [disabled]="formGroup.get('definition').get('fields').disabled" [attr.aria-label]="'COMMONS.ACTIONS.REMOVE' | translate">
+                                        <mat-icon aria-hidden>delete</mat-icon>
+                                    </button>
+                                </div>
+                            </div>
+                            <button mat-flat-button color="accent" class="padded-shadow-btn " *ngIf="formGroup.get('definition').get('fields').value != ''" type="button" (click)="submitFields()" [disabled]="!formGroup.get('definition').get('fields').valid">{{'REFERENCE-TYPE-EDITOR.ACTIONS.SUBMIT-FIELDS' | translate}}</button>
+                        </div>
+                    </mat-card-content>
+			    </mat-card>
+                <!--  SOURCES  -->
+                <mat-card appearance="outlined" class="mb-3">
+                    <mat-card-title class="p-3 mb-1">
+                        <div class="row d-flex align-items-center">
+                            <div class="col-auto">
+                                <h3 class="m-0">{{'REFERENCE-TYPE-EDITOR.FIELDS.SOURCES' | translate}}</h3>
+                            </div>
+                            <div class="col-auto">
+                                <button mat-flat-button color="accent" class="padded-shadow-btn" type="button" (click)="addSource()" [disabled]="formGroup.get('definition').get('fields').disabled">{{'REFERENCE-TYPE-EDITOR.ACTIONS.ADD-SOURCE' | translate}}</button>
+                            </div>
+                        </div>
+                    </mat-card-title>
+                    <mat-card-content>
+                        <div class="col-12">
+                            <mat-card *ngFor="let source of formGroup.get('definition').get('sources').controls; let sourceIndex=index;" class="row mb-3">
+                                <mat-card-title class="p-3 mb-1 d-flex align-items-center gap-1-rem">
+                                    <div>
+                                        {{'REFERENCE-TYPE-EDITOR.FIELDS.SOURCE-CONFIGURATION' | translate}} {{sourceIndex + 1}}
+                                    </div>
+                                    <div class="col-auto d-flex">
+                                        <button mat-icon-button matTooltip="{{'REFERENCE-TYPE-EDITOR.ACTIONS.TEST-SOURCE' | translate}}"  type="button" (click)="openReferenceTestDialog({key: source.get('key').value, index: sourceIndex})"  [attr.aria-label]="'COMMONS.ACTIONS.TEST' | translate">
+                                            <mat-icon aria-hidden>bug_report</mat-icon>
+                                        </button>
+                                        <button mat-icon-button matTooltip="{{'REFERENCE-TYPE-EDITOR.ACTIONS.REMOVE-SOURCE' | translate}}" (click)="removeSource(sourceIndex)" [disabled]="formGroup.get('definition').get('fields').disabled" [attr.aria-label]="'COMMONS.ACTIONS.REMOVE' | translate">
+                                            <mat-icon aria-hidden>delete</mat-icon>
+                                        </button>
+                                    </div>
+                                </mat-card-title>
+                                <mat-card-content class="col-12">
+                                    <app-external-fetcher-source-component [formGroup]="source" [fieldsForm]="formGroup.get('definition').get('fields')" [validationErrorModel]="editorModel.validationErrorModel" [validationRootPath]="'definition.sources[' + sourceIndex + '].'" [referenceTypeSourceIndex]="sourceIndex" [referenceTypes]="referenceTypes" [sourceKeysMap]="sourceKeysMap">
+                                    </app-external-fetcher-source-component>
+                                </mat-card-content>
+                            </mat-card>
+                            <mat-error *ngIf="formGroup.get('definition').get('sources').dirty && formGroup.get('definition').get('sources').hasError('required')">{{'REFERENCE-TYPE-EDITOR.SOURCES-REQUIRED' | translate}}</mat-error>
+                            <mat-error *ngIf="formGroup.get('definition').get('sources').hasError('backendError')">{{formGroup.get('definition').get('sources').getError('backendError').message}}</mat-error>
+                        </div>
+                    </mat-card-content>
+                </mat-card>
+            </form>
 		</div>
 	</div>
 </div>

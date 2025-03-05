@@ -36,6 +36,7 @@ public class PlanStatusQuery extends QueryBase<PlanStatusEntity> {
 
     private EnumSet<AuthorizationFlags> authorize = EnumSet.of(AuthorizationFlags.None);
 
+
     public PlanStatusQuery like(String value) {
         this.like = value;
         return this;
@@ -187,8 +188,14 @@ public class PlanStatusQuery extends QueryBase<PlanStatusEntity> {
             return PlanStatusEntity._description;
         else if (item.match(PlanStatus._name))
             return PlanStatusEntity._name;
+        else if (item.match(PlanStatus._action))
+            return PlanStatusEntity._action;
+        else if (item.match(PlanStatus._ordinal))
+            return PlanStatusEntity._ordinal;
         else if (item.match(PlanStatus._internalStatus))
             return PlanStatusEntity._internalStatus;
+        else if (item.prefix(PlanStatus._definition))
+            return PlanStatusEntity._definition;
         else if (item.match(PlanStatus._definition))
             return PlanStatusEntity._definition;
         else if (item.match(PlanStatus._createdAt))
@@ -211,6 +218,8 @@ public class PlanStatusQuery extends QueryBase<PlanStatusEntity> {
         item.setDescription(QueryBase.convertSafe(tuple, columns, PlanStatusEntity._description, String.class));
         item.setDefinition(QueryBase.convertSafe(tuple, columns, PlanStatusEntity._definition, String.class));
         item.setName(QueryBase.convertSafe(tuple, columns, PlanStatusEntity._name, String.class));
+        item.setOrdinal(QueryBase.convertSafe(tuple, columns, PlanStatusEntity._ordinal, Integer.class));
+        item.setAction(QueryBase.convertSafe(tuple, columns, PlanStatusEntity._action, String.class));
         item.setInternalStatus(QueryBase.convertSafe(tuple, columns, PlanStatusEntity._internalStatus, org.opencdmp.commons.enums.PlanStatus.class));
         item.setCreatedAt(QueryBase.convertSafe(tuple, columns, PlanStatusEntity._createdAt, Instant.class));
         item.setUpdatedAt(QueryBase.convertSafe(tuple, columns, PlanStatusEntity._updatedAt, Instant.class));

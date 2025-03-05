@@ -6,16 +6,16 @@
 					<app-navigation-breadcrumb />
 				</div>
 				<div class="col-auto">
-					<button mat-button class="rounded-btn neutral" (click)="cancel()" type="button">{{'LANGUAGE-EDITOR.ACTIONS.CANCEL' | translate}}</button>
+					<button mat-stroked-button class="padded-shadow-btn" (click)="cancel()" type="button">{{'LANGUAGE-EDITOR.ACTIONS.CANCEL' | translate}}</button>
 				</div>
-				<div class="col-auto" *ngIf="!isNew && this.editorModel.belongsToCurrentTenant != false && canDelete">
-					<button mat-button class="rounded-btn delete-inverted" type="button" (click)="delete()">
-						<mat-icon>delete</mat-icon>
+				<div class="col-auto" *ngIf="!isNew && editorModel.belongsToCurrentTenant != false && canDelete">
+					<button mat-stroked-button color="warn" class="padded-shadow-btn" type="button" (click)="delete()">
+						<mat-icon aria-hidden>delete</mat-icon>
 						{{'LANGUAGE-EDITOR.ACTIONS.DELETE' | translate}}
 					</button>
 				</div>
 				<div class="col-auto" *ngIf="canSave">
-					<button mat-button class="rounded-btn primary" (click)="formSubmit()">
+					<button mat-flat-button color="primary" class="padded-shadow-btn" (click)="formSubmit()">
 						<mat-icon>save</mat-icon>
 						{{'LANGUAGE-EDITOR.ACTIONS.SAVE' | translate}}
 					</button>
@@ -23,12 +23,13 @@
 			</div>
 
 			<form *ngIf="formGroup" (ngSubmit)="formSubmit()">
-				<mat-card appearance="outlined" class="pt-3 pb-3">
+				<mat-card appearance="outlined" class="pb-3">
 					<mat-card-content>
+                        <div class="pb-3"><small>{{'COMMONS.VALIDATION.REQUIRED-FIELDS-HINT' | translate}}</small></div>
 						<div class="row">
 							<div class="col-12">
 								<div class="container-fluid">
-									<div class="row">
+									<div class="row" style="row-gap: 0.5rem">
 										<div class="col-6" *ngIf="isNew">
 											<mat-form-field class="w-100">
 												<mat-label>{{'LANGUAGE-EDITOR.FIELDS.CODE' | translate}}</mat-label>
@@ -65,7 +66,7 @@
 												<mat-error *ngIf="formGroup.get('payload').hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
 											</mat-form-field>
 											<h9 class="col-12">{{'LANGUAGE-EDITOR.FIELDS.OVERRIDE' | translate}}
-												<mat-checkbox [disabled]="this.editorModel.belongsToCurrentTenant == false || isDeleted" (change)="overrideFromFile($event, formGroup.get('code').value)"></mat-checkbox>
+												<mat-checkbox [disabled]="editorModel.belongsToCurrentTenant == false || isDeleted" (change)="overrideFromFile($event, formGroup.get('code').value)"></mat-checkbox>
 											</h9>
 										</div>
 									</div>

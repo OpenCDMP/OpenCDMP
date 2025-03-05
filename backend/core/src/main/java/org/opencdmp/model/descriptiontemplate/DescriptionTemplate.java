@@ -66,6 +66,9 @@ public class DescriptionTemplate {
     private Boolean belongsToCurrentTenant;
     public static final String _belongsToCurrentTenant = "belongsToCurrentTenant";
 
+    private Integer ordinal;
+    public static final String _ordinal = "ordinal";
+
     public UUID getId() {
         return this.id;
     }
@@ -208,5 +211,13 @@ public class DescriptionTemplate {
 
     public void setBelongsToCurrentTenant(Boolean belongsToCurrentTenant) {
         this.belongsToCurrentTenant = belongsToCurrentTenant;
+    }
+
+    public Integer getOrdinal() {
+        return ordinal;
+    }
+
+    public void setOrdinal(Integer ordinal) {
+        this.ordinal = ordinal;
     }
 }

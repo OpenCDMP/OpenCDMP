@@ -4,7 +4,6 @@ import gr.cite.tools.data.query.Lookup;
 import gr.cite.tools.data.query.QueryFactory;
 import org.apache.commons.lang3.StringUtils;
 import org.opencdmp.commons.enums.PlanAccessType;
-import org.opencdmp.commons.enums.PlanStatus;
 import org.opencdmp.commons.enums.PlanVersionStatus;
 import org.opencdmp.commons.enums.IsActive;
 import org.opencdmp.elastic.query.PlanElasticQuery;
@@ -27,7 +26,7 @@ public class PlanLookup extends Lookup {
     private List<IsActive> isActive;
     private List<PlanVersionStatus> versionStatuses;
     
-    private List<PlanStatus> statuses;
+    private List<UUID> statusIds;
     private List<PlanAccessType> accessTypes;
 
     private List<Integer> versions;
@@ -36,6 +35,7 @@ public class PlanLookup extends Lookup {
     private PlanUserLookup planUserSubQuery;
     private PlanBlueprintLookup planBlueprintSubQuery;
     private PlanReferenceLookup planReferenceSubQuery;
+    private PlanStatusLookup planStatusSubQuery;
 
     public String getLike() {
         return this.like;
@@ -73,12 +73,12 @@ public class PlanLookup extends Lookup {
         this.isActive = isActive;
     }
 
-    public List<PlanStatus> getStatuses() {
-        return this.statuses;
+    public List<UUID> getStatusIds() {
+        return statusIds;
     }
 
-    public void setStatuses(List<PlanStatus> statuses) {
-        this.statuses = statuses;
+    public void setStatusIds(List<UUID> statusIds) {
+        this.statusIds = statusIds;
     }
 
     public List<Integer> getVersions() {
@@ -138,6 +138,14 @@ public class PlanLookup extends Lookup {
 
     public void setPlanReferenceLookup(PlanReferenceLookup planReferenceSubQuery) { this.planReferenceSubQuery = planReferenceSubQuery; }
 
+    public PlanStatusLookup getPlanStatusSubQuery() {
+        return planStatusSubQuery;
+    }
+
+    public void setPlanStatusSubQuery(PlanStatusLookup planStatusSubQuery) {
+        this.planStatusSubQuery = planStatusSubQuery;
+    }
+
     public PlanQuery enrich(QueryFactory queryFactory) {
         PlanQuery query = queryFactory.query(PlanQuery.class);
         if (this.like != null) query.like(this.like);
@@ -147,13 +155,14 @@ public class PlanLookup extends Lookup {
         if (this.excludedIds != null) query.excludedIds(this.excludedIds);
         if (this.accessTypes != null) query.accessTypes(this.accessTypes);
         if (this.isActive != null) query.isActive(this.isActive);
-        if (this.statuses != null) query.statuses(this.statuses);
+        if (this.statusIds != null) query.statusIds(this.statusIds);
         if (this.versions != null) query.versions(this.versions);
         if (this.versionStatuses != null) query.versionStatuses(this.versionStatuses);
         if (this.planDescriptionTemplateSubQuery != null) query.planDescriptionTemplateSubQuery(this.planDescriptionTemplateSubQuery.enrich(queryFactory));
         if (this.planUserSubQuery != null) query.planUserSubQuery(this.planUserSubQuery.enrich(queryFactory));
         if (this.planBlueprintSubQuery != null) query.planBlueprintSubQuery(this.planBlueprintSubQuery.enrich(queryFactory));
         if (this.planReferenceSubQuery != null) query.planReferenceSubQuery(this.planReferenceSubQuery.enrich(queryFactory));
+        if (this.planStatusSubQuery != null) query.planStatusSubQuery(this.planStatusSubQuery.enrich(queryFactory));
 
         this.enrichCommon(query);
 
@@ -167,7 +176,7 @@ public class PlanLookup extends Lookup {
         if (this.groupIds != null) query.groupIds(this.groupIds);
         if (this.excludedIds != null) query.excludedIds(this.excludedIds);
         if (this.accessTypes != null) query.accessTypes(this.accessTypes);
-        if (this.statuses != null) query.statuses(this.statuses);
+        if (this.statusIds != null) query.statuses(this.statusIds);
         if (this.versions != null) query.versions(this.versions);
         if (this.versionStatuses != null) query.versionStatuses(this.versionStatuses);
         if (this.planDescriptionTemplateSubQuery != null) query.planDescriptionTemplateSubQuery(this.planDescriptionTemplateSubQuery.enrichElasticInner(queryFactory));
@@ -175,6 +184,7 @@ public class PlanLookup extends Lookup {
         if (this.planBlueprintSubQuery != null && this.planBlueprintSubQuery.getIds() != null && !this.planBlueprintSubQuery.getIds().isEmpty()) query.blueprintIds(this.planBlueprintSubQuery.getIds());
         if (this.planReferenceSubQuery != null) query.referenceSubQuery(this.planReferenceSubQuery.enrichElasticInner(queryFactory));
         if (this.tenantSubQuery != null) throw new UnsupportedOperationException();
+        if (this.planStatusSubQuery != null) query.planStatusElasticQuery(this.planStatusSubQuery.enrichElasticInner(queryFactory));
 
         this.enrichCommon(query);
 
@@ -188,7 +198,7 @@ public class PlanLookup extends Lookup {
         if (this.groupIds != null) query.groupIds(this.groupIds);
         if (this.excludedIds != null) query.excludedIds(this.excludedIds);
         if (this.accessTypes != null) query.accessTypes(this.accessTypes);
-        if (this.statuses != null) query.statuses(this.statuses);
+        if (this.statusIds != null) query.statusIds(this.statusIds);
         if (this.versions != null) query.versions(this.versions);
         if (this.versionStatuses != null) query.versionStatuses(this.versionStatuses);
         if (this.planDescriptionTemplateSubQuery != null) throw new UnsupportedOperationException("");
@@ -196,6 +206,7 @@ public class PlanLookup extends Lookup {
         if (this.planBlueprintSubQuery != null && this.planBlueprintSubQuery.getIds() != null && !this.planBlueprintSubQuery.getIds().isEmpty()) throw new UnsupportedOperationException("");
         if (this.planReferenceSubQuery != null) throw new UnsupportedOperationException("");
         if (this.tenantSubQuery != null) throw new UnsupportedOperationException();
+        if (this.planStatusSubQuery != null) throw new UnsupportedOperationException();
 
         return query;
     }

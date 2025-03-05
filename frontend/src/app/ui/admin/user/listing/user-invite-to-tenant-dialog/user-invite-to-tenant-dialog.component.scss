@@ -7,13 +7,6 @@
 		padding: 0.28em 0.34em 0em 1.125em;
 	}
 
-	.title {
-		font-size: 2.375em;
-		font-weight: lighter;
-		color: #000000;
-		opacity: 0.8;
-	}
-
 	.content {
 		width: 31em;
 		margin: 0px;
@@ -21,9 +14,9 @@
 	}
 
 	.hint {
-		font-size: 0.875rem;
+		font-size: var(--sys-title-small-size);
 		font-weight: 500;
-		color: #212121;
+		color: var(--dark-text);
 		opacity: 0.81;
 	}
 
@@ -37,15 +30,15 @@
 
 	::ng-deep .search {
 		.mat-form-field-infix {
-			font-size: 1rem;
+			font-size: var(--sys-body-medium-size);
 			padding: 0.6em 0 1em 0 !important;
 		}
 	}
 
 	.select-role {
 		width: 50% !important;
-		font-size: 14px;
-		color: #848484;
+		font-size: var(--sys-label-large-size);
+		color: var(--gray);
 		height: min-content;
 		margin-right: 2rem;
 		border: none;
@@ -84,6 +77,6 @@
 	}
 
 	:host ::ng-deep .invalid-email {
-		border: 1px solid red;
+		border: 1px solid var(--sys-error);
 	}
 }

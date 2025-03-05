@@ -29,6 +29,7 @@ import org.opencdmp.commons.types.filetransformer.FileTransformerSourceEntity;
 import org.opencdmp.commons.types.tenantconfiguration.FileTransformerTenantConfigurationEntity;
 import org.opencdmp.convention.ConventionService;
 import org.opencdmp.data.*;
+import org.opencdmp.errorcode.ErrorThesaurusProperties;
 import org.opencdmp.event.TenantConfigurationTouchedEvent;
 import org.opencdmp.filetransformerbase.interfaces.FileTransformerConfiguration;
 import org.opencdmp.filetransformerbase.models.misc.DescriptionImportModel;
@@ -72,6 +73,7 @@ import javax.crypto.NoSuchPaddingException;
 import javax.management.InvalidApplicationException;
 import java.io.IOException;
 import java.net.URLConnection;
+import java.nio.charset.StandardCharsets;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
@@ -101,10 +103,11 @@ public class FileTransformerServiceImpl implements FileTransformerService {
     private final UserScope userScope;
     private final AccountingService accountingService;
     private final TenantEntityManager entityManager;
+    private final ErrorThesaurusProperties errors;
 
     @Autowired
     public FileTransformerServiceImpl(FileTransformerProperties fileTransformerProperties, TokenExchangeCacheService tokenExchangeCacheService, FileTransformerConfigurationCacheService fileTransformerConfigurationCacheService, AuthorizationService authorizationService,
-                                      QueryFactory queryFactory, BuilderFactory builderFactory, StorageFileService storageFileService, MessageSource messageSource, ConventionService conventionService, TenantScope tenantScope, EncryptionService encryptionService, TenantProperties tenantProperties, JsonHandlingService jsonHandlingService, FileTransformerSourcesCacheService fileTransformerSourcesCacheService, UserScope userScope, AccountingService accountingService, TenantEntityManager entityManager) {
+                                      QueryFactory queryFactory, BuilderFactory builderFactory, StorageFileService storageFileService, MessageSource messageSource, ConventionService conventionService, TenantScope tenantScope, EncryptionService encryptionService, TenantProperties tenantProperties, JsonHandlingService jsonHandlingService, FileTransformerSourcesCacheService fileTransformerSourcesCacheService, UserScope userScope, AccountingService accountingService, TenantEntityManager entityManager, ErrorThesaurusProperties errors) {
         this.fileTransformerProperties = fileTransformerProperties;
         this.tokenExchangeCacheService = tokenExchangeCacheService;
 	    this.fileTransformerConfigurationCacheService = fileTransformerConfigurationCacheService;
@@ -122,6 +125,7 @@ public class FileTransformerServiceImpl implements FileTransformerService {
         this.userScope = userScope;
         this.accountingService = accountingService;
         this.entityManager = entityManager;
+        this.errors = errors;
         this.clients = new HashMap<>();
     }
     
@@ -150,8 +154,6 @@ public class FileTransformerServiceImpl implements FileTransformerService {
         }
         return null;
     }
-
-
 
     private List<FileTransformerSourceEntity> getFileTransformerSources() throws InvalidApplicationException, InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
         String tenantCode = this.tenantScope.isSet() && this.tenantScope.isMultitenant() ? this.tenantScope.getTenantCode() : "";
@@ -268,7 +270,8 @@ public class FileTransformerServiceImpl implements FileTransformerService {
         } else {
             try {
                 this.entityManager.disableTenantFilters();
-                entity = this.queryFactory.query(PlanQuery.class).disableTracking().authorize(EnumSet.of(Public)).ids(planId).isActive(IsActive.Active).statuses(PlanStatus.Finalized).accessTypes(PlanAccessType.Public).first();
+                PlanStatusQuery statusQuery = this.queryFactory.query(PlanStatusQuery.class).disableTracking().internalStatuses(PlanStatus.Finalized).isActives(IsActive.Active);
+                entity = this.queryFactory.query(PlanQuery.class).disableTracking().authorize(EnumSet.of(Public)).ids(planId).isActive(IsActive.Active).planStatusSubQuery(statusQuery).accessTypes(PlanAccessType.Public).first();
                 this.entityManager.reloadTenantFilters();
             } finally {
                 this.entityManager.reloadTenantFilters();
@@ -307,7 +310,8 @@ public class FileTransformerServiceImpl implements FileTransformerService {
         } else {
             try {
                 this.entityManager.disableTenantFilters();
-                entity = this.queryFactory.query(DescriptionQuery.class).disableTracking().authorize(EnumSet.of(Public)).ids(descriptionId).planSubQuery(this.queryFactory.query(PlanQuery.class).isActive(IsActive.Active).statuses(PlanStatus.Finalized).accessTypes(PlanAccessType.Public)).first();
+                PlanStatusQuery statusQuery = this.queryFactory.query(PlanStatusQuery.class).disableTracking().internalStatuses(PlanStatus.Finalized).isActives(IsActive.Active);
+                entity = this.queryFactory.query(DescriptionQuery.class).disableTracking().authorize(EnumSet.of(Public)).ids(descriptionId).planSubQuery(this.queryFactory.query(PlanQuery.class).isActive(IsActive.Active).planStatusSubQuery(statusQuery).accessTypes(PlanAccessType.Public)).first();
                 this.entityManager.reloadTenantFilters();
             } finally {
                 this.entityManager.reloadTenantFilters();
@@ -454,7 +458,12 @@ public class FileTransformerServiceImpl implements FileTransformerService {
             fileEnvelope.setFileRef(storageFile.getFileRef());
         }
 
-        return repository.preprocessingPlan(fileEnvelope);
+        try {
+            return repository.preprocessingPlan(fileEnvelope);
+        } catch (Exception e) {
+            logger.warn("Preprocessing plan failed. Input: " + new String(fileEnvelope.getFile(), StandardCharsets.UTF_8));
+            throw new MyApplicationException(this.errors.getInvalidPlanImportRdaJson().getCode(), this.errors.getInvalidPlanImportRdaJson().getMessage());
+        }
     }
 
     private void increaseTargetMetricWithRepositoryId(UsageLimitTargetMetric metric, String repositoryId) throws InvalidApplicationException {

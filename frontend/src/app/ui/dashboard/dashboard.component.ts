@@ -1,5 +1,5 @@
 
-import { Component, OnInit, ViewEncapsulation } from '@angular/core';
+import { Component, OnInit, ViewChild, ViewEncapsulation } from '@angular/core';
 import { UntypedFormBuilder, Validators } from '@angular/forms';
 import { MatDialog } from '@angular/material/dialog';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -22,16 +22,15 @@ import { RouterUtilsService } from '@app/core/services/router/router-utils.servi
 
 
 @Component({
-	selector: 'app-dashboard',
-	templateUrl: './dashboard.component.html',
-	styleUrls: ['./dashboard.component.scss']
+    selector: 'app-dashboard',
+    templateUrl: './dashboard.component.html',
+    styleUrls: ['./dashboard.component.scss'],
+    standalone: false
 })
 export class DashboardComponent extends BaseComponent implements OnInit {
-
 	public dashboardStatistics: DashboardStatistics;
 	public grantCount = 0;
 	public organizationCount = 0;
-	currentType: ActivityListingType = ActivityListingType.Recent;
 	newReleaseNotificationVisible = false;
 	isIntroCardVisible = true;
 
@@ -57,11 +56,6 @@ export class DashboardComponent extends BaseComponent implements OnInit {
 
 
 	ngOnInit() {
-		this.route.queryParams.subscribe(params => {
-			let type = params['type'];
-            this.currentType = type ??  ActivityListingType.Recent
-		});
-
 		this.analyticsService.trackPageView(AnalyticsService.Dashboard);
 
 		if (!this.isAuthenticated()) {
@@ -80,7 +74,7 @@ export class DashboardComponent extends BaseComponent implements OnInit {
 					this.grantCount = this.dashboardStatistics.referenceTypeStatistics.filter(x => x.referenceType.id == this.referenceTypeService.getGrantReferenceType())?.find(Boolean).count;
 					this.organizationCount = this.dashboardStatistics.referenceTypeStatistics.filter(x => x.referenceType.id == this.referenceTypeService.getOrganizationReferenceType())?.find(Boolean).count;
 
-					if (this.dashboardStatistics && this.dashboardStatistics.planCount === 0) {
+					if (this.dashboardStatistics && this.dashboardStatistics.planCount === 0 && window.innerWidth > 990) {
 						this.openDashboardTour();
 					}
 				});
@@ -89,15 +83,32 @@ export class DashboardComponent extends BaseComponent implements OnInit {
 		this.newReleaseNotificationVisible = this.isNewReleaseNotificationVisible();
 	}
 
-	public get indexFromCurrentType() {
+    initTab: number = 0;
+    ngAfterViewInit(){
+        this.route.queryParams.pipe(takeUntil(this._destroyed)).subscribe(params => {
+			let type = params['type'] as ActivityListingType;
+            if(type){
+                switch(type){
+                    case ActivityListingType.Drafts: {
+                        this.initTab = 1;
+                        break;
+                    }
+                    case ActivityListingType.Plans: {
+                        this.initTab = 2;
+                        break;
+                    }
+                    case ActivityListingType.Descriptions: {
+                        this.initTab = 3;
+                        break;
+                    }
+                    default: {
+                        this.initTab = 0;
+                    }
+                }
+            }
+		});
+    }
 
-        switch(this.currentType){
-            case ActivityListingType.Recent: return 0;
-            case ActivityListingType.Drafts: return 1;
-            case ActivityListingType.Plans: return this.isAuthenticated() ? 2 : 1;
-            case ActivityListingType.Descriptions: return this.isAuthenticated() ? 3 : 2;
-        }
-	}
 
 	public isAuthenticated(): boolean {
 		return this.authentication.currentAccountIsAuthenticated();
@@ -109,10 +120,11 @@ export class DashboardComponent extends BaseComponent implements OnInit {
 		}
 		else {
 			const dialogRef = this.dialog.open(StartNewPlanDialogComponent, {
+                maxWidth: 'min(95vw, 33rem)',
 				disableClose: false,
 				data: {
 					isDialog: true
-				}
+				},
 			});
 		}
 	}
@@ -140,7 +152,8 @@ export class DashboardComponent extends BaseComponent implements OnInit {
 			data: {
 				startNewPlan: false,
 				formGroup: formGroup
-			}
+			},
+            maxWidth: '600px'
 		});
 		dialogRef.afterClosed().pipe(takeUntil(this._destroyed)).subscribe(result => {
 			if (result) {
@@ -158,7 +171,7 @@ export class DashboardComponent extends BaseComponent implements OnInit {
 		useOrb: true,
 		steps: [
 			{
-				selector: '.new-plan-dialog',
+				selector: '.start-new-plan-btn',
 				content: 'Step 1',
 				orientation: Orientation.BottomRight,
 				isStepUnique: false,

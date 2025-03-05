@@ -1,5 +1,23 @@
 $mat-card-header-size: 40px !default;
 
+@media (max-width: 991px) {
+    .navbar-item-sm {
+        display: block;
+    }
+    .navbar-item-lg {
+        display: none;
+    }
+}
+
+@media (min-width: 991px) {
+    .navbar-item-sm {
+        display: none;
+    }
+    .navbar-item-lg {
+        display: block;
+    }
+}
+
 .my-mat-card-avatar {
   height: $mat-card-header-size;
   width: $mat-card-header-size;
@@ -22,17 +40,23 @@ $mat-card-header-size: 40px !default;
   height: 80px;
 
   display: flex;
-  background: #ffffff 0% 0% no-repeat padding-box;
+  background: var(--sys-surface) 0% 0% no-repeat padding-box;
+  #navigation {
+    color:  #555;
+  }
+
   box-shadow: 0px 0px 6px #00000029;
   opacity: 1;
   top: 0;
   left: 0;
   right: 0;
+
+//   padding: 0.625rem 0;
 }
 
 .logo {
   margin-left: 5px;
-  height: 100%;
+  height: min(100%, 60px);
 }
 
 .extra-logo {
@@ -40,41 +64,41 @@ $mat-card-header-size: 40px !default;
   height: 100%;
 }
 .logo-image {
-	height: 100%;
+	height: min(100%, 60px);
 }
 .extra-logo-image {
-	height: 100%;
+	height: min(100%, 60px);
 }
 
 .faq-title {
   text-align: left;
-  font: Bold 15px/18px "Roboto";
-  letter-spacing: 0px;
-  color: #000000;
+  font-weight: bold;
   opacity: 1;
-  cursor: pointer;
-  text-decoration: none !important;
 }
 
+.faq-title, .lang {
+    color: var(--mdc-icon-button-icon-color) !important;
+    &:hover {
+        color: var(--sys-primary)
+    }
+}
 .faq-title:hover,
 .lang:hover {
-  color: var(--primary-color-2) !important;
+  color: var(--sys-primary) !important;
 }
 
-.lang {
-  opacity: 0.8;
-}
 
 .hamburger {
-  display: inline-block;
-  cursor: pointer;
-  padding: 0.6rem;
-  margin-left: 0.8rem;
-  margin-right: 0.8rem;
+    all:unset;
+    display: inline-block;
+    cursor: pointer;
+    padding: 0.6rem;
+    margin-left: 0.8rem;
+    margin-right: 0.8rem;
 }
 
-.hamburger:hover {
-  background-color: #ececec !important;
+.hamburger:hover, .hamburger:focus {
+  background-color: rgb(0,0,0,0.05) !important;
   border-radius: 50%;
 }
 
@@ -143,12 +167,16 @@ $mat-card-header-size: 40px !default;
 }
 
 .navbar-nav:hover {
-  background-color: #ececec;
+  background-color: rgb(0,0,0,0.05);
   border-radius: 6px;
 }
 
 .new-plan-dialog {
 	padding: 0em .5em 0em 0em;
+}
+
+.notification-button:not(:hover) {
+    color: var(--sys-on-surface-variant) !important;
 }
 ::ng-deep .mat-option-text {
 	text-overflow: unset !important;
@@ -162,8 +190,9 @@ $mat-card-header-size: 40px !default;
   height: auto !important;
 }
 
-::ng-deep .nav-mat-menu {
-  .mat-mdc-menu-content {
+::ng-deep .mat-mdc-menu-content {
     padding: 0 !important;
-  }
+    .mat-button-toggle-group {
+        border: none !important;
+    }
 }

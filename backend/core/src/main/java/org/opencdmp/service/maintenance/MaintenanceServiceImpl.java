@@ -2,27 +2,21 @@ package org.opencdmp.service.maintenance;
 
 import gr.cite.commons.web.authz.service.AuthorizationService;
 import gr.cite.tools.data.query.QueryFactory;
-import gr.cite.tools.exception.MyApplicationException;
 import gr.cite.tools.fieldset.BaseFieldSet;
 import gr.cite.tools.logging.LoggerService;
 import gr.cite.tools.validation.ValidatorFactory;
 import org.opencdmp.authorization.Permission;
+import org.opencdmp.commons.enums.EntityType;
 import org.opencdmp.commons.enums.IsActive;
 import org.opencdmp.commons.enums.UsageLimitTargetMetric;
 import org.opencdmp.commons.scope.tenant.TenantScope;
-import org.opencdmp.commons.types.indicator.IndicatorFieldBaseType;
 import org.opencdmp.data.*;
 import org.opencdmp.integrationevent.outbox.accountingentrycreated.AccountingEntryCreatedIntegrationEventHandler;
 import org.opencdmp.integrationevent.outbox.annotationentityremoval.AnnotationEntityRemovalIntegrationEventHandler;
 import org.opencdmp.integrationevent.outbox.annotationentitytouch.AnnotationEntityTouchedIntegrationEventHandler;
 import org.opencdmp.integrationevent.outbox.indicator.*;
-import org.opencdmp.integrationevent.outbox.indicatoraccess.FilterColumnConfig;
-import org.opencdmp.integrationevent.outbox.indicatoraccess.IndicatorAccessConfig;
-import org.opencdmp.integrationevent.outbox.indicatoraccess.IndicatorAccessEvent;
 import org.opencdmp.integrationevent.outbox.indicatoraccess.IndicatorAccessEventHandler;
-import org.opencdmp.integrationevent.outbox.indicatorpoint.IndicatorPointEvent;
 import org.opencdmp.integrationevent.outbox.indicatorpoint.IndicatorPointEventHandler;
-import org.opencdmp.integrationevent.outbox.indicatorreset.IndicatorResetEvent;
 import org.opencdmp.integrationevent.outbox.indicatorreset.IndicatorResetEventHandler;
 import org.opencdmp.integrationevent.outbox.tenantremoval.TenantRemovalIntegrationEventHandler;
 import org.opencdmp.integrationevent.outbox.tenanttouched.TenantTouchedIntegrationEvent;
@@ -31,24 +25,26 @@ import org.opencdmp.integrationevent.outbox.userremoval.UserRemovalIntegrationEv
 import org.opencdmp.integrationevent.outbox.usertouched.UserTouchedIntegrationEventHandler;
 import org.opencdmp.model.DescriptionTemplateType;
 import org.opencdmp.model.Tenant;
-import org.opencdmp.model.TenantUser;
 import org.opencdmp.model.description.Description;
+import org.opencdmp.model.descriptionstatus.DescriptionStatus;
 import org.opencdmp.model.descriptiontemplate.DescriptionTemplate;
+import org.opencdmp.model.evaluation.Evaluation;
 import org.opencdmp.model.plan.Plan;
 import org.opencdmp.model.planblueprint.PlanBlueprint;
+import org.opencdmp.model.planstatus.PlanStatus;
 import org.opencdmp.model.prefillingsource.PrefillingSource;
 import org.opencdmp.model.referencetype.ReferenceType;
 import org.opencdmp.model.user.User;
 import org.opencdmp.query.*;
 import org.opencdmp.service.accounting.AccountingProperties;
 import org.opencdmp.service.accounting.AccountingService;
+import org.opencdmp.service.kpi.KpiProperties;
+import org.opencdmp.service.kpi.KpiService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import javax.management.InvalidApplicationException;
-import java.time.Instant;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -77,10 +73,11 @@ public class MaintenanceServiceImpl implements MaintenanceService {
     private final IndicatorAccessEventHandler indicatorAccessEventHandler;
     private final IndicatorPointEventHandler indicatorPointEventHandler;
     private final ValidatorFactory validatorFactory;
+    private final KpiService kpiService;
 
     public MaintenanceServiceImpl(
             TenantEntityManager entityManager, AuthorizationService authorizationService,
-            QueryFactory queryFactory, UserTouchedIntegrationEventHandler userTouchedIntegrationEventHandler, UserRemovalIntegrationEventHandler userRemovalIntegrationEventHandler, TenantTouchedIntegrationEventHandler tenantTouchedIntegrationEventHandler, TenantRemovalIntegrationEventHandler tenantRemovalIntegrationEventHandler, AnnotationEntityRemovalIntegrationEventHandler annotationEntityRemovalIntegrationEventHandler, AnnotationEntityTouchedIntegrationEventHandler annotationEntityTouchedIntegrationEventHandler, AccountingEntryCreatedIntegrationEventHandler accountingEntryCreatedIntegrationEventHandler, TenantScope tenantScope, TenantEntityManager tenantEntityManager, AccountingProperties accountingProperties, AccountingService accountingService, KpiProperties kpiProperties, IndicatorElasticEventHandler indicatorElasticEventHandler, IndicatorResetEventHandler indicatorResetEventHandler, IndicatorAccessEventHandler indicatorAccessEventHandler, IndicatorPointEventHandler indicatorPointEventHandler, ValidatorFactory validatorFactory) {
+            QueryFactory queryFactory, UserTouchedIntegrationEventHandler userTouchedIntegrationEventHandler, UserRemovalIntegrationEventHandler userRemovalIntegrationEventHandler, TenantTouchedIntegrationEventHandler tenantTouchedIntegrationEventHandler, TenantRemovalIntegrationEventHandler tenantRemovalIntegrationEventHandler, AnnotationEntityRemovalIntegrationEventHandler annotationEntityRemovalIntegrationEventHandler, AnnotationEntityTouchedIntegrationEventHandler annotationEntityTouchedIntegrationEventHandler, AccountingEntryCreatedIntegrationEventHandler accountingEntryCreatedIntegrationEventHandler, TenantScope tenantScope, TenantEntityManager tenantEntityManager, AccountingProperties accountingProperties, AccountingService accountingService, KpiProperties kpiProperties, IndicatorElasticEventHandler indicatorElasticEventHandler, IndicatorResetEventHandler indicatorResetEventHandler, IndicatorAccessEventHandler indicatorAccessEventHandler, IndicatorPointEventHandler indicatorPointEventHandler, ValidatorFactory validatorFactory, KpiService kpiService) {
         this.entityManager = entityManager;
         this.authorizationService = authorizationService;
         this.queryFactory = queryFactory;
@@ -101,6 +98,7 @@ public class MaintenanceServiceImpl implements MaintenanceService {
         this.indicatorAccessEventHandler = indicatorAccessEventHandler;
         this.indicatorPointEventHandler = indicatorPointEventHandler;
         this.validatorFactory = validatorFactory;
+        this.kpiService = kpiService;
     }
 
 
@@ -398,10 +396,94 @@ public class MaintenanceServiceImpl implements MaintenanceService {
         }
     }
 
+    @Override
+    public void sendPlanStatusAccountingEntriesEvents() throws InvalidApplicationException {
+        logger.debug("send plan status accounting entries queue events");
+        this.authorizationService.authorizeForce(Permission.ManageQueueEvents);
+
+        try {
+            this.tenantEntityManager.disableTenantFilters();
+            List<PlanStatusEntity> items = this.queryFactory.query(PlanStatusQuery.class).disableTracking().isActives(IsActive.Active).collectAs(new BaseFieldSet().ensure(PlanStatus._id).ensure(PlanStatus._isActive).ensure(PlanStatus._belongsToCurrentTenant));
+            List<TenantEntity> tenants = this.queryFactory.query(TenantQuery.class).disableTracking().collectAs(new BaseFieldSet().ensure(Tenant._id).ensure(Tenant._code));
+
+            if (!items.isEmpty()) {
+                this.calculateReset(UsageLimitTargetMetric.PLAN_STATUS_COUNT, items.stream().filter(x -> x.getTenantId() == null).count(), null ,this.tenantScope.getDefaultTenantCode());
+                for (TenantEntity tenant : tenants) {
+                    this.calculateReset(UsageLimitTargetMetric.PLAN_STATUS_COUNT, items.stream().filter(x -> x.getTenantId() == tenant.getId()).count(), tenant.getId(), tenant.getCode());
+                }
+            }
+        } finally {
+            this.tenantEntityManager.reloadTenantFilters();
+        }
+    }
+
+    @Override
+    public void sendDescriptionStatusAccountingEntriesEvents() throws InvalidApplicationException {
+        logger.debug("send description status accounting entries queue events");
+        this.authorizationService.authorizeForce(Permission.ManageQueueEvents);
+
+        try {
+            this.tenantEntityManager.disableTenantFilters();
+            List<DescriptionStatusEntity> items = this.queryFactory.query(DescriptionStatusQuery.class).disableTracking().isActive(IsActive.Active).collectAs(new BaseFieldSet().ensure(DescriptionStatus._id).ensure(DescriptionStatus._isActive).ensure(DescriptionStatus._belongsToCurrentTenant));
+            List<TenantEntity> tenants = this.queryFactory.query(TenantQuery.class).disableTracking().collectAs(new BaseFieldSet().ensure(Tenant._id).ensure(Tenant._code));
+
+            if (!items.isEmpty()) {
+                this.calculateReset(UsageLimitTargetMetric.DESCRIPTION_STATUS_COUNT, items.stream().filter(x -> x.getTenantId() == null).count(), null ,this.tenantScope.getDefaultTenantCode());
+                for (TenantEntity tenant : tenants) {
+                    this.calculateReset(UsageLimitTargetMetric.DESCRIPTION_STATUS_COUNT, items.stream().filter(x -> x.getTenantId() == tenant.getId()).count(), tenant.getId(), tenant.getCode());
+                }
+            }
+        } finally {
+            this.tenantEntityManager.reloadTenantFilters();
+        }
+    }
+
+    @Override
+    public void sendEvaluationPlanAccountingEntriesEvents() throws InvalidApplicationException {
+        logger.debug("send evaluation plan accounting entries queue events");
+        this.authorizationService.authorizeForce(Permission.ManageQueueEvents);
+
+        try {
+            this.tenantEntityManager.disableTenantFilters();
+            List<EvaluationEntity> items = this.queryFactory.query(EvaluationQuery.class).disableTracking().isActive(IsActive.Active).entityTypes(EntityType.Plan).collectAs(new BaseFieldSet().ensure(Evaluation._id).ensure(Evaluation._isActive).ensure(Evaluation._belongsToCurrentTenant));
+            List<TenantEntity> tenants = this.queryFactory.query(TenantQuery.class).disableTracking().collectAs(new BaseFieldSet().ensure(Tenant._id).ensure(Tenant._code));
+
+            if (!items.isEmpty()) {
+                this.calculateReset(UsageLimitTargetMetric.EVALUATION_PLAN_EXECUTION_COUNT, items.stream().filter(x -> x.getTenantId() == null).count(), null ,this.tenantScope.getDefaultTenantCode());
+                for (TenantEntity tenant : tenants) {
+                    this.calculateReset(UsageLimitTargetMetric.EVALUATION_PLAN_EXECUTION_COUNT, items.stream().filter(x -> x.getTenantId() == tenant.getId()).count(), tenant.getId(), tenant.getCode());
+                }
+            }
+        } finally {
+            this.tenantEntityManager.reloadTenantFilters();
+        }
+    }
+
+    @Override
+    public void sendEvaluationDescriptionAccountingEntriesEvents() throws InvalidApplicationException {
+        logger.debug("send evaluation description accounting entries queue events");
+        this.authorizationService.authorizeForce(Permission.ManageQueueEvents);
+
+        try {
+            this.tenantEntityManager.disableTenantFilters();
+            List<EvaluationEntity> items = this.queryFactory.query(EvaluationQuery.class).disableTracking().isActive(IsActive.Active).entityTypes(EntityType.Description).collectAs(new BaseFieldSet().ensure(Evaluation._id).ensure(Evaluation._isActive).ensure(Evaluation._belongsToCurrentTenant));
+            List<TenantEntity> tenants = this.queryFactory.query(TenantQuery.class).disableTracking().collectAs(new BaseFieldSet().ensure(Tenant._id).ensure(Tenant._code));
+
+            if (!items.isEmpty()) {
+                this.calculateReset(UsageLimitTargetMetric.EVALUATION_DESCRIPTION_EXECUTION_COUNT, items.stream().filter(x -> x.getTenantId() == null).count(), null ,this.tenantScope.getDefaultTenantCode());
+                for (TenantEntity tenant : tenants) {
+                    this.calculateReset(UsageLimitTargetMetric.EVALUATION_DESCRIPTION_EXECUTION_COUNT, items.stream().filter(x -> x.getTenantId() == tenant.getId()).count(), tenant.getId(), tenant.getCode());
+                }
+            }
+        } finally {
+            this.tenantEntityManager.reloadTenantFilters();
+        }
+    }
+
     private void calculateReset(UsageLimitTargetMetric usageLimitTargetMetric, long itemsCount, UUID tenantId ,String tenantCode) throws InvalidApplicationException {
         try {
             this.tenantScope.setTempTenant(this.entityManager, tenantId, tenantCode);
-            Integer currentValue = this.accountingService.getCurrentMetricValue(usageLimitTargetMetric, null, false);
+            Integer currentValue = this.accountingService.getCurrentMetricValue(usageLimitTargetMetric, null);
             if (currentValue == 0) this.accountingService.set(usageLimitTargetMetric.getValue(), tenantId, tenantCode, (int) itemsCount);
             else if (currentValue < itemsCount) {
                 if (currentValue < 0) {
@@ -419,173 +501,49 @@ public class MaintenanceServiceImpl implements MaintenanceService {
 
     @Override
     public void sendIndicatorCreateEntryEvents() throws InvalidApplicationException {
-        IndicatorElasticEvent event = new IndicatorElasticEvent();
-        event.setId(this.kpiProperties.getId());
-        event.setMetadata(this.defineMetadata());
-        event.setSchema(this.defineSchema());
-        this.validatorFactory.validator(IndicatorElasticEvent.IndicatorElasticEventValidator.class).validateForce(event);
-        this.indicatorElasticEventHandler.handle(event);
+        this.indicatorElasticEventHandler.handle(this.kpiService.createIndicator());
     }
 
     @Override
     public void sendIndicatorResetEntryEvents() throws InvalidApplicationException {
-        IndicatorResetEvent event = new IndicatorResetEvent();
-        event.setId(this.kpiProperties.getId());
-        event.setMetadata(this.defineMetadata());
-        event.setSchema(this.defineSchema());
-        this.validatorFactory.validator(IndicatorResetEvent.IndicatorResetEventValidator.class).validateForce(event);
-        this.indicatorResetEventHandler.handle(event);
+        this.indicatorResetEventHandler.handle(this.kpiService.resetIndicator());
     }
 
-    private IndicatorMetadata defineMetadata() {
-        IndicatorMetadata metadata = new IndicatorMetadata();
-        metadata.setCode(this.kpiProperties.getCode());
-        metadata.setLabel(this.kpiProperties.getLabel());
-        metadata.setDescription(this.kpiProperties.getDescription());
-        metadata.setUrl(this.kpiProperties.getUrl());
-        metadata.setDate(Instant.now());
-
-        return metadata;
-    }
-
-    private IndicatorSchema defineSchema() {
-        IndicatorSchema schema = new IndicatorSchema();
-        schema.setId(this.kpiProperties.getId());
-
-        List<IndicatorField> fields = new ArrayList<>();
-
-        IndicatorField field = new IndicatorField();
-        field.setCode("tenant_code");
-        field.setName("Tenant Code");
-        field.setBasetype(IndicatorFieldBaseType.Keyword);
-        fields.add(field);
-
-        IndicatorField field1 = new IndicatorField();
-        field1.setCode("user_id");
-        field1.setName("User Id");
-        field1.setBasetype(IndicatorFieldBaseType.Keyword);
-        fields.add(field1);
-
-        IndicatorField field2 = new IndicatorField();
-        field2.setCode("created_at");
-        field2.setName("Created at");
-        field2.setBasetype(IndicatorFieldBaseType.Date);
-        fields.add(field2);
-
-        IndicatorField field3 = new IndicatorField();
-        field3.setCode("user_name");
-        field3.setName("User Name");
-        field3.setBasetype(IndicatorFieldBaseType.String);
-        fields.add(field3);
-
-        IndicatorField field4 = new IndicatorField();
-        field4.setCode("value");
-        field4.setName("Value");
-        field4.setBasetype(IndicatorFieldBaseType.Integer);
-        fields.add(field4);
-
-        schema.setFields(fields);
-
-        return schema;
-    }
 
     @Override
     public void sendIndicatorAccessEntryEvents() throws InvalidApplicationException {
-
-        try {
-            List<String> allowedRoles = new ArrayList<>();
-            allowedRoles.addAll(this.kpiProperties.getRoles());
-            allowedRoles.addAll(this.kpiProperties.getTenantRoles());
-
-            UserRoleQuery userRoleQuery = this.queryFactory.query(UserRoleQuery.class).disableTracking().roles(allowedRoles);
-            this.tenantEntityManager.disableTenantFilters();
-            List<UserEntity> users = this.queryFactory.query(UserQuery.class).disableTracking().isActive(IsActive.Active).userRoleSubQuery(userRoleQuery).collectAs(new BaseFieldSet().ensure(User._id).ensure(User._name).ensure(User._createdAt));
-
-            if (users != null && !users.isEmpty()) {
-                for (UserEntity user: users) {
-                    this.indicatorAccessEventHandler.handle(this.createIndicatorAccessEvent(user.getId(), this.tenantScope.getDefaultTenantCode()), null);
-                }
-                List<TenantUserEntity> tenantUserEntities = this.queryFactory.query(TenantUserQuery.class).disableTracking().userIds(users.stream().map(UserEntity::getId).distinct().toList()).isActive(IsActive.Active).collect();
-                if (tenantUserEntities == null || tenantUserEntities.isEmpty()) return;
-                List<TenantEntity> tenantEntities = this.queryFactory.query(TenantQuery.class).disableTracking().ids(tenantUserEntities.stream().map(TenantUserEntity::getTenantId).distinct().toList()).collectAs(new BaseFieldSet().ensure(Tenant._id).ensure(Tenant._code));
-                if (tenantEntities != null && !tenantEntities.isEmpty()) {
-                    for (TenantUserEntity user: tenantUserEntities) {
-                        TenantEntity tenant = tenantEntities.stream().filter(x -> x.getId().equals(user.getTenantId())).findFirst().orElse(null);
-                        if (tenant != null){
-                            this.indicatorAccessEventHandler.handle(this.createIndicatorAccessEvent(user.getUserId(), tenant.getCode()), tenant.getId());
-                        }
-                    }
-                }
-            }
-
-        } finally {
-            this.tenantEntityManager.reloadTenantFilters();
-        }
-    }
-
-    private IndicatorAccessEvent createIndicatorAccessEvent(UUID userId, String tenantCode) {
-        IndicatorAccessEvent event = new IndicatorAccessEvent();
-        event.setIndicatorId(this.kpiProperties.getId());
-        event.setUserId(userId);
-
-        List<FilterColumnConfig> globalFilterColumns = new ArrayList<>();
-        FilterColumnConfig filterColumn = new FilterColumnConfig();
-        filterColumn.setColumn("tenant_code");
-        filterColumn.setValues(List.of(tenantCode));
-        globalFilterColumns.add(filterColumn);
-
-        IndicatorAccessConfig config = new IndicatorAccessConfig();
-        config.setGlobalFilterColumns(globalFilterColumns);
-
-        event.setConfig(config);
-
-        this.validatorFactory.validator(IndicatorAccessEvent.IndicatorAccessEventValidator.class).validateForce(event);
-        return event;
+        this.kpiService.sendIndicatorAccessEntryEvents();
     }
 
     @Override
-    public void sendIndicatorPointEntryEvents() throws InvalidApplicationException {
-
-        try {
-            this.tenantEntityManager.disableTenantFilters();
-            List<UserEntity> users = this.queryFactory.query(UserQuery.class).disableTracking().isActive(IsActive.Active).collectAs(new BaseFieldSet().ensure(User._id).ensure(User._name).ensure(User._createdAt));
-            if (users == null || users.isEmpty()) {
-                throw new MyApplicationException("users not found");
-            }
-
-            for (UserEntity user: users) {
-                this.indicatorPointEventHandler.handle(this.createIndicatorPointEvent(user, user.getCreatedAt(), this.tenantScope.getDefaultTenantCode()));
-            }
-            List<TenantUserEntity> tenantUserEntities = this.queryFactory.query(TenantUserQuery.class).disableTracking().collect();
-            if (tenantUserEntities != null && !tenantUserEntities.isEmpty()) {
-                List<TenantEntity> tenantEntities = this.queryFactory.query(TenantQuery.class).disableTracking().ids(tenantUserEntities.stream().map(TenantUserEntity::getTenantId).distinct().toList()).collect();
-                if (tenantEntities != null) {
-                    for (TenantUserEntity tenantUser: tenantUserEntities) {
-                        TenantEntity tenantEntity = tenantEntities.stream().filter(x -> x.getId().equals(tenantUser.getTenantId())).findFirst().orElse(null);
-                        UserEntity userToAdd = users.stream().filter(x -> tenantUser.getUserId().equals(x.getId())).findFirst().orElse(null);
-                        if (userToAdd != null && tenantEntity != null) {
-                            this.indicatorPointEventHandler.handle(this.createIndicatorPointEvent(userToAdd, tenantUser.getCreatedAt(), tenantEntity.getCode()));
-                        }
-                    }
-                }
-
-            }
-        } finally {
-            this.tenantEntityManager.reloadTenantFilters();
-        }
+    public void sendIndicatorPointPlanEntryEvents() throws InvalidApplicationException {
+        this.kpiService.sendIndicatorPointPlanCountEntryEvents();
     }
 
-    private IndicatorPointEvent createIndicatorPointEvent(UserEntity user, Instant createAt, String tenantCode) {
-        IndicatorPointEvent event = new IndicatorPointEvent();
-        event.setIndicatorId(this.kpiProperties.getId());
-
-        event.add("user_id", user.getId());
-        event.add("created_at", createAt);
-        event.add("user_name", user.getName());
-        event.add("value", 1);
-        event.add("tenant_code", tenantCode);
-
-        this.validatorFactory.validator(IndicatorPointEvent.IndicatorPointEventValidator.class).validateForce(event);
-        return event;
+    @Override
+    public void sendIndicatorPointDescriptionEntryEvents() throws InvalidApplicationException {
+        this.kpiService.sendIndicatorPointDescriptionCountEntryEvents();
     }
+
+    @Override
+    public void sendIndicatorPointReferenceEntryEvents() throws InvalidApplicationException {
+        this.kpiService.sendIndicatorPointReferenceCountEntryEvents();
+    }
+
+    @Override
+    public void sendIndicatorPointUserEntryEvents() throws InvalidApplicationException {
+        this.kpiService.sendIndicatorPointUserCountEntryEvents();
+    }
+
+    @Override
+    public void sendIndicatorPointPlanBlueprintEntryEvents() throws InvalidApplicationException {
+        this.kpiService.sendIndicatorPointPlanBlueprintCountEntryEvents();
+    }
+
+    @Override
+    public void sendIndicatorPointDescriptionTemplateEntryEvents() throws InvalidApplicationException {
+        this.kpiService.sendIndicatorPointDescriptionTemplateCountEntryEvents();
+    }
+
+
 }

@@ -8,6 +8,7 @@ import { Reference } from '@app/core/model/reference/reference';
 import { ReferencesWithType } from '@app/core/query/description.lookup';
 import { ReferenceLookup } from '@app/core/query/reference.lookup';
 import { AuthService } from '@app/core/services/auth/auth.service';
+import { DescriptionStatusService } from '@app/core/services/description-status/description-status.service';
 import { DescriptionTemplateService } from '@app/core/services/description-template/description-template.service';
 import { PlanService } from '@app/core/services/plan/plan.service';
 import { ReferenceTypeService } from '@app/core/services/reference-type/reference-type.service';
@@ -24,9 +25,10 @@ import { map, takeUntil } from 'rxjs/operators';
 import { nameof } from 'ts-simple-nameof';
 
 @Component({
-	selector: 'app-description-filter-component',
-	templateUrl: './description-filter.component.html',
-	styleUrls: ['./description-filter.component.scss']
+    selector: 'app-description-filter-component',
+    templateUrl: './description-filter.component.html',
+    styleUrls: ['./description-filter.component.scss'],
+    standalone: false
 })
 export class DescriptionFilterComponent extends BaseCriteriaComponent<DescriptionListingFilterForm> implements OnInit {
 
@@ -57,6 +59,7 @@ export class DescriptionFilterComponent extends BaseCriteriaComponent<Descriptio
 	planAutoCompleteConfiguration: MultipleAutoCompleteConfiguration = this.planService.multipleAutocompleteConfiguration;
 	tagAutoCompleteConfiguration: MultipleAutoCompleteConfiguration = this.tagService.multipleAutocompleteConfiguration;
 	referenceTypeAutocompleteConfiguration: SingleAutoCompleteConfiguration = this.getReferenceTypeAutocompleteConfiguration();
+	descriptionStatusAutocompleteConfiguration: SingleAutoCompleteConfiguration = this.descriptionStatusService.singleAutocompleteConfiguration;
 	referenceAutocompleteConfiguration: Map<Guid, MultipleAutoCompleteConfiguration>;
 
 	constructor(
@@ -67,6 +70,7 @@ export class DescriptionFilterComponent extends BaseCriteriaComponent<Descriptio
 		private tagService: TagService,
 		private referenceService: ReferenceService,
 		private referenceTypeService: ReferenceTypeService,
+		private descriptionStatusService: DescriptionStatusService
 	) {
 		super(new ValidationErrorModel());
 	}
@@ -77,7 +81,8 @@ export class DescriptionFilterComponent extends BaseCriteriaComponent<Descriptio
 
 	buildForm(filters: DescriptionListingFilters) {
 		this.formGroup = new FormGroup<DescriptionListingFilterForm>({
-			status: new FormControl(filters?.status),
+			statusId: new FormControl(filters?.statusId),
+			isActive: new FormControl(filters?.isActive),
 			viewOnlyTenant: new FormControl(filters.viewOnlyTenant),
 			role: new FormControl(filters.role),
 			descriptionTemplates: new FormControl(filters.descriptionTemplates),
@@ -110,7 +115,8 @@ export class DescriptionFilterComponent extends BaseCriteriaComponent<Descriptio
 	resetFilters() {
 		this.formGroup.reset();
 		this.formGroup.patchValue({
-			status: null,
+			statusId: null,
+			isActive: true,
 			viewOnlyTenant: null,
 			role: null,
 			descriptionTemplates: null,
@@ -209,7 +215,8 @@ export class DescriptionFilterComponent extends BaseCriteriaComponent<Descriptio
 }
 
 export interface DescriptionListingFilters {
-	status: DescriptionStatusEnum,
+	statusId: Guid,
+	isActive: boolean,
 	viewOnlyTenant: boolean,
 	role: Guid,
 	descriptionTemplates: Guid[],
@@ -219,7 +226,8 @@ export interface DescriptionListingFilters {
 }
 
 interface DescriptionListingFilterForm {
-	status: FormControl<DescriptionStatusEnum>,
+	statusId: FormControl<Guid>,
+	isActive: FormControl<boolean>,
 	viewOnlyTenant: FormControl<boolean>,
 	role: FormControl<Guid>,
 	descriptionTemplates: FormControl<Guid[]>,

@@ -27,6 +27,7 @@ import org.opencdmp.model.LockStatus;
 import org.opencdmp.model.builder.LockBuilder;
 import org.opencdmp.model.deleter.LockDeleter;
 import org.opencdmp.model.persist.LockPersist;
+import org.opencdmp.model.persist.UnlockMultipleTargetsPersist;
 import org.opencdmp.query.LockQuery;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -150,6 +151,19 @@ public class LockServiceImpl implements LockService {
 
     }
 
+    public boolean checkLock(UUID target, LockTargetType targetType) throws InvalidApplicationException {
+        LockEntity lock = this.queryFactory.query(LockQuery.class).disableTracking().authorize(AuthorizationFlags.AllExceptPublic).targetIds(target).first();
+        if (lock == null) {
+            this.persist(new LockPersist(target, targetType), null);
+        }else{
+            if (!lock.getLockedBy().equals(this.userScope.getUserId())) return false;
+            this.touch(target);
+        }
+
+        return true;
+
+    }
+
     public void touch(UUID target) throws InvalidApplicationException {
         LockEntity lock = this.queryFactory.query(LockQuery.class).authorize(AuthorizationFlags.AllExceptPublic).targetIds(target).first();
 
@@ -169,6 +183,25 @@ public class LockServiceImpl implements LockService {
             throw new InvalidApplicationException("Only the user who created that lock can delete it");
         }
         this.deleteAndSave(lock.getId(), lock.getTarget());
+    }
+
+    public void unlockMultipleTargets(UnlockMultipleTargetsPersist model) throws InvalidApplicationException {
+        for (UUID target: model.getTargetIds()) {
+            AffiliatedResource affiliatedResourcePlan = this.authorizationContentResolver.planAffiliation(target);
+            AffiliatedResource affiliatedResourceDescription = this.authorizationContentResolver.descriptionAffiliation(target);
+            AffiliatedResource affiliatedResourceDescriptionTemplate = this.authorizationContentResolver.descriptionTemplateAffiliation(target);
+            this.authorizationService.authorizeAtLeastOneForce(List.of(affiliatedResourcePlan, affiliatedResourceDescription, affiliatedResourceDescriptionTemplate), Permission.DeleteLock);
+        }
+
+        List<LockEntity> locks = this.queryFactory.query(LockQuery.class).authorize(AuthorizationFlags.AllExceptPublic).targetIds(model.getTargetIds()).collect();
+
+        if (locks == null || this.conventionService.isListNullOrEmpty(locks)) throw new MyApplicationException("Locks not found");
+
+        if (locks.stream().filter(x -> x.getLockedBy().equals(this.userScope.getUserIdSafe())).findFirst().orElse(null) == null) {
+            throw new MyApplicationException("Only the user who created lock can delete it");
+        }
+
+        this.deleterFactory.deleter(LockDeleter.class).deleteAndSave(locks);
     }
 
     public void deleteAndSave(UUID id, UUID target) throws MyForbiddenException, InvalidApplicationException {

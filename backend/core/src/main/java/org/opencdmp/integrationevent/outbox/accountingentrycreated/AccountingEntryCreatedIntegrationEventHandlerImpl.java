@@ -48,7 +48,6 @@ public class AccountingEntryCreatedIntegrationEventHandlerImpl implements Accoun
             event.setMeasure(AccountingMeasureType.Unit);
             event.setType(valueType);
             event.setResource(tenantCode);
-            event.setUserId(subjectId);
             event.setValue((double) value);
             event.setTenant(tenantId);
 

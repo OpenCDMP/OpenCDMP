@@ -136,7 +136,7 @@ public class ElasticServiceImpl implements ElasticService {
 		propertyMap.put(DescriptionElasticEntity._tenantId, this.createElastic(FieldType.Keyword, false));
 		propertyMap.put(DescriptionElasticEntity._label, this.createElastic(FieldType.Text, true));
 		propertyMap.put(DescriptionElasticEntity._description, this.createElastic(FieldType.Text, true));
-		propertyMap.put(DescriptionElasticEntity._status, this.createElastic(FieldType.Short, false));
+		propertyMap.put(DescriptionElasticEntity._statusId, this.createElastic(FieldType.Keyword, false));
 		propertyMap.put(DescriptionElasticEntity._finalizedAt, this.createElastic(FieldType.Date, false));
 		propertyMap.put(DescriptionElasticEntity._createdAt, this.createElastic(FieldType.Date, false));
 		propertyMap.put(DescriptionElasticEntity._updatedAt, this.createElastic(FieldType.Date, false));
@@ -154,7 +154,6 @@ public class ElasticServiceImpl implements ElasticService {
 		propertyMap.put(PlanElasticEntity._tenantId, this.createElastic(FieldType.Keyword, false));
 		propertyMap.put(PlanElasticEntity._label, this.createElastic(FieldType.Text, true));
 		propertyMap.put(PlanElasticEntity._description, this.createElastic(FieldType.Text, false));
-		propertyMap.put(PlanElasticEntity._status, this.createElastic(FieldType.Short, false));
 		propertyMap.put(PlanElasticEntity._version, this.createElastic(FieldType.Short, false));
 		propertyMap.put(PlanElasticEntity._language, this.createElastic(FieldType.Keyword, false));
 		propertyMap.put(PlanElasticEntity._blueprintId, this.createElastic(FieldType.Keyword, false));
@@ -170,6 +169,7 @@ public class ElasticServiceImpl implements ElasticService {
 		propertyMap.put(PlanElasticEntity._references, new Property.Builder().nested(x -> x.properties(this.createNestedReferencesTemplatePropertyMap())).build());
 		propertyMap.put(PlanElasticEntity._collaborators, new Property.Builder().nested(x -> x.properties(this.createNestedCollaboratorTemplatePropertyMap())).build());
 		propertyMap.put(PlanElasticEntity._dois, new Property.Builder().nested(x -> x.properties(this.createNestedDoisTemplatePropertyMap())).build());
+		propertyMap.put(PlanElasticEntity._planStatus,new Property.Builder().nested(x -> x.properties(this.createNestedPlanStatusElasticEntityPropertyMap())).build());
 		return propertyMap;
 	}
 
@@ -182,6 +182,15 @@ public class ElasticServiceImpl implements ElasticService {
 
 		return propertyMap;
 	}
+
+	private Map<String, Property> createNestedPlanStatusElasticEntityPropertyMap(){
+		Map<String, Property> propertyMap = new HashMap<>();
+		propertyMap.put(NestedPlanStatusElasticEntity._id, this.createElastic(FieldType.Keyword, false));
+		propertyMap.put(NestedPlanStatusElasticEntity._name, this.createElastic(FieldType.Text, true));
+		propertyMap.put(NestedPlanStatusElasticEntity._internalStatus, this.createElastic(FieldType.Short, false));
+
+		return propertyMap;
+	}
 	
 	private Map<String, Property> createNestedDescriptionTemplatePropertyMap(){
 		Map<String, Property> propertyMap = new HashMap<>();
@@ -189,7 +198,7 @@ public class ElasticServiceImpl implements ElasticService {
 		propertyMap.put(NestedDescriptionElasticEntity._label, this.createElastic(FieldType.Text, true));
 		propertyMap.put(NestedDescriptionElasticEntity._planId, this.createElastic(FieldType.Keyword, false));
 		propertyMap.put(NestedDescriptionElasticEntity._description, this.createElastic(FieldType.Text, true));
-		propertyMap.put(NestedDescriptionElasticEntity._status, this.createElastic(FieldType.Short, false));
+		propertyMap.put(NestedDescriptionElasticEntity._statusId, this.createElastic(FieldType.Keyword, false));
 		propertyMap.put(NestedDescriptionElasticEntity._finalizedAt, this.createElastic(FieldType.Date, false));
 
 		propertyMap.put(NestedDescriptionElasticEntity._tags, new Property.Builder().nested(x -> x.properties(this.createNestedTagsTemplatePropertyMap())).build());
@@ -230,7 +239,7 @@ public class ElasticServiceImpl implements ElasticService {
 		propertyMap.put(NestedPlanElasticEntity._id, this.createElastic(FieldType.Keyword, false));
 		propertyMap.put(NestedPlanElasticEntity._label, this.createElastic(FieldType.Text, true));
 		propertyMap.put(NestedPlanElasticEntity._description, this.createElastic(FieldType.Text, false));
-		propertyMap.put(NestedPlanElasticEntity._status, this.createElastic(FieldType.Short, false));
+		propertyMap.put(NestedPlanElasticEntity._statusId, this.createElastic(FieldType.Keyword, false));
 		propertyMap.put(NestedPlanElasticEntity._version, this.createElastic(FieldType.Short, false));
 		propertyMap.put(NestedPlanElasticEntity._versionStatus, this.createElastic(FieldType.Short, false));
 		propertyMap.put(NestedPlanElasticEntity._language, this.createElastic(FieldType.Keyword, false));

@@ -1,6 +1,5 @@
 package org.opencdmp.model.persist;
 
-import org.opencdmp.commons.enums.DescriptionStatus;
 import org.opencdmp.commons.validation.BaseValidator;
 import gr.cite.tools.validation.specification.Specification;
 import org.opencdmp.convention.ConventionService;
@@ -21,7 +20,7 @@ public class DescriptionStatusPersist {
 
     public static final String _id = "id";
 
-    private DescriptionStatus status;
+    private UUID statusId;
 
     public static final String _status = "status";
 
@@ -37,12 +36,12 @@ public class DescriptionStatusPersist {
         this.id = id;
     }
 
-    public DescriptionStatus getStatus() {
-        return status;
+    public UUID getStatusId() {
+        return statusId;
     }
 
-    public void setStatus(DescriptionStatus status) {
-        this.status = status;
+    public void setStatusId(UUID statusId) {
+        this.statusId = statusId;
     }
 
     public String getHash() {
@@ -82,7 +81,7 @@ public class DescriptionStatusPersist {
                             .must(() -> this.isValidHash(item.getHash()))
                             .failOn(DescriptionStatusPersist._hash).failWith(messageSource.getMessage("Validation_Required", new Object[]{DescriptionStatusPersist._hash}, LocaleContextHolder.getLocale())),
                     this.spec()
-                            .must(() -> !this.isNull(item.getStatus()))
+                            .must(() -> this.isValidGuid(item.getStatusId()))
                             .failOn(DescriptionStatusPersist._status).failWith(messageSource.getMessage("Validation_Required", new Object[]{DescriptionStatusPersist._status}, LocaleContextHolder.getLocale()))
             );
         }

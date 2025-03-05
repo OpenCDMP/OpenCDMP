@@ -136,19 +136,17 @@ public class AnnotationStatusEntityChangedIntegrationEventHandlerImpl implements
             descriptionEntity = this.queryFactory.query(DescriptionQuery.class).disableTracking().ids(event.getEntityId()).first();
 
             if (descriptionEntity == null) throw new MyNotFoundException(this.messageSource.getMessage("General_ItemNotFound", new Object[]{event.getEntityId(), Description.class.getSimpleName()}, LocaleContextHolder.getLocale()));
-            existingUsers = this.queryFactory.query(PlanUserQuery.class).disableTracking()
-                    .planIds(descriptionEntity.getPlanId())
-                    .isActives(IsActive.Active)
-                    .collect();
+            planEntity = this.queryFactory.query(PlanQuery.class).disableTracking().ids(descriptionEntity.getPlanId()).first();
         } else {
             planEntity = this.queryFactory.query(PlanQuery.class).disableTracking().ids(event.getEntityId()).first();
-
-            if (planEntity == null) throw new MyNotFoundException(this.messageSource.getMessage("General_ItemNotFound", new Object[]{event.getEntityId(), Plan.class.getSimpleName()}, LocaleContextHolder.getLocale()));
-            existingUsers = this.queryFactory.query(PlanUserQuery.class).disableTracking()
-                    .planIds(planEntity.getId())
-                    .isActives(IsActive.Active)
-                    .collect();
         }
+
+        if (planEntity == null) throw new MyNotFoundException(this.messageSource.getMessage("General_ItemNotFound", new Object[]{event.getEntityId(), Plan.class.getSimpleName()}, LocaleContextHolder.getLocale()));
+
+        existingUsers = this.queryFactory.query(PlanUserQuery.class).disableTracking()
+                .planIds(planEntity.getId())
+                .isActives(IsActive.Active)
+                .collect();
 
         if (existingUsers == null || existingUsers.size() <= 1){
             return;
@@ -175,7 +173,9 @@ public class AnnotationStatusEntityChangedIntegrationEventHandlerImpl implements
         NotifyIntegrationEvent notifyIntegrationEvent = new NotifyIntegrationEvent();
         notifyIntegrationEvent.setUserId(user.getId());
 
-        if (plan != null && description == null) notifyIntegrationEvent.setNotificationType(this.notificationProperties.getPlanAnnotationStatusChangedType());
+        if (plan == null) throw new MyNotFoundException(this.messageSource.getMessage("General_ItemNotFound", new Object[]{event.getEntityId(), Plan.class.getSimpleName()}, LocaleContextHolder.getLocale()));
+
+        if (description == null) notifyIntegrationEvent.setNotificationType(this.notificationProperties.getPlanAnnotationStatusChangedType());
         else notifyIntegrationEvent.setNotificationType(this.notificationProperties.getDescriptionAnnotationStatusChangedType());
 
         NotificationFieldData data = new NotificationFieldData();
@@ -183,12 +183,13 @@ public class AnnotationStatusEntityChangedIntegrationEventHandlerImpl implements
         fieldInfoList.add(new FieldInfo("{recipient}", DataType.String, user.getName()));
         fieldInfoList.add(new FieldInfo("{reasonName}", DataType.String, reasonName));
 
-        if (plan != null && description == null) {
+        if (description == null) {
             fieldInfoList.add(new FieldInfo("{name}", DataType.String, plan.getLabel()));
             fieldInfoList.add(new FieldInfo("{id}", DataType.String, plan.getId().toString()));
         } else {
             fieldInfoList.add(new FieldInfo("{name}", DataType.String, description.getLabel()));
-            fieldInfoList.add(new FieldInfo("{id}", DataType.String, description.getId().toString()));
+            fieldInfoList.add(new FieldInfo("{planId}", DataType.String, plan.getId().toString()));
+            fieldInfoList.add(new FieldInfo("{descriptionId}", DataType.String, description.getId().toString()));
         }
 
         fieldInfoList.add(new FieldInfo("{status}", DataType.String, event.getStatusLabel()));

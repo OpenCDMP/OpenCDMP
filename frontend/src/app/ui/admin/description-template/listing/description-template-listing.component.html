@@ -1,4 +1,4 @@
-<div class="container-fluid">
+<div class="container-fluid ">
 	<div class="row description-template-listing">
 		<div class="col-md-10 offset-md-1">
 			<div class="row mb-4 mt-4">
@@ -6,7 +6,7 @@
 					<app-navigation-breadcrumb />
 				</div>
 				<div class="col-auto" *ngIf="canCreateNew()">
-					<button mat-button class="rounded-btn import" (click)="import()">
+					<button mat-stroked-button class="padded-shadow-btn import" (click)="import()">
 						<span class="button-text">
 							{{'DESCRIPTION-TEMPLATE-LISTING.IMPORT.UPLOAD-XML' | translate}}
 						</span>
@@ -14,7 +14,7 @@
 				</div>
 
 				<div class="col-auto" *ngIf="canCreateNew()">
-					<button mat-button class="rounded-btn secondary" *ngIf="authService.hasPermission(authService.permissionEnum.EditDescriptionTemplate)" [routerLink]="[routerUtils.generateUrl('/description-templates/new')]">
+					<button mat-flat-button color="accent" class="padded-shadow-btn" *ngIf="authService.hasPermission(authService.permissionEnum.EditDescriptionTemplate)" [routerLink]="[routerUtils.generateUrl('/description-templates/new')]">
 						<mat-icon>add</mat-icon>
 						{{'DESCRIPTION-TEMPLATE-LISTING.CREATE-DESCRIPTION-TEMPLATE' | translate}}
 					</button>
@@ -86,28 +86,28 @@
 <ng-template #actions let-row="row" let-item>
 	<div *ngIf="showActions(row)" class="row" (click)="$event.stopPropagation()">
 		<div class="col-auto">
-			<button mat-icon-button [matMenuTriggerFor]="actionsMenu">
+			<button mat-icon-button [matMenuTriggerFor]="actionsMenu" [attr.aria-label]="'ALT-TEXT.MORE-ACTIONS' | translate">
 				<mat-icon>more_horiz</mat-icon>
 			</button>
 			<mat-menu #actionsMenu="matMenu">
 				<a *ngIf="canEdit(row)" mat-menu-item [routerLink]="routerUtils.generateUrl(['/description-templates/', row.id])">
-					<mat-icon>edit</mat-icon>{{'DESCRIPTION-TEMPLATE-LISTING.ACTIONS.EDIT' | translate}}
+					<mat-icon aria-hidden>edit</mat-icon>{{'DESCRIPTION-TEMPLATE-LISTING.ACTIONS.EDIT' | translate}}
 				</a>
 				<a *ngIf="canAddNewVersion(row)" mat-menu-item [routerLink]="routerUtils.generateUrl(['/description-templates/new-version/', row.id])">
-					<mat-icon>queue</mat-icon>{{'DESCRIPTION-TEMPLATE-LISTING.ACTIONS.NEW-VERSION' | translate}}
+					<mat-icon aria-hidden>queue</mat-icon>{{'DESCRIPTION-TEMPLATE-LISTING.ACTIONS.NEW-VERSION' | translate}}
 				</a>
 				<a *ngIf="canClone(row)" mat-menu-item [routerLink]="routerUtils.generateUrl(['/description-templates/clone/', row.id])">
-					<mat-icon>content_copy</mat-icon>{{'DESCRIPTION-TEMPLATE-LISTING.ACTIONS.CLONE' | translate}}
+					<mat-icon aria-hidden>content_copy</mat-icon>{{'DESCRIPTION-TEMPLATE-LISTING.ACTIONS.CLONE' | translate}}
 				</a>
 				<a *ngIf="canViewVersions(row)" mat-menu-item [routerLink]="routerUtils.generateUrl(['/description-templates/versions/', row.groupId])">
-					<mat-icon>library_books</mat-icon>
+					<mat-icon aria-hidden>library_books</mat-icon>
 					{{'DESCRIPTION-TEMPLATE-LISTING.ACTIONS.VIEW-VERSIONS' | translate}}
 				</a>
 				<button *ngIf="canDownloadXml(row)" mat-menu-item (click)="export($event, row.id)">
-					<mat-icon>download</mat-icon>{{'DESCRIPTION-TEMPLATE-LISTING.ACTIONS.DOWNLOAD-XML' | translate}}
+					<mat-icon aria-hidden>download</mat-icon>{{'DESCRIPTION-TEMPLATE-LISTING.ACTIONS.DOWNLOAD-XML' | translate}}
 				</button>
 				<button *ngIf="canDelete(row)" mat-menu-item (click)="delete(row.id)">
-					<mat-icon>delete</mat-icon>
+					<mat-icon aria-hidden>delete</mat-icon>
 					{{'DESCRIPTION-TEMPLATE-LISTING.ACTIONS.DELETE' | translate}}
 				</button>
 			</mat-menu>

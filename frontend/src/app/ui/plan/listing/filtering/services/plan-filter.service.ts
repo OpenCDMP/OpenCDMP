@@ -18,7 +18,6 @@ export class PlanFilterService {
 	public static initializePlanDescriptionTemplateLookup(): PlanDescriptionTemplateLookup {
 		const lookup = new PlanDescriptionTemplateLookup();
 		lookup.metadata = { countAll: true };
-		lookup.isActive = [IsActive.Active];
 		lookup.project = {
 			fields: [
 				[nameof<Plan>(x => x.planDescriptionTemplates), nameof<PlanDescriptionTemplate>(x => x.descriptionTemplateGroupId)].join('.'),
@@ -45,7 +44,6 @@ export class PlanFilterService {
 	public static initializePlanUserLookup(): PlanUserLookup {
 		const lookup = new PlanUserLookup();
 		lookup.metadata = { countAll: true };
-		lookup.isActive = [IsActive.Active];
 		lookup.project = {
 			fields: [
 				[nameof<Plan>(x => x.planUsers), nameof<PlanUser>(x => x.role)].join('.'),
@@ -58,7 +56,6 @@ export class PlanFilterService {
 	public static initializePlanReferenceLookup(): PlanReferenceLookup {
 		const lookup = new PlanReferenceLookup();
 		lookup.metadata = { countAll: true };
-		lookup.isActive = [IsActive.Active];
 		lookup.project = {
 			fields: [
 				[nameof<Plan>(x => x.planReferences), nameof<Reference>(x => x.id)].join('.'),

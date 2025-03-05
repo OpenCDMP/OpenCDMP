@@ -16,7 +16,7 @@ import { Guid } from '@common/types/guid';
 import { TranslateService } from '@ngx-translate/core';
 import { Subject } from 'rxjs';
 import { debounceTime, delay, map, takeUntil, tap } from 'rxjs/operators';
-import { GENERAL_ANIMATIONS } from '../../animations/animations';
+import { GENERAL_ANIMATIONS } from '../../../../../../library/animations/animations';
 import { DescriptionTemplateFieldEditorModel, DescriptionTemplateRuleEditorModel, DescriptionTemplateSectionEditorModel } from '../../description-template-editor.model';
 import { DescriptionTemplateFieldSetPersist, DescriptionTemplateReferenceTypeFieldPersist } from '@app/core/model/description-template/description-template-persist';
 import { DescriptionEditorModel } from '@app/ui/description/editor/description-editor.model';
@@ -25,10 +25,11 @@ import { VisibilityRulesService } from '@app/ui/description/editor/description-f
 import { ReferenceType } from '@app/core/model/reference-type/reference-type';
 
 @Component({
-	selector: 'app-description-template-editor-field-set-component',
-	templateUrl: './description-template-editor-field-set.component.html',
-	styleUrls: ['./description-template-editor-field-set.component.scss'],
-	animations: [GENERAL_ANIMATIONS]
+    selector: 'app-description-template-editor-field-set-component',
+    templateUrl: './description-template-editor-field-set.component.html',
+    styleUrls: ['./description-template-editor-field-set.component.scss'],
+    animations: [GENERAL_ANIMATIONS],
+    standalone: false
 })
 export class DescriptionTemplateEditorFieldSetComponent extends BaseComponent implements OnInit {
 

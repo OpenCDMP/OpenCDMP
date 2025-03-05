@@ -45,20 +45,24 @@ import { DescriptionEditorEntityResolver } from './resolvers/description-editor-
 import { ToCEntry } from './table-of-contents/models/toc-entry';
 import { TableOfContentsService } from './table-of-contents/services/table-of-contents-service';
 import { TableOfContentsComponent } from './table-of-contents/table-of-contents.component';
+import { DescriptionStatus } from '@app/core/model/description-status/description-status';
+import { DescriptionStatusAvailableActionType } from '@app/core/common/enum/description-status-available-action-type';
+import { DescriptionStatusPermission } from '@app/core/common/enum/description-status-permission.enum';
 
 @Component({
-	selector: 'app-description-editor-component',
-	templateUrl: 'description-editor.component.html',
-	styleUrls: ['./description-editor.component.scss'],
-	providers: [DescriptionEditorService]
+    selector: 'app-description-editor-component',
+    templateUrl: 'description-editor.component.html',
+    styleUrls: ['./description-editor.component.scss'],
+    providers: [DescriptionEditorService],
+    standalone: false
 })
 export class DescriptionEditorComponent extends BaseEditor<DescriptionEditorModel, Description> implements OnInit, AfterViewInit {
-
 	isNew = true;
 	isDeleted = false;
 	isCopy = false;
 	canEdit = false;
 	canAnnotate = false;
+	canExport = false;
 	item: Description;
 	fileTransformerEntityTypeEnum = FileTransformerEntityType;
 	showDescriptionTemplateLoader = false;
@@ -81,6 +85,8 @@ export class DescriptionEditorComponent extends BaseEditor<DescriptionEditorMode
 
 	private initialTemplateId: string = Guid.EMPTY;
 	private permissionPerSection: Map<Guid, string[]>;
+
+	oldStatusId: Guid;
 
 	constructor(
 		// BaseFormEditor injected dependencies
@@ -151,7 +157,7 @@ export class DescriptionEditorComponent extends BaseEditor<DescriptionEditorMode
 				this.viewOnly = this.viewOnly || isPublicDescription;
 
 				//Regular Editor case
-				if (itemId != null && newPlanId == null) {
+				if (itemId != null && newPlanId == null && this.item.isActive == IsActive.Active) {
 					this.checkLock(this.item.id, LockTargetType.Description, 'DESCRIPTION-EDITOR.LOCKED-DIALOG.TITLE', 'DESCRIPTION-EDITOR.LOCKED-DIALOG.MESSAGE');
 				}
 				else if (planId != null && planSectionId != null) {
@@ -181,8 +187,8 @@ export class DescriptionEditorComponent extends BaseEditor<DescriptionEditorMode
 								this.prepareForm(result.description);
 								this.changeDetectorRef.markForCheck(); // when prefilling a description the "prepareForm" has already being executed from the base-editor and we need to trigger the angular's change-detector manually
 								this.descriptionFormService.detectChanges(true);
-							} else if (result.descriptionTemplateId != null) {
-								this.formGroup.get('descriptionTemplateId').setValue(result.descriptionTemplateId);
+							} else if (result.description?.descriptionTemplate?.id != null) {
+								this.formGroup.get('descriptionTemplateId').setValue(result.description.descriptionTemplate.id);
 							}
 						}
 						this.isNewDescriptionDialogOpen = false;
@@ -190,7 +196,8 @@ export class DescriptionEditorComponent extends BaseEditor<DescriptionEditorMode
 				}
 				if (this.route.snapshot.url[1] && this.route.snapshot.url[1].path == 'finalize' && !this.lockStatus && !this.viewOnly) {
 					setTimeout(() => {
-						this.finalize();
+						const finalizedStatus = this.item.availableStatuses?.find(x => x.internalStatus === DescriptionStatusEnum.Finalized) || null;
+						if (finalizedStatus) this.finalize(finalizedStatus.id);
 					}, 0);
 				}
 			});
@@ -215,6 +222,10 @@ export class DescriptionEditorComponent extends BaseEditor<DescriptionEditorMode
 	prepareForm(data: Description) {
 		try {
 			this.editorModel = data ? new DescriptionEditorModel().fromModel(data, data.descriptionTemplate) : new DescriptionEditorModel();
+			if (data) {
+				if (data.status?.id) this.oldStatusId = data.status.id
+				if (data.status?.definition?.availableActions?.filter(x => x === DescriptionStatusAvailableActionType.Export).length > 0) this.canExport = true;
+			}
 			if (data && data?.plan?.planUsers) data.plan.planUsers = data.plan.planUsers.filter(x => x.isActive === IsActive.Active);
 			this.item = data;
 			this.initialTemplateId = data?.descriptionTemplate?.id?.toString();
@@ -227,6 +238,13 @@ export class DescriptionEditorComponent extends BaseEditor<DescriptionEditorMode
 			}
 			this.isDeleted = data ? data.isActive === IsActive.Inactive : false;
 			this.buildForm();
+			if (data?.status?.internalStatus == DescriptionStatusEnum.Finalized || this.isDeleted || !this.canEdit) {
+				this.viewOnly = true;
+				this.isFinalized = true;
+				this.formGroup.disable();
+			} else {
+				this.viewOnly = false;
+			}
 			if (this.isDeleted || (this.formGroup && this.editorModel.belongsToCurrentTenant == false)) {
 				this.formGroup.disable();
 				this.canEdit = false;
@@ -245,13 +263,6 @@ export class DescriptionEditorComponent extends BaseEditor<DescriptionEditorMode
 
 		// this.selectedSystemFields = this.selectedSystemFieldDisabled();
 		this.descriptionEditorService.setValidationErrorModel(this.editorModel.validationErrorModel);
-		if (this.editorModel.status == DescriptionStatusEnum.Finalized || this.isDeleted || !this.canEdit) {
-			this.viewOnly = true;
-			this.isFinalized = this.editorModel.status == DescriptionStatusEnum.Finalized;
-			this.formGroup.disable();
-		} else {
-			this.viewOnly = false;
-		}
 
 		this.registerFormListeners();
 	}
@@ -263,7 +274,7 @@ export class DescriptionEditorComponent extends BaseEditor<DescriptionEditorMode
 			let rejectedPlanDescriptionTemplates: PlanDescriptionTemplate[] = [];
 			section.descriptionTemplates.forEach(sectionDescriptionTemplate => {
 				if (sectionDescriptionTemplate.maxMultiplicity != null) {
-					const commonDescriptions = descriptions.filter(x => x.planDescriptionTemplate.descriptionTemplateGroupId == sectionDescriptionTemplate.descriptionTemplateGroupId);
+					const commonDescriptions = descriptions.filter(x => x.planDescriptionTemplate.descriptionTemplateGroupId == sectionDescriptionTemplate.descriptionTemplate?.groupId);
 
 					if (commonDescriptions && commonDescriptions.length > sectionDescriptionTemplate.maxMultiplicity) {
 						rejectedPlanDescriptionTemplates.push.apply(rejectedPlanDescriptionTemplates, commonDescriptions.map(x => x.planDescriptionTemplate));
@@ -302,20 +313,21 @@ export class DescriptionEditorComponent extends BaseEditor<DescriptionEditorMode
 
 	persistEntity(onSuccess?: (response) => void): void {
 		const formData = this.formService.getValue(this.formGroup.value) as DescriptionPersist;
+		const finalizedStatus = this.item.availableStatuses?.find(x => x.internalStatus === DescriptionStatusEnum.Finalized) || null;
 
 		this.descriptionService.persist(formData)
 			.pipe(takeUntil(this._destroyed)).subscribe(
 				complete => {
 					onSuccess ? onSuccess(complete) : this.onCallbackSuccess(complete);
 					this.descriptionIsOnceSaved = true;
-					if (this.formGroup.get('status').value == DescriptionStatusEnum.Finalized){
-                        this.isFinalized = true;
-                        this.formGroup.disable();
-                    }
+					if (finalizedStatus && this.formGroup.get('statusId').value == finalizedStatus.id) {
+						this.isFinalized = true;
+						this.formGroup.disable();
+					}
 				},
 				error => {
-					if (this.formGroup.get('status').value == DescriptionStatusEnum.Finalized) {
-						this.formGroup.get('status').setValue(DescriptionStatusEnum.Draft);
+					if (finalizedStatus && this.formGroup.get('statusId').value == finalizedStatus.id) {
+						this.formGroup.get('statusId').setValue(this.oldStatusId);
 						this.uiNotificationService.snackBarNotification(this.language.instant('GENERAL.SNACK-BAR.UNSUCCESSFUL-FINALIZE'), SnackBarNotificationLevel.Error);
 					} else {
 						this.onCallbackError(error);
@@ -327,7 +339,7 @@ export class DescriptionEditorComponent extends BaseEditor<DescriptionEditorMode
 	formSubmit(onSuccess?: (response) => void): void {
 		this.formService.removeAllBackEndErrors(this.formGroup);
 		if (this.formGroup.get('label').valid && this.formGroup.get('planId').valid && this.formGroup.get('planDescriptionTemplateId').valid
-			&& this.formGroup.get('descriptionTemplateId').valid && this.formGroup.get('status').valid) {
+			&& this.formGroup.get('descriptionTemplateId').valid) {// && this.formGroup.get('statusId').valid) {
 			this.persistEntity(onSuccess);
 		} else {
 			const errorMessages = this._buildSemiFormErrorMessages();
@@ -429,7 +441,6 @@ export class DescriptionEditorComponent extends BaseEditor<DescriptionEditorMode
 		if (errmess) {
 			const dialogRef = this.dialog.open(FormValidationErrorsDialogComponent, {
 				disableClose: true,
-				autoFocus: false,
 				restoreFocus: false,
 				data: {
 					errorMessages: errmess,
@@ -440,7 +451,6 @@ export class DescriptionEditorComponent extends BaseEditor<DescriptionEditorMode
 
 			const dialogRef = this.dialog.open(FormValidationErrorsDialogComponent, {
 				disableClose: true,
-				autoFocus: false,
 				restoreFocus: false,
 				data: {
 					formGroup: this.formGroup,
@@ -554,10 +564,14 @@ export class DescriptionEditorComponent extends BaseEditor<DescriptionEditorMode
 
 	hasReversableStatus(): boolean {
 		if (this.item?.plan) {
-			return (this.item.plan.status == PlanStatusEnum.Draft && this.isFinalized);
+			return (this.item.plan.status?.internalStatus == PlanStatusEnum.Draft && this.isFinalized);
 		} else {
 			return false;
 		}
+	}
+
+	isNotFinalizedPlan(): boolean {
+		return this.item.plan?.status?.internalStatus != PlanStatusEnum.Finalized;
 	}
 
 	descriptionInfoValid(): boolean {
@@ -579,7 +593,7 @@ export class DescriptionEditorComponent extends BaseEditor<DescriptionEditorMode
 
 				const element = document.getElementById(selected.id);
 				if (element) {
-					element.scrollIntoView({ behavior: 'smooth' });
+					setTimeout(() => element.scrollIntoView({ behavior: 'smooth' }), );
 				}
 			} else {
 				this.reachedBase = true;
@@ -589,10 +603,6 @@ export class DescriptionEditorComponent extends BaseEditor<DescriptionEditorMode
 				this.resetScroll();
 			}
 		}
-	}
-
-	get maxStep() {
-		return 0;
 	}
 
 	public nextStep() {
@@ -623,6 +633,10 @@ export class DescriptionEditorComponent extends BaseEditor<DescriptionEditorMode
 
 		return errorsCount;
 	}
+
+	get canEditStatus(): boolean{
+        return this.item.statusAuthorizationFlags?.some(x => x.toLowerCase() === DescriptionStatusPermission.Edit.toLowerCase())
+    }
 
 	registerFormListeners() {
 
@@ -701,7 +715,19 @@ export class DescriptionEditorComponent extends BaseEditor<DescriptionEditorMode
 		return [];
 	}
 
-	finalize() {
+	persistStatus(status: DescriptionStatus) {
+		if (status.internalStatus != null && status.internalStatus === DescriptionStatusEnum.Finalized) {
+			this.finalize(status.id);
+		} else if (status.internalStatus != null && this.item.status.internalStatus === DescriptionStatusEnum.Finalized){
+			this.reverse(status.id);
+		} else {
+			// other statuses
+			this.formGroup.get('statusId').setValue(status.id);
+			this.persistEntity();
+		}
+	}
+
+	finalize(statusId: Guid) {
 		this.formService.removeAllBackEndErrors(this.formGroup);
 		this.formService.touchAllFormFields(this.formGroup);
 		this.formService.validateAllFormFields(this.formGroup);
@@ -730,13 +756,13 @@ export class DescriptionEditorComponent extends BaseEditor<DescriptionEditorMode
 		});
 		dialogRef.afterClosed().pipe(takeUntil(this._destroyed)).subscribe(result => {
 			if (result) {
-				this.formGroup.get('status').setValue(DescriptionStatusEnum.Finalized);
+				this.formGroup.get('statusId').setValue(statusId);
 				this.persistEntity();
 			}
 		});
 	}
 
-	reverse() {
+	reverse(statusId: Guid) {
 		const dialogRef = this.dialog.open(ConfirmationDialogComponent, {
 			restoreFocus: false,
 			data: {
@@ -750,7 +776,7 @@ export class DescriptionEditorComponent extends BaseEditor<DescriptionEditorMode
 			if (result) {
 				const planUserRemovePersist: DescriptionStatusPersist = {
 					id: this.formGroup.get('id').value,
-					status: DescriptionStatusEnum.Draft,
+					statusId: statusId,
 					hash: this.formGroup.get('hash').value
 				};
 				this.descriptionService.persistStatus(planUserRemovePersist, DescriptionEditorEntityResolver.lookupFields()).pipe(takeUntil(this._destroyed))

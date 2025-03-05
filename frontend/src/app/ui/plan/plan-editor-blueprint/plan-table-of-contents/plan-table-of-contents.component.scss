@@ -1,0 +1,157 @@
+.stepper-options {
+    height: calc(100vh - 20rem);
+    scrollbar-color: var(--sys-primary) var(--sys-surface);
+    scrollbar-width: thin;
+    overflow-y: auto;
+
+}
+
+.stepper-list, .section-descriptions, .add-description-option, .section-fields {
+    list-style-type: none;
+    padding: 0;
+}
+.stepper-list,.add-description-option, .section-fields,  .section-descriptions {
+    margin-left: 1rem;
+}
+
+
+
+.stepper-list {
+    .plan-description {
+        text-align: left;
+        font-weight: 400;
+        letter-spacing: 0px;
+        cursor: pointer;
+        max-width: 290px;
+    }
+    
+    .finalized-desc-icon {
+        font-size: 1.25rem;
+        color: #109204;
+    }
+      
+
+    .main-section {
+        font-size: var(--sys-title-medium-size);
+    }
+    
+    .label {
+        justify-content: left;
+        display: flex;
+        align-items: center;
+        width: 100%;
+        padding: 0.125rem 0.5rem;
+        border-radius: 6px;
+    }
+    .active {
+        font-weight: bold;
+    }
+    .selectable{
+        &:hover, &:focus {
+            background-color: rgb(0,0,0,0.05);
+        }
+    }
+
+    .desc-label {
+        height: 40px; //match icon btn height
+        &.active-description {
+            background-color: var(--sys-tertiary) !important;
+            border-radius: 4px;
+            color: var(--sys-on-tertiary);
+            cursor: unset;
+        }
+        &.text-danger.active-description{
+            color: var(--sys-on-error) !important;
+            background-color: var(--sys-error) !important;
+        }
+    }
+    .section-fields {
+        border-left: 2px solid var(--sys-primary);
+        border-top-left-radius: 0;
+        border-bottom-left-radius: 0;
+    }
+
+    .desc-label, .section-field-label {
+        display: inline-block;
+        text-align: left;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+      
+    .plan-description {
+        font-weight: 700;
+        opacity: 1;
+        cursor: pointer;
+        color: var(--sys-on-background);
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+    }
+
+
+    .add-description-btn {
+        margin-left: 1rem;
+        color: var(--sys-on-background);
+        mat-icon {
+            color: var(--sys-primary);
+        }
+        &.mat-mdc-button-disabled {
+            color: var(--mdc-text-button-disabled-label-text-color);
+            mat-icon {
+                color: var(--mdc-text-button-disabled-label-text-color)
+            }
+        }
+    }
+
+    .remove-description {
+        background-color: transparent;
+        box-shadow: none;
+        color: var(--sys-error);
+        &:hover {
+            color: hsl(from var(--sys-error) h s calc(l - 4)) !important;
+            box-shadow: none;
+        }
+    }
+    
+}
+
+.stepper-actions {
+    display: flex;
+    padding-left: 1rem;
+    margin-top: auto;
+    margin-bottom: 0.5rem;
+}
+  
+.stepper-btn {
+    border-radius: 30px;
+    opacity: 1;
+    width: 154px;
+    min-height: 40px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: var(--sys-title-small-size);
+}
+  
+.previous {
+    color: var(--dark-text);
+    background: var(--sys-background) 0% 0% no-repeat padding-box;
+    box-shadow: 0px 3px 6px #1e202029;
+    border: 2px solid var(--dark-text);
+    font-weight: 500;
+    cursor: pointer;
+}
+
+.navigation {
+    margin: 0 0.5rem 0 1rem;
+    .progress-btns, .progress-indication-bar{
+        padding: 0 0.5rem;
+    }
+}
+
+@container main-page (inline-size < 600px){
+    .stepper-options{
+        height: max(15vh, 150px)
+    }
+}

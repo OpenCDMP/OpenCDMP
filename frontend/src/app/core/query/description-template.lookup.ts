@@ -14,6 +14,7 @@ export class DescriptionTemplateLookup extends Lookup implements DescriptionTemp
 	groupIds: Guid[];
 	excludedGroupIds: Guid[];
 	versionStatuses: DescriptionTemplateVersionStatus[];
+	languages: string[];
 	onlyCanEdit: boolean;
 	constructor() {
 		super();
@@ -30,6 +31,7 @@ export interface DescriptionTemplateFilter {
 	groupIds: Guid[];
 	excludedGroupIds: Guid[];
 	versionStatuses: DescriptionTemplateVersionStatus[];
+	languages: string[];
 	onlyCanEdit: boolean;
 
 }

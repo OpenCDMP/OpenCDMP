@@ -10,6 +10,7 @@ import jakarta.persistence.criteria.Predicate;
 import org.opencdmp.authorization.AuthorizationFlags;
 import org.opencdmp.commons.enums.IsActive;
 import org.opencdmp.data.LanguageEntity;
+import org.opencdmp.data.TenantEntity;
 import org.opencdmp.data.TenantEntityManager;
 import org.opencdmp.model.Language;
 import org.opencdmp.query.utils.QueryUtilsService;
@@ -35,6 +36,8 @@ public class LanguageQuery extends QueryBase<LanguageEntity> {
     private Collection<UUID> excludedIds;
     private Collection<UUID> tenantIds;
     private Boolean tenantIsSet;
+
+    private TenantQuery tenantQuery;
 
     private EnumSet<AuthorizationFlags> authorize = EnumSet.of(AuthorizationFlags.None);
 
@@ -128,6 +131,11 @@ public class LanguageQuery extends QueryBase<LanguageEntity> {
         return this;
     }
 
+    public LanguageQuery tenantSubQuery(TenantQuery tenantQuery) {
+        this.tenantQuery = tenantQuery;
+        return this;
+    }
+
     public LanguageQuery authorize(EnumSet<AuthorizationFlags> values) {
         this.authorize = values;
         return this;
@@ -205,6 +213,10 @@ public class LanguageQuery extends QueryBase<LanguageEntity> {
         if (this.tenantIsSet != null) {
             if (this.tenantIsSet) predicates.add(queryContext.CriteriaBuilder.isNotNull(queryContext.Root.get(LanguageEntity._tenantId)));
             else predicates.add(queryContext.CriteriaBuilder.isNull(queryContext.Root.get(LanguageEntity._tenantId)));
+        }
+        if (this.tenantQuery != null) {
+            QueryContext<TenantEntity, UUID> subQuery = this.applySubQuery(this.tenantQuery, queryContext, UUID.class, tenantEntityRoot -> tenantEntityRoot.get(TenantEntity._id));
+            predicates.add(queryContext.CriteriaBuilder.in(queryContext.Root.get(LanguageEntity._tenantId)).value(subQuery.Query));
         }
         if (!predicates.isEmpty()) {
             Predicate[] predicatesArray = predicates.toArray(new Predicate[0]);

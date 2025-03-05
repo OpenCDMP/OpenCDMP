@@ -1,22 +1,22 @@
 <div class="plan-criteria">
 	<div class="filters container-fluid">
-		<div class="row justify-content-center">
-			<div class="col-10">
-				<h6 class="criteria-title">{{'PLAN-LISTING.FILTERS.NAME'| translate}}</h6>
-			</div>
-		</div>
 		<div class="row" style="justify-content: center;" *ngIf="formGroup">
 			<!-- Visibility Filter-->
 			<div *ngIf="!isPublic" class="col-10">
 				<h6 class="category-title">{{ 'PLAN-LISTING.FILTERS.STATUS.NAME' | translate }}</h6>
-				<mat-radio-group aria-label="Select an option" [formControl]="formGroup.get('status')" class="row">
-					<mat-radio-button [value]="null" [checked]="formGroup.get('status')?.value == null" class="col-12">{{ 'PLAN-LISTING.FILTERS.STATUS.TYPE.ANY' | translate }}</mat-radio-button>
-					<mat-radio-button [value]="status.Draft" class="col-12">{{ 'PLAN-LISTING.FILTERS.STATUS.TYPE.DRAFT' | translate }}</mat-radio-button>
-					<mat-radio-button [value]="status.Finalized" class="col-12">{{ 'PLAN-LISTING.FILTERS.STATUS.TYPE.FINALIZED' | translate }}</mat-radio-button>
-				</mat-radio-group>
+				<mat-form-field class="w-100">
+					<mat-label>{{'PLAN-LISTING.FILTERS.STATUS.PLACEHOLDER' | translate }}</mat-label>
+					<app-single-auto-complete [formControl]="formGroup.get('statusId')" [configuration]="planStatusAutoCompleteConfiguration"></app-single-auto-complete>
+				</mat-form-field>
 				<hr>
 			</div>
 			<!-- End of Visibility Filter-->
+
+			<!-- IsActive Filter -->
+			<div class="col-10">
+				<mat-slide-toggle [formControl]="formGroup.get('isActive')">{{ 'PLAN-LISTING.FILTERS.IS-ACTIVE' | translate }}</mat-slide-toggle>
+				<hr>
+			</div>
 
 			<!-- Tenant Filter -->
 			<div *ngIf="!isPublic && hasSelectedTenant" class="col-10">
@@ -51,7 +51,7 @@
 			<!-- Role Filter -->
 			<div *ngIf="isAuthenticated()" class="col-10">
 				<h6 class="category-title">{{ 'PLAN-LISTING.FILTERS.ROLE.NAME' | translate }}</h6>
-				<mat-radio-group aria-label="Select an option" [formControl]="formGroup.get('role')" class="row">
+				<mat-radio-group aria-label="{{'ALT-TEXT.SELECT-OPTION' | translate}}" [formControl]="formGroup.get('role')" class="row">
 					<mat-radio-button [value]="null" [checked]="formGroup.get('role')?.value == null" class="col-12">{{ 'PLAN-LISTING.FILTERS.ROLE.TYPE.ANY' | translate }}</mat-radio-button>
 					<mat-radio-button [value]="role.Owner" class="col-12">{{ 'PLAN-LISTING.FILTERS.ROLE.TYPE.OWNER' | translate }}</mat-radio-button>
 					<mat-radio-button [value]="role.Viewer" class="col-12">{{ 'PLAN-LISTING.FILTERS.ROLE.TYPE.VIEWER' | translate }}</mat-radio-button>
@@ -85,29 +85,27 @@
 						</div>
 					</div>
 					
-					<button mat-icon-button class="col-auto" (click)="deleteRow(i)" type="button">
-						<mat-icon>delete</mat-icon>
+					<button mat-icon-button class="col-auto" (click)="deleteRow(i)" type="button" [attr.aria-label]="'COMMONS.ALT-TEXT.REMOVE' | translate">
+						<mat-icon aria-hidden>delete</mat-icon>
 					</button>
 				</ng-container>
 
 				<div class="col-10">
 					<div class="row align-items-center">
-						<button mat-icon-button color="primary" [disabled]="false" (click)="addReferenceType()">
+						<button mat-button color="primary" [disabled]="false" (click)="addReferenceType()">
 							<mat-icon>add_circle</mat-icon>
+                            <span class="mt-1">{{'DESCRIPTION-LISTING.ACTIONS.ADD-REFERENCE-TYPE' | translate}}</span>
 						</button>
-						<span>
-							<span class="mt-1">{{'DESCRIPTION-LISTING.ACTIONS.ADD-REFERENCE-TYPE' | translate}}</span>
-						</span>
 					</div>
 				</div>
 			</div>
 			<!-- End of Reference Types -->
 			
 			<div class="col-10 d-flex justify-content-between mb-4">
-                <button  mat-button class="rounded-btn primary-inverted" (click)="resetFilters()" style="font-size: 0.87rem;">
+                <button  mat-stroked-button color="primary" class="padded-shadow-btn" (click)="resetFilters()" >
 					{{'PLAN-LISTING.FILTERS.RESET-FILTERS' | translate}} 
 				</button>
-				<button  mat-button class="rounded-btn primary" (click)="controlModified()">
+				<button  mat-flat-button color="primary" class="padded-shadow-btn" (click)="controlModified()" [disabled]="!formGroup.dirty">
 					{{'PLAN-LISTING.FILTERS.APPLY-FILTERS' | translate}}
 				</button>
 			</div>

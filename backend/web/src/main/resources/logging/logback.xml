@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration debug="false">
-    <springProperty name="LOGGING_DEFAULT_LOG_LEVEL" source="LOGGING_DEFAULT_LOG_LEVEL" defaultValue="INFO"/>
+    <springProperty name="LOGGING_DEFAULT_LOG_LEVEL" source="LOGGING_DEFAULT_LOG_LEVEL" defaultValue="WARN"/>
     <springProperty name="LOGGING_PATH" source="LOGGING_PATH" defaultValue="/logs"/>
     <appender name="TROUBLESHOOTING" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <file>${LOGGING_PATH}/logging.log</file>

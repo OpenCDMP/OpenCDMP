@@ -6,8 +6,8 @@ ARG PROFILE
 COPY pom.xml /build/
 COPY core /build/core/
 COPY web /build/web/
-RUN rm -f /build/web/src/main/resources/config/*-devel.yml
-RUN rm -f /build/web/src/main/resources/logging/*-devel.xml
+RUN rm -f /build/web/src/main/resources/config/app-*.env
+RUN rm -f /build/web/src/main/resources/logging/logback-*.xml
 
 WORKDIR /build/
 RUN mvn dependency:go-offline

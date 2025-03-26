@@ -3,6 +3,8 @@ package org.opencdmp.service.kpi;
 import gr.cite.tools.logging.LoggerService;
 import jakarta.persistence.*;
 import org.jetbrains.annotations.NotNull;
+import org.opencdmp.commons.fake.FakeRequestScope;
+import org.opencdmp.data.TenantEntityManager;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
@@ -69,16 +71,43 @@ public class KpiTask implements Closeable, ApplicationListener<ApplicationReadyE
 
 	protected void process() {
 		if (!this.properties.getTask().getEnable()) return;
-		try {
-			this.kpiService.resetIndicator();
-			this.kpiService.sendIndicatorPointPlanCountEntryEvents();
-			this.kpiService.sendIndicatorPointDescriptionCountEntryEvents();
-			this.kpiService.sendIndicatorPointUserCountEntryEvents();
-			this.kpiService.sendIndicatorPointReferenceCountEntryEvents();
-			this.kpiService.sendIndicatorPointPlanBlueprintCountEntryEvents();
-			this.kpiService.sendIndicatorPointDescriptionTemplateCountEntryEvents();
+
+		EntityTransaction transaction = null;
+		try (FakeRequestScope ignored = new FakeRequestScope()) {
+			TenantEntityManager tenantEntityManager = null;
+			EntityManager entityManager = null;
+
+			try {
+				tenantEntityManager = this.applicationContext.getBean(TenantEntityManager.class);
+				entityManager = this.entityManagerFactory.createEntityManager();
+
+				tenantEntityManager.setEntityManager(entityManager);
+				tenantEntityManager.disableTenantFilters();
+
+				transaction = entityManager.getTransaction();
+				transaction.begin();
+
+				this.kpiService.resetIndicator();
+				this.kpiService.sendIndicatorPointPlanCountEntryEvents();
+				this.kpiService.sendIndicatorPointDescriptionCountEntryEvents();
+				this.kpiService.sendIndicatorPointUserCountEntryEvents();
+				this.kpiService.sendIndicatorPointReferenceCountEntryEvents();
+				this.kpiService.sendIndicatorPointPlanBlueprintCountEntryEvents();
+				this.kpiService.sendIndicatorPointDescriptionTemplateCountEntryEvents();
+
+				transaction.commit();
+			} catch (Exception ex) {
+				if (transaction != null)
+					transaction.rollback();
+				logger.error("Problem processing kpi indicator point tasks. Breaking for next interval", ex);
+			} finally {
+				if (entityManager != null) entityManager.close();
+				if (tenantEntityManager != null) tenantEntityManager.reloadTenantFilters();
+			}
 		} catch (Exception ex) {
-			logger.error("Problem processing kpi indicator point tasks. Breaking for next interval", ex);
+			if (transaction != null)
+				transaction.rollback();
+			logger.error("Problem executing kpi tak.", ex);
 		}
 	}
 	

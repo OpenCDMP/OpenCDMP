@@ -64,7 +64,8 @@ export class AuthService extends BaseService {
 		private overlay: Overlay,
 		private tenantHandlingService: TenantHandlingService,
 		private annotationPrincipalService: AnnotationPrincipalService,
-		private notificationPrincipalService: NotificationPrincipalService
+		private notificationPrincipalService: NotificationPrincipalService,
+        private configurationService: ConfigurationService
 	) {
 		super();
 
@@ -219,7 +220,7 @@ export class AuthService extends BaseService {
 				return this.tenantHandlingService.loadTenantCssColors();
 			}),
 			concatMap(response => {
-				this.tenantHandlingService.applyTenantCssColors(response?.cssColors);
+				this.tenantHandlingService.applyTenantCssColors(response?.cssColors ?? this.configurationService.cssColorsTenantConfiguration);
 				return of(true);
 			})
 		);

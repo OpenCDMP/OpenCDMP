@@ -242,12 +242,13 @@ export class ConfigurationService extends BaseComponent {
 	}
 
     private overrideValues(content: any, override: any){
-        let nullSet = new Set([null, undefined]);
+        let nullSet = new Set([null, undefined, '']);
         let response = {}
         const objectType = typeof(new Object());
         if(nullSet.has(content)){ return override; }
-        if(typeof(content) === objectType && !Array.isArray(content)){
-            Object.keys(content)?.forEach((key) => {
+        if(typeof(content) === objectType && !Array.isArray(content) && typeof(override) === objectType && !Array.isArray(override)){
+            const keys = new Set([...Object.keys(content), ...Object.keys(override)])
+            keys?.forEach((key) => {
                 response[key] = this.overrideValues(content[key], override?.[key])
             })
         }else {

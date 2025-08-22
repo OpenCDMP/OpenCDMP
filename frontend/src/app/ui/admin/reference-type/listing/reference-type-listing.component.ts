@@ -87,7 +87,7 @@ export class ReferenceTypeListingComponent extends BaseListingComponent<Referenc
 		lookup.metadata = { countAll: true };
 		lookup.page = { offset: 0, size: this.ITEMS_PER_PAGE };
 		lookup.isActive = [IsActive.Active];
-		lookup.order = { items: [this.toDescSortField(nameof<ReferenceType>(x => x.createdAt))] };
+		lookup.order = { items: [this.toDescSortField(nameof<ReferenceType>(x => x.updatedAt))] };
 		this.updateOrderUiFields(lookup.order);
 
 		lookup.project = {

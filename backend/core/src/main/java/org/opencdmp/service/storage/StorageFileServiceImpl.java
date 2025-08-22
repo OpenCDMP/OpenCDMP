@@ -25,6 +25,8 @@ import org.opencdmp.query.StorageFileQuery;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.ResourceLoader;
 import org.springframework.stereotype.Service;
 import org.springframework.util.FileCopyUtils;
 
@@ -52,6 +54,7 @@ public class StorageFileServiceImpl implements StorageFileService {
     private final StorageFileProperties config;
     private final ValidatorFactory validatorFactory;
     private final QueryFactory queryFactory;
+    private final ResourceLoader resourceLoader;
 
     @Autowired
     public StorageFileServiceImpl(
@@ -59,7 +62,7 @@ public class StorageFileServiceImpl implements StorageFileService {
             AuthorizationService authorizationService,
             BuilderFactory builderFactory,
             UserScope userScope,
-            StorageFileProperties config, ValidatorFactory validatorFactory, QueryFactory queryFactory
+            StorageFileProperties config, ValidatorFactory validatorFactory, QueryFactory queryFactory, ResourceLoader resourceLoader
     ) {
         this.entityManager = entityManager;
         this.authorizationService = authorizationService;
@@ -69,6 +72,7 @@ public class StorageFileServiceImpl implements StorageFileService {
 
         this.validatorFactory = validatorFactory;
         this.queryFactory = queryFactory;
+        this.resourceLoader = resourceLoader;
     }
 
     //region storage management
@@ -173,7 +177,7 @@ public class StorageFileServiceImpl implements StorageFileService {
             if (!file.exists()) return null;
 
             File destinationFile = new File(this.filePath(storageFile.getFileRef(), storageType));
-            if (file.exists() && !replaceDestination) return null;
+            if (destinationFile.exists() && !replaceDestination) return null;
             
             boolean fileCopied = FileCopyUtils.copy(file, destinationFile) > 0;
             if (!fileCopied) return null;
@@ -360,7 +364,11 @@ public class StorageFileServiceImpl implements StorageFileService {
     @Override
     public byte[] getSemanticsFile() {
         try {
-            return this.readFileBytes(this.config.getStaticFiles().getSemantics());
+            Resource resource = this.resourceLoader.getResource(this.config.getStaticFiles().getSemantics());
+            if (!resource.isReadable()) return null;
+            try(InputStream inputStream = resource.getInputStream()) {
+                return inputStream.readAllBytes();
+            }
         }
         catch (Exception ex) {
             logger.warn("problem reading semantics file", ex);
@@ -514,10 +522,11 @@ public class StorageFileServiceImpl implements StorageFileService {
 
     private byte[] getLocalized(String baseDir, String pattern, String language) {
         try {
-            File file = this.getLocalizedFile(baseDir, pattern, language);
-            if (!file.exists()) file = this.getLocalizedFile(baseDir, pattern, this.config.getDefaultLanguage());
-            if (!file.exists()) return null;
-            return this.readFileBytes(file.getAbsolutePath());
+            Resource resource = this.resourceLoader.getResource(baseDir +  this.getLocalizedNamePattern(pattern, language));
+            if(!resource.isReadable()) return null;
+            try(InputStream inputStream = resource.getInputStream()) {
+                return inputStream.readAllBytes();
+            }
         }
         catch (Exception ex) {
             logger.warn("problem reading " + baseDir + " " + language, ex);

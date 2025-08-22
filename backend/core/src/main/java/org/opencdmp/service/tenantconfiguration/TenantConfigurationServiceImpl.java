@@ -27,6 +27,7 @@ import org.opencdmp.commons.types.featured.DescriptionTemplateEntity;
 import org.opencdmp.commons.types.featured.PlanBlueprintEntity;
 import org.opencdmp.commons.types.filetransformer.FileTransformerSourceEntity;
 import org.opencdmp.commons.types.tenantconfiguration.*;
+import org.opencdmp.commons.types.viewpreference.ViewPreferenceEntity;
 import org.opencdmp.convention.ConventionService;
 import org.opencdmp.data.TenantConfigurationEntity;
 import org.opencdmp.data.TenantEntity;
@@ -46,10 +47,13 @@ import org.opencdmp.model.persist.evaluator.EvaluatorSourcePersist;
 import org.opencdmp.model.persist.featured.DescriptionTemplatePersist;
 import org.opencdmp.model.persist.featured.PlanBlueprintPersist;
 import org.opencdmp.model.persist.filetransformer.FileTransformerSourcePersist;
+import org.opencdmp.model.persist.pluginconfiguration.PluginConfigurationPersist;
 import org.opencdmp.model.persist.tenantconfiguration.*;
+import org.opencdmp.model.persist.viewpreference.ViewPreferencePersist;
 import org.opencdmp.model.tenantconfiguration.TenantConfiguration;
 import org.opencdmp.query.TenantConfigurationQuery;
 import org.opencdmp.service.encryption.EncryptionService;
+import org.opencdmp.service.pluginconfiguration.PluginConfigurationService;
 import org.opencdmp.service.storage.StorageFileService;
 import org.opencdmp.service.tenant.TenantProperties;
 import org.slf4j.LoggerFactory;
@@ -101,15 +105,18 @@ public class TenantConfigurationServiceImpl implements TenantConfigurationServic
 
     private final TenantDefaultLocaleTouchedIntegrationEventHandler tenantDefaultLocaleTouchedIntegrationEventHandler;
     private final TenantDefaultLocaleRemovalIntegrationEventHandler tenantDefaultLocaleRemovalIntegrationEventHandler;
+
+    private final PluginConfigurationService pluginConfigurationService;
+
     @Autowired
     public TenantConfigurationServiceImpl(
-		    TenantEntityManager entityManager,
-		    AuthorizationService authorizationService,
-		    DeleterFactory deleterFactory,
-		    BuilderFactory builderFactory,
-		    ConventionService conventionService,
-		    ErrorThesaurusProperties errors,
-		    MessageSource messageSource, JsonHandlingService jsonHandlingService, EncryptionService encryptionService, TenantProperties tenantProperties, StorageFileService storageFileService, QueryFactory queryFactory, EventBroker eventBroker, TenantScope tenantScope, TenantDefaultLocaleTouchedIntegrationEventHandler tenantDefaultLocaleTouchedIntegrationEventHandler, TenantDefaultLocaleRemovalIntegrationEventHandler tenantDefaultLocaleRemovalIntegrationEventHandler) {
+            TenantEntityManager entityManager,
+            AuthorizationService authorizationService,
+            DeleterFactory deleterFactory,
+            BuilderFactory builderFactory,
+            ConventionService conventionService,
+            ErrorThesaurusProperties errors,
+            MessageSource messageSource, JsonHandlingService jsonHandlingService, EncryptionService encryptionService, TenantProperties tenantProperties, StorageFileService storageFileService, QueryFactory queryFactory, EventBroker eventBroker, TenantScope tenantScope, TenantDefaultLocaleTouchedIntegrationEventHandler tenantDefaultLocaleTouchedIntegrationEventHandler, TenantDefaultLocaleRemovalIntegrationEventHandler tenantDefaultLocaleRemovalIntegrationEventHandler, PluginConfigurationService pluginConfigurationService) {
         this.entityManager = entityManager;
         this.authorizationService = authorizationService;
         this.deleterFactory = deleterFactory;
@@ -126,6 +133,7 @@ public class TenantConfigurationServiceImpl implements TenantConfigurationServic
 	    this.tenantScope = tenantScope;
 	    this.tenantDefaultLocaleTouchedIntegrationEventHandler = tenantDefaultLocaleTouchedIntegrationEventHandler;
 	    this.tenantDefaultLocaleRemovalIntegrationEventHandler = tenantDefaultLocaleRemovalIntegrationEventHandler;
+        this.pluginConfigurationService = pluginConfigurationService;
     }
 
     public TenantConfiguration persist(TenantConfigurationPersist model, FieldSet fields) throws MyForbiddenException, MyValidationException, MyApplicationException, MyNotFoundException, InvalidApplicationException, JsonProcessingException, InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
@@ -164,8 +172,13 @@ public class TenantConfigurationServiceImpl implements TenantConfigurationServic
                 LogoTenantConfigurationEntity oldValue = this.conventionService.isNullOrEmpty(data.getValue()) ? null : this.jsonHandlingService.fromJsonSafe(LogoTenantConfigurationEntity.class, data.getValue());
                 data.setValue(this.jsonHandlingService.toJson(this.buildLogoTenantConfigurationEntity(model.getLogo(), oldValue)));
             }
+            case PluginConfiguration -> {
+                PluginTenantConfigurationEntity oldValue = this.conventionService.isNullOrEmpty(data.getValue()) ? null : this.jsonHandlingService.fromJsonSafe(PluginTenantConfigurationEntity.class, data.getValue());
+                data.setValue(this.jsonHandlingService.toJson(this.buildPluginConfigEntity(model.getPluginConfiguration(), oldValue)));
+            }
             case FeaturedEntities -> data.setValue(this.jsonHandlingService.toJson(this.buildFeaturedEntitiesEntity(model.getFeaturedEntities())));
             case DefaultPlanBlueprint -> data.setValue(this.jsonHandlingService.toJson(this.buildDefaultPlanBlueprintConfigurationEntity(model.getDefaultPlanBlueprint())));
+            case ViewPreferences -> data.setValue(this.jsonHandlingService.toJson(this.buildViewPreferencesConfigurationEntity(model.getViewPreferences())));
             default -> throw new InternalError("unknown type: " + data.getType());
         }
         data.setUpdatedAt(Instant.now());
@@ -304,6 +317,20 @@ public class TenantConfigurationServiceImpl implements TenantConfigurationServic
         return data;
     }
 
+    private @NotNull PluginTenantConfigurationEntity buildPluginConfigEntity (PluginTenantConfigurationPersist persist, PluginTenantConfigurationEntity oldValue) throws InvalidApplicationException {
+        PluginTenantConfigurationEntity data = new PluginTenantConfigurationEntity();
+        if (persist == null) return data;
+
+        if (!this.conventionService.isListNullOrEmpty(persist.getPluginConfigurations())) {
+            data.setPluginConfigurations(new ArrayList<>());
+            for (PluginConfigurationPersist pluginConfigurationPersist : persist.getPluginConfigurations()) {
+                data.getPluginConfigurations().add(this.pluginConfigurationService.buildPluginConfigurationEntity(pluginConfigurationPersist, oldValue != null ? oldValue.getPluginConfigurations(): null));
+            }
+        }
+
+        return data;
+    }
+
     private @NotNull FeaturedEntitiesEntity buildFeaturedEntitiesEntity(FeaturedEntitiesPersist persist) {
         FeaturedEntitiesEntity data = new FeaturedEntitiesEntity();
         if (persist == null) return data;
@@ -348,6 +375,35 @@ public class TenantConfigurationServiceImpl implements TenantConfigurationServic
         if (persist == null) return data;
 
         data.setGroupId(persist.getGroupId());
+        return data;
+    }
+
+    private @NotNull ViewPreferencesConfigurationEntity buildViewPreferencesConfigurationEntity(ViewPreferencesConfigurationPersist persist) {
+        ViewPreferencesConfigurationEntity data = new ViewPreferencesConfigurationEntity();
+        if (persist == null) return data;
+
+        if (!this.conventionService.isListNullOrEmpty(persist.getPlanPreferences())) {
+            data.setPlanPreferences(new ArrayList<>());
+            for (ViewPreferencePersist planPreferencePersist : persist.getPlanPreferences()) {
+                data.getPlanPreferences().add(this.buildViewPreferenceEntity(planPreferencePersist));
+            }
+        }
+        if (!this.conventionService.isListNullOrEmpty(persist.getDescriptionPreferences())) {
+            data.setDescriptionPreferences(new ArrayList<>());
+            for (ViewPreferencePersist descriptionPreferencePersist : persist.getDescriptionPreferences()) {
+                data.getDescriptionPreferences().add(this.buildViewPreferenceEntity(descriptionPreferencePersist));
+            }
+        }
+        return data;
+    }
+
+    private @NotNull ViewPreferenceEntity buildViewPreferenceEntity(ViewPreferencePersist persist) {
+        ViewPreferenceEntity data = new ViewPreferenceEntity();
+        if (persist == null) return data;
+
+        data.setReferenceTypeId(persist.getReferenceTypeId());
+        data.setOrdinal(persist.getOrdinal());
+
         return data;
     }
 

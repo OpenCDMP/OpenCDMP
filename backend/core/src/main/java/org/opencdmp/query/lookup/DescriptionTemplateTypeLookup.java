@@ -1,24 +1,31 @@
 package org.opencdmp.query.lookup;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import org.opencdmp.commons.enums.DescriptionTemplateTypeStatus;
 import org.opencdmp.commons.enums.IsActive;
 import org.opencdmp.query.DescriptionTemplateTypeQuery;
 import gr.cite.tools.data.query.Lookup;
 import gr.cite.tools.data.query.QueryFactory;
+import org.opencdmp.query.lookup.swagger.SwaggerHelpers;
 
 import java.util.List;
 import java.util.UUID;
 
 public class DescriptionTemplateTypeLookup extends Lookup {
 
+    @Schema(description = SwaggerHelpers.DescriptionTemplateType.like_description)
     private String like;
 
+    @Schema(description = SwaggerHelpers.DescriptionTemplateType.isActive_description)
     private List<IsActive> isActive;
 
+    @Schema(description = SwaggerHelpers.DescriptionTemplateType.statuses_description)
     private List<DescriptionTemplateTypeStatus> statuses;
 
+    @Schema(description = SwaggerHelpers.DescriptionTemplateType.ids_description)
     private List<UUID> ids;
 
+    @Schema(description = SwaggerHelpers.DescriptionTemplateType.excludeIds_description)
     private List<UUID> excludedIds;
 
     public String getLike() {

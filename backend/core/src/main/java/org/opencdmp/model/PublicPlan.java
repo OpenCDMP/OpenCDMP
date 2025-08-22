@@ -1,6 +1,7 @@
 package org.opencdmp.model;
 
 import org.opencdmp.commons.enums.PlanAccessType;
+import org.opencdmp.model.plan.PlanProperties;
 
 import java.time.Instant;
 import java.util.List;
@@ -40,6 +41,15 @@ public class PublicPlan {
 
     private UUID groupId;
     public static final String _groupId = "groupId";
+
+    private PublicPlanBlueprint blueprint;
+    public static final String _blueprint = "blueprint";
+
+    private PublicPlanProperties properties;
+    public static final String _properties = "properties";
+
+    private String language;
+    public static final String _language = "language";
 
     private PlanAccessType accessType;
     public static final String _accessType = "accessType";
@@ -131,6 +141,30 @@ public class PublicPlan {
 
     public void setGroupId(UUID groupId) {
         this.groupId = groupId;
+    }
+
+    public PublicPlanBlueprint getBlueprint() {
+        return blueprint;
+    }
+
+    public void setBlueprint(PublicPlanBlueprint blueprint) {
+        this.blueprint = blueprint;
+    }
+
+    public PublicPlanProperties getProperties() {
+        return properties;
+    }
+
+    public void setProperties(PublicPlanProperties properties) {
+        this.properties = properties;
+    }
+
+    public String getLanguage() {
+        return language;
+    }
+
+    public void setLanguage(String language) {
+        this.language = language;
     }
 
     public PlanAccessType getAccessType() {

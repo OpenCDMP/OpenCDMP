@@ -9,7 +9,6 @@ import { HybridListingModule } from "@common/modules/hybrid-listing/hybrid-listi
 import { TextFilterModule } from "@common/modules/text-filter/text-filter.module";
 import { UserSettingsModule } from "@common/modules/user-settings/user-settings.module";
 import { CommonUiModule } from '@common/ui/common-ui.module';
-import { NgxDropzoneModule } from "ngx-dropzone";
 import { DescriptionTemplateRoutingModule } from './description-template.routing';
 import { DescriptionTemplateEditorFieldSetComponent } from './editor/components/field-set/description-template-editor-field-set.component';
 import { DescriptionTemplateEditorDefaultValueComponent } from './editor/components/default-value/description-template-editor-default-value.component';
@@ -35,6 +34,8 @@ import { FinalPreviewComponent } from './editor/components/final-preview/final-p
 import { DragulaModule } from 'ng2-dragula';
 import { TransitionGroupModule } from '@app/ui/transition-group/transition-group.module';
 import { FormFocusDirective } from '@common/forms/form-focus.directive';
+import { FileUploadComponent } from '@app/library/file-uploader/file-uploader.component';
+import { PluginEditorModule } from '@app/ui/plugin/plugin-editor.module';
 import { CustomMatStepperHeaderComponent } from '@app/library/custom-mat-stepper-header/custom-mat-stepper-header.component';
 
 @NgModule({
@@ -43,7 +44,6 @@ import { CustomMatStepperHeaderComponent } from '@app/library/custom-mat-stepper
 		CommonFormsModule,
 		ConfirmationDialogModule,
 		DescriptionTemplateRoutingModule,
-		NgxDropzoneModule,
 		DragDropModule,
 		AutoCompleteModule,
 		HybridListingModule,
@@ -55,6 +55,8 @@ import { CustomMatStepperHeaderComponent } from '@app/library/custom-mat-stepper
 		TransitionGroupModule,
 		DragulaModule.forRoot(),
         FormFocusDirective,
+        FileUploadComponent,
+		PluginEditorModule,
         CustomMatStepperHeaderComponent
 	],
 	declarations: [

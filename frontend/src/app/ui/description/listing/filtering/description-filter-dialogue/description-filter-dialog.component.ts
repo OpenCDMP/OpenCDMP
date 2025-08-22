@@ -52,7 +52,7 @@ export class DescriptionFilterDialogComponent implements OnInit {
 			isActive: lookup.isActive?.[0] == IsActive.Active,
 			viewOnlyTenant: lookup.tenantSubQuery?.codes?.length > 0,
 			role: lookup.planSubQuery?.planUserSubQuery?.userRoles?.[0] ?? null,
-			descriptionTemplates: lookup.descriptionTemplateSubQuery?.ids ?? [],
+			descriptionTemplates: lookup.descriptionTemplateSubQuery?.groupIds ?? [],
 			associatedPlanIds: lookup.planSubQuery?.ids ?? [],
 			tags: lookup.descriptionTagSubQuery?.tagIds ?? [],
 			references: references ?? []

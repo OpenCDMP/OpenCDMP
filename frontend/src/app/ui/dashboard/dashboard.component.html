@@ -70,25 +70,31 @@
                                 [selectedIndex]="initTab"
                             >
 								<mat-tab #recentsTab [attr.aria-label]="'DASHBOARD.ALL' | translate" label="{{'DASHBOARD.ALL' | translate}}">
-									<app-recent-edited-activity 
+									<app-recent-edited-activity
+										[orderedPlanPreferencesList] = orderedPlanPreferencesList
+										[orderedDescriptionPreferencesList] = orderedDescriptionPreferencesList
                                         [isActive]="recentsTab?.isActive"
                                         [type]="ActivityListingType.Recent"
                                     ></app-recent-edited-activity>
 								</mat-tab>
 								<mat-tab #draftsTab [attr.aria-label]="'DASHBOARD.DRAFTS' | translate" label="{{'DASHBOARD.DRAFTS' | translate}}">
 									<app-recent-edited-activity 
+										[orderedPlanPreferencesList] = orderedPlanPreferencesList
                                         [isActive]="draftsTab?.isActive"
                                         [type]="ActivityListingType.Drafts" 
                                     ></app-recent-edited-activity>
 								</mat-tab>
 								<mat-tab #plansTab [attr.aria-label]="'DASHBOARD.PLANS' | translate" label="{{'DASHBOARD.PLANS' | translate}}">
-									<app-recent-edited-activity 
+									<app-recent-edited-activity
+										[orderedPlanPreferencesList] = orderedPlanPreferencesList
+										[orderedDescriptionPreferencesList] = orderedDescriptionPreferencesList
                                         [isActive]="plansTab?.isActive"
                                         [type]="ActivityListingType.Plans" 
                                     ></app-recent-edited-activity>
 								</mat-tab>
 								<mat-tab #descriptionsTab [attr.aria-label]="'DASHBOARD.DESCRIPTIONS' | translate" label="{{'DASHBOARD.DESCRIPTIONS' | translate}}">
-									<app-recent-edited-activity 
+									<app-recent-edited-activity
+										[orderedDescriptionPreferencesList] = orderedDescriptionPreferencesList 
                                         [isActive]="descriptionsTab?.isActive"
                                         [type]="ActivityListingType.Descriptions" 
                                         [hasPlans]="hasPlans()" 

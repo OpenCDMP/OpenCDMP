@@ -83,4 +83,22 @@ else
    find '/usr/share/nginx/html/assets/config' -name 'config.json' -exec sed -i -e 's,${LOGGING_ENABLED},false,g' {} \;
 fi
 
+if [[ ! -z "${PRIMARY_COLOR}" ]]; then
+	find '/usr/share/nginx/html/assets/config' -name 'config.json' -exec sed -i -e 's,${PRIMARY_COLOR},'"$PRIMARY_COLOR"',g' {} \;
+else
+   find '/usr/share/nginx/html/assets/config' -name 'config.json' -exec sed -i -e 's,${PRIMARY_COLOR},,g' {} \;
+fi
+
+if [[ ! -z "${CSS_OVERRIDES}" ]]; then
+	find '/usr/share/nginx/html/assets/config' -name 'config.json' -exec sed -i -e 's,${CSS_OVERRIDES},'"$CSS_OVERRIDES"',g' {} \;
+else
+   find '/usr/share/nginx/html/assets/config' -name 'config.json' -exec sed -i -e 's,${CSS_OVERRIDES},,g' {} \;
+fi
+
+if [[ ! -z "${USERWAY_ID}" ]]; then
+	find '/usr/share/nginx/html/assets/config' -name 'config.json' -exec sed -i -e 's,${USERWAY_ID},'"$USERWAY_ID"',g' {} \;
+else
+   find '/usr/share/nginx/html/assets/config' -name 'config.json' -exec sed -i -e 's,${USERWAY_ID},,g' {} \;
+fi
+
 nginx -g "daemon off;"

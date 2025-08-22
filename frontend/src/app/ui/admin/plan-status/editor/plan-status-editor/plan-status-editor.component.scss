@@ -2,43 +2,6 @@
 	margin: 0;
 }
 
-.attach-btn {
-	top: -20px;
-}
-
-.drop-file {
-	background-color: #fafafa;
-	border: 1px dashed #d1d1d1;
-	border-radius: 4px;
-	height: 98px;
-	margin-top: 0.5rem;
-
-	&.drop-file-error {
-		border: 1px dashed #f44336;
-	}
-}
-
-.file-preview {
-	height: auto !important;
-	width: auto !important;
-	max-width: 500px !important;
-	min-height: 1rem !important;
-
-	background-color: #e0e0e0 !important;
-	background-image: none !important;
-	color: rgba(0, 0, 0, 0.87) !important;
-	font-weight: 500 !important;
-	border-radius: 24px !important;
-	line-height: 1.25 !important;
-}
-
-.file-label {
-	white-space: nowrap;
-	overflow: hidden;
-	text-overflow: ellipsis;
-	font-size: var(--sys-title-small-size) !important;
-}
-
 ::ng-deep .mat-mdc-form-field-icon-suffix {
 	margin-right: 0.2em;
   }

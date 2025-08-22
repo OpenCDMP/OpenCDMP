@@ -1,6 +1,7 @@
 package org.opencdmp.model.deleter;
 
 import org.opencdmp.commons.enums.IsActive;
+import org.opencdmp.commons.enums.UsageLimitTargetMetric;
 import org.opencdmp.data.PlanDescriptionTemplateEntity;
 import org.opencdmp.data.TenantEntityManager;
 import org.opencdmp.query.PlanDescriptionTemplateQuery;
@@ -9,6 +10,7 @@ import gr.cite.tools.data.deleter.DeleterFactory;
 import gr.cite.tools.data.query.QueryFactory;
 import gr.cite.tools.logging.LoggerService;
 import gr.cite.tools.logging.MapLogEntry;
+import org.opencdmp.service.accounting.AccountingService;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
@@ -32,15 +34,18 @@ public class PlanDescriptionTemplateDeleter implements Deleter {
 
     protected final DeleterFactory deleterFactory;
 
+    private final AccountingService accountingService;
+
     @Autowired
     public PlanDescriptionTemplateDeleter(
             TenantEntityManager entityManager,
             QueryFactory queryFactory,
-            DeleterFactory deleterFactory
+            DeleterFactory deleterFactory, AccountingService accountingService
     ) {
         this.entityManager = entityManager;
         this.queryFactory = queryFactory;
         this.deleterFactory = deleterFactory;
+        this.accountingService = accountingService;
     }
 
     public void deleteAndSaveByIds(List<UUID> ids) throws InvalidApplicationException {
@@ -70,6 +75,7 @@ public class PlanDescriptionTemplateDeleter implements Deleter {
             item.setIsActive(IsActive.Inactive);
             this.entityManager.merge(item);
             logger.trace("updated item");
+            this.accountingService.decrease(UsageLimitTargetMetric.DESCRIPTION_TEMPLATE_USED_COUNT.getValue());
         }
     }
 

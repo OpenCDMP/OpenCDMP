@@ -1,0 +1,70 @@
+<div class=file-uploader-container>
+    <mat-form-field appearance="fill" class="w-100 dropzone-form-field" [class.error]="storageFileIdControl()?.touched && storageFileIdControl()?.invalid">
+        <mat-label *ngIf="label">{{label()}}</mat-label>
+        <ngx-mat-dropzone class="dropzone">
+            <input type="file" class="file-input" fileInput [formControl]="fileCtrl" [accept]="accept()" [multiple]="multiple"  [id]="id()"/>
+            @if (fileCtrl.value &&  (fileCtrl.disabled || fileCtrl.valid)) {
+                <mat-chip-row class="d-flex align-items-center selected-file" (removed)="remove()" (click)="$event.stopPropagation(); download()" [disabled]="fileCtrl.disabled">
+                    {{ fileCtrl.value?.name }}
+                    <button matChipRemove  class="remove-badge" role="button" type="reset" [attr.aria-label]="'COMMONS.ACTIONS.REMOVE' | translate">
+                        <mat-icon aria-hidden>cancel</mat-icon>
+                    </button>
+                </mat-chip-row>
+            }
+        </ngx-mat-dropzone>
+        @if(fileCtrl.hasError('accept')){
+            <mat-error class="form-error">{{'FILE-UPLOADER.ERRORS.INVALID-FILE-TYPE' | translate}} {{accept()}}</mat-error>
+        }
+        @if(fileCtrl.hasError('maxSize')){
+            <mat-error class="form-error">{{'FILE-UPLOADER.ERRORS.MAX-SIZE' | translate}} {{maxFileSizeInMB}}MB</mat-error>
+        }
+        @if(fileCtrl.hasError('required')){
+            <mat-error class="form-error">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
+        }
+    </mat-form-field>
+    <div class="actions d-flex justify-content-center">
+        @if(storageFileIdControl() && fileCtrl.value && (fileCtrl.disabled || fileCtrl.valid)){
+            <button mat-stroked-button color="primary" (click)="download()" type="button" class="download-btn">
+                <mat-icon class="mr-2" aria-hidden>download</mat-icon>
+                <span>{{ "FILE-UPLOADER.ACTIONS.DOWNLOAD" | translate }}</span>
+            </button>
+        }@else {
+            <button mat-flat-button color="primary" (click)="openFilePicker()" type="button" [disabled]="fileCtrl.disabled">
+                <mat-icon class="mr-2" aria-hidden>upload</mat-icon>
+                <span>{{placeholder() ?? ("FILE-UPLOADER.ACTIONS.UPLOAD" | translate)}}{{required() ? ' *' : ''}}</span>
+            </button>
+        }
+    </div>
+</div>
+
+
+<!-- 
+@if(errors.has('invalid')){
+    <mat-error>{{'FILE-UPLOADER.ERRORS.INVALID-FILE-TYPE' | translate}}</mat-error>
+}
+<ngx-dropzone #drop 
+    class="drop-file" 
+    [class.drop-file-error]="errors.size" 
+    (change)="fileChangeEvent($event)" 
+    [accept]="accept()" 
+    [multiple]="multiple" 
+    [disabled]="form() && form()?.disabled"
+    tabindex="-1"
+>
+    <ngx-dropzone-preview class="file-preview" [removable]="removable()" *ngIf="!hidePreview() && fileNameDisplay()" (removed)="remove()" (click)="$event.stopPropagation(); allowDownload() ? download() : null">
+        <ngx-dropzone-label class="file-label">{{ fileNameDisplay() }}</ngx-dropzone-label>
+    </ngx-dropzone-preview>
+</ngx-dropzone>
+<div class="actions d-flex justify-content-center" [id]="id">
+    @if(allowDownload() && fileNameDisplay()){
+        <button mat-stroked-button color="primary" (click)="download()" type="button" class="download-btn" tabindex="0">
+            <mat-icon class="mr-2" aria-hidden>download</mat-icon>
+            <span>{{ "FILE-UPLOADER.ACTIONS.DOWNLOAD" | translate }}</span>
+        </button>
+    }@else {
+        <button mat-flat-button color="primary" (click)="drop.showFileSelector()" type="button" [disabled]="form() && form().disabled" tabindex="0">
+            <mat-icon class="mr-2" aria-hidden>upload</mat-icon>
+            <span>{{placeholder() ?? ("FILE-UPLOADER.ACTIONS.UPLOAD" | translate)}}</span>
+        </button>
+    }
+</div> -->

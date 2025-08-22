@@ -32,6 +32,9 @@ public class PlanUser {
     private UUID sectionId;
     public static final String _sectionId = "sectionId";
 
+    private Integer ordinal;
+    public static final String _ordinal = "ordinal";
+
     private Instant createdAt;
 
     public static final String _createdAt = "createdAt";
@@ -84,6 +87,14 @@ public class PlanUser {
 
     public void setSectionId(UUID sectionId) {
         this.sectionId = sectionId;
+    }
+
+    public Integer getOrdinal() {
+        return ordinal;
+    }
+
+    public void setOrdinal(Integer ordinal) {
+        this.ordinal = ordinal;
     }
 
     public Instant getCreatedAt() {

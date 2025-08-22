@@ -6,7 +6,7 @@ import { Observable, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { ConfigurationService } from '../configuration/configuration.service';
 import { BaseHttpV2Service } from '../http/base-http-v2.service';
-import { RepositoryFileFormat } from '@app/core/model/file/file-format.model';
+import { FileTransformerConfiguration } from '@app/core/model/file/file-transformer-configuration.model';
 
 @Injectable()
 export class FileTransformerHttpService extends BaseService {
@@ -20,9 +20,9 @@ export class FileTransformerHttpService extends BaseService {
 
 	private get apiBase(): string { return `${this.configurationService.server}file-transformer`; }
 
-	getAvailableConfigurations(): Observable<RepositoryFileFormat[]> {
+	getAvailableConfigurations(): Observable<FileTransformerConfiguration[]> {
 		const url = `${this.apiBase}/available`;
-		return this.http.get<RepositoryFileFormat[]>(url).pipe(catchError((error: any) => throwError(error)));
+		return this.http.get<FileTransformerConfiguration[]>(url).pipe(catchError((error: any) => throwError(error)));
 	}
 
 	exportPlan(planId: Guid, repositoryId: string, format: string): Observable<any> {

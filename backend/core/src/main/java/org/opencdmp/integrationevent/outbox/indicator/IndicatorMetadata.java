@@ -12,15 +12,7 @@ public class IndicatorMetadata {
 
     private String code;
 
-//    private List<SemanticsLabelEvent> semanticLabels;
-//
-//    private List<AltTextPersist> altLabels;
-//
-//    private List<AltTextPersist> altDescriptions;
-
     private Instant date;
-
-//    private List<CoveragePersist> coverage;
 
     public String getLabel() {
         return label;
@@ -54,30 +46,6 @@ public class IndicatorMetadata {
         this.code = code;
     }
 
-//    public List<SemanticsLabelPersist> getSemanticLabels() {
-//        return semanticLabels;
-//    }
-//
-//    public void setSemanticLabels(List<SemanticsLabelPersist> semanticLabels) {
-//        this.semanticLabels = semanticLabels;
-//    }
-//
-//    public List<AltTextPersist> getAltLabels() {
-//        return altLabels;
-//    }
-//
-//    public void setAltLabels(List<AltTextPersist> altLabels) {
-//        this.altLabels = altLabels;
-//    }
-//
-//    public List<AltTextPersist> getAltDescriptions() {
-//        return altDescriptions;
-//    }
-//
-//    public void setAltDescriptions(List<AltTextPersist> altDescriptions) {
-//        this.altDescriptions = altDescriptions;
-//    }
-
     public Instant getDate() {
         return date;
     }
@@ -86,11 +54,4 @@ public class IndicatorMetadata {
         this.date = date;
     }
 
-//    public List<CoveragePersist> getCoverage() {
-//        return coverage;
-//    }
-//
-//    public void setCoverage(List<CoveragePersist> coverage) {
-//        this.coverage = coverage;
-//    }
 }

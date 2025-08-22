@@ -1,6 +1,6 @@
 
 import { CdkStep, StepperSelectionEvent } from '@angular/cdk/stepper';
-import { Component, OnInit, QueryList, ViewChild } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit, QueryList, ViewChild } from '@angular/core';
 import { FormArray, FormControl, FormGroup, UntypedFormArray, UntypedFormGroup } from '@angular/forms';
 import { MatDialog } from '@angular/material/dialog';
 import { MatStepper } from '@angular/material/stepper';
@@ -45,6 +45,15 @@ import { RouterUtilsService } from '@app/core/services/router/router-utils.servi
 import { DescriptionFormService } from '@app/ui/description/editor/description-form/components/services/description-form.service';
 import { ReferenceType } from '@app/core/model/reference-type/reference-type';
 import { ReferenceTypeService } from '@app/core/services/reference-type/reference-type.service';
+import { StorageFileService } from '@app/core/services/storage-file/storage-file.service';
+import { FileUtils } from '@app/core/services/utilities/file-utils.service';
+import { StorageFile } from '@app/core/model/storage-file/storage-file';
+import { PluginConfigurationService } from '@app/core/services/plugin/plugin-configuration.service';
+import { PluginType } from '@app/core/common/enum/plugin-type';
+import { PluginEntityType } from '@app/core/common/enum/plugin-entity-type';
+import { toObservable } from '@angular/core/rxjs-interop';
+import { Observable } from 'rxjs';
+import { PluginRepositoryConfiguration } from '@app/core/model/plugin-configuration/plugin-configuration';
 import { GENERAL_ANIMATIONS, STEPPER_ANIMATIONS } from '@app/library/animations/animations';
 
 
@@ -88,6 +97,10 @@ export class DescriptionTemplateEditorComponent extends BaseEditor<DescriptionTe
 	previewPropertiesFormGroup: UntypedFormGroup = null;
 	finalPreviewDescriptionTemplatePersist: DescriptionTemplatePersist;
 	availableReferenceTypes: ReferenceType[] = [];
+
+	initFile: StorageFile = null;
+    fileMap = new Map<Guid, StorageFile>([]);
+    pluginsInitialized: Observable<PluginRepositoryConfiguration[]>;
 
 	get generalInfoStepperLabel(): string {
 		return '1 ' + this.language.instant('DESCRIPTION-TEMPLATE-EDITOR.STEPS.GENERAL-INFO.TITLE');
@@ -157,6 +170,11 @@ export class DescriptionTemplateEditorComponent extends BaseEditor<DescriptionTe
 		private analyticsService: AnalyticsService,
 		private routerUtils: RouterUtilsService,
 		private referenceTypeService: ReferenceTypeService,
+		private storageFileService: StorageFileService,
+		private cdr: ChangeDetectorRef,
+		private fileUtils: FileUtils,
+		private pluginConfigurationService: PluginConfigurationService
+		
 	) {
 		const descriptionLabel: string = route.snapshot.data['entity']?.label;
 		if (descriptionLabel) {
@@ -165,12 +183,18 @@ export class DescriptionTemplateEditorComponent extends BaseEditor<DescriptionTe
 			titleService.setTitle('DESCRIPTION-TEMPLATE-EDITOR.TITLE-EDIT-DESCRIPTION-TEMPLATE');
 		}
 		super(dialog, language, formService, router, uiNotificationService, httpErrorHandlingService, filterService, route, queryParamsService, lockService, authService, configurationService);
-	}
+        this.pluginsInitialized = toObservable(this.pluginConfigurationService.pluginRepositoryConfiguration);
+    }
 
 	ngOnInit(): void {
 		this.analyticsService.trackPageView(AnalyticsService.DescriptionTemplateEditor);
 		this.initModelFlags(this.route.snapshot.data['action']);
-		super.ngOnInit();
+        this.pluginsInitialized.pipe(takeUntil(this._destroyed))
+        .subscribe((initialized) => {
+            if(initialized){
+                super.ngOnInit();
+            }
+        })
 		this.singleAutocompleteDescriptionTemplateTypeConfiguration = this.descriptionTemplateTypeService.getSingleAutocompleteConfiguration([DescriptionTemplateTypeStatus.Finalized]);
 		this.referenceTypeService.query(ReferenceTypeService.DefaultReferenceTypeLookup()).subscribe(referenceTypes => this.availableReferenceTypes = referenceTypes.items as ReferenceType[]);	}
 
@@ -200,14 +224,39 @@ export class DescriptionTemplateEditorComponent extends BaseEditor<DescriptionTe
 
 	prepareForm(data: DescriptionTemplate) {
 		try {
+			let dataCopy = data ? JSON.parse(JSON.stringify(data)) : null;
 
-			const dataCopy = data ? JSON.parse(JSON.stringify(data)) : null;
-			if(dataCopy && this.isClone) {
-					dataCopy.belongsToCurrentTenant = true;
+			this.fileMap.clear();
+			if (dataCopy?.definition?.pluginConfigurations) {
+                dataCopy.definition.pluginConfigurations?.forEach((config) => {
+					config.fields?.forEach((field) => {
+						if(field.fileValue){
+							this.fileMap.set(field.fileValue.id, field.fileValue)
+						}
+					})
+				})
+				
+			} else {
+                const pluginConfigurations = this.pluginConfigurationService.getAvailablePluginsFor(PluginType.FileTransformer, [PluginEntityType.Description]);
+				if (dataCopy == null) {
+					dataCopy = {
+						...dataCopy,
+						status: DescriptionTemplateStatus.Draft,
+						definition : {
+							pluginConfigurations: pluginConfigurations
+						}
+					}
+				} else if (!dataCopy?.definition?.pluginConfigurations){
+					dataCopy.definition.pluginConfigurations = pluginConfigurations;
+				}
 			}
 
-			this.editorModel = dataCopy ? new DescriptionTemplateEditorModel().fromModel(dataCopy) : new DescriptionTemplateEditorModel();
-			this.item = data;
+			if(dataCopy && this.isClone) {
+				dataCopy.belongsToCurrentTenant = true;
+			}
+
+			this.editorModel = dataCopy ? new DescriptionTemplateEditorModel().fromModel(dataCopy, this.pluginConfigurationService.getPluginRepositoryConfigurationFor(PluginType.FileTransformer, [PluginEntityType.Description])) : new DescriptionTemplateEditorModel();
+			this.item = dataCopy;
 			// Add user info to Map, to present them.
 			(this.item?.users ?? []).forEach(obj => { this.usersMap.set(obj.user.id, obj.user); });
 			this.isDeleted = data?.isActive === IsActive.Inactive;
@@ -1208,8 +1257,8 @@ export class DescriptionTemplateEditorComponent extends BaseEditor<DescriptionTe
 	//
 	scrollOnTop() {
 		try {
-			const topPage = document.getElementById('main-content');
-			topPage.scrollIntoView({ behavior: 'smooth' });
+			const topPage = document.getElementById(this.stepper.selectedIndex + '-step-top');
+			topPage?.scrollIntoView({ behavior: 'smooth' });
 		} catch (e) {
 			console.log(e);
 			console.log('coulnd not scroll');

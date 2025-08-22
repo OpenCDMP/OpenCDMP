@@ -5,6 +5,7 @@ import gr.cite.tools.validation.specification.Specification;
 import org.opencdmp.commons.validation.BaseValidator;
 import org.opencdmp.convention.ConventionService;
 import org.opencdmp.errorcode.ErrorThesaurusProperties;
+import org.opencdmp.model.persist.pluginconfiguration.PluginConfigurationPersist;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.Scope;
@@ -13,12 +14,17 @@ import org.springframework.stereotype.Component;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.UUID;
 
 public class DefinitionPersist {
 
 	private List<SectionPersist> sections;
 
 	public static final String _sections = "sections";
+
+	private List<PluginConfigurationPersist> pluginConfigurations;
+
+	public static final String _pluginConfigurations = "pluginConfigurations";
 
 	public List<SectionPersist> getSections() {
 		return this.sections;
@@ -30,6 +36,13 @@ public class DefinitionPersist {
 
 	public static final String _hasAnyDescriptionTemplatesError = "hasAnyDescriptionTemplates";
 
+	public List<PluginConfigurationPersist> getPluginConfigurations() {
+		return pluginConfigurations;
+	}
+
+	public void setPluginConfigurations(List<PluginConfigurationPersist> pluginConfigurations) {
+		this.pluginConfigurations = pluginConfigurations;
+	}
 
 	@Component(DefinitionPersistValidator.ValidatorName)
 	@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
@@ -62,7 +75,12 @@ public class DefinitionPersist {
 							.iff(() -> !this.isListNullOrEmpty(item.getSections()))
 							.on(DefinitionPersist._sections)
 							.over(item.getSections())
-							.using((itm) -> this.validatorFactory.validator(SectionPersist.SectionPersistValidator.class))
+							.using((itm) -> this.validatorFactory.validator(SectionPersist.SectionPersistValidator.class)),
+					this.navSpec()
+							.iff(() -> !this.isListNullOrEmpty(item.getPluginConfigurations()))
+							.on(DefinitionPersist._pluginConfigurations)
+							.over(item.getPluginConfigurations())
+							.using((itm) -> this.validatorFactory.validator(PluginConfigurationPersist.PluginConfigurationPersistValidator.class))
 					//TODO: We need to add a validation that check if hasTemplates boolean is true in at least one section.
 //					this.spec()
 //							.must(() -> !this.isListNullOrEmpty(item.getSections()) && item.sections.stream().anyMatch(x -> x.getHasTemplates()))

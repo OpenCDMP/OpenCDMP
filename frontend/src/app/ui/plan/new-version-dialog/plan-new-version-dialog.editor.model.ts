@@ -20,12 +20,15 @@ export class PlanNewVersionDialogEditorModel implements NewVersionPlanPersist {
 
 	constructor() { }
 
-	public fromModel(item: Plan, blueprint: PlanBlueprint, label?: string, description?: string): PlanNewVersionDialogEditorModel {
+	public fromModel(item: Plan, blueprint: PlanBlueprint, label?: string, description?: string, isBlueprintDeleted?: boolean): PlanNewVersionDialogEditorModel {
 		if (item) {
 			this.id = item.id;
 			this.label = label != undefined ? label : item.label;
 			this.description = description != undefined ? description : item.description;
-			this.blueprintId = blueprint?.id != undefined ? blueprint.id : item.blueprint.id;
+			
+			if (isBlueprintDeleted) this.blueprintId = null;
+			else this.blueprintId = blueprint?.id != undefined ? blueprint.id : item.blueprint.id;
+				
 			this.hash= item.hash;
 
 		

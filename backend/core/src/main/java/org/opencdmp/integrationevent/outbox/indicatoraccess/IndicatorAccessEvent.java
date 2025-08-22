@@ -25,6 +25,8 @@ public class IndicatorAccessEvent extends TrackedEvent {
 	private IndicatorAccessConfig config;
 	public static final String _config = "config";
 
+	private boolean toDelete;
+
 	public UUID getUserId() {
 		return userId;
 	}
@@ -47,6 +49,14 @@ public class IndicatorAccessEvent extends TrackedEvent {
 
 	public void setConfig(IndicatorAccessConfig config) {
 		this.config = config;
+	}
+
+	public boolean isToDelete() {
+		return toDelete;
+	}
+
+	public void setToDelete(boolean toDelete) {
+		this.toDelete = toDelete;
 	}
 
 	@Component(IndicatorAccessEventValidator.ValidatorName)

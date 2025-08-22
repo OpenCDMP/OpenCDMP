@@ -3,7 +3,7 @@ package org.opencdmp.service.filetransformer;
 import jakarta.xml.bind.JAXBException;
 import org.opencdmp.commonmodels.models.plan.PlanModel;
 import org.opencdmp.filetransformerbase.models.misc.PreprocessingPlanModel;
-import org.opencdmp.model.file.RepositoryFileFormat;
+import org.opencdmp.model.file.FileTransformerConfiguration;
 import org.opencdmp.model.persist.PlanCommonModelConfig;
 
 import javax.crypto.BadPaddingException;
@@ -18,7 +18,7 @@ import java.util.List;
 import java.util.UUID;
 
 public interface FileTransformerService {
-	List<RepositoryFileFormat> getAvailableExportFileFormats() throws InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, InvalidApplicationException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException;
+	List<FileTransformerConfiguration> getAvailableExportFileFormats() throws InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, InvalidApplicationException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException;
 
 	org.opencdmp.model.file.FileEnvelope exportPlan(UUID planId, String repositoryId, String format, boolean isPublic) throws InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, InvalidApplicationException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException;
 

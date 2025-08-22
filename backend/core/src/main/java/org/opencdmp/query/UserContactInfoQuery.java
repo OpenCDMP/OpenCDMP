@@ -235,10 +235,13 @@ public class UserContactInfoQuery extends QueryBase<UserContactInfoEntity> {
             predicates.add(notInClause.not());
         }
         if (this.values != null) {
-            CriteriaBuilder.In<String> inClause = queryContext.CriteriaBuilder.in(queryContext.Root.get(UserContactInfoEntity._value));
-            for (String item : this.values)
-                inClause.value(item);
-            predicates.add(inClause);
+            for (String item : this.values) {
+                Predicate predicate = queryContext.CriteriaBuilder.equal(
+                        queryContext.CriteriaBuilder.lower(queryContext.Root.get(UserContactInfoEntity._value)),
+                        item.toLowerCase()
+                );
+                predicates.add(predicate);
+            }
         }
         if (!predicates.isEmpty()) {
             Predicate[] predicatesArray = predicates.toArray(new Predicate[0]);

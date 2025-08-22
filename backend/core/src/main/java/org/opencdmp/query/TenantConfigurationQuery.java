@@ -235,6 +235,10 @@ public class TenantConfigurationQuery extends QueryBase<TenantConfigurationEntit
         else if (item.match(TenantConfiguration._featuredEntities)) return TenantConfigurationEntity._value;
         else if (item.prefix(TenantConfiguration._defaultPlanBlueprint)) return TenantConfigurationEntity._value;
         else if (item.match(TenantConfiguration._defaultPlanBlueprint)) return TenantConfigurationEntity._value;
+        else if (item.prefix(TenantConfiguration._pluginConfiguration)) return TenantConfigurationEntity._value;
+        else if (item.match(TenantConfiguration._pluginConfiguration)) return TenantConfigurationEntity._value;
+        else if (item.prefix(TenantConfiguration._viewPreferences)) return TenantConfigurationEntity._value;
+        else if (item.match(TenantConfiguration._viewPreferences)) return TenantConfigurationEntity._value;
         else if (item.match(TenantConfiguration._createdAt)) return TenantConfigurationEntity._createdAt;
         else if (item.match(TenantConfiguration._updatedAt)) return TenantConfigurationEntity._updatedAt;
         else if (item.match(TenantConfiguration._isActive)) return TenantConfigurationEntity._isActive;

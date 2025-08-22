@@ -152,6 +152,7 @@ public class AuditableAction {
     public static final EventId Deposit_Deposit = new EventId(18002, "Deposit_Deposit");
     public static final EventId Deposit_GetLogo = new EventId(18003, "Deposit_GetLogo");
     public static final EventId Deposit_GetRepository = new EventId(18004, "Deposit_GetRepository");
+    public static final EventId Deposit_GetAuthMethods = new EventId(18005, "Deposit_GetAuthMethods");
 
     public static final EventId Tag_Query = new EventId(19000, "Tag_Query");
     public static final EventId Tag_Lookup = new EventId(19001, "Tag_Lookup");
@@ -197,6 +198,10 @@ public class AuditableAction {
     public static final EventId Maintenance_SendDescriptionStatusAccountingEntriesEvents = new EventId(230023, "Maintenance_SendDescriptionStatusAccountingEntriesEvents");
     public static final EventId Maintenance_SendEvaluationPlanAccountingEntriesEvents = new EventId(230024, "Maintenance_SendEvaluationPlanAccountingEntriesEvents");
     public static final EventId Maintenance_SendEvaluationDescriptionAccountingEntriesEvents = new EventId(230025, "Maintenance_SendEvaluationDescriptionAccountingEntriesEvents");
+    public static final EventId Maintenance_SendIndicatorPointTenantEntryEvents = new EventId(230026, "Maintenance_SendIndicatorPointTenantEntryEvents");
+    public static final EventId Maintenance_SetPlanBlueprintCanEditDescriptionTemplates = new EventId(230027, "Maintenance_SetPlanBlueprintCanEditDescriptionTemplates");
+    public static final EventId Maintenance_SendReferenceEntriesEvents = new EventId(230028, "Maintenance_SendReferenceEntriesEvents");
+    public static final EventId Maintenance_SendLanguageEntriesEvents = new EventId(230029, "Maintenance_SendLanguageEntriesEvents");
 
     public static final EventId Principal_Lookup = new EventId(240000, "Principal_Lookup");
     public static final EventId Principal_MyTenants = new EventId(240001, "Principal_MyTenants");

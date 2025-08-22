@@ -13,6 +13,9 @@ import { ValidationErrorModel } from "@common/forms/validation/error-model/valid
 import { Validation, ValidationContext } from "@common/forms/validation/validation-context";
 import { Guid } from "@common/types/guid";
 import { EditorCustomValidators } from "./custom-validators/editor-custom-validators";
+import { PluginRepositoryConfiguration } from "@app/core/model/plugin-configuration/plugin-configuration";
+import { PluginConfigurationEditorModel } from "@app/ui/plugin/plugin-editor.model";
+import { PluginType } from "@app/core/common/enum/plugin-type";
 
 export interface DescriptionTemplateForm {
     id: FormControl<Guid>;
@@ -44,7 +47,7 @@ export class DescriptionTemplateEditorModel extends BaseEditorModel implements D
 
 	constructor() { super(); }
 
-	public fromModel(item: DescriptionTemplate): DescriptionTemplateEditorModel {
+	public fromModel(item: DescriptionTemplate, configuration?: PluginRepositoryConfiguration[]): DescriptionTemplateEditorModel {
 		if (item) {
 			super.fromModel(item);
 			this.label = item.label;
@@ -53,7 +56,7 @@ export class DescriptionTemplateEditorModel extends BaseEditorModel implements D
 			this.language = item.language;
 			this.type = item.type?.id;
 			this.status = item.status;
-			this.definition = new DescriptionTemplateDefinitionEditorModel(this.validationErrorModel).fromModel(item.definition);
+			this.definition = new DescriptionTemplateDefinitionEditorModel(this.validationErrorModel).fromModel(item.definition, configuration);
 			if (item.users) { item.users.filter(x => x.isActive === IsActive.Active).map(x => this.users.push(new UserDescriptionTemplateEditorModel(this.validationErrorModel).fromModel(x))); }
 		}
 		return this;
@@ -116,6 +119,12 @@ export class DescriptionTemplateEditorModel extends BaseEditorModel implements D
 		const control = formGroup?.get('definition');
 		DescriptionTemplateDefinitionEditorModel.reapplyPagesValidators({
 			formArray: control.get('pages') as UntypedFormArray,
+			rootPath: `definition.`,
+			validationErrorModel: validationErrorModel
+		});
+
+		DescriptionTemplateDefinitionEditorModel.reapplyPluginValidators({
+			formArray: control.get('pluginConfigurations') as UntypedFormArray,
 			rootPath: `definition.`,
 			validationErrorModel: validationErrorModel
 		});
@@ -211,10 +220,24 @@ export class UserDescriptionTemplateEditorModel implements UserDescriptionTempla
 
 export interface DescriptionTemplateDefinitionForm {
     pages: FormArray<FormGroup<DescriptionTemplatePageForm>>;
+	pluginConfigurations?: FormArray<FormGroup<PluginConfigurationForm>>;
+}
+
+export interface PluginConfigurationForm{
+    pluginCode: FormControl<string>;
+	pluginType: FormControl<PluginType>;
+    fields: FormArray<FormGroup<PluginConfigurationFieldForm>>;
+}
+
+export interface PluginConfigurationFieldForm{
+    code: FormControl<string>;
+	fileValue: FormControl<Guid>;
+    textValue: FormControl<string>;
 }
 
 export class DescriptionTemplateDefinitionEditorModel implements DescriptionTemplateDefinitionPersist {
 	pages: DescriptionTemplatePageEditorModel[] = [];
+	pluginConfigurations: PluginConfigurationEditorModel[] = [];
 
 	protected formBuilder: UntypedFormBuilder = new UntypedFormBuilder();
 
@@ -222,9 +245,10 @@ export class DescriptionTemplateDefinitionEditorModel implements DescriptionTemp
 		public validationErrorModel: ValidationErrorModel = new ValidationErrorModel()
 	) { }
 
-	public fromModel(item: DescriptionTemplateDefinition): DescriptionTemplateDefinitionEditorModel {
+	public fromModel(item: DescriptionTemplateDefinition, configuration?: PluginRepositoryConfiguration[]): DescriptionTemplateDefinitionEditorModel {
 		if (item) {
 			if (item.pages) { item.pages.map(x => this.pages.push(new DescriptionTemplatePageEditorModel(this.validationErrorModel).fromModel(x))); }
+			if (item.pluginConfigurations) { item.pluginConfigurations.map(x => this.pluginConfigurations.push(new PluginConfigurationEditorModel(this.validationErrorModel).fromModel(x, configuration))); }
 		}
 		return this;
 	}
@@ -251,6 +275,14 @@ export class DescriptionTemplateDefinitionEditorModel implements DescriptionTemp
 					})
 				), context.getValidation('pages').validators
 			),
+			pluginConfigurations: this.formBuilder.array(
+				(this.pluginConfigurations ?? []).map(
+					(item, index) => item.buildForm({
+						rootPath: `${rootPath}pluginConfigurations[${index}].`,
+						disabled: disabled
+					})
+				), context.getValidation('pluginConfigurations').validators
+			),	
 		});
 	}
 
@@ -263,6 +295,7 @@ export class DescriptionTemplateDefinitionEditorModel implements DescriptionTemp
 		const baseContext: ValidationContext = new ValidationContext();
 		const baseValidationArray: Validation[] = new Array<Validation>();
 		baseValidationArray.push({ key: 'pages', validators: [Validators.required, BackendErrorValidator(validationErrorModel, `${rootPath}pages`)] });
+		baseValidationArray.push({ key: 'pluginConfigurations', validators: [ BackendErrorValidator(validationErrorModel, `${rootPath}pluginConfigurations`)] });
 
 		baseContext.validation = baseValidationArray;
 		return baseContext;
@@ -278,6 +311,22 @@ export class DescriptionTemplateDefinitionEditorModel implements DescriptionTemp
 			(control, index) => DescriptionTemplatePageEditorModel.reapplyValidators({
 				formGroup: control as UntypedFormGroup,
 				rootPath: `${rootPath}pages[${index}].`,
+				validationErrorModel: validationErrorModel
+			})
+		);
+	}
+
+	static reapplyPluginValidators(params: {
+		formArray: UntypedFormArray,
+		validationErrorModel: ValidationErrorModel,
+		rootPath: string
+	}): void {
+		const { validationErrorModel, rootPath, formArray } = params;
+		
+		formArray?.controls?.forEach(
+			(control, index) => PluginConfigurationEditorModel.reapplyValidators({
+				formGroup: control as UntypedFormGroup,
+				rootPath: `${rootPath}pluginConfigurations[${index}].`,
 				validationErrorModel: validationErrorModel
 			})
 		);

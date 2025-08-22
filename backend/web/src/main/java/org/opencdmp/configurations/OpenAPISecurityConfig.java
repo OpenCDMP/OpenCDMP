@@ -1,8 +1,8 @@
 package org.opencdmp.configurations;
 
 import io.swagger.v3.oas.models.Components;
-import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.security.*;
+import org.springdoc.core.customizers.OpenApiCustomizer;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -18,13 +18,16 @@ public class OpenAPISecurityConfig {
     private static final String OAUTH_SCHEME_NAME = "oAuth_security_schema";
 
     @Bean
-    public OpenAPI openAPI() {
-        Components oauthComponent = new Components();
-        oauthComponent.addSecuritySchemes(OAUTH_SCHEME_NAME, createOAuthScheme());
-        OpenAPI openAPI = new OpenAPI();
-        openAPI.components(oauthComponent);
-        openAPI.addSecurityItem(new SecurityRequirement().addList(OAUTH_SCHEME_NAME));
-        return openAPI;
+    public OpenApiCustomizer securityCustomizer() {
+        return openApi -> {
+            Components components = openApi.getComponents();
+            if (components == null) {
+                components = new Components();
+                openApi.setComponents(components);
+            }
+            components.addSecuritySchemes(OAUTH_SCHEME_NAME, createOAuthScheme());
+            openApi.addSecurityItem(new SecurityRequirement().addList(OAUTH_SCHEME_NAME));
+        };
     }
 
     private SecurityScheme createOAuthScheme() {
@@ -40,9 +43,7 @@ public class OpenAPISecurityConfig {
 
     private OAuthFlow createAuthorizationCodeFlow() {
         return new OAuthFlow()
-                .authorizationUrl(authServerUrl + "/realms/" + realm + "/protocol/openid-connect/auth")
-                .scopes(new Scopes().addString("read_access", "read data")
-                        .addString("write_access", "modify data"));
+                .authorizationUrl(authServerUrl + "/realms/" + realm + "/protocol/openid-connect/auth");
     }
 
 }

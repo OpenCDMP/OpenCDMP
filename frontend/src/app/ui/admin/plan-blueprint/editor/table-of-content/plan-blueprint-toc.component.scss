@@ -32,6 +32,10 @@
         border-left: 2px solid var(--sys-primary);
         border-top-left-radius: 0;
         border-bottom-left-radius: 0;
+        &.empty-list{
+            padding: 0.5rem 0;
+            border-left: none;
+        }
     }
 
     .desc-label, .section-field-label {

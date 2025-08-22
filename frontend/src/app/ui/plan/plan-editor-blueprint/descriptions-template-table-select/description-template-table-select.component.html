@@ -1,17 +1,28 @@
-<div *ngIf="descTemplatesControl && !previewOnly">
+<div *ngIf="descTemplatesControl && (!previewOnly || onlyShowSelections)">
 	<div *ngIf="descTemplatesControl.value.length > 0  && selectedTemplatesInfo.size > 0"  style="max-height:100px;" class="p-1  mb-2 overflow-auto">
 
 		<mat-chip-set aria-label="{{'PLAN-EDITOR.FIELDS.DESCRIPTION-TEMPLATES' | translate}} *">
-			<mat-chip *ngFor="let value of descTemplatesControl.value" (removed)="remove(value)" [matTooltip]="chipRemoveTooltip(value) | translate">
-                {{selectedTemplatesInfo.has(value)?selectedTemplatesInfo.get(value).label:value}}
-				<button matChipRemove aria-label="Remove" *ngIf="!descTemplatesControl.disabled && canRemoveItem(value)">
-					<mat-icon>cancel</mat-icon>
-				</button>
+			<mat-chip
+                *ngFor="let value of descTemplatesControl.value"
+                [class.preview-chip]="onlyShowSelections"
+                [matTooltip]="chipRemoveTooltip(value) | translate" 
+                [matTooltipDisabled]="descTemplatesControl.disabled || onlyShowSelections"
+                (removed)="remove(value)" 
+            >
+                <div class="d-flex gap-quarter-rem align-items-center">
+                    {{selectedTemplatesInfo.has(value)?selectedTemplatesInfo.get(value).label:value}}
+                    <button matChipRemove aria-label="Remove" *ngIf="!onlyShowSelections && !descTemplatesControl.disabled && canRemoveItem(value)">
+                        <mat-icon>cancel</mat-icon>
+                    </button>
+                    <button mat-icon-button *ngIf="onlyShowSelections" (click)="onPreviewDescriptionTemplate(selectedTemplatesInfo.get(value))"  aria-label="{{'DESCRIPTION-TEMPLATES-TABLE-LIST.ACTIONS.PREVIEW' | translate}}">
+                        <mat-icon>visibility</mat-icon>
+                    </button>
+                </div>
 			</mat-chip>
 		</mat-chip-set>
 	</div>
 </div>
-<mat-card appearance="outlined">
+<mat-card appearance="outlined" *ngIf="!onlyShowSelections">
 	<mat-card-content>
 		<app-expandable-search-field [formControl]="termControl" (valueChange)="onSearchTermChange($event)"/>
 		<table class="table">

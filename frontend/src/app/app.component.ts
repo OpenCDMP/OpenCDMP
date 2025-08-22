@@ -1,7 +1,7 @@
 
 import { of as observableOf, Subscription, timer } from 'rxjs';
 
-import { AfterViewInit, Component, effect, OnInit, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, effect, OnInit, Renderer2, ViewChild } from '@angular/core';
 import { ActivatedRoute, NavigationEnd, Router } from '@angular/router';
 import { TranslateService } from '@ngx-translate/core';
 import { filter, map, switchMap } from 'rxjs/operators';
@@ -61,6 +61,7 @@ export class AppComponent implements OnInit, AfterViewInit {
 		private breadcrumbService: BreadcrumbService,
 		private sanitizer: DomSanitizer,
 		public iconRegistry: MatIconRegistry,
+        private renderer: Renderer2
 	) {
 		this.initializeServices();
 		this.matomoService.init();
@@ -208,6 +209,13 @@ export class AppComponent implements OnInit, AfterViewInit {
 				this.ccService.destroy();
 				this.ccService.init(this.ccService.getConfig());
 			});
+        if(this.configurationService.userWayId){
+            const script = this.renderer.createElement('script');
+            script.src = 'https://cdn.userway.org/widget.js';
+            script.setAttribute('data-account', this.configurationService.userWayId);
+            script.defer = true;
+            this.renderer.appendChild(document.body, script);
+        }
 	}
 
 	translateTitle(ttl: string, usePrefix: boolean) {

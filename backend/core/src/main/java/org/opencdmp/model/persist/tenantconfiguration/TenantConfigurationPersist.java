@@ -50,6 +50,10 @@ public class TenantConfigurationPersist {
 
     public static final String _logo = "logo";
 
+    private PluginTenantConfigurationPersist pluginConfiguration;
+
+    public static final String _pluginConfiguration = "pluginConfiguration";
+
     private FeaturedEntitiesPersist featuredEntities;
 
     public static final String _featuredEntities = "featuredEntities";
@@ -57,6 +61,10 @@ public class TenantConfigurationPersist {
     private DefaultPlanBlueprintConfigurationPersist defaultPlanBlueprint;
 
     public static final String _defaultPlanBlueprint = "defaultPlanBlueprint";
+
+    private ViewPreferencesConfigurationPersist viewPreferences;
+
+    public static final String _viewPreferences = "viewPreferences";
 
     private String hash;
 
@@ -118,6 +126,14 @@ public class TenantConfigurationPersist {
         this.logo = logo;
     }
 
+    public PluginTenantConfigurationPersist getPluginConfiguration() {
+        return pluginConfiguration;
+    }
+
+    public void setPluginConfiguration(PluginTenantConfigurationPersist pluginConfiguration) {
+        this.pluginConfiguration = pluginConfiguration;
+    }
+
     public FeaturedEntitiesPersist getFeaturedEntities() {
         return featuredEntities;
     }
@@ -132,6 +148,14 @@ public class TenantConfigurationPersist {
 
     public void setDefaultPlanBlueprint(DefaultPlanBlueprintConfigurationPersist defaultPlanBlueprint) {
         this.defaultPlanBlueprint = defaultPlanBlueprint;
+    }
+
+    public ViewPreferencesConfigurationPersist getViewPreferences() {
+        return viewPreferences;
+    }
+
+    public void setViewPreferences(ViewPreferencesConfigurationPersist viewPreferences) {
+        this.viewPreferences = viewPreferences;
     }
 
     public String getHash() {
@@ -245,15 +269,28 @@ public class TenantConfigurationPersist {
                             .using(() -> this.validatorFactory.validator(LogoTenantConfigurationPersist.LogoTenantConfigurationPersistValidator.class)),
 
                     this.refSpec()
+                            .iff(() -> !this.isNull(item.getPluginConfiguration()) && TenantConfigurationType.PluginConfiguration.equals(item.getType()))
+                            .on(TenantConfigurationPersist._pluginConfiguration)
+                            .over(item.getCssColors())
+                            .using(() -> this.validatorFactory.validator(PluginTenantConfigurationPersist.PluginTenantConfigurationPersistValidator.class)),
+
+                    this.refSpec()
                             .iff(() -> !this.isNull(item.getFeaturedEntities()) && TenantConfigurationType.FeaturedEntities.equals(item.getType()))
                             .on(TenantConfigurationPersist._featuredEntities)
                             .over(item.getFeaturedEntities())
                             .using(() -> this.validatorFactory.validator(FeaturedEntitiesPersist.FeaturedEntitiesPersistValidator.class)),
+
                     this.refSpec()
                             .iff(() -> !this.isNull(item.getDefaultPlanBlueprint()) && TenantConfigurationType.DefaultPlanBlueprint.equals(item.getType()))
                             .on(TenantConfigurationPersist._defaultPlanBlueprint)
                             .over(item.getDefaultPlanBlueprint())
-                            .using(() -> this.validatorFactory.validator(DefaultPlanBlueprintConfigurationPersist.DefaultPlanBlueprintConfigurationPersistValidator.class))
+                            .using(() -> this.validatorFactory.validator(DefaultPlanBlueprintConfigurationPersist.DefaultPlanBlueprintConfigurationPersistValidator.class)),
+
+                    this.refSpec()
+                            .iff(() -> !this.isNull(item.getViewPreferences()) && TenantConfigurationType.ViewPreferences.equals(item.getType()))
+                            .on(TenantConfigurationPersist._viewPreferences)
+                            .over(item.getViewPreferences())
+                            .using(() -> this.validatorFactory.validator(ViewPreferencesConfigurationPersist.ViewPreferencesConfigurationPersistValidator.class))
             );
         }
     }

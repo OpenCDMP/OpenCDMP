@@ -21,10 +21,9 @@ import { TenantConfigurationType } from '@app/core/common/enum/tenant-configurat
 import { HttpErrorResponse } from '@angular/common/http';
 import { LoggingService } from '@app/core/services/logging/logging-service';
 import { StorageFileService } from '@app/core/services/storage-file/storage-file.service';
-import { Guid } from '@common/types/guid';
 import { FileUtils } from '@app/core/services/utilities/file-utils.service';
-import * as FileSaver from 'file-saver';
 import { AnalyticsService } from '@app/core/services/matomo/analytics-service';
+import { StorageFile } from '@app/core/model/storage-file/storage-file';
 
 
 @Component({
@@ -38,9 +37,7 @@ export class LogoEditorComponent extends BasePendingChangesComponent implements 
 
 	isNew = true;
 	formGroup: UntypedFormGroup = null;
-	fileNameDisplay: string = null;
-
-	filesToUpload: FileList;
+	initFile: StorageFile = null;
 
 	get editorModel(): TenantConfigurationEditorModel { return this._editorModel; }
 	set editorModel(value: TenantConfigurationEditorModel) { this._editorModel = value; }
@@ -69,8 +66,6 @@ export class LogoEditorComponent extends BasePendingChangesComponent implements 
 		private logger: LoggingService,
 		private tenantConfigurationService: TenantConfigurationService,
 		private logoEditorService: LogoEditorService,
-		private fileUtils: FileUtils,
-		private storageFileService: StorageFileService,
 		private analyticsService: AnalyticsService
 
 	) {
@@ -118,7 +113,7 @@ export class LogoEditorComponent extends BasePendingChangesComponent implements 
 	prepareForm(data: TenantConfiguration) {
 		try {
 			this.editorModel = data ? new TenantConfigurationEditorModel().fromModel(data) : new TenantConfigurationEditorModel();
-			this.fileNameDisplay = data?.logo?.storageFile?.fullName;
+            this.initFile = data?.logo?.storageFile
 			this.buildForm();
 		} catch (error) {
 			this.logger.error('Could not parse TenantConfiguration item: ' + data + error);
@@ -198,56 +193,4 @@ export class LogoEditorComponent extends BasePendingChangesComponent implements 
 		this.editorModel.validationErrorModel.clear();
 		this.formService.validateAllFormFields(this.formGroup);
 	}
-
-	fileChangeEvent(fileInput: any, dropped: boolean = false) {
-
-		if (dropped) {
-			this.filesToUpload = fileInput.addedFiles;
-		} else {
-			this.filesToUpload = fileInput.target.files;
-		}
-
-		this.upload();
-	}
-
-
-	public upload() {
-		this.storageFileService.uploadTempFiles(this.filesToUpload[0])
-		.pipe(takeUntil(this._destroyed)).subscribe((response) => {
-			this.formGroup.get('logo')?.get('storageFileId').patchValue(response[0].id.toString());
-			this.fileNameDisplay = response[0].name;
-			this.cdr.detectChanges();
-		}, error => {
-			this.onCallbackError(error.error);
-		})
-
-
-	}
-	download(fileId: Guid): void {
-
-		if (fileId) {
-
-			this.storageFileService.download(fileId).pipe(takeUntil(this._destroyed))
-				.subscribe(response => {
-					const blob = new Blob([response.body]);
-					const filename = this.fileUtils.getFilenameFromContentDispositionHeader(response.headers.get('Content-Disposition'));
-					FileSaver.saveAs(blob, filename);
-				},
-				error => this.httpErrorHandlingService.handleBackedRequestError(error));
-		}
-	}
-
-	onRemove(makeFilesNull: boolean = true) {
-		this.makeFilesNull()
-		this.cdr.detectChanges();
-
-	}
-
-	makeFilesNull() {
-		this.filesToUpload = null;
-		this.formGroup.get('logo')?.get('storageFileId').patchValue(null);
-		this.formGroup.updateValueAndValidity();
-		this.fileNameDisplay = null;
-	}
-
 }

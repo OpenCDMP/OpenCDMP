@@ -1,6 +1,7 @@
 package org.opencdmp.commons.types.descriptiontemplate;
 
 import jakarta.xml.bind.annotation.*;
+import org.opencdmp.commons.types.pluginconfiguration.PluginConfigurationEntity;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -12,12 +13,24 @@ public class DefinitionEntity {
     @XmlElement(name = "page")
     private List<PageEntity> pages;
 
+    @XmlElementWrapper(name = "pluginConfigurations")
+    @XmlElement(name = "pluginConfiguration")
+    private List<PluginConfigurationEntity> pluginConfigurations;
+
     public List<PageEntity> getPages() {
         return pages;
     }
 
     public void setPages(List<PageEntity> pageEntities) {
         this.pages = pageEntities;
+    }
+
+    public List<PluginConfigurationEntity> getPluginConfigurations() {
+        return pluginConfigurations;
+    }
+
+    public void setPluginConfigurations(List<PluginConfigurationEntity> pluginConfigurations) {
+        this.pluginConfigurations = pluginConfigurations;
     }
 
     public List<FieldEntity> getAllField(){

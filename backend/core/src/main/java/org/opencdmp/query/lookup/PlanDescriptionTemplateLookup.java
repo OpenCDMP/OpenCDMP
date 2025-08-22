@@ -2,22 +2,33 @@ package org.opencdmp.query.lookup;
 
 import gr.cite.tools.data.query.Lookup;
 import gr.cite.tools.data.query.QueryFactory;
+import io.swagger.v3.oas.annotations.media.Schema;
 import org.opencdmp.commons.enums.IsActive;
 import org.opencdmp.elastic.query.NestedPlanDescriptionTemplateElasticQuery;
 import org.opencdmp.query.PlanDescriptionTemplateQuery;
+import org.opencdmp.query.lookup.swagger.SwaggerHelpers;
 
 import java.util.List;
 import java.util.UUID;
 
 public class PlanDescriptionTemplateLookup extends Lookup {
 
+    @Schema(description = SwaggerHelpers.PlanDescriptionTemplate.ids_description)
     private List<UUID> ids;
+
+    @Schema(description = SwaggerHelpers.PlanDescriptionTemplate.planIds_description)
     private List<UUID> planIds;
+
+    @Schema(description = SwaggerHelpers.PlanDescriptionTemplate.descriptionTemplateGroupIds_description)
     private List<UUID> descriptionTemplateGroupIds;
+
+    @Schema(description = SwaggerHelpers.PlanDescriptionTemplate.sectionIds_description)
     private List<UUID> sectionIds;
 
+    @Schema(description = SwaggerHelpers.PlanDescriptionTemplate.excludeIds_description)
     private List<UUID> excludedIds;
 
+    @Schema(description = SwaggerHelpers.PlanDescriptionTemplate.isActive_description)
     private List<IsActive> isActive;
 
     public List<UUID> getIds() {

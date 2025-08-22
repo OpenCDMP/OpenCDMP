@@ -14,8 +14,9 @@ public enum KpiEntityType {
     Reference("reference"),
     User("user"),
     PlanBlueprint("planBlueprint"),
-    DescriptionTemplate("descriptionTemplate")
-    ;
+    DescriptionTemplate("descriptionTemplate"),
+    Tenant("tenant");
+
     private static final Map<String, KpiEntityType> values = new HashMap<>();
 
     private final String mappedName;

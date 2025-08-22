@@ -13,6 +13,10 @@
 				"MIN": "Please provide at least {{ min }} answers"
 			}
 		},
+		"AUTO-CONPLETE": {
+			"LOADING": "loading...",
+			"NO-ITEMS": "No results found!"
+		},
 		"SNACK-BAR": {
 			"SUCCESSFUL-CREATION": "Created Successfully",
 			"SUCCESSFUL-UPDATE": "Updated Successfully",
@@ -109,7 +113,10 @@
 			"LOCKED-DESCRIPTION": "Cannot perform this action because another user modifying the description {{descriptionLabel}}.",
 			"LOCKED-PLAN-BLUEPRINT": "Cannot perform this action because another user modifying the plan blueprint.",
 			"LOCKED-DESCRIPTION-TEMPLATE": "Cannot perform this action because another user modifying the description template.",
-			"INVALID-USER-EMAIL": "No user found with this email."
+			"INVALID-USER-EMAIL": "No user found with this email.",
+			"CANNOT-PLAN-DEPOSIT": "This plan has already been deposited to {{deositRepositoryId}} repository.",
+			"CANNOT-EDIT-DESCRIPTION-TEMPLATES": "The selected plan blueprint has description templates restrictions for section with name {{section}}. The accepted description templates: {{descriptionTemplates}}.",
+			"CREATING-PLAN-WITH-INACTIVE-BLUEPRINT": "You cannot create new plan because this version of bluepint is deleted."
 		},
 		"FORM-VALIDATION-DISPLAY-DIALOG": {
 			"WARNING": "Warning!",
@@ -164,7 +171,7 @@
 			"OF": "of"
 		},
 		"TITLES": {
-			"PREFIX": "{{ APP_NAME }} - ",
+			"PREFIX": "{{ APP_NAME_CAPS }} - ",
 			"GENERAL": "Plans Creator",
 			"ABOUT": "About",
 			"PRIVACY": "Privacy Policy",
@@ -172,9 +179,9 @@
 			"TERMS": "Terms Of Service",
 			"COOKIES-POLICY": "Cookies Policy",
 			"PLANS": "My Plans",
-			"EXPLORE-PLANS": "Published Plans",
-			"DESCRIPTIONS": "Descriptions",
-			"BLUEPRINTS": "Blueprints",
+			"EXPLORE-PLANS": "Public Plans",
+			"DESCRIPTIONS": "My Descriptions",
+			"BLUEPRINTS": "Plan Blueprints",
 			"DESCRIPTION-TEMPLATES": "Description Templates",
 			"DESCRIPTION-TEMPLATE-TYPES": "Description Types",
 			"ENTITY-LOCKS": "Entity Locks",
@@ -185,7 +192,7 @@
 			"TENANT-CONFIGURATION": "Tenant Configuration",
 			"NOTIFICATIONS": "Notifications",
 			"NOTIFICATION-TEMPLATES": "Notification Templates",
-			"EXPLORE": "Published Descriptions",
+            "EXPLORE": "Public Descriptions",
 			"USERS": "Users",
 			"TENANT-USERS": "Tenant Users",
 			"PROFILE": "My Profile",
@@ -199,17 +206,30 @@
 			"USAGE-LIMITS": "Usage Limits",
             "PLAN-STATUSES": "Plan Statuses",
             "DESCRIPTION-STATUSES": "Description Statuses",
-			"INDICATOR-DASHBOARD": "Statistics"
+			"INDICATOR-DASHBOARD": "Statistics",
+            "TENANTS": "Tenants"
 		},
 		"FILE-TRANSFORMER": {
 			"PDF": "PDF",
 			"XML": "XML",
-			"JSON": "RDA JSON",
+			"RDA-FILE-TRANSFORMER-JSON": "RDA JSON",
+			"RAID-FILE-TRANSFORMER-JSON": "RAiD JSON",
 			"DOCX": "Document"
 		},
 		"EVALUATOR": {
-			"FAIR": "FAIR Evaluator",
-			"RDA-MADMP": "RDA MADMP Evaluator"
+			"FAIR": {
+                "TITLE": "FAIR Evaluator"
+            },
+			"RDA-MADMP": {
+                "TITLE": "RDA MADMP Evaluator",
+                "DESCRIPTION": "The MADMP json export is validated against the json schema of <a target=\"_blank\" rel=\"noreferrer noopener\" href='https://github.com/RDA-DMP-Common/RDA-DMP-Common-Standard'>RDA-DMP-Common-Standard</a>.",
+                "RESULTS-DESCRIPTION": "The results are generated based on the <a target=\"_blank\" rel=\"noreferrer noopener\" href='https://github.com/RDA-DMP-Common/RDA-DMP-Common-Standard'>RDA-DMP-Common-Standard</a>."
+            },
+			"OSTRAILS": {
+                "TITLE": "OSTrails Evaluator",
+                "DESCRIPTION": "The MADMP json export is validated based on the <a target=\"_blank\" rel=\"noreferrer noopener\" href='https://github.com/OSTrails/DMP-Evaluation-Service'>DMP-Evaluation-Service</a>.",
+                "RESULTS-DESCRIPTION": "The results are generated based on the <a target=\"_blank\" rel=\"noreferrer noopener\" href='https://github.com/OSTrails/DMP-Evaluation-Service'>DMP-Evaluation-Service</a>."
+            }
 		},
 		"LANGUAGES": {
 			"en": "English",
@@ -455,6 +475,8 @@
 					"SEND-DESCRIPTION-TEMPLATE-ACCOUNTING-ENTRIES": "Send description template accounting entries events",
 					"SEND-DESCRIPTION-TEMPLATE-TYPE-ACCOUNTING-ENTRIES": "Send description template types accounting entries events",
 					"SEND-PREFILLING-SOURCE-ACCOUNTING-ENTRIES": "Send prefilling source accounting entries events",
+					"SEND-REFERENCE-ACCOUNTING-ENTRIES": "Send reference accounting entries events",
+					"SEND-LANGUAGE-ACCOUNTING-ENTRIES": "Send language accounting entries events",
 					"SEND-REFERENCE-TYPE-ACCOUNTING-ENTRIES": "Send reference type accounting entries events",
 					"SEND-PLAN-STATUS-ACCOUNTING-ENTRIES": "Send plan status accounting entries events",
 					"SEND-DESCRIPTION-STATUS-ACCOUNTING-ENTRIES": "Send description status accounting entries events",
@@ -470,7 +492,19 @@
 					"SEND-INDICATOR-POINT-REFERENCE-ENTRY": "Send indicator point reference entry events",
 					"SEND-INDICATOR-POINT-USER-ENTRY": "Send indicator point user entry events",
 					"SEND-INDICATOR-POINT-PLAN-BLUEPRINT-ENTRY": "Send indicator point plan blueprint entry events",
-					"SEND-INDICATOR-POINT-DESCRIPTION-TEMPLATE-ENTRY": "Send indicator point description template entry events"				}
+					"SEND-INDICATOR-POINT-DESCRIPTION-TEMPLATE-ENTRY": "Send indicator point desciption template entry events",
+					"SEND-INDICATOR-POINT-TENANT-ENTRY": "Send indicator point tenant entry events"
+                }
+			},
+			"MISC-ACTIONS": {
+				"TITLE": "Manage misc actions",
+				"DESCRIPTION": "From here you can manage the Misc Actions",
+				"PLAN-BLUEPRINT": {
+					"MAIN-TITLE": "Plan Blueprints",
+					"ACTIONS": {
+						"SET-CAN-EDIT-DESCRIPTION-TEMPLATES": "Set canEditDescriptionTemplates to true"
+					}
+				}
 			}
 		},
 		"CONFIRMATION": {
@@ -490,6 +524,12 @@
 		"LOGO": {
 			"TITLE": "Extra Logo",
 			"HINT": "Add extra logo"
+		},
+		"FILE-TRANSFORMER-DOCX-TEMPLATE": {
+			"TITLE": "File Transformer Docx Template",
+			"HINT": "Add File Transformer Docx Template",
+			"PLAN-BLUEPRINT": "Plan Blueprint",
+			"DESCRIPTION-TEMPLATE": "Description Template"
 		},
 		"NOTIFIER-LIST": {
 			"TITLE": "Notification Preferences",
@@ -525,6 +565,16 @@
             "TITLE": "Default Plan Blueprint",
             "HINT": "Select default plan blueprint",
 			"PLAN-BLUEPRINT":"Plan Blueprint"
+        },
+		"PLUGIN-CONFIGURATION": {
+			"TITLE": "Plugin Configuration",
+            "HINT": "Configure plugins"
+		},
+		"VIEW-PREFERENCES": {
+            "TITLE": "View Preferences",
+            "HINT": "Select preferences to be displayed in the overview of plans and descriptions",
+			"PLAN":"Plan List External References",
+			"DESCRIPTION":"Description List External References"
         },
 		"FIELDS": {
 			"TIMEZONE": "Timezone",
@@ -603,7 +653,9 @@
 				"USERS": {
 					"NAME": "Name",
 					"ROLE": "Role"
-				}
+				},
+				"DOCX-TEMPLATE": "DOCX template",
+				"DOCX-TEMPLATE-HINT":  "Upload a DOCXtemplate (optional)."
 			},
 			"PAGE-INFO": {
 				"PAGE-NAME": "Chapter Name",
@@ -782,6 +834,8 @@
 				"MORE": "More.."
 			},
             "SCROLL": "SCROLL",
+			"UPLOAD": "Upload",
+			"DOWNLOAD": "Download",
             "ENABLE-REORDERING": "Enable field reordering"
 		},
 		"ERRORS": {
@@ -862,7 +916,10 @@
 					"OWNER": "Owner",
 					"VIEWER": "Viewer",
 					"DESCRIPTION-CONTRIBUTOR": "Description Contributor",
-					"REVIEWER": "Reviewer"
+					"REVIEWER": "Reviewer",
+					"DATA-STEWARD": "Data Steward",
+					"DATA-PRIVACY-OFFICER": "Data Privacy Officer (DPO)",
+					"ETHICS-REVIEWER": "Ethics Reviewer"
 				}
 			}
 		},
@@ -872,6 +929,7 @@
 		"TITLE": "Import Plan",
 		"UPLOAD-SUCCESS": "Import was Successful",
 		"ANALYZING-FILE": "Analyzing file",
+		"SELECT-FILE-TRANSFORMER-SCHEMA": "Select the schema that your json file provides",
 		"FIELDS": {
 			"BLUEPRINT-PLACEHOLDER": "Select Plan Blueprint",
 			"DESCRIPTION-TEMPLATE": "Description Template",
@@ -911,6 +969,10 @@
         "EVALUATION-HISTORY": "Evaluation history",
         "NO-EVALUATIONS": "No evaluations.",
 		"YOU": "you",
+		"VERSION-NOTICE-PART1": "There is a",
+		"VERSION-NOTICE-LINK": "newer version",
+		"VERSION-NOTICE-PART2": "of the plan available.",
+		"BLUEPRINT-NEW-VERSION": "A new version of the blueprint you used to create this Plan is now available. You can use it by creating new version of the plan.",
 		"ACTIONS": {
 			"BACK": "Back",
 			"EDIT": "Edit",
@@ -943,7 +1005,10 @@
 		},
 		"LOCK": "Lock",
 		"MULTIPLE-DIALOG": {
-			"USE-DEFAULT": "Use Default Token"
+			"USE-DEFAULT": "Use Default Token",
+			"USE-YOURS": "Use Your Account",
+			"TOOLTIP-MESSAGE": "You have not set up authorization credentials for {{repository}}. Please go to 'My Profile Settings' if you wish to proceed with this option.",
+			"CONTACT-SUPPORT": "There are not any available authentication options for {{repository}}. Please contact your administrator."
 		},
 		"DEPOSIT": {
 			"ACCOUNT-LOGIN": "Which account would you like to use?",
@@ -1193,7 +1258,10 @@
 					"OWNER": "Owner",
 					"VIEWER": "Viewer",
 					"DESCRIPTION-CONTRIBUTOR": "Description Contributor",
-					"REVIEWER": "Reviewer"
+					"REVIEWER": "Reviewer",
+					"DATA-STEWARD": "Data Steward",
+					"DATA-PRIVACY-OFFICER": "Data Privacy Officer (DPO)",
+					"ETHICS-REVIEWER": "Ethics Reviewer"
 				}
 			},
 			"TAGS": {
@@ -1966,6 +2034,7 @@
 		},
 		"TITLE-EDIT-BLUEPRINT": "Editing Blueprint",
 		"SECTIONS-REQUIRED": "At least one section required",
+		"DESCRIPTION-TEMPLATE-REQUIRED": "At least one description template required",
 		"FIELDS-REQUIRED": "At least one field required",
 		"SYSTEM-FIELDS-REQUIRED": "Title, Description, Language and  Access are required",
 		"FIELDS": {
@@ -1993,7 +2062,15 @@
 			"PREFILLING-SOURCES": "Prefilling Sources",
 			"ENABLE-PREFILLING-SOURCES": "Prefilling Sources",
 			"SYSTEM-FIELD-REQUIRED": "This is a required system field",
-            "SECTION-FIELD": "Field"
+			"FIELD-UPLOAD-MAX-FILE-SIZE": "Max File Size (up to {{maxfilesize}} Megabytes)",
+			"FIELD-UPLOAD-CUSTOM-FILETYPE": "Other file types",
+			"FIELD-UPLOAD-SELECT-FILETYPE": "Select file types",
+			"FIELD-UPLOAD-LABEL": "media type name",
+			"FIELD-UPLOAD-VALUE": "media type value",
+			"DOCX-TEMPLATE": "DOCX template",
+            "DOCX-TEMPLATE-HINT":  "Upload a DOCX template (optional).",
+            "SECTION-FIELD": "Field",
+            "CAN-EDIT-DESCRIPTION-TEMPLATES": "Editable description templates"
 		},
 		"ACTIONS": {
 			"ADD-FIELD": "Add field",
@@ -2007,6 +2084,8 @@
 			"DELETE": "Delete",
 			"FINALIZE": "Finalize",
 			"DOWNLOAD-XML": "Download XML",
+			"UPLOAD": "Upload",
+			"DOWNLOAD": "Download",
             "ENABLE-REORDERING": "Enable field reordering"
 		},
 		"LOCKED-DIALOG": {
@@ -2036,6 +2115,7 @@
             "TEMPLATES-TOUCHED": "Save plan changes to enable adding descriptions"
 		},
 		"UNSUCCESSFUL-REMOVE-TEMPLATE": "Cannot remove template, because it's already being used by one or more Descriptions.",
+        "TENANT-LIMITED-ACCESS": "There is limited access to the editor because this plan belongs to a different tenant.",
 		"FIELDS": {
 			"TITLE": "Title of Plan",
 			"DESCRIPTION": "Description",
@@ -2047,11 +2127,19 @@
 			"FIRST-NAME": "First Name",
 			"LAST-NAME": "Last Name",
 			"EMAIL": "Email",
-			"USER": "User",
+			"USER": "Author",
 			"USER-ROLE": "Role",
 			"SECTIONS": "Plan Sections",
 			"ALL-SECTIONS": "All",
 			"PLAN-BLUEPRINT-VERSION": "Version"
+		},
+		"PLAN-UPLOAD-FIELD": {
+			"LARGE-FILE-OR-UNACCEPTED-TYPE": "The file is too large or its type is not supported.",
+			"ACCEPTED-FILE-TRANSFOMER": "Supported media types are: ",
+			"FIELD-UPLOAD-MAX-FILE-SIZE": "Max File Size (up to {{maxfilesize}} Megabytes)",
+			"ACTIONS": {
+				"DOWNLOAD": "Download file"
+			}
 		},
 		"ACTIONS": {
 			"DISCARD": {
@@ -2118,13 +2206,21 @@
 			"MESSAGE": "Somebody else is modifying the Plan at this moment. You may view the Plan but you cannot make any changes."
 		}
 	},
+	"BENCHMARK-DIALOG": {
+		"TITLE": "Select the benchmarks you want for the evaluation.",
+		"ACTIONS": {
+			"EVALUATE": "Evaluate",
+			"CANCEL": "Cancel"
+		}
+	},
 	"PLAN-EVALUATE-DIALOG": {
 		"HEADER": "Evaluation Result",
 		"DETAILS-SUB-HEADER": "Details",
 		"RANK-BODY": "Rank",
 		"DETAILS-BODY": "Details",
 		"MESSAGES-BODY": "Messages",
-		"ERROR":"Error"
+		"ERROR":"Error",
+		"METRIC-RESULT": "Result"
 	},
 	"DESCRIPTION-EVALUATE-DIALOG": {
 		"HEADER": "Evaluation Result",
@@ -2176,7 +2272,8 @@
 			"DESCRIPTIONS-HINT": "Select which descriptions to include in the new Plan. Selected descriptions will be editable.",
             "CANCELLED-DESCRIPTIONS-HINT": "This description is cancelled, and not part of the finalized plan. It is not included in the new plan version by default.",
 			"BLUEPRINT": "Plan Blueprint",
-			"BLUEPRINT-PLACEHOLDER": "Plan Blueprint"
+			"BLUEPRINT-PLACEHOLDER": "Plan Blueprint",
+			"BLUEPRINT-INACTIVE-HINT": "The blueprint version that uses current plan has been deleted. Please select a new blueprint."
 		},
 		"NO-DESCRIPTIONS": "Not available Descriptions for this Plan.",
 		"ACTIONS": {
@@ -2297,7 +2394,10 @@
 			"OWNER": "Owner",
 			"VIEWER": "Viewer",
 			"DESCRIPTION-CONTRIBUTOR": "Description Contributor",
-			"REVIEWER": "Reviewer"
+			"REVIEWER": "Reviewer",
+			"DATA-STEWARD": "Data Steward",
+			"DATA-PRIVACY-OFFICER": "Data Privacy Officer (DPO)",
+			"ETHICS-REVIEWER": "Ethics Reviewer"
 		},
 		"EXTERNAL-DATASET-TYPE": {
 			"SELECT": "Select"
@@ -2319,6 +2419,7 @@
 			"REQUIRED": "Required"
 		},
 		"DESCRIPTION-TEMPLATE-FIELD-TYPE": {
+			"TYPE": "Type",
 			"SELECT": "Select",
 			"BOOLEAN-DECISION": "Boolean Decision",
 			"RADIO-BOX": "Radio Box",
@@ -2377,7 +2478,7 @@
 			"LANGUAGE": "Language",
 			"CONTACT": "Contact",
 			"ACCESS_RIGHTS": "Access",
-			"USER": "User"
+			"USER": "Authors"
 		},
 		"PLAN-BLUEPRINT-EXTRA-FIELD-DATA-TYPE": {
 			"DATE": "Date",
@@ -2459,7 +2560,11 @@
 			"CONTACT-SUPPORT": "Contact Support",
 			"PUBLIC-CONTACT-SUPPORT": "Public Contact Support",
 			"TENANT-SPECIFIC-INVITATION-EXTERNAL-USER": "Invitation External User",
-			"TENANT-SPECIFIC-INVITATION-EXISTING-USER": "Invitation Existing User"
+			"TENANT-SPECIFIC-INVITATION-EXISTING-USER": "Invitation Existing User",
+			"PLAN-EVALUATION": "Plan Evaluated",
+			"DESCRIPTION-EVALUATION": "Description Evaluated",
+			"TAGGED-PLAN-ANNOTATION-CREATED": "Tagged Plan Annotation Created",
+			"TAGGED-DESCRIPTION-ANNOTATION-CREATED": "Tagged Description Annotation Created"
 		},
 		"NOTIFICATION-INAPP-TRACKING": {
 			"STORED": "Unread",
@@ -2502,7 +2607,8 @@
 		"PLAN-BLUEPRINT-FIELD-CATEGORY": {
 			"SYSTEM": "System",
 			"EXTRA": "Custom",
-			"REFERENCE-TYPE": "External Reference"
+			"REFERENCE-TYPE": "External Reference",
+			"UPLOAD": "Upload"
 		},
 		"PREFILLING-SOURCE-SYSTEM-TARGET-TYPE": {
 			"LABEL": "Label",
@@ -2525,6 +2631,7 @@
 			"DESCRIPTION-TEMPLATE-COUNT": "Description Templates",
 			"DESCRIPTION-TEMPLATE-TYPE-COUNT": "Description Template Types",
 			"PREFILLING-SOURCES-COUNT": "Prefillings Sources",
+			"REFERENCE-COUNT": "References",
 			"REFERENCE-TYPE-COUNT": "Reference Types",
 			"EVALUATION-PLAN-COUNT": "Evaluation Plan",
 			"EVALUATION-DESCRIPTION-COUNT": "Evaluation Description"
@@ -2677,7 +2784,8 @@
 			"SELECT-ROLE": "Select Role",
 			"ACCOUNTS": "Accounts",
 			"EMAILS": "Emails",
-			"YOUR-EMAIL": "Your Email"
+			"YOUR-EMAIL": "Your Email",
+			"PLUGIN-CONFIGURATION": "External Plugins Settings"
 		},
 		"ASSOCIATED-PLANS": "Associated Plans",
 		"ROLE-ORGANIZATION": {
@@ -2788,7 +2896,17 @@
 	"copy": "Copy",
 	"clone": "Clone",
 	"new-version": "New Version",
-
+    "FILE-UPLOADER": {
+        "FILE-TYPES": "The accepted file types are",
+        "ACTIONS": {
+            "UPLOAD": "Upload",
+            "DOWNLOAD": "Download"
+        },
+        "ERRORS": {
+            "INVALID-FILE-TYPE": "Invalid file type. Accepted types: ",
+            "MAX-SIZE": "File exceeds max size"
+        }
+    },
     "ALT-TEXT": {
         "HAMBURGER": "hide or show navigation sidebar",
         "GO-TO-MAIN": "Go to home page",

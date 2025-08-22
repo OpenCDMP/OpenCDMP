@@ -26,6 +26,8 @@ public class AccountingEntryCreatedIntegrationEvent extends TrackedEvent {
 
     private Double value;
 
+    private String userId;
+
     private UUID tenant;
 
     public Instant getTimeStamp() {
@@ -82,6 +84,14 @@ public class AccountingEntryCreatedIntegrationEvent extends TrackedEvent {
 
     public void setValue(Double value) {
         this.value = value;
+    }
+
+    public String getUserId() {
+        return userId;
+    }
+
+    public void setUserId(String userId) {
+        this.userId = userId;
     }
 
     public UUID getTenant() {

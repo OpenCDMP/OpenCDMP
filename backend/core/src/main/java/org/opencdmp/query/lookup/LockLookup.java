@@ -2,24 +2,32 @@ package org.opencdmp.query.lookup;
 
 import gr.cite.tools.data.query.Lookup;
 import gr.cite.tools.data.query.QueryFactory;
+import io.swagger.v3.oas.annotations.media.Schema;
 import org.opencdmp.commons.enums.LockTargetType;
 import org.opencdmp.query.LockQuery;
+import org.opencdmp.query.lookup.swagger.SwaggerHelpers;
 
 import java.util.List;
 import java.util.UUID;
 
 public class LockLookup extends Lookup {
 
+    @Schema(description = SwaggerHelpers.Lock.like_description)
     private String like;
 
+    @Schema(description = SwaggerHelpers.Lock.ids_description)
     private List<UUID> ids;
 
+    @Schema(description = SwaggerHelpers.Lock.targetIds_description)
     private List<UUID> targetIds;
 
+    @Schema(description = SwaggerHelpers.Lock.targetTypes_description)
     private List<LockTargetType> targetTypes;
 
+    @Schema(description = SwaggerHelpers.Lock.excludeIds_description)
     private List<UUID> excludedIds;
 
+    @Schema(description = SwaggerHelpers.Lock.userIds_description)
     private List<UUID> userIds;
 
     public String getLike() {

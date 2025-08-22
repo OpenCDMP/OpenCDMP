@@ -6,7 +6,7 @@ public final class SwaggerHelpers {
 
         public static final String fieldset_description =
                 """
-                        This is an object containing a list of the properties you wish to include in the response, similar to the 'project' attribute on queries.
+                        A list of the properties you wish to include in the response, similar to the 'project' attribute on queries.
                         """;
 
         public static final String pagination_example =
@@ -73,10 +73,24 @@ public final class SwaggerHelpers {
 
     public static final class Plan {
 
+        public static final String endpoint_field_set_example =
+                "[\"id\", \"label\", \"isActive\"]";
+
         public static final String endpoint_query =
                 """
                         This endpoint is used to fetch all the available plans.<br/>
                         It also allows to restrict the results using a query object passed in the request body.<br/>
+                        """;
+
+        public static final String endpoint_public_query =
+                """
+                        This endpoint is used to fetch all the available public published plans.<br/>
+                        It also allows to restrict the results using a query object passed in the request body.<br/>
+                        """;
+
+        public static final String endpoint_public_query_request_body =
+                """
+                        For public plans we used the same query parameters as plans queries
                         """;
 
         public static final String endpoint_query_request_body =
@@ -165,10 +179,8 @@ public final class SwaggerHelpers {
                             This filter works like this. If we want to view only the active records we pass [1] and for only the deleted records we pass [0].
                             <br/>If not present or if we pass [0,1], every record is included.
                             </li>
-                            <li><b>statuses:</b>
-                            This is a list and determines which records we want to include in the response, based on their status.
-                            The status can be <i>Draft</i> or <i>Finalized</i>. We add 0 or 1 to the list respectively.
-                            <br/>If not present, every record is included.
+                            <li><b>statusIds:</b>
+                            This is a list and determines which records we want to include in the response, based on if they have one of the specific status ids.. <br/>If empty, every record is included.
                             </li>
                             <li><b>versionStatuses:</b>
                             This is a list and determines which records we want to include in the response, based on their version status.
@@ -186,746 +198,1593 @@ public final class SwaggerHelpers {
         public static final String endpoint_query_request_body_example =
                 """
                         {
-                           "project":{
-                              "fields":[
-                                 "id",
-                                 "label",
-                                 "description",
-                                 "status",
-                                 "accessType",
-                                 "version",
-                                 "versionStatus",
-                                 "groupId",
-                                 "updatedAt",
-                                 "belongsToCurrentTenant",
-                                 "finalizedAt",
-                                 "hash",
-                                 "descriptions.id",
-                                 "descriptions.label",
-                                 "descriptions.status",
-                                 "descriptions.descriptionTemplate.groupId",
-                                 "descriptions.isActive",
-                                 "blueprint.id",
-                                 "blueprint.label",
-                                 "blueprint.definition.sections.id"
-                              ]
-                           },
-                           "page":{
-                              "size":5,
-                              "offset":0
-                           },
-                           "order":{
-                              "items":[
-                                 "-updatedAt"
-                              ]
-                           },
-                           "metadata":{
-                              "countAll":true
-                           },
-                           "isActive":[
-                              1
-                           ],
-                           "versionStatuses":[
-                              0,
-                              2
-                           ]
+                            "project": {
+                                "fields": [
+                                    "id",
+                                    "label",
+                                    "status.id",
+                                    "status.name",
+                                    "status.internalStatus",
+                                    "status.definition.availableActions",
+                                    "versionStatus",
+                                    "groupId",
+                                    "description",
+                                    "language",
+                                    "accessType",
+                                    "isActive",
+                                    "version",
+                                    "updatedAt",
+                                    "publicAfter",
+                                    "creator",
+                                    "hash",
+                                    "belongsToCurrentTenant",
+                                    "authorizationFlags.EditPlan",
+                                    "authorizationFlags.DeletePlan",
+                                    "authorizationFlags.EditDescription",
+                                    "authorizationFlags.ExportPlan",
+                                    "statusAuthorizationFlags.Edit",
+                                    "properties.planBlueprintValues.fieldId",
+                                    "properties.planBlueprintValues.fieldValue",
+                                    "properties.planBlueprintValues.dateValue",
+                                    "properties.planBlueprintValues.numberValue",
+                                    "properties.contacts.firstName",
+                                    "properties.contacts.lastName",
+                                    "properties.contacts.email",
+                                    "PlanEditorDescriptionsLookupFields",
+                                    "planUsers.id",
+                                    "planUsers.user.id",
+                                    "planUsers.user.name",
+                                    "planUsers.role",
+                                    "planUsers.sectionId",
+                                    "planUsers.isActive",
+                                    "planReferences.id",
+                                    "planReferences.isActive",
+                                    "planReferences.data.blueprintFieldId",
+                                    "planReferences.reference.id",
+                                    "planReferences.reference.label",
+                                    "planReferences.reference.type.id",
+                                    "planReferences.reference.source",
+                                    "planReferences.reference.reference",
+                                    "planReferences.reference.sourceType",
+                                    "planDescriptionTemplates.id",
+                                    "planDescriptionTemplates.sectionId",
+                                    "planDescriptionTemplates.descriptionTemplateGroupId",
+                                    "planDescriptionTemplates.isActive",
+                                    "planDescriptionTemplates.descriptionTemplates",
+                                    "planDescriptionTemplates.currentDescriptionTemplate.id",
+                                    "planDescriptionTemplates.currentDescriptionTemplate.label",
+                                    "planDescriptionTemplates.currentDescriptionTemplate.version",
+                                    "planDescriptionTemplates.currentDescriptionTemplate.type.name",
+                                    "planDescriptionTemplates.currentDescriptionTemplate.type.id",
+                                    "entityDois.id",
+                                    "entityDois.repositoryId",
+                                    "entityDois.doi",
+                                    "entityDois.isActive",
+                                    "availableStatuses.id",
+                                    "availableStatuses.name",
+                                    "availableStatuses.internalStatus",
+                                    "availableStatuses.action",
+                                    "blueprint.id",
+                                    "blueprint.definition",
+                                    "blueprint.definition.sections.id",
+                                    "blueprint.definition.sections.label",
+                                    "blueprint.definition.sections.ordinal",
+                                    "blueprint.definition.sections.description",
+                                    "blueprint.definition.sections.canEditDescriptionTemplates",
+                                    "blueprint.definition.sections.prefillingSourcesEnabled",
+                                    "blueprint.definition.sections.prefillingSources.id",
+                                    "blueprint.definition.sections.hasTemplates",
+                                    "blueprint.definition.sections.descriptionTemplates.descriptionTemplate.groupId",
+                                    "blueprint.definition.sections.descriptionTemplates.minMultiplicity",
+                                    "blueprint.definition.sections.descriptionTemplates.maxMultiplicity",
+                                    "blueprint.definition.sections.fields.id",
+                                    "blueprint.definition.sections.fields.category",
+                                    "blueprint.definition.sections.fields.label",
+                                    "blueprint.definition.sections.fields.placeholder",
+                                    "blueprint.definition.sections.fields.description",
+                                    "blueprint.definition.sections.fields.required",
+                                    "blueprint.definition.sections.fields.ordinal",
+                                    "blueprint.definition.sections.fields.dataType",
+                                    "blueprint.definition.sections.fields.systemFieldType",
+                                    "blueprint.definition.sections.fields.referenceType.id",
+                                    "blueprint.definition.sections.fields.referenceType.name",
+                                    "blueprint.definition.sections.fields.referenceType.code",
+                                    "blueprint.definition.sections.fields.multipleSelect",
+                                    "blueprint.definition.sections.fields.referenceType.definition.sources.referenceTypeDependencies.id",
+                                    "blueprint.definition.sections.fields.maxFileSizeInMB",
+                                    "blueprint.definition.sections.fields.types.label",
+                                    "blueprint.definition.sections.fields.types.value",
+                                    "descriptions.id",
+                                    "descriptions.label",
+                                    "descriptions.status.id",
+                                    "descriptions.status.name",
+                                    "descriptions.status.internalStatus",
+                                    "descriptions.descriptionTemplate.groupId",
+                                    "descriptions.planDescriptionTemplate.sectionId",
+                                    "descriptions.isActive"
+                                ]
+                            },
+                            "metadata": {
+                                "countAll": true
+                            },
+                            "page": {
+                                "offset": 0,
+                                "size": 5
+                            },
+                            "isActive": [
+                                1
+                            ],
+                            "order": {
+                                "items": [
+                                    "-updatedAt"
+                                ]
+                            },
+                            "groupIds": null
                         }
                         """;
 
         public static final String endpoint_query_response_example =
                 """
+                        {
+                          "items": [
                             {
-                               "items":[
-                                  {
-                                     "id":"dbc5057b-d33e-4a2c-8963-e882da6765a0",
-                                     "label":"blueprint test with deleted description template",
-                                     "version":1,
-                                     "status":0,
-                                     "versionStatus":2,
-                                     "groupId":"dae2fd0b-74a4-4bde-b021-9ea44e033866",
-                                     "description":"blueprint test with deleted description template",
-                                     "updatedAt":"2024-06-06T12:35:57.293416Z",
-                                     "blueprint":{
-                                        "id":"6fbfd40a-b41a-4928-b4b5-67d28bdba2ce",
-                                        "label":"test_for_plan_manager_role_new_v2 new ",
-                                        "definition":{
-                                           "sections":[
-                                              {
-                                                 "id":"843c4181-dbe2-4e18-a1e4-cf178199947c",
-                                                 "label":"1",
-                                                 "hasTemplates":true,
-                                                 "descriptionTemplates":[
-                                                    {
-                                                       "descriptionTemplateGroupId":"3689bcce-405a-4d55-9854-669597b79c0a"
-                                                    },
-                                                    {
-                                                       "descriptionTemplateGroupId":"2a38d018-8e81-4ba2-80b2-4395a1d1b238"
-                                                    }
-                                                 ]
-                                              }
-                                           ]
-                                        }
-                                     },
-                                     "hash":"1717677357",
-                                     "dmpUsers":[
+                              "id": "8366ea9e-6f14-4719-9d69-0afa50658c3c",
+                              "label": "CHIST-ERA Plan",
+                              "version": 1,
+                              "status": {
+                                "id": "cb3ced76-9807-4829-82da-75777de1bc78",
+                                "name": "Draft",
+                                "internalStatus": 0,
+                                "definition": {
+                                  "availableActions": [
+                                    1,
+                                    2
+                                  ],
+                                  "matIconName": "edit",
+                                  "storageFile": {}
+                                }
+                              },
+                              "versionStatus": 2,
+                              "groupId": "6c6f90d0-5179-4951-a046-f0b9685c7fb3",
+                              "updatedAt": "2025-05-15T08:27:59.340189Z",
+                              "isActive": 1,
+                              "blueprint": {
+                                "id": "4b2fc3b4-5244-45aa-bbe5-ccc1d16201e5",
+                                "label": "CHIST-ERA",
+                                "definition": {
+                                  "sections": [
+                                    {
+                                      "id": "32b5443d-6eba-9052-05a8-fa9512f366ac",
+                                      "label": "Administrative Information",
+                                      "hasTemplates": false
+                                    },
+                                    {
+                                      "id": "775c1ad3-84ea-df57-f6be-16098752e0b4",
+                                      "label": "Data Management",
+                                      "hasTemplates": true,
+                                      "descriptionTemplates": [
                                         {
-                                           "id":"a61fdc31-fb1e-4cee-9c0a-a0a317b27b62",
-                                           "dmp":{
-                                              "id":"dbc5057b-d33e-4a2c-8963-e882da6765a0"
-                                           },
-                                           "user":{
-                                              "id":"e60876ed-87f8-4a8e-8081-e5620ec839cf"
-                                           },
-                                           "role":0,
-                                           "isActive":1
-                                        }
-                                     ],
-                                     "dmpDescriptionTemplates":[
-                                        {
-                                           "dmp":{
-                                             \s
-                                           },
-                                           "sectionId":"843c4181-dbe2-4e18-a1e4-cf178199947c",
-                                           "descriptionTemplateGroupId":"2a38d018-8e81-4ba2-80b2-4395a1d1b238",
-                                           "isActive":1
+                                          "descriptionTemplate": {
+                                            "groupId": "c8ef1ecc-f0a6-4f06-a62d-2769968c3d0a"
+                                          }
                                         },
                                         {
-                                           "dmp":{
-                                             \s
-                                           },
-                                           "sectionId":"843c4181-dbe2-4e18-a1e4-cf178199947c",
-                                           "descriptionTemplateGroupId":"3689bcce-405a-4d55-9854-669597b79c0a",
-                                           "isActive":0
+                                          "descriptionTemplate": {
+                                            "groupId": "7a9bdf03-8ff7-42c9-80d5-d742f20bcccc"
+                                          }
                                         }
-                                     ],
-                                     "authorizationFlags":[
-                                        "InviteDmpUsers",
-                                        "CreateNewVersionDmp",
-                                        "AssignDmpUsers",
-                                        "DeleteDmp",
-                                        "FinalizeDmp",
-                                        "CloneDmp",
-                                        "ExportDmp",
-                                        "EditDmp"
-                                     ],
-                                     "belongsToCurrentTenant":true
+                                      ]
+                                    },
+                                    {
+                                      "id": "232c8265-207a-938b-569c-0f23967d70a8",
+                                      "label": "Software Management",
+                                      "hasTemplates": true,
+                                      "descriptionTemplates": [
+                                        {
+                                          "descriptionTemplate": {
+                                            "groupId": "5ac06da3-4f6a-4964-a49d-23cdafec1a00"
+                                          }
+                                        },
+                                        {
+                                          "descriptionTemplate": {
+                                            "groupId": "6654faf4-c1b8-46a5-a970-e12cf9c03bad"
+                                          }
+                                        }
+                                      ]
+                                    }
+                                  ]
+                                }
+                              },
+                              "hash": "1747297679",
+                              "planUsers": [
+                                {
+                                  "id": "726ac244-ef55-44e6-90eb-dcb1486d01e6",
+                                  "plan": {
+                                    "id": "8366ea9e-6f14-4719-9d69-0afa50658c3c"
                                   },
-                                  {
-                                     "id":"d3d5cba3-50d0-4dcd-9660-b7bcfac51316",
-                                     "label":"description_template_delete_plan_New_v2.xml",
-                                     "version":1,
-                                     "status":0,
-                                     "versionStatus":2,
-                                     "groupId":"5ab5d0ca-5c8e-4450-bf3b-a701ceadfabb",
-                                     "description":"description template delete plan",
-                                     "updatedAt":"2024-06-06T12:30:24.936458Z",
-                                     "accessType":0,
-                                     "blueprint":{
-                                        "id":"86635178-36a6-484f-9057-a934e4eeecd5",
-                                        "label":"Dmp Default Blueprint",
-                                        "definition":{
-                                           "sections":[
-                                              {
-                                                 "id":"f94e50e0-cb97-4c65-8b88-e5db6badd41d",
-                                                 "label":"Main Info",
-                                                 "hasTemplates":false
-                                              },
-                                              {
-                                                 "id":"3c2608e5-9320-4d94-9ed7-1eab9500d84b",
-                                                 "label":"Funding",
-                                                 "hasTemplates":false
-                                              },
-                                              {
-                                                 "id":"2a77e1f6-9989-4aeb-acd9-48e911a92abd",
-                                                 "label":"License",
-                                                 "hasTemplates":false
-                                              },
-                                              {
-                                                 "id":"0db7845b-0e7c-41df-8d91-cbca97995fd5",
-                                                 "label":"Templates",
-                                                 "hasTemplates":true
-                                              }
-                                           ]
-                                        }
-                                     },
-                                     "hash":"1717677024",
-                                     "dmpReferences":[
-                                        {
-                                           "id":"0c470488-14ba-4c7e-8cf2-0f6f849ee56e",
-                                           "dmp":{
-                                             \s
-                                           },
-                                           "reference":{
-                                              "id":"08577246-b50b-44ea-9bed-641ea4e40fe7",
-                                              "label":"unidentified",
-                                              "type":{
-                                                 "id":"5b9c284f-f041-4995-96cc-fad7ad13289c"
-                                              }
-                                           },
-                                           "isActive":1
-                                        },
-                                        {
-                                           "id":"62211794-787c-407c-9512-05c2d60d410b",
-                                           "dmp":{
-                                             \s
-                                           },
-                                           "reference":{
-                                              "id":"32c87599-e375-4294-a7cf-3db8722bd675",
-                                              "label":"APC Microbiome Institute||",
-                                              "type":{
-                                                 "id":"538928bb-c7c6-452e-b66d-08e539f5f082"
-                                              }
-                                           },
-                                           "isActive":1
-                                        }
-                                     ],
-                                     "dmpUsers":[
-                                        {
-                                           "id":"313865d6-6a72-449f-ac04-1834d2f03b02",
-                                           "dmp":{
-                                              "id":"d3d5cba3-50d0-4dcd-9660-b7bcfac51316"
-                                           },
-                                           "user":{
-                                              "id":"7d6e54b6-31e8-48df-9c3f-1e5b3eb48404"
-                                           },
-                                           "role":0,
-                                           "isActive":1
-                                        }
-                                     ],
-                                     "descriptions":[
-                                        {
-                                           "id":"1dc4e3e8-c125-4db8-a937-041405aaf5ec",
-                                           "label":"description template test",
-                                           "status":0,
-                                           "isActive":0,
-                                           "descriptionTemplate":{
-                                              "groupId":"fab932b2-4285-44a2-b9ab-1a4306bd3e0e"
-                                           },
-                                           "dmp":{
-                                             \s
-                                           }
-                                        },
-                                        {
-                                           "id":"0059fa07-5698-42ba-958a-428b226ddcab",
-                                           "label":"test3v2 description template",
-                                           "status":0,
-                                           "isActive":1,
-                                           "descriptionTemplate":{
-                                              "groupId":"2a38d018-8e81-4ba2-80b2-4395a1d1b238"
-                                           },
-                                           "dmp":{
-                                             \s
-                                           }
-                                        }
-                                     ],
-                                     "dmpDescriptionTemplates":[
-                                        {
-                                           "dmp":{
-                                             \s
-                                           },
-                                           "sectionId":"0db7845b-0e7c-41df-8d91-cbca97995fd5",
-                                           "descriptionTemplateGroupId":"fab932b2-4285-44a2-b9ab-1a4306bd3e0e",
-                                           "isActive":0
-                                        },
-                                        {
-                                           "dmp":{
-                                             \s
-                                           },
-                                           "sectionId":"0db7845b-0e7c-41df-8d91-cbca97995fd5",
-                                           "descriptionTemplateGroupId":"2a38d018-8e81-4ba2-80b2-4395a1d1b238",
-                                           "isActive":1
-                                        }
-                                     ],
-                                     "authorizationFlags":[
-                                        "InviteDmpUsers",
-                                        "CreateNewVersionDmp",
-                                        "AssignDmpUsers",
-                                        "DeleteDmp",
-                                        "FinalizeDmp",
-                                        "CloneDmp",
-                                        "ExportDmp",
-                                        "EditDmp"
-                                     ],
-                                     "belongsToCurrentTenant":true
+                                  "user": {
+                                    "id": "c1a25d94-ff7e-4a6c-9a0e-35c6e5352cd2"
                                   },
-                                  {
-                                     "id":"2ebbb8ac-742d-413a-a3e2-1cb21d555b3f",
-                                     "label":"description template delete plan New v2",
-                                     "version":2,
-                                     "status":0,
-                                     "versionStatus":2,
-                                     "groupId":"cf177996-f68c-4375-bf53-161953dadfc2",
-                                     "description":"description template delete plan",
-                                     "updatedAt":"2024-06-06T11:59:21.396453Z",
-                                     "accessType":0,
-                                     "blueprint":{
-                                        "id":"86635178-36a6-484f-9057-a934e4eeecd5",
-                                        "label":"Dmp Default Blueprint",
-                                        "definition":{
-                                           "sections":[
-                                              {
-                                                 "id":"f94e50e0-cb97-4c65-8b88-e5db6badd41d",
-                                                 "label":"Main Info",
-                                                 "hasTemplates":false
-                                              },
-                                              {
-                                                 "id":"3c2608e5-9320-4d94-9ed7-1eab9500d84b",
-                                                 "label":"Funding",
-                                                 "hasTemplates":false
-                                              },
-                                              {
-                                                 "id":"2a77e1f6-9989-4aeb-acd9-48e911a92abd",
-                                                 "label":"License",
-                                                 "hasTemplates":false
-                                              },
-                                              {
-                                                 "id":"0db7845b-0e7c-41df-8d91-cbca97995fd5",
-                                                 "label":"Templates",
-                                                 "hasTemplates":true
-                                              }
-                                           ]
-                                        }
-                                     },
-                                     "hash":"1717675161",
-                                     "dmpReferences":[
-                                        {
-                                           "id":"5cd1a1c3-bd9b-4a89-9329-ab3f152eebc7",
-                                           "dmp":{
-                                             \s
-                                           },
-                                           "reference":{
-                                              "id":"32c87599-e375-4294-a7cf-3db8722bd675",
-                                              "label":"APC Microbiome Institute||",
-                                              "type":{
-                                                 "id":"538928bb-c7c6-452e-b66d-08e539f5f082"
-                                              }
-                                           },
-                                           "isActive":1
-                                        },
-                                        {
-                                           "id":"0e5d165f-b8ae-44a2-8d90-5e8e1037caa7",
-                                           "dmp":{
-                                             \s
-                                           },
-                                           "reference":{
-                                              "id":"08577246-b50b-44ea-9bed-641ea4e40fe7",
-                                              "label":"unidentified",
-                                              "type":{
-                                                 "id":"5b9c284f-f041-4995-96cc-fad7ad13289c"
-                                              }
-                                           },
-                                           "isActive":1
-                                        }
-                                     ],
-                                     "dmpUsers":[
-                                        {
-                                           "id":"83b1680d-3d9a-4610-82d5-8fe0132f2a0b",
-                                           "dmp":{
-                                              "id":"2ebbb8ac-742d-413a-a3e2-1cb21d555b3f"
-                                           },
-                                           "user":{
-                                              "id":"7d6e54b6-31e8-48df-9c3f-1e5b3eb48404"
-                                           },
-                                           "role":0,
-                                           "isActive":1
-                                        }
-                                     ],
-                                     "descriptions":[
-                                        {
-                                           "id":"2620507c-cb8b-4d67-bb42-64a702932b0a",
-                                           "label":"description template test",
-                                           "status":0,
-                                           "isActive":1,
-                                           "descriptionTemplate":{
-                                              "groupId":"fab932b2-4285-44a2-b9ab-1a4306bd3e0e"
-                                           },
-                                           "dmp":{
-                                             \s
-                                           }
-                                        }
-                                     ],
-                                     "dmpDescriptionTemplates":[
-                                        {
-                                           "dmp":{
-                                             \s
-                                           },
-                                           "sectionId":"0db7845b-0e7c-41df-8d91-cbca97995fd5",
-                                           "descriptionTemplateGroupId":"fab932b2-4285-44a2-b9ab-1a4306bd3e0e",
-                                           "isActive":1
-                                        }
-                                     ],
-                                     "authorizationFlags":[
-                                        "InviteDmpUsers",
-                                        "CreateNewVersionDmp",
-                                        "AssignDmpUsers",
-                                        "DeleteDmp",
-                                        "FinalizeDmp",
-                                        "CloneDmp",
-                                        "ExportDmp",
-                                        "EditDmp"
-                                     ],
-                                     "belongsToCurrentTenant":true
+                                  "role": 0,
+                                  "isActive": 1
+                                }
+                              ],
+                              "planDescriptionTemplates": [
+                                {
+                                  "plan": {},
+                                  "sectionId": "775c1ad3-84ea-df57-f6be-16098752e0b4",
+                                  "descriptionTemplateGroupId": "c8ef1ecc-f0a6-4f06-a62d-2769968c3d0a",
+                                  "isActive": 1
+                                },
+                                {
+                                  "plan": {},
+                                  "sectionId": "775c1ad3-84ea-df57-f6be-16098752e0b4",
+                                  "descriptionTemplateGroupId": "7a9bdf03-8ff7-42c9-80d5-d742f20bcccc",
+                                  "isActive": 1
+                                },
+                                {
+                                  "plan": {},
+                                  "sectionId": "232c8265-207a-938b-569c-0f23967d70a8",
+                                  "descriptionTemplateGroupId": "5ac06da3-4f6a-4964-a49d-23cdafec1a00",
+                                  "isActive": 1
+                                },
+                                {
+                                  "plan": {},
+                                  "sectionId": "232c8265-207a-938b-569c-0f23967d70a8",
+                                  "descriptionTemplateGroupId": "6654faf4-c1b8-46a5-a970-e12cf9c03bad",
+                                  "isActive": 1
+                                }
+                              ],
+                              "authorizationFlags": [
+                                "ClonePlan",
+                                "EditPlan",
+                                "InvitePlanUsers",
+                                "FinalizePlan",
+                                "AssignPlanUsers",
+                                "DeletePlan",
+                                "ExportPlan",
+                                "CreateNewVersionPlan"
+                              ],
+                              "belongsToCurrentTenant": true
+                            },
+                            {
+                              "id": "e933e328-5782-41b9-9ce7-770981205de6",
+                              "label": "Dmp Default Blueprint",
+                              "version": 1,
+                              "status": {
+                                "id": "cb3ced76-9807-4829-82da-75777de1bc78",
+                                "name": "Draft",
+                                "internalStatus": 0,
+                                "definition": {
+                                  "availableActions": [
+                                    1,
+                                    2
+                                  ],
+                                  "matIconName": "edit",
+                                  "storageFile": {}
+                                }
+                              },
+                              "versionStatus": 2,
+                              "groupId": "4b38a67d-335a-4599-aa80-3308d378c648",
+                              "updatedAt": "2025-05-14T11:59:03.636908Z",
+                              "isActive": 1,
+                              "blueprint": {
+                                "id": "6db28659-36e5-4d5a-bf5e-222822d31768",
+                                "label": "Dmp_Default_Blueprint.xml",
+                                "definition": {
+                                  "sections": [
+                                    {
+                                      "id": "f94e50e0-cb97-4c65-8b88-e5db6badd41d",
+                                      "label": "Main Info",
+                                      "hasTemplates": false
+                                    },
+                                    {
+                                      "id": "3c2608e5-9320-4d94-9ed7-1eab9500d84b",
+                                      "label": "Funding",
+                                      "hasTemplates": false
+                                    },
+                                    {
+                                      "id": "2a77e1f6-9989-4aeb-acd9-48e911a92abd",
+                                      "label": "License",
+                                      "hasTemplates": false
+                                    },
+                                    {
+                                      "id": "0db7845b-0e7c-41df-8d91-cbca97995fd5",
+                                      "label": "Templates",
+                                      "hasTemplates": true
+                                    }
+                                  ]
+                                }
+                              },
+                              "hash": "1747223943",
+                              "planUsers": [
+                                {
+                                  "id": "fdf9208e-1a27-4541-ad0a-32c32a8042ca",
+                                  "plan": {
+                                    "id": "e933e328-5782-41b9-9ce7-770981205de6"
                                   },
-                                  {
-                                     "id":"68e9aae2-f2f9-4d51-b5f4-9a0216efb00c",
-                                     "label":"description template delete plan New",
-                                     "version":1,
-                                     "status":1,
-                                     "versionStatus":0,
-                                     "groupId":"cf177996-f68c-4375-bf53-161953dadfc2",
-                                     "description":"description template delete plan",
-                                     "updatedAt":"2024-06-06T11:27:32.988143Z",
-                                     "finalizedAt":"2024-06-06T11:27:32.988143Z",
-                                     "accessType":0,
-                                     "blueprint":{
-                                        "id":"86635178-36a6-484f-9057-a934e4eeecd5",
-                                        "label":"Dmp Default Blueprint",
-                                        "definition":{
-                                           "sections":[
-                                              {
-                                                 "id":"f94e50e0-cb97-4c65-8b88-e5db6badd41d",
-                                                 "label":"Main Info",
-                                                 "hasTemplates":false
-                                              },
-                                              {
-                                                 "id":"3c2608e5-9320-4d94-9ed7-1eab9500d84b",
-                                                 "label":"Funding",
-                                                 "hasTemplates":false
-                                              },
-                                              {
-                                                 "id":"2a77e1f6-9989-4aeb-acd9-48e911a92abd",
-                                                 "label":"License",
-                                                 "hasTemplates":false
-                                              },
-                                              {
-                                                 "id":"0db7845b-0e7c-41df-8d91-cbca97995fd5",
-                                                 "label":"Templates",
-                                                 "hasTemplates":true
-                                              }
-                                           ]
-                                        }
-                                     },
-                                     "hash":"1717673252",
-                                     "dmpReferences":[
-                                        {
-                                           "id":"c1510688-4a70-4a70-abc0-9778d5db5d7f",
-                                           "dmp":{
-                                             \s
-                                           },
-                                           "reference":{
-                                              "id":"32c87599-e375-4294-a7cf-3db8722bd675",
-                                              "label":"APC Microbiome Institute||",
-                                              "type":{
-                                                 "id":"538928bb-c7c6-452e-b66d-08e539f5f082"
-                                              }
-                                           },
-                                           "isActive":1
-                                        },
-                                        {
-                                           "id":"f9755a49-c305-4afe-889f-3ec1834b139a",
-                                           "dmp":{
-                                             \s
-                                           },
-                                           "reference":{
-                                              "id":"08577246-b50b-44ea-9bed-641ea4e40fe7",
-                                              "label":"unidentified",
-                                              "type":{
-                                                 "id":"5b9c284f-f041-4995-96cc-fad7ad13289c"
-                                              }
-                                           },
-                                           "isActive":1
-                                        }
-                                     ],
-                                     "dmpUsers":[
-                                        {
-                                           "id":"dd48a20d-5166-453b-9a25-bc5ec49ade1f",
-                                           "dmp":{
-                                              "id":"68e9aae2-f2f9-4d51-b5f4-9a0216efb00c"
-                                           },
-                                           "user":{
-                                              "id":"7d6e54b6-31e8-48df-9c3f-1e5b3eb48404"
-                                           },
-                                           "role":0,
-                                           "isActive":1
-                                        }
-                                     ],
-                                     "descriptions":[
-                                        {
-                                           "id":"18820f0b-8222-49fa-a997-86a171c41092",
-                                           "label":"description template test",
-                                           "status":1,
-                                           "isActive":1,
-                                           "descriptionTemplate":{
-                                              "groupId":"fab932b2-4285-44a2-b9ab-1a4306bd3e0e"
-                                           },
-                                           "dmp":{
-                                             \s
-                                           }
-                                        }
-                                     ],
-                                     "dmpDescriptionTemplates":[
-                                        {
-                                           "dmp":{
-                                             \s
-                                           },
-                                           "sectionId":"0db7845b-0e7c-41df-8d91-cbca97995fd5",
-                                           "descriptionTemplateGroupId":"fab932b2-4285-44a2-b9ab-1a4306bd3e0e",
-                                           "isActive":1
-                                        }
-                                     ],
-                                     "authorizationFlags":[
-                                        "InviteDmpUsers",
-                                        "CreateNewVersionDmp",
-                                        "AssignDmpUsers",
-                                        "DeleteDmp",
-                                        "FinalizeDmp",
-                                        "CloneDmp",
-                                        "ExportDmp",
-                                        "EditDmp"
-                                     ],
-                                     "belongsToCurrentTenant":true
+                                  "user": {
+                                    "id": "c1a25d94-ff7e-4a6c-9a0e-35c6e5352cd2"
                                   },
-                                  {
-                                     "id":"f2e807f1-7fd4-48db-b781-e9c972057447",
-                                     "label":"user3 plan",
-                                     "version":1,
-                                     "status":0,
-                                     "versionStatus":2,
-                                     "groupId":"df98fefc-6213-450d-aea7-594b43421c3f",
-                                     "description":"test",
-                                     "updatedAt":"2024-06-06T11:03:56.668426Z",
-                                     "blueprint":{
-                                        "id":"fc83c102-8c3c-4298-8e64-02bdd0fb7275",
-                                        "label":"blueprint with users",
-                                        "definition":{
-                                           "sections":[
-                                              {
-                                                 "id":"44e6e93b-a6e0-6036-bda5-b33fe1df2f02",
-                                                 "label":"Main info",
-                                                 "hasTemplates":true,
-                                                 "descriptionTemplates":[
-                                                    {
-                                                       "descriptionTemplateGroupId":"11559a4f-d6f4-4dc9-8e6b-d1879700ac12"
-                                                    }
-                                                 ]
-                                              },
-                                              {
-                                                 "id":"109ceb1e-9703-2a03-462b-8bf93f993a53",
-                                                 "label":"Section2",
-                                                 "hasTemplates":true
-                                              }
-                                           ]
-                                        }
-                                     },
-                                     "hash":"1717671836",
-                                     "dmpUsers":[
-                                        {
-                                           "id":"fcce59eb-8e9e-4768-92fe-e772886836f2",
-                                           "dmp":{
-                                              "id":"f2e807f1-7fd4-48db-b781-e9c972057447"
-                                           },
-                                           "user":{
-                                              "id":"7d6e54b6-31e8-48df-9c3f-1e5b3eb48404"
-                                           },
-                                           "role":0,
-                                           "isActive":1
-                                        },
-                                        {
-                                           "id":"8f698ad7-69e4-4fcf-b9b3-563b1b05ac45",
-                                           "dmp":{
-                                              "id":"f2e807f1-7fd4-48db-b781-e9c972057447"
-                                           },
-                                           "user":{
-                                              "id":"391252ba-926d-4bf9-8c28-a921036f6c39"
-                                           },
-                                           "role":3,
-                                           "isActive":0
-                                        },
-                                        {
-                                           "id":"0b26b2eb-5346-463c-b0f4-fa22d9a4c964",
-                                           "dmp":{
-                                              "id":"f2e807f1-7fd4-48db-b781-e9c972057447"
-                                           },
-                                           "user":{
-                                              "id":"391252ba-926d-4bf9-8c28-a921036f6c39"
-                                           },
-                                           "role":3,
-                                           "isActive":0
-                                        },
-                                        {
-                                           "id":"5154ec6e-912d-4b4f-8f1e-cc2a34069344",
-                                           "dmp":{
-                                              "id":"f2e807f1-7fd4-48db-b781-e9c972057447"
-                                           },
-                                           "user":{
-                                              "id":"391252ba-926d-4bf9-8c28-a921036f6c39"
-                                           },
-                                           "role":1,
-                                           "isActive":0
-                                        },
-                                        {
-                                           "id":"9ec5f356-43a3-462d-bbf2-27476931892f",
-                                           "dmp":{
-                                              "id":"f2e807f1-7fd4-48db-b781-e9c972057447"
-                                           },
-                                           "user":{
-                                              "id":"391252ba-926d-4bf9-8c28-a921036f6c39"
-                                           },
-                                           "role":1,
-                                           "isActive":0
-                                        },
-                                        {
-                                           "id":"e4e6a68c-408e-47fa-8b40-cb8c155f9eda",
-                                           "dmp":{
-                                              "id":"f2e807f1-7fd4-48db-b781-e9c972057447"
-                                           },
-                                           "user":{
-                                              "id":"391252ba-926d-4bf9-8c28-a921036f6c39"
-                                           },
-                                           "role":2,
-                                           "isActive":0
-                                        },
-                                        {
-                                           "id":"f1de4a02-137f-48d9-bd31-5904b2ba504a",
-                                           "dmp":{
-                                              "id":"f2e807f1-7fd4-48db-b781-e9c972057447"
-                                           },
-                                           "user":{
-                                              "id":"391252ba-926d-4bf9-8c28-a921036f6c39"
-                                           },
-                                           "role":3,
-                                           "isActive":0
-                                        },
-                                        {
-                                           "id":"9e444526-94c4-4e50-9c35-adf73fab5f8c",
-                                           "dmp":{
-                                              "id":"f2e807f1-7fd4-48db-b781-e9c972057447"
-                                           },
-                                           "user":{
-                                              "id":"391252ba-926d-4bf9-8c28-a921036f6c39"
-                                           },
-                                           "role":3,
-                                           "isActive":0
-                                        },
-                                        {
-                                           "id":"c92686d2-b434-44e3-b8fb-ef0d6a30582d",
-                                           "dmp":{
-                                              "id":"f2e807f1-7fd4-48db-b781-e9c972057447"
-                                           },
-                                           "user":{
-                                              "id":"391252ba-926d-4bf9-8c28-a921036f6c39"
-                                           },
-                                           "role":3,
-                                           "isActive":1
-                                        },
-                                        {
-                                           "id":"42f9c224-8704-4c41-8a2d-71b5c78d7690",
-                                           "dmp":{
-                                              "id":"f2e807f1-7fd4-48db-b781-e9c972057447"
-                                           },
-                                           "user":{
-                                              "id":"391252ba-926d-4bf9-8c28-a921036f6c39"
-                                           },
-                                           "role":2,
-                                           "isActive":1
-                                        },
-                                        {
-                                           "id":"be5836f4-842a-4a74-b852-c4bb4212adb0",
-                                           "dmp":{
-                                              "id":"f2e807f1-7fd4-48db-b781-e9c972057447"
-                                           },
-                                           "user":{
-                                              "id":"391252ba-926d-4bf9-8c28-a921036f6c39"
-                                           },
-                                           "role":2,
-                                           "isActive":0
-                                        },
-                                        {
-                                           "id":"18bb660a-638c-4def-90da-0c83368f7c1e",
-                                           "dmp":{
-                                              "id":"f2e807f1-7fd4-48db-b781-e9c972057447"
-                                           },
-                                           "user":{
-                                              "id":"391252ba-926d-4bf9-8c28-a921036f6c39"
-                                           },
-                                           "role":2,
-                                           "isActive":1
-                                        },
-                                        {
-                                           "id":"e5a8f9d1-30a3-4ee0-8ca6-f74c5e73ba53",
-                                           "dmp":{
-                                              "id":"f2e807f1-7fd4-48db-b781-e9c972057447"
-                                           },
-                                           "user":{
-                                              "id":"391252ba-926d-4bf9-8c28-a921036f6c39"
-                                           },
-                                           "role":2,
-                                           "isActive":1
-                                        }
-                                     ],
-                                     "descriptions":[
-                                        {
-                                           "id":"49b4c2df-0bad-4173-85d4-c5b416a7125a",
-                                           "label":"user3 description",
-                                           "status":0,
-                                           "isActive":1,
-                                           "descriptionTemplate":{
-                                              "groupId":"11559a4f-d6f4-4dc9-8e6b-d1879700ac12"
-                                           },
-                                           "dmp":{
-                                             \s
-                                           }
-                                        },
-                                        {
-                                           "id":"546a6195-17b6-4d1e-bad2-fa322fbad3f1",
-                                           "label":"user3 description - to delete",
-                                           "status":0,
-                                           "isActive":1,
-                                           "descriptionTemplate":{
-                                              "groupId":"33dc4612-32bf-46a3-b040-12e32a06b3c7"
-                                           },
-                                           "dmp":{
-                                             \s
-                                           }
-                                        }
-                                     ],
-                                     "dmpDescriptionTemplates":[
-                                        {
-                                           "dmp":{
-                                             \s
-                                           },
-                                           "sectionId":"44e6e93b-a6e0-6036-bda5-b33fe1df2f02",
-                                           "descriptionTemplateGroupId":"11559a4f-d6f4-4dc9-8e6b-d1879700ac12",
-                                           "isActive":1
-                                        },
-                                        {
-                                           "dmp":{
-                                             \s
-                                           },
-                                           "sectionId":"44e6e93b-a6e0-6036-bda5-b33fe1df2f02",
-                                           "descriptionTemplateGroupId":"33dc4612-32bf-46a3-b040-12e32a06b3c7",
-                                           "isActive":0
-                                        }
-                                     ],
-                                     "authorizationFlags":[
-                                        "InviteDmpUsers",
-                                        "CreateNewVersionDmp",
-                                        "AssignDmpUsers",
-                                        "DeleteDmp",
-                                        "FinalizeDmp",
-                                        "CloneDmp",
-                                        "ExportDmp",
-                                        "EditDmp"
-                                     ],
-                                     "belongsToCurrentTenant":true
-                                  }
-                               ],
-                               "count":2912
+                                  "role": 0,
+                                  "isActive": 1
+                                }
+                              ],
+                              "authorizationFlags": [
+                                "ClonePlan",
+                                "EditPlan",
+                                "InvitePlanUsers",
+                                "FinalizePlan",
+                                "AssignPlanUsers",
+                                "DeletePlan",
+                                "ExportPlan",
+                                "CreateNewVersionPlan"
+                              ],
+                              "belongsToCurrentTenant": true
+                            },
+                          ],
+                          "count": 3561
+                        }
+                        """;
+
+        public static final String endpoint_public_query_request_body_example =
+                """
+                        {
+                           "project": {
+                             "fields": [
+                               "id",
+                               "label",
+                               "description",
+                               "isActive",
+                               "status.id",
+                               "status.name",
+                               "status.internalStatus",
+                               "status.definition.statusColor",
+                               "status.definition.availableActions",
+                               "status.definition.matIconName",
+                               "status.definition.storageFile.id",
+                               "accessType",
+                               "version",
+                               "versionStatus",
+                               "groupId",
+                               "updatedAt",
+                               "belongsToCurrentTenant",
+                               "finalizedAt",
+                               "hash",
+                               "tenantId",
+                               "entityDois",
+                               "entityDois.id",
+                               "entityDois.doi",
+                               "authorizationFlags.CreateNewVersionPlan",
+                               "authorizationFlags.DeletePlan",
+                               "authorizationFlags.ClonePlan",
+                               "authorizationFlags.FinalizePlan",
+                               "authorizationFlags.ExportPlan",
+                               "authorizationFlags.InvitePlanUsers",
+                               "authorizationFlags.AssignPlanUsers",
+                               "authorizationFlags.EditPlan",
+                               "descriptions.id",
+                               "descriptions.label",
+                               "descriptions.status.id",
+                               "descriptions.status.name",
+                               "descriptions.status.internalStatus",
+                               "descriptions.descriptionTemplate.groupId",
+                               "descriptions.planDescriptionTemplate.sectionId",
+                               "descriptions.isActive",
+                               "blueprint.id",
+                               "blueprint.label",
+                               "blueprint.definition.sections.id",
+                               "blueprint.definition.sections.label",
+                               "blueprint.definition.sections.hasTemplates",
+                               "blueprint.definition.sections.descriptionTemplates.descriptionTemplate.groupId",
+                               "planUsers.id",
+                               "planUsers.user.id",
+                               "planUsers.role",
+                               "planUsers.plan.id",
+                               "planUsers.isActive",
+                               "planReferences.id",
+                               "planReferences.reference.id",
+                               "planReferences.reference.label",
+                               "planReferences.reference.type.id",
+                               "planReferences.isActive",
+                               "planDescriptionTemplates.descriptionTemplateGroupId",
+                               "planDescriptionTemplates.sectionId",
+                               "planDescriptionTemplates.descriptionTemplateGroupId",
+                               "planDescriptionTemplates.isActive"
+                             ]
+                           },
+                           "metadata": {
+                             "countAll": true
+                           },
+                           "page": {
+                             "offset": 0,
+                             "size": 5
+                           },
+                           "isActive": [
+                             1
+                           ],
+                           "order": {
+                             "items": [
+                               "-updatedAt"
+                             ]
+                           },
+                           "groupIds": null
+                         }
+                        """;
+
+        public static final String endpoint_public_query_response_example =
+                """
+                        {
+                          "items": [
+                            {
+                              "id": "a2af5e24-0302-4a67-9c4e-8c04787b028d",
+                              "label": "Selective DNA markers for Apera spica-venti",
+                              "version": 0,
+                              "description": "Creation, backup, storage and availability of the dataset of candidate selective DNA markers for Apera spica-venti",
+                              "updatedAt": "2024-10-10T10:42:59Z",
+                              "finalizedAt": "2024-10-10T13:42:59Z",
+                              "status": {
+                                "id": "f1a3da63-0bff-438f-8b46-1a81ca176115",
+                                "name": "Finalized",
+                                "internalStatus": 1,
+                                "definition": {
+                                  "availableActions": [
+                                    0,
+                                    1,
+                                    2
+                                  ]
+                                }
+                              },
+                              "groupId": "b2764e17-8252-4706-9911-65addbd2f9bd",
+                              "accessType": 0,
+                              "planUsers": [
+                                {
+                                  "id": "a9feb692-7487-42e9-b81c-e158d33a63a1",
+                                  "plan": {
+                                    "id": "a2af5e24-0302-4a67-9c4e-8c04787b028d"
+                                  },
+                                  "user": {
+                                    "id": "bf20243d-601e-4b62-b682-4d7aa828bd7c"
+                                  },
+                                  "role": 0
+                                }
+                              ],
+                              "planReferences": [
+                                {
+                                  "id": "409f39db-1ece-42be-921e-fe1b404b89e5",
+                                  "plan": {},
+                                  "reference": {
+                                    "id": "f33f56fd-73f7-4f50-9c9c-b63e4817d7f1",
+                                    "label": "Univeristy of Latvia",
+                                    "type": {
+                                      "id": "7eeffb98-58fb-4921-82ec-e27f32f8e738"
+                                    }
+                                  },
+                                  "isActive": 1
+                                },
+                                {
+                                  "id": "a0f65305-71fa-4fd4-b784-6e6fb8382a78",
+                                  "plan": {},
+                                  "reference": {
+                                    "id": "0ea7ad8b-879e-4fce-a5e3-c0f3cfe780a6",
+                                    "label": "Anete Boroduske (orcid:0000-0003-0077-9811)",
+                                    "type": {
+                                      "id": "5a2112e7-ea99-4cfe-98a1-68665e26726e"
+                                    }
+                                  },
+                                  "isActive": 1
+                                },
+                                {
+                                  "id": "3aa91778-1a48-4813-8b8d-e89d01e9873e",
+                                  "plan": {},
+                                  "reference": {
+                                    "id": "f9380468-271f-40a8-a6e0-17c220f59341",
+                                    "label": "Jevgenija Necajeva (orcid:0000-0002-0828-9721)",
+                                    "type": {
+                                      "id": "5a2112e7-ea99-4cfe-98a1-68665e26726e"
+                                    }
+                                  },
+                                  "isActive": 1
+                                },
+                                {
+                                  "id": "5bd392ce-a3b4-4cad-a9cc-8d8d18a6e3ea",
+                                  "plan": {},
+                                  "reference": {
+                                    "id": "f180e09f-8a4a-483c-97d9-7e48e63f9bb3",
+                                    "label": "Elza Kaktiņa (orcid:0009-0008-5745-6160)",
+                                    "type": {
+                                      "id": "5a2112e7-ea99-4cfe-98a1-68665e26726e"
+                                    }
+                                  },
+                                  "isActive": 1
+                                },
+                                {
+                                  "id": "93dcc948-f701-4265-b2c6-1e18afefe0c5",
+                                  "plan": {},
+                                  "reference": {
+                                    "id": "d72993d3-ffc9-48f4-8c37-9b76f813333e",
+                                    "label": "Brandon Sinn (orcid:0000-0002-5596-6895)",
+                                    "type": {
+                                      "id": "5a2112e7-ea99-4cfe-98a1-68665e26726e"
+                                    }
+                                  },
+                                  "isActive": 1
+                                },
+                                {
+                                  "id": "2a0c0a0f-7daa-477a-84ea-9430d9ae964c",
+                                  "plan": {},
+                                  "reference": {
+                                    "id": "26c3cd3a-626a-48bb-bf9e-0c75f6bdcbb7",
+                                    "label": "DNS marķieru izstrāde parastās rudzusmilgas (Apera spica-venti) sēklu noteikšanai augsnes sēklu bankā (lzp-2023/1-0265)",
+                                    "type": {
+                                      "id": "5b9c284f-f041-4995-96cc-fad7ad13289c"
+                                    }
+                                  },
+                                  "isActive": 1
+                                },
+                                {
+                                  "id": "9b178cf6-4e49-443d-b653-369e5149e9ae",
+                                  "plan": {},
+                                  "reference": {
+                                    "id": "ff16675f-92e6-4fd3-9c74-23de5dc9f0c6",
+                                    "label": "Latvian Council of Sciences",
+                                    "type": {
+                                      "id": "538928bb-c7c6-452e-b66d-08e539f5f082"
+                                    }
+                                  },
+                                  "isActive": 1
+                                }
+                              ],
+                              "descriptions": [
+                                {
+                                  "id": "f7c154f9-3653-44e1-8e08-365f58141e19",
+                                  "label": "Sequencing data",
+                                  "status": {
+                                    "id": "c266e2ee-9ae9-4a2f-9b4b-bc6fb1dd54aa",
+                                    "name": "Finalized",
+                                    "internalStatus": 1
+                                  },
+                                  "planDescriptionTemplate": {},
+                                  "descriptionTemplate": {
+                                    "groupId": "cc785a69-2d90-46c4-baba-3bedbfc4d997"
+                                  },
+                                  "plan": {}
+                                }
+                              ],
+                              "entityDois": [
+                                {
+                                  "id": "0ac95ee3-04a9-4ff2-b3f2-2c669af5cae1",
+                                  "doi": "10.5281/zenodo.13913158"
+                                }
+                              ]
+                            },
+                            {
+                              "id": "42eff5b3-e2f6-4e43-ae65-b7212f9790fa",
+                              "label": "REMAP - REusable MAsk Patterning",
+                              "version": 0,
+                              "description": "REMAP envisions a radically new and green surface patterning technique based on the spontaneous formation of reusable magnetic masks. Such masks are possible using fully adjustable and reversible interactions of &#8220;magnetorheological electrolytes&#8221; (MRE) on a substrate and microstructured magnetic fields generated by a permanent array of electromagnets below the substrate. By selectively activating each micro-electromagnet, it is possible to modulate the intensity and shape of the magnetic field (hence the mask) over space and time.<br><br>This way, REMAP enables high-throughput area-selective additive and subtractive patterning on a surface at room temperature and pressure. Furthermore, the newly devised MREs and the tuneable magnetic array developed within REMAP will pave the way to a plethora of future applications from lab-on-a-chip biomedicine, NMR analysis and smart fluids for robotic space exploration.",
+                              "updatedAt": "2024-10-08T12:56:24Z",
+                              "finalizedAt": "2024-10-08T15:56:24Z",
+                              "status": {
+                                "id": "f1a3da63-0bff-438f-8b46-1a81ca176115",
+                                "name": "Finalized",
+                                "internalStatus": 1,
+                                "definition": {
+                                  "availableActions": [
+                                    0,
+                                    1,
+                                    2
+                                  ]
+                                }
+                              },
+                              "groupId": "25ffbcae-432a-4fd9-a280-0cc1c7f30d10",
+                              "accessType": 0,
+                              "planUsers": [
+                                {
+                                  "id": "518a7c10-d6f9-4f8c-99d8-f6e33dea83d0",
+                                  "plan": {
+                                    "id": "42eff5b3-e2f6-4e43-ae65-b7212f9790fa"
+                                  },
+                                  "user": {
+                                    "id": "0073b791-8ad7-4fda-88b6-7a51391f0c6a"
+                                  },
+                                  "role": 1
+                                },
+                                {
+                                  "id": "68ba200c-2a57-4427-80a3-f32ebfd57f52",
+                                  "plan": {
+                                    "id": "42eff5b3-e2f6-4e43-ae65-b7212f9790fa"
+                                  },
+                                  "user": {
+                                    "id": "7d26ba1e-1c8e-4398-8834-d29a7856441c"
+                                  },
+                                  "role": 1
+                                },
+                                {
+                                  "id": "6e84af75-41af-4a8e-9b0d-97cc6a1749b4",
+                                  "plan": {
+                                    "id": "42eff5b3-e2f6-4e43-ae65-b7212f9790fa"
+                                  },
+                                  "user": {
+                                    "id": "c9c55871-62ea-48b5-8b06-a5c8ddb55de3"
+                                  },
+                                  "role": 1
+                                },
+                                {
+                                  "id": "7ca342a9-8c2d-4b1d-9438-57c1374e6ce7",
+                                  "plan": {
+                                    "id": "42eff5b3-e2f6-4e43-ae65-b7212f9790fa"
+                                  },
+                                  "user": {
+                                    "id": "83780596-84f9-498e-91b2-3639409a2a4e"
+                                  },
+                                  "role": 1
+                                },
+                                {
+                                  "id": "7de21834-a9b2-4484-bf01-5ed41259ab61",
+                                  "plan": {
+                                    "id": "42eff5b3-e2f6-4e43-ae65-b7212f9790fa"
+                                  },
+                                  "user": {
+                                    "id": "61377735-c943-40ff-afd0-8c2fb6a69908"
+                                  },
+                                  "role": 1
+                                },
+                                {
+                                  "id": "9cf6a694-89f7-4258-be7a-1e7c7d937c55",
+                                  "plan": {
+                                    "id": "42eff5b3-e2f6-4e43-ae65-b7212f9790fa"
+                                  },
+                                  "user": {
+                                    "id": "5d5fe59a-9194-471b-b936-64ae912aa4d7"
+                                  },
+                                  "role": 1
+                                },
+                                {
+                                  "id": "9f4580d7-c9f0-4195-b63b-ca77def43af6",
+                                  "plan": {
+                                    "id": "42eff5b3-e2f6-4e43-ae65-b7212f9790fa"
+                                  },
+                                  "user": {
+                                    "id": "809ea801-2731-449d-997c-de1d11cb8893"
+                                  },
+                                  "role": 1
+                                },
+                                {
+                                  "id": "b16f4aac-7439-4752-9ae1-bb11e8da2368",
+                                  "plan": {
+                                    "id": "42eff5b3-e2f6-4e43-ae65-b7212f9790fa"
+                                  },
+                                  "user": {
+                                    "id": "23ad58bf-2ce0-47fb-80f3-7bb86f39aa58"
+                                  },
+                                  "role": 1
+                                },
+                                {
+                                  "id": "b511679d-5504-4b5c-9880-550af2ca4b54",
+                                  "plan": {
+                                    "id": "42eff5b3-e2f6-4e43-ae65-b7212f9790fa"
+                                  },
+                                  "user": {
+                                    "id": "a59fa9e2-2c39-4b16-b41a-4d1f07d36f8e"
+                                  },
+                                  "role": 0
+                                },
+                                {
+                                  "id": "d7f53d0c-587d-41e1-ac7a-caf3f460caad",
+                                  "plan": {
+                                    "id": "42eff5b3-e2f6-4e43-ae65-b7212f9790fa"
+                                  },
+                                  "user": {
+                                    "id": "585901e3-da03-49d3-804f-b7ebe30b06ce"
+                                  },
+                                  "role": 1
+                                }
+                              ],
+                              "planReferences": [
+                                {
+                                  "id": "e1342ee1-8e0b-46bb-ad43-cd772abf5604",
+                                  "plan": {},
+                                  "reference": {
+                                    "id": "6b618b0f-f377-41de-b3d7-dbf7c97e2b95",
+                                    "label": "Creative Commons Attribution 4.0",
+                                    "type": {
+                                      "id": "2baab1e8-561f-4c15-84c3-571b811c52f6"
+                                    }
+                                  },
+                                  "isActive": 1
+                                },
+                                {
+                                  "id": "5f0f3be2-2cd8-4911-999e-4cb1450d8277",
+                                  "plan": {},
+                                  "reference": {
+                                    "id": "27b3c1d3-5c4d-4c2a-8692-2ea07f5d3cc9",
+                                    "label": "International Iberian Nanotechnology Laboratory",
+                                    "type": {
+                                      "id": "7eeffb98-58fb-4921-82ec-e27f32f8e738"
+                                    }
+                                  },
+                                  "isActive": 1
+                                },
+                                {
+                                  "id": "7a1b8123-1ac9-4f39-9586-ee906df7a64c",
+                                  "plan": {},
+                                  "reference": {
+                                    "id": "38d9d98e-6b59-4166-8618-2e22bb5136e4",
+                                    "label": "University of Luxembourg",
+                                    "type": {
+                                      "id": "7eeffb98-58fb-4921-82ec-e27f32f8e738"
+                                    }
+                                  },
+                                  "isActive": 1
+                                },
+                                {
+                                  "id": "a42e3c7b-76c8-40e6-ae35-b860679be270",
+                                  "plan": {},
+                                  "reference": {
+                                    "id": "3bf6dea1-7fea-4607-ad3a-a5eac9258687",
+                                    "label": "The National Centre of Scientific Research Demokritos",
+                                    "type": {
+                                      "id": "7eeffb98-58fb-4921-82ec-e27f32f8e738"
+                                    }
+                                  },
+                                  "isActive": 1
+                                },
+                                {
+                                  "id": "cc425a84-5bc2-4a28-8d45-8c1cb62874bd",
+                                  "plan": {},
+                                  "reference": {
+                                    "id": "64f02d2e-807b-42b4-9546-bed4d29458fe",
+                                    "label": "RINA CONSULTING SPA",
+                                    "type": {
+                                      "id": "7eeffb98-58fb-4921-82ec-e27f32f8e738"
+                                    }
+                                  },
+                                  "isActive": 1
+                                },
+                                {
+                                  "id": "2fe82633-216b-4dcc-9d6d-82254397d6d7",
+                                  "plan": {},
+                                  "reference": {
+                                    "id": "b81a0fb3-0125-40e4-ad5b-8ec0a9b109ba",
+                                    "label": "UNIVERSITA DEGLI STUDI DI GENOVA",
+                                    "type": {
+                                      "id": "7eeffb98-58fb-4921-82ec-e27f32f8e738"
+                                    }
+                                  },
+                                  "isActive": 1
+                                },
+                                {
+                                  "id": "3cf7d736-a7e7-4f71-ad9a-ff8e5705c055",
+                                  "plan": {},
+                                  "reference": {
+                                    "id": "3127c601-60d5-4a49-b59f-bd1faa1a4d74",
+                                    "label": "SOLVIONIC SA",
+                                    "type": {
+                                      "id": "7eeffb98-58fb-4921-82ec-e27f32f8e738"
+                                    }
+                                  },
+                                  "isActive": 1
+                                },
+                                {
+                                  "id": "f333c9e6-0a8b-4594-ad05-6e4d662de47b",
+                                  "plan": {},
+                                  "reference": {
+                                    "id": "ea7e344e-2002-45f8-bb54-8c928a18580e",
+                                    "label": "Centre National de la Recherche Scientifique (CNRS), Paris",
+                                    "type": {
+                                      "id": "7eeffb98-58fb-4921-82ec-e27f32f8e738"
+                                    }
+                                  },
+                                  "isActive": 1
+                                },
+                                {
+                                  "id": "5283e296-4c89-4661-861b-c08e20d818c7",
+                                  "plan": {},
+                                  "reference": {
+                                    "id": "84db0436-616f-4396-beeb-2d73a65f15a4",
+                                    "label": "Tim Böhnert (orcid:0000-0002-2659-1481)",
+                                    "type": {
+                                      "id": "5a2112e7-ea99-4cfe-98a1-68665e26726e"
+                                    }
+                                  },
+                                  "isActive": 1
+                                },
+                                {
+                                  "id": "e647920b-a67a-4fa8-9714-e9be4811f6b8",
+                                  "plan": {},
+                                  "reference": {
+                                    "id": "4e739fbc-178e-4c9f-b74e-8a02cca86c6d",
+                                    "label": "Fatemeh Shahbazi Farahani (orcid:0000-0002-5115-6879)",
+                                    "type": {
+                                      "id": "5a2112e7-ea99-4cfe-98a1-68665e26726e"
+                                    }
+                                  },
+                                  "isActive": 1
+                                },
+                                {
+                                  "id": "94dcbf9f-5cbf-4e15-91e6-adaec31cfe60",
+                                  "plan": {},
+                                  "reference": {
+                                    "id": "53eca1c6-04b1-421d-b7e0-4ac4a96b0460",
+                                    "label": "Maria de Lourdes Gonzalez-Juarez (orcid:0000-0003-1046-4901)",
+                                    "type": {
+                                      "id": "5a2112e7-ea99-4cfe-98a1-68665e26726e"
+                                    }
+                                  },
+                                  "isActive": 1
+                                },
+                                {
+                                  "id": "8387f75d-b08d-49aa-ba28-6ca4a4cdcc7d",
+                                  "plan": {},
+                                  "reference": {
+                                    "id": "790bcaaa-5bd0-4692-822c-0a8eeeb725e8",
+                                    "label": "Andrea Messina (orcid:0000-0002-6166-8210)",
+                                    "type": {
+                                      "id": "5a2112e7-ea99-4cfe-98a1-68665e26726e"
+                                    }
+                                  },
+                                  "isActive": 1
+                                },
+                                {
+                                  "id": "964ced96-4ae9-4313-be29-2483485c4f8f",
+                                  "plan": {},
+                                  "reference": {
+                                    "id": "7b5fb028-e81c-4000-b87f-f2b90909e59f",
+                                    "label": "Carlos Marques (orcid:0000-0002-7429-0165)",
+                                    "type": {
+                                      "id": "5a2112e7-ea99-4cfe-98a1-68665e26726e"
+                                    }
+                                  },
+                                  "isActive": 1
+                                },
+                                {
+                                  "id": "e8eef708-583c-4080-8026-dce3b0891405",
+                                  "plan": {},
+                                  "reference": {
+                                    "id": "db3499f0-a425-4285-a614-bba991a633a5",
+                                    "label": "Cinzia Leone (orcid:0000-0003-1734-6633)",
+                                    "type": {
+                                      "id": "5a2112e7-ea99-4cfe-98a1-68665e26726e"
+                                    }
+                                  },
+                                  "isActive": 1
+                                },
+                                {
+                                  "id": "a7f1cc1a-1e44-40fe-b633-e9193be9b8ed",
+                                  "plan": {},
+                                  "reference": {
+                                    "id": "6cdab8d8-ece7-4d4d-9381-576afb7cd612",
+                                    "label": "Nikolaos Ntallis (orcid:0000-0002-4444-6819)",
+                                    "type": {
+                                      "id": "5a2112e7-ea99-4cfe-98a1-68665e26726e"
+                                    }
+                                  },
+                                  "isActive": 1
+                                },
+                                {
+                                  "id": "d2bcd4ca-d91d-45cf-a7e0-b14144915690",
+                                  "plan": {},
+                                  "reference": {
+                                    "id": "dfe935db-134e-4872-a1b3-974612351dc6",
+                                    "label": "Cláudia Coelho (orcid:0000-0003-0730-5651)",
+                                    "type": {
+                                      "id": "5a2112e7-ea99-4cfe-98a1-68665e26726e"
+                                    }
+                                  },
+                                  "isActive": 1
+                                },
+                                {
+                                  "id": "09cca2aa-077b-4711-8078-1f6e245072fa",
+                                  "plan": {},
+                                  "reference": {
+                                    "id": "3658bcff-389f-4807-a77f-9f59fcab5715",
+                                    "label": "Chiara Lambruschini (orcid:0000-0003-1447-2650)",
+                                    "type": {
+                                      "id": "5a2112e7-ea99-4cfe-98a1-68665e26726e"
+                                    }
+                                  },
+                                  "isActive": 1
+                                },
+                                {
+                                  "id": "6e125b93-491a-4be0-ad9f-9a67dee205ff",
+                                  "plan": {},
+                                  "reference": {
+                                    "id": "147c2835-7138-4880-a350-c247c1a571b5",
+                                    "label": "ANDREA VIAN (orcid:0000-0003-0629-0427)",
+                                    "type": {
+                                      "id": "5a2112e7-ea99-4cfe-98a1-68665e26726e"
+                                    }
+                                  },
+                                  "isActive": 1
+                                },
+                                {
+                                  "id": "17b33aab-f90e-4df1-a21c-e7f882e8ba2d",
+                                  "plan": {},
+                                  "reference": {
+                                    "id": "d84266ea-53cb-434e-930e-16074d36fd05",
+                                    "label": "Michael Casale (orcid:0000-0002-5427-9401)",
+                                    "type": {
+                                      "id": "5a2112e7-ea99-4cfe-98a1-68665e26726e"
+                                    }
+                                  },
+                                  "isActive": 1
+                                },
+                                {
+                                  "id": "a7271355-b5ff-4dbe-8e77-ba38d4248717",
+                                  "plan": {},
+                                  "reference": {
+                                    "id": "b72e2ff0-8bc2-46a4-aba6-f55668ba6216",
+                                    "label": "Diego Colombara (orcid:0000-0002-8306-0994)",
+                                    "type": {
+                                      "id": "5a2112e7-ea99-4cfe-98a1-68665e26726e"
+                                    }
+                                  },
+                                  "isActive": 1
+                                },
+                                {
+                                  "id": "efdbbf93-601b-4a61-bd49-9c30894fb70b",
+                                  "plan": {},
+                                  "reference": {
+                                    "id": "9b90eaad-dea7-4f52-8dcd-42f741d8523e",
+                                    "label": "Alexander Omelyanchik (orcid:0000-0003-3876-8261)",
+                                    "type": {
+                                      "id": "5a2112e7-ea99-4cfe-98a1-68665e26726e"
+                                    }
+                                  },
+                                  "isActive": 1
+                                },
+                                {
+                                  "id": "0c13fa6d-89f7-4415-bdad-97ee9f747bce",
+                                  "plan": {},
+                                  "reference": {
+                                    "id": "cd9871b9-e377-413d-a7fd-fa0a0b890bc7",
+                                    "label": "Davide Peddis (orcid:0000-0003-0810-8860)",
+                                    "type": {
+                                      "id": "5a2112e7-ea99-4cfe-98a1-68665e26726e"
+                                    }
+                                  },
+                                  "isActive": 1
+                                },
+                                {
+                                  "id": "98ef78f6-382c-4668-a2e4-e16e7f564a07",
+                                  "plan": {},
+                                  "reference": {
+                                    "id": "750b28b3-4d4b-41f9-8bbe-62f01f429feb",
+                                    "label": "Nicoleta Nicoara (orcid:0000-0002-0909-4635)",
+                                    "type": {
+                                      "id": "5a2112e7-ea99-4cfe-98a1-68665e26726e"
+                                    }
+                                  },
+                                  "isActive": 1
+                                },
+                                {
+                                  "id": "65920cc2-798b-47ba-a729-2ab382ce13b4",
+                                  "plan": {},
+                                  "reference": {
+                                    "id": "a177a1f2-5485-430d-951c-4e6d1fea0fc9",
+                                    "label": "Davide Ressegotti (orcid:0009-0007-1517-0781)",
+                                    "type": {
+                                      "id": "5a2112e7-ea99-4cfe-98a1-68665e26726e"
+                                    }
+                                  },
+                                  "isActive": 1
+                                },
+                                {
+                                  "id": "db894657-404f-4e08-9efc-2d500d935189",
+                                  "plan": {},
+                                  "reference": {
+                                    "id": "91d3b286-fe85-4b18-9165-c252c3adec40",
+                                    "label": "Phillip Dale (orcid:0000-0003-4821-8669)",
+                                    "type": {
+                                      "id": "5a2112e7-ea99-4cfe-98a1-68665e26726e"
+                                    }
+                                  },
+                                  "isActive": 1
+                                },
+                                {
+                                  "id": "2c8f6fd0-e53b-4cc7-b47f-f475522fa7f1",
+                                  "plan": {},
+                                  "reference": {
+                                    "id": "f26d9766-7243-4960-bea2-d2243229d7e2",
+                                    "label": "Serena De Negri (orcid:0000-0002-5345-8694)",
+                                    "type": {
+                                      "id": "5a2112e7-ea99-4cfe-98a1-68665e26726e"
+                                    }
+                                  },
+                                  "isActive": 1
+                                },
+                                {
+                                  "id": "3cc86564-dd3a-428d-96e5-75c3b2613b54",
+                                  "plan": {},
+                                  "reference": {
+                                    "id": "4d5b5582-ea54-4dd7-b351-e6bde6e5f53c",
+                                    "label": "Pedro Anacleto (orcid:0000-0001-5404-0866)",
+                                    "type": {
+                                      "id": "5a2112e7-ea99-4cfe-98a1-68665e26726e"
+                                    }
+                                  },
+                                  "isActive": 1
+                                },
+                                {
+                                  "id": "6d64c1b8-c025-40cf-b898-b4d9e2f5fb83",
+                                  "plan": {},
+                                  "reference": {
+                                    "id": "683ab544-1503-489c-9315-84124a169b29",
+                                    "label": "sawssen slimani (orcid:0000-0002-5830-1864)",
+                                    "type": {
+                                      "id": "5a2112e7-ea99-4cfe-98a1-68665e26726e"
+                                    }
+                                  },
+                                  "isActive": 1
+                                },
+                                {
+                                  "id": "93ff8d51-2665-4d30-9183-8a3884bb4257",
+                                  "plan": {},
+                                  "reference": {
+                                    "id": "0fac044a-351d-4e5a-8608-252278cb3f7d",
+                                    "label": "Valerio Pagliarella (orcid:0009-0004-7081-1068)",
+                                    "type": {
+                                      "id": "5a2112e7-ea99-4cfe-98a1-68665e26726e"
+                                    }
+                                  },
+                                  "isActive": 1
+                                },
+                                {
+                                  "id": "2a711aae-465a-4a43-b5f7-16f8a7843d3a",
+                                  "plan": {},
+                                  "reference": {
+                                    "id": "10905576-53c4-47cd-85c0-e9bad8fb73c1",
+                                    "label": "Marianna Vasilakaki (orcid:0000-0003-1832-7549)",
+                                    "type": {
+                                      "id": "5a2112e7-ea99-4cfe-98a1-68665e26726e"
+                                    }
+                                  },
+                                  "isActive": 1
+                                },
+                                {
+                                  "id": "4bf9c896-ddfd-415f-839d-67b1360592c3",
+                                  "plan": {},
+                                  "reference": {
+                                    "id": "0b1284d1-5ddb-47aa-86fb-aff7ceaf9503",
+                                    "label": "Alessandro Dell'Uomo (orcid:0009-0009-3907-3075)",
+                                    "type": {
+                                      "id": "5a2112e7-ea99-4cfe-98a1-68665e26726e"
+                                    }
+                                  },
+                                  "isActive": 1
+                                },
+                                {
+                                  "id": "c2dcebbc-822c-44e8-9a12-69c9720064ca",
+                                  "plan": {},
+                                  "reference": {
+                                    "id": "bd1f8b38-2c58-4961-9876-5c78cac21cf3",
+                                    "label": "Marco Piccinni (orcid:0000-0003-4504-8000)",
+                                    "type": {
+                                      "id": "5a2112e7-ea99-4cfe-98a1-68665e26726e"
+                                    }
+                                  },
+                                  "isActive": 1
+                                },
+                                {
+                                  "id": "8971adfb-f570-47b6-8e7f-0da62c7a2c1e",
+                                  "plan": {},
+                                  "reference": {
+                                    "id": "20124b31-84c4-409d-aef7-61a06e40d61f",
+                                    "label": "Sascha Sadewasser (orcid:0000-0001-8384-6025)",
+                                    "type": {
+                                      "id": "5a2112e7-ea99-4cfe-98a1-68665e26726e"
+                                    }
+                                  },
+                                  "isActive": 1
+                                },
+                                {
+                                  "id": "1502bd7b-6acd-4d6e-bbee-841485c1de6a",
+                                  "plan": {},
+                                  "reference": {
+                                    "id": "f5517adc-183b-4d99-9a5c-02bd46669279",
+                                    "label": "Jean-Pierre Miranda Murillo (orcid:0000-0002-8404-0776)",
+                                    "type": {
+                                      "id": "5a2112e7-ea99-4cfe-98a1-68665e26726e"
+                                    }
+                                  },
+                                  "isActive": 1
+                                },
+                                {
+                                  "id": "e397b355-8be1-4fd3-a664-1294af66f4da",
+                                  "plan": {},
+                                  "reference": {
+                                    "id": "28e9b46a-650c-4924-b2c9-2dd946dad0e5",
+                                    "label": "Rita Bencivenga (orcid:0000-0002-6298-141X)",
+                                    "type": {
+                                      "id": "5a2112e7-ea99-4cfe-98a1-68665e26726e"
+                                    }
+                                  },
+                                  "isActive": 1
+                                },
+                                {
+                                  "id": "f8be15a2-cd2c-424b-a2fc-1c6ab19dcd25",
+                                  "plan": {},
+                                  "reference": {
+                                    "id": "b64060ce-e194-4168-89ec-0608cde03e45",
+                                    "label": "Giorgia Paniati (orcid:0000-0002-8454-7761)",
+                                    "type": {
+                                      "id": "5a2112e7-ea99-4cfe-98a1-68665e26726e"
+                                    }
+                                  },
+                                  "isActive": 1
+                                },
+                                {
+                                  "id": "2a41a990-cfc5-4d7b-83ae-374435c9bf1c",
+                                  "plan": {},
+                                  "reference": {
+                                    "id": "51eadc53-bfa9-4c44-ae20-d3180dbc2a33",
+                                    "label": "Charlotte Hurel (orcid:0000-0001-6187-6354)",
+                                    "type": {
+                                      "id": "5a2112e7-ea99-4cfe-98a1-68665e26726e"
+                                    }
+                                  },
+                                  "isActive": 1
+                                },
+                                {
+                                  "id": "bcebf66c-1012-4820-be8c-c872aaaba657",
+                                  "plan": {},
+                                  "reference": {
+                                    "id": "d231070f-94d1-4a45-88d0-26d6008c4879",
+                                    "label": "Andrea Toscano (orcid:0000-0002-2604-0436)",
+                                    "type": {
+                                      "id": "5a2112e7-ea99-4cfe-98a1-68665e26726e"
+                                    }
+                                  },
+                                  "isActive": 1
+                                },
+                                {
+                                  "id": "ce15c374-a9e4-4818-923d-a492309c3547",
+                                  "plan": {},
+                                  "reference": {
+                                    "id": "e4d5039a-a6a2-474f-8a7c-75536d56f288",
+                                    "label": "Kalliopi Trohidou (orcid:0000-0002-6921-5419)",
+                                    "type": {
+                                      "id": "5a2112e7-ea99-4cfe-98a1-68665e26726e"
+                                    }
+                                  },
+                                  "isActive": 1
+                                },
+                                {
+                                  "id": "79c7fb66-2872-4677-a1f4-7b4b0fc5848e",
+                                  "plan": {},
+                                  "reference": {
+                                    "id": "db5895e2-4f84-4f29-a9eb-0f37f23c26b1",
+                                    "label": "Simona Delsante (orcid:0000-0002-7403-3425)",
+                                    "type": {
+                                      "id": "5a2112e7-ea99-4cfe-98a1-68665e26726e"
+                                    }
+                                  },
+                                  "isActive": 1
+                                },
+                                {
+                                  "id": "c78a61ef-c2cb-4afc-8fdf-c2cf6226a7d6",
+                                  "plan": {},
+                                  "reference": {
+                                    "id": "026a05bd-5627-40dd-8590-63465ed77ef6",
+                                    "label": "Christian Rossi (orcid:0000-0002-2274-791X)",
+                                    "type": {
+                                      "id": "5a2112e7-ea99-4cfe-98a1-68665e26726e"
+                                    }
+                                  },
+                                  "isActive": 1
+                                },
+                                {
+                                  "id": "06d9e916-bda4-4e67-96b7-d35a21a3d14c",
+                                  "plan": {},
+                                  "reference": {
+                                    "id": "44160725-bfe5-4f77-9826-a950a163813e",
+                                    "label": "Annalisa Barla (orcid:0000-0002-3436-035X)",
+                                    "type": {
+                                      "id": "5a2112e7-ea99-4cfe-98a1-68665e26726e"
+                                    }
+                                  },
+                                  "isActive": 1
+                                },
+                                {
+                                  "id": "a8417b21-d189-438c-9ae5-c36cd879bdc6",
+                                  "plan": {},
+                                  "reference": {
+                                    "id": "e4e7e674-b0c3-4400-a750-d39cc71f608e",
+                                    "label": "REusable MAsk Patterning (corda_____he::101046909)",
+                                    "type": {
+                                      "id": "5b9c284f-f041-4995-96cc-fad7ad13289c"
+                                    }
+                                  },
+                                  "isActive": 1
+                                },
+                                {
+                                  "id": "6bb0596a-653a-4d52-94e8-8b2fec073d90",
+                                  "plan": {},
+                                  "reference": {
+                                    "id": "c9b3f64c-c49c-4526-b80f-ef32ce775dfa",
+                                    "label": "European Commission||EC",
+                                    "type": {
+                                      "id": "538928bb-c7c6-452e-b66d-08e539f5f082"
+                                    }
+                                  },
+                                  "isActive": 1
+                                }
+                              ],
+                              "descriptions": [
+                                {
+                                  "id": "7fa629e5-492a-4a12-9ed1-04cabb378738",
+                                  "label": "D3.1 Demonstration of REMAP’s fundamental hypothesis",
+                                  "status": {
+                                    "id": "c266e2ee-9ae9-4a2f-9b4b-bc6fb1dd54aa",
+                                    "name": "Finalized",
+                                    "internalStatus": 1
+                                  },
+                                  "planDescriptionTemplate": {},
+                                  "descriptionTemplate": {
+                                    "groupId": "c105616e-3e8c-4375-8294-b7302a538fe5"
+                                  },
+                                  "plan": {}
+                                }
+                              ]
+                            },
+                            {
+                              "id": "4e933ef9-dd62-4ec7-89d0-cd7bfef636c7",
+                              "label": "Wastewater antibiotic resistance genes",
+                              "version": 2,
+                              "description": "This study aims to characterize the microbiome and resistome signatures in WW from 15 Latvian municipalities, leveraging short-read metagenomic data from untreated waste water samples. To address wider contexts, we explored the impacts on the microbiomes of the WW samples and industrial city environments",
+                              "updatedAt": "2024-10-08T06:11:20Z",
+                              "finalizedAt": "2024-10-08T09:11:20Z",
+                              "status": {
+                                "id": "f1a3da63-0bff-438f-8b46-1a81ca176115",
+                                "name": "Finalized",
+                                "internalStatus": 1,
+                                "definition": {
+                                  "availableActions": [
+                                    0,
+                                    1,
+                                    2
+                                  ]
+                                }
+                              },
+                              "groupId": "482ee9ef-fbe7-4d21-b2d0-0cc2a5ad7eba",
+                              "accessType": 0,
+                              "planUsers": [
+                                {
+                                  "id": "7c7c3076-f787-4d22-9c7b-be41a0eb4852",
+                                  "plan": {
+                                    "id": "4e933ef9-dd62-4ec7-89d0-cd7bfef636c7"
+                                  },
+                                  "user": {
+                                    "id": "c1aa30c3-4b2a-4926-8fd1-46a56fc86cdc"
+                                  },
+                                  "role": 0
+                                }
+                              ],
+                              "planReferences": [
+                                {
+                                  "id": "72668825-cbef-4f2f-b70d-d39f0d9591ae",
+                                  "plan": {},
+                                  "reference": {
+                                    "id": "9b088b70-8993-4f5b-8b5d-f66bf66d3cc0",
+                                    "label": "Latvian Biomedical Research and Study Centre",
+                                    "type": {
+                                      "id": "7eeffb98-58fb-4921-82ec-e27f32f8e738"
+                                    }
+                                  },
+                                  "isActive": 1
+                                },
+                                {
+                                  "id": "4ac6351e-fbad-4ace-bfc2-e4564ded9b41",
+                                  "plan": {},
+                                  "reference": {
+                                    "id": "a5dffaae-ff8e-4254-a4d3-6c3b2f3e4317",
+                                    "label": "Edgars Liepa (orcid:0009-0003-6872-2819)",
+                                    "type": {
+                                      "id": "5a2112e7-ea99-4cfe-98a1-68665e26726e"
+                                    }
+                                  },
+                                  "isActive": 1
+                                },
+                                {
+                                  "id": "973d977b-feb2-4285-ad76-d2647e9f43fd",
+                                  "plan": {},
+                                  "reference": {
+                                    "id": "c581288e-00ec-4bf8-9bb6-680da4c22f4a",
+                                    "label": "The Recovery and Resilience Facility ( 5.2.1.1.i.0/2/24/I/CFLA/001)",
+                                    "type": {
+                                      "id": "5b9c284f-f041-4995-96cc-fad7ad13289c"
+                                    }
+                                  },
+                                  "isActive": 1
+                                },
+                                {
+                                  "id": "de8e44cf-f902-411c-9adb-50f55261ab43",
+                                  "plan": {},
+                                  "reference": {
+                                    "id": "18321eb1-e1da-40ef-896b-5176d4508930",
+                                    "label": "Central Finance and Contracting Agency",
+                                    "type": {
+                                      "id": "538928bb-c7c6-452e-b66d-08e539f5f082"
+                                    }
+                                  },
+                                  "isActive": 1
+                                }
+                              ],
+                              "descriptions": [
+                                {
+                                  "id": "782857cd-03c1-4803-9e9c-c04dbece9948",
+                                  "label": "Wastewater metagenome",
+                                  "status": {
+                                    "id": "c266e2ee-9ae9-4a2f-9b4b-bc6fb1dd54aa",
+                                    "name": "Finalized",
+                                    "internalStatus": 1
+                                  },
+                                  "planDescriptionTemplate": {},
+                                  "descriptionTemplate": {
+                                    "groupId": "cc785a69-2d90-46c4-baba-3bedbfc4d997"
+                                  },
+                                  "plan": {}
+                                }
+                              ]
+                            },
+                            {
+                              "id": "8a206e47-d21c-40ff-993c-71a59a61183d",
+                              "label": "Characterization of Cancer-Associated Fibroblasts in Gastroenteropancreatic Neuroendocrine  Tumors using spatial transcriptomics",
+                              "version": 0,
+                              "description": "<b>This DMP characterizes the data management plan for study devoted to characterization of cancer-associated fibroblasts in gastroenteropancreatic neuroendocrine  tumors (GEP-NETs) using spatial transcriptomics</b><div><b><i>Study abstract:</i>&#160;</b><span>Cancer-associated fibroblasts (CAF) are an essential part of the tumor microenvironment </span><span>(TME). CAFs promote tumor progression by extracellular matrix (ECM) remodelling, metabolic effects,&#160;</span><span>secretion of soluble factors, and immunogenic interactions. Although crosstalk between CAFs and tumor cells&#160;</span><span>has been identified in gastroenteropancreatic neuroendocrine tumors (GEP-NETs) the exact role and molecular&#160;</span><span>mechanisms of CAFs in GEP-NET tumorigenesis still remain poorly understood.&#160;&#160;</span><span>In this project, we aim to&#160;</span><span>identify and characterize specific subspecies of CAFs found in GEP-NET tumors using single-cell RNA-seq and spatial transcriptomics approaches in order to profile the impact of CAFs&#160;</span><span>on tumor cell transcriptome, and assess the crosstalk between tumor and stroma.</span></div>",
+                              "updatedAt": "2024-10-08T04:34:21Z",
+                              "finalizedAt": "2024-10-08T07:34:21Z",
+                              "status": {
+                                "id": "f1a3da63-0bff-438f-8b46-1a81ca176115",
+                                "name": "Finalized",
+                                "internalStatus": 1,
+                                "definition": {
+                                  "availableActions": [
+                                    0,
+                                    1,
+                                    2
+                                  ]
+                                }
+                              },
+                              "groupId": "d99a56e6-26c3-47fb-ad67-46b798596b1f",
+                              "accessType": 0,
+                              "planUsers": [
+                                {
+                                  "id": "007bf9c7-40b9-489e-8129-2f3c9d6d8d3d",
+                                  "plan": {
+                                    "id": "8a206e47-d21c-40ff-993c-71a59a61183d"
+                                  },
+                                  "user": {
+                                    "id": "43ad0b43-0f86-4692-8af5-13cd28fd4680"
+                                  },
+                                  "role": 0
+                                }
+                              ],
+                              "planReferences": [
+                                {
+                                  "id": "ebe482e5-00f5-46a5-8f1e-d8cba351cbed",
+                                  "plan": {},
+                                  "reference": {
+                                    "id": "9b088b70-8993-4f5b-8b5d-f66bf66d3cc0",
+                                    "label": "Latvian Biomedical Research and Study Centre",
+                                    "type": {
+                                      "id": "7eeffb98-58fb-4921-82ec-e27f32f8e738"
+                                    }
+                                  },
+                                  "isActive": 1
+                                },
+                                {
+                                  "id": "9d6ae716-0fe7-4f7a-aa7b-8ab914ec9737",
+                                  "plan": {},
+                                  "reference": {
+                                    "id": "037b85b7-6031-4e39-947a-3df5bc3858ca",
+                                    "label": "Ilona Mandrika (orcid:0000-0003-3822-9540)",
+                                    "type": {
+                                      "id": "5a2112e7-ea99-4cfe-98a1-68665e26726e"
+                                    }
+                                  },
+                                  "isActive": 1
+                                },
+                                {
+                                  "id": "a6eddc3f-bb71-4bf0-8977-9161d308f943",
+                                  "plan": {},
+                                  "reference": {
+                                    "id": "e4e487de-c185-4924-9231-02c0a5118472",
+                                    "label": "Helvijs Niedra (orcid:0000-0003-4396-4021)",
+                                    "type": {
+                                      "id": "5a2112e7-ea99-4cfe-98a1-68665e26726e"
+                                    }
+                                  },
+                                  "isActive": 1
+                                },
+                                {
+                                  "id": "2137f1e4-de96-46e5-81ad-e527ce7385d0",
+                                  "plan": {},
+                                  "reference": {
+                                    "id": "67c63aaa-9078-49dc-ad4f-ea1c2321169b",
+                                    "label": "Vita Rovite (orcid:0000-0001-9368-5210)",
+                                    "type": {
+                                      "id": "5a2112e7-ea99-4cfe-98a1-68665e26726e"
+                                    }
+                                  },
+                                  "isActive": 1
+                                },
+                                {
+                                  "id": "9ba22627-37aa-4b45-b88f-695def3ee037",
+                                  "plan": {},
+                                  "reference": {
+                                    "id": "da8d92ff-ee49-47e3-89b4-6bfce207c603",
+                                    "label": "Consolidation of the Latvian Institute of Organic Synthesis and the Latvian Biomedical Research and Study Centre (Nr.5.2.1.1.i.0/2/24/I/CFLA/001 )",
+                                    "type": {
+                                      "id": "5b9c284f-f041-4995-96cc-fad7ad13289c"
+                                    }
+                                  },
+                                  "isActive": 1
+                                },
+                                {
+                                  "id": "f7ad26ee-0062-4b67-8501-ce4d73b81d02",
+                                  "plan": {},
+                                  "reference": {
+                                    "id": "18321eb1-e1da-40ef-896b-5176d4508930",
+                                    "label": "Central Finance and Contracting Agency",
+                                    "type": {
+                                      "id": "538928bb-c7c6-452e-b66d-08e539f5f082"
+                                    }
+                                  },
+                                  "isActive": 1
+                                }
+                              ],
+                              "descriptions": [
+                                {
+                                  "id": "b6aee234-5c40-47e7-b08c-b1cd255aa480",
+                                  "label": "LCS FARP",
+                                  "status": {
+                                    "id": "c266e2ee-9ae9-4a2f-9b4b-bc6fb1dd54aa",
+                                    "name": "Finalized",
+                                    "internalStatus": 1
+                                  },
+                                  "planDescriptionTemplate": {},
+                                  "descriptionTemplate": {
+                                    "groupId": "cc785a69-2d90-46c4-baba-3bedbfc4d997"
+                                  },
+                                  "plan": {}
+                                }
+                              ]
+                            },
+                            {
+                              "id": "2032a1b8-7415-4857-a45d-de7805e4dc75",
+                              "label": "Dynamics of black holes and scalar fields",
+                              "version": 0,
+                              "description": "Data produced with the Einstein Toolkit, for evolutions of black holes and bosonic fields.<br>",
+                              "updatedAt": "2024-10-05T12:31:46Z",
+                              "finalizedAt": "2024-10-05T15:31:46Z",
+                              "status": {
+                                "id": "f1a3da63-0bff-438f-8b46-1a81ca176115",
+                                "name": "Finalized",
+                                "internalStatus": 1,
+                                "definition": {
+                                  "availableActions": [
+                                    0,
+                                    1,
+                                    2
+                                  ]
+                                }
+                              },
+                              "groupId": "3361ce7f-42a1-418a-ad2a-79ce464df729",
+                              "accessType": 0,
+                              "planUsers": [
+                                {
+                                  "id": "8aa24dfd-a136-49da-bb4b-aabc4521e9e5",
+                                  "plan": {
+                                    "id": "2032a1b8-7415-4857-a45d-de7805e4dc75"
+                                  },
+                                  "user": {
+                                    "id": "27db9835-ce4f-4856-92d5-617e9128ff3b"
+                                  },
+                                  "role": 0
+                                }
+                              ],
+                              "planReferences": [
+                                {
+                                  "id": "b31db445-0997-43f8-95c8-1322adeffa0c",
+                                  "plan": {},
+                                  "reference": {
+                                    "id": "0ae9229b-9304-411a-8bb5-549a2a421dc4",
+                                    "label": "Creative Commons Attribution-NonCommercial 4.0",
+                                    "type": {
+                                      "id": "2baab1e8-561f-4c15-84c3-571b811c52f6"
+                                    }
+                                  },
+                                  "isActive": 1
+                                },
+                                {
+                                  "id": "be8e920f-bb09-4963-88c0-d3c5b96f8864",
+                                  "plan": {},
+                                  "reference": {
+                                    "id": "b6e61798-e2b3-4c58-8e02-b257ad59534c",
+                                    "label": "Universidade de Aveiro Centro de Investigação e Desenvolvimento em Matemática e Aplicações",
+                                    "type": {
+                                      "id": "7eeffb98-58fb-4921-82ec-e27f32f8e738"
+                                    }
+                                  },
+                                  "isActive": 1
+                                },
+                                {
+                                  "id": "cae2fe03-0c63-4807-90e5-723f83511e9e",
+                                  "plan": {},
+                                  "reference": {
+                                    "id": "8bb150e2-52e1-4986-8659-1f5663cd20e0",
+                                    "label": "Miguel Zilhao (orcid:0000-0002-7089-5570)",
+                                    "type": {
+                                      "id": "5a2112e7-ea99-4cfe-98a1-68665e26726e"
+                                    }
+                                  },
+                                  "isActive": 1
+                                },
+                                {
+                                  "id": "3affbc86-1ad2-46e0-adf4-6414f29c1e44",
+                                  "plan": {},
+                                  "reference": {
+                                    "id": "2787b08c-0c6d-453b-a5cb-ee3b82a9c508",
+                                    "label": "Gravitational waves, black holes, and fundamental physics (2022.04560.PTDC)",
+                                    "type": {
+                                      "id": "5b9c284f-f041-4995-96cc-fad7ad13289c"
+                                    }
+                                  },
+                                  "isActive": 1
+                                },
+                                {
+                                  "id": "03231391-3171-47d0-8a56-831d9b7fc998",
+                                  "plan": {},
+                                  "reference": {
+                                    "id": "cfd04c06-4260-4706-8bde-202f3bd7577d",
+                                    "label": "Fundação para a Ciência e a Tecnologia, I.P.||FCT",
+                                    "type": {
+                                      "id": "538928bb-c7c6-452e-b66d-08e539f5f082"
+                                    }
+                                  },
+                                  "isActive": 1
+                                }
+                              ],
+                              "descriptions": [
+                                {
+                                  "id": "9949012c-b541-44a3-8ffd-c84bdc29276f",
+                                  "label": "EinsteinToolkit data",
+                                  "status": {
+                                    "id": "c266e2ee-9ae9-4a2f-9b4b-bc6fb1dd54aa",
+                                    "name": "Finalized",
+                                    "internalStatus": 1
+                                  },
+                                  "planDescriptionTemplate": {},
+                                  "descriptionTemplate": {
+                                    "groupId": "7ae1c3d3-91a9-4315-9aec-b0f173010f2a"
+                                  },
+                                  "plan": {}
+                                }
+                              ]
                             }
+                          ],
+                          "count": 196
+                        }
                         """;
     }
 
     public static final class Description {
+
+        public static final String endpoint_field_set_example =
+                "[\"id\", \"label\", \"isActive\"]";
+
+        public static final String endpoint_public_query =
+                """
+                        This endpoint is used to fetch all the available public published descriptions.<br/>
+                        It also allows to restrict the results using a query object passed in the request body.<br/>
+                        """;
+
+        public static final String endpoint_public_query_request_body =
+                """
+                        For public descriptions we used the same query parameters as descriptions queries
+                        """;
 
         public static final String endpoint_query =
                 """
@@ -1016,10 +1875,8 @@ public final class SwaggerHelpers {
                             This filter works like this. If we want to view only the active records we pass [1] and for only the deleted records we pass [0].
                             <br/>If not present or if we pass [0,1], every record is included.
                             </li>
-                            <li><b>statuses:</b>
-                            This is a list and determines which records we want to include in the response, based on their status.
-                            The status can be <i>Draft</i>, <i>Finalized</i> or <i>Canceled</i>. We add 0, 1 or 2 to the list respectively.
-                            <br/>If not present, every record is included.
+                            <li><b>statusIds:</b>
+                            This is a list and determines which records we want to include in the response, based on if they have one of the specific status ids.. <br/>If empty, every record is included.
                             </li>
                             <li><b>createdAfter:</b>
                             This is a date and determines which records we want to include in the response, based on their creation date.
@@ -1047,740 +1904,1163 @@ public final class SwaggerHelpers {
         public static final String endpoint_query_request_body_example =
                 """
                         {
-                           "project":{
-                              "fields":[
-                                 "id",
-                                 "label",
-                                 "status",
-                                 "updatedAt",
-                                 "belongsToCurrentTenant",
-                                 "finalizedAt",
-                                 "descriptionTemplate.id",
-                                 "descriptionTemplate.label",
-                                 "descriptionTemplate.groupId",
-                                 "dmp.id",
-                                 "dmp.label",
-                                 "dmp.status",
-                                 "dmp.accessType",
-                                 "dmp.blueprint.id",
-                                 "dmp.blueprint.label",
-                                 "dmp.blueprint.definition.sections.id",
-                                 "dmp.blueprint.definition.sections.label",
-                                 "dmp.blueprint.definition.sections.hasTemplates",
-                                 "dmp.dmpReferences.id",
-                                 "dmp.dmpReferences.reference.id",
-                                 "dmp.dmpReferences.reference.label",
-                                 "dmp.dmpReferences.reference.type.id",
-                                 "dmp.dmpReferences.reference.reference",
-                                 "dmp.dmpReferences.isActive",
-                                 "dmpDescriptionTemplate.id",
-                                 "dmpDescriptionTemplate.dmp.id",
-                                 "dmpDescriptionTemplate.descriptionTemplateGroupId",
-                                 "dmpDescriptionTemplate.sectionId"
-                              ]
-                           },
-                           "page":{
-                              "size":5,
-                              "offset":0
-                           },
-                           "order":{
-                              "items":[
-                                 "-updatedAt"
-                              ]
-                           },
-                           "metadata":{
-                              "countAll":true
-                           },
-                           "isActive":[
-                              1
-                           ]
+                            "project": {
+                                "fields": [
+                                    "id",
+                                    "label",
+                                    "description",
+                                    "status.id",
+                                    "status.name",
+                                    "status.internalStatus",
+                                    "status.definition.availableActions",
+                                    "authorizationFlags.EditDescription",
+                                    "authorizationFlags.DeleteDescription",
+                                    "authorizationFlags.FinalizeDescription",
+                                    "authorizationFlags.AnnotateDescription",
+                                    "statusAuthorizationFlags.Edit",
+                                    "planDescriptionTemplate.id",
+                                    "planDescriptionTemplate.sectionId",
+                                    "planDescriptionTemplate.isActive",
+                                    "properties.fieldSets.comment",
+                                    "properties.fieldSets.items.ordinal",
+                                    "properties.fieldSets.items.fields.textValue",
+                                    "properties.fieldSets.items.fields.textListValue",
+                                    "properties.fieldSets.items.fields.dateValue",
+                                    "properties.fieldSets.items.fields.booleanValue",
+                                    "properties.fieldSets.items.fields.externalIdentifier.identifier",
+                                    "properties.fieldSets.items.fields.externalIdentifier.type",
+                                    "properties.fieldSets.items.fields.references.id",
+                                    "properties.fieldSets.items.fields.references.label",
+                                    "properties.fieldSets.items.fields.references.type.id",
+                                    "properties.fieldSets.items.fields.references.type.name",
+                                    "properties.fieldSets.items.fields.references.reference",
+                                    "properties.fieldSets.items.fields.references.isActive",
+                                    "properties.fieldSets.items.fields.tags.id",
+                                    "properties.fieldSets.items.fields.tags.label",
+                                    "properties.fieldSets.items.fields.tags.isActive",
+                                    "properties.fieldSets.items.fields.tags.hash",
+                                    "descriptionTags.id",
+                                    "descriptionTags.tag.label",
+                                    "descriptionTags.isActive",
+                                    "descriptionReferences.data.fieldId",
+                                    "descriptionReferences.data.ordinal",
+                                    "descriptionReferences.reference.id",
+                                    "descriptionReferences.reference.label",
+                                    "descriptionReferences.reference.type.id",
+                                    "descriptionReferences.reference.reference",
+                                    "descriptionReferences.reference.source",
+                                    "descriptionReferences.reference.sourceType",
+                                    "descriptionReferences.isActive",
+                                    "createdAt",
+                                    "hash",
+                                    "isActive",
+                                    "belongsToCurrentTenant",
+                                    "availableStatuses.id",
+                                    "availableStatuses.name",
+                                    "availableStatuses.internalStatus",
+                                    "availableStatuses.action",
+                                    "plan.id",
+                                    "plan.label",
+                                    "plan.status.id",
+                                    "plan.status.name",
+                                    "plan.status.internalStatus",
+                                    "plan.isActive",
+                                    "plan.authorizationFlags.EditPlan",
+                                    "plan.blueprint.id",
+                                    "plan.blueprint.isActive",
+                                    "plan.blueprint.definition",
+                                    "plan.blueprint.definition.sections.id",
+                                    "plan.blueprint.definition.sections.label",
+                                    "plan.blueprint.definition.sections.ordinal",
+                                    "plan.blueprint.definition.sections.hasTemplates",
+                                    "plan.blueprint.definition.sections.descriptionTemplates.descriptionTemplate.groupId",
+                                    "plan.blueprint.definition.sections.descriptionTemplates.maxMultiplicity",
+                                    "plan.blueprint.definition.sections.prefillingSourcesEnabled",
+                                    "plan.blueprint.definition.sections.prefillingSources.id",
+                                    "plan.planDescriptionTemplates.id",
+                                    "plan.planDescriptionTemplates.sectionId",
+                                    "plan.planDescriptionTemplates.descriptionTemplateGroupId",
+                                    "plan.planDescriptionTemplates.isActive",
+                                    "plan.planDescriptionTemplates.currentDescriptionTemplate.id",
+                                    "plan.planDescriptionTemplates.currentDescriptionTemplate.label",
+                                    "plan.planDescriptionTemplates.currentDescriptionTemplate.version",
+                                    "plan.descriptions.id",
+                                    "plan.descriptions.isActive",
+                                    "plan.descriptions.planDescriptionTemplate.id",
+                                    "plan.descriptions.planDescriptionTemplate.descriptionTemplateGroupId",
+                                    "plan.descriptions.planDescriptionTemplate.sectionId",
+                                    "plan.descriptions.planDescriptionTemplate.isActive",
+                                    "plan.planUsers.id",
+                                    "plan.planUsers.sectionId",
+                                    "plan.planUsers.user.id",
+                                    "plan.planUsers.user.name",
+                                    "plan.planUsers.role",
+                                    "plan.planUsers.isActive"
+                                ]
+                            },
+                            "metadata": {
+                                "countAll": true
+                            },
+                            "page": {
+                                "offset": 0,
+                                "size": 5
+                            },
+                            "isActive": [
+                                1
+                            ],
+                            "order": {
+                                "items": [
+                                    "-updatedAt"
+                                ]
+                            }
+                        }
+                        """;
+        public static final String endpoint_public_query_request_body_example =
+                """
+                        {
+                             "project": {
+                                 "fields": [
+                                     "id",
+                                     "tenantId",
+                                     "label",
+                                     "isActive",
+                                     "status.id",
+                                     "status.name",
+                                     "status.internalStatus",
+                                     "status.definition.availableActions",
+                                     "status.definition.statusColor",
+                                     "status.definition.matIconName",
+                                     "status.definition.storageFile.id",
+                                     "updatedAt",
+                                     "belongsToCurrentTenant",
+                                     "finalizedAt",
+                                     "authorizationFlags.EditDescription",
+                                     "authorizationFlags.DeleteDescription",
+                                     "authorizationFlags.InvitePlanUsers",
+                                     "authorizationFlags.CloneDescription",
+                                     "descriptionTemplate.id",
+                                     "descriptionTemplate.label",
+                                     "descriptionTemplate.groupId",
+                                     "plan.id",
+                                     "plan.label",
+                                     "plan.status.id",
+                                     "plan.status.name",
+                                     "plan.status.internalStatus",
+                                     "plan.accessType",
+                                     "plan.finalizedAt",
+                                     "plan.blueprint.id",
+                                     "plan.blueprint.label",
+                                     "plan.blueprint.definition.sections.id",
+                                     "plan.blueprint.definition.sections.label",
+                                     "plan.blueprint.definition.sections.hasTemplates",
+                                     "plan.planUsers.id",
+                                     "plan.planUsers.user.id",
+                                     "plan.planUsers.role",
+                                     "plan.planUsers.isActive",
+                                     "plan.planReferences.id",
+                                     "plan.planReferences.reference.id",
+                                     "plan.planReferences.reference.label",
+                                     "plan.planReferences.reference.type.id",
+                                     "plan.planReferences.reference.reference",
+                                     "plan.planReferences.isActive",
+                                     "planDescriptionTemplate.id",
+                                     "planDescriptionTemplate.plan.id",
+                                     "planDescriptionTemplate.descriptionTemplateGroupId",
+                                     "planDescriptionTemplate.sectionId"
+                                 ]
+                             },
+                             "metadata": {
+                                 "countAll": true
+                             },
+                             "page": {
+                                 "offset": 0,
+                                 "size": 5
+                             },
+                             "isActive": [
+                                 1
+                             ],
+                             "order": {
+                                 "items": [
+                                     "-updatedAt"
+                                 ]
+                             }
                         }
                         """;
 
         public static final String endpoint_query_response_example =
                 """
                         {
-                           "items":[
-                              {
-                                 "id":"a18258c6-8a47-4716-81f3-9cbe383af182",
-                                 "label":"delete template",
-                                 "status":0,
-                                 "updatedAt":"2024-06-06T13:15:15.763826Z",
-                                 "dmpDescriptionTemplate":{
-                                    "id":"29a3385c-a2ae-4675-b1c6-0fd5a49017be",
-                                    "dmp":{
-                                       "id":"9dcb614e-05c5-4679-bbe8-7cb8913586e8"
-                                    },
-                                    "sectionId":"0db7845b-0e7c-41df-8d91-cbca97995fd5",
-                                    "descriptionTemplateGroupId":"f0979866-f9d1-4eb3-b33e-572e744ce8af"
-                                 },
-                                 "descriptionTemplate":{
-                                    "id":"2ea4c926-df57-48fa-b22d-2b2bafae1267",
-                                    "label":"delete",
-                                    "groupId":"f0979866-f9d1-4eb3-b33e-572e744ce8af"
-                                 },
-                                 "authorizationFlags":[
-                                    "DeleteDescription",
-                                    "EditDescription",
-                                    "InviteDmpUsers"
-                                 ],
-                                 "dmp":{
-                                    "id":"9dcb614e-05c5-4679-bbe8-7cb8913586e8",
-                                    "label":"description template delete plan",
-                                    "status":0,
-                                    "blueprint":{
-                                       "id":"86635178-36a6-484f-9057-a934e4eeecd5",
-                                       "label":"Dmp Default Blueprint",
-                                       "definition":{
-                                          "sections":[
-                                             {
-                                                "id":"f94e50e0-cb97-4c65-8b88-e5db6badd41d",
-                                                "label":"Main Info",
-                                                "hasTemplates":false
-                                             },
-                                             {
-                                                "id":"3c2608e5-9320-4d94-9ed7-1eab9500d84b",
-                                                "label":"Funding",
-                                                "hasTemplates":false
-                                             },
-                                             {
-                                                "id":"2a77e1f6-9989-4aeb-acd9-48e911a92abd",
-                                                "label":"License",
-                                                "hasTemplates":false
-                                             },
-                                             {
-                                                "id":"0db7845b-0e7c-41df-8d91-cbca97995fd5",
-                                                "label":"Templates",
-                                                "hasTemplates":true
-                                             }
-                                          ]
-                                       }
-                                    },
-                                    "dmpUsers":[
-                                       {
-                                          "id":"cbd64e90-846e-4c4e-8678-89ebc54b1c5f",
-                                          "dmp":{
-                                            \s
-                                          },
-                                          "user":{
-                                             "id":"e60876ed-87f8-4a8e-8081-e5620ec839cf"
-                                          },
-                                          "role":0,
-                                          "isActive":1
-                                       }
-                                    ]
-                                 },
-                                 "belongsToCurrentTenant":true
+                          "items": [
+                            {
+                              "id": "e2f7a248-9956-476f-8086-6e6f5782bbe5",
+                              "label": "Horizon Europe",
+                              "status": {
+                                "id": "978e6ff6-b5e9-4cee-86cb-bc7401ec4059",
+                                "name": "Draft",
+                                "internalStatus": 0,
+                                "definition": {
+                                  "availableActions": [
+                                    0
+                                  ],
+                                  "storageFile": {},
+                                  "statusColor": ""
+                                }
                               },
-                              {
-                                 "id":"46c9be1b-9809-4bd3-b730-ce4a9b457484",
-                                 "label":"description from default",
-                                 "status":0,
-                                 "updatedAt":"2024-06-06T12:56:33.171675Z",
-                                 "dmpDescriptionTemplate":{
-                                    "id":"69ea7b42-e5e4-4b23-b17d-9883ece3ee53",
-                                    "dmp":{
-                                       "id":"703b00d0-af49-4e5a-9002-fc3f4ae6e107"
-                                    },
-                                    "sectionId":"0db7845b-0e7c-41df-8d91-cbca97995fd5",
-                                    "descriptionTemplateGroupId":"11559a4f-d6f4-4dc9-8e6b-d1879700ac12"
-                                 },
-                                 "descriptionTemplate":{
-                                    "id":"57ced1f1-6e8c-482a-88c4-2e2d6322b25c",
-                                    "label":"Academy Of Finland",
-                                    "groupId":"11559a4f-d6f4-4dc9-8e6b-d1879700ac12"
-                                 },
-                                 "authorizationFlags":[
-                                    "DeleteDescription",
-                                    "EditDescription",
-                                    "InviteDmpUsers"
-                                 ],
-                                 "dmp":{
-                                    "id":"703b00d0-af49-4e5a-9002-fc3f4ae6e107",
-                                    "label":"plan from default",
-                                    "status":0,
-                                    "blueprint":{
-                                       "id":"86635178-36a6-484f-9057-a934e4eeecd5",
-                                       "label":"Dmp Default Blueprint",
-                                       "definition":{
-                                          "sections":[
-                                             {
-                                                "id":"f94e50e0-cb97-4c65-8b88-e5db6badd41d",
-                                                "label":"Main Info",
-                                                "hasTemplates":false
-                                             },
-                                             {
-                                                "id":"3c2608e5-9320-4d94-9ed7-1eab9500d84b",
-                                                "label":"Funding",
-                                                "hasTemplates":false
-                                             },
-                                             {
-                                                "id":"2a77e1f6-9989-4aeb-acd9-48e911a92abd",
-                                                "label":"License",
-                                                "hasTemplates":false
-                                             },
-                                             {
-                                                "id":"0db7845b-0e7c-41df-8d91-cbca97995fd5",
-                                                "label":"Templates",
-                                                "hasTemplates":true
-                                             }
-                                          ]
-                                       }
-                                    },
-                                    "dmpUsers":[
-                                       {
-                                          "id":"dff384f8-3e06-47b9-84f9-b91b66ab3327",
-                                          "dmp":{
-                                            \s
-                                          },
-                                          "user":{
-                                             "id":"e60876ed-87f8-4a8e-8081-e5620ec839cf"
-                                          },
-                                          "role":0,
-                                          "isActive":1
-                                       }
-                                    ]
-                                 },
-                                 "belongsToCurrentTenant":true
+                              "updatedAt": "2025-04-02T07:30:00.351629Z",
+                              "isActive": 1,
+                              "planDescriptionTemplate": {
+                                "id": "e735e425-8bb5-4402-9bb1-22069c432660",
+                                "plan": {
+                                  "id": "7d6bc285-7ea1-48b3-b02b-8a78ab5edb38"
+                                },
+                                "sectionId": "0db7845b-0e7c-41df-8d91-cbca97995fd5",
+                                "descriptionTemplateGroupId": "c105616e-3e8c-4375-8294-b7302a538fe5"
                               },
-                              {
-                                 "id":"546a6195-17b6-4d1e-bad2-fa322fbad3f1",
-                                 "label":"user3 description - to delete",
-                                 "status":0,
-                                 "updatedAt":"2024-06-06T09:58:17.507386Z",
-                                 "dmpDescriptionTemplate":{
-                                    "id":"0e8a5e65-c3bc-49b0-a6f3-d7da22836f3b",
-                                    "dmp":{
-                                       "id":"f2e807f1-7fd4-48db-b781-e9c972057447"
-                                    },
-                                    "sectionId":"44e6e93b-a6e0-6036-bda5-b33fe1df2f02",
-                                    "descriptionTemplateGroupId":"33dc4612-32bf-46a3-b040-12e32a06b3c7"
-                                 },
-                                 "descriptionTemplate":{
-                                    "id":"d8a1ac10-ffa4-4f7f-afe9-36b904af4ae7",
-                                    "label":"RDA_madmp-only new TO DELETE ",
-                                    "groupId":"33dc4612-32bf-46a3-b040-12e32a06b3c7"
-                                 },
-                                 "authorizationFlags":[
-                                    "DeleteDescription",
-                                    "EditDescription",
-                                    "InviteDmpUsers"
-                                 ],
-                                 "dmp":{
-                                    "id":"f2e807f1-7fd4-48db-b781-e9c972057447",
-                                    "label":"user3 plan",
-                                    "status":0,
-                                    "blueprint":{
-                                       "id":"fc83c102-8c3c-4298-8e64-02bdd0fb7275",
-                                       "label":"blueprint with users",
-                                       "definition":{
-                                          "sections":[
-                                             {
-                                                "id":"44e6e93b-a6e0-6036-bda5-b33fe1df2f02",
-                                                "label":"Main info",
-                                                "hasTemplates":true
-                                             },
-                                             {
-                                                "id":"109ceb1e-9703-2a03-462b-8bf93f993a53",
-                                                "label":"Section2",
-                                                "hasTemplates":true
-                                             }
-                                          ]
-                                       }
-                                    },
-                                    "dmpUsers":[
-                                       {
-                                          "id":"fcce59eb-8e9e-4768-92fe-e772886836f2",
-                                          "dmp":{
-                                            \s
-                                          },
-                                          "user":{
-                                             "id":"7d6e54b6-31e8-48df-9c3f-1e5b3eb48404"
-                                          },
-                                          "role":0,
-                                          "isActive":1
-                                       },
-                                       {
-                                          "id":"8f698ad7-69e4-4fcf-b9b3-563b1b05ac45",
-                                          "dmp":{
-                                            \s
-                                          },
-                                          "user":{
-                                             "id":"391252ba-926d-4bf9-8c28-a921036f6c39"
-                                          },
-                                          "role":3,
-                                          "isActive":0
-                                       },
-                                       {
-                                          "id":"0b26b2eb-5346-463c-b0f4-fa22d9a4c964",
-                                          "dmp":{
-                                            \s
-                                          },
-                                          "user":{
-                                             "id":"391252ba-926d-4bf9-8c28-a921036f6c39"
-                                          },
-                                          "role":3,
-                                          "isActive":0
-                                       },
-                                       {
-                                          "id":"5154ec6e-912d-4b4f-8f1e-cc2a34069344",
-                                          "dmp":{
-                                            \s
-                                          },
-                                          "user":{
-                                             "id":"391252ba-926d-4bf9-8c28-a921036f6c39"
-                                          },
-                                          "role":1,
-                                          "isActive":0
-                                       },
-                                       {
-                                          "id":"9ec5f356-43a3-462d-bbf2-27476931892f",
-                                          "dmp":{
-                                            \s
-                                          },
-                                          "user":{
-                                             "id":"391252ba-926d-4bf9-8c28-a921036f6c39"
-                                          },
-                                          "role":1,
-                                          "isActive":0
-                                       },
-                                       {
-                                          "id":"e4e6a68c-408e-47fa-8b40-cb8c155f9eda",
-                                          "dmp":{
-                                            \s
-                                          },
-                                          "user":{
-                                             "id":"391252ba-926d-4bf9-8c28-a921036f6c39"
-                                          },
-                                          "role":2,
-                                          "isActive":0
-                                       },
-                                       {
-                                          "id":"f1de4a02-137f-48d9-bd31-5904b2ba504a",
-                                          "dmp":{
-                                            \s
-                                          },
-                                          "user":{
-                                             "id":"391252ba-926d-4bf9-8c28-a921036f6c39"
-                                          },
-                                          "role":3,
-                                          "isActive":0
-                                       },
-                                       {
-                                          "id":"9e444526-94c4-4e50-9c35-adf73fab5f8c",
-                                          "dmp":{
-                                            \s
-                                          },
-                                          "user":{
-                                             "id":"391252ba-926d-4bf9-8c28-a921036f6c39"
-                                          },
-                                          "role":3,
-                                          "isActive":0
-                                       },
-                                       {
-                                          "id":"c92686d2-b434-44e3-b8fb-ef0d6a30582d",
-                                          "dmp":{
-                                            \s
-                                          },
-                                          "user":{
-                                             "id":"391252ba-926d-4bf9-8c28-a921036f6c39"
-                                          },
-                                          "role":3,
-                                          "isActive":1
-                                       },
-                                       {
-                                          "id":"42f9c224-8704-4c41-8a2d-71b5c78d7690",
-                                          "dmp":{
-                                            \s
-                                          },
-                                          "user":{
-                                             "id":"391252ba-926d-4bf9-8c28-a921036f6c39"
-                                          },
-                                          "role":2,
-                                          "isActive":1
-                                       },
-                                       {
-                                          "id":"be5836f4-842a-4a74-b852-c4bb4212adb0",
-                                          "dmp":{
-                                            \s
-                                          },
-                                          "user":{
-                                             "id":"391252ba-926d-4bf9-8c28-a921036f6c39"
-                                          },
-                                          "role":2,
-                                          "isActive":0
-                                       },
-                                       {
-                                          "id":"18bb660a-638c-4def-90da-0c83368f7c1e",
-                                          "dmp":{
-                                            \s
-                                          },
-                                          "user":{
-                                             "id":"391252ba-926d-4bf9-8c28-a921036f6c39"
-                                          },
-                                          "role":2,
-                                          "isActive":1
-                                       },
-                                       {
-                                          "id":"e5a8f9d1-30a3-4ee0-8ca6-f74c5e73ba53",
-                                          "dmp":{
-                                            \s
-                                          },
-                                          "user":{
-                                             "id":"391252ba-926d-4bf9-8c28-a921036f6c39"
-                                          },
-                                          "role":2,
-                                          "isActive":1
-                                       }
-                                    ]
-                                 },
-                                 "belongsToCurrentTenant":true
+                              "descriptionTemplate": {
+                                "id": "05fcea9a-0435-4c67-a84d-df152aad868e",
+                                "label": "Horizon Europe",
+                                "groupId": "c105616e-3e8c-4375-8294-b7302a538fe5"
                               },
-                              {
-                                 "id":"49b4c2df-0bad-4173-85d4-c5b416a7125a",
-                                 "label":"user3 description",
-                                 "status":0,
-                                 "updatedAt":"2024-06-05T14:43:20.353594Z",
-                                 "dmpDescriptionTemplate":{
-                                    "id":"3432e0b5-fbda-4a81-ab56-06657636da57",
-                                    "dmp":{
-                                       "id":"f2e807f1-7fd4-48db-b781-e9c972057447"
-                                    },
-                                    "sectionId":"44e6e93b-a6e0-6036-bda5-b33fe1df2f02",
-                                    "descriptionTemplateGroupId":"11559a4f-d6f4-4dc9-8e6b-d1879700ac12"
-                                 },
-                                 "descriptionTemplate":{
-                                    "id":"57ced1f1-6e8c-482a-88c4-2e2d6322b25c",
-                                    "label":"Academy Of Finland",
-                                    "groupId":"11559a4f-d6f4-4dc9-8e6b-d1879700ac12"
-                                 },
-                                 "authorizationFlags":[
-                                    "DeleteDescription",
-                                    "EditDescription",
-                                    "InviteDmpUsers"
-                                 ],
-                                 "dmp":{
-                                    "id":"f2e807f1-7fd4-48db-b781-e9c972057447",
-                                    "label":"user3 plan",
-                                    "status":0,
-                                    "blueprint":{
-                                       "id":"fc83c102-8c3c-4298-8e64-02bdd0fb7275",
-                                       "label":"blueprint with users",
-                                       "definition":{
-                                          "sections":[
-                                             {
-                                                "id":"44e6e93b-a6e0-6036-bda5-b33fe1df2f02",
-                                                "label":"Main info",
-                                                "hasTemplates":true
-                                             },
-                                             {
-                                                "id":"109ceb1e-9703-2a03-462b-8bf93f993a53",
-                                                "label":"Section2",
-                                                "hasTemplates":true
-                                             }
-                                          ]
-                                       }
-                                    },
-                                    "dmpUsers":[
-                                       {
-                                          "id":"fcce59eb-8e9e-4768-92fe-e772886836f2",
-                                          "dmp":{
-                                            \s
-                                          },
-                                          "user":{
-                                             "id":"7d6e54b6-31e8-48df-9c3f-1e5b3eb48404"
-                                          },
-                                          "role":0,
-                                          "isActive":1
-                                       },
-                                       {
-                                          "id":"8f698ad7-69e4-4fcf-b9b3-563b1b05ac45",
-                                          "dmp":{
-                                            \s
-                                          },
-                                          "user":{
-                                             "id":"391252ba-926d-4bf9-8c28-a921036f6c39"
-                                          },
-                                          "role":3,
-                                          "isActive":0
-                                       },
-                                       {
-                                          "id":"0b26b2eb-5346-463c-b0f4-fa22d9a4c964",
-                                          "dmp":{
-                                            \s
-                                          },
-                                          "user":{
-                                             "id":"391252ba-926d-4bf9-8c28-a921036f6c39"
-                                          },
-                                          "role":3,
-                                          "isActive":0
-                                       },
-                                       {
-                                          "id":"5154ec6e-912d-4b4f-8f1e-cc2a34069344",
-                                          "dmp":{
-                                            \s
-                                          },
-                                          "user":{
-                                             "id":"391252ba-926d-4bf9-8c28-a921036f6c39"
-                                          },
-                                          "role":1,
-                                          "isActive":0
-                                       },
-                                       {
-                                          "id":"9ec5f356-43a3-462d-bbf2-27476931892f",
-                                          "dmp":{
-                                            \s
-                                          },
-                                          "user":{
-                                             "id":"391252ba-926d-4bf9-8c28-a921036f6c39"
-                                          },
-                                          "role":1,
-                                          "isActive":0
-                                       },
-                                       {
-                                          "id":"e4e6a68c-408e-47fa-8b40-cb8c155f9eda",
-                                          "dmp":{
-                                            \s
-                                          },
-                                          "user":{
-                                             "id":"391252ba-926d-4bf9-8c28-a921036f6c39"
-                                          },
-                                          "role":2,
-                                          "isActive":0
-                                       },
-                                       {
-                                          "id":"f1de4a02-137f-48d9-bd31-5904b2ba504a",
-                                          "dmp":{
-                                            \s
-                                          },
-                                          "user":{
-                                             "id":"391252ba-926d-4bf9-8c28-a921036f6c39"
-                                          },
-                                          "role":3,
-                                          "isActive":0
-                                       },
-                                       {
-                                          "id":"9e444526-94c4-4e50-9c35-adf73fab5f8c",
-                                          "dmp":{
-                                            \s
-                                          },
-                                          "user":{
-                                             "id":"391252ba-926d-4bf9-8c28-a921036f6c39"
-                                          },
-                                          "role":3,
-                                          "isActive":0
-                                       },
-                                       {
-                                          "id":"c92686d2-b434-44e3-b8fb-ef0d6a30582d",
-                                          "dmp":{
-                                            \s
-                                          },
-                                          "user":{
-                                             "id":"391252ba-926d-4bf9-8c28-a921036f6c39"
-                                          },
-                                          "role":3,
-                                          "isActive":1
-                                       },
-                                       {
-                                          "id":"42f9c224-8704-4c41-8a2d-71b5c78d7690",
-                                          "dmp":{
-                                            \s
-                                          },
-                                          "user":{
-                                             "id":"391252ba-926d-4bf9-8c28-a921036f6c39"
-                                          },
-                                          "role":2,
-                                          "isActive":1
-                                       },
-                                       {
-                                          "id":"be5836f4-842a-4a74-b852-c4bb4212adb0",
-                                          "dmp":{
-                                            \s
-                                          },
-                                          "user":{
-                                             "id":"391252ba-926d-4bf9-8c28-a921036f6c39"
-                                          },
-                                          "role":2,
-                                          "isActive":0
-                                       },
-                                       {
-                                          "id":"18bb660a-638c-4def-90da-0c83368f7c1e",
-                                          "dmp":{
-                                            \s
-                                          },
-                                          "user":{
-                                             "id":"391252ba-926d-4bf9-8c28-a921036f6c39"
-                                          },
-                                          "role":2,
-                                          "isActive":1
-                                       },
-                                       {
-                                          "id":"e5a8f9d1-30a3-4ee0-8ca6-f74c5e73ba53",
-                                          "dmp":{
-                                            \s
-                                          },
-                                          "user":{
-                                             "id":"391252ba-926d-4bf9-8c28-a921036f6c39"
-                                          },
-                                          "role":2,
-                                          "isActive":1
-                                       }
+                              "authorizationFlags": [
+                                "DeleteDescription",
+                                "EditDescription",
+                                "CloneDescription",
+                                "InvitePlanUsers"
+                              ],
+                              "plan": {
+                                "id": "7d6bc285-7ea1-48b3-b02b-8a78ab5edb38",
+                                "label": "test",
+                                "status": {
+                                  "id": "cb3ced76-9807-4829-82da-75777de1bc78",
+                                  "name": "Draft",
+                                  "internalStatus": 0
+                                },
+                                "blueprint": {
+                                  "id": "86635178-36a6-484f-9057-a934e4eeecd5",
+                                  "label": "Dmp Default Blueprint",
+                                  "definition": {
+                                    "sections": [
+                                      {
+                                        "id": "f94e50e0-cb97-4c65-8b88-e5db6badd41d",
+                                        "label": "Main Info",
+                                        "hasTemplates": false
+                                      },
+                                      {
+                                        "id": "3c2608e5-9320-4d94-9ed7-1eab9500d84b",
+                                        "label": "Funding",
+                                        "hasTemplates": false
+                                      },
+                                      {
+                                        "id": "2a77e1f6-9989-4aeb-acd9-48e911a92abd",
+                                        "label": "License",
+                                        "hasTemplates": false
+                                      },
+                                      {
+                                        "id": "0db7845b-0e7c-41df-8d91-cbca97995fd5",
+                                        "label": "Templates",
+                                        "hasTemplates": true
+                                      }
                                     ]
-                                 },
-                                 "belongsToCurrentTenant":true
+                                  }
+                                },
+                                "planUsers": [
+                                  {
+                                    "id": "7770de72-5d62-4ee8-b67d-df17f197ccc5",
+                                    "plan": {},
+                                    "user": {
+                                      "id": "c1a25d94-ff7e-4a6c-9a0e-35c6e5352cd2"
+                                    },
+                                    "role": 0,
+                                    "isActive": 1
+                                  }
+                                ]
                               },
-                              {
-                                 "id":"9ac982e6-1cdd-4e03-b083-e91911114cc7",
-                                 "label":"test",
-                                 "status":0,
-                                 "updatedAt":"2024-06-05T13:54:15.215978Z",
-                                 "dmpDescriptionTemplate":{
-                                    "id":"af011eaf-211c-40f5-af02-66a86912349a",
-                                    "dmp":{
-                                       "id":"c5c9b67f-3c27-4677-900a-1f6f799f2bc9"
+                              "belongsToCurrentTenant": true
+                            },
+                            {
+                              "id": "159e0728-b739-49e1-9154-9b8b111fc662",
+                              "label": "Test Case Ethics",
+                              "status": {
+                                "id": "978e6ff6-b5e9-4cee-86cb-bc7401ec4059",
+                                "name": "Draft",
+                                "internalStatus": 0,
+                                "definition": {
+                                  "availableActions": [
+                                    0
+                                  ],
+                                  "storageFile": {},
+                                  "statusColor": ""
+                                }
+                              },
+                              "updatedAt": "2025-03-26T14:39:17.011868Z",
+                              "isActive": 1,
+                              "planDescriptionTemplate": {
+                                "id": "8edb1a4b-9b2d-4cf3-8f92-416c9172af2c",
+                                "plan": {
+                                  "id": "835f920e-efb1-498a-95af-52703d34665b"
+                                },
+                                "sectionId": "6dfa3c8d-1519-6698-5196-88cd6608dfa1",
+                                "descriptionTemplateGroupId": "dfb12676-44a5-4b99-b50b-d41fa61bbfdd"
+                              },
+                              "descriptionTemplate": {
+                                "id": "d10f0207-1705-4034-9348-129e00e4bf67",
+                                "label": "Test Case Ethics",
+                                "groupId": "dfb12676-44a5-4b99-b50b-d41fa61bbfdd"
+                              },
+                              "authorizationFlags": [
+                                "DeleteDescription",
+                                "EditDescription",
+                                "CloneDescription",
+                                "InvitePlanUsers"
+                              ],
+                              "plan": {
+                                "id": "835f920e-efb1-498a-95af-52703d34665b",
+                                "label": "Test Case Plan",
+                                "status": {
+                                  "id": "cb3ced76-9807-4829-82da-75777de1bc78",
+                                  "name": "Draft",
+                                  "internalStatus": 0
+                                },
+                                "accessType": 0,
+                                "blueprint": {
+                                  "id": "e6da321c-e1ca-4c26-8f30-daedeb6ae702",
+                                  "label": "Test Case",
+                                  "definition": {
+                                    "sections": [
+                                      {
+                                        "id": "c55987a1-abff-8b00-fe44-bde18127ff66",
+                                        "label": "Main Info",
+                                        "hasTemplates": false
+                                      },
+                                      {
+                                        "id": "47f8e637-398a-9005-02c5-bb5eea686bbc",
+                                        "label": "Privacy",
+                                        "hasTemplates": true
+                                      },
+                                      {
+                                        "id": "6dfa3c8d-1519-6698-5196-88cd6608dfa1",
+                                        "label": "Ethics",
+                                        "hasTemplates": true
+                                      },
+                                      {
+                                        "id": "61aae446-08c7-def0-cee5-f9e386677de6",
+                                        "label": "Datasets",
+                                        "hasTemplates": true
+                                      }
+                                    ]
+                                  }
+                                },
+                                "planUsers": [
+                                  {
+                                    "id": "c44f5369-9b0c-4b59-93ca-6435aa5fb67a",
+                                    "plan": {},
+                                    "user": {
+                                      "id": "c1a25d94-ff7e-4a6c-9a0e-35c6e5352cd2"
                                     },
-                                    "sectionId":"0db7845b-0e7c-41df-8d91-cbca97995fd5",
-                                    "descriptionTemplateGroupId":"11559a4f-d6f4-4dc9-8e6b-d1879700ac12"
-                                 },
-                                 "descriptionTemplate":{
-                                    "id":"57ced1f1-6e8c-482a-88c4-2e2d6322b25c",
-                                    "label":"Academy Of Finland",
-                                    "groupId":"11559a4f-d6f4-4dc9-8e6b-d1879700ac12"
-                                 },
-                                 "authorizationFlags":[
-                                    "DeleteDescription",
-                                    "EditDescription",
-                                    "InviteDmpUsers"
-                                 ],
-                                 "dmp":{
-                                    "id":"c5c9b67f-3c27-4677-900a-1f6f799f2bc9",
-                                    "label":"test export contact",
-                                    "status":0,
-                                    "accessType":1,
-                                    "blueprint":{
-                                       "id":"86635178-36a6-484f-9057-a934e4eeecd5",
-                                       "label":"Dmp Default Blueprint",
-                                       "definition":{
-                                          "sections":[
-                                             {
-                                                "id":"f94e50e0-cb97-4c65-8b88-e5db6badd41d",
-                                                "label":"Main Info",
-                                                "hasTemplates":false
-                                             },
-                                             {
-                                                "id":"3c2608e5-9320-4d94-9ed7-1eab9500d84b",
-                                                "label":"Funding",
-                                                "hasTemplates":false
-                                             },
-                                             {
-                                                "id":"2a77e1f6-9989-4aeb-acd9-48e911a92abd",
-                                                "label":"License",
-                                                "hasTemplates":false
-                                             },
-                                             {
-                                                "id":"0db7845b-0e7c-41df-8d91-cbca97995fd5",
-                                                "label":"Templates",
-                                                "hasTemplates":true
-                                             }
-                                          ]
-                                       }
+                                    "role": 0,
+                                    "isActive": 1
+                                  }
+                                ]
+                              },
+                              "belongsToCurrentTenant": true
+                            },
+                            {
+                              "id": "f1163b6b-7446-483d-9f5a-b755439e0ce0",
+                              "label": "Test case Privacy Template",
+                              "status": {
+                                "id": "978e6ff6-b5e9-4cee-86cb-bc7401ec4059",
+                                "name": "Draft",
+                                "internalStatus": 0,
+                                "definition": {
+                                  "availableActions": [
+                                    0
+                                  ],
+                                  "storageFile": {},
+                                  "statusColor": ""
+                                }
+                              },
+                              "updatedAt": "2025-03-26T14:38:57.753194Z",
+                              "isActive": 1,
+                              "planDescriptionTemplate": {
+                                "id": "b9d17602-3c04-454b-9da1-ceeb87944a3d",
+                                "plan": {
+                                  "id": "835f920e-efb1-498a-95af-52703d34665b"
+                                },
+                                "sectionId": "47f8e637-398a-9005-02c5-bb5eea686bbc",
+                                "descriptionTemplateGroupId": "87f605df-e877-4520-8e0d-9fd503ffc87e"
+                              },
+                              "descriptionTemplate": {
+                                "id": "0de97e49-2708-471c-a6d8-eee9962dbf78",
+                                "label": "Test case Privacy Template",
+                                "groupId": "87f605df-e877-4520-8e0d-9fd503ffc87e"
+                              },
+                              "authorizationFlags": [
+                                "DeleteDescription",
+                                "EditDescription",
+                                "CloneDescription",
+                                "InvitePlanUsers"
+                              ],
+                              "plan": {
+                                "id": "835f920e-efb1-498a-95af-52703d34665b",
+                                "label": "Test Case Plan",
+                                "status": {
+                                  "id": "cb3ced76-9807-4829-82da-75777de1bc78",
+                                  "name": "Draft",
+                                  "internalStatus": 0
+                                },
+                                "accessType": 0,
+                                "blueprint": {
+                                  "id": "e6da321c-e1ca-4c26-8f30-daedeb6ae702",
+                                  "label": "Test Case",
+                                  "definition": {
+                                    "sections": [
+                                      {
+                                        "id": "c55987a1-abff-8b00-fe44-bde18127ff66",
+                                        "label": "Main Info",
+                                        "hasTemplates": false
+                                      },
+                                      {
+                                        "id": "47f8e637-398a-9005-02c5-bb5eea686bbc",
+                                        "label": "Privacy",
+                                        "hasTemplates": true
+                                      },
+                                      {
+                                        "id": "6dfa3c8d-1519-6698-5196-88cd6608dfa1",
+                                        "label": "Ethics",
+                                        "hasTemplates": true
+                                      },
+                                      {
+                                        "id": "61aae446-08c7-def0-cee5-f9e386677de6",
+                                        "label": "Datasets",
+                                        "hasTemplates": true
+                                      }
+                                    ]
+                                  }
+                                },
+                                "planUsers": [
+                                  {
+                                    "id": "c44f5369-9b0c-4b59-93ca-6435aa5fb67a",
+                                    "plan": {},
+                                    "user": {
+                                      "id": "c1a25d94-ff7e-4a6c-9a0e-35c6e5352cd2"
                                     },
-                                    "dmpReferences":[
-                                       {
-                                          "id":"f74eca5b-f865-440d-b888-7ebe8482290a",
-                                          "dmp":{
-                                            \s
-                                          },
-                                          "reference":{
-                                             "id":"ab7a87f2-69bb-4b14-94fc-6b65d822a8b2",
-                                             "label":"Archiv der Deutschen Frauenbewegung",
-                                             "type":{
-                                                "id":"7eeffb98-58fb-4921-82ec-e27f32f8e738"
-                                             },
-                                             "reference":"pending_org_::44714f780f925d981f99b085346d1e2a"
-                                          },
-                                          "isActive":1
-                                       },
-                                       {
-                                          "id":"09e66ee1-4b29-4195-9a9b-f931af1b093f",
-                                          "dmp":{
-                                            \s
-                                          },
-                                          "reference":{
-                                             "id":"8ea5ff4d-4a0a-4baa-8dc1-7f1de31bc3e2",
-                                             "label":"Aisha Mohammed (0000-0002-0131-1543)",
-                                             "type":{
-                                                "id":"5a2112e7-ea99-4cfe-98a1-68665e26726e"
-                                             },
-                                             "reference":"0000-0002-0131-1543"
-                                          },
-                                          "isActive":1
-                                       },
-                                       {
-                                          "id":"ffdfec53-2a53-4953-a977-76149bc269af",
-                                          "dmp":{
-                                            \s
-                                          },
-                                          "reference":{
-                                             "id":"7aed6061-39a9-4a86-944b-f7c49024ccfc",
-                                             "label":"Autonomously Assembling Nanomaterial Scaffolds for Treating Myocardial Infarction (nih_________::5R01HL117326-03)",
-                                             "type":{
-                                                "id":"5b9c284f-f041-4995-96cc-fad7ad13289c"
-                                             },
-                                             "reference":"nih_________::5R01HL117326-03"
-                                          },
-                                          "isActive":1
-                                       },
-                                       {
-                                          "id":"48877b47-fd2b-42f7-b7f0-bc6a379f0971",
-                                          "dmp":{
-                                            \s
-                                          },
-                                          "reference":{
-                                             "id":"98435709-ccc6-42c7-aa96-30b7e4d8f317",
-                                             "label":"ADAPT - Centre for Digital Content Technology||",
-                                             "type":{
-                                                "id":"538928bb-c7c6-452e-b66d-08e539f5f082"
-                                             },
-                                             "reference":"501100014826::501100014826||ADAPT - Centre for Digital Content Technology||"
-                                          },
-                                          "isActive":1
-                                       }
+                                    "role": 0,
+                                    "isActive": 1
+                                  }
+                                ]
+                              },
+                              "belongsToCurrentTenant": true
+                            },
+                            {
+                              "id": "3206acd7-8099-4c70-9477-2f2effded209",
+                              "label": "EvoRoads Template - V.3",
+                              "status": {
+                                "id": "978e6ff6-b5e9-4cee-86cb-bc7401ec4059",
+                                "name": "Draft",
+                                "internalStatus": 0,
+                                "definition": {
+                                  "availableActions": [
+                                    0
+                                  ],
+                                  "storageFile": {},
+                                  "statusColor": ""
+                                }
+                              },
+                              "updatedAt": "2025-03-20T08:37:46.838294Z",
+                              "isActive": 1,
+                              "planDescriptionTemplate": {
+                                "id": "7389c637-b5b1-43a7-9da0-cd47e5cfb55b",
+                                "plan": {
+                                  "id": "13052cb2-896c-42f8-8f60-1580059519c9"
+                                },
+                                "sectionId": "0db7845b-0e7c-41df-8d91-cbca97995fd5",
+                                "descriptionTemplateGroupId": "cbdb7b33-5eb3-4d94-9cc5-bbc4b72b3037"
+                              },
+                              "descriptionTemplate": {
+                                "id": "11a92e42-197b-4212-b5bd-f3eb31d03546",
+                                "label": "EvoRoads Template v.5",
+                                "groupId": "cbdb7b33-5eb3-4d94-9cc5-bbc4b72b3037"
+                              },
+                              "authorizationFlags": [
+                                "DeleteDescription",
+                                "EditDescription",
+                                "CloneDescription",
+                                "InvitePlanUsers"
+                              ],
+                              "plan": {
+                                "id": "13052cb2-896c-42f8-8f60-1580059519c9",
+                                "label": "Dmp Default Blueprint Plan (from test-argos)",
+                                "status": {
+                                  "id": "cb3ced76-9807-4829-82da-75777de1bc78",
+                                  "name": "Draft",
+                                  "internalStatus": 0
+                                },
+                                "blueprint": {
+                                  "id": "6db28659-36e5-4d5a-bf5e-222822d31768",
+                                  "label": "Dmp_Default_Blueprint.xml",
+                                  "definition": {
+                                    "sections": [
+                                      {
+                                        "id": "f94e50e0-cb97-4c65-8b88-e5db6badd41d",
+                                        "label": "Main Info",
+                                        "hasTemplates": false
+                                      },
+                                      {
+                                        "id": "3c2608e5-9320-4d94-9ed7-1eab9500d84b",
+                                        "label": "Funding",
+                                        "hasTemplates": false
+                                      },
+                                      {
+                                        "id": "2a77e1f6-9989-4aeb-acd9-48e911a92abd",
+                                        "label": "License",
+                                        "hasTemplates": false
+                                      },
+                                      {
+                                        "id": "0db7845b-0e7c-41df-8d91-cbca97995fd5",
+                                        "label": "Templates",
+                                        "hasTemplates": true
+                                      }
+                                    ]
+                                  }
+                                },
+                                "planUsers": [
+                                  {
+                                    "id": "9eb13f99-c9c9-49e7-9a9e-82460794809d",
+                                    "plan": {},
+                                    "user": {
+                                      "id": "c1a25d94-ff7e-4a6c-9a0e-35c6e5352cd2"
+                                    },
+                                    "role": 0,
+                                    "isActive": 1
+                                  }
+                                ]
+                              },
+                              "belongsToCurrentTenant": true
+                            },
+                            {
+                              "id": "e6c1e91d-76f4-4786-8aa9-a076a95012de",
+                              "label": "CHIST-ERA Data Management",
+                              "status": {
+                                "id": "978e6ff6-b5e9-4cee-86cb-bc7401ec4059",
+                                "name": "Draft",
+                                "internalStatus": 0,
+                                "definition": {
+                                  "availableActions": [
+                                    0
+                                  ],
+                                  "storageFile": {},
+                                  "statusColor": ""
+                                }
+                              },
+                              "updatedAt": "2025-03-14T12:30:28.931916Z",
+                              "isActive": 1,
+                              "finalizedAt": "2025-03-14T11:51:46.808045Z",
+                              "planDescriptionTemplate": {
+                                "id": "53162c98-4138-44fd-9e87-ab8786dec21b",
+                                "plan": {
+                                  "id": "646cb52e-9e11-431b-a7e9-9d5024c020b1"
+                                },
+                                "sectionId": "0db7845b-0e7c-41df-8d91-cbca97995fd5",
+                                "descriptionTemplateGroupId": "c8ef1ecc-f0a6-4f06-a62d-2769968c3d0a"
+                              },
+                              "descriptionTemplate": {
+                                "id": "f8474cfb-ef80-4bac-a865-7120afa1931a",
+                                "label": "CHIST-ERA Data Management",
+                                "groupId": "c8ef1ecc-f0a6-4f06-a62d-2769968c3d0a"
+                              },
+                              "authorizationFlags": [
+                                "DeleteDescription",
+                                "EditDescription",
+                                "CloneDescription",
+                                "InvitePlanUsers"
+                              ],
+                              "plan": {
+                                "id": "646cb52e-9e11-431b-a7e9-9d5024c020b1",
+                                "label": "My Plan",
+                                "status": {
+                                  "id": "cb3ced76-9807-4829-82da-75777de1bc78",
+                                  "name": "Draft",
+                                  "internalStatus": 0
+                                },
+                                "finalizedAt": "2025-03-14T12:08:14.574464Z",
+                                "accessType": 0,
+                                "blueprint": {
+                                  "id": "58317184-8130-4ea9-8cbc-a0f2148da92c",
+                                  "label": "Test_Dmp_Default_Blueprint.xml",
+                                  "definition": {
+                                    "sections": [
+                                      {
+                                        "id": "f94e50e0-cb97-4c65-8b88-e5db6badd41d",
+                                        "label": "Main Info",
+                                        "hasTemplates": false
+                                      },
+                                      {
+                                        "id": "3c2608e5-9320-4d94-9ed7-1eab9500d84b",
+                                        "label": "Funding",
+                                        "hasTemplates": false
+                                      },
+                                      {
+                                        "id": "2a77e1f6-9989-4aeb-acd9-48e911a92abd",
+                                        "label": "License",
+                                        "hasTemplates": false
+                                      },
+                                      {
+                                        "id": "0db7845b-0e7c-41df-8d91-cbca97995fd5",
+                                        "label": "Templates",
+                                        "hasTemplates": true
+                                      }
+                                    ]
+                                  }
+                                },
+                                "planReferences": [
+                                  {
+                                    "id": "fd43f3e6-a980-402d-82c8-13f2fa4a4da7",
+                                    "plan": {},
+                                    "reference": {
+                                      "id": "cc42747c-e778-44dd-9a82-3187167a3c12",
+                                      "label": " Ana  Rivera ",
+                                      "type": {
+                                        "id": "5a2112e7-ea99-4cfe-98a1-68665e26726e"
+                                      },
+                                      "reference": "0000-0002-7457-4547"
+                                    },
+                                    "isActive": 1
+                                  },
+                                  {
+                                    "id": "e5cdf025-1fbe-4e42-ab49-f5ab80f50ec5",
+                                    "plan": {},
+                                    "reference": {
+                                      "id": "4ed45781-b627-41bf-8f54-f53ccc6841bf",
+                                      "label": " Fundação de Amparo à Pesquisa do Estado de São Paulo",
+                                      "type": {
+                                        "id": "538928bb-c7c6-452e-b66d-08e539f5f082"
+                                      },
+                                      "reference": "https://ror.org/02ddkpn78"
+                                    },
+                                    "isActive": 1
+                                  },
+                                  {
+                                    "id": "232c8890-83ba-44f3-bfe7-15cbe79562ed",
+                                    "plan": {},
+                                    "reference": {
+                                      "id": "4c049eaa-813c-4b1d-a699-7e1c3a571d31",
+                                      "label": "  SuperGraCOF - Superconducting Graphene/Covalent Organic frameworks bilayers studied by large scale atomistic methods (2023.10530.CPCA.A2)",
+                                      "type": {
+                                        "id": "5b9c284f-f041-4995-96cc-fad7ad13289c"
+                                      },
+                                      "reference": "2023.10530.CPCA.A2"
+                                    },
+                                    "isActive": 1
+                                  }
+                                ],
+                                "planUsers": [
+                                  {
+                                    "id": "326da564-97f1-4d52-a3c3-216beba48c81",
+                                    "plan": {},
+                                    "user": {
+                                      "id": "c1a25d94-ff7e-4a6c-9a0e-35c6e5352cd2"
+                                    },
+                                    "role": 0,
+                                    "isActive": 1
+                                  }
+                                ]
+                              },
+                              "belongsToCurrentTenant": true
+                            }
+                          ],
+                          "count": 5194
+                        }
+                        """;
+        public static final String endpoint_public_query_response_example =
+                """
+                        {
+                            "items": [
+                                {
+                                    "id": "e2f7a248-9956-476f-8086-6e6f5782bbe5",
+                                    "label": "Horizon Europe",
+                                    "status": {
+                                        "id": "978e6ff6-b5e9-4cee-86cb-bc7401ec4059",
+                                        "name": "Draft",
+                                        "internalStatus": 0,
+                                        "definition": {
+                                            "availableActions": [
+                                                0
+                                            ],
+                                            "storageFile": {},
+                                            "statusColor": ""
+                                        }
+                                    },
+                                    "updatedAt": "2025-04-02T07:30:00.351629Z",
+                                    "isActive": 1,
+                                    "planDescriptionTemplate": {
+                                        "id": "e735e425-8bb5-4402-9bb1-22069c432660",
+                                        "plan": {
+                                            "id": "7d6bc285-7ea1-48b3-b02b-8a78ab5edb38"
+                                        },
+                                        "sectionId": "0db7845b-0e7c-41df-8d91-cbca97995fd5",
+                                        "descriptionTemplateGroupId": "c105616e-3e8c-4375-8294-b7302a538fe5"
+                                    },
+                                    "descriptionTemplate": {
+                                        "id": "05fcea9a-0435-4c67-a84d-df152aad868e",
+                                        "label": "Horizon Europe",
+                                        "groupId": "c105616e-3e8c-4375-8294-b7302a538fe5"
+                                    },
+                                    "authorizationFlags": [
+                                        "DeleteDescription",
+                                        "EditDescription",
+                                        "CloneDescription",
+                                        "InvitePlanUsers"
                                     ],
-                                    "dmpUsers":[
-                                       {
-                                          "id":"bcf92d98-1492-4423-b1a2-2b1ef76ea25e",
-                                          "dmp":{
-                                            \s
-                                          },
-                                          "user":{
-                                             "id":"391252ba-926d-4bf9-8c28-a921036f6c39"
-                                          },
-                                          "role":0,
-                                          "isActive":1
-                                       },
-                                       {
-                                          "id":"8caa96de-82f7-4593-b0f6-7e88cfe76530",
-                                          "dmp":{
-                                            \s
-                                          },
-                                          "user":{
-                                             "id":"7d6e54b6-31e8-48df-9c3f-1e5b3eb48404"
-                                          },
-                                          "role":0,
-                                          "isActive":1
-                                       }
-                                    ]
-                                 },
-                                 "belongsToCurrentTenant":true
-                              }
-                           ],
-                           "count":4006
+                                    "plan": {
+                                        "id": "7d6bc285-7ea1-48b3-b02b-8a78ab5edb38",
+                                        "label": "test",
+                                        "status": {
+                                            "id": "cb3ced76-9807-4829-82da-75777de1bc78",
+                                            "name": "Draft",
+                                            "internalStatus": 0
+                                        },
+                                        "blueprint": {
+                                            "id": "86635178-36a6-484f-9057-a934e4eeecd5",
+                                            "label": "Dmp Default Blueprint",
+                                            "definition": {
+                                                "sections": [
+                                                    {
+                                                        "id": "f94e50e0-cb97-4c65-8b88-e5db6badd41d",
+                                                        "label": "Main Info",
+                                                        "hasTemplates": false
+                                                    },
+                                                    {
+                                                        "id": "3c2608e5-9320-4d94-9ed7-1eab9500d84b",
+                                                        "label": "Funding",
+                                                        "hasTemplates": false
+                                                    },
+                                                    {
+                                                        "id": "2a77e1f6-9989-4aeb-acd9-48e911a92abd",
+                                                        "label": "License",
+                                                        "hasTemplates": false
+                                                    },
+                                                    {
+                                                        "id": "0db7845b-0e7c-41df-8d91-cbca97995fd5",
+                                                        "label": "Templates",
+                                                        "hasTemplates": true
+                                                    }
+                                                ]
+                                            }
+                                        },
+                                        "planUsers": [
+                                            {
+                                                "id": "7770de72-5d62-4ee8-b67d-df17f197ccc5",
+                                                "plan": {},
+                                                "user": {
+                                                    "id": "c1a25d94-ff7e-4a6c-9a0e-35c6e5352cd2"
+                                                },
+                                                "role": 0,
+                                                "isActive": 1
+                                            }
+                                        ]
+                                    },
+                                    "belongsToCurrentTenant": true
+                                },
+                                {
+                                    "id": "159e0728-b739-49e1-9154-9b8b111fc662",
+                                    "label": "Test Case Ethics",
+                                    "status": {
+                                        "id": "978e6ff6-b5e9-4cee-86cb-bc7401ec4059",
+                                        "name": "Draft",
+                                        "internalStatus": 0,
+                                        "definition": {
+                                            "availableActions": [
+                                                0
+                                            ],
+                                            "storageFile": {},
+                                            "statusColor": ""
+                                        }
+                                    },
+                                    "updatedAt": "2025-03-26T14:39:17.011868Z",
+                                    "isActive": 1,
+                                    "planDescriptionTemplate": {
+                                        "id": "8edb1a4b-9b2d-4cf3-8f92-416c9172af2c",
+                                        "plan": {
+                                            "id": "835f920e-efb1-498a-95af-52703d34665b"
+                                        },
+                                        "sectionId": "6dfa3c8d-1519-6698-5196-88cd6608dfa1",
+                                        "descriptionTemplateGroupId": "dfb12676-44a5-4b99-b50b-d41fa61bbfdd"
+                                    },
+                                    "descriptionTemplate": {
+                                        "id": "d10f0207-1705-4034-9348-129e00e4bf67",
+                                        "label": "Test Case Ethics",
+                                        "groupId": "dfb12676-44a5-4b99-b50b-d41fa61bbfdd"
+                                    },
+                                    "authorizationFlags": [
+                                        "DeleteDescription",
+                                        "EditDescription",
+                                        "CloneDescription",
+                                        "InvitePlanUsers"
+                                    ],
+                                    "plan": {
+                                        "id": "835f920e-efb1-498a-95af-52703d34665b",
+                                        "label": "Test Case Plan",
+                                        "status": {
+                                            "id": "cb3ced76-9807-4829-82da-75777de1bc78",
+                                            "name": "Draft",
+                                            "internalStatus": 0
+                                        },
+                                        "accessType": 0,
+                                        "blueprint": {
+                                            "id": "e6da321c-e1ca-4c26-8f30-daedeb6ae702",
+                                            "label": "Test Case",
+                                            "definition": {
+                                                "sections": [
+                                                    {
+                                                        "id": "c55987a1-abff-8b00-fe44-bde18127ff66",
+                                                        "label": "Main Info",
+                                                        "hasTemplates": false
+                                                    },
+                                                    {
+                                                        "id": "47f8e637-398a-9005-02c5-bb5eea686bbc",
+                                                        "label": "Privacy",
+                                                        "hasTemplates": true
+                                                    },
+                                                    {
+                                                        "id": "6dfa3c8d-1519-6698-5196-88cd6608dfa1",
+                                                        "label": "Ethics",
+                                                        "hasTemplates": true
+                                                    },
+                                                    {
+                                                        "id": "61aae446-08c7-def0-cee5-f9e386677de6",
+                                                        "label": "Datasets",
+                                                        "hasTemplates": true
+                                                    }
+                                                ]
+                                            }
+                                        },
+                                        "planUsers": [
+                                            {
+                                                "id": "c44f5369-9b0c-4b59-93ca-6435aa5fb67a",
+                                                "plan": {},
+                                                "user": {
+                                                    "id": "c1a25d94-ff7e-4a6c-9a0e-35c6e5352cd2"
+                                                },
+                                                "role": 0,
+                                                "isActive": 1
+                                            }
+                                        ]
+                                    },
+                                    "belongsToCurrentTenant": true
+                                },
+                                {
+                                    "id": "f1163b6b-7446-483d-9f5a-b755439e0ce0",
+                                    "label": "Test case Privacy Template",
+                                    "status": {
+                                        "id": "978e6ff6-b5e9-4cee-86cb-bc7401ec4059",
+                                        "name": "Draft",
+                                        "internalStatus": 0,
+                                        "definition": {
+                                            "availableActions": [
+                                                0
+                                            ],
+                                            "storageFile": {},
+                                            "statusColor": ""
+                                        }
+                                    },
+                                    "updatedAt": "2025-03-26T14:38:57.753194Z",
+                                    "isActive": 1,
+                                    "planDescriptionTemplate": {
+                                        "id": "b9d17602-3c04-454b-9da1-ceeb87944a3d",
+                                        "plan": {
+                                            "id": "835f920e-efb1-498a-95af-52703d34665b"
+                                        },
+                                        "sectionId": "47f8e637-398a-9005-02c5-bb5eea686bbc",
+                                        "descriptionTemplateGroupId": "87f605df-e877-4520-8e0d-9fd503ffc87e"
+                                    },
+                                    "descriptionTemplate": {
+                                        "id": "0de97e49-2708-471c-a6d8-eee9962dbf78",
+                                        "label": "Test case Privacy Template",
+                                        "groupId": "87f605df-e877-4520-8e0d-9fd503ffc87e"
+                                    },
+                                    "authorizationFlags": [
+                                        "DeleteDescription",
+                                        "EditDescription",
+                                        "CloneDescription",
+                                        "InvitePlanUsers"
+                                    ],
+                                    "plan": {
+                                        "id": "835f920e-efb1-498a-95af-52703d34665b",
+                                        "label": "Test Case Plan",
+                                        "status": {
+                                            "id": "cb3ced76-9807-4829-82da-75777de1bc78",
+                                            "name": "Draft",
+                                            "internalStatus": 0
+                                        },
+                                        "accessType": 0,
+                                        "blueprint": {
+                                            "id": "e6da321c-e1ca-4c26-8f30-daedeb6ae702",
+                                            "label": "Test Case",
+                                            "definition": {
+                                                "sections": [
+                                                    {
+                                                        "id": "c55987a1-abff-8b00-fe44-bde18127ff66",
+                                                        "label": "Main Info",
+                                                        "hasTemplates": false
+                                                    },
+                                                    {
+                                                        "id": "47f8e637-398a-9005-02c5-bb5eea686bbc",
+                                                        "label": "Privacy",
+                                                        "hasTemplates": true
+                                                    },
+                                                    {
+                                                        "id": "6dfa3c8d-1519-6698-5196-88cd6608dfa1",
+                                                        "label": "Ethics",
+                                                        "hasTemplates": true
+                                                    },
+                                                    {
+                                                        "id": "61aae446-08c7-def0-cee5-f9e386677de6",
+                                                        "label": "Datasets",
+                                                        "hasTemplates": true
+                                                    }
+                                                ]
+                                            }
+                                        },
+                                        "planUsers": [
+                                            {
+                                                "id": "c44f5369-9b0c-4b59-93ca-6435aa5fb67a",
+                                                "plan": {},
+                                                "user": {
+                                                    "id": "c1a25d94-ff7e-4a6c-9a0e-35c6e5352cd2"
+                                                },
+                                                "role": 0,
+                                                "isActive": 1
+                                            }
+                                        ]
+                                    },
+                                    "belongsToCurrentTenant": true
+                                },
+                                {
+                                    "id": "3206acd7-8099-4c70-9477-2f2effded209",
+                                    "label": "EvoRoads Template - V.3",
+                                    "status": {
+                                        "id": "978e6ff6-b5e9-4cee-86cb-bc7401ec4059",
+                                        "name": "Draft",
+                                        "internalStatus": 0,
+                                        "definition": {
+                                            "availableActions": [
+                                                0
+                                            ],
+                                            "storageFile": {},
+                                            "statusColor": ""
+                                        }
+                                    },
+                                    "updatedAt": "2025-03-20T08:37:46.838294Z",
+                                    "isActive": 1,
+                                    "planDescriptionTemplate": {
+                                        "id": "7389c637-b5b1-43a7-9da0-cd47e5cfb55b",
+                                        "plan": {
+                                            "id": "13052cb2-896c-42f8-8f60-1580059519c9"
+                                        },
+                                        "sectionId": "0db7845b-0e7c-41df-8d91-cbca97995fd5",
+                                        "descriptionTemplateGroupId": "cbdb7b33-5eb3-4d94-9cc5-bbc4b72b3037"
+                                    },
+                                    "descriptionTemplate": {
+                                        "id": "11a92e42-197b-4212-b5bd-f3eb31d03546",
+                                        "label": "EvoRoads Template v.5",
+                                        "groupId": "cbdb7b33-5eb3-4d94-9cc5-bbc4b72b3037"
+                                    },
+                                    "authorizationFlags": [
+                                        "DeleteDescription",
+                                        "EditDescription",
+                                        "CloneDescription",
+                                        "InvitePlanUsers"
+                                    ],
+                                    "plan": {
+                                        "id": "13052cb2-896c-42f8-8f60-1580059519c9",
+                                        "label": "Dmp Default Blueprint Plan (from test-argos)",
+                                        "status": {
+                                            "id": "cb3ced76-9807-4829-82da-75777de1bc78",
+                                            "name": "Draft",
+                                            "internalStatus": 0
+                                        },
+                                        "blueprint": {
+                                            "id": "6db28659-36e5-4d5a-bf5e-222822d31768",
+                                            "label": "Dmp_Default_Blueprint.xml",
+                                            "definition": {
+                                                "sections": [
+                                                    {
+                                                        "id": "f94e50e0-cb97-4c65-8b88-e5db6badd41d",
+                                                        "label": "Main Info",
+                                                        "hasTemplates": false
+                                                    },
+                                                    {
+                                                        "id": "3c2608e5-9320-4d94-9ed7-1eab9500d84b",
+                                                        "label": "Funding",
+                                                        "hasTemplates": false
+                                                    },
+                                                    {
+                                                        "id": "2a77e1f6-9989-4aeb-acd9-48e911a92abd",
+                                                        "label": "License",
+                                                        "hasTemplates": false
+                                                    },
+                                                    {
+                                                        "id": "0db7845b-0e7c-41df-8d91-cbca97995fd5",
+                                                        "label": "Templates",
+                                                        "hasTemplates": true
+                                                    }
+                                                ]
+                                            }
+                                        },
+                                        "planUsers": [
+                                            {
+                                                "id": "9eb13f99-c9c9-49e7-9a9e-82460794809d",
+                                                "plan": {},
+                                                "user": {
+                                                    "id": "c1a25d94-ff7e-4a6c-9a0e-35c6e5352cd2"
+                                                },
+                                                "role": 0,
+                                                "isActive": 1
+                                            }
+                                        ]
+                                    },
+                                    "belongsToCurrentTenant": true
+                                },
+                                {
+                                    "id": "e6c1e91d-76f4-4786-8aa9-a076a95012de",
+                                    "label": "CHIST-ERA Data Management",
+                                    "status": {
+                                        "id": "978e6ff6-b5e9-4cee-86cb-bc7401ec4059",
+                                        "name": "Draft",
+                                        "internalStatus": 0,
+                                        "definition": {
+                                            "availableActions": [
+                                                0
+                                            ],
+                                            "storageFile": {},
+                                            "statusColor": ""
+                                        }
+                                    },
+                                    "updatedAt": "2025-03-14T12:30:28.931916Z",
+                                    "isActive": 1,
+                                    "finalizedAt": "2025-03-14T11:51:46.808045Z",
+                                    "planDescriptionTemplate": {
+                                        "id": "53162c98-4138-44fd-9e87-ab8786dec21b",
+                                        "plan": {
+                                            "id": "646cb52e-9e11-431b-a7e9-9d5024c020b1"
+                                        },
+                                        "sectionId": "0db7845b-0e7c-41df-8d91-cbca97995fd5",
+                                        "descriptionTemplateGroupId": "c8ef1ecc-f0a6-4f06-a62d-2769968c3d0a"
+                                    },
+                                    "descriptionTemplate": {
+                                        "id": "f8474cfb-ef80-4bac-a865-7120afa1931a",
+                                        "label": "CHIST-ERA Data Management",
+                                        "groupId": "c8ef1ecc-f0a6-4f06-a62d-2769968c3d0a"
+                                    },
+                                    "authorizationFlags": [
+                                        "DeleteDescription",
+                                        "EditDescription",
+                                        "CloneDescription",
+                                        "InvitePlanUsers"
+                                    ],
+                                    "plan": {
+                                        "id": "646cb52e-9e11-431b-a7e9-9d5024c020b1",
+                                        "label": "My Plan",
+                                        "status": {
+                                            "id": "cb3ced76-9807-4829-82da-75777de1bc78",
+                                            "name": "Draft",
+                                            "internalStatus": 0
+                                        },
+                                        "finalizedAt": "2025-03-14T12:08:14.574464Z",
+                                        "accessType": 0,
+                                        "blueprint": {
+                                            "id": "58317184-8130-4ea9-8cbc-a0f2148da92c",
+                                            "label": "Test_Dmp_Default_Blueprint.xml",
+                                            "definition": {
+                                                "sections": [
+                                                    {
+                                                        "id": "f94e50e0-cb97-4c65-8b88-e5db6badd41d",
+                                                        "label": "Main Info",
+                                                        "hasTemplates": false
+                                                    },
+                                                    {
+                                                        "id": "3c2608e5-9320-4d94-9ed7-1eab9500d84b",
+                                                        "label": "Funding",
+                                                        "hasTemplates": false
+                                                    },
+                                                    {
+                                                        "id": "2a77e1f6-9989-4aeb-acd9-48e911a92abd",
+                                                        "label": "License",
+                                                        "hasTemplates": false
+                                                    },
+                                                    {
+                                                        "id": "0db7845b-0e7c-41df-8d91-cbca97995fd5",
+                                                        "label": "Templates",
+                                                        "hasTemplates": true
+                                                    }
+                                                ]
+                                            }
+                                        },
+                                        "planReferences": [
+                                            {
+                                                "id": "fd43f3e6-a980-402d-82c8-13f2fa4a4da7",
+                                                "plan": {},
+                                                "reference": {
+                                                    "id": "cc42747c-e778-44dd-9a82-3187167a3c12",
+                                                    "label": " Ana  Rivera ",
+                                                    "type": {
+                                                        "id": "5a2112e7-ea99-4cfe-98a1-68665e26726e"
+                                                    },
+                                                    "reference": "0000-0002-7457-4547"
+                                                },
+                                                "isActive": 1
+                                            },
+                                            {
+                                                "id": "e5cdf025-1fbe-4e42-ab49-f5ab80f50ec5",
+                                                "plan": {},
+                                                "reference": {
+                                                    "id": "4ed45781-b627-41bf-8f54-f53ccc6841bf",
+                                                    "label": " Fundação de Amparo à Pesquisa do Estado de São Paulo",
+                                                    "type": {
+                                                        "id": "538928bb-c7c6-452e-b66d-08e539f5f082"
+                                                    },
+                                                    "reference": "https://ror.org/02ddkpn78"
+                                                },
+                                                "isActive": 1
+                                            },
+                                            {
+                                                "id": "232c8890-83ba-44f3-bfe7-15cbe79562ed",
+                                                "plan": {},
+                                                "reference": {
+                                                    "id": "4c049eaa-813c-4b1d-a699-7e1c3a571d31",
+                                                    "label": "  SuperGraCOF - Superconducting Graphene/Covalent Organic frameworks bilayers studied by large scale atomistic methods (2023.10530.CPCA.A2)",
+                                                    "type": {
+                                                        "id": "5b9c284f-f041-4995-96cc-fad7ad13289c"
+                                                    },
+                                                    "reference": "2023.10530.CPCA.A2"
+                                                },
+                                                "isActive": 1
+                                            }
+                                        ],
+                                        "planUsers": [
+                                            {
+                                                "id": "326da564-97f1-4d52-a3c3-216beba48c81",
+                                                "plan": {},
+                                                "user": {
+                                                    "id": "c1a25d94-ff7e-4a6c-9a0e-35c6e5352cd2"
+                                                },
+                                                "role": 0,
+                                                "isActive": 1
+                                            }
+                                        ]
+                                    },
+                                    "belongsToCurrentTenant": true
+                                }
+                            ],
+                            "count": 5194
                         }
                         """;
     }
 
     public static final class DescriptionTemplate {
+
+        public static final String endpoint_field_set_example =
+                "[\"id\", \"label\", \"isActive\"]";
 
         public static final String endpoint_query =
                 """
@@ -1900,47 +3180,108 @@ public final class SwaggerHelpers {
         public static final String endpoint_query_request_body_example =
                 """
                         {
-                            "project":{
-                               "fields":[
-                                  "id",
-                                  "label",
-                                  "description",
-                                  "status",
-                                  "version",
-                                  "groupId",
-                                  "updatedAt",
-                                  "createdAt",
-                                  "hash",
-                                  "belongsToCurrentTenant",
-                                  "isActive",
-                                  "authorizationFlags.EditDescriptionTemplate",
-                                  "authorizationFlags.DeleteDescriptionTemplate",
-                                  "authorizationFlags.CloneDescriptionTemplate",
-                                  "authorizationFlags.CreateNewVersionDescriptionTemplate",
-                                  "authorizationFlags.ImportDescriptionTemplate",
-                                  "authorizationFlags.ExportDescriptionTemplate"
-                               ]
-                            },
-                            "metadata":{
-                               "countAll":true
-                            },
-                            "page":{
-                               "offset":0,
-                               "size":10
-                            },
-                            "isActive":[
-                               1
-                            ],
-                            "order":{
-                               "items":[
-                                  "-createdAt"
-                               ]
-                            },
-                            "versionStatuses":[
-                               0,
-                               2
-                            ],
-                            "onlyCanEdit":true
+                          "project": {
+                            "fields": [
+                              "id",
+                              "label",
+                              "code",
+                              "status",
+                              "description",
+                              "language",
+                              "status",
+                              "authorizationFlags.EditDescriptionTemplate",
+                              "authorizationFlags.DeleteDescriptionTemplate",
+                              "authorizationFlags.CloneDescriptionTemplate",
+                              "authorizationFlags.CreateNewVersionDescriptionTemplate",
+                              "authorizationFlags.ImportDescriptionTemplate",
+                              "authorizationFlags.ExportDescriptionTemplate",
+                              "type.id",
+                              "type.name",
+                              "definition.pluginConfigurations.pluginCode",
+                              "definition.pluginConfigurations.pluginType",
+                              "definition.pluginConfigurations.fields.code",
+                              "definition.pluginConfigurations.fields.textValue",
+                              "definition.pluginConfigurations.fields.fileValue.id",
+                              "definition.pluginConfigurations.fields.fileValue.extension",
+                              "definition.pluginConfigurations.fields.fileValue.mimeType",
+                              "definition.pluginConfigurations.fields.fileValue.fullName",
+                              "definition.pluginConfigurations.fields.fileValue.name",
+                              "definition.pages.id",
+                              "definition.pages.ordinal",
+                              "definition.pages.title",
+                              "definition.pages.sections.id",
+                              "definition.pages.sections.ordinal",
+                              "definition.pages.sections.title",
+                              "definition.pages.sections.description",
+                              "definition.pages.sections.ordinal",
+                              "definition.pages.sections.sections",
+                              "definition.pages.sections.fieldSets.id",
+                              "definition.pages.sections.fieldSets.ordinal",
+                              "definition.pages.sections.fieldSets.title",
+                              "definition.pages.sections.fieldSets.description",
+                              "definition.pages.sections.fieldSets.extendedDescription",
+                              "definition.pages.sections.fieldSets.additionalInformation",
+                              "definition.pages.sections.fieldSets.hasCommentField",
+                              "definition.pages.sections.fieldSets.hasMultiplicity",
+                              "definition.pages.sections.fieldSets.multiplicity.min",
+                              "definition.pages.sections.fieldSets.multiplicity.max",
+                              "definition.pages.sections.fieldSets.multiplicity.placeholder",
+                              "definition.pages.sections.fieldSets.multiplicity.tableView",
+                              "definition.pages.sections.fieldSets.fields.id",
+                              "definition.pages.sections.fieldSets.fields.ordinal",
+                              "definition.pages.sections.fieldSets.fields.semantics",
+                              "definition.pages.sections.fieldSets.fields.defaultValue.textValue",
+                              "definition.pages.sections.fieldSets.fields.defaultValue.dateValue",
+                              "definition.pages.sections.fieldSets.fields.defaultValue.booleanValue",
+                              "definition.pages.sections.fieldSets.fields.includeInExport",
+                              "definition.pages.sections.fieldSets.fields.validations",
+                              "definition.pages.sections.fieldSets.fields.visibilityRules.target",
+                              "definition.pages.sections.fieldSets.fields.visibilityRules.textValue",
+                              "definition.pages.sections.fieldSets.fields.visibilityRules.dateValue",
+                              "definition.pages.sections.fieldSets.fields.visibilityRules.booleanValue",
+                              "definition.pages.sections.fieldSets.fields.data.label",
+                              "definition.pages.sections.fieldSets.fields.data.fieldType",
+                              "definition.pages.sections.fieldSets.fields.data.multipleSelect",
+                              "definition.pages.sections.fieldSets.fields.data.options.label",
+                              "definition.pages.sections.fieldSets.fields.data.options.value",
+                              "definition.pages.sections.fieldSets.fields.data.multipleSelect",
+                              "definition.pages.sections.fieldSets.fields.data.type",
+                              "definition.pages.sections.fieldSets.fields.data.referenceType.id",
+                              "definition.pages.sections.fieldSets.fields.data.referenceType.name",
+                              "definition.pages.sections.fieldSets.fields.data.maxFileSizeInMB",
+                              "definition.pages.sections.fieldSets.fields.data.types.label",
+                              "definition.pages.sections.fieldSets.fields.data.types.value",
+                              "users.descriptionTemplate.id",
+                              "users.user.id",
+                              "users.user.name",
+                              "users.role",
+                              "users.isActive",
+                              "createdAt",
+                              "hash",
+                              "isActive",
+                              "belongsToCurrentTenant"
+                            ]
+                          },
+                          "metadata": {
+                            "countAll": true
+                          },
+                          "page": {
+                            "offset": 0,
+                            "size": 10
+                          },
+                          "isActive": [
+                            1
+                          ],
+                          "order": {
+                            "items": [
+                              "-createdAt"
+                            ]
+                          },
+                          "versionStatuses": [
+                            0,
+                            2
+                          ],
+                          "onlyCanEdit": true
                         }
                         """;
 
@@ -2266,68 +3607,74 @@ public final class SwaggerHelpers {
         public static final String endpoint_query_request_body_example =
                 """
                         {
-                           "project":{
-                              "fields":[
-                                 "id",
-                                 "name",
-                                 "status",
-                                 "updatedAt",
-                                 "createdAt",
-                                 "hash",
-                                 "belongsToCurrentTenant",
-                                 "isActive"
-                              ]
+                           "project": {
+                             "fields": [
+                               "id",
+                               "name",
+                               "code",
+                               "status",
+                               "updatedAt",
+                               "createdAt",
+                               "hash",
+                               "belongsToCurrentTenant",
+                               "isActive"
+                             ]
                            },
-                           "metadata":{
-                              "countAll":true
+                           "metadata": {
+                             "countAll": true
                            },
-                           "page":{
-                              "offset":0,
-                              "size":10
+                           "page": {
+                             "offset": 0,
+                             "size": 10
                            },
-                           "isActive":[
-                              1
+                           "isActive": [
+                             1
                            ],
-                           "order":{
-                              "items":[
-                                 "-createdAt"
-                              ]
+                           "order": {
+                             "items": [
+                               "-createdAt"
+                             ]
                            }
-                        }
+                         }
                         """;
 
         public static final String endpoint_query_response_example =
                 """
                         {
-                           "items":[
-                              {
-                                 "id":"709a8400-10ca-11ee-be56-0242ac120002",
-                                 "name":"Dataset",
-                                 "createdAt":"2024-06-10T07:54:59.508261Z",
-                                 "updatedAt":"2024-06-10T07:54:59.508261Z",
-                                 "isActive":1,
-                                 "status":1,
-                                 "hash":"1718006099",
-                                 "belongsToCurrentTenant":true
-                              },
-                              {
-                                 "id":"3b15c046-a978-4b5a-9376-66525b7f1ac9",
-                                 "name":"Software",
-                                 "createdAt":"2024-06-10T07:54:59.508261Z",
-                                 "updatedAt":"2024-06-10T07:54:59.508261Z",
-                                 "isActive":1,
-                                 "status":1,
-                                 "hash":"1718006099",
-                                 "belongsToCurrentTenant":true
-                              }
+                           "items": [
+                             {
+                               "id": "709a8400-10ca-11ee-be56-0242ac120002",
+                               "code": "091dda38-10fc-4895-893b-ede3230374ef",
+                               "name": "Dataset",
+                               "createdAt": "2024-10-14T10:02:43.341299Z",
+                               "updatedAt": "2024-10-14T10:02:43.341299Z",
+                               "isActive": 1,
+                               "status": 1,
+                               "hash": "1728900163",
+                               "belongsToCurrentTenant": true
+                             },
+                             {
+                               "id": "3b15c046-a978-4b5a-9376-66525b7f1ac9",
+                               "code": "74ee0e72-bb24-48fc-b910-3531e84338da",
+                               "name": "Software",
+                               "createdAt": "2024-10-14T10:02:43.341299Z",
+                               "updatedAt": "2024-10-14T10:02:43.341299Z",
+                               "isActive": 1,
+                               "status": 1,
+                               "hash": "1728900163",
+                               "belongsToCurrentTenant": true
+                             }
                            ],
-                           "count":2
-                        }
+                           "count": 2
+                         }
                         """;
 
     }
 
     public static final class PlanBlueprint {
+
+        public static final String endpoint_field_set_example =
+                "[\"id\", \"label\", \"isActive\"]";
 
         public static final String endpoint_query =
                 """
@@ -2437,39 +3784,79 @@ public final class SwaggerHelpers {
         public static final String endpoint_query_request_body_example =
                 """
                         {
-                           "project":{
-                              "fields":[
-                                 "id",
-                                 "label",
-                                 "status",
-                                 "version",
-                                 "groupId",
-                                 "updatedAt",
-                                 "createdAt",
-                                 "hash",
-                                 "isActive",
-                                 "belongsToCurrentTenant"
-                              ]
-                           },
-                           "metadata":{
-                              "countAll":true
-                           },
-                           "page":{
-                              "offset":0,
-                              "size":10
-                           },
-                           "isActive":[
-                              1
-                           ],
-                           "order":{
-                              "items":[
-                                 "-createdAt"
-                              ]
-                           },
-                           "versionStatuses":[
-                              0,
-                              2
-                           ]
+                          "project": {
+                            "fields": [
+                              "id",
+                              "label",
+                              "description",
+                              "code",
+                              "status",
+                              "definition.pluginConfigurations.pluginCode",
+                              "definition.pluginConfigurations.pluginType",
+                              "definition.pluginConfigurations.fields.code",
+                              "definition.pluginConfigurations.fields.textValue",
+                              "definition.pluginConfigurations.fields.fileValue.id",
+                              "definition.pluginConfigurations.fields.fileValue.extension",
+                              "definition.pluginConfigurations.fields.fileValue.mimeType",
+                              "definition.pluginConfigurations.fields.fileValue.fullName",
+                              "definition.pluginConfigurations.fields.fileValue.name",
+                              "definition.sections.id",
+                              "definition.sections.label",
+                              "definition.sections.description",
+                              "definition.sections.ordinal",
+                              "definition.sections.hasTemplates",
+                              "definition.sections.fields.id",
+                              "definition.sections.fields.category",
+                              "definition.sections.fields.label",
+                              "definition.sections.fields.placeholder",
+                              "definition.sections.fields.description",
+                              "definition.sections.fields.required",
+                              "definition.sections.fields.semantics",
+                              "definition.sections.fields.ordinal",
+                              "definition.sections.fields.systemFieldType",
+                              "definition.sections.fields.dataType",
+                              "definition.sections.fields.referenceType.id",
+                              "definition.sections.fields.referenceType.name",
+                              "definition.sections.fields.referenceType.code",
+                              "definition.sections.fields.multipleSelect",
+                              "definition.sections.fields.maxFileSizeInMB",
+                              "definition.sections.fields.types",
+                              "definition.sections.fields.types.label",
+                              "definition.sections.fields.types.value",
+                              "definition.sections.descriptionTemplates.descriptionTemplate.groupId",
+                              "definition.sections.descriptionTemplates.descriptionTemplate.label",
+                              "definition.sections.descriptionTemplates.minMultiplicity",
+                              "definition.sections.descriptionTemplates.maxMultiplicity",
+                              "definition.sections.canEditDescriptionTemplates",
+                              "definition.sections.prefillingSources.id",
+                              "definition.sections.prefillingSources.label",
+                              "definition.sections.prefillingSources.code",
+                              "definition.sections.prefillingSourcesEnabled",
+                              "createdAt",
+                              "hash",
+                              "isActive",
+                              "belongsToCurrentTenant"
+                            ]
+                          },
+                          "metadata": {
+                            "countAll": true
+                          },
+                          "page": {
+                            "offset": 0,
+                            "size": 10
+                          },
+                          "isActive": [
+                            1
+                          ],
+                          "order": {
+                            "items": [
+                              "-createdAt"
+                            ]
+                          },
+                          "versionStatuses": [
+                            0,
+                            2
+                          ]
                         }
                         """;
 
@@ -2608,6 +3995,9 @@ public final class SwaggerHelpers {
     }
 
     public static final class EntityDoi {
+
+        public static final String endpoint_field_set_example =
+                "[\"id\", \"doi\", \"isActive\"]";
 
         public static final String endpoint_query =
                 """
@@ -2880,6 +4270,9 @@ public final class SwaggerHelpers {
                         This endpoint is used to fetch all the available deposit repositories.
                         """;
 
+        public static final String endpoint_get_available_repos_example =
+                "[\"repositoryId\", \"repositoryAuthorizationUrl\", \"repositoryRecordUrl\", \"repositoryClientId\", \"hasLogo\", \"redirectUri\", \"configurationFields\", \"userConfigurationFields\", \"pluginType\"]";
+
         public static final String endpoint_deposit =
                 """
                         This endpoint is used to deposit a plan in a repository.
@@ -2894,10 +4287,31 @@ public final class SwaggerHelpers {
                 """
                         This endpoint is used to fetch the logo url of a repository.
                         """;
+        public static final String endpoint_get_auth_methods =
+                """
+                        This endpoint is used to fetch available user authentication methods for a deposit repository.
+                        """;
+
+        public static final String endpoint_query_field_set_example =
+                """
+                             "depositType",
+                             "repositoryId",
+                             "repositoryAuthorizationUrl",
+                             "repositoryRecordUrl"
+                             "repositoryClientId",
+                             "redirectUri",
+                             "hasLogo",
+                             "configurationFields",
+                             "userConfigurationFields",
+                             "pluginType"
+                        """;
 
     }
 
     public static final class Tag {
+
+        public static final String endpoint_field_set_example =
+                "[\"id\", \"label\", \"isActive\"]";
 
         public static final String endpoint_query =
                 """
@@ -3126,6 +4540,10 @@ public final class SwaggerHelpers {
 
     public static final class Reference {
 
+        public static final String endpoint_field_set_example =
+                "[\"id\", \"label\", \"isActive\"]";
+
+
         public static final String endpoint_query =
                 """
                         This endpoint is used to fetch all the available references.<br/>
@@ -3229,36 +4647,41 @@ public final class SwaggerHelpers {
         public static final String endpoint_query_request_body_example =
                 """
                         {
-                           "project":{
-                              "fields":[
-                                 "id",
-                                 "label",
-                                 "createdAt",
-                                 "updatedAt",
-                                 "isActive",
-                                 "reference",
-                                 "abbreviation",
-                                 "description",
-                                 "source",
-                                 "sourceType",
-                                 "belongsToCurrentTenant"
-                              ]
-                           },
-                           "metadata":{
-                              "countAll":true
-                           },
-                           "page":{
-                              "offset":0,
-                              "size":10
-                           },
-                           "isActive":[
-                              1
-                           ],
-                           "order":{
-                              "items":[
-                                 "-createdAt"
-                              ]
-                           }
+                          "project": {
+                            "fields": [
+                              "id",
+                              "label",
+                              "type.id",
+                              "description",
+                              "reference",
+                              "abbreviation",
+                              "source",
+                              "sourceType",
+                              "createdAt",
+                              "updatedAt",
+                              "definition.fields.code",
+                              "definition.fields.dataType",
+                              "definition.fields.value",
+                              "hash",
+                              "isActive",
+                              "belongsToCurrentTenant"
+                            ]
+                          },
+                          "metadata": {
+                            "countAll": true
+                          },
+                          "page": {
+                            "offset": 0,
+                            "size": 10
+                          },
+                          "isActive": [
+                            1
+                          ],
+                          "order": {
+                            "items": [
+                              "-createdAt"
+                            ]
+                          }
                         }
                         """;
 
@@ -3487,18 +4910,21 @@ public final class SwaggerHelpers {
                            "project":{
                               "fields":[
                                  "id",
-                                 "hash",
                                  "label",
-                                 "type",
                                  "type.id",
                                  "description",
-                                 "definition.fields.code",
-                                 "definition.fields.dataType",
-                                 "definition.fields.value",
                                  "reference",
                                  "abbreviation",
                                  "source",
-                                 "sourceType"
+                                 "sourceType",
+                                 "createdAt",
+                                 "updatedAt",
+                                 "definition.fields.code",
+                                 "definition.fields.dataType",
+                                 "definition.fields.value",
+                                 "hash",
+                                 "isActive",
+                                 "belongsToCurrentTenant"
                               ]
                            },
                            "page":{
@@ -3576,6 +5002,9 @@ public final class SwaggerHelpers {
     }
 
     public static final class ReferenceType {
+
+        public static final String endpoint_field_set_example =
+                "[\"id\", \"name\", \"isActive\"]";
 
         public static final String endpoint_query =
                 """
@@ -3676,32 +5105,71 @@ public final class SwaggerHelpers {
         public static final String endpoint_query_request_body_example =
                 """
                         {
-                           "project":{
-                              "fields":[
-                                 "id",
-                                 "name",
-                                 "code",
-                                 "createdAt",
-                                 "updatedAt",
-                                 "isActive",
-                                 "belongsToCurrentTenant"
-                              ]
-                           },
-                           "metadata":{
-                              "countAll":true
-                           },
-                           "page":{
-                              "offset":0,
-                              "size":10
-                           },
-                           "isActive":[
-                              1
-                           ],
-                           "order":{
-                              "items":[
-                                 "-createdAt"
-                              ]
-                           }
+                          "project": {
+                            "fields": [
+                              "id",
+                              "name",
+                              "code",
+                              "definition.fields.code",
+                              "definition.fields.label",
+                              "definition.fields.description",
+                              "definition.fields.dataType",
+                              "definition.sources.type",
+                              "definition.sources.key",
+                              "definition.sources.label",
+                              "definition.sources.ordinal",
+                              "definition.sources.referenceTypeDependencies.id",
+                              "definition.sources.referenceTypeDependencies.name",
+                              "definition.sources.url",
+                              "definition.sources.results.resultsArrayPath",
+                              "definition.sources.results.fieldsMapping.code",
+                              "definition.sources.results.fieldsMapping.responsePath",
+                              "definition.sources.paginationPath",
+                              "definition.sources.contentType",
+                              "definition.sources.firstPage",
+                              "definition.sources.httpMethod",
+                              "definition.sources.requestBody",
+                              "definition.sources.filterType",
+                              "definition.sources.auth.enabled",
+                              "definition.sources.auth.authUrl",
+                              "definition.sources.auth.authMethod",
+                              "definition.sources.auth.authTokenPath",
+                              "definition.sources.auth.authRequestBody",
+                              "definition.sources.auth.type",
+                              "definition.sources.queries.name",
+                              "definition.sources.queries.defaultValue",
+                              "definition.sources.queries.cases.likePattern",
+                              "definition.sources.queries.cases.separator",
+                              "definition.sources.queries.cases.value",
+                              "definition.sources.queries.cases.referenceType",
+                              "definition.sources.queries.cases.referenceType.id",
+                              "definition.sources.queries.cases.referenceType.name",
+                              "definition.sources.queries.cases.referenceTypeSourceKey",
+                              "definition.sources.headers.key",
+                              "definition.sources.headers.value",
+                              "definition.sources.items.options.code",
+                              "definition.sources.items.options.value",
+                              "createdAt",
+                              "updatedAt",
+                              "isActive",
+                              "belongsToCurrentTenant"
+                            ]
+                          },
+                          "metadata": {
+                            "countAll": true
+                          },
+                          "page": {
+                            "offset": 0,
+                            "size": 10
+                          },
+                          "isActive": [
+                            1
+                          ],
+                          "order": {
+                            "items": [
+                              "-createdAt"
+                            ]
+                          }
                         }
                         """;
 
@@ -3807,6 +5275,9 @@ public final class SwaggerHelpers {
     }
 
     public static final class Lock {
+
+        public static final String endpoint_field_set_example =
+                "[\"id\", \"target\", \"targetType\"]";
 
         public static final String endpoint_query =
                 """
@@ -3999,6 +5470,9 @@ public final class SwaggerHelpers {
     }
 
     public static final class User {
+
+        public static final String endpoint_field_set_example =
+                "[\"id\", \"name\", \"isActive\"]";
 
         public static final String endpoint_query =
                 """
@@ -4523,6 +5997,939 @@ public final class SwaggerHelpers {
 
     public static final class Principal {
 
+        public static final String endpoint_field_set_example =
+                "[\"userId\", \"name\", \"language\"]";
+
+        public static final String available_field_set=
+                "Check the Schema for the available properties";
+
     }
+
+    public static final class Tenant {
+
+        public static final String endpoint_field_set_example =
+                "[\"id\", \"name\", \"code\"]";
+
+        public static final String endpoint_query =
+                """
+                        This endpoint is used to fetch all the available tenants.<br/>
+                        It also allows to restrict the results using a query object passed in the request body.<br/>
+                        """;
+
+        public static final String endpoint_query_request_body =
+                """
+                        Let's explore the options this object gives us.
+                        
+                        ### <u>General query parameters:</u>
+                        
+                        <ul>
+                            <li><b>page:</b>
+                            This is an object controlling the pagination of the results. It contains two properties.
+                            </li>
+                            <ul>
+                                <li><b>offset:</b>
+                                How many records to omit.
+                                </li>
+                                <li><b>size:</b>
+                                How many records to include in each page.
+                                </li>
+                            </ul>
+                        </ul>
+                        
+                        For example, if we want the third page, and our pages to contain 15 elements, we would pass the following object:
+                        
+                        ```JSON
+                        {
+                            "offset": 30,
+                            "size": 15
+                        }
+                        ```
+                        
+                        <ul>
+                            <li><b>order:</b>
+                            This is an object controlling the ordering of the results.
+                            It contains a list of strings called <i>items</i> with the names of the properties to use.
+                            <br/>If the name of the property is prefixed with a <b>'-'</b>, the ordering direction is <b>DESC</b>. Otherwise, it is <b>ASC</b>.
+                            </li>
+                        </ul>
+                        
+                        For example, if we wanted to order based on the field 'createdAt' in descending order, we would pass the following object:
+                        
+                        ```JSON
+                        {
+                            "items": [
+                                "-createdAt"
+                            ],
+                        }
+                        ```
+                        
+                        <ul>
+                            <li><b>metadata:</b>
+                            This is an object containing metadata for the request. There is only one available option.
+                            <ul>
+                                <li><b>countAll:</b>
+                                If this is set to true, the count property included in the response will account for all the records regardless the pagination,
+                                with all the rest of filtering options applied of course.
+                                Otherwise, if it is set to false or not present, only the returned results will be counted.
+                                <br/>The first option is useful for the UI clients to calculate how many result pages are available.
+                                </li>
+                            </ul>
+                            </li>
+                            <li><b>project:</b>
+                            This is an object controlling the data projection of the results.
+                            It contains a list of strings called <i>fields</i> with the names of the properties to project.
+                            <br/>You can also include properties that are deeper in the object tree by prefixing them with dots.
+                            </li>
+                        </ul>
+                        
+                        ### <u>User specific query parameters:</u>
+                        
+                        <ul>
+                            <li><b>like:</b>
+                            If there is a like parameter present in the query, only the users that include the contents of the parameter in their names will be in the response.
+                            </li>
+                            <li><b>ids:</b>
+                            This is a list and contains the ids we want to include in the response. <br/>If empty, every record is included.
+                            </li>
+                            <li><b>excludedIds:</b>
+                            This is a list and contains the ids we want to exclude from the response. <br/>If empty, no record gets excluded.
+                            </li>
+                            <li><b>isActive:</b>
+                            This is a list and determines which records we want to include in the response, based on if they are deleted or not.
+                            This filter works like this. If we want to view only the active records we pass [1] and for only the deleted records we pass [0].
+                            <br/>If not present or if we pass [0,1], every record is included.
+                            </li>
+                        </ul>
+                        """;
+
+        public static final String endpoint_query_request_body_example =
+                """
+                        {
+                          "project": {
+                            "fields": [
+                              "id",
+                              "name",
+                              "code",
+                              "updatedAt",
+                              "createdAt",
+                              "hash",
+                              "isActive"
+                            ]
+                          },
+                          "metadata": {
+                            "countAll": true
+                          },
+                          "page": {
+                            "offset": 0,
+                            "size": 10
+                          },
+                          "isActive": [
+                            1
+                          ],
+                          "order": {
+                            "items": [
+                              "-createdAt"
+                            ]
+                          }
+                        }
+                        """;
+
+        public static final String endpoint_query_response_example =
+                """
+                        {
+                          "items": [
+                            {
+                              "id": "55ff1c50-4855-4b7d-bc75-a9721aa63a22",
+                              "code": "tenant1",
+                              "name": "Tenant 1",
+                              "isActive": 1,
+                              "createdAt": "2024-10-15T10:55:18.489064Z",
+                              "updatedAt": "2024-10-15T10:55:18.489064Z",
+                              "hash": "1728989718"
+                            },
+                            {
+                              "id": "6c101c45-faee-418f-a812-0a7abbf119c3",
+                              "code": "tenant2",
+                              "name": "Tenant 2",
+                              "isActive": 1,
+                              "createdAt": "2024-10-15T10:25:50.523897Z",
+                              "updatedAt": "2024-10-15T10:25:50.523897Z",
+                              "hash": "1728987950"
+                            }
+                          ],
+                          "count": 5
+                        }
+                        """;
+
+    }
+
+    public static final class PlanStatus {
+
+        public static final String endpoint_field_set_example =
+                "[\"id\", \"name\", \"internalStatus\"]";
+
+        public static final String endpoint_query =
+                """
+                        This endpoint is used to fetch all the available plan statuses.<br/>
+                        It also allows to restrict the results using a query object passed in the request body.<br/>
+                        """;
+
+        public static final String endpoint_query_request_body =
+                """
+                        Let's explore the options this object gives us.
+                        
+                        ### <u>General query parameters:</u>
+                        
+                        <ul>
+                            <li><b>page:</b>
+                            This is an object controlling the pagination of the results. It contains two properties.
+                            </li>
+                            <ul>
+                                <li><b>offset:</b>
+                                How many records to omit.
+                                </li>
+                                <li><b>size:</b>
+                                How many records to include in each page.
+                                </li>
+                            </ul>
+                        </ul>
+                        
+                        For example, if we want the third page, and our pages to contain 15 elements, we would pass the following object:
+                        
+                        ```JSON
+                        {
+                            "offset": 30,
+                            "size": 15
+                        }
+                        ```
+                        
+                        <ul>
+                            <li><b>order:</b>
+                            This is an object controlling the ordering of the results.
+                            It contains a list of strings called <i>items</i> with the names of the properties to use.
+                            <br/>If the name of the property is prefixed with a <b>'-'</b>, the ordering direction is <b>DESC</b>. Otherwise, it is <b>ASC</b>.
+                            </li>
+                        </ul>
+                        
+                        For example, if we wanted to order based on the field 'createdAt' in descending order, we would pass the following object:
+                        
+                        ```JSON
+                        {
+                            "items": [
+                                "-createdAt"
+                            ],
+                        }
+                        ```
+                        
+                        <ul>
+                            <li><b>metadata:</b>
+                            This is an object containing metadata for the request. There is only one available option.
+                            <ul>
+                                <li><b>countAll:</b>
+                                If this is set to true, the count property included in the response will account for all the records regardless the pagination,
+                                with all the rest of filtering options applied of course.
+                                Otherwise, if it is set to false or not present, only the returned results will be counted.
+                                <br/>The first option is useful for the UI clients to calculate how many result pages are available.
+                                </li>
+                            </ul>
+                            </li>
+                            <li><b>project:</b>
+                            This is an object controlling the data projection of the results.
+                            It contains a list of strings called <i>fields</i> with the names of the properties to project.
+                            <br/>You can also include properties that are deeper in the object tree by prefixing them with dots.
+                            </li>
+                        </ul>
+                        
+                        ### <u>Plan Status specific query parameters:</u>
+                        
+                        <ul>
+                            <li><b>like:</b>
+                            If there is a like parameter present in the query, only the tag entities that include the contents of the parameter in their labels will be in the response.
+                            </li>
+                            <li><b>ids:</b>
+                            This is a list and contains the ids we want to include in the response. <br/>If empty, every record is included.
+                            </li>
+                            <li><b>excludedIds:</b>
+                            This is a list and contains the ids we want to exclude from the response. <br/>If empty, no record gets excluded.
+                            </li>
+                            <li><b>internalStatuses:</b>
+                            This is a list and determines which records we want to include in the response, based on their internal status.
+                            The status can be <i>Draft</i> or <i>Finalized</i> or <i>Null</i>. We add 0 or 1 to the list respectively or null.
+                            <br/>If not present, every record is included.
+                            </li>
+                            <li><b>isActive:</b>
+                            This is a list and determines which records we want to include in the response, based on if they are deleted or not.
+                            This filter works like this. If we want to view only the active records we pass [1] and for only the deleted records we pass [0].
+                            <br/>If not present or if we pass [0,1], every record is included.
+                            </li>
+                        </ul>
+                        """;
+
+        public static final String endpoint_query_request_body_example =
+                """
+                        {
+                           "project": {
+                             "fields": [
+                               "id",
+                               "name",
+                               "description",
+                               "action",
+                               "ordinal",
+                               "internalStatus",
+                               "definition",
+                               "definition.authorization",
+                               "definition.authorization.edit.roles",
+                               "definition.authorization.edit.planRoles",
+                               "definition.authorization.edit.allowAnonymous",
+                               "definition.authorization.edit.allowAuthenticated",
+                               "definition.availableActions",
+                               "definition.matIconName",
+                               "definition.storageFile.id",
+                               "definition.storageFile.name",
+                               "definition.storageFile.fullName",
+                               "definition.storageFile.mimeType",
+                               "definition.statusColor",
+                               "updatedAt",
+                               "createdAt",
+                               "hash",
+                               "isActive",
+                               "belongsToCurrentTenant"
+                             ]
+                           },
+                           "metadata": {
+                             "countAll": true
+                           },
+                           "page": {
+                             "offset": 0,
+                             "size": 10
+                           },
+                           "isActive": [
+                             1
+                           ],
+                           "order": {
+                             "items": [
+                               "-createdAt"
+                             ]
+                           }
+                         }
+                        """;
+
+        public static final String endpoint_query_response_example =
+                """
+                        {
+                          "items": [
+                            {
+                              "id": "cb3ced76-9807-4829-82da-75777de1bc78",
+                              "name": "Draft",
+                              "ordinal": 0,
+                              "createdAt": "2024-09-17T07:37:24.288404Z",
+                              "updatedAt": "2025-04-01T08:16:21.256217Z",
+                              "isActive": 1,
+                              "internalStatus": 0,
+                              "definition": {
+                                "authorization": {
+                                  "edit": {
+                                    "roles": [
+                                      "Admin"
+                                    ],
+                                    "planRoles": [
+                                      0
+                                    ],
+                                    "allowAuthenticated": false,
+                                    "allowAnonymous": false
+                                  }
+                                },
+                                "availableActions": [
+                                  1,
+                                  2
+                                ],
+                                "statusColor": "#ef0c92"
+                              },
+                              "hash": "1743495381",
+                              "belongsToCurrentTenant": true
+                            },
+                            {
+                              "id": "313cce74-f44b-4a72-9cd8-a9c75fe03a7e",
+                              "name": "Under Review",
+                              "action": "Review",
+                              "ordinal": 0,
+                              "createdAt": "2024-09-17T07:36:58.677058Z",
+                              "updatedAt": "2025-03-04T11:25:53.927120Z",
+                              "isActive": 1,
+                              "definition": {
+                                "authorization": {
+                                  "edit": {
+                                    "roles": [
+                                      "Admin"
+                                    ],
+                                    "planRoles": [
+                                      0
+                                    ],
+                                    "allowAuthenticated": false,
+                                    "allowAnonymous": false
+                                  }
+                                },
+                                "availableActions": [
+                                  1
+                                ],
+                                "statusColor": "#00acc1"
+                              },
+                              "hash": "1741087553",
+                              "belongsToCurrentTenant": true
+                            },
+                            {
+                              "id": "61fd91f5-c63a-45bc-aa7a-e1f00fbd8545",
+                              "name": "Validated",
+                              "action": "Validate",
+                              "ordinal": 0,
+                              "createdAt": "2024-09-17T07:36:38.386887Z",
+                              "updatedAt": "2025-02-27T11:40:30.913140Z",
+                              "isActive": 1,
+                              "definition": {
+                                "authorization": {
+                                  "edit": {
+                                    "roles": [
+                                      "Admin"
+                                    ],
+                                    "planRoles": [
+                                      0,
+                                      3
+                                    ],
+                                    "allowAuthenticated": false,
+                                    "allowAnonymous": false
+                                  }
+                                },
+                                "availableActions": [
+                                  1
+                                ]
+                              },
+                              "hash": "1740656430",
+                              "belongsToCurrentTenant": true
+                            },
+                            {
+                              "id": "f1a3da63-0bff-438f-8b46-1a81ca176115",
+                              "name": "Finalized",
+                              "action": "Finalize",
+                              "ordinal": 0,
+                              "createdAt": "2024-09-16T14:16:56.685177Z",
+                              "updatedAt": "2025-04-09T13:38:38.895294Z",
+                              "isActive": 1,
+                              "internalStatus": 1,
+                              "definition": {
+                                "authorization": {
+                                  "edit": {
+                                    "roles": [
+                                      "Admin"
+                                    ],
+                                    "planRoles": [
+                                      0,
+                                      1,
+                                      2,
+                                      3
+                                    ],
+                                    "allowAuthenticated": false,
+                                    "allowAnonymous": false
+                                  }
+                                },
+                                "availableActions": [
+                                  0,
+                                  1,
+                                  2
+                                ],
+                                "statusColor": "#629929"
+                              },
+                              "hash": "1744205918",
+                              "belongsToCurrentTenant": true
+                            }
+                          ],
+                          "count": 4
+                        }
+                        """;
+
+    }
+
+    public static final class DescriptionStatus {
+
+        public static final String endpoint_field_set_example =
+                "[\"id\", \"name\", \"internalStatus\"]";
+
+        public static final String endpoint_query =
+                """
+                        This endpoint is used to fetch all the available description statuses.<br/>
+                        It also allows to restrict the results using a query object passed in the request body.<br/>
+                        """;
+
+        public static final String endpoint_query_request_body =
+                """
+                        Let's explore the options this object gives us.
+                        
+                        ### <u>General query parameters:</u>
+                        
+                        <ul>
+                            <li><b>page:</b>
+                            This is an object controlling the pagination of the results. It contains two properties.
+                            </li>
+                            <ul>
+                                <li><b>offset:</b>
+                                How many records to omit.
+                                </li>
+                                <li><b>size:</b>
+                                How many records to include in each page.
+                                </li>
+                            </ul>
+                        </ul>
+                        
+                        For example, if we want the third page, and our pages to contain 15 elements, we would pass the following object:
+                        
+                        ```JSON
+                        {
+                            "offset": 30,
+                            "size": 15
+                        }
+                        ```
+                        
+                        <ul>
+                            <li><b>order:</b>
+                            This is an object controlling the ordering of the results.
+                            It contains a list of strings called <i>items</i> with the names of the properties to use.
+                            <br/>If the name of the property is prefixed with a <b>'-'</b>, the ordering direction is <b>DESC</b>. Otherwise, it is <b>ASC</b>.
+                            </li>
+                        </ul>
+                        
+                        For example, if we wanted to order based on the field 'createdAt' in descending order, we would pass the following object:
+                        
+                        ```JSON
+                        {
+                            "items": [
+                                "-createdAt"
+                            ],
+                        }
+                        ```
+                        
+                        <ul>
+                            <li><b>metadata:</b>
+                            This is an object containing metadata for the request. There is only one available option.
+                            <ul>
+                                <li><b>countAll:</b>
+                                If this is set to true, the count property included in the response will account for all the records regardless the pagination,
+                                with all the rest of filtering options applied of course.
+                                Otherwise, if it is set to false or not present, only the returned results will be counted.
+                                <br/>The first option is useful for the UI clients to calculate how many result pages are available.
+                                </li>
+                            </ul>
+                            </li>
+                            <li><b>project:</b>
+                            This is an object controlling the data projection of the results.
+                            It contains a list of strings called <i>fields</i> with the names of the properties to project.
+                            <br/>You can also include properties that are deeper in the object tree by prefixing them with dots.
+                            </li>
+                        </ul>
+                        
+                        ### <u>Plan Status specific query parameters:</u>
+                        
+                        <ul>
+                            <li><b>like:</b>
+                            If there is a like parameter present in the query, only the tag entities that include the contents of the parameter in their labels will be in the response.
+                            </li>
+                            <li><b>ids:</b>
+                            This is a list and contains the ids we want to include in the response. <br/>If empty, every record is included.
+                            </li>
+                            <li><b>excludedIds:</b>
+                            This is a list and contains the ids we want to exclude from the response. <br/>If empty, no record gets excluded.
+                            </li>
+                            <li><b>internalStatuses:</b>
+                            This is a list and determines which records we want to include in the response, based on their internal status.
+                            The status can be <i>Draft</i> or <i>Finalized</i> or <i>Null</i>. We add 0 or 1 to the list respectively or null.
+                            <br/>If not present, every record is included.
+                            </li>
+                            <li><b>isActive:</b>
+                            This is a list and determines which records we want to include in the response, based on if they are deleted or not.
+                            This filter works like this. If we want to view only the active records we pass [1] and for only the deleted records we pass [0].
+                            <br/>If not present or if we pass [0,1], every record is included.
+                            </li>
+                        </ul>
+                        """;
+
+        public static final String endpoint_query_request_body_example =
+                """
+                        {
+                          "project": {
+                            "fields": [
+                              "id",
+                              "name",
+                              "description",
+                              "action",
+                              "ordinal",
+                              "internalStatus",
+                              "definition",
+                              "definition.authorization",
+                              "definition.authorization.edit.roles",
+                              "definition.authorization.edit.planRoles",
+                              "definition.authorization.edit.allowAnonymous",
+                              "definition.authorization.edit.allowAuthenticated",
+                              "definition.availableActions",
+                              "definition.matIconName",
+                              "definition.storageFile.id",
+                              "definition.storageFile.name",
+                              "definition.storageFile.fullName",
+                              "definition.storageFile.extension",
+                              "definition.storageFile.mimeType",
+                              "definition.statusColor",
+                              "updatedAt",
+                              "createdAt",
+                              "hash",
+                              "isActive",
+                              "belongsToCurrentTenant"
+                            ]
+                          },
+                          "metadata": {
+                            "countAll": true
+                          },
+                          "page": {
+                            "offset": 0,
+                            "size": 10
+                          },
+                          "isActive": [
+                            1
+                          ],
+                          "order": {
+                            "items": [
+                              "-createdAt"
+                            ]
+                          }
+                        }
+                        """;
+
+        public static final String endpoint_query_response_example =
+                """
+                        {
+                          "items": [
+                            {
+                              "id": "60f5e529-7ed3-4be1-8754-ac8c7443f246",
+                              "name": "Canceled",
+                              "action": "Cancel",
+                              "ordinal": 0,
+                              "createdAt": "2024-09-17T15:37:42.256424Z",
+                              "updatedAt": "2025-01-23T10:52:01.216120Z",
+                              "isActive": 1,
+                              "hash": "1737629521",
+                              "belongsToCurrentTenant": true,
+                              "internalStatus": 2,
+                              "definition": {
+                                "authorization": {
+                                  "edit": {
+                                    "roles": [
+                                      "Admin"
+                                    ],
+                                    "planRoles": [
+                                      0
+                                    ],
+                                    "allowAuthenticated": false,
+                                    "allowAnonymous": false
+                                  }
+                                }
+                              }
+                            },
+                            {
+                              "id": "c266e2ee-9ae9-4a2f-9b4b-bc6fb1dd54aa",
+                              "name": "Finalized",
+                              "action": "Finalize",
+                              "ordinal": 0,
+                              "createdAt": "2024-09-17T07:38:15.846399Z",
+                              "updatedAt": "2025-05-16T14:17:34.703669Z",
+                              "isActive": 1,
+                              "hash": "1747405054",
+                              "belongsToCurrentTenant": true,
+                              "internalStatus": 1,
+                              "definition": {
+                                "authorization": {
+                                  "edit": {
+                                    "roles": [
+                                      "Admin"
+                                    ],
+                                    "planRoles": [
+                                      0,
+                                      2,
+                                      4,
+                                      5
+                                    ],
+                                    "allowAuthenticated": false,
+                                    "allowAnonymous": false
+                                  }
+                                },
+                                "availableActions": [
+                                  0
+                                ],
+                                "statusColor": "#a3e556"
+                              }
+                            },
+                            {
+                              "id": "978e6ff6-b5e9-4cee-86cb-bc7401ec4059",
+                              "name": "Draft",
+                              "ordinal": 0,
+                              "createdAt": "2024-09-16T12:46:20.459486Z",
+                              "updatedAt": "2025-05-16T14:17:59.393244Z",
+                              "isActive": 1,
+                              "hash": "1747405079",
+                              "belongsToCurrentTenant": true,
+                              "internalStatus": 0,
+                              "definition": {
+                                "authorization": {
+                                  "edit": {
+                                    "roles": [
+                                      "Admin"
+                                    ],
+                                    "planRoles": [
+                                      0,
+                                      1,
+                                      2,
+                                      3,
+                                      4,
+                                      5,
+                                      6
+                                    ],
+                                    "allowAuthenticated": false,
+                                    "allowAnonymous": false
+                                  }
+                                },
+                                "availableActions": [
+                                  0
+                                ],
+                                "statusColor": ""
+                              }
+                            }
+                          ],
+                          "count": 3
+                        }
+                        """;
+
+    }
+
+    public static final class PlanWorkflow {
+
+        public static final String endpoint_field_set_example =
+                "[\"id\", \"name\", \"isActive\"]";
+
+        public static final String endpoint_query =
+                """
+                        This endpoint is used to fetch all the available plan workflows.<br/>
+                        It also allows to restrict the results using a query object passed in the request body.<br/>
+                        """;
+
+        public static final String endpoint_query_request_body_example =
+                """
+                        {
+                           "project":{
+                              "fields":[
+                                 "id",
+                                 "name",
+                                 "description",
+                                 "createdAt",
+                                 "updatedAt",
+                                 "isActive",
+                                 "belongsToCurrentTenant",
+                                 "definition",
+                                 "definition.startingStatus.id",
+                                 "definition.startingStatus.name",
+                                 "definition.statusTransitions",
+                                 "definition.statusTransitions.fromStatus.id",
+                                 "definition.statusTransitions.fromStatus.name",
+                                 "definition.statusTransitions.toStatus.id",
+                                 "definition.statusTransitions.toStatus.name"
+                              ]
+                           },
+                           "metadata":{
+                              "countAll":true
+                           },
+                           "page":{
+                              "offset":0,
+                              "size":10
+                           },
+                           "isActive":[
+                              1
+                           ],
+                           "order":{
+                              "items":[
+                                 "-createdAt"
+                              ]
+                           }
+                        }
+                        """;
+
+        public static final String endpoint_query_response_example =
+                """
+                        {
+                          "items": [
+                            {
+                              "id": "44df0e24-7879-48cc-bbe0-cd8a2b618855",
+                              "name": "default",
+                              "createdAt": "2024-09-18T11:39:30.597400Z",
+                              "updatedAt": "2024-11-11T14:35:01.773055Z",
+                              "isActive": 1,
+                              "definition": {
+                                "startingStatus": {
+                                  "id": "cb3ced76-9807-4829-82da-75777de1bc78",
+                                  "name": "Draft"
+                                },
+                                "statusTransitions": [
+                                  {
+                                    "fromStatus": {
+                                      "id": "cb3ced76-9807-4829-82da-75777de1bc78",
+                                      "name": "Draft"
+                                    },
+                                    "toStatus": {
+                                      "id": "313cce74-f44b-4a72-9cd8-a9c75fe03a7e",
+                                      "name": "Under Review"
+                                    }
+                                  },
+                                  {
+                                    "fromStatus": {
+                                      "id": "313cce74-f44b-4a72-9cd8-a9c75fe03a7e",
+                                      "name": "Under Review"
+                                    },
+                                    "toStatus": {
+                                      "id": "61fd91f5-c63a-45bc-aa7a-e1f00fbd8545",
+                                      "name": "Validated"
+                                    }
+                                  },
+                                  {
+                                    "fromStatus": {
+                                      "id": "61fd91f5-c63a-45bc-aa7a-e1f00fbd8545",
+                                      "name": "Validated"
+                                    },
+                                    "toStatus": {
+                                      "id": "f1a3da63-0bff-438f-8b46-1a81ca176115",
+                                      "name": "Finalized"
+                                    }
+                                  },
+                                  {
+                                    "fromStatus": {
+                                      "id": "cb3ced76-9807-4829-82da-75777de1bc78",
+                                      "name": "Draft"
+                                    },
+                                    "toStatus": {
+                                      "id": "f1a3da63-0bff-438f-8b46-1a81ca176115",
+                                      "name": "Finalized"
+                                    }
+                                  },
+                                  {
+                                    "fromStatus": {
+                                      "id": "f1a3da63-0bff-438f-8b46-1a81ca176115",
+                                      "name": "Finalized"
+                                    },
+                                    "toStatus": {
+                                      "id": "cb3ced76-9807-4829-82da-75777de1bc78",
+                                      "name": "Draft"
+                                    }
+                                  }
+                                ]
+                              },
+                              "belongsToCurrentTenant": true
+                            }
+                          ],
+                          "count": 1
+                        }
+                        """;
+
+    }
+
+    public static final class DescriptionWorkflow {
+
+        public static final String endpoint_field_set_example =
+                "[\"id\", \"name\", \"isActive\"]";
+
+        public static final String endpoint_query =
+                """
+                        This endpoint is used to fetch all the available plan workflows.<br/>
+                        It also allows to restrict the results using a query object passed in the request body.<br/>
+                        """;
+
+        public static final String endpoint_query_request_body_example =
+                """
+                        {
+                           "project":{
+                              "fields":[
+                                 "id",
+                                 "name",
+                                 "description",
+                                 "createdAt",
+                                 "updatedAt",
+                                 "isActive",
+                                 "belongsToCurrentTenant",
+                                 "definition",
+                                 "definition.startingStatus.id",
+                                 "definition.startingStatus.name",
+                                 "definition.statusTransitions",
+                                 "definition.statusTransitions.fromStatus.id",
+                                 "definition.statusTransitions.fromStatus.name",
+                                 "definition.statusTransitions.toStatus.id",
+                                 "definition.statusTransitions.toStatus.name"
+                              ]
+                           },
+                           "metadata":{
+                              "countAll":true
+                           },
+                           "page":{
+                              "offset":0,
+                              "size":10
+                           },
+                           "isActive":[
+                              1
+                           ],
+                           "order":{
+                              "items":[
+                                 "-createdAt"
+                              ]
+                           }
+                        }
+                        """;
+
+        public static final String endpoint_query_response_example =
+                """
+                        {
+                           "items": [
+                             {
+                               "id": "8651af83-8b24-4776-ae45-329031db9f5e",
+                               "name": "default",
+                               "createdAt": "2024-09-17T07:39:00.221933Z",
+                               "updatedAt": "2024-11-19T14:03:29.761609Z",
+                               "isActive": 1,
+                               "definition": {
+                                 "startingStatus": {
+                                   "id": "978e6ff6-b5e9-4cee-86cb-bc7401ec4059",
+                                   "name": "Draft"
+                                 },
+                                 "statusTransitions": [
+                                   {
+                                     "fromStatus": {
+                                       "id": "978e6ff6-b5e9-4cee-86cb-bc7401ec4059",
+                                       "name": "Draft"
+                                     },
+                                     "toStatus": {
+                                       "id": "c266e2ee-9ae9-4a2f-9b4b-bc6fb1dd54aa",
+                                       "name": "Finalized"
+                                     }
+                                   },
+                                   {
+                                     "fromStatus": {
+                                       "id": "c266e2ee-9ae9-4a2f-9b4b-bc6fb1dd54aa",
+                                       "name": "Finalized"
+                                     },
+                                     "toStatus": {
+                                       "id": "978e6ff6-b5e9-4cee-86cb-bc7401ec4059",
+                                       "name": "Draft"
+                                     }
+                                   }
+                                 ]
+                               },
+                               "belongsToCurrentTenant": true
+                             }
+                           ],
+                           "count": 1
+                         }
+                        """;
+
+    }
+
 
 }

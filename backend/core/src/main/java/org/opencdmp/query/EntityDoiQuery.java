@@ -208,11 +208,9 @@ public class EntityDoiQuery extends QueryBase<EntityDoiEntity> {
             return null;
         if (this.authorize.contains(AuthorizationFlags.Permission) && this.authService.authorize(Permission.BrowseUser))
             return null;
-        UUID userId;
+        UUID userId = null;
         if (this.authorize.contains(AuthorizationFlags.Owner))
             userId = this.userScope.getUserIdSafe();
-        else
-            userId = null;
 
         List<Predicate> predicates = new ArrayList<>();
         boolean usePublic = this.authorize.contains(AuthorizationFlags.Public);

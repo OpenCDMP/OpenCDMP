@@ -7,7 +7,7 @@ import { catchError } from 'rxjs/operators';
 import { ConfigurationService } from '../configuration/configuration.service';
 import { BaseHttpV2Service } from '../http/base-http-v2.service';
 import { EvaluatorFormat } from '@app/core/model/evaluator/evaluator-format.model';
-import { RankModel } from '@app/core/model/evaluator/evaluator-plan-model.model';
+import { RankResultModel } from '@app/core/model/evaluator/evaluator-plan-model.model';
 
 
 @Injectable()
@@ -27,14 +27,14 @@ export class EvaluatorHttpService extends BaseService {
 		return this.http.get<EvaluatorFormat[]>(url).pipe(catchError((error: any) => throwError(error)));
 	}
 
-	rankPlan(id: Guid, evaluatorId: string, format: string): Observable<HttpResponse<RankModel>> {
+	rankPlan(id: Guid, evaluatorId: string, format: string, benchmarkIds: string[] = []): Observable<HttpResponse<RankResultModel>> {
 		const url = `${this.apiBase}/rank-plan`;
-		return this.http.post<HttpResponse<RankModel>>(url, {id: id, evaluatorId: evaluatorId, format: format}, {responseType: 'json', observe: 'response'}).pipe(catchError((error: any) => throwError(error)));
+		return this.http.post<HttpResponse<RankResultModel>>(url, {id: id, evaluatorId: evaluatorId, format: format, benchmarkIds: benchmarkIds}, {responseType: 'json', observe: 'response'}).pipe(catchError((error: any) => throwError(error)));
 	}
 
-	rankDescription(id: Guid, evaluatorId: string, format: string): Observable<HttpResponse<RankModel>> {
+	rankDescription(id: Guid, evaluatorId: string, format: string, benchmarkIds: string[] = []): Observable<HttpResponse<RankResultModel>> {
 		const url = `${this.apiBase}/rank-description`;
-		return this.http.post<HttpResponse<RankModel>>(url, {id: id, evaluatorId: evaluatorId, format: format}, {responseType: 'json', observe: 'response'}).pipe(catchError((error: any) => throwError(error)));
+		return this.http.post<HttpResponse<RankResultModel>>(url, {id: id, evaluatorId: evaluatorId, format: format, benchmarkIds: benchmarkIds}, {responseType: 'json', observe: 'response'}).pipe(catchError((error: any) => throwError(error)));
 	}
 
 	getLogo(evaluatorId: string): Observable<HttpResponse<string>>{

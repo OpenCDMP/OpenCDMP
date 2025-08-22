@@ -4,16 +4,15 @@ import gr.cite.tools.data.deleter.Deleter;
 import gr.cite.tools.data.deleter.DeleterFactory;
 import gr.cite.tools.data.query.QueryFactory;
 import gr.cite.tools.exception.MyApplicationException;
+import gr.cite.tools.fieldset.BaseFieldSet;
 import gr.cite.tools.logging.LoggerService;
 import gr.cite.tools.logging.MapLogEntry;
-import org.opencdmp.commons.enums.EntityType;
-import org.opencdmp.commons.enums.IsActive;
-import org.opencdmp.commons.enums.PlanVersionStatus;
-import org.opencdmp.commons.enums.UsageLimitTargetMetric;
+import org.opencdmp.commons.enums.*;
 import org.opencdmp.data.*;
 import org.opencdmp.model.PlanDescriptionTemplate;
 import org.opencdmp.model.description.Description;
 import org.opencdmp.model.planreference.PlanReference;
+import org.opencdmp.model.planstatus.PlanStatus;
 import org.opencdmp.query.*;
 import org.opencdmp.service.accounting.AccountingService;
 import org.opencdmp.service.elastic.ElasticService;
@@ -106,6 +105,8 @@ public class PlanDeleter implements Deleter {
 
         Instant now = Instant.now();
 
+        List<PlanStatusEntity> planStatusEntities = this.queryFactory.query(PlanStatusQuery.class).collectAs(new BaseFieldSet().ensure(PlanStatus._id).ensure(PlanStatus._name));
+
         for (PlanEntity item : data) {
             logger.trace("deleting item {}", item.getId());
             EntityDoiQuery entityDoiQuery = this.queryFactory.query(EntityDoiQuery.class).types(EntityType.Plan).entityIds(item.getId());
@@ -119,6 +120,12 @@ public class PlanDeleter implements Deleter {
 
             if (!disableElastic) this.elasticService.deletePlan(item);
             this.accountingService.decrease(UsageLimitTargetMetric.PLAN_COUNT.getValue());
+            PlanStatusEntity planStatusEntity = planStatusEntities.stream().filter(x -> x.getId().equals(item.getStatusId())).findFirst().orElse(null);
+            if (planStatusEntity == null) continue;
+            this.accountingService.decrease(UsageLimitTargetMetric.PLAN_BY_STATUS_COUNT.getValue().replace("{status_name}", planStatusEntity.getName().toLowerCase()));
+            if (planStatusEntity.getInternalStatus() != null && planStatusEntity.getInternalStatus().equals(org.opencdmp.commons.enums.PlanStatus.Finalized) && item.getAccessType().equals(PlanAccessType.Public)) {
+                this.accountingService.decrease(UsageLimitTargetMetric.PLAN_PUBLISHED_COUNT.getValue());
+            }
         }
     }
 

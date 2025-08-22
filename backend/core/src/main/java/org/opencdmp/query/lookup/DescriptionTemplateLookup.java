@@ -2,39 +2,53 @@ package org.opencdmp.query.lookup;
 
 import gr.cite.tools.data.query.Lookup;
 import gr.cite.tools.data.query.QueryFactory;
+import io.swagger.v3.oas.annotations.media.Schema;
 import org.opencdmp.commons.enums.DescriptionTemplateStatus;
 import org.opencdmp.commons.enums.DescriptionTemplateVersionStatus;
 import org.opencdmp.commons.enums.IsActive;
 import org.opencdmp.elastic.query.NestedDescriptionTemplateElasticQuery;
 import org.opencdmp.query.DescriptionTemplateQuery;
+import org.opencdmp.query.lookup.swagger.SwaggerHelpers;
 
 import java.util.List;
 import java.util.UUID;
 
 public class DescriptionTemplateLookup extends Lookup {
 
+    @Schema(description = SwaggerHelpers.DescriptionTemplate.like_description)
     private String like;
 
+    @Schema(description = SwaggerHelpers.DescriptionTemplate.isActive_description)
     private List<IsActive> isActive;
 
+    @Schema(description = SwaggerHelpers.DescriptionTemplate.groupIds_description)
     private List<UUID> groupIds;
 
+    @Schema(description = SwaggerHelpers.DescriptionTemplate.versions_description)
     private List<Short> versions;
 
+    @Schema(description = SwaggerHelpers.DescriptionTemplate.statuses_description)
     private List<DescriptionTemplateStatus> statuses;
 
+    @Schema(description = SwaggerHelpers.DescriptionTemplate.versionStatuses_description)
     private List<DescriptionTemplateVersionStatus> versionStatuses;
 
+    @Schema(description = SwaggerHelpers.DescriptionTemplate.ids_description)
     private List<UUID> ids;
 
+    @Schema(description = SwaggerHelpers.DescriptionTemplate.typeIds_description)
     private List<UUID> typeIds;
 
+    @Schema(description = SwaggerHelpers.DescriptionTemplate.excludeIds_description)
     private List<UUID> excludedIds;
 
+    @Schema(description = SwaggerHelpers.DescriptionTemplate.excludeGroupIds_description)
     private List<UUID> excludedGroupIds;
 
+    @Schema(description = SwaggerHelpers.DescriptionTemplate.languages_description)
     private List<String> languages;
 
+    @Schema(description = SwaggerHelpers.DescriptionTemplate.onlyCanEdit_description)
     private Boolean onlyCanEdit;
 
     public String getLike() {

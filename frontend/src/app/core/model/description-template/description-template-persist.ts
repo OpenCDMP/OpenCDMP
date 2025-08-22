@@ -5,7 +5,7 @@ import { DescriptionTemplateStatus } from "@app/core/common/enum/description-tem
 import { UserDescriptionTemplateRole } from "@app/core/common/enum/user-description-template-role";
 import { BaseEntityPersist } from "@common/base/base-entity.model";
 import { Guid } from "@common/types/guid";
-import { ReferencePersist } from "../reference/reference";
+import { PluginConfigurationPersist } from "../plugin-configuration/plugin-configuration";
 
 
 export interface DescriptionTemplatePersist extends BaseEntityPersist {
@@ -37,6 +37,7 @@ export interface UserDescriptionTemplatePersist {
 
 export interface DescriptionTemplateDefinitionPersist {
 	pages?: DescriptionTemplatePagePersist[];
+	pluginConfigurations?: PluginConfigurationPersist[];
 }
 
 

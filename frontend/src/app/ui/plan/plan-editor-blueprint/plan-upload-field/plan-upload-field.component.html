@@ -1,0 +1,10 @@
+@if(field){
+    <app-file-uploader 
+        [storageFileIdControl]="form?.get('fieldValue')"
+        [maxSize]="maxFileSize"
+        [accept]="typesToString()"
+        [id]="path"
+        [placeholder]="field.placeholder"
+        [required]="field.required"
+    />
+}

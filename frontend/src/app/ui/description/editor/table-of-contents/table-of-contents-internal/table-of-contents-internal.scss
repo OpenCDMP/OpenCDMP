@@ -15,7 +15,9 @@
     transition: color 100ms;
     display: block;
     span{
-        white-space: nowrap;
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
     }
     &.field-set {
         font-size: var(--sys-title-small-size);
@@ -36,3 +38,16 @@
 .section{
   line-height: 1.7em;
 }
+
+.annotation-btn{
+    min-width: fit-content;
+    mat-icon {
+        font-size: 14px !important; /* Set icon size */
+        padding: 5px 4px 2px 4px !important;
+        margin: 0.5rem 0.25rem;
+        & .mat-badge-content {
+            top: 11px !important;
+        }
+    }
+} 
+

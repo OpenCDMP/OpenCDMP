@@ -2,8 +2,8 @@
     @if(index < pageSize() || showMore()){
         <div class="evaluation pb-1 d-flex justify-content-between">
             <div class="title">
-                <div class="header">
-                    {{'GENERAL.EVALUATOR.' + evaluation.data?.evaluatorId?.toUpperCase() | translate }}
+                <div class="header" *ngIf="evaluation.data?.evaluatorId">
+                    {{'GENERAL.EVALUATOR.' + evaluation.data.evaluatorId.toUpperCase() + '.TITLE' | translate }}
                 </div>
                 <div class="date">
                     {{evaluation.evaluatedAt | dateTimeFormatter : 'short'}}

@@ -83,7 +83,7 @@ export class DescriptionStatusListingComponent extends BaseListingComponent<Desc
 		lookup.metadata = { countAll: true };
 		lookup.page = { offset: 0, size: this.ITEMS_PER_PAGE };
 		lookup.isActive = [IsActive.Active];
-		lookup.order = { items: [this.toDescSortField(nameof<DescriptionStatus>(x => x.createdAt))] };
+		lookup.order = { items: [this.toDescSortField(nameof<DescriptionStatus>(x => x.updatedAt))] };
 		this.updateOrderUiFields(lookup.order);
 
 		lookup.project = {

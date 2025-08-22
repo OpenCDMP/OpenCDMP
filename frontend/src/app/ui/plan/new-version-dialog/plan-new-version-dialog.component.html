@@ -36,9 +36,10 @@
                 <div class="heading">{{'PLAN-NEW-VERSION-DIALOG.FIELDS.BLUEPRINT' | translate}} *
                 </div>
             </div>
+            <div *ngIf="isStartinBlueprintInactive" class="col-12 hint">{{'PLAN-NEW-VERSION-DIALOG.FIELDS.BLUEPRINT-INACTIVE-HINT' | translate}}</div>
             <div class="col-12 title-form">
                 <mat-form-field class="w-100">
-                    <app-single-auto-complete [required]="false" [formControl]="formGroup.get('blueprintId')" placeholder="{{'PLAN-NEW-VERSION-DIALOG.FIELDS.BLUEPRINT-PLACEHOLDER' | translate}}" [configuration]="singleAutocompleteBlueprintConfiguration" (optionSelected)="selectedBlueprintChanged($event)">
+                    <app-single-auto-complete [required]="true" [formControl]="formGroup.get('blueprintId')" placeholder="{{'PLAN-NEW-VERSION-DIALOG.FIELDS.BLUEPRINT-PLACEHOLDER' | translate}}" [configuration]="singleAutocompleteBlueprintConfiguration" (optionSelected)="selectedBlueprintChanged($event)">
                     </app-single-auto-complete>
                 </mat-form-field>
             </div>

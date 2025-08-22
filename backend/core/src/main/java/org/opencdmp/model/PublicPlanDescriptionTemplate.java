@@ -12,6 +12,10 @@ public class PublicPlanDescriptionTemplate {
 
     public static final String _plan = "plan";
 
+    private UUID sectionId;
+
+    public static final String _sectionId= "sectionId";
+
     public UUID getId() {
         return id;
     }
@@ -28,4 +32,11 @@ public class PublicPlanDescriptionTemplate {
         this.plan = plan;
     }
 
+    public UUID getSectionId() {
+        return sectionId;
+    }
+
+    public void setSectionId(UUID sectionId) {
+        this.sectionId = sectionId;
+    }
 }

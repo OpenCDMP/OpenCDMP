@@ -12,6 +12,10 @@ import gr.cite.tools.logging.LoggerService;
 import gr.cite.tools.logging.MapLogEntry;
 import gr.cite.tools.validation.ValidationFilterAnnotation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.enums.Explode;
+import io.swagger.v3.oas.annotations.enums.ParameterStyle;
+import io.swagger.v3.oas.annotations.extensions.Extension;
+import io.swagger.v3.oas.annotations.extensions.ExtensionProperty;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
@@ -45,7 +49,7 @@ import java.util.*;
 
 @RestController
 @RequestMapping(path = "api/plan-status")
-@io.swagger.v3.oas.annotations.tags.Tag(name = "PlanStatuses", description = "Manage plan statuses")
+@io.swagger.v3.oas.annotations.tags.Tag(name = "Plan Statuses", description = "Manage plan statuses", extensions = @Extension(name = "x-order", properties = @ExtensionProperty(name = "value", value = "14")))
 @SwaggerCommonErrorResponses
 public class PlanStatusController {
 
@@ -79,12 +83,12 @@ public class PlanStatusController {
     }
 
     @PostMapping("query")
-    @OperationWithTenantHeader(summary = "Query all planStatuses", description = SwaggerHelpers.Tag.endpoint_query, requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(description = SwaggerHelpers.Tag.endpoint_query_request_body, content = @Content(
+    @OperationWithTenantHeader(summary = "Query all plan statuses", description = SwaggerHelpers.PlanStatus.endpoint_query, requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(content = @Content(
             examples = {
                     @ExampleObject(
                             name = SwaggerHelpers.Commons.pagination_example,
                             description = SwaggerHelpers.Commons.pagination_example_description,
-                            value = SwaggerHelpers.Tag.endpoint_query_request_body_example
+                            value = SwaggerHelpers.PlanStatus.endpoint_query_request_body_example
                     )
             }
     )), responses = @ApiResponse(description = "OK", responseCode = "200", content = @Content(
@@ -96,7 +100,7 @@ public class PlanStatusController {
             examples = @ExampleObject(
                     name = SwaggerHelpers.Commons.pagination_response_example,
                     description = SwaggerHelpers.Commons.pagination_response_example_description,
-                    value = SwaggerHelpers.Tag.endpoint_query_response_example
+                    value = SwaggerHelpers.PlanStatus.endpoint_query_response_example
             ))))
     public QueryResult<PlanStatus> Query(@RequestBody PlanStatusLookup lookup) throws MyApplicationException, MyForbiddenException {
         logger.debug("querying {}", PlanStatus.class.getSimpleName());
@@ -115,7 +119,7 @@ public class PlanStatusController {
     }
 
     @GetMapping("{id}")
-    @OperationWithTenantHeader(summary = "Fetch a specific planStatus by id", description = "",
+    @OperationWithTenantHeader(summary = "Fetch a specific plan status by id", description = "",
             responses = @ApiResponse(description = "OK", responseCode = "200", content = @Content(
                     schema = @Schema(
                             implementation = PlanStatus.class
@@ -123,8 +127,8 @@ public class PlanStatusController {
             ))
     @Swagger404
     public PlanStatus Get(
-            @Parameter(name = "id", description = "The id of a planStatus to fetch", example = "c0c163dc-2965-45a5-9608-f76030578609", required = true) @PathVariable("id") UUID id,
-            @Parameter(name = "fieldSet", description = SwaggerHelpers.Commons.fieldset_description, required = true) FieldSet fieldSet,
+            @Parameter(name = "id", description = "The id of a plan status to fetch", example = "c0c163dc-2965-45a5-9608-f76030578609", required = true) @PathVariable("id") UUID id,
+            @Parameter(name = "f", description = SwaggerHelpers.Commons.fieldset_description, required = false, style = ParameterStyle.FORM, explode = Explode.TRUE, schema = @Schema(type = "array", example = SwaggerHelpers.PlanStatus.endpoint_field_set_example, allowableValues = SwaggerHelpers.Principal.available_field_set )) FieldSet fieldSet,
             Locale locale
     ) throws MyApplicationException, MyForbiddenException, MyNotFoundException {
         logger.debug(new MapLogEntry("retrieving" + PlanStatus.class.getSimpleName()).And("id", id).And("fields", fieldSet));
@@ -145,7 +149,7 @@ public class PlanStatusController {
     }
 
     @PostMapping("persist")
-    @OperationWithTenantHeader(summary = "Create a new or update an existing planStatus", description = "",
+    @OperationWithTenantHeader(summary = "Create a new or update an existing plan status", description = "",
             responses = @ApiResponse(description = "OK", responseCode = "200", content = @Content(
                     schema = @Schema(
                             implementation = PlanStatus.class
@@ -157,7 +161,7 @@ public class PlanStatusController {
     @ValidationFilterAnnotation(validator = PlanStatusPersist.PlanStatusPersistValidator.ValidatorName, argumentName = "model")
     public PlanStatus Persist(
             @RequestBody PlanStatusPersist model,
-            @Parameter(name = "fieldSet", description = SwaggerHelpers.Commons.fieldset_description, required = true) FieldSet fieldSet
+            @Parameter(name = "f", description = SwaggerHelpers.Commons.fieldset_description, required = true, style = ParameterStyle.FORM, explode = Explode.TRUE, schema = @Schema(type = "array", example = SwaggerHelpers.PlanStatus.endpoint_field_set_example, allowableValues = SwaggerHelpers.Principal.available_field_set )) FieldSet fieldSet
     ) throws MyApplicationException, MyForbiddenException, MyNotFoundException, InvalidApplicationException, JAXBException {
         logger.debug(new MapLogEntry("persisting" + PlanStatus.class.getSimpleName()).And("model", model).And("fieldSet", fieldSet));
         PlanStatus persisted = this.planStatusService.persist(model, fieldSet);
@@ -171,12 +175,12 @@ public class PlanStatusController {
     }
 
     @DeleteMapping("{id}")
-    @OperationWithTenantHeader(summary = "Delete a planStatus by id", description = "",
+    @OperationWithTenantHeader(summary = "Delete a plan status by id", description = "",
             responses = @ApiResponse(description = "OK", responseCode = "200"))
     @Swagger404
     @Transactional
     public void Delete(
-            @Parameter(name = "id", description = "The id of a planStatus to delete", example = "c0c163dc-2965-45a5-9608-f76030578609", required = true) @PathVariable("id") UUID id
+            @Parameter(name = "id", description = "The id of a plan status to delete", example = "cb3ced76-9807-4829-82da-75777de1bc78", required = true) @PathVariable("id") UUID id
     ) throws MyForbiddenException, InvalidApplicationException {
         logger.debug(new MapLogEntry("retrieving" + PlanStatus.class.getSimpleName()).And("id", id));
 

@@ -27,6 +27,7 @@ import org.opencdmp.convention.ConventionService;
 import org.opencdmp.data.*;
 import org.opencdmp.errorcode.ErrorThesaurusProperties;
 import org.opencdmp.event.*;
+import org.opencdmp.integrationevent.outbox.indicatoraccess.IndicatorAccessEventHandlerImpl;
 import org.opencdmp.integrationevent.outbox.tenantremoval.TenantRemovalIntegrationEvent;
 import org.opencdmp.integrationevent.outbox.tenantremoval.TenantRemovalIntegrationEventHandler;
 import org.opencdmp.integrationevent.outbox.tenanttouched.TenantTouchedIntegrationEvent;
@@ -79,6 +80,7 @@ public class TenantServiceImpl implements TenantService {
     private final TenantTouchedIntegrationEventHandler tenantTouchedIntegrationEventHandler;
     private final TenantRemovalIntegrationEventHandler tenantRemovalIntegrationEventHandler;
     private final UserTouchedIntegrationEventHandler userTouchedIntegrationEventHandler;
+    private final IndicatorAccessEventHandlerImpl indicatorAccessEventHandler;
     private final KeycloakService keycloakService;
     private final AuthorizationConfiguration authorizationConfiguration;
     private final TenantScope tenantScope;
@@ -98,7 +100,7 @@ public class TenantServiceImpl implements TenantService {
             BuilderFactory builderFactory,
             ConventionService conventionService,
             MessageSource messageSource,
-            ErrorThesaurusProperties errors, TenantTouchedIntegrationEventHandler tenantTouchedIntegrationEventHandler, TenantRemovalIntegrationEventHandler tenantRemovalIntegrationEventHandler, UserTouchedIntegrationEventHandler userTouchedIntegrationEventHandler, KeycloakService keycloakService, AuthorizationConfiguration authorizationConfiguration, TenantScope tenantScope, QueryFactory queryFactory, CurrentPrincipalResolver currentPrincipalResolver, ClaimExtractor claimExtractor, EventBroker eventBroker, UsageLimitService usageLimitService, AccountingService accountingService) {
+            ErrorThesaurusProperties errors, TenantTouchedIntegrationEventHandler tenantTouchedIntegrationEventHandler, TenantRemovalIntegrationEventHandler tenantRemovalIntegrationEventHandler, UserTouchedIntegrationEventHandler userTouchedIntegrationEventHandler, IndicatorAccessEventHandlerImpl indicatorAccessEventHandler, KeycloakService keycloakService, AuthorizationConfiguration authorizationConfiguration, TenantScope tenantScope, QueryFactory queryFactory, CurrentPrincipalResolver currentPrincipalResolver, ClaimExtractor claimExtractor, EventBroker eventBroker, UsageLimitService usageLimitService, AccountingService accountingService) {
         this.entityManager = entityManager;
         this.authorizationService = authorizationService;
         this.deleterFactory = deleterFactory;
@@ -109,7 +111,8 @@ public class TenantServiceImpl implements TenantService {
 	    this.tenantTouchedIntegrationEventHandler = tenantTouchedIntegrationEventHandler;
 	    this.tenantRemovalIntegrationEventHandler = tenantRemovalIntegrationEventHandler;
 	    this.userTouchedIntegrationEventHandler = userTouchedIntegrationEventHandler;
-	    this.keycloakService = keycloakService;
+        this.indicatorAccessEventHandler = indicatorAccessEventHandler;
+        this.keycloakService = keycloakService;
 	    this.authorizationConfiguration = authorizationConfiguration;
 	    this.tenantScope = tenantScope;
 	    this.queryFactory = queryFactory;
@@ -167,12 +170,12 @@ public class TenantServiceImpl implements TenantService {
         TenantTouchedIntegrationEvent tenantTouchedIntegrationEvent = new TenantTouchedIntegrationEvent();
         tenantTouchedIntegrationEvent.setId(data.getId());
         tenantTouchedIntegrationEvent.setCode(data.getCode());
-        this.tenantTouchedIntegrationEventHandler.handle(tenantTouchedIntegrationEvent);
         
         if (!isUpdate) {
             this.keycloakService.createTenantGroups(data.getCode());
+            this.tenantTouchedIntegrationEventHandler.handle(tenantTouchedIntegrationEvent);
             this.autoAssignGlobalAdminsToNewTenant(data);
-        }
+        } else this.tenantTouchedIntegrationEventHandler.handle(tenantTouchedIntegrationEvent);
 
         this.eventBroker.emit(new TenantTouchedEvent(data.getId(), data.getCode()));
 
@@ -227,20 +230,18 @@ public class TenantServiceImpl implements TenantService {
             }
 
             this.entityManager.flush();
-
-            for (UUID userId : existingItems.stream().map(UserRoleEntity::getUserId).distinct().toList()) {
-                this.userTouchedIntegrationEventHandler.handle(userId);
-                this.eventBroker.emit(new UserTouchedEvent(userId));
-
-            }
-
-            this.entityManager.flush();
         } finally {
             this.tenantScope.removeTempTenant(this.entityManager);
         }
 
         for (String externalId : keycloakIdsToAddToTenantGroup) {
             this.keycloakService.addUserToTenantRoleGroup(externalId, tenant.getCode(), this.authorizationConfiguration.getAuthorizationProperties().getTenantAdminRole());
+        }
+
+        for (UUID userId : existingItems.stream().map(UserRoleEntity::getUserId).distinct().toList()) {
+            this.userTouchedIntegrationEventHandler.handle(userId);
+            this.indicatorAccessEventHandler.handle(userId);
+            this.eventBroker.emit(new UserTouchedEvent(userId));
         }
        
     }
@@ -253,7 +254,12 @@ public class TenantServiceImpl implements TenantService {
 
         this.authorizationService.authorizeForce(Permission.DeleteTenant);
 
-        this.deleterFactory.deleter(TenantDeleter.class).deleteAndSaveByIds(List.of(id));
+        try {
+            this.entityManager.disableTenantFilters();
+            this.deleterFactory.deleter(TenantDeleter.class).deleteAndSaveByIds(List.of(id));
+        } finally {
+            this.entityManager.reloadTenantFilters();
+        }
 
         TenantRemovalIntegrationEvent tenantRemovalIntegrationEvent = new TenantRemovalIntegrationEvent();
         tenantRemovalIntegrationEvent.setId(id);

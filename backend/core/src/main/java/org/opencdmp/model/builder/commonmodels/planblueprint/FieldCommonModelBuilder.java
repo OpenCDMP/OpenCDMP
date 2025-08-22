@@ -54,6 +54,7 @@ public abstract class FieldCommonModelBuilder<Model extends FieldModel, Entity e
                 case System -> m.setCategory(PlanBlueprintFieldCategory.System);
                 case Extra -> m.setCategory(PlanBlueprintFieldCategory.Extra);
                 case ReferenceType -> m.setCategory(PlanBlueprintFieldCategory.ReferenceType);
+                case Upload -> m.setCategory(PlanBlueprintFieldCategory.Upload);
                 default -> throw new MyApplicationException("unrecognized type " + d.getCategory());
             }
             m.setPlaceholder(d.getPlaceholder());

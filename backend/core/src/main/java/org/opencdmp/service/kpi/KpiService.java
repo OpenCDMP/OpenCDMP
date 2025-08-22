@@ -24,4 +24,7 @@ public interface KpiService {
     void sendIndicatorPointPlanBlueprintCountEntryEvents() throws InvalidApplicationException;
 
     void sendIndicatorPointDescriptionTemplateCountEntryEvents() throws InvalidApplicationException;
+
+    void sendIndicatorPointTenantCountEntryEvents() throws InvalidApplicationException;
+
 }

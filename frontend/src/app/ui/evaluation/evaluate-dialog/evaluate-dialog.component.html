@@ -1,0 +1,61 @@
+<div mat-dialog-title class="row d-flex align-items-center gap-half-rem">
+    <span *ngIf="isSelectionRankType && selectionRankResult">
+        {{ 'PLAN-EVALUATE-DIALOG.HEADER' | translate }}: {{enumUtils.toSuccessStatusString(selectionRankResult)}}
+    </span>
+    <button class="ml-auto" mat-icon-button (click)="close()"  [attr.aria-label]="'ALT-TEXT.CLOSE-DIALOG'  | translate">
+        <mat-icon aria-hidden>close</mat-icon>
+    </button>
+</div>
+<div mat-dialog-content class="dialog-content">
+    @if(evaluatorId){
+        <small class="pb-3" [innerHTML]="'GENERAL.EVALUATOR.' + evaluatorId.toUpperCase() + '.RESULTS-DESCRIPTION' | translate"></small>
+    }
+    @if(data.rankData.details){
+        <mat-card>
+            <mat-card-header>
+                <mat-card-title>{{'PLAN-EVALUATE-DIALOG.DETAILS-SUB-HEADER' | translate}}</mat-card-title>
+            </mat-card-header>
+            <mat-form-field appearance="fill">
+                <mat-label>{{'PLAN-EVALUATE-DIALOG.DETAILS-BODY' | translate}}</mat-label>
+                <textarea matInput [value]="data.rankData.details" rows="4" disabled></textarea>
+            </mat-form-field>
+        </mat-card>
+    }
+
+    @if(data.rankData.results){
+        <div class="d-flex flex-column gap-half-rem">
+            @let indexing = data.rankData.results.length > 1;
+            @for(result of data.rankData.results; track $index; let j = $index) {
+                <mat-card>
+                    <mat-card-header *ngIf="result.benchmarkTitle?.length > 0">
+                        <mat-card-title>{{indexing ? (j+1 + '.') : ''}} {{result.benchmarkTitle}}</mat-card-title>
+                    </mat-card-header>
+                    <mat-card-content>
+                        <div><span *ngIf="result.benchmarkDetails"> {{result.benchmarkDetails}}</span></div>
+                        @if(result.metrics?.length > 0){
+                            @for(metric of result.metrics; track $index; let i = $index) {
+                                <div><span *ngIf="metric.metricTitle?.length > 0"> {{metric.metricTitle}}</span></div>
+                                <div><span *ngIf="metric.metricDetails?.length > 0"> {{metric.metricDetails}}</span></div>
+                                <div><span *ngIf="metric.rank == 0">{{ 'PLAN-EVALUATE-DIALOG.METRIC-RESULT' | translate }}:<strong> {{'TYPES.EVALUATOR-SUCCESS-STATUS.FAIL' | translate}} </strong></span></div>
+                                <div><span *ngIf="metric.rank == 1">{{ 'PLAN-EVALUATE-DIALOG.METRIC-RESULT' | translate }}:<strong> {{'TYPES.EVALUATOR-SUCCESS-STATUS.PASS' | translate}} </strong></span></div>
+                                <div>
+                                <ul>
+                                    <li *ngFor="let message of metric.messages; let i=index;">
+                                        @if (message.title?.length > 0) {
+                                            <strong>{{ message.title }}:</strong> {{ message.message }}
+                                        } @else {
+                                            {{ message.message }}
+                                        }
+                                    
+                                    </li>
+                                </ul>
+                                </div>
+                            } 
+                        }
+                    </mat-card-content>      
+                </mat-card>
+            }
+        </div>
+        
+    }
+</div>

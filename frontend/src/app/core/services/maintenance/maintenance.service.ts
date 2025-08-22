@@ -128,6 +128,20 @@ export class MaintenanceService extends BaseService {
 				catchError((error: any) => throwError(error)));
 	}
 
+	sendReferenceAccountingEntriesEvents(): Observable<any> {
+		const url = `${this.apiBase}/events/references/accounting-entry`;
+		return this.http
+			.post<any>(url, null).pipe(
+				catchError((error: any) => throwError(error)));
+	}
+
+	sendLanguageAccountingEntriesEvents(): Observable<any> {
+		const url = `${this.apiBase}/events/languages/accounting-entry`;
+		return this.http
+			.post<any>(url, null).pipe(
+				catchError((error: any) => throwError(error)));
+	}
+
 	sendIndicatorCreateEvents(): Observable<any> {
 		const url = `${this.apiBase}/events/indicator-entry`;
 		return this.http
@@ -190,6 +204,14 @@ export class MaintenanceService extends BaseService {
 			.post<any>(url, null).pipe(
 				catchError((error: any) => throwError(error)));
 	}
+
+	sendIndicatorTenantPointEvents(): Observable<any> {
+		const url = `${this.apiBase}/events/indicator-point-tenant-entry`;
+		return this.http
+			.post<any>(url, null).pipe(
+				catchError((error: any) => throwError(error)));
+	}
+	
 	
 	sendEvaluationPlanAccountingEntriesEvents(): Observable<any> {
 		const url = `${this.apiBase}/events/evaluation-plan/accounting-entry`;
@@ -200,6 +222,13 @@ export class MaintenanceService extends BaseService {
 
 	sendEvaluationDescriptionAccountingEntriesEvents(): Observable<any> {
 		const url = `${this.apiBase}/events/evaluation-description/accounting-entry`;
+		return this.http
+			.post<any>(url, null).pipe(
+				catchError((error: any) => throwError(error)));
+	}
+
+	setPlanBlueprintCanEditDescriptionTemplates(): Observable<any> {
+		const url = `${this.apiBase}/misc-actions/plan-blueprint/set-can-edit-description-templates`;
 		return this.http
 			.post<any>(url, null).pipe(
 				catchError((error: any) => throwError(error)));

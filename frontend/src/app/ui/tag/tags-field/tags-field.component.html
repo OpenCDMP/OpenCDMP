@@ -1,14 +1,18 @@
 <mat-form-field class="w-100">
 	<mat-label>{{label}}</mat-label>
+    <app-multiple-auto-complete [separatorKeysCodes]="separatorKeysCodes" [formControl]="form" [configuration]="multipleAutocompleteConfiguration" [required]="isRequired"></app-multiple-auto-complete>
+</mat-form-field>
+<!-- <mat-form-field class="w-100">
+	<mat-label>{{label + (required || isRequired ? ' *' : '')}}</mat-label>
 	<mat-chip-grid #chipGrid [disabled]="form.disabled">
-		<mat-chip-row *ngFor="let tag of tags" (removed)="remove(tag)">
+		<mat-chip-row *ngFor="let tag of form?.value" (removed)="remove(tag)">
 			{{tag}}
 			<button matChipRemove [attr.aria-label]="'COMMONS.ACTIONS.REMOVE' | translate">
 				<mat-icon>cancel</mat-icon>
 			</button>
 		</mat-chip-row>
 	</mat-chip-grid>
-	<input [id]="name" placeholder="{{placeholder}}" #tagInput [formControl]="tagsCtrl" [matChipInputFor]="chipGrid" [matAutocomplete]="auto" [matChipInputSeparatorKeyCodes]="separatorKeysCodes" (matChipInputTokenEnd)="add($event)" [readOnly]="form.disabled"/>
+	<input [id]="name" placeholder="{{placeholder}}" #tagInput [formControl]="form" [matChipInputFor]="chipGrid" [matAutocomplete]="auto" [matChipInputSeparatorKeyCodes]="separatorKeysCodes" (matChipInputTokenEnd)="add($event)" [readOnly]="form.disabled" [required]="isRequired"/>
 	<mat-autocomplete #auto="matAutocomplete" (optionSelected)="selected($event)">
 		<mat-option *ngFor="let tag of filteredTags | async" [value]="tag">
 			{{tag}}
@@ -16,4 +20,4 @@
 	</mat-autocomplete>
 	<mat-error *ngIf="form.hasError('backendError')">{{ form.getError('backendError')?.message}}</mat-error>
 	<mat-error *ngIf="form.hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
-</mat-form-field>
+</mat-form-field> -->

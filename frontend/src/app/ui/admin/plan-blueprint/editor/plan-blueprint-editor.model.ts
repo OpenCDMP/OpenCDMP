@@ -5,7 +5,9 @@ import { PlanBlueprintExtraFieldDataType } from "@app/core/common/enum/plan-blue
 import { PlanBlueprintStatus } from "@app/core/common/enum/plan-blueprint-status";
 import { PlanBlueprintSystemFieldType } from "@app/core/common/enum/plan-blueprint-system-field-type";
 import { PlanBlueprintVersionStatus } from "@app/core/common/enum/plan-blueprint-version-status";
-import { DescriptionTemplatesInSection, DescriptionTemplatesInSectionPersist, PlanBlueprint, PlanBlueprintDefinition, PlanBlueprintDefinitionPersist, PlanBlueprintDefinitionSection, PlanBlueprintDefinitionSectionPersist, PlanBlueprintPersist, ExtraFieldInSection, FieldInSection, FieldInSectionPersist, ReferenceTypeFieldInSection, SystemFieldInSection } from "@app/core/model/plan-blueprint/plan-blueprint";
+import { DescriptionTemplatesInSection, DescriptionTemplatesInSectionPersist, PlanBlueprint, PlanBlueprintDefinition, PlanBlueprintDefinitionPersist, PlanBlueprintDefinitionSection, PlanBlueprintDefinitionSectionPersist, PlanBlueprintPersist, ExtraFieldInSection, FieldInSection, FieldInSectionPersist, ReferenceTypeFieldInSection, SystemFieldInSection, UploadFieldInSection, UploadOptionPersist } from "@app/core/model/plan-blueprint/plan-blueprint";
+import { PluginRepositoryConfiguration } from "@app/core/model/plugin-configuration/plugin-configuration";
+import { PluginConfigurationEditorModel } from "@app/ui/plugin/plugin-editor.model";
 import { BaseEditorModel } from "@common/base/base-form-editor-model";
 import { BackendErrorValidator, PlanBlueprintSystemFieldRequiredValidator } from "@common/forms/validation/custom-validator";
 import { ValidationErrorModel } from "@common/forms/validation/error-model/validation-error-model";
@@ -28,7 +30,7 @@ export class PlanBlueprintEditorModel extends BaseEditorModel implements PlanBlu
 
 	constructor() { super(); }
 
-	public fromModel(item: PlanBlueprint): PlanBlueprintEditorModel {
+	public fromModel(item: PlanBlueprint, configuration?: PluginRepositoryConfiguration[]): PlanBlueprintEditorModel {
 		if (item) {
 			super.fromModel(item);
 			this.label = item.label;
@@ -36,7 +38,7 @@ export class PlanBlueprintEditorModel extends BaseEditorModel implements PlanBlu
 			this.code = item.code;
 			this.status = item.status;
 			this.versionStatus = item.versionStatus;
-			this.definition = new PlanBlueprintDefinitionEditorModel(this.validationErrorModel).fromModel(item.definition);
+			this.definition = new PlanBlueprintDefinitionEditorModel(this.validationErrorModel).fromModel(item.definition, configuration);
 		}
 		return this;
 	}
@@ -131,15 +133,17 @@ export class PlanBlueprintEditorModel extends BaseEditorModel implements PlanBlu
 
 export class PlanBlueprintDefinitionEditorModel implements PlanBlueprintDefinitionPersist {
 	sections: PlanBlueprintDefinitionSectionEditorModel[] = [];
+	pluginConfigurations: PluginConfigurationEditorModel[] = [];
 	protected formBuilder: UntypedFormBuilder = new UntypedFormBuilder();
 
 	constructor(
 		public validationErrorModel: ValidationErrorModel = new ValidationErrorModel()
 	) { }
 
-	public fromModel(item: PlanBlueprintDefinition): PlanBlueprintDefinitionEditorModel {
+	public fromModel(item: PlanBlueprintDefinition, configuration?: PluginRepositoryConfiguration[]): PlanBlueprintDefinitionEditorModel {
 		if (item) {
 			if (item.sections) { item.sections.sort((a,b) => a.ordinal - b.ordinal).map(x => this.sections.push(new PlanBlueprintDefinitionSectionEditorModel(this.validationErrorModel).fromModel(x))); }
+			if (item.pluginConfigurations) { item.pluginConfigurations.map(x => this.pluginConfigurations.push(new PluginConfigurationEditorModel(this.validationErrorModel).fromModel(x, configuration))); }
 		}
 		return this;
 	}
@@ -168,6 +172,14 @@ export class PlanBlueprintDefinitionEditorModel implements PlanBlueprintDefiniti
 					})
 				), context.getValidation('sections').validators
 			),
+			pluginConfigurations: this.formBuilder.array(
+				(this.pluginConfigurations ?? []).map(
+					(item, index) => item.buildForm({
+						rootPath: `${rootPath}pluginConfigurations[${index}].`,
+						disabled: disabled
+					})
+				), context.getValidation('pluginConfigurations').validators
+			),		
 		});
 	}
 
@@ -180,6 +192,7 @@ export class PlanBlueprintDefinitionEditorModel implements PlanBlueprintDefiniti
 		const baseContext: ValidationContext = new ValidationContext();
 		const baseValidationArray: Validation[] = new Array<Validation>();
 		baseValidationArray.push({ key: 'sections', validators: [Validators.required, BackendErrorValidator(validationErrorModel, `${rootPath}sections`), PlanBlueprintSystemFieldRequiredValidator()] });
+		baseValidationArray.push({ key: 'pluginConfigurations', validators: [ BackendErrorValidator(validationErrorModel, `${rootPath}pluginConfigurations`)] });
 
 		baseContext.validation = baseValidationArray;
 		return baseContext;
@@ -198,6 +211,13 @@ export class PlanBlueprintDefinitionEditorModel implements PlanBlueprintDefiniti
 				validationErrorModel: validationErrorModel
 			})
 		);
+		formArray?.controls?.forEach(
+			(control, index) => PluginConfigurationEditorModel.reapplyValidators({
+				formGroup: control as UntypedFormGroup,
+				rootPath: `${rootPath}pluginConfigurations[${index}].`,
+				validationErrorModel: validationErrorModel
+			})
+		);
 	}
 
 }
@@ -209,6 +229,7 @@ export class PlanBlueprintDefinitionSectionEditorModel implements PlanBlueprintD
 	ordinal: number;
 	fields: FieldInSectionEditorModel[] = [];
 	hasTemplates: boolean = false;
+	canEditDescriptionTemplates: boolean = true;
 	descriptionTemplates?: DescriptionTemplatesInSectionEditorModel[] = [];
 	prefillingSourcesEnabled: boolean = false;
 	prefillingSourcesIds: Guid[]= [];
@@ -226,6 +247,7 @@ export class PlanBlueprintDefinitionSectionEditorModel implements PlanBlueprintD
 			this.description = item.description;
 			this.ordinal = item.ordinal;
 			this.hasTemplates = item.hasTemplates;
+            this.canEditDescriptionTemplates = item.canEditDescriptionTemplates == null || item.canEditDescriptionTemplates 
 			this.prefillingSourcesEnabled = item?.prefillingSourcesEnabled ?? false;
 			if (item.fields) { item.fields.sort((a,b) => a.ordinal - b.ordinal).map(x => this.fields.push(new FieldInSectionEditorModel(this.validationErrorModel).fromModel(x))); }
 			if (item.descriptionTemplates) { item.descriptionTemplates.map(x => this.descriptionTemplates.push(new DescriptionTemplatesInSectionEditorModel(this.validationErrorModel).fromModel(x))); }
@@ -248,12 +270,13 @@ export class PlanBlueprintDefinitionSectionEditorModel implements PlanBlueprintD
 			});
 		}
 
-		return this.formBuilder.group({
+		const formGroup = this.formBuilder.group({
 			id: [{ value: this.id, disabled: disabled }, context.getValidation('id').validators],
 			label: [{ value: this.label, disabled: disabled }, context.getValidation('label').validators],
 			ordinal: [{ value: this.ordinal, disabled: disabled }, context.getValidation('ordinal').validators],
 			description: [{ value: this.description, disabled: disabled }, context.getValidation('description').validators],
 			hasTemplates: [{ value: this.hasTemplates, disabled: disabled }, context.getValidation('hasTemplates').validators],
+			canEditDescriptionTemplates: [{ value: this.canEditDescriptionTemplates, disabled: disabled }, context.getValidation('canEditDescriptionTemplates').validators],
 			prefillingSourcesEnabled: [{ value: this.prefillingSourcesEnabled, disabled: disabled}, context.getValidation('prefillingSourcesEnabled').validators],
 			fields: this.formBuilder.array(
 				(this.fields ?? []).map(
@@ -274,6 +297,30 @@ export class PlanBlueprintDefinitionSectionEditorModel implements PlanBlueprintD
 			),
 			prefillingSourcesIds: [{ value: this.prefillingSourcesIds, disabled: disabled }, context.getValidation('prefillingSourcesIds').validators],
 		});
+        if(!disabled){
+            formGroup.controls.hasTemplates.valueChanges.pipe(startWith(this.hasTemplates), takeUntil(destroyRef))
+            .subscribe((val) => {
+                if(val){
+                    formGroup.controls.descriptionTemplates.enable();
+                    formGroup.controls.canEditDescriptionTemplates.enable();
+                    formGroup.controls.descriptionTemplates.updateValueAndValidity();
+                }else{
+                    formGroup.controls.descriptionTemplates.disable();
+                    formGroup.controls.canEditDescriptionTemplates.disable();
+                    formGroup.controls.descriptionTemplates.updateValueAndValidity();
+                }
+            });
+            formGroup.controls.canEditDescriptionTemplates.valueChanges.pipe(startWith(this.canEditDescriptionTemplates), takeUntil(destroyRef))
+            .subscribe((val) => {
+                if(val){
+                    formGroup.controls.descriptionTemplates.removeValidators(Validators.required);
+                }else {
+                    formGroup.controls.descriptionTemplates.addValidators(Validators.required);
+                }
+                formGroup.controls.descriptionTemplates.updateValueAndValidity();
+            })
+        }
+        return formGroup;
 	}
 
 	static createValidationContext(params: {
@@ -289,6 +336,7 @@ export class PlanBlueprintDefinitionSectionEditorModel implements PlanBlueprintD
 		baseValidationArray.push({ key: 'ordinal', validators: [Validators.required, BackendErrorValidator(validationErrorModel, `${rootPath}ordinal`)] });
 		baseValidationArray.push({ key: 'description', validators: [BackendErrorValidator(validationErrorModel, `${rootPath}description`)] });
 		baseValidationArray.push({ key: 'hasTemplates', validators: [BackendErrorValidator(validationErrorModel, `${rootPath}hasTemplates`)] });
+		baseValidationArray.push({ key: 'canEditDescriptionTemplates', validators: [BackendErrorValidator(validationErrorModel, `${rootPath}canEditDescriptionTemplates`)] });
 		baseValidationArray.push({ key: 'fields', validators: [BackendErrorValidator(validationErrorModel, `${rootPath}fields`)] });
 		baseValidationArray.push({ key: 'descriptionTemplates', validators: [BackendErrorValidator(validationErrorModel, `${rootPath}descriptionTemplates`)] });
 		baseValidationArray.push({ key: 'prefillingSourcesIds', validators: [BackendErrorValidator(validationErrorModel, `${rootPath}prefillingSourcesIds`)] });
@@ -310,7 +358,7 @@ export class PlanBlueprintDefinitionSectionEditorModel implements PlanBlueprintD
 			validationErrorModel
 		});
 
-		['id', 'label', 'ordinal', 'description', 'hasTemplates', 'prefillingSourcesIds', 'hash'].forEach(keyField => {
+		['id', 'label', 'ordinal', 'description', 'hasTemplates', 'canEditDescriptionTemplates', 'prefillingSourcesIds', 'hash'].forEach(keyField => {
 			const control = formGroup?.get(keyField);
 			control?.clearValidators();
 			control?.addValidators(context.getValidation(keyField).validators);
@@ -340,6 +388,7 @@ export class PlanBlueprintDefinitionSectionEditorModel implements PlanBlueprintD
         return {
             description: null,
             hasTemplates: null,
+            canEditDescriptionTemplates: true,
             id: null,
             label: null,
             ordinal: null,
@@ -364,6 +413,8 @@ export class FieldInSectionEditorModel implements FieldInSectionPersist {
 	public systemFieldType: PlanBlueprintSystemFieldType;
 	public referenceTypeId: Guid;
 	public multipleSelect: boolean;
+	public types: UploadOptionEditorModel[] = [];
+	public maxFileSizeInMB: number;
 
 	static get alwaysRequiredSystemFieldTypes(): PlanBlueprintSystemFieldType[] {
 		return [PlanBlueprintSystemFieldType.Title, PlanBlueprintSystemFieldType.Description, PlanBlueprintSystemFieldType.Language, PlanBlueprintSystemFieldType.AccessRights];
@@ -395,6 +446,10 @@ export class FieldInSectionEditorModel implements FieldInSectionPersist {
 		} else if (this.category == PlanBlueprintFieldCategory.ReferenceType) {
 			this.referenceTypeId = (item as ReferenceTypeFieldInSection).referenceType?.id;
 			this.multipleSelect= (item as ReferenceTypeFieldInSection).multipleSelect;
+		} else if (this.category == PlanBlueprintFieldCategory.Upload) {
+			const uploadField = item as UploadFieldInSection;
+			this.maxFileSizeInMB = uploadField.maxFileSizeInMB;
+			if (uploadField.types) { uploadField.types.map(x => this.types.push(new UploadOptionEditorModel(this.validationErrorModel).fromModel(x))); }
 		}
 
 		return this;
@@ -427,6 +482,15 @@ export class FieldInSectionEditorModel implements FieldInSectionPersist {
 			dataType: [{ value: this.dataType, disabled: disabled }, context.getValidation('dataType').validators],
 			systemFieldType: [{ value: this.systemFieldType, disabled: disabled }, context.getValidation('systemFieldType').validators],
 			referenceTypeId: [{ value: this.referenceTypeId, disabled: disabled }, context.getValidation('referenceTypeId').validators],
+			maxFileSizeInMB: [{ value: this.maxFileSizeInMB, disabled: disabled }, context.getValidation('maxFileSizeInMB').validators],
+			types: this.formBuilder.array(
+				(this.types ?? []).map(
+					(item, index) => item.buildForm({
+						rootPath: `${rootPath}types[${index}].`,
+						disabled: disabled
+					})
+				), context.getValidation('types').validators
+			),
 			multipleSelect: [{ value: this.multipleSelect ?? false, disabled: disabled }, context.getValidation('multipleSelect').validators],
 		});
         if(!disabled){
@@ -442,27 +506,27 @@ export class FieldInSectionEditorModel implements FieldInSectionPersist {
             })
             formGroup.get('category').valueChanges.pipe(takeUntil(destroyRef), startWith(formGroup.controls.category.value))
             .subscribe((category: PlanBlueprintFieldCategory) => {
+                ['systemFieldType', 'referenceTypeId', 'dataType', 'multipleSelect', 'maxFileSizeInMB', 'types'].forEach((key) => {
+                    formGroup.get(key).disable();
+                })
+                formGroup.get('label').removeValidators(Validators.required);
+
                 switch(category){
                     case PlanBlueprintFieldCategory.System:
                         formGroup.get('systemFieldType').enable();
-                        formGroup.get('referenceTypeId').disable();
-                        formGroup.get('dataType').disable();
-                        formGroup.get('multipleSelect').disable();
-                        formGroup.get('label').removeValidators(Validators.required);
                         break;
                     case PlanBlueprintFieldCategory.Extra:
                         formGroup.get('dataType').enable();
-                        formGroup.get('systemFieldType').disable();
-                        formGroup.get('referenceTypeId').disable();
-                        formGroup.get('multipleSelect').disable();
                         formGroup.get('label').addValidators(Validators.required);
                         break;
                     case PlanBlueprintFieldCategory.ReferenceType:
-                        formGroup.get('referenceTypeId').enable();
                         formGroup.get('multipleSelect').enable();
-                        formGroup.get('systemFieldType').disable();
-                        formGroup.get('dataType').disable();
-                        formGroup.get('label').removeValidators(Validators.required);
+                        formGroup.get('referenceTypeId').enable();
+                        break;
+                    case PlanBlueprintFieldCategory.Upload:
+                        formGroup.get('maxFileSizeInMB').enable();
+                        formGroup.get('types').enable();
+                        formGroup.get('label').addValidators(Validators.required);
                         break;
                 }
                 formGroup.get('label').updateValueAndValidity();
@@ -492,6 +556,8 @@ export class FieldInSectionEditorModel implements FieldInSectionPersist {
 		baseValidationArray.push({ key: 'systemFieldType', validators: [Validators.required, BackendErrorValidator(validationErrorModel, `${rootPath}systemFieldType`)] });
 		baseValidationArray.push({ key: 'referenceTypeId', validators: [Validators.required, BackendErrorValidator(validationErrorModel, `${rootPath}referenceTypeId`)] });
 		baseValidationArray.push({ key: 'multipleSelect', validators: [Validators.required, BackendErrorValidator(validationErrorModel, `${rootPath}multipleSelect`)] });
+		baseValidationArray.push({ key: 'types', validators: [BackendErrorValidator(validationErrorModel, `${rootPath}types`)] });
+		baseValidationArray.push({ key: 'maxFileSizeInMB', validators: [BackendErrorValidator(validationErrorModel, `${rootPath}maxFileSizeInMB`)] });
 
 		baseContext.validation = baseValidationArray;
 		return baseContext;
@@ -508,7 +574,89 @@ export class FieldInSectionEditorModel implements FieldInSectionPersist {
 			rootPath,
 			validationErrorModel
 		});
-		['id', 'category', 'dataType', 'systemFieldType', 'referenceTypeId', 'multipleSelect', 'label', 'placeholder', 'description', 'semantics', 'required', 'ordinal'].forEach(keyField => {
+
+		['id', 'category', 'dataType', 'systemFieldType', 'referenceTypeId', 'multipleSelect', 'label', 'placeholder', 'description', 'semantics', 'required', 'ordinal', 'maxFileSizeInMB', 'types'].forEach(keyField => {
+			const control = formGroup?.get(keyField);
+			control?.clearValidators();
+            control?.addValidators(context.getValidation(keyField).validators);
+		});
+
+		(formGroup.get('types') as FormArray).controls?.forEach(
+			(control, index) => UploadOptionEditorModel.reapplyValidators({
+				formGroup: control as UntypedFormGroup,
+				rootPath: `${rootPath}types[${index}].`,
+				validationErrorModel: validationErrorModel
+			}
+			)
+		);
+	}
+
+}
+
+export class UploadOptionEditorModel implements UploadOptionPersist {
+	label: string;
+	value: string;
+	protected formBuilder: UntypedFormBuilder = new UntypedFormBuilder();
+
+	constructor(
+		public validationErrorModel: ValidationErrorModel = new ValidationErrorModel()
+	) { }
+
+	fromModel(item: UploadOptionPersist): UploadOptionEditorModel {
+		if (item) {
+			this.label = item.label;
+			this.value = item.value;
+		}
+		return this;
+	}
+
+	buildForm(params?: {
+		context?: ValidationContext,
+		disabled?: boolean,
+		rootPath?: string
+	}): UntypedFormGroup {
+		let { context = null, disabled = false, rootPath } = params ?? {}
+		if (context == null) {
+			context = UploadOptionEditorModel.createValidationContext({
+				validationErrorModel: this.validationErrorModel,
+				rootPath
+			});
+		}
+
+		return this.formBuilder.group({
+			label: [{ value: this.label, disabled: disabled }, context.getValidation('label').validators],
+			value: [{ value: this.value, disabled: disabled }, context.getValidation('value').validators],
+		});
+	}
+
+	static createValidationContext(params: {
+		rootPath?: string,
+		validationErrorModel: ValidationErrorModel
+	}): ValidationContext {
+		const { rootPath = '', validationErrorModel } = params;
+
+		const baseContext: ValidationContext = new ValidationContext();
+		const baseValidationArray: Validation[] = new Array<Validation>();
+		baseValidationArray.push({ key: 'label', validators: [Validators.required, BackendErrorValidator(validationErrorModel, `${rootPath}label`)] });
+		baseValidationArray.push({ key: 'value', validators: [Validators.required, BackendErrorValidator(validationErrorModel, `${rootPath}value`)] });
+
+		baseContext.validation = baseValidationArray;
+		return baseContext;
+	}
+
+	static reapplyValidators(params: {
+		formGroup: UntypedFormGroup,
+		validationErrorModel: ValidationErrorModel,
+		rootPath: string
+	}): void {
+
+		const { formGroup, rootPath, validationErrorModel } = params;
+		const context = UploadOptionEditorModel.createValidationContext({
+			rootPath,
+			validationErrorModel
+		});
+
+		['label', 'value'].forEach(keyField => {
 			const control = formGroup?.get(keyField);
 			control?.clearValidators();
 			control?.addValidators(context.getValidation(keyField).validators);
@@ -606,6 +754,7 @@ export interface PlanBlueprintForm {
 
 export interface PlanBlueprintDefinitionForm {
     sections: FormArray<FormGroup<PlanBlueprintSectionForm>>;
+    pluginConfigurations: FormArray
 }
 
 export interface PlanBlueprintSectionForm {
@@ -615,6 +764,7 @@ export interface PlanBlueprintSectionForm {
 	ordinal: FormControl<number>;
 	fields: FormArray<FormGroup<PlanBlueprintSectionFieldForm>>;
 	hasTemplates: FormControl<boolean>;
+    canEditDescriptionTemplates: FormControl<boolean>;
 	descriptionTemplates?: FormArray<FormGroup<PlanBlueprintSectionDescriptionTemplatesForm>>;
 	prefillingSourcesEnabled: FormControl<boolean>;
 	prefillingSourcesIds: FormControl<Guid[]>
@@ -633,6 +783,8 @@ export interface PlanBlueprintSectionFieldForm {
 	systemFieldType: FormControl<PlanBlueprintSystemFieldType>;
 	referenceTypeId: FormControl<Guid>;
 	multipleSelect: FormControl<boolean>;
+    maxFileSizeInMB: FormControl<number>;
+    types: FormArray;
 }
 
 export interface PlanBlueprintSectionDescriptionTemplatesForm {

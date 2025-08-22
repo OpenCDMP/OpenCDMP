@@ -63,18 +63,19 @@ export class StartNewPlanDialogComponent extends BaseComponent {
 
 	uploadFile(event) {
 		const dialogRef = this.dialog.open(PlanUploadDialogComponent, {
-			maxWidth: '528px',
+			maxWidth: 'min(528px, 90vw)',
+            minWidth: '25vw',
 			data: {
-				fileList: FileList,
+				file: File,
 				success: Boolean,
 				planTitle: String
 			}
 		});
 		dialogRef.afterClosed().pipe(takeUntil(this._destroyed)).subscribe(result => {
 			if (result && result.success) {
-				const file = result.fileList[0] as File;
+				const file = result.file;
 				if (file?.type.includes('/xml')){
-					this.planService.uploadXml(result.fileList[0], result.planTitle)
+					this.planService.uploadXml(result.file, result.planTitle)
 						.pipe(takeUntil(this._destroyed))
 						.subscribe(
 							(complete) => {
@@ -91,7 +92,7 @@ export class StartNewPlanDialogComponent extends BaseComponent {
 								this.onCallbackImportComplete();
 								this.dialog.closeAll();
 							},
-							(error) => this.onCallbackImportFail(error.error)
+							(error) => this.onCallbackImportFail(error)
 						);
 				}
 			}
@@ -104,7 +105,7 @@ export class StartNewPlanDialogComponent extends BaseComponent {
 	}
 
 	private onCallbackImportFail(error: any) {
-		this.uiNotificationService.snackBarNotification(this.language.instant(error.error), SnackBarNotificationLevel.Error);
+		this.httpErrorHandlingService.handleBackedRequestError(error, null, SnackBarNotificationLevel.Error);
 	}
 
 }

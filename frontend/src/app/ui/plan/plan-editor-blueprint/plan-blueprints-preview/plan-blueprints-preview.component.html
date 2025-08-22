@@ -10,16 +10,20 @@
                 <div class="pb-2 text-center">{{'PLAN-BLUEPRINT-PREVIEW.LIST-OF-BLUEPRINTS.OR' | translate}}</div>
             </ng-container>
             <div class="pb-2 text-center">{{'PLAN-BLUEPRINT-PREVIEW.LIST-OF-BLUEPRINTS.SELECT-FROM-AVAILABLE' | translate}}</div>
+            <app-text-filter [(value)]=searchTerm (valueChange)="search()"/>
         </div>
-
         <div class="blueprint-list d-flex flex-column">
-            <ul class="unstyled-list">
-                @for(blueprint of planBlueprints; track $index; let i=$index){
-                    <li *ngIf="defaultBlueprint == null || blueprint.groupId != defaultBlueprint?.groupId">
-                        <ng-container *ngTemplateOutlet="blueprintButtonTemplate, context: {blueprint: blueprint}"></ng-container>
-                    </li>
-                }
-            </ul>
+            @if(planBlueprints?.length){
+                <ul class="unstyled-list">
+                    @for(blueprint of planBlueprints; track $index; let i=$index){
+                        <li *ngIf="defaultBlueprint == null || blueprint.groupId != defaultBlueprint?.groupId">
+                            <ng-container *ngTemplateOutlet="blueprintButtonTemplate, context: {blueprint: blueprint}"></ng-container>
+                        </li>
+                    }
+                </ul>
+            }@else{
+                <div class="p-2 align-self-center">{{'COMMONS.LISTING-COMPONENT.MESSAGE.EMPTY' | translate}}</div>
+            }
             <div *ngIf="planBlueprintCount > planBlueprints?.length"   class="d-flex justify-content-center pb-1 pt-2 mt-auto">
                 <button type="button" mat-button class="padded-shadow-btn mt-0 load-more" (click)="loadMore()">{{'GENERAL.ACTIONS.LOAD-MORE' | translate}}</button>
             </div>

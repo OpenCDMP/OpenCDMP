@@ -8,7 +8,7 @@ import gr.cite.tools.fieldset.FieldSet;
 import jakarta.xml.bind.JAXBException;
 import org.opencdmp.commons.enums.EntityType;
 import org.opencdmp.evaluatorbase.models.misc.RankConfig;
-import org.opencdmp.evaluatorbase.models.misc.RankModel;
+import org.opencdmp.evaluatorbase.models.misc.RankResultModel;
 import org.opencdmp.model.evaluation.Evaluation;
 import org.opencdmp.model.persist.EvaluationPersist;
 
@@ -21,7 +21,7 @@ public interface EvaluationService {
 
     void deleteAndSave(UUID id) throws MyForbiddenException, InvalidApplicationException;
 
-    void persistInternal(RankModel model, RankConfig config, UUID id, EntityType type, String EntityId, UUID createdBy)  throws MyForbiddenException, MyValidationException, MyApplicationException, MyNotFoundException, InvalidApplicationException;
+    void persistInternal(RankResultModel model, RankConfig config, UUID id, EntityType type, String EntityId, UUID createdBy)  throws MyForbiddenException, MyValidationException, MyApplicationException, MyNotFoundException, InvalidApplicationException;
 
 }
 

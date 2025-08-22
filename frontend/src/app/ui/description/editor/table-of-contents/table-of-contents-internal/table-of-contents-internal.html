@@ -1,18 +1,44 @@
 @for(entry of tocentries; track entry; let idx = $index){
     @if(visibilityRulesService.isVisibleMap[entry.visibilityRuleKey] !== false){
-        <div 
-            role="button" 
-            class="table-entry" 
+<div>
+        <div
+            role="button"
+            class="table-entry d-flex align-items-center"
             (click)="toggleExpand(idx, entry);"
             [ngClass]="calculateClass(entry)"
             tabindex="0"
         >
             <span [class.text-danger]="!isTocEntryValid(entry) && showErrors" [id]="entry.id + '-label'">
-                {{ordinal() ? ordinal() + '.' : ''}}{{entry.numbering}}. {{entry.label}} 
-            </span>	
+                {{ordinal() ? ordinal() + '.' : ''}}{{entry.numbering}}. {{entry.label}}
+            </span>
+			@if( annotationsPerEntry && annotationsPerEntry[entry.id] > 0 && ((entry.subEntries &&  !expandChildren[idx]))){
+			<span class="col-auto" matTooltip="{{ 'PLAN-EDITOR.ACTIONS.ANNOTATIONS' | translate }}" [attr.aria-label]="'PLAN-EDITOR.ACTIONS.ANNOTATIONS' | translate">
+                <mat-icon
+                    [matBadge]="annotationsPerEntry[entry.id]"
+                    [matBadgeHidden]="annotationsPerEntry[entry.id] <= 0"
+                    matBadgeColor="warn"
+                    [attr.aria-label]="(annotationsPerEntry[entry.id] ?? 0) + ' ' + ('ANNOTATION-DIALOG.TITLE' | translate)"
+                    [attr.aria-hidden]="false" class= "align-bottom"
+                >comment
+                </mat-icon>
+            </span>
+
+			}
+			@if( annotationsPerEntry && annotationsPerEntry[entry.id] > 0 &&  !entry.subEntries){
+                <span role="button" class="annotation-btn"  (click)="showAnnotations(entry.id)"  matTooltip="{{ 'PLAN-EDITOR.ACTIONS.ANNOTATIONS' | translate }}" [attr.aria-label]="'PLAN-EDITOR.ACTIONS.ANNOTATIONS' | translate">
+                    <mat-icon
+                        [matBadge]="annotationsPerEntry[entry.id]"
+                        [matBadgeHidden]="annotationsPerEntry[entry.id] <= 0"
+                        matBadgeColor="warn"
+                        [attr.aria-label]="(annotationsPerEntry[entry.id] ?? 0) + ' ' + ('ANNOTATION-DIALOG.TITLE' | translate)"
+                        [attr.aria-hidden]="false" class= "align-bottom"
+                    >comment</mat-icon>
+                </span>
+			}
         </div>
+</div>
         <div class="internal-table" [class.top-level-child]="isTopLevel">
-            <table-of-contents-internal 
+            <table-of-contents-internal
                 *ngIf="entry.subEntries?.length"
                 [class.d-none]="!expandChildren[idx]"
                 [tocentries]="entry.subEntries"
@@ -22,6 +48,8 @@
                 [propertiesFormGroup]="propertiesFormGroup"
                 [showErrors]="showErrors"
                 [ordinal]="ordinal()"
+				[annotationsPerEntry]="annotationsPerEntry"
+				[descriptionId]="descriptionId"
             >
             </table-of-contents-internal>
         </div>

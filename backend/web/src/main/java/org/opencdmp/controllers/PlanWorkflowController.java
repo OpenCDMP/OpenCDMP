@@ -12,6 +12,10 @@ import gr.cite.tools.logging.LoggerService;
 import gr.cite.tools.logging.MapLogEntry;
 import gr.cite.tools.validation.ValidationFilterAnnotation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.enums.Explode;
+import io.swagger.v3.oas.annotations.enums.ParameterStyle;
+import io.swagger.v3.oas.annotations.extensions.Extension;
+import io.swagger.v3.oas.annotations.extensions.ExtensionProperty;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
@@ -47,7 +51,7 @@ import java.util.*;
 
 @RestController
 @RequestMapping(path = "api/plan-workflow")
-@io.swagger.v3.oas.annotations.tags.Tag(name = "PlanWorkflows", description = "Manage plan workflows")
+@io.swagger.v3.oas.annotations.tags.Tag(name = "Plan Workflows", description = "Manage plan workflows", extensions = @Extension(name = "x-order", properties = @ExtensionProperty(name = "value", value = "16")))
 @SwaggerCommonErrorResponses
 public class PlanWorkflowController {
     private static final LoggerService logger = new LoggerService(LoggerFactory.getLogger(PlanWorkflowController.class));
@@ -83,12 +87,12 @@ public class PlanWorkflowController {
     }
 
     @PostMapping("query")
-    @OperationWithTenantHeader(summary = "Query all planWorkflows", description = SwaggerHelpers.Tag.endpoint_query, requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(description = SwaggerHelpers.Tag.endpoint_query_request_body, content = @Content(
+    @OperationWithTenantHeader(summary = "Query all plan workflows", description = SwaggerHelpers.PlanWorkflow.endpoint_query, requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(content = @Content(
             examples = {
                     @ExampleObject(
                             name = SwaggerHelpers.Commons.pagination_example,
                             description = SwaggerHelpers.Commons.pagination_example_description,
-                            value = SwaggerHelpers.Tag.endpoint_query_request_body_example
+                            value = SwaggerHelpers.PlanWorkflow.endpoint_query_request_body_example
                     )
             }
     )), responses = @ApiResponse(description = "OK", responseCode = "200", content = @Content(
@@ -100,7 +104,7 @@ public class PlanWorkflowController {
             examples = @ExampleObject(
                     name = SwaggerHelpers.Commons.pagination_response_example,
                     description = SwaggerHelpers.Commons.pagination_response_example_description,
-                    value = SwaggerHelpers.Tag.endpoint_query_response_example
+                    value = SwaggerHelpers.PlanWorkflow.endpoint_query_response_example
             ))))
     public QueryResult<PlanWorkflow> Query(@RequestBody PlanWorkflowLookup lookup) throws MyApplicationException, MyForbiddenException {
         logger.debug("querying {}", PlanWorkflow.class.getSimpleName());
@@ -119,7 +123,7 @@ public class PlanWorkflowController {
     }
 
     @GetMapping("{id}")
-    @OperationWithTenantHeader(summary = "Fetch a specific PlanWorkflow by id", description = "",
+    @OperationWithTenantHeader(summary = "Fetch a specific Plan Workflow by id", description = "",
             responses = @ApiResponse(description = "OK", responseCode = "200", content = @Content(
                     schema = @Schema(
                             implementation = PlanWorkflow.class
@@ -127,8 +131,8 @@ public class PlanWorkflowController {
             ))
     @Swagger404
     public PlanWorkflow Get(
-            @Parameter(name = "id", description = "The id of a PlanWorkflow to fetch", example = "c0c163dc-2965-45a5-9608-f76030578609", required = true) @PathVariable("id") UUID id,
-            @Parameter(name = "fieldSet", description = SwaggerHelpers.Commons.fieldset_description, required = true) FieldSet fieldSet,
+            @Parameter(name = "id", description = "The id of a Plan Workflow to fetch", example = "44df0e24-7879-48cc-bbe0-cd8a2b618855", required = true) @PathVariable("id") UUID id,
+            @Parameter(name = "f", description = SwaggerHelpers.Commons.fieldset_description, required = true, style = ParameterStyle.FORM, explode = Explode.TRUE, schema = @Schema(type = "array", example = SwaggerHelpers.PlanWorkflow.endpoint_field_set_example)) FieldSet fieldSet,
             Locale locale
     ) throws MyApplicationException, MyForbiddenException, MyNotFoundException {
         logger.debug(new MapLogEntry("retrieving" + PlanWorkflow.class.getSimpleName()).And("id", id).And("fields", fieldSet));
@@ -157,7 +161,7 @@ public class PlanWorkflowController {
             ))
     @Swagger404
     public PlanWorkflow GetByCurrentTenant(
-            @Parameter(name = "fieldSet", description = SwaggerHelpers.Commons.fieldset_description, required = true) FieldSet fieldSet,
+            @Parameter(name = "f", description = SwaggerHelpers.Commons.fieldset_description, required = true, style = ParameterStyle.FORM, explode = Explode.TRUE, schema = @Schema(type = "array", example = SwaggerHelpers.PlanWorkflow.endpoint_field_set_example)) FieldSet fieldSet,
             Locale locale
     ) throws MyApplicationException, MyForbiddenException, InvalidApplicationException {
         logger.debug(new MapLogEntry("retrieving" + PlanWorkflow.class.getSimpleName()).And("fields", fieldSet));
@@ -189,8 +193,8 @@ public class PlanWorkflowController {
     @ValidationFilterAnnotation(validator = PlanWorkflowPersist.PlanWorkflowPersistValidator.ValidatorName, argumentName = "model")
     public PlanWorkflow Persist(
             @RequestBody PlanWorkflowPersist model,
-            @Parameter(name = "fieldSet", description = SwaggerHelpers.Commons.fieldset_description, required = true) FieldSet fieldSet
-    ) throws MyApplicationException, MyForbiddenException, MyNotFoundException, InvalidApplicationException, JAXBException {
+            @Parameter(name = "f", description = SwaggerHelpers.Commons.fieldset_description, required = true, style = ParameterStyle.FORM, explode = Explode.TRUE, schema = @Schema(type = "array", example = SwaggerHelpers.PlanWorkflow.endpoint_field_set_example)) FieldSet fieldSet
+            ) throws MyApplicationException, MyForbiddenException, MyNotFoundException, InvalidApplicationException, JAXBException {
         logger.debug(new MapLogEntry("persisting"+PlanWorkflow.class.getSimpleName()).And("model", model).And("fieldSet", fieldSet));
         PlanWorkflow persisted = this.planWorkflowService.persist(model, fieldSet);
 
@@ -203,12 +207,12 @@ public class PlanWorkflowController {
     }
 
     @DeleteMapping("{id}")
-    @OperationWithTenantHeader(summary = "Delete a PlanWorkflow by id", description = "",
+    @OperationWithTenantHeader(summary = "Delete a plan workflow by id", description = "",
             responses = @ApiResponse(description = "OK", responseCode = "200"))
     @Swagger404
     @Transactional
     public void Delete(
-            @Parameter(name = "id", description = "The id of PlanWorkflow to delete", example = "c0c163dc-2965-45a5-9608-f76030578609", required = true) @PathVariable("id") UUID id
+            @Parameter(name = "id", description = "The id of PlanWorkflow to delete", required = true) @PathVariable("id") UUID id
     ) throws MyForbiddenException, InvalidApplicationException {
         logger.debug(new MapLogEntry("deleting"+ PlanWorkflow.class.getSimpleName()).And("id", id));
 

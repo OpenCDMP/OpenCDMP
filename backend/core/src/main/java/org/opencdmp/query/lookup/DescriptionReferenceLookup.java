@@ -1,24 +1,31 @@
 package org.opencdmp.query.lookup;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import org.opencdmp.commons.enums.IsActive;
 import org.opencdmp.elastic.query.NestedReferenceElasticQuery;
 import org.opencdmp.query.DescriptionReferenceQuery;
 import gr.cite.tools.data.query.Lookup;
 import gr.cite.tools.data.query.QueryFactory;
+import org.opencdmp.query.lookup.swagger.SwaggerHelpers;
 
 import java.util.Collection;
 import java.util.UUID;
 
 public class DescriptionReferenceLookup extends Lookup {
 
+    @Schema(description = SwaggerHelpers.DescriptionReference.ids_description)
     private Collection<UUID> ids;
 
+    @Schema(description = SwaggerHelpers.DescriptionReference.excludeIds_description)
     private Collection<UUID> excludedIds;
 
+    @Schema(description = SwaggerHelpers.DescriptionReference.isActive_description)
     private Collection<IsActive> isActives;
 
+    @Schema(description = SwaggerHelpers.DescriptionReference.descriptionIds_description)
     private Collection<UUID> descriptionIds;
 
+    @Schema(description = SwaggerHelpers.DescriptionReference.referenceIds_description)
     private Collection<UUID> referenceIds;
 
     public Collection<UUID> getIds() {

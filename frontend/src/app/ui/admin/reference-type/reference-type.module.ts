@@ -10,7 +10,6 @@ import { TextFilterModule } from '@common/modules/text-filter/text-filter.module
 import { UserSettingsModule } from '@common/modules/user-settings/user-settings.module';
 import { ReferenceTypeListingFiltersComponent } from './listing/filters/reference-type-listing-filters.component';
 import { ConfirmationDialogModule } from '@common/modules/confirmation-dialog/confirmation-dialog.module';
-import { NgxDropzoneModule } from 'ngx-dropzone';
 import { DragDropModule } from '@angular/cdk/drag-drop';
 import { AutoCompleteModule } from '@app/library/auto-complete/auto-complete.module';
 import { CommonFormattingModule } from '@common/formatting/common-formatting.module';
@@ -38,7 +37,6 @@ import { ReferenceFieldModule } from "../../reference/reference-field/reference-
     HybridListingModule,
     TextFilterModule,
     UserSettingsModule,
-    NgxDropzoneModule,
     DragDropModule,
     AutoCompleteModule,
     CommonFormattingModule,

@@ -11,9 +11,9 @@ import { PlanStatusListingFiltersComponent } from "./listing/plan-status-listing
 import { PlanStatusEditorComponent } from "./editor/plan-status-editor/plan-status-editor.component";
 import { TextFilterModule } from "@common/modules/text-filter/text-filter.module";
 import { RichTextEditorModule } from "@app/library/rich-text-editor/rich-text-editor.module";
-import { NgxDropzoneModule } from "ngx-dropzone";
 import { NgxColorsModule } from "ngx-colors";
 import { FormFocusDirective } from "@common/forms/form-focus.directive";
+import { FileUploadComponent } from "@app/library/file-uploader/file-uploader.component";
 
 @NgModule({
 	imports: [
@@ -26,9 +26,9 @@ import { FormFocusDirective } from "@common/forms/form-focus.directive";
         CommonFormattingModule,
         TextFilterModule,
         RichTextEditorModule,
-        NgxDropzoneModule,
         NgxColorsModule,
-        FormFocusDirective
+        FormFocusDirective,
+        FileUploadComponent
 	],
 	declarations: [
         PlanStatusListingComponent,

@@ -95,13 +95,18 @@
                                     <mat-error *ngIf="formGroup.controls.definition.controls.matIconName.hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
                                 </mat-form-field>
                             }@else{
-                                <ngx-dropzone #drop class="drop-file col-12" (change)="fileChangeEvent($event, true)" [multiple]="false" [accept]="'image/*'" [disabled]="formGroup.controls.definition.controls.storageFileId.disabled">
+                                <app-file-uploader 
+                                    [accept]="'image/*'"
+                                    [storageFileIdControl]="formGroup.controls.definition.controls.storageFileId"
+                                    [initFile]="initialFile"
+                                />
+                                <!-- <ngx-dropzone #drop class="drop-file col-12" (change)="fileChangeEvent($event, true)" [multiple]="false" [accept]="'image/*'" [disabled]="formGroup.get('logo')?.get('storageFileId').disabled">
                                     <ngx-dropzone-preview *ngIf="formGroup.controls.definition.controls.storageFileId.value" class="file-preview" [removable]="true" (removed)="onRemove()" (click)="download(formGroup.controls.definition.controls.storageFileId.value)">
                                         <ngx-dropzone-label class="file-label">{{ fileNameDisplay }}</ngx-dropzone-label>
                                     </ngx-dropzone-preview>
-                                </ngx-dropzone>
-                                <div class="col-12 d-flex justify-content-center attach-btn">
-                                    <button *ngIf="!formGroup.controls.definition.controls.storageFileId.value" (click)="drop.showFileSelector()"  [disabled]="formGroup.controls.definition.controls.storageFileId.disabled" mat-button color="primary" type="button"  class="attach-file">
+                                </ngx-dropzone> -->
+                                <!-- <div class="col-12 d-flex justify-content-center attach-btn">
+                                    <button *ngIf="!formGroup.controls.definition.controls.storageFileId.value" (click)="drop.showFileSelector()" mat-button color="primary" type="button"  class="attach-file">
                                         <mat-icon class="mr-2">upload</mat-icon>
                                         <span>{{ "TENANT-CONFIGURATION-EDITOR.ACTIONS.UPLOAD" | translate }}</span>
                                     </button>
@@ -110,7 +115,7 @@
                                         <mat-icon class="mr-2">download</mat-icon>
                                         <span>{{ "TENANT-CONFIGURATION-EDITOR.ACTIONS.DOWNLOAD" | translate }}</span>
                                     </button>
-                                </div>
+                                </div> -->
                             }
                             </div>
                             <div class="col-12">

@@ -368,12 +368,13 @@ public class PrefillingSourceServiceImpl implements PrefillingSourceService {
         ExternalReferenceCriteria externalReferenceCriteria = new ExternalReferenceCriteria();
         externalReferenceCriteria.setLike(model.getLike());
 
+        List<Prefilling> prefillings = new ArrayList<>();
+
         ExternalDataResult externalData = this.externalFetcherService.getExternalData(Stream.of(prefillingSourceDefinition.getSearchConfiguration()).collect(Collectors.toList()), externalReferenceCriteria, null, false);
         if (externalData == null || this.conventionService.isListNullOrEmpty(externalData.getResults())) {
-            return null;
+            return prefillings;
         }
 
-        List<Prefilling> prefillings = new ArrayList<>();
         for (Map<String, String> result : externalData.getResults()) {
             Prefilling prefilling = new Prefilling();
             prefilling.setId(result.getOrDefault(Prefilling._id, null));

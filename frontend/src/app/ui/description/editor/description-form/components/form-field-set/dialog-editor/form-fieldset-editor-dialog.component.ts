@@ -3,6 +3,7 @@ import { UntypedFormGroup } from "@angular/forms";
 import { MAT_DIALOG_DATA, MatDialogRef } from "@angular/material/dialog";
 import { DescriptionTemplateFieldSet } from "@app/core/model/description-template/description-template";
 import { VisibilityRulesService } from "../../../visibility-rules/visibility-rules.service";
+import { DescriptionTemplateFieldSetPersist } from "@app/core/model/description-template/description-template-persist";
 
 @Component({
     selector: 'app-description-form-fieldset-editor-dialog',
@@ -17,25 +18,25 @@ export class FormFieldSetEditorDialogComponent {
 	fieldSet: DescriptionTemplateFieldSet;
 	propertiesFormGroup: UntypedFormGroup;
 
+    currentFieldsetValue: DescriptionTemplateFieldSetPersist;
+
 	constructor(
 		private dialogRef: MatDialogRef<FormFieldSetEditorDialogComponent>,
 		@Inject(MAT_DIALOG_DATA) public data: any,
 	) {
 		this.fieldSet = data.fieldSet;
 		this.propertiesFormGroup = data.propertiesFormGroup;
+        this.currentFieldsetValue = data.propertiesFormGroup?.getRawValue();
 		this.numberingText = data.numberingText;
 		this.visibilityRulesService = data.visibilityRulesService;
 	}
 
 	cancel() {
+        this.propertiesFormGroup.patchValue(this.currentFieldsetValue, {emitEvent: false});
 		this.dialogRef.close();
 	}
 
 	save() {
-		this.dialogRef.close(this.propertiesFormGroup);
-	}
-
-	public close() {
-		this.dialogRef.close(false);
+		this.dialogRef.close({value: this.propertiesFormGroup});
 	}
 }

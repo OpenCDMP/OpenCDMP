@@ -16,8 +16,10 @@ import { FormService } from '@common/forms/form-service';
 import { HttpError, HttpErrorHandlingService } from '@common/modules/errors/error-handling/http-error-handling.service';
 import { Guid } from '@common/types/guid';
 import { TranslateService } from '@ngx-translate/core';
-import { takeUntil } from 'rxjs/operators';
+import { catchError, takeUntil, tap } from 'rxjs/operators';
 import { PlanEditorModel } from '../../plan-editor-blueprint/plan-editor.model';
+import { EnqueueService } from '@app/core/services/enqueue.service';
+import { of, throwError } from 'rxjs';
 
 @Component({
     selector: 'app-invitation-dialog-component',
@@ -32,9 +34,9 @@ export class PlanInvitationDialogComponent extends BaseComponent implements OnIn
 	formGroup: UntypedFormGroup;
 	planUserRoleEnum = PlanUserRole;
 	selectedBlueprint: PlanBlueprint;
-	inProgressSendButton = false;
 	readonly separatorKeysCodes: number[] = [ENTER, COMMA];
-
+    isLoading = this.enqueueService.exhaustPipelineBusy;
+    
 	constructor(
 		public enumUtils: EnumUtils,
 		public route: ActivatedRoute,
@@ -45,6 +47,7 @@ export class PlanInvitationDialogComponent extends BaseComponent implements OnIn
 		private httpErrorHandlingService: HttpErrorHandlingService,
 		private planService: PlanService,
 		private formService: FormService,
+        private enqueueService: EnqueueService,
 		@Inject(MAT_DIALOG_DATA) public data: any
 	) {
 		super();
@@ -62,18 +65,18 @@ export class PlanInvitationDialogComponent extends BaseComponent implements OnIn
 		this.formService.touchAllFormFields(this.formGroup.get("users"));
 
 		if (!this.formGroup.get("users").valid) { return; }
-		this.inProgressSendButton = true;
 		const userFormData = this.formGroup.get("users").value as PlanUserPersist[];
-
-		this.planService.inviteUsers(this.planId, { users: userFormData })
-			.pipe(takeUntil(this._destroyed))
-			.subscribe(
-				complete => {
-					this.dialogRef.close();
-					this.onCallbackSuccess();
-				},
-				error => this.onCallbackError(error)
-			);
+        this.enqueueService.enqueueExhaustChannel(
+            this.planService.inviteUsers(this.planId, { users: userFormData })
+                .pipe(
+                    takeUntil(this._destroyed),
+                    tap(() => {
+                        this.dialogRef.close();
+                        this.onCallbackSuccess();
+                    }),
+                    catchError((error) => {this.onCallbackError(error); return throwError(() => error)})
+                )
+        )
 	}
 
 	closeDialog(): void {
@@ -89,7 +92,6 @@ export class PlanInvitationDialogComponent extends BaseComponent implements OnIn
 	}
 
 	onCallbackError(errorResponse: HttpErrorResponse) {
-		this.inProgressSendButton = false;
 		let errorOverrides = new Map<number, string>();
 		errorOverrides.set(-1, this.language.instant('PLAN-USER-INVITATION-DIALOG.ERROR'));
 		this.httpErrorHandlingService.handleBackedRequestError(errorResponse, errorOverrides, SnackBarNotificationLevel.Error);

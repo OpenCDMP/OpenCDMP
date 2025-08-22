@@ -20,6 +20,7 @@ import org.opencdmp.commons.scope.user.UserScope;
 import org.opencdmp.commons.types.notification.DataType;
 import org.opencdmp.commons.types.notification.FieldInfo;
 import org.opencdmp.commons.types.notification.NotificationFieldData;
+import org.opencdmp.convention.ConventionService;
 import org.opencdmp.data.*;
 import org.opencdmp.errorcode.ErrorThesaurusProperties;
 import org.opencdmp.integrationevent.inbox.EventProcessingStatus;
@@ -40,6 +41,8 @@ import org.springframework.stereotype.Component;
 
 import javax.management.InvalidApplicationException;
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 
 @Component
@@ -61,8 +64,9 @@ public class AnnotationEntityCreatedIntegrationEventHandlerImpl implements Annot
     private final TenantEntityManager tenantEntityManager;
     private final ValidatorFactory validatorFactory;
     private final AuditService auditService;
+    private final ConventionService conventionService;
 
-    public AnnotationEntityCreatedIntegrationEventHandlerImpl(QueryFactory queryFactory, JsonHandlingService jsonHandlingService, NotificationProperties notificationProperties, TenantScope tenantScope, NotifyIntegrationEventHandler notifyIntegrationEventHandler, CurrentPrincipalResolver currentPrincipalResolver, ClaimExtractorProperties claimExtractorProperties, MessageSource messageSource, UserScope userScope, ErrorThesaurusProperties errors, TenantEntityManager tenantEntityManager, ValidatorFactory validatorFactory, AuditService auditService) {
+    public AnnotationEntityCreatedIntegrationEventHandlerImpl(QueryFactory queryFactory, JsonHandlingService jsonHandlingService, NotificationProperties notificationProperties, TenantScope tenantScope, NotifyIntegrationEventHandler notifyIntegrationEventHandler, CurrentPrincipalResolver currentPrincipalResolver, ClaimExtractorProperties claimExtractorProperties, MessageSource messageSource, UserScope userScope, ErrorThesaurusProperties errors, TenantEntityManager tenantEntityManager, ValidatorFactory validatorFactory, AuditService auditService, ConventionService conventionService) {
 	    this.queryFactory = queryFactory;
         this.jsonHandlingService = jsonHandlingService;
         this.notificationProperties = notificationProperties;
@@ -76,6 +80,7 @@ public class AnnotationEntityCreatedIntegrationEventHandlerImpl implements Annot
         this.tenantEntityManager = tenantEntityManager;
         this.validatorFactory = validatorFactory;
         this.auditService = auditService;
+        this.conventionService = conventionService;
     }
 
     @Override
@@ -155,12 +160,56 @@ public class AnnotationEntityCreatedIntegrationEventHandlerImpl implements Annot
 
         if (sender == null) throw new MyApplicationException("Sender user not found");
 
-        List<UUID> existingUSerIDs = existingUsers.stream()
+        List<UUID> existingUserIds = existingUsers.stream()
                 .map(PlanUserEntity::getUserId)
                 .filter(planUserId -> !planUserId.equals(event.getSubjectId()))
                 .distinct().toList();
-        for (UUID planUserId : existingUSerIDs) {
-            UserEntity user = this.queryFactory.query(UserQuery.class).disableTracking().ids(planUserId).first();
+
+        List<UUID> taggedUserIds = new ArrayList<>();
+        if (event.getPayload() != null && !event.getPayload().isBlank()) {
+            Pattern pattern = Pattern.compile("@\\{\\{userid:([0-9a-fA-F\\-]{36})}}");
+            Matcher matcher = pattern.matcher(event.getPayload());
+
+            while (matcher.find()) {
+                String uuidCandidate = matcher.group(1);
+                if (this.conventionService.isValidUUID(uuidCandidate) && !taggedUserIds.contains(UUID.fromString(uuidCandidate))) taggedUserIds.add(UUID.fromString(uuidCandidate));
+            }
+        }
+
+        List<PlanUserEntity> filteredUsers = existingUsers.stream()
+                .filter(user -> !user.getUserId().equals(event.getSubjectId()))
+                .toList();
+
+        List<UUID> planUserIds = filteredUsers.stream().map(PlanUserEntity::getId).filter(x -> !x.equals(event.getSubjectId())).distinct().toList();
+
+        taggedUserIds.retainAll(planUserIds);
+
+        List<UUID> existingTaggedUsers = existingUsers.stream()
+                .map(PlanUserEntity::getId)
+                .filter(taggedUserIds::contains)
+                .distinct().toList();
+
+        List<PlanUserEntity> filteredTaggedUsers = existingUsers.stream()
+                .filter(user -> existingTaggedUsers.contains(user.getId()))
+                .toList();
+
+        List<UserEntity> users = this.queryFactory.query(UserQuery.class).disableTracking().ids(existingUsers.stream().map(PlanUserEntity::getUserId).toList()).collect();
+
+        if(!this.conventionService.isListNullOrEmpty(filteredTaggedUsers)){
+            for (PlanUserEntity planUserId : filteredTaggedUsers) {
+                UserEntity user = users.stream().filter(x->x.getId().equals(planUserId.getUserId())).findFirst().orElse(null);
+                if (user == null || user.getIsActive().equals(IsActive.Inactive))
+                    throw new MyValidationException(this.errors.getPlanInactiveUser().getCode(), this.errors.getPlanInactiveUser().getMessage());
+                this.createTaggedNotificationEvent(user, descriptionEntity, planEntity, sender.getName(), event);
+            }
+        }
+
+        List<PlanUserEntity> otherUserIds = existingUsers.stream()
+                .filter(user -> !existingTaggedUsers.contains(user.getId()) && (!user.getUserId().equals(event.getSubjectId())))
+                .toList();
+
+        for (PlanUserEntity planUserId : otherUserIds) {
+            UserEntity user = users.stream().filter(x->x.getId().equals(planUserId.getUserId())).findFirst().orElse(null);
             if (user == null || user.getIsActive().equals(IsActive.Inactive))
                 throw new MyValidationException(this.errors.getPlanInactiveUser().getCode(), this.errors.getPlanInactiveUser().getMessage());
             this.createAnnotationNotificationEvent(user, descriptionEntity, planEntity, sender.getName(), event);
@@ -176,6 +225,40 @@ public class AnnotationEntityCreatedIntegrationEventHandlerImpl implements Annot
 
         if (description == null) notifyIntegrationEvent.setNotificationType(this.notificationProperties.getPlanAnnotationCreatedType());
         else notifyIntegrationEvent.setNotificationType(this.notificationProperties.getDescriptionAnnotationCreatedType());
+
+        NotificationFieldData data = new NotificationFieldData();
+        List<FieldInfo> fieldInfoList = new ArrayList<>();
+        fieldInfoList.add(new FieldInfo("{recipient}", DataType.String, user.getName()));
+        fieldInfoList.add(new FieldInfo("{reasonName}", DataType.String, reasonName));
+
+        if (description == null) {
+            fieldInfoList.add(new FieldInfo("{name}", DataType.String, plan.getLabel()));
+            fieldInfoList.add(new FieldInfo("{id}", DataType.String, plan.getId().toString()));
+        } else {
+            fieldInfoList.add(new FieldInfo("{name}", DataType.String, description.getLabel()));
+            fieldInfoList.add(new FieldInfo("{planId}", DataType.String, plan.getId().toString()));
+            fieldInfoList.add(new FieldInfo("{descriptionId}", DataType.String, description.getId().toString()));
+        }
+
+        String anchorUrl = "f/"+event.getAnchor()+"/annotation";
+        fieldInfoList.add(new FieldInfo("{anchor}", DataType.String, anchorUrl));
+        if(this.tenantScope.getTenantCode() != null && !this.tenantScope.getTenantCode().equals(this.tenantScope.getDefaultTenantCode())){
+            fieldInfoList.add(new FieldInfo("{tenant-url-path}", DataType.String, String.format("/t/%s", this.tenantScope.getTenantCode())));
+        }
+        data.setFields(fieldInfoList);
+        notifyIntegrationEvent.setData(this.jsonHandlingService.toJsonSafe(data));
+
+        this.notifyIntegrationEventHandler.handle(notifyIntegrationEvent);
+    }
+
+    private void createTaggedNotificationEvent(UserEntity user, DescriptionEntity description, PlanEntity plan, String reasonName, AnnotationEntityCreatedIntegrationEvent event) throws InvalidApplicationException, InvalidApplicationException {
+        NotifyIntegrationEvent notifyIntegrationEvent = new NotifyIntegrationEvent();
+        notifyIntegrationEvent.setUserId(user.getId());
+
+        if (plan == null) throw new MyNotFoundException(this.messageSource.getMessage("General_ItemNotFound", new Object[]{event.getEntityId(), Plan.class.getSimpleName()}, LocaleContextHolder.getLocale()));
+
+        if (description == null) notifyIntegrationEvent.setNotificationType(this.notificationProperties.getTaggedPlanAnnotationCreatedType());
+        else notifyIntegrationEvent.setNotificationType(this.notificationProperties.getTaggedDescriptionAnnotationCreatedType());
 
         NotificationFieldData data = new NotificationFieldData();
         List<FieldInfo> fieldInfoList = new ArrayList<>();

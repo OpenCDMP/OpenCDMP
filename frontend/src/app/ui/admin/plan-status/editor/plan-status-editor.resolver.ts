@@ -34,6 +34,9 @@ export class PlanStatusEditorResolver extends BaseEditorResolver{
             [nameof<PlanStatus>(x => x.definition), nameof<PlanStatusDefinition>(x => x.availableActions)].join('.'),
             [nameof<PlanStatus>(x => x.definition), nameof<PlanStatusDefinition>(x => x.matIconName)].join('.'),
             [nameof<PlanStatus>(x => x.definition), nameof<PlanStatusDefinition>(x => x.storageFile), nameof<StorageFile>(x => x.id), ].join('.'), 
+            [nameof<PlanStatus>(x => x.definition), nameof<PlanStatusDefinition>(x => x.storageFile), nameof<StorageFile>(x => x.name), ].join('.'), 
+            [nameof<PlanStatus>(x => x.definition), nameof<PlanStatusDefinition>(x => x.storageFile), nameof<StorageFile>(x => x.fullName), ].join('.'), 
+            [nameof<PlanStatus>(x => x.definition), nameof<PlanStatusDefinition>(x => x.storageFile), nameof<StorageFile>(x => x.mimeType), ].join('.'), 
             [nameof<PlanStatus>(x => x.definition), nameof<PlanStatusDefinition>(x => x.statusColor)].join('.'),
             
             nameof<PlanStatus>(x => x.updatedAt),

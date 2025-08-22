@@ -198,6 +198,11 @@ export class ConfigurationService extends BaseComponent {
 		return this._accountingServiceEnabled;
 	}
 
+    private _userWay: {id: string}
+    get userWayId(): string {
+        return this._userWay?.id;
+    }
+
 	public loadConfiguration(): Promise<any> {
 		return new Promise((r, e) => {
 			// We need to exclude all interceptors here, for the initial configuration request.
@@ -242,7 +247,7 @@ export class ConfigurationService extends BaseComponent {
 	}
 
     private overrideValues(content: any, override: any){
-        let nullSet = new Set([null, undefined, '']);
+        let nullSet = new Set([null, undefined]);
         let response = {}
         const objectType = typeof(new Object());
         if(nullSet.has(content)){ return override; }
@@ -293,10 +298,10 @@ export class ConfigurationService extends BaseComponent {
 		this._organizationId = config.referenceTypes.organizationId;
 		this._depositRecordUrlIdPlaceholder = config.deposit.recordUrlIdPlaceholder;
 
-		if (config.defaultCssColors) {
+		if (config.theme) {
 			this._cssColorsTenantConfiguration =  {
-				primaryColor: config.defaultCssColors.primaryColor,
-				cssOverride: config.defaultCssColors.cssOverride
+				primaryColor: config.theme.primaryColor,
+				cssOverride: config.theme.cssOverride
 			}
 		}
 
@@ -310,6 +315,10 @@ export class ConfigurationService extends BaseComponent {
 		if (config.accounting_service) {
 			this._accountingServiceEnabled = config.accounting_service.enabled === true || config.accounting_service.enabled === "true";
 		}
+
+        if(config.userWay){
+            this._userWay = config.userWay;
+        }
 	}
 
 }

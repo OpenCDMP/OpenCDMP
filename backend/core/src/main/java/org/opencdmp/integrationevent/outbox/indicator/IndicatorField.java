@@ -38,15 +38,6 @@ public class IndicatorField {
     @JsonProperty("typeid")
     private String typeId;
 
-//    @JsonProperty("alt_labels")
-//    private List<AltTextPersist> altLabels;
-//
-//    @JsonProperty("alt_descriptions")
-//    private List<AltTextPersist> altDescriptions;
-//
-//    @JsonProperty("valuerange")
-//    private ValueRangePersist valueRange;
-
     @JsonProperty("subfieldof")
     private String subfieldOf;
 
@@ -55,10 +46,6 @@ public class IndicatorField {
 
     @JsonProperty("useas")
     private String useAs;
-
-//    private List<OperatorPersist> operations;
-//
-//    private List<BaseValidationPersist> validation;
 
     public UUID getId() {
         return id;
@@ -124,30 +111,6 @@ public class IndicatorField {
         this.typeId = typeId;
     }
 
-//    public List<AltTextPersist> getAltLabels() {
-//        return altLabels;
-//    }
-//
-//    public void setAltLabels(List<AltTextPersist> altLabels) {
-//        this.altLabels = altLabels;
-//    }
-//
-//    public List<AltTextPersist> getAltDescriptions() {
-//        return altDescriptions;
-//    }
-//
-//    public void setAltDescriptions(List<AltTextPersist> altDescriptions) {
-//        this.altDescriptions = altDescriptions;
-//    }
-//
-//    public ValueRangePersist getValueRange() {
-//        return valueRange;
-//    }
-//
-//    public void setValueRange(ValueRangePersist valueRange) {
-//        this.valueRange = valueRange;
-//    }
-
     public String getSubfieldOf() {
         return subfieldOf;
     }
@@ -171,22 +134,6 @@ public class IndicatorField {
     public void setUseAs(String useAs) {
         this.useAs = useAs;
     }
-
-//    public List<OperatorPersist> getOperations() {
-//        return operations;
-//    }
-//
-//    public void setOperations(List<OperatorPersist> operations) {
-//        this.operations = operations;
-//    }
-//
-//    public List<BaseValidationPersist> getValidation() {
-//        return validation;
-//    }
-//
-//    public void setValidation(List<BaseValidationPersist> validation) {
-//        this.validation = validation;
-//    }
 
     @Component(IndicatorFieldValidator.ValidatorName)
     @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)

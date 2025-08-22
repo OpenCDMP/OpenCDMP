@@ -20,7 +20,9 @@ import org.opencdmp.commons.types.description.PropertyDefinitionEntity;
 import org.opencdmp.commons.types.descriptiontemplate.DefinitionEntity;
 import org.opencdmp.convention.ConventionService;
 import org.opencdmp.data.*;
+import org.opencdmp.model.DescriptionTag;
 import org.opencdmp.model.PlanDescriptionTemplate;
+import org.opencdmp.model.Tag;
 import org.opencdmp.model.builder.commonmodels.BaseCommonModelBuilder;
 import org.opencdmp.model.builder.commonmodels.CommonModelBuilderItemResponse;
 import org.opencdmp.model.builder.commonmodels.descriptiontemplate.DescriptionTemplateCommonModelBuilder;
@@ -103,6 +105,7 @@ public class DescriptionCommonModelBuilder extends BaseCommonModelBuilder<Descri
         Map<UUID, UUID> planDescriptionTemplateSections =  this.collectPlanDescriptionTemplateSections(data);
 
         Map<UUID, DescriptionStatusModel> descriptionStatuses =  this.collectDescriptionStatuses(data);
+        Map<UUID, List<String>> descriptionTagsMap = this.collectDescriptionTags(data);
 
         List<CommonModelBuilderItemResponse<DescriptionModel, DescriptionEntity>> models = new ArrayList<>();
         for (DescriptionEntity d : data) {
@@ -123,6 +126,7 @@ public class DescriptionCommonModelBuilder extends BaseCommonModelBuilder<Descri
                 VisibilityService visibilityService = new VisibilityServiceImpl(definition, propertyDefinition);
                 m.setVisibilityStates(this.builderFactory.builder(VisibilityStateModelBuilder.class).authorize(this.authorize).build(visibilityService.getVisibilityStates().entrySet().stream().toList()));
             }
+            if (descriptionTagsMap != null && descriptionTagsMap.containsKey(d.getId())) m.setTags(descriptionTagsMap.get(d.getId()));
             models.add(new CommonModelBuilderItemResponse<>(m, d));
         }
 
@@ -223,7 +227,7 @@ public class DescriptionCommonModelBuilder extends BaseCommonModelBuilder<Descri
 
         Map<UUID, DescriptionTemplateModel> itemMap;
         DescriptionTemplateQuery q = this.queryFactory.query(DescriptionTemplateQuery.class).disableTracking().authorize(this.authorize).ids(data.stream().map(DescriptionEntity::getDescriptionTemplateId).distinct().collect(Collectors.toList()));
-        itemMap = this.builderFactory.builder(DescriptionTemplateCommonModelBuilder.class).authorize(this.authorize).asForeignKey(q, DescriptionTemplateEntity::getId);
+        itemMap = this.builderFactory.builder(DescriptionTemplateCommonModelBuilder.class).useSharedStorage(useSharedStorage).setRepositoryId(repositoryId).authorize(this.authorize).asForeignKey(q, DescriptionTemplateEntity::getId);
 
         return itemMap;
     }
@@ -236,6 +240,30 @@ public class DescriptionCommonModelBuilder extends BaseCommonModelBuilder<Descri
         Map<UUID, DescriptionStatusModel> itemMap;
         DescriptionStatusQuery q = this.queryFactory.query(DescriptionStatusQuery.class).disableTracking().authorize(this.authorize).ids(data.stream().map(DescriptionEntity::getStatusId).distinct().collect(Collectors.toList()));
         itemMap = this.builderFactory.builder(DescriptionStatusCommonModelBuilder.class).authorize(this.authorize).asForeignKey(q, DescriptionStatusEntity::getId);
+
+        return itemMap;
+    }
+
+    private Map<UUID, List<String>> collectDescriptionTags(List<DescriptionEntity> data) throws MyApplicationException {
+        if (data.isEmpty())
+            return null;
+        this.logger.debug("checking related - {}", String.class.getSimpleName());
+
+        Map<UUID, List<String>> itemMap = new HashMap<>();
+        List<DescriptionTagEntity> descriptionTagEntities = this.queryFactory.query(DescriptionTagQuery.class).disableTracking().authorize(this.authorize).descriptionIds(data.stream().map(DescriptionEntity::getId).distinct().collect(Collectors.toList())).collect();
+        List<TagEntity> existingTags = this.queryFactory.query(TagQuery.class).authorize(this.authorize).disableTracking().ids(descriptionTagEntities.stream().map(DescriptionTagEntity::getTagId).distinct().collect(Collectors.toList())).collectAs(new BaseFieldSet().ensure(Tag._id).ensure(Tag._label));
+        for (DescriptionEntity description: data) {
+            List<DescriptionTagEntity> tagsByDescription = descriptionTagEntities.stream().filter(x -> x.getDescriptionId().equals(description.getId())).toList();
+            if (!this.conventionService.isListNullOrEmpty(tagsByDescription)) {
+                List<UUID> tagIds = tagsByDescription.stream().map(DescriptionTagEntity::getTagId).toList();
+                if (!this.conventionService.isListNullOrEmpty(tagIds)){
+                    List<TagEntity> tags = existingTags.stream().filter(x -> tagIds.contains(x.getId())).toList();
+                    if (!this.conventionService.isListNullOrEmpty(tags)) {
+                        itemMap.put(description.getId(), tags.stream().map(TagEntity::getLabel).toList());
+                    }
+                }
+            }
+        }
 
         return itemMap;
     }

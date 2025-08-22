@@ -26,6 +26,8 @@ import org.opencdmp.commons.scope.tenant.TenantScope;
 import org.opencdmp.commons.types.planblueprint.*;
 import org.opencdmp.commons.types.planblueprint.BlueprintDescriptionTemplateEntity;
 import org.opencdmp.commons.types.planblueprint.importexport.*;
+import org.opencdmp.commons.types.pluginconfiguration.PluginConfigurationEntity;
+import org.opencdmp.commons.types.pluginconfiguration.importexport.PluginConfigurationImportExport;
 import org.opencdmp.convention.ConventionService;
 import org.opencdmp.data.*;
 import org.opencdmp.errorcode.ErrorThesaurusProperties;
@@ -35,16 +37,20 @@ import org.opencdmp.model.descriptiontemplate.DescriptionTemplate;
 import org.opencdmp.model.persist.NewVersionPlanBlueprintPersist;
 import org.opencdmp.model.persist.PlanBlueprintPersist;
 import org.opencdmp.model.persist.planblueprintdefinition.*;
+import org.opencdmp.model.persist.pluginconfiguration.PluginConfigurationPersist;
 import org.opencdmp.model.planblueprint.Definition;
 import org.opencdmp.model.planblueprint.Field;
 import org.opencdmp.model.planblueprint.PlanBlueprint;
 import org.opencdmp.model.planblueprint.Section;
+import org.opencdmp.model.pluginconfiguration.PluginConfiguration;
 import org.opencdmp.model.prefillingsource.PrefillingSource;
 import org.opencdmp.model.referencetype.ReferenceType;
 import org.opencdmp.query.*;
 import org.opencdmp.service.accounting.AccountingService;
 import org.opencdmp.service.lock.LockService;
+import org.opencdmp.service.pluginconfiguration.PluginConfigurationService;
 import org.opencdmp.service.responseutils.ResponseUtilsService;
+import org.opencdmp.service.storage.StorageFileService;
 import org.opencdmp.service.usagelimit.UsageLimitService;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -95,6 +101,10 @@ public class PlanBlueprintServiceImpl implements PlanBlueprintService {
     private final AccountingService accountingService;
 
     private final LockService lockService;
+    private final StorageFileService storageFileService;
+
+    private final PluginConfigurationService pluginConfigurationService;
+
     @Autowired
     public PlanBlueprintServiceImpl(
             TenantEntityManager entityManager,
@@ -106,7 +116,8 @@ public class PlanBlueprintServiceImpl implements PlanBlueprintService {
             ResponseUtilsService responseUtilsService,
             XmlHandlingService xmlHandlingService,
             ErrorThesaurusProperties errors,
-            ValidatorFactory validatorFactory, TenantScope tenantScope, UsageLimitService usageLimitService, AccountingService accountingService, LockService lockService) {
+            PluginConfigurationService pluginConfigurationService,
+            ValidatorFactory validatorFactory, TenantScope tenantScope, UsageLimitService usageLimitService, AccountingService accountingService, LockService lockService, StorageFileService storageFileService) {
         this.entityManager = entityManager;
         this.authorizationService = authorizationService;
         this.deleterFactory = deleterFactory;
@@ -122,6 +133,8 @@ public class PlanBlueprintServiceImpl implements PlanBlueprintService {
         this.usageLimitService = usageLimitService;
         this.accountingService = accountingService;
         this.lockService = lockService;
+        this.storageFileService = storageFileService;
+        this.pluginConfigurationService = pluginConfigurationService;
     }
 
     //region Persist
@@ -173,14 +186,22 @@ public class PlanBlueprintServiceImpl implements PlanBlueprintService {
         data.setCode(model.getCode());
         data.setStatus(model.getStatus());
         data.setUpdatedAt(Instant.now());
+
+        DefinitionEntity oldDefinition = this.conventionService.isNullOrEmpty(data.getDefinition()) ? null : this.xmlHandlingService.fromXmlSafe(DefinitionEntity.class, data.getDefinition());
+        data.setDefinition(this.xmlHandlingService.toXml(this.buildDefinitionEntity(model.getDefinition(), oldDefinition)));
         data.setDescription(model.getDescription());
-        data.setDefinition(this.xmlHandlingService.toXml(this.buildDefinitionEntity(model.getDefinition())));
 
         if (isUpdate) {
             this.entityManager.merge(data);
+            if (previousStatus != null && previousStatus.equals(PlanBlueprintStatus.Draft) && data.getStatus().equals(PlanBlueprintStatus.Finalized)) {
+                this.accountingService.increase(UsageLimitTargetMetric.BLUEPRINT_FINALIZED_COUNT.getValue());
+                this.accountingService.decrease(UsageLimitTargetMetric.BLUEPRINT_DRAFT_COUNT.getValue());
+            }
         } else {
             this.entityManager.persist(data);
             this.accountingService.increase(UsageLimitTargetMetric.BLUEPRINT_COUNT.getValue());
+            if (data.getStatus().equals(PlanBlueprintStatus.Draft)) this.accountingService.increase(UsageLimitTargetMetric.BLUEPRINT_DRAFT_COUNT.getValue());
+            if (data.getStatus().equals(PlanBlueprintStatus.Finalized)) this.accountingService.increase(UsageLimitTargetMetric.BLUEPRINT_FINALIZED_COUNT.getValue());
         }
 
         this.entityManager.flush();
@@ -232,7 +253,7 @@ public class PlanBlueprintServiceImpl implements PlanBlueprintService {
 
     }
 
-    private @NotNull DefinitionEntity buildDefinitionEntity(DefinitionPersist persist) {
+    private @NotNull DefinitionEntity buildDefinitionEntity(DefinitionPersist persist, DefinitionEntity oldValue) throws InvalidApplicationException {
         DefinitionEntity data = new DefinitionEntity();
         if (persist == null)
             return data;
@@ -243,6 +264,12 @@ public class PlanBlueprintServiceImpl implements PlanBlueprintService {
             }
         }
 
+        if (!this.conventionService.isListNullOrEmpty(persist.getPluginConfigurations())) {
+            data.setPluginConfigurations(new ArrayList<>());
+            for (PluginConfigurationPersist pluginConfigurationPersist : persist.getPluginConfigurations()) {
+                data.getPluginConfigurations().add(this.pluginConfigurationService.buildPluginConfigurationEntity(pluginConfigurationPersist, oldValue != null ? oldValue.getPluginConfigurations(): null));
+            }
+        }
         return data;
     }
 
@@ -257,6 +284,7 @@ public class PlanBlueprintServiceImpl implements PlanBlueprintService {
         data.setOrdinal(persist.getOrdinal());
         data.setHasTemplates(persist.getHasTemplates());
         data.setPrefillingSourcesEnabled(persist.getPrefillingSourcesEnabled());
+        data.setCanEditDescriptionTemplates(persist.getCanEditDescriptionTemplates());
         data.setPrefillingSourcesIds(persist.getPrefillingSourcesIds());
         if (!this.conventionService.isListNullOrEmpty(persist.getFields())) {
             data.setFields(new ArrayList<>());
@@ -309,6 +337,7 @@ public class PlanBlueprintServiceImpl implements PlanBlueprintService {
                 dataTyped.setMultipleSelect(((ReferenceTypeFieldPersist) persist).getMultipleSelect());
                 data = dataTyped;
             }
+            case Upload -> data = this.buildUploadDataEntity((UploadFieldPersist) persist);
             default -> throw new  InternalError("unknown type: " + persist.getCategory());
         }
         
@@ -320,6 +349,30 @@ public class PlanBlueprintServiceImpl implements PlanBlueprintService {
         data.setSemantics(persist.getSemantics());
         data.setOrdinal(persist.getOrdinal());
         data.setRequired(persist.getRequired());
+
+        return data;
+    }
+
+    private @NotNull UploadFieldEntity buildUploadDataEntity(UploadFieldPersist persist) {
+        UploadFieldEntity data = new UploadFieldEntity();
+        if (persist == null) return data;
+
+        if (!this.conventionService.isListNullOrEmpty(persist.getTypes())){
+            data.setTypes(new ArrayList<>());
+            for (UploadFieldPersist.UploadOptionPersist uploadOptionPersist: persist.getTypes()) {
+                data.getTypes().add(this.buildOptionEntity(uploadOptionPersist));
+            }
+        }
+        data.setMaxFileSizeInMB(persist.getMaxFileSizeInMB());
+        return data;
+    }
+
+    private @NotNull UploadFieldEntity.UploadOptionEntity buildOptionEntity(UploadFieldPersist.UploadOptionPersist persist){
+        UploadFieldEntity.UploadOptionEntity data = new UploadFieldEntity.UploadOptionEntity();
+        if (persist == null) return data;
+
+        data.setLabel(persist.getLabel());
+        data.setValue(persist.getValue());
 
         return data;
     }
@@ -421,7 +474,15 @@ public class PlanBlueprintServiceImpl implements PlanBlueprintService {
                 this.reassignSection(section);
             }
         }
+
+        if (model.getPluginConfigurations() != null) {
+            for (PluginConfiguration pluginConfiguration : model.getPluginConfigurations()) {
+                this.pluginConfigurationService.reassignPluginConfiguration(pluginConfiguration);
+            }
+        }
     }
+
+
 
     private void reassignSection(Section model) {
         if (model == null)
@@ -483,7 +544,16 @@ public class PlanBlueprintServiceImpl implements PlanBlueprintService {
         data.setLabel(model.getLabel());
         data.setDescription(model.getDescription());
         data.setStatus(PlanBlueprintStatus.Draft);
-        data.setDefinition(this.xmlHandlingService.toXml(this.buildDefinitionEntity(model.getDefinition())));
+
+        if (!this.conventionService.isListNullOrEmpty(model.getDefinition().getPluginConfigurations())) {
+            DefinitionEntity oldDefinition = this.conventionService.isNullOrEmpty(oldPlanBlueprintEntity.getDefinition()) ? null : this.xmlHandlingService.fromXmlSafe(DefinitionEntity.class, oldPlanBlueprintEntity.getDefinition());
+            if (oldDefinition != null && !this.conventionService.isListNullOrEmpty(oldDefinition.getPluginConfigurations())) {
+                // reassign new storage files if equals with old
+                this.pluginConfigurationService.reassignNewStorageFilesIfEqualsWithOld(model.getDefinition().getPluginConfigurations(), oldDefinition.getPluginConfigurations());
+            }
+        }
+        data.setDefinition(this.xmlHandlingService.toXml(this.buildDefinitionEntity(model.getDefinition(), null)));
+
         data.setGroupId(oldPlanBlueprintEntity.getGroupId());
         data.setCode(oldPlanBlueprintEntity.getCode());
         data.setVersion((short) (oldPlanBlueprintEntity.getVersion() + 1));
@@ -501,6 +571,8 @@ public class PlanBlueprintServiceImpl implements PlanBlueprintService {
         this.entityManager.flush();
 
         this.accountingService.increase(UsageLimitTargetMetric.BLUEPRINT_COUNT.getValue());
+        if (data.getStatus().equals(PlanBlueprintStatus.Draft)) this.accountingService.increase(UsageLimitTargetMetric.BLUEPRINT_DRAFT_COUNT.getValue());
+        if (data.getStatus().equals(PlanBlueprintStatus.Finalized)) this.accountingService.increase(UsageLimitTargetMetric.BLUEPRINT_FINALIZED_COUNT.getValue());
 
         return this.builderFactory.builder(PlanBlueprintBuilder.class).authorize(AuthorizationFlags.AllExceptPublic).build(BaseFieldSet.build(fields, PlanBlueprint._id), data);
     }
@@ -558,6 +630,16 @@ public class PlanBlueprintServiceImpl implements PlanBlueprintService {
             }
         }
         xml.setSections(planBlueprintSections);
+
+        List<PluginConfigurationImportExport> pluginConfigurations = new ArrayList<>();
+        if (!this.conventionService.isListNullOrEmpty(entity.getPluginConfigurations())) {
+            for (PluginConfigurationEntity pluginConfiguration : entity.getPluginConfigurations()) {
+                pluginConfigurations.add(this.pluginConfigurationService.pluginConfigurationXmlToExport(pluginConfiguration));
+            }
+            xml.setPluginConfigurations(pluginConfigurations);
+        }
+
+
         return xml;
     }
 
@@ -569,6 +651,7 @@ public class PlanBlueprintServiceImpl implements PlanBlueprintService {
         xml.setOrdinal(entity.getOrdinal());
         xml.setHasTemplates(entity.getHasTemplates());
         xml.setPrefillingSourcesEnabled(entity.getPrefillingSourcesEnabled());
+        xml.setCanEditDescriptionTemplates(entity.getCanEditDescriptionTemplates());
 
         List<BlueprintSystemFieldImportExport> planBlueprintSystemFieldModels = new LinkedList<>();
         if (!this.conventionService.isListNullOrEmpty(entity.getFields())) {
@@ -585,6 +668,14 @@ public class PlanBlueprintServiceImpl implements PlanBlueprintService {
             }
         }
         xml.setExtraFields(planBlueprintExtraFieldModels);
+
+        List<BlueprintUploadFieldImportExport> planBlueprintUploadFieldModels = new LinkedList<>();
+        if (!this.conventionService.isListNullOrEmpty(entity.getFields())) {
+            for (UploadFieldEntity uploadField : entity.getFields().stream().filter(x -> x.getCategory() == PlanBlueprintFieldCategory.Upload).map(x -> (UploadFieldEntity) x).toList()) {
+                planBlueprintUploadFieldModels.add(this.uploadFieldXmlToExport(uploadField));
+            }
+        }
+        xml.setUploadFields(planBlueprintUploadFieldModels);
 
         List<BlueprintReferenceTypeFieldImportExport> planBlueprintReferenceFieldModels = new LinkedList<>();
         if (!this.conventionService.isListNullOrEmpty(entity.getFields())) {
@@ -685,6 +776,35 @@ public class PlanBlueprintServiceImpl implements PlanBlueprintService {
         return xml;
     }
 
+    private BlueprintUploadFieldImportExport uploadFieldXmlToExport(UploadFieldEntity entity) {
+        BlueprintUploadFieldImportExport xml = new BlueprintUploadFieldImportExport();
+        xml.setId(entity.getId());
+        xml.setLabel(entity.getLabel());
+        xml.setPlaceholder(entity.getPlaceholder());
+        xml.setDescription(entity.getDescription());
+        xml.setOrdinal(entity.getOrdinal());
+        xml.setRequired(entity.isRequired());
+        xml.setSemantics(entity.getSemantics());
+        xml.setMaxFileSizeInMB(entity.getMaxFileSizeInMB());
+
+        List<BlueprintUploadFieldImportExport.UploadOptionImportExport> types = new LinkedList<>();
+        if (!this.conventionService.isListNullOrEmpty(entity.getTypes())) {
+            for (UploadFieldEntity.UploadOptionEntity type : entity.getTypes()) {
+                types.add(this.uploadOptionXmlToExport(type));
+            }
+        }
+        xml.setTypes(types);
+        return xml;
+    }
+
+    private BlueprintUploadFieldImportExport.UploadOptionImportExport uploadOptionXmlToExport(UploadFieldEntity.UploadOptionEntity entity) {
+        BlueprintUploadFieldImportExport.UploadOptionImportExport xml = new BlueprintUploadFieldImportExport.UploadOptionImportExport();
+        xml.setLabel(entity.getLabel());
+        xml.setValue(entity.getValue());
+
+        return xml;
+    }
+
     //endregion
 
     //region Import
@@ -771,7 +891,7 @@ public class PlanBlueprintServiceImpl implements PlanBlueprintService {
         return this.importXml(planBlueprintDefinition, groupId, label, fields);
     }
 
-    private DefinitionPersist xmlDefinitionToPersist(BlueprintDefinitionImportExport importXml) {
+    private DefinitionPersist xmlDefinitionToPersist(BlueprintDefinitionImportExport importXml) throws IOException {
         if (importXml == null)
             return null;
         DefinitionPersist persist = new DefinitionPersist();
@@ -782,6 +902,16 @@ public class PlanBlueprintServiceImpl implements PlanBlueprintService {
             }
         }
         persist.setSections(planBlueprintSections);
+
+
+        List<PluginConfigurationPersist> pluginConfigurations = new ArrayList<>();
+        if (!this.conventionService.isListNullOrEmpty(importXml.getPluginConfigurations())) {
+            for (PluginConfigurationImportExport pluginConfiguration : importXml.getPluginConfigurations()) {
+                pluginConfigurations.add(this.pluginConfigurationService.xmlPluginConfigurationToPersist(pluginConfiguration));
+            }
+        }
+        persist.setPluginConfigurations(pluginConfigurations);
+
         return persist;
     }
 
@@ -793,6 +923,7 @@ public class PlanBlueprintServiceImpl implements PlanBlueprintService {
         persist.setOrdinal(importXml.getOrdinal());
         persist.setHasTemplates(importXml.isHasTemplates());
         persist.setPrefillingSourcesEnabled(importXml.getPrefillingSourcesEnabled());
+        persist.setCanEditDescriptionTemplates(importXml.getCanEditDescriptionTemplates());
 
         List<FieldPersist> planBlueprintFieldModels = new LinkedList<>();
         if (!this.conventionService.isListNullOrEmpty(importXml.getSystemFields())) {
@@ -808,6 +939,11 @@ public class PlanBlueprintServiceImpl implements PlanBlueprintService {
         if (!this.conventionService.isListNullOrEmpty(importXml.getExtraFields())) {
             for (BlueprintExtraFieldImportExport extraField : importXml.getExtraFields()) {
                 planBlueprintFieldModels.add(this.xmlExtraFieldToPersist(extraField));
+            }
+        }
+        if (!this.conventionService.isListNullOrEmpty(importXml.getUploadFields())) {
+            for (BlueprintUploadFieldImportExport uploadField : importXml.getUploadFields()) {
+                planBlueprintFieldModels.add(this.xmlUploadFieldToPersist(uploadField));
             }
         }
         persist.setFields(planBlueprintFieldModels);
@@ -854,7 +990,7 @@ public class PlanBlueprintServiceImpl implements PlanBlueprintService {
     }
 
     private UUID xmlPrefillingSourceToPersist(BlueprintPrefillingSourceImportExport importXml) {
-        org.opencdmp.data.PrefillingSourceEntity data = importXml.getId() != null ? this.queryFactory.query(PrefillingSourceQuery.class).disableTracking().ids(importXml.getId()).disableTracking().firstAs(new BaseFieldSet().ensure(PrefillingSource._id)) : null;
+        PrefillingSourceEntity data = importXml.getId() != null ? this.queryFactory.query(PrefillingSourceQuery.class).disableTracking().ids(importXml.getId()).disableTracking().firstAs(new BaseFieldSet().ensure(PrefillingSource._id)) : null;
         if (data == null) {
             if (!this.conventionService.isNullOrEmpty(importXml.getCode())) data = this.queryFactory.query(PrefillingSourceQuery.class).disableTracking().codes(importXml.getCode()).disableTracking().firstAs(new BaseFieldSet().ensure(PrefillingSource._id));
             if (data == null) throw new MyNotFoundException(this.messageSource.getMessage("General_ItemNotFound", new Object[]{importXml.getId(), DescriptionTemplate.class.getSimpleName()}, LocaleContextHolder.getLocale()));
@@ -910,6 +1046,36 @@ public class PlanBlueprintServiceImpl implements PlanBlueprintService {
         persist.setRequired(importXml.isRequired());
         persist.setMultipleSelect(importXml.getMultipleSelect());
         persist.setSemantics(importXml.getSemantics());
+        return persist;
+    }
+
+    private UploadFieldPersist xmlUploadFieldToPersist(BlueprintUploadFieldImportExport importXml) {
+        UploadFieldPersist persist = new UploadFieldPersist();
+        persist.setId(importXml.getId());
+        persist.setCategory(PlanBlueprintFieldCategory.Upload);
+        persist.setLabel(importXml.getLabel());
+        persist.setPlaceholder(importXml.getPlaceholder());
+        persist.setDescription(importXml.getDescription());
+        persist.setOrdinal(importXml.getOrdinal());
+        persist.setRequired(importXml.isRequired());
+        persist.setSemantics(importXml.getSemantics());
+        persist.setMaxFileSizeInMB(importXml.getMaxFileSizeInMB());
+
+        List<UploadFieldPersist.UploadOptionPersist> types = new LinkedList<>();
+        if (!this.conventionService.isListNullOrEmpty(importXml.getTypes())) {
+            for (BlueprintUploadFieldImportExport.UploadOptionImportExport type : importXml.getTypes()) {
+                types.add(this.xmlUploadOptionToPersist(type));
+            }
+        }
+        persist.setTypes(types);
+        return persist;
+    }
+
+    private UploadFieldPersist.UploadOptionPersist xmlUploadOptionToPersist(BlueprintUploadFieldImportExport.UploadOptionImportExport importXml) {
+        UploadFieldPersist.UploadOptionPersist persist = new UploadFieldPersist.UploadOptionPersist();
+        persist.setLabel(importXml.getLabel());
+        persist.setValue(importXml.getValue());
+
         return persist;
     }
 

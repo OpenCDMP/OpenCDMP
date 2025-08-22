@@ -8,7 +8,6 @@ import { HybridListingModule } from "@common/modules/hybrid-listing/hybrid-listi
 import { TextFilterModule } from "@common/modules/text-filter/text-filter.module";
 import { UserSettingsModule } from "@common/modules/user-settings/user-settings.module";
 import { CommonUiModule } from '@common/ui/common-ui.module';
-import { NgxDropzoneModule } from "ngx-dropzone";
 import { RichTextEditorModule } from '@app/library/rich-text-editor/rich-text-editor.module';
 import { LockRoutingModule } from './lock.routing';
 import { LockListingFiltersComponent } from './filters/lock-listing-filters.component';
@@ -22,7 +21,6 @@ import { LockListingComponent } from './lock-listing.component';
 		CommonFormsModule,
 		ConfirmationDialogModule,
 		LockRoutingModule,
-		NgxDropzoneModule,
 		DragDropModule,
 		AutoCompleteModule,
 		HybridListingModule,

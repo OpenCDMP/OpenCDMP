@@ -27,6 +27,9 @@ public class PlanUserPersist {
     private UUID sectionId;
     public static final String _sectionId = "sectionId";
 
+    private Integer ordinal;
+    public static final String _ordinal = "ordinal";
+
     private PlanUserRole role;
 
     public static final String _role = "role";
@@ -45,6 +48,14 @@ public class PlanUserPersist {
 
     public void setSectionId(UUID sectionId) {
         this.sectionId = sectionId;
+    }
+
+    public Integer getOrdinal() {
+        return ordinal;
+    }
+
+    public void setOrdinal(Integer ordinal) {
+        this.ordinal = ordinal;
     }
 
     public String getEmail() {

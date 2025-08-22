@@ -1,6 +1,6 @@
 
 import { HttpErrorResponse } from '@angular/common/http';
-import { Injectable, NgZone } from '@angular/core';
+import { computed, Injectable, NgZone, Signal, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { AppPermission } from '@app/core/common/enum/permission.enum';
 import { AppAccount } from '@app/core/model/auth/principal';
@@ -42,7 +42,7 @@ export class AuthService extends BaseService {
 	public permissionEnum = AppPermission;
 	public authenticationStateSubject: Subject<AuthenticationState>;
 	private accessToken: string;
-	private appAccount: AppAccount;
+    private appAccountSignal = signal<AppAccount>(null);
 	private notificationAccount: NotificationAccount;
 	private annotationAccount: AnnotationAccount;
 
@@ -129,7 +129,7 @@ export class AuthService extends BaseService {
 	public clear(): void {
 		this.authState(false);
 		this.accessToken = undefined;
-		this.appAccount = undefined;
+        this.appAccountSignal.set(undefined);
 		this.selectedTenant(null);
 	}
 
@@ -155,9 +155,9 @@ export class AuthService extends BaseService {
 		return this._authState;
 	}
 
-	public currentAccountIsAuthenticated(): boolean {
-		return this.appAccount && this.appAccount.isAuthenticated;
-	}
+	public currentAccountIsAuthenticated = computed(() => {
+		return this.appAccountSignal() && this.appAccountSignal().isAuthenticated;
+	}) 
 
 	//Should this be name @isAuthenticated@ instead?
 	public hasAccessToken(): boolean {
@@ -173,11 +173,11 @@ export class AuthService extends BaseService {
 
 	public userId(): Guid {
 		if (
-			this.appAccount &&
-			this.appAccount.principal &&
-			this.appAccount.principal.userId
+			this.appAccountSignal() &&
+			this.appAccountSignal().principal &&
+			this.appAccountSignal().principal.userId
 		) {
-			return this.appAccount.principal.userId;
+			return this.appAccountSignal().principal.userId;
 		}
 		return null;
 	}
@@ -285,7 +285,7 @@ export class AuthService extends BaseService {
 	}
 
 	public MainAppUserExists(): boolean {
-		return this.appAccount && this.appAccount.userExists;
+		return this.appAccountSignal() && this.appAccountSignal().userExists;
 	}
 
 	public NotificationUserExists(): boolean {
@@ -345,7 +345,7 @@ export class AuthService extends BaseService {
 	private currentAccount(
 		appAccount: AppAccount
 	): void {
-		this.appAccount = appAccount;
+        this.appAccountSignal.set(appAccount);
 		this.authState(true);
 	}
 
@@ -362,61 +362,61 @@ export class AuthService extends BaseService {
 	}
 
 
-	public getPrincipalName(): string {
-		if (this.appAccount && this.appAccount.principal) {
-			return this.appAccount.principal.name;
+	getPrincipalName: Signal<string> = computed(() => {
+		if (this.appAccountSignal() && this.appAccountSignal().principal) {
+			return this.appAccountSignal().principal.name;
 		}
 		return null;
-	}
+	}) 
 
-	public getSelectedTenantName(): string {
-		if (this.appAccount && this.appAccount.selectedTenant) {
-			return this.appAccount.selectedTenant.name;
+	getSelectedTenantName: Signal<string> = computed(() => {
+		if (this.appAccountSignal() && this.appAccountSignal().selectedTenant) {
+			return this.appAccountSignal().selectedTenant.name;
 		}
 		return null;
-	}
+	}) 
 
-	public getSelectedTenantId(): Guid {
-		if (this.appAccount && this.appAccount.selectedTenant) {
-			return this.appAccount.selectedTenant.id;
+	getSelectedTenantId: Signal<Guid> = computed(() => {
+		if (this.appAccountSignal() && this.appAccountSignal().selectedTenant) {
+			return this.appAccountSignal().selectedTenant.id;
 		}
 		return null;
-	}
+	}) 
 
-	public getUserProfileEmail(): string {
-		if (this.appAccount && this.appAccount.profile) {
-			return this.appAccount.profile.email;
+	getUserProfileEmail: Signal<string> = computed(() => {
+		if (this.appAccountSignal() && this.appAccountSignal().profile) {
+			return this.appAccountSignal().profile.email;
 		}
 		return null;
-	}
+	}) 
 
-	public getUserProfileLanguage(): string {
-		if (this.appAccount && this.appAccount.profile) {
-			return this.appAccount.profile.language;
+	getUserProfileLanguage: Signal<string> = computed(() => {
+		if (this.appAccountSignal() && this.appAccountSignal().profile) {
+			return this.appAccountSignal().profile.language;
 		}
 		return null;
-	}
+	}) 
 
-	public getUserProfileCulture(): string {
-		if (this.appAccount && this.appAccount.profile) {
-			return this.appAccount.profile.culture;
+	getUserProfileCulture: Signal<string> = computed(() => {
+		if (this.appAccountSignal() && this.appAccountSignal().profile) {
+			return this.appAccountSignal().profile.culture;
 		}
 		return null;
-	}
+	}) 
 
-	public getUserProfileAvatarUrl(): string {
-		if (this.appAccount && this.appAccount.profile && !this.appAccount.profile.avatarUrl) {
-			return this.appAccount.profile.avatarUrl;
+	getUserProfileAvatarUrl: Signal<string> = computed(() => {
+		if (this.appAccountSignal() && this.appAccountSignal().profile && !this.appAccountSignal().profile.avatarUrl) {
+			return this.appAccountSignal().profile.avatarUrl;
 		}
 		return null;
-	}
+	}) 
 
-	public getUserProfileTimezone(): string {
-		if (this.appAccount && this.appAccount.profile) {
-			return this.appAccount.profile.timezone;
+	getUserProfileTimezone: Signal<string> = computed(() => {
+		if (this.appAccountSignal() && this.appAccountSignal().profile) {
+			return this.appAccountSignal().profile.timezone;
 		}
 		return null;
-	}
+	}) 
 
 
 	public authenticate(returnUrl: string): Observable<KeycloakEvent | null> {
@@ -494,7 +494,7 @@ export class AuthService extends BaseService {
 
 	public hasPermission(permission: AppPermission): boolean {
 		// if (!this.installationConfiguration.appServiceEnabled) { return true; } //TODO: maybe reconsider
-		return this.evaluatePermission(this.appAccount?.permissions || [], permission);
+		return this.evaluatePermission(this.appAccountSignal()?.permissions || [], permission);
 
 	}
 	private evaluatePermission(availablePermissions: string[], permissionToCheck: string): boolean {

@@ -1,5 +1,5 @@
 @if(sections){
-    <ul class="stepper-list" cdkDropList #sectionlist="cdkDropList" (cdkDropListDropped)="sectionsDropped.emit($event)">
+    <ul class="stepper-list" cdkDropList #sectionlist="cdkDropList" (cdkDropListDropped)="sectionsDropped.emit($event)" [cdkDropListDisabled]="hideEditActions()">
         @for(sectionControl of sections.controls; track $index; let i=$index){
             @let section = sectionControl.getRawValue();
             <li class="d-flex flex-column" cdkDrag>
@@ -20,7 +20,8 @@
                         <mat-icon mat-mini-fab-icon aria-hidden>delete</mat-icon>
                     </button>
                 </div>
-                <ul *ngIf="section.fields?.length" class="flex-1 section-fields" cdkDropList (cdkDropListDropped)="fieldsDropped.emit({event: $event, sectionIndex: i})" id="{{i}}-fields">
+                @let fieldListId = generateFieldListId(i);
+                <ul class="flex-1 section-fields" [class.empty-list]="!section.fields?.length" cdkDropList #fieldList="cdkDropList"  [cdkDropListConnectedTo]="cdkDropListConnectedTo(fieldListId)" (cdkDropListDropped)="dropFields($event)" [cdkDropListDisabled]="hideEditActions()" [id]="fieldListId">
                     <!-- && expandChildrenMap?.get(i+1) -->
                     @for(fieldControl of sectionControl.controls.fields.controls; track $index; let j = $index){
                         @let field = fieldControl.getRawValue();

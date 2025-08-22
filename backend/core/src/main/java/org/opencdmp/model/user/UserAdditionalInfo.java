@@ -1,6 +1,9 @@
 package org.opencdmp.model.user;
 
+import org.opencdmp.model.pluginconfiguration.PluginConfigurationUser;
 import org.opencdmp.model.reference.Reference;
+
+import java.util.List;
 
 public class UserAdditionalInfo {
 	private String avatarUrl;
@@ -20,6 +23,9 @@ public class UserAdditionalInfo {
 
 	private Reference organization;
 	public static final String _organization = "organization";
+
+	private List<PluginConfigurationUser> pluginConfigurations;
+	public static final String _pluginConfigurations = "pluginConfigurations";
 
 	public String getAvatarUrl() {
 		return avatarUrl;
@@ -67,5 +73,13 @@ public class UserAdditionalInfo {
 
 	public void setOrganization(Reference organization) {
 		this.organization = organization;
+	}
+
+	public List<PluginConfigurationUser> getPluginConfigurations() {
+		return pluginConfigurations;
+	}
+
+	public void setPluginConfigurations(List<PluginConfigurationUser> pluginConfigurations) {
+		this.pluginConfigurations = pluginConfigurations;
 	}
 }

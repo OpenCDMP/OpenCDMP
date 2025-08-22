@@ -73,6 +73,12 @@ public class PlanBlueprintValueBuilder extends BaseBuilder<PlanBlueprintValue, P
                 models.add(m);
             }
 
+            if (fieldEntity != null && fieldEntity.getCategory().equals(PlanBlueprintFieldCategory.Upload)) {
+                PlanBlueprintValue m = new PlanBlueprintValue();
+                if (planBlueprintValues.hasField(this.asIndexer(PlanBlueprintValue._fieldId))) m.setFieldId(d.getFieldId());
+                if (planBlueprintValues.hasField(this.asIndexer(PlanBlueprintValue._fieldValue))) m.setFieldValue(d.getValue());
+                models.add(m);
+            }
         }
         this.logger.debug("build {} items", Optional.of(models).map(List::size).orElse(0));
         return models;

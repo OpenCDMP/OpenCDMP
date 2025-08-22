@@ -73,10 +73,11 @@
 				</div>
                 <div class="col-md-12 col-sm-12 col-md-9">
                     <div *ngFor="let item of listingItems; let i = index">
-                        <app-description-listing-item-component 
-                            [isPublic]="isPublic" 
-                            [description]="item" 
-                            [tenants]="tenants" 
+                        <app-description-listing-item-component
+							[orderedDescriptionPreferencesList]="orderedDescriptionPreferencesList"
+                            [isPublic]="isPublic"
+                            [description]="item"
+                            [tenants]="tenants"
                             [showDivider]="i != (listingItems.length - 1)"
                         ></app-description-listing-item-component>
                     </div>

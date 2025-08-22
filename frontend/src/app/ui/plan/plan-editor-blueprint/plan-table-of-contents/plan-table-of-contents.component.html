@@ -20,6 +20,17 @@
                                     <mat-icon class="ml-1 w-auto h-auto" style="font-size: 1rem;" [matTooltip]="section.description" [attr.aria-label]="section.description" role="note">info</mat-icon>
                                 }
                             </span>
+                            @if(countAnnotationsPerSection()?.get(section.id) > 0 && step() != (i+1)){
+
+								<mat-icon
+                                    class="ml-3"
+									[matBadge]="countAnnotationsPerSection()?.get(section.id)"
+									matBadgeColor="warn"
+									[attr.aria-label]="(countAnnotationsPerSection()?.get(section.id) ?? 0) + ' ' + ('ANNOTATION-DIALOG.TITLE' | translate)"
+									[attr.aria-hidden]="false"
+								>comment</mat-icon>
+
+							}
                         </button>
                         <ul *ngIf="section.fields?.length && step() === (i+1)" class="flex-1 section-fields">
                             <!-- && expandChildrenMap?.get(i+1) -->
@@ -46,6 +57,17 @@
                                                 {{field.label}}
                                             }
                                         </span>
+										@if(annotationsPerAnchor()?.get(field.id) > 0){
+										<a  class="col-auto "  (click)="showAnnotations.emit(field.id)" matTooltip="{{ 'PLAN-EDITOR.ACTIONS.ANNOTATIONS' | translate }}" [attr.aria-label]="'PLAN-EDITOR.ACTIONS.ANNOTATIONS' | translate">
+											<mat-icon
+												[matBadge]="annotationsPerAnchor()?.get(field.id)"
+												[matBadgeHidden]="annotationsPerAnchor()?.get(field.id) <= 0"
+												matBadgeColor="warn"
+												[attr.aria-label]="(annotationsPerAnchor()?.get(field.id) ?? 0) + ' ' + ('ANNOTATION-DIALOG.TITLE' | translate)"
+												[attr.aria-hidden]="false"
+											>comment</mat-icon>
+										</a>
+										}
                                     </button>
                                 </li>
                             }
@@ -85,6 +107,16 @@
                                                 <mat-icon mat-mini-fab-icon aria-hidden class="mr-0 ml-0">delete</mat-icon>
                                             </button>
                                         }
+										@if(annotationsPerDescription.get(descInfo.lastPersist.id)> 0){
+										<mat-icon
+											[matBadge]="annotationsPerDescription.get(descInfo.lastPersist.id)"
+											matBadgeColor="warn"
+											[attr.aria-label]="5 + ' ' + ('ANNOTATION-DIALOG.TITLE' | translate)"
+											[attr.aria-hidden]="false"
+										>comment</mat-icon>
+										}
+
+
                                     </div>
                                     <div class="ml-2  mr-2" [class.d-none]="selectedDescription() != descInfo.lastPersist.id">
                                         <app-table-of-contents 
@@ -111,10 +143,11 @@
                                     class="add-description-btn"
                                     [disabled]="!hasValidMultiplicity(section) || descTemplatesTouched(section)"
                                     [attr.aria-label]="'PLAN-EDITOR.ACTIONS.ADD-DESCRIPTION-IN-SECTION' | translate"
-                                    (click)="onAddDescription.emit(section.id)"
+                                    (click)="onAddDescription.emit(section)"
                                 >
                                     <mat-icon aria-hidden>add</mat-icon>
-                                    <span class="expanded-text">{{'PLAN-EDITOR.ACTIONS.ADD-DESCRIPTION' | translate}}</span>
+                                    @let descriptionType = getAddDescriptionText(section);
+                                    <span class="expanded-text">{{ descriptionType ? ('COMMONS.ACTIONS.NEW' | translate) + ' ' + descriptionType : ('PLAN-EDITOR.ACTIONS.ADD-DESCRIPTION' | translate)}}</span>
                                 </button>
                             </li>
                         </ul>
@@ -126,13 +159,13 @@
     <div class="navigation">
         <ul class="horizontal-list justify-content-between progress-btns">
             <li class="mb-1">
-                <button mat-stroked-button type="button" class="padded-shadow-btn stepper mr-2" [disabled]="step() === 1" (click)="previousStep()">
+                <button mat-stroked-button type="button" class="padded-shadow-btn stepper mr-2" [disabled]="reachedToCBeginning" (click)="previousStep()">
                     <span class="material-icons">chevron_left</span>
                     <div>{{'PLAN-EDITOR.ACTIONS.PREVIOUS-STEP' | translate}}</div>
                 </button>
             </li>
             <li class="mb-1">
-                <button mat-flat-button color="primary" type="button" class="padded-shadow-btn stepper" (click)="nextStep()">
+                <button mat-flat-button color="primary" type="button" class="padded-shadow-btn stepper" [disabled]="reachedToCEnd" (click)="nextStep()">
                     <div>{{'PLAN-EDITOR.ACTIONS.NEXT-STEP' | translate}}</div>
                     <span class="material-icons" iconPositionEnd>chevron_right</span>
                 </button>

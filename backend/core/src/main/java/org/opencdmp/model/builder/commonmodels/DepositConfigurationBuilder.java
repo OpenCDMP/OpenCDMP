@@ -1,6 +1,7 @@
 package org.opencdmp.model.builder.commonmodels;
 
 import org.opencdmp.authorization.AuthorizationFlags;
+import org.opencdmp.commons.enums.PluginType;
 import org.opencdmp.convention.ConventionService;
 import org.opencdmp.model.builder.BaseBuilder;
 import org.opencdmp.model.deposit.DepositConfiguration;
@@ -50,6 +51,11 @@ public class DepositConfigurationBuilder extends BaseBuilder<DepositConfiguratio
             if (fields.hasField(this.asIndexer(DepositConfiguration._repositoryRecordUrl))) m.setRepositoryRecordUrl(d.getRepositoryRecordUrl());
             if (fields.hasField(this.asIndexer(DepositConfiguration._repositoryClientId))) m.setRepositoryClientId(d.getRepositoryClientId());
             if (fields.hasField(this.asIndexer(DepositConfiguration._hasLogo))) m.setHasLogo(d.isHasLogo());
+            if (fields.hasField(this.asIndexer(DepositConfiguration._configurationFields))) m.setConfigurationFields(d.getConfigurationFields());
+            if (fields.hasField(this.asIndexer(DepositConfiguration._userConfigurationFields))) m.setUserConfigurationFields(d.getUserConfigurationFields());
+            if (fields.hasField(this.asIndexer(DepositConfiguration._pluginType))) m.setPluginType(PluginType.Deposit);
+            if (fields.hasField(this.asIndexer(DepositConfiguration._authMethods))) m.setAuthMethods(d.getAuthMethods());
+
             models.add(m);
         }
         this.logger.debug("build {} items", Optional.of(models).map(List::size).orElse(0));

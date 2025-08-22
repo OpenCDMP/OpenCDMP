@@ -12,6 +12,10 @@ import gr.cite.tools.logging.LoggerService;
 import gr.cite.tools.logging.MapLogEntry;
 import gr.cite.tools.validation.ValidationFilterAnnotation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.enums.Explode;
+import io.swagger.v3.oas.annotations.enums.ParameterStyle;
+import io.swagger.v3.oas.annotations.extensions.Extension;
+import io.swagger.v3.oas.annotations.extensions.ExtensionProperty;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
@@ -45,7 +49,7 @@ import java.util.*;
 
 @RestController
 @RequestMapping(path = "api/description-template-type")
-@Tag(name = "Description Template Types", description = "Manage description template types")
+@Tag(name = "Description Template Types", description = "Manage description template types", extensions = @Extension(name = "x-order", properties = @ExtensionProperty(name = "value", value = "5")))
 @SwaggerCommonErrorResponses
 public class DescriptionTemplateTypeController {
 
@@ -79,7 +83,7 @@ public class DescriptionTemplateTypeController {
     }
 
     @PostMapping("query")
-    @OperationWithTenantHeader(summary = "Query all description template types", description = SwaggerHelpers.DescriptionTemplateType.endpoint_query, requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(description = SwaggerHelpers.DescriptionTemplateType.endpoint_query_request_body, content = @Content(
+    @OperationWithTenantHeader(summary = "Query all description template types", description = SwaggerHelpers.DescriptionTemplateType.endpoint_query, requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(content = @Content(
             examples = {
                     @ExampleObject(
                             name = SwaggerHelpers.Commons.pagination_example,
@@ -125,7 +129,7 @@ public class DescriptionTemplateTypeController {
     @Swagger404
     public DescriptionTemplateType Get(
             @Parameter(name = "id", description = "The id of a description template type to fetch", example = "c0c163dc-2965-45a5-9608-f76030578609", required = true) @PathVariable("id") UUID id,
-            @Parameter(name = "fieldSet", description = SwaggerHelpers.Commons.fieldset_description, required = true) FieldSet fieldSet, Locale locale
+            @Parameter(name = "f", description = SwaggerHelpers.Commons.fieldset_description, required = true, style = ParameterStyle.FORM, explode = Explode.TRUE, schema = @Schema(type = "array", example = "[\"id\"]")) FieldSet fieldSet, Locale locale
     ) throws MyApplicationException, MyForbiddenException, MyNotFoundException {
         logger.debug(new MapLogEntry("retrieving" + DescriptionTemplateType.class.getSimpleName()).And("id", id).And("fields", fieldSet));
 
@@ -158,7 +162,7 @@ public class DescriptionTemplateTypeController {
     @ValidationFilterAnnotation(validator = DescriptionTemplateTypePersist.DescriptionTemplateTypePersistValidator.ValidatorName, argumentName = "model")
     public DescriptionTemplateType Persist(
             @RequestBody DescriptionTemplateTypePersist model,
-            @Parameter(name = "fieldSet", description = SwaggerHelpers.Commons.fieldset_description, required = true) FieldSet fieldSet
+            @Parameter(name = "f", description = SwaggerHelpers.Commons.fieldset_description, required = true, style = ParameterStyle.FORM, explode = Explode.TRUE, schema = @Schema(type = "array", example = "[\"id\"]")) FieldSet fieldSet
     ) throws MyApplicationException, MyForbiddenException, MyNotFoundException, InvalidApplicationException {
         logger.debug(new MapLogEntry("persisting" + DescriptionTemplateType.class.getSimpleName()).And("model", model).And("fieldSet", fieldSet));
         DescriptionTemplateType persisted = this.descriptionTemplateTypeService.persist(model, fieldSet);

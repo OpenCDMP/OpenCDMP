@@ -88,14 +88,14 @@ export class UserService {
 		return this.httpClient.get(url, { params: params, responseType: 'blob', observe: 'response', headers: headerXml });
 	}
 
-	uploadFile(file: FileList, labelSent: string, reqFields: string[] = []): Observable<User> {
+	uploadFile(file: File, labelSent: string, reqFields: string[] = []): Observable<User> {
 		const url = `${this.apiBase}/xml/import`;
 		const params = new BaseHttpParams();
 		params.interceptorContext = {
 			excludedInterceptors: [InterceptorType.JSONContentType]
 		};
 		const formData = new FormData();
-		formData.append('file', file[0], labelSent);
+		formData.append('file', file, labelSent);
 		return this.http.post(url, formData, { params: params });
 	}
 

@@ -22,6 +22,7 @@ export class AnalyticsService {
 	public static DepositEditor: string = 'Admin: TenantConfigurations';
 	public static FileTransformerEditor: string = 'Admin: TenantConfigurations';
 	public static LogoEditor: string = 'Admin: TenantConfigurations';
+	public static PluginConfigurationEditor: string = 'Admin: TenantConfigurations';
 	public static PlanWorkflowEditor: string = 'Admin: TenantConfigurations';
 	public static DescriptionWorkflowEditor: string = 'Admin: TenantConfigurations';
 	public static ContactContent: string = 'Contact Content';

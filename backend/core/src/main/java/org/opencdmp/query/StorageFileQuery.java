@@ -148,9 +148,8 @@ public class StorageFileQuery extends QueryBase<StorageFileEntity> {
     protected <X, Y> Predicate applyAuthZ(QueryContext<X, Y> queryContext) {
         if (this.authorize.contains(AuthorizationFlags.None)) return null;
         if (this.authorize.contains(AuthorizationFlags.Permission) && this.authService.authorize(Permission.BrowseStorageFile)) return null;
-        UUID userId;
+        UUID userId = null;
         if (this.authorize.contains(AuthorizationFlags.Owner)) userId = this.userScope.getUserIdSafe();
-        else  userId = null;
 
         List<Predicate> predicates = new ArrayList<>();
         if (userId != null) {

@@ -215,3 +215,15 @@ error-thesaurus:
   invalidUserEmail:
     code: 175
     message: No user found with this email
+  cannotAddDescription:
+    code: 176
+    message: Cannot Edit Description Templates
+  cannotPlanDeposit:
+    code: 177
+    message: This plan has already been deposited in this repository
+  cannotEditDescriptionTemplates:
+    code: 178
+    message: Cannot edit description templates for this plan
+  creatingPlanWithInactiveBlueprint:
+    code: 179
+    message: Cannot create new plan with inactive blueprint

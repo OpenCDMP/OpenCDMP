@@ -301,6 +301,7 @@ public class PlanUserQuery extends QueryBase<PlanUserEntity> {
         item.setPlanId(QueryBase.convertSafe(tuple, columns, PlanUserEntity._planId, UUID.class));
         item.setUserId(QueryBase.convertSafe(tuple, columns, PlanUserEntity._userId, UUID.class));
         item.setSectionId(QueryBase.convertSafe(tuple, columns, PlanUserEntity._sectionId, UUID.class));
+        item.setOrdinal(QueryBase.convertSafe(tuple, columns, PlanUserEntity._ordinal, Integer.class));
         item.setRole(QueryBase.convertSafe(tuple, columns, PlanUserEntity._role, PlanUserRole.class));
         item.setCreatedAt(QueryBase.convertSafe(tuple, columns, PlanUserEntity._createdAt, Instant.class));
         item.setUpdatedAt(QueryBase.convertSafe(tuple, columns, PlanUserEntity._updatedAt, Instant.class));
@@ -315,6 +316,7 @@ public class PlanUserQuery extends QueryBase<PlanUserEntity> {
         else if (item.prefix(PlanUser._user) || item.prefix(PublicPlanUser._user)) return PlanUserEntity._userId;
         else if (item.match(PlanUser._role) || item.match(PublicPlanUser._role)) return PlanUserEntity._role;
         else if (item.match(PlanUser._sectionId)) return PlanUserEntity._sectionId;
+        else if (item.match(PlanUser._ordinal)) return PlanUserEntity._ordinal;
         else if (item.match(PlanUser._createdAt)) return PlanUserEntity._createdAt;
         else if (item.match(PlanUser._updatedAt)) return PlanUserEntity._updatedAt;
         else if (item.match(PlanUser._isActive)) return PlanUserEntity._isActive;

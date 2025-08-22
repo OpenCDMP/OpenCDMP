@@ -12,10 +12,26 @@ import gr.cite.tools.fieldset.FieldSet;
 import gr.cite.tools.logging.LoggerService;
 import gr.cite.tools.logging.MapLogEntry;
 import gr.cite.tools.validation.ValidationFilterAnnotation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.enums.Explode;
+import io.swagger.v3.oas.annotations.enums.ParameterStyle;
+import io.swagger.v3.oas.annotations.extensions.Extension;
+import io.swagger.v3.oas.annotations.extensions.ExtensionProperty;
+import io.swagger.v3.oas.annotations.media.ArraySchema;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.ExampleObject;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.transaction.Transactional;
 import jakarta.xml.bind.JAXBException;
 import org.opencdmp.audit.AuditableAction;
 import org.opencdmp.authorization.AuthorizationFlags;
+import org.opencdmp.controllers.swagger.SwaggerHelpers;
+import org.opencdmp.controllers.swagger.annotation.OperationWithTenantHeader;
+import org.opencdmp.controllers.swagger.annotation.Swagger400;
+import org.opencdmp.controllers.swagger.annotation.Swagger404;
+import org.opencdmp.controllers.swagger.annotation.SwaggerCommonErrorResponses;
 import org.opencdmp.data.TenantEntity;
 import org.opencdmp.model.Tenant;
 import org.opencdmp.model.builder.TenantBuilder;
@@ -46,6 +62,8 @@ import java.util.UUID;
 
 @RestController
 @RequestMapping(path = "api/tenant")
+@Tag(name = "Tenants", description = "Manage tenants", extensions = @Extension(name = "x-order", properties = @ExtensionProperty(name = "value", value = "9")))
+@SwaggerCommonErrorResponses
 public class TenantController {
 
     private static final LoggerService logger = new LoggerService(LoggerFactory.getLogger(TenantController.class));
@@ -78,6 +96,25 @@ public class TenantController {
     }
 
     @PostMapping("query")
+    @OperationWithTenantHeader(summary = "Query all tenants", description = SwaggerHelpers.Tenant.endpoint_query, requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(content = @Content(
+            examples = {
+                    @ExampleObject(
+                            name = SwaggerHelpers.Commons.pagination_example,
+                            description = SwaggerHelpers.Commons.pagination_example_description,
+                            value = SwaggerHelpers.Tenant.endpoint_query_request_body_example
+                    )
+            }
+    )), responses = @ApiResponse(description = "OK", responseCode = "200", content = @Content(
+            array = @ArraySchema(
+                    schema = @Schema(
+                            implementation = Tenant.class
+                    )
+            ),
+            examples = @ExampleObject(
+                    name = SwaggerHelpers.Commons.pagination_response_example,
+                    description = SwaggerHelpers.Commons.pagination_response_example_description,
+                    value = SwaggerHelpers.Tenant.endpoint_query_response_example
+            ))))
     public QueryResult<Tenant> query(@RequestBody TenantLookup lookup) throws MyApplicationException, MyForbiddenException, InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException, InvalidApplicationException {
         logger.debug("querying {}", Tenant.class.getSimpleName());
 
@@ -94,7 +131,14 @@ public class TenantController {
     }
 
     @GetMapping("{id}")
-    public Tenant get(@PathVariable("id") UUID id, FieldSet fieldSet) throws MyApplicationException, MyForbiddenException, MyNotFoundException, NoSuchAlgorithmException, InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, InvalidKeyException, InvalidApplicationException {
+    @OperationWithTenantHeader(summary = "Fetch a specific tenant by id", description = "",
+            responses = @ApiResponse(description = "OK", responseCode = "200", content = @Content(
+                    schema = @Schema(
+                            implementation = Tenant.class
+                    ))
+            ))
+    @Swagger404
+    public Tenant get(@PathVariable("id") UUID id, @Parameter(name = "f", description = SwaggerHelpers.Commons.fieldset_description, required = true, style = ParameterStyle.FORM, explode = Explode.TRUE, schema = @Schema(type = "array", example = SwaggerHelpers.Tenant.endpoint_field_set_example)) FieldSet fieldSet) throws MyApplicationException, MyForbiddenException, MyNotFoundException, NoSuchAlgorithmException, InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, InvalidKeyException, InvalidApplicationException {
         logger.debug(new MapLogEntry("retrieving" + Tenant.class.getSimpleName()).And("id", id).And("fields", fieldSet));
 
         this.censorFactory.censor(TenantCensor.class).censor(fieldSet, null);
@@ -113,9 +157,17 @@ public class TenantController {
     }
 
     @PostMapping("persist")
+    @OperationWithTenantHeader(summary = "Create a new or update an existing tenant", description = "",
+            responses = @ApiResponse(description = "OK", responseCode = "200", content = @Content(
+                    schema = @Schema(
+                            implementation = Tenant.class
+                    ))
+            ))
+    @Swagger400
+    @Swagger404
     @Transactional
     @ValidationFilterAnnotation(validator = TenantPersist.TenantPersistValidator.ValidatorName, argumentName = "model")
-    public Tenant persist(@RequestBody TenantPersist model, FieldSet fieldSet) throws MyApplicationException, MyForbiddenException, MyNotFoundException, InvalidApplicationException, JAXBException, ParserConfigurationException, JsonProcessingException, TransformerException, InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
+    public Tenant persist(@RequestBody TenantPersist model, @Parameter(name = "f", description = SwaggerHelpers.Commons.fieldset_description, required = true, style = ParameterStyle.FORM, explode = Explode.TRUE, schema = @Schema(type = "array", example = SwaggerHelpers.Tenant.endpoint_field_set_example)) FieldSet fieldSet) throws MyApplicationException, MyForbiddenException, MyNotFoundException, InvalidApplicationException, JAXBException, ParserConfigurationException, JsonProcessingException, TransformerException, InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
         logger.debug(new MapLogEntry("persisting" + Tenant.class.getSimpleName()).And("model", model).And("fieldSet", fieldSet));
         this.censorFactory.censor(TenantCensor.class).censor(fieldSet, null);
 
@@ -130,6 +182,9 @@ public class TenantController {
     }
 
     @DeleteMapping("{id}")
+    @OperationWithTenantHeader(summary = "Delete a tenant by id", description = "",
+            responses = @ApiResponse(description = "OK", responseCode = "200"))
+    @Swagger404
     @Transactional
     public void delete(@PathVariable("id") UUID id) throws MyForbiddenException, InvalidApplicationException {
         logger.debug(new MapLogEntry("retrieving" + Tenant.class.getSimpleName()).And("id", id));

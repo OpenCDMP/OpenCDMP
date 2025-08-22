@@ -16,7 +16,7 @@
                         <span [ngClass]="{'pl-0': groupMenuRoute.path == '/plans'}" style="text-wrap: wrap;">{{groupMenuRoute.title | translate}}</span>
                     </a>
                     
-                    <!-- <ng-template #description>
+                    <ng-template #description>
                         <a class="nav-link nav-row" *ngIf="groupMenuRoute.path === '/descriptions'" [routerLink]="[routerUtils.generateUrl(groupMenuRoute.path)]">
                             <span class="mb-3 inner-line"></span>
                             <div class="pl-0 pt-1 pb-1 container-fluid nav-subrow description-tour">
@@ -25,7 +25,7 @@
                                 <span class="pl-0 mt-1" style="text-wrap: wrap;">{{groupMenuRoute.title | translate}}</span>
                             </div>
                         </a>
-                    </ng-template> -->
+                    </ng-template>
                 </ng-container>
     
                 <ng-template #infoItems>

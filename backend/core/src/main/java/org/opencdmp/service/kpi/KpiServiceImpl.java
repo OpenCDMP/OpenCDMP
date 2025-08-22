@@ -11,13 +11,7 @@ import org.opencdmp.commons.enums.kpi.MetricType;
 import org.opencdmp.commons.scope.tenant.TenantScope;
 import org.opencdmp.convention.ConventionService;
 import org.opencdmp.data.*;
-import org.opencdmp.integrationevent.outbox.indicator.IndicatorElasticEvent;
-import org.opencdmp.integrationevent.outbox.indicator.IndicatorField;
-import org.opencdmp.integrationevent.outbox.indicator.IndicatorMetadata;
-import org.opencdmp.integrationevent.outbox.indicator.IndicatorSchema;
-import org.opencdmp.integrationevent.outbox.indicatoraccess.FilterColumnConfig;
-import org.opencdmp.integrationevent.outbox.indicatoraccess.IndicatorAccessConfig;
-import org.opencdmp.integrationevent.outbox.indicatoraccess.IndicatorAccessEvent;
+import org.opencdmp.integrationevent.outbox.indicator.*;
 import org.opencdmp.integrationevent.outbox.indicatoraccess.IndicatorAccessEventHandler;
 import org.opencdmp.integrationevent.outbox.indicatorpoint.IndicatorPointEvent;
 import org.opencdmp.integrationevent.outbox.indicatorpoint.IndicatorPointEventHandler;
@@ -80,6 +74,17 @@ public class KpiServiceImpl implements KpiService {
             event.setId(this.kpiProperties.getIndicator().getId());
             event.setMetadata(this.defineMetadata());
             event.setSchema(this.defineSchema());
+
+            FilterColumnConfig filterColumnConfig = new FilterColumnConfig();
+            filterColumnConfig.setCode(KpiSchemaFieldCodes.TenantCode);
+
+            AccessRequestConfig accessRequestConfig = new AccessRequestConfig();
+            accessRequestConfig.setFilterColumns(List.of(filterColumnConfig));
+
+            IndicatorConfig config = new IndicatorConfig();
+            config.setAccessRequestConfig(accessRequestConfig);
+
+            event.setConfig(config);
         }
 
         this.validatorFactory.validator(IndicatorElasticEvent.IndicatorElasticEventValidator.class).validateForce(event);
@@ -134,44 +139,13 @@ public class KpiServiceImpl implements KpiService {
 
             if (users != null && !users.isEmpty()) {
                 for (UserEntity user: users) {
-                    this.indicatorAccessEventHandler.handle(this.createIndicatorAccessEvent(user.getId(), this.tenantScope.getDefaultTenantCode()), null);
-                }
-                List<TenantUserEntity> tenantUserEntities = this.queryFactory.query(TenantUserQuery.class).disableTracking().userIds(users.stream().map(UserEntity::getId).distinct().toList()).isActive(IsActive.Active).collect();
-                if (tenantUserEntities == null || tenantUserEntities.isEmpty()) return;
-                List<TenantEntity> tenantEntities = this.queryFactory.query(TenantQuery.class).disableTracking().isActive(IsActive.Active).ids(tenantUserEntities.stream().map(TenantUserEntity::getTenantId).distinct().toList()).collectAs(new BaseFieldSet().ensure(Tenant._id).ensure(Tenant._code));
-                if (tenantEntities != null && !tenantEntities.isEmpty()) {
-                    for (TenantUserEntity user: tenantUserEntities) {
-                        TenantEntity tenant = tenantEntities.stream().filter(x -> x.getId().equals(user.getTenantId())).findFirst().orElse(null);
-                        if (tenant != null){
-                            this.indicatorAccessEventHandler.handle(this.createIndicatorAccessEvent(user.getUserId(), tenant.getCode()), tenant.getId());
-                        }
-                    }
+                    this.indicatorAccessEventHandler.handle(user.getId());
                 }
             }
 
         } finally {
             this.tenantEntityManager.reloadTenantFilters();
         }
-    }
-
-    private IndicatorAccessEvent createIndicatorAccessEvent(UUID userId, String tenantCode) {
-        IndicatorAccessEvent event = new IndicatorAccessEvent();
-        event.setIndicatorId(this.kpiProperties.getIndicator().getId());
-        event.setUserId(userId);
-
-        List<FilterColumnConfig> globalFilterColumns = new ArrayList<>();
-        FilterColumnConfig filterColumn = new FilterColumnConfig();
-        filterColumn.setColumn("tenant_code");
-        filterColumn.setValues(List.of(tenantCode));
-        globalFilterColumns.add(filterColumn);
-
-        IndicatorAccessConfig config = new IndicatorAccessConfig();
-        config.setGlobalFilterColumns(globalFilterColumns);
-
-        event.setConfig(config);
-
-        this.validatorFactory.validator(IndicatorAccessEvent.IndicatorAccessEventValidator.class).validateForce(event);
-        return event;
     }
 
     @Override
@@ -244,30 +218,53 @@ public class KpiServiceImpl implements KpiService {
     public void sendIndicatorPointReferenceCountEntryEvents() throws InvalidApplicationException {
         try {
             this.tenantEntityManager.disableTenantFilters();
-            List<ReferenceEntity> items = this.queryFactory.query(ReferenceQuery.class).disableTracking().isActive(IsActive.Active).collectAs(new BaseFieldSet().ensure(Reference._id).ensure(Reference._type).ensure(Reference._createdAt).ensure(Reference._belongsToCurrentTenant));
+            List<PlanReferenceEntity> planReferences = this.queryFactory.query(PlanReferenceQuery.class).disableTracking().isActives(IsActive.Active).collect();
+            List<DescriptionReferenceEntity> descriptionReferences = this.queryFactory.query(DescriptionReferenceQuery.class).disableTracking().isActive(IsActive.Active).collect();
+            List<ReferenceEntity> references = this.queryFactory.query(ReferenceQuery.class).disableTracking().isActive(IsActive.Active).collectAs(new BaseFieldSet().ensure(Reference._id).ensure(Reference._type).ensure(Reference._createdAt).ensure(Reference._belongsToCurrentTenant));
             List<TenantEntity> tenants = this.queryFactory.query(TenantQuery.class).disableTracking().isActive(IsActive.Active).collectAs(new BaseFieldSet().ensure(Tenant._id).ensure(Tenant._code));
             List<ReferenceTypeEntity> referenceTypes = this.queryFactory.query(ReferenceTypeQuery.class).disableTracking().isActive(IsActive.Active).collectAs(new BaseFieldSet().ensure(ReferenceType._id).ensure(ReferenceType._code));
 
             for (ReferenceTypeEntity referenceTypeEntity: referenceTypes) {
-                List<ReferenceEntity> defaultTenantItems = items.stream().filter(x -> x.getTenantId() == null && x.getTypeId().equals(referenceTypeEntity.getId())).toList();
-                if (!this.conventionService.isListNullOrEmpty(defaultTenantItems)) {
-                    var groupItems = defaultTenantItems.stream().collect(Collectors.groupingBy(x -> LocalDate.ofInstant(x.getCreatedAt(), ZoneId.of("UTC")), Collectors.counting()));
-                    this.sendIndicatorPointEvents(groupItems, this.tenantScope.getDefaultTenantCode(), KpiEntityType.Reference, MetricType.Overtime, referenceTypeEntity.getCode());
-                }
+                List<UUID> defaultTenantReferencesIds = references.stream().filter(x -> x.getTenantId() == null && x.getTypeId().equals(referenceTypeEntity.getId())).toList().stream().map(ReferenceEntity::getId).toList();
+                List<PlanReferenceEntity> defaultPlanReferences = planReferences.stream().filter(x -> x.getTenantId() == null && defaultTenantReferencesIds.contains(x.getReferenceId())).toList();
+                List<DescriptionReferenceEntity> defaultDescriptionReferences = descriptionReferences.stream().filter(x -> x.getTenantId() == null && defaultTenantReferencesIds.contains(x.getReferenceId())).toList();
+
+                this.calculateAndSendReferenceIndicatorPoints(defaultPlanReferences, defaultDescriptionReferences, this.tenantScope.getDefaultTenantCode(), referenceTypeEntity.getCode());
 
             }
 
             for (TenantEntity tenant: tenants) {
                 for (ReferenceTypeEntity referenceTypeEntity: referenceTypes) {
-                    List<ReferenceEntity> tenantItems = items.stream().filter(x -> x.getTenantId() != null && x.getTenantId().equals(tenant.getId()) && x.getTypeId().equals(referenceTypeEntity.getId())).toList();
-                    var groupTenantItems = tenantItems.stream().collect(Collectors.groupingBy(x -> LocalDate.ofInstant(x.getCreatedAt(), ZoneId.of("UTC")), Collectors.counting()));
-                    this.sendIndicatorPointEvents(groupTenantItems, tenant.getCode(), KpiEntityType.Reference, MetricType.Overtime, referenceTypeEntity.getCode());
+
+                    List<PlanReferenceEntity> tenantPlanReferences = planReferences.stream().filter(x -> x.getTenantId() != null && x.getTenantId().equals(tenant.getId())).toList();
+                    List<DescriptionReferenceEntity> tenantDescriptionReferences = descriptionReferences.stream().filter(x -> x.getTenantId() != null && x.getTenantId().equals(tenant.getId())).toList();
+
+                    this.calculateAndSendReferenceIndicatorPoints(tenantPlanReferences, tenantDescriptionReferences, tenant.getCode(), referenceTypeEntity.getCode());
                 }
 
             }
         } finally {
             this.tenantEntityManager.reloadTenantFilters();
         }
+    }
+
+    private void calculateAndSendReferenceIndicatorPoints(List<PlanReferenceEntity> planReferences, List<DescriptionReferenceEntity> descriptionReferences, String tenantCode, String referenceTypeCode) {
+        Map<LocalDate, Long> groupPlanReferenceItems = new HashMap<>();
+        if (!this.conventionService.isListNullOrEmpty(planReferences)) {
+            groupPlanReferenceItems = planReferences.stream().collect(Collectors.groupingBy(x -> LocalDate.ofInstant(x.getCreatedAt(), ZoneId.of("UTC")), Collectors.counting()));
+        }
+
+        Map<LocalDate, Long> groupDescriptionReferenceItems = new HashMap<>();
+        if (!this.conventionService.isListNullOrEmpty(descriptionReferences)) {
+            groupDescriptionReferenceItems = descriptionReferences.stream().collect(Collectors.groupingBy(x -> LocalDate.ofInstant(x.getCreatedAt(), ZoneId.of("UTC")), Collectors.counting()));
+        }
+
+        Map<LocalDate, Long> finalGroupItems = groupPlanReferenceItems;
+        groupDescriptionReferenceItems.forEach((key, value) ->
+                finalGroupItems.merge(key, value, Long::sum)
+        );
+
+        this.sendIndicatorPointEvents(finalGroupItems, tenantCode, KpiEntityType.Reference, MetricType.Overtime, referenceTypeCode);
     }
 
     @Override
@@ -312,28 +309,61 @@ public class KpiServiceImpl implements KpiService {
         }
     }
 
+    @Override
+    public void sendIndicatorPointTenantCountEntryEvents() throws InvalidApplicationException {
+        try {
+            this.tenantEntityManager.disableTenantFilters();
+            List<TenantEntity> items = this.queryFactory.query(TenantQuery.class).disableTracking().isActive(IsActive.Active).collectAs(new BaseFieldSet().ensure(Tenant._id).ensure(Tenant._createdAt).ensure(Tenant._code));
+            var groupItems = items.stream().collect(Collectors.groupingBy(x -> LocalDate.ofInstant(x.getCreatedAt(), ZoneId.of("UTC")), Collectors.counting()));
+            this.sendIndicatorPointEvents(groupItems, this.tenantScope.getDefaultTenantCode(), KpiEntityType.Tenant, MetricType.Overtime, null);
+
+        } finally {
+            this.tenantEntityManager.reloadTenantFilters();
+        }
+    }
+
     private void sendIndicatorPointEvents(Map<LocalDate, Long> groupItems, String tenantCode, KpiEntityType entityType, MetricType metricType, String referenceTypeCode) {
 
         var dates = groupItems.keySet().stream().collect(Collectors.toList());
-        dates.sort(Comparator.comparing(x -> x));
-        int sum = 0;
-        for (var date: dates) {
-            sum += groupItems.get(date);
+
+        if (!dates.isEmpty()) {
 
             IndicatorPointEvent event = new IndicatorPointEvent();
             if (kpiProperties.getIndicator() != null) event.setIndicatorId(this.kpiProperties.getIndicator().getId());
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSX");
 
-            event.add(KpiSchemaFieldCodes.CreatedAt, date.atStartOfDay().atOffset(ZoneOffset.UTC).format(formatter));
-            event.add(KpiSchemaFieldCodes.Value, sum);
-            event.add(KpiSchemaFieldCodes.TenantCode, tenantCode);
-            event.add(KpiSchemaFieldCodes.EntityType, entityType);
-            event.add(KpiSchemaFieldCodes.MetricType, metricType);
-            if (entityType.equals(KpiEntityType.Reference)) event.add(KpiSchemaFieldCodes.ReferenceTypeCode, referenceTypeCode);
+            dates.sort(Comparator.comparing(x -> x));
+            int sum = 0;
 
-            this.validatorFactory.validator(IndicatorPointEvent.IndicatorPointEventValidator.class).validateForce(event);
-            this.indicatorPointEventHandler.handle(event);
+            List<Map<String, Object>> properties = new ArrayList<>();
+            for (var date: dates) {
+                sum += groupItems.get(date);
+
+                Map<String, Object> map = new HashMap<>();
+                map.put(KpiSchemaFieldCodes.CreatedAt, date.atStartOfDay().atOffset(ZoneOffset.UTC).format(formatter));
+                map.put(KpiSchemaFieldCodes.Value, sum);
+                map.put(KpiSchemaFieldCodes.TenantCode, tenantCode);
+                map.put(KpiSchemaFieldCodes.EntityType, entityType);
+                map.put(KpiSchemaFieldCodes.MetricType, metricType);
+                if (entityType.equals(KpiEntityType.Reference)) map.put(KpiSchemaFieldCodes.ReferenceTypeCode, referenceTypeCode);
+                properties.add(map);
+                event.setProperties(properties);
+
+                if (properties.size() >= this.kpiProperties.getMaxIndicatorPointsPerRequest()) {
+                    // send indicator points and initialize for the next request
+                    this.validatorFactory.validator(IndicatorPointEvent.IndicatorPointEventValidator.class).validateForce(event);
+                    this.indicatorPointEventHandler.handle(event);
+                    properties = new ArrayList<>();
+                }
+
+            }
+
+            if (!properties.isEmpty()) {
+                this.validatorFactory.validator(IndicatorPointEvent.IndicatorPointEventValidator.class).validateForce(event);
+                this.indicatorPointEventHandler.handle(event);
+            }
         }
+
 
     }
 }

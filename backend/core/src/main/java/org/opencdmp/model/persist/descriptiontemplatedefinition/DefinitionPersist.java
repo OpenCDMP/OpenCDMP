@@ -5,6 +5,7 @@ import gr.cite.tools.validation.ValidatorFactory;
 import gr.cite.tools.validation.specification.Specification;
 import org.opencdmp.convention.ConventionService;
 import org.opencdmp.errorcode.ErrorThesaurusProperties;
+import org.opencdmp.model.persist.pluginconfiguration.PluginConfigurationPersist;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.Scope;
@@ -17,8 +18,10 @@ import java.util.List;
 public class DefinitionPersist {
 
     private List<PagePersist> pages = null;
-
     public static final String _pages = "pages";
+
+    private List<PluginConfigurationPersist> pluginConfigurations;
+    public static final String _pluginConfigurations = "pluginConfigurations";
 
 
     public List<PagePersist> getPages() {
@@ -27,6 +30,14 @@ public class DefinitionPersist {
 
     public void setPages(List<PagePersist> pages) {
         this.pages = pages;
+    }
+
+    public List<PluginConfigurationPersist> getPluginConfigurations() {
+        return pluginConfigurations;
+    }
+
+    public void setPluginConfigurations(List<PluginConfigurationPersist> pluginConfigurations) {
+        this.pluginConfigurations = pluginConfigurations;
     }
 
     @Component(DefinitionPersistValidator.ValidatorName)
@@ -60,7 +71,12 @@ public class DefinitionPersist {
                             .iff(() -> !this.isListNullOrEmpty(item.getPages()))
                             .on(DefinitionPersist._pages)
                             .over(item.getPages())
-                            .using((itm) -> this.validatorFactory.validator(PagePersist.PagePersistValidator.class))
+                            .using((itm) -> this.validatorFactory.validator(PagePersist.PagePersistValidator.class)),
+                    this.navSpec()
+                            .iff(() -> !this.isListNullOrEmpty(item.getPluginConfigurations()))
+                            .on(DefinitionPersist._pluginConfigurations)
+                            .over(item.getPluginConfigurations())
+                            .using((itm) -> this.validatorFactory.validator(PluginConfigurationPersist.PluginConfigurationPersistValidator.class))
             );
         }
     }

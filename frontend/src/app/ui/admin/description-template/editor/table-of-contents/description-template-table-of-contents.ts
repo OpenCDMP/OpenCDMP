@@ -320,7 +320,7 @@ export class DescriptionTemplateTableOfContents extends BaseComponent implements
 
 							sectionForm.get('ordinal')?.setValue(position);
 							sectionForm.get('page')?.setValue(targetContainer.id);
-							targetSectionsArray.push(sectionForm);
+							targetSectionsArray.insert(position, sectionForm);
 
 						} else {
 							const message = this.language.instant('DESCRIPTION-TEMPLATE-EDITOR.STEPS.FORM.TABLE-OF-CONTENTS.ERROR-MESSAGES.DRAG-NOT-SUPPORTED');

@@ -1,7 +1,7 @@
 package org.opencdmp.model.evaluation;
 
 import org.opencdmp.evaluatorbase.models.misc.RankConfig;
-import org.opencdmp.evaluatorbase.models.misc.RankModel;
+import org.opencdmp.evaluatorbase.models.misc.RankResultModel;
 
 public class EvaluationData {
 
@@ -11,8 +11,8 @@ public class EvaluationData {
     private RankConfig rankConfig;
     public static final String _rankConfig = "rankConfig";
 
-    private RankModel rankModel;
-    public static final String _rankModel = "rankModel";
+    private RankResultModel rankResult;
+    public static final String _rankResult = "rankResult";
 
     public String getEvaluatorId() {
         return evaluatorId;
@@ -30,11 +30,11 @@ public class EvaluationData {
         this.rankConfig = rankConfig;
     }
 
-    public RankModel getRankModel() {
-        return rankModel;
+    public RankResultModel getRankResult() {
+        return rankResult;
     }
 
-    public void setRankModel(RankModel rankModel) {
-        this.rankModel = rankModel;
+    public void setRankResult(RankResultModel rankResult) {
+        this.rankResult = rankResult;
     }
 }

@@ -8,6 +8,7 @@ import gr.cite.tools.fieldset.FieldSet;
 import jakarta.xml.bind.JAXBException;
 import org.opencdmp.commonmodels.models.description.DescriptionModel;
 import org.opencdmp.commons.types.description.importexport.DescriptionImportExport;
+import org.opencdmp.data.DescriptionEntity;
 import org.opencdmp.data.StorageFileEntity;
 import org.opencdmp.model.DescriptionValidationResult;
 import org.opencdmp.model.StorageFile;
@@ -41,6 +42,8 @@ public interface DescriptionService {
     Description buildClone(UUID id, FieldSet fields) throws MyForbiddenException, MyValidationException, MyApplicationException, MyNotFoundException, InvalidApplicationException, IOException;
 
     void deleteAndSave(UUID id) throws MyForbiddenException, InvalidApplicationException, IOException;
+
+    String reassignDescriptionProperties(DescriptionEntity existingDescriptionEntity) throws InvalidApplicationException;
 
     List<DescriptionValidationResult> validate(List<UUID> descriptionIds) throws InvalidApplicationException;
 

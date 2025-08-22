@@ -2,10 +2,12 @@ package org.opencdmp.query.lookup;
 
 import gr.cite.tools.data.query.Lookup;
 import gr.cite.tools.data.query.QueryFactory;
+import io.swagger.v3.oas.annotations.media.Schema;
 import org.apache.commons.lang3.StringUtils;
 import org.opencdmp.commons.enums.IsActive;
 import org.opencdmp.elastic.query.DescriptionElasticQuery;
 import org.opencdmp.query.DescriptionQuery;
+import org.opencdmp.query.lookup.swagger.SwaggerHelpers;
 
 import java.time.Instant;
 import java.util.List;
@@ -13,24 +15,49 @@ import java.util.UUID;
 
 public class DescriptionLookup extends Lookup {
 
+    @Schema(description = SwaggerHelpers.Description.like_description)
     private String like;
 
+    @Schema(description = SwaggerHelpers.Description.ids_description)
     private List<UUID> ids;
+
+    @Schema(description = SwaggerHelpers.Description.excludeIds_description)
     private List<UUID> excludedIds;
+
+    @Schema(description = SwaggerHelpers.Description.createdAfter_description)
     private Instant createdAfter;
+
+    @Schema(description = SwaggerHelpers.Description.createdBefore_description)
     private Instant createdBefore;
+
+    @Schema(description = SwaggerHelpers.Description.finalizedAfter_description)
     private Instant finalizedAfter;
+
+    @Schema(description = SwaggerHelpers.Description.finalizedBefore_description)
     private Instant finalizedBefore;
 
-    private PlanLookup planSubQuery;
-    private TenantLookup tenantSubQuery;
-    private DescriptionTemplateLookup descriptionTemplateSubQuery;
-    private DescriptionReferenceLookup descriptionReferenceSubQuery;
-    private DescriptionTagLookup descriptionTagSubQuery;
-
+    @Schema(description = SwaggerHelpers.Description.isActive_description)
     private List<IsActive> isActive;
 
+    @Schema(description = SwaggerHelpers.Description.statusIds_description)
     private List<UUID> statusIds;
+
+    @Schema(description = SwaggerHelpers.Description.planSubQuery_description)
+    private PlanLookup planSubQuery;
+
+    @Schema(description = SwaggerHelpers.Description.tenantSubQuery_description)
+    private TenantLookup tenantSubQuery;
+
+    @Schema(description = SwaggerHelpers.Description.descriptionTemplateSubQuery_description)
+    private DescriptionTemplateLookup descriptionTemplateSubQuery;
+
+    @Schema(description = SwaggerHelpers.Description.descriptionReferenceSubQuery_description)
+    private DescriptionReferenceLookup descriptionReferenceSubQuery;
+
+    @Schema(description = SwaggerHelpers.Description.descriptionTagSubQuery_description)
+    private DescriptionTagLookup descriptionTagSubQuery;
+
+    @Schema(description = SwaggerHelpers.Description.descriptionStatusSubQuery_description)
     private DescriptionStatusLookup descriptionStatusSubQuery;
 
     public String getLike() {

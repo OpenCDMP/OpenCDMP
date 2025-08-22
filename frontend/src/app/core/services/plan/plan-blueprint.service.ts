@@ -90,14 +90,14 @@ export class PlanBlueprintService {
 		return this.httpClient.get(url, { params: params, responseType: 'blob', observe: 'response', headers: headerXml });
 	}
 
-	uploadFile(file: FileList, labelSent: string, reqFields: string[] = []): Observable<PlanBlueprint> {
+	uploadFile(file: File, labelSent: string, reqFields: string[] = []): Observable<PlanBlueprint> {
 		const url = `${this.apiBase}/xml/import`;
 		const params = new BaseHttpParams();
 		params.interceptorContext = {
 			excludedInterceptors: [InterceptorType.JSONContentType]
 		};
 		const formData = new FormData();
-		formData.append('file', file[0], labelSent);
+		formData.append('file', file, labelSent);
 		return this.http.post(url, formData, { params: params });
 	}
 
@@ -216,7 +216,6 @@ export class PlanBlueprintService {
         })).pipe(map(x => x.items)),
 		displayFn: (item: PlanBlueprint) => item.label,
 		titleFn: (item: PlanBlueprint) => item.label,
-		subtitleFn: (item: PlanBlueprint) => this.language.instant('PLAN-EDITOR.FIELDS.PLAN-BLUEPRINT-VERSION') + ' '+ item.version,
 		valueAssign: (item: PlanBlueprint) => item.groupId,
 	};
 

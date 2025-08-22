@@ -187,7 +187,7 @@ export class SingleAutoCompleteComponent extends _CustomComponentMixinBase imple
 				return this.configuration.initialItems(this.configuration.extraData) || observableOf([]);
 			}
 		} else {
-			return observableOf([]);
+			return observableOf(null);
 		}
 	}
 

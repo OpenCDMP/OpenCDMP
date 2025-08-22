@@ -23,7 +23,6 @@ import { FormFocusDirective } from '@common/forms/form-focus.directive';
 		CommonFormsModule,
 		FormattingModule,
 		ConfirmationDialogModule,
-		TableOfContentsModule,
 		DescriptionFormProgressIndicationModule,
 		DescriptionFormModule,
 		// DescriptionEditorRoutingModule,

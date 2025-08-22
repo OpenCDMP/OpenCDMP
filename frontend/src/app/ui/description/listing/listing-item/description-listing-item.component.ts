@@ -35,6 +35,7 @@ import { DescriptionEditorHelper } from '@app/ui/plan/plan-editor-blueprint/plan
 import { DescriptionPropertyDefinitionEditorModel } from '../../editor/description-editor.model';
 import { DomSanitizer, SafeUrl } from '@angular/platform-browser';
 import { StorageFileService } from '@app/core/services/storage-file/storage-file.service';
+import {ReferenceType} from "@app/core/model/reference-type/reference-type";
 
 @Component({
     selector: 'app-description-listing-item-component',
@@ -49,6 +50,7 @@ export class DescriptionListingItemComponent extends BaseComponent implements On
 	@Input() isPublic: boolean = false;
 	@Input() tenants: Tenant[] = [];
     @Input() statusStorageFile: SafeUrl;
+	@Input() orderedDescriptionPreferencesList:ReferenceType[] = [];
 	@Output() onClick: EventEmitter<Description> = new EventEmitter();
 
 	isDraft: boolean;
@@ -97,6 +99,8 @@ export class DescriptionListingItemComponent extends BaseComponent implements On
 			this.isDeleted = false;
 		}
 
+		if (this.description?.plan?.planReferences?.length > 0) this.description.plan.planReferences = this.description?.plan?.planReferences?.filter(x => x.isActive === IsActive.Active);
+
 		this.canDelete = !this.isPublic && (this.authService.hasPermission(AppPermission.DeleteDescription) ||
 			this.description.authorizationFlags?.some(x => x === AppPermission.DeleteDescription)) && !this.isDeleted &&this.description.belongsToCurrentTenant != false;
 
@@ -126,7 +130,7 @@ export class DescriptionListingItemComponent extends BaseComponent implements On
 	}
 
 	getItemLink(): string {
-		return this.isPublic ? this.routerUtils.generateUrl(['/explore-descriptions/overview/public/', this.description.id.toString()]) : 
+		return this.isPublic ? this.routerUtils.generateUrl(['/explore-descriptions/overview/public/', this.description.id.toString()]) :
         this.routerUtils.generateUrl(['/plans/overview/', this.description.plan.id.toString(), '/descriptions/', this.description.id.toString()]);
 	}
 
@@ -167,7 +171,7 @@ export class DescriptionListingItemComponent extends BaseComponent implements On
                             'descriptionCopyId': this.description.id,
                             'sectionId': result.sectionId
                         }}
-                    );				
+                    );
                 }
 			});
 	}
@@ -235,7 +239,7 @@ export class DescriptionListingItemComponent extends BaseComponent implements On
 	onDeleteCallbackError(error) {
 		this.uiNotificationService.snackBarNotification(error.error.message ? error.error.message : this.language.instant('GENERAL.SNACK-BAR.UNSUCCESSFUL-DELETE'), SnackBarNotificationLevel.Error);
 	}
-	
+
 	canEditDescription(): boolean {
 		return (this.isDraft) && (this.description.authorizationFlags?.some(x => x === AppPermission.EditDescription) || this.authentication.hasPermission(AppPermission.EditDescription)) && this.isPublic == false && this.description.belongsToCurrentTenant != false;
 	}
@@ -247,7 +251,7 @@ export class DescriptionListingItemComponent extends BaseComponent implements On
     //         .subscribe(response => {
     //             this.storageFileLogo = this.sanitizer.bypassSecurityTrustUrl(URL.createObjectURL(response.body));
     //         });
-    //     }			
-    //     return 	
+    //     }
+    //     return
     // }
 }

@@ -26,6 +26,7 @@ public class QueueOutboxQuery extends QueryBase<QueueOutboxEntity> {
 
 	private Collection<UUID> ids;
 	private Instant createdAfter;
+	private Instant createdBefore;
 	private Collection<IsActive> isActives;
 	private Collection<String> exchanges;
 	private Collection<String> routes;
@@ -119,6 +120,11 @@ public class QueueOutboxQuery extends QueryBase<QueueOutboxEntity> {
 		return this;
 	}
 
+	public QueueOutboxQuery createdBefore(Instant value) {
+		this.createdBefore = value;
+		return this;
+	}
+
 	public QueueOutboxQuery retryThreshold(Integer value) {
 		this.retryThreshold = value;
 		return this;
@@ -171,6 +177,9 @@ public class QueueOutboxQuery extends QueryBase<QueueOutboxEntity> {
 
 		if (this.createdAfter != null) {
 			predicates.add(queryContext.CriteriaBuilder.greaterThan(queryContext.Root.get(QueueOutboxEntity._createdAt), this.createdAfter));
+		}
+		if (this.createdBefore != null) {
+			predicates.add(queryContext.CriteriaBuilder.lessThan(queryContext.Root.get(QueueOutboxEntity._createdAt), this.createdBefore));
 		}
 		if (this.isActives != null) {
 			CriteriaBuilder.In<IsActive> inClause = queryContext.CriteriaBuilder.in(queryContext.Root.get(QueueOutboxEntity._isActive));

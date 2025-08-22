@@ -8,7 +8,6 @@ import { HybridListingModule } from "@common/modules/hybrid-listing/hybrid-listi
 import { TextFilterModule } from "@common/modules/text-filter/text-filter.module";
 import { UserSettingsModule } from "@common/modules/user-settings/user-settings.module";
 import { CommonUiModule } from '@common/ui/common-ui.module';
-import { NgxDropzoneModule } from "ngx-dropzone";
 import { RichTextEditorModule } from '@app/library/rich-text-editor/rich-text-editor.module';
 import { TenantConfigurationRoutingModule } from './tenant-configuration.routing';
 import { TenantConfigurationEditorComponent } from './editor/tenant-configuration-editor.component';
@@ -24,7 +23,12 @@ import { PlanWorkflowEditorComponent } from './editor/plan-workflow/plan-workflo
 import { DescriptionWorkflowEditorComponent } from './editor/description-workflow/description-workflow-editor/description-workflow-editor.component';
 import { EvaluatorEditorComponent } from './editor/evaluator/evaluator-editor.component';
 import { FeaturedEntitiesEditorComponent } from './editor/featured-entities/featured-entities-editor.component';
+import { PluginConfigurationEditorComponent } from './editor/plugin-configuration/plugin-configuration-editor.component';
 import { DefaultPlanBlueprintEditorComponent } from './editor/default-plan-blueprint/default-plan-blueprint-editor.component';
+import { FileUploadComponent } from '@app/library/file-uploader/file-uploader.component';
+import { PluginEditorModule } from '@app/ui/plugin/plugin-editor.module';
+import { ViewPreferencesEditorComponent } from './editor/view-preferences/view-preferences-editor.component';
+import { ViewPreferencesReferenceEditorComponent } from './editor/view-preferences/view-preferences-reference/view-preferences-reference-editor.component';
 
 @NgModule({
 	imports: [
@@ -32,7 +36,6 @@ import { DefaultPlanBlueprintEditorComponent } from './editor/default-plan-bluep
 		CommonFormsModule,
 		ConfirmationDialogModule,
 		TenantConfigurationRoutingModule,
-		NgxDropzoneModule,
 		DragDropModule,
         FormattingModule,
 		AutoCompleteModule,
@@ -42,7 +45,9 @@ import { DefaultPlanBlueprintEditorComponent } from './editor/default-plan-bluep
 		CommonFormattingModule,
 		RichTextEditorModule,
 		NgxColorsModule,
-		NotifierListModule
+		NotifierListModule,
+		PluginEditorModule,
+        FileUploadComponent
 	],
 	declarations: [
 		TenantConfigurationEditorComponent,
@@ -51,11 +56,14 @@ import { DefaultPlanBlueprintEditorComponent } from './editor/default-plan-bluep
 		DepositEditorComponent,
 		FileTransformerEditorComponent,
 		LogoEditorComponent,
+		PluginConfigurationEditorComponent,
         PlanWorkflowEditorComponent,
         DescriptionWorkflowEditorComponent,
 		EvaluatorEditorComponent,
 		FeaturedEntitiesEditorComponent,
-		DefaultPlanBlueprintEditorComponent
+		DefaultPlanBlueprintEditorComponent,
+		ViewPreferencesEditorComponent,
+		ViewPreferencesReferenceEditorComponent
 	]
 })
 export class TenantConfigurationModule { }

@@ -1,4 +1,4 @@
-import { AfterViewInit, ChangeDetectorRef, Component, OnInit, ViewChild } from '@angular/core';
+import {AfterViewInit, ChangeDetectorRef, Component, Inject, OnInit, Optional, ViewChild} from '@angular/core';
 import { AbstractControl, UntypedFormArray, UntypedFormGroup } from '@angular/forms';
 import { MatDialog } from '@angular/material/dialog';
 import { Title } from '@angular/platform-browser';
@@ -36,7 +36,10 @@ import { Guid } from '@common/types/guid';
 import { TranslateService } from '@ngx-translate/core';
 import { map, takeUntil } from 'rxjs/operators';
 import { nameof } from 'ts-simple-nameof';
-import { FormAnnotationService } from '../../annotations/annotation-dialog-component/form-annotation.service';
+import {
+	FormAnnotationService,
+	MULTI_FORM_ANNOTATION_SERVICE_TOKEN
+} from '../../annotations/annotation-dialog-component/form-annotation.service';
 import { DescriptionEditorModel, DescriptionFieldIndicator, DescriptionPropertyDefinitionEditorModel } from './description-editor.model';
 import { DescriptionEditorService } from './description-editor.service';
 import { DescriptionFormService } from './description-form/components/services/description-form.service';
@@ -87,7 +90,7 @@ export class DescriptionEditorComponent extends BaseEditor<DescriptionEditorMode
 	private permissionPerSection: Map<Guid, string[]>;
 
 	oldStatusId: Guid;
-
+	private formAnnotationService: FormAnnotationService
 	constructor(
 		// BaseFormEditor injected dependencies
 		public routerUtils: RouterUtilsService,
@@ -116,7 +119,7 @@ export class DescriptionEditorComponent extends BaseEditor<DescriptionEditorMode
 		private changeDetectorRef: ChangeDetectorRef,
 		private tableOfContentsService: TableOfContentsService,
 		private descriptionFormService: DescriptionFormService,
-		private formAnnotationService: FormAnnotationService,
+		@Optional() @Inject(MULTI_FORM_ANNOTATION_SERVICE_TOKEN) private formAnnotationServices: FormAnnotationService[],
 	) {
 		const descriptionLabel: string = route.snapshot.data['entity']?.label;
 		if (descriptionLabel) {
@@ -144,7 +147,7 @@ export class DescriptionEditorComponent extends BaseEditor<DescriptionEditorMode
 				const planId = params['planId'];
 				const copyPlanId = params['copyPlanId'];
 				const planSectionId = params['planSectionId'];
-
+				this.formAnnotationService = this.formAnnotationServices?.find(service => service.getEntityId() === this.item);
 				const isPublicDescription = params['public'];
 				const newPlanId = params['newPlanId'];
 
@@ -206,7 +209,7 @@ export class DescriptionEditorComponent extends BaseEditor<DescriptionEditorMode
 	ngAfterViewInit(): void {
 		if (this.scrollToField && this.anchorFieldsetId && this.anchorFieldsetId != '') {
 			this.descriptionFormService.scrollingToAnchor(this.anchorFieldsetId);
-			if (this.openAnnotation) this.formAnnotationService.οpenAnnotationDialog(this.anchorFieldsetId);
+			if (this.openAnnotation) this.formAnnotationService?.οpenAnnotationDialog(this.anchorFieldsetId);
 		}
 	}
 

@@ -1,5 +1,7 @@
 package org.opencdmp.commons.types.user;
 
+import org.opencdmp.commons.types.pluginconfiguration.PluginConfigurationUserEntity;
+import java.util.List;
 import java.util.UUID;
 
 public class AdditionalInfoEntity {
@@ -9,6 +11,7 @@ public class AdditionalInfoEntity {
 	private String language;
 	private String roleOrganization;
 	private UUID organizationId;
+	private List<PluginConfigurationUserEntity> pluginConfigurations;
 
 	public String getAvatarUrl() {
 		return this.avatarUrl;
@@ -56,5 +59,13 @@ public class AdditionalInfoEntity {
 
 	public void setRoleOrganization(String roleOrganization) {
 		this.roleOrganization = roleOrganization;
+	}
+
+	public List<PluginConfigurationUserEntity> getPluginConfigurations() {
+		return pluginConfigurations;
+	}
+
+	public void setPluginConfigurations(List<PluginConfigurationUserEntity> pluginConfigurations) {
+		this.pluginConfigurations = pluginConfigurations;
 	}
 }

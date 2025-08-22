@@ -20,23 +20,18 @@ export class ImportDescriptionTemplateDialogComponent {
 	) { }
 
 
-	selectXML(event) {
-		let file: FileList = null;
-		if (event.target && event.target.files) {
-			file = event.target.files;
-		} else if (event.addedFiles && event.addedFiles.length) {
-			file = event.addedFiles;
-		}
+	selectXML(event: File) {
+		let file = event;
 		if (!file) return;//no select closed with cancel . no file selected
-		const size: number = file[0].size;  // Get file size.
+		const size: number = file.size;  // Get file size.
 		this.sizeError = size > this.maxFileSize;  // Checks if file size is valid.
 		const formdata: FormData = new FormData();
 		if (!this.sizeError) {
 			this.data.file = file;
 			this.selectFile = true;
-			this.selectedFileName = file[0].name;
+			this.selectedFileName = file.name;
 		}
-		this.data.name = file[0].name;
+		this.data.name = file.name;
 	}
 
 	cancel() {

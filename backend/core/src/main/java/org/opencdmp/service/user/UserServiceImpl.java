@@ -45,6 +45,7 @@ import org.opencdmp.data.tenant.TenantScopedBaseEntity;
 import org.opencdmp.errorcode.ErrorThesaurusProperties;
 import org.opencdmp.event.*;
 import org.opencdmp.integrationevent.outbox.annotationentitytouch.AnnotationEntityTouchedIntegrationEventHandler;
+import org.opencdmp.integrationevent.outbox.indicatoraccess.IndicatorAccessEventHandlerImpl;
 import org.opencdmp.integrationevent.outbox.notification.NotifyIntegrationEvent;
 import org.opencdmp.integrationevent.outbox.notification.NotifyIntegrationEventHandler;
 import org.opencdmp.integrationevent.outbox.userremoval.UserRemovalIntegrationEventHandler;
@@ -55,6 +56,7 @@ import org.opencdmp.model.deleter.*;
 import org.opencdmp.model.persist.*;
 import org.opencdmp.model.persist.actionconfirmation.MergeAccountConfirmationPersist;
 import org.opencdmp.model.persist.actionconfirmation.RemoveCredentialRequestPersist;
+import org.opencdmp.model.persist.pluginconfiguration.PluginConfigurationUserPersist;
 import org.opencdmp.model.persist.referencedefinition.DefinitionPersist;
 import org.opencdmp.model.reference.Reference;
 import org.opencdmp.model.referencetype.ReferenceType;
@@ -65,6 +67,7 @@ import org.opencdmp.service.accounting.AccountingService;
 import org.opencdmp.service.actionconfirmation.ActionConfirmationService;
 import org.opencdmp.service.elastic.ElasticService;
 import org.opencdmp.service.keycloak.KeycloakService;
+import org.opencdmp.service.pluginconfiguration.PluginConfigurationService;
 import org.opencdmp.service.usagelimit.UsageLimitService;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -72,10 +75,16 @@ import org.springframework.context.MessageSource;
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.stereotype.Service;
 
+import javax.crypto.BadPaddingException;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.NoSuchPaddingException;
 import javax.management.InvalidApplicationException;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.security.InvalidAlgorithmParameterException;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
@@ -114,12 +123,15 @@ public class UserServiceImpl implements UserService {
     private final ElasticService elasticService;
     private final UserTouchedIntegrationEventHandler userTouchedIntegrationEventHandler;
     private final UserRemovalIntegrationEventHandler userRemovalIntegrationEventHandler;
+    private final IndicatorAccessEventHandlerImpl indicatorAccessEventHandler;
     private final AuthorizationConfiguration authorizationConfiguration;
     private final TenantScope tenantScope;
     private final AnnotationEntityTouchedIntegrationEventHandler annotationEntityTouchedIntegrationEventHandler;
     private final UsageLimitService usageLimitService;
     private final AccountingService accountingService;
     private final UsersProperties usersProperties;
+    private final PluginConfigurationService pluginConfigurationService;
+
     @Autowired
     public UserServiceImpl(
             TenantEntityManager entityManager,
@@ -132,7 +144,7 @@ public class UserServiceImpl implements UserService {
             EventBroker eventBroker,
             JsonHandlingService jsonHandlingService,
             XmlHandlingService xmlHandlingService, QueryFactory queryFactory,
-            UserScope userScope, KeycloakService keycloakService, ActionConfirmationService actionConfirmationService, NotificationProperties notificationProperties, NotifyIntegrationEventHandler eventHandler, ValidatorFactory validatorFactory, ElasticService elasticService, UserTouchedIntegrationEventHandler userTouchedIntegrationEventHandler, UserRemovalIntegrationEventHandler userRemovalIntegrationEventHandler, AuthorizationConfiguration authorizationConfiguration, TenantScope tenantScope, AnnotationEntityTouchedIntegrationEventHandler annotationEntityTouchedIntegrationEventHandler, UsageLimitService usageLimitService, AccountingService accountingService, UsersProperties usersProperties) {
+            UserScope userScope, KeycloakService keycloakService, ActionConfirmationService actionConfirmationService, NotificationProperties notificationProperties, NotifyIntegrationEventHandler eventHandler, ValidatorFactory validatorFactory, ElasticService elasticService, UserTouchedIntegrationEventHandler userTouchedIntegrationEventHandler, UserRemovalIntegrationEventHandler userRemovalIntegrationEventHandler, IndicatorAccessEventHandlerImpl indicatorAccessEventHandler, AuthorizationConfiguration authorizationConfiguration, TenantScope tenantScope, AnnotationEntityTouchedIntegrationEventHandler annotationEntityTouchedIntegrationEventHandler, UsageLimitService usageLimitService, AccountingService accountingService, UsersProperties usersProperties, PluginConfigurationService pluginConfigurationService) {
         this.entityManager = entityManager;
         this.authorizationService = authorizationService;
         this.deleterFactory = deleterFactory;
@@ -153,18 +165,20 @@ public class UserServiceImpl implements UserService {
 	    this.elasticService = elasticService;
 	    this.userTouchedIntegrationEventHandler = userTouchedIntegrationEventHandler;
 	    this.userRemovalIntegrationEventHandler = userRemovalIntegrationEventHandler;
-	    this.authorizationConfiguration = authorizationConfiguration;
+        this.indicatorAccessEventHandler = indicatorAccessEventHandler;
+        this.authorizationConfiguration = authorizationConfiguration;
 	    this.tenantScope = tenantScope;
 	    this.annotationEntityTouchedIntegrationEventHandler = annotationEntityTouchedIntegrationEventHandler;
         this.usageLimitService = usageLimitService;
         this.accountingService = accountingService;
         this.usersProperties = usersProperties;
+        this.pluginConfigurationService = pluginConfigurationService;
     }
 
     //region persist
     
     @Override
-    public User persist(UserPersist model, FieldSet fields) throws MyForbiddenException, MyValidationException, MyApplicationException, MyNotFoundException, InvalidApplicationException, JsonProcessingException {
+    public User persist(UserPersist model, FieldSet fields) throws MyForbiddenException, MyValidationException, MyApplicationException, MyNotFoundException, InvalidApplicationException, JsonProcessingException, InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
         logger.debug(new MapLogEntry("persisting data User").And("model", model).And("fields", fields));
 
         this.authorizationService.authorizeAtLeastOneForce(model.getId() != null ? List.of(new OwnedResource(model.getId())) : null, Permission.EditUser);
@@ -183,7 +197,8 @@ public class UserServiceImpl implements UserService {
             data.setCreatedAt(Instant.now());
         }
 
-        data.setAdditionalInfo(this.jsonHandlingService.toJson(this.buildAdditionalInfoEntity(model.getAdditionalInfo())));
+        AdditionalInfoEntity oldAdditionalInfo = this.conventionService.isNullOrEmpty(data.getAdditionalInfo()) ? null : this.jsonHandlingService.fromJsonSafe(AdditionalInfoEntity.class, data.getAdditionalInfo());
+        data.setAdditionalInfo(this.jsonHandlingService.toJson(this.buildAdditionalInfoEntity(model.getAdditionalInfo(), oldAdditionalInfo)));
         
         data.setName(model.getName());
         data.setUpdatedAt(Instant.now());
@@ -198,7 +213,7 @@ public class UserServiceImpl implements UserService {
         return this.builderFactory.builder(UserBuilder.class).authorize(AuthorizationFlags.AllExceptPublic).build(BaseFieldSet.build(fields, User._id), data);
     }
 
-    private @NotNull AdditionalInfoEntity buildAdditionalInfoEntity(UserAdditionalInfoPersist persist) throws InvalidApplicationException {
+    private @NotNull AdditionalInfoEntity buildAdditionalInfoEntity(UserAdditionalInfoPersist persist, AdditionalInfoEntity oldAdditionalInfo) throws InvalidApplicationException, InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
         AdditionalInfoEntity data = new AdditionalInfoEntity();
         if (persist == null) return data;
         if (persist.getOrganization() != null) {
@@ -210,6 +225,13 @@ public class UserServiceImpl implements UserService {
         data.setTimezone(persist.getTimezone());
         data.setLanguage(persist.getLanguage());
         data.setAvatarUrl(persist.getAvatarUrl());
+        if (!this.conventionService.isListNullOrEmpty(persist.getPluginConfigurations())) {
+            data.setPluginConfigurations(new ArrayList<>());
+            for (PluginConfigurationUserPersist pluginConfigurationUser : persist.getPluginConfigurations()) {
+                data.getPluginConfigurations().add(this.pluginConfigurationService.buildPluginConfigurationUserEntity(pluginConfigurationUser, oldAdditionalInfo != null ? oldAdditionalInfo.getPluginConfigurations() : null));
+            }
+        }
+
         return data;
     }
 
@@ -223,6 +245,8 @@ public class UserServiceImpl implements UserService {
         } else {
             referenceEntity = this.queryFactory.query(ReferenceQuery.class).sourceTypes(model.getSourceType()).typeIds(model.getTypeId()).sources(model.getSource()).isActive(IsActive.Active).references(model.getReference()).first();
             if (referenceEntity == null) {
+                this.usageLimitService.checkIncrease(UsageLimitTargetMetric.REFERENCE_COUNT);
+
                 referenceEntity = new ReferenceEntity();
                 referenceEntity.setId(UUID.randomUUID());
                 referenceEntity.setLabel(model.getLabel());
@@ -246,6 +270,8 @@ public class UserServiceImpl implements UserService {
                         this.tenantScope.setTempTenant(this.entityManager, null, this.tenantScope.getDefaultTenantCode());
                     }
                     this.entityManager.persist(referenceEntity);
+                    this.accountingService.increase(UsageLimitTargetMetric.REFERENCE_COUNT.getValue());
+                    this.accountingService.increase(UsageLimitTargetMetric.REFERENCE_BY_TYPE_COUNT.getValue().replace("{type_code}", referenceType.getCode()));
                 } finally {
                     this.tenantScope.removeTempTenant(this.entityManager);
                 }
@@ -373,6 +399,7 @@ public class UserServiceImpl implements UserService {
         }
         
         this.userTouchedIntegrationEventHandler.handle(data.getId());
+        this.indicatorAccessEventHandler.handle(data.getId());
         return this.builderFactory.builder(UserBuilder.class).authorize(AuthorizationFlags.AllExceptPublic).build(BaseFieldSet.build(fields, User._id), data);
     }
     
@@ -563,10 +590,10 @@ public class UserServiceImpl implements UserService {
         if (this.userScope.getUserIdSafe() == null) throw new MyForbiddenException(this.errors.getForbidden().getCode(),  this.errors.getForbidden().getMessage());
         
         String token = this.createMergeAccountConfirmation(model.getEmail());
-	    this.createMergeNotificationEvent(token, user, model.getEmail());
+	    this.createMergeNotificationEvent(token, user);
     }
 
-    private void createMergeNotificationEvent(String token, UserEntity user, String email) throws InvalidApplicationException {
+    private void createMergeNotificationEvent(String token, UserEntity user) throws InvalidApplicationException {
         UserEntity currentUser = this.entityManager.find(UserEntity.class,  this.userScope.getUserIdSafe());
         if (currentUser == null) throw new MyNotFoundException(this.messageSource.getMessage("General_ItemNotFound", new Object[]{ this.userScope.getUserIdSafe(), User.class.getSimpleName()}, LocaleContextHolder.getLocale()));
         
@@ -576,8 +603,8 @@ public class UserServiceImpl implements UserService {
         event.setNotificationType(this.notificationProperties.getMergeAccountConfirmationType());
         NotificationFieldData data = new NotificationFieldData();
         List<FieldInfo> fieldInfoList = new ArrayList<>();
-        fieldInfoList.add(new FieldInfo("{recipient}", DataType.String, currentUser.getName()));
-        fieldInfoList.add(new FieldInfo("{userName}", DataType.String, user.getName()));
+        fieldInfoList.add(new FieldInfo("{recipient}", DataType.String, user.getName()));
+        fieldInfoList.add(new FieldInfo("{userName}", DataType.String, currentUser.getName()));
         fieldInfoList.add(new FieldInfo("{confirmationToken}", DataType.String, token));
         fieldInfoList.add(new FieldInfo("{expiration_time}", DataType.String, this.secondsToTime(this.usersProperties.getEmailExpirationTimeSeconds().getMergeAccountExpiration())));
         data.setFields(fieldInfoList);
@@ -589,18 +616,28 @@ public class UserServiceImpl implements UserService {
         UserCredentialEntity data = this.entityManager.find(UserCredentialEntity.class, model.getCredentialId(), true);
         if (data == null) throw new MyNotFoundException(this.messageSource.getMessage("General_ItemNotFound", new Object[]{model.getCredentialId(), UserCredentialEntity.class.getSimpleName()}, LocaleContextHolder.getLocale()));
         if (!data.getUserId().equals(this.userScope.getUserId())) throw new MyForbiddenException(this.errors.getForbidden().getCode(),  this.errors.getForbidden().getMessage());
-
+        String email = null;
+        if (data.getData() != null){
+            UserCredentialDataEntity userCredentialDataEntity = this.jsonHandlingService.fromJsonSafe(UserCredentialDataEntity.class, data.getData());
+            email = userCredentialDataEntity.getEmail();
+        }
 
         String token = this.createRemoveConfirmation(data.getId());
-        this.createRemoveCredentialNotificationEvent(token, data.getUserId());
+        this.createRemoveCredentialNotificationEvent(token, data.getUserId(), email);
     }
 
-    private void createRemoveCredentialNotificationEvent(String token, UUID userId) throws InvalidApplicationException {
+    private void createRemoveCredentialNotificationEvent(String token, UUID userId, String email) throws InvalidApplicationException {
         UserEntity user = this.entityManager.find(UserEntity.class, userId, true);
         if (user == null) throw new MyNotFoundException(this.messageSource.getMessage("General_ItemNotFound", new Object[]{userId, UserEntity.class.getSimpleName()}, LocaleContextHolder.getLocale()));
 
         NotifyIntegrationEvent event = new NotifyIntegrationEvent();
-        event.setUserId(userId);
+        if (email != null) {
+            List<ContactPair> contactPairs = new ArrayList<>();
+            contactPairs.add(new ContactPair(ContactInfoType.Email, email));
+            NotificationContactData contactData = new NotificationContactData(contactPairs, null, null);
+            event.setContactHint(this.jsonHandlingService.toJsonSafe(contactData));
+        } else event.setUserId(userId);
+
         event.setContactTypeHint(NotificationContactType.EMAIL);
         event.setNotificationType(this.notificationProperties.getRemoveCredentialConfirmationType());
         NotificationFieldData data = new NotificationFieldData();
@@ -726,12 +763,14 @@ public class UserServiceImpl implements UserService {
             this.entityManager.reloadTenantFilters();
         }
 
-        this.userTouchedIntegrationEventHandler.handle(newUser.getId());
-        this.userRemovalIntegrationEventHandler.handle(userToBeMerge.getId());
-
         if (!newUser.getId().equals(userToBeMerge.getId())) {
             this.syncKeycloakRoles(newUser.getId());
         }
+
+        this.userTouchedIntegrationEventHandler.handle(newUser.getId());
+        this.userRemovalIntegrationEventHandler.handle(userToBeMerge.getId());
+
+        this.indicatorAccessEventHandler.handle(newUser.getId());
 
         this.eventBroker.emit(new UserTouchedEvent(newUser.getId()));
         this.eventBroker.emit(new UserTouchedEvent(userToBeMerge.getId()));
@@ -928,21 +967,17 @@ public class UserServiceImpl implements UserService {
         this.deleterFactory.deleter(UserCredentialDeleter.class).delete(List.of(userCredentialEntity));
 
         this.entityManager.flush();
-        
-        try {
-            this.entityManager.disableTenantFilters();
-            action.setUpdatedAt(Instant.now());
-            action.setStatus(ActionConfirmationStatus.Accepted);
-            this.entityManager.merge(action);
-            this.entityManager.flush();
-        } finally {
-            this.entityManager.reloadTenantFilters();
-        }
 
-        this.userTouchedIntegrationEventHandler.handle(userCredentialEntity.getUserId());
+        action.setUpdatedAt(Instant.now());
+        action.setStatus(ActionConfirmationStatus.Accepted);
+        this.entityManager.merge(action);
+        this.entityManager.flush();
 
         this.keycloakService.removeFromAllGroups(userCredentialEntity.getExternalId());
         this.addToDefaultUserGroups(userCredentialEntity.getExternalId());
+
+        this.userTouchedIntegrationEventHandler.handle(userCredentialEntity.getUserId());
+        this.indicatorAccessEventHandler.handle(userCredentialEntity.getUserId());
 
         this.eventBroker.emit(new UserCredentialTouchedEvent(userCredentialEntity.getId(), userCredentialEntity.getExternalId()));
         this.eventBroker.emit(new UserTouchedEvent(userCredentialEntity.getUserId()));
@@ -1078,7 +1113,14 @@ public class UserServiceImpl implements UserService {
         this.addUserToTenant(tenantEntity, userInviteToTenantRequest);
 
         action.setStatus(ActionConfirmationStatus.Accepted);
-        this.entityManager.merge(action);
+
+        try {
+            this.entityManager.disableTenantFilters();
+            this.entityManager.merge(action);
+            this.entityManager.flush();
+        } finally {
+            this.entityManager.reloadTenantFilters();
+        }
 
     }
 
@@ -1113,7 +1155,7 @@ public class UserServiceImpl implements UserService {
                     }
                 }
 
-
+                this.entityManager.disableTenantFilters();
                 for (String role: userInviteToTenantRequest.getRoles()) {
                     UserRoleEntity item = new UserRoleEntity();
                     item.setId(UUID.randomUUID());
@@ -1128,7 +1170,6 @@ public class UserServiceImpl implements UserService {
 
                 this.entityManager.flush();
 
-                this.userTouchedIntegrationEventHandler.handle(userId);
                 this.eventBroker.emit(new UserTouchedEvent(userId));
 
                 this.entityManager.flush();
@@ -1137,6 +1178,9 @@ public class UserServiceImpl implements UserService {
                     if (tenant != null && !this.conventionService.isNullOrEmpty(tenant.getCode())) this.keycloakService.addUserToTenantRoleGroup(userCredential.getExternalId(), tenant.getCode(), role);
                     else this.keycloakService.addUserToTenantRoleGroup(userCredential.getExternalId(), tenantScope.getDefaultTenantCode(), role);
                 }
+
+                this.userTouchedIntegrationEventHandler.handle(userId);
+                this.indicatorAccessEventHandler.handle(userId);
             }
 
         } finally {

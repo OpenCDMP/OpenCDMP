@@ -12,6 +12,10 @@ import gr.cite.tools.logging.LoggerService;
 import gr.cite.tools.logging.MapLogEntry;
 import gr.cite.tools.validation.ValidationFilterAnnotation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.enums.Explode;
+import io.swagger.v3.oas.annotations.enums.ParameterStyle;
+import io.swagger.v3.oas.annotations.extensions.Extension;
+import io.swagger.v3.oas.annotations.extensions.ExtensionProperty;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
@@ -45,7 +49,7 @@ import java.util.*;
 
 @RestController
 @RequestMapping(path = "api/description-status")
-@io.swagger.v3.oas.annotations.tags.Tag(name = "DescriptionStatuses", description = "Manage description statuses")
+@io.swagger.v3.oas.annotations.tags.Tag(name = "Description Statuses", description = "Manage description statuses", extensions = @Extension(name = "x-order", properties = @ExtensionProperty(name = "value", value = "15")))
 @SwaggerCommonErrorResponses
 public class DescriptionStatusController {
     private static final LoggerService logger = new LoggerService(LoggerFactory.getLogger(DescriptionStatusController.class));
@@ -78,12 +82,12 @@ public class DescriptionStatusController {
     }
 
     @PostMapping("query")
-    @OperationWithTenantHeader(summary = "Query all descriptionStatuses", description = SwaggerHelpers.Tag.endpoint_query, requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(description = SwaggerHelpers.Tag.endpoint_query_request_body, content = @Content(
+    @OperationWithTenantHeader(summary = "Query all description statuses", description = SwaggerHelpers.DescriptionStatus.endpoint_query, requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(content = @Content(
             examples = {
                     @ExampleObject(
                             name = SwaggerHelpers.Commons.pagination_example,
                             description = SwaggerHelpers.Commons.pagination_example_description,
-                            value = SwaggerHelpers.Tag.endpoint_query_request_body_example
+                            value = SwaggerHelpers.DescriptionStatus.endpoint_query_request_body_example
                     )
             }
     )), responses = @ApiResponse(description = "OK", responseCode = "200", content = @Content(
@@ -95,7 +99,7 @@ public class DescriptionStatusController {
             examples = @ExampleObject(
                     name = SwaggerHelpers.Commons.pagination_response_example,
                     description = SwaggerHelpers.Commons.pagination_response_example_description,
-                    value = SwaggerHelpers.Tag.endpoint_query_response_example
+                    value = SwaggerHelpers.DescriptionStatus.endpoint_query_response_example
             ))))
     public QueryResult<DescriptionStatus> Query(@RequestBody DescriptionStatusLookup lookup) throws MyApplicationException, MyForbiddenException {
         logger.debug("querying {}", DescriptionStatus.class.getSimpleName());
@@ -114,7 +118,7 @@ public class DescriptionStatusController {
     }
 
     @GetMapping("{id}")
-    @OperationWithTenantHeader(summary = "Fetch a specific descriptionStatus by id", description = "",
+    @OperationWithTenantHeader(summary = "Fetch a specific description status by id", description = "",
             responses = @ApiResponse(description = "OK", responseCode = "200", content = @Content(
                     schema = @Schema(
                             implementation = DescriptionStatus.class
@@ -122,8 +126,8 @@ public class DescriptionStatusController {
             ))
     @Swagger404
     public DescriptionStatus Get(
-            @Parameter(name = "id", description = "The id of a descriptionStatus to fetch", example = "c0c163dc-2965-45a5-9608-f76030578609", required = true) @PathVariable("id") UUID id,
-            @Parameter(name = "fieldSet", description = SwaggerHelpers.Commons.fieldset_description, required = true) FieldSet fieldSet,
+            @Parameter(name = "id", description = "The id of a description status to fetch", example = "c0c163dc-2965-45a5-9608-f76030578609", required = true) @PathVariable("id") UUID id,
+            @Parameter(name = "f", description = SwaggerHelpers.Commons.fieldset_description, required = true, style = ParameterStyle.FORM, explode = Explode.TRUE, schema = @Schema(type = "array", example = SwaggerHelpers.DescriptionStatus.endpoint_field_set_example, allowableValues = SwaggerHelpers.Principal.available_field_set )) FieldSet fieldSet,
             Locale locale
     ) throws MyApplicationException, MyForbiddenException, MyNotFoundException {
         logger.debug(new MapLogEntry("retrieving" + DescriptionStatus.class.getSimpleName()).And("id", id).And("fields", fieldSet));
@@ -144,7 +148,7 @@ public class DescriptionStatusController {
     }
 
     @PostMapping("persist")
-    @OperationWithTenantHeader(summary = "Create a new or update an existing descriptionStatus", description = "",
+    @OperationWithTenantHeader(summary = "Create a new or update an existing description status", description = "",
             responses = @ApiResponse(description = "OK", responseCode = "200", content = @Content(
                     schema = @Schema(
                             implementation = DescriptionStatus.class
@@ -156,8 +160,8 @@ public class DescriptionStatusController {
     @ValidationFilterAnnotation(validator = DescriptionStatusPersist.DescriptionStatusPersistValidation.ValidatorName, argumentName = "model")
     public DescriptionStatus Persist(
             @RequestBody DescriptionStatusPersist model,
-            @Parameter(name = "fieldSet",description = SwaggerHelpers.Commons.fieldset_description, required = true) FieldSet fieldSet
-    ) throws MyApplicationException, MyForbiddenException, MyNotFoundException, InvalidApplicationException, JAXBException {
+            @Parameter(name = "f", description = SwaggerHelpers.Commons.fieldset_description, required = true, style = ParameterStyle.FORM, explode = Explode.TRUE, schema = @Schema(type = "array", example = SwaggerHelpers.DescriptionStatus.endpoint_field_set_example, allowableValues = SwaggerHelpers.Principal.available_field_set )) FieldSet fieldSet
+            ) throws MyApplicationException, MyForbiddenException, MyNotFoundException, InvalidApplicationException, JAXBException {
         logger.debug(new MapLogEntry("persisting"+DescriptionStatus.class.getSimpleName()).And("model", model).And("fieldSet", fieldSet));
         DescriptionStatus persisted = this.descriptionStatusService.persist(model, fieldSet);
 
@@ -170,12 +174,12 @@ public class DescriptionStatusController {
     }
 
     @DeleteMapping("{id}")
-    @OperationWithTenantHeader(summary = "Delete a descriptionStatus by id", description = "",
+    @OperationWithTenantHeader(summary = "Delete a description status by id", description = "",
             responses = @ApiResponse(description = "OK", responseCode = "200"))
     @Swagger404
     @Transactional
     public void Delete(
-            @Parameter(name = "id", description = "The id of descriptionStatus to delete", example = "c0c163dc-2965-45a5-9608-f76030578609", required = true) @PathVariable("id") UUID id
+            @Parameter(name = "id", description = "The id of description status to delete", example = "c0c163dc-2965-45a5-9608-f76030578609", required = true) @PathVariable("id") UUID id
     ) throws MyForbiddenException, InvalidApplicationException {
         logger.debug(new MapLogEntry("deleting"+DescriptionStatus.class.getSimpleName()).And("id", id));
 

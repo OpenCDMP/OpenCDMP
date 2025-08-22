@@ -1,0 +1,1518 @@
+[
+  {
+    "category": "rda",
+    "name": "rda.dataset.data_quality_assurance"
+  },
+  {
+    "category": "rda",
+    "name": "rda.dataset.distribution.exists"
+  },
+  {
+    "category": "rda",
+    "name": "rda.dataset.distribution.access_url"
+  },
+  {
+    "category": "rda",
+    "name": "rda.dataset.distribution.available_until"
+  },
+  {
+    "category": "rda",
+    "name": "rda.dataset.distribution.byte_size"
+  },
+  {
+    "category": "rda",
+    "name": "rda.dataset.distribution.data_access"
+  },
+  {
+    "category": "rda",
+    "name": "rda.dataset.distribution.description"
+  },
+  {
+    "category": "rda",
+    "name": "rda.dataset.distribution.download_url"
+  },
+  {
+    "category": "rda",
+    "name": "rda.dataset.distribution.format"
+  },
+  {
+    "category": "rda",
+    "name": "rda.dataset.distribution.host.availability"
+  },
+  {
+    "category": "rda",
+    "name": "rda.dataset.distribution.host.backup_frequency"
+  },
+  {
+    "category": "rda",
+    "name": "rda.dataset.distribution.host.backup_type"
+  },
+  {
+    "category": "rda",
+    "name": "rda.dataset.distribution.host.certified_with"
+  },
+  {
+    "category": "rda",
+    "name": "rda.dataset.distribution.host.description"
+  },
+  {
+    "category": "rda",
+    "name": "rda.dataset.distribution.host.geo_location"
+  },
+  {
+    "category": "rda",
+    "name": "rda.dataset.distribution.host.pid_system"
+  },
+  {
+    "category": "rda",
+    "name": "rda.dataset.distribution.host.storage_type"
+  },
+  {
+    "category": "rda",
+    "name": "rda.dataset.distribution.host.title"
+  },
+  {
+    "category": "rda",
+    "name": "rda.dataset.distribution.host.url"
+  },
+  {
+    "category": "rda",
+    "name": "rda.dataset.distribution.host.support_versioning"
+  },
+  {
+    "category": "rda",
+    "name": "rda.dataset.distribution.license"
+  },
+  {
+    "category": "rda",
+    "name": "rda.dataset.distribution.license.license_ref"
+  },
+  {
+    "category": "rda",
+    "name": "rda.dataset.distribution.license.start_date"
+  },
+  {
+    "category": "rda",
+    "name": "rda.dataset.distribution.title"
+  },
+  {
+    "category": "rda",
+    "name": "rda.dataset.keyword"
+  },
+  {
+    "category": "rda",
+    "name": "rda.dataset.language"
+  },
+  {
+    "category": "rda",
+    "name": "rda.dataset.metadata.description"
+  },
+  {
+    "category": "rda",
+    "name": "rda.dataset.metadata.language"
+  },
+  {
+    "category": "rda",
+    "name": "rda.dataset.metadata.metadata_standard_id"
+  },
+  {
+    "category": "rda",
+    "name": "rda.dataset.metadata.metadata_standard_id.identifier"
+  },
+  {
+    "category": "rda",
+    "name": "rda.dataset.metadata.metadata_standard_id.type"
+  },
+  {
+    "category": "rda",
+    "name": "rda.dataset.personal_data"
+  },
+  {
+    "category": "rda",
+    "name": "rda.dataset.preservation_statement"
+  },
+  {
+    "category": "rda",
+    "name": "rda.dataset.security_and_privacy"
+  },
+  {
+    "category": "rda",
+    "name": "rda.dataset.security_and_privacy.description"
+  },
+  {
+    "category": "rda",
+    "name": "rda.dataset.security_and_privacy.title"
+  },
+  {
+    "category": "rda",
+    "name": "rda.dataset.sensitive_data"
+  },
+  {
+    "category": "rda",
+    "name": "rda.dataset.technical_resource.description"
+  },
+  {
+    "category": "rda",
+    "name": "rda.dataset.technical_resource.name"
+  },
+  {
+    "category": "rda",
+    "name": "rda.dataset.title"
+  },
+  {
+    "category": "rda",
+    "name": "rda.dataset.type"
+  },
+  {
+    "category": "rda",
+    "name": "rda.dataset.issued"
+  },
+  {
+    "category": "rda",
+    "name": "rda.dataset.dataset_id"
+  },
+  {
+    "category": "rda",
+    "name": "rda.dataset.dataset_id.identifier"
+  },
+  {
+    "category": "rda",
+    "name": "rda.dataset.dataset_id.type"
+  },
+  {
+    "category": "rda",
+    "name": "rda.dataset.description"
+  },
+  {
+    "category": "rda",
+    "name": "rda.dmp.contact.contact_id.identifier"
+  },
+  {
+    "category": "rda",
+    "name": "rda.dmp.contact.contact_id.type"
+  },
+  {
+    "category": "rda",
+    "name": "rda.dmp.contact.mbox"
+  },
+  {
+    "category": "rda",
+    "name": "rda.dmp.contact.name"
+  },
+  {
+    "category": "rda",
+    "name": "rda.dmp.contributor"
+  },
+  {
+    "category": "rda",
+    "name": "rda.dmp.contributor.contributor_id.identifier"
+  },
+  {
+    "category": "rda",
+    "name": "rda.dmp.contributor.contributor_id.type"
+  },
+  {
+    "category": "rda",
+    "name": "rda.dmp.contributor.mbox"
+  },
+  {
+    "category": "rda",
+    "name": "rda.dmp.contributor.name"
+  },
+  {
+    "category": "rda",
+    "name": "rda.dmp.contributor.role"
+  },
+  {
+    "category": "rda",
+    "name": "rda.dmp.cost"
+  },
+  {
+    "category": "rda",
+    "name": "rda.dmp.cost.currency_code"
+  },
+  {
+    "category": "rda",
+    "name": "rda.dmp.cost.description"
+  },
+  {
+    "category": "rda",
+    "name": "rda.dmp.cost.title"
+  },
+  {
+    "category": "rda",
+    "name": "rda.dmp.cost.value"
+  },
+  {
+    "category": "rda",
+    "name": "rda.dmp.created"
+  },
+  {
+    "category": "rda",
+    "name": "rda.dmp.description"
+  },
+  {
+    "category": "rda",
+    "name": "rda.dmp.dmp_id"
+  },
+  {
+    "category": "rda",
+    "name": "rda.dmp.dmp_id.identifier"
+  },
+  {
+    "category": "rda",
+    "name": "rda.dmp.dmp_id.type"
+  },
+  {
+    "category": "rda",
+    "name": "rda.dmp.ethical_issues_description"
+  },
+  {
+    "category": "rda",
+    "name": "rda.dmp.ethical_issues_exist"
+  },
+  {
+    "category": "rda",
+    "name": "rda.dmp.ethical_issues_report"
+  },
+  {
+    "category": "rda",
+    "name": "rda.dmp.language"
+  },
+  {
+    "category": "rda",
+    "name": "rda.dmp.modified"
+  },
+  {
+    "category": "rda",
+    "name": "rda.dmp.project"
+  },
+  {
+    "category": "rda",
+    "name": "rda.dmp.project.description"
+  },
+  {
+    "category": "rda",
+    "name": "rda.dmp.project.end"
+  },
+  {
+    "category": "rda",
+    "name": "rda.dmp.project.funding.funder_id"
+  },
+  {
+    "category": "rda",
+    "name": "rda.dmp.project.funding.funder_id.identifier"
+  },
+  {
+    "category": "rda",
+    "name": "rda.dmp.project.funding.funder_id.type"
+  },
+  {
+    "category": "rda",
+    "name": "rda.dmp.project.funding.funding_status"
+  },
+  {
+    "category": "rda",
+    "name": "rda.dmp.project.funding.grant_id"
+  },
+  {
+    "category": "rda",
+    "name": "rda.dmp.project.funding.grant_id.identifier"
+  },
+  {
+    "category": "rda",
+    "name": "rda.dmp.project.funding.grant_id.type"
+  },
+  {
+    "category": "rda",
+    "name": "rda.dmp.project.start"
+  },
+  {
+    "category": "rda",
+    "name": "rda.dmp.project.title"
+  },
+  {
+    "category": "rda",
+    "name": "rda.dmp.title"
+  },
+  {
+    "category": "raid",
+    "name": "raid.identifier.id"
+  },
+  {
+    "category": "raid",
+    "name": "raid.identifier.schemaUri"
+  },
+  {
+    "category": "raid",
+    "name": "raid.identifier.registrationAgency.id"
+  },
+  {
+    "category": "raid",
+    "name": "raid.identifier.registrationAgency.schemaUri"
+  },
+  {
+    "category": "raid",
+    "name": "raid.identifier.owner.id"
+  },
+  {
+    "category": "raid",
+    "name": "raid.identifier.owner.schemaUri"
+  },
+  {
+    "category": "raid",
+    "name": "raid.identifier.owner.servicePoint"
+  },
+  {
+    "category": "raid",
+    "name": "raid.identifier.license"
+  },
+  {
+    "category": "raid",
+    "name": "raid.identifier.version"
+  },
+  {
+    "category": "raid",
+    "name": "raid.date.startDate"
+  },
+  {
+    "category": "raid",
+    "name": "raid.date.endDate"
+  },
+  {
+    "category": "raid",
+    "name": "raid.title.text"
+  },
+  {
+    "category": "raid",
+    "name": "raid.title.type.id"
+  },
+  {
+    "category": "raid",
+    "name": "raid.title.type.schemaUri"
+  },
+  {
+    "category": "raid",
+    "name": "raid.title.language.id"
+  },
+  {
+    "category": "raid",
+    "name": "raid.title.language.schemaUri"
+  },
+  {
+    "category": "raid",
+    "name": "raid.title.startDate"
+  },
+  {
+    "category": "raid",
+    "name": "raid.title.endDate"
+  },
+  {
+    "category": "raid",
+    "name": "raid.description.text"
+  },
+  {
+    "category": "raid",
+    "name": "raid.description.type.id"
+  },
+  {
+    "category": "raid",
+    "name": "raid.description.type.schemaUri"
+  },
+  {
+    "category": "raid",
+    "name": "raid.description.language.id"
+  },
+  {
+    "category": "raid",
+    "name": "raid.description.language.schemaUri"
+  },
+  {
+    "category": "raid",
+    "name": "raid.contributor.id"
+  },
+  {
+    "category": "raid",
+    "name": "raid.contributor.schemaUri"
+  },
+  {
+    "category": "raid",
+    "name": "raid.contributor.position.id"
+  },
+  {
+    "category": "raid",
+    "name": "raid.contributor.position.schemaUri"
+  },
+  {
+    "category": "raid",
+    "name": "raid.contributor.position.startDate"
+  },
+  {
+    "category": "raid",
+    "name": "raid.contributor.position.endDate"
+  },
+  {
+    "category": "raid",
+    "name": "raid.contributor.leader"
+  },
+  {
+    "category": "raid",
+    "name": "raid.contributor.contact"
+  },
+  {
+    "category": "raid",
+    "name": "raid.contributor.role.id"
+  },
+  {
+    "category": "raid",
+    "name": "raid.contributor.role.schemaUri"
+  },
+  {
+    "category": "raid",
+    "name": "raid.organisation.id"
+  },
+  {
+    "category": "raid",
+    "name": "raid.organisation.schemaUri"
+  },
+  {
+    "category": "raid",
+    "name": "raid.organisation.role.id"
+  },
+  {
+    "category": "raid",
+    "name": "raid.organisation.role.schemaUri"
+  },
+  {
+    "category": "raid",
+    "name": "raid.organisation.role.startDate"
+  },
+  {
+    "category": "raid",
+    "name": "raid.organisation.role.endDate"
+  },
+  {
+    "category": "raid",
+    "name": "raid.relatedObject.id"
+  },
+  {
+    "category": "raid",
+    "name": "raid.relatedObject.schemaUri"
+  },
+  {
+    "category": "raid",
+    "name": "raid.relatedObject.type.id"
+  },
+  {
+    "category": "raid",
+    "name": "raid.relatedObject.type.schemaUri"
+  },
+  {
+    "category": "raid",
+    "name": "raid.relatedObject.category.id"
+  },
+  {
+    "category": "raid",
+    "name": "raid.relatedObject.category.schemaUri"
+  },
+  {
+    "category": "raid",
+    "name": "raid.alternateIdentifier.id"
+  },
+  {
+    "category": "raid",
+    "name": "raid.alternateIdentifier.type"
+  },
+  {
+    "category": "raid",
+    "name": "raid.alternateUrl.url"
+  },
+  {
+    "category": "raid",
+    "name": "raid.relatedRaid.id"
+  },
+  {
+    "category": "raid",
+    "name": "raid.relatedRaid.type.id"
+  },
+  {
+    "category": "raid",
+    "name": "raid.relatedRaid.type.schemaUri"
+  },
+  {
+    "category": "raid",
+    "name": "raid.access.type.id"
+  },
+  {
+    "category": "raid",
+    "name": "raid.access.type.schemaUri"
+  },
+  {
+    "category": "raid",
+    "name": "raid.access.embargoExpiry"
+  },
+  {
+    "category": "raid",
+    "name": "raid.access.statement.text"
+  },
+  {
+    "category": "raid",
+    "name": "raid.access.statement.language.id"
+  },
+  {
+    "category": "raid",
+    "name": "raid.access.statement.language.schemaUri"
+  },
+  {
+    "category": "zenodo",
+    "name": "zenodo.community"
+  },
+  {
+    "category": "zenodo",
+    "name": "zenodo.subject"
+  },
+  {
+    "category": "zenodo",
+    "name": "zenodo.language"
+  },
+  {
+    "category": "zenodo",
+    "name": "zenodo.reference"
+  },
+  {
+    "category": "zenodo",
+    "name": "zenodo.additional_title.title"
+  },
+  {
+    "category": "zenodo",
+    "name": "zenodo.additional_title.type"
+  },
+  {
+    "category": "zenodo",
+    "name": "zenodo.additional_title.language"
+  },
+  {
+    "category": "zenodo",
+    "name": "zenodo.publishing_information.journal.title"
+  },
+  {
+    "category": "zenodo",
+    "name": "zenodo.publishing_information.journal.issn"
+  },
+  {
+    "category": "zenodo",
+    "name": "zenodo.publishing_information.journal.volume"
+  },
+  {
+    "category": "zenodo",
+    "name": "zenodo.publishing_information.journal.issue"
+  },
+  {
+    "category": "zenodo",
+    "name": "zenodo.publishing_information.journal.page_range_or_article_number"
+  },
+  {
+    "category": "zenodo",
+    "name": "zenodo.publishing_information.imprint.title"
+  },
+  {
+    "category": "zenodo",
+    "name": "zenodo.publishing_information.imprint.isbn"
+  },
+  {
+    "category": "zenodo",
+    "name": "zenodo.publishing_information.imprint.place"
+  },
+  {
+    "category": "zenodo",
+    "name": "zenodo.publishing_information.imprint.pagination"
+  },
+  {
+    "category": "zenodo",
+    "name": "zenodo.publishing_information.thesis.university"
+  },
+  {
+    "category": "zenodo",
+    "name": "zenodo.related_identifiers.isCitedBy"
+  },
+  {
+    "category": "zenodo",
+    "name": "zenodo.related_identifiers.cites"
+  },
+  {
+  "category": "zenodo",
+  "name": "zenodo.related_identifiers.isSupplementTo"
+  },
+  {
+    "category": "zenodo",
+    "name": "zenodo.related_identifiers.isSupplementedBy"
+  },
+  {
+    "category": "zenodo",
+    "name": "zenodo.related_identifiers.isContinuedBy"
+  },
+  {
+    "category": "zenodo",
+    "name": "zenodo.related_identifiers.continues"
+  },
+  {
+    "category": "zenodo",
+    "name": "zenodo.related_identifiers.isDescribedBy"
+  },
+  {
+    "category": "zenodo",
+    "name": "zenodo.related_identifiers.describes"
+  },
+  {
+    "category": "zenodo",
+    "name": "zenodo.related_identifiers.hasMetadata"
+  },
+  {
+    "category": "zenodo",
+    "name": "zenodo.related_identifiers.isMetadataFor"
+  },
+  {
+    "category": "zenodo",
+    "name": "zenodo.related_identifiers.isNewVersionOf"
+  },
+  {
+    "category": "zenodo",
+    "name": "zenodo.related_identifiers.isPreviousVersionOf"
+  },
+  {
+    "category": "zenodo",
+    "name": "zenodo.related_identifiers.isPartOf"
+  },
+  {
+    "category": "zenodo",
+    "name": "zenodo.related_identifiers.hasPart"
+  },
+  {
+    "category": "zenodo",
+    "name": "zenodo.related_identifiers.isReferencedBy"
+  },
+  {
+    "category": "zenodo",
+    "name": "zenodo.related_identifiers.references"
+  },
+  {
+    "category": "zenodo",
+    "name": "zenodo.related_identifiers.isDocumentedBy"
+  },
+  {
+    "category": "zenodo",
+    "name": "zenodo.related_identifiers.documents"
+  },
+  {
+    "category": "zenodo",
+    "name": "zenodo.related_identifiers.isCompiledBy"
+  },
+  {
+    "category": "zenodo",
+    "name": "zenodo.related_identifiers.compiles"
+  },
+  {
+    "category": "zenodo",
+    "name": "zenodo.related_identifiers.isVariantFormOf"
+  },
+  {
+    "category": "zenodo",
+    "name": "zenodo.related_identifiers.isOriginalFormof"
+  },
+  {
+    "category": "zenodo",
+    "name": "zenodo.related_identifiers.isIdenticalTo"
+  },
+  {
+    "category": "zenodo",
+    "name": "zenodo.related_identifiers.isAlternateIdentifier"
+  },
+  {
+    "category": "zenodo",
+    "name": "zenodo.related_identifiers.isReviewedBy"
+  },
+  {
+    "category": "zenodo",
+    "name": "zenodo.related_identifiers.reviews"
+  },
+  {
+    "category": "zenodo",
+    "name": "zenodo.related_identifiers.isDerivedFrom"
+  },
+  {
+    "category": "zenodo",
+    "name": "zenodo.related_identifiers.isSourceOf"
+  },
+  {
+    "category": "zenodo",
+    "name": "zenodo.related_identifiers.requires"
+  },
+  {
+    "category": "zenodo",
+    "name": "zenodo.related_identifiers.isRequiredBy"
+  },
+  {
+    "category": "zenodo",
+    "name": "zenodo.related_identifiers.isObsoletedBy"
+  },
+  {
+    "category": "zenodo",
+    "name": "zenodo.related_identifiers.obsoletes"
+  },
+  {
+    "category": "zenodo",
+    "name": "zenodo.publication_date"
+  },
+  {
+    "category": "zenodo",
+    "name": "zenodo.related_identifiers.scheme.ark"
+  },
+  {
+    "category": "zenodo",
+    "name": "zenodo.related_identifiers.scheme.arxiv"
+  },
+  {
+    "category": "zenodo",
+    "name": "zenodo.related_identifiers.scheme.ads"
+  },
+  {
+    "category": "zenodo",
+    "name": "zenodo.related_identifiers.scheme.crossreffunderid"
+  },
+  {
+    "category": "zenodo",
+    "name": "zenodo.related_identifiers.scheme.doi"
+  },
+  {
+    "category": "zenodo",
+    "name": "zenodo.related_identifiers.scheme.ean13"
+  },
+  {
+    "category": "zenodo",
+    "name": "zenodo.related_identifiers.scheme.eissn"
+  },
+  {
+    "category": "zenodo",
+    "name": "zenodo.related_identifiers.scheme.grid"
+  },
+  {
+    "category": "zenodo",
+    "name": "zenodo.related_identifiers.scheme.handle"
+  },
+  {
+    "category": "zenodo",
+    "name": "zenodo.related_identifiers.scheme.igsn"
+  },
+  {
+    "category": "zenodo",
+    "name": "zenodo.related_identifiers.scheme.isbn"
+  },
+  {
+    "category": "zenodo",
+    "name": "zenodo.related_identifiers.scheme.isni"
+  },
+  {
+    "category": "zenodo",
+    "name": "zenodo.related_identifiers.scheme.issn"
+  },
+  {
+    "category": "zenodo",
+    "name": "zenodo.related_identifiers.scheme.istc"
+  },
+  {
+    "category": "zenodo",
+    "name": "zenodo.related_identifiers.scheme.lissn"
+  },
+  {
+    "category": "zenodo",
+    "name": "zenodo.related_identifiers.scheme.lsid"
+  },
+  {
+    "category": "zenodo",
+    "name": "zenodo.related_identifiers.scheme.pmid"
+  },
+  {
+    "category": "zenodo",
+    "name": "zenodo.related_identifiers.scheme.purl"
+  },
+  {
+    "category": "zenodo",
+    "name": "zenodo.related_identifiers.scheme.upc"
+  },
+  {
+    "category": "zenodo",
+    "name": "zenodo.related_identifiers.scheme.url"
+  },
+  {
+    "category": "zenodo",
+    "name": "zenodo.related_identifiers.scheme.urn"
+  },
+  {
+    "category": "zenodo",
+    "name": "zenodo.related_identifiers.scheme.w3id"
+  },
+  {
+    "category": "zenodo",
+    "name": "zenodo.related_identifiers.scheme.other"
+  },
+  {
+    "category": "zenodo",
+    "name": "zenodo.alternate-identifiers.scheme.ark"
+  },
+  {
+    "category": "zenodo",
+    "name": "zenodo.alternate-identifiers.scheme.arxiv"
+  },
+  {
+    "category": "zenodo",
+    "name": "zenodo.alternate-identifiers.scheme.ads"
+  },
+  {
+    "category": "zenodo",
+    "name": "zenodo.alternate-identifiers.scheme.crossreffunderid"
+  },
+  {
+    "category": "zenodo",
+    "name": "zenodo.alternate-identifiers.scheme.doi"
+  },
+  {
+    "category": "zenodo",
+    "name": "zenodo.alternate-identifiers.scheme.ean13"
+  },
+  {
+    "category": "zenodo",
+    "name": "zenodo.alternate-identifiers.scheme.eissn"
+  },
+  {
+    "category": "zenodo",
+    "name": "zenodo.alternate-identifiers.scheme.grid"
+  },
+  {
+    "category": "zenodo",
+    "name": "zenodo.alternate-identifiers.scheme.handle"
+  },
+  {
+    "category": "zenodo",
+    "name": "zenodo.alternate-identifiers.scheme.igsn"
+  },
+  {
+    "category": "zenodo",
+    "name": "zenodo.alternate-identifiers.scheme.isbn"
+  },
+  {
+    "category": "zenodo",
+    "name": "zenodo.alternate-identifiers.scheme.isni"
+  },
+  {
+    "category": "zenodo",
+    "name": "zenodo.alternate-identifiers.scheme.issn"
+  },
+  {
+    "category": "zenodo",
+    "name": "zenodo.alternate-identifiers.scheme.istc"
+  },
+  {
+    "category": "zenodo",
+    "name": "zenodo.alternate-identifiers.scheme.lissn"
+  },
+  {
+    "category": "zenodo",
+    "name": "zenodo.alternate-identifiers.scheme.lsid"
+  },
+  {
+    "category": "zenodo",
+    "name": "zenodo.alternate-identifiers.scheme.pmid"
+  },
+  {
+    "category": "zenodo",
+    "name": "zenodo.alternate-identifiers.scheme.purl"
+  },
+  {
+    "category": "zenodo",
+    "name": "zenodo.alternate-identifiers.scheme.upc"
+  },
+  {
+    "category": "zenodo",
+    "name": "zenodo.alternate-identifiers.scheme.url"
+  },
+  {
+    "category": "zenodo",
+    "name": "zenodo.alternate-identifiers.scheme.urn"
+  },
+  {
+    "category": "zenodo",
+    "name": "zenodo.alternate-identifiers.scheme.w3id"
+  },
+  {
+    "category": "zenodo",
+    "name": "zenodo.alternate-identifiers.scheme.other"
+  },
+  {
+  "category": "zenodo",
+  "name": "zenodo.date_type.accepted"
+  },
+  {
+    "category": "zenodo",
+    "name": "zenodo.date_type.available"
+  },
+  {
+    "category": "zenodo",
+    "name": "zenodo.date_type.collected"
+  },
+  {
+    "category": "zenodo",
+    "name": "zenodo.date_type.copyrighted"
+  },
+  {
+    "category": "zenodo",
+    "name": "zenodo.date_type.created"
+  },
+  {
+    "category": "zenodo",
+    "name": "zenodo.date_type.issued"
+  },
+  {
+    "category": "zenodo",
+    "name": "zenodo.date_type.other"
+  },
+  {
+    "category": "zenodo",
+    "name": "zenodo.date_type.submitted"
+  },
+  {
+    "category": "zenodo",
+    "name": "zenodo.date_type.updated"
+  },
+  {
+    "category": "zenodo",
+    "name": "zenodo.date_type.valid"
+  },
+  {
+    "category": "zenodo",
+    "name": "zenodo.date_type.withdrawn"
+  },
+  {
+    "category": "zenodo",
+    "name": "zenodo.conference.title"
+  },
+  {
+    "category": "zenodo",
+    "name": "zenodo.conference.acronym"
+  },
+  {
+    "category": "zenodo",
+    "name": "zenodo.conference.place"
+  },
+  {
+    "category": "zenodo",
+    "name": "zenodo.conference.dates"
+  },
+  {
+    "category": "zenodo",
+    "name": "zenodo.conference.website"
+  },
+  {
+    "category": "zenodo",
+    "name": "zenodo.conference.session"
+  },
+  {
+    "category": "zenodo",
+    "name": "zenodo.conference.part"
+  },
+  {
+    "category": "zenodo",
+    "name": "zenodo.software.repository-url"
+  },
+  {
+    "category": "zenodo",
+    "name": "zenodo.software.programming-language"
+  },
+  {
+    "category": "zenodo",
+    "name": "zenodo.software.development-status"
+  },
+  {
+    "category": "ckan",
+    "name": "ckan.dataset.type"
+  },
+  {
+    "category": "ckan",
+    "name": "ckan.dataset.organization"
+  },
+  {
+    "category": "ckan",
+    "name": "ckan.dataset.license"
+  },
+  {
+    "category": "ckan",
+    "name": "ckan.dataset.source"
+  },
+  {
+    "category": "ckan",
+    "name": "ckan.dataset.tags"
+  },
+  {
+    "category": "ckan",
+    "name": "ckan.dataset.extras"
+  },
+  {
+    "category": "ckan",
+    "name": "ckan.dataset.relationships_as_object.depends_on"
+  },
+  {
+    "category": "ckan",
+    "name": "ckan.dataset.relationships_as_object.dependency_of"
+  },
+  {
+    "category": "ckan",
+    "name": "ckan.dataset.relationships_as_object.derives_from"
+  },
+  {
+    "category": "ckan",
+    "name": "ckan.dataset.relationships_as_object.has_derivation"
+  },
+  {
+    "category": "ckan",
+    "name": "ckan.dataset.relationships_as_object.links_to"
+  },
+  {
+    "category": "ckan",
+    "name": "ckan.dataset.relationships_as_object.linked_from"
+  },
+  {
+    "category": "ckan",
+    "name": "ckan.dataset.relationships_as_object.child_of"
+  },
+  {
+    "category": "ckan",
+    "name": "ckan.dataset.relationships_as_object.parent_of"
+  },
+  {
+    "category": "ckan",
+    "name": "ckan.dataset.relationships_as_subject.depends_on"
+  },
+  {
+    "category": "ckan",
+    "name": "ckan.dataset.relationships_as_subject.dependency_of"
+  },
+  {
+    "category": "ckan",
+    "name": "ckan.dataset.relationships_as_subject.derives_from"
+  },
+  {
+    "category": "ckan",
+    "name": "ckan.dataset.relationships_as_subject.has_derivation"
+  },
+  {
+    "category": "ckan",
+    "name": "ckan.dataset.relationships_as_subject.links_to"
+  },
+  {
+    "category": "ckan",
+    "name": "ckan.dataset.relationships_as_subject.linked_from"
+  },
+  {
+    "category": "ckan",
+    "name": "ckan.dataset.relationships_as_subject.child_of"
+  },
+  {
+    "category": "ckan",
+    "name": "ckan.dataset.relationships_as_subject.parent_of"
+  },
+  {
+    "category": "dataverse",
+    "name": "dataverse.identifier"
+  },
+  {
+    "category": "dataverse",
+    "name": "dataverse.dataset.subject"
+  },
+  {
+    "category": "dataverse",
+    "name": "dataverse.dataset.description"
+  },
+  {
+    "category": "dataverse",
+    "name": "dataverse.dataset.alternative_title"
+  },
+  {
+    "category": "dataverse",
+    "name": "dataverse.dataset.subtitle"
+  },
+  {
+    "category": "dataverse",
+    "name": "dataverse.dataset.alternative_url"
+  },
+  {
+    "category": "dataverse",
+    "name": "dataverse.dataset.date_of_deposit"
+  },
+  {
+    "category": "dataverse",
+    "name": "dataverse.dataset.notes"
+  },
+  {
+    "category": "dataverse",
+    "name": "dataverse.author.name"
+  },
+  {
+    "category": "dataverse",
+    "name": "dataverse.author.affiliation"
+  },
+  {
+    "category": "dataverse",
+    "name": "dataverse.point_of_contact.name"
+  },
+  {
+    "category": "dataverse",
+    "name": "dataverse.point_of_contact.email"
+  },
+  {
+    "category": "dataverse",
+    "name": "dataverse.point_of_contact.affiliation"
+  },
+  {
+    "category": "dataverse",
+    "name": "dataverse.related_publication.identifier"
+  },
+  {
+    "category": "dataverse",
+    "name": "dataverse.related_publication.citation"
+  },
+  {
+    "category": "dataverse",
+    "name": "dataverse.related_publication.url"
+  },
+  {
+    "category": "dataverse",
+    "name": "dataverse.related_publication.relation_type"
+  },
+  {
+    "category": "dataverse",
+    "name": "dataverse.related_publication.identifier_type"
+  },
+  {
+    "category": "dataverse",
+    "name": "dataverse.related_publication.relation_type.isCitedBy"
+  },
+  {
+    "category": "dataverse",
+    "name": "dataverse.related_publication.relation_type.Cites"
+  },
+  {
+    "category": "dataverse",
+    "name": "dataverse.related_publication.relation_type.IsSupplementTo"
+  },
+  {
+    "category": "dataverse",
+    "name": "dataverse.related_publication.relation_type.IsSupplementedBy"
+  },
+  {
+    "category": "dataverse",
+    "name": "dataverse.related_publication.relation_type.IsContinuedBy"
+  },
+  {
+    "category": "dataverse",
+    "name": "dataverse.related_publication.relation_type.Continues"
+  },
+  {
+    "category": "dataverse",
+    "name": "dataverse.related_publication.relation_type.References"
+  },
+  {
+    "category": "dataverse",
+    "name": "dataverse.related_publication.relation_type.IsReferencedBy"
+  },
+  {
+    "category": "dataverse",
+    "name": "dataverse.related_publication.relation_type.References"
+  },
+  {
+    "category": "dataverse",
+    "name": "dataverse.related_publication.relation_type.References"
+  },
+  {
+    "category": "dataverse",
+    "name": "dataverse.related_publication.relation_type.References"
+  },
+  {
+    "category": "dataverse",
+    "name": "dataverse.related_publication.identifier_type.ark"
+  },
+  {
+    "category": "dataverse",
+    "name": "dataverse.related_publication.identifier_type.arxiv"
+  },
+  {
+    "category": "dataverse",
+    "name": "dataverse.related_publication.identifier_type.bibcode"
+  },
+  {
+    "category": "dataverse",
+    "name": "dataverse.related_publication.identifier_type.cstr"
+  },
+  {
+    "category": "dataverse",
+    "name": "dataverse.related_publication.identifier_type.doi"
+  },
+  {
+    "category": "dataverse",
+    "name": "dataverse.related_publication.identifier_type.ean13"
+  },
+  {
+    "category": "dataverse",
+    "name": "dataverse.related_publication.identifier_type.eissn"
+  },
+  {
+    "category": "dataverse",
+    "name": "dataverse.related_publication.identifier_type.handle"
+  },
+  {
+    "category": "dataverse",
+    "name": "dataverse.related_publication.identifier_type.isbn"
+  },
+  {
+    "category": "dataverse",
+    "name": "dataverse.related_publication.identifier_type.issn"
+  },
+  {
+    "category": "dataverse",
+    "name": "dataverse.related_publication.identifier_type.lissn"
+  },
+  {
+    "category": "dataverse",
+    "name": "dataverse.related_publication.identifier_type.lsid"
+  },
+  {
+    "category": "dataverse",
+    "name": "dataverse.related_publication.identifier_type.pmid"
+  },
+  {
+    "category": "dataverse",
+    "name": "dataverse.related_publication.identifier_type.purl"
+  },
+  {
+    "category": "dataverse",
+    "name": "dataverse.related_publication.identifier_type.upc"
+  },
+  {
+    "category": "dataverse",
+    "name": "dataverse.related_publication.identifier_type.url"
+  },
+  {
+    "category": "dataverse",
+    "name": "dataverse.related_publication.identifier_type.urm"
+  },
+  {
+    "category": "dataverse",
+    "name": "dataverse.related_publication.identifier_type.DASH-NRS"
+  },
+  {
+    "category": "dataverse",
+    "name": "dataverse.keyword.term"
+  },
+  {
+    "category": "dataverse",
+    "name": "dataverse.keyword.term_uri"
+  },
+  {
+    "category": "dataverse",
+    "name": "dataverse.keyword.controlled_vocabulary_name"
+  },
+  {
+    "category": "dataverse",
+    "name": "dataverse.keyword.controlled_vocabulary_url"
+  },
+  {
+    "category": "dataverse",
+    "name": "dataverse.other_identifier.agency"
+  },
+  {
+    "category": "dataverse",
+    "name": "dataverse.other_identifier.identifier"
+  },
+  {
+    "category": "dataverse",
+    "name": "dataverse.contributor.type.data_collector"
+  },
+  {
+    "category": "dataverse",
+    "name": "dataverse.contributor.type.data_curator"
+  },
+  {
+    "category": "dataverse",
+    "name": "dataverse.contributor.type.data_manager"
+  },
+  {
+    "category": "dataverse",
+    "name": "dataverse.contributor.type.editor"
+  },
+  {
+    "category": "dataverse",
+    "name": "dataverse.contributor.type.funder"
+  },
+  {
+    "category": "dataverse",
+    "name": "dataverse.contributor.type.hosting_institution"
+  },
+  {
+    "category": "dataverse",
+    "name": "dataverse.contributor.type.project_leader"
+  },
+  {
+    "category": "dataverse",
+    "name": "dataverse.contributor.type.project_manager"
+  },
+  {
+    "category": "dataverse",
+    "name": "dataverse.contributor.type.project_member"
+  },
+  {
+    "category": "dataverse",
+    "name": "dataverse.contributor.type.related_person"
+  },
+  {
+    "category": "dataverse",
+    "name": "dataverse.contributor.type.researcher"
+  },
+  {
+    "category": "dataverse",
+    "name": "dataverse.contributor.type.research_group"
+  },
+  {
+    "category": "dataverse",
+    "name": "dataverse.contributor.type.rights_holder"
+  },
+  {
+    "category": "dataverse",
+    "name": "dataverse.contributor.type.sponsor"
+  },
+  {
+    "category": "dataverse",
+    "name": "dataverse.contributor.type.supervisor"
+  },
+  {
+    "category": "dataverse",
+    "name": "dataverse.contributor.type.work_package_leader"
+  },
+  {
+    "category": "dataverse",
+    "name": "dataverse.contributor.type.other"
+  },
+  {
+    "category": "dspace",
+    "name": "dspace.identifier.citation"
+  },
+  {
+    "category": "dspace",
+    "name": "dspace.identifier.govdoc"
+  },
+  {
+    "category": "dspace",
+    "name": "dspace.identifier.isbn"
+  },
+  {
+    "category": "dspace",
+    "name": "dspace.identifier.ismn"
+  },
+  {
+    "category": "dspace",
+    "name": "dspace.identifier.other"
+  },
+  {
+    "category": "dspace",
+    "name": "dspace.identifier.uri"
+  },
+  {
+    "category": "dspace",
+    "name": "dspace.description"
+  },
+  {
+    "category": "dspace",
+    "name": "dspace.description.provenance"
+  },
+  {
+    "category": "dspace",
+    "name": "dspace.description.sponsorship"
+  },
+  {
+    "category": "dspace",
+    "name": "dspace.title.alternative"
+  },
+  {
+    "category": "dspace",
+    "name": "dspace.type"
+  },
+  {
+    "category": "dspace",
+    "name": "dspace.publisher"
+  },
+  {
+    "category": "dspace",
+    "name": "dspace.language.iso"
+  },
+  {
+    "category": "dspace",
+    "name": "dspace.contributor.author"
+  },
+  {
+    "category": "dspace",
+    "name": "dspace.date.accessioned"
+  },
+  {
+    "category": "dspace",
+    "name": "dspace.date.available"
+  },
+  {
+    "category": "fedora",
+    "name": "fedora.creator"
+  },
+  {
+    "category": "fedora",
+    "name": "fedora.subject"
+  },
+  {
+    "category": "fedora",
+    "name": "fedora.description"
+  },
+  {
+    "category": "fedora",
+    "name": "fedora.publisher"
+  },
+  {
+    "category": "fedora",
+    "name": "fedora.contributor"
+  },
+  {
+    "category": "fedora",
+    "name": "fedora.type"
+  },
+  {
+    "category": "fedora",
+    "name": "fedora.format"
+  },
+  {
+    "category": "fedora",
+    "name": "fedora.identifier"
+  },
+  {
+    "category": "fedora",
+    "name": "fedora.source"
+  },
+  {
+    "category": "fedora",
+    "name": "fedora.language"
+  },
+  {
+    "category": "fedora",
+    "name": "fedora.relation"
+  },
+  {
+    "category": "fedora",
+    "name": "fedora.coverage"
+  },
+  {
+    "category": "fedora",
+    "name": "fedora.rights"
+  }
+]

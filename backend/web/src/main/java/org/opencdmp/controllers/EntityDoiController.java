@@ -12,6 +12,10 @@ import gr.cite.tools.logging.LoggerService;
 import gr.cite.tools.logging.MapLogEntry;
 import gr.cite.tools.validation.ValidationFilterAnnotation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.enums.Explode;
+import io.swagger.v3.oas.annotations.enums.ParameterStyle;
+import io.swagger.v3.oas.annotations.extensions.Extension;
+import io.swagger.v3.oas.annotations.extensions.ExtensionProperty;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
@@ -46,7 +50,7 @@ import java.util.*;
 
 @RestController
 @RequestMapping(path = "api/entity-doi")
-@Tag(name = "Entity DOIs", description = "Manage entity dois")
+@Tag(name = "Entity DOIs", description = "Manage entity dois", extensions = @Extension(name = "x-order", properties = @ExtensionProperty(name = "value", value = "13")))
 @SwaggerCommonErrorResponses
 public class EntityDoiController {
 
@@ -79,7 +83,7 @@ public class EntityDoiController {
     }
 
     @PostMapping("query")
-    @OperationWithTenantHeader(summary = "Query all entity dois", description = SwaggerHelpers.EntityDoi.endpoint_query, requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(description = SwaggerHelpers.EntityDoi.endpoint_query_request_body, content = @Content(
+    @OperationWithTenantHeader(summary = "Query all entity dois", description = SwaggerHelpers.EntityDoi.endpoint_query, requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(content = @Content(
             examples = {
                     @ExampleObject(
                             name = SwaggerHelpers.Commons.pagination_example,
@@ -124,7 +128,7 @@ public class EntityDoiController {
     @Swagger404
     public EntityDoi get(
             @Parameter(name = "id", description = "The id of an entity doi to fetch", example = "c0c163dc-2965-45a5-9608-f76030578609", required = true) @PathVariable("id") UUID id,
-            @Parameter(name = "fieldSet", description = SwaggerHelpers.Commons.fieldset_description, required = true) FieldSet fieldSet,
+            @Parameter(name = "f", description = SwaggerHelpers.Commons.fieldset_description, required = true, style = ParameterStyle.FORM, explode = Explode.TRUE, schema = @Schema(type = "array", example = SwaggerHelpers.EntityDoi.endpoint_field_set_example)) FieldSet fieldSet,
             Locale locale
     ) throws MyApplicationException, MyForbiddenException, MyNotFoundException {
         logger.debug(new MapLogEntry("retrieving" + EntityDoi.class.getSimpleName()).And("id", id).And("fields", fieldSet));
@@ -157,7 +161,7 @@ public class EntityDoiController {
     @ValidationFilterAnnotation(validator = EntityDoiPersist.EntityDoiPersistValidator.ValidatorName, argumentName = "model")
     public EntityDoi persist(
             @RequestBody EntityDoiPersist model,
-            @Parameter(name = "fieldSet", description = SwaggerHelpers.Commons.fieldset_description, required = true) FieldSet fieldSet
+            @Parameter(name = "f", description = SwaggerHelpers.Commons.fieldset_description, required = true, style = ParameterStyle.FORM, explode = Explode.TRUE, schema = @Schema(type = "array", example = SwaggerHelpers.EntityDoi.endpoint_field_set_example)) FieldSet fieldSet
     ) throws MyApplicationException, MyForbiddenException, MyNotFoundException, InvalidApplicationException {
         logger.debug(new MapLogEntry("persisting" + DescriptionTemplateType.class.getSimpleName()).And("model", model).And("fieldSet", fieldSet));
         EntityDoi persisted = this.entityDoiService.persist(model, false, fieldSet);

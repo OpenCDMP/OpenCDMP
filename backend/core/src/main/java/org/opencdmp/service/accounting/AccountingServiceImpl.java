@@ -125,7 +125,7 @@ public class AccountingServiceImpl implements AccountingService {
         });
     }
 
-    public Integer getCurrentMetricValue(UsageLimitTargetMetric metric, DefinitionEntity definition) throws InvalidApplicationException {
+    public Integer getCurrentMetricValue(String metric, DefinitionEntity definition) throws InvalidApplicationException {
         if (this.isEnabled) {
             AccountingClient accountingClient = null;
             try {
@@ -161,7 +161,7 @@ public class AccountingServiceImpl implements AccountingService {
             lookup.setMeasure(AccountingMeasureType.Unit);
             lookup.setServiceCodes(List.of(this.accountingProperties.getServiceId()));
             lookup.setAggregateTypes(List.of(AccountingAggregateType.Sum));
-            lookup.setActionCodes(List.of(metric.getValue()));
+            lookup.setActionCodes(List.of(metric));
 
             try {
                 lookup.setResourceCodes(List.of(this.tenantScope.getTenantCode() != null ? this.tenantScope.getTenantCode() : this.tenantScope.getDefaultTenantCode()));
@@ -197,7 +197,7 @@ public class AccountingServiceImpl implements AccountingService {
         if (this.isEnabled) {
             String subjectId = this.getSubjectId();
 
-            this.accountingEntryCreatedIntegrationEventHandler.handleAccountingEntry(metric, AccountingValueType.Reset, subjectId, tenantId, tenantCode, value);
+            this.accountingEntryCreatedIntegrationEventHandler.handleAccountingEntry(metric, AccountingValueType.Reset, subjectId, tenantId, tenantCode, value, this.userScope.getUserIdSafe());
         }
     }
 
@@ -205,7 +205,7 @@ public class AccountingServiceImpl implements AccountingService {
         if (this.isEnabled) {
             String subjectId = this.getSubjectId();
 
-            this.accountingEntryCreatedIntegrationEventHandler.handleAccountingEntry(metric, AccountingValueType.Plus, subjectId, this.tenantScope.getTenant(), this.tenantScope.getTenantCode() != null ? this.tenantScope.getTenantCode() : this.tenantScope.getDefaultTenantCode(), 1);
+            this.accountingEntryCreatedIntegrationEventHandler.handleAccountingEntry(metric, AccountingValueType.Plus, subjectId, this.tenantScope.getTenant(), this.tenantScope.getTenantCode() != null ? this.tenantScope.getTenantCode() : this.tenantScope.getDefaultTenantCode(), 1, this.userScope.getUserIdSafe());
         }
     }
 
@@ -213,7 +213,7 @@ public class AccountingServiceImpl implements AccountingService {
         if (this.isEnabled) {
             String subjectId = this.getSubjectId();
 
-            this.accountingEntryCreatedIntegrationEventHandler.handleAccountingEntry(metric, AccountingValueType.Minus, subjectId, this.tenantScope.getTenant(), this.tenantScope.getTenantCode() != null ? this.tenantScope.getTenantCode() : this.tenantScope.getDefaultTenantCode(), 1);
+            this.accountingEntryCreatedIntegrationEventHandler.handleAccountingEntry(metric, AccountingValueType.Minus, subjectId, this.tenantScope.getTenant(), this.tenantScope.getTenantCode() != null ? this.tenantScope.getTenantCode() : this.tenantScope.getDefaultTenantCode(), 1, this.userScope.getUserIdSafe());
         }
     }
 

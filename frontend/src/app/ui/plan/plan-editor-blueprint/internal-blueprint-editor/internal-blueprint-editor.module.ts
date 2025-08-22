@@ -18,6 +18,7 @@ import { PlanUserFieldModule } from '../../plan-user-field/plan-user-field.modul
 import { DescriptionTemplateTableSelectModule } from '../descriptions-template-table-select/description-template-table-select.module';
 import { PlanInternalBlueprintFieldEditorComponent } from './plan-internal-blueprint-field-editor/plan-internal-blueprint-field-editor.component';
 import { MatBadgeModule } from '@angular/material/badge';
+import { PlanUploadFieldComponent } from '../plan-upload-field/plan-upload-field.component';
 
 
 
@@ -43,7 +44,8 @@ import { MatBadgeModule } from '@angular/material/badge';
     DragDropModule,
     DescriptionTemplateTableSelectModule,
     ReferenceFieldModule,
-    MatBadgeModule
+    MatBadgeModule,
+    PlanUploadFieldComponent
   ],
   exports: [
     PlanInternalBlueprintEditorComponent,

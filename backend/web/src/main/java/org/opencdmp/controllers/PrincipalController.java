@@ -7,6 +7,10 @@ import gr.cite.tools.fieldset.BaseFieldSet;
 import gr.cite.tools.fieldset.FieldSet;
 import gr.cite.tools.logging.LoggerService;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.enums.Explode;
+import io.swagger.v3.oas.annotations.enums.ParameterStyle;
+import io.swagger.v3.oas.annotations.extensions.Extension;
+import io.swagger.v3.oas.annotations.extensions.ExtensionProperty;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -21,10 +25,7 @@ import org.opencdmp.models.AccountBuilder;
 import org.opencdmp.service.tenant.TenantService;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.management.InvalidApplicationException;
 import java.util.List;
@@ -62,9 +63,10 @@ public class PrincipalController {
                     schema = @Schema(
                             implementation = Account.class
                     ))
-            ))
+            ),
+            extensions = @Extension(name = "x-order", properties = @ExtensionProperty(name = "value", value = "1")))
     public Account me(
-            @Parameter(name = "fieldSet", description = SwaggerHelpers.Commons.fieldset_description, required = true) FieldSet fieldSet
+            @RequestParam(required = false) @Parameter(name = "f", description = SwaggerHelpers.Commons.fieldset_description, required = false, style = ParameterStyle.FORM, explode = Explode.TRUE, schema = @Schema(type = "array", example = SwaggerHelpers.Principal.endpoint_field_set_example, allowableValues = SwaggerHelpers.Principal.available_field_set )) FieldSet fieldSet
     ) throws InvalidApplicationException {
         logger.debug("me");
 
@@ -104,9 +106,10 @@ public class PrincipalController {
 
     @GetMapping("my-tenants")
     @OperationWithTenantHeader(summary = "Fetch a list with the tenants the user belongs to", description = "",
-            responses = @ApiResponse(description = "OK", responseCode = "200"))
+            responses = @ApiResponse(description = "OK", responseCode = "200"),
+            extensions = @Extension(name = "x-order", properties = @ExtensionProperty(name = "value", value = "2")))
     public List<Tenant> myTenants(
-            @Parameter(name = "fieldSet", description = SwaggerHelpers.Commons.fieldset_description, required = true) FieldSet fieldSet
+            @RequestParam(required = false) @Parameter(name = "f", description = SwaggerHelpers.Commons.fieldset_description, required = false, style = ParameterStyle.FORM, explode = Explode.TRUE, schema = @Schema(type = "array", example =  SwaggerHelpers.Principal.endpoint_field_set_example , allowableValues = SwaggerHelpers.Principal.available_field_set )) FieldSet fieldSet
     ) {
         logger.debug("my-tenants");
 

@@ -1,0 +1,64 @@
+<div *ngIf="formGroup" class="container-fluid pluginConfiguration">
+    @for(plugin of formGroup?.controls; track $index; let i=$index; let last=$last){
+        <div class="row">
+			@if (showPluginText) {
+				<div class="title col-auto" mat-subheader>{{plugin.get('pluginCode').value}}</div>
+			}
+
+			@if (plugin.get('fields')){
+				@for(field of plugin.get('fields')?.controls; track field; let fieldIndex=$index; let lastFieldIndex=$last){
+					@if (field.get('type').value == pluginDataTypeEnum.String) {
+						<mat-form-field class="col-12">
+							<mat-label>{{ getConfigurationUserFieldLabel(plugin.get('pluginCode').value, field.get('code').value) }}</mat-label>
+							<input [id]="fieldIndex" matInput	class="col-md-12" [formControl]="field.get('textValue')" [type]="hideStates[i + '_' + fieldIndex] ? 'text' : 'password'" >
+							<mat-icon matSuffix (click)="toggleVisibility(i, fieldIndex)" > {{ hideStates[i + '_' + fieldIndex] ? 'visibility_off' : 'visibility' }} </mat-icon>
+							<mat-error *ngIf="field.get('textValue').hasError('backendError')">{{field.get('textValue').getError('backendError').message}}</mat-error>
+							<mat-error *ngIf="field.get('textValue').hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
+						</mat-form-field>
+					}
+					@if (field.get('type').value == pluginDataTypeEnum.File){
+						@if (showPluginFieldText) {
+							<label>{{ getConfigurationFieldLabel(plugin.get('pluginCode').value, field.get('code').value) }}</label>
+						}
+						<div class="col-12">
+							<app-file-uploader 
+								[accept]="'application/vnd.openxmlformats-officedocument.wordprocessingml.document'"
+								[storageFileIdControl]="field.get('fileValue')"
+								[initFile]="fileMap.get(field.get('fileValue').value)"
+							/>
+						</div>
+					}
+				}
+			}
+
+			@if (plugin.contains('userFields')){
+				@if (hasStringUserFields(plugin)) {
+					<div class="title col-auto" mat-subheader>{{ plugin.get('pluginCode').value }}</div>
+				}
+				@for(field of plugin.get('userFields')?.controls; track field; let fieldIndex=$index; let lastFieldIndex=$last){
+					@if (field.get('type').value == pluginDataTypeEnum.String) {
+						<mat-form-field class="col-12">
+							<mat-label>{{ getConfigurationUserFieldLabel(plugin.get('pluginCode').value, field.get('code').value) }}</mat-label>
+							<input [id]="fieldIndex" matInput class="col-md-12" [formControl]="field.get('textValue')" [type]="hideStates[i + '_' + fieldIndex] ? 'text' : 'password'">
+							<mat-icon matSuffix (click)="toggleVisibility(i, fieldIndex)">{{ hideStates[i + '_' + fieldIndex] ? 'visibility_off' : 'visibility' }}</mat-icon>
+							<mat-error *ngIf="field.get('textValue').hasError('backendError')">{{field.get('textValue').getError('backendError').message}}</mat-error>
+							<mat-error *ngIf="field.get('textValue').hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
+						</mat-form-field>
+					}
+					@if (field.get('type').value == pluginDataTypeEnum.File){
+						@if (showPluginFieldText) {
+							<label class="col-12">{{ getConfigurationFieldLabel(plugin.get('pluginCode').value, field.get('code').value) }}</label>
+						}
+						<div class="col-12">
+							<app-file-uploader 
+								[accept]="'application/vnd.openxmlformats-officedocument.wordprocessingml.document'"
+								[storageFileIdControl]="field.get('fileValue')"
+								[initFile]="fileMap.get(field.get('fileValue').value)"
+							/>
+						</div>
+					}
+				}
+			}
+        </div>
+	}
+</div>

@@ -1,19 +1,24 @@
 package org.opencdmp.query.lookup;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import org.opencdmp.elastic.query.NestedReferenceElasticQuery;
 import org.opencdmp.query.PlanReferenceQuery;
 import gr.cite.tools.data.query.Lookup;
 import gr.cite.tools.data.query.QueryFactory;
+import org.opencdmp.query.lookup.swagger.SwaggerHelpers;
 
 import java.util.List;
 import java.util.UUID;
 
 public class PlanReferenceLookup extends Lookup {
 
+    @Schema(description = SwaggerHelpers.PlanReference.ids_description)
     private List<UUID> ids;
 
+    @Schema(description = SwaggerHelpers.PlanReference.planIds_description)
     private List<UUID> planIds;
 
+    @Schema(description = SwaggerHelpers.PlanReference.referenceIds_description)
     private List<UUID> referenceIds;
 
     public List<UUID> getIds() {

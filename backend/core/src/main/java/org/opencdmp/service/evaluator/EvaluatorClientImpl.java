@@ -6,7 +6,9 @@ import org.opencdmp.commonmodels.models.description.DescriptionModel;
 import org.opencdmp.commonmodels.models.plan.PlanModel;
 import org.opencdmp.evaluatorbase.interfaces.EvaluatorClient;
 import org.opencdmp.evaluatorbase.interfaces.EvaluatorConfiguration;
-import org.opencdmp.evaluatorbase.models.misc.RankModel;
+import org.opencdmp.evaluatorbase.models.misc.DescriptionEvaluationModel;
+import org.opencdmp.evaluatorbase.models.misc.PlanEvaluationModel;
+import org.opencdmp.evaluatorbase.models.misc.RankResultModel;
 import org.opencdmp.service.filetransformer.FileTransformerRepository;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.ParameterizedTypeReference;
@@ -24,18 +26,18 @@ public class EvaluatorClientImpl implements EvaluatorClient {
     }
 
     @Override
-    public RankModel rankPlan(PlanModel planModel) {
+    public RankResultModel rankPlan(PlanEvaluationModel planModel) {
         logger.debug(new MapLogEntry("rankPlan").And("planModel", planModel));
 
         return this.transformerClient.post().uri("/rank/plan").bodyValue(planModel)  // Send planModel in the body
-                .exchangeToMono(mono -> mono.statusCode().isError() ? mono.createException().flatMap(Mono::error) : mono.bodyToMono(RankModel.class)).block();
+                .exchangeToMono(mono -> mono.statusCode().isError() ? mono.createException().flatMap(Mono::error) : mono.bodyToMono(RankResultModel.class)).block();
     }
 
     @Override
-    public RankModel rankDescription(DescriptionModel descriptionModel) {
+    public RankResultModel rankDescription(DescriptionEvaluationModel descriptionModel) {
         logger.debug(new MapLogEntry("rankDescription").And("descriptionModel", descriptionModel));
         return this.transformerClient.post().uri("/rank/description").bodyValue(descriptionModel)  // Send descriptionModel in the body
-                .exchangeToMono(mono -> mono.statusCode().isError() ? mono.createException().flatMap(Mono::error) : mono.bodyToMono(RankModel.class)).block();
+                .exchangeToMono(mono -> mono.statusCode().isError() ? mono.createException().flatMap(Mono::error) : mono.bodyToMono(RankResultModel.class)).block();
 
     }
 

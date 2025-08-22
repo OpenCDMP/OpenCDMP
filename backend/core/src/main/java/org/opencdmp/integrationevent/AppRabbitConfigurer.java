@@ -16,7 +16,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Configuration
-@EnableConfigurationProperties({OutboxProperties.class, InboxProperties.class})
+@EnableConfigurationProperties({OutboxProperties.class, InboxProperties.class, CleanupTaskProperties.class})
 @ConditionalOnProperty(prefix = "queue.rabbitmq", name = "listenerEnabled")
 public class AppRabbitConfigurer extends RabbitConfigurer {
 

@@ -43,6 +43,18 @@ public class PlanBlueprintCommonModelBuilder extends BaseCommonModelBuilder<Plan
         this.authorize = values;
         return this;
     }
+
+    private boolean useSharedStorage;
+    public PlanBlueprintCommonModelBuilder useSharedStorage(boolean useSharedStorage) {
+        this.useSharedStorage = useSharedStorage;
+        return this;
+    }
+
+    private String repositoryId;
+    public PlanBlueprintCommonModelBuilder setRepositoryId(String repositoryId) {
+        this.repositoryId = repositoryId;
+        return this;
+    }
     @Override
     protected List<CommonModelBuilderItemResponse<PlanBlueprintModel, PlanBlueprintEntity>> buildInternal(List<PlanBlueprintEntity> data) throws MyApplicationException {
         this.logger.debug("building for {}", Optional.ofNullable(data).map(List::size).orElse(0));
@@ -65,7 +77,7 @@ public class PlanBlueprintCommonModelBuilder extends BaseCommonModelBuilder<Plan
             if (d.getDefinition() != null){
                 //TODO Update with the new logic of property definition 
                 DefinitionEntity propertyDefinition = this.xmlHandlingService.fromXmlSafe(DefinitionEntity.class, d.getDefinition());
-                m.setDefinition(this.builderFactory.builder(DefinitionCommonModelBuilder.class).authorize(this.authorize).build(propertyDefinition));
+                m.setDefinition(this.builderFactory.builder(DefinitionCommonModelBuilder.class).useSharedStorage(useSharedStorage).setRepositoryId(repositoryId).authorize(this.authorize).build(propertyDefinition));
             }
             
 

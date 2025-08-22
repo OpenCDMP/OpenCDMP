@@ -1,18 +1,28 @@
 package org.opencdmp.query.lookup;
 
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import org.opencdmp.commons.enums.IsActive;
 import org.opencdmp.query.TenantUserQuery;
 import gr.cite.tools.data.query.Lookup;
 import gr.cite.tools.data.query.QueryFactory;
+import org.opencdmp.query.lookup.swagger.SwaggerHelpers;
 
 import java.util.List;
 import java.util.UUID;
 
 public class TenantUserLookup extends Lookup {
+
+	@Schema(description = SwaggerHelpers.TenantUser.isActive_description)
 	private List<IsActive> isActive;
+
+	@Schema(description = SwaggerHelpers.TenantUser.ids_description)
 	private List<UUID> ids;
+
+	@Schema(description = SwaggerHelpers.TenantUser.userIds_description)
 	private List<UUID> userIds;
+
+	@Schema(description = SwaggerHelpers.TenantUser.tenantIds_description)
 	private List<UUID> tenantIds;
 
 	private UserLookup userSubQuery;

@@ -8,9 +8,9 @@ import { Guid } from "@common/types/guid";
 import { DescriptionTemplateType } from "../description-template-type/description-template-type";
 import { ReferenceType } from "../reference-type/reference-type";
 import { User } from "../user/user";
-import { Reference } from "../reference/reference";
 import { DescriptionTemplateVersionStatus } from "@app/core/common/enum/description-template-version-status";
 import { AppPermission } from "@app/core/common/enum/permission.enum";
+import { PluginConfiguration } from "../plugin-configuration/plugin-configuration";
 
 
 export interface DescriptionTemplate extends BaseEntity {
@@ -37,6 +37,7 @@ export interface UserDescriptionTemplate extends BaseEntity {
 
 export interface DescriptionTemplateDefinition {
 	pages?: DescriptionTemplatePage[];
+	pluginConfigurations?: PluginConfiguration[];
 }
 
 

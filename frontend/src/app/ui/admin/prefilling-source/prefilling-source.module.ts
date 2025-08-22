@@ -8,7 +8,6 @@ import { HybridListingModule } from "@common/modules/hybrid-listing/hybrid-listi
 import { TextFilterModule } from "@common/modules/text-filter/text-filter.module";
 import { UserSettingsModule } from "@common/modules/user-settings/user-settings.module";
 import { CommonUiModule } from '@common/ui/common-ui.module';
-import { NgxDropzoneModule } from "ngx-dropzone";
 import { PrefillingSourceRoutingModule } from './prefilling-source.routing';
 import { RichTextEditorModule } from '@app/library/rich-text-editor/rich-text-editor.module';
 import { PrefillingSourceListingComponent } from './listing/prefilling-source-listing.component';
@@ -23,7 +22,6 @@ import { PrefillingSourceComponent } from './editor/field/prefilling-source-fiel
 		CommonFormsModule,
 		ConfirmationDialogModule,
 		PrefillingSourceRoutingModule,
-		NgxDropzoneModule,
 		DragDropModule,
 		AutoCompleteModule,
 		HybridListingModule,

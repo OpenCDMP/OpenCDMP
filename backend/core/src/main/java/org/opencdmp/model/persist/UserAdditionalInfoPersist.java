@@ -5,6 +5,7 @@ import org.opencdmp.commons.validation.BaseValidator;
 import gr.cite.tools.validation.specification.Specification;
 import org.opencdmp.convention.ConventionService;
 import org.opencdmp.errorcode.ErrorThesaurusProperties;
+import org.opencdmp.model.persist.pluginconfiguration.PluginConfigurationUserPersist;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.Scope;
@@ -35,6 +36,10 @@ public class UserAdditionalInfoPersist {
     private ReferencePersist organization;
 
     public static final String _organization = "organization";
+
+    private List<PluginConfigurationUserPersist> pluginConfigurations;
+
+    public static final String _pluginConfigurations = "pluginConfigurations";
 
     public String getAvatarUrl() {
         return avatarUrl;
@@ -84,6 +89,14 @@ public class UserAdditionalInfoPersist {
         this.organization = organization;
     }
 
+    public List<PluginConfigurationUserPersist> getPluginConfigurations() {
+        return pluginConfigurations;
+    }
+
+    public void setPluginConfigurations(List<PluginConfigurationUserPersist> pluginConfigurations) {
+        this.pluginConfigurations = pluginConfigurations;
+    }
+
     @Component(UserAdditionalInfoPersistValidator.ValidatorName)
     @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
     public static class UserAdditionalInfoPersistValidator extends BaseValidator<UserAdditionalInfoPersist> {
@@ -120,7 +133,12 @@ public class UserAdditionalInfoPersist {
                             .iff(() -> !this.isNull(item.getOrganization()))
                             .on(UserAdditionalInfoPersist._organization)
                             .over(item.getOrganization())
-                            .using(() -> this.validatorFactory.validator(ReferencePersist.ReferenceWithoutTypePersistValidator.class))
+                            .using(() -> this.validatorFactory.validator(ReferencePersist.ReferenceWithoutTypePersistValidator.class)),
+                    this.navSpec()
+                            .iff(() -> !this.isListNullOrEmpty(item.getPluginConfigurations()))
+                            .on(UserAdditionalInfoPersist._pluginConfigurations)
+                            .over(item.getPluginConfigurations())
+                            .using((itm) -> this.validatorFactory.validator(PluginConfigurationUserPersist.PluginConfigurationUserPersistValidator.class))
             );
         }
     }

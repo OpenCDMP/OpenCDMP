@@ -1,4 +1,4 @@
-import {Component, EventEmitter, input, Input, Output} from "@angular/core";
+import {Component, effect, EventEmitter, input, Input, Output} from "@angular/core";
 import {BaseComponent} from "@common/base/base.component";
 import {nameof} from "ts-simple-nameof";
 import {DescriptionTemplate} from "@app/core/model/description-template/description-template";
@@ -37,8 +37,11 @@ export class DescriptionTemplateTableSelectComponent extends BaseComponent {
 
 	@Input() descTemplatesControl: FormControl<Guid[]> = new FormControl([]);
 	@Input() previewOnly: boolean = false;
+    @Input() onlyShowSelections: boolean = false;
 
-    @Output() descriptionTemplateLoaded = new EventEmitter<DescriptionTemplate>();
+    descriptionTemplateTypes = input<QueryResult<DescriptionTemplateType>>(null);
+    initialData = input<QueryResult<DescriptionTemplate>>(null);
+
 	templates;
 	currentPage = 1;
 	size = 5;
@@ -72,43 +75,48 @@ export class DescriptionTemplateTableSelectComponent extends BaseComponent {
 	filteredTypeOptions: Observable<DescriptionTemplateType[]>;
 
 	selectedTemplatesInfo: Map<Guid,DescriptionTemplate> = new Map<Guid,DescriptionTemplate>();
-	private readonly lookupFields = [
-        ...DescriptionTemplateEditorResolver.baseLookupFields(), 
-        ...DescriptionTemplateEditorResolver.definitionLookupFields(),
-		nameof<DescriptionTemplate>(x => x.language),
-		[nameof<DescriptionTemplate>(x => x.type), nameof<DescriptionTemplateType>(x => x.id)].join('.'),
-		[nameof<DescriptionTemplate>(x => x.type), nameof<DescriptionTemplateType>(x => x.name)].join('.'),
-	];
-	private readonly descriptionTemplateTypesLookupFields: string[] = [
-		nameof<DescriptionTemplateType>(x => x.id),
-		nameof<DescriptionTemplateType>(x => x.name),
-		nameof<DescriptionTemplateType>(x => x.code)
-	];
 
-	constructor(private planBlueprintService: PlanBlueprintService, private descriptionTemplateService: DescriptionTemplateService,
-				private descriptionTemplateTypeService: DescriptionTemplateTypeService, protected httpErrorHandlingService: HttpErrorHandlingService,
-				private languageInfoService: LanguageInfoService, private fb: UntypedFormBuilder, protected dialog: MatDialog,
-            ) {
+	constructor(
+        private descriptionTemplateService: DescriptionTemplateService,
+		private descriptionTemplateTypeService: DescriptionTemplateTypeService,
+        protected httpErrorHandlingService: HttpErrorHandlingService,
+		private languageInfoService: LanguageInfoService, private fb: UntypedFormBuilder, protected dialog: MatDialog,
+    ) {
 		super();
-		this.descriptionTemplateTypeService.query(this.initializeTypesLookup()).pipe(
-			takeUntil(this._destroyed),
-			tap((descriptionTemplateTypes: QueryResult<DescriptionTemplateType>) => {
-			})).subscribe(queryResults => {
-			this.allTypes = queryResults.items
-			this.filteredTypeOptions = this.typeFormControl.valueChanges.pipe(
-				startWith(''),
-				map(value => {
-					const name = typeof value === 'string' ? value : value?.name;
-					return name ? this._filterTypes(name as string) : this.allTypes.slice();
-				}),
-			);
-
-		});
-
-		this.query();
-
+        effect(() => {
+            const initialTypes = this.descriptionTemplateTypes();
+            if(initialTypes){
+                this.initializeDescriptionTemplateTypes(initialTypes.items);
+            } else {
+                this.descriptionTemplateTypeService.query(this.descriptionTemplateTypeService.buildLookup()).pipe(
+                takeUntil(this._destroyed))
+                .subscribe(queryResults => {
+                    this.initializeDescriptionTemplateTypes(queryResults?.items ?? [])
+                });
+            }
+        })
+        effect(() => {
+            const initialTableData = this.initialData();
+            if(initialTableData){
+                this.totalDescriptionTemplates = initialTableData.count;
+				this.currentPageDescriptionTemplates = initialTableData.items;
+            } else {
+                this.query();
+            }
+        })
 
 	}
+
+    initializeDescriptionTemplateTypes(types: DescriptionTemplateType[]){
+        this.allTypes = types
+        this.filteredTypeOptions = this.typeFormControl.valueChanges.pipe(
+            startWith(''),
+            map(value => {
+                const name = typeof value === 'string' ? value : value?.name;
+                return name ? this._filterTypes(name as string) : this.allTypes.slice();
+            }),
+        );
+    }
 
 	ngOnInit() {
 		this.filteredLanguageOptions = this.languageFormControl.valueChanges.pipe(
@@ -124,22 +132,6 @@ export class DescriptionTemplateTableSelectComponent extends BaseComponent {
 		}
 	}
 
-
-	protected initializeTypesLookup(): DescriptionTemplateTypeLookup {
-		const lookup = new DescriptionTemplateTypeLookup();
-		lookup.metadata = {countAll: true};
-		lookup.page = {offset: 0, size: 100};
-		lookup.isActive = [IsActive.Active];
-		lookup.statuses = [DescriptionTemplateTypeStatus.Finalized];
-		lookup.order = {items: ['-' + (nameof<DescriptionTemplateType>(x => x.name))]};
-
-		lookup.project = {
-			fields: this.descriptionTemplateTypesLookupFields
-		};
-
-		return lookup;
-	}
-
 	query(selectedDescriptionIds = null) {
 		this.descriptionTemplateService.query(this.initializeDescriptionTemplateLookup(selectedDescriptionIds)).pipe(
 			takeUntil(this._destroyed),
@@ -151,7 +143,6 @@ export class DescriptionTemplateTableSelectComponent extends BaseComponent {
 				}else{
 					for(let descriptionTemplate of queryResults.items){
 						this.selectedTemplatesInfo.set(descriptionTemplate.groupId, descriptionTemplate);
-                        this.descriptionTemplateLoaded.emit(descriptionTemplate)
 					}
 				}
 		});
@@ -159,29 +150,14 @@ export class DescriptionTemplateTableSelectComponent extends BaseComponent {
 	}
 
 	protected initializeDescriptionTemplateLookup(selectedDescriptionIds = null): DescriptionTemplateLookup {
-		const lookup = new DescriptionTemplateLookup();
-		lookup.metadata = {countAll: true};
-		lookup.page = {offset: (this.currentPage - 1) * this.size, size: selectedDescriptionIds?selectedDescriptionIds.length:this.size};
-		lookup.isActive = [IsActive.Active];
-		lookup.statuses = [DescriptionTemplateStatus.Finalized]
-		lookup.versionStatuses = [DescriptionTemplateVersionStatus.Current]
-		lookup.order = {items: [this.toLookupSortField(this.sort)]};
-		lookup.project = {
-			fields: this.lookupFields
-		};
-		if (this.term) {
-			lookup.like = this.term;
-		}
-		if (this.selectedTypesIds) {
-			lookup.typeIds = this.selectedTypesIds;
-		}
-		if (this.selectedLanguageCodes) {
-			lookup.languages = this.selectedLanguageCodes;
-		}
-		if(selectedDescriptionIds){
-			lookup.groupIds = selectedDescriptionIds;
-		}
-		return lookup;
+        return this.descriptionTemplateService.buildLookup({
+            page: {offset: (this.currentPage - 1) * this.size, size: selectedDescriptionIds?selectedDescriptionIds.length:this.size},
+            groupIds: selectedDescriptionIds,
+            like: this.term,
+            languages: this.selectedLanguageCodes,
+            typeIds: this.selectedTypesIds,
+            order: {items: [this.toLookupSortField(this.sort)]}
+        });
 	}
 
 	onSearchTermChange(term) {
@@ -271,10 +247,10 @@ export class DescriptionTemplateTableSelectComponent extends BaseComponent {
 		this.descTemplatesControl.setValue(selected);
 		this.descTemplatesControl.markAsDirty();
 		this.selectedTemplatesInfo.set(descriptionTemplate.groupId, descriptionTemplate);
-        this.descriptionTemplateLoaded.emit(descriptionTemplate)
 	}
 
 	onPreviewDescriptionTemplate(description) {
+        if(!description){return;}
 		const dialogRef = this.dialog.open(DescriptionTemplatePreviewDialogComponent, {
 			minWidth: 'min(800px, 95vw)',
 			minHeight: '200px',
@@ -285,7 +261,7 @@ export class DescriptionTemplateTableSelectComponent extends BaseComponent {
 			},
 			panelClass: 'custom-modalbox'
 		});
-    dialogRef.afterClosed().pipe(takeUntil(this._destroyed)).subscribe(descTemplate => {
+        dialogRef.afterClosed().pipe(takeUntil(this._destroyed)).subscribe(descTemplate => {
 			if (descTemplate) {
 				this.select(descTemplate);
 			}

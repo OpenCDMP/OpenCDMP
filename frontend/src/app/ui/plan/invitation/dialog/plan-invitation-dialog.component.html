@@ -11,7 +11,7 @@
         </div>
 	</div>
     <div mat-dialog-actions>
-        <button mat-stroked-button color="primary" *ngIf="hasValue()" [disabled]="inProgressSendButton" (click)="send()" type="button" class="padded-shadow-btn primary-inverted-hover">{{'PLAN-USER-INVITATION-DIALOG.ACTIONS.INVITE' | translate}}</button>
+        <button mat-stroked-button color="primary" *ngIf="hasValue()" [disabled]="isLoading()" (click)="send()" type="button" class="padded-shadow-btn primary-inverted-hover">{{'PLAN-USER-INVITATION-DIALOG.ACTIONS.INVITE' | translate}}</button>
         <mat-error *ngIf="formGroup.get('users').hasError('backendError')">{{formGroup.get('users').getError('backendError').message}}</mat-error>
         <mat-error *ngIf="formGroup.get('users').hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
     </div>

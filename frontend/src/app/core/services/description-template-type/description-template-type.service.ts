@@ -119,4 +119,24 @@ export class DescriptionTemplateTypeService {
 		if (like) { lookup.like = this.filterService.transformLike(like); }
 		return lookup;
 	}
+
+    buildLookup(params?: Partial<DescriptionTemplateTypeLookup>){
+        const {metadata, page, isActive, statuses, order, project} = params ?? {};
+        const lookup = new DescriptionTemplateTypeLookup();
+
+        lookup.metadata = metadata ?? {countAll: true};
+		lookup.page = page ??  {offset: 0, size: 100};
+		lookup.isActive = isActive ?? [IsActive.Active];
+		lookup.statuses = statuses ?? [DescriptionTemplateTypeStatus.Finalized];
+		lookup.order = order ??  {items: ['-' + (nameof<DescriptionTemplateType>(x => x.name))]};
+
+		lookup.project = project ?? {
+			fields: [
+                nameof<DescriptionTemplateType>(x => x.id),
+                nameof<DescriptionTemplateType>(x => x.name),
+                nameof<DescriptionTemplateType>(x => x.code)
+            ]
+		};
+        return lookup;
+    }
 }

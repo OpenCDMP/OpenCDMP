@@ -109,7 +109,21 @@ export class AnnotationDialogComponent extends BaseComponent {
 		if (this.entityId != null) {
 			this.loadThreads();
 		}
+		
+		this.planUsers = this.uniqueActivePlanUsers() || [];
 		this.getStatuses();
+	}
+
+	private uniqueActivePlanUsers() {
+		const seenUserIds = new Set<Guid>();
+
+		return this.planUsers?.filter(x => {
+				if (x.isActive === IsActive.Active && x.user?.id && !seenUserIds.has(x.user?.id)) {
+					seenUserIds.add(x.user?.id);
+					return true;
+				}
+				return false;
+		});
 	}
 
 	createThread() {

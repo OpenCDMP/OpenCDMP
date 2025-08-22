@@ -13,6 +13,10 @@ import gr.cite.tools.logging.MapLogEntry;
 import gr.cite.tools.validation.ValidationFilterAnnotation;
 import io.swagger.v3.oas.annotations.Hidden;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.enums.Explode;
+import io.swagger.v3.oas.annotations.enums.ParameterStyle;
+import io.swagger.v3.oas.annotations.extensions.Extension;
+import io.swagger.v3.oas.annotations.extensions.ExtensionProperty;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
@@ -70,7 +74,7 @@ import static org.opencdmp.authorization.AuthorizationFlags.Public;
 
 @RestController
 @RequestMapping(path = "api/plan")
-@Tag(name = "Plans", description = "Manage plans")
+@Tag(name = "Plans", description = "Manage plans", extensions = @Extension(name = "x-order", properties = @ExtensionProperty(name = "value", value = "1")))
 @SwaggerCommonErrorResponses
 public class PlanController {
 
@@ -112,8 +116,22 @@ public class PlanController {
     }
 
     @PostMapping("public/query")
-    @OperationWithTenantHeader(summary = "Query public published plans")
-    @Hidden
+    @OperationWithTenantHeader(summary = "Query public published plans", description = SwaggerHelpers.Plan.endpoint_public_query, requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(content = @Content(examples = @ExampleObject(
+            name = SwaggerHelpers.Commons.pagination_example,
+            description = SwaggerHelpers.Commons.pagination_example_description,
+            value = SwaggerHelpers.Plan.endpoint_public_query_request_body_example
+    ))), responses = @ApiResponse(description = "OK", responseCode = "200", content = @Content(
+            array = @ArraySchema(
+                    schema = @Schema(
+                            implementation = PublicPlan.class
+                    )
+            ),
+            examples = @ExampleObject(
+                    name = SwaggerHelpers.Commons.pagination_response_example,
+                    description = SwaggerHelpers.Commons.pagination_response_example_description,
+                    value = SwaggerHelpers.Plan.endpoint_public_query_response_example
+            ))),
+            extensions = @Extension(name = "x-order", properties = @ExtensionProperty(name = "value", value = "2")))
     public QueryResult<PublicPlan> publicQuery(@RequestBody PlanLookup lookup) throws MyApplicationException, MyForbiddenException {
         logger.debug("querying {}", Plan.class.getSimpleName());
 
@@ -127,9 +145,14 @@ public class PlanController {
     }
 
     @GetMapping("public/{id}")
-    @OperationWithTenantHeader(summary = "Fetch a specific public published plan by id")
-    @Hidden
-    public PublicPlan publicGet(@PathVariable("id") UUID id, FieldSet fieldSet, Locale locale) throws MyApplicationException, MyForbiddenException, MyNotFoundException {
+    @OperationWithTenantHeader(summary = "Fetch a specific public published plan by id", description = "",
+            responses = @ApiResponse(description = "OK", responseCode = "200", content = @Content(
+                    schema = @Schema(
+                            implementation = PublicPlan.class
+                    ))
+            ),
+            extensions = @Extension(name = "x-order", properties = @ExtensionProperty(name = "value", value = "3")))
+    public PublicPlan publicGet(@PathVariable("id") UUID id, @Parameter(name = "f", description = SwaggerHelpers.Commons.fieldset_description, required = true, style = ParameterStyle.FORM, explode = Explode.TRUE, schema = @Schema(type = "array", example = SwaggerHelpers.Plan.endpoint_field_set_example)) FieldSet fieldSet) throws MyApplicationException, MyForbiddenException, MyNotFoundException {
         logger.debug(new MapLogEntry("retrieving" + Plan.class.getSimpleName()).And("id", id).And("fields", fieldSet));
 
         this.censorFactory.censor(PublicPlanCensor.class).censor(fieldSet);
@@ -150,7 +173,7 @@ public class PlanController {
     }
 
     @PostMapping("query")
-    @OperationWithTenantHeader(summary = "Query all plans", description = SwaggerHelpers.Plan.endpoint_query, requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(description = SwaggerHelpers.Plan.endpoint_query_request_body, content = @Content(examples = @ExampleObject(
+    @OperationWithTenantHeader(summary = "Query all plans", description = SwaggerHelpers.Plan.endpoint_query, requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(content = @Content(examples = @ExampleObject(
 		    name = SwaggerHelpers.Commons.pagination_example,
 		    description = SwaggerHelpers.Commons.pagination_example_description,
 		    value = SwaggerHelpers.Plan.endpoint_query_request_body_example
@@ -164,7 +187,8 @@ public class PlanController {
                     name = SwaggerHelpers.Commons.pagination_response_example,
                     description = SwaggerHelpers.Commons.pagination_response_example_description,
                     value = SwaggerHelpers.Plan.endpoint_query_response_example
-            ))))
+            ))),
+            extensions = @Extension(name = "x-order", properties = @ExtensionProperty(name = "value", value = "1")))
     public QueryResult<Plan> Query(@RequestBody PlanLookup lookup) throws MyApplicationException, MyForbiddenException {
         logger.debug("querying {}", Plan.class.getSimpleName());
 
@@ -183,11 +207,12 @@ public class PlanController {
                     schema = @Schema(
                             implementation = Plan.class
                     ))
-            ))
+            ),
+            extensions = @Extension(name = "x-order", properties = @ExtensionProperty(name = "value", value = "2")))
     @Swagger404
     public Plan Get(
             @Parameter(name = "id", description = "The id of a plan to fetch", example = "c0c163dc-2965-45a5-9608-f76030578609", required = true) @PathVariable("id") UUID id,
-            @Parameter(name = "fieldSet", description = SwaggerHelpers.Commons.fieldset_description, required = true) FieldSet fieldSet,
+            @Parameter(name = "f", description = SwaggerHelpers.Commons.fieldset_description, required = true, style = ParameterStyle.FORM, explode = Explode.TRUE, schema = @Schema(type = "array", example = SwaggerHelpers.Plan.endpoint_field_set_example)) FieldSet fieldSet,
             Locale locale
     ) throws MyApplicationException, MyForbiddenException, MyNotFoundException {
         logger.debug(new MapLogEntry("retrieving" + Plan.class.getSimpleName()).And("id", id).And("fields", fieldSet));
@@ -213,14 +238,15 @@ public class PlanController {
                     schema = @Schema(
                             implementation = Plan.class
                     ))
-            ))
+            ),
+            extensions = @Extension(name = "x-order", properties = @ExtensionProperty(name = "value", value = "6")))
     @Swagger400
     @Swagger404
     @Transactional
     @ValidationFilterAnnotation(validator = PlanPersist.PlanPersistValidator.ValidatorName, argumentName = "model")
     public Plan Persist(
             @RequestBody PlanPersist model,
-            @Parameter(name = "fieldSet", description = SwaggerHelpers.Commons.fieldset_description, required = true) FieldSet fieldSet
+            @Parameter(name = "f", description = SwaggerHelpers.Commons.fieldset_description, required = true, style = ParameterStyle.FORM, explode = Explode.TRUE, schema = @Schema(type = "array", example = SwaggerHelpers.Plan.endpoint_field_set_example )) FieldSet fieldSet
     ) throws MyApplicationException, MyForbiddenException, MyNotFoundException, InvalidApplicationException, IOException, JAXBException {
         logger.debug(new MapLogEntry("persisting" + Plan.class.getSimpleName()).And("model", model).And("fieldSet", fieldSet));
 
@@ -236,7 +262,8 @@ public class PlanController {
 
     @DeleteMapping("{id}")
     @OperationWithTenantHeader(summary = "Delete a plan by id", description = "",
-            responses = @ApiResponse(description = "OK", responseCode = "200"))
+            responses = @ApiResponse(description = "OK", responseCode = "200"),
+            extensions = @Extension(name = "x-order", properties = @ExtensionProperty(name = "value", value = "5")))
     @Swagger404
     @Transactional
     public void Delete(
@@ -251,7 +278,8 @@ public class PlanController {
 
     @PostMapping("set-status/{id}/{newStatusId}")
     @OperationWithTenantHeader(summary = "set status for a plan", description = "",
-            responses = @ApiResponse(description = "OK", responseCode = "200"))
+            responses = @ApiResponse(description = "OK", responseCode = "200"),
+            extensions = @Extension(name = "x-order", properties = @ExtensionProperty(name = "value", value = "7")))
     @Swagger404
     @Transactional
     public boolean SetStatus(
@@ -295,14 +323,15 @@ public class PlanController {
                     schema = @Schema(
                             implementation = Plan.class
                     ))
-            ))
+            ),
+            extensions = @Extension(name = "x-order", properties = @ExtensionProperty(name = "value", value = "8")))
     @Swagger400
     @Swagger404
     @Transactional
     @ValidationFilterAnnotation(validator = ClonePlanPersist.ClonePlanPersistValidator.ValidatorName, argumentName = "model")
     public Plan buildClone(
             @RequestBody ClonePlanPersist model,
-            @Parameter(name = "fieldSet", description = SwaggerHelpers.Commons.fieldset_description, required = true) FieldSet fieldSet
+            @Parameter(name = "f", description = SwaggerHelpers.Commons.fieldset_description, required = true, style = ParameterStyle.FORM, explode = Explode.TRUE, schema = @Schema(type = "array", example = SwaggerHelpers.Plan.endpoint_field_set_example)) FieldSet fieldSet
     ) throws MyApplicationException, MyForbiddenException, MyNotFoundException, IOException, InvalidApplicationException {
         logger.debug(new MapLogEntry("clone" + Plan.class.getSimpleName()).And("model", model).And("fields", fieldSet));
 
@@ -324,14 +353,15 @@ public class PlanController {
                     schema = @Schema(
                             implementation = Plan.class
                     ))
-            ))
+            ),
+            extensions = @Extension(name = "x-order", properties = @ExtensionProperty(name = "value", value = "9")))
     @Swagger400
     @Swagger404
     @Transactional
     @ValidationFilterAnnotation(validator = ClonePlanPersist.ClonePlanPersistValidator.ValidatorName, argumentName = "model")
     public Plan buildPublicClone(
             @RequestBody ClonePlanPersist model,
-            @Parameter(name = "fieldSet", description = SwaggerHelpers.Commons.fieldset_description, required = true) FieldSet fieldSet
+            @Parameter(name = "f", description = SwaggerHelpers.Commons.fieldset_description, required = true, style = ParameterStyle.FORM, explode = Explode.TRUE, schema = @Schema(type = "array", example = SwaggerHelpers.Plan.endpoint_field_set_example)) FieldSet fieldSet
     ) throws MyApplicationException, MyForbiddenException, MyNotFoundException, IOException, InvalidApplicationException {
         logger.debug(new MapLogEntry("clone public" + PublicPlan.class.getSimpleName()).And("model", model).And("fields", fieldSet));
 
@@ -353,14 +383,15 @@ public class PlanController {
                     schema = @Schema(
                             implementation = Plan.class
                     ))
-            ))
+            ),
+            extensions = @Extension(name = "x-order", properties = @ExtensionProperty(name = "value", value = "10")))
     @Swagger400
     @Swagger404
     @Transactional
     @ValidationFilterAnnotation(validator = NewVersionPlanPersist.NewVersionPlanPersistValidator.ValidatorName, argumentName = "model")
     public Plan createNewVersion(
             @RequestBody NewVersionPlanPersist model,
-            @Parameter(name = "fieldSet", description = SwaggerHelpers.Commons.fieldset_description, required = true) FieldSet fieldSet
+            @Parameter(name = "f", description = SwaggerHelpers.Commons.fieldset_description, required = true, style = ParameterStyle.FORM, explode = Explode.TRUE, schema = @Schema(type = "array", example = SwaggerHelpers.Plan.endpoint_field_set_example)) FieldSet fieldSet
     ) throws MyApplicationException, MyForbiddenException, MyNotFoundException, JAXBException, IOException, TransformerException, InvalidApplicationException, ParserConfigurationException {
         logger.debug(new MapLogEntry("persisting" + NewVersionPlanPersist.class.getSimpleName()).And("model", model).And("fieldSet", fieldSet));
 
@@ -410,46 +441,6 @@ public class PlanController {
         return new QueryResult<>(persisted);
     }
 
-    @GetMapping("{id}/export/{transformerId}/{type}")
-    @OperationWithTenantHeader(summary = "Export a plan in various formats by id", description = "",
-            responses = @ApiResponse(description = "OK", responseCode = "200"))
-    @Swagger404
-    public ResponseEntity<byte[]> export(
-            @Parameter(name = "id", description = "The id of a plan to export", example = "c0c163dc-2965-45a5-9608-f76030578609", required = true) @PathVariable("id") UUID id,
-            @PathVariable("transformerId") String transformerId,
-            @PathVariable("type") String exportType
-    ) throws InvalidApplicationException, IOException, InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
-        logger.debug(new MapLogEntry("exporting plan").And("id", id).And("transformerId", transformerId).And("exportType", exportType));
-
-        ResponseEntity<byte[]> bytes = this.planService.export(id, transformerId, exportType, false);
-        this.auditService.track(AuditableAction.Plan_Export, Map.ofEntries(
-                new AbstractMap.SimpleEntry<String, Object>("id", id),
-                new AbstractMap.SimpleEntry<String, Object>("transformerId", transformerId),
-                new AbstractMap.SimpleEntry<String, Object>("exportType", exportType)
-        ));
-        return bytes;
-    }
-
-    @GetMapping("{id}/export-public/{transformerId}/{type}")
-    @OperationWithTenantHeader(summary = "Export a public published plan in various formats by id", description = "",
-            responses = @ApiResponse(description = "OK", responseCode = "200"))
-    @Swagger404
-    public ResponseEntity<byte[]> exportPublic(
-            @Parameter(name = "id", description = "The id of a public published plan to export", example = "c0c163dc-2965-45a5-9608-f76030578609", required = true) @PathVariable("id") UUID id,
-            @PathVariable("transformerId") String transformerId,
-            @PathVariable("type") String exportType
-    ) throws InvalidApplicationException, IOException, InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
-        logger.debug(new MapLogEntry("exporting plan").And("id", id).And("transformerId", transformerId).And("exportType", exportType));
-
-        ResponseEntity<byte[]> bytes = this.planService.export(id, transformerId, exportType, true);
-        this.auditService.track(AuditableAction.Plan_ExportPublic, Map.ofEntries(
-                new AbstractMap.SimpleEntry<String, Object>("id", id),
-                new AbstractMap.SimpleEntry<String, Object>("transformerId", transformerId),
-                new AbstractMap.SimpleEntry<String, Object>("exportType", exportType)
-        ));
-        return bytes;
-    }
-
     @PostMapping("{id}/invite-users")
     @OperationWithTenantHeader(summary = "Send user invitations for the plan by id")
     @Transactional
@@ -485,8 +476,10 @@ public class PlanController {
 
     @RequestMapping(method = RequestMethod.GET, value = "/xml/export/{id}", produces = "application/xml")
     @OperationWithTenantHeader(summary = "Export a plan in xml format by id", description = "",
-            responses = @ApiResponse(description = "OK", responseCode = "200"))
+            responses = @ApiResponse(description = "OK", responseCode = "200"),
+            extensions = @Extension(name = "x-order", properties = @ExtensionProperty(name = "value", value = "11")))
     @Swagger404
+    @Transactional
     public @ResponseBody ResponseEntity<byte[]> getXml(
             @Parameter(name = "id", description = "The id of a plan to export", example = "c0c163dc-2965-45a5-9608-f76030578609", required = true) @PathVariable UUID id
     ) throws JAXBException, ParserConfigurationException, IOException, InstantiationException, IllegalAccessException, SAXException, InvalidApplicationException {
@@ -502,8 +495,10 @@ public class PlanController {
 
     @RequestMapping(method = RequestMethod.GET, value = "/xml/export-public/{id}", produces = "application/xml")
     @OperationWithTenantHeader(summary = "Export a public published plan in xml format by id", description = "",
-            responses = @ApiResponse(description = "OK", responseCode = "200"))
+            responses = @ApiResponse(description = "OK", responseCode = "200"),
+            extensions = @Extension(name = "x-order", properties = @ExtensionProperty(name = "value", value = "12")))
     @Swagger404
+    @Transactional
     public @ResponseBody ResponseEntity<byte[]> getPublicXml(
             @Parameter(name = "id", description = "The id of a public published plan to export", example = "c0c163dc-2965-45a5-9608-f76030578609", required = true) @PathVariable UUID id
     ) throws JAXBException, ParserConfigurationException, IOException, InstantiationException, IllegalAccessException, SAXException, InvalidApplicationException {
@@ -523,12 +518,13 @@ public class PlanController {
                     schema = @Schema(
                             implementation = Plan.class
                     ))
-            ))
+            ),
+            extensions = @Extension(name = "x-order", properties = @ExtensionProperty(name = "value", value = "13")))
     @Transactional
     public Plan importXml(
             @RequestParam("file") MultipartFile file,
             @RequestParam("label") String label,
-            @Parameter(name = "fields", description = SwaggerHelpers.Commons.fieldset_description, required = true) FieldSet fields
+            @Parameter(name = "f", description = SwaggerHelpers.Commons.fieldset_description, required = true, style = ParameterStyle.FORM, explode = Explode.TRUE, schema = @Schema(type = "array", example = SwaggerHelpers.Plan.endpoint_field_set_example)) FieldSet fields
     ) throws JAXBException, ParserConfigurationException, IOException, InstantiationException, IllegalAccessException, SAXException, InvalidApplicationException, TransformerException {
         logger.debug(new MapLogEntry("import xml" + Plan.class.getSimpleName()).And("file", file).And("label", label));
 
@@ -547,7 +543,8 @@ public class PlanController {
                     schema = @Schema(
                             implementation = PreprocessingPlanModel.class
                     ))
-            ))
+            ),
+            extensions = @Extension(name = "x-order", properties = @ExtensionProperty(name = "value", value = "14")))
     @Transactional
     public PreprocessingPlanModel preprocessing(
             @RequestParam("fileId") UUID fileId,
@@ -571,12 +568,13 @@ public class PlanController {
                     schema = @Schema(
                             implementation = Plan.class
                     ))
-            ))
+            ),
+            extensions = @Extension(name = "x-order", properties = @ExtensionProperty(name = "value", value = "15")))
     @ValidationFilterAnnotation(validator = PlanCommonModelConfig.PlanCommonModelConfigValidator.ValidatorName, argumentName = "model")
     @Transactional
     public Plan importJson(
             @RequestBody PlanCommonModelConfig planCommonModelConfig,
-            @Parameter(name = "fields", description = SwaggerHelpers.Commons.fieldset_description, required = true) FieldSet fields
+            @Parameter(name = "f", description = SwaggerHelpers.Commons.fieldset_description, required = true, style = ParameterStyle.FORM, explode = Explode.TRUE, schema = @Schema(type = "array", example = SwaggerHelpers.Plan.endpoint_field_set_example)) FieldSet fields
     ) throws InvalidAlgorithmParameterException, JAXBException, NoSuchPaddingException, IllegalBlockSizeException, InvalidApplicationException, IOException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException, ParserConfigurationException, TransformerException, InstantiationException, IllegalAccessException, SAXException {
         logger.debug(new MapLogEntry("import json" + Plan.class.getSimpleName()).And("transformerId", planCommonModelConfig.getRepositoryId()).And("file id", planCommonModelConfig.getFileId()).And("label", planCommonModelConfig.getLabel()));
 

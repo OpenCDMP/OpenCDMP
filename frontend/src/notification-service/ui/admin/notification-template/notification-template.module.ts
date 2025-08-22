@@ -8,7 +8,6 @@ import { HybridListingModule } from "@common/modules/hybrid-listing/hybrid-listi
 import { TextFilterModule } from "@common/modules/text-filter/text-filter.module";
 import { UserSettingsModule } from "@common/modules/user-settings/user-settings.module";
 import { CommonUiModule } from '@common/ui/common-ui.module';
-import { NgxDropzoneModule } from "ngx-dropzone";
 import { NotificationTemplateListingComponent } from './listing/notification-template-listing.component';
 import { RichTextEditorModule } from '@app/library/rich-text-editor/rich-text-editor.module';
 import { NotificationTemplateRoutingModule } from './notification-template.routing';
@@ -25,7 +24,6 @@ import { NotificationServiceFormattingModule } from '@notification-service/core/
 		CommonFormsModule,
 		ConfirmationDialogModule,
 		NotificationTemplateRoutingModule,
-		NgxDropzoneModule,
 		DragDropModule,
 		AutoCompleteModule,
 		HybridListingModule,

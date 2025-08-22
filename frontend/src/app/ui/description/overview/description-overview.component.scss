@@ -53,9 +53,9 @@
     font-size: var(--sys-label-large-size);
     opacity: 0.9;
     .current-status {
-        border: 1px solid #00000063;
+        border: 1px solid var(--sys-outline);
         border-radius: 999px;
-        padding: 0.125rem 1rem 0.125rem 0.5rem;
+        padding: 0.125rem 0.5rem;
         font-weight: 500;
     }
 
@@ -157,7 +157,7 @@
 
 .status-logo {
 	height: 1.25rem;
-	width:  1.25rem; 
+	width:  1.25rem;
 }
 // ********CENTER ELEMENTS********
 
@@ -177,3 +177,6 @@
     color: var(--sys-error);
 }
 
+.draft-color{
+	color: var(--draft-color);
+}

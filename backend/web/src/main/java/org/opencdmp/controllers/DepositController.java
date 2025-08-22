@@ -8,6 +8,10 @@ import gr.cite.tools.logging.LoggerService;
 import gr.cite.tools.logging.MapLogEntry;
 import gr.cite.tools.validation.ValidationFilterAnnotation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.enums.Explode;
+import io.swagger.v3.oas.annotations.enums.ParameterStyle;
+import io.swagger.v3.oas.annotations.extensions.Extension;
+import io.swagger.v3.oas.annotations.extensions.ExtensionProperty;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -22,6 +26,7 @@ import org.opencdmp.controllers.swagger.annotation.SwaggerCommonErrorResponses;
 import org.opencdmp.model.EntityDoi;
 import org.opencdmp.model.censorship.EntityDoiCensor;
 import org.opencdmp.model.censorship.deposit.DepositConfigurationCensor;
+import org.opencdmp.model.deposit.DepositAuthMethodResult;
 import org.opencdmp.model.deposit.DepositConfiguration;
 import org.opencdmp.model.persist.deposit.DepositRequest;
 import org.opencdmp.service.deposit.DepositService;
@@ -46,7 +51,7 @@ import java.util.Map;
 @RestController
 @CrossOrigin
 @RequestMapping("/api/deposit/")
-@Tag(name = "Deposit", description = "Manage deposit repositories, make deposits")
+@Tag(name = "Deposit", description = "Manage deposit repositories, make deposits", extensions = @Extension(name = "x-order", properties = @ExtensionProperty(name = "value", value = "12")))
 @SwaggerCommonErrorResponses
 public class DepositController {
 
@@ -75,8 +80,11 @@ public class DepositController {
                             schema = @Schema(
                                     implementation = DepositConfiguration.class
                             )))
-            ))
-    public List<DepositConfiguration> getAvailableRepos(FieldSet fieldSet) throws InvalidApplicationException, InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
+            ),
+            extensions = @Extension(name = "x-order", properties = @ExtensionProperty(name = "value", value = "1")))
+    public List<DepositConfiguration> getAvailableRepos(
+            @Parameter(name = "f", description = SwaggerHelpers.Commons.fieldset_description, required = true, style = ParameterStyle.FORM, explode = Explode.TRUE, schema = @Schema( type = "array", example = SwaggerHelpers.Deposit.endpoint_get_available_repos_example, allowableValues = SwaggerHelpers.Deposit.endpoint_query_field_set_example )) FieldSet fieldSet
+    ) throws InvalidApplicationException, InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
         logger.debug(new MapLogEntry("retrieving" + DepositConfiguration.class.getSimpleName()).And("fields", fieldSet));
 
         this.censorFactory.censor(DepositConfigurationCensor.class).censor(fieldSet, null);
@@ -95,7 +103,8 @@ public class DepositController {
                     schema = @Schema(
                             implementation = EntityDoi.class
                     ))
-            ))
+            ),
+            extensions = @Extension(name = "x-order", properties = @ExtensionProperty(name = "value", value = "3")))
     @Swagger400
     @Transactional
     @ValidationFilterAnnotation(validator = DepositRequest.DepositRequestValidator.ValidatorName, argumentName = "model")
@@ -117,11 +126,12 @@ public class DepositController {
                     schema = @Schema(
                             implementation = DepositConfiguration.class
                     ))
-            ))
+            ),
+            extensions = @Extension(name = "x-order", properties = @ExtensionProperty(name = "value", value = "2")))
     @Swagger404
     public DepositConfiguration getRepository(
             @Parameter(name = "repositoryId", description = "The id of a repository to fetch", example = "zenodo", required = true) @PathVariable("repositoryId") String repositoryId,
-            @Parameter(name = "fieldSet", description = SwaggerHelpers.Commons.fieldset_description, required = true) FieldSet fieldSet
+            @Parameter(name = "f", description = SwaggerHelpers.Commons.fieldset_description, required = true, style = ParameterStyle.FORM, explode = Explode.TRUE, schema = @Schema( type = "array", example = SwaggerHelpers.Deposit.endpoint_get_available_repos_example, allowableValues = SwaggerHelpers.Deposit.endpoint_query_field_set_example )) FieldSet fieldSet
     ) throws InvalidApplicationException, InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
         logger.debug(new MapLogEntry("retrieving" + DepositConfiguration.class.getSimpleName()).And("fields", fieldSet).And("repositoryId", repositoryId));
 
@@ -146,7 +156,8 @@ public class DepositController {
                     schema = @Schema(
                             implementation = String.class
                     ))
-            ))
+            ),
+            extensions = @Extension(name = "x-order", properties = @ExtensionProperty(name = "value", value = "4")))
     @Swagger404
     public String getLogo(
             @Parameter(name = "repositoryId", description = "The id of a repository of which to fetch the logo", example = "zenodo", required = true) @PathVariable("repositoryId") String repositoryId
@@ -159,5 +170,27 @@ public class DepositController {
         ));
 
         return logo;
+    }
+
+    @GetMapping("/repositories/{repositoryId}/get-available-auth-methods")
+    @OperationWithTenantHeader(summary = "Fetch available user authentication methods for a deposit repository", description = SwaggerHelpers.Deposit.endpoint_get_auth_methods,
+            responses = @ApiResponse(description = "OK", responseCode = "200", content = @Content(
+                    schema = @Schema(
+                            implementation = String.class
+                    ))
+            ),
+            extensions = @Extension(name = "x-order", properties = @ExtensionProperty(name = "value", value = "5")))
+    @Swagger404
+    public DepositAuthMethodResult getAvailableAuthMethods(
+            @Parameter(name = "repositoryId", description = "The id of a repository", example = "zenodo", required = true) @PathVariable("repositoryId") String repositoryId
+    ) throws InvalidApplicationException, InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
+        logger.debug(new MapLogEntry("get auth methods" + DepositConfiguration.class.getSimpleName()).And("repositoryId", repositoryId));
+
+        DepositAuthMethodResult result = this.depositService.getAuthMethods(repositoryId);
+        this.auditService.track(AuditableAction.Deposit_GetAuthMethods, Map.ofEntries(
+                new AbstractMap.SimpleEntry<String, Object>("repositoryId", repositoryId)
+        ));
+
+        return result;
     }
 }

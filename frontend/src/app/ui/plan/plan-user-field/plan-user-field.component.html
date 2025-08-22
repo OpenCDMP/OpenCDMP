@@ -69,13 +69,13 @@
     @if(sections || hasTemplatesSections){
         <mat-form-field class="w-100">
             <mat-label>{{'PLAN-EDITOR.FIELDS.SECTIONS' | translate}}</mat-label>
-            <mat-select *ngIf="user.get('role').value != planUserRoleEnum.DescriptionContributor && sections" [formControl]="user.get('sectionId')" [required]="required">
+            <mat-select *ngIf="user.get('role').value != planUserRoleEnum.DescriptionContributor && user.get('role').value != planUserRoleEnum.DataSteward && sections" [formControl]="user.get('sectionId')" [required]="required">
                 <mat-option value="">{{'PLAN-EDITOR.FIELDS.ALL-SECTIONS' | translate}}</mat-option>
                 <mat-option *ngFor="let section of sections" [value]="section.id">
                     {{ section.label }}
                 </mat-option>
             </mat-select>
-            <mat-select *ngIf="user.get('role').value === planUserRoleEnum.DescriptionContributor && hasTemplatesSections" [formControl]="user.get('sectionId')" [required]="required">
+            <mat-select *ngIf="(user.get('role').value === planUserRoleEnum.DescriptionContributor || user.get('role').value === planUserRoleEnum.DataSteward) && hasTemplatesSections" [formControl]="user.get('sectionId')" [required]="required">
                 <mat-option value="">{{'PLAN-EDITOR.FIELDS.ALL-SECTIONS' | translate}}</mat-option>
                 <mat-option *ngFor="let section of hasTemplatesSections" [value]="section.id">
                     {{ section.label }}

@@ -8,6 +8,7 @@ export enum UsageLimitTargetMetric {
 	DESCRIPTION_TEMPLATE_COUNT = "description_template_count",
 	DESCRIPTION_TEMPLATE_TYPE_COUNT = "description_template_type_count",
 	PREFILLING_SOURCES_COUNT = "prefilling_sources_count",
+	REFERENCE_COUNT = "reference_count",
 	REFERENCE_TYPE_COUNT = "reference_type_count",
 	EVALUATION_PLAN_COUNT = "evaluation_plan_count",
 	EVALUATION_DESCRIPTION_COUNT = "evaluation_description_count"

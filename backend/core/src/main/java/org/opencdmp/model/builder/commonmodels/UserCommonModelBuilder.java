@@ -6,7 +6,7 @@ import gr.cite.tools.exception.MyApplicationException;
 import gr.cite.tools.logging.LoggerService;
 import org.opencdmp.authorization.AuthorizationFlags;
 import org.opencdmp.commonmodels.models.UserContactInfoModel;
-import org.opencdmp.commonmodels.models.UserModel;
+import org.opencdmp.commonmodels.models.user.UserModel;
 import org.opencdmp.convention.ConventionService;
 import org.opencdmp.data.UserContactInfoEntity;
 import org.opencdmp.data.UserEntity;

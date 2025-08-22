@@ -8,25 +8,12 @@
 		</div>
 	</div>
 	<div mat-dialog-content>
-		<div class="row">
-			<div class="col-12">
-				<ngx-dropzone class="drop-file" (change)="selectXML($event)" [accept]="'text/xml'" [multiple]="false">
-					<ngx-dropzone-preview class="file-preview" [removable]="true" *ngIf="hasBlueprint()" (removed)="onRemove()">
-						<ngx-dropzone-label class="file-label">{{ selectedFileName }}</ngx-dropzone-label>
-					</ngx-dropzone-preview>
-				</ngx-dropzone>
-			</div>
-		</div>
-		<div class="row">
-			<div class="col-12 d-flex justify-content-center attach-btn">
-				<button mat-button type="button" class="col-auto attach-file" (click)="imgFileInput.click()">
-					<mat-icon class="mr-2">input</mat-icon>
-					<span *ngIf="!hasBlueprint()">{{'GENERAL.START-NEW-PLAN-DIALOG.UPLOAD-FILE' | translate}}</span>
-					<span *ngIf="hasBlueprint()">{{'GENERAL.START-NEW-PLAN-DIALOG.REPLACE-FILE' | translate}}</span>
-				</button>
-				<input class="hidden" type="file" #imgFileInput (change)="selectXML($event)" accept="text/xml" />
-			</div>
-		</div>
+        <app-file-uploader
+            [accept]="'text/xml'"
+            [placeholder]="(hasBlueprint() ? 'GENERAL.START-NEW-PLAN-DIALOG.REPLACE-FILE' : 'GENERAL.START-NEW-PLAN-DIALOG.UPLOAD-FILE') | translate"
+            (onChange)="selectXML($event)"
+            (onRemove)="onRemove()"
+        />
 		<div class="row">
 			<mat-form-field class="col-12">
 				<input matInput placeholder="{{'PLAN-BLUEPRINT-LISTING.IMPORT.UPLOAD-XML-NAME'| translate}}" name="descriptionBlueprintName" [(ngModel)]="data.name">

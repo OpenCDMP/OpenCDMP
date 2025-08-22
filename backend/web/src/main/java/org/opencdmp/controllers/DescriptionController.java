@@ -13,6 +13,10 @@ import gr.cite.tools.logging.MapLogEntry;
 import gr.cite.tools.validation.ValidationFilterAnnotation;
 import io.swagger.v3.oas.annotations.Hidden;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.enums.Explode;
+import io.swagger.v3.oas.annotations.enums.ParameterStyle;
+import io.swagger.v3.oas.annotations.extensions.Extension;
+import io.swagger.v3.oas.annotations.extensions.ExtensionProperty;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
@@ -31,18 +35,15 @@ import org.opencdmp.controllers.swagger.annotation.Swagger400;
 import org.opencdmp.controllers.swagger.annotation.Swagger404;
 import org.opencdmp.controllers.swagger.annotation.SwaggerCommonErrorResponses;
 import org.opencdmp.convention.ConventionService;
-import org.opencdmp.data.StorageFileEntity;
 import org.opencdmp.model.DescriptionValidationResult;
 import org.opencdmp.model.PublicDescription;
-import org.opencdmp.model.StorageFile;
+import org.opencdmp.model.PublicPlan;
 import org.opencdmp.model.builder.PublicDescriptionBuilder;
 import org.opencdmp.model.builder.description.DescriptionBuilder;
 import org.opencdmp.model.censorship.PublicDescriptionCensor;
 import org.opencdmp.model.censorship.description.DescriptionCensor;
-import org.opencdmp.model.censorship.plan.PlanCensor;
 import org.opencdmp.model.description.Description;
 import org.opencdmp.model.persist.*;
-import org.opencdmp.model.plan.Plan;
 import org.opencdmp.model.result.QueryResult;
 import org.opencdmp.query.DescriptionQuery;
 import org.opencdmp.query.PlanQuery;
@@ -55,31 +56,21 @@ import org.opencdmp.service.storage.StorageFileService;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.MessageSource;
 import org.springframework.context.i18n.LocaleContextHolder;
-import org.springframework.core.io.ByteArrayResource;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
 import org.xml.sax.SAXException;
 
-import javax.crypto.BadPaddingException;
-import javax.crypto.IllegalBlockSizeException;
-import javax.crypto.NoSuchPaddingException;
 import javax.management.InvalidApplicationException;
 import javax.xml.parsers.ParserConfigurationException;
 import java.io.IOException;
-import java.security.InvalidAlgorithmParameterException;
-import java.security.InvalidKeyException;
-import java.security.NoSuchAlgorithmException;
 import java.util.*;
 
 import static org.opencdmp.authorization.AuthorizationFlags.Public;
 
 @RestController
 @RequestMapping(path = "api/description")
-@Tag(name = "Descriptions", description = "Manage descriptions")
+@Tag(name = "Descriptions", description = "Manage descriptions", extensions = @Extension(name = "x-order", properties = @ExtensionProperty(name = "value", value = "1")))
 @SwaggerCommonErrorResponses
 public class DescriptionController {
 
@@ -126,8 +117,22 @@ public class DescriptionController {
     }
 
     @PostMapping("public/query")
-    @OperationWithTenantHeader(summary = "Query public descriptions")
-    @Hidden
+    @OperationWithTenantHeader(summary = "Query public descriptions", description = SwaggerHelpers.Description.endpoint_public_query, requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(content = @Content(examples = @ExampleObject(
+            name = SwaggerHelpers.Commons.pagination_example,
+            description = SwaggerHelpers.Commons.pagination_example_description,
+            value = SwaggerHelpers.Description.endpoint_public_query_request_body_example
+    ))), responses = @ApiResponse(description = "OK", responseCode = "200", content = @Content(
+            array = @ArraySchema(
+                    schema = @Schema(
+                            implementation = PublicDescription.class
+                    )
+            ),
+            examples = @ExampleObject(
+                    name = SwaggerHelpers.Commons.pagination_response_example,
+                    description = SwaggerHelpers.Commons.pagination_response_example_description,
+                    value = SwaggerHelpers.Description.endpoint_public_query_response_example
+            ))),
+            extensions = @Extension(name = "x-order", properties = @ExtensionProperty(name = "value", value = "2")))
     public QueryResult<PublicDescription> publicQuery(@RequestBody DescriptionLookup lookup) throws MyApplicationException, MyForbiddenException {
         logger.debug("querying {}", PublicDescription.class.getSimpleName());
 
@@ -141,9 +146,14 @@ public class DescriptionController {
     }
 
     @GetMapping("public/{id}")
-    @OperationWithTenantHeader(summary = "Fetch a specific public description by id")
-    @Hidden
-    public PublicDescription publicGet(@PathVariable("id") UUID id, FieldSet fieldSet) throws MyApplicationException, MyForbiddenException, MyNotFoundException {
+    @OperationWithTenantHeader(summary = "Fetch a specific public description by id", description = "",
+            responses = @ApiResponse(description = "OK", responseCode = "200", content = @Content(
+                    schema = @Schema(
+                            implementation = PublicDescription.class
+                    ))
+            ),
+            extensions = @Extension(name = "x-order", properties = @ExtensionProperty(name = "value", value = "4")))
+    public PublicDescription publicGet(@PathVariable("id") UUID id, @Parameter(name = "f", description = SwaggerHelpers.Commons.fieldset_description, required = true, style = ParameterStyle.FORM, explode = Explode.TRUE, schema = @Schema(type = "array", example = SwaggerHelpers.Description.endpoint_field_set_example)) FieldSet fieldSet) throws MyApplicationException, MyForbiddenException, MyNotFoundException {
         logger.debug(new MapLogEntry("retrieving" + PublicDescription.class.getSimpleName()).And("id", id).And("fields", fieldSet));
         fieldSet = this.fieldSetExpanderService.expand(fieldSet);
 
@@ -165,7 +175,7 @@ public class DescriptionController {
     }
 
     @PostMapping("query")
-    @OperationWithTenantHeader(summary = "Query all descriptions", description = SwaggerHelpers.Description.endpoint_query, requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(description = SwaggerHelpers.Description.endpoint_query_request_body, content = @Content(
+    @OperationWithTenantHeader(summary = "Query all descriptions", description = SwaggerHelpers.Description.endpoint_query, requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(content = @Content(
             examples = {
                     @ExampleObject(
                             name = SwaggerHelpers.Commons.pagination_example,
@@ -183,7 +193,8 @@ public class DescriptionController {
                     name = SwaggerHelpers.Commons.pagination_response_example,
                     description = SwaggerHelpers.Commons.pagination_response_example_description,
                     value = SwaggerHelpers.Description.endpoint_query_response_example
-            ))))
+            ))),
+            extensions = @Extension(name = "x-order", properties = @ExtensionProperty(name = "value", value = "1")))
     public QueryResult<Description> query(@RequestBody DescriptionLookup lookup) throws MyApplicationException, MyForbiddenException {
         logger.debug("querying {}", Description.class.getSimpleName());
 
@@ -202,11 +213,12 @@ public class DescriptionController {
                     schema = @Schema(
                             implementation = Description.class
                     ))
-            ))
+            ),
+            extensions = @Extension(name = "x-order", properties = @ExtensionProperty(name = "value", value = "3")))
     @Swagger404
     public Description get(
             @Parameter(name = "id", description = "The id of a description to fetch", example = "c0c163dc-2965-45a5-9608-f76030578609", required = true) @PathVariable("id") UUID id,
-            @Parameter(name = "fieldSet", description = SwaggerHelpers.Commons.fieldset_description, required = true) FieldSet fieldSet
+            @Parameter(name = "f", description = SwaggerHelpers.Commons.fieldset_description, required = true, style = ParameterStyle.FORM, explode = Explode.TRUE, schema = @Schema(type = "array", example = SwaggerHelpers.Description.endpoint_field_set_example)) FieldSet fieldSet
     ) throws MyApplicationException, MyForbiddenException, MyNotFoundException {
         logger.debug(new MapLogEntry("retrieving" + Description.class.getSimpleName()).And("id", id).And("fields", fieldSet));
         fieldSet = this.fieldSetExpanderService.expand(fieldSet);
@@ -232,14 +244,15 @@ public class DescriptionController {
                     schema = @Schema(
                             implementation = Description.class
                     ))
-            ))
+            ),
+            extensions = @Extension(name = "x-order", properties = @ExtensionProperty(name = "value", value = "5")))
     @Swagger400
     @Swagger404
     @Transactional
     @ValidationFilterAnnotation(validator = DescriptionPersist.DescriptionPersistValidator.ValidatorName, argumentName = "model")
     public Description persist(
             @RequestBody DescriptionPersist model,
-            @Parameter(name = "fieldSet", description = SwaggerHelpers.Commons.fieldset_description, required = true) FieldSet fieldSet
+            @Parameter(name = "f", description = SwaggerHelpers.Commons.fieldset_description, required = true, style = ParameterStyle.FORM, explode = Explode.TRUE, schema = @Schema(type = "array", example =  SwaggerHelpers.Description.endpoint_field_set_example)) FieldSet fieldSet
     ) throws MyApplicationException, MyForbiddenException, MyNotFoundException, InvalidApplicationException, IOException {
         logger.debug(new MapLogEntry("persisting" + Description.class.getSimpleName()).And("model", model).And("fieldSet", fieldSet));
         fieldSet = this.fieldSetExpanderService.expand(fieldSet);
@@ -262,14 +275,15 @@ public class DescriptionController {
                                     implementation = Description.class
                             )
                     )
-            )))
+            )),
+            extensions = @Extension(name = "x-order", properties = @ExtensionProperty(name = "value", value = "7")))
     @Swagger400
     @Swagger404
     @Transactional
     @ValidationFilterAnnotation(validator = DescriptionMultiplePersist.DescriptionMultiplePersistValidator.ValidatorName, argumentName = "model")
     public List<Description> persistMultiple(
             @RequestBody DescriptionMultiplePersist model,
-            @Parameter(name = "fieldSet", description = SwaggerHelpers.Commons.fieldset_description, required = true) FieldSet fieldSet
+            @Parameter(name = "f", description = SwaggerHelpers.Commons.fieldset_description, required = true, style = ParameterStyle.FORM, explode = Explode.TRUE, schema = @Schema(type = "array", example = SwaggerHelpers.Description.endpoint_field_set_example)) FieldSet fieldSet
     ) throws MyApplicationException, MyForbiddenException, MyNotFoundException, InvalidApplicationException, IOException {
         logger.debug(new MapLogEntry("persisting multiple descriptions" + Description.class.getSimpleName()).And("model", model).And("fieldSet", fieldSet));
         fieldSet = this.fieldSetExpanderService.expand(fieldSet);
@@ -290,14 +304,15 @@ public class DescriptionController {
                     schema = @Schema(
                             implementation = Description.class
                     ))
-            ))
+            ),
+            extensions = @Extension(name = "x-order", properties = @ExtensionProperty(name = "value", value = "8")))
     @Swagger400
     @Swagger404
     @Transactional
     @ValidationFilterAnnotation(validator = DescriptionStatusPersist.DescriptionStatusPersistValidator.ValidatorName, argumentName = "model")
     public Description persistStatus(
             @RequestBody DescriptionStatusPersist model,
-            @Parameter(name = "fieldSet", description = SwaggerHelpers.Commons.fieldset_description, required = true) FieldSet fieldSet
+            @Parameter(name = "f", description = SwaggerHelpers.Commons.fieldset_description, required = true, style = ParameterStyle.FORM, explode = Explode.TRUE, schema = @Schema(type = "array", example = SwaggerHelpers.Description.endpoint_field_set_example)) FieldSet fieldSet
     ) throws MyApplicationException, MyForbiddenException, MyNotFoundException, IOException, InvalidApplicationException {
         logger.debug(new MapLogEntry("persisting" + Description.class.getSimpleName()).And("model", model).And("fieldSet", fieldSet));
         fieldSet = this.fieldSetExpanderService.expand(fieldSet);
@@ -318,12 +333,13 @@ public class DescriptionController {
                     schema = @Schema(
                             implementation = Description.class
                     ))
-            ))
+            ),
+            extensions = @Extension(name = "x-order", properties = @ExtensionProperty(name = "value", value = "9")))
     @Swagger400
     @Swagger404
     public Description buildClone(
             @Parameter(name = "id", description = "The id of a description to clone", example = "c0c163dc-2965-45a5-9608-f76030578609", required = true) @PathVariable("id") UUID id,
-            @Parameter(name = "fieldSet", description = SwaggerHelpers.Commons.fieldset_description, required = true) FieldSet fieldSet
+            @Parameter(name = "f", description = SwaggerHelpers.Commons.fieldset_description, required = true, style = ParameterStyle.FORM, explode = Explode.TRUE, schema = @Schema(type = "array", example = SwaggerHelpers.Description.endpoint_field_set_example)) FieldSet fieldSet
     ) throws MyApplicationException, MyForbiddenException, MyNotFoundException, IOException, InvalidApplicationException {
         logger.debug(new MapLogEntry("clone" + Description.class.getSimpleName()).And("id", id).And("fields", fieldSet));
         fieldSet = this.fieldSetExpanderService.expand(fieldSet);
@@ -374,7 +390,8 @@ public class DescriptionController {
 
     @DeleteMapping("{id}")
     @OperationWithTenantHeader(summary = "Delete a description by id", description = "",
-            responses = @ApiResponse(description = "OK", responseCode = "200"))
+            responses = @ApiResponse(description = "OK", responseCode = "200"),
+            extensions = @Extension(name = "x-order", properties = @ExtensionProperty(name = "value", value = "6")))
     @Swagger404
     @Transactional
     public void delete(
@@ -387,94 +404,10 @@ public class DescriptionController {
         this.auditService.track(AuditableAction.Description_Delete, "id", id);
     }
 
-    @GetMapping("{id}/export/{type}")
-    @OperationWithTenantHeader(summary = "Export a description in various formats by id", description = "",
-            responses = @ApiResponse(description = "OK", responseCode = "200"))
-    @Swagger404
-    public ResponseEntity<byte[]> export(
-            @Parameter(name = "id", description = "The id of a description to export", example = "c0c163dc-2965-45a5-9608-f76030578609", required = true) @PathVariable("id") UUID id,
-            @Parameter(name = "type", description = "The type of the export", example = "rda", required = true) @PathVariable("type") String exportType
-    ) throws InvalidApplicationException, IOException, InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
-        logger.debug(new MapLogEntry("exporting description"));
-
-        return this.descriptionService.export(id, exportType, true);
-    }
-
-    @GetMapping("{id}/export-public/{type}")
-    @OperationWithTenantHeader(summary = "Export a public description in various formats by id", description = "",
-            responses = @ApiResponse(description = "OK", responseCode = "200"))
-    @Swagger404
-    public ResponseEntity<byte[]> exportPublic(
-            @Parameter(name = "id", description = "The id of a public description to export", example = "c0c163dc-2965-45a5-9608-f76030578609", required = true) @PathVariable("id") UUID id,
-            @Parameter(name = "type", description = "The type of the export", example = "rda", required = true) @PathVariable("type") String exportType
-    ) throws InvalidApplicationException, IOException, InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
-        logger.debug(new MapLogEntry("exporting description"));
-
-        return this.descriptionService.export(id, exportType, false);
-    }
-
-    @PostMapping("field-file/upload")
-    @OperationWithTenantHeader(summary = "Upload a file attachment on a field that supports it", description = "",
-            responses = @ApiResponse(description = "OK", responseCode = "200", content = @Content(
-                    schema = @Schema(
-                            implementation = StorageFile.class
-                    ))
-            ))
-    @Swagger400
-    @Swagger404
-    @Transactional
-    @ValidationFilterAnnotation(validator = DescriptionFieldFilePersist.PersistValidator.ValidatorName, argumentName = "model")
-    public StorageFile uploadFieldFiles(
-            @RequestParam("file") MultipartFile file,
-            @RequestParam("model") DescriptionFieldFilePersist model,
-            @Parameter(name = "fieldSet", description = SwaggerHelpers.Commons.fieldset_description, required = true) FieldSet fieldSet
-    ) throws IOException {
-        logger.debug(new MapLogEntry("uploadFieldFiles" + Description.class.getSimpleName()).And("model", model).And("fieldSet", fieldSet));
-        fieldSet = this.fieldSetExpanderService.expand(fieldSet);
-
-        StorageFile persisted = this.descriptionService.uploadFieldFile(model, file, fieldSet);
-
-        this.auditService.track(AuditableAction.Description_UploadFieldFiles, Map.ofEntries(
-                new AbstractMap.SimpleEntry<String, Object>("model", model),
-                new AbstractMap.SimpleEntry<String, Object>("fields", fieldSet)
-        ));
-
-        return persisted;
-    }
-
-    @GetMapping("{id}/field-file/{fileId}")
-    @OperationWithTenantHeader(summary = "Fetch a field file attachment as byte array", description = "",
-            responses = @ApiResponse(description = "OK", responseCode = "200"))
-    @Swagger404
-    public ResponseEntity<ByteArrayResource> getFieldFile(
-            @Parameter(name = "id", description = "The id of a description", example = "c0c163dc-2965-45a5-9608-f76030578609", required = true) @PathVariable("id") UUID id,
-            @Parameter(name = "fileIid", description = "The id of the file we want to fetch", example = "c0c163dc-2965-45a5-9608-f76030578609", required = true) @PathVariable("fileId") UUID fileId
-    ) throws MyApplicationException, MyForbiddenException, MyNotFoundException {
-        logger.debug(new MapLogEntry("get Field File" + Description.class.getSimpleName()).And("id", id).And("fileId", fileId));
-
-        StorageFileEntity storageFile = this.descriptionService.getFieldFile(id, fileId);
-
-        byte[] file = this.storageFileService.readAsBytesSafe(id);
-        if (file == null)
-            throw new MyNotFoundException(this.messageSource.getMessage("General_ItemNotFound", new Object[]{id, StorageFile.class.getSimpleName()}, LocaleContextHolder.getLocale()));
-
-        this.auditService.track(AuditableAction.Description_GetFieldFile, Map.ofEntries(
-                new AbstractMap.SimpleEntry<String, Object>("id", id)
-        ));
-
-        String contentType = storageFile.getMimeType();
-        if (this.conventionService.isNullOrEmpty(contentType))
-            contentType = MediaType.APPLICATION_OCTET_STREAM_VALUE;
-
-        return ResponseEntity.ok()
-                .contentType(MediaType.valueOf(contentType))
-                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + storageFile.getName() + (storageFile.getExtension().startsWith(".") ? "" : ".") + storageFile.getExtension() + "\"")
-                .body(new ByteArrayResource(file));
-    }
-
     @PostMapping("update-description-template")
     @OperationWithTenantHeader(summary = "Change the template of a description", description = "",
-            responses = @ApiResponse(description = "OK", responseCode = "200"))
+            responses = @ApiResponse(description = "OK", responseCode = "200"),
+            extensions = @Extension(name = "x-order", properties = @ExtensionProperty(name = "value", value = "12")))
     @Swagger400
     @Swagger404
     @Transactional
@@ -492,8 +425,10 @@ public class DescriptionController {
 
     @RequestMapping(method = RequestMethod.GET, value = "/xml/export/{id}", produces = "application/xml")
     @OperationWithTenantHeader(summary = "Export a description in xml format by id", description = "",
-            responses = @ApiResponse(description = "OK", responseCode = "200"))
+            responses = @ApiResponse(description = "OK", responseCode = "200"),
+            extensions = @Extension(name = "x-order", properties = @ExtensionProperty(name = "value", value = "10")))
     @Swagger404
+    @Transactional
     public @ResponseBody ResponseEntity<byte[]> getXml(
             @Parameter(name = "id", description = "The id of a description to export", example = "c0c163dc-2965-45a5-9608-f76030578609", required = true) @PathVariable UUID id
     ) throws JAXBException, ParserConfigurationException, IOException, InstantiationException, IllegalAccessException, SAXException, InvalidApplicationException {
@@ -509,8 +444,10 @@ public class DescriptionController {
 
     @RequestMapping(method = RequestMethod.GET, value = "/xml/export-public/{id}", produces = "application/xml")
     @OperationWithTenantHeader(summary = "Export a public description in xml format by id", description = "",
-            responses = @ApiResponse(description = "OK", responseCode = "200"))
+            responses = @ApiResponse(description = "OK", responseCode = "200"),
+            extensions = @Extension(name = "x-order", properties = @ExtensionProperty(name = "value", value = "11")))
     @Swagger404
+    @Transactional
     public @ResponseBody ResponseEntity<byte[]> getPublicXml(
             @Parameter(name = "id", description = "The id of a public description to export", example = "c0c163dc-2965-45a5-9608-f76030578609", required = true) @PathVariable UUID id
     ) throws JAXBException, ParserConfigurationException, IOException, InstantiationException, IllegalAccessException, SAXException, InvalidApplicationException {

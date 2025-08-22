@@ -1,40 +1,63 @@
 package org.opencdmp.model.builder.commonmodels.plan;
 
+import gr.cite.tools.data.query.QueryFactory;
+import gr.cite.tools.fieldset.BaseFieldSet;
+import gr.cite.tools.validation.ValidatorFactory;
+import org.apache.commons.io.FilenameUtils;
 import org.opencdmp.authorization.AuthorizationFlags;
+import org.opencdmp.commonmodels.models.FileEnvelopeModel;
 import org.opencdmp.commonmodels.models.plan.PlanBlueprintValueModel;
 import org.opencdmp.commons.enums.PlanBlueprintExtraFieldDataType;
 import org.opencdmp.commons.enums.PlanBlueprintFieldCategory;
+import org.opencdmp.commons.enums.StorageType;
+import org.opencdmp.commons.scope.user.UserScope;
 import org.opencdmp.commons.types.plan.PlanBlueprintValueEntity;
 import org.opencdmp.commons.types.planblueprint.DefinitionEntity;
 import org.opencdmp.commons.types.planblueprint.ExtraFieldEntity;
 import org.opencdmp.commons.types.planblueprint.FieldEntity;
 import org.opencdmp.convention.ConventionService;
+import org.opencdmp.data.StorageFileEntity;
+import org.opencdmp.model.StorageFile;
 import org.opencdmp.model.builder.commonmodels.BaseCommonModelBuilder;
 import org.opencdmp.model.builder.commonmodels.CommonModelBuilderItemResponse;
 import gr.cite.tools.exception.MyApplicationException;
 import gr.cite.tools.logging.LoggerService;
+import org.opencdmp.model.persist.StorageFilePersist;
+import org.opencdmp.query.StorageFileQuery;
+import org.opencdmp.service.storage.StorageFileProperties;
+import org.opencdmp.service.storage.StorageFileService;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
-import java.util.EnumSet;
-import java.util.List;
-import java.util.Optional;
+import java.io.IOException;
+import java.net.URLConnection;
+import java.time.Duration;
+import java.util.*;
 
 @Component
 @Scope(value = ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 public class PlanBlueprintValueCommonModelBuilder extends BaseCommonModelBuilder<PlanBlueprintValueModel, PlanBlueprintValueEntity> {
     private EnumSet<AuthorizationFlags> authorize = EnumSet.of(AuthorizationFlags.None);
+    private final StorageFileService storageFileService;
+    private final UserScope userScope;
+    private final QueryFactory queryFactory;
+    private final ValidatorFactory validatorFactory;
+    private final StorageFileProperties storageFileProperties;
     private DefinitionEntity definition;
 
     @Autowired
     public PlanBlueprintValueCommonModelBuilder(
-		    ConventionService conventionService
+            ConventionService conventionService, StorageFileService storageFileService, UserScope userScope, QueryFactory queryFactory, ValidatorFactory validatorFactory, StorageFileProperties storageFileProperties
     ) {
         super(conventionService, new LoggerService(LoggerFactory.getLogger(PlanBlueprintValueCommonModelBuilder.class)));
+        this.storageFileService = storageFileService;
+        this.userScope = userScope;
+        this.queryFactory = queryFactory;
+        this.validatorFactory = validatorFactory;
+        this.storageFileProperties = storageFileProperties;
     }
 
     public PlanBlueprintValueCommonModelBuilder authorize(EnumSet<AuthorizationFlags> values) {
@@ -44,6 +67,12 @@ public class PlanBlueprintValueCommonModelBuilder extends BaseCommonModelBuilder
 
     public PlanBlueprintValueCommonModelBuilder withDefinition(DefinitionEntity definition) {
         this.definition = definition;
+        return this;
+    }
+
+    private boolean useSharedStorage;
+    public PlanBlueprintValueCommonModelBuilder useSharedStorage(boolean useSharedStorage) {
+        this.useSharedStorage = useSharedStorage;
         return this;
     }
 
@@ -69,10 +98,49 @@ public class PlanBlueprintValueCommonModelBuilder extends BaseCommonModelBuilder
                 }
                 models.add(new CommonModelBuilderItemResponse<>(m, d));
             }
+
+            if (fieldEntity != null && fieldEntity.getCategory().equals(PlanBlueprintFieldCategory.Upload)) {
+                PlanBlueprintValueModel m = new PlanBlueprintValueModel();
+                m.setFieldId(d.getFieldId());
+                m.setValue(d.getValue());
+
+                if (d.getValue() != null && !d.getValue().isEmpty()) {
+                    try {
+                        byte[] bytes = this.storageFileService.readAsBytesSafe(UUID.fromString(d.getValue()));
+                        FileEnvelopeModel fileEnvelopeModel = new FileEnvelopeModel();
+                        StorageFileEntity storageFile = this.queryFactory.query(StorageFileQuery.class).disableTracking().ids(UUID.fromString(d.getValue())).first();
+                        fileEnvelopeModel.setFile(bytes);
+                        fileEnvelopeModel.setFilename(storageFile.getName() + (storageFile.getExtension().startsWith(".") ? "" : ".") + storageFile.getExtension());
+                        fileEnvelopeModel.setMimeType(storageFile.getMimeType());
+                        if (!this.useSharedStorage){
+                            fileEnvelopeModel.setFile(bytes);
+                        } else {
+                            fileEnvelopeModel.setFileRef(this.addFileToSharedStorage(bytes, storageFile));
+                        }
+                        m.setFile(fileEnvelopeModel);
+                    }catch (Exception e){
+                        this.logger.error(e.getMessage());
+                    }
+                }
+                models.add(new CommonModelBuilderItemResponse<>(m, d));
+            }
         }
 
         this.logger.debug("build {} items", Optional.of(models).map(List::size).orElse(0));
 
         return models;
+    }
+
+    private String addFileToSharedStorage(byte[] bytes, StorageFileEntity storageFile) throws IOException {
+        StorageFilePersist storageFilePersist = new StorageFilePersist();
+        storageFilePersist.setName(FilenameUtils.removeExtension(storageFile.getName()));
+        storageFilePersist.setExtension(FilenameUtils.getExtension(storageFile.getExtension()));
+        storageFilePersist.setMimeType(URLConnection.guessContentTypeFromName(storageFile.getName() + (storageFile.getExtension().startsWith(".") ? "" : ".") + storageFile.getExtension()));
+        storageFilePersist.setOwnerId(this.userScope.getUserIdSafe());
+        storageFilePersist.setStorageType(StorageType.Temp);
+        storageFilePersist.setLifetime(Duration.ofSeconds(this.storageFileProperties.getTempStoreLifetimeSeconds()));
+        this.validatorFactory.validator(StorageFilePersist.StorageFilePersistValidator.class).validateForce(storageFilePersist);
+        StorageFile persisted = this.storageFileService.persistBytes(storageFilePersist, bytes, new BaseFieldSet(StorageFile._id, StorageFile._fileRef));
+        return persisted.getFileRef();
     }
 }

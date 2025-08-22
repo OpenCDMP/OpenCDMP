@@ -53,6 +53,8 @@ export class RecentEditedActivityComponent extends BaseComponent implements OnIn
 
 	@Input() type: ActivityListingType = ActivityListingType.Recent;
 	@Input() hasPlans: boolean = false;
+	@Input() orderedPlanPreferencesList:ReferenceType[] = [];
+	@Input() orderedDescriptionPreferencesList:ReferenceType[] = [];
     
 	@Output() addNewDescription: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(false);
     

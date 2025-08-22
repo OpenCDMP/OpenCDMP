@@ -1,5 +1,6 @@
 package org.opencdmp.model.evaluator;
 
+import java.util.List;
 import java.util.UUID;
 
 public class EvaluateRequestModel {
@@ -7,6 +8,7 @@ public class EvaluateRequestModel {
     private UUID id;
     private String evaluatorId;
     private String format;
+    private List<String> benchmarkIds;
 
     public UUID getId() {
         return id;
@@ -30,5 +32,13 @@ public class EvaluateRequestModel {
 
     public void setFormat(String format) {
         this.format = format;
+    }
+
+    public List<String> getBenchmarkIds() {
+        return benchmarkIds;
+    }
+
+    public void setBenchmarkIds(List<String> benchmarkIds) {
+        this.benchmarkIds = benchmarkIds;
     }
 }

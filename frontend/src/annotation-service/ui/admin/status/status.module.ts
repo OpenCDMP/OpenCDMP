@@ -8,7 +8,6 @@ import { HybridListingModule } from "@common/modules/hybrid-listing/hybrid-listi
 import { TextFilterModule } from "@common/modules/text-filter/text-filter.module";
 import { UserSettingsModule } from "@common/modules/user-settings/user-settings.module";
 import { CommonUiModule } from '@common/ui/common-ui.module';
-import { NgxDropzoneModule } from "ngx-dropzone";
 import { StatusListingComponent } from './listing/status-listing.component';
 import { RichTextEditorModule } from '@app/library/rich-text-editor/rich-text-editor.module';
 import { MatIconModule } from '@angular/material/icon';
@@ -24,7 +23,6 @@ import { StatusEditorComponent } from './editor/status-editor.component';
 		CommonFormsModule,
 		ConfirmationDialogModule,
 		StatusRoutingModule,
-		NgxDropzoneModule,
 		DragDropModule,
 		AutoCompleteModule,
 		HybridListingModule,

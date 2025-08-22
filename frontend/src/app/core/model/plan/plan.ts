@@ -6,7 +6,7 @@ import { BaseEntity, BaseEntityPersist } from '@common/base/base-entity.model';
 import { Guid } from '@common/types/guid';
 import { DescriptionTemplate } from '../description-template/description-template';
 import { BaseDescription, Description, PublicDescription } from '../description/description';
-import { PlanBlueprint } from '../plan-blueprint/plan-blueprint';
+import { PlanBlueprint, PublicPlanBlueprint } from '../plan-blueprint/plan-blueprint';
 import { EntityDoi } from '../entity-doi/entity-doi';
 import { ReferencePersist } from '../reference/reference';
 import { User } from "../user/user";
@@ -48,11 +48,30 @@ export interface Plan extends BasePlan {
 }
 
 export interface PublicPlan extends BasePlan {
+	blueprint?: PublicPlanBlueprint;
+	language?: String;
+	properties?: PublicPlanProperties;
 	planUsers: PublicPlanUser[];
 	descriptions: PublicDescription[];
 	otherPlanVersions?: PublicPlan[];
 }
 
+export interface PublicPlanProperties {
+	planBlueprintValues: PublicPlanBlueprintValue[];
+	contacts: PublicPlanContact[];
+}
+
+export interface PublicPlanBlueprintValue {
+	fieldId: Guid;
+	fieldValue: string;
+	dateValue: Date;
+	numberValue: number;
+}
+
+export interface PublicPlanContact {
+	firstName: string;
+	lastName: string;
+}
 
 export interface PlanProperties {
 	planBlueprintValues: PlanBlueprintValue[];
@@ -80,6 +99,7 @@ export interface BasePlanUser extends BaseEntity {
 export interface PlanUser extends BasePlanUser {
 	plan: Plan;
 	sectionId: Guid;
+	ordinal: number;
 }
 
 export interface PublicPlanUser extends BasePlanUser{
@@ -170,6 +190,7 @@ export interface PlanUserPersist {
 	role: PlanUserRole;
 	email: string;
 	sectionId: string;
+	ordinal: number;
 }
 
 export interface PlanUserRemovePersist {

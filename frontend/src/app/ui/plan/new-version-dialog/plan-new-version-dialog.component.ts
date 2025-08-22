@@ -24,9 +24,10 @@ import { MatSelectionListChange } from '@angular/material/list';
 import { HttpErrorHandlingService } from '@common/modules/errors/error-handling/http-error-handling.service';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Description } from '@app/core/model/description/description';
-import { of } from 'rxjs';
+import { of, throwError } from 'rxjs';
 import { DescriptionTemplate } from '@app/core/model/description-template/description-template';
 import { DescriptionStatusEnum } from '@app/core/common/enum/description-status';
+import { ResponseErrorCode } from '@app/core/common/enum/respone-error-code';
 
 @Component({
     selector: 'app-plan-new-version-dialog',
@@ -113,10 +114,14 @@ export class NewVersionPlanDialogComponent extends BaseComponent {
 		return this.checkedDescrionsNo > 0 && this.checkedDescrionsNo < this.allDescriptionsNo;
 	}
 
+	get isStartinBlueprintInactive(): boolean{
+		return this.plan.blueprint?.isActive === IsActive.Inactive;
+	}
+
 
 	ngOnInit() {
 		this.selectedBlueprintSections = this.plan.blueprint?.definition?.sections?.filter(x => x.hasTemplates) || null;
-		this.editorModel = new PlanNewVersionDialogEditorModel().fromModel(this.plan, this.plan.blueprint);
+		this.editorModel = new PlanNewVersionDialogEditorModel().fromModel(this.plan, this.plan.blueprint, null, null, this.isStartinBlueprintInactive);
 		this.formGroup = this.editorModel.buildForm();
 	}
 
@@ -198,7 +203,7 @@ export class NewVersionPlanDialogComponent extends BaseComponent {
             takeUntil(this._destroyed),
             catchError((error) => {this.onCallbackError(error); return of(null)}),
             tap((plan) => {
-                this.dialogRef.close(plan);
+                if (plan) this.dialogRef.close(plan);
             })
         );
 	}

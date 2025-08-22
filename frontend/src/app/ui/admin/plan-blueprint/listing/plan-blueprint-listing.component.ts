@@ -126,7 +126,7 @@ export class PlanBlueprintListingComponent extends BaseListingComponent<PlanBlue
 		lookup.metadata = { countAll: true };
 		lookup.page = { offset: 0, size: this.ITEMS_PER_PAGE };
 		lookup.isActive = [IsActive.Active];
-		lookup.order = { items: [this.toDescSortField(nameof<PlanBlueprint>(x => x.createdAt))] };
+		lookup.order = { items: [this.toDescSortField(nameof<PlanBlueprint>(x => x.updatedAt))] };
 		if (this.mode && this.mode == 'versions-listing') {
 			this.groupId = Guid.parse(this.route.snapshot.paramMap.get('groupid'));
 			this.breadcrumbService.addIdResolvedValue(this.groupId.toString(), "");
@@ -273,7 +273,7 @@ export class PlanBlueprintListingComponent extends BaseListingComponent<PlanBlue
 				confirmButton: this.language.instant('PLAN-BLUEPRINT-LISTING.IMPORT.UPLOAD-XML'),
 				cancelButton: this.language.instant('PLAN-BLUEPRINT-LISTING.IMPORT.UPLOAD-XML-FILE-CANCEL'),
 				name: '',
-				file: FileList,
+				file: File,
 				sucsess: false
 			},
             width: 'min(600px, 90vw)'

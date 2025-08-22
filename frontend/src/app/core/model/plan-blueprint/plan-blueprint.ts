@@ -7,23 +7,25 @@ import { Guid } from "@common/types/guid";
 import { ReferenceType } from "../reference-type/reference-type";
 import { PrefillingSource } from "../prefilling-source/prefilling-source";
 import { PlanBlueprintVersionStatus } from "@app/core/common/enum/plan-blueprint-version-status";
+import { PluginConfiguration, PluginConfigurationPersist } from "../plugin-configuration/plugin-configuration";
 import { DescriptionTemplate } from "../description-template/description-template";
 
 
 export interface PlanBlueprint extends BaseEntity {
-	label: string;
-	description: string;
-	code: string;
+	label?: string;
+	description?: string;
+	code?: string;
 	definition: PlanBlueprintDefinition;
-	status: PlanBlueprintStatus;
-	version: number;
-	versionStatus: PlanBlueprintVersionStatus;
-	groupId: Guid;
+	status?: PlanBlueprintStatus;
+	version?: number;
+	versionStatus?: PlanBlueprintVersionStatus;
+	groupId?: Guid;
 	ordinal?: number;
 }
 
 export interface PlanBlueprintDefinition {
 	sections?: PlanBlueprintDefinitionSection[];
+	pluginConfigurations?: PluginConfiguration[];
 }
 
 
@@ -32,8 +34,9 @@ export interface PlanBlueprintDefinitionSection {
 	label: string;
 	description: string;
 	ordinal: number;
-	fields: (SystemFieldInSection | ExtraFieldInSection | ReferenceTypeFieldInSection)[];
+	fields: (SystemFieldInSection | ExtraFieldInSection | ReferenceTypeFieldInSection | UploadFieldInSection)[];
 	hasTemplates: boolean;
+    canEditDescriptionTemplates: boolean;
 	descriptionTemplates?: DescriptionTemplatesInSection[];
 	prefillingSourcesEnabled: boolean;
 	prefillingSources: PrefillingSource[];
@@ -43,6 +46,7 @@ export interface DescriptionTemplatesInSection {
 	descriptionTemplate: DescriptionTemplate;
 	minMultiplicity: number;
 	maxMultiplicity: number;
+
 }
 
 export interface FieldInSection {
@@ -56,6 +60,25 @@ export interface FieldInSection {
 	ordinal: number;
 }
 
+export interface PublicPlanBlueprint extends BaseEntity {
+	label?: string;
+	description?: string;
+	definition: PublicPlanBlueprintDefinition;
+}
+
+export interface PublicPlanBlueprintDefinition {
+	sections?: PublicPlanBlueprintDefinitionSection[];
+}
+
+export interface PublicPlanBlueprintDefinitionSection {
+	id: Guid;
+	label: string;
+	description: string;
+	hasTemplates: boolean;
+	fields: (SystemFieldInSection | ExtraFieldInSection | ReferenceTypeFieldInSection | UploadFieldInSection)[];
+
+}
+
 export interface SystemFieldInSection extends FieldInSection {
 	systemFieldType: PlanBlueprintSystemFieldType;
 }
@@ -67,6 +90,16 @@ export interface ExtraFieldInSection extends FieldInSection {
 export interface ReferenceTypeFieldInSection extends FieldInSection {
 	referenceType: ReferenceType;
 	multipleSelect: boolean;
+}
+
+export interface UploadFieldInSection extends FieldInSection {
+	types: UploadOption[];
+	maxFileSizeInMB: number;
+}
+
+export interface UploadOption {
+	label: string;
+	value: string;
 }
 
 //
@@ -88,6 +121,7 @@ export interface NewVersionPlanBlueprintPersist {
 
 export interface PlanBlueprintDefinitionPersist {
 	sections?: PlanBlueprintDefinitionSectionPersist[];
+	pluginConfigurations?: PluginConfigurationPersist[];
 }
 
 export interface PlanBlueprintDefinitionSectionPersist {
@@ -97,6 +131,7 @@ export interface PlanBlueprintDefinitionSectionPersist {
 	ordinal: number;
 	fields: FieldInSectionPersist[];
 	hasTemplates: boolean;
+    canEditDescriptionTemplates: boolean;
 	descriptionTemplates?: DescriptionTemplatesInSectionPersist[];
 	prefillingSourcesEnabled: boolean;
 	prefillingSourcesIds: Guid[];
@@ -130,4 +165,14 @@ export interface ExtraFieldInSectionPersist extends FieldInSectionPersist {
 export interface ReferenceTypeFieldInSectionPersist extends FieldInSectionPersist {
 	referenceTypeId: Guid;
 	multipleSelect: boolean;
+}
+
+export interface UploadFieldInSectionPersist extends FieldInSectionPersist {
+	types: UploadOptionPersist[];
+	maxFileSizeInMB: number;
+}
+
+export interface UploadOptionPersist {
+	label: string;
+	value: string;
 }

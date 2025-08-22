@@ -1,6 +1,7 @@
 package org.opencdmp.commons.types.planblueprint;
 
 import jakarta.xml.bind.annotation.*;
+import org.opencdmp.commons.types.pluginconfiguration.PluginConfigurationEntity;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -13,11 +14,24 @@ public class DefinitionEntity {
 	@XmlElement(name = "section")
 	private List<SectionEntity> sections;
 
+	@XmlElementWrapper(name = "pluginConfigurations")
+	@XmlElement(name = "pluginConfiguration")
+	private List<PluginConfigurationEntity> pluginConfigurations;
+
 	public List<SectionEntity> getSections() {
 		return this.sections;
 	}
+
 	public void setSections(List<SectionEntity> sections) {
 		this.sections = sections;
+	}
+
+	public List<PluginConfigurationEntity> getPluginConfigurations() {
+		return pluginConfigurations;
+	}
+
+	public void setPluginConfigurations(List<PluginConfigurationEntity> pluginConfigurations) {
+		this.pluginConfigurations = pluginConfigurations;
 	}
 
 	public List<FieldEntity> getAllField(){

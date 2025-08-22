@@ -54,7 +54,7 @@ export class PlanFilterComponent extends BaseCriteriaComponent<PlanListingFilter
 	maxFileSize: number = 1048576;
 
 	descriptionTemplateAutoCompleteConfiguration: MultipleAutoCompleteConfiguration = this.descriptionTemplateService.buildDescriptionTempalteGroupMultipleAutocompleteConfiguration();
-	planBlueprintAutoCompleteConfiguration: MultipleAutoCompleteConfiguration = this.planBlueprintService.multipleAutocompleteConfiguration;
+	planBlueprintAutoCompleteConfiguration: MultipleAutoCompleteConfiguration = this.planBlueprintService.planBlueprintGroupMultipleAutocompleteConfiguration;
 	referenceTypeAutocompleteConfiguration: SingleAutoCompleteConfiguration = this.getReferenceTypeAutocompleteConfiguration();
 	referenceAutocompleteConfiguration: Map<Guid, MultipleAutoCompleteConfiguration>;
 	planStatusAutoCompleteConfiguration: SingleAutoCompleteConfiguration = this.planStatusService.singleAutocompleteConfiguration;

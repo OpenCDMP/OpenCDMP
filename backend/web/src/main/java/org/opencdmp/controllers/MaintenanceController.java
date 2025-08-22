@@ -3,6 +3,7 @@ package org.opencdmp.controllers;
 import gr.cite.commons.web.authz.service.AuthorizationService;
 import gr.cite.tools.auditing.AuditService;
 import gr.cite.tools.logging.LoggerService;
+import jakarta.transaction.Transactional;
 import org.opencdmp.audit.AuditableAction;
 import org.opencdmp.authorization.Permission;
 import org.opencdmp.service.elastic.ElasticService;
@@ -63,6 +64,7 @@ public class MaintenanceController {
     }
 
     @RequestMapping(method = RequestMethod.POST, value = "/events/users/touch")
+    @Transactional
     public void sendUserTouchEvents() throws InvalidApplicationException {
         logger.debug("send user touch queue events");
         this.authorizationService.authorizeForce(Permission.ManageQueueEvents);
@@ -73,6 +75,7 @@ public class MaintenanceController {
     }
 
     @RequestMapping(method = RequestMethod.POST, value = "/events/tenants/touch")
+    @Transactional
     public void sendTenantTouchEvents() throws InvalidApplicationException {
         logger.debug("send tenant touch queue events");
         this.authorizationService.authorizeForce(Permission.ManageQueueEvents);
@@ -83,6 +86,7 @@ public class MaintenanceController {
     }
 
     @RequestMapping(method = RequestMethod.POST, value = "/events/plans/touch")
+    @Transactional
     public void sendPlanTouchEvents() throws InvalidApplicationException {
         logger.debug("send plan touch queue events");
         this.authorizationService.authorizeForce(Permission.ManageQueueEvents);
@@ -93,6 +97,7 @@ public class MaintenanceController {
     }
 
     @RequestMapping(method = RequestMethod.POST, value = "/events/descriptions/touch")
+    @Transactional
     public void sendDescriptionTouchEvents() throws InvalidApplicationException {
         logger.debug("send description touch queue events");
         this.authorizationService.authorizeForce(Permission.ManageQueueEvents);
@@ -103,6 +108,7 @@ public class MaintenanceController {
     }
 
     @RequestMapping(method = RequestMethod.POST, value = "/events/plans/accounting-entry")
+    @Transactional
     public void sendPlanAccountingEntriesEvents() throws InvalidApplicationException {
         logger.debug("send plan accounting entries queue events");
         this.authorizationService.authorizeForce(Permission.ManageQueueEvents);
@@ -113,6 +119,7 @@ public class MaintenanceController {
     }
 
     @RequestMapping(method = RequestMethod.POST, value = "/events/descriptions/accounting-entry")
+    @Transactional
     public void sendDescriptionAccountingEntriesEvents() throws InvalidApplicationException {
         logger.debug("send plan accounting entries queue events");
         this.authorizationService.authorizeForce(Permission.ManageQueueEvents);
@@ -123,6 +130,7 @@ public class MaintenanceController {
     }
 
     @RequestMapping(method = RequestMethod.POST, value = "/events/plan-blueprints/accounting-entry")
+    @Transactional
     public void sendBlueprintAccountingEntriesEvents() throws InvalidApplicationException {
         logger.debug("send blueprints accounting entries queue events");
         this.authorizationService.authorizeForce(Permission.ManageQueueEvents);
@@ -133,6 +141,7 @@ public class MaintenanceController {
     }
 
     @RequestMapping(method = RequestMethod.POST, value = "/events/description-templates/accounting-entry")
+    @Transactional
     public void sendDescriptionTemplateAccountingEntriesEvents() throws InvalidApplicationException {
         logger.debug("send description templates accounting entries queue events");
         this.authorizationService.authorizeForce(Permission.ManageQueueEvents);
@@ -143,6 +152,7 @@ public class MaintenanceController {
     }
 
     @RequestMapping(method = RequestMethod.POST, value = "/events/description-template-types/accounting-entry")
+    @Transactional
     public void sendDescriptionTemplateTypeAccountingEntriesEvents() throws InvalidApplicationException {
         logger.debug("send description template types accounting entries queue events");
         this.authorizationService.authorizeForce(Permission.ManageQueueEvents);
@@ -153,6 +163,7 @@ public class MaintenanceController {
     }
 
     @RequestMapping(method = RequestMethod.POST, value = "/events/prefilling-sources/accounting-entry")
+    @Transactional
     public void sendPrefillingSourceAccountingEntriesEvents() throws InvalidApplicationException {
         logger.debug("send prefilling source accounting entries queue events");
         this.authorizationService.authorizeForce(Permission.ManageQueueEvents);
@@ -163,6 +174,7 @@ public class MaintenanceController {
     }
 
     @RequestMapping(method = RequestMethod.POST, value = "/events/reference-types/accounting-entry")
+    @Transactional
     public void sendReferenceTypeAccountingEntriesEvents() throws InvalidApplicationException {
         logger.debug("send reference type accounting entries queue events");
         this.authorizationService.authorizeForce(Permission.ManageQueueEvents);
@@ -173,6 +185,7 @@ public class MaintenanceController {
     }
 
     @RequestMapping(method = RequestMethod.POST, value = "/events/plan-statuses/accounting-entry")
+    @Transactional
     public void sendPlanStatusAccountingEntriesEvents() throws InvalidApplicationException {
         logger.debug("send plan status accounting entries queue events");
         this.authorizationService.authorizeForce(Permission.ManageQueueEvents);
@@ -183,6 +196,7 @@ public class MaintenanceController {
     }
 
     @RequestMapping(method = RequestMethod.POST, value = "/events/description-statuses/accounting-entry")
+    @Transactional
     public void sendDescriptionStatusAccountingEntriesEvents() throws InvalidApplicationException {
         logger.debug("send description status accounting entries queue events");
         this.authorizationService.authorizeForce(Permission.ManageQueueEvents);
@@ -193,6 +207,7 @@ public class MaintenanceController {
     }
 
     @RequestMapping(method = RequestMethod.POST, value = "/events/users/accounting-entry")
+    @Transactional
     public void sendUserAccountingEntriesEvents() throws InvalidApplicationException {
         logger.debug("send user accounting entries queue events");
         this.authorizationService.authorizeForce(Permission.ManageQueueEvents);
@@ -203,6 +218,7 @@ public class MaintenanceController {
     }
 
     @RequestMapping(method = RequestMethod.POST, value = "/events/evaluation-plan/accounting-entry")
+    @Transactional
     public void sendEvaluationPlanAccountingEntriesEvents() throws InvalidApplicationException {
         logger.debug("send evaluation plan accounting entries queue events");
         this.authorizationService.authorizeForce(Permission.ManageQueueEvents);
@@ -212,7 +228,30 @@ public class MaintenanceController {
         this.auditService.track(AuditableAction.Maintenance_SendEvaluationPlanAccountingEntriesEvents);
     }
 
+    @RequestMapping(method = RequestMethod.POST, value = "/events/references/accounting-entry")
+    @Transactional
+    public void sendReferenceAccountingEntriesEvents() throws InvalidApplicationException {
+        logger.debug("send reference entries queue events");
+        this.authorizationService.authorizeForce(Permission.ManageQueueEvents);
+
+        this.maintenanceService.sendReferenceAccountingEntriesEvents();
+
+        this.auditService.track(AuditableAction.Maintenance_SendReferenceEntriesEvents);
+    }
+
+    @RequestMapping(method = RequestMethod.POST, value = "/events/languages/accounting-entry")
+    @Transactional
+    public void sendLanguageAccountingEntriesEvents() throws InvalidApplicationException {
+        logger.debug("send reference entries queue events");
+        this.authorizationService.authorizeForce(Permission.ManageQueueEvents);
+
+        this.maintenanceService.sendLanguageAccountingEntriesEvents();
+
+        this.auditService.track(AuditableAction.Maintenance_SendLanguageEntriesEvents);
+    }
+
     @RequestMapping(method = RequestMethod.POST, value = "/events/evaluation-description/accounting-entry")
+    @Transactional
     public void sendEvaluationDescriptionAccountingEntriesEvents() throws InvalidApplicationException {
         logger.debug("send evaluation description accounting entries queue events");
         this.authorizationService.authorizeForce(Permission.ManageQueueEvents);
@@ -223,6 +262,7 @@ public class MaintenanceController {
     }
 
     @RequestMapping(method = RequestMethod.POST, value = "/events/indicator-entry")
+    @Transactional
     public void sendIndicatorCreateEvents() throws InvalidApplicationException {
         logger.debug("send indicator create entry queue events");
         this.authorizationService.authorizeForce(Permission.ManageQueueEvents);
@@ -233,6 +273,7 @@ public class MaintenanceController {
     }
 
     @RequestMapping(method = RequestMethod.POST, value = "/events/indicator-reset-entry")
+    @Transactional
     public void sendIndicatorResetEvents() throws InvalidApplicationException {
         logger.debug("send indicator reset entry queue events");
         this.authorizationService.authorizeForce(Permission.ManageQueueEvents);
@@ -243,6 +284,7 @@ public class MaintenanceController {
     }
 
     @RequestMapping(method = RequestMethod.POST, value = "/events/indicator-access-entry")
+    @Transactional
     public void sendIndicatorAccessEvents() throws InvalidApplicationException {
         logger.debug("send indicator create entry queue events");
         this.authorizationService.authorizeForce(Permission.ManageQueueEvents);
@@ -253,6 +295,7 @@ public class MaintenanceController {
     }
 
     @RequestMapping(method = RequestMethod.POST, value = "/events/indicator-point-plan-entry")
+    @Transactional
     public void sendIndicatorPointPlanEvents() throws InvalidApplicationException {
         logger.debug("send indicator point plan entry queue events");
         this.authorizationService.authorizeForce(Permission.ManageQueueEvents);
@@ -263,6 +306,7 @@ public class MaintenanceController {
     }
 
     @RequestMapping(method = RequestMethod.POST, value = "/events/indicator-point-description-entry")
+    @Transactional
     public void sendIndicatorPointDescriptionEvents() throws InvalidApplicationException {
         logger.debug("send indicator point description entry queue events");
         this.authorizationService.authorizeForce(Permission.ManageQueueEvents);
@@ -273,6 +317,7 @@ public class MaintenanceController {
     }
 
     @RequestMapping(method = RequestMethod.POST, value = "/events/indicator-point-reference-entry")
+    @Transactional
     public void sendIndicatorPointReferenceEvents() throws InvalidApplicationException {
         logger.debug("send indicator point reference entry queue events");
         this.authorizationService.authorizeForce(Permission.ManageQueueEvents);
@@ -283,6 +328,7 @@ public class MaintenanceController {
     }
 
     @RequestMapping(method = RequestMethod.POST, value = "/events/indicator-point-user-entry")
+    @Transactional
     public void sendIndicatorPointUserEvents() throws InvalidApplicationException {
         logger.debug("send indicator point user entry queue events");
         this.authorizationService.authorizeForce(Permission.ManageQueueEvents);
@@ -293,6 +339,7 @@ public class MaintenanceController {
     }
 
     @RequestMapping(method = RequestMethod.POST, value = "/events/indicator-point-plan-blueprint-entry")
+    @Transactional
     public void sendIndicatorPointPlantBlueprintEvents() throws InvalidApplicationException {
         logger.debug("send indicator point plan blueprint entry queue events");
         this.authorizationService.authorizeForce(Permission.ManageQueueEvents);
@@ -303,6 +350,7 @@ public class MaintenanceController {
     }
 
     @RequestMapping(method = RequestMethod.POST, value = "/events/indicator-point-description-template-entry")
+    @Transactional
     public void sendIndicatorPointDescriptionTemplateEvents() throws InvalidApplicationException {
         logger.debug("send indicator point description template entry queue events");
         this.authorizationService.authorizeForce(Permission.ManageQueueEvents);
@@ -310,5 +358,27 @@ public class MaintenanceController {
         this.maintenanceService.sendIndicatorPointDescriptionTemplateEntryEvents();
 
         this.auditService.track(AuditableAction.Maintenance_SendIndicatorPointDescriptionTemplateEntryEvents);
+    }
+
+    @RequestMapping(method = RequestMethod.POST, value = "/events/indicator-point-tenant-entry")
+    @Transactional
+    public void sendIndicatorPointTenantEvents() throws InvalidApplicationException {
+        logger.debug("send indicator point tenant entry queue events");
+        this.authorizationService.authorizeForce(Permission.ManageQueueEvents);
+
+        this.maintenanceService.sendIndicatorPointTenantEntryEvents();
+
+        this.auditService.track(AuditableAction.Maintenance_SendIndicatorPointTenantEntryEvents);
+    }
+
+    @RequestMapping(method = RequestMethod.POST, value = "/misc-actions/plan-blueprint/set-can-edit-description-templates")
+    @Transactional
+    public void setPlanBlueprintCanEditDescriptionTemplates() throws InvalidApplicationException {
+        logger.debug("set plan blueprint canEditDescriptionTemplates boolean to true");
+        this.authorizationService.authorizeForce(Permission.ManageQueueEvents);
+
+        this.maintenanceService.setPlanBlueprintCanEditDescriptionTemplates();
+
+        this.auditService.track(AuditableAction.Maintenance_SetPlanBlueprintCanEditDescriptionTemplates);
     }
 }

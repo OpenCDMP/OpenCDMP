@@ -1,6 +1,11 @@
 package org.opencdmp.model.deposit;
 
+import org.opencdmp.commonmodels.models.ConfigurationField;
+import org.opencdmp.commons.enums.PluginType;
+import org.opencdmp.depositbase.enums.DepositAuthMethod;
 import org.opencdmp.depositbase.enums.DepositType;
+
+import java.util.List;
 
 public class DepositConfiguration {
 
@@ -18,6 +23,14 @@ public class DepositConfiguration {
     public static final String _redirectUri = "redirectUri";
     private boolean hasLogo;
     public static final String _hasLogo = "hasLogo";
+    private List<ConfigurationField> configurationFields;
+    public static final String _configurationFields = "configurationFields";
+    private List<ConfigurationField> userConfigurationFields;
+    public static final String _userConfigurationFields = "userConfigurationFields";
+    private PluginType pluginType;
+    public static final String _pluginType = "pluginType";
+    private List<DepositAuthMethod> authMethods;
+    public static final String _authMethods = "authMethods";
 
     public DepositType getDepositType() {
         return depositType;
@@ -66,6 +79,34 @@ public class DepositConfiguration {
     }
     public void setHasLogo(boolean hasLogo) {
         this.hasLogo = hasLogo;
+    }
+
+    public List<ConfigurationField> getConfigurationFields() {
+        return configurationFields;
+    }
+    public void setConfigurationFields(List<ConfigurationField> configurationFields) {
+        this.configurationFields = configurationFields;
+    }
+
+    public List<ConfigurationField> getUserConfigurationFields() {
+        return userConfigurationFields;
+    }
+    public void setUserConfigurationFields(List<ConfigurationField> userConfigurationFields) {
+        this.userConfigurationFields = userConfigurationFields;
+    }
+
+    public PluginType getPluginType() {
+        return pluginType;
+    }
+    public void setPluginType(PluginType pluginType) {
+        this.pluginType = pluginType;
+    }
+
+    public List<DepositAuthMethod> getAuthMethods() {
+        return authMethods;
+    }
+    public void setAuthMethods(List<DepositAuthMethod> authMethods) {
+        this.authMethods = authMethods;
     }
 }
 

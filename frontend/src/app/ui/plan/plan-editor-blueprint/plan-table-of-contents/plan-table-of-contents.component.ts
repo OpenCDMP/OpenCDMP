@@ -1,4 +1,15 @@
-import { Component, computed, effect, input, model, output, QueryList, Signal, ViewChildren } from '@angular/core';
+import {
+	Component,
+	computed,
+	effect,
+	Inject,
+	input,
+	model,
+	output,
+	QueryList,
+	Signal,
+	ViewChildren
+} from '@angular/core';
 import { FormGroup } from '@angular/forms';
 import { PlanBlueprint, PlanBlueprintDefinitionSection } from '@app/core/model/plan-blueprint/plan-blueprint';
 import { Plan } from '@app/core/model/plan/plan';
@@ -16,6 +27,11 @@ import { TableOfContentsComponent } from '@app/ui/description/editor/table-of-co
 import { TableOfContentsService } from '@app/ui/description/editor/table-of-contents/services/table-of-contents-service';
 import { EnumUtils } from '@app/core/services/utilities/enum-utils.service';
 import { PlanBlueprintFieldCategory } from '@app/core/common/enum/plan-blueprint-field-category';
+import {AnnotationService} from "@annotation-service/services/http/annotation.service";
+import {
+	FormAnnotationService,
+	MULTI_FORM_ANNOTATION_SERVICE_TOKEN
+} from "@app/ui/annotations/annotation-dialog-component/form-annotation.service";
 
 @Component({
     selector: 'app-plan-table-of-contents',
@@ -49,7 +65,7 @@ export class PlanTableOfContentsComponent extends BaseComponent{
     protected visibilityRulesService = computed(() => this.descriptionInfo()?.visibilityRulesService ?? null);
 
     protected onRemoveDescription = output<DescriptionInfo>();
-    protected onAddDescription = output<Guid>();
+    protected onAddDescription = output<PlanBlueprintDefinitionSection>();
 
 	protected descriptionStatusEnum = DescriptionStatusEnum;
 
@@ -57,11 +73,17 @@ export class PlanTableOfContentsComponent extends BaseComponent{
 
 
     planBlueprintSectionFieldCategoryEnum = PlanBlueprintFieldCategory;
-    
+
+    //annotations
+	annotationsPerAnchor =  input<Map<string, number>>();
+	annotationsPerDescription = new  Map<string, number>();
+	showAnnotations = output<Guid>();
     constructor(
         private planTempStorage: PlanTempStorageService,
         private descriptionToCService: TableOfContentsService,
-        protected enumUtils: EnumUtils
+        protected enumUtils: EnumUtils,
+		private annotationService:AnnotationService,
+		@Inject(MULTI_FORM_ANNOTATION_SERVICE_TOKEN) private formAnnotationServices: FormAnnotationService[]
     ) {
         super();
         effect(() => {
@@ -69,6 +91,26 @@ export class PlanTableOfContentsComponent extends BaseComponent{
             const selectedBlueprint = this.selectedBlueprint();
             if(selectedBlueprint){
                 this.initializeSectionInfo();
+                let descriptionIds = [];
+				this.selectedBlueprint().definition.sections.forEach((section: PlanBlueprintDefinitionSection) => {
+					  if(section.hasTemplates){
+						  this.descriptionsInSection()?.get(section.id)?.forEach((x) => {
+							  descriptionIds.push(x.lastPersist.id)
+						})
+					  }
+				});
+				 this.formAnnotationServices.forEach( service => {
+				 	if(service.getEntityId() != this.plan()?.id) {
+						service.getAnnotationCountObservable().pipe(takeUntil(this._destroyed)).subscribe((annotationsPerAnchor: Map<string, number>) => {
+							if(service.getEntityId() && annotationsPerAnchor){
+								let count =0;
+								annotationsPerAnchor.forEach((value, key) => { count+=value;});
+								this.annotationsPerDescription.set(service.getEntityId().toString(),count);
+							}
+
+						});
+					}
+				 });
                 setTimeout(() => this._resetObserver());
             }
         });
@@ -99,7 +141,7 @@ export class PlanTableOfContentsComponent extends BaseComponent{
     }
 
 	hasValidMultiplicity(section: PlanBlueprintDefinitionSection): boolean {
-        if (!section.hasTemplates){
+        if (!section.hasTemplates || !this.plan().planDescriptionTemplates){
             return false;
         }
         if(!section.descriptionTemplates?.length){
@@ -130,8 +172,7 @@ export class PlanTableOfContentsComponent extends BaseComponent{
     }
 
     hasDescriptionTemplates(section: PlanBlueprintDefinitionSection): boolean {
-		if (this.plan().planDescriptionTemplates?.filter(x => x.sectionId == section.id).length > 0) return true;
-		return false;
+        return this.formGroup()?.controls?.descriptionTemplates?.get(section.id.toString())?.value?.length > 0;
 	}
 
 	showSectionErrors(sectionId: Guid): boolean {
@@ -352,11 +393,42 @@ export class PlanTableOfContentsComponent extends BaseComponent{
         this.changePlanStep({section: this.step() - 1});
     }
 
+
+
+    get reachedToCBeginning(): boolean {
+        return this.step() === 1 && !this.selectedDescription();
+    }
+
     get reachedToCEnd(): boolean{
         const selectedSectionDescriptions = this.descriptionsInSection()?.get(this.selectedSection()?.id)?.map((x) => x.lastPersist.id) ?? []
         const endOfDescription = this.selectedDescription() && this.reachedLast;
         const lastDescriptionInSection = this.selectedDescription() && selectedSectionDescriptions.indexOf(this.selectedDescription()) === selectedSectionDescriptions.length -1;
         return this.step() === this.selectedBlueprint().definition.sections?.length && (!selectedSectionDescriptions.length || (endOfDescription && lastDescriptionInSection));
     }
+
+    protected getAddDescriptionText(section: PlanBlueprintDefinitionSection): string{
+        const sectionTemplates = this.plan().planDescriptionTemplates?.filter((x) => x.sectionId === section.id)?.map((x) => x.currentDescriptionTemplate);
+        const descTemplateTypes = new Set(sectionTemplates?.map((x) => x.type?.id) ?? []); 
+        if(!section.canEditDescriptionTemplates && descTemplateTypes.size === 1){
+            const template = this.plan().planDescriptionTemplates.filter(x => x.sectionId == section.id)?.[0]?.currentDescriptionTemplate;
+            return template?.type?.name;
+        }
+        return ;
+    }
+    
+	countAnnotationsPerSection = computed(() => {
+		let map = new 	Map<Guid, number> ();
+		this.selectedBlueprint()?.definition?.sections.forEach(section  =>{
+			let count = 0;
+			if(section?.fields) {
+				for (let field of section.fields) {
+					count += (this.annotationsPerAnchor()?.get(field.id.toString())??0);
+				}
+			}
+			map.set(section.id, count);
+		});
+		return map;
+
+	});
 }
 

@@ -13,6 +13,10 @@ import gr.cite.tools.logging.LoggerService;
 import gr.cite.tools.logging.MapLogEntry;
 import gr.cite.tools.validation.ValidationFilterAnnotation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.enums.Explode;
+import io.swagger.v3.oas.annotations.enums.ParameterStyle;
+import io.swagger.v3.oas.annotations.extensions.Extension;
+import io.swagger.v3.oas.annotations.extensions.ExtensionProperty;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
@@ -31,6 +35,7 @@ import org.opencdmp.controllers.swagger.annotation.SwaggerCommonErrorResponses;
 import org.opencdmp.data.PlanBlueprintEntity;
 import org.opencdmp.model.builder.planblueprint.PlanBlueprintBuilder;
 import org.opencdmp.model.censorship.planblueprint.PlanBlueprintCensor;
+import org.opencdmp.model.persist.DescriptionTemplatePersist;
 import org.opencdmp.model.persist.NewVersionPlanBlueprintPersist;
 import org.opencdmp.model.persist.PlanBlueprintPersist;
 import org.opencdmp.model.planblueprint.PlanBlueprint;
@@ -57,7 +62,7 @@ import java.util.UUID;
 
 @RestController
 @RequestMapping(path = "api/plan-blueprint")
-@Tag(name = "Plan Blueprints", description = "Manage plan blueprints")
+@Tag(name = "Plan Blueprints", description = "Manage plan blueprints", extensions = @Extension(name = "x-order", properties = @ExtensionProperty(name = "value", value = "3")))
 @SwaggerCommonErrorResponses
 public class PlanBlueprintController {
 
@@ -91,7 +96,7 @@ public class PlanBlueprintController {
     }
 
     @PostMapping("query")
-    @OperationWithTenantHeader(summary = "Query all plan blueprints", description = SwaggerHelpers.PlanBlueprint.endpoint_query, requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(description = SwaggerHelpers.PlanBlueprint.endpoint_query_request_body, content = @Content(
+    @OperationWithTenantHeader(summary = "Query all plan blueprints", description = SwaggerHelpers.PlanBlueprint.endpoint_query, requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(content = @Content(
             examples = {
                     @ExampleObject(
                             name = SwaggerHelpers.Commons.pagination_example,
@@ -109,7 +114,8 @@ public class PlanBlueprintController {
                     name = SwaggerHelpers.Commons.pagination_response_example,
                     description = SwaggerHelpers.Commons.pagination_response_example_description,
                     value = SwaggerHelpers.PlanBlueprint.endpoint_query_response_example
-            ))))
+            ))),
+            extensions = @Extension(name = "x-order", properties = @ExtensionProperty(name = "value", value = "1")))
     public QueryResult<PlanBlueprint> query(@RequestBody PlanBlueprintLookup lookup) throws MyApplicationException, MyForbiddenException {
         logger.debug("querying {}", PlanBlueprint.class.getSimpleName());
 
@@ -131,11 +137,12 @@ public class PlanBlueprintController {
                     schema = @Schema(
                             implementation = PlanBlueprint.class
                     ))
-            ))
+            ),
+            extensions = @Extension(name = "x-order", properties = @ExtensionProperty(name = "value", value = "3")))
     @Swagger404
     public PlanBlueprint get(
             @Parameter(name = "id", description = "The id of a plan blueprint to fetch", example = "c0c163dc-2965-45a5-9608-f76030578609", required = true) @PathVariable("id") UUID id,
-            @Parameter(name = "fieldSet", description = SwaggerHelpers.Commons.fieldset_description, required = true) FieldSet fieldSet
+            @Parameter(name = "f", description = SwaggerHelpers.Commons.fieldset_description, required = true, style = ParameterStyle.FORM, explode = Explode.TRUE, schema = @Schema(type = "array", example = SwaggerHelpers.PlanBlueprint.endpoint_field_set_example)) FieldSet fieldSet
     ) throws MyApplicationException, MyForbiddenException, MyNotFoundException {
         logger.debug(new MapLogEntry("retrieving" + PlanBlueprint.class.getSimpleName()).And("id", id).And("fields", fieldSet));
 
@@ -160,14 +167,20 @@ public class PlanBlueprintController {
                     schema = @Schema(
                             implementation = PlanBlueprint.class
                     ))
-            ))
+            ),
+            extensions = @Extension(name = "x-order", properties = @ExtensionProperty(name = "value", value = "2")))
     @Swagger400
     @Swagger404
     @Transactional
     @ValidationFilterAnnotation(validator = PlanBlueprintPersist.PlanBlueprintPersistValidator.ValidatorName, argumentName = "model")
     public PlanBlueprint persist(
+            @io.swagger.v3.oas.annotations.parameters.RequestBody(
+                    content = @io.swagger.v3.oas.annotations.media.Content(
+                            schema = @Schema(implementation = PlanBlueprintPersist.class)
+                    )
+            )
             @RequestBody PlanBlueprintPersist model,
-            @Parameter(name = "fieldSet", description = SwaggerHelpers.Commons.fieldset_description, required = true) FieldSet fieldSet
+            @Parameter(name = "f", description = SwaggerHelpers.Commons.fieldset_description, required = true, style = ParameterStyle.FORM, explode = Explode.TRUE, schema = @Schema(type = "array", example = SwaggerHelpers.PlanBlueprint.endpoint_field_set_example)) FieldSet fieldSet
     ) throws MyApplicationException, MyForbiddenException, MyNotFoundException, InvalidApplicationException, JAXBException, ParserConfigurationException, JsonProcessingException, TransformerException {
         logger.debug(new MapLogEntry("persisting" + PlanBlueprint.class.getSimpleName()).And("model", model).And("fieldSet", fieldSet));
         this.censorFactory.censor(PlanBlueprintCensor.class).censor(fieldSet, null);
@@ -184,7 +197,8 @@ public class PlanBlueprintController {
 
     @DeleteMapping("{id}")
     @OperationWithTenantHeader(summary = "Delete a plan blueprint by id", description = "",
-            responses = @ApiResponse(description = "OK", responseCode = "200"))
+            responses = @ApiResponse(description = "OK", responseCode = "200"),
+            extensions = @Extension(name = "x-order", properties = @ExtensionProperty(name = "value", value = "4")))
     @Swagger404
     @Transactional
     public void delete(
@@ -203,11 +217,12 @@ public class PlanBlueprintController {
                     schema = @Schema(
                             implementation = PlanBlueprint.class
                     ))
-            ))
+            ),
+            extensions = @Extension(name = "x-order", properties = @ExtensionProperty(name = "value", value = "5")))
     @Swagger404
     public PlanBlueprint buildClone(
             @Parameter(name = "id", description = "The id of a plan blueprint to clone", example = "c0c163dc-2965-45a5-9608-f76030578609", required = true) @PathVariable("id") UUID id,
-            @Parameter(name = "fieldSet", description = SwaggerHelpers.Commons.fieldset_description, required = true) FieldSet fieldSet
+            @Parameter(name = "f", description = SwaggerHelpers.Commons.fieldset_description, required = true, style = ParameterStyle.FORM, explode = Explode.TRUE, schema = @Schema(type = "array", example = SwaggerHelpers.PlanBlueprint.endpoint_field_set_example)) FieldSet fieldSet
     ) throws MyApplicationException, MyForbiddenException, MyNotFoundException {
         logger.debug(new MapLogEntry("clone" + PlanBlueprint.class.getSimpleName()).And("id", id).And("fields", fieldSet));
 
@@ -229,14 +244,20 @@ public class PlanBlueprintController {
                     schema = @Schema(
                             implementation = PlanBlueprint.class
                     ))
-            ))
+            ),
+            extensions = @Extension(name = "x-order", properties = @ExtensionProperty(name = "value", value = "6")))
     @Swagger400
     @Swagger404
     @Transactional
     @ValidationFilterAnnotation(validator = NewVersionPlanBlueprintPersist.NewVersionPlanBlueprintPersistValidator.ValidatorName, argumentName = "model")
     public PlanBlueprint createNewVersion(
+            @io.swagger.v3.oas.annotations.parameters.RequestBody(
+                    content = @io.swagger.v3.oas.annotations.media.Content(
+                            schema = @Schema(implementation = NewVersionPlanBlueprintPersist.class)
+                    )
+            )
             @RequestBody NewVersionPlanBlueprintPersist model,
-            @Parameter(name = "fieldSet", description = SwaggerHelpers.Commons.fieldset_description, required = true) FieldSet fieldSet
+            @Parameter(name = "f", description = SwaggerHelpers.Commons.fieldset_description, required = true, style = ParameterStyle.FORM, explode = Explode.TRUE, schema = @Schema(type = "array", example = SwaggerHelpers.PlanBlueprint.endpoint_field_set_example)) FieldSet fieldSet
     ) throws JAXBException, InvalidApplicationException, ParserConfigurationException, JsonProcessingException, TransformerException {
         logger.debug(new MapLogEntry("persisting" + NewVersionPlanBlueprintPersist.class.getSimpleName()).And("model", model).And("fieldSet", fieldSet));
         PlanBlueprint persisted = this.planBlueprintService.createNewVersion(model, fieldSet);
@@ -251,8 +272,10 @@ public class PlanBlueprintController {
 
     @RequestMapping(method = RequestMethod.GET, value = "/xml/export/{id}", produces = "application/xml")
     @OperationWithTenantHeader(summary = "Export a plan blueprint in xml format by id", description = "",
-            responses = @ApiResponse(description = "OK", responseCode = "200"))
+            responses = @ApiResponse(description = "OK", responseCode = "200"),
+            extensions = @Extension(name = "x-order", properties = @ExtensionProperty(name = "value", value = "7")))
     @Swagger404
+    @Transactional
     public @ResponseBody ResponseEntity<byte[]> getXml(
             @Parameter(name = "id", description = "The id of a plan blueprint to export", example = "c0c163dc-2965-45a5-9608-f76030578609", required = true) @PathVariable UUID id
     ) throws JAXBException, ParserConfigurationException, IOException, TransformerException, InstantiationException, IllegalAccessException, SAXException, InvalidApplicationException {
@@ -272,12 +295,13 @@ public class PlanBlueprintController {
                     schema = @Schema(
                             implementation = PlanBlueprint.class
                     ))
-            ))
+            ),
+            extensions = @Extension(name = "x-order", properties = @ExtensionProperty(name = "value", value = "8")))
     @Transactional
     public PlanBlueprint importXml(
             @RequestParam("file") MultipartFile file,
             @Parameter(name = "groupId", description = "The group id of a plan blueprint to import. This is optional.", example = "c0c163dc-2965-45a5-9608-f76030578609") @PathVariable(value = "groupId", required = false) UUID groupId,
-            @Parameter(name = "fieldSet", description = SwaggerHelpers.Commons.fieldset_description, required = true) FieldSet fieldSet
+            @Parameter(name = "f", description = SwaggerHelpers.Commons.fieldset_description, required = true, style = ParameterStyle.FORM, explode = Explode.TRUE, schema = @Schema(type = "array", example = SwaggerHelpers.PlanBlueprint.endpoint_field_set_example)) FieldSet fieldSet
     ) throws IOException, JAXBException, InvalidApplicationException, ParserConfigurationException, TransformerException, InstantiationException, IllegalAccessException, SAXException {
         logger.debug(new MapLogEntry("clone" + PlanBlueprint.class.getSimpleName()).And("file", file));
 

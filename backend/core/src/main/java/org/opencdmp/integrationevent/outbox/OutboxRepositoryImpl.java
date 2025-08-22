@@ -20,6 +20,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationContext;
 
+import javax.management.InvalidApplicationException;
 import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
@@ -393,41 +394,33 @@ public class OutboxRepositoryImpl implements OutboxRepository {
 
     @Override
     public QueueOutbox create(IntegrationEvent item) {
-        EntityTransaction transaction = null;
         QueueOutboxEntity queueMessage = null;
         boolean success;
-        try (FakeRequestScope ignored = new FakeRequestScope()) {
             TenantEntityManager tenantEntityManager = null;
-            EntityManager entityManager = null;
+            boolean isTenantFiltersDisabled = false;
             try  {
                 tenantEntityManager = this.applicationContext.getBean(TenantEntityManager.class);
-                entityManager = this.entityManagerFactory.createEntityManager();
-                tenantEntityManager.setEntityManager(entityManager);
-                tenantEntityManager.disableTenantFilters();
+                isTenantFiltersDisabled = tenantEntityManager.isTenantFiltersDisabled();
+                if (!isTenantFiltersDisabled) tenantEntityManager.disableTenantFilters();
 
                 queueMessage = this.mapEvent((OutboxIntegrationEvent) item);
-                transaction = entityManager.getTransaction();
 
-                transaction.begin();
+                tenantEntityManager.persist(queueMessage);
+                tenantEntityManager.flush();
 
-                entityManager.persist(queueMessage);
-                entityManager.flush();
-
-                transaction.commit();
                 success = true;
             } catch (Exception ex) {
                 success = false;
                 logger.error("Problem executing purge. rolling back any db changes and marking error. Continuing...", ex);
-                if (transaction != null)
-                    transaction.rollback();
             } finally {
-                if (entityManager != null) entityManager.close();
-                if (tenantEntityManager != null) tenantEntityManager.reloadTenantFilters();
+                if (tenantEntityManager != null && tenantEntityManager.isTenantFiltersDisabled() && !isTenantFiltersDisabled) {
+                    try {
+                        tenantEntityManager.reloadTenantFilters();
+                    } catch (InvalidApplicationException e) {
+                        throw new RuntimeException(e);
+                    }
+                }
             }
-        } catch (Exception ex) {
-            success = false;
-            logger.error("Problem executing purge. rolling back any db changes and marking error. Continuing...", ex);
-        }
         return success ? queueMessage : null;
     }
 

@@ -25,6 +25,7 @@ import org.opencdmp.commons.types.user.AdditionalInfoEntity;
 import org.opencdmp.commons.types.usercredential.UserCredentialDataEntity;
 import org.opencdmp.convention.ConventionService;
 import org.opencdmp.data.*;
+import org.opencdmp.integrationevent.outbox.indicatoraccess.IndicatorAccessEventHandlerImpl;
 import org.opencdmp.integrationevent.outbox.usertouched.UserTouchedIntegrationEventHandler;
 import org.opencdmp.model.UserContactInfo;
 import org.opencdmp.model.usercredential.UserCredential;
@@ -62,6 +63,7 @@ public class UserInterceptor implements WebRequestInterceptor {
     private final LockByKeyManager lockByKeyManager;
     private final LocaleProperties localeProperties;
     private final UserTouchedIntegrationEventHandler userTouchedIntegrationEventHandler;
+    private final IndicatorAccessEventHandlerImpl indicatorAccessEventHandler;
     private final AuthorizationConfiguration authorizationConfiguration;
     private final ConventionService conventionService;
     @PersistenceContext
@@ -71,15 +73,15 @@ public class UserInterceptor implements WebRequestInterceptor {
 
     @Autowired
     public UserInterceptor(
-		    UserScope userScope,
-		    ClaimExtractor claimExtractor,
-		    CurrentPrincipalResolver currentPrincipalResolver,
-		    PlatformTransactionManager transactionManager,
-		    UserInterceptorCacheService userInterceptorCacheService,
-		    JsonHandlingService jsonHandlingService,
-		    QueryFactory queryFactory,
-		    LockByKeyManager lockByKeyManager,
-		    LocaleProperties localeProperties, UserTouchedIntegrationEventHandler userTouchedIntegrationEventHandler, AuthorizationConfiguration authorizationConfiguration, ConventionService conventionService, TenantEntityManager tenantEntityManager) {
+            UserScope userScope,
+            ClaimExtractor claimExtractor,
+            CurrentPrincipalResolver currentPrincipalResolver,
+            PlatformTransactionManager transactionManager,
+            UserInterceptorCacheService userInterceptorCacheService,
+            JsonHandlingService jsonHandlingService,
+            QueryFactory queryFactory,
+            LockByKeyManager lockByKeyManager,
+            LocaleProperties localeProperties, UserTouchedIntegrationEventHandler userTouchedIntegrationEventHandler, IndicatorAccessEventHandlerImpl indicatorAccessEventHandler, AuthorizationConfiguration authorizationConfiguration, ConventionService conventionService, TenantEntityManager tenantEntityManager) {
         this.userScope = userScope;
         this.currentPrincipalResolver = currentPrincipalResolver;
         this.claimExtractor = claimExtractor;
@@ -90,7 +92,8 @@ public class UserInterceptor implements WebRequestInterceptor {
         this.lockByKeyManager = lockByKeyManager;
         this.localeProperties = localeProperties;
 	    this.userTouchedIntegrationEventHandler = userTouchedIntegrationEventHandler;
-	    this.authorizationConfiguration = authorizationConfiguration;
+        this.indicatorAccessEventHandler = indicatorAccessEventHandler;
+        this.authorizationConfiguration = authorizationConfiguration;
 	    this.conventionService = conventionService;
 	    this.tenantEntityManager = tenantEntityManager;
     }
@@ -142,6 +145,12 @@ public class UserInterceptor implements WebRequestInterceptor {
                         }
                         
                         this.entityManager.flush();
+
+                        if (shouldSendUserTouchedIntegrationEvent){
+                            this.userTouchedIntegrationEventHandler.handle(userId);
+                            this.indicatorAccessEventHandler.handle(userId);
+                        }
+
 	                    this.transactionManager.commit(status);
                     } catch (Exception ex) {
                         if (status != null) this.transactionManager.rollback(status);
@@ -161,9 +170,6 @@ public class UserInterceptor implements WebRequestInterceptor {
                 } finally {
                     if (usedResource) this.lockByKeyManager.unlock(subjectId);
                     this.tenantEntityManager.reloadTenantFilters();
-                }
-                if (shouldSendUserTouchedIntegrationEvent){
-                    this.userTouchedIntegrationEventHandler.handle(userId);
                 }
 
             }

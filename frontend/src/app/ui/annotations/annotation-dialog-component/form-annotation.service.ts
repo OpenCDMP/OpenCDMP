@@ -10,7 +10,9 @@ import { BehaviorSubject, Observable, Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { nameof } from 'ts-simple-nameof';
 
+import { InjectionToken } from '@angular/core';
 
+export const MULTI_FORM_ANNOTATION_SERVICE_TOKEN = new InjectionToken<FormAnnotationService>('FormAnnotationService');
 @Injectable({
 	providedIn: 'any',
 })
@@ -78,6 +80,9 @@ export class FormAnnotationService extends BaseService {
 
 	private onCallbackError(error: any) {
 		this.uiNotificationService.snackBarNotification(this.language.instant(error.message), SnackBarNotificationLevel.Error);
+	}
+	public getEntityId(): Guid{
+		return this.entityId;
 	}
 }
 

@@ -23,7 +23,7 @@
 		</mat-checkbox>
 		<div *ngIf="!agreePrivacyPolicyNames" class="required-policy">{{'GENERAL.CONFIRMATION-DIALOG.ACTIONS.REQUIRED' | translate}}</div>
 	</div>
-	<div class="row" style="justify-content: space-between;">
+	<div class="row" style="justify-content: space-between;" *ngIf="!data.noActions">
 		<div class="col-auto"><button mat-stroked-button type="button" class="padded-shadow-btn" (click)="cancel()">{{ data.cancelButton }}</button></div>
 		<div *ngIf="data.isDeleteConfirmation" class="col-auto"><button mat-stroked-button color="warn" type="button" (click)="confirm()" class="padded-shadow-btn">{{ data.confirmButton }}</button></div>
 		<div *ngIf="!data.isDeleteConfirmation && !data.privacyPolicyNames" class="col-auto"><button mat-stroked-button color="primary" type="button" (click)="confirm()" class="padded-shadow-btn primary-inverted-hover">{{ data.confirmButton }}</button></div>

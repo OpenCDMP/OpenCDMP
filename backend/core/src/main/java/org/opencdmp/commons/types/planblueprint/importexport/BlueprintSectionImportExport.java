@@ -25,6 +25,9 @@ public class BlueprintSectionImportExport {
     @XmlElementWrapper(name = "referenceFields")
     @XmlElement(name = "referenceField")
     private List<BlueprintReferenceTypeFieldImportExport> referenceFields;
+    @XmlElementWrapper(name = "uploadFields")
+    @XmlElement(name = "uploadField")
+    private List<BlueprintUploadFieldImportExport> uploadFields;
     @XmlAttribute(name = "hasTemplates")
     private boolean hasTemplates;
     @XmlElementWrapper(name = "descriptionTemplates")
@@ -33,6 +36,9 @@ public class BlueprintSectionImportExport {
 
     @XmlAttribute(name = "prefillingSourcesEnabled")
     private Boolean prefillingSourcesEnabled;
+
+    @XmlAttribute(name = "canEditDescriptionTemplates")
+    private Boolean canEditDescriptionTemplates;
 
     @XmlElementWrapper(name = "prefillingSources")
     @XmlElement(name = "prefillingSource")
@@ -94,6 +100,14 @@ public class BlueprintSectionImportExport {
         this.referenceFields = referenceFields;
     }
 
+    public List<BlueprintUploadFieldImportExport> getUploadFields() {
+        return uploadFields;
+    }
+
+    public void setUploadFields(List<BlueprintUploadFieldImportExport> uploadFields) {
+        this.uploadFields = uploadFields;
+    }
+
     public boolean isHasTemplates() {
         return this.hasTemplates;
     }
@@ -116,6 +130,14 @@ public class BlueprintSectionImportExport {
 
     public void setPrefillingSourcesEnabled(Boolean prefillingSourcesEnabled) {
         this.prefillingSourcesEnabled = prefillingSourcesEnabled;
+    }
+
+    public Boolean getCanEditDescriptionTemplates() {
+        return canEditDescriptionTemplates;
+    }
+
+    public void setCanEditDescriptionTemplates(Boolean canEditDescriptionTemplates) {
+        this.canEditDescriptionTemplates = canEditDescriptionTemplates;
     }
 
     public List<BlueprintPrefillingSourceImportExport> getPrefillingSources() {

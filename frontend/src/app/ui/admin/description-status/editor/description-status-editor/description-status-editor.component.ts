@@ -1,4 +1,4 @@
-import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { FormGroup } from '@angular/forms';
 import { MatDialog } from '@angular/material/dialog';
 import { Router, ActivatedRoute } from '@angular/router';
@@ -29,11 +29,7 @@ import { DescriptionStatusEditorResolver } from './description-status-editor.res
 import { BaseEditor } from '@common/base/base-editor';
 import { PlanUserRole } from '@app/core/common/enum/plan-user-role';
 import { DescriptionStatusAvailableActionType } from '@app/core/common/enum/description-status-available-action-type';
-import { StorageFileService } from '@app/core/services/storage-file/storage-file.service';
-import { FileUtils } from '@app/core/services/utilities/file-utils.service';
 import { StorageFile } from '@app/core/model/storage-file/storage-file';
-import { nameof } from 'ts-simple-nameof';
-import FileSaver from 'file-saver';
 import { DescriptionStatusPersist } from '@app/core/model/description-status/description-status-persist';
 import { CssColorsEditorService } from '@app/ui/admin/tenant-configuration/editor/css-colors/css-colors-editor.service';
 
@@ -50,9 +46,8 @@ export class DescriptionStatusEditorComponent extends BaseEditor<DescriptionStat
     protected planRolesEnum = this.enumUtils.getEnumValues<PlanUserRole>(PlanUserRole);
 	protected descriptionStatusAvailableActionTypeEnumValues = this.enumUtils.getEnumValues<DescriptionStatusAvailableActionType>(DescriptionStatusAvailableActionType);
     protected belongsToCurrentTenant: boolean;
-	fileNameDisplay: string = null;
+    initialFile: StorageFile = null;
 	isUsingDropzone: boolean = true; 
-	filesToUpload: FileList;
 
     constructor(
         protected enumUtils: EnumUtils,
@@ -72,9 +67,6 @@ export class DescriptionStatusEditorComponent extends BaseEditor<DescriptionStat
         private descriptionStatusService: DescriptionStatusService,
         private logger: LoggingService,
         private routerUtils: RouterUtilsService,
-		private storageFileService: StorageFileService,
-		private cdr: ChangeDetectorRef,
-		private fileUtils: FileUtils,
 		private cssColorsEditorService: CssColorsEditorService
     ){
         super(dialog, language, formService, router, uiNotificationService, httpErrorHandlingService, filterService, route, queryParamsService, lockService, authService, configurationService);
@@ -105,7 +97,7 @@ export class DescriptionStatusEditorComponent extends BaseEditor<DescriptionStat
 			this.editorModel = data ? new DescriptionStatusEditorModel().fromModel(data) : new DescriptionStatusEditorModel();
 			this.isDeleted = data ? data.isActive === IsActive.Inactive : false;
             this.belongsToCurrentTenant = data?.belongsToCurrentTenant;
-			this.fileNameDisplay = data?.definition.storageFile.name;
+			this.initialFile = data?.definition?.storageFile;
 			this.buildForm();
 			this.bindColorInputs();
 		} catch (error) {
@@ -118,19 +110,19 @@ export class DescriptionStatusEditorComponent extends BaseEditor<DescriptionStat
         this.formGroup = this.editorModel.buildForm({disabled: !this.isNew && (!this.belongsToCurrentTenant || this.isDeleted || !this.authService.hasPermission(AppPermission.EditDescriptionStatus))});
 		this.cssColorsEditorService.setValidationErrorModel(this.editorModel.validationErrorModel);
 		
-		if ((this.formGroup?.controls.definition.controls.storageFileId.value != undefined)) {
+		// if ((this.formGroup?.controls.definition.controls.storageFileId.value != undefined)) {
 			
 
-			const fields = [
-				nameof<StorageFile>(x => x.id),
-				nameof<StorageFile>(x => x.name),
-				nameof<StorageFile>(x => x.extension),
-			]
-			this.storageFileService.getSingle(this.formGroup?.controls.definition.controls.storageFileId.value, fields).pipe(takeUntil(this._destroyed)).subscribe(storageFile => {
-				this.createFileNameDisplay(storageFile.name, storageFile.extension);
-			});
+		// 	const fields = [
+		// 		nameof<StorageFile>(x => x.id),
+		// 		nameof<StorageFile>(x => x.name),
+		// 		nameof<StorageFile>(x => x.extension),
+		// 	]
+		// 	this.storageFileService.getSingle(this.formGroup?.controls.definition.controls.storageFileId.value, fields).pipe(takeUntil(this._destroyed)).subscribe(storageFile => {
+		// 		this.createFileNameDisplay(storageFile.name, storageFile.extension);
+		// 	});
 		
-		}
+		// }
 	
 	}
 
@@ -193,64 +185,6 @@ export class DescriptionStatusEditorComponent extends BaseEditor<DescriptionStat
 				next: (complete) => onSuccess ? onSuccess(complete) : this.onCallbackSuccess(complete),
                 error: (error) => this.onCallbackError(error)
             });
-	}
-
-	fileChangeEvent(fileInput: any, dropped: boolean = false) {
-
-		if (dropped) {
-			this.filesToUpload = fileInput.addedFiles;
-		} else {
-			this.filesToUpload = fileInput.target.files;
-		}
-
-		this.upload();
-	}
-
-
-	public upload() {
-		this.storageFileService.uploadTempFiles(this.filesToUpload[0])
-		.pipe(takeUntil(this._destroyed)).subscribe((response) => {
-			this.formGroup?.controls?.definition?.controls?.storageFileId.setValue(response[0].id);
-			this.formGroup?.controls?.definition?.controls?.storageFileId.markAsTouched();
-			this.fileNameDisplay = response[0].name;
-			this.cdr.detectChanges();
-		}, error => {
-			this.onCallbackError(error.error);
-		})
-	}
-
-	private createFileNameDisplay(name: string, extension: string) {
-		if (extension.startsWith('.')) this.fileNameDisplay = name + extension;
-		else this.fileNameDisplay = name + '.' + extension;
-		this.cdr.markForCheck();
-	}
-
-	download(fileId: Guid): void {
-
-		if (fileId) {
-
-			this.storageFileService.download(fileId).pipe(takeUntil(this._destroyed))
-				.subscribe(response => {
-					const blob = new Blob([response.body]);
-					const filename = this.fileUtils.getFilenameFromContentDispositionHeader(response.headers.get('Content-Disposition'));
-					FileSaver.saveAs(blob, filename);
-				},
-				error => this.httpErrorHandlingService.handleBackedRequestError(error));
-		}
-	}
-
-	onRemove(makeFilesNull: boolean = true) {
-		this.makeFilesNull()
-		this.cdr.detectChanges();
-
-	}
-
-	makeFilesNull() {
-		this.filesToUpload = null;
-		this.formGroup?.controls?.definition?.controls?.storageFileId.setValue(null);
-		this.formGroup?.controls?.definition?.controls?.storageFileId.markAsTouched();
-		this.formGroup.updateValueAndValidity();
-		this.fileNameDisplay = null;
 	}
 
     toggleInputMethod(): void {

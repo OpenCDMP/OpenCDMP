@@ -1,0 +1,25 @@
+<div *ngIf="formGroup" class="container-fluid pluginConfiguration">
+	<div class="row">
+		
+		<app-plugin-editor 
+			[formGroup]="formGroup.get('pluginConfiguration').get('pluginConfigurations')"
+			[fileMap] = "fileMap"
+			[showPluginFieldText] = "true"
+			[pluginConfiguration]="pluginConfigurationService.pluginRepositoryConfiguration()">
+		</app-plugin-editor>	
+
+		<div class="col-12">
+			<div class="row actions-row">
+				<div class="col"></div>
+				<div class="col-auto" *ngIf="editorModel.id"><button mat-stroked-button color="warn" class="padded-shadow-btn" (click)="delete()">
+						{{'TENANT-CONFIGURATION-EDITOR.ACTIONS.RESET-TO-DEFAULT' | translate}}
+					</button>
+				</div>
+				<div class="col-auto"><button mat-flat-button color="primary" class="padded-shadow-btn" (click)="formSubmit()">
+						{{'TENANT-CONFIGURATION-EDITOR.ACTIONS.SAVE' | translate}}
+					</button>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>

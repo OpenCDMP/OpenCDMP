@@ -62,12 +62,12 @@
                                 </mat-form-field>
                             </div>
                             <div class="col-12 pb-3">
-                                <mat-label [appFor]="'planInput'" [class.disabled]="formGroup.controls.description.disabled">{{'PLAN-STATUS-EDITOR.FIELDS.DESCRIPTION' | translate}}</mat-label>
-                                <rich-text-editor-component [id]="'planInput'" [form]="formGroup.controls.description" [placeholder]="'PLAN-STATUS-EDITOR.FIELDS.DESCRIPTION'"  [wrapperClasses]="(formGroup.controls.description.touched && formGroup.controls.description.hasError('backendError')) ? 'required' : ''" />
+                                <mat-label [appFor]="'descriptionInput'" [class.disabled]="formGroup.controls.description.disabled">{{'PLAN-STATUS-EDITOR.FIELDS.DESCRIPTION' | translate}}</mat-label>
+                                <rich-text-editor-component [id]="'descriptionInput'" [form]="formGroup.controls.description" [placeholder]="'PLAN-STATUS-EDITOR.FIELDS.DESCRIPTION'"  [wrapperClasses]="(formGroup.controls.description.touched && formGroup.controls.description.hasError('backendError')) ? 'required' : ''" />
                                 @if(formGroup.controls.description.hasError('backendError')){
-                                <div class="mat-form-field formGroup-field-subscript-wrapper">
-                                    <mat-error>{{formGroup.controls.description.getError('backendError').message}}</mat-error>
-                                </div>
+                                    <div class="mat-form-field formGroup-field-subscript-wrapper">
+                                        <mat-error>{{formGroup.controls.description.getError('backendError').message}}</mat-error>
+                                    </div>
                                 }
                             </div>
                             <div class="col-12">
@@ -96,14 +96,13 @@
                                     <mat-error *ngIf="formGroup.controls.definition.controls.matIconName.hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
                                     </mat-form-field>
                                 }@else{
-                                    <ngx-dropzone #drop class="drop-file col-12" (change)="fileChangeEvent($event, true)" [multiple]="false" [accept]="'image/*'" [disabled]="formGroup.controls.definition.controls.storageFileId.disabled">
-                                        <ngx-dropzone-preview 
-                                            *ngIf="formGroup.controls.definition.controls.storageFileId.value" 
-                                            class="file-preview" 
-                                            [removable]="true"
-                                            (removed)="onRemove()" 
-                                            (click)="download(formGroup.controls.definition.controls.storageFileId.value)"
-                                        >
+                                    <app-file-uploader 
+                                        [accept]="'image/*'"
+                                        [storageFileIdControl]="formGroup.controls.definition.controls.storageFileId"
+                                        [fileNameDisplay]="fileNameDisplay"
+                                    />
+                                    <!-- <ngx-dropzone #drop class="drop-file col-12" (change)="fileChangeEvent($event, true)" [multiple]="false" [accept]="'image/*'" [disabled]="formGroup.get('logo')?.get('storageFileId').disabled">
+                                        <ngx-dropzone-preview *ngIf="formGroup.controls.definition.controls.storageFileId.value" class="file-preview" [removable]="true" (removed)="onRemove()" (click)="download(formGroup.controls.definition.controls.storageFileId.value)">
                                             <ngx-dropzone-label class="file-label">{{ fileNameDisplay }}</ngx-dropzone-label>
                                         </ngx-dropzone-preview>
                                     </ngx-dropzone>
@@ -117,7 +116,7 @@
                                             <mat-icon class="mr-2">download</mat-icon>
                                             <span>{{ "TENANT-CONFIGURATION-EDITOR.ACTIONS.DOWNLOAD" | translate }}</span>
                                         </button>
-                                    </div>
+                                    </div> -->
                                 }
                             </div>
                             <div class="col-12">

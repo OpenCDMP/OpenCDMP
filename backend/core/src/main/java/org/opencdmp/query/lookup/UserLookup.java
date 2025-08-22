@@ -2,26 +2,35 @@ package org.opencdmp.query.lookup;
 
 import gr.cite.tools.data.query.Lookup;
 import gr.cite.tools.data.query.QueryFactory;
+import io.swagger.v3.oas.annotations.media.Schema;
 import org.opencdmp.commons.enums.IsActive;
 import org.opencdmp.query.UserQuery;
+import org.opencdmp.query.lookup.swagger.SwaggerHelpers;
 
 import java.util.List;
 import java.util.UUID;
 
 public class UserLookup extends Lookup {
 
+    @Schema(description = SwaggerHelpers.User.like_description)
     private String like;
 
+    @Schema(description = SwaggerHelpers.User.ids_description)
     private List<UUID> ids;
 
+    @Schema(description = SwaggerHelpers.User.emails_description)
     private List<String> emails;
 
+    @Schema(description = SwaggerHelpers.User.excludeIds_description)
     private List<UUID> excludedIds;
 
+    @Schema(description = SwaggerHelpers.User.isActive_description)
     private List<IsActive> isActive;
 
+    @Schema( description = SwaggerHelpers.User.userRoleSubQuery_description)
     private UserRoleLookup userRoleSubQuery;
 
+    @Schema( description = SwaggerHelpers.User.tenantUserSubQuery_description)
     private TenantUserLookup tenantUserSubQuery;
 
     public String getLike() {

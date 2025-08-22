@@ -35,7 +35,7 @@
 											<mat-icon [disabled]="isDirty()" style="width: 14px;" iconPositionEnd>expand_more</mat-icon>
 										</button>
 										<mat-menu #exportMenu="matMenu" xPosition="before">
-											<button mat-menu-item *ngFor='let fileTransformer of fileTransformerService.availableFormatsFor(fileTransformerEntityTypeEnum.Description)' (click)="fileTransformerService.exportDescription(formGroup.get('id').value, fileTransformer.repositoryId, fileTransformer.format)">
+											<button mat-menu-item *ngFor='let fileTransformer of fileTransformerService.availableFormatsFor(fileTransformerEntityTypeEnum.Description)' (click)="fileTransformerService.exportDescription(formGroup.get('id').value, fileTransformer.fileTransformerId, fileTransformer.format)">
 												<i class="fa pr-2" [ngClass]="fileTransformer.icon ? fileTransformer.icon : 'fa-file-o'"></i>
 												<span>{{'GENERAL.FILE-TRANSFORMER.' + fileTransformer?.format?.toUpperCase() | translate}}</span>
 											</button>
@@ -160,8 +160,9 @@
             [formGroup]="formGroup.get('properties')" 
             [descriptionTemplate]="item.descriptionTemplate" 
             [anchorFieldsetId]="anchorFieldsetId"
-            (entrySelected)="changeStep($event.entry, $event.execute)" 
-            #table0fContents 
+            (entrySelected)="changeStep($event.entry, $event.execute)"
+            #table0fContents
+			[descriptionId]="formGroup.get('id').value"
         ></app-table-of-contents>
     }
 </ng-template>

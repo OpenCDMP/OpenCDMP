@@ -37,6 +37,10 @@ public interface MaintenanceService {
 
 	void sendEvaluationDescriptionAccountingEntriesEvents() throws InvalidApplicationException;
 
+	void sendReferenceAccountingEntriesEvents() throws InvalidApplicationException;
+
+	void sendLanguageAccountingEntriesEvents() throws InvalidApplicationException;
+
 	void sendIndicatorCreateEntryEvents() throws InvalidApplicationException;
 
 	void sendIndicatorResetEntryEvents() throws InvalidApplicationException;
@@ -54,5 +58,9 @@ public interface MaintenanceService {
 	void sendIndicatorPointPlanBlueprintEntryEvents() throws InvalidApplicationException;
 
 	void sendIndicatorPointDescriptionTemplateEntryEvents() throws InvalidApplicationException;
+
+	void sendIndicatorPointTenantEntryEvents() throws InvalidApplicationException;
+
+	void setPlanBlueprintCanEditDescriptionTemplates() throws InvalidApplicationException;
 
 }

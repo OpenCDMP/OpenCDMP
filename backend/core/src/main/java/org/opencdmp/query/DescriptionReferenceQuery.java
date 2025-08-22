@@ -164,10 +164,9 @@ public class DescriptionReferenceQuery extends QueryBase<DescriptionReferenceEnt
     protected <X, Y> Predicate applyAuthZ(QueryContext<X, Y> queryContext) {
         if (this.authorize.contains(AuthorizationFlags.None)) return null;
         if (this.authorize.contains(AuthorizationFlags.Permission) && this.authService.authorize(Permission.BrowseDescriptionReference)) return null;
-        UUID userId;
+        UUID userId = null;
         boolean usePublic = this.authorize.contains(AuthorizationFlags.Public);
         if (this.authorize.contains(AuthorizationFlags.PlanAssociated)) userId = this.userScope.getUserIdSafe();
-        else  userId = null;
         if (this.authorize.contains(AuthorizationFlags.Owner)) userId = this.userScope.getUserIdSafe();
 
         List<Predicate> predicates = new ArrayList<>();

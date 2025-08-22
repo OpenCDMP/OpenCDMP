@@ -62,7 +62,7 @@
                             </div>
                         }
 					</div>
-					<div *ngIf="!plan.descriptions" class="emptyList">{{ 'PLAN-FINALISE-DIALOG.EMPTY' | translate }} </div>
+					<div *ngIf="!plan.descriptions || plan.descriptions?.length == 0" class="emptyList">{{ 'PLAN-FINALISE-DIALOG.EMPTY' | translate }} </div>
 				</mat-expansion-panel>
 			</mat-accordion>
 

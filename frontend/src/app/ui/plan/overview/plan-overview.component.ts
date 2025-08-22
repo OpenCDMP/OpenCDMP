@@ -19,10 +19,26 @@ import { DescriptionStatus, DescriptionStatusDefinition } from '@app/core/model/
 import { DescriptionTemplate } from '@app/core/model/description-template/description-template';
 import { Description, DescriptionSectionPermissionResolver } from '@app/core/model/description/description';
 import { EntityDoi } from '@app/core/model/entity-doi/entity-doi';
-import { RankModel } from '@app/core/model/evaluator/evaluator-plan-model.model';
-import { DescriptionTemplatesInSection, PlanBlueprint, PlanBlueprintDefinition, PlanBlueprintDefinitionSection } from '@app/core/model/plan-blueprint/plan-blueprint';
+import { RankResultModel } from '@app/core/model/evaluator/evaluator-plan-model.model';
+import {
+	DescriptionTemplatesInSection, ExtraFieldInSection,
+	FieldInSection,
+	PlanBlueprint,
+	PlanBlueprintDefinition,
+	PlanBlueprintDefinitionSection, PublicPlanBlueprint, ReferenceTypeFieldInSection, SystemFieldInSection
+} from '@app/core/model/plan-blueprint/plan-blueprint';
 import { PlanStatus, PlanStatusDefinition } from '@app/core/model/plan-status/plan-status';
-import { BasePlan, NewVersionPlanPersist, Plan, PlanDescriptionTemplate, PlanPersist, PlanUser, PlanUserRemovePersist, PublicPlan } from '@app/core/model/plan/plan';
+import {
+	BasePlan,
+	NewVersionPlanPersist,
+	Plan, PlanBlueprintValue, PlanContact,
+	PlanDescriptionTemplate,
+	PlanPersist,
+	PlanProperties,
+	PlanUser,
+	PlanUserRemovePersist,
+	PublicPlan
+} from '@app/core/model/plan/plan';
 import { PlanReference } from '@app/core/model/plan/plan-reference';
 import { ReferenceType } from '@app/core/model/reference-type/reference-type';
 import { Reference } from '@app/core/model/reference/reference';
@@ -57,11 +73,10 @@ import { ClonePlanDialogComponent } from '../clone-dialog/plan-clone-dialog.comp
 import { PlanInvitationDialogComponent } from '../invitation/dialog/plan-invitation-dialog.component';
 import { NewVersionPlanDialogComponent } from '../new-version-dialog/plan-new-version-dialog.component';
 import { PlanDeleteDialogComponent } from '../plan-delete-dialog/plan-delete-dialog.component';
-import { PlanEvaluateDialogComponent } from '../plan-evaluate-dialog/plan-evaluate-dialog.component';
+import { EvaluateDialogComponent } from '../../evaluation/evaluate-dialog/evaluate-dialog.component';
 import { PlanFinalizeDialogComponent, PlanFinalizeDialogOutput } from '../plan-finalize-dialog/plan-finalize-dialog.component';
 import { RankConfig } from '@app/core/model/evaluator/rank-config';
-import { EvaluatorConfiguration } from '@app/core/model/evaluator/evaluator-configuration';
-import { EvaluatorHttpService } from '@app/core/services/evaluator/evaluator.http.service';
+import { BenchmarkConfiguration, EvaluatorConfiguration } from '@app/core/model/evaluator/evaluator-configuration';
 import { StorageFile } from '@app/core/model/storage-file/storage-file';
 import { StorageFileService } from '@app/core/services/storage-file/storage-file.service';
 import { DescriptionService } from '@app/core/services/description/description.service';
@@ -70,6 +85,14 @@ import { EntityType } from '@app/core/common/enum/entity-type';
 import { Evaluation } from '@app/core/model/evaluation/evaluation';
 import { Observable, of } from 'rxjs';
 import { PlanEditorEntityResolver } from '../plan-editor-blueprint/resolvers/plan-editor-enitity.resolver';
+import {PlanBlueprintFieldCategory} from "@app/core/common/enum/plan-blueprint-field-category";
+import {PlanBlueprintSystemFieldType} from "@app/core/common/enum/plan-blueprint-system-field-type";
+import {PlanBlueprintExtraFieldDataType} from "@app/core/common/enum/plan-blueprint-field-type";
+import { BenchmarkDialogComponent } from '@app/ui/evaluation/benchmark-dialog/benchmark-dialog.component';
+import { PluginEntityType } from '@app/core/common/enum/plugin-entity-type';
+import { LanguageInfoService } from '@app/core/services/culture/language-info-service';
+import { PlanBlueprintVersionStatus } from '@app/core/common/enum/plan-blueprint-version-status';
+
 
 @Component({
     selector: 'app-plan-overview',
@@ -78,9 +101,9 @@ import { PlanEditorEntityResolver } from '../plan-editor-blueprint/resolvers/pla
     standalone: false
 })
 export class PlanOverviewComponent extends BaseComponent implements OnInit {
-
+	isDraft = false;
 	plan: Plan | PublicPlan;
-	selectedBlueprint: PlanBlueprint;
+	selectedBlueprint: PlanBlueprint | PublicPlanBlueprint;
 	researchers: PlanReference[] = [];
 	isNew = true;
 	isFinalized = false;
@@ -96,7 +119,6 @@ export class PlanOverviewComponent extends BaseComponent implements OnInit {
     descriptionPermissions: AppPermission[];
 	allDescriptions: Description[] = [];
 
-	depositRepos: DepositConfiguration[] = [];
 	evaluatorRepos: EvaluatorConfiguration[] = [];
 
 	descriptionStatusEnum = DescriptionStatusEnum;
@@ -112,7 +134,11 @@ export class PlanOverviewComponent extends BaseComponent implements OnInit {
 
     RESARCHER_PAGE_SIZE = 8;
     showMoreResearchers = signal<boolean>(false);
-    toggleShowMoreResearchers(){
+
+	planBlueprintSectionFieldCategoryEnum = PlanBlueprintFieldCategory;
+	planBlueprintSystemFieldType = PlanBlueprintSystemFieldType;
+	planBlueprintExtraFieldDataTypeEnum = PlanBlueprintExtraFieldDataType;
+	toggleShowMoreResearchers(){
         this.showMoreResearchers.update((value) => !value);
     }
     
@@ -129,7 +155,7 @@ export class PlanOverviewComponent extends BaseComponent implements OnInit {
 		private router: Router,
 		private planService: PlanService,
         private descriptionService: DescriptionService,
-		private depositRepositoriesService: DepositService,
+		private depositService: DepositService,
 		private authentication: AuthService,
 		private dialog: MatDialog,
 		private language: TranslateService,
@@ -137,6 +163,7 @@ export class PlanOverviewComponent extends BaseComponent implements OnInit {
 		private configurationService: ConfigurationService,
 		private location: Location,
 		private lockService: LockService,
+		private languageInfoService: LanguageInfoService,
 		public referenceService: ReferenceService,
 		public enumUtils: EnumUtils,
 		public fileTransformerService: FileTransformerService,
@@ -147,7 +174,6 @@ export class PlanOverviewComponent extends BaseComponent implements OnInit {
 		private userService: UserService,
 		private evaluatorService: EvaluatorService,
         private evaluationService: EvaluationService,
-		private evaluatorHttpService: EvaluatorHttpService,
 		private logger: LoggingService,
 		private sanitizer: DomSanitizer,
 		private storageFileService: StorageFileService
@@ -173,7 +199,11 @@ export class PlanOverviewComponent extends BaseComponent implements OnInit {
                             this.breadcrumbService.addIdResolvedValue(data.id?.toString(), data.label);
 
                             this.plan = data;
+							if (this.plan.status?.internalStatus == PlanStatusEnum.Draft) {
+								this.isDraft = true;
+							}
                             this.plan.planUsers = this.isActive ? data?.planUsers?.filter((x) => x.isActive === IsActive.Active) : data?.planUsers;
+							this.plan.planReferences = this.isActive ? data?.planReferences?.filter((x) => x.isActive === IsActive.Active) : data?.planReferences;
                             this.plan.otherPlanVersions = data.otherPlanVersions?.filter(x => x.isActive === IsActive.Active) || null;
                             if(this.plan.description && this.plan.description.split(' ')?.length > this.DESCRIPTION_PAGE_SIZE) {
                                 this.minimizedDescription = this.plan.description.split(' ').slice(0, this.DESCRIPTION_PAGE_SIZE).join(' ') + '...';
@@ -233,6 +263,11 @@ export class PlanOverviewComponent extends BaseComponent implements OnInit {
                             this.breadcrumbService.addIdResolvedValue(data.id?.toString(), data.label);
 
                             this.plan = data;
+							this.selectedBlueprint = data.blueprint;
+							if (this.plan.status?.internalStatus == PlanStatusEnum.Draft) {
+								this.isDraft = true;
+							}
+							this.plan.planReferences = data?.planReferences?.filter((x) => x.isActive === IsActive.Active);
                             this.researchers = this.referenceService.getReferencesForTypes(this.plan?.planReferences?.filter(x => x.isActive === IsActive.Active), [this.referenceTypeService.getResearcherReferenceType()]); //data.planReferences is of wrong type!
 
                             if(this.plan.description && this.plan.description.split(' ')?.length > this.DESCRIPTION_PAGE_SIZE) {
@@ -257,42 +292,23 @@ export class PlanOverviewComponent extends BaseComponent implements OnInit {
 				}
 			});
 		if (this.isAuthenticated) {
-			this.depositRepositoriesService.getAvailableRepos([
-				nameof<DepositConfiguration>(x => x.depositType),
-				nameof<DepositConfiguration>(x => x.repositoryId),
-				nameof<DepositConfiguration>(x => x.repositoryAuthorizationUrl),
-				nameof<DepositConfiguration>(x => x.repositoryRecordUrl),
-				nameof<DepositConfiguration>(x => x.repositoryClientId),
-				nameof<DepositConfiguration>(x => x.hasLogo),
-				nameof<DepositConfiguration>(x => x.redirectUri)
-			])
-				.pipe(takeUntil(this._destroyed))
-				.subscribe({
-					next: (repos) => this.depositRepos = repos,
-					error: () => this.depositRepos = []
-				})
 			
-			this.evaluatorHttpService.getAvailableConfigurations()
-				.pipe(takeUntil(this._destroyed))
-				.subscribe({
-					next: (repos) => {
-						this.evaluatorRepos = repos as any;
-						if (this.evaluatorRepos?.length > 0) {
-							this.evaluatorRepos.forEach(repo => {
-							if (repo.hasLogo) {
-								this.evaluatorService.getLogo(repo.evaluatorId).subscribe(
-									(responseLogo) => {
-										this.logos.set(repo.evaluatorId, this.sanitizer.bypassSecurityTrustResourceUrl('data:image/png;base64, ' + responseLogo.body));
-									},
-									error => {
-										this.logger.error("Error fetching evaluator logo:", error);
-									}
-								);
+			this.evaluatorRepos = this.evaluatorService.availableEvaluators();
+			if (this.evaluatorRepos?.length > 0) {
+				this.evaluatorRepos.forEach(repo => {
+				if (repo.hasLogo) {
+					this.evaluatorService.getLogo(repo.evaluatorId).subscribe(
+						(responseLogo) => {
+							this.logos.set(repo.evaluatorId, this.sanitizer.bypassSecurityTrustResourceUrl('data:image/png;base64, ' + responseLogo.body));
+						},
+						error => {
+							this.logger.error("Error fetching evaluator logo:", error);
 							}
-						})
-					}},
-					error: () => this.evaluatorRepos = []
+						);
+					}
 				})
+			}
+			
 
 			this.userService.getSingle(this.authentication.userId(), [
 				nameof<User>(x => x.id),
@@ -363,8 +379,8 @@ export class PlanOverviewComponent extends BaseComponent implements OnInit {
         if(!this.plan){ return; }
 		const authorizationFlags = !this.isPublicView ? (this.plan as Plan).authorizationFlags : [];
         const canEditDesc = this.descriptionPermissions?.some((x) => x === AppPermission.EditDescription)
-		return this.isActive && (this.isNotFinalizedPlan()) && 
-            (authorizationFlags?.some(x => x === AppPermission.EditPlan) || this.authentication.hasPermission(AppPermission.EditPlan) || canEditDesc) && 
+		return this.isActive && (this.isNotFinalizedPlan()) &&
+            (authorizationFlags?.some(x => x === AppPermission.EditPlan) || this.authentication.hasPermission(AppPermission.EditPlan) || canEditDesc) &&
             this.isPublicView == false && this.plan.belongsToCurrentTenant != false;
 	}
 
@@ -404,8 +420,17 @@ export class PlanOverviewComponent extends BaseComponent implements OnInit {
 
 	}
 
+	canViewBlueprintVersionMessage(): boolean {
+		const authorizationFlags = (this.plan as Plan).authorizationFlags;
+		return this.isActive && (this.plan as Plan)?.blueprint?.versionStatus == PlanBlueprintVersionStatus.Previous && (authorizationFlags?.some(x => x === AppPermission.CreateNewVersionPlan) || this.authentication.hasPermission(AppPermission.CreateNewVersionPlan)) && this.isPublicView == false && this.plan.belongsToCurrentTenant != false;
+	}
+
     get availableEvaluators(): EvaluatorConfiguration[] {
         return this.evaluatorService.availableEvaluatorsFor(EvaluatorEntityType.Plan);
+    }
+
+	get depositRepos(): DepositConfiguration[] {
+        return this.depositService.availableDeposits();
     }
 
 	canEvaluatePlan(): boolean {
@@ -414,13 +439,38 @@ export class PlanOverviewComponent extends BaseComponent implements OnInit {
 			this.plan?.status?.definition?.availableActions?.filter(x => x === PlanStatusAvailableActionType.Evaluate).length > 0;
 	}
 
-	onEvaluatePlan(planId: Guid, evaluatorId: string, format: string, rankConfig: RankConfig ,isPublicView: boolean) {
-		this.evaluatorService.rankPlan(planId, evaluatorId, format).subscribe(
-			(response: RankModel) => {
-				const dialogRef = this.dialog.open(PlanEvaluateDialogComponent, {
+	onEvaluatePlan(planId: Guid, evaluatorId: string, format: string, rankConfig: RankConfig, availableBenchmarks: BenchmarkConfiguration[] = [], isPublicView: boolean) {
+		
+		availableBenchmarks = availableBenchmarks?.filter(x => x.appliesTo.includes(PluginEntityType.Plan)) || [];
+
+		if (availableBenchmarks?.length > 1) {
+			const dialogRef = this.dialog.open(BenchmarkDialogComponent, {
+				width: '500px',
+				restoreFocus: false,
+				data: {
+					availableBenchmarks: availableBenchmarks
+				}
+			});
+			dialogRef.afterClosed().subscribe(result => {
+				if (result?.length > 0) this.rankPlan(planId, evaluatorId, format, rankConfig, result);
+				else return;
+			});
+		} else if (availableBenchmarks?.length == 1){
+			this.rankPlan(planId, evaluatorId, format, rankConfig, [availableBenchmarks[0].id])
+		} else {
+			this.rankPlan(planId, evaluatorId, format, rankConfig, null)
+		}
+
+	}
+
+	private rankPlan(planId: Guid, evaluatorId: string, format: string, rankConfig: RankConfig, benchmarkIds: string[]) {
+		this.evaluatorService.rankPlan(planId, evaluatorId, format, benchmarkIds).subscribe(
+			(response: RankResultModel) => {
+				const dialogRef = this.dialog.open(EvaluateDialogComponent, {
 					data: {
 						rankData: response,
-						rankConfig: rankConfig
+						rankConfig: rankConfig,
+                        evaluatorId
 					}
 				});
 
@@ -586,11 +636,15 @@ export class PlanOverviewComponent extends BaseComponent implements OnInit {
 	}
 
 	get inputRepos() {
-		return this.depositRepos.filter(repo => !this.plan.entityDois?.find(doi => doi.repositoryId === repo.repositoryId));
+		return this.depositRepos?.filter(repo => !this.plan.entityDois?.find(doi => doi.repositoryId === repo.repositoryId));
 	}
 
 	moreDeposit() {
 		return (this.plan.entityDois?.length < this.depositRepos?.length);
+	}
+
+	getLanguageInfo(code: string): string {
+		return this.languageInfoService.getLanguageInfoValues()?.find(x => x.code === code)?.name || code;
 	}
 
 	persistStatus(status: PlanStatus) {
@@ -811,6 +865,14 @@ export class PlanOverviewComponent extends BaseComponent implements OnInit {
 			nameof<Plan>(x => x.id),
 			nameof<Plan>(x => x.label),
 			nameof<Plan>(x => x.description),
+			nameof<Plan>(x => x.accessType),
+			nameof<Plan>(x => x.language),
+			[nameof<Plan>(x => x.properties), nameof<PlanProperties>(x => x.contacts),nameof<PlanContact>(x => x.firstName),].join('.'),
+			[nameof<Plan>(x => x.properties), nameof<PlanProperties>(x => x.contacts),nameof<PlanContact>(x => x.lastName),].join('.'),
+			[nameof<Plan>(x => x.properties), nameof<PlanProperties>(x => x.planBlueprintValues),nameof<PlanBlueprintValue>(x => x.fieldId),].join('.'),
+			[nameof<Plan>(x => x.properties), nameof<PlanProperties>(x => x.planBlueprintValues),nameof<PlanBlueprintValue>(x => x.fieldValue),].join('.'),
+			[nameof<Plan>(x => x.properties), nameof<PlanProperties>(x => x.planBlueprintValues),nameof<PlanBlueprintValue>(x => x.numberValue),].join('.'),
+			[nameof<Plan>(x => x.properties), nameof<PlanProperties>(x => x.planBlueprintValues),nameof<PlanBlueprintValue>(x => x.dateValue),].join('.'),
 			[nameof<Plan>(x => x.status), nameof<PlanStatus>(x => x.id)].join('.'),
 			[nameof<Plan>(x => x.status), nameof<PlanStatus>(x => x.name)].join('.'),
 			[nameof<Plan>(x => x.status), nameof<PlanStatus>(x => x.internalStatus)].join('.'),
@@ -843,6 +905,7 @@ export class PlanOverviewComponent extends BaseComponent implements OnInit {
 			[nameof<Plan>(x => x.entityDois), nameof<EntityDoi>(x => x.isActive)].join('.'),
 			[nameof<Plan>(x => x.descriptions), nameof<Description>(x => x.id)].join('.'),
 			[nameof<Plan>(x => x.descriptions), nameof<Description>(x => x.label)].join('.'),
+			[nameof<Plan>(x => x.descriptions), nameof<Description>(x => x.descriptionTemplate), nameof<DescriptionTemplate>(x => x.groupId)].join('.'),
 			[nameof<Plan>(x => x.descriptions), nameof<Description>(x => x.status), nameof<DescriptionStatus>(x => x.id)].join('.'),
 			[nameof<Plan>(x => x.descriptions), nameof<Description>(x => x.status), nameof<DescriptionStatus>(x => x.name)].join('.'),
 			[nameof<Plan>(x => x.descriptions), nameof<Description>(x => x.status), nameof<DescriptionStatus>(x => x.internalStatus)].join('.'),
@@ -855,6 +918,7 @@ export class PlanOverviewComponent extends BaseComponent implements OnInit {
 			[nameof<Plan>(x => x.planUsers), nameof<PlanUser>(x => x.role)].join('.'),
 			[nameof<Plan>(x => x.planUsers), nameof<PlanUser>(x => x.plan.id)].join('.'),
 			[nameof<Plan>(x => x.planUsers), nameof<PlanUser>(x => x.isActive)].join('.'),
+			[nameof<Plan>(x => x.planUsers), nameof<PlanUser>(x => x.ordinal)].join('.'),
 			[nameof<Plan>(x => x.planReferences), nameof<PlanReference>(x => x.id)].join('.'),
 			[nameof<Plan>(x => x.planReferences), nameof<PlanReference>(x => x.reference), nameof<Reference>(x => x.id)].join('.'),
 			[nameof<Plan>(x => x.planReferences), nameof<PlanReference>(x => x.reference), nameof<Reference>(x => x.label)].join('.'),
@@ -867,9 +931,19 @@ export class PlanOverviewComponent extends BaseComponent implements OnInit {
 			[nameof<Plan>(x => x.planDescriptionTemplates), nameof<PlanDescriptionTemplate>(x => x.isActive)].join('.'),
 
 			[nameof<Plan>(x => x.blueprint), nameof<PlanBlueprint>(x => x.id)].join('.'),
+			[nameof<Plan>(x => x.blueprint), nameof<PlanBlueprint>(x => x.label)].join('.'),
+			[nameof<Plan>(x => x.blueprint), nameof<PlanBlueprint>(x => x.versionStatus)].join('.'),
+			[nameof<Plan>(x => x.blueprint), nameof<PlanBlueprint>(x => x.isActive)].join('.'),
 			[nameof<Plan>(x => x.blueprint), nameof<PlanBlueprint>(x => x.definition)].join('.'),
 			[nameof<Plan>(x => x.blueprint), nameof<PlanBlueprint>(x => x.definition), nameof<PlanBlueprintDefinition>(x => x.sections), nameof<PlanBlueprintDefinitionSection>(x => x.id)].join('.'),
 			[nameof<Plan>(x => x.blueprint), nameof<PlanBlueprint>(x => x.definition), nameof<PlanBlueprintDefinition>(x => x.sections), nameof<PlanBlueprintDefinitionSection>(x => x.label)].join('.'),
+			[nameof<Plan>(x => x.blueprint), nameof<PlanBlueprint>(x => x.definition), nameof<PlanBlueprintDefinition>(x => x.sections), nameof<PlanBlueprintDefinitionSection>(x => x.fields), nameof<FieldInSection>(x => x.label)].join('.'),
+			[nameof<Plan>(x => x.blueprint), nameof<PlanBlueprint>(x => x.definition), nameof<PlanBlueprintDefinition>(x => x.sections), nameof<PlanBlueprintDefinitionSection>(x => x.fields), nameof<FieldInSection>(x => x.category)].join('.'),
+			[nameof<Plan>(x => x.blueprint), nameof<PlanBlueprint>(x => x.definition), nameof<PlanBlueprintDefinition>(x => x.sections), nameof<PlanBlueprintDefinitionSection>(x => x.fields), nameof<ExtraFieldInSection>(x => x.dataType)].join('.'),
+			[nameof<Plan>(x => x.blueprint), nameof<PlanBlueprint>(x => x.definition), nameof<PlanBlueprintDefinition>(x => x.sections), nameof<PlanBlueprintDefinitionSection>(x => x.fields), nameof<SystemFieldInSection>(x => x.id)].join('.'),
+			[nameof<Plan>(x => x.blueprint), nameof<PlanBlueprint>(x => x.definition), nameof<PlanBlueprintDefinition>(x => x.sections), nameof<PlanBlueprintDefinitionSection>(x => x.fields), nameof<SystemFieldInSection>(x => x.systemFieldType)].join('.'),
+			[nameof<Plan>(x => x.blueprint), nameof<PlanBlueprint>(x => x.definition), nameof<PlanBlueprintDefinition>(x => x.sections), nameof<PlanBlueprintDefinitionSection>(x => x.fields), nameof<ReferenceTypeFieldInSection>(x => x.referenceType), nameof<ReferenceType>(x => x.name)].join('.'),
+			[nameof<Plan>(x => x.blueprint), nameof<PlanBlueprint>(x => x.definition), nameof<PlanBlueprintDefinition>(x => x.sections), nameof<PlanBlueprintDefinitionSection>(x => x.fields), nameof<ReferenceTypeFieldInSection>(x => x.referenceType), nameof<ReferenceType>(x => x.id)].join('.'),
 			[nameof<Plan>(x => x.blueprint), nameof<PlanBlueprint>(x => x.definition), nameof<PlanBlueprintDefinition>(x => x.sections), nameof<PlanBlueprintDefinitionSection>(x => x.hasTemplates)].join('.'),
 			[nameof<Plan>(x => x.blueprint), nameof<PlanBlueprint>(x => x.definition), nameof<PlanBlueprintDefinition>(x => x.sections), nameof<PlanBlueprintDefinitionSection>(x => x.descriptionTemplates), nameof<DescriptionTemplatesInSection>(x => x.descriptionTemplate), nameof<DescriptionTemplate>(x => x.groupId)].join('.'),
 			[nameof<Plan>(x => x.descriptions), nameof<Description>(x => x.id)].join('.'),
@@ -891,4 +965,8 @@ export class PlanOverviewComponent extends BaseComponent implements OnInit {
 			nameof<Plan>(x => x.hash),
 		]
 	}
+
+    protected getBlueprintValue(fieldId: Guid): PlanBlueprintValue{
+        return (this.plan as Plan)?.properties?.planBlueprintValues?.find((x) => x.fieldId === fieldId);
+    }
 }

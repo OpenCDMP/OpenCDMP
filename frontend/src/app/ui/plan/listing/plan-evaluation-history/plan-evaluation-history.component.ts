@@ -3,7 +3,7 @@ import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { Evaluation } from '@app/core/model/evaluation/evaluation';
 import { EvaluationStatus } from '@app/core/model/evaluation/evaluation-status';
 import { BaseComponent } from '@common/base/base.component';
-import { PlanEvaluateDialogComponent } from '../../plan-evaluate-dialog/plan-evaluate-dialog.component';
+import { EvaluateDialogComponent } from '../../../evaluation/evaluate-dialog/evaluate-dialog.component';
 import { CommonModule } from '@angular/common';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatButtonModule } from '@angular/material/button';
@@ -32,10 +32,11 @@ export class PlanEvaluationHistoryComponent extends BaseComponent{
     }
 
     openEvaluationInfo(evaluation: Evaluation) {
-        this.dialog.open(PlanEvaluateDialogComponent, {
+        this.dialog.open(EvaluateDialogComponent, {
             data: {
-                rankData: evaluation.data?.rankModel,
-                rankConfig: evaluation.data?.rankConfig
+                rankData: evaluation.data?.rankResult,
+                rankConfig: evaluation.data?.rankConfig,
+                evaluatorId: evaluation.data?.evaluatorId
             }
         });
     }

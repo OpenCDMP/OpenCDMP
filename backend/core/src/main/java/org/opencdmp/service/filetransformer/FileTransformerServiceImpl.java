@@ -13,6 +13,7 @@ import gr.cite.tools.exception.MyNotFoundException;
 import gr.cite.tools.fieldset.BaseFieldSet;
 import gr.cite.tools.logging.LoggerService;
 import gr.cite.tools.logging.MapLogEntry;
+import jakarta.transaction.Transactional;
 import jakarta.xml.bind.JAXBException;
 import org.opencdmp.authorization.AuthorizationFlags;
 import org.opencdmp.authorization.Permission;
@@ -31,18 +32,16 @@ import org.opencdmp.convention.ConventionService;
 import org.opencdmp.data.*;
 import org.opencdmp.errorcode.ErrorThesaurusProperties;
 import org.opencdmp.event.TenantConfigurationTouchedEvent;
-import org.opencdmp.filetransformerbase.interfaces.FileTransformerConfiguration;
 import org.opencdmp.filetransformerbase.models.misc.DescriptionImportModel;
 import org.opencdmp.filetransformerbase.models.misc.PlanImportModel;
 import org.opencdmp.filetransformerbase.models.misc.PreprocessingPlanModel;
-import org.opencdmp.model.PublicPlan;
 import org.opencdmp.model.StorageFile;
 import org.opencdmp.model.builder.commonmodels.description.DescriptionCommonModelBuilder;
 import org.opencdmp.model.builder.commonmodels.descriptiontemplate.DescriptionTemplateCommonModelBuilder;
 import org.opencdmp.model.builder.commonmodels.plan.PlanCommonModelBuilder;
 import org.opencdmp.model.builder.commonmodels.planblueprint.PlanBlueprintCommonModelBuilder;
 import org.opencdmp.model.description.Description;
-import org.opencdmp.model.file.RepositoryFileFormat;
+import org.opencdmp.model.file.FileTransformerConfiguration;
 import org.opencdmp.model.persist.DescriptionCommonModelConfig;
 import org.opencdmp.model.persist.PlanCommonModelConfig;
 import org.opencdmp.model.persist.StorageFilePersist;
@@ -220,18 +219,19 @@ public class FileTransformerServiceImpl implements FileTransformerService {
 
 
     @Override
-    public List<RepositoryFileFormat> getAvailableExportFileFormats() throws InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, InvalidApplicationException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
-        List<RepositoryFileFormat> formats = new ArrayList<>();
-        List<FileTransformerConfiguration> configurations = this.getAvailableConfigurations();
-        for (FileTransformerConfiguration configuration : configurations){
-            if (configuration != null && configuration.getExportVariants() != null) formats.addAll(configuration.getExportVariants().stream().map(x-> new RepositoryFileFormat(configuration.getFileTransformerId(), x, configuration.getExportEntityTypes())).toList());
+    public List<FileTransformerConfiguration> getAvailableExportFileFormats() throws InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, InvalidApplicationException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
+        List<FileTransformerConfiguration> formats = new ArrayList<>();
+        List<org.opencdmp.filetransformerbase.interfaces.FileTransformerConfiguration> configurations = this.getAvailableConfigurations();
+        for (org.opencdmp.filetransformerbase.interfaces.FileTransformerConfiguration configuration : configurations){
+            if (configuration != null) formats.add(new FileTransformerConfiguration(configuration.getFileTransformerId(), configuration.getExportVariants(), configuration.getExportEntityTypes(),
+                    configuration.getImportVariants(), configuration.getImportEntityTypes(), configuration.getConfigurationFields(), configuration.getUserConfigurationFields(), PluginType.FileTransformer));
         }
         return formats;
     }
 
-    private List<FileTransformerConfiguration> getAvailableConfigurations() throws InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, InvalidApplicationException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
+    private List<org.opencdmp.filetransformerbase.interfaces.FileTransformerConfiguration> getAvailableConfigurations() throws InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, InvalidApplicationException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
         
-        List<FileTransformerConfiguration> configurations = new ArrayList<>();
+        List<org.opencdmp.filetransformerbase.interfaces.FileTransformerConfiguration> configurations = new ArrayList<>();
 
         for (FileTransformerSourceEntity transformerSource : this.getFileTransformerSources()) {
 
@@ -242,7 +242,7 @@ public class FileTransformerServiceImpl implements FileTransformerService {
                     FileTransformerRepository fileTransformerRepository = this.getRepository(transformerSource.getTransformerId());
                     if (fileTransformerRepository == null) throw new MyNotFoundException(this.messageSource.getMessage("General_ItemNotFound", new Object[]{transformerSource.getTransformerId(), FileTransformerRepository.class.getSimpleName()}, LocaleContextHolder.getLocale()));
 
-                    FileTransformerConfiguration configuration = fileTransformerRepository.getConfiguration();
+                    org.opencdmp.filetransformerbase.interfaces.FileTransformerConfiguration configuration = fileTransformerRepository.getConfiguration();
                     cacheValue = new FileTransformerConfigurationCacheService.FileTransformerConfigurationCacheValue(transformerSource.getTransformerId(), tenantCode, configuration);
                     this.fileTransformerConfigurationCacheService.put(cacheValue);
                 }catch (Exception e){
@@ -258,6 +258,7 @@ public class FileTransformerServiceImpl implements FileTransformerService {
     }
 
     @Override
+    @Transactional
     public org.opencdmp.model.file.FileEnvelope exportPlan(UUID planId, String repositoryId, String format, boolean isPublic) throws InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, InvalidApplicationException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
         this.authorizationService.authorizeForce(Permission.ExportPlan);
         //GK: First get the right client
@@ -297,6 +298,7 @@ public class FileTransformerServiceImpl implements FileTransformerService {
     }
 
     @Override
+    @Transactional
     public org.opencdmp.model.file.FileEnvelope exportDescription(UUID descriptionId, String repositoryId, String format, boolean isPublic) throws InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, InvalidApplicationException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
         this.authorizationService.authorizeForce(Permission.ExportDescription);
         //GK: First get the right client

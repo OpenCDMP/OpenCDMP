@@ -209,6 +209,9 @@
                     }
                 }
             }
+            @case(planBlueprintSectionFieldCategoryEnum.Upload){
+                <app-plan-upload-field path="fieldPath()" [form]="planBlueprintValueControl" [field]="field()"></app-plan-upload-field>
+            }
         }
     </div>
 }

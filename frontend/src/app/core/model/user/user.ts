@@ -3,6 +3,7 @@ import { BaseEntity, BaseEntityPersist } from "@common/base/base-entity.model";
 import { Guid } from "@common/types/guid";
 import { Reference, ReferencePersist } from "../reference/reference";
 import { ContactInfoType } from "@notification-service/core/enum/contact-info-type.enum";
+import { PluginConfigurationUser, PluginConfigurationUserPersist } from "../plugin-configuration/plugin-configuration";
 
 export interface User extends BaseEntity {
 	name: string;
@@ -25,6 +26,7 @@ export interface UserAdditionalInfoPersist {
 	language: String;
 	roleOrganization: String;
 	organization: ReferencePersist;
+	pluginConfigurations?: PluginConfigurationUserPersist[];
 }
 
 export interface UserAdditionalInfo {
@@ -34,6 +36,7 @@ export interface UserAdditionalInfo {
 	language: String;
 	roleOrganization: RoleOrganizationType;
 	organization: Reference;
+	pluginConfigurations?: PluginConfigurationUser[];
 }
 
 export interface UserContactInfo {

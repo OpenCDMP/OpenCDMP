@@ -62,6 +62,8 @@ public class PublicPlanDescriptionTemplateBuilder extends BaseBuilder<PublicPlan
             PublicPlanDescriptionTemplate m = new PublicPlanDescriptionTemplate();
             if (fields.hasField(this.asIndexer(PublicPlanDescriptionTemplate._id)))  m.setId(d.getId());
             if (!planFields.isEmpty() && planItemsMap != null && planItemsMap.containsKey(d.getPlanId())) m.setPlan(planItemsMap.get(d.getPlanId()));
+            if (fields.hasField(this.asIndexer(PublicPlanDescriptionTemplate._sectionId)))  m.setSectionId(d.getSectionId());
+
             models.add(m);
         }
         this.logger.debug("build {} items", Optional.of(models).map(List::size).orElse(0));

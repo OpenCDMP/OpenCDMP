@@ -6,5 +6,7 @@ export enum TenantConfigurationType {
 	CssColors = 4,
 	EvaluatorPlugins = 5,
 	FeaturedEntities = 6,
-	DefaultPlanBlueprint = 7
+	DefaultPlanBlueprint = 7,
+	PluginConfiguration = 8,
+	ViewPreferences = 9
 }

@@ -2,6 +2,7 @@ package org.opencdmp.service.deposit;
 
 import gr.cite.tools.fieldset.FieldSet;
 import org.opencdmp.model.EntityDoi;
+import org.opencdmp.model.deposit.DepositAuthMethodResult;
 import org.opencdmp.model.persist.deposit.DepositRequest;
 
 import javax.crypto.BadPaddingException;
@@ -19,4 +20,7 @@ public interface DepositService {
 	EntityDoi deposit(DepositRequest planDepositModel) throws Exception;
 
 	String getLogo(String repositoryId) throws InvalidApplicationException, InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException;
+
+	DepositAuthMethodResult getAuthMethods(String repositoryId) throws InvalidApplicationException, InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException;
+
 }

@@ -1,4 +1,4 @@
-import { UntypedFormBuilder, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
+import { UntypedFormArray, UntypedFormBuilder, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
 import { RoleOrganizationType } from '@app/core/common/enum/role-organization-type';
 import { ReferencePersist } from '@app/core/model/reference/reference';
 import { User, UserAdditionalInfo, UserAdditionalInfoPersist, UserPersist } from '@app/core/model/user/user';
@@ -6,7 +6,8 @@ import { BaseEditorModel } from '@common/base/base-form-editor-model';
 import { BackendErrorValidator } from '@common/forms/validation/custom-validator';
 import { ValidationErrorModel } from '@common/forms/validation/error-model/validation-error-model';
 import { Validation, ValidationContext } from '@common/forms/validation/validation-context';
-import { Guid } from '@common/types/guid';
+import { PluginRepositoryUserConfiguration } from '@app/core/model/plugin-configuration/plugin-configuration';
+import { PluginConfigurationUserEditorModel } from '../plugin/plugin-user-editor.model';
 
 
 export class UserProfileEditorModel extends BaseEditorModel implements UserPersist {
@@ -20,11 +21,11 @@ export class UserProfileEditorModel extends BaseEditorModel implements UserPersi
 
 	constructor() { super(); }
 
-	public fromModel(item: User): UserProfileEditorModel {
+	public fromModel(item: User, configuration?: PluginRepositoryUserConfiguration[]): UserProfileEditorModel {
 		if (item) {
 			super.fromModel(item);
 			this.name = item.name;
-			this.additionalInfo = new UserAdditionalInfoEditorModel(this.validationErrorModel).fromModel(item.additionalInfo);
+			this.additionalInfo = new UserAdditionalInfoEditorModel(this.validationErrorModel).fromModel(item.additionalInfo, configuration);
 		}
 		return this;
 	}
@@ -78,6 +79,7 @@ export class UserAdditionalInfoEditorModel implements UserAdditionalInfoPersist 
 	language: String;
 	roleOrganization: RoleOrganizationType;
 	organization: ReferencePersist;
+	pluginConfigurations: PluginConfigurationUserEditorModel[] = [];
 
 	protected formBuilder: UntypedFormBuilder = new UntypedFormBuilder();
 
@@ -85,7 +87,7 @@ export class UserAdditionalInfoEditorModel implements UserAdditionalInfoPersist 
 		public validationErrorModel: ValidationErrorModel = new ValidationErrorModel()
 	) { }
 
-	public fromModel(item: UserAdditionalInfo): UserAdditionalInfoEditorModel {
+	public fromModel(item: UserAdditionalInfo, configuration?: PluginRepositoryUserConfiguration[]): UserAdditionalInfoEditorModel {
 		if (item) {
 			this.avatarUrl = item.avatarUrl;
 			this.timezone = item.timezone;
@@ -105,7 +107,7 @@ export class UserAdditionalInfoEditorModel implements UserAdditionalInfoPersist 
 					sourceType: item.organization.sourceType
 				}
 			}
-
+			if (item.pluginConfigurations) { item.pluginConfigurations.map(x => this.pluginConfigurations.push(new PluginConfigurationUserEditorModel(this.validationErrorModel).fromModel(x, configuration))); }
 		}
 		return this;
 	}
@@ -131,6 +133,14 @@ export class UserAdditionalInfoEditorModel implements UserAdditionalInfoPersist 
 			language: [{ value: this.language ? availableLanguages.filter(x => x === this.language).pop() : '', disabled: disabled }, context.getValidation('language').validators],
 			roleOrganization: [{ value: this.roleOrganization, disabled: disabled }, context.getValidation('roleOrganization').validators],
 			organization: [{ value: this.organization, disabled: disabled }, context.getValidation('organization').validators],
+			pluginConfigurations: this.formBuilder.array(
+				(this.pluginConfigurations ?? []).map(
+					(item, index) => item.buildForm({
+						rootPath: `${rootPath}pluginConfigurations[${index}].`,
+						disabled: disabled
+					})
+				), context.getValidation('pluginConfigurations').validators
+			),		
 		});
 	}
 
@@ -148,6 +158,7 @@ export class UserAdditionalInfoEditorModel implements UserAdditionalInfoPersist 
 		baseValidationArray.push({ key: 'language', validators: [Validators.required, BackendErrorValidator(validationErrorModel, `${rootPath}language`)] });
 		baseValidationArray.push({ key: 'roleOrganization', validators: [BackendErrorValidator(validationErrorModel, `${rootPath}roleOrganization`)] });
 		baseValidationArray.push({ key: 'organization', validators: [BackendErrorValidator(validationErrorModel, `${rootPath}organization`)] });
+		baseValidationArray.push({ key: 'pluginConfigurations', validators: [ BackendErrorValidator(validationErrorModel, `${rootPath}pluginConfigurations`)] });
 
 		baseContext.validation = baseValidationArray;
 		return baseContext;
@@ -169,6 +180,14 @@ export class UserAdditionalInfoEditorModel implements UserAdditionalInfoPersist 
 			control?.clearValidators();
 			control?.addValidators(context.getValidation(keyField).validators);
 		});
+
+		(formGroup.get('pluginConfigurations') as UntypedFormArray).controls?.forEach(
+			(control, index) => PluginConfigurationUserEditorModel.reapplyValidators({
+				formGroup: control as UntypedFormGroup,
+				rootPath: `${rootPath}pluginConfigurations[${index}].`,
+				validationErrorModel: validationErrorModel
+			})
+		);
 
 	}
 }

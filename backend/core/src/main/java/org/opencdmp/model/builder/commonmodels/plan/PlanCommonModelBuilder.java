@@ -8,16 +8,15 @@ import gr.cite.tools.fieldset.BaseFieldSet;
 import gr.cite.tools.logging.LoggerService;
 import org.opencdmp.authorization.AuthorizationFlags;
 import org.opencdmp.commonmodels.enums.PlanAccessType;
-import org.opencdmp.commonmodels.enums.PlanStatus;
 import org.opencdmp.commonmodels.models.PlanUserModel;
 import org.opencdmp.commonmodels.models.EntityDoiModel;
 import org.opencdmp.commonmodels.models.FileEnvelopeModel;
-import org.opencdmp.commonmodels.models.UserModel;
 import org.opencdmp.commonmodels.models.description.DescriptionModel;
 import org.opencdmp.commonmodels.models.plan.PlanModel;
 import org.opencdmp.commonmodels.models.plan.PlanStatusModel;
 import org.opencdmp.commonmodels.models.planblueprint.PlanBlueprintModel;
 import org.opencdmp.commonmodels.models.planreference.PlanReferenceModel;
+import org.opencdmp.commonmodels.models.user.UserModel;
 import org.opencdmp.commons.JsonHandlingService;
 import org.opencdmp.commons.XmlHandlingService;
 import org.opencdmp.commons.enums.IsActive;
@@ -60,6 +59,7 @@ public class PlanCommonModelBuilder extends BaseCommonModelBuilder<PlanModel, Pl
     private final TenantEntityManager entityManager;
     private FileEnvelopeModel pdfFile;
     private FileEnvelopeModel rdaJsonFile;
+    private FileEnvelopeModel supportingFilesZip;
     private String repositoryId;
     private String evaluatorId;
     private boolean disableDescriptions;
@@ -89,6 +89,11 @@ public class PlanCommonModelBuilder extends BaseCommonModelBuilder<PlanModel, Pl
 
     public PlanCommonModelBuilder setRdaJsonFile(FileEnvelopeModel rdaJsonFile) {
         this.rdaJsonFile = rdaJsonFile;
+        return this;
+    }
+
+    public PlanCommonModelBuilder setSupportingFilesZip(FileEnvelopeModel supportingFilesZip) {
+        this.supportingFilesZip = supportingFilesZip;
         return this;
     }
 
@@ -152,12 +157,13 @@ public class PlanCommonModelBuilder extends BaseCommonModelBuilder<PlanModel, Pl
             if (d.getProperties() != null){
                 //TODO Update with the new logic of property definition 
                 PlanPropertiesEntity propertyDefinition = this.jsonHandlingService.fromJsonSafe(PlanPropertiesEntity.class, d.getProperties());
-                m.setProperties(this.builderFactory.builder(PlanPropertiesCommonModelBuilder.class).withDefinition(definitionEntityMap != null ? definitionEntityMap.getOrDefault(d.getBlueprintId(), null) : null).authorize(this.authorize).build(propertyDefinition));
+                m.setProperties(this.builderFactory.builder(PlanPropertiesCommonModelBuilder.class).useSharedStorage(this.useSharedStorage).withDefinition(definitionEntityMap != null ? definitionEntityMap.getOrDefault(d.getBlueprintId(), null) : null).authorize(this.authorize).build(propertyDefinition));
             }
             m.setPublicAfter(d.getPublicAfter());
             m.setUpdatedAt(d.getUpdatedAt());
             m.setPdfFile(this.pdfFile);
             m.setRdaJsonFile(this.rdaJsonFile);
+            m.setSupportingFilesZip(this.supportingFilesZip);
             if (d.getVersion() > (short)1) m.setPreviousDOI(this.getPreviousDOI(d.getGroupId(), d.getId()));
             switch (d.getAccessType()){
                 case Public -> m.setAccessType(PlanAccessType.Public);
@@ -274,8 +280,8 @@ public class PlanCommonModelBuilder extends BaseCommonModelBuilder<PlanModel, Pl
         this.logger.debug("checking related - {}", PlanBlueprintModel.class.getSimpleName());
 
         Map<UUID, PlanBlueprintModel> itemMap;
-        PlanBlueprintQuery q = this.queryFactory.query(PlanBlueprintQuery.class).isActive(IsActive.Active).authorize(this.authorize).ids(data.stream().filter(x-> x.getBlueprintId() != null).map(PlanEntity::getBlueprintId).distinct().collect(Collectors.toList()));
-        itemMap = this.builderFactory.builder(PlanBlueprintCommonModelBuilder.class).authorize(this.authorize).asForeignKey(q, PlanBlueprintEntity::getId);
+        PlanBlueprintQuery q = this.queryFactory.query(PlanBlueprintQuery.class).authorize(this.authorize).ids(data.stream().filter(x-> x.getBlueprintId() != null).map(PlanEntity::getBlueprintId).distinct().collect(Collectors.toList()));
+        itemMap = this.builderFactory.builder(PlanBlueprintCommonModelBuilder.class).useSharedStorage(useSharedStorage).setRepositoryId(repositoryId).authorize(this.authorize).asForeignKey(q, PlanBlueprintEntity::getId);
         return itemMap;
     }
 

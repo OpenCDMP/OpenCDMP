@@ -6,7 +6,7 @@ import { PlanStatusEnum } from "@app/core/common/enum/plan-status";
 import { PlanUserRole } from "@app/core/common/enum/plan-user-role";
 import { PlanUserType } from "@app/core/common/enum/plan-user-type";
 import { IsActive } from "@app/core/common/enum/is-active.enum";
-import { PlanBlueprint, PlanBlueprintDefinitionSection, ExtraFieldInSection, FieldInSection, ReferenceTypeFieldInSection, SystemFieldInSection } from "@app/core/model/plan-blueprint/plan-blueprint";
+import { PlanBlueprint, PlanBlueprintDefinitionSection, ExtraFieldInSection, FieldInSection, ReferenceTypeFieldInSection, SystemFieldInSection, UploadFieldInSection } from "@app/core/model/plan-blueprint/plan-blueprint";
 import { Plan, PlanBlueprintValue, PlanBlueprintValuePersist, PlanContact, PlanContactPersist, PlanDescriptionTemplate, PlanDescriptionTemplatePersist, PlanPersist, PlanProperties, PlanPropertiesPersist, PlanReferenceDataPersist, PlanReferencePersist, PlanUser, PlanUserPersist } from "@app/core/model/plan/plan";
 import { PlanReference } from "@app/core/model/plan/plan-reference";
 import { ReferencePersist } from "@app/core/model/reference/reference";
@@ -411,6 +411,8 @@ export class PlanBlueprintValueEditorModel implements PlanBlueprintValuePersist 
 				formGroup.addControl('dateValue', new FormControl({ value: this.dateValue, disabled: disabled }, context.getValidation('dateValue').validators));
 				formGroup.addControl('numberValue', new FormControl({ value: this.numberValue, disabled: disabled }, context.getValidation('numberValue').validators));
 				break;
+			case PlanBlueprintFieldCategory.Upload:
+				formGroup.addControl('fieldValue', new FormControl({ value: this.fieldValue, disabled: disabled }, context.getValidation('fieldValue').validators));
 		}
 
 		return formGroup;
@@ -542,6 +544,7 @@ export class PlanUserEditorModel implements PlanUserPersist {
 	email: string;
 	userType: PlanUserType = PlanUserType.Internal;
 	sectionId: string = '';
+	ordinal: number | null;
 
 	protected formBuilder: UntypedFormBuilder = new UntypedFormBuilder();
 
@@ -554,7 +557,7 @@ export class PlanUserEditorModel implements PlanUserPersist {
 		this.role = item.role;
 		this.userType = (item == null || this.user != null) ? PlanUserType.Internal : PlanUserType.External;
 		this.sectionId = item.sectionId?.toString() || ''; //Trick to allow a null option for all items.
-
+		this.ordinal = item.ordinal;
 		return this;
 	}
 
@@ -577,6 +580,7 @@ export class PlanUserEditorModel implements PlanUserPersist {
 			email: [{ value: this.email, disabled: disabled }, context.getValidation('email').validators],
 			sectionId: [{ value: this.sectionId, disabled: disabled }, context.getValidation('sectionId').validators],
 			userType: [{ value: this.userType, disabled: disabled }, context.getValidation('userType').validators],
+			ordinal: [{ value: this.ordinal, disabled: disabled }, context.getValidation('ordinal').validators],
 		});
 	}
 
@@ -593,6 +597,7 @@ export class PlanUserEditorModel implements PlanUserPersist {
 		baseValidationArray.push({ key: 'email', validators: [BackendErrorValidator(validationErrorModel, `${rootPath}email`)] });
 		baseValidationArray.push({ key: 'sectionId', validators: [BackendErrorValidator(validationErrorModel, `${rootPath}sectionId`)] });
 		baseValidationArray.push({ key: 'userType', validators: [BackendErrorValidator(validationErrorModel, `${rootPath}userType`)] });
+		baseValidationArray.push({ key: 'ordinal', validators: [BackendErrorValidator(validationErrorModel, `${rootPath}ordinal`)] });
 
 		baseContext.validation = baseValidationArray;
 		return baseContext;
@@ -610,7 +615,7 @@ export class PlanUserEditorModel implements PlanUserPersist {
 			validationErrorModel
 		});
 
-		['user', 'role', 'email', 'sectionId'].forEach(keyField => {
+		['user', 'role', 'email', 'sectionId', 'ordinal'].forEach(keyField => {
 			const control = formGroup?.get(keyField);
 			control?.clearValidators();
 			control?.addValidators(context.getValidation(keyField).validators);
@@ -778,6 +783,8 @@ export class PlanFieldIndicator {
                 case PlanBlueprintFieldCategory.Extra:
                     this.buildExtraField(field as ExtraFieldInSection);
                     break;
+                case PlanBlueprintFieldCategory.Upload:
+                    this.buildUploadField(field as UploadFieldInSection);
             }
         });
 	}
@@ -838,6 +845,13 @@ export class PlanFieldIndicator {
 	}
 
 	buildExtraField(field: ExtraFieldInSection): void {
+		this._fieldControls.push({
+            id: field.id,
+            formControlName: `properties.planBlueprintValues.${field.id}.fieldValue`
+        });
+	}
+
+	buildUploadField(field: UploadFieldInSection): void {
 		this._fieldControls.push({
             id: field.id,
             formControlName: `properties.planBlueprintValues.${field.id}.fieldValue`

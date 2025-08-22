@@ -100,6 +100,19 @@
 												<app-description-workflow-editor></app-description-workflow-editor>
 											</ng-template>
                                         </mat-expansion-panel>
+                                        <mat-expansion-panel>
+                                            <mat-expansion-panel-header>
+                                                <mat-panel-title>
+                                                    {{'TENANT-CONFIGURATION-EDITOR.DEFAULT-PLAN-BLUEPRINT.TITLE' | translate}}
+                                                </mat-panel-title>
+                                                <mat-panel-description>
+                                                    {{'TENANT-CONFIGURATION-EDITOR.DEFAULT-PLAN-BLUEPRINT.HINT' | translate}}
+                                                </mat-panel-description>
+                                            </mat-expansion-panel-header>
+											<ng-template matExpansionPanelContent>
+												<app-tenant-configuration-default-plan-blueprint-editor></app-tenant-configuration-default-plan-blueprint-editor>
+                                            </ng-template>
+                                        </mat-expansion-panel>
 										<mat-expansion-panel>
 											<mat-expansion-panel-header>
 												<mat-panel-title>{{'TENANT-CONFIGURATION-EDITOR.FEATURED-ENTITIES.TITLE' | translate}}</mat-panel-title>
@@ -111,11 +124,20 @@
 										</mat-expansion-panel>
 										<mat-expansion-panel>
 											<mat-expansion-panel-header>
-												<mat-panel-title>{{'TENANT-CONFIGURATION-EDITOR.DEFAULT-PLAN-BLUEPRINT.TITLE' | translate}}</mat-panel-title>
-												<mat-panel-description>{{'TENANT-CONFIGURATION-EDITOR.DEFAULT-PLAN-BLUEPRINT.HINT' | translate}}</mat-panel-description>
+												<mat-panel-title>{{'TENANT-CONFIGURATION-EDITOR.PLUGIN-CONFIGURATION.TITLE' | translate}}</mat-panel-title>
+												<mat-panel-description>{{'TENANT-CONFIGURATION-EDITOR.PLUGIN-CONFIGURATION.HINT' | translate}}</mat-panel-description>
 											</mat-expansion-panel-header>
 											<ng-template matExpansionPanelContent>
-												<app-tenant-configuration-default-plan-blueprint-editor></app-tenant-configuration-default-plan-blueprint-editor>
+												<app-tenant-configuration-plugin-configuration-editor></app-tenant-configuration-plugin-configuration-editor>
+											</ng-template>
+										</mat-expansion-panel>
+										<mat-expansion-panel>
+											<mat-expansion-panel-header>
+												<mat-panel-title>{{'TENANT-CONFIGURATION-EDITOR.VIEW-PREFERENCES.TITLE' | translate}}</mat-panel-title>
+												<mat-panel-description>{{'TENANT-CONFIGURATION-EDITOR.VIEW-PREFERENCES.HINT' | translate}}</mat-panel-description>
+											</mat-expansion-panel-header>
+											<ng-template matExpansionPanelContent>
+												<app-tenant-configuration-view-preferences-editor></app-tenant-configuration-view-preferences-editor>
 											</ng-template>
 										</mat-expansion-panel>
 									</mat-accordion>

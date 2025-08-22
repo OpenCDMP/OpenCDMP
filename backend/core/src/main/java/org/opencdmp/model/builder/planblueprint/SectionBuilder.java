@@ -8,10 +8,7 @@ import gr.cite.tools.logging.DataLogEntry;
 import gr.cite.tools.logging.LoggerService;
 import org.opencdmp.authorization.AuthorizationFlags;
 import org.opencdmp.commons.enums.PlanBlueprintFieldCategory;
-import org.opencdmp.commons.types.planblueprint.ExtraFieldEntity;
-import org.opencdmp.commons.types.planblueprint.ReferenceTypeFieldEntity;
-import org.opencdmp.commons.types.planblueprint.SectionEntity;
-import org.opencdmp.commons.types.planblueprint.SystemFieldEntity;
+import org.opencdmp.commons.types.planblueprint.*;
 import org.opencdmp.convention.ConventionService;
 import org.opencdmp.data.PrefillingSourceEntity;
 import org.opencdmp.model.builder.BaseBuilder;
@@ -68,6 +65,7 @@ public class SectionBuilder extends BaseBuilder<Section, SectionEntity> {
             if (fields.hasField(this.asIndexer(Section._ordinal))) m.setOrdinal(d.getOrdinal());
             if (fields.hasField(this.asIndexer(Section._hasTemplates))) m.setHasTemplates(d.getHasTemplates());
             if (fields.hasField(this.asIndexer(Section._prefillingSourcesEnabled))) m.setPrefillingSourcesEnabled(d.getPrefillingSourcesEnabled());
+            if (fields.hasField(this.asIndexer(Section._canEditDescriptionTemplates))) m.setCanEditDescriptionTemplates(d.getCanEditDescriptionTemplates());
             if (!descriptionTemplatesFields.isEmpty() && d.getDescriptionTemplates() != null) m.setDescriptionTemplates(this.builderFactory.builder(BlueprintDescriptionTemplateBuilder.class).authorize(this.authorize).build(descriptionTemplatesFields, d.getDescriptionTemplates()));
             if (!fieldsFields.isEmpty() && d.getFields() != null) {
                 m.setFields(new ArrayList<>());
@@ -77,6 +75,8 @@ public class SectionBuilder extends BaseBuilder<Section, SectionEntity> {
                 m.getFields().addAll(this.builderFactory.builder(ExtraFieldBuilder.class).authorize(this.authorize).build(fieldsFields, extraFieldEntities));
                 List<ReferenceTypeFieldEntity> referenceFieldEntities = d.getFields().stream().filter(x-> PlanBlueprintFieldCategory.ReferenceType.equals(x.getCategory())).map(x-> (ReferenceTypeFieldEntity)x).toList();
                 m.getFields().addAll(this.builderFactory.builder(ReferenceFieldBuilder.class).authorize(this.authorize).build(fieldsFields, referenceFieldEntities));
+                List<UploadFieldEntity> uploadFieldEntities = d.getFields().stream().filter(x-> PlanBlueprintFieldCategory.Upload.equals(x.getCategory())).map(x-> (UploadFieldEntity)x).toList();
+                m.getFields().addAll(this.builderFactory.builder(UploadFieldBuilder.class).authorize(this.authorize).build(fieldsFields, uploadFieldEntities));
             }
             if (!prefillingSourcesFields.isEmpty() && d.getPrefillingSourcesIds() != null) {
                 List<PrefillingSourceEntity> prefillingSourceEntities = this.queryFactory.query(PrefillingSourceQuery.class).disableTracking().authorize(this.authorize).ids(d.getPrefillingSourcesIds()).collectAs(prefillingSourcesFields);

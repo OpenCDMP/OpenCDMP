@@ -10,6 +10,10 @@ import gr.cite.tools.logging.LoggerService;
 import gr.cite.tools.logging.MapLogEntry;
 import gr.cite.tools.validation.ValidationFilterAnnotation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.enums.Explode;
+import io.swagger.v3.oas.annotations.enums.ParameterStyle;
+import io.swagger.v3.oas.annotations.extensions.Extension;
+import io.swagger.v3.oas.annotations.extensions.ExtensionProperty;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
@@ -44,7 +48,7 @@ import java.util.*;
 
 @RestController
 @RequestMapping(path = "api/description-workflow")
-@io.swagger.v3.oas.annotations.tags.Tag(name = "DescriptionWorkflows", description = "Manage description workflows")
+@io.swagger.v3.oas.annotations.tags.Tag(name = "Description Workflows", description = "Manage description workflows", extensions = @Extension(name = "x-order", properties = @ExtensionProperty(name = "value", value = "17")))
 @SwaggerCommonErrorResponses
 public class DescriptionWorkflowController {
 
@@ -69,12 +73,12 @@ public class DescriptionWorkflowController {
     }
 
     @PostMapping("query")
-    @OperationWithTenantHeader(summary = "Query all descriptionWorkflows", description = SwaggerHelpers.Tag.endpoint_query, requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(description = SwaggerHelpers.Tag.endpoint_query_request_body, content = @Content(
+    @OperationWithTenantHeader(summary = "Query all descriptionWorkflows", description = SwaggerHelpers.DescriptionWorkflow.endpoint_query, requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(content = @Content(
             examples = {
                     @ExampleObject(
                             name = SwaggerHelpers.Commons.pagination_example,
                             description = SwaggerHelpers.Commons.pagination_example_description,
-                            value = SwaggerHelpers.Tag.endpoint_query_request_body_example
+                            value = SwaggerHelpers.DescriptionWorkflow.endpoint_query_request_body_example
                     )
             }
     )), responses = @ApiResponse(description = "OK", responseCode = "200", content = @Content(
@@ -86,7 +90,7 @@ public class DescriptionWorkflowController {
             examples = @ExampleObject(
                     name = SwaggerHelpers.Commons.pagination_response_example,
                     description = SwaggerHelpers.Commons.pagination_response_example_description,
-                    value = SwaggerHelpers.Tag.endpoint_query_response_example
+                    value = SwaggerHelpers.DescriptionWorkflow.endpoint_query_response_example
             ))))
 
     public QueryResult<DescriptionWorkflow> Query(@RequestBody DescriptionWorkflowLookup lookup) {
@@ -114,8 +118,8 @@ public class DescriptionWorkflowController {
             ))
     @Swagger404
     public DescriptionWorkflow Get(
-            @Parameter(name = "id", description = "The id of a Description Workflow to fetch", example = "c0c163dc-2965-45a5-9608-f76030578609", required = true) @PathVariable UUID id,
-            @Parameter(name = "fieldSet", description = SwaggerHelpers.Commons.fieldset_description, required = true) FieldSet fieldSet,
+            @Parameter(name = "id", description = "The id of a Description Workflow to fetch", example = "8651af83-8b24-4776-ae45-329031db9f5e", required = true) @PathVariable UUID id,
+            @Parameter(name = "f", description = SwaggerHelpers.Commons.fieldset_description, required = true, style = ParameterStyle.FORM, explode = Explode.TRUE, schema = @Schema(type = "array", example = SwaggerHelpers.DescriptionWorkflow.endpoint_field_set_example)) FieldSet fieldSet,
             Locale locale
     ) {
         logger.debug(new MapLogEntry("retrieving" + DescriptionWorkflow.class.getSimpleName()).And("id", id).And("fieldSet", fieldSet));
@@ -143,7 +147,7 @@ public class DescriptionWorkflowController {
             ))
     @Swagger404
     public DescriptionWorkflow GetByCurrentTenant(
-            @Parameter(name = "fieldSet", description = SwaggerHelpers.Commons.fieldset_description, required = true) FieldSet fieldSet,
+            @Parameter(name = "f", description = SwaggerHelpers.Commons.fieldset_description, required = true, style = ParameterStyle.FORM, explode = Explode.TRUE, schema = @Schema(type = "array", example = SwaggerHelpers.DescriptionWorkflow.endpoint_field_set_example)) FieldSet fieldSet,
             Locale locale
     ) throws InvalidApplicationException {
         logger.debug(new MapLogEntry("retrieving" + DescriptionWorkflow.class.getSimpleName()).And("fieldSet", fieldSet));
@@ -175,7 +179,7 @@ public class DescriptionWorkflowController {
     @ValidationFilterAnnotation(validator = DescriptionWorkflowPersist.DescriptionWorkflowPersistValidator.ValidatorName, argumentName = "model")
     public DescriptionWorkflow Persist(
             @RequestBody DescriptionWorkflowPersist model,
-            @Parameter(name = "fieldSet", description = SwaggerHelpers.Commons.fieldset_description, required = true) FieldSet fieldSet
+            @Parameter(name = "f", description = SwaggerHelpers.Commons.fieldset_description, required = true, style = ParameterStyle.FORM, explode = Explode.TRUE, schema = @Schema(type = "array", example = SwaggerHelpers.DescriptionWorkflow.endpoint_field_set_example)) FieldSet fieldSet
     ) throws InvalidApplicationException {
         logger.debug(new MapLogEntry("persisting"+DescriptionWorkflow.class.getSimpleName()).And("model", model).And("fieldSet", fieldSet));
 
@@ -196,7 +200,7 @@ public class DescriptionWorkflowController {
     @Swagger404
     @Transactional
     public void Delete(
-            @Parameter(name = "id", description = "The id of description workflow to delete", example = "c0c163dc-2965-45a5-9608-f76030578609", required = true) @PathVariable UUID id
+            @Parameter(name = "id", description = "The id of description workflow to delete", required = true) @PathVariable UUID id
     ) throws InvalidApplicationException {
         logger.debug(new MapLogEntry("deleting"+DescriptionWorkflow.class.getSimpleName()).And("id", id));
 

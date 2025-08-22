@@ -2,12 +2,13 @@ package org.opencdmp.service.deposit;
 
 import gr.cite.tools.logging.LoggerService;
 import gr.cite.tools.logging.MapLogEntry;
-import org.opencdmp.commonmodels.models.plan.PlanModel;
 import org.opencdmp.depositbase.repository.DepositClient;
 import org.opencdmp.depositbase.repository.DepositConfiguration;
+import org.opencdmp.depositbase.repository.PlanDepositModel;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.web.util.UriBuilder;
 import reactor.core.publisher.Mono;
 
 public class DepositClientImpl implements DepositClient {
@@ -19,11 +20,10 @@ public class DepositClientImpl implements DepositClient {
         this.depositClient = depositClient;
     }
 
-
     @Override
-    public String deposit(PlanModel planDepositModel, String repositoryAccessToken) throws Exception {
+    public String deposit(PlanDepositModel planDepositModel) throws Exception {
         logger.debug(new MapLogEntry("deposit").And("planDepositModel", planDepositModel));
-        return this.depositClient.post().uri("", uriBuilder -> uriBuilder.queryParam("authToken", repositoryAccessToken).build()).bodyValue(planDepositModel).exchangeToMono(mono ->  mono.statusCode().isError() ? mono.createException().flatMap(Mono::error) : mono.bodyToMono(String.class)).block();
+        return this.depositClient.post().uri("", UriBuilder::build).bodyValue(planDepositModel).exchangeToMono(mono ->  mono.statusCode().isError() ? mono.createException().flatMap(Mono::error) : mono.bodyToMono(String.class)).block();
     }
 
     @Override

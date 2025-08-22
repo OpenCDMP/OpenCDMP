@@ -55,7 +55,7 @@ export class DescriptionFilterComponent extends BaseCriteriaComponent<Descriptio
 	planRole = PlanUserRole;
 	options: UntypedFormGroup;
 
-	descriptionTemplateAutoCompleteConfiguration: MultipleAutoCompleteConfiguration = this.descriptionTemplateService.buildMultipleAutocompleteConfiguration();
+	descriptionTemplateAutoCompleteConfiguration: MultipleAutoCompleteConfiguration = this.descriptionTemplateService.buildDescriptionTempalteGroupMultipleAutocompleteConfiguration();
 	planAutoCompleteConfiguration: MultipleAutoCompleteConfiguration = this.planService.multipleAutocompleteConfiguration;
 	tagAutoCompleteConfiguration: MultipleAutoCompleteConfiguration = this.tagService.multipleAutocompleteConfiguration;
 	referenceTypeAutocompleteConfiguration: SingleAutoCompleteConfiguration = this.getReferenceTypeAutocompleteConfiguration();

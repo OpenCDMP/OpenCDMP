@@ -18,6 +18,8 @@ import { ConfigurationService } from '../configuration/configuration.service';
 import { BaseHttpV2Service } from '../http/base-http-v2.service';
 import { DescriptionTemplateVersionStatus } from '@app/core/common/enum/description-template-version-status';
 import { DescriptionTemplateStatus } from '@app/core/common/enum/description-template-status';
+import { DescriptionTemplateEditorResolver } from '@app/ui/admin/description-template/editor/description-template-editor.resolver';
+import { DescriptionTemplateType } from '@app/core/model/description-template-type/description-template-type';
 
 @Injectable()
 export class DescriptionTemplateService {
@@ -87,14 +89,14 @@ export class DescriptionTemplateService {
 		return this.httpClient.get(url, { params: params, responseType: 'blob', observe: 'response', headers: headerXml });
 	}
 
-	uploadFile(file: FileList, labelSent: string, reqFields: string[] = []): Observable<DescriptionTemplate> {
+	uploadFile(file: File, labelSent: string, reqFields: string[] = []): Observable<DescriptionTemplate> {
 		const url = `${this.apiBase}/xml/import`;
 		const params = new BaseHttpParams();
 		params.interceptorContext = {
 			excludedInterceptors: [InterceptorType.JSONContentType]
 		};
 		const formData = new FormData();
-		formData.append('file', file[0], labelSent);
+		formData.append('file', file, labelSent);
 		return this.http.post(url, formData, { params: params });
 	}
 
@@ -138,11 +140,14 @@ export class DescriptionTemplateService {
 		};
 	}
 
-	public buildAutocompleteLookup(like?: string, excludedIds?: Guid[], ids?: Guid[]): DescriptionTemplateLookup {
+	public buildAutocompleteLookup(like?: string, excludedIds?: Guid[], ids?: Guid[], versionStatuses?: DescriptionTemplateVersionStatus[], statuses?: DescriptionTemplateStatus[]): DescriptionTemplateLookup {
 		const lookup: DescriptionTemplateLookup = new DescriptionTemplateLookup();
 		lookup.page = { size: 100, offset: 0 };
 		if (excludedIds && excludedIds.length > 0) { lookup.excludedIds = excludedIds; }
 		if (ids && ids.length > 0) { lookup.ids = ids; }
+		if (versionStatuses && versionStatuses.length > 0) { lookup.versionStatuses = versionStatuses; }
+		if (statuses && statuses.length > 0) { lookup.statuses = statuses; }
+
 		lookup.isActive = [IsActive.Active];
 		lookup.project = {
 			fields: [
@@ -257,5 +262,37 @@ export class DescriptionTemplateService {
 		if (like) { lookup.like = this.filterService.transformLike(like); }
 		return lookup;
 	}
+
+    buildLookup(params?: Partial<DescriptionTemplateLookup>): DescriptionTemplateLookup {
+        const {metadata, page, isActive, statuses, versionStatuses, order, project, like, typeIds, languages, groupIds} = params ?? {};
+        const lookup = new DescriptionTemplateLookup();
+		lookup.metadata = metadata ?? {countAll: true};
+		lookup.page = page ?? {offset: 0, size: 100};
+		lookup.isActive = isActive ?? [IsActive.Active];
+		lookup.statuses = statuses ?? [DescriptionTemplateStatus.Finalized];
+		lookup.versionStatuses = versionStatuses ?? [DescriptionTemplateVersionStatus.Current];
+		lookup.order = order ?? {items: ['-' + (nameof<DescriptionTemplate>(x => x.updatedAt))]};
+		lookup.project = project ?? {
+			fields: [
+            ...DescriptionTemplateEditorResolver.baseLookupFields(), 
+            nameof<DescriptionTemplate>(x => x.language),
+            [nameof<DescriptionTemplate>(x => x.type), nameof<DescriptionTemplateType>(x => x.id)].join('.'),
+            [nameof<DescriptionTemplate>(x => x.type), nameof<DescriptionTemplateType>(x => x.name)].join('.')
+        ]
+		};
+		if (like) {
+			lookup.like = like;
+		}
+		if (typeIds) {
+			lookup.typeIds = typeIds;
+		}
+		if (languages) {
+			lookup.languages = languages;
+		}
+		if(groupIds){
+			lookup.groupIds = groupIds;
+		}
+		return lookup;
+    }
 
 }

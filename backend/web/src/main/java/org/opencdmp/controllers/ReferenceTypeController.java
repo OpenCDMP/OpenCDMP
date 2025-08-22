@@ -14,6 +14,10 @@ import gr.cite.tools.logging.LoggerService;
 import gr.cite.tools.logging.MapLogEntry;
 import gr.cite.tools.validation.ValidationFilterAnnotation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.enums.Explode;
+import io.swagger.v3.oas.annotations.enums.ParameterStyle;
+import io.swagger.v3.oas.annotations.extensions.Extension;
+import io.swagger.v3.oas.annotations.extensions.ExtensionProperty;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
@@ -54,7 +58,7 @@ import java.util.UUID;
 
 @RestController
 @RequestMapping(path = "api/reference-type")
-@Tag(name = "Reference types", description = "Manage reference types")
+@Tag(name = "Reference types", description = "Manage reference types", extensions = @Extension(name = "x-order", properties = @ExtensionProperty(name = "value", value = "7")))
 @SwaggerCommonErrorResponses
 public class ReferenceTypeController{
 
@@ -91,7 +95,7 @@ public class ReferenceTypeController{
     }
 
     @PostMapping("query")
-    @OperationWithTenantHeader(summary = "Query all reference types", description = SwaggerHelpers.ReferenceType.endpoint_query, requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(description = SwaggerHelpers.ReferenceType.endpoint_query_request_body, content = @Content(
+    @OperationWithTenantHeader(summary = "Query all reference types", description = SwaggerHelpers.ReferenceType.endpoint_query, requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(content = @Content(
             examples = {
                     @ExampleObject(
                             name = SwaggerHelpers.Commons.pagination_example,
@@ -135,7 +139,7 @@ public class ReferenceTypeController{
     @Swagger404
     public ReferenceType get(
             @Parameter(name = "id", description = "The id of a reference type to fetch", example = "c0c163dc-2965-45a5-9608-f76030578609", required = true) @PathVariable("id") UUID id,
-            @Parameter(name = "fieldSet", description = SwaggerHelpers.Commons.fieldset_description, required = true) FieldSet fieldSet
+            @Parameter(name = "f", description = SwaggerHelpers.Commons.fieldset_description, required = true, style = ParameterStyle.FORM, explode = Explode.TRUE, schema = @Schema(type = "array", example = SwaggerHelpers.ReferenceType.endpoint_field_set_example)) FieldSet fieldSet
     ) throws MyApplicationException, MyForbiddenException, MyNotFoundException {
         logger.debug(new MapLogEntry("retrieving" + ReferenceType.class.getSimpleName()).And("id", id).And("fields", fieldSet));
 
@@ -164,7 +168,7 @@ public class ReferenceTypeController{
     @Swagger404
     public ReferenceType get(
             @Parameter(name = "code", description = "The code of a reference type to fetch", example = "licences", required = true) @PathVariable("code") String code,
-            @Parameter(name = "fieldSet", description = SwaggerHelpers.Commons.fieldset_description, required = true) FieldSet fieldSet
+            @Parameter(name = "f", description = SwaggerHelpers.Commons.fieldset_description, required = true, style = ParameterStyle.FORM, explode = Explode.TRUE, schema = @Schema(type = "array", example = SwaggerHelpers.ReferenceType.endpoint_field_set_example)) FieldSet fieldSet
     ) throws MyApplicationException, MyForbiddenException, MyNotFoundException {
         logger.debug(new MapLogEntry("retrieving" + ReferenceType.class.getSimpleName()).And("code", code).And("fields", fieldSet));
 
@@ -196,7 +200,7 @@ public class ReferenceTypeController{
     @ValidationFilterAnnotation(validator = ReferenceTypePersist.ReferenceTypePersistValidator.ValidatorName, argumentName = "model")
     public ReferenceType persist(
             @RequestBody ReferenceTypePersist model,
-            @Parameter(name = "fieldSet", description = SwaggerHelpers.Commons.fieldset_description, required = true) FieldSet fieldSet
+            @Parameter(name = "f", description = SwaggerHelpers.Commons.fieldset_description, required = true, style = ParameterStyle.FORM, explode = Explode.TRUE, schema = @Schema(type = "array", example = SwaggerHelpers.ReferenceType.endpoint_field_set_example)) FieldSet fieldSet
     ) throws MyApplicationException, MyForbiddenException, MyNotFoundException, InvalidApplicationException, JAXBException, JsonProcessingException, InvalidApplicationException {
         logger.debug(new MapLogEntry("persisting" + ReferenceType.class.getSimpleName()).And("model", model).And("fieldSet", fieldSet));
         this.censorFactory.censor(ReferenceTypeCensor.class).censor(fieldSet, null);
@@ -212,7 +216,7 @@ public class ReferenceTypeController{
     }
 
     @DeleteMapping("{id}")
-    @OperationWithTenantHeader(summary = "Delete a plan blueprint by id", description = "",
+    @OperationWithTenantHeader(summary = "Delete a reference type by id", description = "",
             responses = @ApiResponse(description = "OK", responseCode = "200"))
     @Swagger404
     @Transactional

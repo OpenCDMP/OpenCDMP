@@ -34,6 +34,10 @@ export class DescriptionStatusEditorResolver extends BaseEditorResolver{
             [nameof<DescriptionStatus>(x => x.definition), nameof<DescriptionStatusDefinition>(x => x.availableActions)].join('.'),
             [nameof<DescriptionStatus>(x => x.definition), nameof<DescriptionStatusDefinition>(x => x.matIconName)].join('.'),
             [nameof<DescriptionStatus>(x => x.definition), nameof<DescriptionStatusDefinition>(x => x.storageFile), nameof<StorageFile>(x => x.id), ].join('.'), 
+            [nameof<DescriptionStatus>(x => x.definition), nameof<DescriptionStatusDefinition>(x => x.storageFile), nameof<StorageFile>(x => x.name), ].join('.'), 
+            [nameof<DescriptionStatus>(x => x.definition), nameof<DescriptionStatusDefinition>(x => x.storageFile), nameof<StorageFile>(x => x.fullName), ].join('.'), 
+            [nameof<DescriptionStatus>(x => x.definition), nameof<DescriptionStatusDefinition>(x => x.storageFile), nameof<StorageFile>(x => x.extension), ].join('.'), 
+            [nameof<DescriptionStatus>(x => x.definition), nameof<DescriptionStatusDefinition>(x => x.storageFile), nameof<StorageFile>(x => x.mimeType), ].join('.'), 
             [nameof<DescriptionStatus>(x => x.definition), nameof<DescriptionStatusDefinition>(x => x.statusColor)].join('.'),
 
 

@@ -19,5 +19,9 @@ export enum NotificationType {
 	contactSupportType = '5b1d6c52-88f9-418b-9b8a-6f1f963d9ead',
 	publicContactSupportType = 'b542b606-acc6-4629-adef-4d8ee2f01222',
 	tenantSpecificInvitationExternalUserType = '497dada5-eccc-4bc0-9e0b-63e22b4eb0be',
-	tenantSpecificInvitationExistingUserType = 'b3809c17-d1e4-420a-919c-828564114191'
+	tenantSpecificInvitationExistingUserType = 'b3809c17-d1e4-420a-919c-828564114191',
+  	planEvaluationType = '1900d73a-6ee4-455a-ab86-58f5749b85d8',
+  	descriptionEvaluationType = '709b2cc8-24fa-4b9c-9bad-cfd3c6dc4037',
+  	taggedPlanAnnotationCreatedType = 'f58c8ca3-76eb-40d6-ac3b-2aa99aaa2b27',
+ 	taggedDescriptionAnnotationCreatedType = 'f1b49a19-51c6-4275-9af8-2b64d701b997'
 }

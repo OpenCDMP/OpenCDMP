@@ -17,9 +17,9 @@ import { PlanUserRole } from '@app/core/common/enum/plan-user-role';
 import { DescriptionStatus, DescriptionStatusDefinition } from '@app/core/model/description-status/description-status';
 import { DescriptionTemplate } from '@app/core/model/description-template/description-template';
 import { BaseDescription, Description, DescriptionStatusPersist, PublicDescription } from '@app/core/model/description/description';
-import { RankModel } from '@app/core/model/evaluator/evaluator-plan-model.model';
+import { RankResultModel } from '@app/core/model/evaluator/evaluator-plan-model.model';
 import { PlanBlueprint, PlanBlueprintDefinition, PlanBlueprintDefinitionSection } from '@app/core/model/plan-blueprint/plan-blueprint';
-import { PlanStatus } from '@app/core/model/plan-status/plan-status';
+import {PlanStatus, PlanStatusDefinition} from '@app/core/model/plan-status/plan-status';
 import { Plan, PlanDescriptionTemplate, PlanUser, PlanUserRemovePersist } from '@app/core/model/plan/plan';
 import { PlanReference } from '@app/core/model/plan/plan-reference';
 import { ReferenceType } from '@app/core/model/reference-type/reference-type';
@@ -52,15 +52,17 @@ import { Guid } from '@common/types/guid';
 import { TranslateService } from '@ngx-translate/core';
 import { map, takeUntil } from 'rxjs/operators';
 import { nameof } from 'ts-simple-nameof';
-import { CopyDialogInputParams, CopyDialogReturnParams, DescriptionCopyDialogComponent } from '../description-copy-dialog/description-copy-dialog.component';
-import { EvaluateDescriptionDialogComponent } from './../evaluate-description-dialog/evaluate-description-dialog.component';
-import { EvaluatorConfiguration } from '@app/core/model/evaluator/evaluator-configuration';
-import { EvaluatorHttpService } from '@app/core/services/evaluator/evaluator.http.service';
+import { CopyDialogReturnParams, DescriptionCopyDialogComponent } from '../description-copy-dialog/description-copy-dialog.component';
+import { BenchmarkConfiguration, EvaluatorConfiguration } from '@app/core/model/evaluator/evaluator-configuration';
 import { StorageFile } from '@app/core/model/storage-file/storage-file';
 import { StorageFileService } from '@app/core/services/storage-file/storage-file.service';
 import { EntityType } from '@app/core/common/enum/entity-type';
 import { Evaluation } from '@app/core/model/evaluation/evaluation';
 import { EvaluationService } from '@app/core/services/evaluation/evaluation.service';
+import { PluginEntityType } from '@app/core/common/enum/plugin-entity-type';
+import { EvaluateDialogComponent } from '@app/ui/evaluation/evaluate-dialog/evaluate-dialog.component';
+import { RankConfig } from '@app/core/model/evaluator/rank-config';
+import { BenchmarkDialogComponent } from '@app/ui/evaluation/benchmark-dialog/benchmark-dialog.component';
 
 
 @Component({
@@ -70,7 +72,7 @@ import { EvaluationService } from '@app/core/services/evaluation/evaluation.serv
     standalone: false
 })
 export class DescriptionOverviewComponent extends BaseComponent implements OnInit {
-
+	isDraft:boolean = false;
 	description: Description | PublicDescription;
 	researchers: PlanReference[] = [];
 	isNew = true;
@@ -147,7 +149,6 @@ export class DescriptionOverviewComponent extends BaseComponent implements OnIni
 		private httpErrorHandlingService: HttpErrorHandlingService,
 		private userService: UserService,
 		private evaluatorService: EvaluatorService,
-		private evaluatorHttpService: EvaluatorHttpService,
 		private logger: LoggingService,
 		private sanitizer: DomSanitizer,
 		private storageFileService: StorageFileService,
@@ -184,6 +185,9 @@ export class DescriptionOverviewComponent extends BaseComponent implements OnIni
                                         this.breadcrumbService.addIdResolvedValue(data.plan.id.toString(), data.plan.label);
                                     }
 									this.description = data;
+									if (this.description.status?.internalStatus == DescriptionStatusEnum.Draft) {
+										this.isDraft = true;
+									}
 									this.description.plan.planUsers = this.isActive || this.description.plan.isActive === IsActive.Active ? data.plan.planUsers.filter(x => x.isActive === IsActive.Active) : data.plan.planUsers;
 									this.researchers = this.referenceService.getReferencesForTypes(this.isActive ? this.description?.plan?.planReferences?.filter(x => x.isActive === IsActive.Active): this.description?.plan?.planReferences, [this.referenceTypeService.getResearcherReferenceType()]);
 									this.checkLockStatus(this.description.id);
@@ -244,6 +248,9 @@ export class DescriptionOverviewComponent extends BaseComponent implements OnIni
 								this.breadcrumbService.addIdResolvedValue(data.id.toString(), data.label);
 
 								this.description = data;
+								if (this.description.status?.internalStatus == DescriptionStatusEnum.Draft) {
+									this.isDraft = true;
+								}
 								this.researchers = this.referenceService.getReferencesForTypes(this.description?.plan?.planReferences?.filter(x => x.isActive === IsActive.Active), [this.referenceTypeService.getResearcherReferenceType()]);
 
                                 if(this.description.description && this.description.description.split(' ')?.length > this.DESCRIPTION_PAGE_SIZE) {
@@ -270,27 +277,21 @@ export class DescriptionOverviewComponent extends BaseComponent implements OnIni
 
 		if (this.isAuthenticated()) {
 
-			this.evaluatorHttpService.getAvailableConfigurations()
-			.pipe(takeUntil(this._destroyed))
-			.subscribe({
-				next: (repos) => {
-					this.evaluatorRepos = repos as any;
-					if (this.evaluatorRepos?.length > 0) {
-						this.evaluatorRepos.forEach(repo => {
-						if (repo.hasLogo) {
-							this.evaluatorService.getLogo(repo.evaluatorId).subscribe(
-								(responseLogo) => {
-									this.logos.set(repo.evaluatorId, this.sanitizer.bypassSecurityTrustResourceUrl('data:image/png;base64, ' + responseLogo.body));
-								},
-								error => {
-									this.logger.error("Error fetching evaluator logo:", error);
-								}
-							);
-						}
-					})
-				}},
-				error: () => this.evaluatorRepos = []
-			})
+			this.evaluatorRepos = this.evaluatorService.availableEvaluators();
+			if (this.evaluatorRepos?.length > 0) {
+				this.evaluatorRepos.forEach(repo => {
+				if (repo.hasLogo) {
+					this.evaluatorService.getLogo(repo.evaluatorId).subscribe(
+						(responseLogo) => {
+							this.logos.set(repo.evaluatorId, this.sanitizer.bypassSecurityTrustResourceUrl('data:image/png;base64, ' + responseLogo.body));
+						},
+						error => {
+							this.logger.error("Error fetching evaluator logo:", error);
+							}
+						);
+					}
+				})
+			}
 
 			this.userService.getSingle(this.authentication.userId(), [
 				nameof<User>(x => x.id),
@@ -336,12 +337,38 @@ export class DescriptionOverviewComponent extends BaseComponent implements OnIni
         })
     }
 
-	onEvaluateDescription(descriptionId: Guid, evaluatorId: string, format: string, isPublicView: boolean) {
-		this.evaluatorService.rankDescription(descriptionId, evaluatorId, format).subscribe(
-			(response: RankModel) => {
-				const dialogRef = this.dialog.open(EvaluateDescriptionDialogComponent, {
+	onEvaluateDescription(descriptionId: Guid, evaluatorId: string, format: string, rankConfig: RankConfig, availableBenchmarks: BenchmarkConfiguration[] = [], isPublicView: boolean) {
+		
+		availableBenchmarks = availableBenchmarks?.filter(x => x.appliesTo.includes(PluginEntityType.Description)) || [];
+		
+		if (availableBenchmarks?.length > 1) {
+			const dialogRef = this.dialog.open(BenchmarkDialogComponent, {
+				width: '500px',
+				restoreFocus: false,
+				data: {
+					availableBenchmarks: availableBenchmarks
+				}
+			});
+			dialogRef.afterClosed().subscribe(result => {
+				if (result?.length > 0) this.rankDescription(descriptionId, evaluatorId, format, rankConfig, result);
+					else return;
+				});
+		} else if (availableBenchmarks?.length == 1){
+			this.rankDescription(descriptionId, evaluatorId, format, rankConfig, [availableBenchmarks[0].id])
+		} else {
+			this.rankDescription(descriptionId, evaluatorId, format, rankConfig, null)
+		}
+		
+	}
+
+	private rankDescription(descriptionId: Guid, evaluatorId: string, format: string, rankConfig: RankConfig, benchmarkIds: string[]) {
+		this.evaluatorService.rankDescription(descriptionId, evaluatorId, format, benchmarkIds).subscribe(
+			(response: RankResultModel) => {
+				const dialogRef = this.dialog.open(EvaluateDialogComponent, {
 					data: {
 						rankData: response,
+						rankConfig: rankConfig,
+                        evaluatorId
 					}
 				});
 
@@ -712,6 +739,7 @@ export class DescriptionOverviewComponent extends BaseComponent implements OnIni
 			[nameof<Description>(x => x.status), nameof<DescriptionStatus>(x => x.internalStatus)].join('.'),
 			[nameof<Description>(x => x.status), nameof<DescriptionStatus>(x => x.definition), nameof<DescriptionStatusDefinition>(x => x.availableActions)].join('.'),
 			[nameof<Description>(x => x.status), nameof<DescriptionStatus>(x => x.definition), nameof<DescriptionStatusDefinition>(x => x.matIconName)].join('.'),
+			[nameof<Description>(x => x.status), nameof<DescriptionStatus>(x => x.definition), nameof<DescriptionStatusDefinition>(x => x.statusColor)].join('.'),
 			[nameof<Description>(x => x.status), nameof<DescriptionStatus>(x => x.definition), nameof<DescriptionStatusDefinition>(x => x.storageFile), nameof<StorageFile>(x => x.id)].join('.'),
 
 			nameof<Description>(x => x.updatedAt),

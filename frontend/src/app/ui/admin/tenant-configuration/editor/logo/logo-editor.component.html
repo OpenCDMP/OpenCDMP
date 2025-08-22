@@ -1,7 +1,13 @@
 <div *ngIf="formGroup" class="container-fluid logo">
 	<div class="row">
 		<div class="col-12">
-			<ngx-dropzone #drop class="drop-file col-12" (change)="fileChangeEvent($event, true)" [multiple]="false" [accept]="'image/*'" [disabled]="formGroup.get('logo')?.get('storageFileId').disabled">
+            <app-file-uploader 
+                [storageFileIdControl]="formGroup.get('logo')?.get('storageFileId')"
+                [initFile]=""
+                [accept]="'image/*'"
+            />
+
+			<!-- <ngx-dropzone #drop class="drop-file col-12" (change)="fileChangeEvent($event, true)" [multiple]="false" [accept]="'image/*'" [disabled]="formGroup.get('logo')?.get('storageFileId').disabled">
 				<ngx-dropzone-preview *ngIf="formGroup.get('logo')?.get('storageFileId')?.value" class="file-preview" [removable]="true" (removed)="onRemove()" (click)="download(formGroup.get('logo')?.get('storageFileId').value)">
 					<ngx-dropzone-label class="file-label">{{ fileNameDisplay }}</ngx-dropzone-label>
 				</ngx-dropzone-preview>
@@ -16,7 +22,7 @@
 					<mat-icon class="mr-2">download</mat-icon>
 					<span>{{ "TENANT-CONFIGURATION-EDITOR.ACTIONS.DOWNLOAD" | translate }}</span>
 				</button>
-			</div>
+			</div> -->
 		</div>
 		<div class="col-12">
 			<div class="row actions-row">

@@ -1,6 +1,8 @@
 package org.opencdmp.model.deleter;
 
+import gr.cite.tools.fieldset.BaseFieldSet;
 import org.opencdmp.commons.enums.IsActive;
+import org.opencdmp.commons.enums.UsageLimitTargetMetric;
 import org.opencdmp.data.*;
 import org.opencdmp.query.DescriptionReferenceQuery;
 import org.opencdmp.query.PlanReferenceQuery;
@@ -10,6 +12,8 @@ import gr.cite.tools.data.deleter.DeleterFactory;
 import gr.cite.tools.data.query.QueryFactory;
 import gr.cite.tools.logging.LoggerService;
 import gr.cite.tools.logging.MapLogEntry;
+import org.opencdmp.query.ReferenceTypeQuery;
+import org.opencdmp.service.accounting.AccountingService;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
@@ -33,16 +37,18 @@ public class ReferenceDeleter implements Deleter {
     protected final QueryFactory queryFactory;
 
     protected final DeleterFactory deleterFactory;
+    private final AccountingService accountingService;
 
     @Autowired
     public ReferenceDeleter(
             TenantEntityManager entityManager,
             QueryFactory queryFactory,
-            DeleterFactory deleterFactory
+            DeleterFactory deleterFactory, AccountingService accountingService
     ) {
         this.entityManager = entityManager;
         this.queryFactory = queryFactory;
         this.deleterFactory = deleterFactory;
+        this.accountingService = accountingService;
     }
 
     public void deleteAndSaveByIds(List<UUID> ids) throws InvalidApplicationException {
@@ -80,6 +86,7 @@ public class ReferenceDeleter implements Deleter {
         }
         Instant now = Instant.now();
 
+        List<ReferenceTypeEntity> referenceTypeEntities = this.queryFactory.query(ReferenceTypeQuery.class).collectAs(new BaseFieldSet().ensure(ReferenceTypeEntity._id).ensure(ReferenceTypeEntity._code));
         for (ReferenceEntity item : data) {
             logger.trace("deleting item {}", item.getId());
             item.setIsActive(IsActive.Inactive);
@@ -87,6 +94,11 @@ public class ReferenceDeleter implements Deleter {
             logger.trace("updating item");
             this.entityManager.merge(item);
             logger.trace("updated item");
+
+            this.accountingService.decrease(UsageLimitTargetMetric.REFERENCE_COUNT.getValue());
+            ReferenceTypeEntity referenceTypeEntity = referenceTypeEntities.stream().filter(x -> x.getId().equals(item.getTypeId())).findFirst().orElse(null);
+            if (referenceTypeEntity == null) continue;
+            this.accountingService.decrease(UsageLimitTargetMetric.REFERENCE_BY_TYPE_COUNT.getValue().replace("{type_code}", referenceTypeEntity.getCode()));
         }
     }
 

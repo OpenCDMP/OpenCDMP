@@ -8,8 +8,8 @@
 						<div  class="col-auto edited-date">{{getTenantName(description.tenantId)}}</div>
 						<div class="col-auto edited-date p-0 mb-2" style="font-weight: 700;">.</div>
 					</ng-container>
-					<div *ngIf="!isPublic" class="col-auto edited-date">{{'DESCRIPTION-LISTING.STATES.EDITED' | translate}}: {{description.updatedAt | dateTimeFormatter: "d MMMM y"}}</div>
-					<div *ngIf="isPublic" class="col-auto edited-date">{{'DESCRIPTION-LISTING.STATES.PUBLISHED' | translate}}: {{description.plan?.finalizedAt | dateTimeFormatter: "d MMMM y"}}</div>
+					<div *ngIf="!isPublic" class="col-auto edited-date">{{'DESCRIPTION-LISTING.STATES.EDITED' | translate}}: {{description.updatedAt | dateTimeFormatter: 'short'}}</div>
+					<div *ngIf="isPublic" class="col-auto edited-date">{{'DESCRIPTION-LISTING.STATES.PUBLISHED' | translate}}: {{description.plan?.finalizedAt | dateTimeFormatter: 'short'}}</div>
 				</div>
 			</div>
 		</div>
@@ -26,9 +26,19 @@
                     <ng-container *ngTemplateOutlet="statusTemplate; context: {status: description.status}"></ng-container>
                 }
             </span>
-			<span>.</span>
-			<span class="col">{{'DESCRIPTION-LISTING.GRANT' | translate}}: {{referenceService.getReferencesForTypesFirstSafe(description?.plan?.planReferences, [referenceTypeService.getGrantReferenceType()])?.reference?.label}}</span>
 		</div>
+		@for (referenceConfig of orderedDescriptionPreferencesList;  track $index; let last = $last; let index = $index) {
+			@if (referenceService.getReferencesForTypes(description?.plan?.planReferences, [referenceConfig.id])?.length > 0) {
+				<div class="description-subtitle d-flex align-items-start">
+					<span class="col-2 text-bold"> {{referenceConfig.name}}:</span>
+					<span class="col-10">
+					@for (planReference of referenceService.getReferencesForTypes(description?.plan?.planReferences, [referenceConfig.id]); track $index; let last = $last; let index = $index) {
+						<span >{{planReference?.reference?.label}}<span *ngIf="!last">,&nbsp;</span></span>
+					}
+						</span>
+				</div>
+			}
+		}
 		<div class="d-flex flex-direction-row flex-wrap pt-3 pb-3">
 			<div class="col-auto description-subtitle pr-0">{{'DESCRIPTION-LISTING.PART-OF' | translate}}
 				<div class="col-auto plan-label ml-3">{{'DESCRIPTION-LISTING.PLAN' | translate}}</div>
@@ -37,31 +47,31 @@
 		</div>
 	</a>
 	<div class="description-card-actions">
-		<div role="button" 
-            class="col-auto description-action pointer d-flex align-items-center gap-quarter-rem" 
-            *ngIf="canExport && fileTransformerService.availableFormatsFor(fileTransformerEntityTypeEnum.Description)?.length > 0" 
+		<div role="button"
+            class="col-auto description-action pointer d-flex align-items-center gap-quarter-rem"
+            *ngIf="canExport && fileTransformerService.availableFormatsFor(fileTransformerEntityTypeEnum.Description)?.length > 0"
             [matMenuTriggerFor]="exportMenu"
         >
             <mat-icon class="material-icons icon-align pr-2" aria-hidden>open_in_new</mat-icon>
             {{'DESCRIPTION-LISTING.ACTIONS.EXPORT' | translate}}
         </div>
-		<div role="button" 
-            class="col-auto description-action pointer d-flex align-items-center gap-quarter-rem" 
-            *ngIf="canInvitePlanUsers" 
+		<div role="button"
+            class="col-auto description-action pointer d-flex align-items-center gap-quarter-rem"
+            *ngIf="canInvitePlanUsers"
             (click)="openShareDialog()"
         >
             <mat-icon class="material-icons icon-align pr-2" aria-hidden>group_add</mat-icon>{{'DESCRIPTION-LISTING.ACTIONS.INVITE-SHORT' | translate}}
         </div>
-		<div role="button" 
-            class="col-auto description-action pointer d-flex align-items-center gap-quarter-rem" 
-            *ngIf="canCopy" 
+		<div role="button"
+            class="col-auto description-action pointer d-flex align-items-center gap-quarter-rem"
+            *ngIf="canCopy"
             (click)="copyToPlan(description)"
         >
             <mat-icon class="material-icons icon-align pr-2" aria-hidden>file_copy</mat-icon>{{'DESCRIPTION-LISTING.ACTIONS.COPY-DESCRIPTION' | translate}}
         </div>
-		<div role="button" 
-            class="col-auto pointer d-flex align-items-center gap-quarter-rem" 
-            *ngIf="canDelete" 
+		<div role="button"
+            class="col-auto pointer d-flex align-items-center gap-quarter-rem"
+            *ngIf="canDelete"
             (click)="deleteClicked(description.id)"
         >
             <mat-icon class="material-icons icon-align pr-2" aria-hidden>delete</mat-icon>{{ 'DESCRIPTION-LISTING.ACTIONS.DELETE' | translate }}
@@ -76,10 +86,18 @@
 		</button>
 	</mat-menu>
 	<mat-menu #exportMenu="matMenu" xPosition="before">
-		<button mat-menu-item *ngFor='let fileTransformer of fileTransformerService.availableFormatsFor(fileTransformerEntityTypeEnum.Description)' (click)="fileTransformerService.exportDescription(description.id, fileTransformer.repositoryId, fileTransformer.format, isPublic)">
-			<i class="fa pr-2" [ngClass]="fileTransformer.icon ? fileTransformer.icon : 'fa-file-o'"></i>
-			<span>{{'GENERAL.FILE-TRANSFORMER.' + fileTransformer.format.toUpperCase() | translate}}</span>
-		</button>
+        @for(fileTransformer of fileTransformerService.availableFormatsFor(fileTransformerEntityTypeEnum.Description); track $index; let i = $index) {
+            @for (fileFormat of fileTransformer.exportVariants; track $index; let j = $index) {
+                <button mat-menu-item (click)="fileTransformerService.exportDescription(description.id, fileTransformer.fileTransformerId, fileFormat.format, isPublic)">
+			        <i class="fa pr-2" [ngClass]="fileFormat.icon ? fileFormat.icon : 'fa-file-o'"></i>
+			        @if (fileFormat?.format?.toUpperCase() === 'JSON') {
+						<span>{{ 'GENERAL.FILE-TRANSFORMER.' + fileTransformer?.fileTransformerId?.toUpperCase() + '-' + fileFormat?.format?.toUpperCase() | translate }}</span>
+					} @else {
+						<span>{{ 'GENERAL.FILE-TRANSFORMER.' + fileFormat?.format?.toUpperCase() | translate }}</span>
+					}
+		        </button>
+            }
+        }
 	</mat-menu>
 </div>
 

@@ -49,6 +49,14 @@
                         <mat-error *ngIf="field().get('referenceTypeId').hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
                     </mat-form-field>
                 </div>
+                <div class="col-auto col-xl-2">
+                    <mat-checkbox [formControl]="field().get('multipleSelect')"><span>{{'PLAN-BLUEPRINT-EDITOR.FIELDS.FIELD-MULTIPLE-SELECT' | translate}}</span></mat-checkbox>
+                    <mat-error *ngIf="field().get('multipleSelect')?.hasError('backendError')">{{field().get('multipleSelect')?.getError('backendError').message}}</mat-error>
+                    <mat-error *ngIf="field().get('multipleSelect')?.hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
+                </div>
+            }
+            @case(planBlueprintFieldCategory.Upload){
+                <app-plan-blueprint-editor-upload-field-component class="col-12" [form]="field()" [validationErrorModel]="validationErrorModel()" [validationRootPath]="validationRootPath()"></app-plan-blueprint-editor-upload-field-component>
             }
         }
         @if(field().get('category').getRawValue() != null){
@@ -62,13 +70,6 @@
                 <mat-error *ngIf="field().get('required').hasError('backendError')">{{field().get('required').getError('backendError').message}}</mat-error>
                 <mat-error *ngIf="field().get('required').hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
             </div>
-            @if(field().get('category').getRawValue() === planBlueprintFieldCategory.ReferenceType){
-                <div class="col-auto col-xl-2">
-                    <mat-checkbox [formControl]="field().get('multipleSelect')"><span>{{'PLAN-BLUEPRINT-EDITOR.FIELDS.FIELD-MULTIPLE-SELECT' | translate}}</span></mat-checkbox>
-                    <mat-error *ngIf="field().get('multipleSelect')?.hasError('backendError')">{{field().get('multipleSelect')?.getError('backendError').message}}</mat-error>
-                    <mat-error *ngIf="field().get('multipleSelect')?.hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
-                </div>
-            }
             <div class="col-12 col-xl-4">
                 <mat-form-field class="mt-3 w-100">
                     <mat-label>{{'PLAN-BLUEPRINT-EDITOR.FIELDS.FIELD-LABEL' | translate}}</mat-label>

@@ -1,6 +1,6 @@
 
 import { CdkDragDrop, moveItemInArray } from '@angular/cdk/drag-drop';
-import { Component, OnInit, signal, ViewChild } from '@angular/core';
+import { Component, OnInit, signal, ViewChild, ChangeDetectorRef } from '@angular/core';
 import { FormArray, FormGroup, UntypedFormArray, UntypedFormGroup } from '@angular/forms';
 import { MatCheckboxChange } from '@angular/material/checkbox';
 import { MatDialog } from '@angular/material/dialog';
@@ -14,7 +14,7 @@ import { IsActive } from '@app/core/common/enum/is-active.enum';
 import { LockTargetType } from '@app/core/common/enum/lock-target-type';
 import { AppPermission } from '@app/core/common/enum/permission.enum';
 import { DescriptionTemplate } from '@app/core/model/description-template/description-template';
-import { PlanBlueprint, PlanBlueprintPersist, NewVersionPlanBlueprintPersist, SystemFieldInSection } from '@app/core/model/plan-blueprint/plan-blueprint';
+import { PlanBlueprint, PlanBlueprintPersist, NewVersionPlanBlueprintPersist, SystemFieldInSection, UploadOption } from '@app/core/model/plan-blueprint/plan-blueprint';
 import { AuthService } from '@app/core/services/auth/auth.service';
 import { ConfigurationService } from '@app/core/services/configuration/configuration.service';
 import { DescriptionTemplateService } from '@app/core/services/description-template/description-template.service';
@@ -44,6 +44,14 @@ import { PlanBlueprintEditorModel, FieldInSectionEditorModel, PlanBlueprintForm 
 import { PlanBlueprintEditorResolver } from './plan-blueprint-editor.resolver';
 import { PlanBlueprintEditorService } from './plan-blueprint-editor.service';
 import { RouterUtilsService } from '@app/core/services/router/router-utils.service';
+import { StorageFileService } from '@app/core/services/storage-file/storage-file.service';
+import { StorageFile } from '@app/core/model/storage-file/storage-file';
+import { PluginConfigurationService } from '@app/core/services/plugin/plugin-configuration.service';
+import { PluginType } from '@app/core/common/enum/plugin-type';
+import { PluginEntityType } from '@app/core/common/enum/plugin-entity-type';
+import { toObservable } from '@angular/core/rxjs-interop';
+import { Observable } from 'rxjs';
+import { PluginRepositoryConfiguration } from '@app/core/model/plugin-configuration/plugin-configuration';
 import { StepperSelectionEvent } from '@angular/cdk/stepper';
 import { MatStepper } from '@angular/material/stepper';
 import { GENERAL_ANIMATIONS, STEPPER_ANIMATIONS } from '@app/library/animations/animations';
@@ -81,6 +89,9 @@ export class PlanBlueprintEditorComponent extends BaseEditor<PlanBlueprintEditor
 	isNewVersion = false;
 	isDeleted = false;
 	belongsToCurrentTenant = true;
+
+    fileMap = new Map<Guid, StorageFile>([]);
+    pluginsInitialized: Observable<PluginRepositoryConfiguration[]>;
 
     reorderingMode = signal<boolean>(false);
 
@@ -121,6 +132,27 @@ export class PlanBlueprintEditorComponent extends BaseEditor<PlanBlueprintEditor
 		return this.authService.hasPermission(permission) || this.editorModel?.permissions?.includes(permission);
 	}
 
+	get isExpanded(): boolean {
+		let foundValue = false;
+
+		const pluginsFormArray = (this.formGroup?.get('definition')?.get('pluginConfigurations') as UntypedFormArray)
+		pluginsFormArray?.controls?.forEach(
+			(control, index) => {
+				const fieldsFormArray = control?.get('fields') as UntypedFormArray;
+				fieldsFormArray?.controls?.forEach(
+					(control, index) => {
+						if (control.get('textValue').value != null || control.get('fileValue').value != null) {
+							foundValue = true;
+						}
+		
+					}
+				);
+
+			}
+		);
+		return foundValue;
+	}
+
 	constructor(
 		// BaseFormEditor injected dependencies
 		protected dialog: MatDialog,
@@ -147,6 +179,7 @@ export class PlanBlueprintEditorComponent extends BaseEditor<PlanBlueprintEditor
 		public titleService: Title,
 		private analyticsService: AnalyticsService,
 		protected routerUtils: RouterUtilsService,
+		private pluginConfigurationService: PluginConfigurationService
 	) {
 		const descriptionLabel: string = route.snapshot.data['entity']?.label;
 		if (descriptionLabel) {
@@ -155,18 +188,24 @@ export class PlanBlueprintEditorComponent extends BaseEditor<PlanBlueprintEditor
 			titleService.setTitle('PLAN-BLUEPRINT-EDITOR.TITLE-EDIT-BLUEPRINT');
 		}
 		super(dialog, language, formService, router, uiNotificationService, httpErrorHandlingService, filterService, route, queryParamsService, lockService, authService, configurationService);
+        this.pluginsInitialized = toObservable(this.pluginConfigurationService.pluginRepositoryConfiguration);
 	}
 
 	ngOnInit(): void {
 		this.analyticsService.trackPageView(AnalyticsService.PlanBlueprintEditor);
 		this.initModelFlags(this.route.snapshot.data['action']);
-		super.ngOnInit();
-		this.route.data.subscribe(d => {
-			this.initModelFlags(d['action']);
-		});
-		if ((this.formGroup.get('definition').get('sections') as FormArray).length == 0) {
-			this.addSection();
-		}
+        this.pluginsInitialized.pipe(takeUntil(this._destroyed))
+        .subscribe((initialized) => {
+            if(initialized){
+                super.ngOnInit();
+                this.route.data.subscribe(d => {
+                    this.initModelFlags(d['action']);
+                });
+                if ((this.formGroup.get('definition').get('sections') as FormArray).length == 0) {
+                    this.addSection();
+                }
+            }
+        })
 	}
 
 	private initModelFlags(action: string): void {
@@ -195,7 +234,29 @@ export class PlanBlueprintEditorComponent extends BaseEditor<PlanBlueprintEditor
 
 	prepareForm(data: PlanBlueprint) {
 		try {
-			this.editorModel = data ? new PlanBlueprintEditorModel().fromModel(data) : new PlanBlueprintEditorModel();
+			this.fileMap.clear();
+            const pluginConfigurations = this.pluginConfigurationService.getAvailablePluginsFor(PluginType.FileTransformer, [PluginEntityType.Plan]);
+			if (data == null) {
+				// initialize plugins
+				data = {
+					status: PlanBlueprintStatus.Draft,
+					definition : {
+						pluginConfigurations: pluginConfigurations	
+					}
+				}
+			} else {
+				if (!data?.definition?.pluginConfigurations) {
+					data.definition.pluginConfigurations = pluginConfigurations
+				}
+				data.definition.pluginConfigurations?.forEach((x) => {
+					x.fields?.forEach((field) => {
+						if(field.fileValue){
+							this.fileMap.set(field.fileValue.id, field.fileValue)
+						}
+					})
+				})
+			}
+			this.editorModel = data ? new PlanBlueprintEditorModel().fromModel(data, this.pluginConfigurationService.getPluginRepositoryConfigurationFor(PluginType.FileTransformer, [PluginEntityType.Plan])) : new PlanBlueprintEditorModel();
 			this.isDeleted = data ? data.isActive === IsActive.Inactive : false;
 			this.belongsToCurrentTenant = this.isNew || data.belongsToCurrentTenant;
 
@@ -332,7 +393,7 @@ export class PlanBlueprintEditorComponent extends BaseEditor<PlanBlueprintEditor
     protected scrollOnTop() {
 		try {
 			const topPage = document.getElementById('editor-top');
-			topPage.scrollIntoView({ behavior: 'smooth' });
+			topPage?.scrollIntoView({ behavior: 'smooth' });
 		} catch (e) {
 			console.log(e);
 			console.log('could not scroll');
@@ -458,6 +519,7 @@ export class PlanBlueprintEditorComponent extends BaseEditor<PlanBlueprintEditor
 	// 	return (this.formGroup.get('definition').get('sections') as FormArray)?.controls.some(x => (x.get('fields') as FormArray).controls.some(y => (y as UntypedFormGroup).get('systemFieldType')?.value === systemField));
 	// }
 
+
     get disabledSystemFields(): Set<PlanBlueprintSystemFieldType>{
         const sectionSystemFields = this.formGroup.controls.definition.controls.sections.controls
             .map((x) => x.controls.fields?.value?.filter((x) => x.category === PlanBlueprintFieldCategory.System)?.map((x) => x.systemFieldType as PlanBlueprintSystemFieldType) ?? []);
@@ -475,19 +537,54 @@ export class PlanBlueprintEditorComponent extends BaseEditor<PlanBlueprintEditor
 		(this.formGroup.get('definition').get('sections') as FormArray).at(sectionIndex).get('fields').markAsDirty();
 	}
 
-
-	dropFields(params: {event: CdkDragDrop<string[]>, sectionIndex: number}) {
+    dropFieldsInSection(params: {event: CdkDragDrop<string[]>, sectionIndex: number}) {
         const {event, sectionIndex} = params;
-		const fieldsFormArray = ((this.formGroup.get('definition').get('sections') as FormArray).at(sectionIndex).get('fields') as FormArray);
-		moveItemInArray(fieldsFormArray.controls, event.previousIndex, event.currentIndex);
-        fieldsFormArray.updateValueAndValidity();
-        this.reapplyFieldOrdinals(sectionIndex);
-        PlanBlueprintEditorModel.reApplySectionValidators({
-			formGroup: this.formGroup,
-			validationErrorModel: this.editorModel.validationErrorModel
-		});
-        (this.formGroup.get('definition').get('sections') as FormArray).at(sectionIndex).get('fields').markAsDirty();
-        this.changeStep({section: sectionIndex, field: event.currentIndex});
+        this.dropFields({
+            previous:{
+                sectionIndex,
+                index: event.previousIndex
+            },
+            current: {
+                sectionIndex,
+                index: event.currentIndex
+            }
+        })
+	}
+
+	dropFields(event: {previous: {
+            sectionIndex: number,
+            index: number
+        },
+        current: {
+            sectionIndex: number,
+            index: number
+        }}
+    ) {
+        const {previous, current} = event;
+        if(previous?.sectionIndex != current?.sectionIndex || previous?.index != current?.index){
+            const prevFieldsFormArray = ((this.formGroup.get('definition').get('sections') as FormArray).at(previous.sectionIndex).get('fields') as FormArray);
+            if(previous.sectionIndex == current.sectionIndex){
+                moveItemInArray(prevFieldsFormArray.controls, previous.index, current.index);
+            }else {
+                const curFieldsFormArray = ((this.formGroup.get('definition').get('sections') as FormArray).at(current.sectionIndex).get('fields') as FormArray);
+                curFieldsFormArray.insert(current.index, prevFieldsFormArray.controls[previous.index])
+                curFieldsFormArray.updateValueAndValidity();
+                this.reapplyFieldOrdinals(current.sectionIndex);
+                (this.formGroup.get('definition').get('sections') as FormArray).at(current.sectionIndex).get('fields').markAsDirty();
+                prevFieldsFormArray.removeAt(previous.index);
+            }
+            
+            prevFieldsFormArray.updateValueAndValidity();
+            this.reapplyFieldOrdinals(previous.sectionIndex);
+            (this.formGroup.get('definition').get('sections') as FormArray).at(previous.sectionIndex).get('fields').markAsDirty();
+    
+            PlanBlueprintEditorModel.reApplySectionValidators({
+                formGroup: this.formGroup,
+                validationErrorModel: this.editorModel.validationErrorModel
+            });
+    
+            this.changeStep({section: current.sectionIndex, field: current.index});
+        } 
         this.reorderingMode.set(false);
 	}
 
@@ -762,6 +859,11 @@ export class PlanBlueprintEditorComponent extends BaseEditor<PlanBlueprintEditor
 				error => this.httpErrorHandlingService.handleBackedRequestError(error));
 	}
 
+	/// upload field type
+	getRootPath(sectionIndex: number, fieldIndex: number): string{
+		return `definition.sections[${sectionIndex}].fields[${fieldIndex}].`
+    }
+    
     finalPreviewFormGroup: FormGroup<PlanEditorForm>;
     finalPreviewBlueprint: PlanBlueprint;
 
@@ -795,6 +897,8 @@ export class PlanBlueprintEditorComponent extends BaseEditor<PlanBlueprintEditor
                             dataType: field.dataType,
                             referenceType: field.referenceTypeId ? this.referenceTypeMap.get(field.referenceTypeId) : null,
                             multipleSelect: field.multipleSelect,
+                            maxFileSizeInMB: field.maxFileSizeInMB,
+                            types: field.types
                         }})
                     }})
                 }

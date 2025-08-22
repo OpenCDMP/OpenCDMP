@@ -28,6 +28,10 @@ public class NotificationProperties {
 	private UUID publicContactSupportType;
 	private UUID tenantSpecificInvitationExternalUserType;
 	private UUID tenantSpecificInvitationExistingUserType;
+	private UUID planEvaluationType;
+	private UUID descriptionEvaluationType;
+	private UUID taggedPlanAnnotationCreatedType;
+	private UUID taggedDescriptionAnnotationCreatedType;
 	private String contactSupportEmail;
 
 	public UUID getPlanInvitationExternalUserType() {
@@ -204,5 +208,37 @@ public class NotificationProperties {
 
 	public void setTenantSpecificInvitationExistingUserType(UUID tenantSpecificInvitationExistingUserType) {
 		this.tenantSpecificInvitationExistingUserType = tenantSpecificInvitationExistingUserType;
+	}
+
+	public UUID getPlanEvaluationType() {
+		return planEvaluationType;
+	}
+
+	public void setPlanEvaluationType(UUID planEvaluationType) {
+		this.planEvaluationType = planEvaluationType;
+	}
+
+	public UUID getDescriptionEvaluationType() {
+		return descriptionEvaluationType;
+	}
+
+	public void setDescriptionEvaluationType(UUID descriptionEvaluationType) {
+		this.descriptionEvaluationType = descriptionEvaluationType;
+	}
+
+	public UUID getTaggedPlanAnnotationCreatedType() {
+		return taggedPlanAnnotationCreatedType;
+	}
+
+	public void setTaggedPlanAnnotationCreatedType(UUID taggedPlanAnnotationCreatedType) {
+		this.taggedPlanAnnotationCreatedType = taggedPlanAnnotationCreatedType;
+	}
+
+	public UUID getTaggedDescriptionAnnotationCreatedType() {
+		return taggedDescriptionAnnotationCreatedType;
+	}
+
+	public void setTaggedDescriptionAnnotationCreatedType(UUID taggedDescriptionAnnotationCreatedType) {
+		this.taggedDescriptionAnnotationCreatedType = taggedDescriptionAnnotationCreatedType;
 	}
 }

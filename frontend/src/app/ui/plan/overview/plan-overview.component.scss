@@ -72,7 +72,7 @@
 }
 
 .frame-btn {
-	border: 1px solid #1b1b1b;
+	border: 1px solid var(--sys-outline);
 	color: var(--sys-on-surface);
 }
 
@@ -99,11 +99,15 @@
 }
 
 .evaluator-logo {
-	margin-right: 16px;
+	margin-right: 1rem;
+    margin-left: 0.5rem;
 	max-width: 50px;
 	max-height: 50px;
 }
-
+.evaluator-subtitle{
+    font-size: var(--sys-body-small-size);
+    padding: 0 1rem;
+}
 .status-logo {
 	height: 1.25rem;
 	width:  1.25rem; 
@@ -201,9 +205,9 @@
     font-size: var(--sys-label-large-size);
     opacity: 0.9;
     .current-status {
-        border: 1px solid #00000063;
+        border: 1px solid  var(--sys-outline);;
         border-radius: 999px;
-        padding: 0.125rem 1rem 0.125rem 0.5rem;
+        padding: 0.125rem 0.5rem;
         font-weight: 500;
     }
 
@@ -219,4 +223,8 @@
 
 .doi-subtitle {
     opacity: 0.7;
+}
+
+.draft-color{
+	color: var(--draft-color);
 }

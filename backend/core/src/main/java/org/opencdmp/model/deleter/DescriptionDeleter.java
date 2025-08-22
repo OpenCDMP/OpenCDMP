@@ -1,14 +1,13 @@
 package org.opencdmp.model.deleter;
 
+import gr.cite.tools.fieldset.BaseFieldSet;
 import org.opencdmp.commons.enums.IsActive;
+import org.opencdmp.commons.enums.PlanAccessType;
 import org.opencdmp.commons.enums.UsageLimitTargetMetric;
-import org.opencdmp.data.DescriptionEntity;
-import org.opencdmp.data.DescriptionReferenceEntity;
-import org.opencdmp.data.DescriptionTagEntity;
-import org.opencdmp.data.TenantEntityManager;
-import org.opencdmp.query.DescriptionQuery;
-import org.opencdmp.query.DescriptionReferenceQuery;
-import org.opencdmp.query.DescriptionTagQuery;
+import org.opencdmp.data.*;
+import org.opencdmp.model.descriptionstatus.DescriptionStatus;
+import org.opencdmp.model.plan.Plan;
+import org.opencdmp.query.*;
 import org.opencdmp.service.accounting.AccountingService;
 import org.opencdmp.service.elastic.ElasticService;
 import gr.cite.tools.data.deleter.Deleter;
@@ -94,6 +93,9 @@ public class DescriptionDeleter implements Deleter {
             deleter.delete(items);
         }
 
+        List<DescriptionStatusEntity> descriptionStatusEntities = this.queryFactory.query(DescriptionStatusQuery.class).collectAs(new BaseFieldSet().ensure(DescriptionStatus._id).ensure(DescriptionStatus._name));
+        List<PlanEntity> planEntities = this.queryFactory.query(PlanQuery.class).collectAs(new BaseFieldSet().ensure(Plan._id).ensure(Plan._accessType));
+
         for (DescriptionEntity item : data) {
             logger.trace("deleting item {}", item.getId());
             item.setIsActive(IsActive.Inactive);
@@ -104,6 +106,15 @@ public class DescriptionDeleter implements Deleter {
 
             if (!disableElastic) this.elasticService.deleteDescription(item);
             this.accountingService.decrease(UsageLimitTargetMetric.DESCRIPTION_COUNT.getValue());
+
+            DescriptionStatusEntity descriptionStatusEntity = descriptionStatusEntities.stream().filter(x -> x.getId().equals(item.getStatusId())).findFirst().orElse(null);
+            if (descriptionStatusEntity == null) continue;
+            this.accountingService.decrease(UsageLimitTargetMetric.DESCRIPTION_BY_STATUS_COUNT.getValue().replace("{status_name}", descriptionStatusEntity.getName().toLowerCase()));
+            if (descriptionStatusEntity.getInternalStatus() != null && descriptionStatusEntity.getInternalStatus().equals(org.opencdmp.commons.enums.DescriptionStatus.Finalized)) {
+                PlanEntity planEntity = planEntities.stream().filter(x -> x.getId().equals(item.getId())).findFirst().orElse(null);
+                if (planEntity != null && planEntity.getAccessType().equals(PlanAccessType.Public)) this.accountingService.decrease(UsageLimitTargetMetric.DESCRIPTION_PUBLISHED_COUNT.getValue());
+
+            }
         }
     }
 

@@ -39,7 +39,7 @@ public class AccountingEntryCreatedIntegrationEventHandlerImpl implements Accoun
     }
 
     @Override
-    public void handleAccountingEntry(String metric, AccountingValueType valueType, String subjectId, UUID tenantId, String tenantCode, Integer value) throws InvalidApplicationException {
+    public void handleAccountingEntry(String metric, AccountingValueType valueType, String subjectId, UUID tenantId, String tenantCode, Integer value, UUID userId) throws InvalidApplicationException {
         if (accountingProperties.getEnabled()) {
             AccountingEntryCreatedIntegrationEvent event = new AccountingEntryCreatedIntegrationEvent();
             event.setTimeStamp(Instant.now());
@@ -49,6 +49,7 @@ public class AccountingEntryCreatedIntegrationEventHandlerImpl implements Accoun
             event.setType(valueType);
             event.setResource(tenantCode);
             event.setValue((double) value);
+            if (userId != null) event.setUserId(userId.toString());
             event.setTenant(tenantId);
 
             this.handle(event);

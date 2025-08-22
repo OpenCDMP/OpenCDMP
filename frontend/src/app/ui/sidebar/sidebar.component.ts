@@ -88,9 +88,9 @@ export class SidebarComponent implements OnInit {
 		}
 
 		if (this.authentication.hasPermission(AppPermission.ViewMyPlanPage)) this.planItems.routes.push({ path: '/plans', title: 'SIDE-BAR.MY-PLANS', icon: 'library_books', routeType: RouteType.System });
+		if (this.authentication.hasPermission(AppPermission.ViewMyDescriptionPage)) this.planItems.routes.push({ path: '/descriptions', title: 'SIDE-BAR.MY-DESCRIPTIONS', icon: 'dns', routeType: RouteType.System });
         if (this.authentication.hasPermission(AppPermission.ViewIndicatorDashboardPage) && this.configurationService.kpiServiceEnabled == true) this.planItems.routes.push({ path: '/indicator-dashboard', title: 'SIDE-BAR.INDICATOR-DASHBOARD', icon: 'monitoring', routeType: RouteType.System });
 
-		// if (this.authentication.hasPermission(AppPermission.ViewMyDescriptionPage)) this.planItems.routes.push({ path: '/descriptions', title: 'SIDE-BAR.MY-DESCRIPTIONS', icon: 'dns', routeType: RouteType.System });
 		this.groupMenuItems.push(this.planItems);
 
 		this.descriptionItems = {

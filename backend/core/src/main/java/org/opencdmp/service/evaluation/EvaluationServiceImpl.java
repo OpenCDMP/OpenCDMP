@@ -28,8 +28,7 @@ import org.opencdmp.data.TenantEntityManager;
 import org.opencdmp.errorcode.ErrorThesaurusProperties;
 import org.opencdmp.evaluatorbase.interfaces.SelectionConfiguration;
 import org.opencdmp.evaluatorbase.interfaces.ValueRangeConfiguration;
-import org.opencdmp.evaluatorbase.models.misc.RankConfig;
-import org.opencdmp.evaluatorbase.models.misc.RankModel;
+import org.opencdmp.evaluatorbase.models.misc.*;
 import org.opencdmp.model.builder.evaluation.EvaluationBuilder;
 import org.opencdmp.model.deleter.EvaluationDeleter;
 import org.opencdmp.model.evaluation.Evaluation;
@@ -136,19 +135,70 @@ public class EvaluationServiceImpl implements EvaluationService {
 
         data.setEvaluatorId(persist.getEvaluatorId());
         data.setRankConfig(this.buildRankConfigEntity(persist.getRankConfig()));
-        data.setRankModel(this.buildRankModelEntity(persist.getRankModel()));
-
+        data.setRankResult(this.buildRankResultEntity(persist.getRankResult()));
 
         return data;
     }
 
-    private @NotNull RankModelEntity buildRankModelEntity(RankModelPersist persist){
-        RankModelEntity data = new RankModelEntity();
+    private @NotNull RankResultEntity buildRankResultEntity(RankResultPersist persist){
+        RankResultEntity data = new RankResultEntity();
         if (persist == null) return data;
 
-        data.setMessages(persist.getMessages());
         data.setRank(persist.getRank());
         data.setDetails(persist.getDetails());
+
+        if (!this.conventionService.isListNullOrEmpty(persist.getResults())){
+            data.setResults(new ArrayList<>());
+            for (EvaluationResultPersist fieldPersist: persist.getResults()) {
+                data.getResults().add(this.buildEvaluationResultEntity(fieldPersist));
+            }
+        }
+
+        return data;
+    }
+
+    private @NotNull EvaluationResultEntity buildEvaluationResultEntity(EvaluationResultPersist persist){
+        EvaluationResultEntity data = new EvaluationResultEntity();
+        if (persist == null) return data;
+
+        data.setRank(persist.getRank());
+        data.setBenchmarkTitle(persist.getBenchmarkTitle());
+        data.setBenchmarkDetails(persist.getBenchmarkDetails());
+
+        if (!this.conventionService.isListNullOrEmpty(persist.getMetrics())){
+            data.setMetrics(new ArrayList<>());
+            for (EvaluationResultMetricPersist fieldPersist: persist.getMetrics()) {
+                data.getMetrics().add(this.buildEvaluationResultMetricEntity(fieldPersist));
+            }
+        }
+
+        return data;
+    }
+
+    private @NotNull EvaluationResultMetricEntity buildEvaluationResultMetricEntity(EvaluationResultMetricPersist persist){
+        EvaluationResultMetricEntity data = new EvaluationResultMetricEntity();
+        if (persist == null) return data;
+
+        data.setRank(persist.getRank());
+        data.setMetricTitle(persist.getMetricTitle());
+        data.setMetricDetails(persist.getMetricDetails());
+
+        if (!this.conventionService.isListNullOrEmpty(persist.getMessages())){
+            data.setMessages(new ArrayList<>());
+            for (EvaluationResultMessagePersist fieldPersist: persist.getMessages()) {
+                data.getMessages().add(this.buildEvaluationResultMessageEntity(fieldPersist));
+            }
+        }
+
+        return data;
+    }
+
+    private @NotNull EvaluationResultMessageEntity buildEvaluationResultMessageEntity(EvaluationResultMessagePersist persist){
+        EvaluationResultMessageEntity data = new EvaluationResultMessageEntity();
+        if (persist == null) return data;
+
+        data.setMessage(persist.getMessage());
+        data.setTitle(persist.getTitle());
 
         return data;
     }
@@ -201,7 +251,7 @@ public class EvaluationServiceImpl implements EvaluationService {
     }
 
 
-    public void persistInternal(RankModel rankModel, RankConfig rankConfig, UUID entityId, EntityType type, String evaluatorId, UUID userId) throws MyForbiddenException, MyValidationException, MyApplicationException, MyNotFoundException, InvalidApplicationException {
+    public void persistInternal(RankResultModel rankModel, RankConfig rankConfig, UUID entityId, EntityType type, String evaluatorId, UUID userId) throws MyForbiddenException, MyValidationException, MyApplicationException, MyNotFoundException, InvalidApplicationException {
 
         EvaluationPersist evaluationPersist = new EvaluationPersist();
 
@@ -216,13 +266,12 @@ public class EvaluationServiceImpl implements EvaluationService {
 
     }
 
-    private @NotNull EvaluationDataPersist buildDataPersist(RankConfig rankConfig, RankModel rankModel, String evaluatorId){
+    private @NotNull EvaluationDataPersist buildDataPersist(RankConfig rankConfig, RankResultModel rankModel, String evaluatorId){
         EvaluationDataPersist evaluationDataPersist = new EvaluationDataPersist();
-
 
         evaluationDataPersist.setEvaluatorId(evaluatorId);
         evaluationDataPersist.setRankConfig(this.buildRankConfigPersist(rankConfig));
-        evaluationDataPersist.setRankModel(this.buildRankModelPersist(rankModel));
+        evaluationDataPersist.setRankResult(this.buildRankResultModelPersist(rankModel));
 
         return evaluationDataPersist;
 
@@ -254,6 +303,7 @@ public class EvaluationServiceImpl implements EvaluationService {
     private @NotNull SelectionConfigurationPersist buildSelectionConfigurationPersist(SelectionConfiguration selectionConfiguration){
         SelectionConfigurationPersist data = new SelectionConfigurationPersist();
         if (selectionConfiguration == null) return data;
+
         if (!this.conventionService.isListNullOrEmpty(selectionConfiguration.getValueSetList())){
             data.setValueSetList(new ArrayList<>());
             for (SelectionConfiguration.ValueSet field: selectionConfiguration.getValueSetList()) {
@@ -272,15 +322,62 @@ public class EvaluationServiceImpl implements EvaluationService {
         return data;
     }
 
-    private @NotNull RankModelPersist buildRankModelPersist(RankModel rankModel){
-        RankModelPersist persist = new RankModelPersist();
-
-        if(!this.conventionService.isNullOrEmpty(rankModel.getDetails()))
-            persist.setDetails(rankModel.getDetails());
+    private @NotNull RankResultPersist buildRankResultModelPersist(RankResultModel rankModel){
+        RankResultPersist persist = new RankResultPersist();
 
         persist.setRank(rankModel.getRank());
-        persist.setMessages(rankModel.getMessages());
         persist.setDetails(rankModel.getDetails());
+
+        if (!this.conventionService.isListNullOrEmpty(rankModel.getResults())){
+            persist.setResults(new ArrayList<>());
+            for (EvaluationResultModel field: rankModel.getResults()) {
+                persist.getResults().add(this.buildEvaluationResultPersist(field));
+            }
+        }
+
+        return persist;
+    }
+
+    private @NotNull EvaluationResultPersist buildEvaluationResultPersist(EvaluationResultModel evaluationResult){
+        EvaluationResultPersist persist = new EvaluationResultPersist();
+
+        persist.setRank(evaluationResult.getRank());
+        persist.setBenchmarkTitle(evaluationResult.getBenchmarkTitle());
+        persist.setBenchmarkDetails(evaluationResult.getBenchmarkDetails());
+
+        if (!this.conventionService.isListNullOrEmpty(evaluationResult.getMetrics())){
+            persist.setMetrics(new ArrayList<>());
+            for (EvaluationResultMetricModel field: evaluationResult.getMetrics()) {
+                persist.getMetrics().add(this.buildEvaluationResultMetricPersist(field));
+            }
+        }
+
+        return persist;
+    }
+
+    private @NotNull EvaluationResultMetricPersist buildEvaluationResultMetricPersist(EvaluationResultMetricModel persist){
+        EvaluationResultMetricPersist data = new EvaluationResultMetricPersist();
+        if (persist == null) return data;
+
+        data.setRank(persist.getRank());
+        data.setMetricTitle(persist.getMetricTitle());
+        data.setMetricDetails(persist.getMetricDetails());
+
+        if (!this.conventionService.isListNullOrEmpty(persist.getMessages())){
+            data.setMessages(new ArrayList<>());
+            for (EvaluationResultMessageModel fieldPersist: persist.getMessages()) {
+                data.getMessages().add(this.buildEvaluationResultMessagePersist(fieldPersist));
+            }
+        }
+
+        return data;
+    }
+
+    private @NotNull EvaluationResultMessagePersist buildEvaluationResultMessagePersist(EvaluationResultMessageModel evaluationResultMessage){
+        EvaluationResultMessagePersist persist = new EvaluationResultMessagePersist();
+
+        persist.setMessage(evaluationResultMessage.getMessage());
+        persist.setTitle(evaluationResultMessage.getTitle());
 
         return persist;
     }

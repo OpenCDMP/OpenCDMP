@@ -282,12 +282,10 @@ public class DescriptionQuery extends QueryBase<DescriptionEntity> {
             return null;
         if (this.authorize.contains(AuthorizationFlags.Permission) && this.authService.authorize(Permission.BrowseDescription))
             return null;
-        UUID userId;
+        UUID userId = null;
         boolean usePublic = this.authorize.contains(AuthorizationFlags.Public);
         if (this.authorize.contains(AuthorizationFlags.PlanAssociated))
             userId = this.userScope.getUserIdSafe();
-        else
-            userId = null;
 
         List<Predicate> predicates = new ArrayList<>();
         if (userId != null || usePublic) {

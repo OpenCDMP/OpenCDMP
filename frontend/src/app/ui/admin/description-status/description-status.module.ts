@@ -11,9 +11,9 @@ import { DescriptionStatusRoutingModule } from "./description-status.routing";
 import { DescriptionStatusListingComponent } from "./listing/description-status-listing/description-status-listing.component";
 import { DescriptionStatusEditorComponent } from "./editor/description-status-editor/description-status-editor.component";
 import { DescriptionStatusListingFiltersComponent } from "./listing/description-status-listing-filters/description-status-listing-filters.component";
-import { NgxDropzoneModule } from "ngx-dropzone";
 import { NgxColorsModule } from "ngx-colors";
 import { FormFocusDirective } from "@common/forms/form-focus.directive";
+import { FileUploadComponent } from "@app/library/file-uploader/file-uploader.component";
 
 @NgModule({
 	imports: [
@@ -26,9 +26,9 @@ import { FormFocusDirective } from "@common/forms/form-focus.directive";
         CommonFormattingModule,
         TextFilterModule,
         RichTextEditorModule,
-        NgxDropzoneModule,
         NgxColorsModule,
-        FormFocusDirective
+        FormFocusDirective,
+        FileUploadComponent
 	],
 	declarations: [
         DescriptionStatusListingComponent,

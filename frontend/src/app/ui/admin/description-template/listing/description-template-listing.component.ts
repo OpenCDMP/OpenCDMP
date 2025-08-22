@@ -125,7 +125,7 @@ export class DescriptionTemplateListingComponent extends BaseListingComponent<De
 		lookup.metadata = { countAll: true };
 		lookup.page = { offset: 0, size: this.ITEMS_PER_PAGE };
 		lookup.isActive = [IsActive.Active];
-		lookup.order = { items: [this.toDescSortField(nameof<DescriptionTemplate>(x => x.createdAt))] };
+		lookup.order = { items: [this.toDescSortField(nameof<DescriptionTemplate>(x => x.updatedAt))] };
 		if (this.mode && this.mode == 'versions-listing') {
 			this.groupId = Guid.parse(this.route.snapshot.paramMap.get('groupid'));
 			this.breadcrumbService.addExcludedParam(this.groupId.toString(), true);
@@ -313,7 +313,7 @@ export class DescriptionTemplateListingComponent extends BaseListingComponent<De
 				confirmButton: this.language.instant('DESCRIPTION-TEMPLATE-LISTING.IMPORT.UPLOAD-XML'),
 				cancelButton: this.language.instant('DESCRIPTION-TEMPLATE-LISTING.IMPORT.UPLOAD-XML-FILE-CANCEL'),
 				name: '',
-				file: FileList,
+				file: File,
 				sucsess: false
 			},
             width: 'min(600px, 90vw)'

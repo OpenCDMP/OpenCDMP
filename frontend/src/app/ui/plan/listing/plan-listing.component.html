@@ -58,11 +58,12 @@
 				</div>
                 <div class="col-md-12 col-sm-12 col-md-9">
                     <div *ngFor="let item of listingItems; let i = index">
-                        <app-plan-listing-item-component 
+                        <app-plan-listing-item-component
+							[orderedPlanPreferencesList] = orderedPlanPreferencesList
                             [showAllVersionsAction]="!isVersionsListing"
-                            [showDivider]="i != (listingItems.length - 1)" 
-                            [plan]="item" 
-                            [isPublic]="isPublic" 
+                            [showDivider]="i != (listingItems.length - 1)"
+                            [plan]="item"
+                            [isPublic]="isPublic"
                             [tenants]="tenants"
                             [statusStorageFile]="storageFileMap.get(item.status?.definition?.storageFile?.id)"
                         ></app-plan-listing-item-component>

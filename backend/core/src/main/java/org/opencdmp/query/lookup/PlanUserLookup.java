@@ -2,24 +2,34 @@ package org.opencdmp.query.lookup;
 
 import gr.cite.tools.data.query.Lookup;
 import gr.cite.tools.data.query.QueryFactory;
+import io.swagger.v3.oas.annotations.media.Schema;
 import org.opencdmp.commons.enums.PlanUserRole;
 import org.opencdmp.commons.enums.IsActive;
 import org.opencdmp.elastic.query.NestedCollaboratorElasticQuery;
 import org.opencdmp.query.PlanUserQuery;
+import org.opencdmp.query.lookup.swagger.SwaggerHelpers;
 
 import java.util.List;
 import java.util.UUID;
 
 public class PlanUserLookup extends Lookup {
 
-
+    @Schema(description = SwaggerHelpers.PlanUser.ids_description)
     private List<UUID> ids;
 
+    @Schema(description = SwaggerHelpers.PlanUser.planIds_description)
     private List<UUID> planIds;
+
+    @Schema(description = SwaggerHelpers.PlanUser.userIds_description)
     private List<UUID> userIds;
+
+    @Schema(description = SwaggerHelpers.PlanUser.sectionIds_description)
     private List<UUID> sectionIds;
 
+    @Schema(description = SwaggerHelpers.PlanUser.isActive_description)
     private List<IsActive> isActive;
+
+    @Schema(description = SwaggerHelpers.PlanUser.userRoles_description)
     private List<PlanUserRole> userRoles;
 
     public List<UUID> getIds() {

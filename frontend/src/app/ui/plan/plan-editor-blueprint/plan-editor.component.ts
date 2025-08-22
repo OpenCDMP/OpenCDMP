@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, computed, OnDestroy, OnInit, signal, ViewChild } from '@angular/core';
+import {AfterViewInit, Component, computed, Inject, OnDestroy, OnInit, signal, ViewChild} from '@angular/core';
 import { FormGroup, UntypedFormGroup } from '@angular/forms';
 import { MatDialog } from '@angular/material/dialog';
 import { Title } from '@angular/platform-browser';
@@ -11,7 +11,7 @@ import { LockTargetType } from '@app/core/common/enum/lock-target-type';
 import { AppPermission } from '@app/core/common/enum/permission.enum';
 import { PlanStatusEnum } from '@app/core/common/enum/plan-status';
 import { Description, DescriptionPersist } from '@app/core/model/description/description';
-import { PlanBlueprint } from '@app/core/model/plan-blueprint/plan-blueprint';
+import { PlanBlueprint, PlanBlueprintDefinitionSection } from '@app/core/model/plan-blueprint/plan-blueprint';
 import { Plan, PlanPersist } from '@app/core/model/plan/plan';
 import { AuthService } from '@app/core/services/auth/auth.service';
 import { ConfigurationService } from '@app/core/services/configuration/configuration.service';
@@ -37,40 +37,47 @@ import { HttpErrorHandlingService } from '@common/modules/errors/error-handling/
 import { FilterService } from '@common/modules/text-filter/filter-service';
 import { Guid } from '@common/types/guid';
 import { TranslateService } from '@ngx-translate/core';
-import { map, take, takeUntil } from 'rxjs/operators';
+import { catchError, finalize, map, switchMap, take, takeUntil } from 'rxjs/operators';
 import { PlanFinalizeDialogComponent, PlanFinalizeDialogOutput } from '../plan-finalize-dialog/plan-finalize-dialog.component';
 import { PlanEditorModel, PlanEditorForm } from './plan-editor.model';
 import { PlanEditorService } from './plan-editor.service';
 import { PlanEditorEntityResolver } from './resolvers/plan-editor-enitity.resolver';
-import { FormAnnotationService } from '@app/ui/annotations/annotation-dialog-component/form-annotation.service';
+import {
+	FormAnnotationService,
+	MULTI_FORM_ANNOTATION_SERVICE_TOKEN
+} from '@app/ui/annotations/annotation-dialog-component/form-annotation.service';
 import { PlanStatus } from '@app/core/model/plan-status/plan-status';
 import { PlanStatusAvailableActionType } from '@app/core/common/enum/plan-status-available-action-type';
 import { PlanVersionStatus } from '@app/core/common/enum/plan-version-status';
 import { PlanStatusPermission } from '@app/core/common/enum/plan-status-permission.enum';
 import { VisibilityRulesService } from '@app/ui/description/editor/description-form/visibility-rules/visibility-rules.service';
-import { NewDescriptionDialogComponent, NewDescriptionDialogComponentResult } from '@app/ui/description/editor/new-description/new-description.component';
+import { NewDescriptionDialog, NewDescriptionDialogComponent, NewDescriptionDialogComponentResult } from '@app/ui/description/editor/new-description/new-description.component';
 import { PlanDescriptionEditorComponent } from './plan-description-editor/plan-description-editor.component';
 import { DescriptionEditorHelper } from './plan-description-editor/plan-description-editor-helper';
 import { PlanTableOfContentsComponent } from './plan-table-of-contents/plan-table-of-contents.component';
 import { DescriptionEditorForm, DescriptionEditorModel } from '@app/ui/description/editor/description-editor.model';
 import { DescriptionInfo, PlanTempStorageService } from './plan-temp-storage.service';
-import { forkJoin, interval, Observable, of, Subscription } from 'rxjs';
+import { EMPTY, forkJoin, interval, Observable, of, Subscription } from 'rxjs';
 import { PopupNotificationDialogComponent } from '@app/library/notification/popup/popup-notification.component';
 import { isNullOrUndefined } from '@swimlane/ngx-datatable';
-import { TenantHandlingService } from '@app/core/services/tenant/tenant-handling.service';
+import { EnqueueService } from '@app/core/services/enqueue.service';
+import {AnnotationService} from "@annotation-service/services/http/annotation.service";
+import { DescriptionTemplateEditorResolver } from '@app/ui/admin/description-template/editor/description-template-editor.resolver';
+import { nameof } from 'ts-simple-nameof';
+import { DescriptionTemplate } from '@app/core/model/description-template/description-template';
+import { DescriptionTemplateType } from '@app/core/model/description-template-type/description-template-type';
 
 @Component({
     selector: 'app-plan-editor',
     templateUrl: './plan-editor.component.html',
     styleUrls: ['./plan-editor.component.scss'],
-    providers: [PlanEditorService, FormAnnotationService],
+    providers: [PlanEditorService, { provide: MULTI_FORM_ANNOTATION_SERVICE_TOKEN, useClass: FormAnnotationService, multi: true }, EnqueueService],
     standalone: false
 })
 export class PlanEditorComponent extends BaseEditor<PlanEditorModel, Plan> implements OnInit, AfterViewInit, OnDestroy {
     @ViewChild('descriptionEditor') descriptionEditor: PlanDescriptionEditorComponent;
     @ViewChild('tableOfContent') tableOfContent: PlanTableOfContentsComponent;
     formGroup: FormGroup<PlanEditorForm>;
-    isLoading: boolean = false;
 	isNew = true;
 	isDeleted = false;
     showPlanErrors: boolean = false;
@@ -183,6 +190,8 @@ export class PlanEditorComponent extends BaseEditor<PlanEditorModel, Plan> imple
 		return this.authService.hasPermission(permission) || this.item?.authorizationFlags?.some(x => x === permission) || this.editorModel?.permissions?.includes(permission);
 	}
 
+    isLoading = computed(() => this.enqueueService.exhaustPipelineBusy());
+
 	constructor(
 		// BaseFormEditor injected dependencies
 		protected dialog: MatDialog,
@@ -211,10 +220,11 @@ export class PlanEditorComponent extends BaseEditor<PlanEditorModel, Plan> imple
 		private analyticsService: AnalyticsService,
 		private breadcrumbService: BreadcrumbService,
 		public fileTransformerService: FileTransformerService,
-		private formAnnotationService: FormAnnotationService,
+		@Inject(MULTI_FORM_ANNOTATION_SERVICE_TOKEN) private formAnnotationServices: FormAnnotationService[],
+		private annotationService: AnnotationService,
         private planEditorService: PlanEditorService,
         private planTempStorage: PlanTempStorageService,
-        private tenantHandlingService: TenantHandlingService,
+        private enqueueService: EnqueueService,
 	) {
 		const descriptionLabel: string = route.snapshot.data['entity']?.label;
 		if (descriptionLabel) {
@@ -225,7 +235,7 @@ export class PlanEditorComponent extends BaseEditor<PlanEditorModel, Plan> imple
 		super(dialog, language, formService, router, uiNotificationService, httpErrorHandlingService, filterService, route, queryParamsService, lockService, authService, configurationService);
 
     }
-
+    private openAnnotation$: Subscription;
 	ngOnInit(): void {
 		this.analyticsService.trackPageView(AnalyticsService.PlanEditor);
 		this.permissionPerSection = this.route.snapshot.data['permissions'] as Map<Guid, string[]> ?? new Map<Guid, string[]>();
@@ -240,14 +250,14 @@ export class PlanEditorComponent extends BaseEditor<PlanEditorModel, Plan> imple
                 section?.fields?.forEach((field) => this.canAnnotatePerField.set(field.id.toString(), this.canAnnotateSection(section.id)))
             })
         }
-
+        
         if(this.item?.id){
-            this.formAnnotationService.init(this.item.id, AnnotationEntityType.Plan);
-            this.formAnnotationService.getAnnotationCountObservable().pipe(takeUntil(this._destroyed)).subscribe((annotationsPerAnchor: Map<string, number>) => {
+			this.formAnnotationServices[0].init(this.item.id, AnnotationEntityType.Plan);
+            this.formAnnotationServices[0].getAnnotationCountObservable().pipe(takeUntil(this._destroyed)).subscribe((annotationsPerAnchor: Map<string, number>) => {
                 this.annotationsPerAnchor = annotationsPerAnchor;
             });
 
-            this.formAnnotationService.getOpenAnnotationSubjectObservable().pipe(takeUntil(this._destroyed)).subscribe((anchorId: string) => {
+            this.formAnnotationServices[0].getOpenAnnotationSubjectObservable().pipe(takeUntil(this._destroyed)).subscribe((anchorId: string) => {
                 if (anchorId && anchorId == this.item.id?.toString()) this.showAnnotations(anchorId);
             });
         }
@@ -305,7 +315,7 @@ export class PlanEditorComponent extends BaseEditor<PlanEditorModel, Plan> imple
                     let fieldStep = this.item?.blueprint.definition.sections.find(s => s.id === description.planDescriptionTemplate?.sectionId)?.ordinal;
                     this.tableOfContent.changePlanStep({section: fieldStep, descriptionId, descriptionFieldId: fieldId ?? null});
                     if(fieldId && this.route.snapshot.data['openDescriptionAnnotation']){
-                        this.formAnnotationService.οpenAnnotationDialog(fieldId);
+                        this.getFormAnnotationServiceById(descriptionId).οpenAnnotationDialog(fieldId);
                     }
                 } else if(fieldId){
                     this.scrollToField = this.route.snapshot.data['scrollToField'] ?? false
@@ -333,6 +343,7 @@ export class PlanEditorComponent extends BaseEditor<PlanEditorModel, Plan> imple
 			);
 	}
 
+    private firstRun = true;
 	prepareForm(data: Plan) {
 		try {
             this.resetMetadata();
@@ -365,7 +376,13 @@ export class PlanEditorComponent extends BaseEditor<PlanEditorModel, Plan> imple
 
             //add items to temp storage 
             this.item?.planDescriptionTemplates?.forEach((planDescriptionTemplate) => {
-                this.planTempStorage.setPlanDescriptionTemplate(planDescriptionTemplate);
+				this.planTempStorage.setPlanDescriptionTemplate(planDescriptionTemplate);
+				//create
+			});
+			this.item?.descriptions?.forEach((planDescription) => {
+				const formAnnotationService = new FormAnnotationService(this.annotationService, this.uiNotificationService, this.language );
+				formAnnotationService.init(planDescription.id,AnnotationEntityType.Description);
+				this.formAnnotationServices.push( formAnnotationService);
             })
 
 			// if (data && data.id) {
@@ -383,6 +400,10 @@ export class PlanEditorComponent extends BaseEditor<PlanEditorModel, Plan> imple
 			}else if(!this.isNew){
 				this.checkLock(this.item.id);
             }
+            if(this.firstRun && !this.isDeleted && !this.belongsToCurrentTenant){
+                this.tenantWarning();
+            }
+            this.firstRun = false;
 
 		} catch (error) {
 			this.logger.error('Could not parse Plan item: ' + data + error);
@@ -493,47 +514,45 @@ export class PlanEditorComponent extends BaseEditor<PlanEditorModel, Plan> imple
 
         const resetStep = this.selectedDescription() && this.newDescriptionIds?.includes(this.selectedDescription().toString());
 
-        this.isLoading = true;
-        this.persistDescriptions().subscribe({
-            next: (complete) => {
-                if(this.canEditPlan && (this.isLockedByUser || this.isNew)){
-                    this.planService.persist(formData)
-                    .pipe(takeUntil(this._destroyed)).subscribe({
-                        next: (complete) => {
-                            this.isLoading = false;
-                            if(resetStep){
-                                this.tableOfContent.changePlanStep({
-                                    section: 1
-                                })
-                            }
-                            if(onSuccess){
-                                onSuccess(complete)
-                            } else {
-                                this.onCallbackSuccess(complete);
-                            }
-                        },
-                        error: (error) => {this.onCallbackError(error); this.isLoading = false;}
-                    });
-                } else {
-                    this.isLoading = false;
-                    if(resetStep){
-                        this.tableOfContent.changePlanStep({
-                            section: 1
-                        })
-                    }
-                    if(onSuccess){
-                        onSuccess(complete)
+        this.enqueueService.enqueueExhaustChannel(
+            this.persistDescriptions().pipe(
+                switchMap((value: Description[], index: number) => {
+                    if(this.canEditPlan && (this.isLockedByUser || this.isNew)){
+                        return this.planService.persist(formData)
+                        .pipe(
+                            takeUntil(this._destroyed),
+                            switchMap((value: Plan, index: number) => {
+                                if(resetStep){
+                                    this.tableOfContent.changePlanStep({
+                                        section: 1
+                                    })
+                                }
+                                if(onSuccess){
+                                    onSuccess(value)
+                                } else {
+                                    this.onCallbackSuccess(value);
+                                }
+                                return EMPTY;
+                            }),
+                            catchError((error) => of(this.onCallbackError(error)))
+                        )
                     } else {
-                        this.onCallbackSuccess(complete);
+                        if(resetStep){
+                            this.tableOfContent.changePlanStep({
+                                section: 1
+                            })
+                        }
+                        if(onSuccess){
+                            onSuccess(value)
+                        } else {
+                            this.onCallbackSuccess(value);
+                        }
+                        return EMPTY;
                     }
-                }
-
-            },
-            error: (error) => {
-                this.isLoading = false;
-                this.onCallbackError(error);
-            }
-        })
+                }),
+                catchError((error) => of(this.onCallbackError(error)))
+            )
+        )
 	}
 
 
@@ -635,19 +654,17 @@ export class PlanEditorComponent extends BaseEditor<PlanEditorModel, Plan> imple
 		} else if (this.item.status.internalStatus === PlanStatusEnum.Finalized){
 			this.reverseFinalization(status.id);
 		} else {
-			// other statuses
-            this.isLoading = true;
-			this.planService.setStatus(this.item.id, status.id)
-            .pipe(takeUntil(this._destroyed))
-            .subscribe({
-                next: (data) => {
-                    this.onCallbackSuccess();
-                    this.isLoading = false;
-                }, 
-                error: (error: any) => {
-                    this.onCallbackError(error);
-                    this.isLoading = false;
-                }});
+            this.enqueueService.enqueueExhaustChannel(
+                this.planService.setStatus(this.item.id, status.id)
+                .pipe(
+                    finalize(() => {
+                        this.onCallbackSuccess();
+                    }), 
+                    catchError((error: any) =>
+                        of(this.onCallbackError(error))
+                    )
+                )
+            )
 		}
 	}
 
@@ -664,20 +681,17 @@ export class PlanEditorComponent extends BaseEditor<PlanEditorModel, Plan> imple
 			if (result) {
                 if(!result.cancelled && result.planValid){
                     this.showPlanErrors = false;
-                    this.isLoading = true;
-                    this.planService.setStatus(this.item.id, newStatusId, result.descriptionsToBeFinalized)
-                        .pipe(takeUntil(this._destroyed))
-                        .subscribe({
-                            next: (data) => {
-                                this.isLoading = false;
+                    this.enqueueService.enqueueExhaustChannel(
+                        this.planService.setStatus(this.item.id, newStatusId, result.descriptionsToBeFinalized)
+                        .pipe(
+                            takeUntil(this._destroyed),
+                            finalize(() => {
                                 this.onCallbackSuccess();
                                 this.router.navigate([this.routerUtils.generateUrl(['/plans/overview', this.item.id.toString()], '/')]);
-                            },
-                            error: (error: any) => {
-                                this.isLoading = false;
-                                this.onCallbackError(error);
-                            }
-                        });
+                            }),
+                            catchError((error) => of(this.onCallbackError(error)))
+                        )
+                    )
                 }else {
                     this.formService.touchAllFormFields(this.formGroup);
                     this.showPlanErrors = true;
@@ -702,18 +716,14 @@ export class PlanEditorComponent extends BaseEditor<PlanEditorModel, Plan> imple
 		});
 		dialogRef.afterClosed().pipe(takeUntil(this._destroyed)).subscribe(result => {
 			if (result) {
-                this.isLoading = true;
-				this.planService.setStatus(this.item.id, newStatusId).pipe(takeUntil(this._destroyed))
-					.subscribe({
-                        complete: () => {
-                            this.onCallbackSuccess();
-                            this.isLoading = false;
-					    }, 
-                        error: (error: any) => {
-                            this.onCallbackError(error);
-                            this.isLoading = false;
-					    }
-                    });
+                this.enqueueService.enqueueExhaustChannel(
+                    this.planService.setStatus(this.item.id, newStatusId)
+                    .pipe(
+                        takeUntil(this._destroyed),
+                        finalize(() => this.onCallbackSuccess()),
+                        catchError((error) => of(this.onCallbackError(error)))
+                    )
+                )
 			}
 		});
 	}
@@ -745,22 +755,25 @@ export class PlanEditorComponent extends BaseEditor<PlanEditorModel, Plan> imple
 	// Blueprint
 	//
 	//
-	selectBlueprint(blueprint: PlanBlueprint) {
+	createPlanWithBlueprint(blueprint: PlanBlueprint) {
 		if(!blueprint){
 			this.formGroup.markAllAsTouched();
 			return;
 		}
 		this.formGroup.controls.blueprint.setValue(blueprint.id);
         this.formGroup.controls.label.setValue(`${blueprint.label} ${this.language.instant('PLAN-LISTING.PLAN')}`);
-		this.planBlueprintService.getSingle(this.formGroup.get('blueprint').value, PlanEditorEntityResolver.blueprintLookupFields()).pipe(takeUntil(this._destroyed))
-			.subscribe({
-                next: (data) => {
-                    this.selectedBlueprint = data;
-                    this.buildFormAfterBlueprintSelection();
-                    this.nextStep();
-                },
-				error: (error) => this.httpErrorHandlingService.handleBackedRequestError(error)
-            });
+        this.selectedBlueprint = blueprint;
+        this.buildFormAfterBlueprintSelection();
+        this.formSubmit();
+		// this.planBlueprintService.getSingle(this.formGroup.get('blueprint').value, PlanEditorEntityResolver.blueprintLookupFields()).pipe(takeUntil(this._destroyed))
+		// 	.subscribe({
+        //         next: (data) => {
+        //             this.selectedBlueprint = data;
+        //             this.buildFormAfterBlueprintSelection();
+        //             this.nextStep();
+        //         },
+		// 		error: (error) => this.httpErrorHandlingService.handleBackedRequestError(error)
+        //     });
 	}
 	private buildFormAfterBlueprintSelection() {
 		const plan: Plan = {
@@ -831,31 +844,45 @@ export class PlanEditorComponent extends BaseEditor<PlanEditorModel, Plan> imple
     })
 
 
-    protected addDescriptionToSection(sectionId: Guid){
-        const dialogRef = this.dialog.open(NewDescriptionDialogComponent, {
-            width: '590px',
-            minHeight: '200px',
-            restoreFocus: false,
-            data: {
-                plan: this.item,
-                planSectionId: sectionId
-            },
-            panelClass: 'custom-modalbox'
-        });
-        dialogRef.afterClosed().subscribe((result: NewDescriptionDialogComponentResult) => {
-            if (result?.description) {
-                const description = result.description;
+    protected addDescriptionToSection(section: PlanBlueprintDefinitionSection){
+        let res$: Observable<Description>;
+        const descriptionTemplates = this.item.planDescriptionTemplates?.filter((x) => x.sectionId === section.id);
+        if(descriptionTemplates?.length > 1 || section.prefillingSourcesEnabled){
+            res$ = this.dialog.open(NewDescriptionDialogComponent, {
+                width: '590px',
+                minHeight: '200px',
+                restoreFocus: false,
+                data: {
+                    plan: this.item,
+                    planSectionId: section.id,
+                },
+                panelClass: 'custom-modalbox'
+            }).afterClosed().pipe((map((x) => x?.description)))
+        } else {
+            const descriptionTemplate = this.item.planDescriptionTemplates?.find((x) => x.sectionId === section.id && x.isActive == IsActive.Active)?.currentDescriptionTemplate;
+            res$ = of(NewDescriptionDialog.createDescription({sectionId: section.id, descriptionTemplate, plan: this.item}))
+        }
+        res$.subscribe((newDesc: Description) => {
+            if(!newDesc?.descriptionTemplate?.id){ return; }
+            const description = newDesc;    
+            const newId = this.generateTempDescriptionId;
+            this.newDescriptionIds.push(newId);
+            description.id = Guid.parse(newId);
 
-                const newId = this.generateTempDescriptionId;
-                this.newDescriptionIds.push(newId);
-
-                description.id = Guid.parse(newId);
-
-                const descriptionTemplate = this.planTempStorage.getDescriptionTemplate(description.descriptionTemplate?.id);
+            const descriptionTemplate = this.planTempStorage.getDescriptionTemplate(description.descriptionTemplate?.id);
+            (descriptionTemplate ? of(descriptionTemplate) : this.descriptionTemplateService.getSingle(description.descriptionTemplate.id, [
+                ...DescriptionTemplateEditorResolver.baseLookupFields(), 
+                ...DescriptionTemplateEditorResolver.definitionLookupFields(),
+                nameof<DescriptionTemplate>(x => x.language),
+                [nameof<DescriptionTemplate>(x => x.type), nameof<DescriptionTemplateType>(x => x.id)].join('.'),
+                [nameof<DescriptionTemplate>(x => x.type), nameof<DescriptionTemplateType>(x => x.name)].join('.'),
+            ]).pipe(takeUntil(this._destroyed), catchError(() => of(null)))).subscribe((descriptionTemplate) => {
+                this.planTempStorage.setDescriptionTemplate(descriptionTemplate);
                 description.descriptionTemplate = descriptionTemplate;
                 this.onNewDescription(description);
-            }
+            })
         })
+
     }
 
     protected onNewDescription(description: Description){
@@ -897,16 +924,14 @@ export class PlanEditorComponent extends BaseEditor<PlanEditorModel, Plan> imple
 		dialogRef.afterClosed().pipe(takeUntil(this._destroyed)).subscribe(result => {
 			if (result) {
 				if (descriptionId) {
-                    this.isLoading = true;
-					this.descriptionService.delete(descriptionId)
-                    .pipe(takeUntil(this._destroyed))
-                    .subscribe({
-                        complete: () => {
-                            this.isLoading = false;
-                            this.onRemoveSuccess(descriptionId);
-                        },
-                        error: (error) =>  {this.isLoading = false; this.onCallbackError(error)}
-                    });
+                    this.enqueueService.enqueueExhaustChannel(
+                        this.descriptionService.delete(descriptionId)
+                        .pipe(
+                            takeUntil(this._destroyed),
+                            finalize(() => this.onRemoveSuccess(descriptionId)),
+                            catchError((error) => of(this.onCallbackError(error)))
+                        )
+                    )
 				}
 			}
 		});
@@ -929,83 +954,6 @@ export class PlanEditorComponent extends BaseEditor<PlanEditorModel, Plan> imple
         this.planTempStorage.reset();
         this.newDescriptionIds = [];
     }
-
-	//
-	//
-	// Description Template
-	//
-	//
-
-	// getDescriptionTemplateMultipleAutoCompleteConfiguration(sectionId: Guid): MultipleAutoCompleteConfiguration {
-	// 	return {
-	// 		initialItems: (excludedItems: any[], data?: any) => this.descriptionTemplateService.query(
-    //             this.descriptionTemplateService.buildDescriptionTemplateGroupAutocompleteLookup({
-    //                 isActive: [IsActive.Active], 
-    //                 excludedGroupIds: excludedItems ? excludedItems : null,
-    //                 lookupFields: [...DescriptionTemplateEditorResolver.baseLookupFields(), ...DescriptionTemplateEditorResolver.definitionLookupFields()]
-    //             })
-    //         ).pipe(map(x => x.items)),
-	// 		filterFn: (searchQuery: string, excludedItems: any[]) => this.descriptionTemplateService.query(
-    //             this.descriptionTemplateService.buildDescriptionTemplateGroupAutocompleteLookup({
-    //                 isActive: [IsActive.Active], 
-    //                 like: searchQuery, 
-    //                 excludedGroupIds: excludedItems,
-    //                 lookupFields: [...DescriptionTemplateEditorResolver.baseLookupFields(), ...DescriptionTemplateEditorResolver.definitionLookupFields()]
-    //             })
-    //         ).pipe(map(x => x.items)),
-	// 		getSelectedItems: (selectedItems: any[]) => this.descriptionTemplateService.query(
-    //             this.descriptionTemplateService.buildDescriptionTemplateGroupAutocompleteLookup({
-    //                 isActive: [IsActive.Active, IsActive.Inactive],
-    //                 groupIds: selectedItems,
-    //                 lookupFields: [...DescriptionTemplateEditorResolver.baseLookupFields(), ...DescriptionTemplateEditorResolver.definitionLookupFields()]
-    //             })
-    //         ).pipe(map(x => x.items)),
-	// 		displayFn: (item: DescriptionTemplate) => item.label,
-	// 		titleFn: (item: DescriptionTemplate) => item.label,
-	// 		subtitleFn: (item: DescriptionTemplate) => item.description,
-	// 		valueAssign: (item: DescriptionTemplate) => {
-    //             this.planTempStorage.setDescriptionTemplate(item);
-    //             return item.groupId;
-    //         },
-	// 		canRemoveItem: (item: DescriptionTemplate) => this.canRemoveDescriptionTemplate(item, sectionId),
-	// 		popupItemActionIcon: 'visibility'
-	// 	}
-	// };
-
-	// onPreviewDescriptionTemplate(event, sectionId: Guid) {
-	// 	const dialogRef = this.dialog.open(DescriptionTemplatePreviewDialogComponent, {
-	// 		width: '590px',
-	// 		minHeight: '200px',
-	// 		restoreFocus: false,
-	// 		data: {
-	// 			descriptionTemplateId: event.id
-	// 		},
-	// 		panelClass: 'custom-modalbox'
-	// 	});
-	// 	dialogRef.afterClosed().pipe(takeUntil(this._destroyed)).subscribe(groupId => {
-	// 		if (groupId) {
-	// 			let data = this.formGroup.get('descriptionTemplates').get(sectionId.toString()).value as Guid[];
-	// 			if (data) {
-	// 				data.push(groupId);
-	// 				this.formGroup.get('descriptionTemplates').get(sectionId.toString()).patchValue(data);
-	// 			} else {
-	// 				this.formGroup.get('descriptionTemplates').get(sectionId.toString()).patchValue([groupId]);
-	// 			}
-	// 		}
-	// 	});
-    // }
-
-	// canRemoveDescriptionTemplate(item: DescriptionTemplate, sectionId): MultipleAutoCompleteCanRemoveItem {
-	// 	if (item) {
-	// 		const descriptionsInSection = this.descriptionsInSection(sectionId);
-    //         const templateInUse = descriptionsInSection?.some((x) => x.formGroup?.value?.descriptionTemplateId === item.id);
-    //         return {
-    //             canRemove: !templateInUse,
-	// 			message: templateInUse ? 'PLAN-EDITOR.UNSUCCESSFUL-REMOVE-TEMPLATE' : null
-    //         } as MultipleAutoCompleteCanRemoveItem;
-	// 	}
-	// 	return;
-	// }
 
 	//
 	//
@@ -1033,7 +981,7 @@ export class PlanEditorComponent extends BaseEditor<PlanEditorModel, Plan> imple
 		});
 		dialogRef.afterClosed().pipe(takeUntil(this._destroyed)).subscribe(changesMade => {
 			if (changesMade) {
-				this.formAnnotationService.refreshAnnotations();
+				this.getFormAnnotationServiceById(this.item.id).refreshAnnotations();
 			}
 		});
 	}
@@ -1045,5 +993,20 @@ export class PlanEditorComponent extends BaseEditor<PlanEditorModel, Plan> imple
     ngOnDestroy(): void {
         super.ngOnDestroy();
         this.planTempStorage.reset();
+    }
+
+	getFormAnnotationServiceById(id: Guid): FormAnnotationService | undefined {
+		return this.formAnnotationServices.find(service => service.getEntityId() === id);
+	}
+
+    private tenantWarning(){
+        this.dialog.open(ConfirmationDialogComponent, {
+			restoreFocus: false,
+			data: {
+				message: this.language.instant('PLAN-EDITOR.TENANT-LIMITED-ACCESS'),
+				noActions: true
+			},
+			maxWidth: '40em'
+		});
     }
 }

@@ -8,7 +8,6 @@ import { HybridListingModule } from "@common/modules/hybrid-listing/hybrid-listi
 import { TextFilterModule } from "@common/modules/text-filter/text-filter.module";
 import { UserSettingsModule } from "@common/modules/user-settings/user-settings.module";
 import { CommonUiModule } from '@common/ui/common-ui.module';
-import { NgxDropzoneModule } from "ngx-dropzone";
 import { TenantRoutingModule } from './tenant.routing';
 import { TenantEditorComponent } from './editor/tenant-editor.component';
 import { TenantListingComponent } from './listing/tenant-listing.component';
@@ -22,7 +21,6 @@ import { FormFocusDirective } from '@common/forms/form-focus.directive';
 		CommonFormsModule,
 		ConfirmationDialogModule,
 		TenantRoutingModule,
-		NgxDropzoneModule,
 		DragDropModule,
 		AutoCompleteModule,
 		HybridListingModule,

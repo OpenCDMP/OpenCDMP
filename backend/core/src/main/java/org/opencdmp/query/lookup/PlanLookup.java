@@ -2,6 +2,7 @@ package org.opencdmp.query.lookup;
 
 import gr.cite.tools.data.query.Lookup;
 import gr.cite.tools.data.query.QueryFactory;
+import io.swagger.v3.oas.annotations.media.Schema;
 import org.apache.commons.lang3.StringUtils;
 import org.opencdmp.commons.enums.PlanAccessType;
 import org.opencdmp.commons.enums.PlanVersionStatus;
@@ -9,33 +10,57 @@ import org.opencdmp.commons.enums.IsActive;
 import org.opencdmp.elastic.query.PlanElasticQuery;
 import org.opencdmp.elastic.query.InnerObjectPlanElasticQuery;
 import org.opencdmp.query.PlanQuery;
+import org.opencdmp.query.lookup.swagger.SwaggerHelpers;
 
 import java.util.List;
 import java.util.UUID;
 
 public class PlanLookup extends Lookup {
 
+    @Schema(description = SwaggerHelpers.Plan.like_description)
     private String like;
 
+    @Schema(description = SwaggerHelpers.Plan.ids_description)
     private List<UUID> ids;
-    private TenantLookup tenantSubQuery;
 
+    @Schema(description = SwaggerHelpers.Plan.excludeIds_description)
     private List<UUID> excludedIds;
+
+    @Schema(description = SwaggerHelpers.Plan.groupIds_description)
     private List<UUID> groupIds;
 
+    @Schema(description = SwaggerHelpers.Plan.isActive_description)
     private List<IsActive> isActive;
+
+    @Schema(description = SwaggerHelpers.Plan.versionStatuses_description)
     private List<PlanVersionStatus> versionStatuses;
-    
+
+    @Schema(description = SwaggerHelpers.Plan.statusIds_description)
     private List<UUID> statusIds;
+
+    @Schema(description = SwaggerHelpers.Plan.accessTypes_description)
     private List<PlanAccessType> accessTypes;
 
+    @Schema(description = SwaggerHelpers.Plan.versions_description)
     private List<Integer> versions;
 
+    @Schema(description = SwaggerHelpers.Plan.planDescriptionTemplateSubQuery_description)
     private PlanDescriptionTemplateLookup planDescriptionTemplateSubQuery;
+
+    @Schema(description = SwaggerHelpers.Plan.planUserSubQuery_description)
     private PlanUserLookup planUserSubQuery;
+
+    @Schema(description = SwaggerHelpers.Plan.planBlueprintSubQuery_description)
     private PlanBlueprintLookup planBlueprintSubQuery;
+
+    @Schema(description = SwaggerHelpers.Plan.planReferenceSubQuery_description)
     private PlanReferenceLookup planReferenceSubQuery;
+
+    @Schema(description = SwaggerHelpers.Plan.planStatusSubQuery_description)
     private PlanStatusLookup planStatusSubQuery;
+
+    @Schema(description = SwaggerHelpers.Plan.tenantSubQuery_description)
+    private TenantLookup tenantSubQuery;
 
     public String getLike() {
         return this.like;

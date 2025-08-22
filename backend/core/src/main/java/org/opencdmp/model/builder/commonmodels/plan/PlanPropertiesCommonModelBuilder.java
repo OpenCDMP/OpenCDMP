@@ -45,6 +45,12 @@ public class PlanPropertiesCommonModelBuilder extends BaseCommonModelBuilder<Pla
         return this;
     }
 
+    private boolean useSharedStorage;
+    public PlanPropertiesCommonModelBuilder useSharedStorage(boolean useSharedStorage) {
+        this.useSharedStorage = useSharedStorage;
+        return this;
+    }
+
     @Override
     protected List<CommonModelBuilderItemResponse<PlanPropertiesModel, PlanPropertiesEntity>> buildInternal(List<PlanPropertiesEntity> data) throws MyApplicationException {
         this.logger.debug("building for {}", Optional.ofNullable(data).map(List::size).orElse(0));
@@ -53,7 +59,7 @@ public class PlanPropertiesCommonModelBuilder extends BaseCommonModelBuilder<Pla
         List<CommonModelBuilderItemResponse<PlanPropertiesModel, PlanPropertiesEntity>> models = new ArrayList<>();
         for (PlanPropertiesEntity d : data) {
             PlanPropertiesModel m = new PlanPropertiesModel();
-            if (d.getPlanBlueprintValues() != null) m.setPlanBlueprintValues(this.builderFactory.builder(PlanBlueprintValueCommonModelBuilder.class).withDefinition(definition).authorize(this.authorize).build(d.getPlanBlueprintValues()));
+            if (d.getPlanBlueprintValues() != null) m.setPlanBlueprintValues(this.builderFactory.builder(PlanBlueprintValueCommonModelBuilder.class).useSharedStorage(useSharedStorage).withDefinition(definition).authorize(this.authorize).build(d.getPlanBlueprintValues()));
             if (d.getContacts() != null) m.setContacts(this.builderFactory.builder(PlanContactCommonModelBuilder.class).authorize(this.authorize).build(d.getContacts()));
 
             models.add(new CommonModelBuilderItemResponse<>(m, d));

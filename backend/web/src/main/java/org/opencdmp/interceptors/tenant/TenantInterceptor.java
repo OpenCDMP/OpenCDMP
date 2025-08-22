@@ -25,6 +25,7 @@ import org.opencdmp.data.TenantUserEntity;
 import org.opencdmp.data.UserEntity;
 import org.opencdmp.data.UserRoleEntity;
 import org.opencdmp.errorcode.ErrorThesaurusProperties;
+import org.opencdmp.integrationevent.outbox.indicatoraccess.IndicatorAccessEventHandlerImpl;
 import org.opencdmp.integrationevent.outbox.usertouched.UserTouchedIntegrationEventHandler;
 import org.opencdmp.query.utils.BuildSubQueryInput;
 import org.opencdmp.query.utils.QueryUtilsService;
@@ -67,6 +68,7 @@ public class TenantInterceptor implements WebRequestInterceptor {
 	private final LockByKeyManager lockByKeyManager;
 	private final ConventionService conventionService;
 	private final UserTouchedIntegrationEventHandler userTouchedIntegrationEventHandler;
+	private final IndicatorAccessEventHandlerImpl indicatorAccessEventHandler;
 	private final AuthorizationConfiguration authorizationConfiguration;
 	private final UserTenantRolesCacheService userTenantRolesCacheService;
 	public final TenantEntityManager tenantEntityManager;
@@ -76,15 +78,15 @@ public class TenantInterceptor implements WebRequestInterceptor {
 
 	@Autowired
 	public TenantInterceptor(
-			TenantScope tenantScope,
-			UserScope userScope,
-			CurrentPrincipalResolver currentPrincipalResolver,
-			ClaimExtractor claimExtractor,
-			ApplicationContext applicationContext,
-			TenantScopeProperties tenantScopeProperties,
-			UserAllowedTenantCacheService userAllowedTenantCacheService,
-			PlatformTransactionManager transactionManager,
-			ErrorThesaurusProperties errors, QueryUtilsService queryUtilsService, LockByKeyManager lockByKeyManager, ConventionService conventionService, UserTouchedIntegrationEventHandler userTouchedIntegrationEventHandler, AuthorizationConfiguration authorizationConfiguration, UserTenantRolesCacheService userTenantRolesCacheService, TenantEntityManager tenantEntityManager) {
+            TenantScope tenantScope,
+            UserScope userScope,
+            CurrentPrincipalResolver currentPrincipalResolver,
+            ClaimExtractor claimExtractor,
+            ApplicationContext applicationContext,
+            TenantScopeProperties tenantScopeProperties,
+            UserAllowedTenantCacheService userAllowedTenantCacheService,
+            PlatformTransactionManager transactionManager,
+            ErrorThesaurusProperties errors, QueryUtilsService queryUtilsService, LockByKeyManager lockByKeyManager, ConventionService conventionService, UserTouchedIntegrationEventHandler userTouchedIntegrationEventHandler, IndicatorAccessEventHandlerImpl indicatorAccessEventHandler, AuthorizationConfiguration authorizationConfiguration, UserTenantRolesCacheService userTenantRolesCacheService, TenantEntityManager tenantEntityManager) {
 		this.tenantScope = tenantScope;
 		this.userScope = userScope;
 		this.currentPrincipalResolver = currentPrincipalResolver;
@@ -98,7 +100,8 @@ public class TenantInterceptor implements WebRequestInterceptor {
 		this.lockByKeyManager = lockByKeyManager;
 		this.conventionService = conventionService;
 		this.userTouchedIntegrationEventHandler = userTouchedIntegrationEventHandler;
-		this.authorizationConfiguration = authorizationConfiguration;
+        this.indicatorAccessEventHandler = indicatorAccessEventHandler;
+        this.authorizationConfiguration = authorizationConfiguration;
 		this.userTenantRolesCacheService = userTenantRolesCacheService;
 		this.tenantEntityManager = tenantEntityManager;
 	}
@@ -232,12 +235,13 @@ public class TenantInterceptor implements WebRequestInterceptor {
 			status = this.transactionManager.getTransaction(definition);
 			this.entityManager.persist(user);
 			this.entityManager.flush();
+			this.userTouchedIntegrationEventHandler.handle(this.userScope.getUserId());
+			this.indicatorAccessEventHandler.handle(this.userScope.getUserId());
 			this.transactionManager.commit(status);
 		} catch (Exception ex) {
 			if (status != null) this.transactionManager.rollback(status);
 			throw ex;
 		}
-		this.userTouchedIntegrationEventHandler.handle(this.userScope.getUserId());
 		return true;
 	}
 
@@ -272,6 +276,11 @@ public class TenantInterceptor implements WebRequestInterceptor {
 				}
 
 				this.entityManager.flush();
+
+				if (hasChanges){
+					this.userTouchedIntegrationEventHandler.handle(this.userScope.getUserId());
+					this.indicatorAccessEventHandler.handle(this.userScope.getUserId());
+				}
 				this.transactionManager.commit(status);
 			} catch (Exception ex) {
 				if (status != null) this.transactionManager.rollback(status);
@@ -279,9 +288,6 @@ public class TenantInterceptor implements WebRequestInterceptor {
 			}
 		} finally {
 			if (usedResource) this.lockByKeyManager.unlock(lockId);
-		}
-		if (hasChanges){
-			this.userTouchedIntegrationEventHandler.handle(this.userScope.getUserId());
 		}
 	}
 

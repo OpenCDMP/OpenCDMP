@@ -67,6 +67,7 @@ public class PublicPlanUserBuilder extends BaseBuilder<PublicPlanUser, PlanUserE
             PublicPlanUser m = new PublicPlanUser();
             if (fields.hasField(this.asIndexer(PublicPlanUser._id))) m.setId(d.getId());
             if (fields.hasField(this.asIndexer(PublicPlanUser._role))) m.setRole(d.getRole());
+            if (fields.hasField(this.asIndexer(PublicPlanUser._sectionId))) m.setSectionId(d.getSectionId());
             if (!userFields.isEmpty() && userItemsMap != null && userItemsMap.containsKey(d.getUserId())) m.setUser(userItemsMap.get(d.getUserId()));
             if (!planFields.isEmpty() && planItemsMap != null && planItemsMap.containsKey(d.getPlanId())) m.setPlan(planItemsMap.get(d.getPlanId()));
             models.add(m);

@@ -8,6 +8,7 @@ import gr.cite.commons.web.oidc.filter.webflux.TokenExchangeFilterFunction;
 import gr.cite.commons.web.oidc.filter.webflux.TokenExchangeModel;
 import gr.cite.tools.data.builder.BuilderFactory;
 import gr.cite.tools.data.query.QueryFactory;
+import gr.cite.tools.exception.MyApplicationException;
 import gr.cite.tools.exception.MyNotFoundException;
 import gr.cite.tools.fieldset.BaseFieldSet;
 import gr.cite.tools.logging.LoggerService;
@@ -21,19 +22,26 @@ import org.opencdmp.commonmodels.models.FileEnvelopeModel;
 import org.opencdmp.commonmodels.models.description.DescriptionModel;
 import org.opencdmp.commons.JsonHandlingService;
 import org.opencdmp.commons.enums.*;
+import org.opencdmp.commons.notification.NotificationProperties;
 import org.opencdmp.commons.scope.tenant.TenantScope;
 import org.opencdmp.commons.scope.user.UserScope;
 import org.opencdmp.commons.types.evaluator.EvaluatorSourceEntity;
+import org.opencdmp.commons.types.notification.DataType;
+import org.opencdmp.commons.types.notification.FieldInfo;
+import org.opencdmp.commons.types.notification.NotificationFieldData;
+import org.opencdmp.data.*;
+import org.opencdmp.evaluatorbase.enums.RankType;
+import org.opencdmp.evaluatorbase.enums.SuccessStatus;
 import org.opencdmp.evaluatorbase.interfaces.EvaluatorClient;
 import org.opencdmp.evaluatorbase.interfaces.EvaluatorConfiguration;
 import org.opencdmp.commons.types.tenantconfiguration.EvaluatorTenantConfigurationEntity;
 import org.opencdmp.convention.ConventionService;
-import org.opencdmp.data.DescriptionEntity;
-import org.opencdmp.data.PlanEntity;
-import org.opencdmp.data.TenantConfigurationEntity;
-import org.opencdmp.data.TenantEntityManager;
-import org.opencdmp.evaluatorbase.models.misc.RankModel;
+import org.opencdmp.evaluatorbase.interfaces.SelectionConfiguration;
+import org.opencdmp.evaluatorbase.interfaces.ValueRangeConfiguration;
+import org.opencdmp.evaluatorbase.models.misc.*;
 import org.opencdmp.event.TenantConfigurationTouchedEvent;
+import org.opencdmp.integrationevent.outbox.notification.NotifyIntegrationEvent;
+import org.opencdmp.integrationevent.outbox.notification.NotifyIntegrationEventHandler;
 import org.opencdmp.model.StorageFile;
 import org.opencdmp.model.builder.commonmodels.description.DescriptionCommonModelBuilder;
 import org.opencdmp.model.builder.commonmodels.plan.PlanCommonModelBuilder;
@@ -42,9 +50,7 @@ import org.opencdmp.model.persist.StorageFilePersist;
 import org.opencdmp.model.plan.Plan;
 import org.opencdmp.commonmodels.models.plan.PlanModel;
 import org.opencdmp.model.tenantconfiguration.TenantConfiguration;
-import org.opencdmp.query.DescriptionQuery;
-import org.opencdmp.query.PlanQuery;
-import org.opencdmp.query.TenantConfigurationQuery;
+import org.opencdmp.query.*;
 import org.opencdmp.service.accounting.AccountingService;
 import org.opencdmp.service.encryption.EncryptionService;
 import org.opencdmp.service.evaluation.EvaluationService;
@@ -76,6 +82,7 @@ import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.time.Duration;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 public class EvaluatorServiceImpl implements EvaluatorService {
@@ -104,9 +111,11 @@ public class EvaluatorServiceImpl implements EvaluatorService {
     private final ValidatorFactory validatorFactory;
     private final AuthorizationContentResolver authorizationContentResolver;
     private final EvaluationService evaluationService;
+    private final NotificationProperties notificationProperties;
+    private final NotifyIntegrationEventHandler eventHandler;
 
     @Autowired
-    public EvaluatorServiceImpl(EvaluatorProperties evaluatorProperties, Map<String, EvaluatorClientImpl> clients, TokenExchangeCacheService tokenExchangeCacheService, EvaluatorConfigurationCacheService evaluatorConfigurationCacheService, AuthorizationService authorizationService, QueryFactory queryFactory, BuilderFactory builderFactory, MessageSource messageSource, ConventionService conventionService, TenantScope tenantScope, EncryptionService encryptionService, TenantProperties tenantProperties, JsonHandlingService jsonHandlingService, EvaluatorSourcesCacheService evaluatorSourcesCacheService, AccountingService accountingService, TenantEntityManager entityManager, FileTransformerService fileTransformerService, UserScope userScope, StorageFileService storageFileService, StorageFileProperties storageFileProperties, ValidatorFactory validatorFactory, AuthorizationContentResolver authorizationContentResolver, EvaluationService evaluationService) {
+    public EvaluatorServiceImpl(EvaluatorProperties evaluatorProperties, Map<String, EvaluatorClientImpl> clients, TokenExchangeCacheService tokenExchangeCacheService, EvaluatorConfigurationCacheService evaluatorConfigurationCacheService, AuthorizationService authorizationService, QueryFactory queryFactory, BuilderFactory builderFactory, MessageSource messageSource, ConventionService conventionService, TenantScope tenantScope, EncryptionService encryptionService, TenantProperties tenantProperties, JsonHandlingService jsonHandlingService, EvaluatorSourcesCacheService evaluatorSourcesCacheService, AccountingService accountingService, TenantEntityManager entityManager, FileTransformerService fileTransformerService, UserScope userScope, StorageFileService storageFileService, StorageFileProperties storageFileProperties, ValidatorFactory validatorFactory, AuthorizationContentResolver authorizationContentResolver, EvaluationService evaluationService, NotificationProperties notificationProperties, NotifyIntegrationEventHandler eventHandler) {
         this.evaluatorProperties = evaluatorProperties;
         this.clients = clients;
         this.tokenExchangeCacheService = tokenExchangeCacheService;
@@ -130,6 +139,8 @@ public class EvaluatorServiceImpl implements EvaluatorService {
         this.validatorFactory = validatorFactory;
         this.authorizationContentResolver = authorizationContentResolver;
         this.evaluationService = evaluationService;
+        this.notificationProperties = notificationProperties;
+        this.eventHandler = eventHandler;
     }
     private EvaluatorClientImpl getEvaluatorClient(String repoId) throws InvalidApplicationException, InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
         String repositoryIdByTenant = this.getRepositoryIdByTenant(repoId);
@@ -276,7 +287,7 @@ public class EvaluatorServiceImpl implements EvaluatorService {
     }
 
     @Override
-    public RankModel rankPlan(UUID planId, String evaluatorId, String format, boolean isPublic) throws InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, InvalidApplicationException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException, IOException {
+    public RankResultModel rankPlan(UUID planId, String evaluatorId, String format, List<String> benchmarkIds, boolean isPublic) throws InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, InvalidApplicationException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException, IOException {
         this.authorizationService.authorizeAtLeastOneForce(List.of(this.authorizationContentResolver.planAffiliation(planId)), Permission.EvaluatePlan);
         EvaluatorClientImpl repository = this.getEvaluatorClient(evaluatorId);
 
@@ -302,16 +313,111 @@ public class EvaluatorServiceImpl implements EvaluatorService {
         this.accountingService.increase(UsageLimitTargetMetric.FILE_TRANSFORMER_EXPORT_PLAN_EXECUTION_COUNT.getValue());
         this.increaseTargetMetricWithRepositoryId(UsageLimitTargetMetric.FILE_TRANSFORMER_EXPORT_PLAN_EXECUTION_COUNT_FOR, evaluatorId);
 
-        RankModel rankModel = repository.rankPlan(evaluatorModel);
+        RankResultModel rankModel = repository.rankPlan(new PlanEvaluationModel(evaluatorModel,benchmarkIds));
         this.increaseTargetMetricWithRepositoryId(UsageLimitTargetMetric.EVALUATION_PLAN_EXECUTION_COUNT_FOR, evaluatorId);
 
         this.evaluationService.persistInternal(rankModel, repository.getConfiguration().getRankConfig(), planId, EntityType.Plan , evaluatorId, userScope.getUserId());
+
+        this.sendPlanNotification(planEntity, evaluatorId, rankModel, repository.getConfiguration().getRankConfig());
+
         return rankModel;
 
     }
 
+    private void sendPlanNotification(PlanEntity planEntity, String repositoryId, RankResultModel rankModel, RankConfig rankConfig) throws InvalidApplicationException {
+        List<PlanUserEntity> planUsers = this.queryFactory.query(PlanUserQuery.class).disableTracking().planIds(planEntity.getId()).isActives(IsActive.Active).collect();
+        if (this.conventionService.isListNullOrEmpty(planUsers)){
+            throw new MyNotFoundException("Plan does not have Users");
+        }
+
+        List<UserEntity> users = this.queryFactory.query(UserQuery.class).disableTracking().ids(planUsers.stream().map(PlanUserEntity::getUserId).collect(Collectors.toList())).isActive(IsActive.Active).collect();
+
+        for (UserEntity user: users) {
+            if (!user.getId().equals(this.userScope.getUserIdSafe()) && !this.conventionService.isListNullOrEmpty(planUsers.stream().filter(x -> x.getUserId().equals(user.getId())).collect(Collectors.toList()))){
+                this.createPlanEvaluationNotificationEvent(planEntity, user, repositoryId, rankModel, rankConfig);
+            }
+        }
+    }
+
+    private void createPlanEvaluationNotificationEvent(PlanEntity plan, UserEntity user, String repositoryId, RankResultModel rankModel,  RankConfig rankConfig) throws InvalidApplicationException {
+        NotifyIntegrationEvent event = new NotifyIntegrationEvent();
+        event.setUserId(user.getId());
+
+        event.setNotificationType(this.notificationProperties.getPlanEvaluationType());
+        NotificationFieldData data = new NotificationFieldData();
+        List<FieldInfo> fieldInfoList = new ArrayList<>();
+        fieldInfoList.add(new FieldInfo("{recipient}", DataType.String, user.getName()));
+        fieldInfoList.add(new FieldInfo("{reasonName}", DataType.String, this.queryFactory.query(UserQuery.class).disableTracking().ids(this.userScope.getUserId()).first().getName()));
+        fieldInfoList.add(new FieldInfo("{name}", DataType.String, plan.getLabel()));
+        fieldInfoList.add(new FieldInfo("{id}", DataType.String, plan.getId().toString()));
+        fieldInfoList.add(new FieldInfo("{evaluatorName}", DataType.String, repositoryId));
+        fieldInfoList.add(new FieldInfo("{result}", DataType.String, this.applyRankResultString(rankConfig, rankModel.getRank())));
+        fieldInfoList.add(new FieldInfo("{benchmarks}", DataType.String, this.applyBenchmarkTitle(rankConfig, rankModel)));
+
+        if(this.tenantScope.getTenantCode() != null && !this.tenantScope.getTenantCode().equals(this.tenantScope.getDefaultTenantCode())){
+            fieldInfoList.add(new FieldInfo("{tenant-url-path}", DataType.String, String.format("/t/%s", this.tenantScope.getTenantCode())));
+        }
+        data.setFields(fieldInfoList);
+        event.setData(this.jsonHandlingService.toJsonSafe(data));
+
+        this.eventHandler.handle(event);
+    }
+
+    private String applyBenchmarkTitle(RankConfig rankConfig, RankResultModel rankModel) {
+        if (rankModel == null || rankModel.getResults() == null || rankModel.getResults().isEmpty())
+            throw new MyApplicationException("Rank Model is Missing.");
+
+        StringBuilder sb = new StringBuilder();
+        List<EvaluationResultModel> benchmarks = rankModel.getResults();
+        boolean isFirst = true;
+        for(EvaluationResultModel benchmark : benchmarks){
+
+            if(!isFirst) sb.append(", ");
+
+            sb.append(benchmark.getBenchmarkTitle())
+                    .append("(")
+                    .append(this.applyRankResultString(rankConfig, benchmark.getRank()))
+                    .append(") ");
+
+
+            isFirst = false;
+        }
+        return sb.toString();
+    }
+
+
+    private String applyRankResultString(RankConfig rankConfig, double rank) {
+
+        if(rankConfig.getRankType().equals(RankType.Selection)){
+            SelectionConfiguration selectionConfiguration = rankConfig.getSelectionConfiguration();
+
+            SelectionConfiguration.ValueSet matchedValueSet = selectionConfiguration.getValueSetList().stream()
+                    .filter(x -> x.getKey() == rank)
+                    .findFirst()
+                    .orElse(null);
+
+                    if (matchedValueSet == null) throw new MyApplicationException("Matched Value Missing.");
+
+            return switch (matchedValueSet.getSuccessStatus()) {
+                case Fail ->
+                        this.messageSource.getMessage("rankResult.fail", new Object[]{}, LocaleContextHolder.getLocale());
+                case Pass ->
+                        this.messageSource.getMessage("rankResult.pass", new Object[]{}, LocaleContextHolder.getLocale());
+            };
+
+        } else if(rankConfig.getRankType().equals(RankType.ValueRange)){
+            ValueRangeConfiguration valueRangeConfiguration = rankConfig.getValueRangeConfiguration();
+            if(rank >= valueRangeConfiguration.getMinPassValue()){
+                return this.messageSource.getMessage("rankResult.pass", new Object[]{}, LocaleContextHolder.getLocale());
+            }else{
+                return this.messageSource.getMessage("rankResult.fail", new Object[]{}, LocaleContextHolder.getLocale());
+            }
+        }
+        throw new MyApplicationException("Rank Type is Missing.");
+    }
+
     @Override
-    public RankModel rankDescription(UUID descriptionId, String repositoryId, String format, boolean isPublic) throws InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, InvalidApplicationException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException, IOException {
+    public RankResultModel rankDescription(UUID descriptionId, String repositoryId, String format, List<String> benchmarkIds, boolean isPublic) throws InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, InvalidApplicationException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException, IOException {
         this.authorizationService.authorizeAtLeastOneForce(List.of(this.authorizationContentResolver.descriptionAffiliation(descriptionId)), Permission.EvaluateDescription);
         EvaluatorClientImpl repository = this.getEvaluatorClient(repositoryId);
 
@@ -327,11 +433,53 @@ public class EvaluatorServiceImpl implements EvaluatorService {
         this.increaseTargetMetricWithRepositoryId(UsageLimitTargetMetric.FILE_TRANSFORMER_EXPORT_DESCRIPTIONS_EXECUTION_COUNT_FOR, repositoryId);
 
 
-        RankModel rankModel = repository.rankDescription(descriptionEvaluatorModel);
+        RankResultModel rankModel = repository.rankDescription(new DescriptionEvaluationModel(descriptionEvaluatorModel,benchmarkIds));
         this.increaseTargetMetricWithRepositoryId(UsageLimitTargetMetric.EVALUATION_DESCRIPTION_EXECUTION_COUNT_FOR, repositoryId);
 
         this.evaluationService.persistInternal(rankModel, repository.getConfiguration().getRankConfig(), descriptionId, EntityType.Description , repositoryId, userScope.getUserId());
+
+        this.sendDescriptionNotification(descriptionEntity, repositoryId, rankModel, repository.getConfiguration().getRankConfig());
+
         return rankModel;
+    }
+
+    private void sendDescriptionNotification(DescriptionEntity descriptionEntity, String repositoryId, RankResultModel rankModel, RankConfig rankConfig) throws InvalidApplicationException {
+        List<PlanUserEntity> planUsers = this.queryFactory.query(PlanUserQuery.class).disableTracking().planIds(descriptionEntity.getId()).isActives(IsActive.Active).collect();
+        if (this.conventionService.isListNullOrEmpty(planUsers)){
+            throw new MyNotFoundException("Plan does not have Users");
+        }
+
+        List<UserEntity> users = this.queryFactory.query(UserQuery.class).disableTracking().ids(planUsers.stream().map(PlanUserEntity::getUserId).collect(Collectors.toList())).isActive(IsActive.Active).collect();
+
+        for (UserEntity user: users) {
+            if (!user.getId().equals(this.userScope.getUserIdSafe()) && !this.conventionService.isListNullOrEmpty(planUsers.stream().filter(x -> x.getUserId().equals(user.getId())).collect(Collectors.toList()))){
+                this.createDescriptionEvaluationNotificationEvent(descriptionEntity, user, repositoryId, rankModel, rankConfig);
+            }
+        }
+    }
+
+    private void createDescriptionEvaluationNotificationEvent(DescriptionEntity description, UserEntity user, String repositoryId, RankResultModel rankModel,  RankConfig rankConfig) throws InvalidApplicationException {
+        NotifyIntegrationEvent event = new NotifyIntegrationEvent();
+        event.setUserId(user.getId());
+
+        event.setNotificationType(this.notificationProperties.getPlanEvaluationType());
+        NotificationFieldData data = new NotificationFieldData();
+        List<FieldInfo> fieldInfoList = new ArrayList<>();
+        fieldInfoList.add(new FieldInfo("{recipient}", DataType.String, user.getName()));
+        fieldInfoList.add(new FieldInfo("{reasonName}", DataType.String, this.queryFactory.query(UserQuery.class).disableTracking().ids(this.userScope.getUserId()).first().getName()));
+        fieldInfoList.add(new FieldInfo("{name}", DataType.String, description.getLabel()));
+        fieldInfoList.add(new FieldInfo("{id}", DataType.String, description.getId().toString()));
+        fieldInfoList.add(new FieldInfo("{evaluatorName}", DataType.String, repositoryId));
+        fieldInfoList.add(new FieldInfo("{result}", DataType.String, this.applyRankResultString(rankConfig, rankModel.getRank())));
+        fieldInfoList.add(new FieldInfo("{benchmarks}", DataType.String, this.applyBenchmarkTitle(rankConfig, rankModel)));
+
+        if(this.tenantScope.getTenantCode() != null && !this.tenantScope.getTenantCode().equals(this.tenantScope.getDefaultTenantCode())){
+            fieldInfoList.add(new FieldInfo("{tenant-url-path}", DataType.String, String.format("/t/%s", this.tenantScope.getTenantCode())));
+        }
+        data.setFields(fieldInfoList);
+        event.setData(this.jsonHandlingService.toJsonSafe(data));
+
+        this.eventHandler.handle(event);
     }
 
     @Override

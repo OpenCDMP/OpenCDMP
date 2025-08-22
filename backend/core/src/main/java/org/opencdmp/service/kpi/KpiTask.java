@@ -5,6 +5,7 @@ import jakarta.persistence.*;
 import org.jetbrains.annotations.NotNull;
 import org.opencdmp.commons.fake.FakeRequestScope;
 import org.opencdmp.data.TenantEntityManager;
+import org.opencdmp.integrationevent.outbox.indicatorreset.IndicatorResetEventHandler;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
@@ -33,14 +34,16 @@ public class KpiTask implements Closeable, ApplicationListener<ApplicationReadyE
 	private final EntityManagerFactory entityManagerFactory;
 	private ScheduledExecutorService scheduler;
 	private final KpiService kpiService;
+	private final IndicatorResetEventHandler indicatorResetEventHandler;
 
 	public KpiTask(
-            KpiProperties properties, ApplicationContext applicationContext, EntityManagerFactory entityManagerFactory, KpiService kpiService) {
+            KpiProperties properties, ApplicationContext applicationContext, EntityManagerFactory entityManagerFactory, KpiService kpiService, IndicatorResetEventHandler indicatorResetEventHandler) {
         this.properties = properties;
         this.applicationContext = applicationContext;
 
 		this.entityManagerFactory = entityManagerFactory;
         this.kpiService = kpiService;
+        this.indicatorResetEventHandler = indicatorResetEventHandler;
     }
 
 	@Override
@@ -87,7 +90,7 @@ public class KpiTask implements Closeable, ApplicationListener<ApplicationReadyE
 				transaction = entityManager.getTransaction();
 				transaction.begin();
 
-				this.kpiService.resetIndicator();
+				this.indicatorResetEventHandler.handle(this.kpiService.resetIndicator());
 				this.kpiService.sendIndicatorPointPlanCountEntryEvents();
 				this.kpiService.sendIndicatorPointDescriptionCountEntryEvents();
 				this.kpiService.sendIndicatorPointUserCountEntryEvents();

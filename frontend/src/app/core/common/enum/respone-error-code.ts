@@ -70,6 +70,9 @@ export enum ResponseErrorCode {
   lockedPlanBlueprint = 173,
   lockedDescriptionTemplate = 174,
   invalidUserEmail = 175,
+  cannotPlanDeposit = 177,
+  cannotEditDescriptionTemplates = 178,
+  creatingPlanWithInactiveBlueprint = 179,
 
   // Notification & Annotation Errors
   InvalidApiKey = 200,
@@ -242,6 +245,8 @@ export class ResponseErrorCodeHelper {
         return language.instant("GENERAL.BACKEND-ERRORS.LOCKED-DESCRIPTION-TEMPLATE");
 	  case ResponseErrorCode.invalidUserEmail: 
         return language.instant("GENERAL.BACKEND-ERRORS.INVALID-USER-EMAIL");
+	  case ResponseErrorCode.creatingPlanWithInactiveBlueprint: 
+        return language.instant("GENERAL.BACKEND-ERRORS.CREATING-PLAN-WITH-INACTIVE-BLUEPRINT");
   	  default:
   	  	return language.instant("GENERAL.SNACK-BAR.NOT-FOUND");
   	}

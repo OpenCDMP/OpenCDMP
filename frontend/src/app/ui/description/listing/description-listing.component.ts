@@ -46,6 +46,10 @@ import { MatSelectChange } from '@angular/material/select';
 import { DescriptionStatus, DescriptionStatusDefinition } from '@app/core/model/description-status/description-status';
 import { PlanStatus } from '@app/core/model/plan-status/plan-status';
 import { StorageFile } from '@app/core/model/storage-file/storage-file';
+import {EntityDoi} from "@app/core/model/entity-doi/entity-doi";
+import {TenantConfigurationType} from "@app/core/common/enum/tenant-configuration-type";
+import {ViewPreferencesEditorResolver} from "@app/ui/admin/tenant-configuration/editor/view-preferences/view-preferences-editor.resolver";
+import {TenantConfigurationService} from "@app/core/services/tenant-configuration/tenant-configuration.service";
 
 @Component({
     selector: 'app-description-listing-component',
@@ -84,6 +88,7 @@ export class DescriptionListingComponent extends BaseListingComponent<BaseDescri
 
 	planText: string;
 	descriptionText: string;
+	orderedDescriptionPreferencesList:ReferenceType[];
 
 	get isAscending(): boolean {
 		return this.lookup?.order?.items?.[0].startsWith("-");
@@ -122,6 +127,7 @@ export class DescriptionListingComponent extends BaseListingComponent<BaseDescri
 		private fb: UntypedFormBuilder,
 		protected formBuilder: FormBuilder,
 		private principalService: PrincipalService,
+		private tenantConfigurationService: TenantConfigurationService
 	) {
 		super(router, route, uiNotificationService, httpErrorHandlingService, queryParamsService);
 	}
@@ -152,7 +158,17 @@ export class DescriptionListingComponent extends BaseListingComponent<BaseDescri
 				this.sortBy = this._getRecentActivityOrder(this.lookup.order.items[0]?.substring(1));
 				this.onPageLoad({ offset: this.lookup.page.offset / this.lookup.page.size } as PageLoadEvent);
 			});
-
+		if (this.authService.isLoggedIn()) {
+			this.tenantConfigurationService.getActiveType(TenantConfigurationType.ViewPreferences, ViewPreferencesEditorResolver.lookupFields())
+				.pipe(takeUntil(this._destroyed)).subscribe(
+				data => {
+					this.orderedDescriptionPreferencesList = data?.viewPreferences?.descriptionPreferences?.filter(x => x.referenceType?.isActive === IsActive.Active)?.map(x => x.referenceType) || [];
+				},
+				error => {
+					this.orderedDescriptionPreferencesList = []
+				}
+			);
+		} else this.orderedDescriptionPreferencesList = [];
 		if (!this.isPublic){
 			this._loadUserTenants().pipe(takeUntil(this._destroyed)).subscribe( tenants => {
 				this.tenants = tenants;
@@ -250,11 +266,11 @@ export class DescriptionListingComponent extends BaseListingComponent<BaseDescri
 			case RecentActivityOrder.Status: {
 				this.lookup.order = { items: [directionPrefix + nameof<Plan>(x => x.status)] };
 				break;
-			} 
+			}
 			case RecentActivityOrder.Label: {
 				this.lookup.order = { items: [directionPrefix + nameof<Plan>(x => x.label)] };
 				break;
-			} 
+			}
 			case RecentActivityOrder.PublishedAt: {
 				this.lookup.order = { items: [directionPrefix + nameof<Plan>(x => x.finalizedAt)] };
 				break;
@@ -375,7 +391,7 @@ export class DescriptionListingComponent extends BaseListingComponent<BaseDescri
 		this.filterChanged(this.lookup);
 	}
 
-	
+
 	private _loadUserTenants(): Observable<Array<Tenant>> {
 		const params = new BaseHttpParams();
 		params.interceptorContext = {
@@ -429,15 +445,15 @@ export class DescriptionListingComponent extends BaseListingComponent<BaseDescri
 				if (tenant && tenant?.code) {
 					this.lookup.tenantSubQuery = DescriptionFilterService.initializeTenantLookup();
 					this.lookup.tenantSubQuery.codes = [tenant.code]
-				} 
+				}
 				else this.lookup.tenantSubQuery = null;
 		} else this.lookup.tenantSubQuery = null;
-		
+
 		// Description Templates
 		let descriptionTemplates = filters?.descriptionTemplates ?? null;
 		if (descriptionTemplates && descriptionTemplates?.length > 0) {
 			this.lookup.descriptionTemplateSubQuery = DescriptionFilterService.initializeDescriptionTemplateLookup();
-			this.lookup.descriptionTemplateSubQuery.ids = descriptionTemplates;
+			this.lookup.descriptionTemplateSubQuery.groupIds = descriptionTemplates;
 		} else this.lookup.descriptionTemplateSubQuery = null;
 
 		// Plans
@@ -487,7 +503,7 @@ export class DescriptionListingComponent extends BaseListingComponent<BaseDescri
 		if (lookup.statusIds) count += lookup.statusIds.length;
 		if (lookup.isActive[0] == IsActive.Inactive) count += lookup.isActive.length;
 		if (lookup.tenantSubQuery) count += 1;
-		if (lookup.descriptionTemplateSubQuery) count += lookup.descriptionTemplateSubQuery.ids?.length;
+		if (lookup.descriptionTemplateSubQuery) count += lookup.descriptionTemplateSubQuery.groupIds?.length;
 		if (lookup.descriptionTagSubQuery) count += lookup.descriptionTagSubQuery.tagIds?.length;
 		if (lookup.planSubQuery) {
 			if (lookup.planSubQuery.ids) count += lookup.planSubQuery.ids?.length;
@@ -506,12 +522,12 @@ export class DescriptionListingComponent extends BaseListingComponent<BaseDescri
 			nameof<Description>(x => x.isActive),
 			[nameof<Description>(x => x.status), nameof<DescriptionStatus>(x => x.id)].join('.'),
 			[nameof<Description>(x => x.status), nameof<DescriptionStatus>(x => x.name)].join('.'),
-			[nameof<Description>(x => x.status), nameof<DescriptionStatus>(x => x.internalStatus)].join('.'),	
-			[nameof<Description>(x => x.status), nameof<DescriptionStatus>(x => x.definition), nameof<DescriptionStatusDefinition>(x => x.availableActions)].join('.'),			
+			[nameof<Description>(x => x.status), nameof<DescriptionStatus>(x => x.internalStatus)].join('.'),
+			[nameof<Description>(x => x.status), nameof<DescriptionStatus>(x => x.definition), nameof<DescriptionStatusDefinition>(x => x.availableActions)].join('.'),
 			[nameof<Description>(x => x.status), nameof<DescriptionStatus>(x => x.definition), nameof<DescriptionStatusDefinition>(x => x.statusColor)].join('.'),
-                    [nameof<Plan>(x => x.status), nameof<PlanStatus>(x => x.definition), nameof<DescriptionStatusDefinition>(x => x.matIconName)].join('.'),			
-                    [nameof<Plan>(x => x.status), nameof<PlanStatus>(x => x.definition), nameof<DescriptionStatusDefinition>(x => x.storageFile), nameof<StorageFile>(x => x.id)].join('.'),	
-		
+                    [nameof<Plan>(x => x.status), nameof<PlanStatus>(x => x.definition), nameof<DescriptionStatusDefinition>(x => x.matIconName)].join('.'),
+                    [nameof<Plan>(x => x.status), nameof<PlanStatus>(x => x.definition), nameof<DescriptionStatusDefinition>(x => x.storageFile), nameof<StorageFile>(x => x.id)].join('.'),
+
 			nameof<Description>(x => x.updatedAt),
 			nameof<Description>(x => x.belongsToCurrentTenant),
 			nameof<Description>(x => x.finalizedAt),

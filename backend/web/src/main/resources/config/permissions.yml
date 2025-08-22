@@ -321,7 +321,10 @@ permissions:
           - Owner
           - Viewer
           - DescriptionContributor
+          - DataSteward
           - Reviewer
+          - DataPrivacyOfficer
+          - EthicsReviewer
       clients: [ ]
       allowAnonymous: false
       allowAuthenticated: false
@@ -333,7 +336,10 @@ permissions:
         roles:
           - Owner
           - DescriptionContributor
+          - DataSteward
           - Reviewer
+          - DataPrivacyOfficer
+          - EthicsReviewer
       clients: [ ]
       allowAnonymous: false
       allowAuthenticated: false
@@ -345,6 +351,8 @@ permissions:
         roles:
           - Owner
           - DescriptionContributor
+          - DataSteward
+          - DataPrivacyOfficer
       clients: [ ]
       allowAnonymous: false
       allowAuthenticated: false
@@ -356,6 +364,8 @@ permissions:
         roles:
           - Owner
           - DescriptionContributor
+          - DataSteward
+          - DataPrivacyOfficer
       clients: [ ]
       allowAnonymous: false
       allowAuthenticated: false
@@ -367,6 +377,8 @@ permissions:
         roles:
           - Owner
           - DescriptionContributor
+          - DataSteward
+          - DataPrivacyOfficer
       claims: [ ]
       clients: [ ]
       allowAnonymous: false
@@ -390,6 +402,8 @@ permissions:
         roles:
           - Owner
           - DescriptionContributor
+          - DataSteward
+          - DataPrivacyOfficer
       claims: [ ]
       clients: [ ]
       allowAnonymous: false
@@ -479,7 +493,10 @@ permissions:
           - Owner
           - Viewer
           - DescriptionContributor
+          - DataSteward
           - Reviewer
+          - DataPrivacyOfficer
+          - EthicsReviewer
       claims: [ ]
       clients: [ ]
       allowAnonymous: false
@@ -622,7 +639,10 @@ permissions:
           - Owner
           - Viewer
           - DescriptionContributor
+          - DataSteward
           - Reviewer
+          - DataPrivacyOfficer
+          - EthicsReviewer
       clients: [ ]
       allowAnonymous: false
       allowAuthenticated: false
@@ -760,7 +780,10 @@ permissions:
         roles:
           - Owner
           - DescriptionContributor
+          - DataSteward
           - Reviewer
+          - DataPrivacyOfficer
+          - EthicsReviewer
       clients: [ ]
       allowAnonymous: false
       allowAuthenticated: false
@@ -1139,7 +1162,10 @@ permissions:
           - Owner
           - Viewer
           - DescriptionContributor
+          - DataSteward
           - Reviewer
+          - DataPrivacyOfficer
+          - EthicsReviewer
       descriptionTemplate:
         roles:
           - Owner
@@ -1156,7 +1182,10 @@ permissions:
           - Owner
           - Viewer
           - DescriptionContributor
+          - DataSteward
           - Reviewer
+          - DataPrivacyOfficer
+          - EthicsReviewer
       descriptionTemplate:
         roles:
           - Owner
@@ -1278,6 +1307,8 @@ permissions:
         roles:
           - Owner
           - DescriptionContributor
+          - DataSteward
+          - DataPrivacyOfficer
       clients: [ ]
       allowAnonymous: false
       allowAuthenticated: false
@@ -1289,6 +1320,8 @@ permissions:
         roles:
           - Owner
           - DescriptionContributor
+          - DataSteward
+          - DataPrivacyOfficer
       clients: [ ]
       allowAnonymous: false
       allowAuthenticated: false
@@ -1300,6 +1333,8 @@ permissions:
         roles:
           - Owner
           - DescriptionContributor
+          - DataSteward
+          - DataPrivacyOfficer
       claims: [ ]
       clients: [ ]
       allowAnonymous: false

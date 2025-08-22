@@ -1,16 +1,13 @@
-import { booleanAttribute, Component, computed, effect, EventEmitter, Injector, input, Input, Output } from '@angular/core';
-import { UntypedFormGroup } from '@angular/forms';
-import { MatExpansionPanel } from '@angular/material/expansion';
-import { AnnotationEntityType } from '@app/core/common/enum/annotation-entity-type';
-import { DescriptionTemplate } from '@app/core/model/description-template/description-template';
-import { PlanUser } from '@app/core/model/plan/plan';
-import { BaseComponent } from '@common/base/base.component';
-import { ValidationErrorModel } from '@common/forms/validation/error-model/validation-error-model';
-import { Guid } from '@common/types/guid';
-import { FormAnnotationService } from '../../../annotations/annotation-dialog-component/form-annotation.service';
-import { LinkToScroll } from '../table-of-contents/table-of-contents.component';
-import { VisibilityRulesService } from './visibility-rules/visibility-rules.service';
-import { PlanTempStorageService } from '@app/ui/plan/plan-editor-blueprint/plan-temp-storage.service';
+import {Component, EventEmitter, input, Input, Output} from '@angular/core';
+import {UntypedFormGroup} from '@angular/forms';
+import {MatExpansionPanel} from '@angular/material/expansion';
+import {DescriptionTemplate} from '@app/core/model/description-template/description-template';
+import {PlanUser} from '@app/core/model/plan/plan';
+import {BaseComponent} from '@common/base/base.component';
+import {ValidationErrorModel} from '@common/forms/validation/error-model/validation-error-model';
+import {Guid} from '@common/types/guid';
+import {LinkToScroll} from '../table-of-contents/table-of-contents.component';
+import {VisibilityRulesService} from './visibility-rules/visibility-rules.service';
 
 @Component({
     selector: 'app-description-form',
@@ -38,9 +35,7 @@ export class DescriptionFormComponent extends BaseComponent {
 
     @Output() formChanged: EventEmitter<any> = new EventEmitter();
 
-	constructor(
-		public formAnnotationService: FormAnnotationService,
-	) {
+	constructor() {
 		super();
 	}
 

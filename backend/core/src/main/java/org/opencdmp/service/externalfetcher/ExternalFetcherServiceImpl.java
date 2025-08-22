@@ -431,6 +431,7 @@ public class ExternalFetcherServiceImpl implements ExternalFetcherService {
 
         List<Map<String, String>> parsedData = new ArrayList<>();
         for(Object resultItem : result.getRawData()){
+            if (resultItem == null) continue;
             Map<String, String> map = new HashMap<>();
             boolean isValid = true;
             for(ResultFieldsMappingConfiguration field : resultsConfigurationEntity.getFieldsMapping()) {

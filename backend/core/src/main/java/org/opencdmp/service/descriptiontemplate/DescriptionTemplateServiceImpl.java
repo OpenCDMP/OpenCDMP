@@ -36,12 +36,15 @@ import org.opencdmp.commons.types.descriptiontemplatetype.DescriptionTemplateTyp
 import org.opencdmp.commons.types.notification.DataType;
 import org.opencdmp.commons.types.notification.FieldInfo;
 import org.opencdmp.commons.types.notification.NotificationFieldData;
+import org.opencdmp.commons.types.pluginconfiguration.PluginConfigurationEntity;
+import org.opencdmp.commons.types.pluginconfiguration.importexport.PluginConfigurationImportExport;
 import org.opencdmp.convention.ConventionService;
 import org.opencdmp.data.*;
 import org.opencdmp.errorcode.ErrorThesaurusProperties;
 import org.opencdmp.integrationevent.outbox.notification.NotifyIntegrationEvent;
 import org.opencdmp.integrationevent.outbox.notification.NotifyIntegrationEventHandler;
 import org.opencdmp.model.DescriptionTemplateType;
+import org.opencdmp.model.StorageFile;
 import org.opencdmp.model.builder.descriptiontemplate.DescriptionTemplateBuilder;
 import org.opencdmp.model.deleter.DescriptionTemplateDeleter;
 import org.opencdmp.model.deleter.UserDescriptionTemplateDeleter;
@@ -52,6 +55,8 @@ import org.opencdmp.model.persist.NewVersionDescriptionTemplatePersist;
 import org.opencdmp.model.persist.UserDescriptionTemplatePersist;
 import org.opencdmp.model.persist.descriptiontemplatedefinition.*;
 import org.opencdmp.model.persist.descriptiontemplatedefinition.fielddata.BaseFieldDataPersist;
+import org.opencdmp.model.persist.pluginconfiguration.PluginConfigurationPersist;
+import org.opencdmp.model.pluginconfiguration.PluginConfiguration;
 import org.opencdmp.model.user.User;
 import org.opencdmp.query.DescriptionTemplateQuery;
 import org.opencdmp.query.DescriptionTemplateTypeQuery;
@@ -61,7 +66,9 @@ import org.opencdmp.service.descriptiontemplatetype.DescriptionTemplateTypeServi
 import org.opencdmp.service.fielddatahelper.FieldDataHelperService;
 import org.opencdmp.service.fielddatahelper.FieldDataHelperServiceProvider;
 import org.opencdmp.service.lock.LockService;
+import org.opencdmp.service.pluginconfiguration.PluginConfigurationService;
 import org.opencdmp.service.responseutils.ResponseUtilsService;
+import org.opencdmp.service.storage.StorageFileService;
 import org.opencdmp.service.usagelimit.UsageLimitService;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -75,8 +82,7 @@ import javax.management.InvalidApplicationException;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.TransformerException;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.time.Instant;
+import java.nio.charset.StandardCharsets;import java.time.Instant;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -124,6 +130,11 @@ public class DescriptionTemplateServiceImpl implements DescriptionTemplateServic
     private final UsageLimitService usageLimitService;
     private final AccountingService accountingService;
     private final LockService lockService;
+    private final StorageFileService storageFileService;
+
+    private final PluginConfigurationService pluginConfigurationService;
+
+
 
     @Autowired
     public DescriptionTemplateServiceImpl(
@@ -141,7 +152,7 @@ public class DescriptionTemplateServiceImpl implements DescriptionTemplateServic
             JsonHandlingService jsonHandlingService,
             NotifyIntegrationEventHandler eventHandler,
             NotificationProperties notificationProperties,
-            ValidatorFactory validatorFactory, DescriptionTemplateTypeService descriptionTemplateTypeService, AuthorizationContentResolver authorizationContentResolver, UsageLimitService usageLimitService, AccountingService accountingService, LockService lockService) {
+            ValidatorFactory validatorFactory, DescriptionTemplateTypeService descriptionTemplateTypeService, AuthorizationContentResolver authorizationContentResolver, UsageLimitService usageLimitService, AccountingService accountingService, LockService lockService, StorageFileService storageFileService, PluginConfigurationService pluginConfigurationService) {
         this.entityManager = entityManager;
         this.userScope = userScope;
         this.authorizationService = authorizationService;
@@ -164,6 +175,8 @@ public class DescriptionTemplateServiceImpl implements DescriptionTemplateServic
         this.usageLimitService = usageLimitService;
         this.accountingService = accountingService;
         this.lockService = lockService;
+        this.storageFileService = storageFileService;
+        this.pluginConfigurationService = pluginConfigurationService;
     }
 
     //region Persist
@@ -210,13 +223,21 @@ public class DescriptionTemplateServiceImpl implements DescriptionTemplateServic
         data.setLanguage(model.getLanguage());
         data.setStatus(model.getStatus());
         data.setUpdatedAt(Instant.now());
-        data.setDefinition(this.xmlHandlingService.toXml(this.buildDefinitionEntity(model.getDefinition())));
+
+        DefinitionEntity oldDefinition = this.conventionService.isNullOrEmpty(data.getDefinition()) ? null : this.xmlHandlingService.fromXmlSafe(DefinitionEntity.class, data.getDefinition());
+        data.setDefinition(this.xmlHandlingService.toXml(this.buildDefinitionEntity(model.getDefinition(), oldDefinition)));
 
         if (isUpdate) {
             this.entityManager.merge(data);
+            if (previousStatus != null && previousStatus.equals(DescriptionTemplateStatus.Draft) && data.getStatus().equals(DescriptionTemplateStatus.Finalized)) {
+                this.accountingService.increase(UsageLimitTargetMetric.DESCRIPTION_TEMPLATE_FINALIZED_COUNT.getValue());
+                this.accountingService.decrease(UsageLimitTargetMetric.DESCRIPTION_TEMPLATE_DRAFT_COUNT.getValue());
+            }
         } else {
             this.entityManager.persist(data);
             this.accountingService.increase(UsageLimitTargetMetric.DESCRIPTION_TEMPLATE_COUNT.getValue());
+            if (data.getStatus().equals(DescriptionTemplateStatus.Draft)) this.accountingService.increase(UsageLimitTargetMetric.DESCRIPTION_TEMPLATE_DRAFT_COUNT.getValue());
+            if (data.getStatus().equals(DescriptionTemplateStatus.Finalized)) this.accountingService.increase(UsageLimitTargetMetric.DESCRIPTION_TEMPLATE_FINALIZED_COUNT.getValue());
         }
 
         this.persistUsers(data.getId(), model.getUsers());
@@ -329,7 +350,7 @@ public class DescriptionTemplateServiceImpl implements DescriptionTemplateServic
 	    this.eventHandler.handle(event);
     }
 
-    private @NotNull DefinitionEntity buildDefinitionEntity(DefinitionPersist persist) {
+    private @NotNull DefinitionEntity buildDefinitionEntity(DefinitionPersist persist, DefinitionEntity oldValue) throws InvalidApplicationException {
         DefinitionEntity data = new DefinitionEntity();
         if (persist == null)
             return data;
@@ -338,6 +359,13 @@ public class DescriptionTemplateServiceImpl implements DescriptionTemplateServic
             data.setPages(new ArrayList<>());
             for (PagePersist pagePersist : persist.getPages()) {
                 data.getPages().add(this.buildPageEntity(pagePersist));
+            }
+        }
+
+        if (!this.conventionService.isListNullOrEmpty(persist.getPluginConfigurations())) {
+            data.setPluginConfigurations(new ArrayList<>());
+            for (PluginConfigurationPersist pluginConfigurationPersist : persist.getPluginConfigurations()) {
+                data.getPluginConfigurations().add(this.pluginConfigurationService.buildPluginConfigurationEntity(pluginConfigurationPersist, oldValue != null ? oldValue.getPluginConfigurations(): null));
             }
         }
 
@@ -592,6 +620,12 @@ public class DescriptionTemplateServiceImpl implements DescriptionTemplateServic
             }
         }
 
+        if (model.getPluginConfigurations() != null) {
+            for (PluginConfiguration pluginConfiguration : model.getPluginConfigurations()) {
+                this.pluginConfigurationService.reassignPluginConfiguration(pluginConfiguration);
+            }
+        }
+
         for (Field field: this.getAllFieldByDefinition(model)) {
             if (!this.conventionService.isListNullOrEmpty(field.getVisibilityRules())){
                 for (Rule rule: field.getVisibilityRules()) {
@@ -744,7 +778,15 @@ public class DescriptionTemplateServiceImpl implements DescriptionTemplateServic
         data.setTypeId(model.getType());
         data.setLanguage(model.getLanguage());
         data.setStatus(model.getStatus());
-        data.setDefinition(this.xmlHandlingService.toXml(this.buildDefinitionEntity(model.getDefinition())));
+
+        if (!this.conventionService.isListNullOrEmpty(model.getDefinition().getPluginConfigurations())) {
+            org.opencdmp.commons.types.planblueprint.DefinitionEntity oldDefinition = this.conventionService.isNullOrEmpty(oldDescriptionTemplateEntity.getDefinition()) ? null : this.xmlHandlingService.fromXmlSafe(org.opencdmp.commons.types.planblueprint.DefinitionEntity.class, oldDescriptionTemplateEntity.getDefinition());
+            if (oldDefinition != null && !this.conventionService.isListNullOrEmpty(oldDefinition.getPluginConfigurations())) {
+                // reassign new storage files if equals with old
+                this.pluginConfigurationService.reassignNewStorageFilesIfEqualsWithOld(model.getDefinition().getPluginConfigurations(), oldDefinition.getPluginConfigurations());
+            }
+        }
+        data.setDefinition(this.xmlHandlingService.toXml(this.buildDefinitionEntity(model.getDefinition(), null)));
 
         this.entityManager.persist(data);
 
@@ -758,6 +800,8 @@ public class DescriptionTemplateServiceImpl implements DescriptionTemplateServic
         this.entityManager.flush();
 
         this.accountingService.increase(UsageLimitTargetMetric.DESCRIPTION_TEMPLATE_COUNT.getValue());
+        if (data.getStatus().equals(DescriptionTemplateStatus.Draft)) this.accountingService.increase(UsageLimitTargetMetric.DESCRIPTION_TEMPLATE_DRAFT_COUNT.getValue());
+        if (data.getStatus().equals(DescriptionTemplateStatus.Finalized)) this.accountingService.increase(UsageLimitTargetMetric.DESCRIPTION_TEMPLATE_FINALIZED_COUNT.getValue());
 
         return this.builderFactory.builder(DescriptionTemplateBuilder.class).authorize(AuthorizationFlags.AllExceptPublic).build(BaseFieldSet.build(fields, DescriptionTemplate._id), data);
     }
@@ -874,7 +918,7 @@ public class DescriptionTemplateServiceImpl implements DescriptionTemplateServic
         return this.importXml(importXml, groupId, label, fields);
     }
 
-    private DefinitionPersist xmlDefinitionToPersist(DescriptionTemplateImportExport importExport) {
+    private DefinitionPersist xmlDefinitionToPersist(DescriptionTemplateImportExport importExport) throws IOException {
         DefinitionPersist definitionPersist = new DefinitionPersist();
         if (importExport == null)
             return null;
@@ -886,6 +930,14 @@ public class DescriptionTemplateServiceImpl implements DescriptionTemplateServic
             }
         }
         definitionPersist.setPages(pagesDatasetEntity);
+
+        List<PluginConfigurationPersist> pluginConfigurations = new ArrayList<>();
+        if (!this.conventionService.isListNullOrEmpty(importExport.getPluginConfigurations())) {
+            for (PluginConfigurationImportExport pluginConfiguration : importExport.getPluginConfigurations()) {
+                pluginConfigurations.add(this.pluginConfigurationService.xmlPluginConfigurationToPersist(pluginConfiguration));
+            }
+        }
+        definitionPersist.setPluginConfigurations(pluginConfigurations);
 
         return definitionPersist;
     }
@@ -1053,6 +1105,13 @@ public class DescriptionTemplateServiceImpl implements DescriptionTemplateServic
         }
         xml.setPages(pagesDatasetEntity);
 
+        List<PluginConfigurationImportExport> pluginConfigurations = new ArrayList<>();
+        if (!this.conventionService.isListNullOrEmpty(entity.getPluginConfigurations())) {
+            for (PluginConfigurationEntity pluginConfiguration : entity.getPluginConfigurations()) {
+                pluginConfigurations.add(this.pluginConfigurationService.pluginConfigurationXmlToExport(pluginConfiguration));
+            }
+            xml.setPluginConfigurations(pluginConfigurations);
+        }
         return xml;
     }
 

@@ -1,6 +1,7 @@
 package org.opencdmp.model.deleter;
 
 import org.opencdmp.commons.enums.IsActive;
+import org.opencdmp.commons.enums.PlanBlueprintStatus;
 import org.opencdmp.commons.enums.UsageLimitTargetMetric;
 import org.opencdmp.data.PlanBlueprintEntity;
 import org.opencdmp.data.TenantEntityManager;
@@ -79,6 +80,8 @@ public class PlanBlueprintDeleter implements Deleter {
             this.entityManager.merge(item);
             logger.trace("updated item");
             this.accountingService.decrease(UsageLimitTargetMetric.BLUEPRINT_COUNT.getValue());
+            if (item.getStatus().equals(PlanBlueprintStatus.Draft)) this.accountingService.decrease(UsageLimitTargetMetric.BLUEPRINT_DRAFT_COUNT.getValue());
+            if (item.getStatus().equals(PlanBlueprintStatus.Finalized)) this.accountingService.decrease(UsageLimitTargetMetric.BLUEPRINT_FINALIZED_COUNT.getValue());
         }
     }
 

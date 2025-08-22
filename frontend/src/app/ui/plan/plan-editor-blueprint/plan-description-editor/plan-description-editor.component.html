@@ -3,7 +3,7 @@
         <div class="description-actions">
             <div class="action-btns" *ngIf="!viewOnly()">
                 @if(formGroup()?.dirty){
-                    <button mat-stroked-button [disabled]="isLoading || isLocked" type="button" class="padded-shadow-btn description-discard-btn" (click)="discardChanges()">
+                    <button mat-stroked-button [disabled]="isLoading() || isLocked" type="button" class="padded-shadow-btn description-discard-btn" (click)="discardChanges()">
                         {{'DESCRIPTION-EDITOR.ACTIONS.DISCARD.DISCARD' | translate}}
                     </button>
                 }
@@ -13,7 +13,7 @@
                             <button 
                                 mat-flat-button 
                                 color="accent"
-                                [disabled]="isLoading || formGroup().dirty" 
+                                [disabled]="isLoading() || formGroup().dirty" 
                                 class="padded-shadow-btn mr-2" 
                                 type="button" 
                                 (click)="changeStatus(status)"

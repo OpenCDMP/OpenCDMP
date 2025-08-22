@@ -44,6 +44,10 @@ public class TenantConfiguration {
 
     public static final String _logo = "logo";
 
+    private PluginTenantConfiguration pluginConfiguration;
+
+    public static final String _pluginConfiguration = "pluginConfiguration";
+
     private FeaturedEntities featuredEntities;
 
     public static final String _featuredEntities = "featuredEntities";
@@ -51,6 +55,10 @@ public class TenantConfiguration {
     private DefaultPlanBlueprintConfiguration defaultPlanBlueprint;
 
     public static final String _defaultPlanBlueprint = "defaultPlanBlueprint";
+
+    private ViewPreferencesConfiguration viewPreferences;
+
+    public static final String _viewPreferences = "viewPreferences";
 
     private Instant updatedAt;
 
@@ -123,6 +131,14 @@ public class TenantConfiguration {
         this.logo = logo;
     }
 
+    public PluginTenantConfiguration getPluginConfiguration() {
+        return pluginConfiguration;
+    }
+
+    public void setPluginConfiguration(PluginTenantConfiguration pluginConfiguration) {
+        this.pluginConfiguration = pluginConfiguration;
+    }
+
     public Instant getUpdatedAt() {
         return updatedAt;
     }
@@ -185,5 +201,13 @@ public class TenantConfiguration {
 
     public void setDefaultPlanBlueprint(DefaultPlanBlueprintConfiguration defaultPlanBlueprint) {
         this.defaultPlanBlueprint = defaultPlanBlueprint;
+    }
+
+    public ViewPreferencesConfiguration getViewPreferences() {
+        return viewPreferences;
+    }
+
+    public void setViewPreferences(ViewPreferencesConfiguration viewPreferences) {
+        this.viewPreferences = viewPreferences;
     }
 }

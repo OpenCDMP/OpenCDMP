@@ -694,4 +694,34 @@ public class ErrorThesaurusProperties {
     public void setInvalidUserEmail(ErrorDescription invalidUserEmail) {
         this.invalidUserEmail = invalidUserEmail;
     }
+
+    public ErrorDescription cannotEditDescriptionTemplates;
+
+    public ErrorDescription getCannotEditDescriptionTemplates() {
+        return cannotEditDescriptionTemplates;
+    }
+
+    public void setCannotEditDescriptionTemplates(ErrorDescription cannotEditDescriptionTemplates) {
+        this.cannotEditDescriptionTemplates = cannotEditDescriptionTemplates;
+    }
+
+    public ErrorDescription cannotPlanDeposit;
+
+    public ErrorDescription getCannotPlanDeposit() {
+        return cannotPlanDeposit;
+    }
+
+    public void setCannotPlanDeposit(ErrorDescription cannotPlanDeposit) {
+        this.cannotPlanDeposit = cannotPlanDeposit;
+    }
+
+    public ErrorDescription creatingPlanWithInactiveBlueprint;
+
+    public ErrorDescription getCreatingPlanWithInactiveBlueprint() {
+        return creatingPlanWithInactiveBlueprint;
+    }
+
+    public void setCreatingPlanWithInactiveBlueprint(ErrorDescription creatingPlanWithInactiveBlueprint) {
+        this.creatingPlanWithInactiveBlueprint = creatingPlanWithInactiveBlueprint;
+    }
 }

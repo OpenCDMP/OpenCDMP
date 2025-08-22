@@ -1,4 +1,4 @@
-import { Component, computed, effect, EventEmitter, input, OnInit, Output, untracked } from '@angular/core';
+import {Component, computed, effect, EventEmitter, Inject, input, OnDestroy, OnInit, Optional, Output, untracked} from '@angular/core';
 import {toSignal} from '@angular/core/rxjs-interop'
 import { DescriptionTemplate, DescriptionTemplateFieldSet, DescriptionTemplateSection } from '@app/core/model/description-template/description-template';
 import { VisibilityRulesService } from '@app/ui/description/editor/description-form/visibility-rules/visibility-rules.service';
@@ -10,6 +10,12 @@ import { TableOfContentsService } from './services/table-of-contents-service';
 import { Guid } from '@common/types/guid';
 import { PlanTempStorageService } from '@app/ui/plan/plan-editor-blueprint/plan-temp-storage.service';
 import { PropertiesFormGroup } from '../description-editor.model';
+import {
+	FormAnnotationService,
+	MULTI_FORM_ANNOTATION_SERVICE_TOKEN
+} from "@app/ui/annotations/annotation-dialog-component/form-annotation.service";
+import {MatDialog} from "@angular/material/dialog";
+import {RouterUtilsService} from "@app/core/services/router/router-utils.service";
 
 @Component({
     selector: 'app-table-of-contents',
@@ -17,7 +23,7 @@ import { PropertiesFormGroup } from '../description-editor.model';
     templateUrl: './table-of-contents.component.html',
     standalone: false
 })
-export class TableOfContentsComponent extends BaseComponent{
+export class TableOfContentsComponent extends BaseComponent implements OnDestroy{
 
 	@Output() entrySelected = new EventEmitter<any>();
 	showErrors = input<boolean>(false);
@@ -55,10 +61,17 @@ export class TableOfContentsComponent extends BaseComponent{
 
 
     templateValueChange$: Subscription;
+	annotationsPerAnchor: Map<string, number> = new Map<string, number>();
+	annotationsPerEntry = [];
+	private formAnnotationService: FormAnnotationService
 
+    notificationCount$: Subscription;
 	constructor(
 		private tableOfContentsService: TableOfContentsService,
-        private planTempStorage: PlanTempStorageService
+        private planTempStorage: PlanTempStorageService,
+		@Optional() @Inject(MULTI_FORM_ANNOTATION_SERVICE_TOKEN) private formAnnotationServices: FormAnnotationService[],
+		protected dialog: MatDialog,
+		public routerUtils: RouterUtilsService,
 	) {
 		super();
         effect(() => {
@@ -69,6 +82,19 @@ export class TableOfContentsComponent extends BaseComponent{
 
             if(templateControl.value) {
                 this.tocentries = this.getTocEntries(this.descriptionTemplate(templateControl.value));
+				if(this.descriptionId()){
+                    this.notificationCount$?.unsubscribe();
+					this.formAnnotationService = this.formAnnotationServices?.find(service => service.getEntityId() === this.descriptionId());
+					this.notificationCount$ = this.formAnnotationService?.getAnnotationCountObservable().pipe(takeUntil(this._destroyed)).subscribe((annotationsPerAnchor: Map<string, number>) => {
+							this.annotationsPerAnchor = annotationsPerAnchor;
+							if(this.annotationsPerAnchor){
+								this.annotationsPerEntry = [];
+								this.tocentries.forEach((value, key) => {
+									this.computeCounts(value, Array.from(this.annotationsPerAnchor.keys()));
+								})
+							}
+						});
+				}
                 if(untracked(this.selectedFieldId) && untracked(this.isVisible)){
                     this.selectField(untracked(this.selectedFieldId), false);
                 }
@@ -522,6 +548,26 @@ export class TableOfContentsComponent extends BaseComponent{
 	private _isVisible(entryId: string): boolean {
 		return this.visibilityRulesService().isVisibleMap[entryId] ?? true;
 	}
+	computeCounts(entry, keys){
+		if(keys.indexOf(entry.id)!=-1){
+			this.annotationsPerEntry[entry.id] = this.annotationsPerAnchor.get(entry.id); // field
+		}
+			entry?.subEntries?.forEach(subEntry=>
+			{
+				this.computeCounts(subEntry, keys);
+				if(this.annotationsPerEntry[subEntry.id]) {
+					this.annotationsPerEntry[entry.id] = this.annotationsPerEntry[entry.id] ?
+						this.annotationsPerEntry[entry.id] + this.annotationsPerEntry[subEntry.id] : this.annotationsPerEntry[subEntry.id];
+				}
+			})
+	}
+
+    ngOnDestroy(): void {
+        this.notificationCount$?.unsubscribe();
+        this.notificationCount$ = null;
+        this.templateValueChange$?.unsubscribe();
+        this.templateValueChange$ = null;
+    }
 }
 
 export interface LinkToScroll {

@@ -44,11 +44,11 @@
 						</mat-option>
 					</ng-container>
 					<ng-template #noItems>
-						<mat-option disabled="true">No results found!</mat-option>
+						<mat-option disabled="true">{{'GENERAL.AUTO-CONPLETE.NO-ITEMS' | translate}}</mat-option>
 					</ng-template>
 				</div>
 				<ng-template #loading>
-					<mat-option disabled="true">loading...</mat-option>
+					<mat-option *ngIf="loadDataOnStart || (!loadDataOnStart && inputValue?.length >= minFilteringChars)" disabled="true">{{'GENERAL.AUTO-CONPLETE.LOADING' | translate}}</mat-option>
 				</ng-template>
 			</span>
 		</div>

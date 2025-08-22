@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { ActivatedRouteSnapshot, RouterStateSnapshot } from '@angular/router';
 import { AppPermission } from '@app/core/common/enum/permission.enum';
-import { DescriptionTemplatesInSection, PlanBlueprint, PlanBlueprintDefinition, PlanBlueprintDefinitionSection, ExtraFieldInSection, FieldInSection, ReferenceTypeFieldInSection, SystemFieldInSection } from '@app/core/model/plan-blueprint/plan-blueprint';
+import { DescriptionTemplatesInSection, PlanBlueprint, PlanBlueprintDefinition, PlanBlueprintDefinitionSection, ExtraFieldInSection, FieldInSection, ReferenceTypeFieldInSection, SystemFieldInSection, UploadFieldInSection, UploadOption } from '@app/core/model/plan-blueprint/plan-blueprint';
 import { Plan, PlanBlueprintValue, PlanContact, PlanDescriptionTemplate, PlanProperties, PlanUser } from '@app/core/model/plan/plan';
 import { PlanReference, PlanReferenceData } from '@app/core/model/plan/plan-reference';
 import { ExternalFetcherBaseSourceConfiguration } from '@app/core/model/external-fetcher/external-fetcher';
@@ -18,6 +18,7 @@ import { PlanStatus, PlanStatusDefinition } from '@app/core/model/plan-status/pl
 import { PlanStatusPermission } from '@app/core/common/enum/plan-status-permission.enum';
 import { DescriptionTemplate } from '@app/core/model/description-template/description-template';
 import { PrefillingSource } from '@app/core/model/prefilling-source/prefilling-source';
+import { DescriptionTemplateType } from '@app/core/model/description-template-type/description-template-type';
 
 @Injectable()
 export class PlanEditorEntityResolver extends BaseEditorResolver {
@@ -78,6 +79,7 @@ export class PlanEditorEntityResolver extends BaseEditorResolver {
 			[nameof<Plan>(x => x.planUsers), nameof<PlanUser>(x => x.user.name)].join('.'),
 			[nameof<Plan>(x => x.planUsers), nameof<PlanUser>(x => x.role)].join('.'),
 			[nameof<Plan>(x => x.planUsers), nameof<PlanUser>(x => x.sectionId)].join('.'),
+			[nameof<Plan>(x => x.planUsers), nameof<PlanUser>(x => x.ordinal)].join('.'),
 			[nameof<Plan>(x => x.planUsers), nameof<PlanUser>(x => x.isActive)].join('.'),
 
 			[nameof<Plan>(x => x.planReferences), nameof<PlanReference>(x => x.id)].join('.'),
@@ -99,6 +101,8 @@ export class PlanEditorEntityResolver extends BaseEditorResolver {
 			[nameof<Plan>(x => x.planDescriptionTemplates), nameof<PlanDescriptionTemplate>(x => x.currentDescriptionTemplate), nameof<DescriptionTemplate>(x => x.id)].join('.'),
 			[nameof<Plan>(x => x.planDescriptionTemplates), nameof<PlanDescriptionTemplate>(x => x.currentDescriptionTemplate), nameof<DescriptionTemplate>(x => x.label)].join('.'),
 			[nameof<Plan>(x => x.planDescriptionTemplates), nameof<PlanDescriptionTemplate>(x => x.currentDescriptionTemplate), nameof<DescriptionTemplate>(x => x.version)].join('.'),
+			[nameof<Plan>(x => x.planDescriptionTemplates), nameof<PlanDescriptionTemplate>(x => x.currentDescriptionTemplate), nameof<DescriptionTemplate>(x => x.type), nameof<DescriptionTemplateType>((x) => x.name)].join('.'),
+			[nameof<Plan>(x => x.planDescriptionTemplates), nameof<PlanDescriptionTemplate>(x => x.currentDescriptionTemplate), nameof<DescriptionTemplate>(x => x.type), nameof<DescriptionTemplateType>((x) => x.id)].join('.'),
 
 			[nameof<Plan>(x => x.entityDois), nameof<EntityDoi>(x => x.id)].join('.'),
 			[nameof<Plan>(x => x.entityDois), nameof<EntityDoi>(x => x.repositoryId)].join('.'),
@@ -123,6 +127,7 @@ export class PlanEditorEntityResolver extends BaseEditorResolver {
 			(prefix ? prefix + '.' : '') + [nameof<PlanBlueprint>(x => x.definition), nameof<PlanBlueprintDefinition>(x => x.sections), nameof<PlanBlueprintDefinitionSection>(x => x.label)].join('.'),
 			(prefix ? prefix + '.' : '') + [nameof<PlanBlueprint>(x => x.definition), nameof<PlanBlueprintDefinition>(x => x.sections), nameof<PlanBlueprintDefinitionSection>(x => x.ordinal)].join('.'),
 			(prefix ? prefix + '.' : '') + [nameof<PlanBlueprint>(x => x.definition), nameof<PlanBlueprintDefinition>(x => x.sections), nameof<PlanBlueprintDefinitionSection>(x => x.description)].join('.'),
+			(prefix ? prefix + '.' : '') + [nameof<PlanBlueprint>(x => x.definition), nameof<PlanBlueprintDefinition>(x => x.sections), nameof<PlanBlueprintDefinitionSection>(x => x.canEditDescriptionTemplates)].join('.'),
 			(prefix ? prefix + '.' : '') + [nameof<PlanBlueprint>(x => x.definition), nameof<PlanBlueprintDefinition>(x => x.sections), nameof<PlanBlueprintDefinitionSection>(x => x.prefillingSourcesEnabled)].join('.'),
 			(prefix ? prefix + '.' : '') + [nameof<PlanBlueprint>(x => x.definition), nameof<PlanBlueprintDefinition>(x => x.sections), nameof<PlanBlueprintDefinitionSection>(x => x.prefillingSources), nameof<PrefillingSource>(x => x.id)].join('.'),			(prefix ? prefix + '.' : '') + [nameof<PlanBlueprint>(x => x.definition), nameof<PlanBlueprintDefinition>(x => x.sections), nameof<PlanBlueprintDefinitionSection>(x => x.hasTemplates)].join('.'),
 			(prefix ? prefix + '.' : '') + [nameof<PlanBlueprint>(x => x.definition), nameof<PlanBlueprintDefinition>(x => x.sections), nameof<PlanBlueprintDefinitionSection>(x => x.descriptionTemplates), nameof<DescriptionTemplatesInSection>(x => x.descriptionTemplate), nameof<DescriptionTemplate>(x => x.groupId)].join('.'),
@@ -142,6 +147,9 @@ export class PlanEditorEntityResolver extends BaseEditorResolver {
 			(prefix ? prefix + '.' : '') + [nameof<PlanBlueprint>(x => x.definition), nameof<PlanBlueprintDefinition>(x => x.sections), nameof<PlanBlueprintDefinitionSection>(x => x.fields), nameof<ReferenceTypeFieldInSection>(x => x.referenceType), nameof<ReferenceType>(x => x.code)].join('.'),
 			(prefix ? prefix + '.' : '') + [nameof<PlanBlueprint>(x => x.definition), nameof<PlanBlueprintDefinition>(x => x.sections), nameof<PlanBlueprintDefinitionSection>(x => x.fields), nameof<ReferenceTypeFieldInSection>(x => x.multipleSelect)].join('.'),
 			(prefix ? prefix + '.' : '') + [nameof<PlanBlueprint>(x => x.definition), nameof<PlanBlueprintDefinition>(x => x.sections), nameof<PlanBlueprintDefinitionSection>(x => x.fields), nameof<ReferenceTypeFieldInSection>(x => x.referenceType), nameof<ReferenceType>(x => x.definition), nameof<ReferenceTypeDefinition>(x=> x.sources), nameof<ExternalFetcherBaseSourceConfiguration>(x=> x.referenceTypeDependencies) , nameof<ReferenceType>(x => x.id)].join('.'),
+			(prefix ? prefix + '.' : '') + [nameof<PlanBlueprint>(x => x.definition), nameof<PlanBlueprintDefinition>(x => x.sections), nameof<PlanBlueprintDefinitionSection>(x => x.fields), nameof<UploadFieldInSection>(x => x.maxFileSizeInMB)].join('.'),
+			(prefix ? prefix + '.' : '') + [nameof<PlanBlueprint>(x => x.definition), nameof<PlanBlueprintDefinition>(x => x.sections), nameof<PlanBlueprintDefinitionSection>(x => x.fields), nameof<UploadFieldInSection>(x => x.types), nameof<UploadOption>(x => x.label)].join('.'),
+			(prefix ? prefix + '.' : '') + [nameof<PlanBlueprint>(x => x.definition), nameof<PlanBlueprintDefinition>(x => x.sections), nameof<PlanBlueprintDefinitionSection>(x => x.fields), nameof<UploadFieldInSection>(x => x.types), nameof<UploadOption>(x => x.value)].join('.'),
 		]
 	}
 

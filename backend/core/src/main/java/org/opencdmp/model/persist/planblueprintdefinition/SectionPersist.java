@@ -48,6 +48,9 @@ public class SectionPersist {
     private Boolean prefillingSourcesEnabled;
     public static final String _prefillingSourcesEnabled = "prefillingSourcesEnabled";
 
+    private Boolean canEditDescriptionTemplates;
+    public static final String _canEditDescriptionTemplates = "canEditDescriptionTemplates";
+
     private List<UUID> prefillingSourcesIds;
 
     public static final String _prefillingSourcesIds = "prefillingSourcesIds";
@@ -116,6 +119,14 @@ public class SectionPersist {
 
     public void setPrefillingSourcesEnabled(Boolean prefillingSourcesEnabled) { this.prefillingSourcesEnabled = prefillingSourcesEnabled; }
 
+    public Boolean getCanEditDescriptionTemplates() {
+        return canEditDescriptionTemplates;
+    }
+
+    public void setCanEditDescriptionTemplates(Boolean canEditDescriptionTemplates) {
+        this.canEditDescriptionTemplates = canEditDescriptionTemplates;
+    }
+
     @Component(SectionPersistValidator.ValidatorName)
     @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
     public static class SectionPersistValidator extends BaseValidator<SectionPersist> {
@@ -167,6 +178,9 @@ public class SectionPersist {
                                     case ReferenceType -> {
                                         return this.validatorFactory.validator(ReferenceTypeFieldPersist.ReferenceFieldPersistPersistValidator.class);
                                     }
+                                    case Upload -> {
+                                        return this.validatorFactory.validator(UploadFieldPersist.UploadFieldPersistValidator.class);
+                                    }
                                     default -> throw new MyApplicationException("unrecognized type " + ((FieldPersist) itm).getCategory());
                                 }
                             }),
@@ -180,9 +194,17 @@ public class SectionPersist {
                             .must(() -> item.getDescriptionTemplates().stream().map(BlueprintDescriptionTemplatePersist::getDescriptionTemplateGroupId).distinct().collect(Collectors.toList()).size() == item.getDescriptionTemplates().size())
                             .failOn(SectionPersist._descriptionTemplates).failWith(this.messageSource.getMessage("Validation_Unique", new Object[]{SectionPersist._descriptionTemplates}, LocaleContextHolder.getLocale())),
                     this.spec()
-                            .iff(() -> !this.isListNullOrEmpty(item.getDescriptionTemplates()))
+                            .iff(item::getHasTemplates)
                             .must(() -> !this.isNull(item.getPrefillingSourcesEnabled()))
-                            .failOn(SectionPersist._prefillingSourcesEnabled).failWith(this.messageSource.getMessage("Validation_Required", new Object[]{SectionPersist._prefillingSourcesEnabled}, LocaleContextHolder.getLocale()))
+                            .failOn(SectionPersist._prefillingSourcesEnabled).failWith(this.messageSource.getMessage("Validation_Required", new Object[]{SectionPersist._prefillingSourcesEnabled}, LocaleContextHolder.getLocale())),
+                    this.spec()
+                            .iff(item::getHasTemplates)
+                            .must(() -> !this.isNull(item.getCanEditDescriptionTemplates()))
+                            .failOn(SectionPersist._canEditDescriptionTemplates).failWith(this.messageSource.getMessage("Validation_Required", new Object[]{SectionPersist._canEditDescriptionTemplates}, LocaleContextHolder.getLocale())),
+                    this.spec()
+                            .iff(() -> item.getHasTemplates() && !this.isNull(item.getCanEditDescriptionTemplates()) && !item.getCanEditDescriptionTemplates())
+                            .must(() -> !this.isListNullOrEmpty(item.getDescriptionTemplates()))
+                            .failOn(SectionPersist._descriptionTemplates).failWith(this.messageSource.getMessage("Validation_Required", new Object[]{SectionPersist._descriptionTemplates}, LocaleContextHolder.getLocale()))
 
             );
         }

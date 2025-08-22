@@ -4,6 +4,7 @@ import jakarta.xml.bind.annotation.XmlAccessType;
 import jakarta.xml.bind.annotation.XmlAccessorType;
 import jakarta.xml.bind.annotation.XmlElement;
 import jakarta.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
+import org.opencdmp.commons.types.storagefile.importexport.StorageFileImportExport;
 import org.opencdmp.commons.xmladapter.InstantXmlAdapter;
 
 import java.time.Instant;
@@ -15,6 +16,9 @@ public class PlanBlueprintValueImportExport {
 
     @XmlElement(name = "fieldId")
     private UUID fieldId;
+
+    @XmlElement(name="storageFile")
+    private StorageFileImportExport storageFile;
 
     @XmlElement(name = "value")
     private String value;
@@ -32,6 +36,14 @@ public class PlanBlueprintValueImportExport {
 
     public void setFieldId(UUID fieldId) {
         this.fieldId = fieldId;
+    }
+
+    public StorageFileImportExport getStorageFile() {
+        return storageFile;
+    }
+
+    public void setStorageFile(StorageFileImportExport storageFile) {
+        this.storageFile = storageFile;
     }
 
     public String getValue() {

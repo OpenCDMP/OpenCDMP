@@ -31,10 +31,23 @@
 		<div *ngIf="!agreePrivacyPolicyNames" class="col-12 required-policy">{{'GENERAL.CONFIRMATION-DIALOG.ACTIONS.REQUIRED' | translate}}</div>
 	</div>
 </mat-dialog-content>
-<mat-dialog-actions class="mt-3 mb-3 pb-1">
+<mat-dialog-actions>
+	@if(data.errorMessage != undefined && data.errorMessage.length > 0){
+        <div class="mb-2">
+            {{data.errorMessage}}
+        </div>
+	}
 	<ng-container *ngFor="let title of data.titles; let i = index">
-		<div class="col-auto mb-2">
-			<button mat-flat-button color="primary" class="padded-shadow-btn" (click)="apply(i)">{{ title }}</button>
-		</div>
+        <span [matTooltip]="title.matTooltipDisabledMessage" [matTooltipDisabled]="!title.buttonDisabled" >
+            <button
+                [ngClass]="{'col-12 mb-2': data.titles?.length > 2}"
+                mat-flat-button 
+                color="primary" 
+                [disabled]="title.buttonDisabled"
+                (click)="apply(i)"
+            >
+                {{ title.title }}
+            </button>
+        </span>
 	</ng-container>
 </mat-dialog-actions>

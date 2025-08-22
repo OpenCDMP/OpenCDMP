@@ -1,19 +1,28 @@
 package org.opencdmp.query.lookup;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import org.opencdmp.commons.enums.IsActive;
 import org.opencdmp.query.UserQuery;
 import org.opencdmp.query.UserRoleQuery;
 import gr.cite.tools.data.query.Lookup;
 import gr.cite.tools.data.query.QueryFactory;
+import org.opencdmp.query.lookup.swagger.SwaggerHelpers;
 
 import java.util.List;
 import java.util.UUID;
 
 public class UserRoleLookup extends Lookup {
+
+    @Schema(description = SwaggerHelpers.UserRole.ids_description)
     private List<UUID> ids;
 
+    @Schema(description = SwaggerHelpers.UserRole.excludeIds_description)
     private List<UUID> excludedIds;
+
+    @Schema(description = SwaggerHelpers.UserRole.userIds_description)
     private List<UUID> userIds;
+
+    @Schema(description = SwaggerHelpers.UserRole.roles_description)
     private List<String> roles;
 
 

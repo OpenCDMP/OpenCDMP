@@ -530,6 +530,68 @@ export class MaintenanceTasksComponent extends BaseComponent implements OnInit {
 		);
 	}
 
+	sendReferenceAccountingEntriesEvents(ev: Event) {
+		this.dialog.open(ConfirmationDialogComponent, {
+			data: {
+				message: this.language.instant('MAINTENANCE-TASKS.CONFIRMATION.MESSAGE'),
+				confirmButton: this.language.instant('GENERAL.CONFIRMATION-DIALOG.ACTIONS.CONFIRM'),
+				cancelButton: this.language.instant('GENERAL.CONFIRMATION-DIALOG.ACTIONS.CANCEL')
+			},
+			maxWidth: '30em'
+		})
+			.afterClosed()
+			.subscribe(confirm => {
+				if (confirm) {
+					this.doSendReferenceAccountingEntriesEvents(ev);
+				}
+			});
+	}
+
+	private doSendReferenceAccountingEntriesEvents(ev: Event) {
+		(ev.target as HTMLButtonElement).disabled = true;
+		this.maintenanceService.sendReferenceAccountingEntriesEvents().pipe(takeUntil(this._destroyed)).subscribe(
+			_ => {
+				(ev.target as HTMLButtonElement).disabled = false;
+				this.onCallbackSuccess();
+			},
+			error => {
+				(ev.target as HTMLButtonElement).disabled = false;
+				this.onCallbackError(error);
+			}
+		);
+	}
+
+	sendLanguageAccountingEntriesEvents(ev: Event) {
+		this.dialog.open(ConfirmationDialogComponent, {
+			data: {
+				message: this.language.instant('MAINTENANCE-TASKS.CONFIRMATION.MESSAGE'),
+				confirmButton: this.language.instant('GENERAL.CONFIRMATION-DIALOG.ACTIONS.CONFIRM'),
+				cancelButton: this.language.instant('GENERAL.CONFIRMATION-DIALOG.ACTIONS.CANCEL')
+			},
+			maxWidth: '30em'
+		})
+			.afterClosed()
+			.subscribe(confirm => {
+				if (confirm) {
+					this.doSendLanguageAccountingEntriesEvents(ev);
+				}
+			});
+	}
+
+	private doSendLanguageAccountingEntriesEvents(ev: Event) {
+		(ev.target as HTMLButtonElement).disabled = true;
+		this.maintenanceService.sendLanguageAccountingEntriesEvents().pipe(takeUntil(this._destroyed)).subscribe(
+			_ => {
+				(ev.target as HTMLButtonElement).disabled = false;
+				this.onCallbackSuccess();
+			},
+			error => {
+				(ev.target as HTMLButtonElement).disabled = false;
+				this.onCallbackError(error);
+			}
+		);
+	}
+
 	sendIndicatorCreateEvents(ev: Event) {
 		this.dialog.open(ConfirmationDialogComponent, {
 			data: {
@@ -820,6 +882,47 @@ export class MaintenanceTasksComponent extends BaseComponent implements OnInit {
 			}
 		);
 	}
+
+	sendIndicatorTenantPointEvents(ev: Event) {
+		this.dialog.open(ConfirmationDialogComponent, {
+			data: {
+				message: this.language.instant('MAINTENANCE-TASKS.CONFIRMATION.MESSAGE'),
+				confirmButton: this.language.instant('GENERAL.CONFIRMATION-DIALOG.ACTIONS.CONFIRM'),
+				cancelButton: this.language.instant('GENERAL.CONFIRMATION-DIALOG.ACTIONS.CANCEL')
+			},
+			maxWidth: '30em'
+		})
+			.afterClosed()
+			.subscribe(confirm => {
+				if (confirm) {
+					this.doSendIndicatorTenantPointEvents(ev);
+				}
+			});
+	}
+
+	
+
+	private doSendIndicatorTenantPointEvents(ev: Event) {
+		(ev.target as HTMLButtonElement).disabled = true;
+		this.maintenanceService.sendIndicatorTenantPointEvents().pipe(takeUntil(this._destroyed)).subscribe(
+			_ => {
+				(ev.target as HTMLButtonElement).disabled = false;
+				this.onCallbackSuccess();
+			},
+			error => {
+				(ev.target as HTMLButtonElement).disabled = false;
+				this.onCallbackError(error);
+			}
+		);
+	}
+	
+
+
+
+
+
+
+
 	
 	sendEvaluationPlanAccountingEntriesEvents(ev: Event) {
 		this.dialog.open(ConfirmationDialogComponent, {
@@ -872,6 +975,37 @@ export class MaintenanceTasksComponent extends BaseComponent implements OnInit {
 	private dosendEvaluationDescriptionAccountingEntriesEvents(ev: Event) {
 		(ev.target as HTMLButtonElement).disabled = true;
 		this.maintenanceService.sendEvaluationDescriptionAccountingEntriesEvents().pipe(takeUntil(this._destroyed)).subscribe(
+			_ => {
+				(ev.target as HTMLButtonElement).disabled = false;
+				this.onCallbackSuccess();
+			},
+			error => {
+				(ev.target as HTMLButtonElement).disabled = false;
+				this.onCallbackError(error);
+			}
+		);
+	}
+
+	setPlanBlueprintCanEditDescriptionTemplates(ev: Event) {
+		this.dialog.open(ConfirmationDialogComponent, {
+			data: {
+				message: this.language.instant('MAINTENANCE-TASKS.CONFIRMATION.MESSAGE'),
+				confirmButton: this.language.instant('GENERAL.CONFIRMATION-DIALOG.ACTIONS.CONFIRM'),
+				cancelButton: this.language.instant('GENERAL.CONFIRMATION-DIALOG.ACTIONS.CANCEL')
+			},
+			maxWidth: '30em'
+		})
+			.afterClosed()
+			.subscribe(confirm => {
+				if (confirm) {
+					this.doSetPlanBlueprintCanEditDescriptionTemplates(ev);
+				}
+			});
+	}
+
+	private doSetPlanBlueprintCanEditDescriptionTemplates(ev: Event) {
+		(ev.target as HTMLButtonElement).disabled = true;
+		this.maintenanceService.setPlanBlueprintCanEditDescriptionTemplates().pipe(takeUntil(this._destroyed)).subscribe(
 			_ => {
 				(ev.target as HTMLButtonElement).disabled = false;
 				this.onCallbackSuccess();

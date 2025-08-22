@@ -1,31 +1,41 @@
 package org.opencdmp.query.lookup;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import org.opencdmp.commons.enums.PlanBlueprintStatus;
 import org.opencdmp.commons.enums.PlanBlueprintVersionStatus;
 import org.opencdmp.commons.enums.IsActive;
 import org.opencdmp.query.PlanBlueprintQuery;
 import gr.cite.tools.data.query.Lookup;
 import gr.cite.tools.data.query.QueryFactory;
+import org.opencdmp.query.lookup.swagger.SwaggerHelpers;
 
 import java.util.List;
 import java.util.UUID;
 
 public class PlanBlueprintLookup extends Lookup {
 
+    @Schema(description = SwaggerHelpers.PlanBlueprint.like_description)
     private String like;
 
+    @Schema(description = SwaggerHelpers.PlanBlueprint.isActive_description)
     private List<IsActive> isActive;
 
+    @Schema(description = SwaggerHelpers.PlanBlueprint.statuses_description)
     private List<PlanBlueprintStatus> statuses;
 
+    @Schema(description = SwaggerHelpers.PlanBlueprint.ids_description)
     private List<UUID> ids;
 
+    @Schema(description = SwaggerHelpers.PlanBlueprint.excludeIds_description)
     private List<UUID> excludedIds;
 
+    @Schema(description = SwaggerHelpers.PlanBlueprint.groupIds_description)
     private List<UUID> groupIds;
 
+    @Schema(description = SwaggerHelpers.PlanBlueprint.excludeGroupIds_description)
     private List<UUID> excludedGroupIds;
 
+    @Schema(description = SwaggerHelpers.PlanBlueprint.versionStatuses_description)
     private List<PlanBlueprintVersionStatus> versionStatuses;
 
     public String getLike() {

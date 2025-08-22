@@ -49,6 +49,10 @@ import { PlanStatus, PlanStatusDefinition } from '@app/core/model/plan-status/pl
 import { StorageFile } from '@app/core/model/storage-file/storage-file';
 import { StorageFileService } from '@app/core/services/storage-file/storage-file.service';
 import { DomSanitizer, SafeUrl } from '@angular/platform-browser';
+import {EntityDoi} from "@app/core/model/entity-doi/entity-doi";
+import {TenantConfigurationType} from "@app/core/common/enum/tenant-configuration-type";
+import {ViewPreferencesEditorResolver} from "@app/ui/admin/tenant-configuration/editor/view-preferences/view-preferences-editor.resolver";
+import {TenantConfigurationService} from "@app/core/services/tenant-configuration/tenant-configuration.service";
 
 @Component({
     selector: 'app-plan-listing-component',
@@ -85,7 +89,7 @@ export class PlanListingComponent extends BaseListingComponent<BasePlan, PlanLoo
     sortBy: RecentActivityOrder;
 
 	tenants: Tenant[];
-
+	orderedPlanPreferencesList:ReferenceType[];
 
 	get isAscending(): boolean {
 		return this.lookup?.order?.items?.[0].startsWith("-");
@@ -127,7 +131,8 @@ export class PlanListingComponent extends BaseListingComponent<BasePlan, PlanLoo
 		private principalService: PrincipalService,
 		private breadcrumbService: BreadcrumbService,
         private storageFileService: StorageFileService,
-        private sanitizer: DomSanitizer
+        private sanitizer: DomSanitizer,
+		private tenantConfigurationService: TenantConfigurationService
 	) {
 		super(router, route, uiNotificationService, httpErrorHandlingService, queryParamsService);
 		this.mode = this.route.snapshot?.data['mode'];
@@ -160,7 +165,17 @@ export class PlanListingComponent extends BaseListingComponent<BasePlan, PlanLoo
                 this.sortBy = this._getRecentActivityOrder(this.lookup.order.items[0]?.substring(1))
 				this.onPageLoad({ offset: this.lookup.page.offset / this.lookup.page.size } as PageLoadEvent);
 			});
-		
+		if (this.authService.isLoggedIn()) {
+			this.tenantConfigurationService.getActiveType(TenantConfigurationType.ViewPreferences, ViewPreferencesEditorResolver.lookupFields())
+				.pipe(takeUntil(this._destroyed)).subscribe(
+					data => {
+						this.orderedPlanPreferencesList = data?.viewPreferences?.planPreferences?.filter(x => x.referenceType?.isActive === IsActive.Active)?.map(x => x.referenceType) || [];
+					},
+					error => {
+						this.orderedPlanPreferencesList = []
+					}
+				);
+		} else this.orderedPlanPreferencesList = []
 		if (!this.isPublic){
 			this._loadUserTenants().pipe(takeUntil(this._destroyed)).subscribe( tenants => {
 				this.tenants = tenants;
@@ -458,7 +473,7 @@ export class PlanListingComponent extends BaseListingComponent<BasePlan, PlanLoo
 			}
 			else this.lookup.tenantSubQuery = null;
 		} else this.lookup.tenantSubQuery = null;
-		
+
 		// Description Templates
 		let descriptionTemplates = filters?.descriptionTemplates ?? null;
 		if (descriptionTemplates && descriptionTemplates?.length > 0) {
@@ -472,7 +487,7 @@ export class PlanListingComponent extends BaseListingComponent<BasePlan, PlanLoo
 		let planBlueprints = filters?.planBlueprints ?? null;
 		if (planBlueprints && planBlueprints?.length > 0) {
 			this.lookup.planBlueprintSubQuery = PlanFilterService.initializePlanBlueprintLookup();
-			this.lookup.planBlueprintSubQuery.ids = planBlueprints;
+			this.lookup.planBlueprintSubQuery.groupIds = planBlueprints;
 		} else this.lookup.planBlueprintSubQuery = null;
 
 		// plans
@@ -512,7 +527,7 @@ export class PlanListingComponent extends BaseListingComponent<BasePlan, PlanLoo
 		if (lookup.isActive[0] == IsActive.Inactive) count += lookup.isActive.length;
 		if (lookup.tenantSubQuery) count += 1;
 		if (lookup.planDescriptionTemplateSubQuery) count += lookup.planDescriptionTemplateSubQuery.descriptionTemplateGroupIds?.length;
-		if (lookup.planBlueprintSubQuery) count += lookup.planBlueprintSubQuery.ids?.length;
+		if (lookup.planBlueprintSubQuery) count += lookup.planBlueprintSubQuery.groupIds?.length;
 		if (lookup.planUserSubQuery) count += lookup.planUserSubQuery.userRoles?.length;
 		if (lookup.planReferenceSubQuery) count += lookup.planReferenceSubQuery.referenceIds?.length;
 
@@ -532,15 +547,15 @@ export class PlanListingComponent extends BaseListingComponent<BasePlan, PlanLoo
 			nameof<Plan>(x => x.label),
 			nameof<Plan>(x => x.description),
 			nameof<Plan>(x => x.isActive),
-			
+
 			[nameof<Plan>(x => x.status), nameof<PlanStatus>(x => x.id)].join('.'),
 			[nameof<Plan>(x => x.status), nameof<PlanStatus>(x => x.name)].join('.'),
-			[nameof<Plan>(x => x.status), nameof<PlanStatus>(x => x.internalStatus)].join('.'),	
-			[nameof<Plan>(x => x.status), nameof<PlanStatus>(x => x.definition), nameof<PlanStatusDefinition>(x => x.statusColor)].join('.'),	
-			[nameof<Plan>(x => x.status), nameof<PlanStatus>(x => x.definition), nameof<PlanStatusDefinition>(x => x.availableActions)].join('.'),			
-			[nameof<Plan>(x => x.status), nameof<PlanStatus>(x => x.definition), nameof<PlanStatusDefinition>(x => x.matIconName)].join('.'),			
-			[nameof<Plan>(x => x.status), nameof<PlanStatus>(x => x.definition), nameof<PlanStatusDefinition>(x => x.storageFile), nameof<StorageFile>(x => x.id)].join('.'),			
-			
+			[nameof<Plan>(x => x.status), nameof<PlanStatus>(x => x.internalStatus)].join('.'),
+			[nameof<Plan>(x => x.status), nameof<PlanStatus>(x => x.definition), nameof<PlanStatusDefinition>(x => x.statusColor)].join('.'),
+			[nameof<Plan>(x => x.status), nameof<PlanStatus>(x => x.definition), nameof<PlanStatusDefinition>(x => x.availableActions)].join('.'),
+			[nameof<Plan>(x => x.status), nameof<PlanStatus>(x => x.definition), nameof<PlanStatusDefinition>(x => x.matIconName)].join('.'),
+			[nameof<Plan>(x => x.status), nameof<PlanStatus>(x => x.definition), nameof<PlanStatusDefinition>(x => x.storageFile), nameof<StorageFile>(x => x.id)].join('.'),
+
 			nameof<Plan>(x => x.accessType),
 			nameof<Plan>(x => x.version),
 			nameof<Plan>(x => x.versionStatus),
@@ -550,6 +565,9 @@ export class PlanListingComponent extends BaseListingComponent<BasePlan, PlanLoo
 			nameof<Plan>(x => x.finalizedAt),
 			nameof<Plan>(x => x.hash),
 			nameof<Plan>(x => x.tenantId),
+			nameof<Plan>(x => x.entityDois),
+			[nameof<Plan>(x => x.entityDois), nameof<EntityDoi>(x => x.id)].join('.'),
+			[nameof<Plan>(x => x.entityDois), nameof<EntityDoi>(x => x.doi)].join('.'),
 			[nameof<Plan>(x => x.authorizationFlags), AppPermission.CreateNewVersionPlan].join('.'),
 			[nameof<Plan>(x => x.authorizationFlags), AppPermission.DeletePlan].join('.'),
 			[nameof<Plan>(x => x.authorizationFlags), AppPermission.ClonePlan].join('.'),
@@ -563,8 +581,8 @@ export class PlanListingComponent extends BaseListingComponent<BasePlan, PlanLoo
 			[nameof<Plan>(x => x.descriptions), nameof<Description>(x => x.label)].join('.'),
 			[nameof<Plan>(x => x.descriptions), nameof<Description>(x => x.status), nameof<DescriptionStatus>(x => x.id)].join('.'),
 			[nameof<Plan>(x => x.descriptions), nameof<Description>(x => x.status), nameof<DescriptionStatus>(x => x.name)].join('.'),
-			[nameof<Plan>(x => x.descriptions), nameof<Description>(x => x.status), nameof<DescriptionStatus>(x => x.internalStatus)].join('.'),			
-			
+			[nameof<Plan>(x => x.descriptions), nameof<Description>(x => x.status), nameof<DescriptionStatus>(x => x.internalStatus)].join('.'),
+
 			[nameof<Plan>(x => x.descriptions), nameof<Description>(x => x.descriptionTemplate), nameof<DescriptionTemplate>(x => x.groupId)].join('.'),
 			[nameof<Plan>(x => x.descriptions), nameof<Description>(x => x.planDescriptionTemplate), nameof<PlanDescriptionTemplate>(x => x.sectionId)].join('.'),
 			[nameof<Plan>(x => x.descriptions), nameof<Description>(x => x.isActive)].join('.'),

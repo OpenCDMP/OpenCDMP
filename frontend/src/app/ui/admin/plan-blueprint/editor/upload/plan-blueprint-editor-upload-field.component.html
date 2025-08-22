@@ -1,0 +1,52 @@
+<form *ngIf="form" class="row">
+
+	<mat-form-field class="col-xl-6 col-lg-6 col-auto w-100">
+		<mat-label>
+			{{ "PLAN-BLUEPRINT-EDITOR.FIELDS.FIELD-UPLOAD-MAX-FILE-SIZE" |
+			translate: { maxfilesize: getConfiguration().maxFileSizeInMB.toString() } }}
+		</mat-label>
+		<input matInput type="number" min="1" [max]="getConfiguration().maxFileSizeInMB" [formControl]="form.get('maxFileSizeInMB')">
+		<mat-error *ngIf="form.get('maxFileSizeInMB').hasError('backendError')">{{form.get('maxFileSizeInMB').getError('backendError').message}}</mat-error>
+	</mat-form-field>
+
+	<mat-form-field class="col-xl-6 col-lg-6 col-auto w-100">
+		<mat-label>
+			{{'PLAN-BLUEPRINT-EDITOR.FIELDS.FIELD-UPLOAD-SELECT-FILETYPE' | translate}}
+		</mat-label>
+		<mat-select multiple [formControl]="typesFormControl">
+			<mat-option *ngFor="let type of types; let i=index" [value]="type.value" (click)="selectedType(type)" [disabled]="form.get('types').disabled">
+				{{type.label}}
+			</mat-option>
+		</mat-select>
+		<mat-error *ngIf="form.get('types').hasError('required')">{{'PLAN-BLUEPRINT-EDITOR.FIELDS.TYPES-REQUIRED' | translate}}</mat-error>
+		<mat-error *ngIf="form.get('types').hasError('backendError')">{{form.get('types').getError('backendError').message}}</mat-error>
+	</mat-form-field>
+
+	<div class="col-12">
+		<div>{{'PLAN-BLUEPRINT-EDITOR.FIELDS.FIELD-UPLOAD-CUSTOM-FILETYPE' | translate}}</div>
+		<ng-container *ngFor="let type of form.get('types')['controls'] index as i">
+			<div *ngIf="isCustomType(type.value.value)" class="row">
+				<mat-form-field class="col-xl-5 col-lg-5 col-auto w-100">
+					<mat-label>{{'PLAN-BLUEPRINT-EDITOR.FIELDS.FIELD-UPLOAD-LABEL' | translate}}</mat-label>
+					<input matInput type="string" [formControl]="type.get('label')">
+					<mat-error *ngIf="type.get('label').hasError('backendError')">{{type.get('label').getError('backendError').message}}</mat-error>
+				</mat-form-field>
+				<mat-form-field class="col-xl-5 col-lg-5 col-auto w-100">
+					<mat-label>{{'PLAN-BLUEPRINT-EDITOR.FIELDS.FIELD-UPLOAD-VALUE' | translate}}</mat-label>
+					<input matInput type="string" [formControl]="type.get('value')">
+					<mat-error *ngIf="type.get('value').hasError('backendError')">{{type.get('value').getError('backendError').message}}</mat-error>
+				</mat-form-field>
+				<button mat-icon-button class="col-auto" (click)="deleteRow(i)" type="button" [disabled]="form.get('types').disabled" [attr.aria-label]="'COMMONS.ACTIONS.REMOVE' | translate">
+					<mat-icon aria-hidden>delete</mat-icon>
+				</button>
+			</div>
+		</ng-container>
+	</div>
+	<div class="col-auto">
+		<button mat-icon-button (click)="addNewRow()" type="button" [disabled]="form.get('types').disabled">
+			<mat-icon>add</mat-icon>
+		</button>
+	</div>
+
+	<mat-error *ngIf="form.get('types').hasError('backendError')">{{form.get('types').getError('backendError').message}}</mat-error>
+</form>

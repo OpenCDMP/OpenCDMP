@@ -1,27 +1,36 @@
 package org.opencdmp.query.lookup;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import org.opencdmp.commons.enums.IsActive;
 import org.opencdmp.query.TagQuery;
 import gr.cite.tools.data.query.Lookup;
 import gr.cite.tools.data.query.QueryFactory;
+import org.opencdmp.query.lookup.swagger.SwaggerHelpers;
 
 import java.util.List;
 import java.util.UUID;
 
 public class TagLookup extends Lookup {
 
+    @Schema(description = SwaggerHelpers.Tag.like_description)
     private String like;
 
+    @Schema(description = SwaggerHelpers.Tag.ids_description)
     private List<UUID> ids;
 
+    @Schema(description = SwaggerHelpers.Tag.excludeIds_description)
     private List<UUID> excludedIds;
 
+    @Schema(description = SwaggerHelpers.Tag.isActive_description)
     private List<IsActive> isActive;
 
+    @Schema(description = SwaggerHelpers.Tag.createdByIds_description)
     private List<UUID> createdByIds;
 
+    @Schema(description = SwaggerHelpers.Tag.tags_description)
     private List<String> tags;
 
+    @Schema(description = SwaggerHelpers.Tag.excludeTags_description)
     private List<String> excludedTags;
 
     public String getLike() {

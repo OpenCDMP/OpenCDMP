@@ -27,6 +27,7 @@ export class LogoEditorResolver extends BaseEditorResolver {
 			[nameof<TenantConfiguration>(x => x.logo), nameof<LogoTenantConfiguration>(x => x.storageFile), nameof<StorageFile>(x => x.name)].join('.'),
 			[nameof<TenantConfiguration>(x => x.logo), nameof<LogoTenantConfiguration>(x => x.storageFile), nameof<StorageFile>(x => x.extension)].join('.'),
 			[nameof<TenantConfiguration>(x => x.logo), nameof<LogoTenantConfiguration>(x => x.storageFile), nameof<StorageFile>(x => x.fullName)].join('.'),
+			[nameof<TenantConfiguration>(x => x.logo), nameof<LogoTenantConfiguration>(x => x.storageFile), nameof<StorageFile>(x => x.mimeType)].join('.'),
 
 
 			nameof<TenantConfiguration>(x => x.createdAt),

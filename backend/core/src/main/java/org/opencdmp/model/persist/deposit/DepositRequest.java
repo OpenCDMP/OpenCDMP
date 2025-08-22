@@ -2,6 +2,7 @@ package org.opencdmp.model.persist.deposit;
 
 import gr.cite.tools.fieldset.BaseFieldSet;
 import gr.cite.tools.validation.specification.Specification;
+import org.opencdmp.commons.enums.DepositAuthMethod;
 import org.opencdmp.commons.validation.BaseValidator;
 import org.opencdmp.convention.ConventionService;
 import org.opencdmp.errorcode.ErrorThesaurusProperties;
@@ -26,6 +27,10 @@ public class DepositRequest {
     public static final String _planId = "planId";
 
     private String authorizationCode;
+
+    private DepositAuthMethod depositAuthInfoType;
+
+    public static final String _depositAuthInfoType = "depositAuthInfoType";
 
     private BaseFieldSet project;
 
@@ -61,6 +66,14 @@ public class DepositRequest {
         this.project = project;
     }
 
+    public DepositAuthMethod getDepositAuthInfoType() {
+        return depositAuthInfoType;
+    }
+
+    public void setDepositAuthInfoType(DepositAuthMethod depositAuthInfoType) {
+        this.depositAuthInfoType = depositAuthInfoType;
+    }
+
     @Component(DepositRequestValidator.ValidatorName)
     @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
     public static class DepositRequestValidator extends BaseValidator<DepositRequest> {
@@ -87,7 +100,10 @@ public class DepositRequest {
                             .failOn(DepositRequest._repositoryId).failWith(this.messageSource.getMessage("Validation_Required", new Object[]{DepositRequest._repositoryId}, LocaleContextHolder.getLocale())),
                     this.spec()
                             .must(() -> this.isValidGuid(item.getPlanId()))
-                            .failOn(DepositRequest._planId).failWith(this.messageSource.getMessage("Validation_Required", new Object[]{DepositRequest._planId}, LocaleContextHolder.getLocale()))
+                            .failOn(DepositRequest._planId).failWith(this.messageSource.getMessage("Validation_Required", new Object[]{DepositRequest._planId}, LocaleContextHolder.getLocale())),
+                    this.spec()
+                            .must(() -> !this.isNull(item.getDepositAuthInfoType()))
+                            .failOn(DepositRequest._depositAuthInfoType).failWith(this.messageSource.getMessage("Validation_Required", new Object[]{DepositRequest._depositAuthInfoType}, LocaleContextHolder.getLocale()))
             );
         }
     }

@@ -9,7 +9,7 @@ import java.util.List;
 public class QueryConfigEntity implements QueryConfig<QueryCaseConfigEntity> {
 
     private String name;
-    private String defaultValue;
+    private String defaultValue = "";
     List<QueryCaseConfigEntity> cases;
 
     @Override

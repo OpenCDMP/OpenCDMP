@@ -466,7 +466,6 @@ button.mdc-button, .mat-mdc-button, .md-button, .mat-mdc-button:not(:disabled) {
     &.attach-file {
         min-width: 156px;
         height: 44px;
-        color: #ffffff;
         background: var(--sys-primary) 0% 0% no-repeat padding-box;
         color: var(--sys-on-primary);
         box-shadow: 0px 3px 6px #1e202029;
@@ -683,4 +682,15 @@ button { //remove bootstrap styling !
     height: 1px;
     overflow: hidden;
     clip: rect(0 0 0 0);
+}
+
+// bootstrap overrides
+.table-bordered, .table-bordered td, .table-bordered th {
+    border: 1px solid hsl(from var(--sys-outline) h s calc(l + 10));
+}
+
+//userway overrides 
+body .uwy.userway_p1 .userway_buttons_wrapper {
+    top: auto !important;
+    bottom: 13px !important;
 }

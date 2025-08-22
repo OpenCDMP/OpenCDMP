@@ -74,9 +74,16 @@
 		"grantId": "5b9c284f-f041-4995-96cc-fad7ad13289c",
 		"organizationId": "7eeffb98-58fb-4921-82ec-e27f32f8e738"
 	},
+    "userWay": {
+        "id": "${USERWAY_ID}"
+    },
 	"deposit":{
 		"recordUrlIdPlaceholder": "{doi_id}"
 	},
+    "theme": {
+        "primaryColor": "${PRIMARY_COLOR}",
+        "cssOverride": "${CSS_OVERRIDES}"
+    },
 	"sidebar": {
 		"infoItems": [
 			{

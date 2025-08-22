@@ -106,14 +106,14 @@ export interface DescriptionPropertyDefinitionFieldSetItemPersist {
 }
 
 export interface DescriptionFieldPersist {
-	textValue: string;
-	textListValue: string[];
-	dateValue: Date;
-	booleanValue: boolean;
-	references: ReferencePersist[];
-	reference: ReferencePersist;
+	textValue?: string;
+	textListValue?: string[];
+	dateValue?: Date;
+	booleanValue?: boolean;
+	references?: ReferencePersist[];
+	reference?: ReferencePersist;
 	externalIdentifier?: DescriptionExternalIdentifierPersist;
-	tags: string[];
+	tags?: string[];
 }
 
 export interface DescriptionExternalIdentifierPersist {
@@ -150,6 +150,7 @@ export interface PublicDescription extends BaseDescription {
 export interface PublicPlanDescriptionTemplate {
 	id: Guid;
 	plan: PublicPlan;
+    sectionId?: Guid;
 }
 
 export interface PublicDescriptionTemplate {

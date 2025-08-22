@@ -57,6 +57,9 @@
 					<mat-radio-button [value]="role.Viewer" class="col-12">{{ 'PLAN-LISTING.FILTERS.ROLE.TYPE.VIEWER' | translate }}</mat-radio-button>
 					<mat-radio-button [value]="role.DescriptionContributor" class="col-12">{{ 'PLAN-LISTING.FILTERS.ROLE.TYPE.DESCRIPTION-CONTRIBUTOR' | translate }}</mat-radio-button>
 					<mat-radio-button [value]="role.Reviewer" class="col-12">{{ 'PLAN-LISTING.FILTERS.ROLE.TYPE.REVIEWER' | translate }}</mat-radio-button>
+					<mat-radio-button [value]="role.DataSteward" class="col-12">{{ 'PLAN-LISTING.FILTERS.ROLE.TYPE.DATA-STEWARD' | translate }}</mat-radio-button>
+					<mat-radio-button [value]="role.DataPrivacyOfficer" class="col-12">{{ 'PLAN-LISTING.FILTERS.ROLE.TYPE.DATA-PRIVACY-OFFICER' | translate }}</mat-radio-button>
+					<mat-radio-button [value]="role.EthicsReviewer" class="col-12">{{ 'PLAN-LISTING.FILTERS.ROLE.TYPE.ETHICS-REVIEWER' | translate }}</mat-radio-button>
 				</mat-radio-group>
 				<hr>
 			</div>
@@ -105,7 +108,7 @@
                 <button  mat-stroked-button color="primary" class="padded-shadow-btn" (click)="resetFilters()" >
 					{{'PLAN-LISTING.FILTERS.RESET-FILTERS' | translate}} 
 				</button>
-				<button  mat-flat-button color="primary" class="padded-shadow-btn" (click)="controlModified()" [disabled]="!formGroup.dirty">
+				<button  mat-flat-button color="primary" class="padded-shadow-btn" (click)="controlModified()">
 					{{'PLAN-LISTING.FILTERS.APPLY-FILTERS' | translate}}
 				</button>
 			</div>

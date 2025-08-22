@@ -22,69 +22,72 @@
 	</div>
 	<div class="row">
 		<div class="upload-form col-12">
-			<mat-form-field class="w-100" *ngIf="files?.length == 0 || files[0].type.includes('/xml')">
+			<mat-form-field class="w-100" *ngIf="file?.type.includes('/xml')">
 				<input [(ngModel)]="planTitle" matInput placeholder="{{'PLAN-UPLOAD.PLACEHOLDER' | translate}}">
 			</mat-form-field>
 		</div>
-		<div class="col-12">
-			<ngx-dropzone class="drop-file" (change)="selectFile($event)" [accept]="'text/xml, application/json'" [multiple]="false">
-				<ngx-dropzone-preview class="file-preview" *ngFor="let f of files" [removable]="true" (removed)="onRemove(f)">
-					<ngx-dropzone-label class="file-label">{{ f.name }}</ngx-dropzone-label>
-				</ngx-dropzone-preview>
-			</ngx-dropzone>
-		</div>
-		<div class="col-12 mb-2 d-flex justify-content-center attach-btn">
-			<button mat-button type="button" class="attach-file" (click)="fileInput.click()">
-				<mat-icon class="mr-2">input</mat-icon>
-				<span *ngIf="!hasFile()">{{'GENERAL.START-NEW-PLAN-DIALOG.UPLOAD-FILE' | translate}}</span>
-				<span *ngIf="hasFile()">{{'GENERAL.START-NEW-PLAN-DIALOG.REPLACE-FILE' | translate}}</span>
-			</button>
-			<form>
-				<input class="hidden" #fileInput type="file" onClick="form.reset()" (change)="uploadFile($event)" accept="text/xml, application/json">
-			</form>
-		</div>
-		<div class="upload-form col-12" *ngIf="formGroup == null && files.length > 0 && files[0].type.includes('/json')">
-			{{ 'PLAN-UPLOAD.ANALYZING-FILE' | translate }}
-			<b class="fa fa-spinner fa-spin" ></b>
-		</div>
-		<div class="upload-form col-12" *ngIf="formGroup && files.length > 0 && files[0].type.includes('/json')">
-			<mat-form-field class="w-100">
-				<input [formControl]="formGroup.get('label')" matInput required="true" placeholder="{{'PLAN-UPLOAD.PLACEHOLDER' | translate}}">
-			</mat-form-field>
-			<mat-form-field class="w-100">
-				<app-single-auto-complete [required]="true" [formControl]="formGroup.get('blueprintId')" placeholder="{{'PLAN-UPLOAD.FIELDS.BLUEPRINT-PLACEHOLDER' | translate}}" [configuration]="planBlueprintService.singleAutocompleteBlueprintConfiguration" (optionSelected)="selectedBlueprintChanged($event)">
-				</app-single-auto-complete>
-			</mat-form-field>
-			<ng-container *ngIf="formGroup.get('blueprintId').value">
-				<div *ngFor="let description of formGroup.get('descriptions').controls; let descriptionIndex=index;" class="row mb-3">
-					<div class="col-12">
-						<span *ngIf="description.get('label').value"  style="font-size: 1rem;">
-							{{ description.get('label').value }}
-						</span>
+        <div class="col-12">
+            <app-file-uploader
+                [accept]="'text/xml, application/json'"
+                [placeholder]="(hasFile() ? 'GENERAL.START-NEW-PLAN-DIALOG.REPLACE-FILE' : 'GENERAL.START-NEW-PLAN-DIALOG.UPLOAD-FILE') | translate"
+                (onChange)="uploadFile($event)"
+                (onRemove)="onRemove()"
+            />
+        </div>
+		@if (file?.type?.includes('/json')) {
+			<div class="upload-form col-12">
+				<mat-form-field *ngIf="fileTransformerWithJson?.length > 1" class="w-100">
+					<mat-label>{{'PLAN-UPLOAD.SELECT-FILE-TRANSFORMER-SCHEMA' | translate}}</mat-label>
+					<mat-select (selectionChange)="repoChanged($event.value)">
+						<mat-option *ngFor="let fileTransformer of fileTransformerWithJson" [value]="fileTransformer.fileTransformerId">
+							{{ 'GENERAL.FILE-TRANSFORMER.' + fileTransformer?.fileTransformerId?.toUpperCase() + '-JSON' | translate }}
+						</mat-option>
+					</mat-select>																
+				</mat-form-field>
+			</div>
+			<div class="upload-form col-12" *ngIf="formGroup == null && loadSpiner">
+				{{ 'PLAN-UPLOAD.ANALYZING-FILE' | translate }}
+				<b class="fa fa-spinner fa-spin" ></b>
+			</div>
+			<div class="upload-form col-12" *ngIf="formGroup">
+				<mat-form-field class="w-100">
+					<input [formControl]="formGroup.get('label')" matInput required="true" placeholder="{{'PLAN-UPLOAD.PLACEHOLDER' | translate}}">
+				</mat-form-field>
+				<mat-form-field class="w-100">
+					<app-single-auto-complete [required]="true" [formControl]="formGroup.get('blueprintId')" placeholder="{{'PLAN-UPLOAD.FIELDS.BLUEPRINT-PLACEHOLDER' | translate}}" [configuration]="planBlueprintService.singleAutocompleteBlueprintConfiguration" (optionSelected)="selectedBlueprintChanged($event)">
+					</app-single-auto-complete>
+				</mat-form-field>
+				<ng-container *ngIf="formGroup.get('blueprintId').value">
+					<div *ngFor="let description of formGroup.get('descriptions').controls; let descriptionIndex=index;" class="row mb-3">
+						<div class="col-12">
+							<span *ngIf="description.get('label').value"  style="font-size: 1rem;">
+								{{ description.get('label').value }}
+							</span>
+						</div>
+						<div class="col-12">
+							<mat-form-field class="w-100">
+								<mat-label>{{'PLAN-UPLOAD.FIELDS.DESCRIPTION-TEMPLATE' | translate}}</mat-label>
+								<app-single-auto-complete required="true" placeholder="{{'PLAN-UPLOAD.FIELDS.DESCRIPTION-TEMPLATE-PLACHOLDER' | translate}}" [formControl]="description.get('templateId')" (optionActionClicked)="onPreviewDescriptionTemplate($event, descriptionIndex)" [configuration]="descriptionTemplateSingleAutocompleteConfiguration"></app-single-auto-complete>									
+								<mat-error *ngIf="description.get('templateId').hasError('backendError')">{{description.get('templateId').getError('backendError').message}}</mat-error>
+								<mat-error *ngIf="description.get('templateId').hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
+							</mat-form-field>
+						</div>
+						<div class="col-12">
+							<mat-form-field class="w-100">
+								<mat-label>{{'PLAN-UPLOAD.FIELDS.SECTION' | translate}}</mat-label>
+								<mat-select [formControl]="description.get('sectionId')" placeholder="{{'PLAN-UPLOAD.FIELDS.SECTION-PLACEHOLDER' | translate}}" required="true">			
+									<mat-option *ngFor="let section of selectedBlueprintSections" [value]="section.id">
+										<span style="font-size: 1rem;">
+											{{ section.label }}
+										</span>
+									</mat-option>
+								</mat-select>						
+							</mat-form-field>
+						</div>
 					</div>
-					<div class="col-12">
-						<mat-form-field class="w-100">
-							<mat-label>{{'PLAN-UPLOAD.FIELDS.DESCRIPTION-TEMPLATE' | translate}}</mat-label>
-							<app-single-auto-complete required="true" placeholder="{{'PLAN-UPLOAD.FIELDS.DESCRIPTION-TEMPLATE-PLACHOLDER' | translate}}" [formControl]="description.get('templateId')" (optionActionClicked)="onPreviewDescriptionTemplate($event, descriptionIndex)" [configuration]="descriptionTemplateSingleAutocompleteConfiguration"></app-single-auto-complete>									
-							<mat-error *ngIf="description.get('templateId').hasError('backendError')">{{description.get('templateId').getError('backendError').message}}</mat-error>
-							<mat-error *ngIf="description.get('templateId').hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
-						</mat-form-field>
-					</div>
-					<div class="col-12">
-						<mat-form-field class="w-100">
-							<mat-label>{{'PLAN-UPLOAD.FIELDS.SECTION' | translate}}</mat-label>
-							<mat-select [formControl]="description.get('sectionId')" placeholder="{{'PLAN-UPLOAD.FIELDS.SECTION-PLACEHOLDER' | translate}}">			
-								<mat-option *ngFor="let section of selectedBlueprintSections" [value]="section.id">
-									<span style="font-size: 1rem;">
-										{{ section.label }}
-									</span>
-								</mat-option>
-							</mat-select>						
-						</mat-form-field>
-					</div>
-				</div>
-			</ng-container>
-		</div>
+				</ng-container>
+			</div>
+		}
 	</div>
 </mat-dialog-content>
 <div mat-dialog-actions class="d-flex justify-content-between gap-half-rem">

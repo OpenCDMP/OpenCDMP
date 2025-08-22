@@ -22,8 +22,10 @@ import { DescriptionFormProgressIndicationModule } from '@app/ui/description/edi
 import { InitialLetterPipe } from '@app/core/pipes/initial-letter.pipe';
 import { PlanTableOfContentsComponent } from './plan-table-of-contents/plan-table-of-contents.component';
 import { PlanTempStorageService } from './plan-temp-storage.service';
+import { PlanUploadFieldComponent } from './plan-upload-field/plan-upload-field.component';
 import { FinalizeDescriptionDialogComponent } from './plan-description-editor/finalize-description-dialog/finalize-description-dialog.component';
 import { DragAndDropAccessibilityService } from '@app/core/services/accessibility/drag-and-drop-accessibility.service';
+import { FileUploadComponent } from '@app/library/file-uploader/file-uploader.component';
 import {PlanBlueprintsPreviewModule} from "@app/ui/plan/plan-editor-blueprint/plan-blueprints-preview/plan-blueprint-preview.module";
 import { DescriptionTemplateTableSelectModule } from './descriptions-template-table-select/description-template-table-select.module';
 import { PlanInternalBlueprintEditorModule } from './internal-blueprint-editor/internal-blueprint-editor.module';
@@ -50,12 +52,15 @@ import { PlanInternalBlueprintEditorModule } from './internal-blueprint-editor/i
         DescriptionFormProgressIndicationModule,
         TableOfContentsModule,
         InitialLetterPipe,
+		FileUploadComponent,
 		DescriptionTemplateTableSelectModule,
-        PlanInternalBlueprintEditorModule
+        PlanInternalBlueprintEditorModule,
+        PlanUploadFieldComponent
 	],
 	declarations: [
 		PlanEditorComponent,
         PlanDescriptionEditorComponent,
+        PlanTableOfContentsComponent,
         FinalizeDescriptionDialogComponent,
         PlanTableOfContentsComponent
 	],

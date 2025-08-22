@@ -1,4 +1,4 @@
-import { Component, computed, HostBinding, Inject } from '@angular/core';
+import { Component, Inject } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialog, MatDialogRef } from '@angular/material/dialog';
 import { DescriptionTemplate } from '@app/core/model/description-template/description-template';
 import { PlanBlueprint, PlanBlueprintDefinitionSection } from '@app/core/model/plan-blueprint/plan-blueprint';
@@ -13,13 +13,17 @@ import { DescriptionTemplateService } from '@app/core/services/description-templ
 import { FormService } from '@common/forms/form-service';
 import { PlanCommonModelConfig } from '@app/core/model/plan/plan-import';
 import { StorageFileService } from '@app/core/services/storage-file/storage-file.service';
-import { IsActive } from '@notification-service/core/enum/is-active.enum';
 import { SingleAutoCompleteConfiguration } from '@app/library/auto-complete/single/single-auto-complete-configuration';
 import { SnackBarNotificationLevel, UiNotificationService } from '@app/core/services/notification/ui-notification-service';
 import { TranslateService } from '@ngx-translate/core';
 import { DescriptionTemplatePreviewDialogComponent } from '@app/ui/admin/description-template/description-template-preview/description-template-preview-dialog.component';
 import { HttpErrorHandlingService } from '@common/modules/errors/error-handling/http-error-handling.service';
-
+import { FileTransformerService } from '@app/core/services/file-transformer/file-transformer.service';
+import { FileTransformerEntityType } from '@app/core/common/enum/file-transformer-entity-type';
+import { FileTransformerConfiguration } from '@app/core/model/file/file-transformer-configuration.model';
+import { StorageFile } from '@app/core/model/storage-file/storage-file';
+import { DescriptionTemplateStatus } from '@app/core/common/enum/description-template-status';
+import { DescriptionTemplateVersionStatus } from '@app/core/common/enum/description-template-version-status';
 @Component({
     selector: 'plan-upload-dialog',
     templateUrl: './plan-upload-dialog.component.html',
@@ -31,22 +35,17 @@ export class PlanUploadDialogComponent extends BaseComponent {
 
 	planTitle: string;
 	planBlueprints: any[] = [];
-	files: File[] = [];
+	file: File;
 	selectedBlueprintSections: PlanBlueprintDefinitionSection[];
 	formGroup: UntypedFormGroup;
+	fileTransformerWithJson: FileTransformerConfiguration[] = [];
+	loadSpiner = false;
+	storageFile: StorageFile = null;
 
 	descriptionTemplateSingleAutocompleteConfiguration: SingleAutoCompleteConfiguration = {
-		initialItems: (data?: any) => this.descriptionTemplateService.query(this.descriptionTemplateService.buildDescriptionTemplateGroupAutocompleteLookup({
-            isActive: [IsActive.Active]
-        })).pipe(map(x => x.items)),
-		filterFn: (searchQuery: string, data?: any) => this.descriptionTemplateService.query(this.descriptionTemplateService.buildDescriptionTemplateGroupAutocompleteLookup({
-            isActive: [IsActive.Active], 
-            like: searchQuery
-        })).pipe(map(x => x.items)),
-		getSelectedItem: (selectedItem: any) => this.descriptionTemplateService.query(this.descriptionTemplateService.buildDescriptionTemplateGroupAutocompleteLookup({
-            isActive: [IsActive.Active, IsActive.Inactive], 
-            groupIds:[selectedItem]
-        })).pipe(map(x => x.items[0])),
+		initialItems: (data?: any) => this.descriptionTemplateService.query(this.descriptionTemplateService.buildAutocompleteLookup(null, null, null, [DescriptionTemplateVersionStatus.Current], [DescriptionTemplateStatus.Finalized])).pipe(map(x => x.items)),
+		filterFn: (searchQuery: string, data?: any) => this.descriptionTemplateService.query(this.descriptionTemplateService.buildAutocompleteLookup(searchQuery, null, null, [DescriptionTemplateVersionStatus.Current], [DescriptionTemplateStatus.Finalized])).pipe(map(x => x.items)),
+		getSelectedItem: (selectedItem: any) => this.descriptionTemplateService.query(this.descriptionTemplateService.buildAutocompleteLookup(null, null, [selectedItem], [DescriptionTemplateVersionStatus.Current], [DescriptionTemplateStatus.Finalized])).pipe(map(x => x.items[0])),
 		displayFn: (item: DescriptionTemplate) => item.label,
 		titleFn: (item: DescriptionTemplate) => item.label,
 		subtitleFn: (item: DescriptionTemplate) => item.description,
@@ -67,6 +66,7 @@ export class PlanUploadDialogComponent extends BaseComponent {
 		private uiNotificationService: UiNotificationService,
 		private language: TranslateService,
 		private httpErrorHandlingService: HttpErrorHandlingService,
+		private fileTransformerService: FileTransformerService,
 		@Inject(MAT_DIALOG_DATA) public data: any,
 	) {
 		super();
@@ -89,13 +89,14 @@ export class PlanUploadDialogComponent extends BaseComponent {
 		this.data.success = true;
 		this.data.planTitle = this.planTitle;
 		this.data.planBlueprint = this.planBlueprints;
-
-		if (this.files.length > 0 && this.files[0].type.includes('/json') && this.formGroup){
+        this.data.file = this.file;
+        
+		if (this.file?.type?.includes('/json') && this.formGroup){
 			this.formService.removeAllBackEndErrors(this.formGroup);
 			this.formService.touchAllFormFields(this.formGroup);
 			if (this.formGroup.valid){
 				this.data.planCommonModelConfig = this.formService.getValue(this.formGroup.value) as PlanCommonModelConfig;
-				this.data.planCommonModelConfig.file = this.files[0];
+				this.data.planCommonModelConfig.file = this.file;
 			} else {
 				return;
 			}
@@ -104,40 +105,26 @@ export class PlanUploadDialogComponent extends BaseComponent {
 	}
 
 	disableConfirmButton(){
-		if (this.data.fileList.length === 0 || this.files.length === 0) return true;
-		if (this.files.length > 0 && this.files[0].type.includes('/json') && this.formGroup == null) return true;
+		if (!this.file) return true;
+		if ((this.file.type.includes('/json') && (this.formGroup == null || !this.formGroup.valid)) || (this.file.type.includes('/xml') && this.planTitle?.length == 0)) return true;
 		return false;
 	}
 
-	uploadFile(event) {
-		this.formGroup = null;
-		const fileList: FileList = event.target.files
-		this.data.fileList = fileList;
-		if (this.data.fileList.length > 0) {
-			this.planTitle = fileList.item(0).name;
-		}
-		if (this.files.length === 1) {
-			this.files.splice(0, 1);
-		}
-		this.files.push(...event.target.files);
+	uploadFile(event: File) {
+    	this.file = event;
+		this.planTitle = event.name
 
-		if (this.files.length > 0 && this.files[0].type.includes('/json')){
-			this.storageFileStorage.uploadTempFiles(fileList[0])
+		if (this.file?.type?.includes('/json')){
+			this.storageFileStorage.uploadTempFiles(this.file)
 			.pipe(takeUntil(this._destroyed))
 			.subscribe(
 				(storageFile) => {
-					if (storageFile.length >0 ){
-						this.planService.preprocessingPlan(storageFile[0].id, 'rda-file-transformer')
-						.pipe(takeUntil(this._destroyed))
-						.subscribe(
-							(preprocessingData) => {
-								this.formGroup = new PlanImportRdaConfigEditorModel().fromModel(preprocessingData, storageFile[0].id,).buildForm();
-							},
-							(error) => {
-								this.httpErrorHandlingService.handleBackedRequestError(error)
-								this.close();
-							}
-						);
+					if (storageFile.length > 0 ){
+						this.storageFile = storageFile[0];
+						this.fileTransformerWithJson = this.fileTransformerService.availableImportFormatsFor(FileTransformerEntityType.Plan)?.filter(x => x.importVariants?.filter(y => y.format?.toLowerCase() === 'json')) || [];
+						if (this.fileTransformerWithJson?.length == 1) {
+							this.preprocessingPlan(this.fileTransformerWithJson[0].fileTransformerId);
+						}
 					}
 					
 				},
@@ -147,20 +134,30 @@ export class PlanUploadDialogComponent extends BaseComponent {
 		}
 	}
 
-	selectFile(event) {
-		const fileList: FileList = event.addedFiles
-		this.data.fileList = fileList;
-		if (this.data.fileList.length > 0) {
-			this.planTitle = fileList[0].name;
-		}
-		if (this.files.length === 1) {
-			this.files.splice(0, 1);
-		}
-		this.files.push(...event.addedFiles);
+	repoChanged(repositoryId: string) {
+		this.preprocessingPlan(repositoryId);
 	}
 
-	onRemove(event) {
-		this.files.splice(0, 1);
+	preprocessingPlan(repositoryId: string) {
+		if (this.storageFile?.id && repositoryId?.length > 0) {
+			this.loadSpiner = true;
+			this.planService.preprocessingPlan(this.storageFile?.id, repositoryId)
+			.pipe(takeUntil(this._destroyed))
+			.subscribe(
+				(preprocessingData) => {
+					this.formGroup = new PlanImportRdaConfigEditorModel().fromModel(preprocessingData, this.storageFile?.id, repositoryId).buildForm();
+					if (this.formGroup != null) this.loadSpiner = false;
+				},
+				(error) => {
+					this.httpErrorHandlingService.handleBackedRequestError(error)
+					this.close();
+				}
+			);
+		}
+	}
+
+	onRemove() {
+		this.file = null;
 		this.planTitle = null;
 		this.formGroup = null;
 	}
@@ -193,7 +190,7 @@ export class PlanUploadDialogComponent extends BaseComponent {
 	}
 
 	hasFile(): boolean {
-		return this.files && this.files.length > 0;
+		return !!this.file;
 	}
 
 	private onCallbackEror(error: any) {

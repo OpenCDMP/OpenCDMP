@@ -71,6 +71,7 @@ public class PlanUserBuilder extends BaseBuilder<PlanUser, PlanUserEntity>{
             if (fields.hasField(this.asIndexer(PlanUser._id))) m.setId(d.getId());
             if (fields.hasField(this.asIndexer(PlanUser._role))) m.setRole(d.getRole());
             if (fields.hasField(this.asIndexer(PlanUser._sectionId))) m.setSectionId(d.getSectionId());
+            if (fields.hasField(this.asIndexer(PlanUser._ordinal))) m.setOrdinal(d.getOrdinal());
             if (fields.hasField(this.asIndexer(PlanUser._createdAt))) m.setCreatedAt(d.getCreatedAt());
             if (fields.hasField(this.asIndexer(PlanUser._updatedAt))) m.setUpdatedAt(d.getUpdatedAt());
             if (fields.hasField(this.asIndexer(PlanUser._isActive))) m.setIsActive(d.getIsActive());

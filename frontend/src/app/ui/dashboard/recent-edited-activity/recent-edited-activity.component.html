@@ -30,8 +30,8 @@
 				<!-- End of Search Filter -->
 			</div>
 			<div *ngFor="let item of listingItems; let i = index">
-				<app-plan-listing-item-component *ngIf="item.plan" [showDivider]="i != (listingItems.length - 1)" [plan]="item.plan" [isPublic]="false" [statusStorageFile]="storageFileMap.get(item.plan.status?.definition?.storageFile?.id)"></app-plan-listing-item-component>
-				<app-description-listing-item-component *ngIf="item?.description" [showDivider]="i != (listingItems.length - 1)" [description]="item?.description" [isPublic]="false"  [statusStorageFile]="storageFileMap.get(item.description.status?.definition?.storageFile?.id)"></app-description-listing-item-component>
+				<app-plan-listing-item-component *ngIf="item.plan" [orderedPlanPreferencesList] = orderedPlanPreferencesList [showDivider]="i != (listingItems.length - 1)" [plan]="item.plan" [isPublic]="false" [statusStorageFile]="storageFileMap.get(item.plan.status?.definition?.storageFile?.id)"></app-plan-listing-item-component>
+				<app-description-listing-item-component *ngIf="item?.description" [orderedDescriptionPreferencesList] = orderedDescriptionPreferencesList [showDivider]="i != (listingItems.length - 1)" [description]="item?.description" [isPublic]="false"  [statusStorageFile]="storageFileMap.get(item.description.status?.definition?.storageFile?.id)"></app-description-listing-item-component>
 			</div>
 			<div class="text-muted d-flex justify-content-center mt-5" *ngIf="!loading && listingItems && listingItems.length > 0 && lookup.page.offset >= currentPage*pageSize">
 				{{'GENERAL.ACTIONS.NO-MORE-AVAILABLE' | translate}}

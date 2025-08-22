@@ -35,6 +35,11 @@ import { PlanEditorEntityResolver } from '../../plan-editor-blueprint/resolvers/
 import { of } from 'rxjs';
 import { DomSanitizer, SafeResourceUrl, SafeUrl } from '@angular/platform-browser';
 import { StorageFileService } from '@app/core/services/storage-file/storage-file.service';
+import {TenantConfigurationService} from "@app/core/services/tenant-configuration/tenant-configuration.service";
+import {TenantConfigurationType} from "@app/core/common/enum/tenant-configuration-type";
+import {ViewPreferencesEditorResolver} from "@app/ui/admin/tenant-configuration/editor/view-preferences/view-preferences-editor.resolver";
+import {TenantConfigurationEditorModel} from "@app/ui/admin/tenant-configuration/editor/view-preferences/view-preferences-editor.model";
+import {ReferenceType} from "@app/core/model/reference-type/reference-type";
 
 @Component({
     selector: 'app-plan-listing-item-component',
@@ -50,7 +55,7 @@ export class PlanListingItemComponent extends BaseComponent implements OnInit {
 	@Input() isPublic: boolean;
 	@Input() tenants: Tenant[] = [];
     @Input() statusStorageFile: SafeUrl;
-
+	@Input() orderedPlanPreferencesList:ReferenceType[] = [];
 	@Output() onClick: EventEmitter<Plan> = new EventEmitter();
 
 	isDeleted: boolean;
@@ -75,8 +80,8 @@ export class PlanListingItemComponent extends BaseComponent implements OnInit {
 	get canClonePlan(): boolean {
 		const authorizationFlags = !this.isPublic ? (this.plan as Plan).authorizationFlags : [];
 		return (
-            (authorizationFlags?.some(x => x === AppPermission.ClonePlan) || 
-            this.authentication.hasPermission(AppPermission.ClonePlan) || 
+            (authorizationFlags?.some(x => x === AppPermission.ClonePlan) ||
+            this.authentication.hasPermission(AppPermission.ClonePlan) ||
             (this.authentication.hasPermission(AppPermission.PublicClonePlan) && this.isPublic))
         );
 	}
@@ -142,8 +147,10 @@ export class PlanListingItemComponent extends BaseComponent implements OnInit {
 		if (this.plan.isActive === IsActive.Inactive) {
 			this.isDeleted = true;
 		}
+
+		if (this.plan.planReferences?.length > 0) this.plan.planReferences = this.plan.planReferences?.filter(x => x.isActive === IsActive.Active);
 	}
-    
+
     // private loadStatusLogo(){
 	// 	const status = (this.plan as Plan)?.status;
 	// 	if (status && status.definition?.storageFile?.id) {
@@ -151,15 +158,15 @@ export class PlanListingItemComponent extends BaseComponent implements OnInit {
     //         .subscribe(response => {
     //             this.storageFileLogo = this.sanitizer.bypassSecurityTrustUrl(URL.createObjectURL(response.body));
     //         });
-	// 	}			
-	// 	return 	
+	// 	}
+	// 	return
 	// }
 
 	public isAuthenticated(): boolean {
 		return this.authentication.currentAccountIsAuthenticated();
 	}
 
-	
+
 	public getTenantName(id: Guid): string {
 		return this.tenants?.find(t => t?.id == id)?.name;
 	}

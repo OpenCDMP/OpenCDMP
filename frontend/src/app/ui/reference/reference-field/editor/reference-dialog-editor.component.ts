@@ -17,8 +17,6 @@ import { nameof } from 'ts-simple-nameof';
     standalone: false
 })
 export class ReferenceDialogEditorComponent extends BaseComponent implements OnInit {
-   
-
 	formGroup: UntypedFormGroup;
 	referenceType: ReferenceType;
 	systemFields: string[];
@@ -141,4 +139,7 @@ export class ReferenceDialogEditorComponent extends BaseComponent implements OnI
 		]
 	}
 
+    isRequired(control: FormControl): boolean{
+        return control?.hasValidator(Validators.required);
+    }
 }

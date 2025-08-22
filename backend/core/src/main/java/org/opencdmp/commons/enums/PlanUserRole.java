@@ -10,7 +10,10 @@ public enum PlanUserRole implements DatabaseEnum<Short> {
     Owner((short) 0),
     Viewer((short) 1),
     DescriptionContributor((short) 2),
-    Reviewer((short) 3);
+    Reviewer((short) 3),
+    DataSteward((short) 4),
+    DataPrivacyOfficer((short) 5),
+    EthicsReviewer((short) 6);
 
     private final Short value;
 

@@ -2,19 +2,25 @@ package org.opencdmp.query.lookup;
 
 import gr.cite.tools.data.query.Lookup;
 import gr.cite.tools.data.query.QueryFactory;
+import io.swagger.v3.oas.annotations.media.Schema;
 import org.opencdmp.commons.enums.IsActive;
 import org.opencdmp.query.DescriptionWorkflowQuery;
+import org.opencdmp.query.lookup.swagger.SwaggerHelpers;
 
 import java.util.List;
 import java.util.UUID;
 
 public class DescriptionWorkflowLookup extends Lookup {
+    @Schema(description = SwaggerHelpers.DescriptionWorkflow.like_description)
     private String like;
 
+    @Schema(description = SwaggerHelpers.DescriptionWorkflow.ids_description)
     private List<UUID> ids;
 
+    @Schema(description = SwaggerHelpers.DescriptionWorkflow.excludeIds_description)
     private List<UUID> excludedIds;
 
+    @Schema(description = SwaggerHelpers.DescriptionWorkflow.isActive_description)
     private List<IsActive> isActive;
 
     public String getLike() { return like; }

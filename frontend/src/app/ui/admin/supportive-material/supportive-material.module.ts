@@ -8,7 +8,6 @@ import { HybridListingModule } from "@common/modules/hybrid-listing/hybrid-listi
 import { TextFilterModule } from "@common/modules/text-filter/text-filter.module";
 import { UserSettingsModule } from "@common/modules/user-settings/user-settings.module";
 import { CommonUiModule } from '@common/ui/common-ui.module';
-import { NgxDropzoneModule } from "ngx-dropzone";
 import { SupportiveMaterialRoutingModule } from './supportive-material.routing';
 import { SupportiveMaterialEditorComponent } from './editor/supportive-material-editor.component';
 import { SupportiveMaterialListingComponent } from './listing/supportive-material-listing.component';
@@ -21,7 +20,6 @@ import { EditorModule } from '@tinymce/tinymce-angular';
 		CommonFormsModule,
 		ConfirmationDialogModule,
 		SupportiveMaterialRoutingModule,
-		NgxDropzoneModule,
 		DragDropModule,
 		AutoCompleteModule,
 		HybridListingModule,

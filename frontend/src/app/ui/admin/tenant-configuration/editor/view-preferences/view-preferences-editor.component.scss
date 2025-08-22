@@ -1,0 +1,17 @@
+.draggable-item:focus{
+    border-radius: 8px;
+    &.reorder-mode {
+        border: 1px solid var(--sys-primary)
+    }
+}
+
+.assistive-text {
+    position: absolute;
+    margin: -1px;
+    border: 0;
+    padding: 0;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+}

@@ -1,6 +1,7 @@
 package org.opencdmp.model.builder;
 
 import gr.cite.tools.data.builder.BuilderFactory;
+import gr.cite.tools.data.query.Ordering;
 import gr.cite.tools.data.query.QueryFactory;
 import gr.cite.tools.exception.MyApplicationException;
 import gr.cite.tools.fieldset.BaseFieldSet;
@@ -8,11 +9,18 @@ import gr.cite.tools.fieldset.FieldSet;
 import gr.cite.tools.logging.DataLogEntry;
 import gr.cite.tools.logging.LoggerService;
 import org.opencdmp.authorization.AuthorizationFlags;
+import org.opencdmp.commons.JsonHandlingService;
+import org.opencdmp.commons.XmlHandlingService;
 import org.opencdmp.commons.enums.EntityType;
 import org.opencdmp.commons.enums.IsActive;
+import org.opencdmp.commons.types.plan.PlanPropertiesEntity;
+import org.opencdmp.commons.types.planblueprint.DefinitionEntity;
 import org.opencdmp.convention.ConventionService;
+import org.opencdmp.data.PlanBlueprintEntity;
 import org.opencdmp.data.PlanEntity;
 import org.opencdmp.model.*;
+import org.opencdmp.model.plan.Plan;
+import org.opencdmp.model.planblueprint.PlanBlueprint;
 import org.opencdmp.query.*;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,16 +38,20 @@ public class PublicPlanBuilder extends BaseBuilder<PublicPlan, PlanEntity> {
     private final QueryFactory queryFactory;
 
     private final BuilderFactory builderFactory;
+    private final XmlHandlingService xmlHandlingService;
+    private final JsonHandlingService jsonHandlingService;
 
     private EnumSet<AuthorizationFlags> authorize = EnumSet.of(AuthorizationFlags.None);
 
     @Autowired
     public PublicPlanBuilder(ConventionService conventionService,
                              QueryFactory queryFactory,
-                             BuilderFactory builderFactory) {
+                             BuilderFactory builderFactory, XmlHandlingService xmlHandlingService, JsonHandlingService jsonHandlingService) {
         super(conventionService, new LoggerService(LoggerFactory.getLogger(PublicPlanBuilder.class)));
         this.queryFactory = queryFactory;
         this.builderFactory = builderFactory;
+        this.xmlHandlingService = xmlHandlingService;
+        this.jsonHandlingService = jsonHandlingService;
     }
 
     public PublicPlanBuilder authorize(EnumSet<AuthorizationFlags> values) {
@@ -74,6 +86,12 @@ public class PublicPlanBuilder extends BaseBuilder<PublicPlan, PlanEntity> {
         FieldSet planStatusFields = fields.extractPrefixed(this.asPrefix(PublicPlan._status));
         Map<UUID, PublicPlanStatus> planStatusItemsMap = this.collectPlanStatuses(planStatusFields, data);
 
+        FieldSet blueprintFields = fields.extractPrefixed(this.asPrefix(PublicPlan._blueprint));
+        Map<UUID, PublicPlanBlueprint> blueprintItemsMap = this.collectPlanBlueprints(blueprintFields, data);
+
+        FieldSet planPropertiesFields = fields.extractPrefixed(this.asPrefix(Plan._properties));
+        Map<UUID, DefinitionEntity> definitionEntityMap = !planPropertiesFields.isEmpty() ? this.collectPlanBlueprintDefinitions(data) : null;
+
         for (PlanEntity d : data) {
             PublicPlan m = new PublicPlan();
             if (fields.hasField(this.asIndexer(PublicPlan._id))) m.setId(d.getId());
@@ -84,6 +102,8 @@ public class PublicPlanBuilder extends BaseBuilder<PublicPlan, PlanEntity> {
             if (fields.hasField(this.asIndexer(PublicPlan._updatedAt))) m.setUpdatedAt(d.getUpdatedAt());
             if (fields.hasField(this.asIndexer(PublicPlan._accessType))) m.setAccessType(d.getAccessType());
             if (!planStatusFields.isEmpty() && planStatusItemsMap != null && planStatusItemsMap.containsKey(d.getStatusId()))  m.setStatus(planStatusItemsMap.get(d.getStatusId()));
+            if (fields.hasField(this.asIndexer(Plan._language))) m.setLanguage(d.getLanguage());
+            if (!blueprintFields.isEmpty() && blueprintItemsMap != null && blueprintItemsMap.containsKey(d.getBlueprintId()))  m.setBlueprint(blueprintItemsMap.get(d.getBlueprintId()));
             if (fields.hasField(this.asIndexer(PublicPlan._groupId))) m.setGroupId(d.getGroupId());
             if (fields.hasField(this.asIndexer(PublicPlan._accessType))) m.setAccessType(d.getAccessType());
 
@@ -94,6 +114,11 @@ public class PublicPlanBuilder extends BaseBuilder<PublicPlan, PlanEntity> {
             if (otherPlanVersionsMap != null && !otherPlanVersionsMap.isEmpty() && otherPlanVersionsMap.containsKey(d.getGroupId())){
                 m.setOtherPlanVersions(otherPlanVersionsMap.get(d.getGroupId()));
                 m.getOtherPlanVersions().sort(Comparator.comparing(PublicPlan::getVersion));
+            }
+
+            if (!planPropertiesFields.isEmpty() && d.getProperties() != null){
+                PlanPropertiesEntity propertyDefinition = this.jsonHandlingService.fromJsonSafe(PlanPropertiesEntity.class, d.getProperties());
+                m.setProperties(this.builderFactory.builder(PublicPlanPropertiesBuilder.class).withDefinition(definitionEntityMap != null ? definitionEntityMap.getOrDefault(d.getBlueprintId(), null) : null).authorize(this.authorize).build(planPropertiesFields, propertyDefinition));
             }
 
             models.add(m);
@@ -127,7 +152,8 @@ public class PublicPlanBuilder extends BaseBuilder<PublicPlan, PlanEntity> {
 
         Map<UUID, List<PublicPlanUser>> itemMap = null;
         FieldSet clone = new BaseFieldSet(fields.getFields()).ensure(this.asIndexer(PublicPlanUser._plan, PublicPlan._id));
-        PlanUserQuery query = this.queryFactory.query(PlanUserQuery.class).disableTracking().authorize(this.authorize).planIds(data.stream().map(PlanEntity::getId).distinct().collect(Collectors.toList()));
+        PlanUserQuery query = this.queryFactory.query(PlanUserQuery.class).disableTracking().authorize(this.authorize).isActives(IsActive.Active).planIds(data.stream().map(PlanEntity::getId).distinct().collect(Collectors.toList()));
+        query.setOrder(new Ordering().addAscending(PlanUser._ordinal));
         itemMap = this.builderFactory.builder(PublicPlanUserBuilder.class).authorize(this.authorize).asMasterKey(query, clone, x -> x.getPlan().getId());
 
         if (!fields.hasField(this.asIndexer(PublicPlanUser._plan, PublicPlan._id))) {
@@ -218,6 +244,52 @@ public class PublicPlanBuilder extends BaseBuilder<PublicPlan, PlanEntity> {
                 if (item != null)
                     item.setId(null);
             });
+        }
+
+        return itemMap;
+    }
+
+    private Map<UUID, PublicPlanBlueprint> collectPlanBlueprints(FieldSet fields, List<PlanEntity> data) throws MyApplicationException {
+        if (fields.isEmpty() || data.isEmpty())
+            return null;
+        this.logger.debug("checking related - {}", PublicPlanBlueprint.class.getSimpleName());
+
+        Map<UUID, PublicPlanBlueprint> itemMap;
+        if (!fields.hasOtherField(this.asIndexer(PublicPlanBlueprint._id))) {
+            itemMap = this.asEmpty(
+                    data.stream().map(PlanEntity::getStatusId).distinct().collect(Collectors.toList()),
+                    x -> {
+                        PublicPlanBlueprint item = new PublicPlanBlueprint();
+                        item.setId(x);
+                        return item;
+                    },
+                    PublicPlanBlueprint::getId);
+        } else {
+            FieldSet clone = new BaseFieldSet(fields.getFields()).ensure(PublicPlanStatus._id);
+            PlanBlueprintQuery q = this.queryFactory.query(PlanBlueprintQuery.class).disableTracking().authorize(this.authorize).ids(data.stream().map(PlanEntity::getBlueprintId).distinct().collect(Collectors.toList()));
+            itemMap = this.builderFactory.builder(PublicPlanBlueprintBuilder.class).authorize(this.authorize).asForeignKey(q, clone, PublicPlanBlueprint::getId);
+        }
+        if (!fields.hasField(PublicPlanBlueprint._id)) {
+            itemMap.forEach((id, item) -> {
+                if (item != null)
+                    item.setId(null);
+            });
+        }
+
+        return itemMap;
+    }
+
+    private Map<UUID, DefinitionEntity> collectPlanBlueprintDefinitions(List<PlanEntity> data) throws MyApplicationException {
+        if (data.isEmpty())
+            return null;
+        this.logger.debug("checking related - {}", DefinitionEntity.class.getSimpleName());
+
+        Map<java.util.UUID, DefinitionEntity> itemMap = new HashMap<>();
+        PlanBlueprintQuery q = this.queryFactory.query(PlanBlueprintQuery.class).disableTracking().authorize(this.authorize).ids(data.stream().map(PlanEntity::getBlueprintId).distinct().collect(Collectors.toList()));
+        List<PlanBlueprintEntity> items = q.collectAs(new BaseFieldSet().ensure(PlanBlueprint._id).ensure(PlanBlueprint._definition));
+        for (PlanBlueprintEntity item : items){
+            DefinitionEntity definition =this.xmlHandlingService.fromXmlSafe(DefinitionEntity.class, item.getDefinition());
+            itemMap.put(item.getId(), definition);
         }
 
         return itemMap;

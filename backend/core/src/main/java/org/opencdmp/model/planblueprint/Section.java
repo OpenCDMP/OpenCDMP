@@ -32,6 +32,9 @@ public class Section {
 	public final static String _prefillingSourcesEnabled = "prefillingSourcesEnabled";
 	private Boolean prefillingSourcesEnabled;
 
+	public final static String _canEditDescriptionTemplates = "canEditDescriptionTemplates";
+	private Boolean canEditDescriptionTemplates;
+
 	public final static String _prefillingSources = "prefillingSources";
 	private List<PrefillingSource> prefillingSources;
 
@@ -101,6 +104,14 @@ public class Section {
 
 	public void setPrefillingSourcesEnabled(Boolean prefillingSourcesEnabled) {
 		this.prefillingSourcesEnabled = prefillingSourcesEnabled;
+	}
+
+	public Boolean getCanEditDescriptionTemplates() {
+		return canEditDescriptionTemplates;
+	}
+
+	public void setCanEditDescriptionTemplates(Boolean canEditDescriptionTemplates) {
+		this.canEditDescriptionTemplates = canEditDescriptionTemplates;
 	}
 
 	public List<PrefillingSource> getPrefillingSources() {

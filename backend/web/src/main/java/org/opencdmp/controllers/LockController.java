@@ -13,6 +13,10 @@ import gr.cite.tools.logging.LoggerService;
 import gr.cite.tools.logging.MapLogEntry;
 import gr.cite.tools.validation.ValidationFilterAnnotation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.enums.Explode;
+import io.swagger.v3.oas.annotations.enums.ParameterStyle;
+import io.swagger.v3.oas.annotations.extensions.Extension;
+import io.swagger.v3.oas.annotations.extensions.ExtensionProperty;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
@@ -102,7 +106,7 @@ public class LockController {
     }
 
     @PostMapping("query")
-    @OperationWithTenantHeader(summary = "Query all locked entities", description = SwaggerHelpers.Lock.endpoint_query, requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(description = SwaggerHelpers.Lock.endpoint_query_request_body, content = @Content(
+    @OperationWithTenantHeader(summary = "Query all locked entities", description = SwaggerHelpers.Lock.endpoint_query, requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(content = @Content(
             examples = {
                     @ExampleObject(
                             name = SwaggerHelpers.Commons.pagination_example,
@@ -120,7 +124,8 @@ public class LockController {
                     name = SwaggerHelpers.Commons.pagination_response_example,
                     description = SwaggerHelpers.Commons.pagination_response_example_description,
                     value = SwaggerHelpers.Lock.endpoint_query_response_example
-            ))))
+            ))),
+            extensions = @Extension(name = "x-order", properties = @ExtensionProperty(name = "value", value = "1")))
     public QueryResult<Lock> query(@RequestBody LockLookup lookup) throws MyApplicationException, MyForbiddenException, InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
         logger.debug("querying {}", Lock.class.getSimpleName());
 
@@ -142,11 +147,12 @@ public class LockController {
                     schema = @Schema(
                             implementation = Lock.class
                     ))
-            ))
+            ),
+            extensions = @Extension(name = "x-order", properties = @ExtensionProperty(name = "value", value = "3")))
     @Swagger404
     public Lock get(
             @Parameter(name = "id", description = "The id of a user to fetch", example = "c0c163dc-2965-45a5-9608-f76030578609", required = true) @PathVariable("id") UUID id,
-            @Parameter(name = "fieldSet", description = SwaggerHelpers.Commons.fieldset_description, required = true) FieldSet fieldSet
+            @Parameter(name = "f", description = SwaggerHelpers.Commons.fieldset_description, required = true, style = ParameterStyle.FORM, explode = Explode.TRUE, schema = @Schema(type = "array", example = SwaggerHelpers.Lock.endpoint_field_set_example)) FieldSet fieldSet
     ) throws MyApplicationException, MyForbiddenException, MyNotFoundException {
         logger.debug(new MapLogEntry("retrieving" + Lock.class.getSimpleName()).And("id", id).And("fields", fieldSet));
 
@@ -171,14 +177,15 @@ public class LockController {
                     schema = @Schema(
                             implementation = Lock.class
                     ))
-            ))
+            ),
+            extensions = @Extension(name = "x-order", properties = @ExtensionProperty(name = "value", value = "2")))
     @Swagger400
     @Swagger404
     @Transactional
     @ValidationFilterAnnotation(validator = LockPersist.LockPersistValidator.ValidatorName, argumentName = "model")
     public Lock persist(
             @RequestBody LockPersist model,
-            @Parameter(name = "fieldSet", description = SwaggerHelpers.Commons.fieldset_description, required = true) FieldSet fieldSet
+            @Parameter(name = "f", description = SwaggerHelpers.Commons.fieldset_description, required = true, style = ParameterStyle.FORM, explode = Explode.TRUE, schema = @Schema(type = "array", example = SwaggerHelpers.Lock.endpoint_field_set_example)) FieldSet fieldSet
     ) throws MyApplicationException, MyForbiddenException, MyNotFoundException, InvalidApplicationException {
         logger.debug(new MapLogEntry("persisting" + Lock.class.getSimpleName()).And("model", model).And("fieldSet", fieldSet));
         this.censorFactory.censor(LockCensor.class).censor(fieldSet, null);
@@ -203,7 +210,7 @@ public class LockController {
     @Swagger404
     public Lock getWithTarget(
             @Parameter(name = "id", description = "The target id of a lock to fetch", example = "c0c163dc-2965-45a5-9608-f76030578609", required = true) @PathVariable("id") UUID targetId,
-            @Parameter(name = "fieldSet", description = SwaggerHelpers.Commons.fieldset_description, required = true) FieldSet fieldSet
+            @Parameter(name = "f", description = SwaggerHelpers.Commons.fieldset_description, required = true, style = ParameterStyle.FORM, explode = Explode.TRUE, schema = @Schema(type = "array", example = SwaggerHelpers.Lock.endpoint_field_set_example)) FieldSet fieldSet
     ) throws MyApplicationException, MyForbiddenException, MyNotFoundException {
         logger.debug(new MapLogEntry("retrieving" + Lock.class.getSimpleName()).And("targetId", targetId).And("fields", fieldSet));
 
@@ -232,7 +239,7 @@ public class LockController {
             ))
     public LockStatus getLocked(
             @Parameter(name = "id", description = "The target id of a lock to fetch the status", example = "c0c163dc-2965-45a5-9608-f76030578609", required = true) @PathVariable("id") UUID targetId,
-            @Parameter(name = "fieldSet", description = SwaggerHelpers.Commons.fieldset_description, required = true) FieldSet fieldSet
+            @Parameter(name = "f", description = SwaggerHelpers.Commons.fieldset_description, required = true, style = ParameterStyle.FORM, explode = Explode.TRUE, schema = @Schema(type = "array", example = SwaggerHelpers.Lock.endpoint_field_set_example)) FieldSet fieldSet
     ) throws Exception {
         logger.debug(new MapLogEntry("is locked" + Lock.class.getSimpleName()).And("targetId", targetId).And("fields", fieldSet));
         this.authService.authorizeForce(Permission.BrowseLock);
@@ -325,7 +332,8 @@ public class LockController {
                     schema = @Schema(
                             implementation = Boolean.class
                     ))
-            ))
+            ),
+            extensions = @Extension(name = "x-order", properties = @ExtensionProperty(name = "value", value = "4")))
     public boolean unlock(
             @Parameter(name = "id", description = "The target id to be unlocked", example = "c0c163dc-2965-45a5-9608-f76030578609", required = true) @PathVariable("id") UUID targetId
     ) throws Exception {

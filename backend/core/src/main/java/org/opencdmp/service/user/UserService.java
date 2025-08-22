@@ -11,13 +11,19 @@ import org.opencdmp.model.persist.*;
 import org.opencdmp.model.persist.actionconfirmation.RemoveCredentialRequestPersist;
 import org.opencdmp.model.user.User;
 
+import javax.crypto.BadPaddingException;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.NoSuchPaddingException;
 import javax.management.InvalidApplicationException;
 import java.io.IOException;
+import java.security.InvalidAlgorithmParameterException;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
 import java.util.UUID;
 
 public interface UserService {
 
-    User persist(UserPersist model, FieldSet fields) throws MyForbiddenException, MyValidationException, MyApplicationException, MyNotFoundException, InvalidApplicationException, JsonProcessingException;
+    User persist(UserPersist model, FieldSet fields)throws MyForbiddenException, MyValidationException, MyApplicationException, MyNotFoundException, InvalidApplicationException, JsonProcessingException, InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException;
 
     void updateLanguageMine(String language) throws InvalidApplicationException, JsonProcessingException;
 

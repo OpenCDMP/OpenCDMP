@@ -6,9 +6,11 @@ import { MatIconModule } from '@angular/material/icon';
 import { VisibilityRulesService } from '@app/ui/description/editor/description-form/visibility-rules/visibility-rules.service';
 import { TableOfContentsComponent } from './table-of-contents.component';
 import { TableOfContentsService } from './services/table-of-contents-service';
+import {TranslateModule} from "@ngx-translate/core";
+import {MatBadgeModule} from "@angular/material/badge";
 
 @NgModule({
-    imports: [CommonModule, RouterModule, MatIconModule],
+    imports: [CommonModule, RouterModule, MatIconModule, MatBadgeModule, TranslateModule,],
     declarations: [TableOfContentsComponent, TableOfContentsInternal],
     exports: [TableOfContentsComponent],
     providers: [VisibilityRulesService, TableOfContentsService]

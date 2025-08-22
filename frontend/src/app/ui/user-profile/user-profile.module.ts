@@ -9,6 +9,7 @@ import { UserProfileComponent } from './user-profile.component';
 import { UserProfileRoutingModule } from './user-profile.routing';
 import { UserProfileNotifierListModule } from '@notification-service/ui/user-profile/notifier-list/user-profile-notifier-list-editor.module';
 import { FormFocusDirective } from '@common/forms/form-focus.directive';
+import { PluginEditorModule } from '../plugin/plugin-editor.module';
 
 @NgModule({
     imports: [
@@ -20,7 +21,8 @@ import { FormFocusDirective } from '@common/forms/form-focus.directive';
         AddAccountDialogModule,
         FormValidationErrorsDialogModule,
         UserProfileNotifierListModule,
-        FormFocusDirective
+        FormFocusDirective,
+        PluginEditorModule,
     ],
     declarations: [
         UserProfileComponent

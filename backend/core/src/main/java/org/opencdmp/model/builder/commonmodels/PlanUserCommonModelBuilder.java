@@ -7,7 +7,7 @@ import gr.cite.tools.logging.LoggerService;
 import org.opencdmp.authorization.AuthorizationFlags;
 import org.opencdmp.commonmodels.enums.PlanUserRole;
 import org.opencdmp.commonmodels.models.PlanUserModel;
-import org.opencdmp.commonmodels.models.UserModel;
+import org.opencdmp.commonmodels.models.user.UserModel;
 import org.opencdmp.commons.enums.IsActive;
 import org.opencdmp.convention.ConventionService;
 import org.opencdmp.data.PlanUserEntity;
@@ -63,6 +63,9 @@ public class PlanUserCommonModelBuilder extends BaseCommonModelBuilder<PlanUserM
                 case Owner -> m.setRole(PlanUserRole.Owner);
                 case DescriptionContributor -> m.setRole(PlanUserRole.DescriptionContributor);
                 case Reviewer -> m.setRole(PlanUserRole.Reviewer);
+                case DataSteward -> m.setRole(PlanUserRole.DataSteward);
+                case DataPrivacyOfficer -> m.setRole(PlanUserRole.DataPrivacyOfficer);
+                case EthicsReviewer -> m.setRole(PlanUserRole.EthicsReviewer);
                 default -> throw new MyApplicationException("unrecognized type " + d.getRole().getValue());
             }
             if (userItemsMap != null && userItemsMap.containsKey(d.getUserId())) m.setUser(userItemsMap.get(d.getUserId()));

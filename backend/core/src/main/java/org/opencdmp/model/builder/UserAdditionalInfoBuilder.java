@@ -10,8 +10,8 @@ import gr.cite.tools.logging.LoggerService;
 import org.opencdmp.authorization.AuthorizationFlags;
 import org.opencdmp.commons.types.user.AdditionalInfoEntity;
 import org.opencdmp.convention.ConventionService;
+import org.opencdmp.model.builder.pluginconfiguration.PluginConfigurationUserBuilder;
 import org.opencdmp.model.builder.reference.ReferenceBuilder;
-import org.opencdmp.model.descriptionreference.DescriptionReference;
 import org.opencdmp.model.reference.Reference;
 import org.opencdmp.model.user.UserAdditionalInfo;
 import org.opencdmp.query.ReferenceQuery;
@@ -56,6 +56,7 @@ public class UserAdditionalInfoBuilder extends BaseBuilder<UserAdditionalInfo, A
         FieldSet referenceFields = fields.extractPrefixed(this.asPrefix(UserAdditionalInfo._organization));
         Map<UUID, Reference> referenceItemsMap = this.collectReferences(referenceFields, data);
 
+        FieldSet pluginConfigurationFields = fields.extractPrefixed(this.asPrefix(UserAdditionalInfo._pluginConfigurations));
         List<UserAdditionalInfo> models = new ArrayList<>();
 
         for (AdditionalInfoEntity d : data) {
@@ -66,6 +67,7 @@ public class UserAdditionalInfoBuilder extends BaseBuilder<UserAdditionalInfo, A
             if (fields.hasField(this.asIndexer(UserAdditionalInfo._timezone))) m.setTimezone(d.getTimezone());
             if (!referenceFields.isEmpty() && referenceItemsMap != null && referenceItemsMap.containsKey(d.getOrganizationId())) m.setOrganization(referenceItemsMap.get(d.getOrganizationId()));
             if (fields.hasField(this.asIndexer(UserAdditionalInfo._roleOrganization))) m.setRoleOrganization(d.getRoleOrganization());
+            if (!pluginConfigurationFields.isEmpty() && d.getPluginConfigurations() != null) m.setPluginConfigurations(this.builderFactory.builder(PluginConfigurationUserBuilder.class).authorize(this.authorize).build(pluginConfigurationFields, d.getPluginConfigurations()));
 
             models.add(m);
         }

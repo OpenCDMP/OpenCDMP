@@ -195,6 +195,28 @@
 							</div>
 						</div>
 					</div>
+					<mat-accordion class="w-100 mb-5 ml-1 mr-1" tabindex="0">
+                        <mat-expansion-panel (opened)="expandPluginConfigurations()">
+                            <mat-expansion-panel-header>
+                                <mat-panel-title>
+                                    <span>{{ 'USER-PROFILE.SETTINGS.PLUGIN-CONFIGURATION' | translate}}</span>
+                                </mat-panel-title>
+                            </mat-expansion-panel-header>
+                            <div class="row">
+                                <div class="col-12">
+                                    <ng-container *ngIf="expandedPluginConfifurations">
+										<app-plugin-editor 
+											[formGroup]="formGroup.get('additionalInfo').get('pluginConfigurations')"
+											[fileMap] = "fileMap"
+											[showPluginText] = "false"
+											[showPluginFieldText] = "true"
+											[pluginUserConfiguration]="pluginConfigurationService.pluginRepositoryUserConfiguration()">
+										</app-plugin-editor>
+                                    </ng-container>
+                                </div>
+                            </div>
+                        </mat-expansion-panel>
+                    </mat-accordion>
 					<div class="row d-flex mb-5">
 						<div class="col-auto ml-auto"><button mat-flat-button color="primary" class="padded-shadow-btn" type="button" (click)="save()">{{'USER-PROFILE.ACTIONS.SAVE' | translate}}</button></div>
 					</div>

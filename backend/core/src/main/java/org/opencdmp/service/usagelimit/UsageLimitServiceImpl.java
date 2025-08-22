@@ -19,6 +19,7 @@ import org.opencdmp.commons.XmlHandlingService;
 import org.opencdmp.commons.enums.IsActive;
 import org.opencdmp.commons.enums.UsageLimitTargetMetric;
 import gr.cite.tools.data.query.QueryFactory;
+import org.opencdmp.commons.scope.tenant.TenantScope;
 import org.opencdmp.commons.types.usagelimit.DefinitionEntity;
 import org.opencdmp.convention.ConventionService;
 import org.opencdmp.data.TenantEntityManager;
@@ -76,6 +77,8 @@ public class UsageLimitServiceImpl implements UsageLimitService {
 
     private final AccountingProperties accountingProperties;
 
+    private final TenantScope tenantScope;
+
 
     @Autowired
     public UsageLimitServiceImpl(
@@ -86,7 +89,7 @@ public class UsageLimitServiceImpl implements UsageLimitService {
             ConventionService conventionService,
             ErrorThesaurusProperties errors,
             MessageSource messageSource,
-            QueryFactory queryFactory, TenantEntityManager tenantEntityManager, XmlHandlingService xmlHandlingService, AccountingService accountingService, UsageLimitProperties usageLimitProperties, AccountingProperties accountingProperties) {
+            QueryFactory queryFactory, TenantEntityManager tenantEntityManager, XmlHandlingService xmlHandlingService, AccountingService accountingService, UsageLimitProperties usageLimitProperties, AccountingProperties accountingProperties, TenantScope tenantScope) {
         this.entityManager = entityManager;
         this.authorizationService = authorizationService;
         this.deleterFactory = deleterFactory;
@@ -100,6 +103,7 @@ public class UsageLimitServiceImpl implements UsageLimitService {
         this.accountingService = accountingService;
         this.usageLimitProperties = usageLimitProperties;
         this.accountingProperties = accountingProperties;
+        this.tenantScope = tenantScope;
     }
 
     public UsageLimit persist(UsageLimitPersist model, FieldSet fields) throws MyForbiddenException, MyValidationException, MyApplicationException, MyNotFoundException, InvalidApplicationException, JAXBException {
@@ -184,7 +188,7 @@ public class UsageLimitServiceImpl implements UsageLimitService {
                 DefinitionEntity definition = this.xmlHandlingService.fromXmlSafe(DefinitionEntity.class, usageLimitEntity.getDefinition());
                 if (definition == null) throw new MyNotFoundException(this.messageSource.getMessage("General_ItemNotFound", new Object[]{usageLimitEntity.getId(), DefinitionEntity.class.getSimpleName()}, LocaleContextHolder.getLocale()));
 
-                Integer currentValue = this.accountingService.getCurrentMetricValue(metric, definition);
+                Integer currentValue = this.accountingService.getCurrentMetricValue(metric.getValue(), definition);
                 if (currentValue >= usageLimitEntity.getValue()) throw new MyValidationException(this.errors.getUsageLimitException().getCode(), usageLimitEntity.getLabel());
             }
         } catch (InvalidApplicationException e) {

@@ -27,6 +27,7 @@ public class SectionEntity {
             @XmlElement(name = PlanBlueprintFieldCategory.Names.Extra, type = ExtraFieldEntity.class),
             @XmlElement(name = PlanBlueprintFieldCategory.Names.System, type = SystemFieldEntity.class),
             @XmlElement(name = PlanBlueprintFieldCategory.Names.ReferenceType, type = ReferenceTypeFieldEntity.class),
+            @XmlElement(name = PlanBlueprintFieldCategory.Names.Upload, type = UploadFieldEntity.class),
     })
     private List<FieldEntity> fields;
     
@@ -35,6 +36,9 @@ public class SectionEntity {
 
     @XmlAttribute(name = "prefillingSourcesEnabled")
     private Boolean prefillingSourcesEnabled;
+
+    @XmlAttribute(name = "canEditDescriptionTemplates")
+    private Boolean canEditDescriptionTemplates;
 
     @XmlElementWrapper(name = "descriptionTemplates")
     @XmlElement(name = "descriptionTemplate")
@@ -99,6 +103,14 @@ public class SectionEntity {
 
     public void setPrefillingSourcesEnabled(Boolean prefillingSourcesEnabled) {
         this.prefillingSourcesEnabled = prefillingSourcesEnabled;
+    }
+
+    public Boolean getCanEditDescriptionTemplates() {
+        return canEditDescriptionTemplates;
+    }
+
+    public void setCanEditDescriptionTemplates(Boolean canEditDescriptionTemplates) {
+        this.canEditDescriptionTemplates = canEditDescriptionTemplates;
     }
 
     public List<UUID> getPrefillingSourcesIds() {

@@ -1,4 +1,4 @@
-import { Component, input, output } from '@angular/core';
+import { Component, effect, input, output } from '@angular/core';
 import { PlanBlueprint } from '@app/core/model/plan-blueprint/plan-blueprint';
 import { EnumUtils } from '@app/core/services/utilities/enum-utils.service';
 import { BaseComponent } from '@common/base/base.component';
@@ -12,6 +12,12 @@ import { PlanEditorForm, PlanEditorModel } from '../plan-editor.model';
 import { PlanBlueprintFieldCategory } from '@app/core/common/enum/plan-blueprint-field-category';
 import { UiNotificationService } from '@app/core/services/notification/ui-notification-service';
 import { DescriptionTemplate } from '@app/core/model/description-template/description-template';
+import { DescriptionTemplateType } from '@app/core/model/description-template-type/description-template-type';
+import { QueryResult } from '@common/model/query-result';
+import { catchError, forkJoin, of, takeUntil } from 'rxjs';
+import { DescriptionTemplateTypeService } from '@app/core/services/description-template-type/description-template-type.service';
+import { DescriptionTemplateService } from '@app/core/services/description-template/description-template.service';
+import { types } from 'util';
 
 @Component({
   selector: 'app-plan-internal-blueprint-editor',
@@ -35,8 +41,15 @@ export class PlanInternalBlueprintEditorComponent extends BaseComponent{
     annotationsPerAnchor =  input<Map<string, number>>();
     descTemplatesInUseMap = input<Map<Guid, Guid[]>>(new Map([]));
 
+    descriptionTemplateSelectData:{
+        types: QueryResult<DescriptionTemplateType>,
+        descTemplates: QueryResult<DescriptionTemplate>
+    } = {
+        types: {count: 0, items: []},
+        descTemplates: {count: 0, items: []},
+    }
+
     showAnnotations = output<Guid>();
-    descriptionTemplateLoaded = output<DescriptionTemplate>();
 
     planBlueprintSectionFieldCategoryEnum = PlanBlueprintFieldCategory;
 
@@ -46,8 +59,27 @@ export class PlanInternalBlueprintEditorComponent extends BaseComponent{
         protected uiNotificationService: UiNotificationService,
         public routerUtils: RouterUtilsService,
         public enumUtils: EnumUtils,
+        private descriptionTemplateService: DescriptionTemplateService,
+        private descriptionTemplateTypeService: DescriptionTemplateTypeService,
     ){
         super();
+        effect(() => {
+            const blueprint = this.blueprint();
+            if(!blueprint){ return; }
+            if(blueprint.definition?.sections?.some((x) => x.hasTemplates)){
+                forkJoin([
+                    this.descriptionTemplateTypeService.query(this.descriptionTemplateTypeService.buildLookup())
+                    .pipe(takeUntil(this._destroyed), catchError(() => of(null))),
+                    this.descriptionTemplateService.query(this.descriptionTemplateService.buildLookup({page: {size: 5, offset: 0}}))
+                    .pipe(takeUntil(this._destroyed), catchError(() => of(null)))
+                ]).subscribe(([types, descTemplates]) => {
+                    this.descriptionTemplateSelectData = {
+                        types,
+                        descTemplates
+                    }
+                })
+            }
+        })
     }
 
     reApplyPropertiesValidators(){

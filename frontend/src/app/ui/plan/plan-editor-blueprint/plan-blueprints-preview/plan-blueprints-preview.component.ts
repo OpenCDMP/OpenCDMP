@@ -41,6 +41,7 @@ import { PlanBlueprintFieldCategory } from "@app/core/common/enum/plan-blueprint
 import { EnumUtils } from "@app/core/services/utilities/enum-utils.service";
 import { ReferenceType } from "@app/core/model/reference-type/reference-type";
 import {MatExpansionPanel} from "@angular/material/expansion";
+import { PlanEditorEntityResolver } from "../resolvers/plan-editor-enitity.resolver";
 
 @Component({
 	selector: 'app-plan-blueprints-preview-component',
@@ -58,6 +59,7 @@ export class PlanBlueprintsPreviewComponent extends BaseComponent {
 	public planBlueprintCount = 0;
 	pageSize: number = 5;
 	page: number = 1;
+	searchTerm = "";
 	public selectedBlueprint: PlanBlueprint = null; // selected blueprint
 	@Input() public selectedBlueprintId = null; // selected blueprint
 	public defaultBlueprint: PlanBlueprint = null;
@@ -79,20 +81,14 @@ export class PlanBlueprintsPreviewComponent extends BaseComponent {
 		});
 	}
 	private readonly lookupFields: string[] = [
+        ...PlanEditorEntityResolver.blueprintLookupFields(),
 		nameof<PlanBlueprint>(x => x.id),
 		nameof<PlanBlueprint>(x => x.label),
 		nameof<PlanBlueprint>(x => x.description),
 		nameof<PlanBlueprint>(x => x.code),
 		nameof<PlanBlueprint>(x => x.groupId),
-		[nameof<PlanBlueprint>(x => x.definition), nameof<PlanBlueprintDefinition>(x => x.sections), nameof<PlanBlueprintDefinitionSection>(x => x.label)].join('.'),
-		[nameof<PlanBlueprint>(x => x.definition), nameof<PlanBlueprintDefinition>(x => x.sections), nameof<PlanBlueprintDefinitionSection>(x => x.description)].join('.'),
-		[nameof<PlanBlueprint>(x => x.definition), nameof<PlanBlueprintDefinition>(x => x.sections), nameof<PlanBlueprintDefinitionSection>(x => x.fields), nameof<FieldInSection>(x => x.label)].join('.'),
-		[nameof<PlanBlueprint>(x => x.definition), nameof<PlanBlueprintDefinition>(x => x.sections), nameof<PlanBlueprintDefinitionSection>(x => x.fields), nameof<FieldInSection>(x => x.category)].join('.'),
-		[nameof<PlanBlueprint>(x => x.definition), nameof<PlanBlueprintDefinition>(x => x.sections), nameof<PlanBlueprintDefinitionSection>(x => x.fields), nameof<FieldInSection>(x => x.description)].join('.'),
-		[nameof<PlanBlueprint>(x => x.definition), nameof<PlanBlueprintDefinition>(x => x.sections), nameof<PlanBlueprintDefinitionSection>(x => x.fields), nameof<SystemFieldInSection>(x => x.systemFieldType)].join('.'),
 		[nameof<PlanBlueprint>(x => x.definition), nameof<PlanBlueprintDefinition>(x => x.sections), nameof<PlanBlueprintDefinitionSection>(x => x.fields), nameof<ReferenceTypeFieldInSection>(x => x.referenceType), nameof<ReferenceType>(x => x.name)].join('.'),
 		[nameof<PlanBlueprint>(x => x.definition), nameof<PlanBlueprintDefinition>(x => x.sections), nameof<PlanBlueprintDefinitionSection>(x => x.hasTemplates)].join('.'),
-		[nameof<PlanBlueprint>(x => x.definition), nameof<PlanBlueprintDefinition>(x => x.sections), nameof<PlanBlueprintDefinitionSection>(x => x.descriptionTemplates), nameof<DescriptionTemplatesInSection>(x => x.descriptionTemplate), nameof<DescriptionTemplate>(x => x.groupId)].join('.'),
 	];
 
 	private readonly descriptionTemplateLookupFields: string[] = [
@@ -181,6 +177,7 @@ export class PlanBlueprintsPreviewComponent extends BaseComponent {
 		const lookup = new PlanBlueprintLookup();
 		lookup.metadata = {countAll: true};
 		lookup.page = {offset: 0, size: this.page * this.pageSize};
+		lookup.like=this.searchTerm;
 		if (groupId) { lookup.groupIds = [groupId]; }
 		lookup.isActive = [IsActive.Active];
 		lookup.statuses = [PlanBlueprintStatus.Finalized]
@@ -279,8 +276,8 @@ export class PlanBlueprintsPreviewComponent extends BaseComponent {
 			// Define the watermark image and dimensions
 			const watermarkImg = document.getElementById('watermark') as HTMLImageElement;
 			const watermarkData = watermarkImg?.src || '';
-			const watermarkWidth = 100; // Adjust watermark width
-			const watermarkHeight = 50; // Adjust watermark height
+			const watermarkWidth = 200; // Adjust watermark width
+			const watermarkHeight = 287; // Adjust watermark height
 
 			// Helper function to add a watermark to each page
 			const addWatermark = () => {
@@ -424,6 +421,17 @@ export class PlanBlueprintsPreviewComponent extends BaseComponent {
 			takeUntil(this._destroyed)
 		).subscribe(blueprints => {
 			this.planBlueprints = blueprints.items
+			this.getDescriptionTemplates(this.planBlueprints);
+		});
+	}
+
+	search(){
+		this.page = 1;
+		this.planBlueprintService.query(this.initializeLookup()).pipe(
+			takeUntil(this._destroyed)
+		).subscribe(blueprints => {
+			this.planBlueprints = blueprints.items
+			this.planBlueprintCount = blueprints.count;
 			this.getDescriptionTemplates(this.planBlueprints);
 		});
 	}

@@ -5,10 +5,13 @@
     </div>
     <app-custom-mat-stepper-header [linear]="!hideEditActions" [stepper]="stepper">
         <mat-stepper #stepper stepper-content class="stepper" (selectionChange)="onMatStepperSelectionChange($event)">
-            <mat-step [label]="'1 ' + ('DESCRIPTION-TEMPLATE-EDITOR.STEPS.GENERAL-INFO.TITLE' | translate)" [completed]="hideEditActions || ((formGroup.get('code').disabled || formGroup.get('code').valid) && formGroup.get('label').valid)">
-                <mat-card>
+            <mat-step 
+                [label]="'1 ' + ('DESCRIPTION-TEMPLATE-EDITOR.STEPS.GENERAL-INFO.TITLE' | translate)" 
+                [completed]="hideEditActions || ((formGroup.get('code').disabled || formGroup.get('code').valid) && formGroup.get('label').valid)"
+            >
+                <mat-card class="overflow-container pb-3" >
                     <mat-card-content>
-                        <div class="pb-3"><small>{{'COMMONS.VALIDATION.REQUIRED-FIELDS-HINT' | translate}}</small></div>
+                        <div class="pb-3" id="0-step-top"><small>{{'COMMONS.VALIDATION.REQUIRED-FIELDS-HINT' | translate}}</small></div>
                         <div class="row">
                             <div class="col-6">
                                 <mat-form-field class="w-100">
@@ -37,6 +40,23 @@
                                 <mat-error *ngIf="formGroup.get('description').hasError('backendError')"  class="mat-mdc-form-field-subscript-wrapper">{{formGroup.get('description').getError('backendError').message}}</mat-error>
                                 <mat-error *ngIf="formGroup.get('description').hasError('required')"  class="mat-mdc-form-field-subscript-wrapper">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
                             </div>
+                            <div class="col-12 pb-2">
+                                <mat-expansion-panel [expanded]="isExpanded">
+                                    <mat-expansion-panel-header>
+                                        <mat-panel-title>
+                                            <span>{{'PLAN-BLUEPRINT-EDITOR.FIELDS.DOCX-TEMPLATE'| translate}}</span>
+                                        </mat-panel-title>
+                                        <mat-panel-description>
+                                            {{'PLAN-BLUEPRINT-EDITOR.FIELDS.DOCX-TEMPLATE-HINT'| translate}}
+                                        </mat-panel-description>
+                                    </mat-expansion-panel-header>
+                                    <app-plugin-editor 
+                                        [formGroup]="formGroup.get('definition').get('pluginConfigurations')"
+                                        [fileMap] = "fileMap"
+                                    >
+                                    </app-plugin-editor>
+                                </mat-expansion-panel>
+                            </div>
                         </div>
                     </mat-card-content>
                 </mat-card>
@@ -61,9 +81,9 @@
                             (stepChange)="changeStep($event)"
                         />
                     </div>
-                    <div class="col-lg-10 col-12 main-editor">
+                    <div class="col-lg-10 col-12 overflow-container">
                         @if(formGroup){
-                            <div class="mb-3" id="editor-top"><small>{{'COMMONS.VALIDATION.REQUIRED-FIELDS-HINT' | translate}}</small></div>
+                            <div class="mb-3" id="1-step-top"><small>{{'COMMONS.VALIDATION.REQUIRED-FIELDS-HINT' | translate}}</small></div>
                             <mat-error class="mb-2" *ngIf="formGroup?.get('definition')?.touched && formGroup.get('definition').get('sections').hasError('planBlueprintSystemFieldRequired')"> {{'PLAN-BLUEPRINT-EDITOR.SYSTEM-FIELDS-REQUIRED' | translate}} </mat-error>
                             <div 
                                 *ngFor="let section of formGroup.get('definition').get('sections').controls; let sectionIndex = index;" 
@@ -102,12 +122,20 @@
                                                 <div class="row">
                                                     <div class="col-12">
                                                         <div class="row d-flex flex-column">
-                                                            <div class="col-auto">
-                                                                <mat-checkbox [formControl]="section.get('hasTemplates')" (change)="removeAllDescriptionTemplates($event, sectionIndex)">
-                                                                    {{'PLAN-BLUEPRINT-EDITOR.FIELDS.DESCRIPTION-TEMPLATES' | translate}}
-                                                                </mat-checkbox>
-                                                                <mat-error *ngIf="section.get('hasTemplates').hasError('backendError')">{{section.get('hasTemplates').getError('backendError').message}}</mat-error>
-                                                                <mat-error *ngIf="section.get('hasTemplates').hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
+                                                            <div class="col-auto d-flex gap-1-rem">
+                                                                <div>
+                                                                    <mat-checkbox [formControl]="section.get('hasTemplates')" (change)="removeAllDescriptionTemplates($event, sectionIndex)">
+                                                                        {{'PLAN-BLUEPRINT-EDITOR.FIELDS.DESCRIPTION-TEMPLATES' | translate}}
+                                                                    </mat-checkbox>
+                                                                    <mat-error *ngIf="section.get('hasTemplates').hasError('backendError')">{{section.get('hasTemplates').getError('backendError').message}}</mat-error>
+                                                                    <mat-error *ngIf="section.get('hasTemplates').hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
+                                                                </div>
+                                                                <div *ngIf="section.get('hasTemplates').value">
+                                                                    <mat-checkbox [formControl]="section.get('canEditDescriptionTemplates')">
+                                                                        {{'PLAN-BLUEPRINT-EDITOR.FIELDS.CAN-EDIT-DESCRIPTION-TEMPLATES' | translate}}
+                                                                    </mat-checkbox>
+                                                                    <mat-error *ngIf="section.get('canEditDescriptionTemplates').hasError('backendError')">{{section.get('canEditDescriptionTemplates').getError('backendError').message}}</mat-error>
+                                                                </div>
                                                             </div>
                                                             <div class="col-auto" *ngIf="!hideEditActions && section.get('hasTemplates').value">
                                                                 <button mat-flat-button color="accent" class="padded-shadow-btn" type="button" (click)="addDescriptionTemplate(sectionIndex)">{{'PLAN-BLUEPRINT-EDITOR.ACTIONS.ADD-DESCRIPTION-TEMPLATE' | translate}}</button>
@@ -116,9 +144,9 @@
                                                     </div>
                                                 </div>
                                                 <div class="row">
-                                                    <ul cdkDropList class="col-12 mt-3 section-description-templates" (cdkDropListDropped)="dropDescriptionTemplates($event, sectionIndex)">
-                                                        <li *ngFor="let descriptionTemplate of section.get('descriptionTemplates').controls; let descriptionTemplateIndex=index;" cdkDrag class="description-fields-wrapper row align-items-center mt-1" [cdkDragDisabled]="hideEditActions" (mouseenter)="onDescriptionTemplateHover(descriptionTemplateIndex)" (mouseleave)="clearHoveredDescriptionTemplate()">
-    
+                                                    @let descriptionTemplates = section.get('descriptionTemplates').controls;
+                                                    <ul *ngIf="descriptionTemplates?.length" cdkDropList class="col-12 mt-3 section-description-templates" (cdkDropListDropped)="dropDescriptionTemplates($event, sectionIndex)">
+                                                        <li *ngFor="let descriptionTemplate of descriptionTemplates; let descriptionTemplateIndex=index;" cdkDrag class="description-fields-wrapper row align-items-center mt-1" [cdkDragDisabled]="hideEditActions" (mouseenter)="onDescriptionTemplateHover(descriptionTemplateIndex)" (mouseleave)="clearHoveredDescriptionTemplate()">
                                                             <div class="col-auto section-options-vertical">
                                                                 <div class="row justify-content-center">
                                                                     <div class="col-auto">
@@ -184,7 +212,8 @@
                                                             </div>
                                                         </li>
                                                     </ul>
-                                                    <mat-error *ngIf="section.get('descriptionTemplates').hasError('backendError')">{{section.get('descriptionTemplates').getError('backendError').message}}</mat-error>
+                                                    <mat-error *ngIf="section.get('descriptionTemplates').hasError('backendError')" class="p-3">{{section.get('descriptionTemplates').getError('backendError').message}}</mat-error>
+                                                    <mat-error *ngIf="section.get('descriptionTemplates').hasError('required')" class="p-3">{{'PLAN-BLUEPRINT-EDITOR.DESCRIPTION-TEMPLATE-REQUIRED' | translate}}</mat-error>
                                                 </div>
                                                 <div class="row">
                                                     <ng-container *ngIf="section.get('hasTemplates').value == true" class="col-12">
@@ -230,7 +259,11 @@
                                         </mat-card>
                                     </div>
                                 </div>
-                                <ul cdkDropList class="d-flex flex-column gap-1-rem mb-2 unstyled-list" (cdkDropListDropped)="dropFields({event: $event, sectionIndex: sectionIndex})">
+                                <ul cdkDropList 
+                                    class="d-flex flex-column gap-1-rem mb-2 unstyled-list" 
+                                    (cdkDropListDropped)="dropFieldsInSection({event: $event, sectionIndex: sectionIndex})"
+                                    [cdkDropListDisabled]="!reorderingMode()"
+                                >
                                     <li
                                         *ngFor="let field of section.get('fields').controls; let fieldIndex=index; let last = $last" 
                                         cdkDrag 
@@ -263,6 +296,8 @@
                                                                     [disabledSystemFields]="disabledSystemFields"
                                                                     [previewMode]="!fieldIsActive(sectionIndex, fieldIndex)"
                                                                     [reorderingMode]="reorderingMode()"
+                                                                    [validationErrorModel]="editorModel?.validationErrorModel"
+                                                                    [validationRootPath]="getRootPath(sectionIndex, fieldIndex)"
                                                                     [(referenceTypeMap)]="referenceTypeMap"
                                                                     (fieldCategoryChanged)="fieldCategoryChanged(sectionIndex, fieldIndex)"
                                                                     (stepChange)="changeStep({section: sectionIndex, field: fieldIndex})"
@@ -319,8 +354,9 @@
             </mat-step>
             <mat-step [label]="'3 ' + ((isFinalized ? 'DESCRIPTION-TEMPLATE-EDITOR.ACTIONS.PREVIEW' : 'DESCRIPTION-TEMPLATE-EDITOR.ACTIONS.PREVIEW-AND-FINALIZE') | translate )" >
                 @if(finalPreviewFormGroup){
-                    <mat-card>
+                    <mat-card class="overflow-container pb-3">
                         <mat-card-content>
+                            <span id="2-step-top"></span>
                             <app-plan-internal-blueprint-editor
                                 [editorModel]="previewEditorModel"
                                 [blueprint]="finalPreviewBlueprint"

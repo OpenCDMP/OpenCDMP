@@ -42,7 +42,7 @@ public class EvaluationDataCensor extends BaseCensor {
         FieldSet fieldsFields = fields.extractPrefixed(this.asIndexerPrefix(EvaluationData._rankConfig));
         this.censorFactory.censor(EvaluationRankConfigCensor.class).censor(fieldsFields, userId);
 
-        FieldSet sourcesFields = fields.extractPrefixed(this.asIndexerPrefix(EvaluationData._rankModel));
+        FieldSet sourcesFields = fields.extractPrefixed(this.asIndexerPrefix(EvaluationData._rankResult));
         this.censorFactory.censor(EvaluationRankModelCensor.class).censor(sourcesFields, userId);
     }
 

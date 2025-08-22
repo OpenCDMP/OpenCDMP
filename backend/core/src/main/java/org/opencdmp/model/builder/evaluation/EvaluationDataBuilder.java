@@ -50,14 +50,14 @@ public class EvaluationDataBuilder extends BaseBuilder<EvaluationData, Evaluatio
             return new ArrayList<>();
 
         FieldSet rankedConfigFields = fields.extractPrefixed(this.asPrefix(EvaluationData._rankConfig));
-        FieldSet rankModelFields = fields.extractPrefixed(this.asPrefix(EvaluationData._rankModel));
+        FieldSet rankResultFields = fields.extractPrefixed(this.asPrefix(EvaluationData._rankResult));
 
         List<EvaluationData> models = new ArrayList<>();
         for (EvaluationDataEntity d : data) {
             EvaluationData m = new EvaluationData();
             if(fields.hasField(this.asIndexer(EvaluationData._evaluatorId))) m.setEvaluatorId(d.getEvaluatorId());
             if (!rankedConfigFields.isEmpty() && d.getRankConfig() != null) m.setRankConfig(this.builderFactory.builder(RankConfigBuilder.class).authorize(this.authorize).build(rankedConfigFields, d.getRankConfig()));
-            if (!rankModelFields.isEmpty() && d.getRankModel() != null) m.setRankModel(this.builderFactory.builder(RankModelBuilder.class).authorize(this.authorize).build(rankModelFields, d.getRankModel()));
+            if (!rankResultFields.isEmpty() && d.getRankResult() != null) m.setRankResult(this.builderFactory.builder(RankResultModelBuilder.class).authorize(this.authorize).build(rankResultFields, d.getRankResult()));
             models.add(m);
         }
 

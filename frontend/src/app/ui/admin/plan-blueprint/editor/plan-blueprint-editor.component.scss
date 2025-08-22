@@ -86,7 +86,7 @@
     padding-left: 1rem;
 }
 
-.main-editor {
+.overflow-container {
     overflow-y: auto;
     max-height: calc(100vh - 15rem);
 }
@@ -194,7 +194,7 @@
     .table-of-content {
         max-height: calc(100vh - 30rem);
     }
-    .main-editor {
+    .overflow-container {
         max-height: fit-content;
         overflow-y: auto;
     }

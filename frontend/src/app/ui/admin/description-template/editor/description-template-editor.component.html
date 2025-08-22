@@ -12,7 +12,8 @@
             <app-custom-mat-stepper-header [linear]="!isFinalized" [stepper]="stepper">
                 <mat-horizontal-stepper stepper-content id="stepper" [linear]="!isFinalized" #stepper class="stepper" (selectionChange)="onMatStepperSelectionChange($event)" style="padding-left: 8px; padding-right: 15px;">
                     <mat-step [label]="generalInfoStepperLabel" [completed]="(!formGroup.get('code').invalid && !formGroup.get('label').invalid && !formGroup.get('description').invalid && !formGroup.get('language').invalid)">
-                        <div class="col-12 col-lg-9 mat-step general-info" tabindex="0">
+                        <div class="col-12 col-lg-9 mat-step general-info overflow-container" tabindex="0">
+                            <span id="0-step-top"></span>
                             <div class="p-3"><small>{{'COMMONS.VALIDATION.REQUIRED-FIELDS-HINT' | translate}}</small></div>
                             <div class="col">
                                 <div class="col-12">
@@ -105,6 +106,14 @@
                                         </table>
                                     </div>
                                 </div>
+                                <div class="col-12">
+                                    <label class="heading" for="typeInput">1.7 {{'DESCRIPTION-TEMPLATE-EDITOR.STEPS.GENERAL-INFO.DOCX-TEMPLATE'| translate}}</label>
+                                    <div class="hint">{{'DESCRIPTION-TEMPLATE-EDITOR.STEPS.GENERAL-INFO.DOCX-TEMPLATE-HINT'| translate}}</div>
+                                    <app-plugin-editor 
+                                        [formGroup]="formGroup.get('definition').get('pluginConfigurations')"
+                                        [fileMap] = "fileMap">
+                                    </app-plugin-editor>
+                                </div>
             
                                 <div class="col-12">
                                     <div class="row justify-content-end">
@@ -123,8 +132,8 @@
                         </div>
                     </mat-step>
                     <mat-step [label]="fromStepperLabel" [completed]="viewOnly || formGroup.valid">
-                        <div class="row mat-step table-of-contents">
-            
+                        <div class="row mat-step table-of-contents overflow-container">
+                            <span id="1-step-top"></span>
                             <!-- TABLE -->
                             <div class="col-3 col-md-3 col-12">
                                 <div class="row sticky-top table-container">
@@ -220,7 +229,8 @@
                     </mat-step>
                     <mat-step [label]="previewLabel">
                         <ng-container *ngIf="formGroup">
-                            <div class="col-10 mat-step content-displayer pt-2">
+                            <div class="col-10 mat-step content-displayer pt-2 overflow-container">
+                                <span id="2-step-top"></span>
                                 <app-final-preview-component [descriptionTemplatePersist]="finalPreviewDescriptionTemplatePersist" [availableReferenceTypes]="availableReferenceTypes"></app-final-preview-component>
                             </div>
                         </ng-container>

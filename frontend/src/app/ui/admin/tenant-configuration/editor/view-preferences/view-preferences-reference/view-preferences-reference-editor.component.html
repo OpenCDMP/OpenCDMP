@@ -1,0 +1,31 @@
+<div *ngIf="form">
+	<h3 class="col-12">{{title}}</h3>
+	<div class="col">
+		<mat-form-field class="w-100">
+			<mat-label>{{ title }}</mat-label>
+			<app-single-auto-complete [configuration]="singleAutoCompleteConfiguration" (optionSelected)="addReference($event)"></app-single-auto-complete>
+		</mat-form-field>
+	</div>
+	<mat-list class="col-12 pt-0" cdkDropList cdkListbox (cdkDropListDropped)="droppedReferences($event)"  role="listbox">
+		<mat-list-item  
+			*ngFor="let referenceType of orderedReferenceTypesList; let index = index" 
+			[id]="referenceType.id"
+			class="draggable-item" 
+			(keydown)="onReferenceKeyDown($event, index, referenceType)"
+			[cdkOption]="referenceType" 
+			cdkDrag 
+			[class.reorder-mode]="reorderMode"
+			aria-describedby="operation"
+			tabindex="0"
+		>
+			<div class="d-flex align-items-center gap-quarter-rem">
+				<mat-icon matListIcon cdkDragHandle class="drag-icon" aria-hidden>drag_indicator</mat-icon>
+				{{referenceType.name}}
+				<button mat-icon-button (click)="removeReference(referenceType)" [attr.aria-label]="'COMMONS.ACTIONS.DELETE' | translate">
+					<mat-icon matListIcon aria-hidden>delete</mat-icon>
+				</button>
+			</div>
+		</mat-list-item>
+	</mat-list>
+</div>
+

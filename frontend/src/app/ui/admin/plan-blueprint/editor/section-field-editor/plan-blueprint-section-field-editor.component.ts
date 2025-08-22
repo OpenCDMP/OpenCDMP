@@ -18,6 +18,7 @@ import { BaseComponent } from '@common/base/base.component';
 import { ReferenceTypeFieldInSectionPersist } from '@app/core/model/plan-blueprint/plan-blueprint';
 import { Plan } from '@app/core/model/plan/plan';
 import { Guid } from '@common/types/guid';
+import { ValidationErrorModel } from '@common/forms/validation/error-model/validation-error-model';
 
 @Component({
   selector: 'app-plan-blueprint-field-editor',
@@ -30,6 +31,8 @@ export class PlanBlueprintSectionFieldEditorComponent extends BaseComponent{
     id: string = (PlanBlueprintSectionFieldEditorComponent.nextId++).toString();
 
     field = input.required<FormGroup<PlanBlueprintSectionFieldForm>>();
+    validationErrorModel = input<ValidationErrorModel>();
+    validationRootPath = input<string>();
 
     disabledSystemFields = input<Set<PlanBlueprintSystemFieldType>>(new Set([]));
     previewMode = input<boolean>(true);
@@ -49,7 +52,7 @@ export class PlanBlueprintSectionFieldEditorComponent extends BaseComponent{
     previewModeForm: FormGroup<PlanEditorForm>;
     private previewModelEditorModel = new PlanEditorModel();
 
-    readonly separatorKeysCodes: number[] = [ENTER, COMMA]; //TODO: doesnt work as separator keys
+    readonly separatorKeysCodes: number[] = [ENTER, COMMA];
 
     private formSub: Subscription;
     constructor(
@@ -62,7 +65,7 @@ export class PlanBlueprintSectionFieldEditorComponent extends BaseComponent{
             const field = this.field();
             if(!field){ return; }
             if(this.hasBaseValues){
-                this.generatePreviewForm(field.value);
+                this.generatePreviewForm(field.getRawValue());
             }
             if(this.formSub){
                 this.formSub.unsubscribe();
@@ -70,7 +73,9 @@ export class PlanBlueprintSectionFieldEditorComponent extends BaseComponent{
             this.formSub = merge(
                 this.field().controls.dataType?.valueChanges,
                 this.field().controls.systemFieldType?.valueChanges,
-                this.field().controls.referenceTypeId?.valueChanges
+                this.field().controls.referenceTypeId?.valueChanges,
+                this.field().controls.types?.valueChanges,
+                this.field().controls.maxFileSizeInMB?.valueChanges
             ).pipe(takeUntil(this._destroyed))
             .subscribe((res) => {
                 this.generatePreviewForm(this.field().value);
@@ -132,7 +137,8 @@ export class PlanBlueprintSectionFieldEditorComponent extends BaseComponent{
         return field && field.category != null && (
             (field.category === this.planBlueprintFieldCategory.System && field.systemFieldType != null ) ||
             (field.category === this.planBlueprintFieldCategory.Extra && field.dataType != null ) ||
-            (field.category === this.planBlueprintFieldCategory.ReferenceType && field.referenceTypeId != null)
+            (field.category === this.planBlueprintFieldCategory.ReferenceType && field.referenceTypeId != null) ||
+            (field.category === this.planBlueprintFieldCategory.Upload)
         )
     }
 }

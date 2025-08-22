@@ -23,7 +23,8 @@ import java.util.UUID;
 @JsonSubTypes({
         @JsonSubTypes.Type(value = SystemFieldPersist.class, name = "0"),
         @JsonSubTypes.Type(value = ExtraFieldPersist.class, name = "1"),
-        @JsonSubTypes.Type(value = ReferenceTypeFieldPersist.class, name = "2")
+        @JsonSubTypes.Type(value = ReferenceTypeFieldPersist.class, name = "2"),
+        @JsonSubTypes.Type(value = UploadFieldPersist.class, name = "3")
 })
 public abstract class FieldPersist {
 

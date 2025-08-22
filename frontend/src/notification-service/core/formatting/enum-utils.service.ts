@@ -49,6 +49,10 @@ export class NotificationServiceEnumUtils extends BaseEnumUtilsService {
 			case NotificationType.publicContactSupportType: return this.language.instant('TYPES.NOTIFICATION-TEMPLATE-NOTIFICATION-TYPE.PUBLIC-CONTACT-SUPPORT');
 			case NotificationType.tenantSpecificInvitationExternalUserType: return this.language.instant('TYPES.NOTIFICATION-TEMPLATE-NOTIFICATION-TYPE.TENANT-SPECIFIC-INVITATION-EXTERNAL-USER');
 			case NotificationType.tenantSpecificInvitationExistingUserType: return this.language.instant('TYPES.NOTIFICATION-TEMPLATE-NOTIFICATION-TYPE.TENANT-SPECIFIC-INVITATION-EXISTING-USER');
+			case NotificationType.planEvaluationType: return this.language.instant('TYPES.NOTIFICATION-TEMPLATE-NOTIFICATION-TYPE.PLAN-EVALUATION');
+			case NotificationType.descriptionEvaluationType: return this.language.instant('TYPES.NOTIFICATION-TEMPLATE-NOTIFICATION-TYPE.DESCRIPTION-EVALUATION');
+			case NotificationType.taggedPlanAnnotationCreatedType: return this.language.instant('TYPES.NOTIFICATION-TEMPLATE-NOTIFICATION-TYPE.TAGGED-PLAN-ANNOTATION-CREATED');
+			case NotificationType.taggedDescriptionAnnotationCreatedType: return this.language.instant('TYPES.NOTIFICATION-TEMPLATE-NOTIFICATION-TYPE.TAGGED-DESCRIPTION-ANNOTATION-CREATED');
 			default: return '';
 		}
 	}

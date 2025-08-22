@@ -10,7 +10,7 @@ export class PlanImportRdaConfigEditorModel implements PlanCommonModelConfig{
 	fileId: Guid;
 	label: string;
 	blueprintId: Guid;
-	repositoryId: string = 'rda-file-transformer';
+	repositoryId: string;
 	descriptions: DescriptionImportRdaConfigEditorModel[] = [];
 
 	public validationErrorModel: ValidationErrorModel = new ValidationErrorModel();
@@ -18,8 +18,9 @@ export class PlanImportRdaConfigEditorModel implements PlanCommonModelConfig{
 
 	constructor() { }
 
-	fromModel(item: PreprocessingPlanModel, fileId: Guid): PlanImportRdaConfigEditorModel {
+	fromModel(item: PreprocessingPlanModel, fileId: Guid, repositoryId: string): PlanImportRdaConfigEditorModel {
 		this.fileId = fileId;
+		this.repositoryId = repositoryId
 		if (item){
 			this.label = item.label + '.json';
 			if (item.preprocessingDescriptionModels?.length > 0) {

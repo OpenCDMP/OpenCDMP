@@ -37,6 +37,14 @@ export class HttpErrorHandlingService {
 				this.uiNotificationService.snackBarNotification(this.language.instant('GENERAL.BACKEND-ERRORS.PLAN-BLUEPRINT-IMPORT-DRAFT', { 'planBlueprintCode': errorResponse.error.error }), SnackBarNotificationLevel.Error);
 			} else if (errorResponse.error.code === ResponseErrorCode.lockedDescription && errorResponse.error.error){
 				this.uiNotificationService.snackBarNotification(this.language.instant('GENERAL.BACKEND-ERRORS.LOCKED-DESCRIPTION', { 'descriptionLabel': errorResponse.error.error }), SnackBarNotificationLevel.Error);
+			} else if (errorResponse.error.code === ResponseErrorCode.cannotPlanDeposit && errorResponse.error.error){
+				this.uiNotificationService.snackBarNotification(this.language.instant('GENERAL.BACKEND-ERRORS.CANNOT-PLAN-DEPOSIT', { 'deositRepositoryId': errorResponse.error.error }), SnackBarNotificationLevel.Error);
+			} else if (errorResponse.error.code === ResponseErrorCode.cannotEditDescriptionTemplates && errorResponse.error.error){
+				try {
+					const errorMessage = JSON.parse(errorResponse.error.error)
+					this.uiNotificationService.snackBarNotification(this.language.instant('GENERAL.BACKEND-ERRORS.CANNOT-EDIT-DESCRIPTION-TEMPLATES', { 'section': errorMessage.section, 'descriptionTemplates': errorMessage.descriptionTemplates }), SnackBarNotificationLevel.Error);
+				} catch (error) {
+				}
 			} else {
 				this.uiNotificationService.snackBarNotification(ResponseErrorCodeHelper.getErrorMessageByBackendStatusCode(errorResponse.error.code, this.language), SnackBarNotificationLevel.Error);
 			}

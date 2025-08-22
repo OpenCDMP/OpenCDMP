@@ -157,8 +157,12 @@ public class PlanBlueprintValuePersist {
                             .iff(() -> !this.isNull(item.getReference()))
                             .on(PlanBlueprintValuePersist._reference)
                             .over(item.getReferences())
-                            .using(() -> this.validatorFactory.validator(ReferencePersist.ReferenceWithoutTypePersistValidator.class))
-            );
+                            .using(() -> this.validatorFactory.validator(ReferencePersist.ReferenceWithoutTypePersistValidator.class)),
+                    this.spec()
+                            .iff(() -> this.fieldEntity.getCategory().equals(PlanBlueprintFieldCategory.Upload) && this.isEmpty(item.getFieldValue()) && required)
+                            .must(() -> !this.isNull(item.getFieldValue()))
+                            .failOn(PlanBlueprintValuePersist._fieldValue).failWith(this.messageSource.getMessage("Validation_Required", new Object[]{!this.isEmpty(this.fieldEntity.getLabel()) ? this.fieldEntity.getLabel() : PlanBlueprintFieldCategory.Upload.name()}, LocaleContextHolder.getLocale()))
+                    );
         }
 
         public PlanBlueprintValuePersistValidator withDefinition(DefinitionEntity definition) {

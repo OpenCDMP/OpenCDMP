@@ -19,6 +19,20 @@ const appRoutes: Routes = [
 		}
 	},
 	{
+        path: 'descriptions',
+        loadChildren: () => import('./ui/description/description.module').then(m => m.DescriptionModule),
+        data: {
+            authContext: {
+                permissions: [AppPermission.ViewMyDescriptionPage]
+            },
+            breadcrumb: true,
+            ...BreadcrumbService.generateRouteDataConfiguration({
+                title: 'GENERAL.TITLES.DESCRIPTIONS'
+            }),
+            title: 'GENERAL.TITLES.DESCRIPTIONS'
+        }
+    },
+	{
 		path: 'explore-descriptions',
 		loadChildren: () => import('./ui/description/description.module').then(m => m.PublicDescriptionModule),
 		data: {
@@ -277,7 +291,8 @@ const appRoutes: Routes = [
 			},
 			...BreadcrumbService.generateRouteDataConfiguration({
 				title: 'BREADCRUMBS.TENANTS'
-			})
+			}),
+			title: 'GENERAL.TITLES.TENANTS'
 		},
 	},
 	{
@@ -380,7 +395,8 @@ const appRoutes: Routes = [
 			breadcrumb: true,
 			...BreadcrumbService.generateRouteDataConfiguration({
 				title: 'GENERAL.TITLES.MAINTENANCE-TASKS'
-			})
+			}),
+			title: 'GENERAL.TITLES.MAINTENANCE-TASKS'
 		},
 	},
 	{

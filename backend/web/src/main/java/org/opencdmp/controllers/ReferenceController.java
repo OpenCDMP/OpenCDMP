@@ -13,6 +13,10 @@ import gr.cite.tools.logging.LoggerService;
 import gr.cite.tools.logging.MapLogEntry;
 import gr.cite.tools.validation.ValidationFilterAnnotation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.enums.Explode;
+import io.swagger.v3.oas.annotations.enums.ParameterStyle;
+import io.swagger.v3.oas.annotations.extensions.Extension;
+import io.swagger.v3.oas.annotations.extensions.ExtensionProperty;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
@@ -55,7 +59,7 @@ import java.util.UUID;
 
 @RestController
 @RequestMapping(path = "api/reference")
-@Tag(name = "References", description = "Manage references")
+@Tag(name = "References", description = "Manage references", extensions = @Extension(name = "x-order", properties = @ExtensionProperty(name = "value", value = "6")))
 @SwaggerCommonErrorResponses
 public class ReferenceController {
 
@@ -90,7 +94,7 @@ public class ReferenceController {
     }
 
     @PostMapping("query")
-    @OperationWithTenantHeader(summary = "Query all references", description = SwaggerHelpers.Reference.endpoint_query, requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(description = SwaggerHelpers.Reference.endpoint_query_request_body, content = @Content(
+    @OperationWithTenantHeader(summary = "Query all references", description = SwaggerHelpers.Reference.endpoint_query, requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(content = @Content(
             examples = {
                     @ExampleObject(
                             name = SwaggerHelpers.Commons.pagination_example,
@@ -108,7 +112,8 @@ public class ReferenceController {
                     name = SwaggerHelpers.Commons.pagination_response_example,
                     description = SwaggerHelpers.Commons.pagination_response_example_description,
                     value = SwaggerHelpers.Reference.endpoint_query_response_example
-            ))))
+            ))),
+            extensions = @Extension(name = "x-order", properties = @ExtensionProperty(name = "value", value = "1")))
     public QueryResult<Reference> query(@RequestBody ReferenceLookup lookup) throws MyApplicationException, MyForbiddenException {
         logger.debug("querying {}", Reference.class.getSimpleName());
 
@@ -143,7 +148,8 @@ public class ReferenceController {
                     name = SwaggerHelpers.Commons.pagination_response_example,
                     description = SwaggerHelpers.Commons.pagination_response_example_description,
                     value = SwaggerHelpers.Reference.endpoint_search_response_example
-            ))))
+            ))),
+            extensions = @Extension(name = "x-order", properties = @ExtensionProperty(name = "value", value = "5")))
     @Swagger404
     public List<Reference> searchReference(@RequestBody ReferenceSearchLookup lookup) throws MyNotFoundException, InvalidApplicationException {
         logger.debug("search with db definition {}", Reference.class.getSimpleName());
@@ -176,7 +182,8 @@ public class ReferenceController {
                     name = SwaggerHelpers.Commons.pagination_response_example,
                     description = SwaggerHelpers.Commons.pagination_response_example_description,
                     value = SwaggerHelpers.Reference.endpoint_search_response_example
-            ))))
+            ))),
+            extensions = @Extension(name = "x-order", properties = @ExtensionProperty(name = "value", value = "6")))
     @Swagger404
     public List<Reference> testReferenceWithDefinition(@RequestBody ReferenceTestLookup lookup) throws MyNotFoundException, InvalidApplicationException {
         logger.debug("search with db definition {}", Reference.class.getSimpleName());
@@ -196,7 +203,8 @@ public class ReferenceController {
                     schema = @Schema(
                             implementation = Boolean.class
                     ))
-            ))
+            ),
+            extensions = @Extension(name = "x-order", properties = @ExtensionProperty(name = "value", value = "7")))
     @Swagger404
     public Boolean findReference(
             @Parameter(name = "referenceTypeId", description = "The type id of a reference to check if it exists", example = "c0c163dc-2965-45a5-9608-f76030578609", required = true) @PathVariable("referenceTypeId") UUID referenceTypeId,
@@ -219,11 +227,12 @@ public class ReferenceController {
                     schema = @Schema(
                             implementation = Reference.class
                     ))
-            ))
+            ),
+            extensions = @Extension(name = "x-order", properties = @ExtensionProperty(name = "value", value = "3")))
     @Swagger404
     public Reference get(
             @Parameter(name = "id", description = "The id of a reference to fetch", example = "c0c163dc-2965-45a5-9608-f76030578609", required = true) @PathVariable("id") UUID id,
-            @Parameter(name = "fieldSet", description = SwaggerHelpers.Commons.fieldset_description, required = true) FieldSet fieldSet
+            @Parameter(name = "f", description = SwaggerHelpers.Commons.fieldset_description, required = true, style = ParameterStyle.FORM, explode = Explode.TRUE, schema = @Schema(type = "array", example = SwaggerHelpers.Reference.endpoint_field_set_example)) FieldSet fieldSet
     ) throws MyApplicationException, MyForbiddenException, MyNotFoundException {
         logger.debug(new MapLogEntry("retrieving" + Reference.class.getSimpleName()).And("id", id).And("fields", fieldSet));
 
@@ -248,14 +257,20 @@ public class ReferenceController {
                     schema = @Schema(
                             implementation = Reference.class
                     ))
-            ))
+            ),
+            extensions = @Extension(name = "x-order", properties = @ExtensionProperty(name = "value", value = "2")))
     @Swagger400
     @Swagger404
     @Transactional
     @ValidationFilterAnnotation(validator = ReferencePersist.ReferencePersistValidator.ValidatorName, argumentName = "model")
     public Reference persist(
+            @io.swagger.v3.oas.annotations.parameters.RequestBody(
+                    content = @io.swagger.v3.oas.annotations.media.Content(
+                            schema = @Schema(implementation = ReferencePersist.class)
+                    )
+            )
             @RequestBody ReferencePersist model,
-            @Parameter(name = "fieldSet", description = SwaggerHelpers.Commons.fieldset_description, required = true) FieldSet fieldSet
+            @Parameter(name = "f", description = SwaggerHelpers.Commons.fieldset_description, required = true, style = ParameterStyle.FORM, explode = Explode.TRUE, schema = @Schema(type = "array", example = SwaggerHelpers.Reference.endpoint_field_set_example)) FieldSet fieldSet
     ) throws MyApplicationException, MyForbiddenException, MyNotFoundException, InvalidApplicationException, JAXBException, ParserConfigurationException, JsonProcessingException, TransformerException {
         logger.debug(new MapLogEntry("persisting" + Reference.class.getSimpleName()).And("model", model).And("fieldSet", fieldSet));
         this.censorFactory.censor(ReferenceCensor.class).censor(fieldSet, null);
@@ -272,7 +287,8 @@ public class ReferenceController {
 
     @DeleteMapping("{id}")
     @OperationWithTenantHeader(summary = "Delete a reference by id", description = "",
-            responses = @ApiResponse(description = "OK", responseCode = "200"))
+            responses = @ApiResponse(description = "OK", responseCode = "200"),
+            extensions = @Extension(name = "x-order", properties = @ExtensionProperty(name = "value", value = "4")))
     @Swagger404
     @Transactional
     public void delete(

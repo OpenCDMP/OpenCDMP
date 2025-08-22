@@ -14,7 +14,9 @@ public enum TenantConfigurationType implements DatabaseEnum<Short> {
     CssColors((short) 4),
     EvaluatorPlugins((short) 5),
     FeaturedEntities((short) 6),
-    DefaultPlanBlueprint((short) 7);
+    DefaultPlanBlueprint((short) 7),
+    PluginConfiguration((short) 8),
+    ViewPreferences((short) 9);
 
     private final Short value;
 

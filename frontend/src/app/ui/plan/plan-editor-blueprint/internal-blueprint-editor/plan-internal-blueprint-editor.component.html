@@ -29,12 +29,15 @@
                     <div class="col-12">
                         <label class="heading">{{'PLAN-EDITOR.FIELDS.DESCRIPTION-TEMPLATES' | translate}} *</label>
                         <div class="hint">{{'PLAN-EDITOR.FIELDS.DESCRIPTION-TEMPLATES-HINT' | translate}}</div>
+                        @let templateControl = formGroup()?.get('descriptionTemplates').get(section.id.toString());
                         <app-description-template-table-select 
-                            [descTemplatesControl]="formGroup()?.get('descriptionTemplates').get(section.id.toString())"
+                            [descTemplatesControl]="templateControl"
+                            [onlyShowSelections]="!section.canEditDescriptionTemplates"
                             [templatesInUse]="descTemplatesInUseMap()?.get(section.id)"
-                            (descriptionTemplateLoaded)="descriptionTemplateLoaded.emit($event)"
+                            [descriptionTemplateTypes]="descriptionTemplateSelectData?.types"
+                            [initialData]="descriptionTemplateSelectData?.descTemplates"
                         />
-                        <div class="col pl-0 pt-2 pb-0 d-flex">
+                        <div class="col pl-0 pt-2 pb-0 d-flex" *ngIf="section.canEditDescriptionTemplates">
                             <span class="not-found-template">{{'PLAN-EDITOR.NO-TEMPLATE-MESSAGE' | translate}}</span>
                         </div>
                     </div>

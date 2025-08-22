@@ -40,6 +40,10 @@ public class PlanUserEntity extends TenantScopedBaseEntity {
     private UUID sectionId;
     public static final String _sectionId = "sectionId";
 
+    @Column(name = "\"ordinal\"", nullable = false)
+    private Integer ordinal;
+    public static final String _ordinal = "ordinal";
+
     @Column(name = "created_at", nullable = false)
     private Instant createdAt;
 
@@ -94,6 +98,14 @@ public class PlanUserEntity extends TenantScopedBaseEntity {
 
     public void setSectionId(UUID sectionId) {
         this.sectionId = sectionId;
+    }
+
+    public Integer getOrdinal() {
+        return ordinal;
+    }
+
+    public void setOrdinal(Integer ordinal) {
+        this.ordinal = ordinal;
     }
 
     public Instant getCreatedAt() {

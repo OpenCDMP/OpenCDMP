@@ -4,7 +4,7 @@ import { PlanRoutingModule, PublicPlanRoutingModule } from '@app/ui/plan/plan.ro
 import { CommonFormsModule } from '@common/forms/common-forms.module';
 import { CommonUiModule } from '@common/ui/common-ui.module';
 import { InvitationAcceptedComponent } from './invitation/accepted/plan-invitation-accepted.component';
-import { EvaluatePlanDialogModule } from './plan-evaluate-dialog/plan-evaluate-dialog.module';
+import { EvaluateDialogModule } from '../evaluation/evaluate-dialog/evaluate-dialog.module';
 
 @NgModule({
 	imports: [
@@ -12,7 +12,7 @@ import { EvaluatePlanDialogModule } from './plan-evaluate-dialog/plan-evaluate-d
 		CommonFormsModule,
 		FormattingModule,
 		PlanRoutingModule,
-		EvaluatePlanDialogModule,
+		EvaluateDialogModule,
 	],
 	declarations: [
 		InvitationAcceptedComponent
@@ -28,6 +28,7 @@ export class PlanModule { }
 		CommonFormsModule,
 		FormattingModule,
 		PublicPlanRoutingModule,
+		EvaluateDialogModule,
 	],
 	declarations: [
 	],

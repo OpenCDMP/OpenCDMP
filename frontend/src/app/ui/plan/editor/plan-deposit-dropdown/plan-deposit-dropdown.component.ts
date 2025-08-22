@@ -16,32 +16,36 @@ import { BaseComponent } from '@common/base/base.component';
 import { HttpErrorHandlingService } from '@common/modules/errors/error-handling/http-error-handling.service';
 import { MultipleChoiceDialogComponent } from '@common/modules/multiple-choice-dialog/multiple-choice-dialog.component';
 import { TranslateService } from '@ngx-translate/core';
-import { takeUntil } from 'rxjs/operators';
+import { takeUntil, tap } from 'rxjs/operators';
 import { nameof } from 'ts-simple-nameof';
+import { DepositAuthMethod } from '@app/core/common/enum/deposit-auth-method';
+import { EnqueueService } from '@app/core/services/enqueue.service';
 
 @Component({
     selector: 'app-plan-deposit-dropdown',
     templateUrl: './plan-deposit-dropdown.component.html',
     styleUrls: ['./plan-deposit-dropdown.component.scss'],
-    standalone: false
+    standalone: false,
+    providers: [EnqueueService]
 })
 export class PlanDepositDropdown extends BaseComponent implements OnInit {
 	@Input() inputRepos: DepositConfiguration[];
 	@Input() plan: Plan;
     @Input() disabled: boolean = false;
-	outputRepos = [];
+	@Input() outputRepos: EntityDoi[]= [];
 	logos: Map<string, SafeResourceUrl> = new Map<string, SafeResourceUrl>();
 	@Output() outputReposEmitter: EventEmitter<EntityDoi[]> = new EventEmitter<EntityDoi[]>();
 	private oauthLock: boolean;
-
+    private isLoading = this.enqueueService.exhaustPipelineBusy;
 	constructor(
-		private depositRepositoriesService: DepositService,
+		private depositService: DepositService,
 		private dialog: MatDialog,
 		private language: TranslateService,
 		private uiNotificationService: UiNotificationService,
 		private depositOauth2DialogService: DepositOauth2DialogService,
 		private sanitizer: DomSanitizer,
 		private httpErrorHandlingService: HttpErrorHandlingService,
+        private enqueueService: EnqueueService
 	) {
 		super();
 	}
@@ -56,7 +60,7 @@ export class PlanDepositDropdown extends BaseComponent implements OnInit {
 		}
 		this.inputRepos.forEach(repo => {
 			if (repo.hasLogo) {
-				this.depositRepositoriesService.getLogo(repo.repositoryId).subscribe(logo => {
+				this.depositService.getLogo(repo.repositoryId).subscribe(logo => {
 					this.logos.set(repo.repositoryId, this.sanitizer.bypassSecurityTrustResourceUrl('data:image/png;base64, ' + logo.body));
 				})
 			}
@@ -66,52 +70,97 @@ export class PlanDepositDropdown extends BaseComponent implements OnInit {
 	deposit(repo: DepositConfiguration) {
 
 		if (repo.depositType == DepositConfigurationStatus.BothSystemAndUser) {
+            this.enqueueService.enqueueExhaustChannel(
+                this.depositService.getAvailableAuthMethods(repo.repositoryId).pipe(tap((authMetodResult) => {
+    
+                    if (authMetodResult && authMetodResult.depositAuthInfoTypes?.length) {
+                        const methods = authMetodResult.depositAuthInfoTypes;
+                    
+                        if (methods.length === 1) {
+                            this.applyDepositMethod(methods[0], repo)
+                            return; 
+                        }
+                    
+                        let titles: any[] = [];
+                        methods.forEach(x => {
+                            if (x === DepositAuthMethod.oAuth2Flow) {
+                                titles.push({
+                                    title: this.language.instant('PLAN-OVERVIEW.DEPOSIT.LOGIN', { 'repository': repo.repositoryId }),
+                                });
+                            } else if (x === DepositAuthMethod.AuthInfoFromUserProfile) {
+                                titles.push({
+                                    title: this.language.instant('PLAN-OVERVIEW.MULTIPLE-DIALOG.USE-YOURS'),
+                                    buttonDisabled: !authMetodResult.hasMyAccountValue,
+                                    matTooltipDisabledMessage: this.language.instant('PLAN-OVERVIEW.MULTIPLE-DIALOG.TOOLTIP-MESSAGE', { 'repository': repo.repositoryId })
+                                });
+                            } else if (x === DepositAuthMethod.PluginDefault) {
+                                titles.push({
+                                    title: this.language.instant('PLAN-OVERVIEW.MULTIPLE-DIALOG.USE-DEFAULT'),
+                                });
+                            }
+                        });
+    
+                        const dialogRef = this.dialog.open(MultipleChoiceDialogComponent, {
+                            maxWidth: '600px',
+                            restoreFocus: false,
+                            data: {
+                                message: this.language.instant('PLAN-OVERVIEW.DEPOSIT.ACCOUNT-LOGIN'),
+                                titles: titles
+                            }
+                        });
+                        dialogRef.afterClosed().pipe(takeUntil(this._destroyed)).subscribe(result => {
+                            const selectedMethod = methods[result];
+                            this.applyDepositMethod(selectedMethod, repo)
+                        });
+                    } else {
+                        // No available auth methods
+                        this.dialog.open(MultipleChoiceDialogComponent, {
+                            maxWidth: '600px',
+                            restoreFocus: false,
+                            data: {
+                                message: this.language.instant('PLAN-OVERVIEW.DEPOSIT.ACCOUNT-LOGIN'),
+                                errorMessage: this.language.instant('PLAN-OVERVIEW.MULTIPLE-DIALOG.CONTACT-SUPPORT', { 'repository': repo.repositoryId })
+                            }
+                        });
+                    }
+                }))
+            )
+		}
+			
+	}
 
-			const dialogRef = this.dialog.open(MultipleChoiceDialogComponent, {
-				maxWidth: '600px',
-				restoreFocus: false,
-				data: {
-					message: this.language.instant('PLAN-OVERVIEW.DEPOSIT.ACCOUNT-LOGIN'),
-					titles: [this.language.instant('PLAN-OVERVIEW.DEPOSIT.LOGIN', { 'repository': repo.repositoryId }), this.language.instant('PLAN-OVERVIEW.MULTIPLE-DIALOG.USE-DEFAULT')]
-				}
-			});
-			dialogRef.afterClosed().pipe(takeUntil(this._destroyed)).subscribe(result => {
-				switch (result) {
-					case 0:
-						this.showOauth2Dialog(this.depositOauth2DialogService.getLoginUrl(repo), repo, this.plan);
-						break;
-					case 1:
-						const depositRequest: DepositRequest = {
-							repositoryId: repo.repositoryId,
-							planId: this.plan.id,
-							authorizationCode: null,
-							project: this.EntityDoiFields()
-						};
-						this.depositRepositoriesService.deposit(depositRequest)
-							.pipe(takeUntil(this._destroyed))
-							.subscribe(doi => {
-								this.onDOICallbackSuccess();
-								this.outputRepos.push(doi);
-								this.outputReposEmitter.emit(this.outputRepos);
-							}, error => this.onDOICallbackError(error));
-						break;
-				}
-			});
+	applyDepositMethod( selectedMethod: DepositAuthMethod, repo: DepositConfiguration) {
 
-		} else if (repo.depositType == DepositConfigurationStatus.System) {
-			const depositRequest: DepositRequest = {
-				repositoryId: repo.repositoryId,
-				planId: this.plan.id,
-				authorizationCode: null,
-				project: this.EntityDoiFields()
-			};
-			this.depositRepositoriesService.deposit(depositRequest)
-				.pipe(takeUntil(this._destroyed))
-				.subscribe(doi => {
-					this.onDOICallbackSuccess();
-					this.outputRepos.push(doi);
-					this.outputReposEmitter.emit(this.outputRepos);
-				}, error => this.onDOICallbackError(error));
+		const depositRequest: DepositRequest = {
+			repositoryId: repo.repositoryId,
+			planId: this.plan.id,
+			authorizationCode: null,
+			depositAuthInfoType: selectedMethod,
+			project: this.EntityDoiFields()
+		};
+
+		switch (selectedMethod) {
+			case DepositAuthMethod.oAuth2Flow:
+				this.showOauth2Dialog(this.depositOauth2DialogService.getLoginUrl(repo), repo, this.plan);
+				break;
+			case DepositAuthMethod.AuthInfoFromUserProfile:
+				this.depositService.deposit(depositRequest)
+					.pipe(takeUntil(this._destroyed))
+					.subscribe(doi => {
+						this.onDOICallbackSuccess();
+						this.outputRepos.push(doi);
+						this.outputReposEmitter.emit(this.outputRepos);
+					}, error => this.onDOICallbackError(error));
+				break;
+			case DepositAuthMethod.PluginDefault:
+				this.depositService.deposit(depositRequest)
+					.pipe(takeUntil(this._destroyed))
+					.subscribe(doi => {
+						this.onDOICallbackSuccess();
+						this.outputRepos.push(doi);
+						this.outputReposEmitter.emit(this.outputRepos);
+					}, error => this.onDOICallbackError(error));
+				break;
 		}
 	}
 
@@ -132,9 +181,10 @@ export class PlanDepositDropdown extends BaseComponent implements OnInit {
 						repositoryId: repo.repositoryId,
 						planId: plan.id,
 						authorizationCode: code,
+						depositAuthInfoType: DepositAuthMethod.oAuth2Flow,
 						project: this.EntityDoiFields()
 					};
-					this.depositRepositoriesService.deposit(depositRequest)
+					this.depositService.deposit(depositRequest)
 						.pipe(takeUntil(this._destroyed))
 						.subscribe(doi => {
 							this.onDOICallbackSuccess();

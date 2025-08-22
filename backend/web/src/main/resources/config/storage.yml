@@ -17,19 +17,19 @@ storage:
     material-files:
       localizedNameLanguageKey: "{lang}"
 
-      userGuide: ${SUPPORTIVE_MATERIAL_USER_GUIDE_PATH:backend/web/src/main/resources/material/user-guide/}
+      userGuide: ${SUPPORTIVE_MATERIAL_USER_GUIDE_PATH:classpath:/material/user-guide/}
       userGuideNamePattern: "UserGuide_{lang}.html"
-      about: ${SUPPORTIVE_MATERIAL_ABOUT_PATH:backend/web/src/main/resources/material/about/}
+      about: ${SUPPORTIVE_MATERIAL_ABOUT_PATH:classpath:/material/about/}
       aboutNamePattern: "About_{lang}.html"
-      termsOfService: ${SUPPORTIVE_MATERIAL_TERM_OF_SERVICE_PATH:backend/web/src/main/resources/material/terms-of-service/}
+      termsOfService: ${SUPPORTIVE_MATERIAL_TERM_OF_SERVICE_PATH:classpath:/material/terms-of-service/}
       termsOfServiceNamePattern: "TermsOfService_{lang}.html"
-      glossary: ${SUPPORTIVE_MATERIAL_GLOSSARY_PATH:backend/web/src/main/resources/material/glossary/}
+      glossary: ${SUPPORTIVE_MATERIAL_GLOSSARY_PATH:classpath:/material/glossary/}
       glossaryNamePattern: "Glossary_{lang}.html"
-      faq: ${SUPPORTIVE_MATERIAL_FAQ_PATH:backend/web/src/main/resources/material/faq/}
+      faq: ${SUPPORTIVE_MATERIAL_FAQ_PATH:classpath:/material/faq/}
       faqNamePattern: "Faq_{lang}.html"
-      language: ${SUPPORTIVE_MATERIAL_LANGUAGE_PATH:frontend/src/assets/i18n/}
+      language: ${SUPPORTIVE_MATERIAL_LANGUAGE_PATH:file:frontend/src/assets/i18n/}
       languageNamePattern: "{lang}.json"
-      cookiePolicy: ${SUPPORTIVE_MATERIAL_COOKIE_POLICY_PATH:backend/web/src/main/resources/material/cookie-policy/}
+      cookiePolicy: ${SUPPORTIVE_MATERIAL_COOKIE_POLICY_PATH:classpath:/material/cookie-policy/}
       cookiePolicyNamePattern: "CookiePolicy_{lang}.html"
     static-files:
-      semantics: ${SEMANTICS_PATH:backend/web/src/main/resources/Semantics.json}
+      semantics: ${SEMANTICS_PATH:classpath:Semantics.json}

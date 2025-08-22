@@ -31,7 +31,6 @@ import { PlanUserRole } from '@app/core/common/enum/plan-user-role';
 import { AppRole } from '@app/core/common/enum/app-role';
 import { PlanStatusAvailableActionType } from '@app/core/common/enum/plan-status-available-action-type';
 import { StorageFileService } from '@app/core/services/storage-file/storage-file.service';
-import FileSaver from 'file-saver';
 import { FileUtils } from '@app/core/services/utilities/file-utils.service';
 import { StorageFile } from '@app/core/model/storage-file/storage-file';
 import { nameof } from 'ts-simple-nameof';
@@ -51,9 +50,8 @@ export class PlanStatusEditorComponent extends BaseEditor<PlanStatusEditorModel,
     protected planRolesEnum = this.enumUtils.getEnumValues<PlanUserRole>(PlanUserRole);
 	protected planStatusAvailableActionTypeEnumValues = this.enumUtils.getEnumValues<PlanStatusAvailableActionType>(PlanStatusAvailableActionType);
     protected belongsToCurrentTenant: boolean;
-	fileNameDisplay: string = null;
+	initFile: StorageFile = null;
 	isUsingDropzone: boolean = true; 
-	filesToUpload: FileList;
 
     constructor(
         protected enumUtils: EnumUtils,
@@ -106,7 +104,7 @@ export class PlanStatusEditorComponent extends BaseEditor<PlanStatusEditorModel,
 			this.editorModel = data ? new PlanStatusEditorModel().fromModel(data) : new PlanStatusEditorModel();
 			this.isDeleted = data ? data.isActive === IsActive.Inactive : false;
             this.belongsToCurrentTenant = data?.belongsToCurrentTenant;
-			this.fileNameDisplay = data?.definition.storageFile.name;
+			this.initFile = data?.definition?.storageFile;
 			this.buildForm();
 			this.bindColorInputs();
 		} catch (error) {
@@ -119,19 +117,19 @@ export class PlanStatusEditorComponent extends BaseEditor<PlanStatusEditorModel,
         this.formGroup = this.editorModel.buildForm({disabled: !this.isNew && (!this.belongsToCurrentTenant || this.isDeleted || !this.authService.hasPermission(AppPermission.EditPlanStatus))});
 		this.cssColorsEditorService.setValidationErrorModel(this.editorModel.validationErrorModel);
 
-		if ((this.formGroup?.controls.definition.controls.storageFileId.value != undefined)) {
+		// if ((this.formGroup?.controls.definition.controls.storageFileId.value != undefined)) {
 			
 
-			const fields = [
-				nameof<StorageFile>(x => x.id),
-				nameof<StorageFile>(x => x.name),
-				nameof<StorageFile>(x => x.extension),
-			]
-			this.storageFileService.getSingle(this.formGroup?.controls.definition.controls.storageFileId.value, fields).pipe(takeUntil(this._destroyed)).subscribe(storageFile => {
-				this.createFileNameDisplay(storageFile.name, storageFile.extension);
-			});
+		// 	const fields = [
+		// 		nameof<StorageFile>(x => x.id),
+		// 		nameof<StorageFile>(x => x.name),
+		// 		nameof<StorageFile>(x => x.extension),
+		// 	]
+		// 	this.storageFileService.getSingle(this.formGroup?.controls.definition.controls.storageFileId.value, fields).pipe(takeUntil(this._destroyed)).subscribe(storageFile => {
+		// 		this.createFileNameDisplay(storageFile.name, storageFile.extension);
+		// 	});
 		
-		}
+		// }
 	
 	}
 
@@ -203,64 +201,6 @@ export class PlanStatusEditorComponent extends BaseEditor<PlanStatusEditorModel,
         const deletedPlanStatus = this.authService.permissionEnum.DeletePlanStatus;
         return this.belongsToCurrentTenant && !this.isNew && !this.isDeleted && this.authService.hasPermission(deletedPlanStatus);
     }
-
-	fileChangeEvent(fileInput: any, dropped: boolean = false) {
-
-		if (dropped) {
-			this.filesToUpload = fileInput.addedFiles;
-		} else {
-			this.filesToUpload = fileInput.target.files;
-		}
-
-		this.upload();
-	}
-
-
-	public upload() {
-		this.storageFileService.uploadTempFiles(this.filesToUpload[0])
-		.pipe(takeUntil(this._destroyed)).subscribe((response) => {
-			this.formGroup?.controls?.definition?.controls?.storageFileId.setValue(response[0].id);
-            this.formGroup?.controls?.definition?.controls?.storageFileId.markAsTouched();
-			this.fileNameDisplay = response[0].name;
-			this.cdr.detectChanges();
-		}, error => {
-			this.onCallbackError(error.error);
-		})
-	}
-
-	private createFileNameDisplay(name: string, extension: string) {
-		if (extension.startsWith('.')) this.fileNameDisplay = name + extension;
-		else this.fileNameDisplay = name + '.' + extension;
-		this.cdr.markForCheck();
-	}
-
-	download(fileId: Guid): void {
-
-		if (fileId) {
-
-			this.storageFileService.download(fileId).pipe(takeUntil(this._destroyed))
-				.subscribe(response => {
-					const blob = new Blob([response.body]);
-					const filename = this.fileUtils.getFilenameFromContentDispositionHeader(response.headers.get('Content-Disposition'));
-					FileSaver.saveAs(blob, filename);
-				},
-				error => this.httpErrorHandlingService.handleBackedRequestError(error));
-		}
-	}
-
-	onRemove(makeFilesNull: boolean = true) {
-		this.makeFilesNull()
-		this.cdr.detectChanges();
-
-	}
-
-	makeFilesNull() {
-		this.filesToUpload = null;
-		this.formGroup?.controls?.definition?.controls?.storageFileId.setValue(null);
-		this.formGroup?.controls?.definition?.controls?.storageFileId.markAsTouched();
-		this.formGroup.updateValueAndValidity();
-		this.fileNameDisplay = null;
-	}
 
     toggleInputMethod(){
         this.isUsingDropzone = !this.isUsingDropzone; 

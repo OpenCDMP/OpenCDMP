@@ -1,6 +1,6 @@
 
 import { COMMA, ENTER } from '@angular/cdk/keycodes';
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit, SimpleChanges } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit } from '@angular/core';
 import { UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 import { MatDialog } from "@angular/material/dialog";
 import { DescriptionTemplateFieldType } from '@app/core/common/enum/description-template-field-type';
@@ -8,23 +8,15 @@ import { DescriptionTemplateFieldValidationType } from '@app/core/common/enum/de
 import { DescriptionTemplateField, DescriptionTemplateFieldSet, DescriptionTemplateLabelAndMultiplicityData, DescriptionTemplateUploadData } from '@app/core/model/description-template/description-template';
 import { StorageFile } from '@app/core/model/storage-file/storage-file';
 import { DescriptionService } from '@app/core/services/description/description.service';
-import { SnackBarNotificationLevel, UiNotificationService } from "@app/core/services/notification/ui-notification-service";
 import { PlanService } from '@app/core/services/plan/plan.service';
 import { StorageFileService } from '@app/core/services/storage-file/storage-file.service';
 import { TagService } from '@app/core/services/tag/tag.service';
-import { FileUtils } from '@app/core/services/utilities/file-utils.service';
 import { MultipleAutoCompleteConfiguration } from '@app/library/auto-complete/multiple/multiple-auto-complete-configuration';
 import { SingleAutoCompleteConfiguration } from '@app/library/auto-complete/single/single-auto-complete-configuration';
 import { VisibilityRulesService } from '@app/ui/description/editor/description-form/visibility-rules/visibility-rules.service';
 import { BaseComponent } from '@common/base/base.component';
-import { FormValidationErrorsDialogComponent } from '@common/forms/form-validation-errors-dialog/form-validation-errors-dialog.component';
-import { HttpErrorHandlingService } from '@common/modules/errors/error-handling/http-error-handling.service';
-import { Guid } from '@common/types/guid';
-import { TranslateService } from '@ngx-translate/core';
-import * as FileSaver from 'file-saver';
 import { Observable } from 'rxjs';
 import { distinctUntilChanged, takeUntil } from 'rxjs/operators';
-import { nameof } from 'ts-simple-nameof';
 import { DescriptionFormService } from '../services/description-form.service';
 
 @Component({
@@ -74,43 +66,37 @@ export class DescriptionFormFieldComponent extends BaseComponent implements OnIn
 		{ name: 'Zenodo', value: 'zenodo' }
 	];
 
-	filesToUpload: FileList;
-	fileNameDisplay: string = null;
+	initFile: StorageFile = null;
 
 	constructor(
-		private language: TranslateService,
 		public planService: PlanService,
 		public descriptionService: DescriptionService,
 		public tagService: TagService,
-		private changeDetectorRef: ChangeDetectorRef,
-		private uiNotificationService: UiNotificationService,
 		public dialog: MatDialog,
-		private fileUtils: FileUtils,
-		private storageFileService: StorageFileService,
-		private httpErrorHandlingService: HttpErrorHandlingService,
 		private descriptionFormService: DescriptionFormService,
+        private changeDetectorRef: ChangeDetectorRef
 	) {
 		super();
 	}
 
 	ngOnInit() {
 
-		if (this.field?.data?.fieldType == DescriptionTemplateFieldType.UPLOAD && this.field && this.field.id && (this.propertiesFormGroup?.get(this.field.id).get('textValue').value != undefined) && !this.fileNameDisplay) {
-			const id = Guid.parse((this.propertiesFormGroup?.get(this.field.id).get('textValue').value as string));
+		// if (this.field?.data?.fieldType == DescriptionTemplateFieldType.UPLOAD && this.field && this.field.id && (this.propertiesFormGroup?.get(this.field.id).get('textValue').value != undefined) && !this.fileNameDisplay) {
+		// 	const id = Guid.parse((this.propertiesFormGroup?.get(this.field.id).get('textValue').value as string));
 
-			const fields = [
-				nameof<StorageFile>(x => x.id),
-				nameof<StorageFile>(x => x.name),
-				nameof<StorageFile>(x => x.extension),
-			]
-			this.storageFileService.getSingle(id, fields).pipe(takeUntil(this._destroyed)).subscribe(storageFile => {
-				this.createFileNameDisplay(storageFile.name, storageFile.extension);
-				this.applyFieldType();
-			});
-		} else {
-			this.applyFieldType();
-		}
-
+		// 	const fields = [
+		// 		nameof<StorageFile>(x => x.id),
+		// 		nameof<StorageFile>(x => x.name),
+		// 		nameof<StorageFile>(x => x.extension),
+		// 	]
+		// 	this.storageFileService.getSingle(id, fields).pipe(takeUntil(this._destroyed)).subscribe(storageFile => {
+		// 		this.initFile = storageFile;
+		// 		this.applyFieldType();
+		// 	});
+		// } else {
+		// 	this.applyFieldType();
+		// }
+        this.applyFieldType();
 		this.descriptionFormService.getDetectChangesObservable().pipe(takeUntil(this._destroyed)).subscribe(x => this.changeDetectorRef.markForCheck());
 	}
 
@@ -200,98 +186,12 @@ export class DescriptionFormFieldComponent extends BaseComponent implements OnIn
 
 	}
 
-
-	public upload() {
-		this.storageFileService.uploadTempFiles(this.filesToUpload[0])
-			.pipe(takeUntil(this._destroyed)).subscribe((response) => {
-				this.propertiesFormGroup?.get(this.field.id).get('textValue').patchValue(response[0].id.toString());
-				this.createFileNameDisplay(response[0].name, response[0].extension);
-				this.changeDetectorRef.detectChanges();
-			}, error => {
-				this.onCallbackUploadFail(error.error);
-			})
-
-
-	}
-
-	private createFileNameDisplay(name: string, extension: string) {
-		if (extension.startsWith('.')) this.fileNameDisplay = name + extension;
-		else this.fileNameDisplay = name + '.' + extension;
-		this.changeDetectorRef.markForCheck();
-	}
-
-
-	private onCallbackUploadFail(error: any) {
-		this.makeFilesNull();
-		this.uiNotificationService.snackBarNotification(this.language.instant(error.message), SnackBarNotificationLevel.Error);
-	}
-
-	fileChangeEvent(fileInput: any, dropped: boolean = false) {
-
-		if (dropped) {
-			this.filesToUpload = fileInput.addedFiles;
-		} else {
-			this.filesToUpload = fileInput.target.files;
-		}
-
-
-		let messages: string[] = [];
-		if (this.filesToUpload.length == 0) {
-			messages.push(this.language.instant('DESCRIPTION-TEMPLATE-EDITOR.STEPS.FORM.FIELD.FIELDS.NO-FILES-SELECTED'));
-			return;
-		} else {
-			let fileToUpload = this.filesToUpload[0];
-			const data = this.field.data as DescriptionTemplateUploadData;
-			if (data && data.types
-				&& data.types.map(type => type.value).includes(fileToUpload.type)
-				&& data.maxFileSizeInMB
-				&& data.maxFileSizeInMB * 1048576 >= fileToUpload.size) {
-				this.upload();
-			} else {
-				this.filesToUpload = null;
-				messages.push(this.language.instant('DESCRIPTION-TEMPLATE-EDITOR.STEPS.FORM.FIELD.FIELDS.LARGE-FILE-OR-UNACCEPTED-TYPE'));
-				messages.push(this.language.instant('DESCRIPTION-TEMPLATE-EDITOR.STEPS.FORM.FIELD.FIELDS.FIELD-UPLOAD-MAX-FILE-SIZE', { 'maxfilesize': data.maxFileSizeInMB }));
-				messages.push(this.language.instant('DESCRIPTION-TEMPLATE-EDITOR.STEPS.FORM.FIELD.FIELDS.ACCEPTED-FILE-TRANSFOMER') + data.types.map(type => type.value).join(", "));
-			}
-
-			if (messages && messages.length > 0) {
-				this.dialog.open(FormValidationErrorsDialogComponent, {
-					data: {
-						errorMessages: messages
-					}
-				})
-			}
-		}
-	}
-
-	onRemove(makeFilesNull: boolean = true) {
-		this.makeFilesNull()
-		this.changeDetectorRef.detectChanges();
-	}
-
-	makeFilesNull() {
-		this.filesToUpload = null;
-		this.propertiesFormGroup?.get(this.field.id).get('textValue').patchValue(null);
-		this.fileNameDisplay = null;
-	}
+    get maxFileSize(): number {
+        const data = this.field.data as DescriptionTemplateUploadData;
+		return data ? data.maxFileSizeInMB * 1048576 : null
+    }
 
 	typesToString() {
 		return (this.field.data as DescriptionTemplateUploadData).types.map(type => type.value).toString();
-	}
-
-	download(): void {
-
-		if (this.propertiesFormGroup?.get(this.field.id).get('textValue').value) {
-			const id = Guid.parse((this.propertiesFormGroup?.get(this.field.id).get('textValue').value as string));
-
-			this.storageFileService.download(id).pipe(takeUntil(this._destroyed))
-				.subscribe(response => {
-					const blob = new Blob([response.body]);
-					const filename = this.fileUtils.getFilenameFromContentDispositionHeader(response.headers.get('Content-Disposition'));
-					FileSaver.saveAs(blob, filename);
-				},
-					error => this.httpErrorHandlingService.handleBackedRequestError(error));
-		}
-
 	}
 }

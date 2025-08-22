@@ -13,34 +13,42 @@
                             <mat-icon style="width: 14px;" iconPositionEnd>expand_more</mat-icon>
                         </button>
                         <mat-menu #exportMenu="matMenu" xPosition="before">
-                            <button mat-menu-item *ngFor='let fileTransformer of fileTransformerService.availableFormatsFor(fileTransformerEntityTypeEnum.Plan)' (click)="fileTransformerService.exportPlan(formGroup.get('id').value, fileTransformer.repositoryId, fileTransformer.format)">
-                                <i class="fa pr-2" [ngClass]="fileTransformer.icon ? fileTransformer.icon : 'fa-file-o'" aria-hidden></i>
-                                <span>{{'GENERAL.FILE-TRANSFORMER.' + fileTransformer?.format?.toUpperCase() | translate}}</span>
-                            </button>
+                            @for(fileTransformer of fileTransformerService.availableFormatsFor(fileTransformerEntityTypeEnum.Plan); track $index; let i = $index) {
+                                 @for (fileFormat of fileTransformer.exportVariants; track $index; let j = $index) {
+                                    <button mat-menu-item (click)="fileTransformerService.exportPlan(formGroup.get('id').value, fileTransformer.fileTransformerId, fileFormat.format)">
+                                        <i class="fa pr-2" [ngClass]="fileFormat.icon ? fileFormat.icon : 'fa-file-o'" aria-hidden></i>
+                                        @if (fileFormat?.format?.toUpperCase() === 'JSON') {
+                                            <span>{{ 'GENERAL.FILE-TRANSFORMER.' + fileTransformer?.fileTransformerId?.toUpperCase() + '-' + fileFormat?.format?.toUpperCase() | translate }}</span>
+                                        } @else {
+                                            <span>{{ 'GENERAL.FILE-TRANSFORMER.' + fileFormat?.format?.toUpperCase() | translate }}</span>
+                                        }
+                                    </button>
+                                 }
+                            }
                         </mat-menu>
                     </div>
                     
                     <!-- <mat-divider *ngIf="formGroup.get('id').value && canEditPlan && ((!isLockedByUser && canEditPlan) || isLockedByUser || (hasReversableStatus() && !isLockedByUser))" [vertical]="true" class="ml-2 mr-2"></mat-divider> -->
         
                     <div *ngIf="isDirty || lockedDescriptions?.length || newDescriptionIds?.length" class="col-auto d-flex align-items-center">
-                        <button mat-flat-button color="primary" [disabled]="isLoading" class="padded-shadow-btn mr-3 on-primary-outline" (click)="discardChanges()">
+                        <button mat-flat-button color="primary" [disabled]="isLoading()" class="padded-shadow-btn mr-3 on-primary-outline" (click)="discardChanges()">
                             {{'PLAN-EDITOR.ACTIONS.DISCARD.DISCARD' | translate}}
                         </button>
                     </div>
         
                     <div class="col-auto d-flex align-items-center" *ngIf="canEditPlan || canEditDescriptions">
                         @if(isNew){
-                            <button mat-raised-button [disabled]="isLoading" (click)="formSubmit()" class="padded-shadow-btn">
+                            <button mat-raised-button [disabled]="isLoading()" (click)="formSubmit()" class="padded-shadow-btn">
                                 {{'PLAN-EDITOR.ACTIONS.SAVE' | translate}}
                             </button>
                         }@else {
                             <div class="save-btn-container">
-                                <button mat-raised-button [disabled]="isLoading" (click)="formSubmit()" class="main-save-btn">
+                                <button mat-raised-button [disabled]="isLoading()" (click)="formSubmit()" class="main-save-btn">
                                     {{ 'PLAN-EDITOR.ACTIONS.SAVE' | translate }}
                                 </button>
                                 <mat-divider [vertical]="true"></mat-divider>
                                 <button mat-raised-button
-                                    [disabled]="isLoading"
+                                    [disabled]="isLoading()"
                                     class="save-menu-btn" 
                                     (click)="$event.stopPropagation();" 
                                     [matMenuTriggerFor]="menu"
@@ -56,9 +64,9 @@
                         }
                     </div>
                     <div *ngIf="displayCustomStatus" class="col-auto d-flex align-items-center">
-                        <span *ngFor='let status of item.availableStatuses' [matTooltip]="'PLAN-EDITOR.ACTIONS.FINALIZE.CAN-NOT-FINALIZE' | translate" [matTooltipDisabled]="!isLoading && !isDirty && !lockedDescriptions?.length">
+                        <span *ngFor='let status of item.availableStatuses' [matTooltip]="'PLAN-EDITOR.ACTIONS.FINALIZE.CAN-NOT-FINALIZE' | translate" [matTooltipDisabled]="!isLoading() && !isDirty && !lockedDescriptions?.length">
                             <button 
-                                [disabled]="isLoading || isDirty || lockedDescriptions?.length > 0 || newDescriptionIds?.length > 0" 
+                                [disabled]="isLoading() || isDirty || lockedDescriptions?.length > 0 || newDescriptionIds?.length > 0" 
                                 mat-raised-button 
                                 class="padded-shadow-btn mr-2" 
                                 type="button" 
@@ -81,7 +89,7 @@
         @if(step() === 0){
             <!-- First Step -->
             @if(isNew){
-				<app-plan-blueprints-preview-component (proceedWithBlueprint)="selectBlueprint($event)" [selectedBlueprintId]="selectedBlueprintId" ></app-plan-blueprints-preview-component>
+				<app-plan-blueprints-preview-component (proceedWithBlueprint)="createPlanWithBlueprint($event)" [selectedBlueprintId]="selectedBlueprintId" ></app-plan-blueprints-preview-component>
             }
         }@else {
             <!-- Second etc Steps -->
@@ -100,7 +108,10 @@
                     [(selectedDescription)]="selectedDescription"
                     (onAddDescription)="addDescriptionToSection($event)"
                     (onRemoveDescription)="removeDescription($event)"
-                />
+					[annotationsPerAnchor]="annotationsPerAnchor"
+					(showAnnotations)="showAnnotations($event)"
+
+				/>
 
                 <div class="form" id="editor-form" *ngIf="selectedBlueprint?.definition"  tabindex="0">
                     <app-plan-internal-blueprint-editor
@@ -116,7 +127,6 @@
                         [descTemplatesInUseMap]="descTemplatesInUseMap()"
                         [annotationsPerAnchor]="annotationsPerAnchor"
                         (showAnnotations)="showAnnotations($event)"
-                        (descriptionTemplateLoaded)="planTempStorage.setDescriptionTemplate($event)"
                     />
                     <!-- <div *ngFor="let section of selectedBlueprint?.definition?.sections; let i=index" [hidden]="selectedDescription()">
                         <div class="section-info" [hidden]="step() !== (i + 1)">
@@ -304,6 +314,9 @@
                                                 </mat-form-field>
                                             </div>
                                         </div>
+                                        @if(field.category === planBlueprintSectionFieldCategoryEnum.Upload){
+                                            <app-plan-upload-field path="{{i + 1}}.{{j + 1}}" [form]="formGroup.get('properties').get('planBlueprintValues').get(field.id)" [field]="field"></app-plan-upload-field>
+                                        }
                                     </div>
                                 </div>
                             </div>

@@ -15,25 +15,25 @@ const routes: Routes = [
 			}),
 		}
 	},
-	// {
-	// 	path: 'edit',
-	// 	loadChildren: () => import('./editor/description-editor.module').then(m => m.DescriptionEditorModule),
-	// 	canActivate: [AuthGuard],
-	// 	data: {
-	// 		breadcrumb: true,
-	// 		...BreadcrumbService.generateRouteDataConfiguration({
-	// 			hideNavigationItem: true
-	// 		}),
-	// 	}
-	// },
-	// {
-	// 	path: '',
-	// 	canActivate: [AuthGuard],
-	// 	loadChildren: () => import('./listing/description-listing.module').then(m => m.DescriptionListingModule),
-	// 	data: {
-	// 		breadcrumb: true
-	// 	},
-	// },
+	{
+		path: 'edit',
+		loadChildren: () => import('./editor/description-editor.module').then(m => m.DescriptionEditorModule),
+		canActivate: [AuthGuard],
+		data: {
+			breadcrumb: true,
+			...BreadcrumbService.generateRouteDataConfiguration({
+				hideNavigationItem: true
+			}),
+		}
+	},
+	{
+		path: '',
+		canActivate: [AuthGuard],
+		loadChildren: () => import('./listing/description-listing.module').then(m => m.DescriptionListingModule),
+		data: {
+			breadcrumb: true
+		},
+	},
 ];
 
 const publicRoutes: Routes = [

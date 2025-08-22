@@ -3,10 +3,7 @@ package org.opencdmp.model.builder.commonmodels.planblueprint;
 import org.opencdmp.authorization.AuthorizationFlags;
 import org.opencdmp.commonmodels.models.planblueprint.SectionModel;
 import org.opencdmp.commons.enums.PlanBlueprintFieldCategory;
-import org.opencdmp.commons.types.planblueprint.ExtraFieldEntity;
-import org.opencdmp.commons.types.planblueprint.ReferenceTypeFieldEntity;
-import org.opencdmp.commons.types.planblueprint.SectionEntity;
-import org.opencdmp.commons.types.planblueprint.SystemFieldEntity;
+import org.opencdmp.commons.types.planblueprint.*;
 import org.opencdmp.convention.ConventionService;
 import org.opencdmp.model.builder.commonmodels.BaseCommonModelBuilder;
 import org.opencdmp.model.builder.commonmodels.CommonModelBuilderItemResponse;
@@ -55,6 +52,7 @@ public class SectionCommonModelBuilder extends BaseCommonModelBuilder<SectionMod
             m.setLabel(d.getLabel());
             m.setOrdinal(d.getOrdinal());
             m.setHasTemplates(d.getHasTemplates());
+            m.setCanEditDescriptionTemplates(d.getCanEditDescriptionTemplates());
 
             if ( d.getFields() != null) {
                 m.setFields(new ArrayList<>());
@@ -64,6 +62,8 @@ public class SectionCommonModelBuilder extends BaseCommonModelBuilder<SectionMod
                 m.getFields().addAll(this.builderFactory.builder(ExtraFieldCommonModelBuilder.class).authorize(this.authorize).build(extraFieldEntities));
                 List<ReferenceTypeFieldEntity> referenceFieldEntities = d.getFields().stream().filter(x-> PlanBlueprintFieldCategory.ReferenceType.equals(x.getCategory())).map(x-> (ReferenceTypeFieldEntity)x).toList();
                 m.getFields().addAll(this.builderFactory.builder(ReferenceTypeFieldCommonModelBuilder.class).authorize(this.authorize).build(referenceFieldEntities));
+                List<UploadFieldEntity> uploadFieldEntities = d.getFields().stream().filter(x-> PlanBlueprintFieldCategory.Upload.equals(x.getCategory())).map(x-> (UploadFieldEntity)x).toList();
+                m.getFields().addAll(this.builderFactory.builder(UploadFieldCommonModelBuilder.class).authorize(this.authorize).build(uploadFieldEntities));
             }
 
             models.add(new CommonModelBuilderItemResponse<>(m, d));

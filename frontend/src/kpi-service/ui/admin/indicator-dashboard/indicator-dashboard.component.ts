@@ -21,8 +21,8 @@ export class IndicatorDashboardComponent extends BaseComponent implements OnInit
 	indicatorQueryParams: IndicatorQueryParams = {
 	  dashboard: this.configurationService.kpiDashboardId,
 	  displayName: undefined as any,
-	  keywordFilters: [{field: this.configurationService.keywordFilter, values: [this.authService.selectedTenant() ? this.authService.selectedTenant(): 'default']}],
-	  groupHash: null as any,
+      keywordFilters: [{field: this.configurationService.keywordFilter, values: [this.authService.selectedTenant() ? this.authService.selectedTenant(): 'default']}],
+      groupHash: null as any,
 	}
 
 	constructor(

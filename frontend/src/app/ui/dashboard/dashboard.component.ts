@@ -19,6 +19,11 @@ import { StartNewDescriptionDialogComponent } from '../description/start-new-des
 import { StartNewPlanDialogComponent } from '../plan/new/start-new-plan-dialogue/start-new-plan-dialog.component';
 import { AnalyticsService } from '@app/core/services/matomo/analytics-service';
 import { RouterUtilsService } from '@app/core/services/router/router-utils.service';
+import { ReferenceType } from '@app/core/model/reference-type/reference-type';
+import { ViewPreferencesEditorResolver } from '../admin/tenant-configuration/editor/view-preferences/view-preferences-editor.resolver';
+import { TenantConfigurationService } from '@app/core/services/tenant-configuration/tenant-configuration.service';
+import { TenantConfigurationType } from '@app/core/common/enum/tenant-configuration-type';
+import { IsActive } from '@notification-service/core/enum/is-active.enum';
 
 
 @Component({
@@ -35,6 +40,8 @@ export class DashboardComponent extends BaseComponent implements OnInit {
 	isIntroCardVisible = true;
 
     ActivityListingType = ActivityListingType;
+	orderedPlanPreferencesList:ReferenceType[];
+	orderedDescriptionPreferencesList:ReferenceType[];
 
 	constructor(
 		public routerUtils: RouterUtilsService,
@@ -49,6 +56,7 @@ export class DashboardComponent extends BaseComponent implements OnInit {
 		public referenceTypeService: ReferenceTypeService,
 		private fb: UntypedFormBuilder,
 		private cookieService: CookieService,
+		private tenantConfigurationService: TenantConfigurationService,
 		public configurationService: ConfigurationService
 	) {
 		super();
@@ -78,6 +86,16 @@ export class DashboardComponent extends BaseComponent implements OnInit {
 						this.openDashboardTour();
 					}
 				});
+			this.tenantConfigurationService.getActiveType(TenantConfigurationType.ViewPreferences, ViewPreferencesEditorResolver.lookupFields())
+				.pipe(takeUntil(this._destroyed)).subscribe(
+					data => {
+						this.orderedPlanPreferencesList = data?.viewPreferences?.planPreferences?.filter(x => x.referenceType?.isActive === IsActive.Active)?.map(x => x.referenceType) || [];
+						this.orderedDescriptionPreferencesList = data?.viewPreferences?.descriptionPreferences?.filter(x => x.referenceType?.isActive === IsActive.Active)?.map(x => x.referenceType) || [];
+						},
+						error => {
+							this.orderedPlanPreferencesList = []
+						}
+				);
 		}
 
 		this.newReleaseNotificationVisible = this.isNewReleaseNotificationVisible();

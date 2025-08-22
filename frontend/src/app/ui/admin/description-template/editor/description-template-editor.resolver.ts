@@ -4,8 +4,10 @@ import { IsActive } from '@app/core/common/enum/is-active.enum';
 import { AppPermission } from '@app/core/common/enum/permission.enum';
 import { DescriptionTemplateType } from '@app/core/model/description-template-type/description-template-type';
 import { DescriptionTemplate, DescriptionTemplateBaseFieldData, DescriptionTemplateDefaultValue, DescriptionTemplateDefinition, DescriptionTemplateExternalDatasetData, DescriptionTemplateField, DescriptionTemplateFieldSet, DescriptionTemplateLabelAndMultiplicityData, DescriptionTemplateMultiplicity, DescriptionTemplatePage, DescriptionTemplateReferenceTypeData, DescriptionTemplateRule, DescriptionTemplateSection, DescriptionTemplateSelectData, DescriptionTemplateSelectOption, DescriptionTemplateUploadData, DescriptionTemplateUploadOption, UserDescriptionTemplate } from '@app/core/model/description-template/description-template';
+import { PluginConfiguration, PluginConfigurationField } from '@app/core/model/plugin-configuration/plugin-configuration';
 import { ReferenceType } from '@app/core/model/reference-type/reference-type';
 import { Reference } from '@app/core/model/reference/reference';
+import { StorageFile } from '@app/core/model/storage-file/storage-file';
 import { User } from '@app/core/model/user/user';
 import { DescriptionTemplateService } from '@app/core/services/description-template/description-template.service';
 import { BreadcrumbService } from '@app/ui/misc/breadcrumb/breadcrumb.service';
@@ -35,6 +37,20 @@ export class DescriptionTemplateEditorResolver extends BaseEditorResolver {
 
     public static definitionLookupFields(): string[]{
         return [
+
+			[nameof<DescriptionTemplate>(x => x.definition), nameof<DescriptionTemplateDefinition>(x => x.pluginConfigurations), nameof<PluginConfiguration>(x => x.pluginCode)].join('.'),
+			[nameof<DescriptionTemplate>(x => x.definition), nameof<DescriptionTemplateDefinition>(x => x.pluginConfigurations), nameof<PluginConfiguration>(x => x.pluginType)].join('.'),
+
+			[nameof<DescriptionTemplate>(x => x.definition), nameof<DescriptionTemplateDefinition>(x => x.pluginConfigurations), nameof<PluginConfiguration>(x => x.fields), nameof<PluginConfigurationField>(x => x.code)].join('.'),
+			[nameof<DescriptionTemplate>(x => x.definition), nameof<DescriptionTemplateDefinition>(x => x.pluginConfigurations), nameof<PluginConfiguration>(x => x.fields), nameof<PluginConfigurationField>(x => x.textValue)].join('.'),
+
+			[nameof<DescriptionTemplate>(x => x.definition), nameof<DescriptionTemplateDefinition>(x => x.pluginConfigurations), nameof<PluginConfiguration>(x => x.fields), nameof<PluginConfigurationField>(x => x.fileValue), nameof<StorageFile>(x => x.id)].join('.'),
+			[nameof<DescriptionTemplate>(x => x.definition), nameof<DescriptionTemplateDefinition>(x => x.pluginConfigurations), nameof<PluginConfiguration>(x => x.fields), nameof<PluginConfigurationField>(x => x.fileValue), nameof<StorageFile>(x => x.extension)].join('.'),
+			[nameof<DescriptionTemplate>(x => x.definition), nameof<DescriptionTemplateDefinition>(x => x.pluginConfigurations), nameof<PluginConfiguration>(x => x.fields), nameof<PluginConfigurationField>(x => x.fileValue), nameof<StorageFile>(x => x.mimeType)].join('.'),
+			[nameof<DescriptionTemplate>(x => x.definition), nameof<DescriptionTemplateDefinition>(x => x.pluginConfigurations), nameof<PluginConfiguration>(x => x.fields), nameof<PluginConfigurationField>(x => x.fileValue), nameof<StorageFile>(x => x.fullName)].join('.'),
+			[nameof<DescriptionTemplate>(x => x.definition), nameof<DescriptionTemplateDefinition>(x => x.pluginConfigurations), nameof<PluginConfiguration>(x => x.fields), nameof<PluginConfigurationField>(x => x.fileValue), nameof<StorageFile>(x => x.name)].join('.'),
+
+
 			[nameof<DescriptionTemplate>(x => x.definition), nameof<DescriptionTemplateDefinition>(x => x.pages), nameof<DescriptionTemplatePage>(x => x.id)].join('.'),
 			[nameof<DescriptionTemplate>(x => x.definition), nameof<DescriptionTemplateDefinition>(x => x.pages), nameof<DescriptionTemplatePage>(x => x.ordinal)].join('.'),
 			[nameof<DescriptionTemplate>(x => x.definition), nameof<DescriptionTemplateDefinition>(x => x.pages), nameof<DescriptionTemplatePage>(x => x.title)].join('.'),

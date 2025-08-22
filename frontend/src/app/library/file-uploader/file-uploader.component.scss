@@ -1,0 +1,67 @@
+.remove-badge {
+	margin-left: .5rem !important;
+    margin-top: 0.125rem !important;
+}
+.selected-file {
+    min-width: 20%;
+    background-color: var(--sys-surface) !important;
+}
+
+::ng-deep .dropzone-form-field .mdc-text-field--filled:not(.mdc-text-field--disabled),::ng-deep  .mdc-text-field--filled.mdc-text-field--disabled{
+    background-color: var(--sys-background) !important;
+	border: 1px dashed var(--mdc-outlined-card-outline-color);
+    border-bottom-right-radius: var(--mdc-filled-text-field-container-shape);
+    border-bottom-left-radius: var(--mdc-filled-text-field-container-shape);
+    .mdc-line-ripple::after, .mdc-line-ripple::before{
+        border: none;
+        border-radius: var();
+    }
+}
+::ng-deep .dropzone-form-field .mdc-text-field--filled:not(.mdc-text-field--disabled){
+    &:hover {
+        .mat-mdc-form-field-focus-overlay{
+            background-color: hsl(from var(--sys-background) h calc(s - 20) calc(l - 20));
+        }
+    }
+    &.mdc-text-field--focused {
+        border: 2px solid var(--sys-primary);
+    }
+    &.mdc-text-field--invalid{
+        border-color: var(--sys-error);
+    }
+}
+::ng-deep .dropzone-form-field.error {
+    .mdc-text-field--filled:not(.mdc-text-field--disabled){
+        border: 1px solid var(--sys-error);
+        &.mdc-text-field--focused{
+            border-width: 2px;
+        }
+    }
+} 
+::ng-deep ngx-mat-dropzone {
+    .mat-chip-grid {
+        display: flex;
+        width: 100%;
+        justify-content: center;
+    }
+    .file-input { //bypass display: none set in the ngx-dropzone so I can focus on the mat form field
+        display: block !important;
+        width: 0 !important;
+    }
+}
+.dropzone {
+    min-height: 9rem;
+    width: 100% !important;
+}
+
+.form-error {
+    max-width: 35%;
+}
+.actions {
+    position: relative;
+	top: -35px;
+}
+
+.download-btn {
+    background-color:  var(--sys-surface) !important;
+}

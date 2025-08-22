@@ -2,6 +2,7 @@ package org.opencdmp.model.builder.plan;
 
 import gr.cite.commons.web.authz.service.AuthorizationService;
 import gr.cite.tools.data.builder.BuilderFactory;
+import gr.cite.tools.data.query.Ordering;
 import gr.cite.tools.data.query.QueryFactory;
 import gr.cite.tools.exception.MyApplicationException;
 import gr.cite.tools.fieldset.BaseFieldSet;
@@ -351,6 +352,7 @@ public class PlanBuilder extends BaseBuilder<Plan, PlanEntity> {
         Map<UUID, List<PlanUser>> itemMap;
         FieldSet clone = new BaseFieldSet(fields.getFields()).ensure(this.asIndexer(PlanUser._plan, PlanUser._id));
         PlanUserQuery query = this.queryFactory.query(PlanUserQuery.class).disableTracking().authorize(this.authorize).planIds(data.stream().map(PlanEntity::getId).distinct().collect(Collectors.toList()));
+        query.setOrder(new Ordering().addAscending(PlanUser._ordinal));
         itemMap = this.builderFactory.builder(PlanUserBuilder.class).authorize(this.authorize).asMasterKey(query, clone, x -> x.getPlan().getId());
 
         if (!fields.hasField(this.asIndexer(PlanUser._plan, Plan._id))) {

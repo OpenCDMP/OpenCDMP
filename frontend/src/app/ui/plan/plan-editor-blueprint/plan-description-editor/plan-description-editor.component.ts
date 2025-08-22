@@ -1,11 +1,23 @@
-import { AfterViewInit, Component, computed, effect, input, OnInit, output, Signal, ViewChild } from '@angular/core';
+import {
+	AfterViewInit,
+	Component,
+	computed,
+	effect,
+	Inject,
+	input,
+	OnDestroy,
+	OnInit,
+	output,
+	Signal,
+	ViewChild
+} from '@angular/core';
 import { AppPermission } from '@app/core/common/enum/permission.enum';
 import { Description, DescriptionPersist, DescriptionStatusPersist } from '@app/core/model/description/description';
 import { DescriptionService } from '@app/core/services/description/description.service';
 import { Guid } from '@common/types/guid';
 import { HttpErrorResponse } from '@angular/common/http';
 import { HttpError, HttpErrorHandlingService } from '@common/modules/errors/error-handling/http-error-handling.service';
-import { catchError, interval, Observable, of, Subscription, take, takeUntil, tap} from 'rxjs';
+import { catchError, EMPTY, interval, Observable, of, Subscription, take, takeUntil, tap} from 'rxjs';
 import { BaseComponent } from '@common/base/base.component';
 import { DescriptionEditorForm, DescriptionEditorModel } from '@app/ui/description/editor/description-editor.model';
 import { IsActive } from '@notification-service/core/enum/is-active.enum';
@@ -35,12 +47,16 @@ import { ValidationErrorModel } from '@common/forms/validation/error-model/valid
 import { PlanTempStorageService } from '../plan-temp-storage.service';
 import { UnlockMultipleTargetsPersist } from '@app/core/model/lock/lock.model';
 import { ActivatedRoute, Params } from '@angular/router';
-import { FormAnnotationService } from '@app/ui/annotations/annotation-dialog-component/form-annotation.service';
+import {
+	FormAnnotationService,
+	MULTI_FORM_ANNOTATION_SERVICE_TOKEN
+} from '@app/ui/annotations/annotation-dialog-component/form-annotation.service';
 import { AnnotationEntityType } from '@app/core/common/enum/annotation-entity-type';
 import { DescriptionTemplate } from '@app/core/model/description-template/description-template';
 import { DescriptionFinalizeDialogOutput, FinalizeDescriptionDialogComponent } from './finalize-description-dialog/finalize-description-dialog.component';
 import { RouterUtilsService } from '@app/core/services/router/router-utils.service';
 import { AnnotationDialogComponent } from '@app/ui/annotations/annotation-dialog-component/annotation-dialog.component';
+import { EnqueueService } from '@app/core/services/enqueue.service';
 @Component({
     selector: 'app-plan-description-editor',
     templateUrl: './plan-description-editor.component.html',
@@ -48,7 +64,7 @@ import { AnnotationDialogComponent } from '@app/ui/annotations/annotation-dialog
     providers: [FormAnnotationService],
     standalone: false
 })
-export class PlanDescriptionEditorComponent extends BaseComponent implements OnInit, AfterViewInit{
+export class PlanDescriptionEditorComponent extends BaseComponent implements AfterViewInit, OnDestroy{
     @ViewChild("descriptionForm") descriptionEditorForm: DescriptionFormComponent;
     plan = input<Plan>();
     id = input<Guid>();
@@ -96,11 +112,14 @@ export class PlanDescriptionEditorComponent extends BaseComponent implements OnI
     });
     protected descriptionTemplate: Signal<DescriptionTemplate> = computed (() => this.planTempStorage.getDescriptionTemplate(this.formGroup()?.controls?.descriptionTemplateId?.getRawValue()))
 
-    isLoading: boolean = false;    
     private oldStatusId: Guid;
-
+    
     isLocked: boolean = false;
+    
+    isLoading = computed(() => this.enqueueService.exhaustPipelineBusy());
 
+    private openAnnotation$: Subscription;
+	private formAnnotationService: FormAnnotationService;
     constructor(
         private route: ActivatedRoute,
         private descriptionService: DescriptionService,
@@ -114,17 +133,24 @@ export class PlanDescriptionEditorComponent extends BaseComponent implements OnI
         private authService: AuthService,
         private configurationService: ConfigurationService,
         private planTempStorage: PlanTempStorageService,
-        private formAnnotationService: FormAnnotationService,
-        private routerUtils: RouterUtilsService
+        private routerUtils: RouterUtilsService,
+        private enqueueService: EnqueueService,
+	    @Inject(MULTI_FORM_ANNOTATION_SERVICE_TOKEN) private formAnnotationServices: FormAnnotationService[],
     ){
         super();
         effect(() => {
             const descInfo = this.descriptionInfo();
             if(!descInfo || descInfo.isNew){return;}
             const id = descInfo.lastPersist.id;
-            if(!descInfo.isNew){
-                this.formAnnotationService.init(id, AnnotationEntityType.Description);
-            }
+            this.openAnnotation$?.unsubscribe();
+            
+            this.formAnnotationService = this.formAnnotationServices.find(service => service.getEntityId() === id);
+            this.openAnnotation$ = this.formAnnotationService?.getOpenAnnotationSubjectObservable().pipe(takeUntil(this._destroyed)).subscribe((anchorFieldsetId: string) => {
+                if (anchorFieldsetId){
+                    this.showAnnotations(anchorFieldsetId);
+                }
+            });
+        
             this.visibilityRulesService().reloadVisibility();
             if(!this.lockSubscriptionMap.has(id) && !this.isFinalized() && !this.viewOnly()){
                 this.lockService.checkLockStatus(id).pipe(takeUntil(this._destroyed))
@@ -149,14 +175,6 @@ export class PlanDescriptionEditorComponent extends BaseComponent implements OnI
                 this.finalizeDescription = false;
             }
         })
-    }
-
-    ngOnInit(){
-        this.formAnnotationService.getOpenAnnotationSubjectObservable().pipe(takeUntil(this._destroyed)).subscribe((anchorFieldsetId: string) => {
-			if (anchorFieldsetId){
-                this.showAnnotations(anchorFieldsetId);
-            }
-		});
     }
     
     anchorFieldId: string;
@@ -377,18 +395,14 @@ export class PlanDescriptionEditorComponent extends BaseComponent implements OnI
 					statusId: statusId,
 					hash: this.formGroup().get('hash').value
 				};
-                this.isLoading = true;
-				this.descriptionService.persistStatus(planUserRemovePersist, DescriptionEditorHelper.DescriptionLookupFields()).pipe(takeUntil(this._destroyed))
-					.subscribe({ 
-                        next: (desc) => {
-                            this.isLoading = false;
-                            this.onPersistSuccess(desc);
-					    }, 
-                        error: (error: any) => {
-						    this.onCallbackError(error)
-                            this.isLoading = false;
-					    }
-                    });
+                this.enqueueService.enqueueExhaustChannel(
+                    this.descriptionService.persistStatus(planUserRemovePersist, DescriptionEditorHelper.DescriptionLookupFields())
+                    .pipe(
+                        takeUntil(this._destroyed),
+                        tap((desc) => this.onPersistSuccess(desc)),
+                        catchError((error) => of(this.onCallbackError(error)))
+                    )
+                )
 			}
 		});
 	}
@@ -407,23 +421,22 @@ export class PlanDescriptionEditorComponent extends BaseComponent implements OnI
     private persistStatus() {
 		const formData = this.formGroup()?.getRawValue() as DescriptionPersist;
 		const finalizedStatus = this.description()?.availableStatuses?.find(x => x.internalStatus === DescriptionStatusEnum.Finalized) || null;
-        this.isLoading = true;
-		this.descriptionService.persist(formData, DescriptionEditorHelper.DescriptionLookupFields())
-			.pipe(takeUntil(this._destroyed)).subscribe({
-                next: (desc) => {
-                    this.isLoading = false;
-                    this.onPersistSuccess(desc);
-                },
-                error: (error) => {
-					if (finalizedStatus && this.formGroup().get('statusId').value == finalizedStatus.id) {
-                        this.isLoading = false;
+        this.enqueueService.enqueueExhaustChannel(
+            this.descriptionService.persist(formData, DescriptionEditorHelper.DescriptionLookupFields())
+            .pipe(
+                takeUntil(this._destroyed),
+                tap((desc) => this.onPersistSuccess(desc)),
+                catchError((error) => {
+                    if (finalizedStatus && this.formGroup().get('statusId').value == finalizedStatus.id) {
 						this.formGroup().get('statusId').setValue(this.oldStatusId);
 						this.uiNotificationService.snackBarNotification(this.language.instant('GENERAL.SNACK-BAR.UNSUCCESSFUL-FINALIZE'), SnackBarNotificationLevel.Error);
 					} else {
 						this.onCallbackError(error);
 					}
-                }
-            });
+                    return EMPTY;
+                })
+            )
+        )
     }
 
     private onPersistSuccess(desc: Description){
@@ -442,7 +455,6 @@ export class PlanDescriptionEditorComponent extends BaseComponent implements OnI
     }
 
     private onCallbackError(errorResponse: HttpErrorResponse) {
-        this.isLoading = false;
 		this.httpErrorHandlingService.handleBackedRequestError(errorResponse)
 		const error: HttpError = this.httpErrorHandlingService.getError(errorResponse);
         console.log(error);
@@ -652,6 +664,8 @@ export class PlanDescriptionEditorComponent extends BaseComponent implements OnI
 
     ngOnDestroy(): void {
         this.unlockAll();
+        this.openAnnotation$?.unsubscribe();
+        this.openAnnotation$ = null;
     }
 
 }

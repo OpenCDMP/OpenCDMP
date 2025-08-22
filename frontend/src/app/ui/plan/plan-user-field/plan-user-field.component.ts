@@ -63,11 +63,14 @@ export class PlanUserFieldComponent extends BaseComponent implements OnInit {
 	addUser(): void {
 		const userArray = this.form as FormArray;
 		const planUser: PlanUserEditorModel = new PlanUserEditorModel(this.validationErrorModel);
+		        
+		planUser.ordinal = null;
 		userArray?.push(planUser.buildForm({ rootPath: "users[" + userArray.length + "]." }));
-	}
+		}
 
 	removeUser(userIndex: number): void {
 		(this.form as FormArray).removeAt(userIndex);
+		this.updateOrdinals();
 
 		PlanEditorModel.reApplyUsersValidators(
 			{
@@ -89,6 +92,7 @@ export class PlanUserFieldComponent extends BaseComponent implements OnInit {
 
 		moveItemInArray(usersFormArray.controls, event.previousIndex, event.currentIndex);
 		usersFormArray.updateValueAndValidity();
+		this.updateOrdinals();
 
 		PlanEditorModel.reApplyUsersValidators(
 			{
@@ -97,6 +101,7 @@ export class PlanUserFieldComponent extends BaseComponent implements OnInit {
 			}
 		);
 		this.form.markAsDirty();
+		this.updateOrdinals();
 	}
 
 	isUserSelected(userId: number): boolean {
@@ -143,5 +148,17 @@ export class PlanUserFieldComponent extends BaseComponent implements OnInit {
                 setTimeout(() => document.getElementById('drag-handle-' + (index - 1))?.focus());
             }
         })
+		this.updateOrdinals();
     }
+	
+	updateOrdinals(): void {
+    const usersFormArray = this.form as FormArray;
+    usersFormArray.controls.forEach((control, index) => {
+
+	if (control.get('ordinal').value !== index) {
+        control.get('ordinal').setValue(index);
+        control.get('ordinal').updateValueAndValidity();
+      }
+    });
+  }
 }

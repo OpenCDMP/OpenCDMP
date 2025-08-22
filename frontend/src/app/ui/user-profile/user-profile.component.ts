@@ -36,6 +36,10 @@ import { map, takeUntil } from 'rxjs/operators';
 import { nameof } from 'ts-simple-nameof';
 import { AddAccountDialogComponent } from './add-account/add-account-dialog.component';
 import { UserProfileEditorModel } from './user-profile-editor.model';
+import { PluginConfigurationService } from '@app/core/services/plugin/plugin-configuration.service';
+import { StorageFile } from '@app/core/model/storage-file/storage-file';
+import { PluginConfigurationUser, PluginConfigurationUserField, PluginRepositoryUserConfiguration } from '@app/core/model/plugin-configuration/plugin-configuration';
+import { toObservable } from '@angular/core/rxjs-interop';
 
 @Component({
     selector: 'app-user-profile',
@@ -65,11 +69,15 @@ export class UserProfileComponent extends BaseComponent implements OnInit, OnDes
 	nestedIndex = 0;
 	tenants: Observable<Array<Tenant>>;
 	expandedPreferences: boolean = false;
+	expandedPluginConfifurations: boolean = false;
 
 	organisationsSingleAutoCompleteConfiguration: SingleAutoCompleteConfiguration;
 
 	formGroup: UntypedFormGroup;
 	tenantFormGroup: UntypedFormGroup;
+
+	fileMap = new Map<Guid, StorageFile>([]);
+	pluginRepositoryUserConfigurationInitialized: Observable<PluginRepositoryUserConfiguration[]>;
 
 	constructor(
 		private userService: UserService,
@@ -90,10 +98,12 @@ export class UserProfileComponent extends BaseComponent implements OnInit, OnDes
 		private referenceService: ReferenceService,
 		private referenceTypeService: ReferenceTypeService,
 		private analyticsService: AnalyticsService,
-		private httpErrorHandlingService: HttpErrorHandlingService
+		private httpErrorHandlingService: HttpErrorHandlingService,
+		public pluginConfigurationService: PluginConfigurationService
 	) {
 		super();
 		this.languages = this.languageService.getAvailableLanguagesCodes();
+		this.pluginRepositoryUserConfigurationInitialized = toObservable(this.pluginConfigurationService.pluginRepositoryUserConfiguration);
 	}
 
 
@@ -124,11 +134,18 @@ export class UserProfileComponent extends BaseComponent implements OnInit, OnDes
 		this.analyticsService.trackPageView(AnalyticsService.UserProfile);
 
 		this.organisationsSingleAutoCompleteConfiguration = this.referenceService.getSingleAutocompleteSearchConfiguration(this.referenceTypeService.getOrganizationReferenceType(), null);
-		this.route.params
-			.pipe(takeUntil(this._destroyed))
-			.subscribe((params: Params) => {
-				this.getOrRefreshData();
-			});
+	
+		this.pluginRepositoryUserConfigurationInitialized.pipe(takeUntil(this._destroyed))
+        .subscribe((initialized) => {
+			if(initialized){
+				this.route.params
+				.pipe(takeUntil(this._destroyed))
+				.subscribe((params: Params) => {
+					this.getOrRefreshData();
+				});
+			}
+		})
+
 
 	}
 
@@ -149,6 +166,15 @@ export class UserProfileComponent extends BaseComponent implements OnInit, OnDes
 				[nameof<User>(x => x.additionalInfo), nameof<UserAdditionalInfo>(x => x.organization), nameof<Reference>(x => x.source)].join('.'),
 				[nameof<User>(x => x.additionalInfo), nameof<UserAdditionalInfo>(x => x.organization), nameof<Reference>(x => x.sourceType)].join('.'),
 				[nameof<User>(x => x.additionalInfo), nameof<UserAdditionalInfo>(x => x.organization), nameof<Reference>(x => x.isActive)].join('.'),
+				[nameof<User>(x => x.additionalInfo), nameof<UserAdditionalInfo>(x => x.pluginConfigurations), nameof<PluginConfigurationUser>(x => x.pluginCode)].join('.'),
+				[nameof<User>(x => x.additionalInfo), nameof<UserAdditionalInfo>(x => x.pluginConfigurations), nameof<PluginConfigurationUser>(x => x.pluginType)].join('.'),
+				[nameof<User>(x => x.additionalInfo), nameof<UserAdditionalInfo>(x => x.pluginConfigurations), nameof<PluginConfigurationUser>(x => x.userFields), nameof<PluginConfigurationUserField>(x => x.code)].join('.'),
+				[nameof<User>(x => x.additionalInfo), nameof<UserAdditionalInfo>(x => x.pluginConfigurations), nameof<PluginConfigurationUser>(x => x.userFields), nameof<PluginConfigurationUserField>(x => x.textValue)].join('.'),
+				[nameof<User>(x => x.additionalInfo), nameof<UserAdditionalInfo>(x => x.pluginConfigurations), nameof<PluginConfigurationUser>(x => x.userFields), nameof<PluginConfigurationUserField>(x => x.fileValue), nameof<StorageFile>(x => x.id)].join('.'),
+				[nameof<User>(x => x.additionalInfo), nameof<UserAdditionalInfo>(x => x.pluginConfigurations), nameof<PluginConfigurationUser>(x => x.userFields), nameof<PluginConfigurationUserField>(x => x.fileValue), nameof<StorageFile>(x => x.extension)].join('.'),
+				[nameof<User>(x => x.additionalInfo), nameof<UserAdditionalInfo>(x => x.pluginConfigurations), nameof<PluginConfigurationUser>(x => x.userFields), nameof<PluginConfigurationUserField>(x => x.fileValue), nameof<StorageFile>(x => x.mimeType)].join('.'),
+				[nameof<User>(x => x.additionalInfo), nameof<UserAdditionalInfo>(x => x.pluginConfigurations), nameof<PluginConfigurationUser>(x => x.userFields), nameof<PluginConfigurationUserField>(x => x.fileValue), nameof<StorageFile>(x => x.fullName)].join('.'),
+				[nameof<User>(x => x.additionalInfo), nameof<UserAdditionalInfo>(x => x.pluginConfigurations), nameof<PluginConfigurationUser>(x => x.userFields), nameof<PluginConfigurationUserField>(x => x.fileValue), nameof<StorageFile>(x => x.name)].join('.'),
 				nameof<User>(x => x.additionalInfo.roleOrganization),
 				nameof<User>(x => x.createdAt),
 				nameof<User>(x => x.updatedAt),
@@ -163,7 +189,21 @@ export class UserProfileComponent extends BaseComponent implements OnInit, OnDes
 				this.firstEmail = result.credentials[0].data.email;
 				this.userCredentials = of(result.credentials);
 
-				this.userProfileEditorModel = new UserProfileEditorModel().fromModel(result);
+				this.fileMap.clear();
+				if (result?.additionalInfo?.pluginConfigurations) {
+					result.additionalInfo?.pluginConfigurations?.forEach((config) => {
+						config.userFields?.forEach((field) => {
+							if(field.fileValue){
+								this.fileMap.set(field.fileValue.id, field.fileValue)
+							}
+						})
+					})
+	
+				} else {
+					if(result?.additionalInfo) result.additionalInfo.pluginConfigurations = this.pluginConfigurationService.availableUserPlugins();
+				}
+
+				this.userProfileEditorModel = new UserProfileEditorModel().fromModel(result, this.pluginConfigurationService.pluginRepositoryUserConfiguration());
 				this.formGroup = this.userProfileEditorModel.buildForm(this.languageService.getAvailableLanguagesCodes());
 
 				this.registerChangeListeners();
@@ -366,6 +406,11 @@ export class UserProfileComponent extends BaseComponent implements OnInit, OnDes
 	//Preferences
 	expandPreferences(): void {
 		this.expandedPreferences = true;
+	}
+
+	//Plugin Configurations
+	expandPluginConfigurations(): void {
+		this.expandedPluginConfifurations = true;
 	}
 
 	displayCultureFn(cultureName?: string): string | undefined {

@@ -4,6 +4,8 @@ import { StorageFile } from "../storage-file/storage-file";
 import { Guid } from "@common/types/guid";
 import { PlanBlueprint } from "../plan-blueprint/plan-blueprint";
 import { DescriptionTemplate } from "../description-template/description-template";
+import { PluginConfiguration, PluginConfigurationPersist } from "../plugin-configuration/plugin-configuration";
+import { ReferenceType } from "../reference-type/reference-type";
 
 export interface TenantConfiguration extends BaseEntity{
 	type?: TenantConfigurationType;
@@ -12,9 +14,11 @@ export interface TenantConfiguration extends BaseEntity{
 	depositPlugins?: DepositTenantConfiguration;
 	fileTransformerPlugins?: FileTransformerTenantConfiguration;
 	logo?: LogoTenantConfiguration;
+	pluginConfiguration: PluginTenantConfiguration;
 	evaluatorPlugins?: EvaluatorTenantConfiguration;
 	featuredEntities?: FeaturedEntities;
 	defaultPlanBlueprint?: DefaultPlanBlueprintConfiguration;
+	viewPreferences?: ViewPreferencesConfiguration;
 }
 
 export interface CssColorsTenantConfiguration{
@@ -76,6 +80,10 @@ export interface LogoTenantConfiguration{
 	storageFile: StorageFile;
 }
 
+export interface PluginTenantConfiguration{
+	pluginConfigurations: PluginConfiguration[];
+}
+
 export interface FeaturedEntities{
 	planBlueprints: PlanBlueprint[];
 	descriptionTemplates: DescriptionTemplate[];
@@ -83,6 +91,16 @@ export interface FeaturedEntities{
 
 export interface DefaultPlanBlueprintConfiguration{
 	groupId: Guid;
+}
+
+export interface ViewPreferencesConfiguration {
+	planPreferences: ViewPreference[];
+	descriptionPreferences: ViewPreference[];
+}
+
+export interface ViewPreference {
+	referenceType: ReferenceType;
+	ordinal: number;
 }
 //persist
 
@@ -93,9 +111,11 @@ export interface TenantConfigurationPersist extends BaseEntityPersist{
 	depositPlugins?: DepositTenantConfigurationPersist;
 	fileTransformerPlugins?: FileTransformerTenantConfigurationPersist;
 	logo?: LogoTenantConfigurationPersist;
+	pluginConfiguration?: PluginTenantConfigurationPersist;
 	evaluatorPlugins?: EvaluatorTenantConfigurationPersist;
 	featuredEntities?: FeaturedEntitiesPersist;
 	defaultPlanBlueprint?: DefaultPlanBlueprintConfigurationPersist;
+	viewPreferences?: ViewPreferencesConfigurationPersist
 }
 
 export interface CssColorsTenantConfigurationPersist{
@@ -156,6 +176,10 @@ export interface LogoTenantConfigurationPersist{
 	storageFileId: Guid;
 }
 
+export interface PluginTenantConfigurationPersist{
+	pluginConfigurations: PluginConfigurationPersist[];
+}
+
 export interface FeaturedEntitiesPersist{
 	planBlueprints: PlanBlueprintPersist[];
 	descriptionTemplates: DescriptionTemplatePersist[];
@@ -173,4 +197,14 @@ export interface DescriptionTemplatePersist {
 
 export interface DefaultPlanBlueprintConfigurationPersist{
 	groupId: Guid;
+}
+
+export interface ViewPreferencesConfigurationPersist {
+	planPreferences: ViewPreferencePersist[];
+	descriptionPreferences: ViewPreferencePersist[];
+}
+
+export interface ViewPreferencePersist {
+	referenceTypeId: Guid;
+	ordinal: number;
 }

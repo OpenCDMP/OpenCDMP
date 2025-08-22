@@ -5,7 +5,7 @@ import { IsActive } from "@app/core/common/enum/is-active.enum";
 import { DescriptionPrefillingRequest, PrefillingSearchRequest } from "@app/core/model/description-prefilling-request/description-prefilling-request";
 import { DescriptionTemplate } from "@app/core/model/description-template/description-template";
 import { Description, DescriptionPersist } from "@app/core/model/description/description";
-import { Plan } from "@app/core/model/plan/plan";
+import { Plan, PlanDescriptionTemplate } from "@app/core/model/plan/plan";
 import { Prefilling } from "@app/core/model/prefilling-source/prefilling-source";
 import { PrefillingSourceService } from "@app/core/services/prefilling-source/prefilling-source.service";
 import { ProgressIndicationService } from "@app/core/services/progress-indication/progress-indication-service";
@@ -54,6 +54,7 @@ export class NewDescriptionDialogComponent extends BaseComponent implements OnIn
 		this.prefillingSourcesEnabled = filteredSections && filteredSections?.length > 0 ? filteredSections[0].prefillingSourcesEnabled : false;
 
 		this.availableDescriptionTemplates = this.plan.planDescriptionTemplates.filter(x => x.sectionId == this.planSectionId && x.isActive == IsActive.Active).map(x => x.currentDescriptionTemplate);
+        
 	}
 
 	ngOnInit() {
@@ -65,10 +66,13 @@ export class NewDescriptionDialogComponent extends BaseComponent implements OnIn
 		});
 		const editorModel = new DescriptionPrefillingRequestEditorModel();
 		this.prefillForm = editorModel.buildForm(null, false);
-
+        if(this.availableDescriptionTemplates?.length === 1){
+            this.prefillForm.controls.descriptionTemplateId.setValue(this.availableDescriptionTemplates[0].id)
+        }
 		this.prefillObjectAutoCompleteConfiguration = {
 			filterFn: this.searchDescriptions.bind(this),
 			loadDataOnStart: false,
+			minFilteringChars: 3,
 			displayFn: (item: Prefilling) => (item.label.length > 60) ? (item.label.substr(0, 60) + "...") : item.label,
 			titleFn: (item: Prefilling) => item.label,
 			subtitleFn: (item: Prefilling) => item.id,
@@ -130,20 +134,9 @@ export class NewDescriptionDialogComponent extends BaseComponent implements OnIn
 		if (!this.prefillForm.get('descriptionTemplateId').valid) return;
         const descriptionTemplateId = this.prefillForm.get('descriptionTemplateId').value;
 
-        const planDescriptionTemplate = this.plan.planDescriptionTemplates?.find((x) => x.sectionId === this.planSectionId && x.currentDescriptionTemplate?.id === descriptionTemplateId);
-        const label = planDescriptionTemplate?.currentDescriptionTemplate?.label;
-        const description: Description = {
-            description: null,
-            descriptionTemplate: this.availableDescriptionTemplates?.find((x) => x.id === descriptionTemplateId),
-            label,
-            planDescriptionTemplate,
-            plan: this.plan,
-            authorizationFlags: [AppPermission.EditDescription, AppPermission.DeleteDescription, AppPermission.FinalizeDescription, AppPermission.AnnotateDescription],
-            isActive: IsActive.Active,
-            belongsToCurrentTenant: true
-        };
+        const descriptionTemplate = this.availableDescriptionTemplates?.find((x) => x.id === descriptionTemplateId);
 		this.closeDialog({ 
-            description
+            description: NewDescriptionDialog.createDescription({sectionId: this.planSectionId, descriptionTemplate, plan: this.plan})
         });
 	}
 
@@ -154,4 +147,24 @@ export class NewDescriptionDialogComponent extends BaseComponent implements OnIn
 
 export class NewDescriptionDialogComponentResult {
     description: Description;
+}
+
+export namespace NewDescriptionDialog {
+    export function createDescription(params:{sectionId: Guid, descriptionTemplate: DescriptionTemplate, plan: Plan}): Description{
+        const {sectionId, descriptionTemplate, plan} = params;
+        const planDescriptionTemplate = plan.planDescriptionTemplates?.find((x) => x.sectionId === sectionId && x.currentDescriptionTemplate?.id === descriptionTemplate?.id);
+
+        const label = planDescriptionTemplate?.currentDescriptionTemplate?.label;
+        const description: Description = {
+            description: null,
+            descriptionTemplate,
+            label,
+            planDescriptionTemplate,
+            plan,
+            authorizationFlags: [AppPermission.EditDescription, AppPermission.DeleteDescription, AppPermission.FinalizeDescription, AppPermission.AnnotateDescription],
+            isActive: IsActive.Active,
+            belongsToCurrentTenant: true
+        };
+        return description;
+    }
 }

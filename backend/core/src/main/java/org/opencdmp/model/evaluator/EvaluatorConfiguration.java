@@ -1,6 +1,6 @@
 package org.opencdmp.model.evaluator;
 
-import org.opencdmp.evaluatorbase.enums.EvaluatorEntityType;
+import org.opencdmp.commonmodels.enums.PluginEntityType;
 import org.opencdmp.evaluatorbase.models.misc.RankConfig;
 
 import java.util.List;
@@ -8,7 +8,7 @@ import java.util.List;
 public class EvaluatorConfiguration {
     private String evaluatorId;
     private RankConfig rankConfig;
-    private List<EvaluatorEntityType> evaluatorEntityTypes;
+    private List<PluginEntityType> evaluatorEntityTypes;
     private boolean useSharedStorage;
     private boolean hasLogo;
 
@@ -28,11 +28,11 @@ public class EvaluatorConfiguration {
         this.rankConfig = rankConfig;
     }
 
-    public List<EvaluatorEntityType> getEvaluatorEntityTypes() {
+    public List<PluginEntityType> getEvaluatorEntityTypes() {
         return evaluatorEntityTypes;
     }
 
-    public void setEvaluatorEntityTypes(List<EvaluatorEntityType> evaluatorEntityTypes) {
+    public void setEvaluatorEntityTypes(List<PluginEntityType> evaluatorEntityTypes) {
         this.evaluatorEntityTypes = evaluatorEntityTypes;
     }
 

@@ -59,51 +59,63 @@ public class TenantConfigurationBuilder extends BaseBuilder<TenantConfiguration,
         FieldSet evaluatorPluginsFields = fields.extractPrefixed(this.asPrefix(TenantConfiguration._evaluatorPlugins));
         FieldSet fileTransformerPluginsFields = fields.extractPrefixed(this.asPrefix(TenantConfiguration._fileTransformerPlugins));
         FieldSet logoFields = fields.extractPrefixed(this.asPrefix(TenantConfiguration._logo));
+        FieldSet pluginConfigurationFields = fields.extractPrefixed(this.asPrefix(TenantConfiguration._pluginConfiguration));
         FieldSet featuredEntitiesFields = fields.extractPrefixed(this.asPrefix(TenantConfiguration._featuredEntities));
         FieldSet defaultPlanBlueprintFields = fields.extractPrefixed(this.asPrefix(TenantConfiguration._defaultPlanBlueprint));
+        FieldSet viewPreferenceFields = fields.extractPrefixed(this.asPrefix(TenantConfiguration._viewPreferences));
 
         List<TenantConfiguration> models = new ArrayList<>();
         for (TenantConfigurationEntity d : data) {
             TenantConfiguration m = new TenantConfiguration();
             if (fields.hasField(this.asIndexer(TenantConfiguration._id))) m.setId(d.getId());
             if (fields.hasField(this.asIndexer(TenantConfiguration._type))) m.setType(d.getType());
-            if (!cssColorsFields.isEmpty() && !this.conventionService.isNullOrEmpty(d.getValue()) && TenantConfigurationType.CssColors.equals(d.getType())){
+            if (!cssColorsFields.isEmpty() && !this.conventionService.isNullOrEmpty(d.getValue()) && TenantConfigurationType.CssColors.equals(d.getType())) {
                 CssColorsTenantConfigurationEntity valueTyped = this.jsonHandlingService.fromJsonSafe(CssColorsTenantConfigurationEntity.class, d.getValue());
                 m.setCssColors(this.builderFactory.builder(CssColorsTenantConfigurationBuilder.class).authorize(this.authorize).build(cssColorsFields, valueTyped));
             }
-            if (!defaultUserLocaleFields.isEmpty() && !this.conventionService.isNullOrEmpty(d.getValue()) && TenantConfigurationType.DefaultUserLocale.equals(d.getType())){
+            if (!defaultUserLocaleFields.isEmpty() && !this.conventionService.isNullOrEmpty(d.getValue()) && TenantConfigurationType.DefaultUserLocale.equals(d.getType())) {
                 DefaultUserLocaleTenantConfigurationEntity valueTyped = this.jsonHandlingService.fromJsonSafe(DefaultUserLocaleTenantConfigurationEntity.class, d.getValue());
                 m.setDefaultUserLocale(this.builderFactory.builder(DefaultUserLocaleTenantConfigurationBuilder.class).authorize(this.authorize).build(defaultUserLocaleFields, valueTyped));
             }
-            if (!depositPluginsFields.isEmpty() && !this.conventionService.isNullOrEmpty(d.getValue()) && TenantConfigurationType.DepositPlugins.equals(d.getType())){
+            if (!depositPluginsFields.isEmpty() && !this.conventionService.isNullOrEmpty(d.getValue()) && TenantConfigurationType.DepositPlugins.equals(d.getType())) {
                 DepositTenantConfigurationEntity valueTyped = this.jsonHandlingService.fromJsonSafe(DepositTenantConfigurationEntity.class, d.getValue());
                 m.setDepositPlugins(this.builderFactory.builder(DepositTenantConfigurationBuilder.class).authorize(this.authorize).build(depositPluginsFields, valueTyped));
             }
-            if( !evaluatorPluginsFields.isEmpty() && !this.conventionService.isNullOrEmpty(d.getValue()) && TenantConfigurationType.EvaluatorPlugins.equals(d.getType())){
+            if (!evaluatorPluginsFields.isEmpty() && !this.conventionService.isNullOrEmpty(d.getValue()) && TenantConfigurationType.EvaluatorPlugins.equals(d.getType())) {
                 EvaluatorTenantConfigurationEntity valuedTyped = this.jsonHandlingService.fromJsonSafe(EvaluatorTenantConfigurationEntity.class, d.getValue());
                 m.setEvaluatorPlugins(this.builderFactory.builder(EvaluatorTenantConfigurationBuilder.class).authorize(this.authorize).build(evaluatorPluginsFields, valuedTyped));
             }
-            if (!fileTransformerPluginsFields.isEmpty() && !this.conventionService.isNullOrEmpty(d.getValue()) && TenantConfigurationType.FileTransformerPlugins.equals(d.getType())){
+            if (!fileTransformerPluginsFields.isEmpty() && !this.conventionService.isNullOrEmpty(d.getValue()) && TenantConfigurationType.FileTransformerPlugins.equals(d.getType())) {
                 FileTransformerTenantConfigurationEntity valueTyped = this.jsonHandlingService.fromJsonSafe(FileTransformerTenantConfigurationEntity.class, d.getValue());
                 m.setFileTransformerPlugins(this.builderFactory.builder(FileTransformerTenantConfigurationBuilder.class).authorize(this.authorize).build(fileTransformerPluginsFields, valueTyped));
             }
-            if (!logoFields.isEmpty() && !this.conventionService.isNullOrEmpty(d.getValue()) && TenantConfigurationType.Logo.equals(d.getType())){
+            if (!logoFields.isEmpty() && !this.conventionService.isNullOrEmpty(d.getValue()) && TenantConfigurationType.Logo.equals(d.getType())) {
                 LogoTenantConfigurationEntity valueTyped = this.jsonHandlingService.fromJsonSafe(LogoTenantConfigurationEntity.class, d.getValue());
                 m.setLogo(this.builderFactory.builder(LogoTenantConfigurationBuilder.class).authorize(this.authorize).build(logoFields, valueTyped));
             }
-            if (!featuredEntitiesFields.isEmpty() && !this.conventionService.isNullOrEmpty(d.getValue()) && TenantConfigurationType.FeaturedEntities.equals(d.getType())){
+            if (!pluginConfigurationFields.isEmpty() && !this.conventionService.isNullOrEmpty(d.getValue()) && TenantConfigurationType.PluginConfiguration.equals(d.getType())) {
+                PluginTenantConfigurationEntity valueTyped = this.jsonHandlingService.fromJsonSafe(PluginTenantConfigurationEntity.class, d.getValue());
+                m.setPluginConfiguration(this.builderFactory.builder(PluginTenantConfigurationBuilder.class).authorize(this.authorize).build(pluginConfigurationFields, valueTyped));
+            }
+            if (!featuredEntitiesFields.isEmpty() && !this.conventionService.isNullOrEmpty(d.getValue()) && TenantConfigurationType.FeaturedEntities.equals(d.getType())) {
                 FeaturedEntitiesEntity valueTyped = this.jsonHandlingService.fromJsonSafe(FeaturedEntitiesEntity.class, d.getValue());
                 m.setFeaturedEntities(this.builderFactory.builder(FeaturedEntitiesBuilder.class).authorize(this.authorize).build(featuredEntitiesFields, valueTyped));
             }
-            if (!defaultPlanBlueprintFields.isEmpty() && !this.conventionService.isNullOrEmpty(d.getValue()) && TenantConfigurationType.DefaultPlanBlueprint.equals(d.getType())){
+            if (!defaultPlanBlueprintFields.isEmpty() && !this.conventionService.isNullOrEmpty(d.getValue()) && TenantConfigurationType.DefaultPlanBlueprint.equals(d.getType())) {
                 DefaultPlanBlueprintConfigurationEntity valueTyped = this.jsonHandlingService.fromJsonSafe(DefaultPlanBlueprintConfigurationEntity.class, d.getValue());
                 m.setDefaultPlanBlueprint(this.builderFactory.builder(DefaultPlanBlueprintConfigurationBuilder.class).authorize(this.authorize).build(defaultPlanBlueprintFields, valueTyped));
+            }
+            if (!viewPreferenceFields.isEmpty() && !this.conventionService.isNullOrEmpty(d.getValue()) && TenantConfigurationType.ViewPreferences.equals(d.getType())) {
+                ViewPreferencesConfigurationEntity valueTyped = this.jsonHandlingService.fromJsonSafe(ViewPreferencesConfigurationEntity.class, d.getValue());
+                m.setViewPreferences(this.builderFactory.builder(ViewPreferencesConfigurationBuilder.class).authorize(this.authorize).build(viewPreferenceFields, valueTyped));
             }
             if (fields.hasField(this.asIndexer(TenantConfiguration._createdAt))) m.setCreatedAt(d.getCreatedAt());
             if (fields.hasField(this.asIndexer(TenantConfiguration._updatedAt))) m.setUpdatedAt(d.getUpdatedAt());
             if (fields.hasField(this.asIndexer(TenantConfiguration._isActive))) m.setIsActive(d.getIsActive());
-            if (fields.hasField(this.asIndexer(TenantConfiguration._hash))) m.setHash(this.hashValue(d.getUpdatedAt()));
-            if (fields.hasField(this.asIndexer(TenantConfiguration._belongsToCurrentTenant))) m.setBelongsToCurrentTenant(this.getBelongsToCurrentTenant(d, this.tenantScope));
+            if (fields.hasField(this.asIndexer(TenantConfiguration._hash)))
+                m.setHash(this.hashValue(d.getUpdatedAt()));
+            if (fields.hasField(this.asIndexer(TenantConfiguration._belongsToCurrentTenant)))
+                m.setBelongsToCurrentTenant(this.getBelongsToCurrentTenant(d, this.tenantScope));
             models.add(m);
         }
         this.logger.debug("build {} items", Optional.of(models).map(List::size).orElse(0));

@@ -258,6 +258,9 @@ export class EnumUtils {
 			case PlanUserRole.Viewer: return this.language.instant('TYPES.PLAN-USER-ROLE.VIEWER');
 			case PlanUserRole.DescriptionContributor: return this.language.instant('TYPES.PLAN-USER-ROLE.DESCRIPTION-CONTRIBUTOR');
 			case PlanUserRole.Reviewer: return this.language.instant('TYPES.PLAN-USER-ROLE.REVIEWER');
+			case PlanUserRole.DataSteward: return this.language.instant('TYPES.PLAN-USER-ROLE.DATA-STEWARD');
+			case PlanUserRole.DataPrivacyOfficer: return this.language.instant('TYPES.PLAN-USER-ROLE.DATA-PRIVACY-OFFICER');
+			case PlanUserRole.EthicsReviewer: return this.language.instant('TYPES.PLAN-USER-ROLE.ETHICS-REVIEWER');
 		}
 	}
 
@@ -310,6 +313,7 @@ export class EnumUtils {
 			case PlanBlueprintFieldCategory.System: return this.language.instant('TYPES.PLAN-BLUEPRINT-FIELD-CATEGORY.SYSTEM');
 			case PlanBlueprintFieldCategory.Extra: return this.language.instant('TYPES.PLAN-BLUEPRINT-FIELD-CATEGORY.EXTRA');
 			case PlanBlueprintFieldCategory.ReferenceType: return this.language.instant('TYPES.PLAN-BLUEPRINT-FIELD-CATEGORY.REFERENCE-TYPE');
+			case PlanBlueprintFieldCategory.Upload: return this.language.instant('TYPES.PLAN-BLUEPRINT-FIELD-CATEGORY.UPLOAD');
 		}
 	}
 
@@ -349,6 +353,7 @@ export class EnumUtils {
 			case UsageLimitTargetMetric.DESCRIPTION_TEMPLATE_COUNT: return this.language.instant('TYPES.USAGE-LIMIT-TARGET-METRIC.DESCRIPTION-TEMPLATE-COUNT');
 			case UsageLimitTargetMetric.DESCRIPTION_TEMPLATE_TYPE_COUNT: return this.language.instant('TYPES.USAGE-LIMIT-TARGET-METRIC.DESCRIPTION-TEMPLATE-TYPE-COUNT');
 			case UsageLimitTargetMetric.PREFILLING_SOURCES_COUNT: return this.language.instant('TYPES.USAGE-LIMIT-TARGET-METRIC.PREFILLING-SOURCES-COUNT');
+			case UsageLimitTargetMetric.REFERENCE_COUNT: return this.language.instant('TYPES.USAGE-LIMIT-TARGET-METRIC.REFERENCE-COUNT');
 			case UsageLimitTargetMetric.REFERENCE_TYPE_COUNT: return this.language.instant('TYPES.USAGE-LIMIT-TARGET-METRIC.REFERENCE-TYPE-COUNT');
 			case UsageLimitTargetMetric.EVALUATION_PLAN_COUNT: return this.language.instant('TYPES.USAGE-LIMIT-TARGET-METRIC.EVALUATION-PLAN-COUNT');
 			case UsageLimitTargetMetric.EVALUATION_DESCRIPTION_COUNT: return this.language.instant('TYPES.USAGE-LIMIT-TARGET-METRIC.EVALUATION-DESCRIPTION-COUNT');

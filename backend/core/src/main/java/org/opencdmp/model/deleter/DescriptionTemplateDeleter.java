@@ -7,6 +7,7 @@ import gr.cite.tools.exception.MyApplicationException;
 import gr.cite.tools.fieldset.BaseFieldSet;
 import gr.cite.tools.logging.LoggerService;
 import gr.cite.tools.logging.MapLogEntry;
+import org.opencdmp.commons.enums.DescriptionTemplateStatus;
 import org.opencdmp.commons.enums.IsActive;
 import org.opencdmp.commons.enums.UsageLimitTargetMetric;
 import org.opencdmp.data.DescriptionEntity;
@@ -98,6 +99,8 @@ public class DescriptionTemplateDeleter implements Deleter {
             this.entityManager.merge(item);
             logger.trace("updated item");
             this.accountingService.decrease(UsageLimitTargetMetric.DESCRIPTION_TEMPLATE_COUNT.getValue());
+            if (item.getStatus().equals(DescriptionTemplateStatus.Draft)) this.accountingService.decrease(UsageLimitTargetMetric.DESCRIPTION_TEMPLATE_DRAFT_COUNT.getValue());
+            if (item.getStatus().equals(DescriptionTemplateStatus.Finalized)) this.accountingService.decrease(UsageLimitTargetMetric.DESCRIPTION_TEMPLATE_FINALIZED_COUNT.getValue());
         }
     }
 

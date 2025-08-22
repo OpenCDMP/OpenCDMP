@@ -1,4 +1,3 @@
-import { DragDropModule } from '@angular/cdk/drag-drop';
 import { NgModule } from "@angular/core";
 import { AutoCompleteModule } from "@app/library/auto-complete/auto-complete.module";
 import { CommonFormattingModule } from '@common/formatting/common-formatting.module';
@@ -8,9 +7,7 @@ import { HybridListingModule } from "@common/modules/hybrid-listing/hybrid-listi
 import { TextFilterModule } from "@common/modules/text-filter/text-filter.module";
 import { UserSettingsModule } from "@common/modules/user-settings/user-settings.module";
 import { CommonUiModule } from '@common/ui/common-ui.module';
-import { NgxDropzoneModule } from "ngx-dropzone";
 import { NotificationListingComponent } from './notification-listing.component';
-import { RichTextEditorModule } from '@app/library/rich-text-editor/rich-text-editor.module';
 import { NotificationRoutingModule } from './notification.routing';
 import { NotificationListingFiltersComponent } from './filters/notification-listing-filters.component';
 import { MatIconModule } from '@angular/material/icon';

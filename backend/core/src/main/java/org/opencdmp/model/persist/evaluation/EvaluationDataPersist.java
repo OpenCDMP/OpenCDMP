@@ -22,8 +22,8 @@ public class EvaluationDataPersist {
     private RankConfigPersist rankConfig;
     public static final String _rankConfig = "rankConfig";
 
-    private RankModelPersist rankModel;
-    public static final String _rankModel = "rankModel";
+    private RankResultPersist rankResult;
+    public static final String _rankResult = "rankResult";
 
     public String getEvaluatorId() {
         return evaluatorId;
@@ -41,12 +41,12 @@ public class EvaluationDataPersist {
         this.rankConfig = rankConfig;
     }
 
-    public RankModelPersist getRankModel() {
-        return rankModel;
+    public RankResultPersist getRankResult() {
+        return rankResult;
     }
 
-    public void setRankModel(RankModelPersist rankModel) {
-        this.rankModel = rankModel;
+    public void setRankResult(RankResultPersist rankResult) {
+        this.rankResult = rankResult;
     }
 
     @Component(EvaluationDataPersistValidator.ValidatorName)
@@ -85,13 +85,13 @@ public class EvaluationDataPersist {
                             .over(item.getRankConfig())
                             .using(() -> this.validatorFactory.validator(RankConfigPersist.RankConfigPersistValidator.class)),
                     this.spec()
-                            .must(() -> !this.isNull(item.getRankModel()))
-                            .failOn(EvaluationDataPersist._rankModel).failWith(this.messageSource.getMessage("Validation_Required", new Object[]{EvaluationDataPersist._rankModel}, LocaleContextHolder.getLocale())),
+                            .must(() -> !this.isNull(item.getRankResult()))
+                            .failOn(EvaluationDataPersist._rankResult).failWith(this.messageSource.getMessage("Validation_Required", new Object[]{EvaluationDataPersist._rankResult}, LocaleContextHolder.getLocale())),
                     this.refSpec()
-                            .iff(() -> !this.isNull(item.getRankModel()))
-                            .on(EvaluationDataPersist._rankModel)
-                            .over(item.getRankModel())
-                            .using(() -> this.validatorFactory.validator(RankModelPersist.RankModelPersistValidator.class))
+                            .iff(() -> !this.isNull(item.getRankResult()))
+                            .on(EvaluationDataPersist._rankResult)
+                            .over(item.getRankResult())
+                            .using(() -> this.validatorFactory.validator(RankResultPersist.RankResultPersistValidator.class))
 
                     );
         }

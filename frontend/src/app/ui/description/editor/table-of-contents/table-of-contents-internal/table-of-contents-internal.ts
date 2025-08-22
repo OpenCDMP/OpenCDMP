@@ -1,11 +1,25 @@
-import { booleanAttribute, Component, EventEmitter, input, Input, OnDestroy, OnInit, Output, SimpleChanges } from '@angular/core';
+import {
+	booleanAttribute,
+	Component,
+	EventEmitter, Inject,
+	input,
+	Input,
+	OnDestroy,
+	OnInit,
+	Optional,
+	Output,
+	SimpleChanges
+} from '@angular/core';
 import { UntypedFormGroup } from '@angular/forms';
 import { VisibilityRulesService } from '@app/ui/description/editor/description-form/visibility-rules/visibility-rules.service';
 import { BaseComponent } from '@common/base/base.component';
 import { ToCEntry } from '../models/toc-entry';
 import { ToCEntryType } from '../models/toc-entry-type.enum';
 import { TableOfContentsComponent } from '../table-of-contents.component';
-import { Guid } from '@common/types/guid';
+import {
+	FormAnnotationService,
+	MULTI_FORM_ANNOTATION_SERVICE_TOKEN
+} from "@app/ui/annotations/annotation-dialog-component/form-annotation.service";
 
 @Component({
     selector: 'table-of-contents-internal',
@@ -26,8 +40,10 @@ export class TableOfContentsInternal extends BaseComponent implements OnInit, On
     @Input({transform: booleanAttribute}) isTopLevel: boolean = false;
 
     ordinal = input<string>();
-
-	constructor() { super(); }
+	@Input() annotationsPerEntry;
+	private formAnnotationService: FormAnnotationService;
+	@Input() descriptionId;
+	constructor(@Optional() @Inject(MULTI_FORM_ANNOTATION_SERVICE_TOKEN) private formAnnotationServices: FormAnnotationService[]) { super(); }
 
 	ngOnInit(): void {
 		if (this.tocentries) {
@@ -104,5 +120,11 @@ export class TableOfContentsInternal extends BaseComponent implements OnInit, On
 		});
 
 		return currentValidity;
+	}
+	showAnnotations(fieldSetId: string){
+		this.formAnnotationService = this.formAnnotationServices?.find(service => service.getEntityId() === this.descriptionId());
+		 if(this.formAnnotationService) {
+			 this.formAnnotationService.οpenAnnotationDialog(fieldSetId);
+		 }
 	}
 }

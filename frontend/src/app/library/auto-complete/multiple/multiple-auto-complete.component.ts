@@ -238,7 +238,7 @@ export class MultipleAutoCompleteComponent extends _CustomComponentMixinBase imp
 				return this.configuration.initialItems(this.value || [], this.configuration.extraData) || observableOf([]);
 			}
 		} else {
-			return observableOf([]);
+			return observableOf(null);
 		}
 	}
 
@@ -279,8 +279,11 @@ export class MultipleAutoCompleteComponent extends _CustomComponentMixinBase imp
 			}
 
 			this._inputSubject.next(this.inputValue);
-		}
+		}else if(this.separatorKeysCodes?.includes(event.keyCode) && this.inputValue){
+            this._addItem(this.inputValue);
+        }
 	}
+
 
 	private _setValue(value: any) {
 		this.value = value;
@@ -402,12 +405,12 @@ export class MultipleAutoCompleteComponent extends _CustomComponentMixinBase imp
 	}
 
 	//Chip Functions
-	_addItem(event: MatChipInputEvent): void {
-		if (!event.value) {
+	_addItem(value: any): void {
+		if (!value) {
 			this.inputValue = '';
             return;
 		}
-        this.optionSelectedInternal(event.value);
+        this.optionSelectedInternal(value);
         setTimeout(() => {
             this.inputValue = ''
             this._items = null; // refresh excluding previous item selected

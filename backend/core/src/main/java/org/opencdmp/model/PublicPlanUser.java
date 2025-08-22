@@ -16,6 +16,9 @@ public class PublicPlanUser {
     public static final String _user = "user";
     private PublicUser user;
 
+    public static final String _sectionId = "sectionId";
+    private UUID sectionId;
+
 
     public static final String _role = "role";
     private PlanUserRole role;
@@ -50,5 +53,13 @@ public class PublicPlanUser {
 
     public void setRole(PlanUserRole role) {
         this.role = role;
+    }
+
+    public UUID getSectionId() {
+        return sectionId;
+    }
+
+    public void setSectionId(UUID sectionId) {
+        this.sectionId = sectionId;
     }
 }

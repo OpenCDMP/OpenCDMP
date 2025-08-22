@@ -22,6 +22,7 @@ import org.opencdmp.commons.XmlHandlingService;
 import org.opencdmp.commons.enums.IsActive;
 import org.opencdmp.commons.enums.ReferenceFieldDataType;
 import org.opencdmp.commons.enums.ReferenceSourceType;
+import org.opencdmp.commons.enums.UsageLimitTargetMetric;
 import org.opencdmp.commons.types.reference.DefinitionEntity;
 import org.opencdmp.commons.types.reference.FieldEntity;
 import org.opencdmp.commons.types.referencetype.ReferenceTypeDefinitionEntity;
@@ -38,12 +39,15 @@ import org.opencdmp.model.persist.referencedefinition.FieldPersist;
 import org.opencdmp.model.reference.Reference;
 import org.opencdmp.model.referencetype.ReferenceType;
 import org.opencdmp.query.ReferenceQuery;
+import org.opencdmp.query.ReferenceTypeQuery;
 import org.opencdmp.query.lookup.ReferenceSearchLookup;
 import org.opencdmp.query.lookup.ReferenceTestLookup;
+import org.opencdmp.service.accounting.AccountingService;
 import org.opencdmp.service.externalfetcher.ExternalFetcherService;
 import org.opencdmp.service.externalfetcher.config.entities.SourceBaseConfiguration;
 import org.opencdmp.service.externalfetcher.criteria.ExternalReferenceCriteria;
 import org.opencdmp.service.externalfetcher.models.ExternalDataResult;
+import org.opencdmp.service.usagelimit.UsageLimitService;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.MessageSource;
 import org.springframework.context.i18n.LocaleContextHolder;
@@ -70,6 +74,8 @@ public class ReferenceServiceImpl implements ReferenceService {
     private final XmlHandlingService xmlHandlingService;
     private final JsonHandlingService jsonHandlingService;
     private final ErrorThesaurusProperties errors;
+    private final UsageLimitService usageLimitService;
+    private final AccountingService accountingService;
 
     public final ExternalFetcherService externalFetcherService;
     public ReferenceServiceImpl(
@@ -80,7 +86,7 @@ public class ReferenceServiceImpl implements ReferenceService {
             ConventionService conventionService,
             MessageSource messageSource,
             QueryFactory queryFactory,
-            XmlHandlingService xmlHandlingService, JsonHandlingService jsonHandlingService, ErrorThesaurusProperties errors, ExternalFetcherService externalFetcherService) {
+            XmlHandlingService xmlHandlingService, JsonHandlingService jsonHandlingService, ErrorThesaurusProperties errors, UsageLimitService usageLimitService, AccountingService accountingService, ExternalFetcherService externalFetcherService) {
         this.entityManager = entityManager;
         this.authorizationService = authorizationService;
         this.deleterFactory = deleterFactory;
@@ -91,6 +97,8 @@ public class ReferenceServiceImpl implements ReferenceService {
         this.xmlHandlingService = xmlHandlingService;
         this.jsonHandlingService = jsonHandlingService;
         this.errors = errors;
+        this.usageLimitService = usageLimitService;
+        this.accountingService = accountingService;
         this.externalFetcherService = externalFetcherService;
     }
 
@@ -102,12 +110,22 @@ public class ReferenceServiceImpl implements ReferenceService {
 
         Boolean isUpdate = this.conventionService.isValidGuid(model.getId());
 
+        ReferenceTypeEntity oldReferenceType = null;
+
+        ReferenceTypeEntity newReferenceType = this.queryFactory.query(ReferenceTypeQuery.class).ids(model.getTypeId()).firstAs(new BaseFieldSet().ensure(ReferenceType._id).ensure(ReferenceType._code).ensure(ReferenceTypeEntity._tenantId));
+        if (newReferenceType == null) throw new MyNotFoundException(this.messageSource.getMessage("General_ItemNotFound", new Object[]{model.getTypeId(), ReferenceType.class.getSimpleName()}, LocaleContextHolder.getLocale()));
+
         ReferenceEntity data;
         if (isUpdate) {
             data = this.entityManager.find(ReferenceEntity.class, model.getId());
             if (data == null)
                 throw new MyNotFoundException(this.messageSource.getMessage("General_ItemNotFound", new Object[]{model.getId(), Reference.class.getSimpleName()}, LocaleContextHolder.getLocale()));
+
+            oldReferenceType = this.queryFactory.query(ReferenceTypeQuery.class).ids(data.getTypeId()).firstAs(new BaseFieldSet().ensure(ReferenceType._id).ensure(ReferenceType._code).ensure(ReferenceTypeEntity._tenantId));
+            if (oldReferenceType == null) throw new MyNotFoundException(this.messageSource.getMessage("General_ItemNotFound", new Object[]{data.getTypeId(), ReferenceType.class.getSimpleName()}, LocaleContextHolder.getLocale()));
         } else {
+            this.usageLimitService.checkIncrease(UsageLimitTargetMetric.REFERENCE_COUNT);
+
             data = new ReferenceEntity();
             data.setId(UUID.randomUUID());
             data.setIsActive(IsActive.Active);
@@ -123,9 +141,20 @@ public class ReferenceServiceImpl implements ReferenceService {
         data.setAbbreviation(model.getAbbreviation());
         data.setSource(model.getSource());
         data.setSourceType(model.getSourceType());
-        
-        if (isUpdate) this.entityManager.merge(data);
-        else  this.entityManager.persist(data);
+
+        if (isUpdate) {
+            this.entityManager.merge(data);
+            if (!oldReferenceType.getId().equals(newReferenceType.getId())) {
+                this.accountingService.increase(UsageLimitTargetMetric.REFERENCE_BY_TYPE_COUNT.getValue().replace("{type_code}", newReferenceType.getCode()));
+                this.accountingService.decrease(UsageLimitTargetMetric.REFERENCE_BY_TYPE_COUNT.getValue().replace("{type_code}", oldReferenceType.getCode()));
+            }
+        }
+        else {
+            this.entityManager.persist(data);
+            this.accountingService.increase(UsageLimitTargetMetric.REFERENCE_COUNT.getValue());
+
+            this.accountingService.increase(UsageLimitTargetMetric.REFERENCE_BY_TYPE_COUNT.getValue().replace("{type_code}", newReferenceType.getCode()));
+        }
 
         this.entityManager.flush();
 

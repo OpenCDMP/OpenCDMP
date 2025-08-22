@@ -11,7 +11,7 @@ import { CultureService } from './services/culture/culture-service';
 import { LanguageInfoService } from './services/culture/language-info-service';
 import { DashboardService } from './services/dashboard/dashboard.service';
 import { DefaultUserLocaleService } from './services/default-user-locale/default-user-locale.service';
-import { DepositService } from './services/deposit/deposit.service';
+import { DepositHttpService } from './services/deposit/deposit.http.service';
 import { DescriptionStatusService } from './services/description-status/description-status.service';
 import { DescriptionTemplateTypeService } from './services/description-template-type/description-template-type.service';
 import { DescriptionTemplateService } from './services/description-template/description-template.service';
@@ -55,6 +55,7 @@ import { FileUtils } from './services/utilities/file-utils.service';
 import { QueryParamsService } from './services/utilities/query-params.service';
 import { TypeUtils } from './services/utilities/type-utils.service';
 import { AccountingAuthGuard } from './services/accounting-auth-guard.service';
+import { PluginConfigurationService } from './services/plugin/plugin-configuration.service';
 
 //
 //
@@ -87,7 +88,7 @@ export class CoreServiceModule {
 				ProgressIndicationService,
 				LoggingService,
 				DashboardService,
-				DepositService,
+				DepositHttpService,
 				PlanBlueprintService,
 				ContactSupportService,
 				LanguageService,
@@ -130,7 +131,8 @@ export class CoreServiceModule {
 				PlanWorkflowService,
 				DescriptionWorkflowService,
 				// FontAccessibilityService,
-				AccountingAuthGuard
+				AccountingAuthGuard,
+				PluginConfigurationService
 			],
 		};
 	}

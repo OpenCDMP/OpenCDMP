@@ -3,6 +3,7 @@ package org.opencdmp.commons.types.descriptiontemplate.importexport;
 
 import jakarta.xml.bind.annotation.*;
 import org.opencdmp.commons.types.descriptiontemplatetype.DescriptionTemplateTypeImportExport;
+import org.opencdmp.commons.types.pluginconfiguration.importexport.PluginConfigurationImportExport;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -31,6 +32,10 @@ public class DescriptionTemplateImportExport {
     @XmlElementWrapper(name = "pages")
     @XmlElement(name = "page")
     private List<DescriptionTemplatePageImportExport> pages;
+
+    @XmlElementWrapper(name = "pluginConfigurations")
+    @XmlElement(name = "pluginConfiguration")
+    private List<PluginConfigurationImportExport> pluginConfigurations;
 
     public UUID getId() {
         return this.id;
@@ -64,6 +69,13 @@ public class DescriptionTemplateImportExport {
         this.pages = pages;
     }
 
+    public List<PluginConfigurationImportExport> getPluginConfigurations() {
+        return pluginConfigurations;
+    }
+
+    public void setPluginConfigurations(List<PluginConfigurationImportExport> pluginConfigurations) {
+        this.pluginConfigurations = pluginConfigurations;
+    }
 
     public String getDescription() {
         return this.description;

@@ -19,8 +19,8 @@ public class EvaluationDataEntity {
     public static final String _rankConfig = "rankConfig";
 
     @XmlElement(name = "rankModel")
-    private RankModelEntity rankModel;
-    public static final String _rankModel = "rankModel";
+    private RankResultEntity rankResult;
+    public static final String _rankResult = "rankResult";
 
     public String getEvaluatorId() {
         return evaluatorId;
@@ -39,12 +39,12 @@ public class EvaluationDataEntity {
         this.rankConfig = evaluatorConfig;
     }
 
-    public RankModelEntity getRankModel() {
-        return rankModel;
+    public RankResultEntity getRankResult() {
+        return rankResult;
     }
 
 
-    public void setRankModel(RankModelEntity rankModel) {
-        this.rankModel = rankModel;
+    public void setRankResult(RankResultEntity rankResult) {
+        this.rankResult = rankResult;
     }
 }

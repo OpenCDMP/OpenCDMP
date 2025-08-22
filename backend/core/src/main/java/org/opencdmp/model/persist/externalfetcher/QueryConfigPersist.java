@@ -19,7 +19,7 @@ public class QueryConfigPersist implements QueryConfig<QueryCaseConfigPersist> {
 
     private String name;
     public static final String _name = "name";
-    private String defaultValue;
+    private String defaultValue = "";
     public static final String _defaultValue = "defaultValue";
     List<QueryCaseConfigPersist> cases;
     public static final String _cases = "cases";

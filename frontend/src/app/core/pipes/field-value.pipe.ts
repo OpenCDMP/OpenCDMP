@@ -1,16 +1,17 @@
 import { Pipe, PipeTransform } from "@angular/core";
 import { Guid } from "@common/types/guid";
 import { TranslateService } from "@ngx-translate/core";
-import { Observable, map, of } from "rxjs";
+import { Observable, map, of, switchMap } from "rxjs";
 import { nameof } from "ts-simple-nameof";
 import { DescriptionTemplateFieldType } from "../common/enum/description-template-field-type";
 import { DescriptionTemplateField, DescriptionTemplateLabelAndMultiplicityData, DescriptionTemplateRadioBoxData, DescriptionTemplateReferenceTypeData, DescriptionTemplateSelectData } from "../model/description-template/description-template";
-import { DescriptionFieldPersist } from "../model/description/description";
+import { Description, DescriptionFieldPersist } from "../model/description/description";
 import { StorageFile } from "../model/storage-file/storage-file";
 import { DescriptionService } from "../services/description/description.service";
 import { PlanService } from "../services/plan/plan.service";
 import { StorageFileService } from "../services/storage-file/storage-file.service";
 import { DateTimeFormatPipe } from "./date-time-format.pipe";
+import { Plan } from "../model/plan/plan";
 
 @Pipe({
     name: 'fieldValue',
@@ -71,25 +72,31 @@ export class FieldValuePipe implements PipeTransform {
 				}
 				case DescriptionTemplateFieldType.TAGS: {
 					if (controlValue.tags) {
-						return of(controlValue.tags.join(','));
+						return of(controlValue.tags.join(', '));
 					}
 					break;
 				}
 				case DescriptionTemplateFieldType.INTERNAL_ENTRIES_PLANS: {
 					const data = <DescriptionTemplateLabelAndMultiplicityData>field.data;
 					if (!data?.multipleSelect && controlValue.textValue && controlValue.textValue.length > 0) {
-						return this.planService.query(this.planService.buildAutocompleteLookup(null, null, [Guid.parse(controlValue.textValue)])).pipe(map(x => x.items?.map(y => y.label).join(',')));
+						return this.planService.getSingle(Guid.parse(controlValue.textValue), [nameof<Plan>(x => x.id), nameof<Plan>(x => x.label)])
+                            .pipe(map((x) => x?.label));
 					} else if (data?.multipleSelect && controlValue.references && controlValue.textListValue && controlValue.textListValue.length > 0) {
-						return this.planService.query(this.planService.buildAutocompleteLookup(null, null, controlValue.textListValue.map(x => Guid.parse(x)))).pipe(map(x => x.items?.map(y => y.label).join(',')));
+						return this.planService.query(this.planService.buildAutocompleteLookup(null, null, controlValue.textListValue.map(x => Guid.parse(x))))
+                            .pipe(map(x => x.items?.map(y => y.label).join(',')));
 					}
 					break;
 				}
 				case DescriptionTemplateFieldType.INTERNAL_ENTRIES_DESCRIPTIONS:
 					const data = <DescriptionTemplateLabelAndMultiplicityData>field.data;
 					if (!data?.multipleSelect && controlValue.textValue && controlValue.textValue.length > 0) {
-						return this.descriptionService.query(this.descriptionService.buildAutocompleteLookup(null, null, [Guid.parse(controlValue.textValue)])).pipe(map(x => x.items?.map(y => y.label).join(',')));
+						return this.descriptionService.getSingle(
+                            Guid.parse(controlValue.textValue), [nameof<Description>(x => x.id), nameof<Description>(x => x.label),])
+                            .pipe(map(x => x?.label));
 					} else if (data?.multipleSelect && controlValue.references && controlValue.textListValue && controlValue.textListValue.length > 0) {
-						return this.descriptionService.query(this.descriptionService.buildAutocompleteLookup(null, null, controlValue.textListValue.map(x => Guid.parse(x)))).pipe(map(x => x.items?.map(y => y.label).join(',')));
+						return this.descriptionService.query(
+                            this.descriptionService.buildAutocompleteLookup(null, null, controlValue.textListValue.map(x => Guid.parse(x)))
+                        ).pipe(map(x => x.items?.map(y => y.label).join(',')));
 					}
 					break;
 				case DescriptionTemplateFieldType.UPLOAD: {

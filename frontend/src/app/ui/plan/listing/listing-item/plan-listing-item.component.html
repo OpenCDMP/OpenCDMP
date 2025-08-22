@@ -1,7 +1,7 @@
 <div class="plan-card">
-	<a 
-        [routerLink]="isPublic ? routerUtils.generateUrl(['/explore-plans/overview/public/', plan.id]) : routerUtils.generateUrl(['/plans/overview/', plan.id])" 
-        class="pointer" 
+	<a
+        [routerLink]="isPublic ? routerUtils.generateUrl(['/explore-plans/overview/public/', plan.id]) : routerUtils.generateUrl(['/plans/overview/', plan.id])"
+        class="pointer"
         [attr.aria-label]="('ALT-TEXT.OPEN-PLAN-OVERVIEW-FOR' | translate) + ' ' + plan?.label"
     >
 		<div class="d-flex flex-direction-row flex-wrap">
@@ -12,8 +12,8 @@
 						<div class="col-auto edited-date">{{getTenantName(plan.tenantId)}}</div>
 						<div class="col-auto edited-date p-0 mb-2" style="font-weight: 700;">.</div>
 					</ng-container>
-					<div *ngIf="!isPublic" class="col-auto edited-date">{{ 'PLAN-LISTING.EDITED' | translate }}: {{ plan.updatedAt | dateTimeFormatter: "d MMMM y" }}</div>
-					<div *ngIf="isPublic" class="col-auto edited-date">{{ 'PLAN-LISTING.PUBLISHED' | translate }}: {{ plan.finalizedAt | dateTimeFormatter: "d MMMM y" }}</div>
+					<div *ngIf="!isPublic" class="col-auto edited-date">{{ 'PLAN-LISTING.EDITED' | translate }}: {{ plan.updatedAt | dateTimeFormatter: 'short' }}</div>
+					<div *ngIf="isPublic" class="col-auto edited-date">{{ 'PLAN-LISTING.PUBLISHED' | translate }}: {{ plan.finalizedAt | dateTimeFormatter: 'short' }}</div>
 				</div>
 			</div>
 		</div>
@@ -30,9 +30,26 @@
             </span>
 			<span>.</span>
 			<span class="col-auto">{{'PLAN-LISTING.VERSION' | translate}} {{plan.version}}</span>
-			<span>.</span>
-			<span class="col">{{ 'PLAN-LISTING.GRANT' | translate }}: {{referenceService.getReferencesForTypesFirstSafe(plan?.planReferences, [referenceTypeService.getGrantReferenceType()])?.reference?.label}}</span>
+			@if(plan.entityDois){
+				<span>.</span>
+				<span class="col-auto ">DOIs:</span>
+				<span class="col-auto "><span *ngFor="let entityDoi of plan.entityDois; let last =  last" >
+					<!--<a [href]="'https://doi.org/' +entityDoi.doi " target="_blank">{{ entityDoi.doi }}</a>-->
+					{{ entityDoi.doi }}<span *ngIf="!last">,&nbsp;</span></span></span>
+			}
 		</div>
+		@for (referenceConfig of orderedPlanPreferencesList;  track $index; let last = $last; let index = $index) {
+			@if (referenceService.getReferencesForTypes(plan?.planReferences, [referenceConfig.id])?.length > 0) {
+				<div class="plan-subtitle d-flex align-items-start">
+					<span class="col-2 text-bold"> {{referenceConfig.name}}:</span>
+					<span class="col-10">
+					@for (planReference of referenceService.getReferencesForTypes(plan?.planReferences, [referenceConfig.id]); track $index; let last = $last; let index = $index) {
+						<span >{{planReference?.reference?.label}}<span *ngIf="!last">,&nbsp;</span></span>
+					}
+						</span>
+				</div>
+			}
+		}
 		<div class="col-auto plan-description-descriptions-title">{{'PLAN-LISTING.CONTAINED-DESCRIPTIONS' | translate}}: ({{ plan.descriptions?.length ?? 0 }})
 		</div>
 		<div *ngFor="let description of plan.descriptions; let i = index; let last = last" [ngClass]="{'pb-3': i === plan.descriptions?.length - 1}">
@@ -68,10 +85,18 @@
         </div>
 	</div>
 	<mat-menu #exportMenu="matMenu" xPosition="before">
-		<button mat-menu-item *ngFor='let fileTransformer of fileTransformerService.availableFormatsFor(fileTransformerEntityTypeEnum.Plan)' (click)="fileTransformerService.exportPlan(plan.id, fileTransformer.repositoryId, fileTransformer.format, isPublic)">
-			<i class="fa pr-2" [ngClass]="fileTransformer.hasLogo ? fileTransformer.icon : 'fa-file-o'"></i>
-			<span>{{'GENERAL.FILE-TRANSFORMER.' + fileTransformer.format.toUpperCase() | translate}}</span>
-		</button>
+		@for(fileTransformer of fileTransformerService.availableFormatsFor(fileTransformerEntityTypeEnum.Plan); track $index; let i = $index) {
+			@for (fileFormat of fileTransformer.exportVariants; track $index; let j = $index) {
+				<button mat-menu-item (click)="fileTransformerService.exportPlan(plan.id, fileTransformer.fileTransformerId, fileFormat.format, isPublic)">
+					<i class="fa pr-2" [ngClass]="fileFormat.hasLogo ? fileFormat.icon : 'fa-file-o'"></i>
+					@if (fileFormat?.format?.toUpperCase() === 'JSON') {
+						<span>{{ 'GENERAL.FILE-TRANSFORMER.' + fileTransformer?.fileTransformerId?.toUpperCase() + '-' + fileFormat?.format?.toUpperCase() | translate }}</span>
+					} @else {
+						<span>{{ 'GENERAL.FILE-TRANSFORMER.' + fileFormat?.format?.toUpperCase() | translate }}</span>
+					}
+				</button>
+			}
+		}
 	</mat-menu>
 	<mat-menu #actionsMenu="matMenu" xPosition="before">
 		<button *ngIf="canCreateNewVersion" mat-menu-item (click)="newVersionClicked()">

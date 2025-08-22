@@ -71,3 +71,13 @@ queue:
           retry-delay-step-seconds: 20
           max-retry-delay-seconds: 600
           too-old-to-send-seconds: 604800
+    cleanup:
+      enable: true
+      intervalSeconds: 86400
+      startTimeSeconds: 3600
+      batchSize: 500
+      retentionDays: 10
+      queueInboxStatus:
+        - SUCCESSFUL
+      queueOutboxStatus:
+        - CONFIRMED

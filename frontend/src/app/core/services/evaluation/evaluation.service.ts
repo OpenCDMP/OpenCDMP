@@ -11,7 +11,7 @@ import { IsActive } from '@app/core/common/enum/is-active.enum';
 import { nameof } from 'ts-simple-nameof';
 import { EvaluationData } from '@app/core/model/evaluation/evaluation-data';
 import { RankConfig } from '@app/core/model/evaluator/rank-config';
-import { RankModel } from '@app/core/model/evaluator/evaluator-plan-model.model';
+import { EvaluationResultMessageModel, EvaluationResultMetricModel, EvaluationResultModel, RankResultModel } from '@app/core/model/evaluator/evaluator-plan-model.model';
 import { SelectionConfiguration } from '@app/core/model/evaluator/evaluator-selection';
 import { ValueSet } from '@app/core/model/evaluator/evaluator-value-set';
 
@@ -65,9 +65,16 @@ export class EvaluationService {
                 [nameof<Evaluation>(x => x.data), nameof<EvaluationData>(x => x.rankConfig), nameof<RankConfig>(x => x.selectionConfiguration), nameof<SelectionConfiguration>(x => x.valueSetList)].join('.'),
                 [nameof<Evaluation>(x => x.data), nameof<EvaluationData>(x => x.rankConfig), nameof<RankConfig>(x => x.selectionConfiguration), nameof<SelectionConfiguration>(x => x.valueSetList), nameof<ValueSet>(x => x.key)].join('.'),
                 [nameof<Evaluation>(x => x.data), nameof<EvaluationData>(x => x.rankConfig), nameof<RankConfig>(x => x.selectionConfiguration), nameof<SelectionConfiguration>(x => x.valueSetList), nameof<ValueSet>(x => x.successStatus)].join('.'),
-                [nameof<Evaluation>(x => x.data), nameof<EvaluationData>(x => x.rankModel), nameof<RankModel>(x => x.details)].join('.'),
-                [nameof<Evaluation>(x => x.data), nameof<EvaluationData>(x => x.rankModel), nameof<RankModel>(x => x.messages)].join('.'),
-                [nameof<Evaluation>(x => x.data), nameof<EvaluationData>(x => x.rankModel), nameof<RankModel>(x => x.rank)].join('.'),
+                [nameof<Evaluation>(x => x.data), nameof<EvaluationData>(x => x.rankResult), nameof<RankResultModel>(x => x.details)].join('.'),
+                [nameof<Evaluation>(x => x.data), nameof<EvaluationData>(x => x.rankResult), nameof<RankResultModel>(x => x.rank)].join('.'),
+                [nameof<Evaluation>(x => x.data), nameof<EvaluationData>(x => x.rankResult), nameof<RankResultModel>(x => x.results), nameof<EvaluationResultModel>(x => x.rank)].join('.'),
+                [nameof<Evaluation>(x => x.data), nameof<EvaluationData>(x => x.rankResult), nameof<RankResultModel>(x => x.results), nameof<EvaluationResultModel>(x => x.benchmarkTitle)].join('.'),
+                [nameof<Evaluation>(x => x.data), nameof<EvaluationData>(x => x.rankResult), nameof<RankResultModel>(x => x.results), nameof<EvaluationResultModel>(x => x.benchmarkDetails)].join('.'),
+                [nameof<Evaluation>(x => x.data), nameof<EvaluationData>(x => x.rankResult), nameof<RankResultModel>(x => x.results), nameof<EvaluationResultModel>(x => x.metrics), nameof<EvaluationResultMetricModel>(x => x.rank)].join('.'),
+                [nameof<Evaluation>(x => x.data), nameof<EvaluationData>(x => x.rankResult), nameof<RankResultModel>(x => x.results), nameof<EvaluationResultModel>(x => x.metrics), nameof<EvaluationResultMetricModel>(x => x.metricTitle)].join('.'),
+                [nameof<Evaluation>(x => x.data), nameof<EvaluationData>(x => x.rankResult), nameof<RankResultModel>(x => x.results), nameof<EvaluationResultModel>(x => x.metrics), nameof<EvaluationResultMetricModel>(x => x.metricDetails)].join('.'),
+                [nameof<Evaluation>(x => x.data), nameof<EvaluationData>(x => x.rankResult), nameof<RankResultModel>(x => x.results), nameof<EvaluationResultModel>(x => x.metrics), nameof<EvaluationResultMetricModel>(x => x.messages), nameof<EvaluationResultMessageModel>(x => x.title)].join('.'),
+                [nameof<Evaluation>(x => x.data), nameof<EvaluationData>(x => x.rankResult), nameof<RankResultModel>(x => x.results), nameof<EvaluationResultModel>(x => x.metrics), nameof<EvaluationResultMetricModel>(x => x.messages), nameof<EvaluationResultMessageModel>(x => x.message)].join('.'),
             ]
         };
         lookup.order = params?.order ??  { items: [nameof<Evaluation>(x => x.createdAt)] };

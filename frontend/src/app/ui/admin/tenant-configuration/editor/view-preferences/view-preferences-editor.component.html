@@ -1,0 +1,40 @@
+<div *ngIf="formGroup" class="container-fluid">
+    <span aria-live="assertive" class="assistive-text">{{reorderAssistiveText()}}</span>
+    <span id="operation" class="assistive-text">{{'ALT-TEXT.REORDER-TABLE.BEGIN-EDITING' | translate}}</span>
+	<div class="row">
+		<div class="col-12">
+				<app-view-preferences-reference-editor
+					[form]= "formGroup.get('viewPreferences').get('planPreferences')"
+					[orderedReferenceTypesList]="orderedPlanPreferencesList"
+					[validationErrorModel]="editorModel.validationErrorModel"
+					[rootBasePath]="'viewPreferences.planPreferences'"
+					[title]="language.instant('TENANT-CONFIGURATION-EDITOR.VIEW-PREFERENCES.PLAN')"
+					(orderedReferenceTypesEmitter)="afterPlanReferenceTypeUpdated($event)">
+				</app-view-preferences-reference-editor>
+				<app-view-preferences-reference-editor
+					[form]= "formGroup.get('viewPreferences').get('descriptionPreferences')"
+					[orderedReferenceTypesList]="orderedDescriptionTemplateList"
+					[validationErrorModel]="editorModel.validationErrorModel"
+					[rootBasePath]="'viewPreferences.descriptionPreferences'"
+					[title]="language.instant('TENANT-CONFIGURATION-EDITOR.VIEW-PREFERENCES.DESCRIPTION')"
+					(orderedReferenceTypesEmitter)="afterDescriptionReferenceTypeUpdated($event)">
+				</app-view-preferences-reference-editor>
+		</div>
+
+		<div class="col-12">
+			<div class="row actions-row">
+				<div class="ml-auto col-auto" *ngIf="editorModel.id">
+                    <button mat-stroked-button color="warn" class="padded-shadow-btn" (click)="delete()">
+						{{'TENANT-CONFIGURATION-EDITOR.ACTIONS.RESET-TO-DEFAULT' | translate}}
+					</button>
+				</div>
+				<div class="ml-auto col-auto">
+                    <button mat-flat-button color="primary" class="padded-shadow-btn" (click)="formSubmit()">
+						{{'TENANT-CONFIGURATION-EDITOR.ACTIONS.SAVE' | translate}}
+					</button>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+

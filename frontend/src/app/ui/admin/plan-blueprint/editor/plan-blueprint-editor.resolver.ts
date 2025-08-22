@@ -1,10 +1,12 @@
 import { Injectable } from '@angular/core';
 import { ActivatedRouteSnapshot, RouterStateSnapshot } from '@angular/router';
 import { IsActive } from '@app/core/common/enum/is-active.enum';
+import { DescriptionTemplatesInSection, PlanBlueprint, PlanBlueprintDefinition, PlanBlueprintDefinitionSection, ExtraFieldInSection, FieldInSection, ReferenceTypeFieldInSection, SystemFieldInSection, UploadFieldInSection, UploadOption } from '@app/core/model/plan-blueprint/plan-blueprint';
+import { PluginConfiguration, PluginConfigurationField } from '@app/core/model/plugin-configuration/plugin-configuration';
 import { DescriptionTemplate } from '@app/core/model/description-template/description-template';
-import { DescriptionTemplatesInSection, PlanBlueprint, PlanBlueprintDefinition, PlanBlueprintDefinitionSection, ExtraFieldInSection, FieldInSection, ReferenceTypeFieldInSection, SystemFieldInSection } from '@app/core/model/plan-blueprint/plan-blueprint';
 import { PrefillingSource } from '@app/core/model/prefilling-source/prefilling-source';
 import { ReferenceType } from '@app/core/model/reference-type/reference-type';
+import { StorageFile } from '@app/core/model/storage-file/storage-file';
 import { PlanBlueprintService } from '@app/core/services/plan/plan-blueprint.service';
 import { BreadcrumbService } from '@app/ui/misc/breadcrumb/breadcrumb.service';
 import { BaseEditorResolver } from '@common/base/base-editor.resolver';
@@ -27,6 +29,19 @@ export class PlanBlueprintEditorResolver extends BaseEditorResolver {
 			nameof<PlanBlueprint>(x => x.description),
 			nameof<PlanBlueprint>(x => x.code),
 			nameof<PlanBlueprint>(x => x.status),
+
+			[nameof<PlanBlueprint>(x => x.definition), nameof<PlanBlueprintDefinition>(x => x.pluginConfigurations), nameof<PluginConfiguration>(x => x.pluginCode)].join('.'),
+			[nameof<PlanBlueprint>(x => x.definition), nameof<PlanBlueprintDefinition>(x => x.pluginConfigurations), nameof<PluginConfiguration>(x => x.pluginType)].join('.'),
+
+			[nameof<PlanBlueprint>(x => x.definition), nameof<PlanBlueprintDefinition>(x => x.pluginConfigurations), nameof<PluginConfiguration>(x => x.fields), nameof<PluginConfigurationField>(x => x.code)].join('.'),
+			[nameof<PlanBlueprint>(x => x.definition), nameof<PlanBlueprintDefinition>(x => x.pluginConfigurations), nameof<PluginConfiguration>(x => x.fields), nameof<PluginConfigurationField>(x => x.textValue)].join('.'),
+
+			[nameof<PlanBlueprint>(x => x.definition), nameof<PlanBlueprintDefinition>(x => x.pluginConfigurations), nameof<PluginConfiguration>(x => x.fields), nameof<PluginConfigurationField>(x => x.fileValue), nameof<StorageFile>(x => x.id)].join('.'),
+			[nameof<PlanBlueprint>(x => x.definition), nameof<PlanBlueprintDefinition>(x => x.pluginConfigurations), nameof<PluginConfiguration>(x => x.fields), nameof<PluginConfigurationField>(x => x.fileValue), nameof<StorageFile>(x => x.extension)].join('.'),
+			[nameof<PlanBlueprint>(x => x.definition), nameof<PlanBlueprintDefinition>(x => x.pluginConfigurations), nameof<PluginConfiguration>(x => x.fields), nameof<PluginConfigurationField>(x => x.fileValue), nameof<StorageFile>(x => x.mimeType)].join('.'),
+			[nameof<PlanBlueprint>(x => x.definition), nameof<PlanBlueprintDefinition>(x => x.pluginConfigurations), nameof<PluginConfiguration>(x => x.fields), nameof<PluginConfigurationField>(x => x.fileValue), nameof<StorageFile>(x => x.fullName)].join('.'),
+			[nameof<PlanBlueprint>(x => x.definition), nameof<PlanBlueprintDefinition>(x => x.pluginConfigurations), nameof<PluginConfiguration>(x => x.fields), nameof<PluginConfigurationField>(x => x.fileValue), nameof<StorageFile>(x => x.name)].join('.'),
+			
 			[nameof<PlanBlueprint>(x => x.definition), nameof<PlanBlueprintDefinition>(x => x.sections), nameof<PlanBlueprintDefinitionSection>(x => x.id)].join('.'),
 			[nameof<PlanBlueprint>(x => x.definition), nameof<PlanBlueprintDefinition>(x => x.sections), nameof<PlanBlueprintDefinitionSection>(x => x.label)].join('.'),
 			[nameof<PlanBlueprint>(x => x.definition), nameof<PlanBlueprintDefinition>(x => x.sections), nameof<PlanBlueprintDefinitionSection>(x => x.description)].join('.'),
@@ -47,11 +62,17 @@ export class PlanBlueprintEditorResolver extends BaseEditorResolver {
 			[nameof<PlanBlueprint>(x => x.definition), nameof<PlanBlueprintDefinition>(x => x.sections), nameof<PlanBlueprintDefinitionSection>(x => x.fields), nameof<ReferenceTypeFieldInSection>(x => x.referenceType), nameof<ReferenceType>(x => x.name)].join('.'),
 			[nameof<PlanBlueprint>(x => x.definition), nameof<PlanBlueprintDefinition>(x => x.sections), nameof<PlanBlueprintDefinitionSection>(x => x.fields), nameof<ReferenceTypeFieldInSection>(x => x.referenceType), nameof<ReferenceType>(x => x.code)].join('.'),
 			[nameof<PlanBlueprint>(x => x.definition), nameof<PlanBlueprintDefinition>(x => x.sections), nameof<PlanBlueprintDefinitionSection>(x => x.fields), nameof<ReferenceTypeFieldInSection>(x => x.multipleSelect)].join('.'),
+			[nameof<PlanBlueprint>(x => x.definition), nameof<PlanBlueprintDefinition>(x => x.sections), nameof<PlanBlueprintDefinitionSection>(x => x.fields), nameof<UploadFieldInSection>(x => x.maxFileSizeInMB)].join('.'),
+			[nameof<PlanBlueprint>(x => x.definition), nameof<PlanBlueprintDefinition>(x => x.sections), nameof<PlanBlueprintDefinitionSection>(x => x.fields), nameof<UploadFieldInSection>(x => x.types)].join('.'),
+			[nameof<PlanBlueprint>(x => x.definition), nameof<PlanBlueprintDefinition>(x => x.sections), nameof<PlanBlueprintDefinitionSection>(x => x.fields), nameof<UploadFieldInSection>(x => x.types), nameof<UploadOption>(x => x.label)].join('.'),
+			[nameof<PlanBlueprint>(x => x.definition), nameof<PlanBlueprintDefinition>(x => x.sections), nameof<PlanBlueprintDefinitionSection>(x => x.fields), nameof<UploadFieldInSection>(x => x.types), nameof<UploadOption>(x => x.value)].join('.'),
 
 			[nameof<PlanBlueprint>(x => x.definition), nameof<PlanBlueprintDefinition>(x => x.sections), nameof<PlanBlueprintDefinitionSection>(x => x.descriptionTemplates), nameof<DescriptionTemplatesInSection>(x => x.descriptionTemplate), nameof<DescriptionTemplate>(x => x.groupId)].join('.'),
 			[nameof<PlanBlueprint>(x => x.definition), nameof<PlanBlueprintDefinition>(x => x.sections), nameof<PlanBlueprintDefinitionSection>(x => x.descriptionTemplates), nameof<DescriptionTemplatesInSection>(x => x.descriptionTemplate), nameof<DescriptionTemplate>(x => x.label)].join('.'),
 			[nameof<PlanBlueprint>(x => x.definition), nameof<PlanBlueprintDefinition>(x => x.sections), nameof<PlanBlueprintDefinitionSection>(x => x.descriptionTemplates), nameof<DescriptionTemplatesInSection>(x => x.minMultiplicity)].join('.'),
 			[nameof<PlanBlueprint>(x => x.definition), nameof<PlanBlueprintDefinition>(x => x.sections), nameof<PlanBlueprintDefinitionSection>(x => x.descriptionTemplates), nameof<DescriptionTemplatesInSection>(x => x.maxMultiplicity)].join('.'),
+			
+			[nameof<PlanBlueprint>(x => x.definition), nameof<PlanBlueprintDefinition>(x => x.sections), nameof<PlanBlueprintDefinitionSection>(x => x.canEditDescriptionTemplates)].join('.'),
 
 			[nameof<PlanBlueprint>(x => x.definition), nameof<PlanBlueprintDefinition>(x => x.sections), nameof<PlanBlueprintDefinitionSection>(x => x.prefillingSources), nameof<PrefillingSource>(x => x.id)].join('.'),
 			[nameof<PlanBlueprint>(x => x.definition), nameof<PlanBlueprintDefinition>(x => x.sections), nameof<PlanBlueprintDefinitionSection>(x => x.prefillingSources), nameof<PrefillingSource>(x => x.label)].join('.'),

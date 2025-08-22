@@ -24,6 +24,9 @@ public class IndicatorElasticEvent extends TrackedEvent {
 	private IndicatorSchema schema;
 	public static final String _schema = "schema";
 
+	private IndicatorConfig config;
+	public static final String _config = "config";
+
 	public UUID getId() {
 		return id;
 	}
@@ -46,6 +49,14 @@ public class IndicatorElasticEvent extends TrackedEvent {
 
 	public void setSchema(IndicatorSchema schema) {
 		this.schema = schema;
+	}
+
+	public IndicatorConfig getConfig() {
+		return config;
+	}
+
+	public void setConfig(IndicatorConfig config) {
+		this.config = config;
 	}
 
 	@Component(IndicatorElasticEventValidator.ValidatorName)
@@ -76,7 +87,12 @@ public class IndicatorElasticEvent extends TrackedEvent {
 							.iff(() -> !this.isNull(item.getSchema()))
 							.on(IndicatorElasticEvent._schema)
 							.over(item.getSchema())
-							.using(() -> this.validatorFactory.validator(IndicatorSchema.IndicatorSchemaValidator.class))
+							.using(() -> this.validatorFactory.validator(IndicatorSchema.IndicatorSchemaValidator.class)),
+					this.refSpec()
+							.iff(() -> !this.isNull(item.getConfig()))
+							.on(IndicatorElasticEvent._config)
+							.over(item.getConfig())
+							.using(() -> this.validatorFactory.validator(IndicatorConfig.IndicatorConfigValidator.class))
 			);
 		}
 	}

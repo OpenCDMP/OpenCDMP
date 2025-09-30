@@ -164,7 +164,7 @@ public class PlanCommonModelBuilder extends BaseCommonModelBuilder<PlanModel, Pl
             m.setPdfFile(this.pdfFile);
             m.setRdaJsonFile(this.rdaJsonFile);
             m.setSupportingFilesZip(this.supportingFilesZip);
-            if (d.getVersion() > (short)1) m.setPreviousDOI(this.getPreviousDOI(d.getGroupId(), d.getId()));
+            m.setPreviousDOI(this.getPreviousDOI(d.getGroupId(), d.getId()));
             switch (d.getAccessType()){
                 case Public -> m.setAccessType(PlanAccessType.Public);
                 case Restricted -> m.setAccessType(PlanAccessType.Restricted);

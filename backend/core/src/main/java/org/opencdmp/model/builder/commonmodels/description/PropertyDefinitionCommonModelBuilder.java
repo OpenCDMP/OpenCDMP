@@ -58,9 +58,11 @@ public class PropertyDefinitionCommonModelBuilder extends BaseCommonModelBuilder
         for (PropertyDefinitionEntity d : data) {
             PropertyDefinitionModel m = new PropertyDefinitionModel();
             m.setFieldSets(new HashMap<>());
-            for (String key : d.getFieldSets().keySet()){
-                FieldSetEntity fieldSetEntity = definition != null ? definition.getFieldSetById(key).stream().findFirst().orElse(null) : null;
-                m.getFieldSets().put(key, this.builderFactory.builder(PropertyDefinitionFieldSetCommonModelBuilder.class).useSharedStorage(useSharedStorage).authorize(this.authorize).withFieldSetEntity(fieldSetEntity).build(d.getFieldSets().get(key)));
+            if (d.getFieldSets() != null) {
+                for (String key : d.getFieldSets().keySet()){
+                    FieldSetEntity fieldSetEntity = definition != null ? definition.getFieldSetById(key).stream().findFirst().orElse(null) : null;
+                    m.getFieldSets().put(key, this.builderFactory.builder(PropertyDefinitionFieldSetCommonModelBuilder.class).useSharedStorage(useSharedStorage).authorize(this.authorize).withFieldSetEntity(fieldSetEntity).build(d.getFieldSets().get(key)));
+                }
             }
             models.add(new CommonModelBuilderItemResponse<>(m, d));
         }

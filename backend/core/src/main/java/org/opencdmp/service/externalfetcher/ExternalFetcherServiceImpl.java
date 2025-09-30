@@ -8,6 +8,8 @@ import com.jayway.jsonpath.PathNotFoundException;
 import gr.cite.tools.exception.MyApplicationException;
 import gr.cite.tools.logging.LoggerService;
 import gr.cite.tools.logging.MapLogEntry;
+import io.netty.handler.ssl.SslContextBuilder;
+import io.netty.handler.ssl.util.InsecureTrustManagerFactory;
 import net.minidev.json.JSONArray;
 import org.opencdmp.commons.JsonHandlingService;
 import org.opencdmp.commons.enums.ExternalFetcherApiHeaderType;
@@ -45,14 +47,32 @@ public class ExternalFetcherServiceImpl implements ExternalFetcherService {
     private WebClient webClient;
 	private final ConventionService conventionService;
     private final JsonHandlingService jsonHandlingService;
+    private final ExternalFetcherProperties externalFetcherProperties;
+
     @Autowired
-    public ExternalFetcherServiceImpl(ConventionService conventionService, JsonHandlingService jsonHandlingService) {
+    public ExternalFetcherServiceImpl(ConventionService conventionService, JsonHandlingService jsonHandlingService, ExternalFetcherProperties externalFetcherProperties) {
 	    this.conventionService = conventionService;
         this.jsonHandlingService = jsonHandlingService;
+        this.externalFetcherProperties = externalFetcherProperties;
     }
 
     private WebClient getWebClient()  {
         if (this.webClient == null) {
+            HttpClient httpClient = HttpClient.create().followRedirect(true);
+            if (this.externalFetcherProperties.isDisableSSLCertificateValidation()) {
+                httpClient = httpClient.secure(sslContextSpec -> {
+                    try {
+                        sslContextSpec.sslContext(
+                                SslContextBuilder.forClient()
+                                        .trustManager(InsecureTrustManagerFactory.INSTANCE)
+                                        .build()
+                        );
+                    } catch (Exception e) {
+                        throw new RuntimeException("Error setting up insecure SSL context for external api fetcher web client", e);
+                    }
+                });
+            }
+
             this.webClient = WebClient.builder().filters(exchangeFilterFunctions -> {
                 exchangeFilterFunctions.add(logRequest());
                 exchangeFilterFunctions.add(logResponse());
@@ -60,7 +80,7 @@ public class ExternalFetcherServiceImpl implements ExternalFetcherService {
                 clientCodecConfigurer.defaultCodecs().jackson2JsonDecoder(new Jackson2JsonDecoder(new ObjectMapper(), MediaType.APPLICATION_JSON));
                 clientCodecConfigurer.defaultCodecs().maxInMemorySize(2 * ((int) Math.pow(1024, 3))); //GK: Why here???
             }
-            ).clientConnector(new ReactorClientHttpConnector(HttpClient.create().followRedirect(true))).build();
+            ).clientConnector(new ReactorClientHttpConnector(httpClient)).build();
         }
         return this.webClient;
     }

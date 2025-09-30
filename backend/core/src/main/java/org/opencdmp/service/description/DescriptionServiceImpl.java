@@ -782,7 +782,8 @@ public class DescriptionServiceImpl implements DescriptionService {
             }
             if (!ids.isEmpty()){
                 if (ids.size() > 1) data.setTextListValue(persist.getTextListValue());
-                else data.setTextListValue(List.of(persist.getTextValue()));
+                else if (!this.conventionService.isNullOrEmpty(persist.getTextValue())) data.setTextListValue(List.of(persist.getTextValue()));
+                else if (!this.conventionService.isListNullOrEmpty(persist.getTextListValue())) data.setTextListValue(persist.getTextListValue());
             }else{
                 data.setTextListValue(persist.getTextListValue());
             }

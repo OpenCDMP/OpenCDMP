@@ -1,7 +1,7 @@
 kpi:
   maxIndicatorPointsPerRequest: 1000
   task:
-    enable: ${KPI_VIEWER_TASK_ENABLED}
+    enable: ${KPI_VIEWER_TASK_ENABLED:false}
     intervalSeconds: 86400
     startTimeSeconds: 3600
   indicator:

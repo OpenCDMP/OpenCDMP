@@ -1,5 +1,5 @@
 accounting:
-  enabled: ${ACCOUNTING_ENABLED}
+  enabled: ${ACCOUNTING_ENABLED:false}
   serviceId: ${ACCOUNTING_SERVICE_ID:opencdmp}
   subjectId: unknown
   fromInstant: 1990-01-01T05:47:26.853Z

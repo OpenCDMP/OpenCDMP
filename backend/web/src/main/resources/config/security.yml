@@ -2,7 +2,7 @@ web:
   security:
     enabled: true
     authorized-endpoints: [ api ]
-    allowed-endpoints: [ api/public, api/plan/public, api/description/public, api/supportive-material/public, api/language/public, api/contact-support/public, api/dashboard/public, api/prometheus, api/health, api/metrics, api/swagger-ui, api/v3/api-docs ]
+    allowed-endpoints: [ api/public, api/plan/public, api/description/public, api/supportive-material/public, api/language/public, api/contact-support/public, api/dashboard/public, /actuator, api/swagger-ui, api/v3/api-docs ]
     idp:
       api-key:
         enabled: false

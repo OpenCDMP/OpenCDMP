@@ -39,6 +39,7 @@ spring:
       optional:classpath:config/kpi.yml[.yml], optional:classpath:config/kpi-${spring.profiles.active}.yml[.yml], optional:file:../config/kpi-${spring.profiles.active}.yml[.yml],
       optional:classpath:config/users.yml[.yml], optional:classpath:config/users-${spring.profiles.active}.yml[.yml], optional:file:../config/users-${spring.profiles.active}.yml[.yml],
       optional:classpath:config/plan.yml[.yml], optional:classpath:config/plan-${spring.profiles.active}.yml[.yml], optional:file:../config/plan-${spring.profiles.active}.yml[.yml],
-      optional:classpath:config/external-api-fetcher.yml[.yml], optional:classpath:config/external-api-fetcher-${spring.profiles.active}.yml[.yml], optional:file:../config/external-api-fetcher-${spring.profiles.active}.yml[.yml]
+      optional:classpath:config/external-api-fetcher.yml[.yml], optional:classpath:config/external-api-fetcher-${spring.profiles.active}.yml[.yml], optional:file:../config/external-api-fetcher-${spring.profiles.active}.yml[.yml],
+      optional:classpath:config/management.yml[.yml], optional:classpath:config/management-${spring.profiles.active}.yml[.yml], optional:file:../config/management-${spring.profiles.active}.yml[.yml]
   
   

@@ -1,2 +1,2 @@
 usage-limits:
-  enabled: ${ACCOUNTING_ENABLED}
+  enabled: ${ACCOUNTING_ENABLED:false}

@@ -3,6 +3,7 @@ FROM node:20-alpine AS builder
 
 # copy the package.json to install dependencies
 COPY package.json ./
+COPY package-lock.json ./
 
 # Install the dependencies and make the folder
 RUN npm install --legacy-peer-deps && mkdir /src && mv ./node_modules ./src

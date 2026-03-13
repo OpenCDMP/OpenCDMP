@@ -35,6 +35,16 @@ export class ConfigurationService extends BaseComponent {
 		return this._defaultCulture || 'en';
 	}
 
+	private _languageCookieName: string;
+	get languageCookieName(): string {
+		return this._languageCookieName || 'opencdmp_lang';
+	}
+
+	private _languageCookieDomain: string;
+	get languageCookieDomain(): string {
+		return this._languageCookieDomain || '';
+	}
+
 	private _defaultTimezone: string;
 	get defaultTimezone(): string {
 		return this._defaultTimezone || 'UTC';
@@ -266,6 +276,10 @@ export class ConfigurationService extends BaseComponent {
 		this._server = config.Server;
 		this._app = config.App;
 		this._defaultCulture = config.defaultCulture;
+		if (config.languageCookie) {
+			this._languageCookieName = config.languageCookie.name;
+			this._languageCookieDomain = config.languageCookie.domain;
+		}
 		this._defaultTimezone = config.defaultTimezone;
 		this._keycloak = KeycloakConfiguration.parseValue(config.keycloak);
 		this._logging = Logging.parseValue(config.logging);

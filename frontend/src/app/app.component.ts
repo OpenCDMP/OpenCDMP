@@ -265,7 +265,17 @@ export class AppComponent implements OnInit, AfterViewInit {
 		this.translate.setDefaultLang(this.language.getDefaultLanguagesCode());
 		this.authentication.currentAccountIsAuthenticated() && this.authentication.getUserProfileCulture() ? this.cultureService.cultureSelected(this.authentication.getUserProfileCulture()) : this.cultureService.cultureSelected(this.configurationService.defaultCulture);
 		this.authentication.currentAccountIsAuthenticated() && this.authentication.getUserProfileTimezone() ? this.timezoneService.timezoneSelected(this.authentication.getUserProfileTimezone()) : this.timezoneService.timezoneSelected(this.configurationService.defaultTimezone);
-		this.authentication.currentAccountIsAuthenticated() && this.authentication.getUserProfileLanguage() ? this.language.changeLanguage(this.authentication.getUserProfileLanguage()) : (this.language.getDefaultLanguagesCode());
+		if (this.authentication.currentAccountIsAuthenticated() && this.authentication.getUserProfileLanguage()) {
+			this.language.changeLanguage(this.authentication.getUserProfileLanguage());
+		} else {
+			const cookieLang = this.language.getCookieLanguage();
+			const availableLangs = this.language.getAvailableLanguagesCodes();
+			if (cookieLang && availableLangs.includes(cookieLang)) {
+				this.language.changeLanguage(cookieLang);
+			} else {
+				this.language.changeLanguage(this.language.getDefaultLanguagesCode());
+			}
+		}
 
 		this.authentication.getAuthenticationStateObservable().subscribe(authenticationState => {
 			if (authenticationState.loginStatus === LoginStatus.LoggedIn) {

@@ -2,6 +2,10 @@
 	"Server": "${WEBAPP_API_URL}",
 	"App": "${INSTALLATION_URL}",
 	"defaultCulture": "${DEFAULT_CULTURE}",
+	"languageCookie": {
+		"name": "${LANGUAGE_COOKIE_NAME}",
+		"domain": "${LANGUAGE_COOKIE_DOMAIN}"
+	},
 	"keycloak": {
 		"enabled": true,
 		"address": "${KEYCLOAK_ADDRESS}",

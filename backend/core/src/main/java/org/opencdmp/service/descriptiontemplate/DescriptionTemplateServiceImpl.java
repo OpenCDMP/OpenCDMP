@@ -1,6 +1,6 @@
 package org.opencdmp.service.descriptiontemplate;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
+import tools.jackson.core.JacksonException;
 import gr.cite.commons.web.authz.service.AuthorizationService;
 import gr.cite.tools.data.builder.BuilderFactory;
 import gr.cite.tools.data.deleter.DeleterFactory;
@@ -20,15 +20,17 @@ import org.apache.commons.lang3.NotImplementedException;
 import org.jetbrains.annotations.NotNull;
 import org.opencdmp.authorization.AuthorizationFlags;
 import org.opencdmp.authorization.Permission;
-import org.opencdmp.authorization.authorizationcontentresolver.AuthorizationContentResolver;
+import org.opencdmp.authorization.authorizationcontentresolver.AuthorizationContentResolverFactory;
 import org.opencdmp.commonmodels.models.DescriptionTemplateTypeModel;
 import org.opencdmp.commonmodels.models.descriptiotemplate.*;
 import org.opencdmp.commons.JsonHandlingService;
 import org.opencdmp.commons.XmlHandlingService;
 import org.opencdmp.commons.enums.*;
+import org.opencdmp.commons.enums.kpi.KpiDirectionType;
+import org.opencdmp.commons.enums.kpi.KpiVersionType;
 import org.opencdmp.commons.notification.NotificationProperties;
-import org.opencdmp.commons.scope.tenant.TenantScope;
-import org.opencdmp.commons.scope.user.UserScope;
+import org.opencdmp.commons.scope.tenant.TenantScopeFactory;
+import org.opencdmp.commons.scope.user.UserScopeFactory;
 import org.opencdmp.commons.types.descriptiontemplate.*;
 import org.opencdmp.commons.types.descriptiontemplate.fielddata.BaseFieldDataEntity;
 import org.opencdmp.commons.types.descriptiontemplate.importexport.*;
@@ -44,7 +46,6 @@ import org.opencdmp.errorcode.ErrorThesaurusProperties;
 import org.opencdmp.integrationevent.outbox.notification.NotifyIntegrationEvent;
 import org.opencdmp.integrationevent.outbox.notification.NotifyIntegrationEventHandler;
 import org.opencdmp.model.DescriptionTemplateType;
-import org.opencdmp.model.StorageFile;
 import org.opencdmp.model.builder.descriptiontemplate.DescriptionTemplateBuilder;
 import org.opencdmp.model.deleter.DescriptionTemplateDeleter;
 import org.opencdmp.model.deleter.UserDescriptionTemplateDeleter;
@@ -65,6 +66,7 @@ import org.opencdmp.service.accounting.AccountingService;
 import org.opencdmp.service.descriptiontemplatetype.DescriptionTemplateTypeService;
 import org.opencdmp.service.fielddatahelper.FieldDataHelperService;
 import org.opencdmp.service.fielddatahelper.FieldDataHelperServiceProvider;
+import org.opencdmp.service.kpi.KpiService;
 import org.opencdmp.service.lock.LockService;
 import org.opencdmp.service.pluginconfiguration.PluginConfigurationService;
 import org.opencdmp.service.responseutils.ResponseUtilsService;
@@ -91,9 +93,9 @@ public class DescriptionTemplateServiceImpl implements DescriptionTemplateServic
 
     private static final LoggerService logger = new LoggerService(LoggerFactory.getLogger(DescriptionTemplateServiceImpl.class));
 
-    private final TenantEntityManager entityManager;
+    private final TenantEntityManagerFactory tenantEntityManagerFactory;
 
-    private final UserScope userScope;
+    private final UserScopeFactory userScopeFactory;
 
     private final AuthorizationService authorizationService;
 
@@ -113,7 +115,7 @@ public class DescriptionTemplateServiceImpl implements DescriptionTemplateServic
 
     private final ErrorThesaurusProperties errors;
 
-    private final TenantScope tenantScope;
+    private final TenantScopeFactory tenantScopeFactory;
 
     private final ResponseUtilsService responseUtilsService;
 
@@ -126,7 +128,7 @@ public class DescriptionTemplateServiceImpl implements DescriptionTemplateServic
 
     private final ValidatorFactory validatorFactory;
     private final DescriptionTemplateTypeService descriptionTemplateTypeService;
-    private final AuthorizationContentResolver authorizationContentResolver;
+    private final AuthorizationContentResolverFactory authorizationContentResolverFactory;
     private final UsageLimitService usageLimitService;
     private final AccountingService accountingService;
     private final LockService lockService;
@@ -134,12 +136,12 @@ public class DescriptionTemplateServiceImpl implements DescriptionTemplateServic
 
     private final PluginConfigurationService pluginConfigurationService;
 
-
+    private final KpiService kpiService;
 
     @Autowired
     public DescriptionTemplateServiceImpl(
-            TenantEntityManager entityManager,
-            UserScope userScope, AuthorizationService authorizationService,
+            TenantEntityManagerFactory tenantEntityManagerFactory,
+            UserScopeFactory userScopeFactory, AuthorizationService authorizationService,
             DeleterFactory deleterFactory,
             BuilderFactory builderFactory,
             ConventionService conventionService,
@@ -147,14 +149,14 @@ public class DescriptionTemplateServiceImpl implements DescriptionTemplateServic
             XmlHandlingService xmlHandlingService,
             FieldDataHelperServiceProvider fieldDataHelperServiceProvider,
             QueryFactory queryFactory, ErrorThesaurusProperties errors,
-            TenantScope tenantScope,
+            TenantScopeFactory tenantScopeFactory,
             ResponseUtilsService responseUtilsService,
             JsonHandlingService jsonHandlingService,
             NotifyIntegrationEventHandler eventHandler,
             NotificationProperties notificationProperties,
-            ValidatorFactory validatorFactory, DescriptionTemplateTypeService descriptionTemplateTypeService, AuthorizationContentResolver authorizationContentResolver, UsageLimitService usageLimitService, AccountingService accountingService, LockService lockService, StorageFileService storageFileService, PluginConfigurationService pluginConfigurationService) {
-        this.entityManager = entityManager;
-        this.userScope = userScope;
+            ValidatorFactory validatorFactory, DescriptionTemplateTypeService descriptionTemplateTypeService, AuthorizationContentResolverFactory authorizationContentResolverFactory, UsageLimitService usageLimitService, AccountingService accountingService, LockService lockService, StorageFileService storageFileService, PluginConfigurationService pluginConfigurationService, KpiService kpiService) {
+        this.tenantEntityManagerFactory = tenantEntityManagerFactory;
+        this.userScopeFactory = userScopeFactory;
         this.authorizationService = authorizationService;
         this.deleterFactory = deleterFactory;
         this.builderFactory = builderFactory;
@@ -164,33 +166,34 @@ public class DescriptionTemplateServiceImpl implements DescriptionTemplateServic
         this.fieldDataHelperServiceProvider = fieldDataHelperServiceProvider;
         this.queryFactory = queryFactory;
         this.errors = errors;
-        this.tenantScope = tenantScope;
+        this.tenantScopeFactory = tenantScopeFactory;
         this.responseUtilsService = responseUtilsService;
         this.jsonHandlingService = jsonHandlingService;
         this.eventHandler = eventHandler;
         this.notificationProperties = notificationProperties;
         this.validatorFactory = validatorFactory;
 	    this.descriptionTemplateTypeService = descriptionTemplateTypeService;
-	    this.authorizationContentResolver = authorizationContentResolver;
+	    this.authorizationContentResolverFactory = authorizationContentResolverFactory;
         this.usageLimitService = usageLimitService;
         this.accountingService = accountingService;
         this.lockService = lockService;
         this.storageFileService = storageFileService;
         this.pluginConfigurationService = pluginConfigurationService;
+        this.kpiService = kpiService;
     }
 
     //region Persist
 
-    public DescriptionTemplate persist(DescriptionTemplatePersist model, UUID groupId, FieldSet fields) throws MyForbiddenException, MyValidationException, MyApplicationException, MyNotFoundException, InvalidApplicationException, JAXBException, ParserConfigurationException, JsonProcessingException, TransformerException {
+    public DescriptionTemplate persist(DescriptionTemplatePersist model, UUID groupId, FieldSet fields) throws MyForbiddenException, MyValidationException, MyApplicationException, MyNotFoundException, InvalidApplicationException, JAXBException, ParserConfigurationException, JacksonException, TransformerException {
         logger.debug(new MapLogEntry("persisting data descriptionTemplate").And("model", model).And("fields", fields));
 
         Boolean isUpdate = this.conventionService.isValidGuid(model.getId());
-        if (isUpdate) this.authorizationService.authorizeAtLeastOneForce(List.of(this.authorizationContentResolver.descriptionTemplateAffiliation(model.getId())), Permission.EditDescriptionTemplate);
+        if (isUpdate) this.authorizationService.authorizeAtLeastOneForce(List.of(this.authorizationContentResolverFactory.getInstance().descriptionTemplateAffiliation(model.getId())), Permission.EditDescriptionTemplate);
         else this.authorizationService.authorizeForce(Permission.EditDescriptionTemplate);
 
         DescriptionTemplateEntity data;
         if (isUpdate) {
-            data = this.entityManager.find(DescriptionTemplateEntity.class, model.getId());
+            data = this.tenantEntityManagerFactory.getInstance().find(DescriptionTemplateEntity.class, model.getId());
             if (data == null)
                 throw new MyNotFoundException(this.messageSource.getMessage("General_ItemNotFound", new Object[]{model.getId(), DescriptionTemplate.class.getSimpleName()}, LocaleContextHolder.getLocale()));
             if (this.lockService.isLocked(data.getId(), null).getStatus()) throw new MyApplicationException(this.errors.getLockedDescriptionTemplate().getCode(), this.errors.getLockedDescriptionTemplate().getMessage());
@@ -215,6 +218,7 @@ public class DescriptionTemplateServiceImpl implements DescriptionTemplateServic
         if (groupId != null && !data.getGroupId().equals(groupId)) throw new MyApplicationException("Can not change description template group id");
 
         DescriptionTemplateStatus previousStatus = data.getStatus();
+        DescriptionTemplateVersionStatus previousVersionStatus = data.getVersionStatus();
 
         data.setDescription(model.getDescription());
         data.setLabel(model.getLabel());
@@ -228,21 +232,22 @@ public class DescriptionTemplateServiceImpl implements DescriptionTemplateServic
         data.setDefinition(this.xmlHandlingService.toXml(this.buildDefinitionEntity(model.getDefinition(), oldDefinition)));
 
         if (isUpdate) {
-            this.entityManager.merge(data);
+            this.tenantEntityManagerFactory.getInstance().merge(data);
             if (previousStatus != null && previousStatus.equals(DescriptionTemplateStatus.Draft) && data.getStatus().equals(DescriptionTemplateStatus.Finalized)) {
                 this.accountingService.increase(UsageLimitTargetMetric.DESCRIPTION_TEMPLATE_FINALIZED_COUNT.getValue());
                 this.accountingService.decrease(UsageLimitTargetMetric.DESCRIPTION_TEMPLATE_DRAFT_COUNT.getValue());
             }
         } else {
-            this.entityManager.persist(data);
+            this.tenantEntityManagerFactory.getInstance().persist(data);
             this.accountingService.increase(UsageLimitTargetMetric.DESCRIPTION_TEMPLATE_COUNT.getValue());
             if (data.getStatus().equals(DescriptionTemplateStatus.Draft)) this.accountingService.increase(UsageLimitTargetMetric.DESCRIPTION_TEMPLATE_DRAFT_COUNT.getValue());
             if (data.getStatus().equals(DescriptionTemplateStatus.Finalized)) this.accountingService.increase(UsageLimitTargetMetric.DESCRIPTION_TEMPLATE_FINALIZED_COUNT.getValue());
+            this.kpiService.sendIndicatorPointDescriptionTemplateEntry(KpiDirectionType.Increase, KpiVersionType.TotalCount);
         }
 
         this.persistUsers(data.getId(), model.getUsers());
 
-        this.entityManager.flush();
+        this.tenantEntityManagerFactory.getInstance().flush();
 
         if (!isUpdate) {
             long activeDescriptionTemplatesForTheGroup = this.queryFactory.query(DescriptionTemplateQuery.class).disableTracking()
@@ -262,7 +267,11 @@ public class DescriptionTemplateServiceImpl implements DescriptionTemplateServic
 
         this.updateVersionStatusAndSave(data, previousStatus, data.getStatus());
 
-        this.entityManager.flush();
+        this.tenantEntityManagerFactory.getInstance().flush();
+
+        if (previousVersionStatus != null && !previousVersionStatus.equals(data.getVersionStatus()) && data.getVersionStatus().equals(DescriptionTemplateVersionStatus.Current)) {
+            this.kpiService.sendIndicatorPointDescriptionTemplateEntry(KpiDirectionType.Increase, KpiVersionType.LatestVersion);
+        }
 
         return this.builderFactory.builder(DescriptionTemplateBuilder.class).authorize(AuthorizationFlags.AllExceptPublic).build(BaseFieldSet.build(fields, DescriptionTemplate._id), data);
     }
@@ -285,7 +294,8 @@ public class DescriptionTemplateServiceImpl implements DescriptionTemplateServic
                 data.setVersion((short) (oldDescriptionTemplateEntity.getVersion() + 1));
 
                 oldDescriptionTemplateEntity.setVersionStatus(DescriptionTemplateVersionStatus.Previous);
-                this.entityManager.merge(oldDescriptionTemplateEntity);
+                this.tenantEntityManagerFactory.getInstance().merge(oldDescriptionTemplateEntity);
+                this.kpiService.sendIndicatorPointDescriptionTemplateEntry(KpiDirectionType.Decrease, KpiVersionType.LatestVersion);
             } else {
                 data.setVersion((short) 1);
             }
@@ -309,8 +319,8 @@ public class DescriptionTemplateServiceImpl implements DescriptionTemplateServic
                 data.setDescriptionTemplateId(id);
                 data.setUserId(user.getUserId());
                 data.setRole(user.getRole());
-                this.entityManager.persist(data);
-                if (!this.userScope.getUserId().equals(user.getUserId())) {
+                this.tenantEntityManagerFactory.getInstance().persist(data);
+                if (!this.userScopeFactory.getInstance().getUserId().equals(user.getUserId())) {
                     DescriptionTemplateEntity descriptionTemplate = this.queryFactory.query(DescriptionTemplateQuery.class).disableTracking().isActive(IsActive.Active).ids(data.getDescriptionTemplateId()).first();
                     if (descriptionTemplate == null){
                         throw new MyNotFoundException(this.messageSource.getMessage("General_ItemNotFound", new Object[]{data.getDescriptionTemplateId(), DescriptionTemplate.class.getSimpleName()}, LocaleContextHolder.getLocale()));
@@ -328,7 +338,7 @@ public class DescriptionTemplateServiceImpl implements DescriptionTemplateServic
     private void sendDescriptionTemplateInvitationEvent(UserDescriptionTemplateEntity userDescriptionTemplate, DescriptionTemplateEntity descriptionTemplate) throws InvalidApplicationException {
         NotifyIntegrationEvent event = new NotifyIntegrationEvent();
 
-        UserEntity user = this.entityManager.find(UserEntity.class, userDescriptionTemplate.getUserId(), true);
+        UserEntity user = this.tenantEntityManagerFactory.getInstance().find(UserEntity.class, userDescriptionTemplate.getUserId(), true);
         if (user == null){
             throw new MyNotFoundException(this.messageSource.getMessage("General_ItemNotFound", new Object[]{userDescriptionTemplate.getUserId(), User.class.getSimpleName()}, LocaleContextHolder.getLocale()));
         }
@@ -342,8 +352,8 @@ public class DescriptionTemplateServiceImpl implements DescriptionTemplateServic
         fieldInfoList.add(new FieldInfo("{recipient}", DataType.String, user.getName()));
         fieldInfoList.add(new FieldInfo("{templateName}", DataType.String, descriptionTemplate.getLabel()));
         fieldInfoList.add(new FieldInfo("{templateID}", DataType.String, descriptionTemplate.getId().toString()));
-        if(this.tenantScope.getTenantCode() != null && !this.tenantScope.getTenantCode().equals(this.tenantScope.getDefaultTenantCode())){
-            fieldInfoList.add(new FieldInfo("{tenant-url-path}", DataType.String, String.format("/t/%s", this.tenantScope.getTenantCode())));
+        if(this.tenantScopeFactory.getInstance().getTenantCode() != null && !this.tenantScopeFactory.getInstance().getTenantCode().equals(this.tenantScopeFactory.getInstance().getDefaultTenantCode())){
+            fieldInfoList.add(new FieldInfo("{tenant-url-path}", DataType.String, String.format("/t/%s", this.tenantScopeFactory.getInstance().getTenantCode())));
         }
         data.setFields(fieldInfoList);
         event.setData(this.jsonHandlingService.toJsonSafe(data));
@@ -551,7 +561,7 @@ public class DescriptionTemplateServiceImpl implements DescriptionTemplateServic
 
         this.authorizationService.authorizeForce(Permission.DeleteDescriptionTemplate);
 
-        DescriptionTemplateEntity data = this.entityManager.find(DescriptionTemplateEntity.class, id);
+        DescriptionTemplateEntity data = this.tenantEntityManagerFactory.getInstance().find(DescriptionTemplateEntity.class, id);
         if (data == null) throw new MyNotFoundException(this.messageSource.getMessage("General_ItemNotFound", new Object[]{id, DescriptionTemplate.class.getSimpleName()}, LocaleContextHolder.getLocale()));
 
         if (data.getVersionStatus().equals(DescriptionTemplateVersionStatus.Current)){
@@ -565,11 +575,11 @@ public class DescriptionTemplateServiceImpl implements DescriptionTemplateServic
             DescriptionTemplateEntity previousFinalized = descriptionTemplateQuery.first();
             if (previousFinalized != null){
                 previousFinalized.setVersionStatus(DescriptionTemplateVersionStatus.Current);
-                this.entityManager.merge(previousFinalized);
-                data.setVersionStatus(DescriptionTemplateVersionStatus.NotFinalized);
+                this.tenantEntityManagerFactory.getInstance().merge(previousFinalized);
+                this.kpiService.sendIndicatorPointDescriptionTemplateEntry(KpiDirectionType.Increase, KpiVersionType.LatestVersion);
             }
-            this.entityManager.merge(data);
-            this.entityManager.flush();
+            this.tenantEntityManagerFactory.getInstance().merge(data);
+            this.tenantEntityManagerFactory.getInstance().flush();
         }
         
         this.deleterFactory.deleter(DescriptionTemplateDeleter.class).deleteAndSaveByIds(List.of(id));
@@ -737,13 +747,13 @@ public class DescriptionTemplateServiceImpl implements DescriptionTemplateServic
 
         this.usageLimitService.checkIncrease(UsageLimitTargetMetric.DESCRIPTION_TEMPLATE_COUNT);
 
-        DescriptionTemplateEntity oldDescriptionTemplateEntity = this.entityManager.find(DescriptionTemplateEntity.class, model.getId(), true);
+        DescriptionTemplateEntity oldDescriptionTemplateEntity = this.tenantEntityManagerFactory.getInstance().find(DescriptionTemplateEntity.class, model.getId(), true);
         if (oldDescriptionTemplateEntity == null)
             throw new MyNotFoundException(this.messageSource.getMessage("General_ItemNotFound", new Object[]{model.getId(), DescriptionTemplate.class.getSimpleName()}, LocaleContextHolder.getLocale()));
         if (!this.conventionService.hashValue(oldDescriptionTemplateEntity.getUpdatedAt()).equals(model.getHash()))
             throw new MyValidationException(this.errors.getHashConflict().getCode(), this.errors.getHashConflict().getMessage());
 
-        if (!this.tenantScope.isSet() || !Objects.equals(oldDescriptionTemplateEntity.getTenantId(), this.tenantScope.getTenant())) throw new MyForbiddenException(this.errors.getTenantTampering().getCode(), this.errors.getTenantTampering().getMessage());
+        if (!this.tenantScopeFactory.getInstance().isSet() || !Objects.equals(oldDescriptionTemplateEntity.getTenantId(), this.tenantScopeFactory.getInstance().getTenant())) throw new MyForbiddenException(this.errors.getTenantTampering().getCode(), this.errors.getTenantTampering().getMessage());
         
         List<DescriptionTemplateEntity> latestVersionDescriptionTemplates = this.queryFactory.query(DescriptionTemplateQuery.class).disableTracking()
                 .versionStatuses(DescriptionTemplateVersionStatus.Current)
@@ -788,20 +798,27 @@ public class DescriptionTemplateServiceImpl implements DescriptionTemplateServic
         }
         data.setDefinition(this.xmlHandlingService.toXml(this.buildDefinitionEntity(model.getDefinition(), null)));
 
-        this.entityManager.persist(data);
+        this.tenantEntityManagerFactory.getInstance().persist(data);
 
         this.persistUsers(data.getId(), model.getUsers());
         //this.addOwner(data);
 
-        this.entityManager.flush();
+        this.tenantEntityManagerFactory.getInstance().flush();
 
         this.updateVersionStatusAndSave(data, DescriptionTemplateStatus.Draft, data.getStatus());
 
-        this.entityManager.flush();
+        this.tenantEntityManagerFactory.getInstance().flush();
 
         this.accountingService.increase(UsageLimitTargetMetric.DESCRIPTION_TEMPLATE_COUNT.getValue());
+
         if (data.getStatus().equals(DescriptionTemplateStatus.Draft)) this.accountingService.increase(UsageLimitTargetMetric.DESCRIPTION_TEMPLATE_DRAFT_COUNT.getValue());
         if (data.getStatus().equals(DescriptionTemplateStatus.Finalized)) this.accountingService.increase(UsageLimitTargetMetric.DESCRIPTION_TEMPLATE_FINALIZED_COUNT.getValue());
+
+        if (oldDescriptionTemplateEntity.getVersionStatus() != null && !oldDescriptionTemplateEntity.getVersionStatus().equals(data.getVersionStatus()) && data.getVersionStatus().equals(DescriptionTemplateVersionStatus.Current)) {
+            this.kpiService.sendIndicatorPointDescriptionTemplateEntry(KpiDirectionType.Increase, KpiVersionType.LatestVersion);
+        }
+
+        this.kpiService.sendIndicatorPointDescriptionTemplateEntry(KpiDirectionType.Increase, KpiVersionType.TotalCount);
 
         return this.builderFactory.builder(DescriptionTemplateBuilder.class).authorize(AuthorizationFlags.AllExceptPublic).build(BaseFieldSet.build(fields, DescriptionTemplate._id), data);
     }
@@ -1065,7 +1082,7 @@ public class DescriptionTemplateServiceImpl implements DescriptionTemplateServic
     public DescriptionTemplateImportExport exportXmlEntity(UUID id, boolean ignoreAuthorize) throws MyForbiddenException, MyNotFoundException, JAXBException, ParserConfigurationException, IOException, InstantiationException, IllegalAccessException, SAXException, InvalidApplicationException {
         logger.debug(new MapLogEntry("exportXml").And("id", id));
 
-        if (!ignoreAuthorize) this.authorizationService.authorizeAtLeastOneForce(List.of(this.authorizationContentResolver.descriptionTemplateAffiliation(id)), Permission.ExportDescriptionTemplate);
+        if (!ignoreAuthorize) this.authorizationService.authorizeAtLeastOneForce(List.of(this.authorizationContentResolverFactory.getInstance().descriptionTemplateAffiliation(id)), Permission.ExportDescriptionTemplate);
         DescriptionTemplateEntity data = this.queryFactory.query(DescriptionTemplateQuery.class).disableTracking().ids(id).authorize(AuthorizationFlags.AllExceptPublic).first();
         if (data == null) throw new MyNotFoundException(this.messageSource.getMessage("General_ItemNotFound", new Object[]{id, DescriptionTemplate.class.getSimpleName()}, LocaleContextHolder.getLocale()));
 
@@ -1078,7 +1095,7 @@ public class DescriptionTemplateServiceImpl implements DescriptionTemplateServic
     public ResponseEntity<byte[]> exportXml(UUID id) throws MyForbiddenException, MyNotFoundException, JAXBException, ParserConfigurationException, IOException, InstantiationException, IllegalAccessException, SAXException, InvalidApplicationException {
         logger.debug(new MapLogEntry("exportXml").And("id", id));
 
-        this.authorizationService.authorizeAtLeastOneForce(List.of(this.authorizationContentResolver.descriptionTemplateAffiliation(id)), Permission.ExportDescriptionTemplate);
+        this.authorizationService.authorizeAtLeastOneForce(List.of(this.authorizationContentResolverFactory.getInstance().descriptionTemplateAffiliation(id)), Permission.ExportDescriptionTemplate);
 
         DescriptionTemplateEntity data = this.queryFactory.query(DescriptionTemplateQuery.class).disableTracking().ids(id).authorize(AuthorizationFlags.AllExceptPublic).first();
         if (data == null) throw new MyNotFoundException(this.messageSource.getMessage("General_ItemNotFound", new Object[]{id, DescriptionTemplate.class.getSimpleName()}, LocaleContextHolder.getLocale()));
@@ -1120,7 +1137,7 @@ public class DescriptionTemplateServiceImpl implements DescriptionTemplateServic
 
         if (typeId == null) return xml;
 
-        DescriptionTemplateTypeEntity data = this.entityManager.find(DescriptionTemplateTypeEntity.class, typeId);
+        DescriptionTemplateTypeEntity data = this.tenantEntityManagerFactory.getInstance().find(DescriptionTemplateTypeEntity.class, typeId);
         if (data == null)
             throw new MyNotFoundException(this.messageSource.getMessage("General_ItemNotFound", new Object[]{typeId, DescriptionTemplateType.class.getSimpleName()}, LocaleContextHolder.getLocale()));
 

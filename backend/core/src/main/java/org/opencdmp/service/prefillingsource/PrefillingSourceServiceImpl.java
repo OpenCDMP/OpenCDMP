@@ -31,10 +31,7 @@ import org.opencdmp.commons.types.prefillingsource.PrefillingSourceDefinitionEnt
 import org.opencdmp.commons.types.prefillingsource.PrefillingSourceDefinitionFieldEntity;
 import org.opencdmp.commons.types.prefillingsource.PrefillingSourceDefinitionFixedValueFieldEntity;
 import org.opencdmp.convention.ConventionService;
-import org.opencdmp.data.DescriptionTemplateEntity;
-import org.opencdmp.data.PrefillingSourceEntity;
-import org.opencdmp.data.TagEntity;
-import org.opencdmp.data.TenantEntityManager;
+import org.opencdmp.data.*;
 import org.opencdmp.errorcode.ErrorThesaurusProperties;
 import org.opencdmp.model.DescriptionTag;
 import org.opencdmp.model.Prefilling;
@@ -48,6 +45,7 @@ import org.opencdmp.model.descriptionreference.DescriptionReferenceData;
 import org.opencdmp.model.descriptiontemplate.DescriptionTemplate;
 import org.opencdmp.model.persist.DescriptionPrefillingRequest;
 import org.opencdmp.model.persist.PrefillingSearchRequest;
+import org.opencdmp.model.persist.PrefillingTestRequest;
 import org.opencdmp.model.persist.PrefillingSourcePersist;
 import org.opencdmp.model.persist.externalfetcher.*;
 import org.opencdmp.model.persist.prefillingsourcedefinition.PrefillingSourceDefinitionFieldPersist;
@@ -63,6 +61,7 @@ import org.opencdmp.query.TagQuery;
 import org.opencdmp.query.lookup.ReferenceSearchLookup;
 import org.opencdmp.service.accounting.AccountingService;
 import org.opencdmp.service.externalfetcher.ExternalFetcherService;
+import org.opencdmp.service.externalfetcher.config.entities.SourceBaseConfiguration;
 import org.opencdmp.service.externalfetcher.criteria.ExternalReferenceCriteria;
 import org.opencdmp.service.externalfetcher.models.ExternalDataResult;
 import org.opencdmp.service.reference.ReferenceService;
@@ -78,6 +77,7 @@ import javax.xml.parsers.ParserConfigurationException;
 import java.io.IOException;
 import java.time.Instant;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
@@ -90,7 +90,7 @@ import java.util.stream.Stream;
 public class PrefillingSourceServiceImpl implements PrefillingSourceService {
 
     private static final LoggerService logger = new LoggerService(LoggerFactory.getLogger(PrefillingSourceServiceImpl.class));
-    private final TenantEntityManager entityManager;
+    private final TenantEntityManagerFactory tenantEntityManagerFactory;
     private final AuthorizationService authorizationService;
     private final DeleterFactory deleterFactory;
     private final BuilderFactory builderFactory;
@@ -108,10 +108,10 @@ public class PrefillingSourceServiceImpl implements PrefillingSourceService {
     private static final String Zenodo = "Zenodo";
 
     public PrefillingSourceServiceImpl(
-            TenantEntityManager entityManager, AuthorizationService authorizationService, DeleterFactory deleterFactory, BuilderFactory builderFactory,
+            TenantEntityManagerFactory tenantEntityManagerFactory, AuthorizationService authorizationService, DeleterFactory deleterFactory, BuilderFactory builderFactory,
             QueryFactory queryFactory, ConventionService conventionService, MessageSource messageSource,
             XmlHandlingService xmlHandlingService, ExternalFetcherService externalFetcherService, ErrorThesaurusProperties errors, JsonHandlingService jsonHandlingService, ReferenceService referenceService, UsageLimitService usageLimitService, AccountingService accountingService) {
-        this.entityManager = entityManager;
+        this.tenantEntityManagerFactory = tenantEntityManagerFactory;
         this.authorizationService = authorizationService;
         this.deleterFactory = deleterFactory;
         this.builderFactory = builderFactory;
@@ -137,7 +137,7 @@ public class PrefillingSourceServiceImpl implements PrefillingSourceService {
 
         PrefillingSourceEntity data;
         if (isUpdate) {
-            data = this.entityManager.find(PrefillingSourceEntity.class, model.getId());
+            data = this.tenantEntityManagerFactory.getInstance().find(PrefillingSourceEntity.class, model.getId());
             if (data == null)
                 throw new MyNotFoundException(this.messageSource.getMessage("General_ItemNotFound", new Object[]{model.getId(), PrefillingSource.class.getSimpleName()}, LocaleContextHolder.getLocale()));
             if (!this.conventionService.hashValue(data.getUpdatedAt()).equals(model.getHash())) throw new MyValidationException(this.errors.getHashConflict().getCode(), this.errors.getHashConflict().getMessage());
@@ -155,13 +155,13 @@ public class PrefillingSourceServiceImpl implements PrefillingSourceService {
         data.setDefinition(this.xmlHandlingService.toXml(this.buildDefinitionEntity(model.getDefinition())));
         data.setUpdatedAt(Instant.now());
 
-        if (isUpdate) this.entityManager.merge(data);
+        if (isUpdate) this.tenantEntityManagerFactory.getInstance().merge(data);
         else {
-            this.entityManager.persist(data);
+            this.tenantEntityManagerFactory.getInstance().persist(data);
             this.accountingService.increase(UsageLimitTargetMetric.PREFILLING_SOURCES_COUNT.getValue());
         }
 
-        this.entityManager.flush();
+        this.tenantEntityManagerFactory.getInstance().flush();
 
         if (!isUpdate) {
             Long prefillingSourcesWithThisCode = this.queryFactory.query(PrefillingSourceQuery.class).disableTracking()
@@ -391,6 +391,39 @@ public class PrefillingSourceServiceImpl implements PrefillingSourceService {
         return prefillings;
     }
 
+    public List<Prefilling> testPrefillings(PrefillingTestRequest model) {
+        this.authorizationService.authorizeForce(Permission.TestPrefillingSource);
+
+        if(this.conventionService.isListNullOrEmpty(model.getSources()))
+            throw new MyNotFoundException(this.messageSource.getMessage("General_ItemNotFound", new Object[]{model.getSources(), PrefillingSource.class.getSimpleName()}, LocaleContextHolder.getLocale()));
+
+        ExternalReferenceCriteria externalReferenceCriteria = new ExternalReferenceCriteria();
+        externalReferenceCriteria.setLike(model.getLike());
+
+        List<Prefilling> prefillings = new ArrayList<>();
+
+        ExternalDataResult externalData = this.externalFetcherService.getExternalData(model.getSources().stream().map(x -> (SourceBaseConfiguration)x).collect(Collectors.toList()), externalReferenceCriteria,  model.getKey(), true);
+        if (externalData == null || this.conventionService.isListNullOrEmpty(externalData.getResults())) {
+            return prefillings;
+        }
+
+        for (Map<String, String> result : externalData.getResults()) {
+            Prefilling prefilling = new Prefilling();
+            prefilling.setId(result.getOrDefault(Prefilling._id, null));
+            prefilling.setLabel(result.getOrDefault(Prefilling._label, null));
+            prefilling.setKey(result.getOrDefault(Prefilling._key, null));
+            prefilling.setTag(result.getOrDefault(Prefilling._tag, null));
+            prefilling.setData(result);
+
+            prefillings.add(prefilling);
+        }
+
+        prefillings = prefillings.stream().sorted(Comparator.comparing(Prefilling::getLabel, Comparator.nullsFirst(Comparator.naturalOrder()))).collect(Collectors.toList());
+
+        return prefillings;
+    }
+
+
     public Description getPrefilledDescription(DescriptionPrefillingRequest model, FieldSet fieldSet) throws JAXBException, ParserConfigurationException, IOException, InstantiationException, IllegalAccessException, SAXException, InvalidApplicationException {
 
         PrefillingSourceEntity prefillingSourceEntity = this.queryFactory.query(PrefillingSourceQuery.class).disableTracking().ids(model.getPrefillingSourceId()).first();
@@ -411,7 +444,7 @@ public class PrefillingSourceServiceImpl implements PrefillingSourceService {
             data = model.getData() == null ? new HashMap<>() : model.getData().getData();
         }
         
-        DescriptionTemplateEntity descriptionTemplateEntity = this.entityManager.find(DescriptionTemplateEntity.class, model.getDescriptionTemplateId(), true);
+        DescriptionTemplateEntity descriptionTemplateEntity = this.tenantEntityManagerFactory.getInstance().find(DescriptionTemplateEntity.class, model.getDescriptionTemplateId(), true);
         if (descriptionTemplateEntity == null) throw new MyNotFoundException(this.messageSource.getMessage("General_ItemNotFound", new Object[]{model.getDescriptionTemplateId(), DescriptionTemplate.class.getSimpleName()}, LocaleContextHolder.getLocale()));
         org.opencdmp.commons.types.descriptiontemplate.DefinitionEntity descriptionTemplateDefinition = this.xmlHandlingService.fromXml(org.opencdmp.commons.types.descriptiontemplate.DefinitionEntity.class, descriptionTemplateEntity.getDefinition());
 
@@ -556,9 +589,13 @@ public class PrefillingSourceServiceImpl implements PrefillingSourceService {
                             instant = Instant.parse(value);
                         }
                     } catch (DateTimeParseException ex) {
-                        instant = LocalDate.parse(value).atStartOfDay().toInstant(ZoneOffset.UTC);
-                        if (!this.conventionService.isNullOrEmpty(type) && type.equals(Zenodo) && "rda.dataset.distribution.available_until".equals(semanticTarget) ) {
-                            instant.plus(20, ChronoUnit.YEARS);
+                        try {
+                            instant = LocalDate.parse(value).atStartOfDay().toInstant(ZoneOffset.UTC);
+                            if (!this.conventionService.isNullOrEmpty(type) && type.equals(Zenodo) && "rda.dataset.distribution.available_until".equals(semanticTarget) ) {
+                                instant.plus(20, ChronoUnit.YEARS);
+                            }
+                        } catch (DateTimeParseException e) {
+                            instant = LocalDateTime.parse(value).toInstant(ZoneOffset.UTC);
                         }
                     }
                     field.setDateValue(instant);

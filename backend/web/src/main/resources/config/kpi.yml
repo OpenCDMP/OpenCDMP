@@ -2,8 +2,6 @@ kpi:
   maxIndicatorPointsPerRequest: 1000
   task:
     enable: ${KPI_VIEWER_TASK_ENABLED:false}
-    intervalSeconds: 86400
-    startTimeSeconds: 3600
   indicator:
     id: ${KPI_VIEWER_INDICATOR_ID:97c2d685-d7d2-4bd1-a287-ba329ad45d74}
     metadata:
@@ -23,11 +21,26 @@ kpi:
         - code: entity_type
           name: Entity Type
           baseType: keyword
-        - code: reference_type_code
-          name: Reference Type Code
+        - code: reference_type_id
+          name: Reference Type
           baseType: keyword
         - code: metric_type
           name: Metric Type
+          baseType: keyword
+        - code: blueprint_group_id
+          name: Blueprint
+          baseType: keyword
+        - code: plan_status
+          name: Plan Status
+          baseType: keyword
+        - code: template_group_id
+          name: Template
+          baseType: keyword
+        - code: description_status
+          name: Description Status
+          baseType: keyword
+        - code: latest_version
+          name: Latest_Version
           baseType: keyword
     roles:
       - Admin

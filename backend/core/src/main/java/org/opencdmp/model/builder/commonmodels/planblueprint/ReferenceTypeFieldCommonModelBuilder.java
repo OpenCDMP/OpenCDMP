@@ -5,14 +5,14 @@ import gr.cite.tools.data.query.QueryFactory;
 import org.opencdmp.commonmodels.models.planblueprint.ReferenceTypeFieldModel;
 import org.opencdmp.commons.types.planblueprint.ReferenceTypeFieldEntity;
 import org.opencdmp.convention.ConventionService;
-import org.opencdmp.model.builder.commonmodels.ReferenceTypeCommonModelBuilder;
+import org.opencdmp.model.builder.commonmodels.referencetype.ReferenceTypeCommonModelBuilder;
 import org.opencdmp.query.ReferenceTypeQuery;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-@Component
+@Component("planblueprint.ReferenceTypeFieldCommonModelBuilder")
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 public class ReferenceTypeFieldCommonModelBuilder extends FieldCommonModelBuilder<ReferenceTypeFieldModel, ReferenceTypeFieldEntity> {
 	private final QueryFactory queryFactory;

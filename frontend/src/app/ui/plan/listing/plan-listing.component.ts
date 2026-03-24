@@ -23,7 +23,7 @@ import { GuidedTour, Orientation } from '@app/library/guided-tour/guided-tour.co
 import { GuidedTourService } from '@app/library/guided-tour/guided-tour.service';
 import { HttpErrorHandlingService } from '@common/modules/errors/error-handling/http-error-handling.service';
 import { PageLoadEvent } from '@common/modules/hybrid-listing/hybrid-listing.component';
-import { TranslateService } from '@ngx-translate/core';
+import { LangChangeEvent, TranslateService } from '@ngx-translate/core';
 import { NgDialogAnimationService } from "ng-dialog-animation";
 import {  takeUntil, tap } from 'rxjs/operators';
 import { nameof } from 'ts-simple-nameof';
@@ -226,7 +226,8 @@ export class PlanListingComponent extends BaseListingComponent<BasePlan, PlanLoo
 					if (!result) { return []; }
 					this.totalCount = result.count;
 					if (this.lookup?.page?.offset === 0) this.listingItems = [];
-					this.listingItems.push(...result.items);
+					let plans = this._filterPlan([...result.items]);
+					this.listingItems.push(...plans);
 				}));
 		} else {
 			return this.planService.query(this.lookup).pipe(takeUntil(this._destroyed))
@@ -420,7 +421,7 @@ export class PlanListingComponent extends BaseListingComponent<BasePlan, PlanLoo
 		params.interceptorContext = {
 			excludedInterceptors: [InterceptorType.TenantHeaderInterceptor]
 		};
-		return this.principalService.myTenants({ params: params });
+		return this.principalService.myTenantsTranslated({ params: params });
 	}
 
 	private _parseLookupFromParams(params: Params): PlanLookup {
@@ -462,17 +463,6 @@ export class PlanListingComponent extends BaseListingComponent<BasePlan, PlanLoo
 		this.lookup.statusIds = filters?.statusId != null ? [filters.statusId] : null;
 
 		this.lookup.isActive = filters?.isActive ? [IsActive.Active] : [IsActive.Inactive];
-
-		// Tenants
-		let viewOnlyTenant = filters?.viewOnlyTenant ?? false;
-		if (viewOnlyTenant) {
-			let tenant = this.tenants?.find(t => t.code && t.code?.toString() == this.authService.selectedTenant());
-			if (tenant && tenant?.code) {
-				this.lookup.tenantSubQuery = PlanFilterService.initializeTenantLookup();
-				this.lookup.tenantSubQuery.codes = [tenant.code]
-			}
-			else this.lookup.tenantSubQuery = null;
-		} else this.lookup.tenantSubQuery = null;
 
 		// Description Templates
 		let descriptionTemplates = filters?.descriptionTemplates ?? null;

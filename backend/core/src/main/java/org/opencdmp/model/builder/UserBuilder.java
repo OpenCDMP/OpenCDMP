@@ -11,7 +11,7 @@ import gr.cite.tools.logging.LoggerService;
 import org.opencdmp.authorization.AuthorizationConfiguration;
 import org.opencdmp.authorization.AuthorizationFlags;
 import org.opencdmp.commons.JsonHandlingService;
-import org.opencdmp.commons.scope.tenant.TenantScope;
+import org.opencdmp.commons.scope.tenant.TenantScopeFactory;
 import org.opencdmp.commons.types.user.AdditionalInfoEntity;
 import org.opencdmp.convention.ConventionService;
 import org.opencdmp.data.UserEntity;
@@ -44,7 +44,7 @@ public class UserBuilder extends BaseBuilder<User, UserEntity> {
     private final BuilderFactory builderFactory;
     private final JsonHandlingService jsonHandlingService;
     private final AuthorizationConfiguration authorizationConfiguration;
-    private final TenantScope tenantScope;
+    private final TenantScopeFactory tenantScopeFactory;
 
 
     private EnumSet<AuthorizationFlags> authorize = EnumSet.of(AuthorizationFlags.None);
@@ -52,13 +52,13 @@ public class UserBuilder extends BaseBuilder<User, UserEntity> {
     @Autowired
     public UserBuilder(ConventionService conventionService,
                        QueryFactory queryFactory,
-                       BuilderFactory builderFactory, JsonHandlingService jsonHandlingService, AuthorizationConfiguration authorizationConfiguration, TenantScope tenantScope) {
+                       BuilderFactory builderFactory, JsonHandlingService jsonHandlingService, AuthorizationConfiguration authorizationConfiguration, TenantScopeFactory tenantScopeFactory) {
         super(conventionService, new LoggerService(LoggerFactory.getLogger(UserBuilder.class)));
         this.queryFactory = queryFactory;
         this.builderFactory = builderFactory;
         this.jsonHandlingService = jsonHandlingService;
 	    this.authorizationConfiguration = authorizationConfiguration;
-	    this.tenantScope = tenantScope;
+	    this.tenantScopeFactory = tenantScopeFactory;
     }
 
     public UserBuilder authorize(EnumSet<AuthorizationFlags> values) {
@@ -157,13 +157,13 @@ public class UserBuilder extends BaseBuilder<User, UserEntity> {
         Map<UUID, List<UserRole>> itemMap;
         FieldSet clone = new BaseFieldSet(fields.getFields()).ensure(this.asIndexer(UserRole._user, User._id));
 
-        if (!this.tenantScope.isSet())  throw new MyForbiddenException("tenant scope required");
+        if (!this.tenantScopeFactory.getInstance().isSet())  throw new MyForbiddenException("tenant scope required");
             
         UserRoleQuery query = this.queryFactory.query(UserRoleQuery.class).disableTracking().authorize(this.authorize).roles(this.authorizationConfiguration.getAuthorizationProperties().getAllowedTenantRoles()).userIds(data.stream().map(UserEntity::getId).distinct().collect(Collectors.toList()));
-        if (this.tenantScope.isDefaultTenant()) query.tenantIsSet(false);
+        if (this.tenantScopeFactory.getInstance().isDefaultTenant()) query.tenantIsSet(false);
         else {
             try {
-                query.tenantIsSet(true).tenantIds(this.tenantScope.getTenant());
+                query.tenantIsSet(true).tenantIds(this.tenantScopeFactory.getInstance().getTenant());
             } catch (InvalidApplicationException e) {
                 throw new RuntimeException(e);
             }

@@ -33,6 +33,8 @@ public class PlanStatusDefinitionBuilder extends BaseBuilder<PlanStatusDefinitio
 
     private EnumSet<AuthorizationFlags> authorize = EnumSet.of(AuthorizationFlags.None);
 
+    private boolean isPublic;
+
     public PlanStatusDefinitionBuilder(ConventionService conventionService, BuilderFactory builderFactory, QueryFactory queryFactory) {
         super(conventionService, new LoggerService(LoggerFactory.getLogger(PlanStatusDefinitionAuthorizationItemBuilder.class)));
         this.builderFactory = builderFactory;
@@ -41,6 +43,11 @@ public class PlanStatusDefinitionBuilder extends BaseBuilder<PlanStatusDefinitio
 
     public PlanStatusDefinitionBuilder authorize(EnumSet<AuthorizationFlags> values) {
         this.authorize = values;
+        return this;
+    }
+
+    public PlanStatusDefinitionBuilder isPublic(boolean isPublic) {
+        this.isPublic = isPublic;
         return this;
     }
 
@@ -61,15 +68,15 @@ public class PlanStatusDefinitionBuilder extends BaseBuilder<PlanStatusDefinitio
         for (PlanStatusDefinitionEntity d : data) {
             PlanStatusDefinition m = new PlanStatusDefinition();
 
-            if (!authorizationFields.isEmpty() && d.getAuthorization() != null) {
+            if (!this.isPublic && !authorizationFields.isEmpty() && d.getAuthorization() != null) {
                 m.setAuthorization(this.builderFactory.builder(PlanStatusDefinitionAuthorizationBuilder.class).authorize(this.authorize).build(authorizationFields, d.getAuthorization()));
             }
 
             if (fields.hasField(this.asIndexer(PlanStatusDefinition._availableActions))) m.setAvailableActions(d.getAvailableActions());
-            if(fields.hasField(this.asIndexer(PlanStatusDefinition._matIconName))) m.setMatIconName(d.getMatIconName());
-            if(fields.hasField(this.asIndexer(PlanStatusDefinition._statusColor))) m.setStatusColor(d.getStatusColor());
+            if(!this.isPublic && fields.hasField(this.asIndexer(PlanStatusDefinition._matIconName))) m.setMatIconName(d.getMatIconName());
+            if(!this.isPublic && fields.hasField(this.asIndexer(PlanStatusDefinition._statusColor))) m.setStatusColor(d.getStatusColor());
 
-            if (!storageFileFields.isEmpty() && storageFileItemsMap != null && storageFileItemsMap.containsKey(d.getStorageFileId()))  m.setStorageFile(storageFileItemsMap.get(d.getStorageFileId()));
+            if (!this.isPublic && !storageFileFields.isEmpty() && storageFileItemsMap != null && storageFileItemsMap.containsKey(d.getStorageFileId()))  m.setStorageFile(storageFileItemsMap.get(d.getStorageFileId()));
 
             models.add(m);
         }

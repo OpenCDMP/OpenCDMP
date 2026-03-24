@@ -8,7 +8,9 @@ import gr.cite.tools.fieldset.BaseFieldSet;
 import gr.cite.tools.logging.LoggerService;
 import gr.cite.tools.logging.MapLogEntry;
 import org.opencdmp.commons.enums.*;
+import org.opencdmp.commons.enums.kpi.KpiDirectionType;
 import org.opencdmp.data.*;
+import org.opencdmp.integrationevent.outbox.planremoval.PlanRemovalIntegrationEventHandlerImpl;
 import org.opencdmp.model.PlanDescriptionTemplate;
 import org.opencdmp.model.description.Description;
 import org.opencdmp.model.planreference.PlanReference;
@@ -16,6 +18,7 @@ import org.opencdmp.model.planstatus.PlanStatus;
 import org.opencdmp.query.*;
 import org.opencdmp.service.accounting.AccountingService;
 import org.opencdmp.service.elastic.ElasticService;
+import org.opencdmp.service.kpi.KpiService;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
@@ -35,26 +38,30 @@ public class PlanDeleter implements Deleter {
 
     private static final LoggerService logger = new LoggerService(LoggerFactory.getLogger(PlanDeleter.class));
 
-    private final TenantEntityManager entityManager;
+    private final TenantEntityManagerFactory tenantEntityManagerFactory;
 
+    private final KpiService kpiService;
     protected final QueryFactory queryFactory;
 
     protected final DeleterFactory deleterFactory;
     protected final ElasticService elasticService;
     protected final AccountingService accountingService;
+    protected final PlanRemovalIntegrationEventHandlerImpl planRemovalIntegrationEventHandler;
 
     @Autowired
     public PlanDeleter(
-            TenantEntityManager entityManager,
+            TenantEntityManagerFactory tenantEntityManagerFactory, KpiService kpiService,
             QueryFactory queryFactory,
             DeleterFactory deleterFactory,
             ElasticService elasticService,
-            AccountingService accountingService) {
-        this.entityManager = entityManager;
+            AccountingService accountingService, PlanRemovalIntegrationEventHandlerImpl planRemovalIntegrationEventHandler) {
+        this.tenantEntityManagerFactory = tenantEntityManagerFactory;
+        this.kpiService = kpiService;
         this.queryFactory = queryFactory;
         this.deleterFactory = deleterFactory;
         this.elasticService = elasticService;
         this.accountingService = accountingService;
+        this.planRemovalIntegrationEventHandler = planRemovalIntegrationEventHandler;
     }
 
     public void deleteAndSaveByIds(List<UUID> ids, boolean disableElastic) throws InvalidApplicationException, IOException {
@@ -68,7 +75,7 @@ public class PlanDeleter implements Deleter {
         logger.debug("will delete {} items", Optional.ofNullable(data).map(List::size).orElse(0));
         this.delete(data, disableElastic);
         logger.trace("saving changes");
-        this.entityManager.flush();
+        this.tenantEntityManagerFactory.getInstance().flush();
         logger.trace("changes saved");
     }
 
@@ -108,6 +115,8 @@ public class PlanDeleter implements Deleter {
         List<PlanStatusEntity> planStatusEntities = this.queryFactory.query(PlanStatusQuery.class).collectAs(new BaseFieldSet().ensure(PlanStatus._id).ensure(PlanStatus._name));
 
         for (PlanEntity item : data) {
+            this.kpiService.sendIndicatorPointPlanPerBlueprintEntry(KpiDirectionType.Decrease, item.getId());
+            this.kpiService.sendIndicatorPointPlanEntry(KpiDirectionType.Decrease);
             logger.trace("deleting item {}", item.getId());
             EntityDoiQuery entityDoiQuery = this.queryFactory.query(EntityDoiQuery.class).types(EntityType.Plan).entityIds(item.getId());
             if (entityDoiQuery.count() > 0) throw new MyApplicationException("Plan is deposited can not deleted");
@@ -115,7 +124,7 @@ public class PlanDeleter implements Deleter {
             item.setIsActive(IsActive.Inactive);
             item.setUpdatedAt(now);
             logger.trace("updating item");
-            this.entityManager.merge(item);
+            this.tenantEntityManagerFactory.getInstance().merge(item);
             logger.trace("updated item");
 
             if (!disableElastic) this.elasticService.deletePlan(item);
@@ -127,6 +136,8 @@ public class PlanDeleter implements Deleter {
                 this.accountingService.decrease(UsageLimitTargetMetric.PLAN_PUBLISHED_COUNT.getValue());
             }
         }
+
+        this.planRemovalIntegrationEventHandler.handlePlan(data.stream().map(PlanEntity::getId).toList());
     }
 
 }

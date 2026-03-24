@@ -11,9 +11,9 @@ import jakarta.persistence.criteria.Predicate;
 import org.opencdmp.authorization.AuthorizationFlags;
 import org.opencdmp.authorization.Permission;
 import org.opencdmp.commons.enums.StorageType;
-import org.opencdmp.commons.scope.user.UserScope;
+import org.opencdmp.commons.scope.user.UserScopeFactory;
 import org.opencdmp.data.StorageFileEntity;
-import org.opencdmp.data.TenantEntityManager;
+import org.opencdmp.data.TenantEntityManagerFactory;
 import org.opencdmp.model.StorageFile;
 import org.opencdmp.query.utils.QueryUtilsService;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
@@ -35,15 +35,15 @@ public class StorageFileQuery extends QueryBase<StorageFileEntity> {
     private Collection<UUID> excludedIds;
     private EnumSet<AuthorizationFlags> authorize = EnumSet.of(AuthorizationFlags.None);
 
-    private final UserScope userScope;
+    private final UserScopeFactory userScopeFactory;
     private final AuthorizationService authService;
     private final QueryUtilsService queryUtilsService;
-    private final TenantEntityManager tenantEntityManager;
-    public StorageFileQuery(UserScope userScope, AuthorizationService authService, QueryUtilsService queryUtilsService, TenantEntityManager tenantEntityManager) {
-        this.userScope = userScope;
+    private final TenantEntityManagerFactory tenantEntityManagerFactory;
+    public StorageFileQuery(UserScopeFactory userScopeFactory, AuthorizationService authService, QueryUtilsService queryUtilsService, TenantEntityManagerFactory tenantEntityManagerFactory) {
+        this.userScopeFactory = userScopeFactory;
         this.authService = authService;
 	    this.queryUtilsService = queryUtilsService;
-	    this.tenantEntityManager = tenantEntityManager;
+	    this.tenantEntityManagerFactory = tenantEntityManagerFactory;
     }
 
     public StorageFileQuery like(String value) {
@@ -128,7 +128,7 @@ public class StorageFileQuery extends QueryBase<StorageFileEntity> {
 
     @Override
     protected EntityManager entityManager(){
-        return this.tenantEntityManager.getEntityManager();
+        return this.tenantEntityManagerFactory.getInstance().getEntityManager();
     }
 
     @Override
@@ -149,7 +149,7 @@ public class StorageFileQuery extends QueryBase<StorageFileEntity> {
         if (this.authorize.contains(AuthorizationFlags.None)) return null;
         if (this.authorize.contains(AuthorizationFlags.Permission) && this.authService.authorize(Permission.BrowseStorageFile)) return null;
         UUID userId = null;
-        if (this.authorize.contains(AuthorizationFlags.Owner)) userId = this.userScope.getUserIdSafe();
+        if (this.authorize.contains(AuthorizationFlags.Owner)) userId = this.userScopeFactory.getInstance().getUserIdSafe();
 
         List<Predicate> predicates = new ArrayList<>();
         if (userId != null) {

@@ -1,0 +1,65 @@
+<div mat-dialog-title class="header">
+  <span class="template-title align-self-center">{{ 'REFERENCE-FIELD.REFERENCE-FIELD-INFO-DIALOG.INFO-MESSAGE' | translate }}</span>
+  <button mat-icon-button (click)="closeDialog($event)" class="ml-auto" [attr.aria-label]="'ALT-TEXT.CLOSE-DIALOG'  | translate"><mat-icon aria-hidden>close</mat-icon></button>
+</div>
+
+@if (reference) {
+  <div class="info-container p-4">
+    <table class="info-table">
+      <thead>
+        <tr>
+          <th colspan="2" class="section-header">{{ 'REFERENCE-FIELD.REFERENCE-FIELD-INFO-DIALOG.SYSTEM-INFORMATION' | translate }}</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="info-label">
+            {{ 'REFERENCE-FIELD.REFERENCE-FIELD-INFO-DIALOG.FIELDS.REFERENCE-ID' | translate }}
+          </td>
+          <td class="info-value">{{ reference.reference }}</td>
+        </tr>
+        <tr>
+          <td class="info-label">
+            {{ 'REFERENCE-FIELD.REFERENCE-FIELD-INFO-DIALOG.FIELDS.LABEL' | translate }}
+          </td>
+          <td class="info-value">{{ reference.label }}</td>
+        </tr>
+        <tr>
+          <td class="info-label">
+            {{ 'REFERENCE-FIELD.REFERENCE-FIELD-INFO-DIALOG.FIELDS.DESCRIPTION' | translate }}
+          </td>
+          <td class="info-value">{{ reference.description }}</td>
+        </tr>
+        <tr>
+          <td class="info-label">
+            {{ 'REFERENCE-FIELD.REFERENCE-FIELD-INFO-DIALOG.FIELDS.SOURCE' | translate }}
+          </td>
+          <td class="info-value">{{ reference.source }}</td>
+        </tr>
+      </tbody>
+
+      @if (reference.definition && reference.definition.fields?.length > 0) {
+        <thead>
+          <tr>
+            <th colspan="2" class="section-header">{{label}} {{'REFERENCE-FIELD.REFERENCE-FIELD-INFO-DIALOG.TYPE-INFORMATION' | translate}}</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (field of reference.definition.fields; track $index) {
+            <tr>
+              <td class="info-label">{{ getFieldLabel(field.code) }}</td>
+              <td class="info-value">{{ field.value }}</td>
+            </tr>
+          }
+        </tbody>
+      }
+    </table>
+  </div>
+  @if (showSelect) {
+    <div mat-dialog-actions class="row d-flex">
+      <div class="col-auto ml-auto">
+        <button mat-flat-button color="primary" type="button" class="padded-shadow-btn" (click)="select()">{{'REFERENCE-FIELD.REFERENCE-FIELD-INFO-DIALOG.SELECT' | translate}}</button>
+      </div>
+    </div>
+  }
+}

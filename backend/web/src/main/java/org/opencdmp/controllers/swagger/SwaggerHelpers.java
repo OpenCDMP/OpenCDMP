@@ -3955,6 +3955,172 @@ public final class SwaggerHelpers {
 
     }
 
+    public static final class PlanBlueprintType {
+
+        public static final String endpoint_query =
+                """
+                        This endpoint is used to fetch all the available plan blueprint types.<br/>
+                        It also allows to restrict the results using a query object passed in the request body.<br/>
+                        """;
+
+        public static final String endpoint_query_request_body =
+                """
+                        Let's explore the options this object gives us.
+                        
+                        ### <u>General query parameters:</u>
+                        
+                        <ul>
+                            <li><b>page:</b>
+                            This is an object controlling the pagination of the results. It contains two properties.
+                            </li>
+                            <ul>
+                                <li><b>offset:</b>
+                                How many records to omit.
+                                </li>
+                                <li><b>size:</b>
+                                How many records to include in each page.
+                                </li>
+                            </ul>
+                        </ul>
+                        
+                        For example, if we want the third page, and our pages to contain 15 elements, we would pass the following object:
+                        
+                        ```JSON
+                        {
+                            "offset": 30,
+                            "size": 15
+                        }
+                        ```
+                        
+                        <ul>
+                            <li><b>order:</b>
+                            This is an object controlling the ordering of the results.
+                            It contains a list of strings called <i>items</i> with the names of the properties to use.
+                            <br/>If the name of the property is prefixed with a <b>'-'</b>, the ordering direction is <b>DESC</b>. Otherwise, it is <b>ASC</b>.
+                            </li>
+                        </ul>
+                        
+                        For example, if we wanted to order based on the field 'createdAt' in descending order, we would pass the following object:
+                        
+                        ```JSON
+                        {
+                            "items": [
+                                "-createdAt"
+                            ],
+                        }
+                        ```
+                        
+                        <ul>
+                            <li><b>metadata:</b>
+                            This is an object containing metadata for the request. There is only one available option.
+                            <ul>
+                                <li><b>countAll:</b>
+                                If this is set to true, the count property included in the response will account for all the records regardless the pagination,
+                                with all the rest of filtering options applied of course.
+                                Otherwise, if it is set to false or not present, only the returned results will be counted.
+                                <br/>The first option is useful for the UI clients to calculate how many result pages are available.
+                                </li>
+                            </ul>
+                            </li>
+                            <li><b>project:</b>
+                            This is an object controlling the data projection of the results.
+                            It contains a list of strings called <i>fields</i> with the names of the properties to project.
+                            <br/>You can also include properties that are deeper in the object tree by prefixing them with dots.
+                            </li>
+                        </ul>
+                        
+                        ### <u>Description template type specific query parameters:</u>
+                        
+                        <ul>
+                            <li><b>like:</b>
+                            If there is a like parameter present in the query, only the description template type entities that include the contents of the parameter in their labels will be in the response.
+                            </li>
+                            <li><b>ids:</b>
+                            This is a list and contains the ids we want to include in the response. <br/>If empty, every record is included.
+                            </li>
+                            <li><b>excludedIds:</b>
+                            This is a list and contains the ids we want to exclude from the response. <br/>If empty, no record gets excluded.
+                            </li>
+                            <li><b>isActives:</b>
+                            This is a list and determines which records we want to include in the response, based on if they are deleted or not.
+                            This filter works like this. If we want to view only the active records we pass [1] and for only the deleted records we pass [0].
+                            <br/>If not present or if we pass [0,1], every record is included.
+                            </li>
+                            <li><b>statuses:</b>
+                            This is a list and determines which records we want to include in the response, based on their status.
+                            The status can be <i>Draft</i> or <i>Finalized</i>. We add 0 or 1 to the list respectively.
+                            <br/>If not present, every record is included.
+                            </li>
+                        </ul>
+                        """;
+
+        public static final String endpoint_query_request_body_example =
+                """
+                        {
+                           "project": {
+                             "fields": [
+                               "id",
+                               "name",
+                               "code",
+                               "status",
+                               "updatedAt",
+                               "createdAt",
+                               "hash",
+                               "belongsToCurrentTenant",
+                               "isActive"
+                             ]
+                           },
+                           "metadata": {
+                             "countAll": true
+                           },
+                           "page": {
+                             "offset": 0,
+                             "size": 10
+                           },
+                           "isActive": [
+                             1
+                           ],
+                           "order": {
+                             "items": [
+                               "-createdAt"
+                             ]
+                           }
+                         }
+                        """;
+
+        public static final String endpoint_query_response_example =
+                """
+                        {
+                           "items": [
+                             {
+                               "id": "709a8400-10ca-11ee-be56-0242ac120002",
+                               "code": "091dda38-10fc-4895-893b-ede3230374ef",
+                               "name": "Dataset",
+                               "createdAt": "2024-10-14T10:02:43.341299Z",
+                               "updatedAt": "2024-10-14T10:02:43.341299Z",
+                               "isActive": 1,
+                               "status": 1,
+                               "hash": "1728900163",
+                               "belongsToCurrentTenant": true
+                             },
+                             {
+                               "id": "3b15c046-a978-4b5a-9376-66525b7f1ac9",
+                               "code": "74ee0e72-bb24-48fc-b910-3531e84338da",
+                               "name": "Software",
+                               "createdAt": "2024-10-14T10:02:43.341299Z",
+                               "updatedAt": "2024-10-14T10:02:43.341299Z",
+                               "isActive": 1,
+                               "status": 1,
+                               "hash": "1728900163",
+                               "belongsToCurrentTenant": true
+                             }
+                           ],
+                           "count": 2
+                         }
+                        """;
+
+    }
+
     public static final class FileTransformer {
 
         public static final String endpoint_get_available_transformers =

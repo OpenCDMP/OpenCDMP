@@ -196,7 +196,7 @@ export class DescriptionTemplateEditorComponent extends BaseEditor<DescriptionTe
             }
         })
 		this.singleAutocompleteDescriptionTemplateTypeConfiguration = this.descriptionTemplateTypeService.getSingleAutocompleteConfiguration([DescriptionTemplateTypeStatus.Finalized]);
-		this.referenceTypeService.query(ReferenceTypeService.DefaultReferenceTypeLookup()).subscribe(referenceTypes => this.availableReferenceTypes = referenceTypes.items as ReferenceType[]);	}
+		this.referenceTypeService.query(ReferenceTypeService.DefaultReferenceTypeLookup(null)).subscribe(referenceTypes => this.availableReferenceTypes = referenceTypes.items as ReferenceType[]);	}
 
 	private initModelFlags(action: string): void {
 		if (action == 'clone') {
@@ -237,7 +237,7 @@ export class DescriptionTemplateEditorComponent extends BaseEditor<DescriptionTe
 				})
 				
 			} else {
-                const pluginConfigurations = this.pluginConfigurationService.getAvailablePluginsFor(PluginType.FileTransformer, [PluginEntityType.Description]);
+                const pluginConfigurations = this.plugins;
 				if (dataCopy == null) {
 					dataCopy = {
 						...dataCopy,
@@ -271,6 +271,10 @@ export class DescriptionTemplateEditorComponent extends BaseEditor<DescriptionTe
 			this.logger.error('Could not parse descriptionTemplate item: ' + data + error);
 			this.uiNotificationService.snackBarNotification(this.language.instant('COMMONS.ERRORS.DEFAULT'), SnackBarNotificationLevel.Error);
 		}
+	}
+
+	get plugins() {
+		return this.pluginConfigurationService.getAvailablePluginsFor(PluginType.FileTransformer, [PluginEntityType.Description]);
 	}
 
 	buildForm() {

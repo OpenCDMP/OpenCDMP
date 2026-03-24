@@ -13,7 +13,7 @@ import org.opencdmp.commons.enums.PlanBlueprintStatus;
 import org.opencdmp.commons.enums.PlanBlueprintVersionStatus;
 import org.opencdmp.commons.enums.IsActive;
 import org.opencdmp.data.PlanBlueprintEntity;
-import org.opencdmp.data.TenantEntityManager;
+import org.opencdmp.data.TenantEntityManagerFactory;
 import org.opencdmp.model.planblueprint.PlanBlueprint;
 import org.opencdmp.query.utils.QueryUtilsService;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
@@ -36,6 +36,8 @@ public class PlanBlueprintQuery extends QueryBase<PlanBlueprintEntity> {
     private Collection<IsActive> isActives;
 
     private Collection<PlanBlueprintStatus> statuses;
+
+    private Collection<UUID> typeIds;
 
     private Collection<UUID> groupIds;
 
@@ -129,6 +131,21 @@ public class PlanBlueprintQuery extends QueryBase<PlanBlueprintEntity> {
         return this;
     }
 
+    public PlanBlueprintQuery typeIds(UUID value) {
+        this.typeIds = List.of(value);
+        return this;
+    }
+
+    public PlanBlueprintQuery typeIds(UUID... value) {
+        this.typeIds = Arrays.asList(value);
+        return this;
+    }
+
+    public PlanBlueprintQuery typeIds(Collection<UUID> values) {
+        this.typeIds = values;
+        return this;
+    }
+
     public PlanBlueprintQuery groupIds(UUID value) {
         this.groupIds = List.of(value);
         return this;
@@ -206,16 +223,16 @@ public class PlanBlueprintQuery extends QueryBase<PlanBlueprintEntity> {
 
     @Override
     protected EntityManager entityManager(){
-        return this.tenantEntityManager.getEntityManager();
+        return this.tenantEntityManagerFactory.getInstance().getEntityManager();
     }
 
     private final QueryUtilsService queryUtilsService;
-    private final TenantEntityManager tenantEntityManager;
+    private final TenantEntityManagerFactory tenantEntityManagerFactory;
     public PlanBlueprintQuery(
-		    AuthorizationService authService, QueryUtilsService queryUtilsService, TenantEntityManager tenantEntityManager
+		    AuthorizationService authService, QueryUtilsService queryUtilsService, TenantEntityManagerFactory tenantEntityManagerFactory
     ) {
 	    this.queryUtilsService = queryUtilsService;
-	    this.tenantEntityManager = tenantEntityManager;
+	    this.tenantEntityManagerFactory = tenantEntityManagerFactory;
     }
 
     @Override
@@ -256,6 +273,13 @@ public class PlanBlueprintQuery extends QueryBase<PlanBlueprintEntity> {
         if (this.isActives != null) {
             CriteriaBuilder.In<IsActive> inClause = queryContext.CriteriaBuilder.in(queryContext.Root.get(PlanBlueprintEntity._isActive));
             for (IsActive item : this.isActives)
+                inClause.value(item);
+            predicates.add(inClause);
+        }
+
+        if (this.typeIds != null) {
+            CriteriaBuilder.In<UUID> inClause = queryContext.CriteriaBuilder.in(queryContext.Root.get(PlanBlueprintEntity._typeId));
+            for (UUID item : this.typeIds)
                 inClause.value(item);
             predicates.add(inClause);
         }
@@ -319,6 +343,7 @@ public class PlanBlueprintQuery extends QueryBase<PlanBlueprintEntity> {
         item.setCode(QueryBase.convertSafe(tuple, columns, PlanBlueprintEntity._code, String.class));
         item.setDefinition(QueryBase.convertSafe(tuple, columns, PlanBlueprintEntity._definition, String.class));
         item.setStatus(QueryBase.convertSafe(tuple, columns, PlanBlueprintEntity._status, PlanBlueprintStatus.class));
+        item.setTypeId(QueryBase.convertSafe(tuple, columns, PlanBlueprintEntity._typeId, UUID.class));
         item.setGroupId(QueryBase.convertSafe(tuple, columns, PlanBlueprintEntity._groupId, UUID.class));
         item.setVersion(QueryBase.convertSafe(tuple, columns, PlanBlueprintEntity._version, Short.class));
         item.setVersionStatus(QueryBase.convertSafe(tuple, columns, PlanBlueprintEntity._versionStatus, PlanBlueprintVersionStatus.class));
@@ -342,6 +367,8 @@ public class PlanBlueprintQuery extends QueryBase<PlanBlueprintEntity> {
             return PlanBlueprintEntity._definition;
         else if (item.prefix(PlanBlueprint._definition))
             return PlanBlueprintEntity._definition;
+        else if (item.prefix(PlanBlueprint._type))
+            return PlanBlueprintEntity._typeId;
         else if (item.match(PlanBlueprint._status))
             return PlanBlueprintEntity._status;
         else if (item.match(PlanBlueprint._groupId))

@@ -6,4 +6,5 @@ public class ClaimNames {
 	public static final String TenantClaimName = "x-tenant";
 	public static final String GlobalRolesClaimName = "GlobalRoles";
 	public static final String TenantRolesClaimName = "TenantRoles";
+	public static final String AllTenantRolesClaimName = "AllTenantRoles";
 }

@@ -1,5 +1,5 @@
-import { DOCUMENT, LocationStrategy } from '@angular/common';
-import { Inject, Injectable } from '@angular/core';
+import { LocationStrategy } from '@angular/common';
+import { Inject, Injectable, DOCUMENT } from '@angular/core';
 import { PRIMARY_OUTLET, Router, UrlSegment, UrlSegmentGroup, UrlSerializer, UrlTree } from '@angular/router';
 import { TenantConfigurationType } from '@app/core/common/enum/tenant-configuration-type';
 import { CssColorsTenantConfiguration, TenantConfiguration } from '@app/core/model/tenant-configuaration/tenant-configuration';

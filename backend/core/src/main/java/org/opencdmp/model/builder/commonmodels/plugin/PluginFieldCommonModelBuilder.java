@@ -10,7 +10,7 @@ import org.opencdmp.authorization.AuthorizationFlags;
 import org.opencdmp.commonmodels.models.FileEnvelopeModel;
 import org.opencdmp.commonmodels.models.plugin.PluginFieldModel;
 import org.opencdmp.commons.enums.StorageType;
-import org.opencdmp.commons.scope.user.UserScope;
+import org.opencdmp.commons.scope.user.UserScopeFactory;
 import org.opencdmp.commons.types.pluginconfiguration.PluginConfigurationFieldEntity;
 import org.opencdmp.convention.ConventionService;
 import org.opencdmp.data.StorageFileEntity;
@@ -37,19 +37,19 @@ import java.util.*;
 public class PluginFieldCommonModelBuilder extends BaseCommonModelBuilder<PluginFieldModel, PluginConfigurationFieldEntity> {
     private final StorageFileService storageFileService;
     private final QueryFactory queryFactory;
-    private final UserScope userScope;
+    private final UserScopeFactory userScopeFactory;
     private final ValidatorFactory validatorFactory;
     private final StorageFileProperties storageFileProperties;
 
     private EnumSet<AuthorizationFlags> authorize = EnumSet.of(AuthorizationFlags.None);
     @Autowired
     public PluginFieldCommonModelBuilder(
-            ConventionService conventionService, StorageFileService storageFileService, QueryFactory queryFactory, UserScope userScope, ValidatorFactory validatorFactory, StorageFileProperties storageFileProperties
+            ConventionService conventionService, StorageFileService storageFileService, QueryFactory queryFactory, UserScopeFactory userScopeFactory, ValidatorFactory validatorFactory, StorageFileProperties storageFileProperties
     ) {
         super(conventionService, new LoggerService(LoggerFactory.getLogger(PluginFieldCommonModelBuilder.class)));
         this.storageFileService = storageFileService;
         this.queryFactory = queryFactory;
-        this.userScope = userScope;
+        this.userScopeFactory = userScopeFactory;
         this.validatorFactory = validatorFactory;
         this.storageFileProperties = storageFileProperties;
     }
@@ -108,7 +108,7 @@ public class PluginFieldCommonModelBuilder extends BaseCommonModelBuilder<Plugin
         storageFilePersist.setName(FilenameUtils.removeExtension(storageFile.getName()));
         storageFilePersist.setExtension(FilenameUtils.getExtension(storageFile.getExtension()));
         storageFilePersist.setMimeType(URLConnection.guessContentTypeFromName(storageFile.getName() + (storageFile.getExtension().startsWith(".") ? "" : ".") + storageFile.getExtension()));
-        storageFilePersist.setOwnerId(this.userScope.getUserIdSafe());
+        storageFilePersist.setOwnerId(this.userScopeFactory.getInstance().getUserIdSafe());
         storageFilePersist.setStorageType(StorageType.Temp);
         storageFilePersist.setLifetime(Duration.ofSeconds(this.storageFileProperties.getTempStoreLifetimeSeconds())); //TODO
         this.validatorFactory.validator(StorageFilePersist.StorageFilePersistValidator.class).validateForce(storageFilePersist);

@@ -11,8 +11,8 @@ import jakarta.persistence.criteria.Predicate;
 import org.opencdmp.authorization.AuthorizationFlags;
 import org.opencdmp.authorization.Permission;
 import org.opencdmp.commons.enums.IsActive;
-import org.opencdmp.commons.scope.user.UserScope;
-import org.opencdmp.data.TenantEntityManager;
+import org.opencdmp.commons.scope.user.UserScopeFactory;
+import org.opencdmp.data.TenantEntityManagerFactory;
 import org.opencdmp.data.TenantUserEntity;
 import org.opencdmp.data.UserEntity;
 import org.opencdmp.model.TenantUser;
@@ -33,17 +33,17 @@ public class TenantUserQuery extends QueryBase<TenantUserEntity> {
 	private Collection<IsActive> isActives;
 	private UserQuery userQuery;
 	private EnumSet<AuthorizationFlags> authorize = EnumSet.of(AuthorizationFlags.None);
-	private final UserScope userScope;
+	private final UserScopeFactory userScopeFactory;
 	private final AuthorizationService authService;
-	private final TenantEntityManager tenantEntityManager;
+	private final TenantEntityManagerFactory tenantEntityManagerFactory;
 
 	public TenantUserQuery(
-			UserScope userScope,
-			AuthorizationService authService, TenantEntityManager tenantEntityManager
+			UserScopeFactory userScopeFactory,
+			AuthorizationService authService, TenantEntityManagerFactory tenantEntityManagerFactory
 	) {
-		this.userScope = userScope;
+		this.userScopeFactory = userScopeFactory;
 		this.authService = authService;
-		this.tenantEntityManager = tenantEntityManager;
+		this.tenantEntityManagerFactory = tenantEntityManagerFactory;
 	}
 
 	public TenantUserQuery ids(UUID value) {
@@ -128,7 +128,7 @@ public class TenantUserQuery extends QueryBase<TenantUserEntity> {
 
 	@Override
 	protected EntityManager entityManager(){
-		return this.tenantEntityManager.getEntityManager();
+		return this.tenantEntityManagerFactory.getInstance().getEntityManager();
 	}
 
 	@Override
@@ -147,7 +147,7 @@ public class TenantUserQuery extends QueryBase<TenantUserEntity> {
 		if (this.authorize.contains(AuthorizationFlags.None)) return null;
 		if (this.authorize.contains(AuthorizationFlags.Permission) && this.authService.authorize(Permission.BrowseTenantUser)) return null;
 		UUID ownerId = null;
-		if (this.authorize.contains(AuthorizationFlags.Owner)) ownerId = this.userScope.getUserIdSafe();
+		if (this.authorize.contains(AuthorizationFlags.Owner)) ownerId = this.userScopeFactory.getInstance().getUserIdSafe();
 
 		List<Predicate> predicates = new ArrayList<>();
 		if (ownerId != null) {

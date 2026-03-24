@@ -1,6 +1,170 @@
 [
   {
     "category": "rda",
+    "name": "rda.dataset.creator.affiliation.name"
+  },
+  {
+    "category": "rda",
+    "name": "rda.dataset.creator.affiliation.affiliation_id.type"
+  },
+  {
+    "category": "rda",
+    "name": "rda.dataset.creator.affiliation.affiliation_id.identifier"
+  },
+  {
+    "category": "rda",
+    "name": "rda.dataset.creator.id"
+  },
+  {
+    "category": "rda",
+    "name": "rda.dataset.creator.mbox"
+  },
+  {
+    "category": "rda",
+    "name": "rda.dataset.creator.name"
+  },
+  {
+    "category": "rda",
+    "name": "rda.dataset.creator.creator_id.identifier"
+  },
+  {
+    "category": "rda",
+    "name": "rda.dataset.creator.creator_id.type"
+  },
+  {
+    "category": "rda",
+    "name": "rda.dmp.contact.affiliation.name"
+  },
+  {
+    "category": "rda",
+    "name": "rda.dmp.contact.affiliation.affiliation_id.type"
+  },
+  {
+    "category": "rda",
+    "name": "rda.dmp.contact.affiliation.affiliation_id.identifier"
+  },
+  {
+    "category": "rda",
+    "name": "rda.dmp.related_identifier.identifier"
+  },
+  {
+    "category": "rda",
+    "name": "rda.dmp.related_identifier.metadata_scheme"
+  },
+  {
+    "category": "rda",
+    "name": "rda.dmp.related_identifier.relation_type"
+  },
+  {
+    "category": "rda",
+    "name": "rda.dmp.related_identifier.resource_type"
+  },
+  {
+    "category": "rda",
+    "name": "rda.dmp.related_identifier.scheme_type"
+  },
+  {
+    "category": "rda",
+    "name": "rda.dmp.related_identifier.scheme_uri"
+  },
+  {
+    "category": "rda",
+    "name": "rda.dmp.related_identifier.type"
+  },
+  {
+    "category": "rda",
+    "name":"rda.dataset.related_identifier.identifier"
+  },
+  {
+    "category": "rda",
+    "name": "rda.dataset.related_identifier.metadata_scheme"
+  },
+  {
+    "category": "rda",
+    "name": "rda.dataset.related_identifier.relation_type"
+  },
+  {
+    "category": "rda",
+    "name": "rda.dataset.related_identifier.resource_type"
+  },
+  {
+    "category": "rda",
+    "name": "rda.dataset.related_identifier.scheme_type"
+  },
+  {
+    "category": "rda",
+    "name": "rda.dataset.related_identifier.scheme_uri"
+  },
+  {
+    "category": "rda",
+    "name": "rda.dataset.related_identifier.type"
+  },
+  {
+    "category": "rda",
+    "name": "rda.dataset.alternate_identifier.identifier"
+  },
+  {
+    "category": "rda",
+    "name": "rda.dataset.alternate_identifier.type"
+  },
+  {
+    "category": "rda",
+    "name": "rda.dataset.technical_resource.id.identifier"
+  },
+  {
+    "category": "rda",
+    "name": "rda.dataset.technical_resource.id.type"
+  },
+  {
+    "category": "rda",
+    "name": "rda.dataset.distribution.issued"
+  },
+  {
+    "category": "rda",
+    "name": "rda.dataset.distribution.host.host_id.identifier"
+  },
+  {
+    "category": "rda",
+    "name": "rda.dataset.distribution.host.host_id.type"
+  },
+  {
+    "category": "rda",
+    "name": "rda.dmp.contributor.affiliation.name"
+  },
+  {
+    "category": "rda",
+    "name": "rda.dmp.contributor.affiliation.affiliation_id.type"
+  },
+  {
+    "category": "rda",
+    "name": "rda.dmp.contributor.affiliation.affiliation_id.identifier"
+  },
+  {
+    "category": "rda",
+    "name": "rda.dataset.rights"
+  },
+  {
+    "category": "rda",
+    "name": "rda.dmp.alternate_identifier.identifier"
+  },
+  {
+    "category": "rda",
+    "name": "rda.dmp.alternate_identifier.type"
+  },
+  {
+    "category": "rda",
+    "name": "rda.dmp.project.project_id.identifier"
+  },
+  {
+    "category": "rda",
+    "name": "rda.dmp.project.project_id.type"
+  },
+  {
+    "category": "rda",
+    "name": "rda.dataset.is_reused"
+  },
+  {
+    "category": "rda",
     "name": "rda.dataset.data_quality_assurance"
   },
   {
@@ -182,6 +346,18 @@
   {
     "category": "rda",
     "name": "rda.dataset.description"
+  },
+  {
+    "category": "rda",
+    "name": "rda.dmp.contact.affiliation.name"
+  },
+  {
+    "category": "rda",
+    "name": "rda.dmp.contact.affiliation.affiliation_id.type"
+  },
+  {
+    "category": "rda",
+    "name": "rda.dmp.contact.affiliation.affiliation_id.identifier"
   },
   {
     "category": "rda",
@@ -1032,6 +1208,18 @@
     "name": "zenodo.software.development-status"
   },
   {
+    "category": "zenodo",
+    "name": "zenodo.metadata.rights.link"
+  },
+  {
+    "category": "zenodo",
+    "name": "zenodo.metadata.contributors.person_or_org.given_name"
+  },
+  {
+    "category": "zenodo",
+    "name": "zenodo.metadata.contributors.person_or_org.family_name"
+  },
+  {
     "category": "ckan",
     "name": "ckan.dataset.type"
   },
@@ -1514,5 +1702,309 @@
   {
     "category": "fedora",
     "name": "fedora.rights"
+  },
+  {
+    "category": "heal_link",
+    "name": "heal_link.notes"
+  },
+  {
+    "category": "heal_link",
+    "name": "heal_link.creator_user_id"
+  },
+  {
+    "category": "heal_link",
+    "name": "heal_link.id"
+  },
+  {
+    "category": "heal_link",
+    "name": "heal_link.organization.title"
+  },
+  {
+    "category": "heal_link",
+    "name": "heal_link.organization.description"
+  },
+  {
+    "category": "heal_link",
+    "name": "heal_link.organization.state"
+  },
+  {
+    "category": "heal_link",
+    "name": "heal_link.organization.name"
+  },
+  {
+    "category": "heal_link",
+    "name": "heal_link.organization.type"
+  },
+  {
+    "category": "heal_link",
+    "name": "heal_link.organization.created"
+  },
+  {
+    "category": "heal_link",
+    "name": "heal_link.organization.is_organization"
+  },
+  {
+    "category": "heal_link",
+    "name": "heal_link.organization.approval_status"
+  },
+  {
+    "category": "heal_link",
+    "name": "heal_link.organization.image_url"
+  },
+  {
+    "category": "heal_link",
+    "name": "heal_link.datacite_doi"
+  },
+  {
+    "category": "heal_link",
+    "name": "heal_link.type"
+  },
+  {
+    "category": "heal_link",
+    "name": "heal_link.title_optional"
+  },
+  {
+    "category": "heal_link",
+    "name": "heal_link.archived"
+  },
+  {
+    "category": "heal_link",
+    "name": "heal_link.contact_email"
+  },
+  {
+    "category": "heal_link",
+    "name": "heal_link.dataset_preview"
+  },
+  {
+    "category": "heal_link",
+    "name": "heal_link.embargo_date"
+  },
+  {
+    "category": "heal_link",
+    "name": "heal_link.is_requestdata_type"
+  },
+  {
+    "category": "heal_link",
+    "name": "heal_link.isopen"
+  },
+  {
+    "category": "heal_link",
+    "name": "heal_link.license_id"
+  },
+  {
+    "category": "heal_link",
+    "name": "heal_link.license_title"
+  },
+  {
+    "category": "heal_link",
+    "name": "heal_link.license_url"
+  },
+  {
+    "category": "heal_link",
+    "name": "heal_link.maintainer"
+  },
+  {
+    "category": "heal_link",
+    "name": "heal_link.maintainer_email"
+  },
+  {
+    "category": "heal_link",
+    "name": "heal_link.package_creator"
+  },
+  {
+    "category": "heal_link",
+    "name": "heal_link.metadata_created"
+  },
+  {
+    "category": "heal_link",
+    "name": "heal_link.metadata_modified"
+  },
+  {
+    "category": "heal_link",
+    "name": "heal_link.name"
+  },
+  {
+    "category": "heal_link",
+    "name": "heal_link.notes_optional"
+  },
+  {
+    "category": "heal_link",
+    "name": "heal_link.num_resources"
+  },
+  {
+    "category": "heal_link",
+    "name": "heal_link.num_tags"
+  },
+  {
+    "category": "heal_link",
+    "name": "heal_link.owner_org"
+  },
+  {
+    "category": "heal_link",
+    "name": "heal_link.private"
+  },
+  {
+    "category": "heal_link",
+    "name": "heal_link.publication_year"
+  },
+  {
+    "category": "heal_link",
+    "name": "heal_link.qa_completed"
+  },
+  {
+    "category": "heal_link",
+    "name": "heal_link.solr_additions"
+  },
+  {
+    "category": "heal_link",
+    "name": "heal_link.subnational"
+  },
+  {
+    "category": "heal_link",
+    "name": "heal_link.title"
+  },
+  {
+    "category": "heal_link",
+    "name": "heal_link.state"
+  },
+  {
+    "category": "heal_link",
+    "name": "heal_link.url"
+  },
+  {
+    "category": "heal_link",
+    "name": "heal_link.version"
+  },
+  {
+    "category": "fair_sharing_policies",
+    "name": "fair_sharing_policies.data.attributes.metadata.doi"
+  },
+  {
+    "category": "fair_sharing_policies",
+    "name": "fair_sharing_policies.data.attributes.metadata.name"
+  },
+  {
+    "category": "fair_sharing_policies",
+    "name": "fair_sharing_policies.data.attributes.metadata.contacts.contact_name"
+  },
+  {
+    "category": "fair_sharing_policies",
+    "name": "fair_sharing_policies.data.attributes.metadata.contacts.contact_email"
+  },
+  {
+    "category": "fair_sharing_policies",
+    "name": "fair_sharing_policies.data.attributes.metadata.homepage"
+  },
+  {
+    "category": "fair_sharing_policies",
+    "name": "fair_sharing_policies.data.attributes.metadata.description"
+  },
+  {
+    "category": "fair_sharing_policies",
+    "name": "fair_sharing_policies.data.attributes.metadata.sharing_data.notes"
+  },
+  {
+    "category": "fair_sharing_policies",
+    "name": "fair_sharing_policies.data.attributes.metadata.sharing_data.mandated_data_sharing"
+  },
+  {
+    "category": "fair_sharing_policies",
+    "name": "fair_sharing_policies.data.attributes.metadata.sharing_data.exceptions_to_data_sharing"
+  },
+  {
+    "category": "fair_sharing_policies",
+    "name": "fair_sharing_policies.data.attributes.metadata.data_citation.notes"
+  },
+  {
+    "category": "fair_sharing_policies",
+    "name": "fair_sharing_policies.data.attributes.metadata.data_citation.value"
+  },
+  {
+    "category": "fair_sharing_policies",
+    "name": "fair_sharing_policies.data.attributes.metadata.data_protection.notes"
+  },
+  {
+    "category": "fair_sharing_policies",
+    "name": "fair_sharing_policies.data.attributes.metadata.data_protection.value"
+  },
+  {
+    "category": "fair_sharing_policies",
+    "name": "fair_sharing_policies.data.attributes.metadata.sharing_metadata.notes"
+  },
+  {
+    "category": "fair_sharing_policies",
+    "name": "fair_sharing_policies.data.attributes.metadata.sharing_metadata.value"
+  },
+  {
+    "category": "fair_sharing_policies",
+    "name": "fair_sharing_policies.data.attributes.metadata.data_preservation.value"
+  },
+  {
+    "category": "fair_sharing_policies",
+    "name": "fair_sharing_policies.data.attributes.metadata.licences_for_outputs.notes"
+  },
+  {
+    "category": "fair_sharing_policies",
+    "name": "fair_sharing_policies.data.attributes.metadata.licences_for_outputs.required"
+  },
+  {
+    "category": "fair_sharing_policies",
+    "name": "fair_sharing_policies.data.attributes.metadata.sharing_research_software.notes"
+  },
+  {
+    "category": "fair_sharing_policies",
+    "name": "fair_sharing_policies.data.attributes.metadata.sharing_research_software.value"
+  },
+  {
+    "category": "fair_sharing_policies",
+    "name": "fair_sharing_policies.data.attributes.metadata.data_availability_statement.notes"
+  },
+  {
+    "category": "fair_sharing_policies",
+    "name": "fair_sharing_policies.data.attributes.metadata.data_availability_statement.required"
+  },
+  {
+    "category": "fair_sharing_policies",
+    "name": "fair_sharing_policies.data.attributes.subjects"
+  },
+  {
+    "category": "fair_sharing_policies",
+    "name": "fair_sharing_policies.data.attributes.metadata.compliance.notes"
+  },
+  {
+    "category": "fair_sharing_policies",
+    "name": "fair_sharing_policies.data.attributes.metadata.compliance.monitoring_of_compliance"
+  },
+  {
+    "category": "fair_sharing_policies",
+    "name": "fair_sharing_policies.data.attributes.metadata.compliance.guidance_to_help_enable_compliance"
+  },
+  {
+    "category": "fair_sharing_policies",
+    "name": "fair_sharing_policies.data.attributes.metadata.dmp_development.notes"
+  },
+  {
+    "category": "fair_sharing_policies",
+    "name": "fair_sharing_policies.data.attributes.metadata.dmp_development.timing_of_dmp"
+  },
+  {
+    "category": "fair_sharing_policies",
+    "name": "fair_sharing_policies.data.attributes.metadata.dmp_development.updating_of_dmp"
+  },
+  {
+    "category": "fair_sharing_policies",
+    "name": "fair_sharing_policies.data.attributes.metadata.dmp_development.mandated_dmp_creation"
+  },
+  {
+    "category": "fair_sharing_policies",
+    "name": "fair_sharing_policies.data.attributes.metadata.supported_costs.notes"
+  },
+  {
+    "category": "fair_sharing_policies",
+    "name": "fair_sharing_policies.data.attributes.metadata.supported_costs.value"
+  },
+  {
+    "category": "fair_sharing_policies",
+    "name": "fair_sharing_policies.data.attributes.metadata.data_preservation.notes"
   }
 ]

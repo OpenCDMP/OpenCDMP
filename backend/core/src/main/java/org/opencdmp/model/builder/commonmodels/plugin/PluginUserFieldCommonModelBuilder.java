@@ -10,7 +10,7 @@ import org.opencdmp.authorization.AuthorizationFlags;
 import org.opencdmp.commonmodels.models.FileEnvelopeModel;
 import org.opencdmp.commonmodels.models.plugin.PluginUserFieldModel;
 import org.opencdmp.commons.enums.StorageType;
-import org.opencdmp.commons.scope.user.UserScope;
+import org.opencdmp.commons.scope.user.UserScopeFactory;
 import org.opencdmp.commons.types.pluginconfiguration.PluginConfigurationUserFieldEntity;
 import org.opencdmp.convention.ConventionService;
 import org.opencdmp.data.StorageFileEntity;
@@ -42,7 +42,7 @@ import java.util.Optional;
 public class PluginUserFieldCommonModelBuilder extends BaseCommonModelBuilder<PluginUserFieldModel, PluginConfigurationUserFieldEntity> {
     private final StorageFileService storageFileService;
     private final QueryFactory queryFactory;
-    private final UserScope userScope;
+    private final UserScopeFactory userScopeFactory;
     private final ValidatorFactory validatorFactory;
     private final StorageFileProperties storageFileProperties;
     private final EncryptionService encryptionService;
@@ -51,12 +51,12 @@ public class PluginUserFieldCommonModelBuilder extends BaseCommonModelBuilder<Pl
     private EnumSet<AuthorizationFlags> authorize = EnumSet.of(AuthorizationFlags.None);
     @Autowired
     public PluginUserFieldCommonModelBuilder(
-            ConventionService conventionService, StorageFileService storageFileService, QueryFactory queryFactory, UserScope userScope, ValidatorFactory validatorFactory, StorageFileProperties storageFileProperties, EncryptionService encryptionService, TenantProperties tenantProperties
+            ConventionService conventionService, StorageFileService storageFileService, QueryFactory queryFactory, UserScopeFactory userScope, ValidatorFactory validatorFactory, StorageFileProperties storageFileProperties, EncryptionService encryptionService, TenantProperties tenantProperties
     ) {
         super(conventionService, new LoggerService(LoggerFactory.getLogger(PluginUserFieldCommonModelBuilder.class)));
         this.storageFileService = storageFileService;
         this.queryFactory = queryFactory;
-        this.userScope = userScope;
+        this.userScopeFactory = userScope;
         this.validatorFactory = validatorFactory;
         this.storageFileProperties = storageFileProperties;
         this.encryptionService = encryptionService;
@@ -122,7 +122,7 @@ public class PluginUserFieldCommonModelBuilder extends BaseCommonModelBuilder<Pl
         storageFilePersist.setName(FilenameUtils.removeExtension(storageFile.getName()));
         storageFilePersist.setExtension(FilenameUtils.getExtension(storageFile.getExtension()));
         storageFilePersist.setMimeType(URLConnection.guessContentTypeFromName(storageFile.getName() + (storageFile.getExtension().startsWith(".") ? "" : ".") + storageFile.getExtension()));
-        storageFilePersist.setOwnerId(this.userScope.getUserIdSafe());
+        storageFilePersist.setOwnerId(this.userScopeFactory.getInstance().getUserIdSafe());
         storageFilePersist.setStorageType(StorageType.Temp);
         storageFilePersist.setLifetime(Duration.ofSeconds(this.storageFileProperties.getTempStoreLifetimeSeconds())); //TODO
         this.validatorFactory.validator(StorageFilePersist.StorageFilePersistValidator.class).validateForce(storageFilePersist);

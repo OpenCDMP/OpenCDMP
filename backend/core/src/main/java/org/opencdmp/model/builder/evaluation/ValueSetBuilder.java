@@ -1,13 +1,10 @@
 package org.opencdmp.model.builder.evaluation;
 
-import gr.cite.tools.data.builder.BuilderFactory;
 import gr.cite.tools.exception.MyApplicationException;
 import gr.cite.tools.fieldset.FieldSet;
 import gr.cite.tools.logging.DataLogEntry;
 import gr.cite.tools.logging.LoggerService;
 import org.opencdmp.authorization.AuthorizationFlags;
-import org.opencdmp.commons.XmlHandlingService;
-import org.opencdmp.commons.scope.tenant.TenantScope;
 import org.opencdmp.commons.types.evaluation.SelectionConfigurationEntity;
 import org.opencdmp.convention.ConventionService;
 import org.opencdmp.evaluatorbase.interfaces.SelectionConfiguration;
@@ -31,8 +28,7 @@ public class ValueSetBuilder extends BaseBuilder<SelectionConfiguration.ValueSet
 
     @Autowired
     public ValueSetBuilder(
-            ConventionService conventionService,
-            BuilderFactory builderFactory, XmlHandlingService xmlHandlingService, TenantScope tenantScope) {
+            ConventionService conventionService) {
         super(conventionService,  new LoggerService(LoggerFactory.getLogger(ValueSetBuilder.class)));
     }
 

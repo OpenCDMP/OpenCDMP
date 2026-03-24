@@ -6,7 +6,6 @@ import gr.cite.tools.exception.MyApplicationException;
 import gr.cite.tools.fieldset.BaseFieldSet;
 import gr.cite.tools.logging.LoggerService;
 import org.opencdmp.authorization.AuthorizationFlags;
-import org.opencdmp.commonmodels.enums.DescriptionStatus;
 import org.opencdmp.commonmodels.models.description.DescriptionModel;
 import org.opencdmp.commonmodels.models.description.DescriptionStatusModel;
 import org.opencdmp.commonmodels.models.descriptiotemplate.DescriptionTemplateModel;
@@ -20,7 +19,6 @@ import org.opencdmp.commons.types.description.PropertyDefinitionEntity;
 import org.opencdmp.commons.types.descriptiontemplate.DefinitionEntity;
 import org.opencdmp.convention.ConventionService;
 import org.opencdmp.data.*;
-import org.opencdmp.model.DescriptionTag;
 import org.opencdmp.model.PlanDescriptionTemplate;
 import org.opencdmp.model.Tag;
 import org.opencdmp.model.builder.commonmodels.BaseCommonModelBuilder;
@@ -52,7 +50,7 @@ public class DescriptionCommonModelBuilder extends BaseCommonModelBuilder<Descri
     private final BuilderFactory builderFactory;
     private final JsonHandlingService jsonHandlingService;
     private final XmlHandlingService xmlHandlingService;
-    private final TenantEntityManager entityManager;
+    private final TenantEntityManagerFactory tenantEntityManagerFactory;
     
     private EnumSet<AuthorizationFlags> authorize = EnumSet.of(AuthorizationFlags.None);
     private String repositoryId;
@@ -61,13 +59,13 @@ public class DescriptionCommonModelBuilder extends BaseCommonModelBuilder<Descri
     public DescriptionCommonModelBuilder(
             ConventionService conventionService,
             QueryFactory queryFactory,
-            BuilderFactory builderFactory, JsonHandlingService jsonHandlingService, XmlHandlingService xmlHandlingService, TenantEntityManager entityManager) {
+            BuilderFactory builderFactory, JsonHandlingService jsonHandlingService, XmlHandlingService xmlHandlingService, TenantEntityManagerFactory tenantEntityManagerFactory) {
         super(conventionService, new LoggerService(LoggerFactory.getLogger(DescriptionCommonModelBuilder.class)));
         this.queryFactory = queryFactory;
         this.builderFactory = builderFactory;
         this.jsonHandlingService = jsonHandlingService;
 	    this.xmlHandlingService = xmlHandlingService;
-        this.entityManager = entityManager;
+        this.tenantEntityManagerFactory = tenantEntityManagerFactory;
     }
 
     public DescriptionCommonModelBuilder authorize(EnumSet<AuthorizationFlags> values) {
@@ -161,17 +159,17 @@ public class DescriptionCommonModelBuilder extends BaseCommonModelBuilder<Descri
         List<PlanDescriptionTemplateEntity> items;
         if (this.isPublic) {
             try {
-                this.entityManager.disableTenantFilters();
+                this.tenantEntityManagerFactory.getInstance().disableTenantFilters();
                 q =this.queryFactory.query(PlanDescriptionTemplateQuery.class).disableTracking().authorize(this.authorize).ids(data.stream().map(DescriptionEntity::getPlanDescriptionTemplateId).distinct().collect(Collectors.toList()));
                 items = q.collectAs(new BaseFieldSet().ensure(PlanDescriptionTemplate._id).ensure(PlanDescriptionTemplate._sectionId));
                 try {
-                    this.entityManager.reloadTenantFilters();
+                    this.tenantEntityManagerFactory.getInstance().reloadTenantFilters();
                 } catch (InvalidApplicationException e) {
                     throw new RuntimeException(e);
                 }
             } finally {
                 try {
-                    this.entityManager.reloadTenantFilters();
+                    this.tenantEntityManagerFactory.getInstance().reloadTenantFilters();
                 } catch (InvalidApplicationException e) {
                     throw new RuntimeException(e);
                 }
@@ -196,18 +194,18 @@ public class DescriptionCommonModelBuilder extends BaseCommonModelBuilder<Descri
         PlanQuery q = null;
         if (this.isPublic) {
             try {
-                this.entityManager.disableTenantFilters();
+                this.tenantEntityManagerFactory.getInstance().disableTenantFilters();
                 PlanStatusQuery statusQuery = this.queryFactory.query(PlanStatusQuery.class).disableTracking().internalStatuses(PlanStatus.Finalized).isActives(IsActive.Active);
                 q = this.queryFactory.query(PlanQuery.class).disableTracking().authorize(EnumSet.of(Public)).ids(data.stream().map(DescriptionEntity::getPlanId).distinct().collect(Collectors.toList())).isActive(IsActive.Active).planStatusSubQuery(statusQuery).accessTypes(PlanAccessType.Public);
-                itemMap = this.builderFactory.builder(PlanCommonModelBuilder.class).setRepositoryId(this.repositoryId).useSharedStorage(this.useSharedStorage).setDisableDescriptions(true).authorize(this.authorize).asForeignKey(q, PlanEntity::getId);
+                itemMap = this.builderFactory.builder(PlanCommonModelBuilder.class).setRepositoryId(this.repositoryId).useSharedStorage(this.useSharedStorage).isPublic(this.isPublic).setDisableDescriptions(true).authorize(this.authorize).asForeignKey(q, PlanEntity::getId);
                 try {
-                    this.entityManager.reloadTenantFilters();
+                    this.tenantEntityManagerFactory.getInstance().reloadTenantFilters();
                 } catch (InvalidApplicationException e) {
                     throw new RuntimeException(e);
                 }
             } finally {
                 try {
-                    this.entityManager.reloadTenantFilters();
+                    this.tenantEntityManagerFactory.getInstance().reloadTenantFilters();
                 } catch (InvalidApplicationException e) {
                     throw new RuntimeException(e);
                 }

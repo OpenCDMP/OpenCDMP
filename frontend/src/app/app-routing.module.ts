@@ -3,6 +3,7 @@ import { RouterModule, Routes } from '@angular/router';
 import { AppPermission } from './core/common/enum/permission.enum';
 import { BreadcrumbService } from './ui/misc/breadcrumb/breadcrumb.service';
 import { ReloadHelperComponent } from './ui/misc/reload-helper/reload-helper.component';
+import { AuthGuard } from './core/auth-guard.service';
 
 const appRoutes: Routes = [
 	{
@@ -80,6 +81,19 @@ const appRoutes: Routes = [
 			}),
 			title: 'GENERAL.TITLES.BLUEPRINTS'
 		}
+	},
+	{
+		path: 'plan-blueprint-type',
+		loadChildren: () => import('./ui/admin/blueprint-types/plan-blueprint-type.module').then(m => m.PlanBlueprintTypesModule),
+		data: {
+			authContext: {
+				permissions: [AppPermission.ViewPlanBlueprintTypePage]
+			},
+			...BreadcrumbService.generateRouteDataConfiguration({
+				title: 'BREADCRUMBS.PLAN-BLUEPRINT-TYPE'
+			}),
+			title: 'GENERAL.TITLES.PLAN-BLUEPRINT-TYPE'
+		},
 	},
 
 
@@ -457,7 +471,8 @@ const appRoutes: Routes = [
 		data: {
 			showOnlyRouterOutlet: true
 		}
-	}
+	},
+	{ path: '**', loadComponent: () => import('@common/modules/page-not-found/page-not-found.component').then(m => m.PageNotFoundComponent), canActivate: [AuthGuard]}
 ];
 
 const tenantEnrichedRoutes: Routes = [

@@ -1,7 +1,7 @@
 package org.opencdmp.model.deleter;
 
 import org.opencdmp.data.LockEntity;
-import org.opencdmp.data.TenantEntityManager;
+import org.opencdmp.data.TenantEntityManagerFactory;
 import org.opencdmp.query.LockQuery;
 import gr.cite.tools.data.deleter.Deleter;
 import gr.cite.tools.data.deleter.DeleterFactory;
@@ -24,7 +24,7 @@ import java.util.UUID;
 public class LockDeleter implements Deleter {
 
     private static final LoggerService logger = new LoggerService(LoggerFactory.getLogger(LockDeleter.class));
-    private final TenantEntityManager entityManager;
+    private final TenantEntityManagerFactory tenantEntityManagerFactory;
 
     protected final QueryFactory queryFactory;
 
@@ -32,11 +32,11 @@ public class LockDeleter implements Deleter {
 
     @Autowired
     public LockDeleter(
-            TenantEntityManager entityManager,
+            TenantEntityManagerFactory tenantEntityManagerFactory,
             QueryFactory queryFactory,
             DeleterFactory deleterFactory
     ) {
-        this.entityManager = entityManager;
+        this.tenantEntityManagerFactory = tenantEntityManagerFactory;
         this.queryFactory = queryFactory;
         this.deleterFactory = deleterFactory;
     }
@@ -52,7 +52,7 @@ public class LockDeleter implements Deleter {
         logger.debug("will delete {} items", Optional.ofNullable(data).map(List::size).orElse(0));
         this.delete(data);
         logger.trace("saving changes");
-        this.entityManager.flush();
+        this.tenantEntityManagerFactory.getInstance().flush();
         logger.trace("changes saved");
     }
 
@@ -63,7 +63,7 @@ public class LockDeleter implements Deleter {
 
         for (LockEntity item : data) {
             logger.trace("deleting item {}", item.getId());
-            this.entityManager.remove(item);
+            this.tenantEntityManagerFactory.getInstance().remove(item);
             logger.trace("removed item");
         }
     }

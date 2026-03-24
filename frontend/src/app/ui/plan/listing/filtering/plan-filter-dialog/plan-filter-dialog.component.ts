@@ -37,7 +37,6 @@ export class PlanFilterDialogComponent implements OnInit {
 		return {
 			statusId: lookup.statusIds?.[0] ?? null,
 			isActive: lookup.isActive?.[0] == IsActive.Active,
-			viewOnlyTenant: lookup.tenantSubQuery?.codes?.length > 0,
 			descriptionTemplates: lookup.planDescriptionTemplateSubQuery?.descriptionTemplateGroupIds ? lookup.planDescriptionTemplateSubQuery?.descriptionTemplateGroupIds : [],
 			planBlueprints: lookup.planBlueprintSubQuery?.groupIds ?? [],
 			role: lookup.planUserSubQuery?.userRoles?.[0] ?? null,

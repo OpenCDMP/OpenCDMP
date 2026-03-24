@@ -12,6 +12,7 @@ import { AnalyticsProviders } from '@app/core/model/configuration-models/analyti
 import { CssColorsTenantConfiguration } from '@app/core/model/tenant-configuaration/tenant-configuration';
 import { Sidebar } from '@app/core/model/configuration-models/sidebar.model';
 import { StatusIcon } from '@app/core/model/configuration-models/status-icon.model';
+import { KpiConfiguration } from '@app/core/model/configuration-models/kpi-configuration.model';
 
 @Injectable({
 	providedIn: 'root',
@@ -171,26 +172,9 @@ export class ConfigurationService extends BaseComponent {
 		return this._cssColorsTenantConfiguration;
 	}
 
-
-
-	private _kpiServiceAddress: string;
-	get kpiServiceAddress(): string {
-		return this._kpiServiceAddress || './';
-	}
-
-	private _kpiServiceEnabled: boolean;
-	get kpiServiceEnabled(): boolean {
-		return this._kpiServiceEnabled;
-	}
-
-	private _kpiDashboardId: string;
-	get kpiDashboardId(): string {
-		return this._kpiDashboardId;
-	}
-
-	private _keywordFilter: string;
-	get keywordFilter(): string {
-		return this._keywordFilter;
+	private _kpi: KpiConfiguration;
+	get kpi(): KpiConfiguration {
+		return this._kpi;
 	}
 
 	private _accountingServiceEnabled: boolean;
@@ -201,6 +185,11 @@ export class ConfigurationService extends BaseComponent {
     private _userWay: {id: string}
     get userWayId(): string {
         return this._userWay?.id;
+    }
+
+    private _cookieConsentRevision: number;
+    get cookieConsentRevision(): number {
+        return this._cookieConsentRevision;
     }
 
 	public loadConfiguration(): Promise<any> {
@@ -306,10 +295,7 @@ export class ConfigurationService extends BaseComponent {
 		}
 
 		if (config.kpi_service) {
-			this._kpiServiceEnabled = config.kpi_service.enabled === true || config.kpi_service.enabled === "true";
-			this._kpiServiceAddress = config.kpi_service.address;
-			this._kpiDashboardId = config.kpi_service.dashboardId;
-			this._keywordFilter = config.kpi_service.keywordFilter;
+			this._kpi = KpiConfiguration.parseValue(config.kpi_service);
 		}
 
 		if (config.accounting_service) {
@@ -318,6 +304,10 @@ export class ConfigurationService extends BaseComponent {
 
         if(config.userWay){
             this._userWay = config.userWay;
+        }
+
+        if(config.cookieConsent){
+            this._cookieConsentRevision = config.cookieConsent?.revision ?? 0;
         }
 	}
 

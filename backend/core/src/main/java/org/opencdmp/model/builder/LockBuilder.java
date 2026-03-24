@@ -8,7 +8,7 @@ import gr.cite.tools.fieldset.FieldSet;
 import gr.cite.tools.logging.DataLogEntry;
 import gr.cite.tools.logging.LoggerService;
 import org.opencdmp.authorization.AuthorizationFlags;
-import org.opencdmp.commons.scope.tenant.TenantScope;
+import org.opencdmp.commons.scope.tenant.TenantScopeFactory;
 import org.opencdmp.convention.ConventionService;
 import org.opencdmp.data.LockEntity;
 import org.opencdmp.model.Lock;
@@ -28,17 +28,17 @@ import java.util.stream.Collectors;
 public class LockBuilder extends BaseBuilder<Lock, LockEntity>{
 
     private final BuilderFactory builderFactory;
-    private final TenantScope tenantScope;
+    private final TenantScopeFactory tenantScopeFactory;
     private final QueryFactory queryFactory;
     private EnumSet<AuthorizationFlags> authorize = EnumSet.of(AuthorizationFlags.None);
 
     @Autowired
     public LockBuilder(
-		    ConventionService conventionService,
-		    BuilderFactory builderFactory, TenantScope tenantScope, QueryFactory queryFactory) {
+            ConventionService conventionService,
+            BuilderFactory builderFactory, TenantScopeFactory tenantScopeFactory, QueryFactory queryFactory) {
         super(conventionService, new LoggerService(LoggerFactory.getLogger(LockBuilder.class)));
         this.builderFactory = builderFactory;
-	    this.tenantScope = tenantScope;
+	    this.tenantScopeFactory = tenantScopeFactory;
 	    this.queryFactory = queryFactory;
     }
 
@@ -66,7 +66,7 @@ public class LockBuilder extends BaseBuilder<Lock, LockEntity>{
             if (fields.hasField(this.asIndexer(Lock._lockedAt))) m.setLockedAt(d.getLockedAt());
             if (fields.hasField(this.asIndexer(Lock._touchedAt))) m.setTouchedAt(d.getTouchedAt());
             if (fields.hasField(this.asIndexer(Lock._hash))) m.setHash(this.hashValue(d.getTouchedAt()));
-            if (fields.hasField(this.asIndexer(Lock._belongsToCurrentTenant))) m.setBelongsToCurrentTenant(this.getBelongsToCurrentTenant(d, this.tenantScope));
+            if (fields.hasField(this.asIndexer(Lock._belongsToCurrentTenant))) m.setBelongsToCurrentTenant(this.getBelongsToCurrentTenant(d, this.tenantScopeFactory.getInstance()));
             if (!userFields.isEmpty() && userMap != null && userMap.containsKey(d.getLockedBy())) m.setLockedBy(userMap.get(d.getLockedBy()));
             models.add(m);
         }

@@ -40,7 +40,7 @@ $mat-card-header-size: 40px !default;
   height: 80px;
 
   display: flex;
-  background: var(--sys-surface) 0% 0% no-repeat padding-box;
+  background: var(--mat-sys-surface) 0% 0% no-repeat padding-box;
   #navigation {
     color:  #555;
   }
@@ -59,14 +59,7 @@ $mat-card-header-size: 40px !default;
   height: min(100%, 60px);
 }
 
-.extra-logo {
-  margin-left: 5px;
-  height: 100%;
-}
 .logo-image {
-	height: min(100%, 60px);
-}
-.extra-logo-image {
 	height: min(100%, 60px);
 }
 
@@ -77,14 +70,14 @@ $mat-card-header-size: 40px !default;
 }
 
 .faq-title, .lang {
-    color: var(--mdc-icon-button-icon-color) !important;
+    color: var(--mat-icon-button-icon-color) !important;
     &:hover {
-        color: var(--sys-primary)
+        color: var(--mat-sys-primary)
     }
 }
 .faq-title:hover,
 .lang:hover {
-  color: var(--sys-primary) !important;
+  color: var(--mat-sys-primary) !important;
 }
 
 
@@ -176,7 +169,7 @@ $mat-card-header-size: 40px !default;
 }
 
 .notification-button:not(:hover) {
-    color: var(--sys-on-surface-variant) !important;
+    color: var(--mat-sys-on-surface-variant) !important;
 }
 ::ng-deep .mat-option-text {
 	text-overflow: unset !important;

@@ -16,23 +16,25 @@ import org.jetbrains.annotations.NotNull;
 import org.opencdmp.authorization.AffiliatedResource;
 import org.opencdmp.authorization.AuthorizationFlags;
 import org.opencdmp.authorization.Permission;
-import org.opencdmp.authorization.authorizationcontentresolver.AuthorizationContentResolver;
+import org.opencdmp.authorization.authorizationcontentresolver.AuthorizationContentResolverFactory;
 import org.opencdmp.commonmodels.models.description.*;
 import org.opencdmp.commonmodels.models.descriptiotemplate.DescriptionTemplateModel;
 import org.opencdmp.commonmodels.models.descriptiotemplate.fielddata.ReferenceTypeDataModel;
+import org.opencdmp.commonmodels.models.reference.ReferenceFieldModel;
 import org.opencdmp.commonmodels.models.reference.ReferenceModel;
 import org.opencdmp.commons.JsonHandlingService;
 import org.opencdmp.commons.XmlHandlingService;
 import org.opencdmp.commons.enums.*;
 import org.opencdmp.commons.enums.DescriptionStatus;
+import org.opencdmp.commons.enums.kpi.KpiDirectionType;
+import org.opencdmp.commons.enums.kpi.KpiVersionType;
 import org.opencdmp.commons.notification.NotificationProperties;
-import org.opencdmp.commons.scope.tenant.TenantScope;
-import org.opencdmp.commons.scope.user.UserScope;
+import org.opencdmp.commons.scope.tenant.TenantScopeFactory;
+import org.opencdmp.commons.scope.user.UserScopeFactory;
 import org.opencdmp.commons.types.description.*;
 import org.opencdmp.commons.types.description.importexport.*;
 import org.opencdmp.commons.types.descriptionreference.DescriptionReferenceDataEntity;
 import org.opencdmp.commons.types.descriptiontemplate.FieldSetEntity;
-import org.opencdmp.commons.types.descriptiontemplate.fielddata.BaseFieldDataEntity;
 import org.opencdmp.commons.types.descriptiontemplate.fielddata.ReferenceTypeDataEntity;
 import org.opencdmp.commons.types.descriptiontemplate.fielddata.UploadDataEntity;
 import org.opencdmp.commons.types.descriptiontemplate.importexport.DescriptionTemplateFieldImportExport;
@@ -53,6 +55,7 @@ import org.opencdmp.integrationevent.outbox.annotationentityremoval.AnnotationEn
 import org.opencdmp.integrationevent.outbox.annotationentitytouch.AnnotationEntityTouchedIntegrationEventHandler;
 import org.opencdmp.integrationevent.outbox.notification.NotifyIntegrationEvent;
 import org.opencdmp.integrationevent.outbox.notification.NotifyIntegrationEventHandler;
+import org.opencdmp.integrationevent.outbox.plantouch.PlanTouchedIntegrationEventHandler;
 import org.opencdmp.model.*;
 import org.opencdmp.model.builder.StorageFileBuilder;
 import org.opencdmp.model.builder.description.DescriptionBuilder;
@@ -78,6 +81,7 @@ import org.opencdmp.service.descriptiontemplate.DescriptionTemplateService;
 import org.opencdmp.service.descriptionworkflow.DescriptionWorkflowService;
 import org.opencdmp.service.elastic.ElasticService;
 import org.opencdmp.service.filetransformer.FileTransformerService;
+import org.opencdmp.service.kpi.KpiService;
 import org.opencdmp.service.lock.LockService;
 import org.opencdmp.service.responseutils.ResponseUtilsService;
 import org.opencdmp.service.storage.StorageFileProperties;
@@ -123,7 +127,7 @@ import static org.opencdmp.authorization.AuthorizationFlags.Public;
 public class DescriptionServiceImpl implements DescriptionService {
 
     private static final LoggerService logger = new LoggerService(LoggerFactory.getLogger(DescriptionServiceImpl.class));
-    private final TenantEntityManager entityManager;
+    private final TenantEntityManagerFactory tenantEntityManagerFactory;
     private final AuthorizationService authorizationService;
     private final DeleterFactory deleterFactory;
     private final BuilderFactory builderFactory;
@@ -133,7 +137,7 @@ public class DescriptionServiceImpl implements DescriptionService {
     private final EventBroker eventBroker;
     private final QueryFactory queryFactory;
     private final JsonHandlingService jsonHandlingService;
-    private final UserScope userScope;
+    private final UserScopeFactory userScopeFactory;
     private final XmlHandlingService xmlHandlingService;
     private final FileTransformerService fileTransformerService;
     private final NotifyIntegrationEventHandler eventHandler;
@@ -142,10 +146,10 @@ public class DescriptionServiceImpl implements DescriptionService {
     private final ValidatorFactory validatorFactory;
     private final StorageFileProperties storageFileConfig;
     private final StorageFileService storageFileService;
-    private final AuthorizationContentResolver authorizationContentResolver;
+    private final AuthorizationContentResolverFactory authorizationContentResolverFactory;
     private final AnnotationEntityTouchedIntegrationEventHandler annotationEntityTouchedIntegrationEventHandler;
     private final AnnotationEntityRemovalIntegrationEventHandler annotationEntityRemovalIntegrationEventHandler;
-    private final TenantScope tenantScope;
+    private final TenantScopeFactory tenantScopeFactory;
     private final ResponseUtilsService responseUtilsService;
     private final DescriptionTemplateService descriptionTemplateService;
     private final TagService tagService;
@@ -154,10 +158,11 @@ public class DescriptionServiceImpl implements DescriptionService {
     private final DescriptionWorkflowService descriptionWorkflowService;
     private final CustomPolicyService customPolicyService;
     private final LockService lockService;
-    
+    private final PlanTouchedIntegrationEventHandler planTouchedIntegrationEventHandler;
+    private final KpiService kpiService;
     @Autowired
     public DescriptionServiceImpl(
-            TenantEntityManager entityManager,
+            TenantEntityManagerFactory tenantEntityManagerFactory,
             AuthorizationService authorizationService,
             DeleterFactory deleterFactory,
             BuilderFactory builderFactory,
@@ -167,9 +172,9 @@ public class DescriptionServiceImpl implements DescriptionService {
             EventBroker eventBroker,
             QueryFactory queryFactory,
             JsonHandlingService jsonHandlingService,
-            UserScope userScope,
-            XmlHandlingService xmlHandlingService, NotifyIntegrationEventHandler eventHandler, NotificationProperties notificationProperties, FileTransformerService fileTransformerService, ElasticService elasticService, ValidatorFactory validatorFactory, StorageFileProperties storageFileConfig, StorageFileService storageFileService, AuthorizationContentResolver authorizationContentResolver, AnnotationEntityTouchedIntegrationEventHandler annotationEntityTouchedIntegrationEventHandler, AnnotationEntityRemovalIntegrationEventHandler annotationEntityRemovalIntegrationEventHandler, TenantScope tenantScope, ResponseUtilsService responseUtilsService, DescriptionTemplateService descriptionTemplateService, TagService tagService, UsageLimitService usageLimitService, AccountingService accountingService, DescriptionWorkflowService descriptionWorkflowService, CustomPolicyService customPolicyService, LockService lockService) {
-        this.entityManager = entityManager;
+            UserScopeFactory userScopeFactory,
+            XmlHandlingService xmlHandlingService, NotifyIntegrationEventHandler eventHandler, NotificationProperties notificationProperties, FileTransformerService fileTransformerService, ElasticService elasticService, ValidatorFactory validatorFactory, StorageFileProperties storageFileConfig, StorageFileService storageFileService, AuthorizationContentResolverFactory authorizationContentResolverFactory, AnnotationEntityTouchedIntegrationEventHandler annotationEntityTouchedIntegrationEventHandler, AnnotationEntityRemovalIntegrationEventHandler annotationEntityRemovalIntegrationEventHandler, TenantScopeFactory tenantScopeFactory, ResponseUtilsService responseUtilsService, DescriptionTemplateService descriptionTemplateService, TagService tagService, UsageLimitService usageLimitService, AccountingService accountingService, DescriptionWorkflowService descriptionWorkflowService, CustomPolicyService customPolicyService, LockService lockService, PlanTouchedIntegrationEventHandler planTouchedIntegrationEventHandler, KpiService kpiService) {
+        this.tenantEntityManagerFactory = tenantEntityManagerFactory;
         this.authorizationService = authorizationService;
         this.deleterFactory = deleterFactory;
         this.builderFactory = builderFactory;
@@ -179,7 +184,7 @@ public class DescriptionServiceImpl implements DescriptionService {
         this.eventBroker = eventBroker;
         this.queryFactory = queryFactory;
         this.jsonHandlingService = jsonHandlingService;
-        this.userScope = userScope;
+        this.userScopeFactory = userScopeFactory;
         this.xmlHandlingService = xmlHandlingService;
         this.eventHandler = eventHandler;
         this.notificationProperties = notificationProperties;
@@ -188,10 +193,10 @@ public class DescriptionServiceImpl implements DescriptionService {
 	    this.validatorFactory = validatorFactory;
 	    this.storageFileConfig = storageFileConfig;
 	    this.storageFileService = storageFileService;
-	    this.authorizationContentResolver = authorizationContentResolver;
+	    this.authorizationContentResolverFactory = authorizationContentResolverFactory;
 	    this.annotationEntityTouchedIntegrationEventHandler = annotationEntityTouchedIntegrationEventHandler;
 	    this.annotationEntityRemovalIntegrationEventHandler = annotationEntityRemovalIntegrationEventHandler;
-	    this.tenantScope = tenantScope;
+	    this.tenantScopeFactory = tenantScopeFactory;
 	    this.responseUtilsService = responseUtilsService;
 	    this.descriptionTemplateService = descriptionTemplateService;
 	    this.tagService = tagService;
@@ -200,6 +205,8 @@ public class DescriptionServiceImpl implements DescriptionService {
         this.descriptionWorkflowService = descriptionWorkflowService;
         this.customPolicyService = customPolicyService;
         this.lockService = lockService;
+        this.planTouchedIntegrationEventHandler = planTouchedIntegrationEventHandler;
+        this.kpiService = kpiService;
     }
 
     @Override
@@ -208,7 +215,7 @@ public class DescriptionServiceImpl implements DescriptionService {
 
         Map<UUID, List<String>> response = new HashMap<>();
         
-        Map<UUID, AffiliatedResource> affiliatedResourceMap = this.authorizationContentResolver.descriptionsAffiliationBySections(model.getPlanId(), model.getSectionIds());
+        Map<UUID, AffiliatedResource> affiliatedResourceMap = this.authorizationContentResolverFactory.getInstance().descriptionsAffiliationBySections(model.getPlanId(), model.getSectionIds());
         for (UUID sectionId : model.getSectionIds().stream().distinct().toList()){
             AffiliatedResource affiliatedResource = affiliatedResourceMap.getOrDefault(sectionId, null);
             response.put(sectionId, new ArrayList<>());
@@ -228,38 +235,41 @@ public class DescriptionServiceImpl implements DescriptionService {
 
         Boolean isUpdate = this.conventionService.isValidGuid(model.getId());
 
-        PlanDescriptionTemplateEntity planDescriptionTemplate = this.entityManager.find(PlanDescriptionTemplateEntity.class, model.getPlanDescriptionTemplateId());
+        PlanDescriptionTemplateEntity planDescriptionTemplate = this.tenantEntityManagerFactory.getInstance().find(PlanDescriptionTemplateEntity.class, model.getPlanDescriptionTemplateId());
         if (planDescriptionTemplate == null) throw new MyNotFoundException(this.messageSource.getMessage("General_ItemNotFound", new Object[]{model.getPlanDescriptionTemplateId(), PlanDescriptionTemplate.class.getSimpleName()}, LocaleContextHolder.getLocale()));
 
-        if (isUpdate) this.authorizationService.authorizeAtLeastOneForce(List.of(this.authorizationContentResolver.descriptionAffiliation(model.getId())), Permission.EditDescription);
-        else this.authorizationService.authorizeAtLeastOneForce(List.of(this.authorizationContentResolver.descriptionsAffiliationBySection(model.getPlanId(), planDescriptionTemplate.getSectionId())), Permission.EditDescription);
+        if (isUpdate) this.authorizationService.authorizeAtLeastOneForce(List.of(this.authorizationContentResolverFactory.getInstance().descriptionAffiliation(model.getId())), Permission.EditDescription);
+        else this.authorizationService.authorizeAtLeastOneForce(List.of(this.authorizationContentResolverFactory.getInstance().descriptionsAffiliationBySection(model.getPlanId(), planDescriptionTemplate.getSectionId())), Permission.EditDescription);
 
         DescriptionEntity data;
         DescriptionStatusEntity oldDescriptionStatusEntity = null;
         DescriptionStatusEntity newDescriptionStatusEntity = null;
         if (isUpdate) {
-            data = this.entityManager.find(DescriptionEntity.class, model.getId());
+            data = this.tenantEntityManagerFactory.getInstance().find(DescriptionEntity.class, model.getId());
             if (data == null) throw new MyNotFoundException(this.messageSource.getMessage("General_ItemNotFound", new Object[]{model.getId(), Description.class.getSimpleName()}, LocaleContextHolder.getLocale()));
             if (this.lockService.isLocked(data.getId(), null).getStatus()) throw new MyApplicationException(this.errors.getLockedDescription().getCode(), data.getLabel());
             if (!this.conventionService.hashValue(data.getUpdatedAt()).equals(model.getHash())) throw new MyValidationException(this.errors.getHashConflict().getCode(), this.errors.getHashConflict().getMessage());
-            oldDescriptionStatusEntity = this.entityManager.find(DescriptionStatusEntity.class, data.getStatusId(), true);
+            oldDescriptionStatusEntity = this.tenantEntityManagerFactory.getInstance().find(DescriptionStatusEntity.class, data.getStatusId(), true);
             if (oldDescriptionStatusEntity == null) throw new MyNotFoundException(this.messageSource.getMessage("General_ItemNotFound", new Object[]{data.getStatusId(), org.opencdmp.model.descriptionstatus.DescriptionStatus.class.getSimpleName()}, LocaleContextHolder.getLocale()));
             if (oldDescriptionStatusEntity.getInternalStatus() != null && oldDescriptionStatusEntity.getInternalStatus().equals(DescriptionStatus.Finalized)) throw new MyValidationException(this.errors.getDescriptionIsFinalized().getCode(), this.errors.getDescriptionIsFinalized().getMessage());
             if (!data.getPlanId().equals(model.getPlanId())) throw new MyValidationException(this.errors.getPlanCanNotChange().getCode(), this.errors.getPlanCanNotChange().getMessage());
             if (!data.getPlanDescriptionTemplateId().equals(model.getPlanDescriptionTemplateId())) throw new MyValidationException(this.errors.getPlanDescriptionTemplateCanNotChange().getCode(), this.errors.getPlanDescriptionTemplateCanNotChange().getMessage());
             if (model.getStatusId() != null && !model.getStatusId().equals(data.getStatusId())) {
+                this.kpiService.sendIndicatorPointDescriptionPerTemplateEntry(KpiDirectionType.Decrease, data.getId());
                 data.setStatusId(model.getStatusId());
-                newDescriptionStatusEntity = this.entityManager.find(DescriptionStatusEntity.class, model.getStatusId(), true);
+                newDescriptionStatusEntity = this.tenantEntityManagerFactory.getInstance().find(DescriptionStatusEntity.class, model.getStatusId(), true);
                 if (newDescriptionStatusEntity == null) throw new MyNotFoundException(this.messageSource.getMessage("General_ItemNotFound", new Object[]{model.getStatusId(), org.opencdmp.model.descriptionstatus.DescriptionStatus.class.getSimpleName()}, LocaleContextHolder.getLocale()));
                 if (newDescriptionStatusEntity.getInternalStatus() != null && newDescriptionStatusEntity.getInternalStatus().equals(DescriptionStatus.Finalized)) data.setFinalizedAt(Instant.now());
+                this.kpiService.sendIndicatorPointDescriptionPerTemplateEntry(KpiDirectionType.Increase, data.getId());
             }
         } else {
             this.usageLimitService.checkIncrease(UsageLimitTargetMetric.DESCRIPTION_COUNT);
+            this.kpiService.sendIndicatorPointDescriptionEntry(KpiDirectionType.Increase);
 
-            PlanEntity planEntity = this.entityManager.find(PlanEntity.class, model.getPlanId(), true);
+            PlanEntity planEntity = this.tenantEntityManagerFactory.getInstance().find(PlanEntity.class, model.getPlanId(), true);
             if (planEntity == null) throw new MyNotFoundException(this.messageSource.getMessage("General_ItemNotFound", new Object[]{model.getPlanId(), Plan.class.getSimpleName()}, LocaleContextHolder.getLocale()));
 
-            PlanBlueprintEntity planBlueprintEntity = this.entityManager.find(PlanBlueprintEntity.class, planEntity.getBlueprintId());
+            PlanBlueprintEntity planBlueprintEntity = this.tenantEntityManagerFactory.getInstance().find(PlanBlueprintEntity.class, planEntity.getBlueprintId());
             if (planBlueprintEntity == null) throw new MyNotFoundException(this.messageSource.getMessage("General_ItemNotFound", new Object[]{planEntity.getBlueprintId(), PlanBlueprint.class.getSimpleName()}, LocaleContextHolder.getLocale()));
 
             if (!this.isDescriptionTemplateMaxMultiplicityValid(planBlueprintEntity, model.getPlanId(),model.getPlanDescriptionTemplateId(), false)) throw new MyValidationException(this.errors.getMaxDescriptionsExceeded().getCode(), this.errors.getMaxDescriptionsExceeded().getMessage());
@@ -268,20 +278,20 @@ public class DescriptionServiceImpl implements DescriptionService {
             data.setId(UUID.randomUUID());
             data.setIsActive(IsActive.Active);
             data.setCreatedAt(Instant.now());
-            data.setCreatedById(this.userScope.getUserId());
+            data.setCreatedById(this.userScopeFactory.getInstance().getUserId());
             data.setPlanId(model.getPlanId());
             data.setPlanDescriptionTemplateId(model.getPlanDescriptionTemplateId());
             data.setStatusId(this.descriptionWorkflowService.getActiveWorkFlowDefinition().getStartingStatusId());
         }
 
-        DescriptionTemplateEntity descriptionTemplateEntity = this.entityManager.find(DescriptionTemplateEntity.class, model.getDescriptionTemplateId(), true);
+        DescriptionTemplateEntity descriptionTemplateEntity = this.tenantEntityManagerFactory.getInstance().find(DescriptionTemplateEntity.class, model.getDescriptionTemplateId(), true);
         if (descriptionTemplateEntity == null) throw new MyNotFoundException(this.messageSource.getMessage("General_ItemNotFound", new Object[]{model.getDescriptionTemplateId(), DescriptionTemplate.class.getSimpleName()}, LocaleContextHolder.getLocale()));
 
         if (!planDescriptionTemplate.getDescriptionTemplateGroupId().equals(descriptionTemplateEntity.getGroupId())) throw new MyValidationException(this.errors.getInvalidDescriptionTemplate().getCode(), this.errors.getInvalidDescriptionTemplate().getMessage());
 
-        PlanEntity plan = this.entityManager.find(PlanEntity.class, data.getPlanId(), true);
+        PlanEntity plan = this.tenantEntityManagerFactory.getInstance().find(PlanEntity.class, data.getPlanId(), true);
         if (plan == null) throw new MyNotFoundException(this.messageSource.getMessage("General_ItemNotFound", new Object[]{data.getPlanId(), Plan.class.getSimpleName()}, LocaleContextHolder.getLocale()));
-        PlanStatusEntity planStatusEntity = this.entityManager.find(PlanStatusEntity.class, plan.getStatusId(), true);
+        PlanStatusEntity planStatusEntity = this.tenantEntityManagerFactory.getInstance().find(PlanStatusEntity.class, plan.getStatusId(), true);
         if (planStatusEntity == null) throw new MyNotFoundException(this.messageSource.getMessage("General_ItemNotFound", new Object[]{plan.getStatusId(), PlanStatusEntity.class.getSimpleName()}, LocaleContextHolder.getLocale()));
 
         if (planStatusEntity.getInternalStatus() != null && planStatusEntity.getInternalStatus().equals(PlanStatus.Finalized)) throw new MyValidationException(this.errors.getPlanIsFinalized().getCode(), this.errors.getPlanIsFinalized().getMessage());
@@ -291,33 +301,34 @@ public class DescriptionServiceImpl implements DescriptionService {
         data.setDescriptionTemplateId(model.getDescriptionTemplateId());
         data.setUpdatedAt(Instant.now());
         if (isUpdate) {
-            this.entityManager.merge(data);
+            this.tenantEntityManagerFactory.getInstance().merge(data);
             if (newDescriptionStatusEntity != null && !oldDescriptionStatusEntity.getId().equals(newDescriptionStatusEntity.getId())) {
                 this.accountingService.increase(UsageLimitTargetMetric.DESCRIPTION_BY_STATUS_COUNT.getValue().replace("{status_name}", newDescriptionStatusEntity.getName().toLowerCase()));
                 this.accountingService.decrease(UsageLimitTargetMetric.DESCRIPTION_BY_STATUS_COUNT.getValue().replace("{status_name}", oldDescriptionStatusEntity.getName().toLowerCase()));
             }
         }
         else {
-            this.entityManager.persist(data);
+            this.tenantEntityManagerFactory.getInstance().persist(data);
             this.accountingService.increase(UsageLimitTargetMetric.DESCRIPTION_COUNT.getValue());
-            DescriptionStatusEntity startingDescriptionStatusEntity = this.entityManager.find(DescriptionStatusEntity.class, data.getStatusId(), true);
+            DescriptionStatusEntity startingDescriptionStatusEntity = this.tenantEntityManagerFactory.getInstance().find(DescriptionStatusEntity.class, data.getStatusId(), true);
             if (startingDescriptionStatusEntity == null) throw new MyNotFoundException(this.messageSource.getMessage("General_ItemNotFound", new Object[]{data.getStatusId(), DescriptionStatusEntity.class.getSimpleName()}, LocaleContextHolder.getLocale()));
             this.accountingService.increase(UsageLimitTargetMetric.DESCRIPTION_BY_STATUS_COUNT.getValue().replace("{status_name}", startingDescriptionStatusEntity.getName().toLowerCase()));
+            this.kpiService.sendIndicatorPointDescriptionPerTemplateEntry(KpiDirectionType.Increase, data.getId());
         }
 
-        this.entityManager.flush();
+        this.tenantEntityManagerFactory.getInstance().flush();
 
         org.opencdmp.commons.types.descriptiontemplate.DefinitionEntity definition =  this.xmlHandlingService.fromXmlSafe(org.opencdmp.commons.types.descriptiontemplate.DefinitionEntity.class, descriptionTemplateEntity.getDefinition());
         VisibilityService visibilityService = new VisibilityServiceImpl(definition, model.getProperties());
         Map<String, List<UUID>> fieldToReferenceMap = this.patchAndSaveReferences(this.buildDescriptionReferencePersists(visibilityService, model.getProperties()), data.getId(), definition);
 
-        this.entityManager.flush();
+        this.tenantEntityManagerFactory.getInstance().flush();
         
         data.setProperties(this.jsonHandlingService.toJson(this.buildPropertyDefinitionEntity(visibilityService, model.getProperties(), definition, fieldToReferenceMap)));
 
-        this.entityManager.merge(data);
+        this.tenantEntityManagerFactory.getInstance().merge(data);
 
-        this.entityManager.flush();
+        this.tenantEntityManagerFactory.getInstance().flush();
         
         this.persistTags(data.getId(), model.getTags());
         
@@ -327,7 +338,8 @@ public class DescriptionServiceImpl implements DescriptionService {
         this.eventBroker.emit(new DescriptionTouchedEvent(data.getId()));
 
         this.annotationEntityTouchedIntegrationEventHandler.handleDescription(data.getId());
-        
+        this.planTouchedIntegrationEventHandler.handlePlan(List.of(plan.getId()));
+
         this.elasticService.persistDescription(data);
         return this.builderFactory.builder(DescriptionBuilder.class).authorize(AuthorizationFlags.AllExceptPublic).build(BaseFieldSet.build(fields, Description._id), data);
     }
@@ -376,16 +388,16 @@ public class DescriptionServiceImpl implements DescriptionService {
     public void updateDescriptionTemplate(UpdateDescriptionTemplatePersist model) throws InvalidApplicationException, IOException {
         logger.debug(new MapLogEntry("update description template").And("model", model));
 
-        this.authorizationService.authorizeAtLeastOneForce(List.of(this.authorizationContentResolver.descriptionAffiliation(model.getId())), Permission.EditDescription);
+        this.authorizationService.authorizeAtLeastOneForce(List.of(this.authorizationContentResolverFactory.getInstance().descriptionAffiliation(model.getId())), Permission.EditDescription);
 
-        DescriptionEntity data =  this.entityManager.find(DescriptionEntity.class, model.getId());
+        DescriptionEntity data =  this.tenantEntityManagerFactory.getInstance().find(DescriptionEntity.class, model.getId());
         if (data == null) throw new MyNotFoundException(this.messageSource.getMessage("General_ItemNotFound", new Object[]{model.getId(), Description.class.getSimpleName()}, LocaleContextHolder.getLocale()));
         if (!this.conventionService.hashValue(data.getUpdatedAt()).equals(model.getHash())) throw new MyValidationException(this.errors.getHashConflict().getCode(), this.errors.getHashConflict().getMessage());
 
-        DescriptionTemplateEntity oldDescriptionTemplateEntity = this.entityManager.find(DescriptionTemplateEntity.class, data.getDescriptionTemplateId(), true);
+        DescriptionTemplateEntity oldDescriptionTemplateEntity = this.tenantEntityManagerFactory.getInstance().find(DescriptionTemplateEntity.class, data.getDescriptionTemplateId(), true);
         if (oldDescriptionTemplateEntity == null) throw new MyNotFoundException(this.messageSource.getMessage("General_ItemNotFound", new Object[]{data.getDescriptionTemplateId(), DescriptionTemplate.class.getSimpleName()}, LocaleContextHolder.getLocale()));
 
-        PlanDescriptionTemplateEntity planDescriptionTemplateEntity = this.entityManager.find(PlanDescriptionTemplateEntity.class, data.getPlanDescriptionTemplateId(), true);
+        PlanDescriptionTemplateEntity planDescriptionTemplateEntity = this.tenantEntityManagerFactory.getInstance().find(PlanDescriptionTemplateEntity.class, data.getPlanDescriptionTemplateId(), true);
         if (planDescriptionTemplateEntity == null) throw new MyNotFoundException(this.messageSource.getMessage("General_ItemNotFound", new Object[]{data.getPlanDescriptionTemplateId(), PlanDescriptionTemplate.class.getSimpleName()}, LocaleContextHolder.getLocale()));
 
 
@@ -408,9 +420,9 @@ public class DescriptionServiceImpl implements DescriptionService {
 
         data.setProperties(this.jsonHandlingService.toJson(this.cleanPropertyDefinitionEntity(propertyDefinition, definition)));
         data.setUpdatedAt(Instant.now());
-        this.entityManager.merge(data);
+        this.tenantEntityManagerFactory.getInstance().merge(data);
 
-        this.entityManager.flush();
+        this.tenantEntityManagerFactory.getInstance().flush();
 
        
         this.sendNotification(data, true);
@@ -419,11 +431,13 @@ public class DescriptionServiceImpl implements DescriptionService {
 
         this.annotationEntityTouchedIntegrationEventHandler.handleDescription(data.getId());
 
+        this.planTouchedIntegrationEventHandler.handlePlan(List.of(planDescriptionTemplateEntity.getPlanId()));
+
         this.elasticService.persistDescription(data);
     }
 
     private void sendNotification(DescriptionEntity description, Boolean isUpdate) throws InvalidApplicationException {
-        DescriptionStatusEntity descriptionStatusEntity = this.entityManager.find(DescriptionStatusEntity.class, description.getStatusId(), true);
+        DescriptionStatusEntity descriptionStatusEntity = this.tenantEntityManagerFactory.getInstance().find(DescriptionStatusEntity.class, description.getStatusId(), true);
         if (descriptionStatusEntity == null) throw new MyNotFoundException(this.messageSource.getMessage("General_ItemNotFound", new Object[]{description, DescriptionStatus.class.getSimpleName()}, LocaleContextHolder.getLocale()));
         if (descriptionStatusEntity.getInternalStatus() != null && descriptionStatusEntity.getInternalStatus().equals(DescriptionStatus.Canceled)) return;
 
@@ -436,7 +450,7 @@ public class DescriptionServiceImpl implements DescriptionService {
             return;
         }
         for (PlanUserEntity planUser : existingUsers) {
-            if (!planUser.getUserId().equals(this.userScope.getUserIdSafe())){
+            if (!planUser.getUserId().equals(this.userScopeFactory.getInstance().getUserIdSafe())){
                 UserEntity user = this.queryFactory.query(UserQuery.class).disableTracking().ids(planUser.getUserId()).first();
                 if (user == null || user.getIsActive().equals(IsActive.Inactive)) throw new MyValidationException(this.errors.getPlanInactiveUser().getCode(), this.errors.getPlanInactiveUser().getMessage());
                 this.createDescriptionNotificationEvent(description, descriptionStatusEntity, user, isUpdate);
@@ -496,12 +510,12 @@ public class DescriptionServiceImpl implements DescriptionService {
         NotificationFieldData data = new NotificationFieldData();
         List<FieldInfo> fieldInfoList = new ArrayList<>();
         fieldInfoList.add(new FieldInfo("{recipient}", DataType.String, user.getName()));
-        fieldInfoList.add(new FieldInfo("{reasonName}", DataType.String, this.queryFactory.query(UserQuery.class).disableTracking().ids(this.userScope.getUserId()).first().getName()));
+        fieldInfoList.add(new FieldInfo("{reasonName}", DataType.String, this.queryFactory.query(UserQuery.class).disableTracking().ids(this.userScopeFactory.getInstance().getUserId()).first().getName()));
         fieldInfoList.add(new FieldInfo("{name}", DataType.String, description.getLabel()));
         fieldInfoList.add(new FieldInfo("{id}", DataType.String, description.getId().toString()));
         if (descriptionStatus.getInternalStatus() == null) fieldInfoList.add(new FieldInfo("{statusName}", DataType.String, descriptionStatus.getName()));
-        if(this.tenantScope.getTenantCode() != null && !this.tenantScope.getTenantCode().equals(this.tenantScope.getDefaultTenantCode())){
-            fieldInfoList.add(new FieldInfo("{tenant-url-path}", DataType.String, String.format("/t/%s", this.tenantScope.getTenantCode())));
+        if(this.tenantScopeFactory.getInstance().getTenantCode() != null && !this.tenantScopeFactory.getInstance().getTenantCode().equals(this.tenantScopeFactory.getInstance().getDefaultTenantCode())){
+            fieldInfoList.add(new FieldInfo("{tenant-url-path}", DataType.String, String.format("/t/%s", this.tenantScopeFactory.getInstance().getTenantCode())));
         }
         data.setFields(fieldInfoList);
         event.setData(this.jsonHandlingService.toJsonSafe(data));
@@ -529,7 +543,7 @@ public class DescriptionServiceImpl implements DescriptionService {
     public Description persistStatus(DescriptionStatusPersist model, FieldSet fields) throws IOException, InvalidApplicationException {
         logger.debug(new MapLogEntry("persisting data").And("model", model).And("fields", fields));
 
-        this.authorizationService.authorizeAtLeastOneForce(List.of(this.authorizationContentResolver.descriptionAffiliation(model.getId())), Permission.EditDescription, this.customPolicyService.getDescriptionStatusCanEditStatusPermission(model.getStatusId()));
+        this.authorizationService.authorizeAtLeastOneForce(List.of(this.authorizationContentResolverFactory.getInstance().descriptionAffiliation(model.getId())), Permission.EditDescription, this.customPolicyService.getDescriptionStatusCanEditStatusPermission(model.getStatusId()));
 
         DescriptionEntity data = this.queryFactory.query(DescriptionQuery.class).authorize(AuthorizationFlags.AllExceptPublic).ids(model.getId()).isActive(IsActive.Active).first();
         if (data == null) throw new MyNotFoundException(this.messageSource.getMessage("General_ItemNotFound", new Object[]{model.getId(), Description.class.getSimpleName()}, LocaleContextHolder.getLocale()));
@@ -541,22 +555,23 @@ public class DescriptionServiceImpl implements DescriptionService {
             DescriptionStatusEntity oldStatusEntity = this.queryFactory.query(DescriptionStatusQuery.class).disableTracking().ids(data.getStatusId()).isActive(IsActive.Active).firstAs(new BaseFieldSet().ensure(org.opencdmp.model.descriptionstatus.DescriptionStatus._id).ensure(org.opencdmp.model.descriptionstatus.DescriptionStatus._name).ensure(org.opencdmp.model.descriptionstatus.DescriptionStatus._internalStatus));
             if (oldStatusEntity == null) throw new MyNotFoundException(this.messageSource.getMessage("General_ItemNotFound", new Object[]{data.getStatusId(), DescriptionStatusEntity.class.getSimpleName()}, LocaleContextHolder.getLocale()));
             if (oldStatusEntity.getInternalStatus() != null && oldStatusEntity.getInternalStatus().equals(DescriptionStatus.Finalized)){
-                this.authorizationService.authorizeAtLeastOneForce(List.of(this.authorizationContentResolver.descriptionAffiliation(model.getId())), Permission.FinalizeDescription);
-                PlanEntity planEntity = this.entityManager.find(PlanEntity.class, data.getPlanId(), true);
+                this.authorizationService.authorizeAtLeastOneForce(List.of(this.authorizationContentResolverFactory.getInstance().descriptionAffiliation(model.getId())), Permission.FinalizeDescription);
+                PlanEntity planEntity = this.tenantEntityManagerFactory.getInstance().find(PlanEntity.class, data.getPlanId(), true);
                 if (planEntity == null) throw new MyNotFoundException(this.messageSource.getMessage("General_ItemNotFound", new Object[]{data.getPlanId(), PlanEntity.class.getSimpleName()}, LocaleContextHolder.getLocale()));
-                PlanStatusEntity planStatusEntity = this.entityManager.find(PlanStatusEntity.class, planEntity.getStatusId(), true);
+                PlanStatusEntity planStatusEntity = this.tenantEntityManagerFactory.getInstance().find(PlanStatusEntity.class, planEntity.getStatusId(), true);
                 if (planStatusEntity == null) throw new MyNotFoundException(this.messageSource.getMessage("General_ItemNotFound", new Object[]{planEntity.getStatusId(), PlanStatusEntity.class.getSimpleName()}, LocaleContextHolder.getLocale()));
                 if (planStatusEntity.getInternalStatus() != null && planStatusEntity.getInternalStatus().equals(PlanStatus.Finalized)) throw new MyValidationException(this.errors.getPlanIsFinalized().getCode(), this.errors.getPlanIsFinalized().getMessage());
             }
+            this.kpiService.sendIndicatorPointDescriptionPerTemplateEntry(KpiDirectionType.Decrease, data.getId());
 
             data.setStatusId(model.getStatusId());
             DescriptionStatusEntity newStatusEntity = this.queryFactory.query(DescriptionStatusQuery.class).disableTracking().ids(model.getStatusId()).isActive(IsActive.Active).firstAs(new BaseFieldSet().ensure(org.opencdmp.model.descriptionstatus.DescriptionStatus._id).ensure(org.opencdmp.model.descriptionstatus.DescriptionStatus._name).ensure(org.opencdmp.model.descriptionstatus.DescriptionStatus._internalStatus));
             if (newStatusEntity == null) throw new MyNotFoundException(this.messageSource.getMessage("General_ItemNotFound", new Object[]{model.getStatusId(), DescriptionStatusEntity.class.getSimpleName()}, LocaleContextHolder.getLocale()));
             if (newStatusEntity.getInternalStatus() != null && newStatusEntity.getInternalStatus().equals(DescriptionStatus.Finalized)) data.setFinalizedAt(Instant.now());
             data.setUpdatedAt(Instant.now());
-            this.entityManager.merge(data);
+            this.tenantEntityManagerFactory.getInstance().merge(data);
 
-            this.entityManager.flush();
+            this.tenantEntityManagerFactory.getInstance().flush();
 
             this.elasticService.persistDescription(data);
             this.eventBroker.emit(new DescriptionTouchedEvent(data.getId()));
@@ -567,6 +582,8 @@ public class DescriptionServiceImpl implements DescriptionService {
                 this.accountingService.increase(UsageLimitTargetMetric.DESCRIPTION_BY_STATUS_COUNT.getValue().replace("{status_name}", newStatusEntity.getName().toLowerCase()));
                 this.accountingService.decrease(UsageLimitTargetMetric.DESCRIPTION_BY_STATUS_COUNT.getValue().replace("{status_name}", oldStatusEntity.getName().toLowerCase()));
             }
+            this.kpiService.sendIndicatorPointDescriptionPerTemplateEntry(KpiDirectionType.Increase, data.getId());
+
         }
         return this.builderFactory.builder(DescriptionBuilder.class).authorize(AuthorizationFlags.AllExceptPublic).build(BaseFieldSet.build(fields, Description._id), data);
     }
@@ -895,7 +912,7 @@ public class DescriptionServiceImpl implements DescriptionService {
             ReferencePersist referencePersist = model.getReference();
             ReferenceEntity referenceEntity;
             if (this.conventionService.isValidGuid(referencePersist.getId())){
-                referenceEntity = this.entityManager.find(ReferenceEntity.class, referencePersist.getId());
+                referenceEntity = this.tenantEntityManagerFactory.getInstance().find(ReferenceEntity.class, referencePersist.getId());
                 if (referenceEntity == null) throw new MyNotFoundException(this.messageSource.getMessage("General_ItemNotFound", new Object[]{referencePersist.getId(), Reference.class.getSimpleName()}, LocaleContextHolder.getLocale()));
             } else {
                 ReferenceTypeDataEntity fieldEntity = definition.getFieldById(model.getData().getFieldId()).stream().filter(x-> x.getData() != null && x.getData().getFieldType().equals(FieldType.REFERENCE_TYPES)).map(x-> (ReferenceTypeDataEntity)x.getData()).findFirst().orElse(null);
@@ -922,14 +939,25 @@ public class DescriptionServiceImpl implements DescriptionService {
                         ReferenceTypeEntity referenceType = this.queryFactory.query(ReferenceTypeQuery.class).ids(fieldEntity.getReferenceTypeId()).firstAs(new BaseFieldSet().ensure(ReferenceType._id).ensure(ReferenceType._code).ensure(ReferenceTypeEntity._tenantId));
                         if (referenceType == null) throw new MyNotFoundException(this.messageSource.getMessage("General_ItemNotFound", new Object[]{fieldEntity.getReferenceTypeId(), ReferenceType.class.getSimpleName()}, LocaleContextHolder.getLocale()));
 
-                        if (referenceEntity.getSourceType().equals(ReferenceSourceType.External) && !this.tenantScope.isDefaultTenant() && referenceType.getTenantId() == null){
-                            this.tenantScope.setTempTenant(this.entityManager, null, this.tenantScope.getDefaultTenantCode());
+                        if (referenceEntity.getSourceType().equals(ReferenceSourceType.External) && !this.tenantScopeFactory.getInstance().isDefaultTenant() && referenceType.getTenantId() == null){
+                            this.tenantScopeFactory.getInstance().setTempTenant(this.tenantEntityManagerFactory.getInstance(), null, this.tenantScopeFactory.getInstance().getDefaultTenantCode());
                         }
-                        this.entityManager.persist(referenceEntity);
+                        this.tenantEntityManagerFactory.getInstance().persist(referenceEntity);
                         this.accountingService.increase(UsageLimitTargetMetric.REFERENCE_COUNT.getValue());
                         this.accountingService.increase(UsageLimitTargetMetric.REFERENCE_BY_TYPE_COUNT.getValue().replace("{type_code}", referenceType.getCode()));
                     } finally {
-	                    this.tenantScope.removeTempTenant(this.entityManager);
+	                    this.tenantScopeFactory.getInstance().removeTempTenant(this.tenantEntityManagerFactory.getInstance());
+                    }
+                } else if (referenceEntity.getSourceType().equals(ReferenceSourceType.External) && referenceEntity.getDefinition() == null && referencePersist.getDefinition() != null) {
+                    referenceEntity.setDefinition(this.xmlHandlingService.toXmlSafe(this.buildDefinitionEntity(referencePersist.getDefinition())));
+                    referenceEntity.setUpdatedAt(Instant.now());
+                    try {
+                        if (!this.tenantScopeFactory.getInstance().isDefaultTenant() && referenceEntity.getTenantId() == null) {
+                            this.tenantScopeFactory.getInstance().setTempTenant(this.tenantEntityManagerFactory.getInstance(), null, this.tenantScopeFactory.getInstance().getDefaultTenantCode());
+                        }
+                        this.tenantEntityManagerFactory.getInstance().merge(referenceEntity);
+                    } finally {
+                        this.tenantScopeFactory.getInstance().removeTempTenant(this.tenantEntityManagerFactory.getInstance());
                     }
                 }
             }
@@ -964,12 +992,15 @@ public class DescriptionServiceImpl implements DescriptionService {
 
             data.setUpdatedAt(Instant.now());
 
-            if (isUpdate) this.entityManager.merge(data);
-            else this.entityManager.persist(data);
+            if (isUpdate) this.tenantEntityManagerFactory.getInstance().merge(data);
+            else {
+                this.tenantEntityManagerFactory.getInstance().persist(data);
+                this.kpiService.sendIndicatorPointReferenceEntry(KpiDirectionType.Increase, data.getReferenceId());
+            }
         }
         List<DescriptionReferenceEntity> toDelete = descriptionReferences.stream().filter(x-> updatedCreatedIds.stream().noneMatch(y-> y.equals(x.getId()))).collect(Collectors.toList());
         this.deleterFactory.deleter(DescriptionReferenceDeleter.class).delete(toDelete);
-        this.entityManager.flush();
+        this.tenantEntityManagerFactory.getInstance().flush();
         
         return fieldToReferenceMap;
     }
@@ -993,7 +1024,7 @@ public class DescriptionServiceImpl implements DescriptionService {
         List<DescriptionTagEntity> items = this.queryFactory.query(DescriptionTagQuery.class).isActive(IsActive.Active).descriptionIds(id).collect();
         List<TagEntity> tagsAlreadyLinked = this.queryFactory.query(TagQuery.class).isActive(IsActive.Active).ids(items.stream().map(DescriptionTagEntity::getTagId).collect(Collectors.toList())).collect();
         List<String> tagLabelsToAdd = tagLabels.stream().filter(x-> tagsAlreadyLinked.stream().noneMatch(y-> y.getLabel() != null && y.getLabel().equalsIgnoreCase(x))).toList();
-        List<TagEntity> existingTags = this.queryFactory.query(TagQuery.class).isActive(IsActive.Active).tags(tagLabelsToAdd).createdByIds(this.userScope.getUserId()).collect();
+        List<TagEntity> existingTags = this.queryFactory.query(TagQuery.class).isActive(IsActive.Active).tags(tagLabelsToAdd).createdByIds(this.userScopeFactory.getInstance().getUserId()).collect();
         
         List<UUID> updatedCreatedIds = new ArrayList<>();
         for (String tagLabel : tagLabels) {
@@ -1009,8 +1040,8 @@ public class DescriptionServiceImpl implements DescriptionService {
                     existingTag.setIsActive(IsActive.Active);
                     existingTag.setCreatedAt(Instant.now());
                     existingTag.setUpdatedAt(Instant.now());
-                    existingTag.setCreatedById(this.userScope.getUserId());
-                    this.entityManager.persist(existingTag);
+                    existingTag.setCreatedById(this.userScopeFactory.getInstance().getUserId());
+                    this.tenantEntityManagerFactory.getInstance().persist(existingTag);
                 }
 
                 DescriptionTagEntity link = new DescriptionTagEntity();
@@ -1020,7 +1051,7 @@ public class DescriptionServiceImpl implements DescriptionService {
                 link.setIsActive(IsActive.Active);
                 link.setCreatedAt(Instant.now());
                 link.setUpdatedAt(Instant.now());
-                this.entityManager.persist(link);
+                this.tenantEntityManagerFactory.getInstance().persist(link);
                 updatedCreatedIds.add(link.getId());
             }
         }
@@ -1061,7 +1092,7 @@ public class DescriptionServiceImpl implements DescriptionService {
     public void deleteAndSave(UUID id) throws MyForbiddenException, InvalidApplicationException, IOException {
         logger.debug("deleting description: {}", id);
 
-        this.authorizationService.authorizeAtLeastOneForce(List.of(this.authorizationContentResolver.descriptionAffiliation(id)), Permission.DeleteDescription);
+        this.authorizationService.authorizeAtLeastOneForce(List.of(this.authorizationContentResolverFactory.getInstance().descriptionAffiliation(id)), Permission.DeleteDescription);
 
         this.deleterFactory.deleter(DescriptionDeleter.class).deleteAndSaveByIds(List.of(id), false);
 
@@ -1124,7 +1155,7 @@ public class DescriptionServiceImpl implements DescriptionService {
         storageFilePersist.setName(FilenameUtils.removeExtension(file.getName()));
         storageFilePersist.setExtension(FilenameUtils.getExtension(file.getName()));
         storageFilePersist.setMimeType(URLConnection.guessContentTypeFromName(file.getName()));
-        storageFilePersist.setOwnerId(this.userScope.getUserIdSafe());
+        storageFilePersist.setOwnerId(this.userScopeFactory.getInstance().getUserIdSafe());
         storageFilePersist.setStorageType(StorageType.Temp);
         storageFilePersist.setLifetime(Duration.ofSeconds(this.storageFileConfig.getTempStoreLifetimeSeconds()));
         this.validatorFactory.validator(StorageFilePersist.StorageFilePersistValidator.class).validateForce(storageFilePersist);
@@ -1133,7 +1164,7 @@ public class DescriptionServiceImpl implements DescriptionService {
 
     @Override
     public StorageFileEntity getFieldFile(UUID descriptionId, UUID storageFileId) {
-        this.authorizationService.authorizeAtLeastOneForce(List.of(this.authorizationContentResolver.descriptionAffiliation(descriptionId)), Permission.BrowseDescription);
+        this.authorizationService.authorizeAtLeastOneForce(List.of(this.authorizationContentResolverFactory.getInstance().descriptionAffiliation(descriptionId)), Permission.BrowseDescription);
         
         DescriptionEntity descriptionEntity = this.queryFactory.query(DescriptionQuery.class).disableTracking().isActive(IsActive.Active).ids(descriptionId).first();
         if (descriptionEntity == null) throw new MyNotFoundException(this.messageSource.getMessage("General_ItemNotFound", new Object[]{descriptionId, Description.class.getSimpleName()}, LocaleContextHolder.getLocale()));
@@ -1146,7 +1177,7 @@ public class DescriptionServiceImpl implements DescriptionService {
 
         if (!planEntity.getAccessType().equals(PlanAccessType.Public))
         {
-            boolean isPlanUser = this.queryFactory.query(PlanUserQuery.class).planIds(planEntity.getId()).disableTracking().userIds(this.userScope.getUserIdSafe()).isActives(IsActive.Active).count() > 0;
+            boolean isPlanUser = this.queryFactory.query(PlanUserQuery.class).planIds(planEntity.getId()).disableTracking().userIds(this.userScopeFactory.getInstance().getUserIdSafe()).isActives(IsActive.Active).count() > 0;
             if (!isPlanUser) throw new MyUnauthorizedException();
         }
         
@@ -1163,7 +1194,7 @@ public class DescriptionServiceImpl implements DescriptionService {
         DescriptionPersist persist = new DescriptionPersist();
         if (data == null) return persist;
 
-        DescriptionTemplateEntity descriptionTemplateEntity = this.entityManager.find(DescriptionTemplateEntity.class, data.getDescriptionTemplateId(), true);
+        DescriptionTemplateEntity descriptionTemplateEntity = this.tenantEntityManagerFactory.getInstance().find(DescriptionTemplateEntity.class, data.getDescriptionTemplateId(), true);
         if (descriptionTemplateEntity == null) throw new MyNotFoundException(this.messageSource.getMessage("General_ItemNotFound", new Object[]{data.getDescriptionTemplateId(), DescriptionTemplate.class.getSimpleName()}, LocaleContextHolder.getLocale()));
 
         persist.setId(data.getId());
@@ -1338,12 +1369,12 @@ public class DescriptionServiceImpl implements DescriptionService {
             data = this.queryFactory.query(DescriptionQuery.class).disableTracking().ids(id).authorize(AuthorizationFlags.All).isActive(IsActive.Active).first();
         } else {
             try {
-                this.entityManager.disableTenantFilters();
+                this.tenantEntityManagerFactory.getInstance().disableTenantFilters();
                 PlanStatusQuery statusQuery = this.queryFactory.query(PlanStatusQuery.class).disableTracking().internalStatuses(PlanStatus.Finalized).isActives(IsActive.Active);
                 data = this.queryFactory.query(DescriptionQuery.class).disableTracking().authorize(EnumSet.of(Public)).ids(id).planSubQuery(this.queryFactory.query(PlanQuery.class).isActive(IsActive.Active).planStatusSubQuery(statusQuery).accessTypes(PlanAccessType.Public)).first();
-                this.entityManager.reloadTenantFilters();
+                this.tenantEntityManagerFactory.getInstance().reloadTenantFilters();
             } finally {
-                this.entityManager.reloadTenantFilters();
+                this.tenantEntityManagerFactory.getInstance().reloadTenantFilters();
             }
         }
         if (data == null) throw new MyNotFoundException(this.messageSource.getMessage("General_ItemNotFound", new Object[]{id, Description.class.getSimpleName()}, LocaleContextHolder.getLocale()));
@@ -1372,15 +1403,15 @@ public class DescriptionServiceImpl implements DescriptionService {
         this.authorizationService.authorizeForce(Permission.ExportDescription);
         DescriptionEntity data = null;
         try {
-            this.entityManager.disableTenantFilters();
+            this.tenantEntityManagerFactory.getInstance().disableTenantFilters();
             PlanStatusQuery statusQuery = this.queryFactory.query(PlanStatusQuery.class).disableTracking().internalStatuses(PlanStatus.Finalized).isActives(IsActive.Active);
             data = this.queryFactory.query(DescriptionQuery.class).disableTracking().authorize(EnumSet.of(Public)).ids(id).planSubQuery(this.queryFactory.query(PlanQuery.class).isActive(IsActive.Active).planStatusSubQuery(statusQuery).accessTypes(PlanAccessType.Public)).first();
-            this.entityManager.reloadTenantFilters();
+            this.tenantEntityManagerFactory.getInstance().reloadTenantFilters();
         } finally {
-            this.entityManager.reloadTenantFilters();
+            this.tenantEntityManagerFactory.getInstance().reloadTenantFilters();
         }
 
-        if (data == null) throw new MyNotFoundException(this.messageSource.getMessage("General_ItemNotFound", new Object[]{id, PublicDescription.class.getSimpleName()}, LocaleContextHolder.getLocale()));
+        if (data == null) throw new MyNotFoundException(this.messageSource.getMessage("General_ItemNotFound", new Object[]{id, Description.class.getSimpleName()}, LocaleContextHolder.getLocale()));
 
         String xml = this.xmlHandlingService.toXml(this.exportXmlEntity(data.getId(), false, true));
         this.accountingService.increase(UsageLimitTargetMetric.EXPORT_DESCRIPTION_XML_EXECUTION_COUNT.getValue());
@@ -1433,7 +1464,7 @@ public class DescriptionServiceImpl implements DescriptionService {
     private DescriptionStatusImportExport descriptionStatusImportExportToExport(UUID statusId) throws InvalidApplicationException {
         DescriptionStatusImportExport xml = new DescriptionStatusImportExport();
         if (statusId == null) return xml;
-        DescriptionStatusEntity statusEntity = this.entityManager.find(DescriptionStatusEntity.class, statusId, true);
+        DescriptionStatusEntity statusEntity = this.tenantEntityManagerFactory.getInstance().find(DescriptionStatusEntity.class, statusId, true);
         if (statusEntity == null) throw new MyNotFoundException(this.messageSource.getMessage("General_ItemNotFound", new Object[]{statusId, DescriptionStatusEntity.class.getSimpleName()}, LocaleContextHolder.getLocale()));
 
         xml.setId(statusEntity.getId());
@@ -1458,7 +1489,27 @@ public class DescriptionServiceImpl implements DescriptionService {
             xml.setSource(reference.getSource());
             ReferenceTypeEntity referenceType = referenceTypeEntityMap.getOrDefault(reference.getTypeId(), null);
             if (referenceType != null) xml.setType(this.descriptionReferenceTypeToExport(referenceType));
+            if (reference.getDefinition() != null) {
+                DefinitionEntity definitionEntity = this.xmlHandlingService.fromXmlSafe(DefinitionEntity.class, reference.getDefinition());
+                if (definitionEntity != null && !this.conventionService.isListNullOrEmpty(definitionEntity.getFields())){
+                    List<DescriptionReferenceImportExport.ReferenceFieldImportExport> referenceFieldImportExports = new LinkedList<>();
+                    for (org.opencdmp.commons.types.reference.FieldEntity fieldEntity : definitionEntity.getFields()) {
+                        referenceFieldImportExports.add(this.referenceFieldToExport(fieldEntity));
+                    }
+                    xml.setFields(referenceFieldImportExports);
+                }
+            }
         }
+
+        return xml;
+    }
+
+    private DescriptionReferenceImportExport.ReferenceFieldImportExport referenceFieldToExport(org.opencdmp.commons.types.reference.FieldEntity entity) {
+        DescriptionReferenceImportExport.ReferenceFieldImportExport xml = new DescriptionReferenceImportExport.ReferenceFieldImportExport();
+        if (entity == null) return xml;
+        xml.setCode(entity.getCode());
+        xml.setValue(entity.getValue());
+        xml.setDataType(entity.getDataType());
 
         return xml;
     }
@@ -1764,7 +1815,7 @@ public class DescriptionServiceImpl implements DescriptionService {
         if (importXml == null)
             return null;
 
-        if (!referenceTypeEntity.getCode().equals(importXml.getType().getCode())) throw new MyApplicationException("Invalid reference for field " + importXml.getId());
+        if (!referenceTypeEntity.getCode().equals(importXml.getType().getCode())) throw new MyApplicationException(this.errors.getInvalidReferenceTypeImportXml().getCode(), this.errors.getInvalidReferenceTypeImportXml().getMessage());
 
         ReferenceEntity referenceEntity = this.queryFactory.query(ReferenceQuery.class).ids(importXml.getId()).first(); //TODO: optimize
         if (referenceEntity == null) referenceEntity = this.queryFactory.query(ReferenceQuery.class).references(importXml.getReference()).typeIds(referenceTypeEntity.getId()).sources(importXml.getSource()).first();
@@ -1775,18 +1826,34 @@ public class DescriptionServiceImpl implements DescriptionService {
         if (referenceEntity == null) {
             persist.setLabel(importXml.getLabel());
             persist.setReference(importXml.getReference());
-            persist.setSource(importXml.getSource());
-            persist.setSourceType(ReferenceSourceType.External);
+            persist.setSource("internal");
+            persist.setSourceType(ReferenceSourceType.Internal);
+
+            if (!this.conventionService.isListNullOrEmpty(importXml.getFields())) {
+                DefinitionPersist definitionPersist = new DefinitionPersist();
+                List<org.opencdmp.model.persist.referencedefinition.FieldPersist> fieldPersists = new LinkedList<>();
+                for (DescriptionReferenceImportExport.ReferenceFieldImportExport fieldImportExport : importXml.getFields()) {
+                    fieldPersists.add(this.xmlReferenceFieldToPersist(fieldImportExport));
+                }
+                definitionPersist.setFields(fieldPersists);
+                persist.setDefinition(definitionPersist);
+            }
         } else {
             persist.setId(referenceEntity.getId());
-            persist.setLabel(referenceEntity.getLabel());
-            persist.setReference(referenceEntity.getReference());
-            persist.setSource(referenceEntity.getSource());
-            persist.setSourceType(referenceEntity.getSourceType());
-            persist.setAbbreviation(referenceEntity.getAbbreviation());
-            persist.setDescription(referenceEntity.getDescription());
-            persist.setHash(this.conventionService.hashValue(referenceEntity.getUpdatedAt()));
         }
+
+        return persist;
+    }
+
+    private org.opencdmp.model.persist.referencedefinition.FieldPersist xmlReferenceFieldToPersist(DescriptionReferenceImportExport.ReferenceFieldImportExport importXml) {
+        if (importXml == null)
+            return null;
+
+        org.opencdmp.model.persist.referencedefinition.FieldPersist persist = new org.opencdmp.model.persist.referencedefinition.FieldPersist();
+        persist.setCode(importXml.getCode());
+        persist.setValue(importXml.getValue());
+        persist.setDataType(importXml.getDataType());
+
         return persist;
     }
 
@@ -1990,16 +2057,36 @@ public class DescriptionServiceImpl implements DescriptionService {
             persist.setLabel(!this.conventionService.isNullOrEmpty(model.getLabel()) ? model.getLabel() : persist.getReference());
             persist.setSource("internal");
             persist.setSourceType(ReferenceSourceType.Internal);
+
+            if (model.getDefinition() != null && !this.conventionService.isListNullOrEmpty(model.getDefinition().getFields())) {
+                DefinitionPersist definitionPersist = new DefinitionPersist();
+                List<org.opencdmp.model.persist.referencedefinition.FieldPersist> fieldPersists = new LinkedList<>();
+                for (ReferenceFieldModel fieldModel : model.getDefinition().getFields()) {
+                    fieldPersists.add(this.commonModelReferenceFieldToPersist(fieldModel));
+                }
+                definitionPersist.setFields(fieldPersists);
+                persist.setDefinition(definitionPersist);
+            }
         } else {
             persist.setId(referenceEntity.getId());
-            persist.setLabel(referenceEntity.getLabel());
-            persist.setReference(referenceEntity.getReference());
-            persist.setSource(referenceEntity.getSource());
-            persist.setSourceType(referenceEntity.getSourceType());
-            persist.setAbbreviation(referenceEntity.getAbbreviation());
-            persist.setDescription(referenceEntity.getDescription());
-            persist.setHash(this.conventionService.hashValue(referenceEntity.getUpdatedAt()));
         }
+        return persist;
+    }
+
+    private org.opencdmp.model.persist.referencedefinition.FieldPersist commonModelReferenceFieldToPersist(ReferenceFieldModel commonModel) {
+        if (commonModel == null)
+            return null;
+
+        org.opencdmp.model.persist.referencedefinition.FieldPersist persist = new org.opencdmp.model.persist.referencedefinition.FieldPersist();
+        persist.setCode(commonModel.getCode());
+        persist.setValue(commonModel.getValue());
+        switch (commonModel.getDataType()){
+            case Text -> persist.setDataType(ReferenceFieldDataType.Text);
+            case Date -> persist.setDataType(ReferenceFieldDataType.Date);
+            case null -> persist.setDataType(null);
+            default -> throw new MyApplicationException("unrecognized type " + commonModel.getDataType());
+        }
+
         return persist;
     }
 

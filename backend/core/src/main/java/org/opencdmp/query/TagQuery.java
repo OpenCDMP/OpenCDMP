@@ -11,10 +11,10 @@ import jakarta.persistence.criteria.Predicate;
 import org.opencdmp.authorization.AuthorizationFlags;
 import org.opencdmp.authorization.Permission;
 import org.opencdmp.commons.enums.IsActive;
-import org.opencdmp.commons.scope.user.UserScope;
+import org.opencdmp.commons.scope.user.UserScopeFactory;
 import org.opencdmp.data.DescriptionTagEntity;
 import org.opencdmp.data.TagEntity;
-import org.opencdmp.data.TenantEntityManager;
+import org.opencdmp.data.TenantEntityManagerFactory;
 import org.opencdmp.model.Tag;
 import org.opencdmp.query.utils.BuildSubQueryInput;
 import org.opencdmp.query.utils.QueryUtilsService;
@@ -45,16 +45,16 @@ public class TagQuery extends QueryBase<TagEntity> {
 
     private EnumSet<AuthorizationFlags> authorize = EnumSet.of(AuthorizationFlags.None);
     
-    private final UserScope userScope;
+    private final UserScopeFactory userScopeFactory;
     private final AuthorizationService authService;
     private final QueryUtilsService queryUtilsService;
-    private final TenantEntityManager tenantEntityManager;
+    private final TenantEntityManagerFactory tenantEntityManagerFactory;
 
-    public TagQuery(UserScope userScope, AuthorizationService authService, QueryUtilsService queryUtilsService, TenantEntityManager tenantEntityManager) {
-	    this.userScope = userScope;
+    public TagQuery(UserScopeFactory userScopeFactory, AuthorizationService authService, QueryUtilsService queryUtilsService, TenantEntityManagerFactory tenantEntityManagerFactory) {
+	    this.userScopeFactory = userScopeFactory;
 	    this.authService = authService;
 	    this.queryUtilsService = queryUtilsService;
-	    this.tenantEntityManager = tenantEntityManager;
+	    this.tenantEntityManagerFactory = tenantEntityManagerFactory;
     }
 
     public TagQuery like(String value) {
@@ -174,7 +174,7 @@ public class TagQuery extends QueryBase<TagEntity> {
 
     @Override
     protected EntityManager entityManager(){
-        return this.tenantEntityManager.getEntityManager();
+        return this.tenantEntityManagerFactory.getInstance().getEntityManager();
     }
 
     @Override
@@ -199,7 +199,7 @@ public class TagQuery extends QueryBase<TagEntity> {
         if (this.authorize.contains(AuthorizationFlags.Permission) && this.authService.authorize(Permission.BrowseTag)) return null;
         UUID userId;
         boolean usePublic = this.authorize.contains(AuthorizationFlags.Public);
-        if (this.authorize.contains(AuthorizationFlags.PlanAssociated)) userId = this.userScope.getUserIdSafe();
+        if (this.authorize.contains(AuthorizationFlags.PlanAssociated)) userId = this.userScopeFactory.getInstance().getUserIdSafe();
         else  userId = null;
 
         List<Predicate> predicates = new ArrayList<>();

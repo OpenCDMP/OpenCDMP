@@ -1,7 +1,7 @@
 import { HttpClient, HttpHeaders, HttpParamsOptions, HttpResponse } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { IsActive } from '@app/core/common/enum/is-active.enum';
-import { Description, DescriptionMultiplePersist, DescriptionPersist, DescriptionSectionPermissionResolver, DescriptionStatusPersist, PublicDescription, UpdateDescriptionTemplatePersist } from '@app/core/model/description/description';
+import { Description, DescriptionMultiplePersist, DescriptionPersist, DescriptionSectionPermissionResolver, DescriptionStatusPersist, UpdateDescriptionTemplatePersist } from '@app/core/model/description/description';
 import { DescriptionLookup } from '@app/core/query/description.lookup';
 import { MultipleAutoCompleteConfiguration } from '@app/library/auto-complete/multiple/multiple-auto-complete-configuration';
 import { SingleAutoCompleteConfiguration } from '@app/library/auto-complete/single/single-auto-complete-configuration';
@@ -16,14 +16,14 @@ import { BaseHttpV2Service } from '../http/base-http-v2.service';
 import { BaseHttpParams } from '@common/http/base-http-params';
 import { InterceptorType } from '@common/http/interceptors/interceptor-type';
 import { DescriptionValidationResult } from '@app/ui/plan/plan-finalize-dialog/plan-finalize-dialog.component';
-import { ResolutionContext } from '../auth/auth.service';
+import { AuthService, ResolutionContext } from '../auth/auth.service';
 
 @Injectable()
 export class DescriptionService {
 
 	private headers = new HttpHeaders();
 
-	constructor(private http: BaseHttpV2Service, private httpClient: HttpClient, private configurationService: ConfigurationService, private filterService: FilterService) {
+	constructor(private http: BaseHttpV2Service, private httpClient: HttpClient, private configurationService: ConfigurationService, private filterService: FilterService, private authService: AuthService) {
 	}
 
 	private get apiBase(): string { return `${this.configurationService.server}description`; }
@@ -38,14 +38,17 @@ export class DescriptionService {
 		return this.http.post<Map<Guid, string[]>>(url, q).pipe(catchError((error: any) => throwError(error)));
 	}
 
-	publicQuery(q: DescriptionLookup): Observable<QueryResult<PublicDescription>> {
+	publicQuery(q: DescriptionLookup): Observable<QueryResult<Description>> {
 		const url = `${this.apiBase}/public/query`;
 		const params = new BaseHttpParams();
-		params.interceptorContext = {
-			excludedInterceptors: [InterceptorType.AuthToken,
-				InterceptorType.TenantHeaderInterceptor]
-		};
-		return this.http.post<QueryResult<PublicDescription>>(url, q, {params: params}).pipe(catchError((error: any) => throwError(error)));
+		if (!this.authService.currentAccountIsAuthenticated) {
+			params.interceptorContext = {
+				excludedInterceptors: [InterceptorType.AuthToken,
+					InterceptorType.TenantHeaderInterceptor]
+			};
+		}
+
+		return this.http.post<QueryResult<Description>>(url, q, {params: params}).pipe(catchError((error: any) => throwError(error)));
 	}
 
 	getSingle(id: Guid, reqFields: string[] = []): Observable<Description> {
@@ -59,17 +62,20 @@ export class DescriptionService {
 				catchError((error: any) => throwError(error)));
 	}
 
-	getPublicSingle(id: Guid, reqFields: string[] = []): Observable<PublicDescription> {
+	getPublicSingle(id: Guid, reqFields: string[] = []): Observable<Description> {
 		const url = `${this.apiBase}/public/${id}`;
 		const options: HttpParamsOptions = { fromObject: { f: reqFields } };
 
 		let params: BaseHttpParams = new BaseHttpParams(options);
-		params.interceptorContext = {
-			excludedInterceptors: [InterceptorType.AuthToken]
-		};
+		if (!this.authService.currentAccountIsAuthenticated) {
+			params.interceptorContext = {
+				excludedInterceptors: [InterceptorType.AuthToken,
+					InterceptorType.TenantHeaderInterceptor]
+			};
+		}
 
 		return this.http
-			.get<PublicDescription>(url, { params: params }).pipe(
+			.get<Description>(url, { params: params }).pipe(
 				catchError((error: any) => throwError(error)));
 	}
 
@@ -165,7 +171,7 @@ export class DescriptionService {
 	singleAutocompleteConfiguration: SingleAutoCompleteConfiguration = {
 		initialItems: (data?: any) => this.query(this.buildAutocompleteLookup([IsActive.Active])).pipe(map(x => x.items)),
 		filterFn: (searchQuery: string, data?: any) => this.query(this.buildAutocompleteLookup([IsActive.Active], searchQuery)).pipe(map(x => x.items)),
-		getSelectedItem: (selectedItem: any) => this.query(this.buildAutocompleteLookup([IsActive.Active, IsActive.Inactive], null, null, [selectedItem])).pipe(map(x => x.items[0])),
+		getSelectedItem: (selectedItem: any) => this.getSingle(selectedItem, [nameof<Description>(x => x.id), nameof<Description>(x => x.label)]),
 		displayFn: (item: Description) => item.label,
 		titleFn: (item: Description) => item.label,
 		valueAssign: (item: Description) => item.id,

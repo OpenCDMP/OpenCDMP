@@ -1,8 +1,8 @@
 package org.opencdmp.interceptors.user;
 
 
-import gr.cite.commons.web.oidc.principal.CurrentPrincipalResolver;
-import gr.cite.commons.web.oidc.principal.extractor.ClaimExtractor;
+import gr.cite.commons.web.oidc.principal.CurrentPrincipalResolverFactory;
+import gr.cite.commons.web.oidc.principal.extractor.ClaimExtractorFactory;
 import gr.cite.tools.data.query.QueryFactory;
 import gr.cite.tools.exception.MyForbiddenException;
 import gr.cite.tools.fieldset.BaseFieldSet;
@@ -18,9 +18,11 @@ import org.opencdmp.authorization.ClaimNames;
 import org.opencdmp.commons.JsonHandlingService;
 import org.opencdmp.commons.enums.ContactInfoType;
 import org.opencdmp.commons.enums.IsActive;
+import org.opencdmp.commons.enums.UsageLimitTargetMetric;
+import org.opencdmp.commons.enums.kpi.KpiDirectionType;
 import org.opencdmp.commons.locale.LocaleProperties;
 import org.opencdmp.commons.lock.LockByKeyManager;
-import org.opencdmp.commons.scope.user.UserScope;
+import org.opencdmp.commons.scope.user.UserScopeFactory;
 import org.opencdmp.commons.types.user.AdditionalInfoEntity;
 import org.opencdmp.commons.types.usercredential.UserCredentialDataEntity;
 import org.opencdmp.convention.ConventionService;
@@ -31,6 +33,9 @@ import org.opencdmp.model.UserContactInfo;
 import org.opencdmp.model.usercredential.UserCredential;
 import org.opencdmp.query.UserContactInfoQuery;
 import org.opencdmp.query.UserCredentialQuery;
+import org.opencdmp.service.accounting.AccountingService;
+import org.opencdmp.service.kpi.KpiService;
+import org.opencdmp.service.usagelimit.UsageLimitService;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.lang.NonNull;
@@ -53,9 +58,9 @@ import java.util.concurrent.TimeUnit;
 @Component
 public class UserInterceptor implements WebRequestInterceptor {
     private static final LoggerService logger = new LoggerService(LoggerFactory.getLogger(UserInterceptor.class));
-    private final UserScope userScope;
-    private final ClaimExtractor claimExtractor;
-    private final CurrentPrincipalResolver currentPrincipalResolver;
+    private final UserScopeFactory userScopeFactory;
+    private final ClaimExtractorFactory claimExtractorFactory;
+    private final CurrentPrincipalResolverFactory currentPrincipalResolverFactory;
     private final PlatformTransactionManager transactionManager;
     private final UserInterceptorCacheService userInterceptorCacheService;
     private final JsonHandlingService jsonHandlingService;
@@ -66,25 +71,28 @@ public class UserInterceptor implements WebRequestInterceptor {
     private final IndicatorAccessEventHandlerImpl indicatorAccessEventHandler;
     private final AuthorizationConfiguration authorizationConfiguration;
     private final ConventionService conventionService;
+    private final UsageLimitService usageLimitService;
+    private final AccountingService accountingService;
+    private final KpiService kpiService;
     @PersistenceContext
     public EntityManager entityManager;
-    public final TenantEntityManager tenantEntityManager;
+    public final TenantEntityManagerFactory tenantEntityManagerFactory;
     
 
     @Autowired
     public UserInterceptor(
-            UserScope userScope,
-            ClaimExtractor claimExtractor,
-            CurrentPrincipalResolver currentPrincipalResolver,
+            UserScopeFactory userScopeFactory,
+            ClaimExtractorFactory claimExtractorFactory,
+            CurrentPrincipalResolverFactory currentPrincipalResolverFactory,
             PlatformTransactionManager transactionManager,
             UserInterceptorCacheService userInterceptorCacheService,
             JsonHandlingService jsonHandlingService,
             QueryFactory queryFactory,
             LockByKeyManager lockByKeyManager,
-            LocaleProperties localeProperties, UserTouchedIntegrationEventHandler userTouchedIntegrationEventHandler, IndicatorAccessEventHandlerImpl indicatorAccessEventHandler, AuthorizationConfiguration authorizationConfiguration, ConventionService conventionService, TenantEntityManager tenantEntityManager) {
-        this.userScope = userScope;
-        this.currentPrincipalResolver = currentPrincipalResolver;
-        this.claimExtractor = claimExtractor;
+            LocaleProperties localeProperties, UserTouchedIntegrationEventHandler userTouchedIntegrationEventHandler, IndicatorAccessEventHandlerImpl indicatorAccessEventHandler, AuthorizationConfiguration authorizationConfiguration, ConventionService conventionService, UsageLimitService usageLimitService, AccountingService accountingService, KpiService kpiService, TenantEntityManagerFactory tenantEntityManagerFactory) {
+        this.userScopeFactory = userScopeFactory;
+        this.currentPrincipalResolverFactory = currentPrincipalResolverFactory;
+        this.claimExtractorFactory = claimExtractorFactory;
         this.transactionManager = transactionManager;
         this.userInterceptorCacheService = userInterceptorCacheService;
         this.jsonHandlingService = jsonHandlingService;
@@ -95,14 +103,17 @@ public class UserInterceptor implements WebRequestInterceptor {
         this.indicatorAccessEventHandler = indicatorAccessEventHandler;
         this.authorizationConfiguration = authorizationConfiguration;
 	    this.conventionService = conventionService;
-	    this.tenantEntityManager = tenantEntityManager;
+        this.usageLimitService = usageLimitService;
+        this.accountingService = accountingService;
+        this.kpiService = kpiService;
+        this.tenantEntityManagerFactory = tenantEntityManagerFactory;
     }
 
     @Override
     public void preHandle(WebRequest request) throws InterruptedException, InvalidApplicationException {
         UUID userId = null;
-        if (this.currentPrincipalResolver.currentPrincipal().isAuthenticated()) {
-            String subjectId = this.claimExtractor.subjectString(this.currentPrincipalResolver.currentPrincipal());
+        if (this.currentPrincipalResolverFactory.getInstance().currentPrincipal().isAuthenticated()) {
+            String subjectId = this.claimExtractorFactory.getInstance().subjectString(this.currentPrincipalResolverFactory.getInstance().currentPrincipal());
             if (subjectId == null || subjectId.isBlank()) throw new MyForbiddenException("Empty subjects not allowed");
 
             
@@ -113,7 +124,7 @@ public class UserInterceptor implements WebRequestInterceptor {
                 boolean usedResource = false;
                 boolean shouldSendUserTouchedIntegrationEvent = false;
                 try {
-                    this.tenantEntityManager.disableTenantFilters();
+                    this.tenantEntityManagerFactory.getInstance().disableTenantFilters();
                     
                     usedResource = this.lockByKeyManager.tryLock(subjectId, 5000, TimeUnit.MILLISECONDS);
                     String email = this.getEmailFromClaims();
@@ -169,12 +180,12 @@ public class UserInterceptor implements WebRequestInterceptor {
                     this.userInterceptorCacheService.put(cacheValue);
                 } finally {
                     if (usedResource) this.lockByKeyManager.unlock(subjectId);
-                    this.tenantEntityManager.reloadTenantFilters();
+                    this.tenantEntityManagerFactory.getInstance().reloadTenantFilters();
                 }
 
             }
         }
-        this.userScope.setUserId(userId);
+        this.userScopeFactory.getInstance().setUserId(userId);
     }
 
     private boolean syncUserWithClaims(UUID userId, String subjectId) {
@@ -251,7 +262,7 @@ public class UserInterceptor implements WebRequestInterceptor {
     }
 
     private List<String> getRolesFromClaims() {
-        List<String> claimsRoles = this.claimExtractor.asStrings(this.currentPrincipalResolver.currentPrincipal(), ClaimNames.GlobalRolesClaimName);
+        List<String> claimsRoles = this.claimExtractorFactory.getInstance().asStrings(this.currentPrincipalResolverFactory.getInstance().currentPrincipal(), ClaimNames.GlobalRolesClaimName);
         if (claimsRoles == null) claimsRoles = new ArrayList<>();
         claimsRoles = claimsRoles.stream().filter(x -> x != null && !x.isBlank() && (this.conventionService.isListNullOrEmpty(this.authorizationConfiguration.getAuthorizationProperties().getAllowedGlobalRoles()) || this.authorizationConfiguration.getAuthorizationProperties().getAllowedGlobalRoles().contains(x))).distinct().toList();
         claimsRoles = claimsRoles.stream().filter(x -> x != null && !x.isBlank()).distinct().toList();
@@ -342,13 +353,13 @@ public class UserInterceptor implements WebRequestInterceptor {
     }
 
     private String getEmailFromClaims() {
-        String email = this.claimExtractor.email(this.currentPrincipalResolver.currentPrincipal());
+        String email = this.claimExtractorFactory.getInstance().email(this.currentPrincipalResolverFactory.getInstance().currentPrincipal());
         if (email == null || email.isBlank() || !EmailValidator.getInstance().isValid(email)) return null;
         return email.trim();
     }
 
     private String getProviderFromClaims() {
-        String provider = this.claimExtractor.asString(this.currentPrincipalResolver.currentPrincipal(), ClaimNames.ExternalProviderName);
+        String provider = this.claimExtractorFactory.getInstance().asString(this.currentPrincipalResolverFactory.getInstance().currentPrincipal(), ClaimNames.ExternalProviderName);
         if (provider == null || provider.isBlank()) return null;
         return provider.trim();
     }
@@ -390,9 +401,11 @@ public class UserInterceptor implements WebRequestInterceptor {
         return data;
     }
 
-    private UserEntity addNewUser(String subjectId, String email) {
+    private UserEntity addNewUser(String subjectId, String email) throws InvalidApplicationException {
+        this.usageLimitService.checkIncrease(UsageLimitTargetMetric.USER_COUNT);
+
         List<String> roles = this.getRolesFromClaims();
-        String name = this.claimExtractor.name(this.currentPrincipalResolver.currentPrincipal());
+        String name = this.claimExtractorFactory.getInstance().name(this.currentPrincipalResolverFactory.getInstance().currentPrincipal());
 
         UserEntity user = new UserEntity();
         user.setId(UUID.randomUUID());
@@ -406,6 +419,9 @@ public class UserInterceptor implements WebRequestInterceptor {
         additionalInfoEntity.setTimezone(this.localeProperties.getTimezone());
         user.setAdditionalInfo(this.jsonHandlingService.toJsonSafe(additionalInfoEntity));
         this.entityManager.persist(user);
+
+        this.accountingService.increase(UsageLimitTargetMetric.USER_COUNT.getValue(), true);
+        this.kpiService.sendIndicatorPointUserEntry(KpiDirectionType.Increase, true);
 
         UserCredentialEntity credential = this.buildCredential(user.getId(), subjectId);
         this.entityManager.persist(credential);
@@ -426,7 +442,7 @@ public class UserInterceptor implements WebRequestInterceptor {
 
     @Override
     public void postHandle(@NonNull WebRequest request, ModelMap model) {
-        this.userScope.setUserId(null);
+        this.userScopeFactory.getInstance().setUserId(null);
     }
 
     @Override

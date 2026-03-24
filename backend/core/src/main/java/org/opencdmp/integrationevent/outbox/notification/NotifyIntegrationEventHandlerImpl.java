@@ -1,27 +1,28 @@
 package org.opencdmp.integrationevent.outbox.notification;
 
-import org.opencdmp.commons.scope.tenant.TenantScope;
+import org.opencdmp.commons.scope.tenant.TenantScopeFactory;
 import org.opencdmp.integrationevent.outbox.OutboxIntegrationEvent;
 import org.opencdmp.integrationevent.outbox.OutboxService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.config.ConfigurableBeanFactory;
+import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
-import org.springframework.web.context.annotation.RequestScope;
 
 import javax.management.InvalidApplicationException;
 import java.util.UUID;
 
 @Component
-@RequestScope
+@Scope(value = ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 public class NotifyIntegrationEventHandlerImpl implements NotifyIntegrationEventHandler {
 
     private final OutboxService outboxService;
-    private final TenantScope tenantScope;
+    private final TenantScopeFactory tenantScopeFactory;
 
     @Autowired
     public NotifyIntegrationEventHandlerImpl(
-		    OutboxService outboxService, TenantScope tenantScope) {
+		    OutboxService outboxService, TenantScopeFactory tenantScopeFactory) {
         this.outboxService = outboxService;
-	    this.tenantScope = tenantScope;
+	    this.tenantScopeFactory = tenantScopeFactory;
     }
 
     @Override
@@ -30,7 +31,7 @@ public class NotifyIntegrationEventHandlerImpl implements NotifyIntegrationEvent
         message.setMessageId(UUID.randomUUID());
         message.setType(OutboxIntegrationEvent.NOTIFY);
         message.setEvent(event);
-        if (this.tenantScope.isSet()) message.setTenantId(this.tenantScope.getTenant());
+        if (this.tenantScopeFactory.getInstance().isSet()) message.setTenantId(this.tenantScopeFactory.getInstance().getTenant());
         this.outboxService.publish(message);
     }
 }

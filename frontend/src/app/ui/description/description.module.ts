@@ -4,6 +4,7 @@ import { DescriptionRoutingModule, PublicDescriptionRoutingModule } from '@app/u
 import { CommonFormsModule } from '@common/forms/common-forms.module';
 import { CommonUiModule } from '@common/ui/common-ui.module';
 import { EvaluateDialogModule } from '../evaluation/evaluate-dialog/evaluate-dialog.module';
+import { AsyncPipe } from '@angular/common';
 
 @NgModule({
 	imports: [
@@ -11,6 +12,7 @@ import { EvaluateDialogModule } from '../evaluation/evaluate-dialog/evaluate-dia
 		CommonFormsModule,
 		FormattingModule,
 		DescriptionRoutingModule,
+        AsyncPipe
 	],
 	declarations: [
 	],
@@ -26,6 +28,7 @@ export class DescriptionModule { }
 		FormattingModule,
 		PublicDescriptionRoutingModule,
 		EvaluateDialogModule,
+        AsyncPipe
 	],
 	declarations: [
 	],

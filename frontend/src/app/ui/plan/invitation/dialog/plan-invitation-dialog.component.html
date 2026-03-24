@@ -1,18 +1,26 @@
-<div class="plan-invitation-dialog" *ngIf="formGroup">
-	<div mat-dialog-title class="d-flex align-items-center">
-		<div>{{'PLAN-USER-INVITATION-DIALOG.TITLE' | translate}}</div>
-		<div class="ml-auto">
-			<button mat-icon-button (click)="closeDialog()" [attr.aria-label]="'ALT-TEXT.CLOSE-DIALOG'  | translate"><mat-icon aria-hidden>close</mat-icon></button>
-		</div>
-	</div>
-	<div mat-dialog-content>
-        <div class="p-2">
-            <app-plan-user-field-component [form]="formGroup.get('users')" [validationErrorModel]="editorModel.validationErrorModel" [sections]="selectedBlueprint?.definition?.sections" [viewOnly]="false" [initializeUsers]="true" [enableSorting]="false"></app-plan-user-field-component>
-        </div>
-	</div>
-    <div mat-dialog-actions>
-        <button mat-stroked-button color="primary" *ngIf="hasValue()" [disabled]="isLoading()" (click)="send()" type="button" class="padded-shadow-btn primary-inverted-hover">{{'PLAN-USER-INVITATION-DIALOG.ACTIONS.INVITE' | translate}}</button>
-        <mat-error *ngIf="formGroup.get('users').hasError('backendError')">{{formGroup.get('users').getError('backendError').message}}</mat-error>
-        <mat-error *ngIf="formGroup.get('users').hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
+@if (formGroup) {
+  <div class="plan-invitation-dialog">
+    <div mat-dialog-title class="d-flex align-items-center">
+      <div>{{'PLAN-USER-INVITATION-DIALOG.TITLE' | translate}}</div>
+      <div class="ml-auto">
+        <button mat-icon-button (click)="closeDialog()" [attr.aria-label]="'ALT-TEXT.CLOSE-DIALOG'  | translate"><mat-icon aria-hidden>close</mat-icon></button>
+      </div>
     </div>
-</div>
+    <div mat-dialog-content>
+      <div class="p-2">
+        <app-plan-user-field-component [form]="formGroup.get('users')" [validationErrorModel]="editorModel.validationErrorModel" [sections]="selectedBlueprint?.definition?.sections" [viewOnly]="false" [initializeUsers]="true" [enableSorting]="false"></app-plan-user-field-component>
+      </div>
+    </div>
+    <div mat-dialog-actions>
+      @if (hasValue()) {
+        <button mat-stroked-button color="primary" [disabled]="isLoading()" (click)="send()" type="button" class="padded-shadow-btn primary-inverted-hover">{{'PLAN-USER-INVITATION-DIALOG.ACTIONS.INVITE' | translate}}</button>
+      }
+      @if (formGroup.get('users').hasError('backendError')) {
+        <mat-error>{{formGroup.get('users').getError('backendError').message}}</mat-error>
+      }
+      @if (formGroup.get('users').hasError('required')) {
+        <mat-error>{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
+      }
+    </div>
+  </div>
+}

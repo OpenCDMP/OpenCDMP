@@ -18,7 +18,7 @@ import org.opencdmp.authorization.Permission;
 import org.opencdmp.commons.enums.IsActive;
 import org.opencdmp.data.DescriptionEntity;
 import org.opencdmp.data.PlanEntity;
-import org.opencdmp.data.TenantEntityManager;
+import org.opencdmp.data.TenantEntityManagerFactory;
 import org.opencdmp.elastic.data.DescriptionElasticEntity;
 import org.opencdmp.elastic.data.PlanElasticEntity;
 import org.opencdmp.elastic.data.nested.*;
@@ -51,17 +51,17 @@ public class ElasticServiceImpl implements ElasticService {
 	private final ElasticsearchTemplate elasticsearchTemplate;
 	private final QueryFactory queryFactory;
 	private final BuilderFactory builderFactory;
-	private final TenantEntityManager entityManager;
+	private final TenantEntityManagerFactory tenantEntityManagerFactory;
 	private final MessageSource messageSource;
 	private final AuthorizationService authorizationService;
 
-	public ElasticServiceImpl(AppElasticConfiguration appElasticConfiguration, ElasticsearchClient restHighLevelClient, ElasticsearchTemplate elasticsearchTemplate, QueryFactory queryFactory, BuilderFactory builderFactory, TenantEntityManager entityManager, MessageSource messageSource, AuthorizationService authorizationService) {
+	public ElasticServiceImpl(AppElasticConfiguration appElasticConfiguration, ElasticsearchClient restHighLevelClient, ElasticsearchTemplate elasticsearchTemplate, QueryFactory queryFactory, BuilderFactory builderFactory, TenantEntityManagerFactory tenantEntityManagerFactory, MessageSource messageSource, AuthorizationService authorizationService) {
 		this.appElasticConfiguration = appElasticConfiguration;
 		this.restHighLevelClient = restHighLevelClient;
 		this.elasticsearchTemplate = elasticsearchTemplate;
 		this.queryFactory = queryFactory;
 		this.builderFactory = builderFactory;
-		this.entityManager = entityManager;
+		this.tenantEntityManagerFactory = tenantEntityManagerFactory;
 		this.messageSource = messageSource;
 		this.authorizationService = authorizationService;
 	}
@@ -330,7 +330,7 @@ public class ElasticServiceImpl implements ElasticService {
 
 		DescriptionElasticEntity descriptionElasticEntity = this.builderFactory.builder(DescriptionElasticBuilder.class).build(description);
 		this.elasticsearchTemplate.save(descriptionElasticEntity, IndexCoordinates.of(this.appElasticConfiguration.getAppElasticProperties().getDescriptionIndexName()));
-		PlanEntity planEntity = this.entityManager.find(PlanEntity.class, description.getPlanId(), true);
+		PlanEntity planEntity = this.tenantEntityManagerFactory.getInstance().find(PlanEntity.class, description.getPlanId(), true);
 		if (planEntity == null) throw new MyNotFoundException(this.messageSource.getMessage("General_ItemNotFound", new Object[]{description.getPlanId(), Plan.class.getSimpleName()}, LocaleContextHolder.getLocale()));
 		if (planEntity.getIsActive().equals(IsActive.Active)) {
 			PlanElasticEntity planElasticEntity = this.builderFactory.builder(PlanElasticBuilder.class).build(planEntity);
@@ -347,7 +347,7 @@ public class ElasticServiceImpl implements ElasticService {
 		if (descriptionElasticEntity == null) return;
 		this.elasticsearchTemplate.delete(descriptionElasticEntity, IndexCoordinates.of(this.appElasticConfiguration.getAppElasticProperties().getDescriptionIndexName()));
 		
-		PlanEntity planEntity = this.entityManager.find(PlanEntity.class, description.getPlanId(), true);
+		PlanEntity planEntity = this.tenantEntityManagerFactory.getInstance().find(PlanEntity.class, description.getPlanId(), true);
 		if (planEntity == null) throw new MyNotFoundException(this.messageSource.getMessage("General_ItemNotFound", new Object[]{description.getPlanId(), Plan.class.getSimpleName()}, LocaleContextHolder.getLocale()));
 		if (planEntity.getIsActive().equals(IsActive.Active)) {
 			PlanElasticEntity planElasticEntity = this.builderFactory.builder(PlanElasticBuilder.class).build(planEntity);
@@ -392,7 +392,7 @@ public class ElasticServiceImpl implements ElasticService {
 		this.ensurePlanIndex();
 
 		try {
-			this.entityManager.disableTenantFilters();
+			this.tenantEntityManagerFactory.getInstance().disableTenantFilters();
 			int page = 0;
 			int pageSize = this.appElasticConfiguration.getAppElasticProperties().getResetBatchSize();
 			List<PlanEntity> items;
@@ -409,7 +409,7 @@ public class ElasticServiceImpl implements ElasticService {
 				}
 			} while (items != null && !items.isEmpty());
 		}finally {
-			this.entityManager.reloadTenantFilters();
+			this.tenantEntityManagerFactory.getInstance().reloadTenantFilters();
 		}
 	}
 
@@ -423,7 +423,7 @@ public class ElasticServiceImpl implements ElasticService {
 		this.ensureDescriptionIndex();
 		
 		try {
-			this.entityManager.disableTenantFilters();
+			this.tenantEntityManagerFactory.getInstance().disableTenantFilters();
 
 			int page = 0;
 			int pageSize = this.appElasticConfiguration.getAppElasticProperties().getResetBatchSize();
@@ -441,7 +441,7 @@ public class ElasticServiceImpl implements ElasticService {
 				}
 			} while (items != null && !items.isEmpty());
 		}finally {
-			this.entityManager.reloadTenantFilters();
+			this.tenantEntityManagerFactory.getInstance().reloadTenantFilters();
 		}
 	}
 	

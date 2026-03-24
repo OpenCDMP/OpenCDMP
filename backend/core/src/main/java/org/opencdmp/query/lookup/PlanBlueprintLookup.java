@@ -26,6 +26,9 @@ public class PlanBlueprintLookup extends Lookup {
     @Schema(description = SwaggerHelpers.PlanBlueprint.ids_description)
     private List<UUID> ids;
 
+    @Schema(description = SwaggerHelpers.PlanBlueprint.typeIds_description)
+    private List<UUID> typeIds;
+
     @Schema(description = SwaggerHelpers.PlanBlueprint.excludeIds_description)
     private List<UUID> excludedIds;
 
@@ -60,6 +63,14 @@ public class PlanBlueprintLookup extends Lookup {
 
     public void setStatuses(List<PlanBlueprintStatus> statuses) {
         this.statuses = statuses;
+    }
+
+    public List<UUID> getTypeIds() {
+        return typeIds;
+    }
+
+    public void setTypeIds(List<UUID> typeIds) {
+        this.typeIds = typeIds;
     }
 
     public List<UUID> getIds() {
@@ -112,6 +123,8 @@ public class PlanBlueprintLookup extends Lookup {
             query.statuses(this.statuses);
         if (this.ids != null)
             query.ids(this.ids);
+        if (this.typeIds != null)
+            query.typeIds(this.typeIds);
         if (this.excludedIds != null)
             query.excludedIds(this.excludedIds);
         if (this.groupIds != null)

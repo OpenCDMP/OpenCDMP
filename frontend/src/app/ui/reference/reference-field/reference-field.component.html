@@ -1,31 +1,47 @@
-<div class="d-flex flex-column" *ngIf="singleAutoCompleteSearchConfiguration || multipleAutoCompleteSearchConfiguration">
+@if (singleAutoCompleteSearchConfiguration || multipleAutoCompleteSearchConfiguration) {
+  <div class="d-flex flex-column">
     @if(multiple()){
-            <mat-form-field class="w-100" subscriptSizing="dynamic">
-                <mat-label>{{label?.length ? label : referenceType()?.name}}</mat-label>
-                @if(sources()?.length){
-                    <app-multiple-auto-complete placeholder="{{ placeholder?.length ? placeholder : referenceType()?.name}}" (optionSelected)="onOptionSelected($event)"  [configuration]="multipleAutoCompleteSearchConfiguration" [required]="required"></app-multiple-auto-complete> 
-                }@else {
-                    <app-multiple-auto-complete [id]="id" placeholder="{{ placeholder?.length ? placeholder : referenceType()?.name}}" [formControl]="form" [configuration]="multipleAutoCompleteSearchConfiguration" [required]="required"></app-multiple-auto-complete> 
-                }      
-                <mat-error *ngIf="form?.hasError('backendError')">{{form.getError('backendError').message}}</mat-error>
-                <mat-error *ngIf="form?.hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
-                <mat-hint *ngIf="hint" align="start" class="mb-2">{{hint}}</mat-hint>
-            </mat-form-field>
-    }@else{
-        <mat-form-field class="w-100" subscriptSizing="dynamic">
-            <mat-label>{{label?.length ? label : referenceType()?.name}}</mat-label>
-            @if(sources()?.length){
-                <app-single-auto-complete [id]="id" placeholder="{{ placeholder?.length ? placeholder : referenceType()?.name}}" (optionSelected)="onOptionSelected($event)" [configuration]="singleAutoCompleteSearchConfiguration" [required]="required"></app-single-auto-complete>       
-            }@else {
-                <app-single-auto-complete [id]="id" placeholder="{{ placeholder?.length ? placeholder : referenceType()?.name}}" [formControl]="form" [configuration]="singleAutoCompleteSearchConfiguration" [required]="required"></app-single-auto-complete>
-            }
-            <mat-error *ngIf="form?.hasError('backendError')">{{form.getError('backendError').message}}</mat-error>
-            <mat-error *ngIf="form?.hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
-            <mat-hint *ngIf="hint" align="start" class="mb-2">{{hint}}</mat-hint>
-        </mat-form-field>
+      <mat-form-field class="w-100" subscriptSizing="dynamic">
+        <mat-label>{{label?.length ? label : referenceType()?.name}}</mat-label>
+        @if(sources()?.length){
+          <app-multiple-auto-complete placeholder="{{ placeholder?.length ? placeholder : referenceType()?.name}}" (optionSelected)="onOptionSelected($event)"  [configuration]="multipleAutoCompleteSearchConfiguration" [required]="required"></app-multiple-auto-complete>
+          }@else {
+          <app-multiple-auto-complete [id]="id" placeholder="{{ placeholder?.length ? placeholder : referenceType()?.name}}" [formControl]="form" [configuration]="multipleAutoCompleteSearchConfiguration" [required]="required" (optionActionClicked)="onPreviewReference($event, true)" (selectedItemOptionActionClicked)="onPreviewReference($event)"></app-multiple-auto-complete>
+        }
+        @if (form?.hasError('backendError')) {
+          <mat-error>{{form.getError('backendError').message}}</mat-error>
+        }
+        @if (form?.hasError('required')) {
+          <mat-error>{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
+        }
+        @if (hint) {
+          <mat-hint align="start" class="mb-2">{{hint}}</mat-hint>
+        }
+      </mat-form-field>
+      }@else{
+      <mat-form-field class="w-100" subscriptSizing="dynamic">
+        <mat-label>{{label?.length ? label : referenceType()?.name}}</mat-label>
+        @if(sources()?.length){
+          <app-single-auto-complete [id]="id" placeholder="{{ placeholder?.length ? placeholder : referenceType()?.name}}" (optionSelected)="onOptionSelected($event)" [configuration]="singleAutoCompleteSearchConfiguration" [required]="required"></app-single-auto-complete>
+          }@else {
+          <app-single-auto-complete [id]="id" placeholder="{{ placeholder?.length ? placeholder : referenceType()?.name}}" [formControl]="form" [configuration]="singleAutoCompleteSearchConfiguration" [required]="required" (optionActionClicked)="onPreviewReference($event, true)" (selectedItemOptionActionClicked)="onPreviewReference($event)"></app-single-auto-complete>
+        }
+        @if (form?.hasError('backendError')) {
+          <mat-error>{{form.getError('backendError').message}}</mat-error>
+        }
+        @if (form?.hasError('required')) {
+          <mat-error>{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
+        }
+        @if (hint) {
+          <mat-hint align="start" class="mb-2">{{hint}}</mat-hint>
+        }
+      </mat-form-field>
     }
-    <div class="w-auto ml-auto mt-1 mb-1 mat-mdc-form-field-subscript-wrapper ng-star-inserted" *ngIf="!form?.disabled && !sources()?.length" >            
+    @if (!form?.disabled && !sources()?.length) {
+      <div class="w-auto ml-auto mt-1 mb-1 mat-mdc-form-field-subscript-wrapper ng-star-inserted" >
         <span class="not-found">{{'REFERENCE-FIELD.COULD-NOT-FIND-MESSAGE' | translate}} </span>
         <span class="insert-manually" (click)="addReference($event)">{{'REFERENCE-FIELD.ACTIONS.INSERT-MANUALLY' | translate}}</span>
-    </div>
-</div>
+      </div>
+    }
+  </div>
+}

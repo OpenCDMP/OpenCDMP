@@ -19,7 +19,8 @@ const routes: Routes = [
 			breadcrumb: true,
 			title: 'GENERAL.TITLES.DESCRIPTION-OVERVIEW'
 		},
-	}
+	},
+	{ path: '**', loadComponent: () => import('@common/modules/page-not-found/page-not-found.component').then(m => m.PageNotFoundComponent)}
 ];
 
 @NgModule({

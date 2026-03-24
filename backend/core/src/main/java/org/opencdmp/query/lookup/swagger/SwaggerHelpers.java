@@ -265,6 +265,8 @@ public final class SwaggerHelpers {
 
         public static final String excludeGroupIds_description = "<li> This is a list and contains the group ids we want to exclude from the response. <br/>If empty, no record gets excluded.<li/>";
 
+        public static final String typeIds_description = "<li> This is a list and contains the type ids we want the blueprints to have. Every blueprint has a type designated by a type id. <br/>If empty, every record is included. <li/>";
+
         public static final String isActive_description = "<li> This is a list and determines which records we want to include in the response, based on if they are deleted or not. This filter works like this. If we want to view only the active records we pass [1] and for only the deleted records we pass [0].<br/>If not present or if we pass [0,1], every record is included.<li/>";
 
         public static final String statuses_description = "<li>This is a list and determines which records we want to include in the response, based on their status. The status can be <i>Draft</i> or <i>Finalized</i>. We add 0 or 1 to the list respectively. <br/>If not present, every record is included.<li/>";
@@ -272,6 +274,19 @@ public final class SwaggerHelpers {
         public static final String versionStatuses_description ="<li> This is a list and determines which records we want to include in the response, based on their version status. The status can be <i>Current</i>, <i>Previous</i> or <i>NotFinalized</i>. We add 0, 1 or 2 to the list respectively. <br/>If not present, every record is included. <li/>";
 
 
+    }
+
+    public static final class PlanBlueprintType {
+
+        public static final String like_description = "<li>  If there is a like parameter present in the query, only the description template type entities that include the contents of the parameter in their labels will be in the response.<li/>";
+
+        public static final String isActive_description = "<li>This is a list and determines which records we want to include in the response, based on if they are deleted or not. This filter works like this. If we want to view only the active records we pass [1] and for only the deleted records we pass [0].<br/>If not present or if we pass [0,1], every record is included.<li/>";
+
+        public static final String statuses_description = "<li>This is a list and determines which records we want to include in the response, based on their status. The status can be <i>Draft</i> or <i>Finalized</i>. We add 0 or 1 to the list respectively. <br/>If not present, every record is included. <li/>";
+
+        public static final String ids_description = "<li> This is a list and contains the ids we want to include in the response. <br/>If empty, every record is included.<li/>";
+
+        public static final String excludeIds_description = "<li> This is a list and contains the ids we want to exclude from the response. <br/>If empty, no record gets excluded.<li/>";
     }
 
     public static final class FileTransformer {

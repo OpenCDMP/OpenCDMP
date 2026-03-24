@@ -11,7 +11,6 @@ import jakarta.persistence.criteria.Predicate;
 import org.opencdmp.authorization.AuthorizationFlags;
 import org.opencdmp.commons.enums.IsActive;
 import org.opencdmp.commons.enums.UsageLimitTargetMetric;
-import org.opencdmp.commons.scope.user.UserScope;
 import org.opencdmp.data.*;
 import org.opencdmp.model.UsageLimit;
 import org.opencdmp.query.utils.QueryUtilsService;
@@ -118,24 +117,22 @@ public class UsageLimitQuery extends QueryBase<UsageLimitEntity> {
         return this;
     }
 
-    private final UserScope userScope;
 
     private final AuthorizationService authService;
 
     private final QueryUtilsService queryUtilsService;
-    private final TenantEntityManager tenantEntityManager;
+    private final TenantEntityManagerFactory tenantEntityManagerFactory;
 
     public UsageLimitQuery(
-		    UserScope userScope, AuthorizationService authService, QueryUtilsService queryUtilsService, TenantEntityManager tenantEntityManager) {
-        this.userScope = userScope;
+		    AuthorizationService authService, QueryUtilsService queryUtilsService, TenantEntityManagerFactory tenantEntityManagerFactory) {
         this.authService = authService;
         this.queryUtilsService = queryUtilsService;
-	    this.tenantEntityManager = tenantEntityManager;
+	    this.tenantEntityManagerFactory = tenantEntityManagerFactory;
     }
 
     @Override
     protected EntityManager entityManager(){
-        return this.tenantEntityManager.getEntityManager();
+        return this.tenantEntityManagerFactory.getInstance().getEntityManager();
     }
 
     @Override

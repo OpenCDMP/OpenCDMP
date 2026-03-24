@@ -10,7 +10,7 @@ import jakarta.persistence.criteria.Predicate;
 import org.opencdmp.authorization.AuthorizationFlags;
 import org.opencdmp.commons.enums.IsActive;
 import org.opencdmp.data.PlanStatusEntity;
-import org.opencdmp.data.TenantEntityManager;
+import org.opencdmp.data.TenantEntityManagerFactory;
 import org.opencdmp.model.planstatus.PlanStatus;
 import org.opencdmp.query.utils.QueryUtilsService;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
@@ -118,17 +118,17 @@ public class PlanStatusQuery extends QueryBase<PlanStatusEntity> {
     }
 
     private final QueryUtilsService queryUtilsService;
-    private final TenantEntityManager entityManager;
+    private final TenantEntityManagerFactory tenantEntityManagerFactory;
 
     public PlanStatusQuery(
-            QueryUtilsService queryUtilsService, TenantEntityManager tenantEntityManager) {
+            QueryUtilsService queryUtilsService, TenantEntityManagerFactory tenantEntityManager) {
         this.queryUtilsService = queryUtilsService;
-        this.entityManager = tenantEntityManager;
+        this.tenantEntityManagerFactory = tenantEntityManager;
     }
 
     @Override
     protected EntityManager entityManager(){
-        return this.entityManager.getEntityManager();
+        return this.tenantEntityManagerFactory.getInstance().getEntityManager();
     }
 
     @Override

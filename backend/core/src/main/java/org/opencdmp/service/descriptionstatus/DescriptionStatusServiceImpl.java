@@ -15,12 +15,12 @@ import gr.cite.tools.logging.MapLogEntry;
 import jakarta.xml.bind.JAXBException;
 import org.opencdmp.authorization.AffiliatedResource;
 import org.opencdmp.authorization.Permission;
-import org.opencdmp.authorization.authorizationcontentresolver.AuthorizationContentResolver;
+import org.opencdmp.authorization.authorizationcontentresolver.AuthorizationContentResolverFactory;
 import org.opencdmp.commons.XmlHandlingService;
 import org.opencdmp.commons.enums.IsActive;
 import org.opencdmp.commons.enums.StorageType;
 import org.opencdmp.commons.enums.UsageLimitTargetMetric;
-import org.opencdmp.commons.scope.tenant.TenantScope;
+import org.opencdmp.commons.scope.tenant.TenantScopeFactory;
 import org.opencdmp.commons.types.descriptionstatus.DescriptionStatusDefinitionAuthorizationEntity;
 import org.opencdmp.commons.types.descriptionstatus.DescriptionStatusDefinitionAuthorizationItemEntity;
 import org.opencdmp.commons.types.descriptionstatus.DescriptionStatusDefinitionEntity;
@@ -66,36 +66,36 @@ public class DescriptionStatusServiceImpl implements DescriptionStatusService {
     private final DeleterFactory deleterFactory;
 
     private final AuthorizationService authService;
-    private final TenantEntityManager entityManager;
+    private final TenantEntityManagerFactory tenantEntityManagerFactory;
     private final ConventionService conventionService;
     private final MessageSource messageSource;
     private final XmlHandlingService xmlHandlingService;
     private final EventBroker eventBroker;
-    private final TenantScope tenantScope;
+    private final TenantScopeFactory tenantScopeFactory;
     private final DescriptionWorkflowService descriptionWorkflowService;
     private final CustomPolicyService customPolicyService;
     private final AuthorizationService authorizationService;
-    private final AuthorizationContentResolver authorizationContentResolver;
+    private final AuthorizationContentResolverFactory authorizationContentResolverFactory;
     private final QueryFactory queryFactory;
     private final UsageLimitService usageLimitService;
     private final AccountingService accountingService;
     private final StorageFileService storageFileService;
 
-    public DescriptionStatusServiceImpl(BuilderFactory builderFactory, DeleterFactory deleterFactory, AuthorizationService authService, TenantEntityManager entityManager, ConventionService conventionService, MessageSource messageSource, XmlHandlingService xmlHandlingService, EventBroker eventBroker, TenantScope tenantScope, DescriptionWorkflowService descriptionWorkflowService, CustomPolicyService customPolicyService, AuthorizationService authorizationService, AuthorizationContentResolver authorizationContentResolver, QueryFactory queryFactory, UsageLimitService usageLimitService, AccountingService accountingService, StorageFileService storageFileService) {
+    public DescriptionStatusServiceImpl(BuilderFactory builderFactory, DeleterFactory deleterFactory, AuthorizationService authService, TenantEntityManagerFactory tenantEntityManagerFactory, ConventionService conventionService, MessageSource messageSource, XmlHandlingService xmlHandlingService, EventBroker eventBroker, TenantScopeFactory tenantScopeFactory, DescriptionWorkflowService descriptionWorkflowService, CustomPolicyService customPolicyService, AuthorizationService authorizationService, AuthorizationContentResolverFactory authorizationContentResolverFactory, QueryFactory queryFactory, UsageLimitService usageLimitService, AccountingService accountingService, StorageFileService storageFileService) {
         this.builderFactory = builderFactory;
         this.deleterFactory = deleterFactory;
 
         this.authService = authService;
-        this.entityManager = entityManager;
+        this.tenantEntityManagerFactory = tenantEntityManagerFactory;
         this.conventionService = conventionService;
         this.messageSource = messageSource;
         this.xmlHandlingService = xmlHandlingService;
         this.eventBroker = eventBroker;
-        this.tenantScope = tenantScope;
+        this.tenantScopeFactory = tenantScopeFactory;
         this.descriptionWorkflowService = descriptionWorkflowService;
         this.customPolicyService = customPolicyService;
         this.authorizationService = authorizationService;
-        this.authorizationContentResolver = authorizationContentResolver;
+        this.authorizationContentResolverFactory = authorizationContentResolverFactory;
         this.queryFactory = queryFactory;
         this.usageLimitService = usageLimitService;
         this.accountingService = accountingService;
@@ -113,7 +113,7 @@ public class DescriptionStatusServiceImpl implements DescriptionStatusService {
 
         DescriptionStatusEntity data;
         if (isUpdate) {
-            data = this.entityManager.find(DescriptionStatusEntity.class, model.getId());
+            data = this.tenantEntityManagerFactory.getInstance().find(DescriptionStatusEntity.class, model.getId());
             if (data == null) throw new MyNotFoundException(this.messageSource.getMessage("General_ItemNotFound", new Object[]{model.getId(), DescriptionStatus.class.getSimpleName()}, LocaleContextHolder.getLocale()));
             if (!this.conventionService.hashValue(data.getUpdatedAt()).equals(model.getHash())) throw new MyValidationException(this.messageSource.getMessage("General_ItemNotFound", new Object[]{model.getId(), DescriptionStatus.class.getSimpleName()}, LocaleContextHolder.getLocale()));
         } else {
@@ -135,14 +135,14 @@ public class DescriptionStatusServiceImpl implements DescriptionStatusService {
         data.setUpdatedAt(Instant.now());
 
         if (isUpdate)
-            this.entityManager.merge(data);
+            this.tenantEntityManagerFactory.getInstance().merge(data);
         else {
             this.accountingService.increase(UsageLimitTargetMetric.DESCRIPTION_STATUS_COUNT.getValue());
-            this.entityManager.persist(data);
+            this.tenantEntityManagerFactory.getInstance().persist(data);
         }
-        this.entityManager.flush();
+        this.tenantEntityManagerFactory.getInstance().flush();
 
-        this.eventBroker.emit(new DescriptionStatusTouchedEvent(data.getId(), this.tenantScope.getTenantCode()));
+        this.eventBroker.emit(new DescriptionStatusTouchedEvent(data.getId(), this.tenantScopeFactory.getInstance().getTenantCode()));
 
         return this.builderFactory.builder(DescriptionStatusBuilder.class).build(BaseFieldSet.build(fields, DescriptionStatus._id), data);
     }
@@ -222,7 +222,7 @@ public class DescriptionStatusServiceImpl implements DescriptionStatusService {
         List<DescriptionStatusEntity> statusEntities = this.queryFactory.query(DescriptionStatusQuery.class).isActive(IsActive.Active).collectAs(new BaseFieldSet().ensure(DescriptionStatus._id));
         for (DescriptionEntity description: descriptionEntities) {
             authorizedStatusMap.put(description.getId(), new ArrayList<>());
-            AffiliatedResource affiliatedResource = this.authorizationContentResolver.descriptionAffiliation(description.getId());
+            AffiliatedResource affiliatedResource = this.authorizationContentResolverFactory.getInstance().descriptionAffiliation(description.getId());
             for (DescriptionStatusEntity status: statusEntities) {
 
                 List<DescriptionWorkflowDefinitionTransitionEntity> availableTransitions = definition.getStatusTransitions().stream().filter(x -> x.getFromStatusId().equals(description.getStatusId())).collect(Collectors.toList());

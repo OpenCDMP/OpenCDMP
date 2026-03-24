@@ -11,9 +11,9 @@ import jakarta.persistence.criteria.Predicate;
 import org.opencdmp.authorization.AuthorizationFlags;
 import org.opencdmp.authorization.Permission;
 import org.opencdmp.commons.enums.ContactInfoType;
-import org.opencdmp.commons.scope.user.UserScope;
+import org.opencdmp.commons.scope.user.UserScopeFactory;
 import org.opencdmp.data.PlanUserEntity;
-import org.opencdmp.data.TenantEntityManager;
+import org.opencdmp.data.TenantEntityManagerFactory;
 import org.opencdmp.data.UserContactInfoEntity;
 import org.opencdmp.model.UserContactInfo;
 import org.opencdmp.query.utils.BuildSubQueryInput;
@@ -37,14 +37,14 @@ public class UserContactInfoQuery extends QueryBase<UserContactInfoEntity> {
     
     private EnumSet<AuthorizationFlags> authorize = EnumSet.of(AuthorizationFlags.None);
     private final QueryUtilsService queryUtilsService;
-    private final UserScope userScope;
+    private final UserScopeFactory userScopeFactory;
     private final AuthorizationService authService;
-    private final TenantEntityManager tenantEntityManager;
-    public UserContactInfoQuery(QueryUtilsService queryUtilsService, UserScope userScope, AuthorizationService authService, TenantEntityManager tenantEntityManager) {
+    private final TenantEntityManagerFactory tenantEntityManagerFactory;
+    public UserContactInfoQuery(QueryUtilsService queryUtilsService, UserScopeFactory userScopeFactory, AuthorizationService authService, TenantEntityManagerFactory tenantEntityManagerFactory) {
 	    this.queryUtilsService = queryUtilsService;
-	    this.userScope = userScope;
+	    this.userScopeFactory = userScopeFactory;
         this.authService = authService;
-	    this.tenantEntityManager = tenantEntityManager;
+	    this.tenantEntityManagerFactory = tenantEntityManagerFactory;
     }
 
     public UserContactInfoQuery ids(UUID value) {
@@ -154,7 +154,7 @@ public class UserContactInfoQuery extends QueryBase<UserContactInfoEntity> {
 
     @Override
     protected EntityManager entityManager(){
-        return this.tenantEntityManager.getEntityManager();
+        return this.tenantEntityManagerFactory.getInstance().getEntityManager();
     }
     @Override
     protected Boolean isFalseQuery() {
@@ -176,7 +176,7 @@ public class UserContactInfoQuery extends QueryBase<UserContactInfoEntity> {
         if (this.authorize.contains(AuthorizationFlags.None)) return null;
         if (this.authorize.contains(AuthorizationFlags.Permission) && this.authService.authorize(Permission.BrowseUser)) return null;
         UUID userId;
-        if (this.authorize.contains(AuthorizationFlags.Owner)) userId = this.userScope.getUserIdSafe();
+        if (this.authorize.contains(AuthorizationFlags.Owner)) userId = this.userScopeFactory.getInstance().getUserIdSafe();
         else  userId = null;
 
         List<Predicate> predicates = new ArrayList<>();

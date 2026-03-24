@@ -25,13 +25,13 @@ import { NotificationServiceFormattingModule } from '@notification-service/core/
 		UserSettingsModule,
 		CommonFormattingModule,
 		FormattingModule,
-		NotificationServiceFormattingModule
+		NotificationServiceFormattingModule,
+        MineInAppNotificationListingDialogComponent
 	],
 	declarations: [
 		MineInAppNotificationListingComponent,
 		InAppNotificationEditorComponent,
 		MineInAppNotificationListingFiltersComponent,
-		MineInAppNotificationListingDialogComponent
 	],
 	exports: [
 		MineInAppNotificationListingComponent,

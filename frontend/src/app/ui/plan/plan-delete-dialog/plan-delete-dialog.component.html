@@ -1,20 +1,22 @@
 <div mat-dialog-title class="d-flex align-items-center">
-	<span class="text-danger">{{'PLAN-DELETE-DIALOG.WARNING' | translate}}</span>
-	<button class="ml-auto" mat-icon-button (click)="close()" [attr.aria-label]="'ALT-TEXT.CLOSE-DIALOG'  | translate"><mat-icon aria-hidden>close</mat-icon></button>
+  <span class="text-danger">{{'PLAN-DELETE-DIALOG.WARNING' | translate}}</span>
+  <button class="ml-auto" mat-icon-button (click)="close()" [attr.aria-label]="'ALT-TEXT.CLOSE-DIALOG'  | translate"><mat-icon aria-hidden>close</mat-icon></button>
 </div>
 <div mat-dialog-content>
-	<div class="row d-flex flex-row mb-2">
-		<div class="col message pb-4 pl-3">{{'PLAN-DELETE-DIALOG.DELETE-ITEM' | translate}}</div>
-	</div>
-	<div class="row mt-3 mr-3 mb-3">
-			<ng-container *ngIf="descriptions">
-				<ul class="error-list">
-					<li *ngFor="let description of descriptions">{{description.label}}</li>
-				</ul>
-			</ng-container>
-	</div>
+  <div class="row d-flex flex-row mb-2">
+    <div class="col message pb-4 pl-3">{{'PLAN-DELETE-DIALOG.DELETE-ITEM' | translate}}</div>
+  </div>
+  <div class="row mt-3 mr-3 mb-3">
+    @if (descriptions) {
+      <ul class="error-list">
+        @for (description of descriptions; track description) {
+          <li>{{description.label}}</li>
+        }
+      </ul>
+    }
+  </div>
 </div>
 <div mat-dialog-actions class="d-flex justify-content-between gap-half-rem">
-    <button mat-stroked-button type="button" class="padded-shadow-btn" (click)="cancel()">{{'PLAN-DELETE-DIALOG.ACTIONS.CANCEL' | translate}}</button>
-    <button mat-stroked-button color="warn" type="button" (click)="confirm()" class="padded-shadow-btn">{{'PLAN-DELETE-DIALOG.ACTIONS.DELETE' | translate}}</button>
+  <button mat-stroked-button type="button" class="padded-shadow-btn" (click)="cancel()">{{'PLAN-DELETE-DIALOG.ACTIONS.CANCEL' | translate}}</button>
+  <button mat-stroked-button color="warn" type="button" (click)="confirm()" class="padded-shadow-btn">{{'PLAN-DELETE-DIALOG.ACTIONS.DELETE' | translate}}</button>
 </div>

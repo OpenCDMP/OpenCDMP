@@ -13,9 +13,8 @@ import jakarta.persistence.criteria.Subquery;
 import org.opencdmp.authorization.AuthorizationFlags;
 import org.opencdmp.authorization.Permission;
 import org.opencdmp.commons.enums.IsActive;
-import org.opencdmp.commons.scope.user.UserScope;
+import org.opencdmp.commons.scope.user.UserScopeFactory;
 import org.opencdmp.data.*;
-import org.opencdmp.model.PublicUser;
 import org.opencdmp.model.user.User;
 import org.opencdmp.query.utils.BuildSubQueryInput;
 import org.opencdmp.query.utils.QueryUtilsService;
@@ -40,15 +39,15 @@ public class UserQuery extends QueryBase<UserEntity> {
 
     private EnumSet<AuthorizationFlags> authorize = EnumSet.of(AuthorizationFlags.None);
 
-    private final UserScope userScope;
+    private final UserScopeFactory userScopeFactory;
     private final AuthorizationService authService;
     private final  QueryUtilsService queryUtilsService;
-    private final TenantEntityManager tenantEntityManager;
-    public UserQuery(UserScope userScope, AuthorizationService authService, QueryUtilsService queryUtilsService, TenantEntityManager tenantEntityManager) {
-        this.userScope = userScope;
+    private final TenantEntityManagerFactory tenantEntityManagerFactory;
+    public UserQuery(UserScopeFactory userScopeFactory, AuthorizationService authService, QueryUtilsService queryUtilsService, TenantEntityManagerFactory tenantEntityManagerFactory) {
+        this.userScopeFactory = userScopeFactory;
         this.authService = authService;
         this.queryUtilsService = queryUtilsService;
-	    this.tenantEntityManager = tenantEntityManager;
+	    this.tenantEntityManagerFactory = tenantEntityManagerFactory;
     }
 
     public UserQuery like(String value) {
@@ -148,7 +147,7 @@ public class UserQuery extends QueryBase<UserEntity> {
 
     @Override
     protected EntityManager entityManager(){
-        return this.tenantEntityManager.getEntityManager();
+        return this.tenantEntityManagerFactory.getInstance().getEntityManager();
     }
 
     @Override
@@ -172,9 +171,9 @@ public class UserQuery extends QueryBase<UserEntity> {
         if (this.authorize.contains(AuthorizationFlags.None)) return null;
         if (this.authorize.contains(AuthorizationFlags.Permission) && this.authService.authorize(Permission.BrowseUser)) return null;
         UUID userId = null;
-        if (this.authorize.contains(AuthorizationFlags.Owner)) userId = this.userScope.getUserIdSafe();
-        if (this.authorize.contains(AuthorizationFlags.PlanAssociated)) userId = this.userScope.getUserIdSafe();
-        if (this.authorize.contains(AuthorizationFlags.DescriptionTemplateAssociated)) userId = this.userScope.getUserIdSafe();
+        if (this.authorize.contains(AuthorizationFlags.Owner)) userId = this.userScopeFactory.getInstance().getUserIdSafe();
+        if (this.authorize.contains(AuthorizationFlags.PlanAssociated)) userId = this.userScopeFactory.getInstance().getUserIdSafe();
+        if (this.authorize.contains(AuthorizationFlags.DescriptionTemplateAssociated)) userId = this.userScopeFactory.getInstance().getUserIdSafe();
 
         List<Predicate> predicates = new ArrayList<>();
         boolean usePublic = this.authorize.contains(AuthorizationFlags.Public);
@@ -256,7 +255,7 @@ public class UserQuery extends QueryBase<UserEntity> {
         }
         if (this.planAssociated != null){
             UUID userId;
-            if (this.userScope.isSet()) userId = this.userScope.getUserIdSafe();
+            if (this.userScopeFactory.getInstance().isSet()) userId = this.userScopeFactory.getInstance().getUserIdSafe();
             else throw new MyNotFoundException("Only user scoped allowed");
 
             Subquery<UUID> planUserUserQuery = this.queryUtilsService.buildSubQuery(new BuildSubQueryInput<>(
@@ -281,8 +280,8 @@ public class UserQuery extends QueryBase<UserEntity> {
 
     @Override
     protected String fieldNameOf(FieldResolver item) {
-        if (item.match(User._id) || item.match(PublicUser._id)) return UserEntity._id;
-        else if (item.match(User._name) || item.match(PublicUser._name)) return UserEntity._name;
+        if (item.match(User._id)) return UserEntity._id;
+        else if (item.match(User._name)) return UserEntity._name;
         else if (item.prefix(User._additionalInfo)) return UserEntity._additionalInfo;
         else if (item.match(User._additionalInfo)) return UserEntity._additionalInfo;
         else if (item.match(User._createdAt) ) return UserEntity._createdAt;

@@ -1,9 +1,9 @@
 package org.opencdmp.service.tenant;
 
 import gr.cite.commons.web.authz.service.AuthorizationService;
-import gr.cite.commons.web.oidc.principal.CurrentPrincipalResolver;
+import gr.cite.commons.web.oidc.principal.CurrentPrincipalResolverFactory;
 import gr.cite.commons.web.oidc.principal.MyPrincipal;
-import gr.cite.commons.web.oidc.principal.extractor.ClaimExtractor;
+import gr.cite.commons.web.oidc.principal.extractor.ClaimExtractorFactory;
 import gr.cite.tools.data.builder.BuilderFactory;
 import gr.cite.tools.data.deleter.DeleterFactory;
 import gr.cite.tools.data.query.Ordering;
@@ -22,7 +22,8 @@ import org.opencdmp.authorization.ClaimNames;
 import org.opencdmp.authorization.Permission;
 import org.opencdmp.commons.enums.IsActive;
 import org.opencdmp.commons.enums.UsageLimitTargetMetric;
-import org.opencdmp.commons.scope.tenant.TenantScope;
+import org.opencdmp.commons.enums.kpi.KpiDirectionType;
+import org.opencdmp.commons.scope.tenant.TenantScopeFactory;
 import org.opencdmp.convention.ConventionService;
 import org.opencdmp.data.*;
 import org.opencdmp.errorcode.ErrorThesaurusProperties;
@@ -42,6 +43,7 @@ import org.opencdmp.query.UserCredentialQuery;
 import org.opencdmp.query.UserRoleQuery;
 import org.opencdmp.service.accounting.AccountingService;
 import org.opencdmp.service.keycloak.KeycloakService;
+import org.opencdmp.service.kpi.KpiService;
 import org.opencdmp.service.usagelimit.UsageLimitService;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -66,7 +68,7 @@ public class TenantServiceImpl implements TenantService {
 
     private static final LoggerService logger = new LoggerService(LoggerFactory.getLogger(TenantServiceImpl.class));
 
-    private final TenantEntityManager entityManager;
+    private final TenantEntityManagerFactory tenantEntityManagerFactory;
 
     private final AuthorizationService authorizationService;
 
@@ -83,25 +85,26 @@ public class TenantServiceImpl implements TenantService {
     private final IndicatorAccessEventHandlerImpl indicatorAccessEventHandler;
     private final KeycloakService keycloakService;
     private final AuthorizationConfiguration authorizationConfiguration;
-    private final TenantScope tenantScope;
+    private final TenantScopeFactory tenantScopeFactory;
     private final QueryFactory queryFactory;
-    private final CurrentPrincipalResolver currentPrincipalResolver;
-    private final ClaimExtractor claimExtractor;
+    private final CurrentPrincipalResolverFactory currentPrincipalResolverFactory;
+    private final ClaimExtractorFactory claimExtractorFactory;
     private final EventBroker eventBroker;
     private final UsageLimitService usageLimitService;
     private final AccountingService accountingService;
+    private final KpiService kpiService;
 
     
     @Autowired
     public TenantServiceImpl(
-            TenantEntityManager entityManager,
+            TenantEntityManagerFactory tenantEntityManagerFactory,
             AuthorizationService authorizationService,
             DeleterFactory deleterFactory,
             BuilderFactory builderFactory,
             ConventionService conventionService,
             MessageSource messageSource,
-            ErrorThesaurusProperties errors, TenantTouchedIntegrationEventHandler tenantTouchedIntegrationEventHandler, TenantRemovalIntegrationEventHandler tenantRemovalIntegrationEventHandler, UserTouchedIntegrationEventHandler userTouchedIntegrationEventHandler, IndicatorAccessEventHandlerImpl indicatorAccessEventHandler, KeycloakService keycloakService, AuthorizationConfiguration authorizationConfiguration, TenantScope tenantScope, QueryFactory queryFactory, CurrentPrincipalResolver currentPrincipalResolver, ClaimExtractor claimExtractor, EventBroker eventBroker, UsageLimitService usageLimitService, AccountingService accountingService) {
-        this.entityManager = entityManager;
+            ErrorThesaurusProperties errors, TenantTouchedIntegrationEventHandler tenantTouchedIntegrationEventHandler, TenantRemovalIntegrationEventHandler tenantRemovalIntegrationEventHandler, UserTouchedIntegrationEventHandler userTouchedIntegrationEventHandler, IndicatorAccessEventHandlerImpl indicatorAccessEventHandler, KeycloakService keycloakService, AuthorizationConfiguration authorizationConfiguration, TenantScopeFactory tenantScopeFactory, QueryFactory queryFactory, CurrentPrincipalResolverFactory currentPrincipalResolverFactory, ClaimExtractorFactory claimExtractorFactory, EventBroker eventBroker, UsageLimitService usageLimitService, AccountingService accountingService, KpiService kpiService) {
+        this.tenantEntityManagerFactory = tenantEntityManagerFactory;
         this.authorizationService = authorizationService;
         this.deleterFactory = deleterFactory;
         this.builderFactory = builderFactory;
@@ -114,13 +117,14 @@ public class TenantServiceImpl implements TenantService {
         this.indicatorAccessEventHandler = indicatorAccessEventHandler;
         this.keycloakService = keycloakService;
 	    this.authorizationConfiguration = authorizationConfiguration;
-	    this.tenantScope = tenantScope;
+	    this.tenantScopeFactory = tenantScopeFactory;
 	    this.queryFactory = queryFactory;
-	    this.currentPrincipalResolver = currentPrincipalResolver;
-	    this.claimExtractor = claimExtractor;
+	    this.currentPrincipalResolverFactory = currentPrincipalResolverFactory;
+	    this.claimExtractorFactory = claimExtractorFactory;
 	    this.eventBroker = eventBroker;
         this.usageLimitService = usageLimitService;
         this.accountingService = accountingService;
+        this.kpiService = kpiService;
     }
 
     @Override
@@ -133,7 +137,7 @@ public class TenantServiceImpl implements TenantService {
 
         TenantEntity data;
         if (isUpdate) {
-            data = this.entityManager.find(TenantEntity.class, model.getId());
+            data = this.tenantEntityManagerFactory.getInstance().find(TenantEntity.class, model.getId());
             if (data == null)
                 throw new MyNotFoundException(this.messageSource.getMessage("General_ItemNotFound", new Object[]{model.getId(), Tenant.class.getSimpleName()}, LocaleContextHolder.getLocale()));
             if (!this.conventionService.hashValue(data.getUpdatedAt()).equals(model.getHash()))
@@ -152,10 +156,10 @@ public class TenantServiceImpl implements TenantService {
         data.setDescription(model.getDescription());
         data.setUpdatedAt(Instant.now());
 
-        if (isUpdate) this.entityManager.merge(data);
-        else this.entityManager.persist(data);
+        if (isUpdate) this.tenantEntityManagerFactory.getInstance().merge(data);
+        else this.tenantEntityManagerFactory.getInstance().persist(data);
 
-        this.entityManager.flush();
+        this.tenantEntityManagerFactory.getInstance().flush();
 
         if (!isUpdate) {
             Long tenantsWithThisCode = this.queryFactory.query(TenantQuery.class).disableTracking()
@@ -174,6 +178,7 @@ public class TenantServiceImpl implements TenantService {
         if (!isUpdate) {
             this.keycloakService.createTenantGroups(data.getCode());
             this.tenantTouchedIntegrationEventHandler.handle(tenantTouchedIntegrationEvent);
+            this.kpiService.sendIndicatorPointTenantEntry(KpiDirectionType.Increase);
             this.autoAssignGlobalAdminsToNewTenant(data);
         } else this.tenantTouchedIntegrationEventHandler.handle(tenantTouchedIntegrationEvent);
 
@@ -187,17 +192,17 @@ public class TenantServiceImpl implements TenantService {
         List<UserRoleEntity> existingItems;
         List<UserCredentialEntity> userCredentialEntities;
         try {
-            this.entityManager.disableTenantFilters();
+            this.tenantEntityManagerFactory.getInstance().disableTenantFilters();
 
             existingItems = this.queryFactory.query(UserRoleQuery.class).disableTracking().tenantIsSet(false).roles(this.authorizationConfiguration.getAuthorizationProperties().getGlobalAdminRoles()).collect();
             userCredentialEntities = this.queryFactory.query(UserCredentialQuery.class).disableTracking().userIds(existingItems.stream().map(UserRoleEntity::getUserId).distinct().toList()).collect();
         } finally {
-            this.entityManager.reloadTenantFilters();
+            this.tenantEntityManagerFactory.getInstance().reloadTenantFilters();
         }
 
         List<String> keycloakIdsToAddToTenantGroup = new ArrayList<>();
         try {
-            this.tenantScope.setTempTenant(this.entityManager, tenant.getId(), tenant.getCode());
+            this.tenantScopeFactory.getInstance().setTempTenant(this.tenantEntityManagerFactory.getInstance(), tenant.getId(), tenant.getCode());
             for (UUID userId : existingItems.stream().map(UserRoleEntity::getUserId).distinct().toList()) {
                 this.usageLimitService.checkIncrease(UsageLimitTargetMetric.USER_COUNT);
                 TenantUserEntity tenantUserEntity = new TenantUserEntity();
@@ -207,9 +212,10 @@ public class TenantServiceImpl implements TenantService {
                 tenantUserEntity.setTenantId(tenant.getId());
                 tenantUserEntity.setCreatedAt(Instant.now());
                 tenantUserEntity.setUpdatedAt(Instant.now());
-                this.entityManager.persist(tenantUserEntity);
+                this.tenantEntityManagerFactory.getInstance().persist(tenantUserEntity);
                 this.eventBroker.emit(new UserAddedToTenantEvent(tenantUserEntity.getUserId(), tenantUserEntity.getTenantId()));
                 this.accountingService.increase(UsageLimitTargetMetric.USER_COUNT.getValue());
+                this.kpiService.sendIndicatorPointUserEntry(KpiDirectionType.Increase);
 
                 UserCredentialEntity userCredential = userCredentialEntities.stream().filter(x -> !this.conventionService.isNullOrEmpty(x.getExternalId()) && x.getUserId().equals(userId)).findFirst().orElse(null);
                 if (userCredential == null) continue;
@@ -223,20 +229,28 @@ public class TenantServiceImpl implements TenantService {
                     item.setRole(this.authorizationConfiguration.getAuthorizationProperties().getTenantUserRole()); // installation admin
                 }
                 item.setCreatedAt(Instant.now());
-                this.entityManager.persist(item);
+                this.tenantEntityManagerFactory.getInstance().persist(item);
                 keycloakIdsToAddToTenantGroup.add(userCredential.getExternalId());
 
                 this.eventBroker.emit(new UserCredentialTouchedEvent(userCredential.getId(), userCredential.getExternalId()));
             }
 
-            this.entityManager.flush();
+            this.tenantEntityManagerFactory.getInstance().flush();
         } finally {
-            this.tenantScope.removeTempTenant(this.entityManager);
+            this.tenantScopeFactory.getInstance().removeTempTenant(this.tenantEntityManagerFactory.getInstance());
         }
 
+        boolean atLeastOneKeycloakIdAdded = false;
         for (String externalId : keycloakIdsToAddToTenantGroup) {
-            this.keycloakService.addUserToTenantRoleGroup(externalId, tenant.getCode(), this.authorizationConfiguration.getAuthorizationProperties().getTenantAdminRole());
+            try {
+                this.keycloakService.addUserToTenantRoleGroup(externalId, tenant.getCode(), this.authorizationConfiguration.getAuthorizationProperties().getTenantAdminRole());
+                atLeastOneKeycloakIdAdded = true;
+            } catch (Exception e) {
+                logger.error("Cannot add user to tenant group for tenant code " + tenant.getCode() + "and credential " + externalId + ". Skipping:" + e.getMessage());
+            }
         }
+
+        if (!atLeastOneKeycloakIdAdded) throw new MyApplicationException("Cannot create a new tenant without a valid tenant admin");
 
         for (UUID userId : existingItems.stream().map(UserRoleEntity::getUserId).distinct().toList()) {
             this.userTouchedIntegrationEventHandler.handle(userId);
@@ -249,16 +263,16 @@ public class TenantServiceImpl implements TenantService {
     @Override
     public void deleteAndSave(UUID id) throws MyForbiddenException, InvalidApplicationException {
         logger.debug("deleting : {}", id);
-        TenantEntity data = this.entityManager.find(TenantEntity.class, id);
+        TenantEntity data = this.tenantEntityManagerFactory.getInstance().find(TenantEntity.class, id);
         if (data == null) throw new MyNotFoundException(this.messageSource.getMessage("General_ItemNotFound", new Object[]{id, Tenant.class.getSimpleName()}, LocaleContextHolder.getLocale()));
 
         this.authorizationService.authorizeForce(Permission.DeleteTenant);
 
         try {
-            this.entityManager.disableTenantFilters();
+            this.tenantEntityManagerFactory.getInstance().disableTenantFilters();
             this.deleterFactory.deleter(TenantDeleter.class).deleteAndSaveByIds(List.of(id));
         } finally {
-            this.entityManager.reloadTenantFilters();
+            this.tenantEntityManagerFactory.getInstance().reloadTenantFilters();
         }
 
         TenantRemovalIntegrationEvent tenantRemovalIntegrationEvent = new TenantRemovalIntegrationEvent();
@@ -274,8 +288,8 @@ public class TenantServiceImpl implements TenantService {
     public List<Tenant> myTenants(FieldSet fieldSet) throws MyForbiddenException {
         logger.debug("my tenants");
 
-        MyPrincipal principal = this.currentPrincipalResolver.currentPrincipal();
-        List<String> tenants = this.claimExtractor.asStrings(principal, ClaimNames.TenantCodesClaimName);
+        MyPrincipal principal = this.currentPrincipalResolverFactory.getInstance().currentPrincipal();
+        List<String> tenants = this.claimExtractorFactory.getInstance().asStrings(principal, ClaimNames.TenantCodesClaimName);
         List<Tenant> models = new ArrayList<>();
 
         if (tenants != null && !tenants.isEmpty()) {
@@ -291,9 +305,9 @@ public class TenantServiceImpl implements TenantService {
             List<TenantEntity> data = query.collectAs(fieldSet);
             models.addAll(this.builderFactory.builder(TenantBuilder.class).build(fieldSet, data));
 
-            if (tenants.contains(this.tenantScope.getDefaultTenantCode())){
+            if (tenants.contains(this.tenantScopeFactory.getInstance().getDefaultTenantCode())){
                 Tenant tenant = new Tenant();
-                tenant.setCode(this.tenantScope.getDefaultTenantCode());
+                tenant.setCode(this.tenantScopeFactory.getInstance().getDefaultTenantCode());
                 tenant.setName(this.messageSource.getMessage("DefaultTenant_Name", new Object[]{}, LocaleContextHolder.getLocale()));
                 models.addFirst(tenant);
             }

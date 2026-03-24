@@ -5,12 +5,9 @@ import gr.cite.tools.fieldset.BaseFieldSet;
 import gr.cite.tools.logging.LoggerService;
 import gr.cite.tools.validation.ValidatorFactory;
 import org.opencdmp.commons.enums.IsActive;
-import org.opencdmp.commons.scope.tenant.TenantScope;
+import org.opencdmp.commons.scope.tenant.TenantScopeFactory;
 import org.opencdmp.convention.ConventionService;
-import org.opencdmp.data.TenantEntity;
-import org.opencdmp.data.TenantEntityManager;
-import org.opencdmp.data.TenantUserEntity;
-import org.opencdmp.data.UserRoleEntity;
+import org.opencdmp.data.*;
 import org.opencdmp.integrationevent.outbox.OutboxIntegrationEvent;
 import org.opencdmp.integrationevent.outbox.OutboxService;
 import org.opencdmp.model.Tenant;
@@ -42,31 +39,33 @@ public class IndicatorAccessEventHandlerImpl implements IndicatorAccessEventHand
 
     private final QueryFactory queryFactory;
 
-    private final TenantEntityManager entityManager;
+    private final TenantEntityManagerFactory tenantEntityManagerFactory;
 
-    private final TenantScope tenantScope;
+    private final TenantScopeFactory tenantScopeFactory;
 
     private final ConventionService conventionService;
 
     @Autowired
-    public IndicatorAccessEventHandlerImpl(OutboxService outboxService, KpiProperties kpiProperties, ValidatorFactory validatorFactory, QueryFactory queryFactory, TenantEntityManager entityManager, TenantScope tenantScope, ConventionService conventionService) {
+    public IndicatorAccessEventHandlerImpl(OutboxService outboxService, KpiProperties kpiProperties, ValidatorFactory validatorFactory, QueryFactory queryFactory, TenantEntityManagerFactory tenantEntityManagerFactory, TenantScopeFactory tenantScopeFactory, ConventionService conventionService) {
         this.outboxService = outboxService;
         this.kpiProperties = kpiProperties;
         this.validatorFactory = validatorFactory;
         this.queryFactory = queryFactory;
-        this.entityManager = entityManager;
-        this.tenantScope = tenantScope;
+        this.tenantEntityManagerFactory = tenantEntityManagerFactory;
+        this.tenantScopeFactory = tenantScopeFactory;
         this.conventionService = conventionService;
     }
 
     @Override
     public void handle(UUID userId) throws InvalidApplicationException {
+        if (!kpiProperties.getTask().getEnable()) return;
+
         OutboxIntegrationEvent message = new OutboxIntegrationEvent();
         message.setMessageId(UUID.randomUUID());
         message.setType(OutboxIntegrationEvent.INDICATOR_ACCESS_ENTRY);
 
         try {
-            this.entityManager.disableTenantFilters();
+            this.tenantEntityManagerFactory.getInstance().disableTenantFilters();
             List<String> allowedRoles = new ArrayList<>();
             allowedRoles.addAll(this.kpiProperties.getIndicator().getRoles());
             allowedRoles.addAll(this.kpiProperties.getIndicator().getTenantRoles());
@@ -85,7 +84,7 @@ public class IndicatorAccessEventHandlerImpl implements IndicatorAccessEventHand
 
             List<String> tenantCodes = new ArrayList<>();
 
-            if (defaultTenantRole != null || globalRole != null) tenantCodes.add(this.tenantScope.getDefaultTenantCode());
+            if (defaultTenantRole != null || globalRole != null) tenantCodes.add(this.tenantScopeFactory.getInstance().getDefaultTenantCode());
 
             List<TenantEntity> tenantEntities = null;
             List<TenantUserEntity> tenantUserEntities = this.queryFactory.query(TenantUserQuery.class).disableTracking().userIds(userId).isActive(IsActive.Active).collect();
@@ -123,7 +122,7 @@ public class IndicatorAccessEventHandlerImpl implements IndicatorAccessEventHand
             }
 
         } finally {
-            this.entityManager.reloadTenantFilters();
+            this.tenantEntityManagerFactory.getInstance().reloadTenantFilters();
         }
 
     }

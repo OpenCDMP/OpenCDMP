@@ -1,6 +1,6 @@
 
 import { HttpErrorResponse } from '@angular/common/http';
-import { computed, Injectable, NgZone, Signal, signal } from '@angular/core';
+import { computed, inject, Injectable, NgZone, Signal, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { AppPermission } from '@app/core/common/enum/permission.enum';
 import { AppAccount } from '@app/core/model/auth/principal';
@@ -9,7 +9,7 @@ import { BaseService } from '@common/base/base.service';
 import { BaseHttpParams } from '@common/http/base-http-params';
 import { InterceptorType } from '@common/http/interceptors/interceptor-type';
 import { Guid } from '@common/types/guid';
-import { KeycloakEvent, KeycloakEventType, KeycloakService } from 'keycloak-angular';
+import { KEYCLOAK_EVENT_SIGNAL, KeycloakEvent, KeycloakEventType, KeycloakEventTypeLegacy, KeycloakService } from 'keycloak-angular';
 import { Observable, Subject, Subscription, forkJoin, from, of, timer } from 'rxjs';
 import { catchError, concatMap, exhaustMap, map, takeUntil, tap } from 'rxjs/operators';
 import { ConfigurationService } from '../configuration/configuration.service';
@@ -22,6 +22,7 @@ import { NotificationPrincipalService } from '@notification-service/services/htt
 import { NotificationAccount } from '@notification-service/core/model/principal';
 import { AnnotationAccount } from '@annotation-service/core/model/principal';
 import { AnnotationPrincipalService } from '@annotation-service/services/http/principal.service';
+import { toObservable } from '@angular/core/rxjs-interop';
 
 export interface ResolutionContext {
 	permissions: AppPermission[];
@@ -323,7 +324,7 @@ export class AuthService extends BaseService {
 		params.interceptorContext = {
 			excludedInterceptors: [InterceptorType.TenantHeaderInterceptor]
 		};
-		return this.principalService.myTenants({ params: params }).pipe(takeUntil(this._destroyed),
+		return this.principalService.myTenantsTranslated({ params: params }).pipe(takeUntil(this._destroyed),
 			map(
 				(myTenants) => {
 					if (myTenants) {
@@ -371,7 +372,7 @@ export class AuthService extends BaseService {
 
 	getSelectedTenantName: Signal<string> = computed(() => {
 		if (this.appAccountSignal() && this.appAccountSignal().selectedTenant) {
-			return this.appAccountSignal().selectedTenant.name;
+			return this.principalService.getTranslatedTenantName(this.appAccountSignal().selectedTenant);
 		}
 		return null;
 	}) 
@@ -418,6 +419,13 @@ export class AuthService extends BaseService {
 		return null;
 	}) 
 
+	getSelectedRoles: Signal<string[]> = computed(() => {
+		if (this.appAccountSignal() && this.appAccountSignal().profile) {
+			return this.appAccountSignal().principal?.more['Roles'] || [];
+		}
+		return [];
+	}) 
+
 
 	public authenticate(returnUrl: string): Observable<KeycloakEvent | null> {
 		if (!this.keycloakService.isLoggedIn()) {
@@ -425,10 +433,10 @@ export class AuthService extends BaseService {
 				scope: this.installationConfiguration.keycloak.scope,
 			})
 				.then(() => {
-					return this.keycloakService.keycloakEvents$.pipe(
+					return toObservable(inject(KEYCLOAK_EVENT_SIGNAL)).pipe(
 						tap((e) => {
 							if (
-								e.type === KeycloakEventType.OnTokenExpired
+								e.type === KeycloakEventType.TokenExpired
 							) {
 								this.refreshToken({}).then((isRefreshed) => {
 									if (!isRefreshed) {

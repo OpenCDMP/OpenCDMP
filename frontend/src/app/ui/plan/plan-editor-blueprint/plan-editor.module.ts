@@ -29,6 +29,8 @@ import { FileUploadComponent } from '@app/library/file-uploader/file-uploader.co
 import {PlanBlueprintsPreviewModule} from "@app/ui/plan/plan-editor-blueprint/plan-blueprints-preview/plan-blueprint-preview.module";
 import { DescriptionTemplateTableSelectModule } from './descriptions-template-table-select/description-template-table-select.module';
 import { PlanInternalBlueprintEditorModule } from './internal-blueprint-editor/internal-blueprint-editor.module';
+import { PlanSuggestionModule } from '../plan-suggestion/plan-suggestion.module';
+import { PlanActiveUsersComponent } from '../plan-active-users/plan-active-users.component';
 
 @NgModule({
 	imports: [
@@ -47,6 +49,7 @@ import { PlanInternalBlueprintEditorModule } from './internal-blueprint-editor/i
 		AnnotationDialogModule,
         FormFocusDirective,
 		PlanBlueprintsPreviewModule,
+		PlanSuggestionModule,
         DescriptionEditorModule,
         DescriptionFormModule,
         DescriptionFormProgressIndicationModule,
@@ -55,7 +58,8 @@ import { PlanInternalBlueprintEditorModule } from './internal-blueprint-editor/i
 		FileUploadComponent,
 		DescriptionTemplateTableSelectModule,
         PlanInternalBlueprintEditorModule,
-        PlanUploadFieldComponent
+        PlanUploadFieldComponent,
+        PlanActiveUsersComponent
 	],
 	declarations: [
 		PlanEditorComponent,

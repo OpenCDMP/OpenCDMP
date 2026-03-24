@@ -28,7 +28,7 @@
 
 .description-label,
 .header {
-	font-size: var(--sys-headline-medium-size);
+	font-size: var(--mat-sys-headline-medium-size);
     margin-bottom: 0.25rem;
 }
 
@@ -41,19 +41,19 @@
 }
 
 .frame{
-	background: var(--sys-surface);
+	background: var(--mat-sys-surface);
 	box-shadow: 0px 1px 5px #00000026;
 	border-radius: 4px;
 	overflow: hidden;
 }
 .deleted-item {
-    color: var(--sys-error);
+    color: var(--mat-sys-error);
 }
 .secondary-info {
-    font-size: var(--sys-label-large-size);
+    font-size: var(--mat-sys-label-large-size);
     opacity: 0.9;
     .current-status {
-        border: 1px solid var(--sys-outline);
+        border: 1px solid var(--mat-sys-outline);
         border-radius: 999px;
         padding: 0.125rem 0.5rem;
         font-weight: 500;
@@ -88,8 +88,8 @@
 }
 
 .primary-container-btn {
-    color: var(--sys-on-primary-container);
-    background-color: var(--sys-primary-container);
+    color: var(--mat-sys-on-primary-container);
+    background-color: var(--mat-sys-primary-container);
     &:not(.mat-mdc-icon-button){
         padding: 0 var(--mat-filled-button-horizontal-padding, 16px);
     }
@@ -115,13 +115,13 @@
 
 .plan-btn {
     min-height: 2.3em;
-    background-color: var(--sys-primary);
-    color: var(--sys-on-primary);
+    background-color: var(--mat-sys-primary);
+    color: var(--mat-sys-on-primary);
     border-radius: 4px;
     border: none;
     width: min(40rem, 100%);
     &:hover {
-        background-color: hsl(from var(--sys-primary) h s calc(l + 2));
+        background-color: hsl(from var(--mat-sys-primary) h s calc(l + 2));
     }
     .plan-btn-label {
         margin-right: 1em;
@@ -143,10 +143,10 @@
   min-width: fit-content;
   height: 2.6em;
   padding: 0 0.5rem;
-  background: var(--sys-tertiary);
-  color: var(--sys-on-tertiary);
+  background: var(--mat-sys-tertiary);
+  color: var(--mat-sys-on-tertiary);
   border-radius: 4px;
-  font-size: var(--sys-title-small-size);
+  font-size: var(--mat-sys-title-small-size);
 }
 
 .evaluator-logo {
@@ -174,7 +174,7 @@
 }
 
 .deleted-item {
-    color: var(--sys-error);
+    color: var(--mat-sys-error);
 }
 
 .draft-color{

@@ -36,9 +36,6 @@ import org.opencdmp.controllers.swagger.annotation.Swagger404;
 import org.opencdmp.controllers.swagger.annotation.SwaggerCommonErrorResponses;
 import org.opencdmp.convention.ConventionService;
 import org.opencdmp.model.DescriptionValidationResult;
-import org.opencdmp.model.PublicDescription;
-import org.opencdmp.model.PublicPlan;
-import org.opencdmp.model.builder.PublicDescriptionBuilder;
 import org.opencdmp.model.builder.description.DescriptionBuilder;
 import org.opencdmp.model.censorship.PublicDescriptionCensor;
 import org.opencdmp.model.censorship.description.DescriptionCensor;
@@ -124,7 +121,7 @@ public class DescriptionController {
     ))), responses = @ApiResponse(description = "OK", responseCode = "200", content = @Content(
             array = @ArraySchema(
                     schema = @Schema(
-                            implementation = PublicDescription.class
+                            implementation = Description.class
                     )
             ),
             examples = @ExampleObject(
@@ -133,12 +130,12 @@ public class DescriptionController {
                     value = SwaggerHelpers.Description.endpoint_public_query_response_example
             ))),
             extensions = @Extension(name = "x-order", properties = @ExtensionProperty(name = "value", value = "2")))
-    public QueryResult<PublicDescription> publicQuery(@RequestBody DescriptionLookup lookup) throws MyApplicationException, MyForbiddenException {
-        logger.debug("querying {}", PublicDescription.class.getSimpleName());
+    public QueryResult<Description> publicQuery(@RequestBody DescriptionLookup lookup) throws MyApplicationException, MyForbiddenException {
+        logger.debug("querying {}", Description.class.getSimpleName());
 
         this.censorFactory.censor(PublicDescriptionCensor.class).censor(lookup.getProject());
 
-        QueryResult<PublicDescription> queryResult = this.elasticQueryHelperService.collectPublic(lookup, EnumSet.of(Public), null);
+        QueryResult<Description> queryResult = this.elasticQueryHelperService.collectPublic(lookup, EnumSet.of(Public), null);
 
         this.auditService.track(AuditableAction.Description_PublicQuery, "lookup", lookup);
 
@@ -149,12 +146,12 @@ public class DescriptionController {
     @OperationWithTenantHeader(summary = "Fetch a specific public description by id", description = "",
             responses = @ApiResponse(description = "OK", responseCode = "200", content = @Content(
                     schema = @Schema(
-                            implementation = PublicDescription.class
+                            implementation = Description.class
                     ))
             ),
             extensions = @Extension(name = "x-order", properties = @ExtensionProperty(name = "value", value = "4")))
-    public PublicDescription publicGet(@PathVariable("id") UUID id, @Parameter(name = "f", description = SwaggerHelpers.Commons.fieldset_description, required = true, style = ParameterStyle.FORM, explode = Explode.TRUE, schema = @Schema(type = "array", example = SwaggerHelpers.Description.endpoint_field_set_example)) FieldSet fieldSet) throws MyApplicationException, MyForbiddenException, MyNotFoundException {
-        logger.debug(new MapLogEntry("retrieving" + PublicDescription.class.getSimpleName()).And("id", id).And("fields", fieldSet));
+    public Description publicGet(@PathVariable("id") UUID id, @Parameter(name = "f", description = SwaggerHelpers.Commons.fieldset_description, required = true, style = ParameterStyle.FORM, explode = Explode.TRUE, schema = @Schema(type = "array", example = SwaggerHelpers.Description.endpoint_field_set_example)) FieldSet fieldSet) throws MyApplicationException, MyForbiddenException, MyNotFoundException {
+        logger.debug(new MapLogEntry("retrieving" + Description.class.getSimpleName()).And("id", id).And("fields", fieldSet));
         fieldSet = this.fieldSetExpanderService.expand(fieldSet);
 
         this.censorFactory.censor(PublicDescriptionCensor.class).censor(fieldSet);
@@ -162,9 +159,9 @@ public class DescriptionController {
         PlanStatusQuery statusQuery = this.queryFactory.query(PlanStatusQuery.class).disableTracking().internalStatuses(PlanStatus.Finalized).isActives(IsActive.Active);
         DescriptionQuery query = this.queryFactory.query(DescriptionQuery.class).disableTracking().authorize(EnumSet.of(Public)).ids(id).planSubQuery(this.queryFactory.query(PlanQuery.class).isActive(IsActive.Active).planStatusSubQuery(statusQuery).accessTypes(PlanAccessType.Public));
 
-        PublicDescription model = this.builderFactory.builder(PublicDescriptionBuilder.class).authorize(EnumSet.of(Public)).build(fieldSet, query.firstAs(fieldSet));
+        Description model = this.builderFactory.builder(DescriptionBuilder.class).authorize(EnumSet.of(Public)).isPublic(true).build(fieldSet, query.firstAs(fieldSet));
         if (model == null)
-            throw new MyNotFoundException(this.messageSource.getMessage("General_ItemNotFound", new Object[]{id, PublicDescription.class.getSimpleName()}, LocaleContextHolder.getLocale()));
+            throw new MyNotFoundException(this.messageSource.getMessage("General_ItemNotFound", new Object[]{id, Description.class.getSimpleName()}, LocaleContextHolder.getLocale()));
 
         this.auditService.track(AuditableAction.Description_PublicLookup, Map.ofEntries(
                 new AbstractMap.SimpleEntry<String, Object>("id", id),
@@ -451,7 +448,7 @@ public class DescriptionController {
     public @ResponseBody ResponseEntity<byte[]> getPublicXml(
             @Parameter(name = "id", description = "The id of a public description to export", example = "c0c163dc-2965-45a5-9608-f76030578609", required = true) @PathVariable UUID id
     ) throws JAXBException, ParserConfigurationException, IOException, InstantiationException, IllegalAccessException, SAXException, InvalidApplicationException {
-        logger.debug(new MapLogEntry("export public" + PublicDescription.class.getSimpleName()).And("id", id));
+        logger.debug(new MapLogEntry("export public" + Description.class.getSimpleName()).And("id", id));
 
         ResponseEntity<byte[]> response = this.descriptionService.exportPublicXml(id);
 

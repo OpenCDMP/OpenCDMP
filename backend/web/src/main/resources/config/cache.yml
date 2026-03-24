@@ -119,7 +119,7 @@ cache:
     keyPattern: user_allowed_tenant$tenant_id$_$user_id$:v0
   userTenantRoles:
     name: userTenantRoles
-    keyPattern: user_tenant_roles$tenant_id$_$user_id$:v0
+    keyPattern: user_tenant_roles_$user_id$:v0
   supportiveMaterial:
     name: supportiveMaterial
     keyPattern: supportive_material_$type$_$lang$:v0

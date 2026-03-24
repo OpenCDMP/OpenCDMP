@@ -1,0 +1,15 @@
+<div class="d-flex flex-column" *ngIf="singleAutoCompleteSearchConfiguration">
+   
+        <mat-form-field class="w-100" subscriptSizing="dynamic">
+            @if(sources()?.length){
+                <app-single-auto-complete placeholder="{{'PREFILLING-SOURCE-EDITOR.TEST.PLACEHOLDER' | translate}}" (optionSelected)="onOptionSelected($event)" [configuration]="singleAutoCompleteSearchConfiguration" [required]="false"></app-single-auto-complete>       
+            }@else {
+                <!-- <app-single-auto-complete  [required]="true" placeholder="{{'NEW-DESCRIPTION-DIALOG.SEARCH' | translate}}" [formControl]="formControl" [configuration]="prefillObjectAutoCompleteConfiguration"  (optionSelected)="onOptionSelected($event)" ></app-single-auto-complete> -->
+            }
+            <mat-error *ngIf="form?.hasError('backendError')">{{form.getError('backendError').message}}</mat-error>
+            <mat-error *ngIf="form?.hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
+        </mat-form-field>
+    
+
+</div>
+

@@ -14,6 +14,7 @@ import { Guid } from '@common/types/guid';
 import { Subscription } from 'rxjs';
 import { FormService } from '@common/forms/form-service';
 import { ExternalFetcherBaseSourceConfigurationPersist } from '@app/core/model/external-fetcher/external-fetcher';
+import { ReferenceFieldInfoDialogComponent } from './info-dialog/reference-field-info-dialog.component';
 
 @Component({
     selector: 'app-reference-field-component',
@@ -201,6 +202,40 @@ export class ReferenceFieldComponent extends BaseComponent {
 
 	onOptionSelected(selectedOption: Reference) {
 		this.selectedReference.emit(selectedOption);
+	}
+
+	onPreviewReference(reference: Reference, showSelect: boolean = false) {
+		if (!reference) return; 
+		const dialogRef = this.dialog.open(ReferenceFieldInfoDialogComponent, {
+			restoreFocus: false,
+            minWidth: 'min(920px, 95vw)',
+			data: {
+				reference: reference,
+				referenceTypeId: this.referenceType().id,
+				label: this.label && this.label !== '' ? this.label : this.referenceType().name,
+				showSelect: showSelect,
+			},
+		});
+		if (showSelect) {
+			dialogRef.afterClosed().pipe(takeUntil(this._destroyed)).subscribe(isSelected => {
+				if (isSelected) {
+					if (this.multiple()) {
+						let existingValues = this.form.value as Reference[];
+						if (existingValues == null || existingValues?.length == 0) {
+							this.form.patchValue([reference]);
+						} else if (!existingValues?.some(r => JSON.stringify(r) === JSON.stringify(reference))){
+							existingValues.push(reference);
+							this.form.patchValue(existingValues);
+							this.form.updateValueAndValidity();
+						}
+					} else {
+						this.form.patchValue(reference);
+						this.form.updateValueAndValidity();
+					}
+					
+				}
+			});
+		}
 	}
 
 }

@@ -1,10 +1,10 @@
 package org.opencdmp.interceptors.tenant;
 
 
-import gr.cite.commons.web.oidc.principal.CurrentPrincipalResolver;
+import gr.cite.commons.web.oidc.principal.CurrentPrincipalResolverFactory;
 import gr.cite.commons.web.oidc.principal.MyPrincipal;
-import gr.cite.commons.web.oidc.principal.extractor.ClaimExtractor;
-import gr.cite.commons.web.oidc.principal.extractor.ClaimExtractorContext;
+import gr.cite.commons.web.oidc.principal.extractor.ClaimExtractorContextFactory;
+import gr.cite.commons.web.oidc.principal.extractor.ClaimExtractorFactory;
 import gr.cite.tools.exception.MyForbiddenException;
 import gr.cite.tools.logging.LoggerService;
 import jakarta.persistence.EntityManager;
@@ -15,7 +15,8 @@ import jakarta.persistence.criteria.Root;
 import org.jetbrains.annotations.NotNull;
 import org.opencdmp.authorization.ClaimNames;
 import org.opencdmp.commons.enums.IsActive;
-import org.opencdmp.commons.scope.tenant.TenantScope;
+import org.opencdmp.commons.scope.tenant.TenantScopeFactory;
+import org.opencdmp.commons.scope.tenant.TenantScopeImpl;
 import org.opencdmp.convention.ConventionService;
 import org.opencdmp.data.TenantEntity;
 import org.opencdmp.errorcode.ErrorThesaurusProperties;
@@ -34,14 +35,14 @@ import java.util.UUID;
 @Component
 public class TenantScopeClaimInterceptor implements WebRequestInterceptor {
     private static final LoggerService logger = new LoggerService(LoggerFactory.getLogger(TenantScopeClaimInterceptor.class));
-    private final TenantScope tenantScope;
+    private final TenantScopeFactory tenantScopeFactory;
     private final ConventionService conventionService;
     private final TenantScopeProperties tenantScopeProperties;
     private final ErrorThesaurusProperties errorThesaurusProperties;
-    private final ClaimExtractor claimExtractor;
-    private final CurrentPrincipalResolver currentPrincipalResolver;
+    private final ClaimExtractorFactory claimExtractorFactory;
+    private final CurrentPrincipalResolverFactory currentPrincipalResolverFactory;
     private final String clientTenantClaimName;
-    private final ClaimExtractorContext claimExtractorContext;
+    private final ClaimExtractorContextFactory claimExtractorContextFactory;
     private final TenantByCodeCacheService tenantByCodeCacheService;
     private final TenantByIdCacheService tenantByIdCacheService;
     @PersistenceContext
@@ -49,23 +50,23 @@ public class TenantScopeClaimInterceptor implements WebRequestInterceptor {
 
     @Autowired
     public TenantScopeClaimInterceptor(
-            TenantScope tenantScope,
+            TenantScopeFactory tenantScopeFactory,
             ConventionService conventionService,
-            ClaimExtractor claimExtractor,
-            CurrentPrincipalResolver currentPrincipalResolver,
+            ClaimExtractorFactory claimExtractorFactory,
+            CurrentPrincipalResolverFactory currentPrincipalResolverFactory,
             ErrorThesaurusProperties errorThesaurusProperties,
             TenantScopeProperties tenantScopeProperties,
-            ClaimExtractorContext claimExtractorContext,
+            ClaimExtractorContextFactory claimExtractorContextFactory,
             TenantByCodeCacheService tenantByCodeCacheService,
             TenantByIdCacheService tenantByIdCacheService
     ) {
-        this.tenantScope = tenantScope;
+        this.tenantScopeFactory = tenantScopeFactory;
         this.conventionService = conventionService;
-        this.currentPrincipalResolver = currentPrincipalResolver;
-        this.claimExtractor = claimExtractor;
+        this.currentPrincipalResolverFactory = currentPrincipalResolverFactory;
+        this.claimExtractorFactory = claimExtractorFactory;
         this.errorThesaurusProperties = errorThesaurusProperties;
         this.tenantScopeProperties = tenantScopeProperties;
-        this.claimExtractorContext = claimExtractorContext;
+        this.claimExtractorContextFactory = claimExtractorContextFactory;
         this.tenantByCodeCacheService = tenantByCodeCacheService;
         this.tenantByIdCacheService = tenantByIdCacheService;
         this.clientTenantClaimName = this.tenantScopeProperties.getClientClaimsPrefix() + ClaimNames.TenantClaimName;
@@ -73,27 +74,27 @@ public class TenantScopeClaimInterceptor implements WebRequestInterceptor {
 
     @Override
     public void preHandle(@NotNull WebRequest request) throws InvalidApplicationException {
-        if (!this.currentPrincipalResolver.currentPrincipal().isAuthenticated()) return;
-        if (!this.tenantScope.isMultitenant()) return;
+        if (!this.currentPrincipalResolverFactory.getInstance().currentPrincipal().isAuthenticated()) return;
+        if (!this.tenantScopeFactory.getInstance().isMultitenant()) return;
 
-        MyPrincipal principal = this.currentPrincipalResolver.currentPrincipal();
+        MyPrincipal principal = this.currentPrincipalResolverFactory.getInstance().currentPrincipal();
         if (principal != null && principal.isAuthenticated() /* principal.Claims.Any() */) {
             boolean scoped = this.scopeByPrincipal(principal);
             if (!scoped) scoped = this.scopeByClient(principal);
-            if (!scoped && this.tenantScope.isSet() && this.tenantScopeProperties.getEnforceTrustedTenant())
+            if (!scoped && this.tenantScopeFactory.getInstance().isSet() && this.tenantScopeProperties.getEnforceTrustedTenant())
                 throw new MyForbiddenException(this.errorThesaurusProperties.getMissingTenant().getCode(), this.errorThesaurusProperties.getMissingTenant().getMessage());
         }
     }
 
     private boolean scopeByPrincipal(MyPrincipal principal) {
-        String tenantCode = this.claimExtractor.tenantString(principal);
-        if (this.conventionService.isNullOrEmpty(tenantCode)) tenantCode = this.claimExtractor.asString(principal, this.clientTenantClaimName);
+        String tenantCode = this.claimExtractorFactory.getInstance().tenantString(principal);
+        if (this.conventionService.isNullOrEmpty(tenantCode)) tenantCode = this.claimExtractorFactory.getInstance().asString(principal, this.clientTenantClaimName);
         if (tenantCode == null || this.conventionService.isNullOrEmpty(tenantCode)) return false;
 
-        if (this.tenantScope.supportExpansionTenant() && tenantCode.equalsIgnoreCase(this.tenantScope.getDefaultTenantCode())) {
+        if (this.tenantScopeFactory.getInstance().supportExpansionTenant() && tenantCode.equalsIgnoreCase(this.tenantScopeFactory.getInstance().getDefaultTenantCode())) {
             logger.debug("parsed tenant header and set tenant to default tenant");
-            this.tenantScope.setTenant(null, tenantCode);
-            this.claimExtractorContext.putReplaceParameter(TenantScope.TenantReplaceParameter, tenantCode);
+            this.tenantScopeFactory.getInstance().setTenant(null, tenantCode);
+            this.claimExtractorContextFactory.getInstance().putReplaceParameter(TenantScopeImpl.TenantReplaceParameter, tenantCode);
             return true;
         }
 
@@ -122,20 +123,20 @@ public class TenantScopeClaimInterceptor implements WebRequestInterceptor {
 
         if (tenantId != null) {
             logger.debug("parsed tenant header and set tenant id to {}", tenantId);
-            this.tenantScope.setTenant(tenantId, tenantCode);
-            this.claimExtractorContext.putReplaceParameter(TenantScope.TenantReplaceParameter, tenantCode);
+            this.tenantScopeFactory.getInstance().setTenant(tenantId, tenantCode);
+            this.claimExtractorContextFactory.getInstance().putReplaceParameter(TenantScopeImpl.TenantReplaceParameter, tenantCode);
             return true;
         }
         return false;
     }
 
     private boolean scopeByClient(MyPrincipal principal) throws InvalidApplicationException {
-        String client = this.claimExtractor.client(principal);
+        String client = this.claimExtractorFactory.getInstance().client(principal);
 
         Boolean isWhiteListed = this.tenantScopeProperties.getWhiteListedClients() != null && !this.conventionService.isNullOrEmpty(client) && this.tenantScopeProperties.getWhiteListedClients().contains(client);
-        logger.debug("client is whitelisted : {}, scope is set: {}, with value {}", isWhiteListed, this.tenantScope.isSet(), (this.tenantScope.isSet() ? this.tenantScope.getTenant() : null));
+        logger.debug("client is whitelisted : {}, scope is set: {}, with value {}", isWhiteListed, this.tenantScopeFactory.getInstance().isSet(), (this.tenantScopeFactory.getInstance().isSet() ? this.tenantScopeFactory.getInstance().getTenant() : null));
 
-        return isWhiteListed && this.tenantScope.isSet();
+        return isWhiteListed && this.tenantScopeFactory.getInstance().isSet();
     }
 
     private UUID getTenantIdFromDatabase(String tenantCode) {
@@ -174,8 +175,8 @@ public class TenantScopeClaimInterceptor implements WebRequestInterceptor {
 
     @Override
     public void postHandle(@NonNull WebRequest request, ModelMap model) {
-        this.tenantScope.setTenant(null, null);
-        this.claimExtractorContext.removeReplaceParameter(TenantScope.TenantReplaceParameter);
+        this.tenantScopeFactory.getInstance().setTenant(null, null);
+        this.claimExtractorContextFactory.getInstance().removeReplaceParameter(TenantScopeImpl.TenantReplaceParameter);
     }
 
     @Override

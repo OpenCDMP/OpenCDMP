@@ -6,7 +6,7 @@ import gr.cite.tools.data.query.QueryFactory;
 import gr.cite.tools.logging.LoggerService;
 import gr.cite.tools.logging.MapLogEntry;
 import org.opencdmp.commons.enums.IsActive;
-import org.opencdmp.data.TenantEntityManager;
+import org.opencdmp.data.TenantEntityManagerFactory;
 import org.opencdmp.data.UsageLimitEntity;
 import org.opencdmp.query.UsageLimitQuery;
 import org.slf4j.LoggerFactory;
@@ -27,7 +27,7 @@ public class UsageLimitDeleter implements Deleter {
 
     private static final LoggerService logger = new LoggerService(LoggerFactory.getLogger(UsageLimitDeleter.class));
 
-    private final TenantEntityManager entityManager;
+    private final TenantEntityManagerFactory tenantEntityManagerFactory;
 
     protected final QueryFactory queryFactory;
 
@@ -35,11 +35,11 @@ public class UsageLimitDeleter implements Deleter {
 
     @Autowired
     public UsageLimitDeleter(
-            TenantEntityManager entityManager,
+            TenantEntityManagerFactory tenantEntityManagerFactory,
             QueryFactory queryFactory,
             DeleterFactory deleterFactory
     ) {
-        this.entityManager = entityManager;
+        this.tenantEntityManagerFactory = tenantEntityManagerFactory;
         this.queryFactory = queryFactory;
         this.deleterFactory = deleterFactory;
     }
@@ -55,7 +55,7 @@ public class UsageLimitDeleter implements Deleter {
         logger.debug("will delete {} items", Optional.ofNullable(data).map(List::size).orElse(0));
         this.delete(data);
         logger.trace("saving changes");
-        this.entityManager.flush();
+        this.tenantEntityManagerFactory.getInstance().flush();
         logger.trace("changes saved");
     }
 
@@ -71,7 +71,7 @@ public class UsageLimitDeleter implements Deleter {
             item.setIsActive(IsActive.Inactive);
             item.setUpdatedAt(now);
             logger.trace("updating item");
-            this.entityManager.merge(item);
+            this.tenantEntityManagerFactory.getInstance().merge(item);
             logger.trace("updated item");
         }
     }

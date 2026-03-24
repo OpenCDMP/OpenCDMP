@@ -17,7 +17,7 @@ import org.opencdmp.audit.AuditableAction;
 import org.opencdmp.authorization.AuthorizationFlags;
 import org.opencdmp.authorization.Permission;
 import org.opencdmp.commons.enums.StorageType;
-import org.opencdmp.commons.scope.user.UserScope;
+import org.opencdmp.commons.scope.user.UserScopeFactory;
 import org.opencdmp.convention.ConventionService;
 import org.opencdmp.data.StorageFileEntity;
 import org.opencdmp.model.StorageFile;
@@ -55,7 +55,7 @@ public class StorageFileController {
     private final MessageSource messageSource;
     private final StorageFileService storageFileService;
     private final StorageFileProperties config;
-    private final UserScope userScope;
+    private final UserScopeFactory userScopeFactory;
     private final AuthorizationService authorizationService;
     private final ConventionService conventionService;
     private final ValidatorFactory validatorFactory;
@@ -65,7 +65,7 @@ public class StorageFileController {
             BuilderFactory builderFactory, MessageSource messageSource,
             StorageFileService storageFileService,
             StorageFileProperties config,
-            UserScope userScope,
+            UserScopeFactory userScopeFactory,
             AuthorizationService authorizationService, ConventionService conventionService, ValidatorFactory validatorFactory) {
         this.auditService = auditService;
         this.queryFactory = queryFactory;
@@ -73,7 +73,7 @@ public class StorageFileController {
         this.messageSource = messageSource;
         this.storageFileService = storageFileService;
         this.config = config;
-        this.userScope = userScope;
+        this.userScopeFactory = userScopeFactory;
         this.authorizationService = authorizationService;
         this.conventionService = conventionService;
         this.validatorFactory = validatorFactory;
@@ -112,7 +112,7 @@ public class StorageFileController {
             storageFilePersist.setName(FilenameUtils.removeExtension(file.getOriginalFilename()));
             storageFilePersist.setExtension(FilenameUtils.getExtension(file.getOriginalFilename()));
             storageFilePersist.setMimeType(URLConnection.guessContentTypeFromName(file.getOriginalFilename()));
-            storageFilePersist.setOwnerId(this.userScope.getUserIdSafe());
+            storageFilePersist.setOwnerId(this.userScopeFactory.getInstance().getUserIdSafe());
             storageFilePersist.setStorageType(StorageType.Temp);
             storageFilePersist.setLifetime(Duration.ofSeconds(this.config.getTempStoreLifetimeSeconds()));
             this.validatorFactory.validator(StorageFilePersist.StorageFilePersistValidator.class).validateForce(storageFilePersist);

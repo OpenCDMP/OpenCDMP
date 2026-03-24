@@ -1,6 +1,8 @@
 package org.opencdmp.service.filetransformer;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.http.codec.json.JacksonJsonDecoder;
+import org.springframework.http.codec.json.JacksonJsonEncoder;
+import tools.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import gr.cite.commons.web.authz.service.AuthorizationService;
 import gr.cite.commons.web.oidc.filter.webflux.TokenExchangeCacheService;
@@ -24,8 +26,8 @@ import org.opencdmp.commonmodels.models.plan.PlanModel;
 import org.opencdmp.commonmodels.models.planblueprint.PlanBlueprintModel;
 import org.opencdmp.commons.JsonHandlingService;
 import org.opencdmp.commons.enums.*;
-import org.opencdmp.commons.scope.tenant.TenantScope;
-import org.opencdmp.commons.scope.user.UserScope;
+import org.opencdmp.commons.scope.tenant.TenantScopeFactory;
+import org.opencdmp.commons.scope.user.UserScopeFactory;
 import org.opencdmp.commons.types.filetransformer.FileTransformerSourceEntity;
 import org.opencdmp.commons.types.tenantconfiguration.FileTransformerTenantConfigurationEntity;
 import org.opencdmp.convention.ConventionService;
@@ -41,9 +43,11 @@ import org.opencdmp.model.builder.commonmodels.descriptiontemplate.DescriptionTe
 import org.opencdmp.model.builder.commonmodels.plan.PlanCommonModelBuilder;
 import org.opencdmp.model.builder.commonmodels.planblueprint.PlanBlueprintCommonModelBuilder;
 import org.opencdmp.model.description.Description;
+import org.opencdmp.model.file.FileEnvelope;
 import org.opencdmp.model.file.FileTransformerConfiguration;
 import org.opencdmp.model.persist.DescriptionCommonModelConfig;
 import org.opencdmp.model.persist.PlanCommonModelConfig;
+import org.opencdmp.model.persist.PlanSuggestion;
 import org.opencdmp.model.persist.StorageFilePersist;
 import org.opencdmp.model.plan.Plan;
 import org.opencdmp.model.planblueprint.PlanBlueprint;
@@ -59,12 +63,12 @@ import org.springframework.context.MessageSource;
 import org.springframework.context.event.EventListener;
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.http.MediaType;
-import org.springframework.http.codec.json.Jackson2JsonDecoder;
-import org.springframework.http.codec.json.Jackson2JsonEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.ExchangeFilterFunction;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
+import tools.jackson.databind.cfg.DateTimeFeature;
+import tools.jackson.databind.json.JsonMapper;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
@@ -94,19 +98,19 @@ public class FileTransformerServiceImpl implements FileTransformerService {
     private final StorageFileService storageFileService;
     private final MessageSource messageSource;
     private final ConventionService conventionService;
-    private final TenantScope tenantScope;
+    private final TenantScopeFactory tenantScopeFactory;
     private final EncryptionService encryptionService;
     private final TenantProperties tenantProperties;
     private final JsonHandlingService jsonHandlingService;
     private final FileTransformerSourcesCacheService fileTransformerSourcesCacheService;
-    private final UserScope userScope;
+    private final UserScopeFactory userScopeFactory;
     private final AccountingService accountingService;
-    private final TenantEntityManager entityManager;
+    private final TenantEntityManagerFactory tenantEntityManagerFactory;
     private final ErrorThesaurusProperties errors;
 
     @Autowired
     public FileTransformerServiceImpl(FileTransformerProperties fileTransformerProperties, TokenExchangeCacheService tokenExchangeCacheService, FileTransformerConfigurationCacheService fileTransformerConfigurationCacheService, AuthorizationService authorizationService,
-                                      QueryFactory queryFactory, BuilderFactory builderFactory, StorageFileService storageFileService, MessageSource messageSource, ConventionService conventionService, TenantScope tenantScope, EncryptionService encryptionService, TenantProperties tenantProperties, JsonHandlingService jsonHandlingService, FileTransformerSourcesCacheService fileTransformerSourcesCacheService, UserScope userScope, AccountingService accountingService, TenantEntityManager entityManager, ErrorThesaurusProperties errors) {
+                                      QueryFactory queryFactory, BuilderFactory builderFactory, StorageFileService storageFileService, MessageSource messageSource, ConventionService conventionService, TenantScopeFactory tenantScopeFactory, EncryptionService encryptionService, TenantProperties tenantProperties, JsonHandlingService jsonHandlingService, FileTransformerSourcesCacheService fileTransformerSourcesCacheService, UserScopeFactory userScopeFactory, AccountingService accountingService, TenantEntityManagerFactory tenantEntityManagerFactory, ErrorThesaurusProperties errors) {
         this.fileTransformerProperties = fileTransformerProperties;
         this.tokenExchangeCacheService = tokenExchangeCacheService;
 	    this.fileTransformerConfigurationCacheService = fileTransformerConfigurationCacheService;
@@ -116,14 +120,14 @@ public class FileTransformerServiceImpl implements FileTransformerService {
 	    this.storageFileService = storageFileService;
 	    this.messageSource = messageSource;
 	    this.conventionService = conventionService;
-	    this.tenantScope = tenantScope;
+	    this.tenantScopeFactory = tenantScopeFactory;
 	    this.encryptionService = encryptionService;
 	    this.tenantProperties = tenantProperties;
 	    this.jsonHandlingService = jsonHandlingService;
 	    this.fileTransformerSourcesCacheService = fileTransformerSourcesCacheService;
-        this.userScope = userScope;
+        this.userScopeFactory = userScopeFactory;
         this.accountingService = accountingService;
-        this.entityManager = entityManager;
+        this.tenantEntityManagerFactory = tenantEntityManagerFactory;
         this.errors = errors;
         this.clients = new HashMap<>();
     }
@@ -143,8 +147,8 @@ public class FileTransformerServiceImpl implements FileTransformerService {
                 exchangeFilterFunctions.add(logResponse());
             }).codecs(codecs -> {
                         codecs.defaultCodecs().maxInMemorySize(source.getMaxInMemorySizeInBytes());
-                        codecs.defaultCodecs().jackson2JsonDecoder(new Jackson2JsonDecoder(new ObjectMapper().registerModule(new JavaTimeModule()), MediaType.APPLICATION_JSON));
-                        codecs.defaultCodecs().jackson2JsonEncoder(new Jackson2JsonEncoder(new ObjectMapper().registerModule(new JavaTimeModule()), MediaType.APPLICATION_JSON));
+                        codecs.defaultCodecs().jacksonJsonDecoder(new JacksonJsonDecoder(JsonMapper.builder().build()));
+                        codecs.defaultCodecs().jacksonJsonEncoder(new JacksonJsonEncoder(JsonMapper.builder().build()));
                     }
 
             ).build());
@@ -155,14 +159,14 @@ public class FileTransformerServiceImpl implements FileTransformerService {
     }
 
     private List<FileTransformerSourceEntity> getFileTransformerSources() throws InvalidApplicationException, InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
-        String tenantCode = this.tenantScope.isSet() && this.tenantScope.isMultitenant() ? this.tenantScope.getTenantCode() : "";
+        String tenantCode = this.tenantScopeFactory.getInstance().isSet() && this.tenantScopeFactory.getInstance().isMultitenant() ? this.tenantScopeFactory.getInstance().getTenantCode() : "";
         FileTransformerSourcesCacheService.FileTransformerSourceCacheValue cacheValue = this.fileTransformerSourcesCacheService.lookup(this.fileTransformerSourcesCacheService.buildKey(tenantCode));
         if (cacheValue == null) {
             List<FileTransformerSourceEntity> fileTransformerSourceEntities = new ArrayList<>(this.fileTransformerProperties.getSources());
-            if (this.tenantScope.isSet() && this.tenantScope.isMultitenant()) {
+            if (this.tenantScopeFactory.getInstance().isSet() && this.tenantScopeFactory.getInstance().isMultitenant()) {
                 TenantConfigurationQuery tenantConfigurationQuery = this.queryFactory.query(TenantConfigurationQuery.class).disableTracking().isActive(IsActive.Active).types(TenantConfigurationType.FileTransformerPlugins);
-                if (this.tenantScope.isDefaultTenant()) tenantConfigurationQuery.tenantIsSet(false);
-                else tenantConfigurationQuery.tenantIsSet(true).tenantIds(this.tenantScope.getTenant());
+                if (this.tenantScopeFactory.getInstance().isDefaultTenant()) tenantConfigurationQuery.tenantIsSet(false);
+                else tenantConfigurationQuery.tenantIsSet(true).tenantIds(this.tenantScopeFactory.getInstance().getTenant());
                 TenantConfigurationEntity tenantConfiguration = tenantConfigurationQuery.firstAs(new BaseFieldSet().ensure(TenantConfiguration._fileTransformerPlugins));
 
                 if (tenantConfiguration != null && !this.conventionService.isNullOrEmpty(tenantConfiguration.getValue())) {
@@ -210,8 +214,8 @@ public class FileTransformerServiceImpl implements FileTransformerService {
     }
 
     private String getRepositoryIdByTenant(String repositoryId) throws InvalidApplicationException {
-        if (this.tenantScope.isSet() && this.tenantScope.isMultitenant()) {
-            return repositoryId + "_" + this.tenantScope.getTenantCode();
+        if (this.tenantScopeFactory.getInstance().isSet() && this.tenantScopeFactory.getInstance().isMultitenant()) {
+            return repositoryId + "_" + this.tenantScopeFactory.getInstance().getTenantCode();
         } else {
             return repositoryId;
         }
@@ -235,7 +239,7 @@ public class FileTransformerServiceImpl implements FileTransformerService {
 
         for (FileTransformerSourceEntity transformerSource : this.getFileTransformerSources()) {
 
-            String tenantCode = this.tenantScope.isSet() && this.tenantScope.isMultitenant() ? this.tenantScope.getTenantCode() : "";
+            String tenantCode = this.tenantScopeFactory.getInstance().isSet() && this.tenantScopeFactory.getInstance().isMultitenant() ? this.tenantScopeFactory.getInstance().getTenantCode() : "";
             FileTransformerConfigurationCacheService.FileTransformerConfigurationCacheValue cacheValue = this.fileTransformerConfigurationCacheService.lookup(this.fileTransformerConfigurationCacheService.buildKey(transformerSource.getTransformerId(), tenantCode));
             if (cacheValue == null){
                 try {
@@ -270,12 +274,12 @@ public class FileTransformerServiceImpl implements FileTransformerService {
             entity = this.queryFactory.query(PlanQuery.class).disableTracking().authorize(AuthorizationFlags.All).ids(planId).first();
         } else {
             try {
-                this.entityManager.disableTenantFilters();
+                this.tenantEntityManagerFactory.getInstance().disableTenantFilters();
                 PlanStatusQuery statusQuery = this.queryFactory.query(PlanStatusQuery.class).disableTracking().internalStatuses(PlanStatus.Finalized).isActives(IsActive.Active);
                 entity = this.queryFactory.query(PlanQuery.class).disableTracking().authorize(EnumSet.of(Public)).ids(planId).isActive(IsActive.Active).planStatusSubQuery(statusQuery).accessTypes(PlanAccessType.Public).first();
-                this.entityManager.reloadTenantFilters();
+                this.tenantEntityManagerFactory.getInstance().reloadTenantFilters();
             } finally {
-                this.entityManager.reloadTenantFilters();
+                this.tenantEntityManagerFactory.getInstance().reloadTenantFilters();
             }
         }
 
@@ -298,6 +302,29 @@ public class FileTransformerServiceImpl implements FileTransformerService {
     }
 
     @Override
+    public FileEnvelope exportPlanInternal(UUID planId, String repositoryId, String format) throws InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, InvalidApplicationException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
+        //GK: First get the right client
+        FileTransformerRepository repository = this.getRepository(repositoryId);
+        if (repository == null) throw new MyNotFoundException(this.messageSource.getMessage("General_ItemNotFound", new Object[]{format, FileTransformerRepository.class.getSimpleName()}, LocaleContextHolder.getLocale()));
+
+        PlanEntity entity = this.queryFactory.query(PlanQuery.class).disableTracking().ids(planId).first();
+
+        if (entity == null) throw new MyNotFoundException(this.messageSource.getMessage("General_ItemNotFound", new Object[]{planId, Plan.class.getSimpleName()}, LocaleContextHolder.getLocale()));
+
+        PlanModel planFileTransformerModel = this.builderFactory.builder(PlanCommonModelBuilder.class).useSharedStorage(repository.getConfiguration().isUseSharedStorage()).setRepositoryId(repository.getConfiguration().getFileTransformerId()).isPublic(false).build(entity);
+        if (planFileTransformerModel == null) throw new MyNotFoundException(this.messageSource.getMessage("General_ItemNotFound", new Object[]{planId, Plan.class.getSimpleName()}, LocaleContextHolder.getLocale()));
+
+        FileEnvelopeModel fileEnvelope = repository.exportPlan(planFileTransformerModel, format);
+        org.opencdmp.model.file.FileEnvelope result = new org.opencdmp.model.file.FileEnvelope();
+
+        byte[] data = repository.getConfiguration().isUseSharedStorage() ? this.storageFileService.readByFileRefAsBytesSafe(fileEnvelope.getFileRef(), StorageType.Transformer) : fileEnvelope.getFile();
+        result.setFile(data);
+        result.setFilename(fileEnvelope.getFilename());
+
+        return result;
+    }
+
+    @Override
     @Transactional
     public org.opencdmp.model.file.FileEnvelope exportDescription(UUID descriptionId, String repositoryId, String format, boolean isPublic) throws InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, InvalidApplicationException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
         this.authorizationService.authorizeForce(Permission.ExportDescription);
@@ -311,12 +338,12 @@ public class FileTransformerServiceImpl implements FileTransformerService {
             entity = this.queryFactory.query(DescriptionQuery.class).disableTracking().authorize(AuthorizationFlags.All).ids(descriptionId).first();
         } else {
             try {
-                this.entityManager.disableTenantFilters();
+                this.tenantEntityManagerFactory.getInstance().disableTenantFilters();
                 PlanStatusQuery statusQuery = this.queryFactory.query(PlanStatusQuery.class).disableTracking().internalStatuses(PlanStatus.Finalized).isActives(IsActive.Active);
                 entity = this.queryFactory.query(DescriptionQuery.class).disableTracking().authorize(EnumSet.of(Public)).ids(descriptionId).planSubQuery(this.queryFactory.query(PlanQuery.class).isActive(IsActive.Active).planStatusSubQuery(statusQuery).accessTypes(PlanAccessType.Public)).first();
-                this.entityManager.reloadTenantFilters();
+                this.tenantEntityManagerFactory.getInstance().reloadTenantFilters();
             } finally {
-                this.entityManager.reloadTenantFilters();
+                this.tenantEntityManagerFactory.getInstance().reloadTenantFilters();
             }
         }
 
@@ -370,36 +397,6 @@ public class FileTransformerServiceImpl implements FileTransformerService {
         FileTransformerRepository repository = this.getRepository(planCommonModelConfig.getRepositoryId());
         if (repository == null) throw new MyNotFoundException(this.messageSource.getMessage("General_ItemNotFound", new Object[]{planCommonModelConfig.getRepositoryId(), FileTransformerRepository.class.getSimpleName()}, LocaleContextHolder.getLocale()));
 
-        PlanBlueprintQuery planBlueprintQuery = this.queryFactory.query(PlanBlueprintQuery.class).disableTracking().authorize(AuthorizationFlags.All).ids(planCommonModelConfig.getBlueprintId());
-        PlanBlueprintModel planBlueprintModel = this.builderFactory.builder(PlanBlueprintCommonModelBuilder.class).authorize(AuthorizationFlags.All).build(planBlueprintQuery.first());
-        if (planBlueprintModel == null) throw new MyNotFoundException(this.messageSource.getMessage("General_ItemNotFound", new Object[]{planCommonModelConfig.getBlueprintId(), PlanBlueprint.class.getSimpleName()}, LocaleContextHolder.getLocale()));
-
-        PlanImportModel planImportModel = new PlanImportModel();
-        planImportModel.setBlueprintModel(planBlueprintModel);
-
-        if (!this.conventionService.isListNullOrEmpty(planCommonModelConfig.getDescriptions())){
-            List<DescriptionTemplateEntity> descriptionTemplateEntities = this.queryFactory.query(DescriptionTemplateQuery.class).disableTracking().authorize(AuthorizationFlags.All).ids(planCommonModelConfig.getDescriptions().stream().map(DescriptionCommonModelConfig::getTemplateId).distinct().collect(Collectors.toList())).collect();
-
-            if (descriptionTemplateEntities == null) throw new MyApplicationException("Description Templates Not Exist!");
-
-            List<DescriptionImportModel> descriptionImportModels = new ArrayList<>();
-            for (DescriptionCommonModelConfig descriptionCommonModelConfig : planCommonModelConfig.getDescriptions()) {
-                DescriptionTemplateEntity descriptionTemplateEntity = descriptionTemplateEntities.stream().filter(x -> x.getId().equals(descriptionCommonModelConfig.getTemplateId())).findFirst().orElse(null);
-                if (descriptionTemplateEntity != null){
-                    DescriptionTemplateModel descriptionTemplateModel = this.builderFactory.builder(DescriptionTemplateCommonModelBuilder.class).authorize(AuthorizationFlags.All).build(descriptionTemplateEntity);
-
-                    DescriptionImportModel descriptionImportModel = new DescriptionImportModel();
-                    descriptionImportModel.setId(descriptionCommonModelConfig.getId());
-                    descriptionImportModel.setSectionId(descriptionCommonModelConfig.getSectionId());
-                    descriptionImportModel.setDescriptionTemplate(descriptionTemplateModel);
-
-                    descriptionImportModels.add(descriptionImportModel);
-                }
-            }
-
-            planImportModel.setDescriptions(descriptionImportModels);
-        }
-
         String originalFileName = tempFile.getName() + (tempFile.getExtension().startsWith(".") ? "" : ".") + tempFile.getExtension();
         String mimeType = URLConnection.guessContentTypeFromName(originalFileName);
 
@@ -413,19 +410,17 @@ public class FileTransformerServiceImpl implements FileTransformerService {
             storageFilePersist.setName(tempFile.getName());
             storageFilePersist.setExtension(tempFile.getExtension());
             storageFilePersist.setMimeType(mimeType);
-            storageFilePersist.setOwnerId(this.userScope.getUserIdSafe());
+            storageFilePersist.setOwnerId(this.userScopeFactory.getInstance().getUserIdSafe());
             storageFilePersist.setStorageType(StorageType.Transformer);
 
             StorageFile storageFile = this.storageFileService.persistBytes(storageFilePersist, fileEnvelope.getFile(), new BaseFieldSet(StorageFile._id, StorageFile._fileRef, StorageFile._mimeType, StorageFile._extension, StorageFile._name));
             fileEnvelope.setFileRef(storageFile.getFileRef());
         }
 
-        planImportModel.setFile(fileEnvelope);
-
         this.accountingService.increase(UsageLimitTargetMetric.FILE_TRANSFORMER_IMPORT_PLAN_EXECUTION_COUNT.getValue());
         this.increaseTargetMetricWithRepositoryId(UsageLimitTargetMetric.FILE_TRANSFORMER_IMPORT_PLAN_EXECUTION_COUNT_FOR, planCommonModelConfig.getRepositoryId());
 
-        return repository.importPlan(planImportModel);
+        return repository.importPlan(this.buildPlanImportModel(planCommonModelConfig.getBlueprintId(), planCommonModelConfig.getDescriptions(), fileEnvelope));
     }
 
     @Override
@@ -453,7 +448,7 @@ public class FileTransformerServiceImpl implements FileTransformerService {
             storageFilePersist.setName(tempFile.getName());
             storageFilePersist.setExtension(tempFile.getExtension());
             storageFilePersist.setMimeType(mimeType);
-            storageFilePersist.setOwnerId(this.userScope.getUserIdSafe());
+            storageFilePersist.setOwnerId(this.userScopeFactory.getInstance().getUserIdSafe());
             storageFilePersist.setStorageType(StorageType.Transformer);
 
             StorageFile storageFile = this.storageFileService.persistBytes(storageFilePersist, fileEnvelope.getFile(), new BaseFieldSet(StorageFile._id, StorageFile._fileRef, StorageFile._mimeType, StorageFile._extension, StorageFile._name));
@@ -470,6 +465,80 @@ public class FileTransformerServiceImpl implements FileTransformerService {
 
     private void increaseTargetMetricWithRepositoryId(UsageLimitTargetMetric metric, String repositoryId) throws InvalidApplicationException {
         this.accountingService.increase(metric.getValue() + repositoryId);
+    }
+
+    //
+    // Plan Update Request
+    //
+
+    @Override
+    public PreprocessingPlanModel preprocessingPlan(byte[] data, String repositoryId) throws InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, InvalidApplicationException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
+        this.authorizationService.authorizeForce(Permission.NewPlan);
+
+        //GK: First get the right client
+        FileTransformerRepository repository = this.getRepository(repositoryId);
+        if (repository == null) throw new MyNotFoundException(this.messageSource.getMessage("General_ItemNotFound", new Object[]{repositoryId, FileTransformerRepository.class.getSimpleName()}, LocaleContextHolder.getLocale()));
+
+        FileEnvelopeModel fileEnvelope = new FileEnvelopeModel();
+        fileEnvelope.setFile(data);
+
+        try {
+            return repository.preprocessingPlan(fileEnvelope);
+        } catch (Exception e) {
+            logger.warn("Preprocessing plan failed. Input: " + new String(fileEnvelope.getFile(), StandardCharsets.UTF_8));
+            throw new MyApplicationException(this.errors.getInvalidPlanImportRdaJson().getCode(), this.errors.getInvalidPlanImportRdaJson().getMessage());
+        }
+    }
+
+    @Override
+    public PlanModel importPlan(byte[] data, PlanSuggestion suggestion, String repositoryId) throws InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, InvalidApplicationException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException, IOException, JAXBException {
+        this.authorizationService.authorizeForce(Permission.NewPlan);
+
+        //GK: First get the right client
+        FileTransformerRepository repository = this.getRepository(repositoryId);
+        if (repository == null) throw new MyNotFoundException(this.messageSource.getMessage("General_ItemNotFound", new Object[]{repositoryId, FileTransformerRepository.class.getSimpleName()}, LocaleContextHolder.getLocale()));
+
+        FileEnvelopeModel fileEnvelope = new FileEnvelopeModel();
+        fileEnvelope.setFile(data);
+
+        return repository.importPlan(this.buildPlanImportModel(suggestion.getBlueprintId(), suggestion.getDescriptions(), fileEnvelope));
+    }
+
+    private PlanImportModel buildPlanImportModel(UUID blueprintId, List<DescriptionCommonModelConfig> descriptions, FileEnvelopeModel fileEnvelope) {
+
+        PlanBlueprintQuery planBlueprintQuery = this.queryFactory.query(PlanBlueprintQuery.class).disableTracking().authorize(AuthorizationFlags.All).ids(blueprintId);
+        PlanBlueprintModel planBlueprintModel = this.builderFactory.builder(PlanBlueprintCommonModelBuilder.class).authorize(AuthorizationFlags.All).build(planBlueprintQuery.first());
+        if (planBlueprintModel == null) throw new MyNotFoundException(this.messageSource.getMessage("General_ItemNotFound", new Object[]{blueprintId, PlanBlueprint.class.getSimpleName()}, LocaleContextHolder.getLocale()));
+
+        PlanImportModel planImportModel = new PlanImportModel();
+        planImportModel.setBlueprintModel(planBlueprintModel);
+
+        if (!this.conventionService.isListNullOrEmpty(descriptions)){
+            List<DescriptionTemplateEntity> descriptionTemplateEntities = this.queryFactory.query(DescriptionTemplateQuery.class).disableTracking().authorize(AuthorizationFlags.All).ids(descriptions.stream().map(DescriptionCommonModelConfig::getTemplateId).distinct().collect(Collectors.toList())).collect();
+
+            if (descriptionTemplateEntities == null) throw new MyApplicationException("Description Templates Not Exist!");
+
+            List<DescriptionImportModel> descriptionImportModels = new ArrayList<>();
+            for (DescriptionCommonModelConfig descriptionCommonModelConfig : descriptions) {
+                DescriptionTemplateEntity descriptionTemplateEntity = descriptionTemplateEntities.stream().filter(x -> x.getId().equals(descriptionCommonModelConfig.getTemplateId())).findFirst().orElse(null);
+                if (descriptionTemplateEntity != null){
+                    DescriptionTemplateModel descriptionTemplateModel = this.builderFactory.builder(DescriptionTemplateCommonModelBuilder.class).authorize(AuthorizationFlags.All).build(descriptionTemplateEntity);
+
+                    DescriptionImportModel descriptionImportModel = new DescriptionImportModel();
+                    descriptionImportModel.setId(descriptionCommonModelConfig.getId());
+                    descriptionImportModel.setSectionId(descriptionCommonModelConfig.getSectionId());
+                    descriptionImportModel.setDescriptionTemplate(descriptionTemplateModel);
+
+                    descriptionImportModels.add(descriptionImportModel);
+                }
+            }
+
+            planImportModel.setDescriptions(descriptionImportModels);
+        }
+
+        planImportModel.setFile(fileEnvelope);
+
+        return planImportModel;
     }
 
 }

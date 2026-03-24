@@ -57,6 +57,7 @@ export class PlanListingItemComponent extends BaseComponent implements OnInit {
     @Input() statusStorageFile: SafeUrl;
 	@Input() orderedPlanPreferencesList:ReferenceType[] = [];
 	@Output() onClick: EventEmitter<Plan> = new EventEmitter();
+    @Output() onRefresh: EventEmitter<void> = new EventEmitter();
 
 	isDeleted: boolean;
 	isDraft: boolean;
@@ -300,10 +301,7 @@ export class PlanListingItemComponent extends BaseComponent implements OnInit {
 	}
 
 	reloadPage(): void {
-		const path = this.location.path();
-		this.router.navigateByUrl('/reload', { skipLocationChange: true }).then(() => {
-			this.router.navigate([this.routerUtils.generateUrl(path)]);
-		});
+		this.onRefresh.emit();
 	}
 
 	onDeleteCallbackSuccess(): void {

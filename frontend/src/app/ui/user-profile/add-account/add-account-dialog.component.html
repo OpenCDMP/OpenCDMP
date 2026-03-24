@@ -9,6 +9,9 @@
 	<div mat-dialog-content>
         <mat-form-field class="w-100">
             <input required matInput [formControl]="form.get('email')" placeholder="{{'USER-PROFILE.SETTINGS.YOUR-EMAIL' | translate}}">
+            @if (form.get('email').hasError('email')) {
+                <mat-error>{{'GENERAL.VALIDATION.EMAIL.MESSAGE' | translate}}</mat-error>
+            }
         </mat-form-field>
 	</div>
 	

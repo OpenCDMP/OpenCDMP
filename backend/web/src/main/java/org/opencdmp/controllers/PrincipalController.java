@@ -1,6 +1,6 @@
 package org.opencdmp.controllers;
 
-import gr.cite.commons.web.oidc.principal.CurrentPrincipalResolver;
+import gr.cite.commons.web.oidc.principal.CurrentPrincipalResolverFactory;
 import gr.cite.commons.web.oidc.principal.MyPrincipal;
 import gr.cite.tools.auditing.AuditService;
 import gr.cite.tools.fieldset.BaseFieldSet;
@@ -40,7 +40,7 @@ public class PrincipalController {
 
     private final AuditService auditService;
 
-    private final CurrentPrincipalResolver currentPrincipalResolver;
+    private final CurrentPrincipalResolverFactory currentPrincipalResolverFactory;
 
     private final AccountBuilder accountBuilder;
 
@@ -48,10 +48,10 @@ public class PrincipalController {
 
     @Autowired
     public PrincipalController(
-            CurrentPrincipalResolver currentPrincipalResolver,
+            CurrentPrincipalResolverFactory currentPrincipalResolverFactory,
             AccountBuilder accountBuilder,
             AuditService auditService, TenantService tenantService) {
-        this.currentPrincipalResolver = currentPrincipalResolver;
+        this.currentPrincipalResolverFactory = currentPrincipalResolverFactory;
         this.accountBuilder = accountBuilder;
         this.auditService = auditService;
         this.tenantService = tenantService;
@@ -66,7 +66,7 @@ public class PrincipalController {
             ),
             extensions = @Extension(name = "x-order", properties = @ExtensionProperty(name = "value", value = "1")))
     public Account me(
-            @RequestParam(required = false) @Parameter(name = "f", description = SwaggerHelpers.Commons.fieldset_description, required = false, style = ParameterStyle.FORM, explode = Explode.TRUE, schema = @Schema(type = "array", example = SwaggerHelpers.Principal.endpoint_field_set_example, allowableValues = SwaggerHelpers.Principal.available_field_set )) FieldSet fieldSet
+           @Parameter(name = "f", description = SwaggerHelpers.Commons.fieldset_description, required = false, style = ParameterStyle.FORM, explode = Explode.TRUE, schema = @Schema(type = "array", example = SwaggerHelpers.Principal.endpoint_field_set_example, allowableValues = SwaggerHelpers.Principal.available_field_set )) FieldSet fieldSet
     ) throws InvalidApplicationException {
         logger.debug("me");
 
@@ -94,7 +94,7 @@ public class PrincipalController {
                     BaseFieldSet.asIndexer(Account._selectedTenant, Tenant._code));
         }
 
-        MyPrincipal principal = this.currentPrincipalResolver.currentPrincipal();
+        MyPrincipal principal = this.currentPrincipalResolverFactory.getInstance().currentPrincipal();
 
         Account me = this.accountBuilder.build(fieldSet, principal);
 
@@ -109,7 +109,7 @@ public class PrincipalController {
             responses = @ApiResponse(description = "OK", responseCode = "200"),
             extensions = @Extension(name = "x-order", properties = @ExtensionProperty(name = "value", value = "2")))
     public List<Tenant> myTenants(
-            @RequestParam(required = false) @Parameter(name = "f", description = SwaggerHelpers.Commons.fieldset_description, required = false, style = ParameterStyle.FORM, explode = Explode.TRUE, schema = @Schema(type = "array", example =  SwaggerHelpers.Principal.endpoint_field_set_example , allowableValues = SwaggerHelpers.Principal.available_field_set )) FieldSet fieldSet
+            @Parameter(name = "f", description = SwaggerHelpers.Commons.fieldset_description, required = false, style = ParameterStyle.FORM, explode = Explode.TRUE, schema = @Schema(type = "array", example =  SwaggerHelpers.Tenant.endpoint_field_set_example , allowableValues = SwaggerHelpers.Principal.available_field_set )) FieldSet fieldSet
     ) {
         logger.debug("my-tenants");
 

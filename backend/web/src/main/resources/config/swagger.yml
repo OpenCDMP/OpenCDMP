@@ -2,16 +2,17 @@ springdoc:
   apiDocs:
     path: /api/v3/api-docs
     groups:
-      enabled: true
+      enabled: ${SWAGGER_ENABLED:true}
   swaggerUi:
     path: /api/swagger-ui
-    enabled: true
-    useRootPath: true
+    enabled: ${SWAGGER_ENABLED:true}
+    useRootPath:  ${SWAGGER_ENABLED:true}
     docExpansion: none
     oauth2RedirectUrl: ${SWAGGER_AUTH_REDIRECT_URL}
     oauth:
       clientId: ${SWAGGER_AUTH_CLIENT_ID}
 swagger-config:
+  enabled: ${SWAGGER_ENABLED:true}
   serverUrl: ${SWAGGER_SERVER_URL}
   group:
     legacyApi:
@@ -24,4 +25,4 @@ swagger-config:
       displayName: Current
       packagesToScan: org.opencdmp.controllers
       packagesToExclude: org.opencdmp.controllers.publicapi
-      pathsToMatch: "/api/plan/**, /api/description/**, /api/description-template/**, /api/description-template-type/**, /api/plan-blueprint/**, /api/entity-doi/**, /api/deposit/**, /api/file-transformer/**, /api/tag/**, /api/reference/**, /api/reference-type/**, /api/lock/**, /api/user/**, /api/principal/**, /api/evaluator/**, /api/plan-status/**, /api/description-status/**, /api/plan-workflow/**, /api/description-workflow/**, /api/tenant/**"
+      pathsToMatch: "/api/plan/**, /api/description/**, /api/description-template/**, /api/description-template-type/**, /api/plan-blueprint/**, /api/plan-blueprint-type/**, /api/entity-doi/**, /api/deposit/**, /api/file-transformer/**, /api/tag/**, /api/reference/**, /api/reference-type/**, /api/lock/**, /api/user/**, /api/principal/**, /api/evaluator/**, /api/plan-status/**, /api/description-status/**, /api/plan-workflow/**, /api/description-workflow/**, /api/tenant/**"

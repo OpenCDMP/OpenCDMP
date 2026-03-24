@@ -14,6 +14,8 @@ import { catchError, map } from 'rxjs/operators';
 import { nameof } from 'ts-simple-nameof';
 import { ConfigurationService } from '../configuration/configuration.service';
 import { BaseHttpV2Service } from '../http/base-http-v2.service';
+import { PrefillingTestRequest } from '@app/core/model/prefilling-source/prefilling-source-test';
+import { ExternalFetcherBaseSourceConfigurationPersist } from '@app/core/model/external-fetcher/external-fetcher';
 
 @Injectable()
 export class PrefillingSourceService {
@@ -59,6 +61,14 @@ export class PrefillingSourceService {
 
 	search(item: PrefillingSearchRequest): Observable<Prefilling[]> {
 		const url = `${this.apiBase}/search`;
+
+		return this.http
+			.post<Prefilling[]>(url, item).pipe(
+				catchError((error: any) => throwError(error)));
+	}
+
+	test(item: PrefillingTestRequest): Observable<Prefilling[]> {
+		const url = `${this.apiBase}/test`;
 
 		return this.http
 			.post<Prefilling[]>(url, item).pipe(
@@ -117,6 +127,21 @@ export class PrefillingSourceService {
 			valueAssign: (item: PrefillingSource) => item.id,
 		}
 	}
+	
+	public getSingleAutocompleteTestConfiguration(key: string, sources: ExternalFetcherBaseSourceConfigurationPersist[]): SingleAutoCompleteConfiguration {
+		return {
+			filterFn: (searchQuery: string, data?: any) => this.test(this.buildTestAutocompleteLookup(sources, key, searchQuery)),
+			loadDataOnStart: false,
+            minFilteringChars: 3,
+			displayFn: (item: Prefilling) => (item?.label?.length > 60) ? (item.label.substr(0, 60) + "...") : item.key,
+            titleFn: (item: Prefilling) => item?.label ? item.label : item.key,
+            subtitleFn: (item: Prefilling) => item.id,
+            valueAssign: (item: Prefilling) => item,
+            uniqueAssign: (item: Prefilling) => item.id ? item.id : item.key,
+			
+		}
+	}
+
 
 	private buildAutocompleteLookup(like?: string, excludedIds?: Guid[], ids?: Guid[]): PrefillingSourceLookup {
 		const lookup: PrefillingSourceLookup = new PrefillingSourceLookup();
@@ -133,6 +158,16 @@ export class PrefillingSourceService {
 		lookup.order = { items: [nameof<PrefillingSource>(x => x.label)] };
 		if (like) { lookup.like = this.filterService.transformLike(like); }
 		return lookup;
+	}
+
+	private buildTestAutocompleteLookup(sources: ExternalFetcherBaseSourceConfigurationPersist[], key?: string, like?: string): PrefillingTestRequest {
+		const request: PrefillingTestRequest = {
+			sources: sources,
+			key: key,
+			like: like 
+		
+		}
+		return request
 	}
 
 }

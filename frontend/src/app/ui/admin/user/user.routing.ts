@@ -15,7 +15,7 @@ const routes: Routes = [
 			}
 		}
 	},
-	{ path: '**', loadChildren: () => import('@common/modules/page-not-found/page-not-found.module').then(m => m.PageNotFoundModule) },
+	{ path: '**', loadComponent: () => import('@common/modules/page-not-found/page-not-found.component').then(m => m.PageNotFoundComponent)}
 ]
 
 @NgModule({
@@ -36,7 +36,7 @@ const tenantUserRoutes: Routes = [
 			tenantAdminMode: true
 		}
 	},
-	{ path: '**', loadChildren: () => import('@common/modules/page-not-found/page-not-found.module').then(m => m.PageNotFoundModule) },
+	{ path: '**', loadComponent: () => import('@common/modules/page-not-found/page-not-found.component').then(m => m.PageNotFoundComponent)}
 ]
 
 @NgModule({

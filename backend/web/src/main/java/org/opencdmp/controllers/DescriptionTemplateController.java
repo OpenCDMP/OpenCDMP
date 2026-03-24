@@ -1,6 +1,6 @@
 package org.opencdmp.controllers;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
+import tools.jackson.core.JacksonException;
 import gr.cite.tools.auditing.AuditService;
 import gr.cite.tools.data.builder.BuilderFactory;
 import gr.cite.tools.data.censor.CensorFactory;
@@ -189,7 +189,7 @@ public class DescriptionTemplateController {
             )
             @RequestBody DescriptionTemplatePersist model,
             @Parameter(name = "f", description = SwaggerHelpers.Commons.fieldset_description, required = true, style = ParameterStyle.FORM, explode = Explode.TRUE, schema = @Schema(type = "array", example = SwaggerHelpers.DescriptionTemplate.endpoint_field_set_example)) FieldSet fieldSet
-    ) throws MyApplicationException, MyForbiddenException, MyNotFoundException, InvalidApplicationException, JAXBException, ParserConfigurationException, JsonProcessingException, TransformerException {
+    ) throws MyApplicationException, MyForbiddenException, MyNotFoundException, InvalidApplicationException, JAXBException, ParserConfigurationException, JacksonException, TransformerException {
         logger.debug(new MapLogEntry("persisting" + DescriptionTemplate.class.getSimpleName()).And("model", model).And("fieldSet", fieldSet));
         fieldSet = this.fieldSetExpanderService.expand(fieldSet);
         new BaseFieldSet(fieldSet.getFields()).ensure(DescriptionTemplate._id);

@@ -34,6 +34,8 @@ public class DescriptionStatusDefinitionBuilder extends BaseBuilder<DescriptionS
 
     private final BuilderFactory builderFactory;
 
+    private boolean isPublic;
+
     public DescriptionStatusDefinitionBuilder(ConventionService conventionService, QueryFactory queryFactory, BuilderFactory builderFactory) {
         super(conventionService, new LoggerService(LoggerFactory.getLogger(DescriptionStatusDefinitionBuilder.class)));
         this.queryFactory = queryFactory;
@@ -42,6 +44,11 @@ public class DescriptionStatusDefinitionBuilder extends BaseBuilder<DescriptionS
 
     public DescriptionStatusDefinitionBuilder authorize(EnumSet<AuthorizationFlags> values) {
         this.authorize = values;
+        return this;
+    }
+
+    public DescriptionStatusDefinitionBuilder isPublic(boolean isPublic) {
+        this.isPublic = isPublic;
         return this;
     }
 
@@ -60,16 +67,16 @@ public class DescriptionStatusDefinitionBuilder extends BaseBuilder<DescriptionS
         FieldSet authorizationFields = fields.extractPrefixed(this.asPrefix(DescriptionStatusDefinition._authorization));
         for (DescriptionStatusDefinitionEntity d : data) {
             DescriptionStatusDefinition m = new DescriptionStatusDefinition();
-            if (!authorizationFields.isEmpty() && d.getAuthorization() != null) {
+            if (!this.isPublic && !authorizationFields.isEmpty() && d.getAuthorization() != null) {
                 m.setAuthorization(this.builderFactory.builder(DescriptionStatusDefinitionAuthorizationBuilder.class).authorize(authorize).build(authorizationFields, d.getAuthorization()));
             }
             if (fields.hasField(this.asIndexer(DescriptionStatusDefinition._availableActions))) m.setAvailableActions(d.getAvailableActions());
 
-            if(fields.hasField(this.asIndexer(DescriptionStatusDefinition._matIconName))) m.setMatIconName(d.getMatIconName());
+            if(!this.isPublic && fields.hasField(this.asIndexer(DescriptionStatusDefinition._matIconName))) m.setMatIconName(d.getMatIconName());
 
-            if(fields.hasField(this.asIndexer(DescriptionStatusDefinition._statusColor))) m.setStatusColor(d.getStatusColor());
+            if(!this.isPublic && fields.hasField(this.asIndexer(DescriptionStatusDefinition._statusColor))) m.setStatusColor(d.getStatusColor());
 
-            if (!storageFileFields.isEmpty() && storageFileItemsMap != null && storageFileItemsMap.containsKey(d.getStorageFileId()))  m.setStorageFile(storageFileItemsMap.get(d.getStorageFileId()));
+            if (!this.isPublic && !storageFileFields.isEmpty() && storageFileItemsMap != null && storageFileItemsMap.containsKey(d.getStorageFileId()))  m.setStorageFile(storageFileItemsMap.get(d.getStorageFileId()));
 
             models.add(m);
         }

@@ -1,253 +1,277 @@
 <div class="main-content dashboard-main-container h-100">
-	<div *ngIf="isAuthenticated()" class="container-fluid">
-		<div *ngIf="dashboardStatistics" class="main-content">
-			<div class="container-fluid">
-				<div class="row flex-column-reverse flex-xl-row">
-					<div class="col-12 col-xl-9">
-						<div class="row">
-							<div *ngIf="newReleaseNotificationVisible" class="new-releases-card col-auto mt-0 pt-2 mr-4">
-								<button mat-icon-button [attr.aria-label]="'ALT-TEXT.CLOSE-RELEASE' | translate" (click)="dismissNewReleaseNotification()">
-                                    <mat-icon aria-hidden>close</mat-icon>
-                                </button>
-								<div class="row new-releases-hint-container m-0">
-									<p class="new-releases-chip mb-0 col-auto">{{'NEW-RELEASE-NOTIFICATION.HINT' | translate}}</p>
-								</div>
-								<p class="new-releases-title mb-0 pt-4">{{'NEW-RELEASE-NOTIFICATION.TITLE' | translate}}</p>
-								<p class="new-releases-content mb-0">{{'NEW-RELEASE-NOTIFICATION.BODY' | translate}}</p>
+  @if (isAuthenticated()) {
+    <div class="container-fluid">
+      @if (dashboardStatistics) {
+        <div class="main-content">
+          <div class="container-fluid">
+            <div class="row flex-column-reverse flex-xl-row">
+              <div class="col-12 col-xl-9">
+                <div class="row">
+                  @if (newReleaseNotificationVisible) {
+                    <div class="new-releases-card col-auto mt-0 pt-2 mr-4">
+                      <button mat-icon-button [attr.aria-label]="'ALT-TEXT.CLOSE-RELEASE' | translate" (click)="dismissNewReleaseNotification()">
+                        <mat-icon aria-hidden>close</mat-icon>
+                      </button>
+                      <div class="row new-releases-hint-container m-0">
+                        <p class="new-releases-chip mb-0 col-auto">{{'NEW-RELEASE-NOTIFICATION.HINT' | translate}}</p>
+                      </div>
+                      <p class="new-releases-title mb-0 pt-4">{{'NEW-RELEASE-NOTIFICATION.TITLE' | translate}}</p>
+                      <p class="new-releases-content mb-0">{{'NEW-RELEASE-NOTIFICATION.BODY' | translate}}</p>
+                      @if (configurationService.newReleaseNotificationLink) {
+                        <div class="row d-flex align-items-center mt-4">
+                          <div class="col-auto d-flex">
+                            <a mat-flat-button color="primary" class="padded-shadow-btn new-releases-btn" href="{{configurationService.newReleaseNotificationLink}}" target="_blank">
+                              {{'NEW-RELEASE-NOTIFICATION.ACTIONS.LEARN-MORE' | translate}}
+                            </a>
+                          </div>
+                          <span class="new-releases-logo">
+                            <img src="../../../assets/images/new-releases-logo.png" alt="{{('ALT-TEXT.NEW-RELEASES' | translate) ?? 'new releases'}}">
+                          </span>
+                        </div>
+                      }
+                    </div>
+                  }
+                  <div class="card col-auto mt-0 pt-2 pb-2" [style.display]="isIntroCardVisible ? 'block' : 'none'">
+                    @if (hasPlans()) {
+                      <button mat-icon-button  [attr.aria-label]="'ALT-TEXT.CLOSE-INTRO-CARD' | translate" (click)="dismissIntroCard()">
+                        <mat-icon aria-hidden>close</mat-icon>
+                      </button>
+                    }
+                    @if (!hasPlans()) {
+                      <p class="card-title mb-0 pt-4">{{'DASHBOARD.PLAN-QUESTION' | translate}}</p>
+                    }
+                    @if (!hasPlans()) {
+                      <p class="card-content mb-0">{{'DASHBOARD.INFO-PLAN-TEXT' | translate}}</p>
+                    }
+                    @if (!hasPlans()) {
+                      <p class="card-content pt-3 mb-0">
+                        {{'DASHBOARD.NEW-QUESTION' | translate}} <a href="https://www.openaire.eu/how-to-create-a-data-management-plan" target="_blank"><u>{{'DASHBOARD.OPEN-AIR-GUIDE' | translate}}</u></a> {{'DASHBOARD.LEARN-MORE' | translate}}
+                      </p>
+                    }
+                    @if (hasPlans()) {
+                      <p class="card-content mb-0 pt-0">{{'DASHBOARD.PLAN-ABOUT-BEG' | translate}}
+                        <b>{{'DASHBOARD.DESCRIPTIONS-DASHBOARD-TEXT' | translate}}</b>
+                        {{'DASHBOARD.PLAN-ABOUT-END' | translate}}
+                      </p>
+                    }
+                    <div class="row d-flex align-items-center">
+                      @if (!hasPlans()) {
+                        <div class="col-auto p-0 add-description-btn d-flex">
+                          <div class="pr-2">
+                            <button type="button" color="accent" mat-flat-button class="align-self-center padded-shadow-btn" (click)="openNewPlanDialog()">{{'DASHBOARD.START-YOUR-FIRST-PLAN' | translate}}</button>
+                          </div>
+                        </div>
+                      }
+                      @if (hasPlans()) {
+                        <div class="col-auto p-0 add-description-btn col-auto d-flex">
+                          <div class="pr-2">
+                            <button mat-flat-button color="accent" type="button" class="new-description-tour align-self-center padded-shadow-btn" (click)="addNewDescription()">{{'DASHBOARD.ACTIONS.ADD-DESCRIPTION' | translate}}</button>
+                          </div>
+                        </div>
+                      }
+                      <span class="col-auto ml-auto">
+                        <img class="laptop-img" alt="{{('ALT-TEXT.DASHBOARD-POPUP-IMAGE' | translate) ?? 'dashboard popup image' }}" src="../../../assets/images/dashboard-popup.png">
+                      </span>
+                    </div>
+                  </div>
+                </div>
+                @if (hasPlans()) {
+                  <div class="col">
+                    <div class="latest-activity-title">{{'DASHBOARD.LATEST-ACTIVITY' | translate}}</div>
+                    <mat-tab-group
+                      #tabGroup="matTabGroup"
+                      dynamicHeight
+                      mat-stretch-tabs="false"
+                      mat-align-tabs="start"
+                      class="my-mat-tab remove-border-bottom"
+                      [selectedIndex]="initTab"
+                      >
+                      <mat-tab #recentsTab [attr.aria-label]="'DASHBOARD.ALL' | translate" label="{{'DASHBOARD.ALL' | translate}}">
+                        <app-recent-edited-activity
+                          [orderedPlanPreferencesList] = orderedPlanPreferencesList
+                          [orderedDescriptionPreferencesList] = orderedDescriptionPreferencesList
+                          [isActive]="recentsTab?.isActive"
+                          [type]="ActivityListingType.Recent"
+                        ></app-recent-edited-activity>
+                      </mat-tab>
+                      <mat-tab #draftsTab [attr.aria-label]="'DASHBOARD.DRAFTS' | translate" label="{{'DASHBOARD.DRAFTS' | translate}}">
+                        <app-recent-edited-activity
+                          [orderedPlanPreferencesList] = orderedPlanPreferencesList
+                          [isActive]="draftsTab?.isActive"
+                          [type]="ActivityListingType.Drafts"
+                        ></app-recent-edited-activity>
+                      </mat-tab>
+                      <mat-tab #plansTab [attr.aria-label]="'DASHBOARD.PLANS' | translate" label="{{'DASHBOARD.PLANS' | translate}}">
+                        <app-recent-edited-activity
+                          [orderedPlanPreferencesList] = orderedPlanPreferencesList
+                          [orderedDescriptionPreferencesList] = orderedDescriptionPreferencesList
+                          [isActive]="plansTab?.isActive"
+                          [type]="ActivityListingType.Plans"
+                        ></app-recent-edited-activity>
+                      </mat-tab>
+                      <mat-tab #descriptionsTab [attr.aria-label]="'DASHBOARD.DESCRIPTIONS' | translate" label="{{'DASHBOARD.DESCRIPTIONS' | translate}}">
+                        <app-recent-edited-activity
+                          [orderedDescriptionPreferencesList] = orderedDescriptionPreferencesList
+                          [isActive]="descriptionsTab?.isActive"
+                          [type]="ActivityListingType.Descriptions"
+                          [hasPlans]="hasPlans()"
+                          (addNewDescription)="addNewDescription($event)"
+                        ></app-recent-edited-activity>
+                      </mat-tab>
+                    </mat-tab-group>
+                  </div>
+                }
+              </div>
+              <!-- Right Sidebar -->
+              <div  class="col-12 col-xl-3 mb-4">
+                <div   class="row">
+                  <div class="col-12">
+                    <app-top-plan-blueprints-component></app-top-plan-blueprints-component>
+                  </div>
+                </div>
+                @if (!hasPlans()) {
+                  <div class="row stats">
+                    <div class="col-12">
+                      <div class="personal-usage" style="width: fit-content;">
+                        <span>
+                          {{'DASHBOARD.PERSONAL-USAGE' | translate}}
+                        </span>
+                      </div>
+                    </div>
+                    <div class="col-auto col-xl-12">
+                      <div class="counter-zero" style="width: fit-content;"><span>0</span></div>
+                      <a [routerLink]="routerUtils.generateUrl(['/plans'])" class="link">{{'DASHBOARD.PLANS' | translate}}</a>
+                    </div>
+                    <div class="col-auto col-xl-12">
+                      <div class="counter-zero" style="width: fit-content;"><span>0</span></div>
+                      <a [routerLink]="routerUtils.generateUrl(['/descriptions'])" class="link">{{'DASHBOARD.DESCRIPTIONS' | translate}}</a>
+                    </div>
+                    <div class="col-auto col-xl-12">
+                      <div class="counter-zero" style="width: fit-content;"><span>0</span></div>
+                      <div>{{'DASHBOARD.GRANTS' | translate}}</div>
+                    </div>
+                    <div class="col-auto col-xl-12">
+                      <div class="counter-zero" style="width: fit-content;"><span>0</span></div>
+                      <div>{{'DASHBOARD.RELATED-ORGANISATIONS' | translate}}</div>
+                    </div>
+                  </div>
+                }
+                @if (hasPlans()) {
+                  <div class="row stats">
+                    <div class="col-12">
+                      <div class="personal-usage" style="width: fit-content;"><span>{{'DASHBOARD.PERSONAL-USAGE' | translate}}</span></div>
+                    </div>
+                    <div class="col-auto col-xl-12">
+                      <div [ngClass]="{'counter': dashboardStatistics?.planCount != 0, 'counter-zero': dashboardStatistics?.planCount == 0}" style="width: fit-content;">
+                        <span>{{dashboardStatistics?.planCount}}</span>
+                      </div>
+                      <a [routerLink]="routerUtils.generateUrl(['/plans'])" class="link">{{'DASHBOARD.PLANS' | translate}}</a>
+                    </div>
+                    <div class="col-auto col-xl-12">
+                      <div [ngClass]="{'counter': dashboardStatistics?.descriptionCount != 0, 'counter-zero': dashboardStatistics?.descriptionCount == 0}" style="width: fit-content;">
+                        <span>{{dashboardStatistics?.descriptionCount}}</span>
+                      </div>
+                      <a [routerLink]="routerUtils.generateUrl(['/descriptions'])" class="link">{{'DASHBOARD.DESCRIPTIONS' | translate}}</a>
+                    </div>
+                    <div class="col-auto col-xl-12">
+                      <div [ngClass]="{'counter': grantCount != 0, 'counter-zero': grantCount == 0}" style="width: fit-content;">
+                        <span>{{grantCount}}</span>
+                      </div>
+                      <div>{{'DASHBOARD.GRANTS' | translate}}</div>
+                    </div>
+                    <div class="col-auto col-xl-12">
+                      <div [ngClass]="{'counter': organizationCount != 0, 'counter-zero': organizationCount == 0}" style="width: fit-content;">
+                        <span>{{organizationCount}}</span>
+                      </div>
+                      <div>{{'DASHBOARD.RELATED-ORGANISATIONS' | translate}}</div>
+                    </div>
+                  </div>
+                }
+              </div>
+            </div>
+          </div>
+        </div>
+      }
+      <div>
+        <div class="main-content">
+        </div>
+      </div>
+    </div>
+  }
 
-								<div class="row d-flex align-items-center mt-4" *ngIf="configurationService.newReleaseNotificationLink">
-									<div class="col-auto d-flex">
-										<a mat-flat-button color="primary" class="padded-shadow-btn new-releases-btn" href="{{configurationService.newReleaseNotificationLink}}" target="_blank">
-											{{'NEW-RELEASE-NOTIFICATION.ACTIONS.LEARN-MORE' | translate}}
-										</a>
-									</div>
-									<span class="new-releases-logo">
-										<img src="../../../assets/images/new-releases-logo.png" alt="{{('ALT-TEXT.NEW-RELEASES' | translate) ?? 'new releases'}}">
-									</span>
-								</div>
-							</div>
-							<div class="card col-auto mt-0 pt-2 pb-2" [style.display]="isIntroCardVisible ? 'block' : 'none'">
-								<button mat-icon-button  [attr.aria-label]="'ALT-TEXT.CLOSE-INTRO-CARD' | translate" *ngIf="hasPlans()" (click)="dismissIntroCard()">
-                                    <mat-icon aria-hidden>close</mat-icon>
-                                </button>
-
-								<p *ngIf="!hasPlans()" class="card-title mb-0 pt-4">{{'DASHBOARD.PLAN-QUESTION' | translate}}</p>
-								<p *ngIf="!hasPlans()" class="card-content mb-0">{{'DASHBOARD.INFO-PLAN-TEXT' | translate}}</p>
-
-								<p *ngIf="!hasPlans()" class="card-content pt-3 mb-0">
-									{{'DASHBOARD.NEW-QUESTION' | translate}} <a href="https://www.openaire.eu/how-to-create-a-data-management-plan" target="_blank"><u>{{'DASHBOARD.OPEN-AIR-GUIDE' | translate}}</u></a> {{'DASHBOARD.LEARN-MORE' | translate}}
-								</p>
-								<p *ngIf="hasPlans()" class="card-content mb-0 pt-0">{{'DASHBOARD.PLAN-ABOUT-BEG' | translate}}
-									<b>{{'DASHBOARD.DESCRIPTIONS-DASHBOARD-TEXT' | translate}}</b>
-									{{'DASHBOARD.PLAN-ABOUT-END' | translate}}
-								</p>
-
-								<div class="row d-flex align-items-center">
-									<div *ngIf="!hasPlans()" class="col-auto p-0 add-description-btn d-flex">
-										<div class="pr-2">
-											<button type="button" color="accent" mat-flat-button class="align-self-center padded-shadow-btn" (click)="openNewPlanDialog()">{{'DASHBOARD.START-YOUR-FIRST-PLAN' | translate}}</button>
-										</div>
-									</div>
-									<div *ngIf="hasPlans()" class="col-auto p-0 add-description-btn col-auto d-flex">
-										<div class="pr-2">
-											<button mat-flat-button color="accent" type="button" class="new-description-tour align-self-center padded-shadow-btn" (click)="addNewDescription()">{{'DASHBOARD.ACTIONS.ADD-DESCRIPTION' | translate}}</button>
-										</div>
-									</div>
-									<span class="col-auto ml-auto">
-										<img class="laptop-img" alt="{{('ALT-TEXT.DASHBOARD-POPUP-IMAGE' | translate) ?? 'dashboard popup image' }}" src="../../../assets/images/dashboard-popup.png">
-									</span>
-								</div>
-							</div>
-						</div>
-						<div *ngIf="hasPlans()" class="col">
-							<div class="latest-activity-title">{{'DASHBOARD.LATEST-ACTIVITY' | translate}}</div>
-							<mat-tab-group 
-                                #tabGroup="matTabGroup" 
-                                dynamicHeight 
-                                mat-stretch-tabs="false" 
-                                mat-align-tabs="start" 
-                                class="my-mat-tab remove-border-bottom" 
-                                [selectedIndex]="initTab"
-                            >
-								<mat-tab #recentsTab [attr.aria-label]="'DASHBOARD.ALL' | translate" label="{{'DASHBOARD.ALL' | translate}}">
-									<app-recent-edited-activity
-										[orderedPlanPreferencesList] = orderedPlanPreferencesList
-										[orderedDescriptionPreferencesList] = orderedDescriptionPreferencesList
-                                        [isActive]="recentsTab?.isActive"
-                                        [type]="ActivityListingType.Recent"
-                                    ></app-recent-edited-activity>
-								</mat-tab>
-								<mat-tab #draftsTab [attr.aria-label]="'DASHBOARD.DRAFTS' | translate" label="{{'DASHBOARD.DRAFTS' | translate}}">
-									<app-recent-edited-activity 
-										[orderedPlanPreferencesList] = orderedPlanPreferencesList
-                                        [isActive]="draftsTab?.isActive"
-                                        [type]="ActivityListingType.Drafts" 
-                                    ></app-recent-edited-activity>
-								</mat-tab>
-								<mat-tab #plansTab [attr.aria-label]="'DASHBOARD.PLANS' | translate" label="{{'DASHBOARD.PLANS' | translate}}">
-									<app-recent-edited-activity
-										[orderedPlanPreferencesList] = orderedPlanPreferencesList
-										[orderedDescriptionPreferencesList] = orderedDescriptionPreferencesList
-                                        [isActive]="plansTab?.isActive"
-                                        [type]="ActivityListingType.Plans" 
-                                    ></app-recent-edited-activity>
-								</mat-tab>
-								<mat-tab #descriptionsTab [attr.aria-label]="'DASHBOARD.DESCRIPTIONS' | translate" label="{{'DASHBOARD.DESCRIPTIONS' | translate}}">
-									<app-recent-edited-activity
-										[orderedDescriptionPreferencesList] = orderedDescriptionPreferencesList 
-                                        [isActive]="descriptionsTab?.isActive"
-                                        [type]="ActivityListingType.Descriptions" 
-                                        [hasPlans]="hasPlans()" 
-                                        (addNewDescription)="addNewDescription($event)"
-                                    ></app-recent-edited-activity>
-								</mat-tab>
-							</mat-tab-group>
-						</div>
-					</div>
-					<!-- Right Sidebar -->
-					<div  class="col-12 col-xl-3 mb-4">
-						<div   class="row">
-							<div class="col-12">
-								<app-top-plan-blueprints-component></app-top-plan-blueprints-component>
-							</div>
-
-						</div>
-						<div *ngIf="!hasPlans()" class="row stats">
-							<div class="col-12">
-								<div class="personal-usage" style="width: fit-content;">
-									<span>
-										{{'DASHBOARD.PERSONAL-USAGE' | translate}}
-									</span>
-								</div>
-							</div>
-							<div class="col-auto col-xl-12">
-								<div class="counter-zero" style="width: fit-content;"><span>0</span></div>
-								<a [routerLink]="routerUtils.generateUrl(['/plans'])" class="link">{{'DASHBOARD.PLANS' | translate}}</a>
-							</div>
-							<div class="col-auto col-xl-12">
-								<div class="counter-zero" style="width: fit-content;"><span>0</span></div>
-								<a [routerLink]="routerUtils.generateUrl(['/descriptions'])" class="link">{{'DASHBOARD.DESCRIPTIONS' | translate}}</a>
-							</div>
-							<div class="col-auto col-xl-12">
-								<div class="counter-zero" style="width: fit-content;"><span>0</span></div>
-								<div>{{'DASHBOARD.GRANTS' | translate}}</div>
-							</div>
-							<div class="col-auto col-xl-12">
-								<div class="counter-zero" style="width: fit-content;"><span>0</span></div>
-								<div>{{'DASHBOARD.RELATED-ORGANISATIONS' | translate}}</div>
-							</div>
-						</div>
-						<div *ngIf="hasPlans()" class="row stats">
-							<div class="col-12">
-								<div class="personal-usage" style="width: fit-content;"><span>{{'DASHBOARD.PERSONAL-USAGE' | translate}}</span></div>
-							</div>
-							<div class="col-auto col-xl-12">
-								<div [ngClass]="{'counter': dashboardStatistics?.planCount != 0, 'counter-zero': dashboardStatistics?.planCount == 0}" style="width: fit-content;">
-									<span>{{dashboardStatistics?.planCount}}</span>
-								</div>
-								<a [routerLink]="routerUtils.generateUrl(['/plans'])" class="link">{{'DASHBOARD.PLANS' | translate}}</a>
-							</div>
-							<div class="col-auto col-xl-12">
-								<div [ngClass]="{'counter': dashboardStatistics?.descriptionCount != 0, 'counter-zero': dashboardStatistics?.descriptionCount == 0}" style="width: fit-content;">
-									<span>{{dashboardStatistics?.descriptionCount}}</span>
-								</div>
-								<a [routerLink]="routerUtils.generateUrl(['/descriptions'])" class="link">{{'DASHBOARD.DESCRIPTIONS' | translate}}</a>
-							</div>
-							<div class="col-auto col-xl-12">
-								<div [ngClass]="{'counter': grantCount != 0, 'counter-zero': grantCount == 0}" style="width: fit-content;">
-									<span>{{grantCount}}</span>
-								</div>
-								<div>{{'DASHBOARD.GRANTS' | translate}}</div>
-							</div>
-							<div class="col-auto col-xl-12">
-								<div [ngClass]="{'counter': organizationCount != 0, 'counter-zero': organizationCount == 0}" style="width: fit-content;">
-									<span>{{organizationCount}}</span>
-								</div>
-								<div>{{'DASHBOARD.RELATED-ORGANISATIONS' | translate}}</div>
-							</div>
-						</div>
-					</div>
-				</div>
-			</div>
-		</div>
-		<div>
-			<div class="main-content">
-
-			</div>
-		</div>
-	</div>
-
-	<!-- Home screen on log out -->
-	<div class="container-fluid" *ngIf="!isAuthenticated()">
-		<div class="main-content">
-			<div class="container-fluid">
-				<div class="row flex-column-reverse flex-xl-row">
-					<div class="col-12 col-xl">
-						<div class="row">
-							<div class="col-auto card" [style.display]="isIntroCardVisible ? 'block' : 'none'">
-								<button mat-icon-button (click)="dismissIntroCard()" [attr.aria-label]="'ALT-TEXT.CLOSE-INTRO-CARD' | translate">
-                                    <mat-icon aria-hidden>close</mat-icon>
-                                </button>
-								<div class="d-flex flex-column align-items-center non-auth-title-container">
-									<p class="dashboard-title pt-4">{{'DASHBOARD.TITLE' | translate}}</p>
-									<p class="col-auto app-info">{{'DASHBOARD.INFO-TEXT' | translate}}</p>
-								</div>
-								<div class="d-flex">
-									<img class="col-auto ml-auto laptop-img" alt="{{('ALT-TEXT.DASHBOARD-POPUP-IMAGE' | translate) ?? 'dashboard popup image' }}" src="../../../assets/images/dashboard-popup.png">
-								</div>
-							</div>
-						</div>
-					</div>
-					<div class="col-12 col-xl-auto mb-4 stats">
-						<div *ngIf="!hasPlans()" class="row flex-xl-column">
-							<div class="col-12">
-								<div class="personal-usage"><span>{{'DASHBOARD.PUBLIC-USAGE' | translate}}</span></div>
-							</div>
-							<div class="col-auto">
-								<div class="counter-zero"><span>0</span></div>
-								<div>{{'DASHBOARD.PUBLIC-PLANS' | translate}}</div>
-							</div>
-							<div class="col-auto">
-								<div class="counter-zero"><span>0</span></div>
-								<div>{{'DASHBOARD.PUBLIC-DESCRIPTIONS' | translate}}</div>
-							</div>
-							<div class="col-auto">
-								<div class="counter-zero"><span>0</span></div>
-								<div>{{'DASHBOARD.GRANTS' | translate}}</div>
-							</div>
-							<div class="col-auto">
-								<div class="counter-zero"><span>0</span></div>
-								<div>{{'DASHBOARD.RELATED-ORGANISATIONS' | translate}}</div>
-							</div>
-						</div>
-
-						<div *ngIf="hasPlans()" class="row flex-xl-column">
-							<div class="col-12">
-								<div class="personal-usage"><span>{{'DASHBOARD.PUBLIC-USAGE' | translate}}</span></div>
-							</div>
-							<div class="col-auto">
-								<div [ngClass]="{'counter': dashboardStatistics?.planCount != 0, 'counter-zero': dashboardStatistics?.planCount == 0}"><span>{{dashboardStatistics?.planCount}}</span></div>
-								<a [routerLink]="['/explore-plans']" class="link">{{'DASHBOARD.PUBLIC-PLANS' | translate}}</a>
-							</div>
-
-							<div class="col-auto">
-								<div [ngClass]="{'counter': dashboardStatistics?.descriptionCount != 0, 'counter-zero': dashboardStatistics?.descriptionCount == 0}"><span>{{dashboardStatistics?.descriptionCount}}</span></div>
-								<a [routerLink]="['/explore-descriptions']" class="link">{{'DASHBOARD.PUBLIC-DESCRIPTIONS' | translate}}</a>
-							</div>
-
-							<div class="col-auto">
-								<div [ngClass]="{'counter': grantCount != 0, 'counter-zero': grantCount == 0}"><span>{{grantCount}}</span></div>
-								<div>{{'DASHBOARD.GRANTS' | translate}}</div>
-							</div>
-
-							<div class="col-auto">
-								<div [ngClass]="{'counter': organizationCount != 0, 'counter-zero': organizationCount == 0}"><span>{{organizationCount}}</span></div>
-								<div>{{'DASHBOARD.RELATED-ORGANISATIONS' | translate}}</div>
-							</div>
-						</div>
-					</div>
-				</div>
-			</div>
-		</div>
-	</div>
+  <!-- Home screen on log out -->
+  @if (!isAuthenticated()) {
+    <div class="container-fluid">
+      <div class="main-content">
+        <div class="container-fluid">
+          <div class="row flex-column-reverse flex-xl-row">
+            <div class="col-12 col-xl">
+              <div class="row">
+                <div class="col-auto card" [style.display]="isIntroCardVisible ? 'block' : 'none'">
+                  <button mat-icon-button (click)="dismissIntroCard()" [attr.aria-label]="'ALT-TEXT.CLOSE-INTRO-CARD' | translate">
+                    <mat-icon aria-hidden>close</mat-icon>
+                  </button>
+                  <div class="d-flex flex-column align-items-center non-auth-title-container">
+                    <p class="dashboard-title pt-4">{{'DASHBOARD.TITLE' | translate}}</p>
+                    <p class="col-auto app-info">{{'DASHBOARD.INFO-TEXT' | translate}}</p>
+                  </div>
+                  <div class="d-flex">
+                    <img class="col-auto ml-auto laptop-img" alt="{{('ALT-TEXT.DASHBOARD-POPUP-IMAGE' | translate) ?? 'dashboard popup image' }}" src="../../../assets/images/dashboard-popup.png">
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="col-12 col-xl-auto mb-4 stats">
+              @if (!hasPlans()) {
+                <div class="row flex-xl-column">
+                  <div class="col-12">
+                    <div class="personal-usage"><span>{{'DASHBOARD.PUBLIC-USAGE' | translate}}</span></div>
+                  </div>
+                  <div class="col-auto">
+                    <div class="counter-zero"><span>0</span></div>
+                    <div>{{'DASHBOARD.PUBLIC-PLANS' | translate}}</div>
+                  </div>
+                  <div class="col-auto">
+                    <div class="counter-zero"><span>0</span></div>
+                    <div>{{'DASHBOARD.PUBLIC-DESCRIPTIONS' | translate}}</div>
+                  </div>
+                  <div class="col-auto">
+                    <div class="counter-zero"><span>0</span></div>
+                    <div>{{'DASHBOARD.GRANTS' | translate}}</div>
+                  </div>
+                  <div class="col-auto">
+                    <div class="counter-zero"><span>0</span></div>
+                    <div>{{'DASHBOARD.RELATED-ORGANISATIONS' | translate}}</div>
+                  </div>
+                </div>
+              }
+              @if (hasPlans()) {
+                <div class="row flex-xl-column">
+                  <div class="col-12">
+                    <div class="personal-usage"><span>{{'DASHBOARD.PUBLIC-USAGE' | translate}}</span></div>
+                  </div>
+                  <div class="col-auto">
+                    <div [ngClass]="{'counter': dashboardStatistics?.planCount != 0, 'counter-zero': dashboardStatistics?.planCount == 0}"><span>{{dashboardStatistics?.planCount}}</span></div>
+                    <a [routerLink]="['/explore-plans']" class="link">{{'DASHBOARD.PUBLIC-PLANS' | translate}}</a>
+                  </div>
+                  <div class="col-auto">
+                    <div [ngClass]="{'counter': dashboardStatistics?.descriptionCount != 0, 'counter-zero': dashboardStatistics?.descriptionCount == 0}"><span>{{dashboardStatistics?.descriptionCount}}</span></div>
+                    <a [routerLink]="['/explore-descriptions']" class="link">{{'DASHBOARD.PUBLIC-DESCRIPTIONS' | translate}}</a>
+                  </div>
+                  <div class="col-auto">
+                    <div [ngClass]="{'counter': grantCount != 0, 'counter-zero': grantCount == 0}"><span>{{grantCount}}</span></div>
+                    <div>{{'DASHBOARD.GRANTS' | translate}}</div>
+                  </div>
+                  <div class="col-auto">
+                    <div [ngClass]="{'counter': organizationCount != 0, 'counter-zero': organizationCount == 0}"><span>{{organizationCount}}</span></div>
+                    <div>{{'DASHBOARD.RELATED-ORGANISATIONS' | translate}}</div>
+                  </div>
+                </div>
+              }
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  }
 </div>

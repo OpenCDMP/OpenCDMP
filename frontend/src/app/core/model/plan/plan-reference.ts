@@ -1,6 +1,6 @@
 import { BaseEntity } from "@common/base/base-entity.model";
 import { BaseReference, Reference } from "../reference/reference";
-import { Plan, PublicPlan } from "./plan";
+import { Plan } from "./plan";
 import { Guid } from "@common/types/guid";
 
 export interface PlanReference extends BaseEntity {

@@ -9,6 +9,7 @@ import { DescriptionOverviewComponent } from './description-overview.component';
 import { DescriptionOverviewRoutingModule } from './description-overview.routing';
 import { PlanAuthorsComponent } from '@app/ui/plan/plan-authors/plan-authors.component';
 import { PlanEvaluationHistoryComponent } from '@app/ui/plan/listing/plan-evaluation-history/plan-evaluation-history.component';
+import { DescriptionPreviewComponent } from './description-preview/description-preview.component';
 
 @NgModule({
 	imports: [
@@ -20,7 +21,8 @@ import { PlanEvaluationHistoryComponent } from '@app/ui/plan/listing/plan-evalua
 		DescriptionCopyDialogModule,
 		DescriptionOverviewRoutingModule,
         PlanAuthorsComponent,
-        PlanEvaluationHistoryComponent
+        PlanEvaluationHistoryComponent,
+        DescriptionPreviewComponent
 	],
 	declarations: [
 		DescriptionOverviewComponent

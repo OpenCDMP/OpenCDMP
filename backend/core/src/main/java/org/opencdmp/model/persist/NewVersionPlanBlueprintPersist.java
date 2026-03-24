@@ -30,6 +30,10 @@ public class NewVersionPlanBlueprintPersist {
 
     public static final String _definition = "definition";
 
+    private UUID type = null;
+
+    public static final String _type = "type";
+
     private PlanBlueprintStatus status;
 
     public static final String _status = "status";
@@ -60,6 +64,14 @@ public class NewVersionPlanBlueprintPersist {
 
     public DefinitionPersist getDefinition() {
         return this.definition;
+    }
+
+    public UUID getType() {
+        return type;
+    }
+
+    public void setType(UUID type) {
+        this.type = type;
     }
 
     public void setDefinition(DefinitionPersist definition) {

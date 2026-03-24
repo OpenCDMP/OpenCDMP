@@ -57,12 +57,12 @@
 }
 
 .more-icon :hover {
-  color: var(--sys-primary);
+  color: var(--mat-sys-primary);
 }
 
 .header-title {
   text-align: left;
-  font-size: var(--sys-headline-medium-size);
+  font-size: var(--mat-sys-headline-medium-size);
   font-weight: 300;
   color: var(--dark-text);
   padding: 0px;
@@ -83,7 +83,7 @@
 }
 
 .main-content {
-  background-color: var(--sys-background);
+  background-color: var(--mat-sys-background);
   padding-top: 4.68rem;
   padding-bottom: 3rem;
   padding-left: 3rem;
@@ -94,7 +94,7 @@
 }
 
 .card {
-  background: var(--sys-surface) 0% 0% no-repeat padding-box;
+  background: var(--mat-sys-surface) 0% 0% no-repeat padding-box;
   box-shadow: 0px 3px 6px #00000029;
   border-radius: 4px;
   margin-bottom: 3.75rem;
@@ -164,7 +164,7 @@
 
 .filter-btn button {
   color: white;
-  background-color: var(--sys-primary);
+  background-color: var(--mat-sys-primary);
   width: 37px;
   height: 45px;
 }
@@ -175,13 +175,13 @@
 }
 
 .search-form mat-icon {
-  color: var(--sys-primary);
+  color: var(--mat-sys-primary);
 }
 
 .empty-list {
   text-align: center;
   font-weight: 300;
-  font-size: var(--sys-headline-medium-size);
+  font-size: var(--mat-sys-headline-medium-size);
   letter-spacing: 0px;
   color: var(--dark-text);
   opacity: 0.6;
@@ -194,7 +194,7 @@
 
 .pointer:hover,
 .zenodo-link:hover {
-  color: var(--sys-primary);
+  color: var(--mat-sys-primary);
 }
 
 ::ng-deep .search-form .mat-form-field-wrapper {
@@ -212,12 +212,12 @@
 }
 
 .center-content {
-  font-size: var(--sys-title-small-size);
+  font-size: var(--mat-sys-title-small-size);
   font-weight: 600;
   letter-spacing: 0.02rem;
   color: var(--link-color);
   &:hover {
-    color: var(--sys-primary)
+    color: var(--mat-sys-primary)
   }
   cursor: pointer;
 }
@@ -228,12 +228,12 @@
   margin: auto;
   padding: 0px;
   text-align: left;
-  font-size: var(--sys-title-small-size);
+  font-size: var(--mat-sys-title-small-size);
   font-weight: 600;
   letter-spacing: 0.02rem;
   color: var(--link-color);
   &:hover {
-    color: var(--sys-primary)
+    color: var(--mat-sys-primary)
   }
   cursor: pointer;
 }

@@ -1,6 +1,6 @@
 package org.opencdmp.controllers.publicapi.jpa.hibernatequeryablelist;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 import org.opencdmp.controllers.publicapi.QueryableList;
 import org.opencdmp.controllers.publicapi.collector.Collector;
 import org.opencdmp.controllers.publicapi.exceptions.NotSingleResultException;

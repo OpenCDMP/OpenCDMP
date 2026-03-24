@@ -416,25 +416,25 @@ public class VisibilityServiceImpl implements VisibilityService {
 		if (field != null){
 			org.opencdmp.commons.enums.FieldType fieldType = rule.getFieldEntity() != null && rule.getFieldEntity().getData() != null ? rule.getFieldEntity().getData().getFieldType() :  org.opencdmp.commons.enums.FieldType.FREE_TEXT;
 			if ((org.opencdmp.commons.enums.FieldType.isTextType(fieldType) || org.opencdmp.commons.enums.FieldType.isTextListType(fieldType)) && field.getTextValue() != null && !field.getTextValue().isBlank()) {
-				if (org.opencdmp.commons.enums.FieldType.UPLOAD.equals(fieldType)) throw new NotImplementedException("Upload file rule not supported");
+				if (org.opencdmp.commons.enums.FieldType.UPLOAD.equals(fieldType)) return false;;
 				return field.getTextValue().equals(rule.getTextValue());
 			}
 			else if (rule.getTextValue() != null &&org.opencdmp.commons.enums.FieldType.isTextListType(fieldType) && field.getTextListValue() != null && !field.getTextListValue().isEmpty()) {
-				if (FieldType.INTERNAL_ENTRIES_PLANS.equals(fieldType))  throw new NotImplementedException("plans not supported");
-				if (FieldType.INTERNAL_ENTRIES_DESCRIPTIONS.equals(fieldType)) throw new NotImplementedException("descriptions not supported");
+				if (FieldType.INTERNAL_ENTRIES_PLANS.equals(fieldType))  return false;
+				if (FieldType.INTERNAL_ENTRIES_DESCRIPTIONS.equals(fieldType)) return false;
 
 				return new HashSet<>(field.getTextListValue()).contains(rule.getTextValue());
 			}
 			else if (org.opencdmp.commons.enums.FieldType.isReferenceType(fieldType)) {
-				throw new NotImplementedException("Reference rule not supported");
+				return false;
 			}
 			else if (org.opencdmp.commons.enums.FieldType.isTagType(fieldType)) {
-				throw new NotImplementedException("tags not supported");
+				return false;
 			}
 			else if (org.opencdmp.commons.enums.FieldType.isDateType(fieldType) && field.getDateValue() != null) return field.getDateValue().equals(rule.getDateValue());
 			else if (org.opencdmp.commons.enums.FieldType.isBooleanType(fieldType) && field.getBooleanValue() != null) return field.getBooleanValue().equals(rule.getBooleanValue());
 			else if (org.opencdmp.commons.enums.FieldType.isExternalIdentifierType(fieldType) && field.getExternalIdentifier() != null)  {
-				throw new NotImplementedException("External identifier rule not supported");
+				return false;
 			}
 		}
 		return false;

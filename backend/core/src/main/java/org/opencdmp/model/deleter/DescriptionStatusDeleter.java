@@ -8,7 +8,7 @@ import gr.cite.tools.logging.MapLogEntry;
 import org.opencdmp.commons.enums.IsActive;
 import org.opencdmp.commons.enums.UsageLimitTargetMetric;
 import org.opencdmp.data.DescriptionStatusEntity;
-import org.opencdmp.data.TenantEntityManager;
+import org.opencdmp.data.TenantEntityManagerFactory;
 import org.opencdmp.query.DescriptionStatusQuery;
 import org.opencdmp.service.accounting.AccountingService;
 import org.slf4j.LoggerFactory;
@@ -27,17 +27,17 @@ import java.util.UUID;
 @Scope(value = ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 public class DescriptionStatusDeleter implements Deleter {
     private static final LoggerService logger = new LoggerService(LoggerFactory.getLogger(DescriptionStatusDeleter.class));
-    private final TenantEntityManager entityManager;
+    private final TenantEntityManagerFactory tenantEntityManagerFactory;
     private final DeleterFactory deleterFactory;
     private final QueryFactory queryFactory;
     private final AccountingService accountingService;
     @Autowired
     public DescriptionStatusDeleter(
-            TenantEntityManager entityManager,
+            TenantEntityManagerFactory tenantEntityManagerFactory,
             DeleterFactory deleterFactory,
             QueryFactory queryFactory,
             AccountingService accountingService) {
-        this.entityManager = entityManager;
+        this.tenantEntityManagerFactory = tenantEntityManagerFactory;
         this.deleterFactory = deleterFactory;
         this.queryFactory = queryFactory;
         this.accountingService = accountingService;
@@ -54,7 +54,7 @@ public class DescriptionStatusDeleter implements Deleter {
         logger.debug("will delete {} items", Optional.ofNullable(data).map(List::size).orElse(0));
         this.delete(data);
         logger.trace("saving changes");
-        this.entityManager.flush();
+        this.tenantEntityManagerFactory.getInstance().flush();
         logger.trace("changes saved");
     }
 
@@ -70,7 +70,7 @@ public class DescriptionStatusDeleter implements Deleter {
             item.setIsActive(IsActive.Inactive);
             item.setUpdatedAt(now);
             logger.trace("updating item");
-            this.entityManager.merge(item);
+            this.tenantEntityManagerFactory.getInstance().merge(item);
             logger.trace("updated item");
             this.accountingService.decrease(UsageLimitTargetMetric.DESCRIPTION_STATUS_COUNT.getValue());
         }

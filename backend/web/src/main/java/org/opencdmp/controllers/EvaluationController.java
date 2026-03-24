@@ -1,6 +1,6 @@
 package org.opencdmp.controllers;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
+import tools.jackson.core.JacksonException;
 import gr.cite.commons.web.authz.service.AuthorizationService;
 import gr.cite.tools.auditing.AuditService;
 import gr.cite.tools.data.builder.BuilderFactory;
@@ -167,7 +167,7 @@ public class EvaluationController {
     public Evaluation persist(
             @RequestBody EvaluationPersist model,
             @Parameter(name = "fieldSet", description = SwaggerHelpers.Commons.fieldset_description, required = true) FieldSet fieldSet
-    ) throws MyApplicationException, MyForbiddenException, MyNotFoundException, InvalidApplicationException, JAXBException, JsonProcessingException, InvalidApplicationException {
+    ) throws MyApplicationException, MyForbiddenException, MyNotFoundException, InvalidApplicationException, JAXBException, JacksonException, InvalidApplicationException {
         logger.debug(new MapLogEntry("persisting" + Evaluation.class.getSimpleName()).And("model", model).And("fieldSet", fieldSet));
 
         this.censorFactory.censor(EvaluationCensor.class).censor(fieldSet, null);

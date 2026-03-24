@@ -51,6 +51,8 @@ public class ReferenceTypeFieldBuilder extends BaseBuilder<ReferenceTypeField, R
             if (fields.hasField(this.asIndexer(ReferenceTypeField._label))) m.setLabel(d.getLabel());
             if (fields.hasField(this.asIndexer(ReferenceTypeField._description))) m.setDescription(d.getDescription());
             if (fields.hasField(this.asIndexer(ReferenceTypeField._dataType))) m.setDataType(d.getDataType());
+            if (fields.hasField(this.asIndexer(ReferenceTypeField._semantics))) m.setSemantics(d.getSemantics());
+            if (fields.hasField(this.asIndexer(ReferenceTypeField._required))) m.setRequired(d.isRequired());
 
             models.add(m);
         }

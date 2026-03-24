@@ -1,32 +1,52 @@
 <div class="confirmation-dialog">
-	<div class="row" *ngIf="data.icon || data.warning">
-		<div class="col-auto" *ngIf="data.icon">
-			<button mat-icon-button><mat-icon color="warn">{{ data.icon }}</mat-icon></button>
-		</div>
-		<div *ngIf="data.warning" class="col justify-content-center warn-text"> <h5><strong>{{ data.warning }}</strong></h5></div>
-		<div class="col-auto">
-			<button mat-icon-button (click)="close()" [attr.aria-label]="'ALT-TEXT.CLOSE-DIALOG'  | translate"><mat-icon aria-hidden>close</mat-icon></button>
-		</div>
-	</div>
-	<div class="row justify-content-end mb-1" *ngIf="!data.icon && !data.warning">
-		<div class="col-auto">
-			<button mat-icon-button (click)="close()" [attr.aria-label]="'ALT-TEXT.CLOSE-DIALOG'  | translate"><mat-icon aria-hidden>close</mat-icon></button>
-		</div>
-	</div>
-	<div class="row d-flex flex-row mb-2">
-		<div class="col message pb-4 pl-3">{{ data.message }}</div>
-	</div>
-	<div *ngIf="data.privacyPolicyNames" class="row d-flex flex-col">
-		<div class="col-12 privacy-policy-names">{{ data.privacyPolicyNames }}</div>
-		<mat-checkbox [(ngModel)]="agreePrivacyPolicyNames" required class="checkbox-privacy">
-			{{'GENERAL.CONFIRMATION-DIALOG.ACTIONS.POLICY-AGREE' | translate}}
-		</mat-checkbox>
-		<div *ngIf="!agreePrivacyPolicyNames" class="required-policy">{{'GENERAL.CONFIRMATION-DIALOG.ACTIONS.REQUIRED' | translate}}</div>
-	</div>
-	<div class="row" style="justify-content: space-between;" *ngIf="!data.noActions">
-		<div class="col-auto"><button mat-stroked-button type="button" class="padded-shadow-btn" (click)="cancel()">{{ data.cancelButton }}</button></div>
-		<div *ngIf="data.isDeleteConfirmation" class="col-auto"><button mat-stroked-button color="warn" type="button" (click)="confirm()" class="padded-shadow-btn">{{ data.confirmButton }}</button></div>
-		<div *ngIf="!data.isDeleteConfirmation && !data.privacyPolicyNames" class="col-auto"><button mat-stroked-button color="primary" type="button" (click)="confirm()" class="padded-shadow-btn primary-inverted-hover">{{ data.confirmButton }}</button></div>
-		<div *ngIf="!data.isDeleteConfirmation && data.privacyPolicyNames" class="col-auto"><button mat-stroked-button color="primary" type="button" [disabled]="!agreePrivacyPolicyNames" (click)="confirm()" class="padded-shadow-btn primary-inverted-hover">{{ data.confirmButton }}</button></div>
-	</div>
+  @if (data.icon || data.warning) {
+    <div class="row">
+      @if (data.icon) {
+        <div class="col-auto">
+          <button mat-icon-button><mat-icon color="warn">{{ data.icon }}</mat-icon></button>
+        </div>
+      }
+      @if (data.warning) {
+        <div class="col justify-content-center warn-text"> <h5><strong>{{ data.warning }}</strong></h5></div>
+      }
+      <div class="col-auto">
+        <button mat-icon-button (click)="close()" [attr.aria-label]="'ALT-TEXT.CLOSE-DIALOG'  | translate"><mat-icon aria-hidden>close</mat-icon></button>
+      </div>
+    </div>
+  }
+  @if (!data.icon && !data.warning) {
+    <div class="row justify-content-end mb-1">
+      <div class="col-auto">
+        <button mat-icon-button (click)="close()" [attr.aria-label]="'ALT-TEXT.CLOSE-DIALOG'  | translate"><mat-icon aria-hidden>close</mat-icon></button>
+      </div>
+    </div>
+  }
+  <div class="row d-flex flex-row mb-2">
+    <div class="col message pb-4 pl-3">{{ data.message }}</div>
+  </div>
+  @if (data.privacyPolicyNames) {
+    <div class="row d-flex flex-col">
+      <div class="col-12 privacy-policy-names">{{ data.privacyPolicyNames }}</div>
+      <mat-checkbox [(ngModel)]="agreePrivacyPolicyNames" required class="checkbox-privacy">
+        {{'GENERAL.CONFIRMATION-DIALOG.ACTIONS.POLICY-AGREE' | translate}}
+      </mat-checkbox>
+      @if (!agreePrivacyPolicyNames) {
+        <div class="required-policy">{{'GENERAL.CONFIRMATION-DIALOG.ACTIONS.REQUIRED' | translate}}</div>
+      }
+    </div>
+  }
+  @if (!data.noActions) {
+    <div class="row" style="justify-content: space-between;">
+      <div class="col-auto"><button mat-stroked-button type="button" class="padded-shadow-btn" (click)="cancel()">{{ data.cancelButton }}</button></div>
+      @if (data.isDeleteConfirmation) {
+        <div class="col-auto"><button mat-stroked-button color="warn" type="button" (click)="confirm()" class="padded-shadow-btn">{{ data.confirmButton }}</button></div>
+      }
+      @if (!data.isDeleteConfirmation && !data.privacyPolicyNames) {
+        <div class="col-auto"><button mat-stroked-button color="primary" type="button" (click)="confirm()" class="padded-shadow-btn primary-inverted-hover">{{ data.confirmButton }}</button></div>
+      }
+      @if (!data.isDeleteConfirmation && data.privacyPolicyNames) {
+        <div class="col-auto"><button mat-stroked-button color="primary" type="button" [disabled]="!agreePrivacyPolicyNames" (click)="confirm()" class="padded-shadow-btn primary-inverted-hover">{{ data.confirmButton }}</button></div>
+      }
+    </div>
+  }
 </div>

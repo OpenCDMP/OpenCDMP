@@ -33,6 +33,7 @@ export class PlanEvaluationHistoryComponent extends BaseComponent{
 
     openEvaluationInfo(evaluation: Evaluation) {
         this.dialog.open(EvaluateDialogComponent, {
+			maxWidth: '90vw',
             data: {
                 rankData: evaluation.data?.rankResult,
                 rankConfig: evaluation.data?.rankConfig,

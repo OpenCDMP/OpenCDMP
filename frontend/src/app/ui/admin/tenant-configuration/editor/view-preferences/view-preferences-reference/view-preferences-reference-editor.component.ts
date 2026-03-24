@@ -15,6 +15,7 @@ import { BaseComponent } from '@common/base/base.component';
 import { ViewPreferenceEditorModel } from '../view-preferences-editor.model';
 import { Guid } from '@common/types/guid';
 import { ValidationErrorModel } from '@common/forms/validation/error-model/validation-error-model';
+import { IsActive } from '@notification-service/core/enum/is-active.enum';
 
 @Component({
     selector: 'app-view-preferences-reference-editor',
@@ -35,11 +36,10 @@ export class ViewPreferencesReferenceEditorComponent extends BaseComponent imple
     get autoCompleteConfig(): SingleAutoCompleteConfiguration {
         return {
             initialItems: (data?: any) => this.referenceTypeService.query(this.referenceTypeService.buildAutocompleteLookup(
-				null, this.form?.value?.map((x) => x.referenceTypeId)
+				[IsActive.Active], null, this.form?.value?.map((x) => x.referenceTypeId)
             )).pipe(map(x => x.items)),
             filterFn: (searchQuery: string, data?: any) => this.referenceTypeService.query(this.referenceTypeService.buildAutocompleteLookup(
-                searchQuery,
-                this.form.value?.map((x) => x.referenceTypeId)
+                [IsActive.Active], searchQuery, this.form.value?.map((x) => x.referenceTypeId)
             )).pipe(map(x => x.items)),
             getSelectedItem: (selectedItem: any) => null,
             displayFn: (item: ReferenceType) => null,

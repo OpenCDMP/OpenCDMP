@@ -8,7 +8,7 @@ import gr.cite.tools.fieldset.FieldSet;
 import gr.cite.tools.logging.DataLogEntry;
 import gr.cite.tools.logging.LoggerService;
 import org.opencdmp.authorization.AuthorizationFlags;
-import org.opencdmp.commons.scope.tenant.TenantScope;
+import org.opencdmp.commons.scope.tenant.TenantScopeFactory;
 import org.opencdmp.convention.ConventionService;
 import org.opencdmp.data.DescriptionTagEntity;
 import org.opencdmp.model.DescriptionTag;
@@ -33,22 +33,28 @@ public class DescriptionTagBuilder extends BaseBuilder<DescriptionTag, Descripti
     private final BuilderFactory builderFactory;
 
     private final QueryFactory queryFactory;
-    private final TenantScope tenantScope;
+    private final TenantScopeFactory tenantScopeFactory;
 
     private EnumSet<AuthorizationFlags> authorize = EnumSet.of(AuthorizationFlags.None);
+    private boolean isPublic;
 
     @Autowired
     public DescriptionTagBuilder(
 		    ConventionService conventionService,
-		    BuilderFactory builderFactory, QueryFactory queryFactory, TenantScope tenantScope) {
+		    BuilderFactory builderFactory, QueryFactory queryFactory, TenantScopeFactory tenantScopeFactory) {
         super(conventionService, new LoggerService(LoggerFactory.getLogger(DescriptionTagBuilder.class)));
         this.builderFactory = builderFactory;
         this.queryFactory = queryFactory;
-	    this.tenantScope = tenantScope;
+	    this.tenantScopeFactory = tenantScopeFactory;
     }
 
     public DescriptionTagBuilder authorize(EnumSet<AuthorizationFlags> values) {
         this.authorize = values;
+        return this;
+    }
+
+    public DescriptionTagBuilder isPublic(boolean isPublic) {
+        this.isPublic = isPublic;
         return this;
     }
 
@@ -73,8 +79,8 @@ public class DescriptionTagBuilder extends BaseBuilder<DescriptionTag, Descripti
             if (fields.hasField(this.asIndexer(DescriptionTag._createdAt))) m.setCreatedAt(d.getCreatedAt());
             if (fields.hasField(this.asIndexer(DescriptionTag._updatedAt))) m.setUpdatedAt(d.getUpdatedAt());
             if (fields.hasField(this.asIndexer(DescriptionTag._isActive))) m.setIsActive(d.getIsActive());
-            if (fields.hasField(this.asIndexer(DescriptionTag._hash))) m.setHash(this.hashValue(d.getUpdatedAt()));
-            if (fields.hasField(this.asIndexer(DescriptionTag._belongsToCurrentTenant))) m.setBelongsToCurrentTenant(this.getBelongsToCurrentTenant(d, this.tenantScope));
+            if (!this.isPublic && fields.hasField(this.asIndexer(DescriptionTag._hash))) m.setHash(this.hashValue(d.getUpdatedAt()));
+            if (!this.isPublic && fields.hasField(this.asIndexer(DescriptionTag._belongsToCurrentTenant))) m.setBelongsToCurrentTenant(this.getBelongsToCurrentTenant(d, this.tenantScopeFactory.getInstance()));
             if (!tagFields.isEmpty() && tagItemsMap != null && tagItemsMap.containsKey(d.getTagId())) m.setTag(tagItemsMap.get(d.getTagId()));
             if (!descriptionFields.isEmpty() && descriptionItemsMap != null && descriptionItemsMap.containsKey(d.getDescriptionId()))  m.setDescription(descriptionItemsMap.get(d.getDescriptionId()));
 
@@ -104,7 +110,7 @@ public class DescriptionTagBuilder extends BaseBuilder<DescriptionTag, Descripti
         } else {
             FieldSet clone = new BaseFieldSet(fields.getFields()).ensure(Tag._id);
             DescriptionQuery q = this.queryFactory.query(DescriptionQuery.class).disableTracking().authorize(this.authorize).ids(data.stream().map(DescriptionTagEntity::getDescriptionId).distinct().collect(Collectors.toList()));
-            itemMap = this.builderFactory.builder(DescriptionBuilder.class).authorize(this.authorize).asForeignKey(q, clone, Description::getId);
+            itemMap = this.builderFactory.builder(DescriptionBuilder.class).authorize(this.authorize).isPublic(this.isPublic).asForeignKey(q, clone, Description::getId);
         }
         if (!fields.hasField(Description._id)) {
             itemMap.forEach((id, item) -> {
@@ -134,7 +140,7 @@ public class DescriptionTagBuilder extends BaseBuilder<DescriptionTag, Descripti
         } else {
             FieldSet clone = new BaseFieldSet(fields.getFields()).ensure(Tag._id);
             TagQuery q = this.queryFactory.query(TagQuery.class).disableTracking().authorize(this.authorize).ids(data.stream().map(DescriptionTagEntity::getTagId).distinct().collect(Collectors.toList()));
-            itemMap = this.builderFactory.builder(TagBuilder.class).authorize(this.authorize).asForeignKey(q, clone, Tag::getId);
+            itemMap = this.builderFactory.builder(TagBuilder.class).authorize(this.authorize).isPublic(this.isPublic).asForeignKey(q, clone, Tag::getId);
         }
         if (!fields.hasField(Tag._id)) {
             itemMap.forEach((id, item) -> {

@@ -29,8 +29,8 @@
 .mat-mdc-mini-fab {
 	width: 2.5em;
 	height: 2.5em;
-	// background-color: var(--sys-primary);
-	// color: var(--sys-on-primary);
+	// background-color: var(--mat-sys-primary);
+	// color: var(--mat-sys-on-primary);
 }
 
 .mat-mini-fab-icon,
@@ -72,8 +72,8 @@
 }
 
 .frame-btn {
-	border: 1px solid var(--sys-outline);
-	color: var(--sys-on-surface);
+	border: 1px solid var(--mat-sys-outline);
+	color: var(--mat-sys-on-surface);
 }
 
 // ********TEXT********
@@ -82,10 +82,10 @@
     padding: 1rem 1.25rem;
     max-width: min-content;
 	height: 2.6em;
-	background: var(--sys-primary);
+	background: var(--mat-sys-primary);
 	border-radius: 4px;
-	font-size: var(--sys-title-small-size);
-	color: var(--sys-on-primary);
+	font-size: var(--mat-sys-title-small-size);
+	color: var(--mat-sys-on-primary);
 }
 
 
@@ -105,7 +105,7 @@
 	max-height: 50px;
 }
 .evaluator-subtitle{
-    font-size: var(--sys-body-small-size);
+    font-size: var(--mat-sys-body-small-size);
     padding: 0 1rem;
 }
 .status-logo {
@@ -133,7 +133,7 @@
 }
 .plan-label,
 .header {
-	font-size: var(--sys-headline-medium-size);
+	font-size: var(--mat-sys-headline-medium-size);
     margin-bottom: 0.25rem;
 }
 .plan-label {
@@ -145,15 +145,15 @@
 }
 
 .frame{
-	background: var(--sys-surface);
+	background: var(--mat-sys-surface);
 	box-shadow: 0px 1px 5px #00000026;
 	border-radius: 4px;
 	overflow: hidden;
 }
 .description-btn {
     min-height: 2.3em;
-    background-color: var(--sys-tertiary);
-    color: var(--sys-on-tertiary);
+    background-color: var(--mat-sys-tertiary);
+    color: var(--mat-sys-on-tertiary);
     border-radius: 4px;
     border: none;
     width: min(40rem, 100%);
@@ -163,7 +163,7 @@
         right: 0;
         bottom: 0;
         position: absolute;
-        background: var(--sys-surface);
+        background: var(--mat-sys-surface);
         opacity: 0;
         border-radius: inherit;
         transition: opacity 100ms ease-in-out;
@@ -190,11 +190,11 @@
 }
 
 .deleted-item {
-    color: var(--sys-error);
+    color: var(--mat-sys-error);
 }
 .primary-container-btn {
-    color: var(--sys-on-primary-container);
-    background-color: var(--sys-primary-container);
+    color: var(--mat-sys-on-primary-container);
+    background-color: var(--mat-sys-primary-container);
     &:not(.mat-mdc-icon-button){
         padding: 0 var(--mat-filled-button-horizontal-padding, 16px);
     }
@@ -202,10 +202,10 @@
 
 
 .secondary-info {
-    font-size: var(--sys-label-large-size);
+    font-size: var(--mat-sys-label-large-size);
     opacity: 0.9;
     .current-status {
-        border: 1px solid  var(--sys-outline);;
+        border: 1px solid  var(--mat-sys-outline);;
         border-radius: 999px;
         padding: 0.125rem 0.5rem;
         font-weight: 500;

@@ -6,7 +6,7 @@ import gr.cite.tools.fieldset.BaseFieldSet;
 import gr.cite.tools.logging.LoggerService;
 import org.opencdmp.commons.XmlHandlingService;
 import org.opencdmp.commons.enums.IsActive;
-import org.opencdmp.commons.scope.tenant.TenantScope;
+import org.opencdmp.commons.scope.tenant.TenantScopeFactory;
 import org.opencdmp.commons.types.descriptionstatus.DescriptionStatusDefinitionEntity;
 import org.opencdmp.commons.types.planstatus.PlanStatusDefinitionEntity;
 import org.opencdmp.data.DescriptionStatusEntity;
@@ -27,14 +27,14 @@ import java.util.*;
 public class CustomPolicyServiceImpl implements CustomPolicyService{
 	private final QueryFactory queryFactory;
 	private final XmlHandlingService xmlHandlingService;
-	private final TenantScope tenantScope;
+	private final TenantScopeFactory tenantScopeFactory;
 	private final CustomPolicyCacheService customPolicyCacheService;
 	private static final LoggerService logger = new LoggerService(LoggerFactory.getLogger(CustomPolicyServiceImpl.class));
 
-	public CustomPolicyServiceImpl(QueryFactory queryFactory, XmlHandlingService xmlHandlingService, TenantScope tenantScope, CustomPolicyCacheService customPolicyCacheService) {
+	public CustomPolicyServiceImpl(QueryFactory queryFactory, XmlHandlingService xmlHandlingService, TenantScopeFactory tenantScopeFactory, CustomPolicyCacheService customPolicyCacheService) {
 		this.queryFactory = queryFactory;
 		this.xmlHandlingService = xmlHandlingService;
-        this.tenantScope = tenantScope;
+        this.tenantScopeFactory = tenantScopeFactory;
         this.customPolicyCacheService = customPolicyCacheService;
     }
 
@@ -75,7 +75,7 @@ public class CustomPolicyServiceImpl implements CustomPolicyService{
 		HashMap<String, Permission> policies = new HashMap<>();
 		String tenantCode = null;
 		try {
-			tenantCode = this.tenantScope.isSet() && this.tenantScope.isMultitenant() ? this.tenantScope.getTenantCode() : this.tenantScope.getDefaultTenantCode();
+			tenantCode = this.tenantScopeFactory.getInstance().isSet() && this.tenantScopeFactory.getInstance().isMultitenant() ? this.tenantScopeFactory.getInstance().getTenantCode() : this.tenantScopeFactory.getInstance().getDefaultTenantCode();
 		} catch (InvalidApplicationException e) {
 			throw new RuntimeException(e);
 		}
@@ -102,7 +102,7 @@ public class CustomPolicyServiceImpl implements CustomPolicyService{
 		HashMap<String, Permission> policies = new HashMap<>();
 		String tenantCode = null;
 		try {
-			tenantCode = this.tenantScope.isSet() && this.tenantScope.isMultitenant() ? this.tenantScope.getTenantCode() : this.tenantScope.getDefaultTenantCode();
+			tenantCode = this.tenantScopeFactory.getInstance().isSet() && this.tenantScopeFactory.getInstance().isMultitenant() ? this.tenantScopeFactory.getInstance().getTenantCode() : this.tenantScopeFactory.getInstance().getDefaultTenantCode();
 		} catch (InvalidApplicationException e) {
 			throw new RuntimeException(e);
 		}

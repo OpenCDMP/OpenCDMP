@@ -1,0 +1,112 @@
+<div class="container-fluid">
+  <div class="row plan-blueprint-type-listing">
+    <div class="col-md-10 offset-md-1">
+      <div class="row mb-4 mt-4">
+        <div class="col">
+          <app-navigation-breadcrumb />
+        </div>
+        <div class="col-auto">
+          @if (authService.hasPermission(authService.permissionEnum.EditPlanBlueprintType)) {
+            <button mat-flat-button color="accent" class="padded-shadow-btn"
+              [routerLink]="routerUtils.generateUrl(['/plan-blueprint-type/new'])">
+              <mat-icon>add</mat-icon>
+              {{'PLAN-BLUEPRINT-TYPE-LISTING.CREATE-TYPE' | translate}}
+            </button>
+          }
+        </div>
+      </div>
+
+      <app-hybrid-listing [rows]="gridRows" [columns]="gridColumns" [visibleColumns]="visibleColumns"
+        [count]="totalElements" [offset]="currentPageNumber" [limit]="lookup.page.size"
+        [defaultSort]="lookup.order?.items" [externalSorting]="true" (rowActivated)="onRowActivated($event)"
+        (pageLoad)="alterPage($event)" (columnSort)="onColumnSort($event)"
+        (columnsChanged)="onColumnsChanged($event)" [listItemTemplate]="listItemTemplate">
+
+        <app-plan-blueprint-type-listing-filters hybrid-listing-filters [(filter)]="lookup"
+          (filterChange)="filterChanged($event)" />
+
+          <app-user-settings-picker [key]="userSettingsKey" [userPreference]="lookup"
+            (onSettingSelected)="changeSetting($event)" [autoSelectUserSettings]="autoSelectUserSettings"
+            user-preference-settings />
+          </app-hybrid-listing>
+        </div>
+      </div>
+    </div>
+
+
+    <ng-template #listItemTemplate let-item="item" let-isColumnSelected="isColumnSelected">
+
+
+      <div class="d-flex align-items-center p-3 gap-1-rem">
+        <div class="row">
+          @if (isColumnSelected('name')) {
+            <a class="buttonLinkClass" [routerLink]="routerUtils.generateUrl('./' + item?.id)" class="col-12"
+            (click)="$event.stopPropagation()">{{item?.name | nullifyValue}}</a>
+            <br />
+          }
+
+          @if (isColumnSelected('status')) {
+            <div class="col-auto">
+              <div class="status-chip"
+                [ngClass]="{'status-chip-finalized': item.status === planBlueprintTypeStatuses.Finalized, 'status-chip-draft' : item.status === planBlueprintTypeStatuses.Draft}">
+                {{enumUtils.toPlanBlueprintTypeStatusString(item.status) | nullifyValue}}
+              </div>
+            </div>
+          }
+
+          @if (isColumnSelected('createdAt')) {
+            <span class="col-12">
+              {{'PLAN-BLUEPRINT-TYPE-LISTING.FIELDS.CREATED-AT' | translate}}:
+              <small>
+                {{item?.createdAt | dateTimeFormatter : 'short' | nullifyValue}}
+              </small>
+            </span>
+            <br>
+            }
+            @if (isColumnSelected('updatedAt')) {
+              <span class="col-12">
+                {{'PLAN-BLUEPRINT-TYPE-LISTING.FIELDS.UPDATED-AT' | translate}}:
+                <small>
+                  {{item?.updatedAt | dateTimeFormatter : 'short' | nullifyValue}}
+                </small>
+              </span>
+            }
+          </div>
+        </div>
+      </ng-template>
+
+      <ng-template #planBlueprintTypeStatus let-row="row" let-item>
+        <div class="row">
+          <div class="col-auto status-chip"
+            [ngClass]="{'status-chip-finalized': row.status === planBlueprintTypeStatuses.Finalized, 'status-chip-draft' : row.status === planBlueprintTypeStatuses.Draft}">
+            {{enumUtils.toPlanBlueprintTypeStatusString(row.status) | nullifyValue}}
+          </div>
+        </div>
+      </ng-template>
+
+      <ng-template #actions let-row="row" let-item>
+        @if (row?.belongsToCurrentTenant && !isDeleted(row)) {
+          <div class="row" (click)="$event.stopPropagation()">
+            <div class="col-auto">
+              @if (!isFinalized(row) || row.belongsToCurrentTenant != false) {
+                <button mat-icon-button [matMenuTriggerFor]="actionsMenu" [attr.aria-label]="'ALT-TEXT.MORE-ACTIONS' | translate">
+                  <mat-icon>more_horiz</mat-icon>
+                </button>
+              }
+              <mat-menu #actionsMenu="matMenu">
+                @if (canEdit(row)) {
+                  <a mat-menu-item [routerLink]="routerUtils.generateUrl(['/plan-blueprint-type/' + row.id])">
+                    <mat-icon aria-hidden>edit</mat-icon>{{'PLAN-BLUEPRINT-TYPE-LISTING.ACTIONS.EDIT' | translate}}
+                  </a>
+                }
+                @if (canDelete(row)) {
+                  <button mat-menu-item (click)="deleteType(row.id)">
+                    <mat-icon aria-hidden>delete</mat-icon>
+                    {{'PLAN-BLUEPRINT-TYPE-LISTING.ACTIONS.DELETE' | translate}}
+                  </button>
+                }
+              </mat-menu>
+            </div>
+          </div>
+        }
+      </ng-template>

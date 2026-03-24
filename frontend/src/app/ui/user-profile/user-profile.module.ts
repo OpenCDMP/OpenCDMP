@@ -10,6 +10,7 @@ import { UserProfileRoutingModule } from './user-profile.routing';
 import { UserProfileNotifierListModule } from '@notification-service/ui/user-profile/notifier-list/user-profile-notifier-list-editor.module';
 import { FormFocusDirective } from '@common/forms/form-focus.directive';
 import { PluginEditorModule } from '../plugin/plugin-editor.module';
+import { ReferenceFieldModule } from '../reference/reference-field/reference-field.module';
 
 @NgModule({
     imports: [
@@ -23,6 +24,7 @@ import { PluginEditorModule } from '../plugin/plugin-editor.module';
         UserProfileNotifierListModule,
         FormFocusDirective,
         PluginEditorModule,
+        ReferenceFieldModule,
     ],
     declarations: [
         UserProfileComponent

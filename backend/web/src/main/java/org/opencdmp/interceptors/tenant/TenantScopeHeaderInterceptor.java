@@ -1,8 +1,8 @@
 package org.opencdmp.interceptors.tenant;
 
 
-import gr.cite.commons.web.oidc.principal.CurrentPrincipalResolver;
-import gr.cite.commons.web.oidc.principal.extractor.ClaimExtractorContext;
+import gr.cite.commons.web.oidc.principal.CurrentPrincipalResolverFactory;
+import gr.cite.commons.web.oidc.principal.extractor.ClaimExtractorContextFactory;
 import gr.cite.tools.logging.LoggerService;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
@@ -12,7 +12,8 @@ import jakarta.persistence.criteria.Root;
 import org.jetbrains.annotations.NotNull;
 import org.opencdmp.authorization.ClaimNames;
 import org.opencdmp.commons.enums.IsActive;
-import org.opencdmp.commons.scope.tenant.TenantScope;
+import org.opencdmp.commons.scope.tenant.TenantScopeFactory;
+import org.opencdmp.commons.scope.tenant.TenantScopeImpl;
 import org.opencdmp.convention.ConventionService;
 import org.opencdmp.data.TenantEntity;
 import org.slf4j.LoggerFactory;
@@ -29,45 +30,45 @@ import java.util.UUID;
 @Component
 public class TenantScopeHeaderInterceptor implements WebRequestInterceptor {
 	private static final LoggerService logger = new LoggerService(LoggerFactory.getLogger(TenantScopeHeaderInterceptor.class));
-	private final TenantScope tenantScope;
+	private final TenantScopeFactory tenantScopeFactory;
 	private final ConventionService conventionService;
 	private final TenantByCodeCacheService tenantByCodeCacheService;
 	private final TenantByIdCacheService tenantByIdCacheService;
-	private final ClaimExtractorContext claimExtractorContext;
-	private final CurrentPrincipalResolver currentPrincipalResolver;
+	private final ClaimExtractorContextFactory claimExtractorContextFactory;
+	private final CurrentPrincipalResolverFactory currentPrincipalResolver;
 	@PersistenceContext
 	public EntityManager entityManager;
 
 	@Autowired
 	public TenantScopeHeaderInterceptor(
-			TenantScope tenantScope,
+			TenantScopeFactory tenantScopeFactory,
 			ConventionService conventionService,
 			TenantByCodeCacheService tenantByCodeCacheService,
 			TenantByIdCacheService tenantByIdCacheService,
-			ClaimExtractorContext claimExtractorContext,
-			CurrentPrincipalResolver currentPrincipalResolver
+			ClaimExtractorContextFactory claimExtractorContextFactory,
+			CurrentPrincipalResolverFactory currentPrincipalResolver
 	) {
-		this.tenantScope = tenantScope;
+		this.tenantScopeFactory = tenantScopeFactory;
 		this.conventionService = conventionService;
 		this.tenantByCodeCacheService = tenantByCodeCacheService;
 		this.tenantByIdCacheService = tenantByIdCacheService;
-		this.claimExtractorContext = claimExtractorContext;
+		this.claimExtractorContextFactory = claimExtractorContextFactory;
 		this.currentPrincipalResolver = currentPrincipalResolver;
 	}
 
 	@Override
 	public void preHandle(@NotNull WebRequest request) {
-		if (!this.currentPrincipalResolver.currentPrincipal().isAuthenticated()) return;
-		if (!this.tenantScope.isMultitenant()) return;
+		if (!this.currentPrincipalResolver.getInstance().currentPrincipal().isAuthenticated()) return;
+		if (!this.tenantScopeFactory.getInstance().isMultitenant()) return;
 
 		String tenantCode = request.getHeader(ClaimNames.TenantClaimName);
 		logger.debug("retrieved request tenant header is: {}", tenantCode);
 		if (tenantCode == null || this.conventionService.isNullOrEmpty(tenantCode)) return;
 
-		if (this.tenantScope.supportExpansionTenant() && tenantCode.equalsIgnoreCase(this.tenantScope.getDefaultTenantCode())) {
+		if (this.tenantScopeFactory.getInstance().supportExpansionTenant() && tenantCode.equalsIgnoreCase(this.tenantScopeFactory.getInstance().getDefaultTenantCode())) {
 			logger.debug("parsed tenant header and set tenant to default tenant");
-			this.tenantScope.setTenant(null, tenantCode);
-			this.claimExtractorContext.putReplaceParameter(TenantScope.TenantReplaceParameter, tenantCode);
+			this.tenantScopeFactory.getInstance().setTenant(null, tenantCode);
+			this.claimExtractorContextFactory.getInstance().putReplaceParameter(TenantScopeImpl.TenantReplaceParameter, tenantCode);
 			return;
 		}
 
@@ -94,8 +95,8 @@ public class TenantScopeHeaderInterceptor implements WebRequestInterceptor {
 
 		if (tenantId != null) {
 			logger.debug("parsed tenant header and set tenant id to {}", tenantId);
-			this.tenantScope.setTenant(tenantId, tenantCode);
-			this.claimExtractorContext.putReplaceParameter(TenantScope.TenantReplaceParameter, tenantCode);
+			this.tenantScopeFactory.getInstance().setTenant(tenantId, tenantCode);
+			this.claimExtractorContextFactory.getInstance().putReplaceParameter(TenantScopeImpl.TenantReplaceParameter, tenantCode);
 		}
 	}
 
@@ -136,8 +137,8 @@ public class TenantScopeHeaderInterceptor implements WebRequestInterceptor {
 	@Override
 	public void postHandle(@NonNull WebRequest request, ModelMap model) {
 
-		this.tenantScope.setTenant(null, null);
-		this.claimExtractorContext.removeReplaceParameter(TenantScope.TenantReplaceParameter);
+		this.tenantScopeFactory.getInstance().setTenant(null, null);
+		this.claimExtractorContextFactory.getInstance().removeReplaceParameter(TenantScopeImpl.TenantReplaceParameter);
 	}
 
 	@Override

@@ -13,7 +13,7 @@ import org.opencdmp.commons.JsonHandlingService;
 import org.opencdmp.commons.fake.FakeRequestScope;
 import org.opencdmp.data.QueueInboxEntity;
 import org.opencdmp.data.QueueOutboxEntity;
-import org.opencdmp.data.TenantEntityManager;
+import org.opencdmp.data.TenantEntityManagerFactory;
 import org.opencdmp.query.QueueInboxQuery;
 import org.opencdmp.query.QueueOutboxQuery;
 import org.slf4j.LoggerFactory;
@@ -61,7 +61,7 @@ public class CleanupTask implements Closeable, ApplicationListener<ApplicationRe
 	public void onApplicationEvent(@NotNull ApplicationReadyEvent event) {
 		long intervalSeconds = this.properties.getIntervalSeconds();
 		if (this.properties.getEnable() && intervalSeconds > 0) {
-			logger.info("Kpi indicator point tasks run in {} seconds", intervalSeconds);
+			logger.info("queue clean up tasks run in {} seconds", intervalSeconds);
 
 			this.scheduler = Executors.newScheduledThreadPool(1);
 
@@ -88,15 +88,15 @@ public class CleanupTask implements Closeable, ApplicationListener<ApplicationRe
 
 		EntityTransaction transaction = null;
 		try (FakeRequestScope ignored = new FakeRequestScope()) {
-			TenantEntityManager tenantEntityManager = null;
+			TenantEntityManagerFactory tenantEntityManagerFactory = null;
 			EntityManager entityManager = null;
 
 			try {
-				tenantEntityManager = this.applicationContext.getBean(TenantEntityManager.class);
+				tenantEntityManagerFactory = this.applicationContext.getBean(TenantEntityManagerFactory.class);
 				entityManager = this.entityManagerFactory.createEntityManager();
 
-				tenantEntityManager.setEntityManager(entityManager);
-				tenantEntityManager.disableTenantFilters();
+				tenantEntityManagerFactory.getInstance().setEntityManager(entityManager);
+				tenantEntityManagerFactory.getInstance().disableTenantFilters();
 
 				QueryFactory queryFactory = this.applicationContext.getBean(QueryFactory.class);
 
@@ -152,7 +152,7 @@ public class CleanupTask implements Closeable, ApplicationListener<ApplicationRe
 				logger.error("Problem processing queue inbox, outbox rows. Breaking for next interval", ex);
 			} finally {
 				if (entityManager != null) entityManager.close();
-				if (tenantEntityManager != null) tenantEntityManager.reloadTenantFilters();
+				if (tenantEntityManagerFactory != null) tenantEntityManagerFactory.getInstance().reloadTenantFilters();
 			}
 		} catch (Exception ex) {
 			logger.error("Problem executing cleanup tak.", ex);

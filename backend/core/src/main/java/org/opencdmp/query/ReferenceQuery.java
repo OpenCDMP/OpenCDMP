@@ -12,9 +12,8 @@ import org.opencdmp.authorization.AuthorizationFlags;
 import org.opencdmp.authorization.Permission;
 import org.opencdmp.commons.enums.IsActive;
 import org.opencdmp.commons.enums.ReferenceSourceType;
-import org.opencdmp.commons.scope.user.UserScope;
+import org.opencdmp.commons.scope.user.UserScopeFactory;
 import org.opencdmp.data.*;
-import org.opencdmp.model.PublicReference;
 import org.opencdmp.model.reference.Reference;
 import org.opencdmp.query.utils.BuildSubQueryInput;
 import org.opencdmp.query.utils.QueryUtilsService;
@@ -186,24 +185,24 @@ public class ReferenceQuery extends QueryBase<ReferenceEntity> {
         return this;
     }
 
-    private final UserScope userScope;
+    private final UserScopeFactory userScopeFactory;
 
     private final AuthorizationService authService;
 
     private final QueryUtilsService queryUtilsService;
-    private final TenantEntityManager tenantEntityManager;
+    private final TenantEntityManagerFactory tenantEntityManagerFactory;
 
     public ReferenceQuery(
-		    UserScope userScope, AuthorizationService authService, QueryUtilsService queryUtilsService, TenantEntityManager tenantEntityManager) {
-        this.userScope = userScope;
+            UserScopeFactory userScopeFactory, AuthorizationService authService, QueryUtilsService queryUtilsService, TenantEntityManagerFactory tenantEntityManagerFactory) {
+        this.userScopeFactory = userScopeFactory;
         this.authService = authService;
         this.queryUtilsService = queryUtilsService;
-	    this.tenantEntityManager = tenantEntityManager;
+	    this.tenantEntityManagerFactory = tenantEntityManagerFactory;
     }
 
     @Override
     protected EntityManager entityManager(){
-        return this.tenantEntityManager.getEntityManager();
+        return this.tenantEntityManagerFactory.getInstance().getEntityManager();
     }
 
     @Override
@@ -225,7 +224,7 @@ public class ReferenceQuery extends QueryBase<ReferenceEntity> {
         UUID userId;
         boolean usePublic = this.authorize.contains(AuthorizationFlags.Public);
         if (this.authorize.contains(AuthorizationFlags.PlanAssociated))
-            userId = this.userScope.getUserIdSafe();
+            userId = this.userScopeFactory.getInstance().getUserIdSafe();
         else
             userId = null;
 
@@ -350,11 +349,11 @@ public class ReferenceQuery extends QueryBase<ReferenceEntity> {
 
     @Override
     protected String fieldNameOf(FieldResolver item) {
-        if (item.match(Reference._id) || item.match(PublicReference._id))
+        if (item.match(Reference._id))
             return ReferenceEntity._id;
-        else if (item.match(Reference._label) || item.match(PublicReference._label))
+        else if (item.match(Reference._label))
             return ReferenceEntity._label;
-        else if (item.match(Reference._description) || item.match(PublicReference._description))
+        else if (item.match(Reference._description))
             return ReferenceEntity._description;
         else if (item.match(Reference._createdAt))
             return ReferenceEntity._createdAt;
@@ -368,15 +367,15 @@ public class ReferenceQuery extends QueryBase<ReferenceEntity> {
             return ReferenceEntity._definition;
         else if (item.match(Reference._abbreviation))
             return ReferenceEntity._abbreviation;
-        else if (item.match(Reference._reference) || item.match(PublicReference._reference))
+        else if (item.match(Reference._reference))
             return ReferenceEntity._reference;
         else if (item.match(Reference._source))
             return ReferenceEntity._source;
         else if (item.match(Reference._sourceType))
             return ReferenceEntity._sourceType;
-        else if (item.match(Reference._type) || item.match(PublicReference._type))
+        else if (item.match(Reference._type))
             return ReferenceEntity._typeId;
-        else if (item.prefix(Reference._type) || item.prefix(PublicReference._type))
+        else if (item.prefix(Reference._type))
             return ReferenceEntity._typeId;
         else if (item.prefix(Reference._createdBy))
             return ReferenceEntity._createdById;

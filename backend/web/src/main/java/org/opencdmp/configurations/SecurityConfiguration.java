@@ -58,8 +58,10 @@ public class SecurityConfiguration  {
 				.headers(httpSecurityHeadersConfigurer -> httpSecurityHeadersConfigurer.frameOptions(HeadersConfigurer.FrameOptionsConfig::disable))
 				.addFilterBefore(apiKeyFilter, AbstractPreAuthenticatedProcessingFilter.class)
 				.authorizeHttpRequests(authRequest ->
-						authRequest.requestMatchers(buildAntPatterns(webSecurityProperties.getAllowedEndpoints())).anonymous()
-								.requestMatchers(buildAntPatterns(webSecurityProperties.getAuthorizedEndpoints())).authenticated())
+						authRequest.requestMatchers(buildAntPatterns(webSecurityProperties.getAllowedEndpoints())).permitAll()
+								.requestMatchers(buildAntPatterns(webSecurityProperties.getAuthorizedEndpoints())).authenticated()
+								.requestMatchers("/ws/**").permitAll()
+				)
 				.sessionManagement( sessionManagementConfigurer-> sessionManagementConfigurer.sessionCreationPolicy(SessionCreationPolicy.NEVER))
 				.oauth2ResourceServer(oauth2 -> oauth2.authenticationManagerResolver(authenticationManagerResolver));
 		return tempHttp.build();
@@ -104,11 +106,6 @@ public class SecurityConfiguration  {
 		};
 	}
 
-//	@Bean()
-//	public PermissionPolicyContext permissionPolicyContext(){
-//		return new PermissionPolicyContextImpl(configuration);
-//	}
-
 	@Bean
 	AuthorizationRequirementMapper authorizationRequirementMapper() {
 		return new AuthorizationRequirementMapper() {
@@ -150,4 +147,3 @@ public class SecurityConfiguration  {
 		return endpoint;
 	}
 }
-

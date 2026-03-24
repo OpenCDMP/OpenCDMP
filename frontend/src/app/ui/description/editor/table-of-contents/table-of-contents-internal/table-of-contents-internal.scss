@@ -3,7 +3,7 @@
     margin-left: 0.5em;
     padding-left: 0.25rem;
     &.top-level-child {
-        border-left: 2px solid var(--sys-primary);
+        border-left: 2px solid var(--mat-sys-primary);
     }
 }
 .table-entry{
@@ -20,7 +20,7 @@
 		text-overflow: ellipsis;
     }
     &.field-set {
-        font-size: var(--sys-title-small-size);
+        font-size: var(--mat-sys-title-small-size);
     }
 }
 

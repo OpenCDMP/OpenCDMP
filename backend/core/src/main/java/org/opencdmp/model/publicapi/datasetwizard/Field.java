@@ -1,7 +1,7 @@
 package org.opencdmp.model.publicapi.datasetwizard;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
 import org.apache.commons.lang3.NotImplementedException;
 import org.json.JSONException;
 import org.opencdmp.commons.enums.FieldValidationType;
@@ -220,7 +220,7 @@ public class Field implements Comparable, PropertiesModelBuilder {
             ObjectMapper mapper = new ObjectMapper();
             List<String> stringList = mapper.readValue(properties.get(this.id).toString(), LinkedList.class);
             this.value = stringList;
-        } catch (JSONException | NullPointerException | IOException e) {
+        } catch (JSONException | NullPointerException e) {
             try {
                 this.value = (String) properties.get(this.id);
             } catch (ClassCastException ce) {
@@ -260,7 +260,7 @@ public class Field implements Comparable, PropertiesModelBuilder {
                 try {
                     valueString = mapper.writeValueAsString(this.value);
                     fieldValues.put(this.id, valueString);
-                } catch (JsonProcessingException e) {
+                } catch (JacksonException e) {
                     logger.error(e.getMessage(), e);
                 }
             } /*else if (this.value instanceof Collection) {

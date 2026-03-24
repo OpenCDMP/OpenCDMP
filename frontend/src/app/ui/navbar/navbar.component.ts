@@ -299,7 +299,7 @@ export class NavbarComponent extends BaseComponent implements OnInit {
 		if (this.dialog.openDialogs.length > 0) {
 			this.dialog.closeAll();
 		} else if (!this.isAuthenticated()) {
-			this.router.navigate(['/login']);
+			this.login();
 		} else {
 			const dialogRef = this.dialog.open(StartNewPlanDialogComponent, {
 				disableClose: false,
@@ -309,6 +309,10 @@ export class NavbarComponent extends BaseComponent implements OnInit {
                 maxWidth: 'min(95vw, 33rem)'
 			});
 		}
+	}
+
+	login() {
+		this.router.navigate(['/login'], { queryParams: { returnUrl: this.router.url } });
 	}
 
 	logout() {

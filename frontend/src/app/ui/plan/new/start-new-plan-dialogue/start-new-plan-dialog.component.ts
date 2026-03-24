@@ -101,7 +101,9 @@ export class StartNewPlanDialogComponent extends BaseComponent {
 
 	private onCallbackImportComplete() {
 		this.uiNotificationService.snackBarNotification(this.language.instant('PLAN-UPLOAD.UPLOAD-SUCCESS'), SnackBarNotificationLevel.Success);
-		this.router.navigate(['/reload']).then(() => this.router.navigate([this.routerUtils.generateUrl('/plans')]));
+		this.router.navigateByUrl('/reload', { skipLocationChange: true }).then(() => {
+			setTimeout(() => this.router.navigate([this.routerUtils.generateUrl('/plans')]));
+		});
 	}
 
 	private onCallbackImportFail(error: any) {

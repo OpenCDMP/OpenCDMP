@@ -1,10 +1,9 @@
 package org.opencdmp.commons.types.referencetype;
 
+import jakarta.xml.bind.annotation.*;
 import org.opencdmp.commons.enums.ReferenceFieldDataType;
-import jakarta.xml.bind.annotation.XmlAccessType;
-import jakarta.xml.bind.annotation.XmlAccessorType;
-import jakarta.xml.bind.annotation.XmlAttribute;
-import jakarta.xml.bind.annotation.XmlRootElement;
+
+import java.util.List;
 
 @XmlRootElement(name = "field")
 @XmlAccessorType(XmlAccessType.FIELD)
@@ -18,9 +17,16 @@ public class ReferenceTypeFieldEntity {
 
     @XmlAttribute(name = "description")
     private String description;
+
     @XmlAttribute(name = "dataType")
     private ReferenceFieldDataType dataType;
 
+    @XmlElementWrapper(name = "semantics")
+    @XmlElement(name = "semantic")
+    private List<String> semantics;
+
+    @XmlAttribute(name = "required")
+    private boolean required;
 
     public String getCode() {
         return code;
@@ -54,4 +60,19 @@ public class ReferenceTypeFieldEntity {
         this.dataType = dataType;
     }
 
+    public List<String> getSemantics() {
+        return semantics;
+    }
+
+    public void setSemantics(List<String> semantics) {
+        this.semantics = semantics;
+    }
+
+    public boolean isRequired() {
+        return required;
+    }
+
+    public void setRequired(boolean required) {
+        this.required = required;
+    }
 }

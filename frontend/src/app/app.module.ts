@@ -28,8 +28,7 @@ import { CoreAnnotationServiceModule } from 'annotation-service/services/core-se
 import { KeycloakAngularModule, KeycloakService } from 'keycloak-angular';
 import { DragulaModule } from 'ng2-dragula';
 import { CookieService } from 'ngx-cookie-service';
-import { NgcCookieConsentConfig, NgcCookieConsentModule } from 'ngx-cookieconsent';
-import { MatomoInitializationMode, NgxMatomoModule } from 'ngx-matomo-client';
+import { MatomoModule } from 'ngx-matomo-client';
 import { from } from 'rxjs';
 import { AuthService } from './core/services/auth/auth.service';
 import { ConfigurationService } from './core/services/configuration/configuration.service';
@@ -51,36 +50,6 @@ import { SpinnerModule } from './ui/common/spinner/spinner.module';
 export function HttpLoaderFactory(languageHttpService: LanguageHttpService, authService: AuthService) {
 	return new TranslateServerLoader(languageHttpService, authService);
 }
-
-const cookieConfig: NgcCookieConsentConfig = {
-	enabled: true,
-	cookie: {
-		domain: ""//environment.App // or 'your.domain.com' // it is mandatory to set a domain, for cookies to work properly (see https://goo.gl/S2Hy2A)
-	},
-	palette: {
-		popup: {
-			background: "#000000",
-			text: "#ffffff",
-			link: "#ffffff"
-		},
-		button: {
-			background: "#00b29f",
-			text: "#ffffff",
-			border: "transparent"
-		}
-	},
-	content: {
-		message: "This website uses cookies to enhance the user experience.",
-		dismiss: "Got it!",
-		deny: "Refuse cookies",
-		link: "Learn more",
-		href: "",//environment.App + "terms-of-service",
-		policy: "Cookies Policy"
-	},
-	position: "bottom-right",
-	theme: 'edgeless',
-	type: 'info'
-};
 
 export function InstallationConfigurationFactory(appConfig: ConfigurationService, keycloak: KeycloakService, authService: AuthService, languageService: LanguageService, tenantHandlingService: TenantHandlingService, router: Router) {
 	return () => appConfig.loadConfiguration().then(() => {
@@ -155,12 +124,11 @@ export function InstallationConfigurationFactory(appConfig: ConfigurationService
 		FormsModule,
 		NavbarModule,
 		SidebarModule,
-		NgcCookieConsentModule.forRoot(cookieConfig),
 		DepositOauth2DialogModule,
 		GuidedTourModule.forRoot(),
 		DragulaModule.forRoot(),
-		NgxMatomoModule.forRoot({
-			mode: MatomoInitializationMode.AUTO_DEFERRED,
+		MatomoModule.forRoot({
+			mode: 'deferred',
 		})],
 	providers: [
 		ConfigurationService,

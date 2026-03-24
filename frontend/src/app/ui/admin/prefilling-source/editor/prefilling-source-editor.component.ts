@@ -1,6 +1,6 @@
 
 import { Component, OnInit } from '@angular/core';
-import { FormArray, FormGroup, UntypedFormGroup } from '@angular/forms';
+import { FormArray, FormGroup, UntypedFormArray, UntypedFormGroup } from '@angular/forms';
 import { MatCheckboxChange } from '@angular/material/checkbox';
 import { MatDialog } from '@angular/material/dialog';
 import { Title } from '@angular/platform-browser';
@@ -30,6 +30,8 @@ import { PrefillingSourceDefinitionEditorModel, PrefillingSourceEditorModel } fr
 import { PrefillingSourceEditorResolver } from './prefilling-source-editor.resolver';
 import { PrefillingSourceEditorService } from './prefilling-source-editor.service';
 import { RouterUtilsService } from '@app/core/services/router/router-utils.service';
+import { ExternalFetcherBaseSourceConfigurationPersist } from '@app/core/model/external-fetcher/external-fetcher';
+import { PrefillingSourceTestDialogComponent } from '../prefilling-source-test-dialog/prefilling-source-test-dialog.component';
 
 @Component({
     selector: 'app-prefilling-source-editor-component',
@@ -311,6 +313,25 @@ export class PrefillingSourceEditorComponent extends BaseEditor<PrefillingSource
 				}
 			}
 		}
+	}
+
+	openPrefillingSourceTestDialog(params?: {key?: string}): void {
+        const {key = null} = params ?? {};
+
+		const searchConfiguration = (this.formGroup.get('definition').get('searchConfiguration') as UntypedFormGroup)?.getRawValue() as ExternalFetcherBaseSourceConfigurationPersist;
+		const getConfiguration = (this.formGroup.get('definition').get('getConfiguration') as UntypedFormGroup)?.getRawValue() as ExternalFetcherBaseSourceConfigurationPersist;
+
+		let sources: ExternalFetcherBaseSourceConfigurationPersist[] = [];
+		if(searchConfiguration?.key == key) sources.push(searchConfiguration)
+		if(getConfiguration?.key == key) sources.push(getConfiguration)
+
+		this.dialog.open(PrefillingSourceTestDialogComponent, {
+		  data: {
+			sources: sources,
+			key: key,
+		  },
+          maxHeight: 'min(650px, 100vh)',
+		});
 	}
 
 

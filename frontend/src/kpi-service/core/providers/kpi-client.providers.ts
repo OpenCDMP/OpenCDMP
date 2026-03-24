@@ -1,13 +1,23 @@
-import { Provider } from "@angular/core";import { TranslateService } from "@ngx-translate/core";
-import { INDICATOR_POINT_SERVICE, IndicatorPointServiceInterface, KPI_DASHBOARD_RESOLVER, KPIDashboardResolver, SHARE_CHART_CONFIGURATION, ShareChartConfig } from "@citesa/kpi-client/tokens";
+import { Injector, Provider } from "@angular/core";import { TranslateService } from "@ngx-translate/core";
+import { INDICATOR_POINT_SERVICE, IndicatorPointServiceInterface, KPI_DASHBOARD_RESOLVER, KPI_FILTER_CONFIG, KPI_VALUE_CALLBACK_CONFIG, KPIDashboardResolver, SHARE_CHART_CONFIGURATION, ShareChartConfig } from "@citesa/kpi-client/tokens";
 import { KPI_TRANSLATION_CONFIG, TranslationConfiguration } from "@citesa/kpi-client";
 import { IndicatorPointService } from "../../services/indicator-point.service";
 import { IndicatorDashboardService } from "../../services/indicator-dashboard.service";
+import { map, Observable, of } from "rxjs";
+import { PlanStatusService } from "@app/core/services/plan/plan-status.service";
+import { IsActive } from "@notification-service/core/enum/is-active.enum";
+import { DescriptionStatusService } from "@app/core/services/description-status/description-status.service";
+import { ReferenceTypeService } from "@app/core/services/reference-type/reference-type.service";
+import { DescriptionTemplateService } from "@app/core/services/description-template/description-template.service";
+import { PlanBlueprintService } from "@app/core/services/plan/plan-blueprint.service";
+import { SingleAutoCompleteConfiguration } from "@citesa/kpi-client/types";
 
 export const KPIProviders = {
     provideTranslations,
     provideIndicatorPointService,
     provideDashboardResolver,
+    provideValueMapResolver,
+    provideFilterConfigResolver
 }
 
 
@@ -32,13 +42,11 @@ function provideIndicatorPointService(): Provider {
         provide: INDICATOR_POINT_SERVICE,
         useFactory: (indicatorPointService: IndicatorPointService) => {
             const service: IndicatorPointServiceInterface = {
-                exportJSON: (id, lookup, skipLoader) => indicatorPointService.exportJSON(id, lookup, skipLoader),
-                exportXlsx: (id, lookup, skipLoader) => indicatorPointService.exportXlsx(id, lookup, skipLoader),
+                exportJSON: (id, code, lookup, skipLoader) => indicatorPointService.exportJSON(id, code, lookup, skipLoader),
+                exportXlsx: (id, code, lookup, skipLoader) => indicatorPointService.exportXlsx(id, code, lookup, skipLoader),
                 getIndicatorPointQueryDistinct: (lookup) => indicatorPointService.getIndicatorPointQueryDistinct(lookup),
-                getIndicatorPointReport: ({ id, lookup, skipLoader, tokenParams }) => {
-                    return indicatorPointService.getIndicatorPointReport(id, lookup, skipLoader);
-                    
-
+                getIndicatorPointReport: ({ id, code, lookup, skipLoader, tokenParams }) => {
+                    return indicatorPointService.getIndicatorPointReport(id, code, lookup, skipLoader);
                 }
             }
 
@@ -64,5 +72,71 @@ function provideDashboardResolver(): Provider{
             return dashboardResolver;
         },
         deps:[IndicatorDashboardService]
+    }
+}
+
+//  ** DASHOARD VALUE MAP RESOLVER
+
+function provideValueMapResolver(): Provider {
+    return {
+        provide: KPI_VALUE_CALLBACK_CONFIG,
+        useFactory: () => {
+            return {
+                plan_status_id: (values: string[], injector: Injector): Observable<Map<string, string>> => {
+                    const ids = values.filter(x => !!x);
+                    if(!ids?.length){ return of(new Map<string, string>([]))}
+                    const planStatusService = injector.get(PlanStatusService);
+                    return planStatusService.query(
+                        planStatusService.buildAutocompleteLookup([IsActive.Active, IsActive.Inactive])
+                    ).pipe(map((planStatuses) => new Map<string, string>(planStatuses?.items?.map(item => ([item.id.toString(), item.name])))))
+                },
+                blueprint_group_id: (values: string[], injector: Injector): Observable<Map<string, string>> => {
+                    const ids = values.filter(x => !!x);
+                    if(!ids?.length){ return of(new Map<string, string>([]))}
+                    const planBlueprintService = injector.get(PlanBlueprintService);
+                    return planBlueprintService.query(
+                        planBlueprintService.buildPlanBlueprintGroupAutocompleteLookup({isActive: [IsActive.Active, IsActive.Inactive]})
+                    ).pipe(map((planBlueprints) => new Map<string, string>(planBlueprints?.items?.map(item => ([item.groupId.toString(), item.label])))))
+                },
+                description_status_id: (values: string[], injector: Injector): Observable<Map<string, string>> => {
+                    const ids = values.filter(x => !!x);
+                    if(!ids?.length){ return of(new Map<string, string>([]))}
+                    const descriptionStatusService = injector.get(DescriptionStatusService);
+                    return descriptionStatusService.query(
+                        descriptionStatusService.buildAutocompleteLookup([IsActive.Active, IsActive.Inactive])
+                    ).pipe(map((desctriptionStatuses) => new Map<string, string>(desctriptionStatuses?.items?.map(item => ([item.id.toString(), item.name])))))
+                },
+                template_group_id: (values: string[], injector: Injector): Observable<Map<string, string>> => {
+                    const ids = values.filter(x => !!x);
+                    if(!ids?.length){ return of(new Map<string, string>([]))}
+                    const descriptionTemplateService = injector.get(DescriptionTemplateService);
+                    return descriptionTemplateService.query(
+                        descriptionTemplateService.buildDescriptionTemplateGroupAutocompleteLookup({isActive: [IsActive.Active, IsActive.Inactive]})
+                    ).pipe(map((descriptionTemplates) => new Map<string, string>(descriptionTemplates?.items?.map(item => ([item.groupId.toString(), item.label])))))
+                },
+                reference_type_id: (values: string[], injector: Injector): Observable<Map<string, string>> => {
+                    const ids = values.filter(x => !!x);
+                    if(!ids?.length){ return of(new Map<string, string>([]))}
+                    const referenceTypeService = injector.get(ReferenceTypeService);
+                    return referenceTypeService.query(
+                        referenceTypeService.buildAutocompleteLookup([IsActive.Active, IsActive.Inactive])
+                    ).pipe(map((referenceTypes) => new Map<string, string>(referenceTypes?.items?.map(item => ([item.id.toString(), item.name])))))
+                }
+            }
+        },
+        deps: [Injector]
+    }
+}
+
+
+function provideFilterConfigResolver(): Provider {
+    return {
+        provide: KPI_FILTER_CONFIG,
+        useFactory: () => {
+            return {
+                autoComplete: {}
+            }
+        },
+        deps: [Injector]
     }
 }

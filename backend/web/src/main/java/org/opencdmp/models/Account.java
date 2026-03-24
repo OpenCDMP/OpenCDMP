@@ -1,7 +1,6 @@
 package org.opencdmp.models;
 
 import gr.cite.tools.logging.annotation.LogSensitive;
-import org.opencdmp.commons.scope.tenant.TenantScope;
 import org.opencdmp.model.Tenant;
 
 import java.time.Instant;

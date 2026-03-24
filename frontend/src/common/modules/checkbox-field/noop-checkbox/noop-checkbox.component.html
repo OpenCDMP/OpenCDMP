@@ -1,5 +1,7 @@
-<mat-checkbox *ngIf="control" color="secondary" 
-  [formControl]="control"
-  [matTooltip]="tooltipText"
-  [matTooltipPosition]="tooltipPosition"
->{{label}}</mat-checkbox>
+@if (control) {
+  <mat-checkbox color="secondary"
+    [formControl]="control"
+    [matTooltip]="tooltipText"
+    [matTooltipPosition]="tooltipPosition"
+  >{{label}}</mat-checkbox>
+}

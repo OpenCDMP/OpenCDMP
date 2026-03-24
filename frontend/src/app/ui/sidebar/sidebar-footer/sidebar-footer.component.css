@@ -1,6 +1,6 @@
 .sidebar-footer {
 	font-weight: 700;
-	font-size: var(--sys-body-small-size);
+	font-size: var(--mat-sys-body-small-size);
 
 }
 
@@ -12,7 +12,7 @@
 	cursor: pointer;
 	display: inline-flex;
 	/* font-size: 13px; */
-	font-size: var(--sys-label-large-size);
+	font-size: var(--mat-sys-label-large-size);
 }
 
 .sidebar-footer .option:hover {
@@ -31,5 +31,5 @@
 }
 
 .option-active {
-	color: var(--sys-primary);
+	color: var(--mat-sys-primary);
 }

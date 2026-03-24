@@ -2,12 +2,12 @@ package org.opencdmp.model.censorship;
 
 import org.opencdmp.authorization.Permission;
 import org.opencdmp.convention.ConventionService;
-import org.opencdmp.model.PublicReference;
 import gr.cite.commons.web.authz.service.AuthorizationService;
 import gr.cite.tools.data.censor.CensorFactory;
 import gr.cite.tools.fieldset.FieldSet;
 import gr.cite.tools.logging.DataLogEntry;
 import gr.cite.tools.logging.LoggerService;
+import org.opencdmp.model.reference.Reference;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
@@ -36,8 +36,8 @@ public class PublicReferenceCensor extends BaseCensor {
             return;
 
         this.authService.authorizeForce(Permission.PublicBrowseReference);
-        FieldSet typeFields = fields.extractPrefixed(this.asIndexerPrefix(PublicReference._type));
-        this.censorFactory.censor(PublicReferenceCensor.class).censor(typeFields);
+        FieldSet typeFields = fields.extractPrefixed(this.asIndexerPrefix(Reference._type));
+        this.censorFactory.censor(PublicReferenceTypeCensor.class).censor(typeFields);
     }
 
 }

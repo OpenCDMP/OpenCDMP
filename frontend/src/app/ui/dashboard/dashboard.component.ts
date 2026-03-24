@@ -24,6 +24,7 @@ import { ViewPreferencesEditorResolver } from '../admin/tenant-configuration/edi
 import { TenantConfigurationService } from '@app/core/services/tenant-configuration/tenant-configuration.service';
 import { TenantConfigurationType } from '@app/core/common/enum/tenant-configuration-type';
 import { IsActive } from '@notification-service/core/enum/is-active.enum';
+import { ConsentType, CookieConsentService } from '@app/core/services/cookie-consent/cookieconsent.service';
 
 
 @Component({
@@ -57,7 +58,8 @@ export class DashboardComponent extends BaseComponent implements OnInit {
 		private fb: UntypedFormBuilder,
 		private cookieService: CookieService,
 		private tenantConfigurationService: TenantConfigurationService,
-		public configurationService: ConfigurationService
+		public configurationService: ConfigurationService,
+        private cookieConsentService: CookieConsentService
 	) {
 		super();
 	}
@@ -256,7 +258,9 @@ export class DashboardComponent extends BaseComponent implements OnInit {
 	}
 
 	dismissNewReleaseNotification() {
-		this.cookieService.set('new-release-dismiss-' + this.configurationService.newReleaseNotificationVersionCode, 'true', 5000, null, null, false, 'Lax');
+        if(this.cookieConsentService.currentConsents()?.categories?.includes(ConsentType.Functionality)){
+            this.cookieService.set('new-release-dismiss-' + this.configurationService.newReleaseNotificationVersionCode, 'true', 5000, null, null, false, 'Lax');
+        }
 		this.newReleaseNotificationVisible = false;
 	}
 

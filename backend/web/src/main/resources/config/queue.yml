@@ -41,6 +41,8 @@ queue:
         user-removal-topic: user.remove
         annotation-entities-touch-topic: annotation.entities.touch
         annotation-entities-removal-topic: annotation.entities.remove
+        plan-touch-topic: plan.touch
+        plan-removal-topic: plan.remove
         what-you-know-about-me-completed-topic: whatyouknowaboutme.completed
         accounting-entry-created-topic: accountingentry.create
         indicator-topic: indicator.entry
@@ -52,7 +54,7 @@ queue:
         enable: ${QUEUE_ENABLED:true}
         interval-seconds: 3
         options:
-          retry-threashold: 20
+          retry-threashold: 10
           retry-delay-step-seconds: 20
           max-retry-delay-seconds: 600
           too-old-to-send-seconds: 604800
@@ -63,11 +65,12 @@ queue:
         exchange: ${QUEUE_EXCHANGE}
         annotation-created-topic: annotation.created
         annotation-status-changed-topic: annotationStatus.changed
+        dmp-touch-topic: dmp.touch
       rabbitmq:
         enable: ${QUEUE_ENABLED:true}
         interval-seconds: 3
         options:
-          retry-threashold: 20
+          retry-threashold: 10
           retry-delay-step-seconds: 20
           max-retry-delay-seconds: 600
           too-old-to-send-seconds: 604800

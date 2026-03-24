@@ -8,10 +8,7 @@ public final class Permission {
 	public static String PublicBrowseDescription = "PublicBrowseDescription";
 	public static String PublicBrowseDescriptionTemplate = "PublicBrowseDescriptionTemplate";
 	public static String PublicBrowsePlan = "PublicBrowsePlan";
-	public static String PublicBrowsePlanReference = "PublicBrowsePlanReference";
-	public static String PublicBrowsePlanUser = "PublicBrowsePlanUser";
 	public static String PublicBrowseReference = "PublicBrowseReference";
-	public static String PublicBrowseUser = "PublicBrowseUser";
 	public static String PublicBrowseDashboardStatistics = "PublicBrowseDashboardStatistics";
 	public static String PublicSendContactSupport = "PublicSendContactSupport";
 	public static String PublicBrowseReferenceType = "PublicBrowseReferenceType";
@@ -91,6 +88,11 @@ public final class Permission {
 	public static String AnnotatePlan = "AnnotatePlan";
 	public static String EvaluatePlan = "EvaluatePlan";
 
+	//PlanUpdateRequest
+	public static String BrowsePlanUpdateRequest = "BrowsePlanUpdateRequest";
+	public static String EditPlanUpdateRequest = "EditPlanUpdateRequest";
+	public static String DeletePlanUpdateRequest = "DeletePlanUpdateRequest";
+
 	//PlanStatus
 	public static String BrowsePlanStatus = "BrowsePlanStatus";
 	public static String EditPlanStatus = "EditPlanStatus";
@@ -119,6 +121,11 @@ public final class Permission {
 	public static String CreateNewVersionPlanBlueprint = "CreateNewVersionPlanBlueprint";
 	public static String ExportPlanBlueprint = "ExportPlanBlueprint";
 	public static String ImportPlanBlueprint = "ImportPlanBlueprint";
+
+	//PlanBlueprintType
+	public static String BrowsePlanBlueprintType = "BrowsePlanBlueprintType";
+	public static String EditPlanBlueprintType = "EditPlanBlueprintType";
+	public static String DeletePlanBlueprintType = "DeletePlanBlueprintType";
 
 	//PlanDescriptionTemplate
 	public static String BrowsePlanDescriptionTemplate = "BrowsePlanDescriptionTemplate";
@@ -230,6 +237,7 @@ public final class Permission {
 	public static String BrowsePrefillingSource = "BrowsePrefillingSource";
 	public static String EditPrefillingSource= "EditPrefillingSource";
 	public static String DeletePrefillingSource = "DeletePrefillingSource";
+	public static String TestPrefillingSource = "TestPrefillingSource";
 
 	//UsageLimit
 	public static String BrowseUsageLimit = "BrowseUsageLimit";

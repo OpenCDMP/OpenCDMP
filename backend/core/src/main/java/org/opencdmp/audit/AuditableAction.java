@@ -24,6 +24,11 @@ public class AuditableAction {
     public static final EventId PlanBlueprint_GetXml = new EventId(3006, "PlanBlueprint_GetXml");
     public static final EventId PlanBlueprint_Import = new EventId(3007, "PlanBlueprint_Import");
 
+    public static final EventId PlanBlueprintType_Query = new EventId(3008, "PlanBlueprintType_Query");
+    public static final EventId PlanBlueprintType_Lookup = new EventId(3009, "PlanBlueprintType_Lookup");
+    public static final EventId PlanBlueprintType_Persist = new EventId(3010, "PlanBlueprintType_Persist");
+    public static final EventId PlanBlueprintType_Delete = new EventId(3011, "PlanBlueprintType_Delete");
+
     public static final EventId User_Settings_Query = new EventId(4000, "User_Settings_Query");
     public static final EventId User_Settings_Lookup = new EventId(4001, "User_Settings_Lookup");
     public static final EventId User_Settings_Persist = new EventId(4002, "User_Settings_Persist");
@@ -51,6 +56,8 @@ public class AuditableAction {
     public static final EventId Plan_ExportPublic = new EventId(5018, "Plan_ExportPublic");
     public static final EventId Plan_PublicClone = new EventId(5019, "Plan_PublicClone");
     public static final EventId Plan_SetStatus = new EventId(5020, "Plan_SetStatus");
+    public static final EventId Plan_Creation_From_Request = new EventId(5021, "Plan_Creation_From_Request");
+    public static final EventId Plan_GetActiveUsers = new EventId(5022, "Plan_GetActiveUsers");
 
 
     public static final EventId Description_Query = new EventId(6000, "Description_Query");
@@ -202,6 +209,7 @@ public class AuditableAction {
     public static final EventId Maintenance_SetPlanBlueprintCanEditDescriptionTemplates = new EventId(230027, "Maintenance_SetPlanBlueprintCanEditDescriptionTemplates");
     public static final EventId Maintenance_SendReferenceEntriesEvents = new EventId(230028, "Maintenance_SendReferenceEntriesEvents");
     public static final EventId Maintenance_SendLanguageEntriesEvents = new EventId(230029, "Maintenance_SendLanguageEntriesEvents");
+    public static final EventId Maintenance_SendBlueprintTypeAccountingEntriesEvents = new EventId(230030, "Maintenance_SendBlueprintTypeAccountingEntriesEvents");
 
     public static final EventId Principal_Lookup = new EventId(240000, "Principal_Lookup");
     public static final EventId Principal_MyTenants = new EventId(240001, "Principal_MyTenants");
@@ -213,6 +221,7 @@ public class AuditableAction {
     public static final EventId PrefillingSource_Persist = new EventId(260002, "PrefillingSource_Persist");
     public static final EventId PrefillingSource_Delete = new EventId(260003, "PrefillingSource_Delete");
     public static final EventId PrefillingSource_Generate = new EventId(260004, "PrefillingSource_Generate");
+    public static final EventId PrefillingSource_Test = new EventId(260005, "PrefillingSource_Test");
 
     public static final EventId TenantConfiguration_Query = new EventId(270000, "TenantConfiguration_Query");
     public static final EventId TenantConfiguration_Lookup = new EventId(270001, "TenantConfiguration_Lookup");
@@ -222,6 +231,7 @@ public class AuditableAction {
     public static final EventId TenantConfiguration_LookupBActiveType = new EventId(270005, "TenantConfiguration_LookupBActiveType");
 
     public static final EventId Annotation_Created_Notify = new EventId(280000, "Annotation_Created_Notify");
+    public static final EventId MaDMP_Touched = new EventId(280001, "MaDMP_Touched");
 
     public static final EventId UsageLimit_Query = new EventId(290000, "UsageLimit_Query");
     public static final EventId UsageLimit_Lookup = new EventId(290001, "UsageLimit_Lookup");
@@ -248,4 +258,10 @@ public class AuditableAction {
     public static final EventId DescriptionWorkflow_Persist = new EventId(600002, "DescriptionWorkflow_Persist");
     public static final EventId DescriptionWorkflow_Delete = new EventId(600003, "DescriptionWorkflow_Delete");
 
+    public static final EventId PlanUpdateRequest_Query = new EventId(700000, "PlanUpdateRequest_Query");
+    public static final EventId PlanUpdateRequest_Lookup = new EventId(700001, "PlanUpdateRequest_Lookup");
+    public static final EventId PlanUpdateRequest_Persist = new EventId(700002, "PlanUpdateRequest_Persist");
+    public static final EventId PlanUpdateRequest_Delete = new EventId(700003, "PlanUpdateRequest_Delete");
+    public static final EventId PlanUpdateRequest_Preprocessing = new EventId(700004, "PlanUpdateRequest_Preprocessing");
+    public static final EventId PlanUpdateRequest_BuildPlan = new EventId(700005, "PlanUpdateRequest_BuildPlan");
 }

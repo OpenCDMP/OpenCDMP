@@ -166,7 +166,7 @@ $angular-material-3-theme: mat.define-theme((
     )
 ));
 
-$disabled-form-field-color: color-mix(in srgb, var(--sys-on-surface) 60%, transparent);
+$disabled-form-field-color: color-mix(in srgb, var(--mat-sys-on-surface) 60%, transparent);
 :root {
     @include mat.all-component-themes($angular-material-3-theme);
     @include mat.color-variants-backwards-compatibility($angular-material-3-theme);
@@ -175,27 +175,33 @@ $disabled-form-field-color: color-mix(in srgb, var(--sys-on-surface) 60%, transp
     //1.2rem is ICON SIZE
 
     @include mat.dialog-overrides((
-        subhead-size: var(--sys-headline-large-size),
+        subhead-size: var(--mat-sys-headline-large-size),
         headline-padding: 1rem 1em 0.5rem
     ));
     @include mat.list-overrides((
-        list-item-label-text-size: var(--sys-body-medium-size)
+        list-item-label-text-size: var(--mat-sys-body-medium-size)
     ));
     @include mat.expansion-overrides((
-        container-text-size: var(--sys-body-medium-size)
+        container-text-size: var(--mat-sys-body-medium-size)
     ));
     @include mat.checkbox-overrides((
-        label-text-size: var(--sys-body-medium-size),
+        label-text-size: var(--mat-sys-body-medium-size),
         disabled-label-color: $disabled-form-field-color,
     ));
     @include mat.badge-overrides((
-        small-size-text-size: var(--sys-body-medium-size),
-        small-size-container-padding: 0.25rem
+        small-size-text-size: var(--mat-sys-body-medium-size),
+        background-color: var(--mat-sys-primary),
+        disabled-state-background-color: var(--mat-sys-primary),
+        disabled-state-text-color: var(--mat-sys-on-primary),
+        text-color: var(--mat-sys-on-primary),
+        small-size-container-padding: 0.25rem,
     ));
     @include mat.form-field-overrides((
-        disabled-label-text-color: $disabled-form-field-color,
-        disabled-input-text-color: $disabled-form-field-color,
-        disabled-active-indicator-color: $disabled-form-field-color,
+        outlined-disabled-label-text-color: $disabled-form-field-color,
+        filled-disabled-label-text-color: $disabled-form-field-color,
+        filled-disabled-input-text-color: $disabled-form-field-color,
+        outlined-disabled-input-text-color: $disabled-form-field-color,
+        filled-disabled-active-indicator-color: $disabled-form-field-color,
         select-disabled-option-text-color: $disabled-form-field-color,
         disabled-leading-icon-color: $disabled-form-field-color,
         disabled-trailing-icon-color: $disabled-form-field-color,
@@ -222,7 +228,8 @@ $disabled-form-field-color: color-mix(in srgb, var(--sys-on-surface) 60%, transp
         disabled-label-color:$disabled-form-field-color
     ));
     @include mat.card-overrides((
-        container-color: var(--sys-surface),
+        filled-container-color: var(--mat-sys-surface),
+        elevated-container-color: var(--mat-sys-surface),
     ))
 }
 

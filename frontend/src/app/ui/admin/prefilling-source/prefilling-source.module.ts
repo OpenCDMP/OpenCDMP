@@ -15,6 +15,8 @@ import { PrefillingSourceListingFiltersComponent } from './listing/filters/prefi
 import { PrefillingSourceEditorComponent } from './editor/prefilling-source-editor.component';
 import { ExternalFetcherSourceModule } from '@app/ui/external-fetcher/external-fetcher-source.module';
 import { PrefillingSourceComponent } from './editor/field/prefilling-source-field.component';
+import { PrefillingSourceTestDialogComponent } from './prefilling-source-test-dialog/prefilling-source-test-dialog.component';
+import { PrefillingFieldComponent } from './prefilling-field/prefilling-field.component';
 
 @NgModule({
 	imports: [
@@ -35,6 +37,9 @@ import { PrefillingSourceComponent } from './editor/field/prefilling-source-fiel
 		PrefillingSourceEditorComponent,
 		PrefillingSourceListingComponent,
 		PrefillingSourceListingFiltersComponent,
-		PrefillingSourceComponent	]
+		PrefillingSourceComponent,
+		PrefillingSourceTestDialogComponent,
+		PrefillingFieldComponent	
+	]
 })
 export class PrefillingSourceModule { }

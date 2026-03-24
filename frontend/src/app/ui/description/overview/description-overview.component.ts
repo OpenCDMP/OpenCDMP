@@ -15,8 +15,8 @@ import { PlanAccessType } from '@app/core/common/enum/plan-access-type';
 import { PlanStatusEnum } from '@app/core/common/enum/plan-status';
 import { PlanUserRole } from '@app/core/common/enum/plan-user-role';
 import { DescriptionStatus, DescriptionStatusDefinition } from '@app/core/model/description-status/description-status';
-import { DescriptionTemplate } from '@app/core/model/description-template/description-template';
-import { BaseDescription, Description, DescriptionStatusPersist, PublicDescription } from '@app/core/model/description/description';
+import { DescriptionTemplate, DescriptionTemplateDefinition, DescriptionTemplateField, DescriptionTemplateFieldSet, DescriptionTemplatePage, DescriptionTemplateSection } from '@app/core/model/description-template/description-template';
+import { BaseDescription, Description, DescriptionStatusPersist } from '@app/core/model/description/description';
 import { RankResultModel } from '@app/core/model/evaluator/evaluator-plan-model.model';
 import { PlanBlueprint, PlanBlueprintDefinition, PlanBlueprintDefinitionSection } from '@app/core/model/plan-blueprint/plan-blueprint';
 import {PlanStatus, PlanStatusDefinition} from '@app/core/model/plan-status/plan-status';
@@ -63,6 +63,8 @@ import { PluginEntityType } from '@app/core/common/enum/plugin-entity-type';
 import { EvaluateDialogComponent } from '@app/ui/evaluation/evaluate-dialog/evaluate-dialog.component';
 import { RankConfig } from '@app/core/model/evaluator/rank-config';
 import { BenchmarkDialogComponent } from '@app/ui/evaluation/benchmark-dialog/benchmark-dialog.component';
+import { DescriptionEditorEntityResolver } from '../editor/resolvers/description-editor-entity.resolver';
+import { PlanEditorEntityResolver } from '@app/ui/plan/plan-editor-blueprint/resolvers/plan-editor-enitity.resolver';
 
 
 @Component({
@@ -73,7 +75,7 @@ import { BenchmarkDialogComponent } from '@app/ui/evaluation/benchmark-dialog/be
 })
 export class DescriptionOverviewComponent extends BaseComponent implements OnInit {
 	isDraft:boolean = false;
-	description: Description | PublicDescription;
+	description: Description;
 	researchers: PlanReference[] = [];
 	isNew = true;
 	isFinalized = false;
@@ -172,109 +174,118 @@ export class DescriptionOverviewComponent extends BaseComponent implements OnIni
 			.subscribe((params: Params) => {
 				const itemId = params['id'];
 				const publicId = params['publicId'];
-				if (itemId != null) {
-					this.isNew = false;
-					this.isPublicView = false;
-					this.descriptionService.getSingle(itemId, this.lookupFields())
-						.pipe(takeUntil(this._destroyed))
-						.subscribe(
-							{
-								next: (data) => {
-									this.breadcrumbService.addIdResolvedValue(data.id.toString(), data.label);
-                                    if(data.plan?.id){
-                                        this.breadcrumbService.addIdResolvedValue(data.plan.id.toString(), data.plan.label);
-                                    }
-									this.description = data;
-									if (this.description.status?.internalStatus == DescriptionStatusEnum.Draft) {
-										this.isDraft = true;
-									}
-									this.description.plan.planUsers = this.isActive || this.description.plan.isActive === IsActive.Active ? data.plan.planUsers.filter(x => x.isActive === IsActive.Active) : data.plan.planUsers;
-									this.researchers = this.referenceService.getReferencesForTypes(this.isActive ? this.description?.plan?.planReferences?.filter(x => x.isActive === IsActive.Active): this.description?.plan?.planReferences, [this.referenceTypeService.getResearcherReferenceType()]);
-									this.checkLockStatus(this.description.id);
-									this.canDelete = this.isActive && (this.authService.hasPermission(AppPermission.DeleteDescription) ||
-										this.description.authorizationFlags?.some(x => x === AppPermission.DeleteDescription)) && this.description.belongsToCurrentTenant != false;
-
-									this.canEdit = this.isActive && (this.authService.hasPermission(AppPermission.EditDescription) ||
-										this.description.authorizationFlags?.some(x => x === AppPermission.EditDescription)) && this.description.belongsToCurrentTenant != false;
-
-									this.canCopy = this.isActive && (this.canEdit || (this.authService.hasPermission(AppPermission.PublicCloneDescription) && this.isPublicView));
-
-									this.canAnnotate = this.isActive && (this.authService.hasPermission(AppPermission.AnnotateDescription) ||
-										this.description.authorizationFlags?.some(x => x === AppPermission.AnnotateDescription)) && this.description.belongsToCurrentTenant != false;
-
-									this.canFinalize = this.isActive && (this.authService.hasPermission(AppPermission.FinalizeDescription) ||
-										this.description.authorizationFlags?.some(x => x === AppPermission.FinalizeDescription)) && this.description.belongsToCurrentTenant != false;
-
-									this.canInvitePlanUsers = this.isActive && (this.authService.hasPermission(AppPermission.InvitePlanUsers) ||
-										this.description.authorizationFlags?.some(x => x === AppPermission.InvitePlanUsers)) && this.description.belongsToCurrentTenant != false;
-
-									this.canEvaluate = this.isActive && (this.authService.hasPermission(AppPermission.EvaluateDescription) ||
-										this.description.authorizationFlags?.some(x => x === AppPermission.EvaluateDescription)) && this.description.belongsToCurrentTenant != false;
-
-									this.loadStatusLogo();
-                                    this.getEvaluations(this.description.id);
-
-                                    if(this.description.description && this.description.description.split(' ')?.length > this.DESCRIPTION_PAGE_SIZE) {
-                                        this.minimizedDescription = this.description.description.split(' ').slice(0, this.DESCRIPTION_PAGE_SIZE).join(' ') + '...';
-                                        this.showLongDescription.set(false);
-                                    } else {
-                                        this.minimizedDescription = null;
-                                        this.showLongDescription.set(true);
-                                    }
-								},
-								error: (error: any) => {
-									this.httpErrorHandlingService.handleBackedRequestError(error);
-
-									if (error.status === 404) {
-										return this.onFetchingDeletedCallbackError('/descriptions/');
-									}
-									if (error.status === 403) {
-										return this.onFetchingForbiddenCallbackError('/descriptions/');
-									}
-								}
-							});
-				}
-				else if (publicId != null) {
-					this.isNew = false;
-					this.isFinalized = true;
-					this.isPublicView = true;
-					this.descriptionService.getPublicSingle(publicId, this.lookupFields())
-						.pipe(takeUntil(this._destroyed))
-						.subscribe({
-							next: (data) => {
-								this.canCopy = this.authService.hasPermission(AppPermission.PublicCloneDescription) && this.isPublicView;
-
-								this.breadcrumbService.addExcludedParam('public', true);
-								this.breadcrumbService.addIdResolvedValue(data.id.toString(), data.label);
-
-								this.description = data;
-								if (this.description.status?.internalStatus == DescriptionStatusEnum.Draft) {
-									this.isDraft = true;
-								}
-								this.researchers = this.referenceService.getReferencesForTypes(this.description?.plan?.planReferences?.filter(x => x.isActive === IsActive.Active), [this.referenceTypeService.getResearcherReferenceType()]);
-
-                                if(this.description.description && this.description.description.split(' ')?.length > this.DESCRIPTION_PAGE_SIZE) {
-                                    this.minimizedDescription = this.description.description.split(' ').slice(0, this.DESCRIPTION_PAGE_SIZE).join(' ') + '...';
-                                    this.showLongDescription.set(false);
-                                } else {
-                                    this.minimizedDescription = null;
-                                    this.showLongDescription.set(true);
-                                }
-                            },
-							error: (error: any) => {
-								this.httpErrorHandlingService.handleBackedRequestError(error);
-
-								if (error.status === 404) {
-									return this.onFetchingDeletedCallbackError('/explore-descriptions');
-								}
-								if (error.status === 403) {
-									return this.onFetchingForbiddenCallbackError('/explore-descriptions');
-								}
-							}
-						});
-				}
+				this.getItem({itemId, publicId});
 			});
+            this.getEvaluators();
+	}
 
+    getItem(params?: {itemId?: Guid; publicId?: Guid}){
+        const {itemId, publicId} = params ?? {};
+        if (itemId != null) {
+            this.isNew = false;
+            this.isPublicView = false;
+            this.descriptionService.getSingle(itemId, this.lookupFields())
+                .pipe(takeUntil(this._destroyed))
+                .subscribe(
+                    {
+                        next: (data) => {
+                            this.breadcrumbService.addIdResolvedValue(data.id.toString(), data.label);
+                            if(data.plan?.id){
+                                this.breadcrumbService.addIdResolvedValue(data.plan.id.toString(), data.plan.label);
+                            }
+                            this.description = data;
+                            if (this.description.status?.internalStatus == DescriptionStatusEnum.Draft) {
+                                this.isDraft = true;
+                            }
+                            this.description.plan.planUsers = this.isActive || this.description.plan.isActive === IsActive.Active ? data.plan.planUsers.filter(x => x.isActive === IsActive.Active) : data.plan.planUsers;
+                            this.researchers = this.referenceService.getReferencesForTypes(this.description?.plan?.planReferences, this.isActive, [this.referenceTypeService.getResearcherReferenceType()]);
+                            this.checkLockStatus(this.description.id);
+                            this.canDelete = this.isActive && (this.authService.hasPermission(AppPermission.DeleteDescription) ||
+                                this.description.authorizationFlags?.some(x => x === AppPermission.DeleteDescription)) && this.description.belongsToCurrentTenant != false;
+
+                            this.canEdit = this.isActive && (this.authService.hasPermission(AppPermission.EditDescription) ||
+                                this.description.authorizationFlags?.some(x => x === AppPermission.EditDescription)) && this.description.belongsToCurrentTenant != false;
+
+                            this.canCopy = this.isActive && (this.canEdit || (this.authService.hasPermission(AppPermission.PublicCloneDescription) && this.isPublicView));
+
+                            this.canAnnotate = this.isActive && (this.authService.hasPermission(AppPermission.AnnotateDescription) ||
+                                this.description.authorizationFlags?.some(x => x === AppPermission.AnnotateDescription)) && this.description.belongsToCurrentTenant != false;
+
+                            this.canFinalize = this.isActive && (this.authService.hasPermission(AppPermission.FinalizeDescription) ||
+                                this.description.authorizationFlags?.some(x => x === AppPermission.FinalizeDescription)) && this.description.belongsToCurrentTenant != false;
+
+                            this.canInvitePlanUsers = this.isActive && (this.authService.hasPermission(AppPermission.InvitePlanUsers) ||
+                                this.description.authorizationFlags?.some(x => x === AppPermission.InvitePlanUsers)) && this.description.belongsToCurrentTenant != false;
+
+                            this.canEvaluate = this.isActive && (this.authService.hasPermission(AppPermission.EvaluateDescription) ||
+                                this.description.authorizationFlags?.some(x => x === AppPermission.EvaluateDescription)) && this.description.belongsToCurrentTenant != false;
+
+                            this.loadStatusLogo();
+                            this.getEvaluations(this.description.id);
+
+                            if(this.description.description && this.description.description.split(' ')?.length > this.DESCRIPTION_PAGE_SIZE) {
+                                this.minimizedDescription = this.description.description.split(' ').slice(0, this.DESCRIPTION_PAGE_SIZE).join(' ') + '...';
+                                this.showLongDescription.set(false);
+                            } else {
+                                this.minimizedDescription = null;
+                                this.showLongDescription.set(true);
+                            }
+                        },
+                        error: (error: any) => {
+                            this.httpErrorHandlingService.handleBackedRequestError(error);
+
+                            if (error.status === 404) {
+                                return this.onFetchingDeletedCallbackError('/descriptions/');
+                            }
+                            if (error.status === 403) {
+                                return this.onFetchingForbiddenCallbackError('/descriptions/');
+                            }
+                        }
+                    });
+        }
+        else if (publicId != null) {
+            this.isNew = false;
+            this.isFinalized = true;
+            this.isPublicView = true;
+            this.descriptionService.getPublicSingle(publicId, this.lookupFields())
+                .pipe(takeUntil(this._destroyed))
+                .subscribe({
+                    next: (data) => {
+                        this.canCopy = this.authService.hasPermission(AppPermission.PublicCloneDescription) && this.isPublicView;
+
+                        this.breadcrumbService.addExcludedParam('public', true);
+                        this.breadcrumbService.addIdResolvedValue(data.id.toString(), data.label);
+
+                        this.description = data;
+                        if (this.description.status?.internalStatus == DescriptionStatusEnum.Draft) {
+                            this.isDraft = true;
+                        }
+                        this.description.plan.planUsers = this.isActive || this.description.plan.isActive === IsActive.Active ? data.plan.planUsers.filter(x => x.isActive === IsActive.Active) : data.plan.planUsers;
+                        this.researchers = this.referenceService.getReferencesForTypes(this.description?.plan?.planReferences, this.isActive [this.referenceTypeService.getResearcherReferenceType()]);
+
+                        if(this.description.description && this.description.description.split(' ')?.length > this.DESCRIPTION_PAGE_SIZE) {
+                            this.minimizedDescription = this.description.description.split(' ').slice(0, this.DESCRIPTION_PAGE_SIZE).join(' ') + '...';
+                            this.showLongDescription.set(false);
+                        } else {
+                            this.minimizedDescription = null;
+                            this.showLongDescription.set(true);
+                        }
+                    },
+                    error: (error: any) => {
+                        this.httpErrorHandlingService.handleBackedRequestError(error);
+
+                        if (error.status === 404) {
+                            return this.onFetchingDeletedCallbackError('/explore-descriptions');
+                        }
+                        if (error.status === 403) {
+                            return this.onFetchingForbiddenCallbackError('/explore-descriptions');
+                        }
+                    }
+                });
+        }
+    }
+
+    getEvaluators() {
 		if (this.isAuthenticated()) {
 
 			this.evaluatorRepos = this.evaluatorService.availableEvaluators();
@@ -300,7 +311,7 @@ export class DescriptionOverviewComponent extends BaseComponent implements OnIni
 		} else {
 			this.userName = '';
 		}
-	}
+    }
 
 	get isActive(): boolean {
 		return this.description && this.description.isActive != IsActive.Inactive;
@@ -365,6 +376,7 @@ export class DescriptionOverviewComponent extends BaseComponent implements OnIni
 		this.evaluatorService.rankDescription(descriptionId, evaluatorId, format, benchmarkIds).subscribe(
 			(response: RankResultModel) => {
 				const dialogRef = this.dialog.open(EvaluateDialogComponent, {
+					maxWidth: '90vw',
 					data: {
 						rankData: response,
 						rankConfig: rankConfig,
@@ -417,8 +429,11 @@ export class DescriptionOverviewComponent extends BaseComponent implements OnIni
 	}
 
 	reloadPage(): void {
-		const path = this.location.path();
-		this.router.navigateByUrl('/reload', { skipLocationChange: true }).then(() => this.router.navigate([this.routerUtils.generateUrl(path)]));
+        this.getItem({
+            itemId: this.isPublicView ? null : this.description.id,
+            publicId: this.isPublicView ? this.description.id : null,
+        });
+        this.getEvaluators();
 	}
 
 
@@ -584,29 +599,56 @@ export class DescriptionOverviewComponent extends BaseComponent implements OnIni
 			});
 	}
 
-	removeUserFromPlan(planUser: PlanUser) {
-		const dialogRef = this.dialog.open(ConfirmationDialogComponent, {
-			data: {
-				message: this.language.instant('GENERAL.CONFIRMATION-DIALOG.DELETE-USER'),
-				confirmButton: this.language.instant('GENERAL.CONFIRMATION-DIALOG.ACTIONS.REMOVE'),
-				cancelButton: this.language.instant('GENERAL.CONFIRMATION-DIALOG.ACTIONS.CANCEL'),
-				isDeleteConfirmation: false
-			}
-		});
-		dialogRef.afterClosed().subscribe(result => {
+	removeUserFromPlanDialog(planUser: PlanUser) {
+		let dialogRef;
+		if (planUser?.user?.id == this.authentication.userId() && !this.description?.plan?.planUsers?.find(x => x.id != planUser.id && x.user?.id === planUser?.user?.id)) {
+			dialogRef = this.dialog.open(ConfirmationDialogComponent, {
+				data: {
+					message: this.language.instant('GENERAL.CONFIRMATION-DIALOG.DELETE-YOURSELF-FROM-ENTIRE-PLAN'),
+					confirmButton: this.language.instant('GENERAL.CONFIRMATION-DIALOG.ACTIONS.REMOVE'),
+					cancelButton: this.language.instant('GENERAL.CONFIRMATION-DIALOG.ACTIONS.CANCEL'),
+					isDeleteConfirmation: false
+				}
+			});
+		} else {
+			dialogRef = this.dialog.open(ConfirmationDialogComponent, {
+				data: {
+					message: this.language.instant('GENERAL.CONFIRMATION-DIALOG.DELETE-USER'),
+					confirmButton: this.language.instant('GENERAL.CONFIRMATION-DIALOG.ACTIONS.REMOVE'),
+					cancelButton: this.language.instant('GENERAL.CONFIRMATION-DIALOG.ACTIONS.CANCEL'),
+					isDeleteConfirmation: false
+				}
+			});
+		}
+
+		dialogRef?.afterClosed()?.subscribe(result => {
 			if (result) {
-				const planUserRemovePersist: PlanUserRemovePersist = {
-					id: planUser.id,
-					planId: this.description.plan.id,
-					role: planUser.role
-				};
-				this.planService.removeUser(planUserRemovePersist).pipe(takeUntil(this._destroyed))
-					.subscribe({
-						next: () => this.reloadPage(),
-						error: (error: any) => this.httpErrorHandlingService.handleBackedRequestError(error)
-					})
+				this.removeUserFromPlan(planUser);
 			}
 		});
+	}
+
+	removeUserFromPlan(planUser: PlanUser) {
+		const planUserRemovePersist: PlanUserRemovePersist = {
+			id: planUser.id,
+			planId: this.description.plan.id,
+			role: planUser.role
+		};
+
+		this.planService.removeUser(planUserRemovePersist, PlanEditorEntityResolver.lookupFields()).pipe(takeUntil(this._destroyed))
+			.subscribe({
+				next: (plan) => {
+					if ((plan?.planUsers?.find(x => x?.user?.id == planUser?.user?.id && x.isActive === IsActive.Active)) || (plan?.authorizationFlags?.some(x => x === AppPermission.AssignPlanUsers) || this.authentication.hasPermission(AppPermission.AssignPlanUsers))) {
+						this.onUpdateCallbackSuccess();
+					} else {
+						this.uiNotificationService.snackBarNotification(this.language.instant('GENERAL.SNACK-BAR.SUCCESSFUL-UPDATE'), SnackBarNotificationLevel.Success);
+						this.router.navigate([this.routerUtils.generateUrl('/descriptions')]);
+					}
+				},
+				error: (error) => {
+					this.onUpdateCallbackError(error);
+				}
+			});
 	}
 
 	persistStatus(status: DescriptionStatus, description: Description) {
@@ -730,6 +772,8 @@ export class DescriptionOverviewComponent extends BaseComponent implements OnIni
 
 	private lookupFields(): string[] {
 		return [
+            ...DescriptionEditorEntityResolver.descriptionLookupFields(),
+            ...DescriptionEditorEntityResolver.descriptionTemplateLookupFieldsForDescription(),
 			nameof<BaseDescription>(x => x.isActive),
 			nameof<Description>(x => x.id),
 			nameof<Description>(x => x.label),
@@ -754,10 +798,6 @@ export class DescriptionOverviewComponent extends BaseComponent implements OnIni
 			[nameof<Description>(x => x.authorizationFlags), AppPermission.EvaluateDescription].join('.'),
 
 			[nameof<Description>(x => x.statusAuthorizationFlags), DescriptionStatusPermission.Edit].join('.'),
-
-			[nameof<Description>(x => x.descriptionTemplate), nameof<DescriptionTemplate>(x => x.id)].join('.'),
-			[nameof<Description>(x => x.descriptionTemplate), nameof<DescriptionTemplate>(x => x.label)].join('.'),
-			[nameof<Description>(x => x.descriptionTemplate), nameof<DescriptionTemplate>(x => x.groupId)].join('.'),
 			[nameof<Description>(x => x.planDescriptionTemplate), nameof<PlanDescriptionTemplate>(x => x.id)].join('.'),
 			[nameof<Description>(x => x.planDescriptionTemplate), nameof<PlanDescriptionTemplate>(x => x.plan), nameof<Plan>(x => x.id)].join('.'),
 			[nameof<Description>(x => x.planDescriptionTemplate), nameof<PlanDescriptionTemplate>(x => x.sectionId)].join('.'),

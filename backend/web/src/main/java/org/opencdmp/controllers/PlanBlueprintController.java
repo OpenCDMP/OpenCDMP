@@ -1,6 +1,6 @@
 package org.opencdmp.controllers;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
+import tools.jackson.core.JacksonException;
 import gr.cite.tools.auditing.AuditService;
 import gr.cite.tools.data.builder.BuilderFactory;
 import gr.cite.tools.data.censor.CensorFactory;
@@ -181,7 +181,7 @@ public class PlanBlueprintController {
             )
             @RequestBody PlanBlueprintPersist model,
             @Parameter(name = "f", description = SwaggerHelpers.Commons.fieldset_description, required = true, style = ParameterStyle.FORM, explode = Explode.TRUE, schema = @Schema(type = "array", example = SwaggerHelpers.PlanBlueprint.endpoint_field_set_example)) FieldSet fieldSet
-    ) throws MyApplicationException, MyForbiddenException, MyNotFoundException, InvalidApplicationException, JAXBException, ParserConfigurationException, JsonProcessingException, TransformerException {
+    ) throws MyApplicationException, MyForbiddenException, MyNotFoundException, InvalidApplicationException, JAXBException, ParserConfigurationException, JacksonException, TransformerException {
         logger.debug(new MapLogEntry("persisting" + PlanBlueprint.class.getSimpleName()).And("model", model).And("fieldSet", fieldSet));
         this.censorFactory.censor(PlanBlueprintCensor.class).censor(fieldSet, null);
 
@@ -258,7 +258,7 @@ public class PlanBlueprintController {
             )
             @RequestBody NewVersionPlanBlueprintPersist model,
             @Parameter(name = "f", description = SwaggerHelpers.Commons.fieldset_description, required = true, style = ParameterStyle.FORM, explode = Explode.TRUE, schema = @Schema(type = "array", example = SwaggerHelpers.PlanBlueprint.endpoint_field_set_example)) FieldSet fieldSet
-    ) throws JAXBException, InvalidApplicationException, ParserConfigurationException, JsonProcessingException, TransformerException {
+    ) throws JAXBException, InvalidApplicationException, ParserConfigurationException, JacksonException, TransformerException {
         logger.debug(new MapLogEntry("persisting" + NewVersionPlanBlueprintPersist.class.getSimpleName()).And("model", model).And("fieldSet", fieldSet));
         PlanBlueprint persisted = this.planBlueprintService.createNewVersion(model, fieldSet);
 

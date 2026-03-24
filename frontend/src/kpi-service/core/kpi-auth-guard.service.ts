@@ -13,7 +13,7 @@ export class KpiAuthGuard extends AuthGuard {
 	}
 
 	kpiCanActivate(route: ActivatedRouteSnapshot, state: RouterStateSnapshot): Observable<boolean> {
-		if (this.configurationService.kpiServiceEnabled != true) return of(false);
+		if (this.configurationService.kpi.enabled != true) return of(false);
 		return this.canActivate(route, state);
 	}
 

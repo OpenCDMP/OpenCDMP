@@ -7,6 +7,7 @@ const routes: Routes = [
 		path: '',
 		component: ContactContentComponent,
 	},
+	{ path: '**', loadComponent: () => import('@common/modules/page-not-found/page-not-found.component').then(m => m.PageNotFoundComponent)}
 ];
 
 @NgModule({

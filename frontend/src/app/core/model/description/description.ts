@@ -2,7 +2,7 @@ import { DescriptionStatusEnum } from "@app/core/common/enum/description-status"
 import { BaseEntity, BaseEntityPersist } from "@common/base/base-entity.model";
 import { Guid } from "@common/types/guid";
 import { DescriptionTemplate } from "../description-template/description-template";
-import { Plan, PlanDescriptionTemplate, PublicPlan } from "../plan/plan";
+import { Plan, PlanDescriptionTemplate } from "../plan/plan";
 import { Reference, ReferencePersist } from "../reference/reference";
 import { Tag, TagPersist } from "../tag/tag";
 import { User } from "../user/user";
@@ -131,39 +131,6 @@ export interface DescriptionStatusPersist {
 	id: Guid;
 	statusId?: Guid;
 	hash: string;
-}
-
-//
-// Public
-//
-
-export interface PublicDescription extends BaseDescription {
-	label?: string;
-	status?: PublicDescriptionStatus;
-	description?: string;
-	finalizedAt?: Date;
-	descriptionTemplate?: PublicDescriptionTemplate;
-	planDescriptionTemplate?: PublicPlanDescriptionTemplate;
-	plan?: PublicPlan;
-}
-
-export interface PublicPlanDescriptionTemplate {
-	id: Guid;
-	plan: PublicPlan;
-    sectionId?: Guid;
-}
-
-export interface PublicDescriptionTemplate {
-	id: Guid;
-	label: string;
-	description: string;
-}
-
-export interface PublicDescriptionStatus {
-	id: Guid;
-    name: string;
-    internalStatus: DescriptionStatusEnum;
-	definition: DescriptionStatusDefinition;
 }
 
 export interface DescriptionSectionPermissionResolver {

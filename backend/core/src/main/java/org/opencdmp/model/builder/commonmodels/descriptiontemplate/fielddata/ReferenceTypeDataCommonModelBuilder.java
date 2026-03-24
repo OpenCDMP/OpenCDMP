@@ -6,7 +6,7 @@ import gr.cite.tools.logging.LoggerService;
 import org.opencdmp.commonmodels.models.descriptiotemplate.fielddata.ReferenceTypeDataModel;
 import org.opencdmp.commons.types.descriptiontemplate.fielddata.ReferenceTypeDataEntity;
 import org.opencdmp.convention.ConventionService;
-import org.opencdmp.model.builder.commonmodels.ReferenceTypeCommonModelBuilder;
+import org.opencdmp.model.builder.commonmodels.referencetype.ReferenceTypeCommonModelBuilder;
 import org.opencdmp.query.ReferenceTypeQuery;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;

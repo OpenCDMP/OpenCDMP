@@ -79,6 +79,13 @@ export class MaintenanceService extends BaseService {
 				catchError((error: any) => throwError(error)));
 	}
 
+	sendBlueprintTypeAccountingEntriesEvents(): Observable<any> {
+		const url = `${this.apiBase}/events/plan-blueprints-types/accounting-entry`;
+		return this.http
+			.post<any>(url, null).pipe(
+				catchError((error: any) => throwError(error)));
+	}	
+
 	sendDescriptionTemplateAccountingEntriesEvents(): Observable<any> {
 		const url = `${this.apiBase}/events/description-templates/accounting-entry`;
 		return this.http

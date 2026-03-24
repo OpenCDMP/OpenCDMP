@@ -1,17 +1,37 @@
 <div class="p-3">
-    <app-navigation-breadcrumb />
-    <div class="p-2">
-        <div class="d-flex justify-content-between align-items-center pl-1 pr-1">
-            <h2>{{'GENERAL.TITLES.INDICATOR-DASHBOARD' | translate}}</h2>
-            <mat-button-toggle-group appearance="standard" hideSingleSelectionIndicator="true" [(ngModel)]="viewType" (change)="viewChange($event)">
-                <mat-button-toggle [value]="viewTypeEnum.List" [matTooltip]="'INDICATOR-DASHBOARD.LIST-VIEW' | translate" [attr.aria-label]="'INDICATOR-DASHBOARD.LIST-VIEW' | translate"><mat-icon aria-hidden>splitscreen</mat-icon></mat-button-toggle>
-                <mat-button-toggle [value]="viewTypeEnum.Grid" [matTooltip]="'INDICATOR-DASHBOARD.GRID-VIEW' | translate" [attr.aria-label]="'INDICATOR-DASHBOARD.GRID-VIEW' | translate"><mat-icon aria-hidden>window</mat-icon></mat-button-toggle>
-            </mat-button-toggle-group>
+    <app-navigation-breadcrumb/>
+    @if(indicatorQueryParams?.length){
+        @let selectedIndicatorQueryParams = selectedDashboard | invokeMemoized :selectedDashboardId;
+        <div class="p-2">
+            <div class="d-flex align-items-center pl-1 pr-1 justify-content-between flex-wrap gap-1-rem">
+                <h2>{{'GENERAL.TITLES.INDICATOR-DASHBOARD' | translate}}</h2>
+                @if(selectedIndicatorQueryParams){
+                    <mat-button-toggle-group  appearance="standard" hideSingleSelectionIndicator="true" [(ngModel)]="viewType" (change)="viewChange($event)">
+                        <mat-button-toggle [value]="viewTypeEnum.List" [matTooltip]="'INDICATOR-DASHBOARD.LIST-VIEW' | translate" [attr.aria-label]="'INDICATOR-DASHBOARD.LIST-VIEW' | translate"><mat-icon aria-hidden>splitscreen</mat-icon></mat-button-toggle>
+                        <mat-button-toggle [value]="viewTypeEnum.Grid" [matTooltip]="'INDICATOR-DASHBOARD.GRID-VIEW' | translate" [attr.aria-label]="'INDICATOR-DASHBOARD.GRID-VIEW' | translate"><mat-icon aria-hidden>window</mat-icon></mat-button-toggle>
+                    </mat-button-toggle-group>
+                }
+            </div>
+            <div>
+                 @if(!disableDropDown){
+                    <mat-form-field class="dashboard-select" subscriptSizing="dynamic">
+                        <mat-select [(ngModel)]="selectedDashboardId">
+                            @for(entry of indicatorQueryParams; track entry.dashboard){
+                                <mat-option [value]="entry.dashboard">{{`KPI-SERVICE.KPI_DASHBOARD.CODES.${entry.dashboard}` | translate}}</mat-option>
+                            }
+                        </mat-select>
+                    </mat-form-field>
+                }
+            </div>
+            @if(selectedIndicatorQueryParams){
+                <div class="w-100 kpi-dashboard">
+                    <kpi-dashboard
+                    [indicatorQueryParams]="selectedIndicatorQueryParams"
+                    ></kpi-dashboard>
+                </div>
+            }
         </div>
-        <div class="w-100 kpi-dashboard">
-            <kpi-dashboard
-              [indicatorQueryParams]="indicatorQueryParams"
-            ></kpi-dashboard>
-        </div>
-    </div>
+    }@else {
+        <div class="p-3">{{'KPI-SERVICE.KPI_DASHBOARD.NO-DASHBOARDS' | translate}}</div>
+    }
 </div>

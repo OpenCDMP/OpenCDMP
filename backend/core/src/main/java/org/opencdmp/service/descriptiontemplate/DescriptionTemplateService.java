@@ -1,6 +1,6 @@
 package org.opencdmp.service.descriptiontemplate;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
+import tools.jackson.core.JacksonException;
 import gr.cite.tools.exception.MyApplicationException;
 import gr.cite.tools.exception.MyForbiddenException;
 import gr.cite.tools.exception.MyNotFoundException;
@@ -22,7 +22,7 @@ import java.util.UUID;
 
 public interface DescriptionTemplateService {
 
-    DescriptionTemplate persist(DescriptionTemplatePersist model, UUID groupId, FieldSet fields)throws MyForbiddenException, MyValidationException, MyApplicationException, MyNotFoundException, InvalidApplicationException, JAXBException, ParserConfigurationException, JsonProcessingException, TransformerException;
+    DescriptionTemplate persist(DescriptionTemplatePersist model, UUID groupId, FieldSet fields)throws MyForbiddenException, MyValidationException, MyApplicationException, MyNotFoundException, InvalidApplicationException, JAXBException, ParserConfigurationException, JacksonException, TransformerException;
     void deleteAndSave(UUID id) throws MyForbiddenException, InvalidApplicationException;
     DescriptionTemplate buildClone(UUID id, FieldSet fields) throws MyForbiddenException, MyValidationException, MyApplicationException, MyNotFoundException;
     DescriptionTemplate createNewVersion(NewVersionDescriptionTemplatePersist model, FieldSet fields)  throws MyForbiddenException, MyValidationException, MyApplicationException, MyNotFoundException, InvalidApplicationException, JAXBException;

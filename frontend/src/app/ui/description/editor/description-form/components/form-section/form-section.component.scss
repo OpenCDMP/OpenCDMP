@@ -8,23 +8,23 @@
 	.addOneFieldButton {
 		margin-top: -15px;
 		margin-left: -11px;
-		color: var(--sys-primary);
+		color: var(--mat-sys-primary);
 	}
 	.panel-title
 	{
-        font-size: var(--sys-headline-medium-size);
+        font-size: var(--mat-sys-headline-medium-size);
         margin: 0.5rem 0;
 	}
 
 	.panel-desc {
-        font-size: var(--sys-body-medium-size);
+        font-size: var(--mat-sys-body-medium-size);
 		text-transform: none;
 		margin-top: .5rem;
 	}
     .field-sets {
         margin-left: 0.5rem;
         padding-left: 1rem;
-        border-left: 2px solid var(--sys-primary);
+        border-left: 2px solid var(--mat-sys-primary);
     }
 }
 .styleBorder {

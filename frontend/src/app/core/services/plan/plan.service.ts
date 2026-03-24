@@ -15,12 +15,14 @@ import { catchError, map } from 'rxjs/operators';
 import { nameof } from 'ts-simple-nameof';
 import { BaseHttpParams } from '../../../../common/http/base-http-params';
 import { InterceptorType } from '../../../../common/http/interceptors/interceptor-type';
-import { ClonePlanPersist, Plan, PlanPersist, PlanUser, PlanUserInvitePersist, PlanUserPersist, PlanUserRemovePersist, NewVersionPlanPersist, PublicPlan, PlanInvitationResult } from '../../model/plan/plan';
+import { ClonePlanPersist, Plan, PlanPersist, PlanUser, PlanUserInvitePersist, PlanUserPersist, PlanUserRemovePersist, NewVersionPlanPersist, PlanInvitationResult } from '../../model/plan/plan';
 import { AuthService } from '../auth/auth.service';
 import { ConfigurationService } from '../configuration/configuration.service';
 import { BaseHttpV2Service } from '../http/base-http-v2.service';
 import { PlanValidationResult } from '@app/ui/plan/plan-finalize-dialog/plan-finalize-dialog.component';
 import { PlanCommonModelConfig, PreprocessingPlanModel } from '@app/core/model/plan/plan-import';
+import { PlanSuggestion } from '@app/core/model/plan-update-request/plan-update-request';
+import { User } from '@app/core/model/user/user';
 
 @Injectable()
 export class PlanService {
@@ -43,14 +45,17 @@ export class PlanService {
 		return this.http.post<QueryResult<Plan>>(url, q).pipe(catchError((error: any) => throwError(error)));
 	}
 
-	publicQuery(q: PlanLookup): Observable<QueryResult<PublicPlan>> {
+	publicQuery(q: PlanLookup): Observable<QueryResult<Plan>> {
 		const url = `${this.apiBase}/public/query`;
 		const params = new BaseHttpParams();
-		params.interceptorContext = {
-			excludedInterceptors: [InterceptorType.AuthToken,
-				InterceptorType.TenantHeaderInterceptor]
-		};
-		return this.http.post<QueryResult<PublicPlan>>(url, q, {params: params}).pipe(catchError((error: any) => throwError(error)));
+		if (!this.authService.currentAccountIsAuthenticated) {
+			params.interceptorContext = {
+				excludedInterceptors:  [InterceptorType.AuthToken, 
+					InterceptorType.TenantHeaderInterceptor]
+			};
+		}
+		
+		return this.http.post<QueryResult<Plan>>(url, q, {params: params}).pipe(catchError((error: any) => throwError(error)));
 	}
 
 	getSingle(id: Guid, reqFields: string[] = []): Observable<Plan> {
@@ -62,27 +67,30 @@ export class PlanService {
 				catchError((error: any) => throwError(error)));
 	}
 
-	getPublicSingle(id: Guid, reqFields: string[] = []): Observable<PublicPlan> {
+	getPublicSingle(id: Guid, reqFields: string[] = []): Observable<Plan> {
 		const url = `${this.apiBase}/public/${id}`;
 
 		const options: HttpParamsOptions = { fromObject: { f: reqFields } };
 
 		let params: BaseHttpParams = new BaseHttpParams(options);
-		params.interceptorContext = {
-			excludedInterceptors: [InterceptorType.AuthToken,
-				InterceptorType.TenantHeaderInterceptor]
-		};
+		if (!this.authService.currentAccountIsAuthenticated) {
+			params.interceptorContext = {
+				excludedInterceptors:  [InterceptorType.AuthToken, 
+					InterceptorType.TenantHeaderInterceptor]
+			};
+		}
 
 		return this.http
-			.get<PublicPlan>(url, { params: params }).pipe(
+			.get<Plan>(url, { params: params }).pipe(
 				catchError((error: any) => throwError(error)));
 	}
 
-	persist(item: PlanPersist): Observable<Plan> {
+	persist(item: PlanPersist, reqFields: string[] = []): Observable<Plan> {
 		const url = `${this.apiBase}/persist`;
+		const options = { params: { f: reqFields } };
 
 		return this.http
-			.post<Plan>(url, item).pipe(
+			.post<Plan>(url, item, options).pipe(
 				catchError((error: any) => throwError(error)));
 	}
 
@@ -148,9 +156,10 @@ export class PlanService {
 
 	removeUser(item: PlanUserRemovePersist, reqFields: string[] = []): Observable<Plan> {
 		const url = `${this.apiBase}/remove-user`;
+		const options = { params: { f: reqFields } };
 
 		return this.http
-			.post<Plan>(url, item).pipe(
+			.post<Plan>(url, item, options).pipe(
 				catchError((error: any) => throwError(error)));
 	}
 
@@ -228,6 +237,19 @@ export class PlanService {
 
 	}
 
+	createPlanFromRequest(item: PlanSuggestion, reqFields: string[] = []): Observable<Plan> {
+		const url = `${this.apiBase}/create-from-request`;
+
+		return this.http.post<Plan>(url, item).pipe(catchError((error: any) => throwError(error)));
+
+	}
+
+	getActiveUsers(id: Guid): Observable<User[]> {
+		const url = `${this.apiBase}/active-users/${id}`;
+
+		return this.http.get<User[]>(url).pipe(catchError((error: any) => throwError(error)));
+	}
+
 	//
 	// Autocomplete Commons
 	//
@@ -235,7 +257,7 @@ export class PlanService {
 	singleAutocompleteConfiguration: SingleAutoCompleteConfiguration = {
 		initialItems: (data?: any) => this.query(this.buildAutocompleteLookup([IsActive.Active])).pipe(map(x => x.items)),
 		filterFn: (searchQuery: string, data?: any) => this.query(this.buildAutocompleteLookup([IsActive.Active], searchQuery)).pipe(map(x => x.items)),
-		getSelectedItem: (selectedItem: any) => this.query(this.buildAutocompleteLookup([IsActive.Active, IsActive.Inactive], null, null, [selectedItem])).pipe(map(x => x.items[0])),
+		getSelectedItem: (selectedItem: any) => this.getSingle(selectedItem, [nameof<Plan>(x => x.id), nameof<Plan>(x => x.label)]),
 		displayFn: (item: Plan) => item.label,
 		titleFn: (item: Plan) => item.label,
 		valueAssign: (item: Plan) => item.id,

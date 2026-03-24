@@ -2,14 +2,14 @@
     max-width: 85% !important;
     text-align: left;
     font-weight: 400;
-    font-size: var(--sys-title-medium-size);
+    font-size: var(--mat-sys-title-medium-size);
     margin-top: 1.5rem;
     margin-bottom: 0.5rem;
     .path {
-        background-color: var(--sys-primary);
+        background-color: var(--mat-sys-primary);
         padding: 0.2rem;
         border-radius: 4px;
-        color: var(--sys-on-primary);
+        color: var(--mat-sys-on-primary);
     }
     .toc-field-set-title {
         line-height: 1.5;
@@ -32,7 +32,7 @@ h6 {
 	text-decoration: underline;
 	color: var(--link-color);
 	cursor: pointer;
-	font-size: var(--sys-body-medium-size);
+	font-size: var(--mat-sys-body-medium-size);
 	font-weight: 400;
 }
 
@@ -63,7 +63,7 @@ h6 {
     color: var(--dark-text);
   }
 	50% {
-		color: var(--sys-primary);
+		color: var(--mat-sys-primary);
 	}
   100% {
     color: var(--dark-text);

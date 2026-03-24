@@ -9,7 +9,7 @@ import gr.cite.tools.logging.DataLogEntry;
 import gr.cite.tools.logging.LoggerService;
 import org.opencdmp.authorization.AuthorizationFlags;
 import org.opencdmp.commons.JsonHandlingService;
-import org.opencdmp.commons.scope.tenant.TenantScope;
+import org.opencdmp.commons.scope.tenant.TenantScopeFactory;
 import org.opencdmp.commons.types.descriptionreference.DescriptionReferenceDataEntity;
 import org.opencdmp.convention.ConventionService;
 import org.opencdmp.data.DescriptionReferenceEntity;
@@ -40,21 +40,27 @@ public class DescriptionReferenceBuilder extends BaseBuilder<DescriptionReferenc
 
     private EnumSet<AuthorizationFlags> authorize = EnumSet.of(AuthorizationFlags.None);
     private final JsonHandlingService jsonHandlingService;
-    private final TenantScope tenantScope;
+    private final TenantScopeFactory tenantScopeFactory;
+    private boolean isPublic;
 
     @Autowired
     public DescriptionReferenceBuilder(
 		    ConventionService conventionService,
-		    BuilderFactory builderFactory, QueryFactory queryFactory, JsonHandlingService jsonHandlingService, TenantScope tenantScope) {
+		    BuilderFactory builderFactory, QueryFactory queryFactory, JsonHandlingService jsonHandlingService, TenantScopeFactory tenantScopeFactory) {
         super(conventionService, new LoggerService(LoggerFactory.getLogger(DescriptionReferenceBuilder.class)));
         this.builderFactory = builderFactory;
         this.queryFactory = queryFactory;
 	    this.jsonHandlingService = jsonHandlingService;
-	    this.tenantScope = tenantScope;
+	    this.tenantScopeFactory = tenantScopeFactory;
     }
 
     public DescriptionReferenceBuilder authorize(EnumSet<AuthorizationFlags> values) {
         this.authorize = values;
+        return this;
+    }
+
+    public DescriptionReferenceBuilder isPublic(boolean isPublic) {
+        this.isPublic = isPublic;
         return this;
     }
 
@@ -77,14 +83,14 @@ public class DescriptionReferenceBuilder extends BaseBuilder<DescriptionReferenc
         for (DescriptionReferenceEntity d : data) {
             DescriptionReference m = new DescriptionReference();
             if (fields.hasField(this.asIndexer(DescriptionReference._id))) m.setId(d.getId());
-            if (fields.hasField(this.asIndexer(DescriptionReference._createdAt))) m.setCreatedAt(d.getCreatedAt());
-            if (fields.hasField(this.asIndexer(DescriptionReference._updatedAt))) m.setUpdatedAt(d.getUpdatedAt());
-            if (fields.hasField(this.asIndexer(DescriptionReference._hash))) m.setHash(this.hashValue(d.getUpdatedAt()));
+            if (!this.isPublic && fields.hasField(this.asIndexer(DescriptionReference._createdAt))) m.setCreatedAt(d.getCreatedAt());
+            if (!this.isPublic && fields.hasField(this.asIndexer(DescriptionReference._updatedAt))) m.setUpdatedAt(d.getUpdatedAt());
+            if (!this.isPublic && fields.hasField(this.asIndexer(DescriptionReference._hash))) m.setHash(this.hashValue(d.getUpdatedAt()));
             if (fields.hasField(this.asIndexer(DescriptionReference._isActive))) m.setIsActive(d.getIsActive());
-            if (fields.hasField(this.asIndexer(DescriptionReference._belongsToCurrentTenant))) m.setBelongsToCurrentTenant(this.getBelongsToCurrentTenant(d, this.tenantScope));
+            if (!this.isPublic && fields.hasField(this.asIndexer(DescriptionReference._belongsToCurrentTenant))) m.setBelongsToCurrentTenant(this.getBelongsToCurrentTenant(d, this.tenantScopeFactory.getInstance()));
             if (!referenceFields.isEmpty() && referenceItemsMap != null && referenceItemsMap.containsKey(d.getReferenceId())) m.setReference(referenceItemsMap.get(d.getReferenceId()));
             if (!descriptionFields.isEmpty() && descriptionItemsMap != null && descriptionItemsMap.containsKey(d.getDescriptionId())) m.setDescription(descriptionItemsMap.get(d.getDescriptionId()));
-            if (!dataFields.isEmpty() && d.getData() != null){
+            if (!this.isPublic && !dataFields.isEmpty() && d.getData() != null){
                 DescriptionReferenceDataEntity propertyDefinition = this.jsonHandlingService.fromJsonSafe(DescriptionReferenceDataEntity.class, d.getData());
                 m.setData(this.builderFactory.builder(DescriptionReferenceDataBuilder.class).authorize(this.authorize).build(dataFields, propertyDefinition));
             }
@@ -114,7 +120,7 @@ public class DescriptionReferenceBuilder extends BaseBuilder<DescriptionReferenc
         } else {
             FieldSet clone = new BaseFieldSet(fields.getFields()).ensure(Reference._id);
             DescriptionQuery q = this.queryFactory.query(DescriptionQuery.class).disableTracking().authorize(this.authorize).ids(data.stream().map(DescriptionReferenceEntity::getDescriptionId).distinct().collect(Collectors.toList()));
-            itemMap = this.builderFactory.builder(DescriptionBuilder.class).authorize(this.authorize).asForeignKey(q, clone, Description::getId);
+            itemMap = this.builderFactory.builder(DescriptionBuilder.class).authorize(this.authorize).isPublic(this.isPublic).asForeignKey(q, clone, Description::getId);
         }
         if (!fields.hasField(Description._id)) {
             itemMap.forEach((id, item) -> {
@@ -144,7 +150,7 @@ public class DescriptionReferenceBuilder extends BaseBuilder<DescriptionReferenc
         } else {
             FieldSet clone = new BaseFieldSet(fields.getFields()).ensure(Reference._id);
             ReferenceQuery q = this.queryFactory.query(ReferenceQuery.class).disableTracking().authorize(this.authorize).ids(data.stream().map(DescriptionReferenceEntity::getReferenceId).distinct().collect(Collectors.toList()));
-            itemMap = this.builderFactory.builder(ReferenceBuilder.class).authorize(this.authorize).asForeignKey(q, clone, Reference::getId);
+            itemMap = this.builderFactory.builder(ReferenceBuilder.class).authorize(this.authorize).isPublic(this.isPublic).asForeignKey(q, clone, Reference::getId);
         }
         if (!fields.hasField(Reference._id)) {
             itemMap.forEach((id, item) -> {

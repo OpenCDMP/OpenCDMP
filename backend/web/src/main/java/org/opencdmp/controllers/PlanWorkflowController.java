@@ -25,7 +25,7 @@ import jakarta.xml.bind.JAXBException;
 import org.opencdmp.audit.AuditableAction;
 import org.opencdmp.authorization.AuthorizationFlags;
 import org.opencdmp.commons.enums.IsActive;
-import org.opencdmp.commons.scope.tenant.TenantScope;
+import org.opencdmp.commons.scope.tenant.TenantScopeFactory;
 import org.opencdmp.controllers.swagger.SwaggerHelpers;
 import org.opencdmp.controllers.swagger.annotation.OperationWithTenantHeader;
 import org.opencdmp.controllers.swagger.annotation.Swagger400;
@@ -66,7 +66,7 @@ public class PlanWorkflowController {
 
     private final QueryFactory queryFactory;
 
-    private final TenantScope tenantScope;
+    private final TenantScopeFactory tenantScopeFactory;
 
     private final MessageSource messageSource;
 
@@ -75,14 +75,14 @@ public class PlanWorkflowController {
             AuditService auditService,
             PlanWorkflowService planWorkflowService,
             CensorFactory censorFactory,
-            QueryFactory queryFactory, TenantScope tenantScope,
+            QueryFactory queryFactory, TenantScopeFactory tenantScopeFactory,
             MessageSource messageSource) {
         this.builderFactory = builderFactory;
         this.auditService = auditService;
         this.planWorkflowService = planWorkflowService;
         this.censorFactory = censorFactory;
         this.queryFactory = queryFactory;
-        this.tenantScope = tenantScope;
+        this.tenantScopeFactory = tenantScopeFactory;
         this.messageSource = messageSource;
     }
 
@@ -170,8 +170,8 @@ public class PlanWorkflowController {
 
         PlanWorkflowQuery query = this.queryFactory.query(PlanWorkflowQuery.class).disableTracking().authorize(AuthorizationFlags.AllExceptPublic).isActives(IsActive.Active);
 
-        if (this.tenantScope.isDefaultTenant()) query.tenantIsSet(false);
-        else query.tenantIsSet(true).tenantIds(this.tenantScope.getTenant());
+        if (this.tenantScopeFactory.getInstance().isDefaultTenant()) query.tenantIsSet(false);
+        else query.tenantIsSet(true).tenantIds(this.tenantScopeFactory.getInstance().getTenant());
 
         PlanWorkflow model = this.builderFactory.builder(PlanWorkflowBuilder.class).build(fieldSet, query.firstAs(fieldSet));
 

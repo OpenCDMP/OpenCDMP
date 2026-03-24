@@ -27,6 +27,7 @@ public class PropertyDefinitionBuilder extends BaseBuilder<PropertyDefinition, P
     private final BuilderFactory builderFactory;
     private EnumSet<AuthorizationFlags> authorize = EnumSet.of(AuthorizationFlags.None);
     private DefinitionEntity definition;
+    private boolean isPublic;
 
     @Autowired
     public PropertyDefinitionBuilder(
@@ -42,6 +43,11 @@ public class PropertyDefinitionBuilder extends BaseBuilder<PropertyDefinition, P
 
     public PropertyDefinitionBuilder authorize(EnumSet<AuthorizationFlags> values) {
         this.authorize = values;
+        return this;
+    }
+
+    public PropertyDefinitionBuilder isPublic(boolean isPublic) {
+        this.isPublic = isPublic;
         return this;
     }
 
@@ -62,7 +68,7 @@ public class PropertyDefinitionBuilder extends BaseBuilder<PropertyDefinition, P
                 m.setFieldSets(new HashMap<>());
                 for (String key : d.getFieldSets().keySet()){
                     FieldSetEntity fieldSetEntity = this.definition != null ? this.definition.getFieldSetById(key).stream().findFirst().orElse(null) : null;
-                    m.getFieldSets().put(key, this.builderFactory.builder(PropertyDefinitionFieldSetBuilder.class).authorize(this.authorize).withFieldSetEntity(fieldSetEntity).build(fieldsFields, d.getFieldSets().get(key)));
+                    m.getFieldSets().put(key, this.builderFactory.builder(PropertyDefinitionFieldSetBuilder.class).authorize(this.authorize).isPublic(this.isPublic).withFieldSetEntity(fieldSetEntity).build(fieldsFields, d.getFieldSets().get(key)));
                 }
             }
             models.add(m);

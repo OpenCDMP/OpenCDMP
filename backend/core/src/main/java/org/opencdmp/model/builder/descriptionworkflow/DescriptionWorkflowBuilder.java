@@ -7,7 +7,7 @@ import gr.cite.tools.logging.DataLogEntry;
 import gr.cite.tools.logging.LoggerService;
 import org.opencdmp.authorization.AuthorizationFlags;
 import org.opencdmp.commons.XmlHandlingService;
-import org.opencdmp.commons.scope.tenant.TenantScope;
+import org.opencdmp.commons.scope.tenant.TenantScopeFactory;
 import org.opencdmp.commons.types.descriptionworkflow.DescriptionWorkflowDefinitionEntity;
 import org.opencdmp.convention.ConventionService;
 import org.opencdmp.data.DescriptionWorkflowEntity;
@@ -26,13 +26,13 @@ public class DescriptionWorkflowBuilder extends BaseBuilder<DescriptionWorkflow,
 
     private EnumSet<AuthorizationFlags> authorize = EnumSet.of(AuthorizationFlags.None);
 
-    private final TenantScope tenantScope;
+    private final TenantScopeFactory tenantScopeFactory;
     private final BuilderFactory builderFactory;
     private final XmlHandlingService xmlHandlingService;
 
-    public DescriptionWorkflowBuilder(ConventionService conventionService, TenantScope tenantScope, BuilderFactory builderFactory, XmlHandlingService xmlHandlingService) {
+    public DescriptionWorkflowBuilder(ConventionService conventionService, TenantScopeFactory tenantScopeFactory, BuilderFactory builderFactory, XmlHandlingService xmlHandlingService) {
         super(conventionService, new LoggerService(LoggerFactory.getLogger(DescriptionWorkflowBuilder.class)));
-        this.tenantScope = tenantScope;
+        this.tenantScopeFactory = tenantScopeFactory;
         this.builderFactory = builderFactory;
         this.xmlHandlingService = xmlHandlingService;
     }
@@ -61,7 +61,7 @@ public class DescriptionWorkflowBuilder extends BaseBuilder<DescriptionWorkflow,
             if (fields.hasField(this.asIndexer(DescriptionWorkflow._createdAt))) m.setCreatedAt(d.getCreatedAt());
             if (fields.hasField(this.asIndexer(DescriptionWorkflow._updatedAt))) m.setUpdatedAt(d.getUpdatedAt());
             if (fields.hasField(this.asIndexer(DescriptionWorkflow._isActive))) m.setIsActive(d.getIsActive());
-            if (fields.hasField(this.asIndexer(DescriptionWorkflow._belongsToCurrentTenant))) m.setBelongsToCurrentTenant(this.getBelongsToCurrentTenant(d, this.tenantScope));
+            if (fields.hasField(this.asIndexer(DescriptionWorkflow._belongsToCurrentTenant))) m.setBelongsToCurrentTenant(this.getBelongsToCurrentTenant(d, this.tenantScopeFactory.getInstance()));
             if (fields.hasField(this.asIndexer(DescriptionWorkflow._hash))) m.setHash(this.hashValue(d.getUpdatedAt()));
             if (fields.hasField(this.asIndexer(DescriptionWorkflow._definition))) {
                 DescriptionWorkflowDefinitionEntity definitionData = this.xmlHandlingService.fromXmlSafe(DescriptionWorkflowDefinitionEntity.class, d.getDefinition());

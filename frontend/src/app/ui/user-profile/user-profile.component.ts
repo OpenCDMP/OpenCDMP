@@ -30,7 +30,7 @@ import { InterceptorType } from '@common/http/interceptors/interceptor-type';
 import { ConfirmationDialogComponent } from '@common/modules/confirmation-dialog/confirmation-dialog.component';
 import { HttpErrorHandlingService } from '@common/modules/errors/error-handling/http-error-handling.service';
 import { Guid } from '@common/types/guid';
-import { TranslateService } from '@ngx-translate/core';
+import { LangChangeEvent, TranslateService } from '@ngx-translate/core';
 import { Observable, of } from 'rxjs';
 import { map, takeUntil } from 'rxjs/operators';
 import { nameof } from 'ts-simple-nameof';
@@ -40,6 +40,7 @@ import { PluginConfigurationService } from '@app/core/services/plugin/plugin-con
 import { StorageFile } from '@app/core/model/storage-file/storage-file';
 import { PluginConfigurationUser, PluginConfigurationUserField, PluginRepositoryUserConfiguration } from '@app/core/model/plugin-configuration/plugin-configuration';
 import { toObservable } from '@angular/core/rxjs-interop';
+import { ReferenceFieldInfoDialogComponent } from '../reference/reference-field/info-dialog/reference-field-info-dialog.component';
 
 @Component({
     selector: 'app-user-profile',
@@ -146,6 +147,10 @@ export class UserProfileComponent extends BaseComponent implements OnInit, OnDes
 			}
 		})
 
+		this.language.onLangChange.subscribe((event: LangChangeEvent) => {
+			this.tenants = this.loadUserTenants();
+		});
+
 
 	}
 
@@ -200,7 +205,7 @@ export class UserProfileComponent extends BaseComponent implements OnInit, OnDes
 					})
 	
 				} else {
-					if(result?.additionalInfo) result.additionalInfo.pluginConfigurations = this.pluginConfigurationService.availableUserPlugins();
+					if(result?.additionalInfo) result.additionalInfo.pluginConfigurations = this.pluginRepos;
 				}
 
 				this.userProfileEditorModel = new UserProfileEditorModel().fromModel(result, this.pluginConfigurationService.pluginRepositoryUserConfiguration());
@@ -390,7 +395,7 @@ export class UserProfileComponent extends BaseComponent implements OnInit, OnDes
 		params.interceptorContext = {
 			excludedInterceptors: [InterceptorType.TenantHeaderInterceptor]
 		};
-		return this.principalService.myTenants({ params: params });
+		return this.principalService.myTenantsTranslated({ params: params });
 	}
 
 	switchTenant(): void {
@@ -401,6 +406,10 @@ export class UserProfileComponent extends BaseComponent implements OnInit, OnDes
 
 		this.authService.selectedTenant(selectedTenant);
 		window.location.href = this.tenantHandlingService.getCurrentUrlEnrichedWithTenantCode(selectedTenant, true);
+	}
+
+	get pluginRepos(): PluginConfigurationUser[] {
+		return this.pluginConfigurationService.availableUserPlugins();
 	}
 
 	//Preferences
@@ -432,5 +441,28 @@ export class UserProfileComponent extends BaseComponent implements OnInit, OnDes
         ['roleOrganization', 'USER-PROFILE.SETTINGS.ROLE'],
         ['organization', 'USER-PROFILE.SETTINGS.ORGANIZATION'],
     ])
+
+	//organization
+	onPreviewReference(reference: Reference, showSelect: boolean = false) {
+			if (!reference) return; 
+			const dialogRef = this.dialog.open(ReferenceFieldInfoDialogComponent, {
+				restoreFocus: false,
+				minWidth: 'min(920px, 95vw)',
+				data: {
+					reference: reference,
+					referenceTypeId: this.referenceTypeService.getOrganizationReferenceType(),
+					label: '',
+					showSelect: showSelect,
+				},
+			});
+			if (showSelect) {
+				dialogRef.afterClosed().pipe(takeUntil(this._destroyed)).subscribe(isSelected => {
+					if (isSelected) {
+						this.formGroup.get('additionalInfo').get('organization').patchValue(reference);
+						this.formGroup.get('additionalInfo').get('organization').updateValueAndValidity();
+					}
+				});
+			}
+		}
 
 }

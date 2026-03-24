@@ -7,7 +7,6 @@ import gr.cite.tools.logging.DataLogEntry;
 import gr.cite.tools.logging.LoggerService;
 import org.opencdmp.authorization.AuthorizationFlags;
 import org.opencdmp.commons.XmlHandlingService;
-import org.opencdmp.commons.scope.tenant.TenantScope;
 import org.opencdmp.commons.types.evaluation.ValueRangeConfigurationEntity;
 import org.opencdmp.convention.ConventionService;
 import org.opencdmp.evaluatorbase.interfaces.ValueRangeConfiguration;
@@ -34,17 +33,15 @@ public class ValueRangeConfigurationBuilder extends BaseBuilder<ValueRangeConfig
 
     private final BuilderFactory builderFactory;
     private final XmlHandlingService xmlHandlingService;
-    private final TenantScope tenantScope;
     private EnumSet<AuthorizationFlags> authorize = EnumSet.of(AuthorizationFlags.None);
 
 
     @Autowired
     public ValueRangeConfigurationBuilder(
             ConventionService conventionService,
-            BuilderFactory builderFactory, XmlHandlingService xmlHandlingService, TenantScope tenantScope) {
+            BuilderFactory builderFactory, XmlHandlingService xmlHandlingService) {
         super(conventionService,  new LoggerService(LoggerFactory.getLogger(ValueRangeConfigurationBuilder.class)));
         this.xmlHandlingService = xmlHandlingService;
-        this.tenantScope = tenantScope;
         this.builderFactory = builderFactory;
 
 

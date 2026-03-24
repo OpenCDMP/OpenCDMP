@@ -40,6 +40,10 @@ export interface MultipleAutoCompleteConfiguration {
 	selectedValueTemplate?: TemplateRef<any>;
 	// Display icon that opens popup
 	popupItemActionIcon?: string;
+	// Display icon for selected item that opens popup
+	popupSelectedItemActionIcon?: string;
+	// Enable or disable display icon for selected item that opens popup
+	isPopupSelectedItemActionIconDisabled?: boolean;
 
 
 	autoSelectFirstOptionOnBlur?: boolean;

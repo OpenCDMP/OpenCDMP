@@ -1,6 +1,6 @@
 package org.opencdmp.controllers;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
+import tools.jackson.core.JacksonException;
 import gr.cite.tools.auditing.AuditService;
 import gr.cite.tools.data.builder.BuilderFactory;
 import gr.cite.tools.data.censor.CensorFactory;
@@ -115,7 +115,7 @@ public class UsageLimitController {
     @PostMapping("persist")
     @Transactional
     @ValidationFilterAnnotation(validator = UsageLimitPersist.UsageLimitPersistValidator.ValidatorName, argumentName = "model")
-    public UsageLimit persist(@RequestBody UsageLimitPersist model, FieldSet fieldSet) throws MyApplicationException, MyForbiddenException, MyNotFoundException, InvalidApplicationException, JAXBException, ParserConfigurationException, JsonProcessingException, TransformerException, InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
+    public UsageLimit persist(@RequestBody UsageLimitPersist model, FieldSet fieldSet) throws MyApplicationException, MyForbiddenException, MyNotFoundException, InvalidApplicationException, JAXBException, ParserConfigurationException, JacksonException, TransformerException, InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
         logger.debug(new MapLogEntry("persisting" + UsageLimit.class.getSimpleName()).And("model", model).And("fieldSet", fieldSet));
         this.censorFactory.censor(UsageLimitsCensor.class).censor(fieldSet);
 

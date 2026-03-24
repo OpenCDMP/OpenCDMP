@@ -724,4 +724,84 @@ public class ErrorThesaurusProperties {
     public void setCreatingPlanWithInactiveBlueprint(ErrorDescription creatingPlanWithInactiveBlueprint) {
         this.creatingPlanWithInactiveBlueprint = creatingPlanWithInactiveBlueprint;
     }
+
+    public ErrorDescription invalidReferenceTypeImportXml;
+
+    public ErrorDescription getInvalidReferenceTypeImportXml() {
+        return invalidReferenceTypeImportXml;
+    }
+
+    public void setInvalidReferenceTypeImportXml(ErrorDescription invalidReferenceTypeImportXml) {
+        this.invalidReferenceTypeImportXml = invalidReferenceTypeImportXml;
+    }
+
+    public ErrorDescription planUpdateRequestIsCompleted;
+
+    public ErrorDescription getPlanUpdateRequestIsCompleted() {
+        return planUpdateRequestIsCompleted;
+    }
+
+    public void setPlanUpdateRequestIsCompleted(ErrorDescription planUpdateRequestIsCompleted) {
+        this.planUpdateRequestIsCompleted = planUpdateRequestIsCompleted;
+    }
+
+    public ErrorDescription planUpdateRequestInvalidActionType;
+
+    public ErrorDescription getPlanUpdateRequestInvalidActionType() {
+        return planUpdateRequestInvalidActionType;
+    }
+
+    public void setPlanUpdateRequestInvalidActionType(ErrorDescription planUpdateRequestInvalidActionType) {
+        this.planUpdateRequestInvalidActionType = planUpdateRequestInvalidActionType;
+    }
+
+    public ErrorDescription planOwnerNotFound;
+
+    public ErrorDescription getPlanOwnerNotFound() {
+        return planOwnerNotFound;
+    }
+
+    public void setPlanOwnerNotFound(ErrorDescription planOwnerNotFound) {
+        this.planOwnerNotFound = planOwnerNotFound;
+    }
+
+    private ErrorDescription planBlueprintTypeCodeExists;
+
+    public ErrorDescription getPlanBlueprintTypeCodeExists() {
+        return planBlueprintTypeCodeExists;
+    }
+
+    public void setPlanBlueprintTypeCodeExists(ErrorDescription planBlueprintTypeCodeExists) {
+        this.planBlueprintTypeCodeExists = planBlueprintTypeCodeExists;
+    }
+
+    private ErrorDescription planBlueprintTypeImportNotFound;
+
+    public ErrorDescription getPlanBlueprintTypeImportNotFound() {
+        return planBlueprintTypeImportNotFound;
+    }
+
+    public void setPlanBlueprintTypeImportNotFound(ErrorDescription planBlueprintTypeImportNotFound) {
+        this.planBlueprintTypeImportNotFound = planBlueprintTypeImportNotFound;
+    }
+
+    private ErrorDescription planBlueprintTypeImportDraft;
+
+    public ErrorDescription getPlanBlueprintTypeImportDraft() {
+        return planBlueprintTypeImportDraft;
+    }
+
+    public void setPlanBlueprintTypeImportDraft(ErrorDescription planBlueprintTypeImportDraft) {
+        this.planBlueprintTypeImportDraft = planBlueprintTypeImportDraft;
+    }
+
+    private ErrorDescription cannotMergeAccountWithSameEmail;
+
+    public ErrorDescription getCannotMergeAccountWithSameEmail() {
+        return cannotMergeAccountWithSameEmail;
+    }
+
+    public void setCannotMergeAccountWithSameEmail(ErrorDescription cannotMergeAccountWithSameEmail) {
+        this.cannotMergeAccountWithSameEmail = cannotMergeAccountWithSameEmail;
+    }
 }

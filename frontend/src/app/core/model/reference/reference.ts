@@ -33,6 +33,11 @@ export interface Field {
 	value: string;
 }
 
+export interface ReferenceExist {
+	exist: boolean;
+	reference: Reference;
+}
+
 // old fetcher
 export interface FetcherReference {
 	id: string;

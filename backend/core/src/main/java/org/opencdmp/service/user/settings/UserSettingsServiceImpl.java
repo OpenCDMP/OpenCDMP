@@ -13,7 +13,7 @@ import gr.cite.tools.logging.MapLogEntry;
 import org.opencdmp.authorization.AuthorizationFlags;
 import org.opencdmp.authorization.Permission;
 import org.opencdmp.convention.ConventionService;
-import org.opencdmp.data.TenantEntityManager;
+import org.opencdmp.data.TenantEntityManagerFactory;
 import org.opencdmp.data.UserSettingsEntity;
 import org.opencdmp.model.UserSettings;
 import org.opencdmp.model.builder.UserSettingsBuilder;
@@ -32,7 +32,7 @@ import java.util.UUID;
 public class UserSettingsServiceImpl implements UserSettingsService {
 
 	private static final LoggerService logger = new LoggerService(LoggerFactory.getLogger(UserSettingsServiceImpl.class));
-	private final TenantEntityManager entityManager;
+	private final TenantEntityManagerFactory tenantEntityManagerFactory;
 	private final AuthorizationService authorizationService;
 	private final BuilderFactory builderFactory;
 	private final ConventionService conventionService;
@@ -41,12 +41,12 @@ public class UserSettingsServiceImpl implements UserSettingsService {
 
 	@Autowired
 	public UserSettingsServiceImpl(
-			TenantEntityManager entityManager,
+			TenantEntityManagerFactory tenantEntityManagerFactory,
 			AuthorizationService authorizationService,
 			BuilderFactory builderFactory,
 			ConventionService conventionService,
 			MessageSource messageSource) {
-		this.entityManager = entityManager;
+		this.tenantEntityManagerFactory = tenantEntityManagerFactory;
 		this.authorizationService = authorizationService;
 		this.builderFactory = builderFactory;
 		this.conventionService = conventionService;
@@ -63,7 +63,7 @@ public class UserSettingsServiceImpl implements UserSettingsService {
 
 		UserSettingsEntity data;
 		if (isUpdate) {
-			data = this.entityManager.find(UserSettingsEntity.class, model.getId());
+			data = this.tenantEntityManagerFactory.getInstance().find(UserSettingsEntity.class, model.getId());
 			if (data == null) throw new MyNotFoundException(this.messageSource.getMessage("General_ItemNotFound", new Object[]{model.getId(), UserSettings.class.getSimpleName()}, LocaleContextHolder.getLocale()));
 		} else {
 			data = new UserSettingsEntity();
@@ -79,10 +79,10 @@ public class UserSettingsServiceImpl implements UserSettingsService {
 		data.setEntityId(model.getEntityId());
 		data.setUpdatedAt(Instant.now());
 
-		if (isUpdate) this.entityManager.merge(data);
-		else this.entityManager.persist(data);
+		if (isUpdate) this.tenantEntityManagerFactory.getInstance().merge(data);
+		else this.tenantEntityManagerFactory.getInstance().persist(data);
 
-		this.entityManager.flush();
+		this.tenantEntityManagerFactory.getInstance().flush();
 
 		return this.builderFactory.builder(UserSettingsBuilder.class).authorize(AuthorizationFlags.AllExceptPublic).build(BaseFieldSet.build(fields, UserSettings._id, UserSettings._key), data);
 	}

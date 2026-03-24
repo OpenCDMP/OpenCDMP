@@ -3,16 +3,16 @@
 	justify-content: center;
 	align-items: center;
 	border: 1px solid #1b1b1b;
-	color: var(--sys-on-surface);
+	color: var(--mat-sys-on-surface);
     background: transparent;
     box-shadow: 0px 2px 6px rgba(0, 0, 0, 0.16078);
     &:hover {
-        box-shadow: var(--mdc-fab-small-hover-container-elevation-shadow, var(--mat-app-level4)); //default material button 
+        box-shadow: var(--mat-fab-small-container-elevation-shadow, var(--mat-app-level4)); //default material button 
     }
 }
 
 .frame-txt {
-	font-size: var(--sys-body-small-size);
+	font-size: var(--mat-sys-body-small-size);
 	font-weight: bold;
 	letter-spacing: 0px;
 	text-transform: uppercase;
@@ -21,7 +21,7 @@
 
 
 .frame-txt:hover {
-    color: var(--sys-primary)
+    color: var(--mat-sys-primary)
 }
 
 .mat-mini-fab {

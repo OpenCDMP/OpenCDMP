@@ -1,6 +1,6 @@
 package org.opencdmp.controllers;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
+import tools.jackson.core.JacksonException;
 import gr.cite.tools.auditing.AuditService;
 import gr.cite.tools.data.builder.BuilderFactory;
 import gr.cite.tools.data.censor.CensorFactory;
@@ -37,6 +37,7 @@ import org.opencdmp.model.builder.reference.ReferenceBuilder;
 import org.opencdmp.model.censorship.reference.ReferenceCensor;
 import org.opencdmp.model.persist.ReferencePersist;
 import org.opencdmp.model.reference.Reference;
+import org.opencdmp.model.reference.ReferenceExist;
 import org.opencdmp.model.result.QueryResult;
 import org.opencdmp.query.ReferenceQuery;
 import org.opencdmp.query.lookup.ReferenceLookup;
@@ -206,17 +207,22 @@ public class ReferenceController {
             ),
             extensions = @Extension(name = "x-order", properties = @ExtensionProperty(name = "value", value = "7")))
     @Swagger404
-    public Boolean findReference(
+    public ReferenceExist findReference(
             @Parameter(name = "referenceTypeId", description = "The type id of a reference to check if it exists", example = "c0c163dc-2965-45a5-9608-f76030578609", required = true) @PathVariable("referenceTypeId") UUID referenceTypeId,
-            @Parameter(name = "reference", description = "The reference value of a reference to check if it exists", example = "EUPL-1.2 license", required = true) @RequestParam("reference") String reference
+            @Parameter(name = "reference", description = "The reference value of a reference to check if it exists", example = "EUPL-1.2 license", required = true) @RequestParam("reference") String reference,
+            @Parameter(name = "f", description = SwaggerHelpers.Commons.fieldset_description, required = true, style = ParameterStyle.FORM, explode = Explode.TRUE, schema = @Schema(type = "array", example = SwaggerHelpers.Reference.endpoint_field_set_example)) FieldSet fieldSet
     ) throws MyNotFoundException {
-        logger.debug("search with db definition {}", Reference.class.getSimpleName());
+        logger.debug(new MapLogEntry("search if reference exist " + Reference.class.getSimpleName()).And("reference", reference).And("referenceTypeId", referenceTypeId).And("fields", fieldSet));
 
         this.censorFactory.censor(ReferenceCensor.class).censor(null, null);
 
-        Boolean result = this.referenceService.findReference(reference, referenceTypeId);
+        ReferenceExist result = this.referenceService.findReference(reference, referenceTypeId, fieldSet);
 
-        this.auditService.track(AuditableAction.Reference_Query, "reference", reference);
+        this.auditService.track(AuditableAction.Reference_Query, Map.ofEntries(
+                new AbstractMap.SimpleEntry<String, Object>("reference", reference),
+                new AbstractMap.SimpleEntry<String, Object>("referenceTypeId", referenceTypeId),
+                new AbstractMap.SimpleEntry<String, Object>("fields", fieldSet)
+        ));
 
         return result;
     }
@@ -271,7 +277,7 @@ public class ReferenceController {
             )
             @RequestBody ReferencePersist model,
             @Parameter(name = "f", description = SwaggerHelpers.Commons.fieldset_description, required = true, style = ParameterStyle.FORM, explode = Explode.TRUE, schema = @Schema(type = "array", example = SwaggerHelpers.Reference.endpoint_field_set_example)) FieldSet fieldSet
-    ) throws MyApplicationException, MyForbiddenException, MyNotFoundException, InvalidApplicationException, JAXBException, ParserConfigurationException, JsonProcessingException, TransformerException {
+    ) throws MyApplicationException, MyForbiddenException, MyNotFoundException, InvalidApplicationException, JAXBException, ParserConfigurationException, JacksonException, TransformerException {
         logger.debug(new MapLogEntry("persisting" + Reference.class.getSimpleName()).And("model", model).And("fieldSet", fieldSet));
         this.censorFactory.censor(ReferenceCensor.class).censor(fieldSet, null);
 

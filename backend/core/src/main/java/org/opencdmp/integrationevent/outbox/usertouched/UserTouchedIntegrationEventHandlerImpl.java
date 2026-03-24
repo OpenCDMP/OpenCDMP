@@ -39,15 +39,15 @@ public class UserTouchedIntegrationEventHandlerImpl implements UserTouchedIntegr
     private final OutboxService outboxService;
     private final JsonHandlingService jsonHandlingService;
     private final MessageSource messageSource;
-	private final TenantEntityManager entityManager;
+	private final TenantEntityManagerFactory tenantEntityManagerFactory;
 
     private final QueryFactory queryFactory;
     public UserTouchedIntegrationEventHandlerImpl(
-		    OutboxService outboxService, JsonHandlingService jsonHandlingService, MessageSource messageSource, TenantEntityManager entityManager, QueryFactory queryFactory) {
+			OutboxService outboxService, JsonHandlingService jsonHandlingService, MessageSource messageSource, TenantEntityManagerFactory tenantEntityManagerFactory, QueryFactory queryFactory) {
         this.outboxService = outboxService;
 	    this.jsonHandlingService = jsonHandlingService;
 	    this.messageSource = messageSource;
-	    this.entityManager = entityManager;
+	    this.tenantEntityManagerFactory = tenantEntityManagerFactory;
 	    this.queryFactory = queryFactory;
     }
 
@@ -58,7 +58,7 @@ public class UserTouchedIntegrationEventHandlerImpl implements UserTouchedIntegr
         message.setType(OutboxIntegrationEvent.USER_TOUCH);
 
 	    try {
-		    this.entityManager.disableTenantFilters();
+		    this.tenantEntityManagerFactory.getInstance().disableTenantFilters();
 
 		    UserEntity user = this.queryFactory.query(UserQuery.class).ids(userId).disableTracking()
 				    .firstAs(new BaseFieldSet().ensure(User._name).ensure(User._additionalInfo));
@@ -115,7 +115,7 @@ public class UserTouchedIntegrationEventHandlerImpl implements UserTouchedIntegr
 
 		    message.setEvent(event);
 	    }finally {
-			this.entityManager.reloadTenantFilters();
+			this.tenantEntityManagerFactory.getInstance().reloadTenantFilters();
 	    }
 
         

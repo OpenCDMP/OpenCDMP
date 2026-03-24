@@ -136,7 +136,13 @@ export class EvaluatorService extends BaseService {
 	}
 
 	onCallbackError(error) {
-		this.uiNotificationService.snackBarNotification(error.error.message ? error.error.message : this.language.instant('PLAN-EDITOR.SNACK-BAR.UNSUCCESSFUL-EVALUATION'), SnackBarNotificationLevel.Error);
+		if (error?.error?.code) {
+			const map = new Map<number, string>([[error.error.code, error.error.error]]);
+			this.httpErrorHandlingService.handleBackedRequestError(error, map, SnackBarNotificationLevel.Error)
+		}  else {
+			this.uiNotificationService.snackBarNotification(error.error.message ? error.error.message : this.language.instant('PLAN-EDITOR.SNACK-BAR.UNSUCCESSFUL-EVALUATION'), SnackBarNotificationLevel.Error);
+		}
+		
 	}
 
 }

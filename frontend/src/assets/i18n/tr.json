@@ -11,6 +11,12 @@
 			},
 			"MULTIPLICITY": {
 				"MIN": "Please provide at least {{ min }} answers"
+			},
+			"EMAIL": {
+				"MESSAGE": "Please provide a valid email address"
+			},
+			"MAX-LENGTH": {
+				"MESSAGE": "The text is too long"
 			}
 		},
 		"AUTO-CONPLETE": {
@@ -93,6 +99,9 @@
 			"DESCRIPTION-TEMPLATE-IMPORT-NOT-FOUND": "Description template with code '{{descriptionTemplateLabel}}' not found.",
 			"PLAN-BLUEPRINT-CODE-EXISTS": "The plan blueprint code you provided already exists. Please choose a different code.",
 			"PLAN-BLUEPRINT-IMPORT-NOT-FOUND": "Plan blueprint with code '{{planBlueprintLabel}}' not found.",
+			"PLAN-BLUEPRINT-TYPE-CODE-EXISTS": "The plan bluepint type code you provided already exists. Please choose a different code.",
+			"PLAN-BLUEPRINT-TYPE-IMPORT-NOT-FOUND": "Plan bluepint type with code '{{planBlueprintTypeLabel}}' not found.",
+			"PLAN-BLUEPRINT-TYPE-IMPORT-DRAFT": "Plan bluepint type with code '{{planBlueprintTypeLabel}}' is not finalized yet.",
 			"BLUEPRINT-DESCRIPTION-TEMPLATE-IMPORT-DRAFT": "Description template with code '{{descriptionTemplateLabel}}' is not finalized yet.",
 			"PLAN-DESCRIPTION-TEMPLATE-IMPORT-DRAFT": "Description template with code '{{descriptionTemplateLabel}}' is not finalized yet.",
 			"DESCRIPTION-TEMPLATE-TYPE-IMPORT-DRAFT": "Description template type with code '{{descriptionTemplateTypeCode}}' is not finalized yet.",
@@ -116,7 +125,11 @@
 			"INVALID-USER-EMAIL": "No user found with this email.",
 			"CANNOT-PLAN-DEPOSIT": "This plan has already been deposited to {{deositRepositoryId}} repository.",
 			"CANNOT-EDIT-DESCRIPTION-TEMPLATES": "The selected plan blueprint has description templates restrictions for section with name {{section}}. The accepted description templates: {{descriptionTemplates}}.",
-			"CREATING-PLAN-WITH-INACTIVE-BLUEPRINT": "You cannot create new plan because this version of bluepint is deleted."
+			"CREATING-PLAN-WITH-INACTIVE-BLUEPRINT": "You cannot create new plan because this version of bluepint is deleted.",
+			"PLAN-UPDATE-REQUEST-IS-COMPLETED": "This request is completed",
+			"PLAN-UPDATE-REQUEST-INVALID-ACTION-TYPE":  "This request is not intended for this action type.",
+			"PLAN-OWNER-NOT-FOUND": "The plan cannot be saved without an assigned owner for all sections. Missing owner or owner not found in the system.",
+			"CANNOT-MERGE-ACCOUNT-WITH-SAME-EMAIL": "You cannot use an email that already is linked on this account. Please enter a different one. "
 		},
 		"FORM-VALIDATION-DISPLAY-DIALOG": {
 			"WARNING": "Uyarı!",
@@ -133,6 +146,7 @@
 		"CONFIRMATION-DIALOG": {
 			"DELETE-ITEM": "Bu öğe silinsin mi?",
 			"DELETE-USER": "Bu ortak kaldırılsın mı?",
+			"DELETE-YOURSELF-FROM-ENTIRE-PLAN": "Are you sure you want to remove yourself from the plan? You will no longer have access afterward.",
 			"LEAVE-PAGE": "Eğer ayrılırsanız, değişiklikler kaybolacak.",
 			"LEAVE-WARNING": "Kaydedilmemiş değişiklikleriniz var!",
             "CANNOT-BE-UNDONE": "This action cannot be undone.",
@@ -182,6 +196,7 @@
 			"EXPLORE-PLANS": "Yayınlanmış VYP'ları",
 			"DESCRIPTIONS": "My Descriptions",
 			"BLUEPRINTS": "Plan Blueprints",
+			"PLAN-BLUEPRINT-TYPE": "Plan Blueprint Types",
 			"DESCRIPTION-TEMPLATES": "Description Templates",
 			"DESCRIPTION-TEMPLATE-TYPES": "Description Types",
 			"ENTITY-LOCKS": "Entity Locks",
@@ -229,6 +244,11 @@
                 "TITLE": "OSTrails Evaluator",
                 "DESCRIPTION": "The MADMP json export is validated based on the <a target=\"_blank\" rel=\"noreferrer noopener\" href='https://github.com/OSTrails/DMP-Evaluation-Service'>DMP-Evaluation-Service</a>.",
                 "RESULTS-DESCRIPTION": "The results are generated based on the <a target=\"_blank\" rel=\"noreferrer noopener\" href='https://github.com/OSTrails/DMP-Evaluation-Service'>DMP-Evaluation-Service</a>."
+            },
+			"OPENAIRE-FAIR": {
+                "TITLE": "OpenAIRE FAIR Evaluator",
+                "DESCRIPTION": "The results are generated based on OpenAIRE.",
+                "RESULTS-DESCRIPTION": "The results are generated based on OpenAIRE."
             }
 		},
 		"LANGUAGES": {
@@ -250,6 +270,10 @@
 		"START-NEW-PLAN-DIALOG": {
 			"UPLOAD-FILE": "Dosya Yükle",
 			"REPLACE-FILE": "Replace File"
+		},
+		"PAGE-NOT-FOUND": {
+			"TITLE": "404 - Something's not right!",
+			"SUBTITLE": "This page doesn't exist"
 		}
 	},
 	"HYBRID-LISTING": {
@@ -320,11 +344,17 @@
 		"DRAFT-FILTERS": "Draft profile",
 		"RENAME": "Rename"
 	},
+	"MY-TENANTS": {
+		"CODE": {
+			"DEFAULT": "Default"
+		}
+	},
 	"BREADCRUMBS": {
 		"DESCRIPTION-TEMPLATE-TYPES": "Description Types",
 		"DESCRIPTION-TEMPLATES": "Description Templates",
 		"NEW-DESCRIPTION-TEMPLATE-TYPE": "New",
 		"PLAN-BLUEPRINTS": "Plan Blueprints",
+		"PLAN-BLUEPRINT-TYPE": "Plan Blueprint Types",
 		"NEW-PLAN-BLUEPRINT": "New",
 		"NEW-DESCRIPTION-TEMPLATES": "New",
 		"REFERENCE-TYPES": "Reference Types",
@@ -399,6 +429,7 @@
 		"DESCRIPTION-TEMPLATES": "Description Templates",
 		"DESCRIPTION-TEMPLATE-TYPES": "Description Types",
 		"PLAN-BLUEPRINTS": "DMP Blueprints",
+		"PLAN-BLUEPRINT-TYPE": "Plan Blueprint Types",
 		"USERS": "Kullanıcılar",
 		"TENANT-USERS": "Tenant Users",
 		"CO-BRANDING": "Birlikte Markalama",
@@ -473,6 +504,7 @@
 					"SEND-DESCRIPTION-TOUCH": "Send description touch events",
 					"SEND-PLAN-ACCOUNTING-ENTRIES": "Send plan accounting entries events",
 					"SEND-PLAN-BLUEPRINT-ACCOUNTING-ENTRIES": "Send plan blueprint accounting entries events",
+					"SEND-PLAN-BLUEPRINT-TYPE-ACCOUNTING-ENTRIES": "Send plan blueprint types accounting entries events",
 					"SEND-DESCRIPTION-ACCOUNTING-ENTRIES": "Send description accounting entries events",
 					"SEND-DESCRIPTION-TEMPLATE-ACCOUNTING-ENTRIES": "Send description template accounting entries events",
 					"SEND-DESCRIPTION-TEMPLATE-TYPE-ACCOUNTING-ENTRIES": "Send description template types accounting entries events",
@@ -899,10 +931,6 @@
 				}
 			},
 			"IS-ACTIVE": "Active Filter",
-			"RELATED-TENANT": {
-				"NAME": "Related Tenant",
-				"FILTER-BY-TENANT": "Filter by tenant"
-			},
 			"RELATED-DESCRIPTION-TEMPLATES": {
 				"NAME": "Related Description Templates",
 				"PLACEHOLDER": "Select Description Templates"
@@ -953,6 +981,20 @@
 			"CANCEL": "Cancel"
 		}
 	},
+	"PLAN-SUGGESTION": {
+		"FIELDS": {
+			"BLUEPRINT": "Plan Blueprint",
+			"DESCRIPTIONS": "Descriptions",
+			"BLUEPRINT-PLACEHOLDER": "Select Plan Blueprint",
+			"DESCRIPTION-TEMPLATE": "Description Template",
+			"DESCRIPTION-TEMPLATE-PLACHOLDER": "Select description template",
+			"SECTION": "Plan Section",
+			"SECTION-PLACEHOLDER": "Select plan section"
+		},
+		"ACTIONS": {
+			"PROCEED": "Proceed with this blueprint"
+		}
+	},
 	"PLAN-OVERVIEW": {
 		"TITLE": "Plan",
 		"PUBLIC": "Açık Erişimli",
@@ -965,7 +1007,10 @@
 		"GRANT": "Hibe",
 		"DESCRIPTION": "Description",
 		"DESCRIPTIONS": "Descriptions included",
-		"DOI-PROVIDED": "DOI provided",
+		"DOI": {
+			"TITLE": "DOI",
+			"NO-DOIS-YET": "No DOI available. This Plan has not been published yet."
+		},
         "EVALUATION": "Evaluation",
         "EVALUATION-HISTORY": "Evaluation history",
         "NO-EVALUATIONS": "No evaluations.",
@@ -975,6 +1020,7 @@
 		"VERSION-NOTICE-LINK": "newer version",
 		"VERSION-NOTICE-PART2": "of the plan available.",
 		"BLUEPRINT-NEW-VERSION": "A new version of the blueprint you used to create this Plan is now available. You can use it by creating new version of the plan.",
+		"VIEW-FILE-MESSAGE-FOR-ANONYMOUS-USERS": "Attached File. Log in to preview",
 		"ACTIONS": {
 			"BACK": "Back",
 			"EDIT": "Edit",
@@ -1153,6 +1199,9 @@
 		"DESCRIPTION": "Description",
 		"DESCRIPTION-AUTHORS": "Description authors",
 		"YOU": "you",
+		"VIEW-FILE-MESSAGE-FOR-ANONYMOUS-USERS": "Attached File. Log in to preview",
+		"VIEW-INTERNAL-PLAN-MESSAGE-FOR-ANONYMOUS-USERS": "Log in to preview",
+		"VIEW-INTERNAL-DESCRIPTION-MESSAGE-FOR-ANONYMOUS-USERS": "Log in to preview",
 		"ACTIONS": {
 			"BACK": "Back",
 			"EDIT": "Edit",
@@ -1240,10 +1289,6 @@
 				}
 			},
 			"IS-ACTIVE": "Active Filter",
-			"RELATED-TENANT": {
-				"NAME": "Related Tenant",
-				"FILTER-BY-TENANT": "Filter by tenant"
-			},
 			"RELATED-DESCRIPTION-TEMPLATES": {
 				"NAME": "Related Description Templates",
 				"PLACEHOLDER": "Select Description Templates"
@@ -1443,6 +1488,30 @@
 			"EDIT": "Edit"
 		}
 	},
+	"PLAN-BLUEPRINT-TYPE-LISTING": {
+		"CREATE-TYPE": "Create Plan Blueprint Type",
+		"FIELDS": {
+			"NAME": "Name",
+			"CODE": "Code",
+			"STATUS": "Status",
+			"UPDATED-AT": "Updated",
+			"CREATED-AT": "Created",
+			"IS-ACTIVE": "Is Active"
+		},
+		"FILTER": {
+			"TITLE": "Filters",
+			"IS-ACTIVE": "Is Active",
+			"STATUS": "Status",
+			"CANCEL": "Cancel",
+			"APPLY-FILTERS": "Apply filters",
+			"CLEAR-ALL-FILTERS": "Clear all",
+			"SEARCH-FILTER-BTN": "Filter Results"
+		},
+		"ACTIONS": {
+			"DELETE": "Delete",
+			"EDIT": "Edit"
+		}
+	},	
 	"REFERENCE-TYPE-LISTING": {
 		"CREATE-TYPE": "Create Reference Type",
 		"FIELDS": {
@@ -1831,8 +1900,13 @@
 	},
 	"KPI-SERVICE": {
 		"KPI_DASHBOARD": {
-			"NOT-FOUND":"Dashboard not found",
-			"INVALID-CONFIGURATION": "Invalid Dashboard Configuration"
+			"NO-DASHBOARDS": "No dashboards found.",
+			"NOT-FOUND":"Dashboard not found.",
+			"INVALID-CONFIGURATION": "Invalid Dashboard Configuration",
+			"CODES": {
+				"dmp_dashboard": "Tenant-Scoped Statistics",
+				"dmp_admin_dashboard": "Multi-Tenant Statistics"
+			}
 		},
 		"KPI_DASHBOARD_CHART": {
 			"UNEXPECTED_ERROR": "Something unexpected occurred. Please try again later.",
@@ -1866,6 +1940,27 @@
 			"NEGATIVE": "Cancel"
 		}
 	},
+	"PLAN-BLUEPRINT-TYPE-EDITOR": {
+		"TITLE-EDIT-PLAN-BLUEPRINT-TYPE": "Editing Plan Blueprint Type",
+		"FIELDS": {
+			"NAME": "Name",
+			"CODE": "Code"
+		},
+		"ACTIONS": {
+			"SAVE": "Save",
+			"FINALIZE": "Finalize",
+			"CANCEL": "Cancel",
+			"DELETE": "Delete"
+		},
+		"MESSAGES": {
+			"MISSING-FIELDS": "There are some required fields left unfilled. Please check the Blueprint and make sure that all required questions are answered and URLs are provided with valid input. (Missing fields are marked in red color)"
+		},
+		"FINALIZE-DIALOG": {
+			"TITLE": "Finalize this item?",
+			"CONFIRM": "Confirm",
+			"NEGATIVE": "Cancel"
+		}
+	},
 	"REFERENCE-TYPE-EDITOR": {
 		"TITLE-EDIT-REFERENCE-TYPE": "Editing Reference Type",
 		"SOURCES-REQUIRED": "Required",
@@ -1877,7 +1972,11 @@
 			"CODE": "Code",
 			"DATA-TYPE": "Data Type",
 			"LABEL": "Label",
-			"DESCRIPTION": "Description"
+			"DESCRIPTION": "Description",
+			"REQUIRED": "Required",
+			"REQUIRED-YES": "Yes",
+			"REQUIRED-NO": "No",
+			"SEMANTICS": "Semantics"
 		},
 		"ACTIONS": {
 			"SAVE": "Save",
@@ -1985,6 +2084,10 @@
 			"ADD-FIELD": "Add field",
 			"REMOVE-FIELD": "Remove Field",
 			"SUBMIT-FIELDS": "Submit Fields"
+		},
+		"TEST": {
+			"PLACEHOLDER": "Start typing to search for an entity",
+			"RESULTS": "Results"
 		}
 	},
 	"REFERENCE-EDITOR": {
@@ -2069,7 +2172,54 @@
 			"DOCX-TEMPLATE": "DOCX template",
             "DOCX-TEMPLATE-HINT":  "Upload a DOCX template (optional).",
             "SECTION-FIELD": "Field",
-            "CAN-EDIT-DESCRIPTION-TEMPLATES": "Editable description templates"
+            "CAN-EDIT-DESCRIPTION-TEMPLATES": "Editable description templates",
+			"PLAN-BLUEPRINT-TYPE": "Plan blueprint type"		
+		},
+		"STEPS": {
+			"GENERAL-INFO": {
+				"TITLE": "General Info",
+				"PLAN-BLUEPRINT-NAME": "Plan blueprint name",
+				"PLAN-BLUEPRINT-NAME-HINT": "A title that determines the Plan Blueprint.",
+				"PLAN-BLUEPRINT-CODE": "Plan Blueprint code",
+				"PLAN-BLUEPRINT-CODE-HINT": "A unique code that distinguishes the Plan blueprint.",
+				"PLAN-BLUEPRINT-DESCRIPTION": "Description",
+				"PLAN-BLUEPRINT-DESCRIPTION-HINT": "A brief description of what the Description is about, it's scope and objectives.",
+				"PLAN-BLUEPRINT-TYPE": "Plan blueprint type",
+				"PLAN-BLUEPRINT-SELECT-TYPE": "Select a type",
+				"PLAN-BLUEPRINT-LANGUAGE-HINT": "",
+				"PLAN-BLUEPRINT-TYPE-HINT": "",
+				"PLAN-BLUEPRINT-LANGUAGE": "Plan bluepint language",
+				"PLAN-BLUEPRINT-SELECT-LANGUAGE": "Select a language",
+				"PLAN-BLUEPRINT-USERS": "Editors",
+				"PLAN-BLUEPRINT-USERS-HINT": "Add editors and save changes to notify them.",
+				"PLAN-BLUEPRINT-REMOVE-USER": "Remove Editor",
+				"PLAN-BLUEPRINT-NO-USERS-YET": "... No editors yet",
+				"PLAN-BLUEPRINT-VALIDATE-AND-ADD-USER": "Validate and Add Editor",
+				"PLAN-BLUEPRINT-DESCRIPTION-PLACEHOLDER": "Template description",
+				"UNTITLED": "Untitled",
+				"QUESTION": "Question",
+				"TEMPLATE-OUTLINE": "Template outline",
+				"USERS": {
+					"NAME": "Name",
+					"ROLE": "Role"
+				},
+				"DOCX-TEMPLATE": "DOCX template",
+				"DOCX-TEMPLATE-HINT":  "Upload a DOCXtemplate (optional)."
+			},
+			"FORM": {
+				"TITLE": "Form Description",
+				"SECTION": {
+					"FIELDS": {
+						"DESCRIPTION": "Description"
+					}
+				}
+			},
+			"TOOLKIT": {
+				"GENERAL-TOOLS": "Questions tools",
+				"NEW-INPUT-SET": "Add Question",
+				"CLONE": "Clone",
+				"DELETE": "Delete"
+			}
 		},
 		"ACTIONS": {
 			"ADD-FIELD": "Add field",
@@ -2085,7 +2235,11 @@
 			"DOWNLOAD-XML": "XML İndir",
 			"UPLOAD": "Upload",
 			"DOWNLOAD": "Download",
-            "ENABLE-REORDERING": "Enable field reordering"
+            "ENABLE-REORDERING": "Enable field reordering",
+			"PREVIEW-AND-FINALIZE": "Preview & Finalize",
+			"PREVIEW": "Preview",
+            "SCROLL": "SCROLL",
+			"BACK-TO-TOP": "Back to top"
 		},
 		"LOCKED-DIALOG": {
 			"TITLE": "Plan Blueprint is locked",
@@ -2175,7 +2329,8 @@
 			"REVERSE": "Undo Finalization",
 			"LOCKED": "Locked",
 			"ANNOTATIONS": "Comment",
-			"COPY-LINK":"Copy Link"
+			"COPY-LINK":"Copy Link",
+            "GO-TO-USER-POSITION": "Go to user's position"
 		},
 		"PLACEHOLDER": {
 			"DESCRIPTION": "Açıklamaları Doldur",
@@ -2203,7 +2358,11 @@
 		"LOCKED-DIALOG": {
 			"TITLE": "Plan is locked",
 			"MESSAGE": "Somebody else is modifying the Plan at this moment. You may view the Plan but you cannot make any changes."
-		}
+		},
+		"FORM-VALIDATION-DISPLAY-DIALOG": {
+			"PLAN-OWNER-NOT-FOUND": "The plan cannot be saved without an assigned owner for all sections."
+		},
+		"DELETE-YOURSELF-FROM-ENTIRE-PLAN": "Your changes do not include you in the plan. If you proceed, you will no longer have access afterward."
 	},
 	"BENCHMARK-DIALOG": {
 		"TITLE": "Select the benchmarks you want for the evaluation.",
@@ -2234,13 +2393,34 @@
 			"INSERT-MANUALLY": "Insert it manually"
 		},
 		"REFERENCE-DIALOG-EDITOR": {
-			"TITLE": "Add ",
-			"IDENTIFIER-EXISTS": "Reference Identifier Exists!",
-			"REFERENCE-ID": "reference id",
-			"LABEL": "label",
-			"DESCRIPTION": "description",
+			"TITLE": "Add a New {{ReferenceTypeName}} Reference",
+			"IDENTIFIER-EXISTS": "Reference Already Exists",
+			"IDENTIFIER-EXISTS-MESSAGE": "A reference with this identifier already exists in the system. You can continue with the existing data or view its details before deciding.",
+			"IDENTIFIER-AVAILABLE": "This identifier is available",
+			"IDENTIFIER-EXISTS-INFO": "The Reference ID ensures each {{ReferenceTypeName}} record is unique and traceable to external systems.",
+			"REFERENCE-ID": "Unique Identifier",
+			"REFERENCE-ID-HINT": "Enter a unique ID from an external source (e.g., DOI, ORCID, or another system’s ID)",
+			"LABEL": "Name",
+			"LABEL-HINT": "Enter the official name of the external reference",
+			"DESCRIPTION": "Additional Information",
+			"DESCRIPTION-HINT": "Add any extra details that may help identify this external reference",
 			"SYSTEM-INFORMATION": "System Information",
-			"TYPE-INFORMATION": " Information"
+			"TYPE-INFORMATION": " Information",
+			"LOADING": "Loading ...",
+			"VIEW-DETAILS": "View Details",
+			"SELECT-EXISTING-REFERENCE": "Continue with this"
+		},
+		"REFERENCE-FIELD-INFO-DIALOG": {
+			"INFO-MESSAGE": "Information",
+			"SYSTEM-INFORMATION": "System Information",
+			"TYPE-INFORMATION": " Information",
+			"FIELDS": {
+				"LABEL": "Name",
+				"DESCRIPTION": "Additional Information",
+				"REFERENCE-ID": "Unique Identifier",
+				"SOURCE": "Source"
+			},
+			"SELECT": "Select"
 		}
 	},
 	"PLAN-CLONE-DIALOG": {
@@ -2467,6 +2647,10 @@
 			"FINALIZED": "Finalized",
 			"DRAFT": "Draft"
 		},
+		"PLAN-BLUEPRINT-TYPE-STATUS": {
+			"FINALIZED": "Finalized",
+			"DRAFT": "Draft"
+		},
 		"PLAN-BLUEPRINT-STATUS": {
 			"FINALIZED": "Finalized",
 			"DRAFT": "Draft"
@@ -2563,7 +2747,13 @@
 			"PLAN-EVALUATION": "Plan Evaluated",
 			"DESCRIPTION-EVALUATION": "Description Evaluated",
 			"TAGGED-PLAN-ANNOTATION-CREATED": "Tagged Plan Annotation Created",
-			"TAGGED-DESCRIPTION-ANNOTATION-CREATED": "Tagged Description Annotation Created"
+			"TAGGED-DESCRIPTION-ANNOTATION-CREATED": "Tagged Description Annotation Created",
+			"PLAN-CREATED-SUGGESTION": "Plan Created Suggestion",
+			"PLAN-UPDATED-SUGGESTION": "Plan Updated Suggestion",
+			"PLAN-ACCESS-REMOVED": "Plan Access Removed",
+			"PLAN-USER-ROLE-CHANGED": "Plan Role Changed",
+			"PLAN-USER-ROLE-CREATED": "Plan Role Added",
+			"PLAN-USER-ROLE-REMOVED": "Plan Role Removed"
 		},
 		"NOTIFICATION-INAPP-TRACKING": {
 			"STORED": "Unread",
@@ -2612,7 +2802,8 @@
 		"PREFILLING-SOURCE-SYSTEM-TARGET-TYPE": {
 			"LABEL": "Label",
 			"DESCRIPTION": "Description",
-			"TAGS": "Tags"
+			"TAGS": "Tags",
+			"NONE":"None"
 		},
 		"LOCK-TARGET-TYPE": {
 			"PLAN": "Plan",
@@ -2625,6 +2816,7 @@
 			"PLAN-COUNT": "Plans",
 			"PLAN-STATUS-COUNT": "Plan Statuses",
 			"BLUEPRINT-COUNT": "Plan Blueprints",
+			"BLUEPRINT-TYPE-COUNT": "Plan Blueprint Types",
 			"DESCRIPTION-COUNT": "Descriptions",
 			"DESCRIPTION-STATUS-COUNT": "Description Statuses",
 			"DESCRIPTION-TEMPLATE-COUNT": "Description Templates",
@@ -2992,6 +3184,49 @@
 			"CLEAR": "Clear",
 			"PICK": "Pick one"
 		}
-	}
+	},
+        "consentModal": {
+        "title": "This website uses cookies",
+        "description": "Our website uses essential cookies to ensure its proper operation and tracking cookies to understand how you interact with it. The latter will be set only after consent.",
+        "acceptAllBtn": "Accept",
+        "acceptNecessaryBtn": "Reject",
+        "showPreferencesBtn": "Manage preferences"
+    },
+    "preferencesModal": {
+        "title": "Manage cookie preferences",
+        "acceptAllBtn": "Accept all",
+        "acceptNecessaryBtn": "Reject all",
+        "savePreferencesBtn": "Save preferences",
+        "closeIconLabel": "Close modal",
+        "sections": [
+            {
+                "title": "Your cookie preferences",
+                "description": ""
+            },
+            {
+                "title": "Strictly necessary cookies",
+                "description": "These cookies are essential for the proper functioning of this website. Without these cookies, this website would not work properly. <ul class=\"unstyled-list info-grid pt-2\"><div><b>Name</b></div><div>cc_cookie</div><div><b>Description</b></div><div>This cookie holds user cookies consent info.</div><div><b>Provider</b></div><div>OpenAIRE Argos</div><div><b>Expiration</b></div><div>365 days</div></ul><ul class=\"unstyled-list info-grid pt-3\"><div><b>Name</b></div><div>AUTH_SESSION_ID, KEYCLOAK_IDENTITY, KEYCLOAK_SESSION</div><div><b>Description</b></div><div>These cookies holds the authenticated (currently logged in) user info.</div><div><b>Provider</b></div><div>OpenAIRE Argos</div><div><b>Expiration</b></div><div>Session end - up to 8 hours</div></ul>",
+                "linkedCategory": "necessary"
+            },
+            {
+                "title": "Preference cookies",
+                "description": "These cookies helps us to improve your online experience, and store some of your preferences.",
+                "linkedCategory": "functionality"
+            },
+            {
+                "title": "Analytical cookies",
+                "description": "These cookies collect information about how you use the website, which pages you visited and which links you clicked on. All of the data is anonymized and cannot be used to identify you.",
+                "linkedCategory": "analytics"
+            },
+            {
+                "title": "Your consent details",
+                "description": "<p>last consent: <span id=\"last-consent-timestamp\">-</span></p>"
+            },
+            {
+                "title": "More information",
+                "description": "Please note that if you delete cookies or refuse to accept them, you might not be able to use all of the features we offer, you may not be able to store your preferences, and some of our pages might not display properly."
+            }
+        ]
+    }
 }
 

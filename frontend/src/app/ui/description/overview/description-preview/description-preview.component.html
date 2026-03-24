@@ -1,0 +1,211 @@
+@if(description()?.descriptionTemplate?.definition?.pages?.length){
+  <div class="row">
+    <div class="col-12 header">
+      {{'DESCRIPTION-OVERVIEW.ACTIONS.PREVIEW' | translate}}
+    </div>
+    <div class="col-12">
+      @for (page of description().descriptionTemplate.definition?.pages; track page; let pageIndex = $index) {
+        <div class="templateContainer" [id]="'blueprint-section-' +sectionIndex +'-template-'+templateIndex+ '-page-'+pageIndex">
+          <mat-expansion-panel class="unstyled" [togglePosition]="'before'" [expanded]="false">
+            <mat-expansion-panel-header>
+              <mat-panel-title>
+                <h5 class="page-title pb-0">
+                  {{(pageIndex + 1) + '. ' + page.title}}
+                </h5>
+              </mat-panel-title>
+            </mat-expansion-panel-header>
+            <ng-container *ngTemplateOutlet="descriptionSectionTemplate; context: { path:(pageIndex + 1) , sections: page.sections }"></ng-container>
+          </mat-expansion-panel>
+        </div>
+      }
+    </div>
+  </div>
+}
+
+<ng-template #descriptionSectionTemplate let-path="path" let-sections="sections">
+  @for (section of sections ; track section; let sectionIndex = $index) {
+    <div class="p-1 page-section">
+      @if(visibilityRulesService.isVisibleMap[section.id]){
+        <mat-expansion-panel class="unstyled" [togglePosition]="'before'" [expanded]="false">
+          <mat-expansion-panel-header>
+            <mat-panel-title>
+              <div>{{path + '.' + (sectionIndex + 1) + '. ' + section.title}} </div>
+            </mat-panel-title>
+          </mat-expansion-panel-header>
+          @if (section.description) {
+            <small class="p-1"
+              [innerHTML]="section.description">
+            </small>
+          }
+          @for (field of section.fieldSets ; track field; let fieldIndex = $index) {
+            <div class="p-1">
+              @if(visibilityRulesService.isVisibleMap[field.id] ?? true){
+                <ng-container
+                  *ngTemplateOutlet="sectionFieldSetTemplate; context: { fieldSet: field, path: path + '.' + (sectionIndex + 1) + '.' + (fieldIndex + 1) }"
+                ></ng-container>
+              }
+            </div>
+          }
+          @if (section.sections) {
+            <ng-container
+              *ngTemplateOutlet="descriptionSectionTemplate; context: { path: path + '.' + (sectionIndex + 1), sections: section.sections }"
+            ></ng-container>
+          }
+        </mat-expansion-panel>
+      }
+    </div>
+  }
+</ng-template>
+
+<ng-template #sectionFieldSetTemplate let-fieldSet="fieldSet" let-path="path">
+  <div class="field-set-title align-items-center d-flex gap-1-rem">
+    <div  class="font-weight-bold">{{path + '. ' + fieldSet.title}} </div>
+    @if (fieldSet.additionalInformation) {
+      <mat-icon class="info-icon" matTooltip="{{fieldSet.additionalInformation}}">info</mat-icon>
+    }
+  </div>
+  <div class="d-flex flex-column p-1">
+    @if (fieldSet.description) {
+      <small
+        [innerHTML]="fieldSet.description">
+      </small>
+    }
+    @if (fieldSet.extendedDescription) {
+      <small><app-toggle-show-text [innerHTML]="fieldSet.extendedDescription" [showPreview]="false"/></small>
+    }
+  </div>
+  @let properties = description().properties.fieldSets[fieldSet.id];
+  @if(!fieldSet.multiplicity?.tableView){
+    @for (item of properties.items; track item; let i = $index) {
+      @if (visibilityRulesService && visibilityRulesService.isVisibleMap[fieldSet.id + '_' + item.ordinal] ?? true) {
+        <div class="pl-2 d-flex flex-column gap-half-rem">
+          @for (field of fieldSet.fields; track field; let i = $index) {
+            @if (visibilityRulesService && visibilityRulesService.isVisibleMap[field.id + '_' + item.ordinal.value] ?? true) {
+              <div >
+                <ng-container
+                  *ngTemplateOutlet="formFieldValueTemplate; context: { path: path + '.' + i, properties: item.fields, field: field, fieldSet}"
+                ></ng-container>
+              </div>
+            }
+          }
+        </div>
+      }
+    }
+    }@else {
+    <table class="table table-bordered" id="field-table" style="table-layout: fixed">
+      <tr>
+        @for (field of fieldSet.fields; track field; let i = $index) {
+          <th class="text-truncated">
+            @if (field?.data?.fieldType !== descriptionTemplateFieldType.REFERENCE_TYPES) {
+              {{field.data?.label}}
+            } @else {
+              {{field.data?.label != null && field.data?.label != '' ? field.data?.label: field.data?.referenceType?.name }}
+            }
+          </th>
+        }
+      </tr>
+      @if(properties?.items?.length){
+        @let fieldValueMapArray = initFieldSetValues | invokeMemoized: fieldSet | async;
+        @for(item of properties.items; track $index; let j = $index){
+          @if (visibilityRulesService && visibilityRulesService.isVisibleMap[fieldSet.id + '_' + item.ordinal] ?? true) {
+            <tr
+              >
+              @let fieldValueMap = fieldValueMapArray[j];
+              @for(field of fieldSet?.fields; track field.id){
+                <td class="text-wrap table-field">
+                  @if (fieldValueMap && visibilityRulesService && visibilityRulesService.isVisibleMap[field.id + '_' + item.ordinal] ?? true) {
+                    @if(field?.data?.fieldType == descriptionTemplateFieldType.RICH_TEXT_AREA){
+                      <span [innerHTML]="fieldValueMap.get(field.id)"></span>
+                    } @else {
+                      {{ fieldValueMap.get(field.id) }}
+                    }
+                  }
+                </td>
+              }
+            </tr>
+          }
+        }
+      }
+    </table>
+  }
+</ng-template>
+
+<ng-template #formFieldValueTemplate let-properties="properties" let-path="path" let-field="field" let-fieldSet="fieldSet">
+  @let values = properties?.[field.id];
+  @if (field.data?.label) {
+    <div>
+      <small class="mb-2">{{field.data.label}}</small>
+    </div>
+  }
+  @switch(field.data?.fieldType){
+    @case(descriptionTemplateFieldType.SELECT){
+      @if(field.data.multipleSelect){
+        {{values?.textListValue?.join(', ') ?? '-'}}
+        }@else{
+        {{values?.textValue ?? '-'}}
+      }
+    }
+    @case(descriptionTemplateFieldType.REFERENCE_TYPES){
+      {{getLabels(values?.references) ?? '-'}}
+    }
+    @case(descriptionTemplateFieldType.INTERNAL_ENTRIES_DESCRIPTIONS){
+      @if (!isAuthenticated()) {
+        <span style="font-style: italic;">{{ 'DESCRIPTION-OVERVIEW.VIEW-INTERNAL-DESCRIPTION-MESSAGE-FOR-ANONYMOUS-USERS' | translate }}</span>
+        }@else if(field.data.multipleSelect){
+        @for(id of values?.textListValue; track $index; let last = $last){
+          {{(id | descriptionAsync | async)?.label}}
+          @if(!last){
+            <br/>
+          }
+        }
+        }@else{
+        {{values?.textValue | descriptionAsync | async}}?.label
+      }
+    }
+    @case(descriptionTemplateFieldType.INTERNAL_ENTRIES_PLANS){
+      @if (!isAuthenticated()) {
+        <span style="font-style: italic;">{{ 'DESCRIPTION-OVERVIEW.VIEW-INTERNAL-PLAN-MESSAGE-FOR-ANONYMOUS-USERS' | translate }}</span>
+        }@else if(field.data.multipleSelect){
+        @for(id of values?.textListValue; track $index; let last = $last){
+          {{(id | planAsync | async)?.label}}
+          @if(!last){
+            <br/>
+          }
+        }
+        }@else{
+        {{values?.textValue | planAsync | async}}?.label
+      }
+    }
+    @case(descriptionTemplateFieldType.CHECK_BOX){
+      {{('COMMONS.ACTIONS.BOOLEAN.' + values?.booleanValue ? 'YES' : 'NO') | translate}}
+    }
+    @case(descriptionTemplateFieldType.BOOLEAN_DECISION){
+      {{('COMMONS.ACTIONS.BOOLEAN.' + values?.booleanValue ? 'YES' : 'NO') | translate}}
+    }
+    @case(descriptionTemplateFieldType.RICH_TEXT_AREA){
+      <span [innerHTML]="values?.textValue"></span>
+    }
+    @case(descriptionTemplateFieldType.UPLOAD){
+      @if (values?.textValue != null && !isAuthenticated()) {
+        <span style="font-style: italic;">{{ 'DESCRIPTION-OVERVIEW.VIEW-FILE-MESSAGE-FOR-ANONYMOUS-USERS' | translate }}</span>
+        }@else {
+        <span>{{values?.textValue | fileAsync | async}}</span>
+      }
+    }
+    @case(descriptionTemplateFieldType.DATE_PICKER){
+      {{values?.dateValue ? (values.dateValue | dateTimeFormatter: 'shortDate')  : '-'}}
+    }
+    @case(descriptionTemplateFieldType.TAGS){
+      {{getLabels(values?.tags) ?? '-'}}
+    }
+    @case(descriptionTemplateFieldType.DATASET_IDENTIFIER){
+      {{values?.externalIdentifier?.identifier}} [{{values?.externalIdentifier?.type}}]
+    }
+    @case(descriptionTemplateFieldType.VALIDATION){
+      {{values?.externalIdentifier?.identifier}} [{{values?.externalIdentifier?.type}}]
+    }
+    @default{
+      {{values?.textValue ?? '-'}}
+    }
+  }
+</ng-template>

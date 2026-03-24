@@ -162,15 +162,15 @@ public class PlanPersist {
         private final MessageSource messageSource;
 
         private final ValidatorFactory validatorFactory;
-        private final TenantEntityManager entityManager;
+        private final TenantEntityManagerFactory tenantEntityManagerFactory;
         private final XmlHandlingService xmlHandlingService;
         private final QueryFactory queryFactory;
 
-        protected PlanPersistValidator(ConventionService conventionService, ErrorThesaurusProperties errors, MessageSource messageSource, ValidatorFactory validatorFactory, TenantEntityManager entityManager, XmlHandlingService xmlHandlingService, QueryFactory queryFactory) {
+        protected PlanPersistValidator(ConventionService conventionService, ErrorThesaurusProperties errors, MessageSource messageSource, ValidatorFactory validatorFactory, TenantEntityManagerFactory tenantEntityManagerFactory, XmlHandlingService xmlHandlingService, QueryFactory queryFactory) {
             super(conventionService, errors);
             this.messageSource = messageSource;
             this.validatorFactory = validatorFactory;
-            this.entityManager = entityManager;
+            this.tenantEntityManagerFactory = tenantEntityManagerFactory;
             this.xmlHandlingService = xmlHandlingService;
             this.queryFactory = queryFactory;
         }
@@ -185,8 +185,8 @@ public class PlanPersist {
             PlanBlueprintEntity planBlueprintEntity = null;
             PlanStatusEntity statusEntity = null;
             try {
-                planBlueprintEntity = this.isValidGuid(item.getBlueprint()) ? this.entityManager.find(PlanBlueprintEntity.class, item.getBlueprint(), true) : null;
-                statusEntity = this.isValidGuid(item.getStatusId()) ? this.entityManager.find(PlanStatusEntity.class, item.getStatusId(), true) : null;
+                planBlueprintEntity = this.isValidGuid(item.getBlueprint()) ? this.tenantEntityManagerFactory.getInstance().find(PlanBlueprintEntity.class, item.getBlueprint(), true) : null;
+                statusEntity = this.isValidGuid(item.getStatusId()) ? this.tenantEntityManagerFactory.getInstance().find(PlanStatusEntity.class, item.getStatusId(), true) : null;
             } catch (InvalidApplicationException e) {
                 throw new RuntimeException(e);
             }

@@ -20,6 +20,7 @@ import org.opencdmp.commonmodels.models.user.UserModel;
 import org.opencdmp.commons.JsonHandlingService;
 import org.opencdmp.commons.XmlHandlingService;
 import org.opencdmp.commons.enums.IsActive;
+import org.opencdmp.commons.scope.user.UserScopeFactory;
 import org.opencdmp.commons.types.plan.PlanPropertiesEntity;
 import org.opencdmp.commons.types.planblueprint.DefinitionEntity;
 import org.opencdmp.convention.ConventionService;
@@ -56,7 +57,8 @@ public class PlanCommonModelBuilder extends BaseCommonModelBuilder<PlanModel, Pl
     private final BuilderFactory builderFactory;
     private final JsonHandlingService jsonHandlingService;
     private final XmlHandlingService xmlHandlingService;
-    private final TenantEntityManager entityManager;
+    private final TenantEntityManagerFactory tenantEntityManagerFactory;
+    private final UserScopeFactory userScopeFactory;
     private FileEnvelopeModel pdfFile;
     private FileEnvelopeModel rdaJsonFile;
     private FileEnvelopeModel supportingFilesZip;
@@ -68,13 +70,14 @@ public class PlanCommonModelBuilder extends BaseCommonModelBuilder<PlanModel, Pl
     @Autowired
     public PlanCommonModelBuilder(ConventionService conventionService,
                                   QueryFactory queryFactory,
-                                  BuilderFactory builderFactory, JsonHandlingService jsonHandlingService, XmlHandlingService xmlHandlingService, TenantEntityManager entityManager) {
+                                  BuilderFactory builderFactory, JsonHandlingService jsonHandlingService, XmlHandlingService xmlHandlingService, TenantEntityManagerFactory tenantEntityManagerFactory, UserScopeFactory userScopeFactory) {
         super(conventionService, new LoggerService(LoggerFactory.getLogger(PlanCommonModelBuilder.class)));
         this.queryFactory = queryFactory;
         this.builderFactory = builderFactory;
 	    this.jsonHandlingService = jsonHandlingService;
         this.xmlHandlingService = xmlHandlingService;
-        this.entityManager = entityManager;
+        this.tenantEntityManagerFactory = tenantEntityManagerFactory;
+        this.userScopeFactory = userScopeFactory;
     }
 
     public PlanCommonModelBuilder authorize(EnumSet<AuthorizationFlags> values) {
@@ -184,7 +187,7 @@ public class PlanCommonModelBuilder extends BaseCommonModelBuilder<PlanModel, Pl
     }
 
     private String getPreviousDOI(UUID planGroup, UUID currentPlanId) {
-        if (this.repositoryId == null || this.repositoryId.isEmpty()) throw new MyApplicationException("repositoryId required");
+        if (this.repositoryId == null || this.repositoryId.isEmpty()) return null;
 
         //GK: Step one get the previous version of the Data management plan
         PlanQuery planQuery = this.queryFactory.query(PlanQuery.class).disableTracking();
@@ -205,6 +208,20 @@ public class PlanCommonModelBuilder extends BaseCommonModelBuilder<PlanModel, Pl
 
         Map<UUID, List<PlanUserModel>> itemMap;
         PlanUserQuery query = this.queryFactory.query(PlanUserQuery.class).disableTracking().isActives(IsActive.Active).planIds(data.stream().map(PlanEntity::getId).distinct().collect(Collectors.toList()));
+        if (this.isPublic) {
+            List<PlanUserEntity> planUsers = query.collect();
+            if (!this.conventionService.isListNullOrEmpty(planUsers)) {
+                List<UUID> planIdsThatUserIsMember = planUsers.stream()
+                        .filter(planUser -> this.userScopeFactory.getInstance().getUserIdSafe() != null && planUser.getUserId().equals(this.userScopeFactory.getInstance().getUserIdSafe()))
+                        .map(PlanUserEntity::getPlanId)
+                        .distinct()
+                        .toList();
+                if (!planIdsThatUserIsMember.isEmpty()) query.planIds(planIdsThatUserIsMember);
+                else return null;
+            } else {
+                return null;
+            }
+        }
         itemMap = this.builderFactory.builder(PlanUserCommonModelBuilder.class).authorize(this.authorize).asMasterKey(query, PlanUserEntity::getPlanId);
 
         return itemMap;
@@ -228,18 +245,18 @@ public class PlanCommonModelBuilder extends BaseCommonModelBuilder<PlanModel, Pl
         DescriptionQuery query = null;
         if (this.isPublic) {
             try {
-                this.entityManager.disableTenantFilters();
+                this.tenantEntityManagerFactory.getInstance().disableTenantFilters();
                 PlanStatusQuery statusQuery = this.queryFactory.query(PlanStatusQuery.class).disableTracking().internalStatuses(org.opencdmp.commons.enums.PlanStatus.Finalized).isActives(IsActive.Active);
                 query = this.queryFactory.query(DescriptionQuery.class).disableTracking().authorize(EnumSet.of(Public)).planIds(data.stream().map(PlanEntity::getId).distinct().collect(Collectors.toList())).planSubQuery(this.queryFactory.query(PlanQuery.class).isActive(IsActive.Active).planStatusSubQuery(statusQuery).accessTypes(org.opencdmp.commons.enums.PlanAccessType.Public));
                 itemMap = this.builderFactory.builder(DescriptionCommonModelBuilder.class).setRepositoryId(this.repositoryId).useSharedStorage(this.useSharedStorage).isPublic(this.isPublic).authorize(this.authorize).asMasterKey(query, DescriptionEntity::getPlanId);
                 try {
-                    this.entityManager.reloadTenantFilters();
+                    this.tenantEntityManagerFactory.getInstance().reloadTenantFilters();
                 } catch (InvalidApplicationException e) {
                     throw new RuntimeException(e);
                 }
             } finally {
                 try {
-                    this.entityManager.reloadTenantFilters();
+                    this.tenantEntityManagerFactory.getInstance().reloadTenantFilters();
                 } catch (InvalidApplicationException e) {
                     throw new RuntimeException(e);
                 }
@@ -270,6 +287,20 @@ public class PlanCommonModelBuilder extends BaseCommonModelBuilder<PlanModel, Pl
 
         Map<UUID, UserModel> itemMap;
         UserQuery q = this.queryFactory.query(UserQuery.class).disableTracking().disableTracking().isActive(IsActive.Active).authorize(this.authorize).ids(data.stream().filter(x-> x.getCreatorId() != null).map(PlanEntity::getCreatorId).distinct().collect(Collectors.toList()));
+        if (this.isPublic) {
+            List<PlanUserEntity> planUsers = this.queryFactory.query(PlanUserQuery.class).disableTracking().isActives(IsActive.Active).planIds(data.stream().map(PlanEntity::getId).distinct().collect(Collectors.toList())).collect();
+            if (!this.conventionService.isListNullOrEmpty(planUsers)) {
+                List<UUID> planIdsThatUserIsMember = planUsers.stream()
+                        .filter(planUser -> this.userScopeFactory.getInstance().getUserIdSafe() != null && planUser.getUserId().equals(this.userScopeFactory.getInstance().getUserIdSafe()))
+                        .map(PlanUserEntity::getPlanId)
+                        .distinct()
+                        .toList();
+                if (!planIdsThatUserIsMember.isEmpty()) {
+                    data = data.stream().filter(x -> planIdsThatUserIsMember.contains(x.getId())).toList();
+                    q.ids(data.stream().map(PlanEntity::getCreatorId).filter(Objects::nonNull).distinct().collect(Collectors.toList()));
+                } else return null;
+            } else return null;
+        }
         itemMap = this.builderFactory.builder(UserCommonModelBuilder.class).authorize(this.authorize).asForeignKey(q, UserEntity::getId);
         return itemMap;
     }

@@ -32,6 +32,8 @@ idpclient:
           filterBy: "(.*):::TenantCode::"
           extractByExpression: "(.*):(.*)"
           extractExpressionValue: "[[g1]]"
+      AllTenantRoles:
+        - type: tenant_roles
       Scope:
         - type: scope
       AccessToken:

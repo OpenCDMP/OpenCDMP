@@ -59,6 +59,8 @@ import { PlanBlueprintTocComponent } from './table-of-content/plan-blueprint-toc
 import { ReferenceType } from '@app/core/model/reference-type/reference-type';
 import { PlanEditorForm, PlanEditorModel } from '@app/ui/plan/plan-editor-blueprint/plan-editor.model';
 import { Plan } from '@app/core/model/plan/plan';
+import { PlanBlueprintTypeService } from '@app/core/services/plan-blueprint-type/plan-blueprint-type.service';
+import { PlanBlueprintTypeStatus } from '@app/core/common/enum/plan-blueprint-type-status';
 
 
 @Component({
@@ -82,6 +84,8 @@ export class PlanBlueprintEditorComponent extends BaseEditor<PlanBlueprintEditor
 	planBlueprintExtraFieldDataType = PlanBlueprintExtraFieldDataType;
 	public usedDescriptionTemplateGroupIdsBySection: Map<Guid, Guid[]> = new Map<Guid, Guid[]>;
 	public descriptionTemplateGroupIdsConfigBySection: Map<Guid, SingleAutoCompleteConfiguration> = new Map<Guid, SingleAutoCompleteConfiguration>;
+
+	singleAutocompletePlanBlueprintTypeConfiguration: SingleAutoCompleteConfiguration;
 
 	PlanBlueprintStatus = PlanBlueprintStatus;
 	isNew = true;
@@ -153,6 +157,10 @@ export class PlanBlueprintEditorComponent extends BaseEditor<PlanBlueprintEditor
 		return foundValue;
 	}
 
+	get plugins() {
+		return this.pluginConfigurationService.getAvailablePluginsFor(PluginType.FileTransformer, [PluginEntityType.Plan]);
+	}
+
 	constructor(
 		// BaseFormEditor injected dependencies
 		protected dialog: MatDialog,
@@ -174,6 +182,7 @@ export class PlanBlueprintEditorComponent extends BaseEditor<PlanBlueprintEditor
 		private planBlueprintEditorService: PlanBlueprintEditorService,
 		private fileUtils: FileUtils,
 		public descriptionTemplateService: DescriptionTemplateService,
+		public planBlueprintTypeService: PlanBlueprintTypeService,
 		public referenceTypeService: ReferenceTypeService,
 		public prefillingSourceService: PrefillingSourceService,
 		public titleService: Title,
@@ -206,6 +215,7 @@ export class PlanBlueprintEditorComponent extends BaseEditor<PlanBlueprintEditor
                 }
             }
         })
+		this.singleAutocompletePlanBlueprintTypeConfiguration = this.planBlueprintTypeService.getSingleAutocompleteConfiguration([PlanBlueprintTypeStatus.Finalized]);
 	}
 
 	private initModelFlags(action: string): void {
@@ -235,7 +245,7 @@ export class PlanBlueprintEditorComponent extends BaseEditor<PlanBlueprintEditor
 	prepareForm(data: PlanBlueprint) {
 		try {
 			this.fileMap.clear();
-            const pluginConfigurations = this.pluginConfigurationService.getAvailablePluginsFor(PluginType.FileTransformer, [PluginEntityType.Plan]);
+            const pluginConfigurations = this.plugins;
 			if (data == null) {
 				// initialize plugins
 				data = {
@@ -874,6 +884,7 @@ export class PlanBlueprintEditorComponent extends BaseEditor<PlanBlueprintEditor
                 ...formData,
                 version: 0,
                 groupId: null,
+				type: undefined,
                 definition: {
                     sections: formData.definition.sections.map((section) => { return {
                         ...section,

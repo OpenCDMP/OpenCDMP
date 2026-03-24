@@ -4,10 +4,10 @@
         display: flex;
         align-items: center;
         gap: 0.5rem;
-        background-color: var(--sys-primary);
-        color: var(--sys-on-primary);
+        background-color: var(--mat-sys-primary);
+        color: var(--mat-sys-on-primary);
         button {
-            color: var(--sys-on-primary);
+            color: var(--mat-sys-on-primary);
         }
 	}
 

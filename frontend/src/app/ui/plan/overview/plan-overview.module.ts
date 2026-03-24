@@ -15,6 +15,7 @@ import { PlanAuthorsComponent } from '../plan-authors/plan-authors.component';
 import { PlanEvaluationHistoryComponent } from '../listing/plan-evaluation-history/plan-evaluation-history.component';
 import { FileAsyncPipe } from '@app/core/pipes/file-async.pipe';
 import { BenchmarkDialogModule } from '@app/ui/evaluation/benchmark-dialog/benchmark-dialog.module';
+import { PlanActiveUsersComponent } from '../plan-active-users/plan-active-users.component';
 
 @NgModule({
 	imports: [
@@ -30,7 +31,8 @@ import { BenchmarkDialogModule } from '@app/ui/evaluation/benchmark-dialog/bench
 		PlanFinalizeDialogModule,
         PlanAuthorsComponent,
         PlanEvaluationHistoryComponent,
-        FileAsyncPipe
+        FileAsyncPipe,
+        PlanActiveUsersComponent
 	],
 	declarations: [
 		PlanOverviewComponent,

@@ -73,10 +73,6 @@ public class DescriptionCommonModelConfig {
                             .must(() -> !this.isEmpty(item.getId()))
                             .failOn(DescriptionCommonModelConfig._id).failWith(this.messageSource.getMessage("Validation_Required", new Object[]{DescriptionCommonModelConfig._id}, LocaleContextHolder.getLocale())),
                     this.spec()
-                            .iff(() -> !this.isEmpty(item.getId()))
-                            .must(() -> this.isValidGuid(UUID.fromString(item.getId())))
-                            .failOn(DescriptionCommonModelConfig._id).failWith(this.messageSource.getMessage("Validation_Required", new Object[]{DescriptionCommonModelConfig._id}, LocaleContextHolder.getLocale())),
-                    this.spec()
                             .must(() -> this.isValidGuid(item.getSectionId()))
                             .failOn(DescriptionCommonModelConfig._sectionId).failWith(this.messageSource.getMessage("Validation_Required", new Object[]{DescriptionCommonModelConfig._sectionId}, LocaleContextHolder.getLocale())),
                     this.spec()

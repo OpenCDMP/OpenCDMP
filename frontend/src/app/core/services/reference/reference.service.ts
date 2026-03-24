@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { IsActive } from '@app/core/common/enum/is-active.enum';
 import { ReferenceSourceType } from '@app/core/common/enum/reference-source-type';
 import { PlanReference } from '@app/core/model/plan/plan-reference';
-import { Definition, Field, Reference, ReferencePersist } from '@app/core/model/reference/reference';
+import { Definition, Field, Reference, ReferenceExist, ReferencePersist } from '@app/core/model/reference/reference';
 import { ReferenceSearchDefinitionLookup, ReferenceSearchLookup } from '@app/core/query/reference-search.lookup';
 import { ReferenceLookup } from '@app/core/query/reference.lookup';
 import { MultipleAutoCompleteConfiguration } from '@app/library/auto-complete/multiple/multiple-auto-complete-configuration';
@@ -48,12 +48,12 @@ export class ReferenceService {
 		return this.http.post<Reference[]>(url, q).pipe(catchError((error: any) => throwError(error)));
 	}
 
-	findReference(reference: string, referenceTypeId: Guid): Observable<Boolean> {
+	findReference(reference: string, referenceTypeId: Guid, reqFields: string[] = []): Observable<ReferenceExist> {
 
 		const url = `${this.apiBase}/find/${referenceTypeId}`;
-		const options = { params: { reference: reference } };
+		const options = { params: { reference: reference, f: reqFields } };
 
-		return this.http.get<Boolean>(url, options).pipe(catchError((error: any) => throwError(error)));
+		return this.http.get<ReferenceExist>(url, options).pipe(catchError((error: any) => throwError(error)));
 	}
 
 	getSingle(id: Guid, reqFields: string[] = []): Observable<Reference> {
@@ -137,6 +137,8 @@ export class ReferenceService {
 			titleFn: (item: Reference) => item.label,
 			valueAssign: (item: Reference) => item,
 			uniqueAssign: (item: Reference) => item.source + '_' + item.reference,
+			popupItemActionIcon: 'info',
+			popupSelectedItemActionIcon: 'info'
 		};
 	};
 
@@ -149,6 +151,8 @@ export class ReferenceService {
 			subtitleFn: (item: Reference) => item?.sourceType === ReferenceSourceType.External ? this.language.instant('REFERENCE-FIELD-COMPONENT.EXTERNAL-SOURCE') + ': ' + item.source : this.language.instant('REFERENCE-FIELD-COMPONENT.INTERNAL-SOURCE'),
 			valueAssign: (item: Reference) => item,
 			uniqueAssign: (item: Reference) => item.source + '_' + item.reference,
+			popupItemActionIcon: 'info',
+			popupSelectedItemActionIcon: 'info'
 		};
 	}
 
@@ -237,15 +241,16 @@ export class ReferenceService {
 	//
 	//
 
-	hasRerefenceOfTypes(planReferences: PlanReference[], referenceTypeIds?: Guid[]): boolean {
-		return this.getReferencesForTypes(planReferences, referenceTypeIds)?.length > 0;
+	hasRerefenceOfTypes(planReferences: PlanReference[], onlyActive: boolean, referenceTypeIds?: Guid[]): boolean {
+		return this.getReferencesForTypes(planReferences, onlyActive, referenceTypeIds)?.length > 0;
 	}
 
-	getReferencesForTypes(planReferences: PlanReference[], referenceTypeIds?: Guid[]): PlanReference[] {
+	getReferencesForTypes(planReferences: PlanReference[], onlyActive: boolean, referenceTypeIds?: Guid[]): PlanReference[] {
+		if (onlyActive) planReferences?.filter(x => x.isActive === IsActive.Active && referenceTypeIds?.includes(x?.reference?.type?.id));
 		return planReferences?.filter(x => referenceTypeIds?.includes(x?.reference?.type?.id));
 	}
 
-	getReferencesForTypesFirstSafe(planReferences: PlanReference[], referenceTypeIds?: Guid[]): PlanReference {
-		return this.getReferencesForTypes(planReferences, referenceTypeIds)?.find(Boolean);
+	getReferencesForTypesFirstSafe(planReferences: PlanReference[], onlyActive: boolean, referenceTypeIds?: Guid[]): PlanReference {
+		return this.getReferencesForTypes(planReferences, onlyActive, referenceTypeIds)?.find(Boolean);
 	}
 }

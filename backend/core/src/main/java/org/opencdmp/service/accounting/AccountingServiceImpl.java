@@ -1,8 +1,7 @@
 package org.opencdmp.service.accounting;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import org.opencdmp.data.TenantEntityManagerFactory;
+import org.springframework.http.codec.json.JacksonJsonDecoder;
 import gr.cite.commons.web.oidc.filter.webflux.TokenExchangeCacheService;
 import gr.cite.commons.web.oidc.filter.webflux.TokenExchangeFilterFunction;
 import gr.cite.commons.web.oidc.filter.webflux.TokenExchangeModel;
@@ -12,13 +11,12 @@ import gr.cite.tools.logging.LoggerService;
 import gr.cite.tools.logging.MapLogEntry;
 import gr.cite.tools.validation.ValidatorFactory;
 import org.opencdmp.commons.enums.UsageLimitPeriodicityRange;
-import org.opencdmp.commons.enums.UsageLimitTargetMetric;
 import org.opencdmp.commons.enums.accounting.AccountingAggregateType;
 import org.opencdmp.commons.enums.accounting.AccountingDataRangeType;
 import org.opencdmp.commons.enums.accounting.AccountingMeasureType;
 import org.opencdmp.commons.enums.accounting.AccountingValueType;
-import org.opencdmp.commons.scope.tenant.TenantScope;
-import org.opencdmp.commons.scope.user.UserScope;
+import org.opencdmp.commons.scope.tenant.TenantScopeFactory;
+import org.opencdmp.commons.scope.user.UserScopeFactory;
 import org.opencdmp.commons.types.accounting.AccountingSourceEntity;
 import org.opencdmp.commons.types.usagelimit.DefinitionEntity;
 import org.opencdmp.convention.ConventionService;
@@ -34,12 +32,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.http.MediaType;
-import org.springframework.http.codec.json.Jackson2JsonDecoder;
-import org.springframework.http.codec.json.Jackson2JsonEncoder;
+import org.springframework.http.codec.json.JacksonJsonEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.ExchangeFilterFunction;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
+import tools.jackson.databind.cfg.DateTimeFeature;
+import tools.jackson.databind.json.JsonMapper;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
@@ -57,28 +56,30 @@ public class AccountingServiceImpl implements AccountingService {
     private static final LoggerService logger = new LoggerService(LoggerFactory.getLogger(AccountingServiceImpl.class));
     private final QueryFactory queryFactory;
     private final AccountingEntryCreatedIntegrationEventHandler accountingEntryCreatedIntegrationEventHandler;
-    private final UserScope userScope;
-    private final TenantScope tenantScope;
+    private final UserScopeFactory userScopeFactory;
+    private final TenantScopeFactory tenantScopeFactory;
     private final MessageSource messageSource;
     private final ConventionService conventionService;
     private final TokenExchangeCacheService tokenExchangeCacheService;
     private final AccountingProperties accountingProperties;
     private final ValidatorFactory validatorFactory;
+    private final TenantEntityManagerFactory tenantEntityManagerFactory;
 
     private final Boolean isEnabled;
 
     @Autowired
     public AccountingServiceImpl(
-            QueryFactory queryFactory, AccountingEntryCreatedIntegrationEventHandler accountingEntryCreatedIntegrationEventHandler, UserScope userScope, TenantScope tenantScope, MessageSource messageSource, ConventionService conventionService, TokenExchangeCacheService tokenExchangeCacheService, AccountingProperties accountingProperties, ValidatorFactory validatorFactory) {
+            QueryFactory queryFactory, AccountingEntryCreatedIntegrationEventHandler accountingEntryCreatedIntegrationEventHandler, UserScopeFactory userScopeFactory, TenantScopeFactory tenantScopeFactory, MessageSource messageSource, ConventionService conventionService, TokenExchangeCacheService tokenExchangeCacheService, AccountingProperties accountingProperties, ValidatorFactory validatorFactory, TenantEntityManagerFactory tenantEntityManagerFactory) {
         this.queryFactory = queryFactory;
         this.accountingEntryCreatedIntegrationEventHandler = accountingEntryCreatedIntegrationEventHandler;
-        this.userScope = userScope;
-        this.tenantScope = tenantScope;
+        this.userScopeFactory = userScopeFactory;
+        this.tenantScopeFactory = tenantScopeFactory;
         this.messageSource = messageSource;
         this.conventionService = conventionService;
         this.tokenExchangeCacheService = tokenExchangeCacheService;
         this.accountingProperties = accountingProperties;
         this.validatorFactory = validatorFactory;
+        this.tenantEntityManagerFactory = tenantEntityManagerFactory;
         this.isEnabled = this.accountingProperties.getEnabled();
     }
 
@@ -95,8 +96,8 @@ public class AccountingServiceImpl implements AccountingService {
                         exchangeFilterFunctions.add(logRequest());
                         exchangeFilterFunctions.add(logResponse());
                     }).codecs(codecs -> {
-                        codecs.defaultCodecs().jackson2JsonDecoder(new Jackson2JsonDecoder(new ObjectMapper().configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false).registerModule(new JavaTimeModule()), MediaType.APPLICATION_JSON));
-                        codecs.defaultCodecs().jackson2JsonEncoder(new Jackson2JsonEncoder(new ObjectMapper().configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false).registerModule(new JavaTimeModule()), MediaType.APPLICATION_JSON));
+                        codecs.defaultCodecs().jacksonJsonDecoder(new JacksonJsonDecoder(JsonMapper.builder().disable(DateTimeFeature.WRITE_DATES_AS_TIMESTAMPS).build()));
+                        codecs.defaultCodecs().jacksonJsonEncoder(new JacksonJsonEncoder(JsonMapper.builder().disable(DateTimeFeature.WRITE_DATES_AS_TIMESTAMPS).build()));
                     }).build();
             AccountingClientImpl accounting = new AccountingClientImpl(webClient);
             return accounting;
@@ -164,7 +165,7 @@ public class AccountingServiceImpl implements AccountingService {
             lookup.setActionCodes(List.of(metric));
 
             try {
-                lookup.setResourceCodes(List.of(this.tenantScope.getTenantCode() != null ? this.tenantScope.getTenantCode() : this.tenantScope.getDefaultTenantCode()));
+                lookup.setResourceCodes(List.of(this.tenantScopeFactory.getInstance().getTenantCode() != null ? this.tenantScopeFactory.getInstance().getTenantCode() : this.tenantScopeFactory.getInstance().getDefaultTenantCode()));
             } catch (InvalidApplicationException e) {
                 throw new RuntimeException(e);
             }
@@ -197,7 +198,7 @@ public class AccountingServiceImpl implements AccountingService {
         if (this.isEnabled) {
             String subjectId = this.getSubjectId();
 
-            this.accountingEntryCreatedIntegrationEventHandler.handleAccountingEntry(metric, AccountingValueType.Reset, subjectId, tenantId, tenantCode, value, this.userScope.getUserIdSafe());
+            this.accountingEntryCreatedIntegrationEventHandler.handleAccountingEntry(metric, AccountingValueType.Reset, subjectId, tenantId, tenantCode, value, this.userScopeFactory.getInstance().getUserIdSafe());
         }
     }
 
@@ -205,7 +206,18 @@ public class AccountingServiceImpl implements AccountingService {
         if (this.isEnabled) {
             String subjectId = this.getSubjectId();
 
-            this.accountingEntryCreatedIntegrationEventHandler.handleAccountingEntry(metric, AccountingValueType.Plus, subjectId, this.tenantScope.getTenant(), this.tenantScope.getTenantCode() != null ? this.tenantScope.getTenantCode() : this.tenantScope.getDefaultTenantCode(), 1, this.userScope.getUserIdSafe());
+            this.accountingEntryCreatedIntegrationEventHandler.handleAccountingEntry(metric, AccountingValueType.Plus, subjectId, this.tenantScopeFactory.getInstance().getTenant(), this.tenantScopeFactory.getInstance().getTenantCode() != null ? this.tenantScopeFactory.getInstance().getTenantCode() : this.tenantScopeFactory.getInstance().getDefaultTenantCode(), 1, this.userScopeFactory.getInstance().getUserIdSafe());
+        }
+    }
+
+    public void increase(String metric, Boolean useDefaultTenantCode) throws InvalidApplicationException {
+        if (this.isEnabled) {
+            if (useDefaultTenantCode) {
+                String subjectId = this.getSubjectId();
+                this.accountingEntryCreatedIntegrationEventHandler.handleAccountingEntry(metric, AccountingValueType.Plus, subjectId, null, this.tenantScopeFactory.getInstance().getDefaultTenantCode(), 1, this.userScopeFactory.getInstance().getUserIdSafe());
+                return;
+            }
+            this.increase(metric);
         }
     }
 
@@ -213,15 +225,35 @@ public class AccountingServiceImpl implements AccountingService {
         if (this.isEnabled) {
             String subjectId = this.getSubjectId();
 
-            this.accountingEntryCreatedIntegrationEventHandler.handleAccountingEntry(metric, AccountingValueType.Minus, subjectId, this.tenantScope.getTenant(), this.tenantScope.getTenantCode() != null ? this.tenantScope.getTenantCode() : this.tenantScope.getDefaultTenantCode(), 1, this.userScope.getUserIdSafe());
+            this.accountingEntryCreatedIntegrationEventHandler.handleAccountingEntry(metric, AccountingValueType.Minus, subjectId, this.tenantScopeFactory.getInstance().getTenant(), this.tenantScopeFactory.getInstance().getTenantCode() != null ? this.tenantScopeFactory.getInstance().getTenantCode() : this.tenantScopeFactory.getInstance().getDefaultTenantCode(), 1, this.userScopeFactory.getInstance().getUserIdSafe());
+        }
+    }
+
+    public void decrease(String metric, Boolean useDefaultTenantCode) throws InvalidApplicationException {
+        if (this.isEnabled) {
+            if (useDefaultTenantCode) {
+                String subjectId = this.getSubjectId();
+                this.accountingEntryCreatedIntegrationEventHandler.handleAccountingEntry(metric, AccountingValueType.Minus, subjectId, null, this.tenantScopeFactory.getInstance().getDefaultTenantCode(), 1, this.userScopeFactory.getInstance().getUserIdSafe());
+                return;
+            }
+            this.decrease(metric);
         }
     }
 
     private String getSubjectId() throws InvalidApplicationException {
 
-        UserCredentialEntity userCredential = this.queryFactory.query(UserCredentialQuery.class).disableTracking().userIds(this.userScope.getUserId()).first();
+        if (!this.userScopeFactory.getInstance().isSet()) return null;
+
+        UserCredentialEntity userCredential = null;
+        try {
+            this.tenantEntityManagerFactory.getInstance().disableTenantFilters();
+            userCredential = this.queryFactory.query(UserCredentialQuery.class).disableTracking().userIds(this.userScopeFactory.getInstance().getUserId()).first();
+        } finally {
+            this.tenantEntityManagerFactory.getInstance().reloadTenantFilters();
+        }
+
         if (userCredential != null) return userCredential.getExternalId();
-        return this.userScope.getUserId().toString();
+        return this.userScopeFactory.getInstance().getUserId().toString();
     }
 }
 

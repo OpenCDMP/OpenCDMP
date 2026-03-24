@@ -3,6 +3,7 @@ package org.opencdmp.integrationevent.outbox.indicatorpoint;
 import gr.cite.tools.logging.LoggerService;
 import org.opencdmp.integrationevent.outbox.OutboxIntegrationEvent;
 import org.opencdmp.integrationevent.outbox.OutboxService;
+import org.opencdmp.service.kpi.KpiProperties;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
@@ -22,14 +23,19 @@ public class IndicatorPointEventHandlerImpl implements IndicatorPointEventHandle
 
     private final ApplicationContext applicationContext;
 
+    private final KpiProperties kpiProperties;
+
     @Autowired
-    public IndicatorPointEventHandlerImpl(OutboxService outboxService, ApplicationContext applicationContext) {
+    public IndicatorPointEventHandlerImpl(OutboxService outboxService, ApplicationContext applicationContext, KpiProperties kpiProperties) {
         this.outboxService = outboxService;
         this.applicationContext = applicationContext;
+        this.kpiProperties = kpiProperties;
     }
 
     @Override
     public void handle(IndicatorPointEvent event) {
+        if (!kpiProperties.getTask().getEnable()) return;
+
         OutboxIntegrationEvent message = new OutboxIntegrationEvent();
         message.setMessageId(UUID.randomUUID());
         message.setType(OutboxIntegrationEvent.INDICATOR_POINT_ENTRY);

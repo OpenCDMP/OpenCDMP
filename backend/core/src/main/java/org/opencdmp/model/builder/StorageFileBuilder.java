@@ -8,7 +8,7 @@ import gr.cite.tools.fieldset.FieldSet;
 import gr.cite.tools.logging.DataLogEntry;
 import gr.cite.tools.logging.LoggerService;
 import org.opencdmp.authorization.AuthorizationFlags;
-import org.opencdmp.commons.scope.tenant.TenantScope;
+import org.opencdmp.commons.scope.tenant.TenantScopeFactory;
 import org.opencdmp.convention.ConventionService;
 import org.opencdmp.data.StorageFileEntity;
 import org.opencdmp.model.StorageFile;
@@ -30,7 +30,7 @@ public class StorageFileBuilder extends BaseBuilder<StorageFile, StorageFileEnti
     private final QueryFactory queryFactory;
 
     private final BuilderFactory builderFactory;
-    private final TenantScope tenantScope;
+    private final TenantScopeFactory tenantScopeFactory;
 
     private EnumSet<AuthorizationFlags> authorize = EnumSet.of(AuthorizationFlags.None);
 
@@ -38,11 +38,11 @@ public class StorageFileBuilder extends BaseBuilder<StorageFile, StorageFileEnti
     public StorageFileBuilder(
 		    ConventionService conventionService,
 		    QueryFactory queryFactory,
-		    BuilderFactory builderFactory, TenantScope tenantScope) {
+		    BuilderFactory builderFactory, TenantScopeFactory tenantScopeFactory) {
         super(conventionService, new LoggerService(LoggerFactory.getLogger(StorageFileBuilder.class)));
         this.queryFactory = queryFactory;
         this.builderFactory = builderFactory;
-	    this.tenantScope = tenantScope;
+	    this.tenantScopeFactory = tenantScopeFactory;
     }
 
     public StorageFileBuilder authorize(EnumSet<AuthorizationFlags> values) {
@@ -73,7 +73,7 @@ public class StorageFileBuilder extends BaseBuilder<StorageFile, StorageFileEnti
             if (fields.hasField(this.asIndexer(StorageFile._purgeAt))) m.setPurgeAt(d.getPurgeAt());
             if (fields.hasField(this.asIndexer(StorageFile._purgedAt))) m.setPurgedAt(d.getPurgedAt());
             if (fields.hasField(this.asIndexer(StorageFile._fullName))) m.setFullName(d.getName() + (d.getExtension().startsWith(".") ? "" : ".") + d.getExtension());
-            if (fields.hasField(this.asIndexer(StorageFile._belongsToCurrentTenant))) m.setBelongsToCurrentTenant(this.getBelongsToCurrentTenant(d, this.tenantScope));
+            if (fields.hasField(this.asIndexer(StorageFile._belongsToCurrentTenant))) m.setBelongsToCurrentTenant(this.getBelongsToCurrentTenant(d, this.tenantScopeFactory.getInstance()));
             if (!userFields.isEmpty() && userItemsMap != null && userItemsMap.containsKey(d.getOwnerId())) m.setOwner(userItemsMap.get(d.getOwnerId()));
             models.add(m);
         }

@@ -20,13 +20,14 @@ public class UserTenantRolesCacheService extends CacheService<UserTenantRolesCac
         public UserTenantRolesCacheValue() {
         }
 
-        public UserTenantRolesCacheValue(UUID userId, UUID tenantId, List<String> roles) {
+        public UserTenantRolesCacheValue(UUID userId, List<TenantRole> tenantRoles) {
             this.userId = userId;
-            this.tenantId = tenantId;
-            this.roles = roles;
+            this.tenantRoles = tenantRoles;
         }
 
         private UUID userId;
+
+        private List<TenantRole> tenantRoles;
 
         public UUID getUserId() {
             return userId;
@@ -36,24 +37,35 @@ public class UserTenantRolesCacheService extends CacheService<UserTenantRolesCac
             this.userId = userId;
         }
 
-        private UUID tenantId;
-
-        public UUID getTenantId() {
-            return tenantId;
+        public List<TenantRole> getTenantRoles() {
+            return tenantRoles;
         }
 
-        public void setTenantId(UUID tenantId) {
-            this.tenantId = tenantId;
+        public void setTenantRoles(List<TenantRole> tenantRoles) {
+            this.tenantRoles = tenantRoles;
         }
 
-        private List<String> roles;
+        public static class TenantRole {
 
-        public List<String> getRoles() {
-            return roles;
-        }
+            private String tenantCode;
 
-        public void setRoles(List<String> roles) {
-            this.roles = roles;
+            private List<String> roles;
+
+            public String getTenantCode() {
+                return tenantCode;
+            }
+
+            public void setTenantCode(String tenantCode) {
+                this.tenantCode = tenantCode;
+            }
+
+            public List<String> getRoles() {
+                return roles;
+            }
+
+            public void setRoles(List<String> roles) {
+                this.roles = roles;
+            }
         }
     }
 
@@ -64,12 +76,12 @@ public class UserTenantRolesCacheService extends CacheService<UserTenantRolesCac
 
     @EventListener
     public void handleUserRemovedFromTenantEvent(UserRemovedFromTenantEvent event) {
-        this.evict(this.buildKey(event.getUserId(), event.getTenantId()));
+        this.evict(this.buildKey(event.getUserId()));
     }
 
     @EventListener
     public void handleUserAddedToTenantEvent(UserAddedToTenantEvent event) {
-        this.evict(this.buildKey(event.getUserId(), event.getTenantId()));
+        this.evict(this.buildKey(event.getUserId()));
     }
 
     @Override
@@ -79,13 +91,12 @@ public class UserTenantRolesCacheService extends CacheService<UserTenantRolesCac
 
     @Override
     public String keyOf(UserTenantRolesCacheValue value) {
-        return this.buildKey(value.getUserId(), value.getTenantId());
+        return this.buildKey(value.getUserId());
     }
 
-    public String buildKey(UUID userId, UUID tenantId) {
+    public String buildKey(UUID userId) {
         HashMap<String, String> keyParts = new HashMap<>();
         keyParts.put("$user_id$", userId.toString().toLowerCase(Locale.ROOT));
-        keyParts.put("$tenant_id$", tenantId.toString().toLowerCase(Locale.ROOT));
         return this.generateKey(keyParts);
     }
 }

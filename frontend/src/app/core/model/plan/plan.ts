@@ -5,8 +5,8 @@ import { PlanVersionStatus } from '@app/core/common/enum/plan-version-status';
 import { BaseEntity, BaseEntityPersist } from '@common/base/base-entity.model';
 import { Guid } from '@common/types/guid';
 import { DescriptionTemplate } from '../description-template/description-template';
-import { BaseDescription, Description, PublicDescription } from '../description/description';
-import { PlanBlueprint, PublicPlanBlueprint } from '../plan-blueprint/plan-blueprint';
+import { BaseDescription, Description } from '../description/description';
+import { PlanBlueprint } from '../plan-blueprint/plan-blueprint';
 import { EntityDoi } from '../entity-doi/entity-doi';
 import { ReferencePersist } from '../reference/reference';
 import { User } from "../user/user";
@@ -47,32 +47,6 @@ export interface Plan extends BasePlan {
 	statusAuthorizationFlags?: PlanStatusPermission[];
 }
 
-export interface PublicPlan extends BasePlan {
-	blueprint?: PublicPlanBlueprint;
-	language?: String;
-	properties?: PublicPlanProperties;
-	planUsers: PublicPlanUser[];
-	descriptions: PublicDescription[];
-	otherPlanVersions?: PublicPlan[];
-}
-
-export interface PublicPlanProperties {
-	planBlueprintValues: PublicPlanBlueprintValue[];
-	contacts: PublicPlanContact[];
-}
-
-export interface PublicPlanBlueprintValue {
-	fieldId: Guid;
-	fieldValue: string;
-	dateValue: Date;
-	numberValue: number;
-}
-
-export interface PublicPlanContact {
-	firstName: string;
-	lastName: string;
-}
-
 export interface PlanProperties {
 	planBlueprintValues: PlanBlueprintValue[];
 	contacts: PlanContact[];
@@ -100,10 +74,6 @@ export interface PlanUser extends BasePlanUser {
 	plan: Plan;
 	sectionId: Guid;
 	ordinal: number;
-}
-
-export interface PublicPlanUser extends BasePlanUser{
-	plan: PublicPlan;
 }
 
 

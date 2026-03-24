@@ -1,5 +1,42 @@
 <div class="row auto-complete">
-	<input matInput #autocompleteInput class="col-12" [id]="id" [name]="id" autocomplete="off" #autocompleteTrigger="matAutocompleteTrigger" [placeholder]="placeholder" [matAutocomplete]="autocomplete" [value]="inputValue" [required]="required" (keyup)="onKeyUp($event)" [disabled]="disabled" (focus)="_onInputFocus()" (blur)="onBlur($event)">
+	<!-- if popupSelectedItemActionIcon is enabled then add mat chip grid to display value with action icon  -->
+	@if(popupSelectedItemActionIcon){
+		<div class="col-12" *ngIf="value">
+				<mat-chip-grid #chipList ngDefaultControl class="chip-list">
+					<ng-container *ngIf="value">
+						<mat-chip-row 
+                            [disabled]="disabled" 
+                            [selectable]="false" 
+                            [removable]="true" 
+                            class="chip-row" 
+                            (removed)="clearValue()"
+                        >
+							<div class="d-flex align-items-center">
+								<ng-container>
+									<ng-template #cellTemplate *ngIf="_selectedValueTemplate(selectedItem)" [ngTemplateOutlet]="_selectedValueTemplate(selectedItem)" [ngTemplateOutletContext]="{
+												item: value
+											}" />
+									<span *ngIf="!_selectedValueTemplate(value)" class="chip-text" [title]="_displayFn(value)">{{_displayFn(value)}}</span>
+								</ng-container>
+								<button mat-icon-button class="popup-icon always-enabled" (click)="_selectedItemOptionActionClicked(value, $event)" [disabled]="isPopupSelectedItemActionIconDisabled">
+									<mat-icon aria-hidden>{{popupSelectedItemActionIcon}}</mat-icon>
+								</button>
+							</div>
+							<button matChipRemove *ngIf="!disabled" [attr.aria-label]="'COMMONS.ACTIONS.REMOVE' | translate">
+								<mat-icon>cancel</mat-icon>
+							</button>
+						</mat-chip-row>
+					</ng-container>
+				</mat-chip-grid>
+		</div>
+		<div class="col-12" *ngIf="!value">
+			<input matInput #autocompleteInput class="col-12" [id]="id" [name]="id" autocomplete="off" #autocompleteTrigger="matAutocompleteTrigger" [placeholder]="placeholder" [matAutocomplete]="autocomplete" [value]="inputValue" [required]="required" (keyup)="onKeyUp($event)" [disabled]="disabled" (focus)="_onInputFocus()" (blur)="onBlur($event)">
+		</div>
+	} @else {
+		<!-- default logic -->
+		<input matInput #autocompleteInput class="col-12" [id]="id" [name]="id" autocomplete="off" #autocompleteTrigger="matAutocompleteTrigger" [placeholder]="placeholder" [matAutocomplete]="autocomplete" [value]="inputValue" [required]="required" (keyup)="onKeyUp($event)" [disabled]="disabled" (focus)="_onInputFocus()" (blur)="onBlur($event)">
+	}
+	
 	<!-- The attribute autocomplete="nope", set by downshift, is ignored in Chrome 67 and Opera 54 (latest at the time of writing)
 	<input matInput #autocompleteInput class="col-12" [name]="id" autocomplete="nope" #autocompleteTrigger="matAutocompleteTrigger" [placeholder]="placeholder" [matAutocomplete]="autocomplete" [value]="inputValue" (keyup)="onKeyUp($event)" [disabled]="disabled" (focus)="_onInputFocus()" (blur)="onBlur($event)"> -->
 	<mat-icon *ngIf="!disabled" class="align-arrow-right" matSuffix>arrow_drop_down</mat-icon>

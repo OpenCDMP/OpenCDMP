@@ -1,15 +1,19 @@
 <!-- custom add: isStepUnique -->
-<div *ngIf="currentTourStep && !isOrbShowing">
+@if (currentTourStep && !isOrbShowing) {
+  <div>
     <div class="guided-tour-user-input-mask" (click)="backdropClick($event)"></div>
     <div class="guided-tour-spotlight-overlay"
-        [style.top.px]="overlayTop"
-        [style.left.px]="overlayLeft"
-        [style.height.px]="currentTourStep.isStepUnique ? overlayWidth : overlayHeight"
-        [style.width.px]="overlayWidth">
+      [style.top.px]="overlayTop"
+      [style.left.px]="overlayLeft"
+      [style.height.px]="currentTourStep.isStepUnique ? overlayWidth : overlayHeight"
+      [style.width.px]="overlayWidth">
     </div>
-</div>
-<div *ngIf="currentTourStep && !isOrbShowing">
-    <div #tourStep *ngIf="currentTourStep"
+  </div>
+}
+@if (currentTourStep && !isOrbShowing) {
+  <div>
+    @if (currentTourStep) {
+      <div #tourStep
         role="alert"
         class="tour-step tour-{{ currentTourStep.orientation }}"
         [ngClass]="{ 'page-tour-step': !currentTourStep.selector }"
@@ -17,29 +21,41 @@
         [style.left.px]="(currentTourStep.selector && selectedElementRect ? leftPosition : null)"
         [style.width.px]="(currentTourStep.selector && selectedElementRect ? calculatedTourStepWidth : null)"
         [style.transform]="(currentTourStep.selector && selectedElementRect ? transform : null)">
-        <div *ngIf="currentTourStep.selector" class="tour-arrow"></div>
+        @if (currentTourStep.selector) {
+          <div class="tour-arrow"></div>
+        }
         <div class="row tour-block d-flex">
-            <div class="col p-0">
-                <h3 class="tour-title" *ngIf="currentTourStep.title && currentTourStep.selector">
-                    {{currentTourStep.title}}
-                </h3>
-                <h2 class="tour-title" *ngIf="currentTourStep.title && !currentTourStep.selector">
-                    {{ currentTourStep.title }}
-                </h2>
-                <div class="tour-buttons">
-                    <button *ngIf="!guidedTourService.onResizeMessage" mat-flat-button color="primary" type="button" class="padded-shadow-btn"
-                        (click)="guidedTourService.nextStep()">
-                        {{ nextText }}
-                    </button>
-                    <button *ngIf="!guidedTourService.onResizeMessage && !currentTourStep.isStepUnique" mat-stroked-button color="primary" 
-                        (click)="guidedTourService.skipTour()" class="padded-shadow-btn">
-                        {{ skipText }}
-                    </button>
-                </div>
+          <div class="col p-0">
+            @if (currentTourStep.title && currentTourStep.selector) {
+              <h3 class="tour-title">
+                {{currentTourStep.title}}
+              </h3>
+            }
+            @if (currentTourStep.title && !currentTourStep.selector) {
+              <h2 class="tour-title">
+                {{ currentTourStep.title }}
+              </h2>
+            }
+            <div class="tour-buttons">
+              @if (!guidedTourService.onResizeMessage) {
+                <button mat-flat-button color="primary" type="button" class="padded-shadow-btn"
+                  (click)="guidedTourService.nextStep()">
+                  {{ nextText }}
+                </button>
+              }
+              @if (!guidedTourService.onResizeMessage && !currentTourStep.isStepUnique) {
+                <button mat-stroked-button color="primary"
+                  (click)="guidedTourService.skipTour()" class="padded-shadow-btn">
+                  {{ skipText }}
+                </button>
+              }
             </div>
-            <div class="col-auto p-0 d-flex align-items-end">
-				<img src="../../../assets/images/guided-tour-side.png" alt="{{('ALT-TEXT.GUIDED-TOUR-IMG' | translate) ?? 'tour guide image'}}">
-			</div>
+          </div>
+          <div class="col-auto p-0 d-flex align-items-end">
+            <img src="../../../assets/images/guided-tour-side.png" alt="{{('ALT-TEXT.GUIDED-TOUR-IMG' | translate) ?? 'tour guide image'}}">
+          </div>
         </div>
-    </div>
-</div>
+      </div>
+    }
+  </div>
+}

@@ -15,6 +15,7 @@ public enum UsageLimitTargetMetric implements DatabaseEnum<String> {
 	BLUEPRINT_COUNT(TargetMetrics.BlueprintCount),
 	BLUEPRINT_DRAFT_COUNT(TargetMetrics.BlueprintDraftCount),
 	BLUEPRINT_FINALIZED_COUNT(TargetMetrics.BlueprintFinalizedCount),
+	BLUEPRINT_TYPE_COUNT(TargetMetrics.BlueprintTypeCount),
 	DESCRIPTION_COUNT(TargetMetrics.DescriptionCount),
 	DESCRIPTION_TEMPLATE_USED_COUNT(TargetMetrics.DescriptionTemplateUsedCount),
 	DESCRIPTION_PUBLISHED_COUNT(TargetMetrics.DescriptionPublishedCount),
@@ -61,6 +62,7 @@ public enum UsageLimitTargetMetric implements DatabaseEnum<String> {
 		public static final String BlueprintCount = "blueprint_count";
 		public static final String BlueprintDraftCount = "plan_blueprint_draft_count";
 		public static final String BlueprintFinalizedCount = "plan_blueprint_finalized_count";
+		public static final String BlueprintTypeCount = "plan_blueprint_type_count";
 		public static final String DescriptionCount = "description_count";
 		public static final String DescriptionPublishedCount = "description_published_count";
 		public static final String DescriptionDoiedCount = "description_doied_count";

@@ -1,6 +1,6 @@
 package org.opencdmp.service.reference;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
+import tools.jackson.core.JacksonException;
 import gr.cite.commons.web.authz.service.AuthorizationService;
 import gr.cite.tools.data.builder.BuilderFactory;
 import gr.cite.tools.data.deleter.DeleterFactory;
@@ -29,7 +29,7 @@ import org.opencdmp.commons.types.referencetype.ReferenceTypeDefinitionEntity;
 import org.opencdmp.convention.ConventionService;
 import org.opencdmp.data.ReferenceEntity;
 import org.opencdmp.data.ReferenceTypeEntity;
-import org.opencdmp.data.TenantEntityManager;
+import org.opencdmp.data.TenantEntityManagerFactory;
 import org.opencdmp.errorcode.ErrorThesaurusProperties;
 import org.opencdmp.model.builder.reference.ReferenceBuilder;
 import org.opencdmp.model.deleter.ReferenceDeleter;
@@ -37,6 +37,7 @@ import org.opencdmp.model.persist.ReferencePersist;
 import org.opencdmp.model.persist.referencedefinition.DefinitionPersist;
 import org.opencdmp.model.persist.referencedefinition.FieldPersist;
 import org.opencdmp.model.reference.Reference;
+import org.opencdmp.model.reference.ReferenceExist;
 import org.opencdmp.model.referencetype.ReferenceType;
 import org.opencdmp.query.ReferenceQuery;
 import org.opencdmp.query.ReferenceTypeQuery;
@@ -64,7 +65,7 @@ import java.util.stream.Collectors;
 public class ReferenceServiceImpl implements ReferenceService {
 
     private static final LoggerService logger = new LoggerService(LoggerFactory.getLogger(ReferenceServiceImpl.class));
-    private final TenantEntityManager entityManager;
+    private final TenantEntityManagerFactory tenantEntityManagerFactory;
     private final AuthorizationService authorizationService;
     private final DeleterFactory deleterFactory;
     private final BuilderFactory builderFactory;
@@ -79,7 +80,7 @@ public class ReferenceServiceImpl implements ReferenceService {
 
     public final ExternalFetcherService externalFetcherService;
     public ReferenceServiceImpl(
-            TenantEntityManager entityManager,
+            TenantEntityManagerFactory tenantEntityManagerFactory,
             AuthorizationService authorizationService,
             DeleterFactory deleterFactory,
             BuilderFactory builderFactory,
@@ -87,7 +88,7 @@ public class ReferenceServiceImpl implements ReferenceService {
             MessageSource messageSource,
             QueryFactory queryFactory,
             XmlHandlingService xmlHandlingService, JsonHandlingService jsonHandlingService, ErrorThesaurusProperties errors, UsageLimitService usageLimitService, AccountingService accountingService, ExternalFetcherService externalFetcherService) {
-        this.entityManager = entityManager;
+        this.tenantEntityManagerFactory = tenantEntityManagerFactory;
         this.authorizationService = authorizationService;
         this.deleterFactory = deleterFactory;
         this.builderFactory = builderFactory;
@@ -103,7 +104,7 @@ public class ReferenceServiceImpl implements ReferenceService {
     }
 
     @Override
-    public Reference persist(ReferencePersist model, FieldSet fields) throws MyForbiddenException, MyValidationException, MyApplicationException, MyNotFoundException, InvalidApplicationException, JAXBException, JsonProcessingException, TransformerException, ParserConfigurationException {
+    public Reference persist(ReferencePersist model, FieldSet fields) throws MyForbiddenException, MyValidationException, MyApplicationException, MyNotFoundException, InvalidApplicationException, JAXBException, JacksonException, TransformerException, ParserConfigurationException {
         logger.debug(new MapLogEntry("persisting data").And("model", model).And("fields", fields));
 
         this.authorizationService.authorizeForce(Permission.EditReference);
@@ -117,7 +118,7 @@ public class ReferenceServiceImpl implements ReferenceService {
 
         ReferenceEntity data;
         if (isUpdate) {
-            data = this.entityManager.find(ReferenceEntity.class, model.getId());
+            data = this.tenantEntityManagerFactory.getInstance().find(ReferenceEntity.class, model.getId());
             if (data == null)
                 throw new MyNotFoundException(this.messageSource.getMessage("General_ItemNotFound", new Object[]{model.getId(), Reference.class.getSimpleName()}, LocaleContextHolder.getLocale()));
 
@@ -143,20 +144,20 @@ public class ReferenceServiceImpl implements ReferenceService {
         data.setSourceType(model.getSourceType());
 
         if (isUpdate) {
-            this.entityManager.merge(data);
+            this.tenantEntityManagerFactory.getInstance().merge(data);
             if (!oldReferenceType.getId().equals(newReferenceType.getId())) {
                 this.accountingService.increase(UsageLimitTargetMetric.REFERENCE_BY_TYPE_COUNT.getValue().replace("{type_code}", newReferenceType.getCode()));
                 this.accountingService.decrease(UsageLimitTargetMetric.REFERENCE_BY_TYPE_COUNT.getValue().replace("{type_code}", oldReferenceType.getCode()));
             }
         }
         else {
-            this.entityManager.persist(data);
+            this.tenantEntityManagerFactory.getInstance().persist(data);
             this.accountingService.increase(UsageLimitTargetMetric.REFERENCE_COUNT.getValue());
 
             this.accountingService.increase(UsageLimitTargetMetric.REFERENCE_BY_TYPE_COUNT.getValue().replace("{type_code}", newReferenceType.getCode()));
         }
 
-        this.entityManager.flush();
+        this.tenantEntityManagerFactory.getInstance().flush();
 
         return this.builderFactory.builder(ReferenceBuilder.class).authorize(AuthorizationFlags.AllExceptPublic).build(BaseFieldSet.build(fields, Reference._id), data);
     }
@@ -194,12 +195,19 @@ public class ReferenceServiceImpl implements ReferenceService {
         this.deleterFactory.deleter(ReferenceDeleter.class).deleteAndSaveByIds(List.of(id));
     }
 
-    public Boolean findReference(String reference, UUID referenceTypeId){
-        if (this.conventionService.isNullOrEmpty(reference) || !this.conventionService.isValidGuid(referenceTypeId)) return false;
-        ReferenceQuery query = this.queryFactory.query(ReferenceQuery.class).disableTracking().references(reference).typeIds(referenceTypeId).isActive(IsActive.Active);
+    public ReferenceExist findReference(String reference, UUID referenceTypeId, FieldSet fields){
 
-        if (query != null && query.count() > 0) return true;
-        return false;
+        ReferenceExist referenceExist = new ReferenceExist();
+        referenceExist.setExist(false);
+
+        if (this.conventionService.isNullOrEmpty(reference) || !this.conventionService.isValidGuid(referenceTypeId)) return referenceExist;
+        ReferenceQuery query = this.queryFactory.query(ReferenceQuery.class).disableTracking().authorize(AuthorizationFlags.AllExceptPublic).references(reference).typeIds(referenceTypeId).isActive(IsActive.Active);
+
+        if (query != null && query.count() > 0) {
+            referenceExist.setExist(true);
+            referenceExist.setReference(this.builderFactory.builder(ReferenceBuilder.class).authorize(AuthorizationFlags.AllExceptPublic).build(fields, query.firstAs(fields)));
+        }
+        return referenceExist;
     }
 
     @Override
@@ -210,7 +218,7 @@ public class ReferenceServiceImpl implements ReferenceService {
             lookup.getPage().setOffset(0);
         }
 
-        ReferenceTypeEntity data = this.entityManager.find(ReferenceTypeEntity.class, lookup.getTypeId(), true);
+        ReferenceTypeEntity data = this.tenantEntityManagerFactory.getInstance().find(ReferenceTypeEntity.class, lookup.getTypeId(), true);
         if (data == null) throw new MyNotFoundException(this.messageSource.getMessage("General_ItemNotFound", new Object[]{lookup.getTypeId(), ReferenceType.class.getSimpleName()}, LocaleContextHolder.getLocale()));
 
         String like;

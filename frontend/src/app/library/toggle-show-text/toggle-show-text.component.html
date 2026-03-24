@@ -1,0 +1,19 @@
+@if(text){
+  @if (isExpanded || showPreview) {
+    <span>{{isExpanded ? innerHTML : minimizeText(innerHTML)}}</span>
+  }
+}
+@if(innerHTML){
+  @if (isExpanded || showPreview) {
+    <span [innerHTML]="isExpanded ? innerHTML : minimizeText(innerHTML)"></span>
+  }
+}
+@if(showPreview && !isExpanded){
+  <span role="button" class="expand-btn" (click)="isExpanded = !isExpanded">
+    {{ 'DESCRIPTION-EDITOR.ACTIONS.VIEW-MORE' | translate}}
+  </span>
+  }@else{
+  <div role="button" class="expand-btn" (click)="isExpanded = !isExpanded">
+    {{( isExpanded ? 'DESCRIPTION-EDITOR.ACTIONS.VIEW-LESS' : 'DESCRIPTION-EDITOR.ACTIONS.VIEW-MORE') | translate}}
+  </div>
+}

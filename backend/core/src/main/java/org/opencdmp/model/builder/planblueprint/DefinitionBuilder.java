@@ -27,6 +27,7 @@ public class DefinitionBuilder extends BaseBuilder<Definition, DefinitionEntity>
     private final BuilderFactory builderFactory;
     private final QueryFactory queryFactory;
     private EnumSet<AuthorizationFlags> authorize = EnumSet.of(AuthorizationFlags.None);
+    private boolean isPublic;
 
     @Autowired
     public DefinitionBuilder(
@@ -38,6 +39,11 @@ public class DefinitionBuilder extends BaseBuilder<Definition, DefinitionEntity>
 
     public DefinitionBuilder authorize(EnumSet<AuthorizationFlags> values) {
         this.authorize = values;
+        return this;
+    }
+
+    public DefinitionBuilder isPublic(boolean isPublic) {
+        this.isPublic = isPublic;
         return this;
     }
 
@@ -56,8 +62,8 @@ public class DefinitionBuilder extends BaseBuilder<Definition, DefinitionEntity>
         List<Definition> models = new ArrayList<>();
         for (DefinitionEntity d : data) {
             Definition m = new Definition();
-            if (!sectionsFields.isEmpty() && d.getSections() != null) m.setSections(this.builderFactory.builder(SectionBuilder.class).authorize(this.authorize).build(sectionsFields, d.getSections()));
-            if (!pluginConfigurationFields.isEmpty() && d.getPluginConfigurations() != null) m.setPluginConfigurations(this.builderFactory.builder(PluginConfigurationBuilder.class).authorize(this.authorize).build(pluginConfigurationFields, d.getPluginConfigurations()));
+            if (!sectionsFields.isEmpty() && d.getSections() != null) m.setSections(this.builderFactory.builder(SectionBuilder.class).authorize(this.authorize).isPublic(this.isPublic).build(sectionsFields, d.getSections()));
+            if (!this.isPublic && !pluginConfigurationFields.isEmpty() && d.getPluginConfigurations() != null) m.setPluginConfigurations(this.builderFactory.builder(PluginConfigurationBuilder.class).authorize(this.authorize).build(pluginConfigurationFields, d.getPluginConfigurations()));
 
             models.add(m);
         }

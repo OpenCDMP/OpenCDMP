@@ -17,7 +17,7 @@
 	align-items: center;
 	justify-content: center;
 	width: 260px;
-	background: var(--sys-surface) 0% 0% no-repeat padding-box;
+	background: var(--mat-sys-surface) 0% 0% no-repeat padding-box;
 	box-shadow: 0px 0px 16px 2px #00000029;
 	border-right-width: 0px;
 	opacity: 1;
@@ -32,7 +32,7 @@
 }
 
 .sidenav-content {
-	background-color: var(--sys-background);
+	background-color: var(--mat-sys-background);
 }
 
 .sidebar-shadow {
@@ -49,9 +49,9 @@
     left: -190px;
     z-index: -1;
    &:focus, &:active {
-        background-color: var(--sys-primary);
+        background-color: var(--mat-sys-primary);
         z-index: 1001;
         left: 50vw;
-        color: var(--sys-on-primary);
+        color: var(--mat-sys-on-primary);
    } 
 }

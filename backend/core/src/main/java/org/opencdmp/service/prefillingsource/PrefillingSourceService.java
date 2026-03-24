@@ -2,6 +2,7 @@ package org.opencdmp.service.prefillingsource;
 
 import org.opencdmp.model.description.Description;
 import org.opencdmp.model.Prefilling;
+import org.opencdmp.model.persist.PrefillingTestRequest;
 import org.opencdmp.model.prefillingsource.PrefillingSource;
 import org.opencdmp.model.persist.PrefillingSearchRequest;
 import org.opencdmp.model.persist.DescriptionPrefillingRequest;
@@ -27,6 +28,8 @@ public interface PrefillingSourceService {
     void deleteAndSave(UUID id) throws MyForbiddenException, InvalidApplicationException;
 
     List<Prefilling> searchPrefillings(PrefillingSearchRequest model);
+
+    List<Prefilling> testPrefillings(PrefillingTestRequest model);
 
     Description getPrefilledDescription(DescriptionPrefillingRequest model, FieldSet fields) throws JAXBException, ParserConfigurationException, IOException, InstantiationException, IllegalAccessException, SAXException, InvalidApplicationException;
 

@@ -32,6 +32,12 @@ public class NotificationProperties {
 	private UUID descriptionEvaluationType;
 	private UUID taggedPlanAnnotationCreatedType;
 	private UUID taggedDescriptionAnnotationCreatedType;
+	private UUID planCreatedSuggestionType;
+	private UUID planUpdatedSuggestionType;
+	private UUID planAccessRemovedType;
+	private UUID planUserRoleChangedType;
+	private UUID planUserRoleCreatedType;
+	private UUID planUserRoleRemovedType;
 	private String contactSupportEmail;
 
 	public UUID getPlanInvitationExternalUserType() {
@@ -240,5 +246,53 @@ public class NotificationProperties {
 
 	public void setTaggedDescriptionAnnotationCreatedType(UUID taggedDescriptionAnnotationCreatedType) {
 		this.taggedDescriptionAnnotationCreatedType = taggedDescriptionAnnotationCreatedType;
+	}
+
+	public UUID getPlanCreatedSuggestionType() {
+		return planCreatedSuggestionType;
+	}
+
+	public void setPlanCreatedSuggestionType(UUID planCreatedSuggestionType) {
+		this.planCreatedSuggestionType = planCreatedSuggestionType;
+	}
+
+	public UUID getPlanUpdatedSuggestionType() {
+		return planUpdatedSuggestionType;
+	}
+
+	public void setPlanUpdatedSuggestionType(UUID planUpdatedSuggestionType) {
+		this.planUpdatedSuggestionType = planUpdatedSuggestionType;
+	}
+
+	public UUID getPlanAccessRemovedType() {
+		return planAccessRemovedType;
+	}
+
+	public void setPlanAccessRemovedType(UUID planAccessRemovedType) {
+		this.planAccessRemovedType = planAccessRemovedType;
+	}
+
+	public UUID getPlanUserRoleChangedType() {
+		return planUserRoleChangedType;
+	}
+
+	public void setPlanUserRoleChangedType(UUID planUserRoleChangedType) {
+		this.planUserRoleChangedType = planUserRoleChangedType;
+	}
+
+	public UUID getPlanUserRoleCreatedType() {
+		return planUserRoleCreatedType;
+	}
+
+	public void setPlanUserRoleCreatedType(UUID planUserRoleCreatedType) {
+		this.planUserRoleCreatedType = planUserRoleCreatedType;
+	}
+
+	public UUID getPlanUserRoleRemovedType() {
+		return planUserRoleRemovedType;
+	}
+
+	public void setPlanUserRoleRemovedType(UUID planUserRoleRemovedType) {
+		this.planUserRoleRemovedType = planUserRoleRemovedType;
 	}
 }

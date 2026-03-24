@@ -35,6 +35,7 @@ import { PlanStatusAvailableActionType } from '@app/core/common/enum/plan-status
 import { DescriptionStatusAvailableActionType } from '@app/core/common/enum/description-status-available-action-type';
 import { SuccessStatus } from '@app/core/model/evaluator/evaluator-success-status.model';
 import { ExternalFetcherApiHeaderType } from '@app/core/common/enum/ExternalFetcherApiHeader.enum';
+import { PlanBlueprintTypeStatus } from '@app/core/common/enum/plan-blueprint-type-status';
 
 @Injectable()
 export class EnumUtils {
@@ -134,6 +135,14 @@ export class EnumUtils {
 			case PlanBlueprintStatus.Finalized: return this.language.instant('TYPES.PLAN-BLUEPRINT-STATUS.FINALIZED');
 		}
 	}
+
+	toPlanBlueprintTypeStatusString(status: PlanBlueprintTypeStatus): string {
+		switch (status) {
+			case PlanBlueprintTypeStatus.Draft: return this.language.instant('TYPES.PLAN-BLUEPRINT-TYPE-STATUS.DRAFT');
+			case PlanBlueprintTypeStatus.Finalized: return this.language.instant('TYPES.PLAN-BLUEPRINT-TYPE-STATUS.FINALIZED');
+		}
+	}
+
 
 	toPlanBlueprintSystemFieldTypeString(status: PlanBlueprintSystemFieldType): string {
 		switch (status) {
@@ -348,6 +357,7 @@ export class EnumUtils {
 			case UsageLimitTargetMetric.PLAN_COUNT: return this.language.instant('TYPES.USAGE-LIMIT-TARGET-METRIC.PLAN-COUNT');
 			case UsageLimitTargetMetric.PLAN_STATUS_Count: return this.language.instant('TYPES.USAGE-LIMIT-TARGET-METRIC.PLAN-STATUS-COUNT');
 			case UsageLimitTargetMetric.BLUEPRINT_COUNT: return this.language.instant('TYPES.USAGE-LIMIT-TARGET-METRIC.BLUEPRINT-COUNT');
+			case UsageLimitTargetMetric.BLUEPRINT_TYPE_COUNT: return this.language.instant('TYPES.USAGE-LIMIT-TARGET-METRIC.BLUEPRINT-TYPE-COUNT');
 			case UsageLimitTargetMetric.DESCRIPTION_COUNT: return this.language.instant('TYPES.USAGE-LIMIT-TARGET-METRIC.DESCRIPTION-COUNT');
 			case UsageLimitTargetMetric.DESCRIPTION_STATUS_COUNT: return this.language.instant('TYPES.USAGE-LIMIT-TARGET-METRIC.DESCRIPTION-STATUS-COUNT');
 			case UsageLimitTargetMetric.DESCRIPTION_TEMPLATE_COUNT: return this.language.instant('TYPES.USAGE-LIMIT-TARGET-METRIC.DESCRIPTION-TEMPLATE-COUNT');

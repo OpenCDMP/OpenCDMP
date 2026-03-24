@@ -19,10 +19,9 @@ import org.opencdmp.commons.XmlHandlingService;
 import org.opencdmp.commons.enums.IsActive;
 import org.opencdmp.commons.enums.UsageLimitTargetMetric;
 import gr.cite.tools.data.query.QueryFactory;
-import org.opencdmp.commons.scope.tenant.TenantScope;
 import org.opencdmp.commons.types.usagelimit.DefinitionEntity;
 import org.opencdmp.convention.ConventionService;
-import org.opencdmp.data.TenantEntityManager;
+import org.opencdmp.data.TenantEntityManagerFactory;
 import org.opencdmp.data.UsageLimitEntity;
 import org.opencdmp.errorcode.ErrorThesaurusProperties;
 import org.opencdmp.model.UsageLimit;
@@ -51,7 +50,7 @@ public class UsageLimitServiceImpl implements UsageLimitService {
     private static final LoggerService logger = new LoggerService(LoggerFactory.getLogger(UsageLimitServiceImpl.class));
     private static final Logger log = LoggerFactory.getLogger(UsageLimitServiceImpl.class);
 
-    private final TenantEntityManager entityManager;
+    private final TenantEntityManagerFactory tenantEntityManagerFactory;
 
     private final AuthorizationService authorizationService;
 
@@ -67,8 +66,6 @@ public class UsageLimitServiceImpl implements UsageLimitService {
 
     private final QueryFactory queryFactory;
 
-    private final TenantEntityManager tenantEntityManager;
-
     private final XmlHandlingService xmlHandlingService;
 
     private final AccountingService accountingService;
@@ -77,20 +74,19 @@ public class UsageLimitServiceImpl implements UsageLimitService {
 
     private final AccountingProperties accountingProperties;
 
-    private final TenantScope tenantScope;
 
 
     @Autowired
     public UsageLimitServiceImpl(
-            TenantEntityManager entityManager,
+            TenantEntityManagerFactory tenantEntityManagerFactory,
             AuthorizationService authorizationService,
             DeleterFactory deleterFactory,
             BuilderFactory builderFactory,
             ConventionService conventionService,
             ErrorThesaurusProperties errors,
             MessageSource messageSource,
-            QueryFactory queryFactory, TenantEntityManager tenantEntityManager, XmlHandlingService xmlHandlingService, AccountingService accountingService, UsageLimitProperties usageLimitProperties, AccountingProperties accountingProperties, TenantScope tenantScope) {
-        this.entityManager = entityManager;
+            QueryFactory queryFactory, XmlHandlingService xmlHandlingService, AccountingService accountingService, UsageLimitProperties usageLimitProperties, AccountingProperties accountingProperties) {
+        this.tenantEntityManagerFactory = tenantEntityManagerFactory;
         this.authorizationService = authorizationService;
         this.deleterFactory = deleterFactory;
         this.builderFactory = builderFactory;
@@ -98,12 +94,10 @@ public class UsageLimitServiceImpl implements UsageLimitService {
         this.errors = errors;
         this.messageSource = messageSource;
         this.queryFactory = queryFactory;
-        this.tenantEntityManager = tenantEntityManager;
         this.xmlHandlingService = xmlHandlingService;
         this.accountingService = accountingService;
         this.usageLimitProperties = usageLimitProperties;
         this.accountingProperties = accountingProperties;
-        this.tenantScope = tenantScope;
     }
 
     public UsageLimit persist(UsageLimitPersist model, FieldSet fields) throws MyForbiddenException, MyValidationException, MyApplicationException, MyNotFoundException, InvalidApplicationException, JAXBException {
@@ -113,21 +107,21 @@ public class UsageLimitServiceImpl implements UsageLimitService {
 
         List<UsageLimitEntity> existingUsageLimits;
         try {
-            this.tenantEntityManager.loadExplicitTenantFilters();
+            this.tenantEntityManagerFactory.getInstance().loadExplicitTenantFilters();
             existingUsageLimits = this.queryFactory.query(UsageLimitQuery.class).disableTracking().isActive(IsActive.Active).collectAs((new BaseFieldSet().ensure(UsageLimit._label).ensure(UsageLimit._targetMetric).ensure(UsageLimit._value)));
 
         } catch (InvalidApplicationException e) {
             log.error(e.getMessage(), e);
             throw new MyApplicationException(e.getMessage());
         } finally {
-            this.tenantEntityManager.reloadTenantFilters();
+            this.tenantEntityManagerFactory.getInstance().reloadTenantFilters();
         }
 
         Boolean isUpdate = this.conventionService.isValidGuid(model.getId());
 
         UsageLimitEntity data;
         if (isUpdate) {
-            data = this.entityManager.find(UsageLimitEntity.class, model.getId());
+            data = this.tenantEntityManagerFactory.getInstance().find(UsageLimitEntity.class, model.getId());
             if (data == null) throw new MyNotFoundException(this.messageSource.getMessage("General_ItemNotFound", new Object[]{model.getId(), UsageLimit.class.getSimpleName()}, LocaleContextHolder.getLocale()));
             if (!data.getTargetMetric().equals(model.getTargetMetric()) && existingUsageLimits != null && !existingUsageLimits.isEmpty() && existingUsageLimits.stream().filter(x -> x.getTargetMetric().equals(model.getTargetMetric())).findFirst().orElse(null) != null) throw new MyValidationException(this.errors.getUsageLimitMetricAlreadyExists().getCode(), this.errors.getUsageLimitMetricAlreadyExists().getMessage());
             if (!this.conventionService.hashValue(data.getUpdatedAt()).equals(model.getHash())) throw new MyValidationException(this.errors.getHashConflict().getCode(), this.errors.getHashConflict().getMessage());
@@ -147,11 +141,11 @@ public class UsageLimitServiceImpl implements UsageLimitService {
         data.setDefinition(this.xmlHandlingService.toXml(this.buildDefinitionEntity(model.getDefinition())));
 
         if (isUpdate)
-            this.entityManager.merge(data);
+            this.tenantEntityManagerFactory.getInstance().merge(data);
         else
-            this.entityManager.persist(data);
+            this.tenantEntityManagerFactory.getInstance().persist(data);
 
-        this.entityManager.flush();
+        this.tenantEntityManagerFactory.getInstance().flush();
         return this.builderFactory.builder(UsageLimitBuilder.class).authorize(AuthorizationFlags.AllExceptPublic).build(BaseFieldSet.build(fields, UsageLimit._id), data);
     }
 
@@ -181,7 +175,7 @@ public class UsageLimitServiceImpl implements UsageLimitService {
         if (metric == null) throw new MyApplicationException("Target Metric not defined");
 
         try {
-            this.tenantEntityManager.loadExplicitTenantFilters();
+            this.tenantEntityManagerFactory.getInstance().loadExplicitTenantFilters();
             UsageLimitEntity usageLimitEntity = this.queryFactory.query(UsageLimitQuery.class).disableTracking().usageLimitTargetMetrics(metric).isActive(IsActive.Active).first();
 
             if (usageLimitEntity != null) {
@@ -195,7 +189,7 @@ public class UsageLimitServiceImpl implements UsageLimitService {
             log.error(e.getMessage(), e);
             throw new MyApplicationException(e.getMessage());
         } finally {
-            this.tenantEntityManager.reloadTenantFilters();
+            this.tenantEntityManagerFactory.getInstance().reloadTenantFilters();
         }
     }
 }

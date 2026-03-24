@@ -1,7 +1,7 @@
 package org.opencdmp.model.builder;
 
 import org.opencdmp.authorization.AuthorizationFlags;
-import org.opencdmp.commons.scope.tenant.TenantScope;
+import org.opencdmp.commons.scope.tenant.TenantScopeFactory;
 import org.opencdmp.convention.ConventionService;
 import org.opencdmp.data.SupportiveMaterialEntity;
 import org.opencdmp.model.*;
@@ -21,14 +21,14 @@ import java.util.*;
 @Scope(value = ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 public class SupportiveMaterialBuilder extends BaseBuilder<SupportiveMaterial, SupportiveMaterialEntity>{
 
-    private final TenantScope tenantScope;
+    private final TenantScopeFactory tenantScopeFactory;
     private EnumSet<AuthorizationFlags> authorize = EnumSet.of(AuthorizationFlags.None);
 
     @Autowired
     public SupportiveMaterialBuilder(
-		    ConventionService conventionService, TenantScope tenantScope) {
+		    ConventionService conventionService, TenantScopeFactory tenantScopeFactory) {
         super(conventionService, new LoggerService(LoggerFactory.getLogger(SupportiveMaterialBuilder.class)));
-	    this.tenantScope = tenantScope;
+	    this.tenantScopeFactory = tenantScopeFactory;
     }
 
     public SupportiveMaterialBuilder authorize(EnumSet<AuthorizationFlags> values) {
@@ -54,7 +54,7 @@ public class SupportiveMaterialBuilder extends BaseBuilder<SupportiveMaterial, S
             if (fields.hasField(this.asIndexer(SupportiveMaterial._updatedAt))) m.setUpdatedAt(d.getUpdatedAt());
             if (fields.hasField(this.asIndexer(SupportiveMaterial._isActive))) m.setIsActive(d.getIsActive());
             if (fields.hasField(this.asIndexer(SupportiveMaterial._hash))) m.setHash(this.hashValue(d.getUpdatedAt()));
-            if (fields.hasField(this.asIndexer(SupportiveMaterial._belongsToCurrentTenant))) m.setBelongsToCurrentTenant(this.getBelongsToCurrentTenant(d, this.tenantScope));
+            if (fields.hasField(this.asIndexer(SupportiveMaterial._belongsToCurrentTenant))) m.setBelongsToCurrentTenant(this.getBelongsToCurrentTenant(d, this.tenantScopeFactory.getInstance()));
             models.add(m);
         }
         this.logger.debug("build {} items", Optional.of(models).map(List::size).orElse(0));

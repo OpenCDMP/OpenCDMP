@@ -1,5 +1,5 @@
-import { DOCUMENT } from '@angular/common';
-import { AfterViewInit, Component, EventEmitter, Inject, Input, OnDestroy, OnInit, Output } from '@angular/core';
+
+import { AfterViewInit, Component, EventEmitter, Inject, Input, OnDestroy, OnInit, Output, DOCUMENT } from '@angular/core';
 import { UntypedFormArray } from '@angular/forms';
 import { MatSnackBar, MatSnackBarConfig } from '@angular/material/snack-bar';
 import { BaseComponent } from '@common/base/base.component';

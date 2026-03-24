@@ -253,7 +253,7 @@ public class TenantConfigurationPersist {
                     this.refSpec()
                             .iff(() -> !this.isNull(item.getEvaluatorPlugins()) && TenantConfigurationType.EvaluatorPlugins.equals(item.getType()))
                             .on(TenantConfigurationPersist._evaluatorPlugins)
-                            .over(item.getDepositPlugins())
+                            .over(item.getEvaluatorPlugins())
                             .using(() -> this.validatorFactory.validator(EvaluatorTenantConfigurationPersist.EvaluatorTenantConfigurationPersistValidator.class)),
 
                     this.refSpec()

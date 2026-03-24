@@ -34,22 +34,7 @@ permissions:
       clients: [ ]
       allowAnonymous: true
       allowAuthenticated: true
-    PublicBrowsePlanReference:
-      roles: [ ]
-      clients: [ ]
-      allowAnonymous: true
-      allowAuthenticated: true
-    PublicBrowsePlanUser:
-      roles: [ ]
-      clients: [ ]
-      allowAnonymous: true
-      allowAuthenticated: true
     PublicBrowseReference:
-      roles: [ ]
-      clients: [ ]
-      allowAnonymous: true
-      allowAuthenticated: true
-    PublicBrowseUser:
       roles: [ ]
       clients: [ ]
       allowAnonymous: true
@@ -849,6 +834,33 @@ permissions:
       clients: [ ]
       allowAnonymous: false
       allowAuthenticated: false
+    # PlanBlueprintType
+    BrowsePlanBlueprintType:
+      roles:
+        - Admin
+        - TenantPlanManager
+        - TenantAdmin
+        - TenantUser
+      clients: [ ]
+      allowAnonymous: false
+      allowAuthenticated: false
+    EditPlanBlueprintType:
+      roles:
+        - Admin
+        - TenantAdmin
+        - TenantPlanManager
+      clients: [ ]
+      allowAnonymous: false
+      allowAuthenticated: false
+    DeletePlanBlueprintType:
+      roles:
+        - Admin
+        - TenantAdmin
+        - TenantPlanManager
+      claims: [ ]
+      clients: [ ]
+      allowAnonymous: false
+      allowAuthenticated: false
     # EntityDoi
     BrowseEntityDoi:
       roles:
@@ -1037,6 +1049,7 @@ permissions:
       roles:
         - Admin
         - InstallationAdmin
+        - TenantAdmin
       clients: [ ]
       allowAnonymous: false
       allowAuthenticated: false
@@ -1252,7 +1265,13 @@ permissions:
       clients: [ ]
       allowAnonymous: false
       allowAuthenticated: false
-
+    TestPrefillingSource:
+      roles:
+        - Admin
+        - TenantAdmin
+      clients: [ ]
+      allowAnonymous: false
+      allowAuthenticated: false
     # Tenant Permissions
     BrowseUsageLimit:
       roles:
@@ -1337,6 +1356,39 @@ permissions:
           - DataPrivacyOfficer
       claims: [ ]
       clients: [ ]
+      allowAnonymous: false
+      allowAuthenticated: false
+
+    #PlanPlanUpdateRequest
+    BrowsePlanUpdateRequest:
+      roles:
+        - Admin
+        - TenantAdmin
+      plan:
+        roles:
+          - Owner
+      clients: [ "opencdmp-rda-madmp-dev" ]
+      allowAnonymous: false
+      allowAuthenticated: false
+    EditPlanUpdateRequest:
+      roles:
+        - Admin
+        - TenantAdmin
+      plan:
+        roles:
+          - Owner
+      clients: [ "opencdmp-rda-madmp-dev" ]
+      allowAnonymous: false
+      allowAuthenticated: false
+    DeletePlanUpdateRequest:
+      roles:
+        - Admin
+        - TenantAdmin
+      plan:
+        roles:
+          - Owner
+      claims: [ ]
+      clients: [ "opencdmp-rda-madmp-dev" ]
       allowAnonymous: false
       allowAuthenticated: false
 
@@ -1447,6 +1499,14 @@ permissions:
       allowAnonymous: false
       allowAuthenticated: false
     ViewPlanBlueprintPage:
+      roles:
+        - Admin
+        - TenantAdmin
+        - TenantPlanManager
+      clients: [ ]
+      allowAnonymous: false
+      allowAuthenticated: false
+    ViewPlanBlueprintTypePage:
       roles:
         - Admin
         - TenantAdmin

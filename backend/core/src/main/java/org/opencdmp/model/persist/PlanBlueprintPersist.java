@@ -34,6 +34,10 @@ public class PlanBlueprintPersist {
 
     public final static String _code = "code";
 
+    private UUID type;
+
+    public static final String _type = "type";
+
     private DefinitionPersist definition;
 
     public static final String _definition = "definition";
@@ -72,6 +76,14 @@ public class PlanBlueprintPersist {
 
     public void setCode(String code) {
         this.code = code;
+    }
+
+    public UUID getType() {
+        return type;
+    }
+
+    public void setType(UUID type) {
+        this.type = type;
     }
 
     public DefinitionPersist getDefinition() {

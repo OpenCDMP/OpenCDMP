@@ -42,6 +42,9 @@ public class OutboxIntegrationEvent extends IntegrationEvent {
 
     public static final String INDICATOR_RESET_ENTRY = "INDICATOR_RESET_ENTRY";
 
+    public static final String PLAN_TOUCH = "PLAN_TOUCH";
+    public static final String PLAN_REMOVE = "PLAN_REMOVE";
+
     private TrackedEvent event;
 
     public TrackedEvent getEvent() {

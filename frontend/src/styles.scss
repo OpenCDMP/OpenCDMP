@@ -39,8 +39,8 @@ label {
 }
 
 body {
-    font-size: var(--sys-body-medium-size);
-    font-family: var(--sys-body-medium-font);
+    font-size: var(--mat-sys-body-medium-size);
+    font-family: var(--mat-sys-body-medium-font);
 }
 
 //<!--------   m3 styles overwrites  ------------>
@@ -63,23 +63,23 @@ body {
     line-height: 1 !important;
 }
 .mat-primary.mat-mdc-outlined-button:not(:disabled){
-    border-color: var(--sys-primary);
-    background-color: var(--sys-surface);
-    color: hsl(from var(--sys-primary) h s calc(l - 15));
+    border-color: var(--mat-sys-primary);
+    background-color: var(--mat-sys-surface);
+    color: hsl(from var(--mat-sys-primary) h s calc(l - 15));
 }
 .mat-accent.mat-mdc-outlined-button:not(:disabled){
-    border-color: var(--sys-tertiary);
-    background-color: var(--sys-surface);
-    color: hsl(from var(--sys-tertiary) h s calc(l - 15));
+    border-color: var(--mat-sys-tertiary);
+    background-color: var(--mat-sys-surface);
+    color: hsl(from var(--mat-sys-tertiary) h s calc(l - 15));
 }
 .mat-warn.mat-mdc-outlined-button:not(:disabled){
-    border-color: var(--sys-error);
-    background-color: var(--sys-surface);
+    border-color: var(--mat-sys-error);
+    background-color: var(--mat-sys-surface);
 }
 .mat-unthemed.mat-mdc-outlined-button:not(:disabled) {
-    color: var(--sys-on-surface);
-    border-color: var(--sys-outline);
-    background-color: var(--sys-surface);
+    color: var(--mat-sys-on-surface);
+    border-color: var(--mat-sys-outline);
+    background-color: var(--mat-sys-surface);
 }
 .mat-divider.mat-divider-vertical{
     border-right-color: rgba(0, 0, 0, .12) !important;
@@ -90,10 +90,10 @@ body {
 .mdc-switch.mdc-switch--checked{
     .mdc-switch__handle {
         .mdc-switch__shadow{
-            background-color: var(--sys-on-tertiary);;
+            background-color: var(--mat-sys-on-tertiary);;
         }
         .mdc-switch__icon--on{
-            fill: var(--sys-tertiary);
+            fill: var(--mat-sys-tertiary);
         }
     }
 }
@@ -102,27 +102,27 @@ body {
 }
 
 .mat-mdc-checkbox.mat-mdc-checkbox-disabled label {
-    color: var(--mdc-outlined-text-field-disabled-input-text-color) !important; //because it refuses to override the correct way
+    color: var(--mat-form-field-outlined-disabled-input-text-color, color-mix(in srgb, var(--mat-sys-on-surface) 38%, transparent)) !important; //because it refuses to override the correct way
 }
 
 .ngx-datatable, .ngx-datatable.material .datatable-header .datatable-header-cell {
-    background-color: var(--sys-surface) !important;
-    color: var(--sys-on-surface);
+    background-color: var(--mat-sys-surface) !important;
+    color: var(--mat-sys-on-surface);
 }
 
 .ngx-datatable.material .datatable-body .datatable-body-row .datatable-body-cell {
-    color: var(--sys-on-surface);
+    color: var(--mat-sys-on-surface);
 }
 
 .ngx-datatable.material .datatable-header .datatable-header-cell {
-    color: var(--sys-on-surface);
+    color: var(--mat-sys-on-surface);
 }
 
 .ngx-datatable.material .datatable-body .datatable-body-row .datatable-body-cell{
-    font-size: var(--sys-body-medium-size);
+    font-size: var(--mat-sys-body-medium-size);
 }
 .ngx-datatable.material .datatable-header .datatable-header-cell{
-    font-size: var(--sys-label-medium-size);
+    font-size: var(--mat-sys-label-medium-size);
 }
 
 //<!--------   m3 styles overwrites end ------------>
@@ -130,11 +130,11 @@ body {
 a {
     color: var(--link-color);
     &:hover {
-        color: var(--sys-primary);
+        color: var(--mat-sys-primary);
         text-decoration: none;
     }
     &.color-unset {
-        color: var(--sys-on-surface);
+        color: var(--mat-sys-on-surface);
     }
     & .material-icons { //_misc.scss
         vertical-align: middle;
@@ -143,8 +143,8 @@ a {
 
 
 .badge-accent .mat-badge-content{
-    background-color: var(--sys-tertiary) !important;
-    color: var(--sys-on-tertiary) !important;
+    background-color: var(--mat-sys-tertiary) !important;
+    color: var(--mat-sys-on-tertiary) !important;
 }
 
 .badge-lg .mat-badge-content {
@@ -163,10 +163,25 @@ a {
 }
 
 .action-list-label, .actions-list, small {
-    font-size: var(--sys-body-small-size) !important;
+    font-size: var(--mat-sys-body-small-size) !important;
 }
 
 
+// <!---------- vanilla cookie overrides --------->
+#cc-main .cm__btn:not(.cm__btn--secondary), #cc-main .pm__btn:not(.pm__btn--secondary) {
+    background: var(--mat-sys-primary) !important;
+    border-color: var(--mat-sys-primary) !important;
+    color: var(--mat-sys-on-primary) !important;
+    &:hover {
+        background: var(--mat-sys-primary-hover) !important;
+    }
+}
+#cc-main .pm__section-desc {
+    .info-grid {
+        row-gap: 0.5rem;
+    }
+}
+// <!--------------------------- ------------------->
 
 
 //TODO: angular update @import '../node_modules/dragula/dist/dragula.css';
@@ -197,13 +212,13 @@ a {
 /* added to the source element while its mirror is dragged */
 .gu-transit {
 	opacity: 0;
-	border: 1px dashed var(--sys-error);
+	border: 1px dashed var(--mat-sys-error);
 	-ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=20)";
 	filter: alpha(opacity=20);
 }
 
 .cc-btn {
-	background-color: var(--sys-primary) !important;
+	background-color: var(--mat-sys-primary) !important;
 }
 
 .snackbar-warning {
@@ -217,7 +232,7 @@ a {
 }
 
 .snackbar-error {
-	background-color:var(--sys-error);
+	background-color:var(--mat-sys-error);
 	color: #111010;
 }
 
@@ -238,7 +253,7 @@ a {
 
 
 .main-content {
-	background-color: var(--sys-background);
+	background-color: var(--mat-sys-background);
 	padding-bottom: 3rem;
 	padding-left: 1rem;
 	margin: 0;
@@ -247,7 +262,7 @@ a {
 }
 
 .mat-form-field-wrapper {
-	background-color: var(--sys-surface) !important;
+	background-color: var(--mat-sys-surface) !important;
 	padding-bottom: 0 !important;
 }
 
@@ -262,7 +277,7 @@ a {
 .mdc-notched-outline__notch,
 .mdc-notched-outline__leading,
 .mdc-notched-outline__trailing {
-	background-color: var(--sys-surface);
+	background-color: var(--mat-sys-surface);
 }
 
 .custom-userbox>mat-dialog-container {
@@ -305,29 +320,33 @@ a {
 }
 
 label.disabled, mat-label.disabled {
-    color: var(--mdc-outlined-text-field-disabled-label-text-color);
+    color: var(--mat-form-field-outlined-disabled-input-text-color, color-mix(in srgb, var(--mat-sys-on-surface) 38%, transparent));
 }
 
 angular-editor {
     .angular-editor {
-        border: 1px solid var(--sys-outline) !important;
-        &:focus-within {
-            border: 2px solid var(--sys-primary) !important;
-        }
-        border-radius: var(--mdc-outlined-text-field-container-shape);
-        background-color: var(--sys-surface);
+        border-radius: var(--mat-form-field-outlined-container-shape, var(--mat-sys-corner-extra-small));
+        background-color: var(--mat-sys-surface);
         .angular-editor-wrapper .angular-editor-placeholder{
-            color: var(--mdc-outlined-text-field-disabled-input-text-color) !important;
+            color: var(--mat-form-field-outlined-disabled-input-text-color, color-mix(in srgb, var(--mat-sys-on-surface) 38%, transparent)) !important;
             opacity: 1 !important;
         }
     }
     .angular-editor-textarea.disabled{
-        color: var(--mdc-outlined-text-field-disabled-input-text-color);
+        color: var(--mat-form-field-outlined-disabled-input-text-color, color-mix(in srgb, var(--mat-sys-on-surface) 38%, transparent));
         pointer-events: none;
+    }
+    &:not(.disabled){
+        .angular-editor {
+            border: 1px solid var(--mat-sys-outline) !important;
+            &:focus-within {
+                border: 2px solid var(--mat-sys-primary) !important;
+            }
+        }
     }
     &.disabled {
         .angular-editor {
-            border: 1px solid var(--mdc-outlined-text-field-disabled-outline-color) !important;
+            border: 1px solid var(--mat-form-field-outlined-disabled-outline-color, color-mix(in srgb, var(--mat-sys-on-surface) 38%, transparent)) !important;
 
         }
         &:focus-within {
@@ -412,7 +431,7 @@ angular-editor {
 
 .listing-filters {
     .mat-mdc-button.filter-button {
-        color: var(--sys-color-on-surface);
+        color: var(--mat-sys-color-on-surface);
     }
 }
 .listing-filters-container {
@@ -431,13 +450,13 @@ button.mdc-button, .mat-mdc-button, .md-button, .mat-mdc-button:not(:disabled) {
     }
 
     &.primary-inverted-hover:hover {
-        background-color: var(--sys-primary);
-        color: var(--sys-on-primary);
+        background-color: var(--mat-sys-primary);
+        color: var(--mat-sys-on-primary);
     }
 
 
     &.on-primary-outline {
-        border: 1px solid var(--sys-on-primary) !important;
+        border: 1px solid var(--mat-sys-on-primary) !important;
     }
 
     &.import {
@@ -466,14 +485,14 @@ button.mdc-button, .mat-mdc-button, .md-button, .mat-mdc-button:not(:disabled) {
     &.attach-file {
         min-width: 156px;
         height: 44px;
-        background: var(--sys-primary) 0% 0% no-repeat padding-box;
-        color: var(--sys-on-primary);
+        background: var(--mat-sys-primary) 0% 0% no-repeat padding-box;
+        color: var(--mat-sys-on-primary);
         box-shadow: 0px 3px 6px #1e202029;
         border-radius: 30px;
         &:hover {
-            background-color: var(--sys-on-primary);
-            border: 1px solid var(--sys-primary);
-            color: var(--sys-primary);
+            background-color: var(--mat-sys-on-primary);
+            border: 1px solid var(--mat-sys-primary);
+            color: var(--mat-sys-primary);
         }
     
         &.attach-file.mdc-button-disabled, &.attach-file.mdc-button-disabled:hover {
@@ -492,20 +511,20 @@ button.mdc-button, .mat-mdc-button, .md-button, .mat-mdc-button:not(:disabled) {
         align-items: center;
     }
     &.mat-primary:not(:hover) {
-        background-color: var(--sys-primary);
-        color: var(--sys-on-primary);
+        background-color: var(--mat-sys-primary);
+        color: var(--mat-sys-on-primary);
     }
     &.mat-primary:hover {
-        background-color: hsl(from var(--sys-primary) h s calc(l + 4));
-        color: var(--sys-on-primary)
+        background-color: hsl(from var(--mat-sys-primary) h s calc(l + 4));
+        color: var(--mat-sys-on-primary)
     }
     &.mat-accent:not(:hover) {
-        background: var(--sys-tertiary);
-        color: var(--sys-on-tertiary)
+        background: var(--mat-sys-tertiary);
+        color: var(--mat-sys-on-tertiary)
     } 
     &.mat-accent:hover{
-        background-color: hsl(from var(--sys-tertiary) h s calc(l + 4));
-        color: var(--sys-on-tertiary)
+        background-color: hsl(from var(--mat-sys-tertiary) h s calc(l + 4));
+        color: var(--mat-sys-on-tertiary)
     }
 }
 
@@ -514,7 +533,7 @@ button.mdc-button, .mat-mdc-button, .md-button, .mat-mdc-button:not(:disabled) {
     border-radius: 20px;
 	padding-left: 1em;
 	padding-right: 1em;
-	font-size: var(--sys-label-medium-size);
+	font-size: var(--mat-sys-label-medium-size);
 }
 .status-chip-finalized, .user-role.tenant-plan-manager {
     color: #235727;
@@ -527,8 +546,8 @@ button.mdc-button, .mat-mdc-button, .md-button, .mat-mdc-button:not(:disabled) {
 }
 
 .status-chip-error, .user-role.admin, .user-role.tenant-admin, .user-role.installation-admin {
-    color: var(--sys-error);
-    background: hsl(from var(--sys-error) h calc(s + 25) calc(l + 52));
+    color: var(--mat-sys-error);
+    background: hsl(from var(--mat-sys-error) h calc(s + 25) calc(l + 52));
 }
 
 .user-role.tenant-config-manager{
@@ -610,7 +629,7 @@ button { //remove bootstrap styling !
 }
 
 .mat-mdc-action-list.unset-font-size {
-    .mdc-list-item__--sys-on-primary{
+    .mdc-list-item__--mat-sys-on-primary{
         font-size: unset;
     }
 }
@@ -645,7 +664,7 @@ button { //remove bootstrap styling !
     container-name: main-page;
     container-type: inline-size;
 
-    background-color: var(--sys-background);
+    background-color: var(--mat-sys-background);
 
 }
 
@@ -686,7 +705,7 @@ button { //remove bootstrap styling !
 
 // bootstrap overrides
 .table-bordered, .table-bordered td, .table-bordered th {
-    border: 1px solid hsl(from var(--sys-outline) h s calc(l + 10));
+    border: 1px solid hsl(from var(--mat-sys-outline) h s calc(l + 10));
 }
 
 //userway overrides 

@@ -1,16 +1,13 @@
 package org.opencdmp.model.deleter;
 
 import gr.cite.tools.data.deleter.Deleter;
-import gr.cite.tools.data.deleter.DeleterFactory;
 import gr.cite.tools.data.query.QueryFactory;
 import gr.cite.tools.logging.LoggerService;
 import gr.cite.tools.logging.MapLogEntry;
 import org.opencdmp.commons.enums.IsActive;
-import org.opencdmp.commons.enums.UsageLimitTargetMetric;
 import org.opencdmp.data.DescriptionWorkflowEntity;
-import org.opencdmp.data.TenantEntityManager;
+import org.opencdmp.data.TenantEntityManagerFactory;
 import org.opencdmp.query.DescriptionWorkflowQuery;
-import org.opencdmp.service.accounting.AccountingService;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
@@ -29,12 +26,12 @@ public class DescriptionWorkflowDeleter implements Deleter {
 
     private static final LoggerService logger = new LoggerService(LoggerFactory.getLogger(DescriptionWorkflowDeleter.class));
 
-    private final TenantEntityManager entityManager;
+    private final TenantEntityManagerFactory tenantEntityManagerFactory;
     private final QueryFactory queryFactory;
 
     @Autowired
-    public DescriptionWorkflowDeleter(TenantEntityManager entityManager, QueryFactory queryFactory){
-        this.entityManager = entityManager;
+    public DescriptionWorkflowDeleter(TenantEntityManagerFactory tenantEntityManagerFactory, QueryFactory queryFactory){
+        this.tenantEntityManagerFactory = tenantEntityManagerFactory;
         this.queryFactory = queryFactory;
     }
 
@@ -49,7 +46,7 @@ public class DescriptionWorkflowDeleter implements Deleter {
         logger.debug("will delete {} items", Optional.ofNullable(data).map(List::size).orElse(0));
         this.delete(data);
         logger.trace("saving changes");
-        this.entityManager.flush();
+        this.tenantEntityManagerFactory.getInstance().flush();
         logger.trace("changes saved");
     }
 
@@ -63,7 +60,7 @@ public class DescriptionWorkflowDeleter implements Deleter {
             item.setUpdatedAt(now);
             item.setIsActive(IsActive.Inactive);
             logger.trace("updating item");
-            this.entityManager.merge(item);
+            this.tenantEntityManagerFactory.getInstance().merge(item);
             logger.trace("updated item");
         }
     }

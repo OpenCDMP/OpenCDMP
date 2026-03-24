@@ -58,7 +58,7 @@ public class GlobalExceptionHandler {
 		}
 	}
 
-	public HandledException handleException(Exception exception, WebRequest request) throws Exception {
+	public HandledException handleException(Exception exception, WebRequest request) {
 		HttpStatus statusCode;
 		Map<String, Object> result;
 		System.Logger.Level logLevel;

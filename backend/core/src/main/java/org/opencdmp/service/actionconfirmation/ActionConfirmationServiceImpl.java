@@ -17,14 +17,14 @@ import org.opencdmp.authorization.OwnedResource;
 import org.opencdmp.authorization.Permission;
 import org.opencdmp.commons.XmlHandlingService;
 import org.opencdmp.commons.enums.IsActive;
-import org.opencdmp.commons.scope.user.UserScope;
+import org.opencdmp.commons.scope.user.UserScopeFactory;
 import org.opencdmp.commons.types.actionconfirmation.PlanInvitationEntity;
 import org.opencdmp.commons.types.actionconfirmation.MergeAccountConfirmationEntity;
 import org.opencdmp.commons.types.actionconfirmation.RemoveCredentialRequestEntity;
 import org.opencdmp.commons.types.actionconfirmation.UserInviteToTenantRequestEntity;
 import org.opencdmp.convention.ConventionService;
 import org.opencdmp.data.ActionConfirmationEntity;
-import org.opencdmp.data.TenantEntityManager;
+import org.opencdmp.data.TenantEntityManagerFactory;
 import org.opencdmp.errorcode.ErrorThesaurusProperties;
 import org.opencdmp.model.actionconfirmation.ActionConfirmation;
 import org.opencdmp.model.builder.actionconfirmation.ActionConfirmationBuilder;
@@ -51,7 +51,7 @@ import java.util.UUID;
 public class ActionConfirmationServiceImpl implements ActionConfirmationService {
 
     private static final LoggerService logger = new LoggerService(LoggerFactory.getLogger(PlanBlueprintServiceImpl.class));
-    private final TenantEntityManager entityManager;
+    private final TenantEntityManagerFactory tenantEntityManagerFactory;
     private final AuthorizationService authorizationService;
     private final DeleterFactory deleterFactory;
     private final BuilderFactory builderFactory;
@@ -59,13 +59,13 @@ public class ActionConfirmationServiceImpl implements ActionConfirmationService 
     private final MessageSource messageSource;
     private final XmlHandlingService xmlHandlingService;
     private final ErrorThesaurusProperties errors;
-    private final UserScope userScope;
+    private final UserScopeFactory userScopeFactory;
 
     public ActionConfirmationServiceImpl(
-            TenantEntityManager entityManager, AuthorizationService authorizationService, DeleterFactory deleterFactory, BuilderFactory builderFactory,
-		    ConventionService conventionService, MessageSource messageSource,
-		    XmlHandlingService xmlHandlingService, ErrorThesaurusProperties errors, UserScope userScope) {
-        this.entityManager = entityManager;
+            TenantEntityManagerFactory tenantEntityManagerFactory, AuthorizationService authorizationService, DeleterFactory deleterFactory, BuilderFactory builderFactory,
+            ConventionService conventionService, MessageSource messageSource,
+            XmlHandlingService xmlHandlingService, ErrorThesaurusProperties errors, UserScopeFactory userScopeFactory) {
+        this.tenantEntityManagerFactory = tenantEntityManagerFactory;
         this.authorizationService = authorizationService;
         this.deleterFactory = deleterFactory;
         this.builderFactory = builderFactory;
@@ -73,7 +73,7 @@ public class ActionConfirmationServiceImpl implements ActionConfirmationService 
         this.messageSource = messageSource;
         this.xmlHandlingService = xmlHandlingService;
         this.errors = errors;
-	    this.userScope = userScope;
+	    this.userScopeFactory = userScopeFactory;
     }
 
 
@@ -85,7 +85,7 @@ public class ActionConfirmationServiceImpl implements ActionConfirmationService 
 
         ActionConfirmationEntity data;
         if (isUpdate) {
-            data = this.entityManager.find(ActionConfirmationEntity.class, model.getId());
+            data = this.tenantEntityManagerFactory.getInstance().find(ActionConfirmationEntity.class, model.getId());
             if (data == null) throw new MyNotFoundException(this.messageSource.getMessage("General_ItemNotFound", new Object[]{model.getId(), ReferenceType.class.getSimpleName()}, LocaleContextHolder.getLocale()));
             if (!this.conventionService.hashValue(data.getUpdatedAt()).equals(model.getHash())) throw new MyValidationException(this.errors.getHashConflict().getCode(), this.errors.getHashConflict().getMessage());
         } else {
@@ -94,7 +94,7 @@ public class ActionConfirmationServiceImpl implements ActionConfirmationService 
             data.setId(UUID.randomUUID());
             data.setIsActive(IsActive.Active);
             data.setCreatedAt(Instant.now());
-            data.setCreatedById(this.userScope.getUserId());
+            data.setCreatedById(this.userScopeFactory.getInstance().getUserId());
         }
         this.authorizationService.authorizeAtLeastOneForce(List.of(new OwnedResource(data.getCreatedById())), Permission.EditActionConfirmation);
         
@@ -111,10 +111,10 @@ public class ActionConfirmationServiceImpl implements ActionConfirmationService 
         }
         data.setUpdatedAt(Instant.now());
 
-        if (isUpdate) this.entityManager.merge(data);
-        else this.entityManager.persist(data);
+        if (isUpdate) this.tenantEntityManagerFactory.getInstance().merge(data);
+        else this.tenantEntityManagerFactory.getInstance().persist(data);
 
-        this.entityManager.flush();
+        this.tenantEntityManagerFactory.getInstance().flush();
 
         return this.builderFactory.builder(ActionConfirmationBuilder.class).build(BaseFieldSet.build(fields, ActionConfirmation._id), data);
     }

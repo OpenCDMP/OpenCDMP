@@ -12,7 +12,7 @@ import org.opencdmp.authorization.AuthorizationFlags;
 import org.opencdmp.commons.enums.IsActive;
 import org.opencdmp.commons.enums.TenantConfigurationType;
 import org.opencdmp.data.TenantConfigurationEntity;
-import org.opencdmp.data.TenantEntityManager;
+import org.opencdmp.data.TenantEntityManagerFactory;
 import org.opencdmp.model.tenantconfiguration.TenantConfiguration;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
@@ -34,9 +34,9 @@ public class TenantConfigurationQuery extends QueryBase<TenantConfigurationEntit
     private EnumSet<AuthorizationFlags> authorize = EnumSet.of(AuthorizationFlags.None);
 
 
-    private final TenantEntityManager tenantEntityManager;
-	public TenantConfigurationQuery(TenantEntityManager tenantEntityManager) {
-		this.tenantEntityManager = tenantEntityManager;
+    private final TenantEntityManagerFactory tenantEntityManagerFactory;
+	public TenantConfigurationQuery(TenantEntityManagerFactory tenantEntityManagerFactory) {
+		this.tenantEntityManagerFactory = tenantEntityManagerFactory;
 	}
 
     public TenantConfigurationQuery ids(UUID value) {
@@ -141,7 +141,7 @@ public class TenantConfigurationQuery extends QueryBase<TenantConfigurationEntit
 
     @Override
     protected EntityManager entityManager(){
-        return this.tenantEntityManager.getEntityManager();
+        return this.tenantEntityManagerFactory.getInstance().getEntityManager();
     }
 
     @Override

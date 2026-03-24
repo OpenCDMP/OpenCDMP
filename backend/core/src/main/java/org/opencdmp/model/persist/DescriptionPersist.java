@@ -154,16 +154,16 @@ public class DescriptionPersist {
 
         private final MessageSource messageSource;
 
-        private final TenantEntityManager entityManager;
+        private final TenantEntityManagerFactory tenantEntityManagerFactory;
         private final XmlHandlingService xmlHandlingService;
         private final QueryFactory queryFactory;
         private final ValidatorFactory validatorFactory;
 
 
-        protected DescriptionPersistValidator(ConventionService conventionService, ErrorThesaurusProperties errors, MessageSource messageSource, TenantEntityManager entityManager, XmlHandlingService xmlHandlingService, QueryFactory queryFactory, ValidatorFactory validatorFactory) {
+        protected DescriptionPersistValidator(ConventionService conventionService, ErrorThesaurusProperties errors, MessageSource messageSource, TenantEntityManagerFactory tenantEntityManagerFactory, XmlHandlingService xmlHandlingService, QueryFactory queryFactory, ValidatorFactory validatorFactory) {
             super(conventionService, errors);
             this.messageSource = messageSource;
-	        this.entityManager = entityManager;
+	        this.tenantEntityManagerFactory = tenantEntityManagerFactory;
 	        this.xmlHandlingService = xmlHandlingService;
             this.queryFactory = queryFactory;
             this.validatorFactory = validatorFactory;
@@ -181,10 +181,10 @@ public class DescriptionPersist {
             PlanBlueprintEntity planBlueprintEntity = null;
             DescriptionStatusEntity statusEntity = null;
             try {
-		        descriptionTemplate = this.isValidGuid(item.getDescriptionTemplateId()) ? this.entityManager.find(DescriptionTemplateEntity.class, item.getDescriptionTemplateId(), true) : null;
-                planEntity = this.isValidGuid(item.getPlanId()) ? this.entityManager.find(PlanEntity.class, item.getPlanId(), true) : null;
-                planBlueprintEntity = planEntity == null ? null : this.entityManager.find(PlanBlueprintEntity.class, planEntity.getBlueprintId());
-                statusEntity = this.isValidGuid(item.getStatusId()) ? this.entityManager.find(DescriptionStatusEntity.class, item.getStatusId(), true) : null;
+		        descriptionTemplate = this.isValidGuid(item.getDescriptionTemplateId()) ? this.tenantEntityManagerFactory.getInstance().find(DescriptionTemplateEntity.class, item.getDescriptionTemplateId(), true) : null;
+                planEntity = this.isValidGuid(item.getPlanId()) ? this.tenantEntityManagerFactory.getInstance().find(PlanEntity.class, item.getPlanId(), true) : null;
+                planBlueprintEntity = planEntity == null ? null : this.tenantEntityManagerFactory.getInstance().find(PlanBlueprintEntity.class, planEntity.getBlueprintId());
+                statusEntity = this.isValidGuid(item.getStatusId()) ? this.tenantEntityManagerFactory.getInstance().find(DescriptionStatusEntity.class, item.getStatusId(), true) : null;
 
             } catch (InvalidApplicationException e) {
 		        throw new RuntimeException(e);

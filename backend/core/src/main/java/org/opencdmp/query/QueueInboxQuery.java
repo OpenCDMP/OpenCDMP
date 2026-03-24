@@ -12,7 +12,7 @@ import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.Predicate;
 import org.opencdmp.commons.enums.IsActive;
 import org.opencdmp.data.QueueInboxEntity;
-import org.opencdmp.data.TenantEntityManager;
+import org.opencdmp.data.TenantEntityManagerFactory;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
@@ -34,10 +34,10 @@ public class QueueInboxQuery extends QueryBase<QueueInboxEntity> {
 	private Collection<QueueInboxStatus> status;
 	private Integer retryThreshold;
 	
-	private final TenantEntityManager tenantEntityManager;
+	private final TenantEntityManagerFactory tenantEntityManagerFactory;
 
-	public QueueInboxQuery(TenantEntityManager tenantEntityManager) {
-		this.tenantEntityManager = tenantEntityManager;
+	public QueueInboxQuery(TenantEntityManagerFactory tenantEntityManagerFactory) {
+		this.tenantEntityManagerFactory = tenantEntityManagerFactory;
 	}
 
 	public QueueInboxQuery ids(UUID value) {
@@ -162,7 +162,7 @@ public class QueueInboxQuery extends QueryBase<QueueInboxEntity> {
 
 	@Override
 	protected EntityManager entityManager(){
-		return this.tenantEntityManager.getEntityManager();
+		return this.tenantEntityManagerFactory.getInstance().getEntityManager();
 	}
 
 	@Override

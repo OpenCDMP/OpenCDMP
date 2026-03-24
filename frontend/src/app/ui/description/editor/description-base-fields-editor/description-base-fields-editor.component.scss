@@ -1,7 +1,7 @@
 .description-base-fields-editor {
 
 	.intro {
-        color: var(--sys-on-surface);
+        color: var(--mat-sys-on-surface);
         opacity: 0.85;
 		margin: 2rem 0rem 1rem 0rem;
 	}
@@ -9,7 +9,7 @@
 	.heading {
 		text-align: left;
 		font-weight: 700;
-        font-size: var(--sys-headline-medium-size);
+        font-size: var(--mat-sys-headline-medium-size);
 		letter-spacing: 0px;
 		opacity: 0.81;
 		margin-top: 1.625rem;
@@ -19,7 +19,7 @@
 	.hint {
 		text-align: left;
 		font-weight: 400;
-		font-size: var(--sys-body-medium-size);
+		font-size: var(--mat-sys-body-medium-size);
 		letter-spacing: 0px;
 		opacity: 0.81;
 		margin-bottom: 2.125rem;
@@ -30,7 +30,7 @@
 	.profile-form {
 		text-align: left;
 		font-weight: 400;
-		font-size: var(--sys-body-medium-size);
+		font-size: var(--mat-sys-body-medium-size);
 		letter-spacing: 0.15px;
 		opacity: 1;
 		margin-bottom: 1rem;
@@ -39,7 +39,7 @@
 	.plan-link {
 		color: var(--link-color);
 		font-weight: 400;
-		font-size: var(--sys-body-medium-size);
+		font-size: var(--mat-sys-body-medium-size);
 		cursor: pointer;
 	}
 

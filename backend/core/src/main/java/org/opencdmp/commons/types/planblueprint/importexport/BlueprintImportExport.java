@@ -4,6 +4,7 @@ import jakarta.xml.bind.annotation.XmlAccessType;
 import jakarta.xml.bind.annotation.XmlAccessorType;
 import jakarta.xml.bind.annotation.XmlElement;
 import jakarta.xml.bind.annotation.XmlRootElement;
+import org.opencdmp.commons.types.planblueprinttype.PlanBlueprintTypeImportExport;
 
 import java.util.UUID;
 
@@ -23,11 +24,15 @@ public class BlueprintImportExport {
     @XmlElement(name = "definition")
     private BlueprintDefinitionImportExport planBlueprintDefinition;
 
+    @XmlElement(name = "type")
+    private PlanBlueprintTypeImportExport planBlueprintType;
+
     @XmlElement(name = "groupId")
     private UUID groupId;
 
     @XmlElement(name = "description")
     private String description;
+
 
     public UUID getId() {
         return this.id;
@@ -59,6 +64,14 @@ public class BlueprintImportExport {
 
     public void setPlanBlueprintDefinition(BlueprintDefinitionImportExport planBlueprintDefinition) {
         this.planBlueprintDefinition = planBlueprintDefinition;
+    }
+
+    public PlanBlueprintTypeImportExport getPlanBlueprintType() {
+        return planBlueprintType;
+    }
+
+    public void setPlanBlueprintType(PlanBlueprintTypeImportExport planBlueprintType) {
+        this.planBlueprintType = planBlueprintType;
     }
 
     public UUID getGroupId() {

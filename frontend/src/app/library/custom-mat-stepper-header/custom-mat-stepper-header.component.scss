@@ -24,7 +24,7 @@
 	transition-timing-function: ease-out;
 	transition-delay: 50ms;
 	box-shadow: 0px 1px 2px #bfbfbf;
-	background-color: var(--sys-tertiary);
+	background-color: var(--mat-sys-tertiary);
 }
 #progress-container{
 	box-shadow: 1px 1px 6px #00000029;;
@@ -36,8 +36,8 @@
 	transition-duration: 200ms;
 	transition-delay: 50ms;
 	transition-timing-function: ease-in-out;
-	font-size: var(--sys-label-large-size);
-    color: var(--sys-on-surface);
+	font-size: var(--mat-sys-label-large-size);
+    color: var(--mat-sys-on-surface);
 }
 
 .stepper-title-label-locked{
@@ -46,7 +46,7 @@
 }
 
 .stepper-title-label-current, .stepper-title-label-completed {
-    color: var(--sys-on-tertiary);
+    color: var(--mat-sys-on-tertiary);
 }
 
 .stepper-title-label-completed{
@@ -62,5 +62,5 @@
 }
 
 .padded-shadow-btn.accent {
-    background-color: var(--sys-surface);
+    background-color: var(--mat-sys-surface);
 }

@@ -20,6 +20,7 @@ import { catchError, takeUntil, tap } from 'rxjs/operators';
 import { PlanEditorModel } from '../../plan-editor-blueprint/plan-editor.model';
 import { EnqueueService } from '@app/core/services/enqueue.service';
 import { of, throwError } from 'rxjs';
+import { AuthService } from '@app/core/services/auth/auth.service';
 
 @Component({
     selector: 'app-invitation-dialog-component',
@@ -48,6 +49,7 @@ export class PlanInvitationDialogComponent extends BaseComponent implements OnIn
 		private planService: PlanService,
 		private formService: FormService,
         private enqueueService: EnqueueService,
+		private authService: AuthService,
 		@Inject(MAT_DIALOG_DATA) public data: any
 	) {
 		super();
@@ -57,7 +59,7 @@ export class PlanInvitationDialogComponent extends BaseComponent implements OnIn
 	}
 
 	ngOnInit() {
-		this.formGroup = this.editorModel.buildForm();
+		this.formGroup = this.editorModel.buildForm(null, null, true);
 	}
 
 	send() {

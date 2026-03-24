@@ -10,8 +10,8 @@ import org.opencdmp.authorization.AuthorizationFlags;
 import org.opencdmp.authorization.OwnedResource;
 import org.opencdmp.authorization.Permission;
 import org.opencdmp.commons.enums.*;
-import org.opencdmp.commons.scope.tenant.TenantScope;
-import org.opencdmp.commons.scope.user.UserScope;
+import org.opencdmp.commons.scope.tenant.TenantScopeFactory;
+import org.opencdmp.commons.scope.user.UserScopeFactory;
 import org.opencdmp.commons.types.dashborad.RecentActivityItemEntity;
 import org.opencdmp.convention.ConventionService;
 import org.opencdmp.model.*;
@@ -42,8 +42,8 @@ public class DashboardServiceImpl implements DashboardService {
     private final AuthorizationService authorizationService;
     private final BuilderFactory builderFactory;
     private final QueryFactory queryFactory;
-    private final UserScope userScope;
-    private final TenantScope tenantScope;
+    private final UserScopeFactory userScopeFactory;
+    private final TenantScopeFactory tenantScopeFactory;
     private final DashboardServiceProperties config;
     private final ElasticQueryHelperService elasticQueryHelperService;
     private final DashboardStatisticsCacheService dashboardStatisticsCacheService;
@@ -52,15 +52,15 @@ public class DashboardServiceImpl implements DashboardService {
 		    ConventionService conventionService, AuthorizationService authorizationService,
 		    BuilderFactory builderFactory,
 		    QueryFactory queryFactory,
-            UserScope userScope,
-            TenantScope tenantScope,
+            UserScopeFactory userScopeFactory,
+            TenantScopeFactory tenantScopeFactory,
 		    DashboardServiceProperties config, ElasticQueryHelperService elasticQueryHelperService, DashboardStatisticsCacheService dashboardStatisticsCacheService) {
 	    this.conventionService = conventionService;
 	    this.authorizationService = authorizationService;
         this.builderFactory = builderFactory;
         this.queryFactory = queryFactory;
-        this.userScope = userScope;
-        this.tenantScope = tenantScope;
+        this.userScopeFactory = userScopeFactory;
+        this.tenantScopeFactory = tenantScopeFactory;
 	    this.config = config;
 	    this.elasticQueryHelperService = elasticQueryHelperService;
         this.dashboardStatisticsCacheService = dashboardStatisticsCacheService;
@@ -69,7 +69,7 @@ public class DashboardServiceImpl implements DashboardService {
     @Override
     public List<RecentActivityItem> getMyRecentActivityItems(RecentActivityItemLookup model) throws InvalidApplicationException {
         logger.debug(new MapLogEntry("collecting recent activity").And("model", model));
-        model.setUserIds(List.of(this.userScope.getUserId()));
+        model.setUserIds(List.of(this.userScopeFactory.getInstance().getUserId()));
         
         List<RecentActivityItemEntity> recentActivityItemEntities = new ArrayList<>();
         DescriptionLookup descriptionLookup = model.asDescriptionLookup();
@@ -147,12 +147,12 @@ public class DashboardServiceImpl implements DashboardService {
 
     @Override
     public DashboardStatistics getMyDashboardStatistics() throws InvalidApplicationException {
-        this.authorizationService.authorizeAtLeastOneForce(this.userScope.getUserIdSafe() != null ? List.of(new OwnedResource(this.userScope.getUserIdSafe())) : null);
+        this.authorizationService.authorizeAtLeastOneForce(this.userScopeFactory.getInstance().getUserIdSafe() != null ? List.of(new OwnedResource(this.userScopeFactory.getInstance().getUserIdSafe())) : null);
 
-        DashboardStatisticsCacheService.DashboardStatisticsCacheValue cacheValue = this.dashboardStatisticsCacheService.lookup(this.dashboardStatisticsCacheService.buildKey(this.dashboardStatisticsCacheService.generateUserTenantCacheKey(this.userScope.getUserId(), this.tenantScope.getTenantCode())));
+        DashboardStatisticsCacheService.DashboardStatisticsCacheValue cacheValue = this.dashboardStatisticsCacheService.lookup(this.dashboardStatisticsCacheService.buildKey(this.dashboardStatisticsCacheService.generateUserTenantCacheKey(this.userScopeFactory.getInstance().getUserId(), this.tenantScopeFactory.getInstance().getTenantCode())));
         if (cacheValue == null || cacheValue.getDashboardStatistics() == null) {
             PlanUserQuery planUserLookup = this.queryFactory.query(PlanUserQuery.class).disableTracking();
-            planUserLookup.userIds(this.userScope.getUserId());
+            planUserLookup.userIds(this.userScopeFactory.getInstance().getUserId());
             planUserLookup.isActives(IsActive.Active);
 
             PlanQuery planQuery = this.queryFactory.query(PlanQuery.class).disableTracking().isActive(IsActive.Active).planUserSubQuery(planUserLookup).versionStatuses(List.of(PlanVersionStatus.Current, PlanVersionStatus.NotFinalized));
@@ -172,7 +172,7 @@ public class DashboardServiceImpl implements DashboardService {
                     statistics.getReferenceTypeStatistics().add(referenceTypeStatistics);
                 }
             }
-            cacheValue = new DashboardStatisticsCacheService.DashboardStatisticsCacheValue(this.userScope.getUserId(), this.tenantScope.getTenantCode());
+            cacheValue = new DashboardStatisticsCacheService.DashboardStatisticsCacheValue(this.userScopeFactory.getInstance().getUserId(), this.tenantScopeFactory.getInstance().getTenantCode());
             cacheValue.setPublic(false);
             cacheValue.setDashboardStatistics(statistics);
             this.dashboardStatisticsCacheService.put(cacheValue);

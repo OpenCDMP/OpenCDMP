@@ -53,6 +53,12 @@ export class NotificationServiceEnumUtils extends BaseEnumUtilsService {
 			case NotificationType.descriptionEvaluationType: return this.language.instant('TYPES.NOTIFICATION-TEMPLATE-NOTIFICATION-TYPE.DESCRIPTION-EVALUATION');
 			case NotificationType.taggedPlanAnnotationCreatedType: return this.language.instant('TYPES.NOTIFICATION-TEMPLATE-NOTIFICATION-TYPE.TAGGED-PLAN-ANNOTATION-CREATED');
 			case NotificationType.taggedDescriptionAnnotationCreatedType: return this.language.instant('TYPES.NOTIFICATION-TEMPLATE-NOTIFICATION-TYPE.TAGGED-DESCRIPTION-ANNOTATION-CREATED');
+			case NotificationType.planCreatedSuggestionType: return this.language.instant('TYPES.NOTIFICATION-TEMPLATE-NOTIFICATION-TYPE.PLAN-CREATED-SUGGESTION');
+			case NotificationType.planUpdatedSuggestionType: return this.language.instant('TYPES.NOTIFICATION-TEMPLATE-NOTIFICATION-TYPE.PLAN-UPDATED-SUGGESTION');
+			case NotificationType.planAccessRemovedType: return this.language.instant('TYPES.NOTIFICATION-TEMPLATE-NOTIFICATION-TYPE.PLAN-ACCESS-REMOVED');
+			case NotificationType.planUserRoleChangedType: return this.language.instant('TYPES.NOTIFICATION-TEMPLATE-NOTIFICATION-TYPE.PLAN-USER-ROLE-CHANGED');
+			case NotificationType.planUserRoleCreatedType: return this.language.instant('TYPES.NOTIFICATION-TEMPLATE-NOTIFICATION-TYPE.PLAN-USER-ROLE-CREATED');
+			case NotificationType.planUserRoleRemovedType: return this.language.instant('TYPES.NOTIFICATION-TEMPLATE-NOTIFICATION-TYPE.PLAN-USER-ROLE-REMOVED');
 			default: return '';
 		}
 	}

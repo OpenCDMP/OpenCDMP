@@ -52,7 +52,6 @@ public class Page {
 	public void setSections(List<Section> sections) {
 		this.sections = sections;
 	}
-
 }
 
 

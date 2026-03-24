@@ -18,9 +18,8 @@ import org.opencdmp.authorization.Permission;
 import org.opencdmp.commons.enums.PlanAccessType;
 import org.opencdmp.commons.enums.PlanStatus;
 import org.opencdmp.commons.enums.PlanVersionStatus;
-import org.opencdmp.commons.scope.tenant.TenantScope;
-import org.opencdmp.commons.scope.user.UserScope;
-import org.opencdmp.elastic.data.DescriptionElasticEntity;
+import org.opencdmp.commons.scope.tenant.TenantScopeFactory;
+import org.opencdmp.commons.scope.user.UserScopeFactory;
 import org.opencdmp.elastic.data.PlanElasticEntity;
 import org.opencdmp.elastic.data.nested.NestedDescriptionElasticEntity;
 import org.opencdmp.elastic.data.nested.NestedPlanStatusElasticEntity;
@@ -216,17 +215,17 @@ public class PlanElasticQuery extends ElasticQuery<PlanElasticEntity, UUID> {
 	private final QueryFactory queryFactory;
 	private final AppElasticConfiguration appElasticConfiguration;
 	private final ElasticService elasticService;
-	private final UserScope userScope;
-	private final TenantScope tenantScope;
+	private final UserScopeFactory userScopeFactory;
+	private final TenantScopeFactory tenantScopeFactory;
 	private final AuthorizationService authService;
 	@Autowired
-	public PlanElasticQuery(ElasticsearchTemplate elasticsearchTemplate, ElasticProperties elasticProperties, QueryFactory queryFactory, AppElasticConfiguration appElasticConfiguration, ElasticService elasticService, UserScope userScope, TenantScope tenantScope, AuthorizationService authService) {
+	public PlanElasticQuery(ElasticsearchTemplate elasticsearchTemplate, ElasticProperties elasticProperties, QueryFactory queryFactory, AppElasticConfiguration appElasticConfiguration, ElasticService elasticService, UserScopeFactory userScopeFactory, TenantScopeFactory tenantScopeFactory, AuthorizationService authService) {
 		super(elasticsearchTemplate, elasticProperties);
 		this.queryFactory = queryFactory;
 		this.appElasticConfiguration = appElasticConfiguration;
 		this.elasticService = elasticService;
-		this.userScope = userScope;
-		this.tenantScope = tenantScope;
+		this.userScopeFactory = userScopeFactory;
+		this.tenantScopeFactory = tenantScopeFactory;
 		this.authService = authService;
 	}
 
@@ -241,15 +240,15 @@ public class PlanElasticQuery extends ElasticQuery<PlanElasticEntity, UUID> {
 	}
 
 	private Query applyTenant(List<Query> predicates){
-		if (this.tenantScope.isSet()){
+		if (this.tenantScopeFactory.getInstance().isSet()){
 			Query tenantQuery;
-			if (this.tenantScope.isDefaultTenant()){
+			if (this.tenantScopeFactory.getInstance().isDefaultTenant()){
 				tenantQuery = this.fieldNotExists(this.elasticFieldOf(PlanElasticEntity._tenantId))._toQuery();
 			}
 			else {
 				try {
 					tenantQuery = this.or(this.fieldNotExists(this.elasticFieldOf(PlanElasticEntity._tenantId))._toQuery(),
-							this.equals(this.elasticFieldOf(PlanElasticEntity._tenantId), this.tenantScope.getTenant()))._toQuery();
+							this.equals(this.elasticFieldOf(PlanElasticEntity._tenantId), this.tenantScopeFactory.getInstance().getTenant()))._toQuery();
 				} catch (InvalidApplicationException e) {
 					throw new RuntimeException(e);
 				}
@@ -268,7 +267,7 @@ public class PlanElasticQuery extends ElasticQuery<PlanElasticEntity, UUID> {
 		if (this.authorize.contains(AuthorizationFlags.Permission) && this.authService.authorize(Permission.BrowsePlan)) return this.applyTenant(null);
 		UUID userId = null;
 		boolean usePublic = this.authorize.contains(AuthorizationFlags.Public);
-		if (this.authorize.contains(AuthorizationFlags.PlanAssociated)) userId = this.userScope.getUserIdSafe();
+		if (this.authorize.contains(AuthorizationFlags.PlanAssociated)) userId = this.userScopeFactory.getInstance().getUserIdSafe();
 
 		List<Query> predicates = new ArrayList<>();
 		if (usePublic) {

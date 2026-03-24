@@ -152,10 +152,14 @@ fieldSetExpander:
         - descriptions.descriptionReferences.data.ordinal
         - descriptions.descriptionReferences.reference.id
         - descriptions.descriptionReferences.reference.label
+        - descriptions.descriptionReferences.reference.description
         - descriptions.descriptionReferences.reference.type.id
         - descriptions.descriptionReferences.reference.reference
         - descriptions.descriptionReferences.reference.source
         - descriptions.descriptionReferences.reference.sourceType
+        - descriptions.descriptionReferences.reference.definition.fields.code
+        - descriptions.descriptionReferences.reference.definition.fields.dataType
+        - descriptions.descriptionReferences.reference.definition.fields.value
         - descriptions.descriptionReferences.isActive
         - descriptions.createdAt
         - descriptions.hash

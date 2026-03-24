@@ -11,7 +11,7 @@ import org.opencdmp.authorization.AuthorizationFlags;
 import org.opencdmp.commons.enums.LockTargetType;
 import org.opencdmp.convention.ConventionService;
 import org.opencdmp.data.LockEntity;
-import org.opencdmp.data.TenantEntityManager;
+import org.opencdmp.data.TenantEntityManagerFactory;
 import org.opencdmp.model.Lock;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
@@ -150,15 +150,15 @@ public class LockQuery extends QueryBase<LockEntity> {
         return this;
     }
 
-    private final TenantEntityManager tenantEntityManager;
-    public LockQuery(ConventionService conventionService, TenantEntityManager tenantEntityManager) {
+    private final TenantEntityManagerFactory tenantEntityManagerFactory;
+    public LockQuery(ConventionService conventionService, TenantEntityManagerFactory tenantEntityManagerFactory) {
         this.conventionService = conventionService;
-	    this.tenantEntityManager = tenantEntityManager;
+	    this.tenantEntityManagerFactory = tenantEntityManagerFactory;
     }
 
     @Override
     protected EntityManager entityManager(){
-        return this.tenantEntityManager.getEntityManager();
+        return this.tenantEntityManagerFactory.getInstance().getEntityManager();
     }
 
     @Override

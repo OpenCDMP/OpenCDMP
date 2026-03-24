@@ -7,7 +7,7 @@ import gr.cite.tools.logging.DataLogEntry;
 import gr.cite.tools.logging.LoggerService;
 import org.opencdmp.authorization.AuthorizationFlags;
 import org.opencdmp.commons.XmlHandlingService;
-import org.opencdmp.commons.scope.tenant.TenantScope;
+import org.opencdmp.commons.scope.tenant.TenantScopeFactory;
 import org.opencdmp.commons.types.planworkflow.PlanWorkflowDefinitionEntity;
 import org.opencdmp.convention.ConventionService;
 import org.opencdmp.data.PlanWorkflowEntity;
@@ -28,14 +28,14 @@ public class PlanWorkflowBuilder extends BaseBuilder<PlanWorkflow, PlanWorkflowE
 
     private final XmlHandlingService xmlHandlingService;
     private final BuilderFactory builderFactory;
-    private final TenantScope tenantScope;
+    private final TenantScopeFactory tenantScopeFactory;
 
 
-    public PlanWorkflowBuilder(ConventionService conventionService, XmlHandlingService xmlHandlingService, BuilderFactory builderFactory, TenantScope tenantScope) {
+    public PlanWorkflowBuilder(ConventionService conventionService, XmlHandlingService xmlHandlingService, BuilderFactory builderFactory, TenantScopeFactory tenantScopeFactory) {
         super(conventionService, new LoggerService(LoggerFactory.getLogger(PlanWorkflowBuilder.class)));
         this.xmlHandlingService = xmlHandlingService;
         this.builderFactory = builderFactory;
-        this.tenantScope = tenantScope;
+        this.tenantScopeFactory = tenantScopeFactory;
     }
 
     public PlanWorkflowBuilder authorize(EnumSet<AuthorizationFlags> values) {
@@ -63,7 +63,7 @@ public class PlanWorkflowBuilder extends BaseBuilder<PlanWorkflow, PlanWorkflowE
             if (fields.hasField(this.asIndexer(PlanWorkflow._updatedAt))) m.setUpdatedAt(d.getUpdatedAt());
             if (fields.hasField(this.asIndexer(PlanWorkflow._isActive))) m.setIsActive(d.getIsActive());
             if (fields.hasField(this.asIndexer(PlanWorkflow._hash))) m.setHash(this.hashValue(d.getUpdatedAt()));
-            if (fields.hasField(this.asIndexer(PlanWorkflow._belongsToCurrentTenant))) m.setBelongsToCurrentTenant(this.getBelongsToCurrentTenant(d, this.tenantScope));
+            if (fields.hasField(this.asIndexer(PlanWorkflow._belongsToCurrentTenant))) m.setBelongsToCurrentTenant(this.getBelongsToCurrentTenant(d, this.tenantScopeFactory.getInstance()));
 
             if (definitionFields != null && d.getDefinition() != null && !d.getDefinition().isBlank()) {
                 PlanWorkflowDefinitionEntity definitionData = this.xmlHandlingService.fromXmlSafe(PlanWorkflowDefinitionEntity.class, d.getDefinition());

@@ -1,4 +1,4 @@
-import { FormArray, FormControl, FormGroup, UntypedFormBuilder, UntypedFormGroup, Validators } from "@angular/forms";
+import { FormArray, FormControl, FormGroup, UntypedFormBuilder, UntypedFormGroup, ValidatorFn, Validators } from "@angular/forms";
 import { PlanAccessType } from "@app/core/common/enum/plan-access-type";
 import { PlanBlueprintFieldCategory } from "@app/core/common/enum/plan-blueprint-field-category";
 import { PlanBlueprintSystemFieldType } from "@app/core/common/enum/plan-blueprint-system-field-type";
@@ -11,14 +11,14 @@ import { Plan, PlanBlueprintValue, PlanBlueprintValuePersist, PlanContact, PlanC
 import { PlanReference } from "@app/core/model/plan/plan-reference";
 import { ReferencePersist } from "@app/core/model/reference/reference";
 import { BaseEditorModel } from "@common/base/base-form-editor-model";
-import { BackendErrorValidator } from '@common/forms/validation/custom-validator';
+import { BackendErrorValidator, PlanOwnerRequiredValidator } from '@common/forms/validation/custom-validator';
 import { ValidationErrorModel } from '@common/forms/validation/error-model/validation-error-model';
 import { Validation, ValidationContext } from '@common/forms/validation/validation-context';
 import { Guid } from "@common/types/guid";
 import { Description } from "@app/core/model/description/description";
 import { DescriptionEditorForm, DescriptionEditorModel } from "@app/ui/description/editor/description-editor.model";
 import { VisibilityRulesService } from "@app/ui/description/editor/description-form/visibility-rules/visibility-rules.service";
-
+import { AuthService } from "@app/core/services/auth/auth.service";
 export class PlanEditorModel extends BaseEditorModel implements PlanPersist {
 	label: string;
 	statusId: Guid;
@@ -31,6 +31,7 @@ export class PlanEditorModel extends BaseEditorModel implements PlanPersist {
 	users: PlanUserEditorModel[] = [];
 	permissions: string[];
 
+	existingPlanUsers: PlanUser[];
 
 	public validationErrorModel: ValidationErrorModel = new ValidationErrorModel();
 	protected formBuilder: UntypedFormBuilder = new UntypedFormBuilder();
@@ -49,7 +50,10 @@ export class PlanEditorModel extends BaseEditorModel implements PlanPersist {
 			this.accessType = item.accessType;
 			if (item?.planUsers) { 
 				if (item.isActive != IsActive.Active) item.planUsers.map(x => this.users.push(new PlanUserEditorModel(this.validationErrorModel).fromModel(x)));
-				else item.planUsers.filter(x => x.isActive === IsActive.Active).map(x => this.users.push(new PlanUserEditorModel(this.validationErrorModel).fromModel(x))); 
+				else {
+					item.planUsers.filter(x => x.isActive === IsActive.Active).map(x => this.users.push(new PlanUserEditorModel(this.validationErrorModel).fromModel(x)));
+					this.existingPlanUsers = item.planUsers.filter(x => x.isActive === IsActive.Active);
+				}
 			}
 
 			item.blueprint?.definition?.sections?.forEach(section => {
@@ -92,8 +96,8 @@ export class PlanEditorModel extends BaseEditorModel implements PlanPersist {
 		return this;
 	}
 
-	buildForm(context: ValidationContext = null, disabled: boolean = false): FormGroup<PlanEditorForm> {
-		if (context == null) { context = this.createValidationContext(); }
+	buildForm(context: ValidationContext = null, disabled: boolean = false, disableOwnerRequiredValidator: boolean = false): FormGroup<PlanEditorForm> {
+		if (context == null) { context = this.createValidationContext(disableOwnerRequiredValidator); }
 
 		const formGroup: FormGroup<PlanEditorForm> = this.formBuilder.group({
 			id: [{ value: this.id, disabled: disabled }, context.getValidation('id').validators],
@@ -133,7 +137,7 @@ export class PlanEditorModel extends BaseEditorModel implements PlanPersist {
         return descriptionTemplatesFormGroup;
     }
 
-	createValidationContext(): ValidationContext {
+	createValidationContext(disableOwnerRequiredValidator: boolean = false): ValidationContext {
 		const baseContext: ValidationContext = new ValidationContext();
 		const baseValidationArray: Validation[] = new Array<Validation>();
 		baseValidationArray.push({ key: 'id', validators: [BackendErrorValidator(this.validationErrorModel, 'id')] });
@@ -148,7 +152,12 @@ export class PlanEditorModel extends BaseEditorModel implements PlanPersist {
 
 		baseValidationArray.push({ key: 'planDescriptionValidator', validators: [] });
 
-		baseValidationArray.push({ key: 'users', validators: [BackendErrorValidator(this.validationErrorModel, `users`)] });
+		let userValidators: ValidatorFn[] = [BackendErrorValidator(this.validationErrorModel, `users`)];
+		
+		if (!disableOwnerRequiredValidator) userValidators.push(PlanOwnerRequiredValidator());
+
+		baseValidationArray.push({ key: 'users', validators: userValidators });
+
 		baseValidationArray.push({ key: 'hash', validators: [] });
 
 		baseContext.validation = baseValidationArray;
@@ -357,7 +366,7 @@ export class PlanBlueprintValueEditorModel implements PlanBlueprintValuePersist 
 					reference: x.reference.reference,
 					source: x.reference.source,
 					typeId: x.reference.type?.id,
-					description: x.reference.source,
+					description: x.reference.description,
 					definition: x.reference.definition,
 					abbreviation: x.reference.abbreviation,
 					sourceType: x.reference.sourceType
@@ -512,7 +521,7 @@ export class PlanContactEditorModel implements PlanContactPersist {
 		const baseValidationArray: Validation[] = new Array<Validation>();
 		baseValidationArray.push({ key: 'firstName', validators: [Validators.required, BackendErrorValidator(validationErrorModel, `${rootPath}firstName`)] });
 		baseValidationArray.push({ key: 'lastName', validators: [Validators.required, BackendErrorValidator(validationErrorModel, `${rootPath}lastName`)] });
-		baseValidationArray.push({ key: 'email', validators: [Validators.required, BackendErrorValidator(validationErrorModel, `${rootPath}email`)] });
+		baseValidationArray.push({ key: 'email', validators: [Validators.required, Validators.email, BackendErrorValidator(validationErrorModel, `${rootPath}email`)] });
 
 		baseContext.validation = baseValidationArray;
 		return baseContext;

@@ -14,12 +14,19 @@ import { IsActive } from '@notification-service/core/enum/is-active.enum';
 import { NotificationInAppTracking } from "@notification-service/core/enum/notification-inapp-tracking.enum";
 import { InAppNotification } from "@notification-service/core/model/inapp-notification.model";
 import { RouterUtilsService } from "@app/core/services/router/router-utils.service";
+import { CommonFormattingModule } from "@common/formatting/common-formatting.module";
+import { CommonModule } from "@angular/common";
+import { TranslateModule } from "@ngx-translate/core";
+import { MatDividerModule } from "@angular/material/divider";
+import { MatButtonModule } from "@angular/material/button";
+import { MatListModule } from "@angular/material/list";
+import { MatIconModule } from "@angular/material/icon";
 
 @Component({
     selector: 'app-mine-inapp-notification-listing-dialog',
     templateUrl: './mine-inapp-notification-listing-dialog.component.html',
     styleUrls: ['./mine-inapp-notification-listing-dialog.component.scss'],
-    standalone: false
+    imports: [CommonFormattingModule, CommonModule, TranslateModule, MatDividerModule, MatButtonModule, MatListModule, MatIconModule]
 })
 export class MineInAppNotificationListingDialogComponent extends BaseComponent implements OnInit, OnDestroy {
    

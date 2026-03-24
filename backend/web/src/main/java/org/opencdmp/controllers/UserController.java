@@ -1,6 +1,6 @@
 package org.opencdmp.controllers;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
+import tools.jackson.core.JacksonException;
 import gr.cite.tools.auditing.AuditService;
 import gr.cite.tools.data.builder.BuilderFactory;
 import gr.cite.tools.data.censor.CensorFactory;
@@ -27,7 +27,7 @@ import jakarta.xml.bind.JAXBException;
 import org.opencdmp.audit.AuditableAction;
 import org.opencdmp.authorization.AuthorizationFlags;
 import org.opencdmp.commons.enums.IsActive;
-import org.opencdmp.commons.scope.user.UserScope;
+import org.opencdmp.commons.scope.user.UserScopeFactory;
 import org.opencdmp.controllers.swagger.SwaggerHelpers;
 import org.opencdmp.controllers.swagger.annotation.OperationWithTenantHeader;
 import org.opencdmp.controllers.swagger.annotation.Swagger400;
@@ -92,7 +92,7 @@ public class UserController {
 
     private final QueryFactory queryFactory;
 
-    private final UserScope userScope;
+    private final UserScopeFactory userScopeFactory;
 
     private final MessageSource messageSource;
 
@@ -104,7 +104,7 @@ public class UserController {
             UserService userTypeService,
             CensorFactory censorFactory,
             QueryFactory queryFactory,
-            UserScope userScope,
+            UserScopeFactory userScopeFactory,
             MessageSource messageSource,
             ResponseUtilsService responseUtilsService) {
         this.builderFactory = builderFactory;
@@ -112,7 +112,7 @@ public class UserController {
         this.userTypeService = userTypeService;
         this.censorFactory = censorFactory;
         this.queryFactory = queryFactory;
-        this.userScope = userScope;
+        this.userScopeFactory = userScopeFactory;
         this.messageSource = messageSource;
         this.responseUtilsService = responseUtilsService;
     }
@@ -278,12 +278,12 @@ public class UserController {
     ) throws MyApplicationException, MyForbiddenException, MyNotFoundException, InvalidApplicationException {
         logger.debug(new MapLogEntry("retrieving me" + User.class.getSimpleName()).And("fields", fieldSet));
 
-        this.censorFactory.censor(UserCensor.class).censor(fieldSet, this.userScope.getUserId());
+        this.censorFactory.censor(UserCensor.class).censor(fieldSet, this.userScopeFactory.getInstance().getUserId());
 
-        UserQuery query = this.queryFactory.query(UserQuery.class).disableTracking().ids(this.userScope.getUserId()).authorize(AuthorizationFlags.AllExceptPublic);
+        UserQuery query = this.queryFactory.query(UserQuery.class).disableTracking().ids(this.userScopeFactory.getInstance().getUserId()).authorize(AuthorizationFlags.AllExceptPublic);
         User model = this.builderFactory.builder(UserBuilder.class).authorize(AuthorizationFlags.AllExceptPublic).build(fieldSet, query.firstAs(fieldSet));
         if (model == null)
-            throw new MyNotFoundException(this.messageSource.getMessage("General_ItemNotFound", new Object[]{this.userScope.getUserId(), User.class.getSimpleName()}, LocaleContextHolder.getLocale()));
+            throw new MyNotFoundException(this.messageSource.getMessage("General_ItemNotFound", new Object[]{this.userScopeFactory.getInstance().getUserId(), User.class.getSimpleName()}, LocaleContextHolder.getLocale()));
 
         this.auditService.track(AuditableAction.User_Lookup, Map.ofEntries(
                 new AbstractMap.SimpleEntry<String, Object>("fields", fieldSet)
@@ -298,7 +298,7 @@ public class UserController {
     @Transactional
     public void updateLanguageMine(
             @Parameter(name = "language", description = "The updated language", example = "en", required = true) @PathVariable("language") String language
-    ) throws MyApplicationException, MyForbiddenException, MyNotFoundException, InvalidApplicationException, JsonProcessingException {
+    ) throws MyApplicationException, MyForbiddenException, MyNotFoundException, InvalidApplicationException, JacksonException {
         logger.debug(new MapLogEntry("persisting" + User.class.getSimpleName()).And("language", language));
         this.userTypeService.updateLanguageMine(language);
 
@@ -313,7 +313,7 @@ public class UserController {
     @Transactional
     public void updateTimezoneMine(
             @Parameter(name = "timezone", description = "The updated timezone", example = "Europe/Budapest", required = true) @PathVariable("timezone") String timezone
-    ) throws MyApplicationException, MyForbiddenException, MyNotFoundException, InvalidApplicationException, JsonProcessingException {
+    ) throws MyApplicationException, MyForbiddenException, MyNotFoundException, InvalidApplicationException, JacksonException {
         logger.debug(new MapLogEntry("persisting" + User.class.getSimpleName()).And("timezone", timezone));
         this.userTypeService.updateTimezoneMine(timezone);
 
@@ -328,7 +328,7 @@ public class UserController {
     @Transactional
     public void updateCultureMine(
             @Parameter(name = "culture", description = "The updated culture", example = "en-US", required = true) @PathVariable("culture") String culture
-    ) throws MyApplicationException, MyForbiddenException, MyNotFoundException, InvalidApplicationException, JsonProcessingException {
+    ) throws MyApplicationException, MyForbiddenException, MyNotFoundException, InvalidApplicationException, JacksonException {
         logger.debug(new MapLogEntry("persisting" + User.class.getSimpleName()).And("culture", culture));
         this.userTypeService.updateCultureMine(culture);
 
@@ -351,7 +351,7 @@ public class UserController {
     public User persist(
             @RequestBody UserPersist model,
             @Parameter(name = "f", description = SwaggerHelpers.Commons.fieldset_description, required = true, style = ParameterStyle.FORM, explode = Explode.TRUE, schema = @Schema(type = "array", example = SwaggerHelpers.User.endpoint_field_set_example)) FieldSet fieldSet
-    ) throws MyApplicationException, MyForbiddenException, MyNotFoundException, InvalidApplicationException, JAXBException, ParserConfigurationException, JsonProcessingException, TransformerException, InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
+    ) throws MyApplicationException, MyForbiddenException, MyNotFoundException, InvalidApplicationException, JAXBException, ParserConfigurationException, JacksonException, TransformerException, InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
         logger.debug(new MapLogEntry("persisting" + User.class.getSimpleName()).And("model", model).And("fieldSet", fieldSet));
         User persisted = this.userTypeService.persist(model, fieldSet);
 
@@ -377,7 +377,7 @@ public class UserController {
     public User persistRoles(
             @RequestBody UserRolePatchPersist model,
             @Parameter(name = "f", description = SwaggerHelpers.Commons.fieldset_description, required = true, style = ParameterStyle.FORM, explode = Explode.TRUE, schema = @Schema(type = "array", example = SwaggerHelpers.User.endpoint_field_set_example)) FieldSet fieldSet
-    ) throws MyApplicationException, MyForbiddenException, MyNotFoundException, InvalidApplicationException, JAXBException, ParserConfigurationException, JsonProcessingException, TransformerException {
+    ) throws MyApplicationException, MyForbiddenException, MyNotFoundException, InvalidApplicationException, JAXBException, ParserConfigurationException, JacksonException, TransformerException {
         logger.debug(new MapLogEntry("persisting" + UserRole.class.getSimpleName()).And("model", model).And("fieldSet", fieldSet));
         User persisted = this.userTypeService.patchRoles(model, fieldSet);
 

@@ -20,7 +20,7 @@ h4 > span {
 
 
 .links :hover {
-  color: var(--sys-primary);
+  color: var(--mat-sys-primary);
 }
 
 
@@ -40,7 +40,7 @@ p {
 .plan-card,
 .description-card {
 	min-width: min(100%, 712px);
-	background: var(--sys-surface) 0% 0% no-repeat padding-box;
+	background: var(--mat-sys-surface) 0% 0% no-repeat padding-box;
 	box-shadow: 0px 3px 6px #0000001a;
 	border-radius: 4px;
 	opacity: 1;
@@ -72,26 +72,26 @@ input[type="text"] {
 }
 
 .plan-label {
-	background: var(--sys-primary) 0% 0% no-repeat padding-box;
+	background: var(--mat-sys-primary) 0% 0% no-repeat padding-box;
 	border-radius: 4px 0px;
 	opacity: 1;
 	min-width: 67px;
 	height: 37px;
-	color: var(--sys-on-primary);
+	color: var(--mat-sys-on-primary);
     align-content: center;
 }
 
 .description-label {
 	width: auto;
 	height: 37px;
-	background: var(--sys-tertiary) 0% 0% no-repeat padding-box;
+	background: var(--mat-sys-tertiary) 0% 0% no-repeat padding-box;
 	border-radius: 4px 0px;
 	text-align: left;
 	line-height: 2.8;
-	font-size: var(--sys-title-small-size);
+	font-size: var(--mat-sys-title-small-size);
 	font-weight: 400;
 	letter-spacing: 0px;
-	color: var(--sys-on-tertiary);
+	color: var(--mat-sys-on-tertiary);
 }
 
 .plan-title,
@@ -106,7 +106,7 @@ input[type="text"] {
 }
 .description-title,
 .description-title-draft {
-    font-size: var(--sys-title-medium-size);
+    font-size: var(--mat-sys-title-medium-size);
 
 }
 .description-subtitle {
@@ -115,7 +115,7 @@ input[type="text"] {
     flex-wrap: wrap;
 	text-align: left;
 	font-weight: 400;
-	font-size: var(--sys-title-small-size);
+	font-size: var(--mat-sys-title-small-size);
 	opacity: 1;
 	align-items: center;
 	color: var(--gray);
@@ -170,13 +170,13 @@ input[type="text"] {
 
 .description-card-actions div:hover,
 .plan-card-actions div:hover {
-	color: var(--sys-primary) !important;
+	color: var(--mat-sys-primary) !important;
 }
 
 
 
 .show-more:hover {
-	color: var(--sys-primary) !important;
+	color: var(--mat-sys-primary) !important;
 }
 
 

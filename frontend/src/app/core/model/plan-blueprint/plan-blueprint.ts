@@ -9,12 +9,14 @@ import { PrefillingSource } from "../prefilling-source/prefilling-source";
 import { PlanBlueprintVersionStatus } from "@app/core/common/enum/plan-blueprint-version-status";
 import { PluginConfiguration, PluginConfigurationPersist } from "../plugin-configuration/plugin-configuration";
 import { DescriptionTemplate } from "../description-template/description-template";
+import { PlanBlueprintType } from "../plan-blueprint-type/plan-blueprint-type";
 
 
 export interface PlanBlueprint extends BaseEntity {
 	label?: string;
 	description?: string;
 	code?: string;
+	type?: PlanBlueprintType;
 	definition: PlanBlueprintDefinition;
 	status?: PlanBlueprintStatus;
 	version?: number;
@@ -58,25 +60,6 @@ export interface FieldInSection {
 	semantics: string[];
 	required: boolean;
 	ordinal: number;
-}
-
-export interface PublicPlanBlueprint extends BaseEntity {
-	label?: string;
-	description?: string;
-	definition: PublicPlanBlueprintDefinition;
-}
-
-export interface PublicPlanBlueprintDefinition {
-	sections?: PublicPlanBlueprintDefinitionSection[];
-}
-
-export interface PublicPlanBlueprintDefinitionSection {
-	id: Guid;
-	label: string;
-	description: string;
-	hasTemplates: boolean;
-	fields: (SystemFieldInSection | ExtraFieldInSection | ReferenceTypeFieldInSection | UploadFieldInSection)[];
-
 }
 
 export interface SystemFieldInSection extends FieldInSection {

@@ -1,63 +1,83 @@
 <div class="container-fluid">
-	<div class="row">
-		<div class="col-md-10 offset-md-1 tenant-editor">
-			<div class="row align-items-center mb-4 mt-4" *ngIf="formGroup">
-				<div class="col-md col-12">
-					<app-navigation-breadcrumb />
-				</div>
-				<div class="col-auto">
-					<button mat-stroked-button class="padded-shadow-btn" (click)="cancel()" type="button">{{'TENANT-EDITOR.ACTIONS.CANCEL' | translate}}</button>
-				</div>
-				<div class="col-auto" *ngIf="!isNew">
-					<button mat-stroked-button color="warn" class="padded-shadow-btn" type="button" (click)="delete()">
-						<mat-icon aria-hidden>delete</mat-icon>
-						{{'TENANT-EDITOR.ACTIONS.DELETE' | translate}}
-					</button>
-				</div>
-				<div class="col-auto" *ngIf="canSave">
-					<button mat-flat-button color="primary" class="padded-shadow-btn" (click)="formSubmit()">
-						<mat-icon>save</mat-icon>
-						{{'TENANT-EDITOR.ACTIONS.SAVE' | translate}}
-					</button>
-				</div>
-			</div>
+  <div class="row">
+    <div class="col-md-10 offset-md-1 tenant-editor">
+      @if (formGroup) {
+        <div class="row align-items-center mb-4 mt-4">
+          <div class="col-md col-12">
+            <app-navigation-breadcrumb />
+          </div>
+          <div class="col-auto">
+            <button mat-stroked-button class="padded-shadow-btn" (click)="cancel()" type="button">{{'TENANT-EDITOR.ACTIONS.CANCEL' | translate}}</button>
+          </div>
+          @if (!isNew) {
+            <div class="col-auto">
+              <button mat-stroked-button color="warn" class="padded-shadow-btn" type="button" (click)="delete()">
+                <mat-icon aria-hidden>delete</mat-icon>
+                {{'TENANT-EDITOR.ACTIONS.DELETE' | translate}}
+              </button>
+            </div>
+          }
+          @if (canSave) {
+            <div class="col-auto">
+              <button mat-flat-button color="primary" class="padded-shadow-btn" (click)="formSubmit()">
+                <mat-icon>save</mat-icon>
+                {{'TENANT-EDITOR.ACTIONS.SAVE' | translate}}
+              </button>
+            </div>
+          }
+        </div>
+      }
 
-			<form *ngIf="formGroup" (ngSubmit)="formSubmit()">
-				<mat-card appearance="outlined" class="pb-3">
-					<mat-card-content>
-                        <div class="pb-3"><small>{{'COMMONS.VALIDATION.REQUIRED-FIELDS-HINT' | translate}}</small></div>
-						<div class="row">
-							<div class="col-4">
-								<mat-form-field class="w-100">
-									<mat-label>{{'TENANT-EDITOR.FIELDS.NAME' | translate}}</mat-label>
-									<input matInput type="text" name="name" [formControl]="formGroup.get('name')" required>
-									<mat-error *ngIf="formGroup.get('name').hasError('backendError')">{{formGroup.get('name').getError('backendError').message}}</mat-error>
-									<mat-error *ngIf="formGroup.get('name').hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
-								</mat-form-field>
-							</div>
-							<div class="col-4">
-								<mat-form-field class="w-100">
-									<mat-label>{{'TENANT-EDITOR.FIELDS.CODE' | translate}}</mat-label>
-									<input matInput type="text" name="code" [formControl]="formGroup.get('code')" required>
-									<mat-error *ngIf="formGroup.get('code').hasError('backendError')">{{formGroup.get('code').getError('backendError').message}}</mat-error>
-									<mat-error *ngIf="formGroup.get('code').hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
-									<mat-error *ngIf="formGroup.get('code').hasError('pattern')">{{'TENANT-EDITOR.VALIDATION.INVALID-CODE' | translate}}</mat-error>
-								</mat-form-field>
-							</div>
-							<div class="col-12">
-								<mat-label class="pl-2" [appFor]="'description'" [class.disabled]="formGroup.get('description').disabled">{{'TENANT-EDITOR.FIELDS.DESCRIPTION' | translate}} *
-                                </mat-label>
-                                <rich-text-editor-component [id]="'description'" [form]="formGroup.get('description')" [placeholder]="'TENANT-EDITOR.FIELDS.DESCRIPTION-PLACEHOLDER'" [wrapperClasses]="(formGroup.get('description').touched && formGroup.get('description').hasError('required')) ? 'required' : ''">
-                                </rich-text-editor-component>
-                                <div [class]="(formGroup.get('description').touched && formGroup.get('description').hasError('required')) ? 'visible' : 'invisible'" class="mat-form-field formGroup-field-subscript-wrapper">
-                                    <mat-error *ngIf="formGroup.get('description').hasError('backendError')">{{formGroup.get('description').getError('backendError').message}}</mat-error>
-                                    <mat-error>{{'GENERAL.VALIDATION.REQUIRED'| translate}}</mat-error>
-                                </div>
-							</div>
-						</div>
-					</mat-card-content>
-				</mat-card>
-			</form>
-		</div>
-	</div>
+      @if (formGroup) {
+        <form (ngSubmit)="formSubmit()">
+          <mat-card appearance="outlined" class="pb-3">
+            <mat-card-content>
+              <div class="pb-3"><small>{{'COMMONS.VALIDATION.REQUIRED-FIELDS-HINT' | translate}}</small></div>
+              <div class="row">
+                <div class="col-4">
+                  <mat-form-field class="w-100">
+                    <mat-label>{{'TENANT-EDITOR.FIELDS.NAME' | translate}}</mat-label>
+                    <input matInput type="text" name="name" [formControl]="formGroup.get('name')" required>
+                    @if (formGroup.get('name').hasError('backendError')) {
+                      <mat-error>{{formGroup.get('name').getError('backendError').message}}</mat-error>
+                    }
+                    @if (formGroup.get('name').hasError('required')) {
+                      <mat-error>{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
+                    }
+                  </mat-form-field>
+                </div>
+                <div class="col-4">
+                  <mat-form-field class="w-100">
+                    <mat-label>{{'TENANT-EDITOR.FIELDS.CODE' | translate}}</mat-label>
+                    <input matInput type="text" name="code" [formControl]="formGroup.get('code')" required>
+                    @if (formGroup.get('code').hasError('backendError')) {
+                      <mat-error>{{formGroup.get('code').getError('backendError').message}}</mat-error>
+                    }
+                    @if (formGroup.get('code').hasError('required')) {
+                      <mat-error>{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
+                    }
+                    @if (formGroup.get('code').hasError('pattern')) {
+                      <mat-error>{{'TENANT-EDITOR.VALIDATION.INVALID-CODE' | translate}}</mat-error>
+                    }
+                  </mat-form-field>
+                </div>
+                <div class="col-12">
+                  <mat-label class="pl-2" [appFor]="'description'" [class.disabled]="formGroup.get('description').disabled">{{'TENANT-EDITOR.FIELDS.DESCRIPTION' | translate}} *
+                  </mat-label>
+                  <rich-text-editor-component [id]="'description'" [form]="formGroup.get('description')" [placeholder]="'TENANT-EDITOR.FIELDS.DESCRIPTION-PLACEHOLDER'" [wrapperClasses]="(formGroup.get('description').touched && formGroup.get('description').hasError('required')) ? 'required' : ''">
+                  </rich-text-editor-component>
+                  <div [class]="(formGroup.get('description').touched && formGroup.get('description').hasError('required')) ? 'visible' : 'invisible'" class="mat-form-field formGroup-field-subscript-wrapper">
+                    @if (formGroup.get('description').hasError('backendError')) {
+                      <mat-error>{{formGroup.get('description').getError('backendError').message}}</mat-error>
+                    }
+                    <mat-error>{{'GENERAL.VALIDATION.REQUIRED'| translate}}</mat-error>
+                  </div>
+                </div>
+              </div>
+            </mat-card-content>
+          </mat-card>
+        </form>
+      }
+    </div>
+  </div>
 </div>

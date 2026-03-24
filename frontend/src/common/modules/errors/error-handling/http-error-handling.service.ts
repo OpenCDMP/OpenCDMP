@@ -31,6 +31,10 @@ export class HttpErrorHandlingService {
 				this.uiNotificationService.snackBarNotification(this.language.instant('GENERAL.BACKEND-ERRORS.BLUEPRINT-DESCRIPTION-TEMPLATE-IMPORT-DRAFT', { 'descriptionTemplateLabel': errorResponse.error.error }), SnackBarNotificationLevel.Error);
 			} else if (errorResponse.error.code === ResponseErrorCode.planDescriptionTemplateImportDraft){
 				this.uiNotificationService.snackBarNotification(this.language.instant('GENERAL.BACKEND-ERRORS.PLAN-DESCRIPTION-TEMPLATE-IMPORT-DRAFT', { 'descriptionTemplateLabel': errorResponse.error.error }), SnackBarNotificationLevel.Error);
+			} else if (errorResponse.error.code === ResponseErrorCode.planBlueprintTypeImportDraft){
+				this.uiNotificationService.snackBarNotification(this.language.instant('GENERAL.BACKEND-ERRORS.PLAN-BLUEPRINT-TYPE-IMPORT-DRAFT', { 'planBlueprintTypeLabel': errorResponse.error.error }), SnackBarNotificationLevel.Error);
+			} else if (errorResponse.error.code === ResponseErrorCode.planBlueprintTypeImportNotFound){
+				this.uiNotificationService.snackBarNotification(this.language.instant('GENERAL.BACKEND-ERRORS.PLAN-BLUEPRINT-TYPE-IMPORT-NOT-FOUND', { 'planBlueprintTypeLabel': errorResponse.error.error }), SnackBarNotificationLevel.Error);
 			} else if (errorResponse.error.code === ResponseErrorCode.descriptionTemplateTypeImportDraft){
 				this.uiNotificationService.snackBarNotification(this.language.instant('GENERAL.BACKEND-ERRORS.DESCRIPTION-TEMPLATE-TYPE-IMPORT-DRAFT', { 'descriptionTemplateTypeCode': errorResponse.error.error }), SnackBarNotificationLevel.Error);
 			} else if (errorResponse.error.code === ResponseErrorCode.planBlueprintImportDraft){

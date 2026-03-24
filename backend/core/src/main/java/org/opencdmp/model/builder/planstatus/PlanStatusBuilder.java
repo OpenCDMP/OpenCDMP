@@ -7,7 +7,7 @@ import gr.cite.tools.logging.DataLogEntry;
 import gr.cite.tools.logging.LoggerService;
 import org.opencdmp.authorization.AuthorizationFlags;
 import org.opencdmp.commons.XmlHandlingService;
-import org.opencdmp.commons.scope.tenant.TenantScope;
+import org.opencdmp.commons.scope.tenant.TenantScopeFactory;
 import org.opencdmp.commons.types.planstatus.PlanStatusDefinitionEntity;
 import org.opencdmp.convention.ConventionService;
 import org.opencdmp.data.PlanStatusEntity;
@@ -25,21 +25,27 @@ import java.util.*;
 public class PlanStatusBuilder extends BaseBuilder<PlanStatus, PlanStatusEntity> {
 
     private final XmlHandlingService xmlHandlingService;
-    private final TenantScope tenantScope;
+    private final TenantScopeFactory tenantScopeFactory;
 
     private final BuilderFactory builderFactory;
 
     private EnumSet<AuthorizationFlags> authorize = EnumSet.of(AuthorizationFlags.None);
+    private boolean isPublic;
 
-    public PlanStatusBuilder(ConventionService conventionService, XmlHandlingService xmlHandlingService, TenantScope tenantScope, BuilderFactory builderFactory) {
+    public PlanStatusBuilder(ConventionService conventionService, XmlHandlingService xmlHandlingService, TenantScopeFactory tenantScopeFactory, BuilderFactory builderFactory) {
         super(conventionService, new LoggerService(LoggerFactory.getLogger(PlanStatusDefinitionAuthorizationItemBuilder.class)));
         this.xmlHandlingService = xmlHandlingService;
-        this.tenantScope = tenantScope;
+        this.tenantScopeFactory = tenantScopeFactory;
         this.builderFactory = builderFactory;
     }
 
     public PlanStatusBuilder authorize(EnumSet<AuthorizationFlags> values) {
         this.authorize = values;
+        return this;
+    }
+
+    public PlanStatusBuilder isPublic(boolean isPublic) {
+        this.isPublic = isPublic;
         return this;
     }
 
@@ -60,24 +66,24 @@ public class PlanStatusBuilder extends BaseBuilder<PlanStatus, PlanStatusEntity>
                 m.setId(d.getId());
             if (fields.hasField(this.asIndexer(PlanStatus._name)))
                 m.setName(d.getName());
-            if (fields.hasField(this.asIndexer(PlanStatus._createdAt)))
+            if (!this.isPublic && fields.hasField(this.asIndexer(PlanStatus._createdAt)))
                 m.setCreatedAt(d.getCreatedAt());
-            if (fields.hasField(this.asIndexer(PlanStatus._updatedAt)))
+            if (!this.isPublic && fields.hasField(this.asIndexer(PlanStatus._updatedAt)))
                 m.setUpdatedAt(d.getUpdatedAt());
             if (fields.hasField(this.asIndexer(PlanStatus._isActive)))
                 m.setIsActive(d.getIsActive());
-            if (fields.hasField(this.asIndexer(PlanStatus._description)))
+            if (!this.isPublic && fields.hasField(this.asIndexer(PlanStatus._description)))
                 m.setDescription(d.getDescription());
-            if (fields.hasField(this.asIndexer(PlanStatus._action)))
+            if (!this.isPublic && fields.hasField(this.asIndexer(PlanStatus._action)))
                 m.setAction(d.getAction());
-            if (fields.hasField(this.asIndexer(PlanStatus._ordinal)))
+            if (!this.isPublic && fields.hasField(this.asIndexer(PlanStatus._ordinal)))
                 m.setOrdinal(d.getOrdinal());
             if (fields.hasField(this.asIndexer(PlanStatus._internalStatus)))
                 m.setInternalStatus(d.getInternalStatus());
-            if (fields.hasField(this.asIndexer(PlanStatus._hash)))
+            if (!this.isPublic && fields.hasField(this.asIndexer(PlanStatus._hash)))
                 m.setHash(this.hashValue(d.getUpdatedAt()));
-            if (fields.hasField(this.asIndexer(PlanStatus._belongsToCurrentTenant)))
-                m.setBelongsToCurrentTenant(this.getBelongsToCurrentTenant(d, this.tenantScope));
+            if (!this.isPublic && fields.hasField(this.asIndexer(PlanStatus._belongsToCurrentTenant)))
+                m.setBelongsToCurrentTenant(this.getBelongsToCurrentTenant(d, this.tenantScopeFactory.getInstance()));
 
             if (!definitionFields.isEmpty() && d.getDefinition() != null) {
                 PlanStatusDefinitionEntity definition = this.xmlHandlingService.fromXmlSafe(PlanStatusDefinitionEntity.class, d.getDefinition());

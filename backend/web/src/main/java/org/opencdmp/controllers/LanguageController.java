@@ -1,6 +1,6 @@
 package org.opencdmp.controllers;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
+import tools.jackson.core.JacksonException;
 import gr.cite.tools.auditing.AuditService;
 import gr.cite.tools.data.builder.BuilderFactory;
 import gr.cite.tools.data.censor.CensorFactory;
@@ -19,7 +19,7 @@ import jakarta.xml.bind.JAXBException;
 import org.opencdmp.audit.AuditableAction;
 import org.opencdmp.authorization.AuthorizationFlags;
 import org.opencdmp.commons.enums.IsActive;
-import org.opencdmp.commons.scope.tenant.TenantScope;
+import org.opencdmp.commons.scope.tenant.TenantScopeFactory;
 import org.opencdmp.data.LanguageEntity;
 import org.opencdmp.data.TenantEntity;
 import org.opencdmp.model.Language;
@@ -63,7 +63,7 @@ public class LanguageController {
 
     private final LanguageService languageService;
 
-    private final TenantScope tenantScope;
+    private final TenantScopeFactory tenantScopeFactory;
 
     @Autowired
     public LanguageController(
@@ -72,14 +72,14 @@ public class LanguageController {
             CensorFactory censorFactory,
             QueryFactory queryFactory,
             MessageSource messageSource,
-            LanguageService languageService, TenantScope tenantScope) {
+            LanguageService languageService, TenantScopeFactory tenantScopeFactory) {
         this.builderFactory = builderFactory;
         this.auditService = auditService;
         this.censorFactory = censorFactory;
         this.queryFactory = queryFactory;
         this.messageSource = messageSource;
         this.languageService = languageService;
-        this.tenantScope = tenantScope;
+        this.tenantScopeFactory = tenantScopeFactory;
     }
 
     @PostMapping("query")
@@ -127,7 +127,7 @@ public class LanguageController {
         Language model = null;
 
         if (!overrideFromFile) {
-            if (tenantCode != null && !tenantCode.isEmpty() && !tenantCode.equals(this.tenantScope.getDefaultTenantCode())) {
+            if (tenantCode != null && !tenantCode.isEmpty() && !tenantCode.equals(this.tenantScopeFactory.getInstance().getDefaultTenantCode())) {
                 TenantEntity tenant = this.queryFactory.query(TenantQuery.class).codes(tenantCode).firstAs(new BaseFieldSet(Tenant._id));
                 if (tenant == null)
                     throw new MyNotFoundException(this.messageSource.getMessage("General_ItemNotFound", new Object[]{tenantCode, Tenant.class.getSimpleName()}, LocaleContextHolder.getLocale()));
@@ -172,7 +172,7 @@ public class LanguageController {
         query.tenantIsSet(false);
 
         List<LanguageEntity> data = query.collectAs(new BaseFieldSet(Language._code));
-        if (tenantCode != null && !tenantCode.isBlank() && !tenantCode.equals(this.tenantScope.getDefaultTenantCode())) {
+        if (tenantCode != null && !tenantCode.isBlank() && !tenantCode.equals(this.tenantScopeFactory.getInstance().getDefaultTenantCode())) {
             TenantEntity tenant = this.queryFactory.query(TenantQuery.class).codes(tenantCode).firstAs(new BaseFieldSet(Tenant._id));
             if (tenant == null)
                 throw new MyNotFoundException(this.messageSource.getMessage("General_ItemNotFound", new Object[]{tenantCode, Tenant.class.getSimpleName()}, LocaleContextHolder.getLocale()));
@@ -194,7 +194,7 @@ public class LanguageController {
     @PostMapping("persist")
     @Transactional
     @ValidationFilterAnnotation(validator = LanguagePersist.LanguagePersistValidator.ValidatorName, argumentName = "model")
-    public Language persist(@RequestBody LanguagePersist model, FieldSet fieldSet) throws MyApplicationException, MyForbiddenException, MyNotFoundException, InvalidApplicationException, JAXBException, JsonProcessingException, InvalidApplicationException {
+    public Language persist(@RequestBody LanguagePersist model, FieldSet fieldSet) throws MyApplicationException, MyForbiddenException, MyNotFoundException, InvalidApplicationException, JAXBException, JacksonException, InvalidApplicationException {
         logger.debug(new MapLogEntry("persisting" + Language.class.getSimpleName()).And("model", model).And("fieldSet", fieldSet));
         this.censorFactory.censor(LanguageCensor.class).censor(fieldSet, null);
 

@@ -13,12 +13,11 @@ import org.opencdmp.authorization.AuthorizationFlags;
 import org.opencdmp.authorization.Permission;
 import org.opencdmp.commons.enums.PlanUserRole;
 import org.opencdmp.commons.enums.IsActive;
-import org.opencdmp.commons.scope.user.UserScope;
+import org.opencdmp.commons.scope.user.UserScopeFactory;
 import org.opencdmp.data.DescriptionEntity;
 import org.opencdmp.data.PlanUserEntity;
-import org.opencdmp.data.TenantEntityManager;
+import org.opencdmp.data.TenantEntityManagerFactory;
 import org.opencdmp.model.PlanUser;
-import org.opencdmp.model.PublicPlanUser;
 import org.opencdmp.query.utils.BuildSubQueryInput;
 import org.opencdmp.query.utils.QueryUtilsService;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
@@ -174,26 +173,26 @@ public class PlanUserQuery extends QueryBase<PlanUserEntity> {
         return this;
     }
 
-    private final UserScope userScope;
+    private final UserScopeFactory userScopeFactory;
 
     private final AuthorizationService authService;
 
     private final QueryUtilsService queryUtilsService;
-    private final TenantEntityManager tenantEntityManager;
+    private final TenantEntityManagerFactory tenantEntityManagerFactory;
     
     public PlanUserQuery(
-		    UserScope userScope,
+		    UserScopeFactory userScopeFactory,
 		    AuthorizationService authService,
-		    QueryUtilsService queryUtilsService, TenantEntityManager tenantEntityManager) {
-        this.userScope = userScope;
+		    QueryUtilsService queryUtilsService, TenantEntityManagerFactory tenantEntityManagerFactory) {
+        this.userScopeFactory = userScopeFactory;
         this.authService = authService;
         this.queryUtilsService = queryUtilsService;
-	    this.tenantEntityManager = tenantEntityManager;
+	    this.tenantEntityManagerFactory = tenantEntityManagerFactory;
     }
 
     @Override
     protected EntityManager entityManager(){
-        return this.tenantEntityManager.getEntityManager();
+        return this.tenantEntityManagerFactory.getInstance().getEntityManager();
     }
 
     @Override
@@ -209,16 +208,28 @@ public class PlanUserQuery extends QueryBase<PlanUserEntity> {
     @Override
     protected <X, Y> Predicate applyAuthZ(QueryContext<X, Y> queryContext) {
         if (this.authorize.contains(AuthorizationFlags.None)) return null;
-        if (this.authorize.contains(AuthorizationFlags.Permission) && this.authService.authorize(Permission.BrowsePlan)) return null;
+        if (this.authorize.contains(AuthorizationFlags.Permission) && this.authService.authorize(Permission.BrowsePlan)) {
+            return this.queryUtilsService.buildTenantFilter(queryContext.CriteriaBuilder, queryContext.Root.get(PlanUserEntity._tenantId));
+        }
         UUID userId = null;
         boolean usePublic = this.authorize.contains(AuthorizationFlags.Public);
-        if (this.authorize.contains(AuthorizationFlags.PlanAssociated)) userId = this.userScope.getUserIdSafe();
+        if (this.authorize.contains(AuthorizationFlags.PlanAssociated)) userId = this.userScopeFactory.getInstance().getUserIdSafe();
 
         List<Predicate> predicates = new ArrayList<>();
+
+        if (!usePublic) {
+            Predicate predicateTenant = this.queryUtilsService.buildTenantFilter(queryContext.CriteriaBuilder, queryContext.Root.get(PlanUserEntity._tenantId));
+            if (predicateTenant != null) predicates.add(predicateTenant);
+        }
+
         if (userId != null || usePublic ) {
             predicates.add(queryContext.CriteriaBuilder.or(
                     usePublic ? queryContext.CriteriaBuilder.in(queryContext.Root.get(PlanUserEntity._planId)).value(this.queryUtilsService.buildPublicPlanAuthZSubQuery(queryContext.Query, queryContext.CriteriaBuilder, usePublic)) : queryContext.CriteriaBuilder.or(),  //Creates a false query
-                    userId != null ?  queryContext.CriteriaBuilder.in(queryContext.Root.get(PlanUserEntity._planId)).value(this.queryUtilsService.buildPlanUserAuthZSubQuery(queryContext.Query, queryContext.CriteriaBuilder, userId)) : queryContext.CriteriaBuilder.or()  //Creates a false query
+                    userId != null ?  queryContext.CriteriaBuilder.in(queryContext.Root.get(PlanUserEntity._planId)).value(this.queryUtilsService.buildPlanUserAuthZSubQuery(queryContext.Query, queryContext.CriteriaBuilder, userId, IsActive.Active)) : queryContext.CriteriaBuilder.or(), //Creates a false query
+                    userId != null ? queryContext.CriteriaBuilder.and(
+                            queryContext.CriteriaBuilder.in(queryContext.Root.get(PlanUserEntity._planId)).value(this.queryUtilsService.buildPlanUserAuthZSubQuery(queryContext.Query, queryContext.CriteriaBuilder, userId, IsActive.Inactive)),
+                            queryContext.CriteriaBuilder.equal(queryContext.Root.get(PlanUserEntity._isActive), IsActive.Inactive)
+                    ) : queryContext.CriteriaBuilder.or() //Creates a false query
             ));
         }
         if (!predicates.isEmpty()) {
@@ -311,10 +322,10 @@ public class PlanUserQuery extends QueryBase<PlanUserEntity> {
 
     @Override
     protected String fieldNameOf(FieldResolver item) {
-        if (item.match(PlanUser._id) || item.match(PublicPlanUser._id)) return PlanUserEntity._id;
-        else if (item.prefix(PlanUser._plan) || item.prefix(PublicPlanUser._plan)) return PlanUserEntity._planId;
-        else if (item.prefix(PlanUser._user) || item.prefix(PublicPlanUser._user)) return PlanUserEntity._userId;
-        else if (item.match(PlanUser._role) || item.match(PublicPlanUser._role)) return PlanUserEntity._role;
+        if (item.match(PlanUser._id)) return PlanUserEntity._id;
+        else if (item.prefix(PlanUser._plan)) return PlanUserEntity._planId;
+        else if (item.prefix(PlanUser._user)) return PlanUserEntity._userId;
+        else if (item.match(PlanUser._role)) return PlanUserEntity._role;
         else if (item.match(PlanUser._sectionId)) return PlanUserEntity._sectionId;
         else if (item.match(PlanUser._ordinal)) return PlanUserEntity._ordinal;
         else if (item.match(PlanUser._createdAt)) return PlanUserEntity._createdAt;

@@ -1,18 +1,25 @@
-.stepper-options {
-    height: calc(100vh - 20rem);
-    scrollbar-color: var(--sys-primary) var(--sys-surface);
-    scrollbar-width: thin;
-    overflow-y: auto;
-
+.side-panel {
+    .stepper-options {
+        height: calc(100vh - 280px);
+        scrollbar-color: var(--mat-sys-primary) var(--mat-sys-surface);
+        scrollbar-width: thin;
+        overflow-y: auto;
+    }
+    &:has(.progress-indication-bar-disabled) {
+        .stepper-options {
+            height: calc(100vh - 240px);
+        }
+    }
+    
+    .stepper-list, .section-descriptions, .add-description-option, .section-fields {
+        list-style-type: none;
+        padding: 0;
+    }
+    .stepper-list,.add-description-option, .section-fields,  .section-descriptions {
+        margin-left: 1rem;
+    }
 }
 
-.stepper-list, .section-descriptions, .add-description-option, .section-fields {
-    list-style-type: none;
-    padding: 0;
-}
-.stepper-list,.add-description-option, .section-fields,  .section-descriptions {
-    margin-left: 1rem;
-}
 
 
 
@@ -32,7 +39,7 @@
       
 
     .main-section {
-        font-size: var(--sys-title-medium-size);
+        font-size: var(--mat-sys-title-medium-size);
     }
     
     .label {
@@ -55,18 +62,18 @@
     .desc-label {
         height: 40px; //match icon btn height
         &.active-description {
-            background-color: var(--sys-tertiary) !important;
+            background-color: var(--mat-sys-tertiary) !important;
             border-radius: 4px;
-            color: var(--sys-on-tertiary);
+            color: var(--mat-sys-on-tertiary);
             cursor: unset;
         }
         &.text-danger.active-description{
-            color: var(--sys-on-error) !important;
-            background-color: var(--sys-error) !important;
+            color: var(--mat-sys-on-error) !important;
+            background-color: var(--mat-sys-error) !important;
         }
     }
     .section-fields {
-        border-left: 2px solid var(--sys-primary);
+        border-left: 2px solid var(--mat-sys-primary);
         border-top-left-radius: 0;
         border-bottom-left-radius: 0;
     }
@@ -83,7 +90,7 @@
         font-weight: 700;
         opacity: 1;
         cursor: pointer;
-        color: var(--sys-on-background);
+        color: var(--mat-sys-on-background);
         display: flex;
         flex-direction: row;
         align-items: center;
@@ -92,14 +99,14 @@
 
     .add-description-btn {
         margin-left: 1rem;
-        color: var(--sys-on-background);
+        color: var(--mat-sys-on-background);
         mat-icon {
-            color: var(--sys-primary);
+            color: var(--mat-sys-primary);
         }
         &.mat-mdc-button-disabled {
-            color: var(--mdc-text-button-disabled-label-text-color);
+            color: var(--mat-form-field-outlined-disabled-input-text-color, color-mix(in srgb, var(--mat-sys-on-surface) 38%, transparent));
             mat-icon {
-                color: var(--mdc-text-button-disabled-label-text-color)
+                color: var(--mat-form-field-outlined-disabled-input-text-color, color-mix(in srgb, var(--mat-sys-on-surface) 38%, transparent))
             }
         }
     }
@@ -107,9 +114,9 @@
     .remove-description {
         background-color: transparent;
         box-shadow: none;
-        color: var(--sys-error);
+        color: var(--mat-sys-error);
         &:hover {
-            color: hsl(from var(--sys-error) h s calc(l - 4)) !important;
+            color: hsl(from var(--mat-sys-error) h s calc(l - 4)) !important;
             box-shadow: none;
         }
     }
@@ -131,12 +138,12 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    font-size: var(--sys-title-small-size);
+    font-size: var(--mat-sys-title-small-size);
 }
   
 .previous {
     color: var(--dark-text);
-    background: var(--sys-background) 0% 0% no-repeat padding-box;
+    background: var(--mat-sys-background) 0% 0% no-repeat padding-box;
     box-shadow: 0px 3px 6px #1e202029;
     border: 2px solid var(--dark-text);
     font-weight: 500;
@@ -147,6 +154,9 @@
     margin: 0 0.5rem 0 1rem;
     .progress-btns, .progress-indication-bar{
         padding: 0 0.5rem;
+    }
+    .progress-indication-bar-disabled {
+        display: none;
     }
 }
 

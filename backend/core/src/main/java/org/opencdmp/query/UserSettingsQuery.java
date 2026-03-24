@@ -11,8 +11,8 @@ import jakarta.persistence.criteria.Predicate;
 import org.opencdmp.authorization.AuthorizationFlags;
 import org.opencdmp.authorization.Permission;
 import org.opencdmp.commons.enums.UserSettingsType;
-import org.opencdmp.commons.scope.user.UserScope;
-import org.opencdmp.data.TenantEntityManager;
+import org.opencdmp.commons.scope.user.UserScopeFactory;
+import org.opencdmp.data.TenantEntityManagerFactory;
 import org.opencdmp.data.UserSettingsEntity;
 import org.opencdmp.model.UserSettings;
 import org.opencdmp.query.utils.QueryUtilsService;
@@ -36,18 +36,18 @@ public class UserSettingsQuery extends QueryBase<UserSettingsEntity> {
 
 	private EnumSet<AuthorizationFlags> authorize = EnumSet.of(AuthorizationFlags.None);
 
-	private final UserScope userScope;
+	private final UserScopeFactory userScopeFactory;
 	private final AuthorizationService authService;
 	private final QueryUtilsService queryUtilsService;
-	private final TenantEntityManager tenantEntityManager;
+	private final TenantEntityManagerFactory tenantEntityManagerFactory;
 	public UserSettingsQuery(
-			UserScope userScope,
-			AuthorizationService authService, QueryUtilsService queryUtilsService, TenantEntityManager tenantEntityManager
+			UserScopeFactory userScopeFactory,
+			AuthorizationService authService, QueryUtilsService queryUtilsService, TenantEntityManagerFactory tenantEntityManagerFactory
 	) {
-		this.userScope = userScope;
+		this.userScopeFactory = userScopeFactory;
 		this.authService = authService;
 		this.queryUtilsService = queryUtilsService;
-		this.tenantEntityManager = tenantEntityManager;
+		this.tenantEntityManagerFactory = tenantEntityManagerFactory;
 	}
 
 	public UserSettingsQuery like(String like) {
@@ -148,7 +148,7 @@ public class UserSettingsQuery extends QueryBase<UserSettingsEntity> {
 
 	@Override
 	protected EntityManager entityManager(){
-		return this.tenantEntityManager.getEntityManager();
+		return this.tenantEntityManagerFactory.getInstance().getEntityManager();
 	}
 
 	@Override
@@ -166,7 +166,7 @@ public class UserSettingsQuery extends QueryBase<UserSettingsEntity> {
 		if (this.authorize.contains(AuthorizationFlags.None)) return null;
 		if (this.authorize.contains(AuthorizationFlags.Permission) && this.authService.authorize(Permission.BrowseUserSettings)) return null;
 		UUID ownerId = null;
-		if (this.authorize.contains(AuthorizationFlags.PlanAssociated)) ownerId = this.userScope.getUserIdSafe();
+		if (this.authorize.contains(AuthorizationFlags.PlanAssociated)) ownerId = this.userScopeFactory.getInstance().getUserIdSafe();
 
 		List<Predicate> predicates = new ArrayList<>();
 		if (ownerId != null) {

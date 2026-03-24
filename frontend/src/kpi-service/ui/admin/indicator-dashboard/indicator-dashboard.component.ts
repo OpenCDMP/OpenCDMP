@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { FormControl } from '@angular/forms';
 import { MatButtonToggleChange } from '@angular/material/button-toggle';
 import { MatDialog } from '@angular/material/dialog';
+import { AppPermission } from '@app/core/common/enum/permission.enum';
 import { AuthService } from '@app/core/services/auth/auth.service';
 import { ConfigurationService } from '@app/core/services/configuration/configuration.service';
 import { IndicatorQueryParams } from '@citesa/kpi-client/types';
@@ -18,12 +19,14 @@ import { TranslateService } from '@ngx-translate/core';
 export class IndicatorDashboardComponent extends BaseComponent implements OnInit {
     viewTypeEnum = ViewTypeEnum;
     viewType: ViewTypeEnum = ViewTypeEnum.List;
-	indicatorQueryParams: IndicatorQueryParams = {
-	  dashboard: this.configurationService.kpiDashboardId,
-	  displayName: undefined as any,
-      keywordFilters: [{field: this.configurationService.keywordFilter, values: [this.authService.selectedTenant() ? this.authService.selectedTenant(): 'default']}],
-      groupHash: null as any,
-	}
+    indicatorQueryParams: IndicatorQueryParams[] = [];
+    selectedDashboardId: string;
+    disableDropDown:boolean = false;
+
+    selectedDashboard = (selectedDashboardId: string): IndicatorQueryParams => {
+        if(!this.indicatorQueryParams?.length || !selectedDashboardId){ return; }
+        return this.indicatorQueryParams.find(x => x.dashboard == selectedDashboardId);
+    }
 
 	constructor(
 		protected dialog: MatDialog,
@@ -35,6 +38,24 @@ export class IndicatorDashboardComponent extends BaseComponent implements OnInit
 	}
 
 	ngOnInit(): void {
+        if(!this.configurationService?.kpi?.enabled && this.configurationService?.kpi?.dashboards?.length == 0) return;       
+        
+        this.configurationService.kpi.dashboards.forEach(dashboard => {
+
+            if (this.authService.hasPermission(AppPermission.ViewIndicatorDashboardPage) && dashboard?.availableToRoles?.find(x => this.authService.getSelectedRoles()?.includes(x))) {
+                this.indicatorQueryParams.push({
+                    dashboard: dashboard?.dashboardId,
+                    displayName: undefined as any,
+                    keywordFilters: dashboard?.keywordFilter?.length > 0 ? [{field: dashboard.keywordFilter, values: [this.authService.selectedTenant() ? this.authService.selectedTenant(): 'default']}] : undefined,
+                    groupHash: null as any,
+                }) 
+            }
+        });
+        if(this.indicatorQueryParams?.length){
+            if (this.indicatorQueryParams?.length == 1) this.disableDropDown = true;
+            this.selectedDashboardId = this.indicatorQueryParams[0].dashboard;
+        }
+
 	}
 
     viewChange(event: MatButtonToggleChange){

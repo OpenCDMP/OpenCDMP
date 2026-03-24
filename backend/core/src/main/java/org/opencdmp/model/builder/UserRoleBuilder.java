@@ -8,7 +8,7 @@ import gr.cite.tools.fieldset.FieldSet;
 import gr.cite.tools.logging.DataLogEntry;
 import gr.cite.tools.logging.LoggerService;
 import org.opencdmp.authorization.AuthorizationFlags;
-import org.opencdmp.commons.scope.tenant.TenantScope;
+import org.opencdmp.commons.scope.tenant.TenantScopeFactory;
 import org.opencdmp.convention.ConventionService;
 import org.opencdmp.data.UserRoleEntity;
 import org.opencdmp.model.UserRole;
@@ -30,18 +30,18 @@ public class UserRoleBuilder extends BaseBuilder<UserRole, UserRoleEntity> {
     private final BuilderFactory builderFactory;
 
     private final QueryFactory queryFactory;
-    private final TenantScope tenantScope;
+    private final TenantScopeFactory tenantScopeFactory;
 
     private EnumSet<AuthorizationFlags> authorize = EnumSet.of(AuthorizationFlags.None);
 
     @Autowired
     public UserRoleBuilder(
 		    ConventionService conventionService,
-		    BuilderFactory builderFactory, QueryFactory queryFactory, TenantScope tenantScope) {
+		    BuilderFactory builderFactory, QueryFactory queryFactory, TenantScopeFactory tenantScopeFactory) {
         super(conventionService, new LoggerService(LoggerFactory.getLogger(UserRoleBuilder.class)));
         this.builderFactory = builderFactory;
         this.queryFactory = queryFactory;
-	    this.tenantScope = tenantScope;
+	    this.tenantScopeFactory = tenantScopeFactory;
     }
 
     public UserRoleBuilder authorize(EnumSet<AuthorizationFlags> values) {
@@ -66,7 +66,7 @@ public class UserRoleBuilder extends BaseBuilder<UserRole, UserRoleEntity> {
             if (fields.hasField(this.asIndexer(UserRole._id))) m.setId(d.getId());
             if (fields.hasField(this.asIndexer(UserRole._createdAt))) m.setCreatedAt(d.getCreatedAt());
             if (fields.hasField(this.asIndexer(UserRole._role))) m.setRole(d.getRole());
-            if (fields.hasField(this.asIndexer(UserRole._belongsToCurrentTenant))) m.setBelongsToCurrentTenant(this.getBelongsToCurrentTenant(d, this.tenantScope));
+            if (fields.hasField(this.asIndexer(UserRole._belongsToCurrentTenant))) m.setBelongsToCurrentTenant(this.getBelongsToCurrentTenant(d, this.tenantScopeFactory.getInstance()));
             if (!userFields.isEmpty() && userItemsMap != null && userItemsMap.containsKey(d.getUserId())) m.setUser(userItemsMap.get(d.getUserId()));
 
             models.add(m);

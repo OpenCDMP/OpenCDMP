@@ -73,6 +73,14 @@ export enum ResponseErrorCode {
   cannotPlanDeposit = 177,
   cannotEditDescriptionTemplates = 178,
   creatingPlanWithInactiveBlueprint = 179,
+  invalidReferenceTypeImportXml = 180,
+  planUpdateRequestIsCompleted = 181,
+  planUpdateRequestInvalidActionType = 182,
+  planOwnerNotFound = 183,
+  planBlueprintTypeCodeExists = 184,
+  planBlueprintTypeImportNotFound = 185,
+  planBlueprintTypeImportDraft = 186,
+  cannotMergeAccountWithSameEmail = 187,
 
   // Notification & Annotation Errors
   InvalidApiKey = 200,
@@ -247,6 +255,22 @@ export class ResponseErrorCodeHelper {
         return language.instant("GENERAL.BACKEND-ERRORS.INVALID-USER-EMAIL");
 	  case ResponseErrorCode.creatingPlanWithInactiveBlueprint: 
         return language.instant("GENERAL.BACKEND-ERRORS.CREATING-PLAN-WITH-INACTIVE-BLUEPRINT");
+	  case ResponseErrorCode.invalidReferenceTypeImportXml: 
+        return language.instant("GENERAL.BACKEND-ERRORS.INVALID-REFERENCE-TYPE-IMPORT-XML");
+	  case ResponseErrorCode.planUpdateRequestIsCompleted: 
+        return language.instant("GENERAL.BACKEND-ERRORS.PLAN-UPDATE-REQUEST-IS-COMPLETED");
+	  case ResponseErrorCode.planUpdateRequestInvalidActionType: 
+        return language.instant("GENERAL.BACKEND-ERRORS.PLAN-UPDATE-REQUEST-INVALID-ACTION-TYPE");
+	  case ResponseErrorCode.planOwnerNotFound: 
+        return language.instant("GENERAL.BACKEND-ERRORS.PLAN-OWNER-NOT-FOUND");
+	  case ResponseErrorCode.planBlueprintTypeCodeExists:
+		return language.instant("GENERAL.BACKEND-ERRORS.PLAN-BLUEPRINT-TYPE-CODE-EXISTS");
+	  case ResponseErrorCode.planBlueprintTypeImportNotFound:
+		return language.instant("GENERAL.BACKEND-ERRORS.PLAN-BLUEPRINT-TYPE-IMPORT-NOT-FOUND");
+	  case ResponseErrorCode.planBlueprintTypeImportDraft:
+		return language.instant("GENERAL.BACKEND-ERRORS.PLAN-BLUEPRINT-TYPE-IMPORT-DRAFT");
+	  case ResponseErrorCode.cannotMergeAccountWithSameEmail:
+		return language.instant("GENERAL.BACKEND-ERRORS.CANNOT-MERGE-ACCOUNT-WITH-SAME-EMAIL");
   	  default:
   	  	return language.instant("GENERAL.SNACK-BAR.NOT-FOUND");
   	}

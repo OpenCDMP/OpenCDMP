@@ -1,7 +1,7 @@
 package org.opencdmp.controllers;
 
 import org.opencdmp.audit.AuditableAction;
-import org.opencdmp.commons.scope.user.UserScope;
+import org.opencdmp.commons.scope.user.UserScopeFactory;
 import org.opencdmp.model.*;
 import org.opencdmp.model.censorship.*;
 import org.opencdmp.model.user.User;
@@ -31,16 +31,16 @@ public class DashboardController {
 
     private final CensorFactory censorFactory;
 
-    private final UserScope userScope;
+    private final UserScopeFactory userScopeFactory;
     public DashboardController(
             AuditService auditService,
             DashboardService dashboardService, 
             CensorFactory censorFactory,
-            UserScope userScope) {
+            UserScopeFactory userScopeFactory) {
         this.auditService = auditService;
         this.dashboardService = dashboardService;
         this.censorFactory = censorFactory;
-        this.userScope = userScope;
+        this.userScopeFactory = userScopeFactory;
     }
 
 
@@ -49,9 +49,9 @@ public class DashboardController {
     public List<RecentActivityItem> getMyRecentActivityItems(@RequestBody RecentActivityItemLookup lookup) throws InvalidApplicationException {
         logger.debug(new MapLogEntry("retrieving" + User.class.getSimpleName()).And("lookup", lookup));
 
-        this.censorFactory.censor(RecentActivityItemCensor.class).censor(lookup.getProject(), this.userScope.getUserId());
+        this.censorFactory.censor(RecentActivityItemCensor.class).censor(lookup.getProject(), this.userScopeFactory.getInstance().getUserId());
         
-        lookup.setUserIds(List.of(this.userScope.getUserId()));
+        lookup.setUserIds(List.of(this.userScopeFactory.getInstance().getUserId()));
         List<RecentActivityItem> models = this.dashboardService.getMyRecentActivityItems(lookup);
 
         this.auditService.track(AuditableAction.Dashboard_MyRecentActivityItems, Map.ofEntries(
@@ -66,7 +66,7 @@ public class DashboardController {
     public DashboardStatistics getMyDashboardStatistics() throws MyApplicationException, MyForbiddenException, MyNotFoundException, InvalidApplicationException {
         logger.debug(new MapLogEntry("retrieving public statistics"));
 
-        this.censorFactory.censor(MyDashboardStatisticsCensor.class).censor(this.userScope.getUserIdSafe());
+        this.censorFactory.censor(MyDashboardStatisticsCensor.class).censor(this.userScopeFactory.getInstance().getUserIdSafe());
 
         DashboardStatistics model = this.dashboardService.getMyDashboardStatistics();
 

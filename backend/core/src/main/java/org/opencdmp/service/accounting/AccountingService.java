@@ -13,5 +13,9 @@ public interface AccountingService {
 
     void increase(String metric) throws InvalidApplicationException;
 
+    void increase(String metric, Boolean useDefaultTenantCode) throws InvalidApplicationException;
+
     void decrease(String metric) throws InvalidApplicationException;
+
+    void decrease(String metric, Boolean useDefaultTenantCode) throws InvalidApplicationException;
 }

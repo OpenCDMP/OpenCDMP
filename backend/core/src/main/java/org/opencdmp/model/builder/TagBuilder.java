@@ -8,7 +8,7 @@ import gr.cite.tools.fieldset.FieldSet;
 import gr.cite.tools.logging.DataLogEntry;
 import gr.cite.tools.logging.LoggerService;
 import org.opencdmp.authorization.AuthorizationFlags;
-import org.opencdmp.commons.scope.tenant.TenantScope;
+import org.opencdmp.commons.scope.tenant.TenantScopeFactory;
 import org.opencdmp.convention.ConventionService;
 import org.opencdmp.data.TagEntity;
 import org.opencdmp.model.Tag;
@@ -29,20 +29,26 @@ public class TagBuilder extends BaseBuilder<Tag, TagEntity>{
 
     private final QueryFactory queryFactory;
     private final BuilderFactory builderFactory;
-    private final TenantScope tenantScope;
+    private final TenantScopeFactory tenantScopeFactory;
     private EnumSet<AuthorizationFlags> authorize = EnumSet.of(AuthorizationFlags.None);
+    private boolean isPublic;
 
     @Autowired
     public TagBuilder(
-		    ConventionService conventionService, QueryFactory queryFactory, BuilderFactory builderFactory, TenantScope tenantScope) {
+		    ConventionService conventionService, QueryFactory queryFactory, BuilderFactory builderFactory, TenantScopeFactory tenantScopeFactory) {
         super(conventionService, new LoggerService(LoggerFactory.getLogger(TagBuilder.class)));
         this.queryFactory = queryFactory;
         this.builderFactory = builderFactory;
-	    this.tenantScope = tenantScope;
+	    this.tenantScopeFactory = tenantScopeFactory;
     }
 
     public TagBuilder authorize(EnumSet<AuthorizationFlags> values) {
         this.authorize = values;
+        return this;
+    }
+
+    public TagBuilder isPublic(boolean isPublic) {
+        this.isPublic = isPublic;
         return this;
     }
 
@@ -61,11 +67,11 @@ public class TagBuilder extends BaseBuilder<Tag, TagEntity>{
             Tag m = new Tag();
             if (fields.hasField(this.asIndexer(Tag._id))) m.setId(d.getId());
             if (fields.hasField(this.asIndexer(Tag._label))) m.setLabel(d.getLabel());
-            if (fields.hasField(this.asIndexer(Tag._createdAt))) m.setCreatedAt(d.getCreatedAt());
-            if (fields.hasField(this.asIndexer(Tag._updatedAt))) m.setUpdatedAt(d.getUpdatedAt());
+            if (!this.isPublic && fields.hasField(this.asIndexer(Tag._createdAt))) m.setCreatedAt(d.getCreatedAt());
+            if (!this.isPublic && fields.hasField(this.asIndexer(Tag._updatedAt))) m.setUpdatedAt(d.getUpdatedAt());
             if (fields.hasField(this.asIndexer(Tag._isActive))) m.setIsActive(d.getIsActive());
             if (!userFields.isEmpty() && userItemsMap != null && userItemsMap.containsKey(d.getCreatedById())) m.setCreatedBy(userItemsMap.get(d.getCreatedById()));
-            if (fields.hasField(this.asIndexer(Tag._belongsToCurrentTenant))) m.setBelongsToCurrentTenant(this.getBelongsToCurrentTenant(d, this.tenantScope));
+            if (!this.isPublic && fields.hasField(this.asIndexer(Tag._belongsToCurrentTenant))) m.setBelongsToCurrentTenant(this.getBelongsToCurrentTenant(d, this.tenantScopeFactory.getInstance()));
             models.add(m);
         }
         this.logger.debug("build {} items", Optional.of(models).map(List::size).orElse(0));
@@ -73,7 +79,7 @@ public class TagBuilder extends BaseBuilder<Tag, TagEntity>{
     }
 
     private Map<UUID, User> collectUsers(FieldSet fields, List<TagEntity> data) throws MyApplicationException {
-        if (fields.isEmpty() || data.isEmpty())
+        if (fields.isEmpty() || data.isEmpty() || this.isPublic)
             return null;
         this.logger.debug("checking related - {}", User.class.getSimpleName());
 

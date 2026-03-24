@@ -1,5 +1,6 @@
 package org.opencdmp.query;
 
+import gr.cite.commons.web.authz.service.AuthorizationService;
 import gr.cite.tools.data.query.FieldResolver;
 import gr.cite.tools.data.query.QueryBase;
 import gr.cite.tools.data.query.QueryContext;
@@ -8,11 +9,14 @@ import jakarta.persistence.Tuple;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.Predicate;
 import org.opencdmp.authorization.AuthorizationFlags;
+import org.opencdmp.authorization.Permission;
 import org.opencdmp.commons.enums.IsActive;
+import org.opencdmp.commons.scope.user.UserScopeFactory;
 import org.opencdmp.data.DescriptionEntity;
 import org.opencdmp.data.DescriptionTagEntity;
-import org.opencdmp.data.TenantEntityManager;
+import org.opencdmp.data.TenantEntityManagerFactory;
 import org.opencdmp.model.DescriptionTag;
+import org.opencdmp.query.utils.QueryUtilsService;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
@@ -128,14 +132,20 @@ public class DescriptionTagQuery extends QueryBase<DescriptionTagEntity> {
     }
 
 
-    private final TenantEntityManager tenantEntityManager;
-    public DescriptionTagQuery(TenantEntityManager tenantEntityManager) {
-	    this.tenantEntityManager = tenantEntityManager;
+    private final TenantEntityManagerFactory tenantEntityManagerFactory;
+    private final UserScopeFactory userScopeFactory;
+    private final AuthorizationService authService;
+    private final QueryUtilsService queryUtilsService;
+    public DescriptionTagQuery(TenantEntityManagerFactory tenantEntityManagerFactory, UserScopeFactory userScopeFactory, AuthorizationService authService, QueryUtilsService queryUtilsService) {
+	    this.tenantEntityManagerFactory = tenantEntityManagerFactory;
+        this.userScopeFactory = userScopeFactory;
+        this.authService = authService;
+        this.queryUtilsService = queryUtilsService;
     }
 
     @Override
     protected EntityManager entityManager(){
-        return this.tenantEntityManager.getEntityManager();
+        return this.tenantEntityManagerFactory.getInstance().getEntityManager();
     }
 
     @Override
@@ -148,6 +158,32 @@ public class DescriptionTagQuery extends QueryBase<DescriptionTagEntity> {
         return this.isEmpty(this.ids) || this.isEmpty(this.excludedIds) || this.isEmpty(this.isActives) ||this.isEmpty(this.tagIds) || this.isEmpty(this.descriptionIds);
     }
 
+    @Override
+    protected <X, Y> Predicate applyAuthZ(QueryContext<X, Y> queryContext) {
+        if (this.authorize.contains(AuthorizationFlags.None)) return null;
+        if (this.authorize.contains(AuthorizationFlags.Permission) && this.authService.authorize(Permission.BrowseDescriptionTag)) {
+            return this.queryUtilsService.buildTenantFilter(queryContext.CriteriaBuilder, queryContext.Root.get(DescriptionTagEntity._tenantId));
+        }
+        UUID userId = null;
+        boolean usePublic = this.authorize.contains(AuthorizationFlags.Public);
+        if (this.authorize.contains(AuthorizationFlags.PlanAssociated)) userId = this.userScopeFactory.getInstance().getUserIdSafe();
+        if (this.authorize.contains(AuthorizationFlags.Owner)) userId = this.userScopeFactory.getInstance().getUserIdSafe();
+
+        List<Predicate> predicates = new ArrayList<>();
+        if (!usePublic) {
+            Predicate predicateTenant = this.queryUtilsService.buildTenantFilter(queryContext.CriteriaBuilder, queryContext.Root.get(DescriptionTagEntity._tenantId));
+            if (predicateTenant != null) predicates.add(predicateTenant);
+        }
+        if (userId != null || usePublic ) {
+            predicates.add(queryContext.CriteriaBuilder.in(queryContext.Root.get(DescriptionTagEntity._descriptionId)).value(this.queryUtilsService.buildDescriptionAuthZSubQuery(queryContext.Query, queryContext.CriteriaBuilder, userId, usePublic)));
+        }
+        if (!predicates.isEmpty()) {
+            Predicate[] predicatesArray = predicates.toArray(new Predicate[0]);
+            return queryContext.CriteriaBuilder.and(predicatesArray);
+        } else {
+            return queryContext.CriteriaBuilder.or(); //Creates a false query
+        }
+    }
 
     @Override
     protected <X, Y> Predicate applyFilters(QueryContext<X, Y> queryContext) {

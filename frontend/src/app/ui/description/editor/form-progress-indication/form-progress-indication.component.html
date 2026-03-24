@@ -1,10 +1,22 @@
-﻿<div class="demo-progress-bar-container" *ngIf="!formGroup.disabled">
-  <div class="percentage d-flex justify-content-center"><span *ngIf="total>0">{{progressSoFar}} {{'GENERAL.PREPOSITIONS.OF' | translate}} {{total}}</span>&nbsp;</div>
-  <mat-progress-bar *ngIf="value" class="form-progress-bar" [ngClass]="{'progress-bar': true}" mode="determinate" [value]="value" [attr.aria-label]="'ALT-TEXT.PROGRESS-BAR' | translate"></mat-progress-bar>
-  <mat-progress-bar *ngIf="!value" class="form-progress-bar" [ngClass]="{'progress-bar': true}" mode="determinate" [value]="0" [attr.aria-label]="'ALT-TEXT.PROGRESS-BAR' | translate"></mat-progress-bar>
-  <div class="percentage" [ngStyle]="{'padding-left': value ? value - 10 + '%' : 0 + '%' }">
-    <span *ngIf="value">{{value}}%</span>
-    <span *ngIf="!value">0%</span>
+﻿@if (!formGroup.disabled) {
+  <div class="demo-progress-bar-container">
+    <div class="percentage d-flex justify-content-center">@if (total>0) {
+      <span>{{progressSoFar}} {{'GENERAL.PREPOSITIONS.OF' | translate}} {{total}}</span>
+    }&nbsp;</div>
+    @if (value) {
+      <mat-progress-bar class="form-progress-bar" [ngClass]="{'progress-bar': true}" mode="determinate" [value]="value" [attr.aria-label]="'ALT-TEXT.PROGRESS-BAR' | translate"></mat-progress-bar>
+    }
+    @if (!value) {
+      <mat-progress-bar class="form-progress-bar" [ngClass]="{'progress-bar': true}" mode="determinate" [value]="0" [attr.aria-label]="'ALT-TEXT.PROGRESS-BAR' | translate"></mat-progress-bar>
+    }
+    <div class="percentage" [ngStyle]="{'padding-left': value ? value - 10 + '%' : 0 + '%' }">
+      @if (value) {
+        <span>{{value}}%</span>
+      }
+      @if (!value) {
+        <span>0%</span>
+      }
+    </div>
   </div>
-</div>
+}
 

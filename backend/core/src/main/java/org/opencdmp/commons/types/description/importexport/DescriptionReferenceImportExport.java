@@ -1,9 +1,9 @@
 package org.opencdmp.commons.types.description.importexport;
 
-import jakarta.xml.bind.annotation.XmlAccessType;
-import jakarta.xml.bind.annotation.XmlAccessorType;
-import jakarta.xml.bind.annotation.XmlElement;
+import jakarta.xml.bind.annotation.*;
+import org.opencdmp.commons.enums.ReferenceFieldDataType;
 
+import java.util.List;
 import java.util.UUID;
 
 @XmlAccessorType(XmlAccessType.FIELD)
@@ -23,6 +23,47 @@ public class DescriptionReferenceImportExport {
     private int ordinal;
     @XmlElement(name = "type")
     private DescriptionReferenceTypeImportExport type;
+    @XmlElementWrapper(name = "fields")
+    @XmlElement(name = "field")
+    private List<ReferenceFieldImportExport> fields;
+
+    @XmlType(name = "descriptionReferenceFieldImportExport")
+    @XmlAccessorType(XmlAccessType.FIELD)
+    public static class ReferenceFieldImportExport {
+
+        @XmlAttribute(name = "code")
+        private String code;
+
+        @XmlAttribute(name = "dataType")
+        private ReferenceFieldDataType dataType;
+
+        @XmlAttribute(name = "value")
+        private String value;
+
+        public String getCode() {
+            return code;
+        }
+
+        public void setCode(String code) {
+            this.code = code;
+        }
+
+        public ReferenceFieldDataType getDataType() {
+            return dataType;
+        }
+
+        public void setDataType(ReferenceFieldDataType dataType) {
+            this.dataType = dataType;
+        }
+
+        public String getValue() {
+            return value;
+        }
+
+        public void setValue(String value) {
+            this.value = value;
+        }
+    }
 
     public UUID getId() {
         return this.id;
@@ -78,5 +119,13 @@ public class DescriptionReferenceImportExport {
 
     public void setSource(String source) {
         this.source = source;
+    }
+
+    public List<ReferenceFieldImportExport> getFields() {
+        return fields;
+    }
+
+    public void setFields(List<ReferenceFieldImportExport> fields) {
+        this.fields = fields;
     }
 }

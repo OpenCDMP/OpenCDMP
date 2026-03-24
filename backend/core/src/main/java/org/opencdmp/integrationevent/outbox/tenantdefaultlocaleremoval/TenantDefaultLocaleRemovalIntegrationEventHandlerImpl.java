@@ -5,6 +5,8 @@ import org.opencdmp.integrationevent.outbox.OutboxIntegrationEvent;
 import org.opencdmp.integrationevent.outbox.OutboxService;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.config.ConfigurableBeanFactory;
+import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 import org.springframework.web.context.annotation.RequestScope;
 
@@ -12,7 +14,7 @@ import javax.management.InvalidApplicationException;
 import java.util.UUID;
 
 @Component
-@RequestScope
+@Scope(value = ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 public class TenantDefaultLocaleRemovalIntegrationEventHandlerImpl implements TenantDefaultLocaleRemovalIntegrationEventHandler {
 
     private static final LoggerService logger = new LoggerService(LoggerFactory.getLogger(TenantDefaultLocaleRemovalIntegrationEventHandlerImpl.class));

@@ -1,90 +1,29 @@
 package org.opencdmp.commons.scope.tenant;
 
 import org.opencdmp.data.TenantEntityManager;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-import org.springframework.web.context.annotation.RequestScope;
 
 import javax.management.InvalidApplicationException;
 import java.util.UUID;
-import java.util.concurrent.atomic.AtomicReference;
 
-@Component
-@RequestScope
-public class TenantScope {
-    public static final String TenantReplaceParameter = "::TenantCode::";
-    private final MultitenancyConfiguration multitenancyConfiguration;
-    private final AtomicReference<UUID> tenant = new AtomicReference<>();
-    private final AtomicReference<String> tenantCode = new AtomicReference<>();
-    private final AtomicReference<UUID> initialTenant = new AtomicReference<>();
-    private final AtomicReference<String> initialTenantCode = new AtomicReference<>();
+public interface TenantScope {
 
-    @Autowired
-    public TenantScope(MultitenancyConfiguration multitenancyConfiguration) {
-        this.multitenancyConfiguration = multitenancyConfiguration;
-    }
+    Boolean isMultitenant();
 
-    public Boolean isMultitenant() {
-        return this.multitenancyConfiguration.getConfig().isMultitenant();
-    }
+    Boolean supportExpansionTenant();
 
-    public Boolean supportExpansionTenant() {
-        return this.multitenancyConfiguration.getConfig().getSupportExpansionTenant();
-    }
+    String getDefaultTenantCode();
 
-    public String getDefaultTenantCode() {
-        return this.multitenancyConfiguration.getConfig().getDefaultTenantCode();
-    }
+    Boolean isSet();
 
-    public Boolean isSet() {
-        if (!this.isMultitenant())
-            return Boolean.TRUE;
-        return this.tenant.get() != null || this.isDefaultTenant();
-    }
+    Boolean isDefaultTenant();
 
-    public Boolean isDefaultTenant() {
-        if (!this.isMultitenant())
-            return Boolean.FALSE;
-        return this.supportExpansionTenant() && this.multitenancyConfiguration.getConfig().getDefaultTenantCode().equalsIgnoreCase(this.tenantCode.get());
-    }
+    UUID getTenant() throws InvalidApplicationException;
 
-    public UUID getTenant() throws InvalidApplicationException {
-        if (!this.isMultitenant())
-            return null;
-        if (this.tenant.get() == null && !this.isDefaultTenant())
-            throw new InvalidApplicationException("tenant not set");
-        return this.isDefaultTenant() ? null : this.tenant.get();
-    }
+    String getTenantCode() throws InvalidApplicationException;
 
-    public String getTenantCode() throws InvalidApplicationException {
-        if (!this.isMultitenant())
-            return null;
-        if (this.tenantCode.get() == null)
-            throw new InvalidApplicationException("tenant not set");
-        return this.tenantCode.get();
-    }
+    void setTempTenant(TenantEntityManager entityManager, UUID tenant, String tenantCode) throws InvalidApplicationException;
 
-    public void setTempTenant(TenantEntityManager entityManager, UUID tenant, String tenantCode) throws InvalidApplicationException {
-        this.tenant.set(tenant);
-        this.tenantCode.set(tenantCode);
+    void removeTempTenant(TenantEntityManager entityManager) throws InvalidApplicationException;
 
-        entityManager.reloadTenantFilters();
-    }
-
-    public void removeTempTenant(TenantEntityManager entityManager) throws InvalidApplicationException {
-        this.tenant.set(this.initialTenant.get());
-        this.tenantCode.set(this.initialTenantCode.get());
-
-        entityManager.reloadTenantFilters();
-    }
-
-    public void setTenant(UUID tenant, String tenantCode) {
-        if (this.isMultitenant()) {
-            this.tenant.set(tenant);
-            this.initialTenant.set(tenant);
-            this.tenantCode.set(tenantCode);
-            this.initialTenantCode.set(tenantCode);
-        }
-    }
+    void setTenant(UUID tenant, String tenantCode);
 }
-

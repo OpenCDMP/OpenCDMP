@@ -10,12 +10,12 @@
         display:inline-block; 
         margin: 0px auto; 
         cursor: grab; 
-        color: var(--sys-tertiary);
+        color: var(--mat-sys-tertiary);
     }
 }
 
 ::ng-deep .mat-checkbox-checked.mat-accent .mat-checkbox-background, .mat-checkbox-indeterminate.mat-accent .mat-checkbox-background {
-	background-color: var(--sys-primary);
+	background-color: var(--mat-sys-primary);
 }
 
 
@@ -46,7 +46,7 @@
 	.field-delete-icon{
 		font-size: 1.2em;
 		width: 14px;
-		color: var(--sys-primary);
+		color: var(--mat-sys-primary);
 	}
 
 }
@@ -78,7 +78,7 @@
 }
 
 .title-size-md {
-    font-size: var(--sys-headline-medium-size);
+    font-size: var(--mat-sys-headline-medium-size);
 }
 
 .stepper {
@@ -101,16 +101,16 @@
 .delete-btn {
     background-color: transparent;
     box-shadow: none;
-    color: var(--sys-error);
+    color: var(--mat-sys-error);
 }
 
 .section-title {
-    font-size: var(--sys-headline-large-size);
+    font-size: var(--mat-sys-headline-large-size);
     font-weight: 700;
 }
 
 .preview {
-    background-color: var(--sys-surface);
+    background-color: var(--mat-sys-surface);
 
 }
 
@@ -121,14 +121,14 @@
 	position: fixed;
 	bottom: 20em;
 	right: 2em;
-	color: var(--sys-primary) !important;
+	color: var(--mat-sys-primary) !important;
 	cursor: pointer;
-	font-size: var(--sys-body-medium-size);
+	font-size: var(--mat-sys-body-medium-size);
 	font-weight: 400;
     border: none;
     background-color: transparent;
     &:focus, &:hover {
-        color: hsl(from var(--sys-primary) h s calc(l + 4)) !important;
+        color: hsl(from var(--mat-sys-primary) h s calc(l + 4)) !important;
     }
 }
 
@@ -163,7 +163,7 @@
 .section-field {
     .field-editor.active {
         border-radius: 0.3em;
-        border-left: 0.3em solid var(--sys-primary);
+        border-left: 0.3em solid var(--mat-sys-primary);
     }
     .stick-list {
         top: 2.5em;

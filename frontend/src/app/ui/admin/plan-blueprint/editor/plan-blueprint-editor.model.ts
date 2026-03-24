@@ -18,6 +18,7 @@ import { startWith, Subject, takeUntil } from "rxjs";
 export class PlanBlueprintEditorModel extends BaseEditorModel implements PlanBlueprintPersist {
 	label: string;
 	code: string;
+	type: Guid;
 	definition: PlanBlueprintDefinitionEditorModel = new PlanBlueprintDefinitionEditorModel();
 	status: PlanBlueprintStatus = PlanBlueprintStatus.Draft;
 	versionStatus: PlanBlueprintVersionStatus = PlanBlueprintVersionStatus.Current;
@@ -36,6 +37,7 @@ export class PlanBlueprintEditorModel extends BaseEditorModel implements PlanBlu
 			this.label = item.label;
 			this.description = item.description
 			this.code = item.code;
+			this.type = item.type?.id;
 			this.status = item.status;
 			this.versionStatus = item.versionStatus;
 			this.definition = new PlanBlueprintDefinitionEditorModel(this.validationErrorModel).fromModel(item.definition, configuration);
@@ -51,6 +53,7 @@ export class PlanBlueprintEditorModel extends BaseEditorModel implements PlanBlu
 			label: [{ value: this.label, disabled }, context.getValidation('label').validators],
 			description: [{ value: this.description, disabled }, context.getValidation('description').validators],
 			code: [{ value: this.code, disabled: !isNewOrClone }, context.getValidation('code').validators],
+			type: [{ value: this.type, disabled }, context.getValidation('type').validators],
 			status: [{ value: this.status, disabled }, context.getValidation('status').validators],
 			definition: this.definition.buildForm({
                 destroyRef,
@@ -68,6 +71,7 @@ export class PlanBlueprintEditorModel extends BaseEditorModel implements PlanBlu
 		baseValidationArray.push({ key: 'id', validators: [BackendErrorValidator(this.validationErrorModel, 'id')] });
 		baseValidationArray.push({ key: 'label', validators: [Validators.required, BackendErrorValidator(this.validationErrorModel, 'label')] });
 		baseValidationArray.push({ key: 'description', validators: [BackendErrorValidator(this.validationErrorModel, 'description')] });
+		baseValidationArray.push({ key: 'type', validators: [BackendErrorValidator(this.validationErrorModel, 'type')] });
 		baseValidationArray.push({ key: 'code', validators: [Validators.required, BackendErrorValidator(this.validationErrorModel, 'code')] });
 		baseValidationArray.push({ key: 'status', validators: [Validators.required, BackendErrorValidator(this.validationErrorModel, 'status')] });
 		baseValidationArray.push({ key: 'hash', validators: [] });
@@ -119,6 +123,7 @@ export class PlanBlueprintEditorModel extends BaseEditorModel implements PlanBlu
             description: null,
             groupId: null,
             label: null,
+			type: null,
             definition: {
                 sections: []
             },
@@ -745,6 +750,7 @@ export interface PlanBlueprintForm {
     hash: FormControl<string>;
     label: FormControl<string>;
 	code: FormControl<string>;
+	type: FormControl<Guid>;
 	definition: FormGroup<PlanBlueprintDefinitionForm>;
 	status: FormControl<PlanBlueprintStatus>;
 	versionStatus: FormControl<PlanBlueprintVersionStatus>;

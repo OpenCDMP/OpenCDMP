@@ -7,7 +7,7 @@ import gr.cite.tools.logging.DataLogEntry;
 import gr.cite.tools.logging.LoggerService;
 import org.opencdmp.authorization.AuthorizationFlags;
 import org.opencdmp.commons.XmlHandlingService;
-import org.opencdmp.commons.scope.tenant.TenantScope;
+import org.opencdmp.commons.scope.tenant.TenantScopeFactory;
 import org.opencdmp.commons.types.referencetype.ReferenceTypeDefinitionEntity;
 import org.opencdmp.convention.ConventionService;
 import org.opencdmp.data.ReferenceTypeEntity;
@@ -27,21 +27,27 @@ public class ReferenceTypeBuilder extends BaseBuilder<ReferenceType, ReferenceTy
 
     private final BuilderFactory builderFactory;
     private final XmlHandlingService xmlHandlingService;
-    private final TenantScope tenantScope;
+    private final TenantScopeFactory tenantScopeFactory;
     private EnumSet<AuthorizationFlags> authorize = EnumSet.of(AuthorizationFlags.None);
+    private boolean isPublic;
 
     @Autowired
     public ReferenceTypeBuilder(
 		    ConventionService conventionService,
-		    BuilderFactory builderFactory, XmlHandlingService xmlHandlingService, TenantScope tenantScope) {
+		    BuilderFactory builderFactory, XmlHandlingService xmlHandlingService, TenantScopeFactory tenantScopeFactory) {
         super(conventionService, new LoggerService(LoggerFactory.getLogger(ReferenceTypeBuilder.class)));
         this.builderFactory = builderFactory;
-	    this.tenantScope = tenantScope;
+	    this.tenantScopeFactory = tenantScopeFactory;
         this.xmlHandlingService = xmlHandlingService;
     }
 
     public ReferenceTypeBuilder authorize(EnumSet<AuthorizationFlags> values) {
         this.authorize = values;
+        return this;
+    }
+
+    public ReferenceTypeBuilder isPublic(boolean isPublic) {
+        this.isPublic = isPublic;
         return this;
     }
 
@@ -60,12 +66,12 @@ public class ReferenceTypeBuilder extends BaseBuilder<ReferenceType, ReferenceTy
             if (fields.hasField(this.asIndexer(ReferenceType._id))) m.setId(d.getId());
             if (fields.hasField(this.asIndexer(ReferenceType._name))) m.setName(d.getName());
             if (fields.hasField(this.asIndexer(ReferenceType._code))) m.setCode(d.getCode());
-            if (fields.hasField(this.asIndexer(ReferenceType._createdAt))) m.setCreatedAt(d.getCreatedAt());
-            if (fields.hasField(this.asIndexer(ReferenceType._updatedAt))) m.setUpdatedAt(d.getUpdatedAt());
+            if (!this.isPublic && fields.hasField(this.asIndexer(ReferenceType._createdAt))) m.setCreatedAt(d.getCreatedAt());
+            if (!this.isPublic && fields.hasField(this.asIndexer(ReferenceType._updatedAt))) m.setUpdatedAt(d.getUpdatedAt());
             if (fields.hasField(this.asIndexer(ReferenceType._isActive))) m.setIsActive(d.getIsActive());
-            if (fields.hasField(this.asIndexer(ReferenceType._hash))) m.setHash(this.hashValue(d.getUpdatedAt()));
-            if (fields.hasField(this.asIndexer(ReferenceType._belongsToCurrentTenant))) m.setBelongsToCurrentTenant(this.getBelongsToCurrentTenant(d, this.tenantScope));
-            if (!definitionFields.isEmpty() && d.getDefinition() != null){
+            if (!this.isPublic && fields.hasField(this.asIndexer(ReferenceType._hash))) m.setHash(this.hashValue(d.getUpdatedAt()));
+            if (!this.isPublic && fields.hasField(this.asIndexer(ReferenceType._belongsToCurrentTenant))) m.setBelongsToCurrentTenant(this.getBelongsToCurrentTenant(d, this.tenantScopeFactory.getInstance()));
+            if (!this.isPublic && !definitionFields.isEmpty() && d.getDefinition() != null){
                 ReferenceTypeDefinitionEntity definition = this.xmlHandlingService.fromXmlSafe(ReferenceTypeDefinitionEntity.class, d.getDefinition());
                 m.setDefinition(this.builderFactory.builder(ReferenceTypeDefinitionBuilder.class).authorize(this.authorize).build(definitionFields, definition));
             }

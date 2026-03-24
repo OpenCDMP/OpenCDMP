@@ -1,6 +1,6 @@
 package org.opencdmp.integrationevent.inbox.annotationstatusentitychanged;
 
-import gr.cite.commons.web.oidc.principal.CurrentPrincipalResolver;
+import gr.cite.commons.web.oidc.principal.CurrentPrincipalResolverFactory;
 import gr.cite.commons.web.oidc.principal.extractor.ClaimExtractorProperties;
 import gr.cite.tools.auditing.AuditService;
 import gr.cite.tools.data.query.QueryFactory;
@@ -15,8 +15,7 @@ import org.opencdmp.commons.JsonHandlingService;
 import org.opencdmp.commons.enums.IsActive;
 import org.opencdmp.commons.enums.annotation.AnnotationEntityType;
 import org.opencdmp.commons.notification.NotificationProperties;
-import org.opencdmp.commons.scope.tenant.TenantScope;
-import org.opencdmp.commons.scope.user.UserScope;
+import org.opencdmp.commons.scope.tenant.TenantScopeFactory;
 import org.opencdmp.commons.types.notification.DataType;
 import org.opencdmp.commons.types.notification.FieldInfo;
 import org.opencdmp.commons.types.notification.NotificationFieldData;
@@ -51,29 +50,27 @@ public class AnnotationStatusEntityChangedIntegrationEventHandlerImpl implements
     private final QueryFactory queryFactory;
     private final JsonHandlingService jsonHandlingService;
     private final NotificationProperties notificationProperties;
-    private final TenantScope tenantScope;
+    private final TenantScopeFactory tenantScopeFactory;
     private final NotifyIntegrationEventHandler notifyIntegrationEventHandler;
-    private final CurrentPrincipalResolver currentPrincipalResolver;
+    private final CurrentPrincipalResolverFactory currentPrincipalResolverFactory;
     private final ClaimExtractorProperties claimExtractorProperties;
     private final MessageSource messageSource;
-    private final UserScope userScope;
     private final ErrorThesaurusProperties errors;
-    private final TenantEntityManager tenantEntityManager;
+    private final TenantEntityManagerFactory tenantEntityManagerFactory;
     private final ValidatorFactory validatorFactory;
     private final AuditService auditService;
 
-    public AnnotationStatusEntityChangedIntegrationEventHandlerImpl(QueryFactory queryFactory, JsonHandlingService jsonHandlingService, NotificationProperties notificationProperties, TenantScope tenantScope, NotifyIntegrationEventHandler notifyIntegrationEventHandler, CurrentPrincipalResolver currentPrincipalResolver, ClaimExtractorProperties claimExtractorProperties, MessageSource messageSource, UserScope userScope, ErrorThesaurusProperties errors, TenantEntityManager tenantEntityManager, ValidatorFactory validatorFactory, AuditService auditService) {
+    public AnnotationStatusEntityChangedIntegrationEventHandlerImpl(QueryFactory queryFactory, JsonHandlingService jsonHandlingService, NotificationProperties notificationProperties, TenantScopeFactory tenantScopeFactory, NotifyIntegrationEventHandler notifyIntegrationEventHandler, CurrentPrincipalResolverFactory currentPrincipalResolverFactory, ClaimExtractorProperties claimExtractorProperties, MessageSource messageSource, ErrorThesaurusProperties errors, TenantEntityManagerFactory tenantEntityManagerFactory, ValidatorFactory validatorFactory, AuditService auditService) {
 	    this.queryFactory = queryFactory;
         this.jsonHandlingService = jsonHandlingService;
         this.notificationProperties = notificationProperties;
-        this.tenantScope = tenantScope;
+        this.tenantScopeFactory = tenantScopeFactory;
         this.notifyIntegrationEventHandler = notifyIntegrationEventHandler;
-        this.currentPrincipalResolver = currentPrincipalResolver;
+        this.currentPrincipalResolverFactory = currentPrincipalResolverFactory;
         this.claimExtractorProperties = claimExtractorProperties;
         this.messageSource = messageSource;
-        this.userScope = userScope;
         this.errors = errors;
-        this.tenantEntityManager = tenantEntityManager;
+        this.tenantEntityManagerFactory = tenantEntityManagerFactory;
         this.validatorFactory = validatorFactory;
         this.auditService = auditService;
     }
@@ -90,23 +87,23 @@ public class AnnotationStatusEntityChangedIntegrationEventHandlerImpl implements
         EventProcessingStatus status = EventProcessingStatus.Success;
         try {
 
-            if (this.tenantScope.isMultitenant()) {
+            if (this.tenantScopeFactory.getInstance().isMultitenant()) {
                 if (properties.getTenantId() != null) {
                     TenantEntity tenant = this.queryFactory.query(TenantQuery.class).disableTracking().ids(properties.getTenantId()).firstAs(new BaseFieldSet().ensure(Tenant._id).ensure(Tenant._code));
                     if (tenant == null) {
                         logger.error("missing tenant from event message");
                         return EventProcessingStatus.Error;
                     }
-                    this.tenantScope.setTempTenant(this.tenantEntityManager, properties.getTenantId(), tenant.getCode());
-                } else if (this.tenantScope.supportExpansionTenant()) {
-                    this.tenantScope.setTempTenant(this.tenantEntityManager, null, this.tenantScope.getDefaultTenantCode());
+                    this.tenantScopeFactory.getInstance().setTempTenant(this.tenantEntityManagerFactory.getInstance(), properties.getTenantId(), tenant.getCode());
+                } else if (this.tenantScopeFactory.getInstance().supportExpansionTenant()) {
+                    this.tenantScopeFactory.getInstance().setTempTenant(this.tenantEntityManagerFactory.getInstance(), null, this.tenantScopeFactory.getInstance().getDefaultTenantCode());
                 } else {
                     logger.error("missing tenant from event message");
                     return EventProcessingStatus.Error;
                 }
             }
 
-	        this.currentPrincipalResolver.push(InboxPrincipal.build(properties, this.claimExtractorProperties));
+	        this.currentPrincipalResolverFactory.getInstance().push(InboxPrincipal.build(properties, this.claimExtractorProperties));
             this.sendNotification(event);
 	        this.auditService.track(AuditableAction.Annotation_Created_Notify, Map.ofEntries(
                     new AbstractMap.SimpleEntry<String, Object>("model", event)
@@ -116,10 +113,10 @@ public class AnnotationStatusEntityChangedIntegrationEventHandlerImpl implements
             status = EventProcessingStatus.Error;
             logger.error("Problem getting list of queue outbox. Skipping: {}", ex.getMessage(), ex);
         } finally {
-	        this.currentPrincipalResolver.pop();
+	        this.currentPrincipalResolverFactory.getInstance().pop();
             try {
-	            this.tenantScope.removeTempTenant(this.tenantEntityManager);
-                this.tenantEntityManager.reloadTenantFilters();
+	            this.tenantScopeFactory.getInstance().removeTempTenant(this.tenantEntityManagerFactory.getInstance());
+                this.tenantEntityManagerFactory.getInstance().reloadTenantFilters();
             } catch (InvalidApplicationException e) {
             }
         }
@@ -195,8 +192,8 @@ public class AnnotationStatusEntityChangedIntegrationEventHandlerImpl implements
         fieldInfoList.add(new FieldInfo("{status}", DataType.String, event.getStatusLabel()));
         String anchorUrl = "f/"+event.getAnchor()+"/annotation";
         fieldInfoList.add(new FieldInfo("{anchor}", DataType.String, anchorUrl));
-        if(this.tenantScope.getTenantCode() != null && !this.tenantScope.getTenantCode().equals(this.tenantScope.getDefaultTenantCode())){
-            fieldInfoList.add(new FieldInfo("{tenant-url-path}", DataType.String, String.format("/t/%s", this.tenantScope.getTenantCode())));
+        if(this.tenantScopeFactory.getInstance().getTenantCode() != null && !this.tenantScopeFactory.getInstance().getTenantCode().equals(this.tenantScopeFactory.getInstance().getDefaultTenantCode())){
+            fieldInfoList.add(new FieldInfo("{tenant-url-path}", DataType.String, String.format("/t/%s", this.tenantScopeFactory.getInstance().getTenantCode())));
         }
         data.setFields(fieldInfoList);
         notifyIntegrationEvent.setData(this.jsonHandlingService.toJsonSafe(data));

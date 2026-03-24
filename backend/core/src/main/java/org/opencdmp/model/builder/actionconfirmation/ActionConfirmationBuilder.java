@@ -9,7 +9,7 @@ import gr.cite.tools.logging.DataLogEntry;
 import gr.cite.tools.logging.LoggerService;
 import org.opencdmp.authorization.AuthorizationFlags;
 import org.opencdmp.commons.XmlHandlingService;
-import org.opencdmp.commons.scope.tenant.TenantScope;
+import org.opencdmp.commons.scope.tenant.TenantScopeFactory;
 import org.opencdmp.commons.types.actionconfirmation.PlanInvitationEntity;
 import org.opencdmp.commons.types.actionconfirmation.MergeAccountConfirmationEntity;
 import org.opencdmp.commons.types.actionconfirmation.RemoveCredentialRequestEntity;
@@ -36,15 +36,15 @@ public class ActionConfirmationBuilder extends BaseBuilder<ActionConfirmation, A
 
     private final BuilderFactory builderFactory;
     private final QueryFactory queryFactory;
-    private final TenantScope tenantScope;
+    private final TenantScopeFactory tenantScopeFactory;
     private final XmlHandlingService xmlHandlingService;
     private EnumSet<AuthorizationFlags> authorize  = EnumSet.of(AuthorizationFlags.None);
     @Autowired
-    public ActionConfirmationBuilder(ConventionService conventionService, BuilderFactory builderFactory, QueryFactory queryFactory, TenantScope tenantScope, XmlHandlingService xmlHandlingService) {
+    public ActionConfirmationBuilder(ConventionService conventionService, BuilderFactory builderFactory, QueryFactory queryFactory, TenantScopeFactory tenantScopeFactory, XmlHandlingService xmlHandlingService) {
         super(conventionService, new LoggerService(LoggerFactory.getLogger(ActionConfirmationBuilder.class)));
         this.builderFactory = builderFactory;
         this.queryFactory = queryFactory;
-	    this.tenantScope = tenantScope;
+	    this.tenantScopeFactory = tenantScopeFactory;
 	    this.xmlHandlingService = xmlHandlingService;
     }
 
@@ -75,7 +75,7 @@ public class ActionConfirmationBuilder extends BaseBuilder<ActionConfirmation, A
             if(fields.hasField(this.asIndexer(ActionConfirmation._status))) m.setStatus(d.getStatus());
             if(fields.hasField(this.asIndexer(ActionConfirmation._isActive))) m.setIsActive(d.getIsActive());
             if(fields.hasField(this.asIndexer(ActionConfirmation._expiresAt))) m.setExpiresAt(d.getExpiresAt());
-            if (fields.hasField(this.asIndexer(ActionConfirmation._belongsToCurrentTenant))) m.setBelongsToCurrentTenant(this.getBelongsToCurrentTenant(d, this.tenantScope));
+            if (fields.hasField(this.asIndexer(ActionConfirmation._belongsToCurrentTenant))) m.setBelongsToCurrentTenant(this.getBelongsToCurrentTenant(d, this.tenantScopeFactory.getInstance()));
             if (!removeCredentialRequestFields.isEmpty() && d.getData() != null){
                 switch (d.getType())
                 {

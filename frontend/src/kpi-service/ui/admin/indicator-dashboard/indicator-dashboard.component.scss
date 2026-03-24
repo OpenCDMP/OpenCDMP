@@ -8,3 +8,6 @@
 ::ng-deep .chart-container > *{
     max-height: max(260px, 40vh) !important;
 }
+.dashboard-select {
+    width: min(20rem, 100%);
+}

@@ -1,48 +1,59 @@
-<div *ngIf="formGroup" class="container-fluid css-colors">
-	<div class="row">
-		<div class="col-12">
-			<div class="row" style="row-gap: 0.5rem">
-
-				<mat-form-field class="col-12 col-md-6">
-					<mat-label [matTooltip]="'TENANT-CONFIGURATION-EDITOR.FIELDS.PRIMARY-COLOR-HINT' | translate">
-                        {{'TENANT-CONFIGURATION-EDITOR.FIELDS.PRIMARY-COLOR' | translate}}
-                    </mat-label>
-					<input matInput [formControl]="cssColorForm?.get('primaryColorInput')" />
-					<ngx-colors
-						class="suffix"
-						matSuffix
-						ngx-colors-trigger
-						[overlayClassName]="mr-1"
-						[formControl]="cssColorForm?.get('primaryColor')"
-					></ngx-colors>
-					<mat-error *ngIf="cssColorForm?.get('primaryColor')?.hasError('backendError')">{{cssColorForm?.get('primaryColor')?.getError('backendError').message}}</mat-error>
-					<mat-error *ngIf="cssColorForm?.get('primaryColor')?.hasError('invalidColor')">{{'GENERAL.VALIDATION.INVALID-COLOR' | translate}}</mat-error>
-				</mat-form-field>
-                <mat-form-field  class="col-12 pt-2 pb-2 ">
-                    <mat-label>
-                        {{'TENANT-CONFIGURATION-EDITOR.FIELDS.CSS-OVERRIDE' | translate}}
-                    </mat-label>
-                    <textarea
-                        matInput
-                        class="w-100 css-override"
-                        [formControl]="cssColorForm?.get('cssOverride')" 
-                    ></textarea>
-                    <mat-error *ngIf="cssColorForm?.get('cssOverride')?.hasError('backendError')">{{cssColorForm?.get('cssOverride')?.getError('backendError').message}}</mat-error>
-                    <mat-error *ngIf="cssColorForm?.get('cssOverride')?.hasError('invalidJson')">{{'TENANT-CONFIGURATION-EDITOR.ERRORS.INVALID-JSON' | translate}}</mat-error>
-                </mat-form-field>
-			</div>
-		</div>
-		<div class="col-12">
-			<div class="row actions-row">
-				<div class="ml-auto col-auto" *ngIf="editorModel.id"><button mat-stroked-button color="warn" class="padded-shadow-btn" (click)="delete()">
-						{{'TENANT-CONFIGURATION-EDITOR.ACTIONS.RESET-TO-DEFAULT' | translate}}
-					</button>
-				</div>
-				<div class="col-auto"><button mat-flat-button color="primary" class="padded-shadow-btn" (click)="formSubmit()">
-						{{'TENANT-CONFIGURATION-EDITOR.ACTIONS.SAVE' | translate}}
-					</button>
-				</div>
-			</div>
-		</div>
-	</div>
+@if (formGroup) {
+  <div class="container-fluid css-colors">
+    <div class="row">
+      <div class="col-12">
+        <div class="row" style="row-gap: 0.5rem">
+          <mat-form-field class="col-12 col-md-6">
+            <mat-label [matTooltip]="'TENANT-CONFIGURATION-EDITOR.FIELDS.PRIMARY-COLOR-HINT' | translate">
+              {{'TENANT-CONFIGURATION-EDITOR.FIELDS.PRIMARY-COLOR' | translate}}
+            </mat-label>
+            <input matInput [formControl]="cssColorForm?.get('primaryColorInput')" />
+            <ngx-colors
+              class="suffix"
+              matSuffix
+              ngx-colors-trigger
+              [overlayClassName]="mr-1"
+              [formControl]="cssColorForm?.get('primaryColor')"
+            ></ngx-colors>
+            @if (cssColorForm?.get('primaryColor')?.hasError('backendError')) {
+              <mat-error>{{cssColorForm?.get('primaryColor')?.getError('backendError').message}}</mat-error>
+            }
+            @if (cssColorForm?.get('primaryColor')?.hasError('invalidColor')) {
+              <mat-error>{{'GENERAL.VALIDATION.INVALID-COLOR' | translate}}</mat-error>
+            }
+          </mat-form-field>
+          <mat-form-field  class="col-12 pt-2 pb-2 ">
+            <mat-label>
+              {{'TENANT-CONFIGURATION-EDITOR.FIELDS.CSS-OVERRIDE' | translate}}
+            </mat-label>
+            <textarea
+              matInput
+              class="w-100 css-override"
+              [formControl]="cssColorForm?.get('cssOverride')"
+            ></textarea>
+            @if (cssColorForm?.get('cssOverride')?.hasError('backendError')) {
+              <mat-error>{{cssColorForm?.get('cssOverride')?.getError('backendError').message}}</mat-error>
+            }
+            @if (cssColorForm?.get('cssOverride')?.hasError('invalidJson')) {
+              <mat-error>{{'TENANT-CONFIGURATION-EDITOR.ERRORS.INVALID-JSON' | translate}}</mat-error>
+            }
+          </mat-form-field>
+        </div>
+      </div>
+      <div class="col-12">
+        <div class="row actions-row">
+          @if (editorModel.id) {
+            <div class="ml-auto col-auto"><button mat-stroked-button color="warn" class="padded-shadow-btn" (click)="delete()">
+              {{'TENANT-CONFIGURATION-EDITOR.ACTIONS.RESET-TO-DEFAULT' | translate}}
+            </button>
+          </div>
+        }
+        <div class="col-auto"><button mat-flat-button color="primary" class="padded-shadow-btn" (click)="formSubmit()">
+          {{'TENANT-CONFIGURATION-EDITOR.ACTIONS.SAVE' | translate}}
+        </button>
+      </div>
+    </div>
+  </div>
 </div>
+</div>
+}

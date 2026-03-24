@@ -8,7 +8,7 @@ import gr.cite.tools.fieldset.FieldSet;
 import gr.cite.tools.logging.DataLogEntry;
 import gr.cite.tools.logging.LoggerService;
 import org.opencdmp.authorization.AuthorizationFlags;
-import org.opencdmp.commons.scope.tenant.TenantScope;
+import org.opencdmp.commons.scope.tenant.TenantScopeFactory;
 import org.opencdmp.convention.ConventionService;
 import org.opencdmp.data.PlanUserEntity;
 import org.opencdmp.model.PlanUser;
@@ -33,18 +33,18 @@ public class PlanUserBuilder extends BaseBuilder<PlanUser, PlanUserEntity>{
     private final BuilderFactory builderFactory;
 
     private final QueryFactory queryFactory;
-    private final TenantScope tenantScope;
+    private final TenantScopeFactory tenantScopeFactory;
 
     private EnumSet<AuthorizationFlags> authorize = EnumSet.of(AuthorizationFlags.None);
 
     @Autowired
     public PlanUserBuilder(
 		    ConventionService conventionService,
-		    BuilderFactory builderFactory, QueryFactory queryFactory, TenantScope tenantScope) {
+		    BuilderFactory builderFactory, QueryFactory queryFactory, TenantScopeFactory tenantScopeFactory) {
         super(conventionService, new LoggerService(LoggerFactory.getLogger(PlanUserBuilder.class)));
         this.builderFactory = builderFactory;
         this.queryFactory = queryFactory;
-	    this.tenantScope = tenantScope;
+	    this.tenantScopeFactory = tenantScopeFactory;
     }
 
     public PlanUserBuilder authorize(EnumSet<AuthorizationFlags> values) {
@@ -76,7 +76,7 @@ public class PlanUserBuilder extends BaseBuilder<PlanUser, PlanUserEntity>{
             if (fields.hasField(this.asIndexer(PlanUser._updatedAt))) m.setUpdatedAt(d.getUpdatedAt());
             if (fields.hasField(this.asIndexer(PlanUser._isActive))) m.setIsActive(d.getIsActive());
             if (fields.hasField(this.asIndexer(PlanUser._hash))) m.setHash(this.hashValue(d.getUpdatedAt()));
-            if (fields.hasField(this.asIndexer(PlanUser._belongsToCurrentTenant))) m.setBelongsToCurrentTenant(this.getBelongsToCurrentTenant(d, this.tenantScope));
+            if (fields.hasField(this.asIndexer(PlanUser._belongsToCurrentTenant))) m.setBelongsToCurrentTenant(this.getBelongsToCurrentTenant(d, this.tenantScopeFactory.getInstance()));
             if (!userFields.isEmpty() && userItemsMap != null && userItemsMap.containsKey(d.getUserId())) m.setUser(userItemsMap.get(d.getUserId()));
             if (!planFields.isEmpty() && planItemsMap != null && planItemsMap.containsKey(d.getPlanId())) m.setPlan(planItemsMap.get(d.getPlanId()));
             if (!userFields.isEmpty() && userItemsMap != null && userItemsMap.containsKey(d.getUserId())) m.setUser(userItemsMap.get(d.getUserId()));

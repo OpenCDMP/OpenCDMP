@@ -1,6 +1,6 @@
 package org.opencdmp.service.planblueprint;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
+import tools.jackson.core.JacksonException;
 import gr.cite.tools.exception.MyApplicationException;
 import gr.cite.tools.exception.MyForbiddenException;
 import gr.cite.tools.exception.MyNotFoundException;
@@ -25,7 +25,7 @@ import java.util.UUID;
 
 public interface PlanBlueprintService {
 
-    PlanBlueprint persist(PlanBlueprintPersist model, UUID groupId, FieldSet fields) throws MyForbiddenException, MyValidationException, MyApplicationException, MyNotFoundException, InvalidApplicationException, JAXBException, JsonProcessingException, TransformerException, ParserConfigurationException;
+    PlanBlueprint persist(PlanBlueprintPersist model, UUID groupId, FieldSet fields) throws MyForbiddenException, MyValidationException, MyApplicationException, MyNotFoundException, InvalidApplicationException, JAXBException, JacksonException, TransformerException, ParserConfigurationException;
 
     void deleteAndSave(UUID id) throws MyForbiddenException, InvalidApplicationException;
     boolean fieldInBlueprint(PlanBlueprintEntity planBlueprintEntity, PlanBlueprintSystemFieldType type);
@@ -34,7 +34,7 @@ public interface PlanBlueprintService {
 
     PlanBlueprint buildClone(UUID id, FieldSet fields) throws MyForbiddenException, MyValidationException, MyApplicationException, MyNotFoundException;
 
-    PlanBlueprint createNewVersion(NewVersionPlanBlueprintPersist model, FieldSet fieldSet) throws MyForbiddenException, MyValidationException, MyApplicationException, MyNotFoundException, InvalidApplicationException, JAXBException, ParserConfigurationException, JsonProcessingException, TransformerException;
+    PlanBlueprint createNewVersion(NewVersionPlanBlueprintPersist model, FieldSet fieldSet) throws MyForbiddenException, MyValidationException, MyApplicationException, MyNotFoundException, InvalidApplicationException, JAXBException, ParserConfigurationException, JacksonException, TransformerException;
 
     BlueprintImportExport getExportXmlEntity(UUID id, boolean ignoreAuthorize) throws MyForbiddenException, MyNotFoundException, InvalidApplicationException, JAXBException, ParserConfigurationException, IOException, InstantiationException, IllegalAccessException, SAXException;
 

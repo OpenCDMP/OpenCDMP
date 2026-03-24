@@ -1,6 +1,6 @@
 package org.opencdmp.service.tenantconfiguration;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
+import tools.jackson.core.JacksonException;
 import org.opencdmp.commons.enums.TenantConfigurationType;
 import org.opencdmp.data.TenantConfigurationEntity;
 import org.opencdmp.model.persist.tenantconfiguration.TenantConfigurationPersist;
@@ -22,7 +22,7 @@ import java.util.UUID;
 
 public interface TenantConfigurationService {
 
-    TenantConfiguration persist(TenantConfigurationPersist model, FieldSet fields) throws MyForbiddenException, MyValidationException, MyApplicationException, MyNotFoundException, InvalidApplicationException, JsonProcessingException, InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException;
+    TenantConfiguration persist(TenantConfigurationPersist model, FieldSet fields) throws MyForbiddenException, MyValidationException, MyApplicationException, MyNotFoundException, InvalidApplicationException, JacksonException, InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException;
 
     void deleteAndSave(UUID id) throws MyForbiddenException, InvalidApplicationException;
 

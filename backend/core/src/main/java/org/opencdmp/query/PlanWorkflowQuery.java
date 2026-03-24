@@ -10,7 +10,7 @@ import jakarta.persistence.criteria.Predicate;
 import org.opencdmp.authorization.AuthorizationFlags;
 import org.opencdmp.commons.enums.IsActive;
 import org.opencdmp.data.PlanWorkflowEntity;
-import org.opencdmp.data.TenantEntityManager;
+import org.opencdmp.data.TenantEntityManagerFactory;
 import org.opencdmp.model.planworkflow.PlanWorkflow;
 import org.opencdmp.query.utils.QueryUtilsService;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
@@ -133,15 +133,15 @@ public class PlanWorkflowQuery extends QueryBase<PlanWorkflowEntity> {
 
     private final QueryUtilsService queryUtilsService;
 
-    private final TenantEntityManager entityManager;
+    private final TenantEntityManagerFactory tenantEntityManagerFactory;
 
-    public PlanWorkflowQuery(QueryUtilsService queryUtilsService, TenantEntityManager entityManager) {
+    public PlanWorkflowQuery(QueryUtilsService queryUtilsService, TenantEntityManagerFactory tenantEntityManagerFactory) {
         this.queryUtilsService = queryUtilsService;
-        this.entityManager = entityManager;
+        this.tenantEntityManagerFactory = tenantEntityManagerFactory;
     }
 
     @Override
-    protected EntityManager entityManager(){ return this.entityManager.getEntityManager(); }
+    protected EntityManager entityManager(){ return this.tenantEntityManagerFactory.getInstance().getEntityManager(); }
 
     @Override
     protected Boolean isFalseQuery() {

@@ -1,21 +1,21 @@
 package org.opencdmp.authorization;
 
-import org.opencdmp.commons.scope.user.UserScope;
 import gr.cite.commons.web.authz.handler.AuthorizationHandler;
 import gr.cite.commons.web.authz.handler.AuthorizationHandlerContext;
 import gr.cite.commons.web.authz.policy.AuthorizationRequirement;
 import gr.cite.commons.web.oidc.principal.MyPrincipal;
+import org.opencdmp.commons.scope.user.UserScopeFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component("ownedAuthorizationHandler")
 public class OwnedAuthorizationHandler extends AuthorizationHandler<OwnedAuthorizationRequirement> {
 
-	private final UserScope userScope;
+	private final UserScopeFactory userScopeFactory;
 
 	@Autowired
-	public OwnedAuthorizationHandler(UserScope userScope) {
-		this.userScope = userScope;
+	public OwnedAuthorizationHandler(UserScopeFactory userScopeFactory) {
+		this.userScopeFactory = userScopeFactory;
 	}
 
 	@Override
@@ -27,9 +27,9 @@ public class OwnedAuthorizationHandler extends AuthorizationHandler<OwnedAuthori
 		boolean isAuthenticated = ((MyPrincipal) context.getPrincipal()).isAuthenticated();
 		if (!isAuthenticated) return ACCESS_NOT_DETERMINED;
 
-		if (this.userScope.getUserIdSafe() == null) return ACCESS_NOT_DETERMINED;
+		if (this.userScopeFactory.getInstance().getUserIdSafe() == null) return ACCESS_NOT_DETERMINED;
 
-		if (rs != null && rs.getUserIds() != null && rs.getUserIds().contains(this.userScope.getUserIdSafe())) return ACCESS_GRANTED;
+		if (rs != null && rs.getUserIds() != null && rs.getUserIds().contains(this.userScopeFactory.getInstance().getUserIdSafe())) return ACCESS_GRANTED;
 
 		return ACCESS_NOT_DETERMINED;
 	}

@@ -2,33 +2,27 @@ package org.opencdmp.service.maintenance;
 
 import gr.cite.commons.web.authz.service.AuthorizationService;
 import gr.cite.tools.data.query.QueryFactory;
-import gr.cite.tools.exception.MyNotFoundException;
 import gr.cite.tools.fieldset.BaseFieldSet;
 import gr.cite.tools.logging.LoggerService;
-import gr.cite.tools.validation.ValidatorFactory;
 import org.opencdmp.authorization.Permission;
 import org.opencdmp.commons.XmlHandlingService;
 import org.opencdmp.commons.enums.*;
-import org.opencdmp.commons.scope.tenant.TenantScope;
+import org.opencdmp.commons.scope.tenant.TenantScopeFactory;
 import org.opencdmp.commons.types.planblueprint.DefinitionEntity;
 import org.opencdmp.commons.types.planblueprint.SectionEntity;
 import org.opencdmp.data.*;
-import org.opencdmp.integrationevent.outbox.accountingentrycreated.AccountingEntryCreatedIntegrationEventHandler;
 import org.opencdmp.integrationevent.outbox.annotationentityremoval.AnnotationEntityRemovalIntegrationEventHandler;
 import org.opencdmp.integrationevent.outbox.annotationentitytouch.AnnotationEntityTouchedIntegrationEventHandler;
 import org.opencdmp.integrationevent.outbox.indicator.*;
-import org.opencdmp.integrationevent.outbox.indicatoraccess.IndicatorAccessEventHandler;
-import org.opencdmp.integrationevent.outbox.indicatorpoint.IndicatorPointEventHandler;
 import org.opencdmp.integrationevent.outbox.indicatorreset.IndicatorResetEventHandler;
+import org.opencdmp.integrationevent.outbox.planremoval.PlanRemovalIntegrationEventHandlerImpl;
+import org.opencdmp.integrationevent.outbox.plantouch.PlanTouchedIntegrationEventHandler;
 import org.opencdmp.integrationevent.outbox.tenantremoval.TenantRemovalIntegrationEventHandler;
 import org.opencdmp.integrationevent.outbox.tenanttouched.TenantTouchedIntegrationEvent;
 import org.opencdmp.integrationevent.outbox.tenanttouched.TenantTouchedIntegrationEventHandler;
 import org.opencdmp.integrationevent.outbox.userremoval.UserRemovalIntegrationEventHandler;
 import org.opencdmp.integrationevent.outbox.usertouched.UserTouchedIntegrationEventHandler;
-import org.opencdmp.model.DescriptionTemplateType;
-import org.opencdmp.model.Language;
-import org.opencdmp.model.PlanDescriptionTemplate;
-import org.opencdmp.model.Tenant;
+import org.opencdmp.model.*;
 import org.opencdmp.model.description.Description;
 import org.opencdmp.model.descriptionstatus.DescriptionStatus;
 import org.opencdmp.model.descriptiontemplate.DescriptionTemplate;
@@ -43,14 +37,14 @@ import org.opencdmp.model.user.User;
 import org.opencdmp.query.*;
 import org.opencdmp.service.accounting.AccountingProperties;
 import org.opencdmp.service.accounting.AccountingService;
-import org.opencdmp.service.kpi.KpiProperties;
 import org.opencdmp.service.kpi.KpiService;
+import org.opencdmp.service.plan.PlanServiceProperties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.stereotype.Service;
 
 import javax.management.InvalidApplicationException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -59,7 +53,6 @@ public class MaintenanceServiceImpl implements MaintenanceService {
 
     private static final LoggerService logger = new LoggerService(LoggerFactory.getLogger(MaintenanceServiceImpl.class));
     private static final Logger log = LoggerFactory.getLogger(MaintenanceServiceImpl.class);
-    private final TenantEntityManager entityManager;
     private final AuthorizationService authorizationService;
     private final QueryFactory queryFactory;
     private final UserTouchedIntegrationEventHandler userTouchedIntegrationEventHandler;
@@ -68,18 +61,20 @@ public class MaintenanceServiceImpl implements MaintenanceService {
     private final TenantRemovalIntegrationEventHandler tenantRemovalIntegrationEventHandler;
     private final AnnotationEntityRemovalIntegrationEventHandler annotationEntityRemovalIntegrationEventHandler;
     private final AnnotationEntityTouchedIntegrationEventHandler annotationEntityTouchedIntegrationEventHandler;
-    private final TenantScope tenantScope;
-    private final TenantEntityManager tenantEntityManager;
+    private final TenantScopeFactory tenantScopeFactory;
+    private final TenantEntityManagerFactory tenantEntityManagerFactory;
     private final AccountingService accountingService;
     private final IndicatorElasticEventHandler indicatorElasticEventHandler;
     private final IndicatorResetEventHandler indicatorResetEventHandler;
     private final KpiService kpiService;
     private final XmlHandlingService xmlHandlingService;
+    private final PlanTouchedIntegrationEventHandler planTouchedIntegrationEventHandler;
+    private final PlanRemovalIntegrationEventHandlerImpl planRemovalIntegrationEventHandler;
+    private final PlanServiceProperties planServiceProperties;
 
     public MaintenanceServiceImpl(
-            TenantEntityManager entityManager, AuthorizationService authorizationService,
-            QueryFactory queryFactory, UserTouchedIntegrationEventHandler userTouchedIntegrationEventHandler, UserRemovalIntegrationEventHandler userRemovalIntegrationEventHandler, TenantTouchedIntegrationEventHandler tenantTouchedIntegrationEventHandler, TenantRemovalIntegrationEventHandler tenantRemovalIntegrationEventHandler, AnnotationEntityRemovalIntegrationEventHandler annotationEntityRemovalIntegrationEventHandler, AnnotationEntityTouchedIntegrationEventHandler annotationEntityTouchedIntegrationEventHandler, TenantScope tenantScope, TenantEntityManager tenantEntityManager, AccountingProperties accountingProperties, AccountingService accountingService, IndicatorElasticEventHandler indicatorElasticEventHandler, IndicatorResetEventHandler indicatorResetEventHandler, KpiService kpiService, XmlHandlingService xmlHandlingService) {
-        this.entityManager = entityManager;
+            AuthorizationService authorizationService,
+            QueryFactory queryFactory, UserTouchedIntegrationEventHandler userTouchedIntegrationEventHandler, UserRemovalIntegrationEventHandler userRemovalIntegrationEventHandler, TenantTouchedIntegrationEventHandler tenantTouchedIntegrationEventHandler, TenantRemovalIntegrationEventHandler tenantRemovalIntegrationEventHandler, AnnotationEntityRemovalIntegrationEventHandler annotationEntityRemovalIntegrationEventHandler, AnnotationEntityTouchedIntegrationEventHandler annotationEntityTouchedIntegrationEventHandler, TenantScopeFactory tenantScopeFactory, TenantEntityManagerFactory tenantEntityManagerFactory, AccountingService accountingService, IndicatorElasticEventHandler indicatorElasticEventHandler, IndicatorResetEventHandler indicatorResetEventHandler, KpiService kpiService, XmlHandlingService xmlHandlingService, PlanTouchedIntegrationEventHandler planTouchedIntegrationEventHandler, PlanRemovalIntegrationEventHandlerImpl planRemovalIntegrationEventHandler, PlanServiceProperties planServiceProperties) {
         this.authorizationService = authorizationService;
         this.queryFactory = queryFactory;
 	    this.userTouchedIntegrationEventHandler = userTouchedIntegrationEventHandler;
@@ -88,13 +83,16 @@ public class MaintenanceServiceImpl implements MaintenanceService {
 	    this.tenantRemovalIntegrationEventHandler = tenantRemovalIntegrationEventHandler;
 	    this.annotationEntityRemovalIntegrationEventHandler = annotationEntityRemovalIntegrationEventHandler;
 	    this.annotationEntityTouchedIntegrationEventHandler = annotationEntityTouchedIntegrationEventHandler;
-        this.tenantScope = tenantScope;
-        this.tenantEntityManager = tenantEntityManager;
+        this.tenantScopeFactory = tenantScopeFactory;
+        this.tenantEntityManagerFactory = tenantEntityManagerFactory;
         this.accountingService = accountingService;
         this.indicatorElasticEventHandler = indicatorElasticEventHandler;
         this.indicatorResetEventHandler = indicatorResetEventHandler;
         this.kpiService = kpiService;
         this.xmlHandlingService = xmlHandlingService;
+        this.planTouchedIntegrationEventHandler = planTouchedIntegrationEventHandler;
+        this.planRemovalIntegrationEventHandler = planRemovalIntegrationEventHandler;
+        this.planServiceProperties = planServiceProperties;
     }
 
 
@@ -106,16 +104,16 @@ public class MaintenanceServiceImpl implements MaintenanceService {
         List<UserEntity> activeUsers;
         List<UserEntity> inactiveUsers;
         try {
-            this.entityManager.disableTenantFilters();
+            this.tenantEntityManagerFactory.getInstance().disableTenantFilters();
             UserQuery userQuery = this.queryFactory.query(UserQuery.class).disableTracking();
             userQuery.isActive(IsActive.Active);
             activeUsers = userQuery.collectAs(new BaseFieldSet().ensure(User._id));
             userQuery.isActive(IsActive.Inactive);
             inactiveUsers = userQuery.collectAs(new BaseFieldSet().ensure(User._id));
-            this.entityManager.reloadTenantFilters();
+            this.tenantEntityManagerFactory.getInstance().reloadTenantFilters();
 
         } finally {
-            this.entityManager.reloadTenantFilters();
+            this.tenantEntityManagerFactory.getInstance().reloadTenantFilters();
         }
         for(UserEntity user : activeUsers)
             this.userTouchedIntegrationEventHandler.handle(user.getId());
@@ -132,7 +130,7 @@ public class MaintenanceServiceImpl implements MaintenanceService {
         List<TenantEntity> activeTenants;
         List<TenantEntity> inactiveTenants;
         try {
-            this.entityManager.disableTenantFilters();
+            this.tenantEntityManagerFactory.getInstance().disableTenantFilters();
             TenantQuery tenantQuery = this.queryFactory.query(TenantQuery.class).disableTracking();
             tenantQuery.isActive(IsActive.Active);
             activeTenants = tenantQuery.collectAs(new BaseFieldSet().ensure(Tenant._id).ensure(Tenant._code));
@@ -140,7 +138,7 @@ public class MaintenanceServiceImpl implements MaintenanceService {
             inactiveTenants = tenantQuery.collectAs(new BaseFieldSet().ensure(Tenant._id).ensure(Tenant._code));
             
         } finally {
-            this.entityManager.reloadTenantFilters();
+            this.tenantEntityManagerFactory.getInstance().reloadTenantFilters();
         }
         for (TenantEntity tenant : activeTenants) {
             TenantTouchedIntegrationEvent event = new TenantTouchedIntegrationEvent();
@@ -161,25 +159,65 @@ public class MaintenanceServiceImpl implements MaintenanceService {
 
         List<TenantEntity> tenants = this.getTenants();
 
-	    this.sendTenantPlanTouchEvents(null, this.tenantScope.getDefaultTenantCode());
+	    this.sendTenantAnnotationEntityTouchEvents(null, this.tenantScopeFactory.getInstance().getDefaultTenantCode());
+        this.sendTenantPlanTouchEvents(null, this.tenantScopeFactory.getInstance().getDefaultTenantCode());
 
         if (tenants != null){
             for (TenantEntity tenant : tenants){
+                this.sendTenantAnnotationEntityTouchEvents(tenant.getId(), tenant.getCode());
                 this.sendTenantPlanTouchEvents(tenant.getId(), tenant.getCode());
             }
         }
     }
 
-    private void sendTenantPlanTouchEvents(UUID tenantId, String tenantCode) throws InvalidApplicationException {
+    private void sendTenantAnnotationEntityTouchEvents(UUID tenantId, String tenantCode) throws InvalidApplicationException {
         try {
-            this.tenantScope.setTempTenant(this.entityManager, tenantId, tenantCode);
+            this.tenantScopeFactory.getInstance().setTempTenant(this.tenantEntityManagerFactory.getInstance(), tenantId, tenantCode);
             List<PlanEntity> items = this.queryFactory.query(PlanQuery.class).disableTracking().collectAs(new BaseFieldSet().ensure(Plan._id).ensure(Plan._isActive));
             for (PlanEntity item : items) {
                 if (item.getIsActive().equals(IsActive.Active)) this.annotationEntityTouchedIntegrationEventHandler.handlePlan(item.getId());
                 else this.annotationEntityRemovalIntegrationEventHandler.handlePlan(item.getId());
             }
         } finally {
-            this.tenantScope.removeTempTenant(this.entityManager);
+            this.tenantScopeFactory.getInstance().removeTempTenant(this.tenantEntityManagerFactory.getInstance());
+        }
+    }
+
+    private void sendTenantPlanTouchEvents(UUID tenantId, String tenantCode) throws InvalidApplicationException {
+        try {
+            this.tenantScopeFactory.getInstance().setTempTenant(this.tenantEntityManagerFactory.getInstance(), tenantId, tenantCode);
+            List<PlanEntity> items = this.queryFactory.query(PlanQuery.class).disableTracking().collectAs(new BaseFieldSet().ensure(Plan._id).ensure(Plan._isActive));
+            List<UUID> planIdsPerTouchRequest = new ArrayList<>();
+            List<UUID> planIdsPerRemovalRequest = new ArrayList<>();
+
+            for (PlanEntity item : items) {
+                if (item.getIsActive().equals(IsActive.Active)){
+                    planIdsPerTouchRequest.add(item.getId());
+                    if (planIdsPerTouchRequest.size() >= this.planServiceProperties.getMaxPlanPerRequest()) {
+                        this.planTouchedIntegrationEventHandler.handlePlan(planIdsPerTouchRequest);
+                        planIdsPerTouchRequest = new ArrayList<>();
+                    }
+                }
+                else {
+                    planIdsPerRemovalRequest.add(item.getId());
+                    if (planIdsPerRemovalRequest.size() >= this.planServiceProperties.getMaxPlanPerRequest()) {
+                        this.planRemovalIntegrationEventHandler.handlePlan(planIdsPerRemovalRequest);
+                        planIdsPerRemovalRequest = new ArrayList<>();
+                    }
+                }
+
+            }
+
+            //handle remaining data if exist
+            if (!planIdsPerTouchRequest.isEmpty()) {
+                this.planTouchedIntegrationEventHandler.handlePlan(planIdsPerTouchRequest);
+            }
+            if (!planIdsPerRemovalRequest.isEmpty()) {
+                this.planRemovalIntegrationEventHandler.handlePlan(planIdsPerRemovalRequest);
+            }
+
+        } finally {
+            this.tenantScopeFactory.getInstance().removeTempTenant(this.tenantEntityManagerFactory.getInstance());
         }
     }
 
@@ -191,7 +229,7 @@ public class MaintenanceServiceImpl implements MaintenanceService {
 
         List<TenantEntity> tenants = this.getTenants();
 
-        this.sendTenantDescriptionTouchEvents(null, this.tenantScope.getDefaultTenantCode());
+        this.sendTenantDescriptionTouchEvents(null, this.tenantScopeFactory.getInstance().getDefaultTenantCode());
 
         if (tenants != null){
             for (TenantEntity tenant : tenants){
@@ -202,24 +240,24 @@ public class MaintenanceServiceImpl implements MaintenanceService {
 
     private void sendTenantDescriptionTouchEvents(UUID tenantId, String tenantCode) throws InvalidApplicationException {
         try {
-            this.tenantScope.setTempTenant(this.entityManager, tenantId, tenantCode);
+            this.tenantScopeFactory.getInstance().setTempTenant(this.tenantEntityManagerFactory.getInstance(), tenantId, tenantCode);
             List<DescriptionEntity> items = this.queryFactory.query(DescriptionQuery.class).disableTracking().collectAs(new BaseFieldSet().ensure(Description._id).ensure(Description._isActive));
             for (DescriptionEntity item : items) {
                 if (item.getIsActive().equals(IsActive.Active)) this.annotationEntityTouchedIntegrationEventHandler.handleDescription(item.getId());
                 else this.annotationEntityRemovalIntegrationEventHandler.handleDescription(item.getId());
             }
         } finally {
-            this.tenantScope.removeTempTenant(this.entityManager);
+            this.tenantScopeFactory.getInstance().removeTempTenant(this.tenantEntityManagerFactory.getInstance());
         }
     }
 
     private List<TenantEntity> getTenants() throws InvalidApplicationException {
         List<TenantEntity> tenants;
         try {
-            this.entityManager.disableTenantFilters();
+            this.tenantEntityManagerFactory.getInstance().disableTenantFilters();
             tenants = this.queryFactory.query(TenantQuery.class).disableTracking().isActive(IsActive.Active).collectAs(new BaseFieldSet().ensure(Tenant._id).ensure(Tenant._code));
         } finally {
-            this.entityManager.reloadTenantFilters();
+            this.tenantEntityManagerFactory.getInstance().reloadTenantFilters();
         }
         return tenants;
     }
@@ -230,13 +268,13 @@ public class MaintenanceServiceImpl implements MaintenanceService {
         this.authorizationService.authorizeForce(Permission.ManageQueueEvents);
 
         try {
-            this.tenantEntityManager.disableTenantFilters();
+            this.tenantEntityManagerFactory.getInstance().disableTenantFilters();
             PlanQuery query = this.queryFactory.query(PlanQuery.class).disableTracking().isActive(IsActive.Active);
             List<PlanEntity> items = query.collectAs(new BaseFieldSet().ensure(Plan._id).ensure(Plan._isActive).ensure(Plan._status).ensure(Plan._creator).ensure(Plan._accessType).ensure(Plan._belongsToCurrentTenant));
             List<TenantEntity> tenants = this.queryFactory.query(TenantQuery.class).disableTracking().isActive(IsActive.Active).collectAs(new BaseFieldSet().ensure(Tenant._id).ensure(Tenant._code));
 
             if (!items.isEmpty()) {
-                this.calculateReset(UsageLimitTargetMetric.PLAN_COUNT.getValue(), items.stream().filter(x -> x.getTenantId() == null).count(), null ,this.tenantScope.getDefaultTenantCode());
+                this.calculateReset(UsageLimitTargetMetric.PLAN_COUNT.getValue(), items.stream().filter(x -> x.getTenantId() == null).count(), null ,this.tenantScopeFactory.getInstance().getDefaultTenantCode());
                 for (TenantEntity tenant : tenants) {
                     this.calculateReset(UsageLimitTargetMetric.PLAN_COUNT.getValue(), items.stream().filter(x -> x.getTenantId() != null && x.getTenantId().equals(tenant.getId())).count(), tenant.getId(), tenant.getCode());
                 }
@@ -246,13 +284,13 @@ public class MaintenanceServiceImpl implements MaintenanceService {
             List<PlanStatusEntity> planStatusEntities = this.queryFactory.query(PlanStatusQuery.class).isActives(IsActive.Active).collectAs(new BaseFieldSet().ensure(PlanStatus._id).ensure(PlanStatus._name).ensure(PlanStatus._internalStatus).ensure(PlanStatus._belongsToCurrentTenant));
             if (!planStatusEntities.isEmpty()) {
                 for (PlanStatusEntity planStatusEntity: planStatusEntities) {
-                    this.calculateReset(UsageLimitTargetMetric.PLAN_BY_STATUS_COUNT.getValue().replace("{status_name}", planStatusEntity.getName().toLowerCase()), items.stream().filter(x -> x.getTenantId() == null && x.getStatusId().equals(planStatusEntity.getId())).count(), null ,this.tenantScope.getDefaultTenantCode());
+                    this.calculateReset(UsageLimitTargetMetric.PLAN_BY_STATUS_COUNT.getValue().replace("{status_name}", planStatusEntity.getName().toLowerCase()), items.stream().filter(x -> x.getTenantId() == null && x.getStatusId().equals(planStatusEntity.getId())).count(), null ,this.tenantScopeFactory.getInstance().getDefaultTenantCode());
                     this.calculateReset(UsageLimitTargetMetric.PLAN_PUBLISHED_COUNT.getValue(), items.stream().filter(x -> x.getTenantId() == null && x.getStatusId().equals(planStatusEntity.getId()) && planStatusEntity.getInternalStatus() != null
-                            && planStatusEntity.getInternalStatus().equals(org.opencdmp.commons.enums.PlanStatus.Finalized) && x.getAccessType().equals(PlanAccessType.Public)).count(), null ,this.tenantScope.getDefaultTenantCode());
+                            && planStatusEntity.getInternalStatus().equals(org.opencdmp.commons.enums.PlanStatus.Finalized) && x.getAccessType().equals(PlanAccessType.Public)).count(), null ,this.tenantScopeFactory.getInstance().getDefaultTenantCode());
                     for (TenantEntity tenant : tenants) {
                         this.calculateReset(UsageLimitTargetMetric.PLAN_BY_STATUS_COUNT.getValue().replace("{status_name}", planStatusEntity.getName().toLowerCase()), items.stream().filter(x -> x.getTenantId() != null && x.getTenantId().equals(tenant.getId()) && x.getStatusId().equals(planStatusEntity.getId())).count(), tenant.getId(), tenant.getCode());
                         this.calculateReset(UsageLimitTargetMetric.PLAN_PUBLISHED_COUNT.getValue(), items.stream().filter(x -> x.getTenantId() != null && x.getTenantId().equals(tenant.getId()) && x.getStatusId().equals(planStatusEntity.getId()) && planStatusEntity.getInternalStatus() != null
-                                && planStatusEntity.getInternalStatus().equals(org.opencdmp.commons.enums.PlanStatus.Finalized) && x.getAccessType().equals(PlanAccessType.Public)).count(), null ,this.tenantScope.getDefaultTenantCode());
+                                && planStatusEntity.getInternalStatus().equals(org.opencdmp.commons.enums.PlanStatus.Finalized) && x.getAccessType().equals(PlanAccessType.Public)).count(), null ,this.tenantScopeFactory.getInstance().getDefaultTenantCode());
                     }
                 }
             }
@@ -265,13 +303,13 @@ public class MaintenanceServiceImpl implements MaintenanceService {
             items = query.collectAs(new BaseFieldSet().ensure(Plan._id).ensure(Plan._belongsToCurrentTenant));
 
             if (!items.isEmpty()) {
-                this.calculateReset(UsageLimitTargetMetric.PLAN_DOIED_COUNT.getValue(), items.stream().filter(x -> x.getTenantId() == null).count(), null ,this.tenantScope.getDefaultTenantCode());
+                this.calculateReset(UsageLimitTargetMetric.PLAN_DOIED_COUNT.getValue(), items.stream().filter(x -> x.getTenantId() == null).count(), null ,this.tenantScopeFactory.getInstance().getDefaultTenantCode());
                 for (TenantEntity tenant : tenants) {
                     this.calculateReset(UsageLimitTargetMetric.PLAN_DOIED_COUNT.getValue(), items.stream().filter(x -> x.getTenantId() != null && x.getTenantId().equals(tenant.getId())).count(), tenant.getId(), tenant.getCode());
                 }
             }
         } finally {
-            this.tenantEntityManager.reloadTenantFilters();
+            this.tenantEntityManagerFactory.getInstance().reloadTenantFilters();
         }
     }
 
@@ -281,14 +319,14 @@ public class MaintenanceServiceImpl implements MaintenanceService {
         this.authorizationService.authorizeForce(Permission.ManageQueueEvents);
 
         try {
-            this.tenantEntityManager.disableTenantFilters();
+            this.tenantEntityManagerFactory.getInstance().disableTenantFilters();
             List<PlanBlueprintEntity> items = this.queryFactory.query(PlanBlueprintQuery.class).disableTracking().isActive(IsActive.Active).collectAs(new BaseFieldSet().ensure(PlanBlueprint._id).ensure(PlanBlueprint._status).ensure(PlanBlueprint._isActive).ensure(PlanBlueprint._belongsToCurrentTenant));
             List<TenantEntity> tenants = this.queryFactory.query(TenantQuery.class).disableTracking().isActive(IsActive.Active).collectAs(new BaseFieldSet().ensure(Tenant._id).ensure(Tenant._code));
 
             if (!items.isEmpty()) {
-                this.calculateReset(UsageLimitTargetMetric.BLUEPRINT_COUNT.getValue(), items.stream().filter(x -> x.getTenantId() == null).count(), null ,this.tenantScope.getDefaultTenantCode());
-                this.calculateReset(UsageLimitTargetMetric.BLUEPRINT_DRAFT_COUNT.getValue(), items.stream().filter(x -> x.getTenantId() == null && x.getStatus().equals(PlanBlueprintStatus.Draft)).count(), null ,this.tenantScope.getDefaultTenantCode());
-                this.calculateReset(UsageLimitTargetMetric.BLUEPRINT_FINALIZED_COUNT.getValue(), items.stream().filter(x -> x.getTenantId() == null && x.getStatus().equals(PlanBlueprintStatus.Finalized)).count(), null ,this.tenantScope.getDefaultTenantCode());
+                this.calculateReset(UsageLimitTargetMetric.BLUEPRINT_COUNT.getValue(), items.stream().filter(x -> x.getTenantId() == null).count(), null ,this.tenantScopeFactory.getInstance().getDefaultTenantCode());
+                this.calculateReset(UsageLimitTargetMetric.BLUEPRINT_DRAFT_COUNT.getValue(), items.stream().filter(x -> x.getTenantId() == null && x.getStatus().equals(PlanBlueprintStatus.Draft)).count(), null ,this.tenantScopeFactory.getInstance().getDefaultTenantCode());
+                this.calculateReset(UsageLimitTargetMetric.BLUEPRINT_FINALIZED_COUNT.getValue(), items.stream().filter(x -> x.getTenantId() == null && x.getStatus().equals(PlanBlueprintStatus.Finalized)).count(), null ,this.tenantScopeFactory.getInstance().getDefaultTenantCode());
                 for (TenantEntity tenant : tenants) {
                     this.calculateReset(UsageLimitTargetMetric.BLUEPRINT_COUNT.getValue(), items.stream().filter(x -> x.getTenantId() != null && x.getTenantId().equals(tenant.getId())).count(), tenant.getId(), tenant.getCode());
                     this.calculateReset(UsageLimitTargetMetric.BLUEPRINT_DRAFT_COUNT.getValue(), items.stream().filter(x -> x.getTenantId() != null && x.getTenantId().equals(tenant.getId()) && x.getStatus().equals(PlanBlueprintStatus.Draft)).count(), tenant.getId(), tenant.getCode());
@@ -296,7 +334,28 @@ public class MaintenanceServiceImpl implements MaintenanceService {
                 }
             }
         } finally {
-            this.tenantEntityManager.reloadTenantFilters();
+            this.tenantEntityManagerFactory.getInstance().reloadTenantFilters();
+        }
+    }
+
+    @Override
+    public void sendBlueprintTypeAccountingEntriesEvents() throws InvalidApplicationException {
+        logger.debug("send blueprint types accounting entries queue events");
+        this.authorizationService.authorizeForce(Permission.ManageQueueEvents);
+
+        try {
+            this.tenantEntityManagerFactory.getInstance().disableTenantFilters();
+            List<PlanBlueprintTypeEntity> items = this.queryFactory.query(PlanBlueprintTypeQuery.class).disableTracking().isActive(IsActive.Active).collectAs(new BaseFieldSet().ensure(PlanBlueprintType._id).ensure(PlanBlueprintType._isActive).ensure(PlanBlueprintType._belongsToCurrentTenant));
+            List<TenantEntity> tenants = this.queryFactory.query(TenantQuery.class).disableTracking().isActive(IsActive.Active).collectAs(new BaseFieldSet().ensure(Tenant._id).ensure(Tenant._code));
+
+            if (!items.isEmpty()) {
+                this.calculateReset(UsageLimitTargetMetric.BLUEPRINT_TYPE_COUNT.getValue(), items.stream().filter(x -> x.getTenantId() == null).count(), null ,this.tenantScopeFactory.getInstance().getDefaultTenantCode());
+                for (TenantEntity tenant : tenants) {
+                    this.calculateReset(UsageLimitTargetMetric.BLUEPRINT_TYPE_COUNT.getValue(), items.stream().filter(x -> x.getTenantId() != null && x.getTenantId().equals(tenant.getId())).count(), tenant.getId(), tenant.getCode());
+                }
+            }
+        } finally {
+            this.tenantEntityManagerFactory.getInstance().reloadTenantFilters();
         }
     }
 
@@ -306,13 +365,13 @@ public class MaintenanceServiceImpl implements MaintenanceService {
         this.authorizationService.authorizeForce(Permission.ManageQueueEvents);
 
         try {
-            this.tenantEntityManager.disableTenantFilters();
+            this.tenantEntityManagerFactory.getInstance().disableTenantFilters();
             DescriptionQuery query = this.queryFactory.query(DescriptionQuery.class).disableTracking().isActive(IsActive.Active);
             List<DescriptionEntity> items = query.collectAs(new BaseFieldSet().ensure(Description._id).ensure(Description._isActive).ensure(Description._status).ensure(Description._createdBy).ensure(Description._belongsToCurrentTenant));
             List<TenantEntity> tenants = this.queryFactory.query(TenantQuery.class).disableTracking().isActive(IsActive.Active).collectAs(new BaseFieldSet().ensure(Tenant._id).ensure(Tenant._code));
 
             if (!items.isEmpty()) {
-                this.calculateReset(UsageLimitTargetMetric.DESCRIPTION_COUNT.getValue(), items.stream().filter(x -> x.getTenantId() == null).count(), null ,this.tenantScope.getDefaultTenantCode());
+                this.calculateReset(UsageLimitTargetMetric.DESCRIPTION_COUNT.getValue(), items.stream().filter(x -> x.getTenantId() == null).count(), null ,this.tenantScopeFactory.getInstance().getDefaultTenantCode());
                 for (TenantEntity tenant : tenants) {
                     this.calculateReset(UsageLimitTargetMetric.DESCRIPTION_COUNT.getValue(), items.stream().filter(x -> x.getTenantId() != null && x.getTenantId().equals(tenant.getId())).count(), tenant.getId(), tenant.getCode());
                 }
@@ -322,7 +381,7 @@ public class MaintenanceServiceImpl implements MaintenanceService {
             List<DescriptionStatusEntity> descriptionStatusEntities = descriptionStatusQuery.collectAs(new BaseFieldSet().ensure(DescriptionStatus._id).ensure(DescriptionStatus._name).ensure(DescriptionStatus._internalStatus).ensure(DescriptionStatus._belongsToCurrentTenant));
             if (!descriptionStatusEntities.isEmpty()) {
                 for (DescriptionStatusEntity descriptionStatusEntity: descriptionStatusEntities) {
-                    this.calculateReset(UsageLimitTargetMetric.DESCRIPTION_BY_STATUS_COUNT.getValue().replace("{status_name}", descriptionStatusEntity.getName().toLowerCase()), items.stream().filter(x -> x.getTenantId() == null && x.getStatusId().equals(descriptionStatusEntity.getId())).count(), null ,this.tenantScope.getDefaultTenantCode());
+                    this.calculateReset(UsageLimitTargetMetric.DESCRIPTION_BY_STATUS_COUNT.getValue().replace("{status_name}", descriptionStatusEntity.getName().toLowerCase()), items.stream().filter(x -> x.getTenantId() == null && x.getStatusId().equals(descriptionStatusEntity.getId())).count(), null ,this.tenantScopeFactory.getInstance().getDefaultTenantCode());
                     for (TenantEntity tenant : tenants) {
                         this.calculateReset(UsageLimitTargetMetric.DESCRIPTION_BY_STATUS_COUNT.getValue().replace("{status_name}", descriptionStatusEntity.getName().toLowerCase()), items.stream().filter(x -> x.getTenantId() != null && x.getTenantId().equals(tenant.getId()) && x.getStatusId().equals(descriptionStatusEntity.getId())).count(), tenant.getId(), tenant.getCode());
                     }
@@ -339,7 +398,7 @@ public class MaintenanceServiceImpl implements MaintenanceService {
             items = query.collectAs(new BaseFieldSet().ensure(Description._id).ensure(Description._isActive).ensure(Description._belongsToCurrentTenant));
 
             if (!items.isEmpty()) {
-                this.calculateReset(UsageLimitTargetMetric.DESCRIPTION_PUBLISHED_COUNT.getValue(), items.stream().filter(x -> x.getTenantId() == null).count(), null ,this.tenantScope.getDefaultTenantCode());
+                this.calculateReset(UsageLimitTargetMetric.DESCRIPTION_PUBLISHED_COUNT.getValue(), items.stream().filter(x -> x.getTenantId() == null).count(), null ,this.tenantScopeFactory.getInstance().getDefaultTenantCode());
                 for (TenantEntity tenant : tenants) {
                     this.calculateReset(UsageLimitTargetMetric.DESCRIPTION_PUBLISHED_COUNT.getValue(), items.stream().filter(x -> x.getTenantId() != null && x.getTenantId().equals(tenant.getId())).count(), tenant.getId(), tenant.getCode());
                 }
@@ -355,14 +414,14 @@ public class MaintenanceServiceImpl implements MaintenanceService {
             items = query.collectAs(new BaseFieldSet().ensure(Description._id).ensure(Description._isActive).ensure(Description._createdBy).ensure(Description._belongsToCurrentTenant));
 
             if (!items.isEmpty()) {
-                this.calculateReset(UsageLimitTargetMetric.DESCRIPTION_DOIED_COUNT.getValue(), items.stream().filter(x -> x.getTenantId() == null).count(), null ,this.tenantScope.getDefaultTenantCode());
+                this.calculateReset(UsageLimitTargetMetric.DESCRIPTION_DOIED_COUNT.getValue(), items.stream().filter(x -> x.getTenantId() == null).count(), null ,this.tenantScopeFactory.getInstance().getDefaultTenantCode());
                 for (TenantEntity tenant : tenants) {
                     this.calculateReset(UsageLimitTargetMetric.DESCRIPTION_DOIED_COUNT.getValue(), items.stream().filter(x -> x.getTenantId() != null && x.getTenantId().equals(tenant.getId())).count(), tenant.getId(), tenant.getCode());
                 }
             }
 
         } finally {
-            this.tenantEntityManager.reloadTenantFilters();
+            this.tenantEntityManagerFactory.getInstance().reloadTenantFilters();
         }
     }
 
@@ -372,14 +431,14 @@ public class MaintenanceServiceImpl implements MaintenanceService {
         this.authorizationService.authorizeForce(Permission.ManageQueueEvents);
 
         try {
-            this.tenantEntityManager.disableTenantFilters();
+            this.tenantEntityManagerFactory.getInstance().disableTenantFilters();
             List<DescriptionTemplateEntity> items = this.queryFactory.query(DescriptionTemplateQuery.class).disableTracking().isActive(IsActive.Active).collectAs(new BaseFieldSet().ensure(DescriptionTemplate._id).ensure(DescriptionTemplate._status).ensure(DescriptionTemplate._isActive).ensure(DescriptionTemplate._belongsToCurrentTenant));
             List<TenantEntity> tenants = this.queryFactory.query(TenantQuery.class).disableTracking().isActive(IsActive.Active).collectAs(new BaseFieldSet().ensure(Tenant._id).ensure(Tenant._code));
 
             if (!items.isEmpty()) {
-                this.calculateReset(UsageLimitTargetMetric.DESCRIPTION_TEMPLATE_COUNT.getValue(), items.stream().filter(x -> x.getTenantId() == null).count(), null ,this.tenantScope.getDefaultTenantCode());
-                this.calculateReset(UsageLimitTargetMetric.DESCRIPTION_TEMPLATE_DRAFT_COUNT.getValue(), items.stream().filter(x -> x.getTenantId() == null && x.getStatus().equals(DescriptionTemplateStatus.Draft)).count(), null ,this.tenantScope.getDefaultTenantCode());
-                this.calculateReset(UsageLimitTargetMetric.DESCRIPTION_TEMPLATE_FINALIZED_COUNT.getValue(), items.stream().filter(x -> x.getTenantId() == null && x.getStatus().equals(DescriptionTemplateStatus.Finalized)).count(), null ,this.tenantScope.getDefaultTenantCode());
+                this.calculateReset(UsageLimitTargetMetric.DESCRIPTION_TEMPLATE_COUNT.getValue(), items.stream().filter(x -> x.getTenantId() == null).count(), null ,this.tenantScopeFactory.getInstance().getDefaultTenantCode());
+                this.calculateReset(UsageLimitTargetMetric.DESCRIPTION_TEMPLATE_DRAFT_COUNT.getValue(), items.stream().filter(x -> x.getTenantId() == null && x.getStatus().equals(DescriptionTemplateStatus.Draft)).count(), null ,this.tenantScopeFactory.getInstance().getDefaultTenantCode());
+                this.calculateReset(UsageLimitTargetMetric.DESCRIPTION_TEMPLATE_FINALIZED_COUNT.getValue(), items.stream().filter(x -> x.getTenantId() == null && x.getStatus().equals(DescriptionTemplateStatus.Finalized)).count(), null ,this.tenantScopeFactory.getInstance().getDefaultTenantCode());
                 for (TenantEntity tenant : tenants) {
                     this.calculateReset(UsageLimitTargetMetric.DESCRIPTION_TEMPLATE_COUNT.getValue(), items.stream().filter(x -> x.getTenantId() != null && x.getTenantId().equals(tenant.getId())).count(), tenant.getId(), tenant.getCode());
                     this.calculateReset(UsageLimitTargetMetric.DESCRIPTION_TEMPLATE_DRAFT_COUNT.getValue(), items.stream().filter(x -> x.getTenantId() != null && x.getTenantId().equals(tenant.getId()) && x.getStatus().equals(DescriptionTemplateStatus.Draft)).count(), tenant.getId(), tenant.getCode());
@@ -392,14 +451,14 @@ public class MaintenanceServiceImpl implements MaintenanceService {
 
             List<PlanDescriptionTemplateEntity> planDescriptionTemplateEntities = planDescriptionTemplateQuery.collectAs(new BaseFieldSet().ensure(PlanDescriptionTemplate._descriptionTemplateGroupId).ensure(PlanDescriptionTemplate._belongsToCurrentTenant));
             if (!planDescriptionTemplateEntities.isEmpty()) {
-                this.calculateReset(UsageLimitTargetMetric.DESCRIPTION_TEMPLATE_USED_COUNT.getValue(), planDescriptionTemplateEntities.stream().filter(x -> x.getTenantId() == null).count(), null ,this.tenantScope.getDefaultTenantCode());
+                this.calculateReset(UsageLimitTargetMetric.DESCRIPTION_TEMPLATE_USED_COUNT.getValue(), planDescriptionTemplateEntities.stream().filter(x -> x.getTenantId() == null).count(), null ,this.tenantScopeFactory.getInstance().getDefaultTenantCode());
                 for (TenantEntity tenant : tenants) {
                     this.calculateReset(UsageLimitTargetMetric.DESCRIPTION_TEMPLATE_USED_COUNT.getValue(), planDescriptionTemplateEntities.stream().filter(x -> x.getTenantId() != null && x.getTenantId().equals(tenant.getId())).count(), tenant.getId(), tenant.getCode());
                 }
             }
 
         } finally {
-            this.tenantEntityManager.reloadTenantFilters();
+            this.tenantEntityManagerFactory.getInstance().reloadTenantFilters();
         }
     }
 
@@ -409,18 +468,18 @@ public class MaintenanceServiceImpl implements MaintenanceService {
         this.authorizationService.authorizeForce(Permission.ManageQueueEvents);
 
         try {
-            this.tenantEntityManager.disableTenantFilters();
+            this.tenantEntityManagerFactory.getInstance().disableTenantFilters();
             List<DescriptionTemplateTypeEntity> items = this.queryFactory.query(DescriptionTemplateTypeQuery.class).disableTracking().isActive(IsActive.Active).collectAs(new BaseFieldSet().ensure(DescriptionTemplateType._id).ensure(DescriptionTemplateType._isActive).ensure(DescriptionTemplateType._belongsToCurrentTenant));
             List<TenantEntity> tenants = this.queryFactory.query(TenantQuery.class).disableTracking().isActive(IsActive.Active).collectAs(new BaseFieldSet().ensure(Tenant._id).ensure(Tenant._code));
 
             if (!items.isEmpty()) {
-                this.calculateReset(UsageLimitTargetMetric.DESCRIPTION_TEMPLATE_TYPE_COUNT.getValue(), items.stream().filter(x -> x.getTenantId() == null).count(), null ,this.tenantScope.getDefaultTenantCode());
+                this.calculateReset(UsageLimitTargetMetric.DESCRIPTION_TEMPLATE_TYPE_COUNT.getValue(), items.stream().filter(x -> x.getTenantId() == null).count(), null ,this.tenantScopeFactory.getInstance().getDefaultTenantCode());
                 for (TenantEntity tenant : tenants) {
                     this.calculateReset(UsageLimitTargetMetric.DESCRIPTION_TEMPLATE_TYPE_COUNT.getValue(), items.stream().filter(x -> x.getTenantId() != null && x.getTenantId().equals(tenant.getId())).count(), tenant.getId(), tenant.getCode());
                 }
             }
         } finally {
-            this.tenantEntityManager.reloadTenantFilters();
+            this.tenantEntityManagerFactory.getInstance().reloadTenantFilters();
         }
     }
 
@@ -430,18 +489,18 @@ public class MaintenanceServiceImpl implements MaintenanceService {
         this.authorizationService.authorizeForce(Permission.ManageQueueEvents);
 
         try {
-            this.tenantEntityManager.disableTenantFilters();
+            this.tenantEntityManagerFactory.getInstance().disableTenantFilters();
             List<PrefillingSourceEntity> items = this.queryFactory.query(PrefillingSourceQuery.class).disableTracking().isActive(IsActive.Active).collectAs(new BaseFieldSet().ensure(PrefillingSource._id).ensure(PrefillingSource._isActive).ensure(PrefillingSource._belongsToCurrentTenant));
             List<TenantEntity> tenants = this.queryFactory.query(TenantQuery.class).disableTracking().isActive(IsActive.Active).collectAs(new BaseFieldSet().ensure(Tenant._id).ensure(Tenant._code));
 
             if (!items.isEmpty()) {
-                this.calculateReset(UsageLimitTargetMetric.PREFILLING_SOURCES_COUNT.getValue(), items.stream().filter(x -> x.getTenantId() == null).count(), null ,this.tenantScope.getDefaultTenantCode());
+                this.calculateReset(UsageLimitTargetMetric.PREFILLING_SOURCES_COUNT.getValue(), items.stream().filter(x -> x.getTenantId() == null).count(), null ,this.tenantScopeFactory.getInstance().getDefaultTenantCode());
                 for (TenantEntity tenant : tenants) {
                     this.calculateReset(UsageLimitTargetMetric.PREFILLING_SOURCES_COUNT.getValue(), items.stream().filter(x -> x.getTenantId() != null && x.getTenantId().equals(tenant.getId())).count(), tenant.getId(), tenant.getCode());
                 }
             }
         } finally {
-            this.tenantEntityManager.reloadTenantFilters();
+            this.tenantEntityManagerFactory.getInstance().reloadTenantFilters();
         }
     }
 
@@ -451,18 +510,18 @@ public class MaintenanceServiceImpl implements MaintenanceService {
         this.authorizationService.authorizeForce(Permission.ManageQueueEvents);
 
         try {
-            this.tenantEntityManager.disableTenantFilters();
+            this.tenantEntityManagerFactory.getInstance().disableTenantFilters();
             List<ReferenceTypeEntity> items = this.queryFactory.query(ReferenceTypeQuery.class).disableTracking().isActive(IsActive.Active).collectAs(new BaseFieldSet().ensure(ReferenceType._id).ensure(ReferenceType._isActive).ensure(ReferenceType._belongsToCurrentTenant));
             List<TenantEntity> tenants = this.queryFactory.query(TenantQuery.class).disableTracking().isActive(IsActive.Active).collectAs(new BaseFieldSet().ensure(Tenant._id).ensure(Tenant._code));
 
             if (!items.isEmpty()) {
-                this.calculateReset(UsageLimitTargetMetric.REFERENCE_TYPE_COUNT.getValue(), items.stream().filter(x -> x.getTenantId() == null).count(), null ,this.tenantScope.getDefaultTenantCode());
+                this.calculateReset(UsageLimitTargetMetric.REFERENCE_TYPE_COUNT.getValue(), items.stream().filter(x -> x.getTenantId() == null).count(), null ,this.tenantScopeFactory.getInstance().getDefaultTenantCode());
                 for (TenantEntity tenant : tenants) {
                     this.calculateReset(UsageLimitTargetMetric.REFERENCE_TYPE_COUNT.getValue(), items.stream().filter(x ->x.getTenantId() != null && x.getTenantId().equals(tenant.getId())).count(), tenant.getId(), tenant.getCode());
                 }
             }
         } finally {
-            this.tenantEntityManager.reloadTenantFilters();
+            this.tenantEntityManagerFactory.getInstance().reloadTenantFilters();
         }
     }
 
@@ -472,18 +531,18 @@ public class MaintenanceServiceImpl implements MaintenanceService {
         this.authorizationService.authorizeForce(Permission.ManageQueueEvents);
 
         try {
-            this.tenantEntityManager.disableTenantFilters();
+            this.tenantEntityManagerFactory.getInstance().disableTenantFilters();
             List<TenantUserEntity> items = this.queryFactory.query(TenantUserQuery.class).disableTracking().isActive(IsActive.Active).collectAs(new BaseFieldSet().ensure(TenantUserEntity._id).ensure(TenantUserEntity._userId).ensure(TenantUserEntity._isActive).ensure(TenantUserEntity._tenantId));
             List<TenantEntity> tenants = this.queryFactory.query(TenantQuery.class).disableTracking().isActive(IsActive.Active).collectAs(new BaseFieldSet().ensure(Tenant._id).ensure(Tenant._code));
 
             if (!items.isEmpty()) {
-                this.calculateReset(UsageLimitTargetMetric.USER_COUNT.getValue(), items.stream().filter(x -> x.getTenantId() == null).count(), null ,this.tenantScope.getDefaultTenantCode());
+                this.calculateReset(UsageLimitTargetMetric.USER_COUNT.getValue(), items.stream().filter(x -> x.getTenantId() == null).count(), null ,this.tenantScopeFactory.getInstance().getDefaultTenantCode());
                 for (TenantEntity tenant : tenants) {
                     this.calculateReset(UsageLimitTargetMetric.USER_COUNT.getValue(), items.stream().filter(x -> x.getTenantId() != null && x.getTenantId().equals(tenant.getId())).count(), tenant.getId(), tenant.getCode());
                 }
             }
         } finally {
-            this.tenantEntityManager.reloadTenantFilters();
+            this.tenantEntityManagerFactory.getInstance().reloadTenantFilters();
         }
     }
 
@@ -493,18 +552,18 @@ public class MaintenanceServiceImpl implements MaintenanceService {
         this.authorizationService.authorizeForce(Permission.ManageQueueEvents);
 
         try {
-            this.tenantEntityManager.disableTenantFilters();
+            this.tenantEntityManagerFactory.getInstance().disableTenantFilters();
             List<PlanStatusEntity> items = this.queryFactory.query(PlanStatusQuery.class).disableTracking().isActives(IsActive.Active).collectAs(new BaseFieldSet().ensure(PlanStatus._id).ensure(PlanStatus._isActive).ensure(PlanStatus._belongsToCurrentTenant));
             List<TenantEntity> tenants = this.queryFactory.query(TenantQuery.class).disableTracking().isActive(IsActive.Active).collectAs(new BaseFieldSet().ensure(Tenant._id).ensure(Tenant._code));
 
             if (!items.isEmpty()) {
-                this.calculateReset(UsageLimitTargetMetric.PLAN_STATUS_COUNT.getValue(), items.stream().filter(x -> x.getTenantId() == null).count(), null ,this.tenantScope.getDefaultTenantCode());
+                this.calculateReset(UsageLimitTargetMetric.PLAN_STATUS_COUNT.getValue(), items.stream().filter(x -> x.getTenantId() == null).count(), null ,this.tenantScopeFactory.getInstance().getDefaultTenantCode());
                 for (TenantEntity tenant : tenants) {
                     this.calculateReset(UsageLimitTargetMetric.PLAN_STATUS_COUNT.getValue(), items.stream().filter(x -> x.getTenantId() != null && x.getTenantId().equals(tenant.getId())).count(), tenant.getId(), tenant.getCode());
                 }
             }
         } finally {
-            this.tenantEntityManager.reloadTenantFilters();
+            this.tenantEntityManagerFactory.getInstance().reloadTenantFilters();
         }
     }
 
@@ -514,18 +573,18 @@ public class MaintenanceServiceImpl implements MaintenanceService {
         this.authorizationService.authorizeForce(Permission.ManageQueueEvents);
 
         try {
-            this.tenantEntityManager.disableTenantFilters();
+            this.tenantEntityManagerFactory.getInstance().disableTenantFilters();
             List<DescriptionStatusEntity> items = this.queryFactory.query(DescriptionStatusQuery.class).disableTracking().isActive(IsActive.Active).collectAs(new BaseFieldSet().ensure(DescriptionStatus._id).ensure(DescriptionStatus._isActive).ensure(DescriptionStatus._belongsToCurrentTenant));
             List<TenantEntity> tenants = this.queryFactory.query(TenantQuery.class).disableTracking().isActive(IsActive.Active).collectAs(new BaseFieldSet().ensure(Tenant._id).ensure(Tenant._code));
 
             if (!items.isEmpty()) {
-                this.calculateReset(UsageLimitTargetMetric.DESCRIPTION_STATUS_COUNT.getValue(), items.stream().filter(x -> x.getTenantId() == null).count(), null ,this.tenantScope.getDefaultTenantCode());
+                this.calculateReset(UsageLimitTargetMetric.DESCRIPTION_STATUS_COUNT.getValue(), items.stream().filter(x -> x.getTenantId() == null).count(), null ,this.tenantScopeFactory.getInstance().getDefaultTenantCode());
                 for (TenantEntity tenant : tenants) {
                     this.calculateReset(UsageLimitTargetMetric.DESCRIPTION_STATUS_COUNT.getValue(), items.stream().filter(x -> x.getTenantId() != null && x.getTenantId().equals(tenant.getId())).count(), tenant.getId(), tenant.getCode());
                 }
             }
         } finally {
-            this.tenantEntityManager.reloadTenantFilters();
+            this.tenantEntityManagerFactory.getInstance().reloadTenantFilters();
         }
     }
 
@@ -535,18 +594,18 @@ public class MaintenanceServiceImpl implements MaintenanceService {
         this.authorizationService.authorizeForce(Permission.ManageQueueEvents);
 
         try {
-            this.tenantEntityManager.disableTenantFilters();
+            this.tenantEntityManagerFactory.getInstance().disableTenantFilters();
             List<EvaluationEntity> items = this.queryFactory.query(EvaluationQuery.class).disableTracking().isActive(IsActive.Active).entityTypes(EntityType.Plan).collectAs(new BaseFieldSet().ensure(Evaluation._id).ensure(Evaluation._isActive).ensure(Evaluation._belongsToCurrentTenant));
             List<TenantEntity> tenants = this.queryFactory.query(TenantQuery.class).disableTracking().isActive(IsActive.Active).collectAs(new BaseFieldSet().ensure(Tenant._id).ensure(Tenant._code));
 
             if (!items.isEmpty()) {
-                this.calculateReset(UsageLimitTargetMetric.EVALUATION_PLAN_EXECUTION_COUNT.getValue(), items.stream().filter(x -> x.getTenantId() == null).count(), null ,this.tenantScope.getDefaultTenantCode());
+                this.calculateReset(UsageLimitTargetMetric.EVALUATION_PLAN_EXECUTION_COUNT.getValue(), items.stream().filter(x -> x.getTenantId() == null).count(), null ,this.tenantScopeFactory.getInstance().getDefaultTenantCode());
                 for (TenantEntity tenant : tenants) {
                     this.calculateReset(UsageLimitTargetMetric.EVALUATION_PLAN_EXECUTION_COUNT.getValue(), items.stream().filter(x -> x.getTenantId() != null && x.getTenantId().equals(tenant.getId())).count(), tenant.getId(), tenant.getCode());
                 }
             }
         } finally {
-            this.tenantEntityManager.reloadTenantFilters();
+            this.tenantEntityManagerFactory.getInstance().reloadTenantFilters();
         }
     }
 
@@ -556,18 +615,18 @@ public class MaintenanceServiceImpl implements MaintenanceService {
         this.authorizationService.authorizeForce(Permission.ManageQueueEvents);
 
         try {
-            this.tenantEntityManager.disableTenantFilters();
+            this.tenantEntityManagerFactory.getInstance().disableTenantFilters();
             List<EvaluationEntity> items = this.queryFactory.query(EvaluationQuery.class).disableTracking().isActive(IsActive.Active).entityTypes(EntityType.Description).collectAs(new BaseFieldSet().ensure(Evaluation._id).ensure(Evaluation._isActive).ensure(Evaluation._belongsToCurrentTenant));
             List<TenantEntity> tenants = this.queryFactory.query(TenantQuery.class).disableTracking().isActive(IsActive.Active).collectAs(new BaseFieldSet().ensure(Tenant._id).ensure(Tenant._code));
 
             if (!items.isEmpty()) {
-                this.calculateReset(UsageLimitTargetMetric.EVALUATION_DESCRIPTION_EXECUTION_COUNT.getValue(), items.stream().filter(x -> x.getTenantId() == null).count(), null ,this.tenantScope.getDefaultTenantCode());
+                this.calculateReset(UsageLimitTargetMetric.EVALUATION_DESCRIPTION_EXECUTION_COUNT.getValue(), items.stream().filter(x -> x.getTenantId() == null).count(), null ,this.tenantScopeFactory.getInstance().getDefaultTenantCode());
                 for (TenantEntity tenant : tenants) {
                     this.calculateReset(UsageLimitTargetMetric.EVALUATION_DESCRIPTION_EXECUTION_COUNT.getValue(), items.stream().filter(x -> x.getTenantId() != null && x.getTenantId().equals(tenant.getId())).count(), tenant.getId(), tenant.getCode());
                 }
             }
         } finally {
-            this.tenantEntityManager.reloadTenantFilters();
+            this.tenantEntityManagerFactory.getInstance().reloadTenantFilters();
         }
     }
 
@@ -577,12 +636,12 @@ public class MaintenanceServiceImpl implements MaintenanceService {
         this.authorizationService.authorizeForce(Permission.ManageQueueEvents);
 
         try {
-            this.tenantEntityManager.disableTenantFilters();
+            this.tenantEntityManagerFactory.getInstance().disableTenantFilters();
             List<ReferenceEntity> items = this.queryFactory.query(ReferenceQuery.class).disableTracking().isActive(IsActive.Active).collectAs(new BaseFieldSet().ensure(Reference._id).ensure(Reference._type).ensure(Reference._isActive).ensure(Reference._belongsToCurrentTenant));
             List<TenantEntity> tenants = this.queryFactory.query(TenantQuery.class).disableTracking().isActive(IsActive.Active).collectAs(new BaseFieldSet().ensure(Tenant._id).ensure(Tenant._code));
 
             if (!items.isEmpty()) {
-                this.calculateReset(UsageLimitTargetMetric.REFERENCE_COUNT.getValue(), items.stream().filter(x -> x.getTenantId() == null).count(), null ,this.tenantScope.getDefaultTenantCode());
+                this.calculateReset(UsageLimitTargetMetric.REFERENCE_COUNT.getValue(), items.stream().filter(x -> x.getTenantId() == null).count(), null ,this.tenantScopeFactory.getInstance().getDefaultTenantCode());
                 for (TenantEntity tenant : tenants) {
                     this.calculateReset(UsageLimitTargetMetric.REFERENCE_COUNT.getValue(), items.stream().filter(x -> x.getTenantId() != null && x.getTenantId().equals(tenant.getId())).count(), tenant.getId(), tenant.getCode());
                 }
@@ -591,7 +650,7 @@ public class MaintenanceServiceImpl implements MaintenanceService {
             List<ReferenceTypeEntity> referenceTypeEntities = this.queryFactory.query(ReferenceTypeQuery.class).isActive(IsActive.Active).collectAs(new BaseFieldSet().ensure(ReferenceTypeEntity._id).ensure(ReferenceTypeEntity._code).ensure(Reference._belongsToCurrentTenant));
             if (!referenceTypeEntities.isEmpty()) {
                 for (ReferenceTypeEntity referenceTypeEntity: referenceTypeEntities) {
-                    this.calculateReset(UsageLimitTargetMetric.REFERENCE_BY_TYPE_COUNT.getValue().replace("{type_code}", referenceTypeEntity.getCode()), items.stream().filter(x -> x.getTenantId() == null && x.getTypeId().equals(referenceTypeEntity.getId())).count(), null ,this.tenantScope.getDefaultTenantCode());
+                    this.calculateReset(UsageLimitTargetMetric.REFERENCE_BY_TYPE_COUNT.getValue().replace("{type_code}", referenceTypeEntity.getCode()), items.stream().filter(x -> x.getTenantId() == null && x.getTypeId().equals(referenceTypeEntity.getId())).count(), null ,this.tenantScopeFactory.getInstance().getDefaultTenantCode());
                     for (TenantEntity tenant : tenants) {
                         this.calculateReset(UsageLimitTargetMetric.REFERENCE_BY_TYPE_COUNT.getValue().replace("{type_code}", referenceTypeEntity.getCode()), items.stream().filter(x -> x.getTenantId() != null && x.getTenantId().equals(tenant.getId()) && x.getTypeId().equals(referenceTypeEntity.getId())).count(), tenant.getId(), tenant.getCode());
                     }
@@ -599,7 +658,7 @@ public class MaintenanceServiceImpl implements MaintenanceService {
             }
 
         } finally {
-            this.tenantEntityManager.reloadTenantFilters();
+            this.tenantEntityManagerFactory.getInstance().reloadTenantFilters();
         }
     }
 
@@ -609,24 +668,24 @@ public class MaintenanceServiceImpl implements MaintenanceService {
         this.authorizationService.authorizeForce(Permission.ManageQueueEvents);
 
         try {
-            this.tenantEntityManager.disableTenantFilters();
+            this.tenantEntityManagerFactory.getInstance().disableTenantFilters();
             List<LanguageEntity> items = this.queryFactory.query(LanguageQuery.class).disableTracking().isActive(IsActive.Active).collectAs(new BaseFieldSet().ensure(Language._id).ensure(Language._isActive).ensure(Language._belongsToCurrentTenant));
             List<TenantEntity> tenants = this.queryFactory.query(TenantQuery.class).disableTracking().isActive(IsActive.Active).collectAs(new BaseFieldSet().ensure(Tenant._id).ensure(Tenant._code));
 
             if (!items.isEmpty()) {
-                this.calculateReset(UsageLimitTargetMetric.LANGUAGE_COUNT.getValue(), items.stream().filter(x -> x.getTenantId() == null).count(), null ,this.tenantScope.getDefaultTenantCode());
+                this.calculateReset(UsageLimitTargetMetric.LANGUAGE_COUNT.getValue(), items.stream().filter(x -> x.getTenantId() == null).count(), null ,this.tenantScopeFactory.getInstance().getDefaultTenantCode());
                 for (TenantEntity tenant : tenants) {
                     this.calculateReset(UsageLimitTargetMetric.LANGUAGE_COUNT.getValue(), items.stream().filter(x -> x.getTenantId() != null && x.getTenantId().equals(tenant.getId())).count(), tenant.getId(), tenant.getCode());
                 }
             }
         } finally {
-            this.tenantEntityManager.reloadTenantFilters();
+            this.tenantEntityManagerFactory.getInstance().reloadTenantFilters();
         }
     }
 
     private void calculateReset(String metric, long itemsCount, UUID tenantId ,String tenantCode) throws InvalidApplicationException {
         try {
-            this.tenantScope.setTempTenant(this.entityManager, tenantId, tenantCode);
+            this.tenantScopeFactory.getInstance().setTempTenant(this.tenantEntityManagerFactory.getInstance(), tenantId, tenantCode);
             Integer currentValue = this.accountingService.getCurrentMetricValue(metric, null);
             if (currentValue == 0) this.accountingService.set(metric, tenantId, tenantCode, (int) itemsCount);
             else if (currentValue < itemsCount) {
@@ -639,7 +698,7 @@ public class MaintenanceServiceImpl implements MaintenanceService {
                 this.accountingService.set(metric, tenantId, tenantCode, (int) itemsCount - currentValue);
             }
         } finally {
-            this.tenantScope.removeTempTenant(this.entityManager);
+            this.tenantScopeFactory.getInstance().removeTempTenant(this.tenantEntityManagerFactory.getInstance());
         }
     }
 
@@ -699,7 +758,7 @@ public class MaintenanceServiceImpl implements MaintenanceService {
         this.authorizationService.authorizeForce(Permission.ManageQueueEvents);
 
         try {
-            this.tenantEntityManager.disableTenantFilters();
+            this.tenantEntityManagerFactory.getInstance().disableTenantFilters();
             List<PlanBlueprintEntity> items = this.queryFactory.query(PlanBlueprintQuery.class).disableTracking().collect();
 
             for (PlanBlueprintEntity entity: items) {
@@ -716,16 +775,15 @@ public class MaintenanceServiceImpl implements MaintenanceService {
                         String newDefinition = this.xmlHandlingService.toXmlSafe(definition);
                         if (newDefinition != null) {
                             entity.setDefinition(newDefinition);
-                            this.entityManager.merge(entity);
+                            this.tenantEntityManagerFactory.getInstance().merge(entity);
                         }
                     }
                 }
             }
-            this.entityManager.flush();
+            this.tenantEntityManagerFactory.getInstance().flush();
         } finally {
-            this.tenantEntityManager.reloadTenantFilters();
+            this.tenantEntityManagerFactory.getInstance().reloadTenantFilters();
         }
     }
-
 
 }

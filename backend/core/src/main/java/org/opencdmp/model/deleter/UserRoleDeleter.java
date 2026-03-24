@@ -1,6 +1,6 @@
 package org.opencdmp.model.deleter;
 
-import org.opencdmp.data.TenantEntityManager;
+import org.opencdmp.data.TenantEntityManagerFactory;
 import org.opencdmp.data.UserRoleEntity;
 import org.opencdmp.query.UserRoleQuery;
 import gr.cite.tools.data.deleter.Deleter;
@@ -23,17 +23,17 @@ import java.util.UUID;
 public class UserRoleDeleter implements Deleter {
 
     private static final LoggerService logger = new LoggerService(LoggerFactory.getLogger(UserRoleDeleter.class));
-    private final TenantEntityManager entityManager;
+    private final TenantEntityManagerFactory tenantEntityManagerFactory;
 
     protected final QueryFactory queryFactory;
 
 
     @Autowired
     public UserRoleDeleter(
-            TenantEntityManager entityManager,
+            TenantEntityManagerFactory tenantEntityManagerFactory,
             QueryFactory queryFactory
     ) {
-        this.entityManager = entityManager;
+        this.tenantEntityManagerFactory = tenantEntityManagerFactory;
         this.queryFactory = queryFactory;
     }
 
@@ -48,7 +48,7 @@ public class UserRoleDeleter implements Deleter {
         logger.debug("will delete {} items", Optional.ofNullable(data).map(List::size).orElse(0));
         this.delete(data);
         logger.trace("saving changes");
-        this.entityManager.flush();
+        this.tenantEntityManagerFactory.getInstance().flush();
         logger.trace("changes saved");
     }
 
@@ -60,7 +60,7 @@ public class UserRoleDeleter implements Deleter {
         for (UserRoleEntity item : data) {
             logger.trace("deleting item {}", item.getId());
             logger.trace("deleting item");
-            this.entityManager.remove(item);
+            this.tenantEntityManagerFactory.getInstance().remove(item);
             logger.trace("deleted item");
         }
     }

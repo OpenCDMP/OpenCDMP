@@ -10,11 +10,9 @@ import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.Predicate;
 import org.opencdmp.authorization.AuthorizationFlags;
 import org.opencdmp.authorization.Permission;
-import org.opencdmp.commons.enums.DescriptionStatus;
 import org.opencdmp.commons.enums.IsActive;
-import org.opencdmp.commons.scope.user.UserScope;
+import org.opencdmp.commons.scope.user.UserScopeFactory;
 import org.opencdmp.data.*;
-import org.opencdmp.model.PublicDescription;
 import org.opencdmp.model.description.Description;
 import org.opencdmp.query.utils.QueryUtilsService;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
@@ -64,7 +62,7 @@ public class DescriptionQuery extends QueryBase<DescriptionEntity> {
 
     private EnumSet<AuthorizationFlags> authorize = EnumSet.of(AuthorizationFlags.None);
 
-    private final UserScope userScope;
+    private final UserScopeFactory userScopeFactory;
 
     private final AuthorizationService authService;
 
@@ -74,12 +72,12 @@ public class DescriptionQuery extends QueryBase<DescriptionEntity> {
 
     private DescriptionStatusQuery descriptionStatusQuery;
 
-    private final TenantEntityManager tenantEntityManager;
-    public DescriptionQuery(UserScope userScope, AuthorizationService authService, QueryUtilsService queryUtilsService, TenantEntityManager tenantEntityManager) {
-        this.userScope = userScope;
+    private final TenantEntityManagerFactory tenantEntityManagerFactory;
+    public DescriptionQuery(UserScopeFactory userScopeFactory, AuthorizationService authService, QueryUtilsService queryUtilsService, TenantEntityManagerFactory tenantEntityManagerFactory) {
+        this.userScopeFactory = userScopeFactory;
         this.authService = authService;
         this.queryUtilsService = queryUtilsService;
-	    this.tenantEntityManager = tenantEntityManager;
+	    this.tenantEntityManagerFactory = tenantEntityManagerFactory;
     }
 
     public DescriptionQuery like(String value) {
@@ -259,7 +257,7 @@ public class DescriptionQuery extends QueryBase<DescriptionEntity> {
 
     @Override
     protected EntityManager entityManager(){
-        return this.tenantEntityManager.getEntityManager();
+        return this.tenantEntityManagerFactory.getInstance().getEntityManager();
     }
 
     @Override
@@ -281,13 +279,17 @@ public class DescriptionQuery extends QueryBase<DescriptionEntity> {
         if (this.authorize.contains(AuthorizationFlags.None))
             return null;
         if (this.authorize.contains(AuthorizationFlags.Permission) && this.authService.authorize(Permission.BrowseDescription))
-            return null;
+            return this.queryUtilsService.buildTenantFilter(queryContext.CriteriaBuilder, queryContext.Root.get(DescriptionEntity._tenantId));
         UUID userId = null;
         boolean usePublic = this.authorize.contains(AuthorizationFlags.Public);
         if (this.authorize.contains(AuthorizationFlags.PlanAssociated))
-            userId = this.userScope.getUserIdSafe();
+            userId = this.userScopeFactory.getInstance().getUserIdSafe();
 
         List<Predicate> predicates = new ArrayList<>();
+        if (!usePublic) {
+            Predicate predicateTenant = this.queryUtilsService.buildTenantFilter(queryContext.CriteriaBuilder, queryContext.Root.get(DescriptionEntity._tenantId));
+            if (predicateTenant != null) predicates.add(predicateTenant);
+        }
         if (userId != null || usePublic) {
             predicates.add(queryContext.CriteriaBuilder.in(queryContext.Root.get(DescriptionEntity._id)).value(this.queryUtilsService.buildDescriptionAuthZSubQuery(queryContext.Query, queryContext.CriteriaBuilder, userId, usePublic)));
         }
@@ -401,39 +403,39 @@ public class DescriptionQuery extends QueryBase<DescriptionEntity> {
 
     @Override
     protected String fieldNameOf(FieldResolver item) {
-        if (item.match(Description._id) || item.match(PublicDescription._id))
+        if (item.match(Description._id))
             return DescriptionEntity._id;
-        else if (item.match(Description._label) || item.match(PublicDescription._label))
+        else if (item.match(Description._label))
             return DescriptionEntity._label;
         else if (item.prefix(Description._properties))
             return DescriptionEntity._properties;
-        else if (item.match(Description._status) || item.match(PublicDescription._status))
+        else if (item.match(Description._status))
             return DescriptionEntity._statusId;
-        else if (item.prefix(Description._status) || item.prefix(PublicDescription._status))
+        else if (item.prefix(Description._status))
             return DescriptionEntity._statusId;
-        else if (item.match(Description._description) || item.match(PublicDescription._description))
+        else if (item.match(Description._description))
             return DescriptionEntity._description;
         else if (item.match(Description._createdBy))
             return DescriptionEntity._createdById;
         else if (item.prefix(Description._createdBy))
             return DescriptionEntity._createdById;
-        else if (item.match(Description._createdAt) || item.match(PublicDescription._createdAt))
+        else if (item.match(Description._createdAt))
             return DescriptionEntity._createdAt;
-        else if (item.match(Description._updatedAt) || item.match(PublicDescription._updatedAt))
+        else if (item.match(Description._updatedAt))
             return DescriptionEntity._updatedAt;
         else if (item.match(Description._isActive))
             return DescriptionEntity._isActive;
         else if (item.match(Description._hash))
             return DescriptionEntity._updatedAt;
-        else if (item.match(Description._finalizedAt) || item.match(PublicDescription._finalizedAt))
+        else if (item.match(Description._finalizedAt))
             return DescriptionEntity._finalizedAt;
-        else if (item.prefix(Description._planDescriptionTemplate) || item.prefix(PublicDescription._planDescriptionTemplate))
+        else if (item.prefix(Description._planDescriptionTemplate))
             return DescriptionEntity._planDescriptionTemplateId;
-        else if (item.match(Description._planDescriptionTemplate) || item.match(PublicDescription._planDescriptionTemplate))
+        else if (item.match(Description._planDescriptionTemplate))
             return DescriptionEntity._planDescriptionTemplateId;
-        else if (item.prefix(Description._descriptionTemplate) || item.prefix(PublicDescription._descriptionTemplate))
+        else if (item.prefix(Description._descriptionTemplate))
             return DescriptionEntity._descriptionTemplateId;
-        else if (item.match(Description._descriptionTemplate) || item.match(PublicDescription._descriptionTemplate))
+        else if (item.match(Description._descriptionTemplate))
             return DescriptionEntity._descriptionTemplateId;
         else if (item.prefix(Description._plan))
             return DescriptionEntity._planId;

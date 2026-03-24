@@ -10,10 +10,6 @@ import org.opencdmp.data.DescriptionEntity;
 import org.opencdmp.data.PlanEntity;
 import org.opencdmp.elastic.data.DescriptionElasticEntity;
 import org.opencdmp.elastic.data.PlanElasticEntity;
-import org.opencdmp.model.PublicDescription;
-import org.opencdmp.model.PublicPlan;
-import org.opencdmp.model.builder.PublicDescriptionBuilder;
-import org.opencdmp.model.builder.PublicPlanBuilder;
 import org.opencdmp.model.builder.description.DescriptionBuilder;
 import org.opencdmp.model.builder.plan.PlanBuilder;
 import org.opencdmp.model.description.Description;
@@ -52,9 +48,9 @@ public class ElasticQueryHelperServiceImpl implements ElasticQueryHelperService 
 	}
 
 	@Override
-	public QueryResult<PublicPlan> collectPublic(PlanLookup lookup, EnumSet<AuthorizationFlags> authorizationFlags, FieldSet fieldSet) {
+	public QueryResult<Plan> collectPublic(PlanLookup lookup, EnumSet<AuthorizationFlags> authorizationFlags, FieldSet fieldSet) {
 		EnumSet<AuthorizationFlags> flags = authorizationFlags == null ? EnumSet.of(AuthorizationFlags.None) : authorizationFlags;
-		return this.collect(lookup, (d) -> this.builderFactory.builder(PublicPlanBuilder.class).authorize(flags).build(fieldSet != null ? fieldSet : lookup.getProject(), d), flags);
+		return this.collect(lookup, (d) -> this.builderFactory.builder(PlanBuilder.class).authorize(flags).isPublic(true).build(fieldSet != null ? fieldSet : lookup.getProject(), d), flags);
 	}
 
 	private <M> QueryResult<M> collect(PlanLookup lookup, Function<List<PlanEntity>, List<M>> buildFunc, EnumSet<AuthorizationFlags> flags) {
@@ -113,9 +109,9 @@ public class ElasticQueryHelperServiceImpl implements ElasticQueryHelperService 
 	
 
 	@Override
-	public QueryResult<PublicDescription> collectPublic(DescriptionLookup lookup, EnumSet<AuthorizationFlags> authorizationFlags, FieldSet fieldSet) {
+	public QueryResult<Description> collectPublic(DescriptionLookup lookup, EnumSet<AuthorizationFlags> authorizationFlags, FieldSet fieldSet) {
 		EnumSet<AuthorizationFlags> flags = authorizationFlags == null ? EnumSet.of(AuthorizationFlags.None) : authorizationFlags;
-		return this.collect(lookup, (d) -> this.builderFactory.builder(PublicDescriptionBuilder.class).authorize(flags).build(fieldSet != null ? fieldSet : lookup.getProject(), d), flags);
+		return this.collect(lookup, (d) -> this.builderFactory.builder(DescriptionBuilder.class).authorize(flags).isPublic(true).build(fieldSet != null ? fieldSet : lookup.getProject(), d), flags);
 	}
 
 	private <M> QueryResult<M> collect(DescriptionLookup lookup, Function<List<DescriptionEntity>, List<M>> buildFunc, EnumSet<AuthorizationFlags> flags) {

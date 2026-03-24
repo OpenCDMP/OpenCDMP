@@ -1,6 +1,6 @@
 package org.opencdmp.controllers;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
+import tools.jackson.core.JacksonException;
 import gr.cite.tools.auditing.AuditService;
 import gr.cite.tools.data.builder.BuilderFactory;
 import gr.cite.tools.data.censor.CensorFactory;
@@ -19,7 +19,7 @@ import org.opencdmp.audit.AuditableAction;
 import org.opencdmp.authorization.AuthorizationFlags;
 import org.opencdmp.commons.enums.IsActive;
 import org.opencdmp.commons.enums.SupportiveMaterialFieldType;
-import org.opencdmp.commons.scope.tenant.TenantScope;
+import org.opencdmp.commons.scope.tenant.TenantScopeFactory;
 import org.opencdmp.data.SupportiveMaterialEntity;
 import org.opencdmp.data.TenantEntity;
 import org.opencdmp.model.SupportiveMaterial;
@@ -70,18 +70,18 @@ public class SupportiveMaterialController {
 
     private final SupportiveMaterialService supportiveMaterialService;
 
-    private final TenantScope tenantScope;
+    private final TenantScopeFactory tenantScopeFactory;
 
     @Autowired
     public SupportiveMaterialController(SupportiveMaterialService supportiveMaterialService, BuilderFactory builderFactory,
-                                        AuditService auditService, CensorFactory censorFactory, QueryFactory queryFactory, MessageSource messageSource, TenantScope tenantScope) {
+                                        AuditService auditService, CensorFactory censorFactory, QueryFactory queryFactory, MessageSource messageSource, TenantScopeFactory tenantScopeFactory) {
         this.supportiveMaterialService = supportiveMaterialService;
         this.builderFactory = builderFactory;
         this.auditService = auditService;
         this.censorFactory = censorFactory;
         this.queryFactory = queryFactory;
         this.messageSource = messageSource;
-        this.tenantScope = tenantScope;
+        this.tenantScopeFactory = tenantScopeFactory;
     }
 
     @PostMapping("query")
@@ -135,7 +135,7 @@ public class SupportiveMaterialController {
         SupportiveMaterialQuery query = this.queryFactory.query(SupportiveMaterialQuery.class).disableTracking().types(SupportiveMaterialFieldType.of(type)).languageCodes(language).authorize(EnumSet.of(Public)).tenantIsSet(false).isActive(IsActive.Active);
         SupportiveMaterialEntity data = null;
 
-        if (tenantCode != null && !tenantCode.isEmpty() && !tenantCode.equals(this.tenantScope.getDefaultTenantCode())) {
+        if (tenantCode != null && !tenantCode.isEmpty() && !tenantCode.equals(this.tenantScopeFactory.getInstance().getDefaultTenantCode())) {
             TenantEntity tenant = this.queryFactory.query(TenantQuery.class).codes(tenantCode).firstAs(new BaseFieldSet(Tenant._id));
             if (tenant == null)
                 throw new MyNotFoundException(this.messageSource.getMessage("General_ItemNotFound", new Object[]{tenantCode, Tenant.class.getSimpleName()}, LocaleContextHolder.getLocale()));
@@ -167,7 +167,7 @@ public class SupportiveMaterialController {
     @PostMapping("persist")
     @Transactional
     @ValidationFilterAnnotation(validator = SupportiveMaterialPersist.SupportiveMaterialPersistValidator.ValidatorName, argumentName = "model")
-    public SupportiveMaterial persist(@RequestBody SupportiveMaterialPersist model, FieldSet fieldSet) throws MyApplicationException, MyForbiddenException, MyNotFoundException, InvalidApplicationException, JAXBException, ParserConfigurationException, JsonProcessingException, TransformerException {
+    public SupportiveMaterial persist(@RequestBody SupportiveMaterialPersist model, FieldSet fieldSet) throws MyApplicationException, MyForbiddenException, MyNotFoundException, InvalidApplicationException, JAXBException, ParserConfigurationException, JacksonException, TransformerException {
         logger.debug(new MapLogEntry("persisting" + SupportiveMaterial.class.getSimpleName()).And("model", model).And("fieldSet", fieldSet));
         this.censorFactory.censor(SupportiveMaterialCensor.class).censor(fieldSet, null);
 

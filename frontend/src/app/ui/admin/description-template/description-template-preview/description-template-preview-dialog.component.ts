@@ -91,7 +91,11 @@ export class DescriptionTemplatePreviewDialogComponent extends BaseComponent imp
 		this.dialogRef.close(this.descriptionTemplate);
 	}
 
-	closeDialog(): void {
+	closeDialog(event: MouseEvent): void {
+		if (event != null) {
+			event.stopPropagation();
+			event.preventDefault();
+		}
 		this.dialogRef.close();
 	}
 

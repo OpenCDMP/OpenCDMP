@@ -8,6 +8,7 @@ import { IndicatorDashboardRoutingModule } from './indicator-dashboard.routing';
 import { KPIProviders } from 'kpi-service/core/providers/kpi-client.providers';
 import { IndicatorDashboardService } from 'kpi-service/services/indicator-dashboard.service';
 import { IndicatorPointService } from 'kpi-service/services/indicator-point.service';
+import { CommonFormattingModule } from '@common/formatting/common-formatting.module';
 
 
 @NgModule({
@@ -15,15 +16,17 @@ import { IndicatorPointService } from 'kpi-service/services/indicator-point.serv
   imports: [
     CommonUiModule,
     CommonFormsModule,
+    CommonFormattingModule,
     ConfirmationDialogModule,
     IndicatorDashboardRoutingModule,
-    KPIDashboardComponent
+    KPIDashboardComponent,
   ],
   providers: [
     IndicatorPointService,
     KPIProviders.provideIndicatorPointService(),
     IndicatorDashboardService,
     KPIProviders.provideDashboardResolver(),
+    KPIProviders.provideValueMapResolver()
   ]
 })
 export class IndicatorDashboardModule { }

@@ -3,7 +3,6 @@ package org.opencdmp.integrationevent.outbox.annotationentityremoval;
 import gr.cite.tools.data.query.QueryFactory;
 import gr.cite.tools.fieldset.BaseFieldSet;
 import gr.cite.tools.logging.LoggerService;
-import org.opencdmp.commons.scope.tenant.TenantScope;
 import org.opencdmp.data.DescriptionEntity;
 import org.opencdmp.data.PlanEntity;
 import org.opencdmp.integrationevent.outbox.OutboxIntegrationEvent;
@@ -31,7 +30,7 @@ public class AnnotationEntityRemovalIntegrationEventHandlerImpl implements Annot
 
     private final QueryFactory queryFactory;
 
-    public AnnotationEntityRemovalIntegrationEventHandlerImpl(OutboxService outboxService, QueryFactory queryFactory, TenantScope tenantScope) {
+    public AnnotationEntityRemovalIntegrationEventHandlerImpl(OutboxService outboxService, QueryFactory queryFactory) {
         this.outboxService = outboxService;
 	    this.queryFactory = queryFactory;
     }

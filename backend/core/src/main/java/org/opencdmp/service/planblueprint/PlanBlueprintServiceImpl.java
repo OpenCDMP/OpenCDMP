@@ -1,6 +1,10 @@
 package org.opencdmp.service.planblueprint;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
+import org.opencdmp.commons.types.descriptiontemplatetype.DescriptionTemplateTypeImportExport;
+import org.opencdmp.commons.types.planblueprinttype.PlanBlueprintTypeImportExport;
+import org.opencdmp.model.DescriptionTemplateType;
+import org.opencdmp.model.PlanBlueprintType;
+import tools.jackson.core.JacksonException;
 import gr.cite.commons.web.authz.service.AuthorizationService;
 import gr.cite.tools.data.builder.BuilderFactory;
 import gr.cite.tools.data.deleter.DeleterFactory;
@@ -22,7 +26,9 @@ import org.opencdmp.authorization.Permission;
 import org.opencdmp.commonmodels.models.planblueprint.*;
 import org.opencdmp.commons.XmlHandlingService;
 import org.opencdmp.commons.enums.*;
-import org.opencdmp.commons.scope.tenant.TenantScope;
+import org.opencdmp.commons.enums.kpi.KpiDirectionType;
+import org.opencdmp.commons.enums.kpi.KpiVersionType;
+import org.opencdmp.commons.scope.tenant.TenantScopeFactory;
 import org.opencdmp.commons.types.planblueprint.*;
 import org.opencdmp.commons.types.planblueprint.BlueprintDescriptionTemplateEntity;
 import org.opencdmp.commons.types.planblueprint.importexport.*;
@@ -47,6 +53,7 @@ import org.opencdmp.model.prefillingsource.PrefillingSource;
 import org.opencdmp.model.referencetype.ReferenceType;
 import org.opencdmp.query.*;
 import org.opencdmp.service.accounting.AccountingService;
+import org.opencdmp.service.kpi.KpiService;
 import org.opencdmp.service.lock.LockService;
 import org.opencdmp.service.pluginconfiguration.PluginConfigurationService;
 import org.opencdmp.service.responseutils.ResponseUtilsService;
@@ -74,7 +81,7 @@ public class PlanBlueprintServiceImpl implements PlanBlueprintService {
 
     private static final LoggerService logger = new LoggerService(LoggerFactory.getLogger(PlanBlueprintServiceImpl.class));
 
-    private final TenantEntityManager entityManager;
+    private final TenantEntityManagerFactory tenantEntityManagerFactory;
 
     private final AuthorizationService authorizationService;
 
@@ -95,7 +102,7 @@ public class PlanBlueprintServiceImpl implements PlanBlueprintService {
     private final ErrorThesaurusProperties errors;
 
     private final ValidatorFactory validatorFactory;
-    private final TenantScope tenantScope;
+    private final TenantScopeFactory tenantScopeFactory;
 
     private final UsageLimitService usageLimitService;
     private final AccountingService accountingService;
@@ -105,9 +112,11 @@ public class PlanBlueprintServiceImpl implements PlanBlueprintService {
 
     private final PluginConfigurationService pluginConfigurationService;
 
+    private final KpiService kpiService;
+
     @Autowired
     public PlanBlueprintServiceImpl(
-            TenantEntityManager entityManager,
+            TenantEntityManagerFactory tenantEntityManagerFactory,
             AuthorizationService authorizationService,
             DeleterFactory deleterFactory,
             BuilderFactory builderFactory,
@@ -117,8 +126,8 @@ public class PlanBlueprintServiceImpl implements PlanBlueprintService {
             XmlHandlingService xmlHandlingService,
             ErrorThesaurusProperties errors,
             PluginConfigurationService pluginConfigurationService,
-            ValidatorFactory validatorFactory, TenantScope tenantScope, UsageLimitService usageLimitService, AccountingService accountingService, LockService lockService, StorageFileService storageFileService) {
-        this.entityManager = entityManager;
+            ValidatorFactory validatorFactory, TenantScopeFactory tenantScopeFactory, UsageLimitService usageLimitService, AccountingService accountingService, LockService lockService, StorageFileService storageFileService, KpiService kpiService) {
+        this.tenantEntityManagerFactory = tenantEntityManagerFactory;
         this.authorizationService = authorizationService;
         this.deleterFactory = deleterFactory;
         this.builderFactory = builderFactory;
@@ -129,17 +138,18 @@ public class PlanBlueprintServiceImpl implements PlanBlueprintService {
         this.xmlHandlingService = xmlHandlingService;
         this.errors = errors;
         this.validatorFactory = validatorFactory;
-	    this.tenantScope = tenantScope;
+	    this.tenantScopeFactory = tenantScopeFactory;
         this.usageLimitService = usageLimitService;
         this.accountingService = accountingService;
         this.lockService = lockService;
         this.storageFileService = storageFileService;
         this.pluginConfigurationService = pluginConfigurationService;
+        this.kpiService = kpiService;
     }
 
     //region Persist
 
-    public PlanBlueprint persist(PlanBlueprintPersist model, UUID groupId, FieldSet fields) throws MyForbiddenException, MyValidationException, MyApplicationException, MyNotFoundException, InvalidApplicationException, JAXBException, JsonProcessingException, TransformerException, ParserConfigurationException {
+    public PlanBlueprint persist(PlanBlueprintPersist model, UUID groupId, FieldSet fields) throws MyForbiddenException, MyValidationException, MyApplicationException, MyNotFoundException, InvalidApplicationException, JAXBException, JacksonException, TransformerException, ParserConfigurationException {
         logger.debug(new MapLogEntry("persisting data").And("model", model).And("fields", fields));
 
         this.authorizationService.authorizeForce(Permission.EditPlanBlueprint);
@@ -148,7 +158,7 @@ public class PlanBlueprintServiceImpl implements PlanBlueprintService {
 
         PlanBlueprintEntity data;
         if (isUpdate) {
-            data = this.entityManager.find(PlanBlueprintEntity.class, model.getId());
+            data = this.tenantEntityManagerFactory.getInstance().find(PlanBlueprintEntity.class, model.getId());
             if (data == null)
                 throw new MyNotFoundException(this.messageSource.getMessage("General_ItemNotFound", new Object[]{model.getId(), PlanBlueprint.class.getSimpleName()}, LocaleContextHolder.getLocale()));
             if (this.lockService.isLocked(data.getId(), null).getStatus()) throw new MyApplicationException(this.errors.getLockedPlanBlueprint().getCode(), this.errors.getLockedPlanBlueprint().getMessage());
@@ -177,6 +187,7 @@ public class PlanBlueprintServiceImpl implements PlanBlueprintService {
         if (groupId != null && !data.getGroupId().equals(groupId)) throw new MyApplicationException("Can not change description template group id");
 
         PlanBlueprintStatus previousStatus = data.getStatus();
+        PlanBlueprintVersionStatus previousVersionStatus = data.getVersionStatus();
 
         if (model.getDefinition() != null && model.getDefinition().getSections().stream().noneMatch(SectionPersist::getHasTemplates)) {
             throw new MyValidationException(this.errors.getPlanBlueprintHasNoDescriptionTemplates().getCode(), this.errors.getPlanBlueprintHasNoDescriptionTemplates().getMessage());
@@ -186,25 +197,27 @@ public class PlanBlueprintServiceImpl implements PlanBlueprintService {
         data.setCode(model.getCode());
         data.setStatus(model.getStatus());
         data.setUpdatedAt(Instant.now());
+        data.setTypeId(model.getType());
 
         DefinitionEntity oldDefinition = this.conventionService.isNullOrEmpty(data.getDefinition()) ? null : this.xmlHandlingService.fromXmlSafe(DefinitionEntity.class, data.getDefinition());
         data.setDefinition(this.xmlHandlingService.toXml(this.buildDefinitionEntity(model.getDefinition(), oldDefinition)));
         data.setDescription(model.getDescription());
 
         if (isUpdate) {
-            this.entityManager.merge(data);
+            this.tenantEntityManagerFactory.getInstance().merge(data);
             if (previousStatus != null && previousStatus.equals(PlanBlueprintStatus.Draft) && data.getStatus().equals(PlanBlueprintStatus.Finalized)) {
                 this.accountingService.increase(UsageLimitTargetMetric.BLUEPRINT_FINALIZED_COUNT.getValue());
                 this.accountingService.decrease(UsageLimitTargetMetric.BLUEPRINT_DRAFT_COUNT.getValue());
             }
         } else {
-            this.entityManager.persist(data);
+            this.tenantEntityManagerFactory.getInstance().persist(data);
             this.accountingService.increase(UsageLimitTargetMetric.BLUEPRINT_COUNT.getValue());
+            this.kpiService.sendIndicatorPointPlanBlueprintEntry(KpiDirectionType.Increase, KpiVersionType.TotalCount);
             if (data.getStatus().equals(PlanBlueprintStatus.Draft)) this.accountingService.increase(UsageLimitTargetMetric.BLUEPRINT_DRAFT_COUNT.getValue());
             if (data.getStatus().equals(PlanBlueprintStatus.Finalized)) this.accountingService.increase(UsageLimitTargetMetric.BLUEPRINT_FINALIZED_COUNT.getValue());
         }
 
-        this.entityManager.flush();
+        this.tenantEntityManagerFactory.getInstance().flush();
 
         if (!isUpdate) {
             Long planBlueprintCodes = this.queryFactory.query(PlanBlueprintQuery.class).disableTracking()
@@ -218,7 +231,11 @@ public class PlanBlueprintServiceImpl implements PlanBlueprintService {
 
         this.updateVersionStatusAndSave(data, previousStatus, data.getStatus());
 
-        this.entityManager.flush();
+        this.tenantEntityManagerFactory.getInstance().flush();
+
+        if (previousVersionStatus != null && !previousVersionStatus.equals(data.getVersionStatus()) && data.getVersionStatus().equals(PlanBlueprintVersionStatus.Current)) {
+            this.kpiService.sendIndicatorPointPlanBlueprintEntry(KpiDirectionType.Increase, KpiVersionType.LatestVersion);
+        }
 
         return this.builderFactory.builder(PlanBlueprintBuilder.class).authorize(AuthorizationFlags.AllExceptPublic).build(BaseFieldSet.build(fields, PlanBlueprint._id), data);
     }
@@ -245,7 +262,8 @@ public class PlanBlueprintServiceImpl implements PlanBlueprintService {
                 data.setVersion((short) (oldPlanBlueprintEntity.getVersion() + 1));
 
                 oldPlanBlueprintEntity.setVersionStatus(PlanBlueprintVersionStatus.Previous);
-                this.entityManager.merge(oldPlanBlueprintEntity);
+                this.tenantEntityManagerFactory.getInstance().merge(oldPlanBlueprintEntity);
+                this.kpiService.sendIndicatorPointPlanBlueprintEntry(KpiDirectionType.Decrease, KpiVersionType.LatestVersion);
             } else {
                 data.setVersion((short) 1);
             }
@@ -386,7 +404,7 @@ public class PlanBlueprintServiceImpl implements PlanBlueprintService {
 
         this.authorizationService.authorizeForce(Permission.DeletePlanBlueprint);
 
-        PlanBlueprintEntity data = this.entityManager.find(PlanBlueprintEntity.class, id);
+        PlanBlueprintEntity data = this.tenantEntityManagerFactory.getInstance().find(PlanBlueprintEntity.class, id);
         if (data == null) throw new MyNotFoundException(this.messageSource.getMessage("General_ItemNotFound", new Object[]{id, PlanBlueprint.class.getSimpleName()}, LocaleContextHolder.getLocale()));
 
         if (!data.getVersionStatus().equals(PlanBlueprintVersionStatus.Previous)){
@@ -400,11 +418,11 @@ public class PlanBlueprintServiceImpl implements PlanBlueprintService {
             if (previousPlanBlueprint != null){
                 if (previousPlanBlueprint.getStatus().equals(PlanBlueprintStatus.Finalized)) previousPlanBlueprint.setVersionStatus(PlanBlueprintVersionStatus.Current);
                 else previousPlanBlueprint.setVersionStatus(PlanBlueprintVersionStatus.NotFinalized);
-                this.entityManager.merge(previousPlanBlueprint);
-                data.setVersionStatus(PlanBlueprintVersionStatus.NotFinalized);
+                this.tenantEntityManagerFactory.getInstance().merge(previousPlanBlueprint);
+                this.kpiService.sendIndicatorPointPlanBlueprintEntry(KpiDirectionType.Increase, KpiVersionType.LatestVersion);
             }
-            this.entityManager.merge(data);
-            this.entityManager.flush();
+            this.tenantEntityManagerFactory.getInstance().merge(data);
+            this.tenantEntityManagerFactory.getInstance().flush();
         }
 
         this.deleterFactory.deleter(PlanBlueprintDeleter.class).deleteAndSaveByIds(List.of(id));
@@ -436,7 +454,7 @@ public class PlanBlueprintServiceImpl implements PlanBlueprintService {
     }
 
     public boolean fieldInBlueprint(UUID id, PlanBlueprintSystemFieldType type) throws InvalidApplicationException {
-        PlanBlueprintEntity data = this.entityManager.find(PlanBlueprintEntity.class, id, true);
+        PlanBlueprintEntity data = this.tenantEntityManagerFactory.getInstance().find(PlanBlueprintEntity.class, id, true);
         if (data == null)
             throw new MyNotFoundException(this.messageSource.getMessage("General_ItemNotFound", new Object[]{id, PlanBlueprint.class.getSimpleName()}, LocaleContextHolder.getLocale()));
         return this.fieldInBlueprint(data, type);
@@ -513,12 +531,12 @@ public class PlanBlueprintServiceImpl implements PlanBlueprintService {
         this.authorizationService.authorizeForce(Permission.CreateNewVersionPlanBlueprint);
         this.usageLimitService.checkIncrease(UsageLimitTargetMetric.BLUEPRINT_COUNT);
 
-        PlanBlueprintEntity oldPlanBlueprintEntity = this.entityManager.find(PlanBlueprintEntity.class, model.getId(), true);
+        PlanBlueprintEntity oldPlanBlueprintEntity = this.tenantEntityManagerFactory.getInstance().find(PlanBlueprintEntity.class, model.getId(), true);
         if (oldPlanBlueprintEntity == null)
             throw new MyNotFoundException(this.messageSource.getMessage("General_ItemNotFound", new Object[]{model.getId(), PlanBlueprint.class.getSimpleName()}, LocaleContextHolder.getLocale()));
         if (!this.conventionService.hashValue(oldPlanBlueprintEntity.getUpdatedAt()).equals(model.getHash()))
             throw new MyValidationException(this.errors.getHashConflict().getCode(), this.errors.getHashConflict().getMessage());
-        if (!this.tenantScope.isSet() || !Objects.equals(oldPlanBlueprintEntity.getTenantId(), this.tenantScope.getTenant())) throw new MyForbiddenException(this.errors.getTenantTampering().getCode(), this.errors.getTenantTampering().getMessage());
+        if (!this.tenantScopeFactory.getInstance().isSet() || !Objects.equals(oldPlanBlueprintEntity.getTenantId(), this.tenantScopeFactory.getInstance().getTenant())) throw new MyForbiddenException(this.errors.getTenantTampering().getCode(), this.errors.getTenantTampering().getMessage());
 
         List<PlanBlueprintEntity> latestVersionPlanBlueprints = this.queryFactory.query(PlanBlueprintQuery.class)
                 .disableTracking()
@@ -561,18 +579,24 @@ public class PlanBlueprintServiceImpl implements PlanBlueprintService {
         data.setCreatedAt(Instant.now());
         data.setUpdatedAt(Instant.now());
         data.setIsActive(IsActive.Active);
+        data.setTypeId(model.getType());
 
-        this.entityManager.persist(data);
+        this.tenantEntityManagerFactory.getInstance().persist(data);
 
-        this.entityManager.flush();
+        this.tenantEntityManagerFactory.getInstance().flush();
 
         this.updateVersionStatusAndSave(data, PlanBlueprintStatus.Draft, data.getStatus());
 
-        this.entityManager.flush();
+        this.tenantEntityManagerFactory.getInstance().flush();
 
         this.accountingService.increase(UsageLimitTargetMetric.BLUEPRINT_COUNT.getValue());
         if (data.getStatus().equals(PlanBlueprintStatus.Draft)) this.accountingService.increase(UsageLimitTargetMetric.BLUEPRINT_DRAFT_COUNT.getValue());
         if (data.getStatus().equals(PlanBlueprintStatus.Finalized)) this.accountingService.increase(UsageLimitTargetMetric.BLUEPRINT_FINALIZED_COUNT.getValue());
+
+        if (oldPlanBlueprintEntity.getVersionStatus() != null && !oldPlanBlueprintEntity.getVersionStatus().equals(data.getVersionStatus()) && data.getVersionStatus().equals(PlanBlueprintVersionStatus.Current)) {
+            this.kpiService.sendIndicatorPointPlanBlueprintEntry(KpiDirectionType.Increase, KpiVersionType.LatestVersion);
+        }
+        this.kpiService.sendIndicatorPointPlanBlueprintEntry(KpiDirectionType.Increase, KpiVersionType.TotalCount);
 
         return this.builderFactory.builder(PlanBlueprintBuilder.class).authorize(AuthorizationFlags.AllExceptPublic).build(BaseFieldSet.build(fields, PlanBlueprint._id), data);
     }
@@ -583,7 +607,7 @@ public class PlanBlueprintServiceImpl implements PlanBlueprintService {
 
 
     @Override
-    public BlueprintImportExport getExportXmlEntity(UUID id, boolean ignoreAuthorize) throws MyForbiddenException, MyNotFoundException, JAXBException, ParserConfigurationException, IOException, InstantiationException, IllegalAccessException, SAXException {
+    public BlueprintImportExport getExportXmlEntity(UUID id, boolean ignoreAuthorize) throws MyForbiddenException, MyNotFoundException, JAXBException, ParserConfigurationException, IOException, InstantiationException, IllegalAccessException, SAXException, InvalidApplicationException {
         logger.debug(new MapLogEntry("export xml").And("id", id));
 
         if (!ignoreAuthorize) this.authorizationService.authorizeForce(Permission.ExportPlanBlueprint);
@@ -605,7 +629,7 @@ public class PlanBlueprintServiceImpl implements PlanBlueprintService {
         return this.responseUtilsService.buildResponseFileFromText(xml, data.getLabel() + ".xml");
     }
 
-    private BlueprintImportExport definitionXmlToExport(PlanBlueprintEntity entity) throws JAXBException, ParserConfigurationException, IOException, InstantiationException, IllegalAccessException, SAXException {
+    private BlueprintImportExport definitionXmlToExport(PlanBlueprintEntity entity) throws JAXBException, ParserConfigurationException, IOException, InstantiationException, IllegalAccessException, SAXException, InvalidApplicationException {
         if (entity == null)
             return null;
         BlueprintImportExport xml = new BlueprintImportExport();
@@ -613,9 +637,26 @@ public class PlanBlueprintServiceImpl implements PlanBlueprintService {
         xml.setLabel(entity.getLabel());
         xml.setDescription(entity.getDescription());
         xml.setCode(entity.getCode());
+        xml.setPlanBlueprintType(this.planBlueprintTypeXmlToExport(entity.getTypeId()));
         xml.setGroupId(entity.getGroupId());
         DefinitionEntity planBlueprintDefinition = this.xmlHandlingService.fromXml(DefinitionEntity.class, entity.getDefinition());
         xml.setPlanBlueprintDefinition(this.definitionXmlToExport(planBlueprintDefinition));
+        return xml;
+    }
+
+    private PlanBlueprintTypeImportExport planBlueprintTypeXmlToExport(UUID typeId) throws InvalidApplicationException {
+        PlanBlueprintTypeImportExport xml = new PlanBlueprintTypeImportExport();
+
+        if (typeId == null) return xml;
+
+        PlanBlueprintTypeEntity data = this.tenantEntityManagerFactory.getInstance().find(PlanBlueprintTypeEntity.class, typeId);
+        if (data == null)
+            throw new MyNotFoundException(this.messageSource.getMessage("General_ItemNotFound", new Object[]{typeId, PlanBlueprintType.class.getSimpleName()}, LocaleContextHolder.getLocale()));
+
+        xml.setId(typeId);
+        xml.setName(data.getName());
+        xml.setCode(data.getCode());
+
         return xml;
     }
 
@@ -836,6 +877,7 @@ public class PlanBlueprintServiceImpl implements PlanBlueprintService {
             persist.setDescription(planBlueprintDefinition.getDescription());
             persist.setCode(planBlueprintDefinition.getCode());
             persist.setStatus(PlanBlueprintStatus.Draft);
+            persist.setType(this.xmlPlanBlueprintTypeToPersist(planBlueprintDefinition.getPlanBlueprintType(), label));
             persist.setDefinition(this.xmlDefinitionToPersist(planBlueprintDefinition.getPlanBlueprintDefinition()));
 
             this.validatorFactory.validator(PlanBlueprintPersist.PlanBlueprintPersistValidator.class).validateForce(persist);
@@ -866,6 +908,7 @@ public class PlanBlueprintServiceImpl implements PlanBlueprintService {
             persist.setLabel(label);
             persist.setDescription(planBlueprintDefinition.getDescription());
             persist.setStatus(PlanBlueprintStatus.Draft);
+            persist.setType(this.xmlPlanBlueprintTypeToPersist(planBlueprintDefinition.getPlanBlueprintType(), label));
             persist.setDefinition(this.xmlDefinitionToPersist(planBlueprintDefinition.getPlanBlueprintDefinition()));
             persist.setHash(this.conventionService.hashValue(latestVersionPlanBlueprint.getUpdatedAt()));
 
@@ -889,6 +932,33 @@ public class PlanBlueprintServiceImpl implements PlanBlueprintService {
         }
 
         return this.importXml(planBlueprintDefinition, groupId, label, fields);
+    }
+
+    private UUID xmlPlanBlueprintTypeToPersist(PlanBlueprintTypeImportExport importXml, String label) {
+        if (importXml == null) return null;
+
+        PlanBlueprintTypeQuery query = null;
+
+        if (importXml.getId() != null) {
+            // search by id
+            PlanBlueprintTypeEntity entity = this.queryFactory.query(PlanBlueprintTypeQuery.class).ids(importXml.getId()).firstAs(new BaseFieldSet().ensure(PlanBlueprintType._id).ensure(PlanBlueprintType._code).ensure(PlanBlueprintType._status));
+            if (entity != null ) {
+                if (!entity.getStatus().equals(PlanBlueprintTypeStatus.Finalized)) throw new MyValidationException(this.errors.getPlanBlueprintTypeImportDraft().getCode(), entity.getCode());
+                return entity.getId();
+            } else {
+                if (!this.conventionService.isNullOrEmpty(importXml.getCode())){
+                    // search by code
+                    entity = this.queryFactory.query(PlanBlueprintTypeQuery.class).codes(importXml.getCode()).isActive(IsActive.Active).firstAs(new BaseFieldSet().ensure(PlanBlueprintType._id).ensure(PlanBlueprintType._code).ensure(PlanBlueprintType._status));
+                    if (entity != null) {
+                        if (!entity.getStatus().equals(PlanBlueprintTypeStatus.Finalized)) throw new MyValidationException(this.errors.getPlanBlueprintTypeImportDraft().getCode(), entity.getCode());
+                        return entity.getId();
+                    }
+                }
+
+            }
+            throw new MyValidationException(this.errors.getPlanBlueprintTypeImportNotFound().getCode(), importXml.getCode());
+        }
+        return null;
     }
 
     private DefinitionPersist xmlDefinitionToPersist(BlueprintDefinitionImportExport importXml) throws IOException {

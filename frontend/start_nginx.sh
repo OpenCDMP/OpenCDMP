@@ -59,18 +59,6 @@ else
    find '/usr/share/nginx/html/assets/config' -name 'config.json' -exec sed -i -e 's,${KPI_SERVICE_ADDRESS},,g' {} \;
 fi
 
-if [[ ! -z "${KPI_SERVICE_DASHBOARD_ID}" ]]; then
-	find '/usr/share/nginx/html/assets/config' -name 'config.json' -exec sed -i -e 's,${KPI_SERVICE_DASHBOARD_ID},'"$KPI_SERVICE_DASHBOARD_ID"',g' {} \;
-else
-   find '/usr/share/nginx/html/assets/config' -name 'config.json' -exec sed -i -e 's,${KPI_SERVICE_DASHBOARD_ID},,g' {} \;
-fi
-
-if [[ ! -z "${KPI_SERVICE_KEYWORD_FILTER}" ]]; then
-	find '/usr/share/nginx/html/assets/config' -name 'config.json' -exec sed -i -e 's,${KPI_SERVICE_KEYWORD_FILTER},'"$KPI_SERVICE_KEYWORD_FILTER"',g' {} \;
-else
-   find '/usr/share/nginx/html/assets/config' -name 'config.json' -exec sed -i -e 's,${KPI_SERVICE_KEYWORD_FILTER},,g' {} \;
-fi
-
 if [[ ! -z "${ACCOUNTING_SERVICE_ENABLED}" ]]; then
 	find '/usr/share/nginx/html/assets/config' -name 'config.json' -exec sed -i -e 's,${ACCOUNTING_SERVICE_ENABLED},'"$ACCOUNTING_SERVICE_ENABLED"',g' {} \;
 else

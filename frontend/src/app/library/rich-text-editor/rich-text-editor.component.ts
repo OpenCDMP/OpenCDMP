@@ -7,13 +7,15 @@ import { Subscription } from "rxjs";
     selector: 'rich-text-editor-component',
     template: `
 		<div class="editor-wrapper" [class]="wrapperClasses()" [id]="id()">
-			<angular-editor class="full-width editor" [class.disabled]="form()?.disabled" [class.error]="form()?.touched && form()?.invalid"
-							[config]="editorConfig" [formControl]="form()" [required]="required()"
-							placeholder="{{(placeholder()? (placeholder() | translate) : '') + (required() ? ' *': '')}}"
-							(paste)="pasteWithoutFormatting($event)"></angular-editor>
-			<mat-icon *ngIf="form()?.value && !form()?.disabled" (click)="form().patchValue('')" class="clear">close</mat-icon>
+		  <angular-editor class="full-width editor" [class.disabled]="form()?.disabled" [class.error]="form()?.touched && form()?.invalid"
+		    [config]="editorConfig" [formControl]="form()" [required]="required()"
+		    placeholder="{{(placeholder()? (placeholder() | translate) : '') + (required() ? ' *': '')}}"
+		  (paste)="pasteWithoutFormatting($event)"></angular-editor>
+		  @if (form()?.value && !form()?.disabled) {
+		    <mat-icon (click)="form().patchValue('')" class="clear">close</mat-icon>
+		  }
 		</div>
-	`,
+		`,
     styleUrls: ['./rich-text-editor.component.scss'],
     // TODO: performance issue with this control. changed the change detection strategy in case it improves
     changeDetection: ChangeDetectionStrategy.OnPush,

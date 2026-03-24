@@ -1,34 +1,42 @@
 <div class="dynamic-form-section" [id]="section.id">
-    <div class="toc-section-header" [id]="path">
-        <div class='panel-title'>{{path}}. {{section.title}}</div>
-        <div class='panel-desc' *ngIf="section.description" [innerHTML]="section.description"></div>
-        <div class="field-sets">
-            <div *ngFor="let fieldSet of section.fieldSets; let i = index;" [id]="fieldSet.id" (click)="onAskedToScroll($event, fieldSet.id)">
-                @if(visibilityRulesService.isVisibleMap[fieldSet.id] ?? true){
-                    <app-description-form-field-set class="align-self-center"
-                        [propertiesFormGroup]="propertiesFormGroup.get('fieldSets')?.get(fieldSet.id)"
-                        [fieldSet]="fieldSet"
-                        [descriptionId]="descriptionId"
-                        [planId]="planId"
-                        [path]="path + '.' + (i+1)"
-                        [numbering]="path + '.' + (i+1)"
-                        [visibilityRulesService]="visibilityRulesService"
-                        [validationErrorModel]="validationErrorModel"
-                        [isChild]="false"
-                        [isNew]="isNew"
-                        [canAnnotate]="canAnnotate"
-                        [planUsers]="planUsers"
-                    ></app-description-form-field-set>
-                }
-            </div>
+  <div class="toc-section-header" [id]="path">
+    <div class='panel-title'>{{path}}. {{section.title}}</div>
+    @if (section.description) {
+      <div class='panel-desc' [innerHTML]="section.description"></div>
+    }
+    <div class="field-sets">
+      @for (fieldSet of section.fieldSets; track fieldSet; let i = $index) {
+        <div [id]="fieldSet.id" (click)="onAskedToScroll($event, fieldSet.id)">
+          @if(visibilityRulesService.isVisibleMap[fieldSet.id] ?? true){
+            <app-description-form-field-set class="align-self-center"
+              [propertiesFormGroup]="propertiesFormGroup.get('fieldSets')?.get(fieldSet.id)"
+              [fieldSet]="fieldSet"
+              [descriptionId]="descriptionId"
+              [planId]="planId"
+              [path]="path + '.' + (i+1)"
+              [numbering]="path + '.' + (i+1)"
+              [visibilityRulesService]="visibilityRulesService"
+              [validationErrorModel]="validationErrorModel"
+              [isChild]="false"
+              [isNew]="isNew"
+              [canAnnotate]="canAnnotate"
+              [planUsers]="planUsers"
+            ></app-description-form-field-set>
+          }
         </div>
-
-        <div *ngIf="section?.sections?.length > 0">
-            <ng-container *ngFor="let innerSection of section.sections; let j = index;">
-                <div *ngIf="visibilityRulesService.isVisibleMap[innerSection.id]">
-                    <app-description-form-section [section]="innerSection" [canAnnotate]="canAnnotate" [isNew]="isNew" [path]="path+'.'+(j+1)" [pathName]="pathName+'.sections.'+j" (askedToScroll)="onAskedToScroll(null, $event)" [propertiesFormGroup]="propertiesFormGroup" [descriptionId]="descriptionId" [planId]="planId" [visibilityRulesService]="visibilityRulesService" [linkToScroll]="subsectionLinkToScroll"></app-description-form-section>
-                </div>
-            </ng-container>
-        </div>
+      }
     </div>
+
+    @if (section?.sections?.length > 0) {
+      <div>
+        @for (innerSection of section.sections; track innerSection; let j = $index) {
+          @if (visibilityRulesService.isVisibleMap[innerSection.id]) {
+            <div>
+              <app-description-form-section [section]="innerSection" [canAnnotate]="canAnnotate" [isNew]="isNew" [path]="path+'.'+(j+1)" [pathName]="pathName+'.sections.'+j" (askedToScroll)="onAskedToScroll(null, $event)" [propertiesFormGroup]="propertiesFormGroup" [descriptionId]="descriptionId" [planId]="planId" [visibilityRulesService]="visibilityRulesService" [linkToScroll]="subsectionLinkToScroll"></app-description-form-section>
+            </div>
+          }
+        }
+      </div>
+    }
+  </div>
 </div>

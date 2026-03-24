@@ -1,4 +1,4 @@
-import {Component, computed, effect, EventEmitter, Inject, input, OnDestroy, OnInit, Optional, Output, untracked} from '@angular/core';
+import {Component, computed, effect, EventEmitter, Inject, input, OnDestroy, OnInit, Optional, output, Output, untracked} from '@angular/core';
 import {toSignal} from '@angular/core/rxjs-interop'
 import { DescriptionTemplate, DescriptionTemplateFieldSet, DescriptionTemplateSection } from '@app/core/model/description-template/description-template';
 import { VisibilityRulesService } from '@app/ui/description/editor/description-form/visibility-rules/visibility-rules.service';
@@ -16,6 +16,9 @@ import {
 } from "@app/ui/annotations/annotation-dialog-component/form-annotation.service";
 import {MatDialog} from "@angular/material/dialog";
 import {RouterUtilsService} from "@app/core/services/router/router-utils.service";
+import { UserActionPayload } from '@app/core/model/websocket/ws-message.model';
+import { PlanWebSocketService } from '@app/core/services/websocket/plan-websocket.service';
+import { Description } from '@app/core/model/description/description';
 
 @Component({
     selector: 'app-table-of-contents',
@@ -30,6 +33,7 @@ export class TableOfContentsComponent extends BaseComponent implements OnDestroy
     descriptionId = input<Guid>();
     isVisible = input<boolean>(false);
     selectedFieldId = input<string>();
+    onPublishAction = output<ToCEntry>();
 
     descriptionData = computed(() => this.planTempStorage.descriptions()?.get(this.descriptionId()?.toString()));
     formGroup = computed(() => this.descriptionData()?.formGroup);
@@ -69,6 +73,7 @@ export class TableOfContentsComponent extends BaseComponent implements OnDestroy
 	constructor(
 		private tableOfContentsService: TableOfContentsService,
         private planTempStorage: PlanTempStorageService,
+		private planWebSocketService: PlanWebSocketService,
 		@Optional() @Inject(MULTI_FORM_ANNOTATION_SERVICE_TOKEN) private formAnnotationServices: FormAnnotationService[],
 		protected dialog: MatDialog,
 		public routerUtils: RouterUtilsService,
@@ -279,7 +284,8 @@ export class TableOfContentsComponent extends BaseComponent implements OnDestroy
 				const target_id = x.target.id;
 				if (this._isVisible(target_id)) {
 					this.tocentrySelected = TableOfContentsComponent._findTocEntryById(target_id, this.tocentries);
-                    this.entrySelected.emit({entry: this.tocentrySelected,  execute: false})
+                    this.entrySelected.emit({entry: this.tocentrySelected,  execute: false});
+                    this.publishAction(this.tocentrySelected);
 				}
 			}
 		});
@@ -466,8 +472,13 @@ export class TableOfContentsComponent extends BaseComponent implements OnDestroy
 		this.pauseIntersectionObserver = true;
 		this.tocentrySelected = entry;
 		this.entrySelected.emit({ entry: entry, execute: execute });
+        this.publishAction(entry);
 		setTimeout(() => this.pauseIntersectionObserver = false, 2000);
 	}
+
+    publishAction(entry: ToCEntry){
+        this.onPublishAction.emit(entry)
+    }
 
 	/**
 	 * Get all filedsets in a tocentry array;

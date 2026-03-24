@@ -1,27 +1,30 @@
 <div class="container-fluid">
-	<div mat-dialog-title class="row d-flex mt-3">
-		<div class="col">
-			<span class="title">{{'GENERAL.FORM-VALIDATION-DISPLAY-DIALOG.WARNING' | translate}}</span>
-		</div>
-		<div class="col-auto">
-			<button mat-icon-button (click)="onClose()"  [attr.aria-label]="'ALT-TEXT.CLOSE-DIALOG'  | translate"><mat-icon aria-hidden>close</mat-icon></button>
-		</div>
-	</div>
-	<div class="row" mat-dialog-content>
-		<div class="col-12">
-			<ng-container *ngIf="errorMessages">
-				<ul class="error-list" *ngIf="errorMessages.length > 1 else singleError">
-					<li *ngFor="let error of errorMessages">{{error}}</li>
-				</ul>
-			</ng-container>
-			<ng-template #singleError>
-				<span>{{errorMessages[0]}}</span>
-			</ng-template>
-		</div>
-	</div>
-	<div class="row" mat-dialog-actions>
-		<div class="ml-auto col-auto">
-			<button mat-stroked-button type="button" class="padded-shadow-btn" (click)="onClose()">{{'GENERAL.FORM-VALIDATION-DISPLAY-DIALOG.ACTIONS.CANCEL' | translate}}</button>
-		</div>
-	</div>
+  <div mat-dialog-title class="row d-flex mt-3">
+    <div class="col">
+      <span class="title">{{'GENERAL.FORM-VALIDATION-DISPLAY-DIALOG.WARNING' | translate}}</span>
+    </div>
+    <div class="col-auto">
+      <button mat-icon-button (click)="onClose()"  [attr.aria-label]="'ALT-TEXT.CLOSE-DIALOG'  | translate"><mat-icon aria-hidden>close</mat-icon></button>
+    </div>
+  </div>
+  <div class="row" mat-dialog-content>
+    <div class="col-12">
+      @if (errorMessages) {
+        @if (errorMessages.length > 1) {
+          <ul class="error-list">
+            @for (error of errorMessages; track error) {
+              <li>{{error}}</li>
+            }
+          </ul>
+        } @else {
+          <span>{{errorMessages[0]}}</span>
+        }
+      }
+    </div>
+  </div>
+  <div class="row" mat-dialog-actions>
+    <div class="ml-auto col-auto">
+      <button mat-stroked-button type="button" class="padded-shadow-btn" (click)="onClose()">{{'GENERAL.FORM-VALIDATION-DISPLAY-DIALOG.ACTIONS.CANCEL' | translate}}</button>
+    </div>
+  </div>
 </div>

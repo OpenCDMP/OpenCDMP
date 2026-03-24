@@ -10,11 +10,11 @@ import gr.cite.tools.logging.DataLogEntry;
 import gr.cite.tools.logging.LoggerService;
 import org.opencdmp.authorization.AffiliatedResource;
 import org.opencdmp.authorization.AuthorizationFlags;
-import org.opencdmp.authorization.authorizationcontentresolver.AuthorizationContentResolver;
+import org.opencdmp.authorization.authorizationcontentresolver.AuthorizationContentResolverFactory;
 import org.opencdmp.commons.JsonHandlingService;
 import org.opencdmp.commons.XmlHandlingService;
 import org.opencdmp.commons.enums.IsActive;
-import org.opencdmp.commons.scope.tenant.TenantScope;
+import org.opencdmp.commons.scope.tenant.TenantScopeFactory;
 import org.opencdmp.commons.types.description.PropertyDefinitionEntity;
 import org.opencdmp.commons.types.descriptiontemplate.DefinitionEntity;
 import org.opencdmp.convention.ConventionService;
@@ -58,32 +58,38 @@ public class DescriptionBuilder extends BaseBuilder<Description, DescriptionEnti
     private final JsonHandlingService jsonHandlingService;
     private final XmlHandlingService xmlHandlingService;
     private final AuthorizationService authorizationService;
-    private final AuthorizationContentResolver authorizationContentResolver;
-    private final TenantScope tenantScope;
+    private final AuthorizationContentResolverFactory authorizationContentResolverFactory;
+    private final TenantScopeFactory tenantScopeFactory;
     private final CustomPolicyService customPolicyService;
     private final DescriptionStatusService descriptionStatusService;
 
     private EnumSet<AuthorizationFlags> authorize = EnumSet.of(AuthorizationFlags.None);
+    private boolean isPublic;
 
     @Autowired
     public DescriptionBuilder(
             ConventionService conventionService,
             QueryFactory queryFactory,
-            BuilderFactory builderFactory, JsonHandlingService jsonHandlingService, XmlHandlingService xmlHandlingService, AuthorizationService authorizationService, AuthorizationContentResolver authorizationContentResolver, TenantScope tenantScope, CustomPolicyService customPolicyService, DescriptionStatusService descriptionStatusService) {
+            BuilderFactory builderFactory, JsonHandlingService jsonHandlingService, XmlHandlingService xmlHandlingService, AuthorizationService authorizationService, AuthorizationContentResolverFactory authorizationContentResolverFactory, TenantScopeFactory tenantScopeFactory, CustomPolicyService customPolicyService, DescriptionStatusService descriptionStatusService) {
         super(conventionService, new LoggerService(LoggerFactory.getLogger(DescriptionBuilder.class)));
         this.queryFactory = queryFactory;
         this.builderFactory = builderFactory;
         this.jsonHandlingService = jsonHandlingService;
 	    this.xmlHandlingService = xmlHandlingService;
 	    this.authorizationService = authorizationService;
-	    this.authorizationContentResolver = authorizationContentResolver;
-	    this.tenantScope = tenantScope;
+	    this.authorizationContentResolverFactory = authorizationContentResolverFactory;
+	    this.tenantScopeFactory = tenantScopeFactory;
         this.customPolicyService = customPolicyService;
         this.descriptionStatusService = descriptionStatusService;
     }
 
     public DescriptionBuilder authorize(EnumSet<AuthorizationFlags> values) {
         this.authorize = values;
+        return this;
+    }
+
+    public DescriptionBuilder isPublic(boolean isPublic) {
+        this.isPublic = isPublic;
         return this;
     }
 
@@ -122,15 +128,15 @@ public class DescriptionBuilder extends BaseBuilder<Description, DescriptionEnti
 
         Map<UUID, DefinitionEntity> definitionEntityMap = !definitionPropertiesFields.isEmpty() ? this.collectDescriptionTemplateDefinitions(data) : null;
 
-        Set<String> authorizationFlags = this.extractAuthorizationFlags(fields, Description._authorizationFlags, this.authorizationContentResolver.getPermissionNames());
-        Map<UUID, AffiliatedResource>  affiliatedResourceMap = authorizationFlags == null || authorizationFlags.isEmpty() ? null : this.authorizationContentResolver.descriptionsAffiliation(data.stream().map(DescriptionEntity::getId).collect(Collectors.toList()));
+        Set<String> authorizationFlags = this.extractAuthorizationFlags(fields, Description._authorizationFlags, this.authorizationContentResolverFactory.getInstance().getPermissionNames());
+        Map<UUID, AffiliatedResource>  affiliatedResourceMap = authorizationFlags == null || authorizationFlags.isEmpty() ? null : this.authorizationContentResolverFactory.getInstance().descriptionsAffiliation(data.stream().map(DescriptionEntity::getId).collect(Collectors.toList()));
 
         FieldSet statusAuthorizationFlags = fields.extractPrefixed(this.asPrefix(Description._statusAuthorizationFlags));
         List<Description> models = new ArrayList<>();
         for (DescriptionEntity d : data) {
             Description m = new Description();
             if (fields.hasField(this.asIndexer(Description._id))) m.setId(d.getId());
-            if (fields.hasField(this.asIndexer(Description._tenantId))) m.setTenantId(d.getTenantId());
+            if (!this.isPublic && fields.hasField(this.asIndexer(Description._tenantId))) m.setTenantId(d.getTenantId());
             if (fields.hasField(this.asIndexer(Description._label)))  m.setLabel(d.getLabel());
             if (!statusFields.isEmpty() && statusItemsMap != null && statusItemsMap.containsKey(d.getStatusId())) m.setStatus(statusItemsMap.get(d.getStatusId()));
             if (avaialbleStatusesItemsMap != null && !avaialbleStatusesItemsMap.isEmpty() && avaialbleStatusesItemsMap.containsKey(d.getId())) m.setAvailableStatuses(avaialbleStatusesItemsMap.get(d.getId()));
@@ -139,8 +145,8 @@ public class DescriptionBuilder extends BaseBuilder<Description, DescriptionEnti
             if (fields.hasField(this.asIndexer(Description._updatedAt))) m.setUpdatedAt(d.getUpdatedAt());
             if (fields.hasField(this.asIndexer(Description._isActive))) m.setIsActive(d.getIsActive());
             if (fields.hasField(this.asIndexer(Description._finalizedAt))) m.setFinalizedAt(d.getFinalizedAt());
-            if (fields.hasField(this.asIndexer(Description._hash))) m.setHash(this.hashValue(d.getUpdatedAt()));
-            if (fields.hasField(this.asIndexer(Description._belongsToCurrentTenant))) m.setBelongsToCurrentTenant(this.getBelongsToCurrentTenant(d, this.tenantScope));
+            if (!this.isPublic && fields.hasField(this.asIndexer(Description._hash))) m.setHash(this.hashValue(d.getUpdatedAt()));
+            if (!this.isPublic && fields.hasField(this.asIndexer(Description._belongsToCurrentTenant))) m.setBelongsToCurrentTenant(this.getBelongsToCurrentTenant(d, this.tenantScopeFactory.getInstance()));
             if (!planFields.isEmpty() && planItemsMap != null && planItemsMap.containsKey(d.getPlanId()))  m.setPlan(planItemsMap.get(d.getPlanId()));
             if (!planDescriptionTemplateFields.isEmpty() && planDescriptionTemplateItemsMap != null && planDescriptionTemplateItemsMap.containsKey(d.getPlanDescriptionTemplateId()))  m.setPlanDescriptionTemplate(planDescriptionTemplateItemsMap.get(d.getPlanDescriptionTemplateId()));
             if (!descriptionTemplateFields.isEmpty() && descriptionTemplateItemsMap != null && descriptionTemplateItemsMap.containsKey(d.getDescriptionTemplateId()))  m.setDescriptionTemplate(descriptionTemplateItemsMap.get(d.getDescriptionTemplateId()));
@@ -149,10 +155,10 @@ public class DescriptionBuilder extends BaseBuilder<Description, DescriptionEnti
             if (!userFields.isEmpty() && userItemsMap != null && userItemsMap.containsKey(d.getCreatedById())) m.setCreatedBy(userItemsMap.get(d.getCreatedById()));
             if (!definitionPropertiesFields.isEmpty() && d.getProperties() != null){
                 PropertyDefinitionEntity propertyDefinition = this.jsonHandlingService.fromJsonSafe(PropertyDefinitionEntity.class, d.getProperties());
-                m.setProperties(this.builderFactory.builder(PropertyDefinitionBuilder.class).withDefinition(definitionEntityMap != null ? definitionEntityMap.getOrDefault(d.getDescriptionTemplateId(), null) : null).authorize(this.authorize).build(definitionPropertiesFields, propertyDefinition));
+                m.setProperties(this.builderFactory.builder(PropertyDefinitionBuilder.class).isPublic(this.isPublic).withDefinition(definitionEntityMap != null ? definitionEntityMap.getOrDefault(d.getDescriptionTemplateId(), null) : null).authorize(this.authorize).build(definitionPropertiesFields, propertyDefinition));
             }
-            if (affiliatedResourceMap != null && !authorizationFlags.isEmpty()) m.setAuthorizationFlags(this.evaluateAuthorizationFlags(this.authorizationService, authorizationFlags, affiliatedResourceMap.getOrDefault(d.getId(), null)));
-            if (!statusAuthorizationFlags.isEmpty() && !this.conventionService.isListNullOrEmpty(m.getAvailableStatuses())) {
+            if (!this.isPublic && affiliatedResourceMap != null && !authorizationFlags.isEmpty()) m.setAuthorizationFlags(this.evaluateAuthorizationFlags(this.authorizationService, authorizationFlags, affiliatedResourceMap.getOrDefault(d.getId(), null)));
+            if (!this.isPublic && !statusAuthorizationFlags.isEmpty() && !this.conventionService.isListNullOrEmpty(m.getAvailableStatuses())) {
                 m.setStatusAuthorizationFlags(this.evaluateStatusAuthorizationFlags(this.authorizationService, statusAuthorizationFlags, d));
             }
             models.add(m);
@@ -181,7 +187,7 @@ public class DescriptionBuilder extends BaseBuilder<Description, DescriptionEnti
         } else {
             FieldSet clone = new BaseFieldSet(fields.getFields()).ensure(DescriptionStatus._id);
             DescriptionStatusQuery q = this.queryFactory.query(DescriptionStatusQuery.class).disableTracking().authorize(this.authorize).ids(data.stream().map(DescriptionEntity::getStatusId).distinct().collect(Collectors.toList()));
-            itemMap = this.builderFactory.builder(DescriptionStatusBuilder.class).authorize(this.authorize).asForeignKey(q, clone, DescriptionStatus::getId);
+            itemMap = this.builderFactory.builder(DescriptionStatusBuilder.class).authorize(this.authorize).isPublic(this.isPublic).asForeignKey(q, clone, DescriptionStatus::getId);
         }
         if (!fields.hasField(DescriptionStatus._id)) {
             itemMap.forEach((id, item) -> {
@@ -194,7 +200,7 @@ public class DescriptionBuilder extends BaseBuilder<Description, DescriptionEnti
     }
 
     private Map<UUID, List<DescriptionStatus>> collectAvailableDescriptionStatuses(FieldSet fields, List<DescriptionEntity> data) throws MyApplicationException {
-        if (fields.isEmpty() || data.isEmpty()) return null;
+        if (fields.isEmpty() || data.isEmpty() || this.isPublic) return null;
         this.logger.debug("checking related - {}", DescriptionStatus.class.getSimpleName());
 
         Map<UUID, List<DescriptionStatus>> itemMap = new HashMap<>();
@@ -216,7 +222,7 @@ public class DescriptionBuilder extends BaseBuilder<Description, DescriptionEnti
     }
 
     private Map<UUID, User> collectUsers(FieldSet fields, List<DescriptionEntity> data) throws MyApplicationException {
-        if (fields.isEmpty() || data.isEmpty())
+        if (fields.isEmpty() || data.isEmpty() || this.isPublic)
             return null;
         this.logger.debug("checking related - {}", User.class.getSimpleName());
 
@@ -263,7 +269,7 @@ public class DescriptionBuilder extends BaseBuilder<Description, DescriptionEnti
         } else {
             FieldSet clone = new BaseFieldSet(fields.getFields()).ensure(PlanDescriptionTemplate._id);
             PlanDescriptionTemplateQuery q = this.queryFactory.query(PlanDescriptionTemplateQuery.class).disableTracking().authorize(this.authorize).ids(data.stream().map(DescriptionEntity::getPlanDescriptionTemplateId).distinct().collect(Collectors.toList()));
-            itemMap = this.builderFactory.builder(PlanDescriptionTemplateBuilder.class).authorize(this.authorize).asForeignKey(q, clone, PlanDescriptionTemplate::getId);
+            itemMap = this.builderFactory.builder(PlanDescriptionTemplateBuilder.class).authorize(this.authorize).isPublic(this.isPublic).asForeignKey(q, clone, PlanDescriptionTemplate::getId);
         }
         if (!fields.hasField(PlanDescriptionTemplate._id)) {
             itemMap.forEach((id, item) -> {
@@ -293,7 +299,7 @@ public class DescriptionBuilder extends BaseBuilder<Description, DescriptionEnti
         } else {
             FieldSet clone = new BaseFieldSet(fields.getFields()).ensure(DescriptionTemplate._id);
             DescriptionTemplateQuery q = this.queryFactory.query(DescriptionTemplateQuery.class).disableTracking().authorize(this.authorize).ids(data.stream().map(DescriptionEntity::getDescriptionTemplateId).distinct().collect(Collectors.toList()));
-            itemMap = this.builderFactory.builder(DescriptionTemplateBuilder.class).authorize(this.authorize).asForeignKey(q, clone, DescriptionTemplate::getId);
+            itemMap = this.builderFactory.builder(DescriptionTemplateBuilder.class).authorize(this.authorize).isPublic(this.isPublic).asForeignKey(q, clone, DescriptionTemplate::getId);
         }
         if (!fields.hasField(DescriptionTemplate._id)) {
             itemMap.forEach((id, item) -> {
@@ -339,7 +345,7 @@ public class DescriptionBuilder extends BaseBuilder<Description, DescriptionEnti
         } else {
             FieldSet clone = new BaseFieldSet(fields.getFields()).ensure(Plan._id);
             PlanQuery q = this.queryFactory.query(PlanQuery.class).authorize(this.authorize).disableTracking().ids(data.stream().map(DescriptionEntity::getPlanId).distinct().collect(Collectors.toList()));
-            itemMap = this.builderFactory.builder(PlanBuilder.class).authorize(this.authorize).asForeignKey(q, clone, Plan::getId);
+            itemMap = this.builderFactory.builder(PlanBuilder.class).authorize(this.authorize).isPublic(this.isPublic).asForeignKey(q, clone, Plan::getId);
         }
         if (!fields.hasField(Plan._id)) {
             itemMap.forEach((id, item) -> {
@@ -358,7 +364,7 @@ public class DescriptionBuilder extends BaseBuilder<Description, DescriptionEnti
         Map<UUID, List<DescriptionReference>> itemMap;
         FieldSet clone = new BaseFieldSet(fields.getFields()).ensure(this.asIndexer(DescriptionReference._description, Description._id));
         DescriptionReferenceQuery query = this.queryFactory.query(DescriptionReferenceQuery.class).disableTracking().authorize(this.authorize).descriptionIds(data.stream().map(DescriptionEntity::getId).distinct().collect(Collectors.toList()));
-        itemMap = this.builderFactory.builder(DescriptionReferenceBuilder.class).authorize(this.authorize).asMasterKey(query, clone, x -> x.getDescription().getId());
+        itemMap = this.builderFactory.builder(DescriptionReferenceBuilder.class).authorize(this.authorize).isPublic(this.isPublic).asMasterKey(query, clone, x -> x.getDescription().getId());
 
         if (!fields.hasField(this.asIndexer(DescriptionReference._description, Description._id))) {
             itemMap.values().stream().flatMap(List::stream).filter(x -> x != null && x.getDescription() != null).forEach(x -> {
@@ -376,7 +382,7 @@ public class DescriptionBuilder extends BaseBuilder<Description, DescriptionEnti
         Map<UUID, List<DescriptionTag>> itemMap;
         FieldSet clone = new BaseFieldSet(fields.getFields()).ensure(this.asIndexer(DescriptionTag._description, Description._id));
         DescriptionTagQuery query = this.queryFactory.query(DescriptionTagQuery.class).disableTracking().authorize(this.authorize).descriptionIds(data.stream().map(DescriptionEntity::getId).distinct().collect(Collectors.toList()));
-        itemMap = this.builderFactory.builder(DescriptionTagBuilder.class).authorize(this.authorize).asMasterKey(query, clone, x -> x.getDescription().getId());
+        itemMap = this.builderFactory.builder(DescriptionTagBuilder.class).authorize(this.authorize).isPublic(this.isPublic).asMasterKey(query, clone, x -> x.getDescription().getId());
 
         if (!fields.hasField(this.asIndexer(DescriptionTag._description, Description._id))) {
             itemMap.values().stream().flatMap(List::stream).filter(x -> x != null && x.getDescription() != null).forEach(x -> {
@@ -394,7 +400,7 @@ public class DescriptionBuilder extends BaseBuilder<Description, DescriptionEnti
         if (description == null) return allowed;
 
         String editPermission = this.customPolicyService.getDescriptionStatusCanEditStatusPermission(description.getStatusId());
-        AffiliatedResource affiliatedResource = this.authorizationContentResolver.descriptionAffiliation(description.getId());
+        AffiliatedResource affiliatedResource = this.authorizationContentResolverFactory.getInstance().descriptionAffiliation(description.getId());
         for (String permission : statusAuthorizationFlags.getFields()) {
             if (statusAuthorizationFlags.hasField(this.asIndexer(DescriptionStatusDefinitionAuthorization._edit))) {
                 Boolean isAllowed = affiliatedResource == null ? this.authorizationService.authorize(editPermission) : this.authorizationService.authorizeAtLeastOne(List.of(affiliatedResource), editPermission);

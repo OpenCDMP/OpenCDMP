@@ -10,8 +10,8 @@ import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.Predicate;
 import org.opencdmp.authorization.AuthorizationFlags;
 import org.opencdmp.authorization.Permission;
-import org.opencdmp.commons.scope.user.UserScope;
-import org.opencdmp.data.TenantEntityManager;
+import org.opencdmp.commons.scope.user.UserScopeFactory;
+import org.opencdmp.data.TenantEntityManagerFactory;
 import org.opencdmp.data.UserCredentialEntity;
 import org.opencdmp.model.usercredential.UserCredential;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
@@ -31,13 +31,13 @@ public class UserCredentialQuery extends QueryBase<UserCredentialEntity> {
 
     private EnumSet<AuthorizationFlags> authorize = EnumSet.of(AuthorizationFlags.None);
 
-    private final UserScope userScope;
+    private final UserScopeFactory userScopeFactory;
     private final AuthorizationService authService;
-    private final TenantEntityManager tenantEntityManager;
-    public UserCredentialQuery(UserScope userScope, AuthorizationService authService, TenantEntityManager tenantEntityManager) {
-        this.userScope = userScope;
+    private final TenantEntityManagerFactory tenantEntityManagerFactory;
+    public UserCredentialQuery(UserScopeFactory userScopeFactory, AuthorizationService authService, TenantEntityManagerFactory tenantEntityManagerFactory) {
+        this.userScopeFactory = userScopeFactory;
         this.authService = authService;
-	    this.tenantEntityManager = tenantEntityManager;
+	    this.tenantEntityManagerFactory = tenantEntityManagerFactory;
     }
 
     public UserCredentialQuery ids(UUID value) {
@@ -117,7 +117,7 @@ public class UserCredentialQuery extends QueryBase<UserCredentialEntity> {
 
     @Override
     protected EntityManager entityManager(){
-        return this.tenantEntityManager.getEntityManager();
+        return this.tenantEntityManagerFactory.getInstance().getEntityManager();
     }
 
     @Override
@@ -139,7 +139,7 @@ public class UserCredentialQuery extends QueryBase<UserCredentialEntity> {
         if (this.authorize.contains(AuthorizationFlags.None)) return null;
         if (this.authorize.contains(AuthorizationFlags.Permission) && this.authService.authorize(Permission.BrowseUser)) return null;
         UUID userId;
-        if (this.authorize.contains(AuthorizationFlags.Owner)) userId = this.userScope.getUserIdSafe();
+        if (this.authorize.contains(AuthorizationFlags.Owner)) userId = this.userScopeFactory.getInstance().getUserIdSafe();
         else  userId = null;
 
         List<Predicate> predicates = new ArrayList<>();

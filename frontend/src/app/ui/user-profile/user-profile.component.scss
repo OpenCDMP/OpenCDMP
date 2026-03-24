@@ -1,7 +1,7 @@
 .profile {
 	height: fit-content;
 	min-height: 100vh;
-	background-color: var(--sys-surface);
+	background-color: var(--mat-sys-surface);
 }
 
 .user-profile {
@@ -14,10 +14,10 @@
 	}
 
 	.user-profile-title {
-        font-size: var(--sys-headline-medium-size);
+        font-size: var(--mat-sys-headline-medium-size);
 		padding: 3rem;
         .title {
-            font-size: var(--sys-display-small-size);
+            font-size: var(--mat-sys-display-small-size);
         }
 	}
 
@@ -45,9 +45,9 @@
 		}
 	}
 	.name {
-		color: var(--sys-primary);
+		color: var(--mat-sys-primary);
 		font-weight: 500;
-		font-size: var(--sys-headline-medium-size);
+		font-size: var(--mat-sys-headline-medium-size);
 		line-height: 3rem;
 	}
 
@@ -56,14 +56,14 @@
 	}
 
 	.mail {
-		color: var(--sys-primary);
+		color: var(--mat-sys-primary);
 		font-weight: 500;
 	}
 
 	.field-title {
 		color: var(--dark-text);
 		opacity: 0.81;
-		font-size: var(--sys-headline-medium-size);
+		font-size: var(--mat-sys-headline-medium-size);
 		font-weight: 500;
 	}
 }
@@ -92,7 +92,7 @@
 }
 
 .vertical-line {
-	border-left: 2px solid var(--sys-primary);
+	border-left: 2px solid var(--mat-sys-primary);
 }
 
 .email-title {
@@ -109,7 +109,7 @@
 }
 
 .check-icon {
-	color: var(--sys-primary);
+	color: var(--mat-sys-primary);
 	transform: scale(0.75);
 	padding: 0.4rem;
 }
@@ -130,7 +130,7 @@
 	cursor: pointer;
 
 	mat-icon {
-		color: var(--sys-primary);
+		color: var(--mat-sys-primary);
 		display: inline-flex;
 		vertical-align: middle;
 	}
@@ -162,7 +162,7 @@
 	cursor: pointer;
 
 	mat-icon {
-		color: var(--sys-primary);
+		color: var(--mat-sys-primary);
 		display: inline-flex;
 		vertical-align: middle;
 	}

@@ -12,7 +12,7 @@
     text-overflow: ellipsis;
     max-width: min(20vw, 20rem);
     font-weight: bold;
-	color: var(--sys-on-surface);
+	color: var(--mat-sys-on-surface);
 }
 
 .confirmation-dialog {
@@ -34,7 +34,7 @@
 	word-wrap: break-word;
 	border-radius: 6px;
 	color: #333333;
-	background: var(--sys-surface);
+	background: var(--mat-sys-surface);
 	width: 100%;
 	min-height: 90%;
 	max-height: 90%;
@@ -58,7 +58,7 @@
 
 
 .descriptions span {
-	color: var(--sys-primary);
+	color: var(--mat-sys-primary);
 }
 
 .emptyList {

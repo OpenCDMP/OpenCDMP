@@ -24,7 +24,7 @@ import org.opencdmp.commons.enums.UsageLimitTargetMetric;
 import org.opencdmp.commons.types.evaluation.*;
 import org.opencdmp.convention.ConventionService;
 import org.opencdmp.data.EvaluationEntity;
-import org.opencdmp.data.TenantEntityManager;
+import org.opencdmp.data.TenantEntityManagerFactory;
 import org.opencdmp.errorcode.ErrorThesaurusProperties;
 import org.opencdmp.evaluatorbase.interfaces.SelectionConfiguration;
 import org.opencdmp.evaluatorbase.interfaces.ValueRangeConfiguration;
@@ -52,7 +52,7 @@ import java.util.UUID;
 public class EvaluationServiceImpl implements EvaluationService {
 
     private static final LoggerService logger = new LoggerService(LoggerFactory.getLogger(EvaluationServiceImpl.class));
-    private final TenantEntityManager entityManager;
+    private final TenantEntityManagerFactory tenantEntityManagerFactory;
     private final AuthorizationService authorizationService;
     private final DeleterFactory deleterFactory;
     private final BuilderFactory builderFactory;
@@ -66,10 +66,10 @@ public class EvaluationServiceImpl implements EvaluationService {
     private final ValidatorFactory validatorFactory;
 
     public EvaluationServiceImpl(
-            TenantEntityManager entityManager, AuthorizationService authorizationService, DeleterFactory deleterFactory, BuilderFactory builderFactory,
+            TenantEntityManagerFactory tenantEntityManagerFactory, AuthorizationService authorizationService, DeleterFactory deleterFactory, BuilderFactory builderFactory,
             ConventionService conventionService, MessageSource messageSource,
             XmlHandlingService xmlHandlingService, ErrorThesaurusProperties errors, QueryFactory queryFactory, UsageLimitService usageLimitService, AccountingService accountingService, ValidatorFactory validatorFactory) {
-        this.entityManager = entityManager;
+        this.tenantEntityManagerFactory = tenantEntityManagerFactory;
         this.authorizationService = authorizationService;
         this.deleterFactory = deleterFactory;
         this.builderFactory = builderFactory;
@@ -93,7 +93,7 @@ public class EvaluationServiceImpl implements EvaluationService {
 
         EvaluationEntity data;
         if (isUpdate) {
-            data = this.entityManager.find(EvaluationEntity.class, model.getId());
+            data = this.tenantEntityManagerFactory.getInstance().find(EvaluationEntity.class, model.getId());
             if (data == null)
                 throw new MyNotFoundException(this.messageSource.getMessage("General_ItemNotFound", new Object[]{model.getId(), Evaluation.class.getSimpleName()}, LocaleContextHolder.getLocale()));
             if (!this.conventionService.hashValue(data.getUpdatedAt()).equals(model.getHash())) throw new MyValidationException(this.errors.getHashConflict().getCode(), this.errors.getHashConflict().getMessage());
@@ -114,15 +114,15 @@ public class EvaluationServiceImpl implements EvaluationService {
         data.setUpdatedAt(Instant.now());
         data.setCreatedById(model.getCreatedById());
 
-        if (isUpdate) this.entityManager.merge(data);
+        if (isUpdate) this.tenantEntityManagerFactory.getInstance().merge(data);
         else {
-            this.entityManager.persist(data);
+            this.tenantEntityManagerFactory.getInstance().persist(data);
             if(model.getEntityType() == EntityType.Plan) this.accountingService.increase(UsageLimitTargetMetric.EVALUATION_PLAN_EXECUTION_COUNT.getValue());
             if(model.getEntityType() == EntityType.Description) this.accountingService.increase(UsageLimitTargetMetric.EVALUATION_DESCRIPTION_EXECUTION_COUNT.getValue());
 
         }
 
-        this.entityManager.flush();
+        this.tenantEntityManagerFactory.getInstance().flush();
 
         return this.builderFactory.builder(EvaluationBuilder.class).authorize(AuthorizationFlags.AllExceptPublic).build(BaseFieldSet.build(fields, Evaluation._id), data);
     }

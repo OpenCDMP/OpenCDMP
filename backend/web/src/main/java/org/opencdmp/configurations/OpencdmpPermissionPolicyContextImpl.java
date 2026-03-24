@@ -8,10 +8,13 @@ import org.opencdmp.event.PlanStatusTouchedEvent;
 import org.opencdmp.service.custompolicy.CustomPolicyCacheService;
 import org.opencdmp.service.custompolicy.CustomPolicyService;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.annotation.Primary;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 
-
+@Qualifier("OpencdmpPermissionPolicyContextImpl")
+@Primary
 @Service
 public class OpencdmpPermissionPolicyContextImpl extends PermissionPolicyContextImpl {
 

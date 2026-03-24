@@ -208,6 +208,8 @@ export class ReferenceTypeFieldEditorModel implements ReferenceTypeFieldPersist 
 	label: string;
 	description: string;
 	dataType: ReferenceFieldDataType;
+	semantics: string[];
+	required: boolean;
 
 	protected formBuilder: UntypedFormBuilder = new UntypedFormBuilder();
 
@@ -221,6 +223,8 @@ export class ReferenceTypeFieldEditorModel implements ReferenceTypeFieldPersist 
 			this.label = item.label;
 			this.description = item.description;
 			this.dataType = item.dataType;
+			this.semantics = item.semantics;
+			this.required = item.required;
 		}
 		return this;
 	}
@@ -243,6 +247,8 @@ export class ReferenceTypeFieldEditorModel implements ReferenceTypeFieldPersist 
 			label: [{ value: this.label, disabled: disabled }, context.getValidation('label').validators],
 			description: [{ value: this.description, disabled: disabled }, context.getValidation('description').validators],
 			dataType: [{ value: this.dataType, disabled: disabled }, context.getValidation('dataType').validators],
+			semantics: [{ value: this.semantics, disabled: disabled }, context.getValidation('semantics').validators],
+			required: [{ value: this.required, disabled: disabled }, context.getValidation('required').validators],
 		});
 	}
 
@@ -258,6 +264,8 @@ export class ReferenceTypeFieldEditorModel implements ReferenceTypeFieldPersist 
 		baseValidationArray.push({ key: 'label', validators: [Validators.required, BackendErrorValidator(validationErrorModel, `${rootPath}label`)] });
 		baseValidationArray.push({ key: 'description', validators: [BackendErrorValidator(validationErrorModel, `${rootPath}description`)] });
 		baseValidationArray.push({ key: 'dataType', validators: [Validators.required, BackendErrorValidator(validationErrorModel, `${rootPath}dataType`)] });
+		baseValidationArray.push({ key: 'semantics', validators: [BackendErrorValidator(validationErrorModel, `${rootPath}semantics`)] });
+		baseValidationArray.push({ key: 'required', validators: [Validators.required, BackendErrorValidator(validationErrorModel, `${rootPath}required`)] });
 
 		baseContext.validation = baseValidationArray;
 		return baseContext;
@@ -275,7 +283,7 @@ export class ReferenceTypeFieldEditorModel implements ReferenceTypeFieldPersist 
 			validationErrorModel
 		});
 
-		['code', 'label', 'description', 'dataType'].forEach(keyField => {
+		['code', 'label', 'description', 'dataType', 'semantics', 'required'].forEach(keyField => {
 			const control = formGroup?.get(keyField);
 			control?.clearValidators();
 			control?.addValidators(context.getValidation(keyField).validators);
@@ -288,4 +296,6 @@ export interface ReferenceTypeFieldFormGroup{
 	label: FormControl<string>;
 	description: FormControl<string>;
 	dataType: FormControl<ReferenceFieldDataType>;
+	semantics: FormControl<string[]>;
+	required: FormControl<boolean>;
 }

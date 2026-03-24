@@ -1,8 +1,9 @@
 import { Component, OnInit } from '@angular/core';
+import { TranslateModule } from '@ngx-translate/core';
 
 @Component({
     templateUrl: './page-not-found.component.html',
-    standalone: false
+    imports: [TranslateModule],
 })
 export class PageNotFoundComponent implements OnInit {
 

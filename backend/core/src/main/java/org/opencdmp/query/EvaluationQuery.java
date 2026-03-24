@@ -12,7 +12,7 @@ import org.opencdmp.commons.enums.EntityType;
 import org.opencdmp.commons.enums.EvaluationStatus;
 import org.opencdmp.commons.enums.IsActive;
 import org.opencdmp.data.EvaluationEntity;
-import org.opencdmp.data.TenantEntityManager;
+import org.opencdmp.data.TenantEntityManagerFactory;
 import org.opencdmp.model.evaluation.Evaluation;
 import org.opencdmp.query.utils.QueryUtilsService;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
@@ -165,16 +165,16 @@ public class EvaluationQuery extends QueryBase<EvaluationEntity> {
 
 
     private final QueryUtilsService queryUtilsService;
-    private final TenantEntityManager tenantEntityManager;
+    private final TenantEntityManagerFactory tenantEntityManagerFactory;
     public EvaluationQuery(
-		    QueryUtilsService queryUtilsService, TenantEntityManager tenantEntityManager) {
+		    QueryUtilsService queryUtilsService, TenantEntityManagerFactory tenantEntityManagerFactory) {
 	    this.queryUtilsService = queryUtilsService;
-	    this.tenantEntityManager = tenantEntityManager;
+	    this.tenantEntityManagerFactory = tenantEntityManagerFactory;
     }
 
     @Override
     protected EntityManager entityManager(){
-        return this.tenantEntityManager.getEntityManager();
+        return this.tenantEntityManagerFactory.getInstance().getEntityManager();
     }
 
     @Override

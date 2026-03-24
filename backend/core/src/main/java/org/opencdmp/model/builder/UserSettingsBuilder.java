@@ -1,12 +1,10 @@
 package org.opencdmp.model.builder;
 
 import org.opencdmp.authorization.AuthorizationFlags;
-import org.opencdmp.commons.scope.tenant.TenantScope;
+import org.opencdmp.commons.scope.tenant.TenantScopeFactory;
 import org.opencdmp.convention.ConventionService;
 import org.opencdmp.data.UserSettingsEntity;
 import org.opencdmp.model.UserSettings;
-import gr.cite.tools.data.builder.BuilderFactory;
-import gr.cite.tools.data.query.QueryFactory;
 import gr.cite.tools.exception.MyApplicationException;
 import gr.cite.tools.fieldset.FieldSet;
 import gr.cite.tools.logging.DataLogEntry;
@@ -23,13 +21,13 @@ import java.util.*;
 @Scope(value = ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 public class UserSettingsBuilder extends BaseBuilder<UserSettings, UserSettingsEntity> {
 
-	private final TenantScope tenantScope;
+	private final TenantScopeFactory tenantScopeFactory;
 
 	private EnumSet<AuthorizationFlags> authorize = EnumSet.of(AuthorizationFlags.None);
 
-	public UserSettingsBuilder(ConventionService conventionService, TenantScope tenantScope) {
+	public UserSettingsBuilder(ConventionService conventionService, TenantScopeFactory tenantScopeFactory) {
 		super(conventionService, new LoggerService(LoggerFactory.getLogger(UserSettingsBuilder.class)));
-		this.tenantScope = tenantScope;
+		this.tenantScopeFactory = tenantScopeFactory;
 	}
 
 	public UserSettingsBuilder authorize(EnumSet<AuthorizationFlags> values) {
@@ -54,7 +52,7 @@ public class UserSettingsBuilder extends BaseBuilder<UserSettings, UserSettingsE
 			if (fields.hasField(this.asIndexer(UserSettings._entityId))) m.setEntityId(d.getEntityId());
 			if (fields.hasField(this.asIndexer(UserSettings._createdAt))) m.setCreatedAt(d.getCreatedAt());
 			if (fields.hasField(this.asIndexer(UserSettings._updatedAt))) m.setUpdatedAt(d.getUpdatedAt());
-			if (fields.hasField(this.asIndexer(UserSettings._belongsToCurrentTenant))) m.setBelongsToCurrentTenant(this.getBelongsToCurrentTenant(d, this.tenantScope));
+			if (fields.hasField(this.asIndexer(UserSettings._belongsToCurrentTenant))) m.setBelongsToCurrentTenant(this.getBelongsToCurrentTenant(d, this.tenantScopeFactory.getInstance()));
 			if (fields.hasField(this.asIndexer(UserSettings._hash))) m.setHash(this.hashValue(Instant.ofEpochMilli(d.getUpdatedAt().toEpochMilli())));
 			models.add(m);
 		}

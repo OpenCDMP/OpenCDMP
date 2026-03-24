@@ -80,7 +80,7 @@ export class DescriptionEditorModel extends BaseEditorModel implements Descripti
 		const baseContext: ValidationContext = new ValidationContext();
 		const baseValidationArray: Validation[] = new Array<Validation>();
 		baseValidationArray.push({ key: 'id', validators: [BackendErrorValidator(this.validationErrorModel, 'id')] });
-		baseValidationArray.push({ key: 'label', validators: [CustomValidators.required(), BackendErrorValidator(this.validationErrorModel, 'label')] });
+		baseValidationArray.push({ key: 'label', validators: [CustomValidators.required(), Validators.maxLength(250), BackendErrorValidator(this.validationErrorModel, 'label')] });
 		baseValidationArray.push({ key: 'planId', validators: [CustomValidators.required(), BackendErrorValidator(this.validationErrorModel, 'planId')] });
 		baseValidationArray.push({ key: 'planDescriptionTemplateId', validators: [CustomValidators.required(), BackendErrorValidator(this.validationErrorModel, 'planDescriptionTemplateId')] });
 		baseValidationArray.push({ key: 'descriptionTemplateId', validators: [CustomValidators.required(), BackendErrorValidator(this.validationErrorModel, 'descriptionTemplateId')] });
@@ -559,7 +559,7 @@ export class DescriptionFieldEditorModel implements DescriptionFieldPersist {
 					reference: x.reference.reference,
 					source: x.reference.source,
 					typeId: x.reference.type.id,
-					description: x.reference.source,
+					description: x.reference.description,
 					definition: x.reference.definition,
 					abbreviation: x.reference.abbreviation,
 					sourceType: x.reference.sourceType

@@ -67,7 +67,7 @@ export class ReferenceTypeService {
 
 	// LOOKUP
 
-	public static DefaultReferenceTypeLookup(): ReferenceTypeLookup {
+	public static DefaultReferenceTypeLookup(isActive: IsActive[]): ReferenceTypeLookup {
 		const lookup = new ReferenceTypeLookup();
 
 		lookup.project = {
@@ -77,7 +77,7 @@ export class ReferenceTypeService {
 		};
 		lookup.order = { items: [nameof<ReferenceType>(x => x.code)] };
 		lookup.page = { offset: 0, size: 100 };
-		lookup.isActive = [IsActive.Active];
+		lookup.isActive = isActive;
 		return lookup;
 	}
 
@@ -86,18 +86,18 @@ export class ReferenceTypeService {
 	//
 	//
 	public singleAutocompleteConfiguration: SingleAutoCompleteConfiguration = {
-		initialItems: (data?: any) => this.query(this.buildAutocompleteLookup()).pipe(map(x => x.items)),
-		filterFn: (searchQuery: string, data?: any) => this.query(this.buildAutocompleteLookup(searchQuery)).pipe(map(x => x.items)),
-		getSelectedItem: (selectedItem: any) => this.query(this.buildAutocompleteLookup(null, null, [selectedItem])).pipe(map(x => x.items[0])),
+		initialItems: (data?: any) => this.query(this.buildAutocompleteLookup([IsActive.Active])).pipe(map(x => x.items)),
+		filterFn: (searchQuery: string, data?: any) => this.query(this.buildAutocompleteLookup([IsActive.Active], searchQuery)).pipe(map(x => x.items)),
+		getSelectedItem: (selectedItem: any) => this.query(this.buildAutocompleteLookup([IsActive.Active, IsActive.Inactive], null, null, [selectedItem])).pipe(map(x => x.items[0])),
 		displayFn: (item: ReferenceType) => item.name,
 		titleFn: (item: ReferenceType) => item.name,
 		valueAssign: (item: ReferenceType) => item.id,
 	};
 
 	public multipleAutocompleteConfiguration: MultipleAutoCompleteConfiguration = {
-		initialItems: (excludedItems: any[], data?: any) => this.query(this.buildAutocompleteLookup(null, excludedItems ? excludedItems : null)).pipe(map(x => x.items)),
-		filterFn: (searchQuery: string, excludedItems: any[]) => this.query(this.buildAutocompleteLookup(searchQuery, excludedItems)).pipe(map(x => x.items)),
-		getSelectedItems: (selectedItems: any[]) => this.query(this.buildAutocompleteLookup(null, null, selectedItems)).pipe(map(x => x.items)),
+		initialItems: (excludedItems: any[], data?: any) => this.query(this.buildAutocompleteLookup([IsActive.Active], null, excludedItems ? excludedItems : null)).pipe(map(x => x.items)),
+		filterFn: (searchQuery: string, excludedItems: any[]) => this.query(this.buildAutocompleteLookup([IsActive.Active], searchQuery, excludedItems)).pipe(map(x => x.items)),
+		getSelectedItems: (selectedItems: any[]) => this.query(this.buildAutocompleteLookup([IsActive.Active, IsActive.Inactive], null, null, selectedItems)).pipe(map(x => x.items)),
 		displayFn: (item: ReferenceType) => item.name,
 		titleFn: (item: ReferenceType) => item.name,
 		valueAssign: (item: ReferenceType) => item.id,
@@ -105,21 +105,21 @@ export class ReferenceTypeService {
 
 	public getSingleAutocompleteConfiguration(excludedIds: Guid[] = null): SingleAutoCompleteConfiguration {
 		return {	
-			initialItems: (data?: any) => this.query(this.buildAutocompleteLookup(null, excludedIds)).pipe(map(x => x.items)),
-			filterFn: (searchQuery: string, data?: any) => this.query(this.buildAutocompleteLookup(searchQuery, excludedIds)).pipe(map(x => x.items)),
-			getSelectedItem: (selectedItem: any) => this.query(this.buildAutocompleteLookup(null, null, [selectedItem])).pipe(map(x => x.items[0])),
+			initialItems: (data?: any) => this.query(this.buildAutocompleteLookup([IsActive.Active], null, excludedIds)).pipe(map(x => x.items)),
+			filterFn: (searchQuery: string, data?: any) => this.query(this.buildAutocompleteLookup([IsActive.Active], searchQuery, excludedIds)).pipe(map(x => x.items)),
+			getSelectedItem: (selectedItem: any) => this.query(this.buildAutocompleteLookup([IsActive.Active, IsActive.Inactive], null, null, [selectedItem])).pipe(map(x => x.items[0])),
 			displayFn: (item: ReferenceType) => item.name,
 			titleFn: (item: ReferenceType) => item.name,
 			valueAssign: (item: ReferenceType) => item.id,
 		};
 	}
 
-	public buildAutocompleteLookup(like?: string, excludedIds?: Guid[], ids?: Guid[]): ReferenceTypeLookup {
+	public buildAutocompleteLookup(isActive: IsActive[], like?: string, excludedIds?: Guid[], ids?: Guid[]): ReferenceTypeLookup {
 		const lookup: ReferenceTypeLookup = new ReferenceTypeLookup();
 		lookup.page = { size: 100, offset: 0 };
 		if (excludedIds && excludedIds.length > 0) { lookup.excludedIds = excludedIds; }
 		if (ids && ids.length > 0) { lookup.ids = ids; }
-		lookup.isActive = [IsActive.Active];
+		lookup.isActive = isActive;
 		lookup.project = {
 			fields: [
 				nameof<ReferenceType>(x => x.id),

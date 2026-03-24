@@ -57,6 +57,10 @@ public class EventBroker {
         this.applicationEventPublisher.publishEvent(event);
     }
 
+    public void emit(PlanBlueprintTypeTouchedEvent event) {
+        this.applicationEventPublisher.publishEvent(event);
+    }
+
     public void emit(DescriptionStatusTouchedEvent event) {
         this.applicationEventPublisher.publishEvent(event);
     }

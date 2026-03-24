@@ -3,7 +3,7 @@ package org.opencdmp.model.deleter;
 import org.opencdmp.commons.enums.IsActive;
 import org.opencdmp.commons.enums.UsageLimitTargetMetric;
 import org.opencdmp.data.PrefillingSourceEntity;
-import org.opencdmp.data.TenantEntityManager;
+import org.opencdmp.data.TenantEntityManagerFactory;
 import org.opencdmp.query.PrefillingSourceQuery;
 import gr.cite.tools.data.deleter.Deleter;
 import gr.cite.tools.data.deleter.DeleterFactory;
@@ -28,7 +28,7 @@ import java.util.UUID;
 public class PrefillingSourceDeleter implements Deleter {
 
     private static final LoggerService logger = new LoggerService(LoggerFactory.getLogger(PrefillingSourceDeleter.class));
-    private final TenantEntityManager entityManager;
+    private final TenantEntityManagerFactory tenantEntityManagerFactory;
 
     protected final QueryFactory queryFactory;
 
@@ -37,11 +37,11 @@ public class PrefillingSourceDeleter implements Deleter {
 
     @Autowired
     public PrefillingSourceDeleter(
-            TenantEntityManager entityManager,
+            TenantEntityManagerFactory tenantEntityManagerFactory,
             QueryFactory queryFactory,
             DeleterFactory deleterFactory,
             AccountingService accountingService) {
-        this.entityManager = entityManager;
+        this.tenantEntityManagerFactory = tenantEntityManagerFactory;
         this.queryFactory = queryFactory;
         this.deleterFactory = deleterFactory;
         this.accountingService = accountingService;
@@ -58,7 +58,7 @@ public class PrefillingSourceDeleter implements Deleter {
         logger.debug("will delete {} items", Optional.ofNullable(data).map(List::size).orElse(0));
         this.delete(data);
         logger.trace("saving changes");
-        this.entityManager.flush();
+        this.tenantEntityManagerFactory.getInstance().flush();
         logger.trace("changes saved");
     }
 
@@ -74,7 +74,7 @@ public class PrefillingSourceDeleter implements Deleter {
             item.setIsActive(IsActive.Inactive);
             item.setUpdatedAt(now);
             logger.trace("updating item");
-            this.entityManager.merge(item);
+            this.tenantEntityManagerFactory.getInstance().merge(item);
             logger.trace("updated item");
             this.accountingService.decrease(UsageLimitTargetMetric.PREFILLING_SOURCES_COUNT.getValue());
         }

@@ -85,7 +85,7 @@ p {
 .plan-card,
 .description-card {
 	min-width: min(100%, 712px);
-	background: var(--sys-surface) 0% 0% no-repeat padding-box;
+	background: var(--mat-sys-surface) 0% 0% no-repeat padding-box;
 	box-shadow: 0px 3px 6px #0000001a;
 	border-radius: 4px;
 	opacity: 1;
@@ -113,17 +113,17 @@ input[type="text"] {
 	font-weight: 300;
 	line-height: 2.4;
 	letter-spacing: 0px;
-	color: var(--sys-on-surface);
+	color: var(--mat-sys-on-surface);
 	opacity: 0.7;
 }
 
 .plan-label {
-	background: var(--sys-primary) 0% 0% no-repeat padding-box;
+	background: var(--mat-sys-primary) 0% 0% no-repeat padding-box;
 	border-radius: 4px 0px;
 	opacity: 1;
 	min-width: 67px;
 	height: 37px;
-	color: var(--sys-on-primary);
+	color: var(--mat-sys-on-primary);
 	align-content: center;
 }
 
@@ -135,25 +135,28 @@ input[type="text"] {
 	font-weight: 600;
 	padding-top: 0.75rem;
 	padding-bottom: 0.55rem;
-	color: var(--sys-on-surface);
+	color: var(--mat-sys-on-surface);
     word-break: break-word;
 }
 .plan-title,
 .plan-title-draft {
-    font-size: var(--sys-title-medium-size);
+    font-size: var(--mat-sys-title-medium-size);
 }
 
 .description-subtitle,
 .plan-subtitle {
+	font-weight: 400;
+	font-size: var(--mat-sys-title-small-size);
+	opacity: 1;
+	color: var(--gray);
+}
+
+.plan-subtitle--display {
 	display: flex;
 	flex-direction: row;
     flex-wrap: wrap;
 	text-align: left;
-	font-weight: 400;
-	font-size: var(--sys-title-small-size);
-	opacity: 1;
 	align-items: center;
-	color: var(--gray);
 }
 
 .plan-title-draft,
@@ -206,7 +209,7 @@ input[type="text"] {
 
 .description-card-actions div:hover,
 .plan-card-actions div:hover {
-	color: var(--sys-primary) !important;
+	color: var(--mat-sys-primary) !important;
 }
 
 .plan-description-descriptions-title {
@@ -225,7 +228,7 @@ input[type="text"] {
 
 
 .show-more:hover {
-	color: var(--sys-primary) !important;
+	color: var(--mat-sys-primary) !important;
 }
 
 
@@ -241,4 +244,8 @@ input[type="text"] {
 .status-logo {
 	height: 1.25rem;
 	width:  1.25rem; 
+}
+
+.info-grid {
+    row-gap: 0.25rem;
 }

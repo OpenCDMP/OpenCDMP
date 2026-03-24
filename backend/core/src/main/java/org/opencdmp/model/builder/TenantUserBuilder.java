@@ -8,7 +8,7 @@ import gr.cite.tools.fieldset.FieldSet;
 import gr.cite.tools.logging.DataLogEntry;
 import gr.cite.tools.logging.LoggerService;
 import org.opencdmp.authorization.AuthorizationFlags;
-import org.opencdmp.commons.scope.tenant.TenantScope;
+import org.opencdmp.commons.scope.tenant.TenantScopeFactory;
 import org.opencdmp.convention.ConventionService;
 import org.opencdmp.data.TenantUserEntity;
 import org.opencdmp.model.Tenant;
@@ -31,7 +31,7 @@ public class TenantUserBuilder extends BaseBuilder<TenantUser, TenantUserEntity>
 
 	private final BuilderFactory builderFactory;
 	private final QueryFactory queryFactory;
-	private final TenantScope tenantScope;
+	private final TenantScopeFactory tenantScopeFactory;
 
 	private EnumSet<AuthorizationFlags> authorize = EnumSet.of(AuthorizationFlags.None);
 
@@ -39,12 +39,12 @@ public class TenantUserBuilder extends BaseBuilder<TenantUser, TenantUserEntity>
 	public TenantUserBuilder(
 			ConventionService conventionService,
 			BuilderFactory builderFactory,
-			QueryFactory queryFactory, TenantScope tenantScope
+			QueryFactory queryFactory, TenantScopeFactory tenantScopeFactory
 	) {
 		super(conventionService, new LoggerService(LoggerFactory.getLogger(TenantUserBuilder.class)));
 		this.builderFactory = builderFactory;
 		this.queryFactory = queryFactory;
-		this.tenantScope = tenantScope;
+		this.tenantScopeFactory = tenantScopeFactory;
 	}
 
 	public TenantUserBuilder authorize(EnumSet<AuthorizationFlags> values) {
@@ -73,7 +73,7 @@ public class TenantUserBuilder extends BaseBuilder<TenantUser, TenantUserEntity>
 			if (fields.hasField(this.asIndexer(TenantUser._createdAt))) m.setCreatedAt(d.getCreatedAt());
 			if (fields.hasField(this.asIndexer(TenantUser._updatedAt))) m.setUpdatedAt(d.getUpdatedAt());
 			if (fields.hasField(this.asIndexer(TenantUser._isActive))) m.setIsActive(d.getIsActive());
-			if (fields.hasField(this.asIndexer(TenantUser._belongsToCurrentTenant))) m.setBelongsToCurrentTenant(this.getBelongsToCurrentTenant(d, this.tenantScope));
+			if (fields.hasField(this.asIndexer(TenantUser._belongsToCurrentTenant))) m.setBelongsToCurrentTenant(this.getBelongsToCurrentTenant(d, this.tenantScopeFactory.getInstance()));
 			if (!userFields.isEmpty() && userMap != null && userMap.containsKey(d.getUserId())) m.setUser(userMap.get(d.getUserId()));
 			if (!tenantFields.isEmpty() && tenantMap != null && tenantMap.containsKey(d.getTenantId())) m.setTenant(tenantMap.get(d.getTenantId()));
 			models.add(m);

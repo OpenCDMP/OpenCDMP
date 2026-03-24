@@ -1,22 +1,23 @@
 import { CleanupJsonString } from "@common/forms/validation/custom-validator";
 import { argbFromHex, themeFromSourceColor, applyTheme } from "@material/material-color-utilities";
 
+const materialPrefixRe = /(--md-sys-color|--mat-sys-color|mat-sys-color|md-sys-color|--mat-sys|--md-sys|md-sys|mat-sys)/g;
 const FONT_VARS = [
-    "--sys-body-large-size",
-    "--sys-body-medium-size",
-    "--sys-body-small-size",
-    "--sys-display-large-size",
-    "--sys-display-medium-size",
-    "--sys-display-small-size",
-    "--sys-headline-large-size",
-    "--sys-headline-medium-size",
-    "--sys-headline-small-size",
-    "--sys-label-large-size",
-    "--sys-label-medium-size",
-    "--sys-label-small-size",
-    "--sys-title-large-size",
-    "--sys-title-medium-size",
-    "--sys-title-small-size",
+    "--mat-sys-body-large-size",
+    "--mat-sys-body-medium-size",
+    "--mat-sys-body-small-size",
+    "--mat-sys-display-large-size",
+    "--mat-sys-display-medium-size",
+    "--mat-sys-display-small-size",
+    "--mat-sys-headline-large-size",
+    "--mat-sys-headline-medium-size",
+    "--mat-sys-headline-small-size",
+    "--mat-sys-label-large-size",
+    "--mat-sys-label-medium-size",
+    "--mat-sys-label-small-size",
+    "--mat-sys-title-large-size",
+    "--mat-sys-title-medium-size",
+    "--mat-sys-title-small-size",
     "--mat-standard-button-toggle-label-text-size"
 ]
 
@@ -34,22 +35,35 @@ export function generateDynamicTheme(primaryColor: string) {
     const targetElement = document.documentElement;
 
     // Get the theme from a hex color
-    const theme = themeFromSourceColor(argbPrimary);
+    const theme = themeFromSourceColor(argbPrimary, [
+        {
+            name: "custom-theme",
+            value: argbPrimary,
+            blend: true,
+        }
+    ]);
 
-    // Apply theme to root element
-    applyTheme(theme, {
-      target: targetElement,
-      dark: false,
-      brightnessSuffix: true,
-    });
 
-    const styles = targetElement.style;
+    // Apply the theme to the body by updating custom properties for material tokens
+    applyTheme(theme, {target: targetElement, dark: false})
+    // // Get the theme from a hex color
+    // const theme = themeFromSourceColor(argbPrimary);
 
-    for (const key in styles) {
-      if (Object.prototype.hasOwnProperty.call(styles, key)) {
-        const propName = styles[key];
-        if (propName.indexOf('--md-sys') === 0) {
-          const sysPropName = '--sys' + propName.replace('--md-sys-color', '');
+    // // Apply theme to root element
+    // applyTheme(theme, {
+    //   target: targetElement,
+    //   dark: false,
+    //   brightnessSuffix: true,
+    // });
+
+    // const styles = targetElement.style;
+
+    // values are set as --md-sys. Need to be replaced with mat-sys
+    for (const key in targetElement.style) {
+      if (Object.prototype.hasOwnProperty.call(targetElement.style, key)) {
+        const propName = targetElement.style[key];
+        if (materialPrefixRe.test(propName)) {
+          const sysPropName = '--mat-sys' + propName.replace(materialPrefixRe, '');
           targetElement.style.setProperty(
             sysPropName,
             targetElement.style.getPropertyValue(propName)
@@ -69,8 +83,8 @@ export function overrideCss(input: string){
         return;
     }
     for (const [key, rgba] of Object.entries(json)) {
-        if (key.indexOf('--md-sys') === 0) {
-          const sysPropName = '--sys' + key.replace('--md-sys-color', '');
+        if (materialPrefixRe.test(key)) {
+          const sysPropName = '--mat-sys' + key.replace(materialPrefixRe, '');
           targetElement.style.setProperty(
             sysPropName,
             rgba.toString()

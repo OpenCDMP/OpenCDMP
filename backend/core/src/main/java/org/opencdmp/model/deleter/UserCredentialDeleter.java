@@ -4,7 +4,7 @@ import gr.cite.tools.data.deleter.Deleter;
 import gr.cite.tools.data.query.QueryFactory;
 import gr.cite.tools.logging.LoggerService;
 import gr.cite.tools.logging.MapLogEntry;
-import org.opencdmp.data.TenantEntityManager;
+import org.opencdmp.data.TenantEntityManagerFactory;
 import org.opencdmp.data.UserCredentialEntity;
 import org.opencdmp.event.EventBroker;
 import org.opencdmp.event.UserCredentialTouchedEvent;
@@ -26,7 +26,7 @@ import java.util.UUID;
 public class UserCredentialDeleter implements Deleter {
 
     private static final LoggerService logger = new LoggerService(LoggerFactory.getLogger(UserCredentialDeleter.class));
-    private final TenantEntityManager entityManager;
+    private final TenantEntityManagerFactory tenantEntityManagerFactory;
 
     protected final QueryFactory queryFactory;
     private final KeycloakService keycloakService;
@@ -35,10 +35,10 @@ public class UserCredentialDeleter implements Deleter {
 
     @Autowired
     public UserCredentialDeleter(
-		    TenantEntityManager entityManager,
+		    TenantEntityManagerFactory tenantEntityManagerFactory,
 		    QueryFactory queryFactory, KeycloakService keycloakService, EventBroker eventBroker
     ) {
-        this.entityManager = entityManager;
+        this.tenantEntityManagerFactory = tenantEntityManagerFactory;
         this.queryFactory = queryFactory;
 	    this.keycloakService = keycloakService;
 	    this.eventBroker = eventBroker;
@@ -55,7 +55,7 @@ public class UserCredentialDeleter implements Deleter {
         logger.debug("will delete {} items", Optional.ofNullable(data).map(List::size).orElse(0));
         this.delete(data);
         logger.trace("saving changes");
-        this.entityManager.flush();
+        this.tenantEntityManagerFactory.getInstance().flush();
         logger.trace("changes saved");
     }
 
@@ -67,7 +67,7 @@ public class UserCredentialDeleter implements Deleter {
         for (UserCredentialEntity item : data) {
             logger.trace("deleting item {}", item.getId());
             logger.trace("deleting item");
-            this.entityManager.remove(item);
+            this.tenantEntityManagerFactory.getInstance().remove(item);
             logger.trace("deleted item");
             
             this.keycloakService.removeFromAllGroups(item.getExternalId());

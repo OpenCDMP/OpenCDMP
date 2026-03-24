@@ -15,7 +15,7 @@
 }
 
 .stepper{
-    background-color: var(--sys-background);
+    background-color: var(--mat-sys-background);
 }
 
 .table-container {
@@ -23,7 +23,7 @@
 }
 
 .content-displayer, .general-info{
-	background-color: var(--sys-surface);
+	background-color: var(--mat-sys-surface);
 	border-radius: 7px;
 	box-shadow: 0px 1px 2px #bfbfbf;
 	padding: 0em;
@@ -32,7 +32,7 @@
 .heading {
 	text-align: left;
 	font-weight: 700;
-	font-size: var(--sys-headline-medium-size);
+	font-size: var(--mat-sys-headline-medium-size);
 	letter-spacing: 0px;
 	opacity: 0.9;
 	margin-bottom: 0.625rem;
@@ -41,7 +41,7 @@
 .hint {
 	text-align: left;
 	font-weight: 400;
-	font-size: var(--sys-body-medium-size);
+	font-size: var(--mat-sys-body-medium-size);
 	letter-spacing: 0px;
 	opacity: 0.9;
 	margin-bottom: 0.125rem;
@@ -59,7 +59,7 @@
 
 
 
-$blue-color : var(--sys-primary);
+$blue-color : var(--mat-sys-primary);
 $blue-color-light: #5cf7f2;
 
 
@@ -72,7 +72,7 @@ $blue-color-light: #5cf7f2;
 
 
 .actions-list{
-	box-shadow: 0px 3px 12px var(--sys-primary)99;
+	box-shadow: 0px 3px 12px var(--mat-sys-primary)99;
 	border-radius: 4px;
 	padding: 1em 0.9em;
 	min-width: 166px;
@@ -94,14 +94,14 @@ $blue-color-light: #5cf7f2;
 			margin-right: 0.5em;
 			margin-left: -.09em;
 			height: auto;
-			color: var(--sys-primary);;
+			color: var(--mat-sys-primary);;
 		}
 		.input_icon{
 			width: 14px;
 			margin-right: .5em;
 		}
 		.action-list-text{
-			font-size: var(--sys-headline-small-size);
+			font-size: var(--mat-sys-headline-small-size);
 		}
 	}
 	.action-list-label{
@@ -119,7 +119,7 @@ $blue-color-light: #5cf7f2;
 }
 
 :host ::ng-deep .mat-form-field-appearance-outline .mat-form-field-infix {
-	font-size: var(--sys-body-medium-size);
+	font-size: var(--mat-sys-body-medium-size);
 	padding: 0.6em 0 1em 0 !important;
 }
 
@@ -179,14 +179,14 @@ $blue-color-light: #5cf7f2;
 	position: fixed;
 	bottom: 20em;
 	right: 2em;
-	color: var(--sys-primary) !important;
+	color: var(--mat-sys-primary) !important;
 	cursor: pointer;
-	font-size: var(--sys-body-medium-size);
+	font-size: var(--mat-sys-body-medium-size);
 	font-weight: 400;
     border: none;
     background-color: transparent;
     &:focus, &:hover {
-        color: hsl(from var(--sys-primary) h s calc(l + 4)) !important;
+        color: hsl(from var(--mat-sys-primary) h s calc(l + 4)) !important;
     }
 }
 

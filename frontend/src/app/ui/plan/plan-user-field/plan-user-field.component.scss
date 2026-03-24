@@ -10,7 +10,7 @@
 
 .drag-handle {
 	cursor: move; 
-	color: var(--sys-primary);
+	color: var(--mat-sys-primary);
 }
 
 .drag-handle-disabled {
@@ -30,7 +30,7 @@
 }
 
 .title-size-md {
-    font-size: var(--sys-headline-medium-size)
+    font-size: var(--mat-sys-headline-medium-size)
 }
 
 .horizontal-toggle-group {
@@ -51,5 +51,5 @@
 
 
 .reorder-mode:focus {
-    border: 1px solid var(--sys-primary)
+    border: 1px solid var(--mat-sys-primary)
 }

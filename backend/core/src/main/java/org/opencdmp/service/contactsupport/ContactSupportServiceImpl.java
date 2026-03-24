@@ -10,7 +10,7 @@ import org.opencdmp.commons.JsonHandlingService;
 import org.opencdmp.commons.enums.ContactInfoType;
 import org.opencdmp.commons.enums.notification.NotificationContactType;
 import org.opencdmp.commons.notification.NotificationProperties;
-import org.opencdmp.commons.scope.user.UserScope;
+import org.opencdmp.commons.scope.user.UserScopeFactory;
 import org.opencdmp.commons.types.notification.*;
 import org.opencdmp.data.UserContactInfoEntity;
 import org.opencdmp.integrationevent.outbox.notification.NotifyIntegrationEvent;
@@ -39,7 +39,7 @@ public class ContactSupportServiceImpl implements ContactSupportService {
 
     private final JsonHandlingService jsonHandlingService;
 
-    private final UserScope userScope;
+    private final UserScopeFactory userScopeFactory;
 
     private final NotifyIntegrationEventHandler notifyIntegrationEventHandler;
 
@@ -49,13 +49,13 @@ public class ContactSupportServiceImpl implements ContactSupportService {
 		    AuthorizationService authorizationService,
 		    QueryFactory queryFactory,
 		    JsonHandlingService jsonHandlingService,
-		    UserScope userScope,
+		    UserScopeFactory userScopeFactory,
 		    NotifyIntegrationEventHandler notifyIntegrationEventHandler,
             NotificationProperties notificationProperties) {
         this.authorizationService = authorizationService;
         this.queryFactory = queryFactory;
         this.jsonHandlingService = jsonHandlingService;
-        this.userScope = userScope;
+        this.userScopeFactory = userScopeFactory;
 	    this.notifyIntegrationEventHandler = notifyIntegrationEventHandler;
 	    this.notificationProperties = notificationProperties;
     }
@@ -67,9 +67,9 @@ public class ContactSupportServiceImpl implements ContactSupportService {
         
         NotifyIntegrationEvent event = new NotifyIntegrationEvent();
 
-        event.setUserId(this.userScope.getUserId());
+        event.setUserId(this.userScopeFactory.getInstance().getUserId());
 
-        UserContactInfoQuery query = this.queryFactory.query(UserContactInfoQuery.class).disableTracking().userIds(this.userScope.getUserId());
+        UserContactInfoQuery query = this.queryFactory.query(UserContactInfoQuery.class).disableTracking().userIds(this.userScopeFactory.getInstance().getUserId());
         query.setOrder(new Ordering().addAscending(UserContactInfo._ordinal));
         UserContactInfoEntity contactInfo = query.first();
         

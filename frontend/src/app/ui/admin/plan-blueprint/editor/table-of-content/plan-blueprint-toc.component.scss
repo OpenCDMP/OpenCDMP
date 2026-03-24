@@ -9,7 +9,7 @@
 
 .stepper-list {
     .main-section {
-        font-size: var(--sys-title-medium-size);
+        font-size: var(--mat-sys-title-medium-size);
     }
     
     .label {
@@ -29,7 +29,7 @@
         }
     }
     .section-fields {
-        border-left: 2px solid var(--sys-primary);
+        border-left: 2px solid var(--mat-sys-primary);
         border-top-left-radius: 0;
         border-bottom-left-radius: 0;
         &.empty-list{
@@ -46,27 +46,14 @@
         text-overflow: ellipsis;
     }
       
-    .add-btn {
-        margin-left: 1rem;
-        color: var(--sys-on-background);
-        mat-icon {
-            color: var(--sys-primary);
-        }
-        &.disabled {
-            color: var(--mdc-text-button-disabled-label-text-color);
-            mat-icon {
-                color: var(--mdc-text-button-disabled-label-text-color)
-            }
-        }
-    }
     
 }
 .remove-btn {
     background-color: transparent;
     box-shadow: none;
-    color: var(--sys-error);
+    color: var(--mat-sys-error);
     &:hover {
-        color: hsl(from var(--sys-error) h s calc(l - 4)) !important;
+        color: hsl(from var(--mat-sys-error) h s calc(l - 4)) !important;
         box-shadow: none;
     }
     mat-icon{

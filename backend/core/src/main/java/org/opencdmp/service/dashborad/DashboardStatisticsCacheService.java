@@ -1,6 +1,5 @@
 package org.opencdmp.service.dashborad;
 
-import org.opencdmp.commons.scope.user.UserScope;
 import org.opencdmp.model.DashboardStatistics;
 import gr.cite.tools.cache.CacheService;
 import org.springframework.beans.factory.annotation.Autowired;

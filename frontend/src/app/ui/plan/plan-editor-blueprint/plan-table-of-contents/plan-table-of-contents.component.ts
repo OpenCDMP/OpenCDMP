@@ -1,4 +1,5 @@
 import {
+    AfterViewInit,
 	Component,
 	computed,
 	effect,
@@ -20,7 +21,7 @@ import { IsActive } from '@notification-service/core/enum/is-active.enum';
 import { AppPermission } from '@app/core/common/enum/permission.enum';
 import { PlanStatusEnum } from '@app/core/common/enum/plan-status';
 import { DescriptionStatusEnum } from '@app/core/common/enum/description-status';
-import { debounceTime, distinctUntilChanged, filter, mergeMap, Observable, takeUntil } from 'rxjs';
+import { debounceTime, distinctUntilChanged, filter, map, mergeMap, Observable, takeUntil } from 'rxjs';
 import { ToCEntry } from '@app/ui/description/editor/table-of-contents/models/toc-entry';
 import { DescriptionInfo, PlanTempStorageService } from '../plan-temp-storage.service';
 import { TableOfContentsComponent } from '@app/ui/description/editor/table-of-contents/table-of-contents.component';
@@ -32,6 +33,9 @@ import {
 	FormAnnotationService,
 	MULTI_FORM_ANNOTATION_SERVICE_TOKEN
 } from "@app/ui/annotations/annotation-dialog-component/form-annotation.service";
+import { PlanWebSocketService } from '@app/core/services/websocket/plan-websocket.service';
+import { UserActionPayload } from '@app/core/model/websocket/ws-message.model';
+import { ToCEntryType } from '@app/ui/description/editor/table-of-contents/models/toc-entry-type.enum';
 
 @Component({
     selector: 'app-plan-table-of-contents',
@@ -80,9 +84,8 @@ export class PlanTableOfContentsComponent extends BaseComponent{
 	showAnnotations = output<Guid>();
     constructor(
         private planTempStorage: PlanTempStorageService,
-        private descriptionToCService: TableOfContentsService,
         protected enumUtils: EnumUtils,
-		private annotationService:AnnotationService,
+        private planWebSocketService: PlanWebSocketService,
 		@Inject(MULTI_FORM_ANNOTATION_SERVICE_TOKEN) private formAnnotationServices: FormAnnotationService[]
     ) {
         super();
@@ -111,10 +114,14 @@ export class PlanTableOfContentsComponent extends BaseComponent{
 						});
 					}
 				 });
-                setTimeout(() => this._resetObserver());
+                setTimeout(() => {
+                    this._resetObserver();
+                    this.pauseIntersectionObserver = false;
+                });
             }
         });
     }
+
 
     isDeleted = computed(() => this.plan()? this.plan().isActive === IsActive.Inactive : false)
     isFinalized = computed(() => this.plan()?.status?.internalStatus === PlanStatusEnum.Finalized);
@@ -183,6 +190,9 @@ export class PlanTableOfContentsComponent extends BaseComponent{
 			if (this.formControlValid(control.formControlName) === false) {
 				return true;
 			}
+            if (this.hasPlanOwnerRequired(control.formControlName)) {
+                return true;
+            }
 		}
 
 		return false;
@@ -198,7 +208,15 @@ export class PlanTableOfContentsComponent extends BaseComponent{
         }
 
         const control = formControlBySection.fieldControls.find((x) => x.id === fieldId);
-        return control && control && this.formControlValid(control.formControlName) === false
+        return control && control && (this.formControlValid(control.formControlName) === false || this.hasPlanOwnerRequired(control.formControlName) === true)
+    }
+
+    hasPlanOwnerRequired(controlName: string) {
+        if (controlName === 'users' && this.formGroup()?.get(controlName).hasError('planOwnerRequired')) {
+            return true;
+        }
+
+        return false;
     }
 
     invalidDescription(descriptionMetadata: DescriptionInfo){
@@ -206,7 +224,7 @@ export class PlanTableOfContentsComponent extends BaseComponent{
     }
 
 	formControlValid(controlName: string): boolean {
-		if (!this.formGroup()?.get(controlName)){
+		if (!this.showPlanErrors() || !this.formGroup()?.get(controlName)){
             return true
         }
 		return this.formGroup()?.get(controlName).valid;
@@ -214,11 +232,12 @@ export class PlanTableOfContentsComponent extends BaseComponent{
 
 	changePlanStep(params: {
         section: number, 
+        sectionId?: Guid;
         fieldId?: Guid,
         descriptionId?: Guid,
         descriptionFieldId?: string
     }) {
-        const {section: index, fieldId, descriptionId, descriptionFieldId} = params;
+        const {section: index, sectionId, fieldId, descriptionId, descriptionFieldId} = params;
         this.pauseIntersectionObserver = true;
 
         if(index != this.step() && index >= 1 && index <= this.selectedBlueprint().definition.sections?.length){
@@ -240,7 +259,50 @@ export class PlanTableOfContentsComponent extends BaseComponent{
         } else {
             this.resetScroll('editor-form');
         }
+        this.publishAction({sectionId, fieldId, descriptionId});
 	}
+
+    publishAction(params: {
+        sectionId?: Guid;
+        fieldId?: Guid,
+        descriptionId?: Guid,
+    }){
+        const {sectionId, fieldId, descriptionId} = params;
+        if (!this.isDeleted() && (sectionId || fieldId || descriptionId)) {
+            this.planWebSocketService.getClient$().pipe(takeUntil(this._destroyed)).subscribe(stompClient => {
+                if (stompClient?.connected) {
+                    const payload: UserActionPayload = {
+                        blueprintSectionId: sectionId,
+                        blueprintFieldId: fieldId,
+                        descriptionId: descriptionId
+                    }
+                    stompClient.publish({
+                        destination: `/app/plan/${this.plan()?.id?.toString()}/user-action`,
+                        body: JSON.stringify(payload)
+                    });
+                }
+            });
+        }
+    }
+
+    publishDescriptionAction(entry: ToCEntry){
+        if (this.isDeleted()){ return; }
+        this.planWebSocketService.getClient$().pipe(takeUntil(this._destroyed)).subscribe(stompClient => {
+			if (stompClient?.connected) {
+				const payload: UserActionPayload = {
+                    blueprintSectionId: this.selectedBlueprint()?.definition?.sections?.[this.step()]?.id,
+					descriptionId: this.selectedDescription(),
+					descriptionPageId: entry?.type === ToCEntryType.Page ? entry.id: null,
+					descriptionSectionId: entry?.type === ToCEntryType.Section ? entry.id: null,
+					descriptionFieldSetId: entry?.type === ToCEntryType.FieldSet ? entry.id: null
+				}
+				stompClient.publish({
+					destination: `/app/plan/${this.plan()?.id?.toString()}/user-action`,
+					body: JSON.stringify(payload)
+				});
+			}
+		});
+    }
 
     reachedBase: boolean = true;
 	reachedLast: boolean = false;
@@ -308,9 +370,9 @@ export class PlanTableOfContentsComponent extends BaseComponent{
 
 		new Observable(observer => {
 			const options = {
-				root: null,
-				rootMargin: '0px 0px 5% 0px',
-				threshold: 1.0
+				root: document.getElementById('editor-form'),
+				rootMargin: '-10% 0px -10% 0px',
+				threshold: [0.5, 1]
 			}
 			this._intersectionObserver = new IntersectionObserver(entries => {
 				observer.next(entries);
@@ -335,15 +397,16 @@ export class PlanTableOfContentsComponent extends BaseComponent{
 			return () => { this._intersectionObserver.disconnect(); };
 		}).pipe(
 			takeUntil(this._destroyed),
-			mergeMap((entries: IntersectionObserverEntry[]) => entries),
-			filter(entry => entry.isIntersecting),
+			map((entries: IntersectionObserverEntry[]) => entries?.filter(x => x.isIntersecting)?.[0]),
 			debounceTime(200),
 			distinctUntilChanged(),
 		).subscribe(x => {
 			if (!this.pauseIntersectionObserver) {
-				const target_id = x.target.id;
+				const target_id = x?.target?.id;
+                if(!target_id){ return; }
                 try {
                     this.selectedFieldId = target_id;
+                    this.publishAction({fieldId: Guid.parse(target_id), sectionId: this.selectedSection()?.id})
                 } catch {
                     console.log('field with target id not found');
                 }
@@ -361,10 +424,11 @@ export class PlanTableOfContentsComponent extends BaseComponent{
         } else {
             const descriptionsInSection = this.descriptionsInSection()?.get(this.selectedSection()?.id)?.map((x) => x.lastPersist.id) ?? []; 
             const index = this.selectedDescription() ? Array.from(descriptionsInSection).findIndex((x) => x === this.selectedDescription()) : -1;
+            const section = this.selectedBlueprint()?.definition?.sections[this.step()] ?? null;
             if(descriptionsInSection.length && index < descriptionsInSection.length - 1){
-                this.changePlanStep({section: this.step(), descriptionId: descriptionsInSection[index + 1]})
+                this.changePlanStep({section: this.step() + 1, sectionId: section?.id, fieldId: section?.fields?.length > 0 ? section?.fields[0]?.id: null, descriptionId: descriptionsInSection[index + 1]});
             } else {
-                this.changePlanStep({section: this.step() + 1})
+                this.changePlanStep({section: this.step() + 1, sectionId: section?.id, fieldId: section?.fields?.length > 0 ? section?.fields[0]?.id: null});
             }
         }
 		this.resetScroll('editor-form');
@@ -381,16 +445,17 @@ export class PlanTableOfContentsComponent extends BaseComponent{
     
     previousPlanStep(){
         this.resetScroll('editor-form');
+        const section = this.selectedBlueprint()?.definition?.sections[this.step()] ?? null;
         if(this.selectedDescription()){
             const descriptionsInSection = this.descriptionsInSection()?.get(this.selectedSection()?.id) ?? []; 
             const index = descriptionsInSection.findIndex((x) => x.lastPersist.id === this.selectedDescription());
             const prevDescription = index > 0 ? descriptionsInSection[index - 1] : null;
             if(prevDescription){
-                this.changePlanStep({section: this.step(), descriptionId: prevDescription?.lastPersist?.id});
+                this.changePlanStep({section: this.step(), sectionId: section?.id, fieldId: section?.fields?.length > 0 ? section?.fields[0]?.id: null, descriptionId: prevDescription?.lastPersist?.id});
                 return;
             }
         }
-        this.changePlanStep({section: this.step() - 1});
+        this.changePlanStep({section: this.step() - 1, sectionId: section?.id, fieldId: section?.fields?.length > 0 ? section?.fields[0]?.id: null,});
     }
 
 

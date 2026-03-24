@@ -8,7 +8,7 @@ import { Subscription, takeUntil } from 'rxjs';
 import { HttpErrorHandlingService } from '@common/modules/errors/error-handling/http-error-handling.service';
 import { SnackBarNotificationLevel, UiNotificationService } from '@citesa/kpi-client/services';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
-import { CommonModule } from '@angular/common';
+
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { nameof } from 'ts-simple-nameof';
@@ -21,7 +21,7 @@ import FileSaver from 'file-saver';
 
 @Component({
   selector: 'app-file-uploader',
-  imports: [MatDropzone, CommonModule, MatButtonModule, MatIconModule, TranslateModule, MatFormFieldModule, ReactiveFormsModule, MatError, FileInputDirective , MatChipsModule],
+  imports: [MatDropzone, MatButtonModule, MatIconModule, TranslateModule, MatFormFieldModule, ReactiveFormsModule, MatError, FileInputDirective, MatChipsModule],
   templateUrl: './file-uploader.component.html',
   styleUrl: './file-uploader.component.scss'
 })

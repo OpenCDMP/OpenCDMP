@@ -3,7 +3,7 @@ package org.opencdmp.model.deleter;
 import org.opencdmp.commons.enums.IsActive;
 import org.opencdmp.data.DescriptionTagEntity;
 import org.opencdmp.data.TagEntity;
-import org.opencdmp.data.TenantEntityManager;
+import org.opencdmp.data.TenantEntityManagerFactory;
 import org.opencdmp.query.DescriptionTagQuery;
 import org.opencdmp.query.TagQuery;
 import gr.cite.tools.data.deleter.Deleter;
@@ -29,7 +29,7 @@ import java.util.stream.Collectors;
 public class TagDeleter implements Deleter {
 
     private static final LoggerService logger = new LoggerService(LoggerFactory.getLogger(TagDeleter.class));
-    private final TenantEntityManager entityManager;
+    private final TenantEntityManagerFactory tenantEntityManagerFactory;
 
     protected final QueryFactory queryFactory;
 
@@ -37,11 +37,11 @@ public class TagDeleter implements Deleter {
 
     @Autowired
     public TagDeleter(
-            TenantEntityManager entityManager,
+            TenantEntityManagerFactory tenantEntityManagerFactory,
             QueryFactory queryFactory,
             DeleterFactory deleterFactory
     ) {
-        this.entityManager = entityManager;
+        this.tenantEntityManagerFactory = tenantEntityManagerFactory;
         this.queryFactory = queryFactory;
         this.deleterFactory = deleterFactory;
     }
@@ -57,7 +57,7 @@ public class TagDeleter implements Deleter {
         logger.debug("will delete {} items", Optional.ofNullable(data).map(List::size).orElse(0));
         this.delete(data);
         logger.trace("saving changes");
-        this.entityManager.flush();
+        this.tenantEntityManagerFactory.getInstance().flush();
         logger.trace("changes saved");
     }
 
@@ -79,7 +79,7 @@ public class TagDeleter implements Deleter {
             item.setIsActive(IsActive.Inactive);
             item.setUpdatedAt(now);
             logger.trace("updating item");
-            this.entityManager.merge(item);
+            this.tenantEntityManagerFactory.getInstance().merge(item);
             logger.trace("updated item");
         }
     }

@@ -9,7 +9,7 @@ import gr.cite.tools.logging.DataLogEntry;
 import gr.cite.tools.logging.LoggerService;
 import org.opencdmp.authorization.AuthorizationFlags;
 import org.opencdmp.commons.JsonHandlingService;
-import org.opencdmp.commons.scope.tenant.TenantScope;
+import org.opencdmp.commons.scope.tenant.TenantScopeFactory;
 import org.opencdmp.commons.types.planreference.PlanReferenceDataEntity;
 import org.opencdmp.convention.ConventionService;
 import org.opencdmp.data.PlanReferenceEntity;
@@ -38,23 +38,29 @@ public class PlanReferenceBuilder extends BaseBuilder<PlanReference, PlanReferen
 
     private final QueryFactory queryFactory;
     private final JsonHandlingService jsonHandlingService;
-    private final TenantScope tenantScope;
+    private final TenantScopeFactory tenantScopeFactory;
 
     private EnumSet<AuthorizationFlags> authorize = EnumSet.of(AuthorizationFlags.None);
+    private boolean isPublic;
 
     @Autowired
     public PlanReferenceBuilder(
 		    ConventionService conventionService,
-		    BuilderFactory builderFactory, QueryFactory queryFactory, JsonHandlingService jsonHandlingService, TenantScope tenantScope) {
+		    BuilderFactory builderFactory, QueryFactory queryFactory, JsonHandlingService jsonHandlingService, TenantScopeFactory tenantScopeFactory) {
         super(conventionService, new LoggerService(LoggerFactory.getLogger(PlanReferenceBuilder.class)));
         this.builderFactory = builderFactory;
         this.queryFactory = queryFactory;
 	    this.jsonHandlingService = jsonHandlingService;
-	    this.tenantScope = tenantScope;
+	    this.tenantScopeFactory = tenantScopeFactory;
     }
 
     public PlanReferenceBuilder authorize(EnumSet<AuthorizationFlags> values) {
         this.authorize = values;
+        return this;
+    }
+
+    public PlanReferenceBuilder isPublic(boolean isPublic) {
+        this.isPublic = isPublic;
         return this;
     }
 
@@ -77,13 +83,13 @@ public class PlanReferenceBuilder extends BaseBuilder<PlanReference, PlanReferen
             PlanReference m = new PlanReference();
             if (fields.hasField(this.asIndexer(PlanReference._id))) m.setId(d.getId());
             if (fields.hasField(this.asIndexer(PlanReference._isActive))) m.setIsActive(d.getIsActive());
-            if (fields.hasField(this.asIndexer(PlanReference._createdAt))) m.setCreatedAt(d.getCreatedAt());
-            if (fields.hasField(this.asIndexer(PlanReference._updatedAt))) m.setUpdatedAt(d.getUpdatedAt());
-            if (fields.hasField(this.asIndexer(PlanReference._hash))) m.setHash(this.hashValue(d.getUpdatedAt()));
-            if (fields.hasField(this.asIndexer(PlanReference._belongsToCurrentTenant))) m.setBelongsToCurrentTenant(this.getBelongsToCurrentTenant(d, this.tenantScope));
+            if (!this.isPublic && fields.hasField(this.asIndexer(PlanReference._createdAt))) m.setCreatedAt(d.getCreatedAt());
+            if (!this.isPublic && fields.hasField(this.asIndexer(PlanReference._updatedAt))) m.setUpdatedAt(d.getUpdatedAt());
+            if (!this.isPublic && fields.hasField(this.asIndexer(PlanReference._hash))) m.setHash(this.hashValue(d.getUpdatedAt()));
+            if (!this.isPublic && fields.hasField(this.asIndexer(PlanReference._belongsToCurrentTenant))) m.setBelongsToCurrentTenant(this.getBelongsToCurrentTenant(d, this.tenantScopeFactory.getInstance()));
             if (!referenceFields.isEmpty() && referenceItemsMap != null && referenceItemsMap.containsKey(d.getReferenceId())) m.setReference(referenceItemsMap.get(d.getReferenceId()));
             if (!planFields.isEmpty() && planItemsMap != null && planItemsMap.containsKey(d.getPlanId())) m.setPlan(planItemsMap.get(d.getPlanId()));
-            if (!dataFields.isEmpty() && d.getData() != null){
+            if (!this.isPublic && !dataFields.isEmpty() && d.getData() != null){
                 PlanReferenceDataEntity propertyDefinition = this.jsonHandlingService.fromJsonSafe(PlanReferenceDataEntity.class, d.getData());
                 m.setData(this.builderFactory.builder(PlanReferenceDataBuilder.class).authorize(this.authorize).build(dataFields, propertyDefinition));
             }
@@ -111,7 +117,7 @@ public class PlanReferenceBuilder extends BaseBuilder<PlanReference, PlanReferen
         } else {
             FieldSet clone = new BaseFieldSet(fields.getFields()).ensure(Reference._id);
             ReferenceQuery q = this.queryFactory.query(ReferenceQuery.class).authorize(this.authorize).disableTracking().ids(data.stream().map(PlanReferenceEntity::getReferenceId).distinct().collect(Collectors.toList()));
-            itemMap = this.builderFactory.builder(ReferenceBuilder.class).authorize(this.authorize).asForeignKey(q, clone, Reference::getId);
+            itemMap = this.builderFactory.builder(ReferenceBuilder.class).authorize(this.authorize).isPublic(this.isPublic).asForeignKey(q, clone, Reference::getId);
         }
         if (!fields.hasField(Reference._id)) {
             itemMap.values().stream().filter(Objects::nonNull).forEach(x -> x.setId(null));
@@ -138,7 +144,7 @@ public class PlanReferenceBuilder extends BaseBuilder<PlanReference, PlanReferen
         } else {
             FieldSet clone = new BaseFieldSet(fields.getFields()).ensure(Plan._id);
             PlanQuery q = this.queryFactory.query(PlanQuery.class).authorize(this.authorize).disableTracking().ids(data.stream().map(PlanReferenceEntity::getPlanId).distinct().collect(Collectors.toList()));
-            itemMap = this.builderFactory.builder(PlanBuilder.class).authorize(this.authorize).asForeignKey(q, clone, Plan::getId);
+            itemMap = this.builderFactory.builder(PlanBuilder.class).authorize(this.authorize).isPublic(this.isPublic).asForeignKey(q, clone, Plan::getId);
         }
         if (!fields.hasField(Plan._id)) {
             itemMap.values().stream().filter(Objects::nonNull).forEach(x -> x.setId(null));

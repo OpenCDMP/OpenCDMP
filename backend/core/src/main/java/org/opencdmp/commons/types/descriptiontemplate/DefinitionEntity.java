@@ -54,10 +54,10 @@ public class DefinitionEntity {
     }
 
     public List<FieldSetEntity> getFieldSetById(String id) {
-        return this.getAllFieldSets().stream().filter(x-> id.equals(x.getId())).toList();
+        return this.getAllFieldSets().stream().filter(x-> id != null && id.equals(x.getId())).toList();
     }
 
     public List<FieldEntity> getFieldById(String id) {
-        return this.getAllField().stream().filter(x-> id.equals(x.getId())).toList();
+        return this.getAllField().stream().filter(x-> id != null && id.equals(x.getId())).toList();
     }
 }

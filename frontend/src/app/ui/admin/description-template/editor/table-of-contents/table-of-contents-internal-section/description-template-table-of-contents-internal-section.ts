@@ -1,5 +1,5 @@
-import { DOCUMENT } from '@angular/common';
-import { Component, EventEmitter, Inject, Input, OnInit, Output, SimpleChanges } from '@angular/core';
+
+import { Component, EventEmitter, Inject, Input, OnInit, Output, SimpleChanges, DOCUMENT } from '@angular/core';
 import { AbstractControl, UntypedFormArray, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 import { BaseComponent } from '@common/base/base.component';
 import { NewEntryType, ToCEntry, ToCEntryType } from '../description-template-table-of-contents-entry';

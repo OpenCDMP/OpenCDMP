@@ -89,7 +89,7 @@ export class SidebarComponent implements OnInit {
 
 		if (this.authentication.hasPermission(AppPermission.ViewMyPlanPage)) this.planItems.routes.push({ path: '/plans', title: 'SIDE-BAR.MY-PLANS', icon: 'library_books', routeType: RouteType.System });
 		if (this.authentication.hasPermission(AppPermission.ViewMyDescriptionPage)) this.planItems.routes.push({ path: '/descriptions', title: 'SIDE-BAR.MY-DESCRIPTIONS', icon: 'dns', routeType: RouteType.System });
-        if (this.authentication.hasPermission(AppPermission.ViewIndicatorDashboardPage) && this.configurationService.kpiServiceEnabled == true) this.planItems.routes.push({ path: '/indicator-dashboard', title: 'SIDE-BAR.INDICATOR-DASHBOARD', icon: 'monitoring', routeType: RouteType.System });
+        if (this.authentication.hasPermission(AppPermission.ViewIndicatorDashboardPage) && this.configurationService.kpi.enabled == true) this.planItems.routes.push({ path: '/indicator-dashboard', title: 'SIDE-BAR.INDICATOR-DASHBOARD', icon: 'monitoring', routeType: RouteType.System });
 
 		this.groupMenuItems.push(this.planItems);
 
@@ -117,6 +117,7 @@ export class SidebarComponent implements OnInit {
 			routes: [],
 		}
 		if (this.authentication.hasPermission(AppPermission.ViewPlanBlueprintPage)) this.adminItems.routes.push({ path: '/plan-blueprints', title: 'SIDE-BAR.PLAN-BLUEPRINTS', icon: 'library_books', routeType: RouteType.System });
+		if (this.authentication.hasPermission(AppPermission.ViewPlanBlueprintTypePage)) this.adminItems.routes.push({ path: '/plan-blueprint-type', title: 'SIDE-BAR.PLAN-BLUEPRINT-TYPE', icon: 'stack', routeType: RouteType.System });
 		if (this.authentication.hasPermission(AppPermission.ViewDescriptionTemplatePage)) this.adminItems.routes.push({ path: '/description-templates', title: 'SIDE-BAR.DESCRIPTION-TEMPLATES', icon: 'description', routeType: RouteType.System });
 		if (this.authentication.hasPermission(AppPermission.ViewDescriptionTemplateTypePage)) this.adminItems.routes.push({ path: '/description-template-type', title: 'SIDE-BAR.DESCRIPTION-TEMPLATE-TYPES', icon: 'stack', routeType: RouteType.System });
 		if (this.authentication.hasPermission(AppPermission.ViewEntityLockPage)) this.adminItems.routes.push({ path: '/entity-locks', title: 'SIDE-BAR.ENTITY-LOCKS', icon: 'lock_person', routeType: RouteType.System });

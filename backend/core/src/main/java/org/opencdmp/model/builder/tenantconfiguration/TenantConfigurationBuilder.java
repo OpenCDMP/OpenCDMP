@@ -3,7 +3,7 @@ package org.opencdmp.model.builder.tenantconfiguration;
 import org.opencdmp.authorization.AuthorizationFlags;
 import org.opencdmp.commons.JsonHandlingService;
 import org.opencdmp.commons.enums.TenantConfigurationType;
-import org.opencdmp.commons.scope.tenant.TenantScope;
+import org.opencdmp.commons.scope.tenant.TenantScopeFactory;
 import org.opencdmp.commons.types.tenantconfiguration.*;
 import org.opencdmp.convention.ConventionService;
 import org.opencdmp.data.TenantConfigurationEntity;
@@ -25,7 +25,7 @@ import java.util.*;
 @Component
 @Scope(value = ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 public class TenantConfigurationBuilder extends BaseBuilder<TenantConfiguration, TenantConfigurationEntity> {
-    private final TenantScope tenantScope;
+    private final TenantScopeFactory tenantScopeFactory;
     private final JsonHandlingService jsonHandlingService;
 
     private final BuilderFactory builderFactory;
@@ -33,10 +33,10 @@ public class TenantConfigurationBuilder extends BaseBuilder<TenantConfiguration,
 
     @Autowired
     public TenantConfigurationBuilder(
-		    ConventionService conventionService,
-		    TenantScope tenantScope, JsonHandlingService jsonHandlingService, BuilderFactory builderFactory1) {
+            ConventionService conventionService,
+            TenantScopeFactory tenantScopeFactory, JsonHandlingService jsonHandlingService, BuilderFactory builderFactory1) {
         super(conventionService, new LoggerService(LoggerFactory.getLogger(TenantConfigurationBuilder.class)));
-	    this.tenantScope = tenantScope;
+	    this.tenantScopeFactory = tenantScopeFactory;
 	    this.jsonHandlingService = jsonHandlingService;
 	    this.builderFactory = builderFactory1;
     }
@@ -115,7 +115,7 @@ public class TenantConfigurationBuilder extends BaseBuilder<TenantConfiguration,
             if (fields.hasField(this.asIndexer(TenantConfiguration._hash)))
                 m.setHash(this.hashValue(d.getUpdatedAt()));
             if (fields.hasField(this.asIndexer(TenantConfiguration._belongsToCurrentTenant)))
-                m.setBelongsToCurrentTenant(this.getBelongsToCurrentTenant(d, this.tenantScope));
+                m.setBelongsToCurrentTenant(this.getBelongsToCurrentTenant(d, this.tenantScopeFactory.getInstance()));
             models.add(m);
         }
         this.logger.debug("build {} items", Optional.of(models).map(List::size).orElse(0));

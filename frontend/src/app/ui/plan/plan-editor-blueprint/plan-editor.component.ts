@@ -51,7 +51,7 @@ import { PlanStatusAvailableActionType } from '@app/core/common/enum/plan-status
 import { PlanVersionStatus } from '@app/core/common/enum/plan-version-status';
 import { PlanStatusPermission } from '@app/core/common/enum/plan-status-permission.enum';
 import { VisibilityRulesService } from '@app/ui/description/editor/description-form/visibility-rules/visibility-rules.service';
-import { NewDescriptionDialog, NewDescriptionDialogComponent, NewDescriptionDialogComponentResult } from '@app/ui/description/editor/new-description/new-description.component';
+import { NewDescriptionDialog, NewDescriptionDialogComponent } from '@app/ui/description/editor/new-description/new-description.component';
 import { PlanDescriptionEditorComponent } from './plan-description-editor/plan-description-editor.component';
 import { DescriptionEditorHelper } from './plan-description-editor/plan-description-editor-helper';
 import { PlanTableOfContentsComponent } from './plan-table-of-contents/plan-table-of-contents.component';
@@ -60,12 +60,15 @@ import { DescriptionInfo, PlanTempStorageService } from './plan-temp-storage.ser
 import { EMPTY, forkJoin, interval, Observable, of, Subscription } from 'rxjs';
 import { PopupNotificationDialogComponent } from '@app/library/notification/popup/popup-notification.component';
 import { isNullOrUndefined } from '@swimlane/ngx-datatable';
+import { nameof } from 'ts-simple-nameof';
+import { DescriptionTemplate } from '@app/core/model/description-template/description-template';
+import { PlanWebSocketService } from '@app/core/services/websocket/plan-websocket.service';
 import { EnqueueService } from '@app/core/services/enqueue.service';
 import {AnnotationService} from "@annotation-service/services/http/annotation.service";
 import { DescriptionTemplateEditorResolver } from '@app/ui/admin/description-template/editor/description-template-editor.resolver';
-import { nameof } from 'ts-simple-nameof';
-import { DescriptionTemplate } from '@app/core/model/description-template/description-template';
 import { DescriptionTemplateType } from '@app/core/model/description-template-type/description-template-type';
+import { UserActionPayload } from '@app/core/model/websocket/ws-message.model';
+import { FormValidationErrorsDialogComponent } from '@common/forms/form-validation-errors-dialog/form-validation-errors-dialog.component';
 
 @Component({
     selector: 'app-plan-editor',
@@ -93,8 +96,6 @@ export class PlanEditorComponent extends BaseEditor<PlanEditorModel, Plan> imple
     get generateTempDescriptionId(): string {
         return Guid.EMPTY.toString().replace('0', `${this.newDescriptionIds.length + 1}`);
     }
-
-
 
 	//Enums
 	fileTransformerEntityTypeEnum = FileTransformerEntityType;
@@ -224,6 +225,7 @@ export class PlanEditorComponent extends BaseEditor<PlanEditorModel, Plan> imple
 		private annotationService: AnnotationService,
         private planEditorService: PlanEditorService,
         private planTempStorage: PlanTempStorageService,
+        private planWebSocketService: PlanWebSocketService,
         private enqueueService: EnqueueService,
 	) {
 		const descriptionLabel: string = route.snapshot.data['entity']?.label;
@@ -471,7 +473,7 @@ export class PlanEditorComponent extends BaseEditor<PlanEditorModel, Plan> imple
             complete: () => {
                 this.isLockedByUser = false;
                 this.isLocked = false;
-                this.lock$?.unsubscribe(); 
+                this.lock$?.unsubscribe();
                 this.getItem(this.editorModel.id, (data: Plan) => {
                     this.breadcrumbService.addIdResolvedValue(data.id.toString(), data.label);
                     const planCopy: Plan = {...data, descriptions: []}; //add plan info to desc w/o requesting it from the lookup twice
@@ -516,21 +518,25 @@ export class PlanEditorComponent extends BaseEditor<PlanEditorModel, Plan> imple
 
         this.enqueueService.enqueueExhaustChannel(
             this.persistDescriptions().pipe(
-                switchMap((value: Description[], index: number) => {
-                    if(this.canEditPlan && (this.isLockedByUser || this.isNew)){
-                        return this.planService.persist(formData)
+				switchMap((value: Description[], index: number) => {
+					if (this.canEditPlan && (this.isLockedByUser || this.isNew)) {
+                        return this.planService.persist(formData, PlanEditorEntityResolver.lookupFields())
                         .pipe(
                             takeUntil(this._destroyed),
                             switchMap((value: Plan, index: number) => {
-                                if(resetStep){
-                                    this.tableOfContent.changePlanStep({
-                                        section: 1
-                                    })
-                                }
-                                if(onSuccess){
-                                    onSuccess(value)
+                                if ((value?.planUsers?.find(x => x?.user?.id == this.authService.userId() && x.isActive === IsActive.Active)) || (value?.authorizationFlags?.some(x => x === AppPermission.AssignPlanUsers) || this.authService.hasPermission(AppPermission.AssignPlanUsers))) {
+					            	if(resetStep){
+                                        this.tableOfContent.changePlanStep({
+                                            section: 1
+                                        })
+                                    }
+                                    if(onSuccess){
+                                        onSuccess(value)
+                                    } else {
+                                        this.onCallbackSuccess(value);
+                                    }
                                 } else {
-                                    this.onCallbackSuccess(value);
+                                    this.closeSafe();
                                 }
                                 return EMPTY;
                             }),
@@ -555,11 +561,67 @@ export class PlanEditorComponent extends BaseEditor<PlanEditorModel, Plan> imple
         )
 	}
 
+    checkDraftValidity() {
+        if (this.isNew) return true;
+
+		this.formService.touchAllFormFields(this.formGroup);
+		let errorMessages = [];
+		
+		if (this.formGroup?.get('users')?.hasError('planOwnerRequired')) {
+			errorMessages.push(this.language.instant('PLAN-EDITOR.FORM-VALIDATION-DISPLAY-DIALOG.PLAN-OWNER-NOT-FOUND'));
+		}
+		
+		if (errorMessages.length > 0) {
+			this.showValidationErrorsDialog(errorMessages);
+			return false;
+		}
+		return true;
+	}
+
+
+    private showValidationErrorsDialog(errmess?: string[]) {
+
+        this.dialog.open(FormValidationErrorsDialogComponent, {
+            disableClose: true,
+            restoreFocus: false,
+            data: {
+                errorMessages: errmess
+            },
+        });
+
+    }
+
 
 	formSubmit(onSuccess?: (response) => void): void {
 		this.formService.removeAllBackEndErrors(this.formGroup);
-        if((!this.canEditPlan || this.formGroup.controls?.label?.valid) && this.descriptionBaseValid()){
-            this.persistEntity(onSuccess);
+        if((!this.canEditPlan || this.formGroup.controls?.label?.valid) && this.descriptionBaseValid() && this.checkDraftValidity()){
+
+            const oldUser = this.editorModel?.existingPlanUsers?.find(y => y.user?.id == this.authService.userId());
+            if (!this.isNew && oldUser) {
+                
+                const formData = JSON.parse(JSON.stringify(this.formGroup.value)) as PlanPersist;
+                const stillIncluded = formData?.users?.find(x => x.user == oldUser?.user?.id) != null || false;
+                if (!stillIncluded) {
+                    const dialogRef = this.dialog.open(ConfirmationDialogComponent, {
+                        data: {
+                            message: this.language.instant('PLAN-EDITOR.DELETE-YOURSELF-FROM-ENTIRE-PLAN'),
+                            confirmButton: this.language.instant('PLAN-EDITOR.ACTIONS.SAVE'),
+                            cancelButton: this.language.instant('GENERAL.CONFIRMATION-DIALOG.ACTIONS.CANCEL'),
+                            isDeleteConfirmation: false
+                        }
+                    });
+                    dialogRef?.afterClosed()?.subscribe(result => {
+                        if (result) {
+                            this.persistEntity(onSuccess);
+                        }
+                    });
+                } else {
+                    this.persistEntity(onSuccess);
+                }
+                
+            } else {
+                this.persistEntity(onSuccess);
+            }
         }
 	}
 
@@ -631,14 +693,18 @@ export class PlanEditorComponent extends BaseEditor<PlanEditorModel, Plan> imple
 
 	saveAndClose(): void {
 		this.formSubmit((data) => {
-            this.formGroup.markAsPristine();
-            this.newDescriptionIds = [];
-			this.successNotification();
-            this.descriptionEditor.unlockAll().subscribe(() => {
-                this.router.navigate([this.routerUtils.generateUrl('/plans/')]);
-            })
+            this.closeSafe();
 		});
 	}
+
+    private closeSafe() {
+        this.formGroup.markAsPristine();
+        this.newDescriptionIds = [];
+		this.successNotification();
+        this.descriptionEditor.unlockAll().subscribe(() => {
+            this.router.navigate([this.routerUtils.generateUrl('/plans/')]);
+        })
+    }
 
 	nextStep() {
 		this.step.set(this.step() < this.selectedBlueprint.definition.sections.length ? this.step() + 1 : this.step());
@@ -993,6 +1059,19 @@ export class PlanEditorComponent extends BaseEditor<PlanEditorModel, Plan> imple
     ngOnDestroy(): void {
         super.ngOnDestroy();
         this.planTempStorage.reset();
+        // if (this.item?.id) {
+        //     this.planWebSocketService.getClient$().pipe(takeUntil(this._destroyed)).subscribe(stompClient => {
+        //         if (stompClient && stompClient.connected && this.stompSubscription) {
+        //             this.stompSubscription.unsubscribe();
+
+        //             stompClient.publish({
+        //                 destination: `/app/plan/${this.item.id}/leave`,
+        //                 body: ''
+        //             });
+
+        //         }
+        //     })
+        // }
     }
 
 	getFormAnnotationServiceById(id: Guid): FormAnnotationService | undefined {
@@ -1008,5 +1087,20 @@ export class PlanEditorComponent extends BaseEditor<PlanEditorModel, Plan> imple
 			},
 			maxWidth: '40em'
 		});
+    }
+
+    protected navigateToPos(event: UserActionPayload){
+        if(event.descriptionId){
+            const description = this.item?.descriptions?.find((x) => x.id === event.descriptionId);
+            if(!description){return;}
+            let fieldStep = this.item?.blueprint.definition.sections.find(s => s.id === description.planDescriptionTemplate?.sectionId)?.ordinal;
+
+            this.tableOfContent.changePlanStep({section: fieldStep, descriptionId: event.descriptionId, descriptionFieldId: event.descriptionFieldSetId ?? null});
+            return;
+        }
+        if(event.blueprintSectionId || event.blueprintFieldId){
+            let section = this.item?.blueprint.definition.sections.find(s => s.id === event.blueprintSectionId)?.ordinal;
+            this.tableOfContent?.changePlanStep({section, fieldId: event.blueprintFieldId ?? null});
+        }
     }
 }

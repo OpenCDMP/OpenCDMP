@@ -11,12 +11,11 @@ import jakarta.persistence.criteria.Predicate;
 import org.opencdmp.authorization.AuthorizationFlags;
 import org.opencdmp.authorization.Permission;
 import org.opencdmp.commons.enums.IsActive;
-import org.opencdmp.commons.scope.user.UserScope;
+import org.opencdmp.commons.scope.user.UserScopeFactory;
 import org.opencdmp.data.DescriptionTemplateEntity;
 import org.opencdmp.data.PlanDescriptionTemplateEntity;
-import org.opencdmp.data.TenantEntityManager;
+import org.opencdmp.data.TenantEntityManagerFactory;
 import org.opencdmp.model.PlanDescriptionTemplate;
-import org.opencdmp.model.PublicPlanDescriptionTemplate;
 import org.opencdmp.query.utils.QueryUtilsService;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
@@ -164,22 +163,22 @@ public class PlanDescriptionTemplateQuery extends QueryBase<PlanDescriptionTempl
 
     @Override
     protected EntityManager entityManager(){
-        return this.tenantEntityManager.getEntityManager();
+        return this.tenantEntityManagerFactory.getInstance().getEntityManager();
     }
 
-    private final UserScope userScope;
+    private final UserScopeFactory userScopeFactory;
 
     private final AuthorizationService authService;
 
     private final QueryUtilsService queryUtilsService;
-    private final TenantEntityManager tenantEntityManager;
+    private final TenantEntityManagerFactory tenantEntityManagerFactory;
 
     public PlanDescriptionTemplateQuery(
-		    UserScope userScope, AuthorizationService authService, QueryUtilsService queryUtilsService, TenantEntityManager tenantEntityManager) {
-        this.userScope = userScope;
+            UserScopeFactory userScopeFactory, AuthorizationService authService, QueryUtilsService queryUtilsService, TenantEntityManagerFactory tenantEntityManagerFactory) {
+        this.userScopeFactory = userScopeFactory;
         this.authService = authService;
         this.queryUtilsService = queryUtilsService;
-	    this.tenantEntityManager = tenantEntityManager;
+	    this.tenantEntityManagerFactory = tenantEntityManagerFactory;
     }
 
     @Override
@@ -197,13 +196,17 @@ public class PlanDescriptionTemplateQuery extends QueryBase<PlanDescriptionTempl
         if (this.authorize.contains(AuthorizationFlags.None))
             return null;
         if (this.authorize.contains(AuthorizationFlags.Permission) && this.authService.authorize(Permission.BrowsePlanDescriptionTemplate))
-            return null;
+            return this.queryUtilsService.buildTenantFilter(queryContext.CriteriaBuilder, queryContext.Root.get(PlanDescriptionTemplateEntity._tenantId));
         UUID userId = null;
         boolean usePublic = this.authorize.contains(AuthorizationFlags.Public);
         if (this.authorize.contains(AuthorizationFlags.PlanAssociated))
-            userId = this.userScope.getUserIdSafe();
+            userId = this.userScopeFactory.getInstance().getUserIdSafe();
 
         List<Predicate> predicates = new ArrayList<>();
+        if (!usePublic) {
+            Predicate predicateTenant = this.queryUtilsService.buildTenantFilter(queryContext.CriteriaBuilder, queryContext.Root.get(PlanDescriptionTemplateEntity._tenantId));
+            if (predicateTenant != null) predicates.add(predicateTenant);
+        }
         if (userId != null || usePublic) {
             predicates.add(queryContext.CriteriaBuilder.in(queryContext.Root.get(PlanDescriptionTemplateEntity._planId)).value(this.queryUtilsService.buildPlanAuthZSubQuery(queryContext.Query, queryContext.CriteriaBuilder, userId, usePublic)));
         }
@@ -287,11 +290,11 @@ public class PlanDescriptionTemplateQuery extends QueryBase<PlanDescriptionTempl
 
     @Override
     protected String fieldNameOf(FieldResolver item) {
-        if (item.match(PlanDescriptionTemplate._id) || item.match(PublicPlanDescriptionTemplate._id))
+        if (item.match(PlanDescriptionTemplate._id))
             return PlanDescriptionTemplateEntity._id;
-        else if (item.prefix(PlanDescriptionTemplate._plan) || item.prefix(PublicPlanDescriptionTemplate._plan))
+        else if (item.prefix(PlanDescriptionTemplate._plan))
             return PlanDescriptionTemplateEntity._planId;
-        else if (item.match(PlanDescriptionTemplate._plan) || item.prefix(PublicPlanDescriptionTemplate._plan))
+        else if (item.match(PlanDescriptionTemplate._plan))
             return PlanDescriptionTemplateEntity._planId;
         else if (item.prefix(PlanDescriptionTemplate._currentDescriptionTemplate))
             return PlanDescriptionTemplateEntity._descriptionTemplateGroupId;

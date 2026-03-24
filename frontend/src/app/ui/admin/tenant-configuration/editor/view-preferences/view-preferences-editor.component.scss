@@ -1,7 +1,7 @@
 .draggable-item:focus{
     border-radius: 8px;
     &.reorder-mode {
-        border: 1px solid var(--sys-primary)
+        border: 1px solid var(--mat-sys-primary)
     }
 }
 

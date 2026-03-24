@@ -34,6 +34,7 @@ const routes: Routes = [
 			breadcrumb: true
 		},
 	},
+	{ path: '**', loadComponent: () => import('@common/modules/page-not-found/page-not-found.component').then(m => m.PageNotFoundComponent)}
 ];
 
 const publicRoutes: Routes = [
@@ -55,6 +56,7 @@ const publicRoutes: Routes = [
 			isPublic: true
 		},
 	},
+	{ path: '**', loadComponent: () => import('@common/modules/page-not-found/page-not-found.component').then(m => m.PageNotFoundComponent)}
 ];
 
 @NgModule({

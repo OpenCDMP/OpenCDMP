@@ -10,7 +10,7 @@ import org.opencdmp.commonmodels.models.plan.PlanBlueprintValueModel;
 import org.opencdmp.commons.enums.PlanBlueprintExtraFieldDataType;
 import org.opencdmp.commons.enums.PlanBlueprintFieldCategory;
 import org.opencdmp.commons.enums.StorageType;
-import org.opencdmp.commons.scope.user.UserScope;
+import org.opencdmp.commons.scope.user.UserScopeFactory;
 import org.opencdmp.commons.types.plan.PlanBlueprintValueEntity;
 import org.opencdmp.commons.types.planblueprint.DefinitionEntity;
 import org.opencdmp.commons.types.planblueprint.ExtraFieldEntity;
@@ -42,7 +42,7 @@ import java.util.*;
 public class PlanBlueprintValueCommonModelBuilder extends BaseCommonModelBuilder<PlanBlueprintValueModel, PlanBlueprintValueEntity> {
     private EnumSet<AuthorizationFlags> authorize = EnumSet.of(AuthorizationFlags.None);
     private final StorageFileService storageFileService;
-    private final UserScope userScope;
+    private final UserScopeFactory userScopeFactory;
     private final QueryFactory queryFactory;
     private final ValidatorFactory validatorFactory;
     private final StorageFileProperties storageFileProperties;
@@ -50,11 +50,11 @@ public class PlanBlueprintValueCommonModelBuilder extends BaseCommonModelBuilder
 
     @Autowired
     public PlanBlueprintValueCommonModelBuilder(
-            ConventionService conventionService, StorageFileService storageFileService, UserScope userScope, QueryFactory queryFactory, ValidatorFactory validatorFactory, StorageFileProperties storageFileProperties
+            ConventionService conventionService, StorageFileService storageFileService, UserScopeFactory userScopeFactory, QueryFactory queryFactory, ValidatorFactory validatorFactory, StorageFileProperties storageFileProperties
     ) {
         super(conventionService, new LoggerService(LoggerFactory.getLogger(PlanBlueprintValueCommonModelBuilder.class)));
         this.storageFileService = storageFileService;
-        this.userScope = userScope;
+        this.userScopeFactory = userScopeFactory;
         this.queryFactory = queryFactory;
         this.validatorFactory = validatorFactory;
         this.storageFileProperties = storageFileProperties;
@@ -136,7 +136,7 @@ public class PlanBlueprintValueCommonModelBuilder extends BaseCommonModelBuilder
         storageFilePersist.setName(FilenameUtils.removeExtension(storageFile.getName()));
         storageFilePersist.setExtension(FilenameUtils.getExtension(storageFile.getExtension()));
         storageFilePersist.setMimeType(URLConnection.guessContentTypeFromName(storageFile.getName() + (storageFile.getExtension().startsWith(".") ? "" : ".") + storageFile.getExtension()));
-        storageFilePersist.setOwnerId(this.userScope.getUserIdSafe());
+        storageFilePersist.setOwnerId(this.userScopeFactory.getInstance().getUserIdSafe());
         storageFilePersist.setStorageType(StorageType.Temp);
         storageFilePersist.setLifetime(Duration.ofSeconds(this.storageFileProperties.getTempStoreLifetimeSeconds()));
         this.validatorFactory.validator(StorageFilePersist.StorageFilePersistValidator.class).validateForce(storageFilePersist);

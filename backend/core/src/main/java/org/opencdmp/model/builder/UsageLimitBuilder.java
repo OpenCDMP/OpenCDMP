@@ -7,7 +7,7 @@ import gr.cite.tools.logging.DataLogEntry;
 import gr.cite.tools.logging.LoggerService;
 import org.opencdmp.authorization.AuthorizationFlags;
 import org.opencdmp.commons.XmlHandlingService;
-import org.opencdmp.commons.scope.tenant.TenantScope;
+import org.opencdmp.commons.scope.tenant.TenantScopeFactory;
 import org.opencdmp.commons.types.usagelimit.DefinitionEntity;
 import org.opencdmp.convention.ConventionService;
 import org.opencdmp.data.UsageLimitEntity;
@@ -25,7 +25,7 @@ import java.util.*;
 @Scope(value = ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 public class UsageLimitBuilder extends BaseBuilder<UsageLimit, UsageLimitEntity> {
 
-    private final TenantScope tenantScope;
+    private final TenantScopeFactory tenantScopeFactory;
     private final XmlHandlingService xmlHandlingService;
     private final BuilderFactory builderFactory;
 
@@ -34,9 +34,9 @@ public class UsageLimitBuilder extends BaseBuilder<UsageLimit, UsageLimitEntity>
     @Autowired
     public UsageLimitBuilder(
             ConventionService conventionService,
-            TenantScope tenantScope, XmlHandlingService xmlHandlingService, BuilderFactory builderFactory) {
+            TenantScopeFactory tenantScopeFactory, XmlHandlingService xmlHandlingService, BuilderFactory builderFactory) {
         super(conventionService, new LoggerService(LoggerFactory.getLogger(UsageLimitBuilder.class)));
-	    this.tenantScope = tenantScope;
+	    this.tenantScopeFactory = tenantScopeFactory;
         this.xmlHandlingService = xmlHandlingService;
         this.builderFactory = builderFactory;
     }
@@ -78,7 +78,7 @@ public class UsageLimitBuilder extends BaseBuilder<UsageLimit, UsageLimitEntity>
                 DefinitionEntity definition = this.xmlHandlingService.fromXmlSafe(DefinitionEntity.class, d.getDefinition());
                 m.setDefinition(this.builderFactory.builder(DefinitionBuilder.class).authorize(this.authorize).build(definitionFields, definition));
             }
-            if (fields.hasField(this.asIndexer(UsageLimit._belongsToCurrentTenant))) m.setBelongsToCurrentTenant(this.getBelongsToCurrentTenant(d, this.tenantScope));
+            if (fields.hasField(this.asIndexer(UsageLimit._belongsToCurrentTenant))) m.setBelongsToCurrentTenant(this.getBelongsToCurrentTenant(d, this.tenantScopeFactory.getInstance()));
 
             models.add(m);
         }

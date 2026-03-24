@@ -15,6 +15,7 @@ const routes: Routes = [
 	},
 	{ path: 'unlink/confirmation/:token', component: UnlinkEmailConfirmation },
 	{ path: 'invitation/confirmation/:token', component: UserInviteConfirmation },
+	{ path: '**', loadComponent: () => import('@common/modules/page-not-found/page-not-found.component').then(m => m.PageNotFoundComponent)}
 
 ];
 

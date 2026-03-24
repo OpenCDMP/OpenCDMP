@@ -71,7 +71,7 @@ public class SemanticsServiceImpl implements SemanticsService {
             try {
                 String json = new String(bytes, StandardCharsets.UTF_8);
                 semantics = List.of(jsonHandlingService.fromJson(Semantic[].class, json));
-            } catch (IOException e) {
+            } catch (Exception e) {
                 logger.error(e.getMessage(), e);
             }
         }

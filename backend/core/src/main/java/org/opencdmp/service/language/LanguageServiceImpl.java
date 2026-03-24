@@ -17,7 +17,7 @@ import org.opencdmp.commons.enums.IsActive;
 import org.opencdmp.commons.enums.UsageLimitTargetMetric;
 import org.opencdmp.convention.ConventionService;
 import org.opencdmp.data.LanguageEntity;
-import org.opencdmp.data.TenantEntityManager;
+import org.opencdmp.data.TenantEntityManagerFactory;
 import org.opencdmp.errorcode.ErrorThesaurusProperties;
 import org.opencdmp.model.Language;
 import org.opencdmp.model.builder.LanguageBuilder;
@@ -43,7 +43,7 @@ import java.util.UUID;
 public class LanguageServiceImpl implements LanguageService {
 
     private static final LoggerService logger = new LoggerService(LoggerFactory.getLogger(PlanBlueprintServiceImpl.class));
-    private final TenantEntityManager entityManager;
+    private final TenantEntityManagerFactory tenantEntityManagerFactory;
     private final AuthorizationService authorizationService;
     private final DeleterFactory deleterFactory;
     private final BuilderFactory builderFactory;
@@ -56,9 +56,9 @@ public class LanguageServiceImpl implements LanguageService {
 
 
     public LanguageServiceImpl(
-            TenantEntityManager entityManager, AuthorizationService authorizationService, DeleterFactory deleterFactory, BuilderFactory builderFactory,
+            TenantEntityManagerFactory tenantEntityManagerFactory, AuthorizationService authorizationService, DeleterFactory deleterFactory, BuilderFactory builderFactory,
             ConventionService conventionService, MessageSource messageSource, ErrorThesaurusProperties errors, StorageFileService storageFileService, UsageLimitService usageLimitService, AccountingService accountingService){
-        this.entityManager = entityManager;
+        this.tenantEntityManagerFactory = tenantEntityManagerFactory;
         this.authorizationService = authorizationService;
         this.deleterFactory = deleterFactory;
         this.builderFactory = builderFactory;
@@ -80,7 +80,7 @@ public class LanguageServiceImpl implements LanguageService {
 
         LanguageEntity data;
         if (isUpdate) {
-            data = this.entityManager.find(LanguageEntity.class, model.getId());
+            data = this.tenantEntityManagerFactory.getInstance().find(LanguageEntity.class, model.getId());
             if (data == null)
                 throw new MyNotFoundException(this.messageSource.getMessage("General_ItemNotFound", new Object[]{model.getId(), Language.class.getSimpleName()}, LocaleContextHolder.getLocale()));
             if (!this.conventionService.hashValue(data.getUpdatedAt()).equals(model.getHash())) throw new MyValidationException(this.errors.getHashConflict().getCode(), this.errors.getHashConflict().getMessage());
@@ -96,13 +96,13 @@ public class LanguageServiceImpl implements LanguageService {
         data.setPayload(model.getPayload() != null && !model.getPayload().isEmpty() ? model.getPayload() : null);
         data.setOrdinal(model.getOrdinal());
         data.setUpdatedAt(Instant.now());
-        if (isUpdate) this.entityManager.merge(data);
+        if (isUpdate) this.tenantEntityManagerFactory.getInstance().merge(data);
         else {
-            this.entityManager.persist(data);
+            this.tenantEntityManagerFactory.getInstance().persist(data);
             this.accountingService.increase(UsageLimitTargetMetric.LANGUAGE_COUNT.getValue());
         }
 
-        this.entityManager.flush();
+        this.tenantEntityManagerFactory.getInstance().flush();
 
         return this.builderFactory.builder(LanguageBuilder.class).authorize(AuthorizationFlags.AllExceptPublic).build(BaseFieldSet.build(fields, Language._id), data);
     }

@@ -6,7 +6,7 @@ import { Plan, PlanBlueprintValue, PlanContact, PlanDescriptionTemplate, PlanPro
 import { PlanReference, PlanReferenceData } from '@app/core/model/plan/plan-reference';
 import { ExternalFetcherBaseSourceConfiguration } from '@app/core/model/external-fetcher/external-fetcher';
 import { ReferenceType, ReferenceTypeDefinition } from '@app/core/model/reference-type/reference-type';
-import { Reference } from '@app/core/model/reference/reference';
+import { Definition, Field, Reference } from '@app/core/model/reference/reference';
 import { PlanService } from '@app/core/services/plan/plan.service';
 import { BreadcrumbService } from '@app/ui/misc/breadcrumb/breadcrumb.service';
 import { BaseEditorResolver } from '@common/base/base-editor.resolver';
@@ -60,6 +60,8 @@ export class PlanEditorEntityResolver extends BaseEditorResolver {
 			[nameof<Plan>(x => x.authorizationFlags), AppPermission.DeletePlan].join('.'),
 			[nameof<Plan>(x => x.authorizationFlags), AppPermission.EditDescription].join('.'),
 			[nameof<Plan>(x => x.authorizationFlags), AppPermission.ExportPlan].join('.'),
+			[nameof<Plan>(x => x.authorizationFlags), AppPermission.InvitePlanUsers].join('.'),
+			[nameof<Plan>(x => x.authorizationFlags), AppPermission.AssignPlanUsers].join('.'),
 
 			[nameof<Plan>(x => x.statusAuthorizationFlags), PlanStatusPermission.Edit].join('.'),
 
@@ -91,6 +93,10 @@ export class PlanEditorEntityResolver extends BaseEditorResolver {
 			[nameof<Plan>(x => x.planReferences), nameof<PlanReference>(x => x.reference), nameof<Reference>(x => x.source)].join('.'),
 			[nameof<Plan>(x => x.planReferences), nameof<PlanReference>(x => x.reference), nameof<Reference>(x => x.reference)].join('.'),
 			[nameof<Plan>(x => x.planReferences), nameof<PlanReference>(x => x.reference), nameof<Reference>(x => x.sourceType)].join('.'),
+			[nameof<Plan>(x => x.planReferences), nameof<PlanReference>(x => x.reference), nameof<Reference>(x => x.description)].join('.'),
+			[nameof<Plan>(x => x.planReferences), nameof<PlanReference>(x => x.reference), nameof<Reference>(x => x.definition), nameof<Definition>(x => x.fields), nameof<Field>(x => x.code)].join('.'),
+			[nameof<Plan>(x => x.planReferences), nameof<PlanReference>(x => x.reference), nameof<Reference>(x => x.definition), nameof<Definition>(x => x.fields), nameof<Field>(x => x.dataType)].join('.'),
+			[nameof<Plan>(x => x.planReferences), nameof<PlanReference>(x => x.reference), nameof<Reference>(x => x.definition), nameof<Definition>(x => x.fields), nameof<Field>(x => x.value)].join('.'),
 
 
 			[nameof<Plan>(x => x.planDescriptionTemplates), nameof<PlanDescriptionTemplate>(x => x.id)].join('.'),

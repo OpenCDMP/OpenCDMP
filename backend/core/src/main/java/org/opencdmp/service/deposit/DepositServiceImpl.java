@@ -17,7 +17,7 @@ import gr.cite.tools.validation.ValidatorFactory;
 import org.apache.commons.io.FilenameUtils;
 import org.opencdmp.authorization.AuthorizationFlags;
 import org.opencdmp.authorization.Permission;
-import org.opencdmp.authorization.authorizationcontentresolver.AuthorizationContentResolver;
+import org.opencdmp.authorization.authorizationcontentresolver.AuthorizationContentResolverFactory;
 import org.opencdmp.commonmodels.models.ConfigurationField;
 import org.opencdmp.commonmodels.models.FileEnvelopeModel;
 import org.opencdmp.commonmodels.models.plan.PlanModel;
@@ -26,8 +26,8 @@ import org.opencdmp.commons.JsonHandlingService;
 import org.opencdmp.commons.XmlHandlingService;
 import org.opencdmp.commons.enums.*;
 import org.opencdmp.commons.notification.NotificationProperties;
-import org.opencdmp.commons.scope.tenant.TenantScope;
-import org.opencdmp.commons.scope.user.UserScope;
+import org.opencdmp.commons.scope.tenant.TenantScopeFactory;
+import org.opencdmp.commons.scope.user.UserScopeFactory;
 import org.opencdmp.commons.types.deposit.DepositSourceEntity;
 import org.opencdmp.commons.types.description.PropertyDefinitionEntity;
 import org.opencdmp.commons.types.description.PropertyDefinitionFieldSetItemEntity;
@@ -57,7 +57,6 @@ import org.opencdmp.model.builder.commonmodels.DepositConfigurationBuilder;
 import org.opencdmp.model.builder.commonmodels.plan.PlanCommonModelBuilder;
 import org.opencdmp.model.builder.commonmodels.plugin.PluginUserFieldCommonModelBuilder;
 import org.opencdmp.model.deposit.DepositAuthMethodResult;
-import org.opencdmp.model.description.Description;
 import org.opencdmp.model.persist.EntityDoiPersist;
 import org.opencdmp.model.persist.StorageFilePersist;
 import org.opencdmp.model.persist.deposit.DepositAuthenticateRequest;
@@ -116,20 +115,20 @@ public class DepositServiceImpl implements DepositService {
     private final DepositConfigurationCacheService depositConfigurationCacheService;
     private final FileTransformerService fileTransformerService;
     private final StorageFileService storageFileService;
-    private final UserScope userScope;
+    private final UserScopeFactory userScopeFactory;
     private final ValidatorFactory validatorFactory;
     private final StorageFileProperties storageFileProperties;
-    private final AuthorizationContentResolver authorizationContentResolver;
+    private final AuthorizationContentResolverFactory authorizationContentResolverFactory;
     private final ConventionService conventionService;
     private final JsonHandlingService jsonHandlingService;
     private final NotificationProperties notificationProperties;
     private final NotifyIntegrationEventHandler eventHandler;
-    private final TenantScope tenantScope;
+    private final TenantScopeFactory tenantScopeFactory;
     private final EncryptionService encryptionService;
     private final TenantProperties tenantProperties;
     private final DepositSourcesCacheService depositSourcesCacheService;
     private final AccountingService accountingService;
-    private final TenantEntityManager entityManager;
+    private final TenantEntityManagerFactory tenantEntityManagerFactory;
     private final XmlHandlingService xmlHandlingService;
     private final ErrorThesaurusProperties errors;
     
@@ -140,7 +139,7 @@ public class DepositServiceImpl implements DepositService {
                               EntityDoiService doiService,
                               QueryFactory queryFactory,
                               MessageSource messageSource,
-                              BuilderFactory builderFactory, DepositConfigurationCacheService depositConfigurationCacheService, FileTransformerService fileTransformerService, StorageFileService storageFileService, UserScope userScope, ValidatorFactory validatorFactory, StorageFileProperties storageFileProperties, AuthorizationContentResolver authorizationContentResolver, ConventionService conventionService, JsonHandlingService jsonHandlingService, NotificationProperties notificationProperties, NotifyIntegrationEventHandler eventHandler, TenantScope tenantScope, EncryptionService encryptionService, TenantProperties tenantProperties, DepositSourcesCacheService depositSourcesCacheService, AccountingService accountingService, TenantEntityManager entityManager, XmlHandlingService xmlHandlingService, ErrorThesaurusProperties errors) {
+                              BuilderFactory builderFactory, DepositConfigurationCacheService depositConfigurationCacheService, FileTransformerService fileTransformerService, StorageFileService storageFileService, UserScopeFactory userScopeFactory, ValidatorFactory validatorFactory, StorageFileProperties storageFileProperties, AuthorizationContentResolverFactory authorizationContentResolverFactory, ConventionService conventionService, JsonHandlingService jsonHandlingService, NotificationProperties notificationProperties, NotifyIntegrationEventHandler eventHandler, TenantScopeFactory tenantScopeFactory, EncryptionService encryptionService, TenantProperties tenantProperties, DepositSourcesCacheService depositSourcesCacheService, AccountingService accountingService, TenantEntityManagerFactory tenantEntityManagerFactory, XmlHandlingService xmlHandlingService, ErrorThesaurusProperties errors) {
         this.depositProperties = depositProperties;
         this.tokenExchangeCacheService = tokenExchangeCacheService;
         this.authorizationService = authorizationService;
@@ -151,20 +150,20 @@ public class DepositServiceImpl implements DepositService {
 	    this.depositConfigurationCacheService = depositConfigurationCacheService;
 	    this.fileTransformerService = fileTransformerService;
 	    this.storageFileService = storageFileService;
-	    this.userScope = userScope;
+	    this.userScopeFactory = userScopeFactory;
 	    this.validatorFactory = validatorFactory;
 	    this.storageFileProperties = storageFileProperties;
-	    this.authorizationContentResolver = authorizationContentResolver;
+	    this.authorizationContentResolverFactory = authorizationContentResolverFactory;
         this.conventionService = conventionService;
         this.jsonHandlingService = jsonHandlingService;
         this.notificationProperties = notificationProperties;
         this.eventHandler = eventHandler;
-	    this.tenantScope = tenantScope;
+	    this.tenantScopeFactory = tenantScopeFactory;
 	    this.encryptionService = encryptionService;
 	    this.tenantProperties = tenantProperties;
 	    this.depositSourcesCacheService = depositSourcesCacheService;
         this.accountingService = accountingService;
-        this.entityManager = entityManager;
+        this.tenantEntityManagerFactory = tenantEntityManagerFactory;
         this.xmlHandlingService = xmlHandlingService;
         this.errors = errors;
         this.clients = new HashMap<>();
@@ -196,14 +195,14 @@ public class DepositServiceImpl implements DepositService {
     }
 
     private List<DepositSourceEntity> getDepositSources() throws InvalidApplicationException, InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
-        String tenantCode = this.tenantScope.isSet() && this.tenantScope.isMultitenant() ? this.tenantScope.getTenantCode() : "";
+        String tenantCode = this.tenantScopeFactory.getInstance().isSet() && this.tenantScopeFactory.getInstance().isMultitenant() ? this.tenantScopeFactory.getInstance().getTenantCode() : "";
         DepositSourcesCacheService.DepositSourceCacheValue cacheValue = this.depositSourcesCacheService.lookup(this.depositSourcesCacheService.buildKey(tenantCode));
         if (cacheValue == null) {
             List<DepositSourceEntity> depositSourceEntities = new ArrayList<>(this.depositProperties.getSources());
-            if (this.tenantScope.isSet() && this.tenantScope.isMultitenant()) {
+            if (this.tenantScopeFactory.getInstance().isSet() && this.tenantScopeFactory.getInstance().isMultitenant()) {
                 TenantConfigurationQuery tenantConfigurationQuery = this.queryFactory.query(TenantConfigurationQuery.class).disableTracking().isActive(IsActive.Active).types(TenantConfigurationType.DepositPlugins);
-                if (this.tenantScope.isDefaultTenant()) tenantConfigurationQuery.tenantIsSet(false);
-                else tenantConfigurationQuery.tenantIsSet(true).tenantIds(this.tenantScope.getTenant());
+                if (this.tenantScopeFactory.getInstance().isDefaultTenant()) tenantConfigurationQuery.tenantIsSet(false);
+                else tenantConfigurationQuery.tenantIsSet(true).tenantIds(this.tenantScopeFactory.getInstance().getTenant());
                 TenantConfigurationEntity tenantConfiguration = tenantConfigurationQuery.firstAs(new BaseFieldSet().ensure(TenantConfiguration._depositPlugins));
 
                 if (tenantConfiguration != null && !this.conventionService.isNullOrEmpty(tenantConfiguration.getValue())) {
@@ -253,8 +252,8 @@ public class DepositServiceImpl implements DepositService {
     }
 
     private String getRepositoryIdByTenant(String repositoryId) throws InvalidApplicationException {
-        if (this.tenantScope.isSet() && this.tenantScope.isMultitenant()) {
-            return repositoryId + "_" + this.tenantScope.getTenantCode();
+        if (this.tenantScopeFactory.getInstance().isSet() && this.tenantScopeFactory.getInstance().isMultitenant()) {
+            return repositoryId + "_" + this.tenantScopeFactory.getInstance().getTenantCode();
         } else {
             return repositoryId;
         }
@@ -269,7 +268,7 @@ public class DepositServiceImpl implements DepositService {
 
 	    for (DepositSourceEntity depositSource : this.getDepositSources()) {
 
-            String tenantCode = this.tenantScope.isSet() && this.tenantScope.isMultitenant() ? this.tenantScope.getTenantCode() : "";
+            String tenantCode = this.tenantScopeFactory.getInstance().isSet() && this.tenantScopeFactory.getInstance().isMultitenant() ? this.tenantScopeFactory.getInstance().getTenantCode() : "";
             DepositConfigurationCacheService.DepositConfigurationCacheValue cacheValue = this.depositConfigurationCacheService.lookup(this.depositConfigurationCacheService.buildKey(depositSource.getRepositoryId(), tenantCode));
             if (cacheValue == null){
                 try {
@@ -294,7 +293,7 @@ public class DepositServiceImpl implements DepositService {
 
     @Override
     public EntityDoi deposit(DepositRequest planDepositModel) throws Exception {
-        this.authorizationService.authorizeAtLeastOneForce(List.of(this.authorizationContentResolver.planAffiliation(planDepositModel.getPlanId())), Permission.DepositPlan);
+        this.authorizationService.authorizeAtLeastOneForce(List.of(this.authorizationContentResolverFactory.getInstance().planAffiliation(planDepositModel.getPlanId())), Permission.DepositPlan);
         //GK: First get the right client
         DepositClient depositClient = this.getDepositClient(planDepositModel.getRepositoryId());
         if (depositClient == null) throw new MyNotFoundException(this.messageSource.getMessage("General_ItemNotFound", new Object[]{planDepositModel.getRepositoryId(), DepositClient.class.getSimpleName()}, LocaleContextHolder.getLocale()));
@@ -320,8 +319,8 @@ public class DepositServiceImpl implements DepositService {
             authInfo.setAuthToken(this.authenticate(authenticateRequest));
         } else if (planDepositModel.getDepositAuthInfoType().equals(DepositAuthMethod.AuthInfoFromUserProfile)){
             //Get User Plugin Configurations
-            UserEntity user = this.queryFactory.query(UserQuery.class).ids(this.userScope.getUserIdSafe()).disableTracking().firstAs(new BaseFieldSet().ensure(User._name).ensure(User._additionalInfo));
-            if (user == null) throw new MyNotFoundException(this.messageSource.getMessage("General_ItemNotFound", new Object[]{this.userScope.getUserIdSafe(), User.class.getSimpleName()}, LocaleContextHolder.getLocale()));
+            UserEntity user = this.queryFactory.query(UserQuery.class).ids(this.userScopeFactory.getInstance().getUserIdSafe()).disableTracking().firstAs(new BaseFieldSet().ensure(User._name).ensure(User._additionalInfo));
+            if (user == null) throw new MyNotFoundException(this.messageSource.getMessage("General_ItemNotFound", new Object[]{this.userScopeFactory.getInstance().getUserIdSafe(), User.class.getSimpleName()}, LocaleContextHolder.getLocale()));
             AdditionalInfoEntity additionalInfo = this.conventionService.isNullOrEmpty(user.getAdditionalInfo()) ? null : this.jsonHandlingService.fromJsonSafe(AdditionalInfoEntity.class, user.getAdditionalInfo());
             if (additionalInfo != null && !this.conventionService.isListNullOrEmpty(additionalInfo.getPluginConfigurations())) {
                 PluginConfigurationUserEntity pluginConfigurationUserEntity = additionalInfo.getPluginConfigurations().stream().filter(x -> x.getPluginCode().equals(planDepositModel.getRepositoryId()) && x.getPluginType().equals(PluginType.Deposit)).findFirst().orElse(null);
@@ -334,14 +333,14 @@ public class DepositServiceImpl implements DepositService {
         }
         model.setAuthInfo(authInfo);
         
-        org.opencdmp.model.file.FileEnvelope pdfFile = this.fileTransformerService.exportPlan(planEntity.getId(), source.getPdfTransformerId(),"pdf", false);
-        org.opencdmp.model.file.FileEnvelope rda = this.fileTransformerService.exportPlan(planEntity.getId(), source.getRdaTransformerId(),"json", false);
+        org.opencdmp.model.file.FileEnvelope pdfFile = this.fileTransformerService.exportPlanInternal(planEntity.getId(), source.getPdfTransformerId(),"pdf");
+        org.opencdmp.model.file.FileEnvelope rda = this.fileTransformerService.exportPlanInternal(planEntity.getId(), source.getRdaTransformerId(),"json");
 
         FileEnvelopeModel pdfEnvelope = new FileEnvelopeModel();
         FileEnvelopeModel jsonEnvelope = new FileEnvelopeModel();
 
         pdfEnvelope.setFilename(pdfFile.getFilename());
-        jsonEnvelope.setMimeType("application/pdf");
+        pdfEnvelope.setMimeType("application/pdf");
         jsonEnvelope.setFilename(rda.getFilename());
         jsonEnvelope.setMimeType("application/json");
         if (!depositClient.getConfiguration().isUseSharedStorage()){
@@ -397,7 +396,7 @@ public class DepositServiceImpl implements DepositService {
         PlanPropertiesEntity planPropertiesEntity = this.jsonHandlingService.fromJsonSafe(PlanPropertiesEntity.class, planEntity.getProperties());
         if (planPropertiesEntity != null && !this.conventionService.isListNullOrEmpty(planPropertiesEntity.getPlanBlueprintValues())) {
 
-            PlanBlueprintEntity planBlueprintEntity = this.entityManager.find(PlanBlueprintEntity.class, planEntity.getBlueprintId(), true);
+            PlanBlueprintEntity planBlueprintEntity = this.tenantEntityManagerFactory.getInstance().find(PlanBlueprintEntity.class, planEntity.getBlueprintId(), true);
             if (planBlueprintEntity == null) throw new MyNotFoundException(this.messageSource.getMessage("General_ItemNotFound", new Object[]{planEntity.getBlueprintId(), PlanBlueprint.class.getSimpleName()}, LocaleContextHolder.getLocale()));
 
             org.opencdmp.commons.types.planblueprint.DefinitionEntity definition = this.xmlHandlingService.fromXmlSafe(org.opencdmp.commons.types.planblueprint.DefinitionEntity.class, planBlueprintEntity.getDefinition());
@@ -419,7 +418,7 @@ public class DepositServiceImpl implements DepositService {
         for (DescriptionEntity description: descriptionEntities) {
             PropertyDefinitionEntity properties = this.jsonHandlingService.fromJsonSafe(PropertyDefinitionEntity.class, description.getProperties());
             if (properties != null) {
-                DescriptionTemplateEntity descriptionTemplateEntity = this.entityManager.find(DescriptionTemplateEntity.class, description.getDescriptionTemplateId(), true);
+                DescriptionTemplateEntity descriptionTemplateEntity = this.tenantEntityManagerFactory.getInstance().find(DescriptionTemplateEntity.class, description.getDescriptionTemplateId(), true);
                 if (descriptionTemplateEntity == null)
                     throw new MyNotFoundException(this.messageSource.getMessage("General_ItemNotFound", new Object[]{description.getDescriptionTemplateId(), DescriptionTemplateEntity.class.getSimpleName()}, LocaleContextHolder.getLocale()));
 
@@ -486,7 +485,7 @@ public class DepositServiceImpl implements DepositService {
         List<UserEntity> users = this.queryFactory.query(UserQuery.class).disableTracking().ids(planUsers.stream().map(PlanUserEntity::getUserId).collect(Collectors.toList())).isActive(IsActive.Active).collect();
 
         for (UserEntity user: users) {
-            if (!user.getId().equals(this.userScope.getUserIdSafe()) && !this.conventionService.isListNullOrEmpty(planUsers.stream().filter(x -> x.getUserId().equals(user.getId())).collect(Collectors.toList()))){
+            if (!user.getId().equals(this.userScopeFactory.getInstance().getUserIdSafe()) && !this.conventionService.isListNullOrEmpty(planUsers.stream().filter(x -> x.getUserId().equals(user.getId())).collect(Collectors.toList()))){
                 this.createPlanDepositNotificationEvent(planEntity, user, repositoryId);
             }
         }
@@ -500,13 +499,13 @@ public class DepositServiceImpl implements DepositService {
         NotificationFieldData data = new NotificationFieldData();
         List<FieldInfo> fieldInfoList = new ArrayList<>();
         fieldInfoList.add(new FieldInfo("{recipient}", DataType.String, user.getName()));
-        fieldInfoList.add(new FieldInfo("{reasonName}", DataType.String, this.queryFactory.query(UserQuery.class).disableTracking().ids(this.userScope.getUserId()).first().getName()));
+        fieldInfoList.add(new FieldInfo("{reasonName}", DataType.String, this.queryFactory.query(UserQuery.class).disableTracking().ids(this.userScopeFactory.getInstance().getUserId()).first().getName()));
         fieldInfoList.add(new FieldInfo("{name}", DataType.String, plan.getLabel()));
         fieldInfoList.add(new FieldInfo("{id}", DataType.String, plan.getId().toString()));
         fieldInfoList.add(new FieldInfo("{depositName}", DataType.String, repositoryId));
 
-        if(this.tenantScope.getTenantCode() != null && !this.tenantScope.getTenantCode().equals(this.tenantScope.getDefaultTenantCode())){
-            fieldInfoList.add(new FieldInfo("{tenant-url-path}", DataType.String, String.format("/t/%s", this.tenantScope.getTenantCode())));
+        if(this.tenantScopeFactory.getInstance().getTenantCode() != null && !this.tenantScopeFactory.getInstance().getTenantCode().equals(this.tenantScopeFactory.getInstance().getDefaultTenantCode())){
+            fieldInfoList.add(new FieldInfo("{tenant-url-path}", DataType.String, String.format("/t/%s", this.tenantScopeFactory.getInstance().getTenantCode())));
         }
         data.setFields(fieldInfoList);
         event.setData(this.jsonHandlingService.toJsonSafe(data));
@@ -519,7 +518,7 @@ public class DepositServiceImpl implements DepositService {
         storageFilePersist.setName(FilenameUtils.removeExtension(file.getFilename()));
         storageFilePersist.setExtension(FilenameUtils.getExtension(file.getFilename()));
         storageFilePersist.setMimeType(URLConnection.guessContentTypeFromName(file.getFilename()));
-        storageFilePersist.setOwnerId(this.userScope.getUserIdSafe());
+        storageFilePersist.setOwnerId(this.userScopeFactory.getInstance().getUserIdSafe());
         storageFilePersist.setStorageType(StorageType.Temp);
         storageFilePersist.setLifetime(Duration.ofSeconds(this.storageFileProperties.getTempStoreLifetimeSeconds())); //TODO
         this.validatorFactory.validator(StorageFilePersist.StorageFilePersistValidator.class).validateForce(storageFilePersist);
@@ -560,8 +559,8 @@ public class DepositServiceImpl implements DepositService {
                 List<String> configurationCodes = configuration.getUserConfigurationFields().stream().filter(ConfigurationField::isAuthInfo).map(ConfigurationField::getCode).toList();
                 if (!this.conventionService.isListNullOrEmpty(configurationCodes)) {
 
-                    UserEntity user = this.queryFactory.query(UserQuery.class).ids(this.userScope.getUserIdSafe()).disableTracking().firstAs(new BaseFieldSet().ensure(User._name).ensure(User._additionalInfo));
-                    if (user == null) throw new MyNotFoundException(this.messageSource.getMessage("General_ItemNotFound", new Object[]{this.userScope.getUserIdSafe(), User.class.getSimpleName()}, LocaleContextHolder.getLocale()));
+                    UserEntity user = this.queryFactory.query(UserQuery.class).ids(this.userScopeFactory.getInstance().getUserIdSafe()).disableTracking().firstAs(new BaseFieldSet().ensure(User._name).ensure(User._additionalInfo));
+                    if (user == null) throw new MyNotFoundException(this.messageSource.getMessage("General_ItemNotFound", new Object[]{this.userScopeFactory.getInstance().getUserIdSafe(), User.class.getSimpleName()}, LocaleContextHolder.getLocale()));
                     authTypes.add(DepositAuthMethod.AuthInfoFromUserProfile);
 
                     AdditionalInfoEntity additionalInfo = this.conventionService.isNullOrEmpty(user.getAdditionalInfo()) ? null : this.jsonHandlingService.fromJsonSafe(AdditionalInfoEntity.class, user.getAdditionalInfo());

@@ -14,9 +14,10 @@ import jakarta.persistence.*;
 import org.opencdmp.commons.enums.IsActive;
 import org.opencdmp.commons.fake.FakeRequestScope;
 import org.opencdmp.data.QueueInboxEntity;
-import org.opencdmp.data.TenantEntityManager;
+import org.opencdmp.data.TenantEntityManagerFactory;
 import org.opencdmp.integrationevent.inbox.annotationentitycreated.AnnotationEntityCreatedIntegrationEventHandler;
 import org.opencdmp.integrationevent.inbox.annotationstatusentitychanged.AnnotationStatusEntityChangedIntegrationEventHandler;
+import org.opencdmp.integrationevent.inbox.dmptouch.DmpTouchedIntegrationEventHandler;
 import org.opencdmp.query.QueueInboxQuery;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationContext;
@@ -49,14 +50,14 @@ public class InboxRepositoryImpl implements InboxRepository {
         EntityTransaction transaction = null;
         CandidateInfo candidate = null;
         try (FakeRequestScope ignored = new FakeRequestScope()) {
-            TenantEntityManager tenantEntityManager = null;
+            TenantEntityManagerFactory tenantEntityManagerFactory = null;
             EntityManager entityManager = null;
             try{
-                tenantEntityManager = this.applicationContext.getBean(TenantEntityManager.class);
+                tenantEntityManagerFactory = this.applicationContext.getBean(TenantEntityManagerFactory.class);
                 entityManager = this.entityManagerFactory.createEntityManager();
                 
-                tenantEntityManager.setEntityManager(entityManager);
-                tenantEntityManager.disableTenantFilters();
+                tenantEntityManagerFactory.getInstance().setEntityManager(entityManager);
+                tenantEntityManagerFactory.getInstance().disableTenantFilters();
 
                 QueryFactory queryFactory = this.applicationContext.getBean(QueryFactory.class);
 
@@ -98,7 +99,7 @@ public class InboxRepositoryImpl implements InboxRepository {
                 candidate = null;
             } finally {
                 if (entityManager != null) entityManager.close();
-                if (tenantEntityManager != null) tenantEntityManager.reloadTenantFilters();
+                if (tenantEntityManagerFactory != null) tenantEntityManagerFactory.getInstance().reloadTenantFilters();
             }
         } catch (Exception ex) {
             logger.error("Problem getting list of queue inbox. Skipping: {}", ex.getMessage(), ex);
@@ -113,14 +114,14 @@ public class InboxRepositoryImpl implements InboxRepository {
         boolean success = false;
 
         try (FakeRequestScope ignored = new FakeRequestScope()) {
-            TenantEntityManager tenantEntityManager = null;
+            TenantEntityManagerFactory tenantEntityManagerFactory = null;
             EntityManager entityManager = null;
             try{
-                tenantEntityManager = this.applicationContext.getBean(TenantEntityManager.class);
+                tenantEntityManagerFactory = this.applicationContext.getBean(TenantEntityManagerFactory.class);
                 entityManager = this.entityManagerFactory.createEntityManager();
                 
-                tenantEntityManager.setEntityManager(entityManager);
-                tenantEntityManager.disableTenantFilters();
+                tenantEntityManagerFactory.getInstance().setEntityManager(entityManager);
+                tenantEntityManagerFactory.getInstance().disableTenantFilters();
 
                 transaction = entityManager.getTransaction();
 
@@ -149,7 +150,7 @@ public class InboxRepositoryImpl implements InboxRepository {
                 success = false;
             } finally {
                 if (entityManager != null) entityManager.close();
-                if (tenantEntityManager != null) tenantEntityManager.reloadTenantFilters();
+                if (tenantEntityManagerFactory != null) tenantEntityManagerFactory.getInstance().reloadTenantFilters();
             }
         } catch (Exception ex) {
             logger.error("Problem executing purge. rolling back any db changes and marking error. Continuing...", ex);
@@ -163,14 +164,14 @@ public class InboxRepositoryImpl implements InboxRepository {
         boolean success = false;
 
         try (FakeRequestScope ignored = new FakeRequestScope()) {
-            TenantEntityManager tenantEntityManager = null;
+            TenantEntityManagerFactory tenantEntityManagerFactory = null;
             EntityManager entityManager = null;
             try{
-                tenantEntityManager = this.applicationContext.getBean(TenantEntityManager.class);
+                tenantEntityManagerFactory = this.applicationContext.getBean(TenantEntityManagerFactory.class);
                 entityManager = this.entityManagerFactory.createEntityManager();
                 
-                tenantEntityManager.setEntityManager(entityManager);
-                tenantEntityManager.disableTenantFilters();
+                tenantEntityManagerFactory.getInstance().setEntityManager(entityManager);
+                tenantEntityManagerFactory.getInstance().disableTenantFilters();
 
                 transaction = entityManager.getTransaction();
 
@@ -200,7 +201,7 @@ public class InboxRepositoryImpl implements InboxRepository {
                 success = false;
             } finally {
                 if (entityManager != null) entityManager.close();
-                if (tenantEntityManager != null) tenantEntityManager.reloadTenantFilters();
+                if (tenantEntityManagerFactory != null) tenantEntityManagerFactory.getInstance().reloadTenantFilters();
             }
         } catch (Exception ex) {
             logger.error("Problem executing purge. rolling back any db changes and marking error. Continuing...", ex);
@@ -214,14 +215,14 @@ public class InboxRepositoryImpl implements InboxRepository {
         boolean success;
         QueueInboxEntity queueMessage = null;
         try (FakeRequestScope ignored = new FakeRequestScope()) {
-            TenantEntityManager tenantEntityManager = null;
+            TenantEntityManagerFactory tenantEntityManagerFactory = null;
             EntityManager entityManager = null;
             try{
-                tenantEntityManager = this.applicationContext.getBean(TenantEntityManager.class);
+                tenantEntityManagerFactory = this.applicationContext.getBean(TenantEntityManagerFactory.class);
                 entityManager = this.entityManagerFactory.createEntityManager();
 
-                tenantEntityManager.setEntityManager(entityManager);
-                tenantEntityManager.disableTenantFilters();
+                tenantEntityManagerFactory.getInstance().setEntityManager(entityManager);
+                tenantEntityManagerFactory.getInstance().disableTenantFilters();
 
                 QueryFactory queryFactory = this.applicationContext.getBean(QueryFactory.class);
 
@@ -244,7 +245,7 @@ public class InboxRepositoryImpl implements InboxRepository {
                 if (transaction != null) transaction.rollback();
             } finally {
                 if (entityManager != null) entityManager.close();
-                if (tenantEntityManager != null) tenantEntityManager.reloadTenantFilters();
+                if (tenantEntityManagerFactory != null) tenantEntityManagerFactory.getInstance().reloadTenantFilters();
             }
         } catch (Exception ex) {
             success = false;
@@ -293,14 +294,14 @@ public class InboxRepositoryImpl implements InboxRepository {
         } else {
             EventProcessingStatus status = this.emitQueueInboxEntity(queueInboxMessage);
             try (FakeRequestScope ignored = new FakeRequestScope()) {
-                TenantEntityManager tenantEntityManager = null;
+                TenantEntityManagerFactory tenantEntityManagerFactory = null;
                 EntityManager entityManager = null;
                 try{
-                    tenantEntityManager = this.applicationContext.getBean(TenantEntityManager.class);
+                    tenantEntityManagerFactory = this.applicationContext.getBean(TenantEntityManagerFactory.class);
                     entityManager = this.entityManagerFactory.createEntityManager();
                     
-                    tenantEntityManager.setEntityManager(entityManager);
-                    tenantEntityManager.disableTenantFilters();
+                    tenantEntityManagerFactory.getInstance().setEntityManager(entityManager);
+                    tenantEntityManagerFactory.getInstance().disableTenantFilters();
 
                     transaction = entityManager.getTransaction();
 
@@ -339,7 +340,7 @@ public class InboxRepositoryImpl implements InboxRepository {
                     success = false;
                 } finally {
                     if (entityManager != null) entityManager.close();
-                    if (tenantEntityManager != null) tenantEntityManager.reloadTenantFilters();
+                    if (tenantEntityManagerFactory != null) tenantEntityManagerFactory.getInstance().reloadTenantFilters();
                 }
             } catch (Exception ex) {
                 logger.error("Problem executing purge. rolling back any db changes and marking error. Continuing...", ex);
@@ -353,13 +354,13 @@ public class InboxRepositoryImpl implements InboxRepository {
         EntityTransaction transaction = null;
         EventProcessingStatus status = EventProcessingStatus.Discard;
         try (FakeRequestScope ignored = new FakeRequestScope()) {
-            TenantEntityManager tenantEntityManager = null;
+            TenantEntityManagerFactory tenantEntityManagerFactory = null;
             EntityManager entityManager = null;
             try{
-                tenantEntityManager = this.applicationContext.getBean(TenantEntityManager.class);
+                tenantEntityManagerFactory = this.applicationContext.getBean(TenantEntityManagerFactory.class);
                 entityManager = this.entityManagerFactory.createEntityManager();
 
-                tenantEntityManager.setEntityManager(entityManager);
+                tenantEntityManagerFactory.getInstance().setEntityManager(entityManager);
 
                 transaction = entityManager.getTransaction();
 
@@ -396,6 +397,8 @@ public class InboxRepositoryImpl implements InboxRepository {
             handler = this.applicationContext.getBean(AnnotationEntityCreatedIntegrationEventHandler.class);
         else if (this.routingKeyMatched(queueInboxMessage.getRoute(), this.inboxProperties.getAnnotationStatusChangedTopic()))
             handler = this.applicationContext.getBean(AnnotationStatusEntityChangedIntegrationEventHandler.class);
+        else if (this.routingKeyMatched(queueInboxMessage.getRoute(), this.inboxProperties.getDmpTouchTopic()))
+            handler = this.applicationContext.getBean(DmpTouchedIntegrationEventHandler.class);
         else {
             logger.error("No handler found for message routing key '{}'. Discarding.", queueInboxMessage.getRoute());
             handler = null;

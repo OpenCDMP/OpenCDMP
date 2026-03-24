@@ -31,6 +31,13 @@ public class ReferenceTypeFieldPersist {
 
     public static final String _dataType = "dataType";
 
+    private List<String> semantics;
+    public static final String _semantics = "semantics";
+
+    private Boolean required;
+
+    public final static String _required = "required";
+
     public String getCode() {
         return code;
     }
@@ -63,6 +70,22 @@ public class ReferenceTypeFieldPersist {
         this.dataType = dataType;
     }
 
+    public List<String> getSemantics() {
+        return semantics;
+    }
+
+    public void setSemantics(List<String> semantics) {
+        this.semantics = semantics;
+    }
+
+    public Boolean getRequired() {
+        return required;
+    }
+
+    public void setRequired(Boolean required) {
+        this.required = required;
+    }
+
     @Component(ReferenceTypeFieldPersistValidator.ValidatorName)
     @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
     public static class ReferenceTypeFieldPersistValidator extends BaseValidator<ReferenceTypeFieldPersist> {
@@ -92,7 +115,10 @@ public class ReferenceTypeFieldPersist {
                             .failOn(ReferenceTypeFieldPersist._label).failWith(messageSource.getMessage("Validation_Required", new Object[]{ReferenceTypeFieldPersist._label}, LocaleContextHolder.getLocale())),
                     this.spec()
                             .must(() -> !this.isNull(item.getDataType()))
-                            .failOn(ReferenceTypeFieldPersist._dataType).failWith(messageSource.getMessage("Validation_Required", new Object[]{ReferenceTypeFieldPersist._dataType}, LocaleContextHolder.getLocale()))
+                            .failOn(ReferenceTypeFieldPersist._dataType).failWith(messageSource.getMessage("Validation_Required", new Object[]{ReferenceTypeFieldPersist._dataType}, LocaleContextHolder.getLocale())),
+                    this.spec()
+                            .must(() -> !this.isNull(item.getRequired()))
+                            .failOn(ReferenceTypeFieldPersist._required).failWith(messageSource.getMessage("Validation_Required", new Object[]{ReferenceTypeFieldPersist._required}, LocaleContextHolder.getLocale()))
             );
         }
     }

@@ -1,2 +1,3 @@
 externalapifetcher:
   disableSSLCertificateValidation: true
+  maxInMemoryMb: 50

@@ -11,12 +11,8 @@ import jakarta.persistence.criteria.Predicate;
 import org.opencdmp.authorization.AuthorizationFlags;
 import org.opencdmp.authorization.Permission;
 import org.opencdmp.commons.enums.IsActive;
-import org.opencdmp.commons.scope.user.UserScope;
-import org.opencdmp.data.PlanEntity;
-import org.opencdmp.data.PlanReferenceEntity;
-import org.opencdmp.data.ReferenceEntity;
-import org.opencdmp.data.TenantEntityManager;
-import org.opencdmp.model.PublicPlanReference;
+import org.opencdmp.commons.scope.user.UserScopeFactory;
+import org.opencdmp.data.*;
 import org.opencdmp.model.planreference.PlanReference;
 import org.opencdmp.query.utils.QueryUtilsService;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
@@ -128,25 +124,25 @@ public class PlanReferenceQuery extends QueryBase<PlanReferenceEntity> {
         return this;
     }
 
-    private final UserScope userScope;
+    private final UserScopeFactory userScopeFactory;
 
     private final AuthorizationService authService;
     private final QueryUtilsService queryUtilsService;
-    private final TenantEntityManager tenantEntityManager;
+    private final TenantEntityManagerFactory tenantEntityManagerFactory;
 
     public PlanReferenceQuery(
-		    UserScope userScope,
+            UserScopeFactory userScopeFactory,
 		    AuthorizationService authService,
-		    QueryUtilsService queryUtilsService, TenantEntityManager tenantEntityManager) {
-        this.userScope = userScope;
+		    QueryUtilsService queryUtilsService, TenantEntityManagerFactory tenantEntityManagerFactory) {
+        this.userScopeFactory = userScopeFactory;
         this.authService = authService;
         this.queryUtilsService = queryUtilsService;
-	    this.tenantEntityManager = tenantEntityManager;
+	    this.tenantEntityManagerFactory = tenantEntityManagerFactory;
     }
 
     @Override
     protected EntityManager entityManager(){
-        return this.tenantEntityManager.getEntityManager();
+        return this.tenantEntityManagerFactory.getInstance().getEntityManager();
     }
 
     @Override
@@ -162,12 +158,18 @@ public class PlanReferenceQuery extends QueryBase<PlanReferenceEntity> {
     @Override
     protected <X, Y> Predicate applyAuthZ(QueryContext<X, Y> queryContext) {
         if (this.authorize.contains(AuthorizationFlags.None)) return null;
-        if (this.authorize.contains(AuthorizationFlags.Permission) && this.authService.authorize(Permission.BrowsePlanReference)) return null;
+        if (this.authorize.contains(AuthorizationFlags.Permission) && this.authService.authorize(Permission.BrowsePlanReference)) {
+            return this.queryUtilsService.buildTenantFilter(queryContext.CriteriaBuilder, queryContext.Root.get(PlanReferenceEntity._tenantId));
+        }
         UUID userId = null;
         boolean usePublic = this.authorize.contains(AuthorizationFlags.Public);
-        if (this.authorize.contains(AuthorizationFlags.PlanAssociated)) userId = this.userScope.getUserIdSafe();
+        if (this.authorize.contains(AuthorizationFlags.PlanAssociated)) userId = this.userScopeFactory.getInstance().getUserIdSafe();
 
         List<Predicate> predicates = new ArrayList<>();
+        if (!usePublic) {
+            Predicate predicateTenant = this.queryUtilsService.buildTenantFilter(queryContext.CriteriaBuilder, queryContext.Root.get(PlanReferenceEntity._tenantId));
+            if (predicateTenant != null) predicates.add(predicateTenant);
+        }
         if (userId != null || usePublic ) {
             predicates.add(queryContext.CriteriaBuilder.in(queryContext.Root.get(PlanReferenceEntity._planId)).value(this.queryUtilsService.buildPlanAuthZSubQuery(queryContext.Query, queryContext.CriteriaBuilder, userId, usePublic)));
         }
@@ -238,11 +240,11 @@ public class PlanReferenceQuery extends QueryBase<PlanReferenceEntity> {
 
     @Override
     protected String fieldNameOf(FieldResolver item) {
-        if (item.match(PlanReference._id) || item.match(PublicPlanReference._id)) return PlanReferenceEntity._id;
-        else if (item.prefix(PlanReference._plan) || item.prefix(PublicPlanReference._plan)) return PlanReferenceEntity._planId;
-        else if (item.prefix(PlanReference._reference) || item.prefix(PublicPlanReference._reference)) return PlanReferenceEntity._referenceId;
-        else if (item.match(PlanReference._plan) || item.match(PublicPlanReference._plan)) return PlanReferenceEntity._planId;
-        else if (item.match(PlanReference._reference) || item.match(PublicPlanReference._reference)) return PlanReferenceEntity._referenceId;
+        if (item.match(PlanReference._id)) return PlanReferenceEntity._id;
+        else if (item.prefix(PlanReference._plan)) return PlanReferenceEntity._planId;
+        else if (item.prefix(PlanReference._reference)) return PlanReferenceEntity._referenceId;
+        else if (item.match(PlanReference._plan)) return PlanReferenceEntity._planId;
+        else if (item.match(PlanReference._reference)) return PlanReferenceEntity._referenceId;
         else if (item.prefix(PlanReference._data)) return PlanReferenceEntity._data;
         else if (item.match(PlanReference._isActive)) return PlanReferenceEntity._isActive;
         else if (item.match(PlanReference._createdAt)) return PlanReferenceEntity._createdAt;

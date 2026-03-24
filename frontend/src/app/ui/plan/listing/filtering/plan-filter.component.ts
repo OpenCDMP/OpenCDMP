@@ -83,7 +83,6 @@ export class PlanFilterComponent extends BaseCriteriaComponent<PlanListingFilter
             descriptionTemplates: new FormControl(filters?.descriptionTemplates),
             planBlueprints: new FormControl(filters?.planBlueprints),
             role: new FormControl(filters?.role),
-            viewOnlyTenant: new FormControl(filters?.viewOnlyTenant ?? false),
             references: new FormArray([])
         });
 
@@ -115,8 +114,7 @@ export class PlanFilterComponent extends BaseCriteriaComponent<PlanListingFilter
             planBlueprints: null,
             references: null,
             role: null,
-            statusId: null,
-            viewOnlyTenant: null
+            statusId: null
         });
         this.referenceAutocompleteConfiguration.clear();
     }
@@ -215,7 +213,6 @@ export class PlanFilterComponent extends BaseCriteriaComponent<PlanListingFilter
 export interface PlanListingFilters {
     statusId: Guid,
 	isActive: boolean,
-    viewOnlyTenant: boolean,
     descriptionTemplates: Guid[],
     planBlueprints: Guid[],
     role: Guid,
@@ -225,7 +222,6 @@ export interface PlanListingFilters {
 interface PlanListingFilterForm {
     statusId: FormControl<Guid>,
 	isActive: FormControl<boolean>,
-    viewOnlyTenant: FormControl<boolean>,
     descriptionTemplates: FormControl<Guid[]>,
     planBlueprints: FormControl<Guid[]>,
     role:  FormControl<Guid>,

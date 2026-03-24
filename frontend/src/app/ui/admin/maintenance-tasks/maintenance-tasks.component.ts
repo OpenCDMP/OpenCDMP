@@ -313,6 +313,37 @@ export class MaintenanceTasksComponent extends BaseComponent implements OnInit {
 		);
 	}
 
+	sendBlueprintTypeAccountingEntriesEvents(ev: Event) {
+		this.dialog.open(ConfirmationDialogComponent, {
+			data: {
+				message: this.language.instant('MAINTENANCE-TASKS.CONFIRMATION.MESSAGE'),
+				confirmButton: this.language.instant('GENERAL.CONFIRMATION-DIALOG.ACTIONS.CONFIRM'),
+				cancelButton: this.language.instant('GENERAL.CONFIRMATION-DIALOG.ACTIONS.CANCEL')
+			},
+			maxWidth: '30em'
+		})
+			.afterClosed()
+			.subscribe(confirm => {
+				if (confirm) {
+					this.doSendBlueprintTypeAccountingEntriesEvents(ev);
+				}
+			});
+	}
+
+	private doSendBlueprintTypeAccountingEntriesEvents(ev: Event) {
+		(ev.target as HTMLButtonElement).disabled = true;
+		this.maintenanceService.sendBlueprintTypeAccountingEntriesEvents().pipe(takeUntil(this._destroyed)).subscribe(
+			_ => {
+				(ev.target as HTMLButtonElement).disabled = false;
+				this.onCallbackSuccess();
+			},
+			error => {
+				(ev.target as HTMLButtonElement).disabled = false;
+				this.onCallbackError(error);
+			}
+		);
+	}
+
 	sendDescriptionTemplateAccountingEntriesEvents(ev: Event) {
 		this.dialog.open(ConfirmationDialogComponent, {
 			data: {

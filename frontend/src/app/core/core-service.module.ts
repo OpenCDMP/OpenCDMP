@@ -56,6 +56,9 @@ import { QueryParamsService } from './services/utilities/query-params.service';
 import { TypeUtils } from './services/utilities/type-utils.service';
 import { AccountingAuthGuard } from './services/accounting-auth-guard.service';
 import { PluginConfigurationService } from './services/plugin/plugin-configuration.service';
+import { PlanUpdateRequestService } from './services/plan/plan-update-request.service';
+import { PlanBlueprintTypeService } from './services/plan-blueprint-type/plan-blueprint-type.service';
+import { PrincipalHttpService } from './services/http/principal.http..service';
 
 //
 //
@@ -90,10 +93,11 @@ export class CoreServiceModule {
 				DashboardService,
 				DepositHttpService,
 				PlanBlueprintService,
+				PlanBlueprintTypeService,
 				ContactSupportService,
 				LanguageService,
 				LockService,
-				PrincipalService,
+				PrincipalHttpService,
 				SupportiveMaterialService,
 				LanguageInfoService,
 				DescriptionTemplateTypeService,
@@ -132,7 +136,8 @@ export class CoreServiceModule {
 				DescriptionWorkflowService,
 				// FontAccessibilityService,
 				AccountingAuthGuard,
-				PluginConfigurationService
+				PluginConfigurationService,
+				PlanUpdateRequestService
 			],
 		};
 	}

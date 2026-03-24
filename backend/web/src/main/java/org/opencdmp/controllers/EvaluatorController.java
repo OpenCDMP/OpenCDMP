@@ -82,7 +82,7 @@ public class EvaluatorController {
     public ResponseEntity<RankResultModel> rankPlan(@RequestBody EvaluateRequestModel requestModel) throws Exception {
         logger.debug(new MapLogEntry("ranking plan"));
 
-        RankResultModel rankModel = this.evaluatorService.rankPlan(requestModel.getId(), requestModel.getEvaluatorId(), requestModel.getFormat(), requestModel.getBenchmarkIds(), false);
+        RankResultModel rankModel = this.evaluatorService.rankPlan(requestModel.getId(), requestModel.getEvaluatorId(), requestModel.getFormat(), requestModel.getBenchmarkIds());
 
         return new ResponseEntity<>(rankModel, HttpStatus.OK);
     }

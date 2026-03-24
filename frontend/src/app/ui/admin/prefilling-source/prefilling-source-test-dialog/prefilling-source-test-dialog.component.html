@@ -1,0 +1,19 @@
+<h1 class="header m-0">{{'PREFILLING-SOURCE-EDITOR.TEST.RESULTS' | translate}}</h1>
+@if(sources.length > 0){
+    <ng-container class="test">
+        <app-prefilling-field-component class="prefilling-source-field" [sources]="sources"  [definitionSourcekey]="key"  (selectedPrefilling)="selectedOption($event)"  ></app-prefilling-field-component>
+    </ng-container>
+    @if(prefillingSelected){
+        <div class="info-grid pl-4 pr-4 pb-4">
+            @for(fieldMapping of fieldMappings; track $index){
+                <div class="info-grid-label pt-0">
+                    {{fieldMapping.code}}:
+                </div>
+                <div class="info-grid-value">
+                    {{resultsValue(fieldMapping.code)}}
+                </div>
+            }
+        </div>
+        <!-- <pre class="key">{{ prefillingSelected | json }}</pre> -->
+    }
+}

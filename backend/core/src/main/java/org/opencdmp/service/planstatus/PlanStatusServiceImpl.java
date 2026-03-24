@@ -16,22 +16,19 @@ import jakarta.xml.bind.JAXBException;
 import org.jetbrains.annotations.NotNull;
 import org.opencdmp.authorization.AffiliatedResource;
 import org.opencdmp.authorization.Permission;
-import org.opencdmp.authorization.authorizationcontentresolver.AuthorizationContentResolver;
+import org.opencdmp.authorization.authorizationcontentresolver.AuthorizationContentResolverFactory;
 import org.opencdmp.commons.XmlHandlingService;
 import org.opencdmp.commons.enums.IsActive;
 import org.opencdmp.commons.enums.StorageType;
 import org.opencdmp.commons.enums.UsageLimitTargetMetric;
-import org.opencdmp.commons.scope.tenant.TenantScope;
+import org.opencdmp.commons.scope.tenant.TenantScopeFactory;
 import org.opencdmp.commons.types.planstatus.PlanStatusDefinitionAuthorizationEntity;
 import org.opencdmp.commons.types.planstatus.PlanStatusDefinitionAuthorizationItemEntity;
 import org.opencdmp.commons.types.planstatus.PlanStatusDefinitionEntity;
 import org.opencdmp.commons.types.planworkflow.PlanWorkflowDefinitionEntity;
 import org.opencdmp.commons.types.planworkflow.PlanWorkflowDefinitionTransitionEntity;
 import org.opencdmp.convention.ConventionService;
-import org.opencdmp.data.PlanEntity;
-import org.opencdmp.data.PlanStatusEntity;
-import org.opencdmp.data.StorageFileEntity;
-import org.opencdmp.data.TenantEntityManager;
+import org.opencdmp.data.*;
 import org.opencdmp.errorcode.ErrorThesaurusProperties;
 import org.opencdmp.event.EventBroker;
 import org.opencdmp.event.PlanStatusTouchedEvent;
@@ -73,34 +70,34 @@ public class PlanStatusServiceImpl implements PlanStatusService {
     private final AuthorizationService authorizationService;
     private final ConventionService conventionService;
     private final XmlHandlingService xmlHandlingService;
-    private final TenantEntityManager entityManager;
+    private final TenantEntityManagerFactory tenantEntityManagerFactory;
     private final MessageSource messageSource;
     private final ErrorThesaurusProperties errors;
     private final EventBroker eventBroker;
-    private final TenantScope tenantScope;
+    private final TenantScopeFactory tenantScopeFactory;
     private final PlanWorkflowService planWorkflowService;
     private final CustomPolicyService customPolicyService;
-    private final AuthorizationContentResolver authorizationContentResolver;
+    private final AuthorizationContentResolverFactory authorizationContentResolverFactory;
     private final QueryFactory queryFactory;
     private final UsageLimitService usageLimitService;
     private final AccountingService accountingService;
     private final StorageFileService storageFileService;
 
-    public PlanStatusServiceImpl(BuilderFactory builderFactory, DeleterFactory deleterFactory, AuthorizationService authorizationService, ConventionService conventionService, XmlHandlingService xmlHandlingService, TenantEntityManager entityManager, MessageSource messageSource, ErrorThesaurusProperties errors, EventBroker eventBroker, TenantScope tenantScope, PlanWorkflowService planWorkflowService, CustomPolicyService customPolicyService, AuthorizationContentResolver authorizationContentResolver, QueryFactory queryFactory, UsageLimitService usageLimitService, AccountingService accountingService, StorageFileService storageFileService) {
+    public PlanStatusServiceImpl(BuilderFactory builderFactory, DeleterFactory deleterFactory, AuthorizationService authorizationService, ConventionService conventionService, XmlHandlingService xmlHandlingService, TenantEntityManagerFactory tenantEntityManagerFactory, MessageSource messageSource, ErrorThesaurusProperties errors, EventBroker eventBroker, TenantScopeFactory tenantScopeFactory, PlanWorkflowService planWorkflowService, CustomPolicyService customPolicyService, AuthorizationContentResolverFactory authorizationContentResolverFactory, QueryFactory queryFactory, UsageLimitService usageLimitService, AccountingService accountingService, StorageFileService storageFileService) {
         this.builderFactory = builderFactory;
         this.deleterFactory = deleterFactory;
 
         this.authorizationService = authorizationService;
         this.conventionService = conventionService;
         this.xmlHandlingService = xmlHandlingService;
-        this.entityManager = entityManager;
+        this.tenantEntityManagerFactory = tenantEntityManagerFactory;
         this.messageSource = messageSource;
         this.errors = errors;
 	    this.eventBroker = eventBroker;
-        this.tenantScope = tenantScope;
+        this.tenantScopeFactory = tenantScopeFactory;
         this.planWorkflowService = planWorkflowService;
         this.customPolicyService = customPolicyService;
-        this.authorizationContentResolver = authorizationContentResolver;
+        this.authorizationContentResolverFactory = authorizationContentResolverFactory;
         this.queryFactory = queryFactory;
         this.usageLimitService = usageLimitService;
         this.accountingService = accountingService;
@@ -117,7 +114,7 @@ public class PlanStatusServiceImpl implements PlanStatusService {
 
         PlanStatusEntity data;
         if (isUpdate) {
-            data = this.entityManager.find(PlanStatusEntity.class, model.getId());
+            data = this.tenantEntityManagerFactory.getInstance().find(PlanStatusEntity.class, model.getId());
             if (data == null) throw new MyNotFoundException(this.messageSource.getMessage("General_ItemNotFound", new Object[]{model.getId(), PlanStatus.class.getSimpleName()}, LocaleContextHolder.getLocale()));
             if (!this.conventionService.hashValue(data.getUpdatedAt()).equals(model.getHash())) throw new MyValidationException(this.errors.getHashConflict().getCode(), this.errors.getHashConflict().getMessage());
         } else {
@@ -139,14 +136,14 @@ public class PlanStatusServiceImpl implements PlanStatusService {
         data.setUpdatedAt(Instant.now());
 
         if (isUpdate)
-            this.entityManager.merge(data);
+            this.tenantEntityManagerFactory.getInstance().merge(data);
         else {
             this.accountingService.increase(UsageLimitTargetMetric.PLAN_STATUS_COUNT.getValue());
-            this.entityManager.persist(data);
+            this.tenantEntityManagerFactory.getInstance().persist(data);
         }
-        this.entityManager.flush();
+        this.tenantEntityManagerFactory.getInstance().flush();
 
-        this.eventBroker.emit(new PlanStatusTouchedEvent(data.getId(), this.tenantScope.getTenantCode()));
+        this.eventBroker.emit(new PlanStatusTouchedEvent(data.getId(), this.tenantScopeFactory.getInstance().getTenantCode()));
 
         return this.builderFactory.builder(PlanStatusBuilder.class).build(BaseFieldSet.build(fields, PlanStatus._id), data);
     }
@@ -232,7 +229,7 @@ public class PlanStatusServiceImpl implements PlanStatusService {
         List<PlanStatusEntity> statusEntities = this.queryFactory.query(PlanStatusQuery.class).isActives(IsActive.Active).collectAs(new BaseFieldSet().ensure(PlanStatus._id));
         for (PlanEntity plan: planEntities) {
             authorizedStatusMap.put(plan.getId(), new ArrayList<>());
-            AffiliatedResource affiliatedResource = this.authorizationContentResolver.planAffiliation(plan.getId());
+            AffiliatedResource affiliatedResource = this.authorizationContentResolverFactory.getInstance().planAffiliation(plan.getId());
             for (PlanStatusEntity status: statusEntities) {
 
                 List<PlanWorkflowDefinitionTransitionEntity> availableTransitions = definition.getStatusTransitions().stream().filter(x -> x.getFromStatusId().equals(plan.getStatusId())).collect(Collectors.toList());

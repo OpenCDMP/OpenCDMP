@@ -64,7 +64,7 @@ public class EvaluatorTenantConfigurationPersist {
                             .must(() -> !this.isNull(item.getDisableSystemSources()))
                             .failOn(EvaluatorTenantConfigurationPersist._disableSystemSources).failWith(messageSource.getMessage("Validation_Required", new Object[]{EvaluatorTenantConfigurationPersist._disableSystemSources}, LocaleContextHolder.getLocale())),
                     this.spec()
-                            .must(() -> !this.isNull(item.getSources()))
+                            .must(() -> !this.isListNullOrEmpty(item.getSources()))
                             .failOn(EvaluatorTenantConfigurationPersist._sources).failWith(messageSource.getMessage("Validation_Required", new Object[]{EvaluatorTenantConfigurationPersist._sources}, LocaleContextHolder.getLocale())),
                     this.navSpec()
                             .iff(() -> !this.isListNullOrEmpty(item.getSources()))

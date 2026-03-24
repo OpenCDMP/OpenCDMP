@@ -2,12 +2,12 @@ package org.opencdmp.model.censorship;
 
 import org.opencdmp.authorization.Permission;
 import org.opencdmp.convention.ConventionService;
-import org.opencdmp.model.PublicPlanReference;
 import gr.cite.commons.web.authz.service.AuthorizationService;
 import gr.cite.tools.data.censor.CensorFactory;
 import gr.cite.tools.fieldset.FieldSet;
 import gr.cite.tools.logging.DataLogEntry;
 import gr.cite.tools.logging.LoggerService;
+import org.opencdmp.model.planreference.PlanReference;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
@@ -35,10 +35,10 @@ public class PublicPlanReferenceCensor extends BaseCensor {
         if (fields == null || fields.isEmpty())
             return;
 
-        this.authService.authorizeForce(Permission.PublicBrowsePlanReference);
-        FieldSet planFields = fields.extractPrefixed(this.asIndexerPrefix(PublicPlanReference._plan));
+        this.authService.authorizeForce(Permission.PublicBrowsePlan);
+        FieldSet planFields = fields.extractPrefixed(this.asIndexerPrefix(PlanReference._plan));
         this.censorFactory.censor(PublicPlanCensor.class).censor(planFields);
-        FieldSet templateFields = fields.extractPrefixed(this.asIndexerPrefix(PublicPlanReference._reference));
+        FieldSet templateFields = fields.extractPrefixed(this.asIndexerPrefix(PlanReference._reference));
         this.censorFactory.censor(PublicReferenceCensor.class).censor(templateFields);
     }
 

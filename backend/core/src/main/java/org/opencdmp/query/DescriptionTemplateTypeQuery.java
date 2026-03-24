@@ -11,7 +11,7 @@ import org.opencdmp.authorization.AuthorizationFlags;
 import org.opencdmp.commons.enums.DescriptionTemplateTypeStatus;
 import org.opencdmp.commons.enums.IsActive;
 import org.opencdmp.data.DescriptionTemplateTypeEntity;
-import org.opencdmp.data.TenantEntityManager;
+import org.opencdmp.data.TenantEntityManagerFactory;
 import org.opencdmp.model.DescriptionTemplateType;
 import org.opencdmp.query.utils.QueryUtilsService;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
@@ -135,16 +135,16 @@ public class DescriptionTemplateTypeQuery extends QueryBase<DescriptionTemplateT
     }
 
     private final QueryUtilsService queryUtilsService;
-    private final TenantEntityManager tenantEntityManager;
+    private final TenantEntityManagerFactory tenantEntityManagerFactory;
     public DescriptionTemplateTypeQuery(
-		    QueryUtilsService queryUtilsService, TenantEntityManager tenantEntityManager) {
+		    QueryUtilsService queryUtilsService, TenantEntityManagerFactory tenantEntityManagerFactory) {
 	    this.queryUtilsService = queryUtilsService;
-	    this.tenantEntityManager = tenantEntityManager;
+	    this.tenantEntityManagerFactory = tenantEntityManagerFactory;
     }
     
     @Override
     protected EntityManager entityManager(){
-        return this.tenantEntityManager.getEntityManager();
+        return this.tenantEntityManagerFactory.getInstance().getEntityManager();
     }
     
     @Override

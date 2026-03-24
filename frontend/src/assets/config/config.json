@@ -12,6 +12,9 @@
 		"clientSecret": null,
 		"grantType": "code"
     },
+    "cookieConsent": {
+        "revision": 0
+    },
 	"inAppNotificationsCountInterval": "30",
 	"notification_service": {
 		"enabled": true,
@@ -32,11 +35,10 @@
 		],
 		"defaultStatusIcon": "animation"
 	},
-    "kpi_service": {
+	"kpi_service": {
 		"enabled": "${KPI_SERVICE_ENABLED}",
 		"address": "${KPI_SERVICE_ADDRESS}",
-		"dashboardId": "${KPI_SERVICE_DASHBOARD_ID}",
-		"keywordFilter": "${KPI_SERVICE_KEYWORD_FILTER}"
+		"dashboards": []
 	},
 	"accounting_service": {
 		"enabled": "${ACCOUNTING_SERVICE_ENABLED}"

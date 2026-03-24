@@ -7,7 +7,7 @@ import gr.cite.tools.logging.DataLogEntry;
 import gr.cite.tools.logging.LoggerService;
 import org.opencdmp.authorization.AuthorizationFlags;
 import org.opencdmp.commons.XmlHandlingService;
-import org.opencdmp.commons.scope.tenant.TenantScope;
+import org.opencdmp.commons.scope.tenant.TenantScopeFactory;
 import org.opencdmp.commons.types.evaluation.EvaluationDataEntity;
 import org.opencdmp.convention.ConventionService;
 import org.opencdmp.data.EvaluationEntity;
@@ -27,17 +27,17 @@ public class EvaluationBuilder extends BaseBuilder<Evaluation, EvaluationEntity>
 
     private final BuilderFactory builderFactory;
     private final XmlHandlingService xmlHandlingService;
-    private final TenantScope tenantScope;
+    private final TenantScopeFactory tenantScopeFactory;
     private EnumSet<AuthorizationFlags> authorize = EnumSet.of(AuthorizationFlags.None);
 
 
     @Autowired
     public EvaluationBuilder(
             ConventionService conventionService,
-            BuilderFactory builderFactory, XmlHandlingService xmlHandlingService, TenantScope tenantScope) {
+            BuilderFactory builderFactory, XmlHandlingService xmlHandlingService, TenantScopeFactory tenantScopeFactory) {
         super(conventionService,  new LoggerService(LoggerFactory.getLogger(EvaluationBuilder.class)));
         this.xmlHandlingService = xmlHandlingService;
-        this.tenantScope = tenantScope;
+        this.tenantScopeFactory = tenantScopeFactory;
         this.builderFactory = builderFactory;
 
 
@@ -70,7 +70,7 @@ public class EvaluationBuilder extends BaseBuilder<Evaluation, EvaluationEntity>
             if (fields.hasField(this.asIndexer(Evaluation._isActive))) m.setIsActive(d.getIsActive());
             if (fields.hasField(this.asIndexer(Evaluation._createdById))) m.setCreatedById(d.getCreatedById());
             if (fields.hasField(this.asIndexer(Evaluation._hash))) m.setHash(this.hashValue(d.getUpdatedAt()));
-            if (fields.hasField(this.asIndexer(Evaluation._belongsToCurrentTenant))) m.setBelongsToCurrentTenant(this.getBelongsToCurrentTenant(d, this.tenantScope));
+            if (fields.hasField(this.asIndexer(Evaluation._belongsToCurrentTenant))) m.setBelongsToCurrentTenant(this.getBelongsToCurrentTenant(d, this.tenantScopeFactory.getInstance()));
 
             if (!dataFields.isEmpty() && d.getData() != null){
                 EvaluationDataEntity evaluationData = this.xmlHandlingService.fromXmlSafe(EvaluationDataEntity.class, d.getData());

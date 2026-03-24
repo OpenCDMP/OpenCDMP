@@ -38,12 +38,12 @@
             <artifactId>spring-boot-starter-webflux</artifactId>
         </dependency>
         <dependency>
-            <groupId>com.fasterxml.jackson.core</groupId>
-            <artifactId>jackson-annotations</artifactId>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-oauth2-resource-server</artifactId>
         </dependency>
         <dependency>
-            <groupId>com.fasterxml.jackson.datatype</groupId>
-            <artifactId>jackson-datatype-jsr310</artifactId>
+            <groupId>org.springframework.security</groupId>
+            <artifactId>spring-security-messaging</artifactId>
         </dependency>
         <dependency>
             <groupId>io.swagger</groupId>
@@ -72,12 +72,12 @@
         <dependency>
             <groupId>gr.cite</groupId>
             <artifactId>cors-web</artifactId>
-            <version>2.1.1</version>
+            <version>4.0.0</version>
         </dependency>
         <dependency>
             <groupId>gr.cite</groupId>
             <artifactId>exceptions-web</artifactId>
-            <version>2.2.1</version>
+            <version>4.0.0</version>
         </dependency>
     </dependencies>
 

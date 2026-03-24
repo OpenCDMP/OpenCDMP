@@ -1,7 +1,7 @@
 package org.opencdmp.model.builder;
 
 import org.opencdmp.authorization.AuthorizationFlags;
-import org.opencdmp.commons.scope.tenant.TenantScope;
+import org.opencdmp.commons.scope.tenant.TenantScopeFactory;
 import org.opencdmp.convention.ConventionService;
 import org.opencdmp.data.DescriptionTemplateTypeEntity;
 import org.opencdmp.model.DescriptionTemplateType;
@@ -21,14 +21,14 @@ import java.util.*;
 @Scope(value = ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 public class DescriptionTemplateTypeBuilder extends BaseBuilder<DescriptionTemplateType, DescriptionTemplateTypeEntity> {
 
-    private final TenantScope tenantScope;
+    private final TenantScopeFactory tenantScopeFactory;
     private EnumSet<AuthorizationFlags> authorize = EnumSet.of(AuthorizationFlags.None);
 
     @Autowired
     public DescriptionTemplateTypeBuilder(
-		    ConventionService conventionService, TenantScope tenantScope) {
+		    ConventionService conventionService, TenantScopeFactory tenantScopeFactory) {
         super(conventionService, new LoggerService(LoggerFactory.getLogger(DescriptionTemplateTypeBuilder.class)));
-	    this.tenantScope = tenantScope;
+	    this.tenantScopeFactory = tenantScopeFactory;
     }
 
     public DescriptionTemplateTypeBuilder authorize(EnumSet<AuthorizationFlags> values) {
@@ -62,7 +62,7 @@ public class DescriptionTemplateTypeBuilder extends BaseBuilder<DescriptionTempl
                 m.setStatus(d.getStatus());
             if (fields.hasField(this.asIndexer(DescriptionTemplateType._hash)))
                 m.setHash(this.hashValue(d.getUpdatedAt()));
-            if (fields.hasField(this.asIndexer(DescriptionTemplateType._belongsToCurrentTenant))) m.setBelongsToCurrentTenant(this.getBelongsToCurrentTenant(d, this.tenantScope));
+            if (fields.hasField(this.asIndexer(DescriptionTemplateType._belongsToCurrentTenant))) m.setBelongsToCurrentTenant(this.getBelongsToCurrentTenant(d, this.tenantScopeFactory.getInstance()));
             models.add(m);
         }
         this.logger.debug("build {} items", Optional.of(models).map(List::size).orElse(0));

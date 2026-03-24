@@ -63,7 +63,7 @@ export class LoginComponent extends BaseComponent implements OnInit {
                 params.interceptorContext = {
                     excludedInterceptors: [InterceptorType.TenantHeaderInterceptor]
                 };
-                this.principalService.myTenants({ params: params })
+                this.principalService.myTenantsTranslated({ params: params })
                 .pipe(takeUntil(this._destroyed))
                 .subscribe({
                     next: (tenants) => {

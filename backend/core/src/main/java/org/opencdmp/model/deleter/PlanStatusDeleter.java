@@ -8,7 +8,7 @@ import gr.cite.tools.logging.MapLogEntry;
 import org.opencdmp.commons.enums.IsActive;
 import org.opencdmp.commons.enums.UsageLimitTargetMetric;
 import org.opencdmp.data.PlanStatusEntity;
-import org.opencdmp.data.TenantEntityManager;
+import org.opencdmp.data.TenantEntityManagerFactory;
 import org.opencdmp.query.PlanStatusQuery;
 import org.opencdmp.service.accounting.AccountingService;
 import org.slf4j.LoggerFactory;
@@ -28,7 +28,7 @@ import java.util.UUID;
 public class PlanStatusDeleter implements Deleter {
     private static final LoggerService logger = new LoggerService(LoggerFactory.getLogger(DescriptionTemplateDeleter.class));
 
-    private final TenantEntityManager entityManager;
+    private final TenantEntityManagerFactory tenantEntityManagerFactory;
 
     protected final QueryFactory queryFactory;
 
@@ -38,11 +38,11 @@ public class PlanStatusDeleter implements Deleter {
 
     @Autowired
     public PlanStatusDeleter(
-            TenantEntityManager entityManager,
+            TenantEntityManagerFactory tenantEntityManagerFactory,
             QueryFactory queryFactory,
             DeleterFactory deleterFactory,
             AccountingService accountingService) {
-        this.entityManager = entityManager;
+        this.tenantEntityManagerFactory = tenantEntityManagerFactory;
         this.queryFactory = queryFactory;
         this.deleterFactory = deleterFactory;
         this.accountingService = accountingService;
@@ -59,7 +59,7 @@ public class PlanStatusDeleter implements Deleter {
         logger.debug("will delete {} items", Optional.ofNullable(data).map(List::size).orElse(0));
         this.delete(data);
         logger.trace("saving changes");
-        this.entityManager.flush();
+        this.tenantEntityManagerFactory.getInstance().flush();
         logger.trace("changes saved");
     }
 
@@ -75,7 +75,7 @@ public class PlanStatusDeleter implements Deleter {
             item.setIsActive(IsActive.Inactive);
             item.setUpdatedAt(now);
             logger.trace("updating item");
-            this.entityManager.merge(item);
+            this.tenantEntityManagerFactory.getInstance().merge(item);
             logger.trace("updated item");
             this.accountingService.decrease(UsageLimitTargetMetric.PLAN_STATUS_COUNT.getValue());
         }

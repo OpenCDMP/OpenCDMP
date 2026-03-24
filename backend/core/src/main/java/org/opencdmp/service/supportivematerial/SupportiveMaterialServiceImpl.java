@@ -19,7 +19,7 @@ import org.opencdmp.commons.enums.IsActive;
 import org.opencdmp.commons.enums.SupportiveMaterialFieldType;
 import org.opencdmp.convention.ConventionService;
 import org.opencdmp.data.SupportiveMaterialEntity;
-import org.opencdmp.data.TenantEntityManager;
+import org.opencdmp.data.TenantEntityManagerFactory;
 import org.opencdmp.errorcode.ErrorThesaurusProperties;
 import org.opencdmp.model.SupportiveMaterial;
 import org.opencdmp.model.builder.SupportiveMaterialBuilder;
@@ -45,7 +45,7 @@ public class SupportiveMaterialServiceImpl implements SupportiveMaterialService{
 
     private static final LoggerService logger = new LoggerService(LoggerFactory.getLogger(PlanBlueprintServiceImpl.class));
     private static final Logger log = LoggerFactory.getLogger(PlanBlueprintServiceImpl.class);
-    private final TenantEntityManager entityManager;
+    private final TenantEntityManagerFactory tenantEntityManagerFactory;
     private final AuthorizationService authorizationService;
     private final DeleterFactory deleterFactory;
     private final BuilderFactory builderFactory;
@@ -54,15 +54,14 @@ public class SupportiveMaterialServiceImpl implements SupportiveMaterialService{
     private final QueryFactory queryFactory;
     private final SupportiveMaterialCacheService supportiveMaterialCacheService;
     private final StorageFileService storageFileService;
-    private final TenantEntityManager tenantEntityManager;
     private final ErrorThesaurusProperties errors;
 
     public SupportiveMaterialServiceImpl(
-            TenantEntityManager entityManager, AuthorizationService authorizationService, DeleterFactory deleterFactory, BuilderFactory builderFactory,
+            TenantEntityManagerFactory tenantEntityManagerFactory, AuthorizationService authorizationService, DeleterFactory deleterFactory, BuilderFactory builderFactory,
             ConventionService conventionService, MessageSource messageSource, QueryFactory queryFactory,
-            SupportiveMaterialCacheService supportiveMaterialCacheService, StorageFileService storageFileService, TenantEntityManager tenantEntityManager, ErrorThesaurusProperties errors
+            SupportiveMaterialCacheService supportiveMaterialCacheService, StorageFileService storageFileService, ErrorThesaurusProperties errors
     ) {
-        this.entityManager = entityManager;
+        this.tenantEntityManagerFactory = tenantEntityManagerFactory;
         this.authorizationService = authorizationService;
         this.deleterFactory = deleterFactory;
         this.builderFactory = builderFactory;
@@ -71,7 +70,6 @@ public class SupportiveMaterialServiceImpl implements SupportiveMaterialService{
         this.queryFactory = queryFactory;
         this.supportiveMaterialCacheService = supportiveMaterialCacheService;
 	    this.storageFileService = storageFileService;
-        this.tenantEntityManager = tenantEntityManager;
         this.errors = errors;
     }
 
@@ -98,7 +96,7 @@ public class SupportiveMaterialServiceImpl implements SupportiveMaterialService{
 
         SupportiveMaterialEntity d;
         if (isUpdate) {
-            d = this.entityManager.find(SupportiveMaterialEntity.class, model.getId());
+            d = this.tenantEntityManagerFactory.getInstance().find(SupportiveMaterialEntity.class, model.getId());
             if (d == null)
                 throw new MyNotFoundException(this.messageSource.getMessage("General_ItemNotFound", new Object[]{model.getId(), SupportiveMaterial.class.getSimpleName()}, LocaleContextHolder.getLocale()));
         } else {
@@ -113,20 +111,20 @@ public class SupportiveMaterialServiceImpl implements SupportiveMaterialService{
         d.setPayload(model.getPayload());
         d.setUpdatedAt(Instant.now());
 
-        if (isUpdate) this.entityManager.merge(d);
-        else this.entityManager.persist(d);
+        if (isUpdate) this.tenantEntityManagerFactory.getInstance().merge(d);
+        else this.tenantEntityManagerFactory.getInstance().persist(d);
 
-        this.entityManager.flush();
+        this.tenantEntityManagerFactory.getInstance().flush();
 
         List<SupportiveMaterialEntity> existingSupportiveMaterials;
         try {
-            this.tenantEntityManager.loadExplicitTenantFilters();
+            this.tenantEntityManagerFactory.getInstance().loadExplicitTenantFilters();
             existingSupportiveMaterials = this.queryFactory.query(SupportiveMaterialQuery.class).disableTracking().isActive(IsActive.Active).excludedIds(d.getId()).collect();
         } catch (InvalidApplicationException e) {
             log.error(e.getMessage(), e);
             throw new MyApplicationException(e.getMessage());
         } finally {
-            this.tenantEntityManager.reloadTenantFilters();
+            this.tenantEntityManagerFactory.getInstance().reloadTenantFilters();
         }
 
         if (existingSupportiveMaterials != null && !existingSupportiveMaterials.isEmpty() && existingSupportiveMaterials.stream().filter(x -> x.getLanguageCode().equals(model.getLanguageCode()) && x.getType().equals(model.getType())).findFirst().orElse(null) != null)

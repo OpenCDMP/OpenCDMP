@@ -14,7 +14,7 @@
 	}
 
 	.warn-text {
-	  color: var(--sys-error);
+	  color: var(--mat-sys-error);
 	}
 
 
@@ -25,6 +25,6 @@
 	.required-policy {
 	  padding: 0em 1.2em 1em;
 	  font-size: smaller;
-	  color: var(--sys-error);
+	  color: var(--mat-sys-error);
 	}
   }

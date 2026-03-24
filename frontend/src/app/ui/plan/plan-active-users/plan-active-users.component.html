@@ -1,0 +1,32 @@
+@if(activeUsersMap?.size){
+    @let activeUsers = activeUserArray(activeUsersMap);
+    <div class="d-flex overflow-hidden align-items-center">
+        @for(userInfo of activeUsers; track userInfo.user.id; let index = $index){
+            @if(index < 5){
+                @if(skipNavigation){
+                    <span [ngClass]="'active-user-' + index">
+                        <ng-container *ngTemplateOutlet="userLogoTemplate; context: {userInfo}"></ng-container>    
+                    </span>
+
+                }@else{
+                    <span role="button" (click)="navigateToPosition(userInfo)" [attr.aria-label]="'PLAN-EDITOR.ACTIONS.GO-TO-USER-POSITION' | translate">
+                        <ng-container *ngTemplateOutlet="userLogoTemplate; context: {userInfo}"></ng-container>
+                    </span>
+                }
+                
+            }
+        }
+        @if(activeUsers?.length > 5){
+            <div class="more-indicator">...</div>
+        }
+    </div>
+}
+
+<ng-template #userLogoTemplate let-userInfo="userInfo">
+    <img 
+        class="user-logo circle"
+        [src]="userInfo.user | userLogoAsync | async" 
+        [matTooltip]="getTooltipInfo(userInfo)"
+        matTooltipClass="wrap-tooltip"
+    >
+</ng-template>

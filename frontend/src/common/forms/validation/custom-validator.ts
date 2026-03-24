@@ -4,6 +4,9 @@ import { isNullOrUndefined } from '@app/utilities/enhancers/utils';
 import { PlanBlueprintSystemFieldType } from '@app/core/common/enum/plan-blueprint-system-field-type';
 import { VisibilityRulesService } from '@app/ui/description/editor/description-form/visibility-rules/visibility-rules.service';
 import { FormService } from '../form-service';
+import { PlanUserRole } from '@app/core/common/enum/plan-user-role';
+import { AuthService } from '@app/core/services/auth/auth.service';
+import { PlanUser } from '@app/core/model/plan/plan';
 
 export type MarkedValidatorFn = ValidatorFn & { type: string, metadata: unknown };
 
@@ -198,6 +201,24 @@ export function PlanBlueprintSystemFieldRequiredValidator(): ValidatorFn {
 			});
 		}
 		return foundTitle && foundDescription && foundAccess && foundLanguage ? null : { 'planBlueprintSystemFieldRequired': true };
+
+	};
+}
+
+export function PlanOwnerRequiredValidator(): ValidatorFn {
+	return (control: AbstractControl): { [key: string]: any } => {
+
+		let foundOwner = false;
+
+		const usersFormArray = (control as UntypedFormArray);
+		if (usersFormArray.controls != null && usersFormArray.controls.length > 0) {
+			usersFormArray.controls.forEach((user, index) => {
+				if ( (user.get('user').value != null || user.get('email').value?.length > 0) && user.get('role').value === PlanUserRole.Owner && (user.get('sectionId').value == null || user.get('sectionId').value?.length == 0)) {
+					foundOwner = true;
+				}
+			});
+		}
+		return foundOwner ? null : { 'planOwnerRequired': true };
 
 	};
 }

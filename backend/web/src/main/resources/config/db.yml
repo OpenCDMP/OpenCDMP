@@ -11,7 +11,7 @@ spring:
     hibernate:
       naming:
         physical-strategy: org.opencdmp.data.namingstrategy.PrefixPhysicalNamingStrategy
-        implicit-strategy: org.springframework.boot.orm.jpa.hibernate.SpringImplicitNamingStrategy
+        implicit-strategy: org.hibernate.boot.model.naming.ImplicitNamingStrategyJpaCompliantImpl
   datasource:
     url: ${DB_URL}
     username: ${DB_USER}

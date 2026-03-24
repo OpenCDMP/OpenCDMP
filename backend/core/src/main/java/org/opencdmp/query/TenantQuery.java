@@ -11,7 +11,7 @@ import jakarta.persistence.criteria.Predicate;
 import org.opencdmp.authorization.AuthorizationFlags;
 import org.opencdmp.commons.enums.IsActive;
 import org.opencdmp.data.TenantEntity;
-import org.opencdmp.data.TenantEntityManager;
+import org.opencdmp.data.TenantEntityManagerFactory;
 import org.opencdmp.model.Tenant;
 import org.opencdmp.query.utils.QueryUtilsService;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
@@ -34,11 +34,11 @@ public class TenantQuery extends QueryBase<TenantEntity> {
 
 
     private final QueryUtilsService queryUtilsService;
-    private final TenantEntityManager tenantEntityManager;
+    private final TenantEntityManagerFactory tenantEntityManagerFactory;
 
-	public TenantQuery(QueryUtilsService queryUtilsService, TenantEntityManager tenantEntityManager) {
+	public TenantQuery(QueryUtilsService queryUtilsService, TenantEntityManagerFactory tenantEntityManagerFactory) {
 		this.queryUtilsService = queryUtilsService;
-		this.tenantEntityManager = tenantEntityManager;
+		this.tenantEntityManagerFactory = tenantEntityManagerFactory;
 	}
 
 	public TenantQuery like(String value) {
@@ -123,7 +123,7 @@ public class TenantQuery extends QueryBase<TenantEntity> {
 
     @Override
     protected EntityManager entityManager(){
-        return this.tenantEntityManager.getEntityManager();
+        return this.tenantEntityManagerFactory.getInstance().getEntityManager();
     }
 
     @Override

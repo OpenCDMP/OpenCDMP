@@ -9,7 +9,7 @@ import { PlanStatus } from "@app/core/model/plan-status/plan-status";
 import { Plan, PlanDescriptionTemplate, PlanUser } from "@app/core/model/plan/plan";
 import { PrefillingSource } from "@app/core/model/prefilling-source/prefilling-source";
 import { ReferenceType } from "@app/core/model/reference-type/reference-type";
-import { Reference } from "@app/core/model/reference/reference";
+import { Definition, Field, Reference } from "@app/core/model/reference/reference";
 import { Tag } from "@app/core/model/tag/tag";
 import { DescriptionEditorForm, PropertiesFormGroup } from "@app/ui/description/editor/description-editor.model";
 import { BaseEditorResolver } from "@common/base/base-editor.resolver";
@@ -82,6 +82,9 @@ function BaseDescriptionLookupFields(): string[] {
     [nameof<Description>(x => x.descriptionReferences), nameof<DescriptionReference>(x => x.reference), nameof<Reference>(x => x.reference)].join('.'),
     [nameof<Description>(x => x.descriptionReferences), nameof<DescriptionReference>(x => x.reference), nameof<Reference>(x => x.source)].join('.'),
     [nameof<Description>(x => x.descriptionReferences), nameof<DescriptionReference>(x => x.reference), nameof<Reference>(x => x.sourceType)].join('.'),
+    [nameof<Description>(x => x.descriptionReferences), nameof<DescriptionReference>(x => x.reference), nameof<Reference>(x => x.definition), nameof<Definition>(x => x.fields), nameof<Field>(x => x.code)].join('.'),
+    [nameof<Description>(x => x.descriptionReferences), nameof<DescriptionReference>(x => x.reference), nameof<Reference>(x => x.definition), nameof<Definition>(x => x.fields), nameof<Field>(x => x.dataType)].join('.'),
+    [nameof<Description>(x => x.descriptionReferences), nameof<DescriptionReference>(x => x.reference), nameof<Reference>(x => x.definition), nameof<Definition>(x => x.fields), nameof<Field>(x => x.value)].join('.'),
     [nameof<Description>(x => x.descriptionReferences), nameof<DescriptionReference>(x => x.isActive)].join('.'),
 
     nameof<Description>(x => x.createdAt),

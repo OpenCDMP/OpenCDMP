@@ -19,6 +19,8 @@ import { ReferenceTypeFieldInSectionPersist } from '@app/core/model/plan-bluepri
 import { Plan } from '@app/core/model/plan/plan';
 import { Guid } from '@common/types/guid';
 import { ValidationErrorModel } from '@common/forms/validation/error-model/validation-error-model';
+import { IsActive } from '@notification-service/core/enum/is-active.enum';
+import { AuthService } from '@app/core/services/auth/auth.service';
 
 @Component({
   selector: 'app-plan-blueprint-field-editor',
@@ -97,17 +99,17 @@ export class PlanBlueprintSectionFieldEditorComponent extends BaseComponent{
 
     referenceTypeSingleAutocompleteConfiguration: SingleAutoCompleteConfiguration = {
         initialItems: (data?: any) => this.referenceTypeService.query({
-            ...this.referenceTypeService.buildAutocompleteLookup(),
+            ...this.referenceTypeService.buildAutocompleteLookup([IsActive.Active]),
             project: {
                 fields: [
-                    ...this.referenceTypeService.buildAutocompleteLookup().project.fields,
+                    ...this.referenceTypeService.buildAutocompleteLookup([IsActive.Active]).project.fields,
                     [nameof<ReferenceType>(x => x.definition), nameof<ReferenceTypeDefinition>(x => x.sources), nameof<ExternalFetcherBaseSourceConfiguration>(x => x.referenceTypeDependencies),nameof<ReferenceType>(x => x.id)].join('.'),
                     [nameof<ReferenceType>(x => x.definition), nameof<ReferenceTypeDefinition>(x => x.sources), nameof<ExternalFetcherBaseSourceConfiguration>(x => x.referenceTypeDependencies),nameof<ReferenceType>(x => x.name)].join('.'),
                 ]
             }
         }).pipe(map(x => x.items)),
-        filterFn: (searchQuery: string, data?: any) => this.referenceTypeService.query(this.referenceTypeService.buildAutocompleteLookup(searchQuery)).pipe(map(x => x.items)),
-        getSelectedItem: (selectedItem: any) => this.referenceTypeService.query(this.referenceTypeService.buildAutocompleteLookup(null, null, [selectedItem])).pipe(map(x => x.items[0])),
+        filterFn: (searchQuery: string, data?: any) => this.referenceTypeService.query(this.referenceTypeService.buildAutocompleteLookup([IsActive.Active], searchQuery)).pipe(map(x => x.items)),
+        getSelectedItem: (selectedItem: any) => this.referenceTypeService.query(this.referenceTypeService.buildAutocompleteLookup([IsActive.Active, IsActive.Inactive], null, null, [selectedItem])).pipe(map(x => x.items[0])),
         displayFn: (item: ReferenceType) => item.name,
         titleFn: (item: ReferenceType) => item.name,
         valueAssign: (item: ReferenceType) => {this.referenceTypeMap.update((map) => map.set(item.id, item)); this.referenceTypeSelected.emit(item); return item.id},

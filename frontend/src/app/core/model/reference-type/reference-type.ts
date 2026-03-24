@@ -18,6 +18,8 @@ export interface ReferenceTypeField {
 	label: string;
 	description: string;
 	dataType: ReferenceFieldDataType;
+	semantics: string[];
+	required: boolean;
 }
 
 
@@ -40,4 +42,6 @@ export interface ReferenceTypeFieldPersist {
 	label: string;
 	description: string;
 	dataType: ReferenceFieldDataType;
+	semantics: string[];
+	required: boolean;
 }

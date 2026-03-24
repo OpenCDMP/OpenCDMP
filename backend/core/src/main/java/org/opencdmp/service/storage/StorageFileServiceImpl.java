@@ -14,10 +14,10 @@ import org.opencdmp.authorization.Permission;
 import org.opencdmp.commons.enums.StorageFilePermission;
 import org.opencdmp.commons.enums.StorageType;
 import org.opencdmp.commons.enums.SupportiveMaterialFieldType;
-import org.opencdmp.commons.scope.user.UserScope;
+import org.opencdmp.commons.scope.user.UserScopeFactory;
 import org.opencdmp.commons.types.storagefile.importexport.StorageFileImportExport;
 import org.opencdmp.data.StorageFileEntity;
-import org.opencdmp.data.TenantEntityManager;
+import org.opencdmp.data.TenantEntityManagerFactory;
 import org.opencdmp.model.StorageFile;
 import org.opencdmp.model.builder.StorageFileBuilder;
 import org.opencdmp.model.persist.StorageFilePersist;
@@ -47,10 +47,10 @@ import java.util.UUID;
 public class StorageFileServiceImpl implements StorageFileService {
 
     private static final LoggerService logger = new LoggerService(LoggerFactory.getLogger(StorageFileServiceImpl.class));
-    private final TenantEntityManager entityManager;
+    private final TenantEntityManagerFactory tenantEntityManagerFactory;
     private final AuthorizationService authorizationService;
     private final BuilderFactory builderFactory;
-    private final UserScope userScope;
+    private final UserScopeFactory userScopeFactory;
     private final StorageFileProperties config;
     private final ValidatorFactory validatorFactory;
     private final QueryFactory queryFactory;
@@ -58,16 +58,16 @@ public class StorageFileServiceImpl implements StorageFileService {
 
     @Autowired
     public StorageFileServiceImpl(
-            TenantEntityManager entityManager,
+            TenantEntityManagerFactory tenantEntityManagerFactory,
             AuthorizationService authorizationService,
             BuilderFactory builderFactory,
-            UserScope userScope,
+            UserScopeFactory userScopeFactory,
             StorageFileProperties config, ValidatorFactory validatorFactory, QueryFactory queryFactory, ResourceLoader resourceLoader
     ) {
-        this.entityManager = entityManager;
+        this.tenantEntityManagerFactory = tenantEntityManagerFactory;
         this.authorizationService = authorizationService;
         this.builderFactory = builderFactory;
-        this.userScope = userScope;
+        this.userScopeFactory = userScopeFactory;
         this.config = config;
 
         this.validatorFactory = validatorFactory;
@@ -107,8 +107,8 @@ public class StorageFileServiceImpl implements StorageFileService {
             fos.write(payload);
         }
 
-        this.entityManager.persist(storageFile);
-        this.entityManager.flush();
+        this.tenantEntityManagerFactory.getInstance().persist(storageFile);
+        this.tenantEntityManagerFactory.getInstance().flush();
         return this.builderFactory.builder(StorageFileBuilder.class).authorize(AuthorizationFlags.AllExceptPublic).build(BaseFieldSet.build(fields, StorageFile._id), storageFile);
     }
 
@@ -136,7 +136,7 @@ public class StorageFileServiceImpl implements StorageFileService {
     @Override
     public StorageFile moveToStorage(UUID fileId, StorageType storageType, boolean replaceDestination, FieldSet fields) {
         try {
-            StorageFileEntity storageFile = this.entityManager.find(StorageFileEntity.class, fileId);
+            StorageFileEntity storageFile = this.tenantEntityManagerFactory.getInstance().find(StorageFileEntity.class, fileId);
             if (storageFile == null) return null;
             
             this.authorizeForce(storageFile, StorageFilePermission.Read);
@@ -152,11 +152,11 @@ public class StorageFileServiceImpl implements StorageFileService {
 
             storageFile.setStorageType(storageType);
 
-            this.entityManager.merge(storageFile);
+            this.tenantEntityManagerFactory.getInstance().merge(storageFile);
             
             file.delete();
 
-            this.entityManager.merge(storageFile);
+            this.tenantEntityManagerFactory.getInstance().merge(storageFile);
             return this.builderFactory.builder(StorageFileBuilder.class).authorize(AuthorizationFlags.AllExceptPublic).build(BaseFieldSet.build(fields, StorageFile._id), storageFile);
         }
         catch (Exception ex) {
@@ -168,7 +168,7 @@ public class StorageFileServiceImpl implements StorageFileService {
     @Override
     public StorageFile copyToStorage(UUID fileId, StorageType storageType, boolean replaceDestination, FieldSet fields) {
         try {
-            StorageFileEntity storageFile = this.entityManager.find(StorageFileEntity.class, fileId);
+            StorageFileEntity storageFile = this.tenantEntityManagerFactory.getInstance().find(StorageFileEntity.class, fileId);
             if (storageFile == null) return null;
             
             this.authorizeForce(storageFile, StorageFilePermission.Read);
@@ -193,9 +193,9 @@ public class StorageFileServiceImpl implements StorageFileService {
             data.setCreatedAt(Instant.now());
             data.setPurgeAt(storageFile.getPurgeAt());
 
-            this.entityManager.persist(data);
+            this.tenantEntityManagerFactory.getInstance().persist(data);
             
-            this.entityManager.merge(storageFile);
+            this.tenantEntityManagerFactory.getInstance().merge(storageFile);
             return this.builderFactory.builder(StorageFileBuilder.class).authorize(AuthorizationFlags.AllExceptPublic).build(BaseFieldSet.build(fields, StorageFile._id), data);
             
         }
@@ -216,7 +216,7 @@ public class StorageFileServiceImpl implements StorageFileService {
                 storageFilePersist.setName(model.getName());
                 storageFilePersist.setExtension(model.getExtension());
                 storageFilePersist.setMimeType(model.getMimeType());
-                storageFilePersist.setOwnerId(this.userScope.getUserIdSafe());
+                storageFilePersist.setOwnerId(this.userScopeFactory.getInstance().getUserIdSafe());
                 storageFilePersist.setStorageType(StorageType.Temp);
                 storageFilePersist.setLifetime(Duration.ofSeconds(this.config.getTempStoreLifetimeSeconds()));
                 this.validatorFactory.validator(StorageFilePersist.StorageFilePersistValidator.class).validateForce(storageFilePersist);
@@ -232,7 +232,7 @@ public class StorageFileServiceImpl implements StorageFileService {
     @Override
     public boolean exists(UUID fileId) {
         try {
-            StorageFileEntity storageFile = this.entityManager.find(StorageFileEntity.class, fileId, true);
+            StorageFileEntity storageFile = this.tenantEntityManagerFactory.getInstance().find(StorageFileEntity.class, fileId, true);
             if (storageFile == null) return false;
             this.authorizeForce(storageFile, StorageFilePermission.Read);
 
@@ -261,24 +261,24 @@ public class StorageFileServiceImpl implements StorageFileService {
     @Override
     public void updatePurgeAt(UUID fileId, Instant purgeAt) throws InvalidApplicationException {
 
-        StorageFileEntity storageFile = this.entityManager.find(StorageFileEntity.class, fileId);
+        StorageFileEntity storageFile = this.tenantEntityManagerFactory.getInstance().find(StorageFileEntity.class, fileId);
         if (storageFile == null) return;
 
         storageFile.setPurgeAt(purgeAt);
-        this.entityManager.merge(storageFile);
-        this.entityManager.flush();
+        this.tenantEntityManagerFactory.getInstance().merge(storageFile);
+        this.tenantEntityManagerFactory.getInstance().flush();
     }
 
     @Override
     public boolean purgeSafe(UUID fileId) {
         try {
-            StorageFileEntity storageFile = this.entityManager.find(StorageFileEntity.class, fileId);
+            StorageFileEntity storageFile = this.tenantEntityManagerFactory.getInstance().find(StorageFileEntity.class, fileId);
             if (storageFile == null) return false;
 
             storageFile.setPurgedAt(Instant.now());
 
-            this.entityManager.merge(storageFile);
-            this.entityManager.flush();
+            this.tenantEntityManagerFactory.getInstance().merge(storageFile);
+            this.tenantEntityManagerFactory.getInstance().flush();
             
             File file = new File(this.filePath(storageFile.getFileRef(), storageFile.getStorageType()));
             if (!file.exists()) return true;
@@ -301,7 +301,7 @@ public class StorageFileServiceImpl implements StorageFileService {
     public byte[] readAsBytesSafe(UUID fileId) {
         byte[] bytes = null;
         try {
-            StorageFileEntity storageFile = this.entityManager.find(StorageFileEntity.class, fileId, true);
+            StorageFileEntity storageFile = this.tenantEntityManagerFactory.getInstance().find(StorageFileEntity.class, fileId, true);
             if (storageFile == null) return null;
             this.authorizeForce(storageFile, StorageFilePermission.Read);
             
@@ -339,7 +339,7 @@ public class StorageFileServiceImpl implements StorageFileService {
     }
 
     private void authorizeForce(StorageFileEntity storageFile, StorageFilePermission storageFilePermission) {
-        if (storageFile.getOwnerId() != null && storageFile.getOwnerId().equals(this.userScope.getUserIdSafe())){
+        if (storageFile.getOwnerId() != null && storageFile.getOwnerId().equals(this.userScopeFactory.getInstance().getUserIdSafe())){
             return;
         }
         this.authorizationService.authorizeForce(Permission.BrowseStorageFile);
@@ -439,7 +439,7 @@ public class StorageFileServiceImpl implements StorageFileService {
         storageFilePersist.setMimeType(importXml.getMimeType());
         storageFilePersist.setName(importXml.getFileName());
         storageFilePersist.setStorageType(StorageType.Temp);
-        storageFilePersist.setOwnerId(this.userScope.getUserIdSafe());
+        storageFilePersist.setOwnerId(this.userScopeFactory.getInstance().getUserIdSafe());
 
         StorageFile storageFile = this.persistBytes(storageFilePersist, fileValue, new BaseFieldSet(StorageFile._id, StorageFile._fileRef, StorageFile._mimeType, StorageFile._extension, StorageFile._name));
 

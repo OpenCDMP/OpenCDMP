@@ -15,12 +15,12 @@ import org.opencdmp.authorization.AuthorizationFlags;
 import org.opencdmp.authorization.Permission;
 import org.opencdmp.commons.XmlHandlingService;
 import org.opencdmp.commons.enums.IsActive;
-import org.opencdmp.commons.scope.tenant.TenantScope;
+import org.opencdmp.commons.scope.tenant.TenantScopeFactory;
 import org.opencdmp.commons.types.descriptionworkflow.DescriptionWorkflowDefinitionEntity;
 import org.opencdmp.commons.types.descriptionworkflow.DescriptionWorkflowDefinitionTransitionEntity;
 import org.opencdmp.convention.ConventionService;
 import org.opencdmp.data.DescriptionWorkflowEntity;
-import org.opencdmp.data.TenantEntityManager;
+import org.opencdmp.data.TenantEntityManagerFactory;
 import org.opencdmp.errorcode.ErrorThesaurusProperties;
 import org.opencdmp.model.builder.descriptionworkflow.DescriptionWorkflowBuilder;
 import org.opencdmp.model.deleter.DescriptionWorkflowDeleter;
@@ -50,22 +50,22 @@ public class DescriptionWorkflowServiceImpl implements DescriptionWorkflowServic
     private final XmlHandlingService xmlHandlingService;
     private final BuilderFactory builderFactory;
     private final DeleterFactory deleterFactory;
-    private final TenantEntityManager entityManager;
+    private final TenantEntityManagerFactory tenantEntityManagerFactory;
     private final MessageSource messageSource;
     private final ErrorThesaurusProperties errors;
-    private final TenantScope tenantScope;
+    private final TenantScopeFactory tenantScopeFactory;
     private final QueryFactory queryFactory;
 
-    public DescriptionWorkflowServiceImpl(AuthorizationService authService, ConventionService conventionService, XmlHandlingService xmlHandlingService, BuilderFactory builderFactory, DeleterFactory deleterFactory, TenantEntityManager entityManager, MessageSource messageSource, ErrorThesaurusProperties errors, TenantScope tenantScope, QueryFactory queryFactory) {
+    public DescriptionWorkflowServiceImpl(AuthorizationService authService, ConventionService conventionService, XmlHandlingService xmlHandlingService, BuilderFactory builderFactory, DeleterFactory deleterFactory, TenantEntityManagerFactory tenantEntityManagerFactory, MessageSource messageSource, ErrorThesaurusProperties errors, TenantScopeFactory tenantScopeFactory, QueryFactory queryFactory) {
         this.authService = authService;
         this.conventionService = conventionService;
         this.xmlHandlingService = xmlHandlingService;
         this.builderFactory = builderFactory;
         this.deleterFactory = deleterFactory;
-        this.entityManager = entityManager;
+        this.tenantEntityManagerFactory = tenantEntityManagerFactory;
         this.messageSource = messageSource;
         this.errors = errors;
-        this.tenantScope = tenantScope;
+        this.tenantScopeFactory = tenantScopeFactory;
         this.queryFactory = queryFactory;
     }
 
@@ -80,7 +80,7 @@ public class DescriptionWorkflowServiceImpl implements DescriptionWorkflowServic
 
         DescriptionWorkflowEntity data;
         if (isUpdate) {
-            data = this.entityManager.find(DescriptionWorkflowEntity.class, model.getId());
+            data = this.tenantEntityManagerFactory.getInstance().find(DescriptionWorkflowEntity.class, model.getId());
             if (data == null) throw new MyNotFoundException(this.messageSource.getMessage("General_ItemNotFound", new Object[]{model.getId()}, LocaleContextHolder.getLocale()));
             if (!this.conventionService.hashValue(data.getUpdatedAt()).equals(model.getHash())) throw new MyValidationException(this.errors.getHashConflict().getCode(), this.errors.getHashConflict().getMessage());
         } else {
@@ -96,11 +96,11 @@ public class DescriptionWorkflowServiceImpl implements DescriptionWorkflowServic
         data.setDefinition(this.xmlHandlingService.toXmlSafe(this.buildDescriptionWorkflowDefinitionEntity(model.getDefinition())));
 
         if (isUpdate)
-            this.entityManager.merge(data);
+            this.tenantEntityManagerFactory.getInstance().merge(data);
         else
-            this.entityManager.persist(data);
+            this.tenantEntityManagerFactory.getInstance().persist(data);
 
-        this.entityManager.flush();
+        this.tenantEntityManagerFactory.getInstance().flush();
 
         return this.builderFactory.builder(DescriptionWorkflowBuilder.class).build(BaseFieldSet.build(fields, DescriptionWorkflow._id), data);
     }
@@ -146,12 +146,12 @@ public class DescriptionWorkflowServiceImpl implements DescriptionWorkflowServic
     public DescriptionWorkflowDefinitionEntity getActiveWorkFlowDefinition() throws InvalidApplicationException {
 
         DescriptionWorkflowQuery query = this.queryFactory.query(DescriptionWorkflowQuery.class).disableTracking().authorize(AuthorizationFlags.AllExceptPublic).isActives(IsActive.Active);
-        if (this.tenantScope.isDefaultTenant()) query = query.tenantIsSet(false);
-        else query.tenantIsSet(true).tenantIds(this.tenantScope.getTenant());
+        if (this.tenantScopeFactory.getInstance().isDefaultTenant()) query = query.tenantIsSet(false);
+        else query.tenantIsSet(true).tenantIds(this.tenantScopeFactory.getInstance().getTenant());
 
         DescriptionWorkflowEntity entity = query.first();
 
-        if (entity == null && !this.tenantScope.isDefaultTenant()) {
+        if (entity == null && !this.tenantScopeFactory.getInstance().isDefaultTenant()) {
             query.clearTenantIds().tenantIsSet(false);
             entity = query.first();
         }

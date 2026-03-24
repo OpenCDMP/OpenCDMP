@@ -3,7 +3,7 @@
     display: flex;
     z-index: 3;
     min-height: fit-content;
-    background: var(--sys-primary) 0% 0% no-repeat padding-box;
+    background: var(--mat-sys-primary) 0% 0% no-repeat padding-box;
     box-shadow: 0px 3px 6px #00000029;
     padding: 0.5rem;
     padding-top: 0.75rem;
@@ -17,14 +17,14 @@
 
         .title {
             font-weight: 400;
-            font-size: var(--sys-title-small-size);
-            color: var(--sys-on-primary);
+            font-size: var(--mat-sys-title-small-size);
+            color: var(--mat-sys-on-primary);
         }
         
         .subtitle {
-            color: var(--sys-on-primary);
+            color: var(--mat-sys-on-primary);
             font-weight: 700;
-            font-size: var(--sys-title-medium-size);
+            font-size: var(--mat-sys-title-medium-size);
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
@@ -43,9 +43,9 @@
 //     .blueprint-heading {
 //         text-align: left;
 //         font-weight: 700;
-//         font-size: var(--sys-headline-medium-size);
+//         font-size: var(--mat-sys-headline-medium-size);
 //         letter-spacing: 0px;
-//         color: var(--sys-on-background);
+//         color: var(--mat-sys-on-background);
 //         opacity: 0.81;
 //         margin-top: 1.625rem;
 //         margin-bottom: 0.625rem;
@@ -74,34 +74,34 @@ mat-icon.size-16 {
   
 .changes {
     font-weight: 400;
-    color: var(--sys-on-primary);
+    color: var(--mat-sys-on-primary);
 }
 
 a {
-    color: var(--sys-on-background);
+    color: var(--mat-sys-on-background);
 }
 
 a:hover {
-    color: var(--sys-primary);
+    color: var(--mat-sys-primary);
 }
 
 .section-info {
-    background-color: var(--sys-surface);
+    background-color: var(--mat-sys-surface);
     padding: 1rem 0.5rem;
     
     .section-title, .heading, .hint {
-        color: var(--sys-on-surface);
+        color: var(--mat-sys-on-surface);
         opacity: 0.81;
     }
     .section-title {
-        font-size: var(--sys-headline-large-size);
+        font-size: var(--mat-sys-headline-large-size);
         font-weight: 700;
     }
 
     .heading {
 		text-align: left;
         font-weight: 700;
-		font-size: var(--sys-headline-medium-size);
+		font-size: var(--mat-sys-headline-medium-size);
 		margin-top: 1.625rem;
 		margin-bottom: 0.625rem;
 	}
@@ -109,7 +109,7 @@ a:hover {
     .hint {
 		text-align: left;
 		font-weight: 400;
-		font-size: var(--sys-body-medium-size);
+		font-size: var(--mat-sys-body-medium-size);
 		margin-bottom: 2.125rem;
 	}
     
@@ -128,21 +128,21 @@ a:hover {
     .input-form {
 		text-align: left;
 		font-weight: 400;
-		font-size: var(--sys-body-medium-size);
+		font-size: var(--mat-sys-body-medium-size);
 		letter-spacing: 0.15px;
 		margin-bottom: 1rem;
         opacity: 1;
 	}
 
     .not-found-template {
-        font-size: var(--sys-title-small-size);
+        font-size: var(--mat-sys-title-small-size);
         font-weight: 400;
         padding: 0rem 0.5rem 0rem 0rem;
         color: var(--dark-text);
     }
 
     .disabled-toggle {
-        font-size: var(--sys-body-medium-size);
+        font-size: var(--mat-sys-body-medium-size);
         font-weight: 400;
         padding: 0rem 0.5rem 0rem 0rem;
         color: #e0e0e0 !important;
@@ -157,13 +157,13 @@ a:hover {
     }
 
     .input-btn :hover {
-        color: var(--sys-primary) !important;
+        color: var(--mat-sys-primary) !important;
     }
 }
 
 .drag-handle {
 	cursor: move; 
-	color: var(--sys-primary);
+	color: var(--mat-sys-primary);
 }
 .drag-handle-disabled {
 	cursor: auto; 
@@ -171,19 +171,19 @@ a:hover {
 }
 
 .mat-mdc-raised-button:not(:disabled) {
-    color: var(--sys-on-surface);
+    color: var(--mat-sys-on-surface);
 }
 
 .title-size-md {
-    font-size: var(--sys-headline-medium-size)
+    font-size: var(--mat-sys-headline-medium-size)
 }
 
 .action-btns {
     row-gap: 0.5rem;
     .save-btn-container {
         display: flex;
-        background-color: var(--sys-surface);
-        border-radius: var(--mdc-protected-button-container-shape);
+        background-color: var(--mat-sys-surface);
+        border-radius: var(--mat-button-protected-container-shape);
         .main-save-btn {
             border-top-right-radius: 0;
             border-bottom-right-radius: 0;
@@ -202,7 +202,7 @@ a:hover {
 
 
 .reorder-mode:focus {
-    border: 1px solid var(--sys-primary)
+    border: 1px solid var(--mat-sys-primary)
 }
 
 

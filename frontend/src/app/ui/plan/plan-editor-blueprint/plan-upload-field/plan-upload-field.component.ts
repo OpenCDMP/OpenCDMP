@@ -1,5 +1,5 @@
 
-import { CommonModule } from '@angular/common';
+
 import { Component, Input } from '@angular/core';
 import { UntypedFormGroup } from '@angular/forms';
 import { MatDialog } from "@angular/material/dialog";
@@ -15,7 +15,7 @@ import { Observable } from 'rxjs';
 	selector: 'app-plan-upload-field',
 	templateUrl: './plan-upload-field.component.html',
 	styleUrls: ['./plan-upload-field.component.scss'],
-    imports: [CommonModule, FileUploadComponent]
+    imports: [FileUploadComponent]
 })
 export class PlanUploadFieldComponent extends BaseComponent {
 

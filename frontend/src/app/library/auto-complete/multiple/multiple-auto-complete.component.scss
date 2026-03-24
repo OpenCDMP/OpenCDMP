@@ -66,7 +66,7 @@
 	line-clamp: 1;
 }
 
-::ng-deep .autocomplete-option > .mdc-list-item__--sys-on-primary {
+::ng-deep .autocomplete-option > .mdc-list-item__--mat-sys-on-primary {
 	margin: 0 !important;
 	width: 100%;
 }
@@ -81,8 +81,21 @@
 	}
 
 	mat-icon:hover {
-		color: var(--sys-primary);
+		color: var(--mat-sys-primary);
 	}
+}
+.popup-icon {
+	transform: scale(0.8);
+}
+
+.always-enabled {
+  pointer-events: auto !important;
+  opacity: 1 !important;
+}
+
+.chip-row[disabled] .always-enabled {
+  pointer-events: auto !important;
+  opacity: 1 !important;
 }
 
 .two-line-mat-option {
@@ -128,12 +141,12 @@
 	font-weight: 300;
 	line-height: 1.2em;
 	text-align: left;
-	font-size: var(--sys-body-medium-size);
+	font-size: var(--mat-sys-body-medium-size);
 }
 
 .subtitle-text {
 	font-weight: 400;
-	font-size: var(--sys-title-small-size);
+	font-size: var(--mat-sys-title-small-size);
 	line-height: 1.2em;
 }
 

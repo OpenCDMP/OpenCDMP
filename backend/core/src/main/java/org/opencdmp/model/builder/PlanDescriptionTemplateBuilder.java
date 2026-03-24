@@ -10,7 +10,7 @@ import gr.cite.tools.logging.LoggerService;
 import org.opencdmp.authorization.AuthorizationFlags;
 import org.opencdmp.commons.enums.DescriptionTemplateVersionStatus;
 import org.opencdmp.commons.enums.IsActive;
-import org.opencdmp.commons.scope.tenant.TenantScope;
+import org.opencdmp.commons.scope.tenant.TenantScopeFactory;
 import org.opencdmp.convention.ConventionService;
 import org.opencdmp.data.PlanDescriptionTemplateEntity;
 import org.opencdmp.model.DescriptionTemplateType;
@@ -37,22 +37,28 @@ public class PlanDescriptionTemplateBuilder extends BaseBuilder<PlanDescriptionT
     private final BuilderFactory builderFactory;
 
     private final QueryFactory queryFactory;
-    private final TenantScope tenantScope;
+    private final TenantScopeFactory tenantScopeFactory;
 
     private EnumSet<AuthorizationFlags> authorize = EnumSet.of(AuthorizationFlags.None);
+    private boolean isPublic;
 
     @Autowired
     public PlanDescriptionTemplateBuilder(
 		    ConventionService conventionService,
-		    BuilderFactory builderFactory, QueryFactory queryFactory, TenantScope tenantScope) {
+		    BuilderFactory builderFactory, QueryFactory queryFactory, TenantScopeFactory tenantScopeFactory) {
         super(conventionService, new LoggerService(LoggerFactory.getLogger(PlanDescriptionTemplateBuilder.class)));
         this.builderFactory = builderFactory;
         this.queryFactory = queryFactory;
-	    this.tenantScope = tenantScope;
+	    this.tenantScopeFactory = tenantScopeFactory;
     }
 
     public PlanDescriptionTemplateBuilder authorize(EnumSet<AuthorizationFlags> values) {
         this.authorize = values;
+        return this;
+    }
+
+    public PlanDescriptionTemplateBuilder isPublic(boolean isPublic) {
+        this.isPublic = isPublic;
         return this;
     }
 
@@ -78,11 +84,11 @@ public class PlanDescriptionTemplateBuilder extends BaseBuilder<PlanDescriptionT
             if (fields.hasField(this.asIndexer(PlanDescriptionTemplate._id))) m.setId(d.getId());
             if (fields.hasField(this.asIndexer(PlanDescriptionTemplate._sectionId))) m.setSectionId(d.getSectionId());
             if (fields.hasField(this.asIndexer(PlanDescriptionTemplate._descriptionTemplateGroupId))) m.setDescriptionTemplateGroupId(d.getDescriptionTemplateGroupId());
-            if (fields.hasField(this.asIndexer(PlanDescriptionTemplate._createdAt)))  m.setCreatedAt(d.getCreatedAt());
-            if (fields.hasField(this.asIndexer(PlanDescriptionTemplate._updatedAt))) m.setUpdatedAt(d.getUpdatedAt());
+            if (!this.isPublic && fields.hasField(this.asIndexer(PlanDescriptionTemplate._createdAt)))  m.setCreatedAt(d.getCreatedAt());
+            if (!this.isPublic && fields.hasField(this.asIndexer(PlanDescriptionTemplate._updatedAt))) m.setUpdatedAt(d.getUpdatedAt());
             if (fields.hasField(this.asIndexer(PlanDescriptionTemplate._isActive))) m.setIsActive(d.getIsActive());
-            if (fields.hasField(this.asIndexer(PlanDescriptionTemplate._hash))) m.setHash(this.hashValue(d.getUpdatedAt()));
-            if (fields.hasField(this.asIndexer(DescriptionTemplateType._belongsToCurrentTenant))) m.setBelongsToCurrentTenant(this.getBelongsToCurrentTenant(d, this.tenantScope));
+            if (!this.isPublic && fields.hasField(this.asIndexer(PlanDescriptionTemplate._hash))) m.setHash(this.hashValue(d.getUpdatedAt()));
+            if (!this.isPublic && fields.hasField(this.asIndexer(DescriptionTemplateType._belongsToCurrentTenant))) m.setBelongsToCurrentTenant(this.getBelongsToCurrentTenant(d, this.tenantScopeFactory.getInstance()));
             if (!templateFields.isEmpty() && templateItemsMap != null && templateItemsMap.containsKey(d.getDescriptionTemplateGroupId())) m.setDescriptionTemplates(templateItemsMap.get(d.getDescriptionTemplateGroupId()));
             if (!currentDescriptionTemplateFields.isEmpty() && currentDescriptionTemplateItemsMap != null && currentDescriptionTemplateItemsMap.containsKey(d.getDescriptionTemplateGroupId())) m.setCurrentDescriptionTemplate(currentDescriptionTemplateItemsMap.get(d.getDescriptionTemplateGroupId()));
             if (!planFields.isEmpty() && planItemsMap != null && planItemsMap.containsKey(d.getPlanId())) m.setPlan(planItemsMap.get(d.getPlanId()));
@@ -111,7 +117,7 @@ public class PlanDescriptionTemplateBuilder extends BaseBuilder<PlanDescriptionT
         } else {
             FieldSet clone = new BaseFieldSet(fields.getFields()).ensure(Plan._id);
             PlanQuery q = this.queryFactory.query(PlanQuery.class).disableTracking().authorize(this.authorize).ids(data.stream().map(PlanDescriptionTemplateEntity::getPlanId).distinct().collect(Collectors.toList()));
-            itemMap = this.builderFactory.builder(PlanBuilder.class).authorize(this.authorize).asForeignKey(q, clone, Plan::getId);
+            itemMap = this.builderFactory.builder(PlanBuilder.class).authorize(this.authorize).isPublic(this.isPublic).asForeignKey(q, clone, Plan::getId);
         }
         if (!fields.hasField(Plan._id)) {
             itemMap.values().stream().filter(Objects::nonNull).forEach(x -> x.setId(null));
@@ -128,7 +134,7 @@ public class PlanDescriptionTemplateBuilder extends BaseBuilder<PlanDescriptionT
         Map<UUID, List<DescriptionTemplate>> itemMap;
         FieldSet clone = new BaseFieldSet(fields.getFields()).ensure(DescriptionTemplate._groupId);
         DescriptionTemplateQuery query = this.queryFactory.query(DescriptionTemplateQuery.class).disableTracking().authorize(this.authorize).groupIds(data.stream().map(PlanDescriptionTemplateEntity::getDescriptionTemplateGroupId).distinct().collect(Collectors.toList()));
-        itemMap = this.builderFactory.builder(DescriptionTemplateBuilder.class).authorize(this.authorize).asMasterKey(query, clone, DescriptionTemplate::getGroupId);
+        itemMap = this.builderFactory.builder(DescriptionTemplateBuilder.class).authorize(this.authorize).isPublic(this.isPublic).asMasterKey(query, clone, DescriptionTemplate::getGroupId);
 
         if (!fields.hasField(DescriptionTemplate._groupId)) {
             itemMap.values().stream().flatMap(List::stream).filter(x -> x != null && x.getGroupId() != null).forEach(x -> {
@@ -157,7 +163,7 @@ public class PlanDescriptionTemplateBuilder extends BaseBuilder<PlanDescriptionT
         } else {
             FieldSet clone = new BaseFieldSet(fields.getFields()).ensure(DescriptionTemplate._id, DescriptionTemplate._groupId);
             DescriptionTemplateQuery q = this.queryFactory.query(DescriptionTemplateQuery.class).disableTracking().authorize(this.authorize).versionStatuses(DescriptionTemplateVersionStatus.Current).isActive(IsActive.Active).groupIds(data.stream().map(PlanDescriptionTemplateEntity::getDescriptionTemplateGroupId).distinct().collect(Collectors.toList()));
-            itemMap = this.builderFactory.builder(DescriptionTemplateBuilder.class).authorize(this.authorize).asForeignKey(q, clone, DescriptionTemplate::getGroupId);
+            itemMap = this.builderFactory.builder(DescriptionTemplateBuilder.class).authorize(this.authorize).isPublic(this.isPublic).asForeignKey(q, clone, DescriptionTemplate::getGroupId);
         }
         if (!fields.hasField(DescriptionTemplate._groupId)) {
             itemMap.values().stream().filter(Objects::nonNull).forEach(x -> x.setGroupId(null));

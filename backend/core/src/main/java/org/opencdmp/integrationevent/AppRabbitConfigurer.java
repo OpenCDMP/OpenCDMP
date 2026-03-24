@@ -34,6 +34,7 @@ public class AppRabbitConfigurer extends RabbitConfigurer {
         List<String> bindingItems = new ArrayList<>();
         if (this.inboxProperties.getAnnotationCreatedTopic() != null) bindingItems.addAll(this.inboxProperties.getAnnotationCreatedTopic());
         if (this.inboxProperties.getAnnotationStatusChangedTopic() != null) bindingItems.addAll(this.inboxProperties.getAnnotationStatusChangedTopic());
+        if (this.inboxProperties.getDmpTouchTopic() != null) bindingItems.addAll(this.inboxProperties.getDmpTouchTopic());
         return new InboxBindings(bindingItems);
     }
 

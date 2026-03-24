@@ -1,0 +1,3 @@
+plan:
+  maxPlanPerRequest: 100
+  rdaTransformerId: rda-file-transformer

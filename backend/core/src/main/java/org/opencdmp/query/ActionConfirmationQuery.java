@@ -12,7 +12,7 @@ import org.opencdmp.commons.enums.ActionConfirmationStatus;
 import org.opencdmp.commons.enums.ActionConfirmationType;
 import org.opencdmp.commons.enums.IsActive;
 import org.opencdmp.data.ActionConfirmationEntity;
-import org.opencdmp.data.TenantEntityManager;
+import org.opencdmp.data.TenantEntityManagerFactory;
 import org.opencdmp.model.actionconfirmation.ActionConfirmation;
 import org.opencdmp.query.utils.QueryUtilsService;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
@@ -46,10 +46,10 @@ public class ActionConfirmationQuery extends QueryBase<ActionConfirmationEntity>
     private EnumSet<AuthorizationFlags> authorize = EnumSet.of(AuthorizationFlags.None);
 
     private final QueryUtilsService queryUtilsService;
-    private final TenantEntityManager tenantEntityManager;
-    public ActionConfirmationQuery(QueryUtilsService queryUtilsService, TenantEntityManager tenantEntityManager) {
+    private final TenantEntityManagerFactory tenantEntityManagerFactory;
+    public ActionConfirmationQuery(QueryUtilsService queryUtilsService, TenantEntityManagerFactory tenantEntityManagerFactory) {
 	    this.queryUtilsService = queryUtilsService;
-	    this.tenantEntityManager = tenantEntityManager;
+	    this.tenantEntityManagerFactory = tenantEntityManagerFactory;
     }
 
     public ActionConfirmationQuery like(String value) {
@@ -180,7 +180,7 @@ public class ActionConfirmationQuery extends QueryBase<ActionConfirmationEntity>
 
     @Override
     protected EntityManager entityManager(){
-        return this.tenantEntityManager.getEntityManager();
+        return this.tenantEntityManagerFactory.getInstance().getEntityManager();
     }
 
     @Override

@@ -140,6 +140,17 @@ public class MaintenanceController {
         this.auditService.track(AuditableAction.Maintenance_SendBlueprintAccountingEntriesEvents);
     }
 
+    @RequestMapping(method = RequestMethod.POST, value = "/events/plan-blueprints-types/accounting-entry")
+    @Transactional
+    public void sendBlueprintTypeAccountingEntriesEvents() throws InvalidApplicationException {
+        logger.debug("send blueprint types accounting entries queue events");
+        this.authorizationService.authorizeForce(Permission.ManageQueueEvents);
+
+        this.maintenanceService.sendBlueprintTypeAccountingEntriesEvents();
+
+        this.auditService.track(AuditableAction.Maintenance_SendBlueprintTypeAccountingEntriesEvents);
+    }
+
     @RequestMapping(method = RequestMethod.POST, value = "/events/description-templates/accounting-entry")
     @Transactional
     public void sendDescriptionTemplateAccountingEntriesEvents() throws InvalidApplicationException {

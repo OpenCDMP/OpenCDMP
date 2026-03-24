@@ -13,14 +13,14 @@ import { ConfigurationService } from "../../app/core/services/configuration/conf
 @Injectable()
 export class IndicatorPointService {
     constructor(
-		private installationConfiguration: ConfigurationService,
+        private installationConfiguration: ConfigurationService,
         private http: BaseHttpV2Service,
     ) { }
 
-    private get apiBase(): string { return `${this.installationConfiguration.kpiServiceAddress}api/indicator-point`; }
+    private get apiBase(): string { return `${this.installationConfiguration.kpi.address}api/indicator-point`; }
 
 
-    public getIndicatorPointReport(id: Guid | string, lookup: IndicatorPointReportLookup, skipLoader?: boolean,): Observable<AggregateResponseModel> {
+    public getIndicatorPointReport(id: Guid | string, code: string, lookup: IndicatorPointReportLookup, skipLoader?: boolean,): Observable<AggregateResponseModel> {
 
 
         let _id = id;
@@ -32,7 +32,7 @@ export class IndicatorPointService {
             })
         }
 
-        const url = `${this.apiBase}/${_id}/report`;
+        const url = id ? `${this.apiBase}/${_id}/report` : `${this.apiBase}/code/${code}/report`;
 
         const params = new BaseHttpParams();
         if (skipLoader) {
@@ -40,7 +40,7 @@ export class IndicatorPointService {
                 excludedInterceptors: [InterceptorType.ProgressIndication]
             };
         }
-       
+
         if (lookup?.bucket?.bucketSort?.sortFields) {
             lookup?.bucket?.bucketSort?.sortFields.forEach(x => {
                 // TODO: remove this logic that order has value "DESC" and make it "Desc"
@@ -61,8 +61,8 @@ export class IndicatorPointService {
     }
 
 
-    public exportXlsx(id: Guid | string, lookup: IndicatorPointReportLookup, skipLoader?: boolean,): Observable<HttpResponse<Blob>> {
-        const url = `${this.apiBase}/${id}/export-xlsx`;
+    public exportXlsx(id: Guid | string, code: string, lookup: IndicatorPointReportLookup, skipLoader?: boolean,): Observable<HttpResponse<Blob>> {
+        const url =  id ? `${this.apiBase}/${id}/export-json` : `${this.apiBase}/code/${code}/export-json`;
         const params = new BaseHttpParams();
         if (skipLoader) {
             params.interceptorContext = {
@@ -72,8 +72,8 @@ export class IndicatorPointService {
         return this.http.post<HttpResponse<Blob>>(url, lookup, { params, responseType: 'blob', observe: 'response'   }).pipe(
             catchError((error: any) => throwError(error)));;
     }
-    public exportJSON(id: Guid | string, lookup: IndicatorPointReportLookup, skipLoader?: boolean,): Observable<HttpResponse<Blob>> {
-        const url = `${this.apiBase}/${id}/export-json`;
+    public exportJSON(id: Guid | string, code: string, lookup: IndicatorPointReportLookup, skipLoader?: boolean,): Observable<HttpResponse<Blob>> {
+        const url =  id ? `${this.apiBase}/${id}/export-json` : `${this.apiBase}/code/${code}/export-json`;
         const params = new BaseHttpParams();
         if (skipLoader) {
             params.interceptorContext = {
@@ -106,3 +106,4 @@ export class IndicatorPointService {
             catchError((error: any) => throwError(error)));;
     }
 }
+ 

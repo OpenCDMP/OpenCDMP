@@ -44,15 +44,15 @@ $mat-card-header-size: 40px !default;
 }
 
 .warn {
-	color: var(--sys-error);
+	color: var(--mat-sys-error);
 }
 
 .comments-count {
-	background-color: var(--sys-primary) !important;// #129D99;
-	color: var(--sys-on-primary) !important;
+	background-color: var(--mat-sys-primary) !important;// #129D99;
+	color: var(--mat-sys-on-primary) !important;
     padding: 0 0.75rem;
 	border-radius: 15px;
-    font-size: var(--sys-body-medium-size);
+    font-size: var(--mat-sys-body-medium-size);
 }
 
 .account-icon-wrapper {
@@ -68,7 +68,7 @@ $mat-card-header-size: 40px !default;
 .comment-wrapper {
 	border-radius: 4px;
 	border: .1rem solid #cecece54;
-    font-size: var(--sys-body-medium-size);
+    font-size: var(--mat-sys-body-medium-size);
 	&.focus-thread {
 		animation-name: threadFocus;
 		animation-duration: 5s;
@@ -105,7 +105,7 @@ $mat-card-header-size: 40px !default;
 .action-button {
 	font-weight: 400;
 	border-radius: 20px;
-	color: var(--sys-primary);
+	color: var(--mat-sys-primary);
 	font-weight: 500;
 	
 	&.active-action {

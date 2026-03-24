@@ -26,6 +26,7 @@ public class PropertyDefinitionFieldSetBuilder extends BaseBuilder<PropertyDefin
     private final BuilderFactory builderFactory;
     private EnumSet<AuthorizationFlags> authorize = EnumSet.of(AuthorizationFlags.None);
     private FieldSetEntity fieldSetEntity;
+    private boolean isPublic;
 
     @Autowired
     public PropertyDefinitionFieldSetBuilder(
@@ -43,6 +44,11 @@ public class PropertyDefinitionFieldSetBuilder extends BaseBuilder<PropertyDefin
         this.fieldSetEntity = fieldSetEntity;
         return this;
     }
+
+    public PropertyDefinitionFieldSetBuilder isPublic(boolean isPublic) {
+        this.isPublic = isPublic;
+        return this;
+    }
     
     @Override
     public List<PropertyDefinitionFieldSet> build(FieldSet fields, List<PropertyDefinitionFieldSetEntity> data) throws MyApplicationException {
@@ -57,7 +63,7 @@ public class PropertyDefinitionFieldSetBuilder extends BaseBuilder<PropertyDefin
         List<PropertyDefinitionFieldSet> models = new ArrayList<>();
         for (PropertyDefinitionFieldSetEntity d : data) {
             PropertyDefinitionFieldSet m = new PropertyDefinitionFieldSet();
-            if (!itemsFields.isEmpty() && d.getItems() != null) m.setItems(this.builderFactory.builder(PropertyDefinitionFieldSetItemBuilder.class).withFieldSetEntity(this.fieldSetEntity).authorize(this.authorize).build(itemsFields, d.getItems()));
+            if (!itemsFields.isEmpty() && d.getItems() != null) m.setItems(this.builderFactory.builder(PropertyDefinitionFieldSetItemBuilder.class).isPublic(this.isPublic).withFieldSetEntity(this.fieldSetEntity).authorize(this.authorize).build(itemsFields, d.getItems()));
             if (fields.hasField(this.asIndexer(PropertyDefinitionFieldSet._comment))) m.setComment(d.getComment());
             models.add(m);
         }

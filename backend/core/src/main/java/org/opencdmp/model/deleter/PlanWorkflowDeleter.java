@@ -6,11 +6,9 @@ import gr.cite.tools.data.query.QueryFactory;
 import gr.cite.tools.logging.LoggerService;
 import gr.cite.tools.logging.MapLogEntry;
 import org.opencdmp.commons.enums.IsActive;
-import org.opencdmp.commons.enums.UsageLimitTargetMetric;
 import org.opencdmp.data.PlanWorkflowEntity;
-import org.opencdmp.data.TenantEntityManager;
+import org.opencdmp.data.TenantEntityManagerFactory;
 import org.opencdmp.query.PlanWorkflowQuery;
-import org.opencdmp.service.accounting.AccountingService;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
@@ -28,15 +26,15 @@ import java.util.UUID;
 public class PlanWorkflowDeleter implements Deleter {
     private static final LoggerService logger = new LoggerService(LoggerFactory.getLogger(PlanWorkflowDeleter.class));
 
-    private final TenantEntityManager entityManager;
+    private final TenantEntityManagerFactory tenantEntityManagerFactory;
 
     protected final QueryFactory queryFactory;
 
     protected final DeleterFactory deleterFactory;
 
     @Autowired
-    public PlanWorkflowDeleter(TenantEntityManager entityManager, QueryFactory queryFactory, DeleterFactory deleterFactory) {
-        this.entityManager = entityManager;
+    public PlanWorkflowDeleter(TenantEntityManagerFactory tenantEntityManagerFactory, QueryFactory queryFactory, DeleterFactory deleterFactory) {
+        this.tenantEntityManagerFactory = tenantEntityManagerFactory;
         this.queryFactory = queryFactory;
         this.deleterFactory = deleterFactory;
     }
@@ -52,7 +50,7 @@ public class PlanWorkflowDeleter implements Deleter {
         logger.debug("will delete {} items", Optional.ofNullable(data).map(List::size).orElse(0));
         this.delete(data);
         logger.trace("saving changes");
-        this.entityManager.flush();
+        this.tenantEntityManagerFactory.getInstance().flush();
         logger.trace("changes saved");
     }
 
@@ -67,7 +65,7 @@ public class PlanWorkflowDeleter implements Deleter {
             item.setIsActive(IsActive.Inactive);
             item.setUpdatedAt(now);
             logger.trace("updating item");
-            this.entityManager.merge(item);
+            this.tenantEntityManagerFactory.getInstance().merge(item);
             logger.trace("updated item");
         }
 

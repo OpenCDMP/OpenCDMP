@@ -1,6 +1,6 @@
 package org.opencdmp.service.user;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
+import tools.jackson.core.JacksonException;
 import gr.cite.tools.exception.MyApplicationException;
 import gr.cite.tools.exception.MyForbiddenException;
 import gr.cite.tools.exception.MyNotFoundException;
@@ -23,13 +23,13 @@ import java.util.UUID;
 
 public interface UserService {
 
-    User persist(UserPersist model, FieldSet fields)throws MyForbiddenException, MyValidationException, MyApplicationException, MyNotFoundException, InvalidApplicationException, JsonProcessingException, InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException;
+    User persist(UserPersist model, FieldSet fields)throws MyForbiddenException, MyValidationException, MyApplicationException, MyNotFoundException, InvalidApplicationException, JacksonException, InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException;
 
-    void updateLanguageMine(String language) throws InvalidApplicationException, JsonProcessingException;
+    void updateLanguageMine(String language) throws InvalidApplicationException, JacksonException;
 
-    void updateTimezoneMine(String timezone) throws JsonProcessingException, InvalidApplicationException;
+    void updateTimezoneMine(String timezone) throws JacksonException, InvalidApplicationException;
 
-    void updateCultureMine(String culture) throws JsonProcessingException, InvalidApplicationException;
+    void updateCultureMine(String culture) throws JacksonException, InvalidApplicationException;
 
     void deleteAndSave(UUID id) throws MyForbiddenException, InvalidApplicationException;
 

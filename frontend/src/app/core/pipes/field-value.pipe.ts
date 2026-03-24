@@ -5,7 +5,7 @@ import { Observable, map, of, switchMap } from "rxjs";
 import { nameof } from "ts-simple-nameof";
 import { DescriptionTemplateFieldType } from "../common/enum/description-template-field-type";
 import { DescriptionTemplateField, DescriptionTemplateLabelAndMultiplicityData, DescriptionTemplateRadioBoxData, DescriptionTemplateReferenceTypeData, DescriptionTemplateSelectData } from "../model/description-template/description-template";
-import { Description, DescriptionFieldPersist } from "../model/description/description";
+import { Description, DescriptionField, DescriptionFieldPersist } from "../model/description/description";
 import { StorageFile } from "../model/storage-file/storage-file";
 import { DescriptionService } from "../services/description/description.service";
 import { PlanService } from "../services/plan/plan.service";
@@ -27,7 +27,7 @@ export class FieldValuePipe implements PipeTransform {
 		private language: TranslateService) {
 	}
 
-	transform(controlValue: DescriptionFieldPersist, field: DescriptionTemplateField): Observable<string> {
+	transform(controlValue: DescriptionFieldPersist | DescriptionField, field: DescriptionTemplateField): Observable<string> {
 		if (field?.data?.fieldType && controlValue) {
 			switch (field.data.fieldType) {
 				case DescriptionTemplateFieldType.BOOLEAN_DECISION:
@@ -63,8 +63,8 @@ export class FieldValuePipe implements PipeTransform {
 					return of(controlValue.textValue);
 				case DescriptionTemplateFieldType.REFERENCE_TYPES: {
 					const data = <DescriptionTemplateReferenceTypeData>field.data;
-					if (!data?.multipleSelect && controlValue.reference) {
-						return of(controlValue.reference?.label);
+					if (!data?.multipleSelect && (controlValue['reference'] || controlValue['references'])) {
+						return of(controlValue['reference']?.label ?? controlValue['references']?.map((x) => x.label)?.join(', '));
 					} else if (data?.multipleSelect && controlValue.references) {
 						return of(controlValue.references.map(option => option.label).join(','));
 					}

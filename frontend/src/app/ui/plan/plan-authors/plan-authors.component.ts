@@ -1,4 +1,4 @@
-import { CommonModule } from '@angular/common';
+
 import { Component, computed, input, model, output, signal } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
@@ -10,10 +10,11 @@ import { AuthService } from '@app/core/services/auth/auth.service';
 import { EnumUtils } from '@app/core/services/utilities/enum-utils.service';
 import { Guid } from '@common/types/guid';
 import { TranslateModule } from '@ngx-translate/core';
+import { IsActive } from '@notification-service/core/enum/is-active.enum';
 
 @Component({
     selector: 'app-plan-authors',
-    imports: [TranslateModule, CommonModule, MatIconModule, MatButtonModule, MatTooltipModule],
+    imports: [TranslateModule, MatIconModule, MatButtonModule, MatTooltipModule],
     templateUrl: './plan-authors.component.html',
     styleUrl: './plan-authors.component.scss'
 })
@@ -59,4 +60,8 @@ export class PlanAuthorsComponent {
 
 		return sections == null ? '' : sections[0].label;
 	}
+
+    isAtLeastOnePlanOwner(planUser: PlanUser): boolean {
+        return !(planUser.user?.id != null && planUser.role == PlanUserRole.Owner && planUser.sectionId == null && planUser.isActive == IsActive.Active) || this.planUsers()?.filter(x => x.user?.id != null && x.role == PlanUserRole.Owner && x.sectionId == null && x.isActive == IsActive.Active)?.length > 1;
+    }
 }

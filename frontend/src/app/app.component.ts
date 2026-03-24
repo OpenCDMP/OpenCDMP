@@ -3,13 +3,11 @@ import { of as observableOf, Subscription, timer } from 'rxjs';
 
 import { AfterViewInit, Component, effect, OnInit, Renderer2, ViewChild } from '@angular/core';
 import { ActivatedRoute, NavigationEnd, Router } from '@angular/router';
-import { TranslateService } from '@ngx-translate/core';
-import { filter, map, switchMap } from 'rxjs/operators';
+import { LangChangeEvent, TranslateService } from '@ngx-translate/core';
+import { filter, map, switchMap, takeUntil } from 'rxjs/operators';
 import { AuthService, LoginStatus } from './core/services/auth/auth.service';
 import { CultureService } from './core/services/culture/culture-service';
 import { DomSanitizer, Title } from '@angular/platform-browser';
-import { CookieService } from "ngx-cookie-service";
-import { NgcCookieConsentService, NgcStatusChangeEvent } from "ngx-cookieconsent";
 import { ConfigurationService } from './core/services/configuration/configuration.service';
 import { LanguageService } from './core/services/language/language.service';
 
@@ -20,6 +18,10 @@ import { TimezoneService } from './core/services/timezone/timezone-service';
 import { BreadcrumbService } from './ui/misc/breadcrumb/breadcrumb.service';
 import { TenantHandlingService } from './core/services/tenant/tenant-handling.service';
 import { MatIconRegistry } from '@angular/material/icon';
+import { CookieConsentService } from './core/services/cookie-consent/cookieconsent.service';
+import { PlanWebSocketService } from './core/services/websocket/plan-websocket.service';
+import { PrincipalService } from './core/services/http/principal.service';
+import { BaseComponent } from '@common/base/base.component';
 
 
 declare const gapi: any;
@@ -31,7 +33,7 @@ declare var $: any;
     styleUrls: ['./app.component.scss'],
     standalone: false
 })
-export class AppComponent implements OnInit, AfterViewInit {
+export class AppComponent extends BaseComponent implements OnInit, AfterViewInit {
 
 	hasBreadCrumb = observableOf(false);
 	private sideNavSubscription: Subscription;
@@ -51,8 +53,6 @@ export class AppComponent implements OnInit, AfterViewInit {
 		private titleService: Title,
 		private cultureService: CultureService,
 		private timezoneService: TimezoneService,
-		private cookieService: CookieService,
-		private ccService: NgcCookieConsentService,
 		private language: LanguageService,
 		private configurationService: ConfigurationService,
 		private matomoService: MatomoService,
@@ -60,9 +60,13 @@ export class AppComponent implements OnInit, AfterViewInit {
 		private sidenavService: SideNavService,
 		private breadcrumbService: BreadcrumbService,
 		private sanitizer: DomSanitizer,
+		private planWebSocketService: PlanWebSocketService,
 		public iconRegistry: MatIconRegistry,
-        private renderer: Renderer2
+        private renderer: Renderer2,
+        private cookieConsentService: CookieConsentService,
+		private principalService: PrincipalService,
 	) {
+		super();
 		this.initializeServices();
 		this.matomoService.init();
 
@@ -75,6 +79,7 @@ export class AppComponent implements OnInit, AfterViewInit {
         })
 	}
 	ngAfterViewInit(): void {
+        this.cookieConsentService.init();
 		setTimeout(() => {
 			this.sideNavSubscription = this.sidenavService.status().subscribe(isopen => {
 				const hamburger = document.getElementById('hamburger');
@@ -116,10 +121,7 @@ export class AppComponent implements OnInit, AfterViewInit {
 	}
 
 	ngOnInit() {
-		if (!this.cookieService.check("cookiesConsent")) {
-			this.cookieService.set("cookiesConsent", "false", 356, null, null, false, 'Lax');
-
-		}
+        this.translate.onLangChange.subscribe(() => this.cookieConsentService.setLanguage(this.translate.currentLang));
 
 		this.hasBreadCrumb = this.router.events.pipe(
 			filter(event => event instanceof NavigationEnd),
@@ -140,20 +142,8 @@ export class AppComponent implements OnInit, AfterViewInit {
 						}
 						if (child.snapshot.data && child.snapshot.data.showOnlyRouterOutlet) {
 							this.showOnlyRouterOutlet = true;
-							this.ccService.getConfig().enabled = false;
-                            this.ccService.getConfig().container = document.getElementById('cookies-consent');
-							this.ccService.destroy();
-							this.ccService.init(this.ccService.getConfig());
 						} else {
 							this.showOnlyRouterOutlet = false;
-							if (this.cookieService.get("cookiesConsent") == "true") {
-								this.ccService.getConfig().enabled = false;
-							} else {
-								this.ccService.getConfig().enabled = true;
-							}
-                            this.ccService.getConfig().container = document.getElementById('cookies-consent');
-							this.ccService.destroy();
-							this.ccService.init(this.ccService.getConfig());
 						}
 
 						const usePrefix = child.snapshot.data['usePrefix'] ?? true;
@@ -179,35 +169,19 @@ export class AppComponent implements OnInit, AfterViewInit {
 			.subscribe(() => {
 
 				this.breadcrumbService.addExcludedParam('t', true);
+				this.translate.onLangChange.subscribe((event: LangChangeEvent) => {
+					if (this.authentication.getSelectedTenantName() && this.authentication.getSelectedTenantName() !== '')
+						this.principalService.myTenantsTranslated().pipe(takeUntil(this._destroyed)).subscribe( tenants => {
+							const tenant = tenants?.find(x => x.id === this.authentication.getSelectedTenantId());
+							if (tenant) {
+								this.breadcrumbService.addIdResolvedValue(this.authentication.selectedTenant(), this.principalService.getTranslatedTenantName(tenant));
+							}
+						});
+						
+				});
 
 				if (this.authentication.getSelectedTenantName() && this.authentication.getSelectedTenantName() !== '')
 					this.breadcrumbService.addIdResolvedValue(this.authentication.selectedTenant(), this.authentication.getSelectedTenantName());
-			});
-
-		this.statusChangeSubscription = this.ccService.statusChange$.subscribe((event: NgcStatusChangeEvent) => {
-			if (event.status == "dismiss") {
-				this.cookieService.set("cookiesConsent", "true", 356, null, null, false, 'Lax');
-			}
-		});
-
-		this.ccService.getConfig().content.href = this.configurationService.app + "cookies-policy";
-		this.ccService.getConfig().cookie.domain = this.configurationService.app;
-		this.translate
-			.get(['COOKIE.MESSAGE', 'COOKIE.DISMISS', 'COOKIE.DENY', 'COOKIE.LINK', 'COOKIE.POLICY'])
-			.subscribe(data => {
-				this.ccService.getConfig().content = this.ccService.getConfig().content || {};
-				// Override default messages with the translated ones
-				this.ccService.getConfig().content.message = data['COOKIE.MESSAGE'];
-				this.ccService.getConfig().content.dismiss = data['COOKIE.DISMISS'];
-				this.ccService.getConfig().content.deny = data['COOKIE.DENY'];
-				this.ccService.getConfig().content.link = data['COOKIE.LINK'];
-				this.ccService.getConfig().content.policy = data['COOKIE.POLICY'];
-
-				if (this.cookieService.get("cookiesConsent") == "true") {
-					this.ccService.getConfig().enabled = false;
-				}
-				this.ccService.destroy();
-				this.ccService.init(this.ccService.getConfig());
 			});
         if(this.configurationService.userWayId){
             const script = this.renderer.createElement('script');
@@ -243,15 +217,6 @@ export class AppComponent implements OnInit, AfterViewInit {
 		}
 	}
 
-	login() {
-		//redirect to login page
-		this.router.navigate(['/login'], { queryParams: { /*refresh : Math.random() ,returnUrl: this.state.url*/ } });
-	}
-
-	logout() {
-
-	}
-
 	public isAuthenticated(): boolean {
 		return this.authentication.currentAccountIsAuthenticated();
 	}
@@ -266,6 +231,10 @@ export class AppComponent implements OnInit, AfterViewInit {
 		this.authentication.currentAccountIsAuthenticated() && this.authentication.getUserProfileCulture() ? this.cultureService.cultureSelected(this.authentication.getUserProfileCulture()) : this.cultureService.cultureSelected(this.configurationService.defaultCulture);
 		this.authentication.currentAccountIsAuthenticated() && this.authentication.getUserProfileTimezone() ? this.timezoneService.timezoneSelected(this.authentication.getUserProfileTimezone()) : this.timezoneService.timezoneSelected(this.configurationService.defaultTimezone);
 		this.authentication.currentAccountIsAuthenticated() && this.authentication.getUserProfileLanguage() ? this.language.changeLanguage(this.authentication.getUserProfileLanguage()) : (this.language.getDefaultLanguagesCode());
+
+		if (this.authentication.currentAccountIsAuthenticated()) {
+			this.planWebSocketService.connect();
+		}
 
 		this.authentication.getAuthenticationStateObservable().subscribe(authenticationState => {
 			if (authenticationState.loginStatus === LoginStatus.LoggedIn) {

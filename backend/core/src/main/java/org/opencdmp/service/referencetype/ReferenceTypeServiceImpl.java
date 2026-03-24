@@ -25,7 +25,7 @@ import org.opencdmp.commons.types.referencetype.ReferenceTypeDefinitionEntity;
 import org.opencdmp.commons.types.referencetype.ReferenceTypeFieldEntity;
 import org.opencdmp.convention.ConventionService;
 import org.opencdmp.data.ReferenceTypeEntity;
-import org.opencdmp.data.TenantEntityManager;
+import org.opencdmp.data.TenantEntityManagerFactory;
 import org.opencdmp.errorcode.ErrorThesaurusProperties;
 import org.opencdmp.model.builder.referencetype.ReferenceTypeBuilder;
 import org.opencdmp.model.deleter.ReferenceTypeDeleter;
@@ -53,7 +53,7 @@ import java.util.UUID;
 public class ReferenceTypeServiceImpl implements ReferenceTypeService {
 
     private static final LoggerService logger = new LoggerService(LoggerFactory.getLogger(ReferenceTypeServiceImpl.class));
-    private final TenantEntityManager entityManager;
+    private final TenantEntityManagerFactory tenantEntityManagerFactory;
     private final AuthorizationService authorizationService;
     private final DeleterFactory deleterFactory;
     private final BuilderFactory builderFactory;
@@ -66,10 +66,10 @@ public class ReferenceTypeServiceImpl implements ReferenceTypeService {
     private final AccountingService accountingService;
 
     public ReferenceTypeServiceImpl(
-            TenantEntityManager entityManager, AuthorizationService authorizationService, DeleterFactory deleterFactory, BuilderFactory builderFactory,
+            TenantEntityManagerFactory tenantEntityManagerFactory, AuthorizationService authorizationService, DeleterFactory deleterFactory, BuilderFactory builderFactory,
             ConventionService conventionService, MessageSource messageSource,
             XmlHandlingService xmlHandlingService, ErrorThesaurusProperties errors, QueryFactory queryFactory, UsageLimitService usageLimitService, AccountingService accountingService) {
-        this.entityManager = entityManager;
+        this.tenantEntityManagerFactory = tenantEntityManagerFactory;
         this.authorizationService = authorizationService;
         this.deleterFactory = deleterFactory;
         this.builderFactory = builderFactory;
@@ -92,7 +92,7 @@ public class ReferenceTypeServiceImpl implements ReferenceTypeService {
 
         ReferenceTypeEntity data;
         if (isUpdate) {
-            data = this.entityManager.find(ReferenceTypeEntity.class, model.getId());
+            data = this.tenantEntityManagerFactory.getInstance().find(ReferenceTypeEntity.class, model.getId());
             if (data == null)
                 throw new MyNotFoundException(this.messageSource.getMessage("General_ItemNotFound", new Object[]{model.getId(), ReferenceType.class.getSimpleName()}, LocaleContextHolder.getLocale()));
             if (!this.conventionService.hashValue(data.getUpdatedAt()).equals(model.getHash())) throw new MyValidationException(this.errors.getHashConflict().getCode(), this.errors.getHashConflict().getMessage());
@@ -110,13 +110,13 @@ public class ReferenceTypeServiceImpl implements ReferenceTypeService {
         data.setDefinition(this.xmlHandlingService.toXmlSafe(this.buildDefinitionEntity(model.getDefinition())));
         data.setUpdatedAt(Instant.now());
 
-        if (isUpdate) this.entityManager.merge(data);
+        if (isUpdate) this.tenantEntityManagerFactory.getInstance().merge(data);
         else {
-            this.entityManager.persist(data);
+            this.tenantEntityManagerFactory.getInstance().persist(data);
             this.accountingService.increase(UsageLimitTargetMetric.REFERENCE_TYPE_COUNT.getValue());
         }
 
-        this.entityManager.flush();
+        this.tenantEntityManagerFactory.getInstance().flush();
 
         if (!isUpdate) {
             Long referenceTypesWithThisCode = this.queryFactory.query(ReferenceTypeQuery.class).disableTracking()
@@ -158,6 +158,8 @@ public class ReferenceTypeServiceImpl implements ReferenceTypeService {
         data.setLabel(persist.getLabel());
         data.setDescription(persist.getDescription());
         data.setDataType(persist.getDataType());
+        data.setSemantics(persist.getSemantics());
+        data.setRequired(persist.getRequired());
 
         return data;
     }

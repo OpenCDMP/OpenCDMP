@@ -38,6 +38,7 @@ public class FieldBuilder extends BaseBuilder<Field, FieldEntity> {
     private EnumSet<AuthorizationFlags> authorize = EnumSet.of(AuthorizationFlags.None);
 
     private org.opencdmp.commons.types.descriptiontemplate.FieldEntity fieldEntity;
+    private boolean isPublic;
 
     @Autowired
     public FieldBuilder(
@@ -54,6 +55,11 @@ public class FieldBuilder extends BaseBuilder<Field, FieldEntity> {
 
     public FieldBuilder withFieldEntity(org.opencdmp.commons.types.descriptiontemplate.FieldEntity fieldEntity) {
         this.fieldEntity = fieldEntity;
+        return this;
+    }
+
+    public FieldBuilder isPublic(boolean isPublic) {
+        this.isPublic = isPublic;
         return this;
     }
 
@@ -143,7 +149,7 @@ public class FieldBuilder extends BaseBuilder<Field, FieldEntity> {
             }
             FieldSet clone = new BaseFieldSet(fields.getFields()).ensure(Reference._id);
             ReferenceQuery q = this.queryFactory.query(ReferenceQuery.class).disableTracking().authorize(this.authorize).ids(ids);
-            itemMap = this.builderFactory.builder(ReferenceBuilder.class).authorize(this.authorize).asForeignKey(q, clone, Reference::getId);
+            itemMap = this.builderFactory.builder(ReferenceBuilder.class).authorize(this.authorize).isPublic(this.isPublic).asForeignKey(q, clone, Reference::getId);
         }
 
         if (!fields.hasField(Reference._id)) {
@@ -182,7 +188,7 @@ public class FieldBuilder extends BaseBuilder<Field, FieldEntity> {
             }
             FieldSet clone = new BaseFieldSet(fields.getFields()).ensure(Tag._id);
             TagQuery q = this.queryFactory.query(TagQuery.class).disableTracking().authorize(this.authorize).ids(ids);
-            itemMap = this.builderFactory.builder(TagBuilder.class).authorize(this.authorize).asForeignKey(q, clone, Tag::getId);
+            itemMap = this.builderFactory.builder(TagBuilder.class).authorize(this.authorize).isPublic(this.isPublic).asForeignKey(q, clone, Tag::getId);
         }
 
         if (!fields.hasField(Tag._id)) {

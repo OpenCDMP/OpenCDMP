@@ -28,6 +28,6 @@ export abstract class BaseInterceptor implements HttpInterceptor {
 			|| req.url.startsWith(this.configurationService.server)
 			|| req.url.startsWith(this.configurationService.notificationServiceAddress)
 			|| req.url.startsWith(this.configurationService.annotationServiceAddress)
-			|| req.url.startsWith(this.configurationService.kpiServiceAddress);
+			|| req.url.startsWith(this.configurationService.kpi.address);
 	}
 }

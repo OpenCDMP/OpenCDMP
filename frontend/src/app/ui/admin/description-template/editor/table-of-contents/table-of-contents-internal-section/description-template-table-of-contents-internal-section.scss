@@ -25,7 +25,7 @@
 
 
 .side-bolder{
-  border-left: 1px solid (--sys-error);
+  border-left: 1px solid (--mat-sys-error);
 }
 
 
@@ -43,8 +43,8 @@
 .badge-ball{
   display: inline-block;
   border-radius: 50%;
-  background-color: var(--sys-primary);
-  color: var(--sys-on-primary);
+  background-color: var(--mat-sys-primary);
+  color: var(--mat-sys-on-primary);
   font-size: small;
   font-weight: bold;
   text-align: center;
@@ -65,5 +65,5 @@
 }
 
 .link-info-error {
-  color: (--sys-error);
+  color: (--mat-sys-error);
 }

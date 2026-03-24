@@ -1,5 +1,6 @@
 package org.opencdmp.integrationevent.outbox.usertouched;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import org.opencdmp.commons.enums.ContactInfoType;
 import org.opencdmp.integrationevent.TrackedEvent;
 import org.opencdmp.model.UserContactInfo;
@@ -9,14 +10,20 @@ import java.util.UUID;
 
 public class UserTouchedIntegrationEvent extends TrackedEvent {
 
+    @JsonProperty(value = "Id")
     private UUID id;
 
+    @JsonProperty(value = "Name")
     private String name;
 
+    @JsonProperty(value = "Profile")
     private UserProfile profile;
 
+    @JsonProperty(value = "UserContactInfos")
     private List<UserContactInfo> userContactInfo;
+    @JsonProperty(value = "TenantUsers")
     private List<TenantUser> tenantUsers;
+    @JsonProperty(value = "Credentials")
     private List<UserCredential> credentials;
 
     public UUID getId() {
@@ -70,10 +77,13 @@ public class UserTouchedIntegrationEvent extends TrackedEvent {
 
     public static class UserProfile {
 
+        @JsonProperty(value = "Timezone")
         private String timezone;
 
+        @JsonProperty(value = "Culture")
         private String culture;
 
+        @JsonProperty(value = "Language")
         private String language;
 
         public String getTimezone() {
@@ -103,9 +113,12 @@ public class UserTouchedIntegrationEvent extends TrackedEvent {
 
     public static class UserContactInfo {
 
+        @JsonProperty(value = "Type")
         private ContactInfoType type;
 
+        @JsonProperty(value = "Value")
         private String value;
+        @JsonProperty(value = "Ordinal")
         private int ordinal;
 
         public ContactInfoType getType() {
@@ -137,6 +150,7 @@ public class UserTouchedIntegrationEvent extends TrackedEvent {
 
 
     public static class UserCredential {
+        @JsonProperty(value = "SubjectId")
         private String subjectId;
 
         public String getSubjectId() {
@@ -150,6 +164,7 @@ public class UserTouchedIntegrationEvent extends TrackedEvent {
 
     public static class TenantUser {
 
+        @JsonProperty(value = "Tenant")
         private UUID tenant;
 
         public UUID getTenant() {

@@ -13,7 +13,7 @@ import java.util.UUID;
 
 public interface EvaluatorService {
 
-    org.opencdmp.evaluatorbase.models.misc.RankResultModel rankPlan(UUID planId, String repositoryId, String format, List<String> benchmarkIds, boolean isPublic) throws InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, InvalidApplicationException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException, IOException;
+    org.opencdmp.evaluatorbase.models.misc.RankResultModel rankPlan(UUID planId, String repositoryId, String format, List<String> benchmarkIds) throws InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, InvalidApplicationException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException, IOException;
 
     org.opencdmp.evaluatorbase.models.misc.RankResultModel rankDescription(UUID descriptionId, String repositoryId, String format, List<String> benchmarkIds, boolean isPublic) throws InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, InvalidApplicationException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException, IOException;
 

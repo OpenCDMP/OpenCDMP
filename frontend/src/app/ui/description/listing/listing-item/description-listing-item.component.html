@@ -1,123 +1,141 @@
 <div class="description-card">
-	<a [routerLink]="getItemLink()" class="pointer" [attr.aria-label]="('ALT-TEXT.OPEN-DESCRIPTION-OVERVIEW-FOR' | translate) + ' ' + description?.label">
-		<div class="d-flex flex-direction-row flex-wrap">
-			<div class="col-auto description-label">{{'DESCRIPTION-LISTING.DESCRIPTION' | translate}}</div>
-			<div class="col-auto ml-auto">
-				<div class="row align-items-center">
-					<ng-container *ngIf="description.tenantId">
-						<div  class="col-auto edited-date">{{getTenantName(description.tenantId)}}</div>
-						<div class="col-auto edited-date p-0 mb-2" style="font-weight: 700;">.</div>
-					</ng-container>
-					<div *ngIf="!isPublic" class="col-auto edited-date">{{'DESCRIPTION-LISTING.STATES.EDITED' | translate}}: {{description.updatedAt | dateTimeFormatter: 'short'}}</div>
-					<div *ngIf="isPublic" class="col-auto edited-date">{{'DESCRIPTION-LISTING.STATES.PUBLISHED' | translate}}: {{description.plan?.finalizedAt | dateTimeFormatter: 'short'}}</div>
-				</div>
-			</div>
-		</div>
-		<div [ngClass]="{'description-title': !isDraft, 'description-title-draft': isDraft}" class="col-auto description-title" [ngStyle]="{'color': description.status?.definition?.statusColor}">
-            {{description.label}}
+  <a [routerLink]="getItemLink()" class="pointer" [attr.aria-label]="('ALT-TEXT.OPEN-DESCRIPTION-OVERVIEW-FOR' | translate) + ' ' + description?.label">
+    <div class="d-flex flex-direction-row flex-wrap">
+      <div class="col-auto description-label">{{'DESCRIPTION-LISTING.DESCRIPTION' | translate}}</div>
+      <div class="col-auto ml-auto">
+        <div class="row align-items-center">
+          @if (description.tenantId) {
+            <div  class="col-auto edited-date">{{getTenantName(description.tenantId)}}</div>
+            <div class="col-auto edited-date p-0 mb-2" style="font-weight: 700;">.</div>
+          }
+          @if (!isPublic) {
+            <div class="col-auto edited-date">{{'DESCRIPTION-LISTING.STATES.EDITED' | translate}}: {{description.updatedAt | dateTimeFormatter: 'short'}}</div>
+          }
+          @if (isPublic) {
+            <div class="col-auto edited-date">{{'DESCRIPTION-LISTING.STATES.PUBLISHED' | translate}}: {{description.plan?.finalizedAt | dateTimeFormatter: 'short'}}</div>
+          }
         </div>
-		<div class="description-subtitle">
-			<span *ngIf="isUserPlanRelated()" class="col-auto">{{ enumUtils.toPlanUserRolesString(planService.getCurrentUserRolesInPlan(description?.plan?.planUsers, isDeleted)) }}</span>
-			<span *ngIf="isUserPlanRelated()">.</span>
-            <span class="col-auto">
-                @if(description.status?.internalStatus === descriptionStatusEnum.Finalized && description.plan.accessType === planAccessTypeEnum.Public){
-                    <span class="material-icons icon-align">public</span>{{'DESCRIPTION-LISTING.STATES.PUBLIC' | translate}}
-                } @else {
-                    <ng-container *ngTemplateOutlet="statusTemplate; context: {status: description.status}"></ng-container>
-                }
-            </span>
-		</div>
-		@for (referenceConfig of orderedDescriptionPreferencesList;  track $index; let last = $last; let index = $index) {
-			@if (referenceService.getReferencesForTypes(description?.plan?.planReferences, [referenceConfig.id])?.length > 0) {
-				<div class="description-subtitle d-flex align-items-start">
-					<span class="col-2 text-bold"> {{referenceConfig.name}}:</span>
-					<span class="col-10">
-					@for (planReference of referenceService.getReferencesForTypes(description?.plan?.planReferences, [referenceConfig.id]); track $index; let last = $last; let index = $index) {
-						<span >{{planReference?.reference?.label}}<span *ngIf="!last">,&nbsp;</span></span>
-					}
-						</span>
-				</div>
-			}
-		}
-		<div class="d-flex flex-direction-row flex-wrap pt-3 pb-3">
-			<div class="col-auto description-subtitle pr-0">{{'DESCRIPTION-LISTING.PART-OF' | translate}}
-				<div class="col-auto plan-label ml-3">{{'DESCRIPTION-LISTING.PLAN' | translate}}</div>
-			</div>
-			<div class="col-auto plan-title">{{description.plan?.label}}</div>
-		</div>
-	</a>
-	<div class="description-card-actions">
-		<div role="button"
-            class="col-auto description-action pointer d-flex align-items-center gap-quarter-rem"
-            *ngIf="canExport && fileTransformerService.availableFormatsFor(fileTransformerEntityTypeEnum.Description)?.length > 0"
-            [matMenuTriggerFor]="exportMenu"
-        >
-            <mat-icon class="material-icons icon-align pr-2" aria-hidden>open_in_new</mat-icon>
-            {{'DESCRIPTION-LISTING.ACTIONS.EXPORT' | translate}}
-        </div>
-		<div role="button"
-            class="col-auto description-action pointer d-flex align-items-center gap-quarter-rem"
-            *ngIf="canInvitePlanUsers"
-            (click)="openShareDialog()"
-        >
-            <mat-icon class="material-icons icon-align pr-2" aria-hidden>group_add</mat-icon>{{'DESCRIPTION-LISTING.ACTIONS.INVITE-SHORT' | translate}}
-        </div>
-		<div role="button"
-            class="col-auto description-action pointer d-flex align-items-center gap-quarter-rem"
-            *ngIf="canCopy"
-            (click)="copyToPlan(description)"
-        >
-            <mat-icon class="material-icons icon-align pr-2" aria-hidden>file_copy</mat-icon>{{'DESCRIPTION-LISTING.ACTIONS.COPY-DESCRIPTION' | translate}}
-        </div>
-		<div role="button"
-            class="col-auto pointer d-flex align-items-center gap-quarter-rem"
-            *ngIf="canDelete"
-            (click)="deleteClicked(description.id)"
-        >
-            <mat-icon class="material-icons icon-align pr-2" aria-hidden>delete</mat-icon>{{ 'DESCRIPTION-LISTING.ACTIONS.DELETE' | translate }}
-        </div>
-	</div>
-	<mat-menu #actionsMenu="matMenu">
-		<button *ngIf="isAuthenticated()" mat-menu-item (click)="copyToPlan(description)" class="menu-item">
-			<mat-icon>file_copy</mat-icon>{{'DESCRIPTION-LISTING.ACTIONS.COPY-DESCRIPTION' | translate}}
-		</button>
-		<button *ngIf="canDelete" mat-menu-item (click)="deleteClicked(description.id)" class="menu-item">
-			<mat-icon aria-hidden>delete</mat-icon>{{ 'DESCRIPTION-LISTING.ACTIONS.DELETE' | translate }}
-		</button>
-	</mat-menu>
-	<mat-menu #exportMenu="matMenu" xPosition="before">
-        @for(fileTransformer of fileTransformerService.availableFormatsFor(fileTransformerEntityTypeEnum.Description); track $index; let i = $index) {
-            @for (fileFormat of fileTransformer.exportVariants; track $index; let j = $index) {
-                <button mat-menu-item (click)="fileTransformerService.exportDescription(description.id, fileTransformer.fileTransformerId, fileFormat.format, isPublic)">
-			        <i class="fa pr-2" [ngClass]="fileFormat.icon ? fileFormat.icon : 'fa-file-o'"></i>
-			        @if (fileFormat?.format?.toUpperCase() === 'JSON') {
-						<span>{{ 'GENERAL.FILE-TRANSFORMER.' + fileTransformer?.fileTransformerId?.toUpperCase() + '-' + fileFormat?.format?.toUpperCase() | translate }}</span>
-					} @else {
-						<span>{{ 'GENERAL.FILE-TRANSFORMER.' + fileFormat?.format?.toUpperCase() | translate }}</span>
-					}
-		        </button>
-            }
+      </div>
+    </div>
+    <div [ngClass]="{'description-title': !isDraft, 'description-title-draft': isDraft}" class="col-auto description-title" [ngStyle]="{'color': description.status?.definition?.statusColor}">
+      {{description.label}}
+    </div>
+    <div class="description-subtitle">
+      @if (isUserPlanRelated()) {
+        <span class="col-auto">{{ enumUtils.toPlanUserRolesString(planService.getCurrentUserRolesInPlan(description?.plan?.planUsers, isDeleted)) }}</span>
+      }
+      @if (isUserPlanRelated()) {
+        <span>.</span>
+      }
+      <span class="col-auto">
+        @if(description.status?.internalStatus === descriptionStatusEnum.Finalized && description.plan.accessType === planAccessTypeEnum.Public){
+          <span class="material-icons icon-align">public</span>{{'DESCRIPTION-LISTING.STATES.PUBLIC' | translate}}
+        } @else {
+          <ng-container *ngTemplateOutlet="statusTemplate; context: {status: description.status}"></ng-container>
         }
-	</mat-menu>
+      </span>
+    </div>
+    @for (referenceConfig of orderedDescriptionPreferencesList;  track $index; let last = $last; let index = $index) {
+      @if (referenceService.getReferencesForTypes(description?.plan?.planReferences, !isDeleted, [referenceConfig.id])?.length > 0) {
+        <div class="description-subtitle d-flex align-items-start">
+          <span class="col-2 text-bold"> {{referenceConfig.name}}:</span>
+          <span class="col-10">
+            @for (planReference of referenceService.getReferencesForTypes(description?.plan?.planReferences, !isDeleted, [referenceConfig.id]); track $index; let last = $last; let index = $index) {
+              <span >{{planReference?.reference?.label}}@if (!last) {
+                <span>,&nbsp;</span>
+              }</span>
+            }
+          </span>
+        </div>
+      }
+    }
+    <div class="d-flex flex-direction-row flex-wrap pt-3 pb-3">
+      <div class="col-auto description-subtitle pr-0">{{'DESCRIPTION-LISTING.PART-OF' | translate}}
+        <div class="col-auto plan-label ml-3">{{'DESCRIPTION-LISTING.PLAN' | translate}}</div>
+      </div>
+      <div class="col-auto plan-title">{{description.plan?.label}}</div>
+    </div>
+  </a>
+  <div class="description-card-actions">
+    @if (canExport && fileTransformerService.availableFormatsFor(fileTransformerEntityTypeEnum.Description)?.length > 0) {
+      <div role="button"
+        class="col-auto description-action pointer d-flex align-items-center gap-quarter-rem"
+        [matMenuTriggerFor]="exportMenu"
+        >
+        <mat-icon class="material-icons icon-align pr-2" aria-hidden>open_in_new</mat-icon>
+        {{'DESCRIPTION-LISTING.ACTIONS.EXPORT' | translate}}
+      </div>
+    }
+    @if (canInvitePlanUsers) {
+      <div role="button"
+        class="col-auto description-action pointer d-flex align-items-center gap-quarter-rem"
+        (click)="openShareDialog()"
+        >
+        <mat-icon class="material-icons icon-align pr-2" aria-hidden>group_add</mat-icon>{{'DESCRIPTION-LISTING.ACTIONS.INVITE-SHORT' | translate}}
+      </div>
+    }
+    @if (canCopy) {
+      <div role="button"
+        class="col-auto description-action pointer d-flex align-items-center gap-quarter-rem"
+        (click)="copyToPlan(description)"
+        >
+        <mat-icon class="material-icons icon-align pr-2" aria-hidden>file_copy</mat-icon>{{'DESCRIPTION-LISTING.ACTIONS.COPY-DESCRIPTION' | translate}}
+      </div>
+    }
+    @if (canDelete) {
+      <div role="button"
+        class="col-auto pointer d-flex align-items-center gap-quarter-rem"
+        (click)="deleteClicked(description.id)"
+        >
+        <mat-icon class="material-icons icon-align pr-2" aria-hidden>delete</mat-icon>{{ 'DESCRIPTION-LISTING.ACTIONS.DELETE' | translate }}
+      </div>
+    }
+  </div>
+  <mat-menu #actionsMenu="matMenu">
+    @if (isAuthenticated()) {
+      <button mat-menu-item (click)="copyToPlan(description)" class="menu-item">
+        <mat-icon>file_copy</mat-icon>{{'DESCRIPTION-LISTING.ACTIONS.COPY-DESCRIPTION' | translate}}
+      </button>
+    }
+    @if (canDelete) {
+      <button mat-menu-item (click)="deleteClicked(description.id)" class="menu-item">
+        <mat-icon aria-hidden>delete</mat-icon>{{ 'DESCRIPTION-LISTING.ACTIONS.DELETE' | translate }}
+      </button>
+    }
+  </mat-menu>
+  <mat-menu #exportMenu="matMenu" xPosition="before">
+    @for(fileTransformer of fileTransformerService.availableFormatsFor(fileTransformerEntityTypeEnum.Description); track $index; let i = $index) {
+      @for (fileFormat of fileTransformer.exportVariants; track $index; let j = $index) {
+        <button mat-menu-item (click)="fileTransformerService.exportDescription(description.id, fileTransformer.fileTransformerId, fileFormat.format, isPublic)">
+          <i class="fa pr-2" [ngClass]="fileFormat.icon ? fileFormat.icon : 'fa-file-o'"></i>
+          @if (fileFormat?.format?.toUpperCase() === 'JSON') {
+            <span>{{ 'GENERAL.FILE-TRANSFORMER.' + fileTransformer?.fileTransformerId?.toUpperCase() + '-' + fileFormat?.format?.toUpperCase() | translate }}</span>
+          } @else {
+            <span>{{ 'GENERAL.FILE-TRANSFORMER.' + fileFormat?.format?.toUpperCase() | translate }}</span>
+          }
+        </button>
+      }
+    }
+  </mat-menu>
 </div>
 
 <ng-template #statusTemplate let-status="status">
-    <div class="d-flex align-items-center gap-quarter-rem" [ngStyle]="{'color': status?.definition?.statusColor}">
-        @if(status.definition?.storageFile?.id && statusStorageFile) {
-            <img class="status-logo" [src]="statusStorageFile" aria-hidden>
-        }@else if(status.definition?.matIconName) {
-            <mat-icon >{{status.definition.matIconName}}</mat-icon>
-        }@else {
-            @switch(status.internalStatus){
-                @case(descriptionStatusEnum.Finalized){
-                    <mat-icon>check</mat-icon>
-                }@case(descriptionStatusEnum.Draft){
-                    <mat-icon>edit</mat-icon>
-                }@default {
-                    <mat-icon>arrow_forward</mat-icon>
-                }
-            }
+  <div class="d-flex align-items-center gap-quarter-rem" [ngStyle]="{'color': status?.definition?.statusColor}">
+    @if(status.definition?.storageFile?.id && statusStorageFile) {
+      <img class="status-logo" [src]="statusStorageFile" aria-hidden>
+      }@else if(status.definition?.matIconName) {
+      <mat-icon >{{status.definition.matIconName}}</mat-icon>
+      }@else {
+      @switch(status.internalStatus){
+        @case(descriptionStatusEnum.Finalized){
+          <mat-icon>check</mat-icon>
+          }@case(descriptionStatusEnum.Draft){
+          <mat-icon>edit</mat-icon>
+          }@default {
+          <mat-icon>arrow_forward</mat-icon>
         }
-        <span>{{ status.action?.length > 0 ? status.action : status.name }}</span>
-    </div>
+      }
+    }
+    <span>{{ status.action?.length > 0 ? status.action : status.name }}</span>
+  </div>
 </ng-template>

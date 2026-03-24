@@ -1,5 +1,5 @@
 .title {
-    font-size:  var(--sys-title-large-size);
+    font-size:  var(--mat-sys-title-large-size);
 }
 .drag-icon:hover{
     cursor: pointer;
@@ -8,7 +8,7 @@
 }
 .reorder-mode:focus {
     border-radius: 8px;
-    border: 1px solid var(--sys-primary)
+    border: 1px solid var(--mat-sys-primary)
 }
 
 .assistive-text {

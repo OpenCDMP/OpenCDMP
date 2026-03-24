@@ -6,15 +6,14 @@ import gr.cite.tools.data.query.QueryFactory;
 import gr.cite.tools.logging.LoggerService;
 import gr.cite.tools.logging.MapLogEntry;
 import org.opencdmp.commons.enums.IsActive;
-import org.opencdmp.data.TenantConfigurationEntity;
-import org.opencdmp.data.TenantEntity;
-import org.opencdmp.data.TenantEntityManager;
-import org.opencdmp.data.TenantUserEntity;
+import org.opencdmp.commons.enums.kpi.KpiDirectionType;
+import org.opencdmp.data.*;
 import org.opencdmp.event.EventBroker;
 import org.opencdmp.event.TenantTouchedEvent;
 import org.opencdmp.query.TenantConfigurationQuery;
 import org.opencdmp.query.TenantQuery;
 import org.opencdmp.query.TenantUserQuery;
+import org.opencdmp.service.kpi.KpiService;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
@@ -34,23 +33,26 @@ public class TenantDeleter implements Deleter {
 
     private static final LoggerService logger = new LoggerService(LoggerFactory.getLogger(TenantDeleter.class));
 
-    private final TenantEntityManager entityManager;
+    private final TenantEntityManagerFactory tenantEntityManagerFactory;
 
     protected final QueryFactory queryFactory;
 
     protected final DeleterFactory deleterFactory;
     private final EventBroker eventBroker;
 
+    private final KpiService kpiService;
+
     @Autowired
     public TenantDeleter(
-		    TenantEntityManager entityManager,
-		    QueryFactory queryFactory,
-		    DeleterFactory deleterFactory, EventBroker eventBroker
+            TenantEntityManagerFactory tenantEntityManagerFactory,
+            QueryFactory queryFactory,
+            DeleterFactory deleterFactory, EventBroker eventBroker, KpiService kpiService
     ) {
-        this.entityManager = entityManager;
+        this.tenantEntityManagerFactory = tenantEntityManagerFactory;
         this.queryFactory = queryFactory;
         this.deleterFactory = deleterFactory;
 	    this.eventBroker = eventBroker;
+        this.kpiService = kpiService;
     }
 
     public void deleteAndSaveByIds(List<UUID> ids) throws InvalidApplicationException {
@@ -64,7 +66,7 @@ public class TenantDeleter implements Deleter {
         logger.debug("will delete {} items", Optional.ofNullable(data).map(List::size).orElse(0));
         this.delete(data);
         logger.trace("saving changes");
-        this.entityManager.flush();
+        this.tenantEntityManagerFactory.getInstance().flush();
         logger.trace("changes saved");
     }
 
@@ -94,9 +96,10 @@ public class TenantDeleter implements Deleter {
             item.setIsActive(IsActive.Inactive);
             item.setUpdatedAt(now);
             logger.trace("updating item");
-            this.entityManager.merge(item);
+            this.tenantEntityManagerFactory.getInstance().merge(item);
             logger.trace("updated item");
             this.eventBroker.emit(new TenantTouchedEvent(item.getId(), item.getCode()));
+            this.kpiService.sendIndicatorPointTenantEntry(KpiDirectionType.Decrease);
         }
     }
 

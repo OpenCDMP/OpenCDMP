@@ -1,6 +1,6 @@
 package org.opencdmp.controllers;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
+import tools.jackson.core.JacksonException;
 import gr.cite.tools.auditing.AuditService;
 import gr.cite.tools.data.builder.BuilderFactory;
 import gr.cite.tools.data.censor.CensorFactory;
@@ -16,7 +16,7 @@ import org.opencdmp.audit.AuditableAction;
 import org.opencdmp.authorization.AuthorizationFlags;
 import org.opencdmp.commons.enums.IsActive;
 import org.opencdmp.commons.enums.TenantConfigurationType;
-import org.opencdmp.commons.scope.tenant.TenantScope;
+import org.opencdmp.commons.scope.tenant.TenantScopeFactory;
 import org.opencdmp.data.TenantConfigurationEntity;
 import org.opencdmp.model.builder.tenantconfiguration.TenantConfigurationBuilder;
 import org.opencdmp.model.censorship.tenantconfiguration.TenantConfigurationCensor;
@@ -61,21 +61,21 @@ public class TenantConfigurationController {
     private final QueryFactory queryFactory;
 
     private final MessageSource messageSource;
-    private final TenantScope tenantScope;
+    private final TenantScopeFactory tenantScopeFactory;
 
     public TenantConfigurationController(
 		    BuilderFactory builderFactory,
 		    AuditService auditService,
 		    TenantConfigurationService tenantConfigurationService, CensorFactory censorFactory,
 		    QueryFactory queryFactory,
-		    MessageSource messageSource, TenantScope tenantScope) {
+		    MessageSource messageSource, TenantScopeFactory tenantScopeFactory) {
         this.builderFactory = builderFactory;
         this.auditService = auditService;
         this.tenantConfigurationService = tenantConfigurationService;
         this.censorFactory = censorFactory;
         this.queryFactory = queryFactory;
         this.messageSource = messageSource;
-	    this.tenantScope = tenantScope;
+	    this.tenantScopeFactory = tenantScopeFactory;
     }
 
     @PostMapping("query")
@@ -121,8 +121,8 @@ public class TenantConfigurationController {
         this.censorFactory.censor(TenantConfigurationCensor.class).censor(fieldSet, null);
 
         TenantConfigurationQuery query = this.queryFactory.query(TenantConfigurationQuery.class).disableTracking().authorize(AuthorizationFlags.AllExceptPublic).isActive(IsActive.Active).types(TenantConfigurationType.of(type));
-        if (this.tenantScope.isDefaultTenant()) query.tenantIsSet(false);
-        else query.tenantIsSet(true).tenantIds(this.tenantScope.getTenant());
+        if (this.tenantScopeFactory.getInstance().isDefaultTenant()) query.tenantIsSet(false);
+        else query.tenantIsSet(true).tenantIds(this.tenantScopeFactory.getInstance().getTenant());
 
         TenantConfiguration model = this.builderFactory.builder(TenantConfigurationBuilder.class).authorize(AuthorizationFlags.AllExceptPublic).build(fieldSet, query.firstAs(fieldSet));
 
@@ -153,7 +153,7 @@ public class TenantConfigurationController {
     @PostMapping("persist")
     @Transactional
     @ValidationFilterAnnotation(validator = TenantConfigurationPersist.TenantConfigurationPersistValidator.ValidatorName, argumentName = "model")
-    public TenantConfiguration persist(@RequestBody TenantConfigurationPersist model, FieldSet fieldSet) throws MyApplicationException, MyForbiddenException, MyNotFoundException, InvalidApplicationException, JsonProcessingException, InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
+    public TenantConfiguration persist(@RequestBody TenantConfigurationPersist model, FieldSet fieldSet) throws MyApplicationException, MyForbiddenException, MyNotFoundException, InvalidApplicationException, JacksonException, InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
         logger.debug(new MapLogEntry("persisting" + TenantConfiguration.class.getSimpleName()).And("model", model).And("fieldSet", fieldSet));
         TenantConfiguration persisted = this.tenantConfigurationService.persist(model, fieldSet);
 

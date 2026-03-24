@@ -4,7 +4,7 @@ import { Component, DoCheck, ElementRef, EventEmitter, Input, OnChanges, OnDestr
 import { ControlValueAccessor, FormGroupDirective, NgControl, NgForm } from '@angular/forms';
 import { MatAutocomplete, MatAutocompleteSelectedEvent, MatAutocompleteTrigger } from '@angular/material/autocomplete';
 import { MatChipInputEvent } from '@angular/material/chips';
-import { ErrorStateMatcher, mixinErrorState } from '@angular/material/core';
+import { ErrorStateMatcher, _ErrorStateTracker } from '@angular/material/core';
 import { MatFormFieldControl } from '@angular/material/form-field';
 import { AutoCompleteGroup } from '@app/library/auto-complete/auto-complete-group';
 import {
@@ -15,18 +15,37 @@ import { BehaviorSubject, Observable, Subject, Subscription, interval, of as obs
 import { catchError, debounceTime, delayWhen, distinctUntilChanged, map, mergeMap, startWith, switchMap, take, takeUntil } from 'rxjs/operators';
 
 export class CustomComponentBase extends BaseComponent {
+    private _errorStateTracker: _ErrorStateTracker;
+
 	constructor(
 		public _defaultErrorStateMatcher: ErrorStateMatcher,
 		public _parentForm: NgForm,
 		public _parentFormGroup: FormGroupDirective,
 		public ngControl: NgControl,
 		public stateChanges: Subject<void>
-	) {
-		super();
-	}
+	) { 
+        super();
+        this._errorStateTracker = new _ErrorStateTracker(
+            _defaultErrorStateMatcher,
+            ngControl,
+            _parentFormGroup,
+            _parentForm,
+            this.stateChanges,
+        );
+    }
+
+    get errorState() {
+        return this._errorStateTracker.errorState;
+    }
+    set errorState(value: boolean) {
+        this._errorStateTracker.errorState = value;
+    }
+
+    updateErrorState() {
+        this._errorStateTracker.updateErrorState();
+    }
 }
 
-export const _CustomComponentMixinBase = mixinErrorState(CustomComponentBase);
 
 @Component({
     selector: 'app-multiple-auto-complete',
@@ -35,7 +54,7 @@ export const _CustomComponentMixinBase = mixinErrorState(CustomComponentBase);
     providers: [{ provide: MatFormFieldControl, useExisting: MultipleAutoCompleteComponent }],
     standalone: false
 })
-export class MultipleAutoCompleteComponent extends _CustomComponentMixinBase implements OnInit, MatFormFieldControl<string>, ControlValueAccessor, OnDestroy, DoCheck, OnChanges {
+export class MultipleAutoCompleteComponent extends CustomComponentBase implements OnInit, MatFormFieldControl<string>, ControlValueAccessor, OnDestroy, DoCheck, OnChanges {
 
 	static nextId = 0;
 	@ViewChild('autocomplete', { static: true }) autocomplete: MatAutocomplete;
@@ -62,6 +81,7 @@ export class MultipleAutoCompleteComponent extends _CustomComponentMixinBase imp
 	@Output() optionRemoved: EventEmitter<any> = new EventEmitter();
 
 	@Output() optionActionClicked: EventEmitter<any> = new EventEmitter();
+	@Output() selectedItemOptionActionClicked: EventEmitter<any> = new EventEmitter();
 
 
 	stateChanges = new Subject<void>();
@@ -254,6 +274,9 @@ export class MultipleAutoCompleteComponent extends _CustomComponentMixinBase imp
 		this.optionSelectedInternal(event.option.value);
 		this.autocompleteInput.nativeElement.value = '';
 		this._items = null; // refresh excluding previous item selected
+
+        //to prevent onContainerClick from re-opening menu
+        setTimeout(() => this.autocompleteTrigger?.closePanel())
 	}
 
 	private optionSelectedInternal(item: any) {
@@ -335,8 +358,8 @@ export class MultipleAutoCompleteComponent extends _CustomComponentMixinBase imp
 
 	onContainerClick(event: MouseEvent) {
 		event.stopPropagation();
-		if (this.disabled) { return; }
-		if (this.autocompleteInput) {
+		if (this.disabled || this.autocomplete?.isOpen) { return; }
+		if(this.autocompleteInput){
 			this.fm.focusVia(this.autocompleteInput.nativeElement, 'program');
 		}
 		this._onInputFocus();
@@ -454,8 +477,21 @@ export class MultipleAutoCompleteComponent extends _CustomComponentMixinBase imp
 	_optionActionClick(item: any, event: MouseEvent): void {
 		if (event != null) {
 			event.stopPropagation();
+			event.preventDefault();
 		}
 		this.optionActionClicked.emit(item);
+
+		// Ensure the panel stays open
+		setTimeout(() => {
+			this.isMouseOverPanel = true;
+		}, 10);
+	}
+
+	_selectedItemOptionActionClicked(item: any, event: MouseEvent): void {
+		if (event != null) {
+			event.stopPropagation();
+		}
+		this.selectedItemOptionActionClicked.emit(item);
 	}
 
 	get popupItemActionIcon(): string {
@@ -465,6 +501,15 @@ export class MultipleAutoCompleteComponent extends _CustomComponentMixinBase imp
 	get appendClassToItem(): { class: string, applyFunc: (item: any) => boolean }[] {
 		return this.configuration.appendClassToItem !== null ? this.configuration.appendClassToItem : null;
 	}
+
+	get isPopupSelectedItemActionIconDisabled(): boolean {
+		return this.configuration.isPopupSelectedItemActionIconDisabled != null ? this.configuration.isPopupSelectedItemActionIconDisabled : false;
+	}
+
+	get popupSelectedItemActionIcon(): string {
+		return this.configuration.popupSelectedItemActionIcon != null ? this.configuration.popupSelectedItemActionIcon : '';
+	}
+	
 
 	private readonly empyObj = {};
 	computeClass(value: any) {

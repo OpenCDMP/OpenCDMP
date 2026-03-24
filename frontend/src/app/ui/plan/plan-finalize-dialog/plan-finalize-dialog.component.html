@@ -1,104 +1,136 @@
 <div class="finalize-dialog-wrapper">
-	<div mat-dialog-title class="d-flex align-items-center gap-half-rem">
-		{{ 'PLAN-FINALISE-DIALOG.TITLE' | translate }}
-        <button mat-icon-button (click)="close()" class="ml-auto" [attr.aria-label]="'ALT-TEXT.CLOSE-DIALOG'  | translate">
-            <mat-icon aria-hidden>close</mat-icon>
-        </button>
-	</div>
-	<div mat-dialog-content class="pt-2 pb-2">
-		<div class="d-flex flex-column">
-			<mat-accordion [multi]="true">
-				<mat-expansion-panel [expanded]="!isPlanValid">
-					<mat-expansion-panel-header>
-						<mat-panel-title class="d-flex justify-content-between gap-1-rem">
-							<div>{{ 'PLAN-FINALISE-DIALOG.PLAN' | translate }}</div>
-                            <div class="plan-label" [matTooltip]="plan.label">
-                                {{ plan.label }}
-                            </div>
-						</mat-panel-title>
-					</mat-expansion-panel-header>
-					<div [innerHTML]="plan.description"></div>
-                    @if(isPlanValid == false){
-                        <div class="text-danger pt-3 pb-1">
-                            {{ 'PLAN-FINALISE-DIALOG.VALIDATION.INVALID-PLAN' | translate }}
-                        </div>
-                        <ul class="text-danger" *ngIf="planErrors?.length">
-                            @for(error of planErrors; track error){
-                                <li>{{error | titlecase}}</li>
-                            }
-                        </ul>
-                    }
-				</mat-expansion-panel>
-				<mat-expansion-panel [expanded]="true">
-					<mat-expansion-panel-header>
-						<mat-panel-title>
-							{{ 'PLAN-FINALISE-DIALOG.DESCRPIPTIONS' | translate }}
-						</mat-panel-title>
-						<mat-panel-description></mat-panel-description>
-					</mat-expansion-panel-header>
-					<div *ngIf="descriptions?.length">
-						@for(description of descriptions; track $index){
-                            <div class="row pl-3 descriptions">
-                                <mat-icon *ngIf="description?.status?.internalStatus == descriptionStatusEnum.Draft" class="col-1 draft-bookmark">bookmark</mat-icon>
-                                <mat-icon *ngIf="description?.status?.internalStatus == descriptionStatusEnum.Finalized" class="col-1 finalized-bookmark">bookmark</mat-icon>
-                                <b *ngIf="description.status?.internalStatus == descriptionStatusEnum.Draft" class="col-11 ml-auto mt-1 mb-2">
-                                    <span>{{ description?.status?.name}}
-                                    @if(draftDescriptionValidationOutputMap.get(description.id) === descriptionValidationOutputEnum.Invalid){
-                                        ({{'PLAN-FINALISE-DIALOG.INVALID' | translate}})
-                                    }
-                                    :</span>
-                                    {{ description.label }}
-                                    <i *ngIf="draftDescriptionValidationOutputMap.get(description.id) === descriptionValidationOutputEnum.Pending" class="fa fa-spinner fa-spin" aria-hidden></i>
-                                </b>
-                                <b *ngIf="description.status.internalStatus == descriptionStatusEnum.Finalized" class="col-11 ml-auto mt-1 mb-2">{{ description.label }}</b>
-						    </div>
-                            <div class="text-danger pl-2" *ngIf="draftDescriptionValidationOutputMap.get(description.id) === descriptionValidationOutputEnum.Invalid">
-                                <div class="pb-1">{{'DESCRIPTION-EDITOR.MESSAGES.MISSING-FIELDS' | translate }}</div>
-                                <ul *ngIf="draftDescriptionErrorMap.get(description.id)?.length">
-                                    @for(error of draftDescriptionErrorMap.get(description.id); track $index){
-                                        <li>{{error}}</li>
-                                    }
-                                </ul>
-                            </div>
+  <div mat-dialog-title class="d-flex align-items-center gap-half-rem">
+    {{ 'PLAN-FINALISE-DIALOG.TITLE' | translate }}
+    <button mat-icon-button (click)="close()" class="ml-auto" [attr.aria-label]="'ALT-TEXT.CLOSE-DIALOG'  | translate">
+      <mat-icon aria-hidden>close</mat-icon>
+    </button>
+  </div>
+  <div mat-dialog-content class="pt-2 pb-2">
+    <div class="d-flex flex-column">
+      <mat-accordion [multi]="true">
+        <mat-expansion-panel [expanded]="!isPlanValid">
+          <mat-expansion-panel-header>
+            <mat-panel-title class="d-flex justify-content-between gap-1-rem">
+              <div>{{ 'PLAN-FINALISE-DIALOG.PLAN' | translate }}</div>
+              <div class="plan-label" [matTooltip]="plan.label">
+                {{ plan.label }}
+              </div>
+            </mat-panel-title>
+          </mat-expansion-panel-header>
+          <div [innerHTML]="plan.description"></div>
+          @if(isPlanValid == false){
+            <div class="text-danger pt-3 pb-1">
+              {{ 'PLAN-FINALISE-DIALOG.VALIDATION.INVALID-PLAN' | translate }}
+            </div>
+            @if (planErrors?.length) {
+              <ul class="text-danger">
+                @for(error of planErrors; track error){
+                  <li>{{error | titlecase}}</li>
+                }
+              </ul>
+            }
+          }
+        </mat-expansion-panel>
+        <mat-expansion-panel [expanded]="true">
+          <mat-expansion-panel-header>
+            <mat-panel-title>
+              {{ 'PLAN-FINALISE-DIALOG.DESCRPIPTIONS' | translate }}
+            </mat-panel-title>
+            <mat-panel-description></mat-panel-description>
+          </mat-expansion-panel-header>
+          @if (descriptions?.length) {
+            <div>
+              @for(description of descriptions; track $index){
+                <div class="row pl-3 descriptions">
+                  @if (description?.status?.internalStatus == descriptionStatusEnum.Draft) {
+                    <mat-icon class="col-1 draft-bookmark">bookmark</mat-icon>
+                  }
+                  @if (description?.status?.internalStatus == descriptionStatusEnum.Finalized) {
+                    <mat-icon class="col-1 finalized-bookmark">bookmark</mat-icon>
+                  }
+                  @if (description.status?.internalStatus == descriptionStatusEnum.Draft) {
+                    <b class="col-11 ml-auto mt-1 mb-2">
+                      <span>{{ description?.status?.name}}
+                        @if(draftDescriptionValidationOutputMap.get(description.id) === descriptionValidationOutputEnum.Invalid){
+                          ({{'PLAN-FINALISE-DIALOG.INVALID' | translate}})
                         }
-					</div>
-					<div *ngIf="!plan.descriptions || plan.descriptions?.length == 0" class="emptyList">{{ 'PLAN-FINALISE-DIALOG.EMPTY' | translate }} </div>
-				</mat-expansion-panel>
-			</mat-accordion>
-
-			<div *ngIf="validDraftDescriptions.length > 0 && isPlanValid" class="pt-4">
-                <div class="text-danger pl-2 pb-2" *ngIf="getFinalizedDescriptions().length === 0 && descriptionsToBeFinalized.length === 0 && isPlanValid">
-                    {{'PLAN-FINALISE-DIALOG.VALIDATION.AT-LEAST-ONE-DESCRPIPTION-FINALISED' | translate}}
+                      :</span>
+                      {{ description.label }}
+                      @if (draftDescriptionValidationOutputMap.get(description.id) === descriptionValidationOutputEnum.Pending) {
+                        <i class="fa fa-spinner fa-spin" aria-hidden></i>
+                      }
+                    </b>
+                  }
+                  @if (description.status.internalStatus == descriptionStatusEnum.Finalized) {
+                    <b class="col-11 ml-auto mt-1 mb-2">{{ description.label }}</b>
+                  }
                 </div>
-				<h5 class="pl-2">{{'PLAN-FINALISE-DIALOG.FINALISE-TITLE' | translate}}</h5>
-				<mat-selection-list [(ngModel)]="descriptionsToBeFinalized">
-					<div class="styleBorder" *ngFor="let description of validDraftDescriptions">
-						<mat-list-option [value]='description.id' [disabled]="draftDescriptionValidationOutputMap.get(description.id) != descriptionValidationOutputEnum.Valid">
-							<span class="text-truncate" [matTooltip]="description.label">{{ description.label }}</span>
-						</mat-list-option>
-					</div>
-				</mat-selection-list>
-			</div>
-		</div>
-        <div *ngIf="getFinalizedDescriptions().length != 0">
-            <div class="row pt-2 pb-2 pl-3 pr-3">
-                {{ 'PLAN-FINALISE-DIALOG.IMPACT' | translate }}
+                @if (draftDescriptionValidationOutputMap.get(description.id) === descriptionValidationOutputEnum.Invalid) {
+                  <div class="text-danger pl-2">
+                    <div class="pb-1">{{'DESCRIPTION-EDITOR.MESSAGES.MISSING-FIELDS' | translate }}</div>
+                    @if (draftDescriptionErrorMap.get(description.id)?.length) {
+                      <ul>
+                        @for(error of draftDescriptionErrorMap.get(description.id); track $index){
+                          <li>{{error}}</li>
+                        }
+                      </ul>
+                    }
+                  </div>
+                }
+              }
             </div>
-            <div *ngIf="plan.accessType == planAccessTypeEnum.Public" class="row pl-3 pr-3">
-                {{ 'PLAN-FINALISE-DIALOG.PUBLIC-PLAN-MESSAGE' | translate }}
-            </div>
-            <div *ngIf="plan.accessType == planAccessTypeEnum.Restricted" class="row pl-3 pr-3">
-                {{ 'PLAN-FINALISE-DIALOG.RESTRICTED-PLAN-MESSAGE' | translate }}
-            </div>
-        </div>
-	</div>
+          }
+          @if (!plan.descriptions || plan.descriptions?.length == 0) {
+            <div class="emptyList">{{ 'PLAN-FINALISE-DIALOG.EMPTY' | translate }} </div>
+          }
+        </mat-expansion-panel>
+      </mat-accordion>
 
-	<div mat-dialog-actions class="d-flex justify-content-end gap-half-rem mb-1">
-		<div class="col-auto">
-			<button mat-stroked-button cdkFocusInitial (click)="close()" class="padded-shadow-btn">{{ 'PLAN-FINALISE-DIALOG.ACTIONS.CANCEL' | translate }}</button>
-		</div>
-		<div class="col-auto">
-			<button mat-flat-button color="primary" [disabled]="!isPlanValid || getFinalizedDescriptions().length === 0 && descriptionsToBeFinalized.length === 0" class="padded-shadow-btn" (click)="onSubmit()">{{ 'PLAN-FINALISE-DIALOG.ACTIONS.SUBMIT' | translate }}</button>
-		</div>
-	</div>
+      @if (validDraftDescriptions.length > 0 && isPlanValid) {
+        <div class="pt-4">
+          @if (getFinalizedDescriptions().length === 0 && descriptionsToBeFinalized.length === 0 && isPlanValid) {
+            <div class="text-danger pl-2 pb-2">
+              {{'PLAN-FINALISE-DIALOG.VALIDATION.AT-LEAST-ONE-DESCRPIPTION-FINALISED' | translate}}
+            </div>
+          }
+          <h5 class="pl-2">{{'PLAN-FINALISE-DIALOG.FINALISE-TITLE' | translate}}</h5>
+          <mat-selection-list [(ngModel)]="descriptionsToBeFinalized">
+            @for (description of validDraftDescriptions; track description) {
+              <div class="styleBorder">
+                <mat-list-option [value]='description.id' [disabled]="draftDescriptionValidationOutputMap.get(description.id) != descriptionValidationOutputEnum.Valid">
+                  <span class="text-truncate" [matTooltip]="description.label">{{ description.label }}</span>
+                </mat-list-option>
+              </div>
+            }
+          </mat-selection-list>
+        </div>
+      }
+    </div>
+    @if (getFinalizedDescriptions().length != 0) {
+      <div>
+        <div class="row pt-2 pb-2 pl-3 pr-3">
+          {{ 'PLAN-FINALISE-DIALOG.IMPACT' | translate }}
+        </div>
+        @if (plan.accessType == planAccessTypeEnum.Public) {
+          <div class="row pl-3 pr-3">
+            {{ 'PLAN-FINALISE-DIALOG.PUBLIC-PLAN-MESSAGE' | translate }}
+          </div>
+        }
+        @if (plan.accessType == planAccessTypeEnum.Restricted) {
+          <div class="row pl-3 pr-3">
+            {{ 'PLAN-FINALISE-DIALOG.RESTRICTED-PLAN-MESSAGE' | translate }}
+          </div>
+        }
+      </div>
+    }
+  </div>
+
+  <div mat-dialog-actions class="d-flex justify-content-end gap-half-rem mb-1">
+    <div class="col-auto">
+      <button mat-stroked-button cdkFocusInitial (click)="close()" class="padded-shadow-btn">{{ 'PLAN-FINALISE-DIALOG.ACTIONS.CANCEL' | translate }}</button>
+    </div>
+    <div class="col-auto">
+      <button mat-flat-button color="primary" [disabled]="!isPlanValid || getFinalizedDescriptions().length === 0 && descriptionsToBeFinalized.length === 0" class="padded-shadow-btn" (click)="onSubmit()">{{ 'PLAN-FINALISE-DIALOG.ACTIONS.SUBMIT' | translate }}</button>
+    </div>
+  </div>
 </div>

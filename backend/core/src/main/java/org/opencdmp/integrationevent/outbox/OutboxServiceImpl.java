@@ -1,16 +1,13 @@
 package org.opencdmp.integrationevent.outbox;
 
 
-import org.opencdmp.commons.JsonHandlingService;
 import gr.cite.tools.logging.LoggerService;
 import gr.cite.tools.logging.MapLogEntry;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
-import org.springframework.web.context.annotation.RequestScope;
 
 @Component
-@RequestScope
 public class OutboxServiceImpl implements OutboxService {
 	private static final LoggerService logger = new LoggerService(LoggerFactory.getLogger(OutboxServiceImpl.class));
 

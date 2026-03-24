@@ -13,6 +13,7 @@ import { BaseEditorResolver } from '@common/base/base-editor.resolver';
 import { Guid } from '@common/types/guid';
 import { map, takeUntil, tap } from 'rxjs/operators';
 import { nameof } from 'ts-simple-nameof';
+import { PlanBlueprintType } from '@app/core/model/plan-blueprint-type/plan-blueprint-type';
 
 @Injectable()
 export class PlanBlueprintEditorResolver extends BaseEditorResolver {
@@ -29,6 +30,10 @@ export class PlanBlueprintEditorResolver extends BaseEditorResolver {
 			nameof<PlanBlueprint>(x => x.description),
 			nameof<PlanBlueprint>(x => x.code),
 			nameof<PlanBlueprint>(x => x.status),
+
+			[nameof<PlanBlueprint>(x => x.type), nameof<PlanBlueprintType>(x => x.id)].join('.'),
+			[nameof<PlanBlueprint>(x => x.type), nameof<PlanBlueprintType>(x => x.name)].join('.'),
+			
 
 			[nameof<PlanBlueprint>(x => x.definition), nameof<PlanBlueprintDefinition>(x => x.pluginConfigurations), nameof<PluginConfiguration>(x => x.pluginCode)].join('.'),
 			[nameof<PlanBlueprint>(x => x.definition), nameof<PlanBlueprintDefinition>(x => x.pluginConfigurations), nameof<PluginConfiguration>(x => x.pluginType)].join('.'),

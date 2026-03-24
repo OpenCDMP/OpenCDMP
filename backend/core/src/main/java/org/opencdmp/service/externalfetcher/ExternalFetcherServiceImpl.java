@@ -1,7 +1,8 @@
 package org.opencdmp.service.externalfetcher;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.http.codec.json.JacksonJsonDecoder;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
 import com.jayway.jsonpath.DocumentContext;
 import com.jayway.jsonpath.JsonPath;
 import com.jayway.jsonpath.PathNotFoundException;
@@ -28,12 +29,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.*;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
-import org.springframework.http.codec.json.Jackson2JsonDecoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.ExchangeFilterFunction;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 import reactor.netty.http.client.HttpClient;
+import tools.jackson.databind.json.JsonMapper;
 
 import java.util.*;
 import java.util.regex.Matcher;
@@ -77,8 +78,8 @@ public class ExternalFetcherServiceImpl implements ExternalFetcherService {
                 exchangeFilterFunctions.add(logRequest());
                 exchangeFilterFunctions.add(logResponse());
             }).codecs(clientCodecConfigurer -> {
-                clientCodecConfigurer.defaultCodecs().jackson2JsonDecoder(new Jackson2JsonDecoder(new ObjectMapper(), MediaType.APPLICATION_JSON));
-                clientCodecConfigurer.defaultCodecs().maxInMemorySize(2 * ((int) Math.pow(1024, 3))); //GK: Why here???
+                clientCodecConfigurer.defaultCodecs().jacksonJsonDecoder(new JacksonJsonDecoder(JsonMapper.builder().build()));
+                clientCodecConfigurer.defaultCodecs().maxInMemorySize(Math.toIntExact((long) this.externalFetcherProperties.getMaxInMemoryMb() * 1024 * 1024));
             }
             ).clientConnector(new ReactorClientHttpConnector(httpClient)).build();
         }
@@ -197,7 +198,7 @@ public class ExternalFetcherServiceImpl implements ExternalFetcherService {
         String finalQuery = query;
         String likeValue = this.conventionService.isNullOrEmpty(externalReferenceCriteria.getLike()) ? "" : externalReferenceCriteria.getLike();
         List<Reference> referenceList = this.conventionService.isListNullOrEmpty(externalReferenceCriteria.getDependencyReferences()) ? new ArrayList<>() : externalReferenceCriteria.getDependencyReferences().stream()
-                .filter(x-> x.getDefinition() != null && x.getType() != null && !this.conventionService.isListNullOrEmpty(x.getDefinition().getFields())).toList();
+                .filter(x-> x.getType() != null).toList();
 
         if (this.conventionService.isListNullOrEmpty(queryConfigs)) return query;
 
@@ -219,8 +220,10 @@ public class ExternalFetcherServiceImpl implements ExternalFetcherService {
                             .filter(x-> Objects.equals(x.getType().getId(), caseConfig.getReferenceTypeId()) && Objects.equals(x.getSource() ,caseConfig.getReferenceTypeSourceKey())).findFirst().orElse(null);
                     if (dependencyReference != null){
 
-                        for (Field field : dependencyReference.getDefinition().getFields()){
-                            filterValue = filterValue.replaceAll("\\{" + Matcher.quoteReplacement(field.getCode()) + "}", Matcher.quoteReplacement(field.getValue()));
+                        if (dependencyReference.getDefinition() != null && dependencyReference.getDefinition().getFields() != null) {
+                            for (Field field : dependencyReference.getDefinition().getFields()){
+                                filterValue = filterValue.replaceAll("\\{" + Matcher.quoteReplacement(field.getCode()) + "}", Matcher.quoteReplacement(field.getValue()));
+                            }
                         }
                         filterValue = filterValue.replaceAll("\\{" + Reference._reference + "}", Matcher.quoteReplacement(dependencyReference.getReference()));
                         filterValue = filterValue.replaceAll("\\{" + Reference._label + "}", Matcher.quoteReplacement(dependencyReference.getLabel()));

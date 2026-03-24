@@ -21,7 +21,7 @@ public class DepositClientImpl implements DepositClient {
     }
 
     @Override
-    public String deposit(PlanDepositModel planDepositModel) throws Exception {
+    public String deposit(PlanDepositModel planDepositModel) {
         logger.debug(new MapLogEntry("deposit").And("planDepositModel", planDepositModel));
         return this.depositClient.post().uri("", UriBuilder::build).bodyValue(planDepositModel).exchangeToMono(mono ->  mono.statusCode().isError() ? mono.createException().flatMap(Mono::error) : mono.bodyToMono(String.class)).block();
     }

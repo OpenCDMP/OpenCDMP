@@ -7,31 +7,31 @@
 }
 
 #planBlueprintsPreviewCarousel .carousel-indicators .active {
-	background-color:  var(--sys-primary);
+	background-color:  var(--mat-sys-primary);
 }
 
 .blueprintLabel{
-	font-size: var(--sys-headline-medium-size);
+	font-size: var(--mat-sys-headline-medium-size);
 	font-weight: bolder;
 }
 
 .field-label{
-	font-size: var(--sys-body-medium-size);
+	font-size: var(--mat-sys-body-medium-size);
 }
 .sectionDescription{
-	font-size: var(--sys-label-medium-size);
+	font-size: var(--mat-sys-label-medium-size);
 }
 .sectionDescriptionLabel{
-	font-size: var(--sys-label-medium-size);
+	font-size: var(--mat-sys-label-medium-size);
 
 }
 
 .sectionTemplatesHeader{
-	font-size: var(--sys-label-large-size);
+	font-size: var(--mat-sys-label-large-size);
 	font-weight:bold;
 }
 
 .blueprint-preview {
-    scrollbar-color: var(--sys-primary) var(--sys-surface);
+    scrollbar-color: var(--mat-sys-primary) var(--mat-sys-surface);
     scrollbar-width: thin;
 }

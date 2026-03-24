@@ -1,64 +1,151 @@
-<form *ngIf="formGroup" [formGroup]="formGroup">
-	<div mat-dialog-title class="d-flex align-items-center">
-		{{'REFERENCE-FIELD.REFERENCE-DIALOG-EDITOR.TITLE' | translate}} {{label}}
-		<button class="ml-auto" mat-icon-button (click)="close()" [attr.aria-label]="'ALT-TEXT.CLOSE-DIALOG'  | translate"><mat-icon aria-hidden>close</mat-icon></button>
-	</div>
-	<mat-dialog-content class="pt-4">
-		<div class="row">
-			<div class="col-12" *ngIf="systemFields.length > 0">
-				<h5>{{'REFERENCE-FIELD.REFERENCE-DIALOG-EDITOR.SYSTEM-INFORMATION' | translate}}</h5>
-			</div>
-			<div class="col-12 col-md-6">
-				<mat-form-field class="w-100 form-input" *ngIf="formGroup.get('reference_id')">
-					<mat-label>{{'REFERENCE-FIELD.REFERENCE-DIALOG-EDITOR.REFERENCE-ID' | translate}}</mat-label>
-					<input matInput type="text" [name]="'reference_id'" [formControl]="formGroup.get('reference_id')" [required]="isRequired(formGroup.get('reference_id'))">
-					<i matSuffix class="fa fa-spinner fa-spin" *ngIf="'reference_id' == systemFields[0] && formGroup.get('reference_id').pending && !referenceExists" aria-hidden></i>
-					<mat-icon *ngIf="'reference_id' == systemFields[0] && !formGroup.get('reference_id').pending && formGroup.get('reference_id').dirty && formGroup.get('reference_id').valid && !referenceExists" class="text-success" matSuffix aria-hidden>check</mat-icon>
-					<mat-icon *ngIf="'reference_id' == systemFields[0] && !formGroup.get('reference_id').pending && formGroup.get('reference_id').dirty && (formGroup.get('reference_id').invalid || referenceExists)" class="text-danger" matSuffix aria-hidden>clear</mat-icon>
-					<small *ngIf="'reference_id' == systemFields[0] && referenceExists" class="text-danger">{{'REFERENCE-FIELD.REFERENCE-DIALOG-EDITOR.IDENTIFIER-EXISTS' | translate}}</small>
-					<mat-error *ngIf="formGroup.get('reference_id').hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
-				</mat-form-field>
-			</div>
-			<div class="col-12 col-md-6">
-				<mat-form-field class="w-100 form-input" *ngIf="formGroup.get('label')">
-					<mat-label>{{'REFERENCE-FIELD.REFERENCE-DIALOG-EDITOR.LABEL' | translate}}</mat-label>
-					<input matInput type="text" [name]="'label'" [formControl]="formGroup.get('label')" [required]="isRequired(formGroup.get('label'))">
-					<i matSuffix class="fa fa-spinner fa-spin" *ngIf="'label' == systemFields[0] && formGroup.get('label').pending && !referenceExists" aria-hidden></i>
-					<mat-icon *ngIf="'label' == systemFields[0] && !formGroup.get('label').pending && formGroup.get('label').dirty && formGroup.get('label').valid && !referenceExists" class="text-success" matSuffix aria-hidden>check</mat-icon>
-					<mat-icon *ngIf="'label' == systemFields[0] && !formGroup.get('label').pending && formGroup.get('label').dirty && (formGroup.get('label').invalid || referenceExists)" class="text-danger" matSuffix aria-hidden>clear</mat-icon>
-					<small *ngIf="'label' == systemFields[0] && referenceExists" class="text-danger">{{'REFERENCE-FIELD.REFERENCE-DIALOG-EDITOR.IDENTIFIER-EXISTS' | translate}}</small>
-					<mat-error *ngIf="formGroup.get('label').hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
-				</mat-form-field>
-			</div>
-			<div class="col-12">
-				<mat-form-field class="w-100 form-input" *ngIf="formGroup.get('description')">
-					<mat-label>{{'REFERENCE-FIELD.REFERENCE-DIALOG-EDITOR.DESCRIPTION' | translate}}</mat-label>
-					<textarea matInput type="text" [name]="'description'" [formControl]="formGroup.get('description')" [required]="isRequired(formGroup.get('description'))"></textarea>
-					<i matSuffix class="fa fa-spinner fa-spin" *ngIf="'description' == systemFields[0] && formGroup.get('description').pending && !referenceExists" aria-hidden></i>
-					<mat-icon *ngIf="'description' == systemFields[0] && !formGroup.get('description').pending && formGroup.get('description').dirty && formGroup.get('description').valid && !referenceExists" class="text-success" matSuffix aria-hidden>check</mat-icon>
-					<mat-icon *ngIf="'description' == systemFields[0] && !formGroup.get('description').pending && formGroup.get('description').dirty && (formGroup.get('description').invalid || referenceExists)" class="text-danger" matSuffix aria-hidden>clear</mat-icon>
-					<small *ngIf="'description' == systemFields[0] && referenceExists" class="text-danger">{{'REFERENCE-FIELD.REFERENCE-DIALOG-EDITOR.IDENTIFIER-EXISTS' | translate}}</small>
-					<mat-error *ngIf="formGroup.get('description').hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
-				</mat-form-field>
-			</div>
-		</div>
-		<ng-container *ngIf="hasReferenceTypeFields">
-			<div class="row">
-				<div class="col-12" *ngIf="systemFields.length > 0">
-					<h5>{{label}} {{'REFERENCE-FIELD.REFERENCE-DIALOG-EDITOR.TYPE-INFORMATION' | translate}}</h5>
-				</div>
-				<div *ngFor="let field of referenceType.definition.fields;" class="col-12 col-md-6">
-					<mat-form-field class="w-100">
-						<mat-label>{{field.label}}</mat-label>
-						<input matInput type="text" [name]="field.code" [formControl]="formGroup.get(field.code)" [required]="isRequired(formGroup.get(field.code))">
-						<mat-error *ngIf="formGroup.get(field.code).hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
-					</mat-form-field>
-				</div>
-			</div>
-		</ng-container>
-	</mat-dialog-content>
-	<mat-dialog-actions>
-		<div class="ml-auto col-auto"><button mat-stroked-button class="padded-shadow-btn" mat-dialog-close>{{'COMMONS.ACTIONS.CANCEL' | translate}}</button></div>
-		<div class="col-auto"><button [disabled]="!isFormValid()" (click)="send()" mat-flat-button color="primary" class="padded-shadow-btn">{{'COMMONS.ACTIONS.SAVE' | translate}}</button></div>
-	</mat-dialog-actions>
-</form>
+@if (formGroup) {
+  <form [formGroup]="formGroup">
+    <div mat-dialog-title class="d-flex align-items-center">
+      {{'REFERENCE-FIELD.REFERENCE-DIALOG-EDITOR.TITLE' | translate: {ReferenceTypeName: label} }}
+      <button class="ml-auto" mat-icon-button (click)="close()" [attr.aria-label]="'ALT-TEXT.CLOSE-DIALOG'  | translate"><mat-icon aria-hidden>close</mat-icon></button>
+    </div>
+    <mat-dialog-content class="pt-4">
+      <!-- Loading State -->
+      @if (!referenceType) {
+        <div class="text-center py-5">
+          <mat-spinner diameter="48" class="mx-auto mb-3"></mat-spinner>
+          <p class="text-muted">{{'REFERENCE-FIELD.REFERENCE-DIALOG-EDITOR.LOADING' | translate}}</p>
+        </div>
+      }
+      <!-- Form Content -->
+      @if (referenceType) {
+        <!-- System Information Section -->
+        <div class="row">
+          @if (systemFields.length > 0) {
+            <div class="col-12">
+              <h5 class="section-title">
+                <mat-icon class="section-icon">info</mat-icon>
+                {{'REFERENCE-FIELD.REFERENCE-DIALOG-EDITOR.SYSTEM-INFORMATION' | translate}}
+              </h5>
+            </div>
+          }
+          <!-- Reference ID Field (Half Width) -->
+          <div class="col-12 col-md-6">
+            @if (formGroup.get('reference_id')) {
+              <mat-form-field class="w-100 form-input">
+                <mat-label>{{'REFERENCE-FIELD.REFERENCE-DIALOG-EDITOR.REFERENCE-ID' | translate}}</mat-label>
+                <input matInput type="text" [name]="'reference_id'" [formControl]="formGroup.get('reference_id')" [required]="isRequired(formGroup.get('reference_id'))">
+                <mat-hint>{{'REFERENCE-FIELD.REFERENCE-DIALOG-EDITOR.REFERENCE-ID-HINT' | translate}}</mat-hint>
+                @if ('reference_id' == systemFields[0] && formGroup.get('reference_id').pending && !referenceExist?.exist) {
+                  <i matSuffix class="fa fa-spinner fa-spin" aria-hidden></i>
+                }
+                @if ('reference_id' == systemFields[0] && !formGroup.get('reference_id').pending && formGroup.get('reference_id').dirty && formGroup.get('reference_id').valid && !referenceExist?.exist) {
+                  <mat-icon class="text-success" matSuffix aria-hidden>check</mat-icon>
+                }
+                @if ('reference_id' == systemFields[0] && !formGroup.get('reference_id').pending && formGroup.get('reference_id').dirty && formGroup.get('reference_id').valid && referenceExist?.exist) {
+                  <mat-icon class="text-info" [matTooltip]="'REFERENCE-FIELD.REFERENCE-DIALOG-EDITOR.IDENTIFIER-EXISTS-INFO' | translate: {ReferenceTypeName: label}" [attr.aria-label]="'REFERENCE-FIELD.REFERENCE-DIALOG-EDITOR.IDENTIFIER-EXISTS-INFO' | translate: {ReferenceTypeName: label}" matSuffix aria-hidden>info</mat-icon>
+                }
+                @if (formGroup.get('reference_id').hasError('required')) {
+                  <mat-error>{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
+                }
+              </mat-form-field>
+            }
+          </div>
+          <!-- Label Field -->
+          <div class="col-12 col-md-6">
+            @if (formGroup.get('label')) {
+              <mat-form-field class="w-100 form-input">
+                <mat-label>{{'REFERENCE-FIELD.REFERENCE-DIALOG-EDITOR.LABEL' | translate}}</mat-label>
+                <input matInput type="text" [name]="'label'" [formControl]="formGroup.get('label')" [required]="isRequired(formGroup.get('label'))">
+                <mat-hint>{{'REFERENCE-FIELD.REFERENCE-DIALOG-EDITOR.LABEL-HINT' | translate}}</mat-hint>
+                @if (formGroup.get('label').hasError('required')) {
+                  <mat-error>{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
+                }
+              </mat-form-field>
+            }
+          </div>
+          <!-- Validation Feedback -->
+          @if (formGroup.get('reference_id').dirty && 'reference_id' == systemFields[0]) {
+            <div class="col-12 mt-3">
+              @if (!formGroup.get('reference_id').pending && !referenceExist?.exist && formGroup.get('reference_id').valid) {
+                <div class="alert alert-success d-flex align-items-center">
+                  <mat-icon class="mr-2">check_circle</mat-icon>
+                  <span>{{'REFERENCE-FIELD.REFERENCE-DIALOG-EDITOR.IDENTIFIER-AVAILABLE' | translate}}</span>
+                </div>
+              }
+              @if (!formGroup.get('reference_id').pending && referenceExist?.exist) {
+                <div class="alert alert-info-exists">
+                  <div class="alert-header">
+                    <mat-icon class="alert-icon">info</mat-icon>
+                    <div class="alert-content">
+                      <strong>{{'REFERENCE-FIELD.REFERENCE-DIALOG-EDITOR.IDENTIFIER-EXISTS' | translate}}</strong>
+                      <p class="alert-message">{{'REFERENCE-FIELD.REFERENCE-DIALOG-EDITOR.IDENTIFIER-EXISTS-MESSAGE' | translate}}</p>
+                    </div>
+                  </div>
+                  <div class="alert-actions">
+                    <button mat-flat-button color="primary" class="primary-action-btn" (click)="selectExistingReference()">
+                      <mat-icon>check_circle</mat-icon>
+                      {{'REFERENCE-FIELD.REFERENCE-DIALOG-EDITOR.SELECT-EXISTING-REFERENCE' | translate}}
+                    </button>
+                    <button mat-stroked-button class="secondary-action-btn" (click)="viewExistingReference()">
+                      <mat-icon>visibility</mat-icon>
+                      {{'REFERENCE-FIELD.REFERENCE-DIALOG-EDITOR.VIEW-DETAILS' | translate}}
+                    </button>
+                  </div>
+                </div>
+              }
+            </div>
+          }
+          <!-- Description Field -->
+          <div class="col-12 mt-3">
+            @if (formGroup.get('description')) {
+              <mat-form-field class="w-100 form-input">
+                <mat-label class="d-flex align-items-center">{{'REFERENCE-FIELD.REFERENCE-DIALOG-EDITOR.DESCRIPTION' | translate}}</mat-label>
+                <textarea matInput [name]="'description'" [formControl]="formGroup.get('description')" [required]="isRequired(formGroup.get('description'))" rows="3"></textarea>
+                <mat-hint>{{'REFERENCE-FIELD.REFERENCE-DIALOG-EDITOR.DESCRIPTION-HINT' | translate}}</mat-hint>
+                @if (formGroup.get('description').hasError('required')) {
+                  <mat-error>{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
+                }
+              </mat-form-field>
+            }
+          </div>
+        </div>
+        <!-- Divider between sections -->
+        @if (hasReferenceTypeFields) {
+          <mat-divider class="my-4"></mat-divider>
+        }
+        <!-- Type-Specific Information Section -->
+        @if (hasReferenceTypeFields) {
+          <div class="row">
+            <div class="col-12">
+              <h5 class="section-title">
+                <mat-icon class="section-icon">extension</mat-icon>
+                {{label}} {{'REFERENCE-FIELD.REFERENCE-DIALOG-EDITOR.TYPE-INFORMATION' | translate}}
+              </h5>
+            </div>
+            @for (field of referenceType.definition.fields; track field) {
+              <div class="col-12 col-md-6">
+                <mat-form-field class="w-100">
+                  <mat-label>{{field.label}}</mat-label>
+                  <input matInput type="text" [name]="field.code" [formControl]="formGroup.get(field.code)" [required]="isRequired(formGroup.get(field.code))">
+                  @if (field.description) {
+                    <mat-hint>{{field.description}}</mat-hint>
+                  }
+                  @if (formGroup.get(field.code).hasError('required')) {
+                    <mat-error>{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
+                  }
+                </mat-form-field>
+              </div>
+            }
+          </div>
+        }
+      }
+    </mat-dialog-content>
+    <mat-dialog-actions class="dialog-actions">
+      <div class="flex-fill"></div>
+      <button mat-stroked-button class="action-btn" mat-dialog-close>
+        <mat-icon>close</mat-icon>
+        {{'COMMONS.ACTIONS.CANCEL' | translate}}
+      </button>
+      <button [disabled]="!isFormValid()" (click)="send()" mat-flat-button color="primary" class="action-btn ml-2">
+        <mat-icon>save</mat-icon>
+        {{'COMMONS.ACTIONS.SAVE' | translate}}
+      </button>
+    </mat-dialog-actions>
+  </form>
+}

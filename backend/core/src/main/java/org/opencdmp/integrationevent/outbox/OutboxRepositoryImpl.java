@@ -14,10 +14,11 @@ import org.opencdmp.commons.JsonHandlingService;
 import org.opencdmp.commons.enums.IsActive;
 import org.opencdmp.commons.fake.FakeRequestScope;
 import org.opencdmp.data.QueueOutboxEntity;
-import org.opencdmp.data.TenantEntityManager;
+import org.opencdmp.data.TenantEntityManagerFactory;
 import org.opencdmp.query.QueueOutboxQuery;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.amqp.core.ReturnedMessage;
 import org.springframework.context.ApplicationContext;
 
 import javax.management.InvalidApplicationException;
@@ -53,14 +54,14 @@ public class OutboxRepositoryImpl implements OutboxRepository {
         EntityTransaction transaction = null;
         CandidateInfo candidate = null;
         try (FakeRequestScope ignored = new FakeRequestScope()) {
-            TenantEntityManager tenantEntityManager = null;
+            TenantEntityManagerFactory tenantEntityManagerFactory = null;
             EntityManager entityManager = null;
             try{
-                tenantEntityManager = this.applicationContext.getBean(TenantEntityManager.class);
+                tenantEntityManagerFactory = this.applicationContext.getBean(TenantEntityManagerFactory.class);
                 entityManager = this.entityManagerFactory.createEntityManager();
                 
-                tenantEntityManager.setEntityManager(entityManager);
-                tenantEntityManager.disableTenantFilters();
+                tenantEntityManagerFactory.getInstance().setEntityManager(entityManager);
+                tenantEntityManagerFactory.getInstance().disableTenantFilters();
 
                 transaction = entityManager.getTransaction();
                 transaction.begin();
@@ -104,7 +105,7 @@ public class OutboxRepositoryImpl implements OutboxRepository {
                 candidate = null;
             } finally {
                 if (entityManager != null) entityManager.close();
-                if (tenantEntityManager != null) tenantEntityManager.reloadTenantFilters();
+                if (tenantEntityManagerFactory != null) tenantEntityManagerFactory.getInstance().reloadTenantFilters();
             }
         } catch (Exception ex) {
             logger.error("Problem getting list of queue outbox. Skipping: {}", ex.getMessage(), ex);
@@ -119,13 +120,13 @@ public class OutboxRepositoryImpl implements OutboxRepository {
         boolean success = false;
 
         try (FakeRequestScope ignored = new FakeRequestScope()) {
-            TenantEntityManager tenantEntityManager = null;
+            TenantEntityManagerFactory tenantEntityManagerFactory = null;
             EntityManager entityManager = null;
             try{
-                tenantEntityManager = this.applicationContext.getBean(TenantEntityManager.class);
+                tenantEntityManagerFactory = this.applicationContext.getBean(TenantEntityManagerFactory.class);
                 entityManager = this.entityManagerFactory.createEntityManager();
-                tenantEntityManager.setEntityManager(entityManager);
-                tenantEntityManager.disableTenantFilters();
+                tenantEntityManagerFactory.getInstance().setEntityManager(entityManager);
+                tenantEntityManagerFactory.getInstance().disableTenantFilters();
 
                 transaction = entityManager.getTransaction();
 
@@ -154,7 +155,7 @@ public class OutboxRepositoryImpl implements OutboxRepository {
                 success = false;
             } finally {
                 if (entityManager != null) entityManager.close();
-                if (tenantEntityManager != null) tenantEntityManager.reloadTenantFilters();
+                if (tenantEntityManagerFactory != null) tenantEntityManagerFactory.getInstance().reloadTenantFilters();
             }
         } catch (Exception ex) {
             logger.error("Problem executing purge. rolling back any db changes and marking error. Continuing...", ex);
@@ -168,13 +169,13 @@ public class OutboxRepositoryImpl implements OutboxRepository {
         boolean success = false;
 
         try (FakeRequestScope ignored = new FakeRequestScope()) {
-            TenantEntityManager tenantEntityManager = null;
+            TenantEntityManagerFactory tenantEntityManagerFactory = null;
             EntityManager entityManager = null;
             try{
-                tenantEntityManager = this.applicationContext.getBean(TenantEntityManager.class);
+                tenantEntityManagerFactory = this.applicationContext.getBean(TenantEntityManagerFactory.class);
                 entityManager = this.entityManagerFactory.createEntityManager();
-                tenantEntityManager.setEntityManager(entityManager);
-                tenantEntityManager.disableTenantFilters();
+                tenantEntityManagerFactory.getInstance().setEntityManager(entityManager);
+                tenantEntityManagerFactory.getInstance().disableTenantFilters();
 
                 transaction = entityManager.getTransaction();
 
@@ -204,7 +205,7 @@ public class OutboxRepositoryImpl implements OutboxRepository {
                 success = false;
             } finally {
                 if (entityManager != null) entityManager.close();
-                if (tenantEntityManager != null) tenantEntityManager.reloadTenantFilters();
+                if (tenantEntityManagerFactory != null) tenantEntityManagerFactory.getInstance().reloadTenantFilters();
             }
         } catch (Exception ex) {
             logger.error("Problem executing purge. rolling back any db changes and marking error. Continuing...", ex);
@@ -218,13 +219,13 @@ public class OutboxRepositoryImpl implements OutboxRepository {
         Boolean success = false;
 
         try (FakeRequestScope ignored = new FakeRequestScope()) {
-            TenantEntityManager tenantEntityManager = null;
+            TenantEntityManagerFactory tenantEntityManagerFactory = null;
             EntityManager entityManager = null;
             try {
-                tenantEntityManager = this.applicationContext.getBean(TenantEntityManager.class);
+                tenantEntityManagerFactory = this.applicationContext.getBean(TenantEntityManagerFactory.class);
                 entityManager = this.entityManagerFactory.createEntityManager();
-                tenantEntityManager.setEntityManager(entityManager);
-                tenantEntityManager.disableTenantFilters();
+                tenantEntityManagerFactory.getInstance().setEntityManager(entityManager);
+                tenantEntityManagerFactory.getInstance().disableTenantFilters();
 
                 transaction = entityManager.getTransaction();
                 transaction.begin();
@@ -263,7 +264,7 @@ public class OutboxRepositoryImpl implements OutboxRepository {
                 success = false;
             } finally {
                 if (entityManager != null) entityManager.close();
-                if (tenantEntityManager != null) tenantEntityManager.reloadTenantFilters();
+                if (tenantEntityManagerFactory != null) tenantEntityManagerFactory.getInstance().reloadTenantFilters();
             }
         } catch (Exception ex) {
             logger.error("Problem executing purge. rolling back any db changes and marking error. Continuing...", ex);
@@ -274,13 +275,13 @@ public class OutboxRepositoryImpl implements OutboxRepository {
     @Override
     public void handleConfirm(List<UUID> confirmedMessages) {
         try (FakeRequestScope ignored = new FakeRequestScope()) {
-            TenantEntityManager tenantEntityManager = null;
+            TenantEntityManagerFactory tenantEntityManagerFactory = null;
             EntityManager entityManager = null;
             try  {
-                tenantEntityManager = this.applicationContext.getBean(TenantEntityManager.class);
+                tenantEntityManagerFactory = this.applicationContext.getBean(TenantEntityManagerFactory.class);
                 entityManager = this.entityManagerFactory.createEntityManager();
-                tenantEntityManager.setEntityManager(entityManager);
-                tenantEntityManager.disableTenantFilters();
+                tenantEntityManagerFactory.getInstance().setEntityManager(entityManager);
+                tenantEntityManagerFactory.getInstance().disableTenantFilters();
 
                 this.handleConfirmWithRetries(entityManager, confirmedMessages);
                 
@@ -288,7 +289,7 @@ public class OutboxRepositoryImpl implements OutboxRepository {
                 logger.error("Problem executing purge. rolling back any db changes and marking error. Continuing...", ex);
             } finally {
                 if (entityManager != null) entityManager.close();
-                if (tenantEntityManager != null) tenantEntityManager.reloadTenantFilters();
+                if (tenantEntityManagerFactory != null) tenantEntityManagerFactory.getInstance().reloadTenantFilters();
             }
         } catch (Exception ex) {
             logger.error("Problem executing purge. rolling back any db changes and marking error. Continuing...", ex);
@@ -335,26 +336,37 @@ public class OutboxRepositoryImpl implements OutboxRepository {
     @Override
     public void handleNack(List<UUID> nackedMessages) {
         try (FakeRequestScope ignored = new FakeRequestScope()) {
-            TenantEntityManager tenantEntityManager = null;
+            TenantEntityManagerFactory tenantEntityManagerFactory = null;
             EntityManager entityManager = null;
             try  {
-                tenantEntityManager = this.applicationContext.getBean(TenantEntityManager.class);
+                tenantEntityManagerFactory = this.applicationContext.getBean(TenantEntityManagerFactory.class);
                 entityManager = this.entityManagerFactory.createEntityManager();
-                tenantEntityManager.setEntityManager(entityManager);
-                tenantEntityManager.disableTenantFilters();
+                tenantEntityManagerFactory.getInstance().setEntityManager(entityManager);
+                tenantEntityManagerFactory.getInstance().disableTenantFilters();
 
                 this.handleNackWithRetries(entityManager, nackedMessages);
             } catch (Exception ex) {
                 logger.error("Problem executing purge. rolling back any db changes and marking error. Continuing...", ex);
             } finally {
                 if (entityManager != null) entityManager.close();
-                if (tenantEntityManager != null) tenantEntityManager.reloadTenantFilters();
+                if (tenantEntityManagerFactory != null) tenantEntityManagerFactory.getInstance().reloadTenantFilters();
             }
         } catch (Exception ex) {
             logger.error("Problem executing purge. rolling back any db changes and marking error. Continuing...", ex);
         }
     }
-    
+
+    @Override
+    public void handleReturns(ReturnedMessage message) {
+        logger.warn("Message returned - could not be routed! Reply Code: {}, Reply Text: {}, Exchange: {}, Routing Key: {}, Message: {}",
+                message.getReplyCode(),
+                message.getReplyText(),
+                message.getExchange(),
+                message.getRoutingKey(),
+                new String(message.getMessage().getBody())
+        );
+    }
+
     private void handleNackWithRetries(EntityManager entityManager, List<UUID> nackedMessages) throws InterruptedException {
         EntityTransaction transaction = null;
         for (int i = 0; i < this.outboxProperties.getHandleNackRetries() + 1; i++) {
@@ -396,26 +408,26 @@ public class OutboxRepositoryImpl implements OutboxRepository {
     public QueueOutbox create(IntegrationEvent item) {
         QueueOutboxEntity queueMessage = null;
         boolean success;
-            TenantEntityManager tenantEntityManager = null;
+            TenantEntityManagerFactory tenantEntityManagerFactory = null;
             boolean isTenantFiltersDisabled = false;
             try  {
-                tenantEntityManager = this.applicationContext.getBean(TenantEntityManager.class);
-                isTenantFiltersDisabled = tenantEntityManager.isTenantFiltersDisabled();
-                if (!isTenantFiltersDisabled) tenantEntityManager.disableTenantFilters();
+                tenantEntityManagerFactory = this.applicationContext.getBean(TenantEntityManagerFactory.class);
+                isTenantFiltersDisabled = tenantEntityManagerFactory.getInstance().isTenantFiltersDisabled();
+                if (!isTenantFiltersDisabled) tenantEntityManagerFactory.getInstance().disableTenantFilters();
 
                 queueMessage = this.mapEvent((OutboxIntegrationEvent) item);
 
-                tenantEntityManager.persist(queueMessage);
-                tenantEntityManager.flush();
+                tenantEntityManagerFactory.getInstance().persist(queueMessage);
+                tenantEntityManagerFactory.getInstance().flush();
 
                 success = true;
             } catch (Exception ex) {
                 success = false;
                 logger.error("Problem executing purge. rolling back any db changes and marking error. Continuing...", ex);
             } finally {
-                if (tenantEntityManager != null && tenantEntityManager.isTenantFiltersDisabled() && !isTenantFiltersDisabled) {
+                if (tenantEntityManagerFactory != null && tenantEntityManagerFactory.getInstance().isTenantFiltersDisabled() && !isTenantFiltersDisabled) {
                     try {
-                        tenantEntityManager.reloadTenantFilters();
+                        tenantEntityManagerFactory.getInstance().reloadTenantFilters();
                     } catch (InvalidApplicationException e) {
                         throw new RuntimeException(e);
                     }
@@ -501,6 +513,14 @@ public class OutboxRepositoryImpl implements OutboxRepository {
             }
             case OutboxIntegrationEvent.GENERATE_FILE: {
                 routingKey = this.outboxProperties.getGenerateFileTopic();
+                break;
+            }
+            case OutboxIntegrationEvent.PLAN_TOUCH: {
+                routingKey = this.outboxProperties.getPlanTouchTopic();
+                break;
+            }
+            case OutboxIntegrationEvent.PLAN_REMOVE: {
+                routingKey = this.outboxProperties.getPlanRemovalTopic();
                 break;
             }
             default: {

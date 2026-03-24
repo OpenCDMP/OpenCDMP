@@ -1,5 +1,5 @@
 .title {
-    font-size:  var(--sys-title-large-size);
+    font-size:  var(--mat-sys-title-large-size);
 }
 .drag-icon:hover{
     cursor: pointer;
@@ -10,7 +10,7 @@
 .draggable-item:focus{
     border-radius: 8px;
     &.reorder-mode {
-        border: 1px solid var(--sys-primary)
+        border: 1px solid var(--mat-sys-primary)
     }
 }
 .notification-type-list:focus{

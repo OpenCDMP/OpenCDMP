@@ -5,16 +5,23 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
-@EnableConfigurationProperties(SwaggerProperties.class)
+@EnableConfigurationProperties({SwaggerConfigProperties.class, SwaggerSpringDocProperties.class})
 public class SwaggerConfiguration {
-	private final SwaggerProperties properties;
+
+	private final SwaggerSpringDocProperties springDocProperties;
+	private final SwaggerConfigProperties configProperties;
 
 	@Autowired
-	public SwaggerConfiguration(SwaggerProperties properties) {
-		this.properties = properties;
+	public SwaggerConfiguration(SwaggerSpringDocProperties springDocProperties, SwaggerConfigProperties configProperties) {
+        this.springDocProperties = springDocProperties;
+        this.configProperties = configProperties;
 	}
 
-	public SwaggerProperties getProperties() {
-		return properties;
+	public SwaggerConfigProperties getConfigProperties() {
+		return configProperties;
+	}
+
+	public SwaggerSpringDocProperties getSpringDocProperties() {
+		return springDocProperties;
 	}
 }

@@ -1,14 +1,16 @@
 package org.opencdmp.model.deleter;
 
 import org.opencdmp.commons.enums.IsActive;
+import org.opencdmp.commons.enums.kpi.KpiDirectionType;
 import org.opencdmp.data.DescriptionReferenceEntity;
-import org.opencdmp.data.TenantEntityManager;
+import org.opencdmp.data.TenantEntityManagerFactory;
 import org.opencdmp.query.DescriptionReferenceQuery;
 import gr.cite.tools.data.deleter.Deleter;
 import gr.cite.tools.data.deleter.DeleterFactory;
 import gr.cite.tools.data.query.QueryFactory;
 import gr.cite.tools.logging.LoggerService;
 import gr.cite.tools.logging.MapLogEntry;
+import org.opencdmp.service.kpi.KpiService;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
@@ -27,21 +29,24 @@ public class DescriptionReferenceDeleter implements Deleter {
 
     private static final LoggerService logger = new LoggerService(LoggerFactory.getLogger(DescriptionReferenceDeleter.class));
 
-    private final TenantEntityManager entityManager;
+    private final TenantEntityManagerFactory tenantEntityManagerFactory;
 
     protected final QueryFactory queryFactory;
 
     protected final DeleterFactory deleterFactory;
 
+    private final KpiService kpiService;
+
     @Autowired
     public DescriptionReferenceDeleter(
-            TenantEntityManager entityManager,
+            TenantEntityManagerFactory entityManager,
             QueryFactory queryFactory,
-            DeleterFactory deleterFactory
+            DeleterFactory deleterFactory, KpiService kpiService
     ) {
-        this.entityManager = entityManager;
+        this.tenantEntityManagerFactory = entityManager;
         this.queryFactory = queryFactory;
         this.deleterFactory = deleterFactory;
+        this.kpiService = kpiService;
     }
 
     public void deleteAndSaveByIds(List<UUID> ids) throws InvalidApplicationException {
@@ -55,7 +60,7 @@ public class DescriptionReferenceDeleter implements Deleter {
         logger.debug("will delete {} items", Optional.ofNullable(data).map(List::size).orElse(0));
         this.delete(data);
         logger.trace("saving changes");
-        this.entityManager.flush();
+        this.tenantEntityManagerFactory.getInstance().flush();
         logger.trace("changes saved");
     }
 
@@ -71,8 +76,9 @@ public class DescriptionReferenceDeleter implements Deleter {
             item.setIsActive(IsActive.Inactive);
             item.setUpdatedAt(now);
             logger.trace("updating item");
-            this.entityManager.merge(item);
+            this.tenantEntityManagerFactory.getInstance().merge(item);
             logger.trace("updated item");
+            this.kpiService.sendIndicatorPointReferenceEntry(KpiDirectionType.Decrease, item.getReferenceId());
         }
     }
 

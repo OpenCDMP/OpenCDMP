@@ -83,7 +83,6 @@ export class DescriptionFilterComponent extends BaseCriteriaComponent<Descriptio
 		this.formGroup = new FormGroup<DescriptionListingFilterForm>({
 			statusId: new FormControl(filters?.statusId),
 			isActive: new FormControl(filters?.isActive),
-			viewOnlyTenant: new FormControl(filters.viewOnlyTenant),
 			role: new FormControl(filters.role),
 			descriptionTemplates: new FormControl(filters.descriptionTemplates),
 			associatedPlanIds: new FormControl(filters.associatedPlanIds),
@@ -117,7 +116,6 @@ export class DescriptionFilterComponent extends BaseCriteriaComponent<Descriptio
 		this.formGroup.patchValue({
 			statusId: null,
 			isActive: true,
-			viewOnlyTenant: null,
 			role: null,
 			descriptionTemplates: null,
 			associatedPlanIds: null,
@@ -217,7 +215,6 @@ export class DescriptionFilterComponent extends BaseCriteriaComponent<Descriptio
 export interface DescriptionListingFilters {
 	statusId: Guid,
 	isActive: boolean,
-	viewOnlyTenant: boolean,
 	role: Guid,
 	descriptionTemplates: Guid[],
 	associatedPlanIds: Guid[],
@@ -228,7 +225,6 @@ export interface DescriptionListingFilters {
 interface DescriptionListingFilterForm {
 	statusId: FormControl<Guid>,
 	isActive: FormControl<boolean>,
-	viewOnlyTenant: FormControl<boolean>,
 	role: FormControl<Guid>,
 	descriptionTemplates: FormControl<Guid[]>,
 	associatedPlanIds: FormControl<Guid[]>,

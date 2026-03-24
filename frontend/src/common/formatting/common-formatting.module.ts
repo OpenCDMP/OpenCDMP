@@ -13,6 +13,7 @@ import { ReferenceSourceTypePipe } from './pipes/reference-source-type.pipe';
 import { LockTargetTypePipe } from './pipes/lock-target-type.pipe';
 import { UsageLimitTargetMetricPipe } from './pipes/usage-limits-target-metric.pipe';
 import { SupportiveMaterialFieldTypePipe } from './pipes/supportive-material-field-type.pipe';
+import { InvokeMemoizedPipe } from './pipes/invoke-memoized.pipe';
 
 //
 //
@@ -35,7 +36,8 @@ import { SupportiveMaterialFieldTypePipe } from './pipes/supportive-material-fie
 		NotificationTrackingStatePipe,
 		LockTargetTypePipe,
 		UsageLimitTargetMetricPipe,
-		SupportiveMaterialFieldTypePipe
+		SupportiveMaterialFieldTypePipe,
+        InvokeMemoizedPipe
 	],
 	exports: [
 		ArrayToStringPipe,
@@ -52,7 +54,8 @@ import { SupportiveMaterialFieldTypePipe } from './pipes/supportive-material-fie
 		NotificationTrackingStatePipe,
 		LockTargetTypePipe,
 		UsageLimitTargetMetricPipe,
-		SupportiveMaterialFieldTypePipe
+		SupportiveMaterialFieldTypePipe,
+        InvokeMemoizedPipe
 	],
 	providers: [
 		ArrayToStringPipe,
@@ -69,7 +72,8 @@ import { SupportiveMaterialFieldTypePipe } from './pipes/supportive-material-fie
 		NotificationTrackingStatePipe,
 		LockTargetTypePipe,
 		UsageLimitTargetMetricPipe,
-		SupportiveMaterialFieldTypePipe
+		SupportiveMaterialFieldTypePipe,
+        InvokeMemoizedPipe
 	]
 })
 export class CommonFormattingModule { }

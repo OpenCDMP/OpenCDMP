@@ -1,7 +1,7 @@
 package org.opencdmp.model.builder;
 
 import org.opencdmp.authorization.AuthorizationFlags;
-import org.opencdmp.commons.scope.tenant.TenantScope;
+import org.opencdmp.commons.scope.tenant.TenantScopeFactory;
 import org.opencdmp.convention.ConventionService;
 import org.opencdmp.data.EntityDoiEntity;
 import org.opencdmp.model.EntityDoi;
@@ -21,18 +21,24 @@ import java.util.*;
 @Scope(value = ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 public class EntityDoiBuilder extends BaseBuilder<EntityDoi, EntityDoiEntity> {
 
-    private final TenantScope tenantScope;
+    private final TenantScopeFactory tenantScopeFactory;
     private EnumSet<AuthorizationFlags> authorize = EnumSet.of(AuthorizationFlags.None);
+    private boolean isPublic;
 
     @Autowired
     public EntityDoiBuilder(
-		    ConventionService conventionService, TenantScope tenantScope) {
+		    ConventionService conventionService, TenantScopeFactory tenantScopeFactory) {
         super(conventionService, new LoggerService(LoggerFactory.getLogger(EntityDoiBuilder.class)));
-	    this.tenantScope = tenantScope;
+	    this.tenantScopeFactory = tenantScopeFactory;
     }
 
     public EntityDoiBuilder authorize(EnumSet<AuthorizationFlags> values) {
         this.authorize = values;
+        return this;
+    }
+
+    public EntityDoiBuilder isPublic(boolean isPublic) {
+        this.isPublic = isPublic;
         return this;
     }
 
@@ -56,15 +62,15 @@ public class EntityDoiBuilder extends BaseBuilder<EntityDoi, EntityDoiEntity> {
                 m.setEntityType(d.getEntityType());
             if (fields.hasField(this.asIndexer(EntityDoi._repositoryId)))
                 m.setRepositoryId(d.getRepositoryId());
-            if (fields.hasField(this.asIndexer(EntityDoi._createdAt)))
+            if (!this.isPublic && fields.hasField(this.asIndexer(EntityDoi._createdAt)))
                 m.setCreatedAt(d.getCreatedAt());
-            if (fields.hasField(this.asIndexer(EntityDoi._updatedAt)))
+            if (!this.isPublic && fields.hasField(this.asIndexer(EntityDoi._updatedAt)))
                 m.setUpdatedAt(d.getUpdatedAt());
             if (fields.hasField(this.asIndexer(EntityDoi._isActive)))
                 m.setIsActive(d.getIsActive());
-            if (fields.hasField(this.asIndexer(EntityDoi._hash)))
+            if (!this.isPublic && fields.hasField(this.asIndexer(EntityDoi._hash)))
                 m.setHash(hashValue(d.getUpdatedAt()));
-            if (fields.hasField(this.asIndexer(EntityDoi._belongsToCurrentTenant))) m.setBelongsToCurrentTenant(this.getBelongsToCurrentTenant(d, this.tenantScope));
+            if (!this.isPublic && fields.hasField(this.asIndexer(EntityDoi._belongsToCurrentTenant))) m.setBelongsToCurrentTenant(this.getBelongsToCurrentTenant(d, this.tenantScopeFactory.getInstance()));
             models.add(m);
         }
         this.logger.debug("build {} items", Optional.of(models).map(List::size).orElse(0));

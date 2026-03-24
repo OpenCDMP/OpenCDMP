@@ -1,34 +1,43 @@
 @if(planUsers()){
-    <div *ngFor="let planUser of planUsers(); let i=index;">
-        @if(i < pageSize() || showMore()){
-            <div class="d-flex author">
-                <mat-icon class="author-icon">account_circle</mat-icon>
-                <div style="min-width: 0;">
-                    <ng-container *ngIf="!isUserAuthor(planUser.user?.id); else you">
-                        <span class="author-label">{{ planUser.user?.name }}</span>
-                    </ng-container>
-                    <ng-template #you>
-                        <div *ngIf="username()" class="author-label"> {{ username() }}
-                            <span >
-                                ({{ 'PLAN-OVERVIEW.YOU' | translate }})
-                            </span>
-                        </div>
-                    </ng-template>
-                    <div class="author-role">
-                        <span>{{ enumUtils.toPlanUserRoleString(planUser.role) }} - </span>
-                        <span *ngIf="!planUser.sectionId">{{ 'PLAN-OVERVIEW.ROLES.ALL-SECTIONS' | translate}}</span>
-                        <span *ngIf="planUser.sectionId">{{ getSectionNameById(planUser.sectionId) }}</span>
-                    </div>
+  @for (planUser of planUsers(); track planUser; let i = $index) {
+    <div>
+      @if(i < pageSize() || showMore()){
+        <div class="d-flex author">
+          <mat-icon class="author-icon">account_circle</mat-icon>
+          <div style="min-width: 0;">
+            @if (!isUserAuthor(planUser.user?.id)) {
+              <span class="author-label">{{ planUser.user?.name }}</span>
+            } @else {
+              @if (username()) {
+                <div class="author-label"> {{ username() }}
+                  <span >
+                    ({{ 'PLAN-OVERVIEW.YOU' | translate }})
+                  </span>
                 </div>
-                @if(removeUser() && planUser.role != planUserRoleEnum.Owner){
-                    <button (click)="removeUserFromPlan(planUser)" mat-mini-fab class="secondary ml-auto" matTooltip="{{ 'PLAN-OVERVIEW.ACTIONS.REMOVE-AUTHOR' | translate}}" matTooltipPosition="above" [attr.aria-label]="'PLAN-OVERVIEW.ACTIONS.REMOVE-AUTHOR' | translate">
-                        <mat-icon aria-hidden>delete</mat-icon>
-                    </button>
-                }
+              }
+            }
+            <div class="author-role">
+              <span>{{ enumUtils.toPlanUserRoleString(planUser.role) }} - </span>
+              @if (!planUser.sectionId) {
+                <span>{{ 'PLAN-OVERVIEW.ROLES.ALL-SECTIONS' | translate}}</span>
+              }
+              @if (planUser.sectionId) {
+                <span>{{ getSectionNameById(planUser.sectionId) }}</span>
+              }
             </div>
-        }
+          </div>
+          @if(removeUser() && isAtLeastOnePlanOwner(planUser)){
+            <button (click)="removeUserFromPlan(planUser)" mat-mini-fab class="secondary ml-auto" matTooltip="{{ 'PLAN-OVERVIEW.ACTIONS.REMOVE-AUTHOR' | translate}}" matTooltipPosition="above" [attr.aria-label]="'PLAN-OVERVIEW.ACTIONS.REMOVE-AUTHOR' | translate">
+              <mat-icon aria-hidden>delete</mat-icon>
+            </button>
+          }
+        </div>
+      }
     </div>
-    <div class="link-color d-flex justify-content-center show-more" *ngIf="planUsers()?.length > pageSize()" role="button" (click)="toggleShowMore()">
-        {{(!showMore() ? 'GENERAL.ACTIONS.SHOW-MORE' : 'GENERAL.ACTIONS.SHOW-LESS') | translate}}
+  }
+  @if (planUsers()?.length > pageSize()) {
+    <div class="link-color d-flex justify-content-center show-more" role="button" (click)="toggleShowMore()">
+      {{(!showMore() ? 'GENERAL.ACTIONS.SHOW-MORE' : 'GENERAL.ACTIONS.SHOW-LESS') | translate}}
     </div>
+  }
 }

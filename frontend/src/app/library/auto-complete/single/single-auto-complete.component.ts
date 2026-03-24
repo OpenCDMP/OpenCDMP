@@ -1,9 +1,9 @@
 import { FocusMonitor } from '@angular/cdk/a11y';
 import { ENTER } from '@angular/cdk/keycodes';
-import { Component, DoCheck, ElementRef, EventEmitter, Input, OnChanges, OnDestroy, OnInit, Optional, Output, Self, SimpleChanges, TemplateRef, ViewChild } from '@angular/core';
+import { ChangeDetectorRef, Component, DoCheck, ElementRef, EventEmitter, Input, OnChanges, OnDestroy, OnInit, Optional, Output, Self, SimpleChanges, TemplateRef, ViewChild } from '@angular/core';
 import { ControlValueAccessor, FormGroupDirective, NgControl, NgForm } from '@angular/forms';
 import { MatAutocomplete, MatAutocompleteSelectedEvent, MatAutocompleteTrigger } from '@angular/material/autocomplete';
-import { ErrorStateMatcher, mixinErrorState } from '@angular/material/core';
+import { ErrorStateMatcher, _ErrorStateTracker } from '@angular/material/core';
 import { MatFormFieldControl } from '@angular/material/form-field';
 import { AutoCompleteGroup } from '@app/library/auto-complete/auto-complete-group';
 import { SingleAutoCompleteConfiguration } from '@app/library/auto-complete/single/single-auto-complete-configuration';
@@ -13,16 +13,36 @@ import { catchError, debounceTime, distinctUntilChanged, map, mergeMap, startWit
 
 
 export class CustomComponentBase extends BaseComponent {
+    private _errorStateTracker: _ErrorStateTracker;
+
 	constructor(
 		public _defaultErrorStateMatcher: ErrorStateMatcher,
 		public _parentForm: NgForm,
 		public _parentFormGroup: FormGroupDirective,
 		public ngControl: NgControl,
 		public stateChanges: Subject<void>
-	) { super(); }
-}
-export const _CustomComponentMixinBase = mixinErrorState(CustomComponentBase);
+	) { 
+        super();
+        this._errorStateTracker = new _ErrorStateTracker(
+            _defaultErrorStateMatcher,
+            ngControl,
+            _parentFormGroup,
+            _parentForm,
+            this.stateChanges,
+        );
+    }
 
+    get errorState() {
+        return this._errorStateTracker.errorState;
+    }
+    set errorState(value: boolean) {
+        this._errorStateTracker.errorState = value;
+    }
+
+    updateErrorState() {
+        this._errorStateTracker.updateErrorState();
+    }
+}
 @Component({
     selector: 'app-single-auto-complete',
     templateUrl: './single-auto-complete.component.html',
@@ -30,14 +50,14 @@ export const _CustomComponentMixinBase = mixinErrorState(CustomComponentBase);
     providers: [{ provide: MatFormFieldControl, useExisting: SingleAutoCompleteComponent }],
     standalone: false
 })
-export class SingleAutoCompleteComponent extends _CustomComponentMixinBase implements OnInit, MatFormFieldControl<string>, ControlValueAccessor, OnDestroy, DoCheck, OnChanges {
+export class SingleAutoCompleteComponent extends CustomComponentBase implements OnInit, MatFormFieldControl<string>, ControlValueAccessor, OnDestroy, DoCheck, OnChanges {
 
 	isMouseOverPanel: boolean = false;
 	panelClosedSubscription: Subscription;
 
 	static nextId = 0;
 	@ViewChild('autocomplete', { static: true }) autocomplete: MatAutocomplete;
-	@ViewChild('autocompleteTrigger', { static: true }) autocompleteTrigger: MatAutocompleteTrigger;
+	@ViewChild('autocompleteTrigger', { static: false }) autocompleteTrigger: MatAutocompleteTrigger;
 	@ViewChild('autocompleteInput', { static: true }) autocompleteInput: ElementRef;
 
 	@Input() initialSelectedData: any;
@@ -48,15 +68,16 @@ export class SingleAutoCompleteComponent extends _CustomComponentMixinBase imple
 	set configuration(configuration: SingleAutoCompleteConfiguration) {
 		this._configuration = configuration;
 		//On startup, fill the input with the existing value
-		if (this.autocompleteInput && this.value) {
-			this.inputValue = this._displayFn(this.value);
-		}
+		// if (this.autocompleteInput && this.value && !this.popupSelectedItemActionIcon) {
+		// 	this.inputValue = this._displayFn(this.value);
+		// }
 	}
 	private _configuration: SingleAutoCompleteConfiguration;
 
 	// Selected Option Event
 	@Output() optionSelected: EventEmitter<any> = new EventEmitter();
 	@Output() optionActionClicked: EventEmitter<any> = new EventEmitter();
+	@Output() selectedItemOptionActionClicked: EventEmitter<any> = new EventEmitter();
 
 	stateChanges = new Subject<void>();
 	focused = false;
@@ -110,6 +131,7 @@ export class SingleAutoCompleteComponent extends _CustomComponentMixinBase imple
 	constructor(
 		private fm: FocusMonitor,
 		private elRef: ElementRef,
+        private ref: ChangeDetectorRef,
 		@Optional() @Self() public ngControl: NgControl,
 		@Optional() _parentForm: NgForm,
 		@Optional() _parentFormGroup: FormGroupDirective,
@@ -154,11 +176,16 @@ export class SingleAutoCompleteComponent extends _CustomComponentMixinBase imple
 		if (changes['configuration'] && changes['configuration'].isFirstChange) {
 			if (changes['initialSelectedData'] != null && this.value != null) {
 				if (this._valueToAssign(this.initialSelectedData) != this.value) { this.getSelectedItems(this.value); }
-			} else {
-				this.getSelectedItems(this.value);
-			}
+			} 
+            // else { writeValue is called automatically, no need to ensure data from here 
+			// 	this.getSelectedItems(this.value);
+			// }
 		}
 	}
+
+    updateErrorState() {
+        super.updateErrorState();
+    }
 
 	getSelectedItems(value: any) {
 		if (value != null && !this._selectedItems.has(this.selectedItemKey(value)) && this.configuration) {
@@ -167,6 +194,7 @@ export class SingleAutoCompleteComponent extends _CustomComponentMixinBase imple
 					if (x != null) {
 						this._selectedItems.set(this.selectedItemKey(x), x);
 						this.inputValue = this._displayFn(x);
+                        this.ref.detectChanges();
 					}
 				});
 			} else {
@@ -205,13 +233,29 @@ export class SingleAutoCompleteComponent extends _CustomComponentMixinBase imple
 	_optionSelected(event: MatAutocompleteSelectedEvent) {
 		this.inputValue = this._displayFn(event.option.value);
 		this.optionSelectedInternal(event.option.value);
+
+        //to prevent onContainerClick from re-opening menu
+        setTimeout(() => this.autocompleteTrigger?.closePanel())
 	}
 
 	_optionActionClick(item: any, event: MouseEvent): void {
 		if (event != null) {
 			event.stopPropagation();
+			event.preventDefault();
 		}
 		this.optionActionClicked.emit(item);
+
+		// Ensure the input stays focused and panel stays open
+		setTimeout(() => {
+			this.isMouseOverPanel = true;
+		}, 10);
+	}
+
+	_selectedItemOptionActionClicked(item: any, event: MouseEvent): void {
+		if (event != null) {
+			event.stopPropagation();
+		}
+		this.selectedItemOptionActionClicked.emit(item);
 	}
 
 	public clearValue(emitEvent: boolean = true): void {
@@ -246,7 +290,10 @@ export class SingleAutoCompleteComponent extends _CustomComponentMixinBase imple
 				return;
 			}
 			this._inputSubject.next(this.inputValue);
-		}
+		} else if(this.popupSelectedItemActionIcon){
+			// use chip functions when popupSelectedItemActionIcon is enabled
+            this._addItem(this.inputValue);
+        }
 	}
 
 	private _setValue(value: any) {
@@ -314,7 +361,7 @@ export class SingleAutoCompleteComponent extends _CustomComponentMixinBase imple
 		if (this.disabled) { return; }
 		this._onInputFocus();
 		if (!this.autocomplete.isOpen) {
-			this.autocompleteTrigger.openPanel();
+			this.autocompleteTrigger?.openPanel();
 		}
 	}
 
@@ -375,10 +422,32 @@ export class SingleAutoCompleteComponent extends _CustomComponentMixinBase imple
 		return this.configuration.popupItemActionIcon != null ? this.configuration.popupItemActionIcon : '';
 	}
 
+	get isPopupSelectedItemActionIconDisabled(): boolean {
+		return this.configuration.isPopupSelectedItemActionIconDisabled != null ? this.configuration.isPopupSelectedItemActionIconDisabled : false;
+	}
+
+	get popupSelectedItemActionIcon(): string {
+		return this.configuration.popupSelectedItemActionIcon != null ? this.configuration.popupSelectedItemActionIcon : '';
+	}
+
 	private selectedItemKey(item: any) {
 		return this.stringify(
 			this.configuration.uniqueAssign != null ? this.configuration.uniqueAssign(item) :
 				this.configuration.valueAssign != null ? this.configuration.valueAssign(item) : item
 		)
+	}
+
+	//Chip Functions when popupSelectedItemActionIcon is enabled
+	_addItem(value: any): void {
+		if (!value) {
+			this.inputValue = '';
+            return;
+		}
+        this.optionSelectedInternal(value);
+        setTimeout(() => {
+            this.inputValue = ''
+            this._items = null;
+            this.autocompleteTrigger.closePanel();
+        });
 	}
 }

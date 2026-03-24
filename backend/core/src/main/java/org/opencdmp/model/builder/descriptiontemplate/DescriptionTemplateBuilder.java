@@ -10,9 +10,9 @@ import gr.cite.tools.logging.DataLogEntry;
 import gr.cite.tools.logging.LoggerService;
 import org.opencdmp.authorization.AffiliatedResource;
 import org.opencdmp.authorization.AuthorizationFlags;
-import org.opencdmp.authorization.authorizationcontentresolver.AuthorizationContentResolver;
+import org.opencdmp.authorization.authorizationcontentresolver.AuthorizationContentResolverFactory;
 import org.opencdmp.commons.XmlHandlingService;
-import org.opencdmp.commons.scope.tenant.TenantScope;
+import org.opencdmp.commons.scope.tenant.TenantScopeFactory;
 import org.opencdmp.commons.types.descriptiontemplate.DefinitionEntity;
 import org.opencdmp.convention.ConventionService;
 import org.opencdmp.data.DescriptionTemplateEntity;
@@ -45,21 +45,22 @@ public class DescriptionTemplateBuilder extends BaseBuilder<DescriptionTemplate,
     private final BuilderFactory builderFactory;
 
     private final XmlHandlingService xmlHandlingService;
-    private final TenantScope tenantScope;
+    private final TenantScopeFactory tenantScopeFactory;
     private final AuthorizationService authorizationService;
-    private final AuthorizationContentResolver authorizationContentResolver;
+    private final AuthorizationContentResolverFactory authorizationContentResolverFactory;
     private Map<UUID, Integer> featuredOrdinalMap;
+    private boolean isPublic;
 
     @Autowired
     public DescriptionTemplateBuilder(
-		    ConventionService conventionService, QueryFactory queryFactory, BuilderFactory builderFactory, XmlHandlingService xmlHandlingService, TenantScope tenantScope, AuthorizationService authorizationService, AuthorizationContentResolver authorizationContentResolver) {
+            ConventionService conventionService, QueryFactory queryFactory, BuilderFactory builderFactory, XmlHandlingService xmlHandlingService, TenantScopeFactory tenantScopeFactory, AuthorizationService authorizationService, AuthorizationContentResolverFactory authorizationContentResolverFactory) {
         super(conventionService, new LoggerService(LoggerFactory.getLogger(DescriptionTemplateBuilder.class)));
         this.queryFactory = queryFactory;
         this.builderFactory = builderFactory;
         this.xmlHandlingService = xmlHandlingService;
-	    this.tenantScope = tenantScope;
+	    this.tenantScopeFactory = tenantScopeFactory;
 	    this.authorizationService = authorizationService;
-	    this.authorizationContentResolver = authorizationContentResolver;
+	    this.authorizationContentResolverFactory = authorizationContentResolverFactory;
     }
 
     public DescriptionTemplateBuilder authorize(EnumSet<AuthorizationFlags> values) {
@@ -69,6 +70,11 @@ public class DescriptionTemplateBuilder extends BaseBuilder<DescriptionTemplate,
 
     public DescriptionTemplateBuilder featuredOrdinalMap(Map<UUID, Integer> featuredOrdinalMap) {
         this.featuredOrdinalMap = featuredOrdinalMap;
+        return this;
+    }
+
+    public DescriptionTemplateBuilder isPublic(boolean isPublic) {
+        this.isPublic = isPublic;
         return this;
     }
 
@@ -85,8 +91,8 @@ public class DescriptionTemplateBuilder extends BaseBuilder<DescriptionTemplate,
         FieldSet usersFields = fields.extractPrefixed(this.asPrefix(DescriptionTemplate._users));
         Map<UUID, List<UserDescriptionTemplate>> usersMap = this.collectUserDescriptionTemplates(usersFields, data);
 
-        Set<String> authorizationFlags = this.extractAuthorizationFlags(fields, Plan._authorizationFlags, this.authorizationContentResolver.getPermissionNames());
-        Map<UUID, AffiliatedResource>  affiliatedResourceMap = authorizationFlags == null || authorizationFlags.isEmpty() ? null : this.authorizationContentResolver.descriptionTemplateAffiliation(data.stream().map(DescriptionTemplateEntity::getId).collect(Collectors.toList()));
+        Set<String> authorizationFlags = this.extractAuthorizationFlags(fields, Plan._authorizationFlags, this.authorizationContentResolverFactory.getInstance().getPermissionNames());
+        Map<UUID, AffiliatedResource>  affiliatedResourceMap = authorizationFlags == null || authorizationFlags.isEmpty() ? null : this.authorizationContentResolverFactory.getInstance().descriptionTemplateAffiliation(data.stream().map(DescriptionTemplateEntity::getId).collect(Collectors.toList()));
 
         FieldSet definitionFields = fields.extractPrefixed(this.asPrefix(DescriptionTemplate._definition));
         List<DescriptionTemplate> models = new ArrayList<>();
@@ -96,7 +102,7 @@ public class DescriptionTemplateBuilder extends BaseBuilder<DescriptionTemplate,
                 m.setId(d.getId());
             if (fields.hasField(this.asIndexer(DescriptionTemplate._label)))
                 m.setLabel(d.getLabel());
-            if (fields.hasField(this.asIndexer(DescriptionTemplate._code)))
+            if (!this.isPublic && fields.hasField(this.asIndexer(DescriptionTemplate._code)))
                 m.setCode(d.getCode());
             if (fields.hasField(this.asIndexer(DescriptionTemplate._description)))
                 m.setDescription(d.getDescription());
@@ -104,31 +110,31 @@ public class DescriptionTemplateBuilder extends BaseBuilder<DescriptionTemplate,
                 m.setGroupId(d.getGroupId());
             if (fields.hasField(this.asIndexer(DescriptionTemplate._version)))
                 m.setVersion(d.getVersion());
-            if (fields.hasField(this.asIndexer(DescriptionTemplate._language)))
+            if (!this.isPublic && fields.hasField(this.asIndexer(DescriptionTemplate._language)))
                 m.setLanguage(d.getLanguage());
-            if (fields.hasField(this.asIndexer(DescriptionTemplate._createdAt)))
+            if (!this.isPublic && fields.hasField(this.asIndexer(DescriptionTemplate._createdAt)))
                 m.setCreatedAt(d.getCreatedAt());
-            if (fields.hasField(this.asIndexer(DescriptionTemplate._updatedAt)))
+            if (!this.isPublic && fields.hasField(this.asIndexer(DescriptionTemplate._updatedAt)))
                 m.setUpdatedAt(d.getUpdatedAt());
             if (fields.hasField(this.asIndexer(DescriptionTemplate._isActive)))
                 m.setIsActive(d.getIsActive());
-            if (fields.hasField(this.asIndexer(DescriptionTemplate._versionStatus)))
+            if (!this.isPublic && fields.hasField(this.asIndexer(DescriptionTemplate._versionStatus)))
                 m.setVersionStatus(d.getVersionStatus());
-            if (fields.hasField(this.asIndexer(DescriptionTemplate._status)))
+            if (!this.isPublic && fields.hasField(this.asIndexer(DescriptionTemplate._status)))
                 m.setStatus(d.getStatus());
-            if (fields.hasField(this.asIndexer(DescriptionTemplate._hash)))
+            if (!this.isPublic && fields.hasField(this.asIndexer(DescriptionTemplate._hash)))
                 m.setHash(this.hashValue(d.getUpdatedAt()));
-            if (fields.hasField(this.asIndexer(DescriptionTemplate._belongsToCurrentTenant))) m.setBelongsToCurrentTenant(this.getBelongsToCurrentTenant(d, this.tenantScope));
+            if (fields.hasField(this.asIndexer(DescriptionTemplate._belongsToCurrentTenant))) m.setBelongsToCurrentTenant(this.getBelongsToCurrentTenant(d, this.tenantScopeFactory.getInstance()));
             if (!definitionFields.isEmpty() && d.getDefinition() != null) {
                 DefinitionEntity definition = this.xmlHandlingService.fromXmlSafe(DefinitionEntity.class, d.getDefinition());
-                m.setDefinition(this.builderFactory.builder(DefinitionBuilder.class).authorize(this.authorize).build(definitionFields, definition));
+                m.setDefinition(this.builderFactory.builder(DefinitionBuilder.class).authorize(this.authorize).isPublic(this.isPublic).build(definitionFields, definition));
             }
-            if (!usersFields.isEmpty() && usersMap != null && usersMap.containsKey(d.getId()))
+            if (!this.isPublic && !usersFields.isEmpty() && usersMap != null && usersMap.containsKey(d.getId()))
                 m.setUsers(usersMap.get(d.getId()));
-            if (!descriptionTemplateTypeFields.isEmpty() && descriptionTemplateTypeMap != null && descriptionTemplateTypeMap.containsKey(d.getTypeId()))
+            if (!this.isPublic && !descriptionTemplateTypeFields.isEmpty() && descriptionTemplateTypeMap != null && descriptionTemplateTypeMap.containsKey(d.getTypeId()))
                 m.setType(descriptionTemplateTypeMap.get(d.getTypeId()));
-            if (affiliatedResourceMap != null && !authorizationFlags.isEmpty()) m.setAuthorizationFlags(this.evaluateAuthorizationFlags(this.authorizationService, authorizationFlags, affiliatedResourceMap.getOrDefault(d.getId(), null)));
-            if (fields.hasField(this.asIndexer(DescriptionTemplate._ordinal)) && this.featuredOrdinalMap != null && this.featuredOrdinalMap.containsKey(d.getGroupId())) {
+            if (!this.isPublic && affiliatedResourceMap != null && !authorizationFlags.isEmpty()) m.setAuthorizationFlags(this.evaluateAuthorizationFlags(this.authorizationService, authorizationFlags, affiliatedResourceMap.getOrDefault(d.getId(), null)));
+            if (!this.isPublic && fields.hasField(this.asIndexer(DescriptionTemplate._ordinal)) && this.featuredOrdinalMap != null && this.featuredOrdinalMap.containsKey(d.getGroupId())) {
                 m.setOrdinal(this.featuredOrdinalMap.get(d.getGroupId()));
             }
             models.add(m);
@@ -138,7 +144,7 @@ public class DescriptionTemplateBuilder extends BaseBuilder<DescriptionTemplate,
     }
 
     private Map<UUID, DescriptionTemplateType> collectDescriptionTemplateTypes(FieldSet fields, List<DescriptionTemplateEntity> data) throws MyApplicationException {
-        if (fields.isEmpty() || data.isEmpty())
+        if (fields.isEmpty() || data.isEmpty() || this.isPublic)
             return null;
         this.logger.debug("checking related - {}", DescriptionTemplateType.class.getSimpleName());
 
@@ -167,7 +173,7 @@ public class DescriptionTemplateBuilder extends BaseBuilder<DescriptionTemplate,
     }
 
     private Map<UUID, List<UserDescriptionTemplate>> collectUserDescriptionTemplates(FieldSet fields, List<DescriptionTemplateEntity> data) throws MyApplicationException {
-        if (fields.isEmpty() || data.isEmpty())
+        if (fields.isEmpty() || data.isEmpty() || this.isPublic)
             return null;
         this.logger.debug("checking related - {}", UserDescriptionTemplate.class.getSimpleName());
 

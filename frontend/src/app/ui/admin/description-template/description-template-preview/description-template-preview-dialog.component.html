@@ -1,27 +1,34 @@
-<div class="template-container" *ngIf="descriptionTemplate && formGroup">
-	<div mat-dialog-title class="header">
-		<span class="template-title align-self-center" matTooltip="{{descriptionTemplate.label}}">{{'DESCRIPTION-TEMPLATE-PREVIEW.TEMPLATE' | translate}} - {{descriptionTemplate.label}}</span>
-		<button mat-icon-button (click)="closeDialog()" class="ml-auto" [attr.aria-label]="'ALT-TEXT.CLOSE-DIALOG'  | translate"><mat-icon aria-hidden>close</mat-icon></button>
-	</div>
-    <div mat-dialog-content class="p-0">
-        <div *ngIf="progressIndication" class="progress-bar">
-            <mat-progress-bar color="primary" mode="indeterminate" [attr.aria-label]="'ALT-TEXT.PROGRESS-BAR' | translate"></mat-progress-bar>
-        </div>
-        <div class="definition-content">
-            <app-description-form 
-                *ngIf="formGroup && formGroup.get('properties')" 
-                [propertiesFormGroup]="previewPropertiesFormGroup" 
-                [descriptionId]="descriptionId" 
-                [descriptionTemplate]="descriptionTemplate" 
-                [canAnnotate]="false" 
-                [visibilityRulesService]="visibilityRulesService" 
-                [isNew]="true"
-                ></app-description-form>
-        </div>
+@if (descriptionTemplate && formGroup) {
+  <div class="template-container">
+    <div mat-dialog-title class="header">
+      <span class="template-title align-self-center" matTooltip="{{descriptionTemplate.label}}">{{'DESCRIPTION-TEMPLATE-PREVIEW.TEMPLATE' | translate}} - {{descriptionTemplate.label}}</span>
+      <button mat-icon-button (click)="closeDialog($event)" class="ml-auto" [attr.aria-label]="'ALT-TEXT.CLOSE-DIALOG'  | translate"><mat-icon aria-hidden>close</mat-icon></button>
     </div>
-	<div mat-dialog-actions *ngIf="formGroup && showSelect" class="row d-flex">
-		<div class="col-auto ml-auto">
-			<button mat-flat-button color="primary"  type="button" class="padded-shadow-btn" (click)="select()">{{'TYPES.EXTERNAL-DATASET-TYPE.SELECT' | translate}}</button>
-		</div>
-	</div>
-</div>
+    <div mat-dialog-content class="p-0">
+      @if (progressIndication) {
+        <div class="progress-bar">
+          <mat-progress-bar color="primary" mode="indeterminate" [attr.aria-label]="'ALT-TEXT.PROGRESS-BAR' | translate"></mat-progress-bar>
+        </div>
+      }
+      <div class="definition-content">
+        @if (formGroup && formGroup.get('properties')) {
+          <app-description-form
+            [propertiesFormGroup]="previewPropertiesFormGroup"
+            [descriptionId]="descriptionId"
+            [descriptionTemplate]="descriptionTemplate"
+            [canAnnotate]="false"
+            [visibilityRulesService]="visibilityRulesService"
+            [isNew]="true"
+          ></app-description-form>
+        }
+      </div>
+    </div>
+    @if (formGroup && showSelect) {
+      <div mat-dialog-actions class="row d-flex">
+        <div class="col-auto ml-auto">
+          <button mat-flat-button color="primary"  type="button" class="padded-shadow-btn" (click)="select()">{{'TYPES.EXTERNAL-DATASET-TYPE.SELECT' | translate}}</button>
+        </div>
+      </div>
+    }
+  </div>
+}

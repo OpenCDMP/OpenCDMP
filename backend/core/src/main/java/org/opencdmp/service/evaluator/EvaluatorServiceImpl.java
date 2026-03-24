@@ -1,7 +1,9 @@
 package org.opencdmp.service.evaluator;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import gr.cite.tools.exception.MyValidationException;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.codec.json.JacksonJsonDecoder;
+import org.springframework.http.codec.json.JacksonJsonEncoder;
 import gr.cite.commons.web.authz.service.AuthorizationService;
 import gr.cite.commons.web.oidc.filter.webflux.TokenExchangeCacheService;
 import gr.cite.commons.web.oidc.filter.webflux.TokenExchangeFilterFunction;
@@ -17,21 +19,20 @@ import gr.cite.tools.validation.ValidatorFactory;
 import org.apache.commons.io.FilenameUtils;
 import org.opencdmp.authorization.AuthorizationFlags;
 import org.opencdmp.authorization.Permission;
-import org.opencdmp.authorization.authorizationcontentresolver.AuthorizationContentResolver;
+import org.opencdmp.authorization.authorizationcontentresolver.AuthorizationContentResolverFactory;
 import org.opencdmp.commonmodels.models.FileEnvelopeModel;
 import org.opencdmp.commonmodels.models.description.DescriptionModel;
 import org.opencdmp.commons.JsonHandlingService;
 import org.opencdmp.commons.enums.*;
 import org.opencdmp.commons.notification.NotificationProperties;
-import org.opencdmp.commons.scope.tenant.TenantScope;
-import org.opencdmp.commons.scope.user.UserScope;
+import org.opencdmp.commons.scope.tenant.TenantScopeFactory;
+import org.opencdmp.commons.scope.user.UserScopeFactory;
 import org.opencdmp.commons.types.evaluator.EvaluatorSourceEntity;
 import org.opencdmp.commons.types.notification.DataType;
 import org.opencdmp.commons.types.notification.FieldInfo;
 import org.opencdmp.commons.types.notification.NotificationFieldData;
 import org.opencdmp.data.*;
 import org.opencdmp.evaluatorbase.enums.RankType;
-import org.opencdmp.evaluatorbase.enums.SuccessStatus;
 import org.opencdmp.evaluatorbase.interfaces.EvaluatorClient;
 import org.opencdmp.evaluatorbase.interfaces.EvaluatorConfiguration;
 import org.opencdmp.commons.types.tenantconfiguration.EvaluatorTenantConfigurationEntity;
@@ -63,13 +64,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.context.event.EventListener;
 import org.springframework.context.i18n.LocaleContextHolder;
-import org.springframework.http.MediaType;
-import org.springframework.http.codec.json.Jackson2JsonDecoder;
-import org.springframework.http.codec.json.Jackson2JsonEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.ExchangeFilterFunction;
 import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.web.reactive.function.client.WebClientResponseException;
 import reactor.core.publisher.Mono;
+import tools.jackson.databind.json.JsonMapper;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
@@ -97,25 +97,24 @@ public class EvaluatorServiceImpl implements EvaluatorService {
     private final BuilderFactory builderFactory;
     private final MessageSource messageSource;
     private final ConventionService conventionService;
-    private final TenantScope tenantScope;
+    private final TenantScopeFactory tenantScopeFactory;
     private final EncryptionService encryptionService;
     private final TenantProperties tenantProperties;
     private final JsonHandlingService jsonHandlingService;
     private final EvaluatorSourcesCacheService evaluatorSourcesCacheService;
     private final AccountingService accountingService;
-    private final TenantEntityManager entityManager;
     private final FileTransformerService fileTransformerService;
-    private final UserScope userScope;
+    private final UserScopeFactory userScopeFactory;
     private final StorageFileService storageFileService;
     private final StorageFileProperties storageFileProperties;
     private final ValidatorFactory validatorFactory;
-    private final AuthorizationContentResolver authorizationContentResolver;
+    private final AuthorizationContentResolverFactory authorizationContentResolverFactory;
     private final EvaluationService evaluationService;
     private final NotificationProperties notificationProperties;
     private final NotifyIntegrationEventHandler eventHandler;
 
     @Autowired
-    public EvaluatorServiceImpl(EvaluatorProperties evaluatorProperties, Map<String, EvaluatorClientImpl> clients, TokenExchangeCacheService tokenExchangeCacheService, EvaluatorConfigurationCacheService evaluatorConfigurationCacheService, AuthorizationService authorizationService, QueryFactory queryFactory, BuilderFactory builderFactory, MessageSource messageSource, ConventionService conventionService, TenantScope tenantScope, EncryptionService encryptionService, TenantProperties tenantProperties, JsonHandlingService jsonHandlingService, EvaluatorSourcesCacheService evaluatorSourcesCacheService, AccountingService accountingService, TenantEntityManager entityManager, FileTransformerService fileTransformerService, UserScope userScope, StorageFileService storageFileService, StorageFileProperties storageFileProperties, ValidatorFactory validatorFactory, AuthorizationContentResolver authorizationContentResolver, EvaluationService evaluationService, NotificationProperties notificationProperties, NotifyIntegrationEventHandler eventHandler) {
+    public EvaluatorServiceImpl(EvaluatorProperties evaluatorProperties, Map<String, EvaluatorClientImpl> clients, TokenExchangeCacheService tokenExchangeCacheService, EvaluatorConfigurationCacheService evaluatorConfigurationCacheService, AuthorizationService authorizationService, QueryFactory queryFactory, BuilderFactory builderFactory, MessageSource messageSource, ConventionService conventionService, TenantScopeFactory tenantScopeFactory, EncryptionService encryptionService, TenantProperties tenantProperties, JsonHandlingService jsonHandlingService, EvaluatorSourcesCacheService evaluatorSourcesCacheService, AccountingService accountingService, FileTransformerService fileTransformerService, UserScopeFactory userScopeFactory, StorageFileService storageFileService, StorageFileProperties storageFileProperties, ValidatorFactory validatorFactory, AuthorizationContentResolverFactory authorizationContentResolverFactory, EvaluationService evaluationService, NotificationProperties notificationProperties, NotifyIntegrationEventHandler eventHandler) {
         this.evaluatorProperties = evaluatorProperties;
         this.clients = clients;
         this.tokenExchangeCacheService = tokenExchangeCacheService;
@@ -125,19 +124,18 @@ public class EvaluatorServiceImpl implements EvaluatorService {
         this.builderFactory = builderFactory;
         this.messageSource = messageSource;
         this.conventionService = conventionService;
-        this.tenantScope = tenantScope;
+        this.tenantScopeFactory = tenantScopeFactory;
         this.encryptionService = encryptionService;
         this.tenantProperties = tenantProperties;
         this.jsonHandlingService = jsonHandlingService;
         this.evaluatorSourcesCacheService = evaluatorSourcesCacheService;
         this.accountingService = accountingService;
-        this.entityManager = entityManager;
         this.fileTransformerService = fileTransformerService;
-        this.userScope = userScope;
+        this.userScopeFactory = userScopeFactory;
         this.storageFileService = storageFileService;
         this.storageFileProperties = storageFileProperties;
         this.validatorFactory = validatorFactory;
-        this.authorizationContentResolver = authorizationContentResolver;
+        this.authorizationContentResolverFactory = authorizationContentResolverFactory;
         this.evaluationService = evaluationService;
         this.notificationProperties = notificationProperties;
         this.eventHandler = eventHandler;
@@ -175,8 +173,8 @@ public class EvaluatorServiceImpl implements EvaluatorService {
                             })
                             .codecs(codecs -> {
                                 codecs.defaultCodecs().maxInMemorySize(source.getMaxInMemorySizeInBytes());
-                                codecs.defaultCodecs().jackson2JsonDecoder(new Jackson2JsonDecoder(new ObjectMapper().registerModule(new JavaTimeModule()), MediaType.APPLICATION_JSON));
-                                codecs.defaultCodecs().jackson2JsonEncoder(new Jackson2JsonEncoder(new ObjectMapper().registerModule(new JavaTimeModule()), MediaType.APPLICATION_JSON));
+                                codecs.defaultCodecs().jacksonJsonDecoder(new JacksonJsonDecoder(JsonMapper.builder().build()));
+                                codecs.defaultCodecs().jacksonJsonEncoder(new JacksonJsonEncoder(JsonMapper.builder().build()));
                             })
                             .build()
             );
@@ -191,15 +189,15 @@ public class EvaluatorServiceImpl implements EvaluatorService {
 
 
     private List<EvaluatorSourceEntity> getEvaluatorSources() throws InvalidApplicationException, InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
-        String tenantCode = this.tenantScope.isSet() && this.tenantScope.isMultitenant() ? this.tenantScope.getTenantCode() : "";
+        String tenantCode = this.tenantScopeFactory.getInstance().isSet() && this.tenantScopeFactory.getInstance().isMultitenant() ? this.tenantScopeFactory.getInstance().getTenantCode() : "";
         EvaluatorSourcesCacheService.EvaluatorSourceCacheValue cacheValue = this.evaluatorSourcesCacheService.lookup(this.evaluatorSourcesCacheService.buildKey(tenantCode));
         if (cacheValue == null) {
             List<EvaluatorSourceEntity> evaluatorSourceEntities = new ArrayList<>(this.evaluatorProperties.getSources());
 
-            if (this.tenantScope.isSet() && this.tenantScope.isMultitenant()) {
+            if (this.tenantScopeFactory.getInstance().isSet() && this.tenantScopeFactory.getInstance().isMultitenant()) {
                 TenantConfigurationQuery tenantConfigurationQuery = this.queryFactory.query(TenantConfigurationQuery.class).disableTracking().isActive(IsActive.Active).types(TenantConfigurationType.EvaluatorPlugins);
-                if (this.tenantScope.isDefaultTenant()) tenantConfigurationQuery.tenantIsSet(false);
-                else tenantConfigurationQuery.tenantIsSet(true).tenantIds(this.tenantScope.getTenant());
+                if (this.tenantScopeFactory.getInstance().isDefaultTenant()) tenantConfigurationQuery.tenantIsSet(false);
+                else tenantConfigurationQuery.tenantIsSet(true).tenantIds(this.tenantScopeFactory.getInstance().getTenant());
                 TenantConfigurationEntity tenantConfiguration = tenantConfigurationQuery.firstAs(new BaseFieldSet().ensure(TenantConfiguration._evaluatorPlugins));
 
                 if (tenantConfiguration != null && !this.conventionService.isNullOrEmpty(tenantConfiguration.getValue())) {
@@ -248,8 +246,8 @@ public class EvaluatorServiceImpl implements EvaluatorService {
     }
 
     private String getRepositoryIdByTenant(String repositoryId) throws InvalidApplicationException {
-        if (this.tenantScope.isSet() && this.tenantScope.isMultitenant()) {
-            return repositoryId + "_" + this.tenantScope.getTenantCode();
+        if (this.tenantScopeFactory.getInstance().isSet() && this.tenantScopeFactory.getInstance().isMultitenant()) {
+            return repositoryId + "_" + this.tenantScopeFactory.getInstance().getTenantCode();
         } else {
             return repositoryId;
         }
@@ -263,7 +261,7 @@ public class EvaluatorServiceImpl implements EvaluatorService {
 
         for(EvaluatorSourceEntity evaluatorSource : this.getEvaluatorSources()){
 
-            String tenantCode = this.tenantScope.isSet() && this.tenantScope.isMultitenant() ? this.tenantScope.getTenantCode() : "";
+            String tenantCode = this.tenantScopeFactory.getInstance().isSet() && this.tenantScopeFactory.getInstance().isMultitenant() ? this.tenantScopeFactory.getInstance().getTenantCode() : "";
             EvaluatorConfigurationCacheService.EvaluatorConfigurationCacheValue cacheValue = this.evaluatorConfigurationCacheService.lookup(this.evaluatorConfigurationCacheService.buildKey(evaluatorSource.getEvaluatorId(), tenantCode));
 
             if(cacheValue == null){
@@ -287,8 +285,8 @@ public class EvaluatorServiceImpl implements EvaluatorService {
     }
 
     @Override
-    public RankResultModel rankPlan(UUID planId, String evaluatorId, String format, List<String> benchmarkIds, boolean isPublic) throws InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, InvalidApplicationException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException, IOException {
-        this.authorizationService.authorizeAtLeastOneForce(List.of(this.authorizationContentResolver.planAffiliation(planId)), Permission.EvaluatePlan);
+    public RankResultModel rankPlan(UUID planId, String evaluatorId, String format, List<String> benchmarkIds) throws InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, InvalidApplicationException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException, IOException {
+        this.authorizationService.authorizeAtLeastOneForce(List.of(this.authorizationContentResolverFactory.getInstance().planAffiliation(planId)), Permission.EvaluatePlan);
         EvaluatorClientImpl repository = this.getEvaluatorClient(evaluatorId);
 
         if(repository == null) throw new MyNotFoundException(this.messageSource.getMessage("General_ItemNotFound", new Object[]{format, EvaluatorClientImpl.class.getSimpleName()}, LocaleContextHolder.getLocale()));
@@ -296,10 +294,10 @@ public class EvaluatorServiceImpl implements EvaluatorService {
         PlanEntity planEntity = this.queryFactory.query(PlanQuery.class).disableTracking().ids(planId).first();
         if (planEntity == null) throw new MyNotFoundException(this.messageSource.getMessage("General_ItemNotFound", new Object[]{planId, PlanEntity.class.getSimpleName()}, LocaleContextHolder.getLocale()));
 
-        EvaluatorSourceEntity source = this.getEvaluatorSources().stream().filter(evaluatorSource -> !this.conventionService.isNullOrEmpty(evaluatorSource.getRdaTransformerId())).findFirst().orElse(null);
+        EvaluatorSourceEntity source = this.getEvaluatorSources().stream().filter(evaluatorSource -> evaluatorSource.getEvaluatorId().equals(evaluatorId)).findFirst().orElse(null);
         FileEnvelopeModel jsonEnvelope = new FileEnvelopeModel();
-        if (source != null) {
-            org.opencdmp.model.file.FileEnvelope rda = this.fileTransformerService.exportPlan(planId, source.getRdaTransformerId(), "json", isPublic);
+        if (source != null && !this.conventionService.isNullOrEmpty(source.getRdaTransformerId())) {
+            org.opencdmp.model.file.FileEnvelope rda = this.fileTransformerService.exportPlanInternal(planId, source.getRdaTransformerId(), "json");
             jsonEnvelope.setFilename(rda.getFilename());
             jsonEnvelope.setMimeType("application/json");
 
@@ -307,16 +305,13 @@ public class EvaluatorServiceImpl implements EvaluatorService {
             else jsonEnvelope.setFileRef(this.addFileToSharedStorage(rda));
         }
 
-        PlanModel evaluatorModel = this.builderFactory.builder(PlanCommonModelBuilder.class).useSharedStorage(repository.getConfiguration().isUseSharedStorage()).setEvaluatorId(repository.getConfiguration().getEvaluatorId()).setRepositoryId(source != null && !this.conventionService.isNullOrEmpty(source.getRdaTransformerId()) ? source.getRdaTransformerId() : null).isPublic(isPublic).setRdaJsonFile(jsonEnvelope).authorize(AuthorizationFlags.All).build(planEntity);
+        PlanModel evaluatorModel = this.builderFactory.builder(PlanCommonModelBuilder.class).useSharedStorage(repository.getConfiguration().isUseSharedStorage()).setEvaluatorId(repository.getConfiguration().getEvaluatorId()).setRepositoryId(source != null && !this.conventionService.isNullOrEmpty(source.getRdaTransformerId()) ? source.getRdaTransformerId() : null).isPublic(false).setRdaJsonFile(jsonEnvelope).authorize(AuthorizationFlags.All).build(planEntity);
         if(evaluatorModel == null) throw new MyNotFoundException(this.messageSource.getMessage("General_ItemNotFound", new Object[]{planId, Plan.class.getSimpleName()}, LocaleContextHolder.getLocale()));
-
-        this.accountingService.increase(UsageLimitTargetMetric.FILE_TRANSFORMER_EXPORT_PLAN_EXECUTION_COUNT.getValue());
-        this.increaseTargetMetricWithRepositoryId(UsageLimitTargetMetric.FILE_TRANSFORMER_EXPORT_PLAN_EXECUTION_COUNT_FOR, evaluatorId);
 
         RankResultModel rankModel = repository.rankPlan(new PlanEvaluationModel(evaluatorModel,benchmarkIds));
         this.increaseTargetMetricWithRepositoryId(UsageLimitTargetMetric.EVALUATION_PLAN_EXECUTION_COUNT_FOR, evaluatorId);
 
-        this.evaluationService.persistInternal(rankModel, repository.getConfiguration().getRankConfig(), planId, EntityType.Plan , evaluatorId, userScope.getUserId());
+        this.evaluationService.persistInternal(rankModel, repository.getConfiguration().getRankConfig(), planId, EntityType.Plan , evaluatorId, userScopeFactory.getInstance().getUserId());
 
         this.sendPlanNotification(planEntity, evaluatorId, rankModel, repository.getConfiguration().getRankConfig());
 
@@ -333,7 +328,7 @@ public class EvaluatorServiceImpl implements EvaluatorService {
         List<UserEntity> users = this.queryFactory.query(UserQuery.class).disableTracking().ids(planUsers.stream().map(PlanUserEntity::getUserId).collect(Collectors.toList())).isActive(IsActive.Active).collect();
 
         for (UserEntity user: users) {
-            if (!user.getId().equals(this.userScope.getUserIdSafe()) && !this.conventionService.isListNullOrEmpty(planUsers.stream().filter(x -> x.getUserId().equals(user.getId())).collect(Collectors.toList()))){
+            if (!user.getId().equals(this.userScopeFactory.getInstance().getUserIdSafe()) && !this.conventionService.isListNullOrEmpty(planUsers.stream().filter(x -> x.getUserId().equals(user.getId())).collect(Collectors.toList()))){
                 this.createPlanEvaluationNotificationEvent(planEntity, user, repositoryId, rankModel, rankConfig);
             }
         }
@@ -347,15 +342,15 @@ public class EvaluatorServiceImpl implements EvaluatorService {
         NotificationFieldData data = new NotificationFieldData();
         List<FieldInfo> fieldInfoList = new ArrayList<>();
         fieldInfoList.add(new FieldInfo("{recipient}", DataType.String, user.getName()));
-        fieldInfoList.add(new FieldInfo("{reasonName}", DataType.String, this.queryFactory.query(UserQuery.class).disableTracking().ids(this.userScope.getUserId()).first().getName()));
+        fieldInfoList.add(new FieldInfo("{reasonName}", DataType.String, this.queryFactory.query(UserQuery.class).disableTracking().ids(this.userScopeFactory.getInstance().getUserId()).first().getName()));
         fieldInfoList.add(new FieldInfo("{name}", DataType.String, plan.getLabel()));
         fieldInfoList.add(new FieldInfo("{id}", DataType.String, plan.getId().toString()));
         fieldInfoList.add(new FieldInfo("{evaluatorName}", DataType.String, repositoryId));
         fieldInfoList.add(new FieldInfo("{result}", DataType.String, this.applyRankResultString(rankConfig, rankModel.getRank())));
         fieldInfoList.add(new FieldInfo("{benchmarks}", DataType.String, this.applyBenchmarkTitle(rankConfig, rankModel)));
 
-        if(this.tenantScope.getTenantCode() != null && !this.tenantScope.getTenantCode().equals(this.tenantScope.getDefaultTenantCode())){
-            fieldInfoList.add(new FieldInfo("{tenant-url-path}", DataType.String, String.format("/t/%s", this.tenantScope.getTenantCode())));
+        if(this.tenantScopeFactory.getInstance().getTenantCode() != null && !this.tenantScopeFactory.getInstance().getTenantCode().equals(this.tenantScopeFactory.getInstance().getDefaultTenantCode())){
+            fieldInfoList.add(new FieldInfo("{tenant-url-path}", DataType.String, String.format("/t/%s", this.tenantScopeFactory.getInstance().getTenantCode())));
         }
         data.setFields(fieldInfoList);
         event.setData(this.jsonHandlingService.toJsonSafe(data));
@@ -418,7 +413,7 @@ public class EvaluatorServiceImpl implements EvaluatorService {
 
     @Override
     public RankResultModel rankDescription(UUID descriptionId, String repositoryId, String format, List<String> benchmarkIds, boolean isPublic) throws InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, InvalidApplicationException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException, IOException {
-        this.authorizationService.authorizeAtLeastOneForce(List.of(this.authorizationContentResolver.descriptionAffiliation(descriptionId)), Permission.EvaluateDescription);
+        this.authorizationService.authorizeAtLeastOneForce(List.of(this.authorizationContentResolverFactory.getInstance().descriptionAffiliation(descriptionId)), Permission.EvaluateDescription);
         EvaluatorClientImpl repository = this.getEvaluatorClient(repositoryId);
 
         if(repository == null) throw new MyNotFoundException(this.messageSource.getMessage("General_ItemNotFound", new Object[]{format, EvaluatorClientImpl.class.getSimpleName()}, LocaleContextHolder.getLocale()));
@@ -436,7 +431,7 @@ public class EvaluatorServiceImpl implements EvaluatorService {
         RankResultModel rankModel = repository.rankDescription(new DescriptionEvaluationModel(descriptionEvaluatorModel,benchmarkIds));
         this.increaseTargetMetricWithRepositoryId(UsageLimitTargetMetric.EVALUATION_DESCRIPTION_EXECUTION_COUNT_FOR, repositoryId);
 
-        this.evaluationService.persistInternal(rankModel, repository.getConfiguration().getRankConfig(), descriptionId, EntityType.Description , repositoryId, userScope.getUserId());
+        this.evaluationService.persistInternal(rankModel, repository.getConfiguration().getRankConfig(), descriptionId, EntityType.Description , repositoryId, userScopeFactory.getInstance().getUserId());
 
         this.sendDescriptionNotification(descriptionEntity, repositoryId, rankModel, repository.getConfiguration().getRankConfig());
 
@@ -452,7 +447,7 @@ public class EvaluatorServiceImpl implements EvaluatorService {
         List<UserEntity> users = this.queryFactory.query(UserQuery.class).disableTracking().ids(planUsers.stream().map(PlanUserEntity::getUserId).collect(Collectors.toList())).isActive(IsActive.Active).collect();
 
         for (UserEntity user: users) {
-            if (!user.getId().equals(this.userScope.getUserIdSafe()) && !this.conventionService.isListNullOrEmpty(planUsers.stream().filter(x -> x.getUserId().equals(user.getId())).collect(Collectors.toList()))){
+            if (!user.getId().equals(this.userScopeFactory.getInstance().getUserIdSafe()) && !this.conventionService.isListNullOrEmpty(planUsers.stream().filter(x -> x.getUserId().equals(user.getId())).collect(Collectors.toList()))){
                 this.createDescriptionEvaluationNotificationEvent(descriptionEntity, user, repositoryId, rankModel, rankConfig);
             }
         }
@@ -466,15 +461,15 @@ public class EvaluatorServiceImpl implements EvaluatorService {
         NotificationFieldData data = new NotificationFieldData();
         List<FieldInfo> fieldInfoList = new ArrayList<>();
         fieldInfoList.add(new FieldInfo("{recipient}", DataType.String, user.getName()));
-        fieldInfoList.add(new FieldInfo("{reasonName}", DataType.String, this.queryFactory.query(UserQuery.class).disableTracking().ids(this.userScope.getUserId()).first().getName()));
+        fieldInfoList.add(new FieldInfo("{reasonName}", DataType.String, this.queryFactory.query(UserQuery.class).disableTracking().ids(this.userScopeFactory.getInstance().getUserId()).first().getName()));
         fieldInfoList.add(new FieldInfo("{name}", DataType.String, description.getLabel()));
         fieldInfoList.add(new FieldInfo("{id}", DataType.String, description.getId().toString()));
         fieldInfoList.add(new FieldInfo("{evaluatorName}", DataType.String, repositoryId));
         fieldInfoList.add(new FieldInfo("{result}", DataType.String, this.applyRankResultString(rankConfig, rankModel.getRank())));
         fieldInfoList.add(new FieldInfo("{benchmarks}", DataType.String, this.applyBenchmarkTitle(rankConfig, rankModel)));
 
-        if(this.tenantScope.getTenantCode() != null && !this.tenantScope.getTenantCode().equals(this.tenantScope.getDefaultTenantCode())){
-            fieldInfoList.add(new FieldInfo("{tenant-url-path}", DataType.String, String.format("/t/%s", this.tenantScope.getTenantCode())));
+        if(this.tenantScopeFactory.getInstance().getTenantCode() != null && !this.tenantScopeFactory.getInstance().getTenantCode().equals(this.tenantScopeFactory.getInstance().getDefaultTenantCode())){
+            fieldInfoList.add(new FieldInfo("{tenant-url-path}", DataType.String, String.format("/t/%s", this.tenantScopeFactory.getInstance().getTenantCode())));
         }
         data.setFields(fieldInfoList);
         event.setData(this.jsonHandlingService.toJsonSafe(data));
@@ -498,12 +493,23 @@ public class EvaluatorServiceImpl implements EvaluatorService {
         });
     }
 
-    private static ExchangeFilterFunction logResponse() {
+    private ExchangeFilterFunction logResponse() {
         return ExchangeFilterFunction.ofResponseProcessor(response -> {
             if (response.statusCode().isError()) {
                 return response.mutate().build().bodyToMono(String.class)
                         .flatMap(body -> {
                             logger.error(new MapLogEntry("Response").And("method", response.request().getMethod().toString()).And("url", response.request().getURI()).And("status", response.statusCode().toString()).And("body", body));
+                            if (response.statusCode() == HttpStatus.BAD_REQUEST) {
+                                Map map = this.jsonHandlingService.fromJsonSafe(Map.class, body);
+                                if (map != null && map.containsKey("error")) {
+                                    Object error = map.get("error");
+                                    if (error instanceof String) {
+                                        return Mono.error(new MyValidationException(response.statusCode().value(), (String) error));
+                                    }
+                                    return Mono.error(new MyValidationException(response.statusCode().value(), this.jsonHandlingService.toJsonSafe(map.get("error"))));
+                                }
+
+                            }
                             return Mono.just(response);
                         });
             }
@@ -517,7 +523,7 @@ public class EvaluatorServiceImpl implements EvaluatorService {
         storageFilePersist.setName(FilenameUtils.removeExtension(file.getFilename()));
         storageFilePersist.setExtension(FilenameUtils.getExtension(file.getFilename()));
         storageFilePersist.setMimeType(URLConnection.guessContentTypeFromName(file.getFilename()));
-        storageFilePersist.setOwnerId(this.userScope.getUserIdSafe());
+        storageFilePersist.setOwnerId(this.userScopeFactory.getInstance().getUserIdSafe());
         storageFilePersist.setStorageType(StorageType.Temp);
         storageFilePersist.setLifetime(Duration.ofSeconds(this.storageFileProperties.getTempStoreLifetimeSeconds())); //TODO
         this.validatorFactory.validator(StorageFilePersist.StorageFilePersistValidator.class).validateForce(storageFilePersist);

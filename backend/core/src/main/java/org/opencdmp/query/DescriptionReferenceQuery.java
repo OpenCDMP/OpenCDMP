@@ -11,9 +11,9 @@ import jakarta.persistence.criteria.Predicate;
 import org.opencdmp.authorization.AuthorizationFlags;
 import org.opencdmp.authorization.Permission;
 import org.opencdmp.commons.enums.IsActive;
-import org.opencdmp.commons.scope.user.UserScope;
+import org.opencdmp.commons.scope.user.UserScopeFactory;
 import org.opencdmp.data.DescriptionReferenceEntity;
-import org.opencdmp.data.TenantEntityManager;
+import org.opencdmp.data.TenantEntityManagerFactory;
 import org.opencdmp.model.descriptionreference.DescriptionReference;
 import org.opencdmp.query.utils.QueryUtilsService;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
@@ -39,15 +39,15 @@ public class DescriptionReferenceQuery extends QueryBase<DescriptionReferenceEnt
 
     private EnumSet<AuthorizationFlags> authorize = EnumSet.of(AuthorizationFlags.None);
 
-    private final UserScope userScope;
+    private final UserScopeFactory userScopeFactory;
     private final AuthorizationService authService;
     private final QueryUtilsService queryUtilsService;
-    private final TenantEntityManager tenantEntityManager;
-    public DescriptionReferenceQuery(UserScope userScope, AuthorizationService authService, QueryUtilsService queryUtilsService, TenantEntityManager tenantEntityManager) {
-        this.userScope = userScope;
+    private final TenantEntityManagerFactory tenantEntityManagerFactory;
+    public DescriptionReferenceQuery(UserScopeFactory userScopeFactory, AuthorizationService authService, QueryUtilsService queryUtilsService, TenantEntityManagerFactory tenantEntityManagerFactory) {
+        this.userScopeFactory = userScopeFactory;
         this.authService = authService;
         this.queryUtilsService = queryUtilsService;
-	    this.tenantEntityManager = tenantEntityManager;
+	    this.tenantEntityManagerFactory = tenantEntityManagerFactory;
     }
 
     public DescriptionReferenceQuery ids(UUID value) {
@@ -142,7 +142,7 @@ public class DescriptionReferenceQuery extends QueryBase<DescriptionReferenceEnt
 
     @Override
     protected EntityManager entityManager(){
-        return this.tenantEntityManager.getEntityManager();
+        return this.tenantEntityManagerFactory.getInstance().getEntityManager();
     }
 
     @Override
@@ -163,13 +163,19 @@ public class DescriptionReferenceQuery extends QueryBase<DescriptionReferenceEnt
     @Override
     protected <X, Y> Predicate applyAuthZ(QueryContext<X, Y> queryContext) {
         if (this.authorize.contains(AuthorizationFlags.None)) return null;
-        if (this.authorize.contains(AuthorizationFlags.Permission) && this.authService.authorize(Permission.BrowseDescriptionReference)) return null;
+        if (this.authorize.contains(AuthorizationFlags.Permission) && this.authService.authorize(Permission.BrowseDescriptionReference)) {
+            return this.queryUtilsService.buildTenantFilter(queryContext.CriteriaBuilder, queryContext.Root.get(DescriptionReferenceEntity._tenantId));
+        }
         UUID userId = null;
         boolean usePublic = this.authorize.contains(AuthorizationFlags.Public);
-        if (this.authorize.contains(AuthorizationFlags.PlanAssociated)) userId = this.userScope.getUserIdSafe();
-        if (this.authorize.contains(AuthorizationFlags.Owner)) userId = this.userScope.getUserIdSafe();
+        if (this.authorize.contains(AuthorizationFlags.PlanAssociated)) userId = this.userScopeFactory.getInstance().getUserIdSafe();
+        if (this.authorize.contains(AuthorizationFlags.Owner)) userId = this.userScopeFactory.getInstance().getUserIdSafe();
 
         List<Predicate> predicates = new ArrayList<>();
+        if (!usePublic) {
+            Predicate predicateTenant = this.queryUtilsService.buildTenantFilter(queryContext.CriteriaBuilder, queryContext.Root.get(DescriptionReferenceEntity._tenantId));
+            if (predicateTenant != null) predicates.add(predicateTenant);
+        }
         if (userId != null || usePublic ) {
             predicates.add(queryContext.CriteriaBuilder.in(queryContext.Root.get(DescriptionReferenceEntity._descriptionId)).value(this.queryUtilsService.buildDescriptionAuthZSubQuery(queryContext.Query, queryContext.CriteriaBuilder, userId, usePublic)));
         }

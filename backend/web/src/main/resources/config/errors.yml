@@ -227,3 +227,27 @@ error-thesaurus:
   creatingPlanWithInactiveBlueprint:
     code: 179
     message: Cannot create new plan with inactive blueprint
+  invalidReferenceTypeImportXml:
+    code: 180
+    message: Invalid reference type id import xml
+  planUpdateRequestIsCompleted:
+    code: 181
+    message: Plan Update Request is Completed
+  planUpdateRequestInvalidActionType:
+    code: 182
+    message: Plan Update Request has invalid Action Type
+  planOwnerNotFound:
+    code: 183
+    message: Plan Owner for all sections not found
+  planBlueprintTypeCodeExists:
+    code: 184
+    message: Plan Blueprint type code exists
+  planBlueprintTypeImportNotFound:
+    code: 185
+    message: Plan Blueprint type not found
+  planBlueprintTypeImportDraft:
+    code: 186
+    message: Plan Blueprint type is not finalised
+  cannotMergeAccountWithSameEmail:
+    code: 187
+    message: Can not merge account with same email

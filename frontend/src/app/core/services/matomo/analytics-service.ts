@@ -2,6 +2,7 @@ import { Injectable } from "@angular/core";
 import { ConfigurationService } from "../configuration/configuration.service";
 import { MatomoService } from "./matomo-service";
 import { AnalyticsProviderType, AnalyticsProviders } from "@app/core/model/configuration-models/analytics-providers.model";
+import { ConsentType, CookieConsentService } from "../cookie-consent/cookieconsent.service";
 
 @Injectable()
 export class AnalyticsService {
@@ -63,10 +64,12 @@ export class AnalyticsService {
 
 	constructor(
 		private configurationService: ConfigurationService,
-		private matomoService: MatomoService
+		private matomoService: MatomoService,
+        private consentService: CookieConsentService
 	) { }
 
 	trackPageView(customTitle?: string): void {
+        if(!this.consentService.currentConsents()?.categories?.includes(ConsentType.Analytics)){ return; }
 		const analytics: AnalyticsProviders = this.configurationService.analyticsProviders;
 		for (let provider of analytics.providers) {
 			switch (provider.type) {
@@ -78,6 +81,7 @@ export class AnalyticsService {
 	}
 
 	trackSiteSearch(keyword: string, category?: string, resultsCount?: number): void {
+        if(!this.consentService.currentConsents()?.categories?.includes(ConsentType.Analytics)){ return; }
 		const analytics: AnalyticsProviders = this.configurationService.analyticsProviders;
 
 		for (let provider of analytics.providers) {
@@ -90,6 +94,7 @@ export class AnalyticsService {
 	}
 
 	trackDownload(category: string, type: string, id: string): void {
+        if(!this.consentService.currentConsents()?.categories?.includes(ConsentType.Analytics)){ return; }
 		const analytics: AnalyticsProviders = this.configurationService.analyticsProviders;
 
 		for (let provider of analytics.providers) {

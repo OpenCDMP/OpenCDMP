@@ -13,7 +13,7 @@ import org.opencdmp.commonmodels.models.description.FieldModel;
 import org.opencdmp.commonmodels.models.reference.ReferenceModel;
 import org.opencdmp.commons.enums.FieldType;
 import org.opencdmp.commons.enums.StorageType;
-import org.opencdmp.commons.scope.user.UserScope;
+import org.opencdmp.commons.scope.user.UserScopeFactory;
 import org.opencdmp.commons.types.description.FieldEntity;
 import org.opencdmp.convention.ConventionService;
 import org.opencdmp.data.ReferenceEntity;
@@ -51,18 +51,18 @@ public class FieldCommonModelBuilder extends BaseCommonModelBuilder<FieldModel, 
     private EnumSet<AuthorizationFlags> authorize = EnumSet.of(AuthorizationFlags.None);
     private org.opencdmp.commons.types.descriptiontemplate.FieldEntity fieldEntity;
     private final StorageFileService storageFileService;
-    private final UserScope userScope;
+    private final UserScopeFactory userScopeFactory;
     private final ValidatorFactory validatorFactory;
     private final StorageFileProperties storageFileProperties;
     @Autowired
     public FieldCommonModelBuilder(
-		    ConventionService conventionService, BuilderFactory builderFactory, QueryFactory queryFactory, StorageFileService storageFileService, UserScope userScope, ValidatorFactory validatorFactory, StorageFileProperties storageFileProperties
+            ConventionService conventionService, BuilderFactory builderFactory, QueryFactory queryFactory, StorageFileService storageFileService, UserScopeFactory userScopeFactory, ValidatorFactory validatorFactory, StorageFileProperties storageFileProperties
     ) {
         super(conventionService, new LoggerService(LoggerFactory.getLogger(FieldCommonModelBuilder.class)));
 	    this.builderFactory = builderFactory;
 	    this.queryFactory = queryFactory;
 	    this.storageFileService = storageFileService;
-	    this.userScope = userScope;
+	    this.userScopeFactory = userScopeFactory;
 	    this.validatorFactory = validatorFactory;
 	    this.storageFileProperties = storageFileProperties;
     }
@@ -147,7 +147,7 @@ public class FieldCommonModelBuilder extends BaseCommonModelBuilder<FieldModel, 
         storageFilePersist.setName(FilenameUtils.removeExtension(storageFile.getName()));
         storageFilePersist.setExtension(FilenameUtils.getExtension(storageFile.getExtension()));
         storageFilePersist.setMimeType(URLConnection.guessContentTypeFromName(storageFile.getName() + (storageFile.getExtension().startsWith(".") ? "" : ".") + storageFile.getExtension()));
-        storageFilePersist.setOwnerId(this.userScope.getUserIdSafe());
+        storageFilePersist.setOwnerId(this.userScopeFactory.getInstance().getUserIdSafe());
         storageFilePersist.setStorageType(StorageType.Temp);
         storageFilePersist.setLifetime(Duration.ofSeconds(this.storageFileProperties.getTempStoreLifetimeSeconds())); //TODO
         this.validatorFactory.validator(StorageFilePersist.StorageFilePersistValidator.class).validateForce(storageFilePersist);

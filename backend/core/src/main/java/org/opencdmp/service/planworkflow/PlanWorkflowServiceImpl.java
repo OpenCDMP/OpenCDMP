@@ -17,12 +17,12 @@ import org.opencdmp.authorization.AuthorizationFlags;
 import org.opencdmp.authorization.Permission;
 import org.opencdmp.commons.XmlHandlingService;
 import org.opencdmp.commons.enums.IsActive;
-import org.opencdmp.commons.scope.tenant.TenantScope;
+import org.opencdmp.commons.scope.tenant.TenantScopeFactory;
 import org.opencdmp.commons.types.planworkflow.PlanWorkflowDefinitionEntity;
 import org.opencdmp.commons.types.planworkflow.PlanWorkflowDefinitionTransitionEntity;
 import org.opencdmp.convention.ConventionService;
 import org.opencdmp.data.PlanWorkflowEntity;
-import org.opencdmp.data.TenantEntityManager;
+import org.opencdmp.data.TenantEntityManagerFactory;
 import org.opencdmp.errorcode.ErrorThesaurusProperties;
 import org.opencdmp.model.builder.planworkflow.PlanWorkflowBuilder;
 import org.opencdmp.model.deleter.PlanWorkflowDeleter;
@@ -50,24 +50,24 @@ public class PlanWorkflowServiceImpl implements PlanWorkflowService {
     private final AuthorizationService authorizationService;
     private final ConventionService conventionService;
     private final XmlHandlingService xmlHandlingService;
-    private final TenantEntityManager entityManager;
+    private final TenantEntityManagerFactory tenantEntityManagerFactory;
     private final BuilderFactory builderFactory;
     private final DeleterFactory deleterFactory;
     private final MessageSource messageSource;
     private final ErrorThesaurusProperties errors;
-    private final TenantScope tenantScope;
+    private final TenantScopeFactory tenantScopeFactory;
     private final QueryFactory queryFactory;
 
-    public PlanWorkflowServiceImpl(AuthorizationService authorizationService, ConventionService conventionService, XmlHandlingService xmlHandlingService, TenantEntityManager entityManager, BuilderFactory builderFactory, DeleterFactory deleterFactory, MessageSource messageSource, ErrorThesaurusProperties errors, TenantScope tenantScope, QueryFactory queryFactory) {
+    public PlanWorkflowServiceImpl(AuthorizationService authorizationService, ConventionService conventionService, XmlHandlingService xmlHandlingService, TenantEntityManagerFactory tenantEntityManagerFactory, BuilderFactory builderFactory, DeleterFactory deleterFactory, MessageSource messageSource, ErrorThesaurusProperties errors, TenantScopeFactory tenantScopeFactory, QueryFactory queryFactory) {
         this.authorizationService = authorizationService;
         this.conventionService = conventionService;
         this.xmlHandlingService = xmlHandlingService;
-        this.entityManager = entityManager;
+        this.tenantEntityManagerFactory = tenantEntityManagerFactory;
         this.builderFactory = builderFactory;
         this.deleterFactory = deleterFactory;
         this.messageSource = messageSource;
         this.errors = errors;
-        this.tenantScope = tenantScope;
+        this.tenantScopeFactory = tenantScopeFactory;
         this.queryFactory = queryFactory;
     }
 
@@ -81,7 +81,7 @@ public class PlanWorkflowServiceImpl implements PlanWorkflowService {
 
         PlanWorkflowEntity data;
         if (isUpdate) {
-            data = this.entityManager.find(PlanWorkflowEntity.class, model.getId());
+            data = this.tenantEntityManagerFactory.getInstance().find(PlanWorkflowEntity.class, model.getId());
             if (data == null) throw new MyNotFoundException(this.messageSource.getMessage("General_ItemNotFound", new Object[]{model.getId(), PlanWorkflow.class.getSimpleName()}, LocaleContextHolder.getLocale()));
             if (!this.conventionService.hashValue(data.getUpdatedAt()).equals(model.getHash())) throw new MyValidationException(this.errors.getHashConflict().getCode(), this.errors.getHashConflict().getMessage());
         } else {
@@ -97,11 +97,11 @@ public class PlanWorkflowServiceImpl implements PlanWorkflowService {
         data.setUpdatedAt(Instant.now());
 
         if (isUpdate)
-            this.entityManager.merge(data);
+            this.tenantEntityManagerFactory.getInstance().merge(data);
         else
-            this.entityManager.persist(data);
+            this.tenantEntityManagerFactory.getInstance().persist(data);
 
-        this.entityManager.flush();
+        this.tenantEntityManagerFactory.getInstance().flush();
 
         return this.builderFactory.builder(PlanWorkflowBuilder.class).build(BaseFieldSet.build(fields, PlanWorkflow._id), data);
     }
@@ -150,12 +150,12 @@ public class PlanWorkflowServiceImpl implements PlanWorkflowService {
     public PlanWorkflowDefinitionEntity getActiveWorkFlowDefinition() throws InvalidApplicationException {
 
         PlanWorkflowQuery query = this.queryFactory.query(PlanWorkflowQuery.class).disableTracking().authorize(AuthorizationFlags.AllExceptPublic).isActives(IsActive.Active);
-        if (this.tenantScope.isDefaultTenant()) query = query.tenantIsSet(false);
-        else query.tenantIsSet(true).tenantIds(this.tenantScope.getTenant());
+        if (this.tenantScopeFactory.getInstance().isDefaultTenant()) query = query.tenantIsSet(false);
+        else query.tenantIsSet(true).tenantIds(this.tenantScopeFactory.getInstance().getTenant());
 
         PlanWorkflowEntity entity = query.first();
 
-        if (entity == null && !this.tenantScope.isDefaultTenant()) {
+        if (entity == null && !this.tenantScopeFactory.getInstance().isDefaultTenant()) {
             query.clearTenantIds().tenantIsSet(false);
             entity = query.first();
         }

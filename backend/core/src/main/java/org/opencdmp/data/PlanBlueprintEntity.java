@@ -85,6 +85,11 @@ public class PlanBlueprintEntity extends TenantScopedBaseEntity {
 
     public static final String _description = "description";
 
+    @Column(name = "type", nullable = true)
+    private UUID typeId;
+
+    public static final String _typeId = "typeId";
+
     public UUID getId() {
         return this.id;
     }
@@ -179,5 +184,13 @@ public class PlanBlueprintEntity extends TenantScopedBaseEntity {
 
     public void setDescription(String description) {
         this.description = description;
+    }
+
+    public UUID getTypeId() {
+        return typeId;
+    }
+
+    public void setTypeId(UUID typeId) {
+        this.typeId = typeId;
     }
 }

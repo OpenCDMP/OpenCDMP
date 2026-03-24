@@ -1,0 +1,30 @@
+img.circle{
+    border-radius: 50%;
+}
+
+.user-logo{
+    width: 2.5rem;
+    height: 2.5rem;
+}
+.overflow-hidden {
+    overflow: hidden;
+}
+
+::ng-deep .wrap-tooltip .mat-mdc-tooltip-surface.mdc-tooltip__surface{
+    white-space: pre-line;
+}
+
+@for $i from 1 through 15 {
+    .active-user-#{$i} {
+        border-radius: 50%;
+        position: relative;
+        left: -#{8 * $i}px;
+        box-shadow: -3px 1px 4px #00000047;
+    }
+}
+
+.more-indicator {
+    color: var(--mat-sys-on-primary);
+    font-size: 2rem;
+    text-align: center;
+}

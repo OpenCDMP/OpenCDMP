@@ -30,6 +30,7 @@ public class SectionBuilder extends BaseBuilder<Section, SectionEntity> {
     private final BuilderFactory builderFactory;
     private final QueryFactory queryFactory;
     private EnumSet<AuthorizationFlags> authorize = EnumSet.of(AuthorizationFlags.None);
+    private boolean isPublic;
 
     @Autowired
     public SectionBuilder(
@@ -41,6 +42,11 @@ public class SectionBuilder extends BaseBuilder<Section, SectionEntity> {
 
     public SectionBuilder authorize(EnumSet<AuthorizationFlags> values) {
         this.authorize = values;
+        return this;
+    }
+
+    public SectionBuilder isPublic(boolean isPublic) {
+        this.isPublic = isPublic;
         return this;
     }
 
@@ -62,11 +68,11 @@ public class SectionBuilder extends BaseBuilder<Section, SectionEntity> {
             if (fields.hasField(this.asIndexer(Section._id))) m.setId(d.getId());
             if (fields.hasField(this.asIndexer(Section._label))) m.setLabel(d.getLabel());
             if (fields.hasField(this.asIndexer(Section._description))) m.setDescription(d.getDescription());
-            if (fields.hasField(this.asIndexer(Section._ordinal))) m.setOrdinal(d.getOrdinal());
+            if (!this.isPublic && fields.hasField(this.asIndexer(Section._ordinal))) m.setOrdinal(d.getOrdinal());
             if (fields.hasField(this.asIndexer(Section._hasTemplates))) m.setHasTemplates(d.getHasTemplates());
-            if (fields.hasField(this.asIndexer(Section._prefillingSourcesEnabled))) m.setPrefillingSourcesEnabled(d.getPrefillingSourcesEnabled());
-            if (fields.hasField(this.asIndexer(Section._canEditDescriptionTemplates))) m.setCanEditDescriptionTemplates(d.getCanEditDescriptionTemplates());
-            if (!descriptionTemplatesFields.isEmpty() && d.getDescriptionTemplates() != null) m.setDescriptionTemplates(this.builderFactory.builder(BlueprintDescriptionTemplateBuilder.class).authorize(this.authorize).build(descriptionTemplatesFields, d.getDescriptionTemplates()));
+            if (!this.isPublic && fields.hasField(this.asIndexer(Section._prefillingSourcesEnabled))) m.setPrefillingSourcesEnabled(d.getPrefillingSourcesEnabled());
+            if (!this.isPublic && fields.hasField(this.asIndexer(Section._canEditDescriptionTemplates))) m.setCanEditDescriptionTemplates(d.getCanEditDescriptionTemplates());
+            if (!this.isPublic && !descriptionTemplatesFields.isEmpty() && d.getDescriptionTemplates() != null) m.setDescriptionTemplates(this.builderFactory.builder(BlueprintDescriptionTemplateBuilder.class).authorize(this.authorize).build(descriptionTemplatesFields, d.getDescriptionTemplates()));
             if (!fieldsFields.isEmpty() && d.getFields() != null) {
                 m.setFields(new ArrayList<>());
                 List<SystemFieldEntity> systemFieldEntities = d.getFields().stream().filter(x-> PlanBlueprintFieldCategory.System.equals(x.getCategory())).map(x-> (SystemFieldEntity)x).toList();
@@ -78,7 +84,7 @@ public class SectionBuilder extends BaseBuilder<Section, SectionEntity> {
                 List<UploadFieldEntity> uploadFieldEntities = d.getFields().stream().filter(x-> PlanBlueprintFieldCategory.Upload.equals(x.getCategory())).map(x-> (UploadFieldEntity)x).toList();
                 m.getFields().addAll(this.builderFactory.builder(UploadFieldBuilder.class).authorize(this.authorize).build(fieldsFields, uploadFieldEntities));
             }
-            if (!prefillingSourcesFields.isEmpty() && d.getPrefillingSourcesIds() != null) {
+            if (!this.isPublic && !prefillingSourcesFields.isEmpty() && d.getPrefillingSourcesIds() != null) {
                 List<PrefillingSourceEntity> prefillingSourceEntities = this.queryFactory.query(PrefillingSourceQuery.class).disableTracking().authorize(this.authorize).ids(d.getPrefillingSourcesIds()).collectAs(prefillingSourcesFields);
                 m.setPrefillingSources(this.builderFactory.builder(PrefillingSourceBuilder.class).authorize(this.authorize).build(prefillingSourcesFields, prefillingSourceEntities));
             }

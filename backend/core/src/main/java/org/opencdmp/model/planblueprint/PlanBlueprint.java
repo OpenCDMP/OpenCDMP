@@ -3,6 +3,7 @@ package org.opencdmp.model.planblueprint;
 import org.opencdmp.commons.enums.PlanBlueprintStatus;
 import org.opencdmp.commons.enums.PlanBlueprintVersionStatus;
 import org.opencdmp.commons.enums.IsActive;
+import org.opencdmp.model.PlanBlueprintType;
 
 import java.time.Instant;
 import java.util.UUID;
@@ -20,6 +21,10 @@ public class PlanBlueprint {
     private String code;
 
     public final static String _code = "code";
+
+    private PlanBlueprintType type;
+
+    public final static String _type = "type";
 
     private Definition definition;
 
@@ -89,6 +94,14 @@ public class PlanBlueprint {
 
     public void setCode(String code) {
         this.code = code;
+    }
+
+    public PlanBlueprintType getType() {
+        return type;
+    }
+
+    public void setType(PlanBlueprintType type) {
+        this.type = type;
     }
 
     public Definition getDefinition() {

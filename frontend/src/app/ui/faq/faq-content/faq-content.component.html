@@ -1,7 +1,9 @@
 <div class="container-fluid">
-	<div class="row">
-		<div class="col-12 pr-0">
-			<iframe *ngIf="faqHTMLUrl" title="FAQ content" class="iframe" [src]="faqHTMLUrl"></iframe>
-		</div>
-	</div>
+  <div class="row">
+    <div class="col-12 pr-0">
+      @if (faqHTMLUrl) {
+        <iframe title="FAQ content" class="iframe" [src]="faqHTMLUrl"></iframe>
+      }
+    </div>
+  </div>
 </div>

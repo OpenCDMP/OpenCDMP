@@ -33,6 +33,8 @@ import { RouterUtilsService } from '@app/core/services/router/router-utils.servi
 import { FieldMappingFormGroup, ItemsFormGroup, StaticEditorModel, StaticOptionEditorModel } from '@app/ui/external-fetcher/external-fetcher-source-editor.model';
 import { ReferenceTypeTestDialogComponent } from '../reference-type-test-dialog/reference-type-test-dialog.component';
 import { ExternalFetcherBaseSourceConfigurationPersist } from '@app/core/model/external-fetcher/external-fetcher';
+import { SemanticsService } from '@app/core/services/semantic/semantics.service';
+import { COMMA, ENTER } from '@angular/cdk/keycodes';
 
 @Component({
     selector: 'app-reference-type-editor-component',
@@ -56,7 +58,8 @@ export class ReferenceTypeEditorComponent extends BaseEditor<ReferenceTypeEditor
 	sourceKeysMap: Map<Guid, string[]> = new Map<Guid, string[]>();
 
     prevFields: ReferenceTypeField[] = [];
-
+	readonly separatorKeysCodes: number[] = [ENTER, COMMA];
+	
 	protected get canDelete(): boolean {
 		return !this.isDeleted && !this.isNew && this.hasPermission(this.authService.permissionEnum.DeleteReferenceType) && this.editorModel.belongsToCurrentTenant != false;
 	}
@@ -95,6 +98,7 @@ export class ReferenceTypeEditorComponent extends BaseEditor<ReferenceTypeEditor
 		private referenceTypeEditorService: ReferenceTypeEditorService,
 		private titleService: Title,
 		protected routerUtils: RouterUtilsService,
+		public semanticsService: SemanticsService,
 	) {
 		const descriptionLabel: string = route.snapshot.data['entity']?.name;
 		if (descriptionLabel) {
@@ -373,7 +377,7 @@ export class ReferenceTypeEditorComponent extends BaseEditor<ReferenceTypeEditor
 	private getReferenceTypes(excludedId?: Guid): void {
 		let sourceKeys: string[] = [];
 
-		const lookup = ReferenceTypeService.DefaultReferenceTypeLookup();
+		const lookup = ReferenceTypeService.DefaultReferenceTypeLookup([IsActive.Active]);
 		if (excludedId) lookup.excludedIds = [excludedId];
 
 		this.referenceTypeService.query(lookup)

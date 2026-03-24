@@ -10,7 +10,7 @@ import jakarta.persistence.criteria.Predicate;
 import org.opencdmp.authorization.AuthorizationFlags;
 import org.opencdmp.commons.enums.IsActive;
 import org.opencdmp.commons.enums.UserDescriptionTemplateRole;
-import org.opencdmp.data.TenantEntityManager;
+import org.opencdmp.data.TenantEntityManagerFactory;
 import org.opencdmp.data.UserDescriptionTemplateEntity;
 import org.opencdmp.model.UserDescriptionTemplate;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
@@ -140,14 +140,14 @@ public class UserDescriptionTemplateQuery extends QueryBase<UserDescriptionTempl
 
     @Override
     protected EntityManager entityManager(){
-        return this.tenantEntityManager.getEntityManager();
+        return this.tenantEntityManagerFactory.getInstance().getEntityManager();
     }
 
 
-    private final TenantEntityManager tenantEntityManager;
+    private final TenantEntityManagerFactory tenantEntityManagerFactory;
     public UserDescriptionTemplateQuery(
-		    TenantEntityManager tenantEntityManager) {
-	    this.tenantEntityManager = tenantEntityManager;
+		    TenantEntityManagerFactory tenantEntityManagerFactory) {
+	    this.tenantEntityManagerFactory = tenantEntityManagerFactory;
     }
 
     @Override

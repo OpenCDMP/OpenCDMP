@@ -17,7 +17,7 @@ import org.opencdmp.commons.enums.EntityType;
 import org.opencdmp.commons.enums.IsActive;
 import org.opencdmp.convention.ConventionService;
 import org.opencdmp.data.EntityDoiEntity;
-import org.opencdmp.data.TenantEntityManager;
+import org.opencdmp.data.TenantEntityManagerFactory;
 import org.opencdmp.errorcode.ErrorThesaurusProperties;
 import org.opencdmp.event.EntityDoiTouchedEvent;
 import org.opencdmp.event.EventBroker;
@@ -41,7 +41,7 @@ public class EntityDoiServiceImpl implements EntityDoiService {
 
     private static final LoggerService logger = new LoggerService(LoggerFactory.getLogger(EntityDoiServiceImpl.class));
 
-    private final TenantEntityManager entityManager;
+    private final TenantEntityManagerFactory tenantEntityManagerFactory;
 
     private final AuthorizationService authorizationService;
 
@@ -59,7 +59,7 @@ public class EntityDoiServiceImpl implements EntityDoiService {
 
     @Autowired
     public EntityDoiServiceImpl(
-            TenantEntityManager entityManager,
+            TenantEntityManagerFactory tenantEntityManagerFactory,
             AuthorizationService authorizationService,
             DeleterFactory deleterFactory,
             BuilderFactory builderFactory,
@@ -67,7 +67,7 @@ public class EntityDoiServiceImpl implements EntityDoiService {
             ErrorThesaurusProperties errors,
             MessageSource messageSource,
             EventBroker eventBroker) {
-        this.entityManager = entityManager;
+        this.tenantEntityManagerFactory = tenantEntityManagerFactory;
         this.authorizationService = authorizationService;
         this.deleterFactory = deleterFactory;
         this.builderFactory = builderFactory;
@@ -86,7 +86,7 @@ public class EntityDoiServiceImpl implements EntityDoiService {
 
         EntityDoiEntity data;
         if (isUpdate) {
-            data = this.entityManager.find(EntityDoiEntity.class, model.getId());
+            data = this.tenantEntityManagerFactory.getInstance().find(EntityDoiEntity.class, model.getId());
             if (data == null) throw new MyNotFoundException(this.messageSource.getMessage("General_ItemNotFound", new Object[]{model.getId(), EntityDoi.class.getSimpleName()}, LocaleContextHolder.getLocale()));
             if (!this.conventionService.hashValue(data.getUpdatedAt()).equals(model.getHash())) throw new MyValidationException(this.errors.getHashConflict().getCode(), this.errors.getHashConflict().getMessage());
         } else {
@@ -102,11 +102,11 @@ public class EntityDoiServiceImpl implements EntityDoiService {
         data.setDoi(model.getDoi());
         data.setUpdatedAt(Instant.now());
         if (isUpdate)
-            this.entityManager.merge(data);
+            this.tenantEntityManagerFactory.getInstance().merge(data);
         else
-            this.entityManager.persist(data);
+            this.tenantEntityManagerFactory.getInstance().persist(data);
 
-        this.entityManager.flush();
+        this.tenantEntityManagerFactory.getInstance().flush();
 
         this.eventBroker.emit(new EntityDoiTouchedEvent(data.getId()));
         return this.builderFactory.builder(EntityDoiBuilder.class).authorize(AuthorizationFlags.AllExceptPublic).build(BaseFieldSet.build(fields, EntityDoi._id), data);

@@ -19,7 +19,7 @@
 	}
 
 	.hint {
-		font-size: var(--sys-title-small-size);
+		font-size: var(--mat-sys-title-small-size);
 		font-weight: 500;
 		color: var(--dark-text);
 		opacity: 0.81;
@@ -35,7 +35,7 @@
 
 	.select-role {
 		width: 50% !important;
-		font-size: var(--sys-title-small-size);
+		font-size: var(--mat-sys-title-small-size);
 		color: var(--gray);
 		height: min-content;
 		margin-right: 2rem;
@@ -75,7 +75,7 @@
 	}
 
 	:host ::ng-deep .invalid-email {
-		border: 1px solid var(--sys-error);
+		border: 1px solid var(--mat-sys-error);
 	}
 }
 

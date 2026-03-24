@@ -52,6 +52,7 @@ export class DescriptionListingItemComponent extends BaseComponent implements On
     @Input() statusStorageFile: SafeUrl;
 	@Input() orderedDescriptionPreferencesList:ReferenceType[] = [];
 	@Output() onClick: EventEmitter<Description> = new EventEmitter();
+    @Output() onRefresh: EventEmitter<void> = new EventEmitter();
 
 	isDraft: boolean;
 	isDeleted: boolean;
@@ -225,10 +226,7 @@ export class DescriptionListingItemComponent extends BaseComponent implements On
 	}
 
 	reloadPage(): void {
-		const path = this.location.path();
-		this.router.navigateByUrl('/reload', { skipLocationChange: true }).then(() => {
-			this.router.navigate([this.routerUtils.generateUrl(path)]);
-		});
+		this.onRefresh.emit();
 	}
 
 	onDeleteCallbackSuccess(): void {

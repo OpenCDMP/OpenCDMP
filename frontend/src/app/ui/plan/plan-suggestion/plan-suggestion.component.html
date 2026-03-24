@@ -1,0 +1,93 @@
+<mat-card class="plan-suggestion-card">
+
+  <mat-card-content>
+    @if (formGroup) {
+      <form [formGroup]="formGroup" class="plan-suggestion-form">
+        <!-- Blueprint Selection Section -->
+        <div class="form-section blueprint-section">
+          <h3 class="section-title">{{'PLAN-SUGGESTION.FIELDS.BLUEPRINT' | translate}}</h3>
+          <mat-form-field class="w-100" appearance="outline">
+            <mat-label>{{'PLAN-SUGGESTION.FIELDS.BLUEPRINT-PLACEHOLDER' | translate}}</mat-label>
+            <app-single-auto-complete
+              [required]="true"
+              [formControl]="formGroup.get('blueprintId')"
+              placeholder="{{'PLAN-SUGGESTION.FIELDS.BLUEPRINT-PLACEHOLDER' | translate}}"
+              [configuration]="planBlueprintService.singleAutocompleteBlueprintConfiguration"
+              (optionSelected)="selectedBlueprintChanged($event)">
+            </app-single-auto-complete>
+          </mat-form-field>
+        </div>
+        <!-- Descriptions Section -->
+        @if (formGroup.get('blueprintId').value && formGroup.get('descriptions').value) {
+          <div class="form-section descriptions-section">
+            <h3 class="section-title">{{'PLAN-SUGGESTION.FIELDS.DESCRIPTIONS' | translate}}</h3>
+            @for (description of formGroup.get('descriptions').controls; track description; let descriptionIndex = $index) {
+              <div class="description-item">
+                @if (description.get('label').value) {
+                  <div class="description-header">
+                    <h4 class="description-label">
+                      <mat-icon class="description-icon">description</mat-icon>
+                      {{ description.get('label').value }}
+                    </h4>
+                  </div>
+                }
+                <div class="description-fields">
+                  <mat-form-field class="w-100" appearance="outline">
+                    <mat-label>{{'PLAN-SUGGESTION.FIELDS.DESCRIPTION-TEMPLATE' | translate}}</mat-label>
+                    <app-single-auto-complete
+                      required="true"
+                      placeholder="{{'PLAN-SUGGESTION.FIELDS.DESCRIPTION-TEMPLATE-PLACHOLDER' | translate}}"
+                      [formControl]="description.get('templateId')"
+                      (optionActionClicked)="onPreviewDescriptionTemplate($event, descriptionIndex)"
+                      [configuration]="descriptionTemplateSingleAutocompleteConfiguration">
+                    </app-single-auto-complete>
+                    @if (description.get('templateId').hasError('backendError')) {
+                      <mat-error>
+                        {{description.get('templateId').getError('backendError').message}}
+                      </mat-error>
+                    }
+                    @if (description.get('templateId').hasError('required')) {
+                      <mat-error>
+                        {{'GENERAL.VALIDATION.REQUIRED' | translate}}
+                      </mat-error>
+                    }
+                  </mat-form-field>
+                  <mat-form-field class="w-100" appearance="outline">
+                    <mat-label>{{'PLAN-SUGGESTION.FIELDS.SECTION' | translate}}</mat-label>
+                    <mat-select
+                      [formControl]="description.get('sectionId')"
+                      placeholder="{{'PLAN-SUGGESTION.FIELDS.SECTION-PLACEHOLDER' | translate}}"
+                      required="true">
+                      @for (section of selectedBlueprintSections; track section) {
+                        <mat-option [value]="section.id">
+                          <span class="section-option-label">{{ section.label }}</span>
+                        </mat-option>
+                      }
+                    </mat-select>
+                    @if (description.get('sectionId').hasError('required')) {
+                      <mat-error>
+                        {{'GENERAL.VALIDATION.REQUIRED' | translate}}
+                      </mat-error>
+                    }
+                  </mat-form-field>
+                </div>
+              </div>
+            }
+          </div>
+        }
+      </form>
+    }
+  </mat-card-content>
+
+  <!-- Card Actions -->
+  @if (formGroup) {
+    <mat-card-actions>
+      <div class="form-actions">
+        <button mat-flat-button (click)="confirm()" [disabled]="!formGroup.valid">
+          {{'PLAN-SUGGESTION.ACTIONS.PROCEED' | translate}}
+          <mat-icon iconPositionEnd>chevron_right</mat-icon>
+        </button>
+      </div>
+    </mat-card-actions>
+  }
+</mat-card>

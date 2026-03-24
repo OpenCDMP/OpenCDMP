@@ -28,7 +28,7 @@ import org.opencdmp.audit.AuditableAction;
 import org.opencdmp.authorization.AffiliatedResource;
 import org.opencdmp.authorization.AuthorizationFlags;
 import org.opencdmp.authorization.Permission;
-import org.opencdmp.authorization.authorizationcontentresolver.AuthorizationContentResolver;
+import org.opencdmp.authorization.authorizationcontentresolver.AuthorizationContentResolverFactory;
 import org.opencdmp.commons.enums.LockTargetType;
 import org.opencdmp.controllers.swagger.SwaggerHelpers;
 import org.opencdmp.controllers.swagger.annotation.OperationWithTenantHeader;
@@ -86,7 +86,7 @@ public class LockController {
 
     private final AuthorizationService authService;
 
-    private final AuthorizationContentResolver authorizationContentResolver;
+    private final AuthorizationContentResolverFactory authorizationContentResolverFactory;
 
     @Autowired
     public LockController(BuilderFactory builderFactory,
@@ -94,7 +94,7 @@ public class LockController {
                           LockService lockService,
                           CensorFactory censorFactory,
                           QueryFactory queryFactory,
-                          MessageSource messageSource, AuthorizationService authService, AuthorizationContentResolver authorizationContentResolver) {
+                          MessageSource messageSource, AuthorizationService authService, AuthorizationContentResolverFactory authorizationContentResolverFactory) {
         this.builderFactory = builderFactory;
         this.auditService = auditService;
         this.lockService = lockService;
@@ -102,7 +102,7 @@ public class LockController {
         this.queryFactory = queryFactory;
         this.messageSource = messageSource;
         this.authService = authService;
-        this.authorizationContentResolver = authorizationContentResolver;
+        this.authorizationContentResolverFactory = authorizationContentResolverFactory;
     }
 
     @PostMapping("query")
@@ -264,9 +264,9 @@ public class LockController {
             @Parameter(name = "id", description = "The target id to be locked", example = "c0c163dc-2965-45a5-9608-f76030578609", required = true) @PathVariable("id") UUID targetId,
             @Parameter(name = "targetType", description = "The target type to be locked", example = "0", required = true) @PathVariable("targetType") int targetType
     ) throws Exception {
-        AffiliatedResource affiliatedResourcePlan = this.authorizationContentResolver.planAffiliation(targetId);
-        AffiliatedResource affiliatedResourceDescription = this.authorizationContentResolver.descriptionAffiliation(targetId);
-        AffiliatedResource affiliatedResourceDescriptionTemplate = this.authorizationContentResolver.descriptionTemplateAffiliation(targetId);
+        AffiliatedResource affiliatedResourcePlan = this.authorizationContentResolverFactory.getInstance().planAffiliation(targetId);
+        AffiliatedResource affiliatedResourceDescription = this.authorizationContentResolverFactory.getInstance().descriptionAffiliation(targetId);
+        AffiliatedResource affiliatedResourceDescriptionTemplate = this.authorizationContentResolverFactory.getInstance().descriptionTemplateAffiliation(targetId);
         this.authService.authorizeAtLeastOneForce(List.of(affiliatedResourcePlan, affiliatedResourceDescription, affiliatedResourceDescriptionTemplate), Permission.EditLock);
 
         this.lockService.lock(targetId, LockTargetType.of((short) targetType));
@@ -289,9 +289,9 @@ public class LockController {
             @Parameter(name = "id", description = "The target id to be checked and locked", example = "c0c163dc-2965-45a5-9608-f76030578609", required = true) @PathVariable("id") UUID targetId,
             @Parameter(name = "targetType", description = "The type of target ", example = "0", required = true) @PathVariable("targetType") int targetType
     ) throws Exception {
-        AffiliatedResource affiliatedResourcePlan = this.authorizationContentResolver.planAffiliation(targetId);
-        AffiliatedResource affiliatedResourceDescription = this.authorizationContentResolver.descriptionAffiliation(targetId);
-        AffiliatedResource affiliatedResourceDescriptionTemplate = this.authorizationContentResolver.descriptionTemplateAffiliation(targetId);
+        AffiliatedResource affiliatedResourcePlan = this.authorizationContentResolverFactory.getInstance().planAffiliation(targetId);
+        AffiliatedResource affiliatedResourceDescription = this.authorizationContentResolverFactory.getInstance().descriptionAffiliation(targetId);
+        AffiliatedResource affiliatedResourceDescriptionTemplate = this.authorizationContentResolverFactory.getInstance().descriptionTemplateAffiliation(targetId);
         this.authService.authorizeAtLeastOneForce(List.of(affiliatedResourcePlan, affiliatedResourceDescription, affiliatedResourceDescriptionTemplate), Permission.EditLock);
 
         boolean result = this.lockService.checkLock(targetId, LockTargetType.of((short) targetType));
@@ -313,9 +313,9 @@ public class LockController {
     public boolean touch(
             @Parameter(name = "id", description = "The target id to be touched", example = "c0c163dc-2965-45a5-9608-f76030578609", required = true) @PathVariable("id") UUID targetId
     ) throws Exception {
-        AffiliatedResource affiliatedResourcePlan = this.authorizationContentResolver.planAffiliation(targetId);
-        AffiliatedResource affiliatedResourceDescription = this.authorizationContentResolver.descriptionAffiliation(targetId);
-        AffiliatedResource affiliatedResourceDescriptionTemplate = this.authorizationContentResolver.descriptionTemplateAffiliation(targetId);
+        AffiliatedResource affiliatedResourcePlan = this.authorizationContentResolverFactory.getInstance().planAffiliation(targetId);
+        AffiliatedResource affiliatedResourceDescription = this.authorizationContentResolverFactory.getInstance().descriptionAffiliation(targetId);
+        AffiliatedResource affiliatedResourceDescriptionTemplate = this.authorizationContentResolverFactory.getInstance().descriptionTemplateAffiliation(targetId);
         this.authService.authorizeAtLeastOneForce(List.of(affiliatedResourcePlan, affiliatedResourceDescription, affiliatedResourceDescriptionTemplate), Permission.EditLock);
 
         this.lockService.touch(targetId);
@@ -337,9 +337,9 @@ public class LockController {
     public boolean unlock(
             @Parameter(name = "id", description = "The target id to be unlocked", example = "c0c163dc-2965-45a5-9608-f76030578609", required = true) @PathVariable("id") UUID targetId
     ) throws Exception {
-        AffiliatedResource affiliatedResourcePlan = this.authorizationContentResolver.planAffiliation(targetId);
-        AffiliatedResource affiliatedResourceDescription = this.authorizationContentResolver.descriptionAffiliation(targetId);
-        AffiliatedResource affiliatedResourceDescriptionTemplate = this.authorizationContentResolver.descriptionTemplateAffiliation(targetId);
+        AffiliatedResource affiliatedResourcePlan = this.authorizationContentResolverFactory.getInstance().planAffiliation(targetId);
+        AffiliatedResource affiliatedResourceDescription = this.authorizationContentResolverFactory.getInstance().descriptionAffiliation(targetId);
+        AffiliatedResource affiliatedResourceDescriptionTemplate = this.authorizationContentResolverFactory.getInstance().descriptionTemplateAffiliation(targetId);
         this.authService.authorizeAtLeastOneForce(List.of(affiliatedResourcePlan, affiliatedResourceDescription, affiliatedResourceDescriptionTemplate), Permission.EditLock);
 
         this.lockService.unlock(targetId);

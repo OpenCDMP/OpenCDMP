@@ -14,12 +14,17 @@
                             [matTooltip]="_canRemoveItemMessage(getSelectedItem(value)) | translate"
                             (removed)="_removeSelectedItem(getSelectedItem(value))"
                         >
-							<ng-container *ngIf="getSelectedItem(value) as selectedItem;">
-								<ng-template #cellTemplate *ngIf="_selectedValueTemplate(selectedItem)" [ngTemplateOutlet]="_selectedValueTemplate(selectedItem)" [ngTemplateOutletContext]="{
-							item: selectedItem
-						}" />
-								<span *ngIf="!_selectedValueTemplate(selectedItem)" class="chip-text" [title]="_displayFn(selectedItem)">{{_displayFn(selectedItem)}}</span>
-							</ng-container>
+							<div class=" d-flex align-items-center">
+								<ng-container *ngIf="getSelectedItem(value) as selectedItem;">
+									<ng-template #cellTemplate *ngIf="_selectedValueTemplate(selectedItem)" [ngTemplateOutlet]="_selectedValueTemplate(selectedItem)" [ngTemplateOutletContext]="{
+										item: selectedItem
+									}" />
+									<span *ngIf="!_selectedValueTemplate(selectedItem)" class="chip-text" [title]="_displayFn(selectedItem)">{{_displayFn(selectedItem)}}</span>
+								</ng-container>
+								<button mat-icon-button class="popup-icon always-enabled" *ngIf="popupSelectedItemActionIcon" (click)="_selectedItemOptionActionClicked(getSelectedItem(value), $event)" [disabled]="isPopupSelectedItemActionIconDisabled">
+									<mat-icon aria-hidden>{{popupSelectedItemActionIcon}}</mat-icon>
+								</button>
+							</div>
 							<button matChipRemove *ngIf="!disabled && _canRemoveItem(getSelectedItem(value))" [attr.aria-label]="'COMMONS.ACTIONS.REMOVE' | translate">
 								<mat-icon>cancel</mat-icon>
 							</button>
@@ -32,7 +37,7 @@
 			</div>
 			<mat-autocomplete #autocomplete="matAutocomplete" [displayWith]="_displayFn.bind(this)" (optionSelected)="_optionSelected($event)" [classList]="['myClass']">
 				<div (mouseover)="isMouseOverPanel=true" (mouseout)="isMouseOverPanel=false">
-					<span *ngIf="_groupedItems">
+                    @if(_groupedItems){
 						<mat-optgroup *ngFor="let group of _groupedItems | async" [label]="group.title">
 							<mat-option *ngFor="let item of group.items" [value]="item" class="option autocomplete-option" [class.two-line-mat-option]="_subtitleFn(item) && !_optionTemplate(item) && !_optionComponent(item)">
 								<ng-container *ngIf="_optionComponent(item)">
@@ -62,8 +67,7 @@
 								</div>
 							</mat-option>
 						</mat-optgroup>
-					</span>
-					<span *ngIf="!_groupedItems">
+                    }@else{
 						<div *ngIf="_items | async as autocompleteItems; else loading">
 							<ng-container *ngIf="autocompleteItems.length; else noItems">
 								<mat-option *ngFor="let item of autocompleteItems" class="option autocomplete-option" [value]="item" [class.two-line-mat-option]="_subtitleFn(item) && !_optionTemplate(item) && !_optionComponent(item)" (optionActivated)="clickedOnPanel()">
@@ -92,7 +96,7 @@
 						<ng-template #loading>
 							<mat-option *ngIf="loadDataOnStart || (!loadDataOnStart && inputValue?.length >= minFilteringChars)" disabled="true">{{'GENERAL.AUTO-CONPLETE.LOADING' | translate}}</mat-option>
 						</ng-template>
-					</span>
+                    }
 				</div>
 			</mat-autocomplete>
 		</div>

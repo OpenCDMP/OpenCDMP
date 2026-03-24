@@ -8,7 +8,7 @@ import gr.cite.tools.fieldset.FieldSet;
 import gr.cite.tools.logging.DataLogEntry;
 import gr.cite.tools.logging.LoggerService;
 import org.opencdmp.authorization.AuthorizationFlags;
-import org.opencdmp.commons.scope.tenant.TenantScope;
+import org.opencdmp.commons.scope.tenant.TenantScopeFactory;
 import org.opencdmp.convention.ConventionService;
 import org.opencdmp.data.UserDescriptionTemplateEntity;
 import org.opencdmp.model.UserDescriptionTemplate;
@@ -33,15 +33,15 @@ public class UserDescriptionTemplateBuilder extends BaseBuilder<UserDescriptionT
     private EnumSet<AuthorizationFlags> authorize = EnumSet.of(AuthorizationFlags.None);
     private final QueryFactory queryFactory;
     private final BuilderFactory builderFactory;
-    private final TenantScope tenantScope;
+    private final TenantScopeFactory tenantScopeFactory;
     
     @Autowired
     public UserDescriptionTemplateBuilder(
-		    ConventionService conventionService, QueryFactory queryFactory, BuilderFactory builderFactory, TenantScope tenantScope) {
+		    ConventionService conventionService, QueryFactory queryFactory, BuilderFactory builderFactory, TenantScopeFactory tenantScopeFactory) {
         super(conventionService, new LoggerService(LoggerFactory.getLogger(UserDescriptionTemplateBuilder.class)));
         this.queryFactory = queryFactory;
         this.builderFactory = builderFactory;
-	    this.tenantScope = tenantScope;
+	    this.tenantScopeFactory = tenantScopeFactory;
     }
 
     public UserDescriptionTemplateBuilder authorize(EnumSet<AuthorizationFlags> values) {
@@ -71,7 +71,7 @@ public class UserDescriptionTemplateBuilder extends BaseBuilder<UserDescriptionT
             if (fields.hasField(this.asIndexer(UserDescriptionTemplate._isActive))) m.setIsActive(d.getIsActive());
             if (fields.hasField(this.asIndexer(UserDescriptionTemplate._role))) m.setRole(d.getRole());
             if (fields.hasField(this.asIndexer(UserDescriptionTemplate._hash))) m.setHash(this.hashValue(d.getUpdatedAt()));
-            if (fields.hasField(this.asIndexer(UserDescriptionTemplate._belongsToCurrentTenant))) m.setBelongsToCurrentTenant(this.getBelongsToCurrentTenant(d, this.tenantScope));
+            if (fields.hasField(this.asIndexer(UserDescriptionTemplate._belongsToCurrentTenant))) m.setBelongsToCurrentTenant(this.getBelongsToCurrentTenant(d, this.tenantScopeFactory.getInstance()));
             if (!descriptionTemplateFields.isEmpty() && descriptionTemplateMap != null && descriptionTemplateMap.containsKey(d.getDescriptionTemplateId())) m.setDescriptionTemplate(descriptionTemplateMap.get(d.getDescriptionTemplateId()));
             if (!userFields.isEmpty() && userItemsMap != null && userItemsMap.containsKey(d.getUserId())) m.setUser(userItemsMap.get(d.getUserId()));
             models.add(m);

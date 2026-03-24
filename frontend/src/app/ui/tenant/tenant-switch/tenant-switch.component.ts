@@ -7,6 +7,7 @@ import { TenantHandlingService } from "@app/core/services/tenant/tenant-handling
 import { BaseComponent } from "@common/base/base.component";
 import { BaseHttpParams } from "@common/http/base-http-params";
 import { InterceptorType } from "@common/http/interceptors/interceptor-type";
+import { LangChangeEvent, TranslateService } from "@ngx-translate/core";
 import { Observable } from "rxjs";
 
 @Component({
@@ -19,9 +20,10 @@ export class TenantSwitchComponent extends BaseComponent implements OnInit {
 	tenants: Observable<Array<Tenant>>;
 
 	constructor(
-		private principalService: PrincipalService,
+		public principalService: PrincipalService,
 		private authService: AuthService,
-		private tenantHandlingService: TenantHandlingService
+		private tenantHandlingService: TenantHandlingService,
+		private translate: TranslateService,
 	) {
 		super();
 	}
@@ -31,6 +33,11 @@ export class TenantSwitchComponent extends BaseComponent implements OnInit {
 	}
 
 	ngOnInit() {
+
+		this.translate.onLangChange.subscribe((event: LangChangeEvent) => {
+			this.tenants = this.loadUserTenants();
+		});
+
 		this.tenants = this.loadUserTenants();
 	}
 
@@ -39,7 +46,7 @@ export class TenantSwitchComponent extends BaseComponent implements OnInit {
 		params.interceptorContext = {
 			excludedInterceptors: [InterceptorType.TenantHeaderInterceptor]
 		};
-		return this.principalService.myTenants({ params: params });
+		return this.principalService.myTenantsTranslated({ params: params });
 	}
 
 	onTenantSelected(selectedTenant: MatButtonToggleChange) {

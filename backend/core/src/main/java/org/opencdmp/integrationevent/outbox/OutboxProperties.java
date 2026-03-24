@@ -46,22 +46,25 @@ public class OutboxProperties {
 
 	private final String generateFileTopic;
 
+	private final String planTouchTopic;
+	private final String planRemovalTopic;
+
 	public OutboxProperties(String exchange, int handleAckRetries, int handleNackRetries, int handleAckWaitInMilliSeconds, int handleNackWaitInMilliSeconds,
-                            String tenantDefaultLocaleRemovalTopic,
-                            String tenantDefaultLocaleTouchedTopic,
-                            String tenantTouchTopic,
-                            String tenantRemovalTopic,
-                            String tenantReactivationTopic,
-                            String tenantUserInviteTopic,
-                            String userRemovalTopic,
-                            String userTouchTopic,
-                            String annotationEntitiesTouchTopic,
-                            String annotationEntitiesRemovalTopic,
-                            String notifyTopic,
-                            String forgetMeCompletedTopic,
-                            String whatYouKnowAboutMeCompletedTopic,
-                            String accountingEntryCreatedTopic, String indicatorPointTopic, String indicatorTopic, String indicatorResetTopic, String indicatorAccessTopic, String generateFileTopic
-	) {
+							String tenantDefaultLocaleRemovalTopic,
+							String tenantDefaultLocaleTouchedTopic,
+							String tenantTouchTopic,
+							String tenantRemovalTopic,
+							String tenantReactivationTopic,
+							String tenantUserInviteTopic,
+							String userRemovalTopic,
+							String userTouchTopic,
+							String annotationEntitiesTouchTopic,
+							String annotationEntitiesRemovalTopic,
+							String notifyTopic,
+							String forgetMeCompletedTopic,
+							String whatYouKnowAboutMeCompletedTopic,
+							String accountingEntryCreatedTopic, String indicatorPointTopic, String indicatorTopic, String indicatorResetTopic, String indicatorAccessTopic, String generateFileTopic, String planTouchTopic, String planRemovalTopic
+    ) {
 		this.exchange = exchange;
 		this.handleAckRetries = handleAckRetries;
 		this.handleNackRetries = handleNackRetries;
@@ -86,7 +89,9 @@ public class OutboxProperties {
         this.indicatorResetTopic = indicatorResetTopic;
         this.indicatorAccessTopic = indicatorAccessTopic;
         this.generateFileTopic = generateFileTopic;
-	}
+        this.planTouchTopic = planTouchTopic;
+        this.planRemovalTopic = planRemovalTopic;
+    }
 
 	public String getExchange() {
 		return this.exchange;
@@ -182,5 +187,13 @@ public class OutboxProperties {
 
 	public String getIndicatorAccessTopic() {
 		return indicatorAccessTopic;
+	}
+
+	public String getPlanTouchTopic() {
+		return planTouchTopic;
+	}
+
+	public String getPlanRemovalTopic() {
+		return planRemovalTopic;
 	}
 }

@@ -1,6 +1,7 @@
 package org.opencdmp.model.builder.commonmodels.reference;
 
 import org.opencdmp.authorization.AuthorizationFlags;
+import org.opencdmp.commonmodels.enums.ReferenceTypeFieldDataType;
 import org.opencdmp.commonmodels.models.reference.ReferenceFieldModel;
 import org.opencdmp.commons.types.reference.FieldEntity;
 import org.opencdmp.convention.ConventionService;
@@ -45,6 +46,12 @@ public class ReferenceFieldCommonModelBuilder extends BaseCommonModelBuilder<Ref
         for (FieldEntity d : data) {
             ReferenceFieldModel m = new ReferenceFieldModel();
             m.setCode(d.getCode());
+            switch (d.getDataType()){
+                case Text -> m.setDataType(ReferenceTypeFieldDataType.Text);
+                case Date -> m.setDataType(ReferenceTypeFieldDataType.Date);
+                case null -> m.setDataType(null);
+                default -> throw new MyApplicationException("unrecognized type " + d.getDataType());
+            }
             m.setValue(d.getValue());
 
             models.add(new CommonModelBuilderItemResponse<>(m, d));

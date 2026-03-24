@@ -7,17 +7,13 @@
     "sourceMap": true,
     "declaration": false,
     "module": "es2020",
-    "moduleResolution": "node",
+    "moduleResolution": "bundler",
     "experimentalDecorators": true,
     "importHelpers": true,
     "skipLibCheck": true,
     "target": "ES2022",
     "typeRoots": [
       "node_modules/@types"
-    ],
-    "lib": [
-      "es2018",
-      "dom"
     ],
     "paths": {
       "@app/*": [
@@ -26,10 +22,10 @@
       "@common/*": [
         "./common/*"
       ],
-      "@annotation-service/*":[
+      "@annotation-service/*": [
         "./annotation-service/*"
       ],
-      "@notification-service/*":[
+      "@notification-service/*": [
         "./notification-service/*"
       ]
     },

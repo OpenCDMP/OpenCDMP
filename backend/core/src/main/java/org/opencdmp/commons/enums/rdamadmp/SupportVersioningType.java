@@ -1,0 +1,44 @@
+package org.opencdmp.commons.enums.rdamadmp;
+
+import com.fasterxml.jackson.annotation.JsonValue;
+import gr.cite.tools.exception.MyApplicationException;
+import org.opencdmp.commons.enums.EnumUtils;
+import org.opencdmp.data.converters.enums.DatabaseEnum;
+
+import java.util.HashMap;
+import java.util.Map;
+
+public enum SupportVersioningType implements DatabaseEnum<String> {
+
+    YES("yes"),
+    NO("no"),
+    UNKNOWN("unknown");
+    private final String value;
+    private final static Map<String, SupportVersioningType> CONSTANTS = new HashMap<String, SupportVersioningType>();
+
+    SupportVersioningType(String value) {
+        this.value = value;
+    }
+
+    @Override
+    @JsonValue
+    public String getValue() {
+        return this.value;
+    }
+
+    private static final Map<String, SupportVersioningType> map = EnumUtils.getEnumValueMap(SupportVersioningType.class);
+
+    public static SupportVersioningType of(String i) {
+        return map.get(i);
+    }
+
+    public static SupportVersioningType fromValue(String value) {
+        SupportVersioningType constant = CONSTANTS.get(value);
+        if (constant == null) {
+            throw new MyApplicationException(value);
+        } else {
+            return constant;
+        }
+    }
+
+}

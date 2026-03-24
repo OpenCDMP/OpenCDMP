@@ -1,25 +1,28 @@
+dmp-frontend/.vscode/
+dmp-frontend/.nx/
+
+# IDE
 .idea/
 *.iml
-backend/web/target/
-*.class
-*.tar
-*.gz
-final/
-temp/
-*.jar
-*.lst
-*.docx
-
-backend/logging/target/
-
-# Eclipse
 .project
 .settings/
-bin/
-*.classpath
 .run
+*.classpath
+
+# Build output
+*.class
+*.jar
+*.tar
+*.gz
+*.lst
+bin/
+final/
+temp/
 logs/
-storage/
-backend/target/classes/
-backend/core/target/maven-archiver/
-backend/node_modules/.yarn-integrity
+/storage/
+
+# Backend build
+backend/**/target/
+
+# Other
+deployment/storage/

@@ -8,18 +8,15 @@ import gr.cite.tools.logging.LoggerService;
 import org.jetbrains.annotations.NotNull;
 import org.opencdmp.authorization.AuthorizationFlags;
 import org.opencdmp.commons.enums.*;
-import org.opencdmp.commons.scope.user.UserScope;
 import org.opencdmp.commons.types.pluginconfiguration.PluginConfigurationEntity;
 import org.opencdmp.commons.types.pluginconfiguration.PluginConfigurationFieldEntity;
 import org.opencdmp.commons.types.pluginconfiguration.PluginConfigurationUserEntity;
 import org.opencdmp.commons.types.pluginconfiguration.PluginConfigurationUserFieldEntity;
 import org.opencdmp.commons.types.pluginconfiguration.importexport.PluginConfigurationFieldImportExport;
 import org.opencdmp.commons.types.pluginconfiguration.importexport.PluginConfigurationImportExport;
-import org.opencdmp.commons.types.storagefile.importexport.StorageFileImportExport;
 import org.opencdmp.convention.ConventionService;
 import org.opencdmp.model.StorageFile;
 import org.opencdmp.model.builder.StorageFileBuilder;
-import org.opencdmp.model.persist.StorageFilePersist;
 import org.opencdmp.model.persist.pluginconfiguration.PluginConfigurationFieldPersist;
 import org.opencdmp.model.persist.pluginconfiguration.PluginConfigurationPersist;
 import org.opencdmp.model.persist.pluginconfiguration.PluginConfigurationUserFieldPersist;
@@ -62,20 +59,18 @@ public class PluginConfigurationServiceImpl implements PluginConfigurationServic
 
     private final TenantProperties tenantProperties;
 
-    private final UserScope userScope;
 
 
     @Autowired
     public PluginConfigurationServiceImpl(
             ConventionService conventionService,
-            StorageFileService storageFileService, QueryFactory queryFactory, BuilderFactory builderFactory, EncryptionService encryptionService, TenantProperties tenantProperties, UserScope userScope) {
+            StorageFileService storageFileService, QueryFactory queryFactory, BuilderFactory builderFactory, EncryptionService encryptionService, TenantProperties tenantProperties) {
         this.conventionService = conventionService;
         this.storageFileService = storageFileService;
         this.queryFactory = queryFactory;
         this.builderFactory = builderFactory;
         this.encryptionService = encryptionService;
         this.tenantProperties = tenantProperties;
-        this.userScope = userScope;
     }
 
 
@@ -158,7 +153,7 @@ public class PluginConfigurationServiceImpl implements PluginConfigurationServic
 
             for (PluginConfigurationPersist pluginConfigurationPersist : persists) {
                 for (PluginConfigurationFieldPersist fieldPersist : pluginConfigurationPersist.getFields()) {
-                    if (fieldPersist.getFileValue() != null && oldFields.stream().filter(x -> x.getFileValue().equals(fieldPersist.getFileValue())).findFirst().orElse(null) != null) {
+                    if (fieldPersist.getFileValue() != null && oldFields.stream().filter(x -> x.getFileValue() != null && x.getFileValue().equals(fieldPersist.getFileValue())).findFirst().orElse(null) != null) {
                         StorageFile oldstorageFile = storageFiles.stream().filter(x -> x.getId().equals(fieldPersist.getFileValue())).findFirst().orElse(null);
                         if (oldstorageFile != null) {
                             StorageFile newTempStorageFile = this.storageFileService.cloneStorageFile(oldstorageFile);

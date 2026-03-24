@@ -6,8 +6,6 @@ import gr.cite.tools.fieldset.FieldSet;
 import gr.cite.tools.logging.DataLogEntry;
 import gr.cite.tools.logging.LoggerService;
 import org.opencdmp.authorization.AuthorizationFlags;
-import org.opencdmp.commons.XmlHandlingService;
-import org.opencdmp.commons.scope.tenant.TenantScope;
 import org.opencdmp.commons.types.evaluation.SelectionConfigurationEntity;
 import org.opencdmp.convention.ConventionService;
 import org.opencdmp.evaluatorbase.interfaces.SelectionConfiguration;
@@ -36,7 +34,7 @@ public class SelectionConfigurationBuilder extends BaseBuilder<SelectionConfigur
     @Autowired
     public SelectionConfigurationBuilder(
             ConventionService conventionService,
-            BuilderFactory builderFactory, XmlHandlingService xmlHandlingService, TenantScope tenantScope) {
+            BuilderFactory builderFactory) {
         super(conventionService,  new LoggerService(LoggerFactory.getLogger(SelectionConfigurationBuilder.class)));
 
         this.builderFactory = builderFactory;

@@ -7,7 +7,7 @@ import gr.cite.tools.logging.DataLogEntry;
 import gr.cite.tools.logging.LoggerService;
 import org.opencdmp.authorization.AuthorizationFlags;
 import org.opencdmp.commons.XmlHandlingService;
-import org.opencdmp.commons.scope.tenant.TenantScope;
+import org.opencdmp.commons.scope.tenant.TenantScopeFactory;
 import org.opencdmp.commons.types.prefillingsource.PrefillingSourceDefinitionEntity;
 import org.opencdmp.convention.ConventionService;
 import org.opencdmp.data.PrefillingSourceEntity;
@@ -27,16 +27,16 @@ public class PrefillingSourceBuilder extends BaseBuilder<PrefillingSource, Prefi
 
     private final BuilderFactory builderFactory;
     private final XmlHandlingService xmlHandlingService;
-    private final TenantScope tenantScope;
+    private final TenantScopeFactory tenantScopeFactory;
     private EnumSet<AuthorizationFlags> authorize = EnumSet.of(AuthorizationFlags.None);
 
     @Autowired
     public PrefillingSourceBuilder(
 		    ConventionService conventionService,
-		    BuilderFactory builderFactory, XmlHandlingService xmlHandlingService, TenantScope tenantScope) {
+		    BuilderFactory builderFactory, XmlHandlingService xmlHandlingService, TenantScopeFactory tenantScopeFactory) {
         super(conventionService, new LoggerService(LoggerFactory.getLogger(PrefillingSourceBuilder.class)));
         this.builderFactory = builderFactory;
-	    this.tenantScope = tenantScope;
+	    this.tenantScopeFactory = tenantScopeFactory;
         this.xmlHandlingService = xmlHandlingService;
     }
 
@@ -67,7 +67,7 @@ public class PrefillingSourceBuilder extends BaseBuilder<PrefillingSource, Prefi
             if (fields.hasField(this.asIndexer(PrefillingSource._updatedAt))) m.setUpdatedAt(d.getUpdatedAt());
             if (fields.hasField(this.asIndexer(PrefillingSource._isActive))) m.setIsActive(d.getIsActive());
             if (fields.hasField(this.asIndexer(PrefillingSource._hash))) m.setHash(this.hashValue(d.getUpdatedAt()));
-            if (fields.hasField(this.asIndexer(PrefillingSource._belongsToCurrentTenant))) m.setBelongsToCurrentTenant(this.getBelongsToCurrentTenant(d, this.tenantScope));
+            if (fields.hasField(this.asIndexer(PrefillingSource._belongsToCurrentTenant))) m.setBelongsToCurrentTenant(this.getBelongsToCurrentTenant(d, this.tenantScopeFactory.getInstance()));
             
             models.add(m);
         }

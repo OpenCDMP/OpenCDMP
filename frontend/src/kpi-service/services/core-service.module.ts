@@ -54,9 +54,15 @@ export class CoreKpiServiceModule {
 							REQUIRED: language.get('KPI-SERVICE.KPI_CHART_FILTERS.REQUIRED'),
 							CANCEL: language.get('KPI-SERVICE.KPI_CHART_FILTERS.CANCEL'),
 							SUBMIT: language.get('KPI-SERVICE.KPI_CHART_FILTERS.SUBMIT'),
+						},
+						KPI_AUTO_COMPLETE: {
+							LOADING: language.get('GENERAL.AUTO-CONPLETE.LOADING'),
+							NO_RESULTS: language.get('GENERAL.AUTO-CONPLETE.NO-ITEMS')
 						}
 					})
 				),
+				KPIProviders.provideValueMapResolver(),
+				KPIProviders.provideFilterConfigResolver()
 			],
 		};
 	}

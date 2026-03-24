@@ -1,16 +1,18 @@
-import { Component, computed, HostBinding, Inject, OnInit } from '@angular/core';
+import { Component, Inject, OnInit } from '@angular/core';
 import { FormControl, UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
-import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
+import { MatDialog, MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { ReferenceSourceType } from '@app/core/common/enum/reference-source-type';
 import { ReferenceType, ReferenceTypeDefinition, ReferenceTypeField } from '@app/core/model/reference-type/reference-type';
-import { DefinitionPersist, FieldPersist, ReferencePersist } from '@app/core/model/reference/reference';
+import { DefinitionPersist, FieldPersist, ReferenceExist, ReferencePersist } from '@app/core/model/reference/reference';
 import { ReferenceTypeService } from '@app/core/services/reference-type/reference-type.service';
 import { ReferenceService } from '@app/core/services/reference/reference.service';
+import { ReferenceEditorResolver } from '@app/ui/admin/reference/editor/reference-editor.resolver';
 import { BaseComponent } from '@common/base/base.component';
 import { FormService } from '@common/forms/form-service';
 import { debounceTime, takeUntil } from 'rxjs/operators';
 import { nameof } from 'ts-simple-nameof';
-
+import { ReferenceFieldInfoDialogComponent } from '../info-dialog/reference-field-info-dialog.component';
+import { TranslateService } from '@ngx-translate/core';
 @Component({
     templateUrl: 'reference-dialog-editor.component.html',
     styleUrls: ['./reference-dialog-editor.component.scss'],
@@ -21,21 +23,23 @@ export class ReferenceDialogEditorComponent extends BaseComponent implements OnI
 	referenceType: ReferenceType;
 	systemFields: string[];
 	label: string = null
-	referenceExists: Boolean;
+	referenceExist: ReferenceExist;
 
 	get hasReferenceTypeFields(): boolean {
 		return this.referenceType && this.referenceType.definition && this.referenceType.definition.fields && this.referenceType.definition.fields.length > 0;
 	}
 
 	constructor(
+		private language: TranslateService,
 		private referenceTypeService: ReferenceTypeService,
 		private referenceService: ReferenceService,
 		private fb: UntypedFormBuilder,
 		public dialogRef: MatDialogRef<ReferenceDialogEditorComponent>,
 		@Inject(MAT_DIALOG_DATA) public data: any,
 		private formService: FormService,
-	) { 
-		super(); 
+		private dialog: MatDialog,
+	) {
+		super();
 		this.label = data.label;
 		this.formGroup = this.fb.group({});
 	}
@@ -58,12 +62,33 @@ export class ReferenceDialogEditorComponent extends BaseComponent implements OnI
 	}
 
 	findReferenceIfExist(): void {
-		this.referenceExists = null;
-		this.referenceService.findReference(this.formGroup.get(this.systemFields[0]).value, this.data.referenceTypeId)
+		this.referenceExist = null;
+		this.referenceService.findReference(this.formGroup.get(this.systemFields[0]).value, this.data.referenceTypeId, ReferenceEditorResolver.lookupFields())
 		.pipe(takeUntil(this._destroyed))
 		.subscribe( //TODO HANDLE-ERRORS
 			result => {
-				this.referenceExists = result;
+				this.referenceExist = result;
+				// Disable other fields when reference exists
+				if (result?.exist) {
+					this.systemFields.slice(1).forEach(field => {
+						this.formGroup.get(field)?.disable();
+					});
+					if (this.referenceType?.definition?.fields) {
+						this.referenceType.definition.fields.forEach(field => {
+							this.formGroup.get(field.code)?.disable();
+						});
+					}
+				} else {
+					// Re-enable fields when reference doesn't exist
+					this.systemFields.slice(1).forEach(field => {
+						this.formGroup.get(field)?.enable();
+					});
+					if (this.referenceType?.definition?.fields) {
+						this.referenceType.definition.fields.forEach(field => {
+							this.formGroup.get(field.code)?.enable();
+						});
+					}
+				}
 			}
 		);
 	}
@@ -71,19 +96,19 @@ export class ReferenceDialogEditorComponent extends BaseComponent implements OnI
 	buildForm(fields: ReferenceTypeField[]) {
 	
 		this.systemFields.forEach(systemField => {
-			this.formGroup.setControl(systemField, new FormControl({ value: null, disabled: false }, Validators.required));
+			this.formGroup.setControl(systemField, new FormControl({ value: null, disabled: false }, systemField != 'description' ? Validators.required: null));
 		})
 
 		if (fields != null && fields.length >= 0){
 			fields.forEach(x => {
-				this.formGroup.setControl(x.code, new FormControl({ value: null, disabled: false }, Validators.required));
+				this.formGroup.setControl(x.code, new FormControl({ value: null, disabled: false }, x.required ? Validators.required: null));
 			})
 		}
 
 	}
 
 	isFormValid() {
-		return this.formGroup.valid && this.referenceExists != null && !this.referenceExists;
+		return this.formGroup.valid && this.referenceExist?.exist != null && !this.referenceExist.exist;
 	}
 
 	send() {
@@ -135,11 +160,32 @@ export class ReferenceDialogEditorComponent extends BaseComponent implements OnI
 
 			[nameof<ReferenceType>(x => x.definition), nameof<ReferenceTypeDefinition>(x => x.fields), nameof<ReferenceTypeField>(x => x.code)].join('.'),
 			[nameof<ReferenceType>(x => x.definition), nameof<ReferenceTypeDefinition>(x => x.fields), nameof<ReferenceTypeField>(x => x.label)].join('.'),
-			[nameof<ReferenceType>(x => x.definition), nameof<ReferenceTypeDefinition>(x => x.fields), nameof<ReferenceTypeField>(x => x.dataType)].join('.')
+			[nameof<ReferenceType>(x => x.definition), nameof<ReferenceTypeDefinition>(x => x.fields), nameof<ReferenceTypeField>(x => x.dataType)].join('.'),
+			[nameof<ReferenceType>(x => x.definition), nameof<ReferenceTypeDefinition>(x => x.fields), nameof<ReferenceTypeField>(x => x.required)].join('.')
 		]
 	}
 
     isRequired(control: FormControl): boolean{
         return control?.hasValidator(Validators.required);
     }
+
+	viewExistingReference(): void {
+		if (!this.referenceExist?.reference) return;
+
+		this.dialog.open(ReferenceFieldInfoDialogComponent, {
+			width: '600px',
+			maxWidth: '90vw',
+			data: {
+				reference: this.referenceExist.reference,
+				referenceTypeId: this.data.referenceTypeId,
+				label: this.label
+			}
+		});
+	}
+
+	selectExistingReference(): void {
+		if (!this.referenceExist?.reference) return;
+
+		this.dialogRef.close(this.referenceExist?.reference);
+	}
 }

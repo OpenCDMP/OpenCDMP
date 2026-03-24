@@ -1,85 +1,112 @@
 <div class="main-content listing-main-container h-100">
-	<div class="container-fluid">
-		<div class="row">
-			<div *ngIf="!isLoading && !hasListingItems" class="col-12 card mt-0">
-				<div class="card-content info-text mb-0">
-					<p>{{'PLAN-LISTING.TEXT-INFO' | translate}}</p>
-					<p class="mt-4 pt-2">{{'PLAN-LISTING.TEXT-INFO-QUESTION' | translate}} <a class="zenodo-link" href="https://zenodo.org/communities/liber-plan-cat/?page=1&size=20" target="_blank">{{'PLAN-LISTING.LINK-ZENODO' | translate}}</a> {{'PLAN-LISTING.GET-IDEA' | translate}}</p>
-					<div class="d-none d-lg-flex tour-prompt">
-						<div *ngIf="!isPublic" class="col left-content" (click)="restartTour()">{{ 'GENERAL.ACTIONS.TAKE-A-TOUR'| translate }}</div>
-						<img class="col-auto ml-auto laptop-img"  alt="colorful art of a person working on an oversized computer" src="../../../assets/images/dashboard-popup.png">
-					</div>
-				</div>
-			</div>
-			<div class="col-12">
-				<app-navigation-breadcrumb />
-			</div>
-			<div *ngIf="!versionsModeEnabled && (isLoading || hasListingItems || hasFilters) && !isPublic" class="filter-btn" [class.right]="dialog.getDialogById('filters')" [style.width]="listingItems.length > 2 ? '57px' : '37px'" (click)="openFiltersDialog()">
-				<button mat-raised-button class="p-0 squared-btn badge-accent badge-lg" [matBadge]="filtersCount" [matBadgeHidden]="filtersCount === 0" matBadgePosition="before" [attr.aria-label]="'ALT-TEXT.OPEN-FILTERS' | translate">
-					<mat-icon class="mr-3 filter-icon">filter_alt</mat-icon>
-				</button>
-			</div>
-		</div>
-		<div>
-			<div class="listing row pb-2">
-				<div class="col-md-12">
-					<div class="row pt-4">
-						<!-- Sort by -->
-						<div class="col-auto d-flex align-items-center order-1">
-							<span class="mb-1 mb-xl-4">{{'PLAN-LISTING.SORT-BY' | translate}}:</span>
-						</div>
-						<div class="col-12 col-xl-auto order-3 order-xl-2">
-							<mat-form-field class="sort-form w-100">
-								<mat-select placeholder="{{'GENERAL.CRITERIA.LIKE'| translate}}" [(ngModel)]="sortBy" (selectionChange)="orderByChanged($event)">
-									<mat-option *ngIf="!isPublic" [value]="RecentActivityOrder.UpdatedAt">{{enumUtils.toRecentActivityOrderString(RecentActivityOrder.UpdatedAt)}}</mat-option>
-									<mat-option *ngIf="isPublic" [value]="RecentActivityOrder.PublishedAt">{{enumUtils.toRecentActivityOrderString(RecentActivityOrder.PublishedAt)}}</mat-option>
-									<mat-option [value]="RecentActivityOrder.Label">{{enumUtils.toRecentActivityOrderString(RecentActivityOrder.Label)}}</mat-option>
-									<mat-option *ngIf="!isPublic" [value]="RecentActivityOrder.Status">{{enumUtils.toRecentActivityOrderString(RecentActivityOrder.Status)}}</mat-option>
-								</mat-select>
-							</mat-form-field>
-						</div>
-						<div class="col-auto order-2 order-xl-3 mb-1 pl-0 mt-2">
-							<button mat-icon-button (click)="toggleSortDirection()" [matTooltip]="sortingTooltipText" [attr.aria-label]="sortingTooltipText">
-								<mat-icon *ngIf="isAscending">keyboard_double_arrow_up</mat-icon>
-								<mat-icon *ngIf="isDescending">keyboard_double_arrow_down</mat-icon>
-							</button>
-						</div>
-						<div class="col-12 col-xl-auto ml-auto order-4">
-							<div class="row">
-								<div class="col-12 col-xl-auto d-none d-lg-flex align-items-center tour-prompt">
-									<span *ngIf="!isPublic" class="center-content" (click)="restartTour()">{{ 'GENERAL.ACTIONS.TAKE-A-TOUR'| translate }}</span>
-								</div>
-								<div class="col-12 col-xl-auto">
-									<app-text-filter suffixIcon="search" floatLabel="never" placeholder="{{'GENERAL.CRITERIA.LIKE'| translate}}" [(value)]=lookup.like (valueChange)="controlModified()"></app-text-filter>
-								</div>
-							</div>
-						</div>
-					</div>
-				</div>
-                <div class="col-md-12 col-sm-12 col-md-9">
-                    <div *ngFor="let item of listingItems; let i = index">
-                        <app-plan-listing-item-component
-							[orderedPlanPreferencesList] = orderedPlanPreferencesList
-                            [showAllVersionsAction]="!isVersionsListing"
-                            [showDivider]="i != (listingItems.length - 1)"
-                            [plan]="item"
-                            [isPublic]="isPublic"
-                            [tenants]="tenants"
-                            [statusStorageFile]="storageFileMap.get(item.status?.definition?.storageFile?.id)"
-                        ></app-plan-listing-item-component>
-                    </div>
-                    <div *ngIf="hasListingItems && lookup?.page?.offset < totalCount - 1 && pageSize < totalCount - 1" class="d-flex justify-content-center pb-1">
-                        <button type="button" mat-button class="padded-shadow-btn load-more" (click)="loadMore()">{{'GENERAL.ACTIONS.LOAD-MORE' | translate}}</button>
-                    </div>
+  <div class="container-fluid">
+    <div class="row">
+      @if (!isLoading && !hasListingItems) {
+        <div class="col-12 card mt-0">
+          <div class="card-content info-text mb-0">
+            <p>{{'PLAN-LISTING.TEXT-INFO' | translate}}</p>
+            <p class="mt-4 pt-2">{{'PLAN-LISTING.TEXT-INFO-QUESTION' | translate}} <a class="zenodo-link" href="https://zenodo.org/communities/liber-plan-cat/?page=1&size=20" target="_blank">{{'PLAN-LISTING.LINK-ZENODO' | translate}}</a> {{'PLAN-LISTING.GET-IDEA' | translate}}</p>
+            <div class="d-none d-lg-flex tour-prompt">
+              @if (!isPublic) {
+                <div class="col left-content" (click)="restartTour()">{{ 'GENERAL.ACTIONS.TAKE-A-TOUR'| translate }}</div>
+              }
+              <img class="col-auto ml-auto laptop-img"  alt="colorful art of a person working on an oversized computer" src="../../../assets/images/dashboard-popup.png">
+            </div>
+          </div>
+        </div>
+      }
+      <div class="col-12">
+        <app-navigation-breadcrumb />
+      </div>
+      @if (!versionsModeEnabled && (isLoading || hasListingItems || hasFilters) && !isPublic) {
+        <div class="filter-btn" [class.right]="dialog.getDialogById('filters')" [style.width]="listingItems.length > 2 ? '57px' : '37px'" (click)="openFiltersDialog()">
+          <button mat-raised-button class="p-0 squared-btn badge-accent badge-lg" [matBadge]="filtersCount" [matBadgeHidden]="filtersCount === 0" matBadgePosition="before" [attr.aria-label]="'ALT-TEXT.OPEN-FILTERS' | translate">
+            <mat-icon class="mr-3 filter-icon">filter_alt</mat-icon>
+          </button>
+        </div>
+      }
+    </div>
+    <div>
+      <div class="listing row pb-2">
+        <div class="col-md-12">
+          <div class="row pt-4">
+            <!-- Sort by -->
+            <div class="col-auto d-flex align-items-center order-1">
+              <span class="mb-1 mb-xl-4">{{'PLAN-LISTING.SORT-BY' | translate}}:</span>
+            </div>
+            <div class="col-12 col-xl-auto order-3 order-xl-2">
+              <mat-form-field class="sort-form w-100">
+                <mat-select placeholder="{{'GENERAL.CRITERIA.LIKE'| translate}}" [(ngModel)]="sortBy" (selectionChange)="orderByChanged($event)">
+                  @if (!isPublic) {
+                    <mat-option [value]="RecentActivityOrder.UpdatedAt">{{enumUtils.toRecentActivityOrderString(RecentActivityOrder.UpdatedAt)}}</mat-option>
+                  }
+                  @if (isPublic) {
+                    <mat-option [value]="RecentActivityOrder.PublishedAt">{{enumUtils.toRecentActivityOrderString(RecentActivityOrder.PublishedAt)}}</mat-option>
+                  }
+                  <mat-option [value]="RecentActivityOrder.Label">{{enumUtils.toRecentActivityOrderString(RecentActivityOrder.Label)}}</mat-option>
+                  @if (!isPublic) {
+                    <mat-option [value]="RecentActivityOrder.Status">{{enumUtils.toRecentActivityOrderString(RecentActivityOrder.Status)}}</mat-option>
+                  }
+                </mat-select>
+              </mat-form-field>
+            </div>
+            <div class="col-auto order-2 order-xl-3 mb-1 pl-0 mt-2">
+              <button mat-icon-button (click)="toggleSortDirection()" [matTooltip]="sortingTooltipText" [attr.aria-label]="sortingTooltipText">
+                @if (isAscending) {
+                  <mat-icon>keyboard_double_arrow_up</mat-icon>
+                }
+                @if (isDescending) {
+                  <mat-icon>keyboard_double_arrow_down</mat-icon>
+                }
+              </button>
+            </div>
+            <div class="col-12 col-xl-auto ml-auto order-4">
+              <div class="row">
+                <div class="col-12 col-xl-auto d-none d-lg-flex align-items-center tour-prompt">
+                  @if (!isPublic) {
+                    <span class="center-content" (click)="restartTour()">{{ 'GENERAL.ACTIONS.TAKE-A-TOUR'| translate }}</span>
+                  }
                 </div>
-                <div *ngIf="!hasListingItems && !hasFilters" class="col-md-12 d-flex justify-content-center pt-4 mt-4 mb-4 pb-4">
-                    <span class="empty-list">{{'PLAN-LISTING.EMPTY-LIST' | translate}}</span>
+                <div class="col-12 col-xl-auto">
+                  <app-text-filter suffixIcon="search" floatLabel="never" placeholder="{{'GENERAL.CRITERIA.LIKE'| translate}}" [(value)]=lookup.like (valueChange)="controlModified()"></app-text-filter>
                 </div>
-                <div *ngIf="!hasListingItems && hasFilters" class="col-md-12 d-flex justify-content-center pt-4 mt-4 mb-4 pb-4">
-                    <span class="empty-list">{{'PLAN-LISTING.FILTERS.NO-ITEMS-FOUND' | translate}}</span>
-                </div>
-			</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-12 col-sm-12 col-md-9">
+          @for (item of listingItems; track item; let i = $index) {
+            <div>
+              <app-plan-listing-item-component
+                [orderedPlanPreferencesList] = orderedPlanPreferencesList
+                [showAllVersionsAction]="!isVersionsListing"
+                [showDivider]="i != (listingItems.length - 1)"
+                [plan]="item"
+                [isPublic]="isPublic"
+                [tenants]="tenants"
+                [statusStorageFile]="storageFileMap.get(item.status?.definition?.storageFile?.id)"
+                (onRefresh)="refresh()"
+              ></app-plan-listing-item-component>
+            </div>
+          }
+          @if (hasListingItems && lookup?.page?.offset < totalCount - 1 && pageSize < totalCount - 1) {
+            <div class="d-flex justify-content-center pb-1">
+              <button type="button" mat-button class="padded-shadow-btn load-more" (click)="loadMore()">{{'GENERAL.ACTIONS.LOAD-MORE' | translate}}</button>
+            </div>
+          }
+        </div>
+        @if (!hasListingItems && !hasFilters) {
+          <div class="col-md-12 d-flex justify-content-center pt-4 mt-4 mb-4 pb-4">
+            <span class="empty-list">{{'PLAN-LISTING.EMPTY-LIST' | translate}}</span>
+          </div>
+        }
+        @if (!hasListingItems && hasFilters) {
+          <div class="col-md-12 d-flex justify-content-center pt-4 mt-4 mb-4 pb-4">
+            <span class="empty-list">{{'PLAN-LISTING.FILTERS.NO-ITEMS-FOUND' | translate}}</span>
+          </div>
+        }
+      </div>
 
-		</div>
-	</div>
+    </div>
+  </div>
 </div>

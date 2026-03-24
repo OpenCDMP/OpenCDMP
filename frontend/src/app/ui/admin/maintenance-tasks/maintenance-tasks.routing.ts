@@ -6,6 +6,7 @@ import { AuthGuard } from '@app/core/auth-guard.service';
 
 const routes: Routes = [
 	{ path: '', component: MaintenanceTasksComponent, canActivate: [AuthGuard] },
+  { path: '**', loadComponent: () => import('@common/modules/page-not-found/page-not-found.component').then(m => m.PageNotFoundComponent)}
 ];
 
 @NgModule({

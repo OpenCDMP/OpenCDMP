@@ -104,6 +104,11 @@ export enum AppPermission {
 	ExportPlanBlueprint = "ExportPlanBlueprint",
 	ImportPlanBlueprint = "ImportPlanBlueprint",
 
+	//PlanBlueprintType
+	BrowsePlanBlueprintType = "BrowsePlanBlueprintType",
+	EditPlanBlueprintType = "EditPlanBlueprintType",
+	DeletePlanBlueprintType = "DeletePlanBlueprintType",
+
 	//PlanDescriptionTemplate
 	BrowsePlanDescriptionTemplate = "BrowsePlanDescriptionTemplate",
 	EditPlanDescriptionTemplate = "EditPlanDescriptionTemplate",
@@ -243,6 +248,7 @@ export enum AppPermission {
 	ViewEntityLockPage = "ViewEntityLockPage",
 	ViewDescriptionTemplatePage = "ViewDescriptionTemplatePage",
 	ViewPlanBlueprintPage = "ViewPlanBlueprintPage",
+	ViewPlanBlueprintTypePage = "ViewPlanBlueprintTypePage",
 	ViewPublicDescriptionPage = "ViewPublicDescriptionPage",
 	ViewPublicPlanPage = "ViewPublicPlanPage",
 	ViewMyDescriptionPage = "ViewMyDescriptionPage",

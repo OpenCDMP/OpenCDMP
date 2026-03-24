@@ -24,4 +24,10 @@ notification:
   descriptionEvaluationType: 709b2cc8-24fa-4b9c-9bad-cfd3c6dc4037
   taggedPlanAnnotationCreatedType: f58c8ca3-76eb-40d6-ac3b-2aa99aaa2b27
   taggedDescriptionAnnotationCreatedType: f1b49a19-51c6-4275-9af8-2b64d701b997
+  planCreatedSuggestionType: 6abe813d-0cff-4e62-b294-88d4d1ad23f7
+  planUpdatedSuggestionType: e546de92-efd6-42ba-9385-87ca5f73859a
+  planAccessRemovedType: 618a79c2-1c18-4b28-8603-60d5dac47ad7
+  planUserRoleChangedType: 913a3d21-94f9-4f14-9a84-7d1cab5a7a5c
+  planUserRoleCreatedType: af9d8589-193e-4695-a5af-6ecbdc7e827b
+  planUserRoleRemovedType: 21c6e9ae-b7d7-41d7-bfb5-33ec385305cc
   contactSupportEmail: ${CONTACT_SUPPORT_EMAIL_ADDRESS}

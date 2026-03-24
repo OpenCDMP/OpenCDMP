@@ -10,8 +10,8 @@ import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.Predicate;
 import org.opencdmp.authorization.AuthorizationFlags;
 import org.opencdmp.authorization.Permission;
-import org.opencdmp.commons.scope.user.UserScope;
-import org.opencdmp.data.TenantEntityManager;
+import org.opencdmp.commons.scope.user.UserScopeFactory;
+import org.opencdmp.data.TenantEntityManagerFactory;
 import org.opencdmp.data.UserRoleEntity;
 import org.opencdmp.model.UserRole;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
@@ -33,13 +33,13 @@ public class UserRoleQuery extends QueryBase<UserRoleEntity> {
     
     private EnumSet<AuthorizationFlags> authorize = EnumSet.of(AuthorizationFlags.None);
 
-    private final UserScope userScope;
+    private final UserScopeFactory userScopeFactory;
     private final AuthorizationService authService;
-    private final TenantEntityManager tenantEntityManager;
-    public UserRoleQuery(UserScope userScope, AuthorizationService authService, TenantEntityManager tenantEntityManager) {
-        this.userScope = userScope;
+    private final TenantEntityManagerFactory tenantEntityManagerFactory;
+    public UserRoleQuery(UserScopeFactory userScopeFactory, AuthorizationService authService, TenantEntityManagerFactory tenantEntityManagerFactory) {
+        this.userScopeFactory = userScopeFactory;
         this.authService = authService;
-	    this.tenantEntityManager = tenantEntityManager;
+	    this.tenantEntityManagerFactory = tenantEntityManagerFactory;
     }
 
     public UserRoleQuery ids(UUID value) {
@@ -139,7 +139,7 @@ public class UserRoleQuery extends QueryBase<UserRoleEntity> {
 
     @Override
     protected EntityManager entityManager(){
-        return this.tenantEntityManager.getEntityManager();
+        return this.tenantEntityManagerFactory.getInstance().getEntityManager();
     }
 
     @Override
@@ -162,7 +162,7 @@ public class UserRoleQuery extends QueryBase<UserRoleEntity> {
         if (this.authorize.contains(AuthorizationFlags.None)) return null;
         if (this.authorize.contains(AuthorizationFlags.Permission) && this.authService.authorize(Permission.BrowseUser)) return null;
         UUID userId = null;
-        if (this.authorize.contains(AuthorizationFlags.Owner)) userId = this.userScope.getUserIdSafe();
+        if (this.authorize.contains(AuthorizationFlags.Owner)) userId = this.userScopeFactory.getInstance().getUserIdSafe();
 
         List<Predicate> predicates = new ArrayList<>();
         if (userId != null) {

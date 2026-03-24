@@ -1,0 +1,276 @@
+// Dialog Container
+:host ::ng-deep .mat-dialog-container {
+    min-width: 600px;
+    max-width: 800px;
+}
+
+// Section Titles
+.section-title {
+    display: flex;
+    align-items: center;
+    font-weight: 500;
+    margin-bottom: 16px;
+    font-size: 1.1rem;
+
+    .section-icon {
+        margin-right: 8px;
+        font-size: 20px;
+        width: 20px;
+        height: 20px;
+    }
+}
+
+
+// Alert Messages
+.alert {
+    padding: 12px 16px;
+    border-radius: 4px;
+    margin-bottom: 16px;
+    font-size: 0.9rem;
+
+    mat-icon {
+        font-size: 20px;
+        width: 20px;
+        height: 20px;
+    }
+}
+
+.alert-success {
+    background-color: #e8f5e9;
+    color: #2e7d32;
+    border: 1px solid #c8e6c9;
+}
+
+// Info-style alert for existing references (less alarming than red)
+.alert-info-exists {
+    background: linear-gradient(to right, #e3f2fd 0%, #f5f5f5 100%);
+    border-left-width: 6px;
+    padding: 20px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+
+    .alert-header {
+        display: flex;
+        align-items: flex-start;
+        margin-bottom: 16px;
+        gap: 12px;
+
+        .alert-icon {
+            font-size: 28px;
+            width: 28px;
+            height: 28px;
+            color:  var(--mat-sys-primary);
+            flex-shrink: 0;
+        }
+
+        .alert-content {
+            flex: 1;
+
+            strong {
+                display: block;
+                font-size: 1rem;
+                color: var(--mat-sys-primary);
+                margin-bottom: 6px;
+            }
+
+            .alert-message {
+                margin: 0;
+                font-size: 0.875rem;
+                color: #424242;
+                line-height: 1.5;
+            }
+        }
+    }
+
+    .alert-actions {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+        margin-top: 16px;
+
+        .primary-action-btn {
+            flex: 1;
+            min-width: 200px;
+            font-weight: 500;
+            padding: 12px 24px;
+
+            mat-icon {
+                font-size: 20px;
+                width: 20px;
+                height: 20px;
+                margin-right: 8px;
+            }
+        }
+
+        .secondary-action-btn {
+            flex: 0 1 auto;
+            min-width: 140px;
+            border-color: var(--mat-sys-primary);
+            color: var(--mat-sys-primary);
+
+            mat-icon {
+                font-size: 18px;
+                width: 18px;
+                height: 18px;
+                margin-right: 6px;
+            }
+
+            &:hover {
+                background-color: #e3f2fd;
+                border-color: var(--mat-sys-primary);
+            }
+        }
+    }
+}
+
+// Validation Icons
+.text-success {
+    color: #4caf50 !important;
+}
+
+.text-info {
+    color: var(--mat-sys-primary) !important;
+}
+
+mat-icon[matSuffix] {
+    font-size: 20px;
+}
+
+// Empty State
+.empty-state {
+    .large-icon {
+        font-size: 48px;
+        width: 48px;
+        height: 48px;
+        opacity: 0.5;
+    }
+
+    p {
+        font-size: 0.95rem;
+        margin: 0;
+    }
+}
+
+// Dialog Actions
+.dialog-actions {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    padding: 16px 24px;
+
+    .action-btn {
+        mat-icon {
+            margin-right: 8px;
+            font-size: 18px;
+            width: 18px;
+            height: 18px;
+            vertical-align: middle;
+        }
+    }
+}
+
+// Loading State
+mat-spinner {
+    display: block;
+}
+
+// Form Fields
+mat-form-field {
+    &.form-input {
+        margin-bottom: 8px;
+    }
+}
+
+textarea[matInput] {
+    min-height: 60px;
+    resize: vertical;
+}
+
+// Divider Spacing
+mat-divider {
+    &.my-4 {
+        margin-top: 24px;
+        margin-bottom: 24px;
+    }
+}
+
+// Responsive Design
+@media (max-width: 768px) {
+    :host ::ng-deep .mat-dialog-container {
+        min-width: auto;
+        max-width: 100%;
+    }
+
+    .section-title {
+        font-size: 1rem;
+
+        .section-icon {
+            font-size: 18px;
+            width: 18px;
+            height: 18px;
+        }
+    }
+
+    .dialog-actions {
+        flex-direction: column;
+
+        button {
+            width: 100%;
+            margin: 4px 0 !important;
+        }
+
+        .flex-fill {
+            display: none;
+        }
+    }
+
+    .alert-info-exists {
+        padding: 16px;
+
+        .alert-header {
+            .alert-icon {
+                font-size: 24px;
+                width: 24px;
+                height: 24px;
+            }
+
+            .alert-content strong {
+                font-size: 0.95rem;
+            }
+
+            .alert-content .alert-message {
+                font-size: 0.8125rem;
+            }
+        }
+
+        .alert-actions {
+            flex-direction: column;
+            gap: 8px;
+
+            .primary-action-btn,
+            .secondary-action-btn {
+                width: 100%;
+                min-width: auto;
+                justify-content: center;
+            }
+        }
+    }
+}
+
+// Accessibility Improvements
+:host ::ng-deep {
+    // Focus indicators
+    button:focus,
+    input:focus,
+    textarea:focus {
+        outline-offset: 2px;
+    }
+
+    // Increase touch targets for mobile
+    @media (max-width: 768px) {
+        button {
+            min-height: 44px;
+        }
+    }
+}

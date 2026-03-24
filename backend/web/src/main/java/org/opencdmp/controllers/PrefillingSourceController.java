@@ -1,6 +1,6 @@
 package org.opencdmp.controllers;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
+import tools.jackson.core.JacksonException;
 import gr.cite.tools.auditing.AuditService;
 import gr.cite.tools.data.builder.BuilderFactory;
 import gr.cite.tools.data.censor.CensorFactory;
@@ -25,6 +25,7 @@ import org.opencdmp.model.censorship.prefillingsource.PrefillingSourceCensor;
 import org.opencdmp.model.description.Description;
 import org.opencdmp.model.persist.DescriptionPrefillingRequest;
 import org.opencdmp.model.persist.PrefillingSearchRequest;
+import org.opencdmp.model.persist.PrefillingTestRequest;
 import org.opencdmp.model.persist.PrefillingSourcePersist;
 import org.opencdmp.model.prefillingsource.PrefillingSource;
 import org.opencdmp.model.result.QueryResult;
@@ -120,7 +121,7 @@ public class PrefillingSourceController {
     @PostMapping("persist")
     @Transactional
     @ValidationFilterAnnotation(validator = PrefillingSourcePersist.PrefillingSourcePersistValidator.ValidatorName, argumentName = "model")
-    public PrefillingSource persist(@RequestBody PrefillingSourcePersist model, FieldSet fieldSet) throws MyApplicationException, MyForbiddenException, MyNotFoundException, InvalidApplicationException, JAXBException, JsonProcessingException, InvalidApplicationException {
+    public PrefillingSource persist(@RequestBody PrefillingSourcePersist model, FieldSet fieldSet) throws MyApplicationException, MyForbiddenException, MyNotFoundException, InvalidApplicationException, JAXBException, JacksonException, InvalidApplicationException {
         logger.debug(new MapLogEntry("persisting" + PrefillingSource.class.getSimpleName()).And("model", model).And("fieldSet", fieldSet));
         fieldSet = this.fieldSetExpanderService.expand(fieldSet);
         this.censorFactory.censor(PrefillingSourceCensor.class).censor(fieldSet, null);
@@ -155,6 +156,21 @@ public class PrefillingSourceController {
         List<Prefilling> item = this.prefillingSourceService.searchPrefillings(model);
 
         this.auditService.track(AuditableAction.PrefillingSource_Generate, Map.ofEntries(
+                new AbstractMap.SimpleEntry<String, Object>("model", model)
+        ));
+
+        return item;
+    }
+
+    @PostMapping("test")
+    public List<Prefilling> testPrefillingWithDefinition(@RequestBody PrefillingTestRequest model) throws MyApplicationException, MyForbiddenException, MyNotFoundException, JAXBException, ParserConfigurationException, IOException, InstantiationException, IllegalAccessException, SAXException {
+        logger.debug(new MapLogEntry("searching" + Prefilling.class.getSimpleName()).And("model", model));
+
+        this.censorFactory.censor(PrefillingCensor.class).censor(null, null);
+
+        List<Prefilling> item = this.prefillingSourceService.testPrefillings(model);
+
+        this.auditService.track(AuditableAction.PrefillingSource_Test, Map.ofEntries(
                 new AbstractMap.SimpleEntry<String, Object>("model", model)
         ));
 

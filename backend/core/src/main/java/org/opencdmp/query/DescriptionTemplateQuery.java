@@ -14,7 +14,7 @@ import org.opencdmp.authorization.Permission;
 import org.opencdmp.commons.enums.DescriptionTemplateStatus;
 import org.opencdmp.commons.enums.DescriptionTemplateVersionStatus;
 import org.opencdmp.commons.enums.IsActive;
-import org.opencdmp.commons.scope.user.UserScope;
+import org.opencdmp.commons.scope.user.UserScopeFactory;
 import org.opencdmp.data.*;
 import org.opencdmp.model.descriptiontemplate.DescriptionTemplate;
 import org.opencdmp.query.utils.BuildSubQueryInput;
@@ -261,24 +261,24 @@ public class DescriptionTemplateQuery extends QueryBase<DescriptionTemplateEntit
         return this;
     }
 
-    private final UserScope userScope;
+    private final UserScopeFactory userScopeFactory;
 
     private final AuthorizationService authService;
 
     private final QueryUtilsService queryUtilsService;
-    private final TenantEntityManager tenantEntityManager;
+    private final TenantEntityManagerFactory tenantEntityManagerFactory;
 
     public DescriptionTemplateQuery(
-		    UserScope userScope, AuthorizationService authService, QueryUtilsService queryUtilsService, TenantEntityManager tenantEntityManager) {
-        this.userScope = userScope;
+            UserScopeFactory userScopeFactory, AuthorizationService authService, QueryUtilsService queryUtilsService, TenantEntityManagerFactory tenantEntityManagerFactory) {
+        this.userScopeFactory = userScopeFactory;
         this.authService = authService;
         this.queryUtilsService = queryUtilsService;
-	    this.tenantEntityManager = tenantEntityManager;
+	    this.tenantEntityManagerFactory = tenantEntityManagerFactory;
     }    
     
     @Override
     protected EntityManager entityManager(){
-        return this.tenantEntityManager.getEntityManager();
+        return this.tenantEntityManagerFactory.getInstance().getEntityManager();
     }
 
     @Override
@@ -300,7 +300,7 @@ public class DescriptionTemplateQuery extends QueryBase<DescriptionTemplateEntit
         UUID userId;
         boolean usePublic = this.authorize.contains(AuthorizationFlags.Public);
         if (this.authorize.contains(AuthorizationFlags.PlanAssociated))
-            userId = this.userScope.getUserIdSafe();
+            userId = this.userScopeFactory.getInstance().getUserIdSafe();
         else
             userId = null;
 
@@ -406,7 +406,7 @@ public class DescriptionTemplateQuery extends QueryBase<DescriptionTemplateEntit
         if (this.onlyCanEdit != null) {
             boolean canEdit = this.authService.authorize(Permission.EditDescriptionTemplate);
             if (!canEdit){
-                UUID userId = this.userScope.getUserIdSafe();
+                UUID userId = this.userScopeFactory.getInstance().getUserIdSafe();
                 if (userId == null){
                     predicates.add(queryContext.CriteriaBuilder.or()); //Creates a false query
                 } else {

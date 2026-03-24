@@ -2,7 +2,7 @@ package org.opencdmp.model.censorship;
 
 import org.opencdmp.authorization.Permission;
 import org.opencdmp.convention.ConventionService;
-import org.opencdmp.model.PublicPlanDescriptionTemplate;
+import org.opencdmp.model.PlanDescriptionTemplate;
 import gr.cite.commons.web.authz.service.AuthorizationService;
 import gr.cite.tools.data.censor.CensorFactory;
 import gr.cite.tools.fieldset.FieldSet;
@@ -36,8 +36,8 @@ public class PublicPlanDescriptionTemplateCensor extends BaseCensor{
         if (fields == null || fields.isEmpty())
             return;
 
-        this.authService.authorizeForce(Permission.PublicBrowseDescription);
-        FieldSet planFields = fields.extractPrefixed(this.asIndexerPrefix(PublicPlanDescriptionTemplate._plan));
+        this.authService.authorizeForce(Permission.PublicBrowsePlan);
+        FieldSet planFields = fields.extractPrefixed(this.asIndexerPrefix(PlanDescriptionTemplate._plan));
         this.censorFactory.censor(PublicPlanCensor.class).censor(planFields);
     }
 

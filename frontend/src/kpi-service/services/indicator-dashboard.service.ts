@@ -7,7 +7,7 @@ import { ConfigurationService } from '../../app/core/services/configuration/conf
 @Injectable()
 export class IndicatorDashboardService {
 
-	private get apiBase(): string { return `${this.installationConfiguration.kpiServiceAddress}api/dashboard`; }
+	private get apiBase(): string { return `${this.installationConfiguration.kpi.address}api/dashboard`; }
 
 	constructor(
         private http: BaseHttpV2Service,

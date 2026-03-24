@@ -37,8 +37,8 @@ public class DescriptionTemplateTypePersist {
     public final static String _hash = "hash";
 
     private DescriptionTemplateTypeStatus status;
-    
-    private Map<UUID, DescriptionTemplateTypePersist> test;
+
+    public final static String _status = "status";
 
     public UUID getId() {
         return id;
@@ -121,7 +121,10 @@ public class DescriptionTemplateTypePersist {
                     this.spec()
                             .iff(() -> !this.isEmpty(item.getCode()))
                             .must(() -> this.lessEqualLength(item.getCode(), DescriptionTemplateTypeEntity._codeLength))
-                            .failOn(DescriptionTemplateTypePersist._code).failWith(messageSource.getMessage("Validation_MaxLength", new Object[]{DescriptionTemplateTypePersist._code}, LocaleContextHolder.getLocale()))
+                            .failOn(DescriptionTemplateTypePersist._code).failWith(messageSource.getMessage("Validation_MaxLength", new Object[]{DescriptionTemplateTypePersist._code}, LocaleContextHolder.getLocale())),
+                    this.spec()
+                            .must(() -> !this.isNull(item.getStatus()))
+                            .failOn(DescriptionTemplateTypePersist._status).failWith(messageSource.getMessage("Validation_Required", new Object[]{DescriptionTemplateTypePersist._status}, LocaleContextHolder.getLocale()))
                     );
         }
     }

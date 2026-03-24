@@ -6,10 +6,10 @@ import gr.cite.tools.logging.LoggerService;
 import jakarta.persistence.*;
 import org.jetbrains.annotations.NotNull;
 import org.opencdmp.commons.fake.FakeRequestScope;
-import org.opencdmp.commons.scope.tenant.TenantScope;
+import org.opencdmp.commons.scope.tenant.TenantScopeFactory;
 import org.opencdmp.data.StorageFileEntity;
 import org.opencdmp.data.TenantEntity;
-import org.opencdmp.data.TenantEntityManager;
+import org.opencdmp.data.TenantEntityManagerFactory;
 import org.opencdmp.model.StorageFile;
 import org.opencdmp.query.StorageFileQuery;
 import org.opencdmp.query.TenantQuery;
@@ -115,10 +115,10 @@ public class StorageFileCleanupTask  implements Closeable, ApplicationListener<A
 		EntityTransaction transaction = null;
 		boolean success = false;
 		try (FakeRequestScope fakeRequestScope = new FakeRequestScope()) {
-			TenantEntityManager tenantEntityManager = this.applicationContext.getBean(TenantEntityManager.class);
+			TenantEntityManagerFactory tenantEntityManagerFactory = this.applicationContext.getBean(TenantEntityManagerFactory.class);
 			try (EntityManager entityManager = this.entityManagerFactory.createEntityManager()) {
-				tenantEntityManager.setEntityManager(entityManager);
-				tenantEntityManager.disableTenantFilters();
+				tenantEntityManagerFactory.getInstance().setEntityManager(entityManager);
+				tenantEntityManagerFactory.getInstance().disableTenantFilters();
 				
 				
 				transaction = entityManager.getTransaction();
@@ -129,19 +129,19 @@ public class StorageFileCleanupTask  implements Closeable, ApplicationListener<A
 				success = true;
 				
 				if (item != null) {
-					TenantScope tenantScope = this.applicationContext.getBean(TenantScope.class);
+					TenantScopeFactory tenantScopeFactory = this.applicationContext.getBean(TenantScopeFactory.class);
 					try {
 						if (item.getTenantId() != null) {
 							TenantEntity tenant = queryFactory.query(TenantQuery.class).ids(item.getTenantId()).first();
-							tenantScope.setTempTenant(tenantEntityManager, tenant.getId(), tenant.getCode());
+							tenantScopeFactory.getInstance().setTempTenant(tenantEntityManagerFactory.getInstance(), tenant.getId(), tenant.getCode());
 						} else {
-							tenantScope.setTempTenant(tenantEntityManager, null, tenantScope.getDefaultTenantCode());
+							tenantScopeFactory.getInstance().setTempTenant(tenantEntityManagerFactory.getInstance(), null, tenantScopeFactory.getInstance().getDefaultTenantCode());
 						}
-						tenantEntityManager.reloadTenantFilters();
+						tenantEntityManagerFactory.getInstance().reloadTenantFilters();
 						StorageFileService storageFileService = this.applicationContext.getBean(StorageFileService.class);
 						storageFileService.purgeSafe(fileId);
 					} finally {
-						tenantScope.removeTempTenant(tenantEntityManager);
+						tenantScopeFactory.getInstance().removeTempTenant(tenantEntityManagerFactory.getInstance());
 					}
 				}
 
@@ -156,7 +156,7 @@ public class StorageFileCleanupTask  implements Closeable, ApplicationListener<A
 				if (transaction != null) transaction.rollback();
 				success = false;
 			} finally {
-				tenantEntityManager.reloadTenantFilters();
+				tenantEntityManagerFactory.getInstance().reloadTenantFilters();
 			}
 			
 		} catch (Exception ex) {
@@ -170,10 +170,10 @@ public class StorageFileCleanupTask  implements Closeable, ApplicationListener<A
 		EntityTransaction transaction = null;
 		CandidateInfo candidate = null;
 		try (FakeRequestScope fakeRequestScope = new FakeRequestScope()) {
-			TenantEntityManager tenantEntityManager = this.applicationContext.getBean(TenantEntityManager.class);
+			TenantEntityManagerFactory tenantEntityManagerFactory = this.applicationContext.getBean(TenantEntityManagerFactory.class);
 			try (EntityManager entityManager = this.entityManagerFactory.createEntityManager()) {
-				tenantEntityManager.setEntityManager(entityManager);
-				tenantEntityManager.disableTenantFilters();
+				tenantEntityManagerFactory.getInstance().setEntityManager(entityManager);
+				tenantEntityManagerFactory.getInstance().disableTenantFilters();
 
 				transaction = entityManager.getTransaction();
 				transaction.begin();
@@ -206,7 +206,7 @@ public class StorageFileCleanupTask  implements Closeable, ApplicationListener<A
 				if (transaction != null) transaction.rollback();
 				candidate = null;
 			} finally {
-				tenantEntityManager.reloadTenantFilters();
+				tenantEntityManagerFactory.getInstance().reloadTenantFilters();
 			}
 		} catch (Exception ex) {
 			logger.error("Problem getting list of file. Skipping: {}", ex.getMessage(), ex);

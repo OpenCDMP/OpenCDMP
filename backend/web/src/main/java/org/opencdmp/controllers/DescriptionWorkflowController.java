@@ -22,7 +22,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import org.opencdmp.audit.AuditableAction;
 import org.opencdmp.authorization.AuthorizationFlags;
 import org.opencdmp.commons.enums.IsActive;
-import org.opencdmp.commons.scope.tenant.TenantScope;
+import org.opencdmp.commons.scope.tenant.TenantScopeFactory;
 import org.opencdmp.controllers.swagger.SwaggerHelpers;
 import org.opencdmp.controllers.swagger.annotation.OperationWithTenantHeader;
 import org.opencdmp.controllers.swagger.annotation.Swagger400;
@@ -59,16 +59,16 @@ public class DescriptionWorkflowController {
     private final QueryFactory queryFactory;
     private final DescriptionWorkflowService descriptionWorkflowService;
     private final AuditService auditService;
-    private final TenantScope tenantScope;
+    private final TenantScopeFactory tenantScopeFactory;
     private final MessageSource messageSource;
 
-    public DescriptionWorkflowController(BuilderFactory builderFactory, CensorFactory censorFactory, QueryFactory queryFactory, DescriptionWorkflowService descriptionWorkflowService, AuditService auditService, TenantScope tenantScope, MessageSource messageSource) {
+    public DescriptionWorkflowController(BuilderFactory builderFactory, CensorFactory censorFactory, QueryFactory queryFactory, DescriptionWorkflowService descriptionWorkflowService, AuditService auditService, TenantScopeFactory tenantScopeFactory, MessageSource messageSource) {
         this.builderFactory = builderFactory;
         this.censorFactory = censorFactory;
         this.queryFactory = queryFactory;
         this.descriptionWorkflowService = descriptionWorkflowService;
         this.auditService = auditService;
-        this.tenantScope = tenantScope;
+        this.tenantScopeFactory = tenantScopeFactory;
         this.messageSource = messageSource;
     }
 
@@ -156,8 +156,8 @@ public class DescriptionWorkflowController {
 
         DescriptionWorkflowQuery query = this.queryFactory.query(DescriptionWorkflowQuery.class).authorize(AuthorizationFlags.AllExceptPublic).isActives(IsActive.Active);
 
-        if (this.tenantScope.isDefaultTenant()) query.tenantIsSet(false);
-        else query.tenantIsSet(true).tenantIds(this.tenantScope.getTenant());
+        if (this.tenantScopeFactory.getInstance().isDefaultTenant()) query.tenantIsSet(false);
+        else query.tenantIsSet(true).tenantIds(this.tenantScopeFactory.getInstance().getTenant());
 
         DescriptionWorkflow model = this.builderFactory.builder(DescriptionWorkflowBuilder.class).build(fieldSet, query.firstAs(fieldSet));
 

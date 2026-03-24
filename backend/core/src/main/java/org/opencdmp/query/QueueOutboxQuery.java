@@ -12,7 +12,7 @@ import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.Predicate;
 import org.opencdmp.commons.enums.IsActive;
 import org.opencdmp.data.QueueOutboxEntity;
-import org.opencdmp.data.TenantEntityManager;
+import org.opencdmp.data.TenantEntityManagerFactory;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
@@ -34,10 +34,10 @@ public class QueueOutboxQuery extends QueryBase<QueueOutboxEntity> {
 	private Integer retryThreshold;
 	private Integer confirmTimeout;
 
-	private final TenantEntityManager tenantEntityManager;
+	private final TenantEntityManagerFactory tenantEntityManagerFactory;
 
-	public QueueOutboxQuery(TenantEntityManager tenantEntityManager) {
-		this.tenantEntityManager = tenantEntityManager;
+	public QueueOutboxQuery(TenantEntityManagerFactory tenantEntityManagerFactory) {
+		this.tenantEntityManagerFactory = tenantEntityManagerFactory;
 	}
 
 	public QueueOutboxQuery ids(UUID value) {
@@ -152,7 +152,7 @@ public class QueueOutboxQuery extends QueryBase<QueueOutboxEntity> {
 
 	@Override
 	protected EntityManager entityManager(){
-		return this.tenantEntityManager.getEntityManager();
+		return this.tenantEntityManagerFactory.getInstance().getEntityManager();
 	}
 
 	@Override

@@ -25,7 +25,7 @@ import {
 	FieldInSection,
 	PlanBlueprint,
 	PlanBlueprintDefinition,
-	PlanBlueprintDefinitionSection, PublicPlanBlueprint, ReferenceTypeFieldInSection, SystemFieldInSection
+	PlanBlueprintDefinitionSection, ReferenceTypeFieldInSection, SystemFieldInSection
 } from '@app/core/model/plan-blueprint/plan-blueprint';
 import { PlanStatus, PlanStatusDefinition } from '@app/core/model/plan-status/plan-status';
 import {
@@ -36,8 +36,7 @@ import {
 	PlanPersist,
 	PlanProperties,
 	PlanUser,
-	PlanUserRemovePersist,
-	PublicPlan
+	PlanUserRemovePersist
 } from '@app/core/model/plan/plan';
 import { PlanReference } from '@app/core/model/plan/plan-reference';
 import { ReferenceType } from '@app/core/model/reference-type/reference-type';
@@ -102,8 +101,8 @@ import { PlanBlueprintVersionStatus } from '@app/core/common/enum/plan-blueprint
 })
 export class PlanOverviewComponent extends BaseComponent implements OnInit {
 	isDraft = false;
-	plan: Plan | PublicPlan;
-	selectedBlueprint: PlanBlueprint | PublicPlanBlueprint;
+	plan: Plan;
+	selectedBlueprint: PlanBlueprint;
 	researchers: PlanReference[] = [];
 	isNew = true;
 	isFinalized = false;
@@ -189,109 +188,119 @@ export class PlanOverviewComponent extends BaseComponent implements OnInit {
 			.subscribe((params: Params) => {
 				const itemId = params['id'];
 				const publicId = params['publicId'];
-				if (itemId != null) {
-					this.isNew = false;
-					this.isPublicView = false;
-					this.planService.getSingle(itemId, this.lookupFields())
-                    .pipe(takeUntil(this._destroyed))
-                    .subscribe({
-                        next: (data) => {
-                            this.breadcrumbService.addIdResolvedValue(data.id?.toString(), data.label);
-
-                            this.plan = data;
-							if (this.plan.status?.internalStatus == PlanStatusEnum.Draft) {
-								this.isDraft = true;
-							}
-                            this.plan.planUsers = this.isActive ? data?.planUsers?.filter((x) => x.isActive === IsActive.Active) : data?.planUsers;
-							this.plan.planReferences = this.isActive ? data?.planReferences?.filter((x) => x.isActive === IsActive.Active) : data?.planReferences;
-                            this.plan.otherPlanVersions = data.otherPlanVersions?.filter(x => x.isActive === IsActive.Active) || null;
-                            if(this.plan.description && this.plan.description.split(' ')?.length > this.DESCRIPTION_PAGE_SIZE) {
-                                this.minimizedDescription = this.plan.description.split(' ').slice(0, this.DESCRIPTION_PAGE_SIZE).join(' ') + '...';
-                                this.showLongDescription.set(false);
-                            } else {
-                                this.minimizedDescription = null;
-                                this.showLongDescription.set(true);
-                            }
-                            if (this.plan.descriptions && this.isActive) {
-								this.allDescriptions = data.descriptions;
-                                if (this.plan.status?.internalStatus == PlanStatusEnum.Finalized) {
-                                    this.plan.descriptions = data.descriptions.filter(x => x.isActive === IsActive.Active && x.status?.internalStatus === DescriptionStatusEnum.Finalized);
-                                } else {
-                                    this.plan.descriptions = data.descriptions.filter(x => x.isActive === IsActive.Active && x.status?.internalStatus !== DescriptionStatusEnum.Canceled);
-                                }
-                            }
-                            let descriptionSectionPermissionResolverModel: DescriptionSectionPermissionResolver = {
-                                planId: this.plan.id,
-                                sectionIds: this.plan?.blueprint?.definition?.sections?.map(x => x.id),
-                                permissions: [AppPermission.EditDescription]
-                            };
-                            this.descriptionService.getDescriptionSectionPermissions(descriptionSectionPermissionResolverModel).pipe(takeUntil(this._destroyed))
-                            .subscribe((result) => {
-                                if(result){
-                                    this.descriptionPermissions = Object.values(result).reduce((cur, prev) => [...cur, ...prev]);
-                                }
-                            })
-
-                            if (data.entityDois && data.entityDois.length > 0) this.plan.entityDois = data.entityDois.filter(x => x.isActive === IsActive.Active);
-                            this.selectedBlueprint = data.blueprint;
-                            this.researchers = this.referenceService.getReferencesForTypes(this.isActive ? this.plan.planReferences?.filter(x => x.isActive === IsActive.Active): this.plan.planReferences, [this.referenceTypeService.getResearcherReferenceType()]);
-                            this.loadStatusLogo();
-                            this.checkLockStatus(this.plan.id);
-                            this.getEvaluations(this.plan.id);
-                        },
-                        error: (error: any) => {
-                            this.httpErrorHandlingService.handleBackedRequestError(error);
-
-                            if (error.status === 404) {
-                                return this.onFetchingDeletedCallbackError('/plans/');
-                            }
-                            if (error.status === 403) {
-                                return this.onFetchingForbiddenCallbackError('/plans/');
-                            }
-                        }
-                    });
-				}
-				else if (publicId != null) {
-					this.isNew = false;
-					this.isFinalized = true;
-					this.isPublicView = true;
-					this.planService.getPublicSingle(publicId, this.lookupFields())
-                    .pipe(takeUntil(this._destroyed))
-                    .subscribe({
-                        next: (data) => {
-                            this.breadcrumbService.addExcludedParam('public', true);
-                            this.breadcrumbService.addIdResolvedValue(data.id?.toString(), data.label);
-
-                            this.plan = data;
-							this.selectedBlueprint = data.blueprint;
-							if (this.plan.status?.internalStatus == PlanStatusEnum.Draft) {
-								this.isDraft = true;
-							}
-							this.plan.planReferences = data?.planReferences?.filter((x) => x.isActive === IsActive.Active);
-                            this.researchers = this.referenceService.getReferencesForTypes(this.plan?.planReferences?.filter(x => x.isActive === IsActive.Active), [this.referenceTypeService.getResearcherReferenceType()]); //data.planReferences is of wrong type!
-
-                            if(this.plan.description && this.plan.description.split(' ')?.length > this.DESCRIPTION_PAGE_SIZE) {
-                                this.minimizedDescription = this.plan.description.split(' ').slice(0, this.DESCRIPTION_PAGE_SIZE).join(' ') + '...';
-                                this.showLongDescription.set(false);
-                            } else {
-                                this.minimizedDescription = null;
-                                this.showLongDescription.set(true);
-                            }
-                        },
-                        error: (error: any) => {
-                            this.httpErrorHandlingService.handleBackedRequestError(error);
-
-                            if (error.status === 404) {
-                                return this.onFetchingDeletedCallbackError('/explore-plans');
-                            }
-                            if (error.status === 403) {
-                                return this.onFetchingForbiddenCallbackError('/explore-plans');
-                            }
-                        }
-                    });
-				}
+				this.getItem({itemId, publicId});
 			});
-		if (this.isAuthenticated) {
+        this.getEvaluators()
+	}
+
+    getItem(params?: {itemId?: Guid; publicId?: Guid}){
+        const {itemId, publicId} = params ?? {};
+        if (itemId != null) {
+            this.isNew = false;
+            this.isPublicView = false;
+            this.planService.getSingle(itemId, this.lookupFields())
+            .pipe(takeUntil(this._destroyed))
+            .subscribe({
+                next: (data) => {
+                    this.breadcrumbService.addIdResolvedValue(data.id?.toString(), data.label);
+
+                    this.plan = data;
+                    if (this.plan.status?.internalStatus == PlanStatusEnum.Draft) {
+                        this.isDraft = true;
+                    }
+                    this.plan.planUsers = this.isActive ? data?.planUsers?.filter((x) => x.isActive === IsActive.Active) : data?.planUsers;
+                    this.plan.planReferences = this.isActive ? data?.planReferences?.filter((x) => x.isActive === IsActive.Active) : data?.planReferences;
+                    this.plan.otherPlanVersions = data.otherPlanVersions?.filter(x => x.isActive === IsActive.Active) || null;
+                    if(this.plan.description && this.plan.description.split(' ')?.length > this.DESCRIPTION_PAGE_SIZE) {
+                        this.minimizedDescription = this.plan.description.split(' ').slice(0, this.DESCRIPTION_PAGE_SIZE).join(' ') + '...';
+                        this.showLongDescription.set(false);
+                    } else {
+                        this.minimizedDescription = null;
+                        this.showLongDescription.set(true);
+                    }
+                    if (this.plan.descriptions && this.isActive) {
+                        this.allDescriptions = data.descriptions;
+                        if (this.plan.status?.internalStatus == PlanStatusEnum.Finalized) {
+                            this.plan.descriptions = data.descriptions.filter(x => x.isActive === IsActive.Active && x.status?.internalStatus === DescriptionStatusEnum.Finalized);
+                        } else {
+                            this.plan.descriptions = data.descriptions.filter(x => x.isActive === IsActive.Active && x.status?.internalStatus !== DescriptionStatusEnum.Canceled);
+                        }
+                    }
+                    let descriptionSectionPermissionResolverModel: DescriptionSectionPermissionResolver = {
+                        planId: this.plan.id,
+                        sectionIds: this.plan?.blueprint?.definition?.sections?.map(x => x.id),
+                        permissions: [AppPermission.EditDescription]
+                    };
+                    this.descriptionService.getDescriptionSectionPermissions(descriptionSectionPermissionResolverModel).pipe(takeUntil(this._destroyed))
+                    .subscribe((result) => {
+                        if(result){
+                            this.descriptionPermissions = Object.values(result).reduce((cur, prev) => [...cur, ...prev]);
+                        }
+                    })
+
+                    if (data.entityDois && data.entityDois.length > 0) this.plan.entityDois = data.entityDois.filter(x => x.isActive === IsActive.Active);
+                    this.selectedBlueprint = data.blueprint;
+                    this.researchers = this.referenceService.getReferencesForTypes(this.plan.planReferences, this.isActive, [this.referenceTypeService.getResearcherReferenceType()]);
+                    this.loadStatusLogo();
+                    this.checkLockStatus(this.plan.id);
+                    this.getEvaluations(this.plan.id);
+                },
+                error: (error: any) => {
+                    this.httpErrorHandlingService.handleBackedRequestError(error);
+
+                    if (error.status === 404) {
+                        return this.onFetchingDeletedCallbackError('/plans/');
+                    }
+                    if (error.status === 403) {
+                        return this.onFetchingForbiddenCallbackError('/plans/');
+                    }
+                }
+            });
+        }
+        else if (publicId != null) {
+            this.isNew = false;
+            this.isFinalized = true;
+            this.isPublicView = true;
+            this.planService.getPublicSingle(publicId, this.lookupFields())
+            .pipe(takeUntil(this._destroyed))
+            .subscribe({
+                next: (data) => {
+                    this.breadcrumbService.addExcludedParam('public', true);
+                    this.breadcrumbService.addIdResolvedValue(data.id?.toString(), data.label);
+
+                    this.plan = data;
+                    this.selectedBlueprint = data.blueprint;
+                    if (this.plan.status?.internalStatus == PlanStatusEnum.Draft) {
+                        this.isDraft = true;
+                    }
+                    this.plan.planReferences = this.isActive ? data?.planReferences?.filter((x) => x.isActive === IsActive.Active) : data?.planReferences;
+                    this.researchers = this.referenceService.getReferencesForTypes(this.plan?.planReferences, this.isActive, [this.referenceTypeService.getResearcherReferenceType()]); //data.planReferences is of wrong type!
+                    this.plan.planUsers = this.isActive ? data?.planUsers?.filter((x) => x.isActive === IsActive.Active) : data?.planUsers;
+                    this.plan.otherPlanVersions = data.otherPlanVersions?.filter(x => x.isActive === IsActive.Active) || null;
+                    if(this.plan.description && this.plan.description.split(' ')?.length > this.DESCRIPTION_PAGE_SIZE) {
+                        this.minimizedDescription = this.plan.description.split(' ').slice(0, this.DESCRIPTION_PAGE_SIZE).join(' ') + '...';
+                        this.showLongDescription.set(false);
+                    } else {
+                        this.minimizedDescription = null;
+                        this.showLongDescription.set(true);
+                    }
+                },
+                error: (error: any) => {
+                    this.httpErrorHandlingService.handleBackedRequestError(error);
+
+                    if (error.status === 404) {
+                        return this.onFetchingDeletedCallbackError('/explore-plans');
+                    }
+                    if (error.status === 403) {
+                        return this.onFetchingForbiddenCallbackError('/explore-plans');
+                    }
+                }
+            });
+        }
+    }
+
+    getEvaluators(){
+        if (this.isAuthenticated) {
 			
 			this.evaluatorRepos = this.evaluatorService.availableEvaluators();
 			if (this.evaluatorRepos?.length > 0) {
@@ -317,7 +326,7 @@ export class PlanOverviewComponent extends BaseComponent implements OnInit {
 		} else {
 			this.userName = '';
 		}
-	}
+    }
   
 
 	get isActive(): boolean {
@@ -328,7 +337,7 @@ export class PlanOverviewComponent extends BaseComponent implements OnInit {
 		return this.plan?.version;
 	}
 
-	get otherPlanVersions(): (Plan | PublicPlan)[] {
+	get otherPlanVersions(): (Plan)[] {
 		return this.plan?.otherPlanVersions?.filter((x) => x.version !== this.plan.version);
 	}
 
@@ -467,6 +476,7 @@ export class PlanOverviewComponent extends BaseComponent implements OnInit {
 		this.evaluatorService.rankPlan(planId, evaluatorId, format, benchmarkIds).subscribe(
 			(response: RankResultModel) => {
 				const dialogRef = this.dialog.open(EvaluateDialogComponent, {
+					maxWidth: '90vw',
 					data: {
 						rankData: response,
 						rankConfig: rankConfig,
@@ -754,40 +764,63 @@ export class PlanOverviewComponent extends BaseComponent implements OnInit {
 	}
 
 	reloadPage(): void {
-		const path = this.location.path();
-		this.router.navigateByUrl('/reload', { skipLocationChange: true }).then(() => {
-			this.router.navigate([this.routerUtils.generateUrl(path)]);
+        this.getItem({
+            itemId: this.isPublicView ? null : this.plan.id,
+            publicId: this.isPublicView ? this.plan.id : null,
+        })
+		this.getEvaluators();
+	}
+
+	removeUserFromPlanDialog(planUser: PlanUser) {
+		let dialogRef;
+		if (planUser?.user?.id == this.authentication.userId() && !this.plan?.planUsers?.find(x => x.id != planUser.id && x.user?.id === planUser?.user?.id)) {
+			dialogRef = this.dialog.open(ConfirmationDialogComponent, {
+				data: {
+					message: this.language.instant('GENERAL.CONFIRMATION-DIALOG.DELETE-YOURSELF-FROM-ENTIRE-PLAN'),
+					confirmButton: this.language.instant('GENERAL.CONFIRMATION-DIALOG.ACTIONS.REMOVE'),
+					cancelButton: this.language.instant('GENERAL.CONFIRMATION-DIALOG.ACTIONS.CANCEL'),
+					isDeleteConfirmation: false
+				}
+			});
+		} else {
+			dialogRef = this.dialog.open(ConfirmationDialogComponent, {
+				data: {
+					message: this.language.instant('GENERAL.CONFIRMATION-DIALOG.DELETE-USER'),
+					confirmButton: this.language.instant('GENERAL.CONFIRMATION-DIALOG.ACTIONS.REMOVE'),
+					cancelButton: this.language.instant('GENERAL.CONFIRMATION-DIALOG.ACTIONS.CANCEL'),
+					isDeleteConfirmation: false
+				}
+			});
+		}
+
+		dialogRef?.afterClosed()?.subscribe(result => {
+			if (result) {
+				this.removeUserFromPlan(planUser);
+			}
 		});
 	}
 
 	removeUserFromPlan(planUser: PlanUser) {
-		const dialogRef = this.dialog.open(ConfirmationDialogComponent, {
-			data: {
-				message: this.language.instant('GENERAL.CONFIRMATION-DIALOG.DELETE-USER'),
-				confirmButton: this.language.instant('GENERAL.CONFIRMATION-DIALOG.ACTIONS.REMOVE'),
-				cancelButton: this.language.instant('GENERAL.CONFIRMATION-DIALOG.ACTIONS.CANCEL'),
-				isDeleteConfirmation: false
-			}
-		});
-		dialogRef.afterClosed().subscribe(result => {
-			if (result) {
-				const planUserRemovePersist: PlanUserRemovePersist = {
-					id: planUser.id,
-					planId: this.plan.id,
-					role: planUser.role
-				};
-				this.planService.removeUser(planUserRemovePersist).pipe(takeUntil(this._destroyed))
-					.subscribe({
-						complete: () => {
-							this.reloadPage();
-							this.onUpdateCallbackSuccess()
-						},
-						error: (error: any) => {
-							this.onUpdateCallbackError(error)
-						}
-					});
-			}
-		});
+		const planUserRemovePersist: PlanUserRemovePersist = {
+			id: planUser.id,
+			planId: this.plan.id,
+			role: planUser.role
+		};
+
+		this.planService.removeUser(planUserRemovePersist, this.lookupFields()).pipe(takeUntil(this._destroyed))
+			.subscribe({
+				next: (plan) => {
+					if ((plan?.planUsers?.find(x => x?.user?.id == planUser?.user?.id && x.isActive === IsActive.Active)) || (plan?.authorizationFlags?.some(x => x === AppPermission.AssignPlanUsers) || this.authentication.hasPermission(AppPermission.AssignPlanUsers))) {
+						this.onUpdateCallbackSuccess();
+					} else {
+						this.uiNotificationService.snackBarNotification(this.language.instant('GENERAL.SNACK-BAR.SUCCESSFUL-UPDATE'), SnackBarNotificationLevel.Success);
+						this.router.navigate([this.routerUtils.generateUrl('/plans')]);
+					}
+				},
+				error: (error) => {
+					this.onUpdateCallbackError(error);
+				}
+			});
 	}
 
 	copyDoi(doi) {
@@ -937,8 +970,10 @@ export class PlanOverviewComponent extends BaseComponent implements OnInit {
 			[nameof<Plan>(x => x.blueprint), nameof<PlanBlueprint>(x => x.definition)].join('.'),
 			[nameof<Plan>(x => x.blueprint), nameof<PlanBlueprint>(x => x.definition), nameof<PlanBlueprintDefinition>(x => x.sections), nameof<PlanBlueprintDefinitionSection>(x => x.id)].join('.'),
 			[nameof<Plan>(x => x.blueprint), nameof<PlanBlueprint>(x => x.definition), nameof<PlanBlueprintDefinition>(x => x.sections), nameof<PlanBlueprintDefinitionSection>(x => x.label)].join('.'),
+			[nameof<Plan>(x => x.blueprint), nameof<PlanBlueprint>(x => x.definition), nameof<PlanBlueprintDefinition>(x => x.sections), nameof<PlanBlueprintDefinitionSection>(x => x.ordinal)].join('.'),
 			[nameof<Plan>(x => x.blueprint), nameof<PlanBlueprint>(x => x.definition), nameof<PlanBlueprintDefinition>(x => x.sections), nameof<PlanBlueprintDefinitionSection>(x => x.fields), nameof<FieldInSection>(x => x.label)].join('.'),
 			[nameof<Plan>(x => x.blueprint), nameof<PlanBlueprint>(x => x.definition), nameof<PlanBlueprintDefinition>(x => x.sections), nameof<PlanBlueprintDefinitionSection>(x => x.fields), nameof<FieldInSection>(x => x.category)].join('.'),
+			[nameof<Plan>(x => x.blueprint), nameof<PlanBlueprint>(x => x.definition), nameof<PlanBlueprintDefinition>(x => x.sections), nameof<PlanBlueprintDefinitionSection>(x => x.fields), nameof<FieldInSection>(x => x.ordinal)].join('.'),
 			[nameof<Plan>(x => x.blueprint), nameof<PlanBlueprint>(x => x.definition), nameof<PlanBlueprintDefinition>(x => x.sections), nameof<PlanBlueprintDefinitionSection>(x => x.fields), nameof<ExtraFieldInSection>(x => x.dataType)].join('.'),
 			[nameof<Plan>(x => x.blueprint), nameof<PlanBlueprint>(x => x.definition), nameof<PlanBlueprintDefinition>(x => x.sections), nameof<PlanBlueprintDefinitionSection>(x => x.fields), nameof<SystemFieldInSection>(x => x.id)].join('.'),
 			[nameof<Plan>(x => x.blueprint), nameof<PlanBlueprint>(x => x.definition), nameof<PlanBlueprintDefinition>(x => x.sections), nameof<PlanBlueprintDefinitionSection>(x => x.fields), nameof<SystemFieldInSection>(x => x.systemFieldType)].join('.'),

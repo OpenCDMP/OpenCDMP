@@ -1,6 +1,6 @@
-import { AfterViewInit, Component, ElementRef, Input, OnDestroy, ViewChild, ViewEncapsulation, TemplateRef, Inject, ChangeDetectorRef } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, Input, OnDestroy, ViewChild, ViewEncapsulation, TemplateRef, Inject, ChangeDetectorRef, DOCUMENT } from '@angular/core';
 import { fromEvent, Subscription } from 'rxjs';
-import { DOCUMENT } from '@angular/common';
+
 import { Orientation, TourStep } from './guided-tour.constants';
 import { GuidedTourService } from './guided-tour.service';
 import { WindowRefService } from "./windowref.service";

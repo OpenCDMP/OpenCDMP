@@ -6,6 +6,8 @@ import { CommonFormsModule } from '@common/forms/common-forms.module';
 import { CommonUiModule } from '@common/ui/common-ui.module';
 import { ReferenceFieldComponent } from './reference-field.component';
 import { ReferenceDialogEditorComponent } from './editor/reference-dialog-editor.component';
+import { ReferenceFieldInfoDialogComponent } from './info-dialog/reference-field-info-dialog.component';
+import { MatTooltipModule } from '@angular/material/tooltip';
 
 @NgModule({
 	imports: [
@@ -13,15 +15,18 @@ import { ReferenceDialogEditorComponent } from './editor/reference-dialog-editor
 		CommonFormsModule,
 		FormattingModule,
 		DescriptionRoutingModule,
-		AutoCompleteModule
+		AutoCompleteModule,
+		MatTooltipModule
 	],
 	declarations: [
 		ReferenceFieldComponent,
-		ReferenceDialogEditorComponent
+		ReferenceDialogEditorComponent,
+		ReferenceFieldInfoDialogComponent
 	],
 	exports: [
 		ReferenceFieldComponent,
-		ReferenceDialogEditorComponent
+		ReferenceDialogEditorComponent,
+		ReferenceFieldInfoDialogComponent
 	]
 })
 export class ReferenceFieldModule { }

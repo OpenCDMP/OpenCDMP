@@ -11,9 +11,8 @@ import jakarta.persistence.criteria.Predicate;
 import org.opencdmp.authorization.AuthorizationFlags;
 import org.opencdmp.authorization.Permission;
 import org.opencdmp.commons.enums.*;
-import org.opencdmp.commons.scope.user.UserScope;
+import org.opencdmp.commons.scope.user.UserScopeFactory;
 import org.opencdmp.data.*;
-import org.opencdmp.model.PublicPlan;
 import org.opencdmp.model.plan.Plan;
 import org.opencdmp.query.utils.QueryUtilsService;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
@@ -49,6 +48,8 @@ public class PlanQuery extends QueryBase<PlanEntity> {
 
     private Collection<UUID> groupIds;
 
+    private Collection<String> language;
+
     private Instant after;
 
     private PlanUserQuery planUserQuery;
@@ -65,18 +66,18 @@ public class PlanQuery extends QueryBase<PlanEntity> {
 
     private EnumSet<AuthorizationFlags> authorize = EnumSet.of(AuthorizationFlags.None);
 
-    private final UserScope userScope;
+    private final UserScopeFactory userScopeFactory;
 
     private final AuthorizationService authService;
 
     private final QueryUtilsService queryUtilsService;
-    private final TenantEntityManager tenantEntityManager;
+    private final TenantEntityManagerFactory tenantEntityManagerFactory;
 
-    public PlanQuery(UserScope userScope, AuthorizationService authService, QueryUtilsService queryUtilsService, TenantEntityManager tenantEntityManager) {
-        this.userScope = userScope;
+    public PlanQuery(UserScopeFactory userScopeFactory, AuthorizationService authService, QueryUtilsService queryUtilsService, TenantEntityManagerFactory tenantEntityManagerFactory) {
+        this.userScopeFactory = userScopeFactory;
         this.authService = authService;
         this.queryUtilsService = queryUtilsService;
-	    this.tenantEntityManager = tenantEntityManager;
+	    this.tenantEntityManagerFactory = tenantEntityManagerFactory;
     }
 
     public PlanQuery like(String value) {
@@ -224,6 +225,21 @@ public class PlanQuery extends QueryBase<PlanEntity> {
         return this;
     }
 
+    public PlanQuery language(String  value) {
+        this.language = List.of(value);
+        return this;
+    }
+
+    public PlanQuery language(String... value) {
+        this.language = Arrays.asList(value);
+        return this;
+    }
+
+    public PlanQuery language(Collection<String> values) {
+        this.language = values;
+        return this;
+    }
+
     public PlanQuery after(Instant value) {
         this.after = value;
         return this;
@@ -277,7 +293,7 @@ public class PlanQuery extends QueryBase<PlanEntity> {
 
     @Override
     protected EntityManager entityManager(){
-        return this.tenantEntityManager.getEntityManager();
+        return this.tenantEntityManagerFactory.getInstance().getEntityManager();
     }
 
     @Override
@@ -294,14 +310,22 @@ public class PlanQuery extends QueryBase<PlanEntity> {
     protected <X, Y> Predicate applyAuthZ(QueryContext<X, Y> queryContext) {
         if (this.authorize.contains(AuthorizationFlags.None))
             return null;
-        if (this.authorize.contains(AuthorizationFlags.Permission) && this.authService.authorize(Permission.BrowsePlan))
-            return null;
+        if (this.authorize.contains(AuthorizationFlags.Permission) && this.authService.authorize(Permission.BrowsePlan)) {
+           return this.queryUtilsService.buildTenantFilter(queryContext.CriteriaBuilder, queryContext.Root.get(PlanEntity._tenantId));
+        }
+
         UUID userId = null;
         boolean usePublic = this.authorize.contains(AuthorizationFlags.Public);
         if (this.authorize.contains(AuthorizationFlags.PlanAssociated))
-            userId = this.userScope.getUserIdSafe();
+            userId = this.userScopeFactory.getInstance().getUserIdSafe();
 
         List<Predicate> predicates = new ArrayList<>();
+
+        if (!usePublic) {
+            Predicate predicateTenant = this.queryUtilsService.buildTenantFilter(queryContext.CriteriaBuilder, queryContext.Root.get(PlanEntity._tenantId));
+            if (predicateTenant != null) predicates.add(predicateTenant);
+        }
+
         if (userId != null || usePublic) {
             predicates.add(queryContext.CriteriaBuilder.or(
                     usePublic ? queryContext.CriteriaBuilder.and(
@@ -309,7 +333,12 @@ public class PlanQuery extends QueryBase<PlanEntity> {
                             queryContext.CriteriaBuilder.equal(queryContext.Root.get(PlanEntity._accessType), PlanAccessType.Public)
                     )
                             : queryContext.CriteriaBuilder.or(),  //Creates a false query
-                    userId != null ? queryContext.CriteriaBuilder.in(queryContext.Root.get(PlanEntity._id)).value(this.queryUtilsService.buildPlanUserAuthZSubQuery(queryContext.Query, queryContext.CriteriaBuilder, userId)) : queryContext.CriteriaBuilder.or()  //Creates a false query
+                    userId != null ? queryContext.CriteriaBuilder.in(queryContext.Root.get(PlanEntity._id)).value(this.queryUtilsService.buildPlanUserAuthZSubQuery(queryContext.Query, queryContext.CriteriaBuilder, userId, IsActive.Active)) : queryContext.CriteriaBuilder.or(),  //Creates a false query
+                    userId != null ? queryContext.CriteriaBuilder.and(
+                            queryContext.CriteriaBuilder.in(queryContext.Root.get(PlanEntity._id)).value(this.queryUtilsService.buildPlanUserAuthZSubQuery(queryContext.Query, queryContext.CriteriaBuilder, userId, IsActive.Inactive)),
+                            queryContext.CriteriaBuilder.equal(queryContext.Root.get(PlanEntity._isActive), IsActive.Inactive)
+                    )
+                            : queryContext.CriteriaBuilder.or()
             ));
         }
         if (!predicates.isEmpty()) {
@@ -384,6 +413,14 @@ public class PlanQuery extends QueryBase<PlanEntity> {
                 inClause.value(item);
             predicates.add(inClause);
         }
+
+        if (this.language != null) {
+            CriteriaBuilder.In<String> inClause = queryContext.CriteriaBuilder.in(queryContext.Root.get(PlanEntity._language));
+            for (String item : this.language)
+                inClause.value(item);
+            predicates.add(inClause);
+        }
+
         if (this.after != null) {
             Predicate afterClause = queryContext.CriteriaBuilder.greaterThanOrEqualTo(queryContext.Root.get(PlanEntity._createdAt), this.after);
             predicates.add(afterClause);
@@ -429,11 +466,11 @@ public class PlanQuery extends QueryBase<PlanEntity> {
 
     @Override
     protected String fieldNameOf(FieldResolver item) {
-        if (item.match(Plan._id) || item.match(PublicPlan._id))
+        if (item.match(Plan._id))
             return PlanEntity._id;
-        else if (item.match(Plan._label) || item.match(PublicPlan._label))
+        else if (item.match(Plan._label))
             return PlanEntity._label;
-        else if (item.match(Plan._version) || item.match(PublicPlan._version))
+        else if (item.match(Plan._version))
             return PlanEntity._version;
         else if (item.match(Plan._status))
             return PlanEntity._statusId;
@@ -445,7 +482,7 @@ public class PlanQuery extends QueryBase<PlanEntity> {
             return PlanEntity._properties;
         else if (item.match(Plan._groupId))
             return PlanEntity._groupId;
-        else if (item.match(Plan._description) || item.match(PublicPlan._description))
+        else if (item.match(Plan._description))
             return PlanEntity._description;
         else if (item.match(Plan._createdAt))
             return PlanEntity._createdAt;
@@ -455,7 +492,7 @@ public class PlanQuery extends QueryBase<PlanEntity> {
             return PlanEntity._updatedAt;
         else if (item.match(Plan._isActive))
             return PlanEntity._isActive;
-        else if (item.match(Plan._finalizedAt) || item.match(PublicPlan._finalizedAt))
+        else if (item.match(Plan._finalizedAt))
             return PlanEntity._finalizedAt;
         else if (item.match(Plan._accessType))
             return PlanEntity._accessType;

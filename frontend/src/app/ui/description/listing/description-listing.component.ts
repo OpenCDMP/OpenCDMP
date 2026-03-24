@@ -24,7 +24,7 @@ import { GuidedTourService } from '@app/library/guided-tour/guided-tour.service'
 import { StartNewPlanDialogComponent } from '@app/ui/plan/new/start-new-plan-dialogue/start-new-plan-dialog.component';
 import { HttpErrorHandlingService } from '@common/modules/errors/error-handling/http-error-handling.service';
 import { PageLoadEvent, SortDirection } from '@common/modules/hybrid-listing/hybrid-listing.component';
-import { TranslateService } from '@ngx-translate/core';
+import { LangChangeEvent, TranslateService } from '@ngx-translate/core';
 import { debounceTime, takeUntil, tap } from 'rxjs/operators';
 import { nameof } from 'ts-simple-nameof';
 import { StartNewDescriptionDialogComponent } from '../start-new-description-dialog/start-new-description-dialog.component';
@@ -397,7 +397,7 @@ export class DescriptionListingComponent extends BaseListingComponent<BaseDescri
 		params.interceptorContext = {
 			excludedInterceptors: [InterceptorType.TenantHeaderInterceptor]
 		};
-		return this.principalService.myTenants({ params: params });
+		return this.principalService.myTenantsTranslated({ params: params });
 	}
 
 	private _parseLookupFromParams(params: Params): DescriptionLookup {
@@ -437,17 +437,6 @@ export class DescriptionListingComponent extends BaseListingComponent<BaseDescri
 	_patchLookupFromFilters(filters: DescriptionListingFilters): DescriptionLookup {
 		this.lookup.statusIds = filters?.statusId != null ? [filters?.statusId] : null;
 		this.lookup.isActive = filters?.isActive ? [IsActive.Active] : [IsActive.Inactive];
-
-		// Tenants
-		let viewOnlyTenant = filters?.viewOnlyTenant ?? false;
-		if (viewOnlyTenant) {
-				let tenant = this.tenants?.find(t => t.code && t.code?.toString() == this.authService.selectedTenant());
-				if (tenant && tenant?.code) {
-					this.lookup.tenantSubQuery = DescriptionFilterService.initializeTenantLookup();
-					this.lookup.tenantSubQuery.codes = [tenant.code]
-				}
-				else this.lookup.tenantSubQuery = null;
-		} else this.lookup.tenantSubQuery = null;
 
 		// Description Templates
 		let descriptionTemplates = filters?.descriptionTemplates ?? null;

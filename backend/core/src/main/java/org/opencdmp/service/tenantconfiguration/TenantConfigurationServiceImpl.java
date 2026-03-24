@@ -1,6 +1,6 @@
 package org.opencdmp.service.tenantconfiguration;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
+import tools.jackson.core.JacksonException;
 import gr.cite.commons.web.authz.service.AuthorizationService;
 import gr.cite.tools.data.builder.BuilderFactory;
 import gr.cite.tools.data.deleter.DeleterFactory;
@@ -20,7 +20,7 @@ import org.opencdmp.commons.JsonHandlingService;
 import org.opencdmp.commons.enums.IsActive;
 import org.opencdmp.commons.enums.StorageType;
 import org.opencdmp.commons.enums.TenantConfigurationType;
-import org.opencdmp.commons.scope.tenant.TenantScope;
+import org.opencdmp.commons.scope.tenant.TenantScopeFactory;
 import org.opencdmp.commons.types.deposit.DepositSourceEntity;
 import org.opencdmp.commons.types.evaluator.EvaluatorSourceEntity;
 import org.opencdmp.commons.types.featured.DescriptionTemplateEntity;
@@ -31,7 +31,7 @@ import org.opencdmp.commons.types.viewpreference.ViewPreferenceEntity;
 import org.opencdmp.convention.ConventionService;
 import org.opencdmp.data.TenantConfigurationEntity;
 import org.opencdmp.data.TenantEntity;
-import org.opencdmp.data.TenantEntityManager;
+import org.opencdmp.data.TenantEntityManagerFactory;
 import org.opencdmp.errorcode.ErrorThesaurusProperties;
 import org.opencdmp.event.EventBroker;
 import org.opencdmp.event.TenantConfigurationTouchedEvent;
@@ -79,7 +79,7 @@ public class TenantConfigurationServiceImpl implements TenantConfigurationServic
 
     private static final LoggerService logger = new LoggerService(LoggerFactory.getLogger(TenantConfigurationServiceImpl.class));
 
-    private final TenantEntityManager entityManager;
+    private final TenantEntityManagerFactory tenantEntityManagerFactory;
 
     private final AuthorizationService authorizationService;
 
@@ -101,7 +101,7 @@ public class TenantConfigurationServiceImpl implements TenantConfigurationServic
     private final StorageFileService storageFileService;
     private final QueryFactory queryFactory;
     private final EventBroker eventBroker;
-    private final TenantScope tenantScope;
+    private final TenantScopeFactory tenantScopeFactory;
 
     private final TenantDefaultLocaleTouchedIntegrationEventHandler tenantDefaultLocaleTouchedIntegrationEventHandler;
     private final TenantDefaultLocaleRemovalIntegrationEventHandler tenantDefaultLocaleRemovalIntegrationEventHandler;
@@ -110,14 +110,14 @@ public class TenantConfigurationServiceImpl implements TenantConfigurationServic
 
     @Autowired
     public TenantConfigurationServiceImpl(
-            TenantEntityManager entityManager,
+            TenantEntityManagerFactory tenantEntityManagerFactory,
             AuthorizationService authorizationService,
             DeleterFactory deleterFactory,
             BuilderFactory builderFactory,
             ConventionService conventionService,
             ErrorThesaurusProperties errors,
-            MessageSource messageSource, JsonHandlingService jsonHandlingService, EncryptionService encryptionService, TenantProperties tenantProperties, StorageFileService storageFileService, QueryFactory queryFactory, EventBroker eventBroker, TenantScope tenantScope, TenantDefaultLocaleTouchedIntegrationEventHandler tenantDefaultLocaleTouchedIntegrationEventHandler, TenantDefaultLocaleRemovalIntegrationEventHandler tenantDefaultLocaleRemovalIntegrationEventHandler, PluginConfigurationService pluginConfigurationService) {
-        this.entityManager = entityManager;
+            MessageSource messageSource, JsonHandlingService jsonHandlingService, EncryptionService encryptionService, TenantProperties tenantProperties, StorageFileService storageFileService, QueryFactory queryFactory, EventBroker eventBroker, TenantScopeFactory tenantScopeFactory, TenantDefaultLocaleTouchedIntegrationEventHandler tenantDefaultLocaleTouchedIntegrationEventHandler, TenantDefaultLocaleRemovalIntegrationEventHandler tenantDefaultLocaleRemovalIntegrationEventHandler, PluginConfigurationService pluginConfigurationService) {
+        this.tenantEntityManagerFactory = tenantEntityManagerFactory;
         this.authorizationService = authorizationService;
         this.deleterFactory = deleterFactory;
         this.builderFactory = builderFactory;
@@ -130,13 +130,13 @@ public class TenantConfigurationServiceImpl implements TenantConfigurationServic
 	    this.storageFileService = storageFileService;
 	    this.queryFactory = queryFactory;
 	    this.eventBroker = eventBroker;
-	    this.tenantScope = tenantScope;
+	    this.tenantScopeFactory = tenantScopeFactory;
 	    this.tenantDefaultLocaleTouchedIntegrationEventHandler = tenantDefaultLocaleTouchedIntegrationEventHandler;
 	    this.tenantDefaultLocaleRemovalIntegrationEventHandler = tenantDefaultLocaleRemovalIntegrationEventHandler;
         this.pluginConfigurationService = pluginConfigurationService;
     }
 
-    public TenantConfiguration persist(TenantConfigurationPersist model, FieldSet fields) throws MyForbiddenException, MyValidationException, MyApplicationException, MyNotFoundException, InvalidApplicationException, JsonProcessingException, InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
+    public TenantConfiguration persist(TenantConfigurationPersist model, FieldSet fields) throws MyForbiddenException, MyValidationException, MyApplicationException, MyNotFoundException, InvalidApplicationException, JacksonException, InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
         logger.debug(new MapLogEntry("persisting data TenantConfiguration").And("model", model).And("fields", fields));
 
         this.authorizationService.authorizeForce(Permission.EditTenantConfiguration);
@@ -145,7 +145,7 @@ public class TenantConfigurationServiceImpl implements TenantConfigurationServic
 
         TenantConfigurationEntity data;
         if (isUpdate) {
-            data = this.entityManager.find(TenantConfigurationEntity.class, model.getId());
+            data = this.tenantEntityManagerFactory.getInstance().find(TenantConfigurationEntity.class, model.getId());
             if (data == null) throw new MyNotFoundException(this.messageSource.getMessage("General_ItemNotFound", new Object[]{model.getId(), TenantConfiguration.class.getSimpleName()}, LocaleContextHolder.getLocale()));
             if (!this.conventionService.hashValue(data.getUpdatedAt()).equals(model.getHash())) throw new MyValidationException(this.errors.getHashConflict().getCode(), this.errors.getHashConflict().getMessage());
             if (!data.getType().equals(model.getType())) throw new MyValidationException(this.errors.getTenantConfigurationTypeCanNotChange().getCode(), this.errors.getTenantConfigurationTypeCanNotChange().getMessage());
@@ -158,8 +158,8 @@ public class TenantConfigurationServiceImpl implements TenantConfigurationServic
         }
 
         TenantConfigurationQuery tenantConfigurationQuery = this.queryFactory.query(TenantConfigurationQuery.class).disableTracking().excludedIds(data.getId()).isActive(IsActive.Active).types(data.getType());
-        if (this.tenantScope.isDefaultTenant()) tenantConfigurationQuery.tenantIsSet(false);
-        else tenantConfigurationQuery.tenantIsSet(true).tenantIds(this.tenantScope.getTenant());
+        if (this.tenantScopeFactory.getInstance().isDefaultTenant()) tenantConfigurationQuery.tenantIsSet(false);
+        else tenantConfigurationQuery.tenantIsSet(true).tenantIds(this.tenantScopeFactory.getInstance().getTenant());
         if (tenantConfigurationQuery.count() > 0)throw new MyValidationException(this.errors.getMultipleTenantConfigurationTypeNotAllowed().getCode(), this.errors.getMultipleTenantConfigurationTypeNotAllowed().getMessage());
         
         switch (data.getType()){
@@ -183,18 +183,18 @@ public class TenantConfigurationServiceImpl implements TenantConfigurationServic
         }
         data.setUpdatedAt(Instant.now());
         if (isUpdate)
-            this.entityManager.merge(data);
+            this.tenantEntityManagerFactory.getInstance().merge(data);
         else
-            this.entityManager.persist(data);
+            this.tenantEntityManagerFactory.getInstance().persist(data);
 
-        this.entityManager.flush();
+        this.tenantEntityManagerFactory.getInstance().flush();
 
         if (data.getTenantId() != null) {
-            TenantEntity tenant = this.entityManager.find(TenantEntity.class, data.getTenantId(), true);
+            TenantEntity tenant = this.tenantEntityManagerFactory.getInstance().find(TenantEntity.class, data.getTenantId(), true);
             if (tenant == null) throw new MyNotFoundException(this.messageSource.getMessage("General_ItemNotFound", new Object[]{data.getTenantId(), TenantEntity.class.getSimpleName()}, LocaleContextHolder.getLocale()));
             this.eventBroker.emit(new TenantConfigurationTouchedEvent(tenant.getId(), tenant.getCode(), data.getType()));
         } else {
-            this.eventBroker.emit(new TenantConfigurationTouchedEvent(data.getId(), this.tenantScope.getDefaultTenantCode(), data.getType()));
+            this.eventBroker.emit(new TenantConfigurationTouchedEvent(data.getId(), this.tenantScopeFactory.getInstance().getDefaultTenantCode(), data.getType()));
         }
         
         if (data.getType().equals(TenantConfigurationType.DefaultUserLocale)){
@@ -412,7 +412,7 @@ public class TenantConfigurationServiceImpl implements TenantConfigurationServic
 
         this.authorizationService.authorizeForce(Permission.DeleteTenantConfiguration);
 
-        TenantConfigurationEntity data = this.entityManager.find(TenantConfigurationEntity.class, id);
+        TenantConfigurationEntity data = this.tenantEntityManagerFactory.getInstance().find(TenantConfigurationEntity.class, id);
         if (data == null) throw new MyNotFoundException(this.messageSource.getMessage("General_ItemNotFound", new Object[]{id, TenantConfiguration.class.getSimpleName()}, LocaleContextHolder.getLocale()));
 
         if (data.getType().equals(TenantConfigurationType.Logo)){
@@ -422,11 +422,11 @@ public class TenantConfigurationServiceImpl implements TenantConfigurationServic
         this.deleterFactory.deleter(TenantConfigurationDeleter.class).deleteAndSaveByIds(List.of(id));
 
         if (data.getTenantId() != null) {
-            TenantEntity tenant = this.entityManager.find(TenantEntity.class, data.getTenantId(), true);
+            TenantEntity tenant = this.tenantEntityManagerFactory.getInstance().find(TenantEntity.class, data.getTenantId(), true);
             if (tenant == null) throw new MyNotFoundException(this.messageSource.getMessage("General_ItemNotFound", new Object[]{data.getTenantId(), TenantEntity.class.getSimpleName()}, LocaleContextHolder.getLocale()));
             this.eventBroker.emit(new TenantConfigurationTouchedEvent(tenant.getId(), tenant.getCode(), data.getType()));
         } else {
-            this.eventBroker.emit(new TenantConfigurationTouchedEvent(data.getId(), this.tenantScope.getDefaultTenantCode(), data.getType()));
+            this.eventBroker.emit(new TenantConfigurationTouchedEvent(data.getId(), this.tenantScopeFactory.getInstance().getDefaultTenantCode(), data.getType()));
         }
 
         if (data.getType().equals(TenantConfigurationType.DefaultUserLocale)){
@@ -442,11 +442,11 @@ public class TenantConfigurationServiceImpl implements TenantConfigurationServic
         if (type == null) throw new MyApplicationException("tenant configuration type is required!");
 
         TenantConfigurationQuery query = this.queryFactory.query(TenantConfigurationQuery.class).disableTracking().authorize(AuthorizationFlags.AllExceptPublic).isActive(IsActive.Active).types(type);
-        if (this.tenantScope.isDefaultTenant()) query.tenantIsSet(false);
-        else query.tenantIsSet(true).tenantIds(this.tenantScope.getTenant());
+        if (this.tenantScopeFactory.getInstance().isDefaultTenant()) query.tenantIsSet(false);
+        else query.tenantIsSet(true).tenantIds(this.tenantScopeFactory.getInstance().getTenant());
 
         TenantConfigurationEntity entity = query.firstAs(BaseFieldSet.build(fieldSet, TenantConfiguration._id));
-        if (entity == null && !this.tenantScope.isDefaultTenant()) {
+        if (entity == null && !this.tenantScopeFactory.getInstance().isDefaultTenant()) {
             query.clearTenantIds().tenantIsSet(false);
             entity = query.firstAs(BaseFieldSet.build(fieldSet, TenantConfiguration._id));
         }

@@ -123,4 +123,12 @@ public class FakeRequestAttributes implements RequestAttributes {
             this.requestDestructionCallbacks.clear();
         }
     }
+	
+	public FakeRequestAttributes copy(boolean excludeCallbacks){
+		FakeRequestAttributes copy =  new FakeRequestAttributes();
+		copy.requestAttributeMap.putAll(this.requestAttributeMap);
+		if (!excludeCallbacks) copy.requestDestructionCallbacks.putAll(this.requestDestructionCallbacks);
+		copy.requestActive = this.requestActive;
+		return copy;
+	}
 }

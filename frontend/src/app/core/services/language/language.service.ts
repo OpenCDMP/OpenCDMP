@@ -1,9 +1,11 @@
 import { Injectable, Signal, signal } from '@angular/core';
 import { BaseService } from '@common/base/base.service';
 import { TranslateService } from '@ngx-translate/core';
+import { CookieService } from 'ngx-cookie-service';
 import { Observable } from 'rxjs';
 import { map, takeUntil } from 'rxjs/operators';
 import { LanguageHttpService } from './language.http.service';
+import { ConfigurationService } from '../configuration/configuration.service';
 
 @Injectable()
 export class LanguageService extends BaseService {
@@ -18,7 +20,9 @@ export class LanguageService extends BaseService {
 
 	constructor(
 		private translate: TranslateService,
-		private languageHttpService: LanguageHttpService
+		private languageHttpService: LanguageHttpService,
+		private configurationService: ConfigurationService,
+		private cookieService: CookieService
 	) {
 		super();
 	}
@@ -26,6 +30,15 @@ export class LanguageService extends BaseService {
 	public changeLanguage(lang: string) {
 		this.currentLanguage = lang;
 		this.translate.use(lang);
+		this.setLanguageCookie(lang);
+	}
+
+	public getCookieLanguage(): string | null {
+		return this.cookieService.get(this.configurationService.languageCookieName) || null;
+	}
+
+	private setLanguageCookie(lang: string): void {
+		this.cookieService.set(this.configurationService.languageCookieName, lang, 5000, null, this.configurationService.languageCookieDomain || null, false, 'Lax');
 	}
 
 	public getCurrentLanguage() {

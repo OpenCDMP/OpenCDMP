@@ -23,6 +23,18 @@ else
    find '/usr/share/nginx/html/assets/config' -name 'config.json' -exec sed -i -e 's,${DEFAULT_CULTURE},en,g' {} \;
 fi
 
+if [[ ! -z "${LANGUAGE_COOKIE_NAME}" ]]; then
+	find '/usr/share/nginx/html/assets/config' -name 'config.json' -exec sed -i -e 's,${LANGUAGE_COOKIE_NAME},'"$LANGUAGE_COOKIE_NAME"',g' {} \;
+else
+   find '/usr/share/nginx/html/assets/config' -name 'config.json' -exec sed -i -e 's,${LANGUAGE_COOKIE_NAME},,g' {} \;
+fi
+
+if [[ ! -z "${LANGUAGE_COOKIE_DOMAIN}" ]]; then
+	find '/usr/share/nginx/html/assets/config' -name 'config.json' -exec sed -i -e 's,${LANGUAGE_COOKIE_DOMAIN},'"$LANGUAGE_COOKIE_DOMAIN"',g' {} \;
+else
+   find '/usr/share/nginx/html/assets/config' -name 'config.json' -exec sed -i -e 's,${LANGUAGE_COOKIE_DOMAIN},,g' {} \;
+fi
+
 if [[ ! -z "${KEYCLOAK_ADDRESS}" ]]; then
 	find '/usr/share/nginx/html/assets/config' -name 'config.json' -exec sed -i -e 's,${KEYCLOAK_ADDRESS},'"$KEYCLOAK_ADDRESS"',g' {} \;
 else

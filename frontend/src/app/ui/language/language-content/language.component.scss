@@ -2,3 +2,12 @@
 	border-color: transparent;
 	padding: 8px;
 }
+.language-container {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    mat-icon{
+        transform: scale(0.9);
+        color: var(--mat-sys-primary);
+    }
+}

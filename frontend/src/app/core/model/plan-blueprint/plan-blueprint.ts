@@ -1,7 +1,8 @@
 import { PlanBlueprintFieldCategory } from "@app/core/common/enum/plan-blueprint-field-category";
-import { PlanBlueprintExtraFieldDataType } from "@app/core/common/enum/plan-blueprint-field-type";
 import { PlanBlueprintStatus } from "@app/core/common/enum/plan-blueprint-status";
-import { PlanBlueprintSystemFieldType } from "@app/core/common/enum/plan-blueprint-system-field-type";
+import { SystemFieldType } from "@app/core/common/enum/system-field-type";
+import { BaseFieldData, FieldDefaultValue, Multiplicity, FieldRule, BaseSection } from "@app/core/model/description-template/description-template";
+import { FieldValidationType } from "@app/core/common/enum/field-validation-type";
 import { BaseEntity, BaseEntityPersist } from "@common/base/base-entity.model";
 import { Guid } from "@common/types/guid";
 import { ReferenceType } from "../reference-type/reference-type";
@@ -10,6 +11,8 @@ import { PlanBlueprintVersionStatus } from "@app/core/common/enum/plan-blueprint
 import { PluginConfiguration, PluginConfigurationPersist } from "../plugin-configuration/plugin-configuration";
 import { DescriptionTemplate } from "../description-template/description-template";
 import { PlanBlueprintType } from "../plan-blueprint-type/plan-blueprint-type";
+import { IconConfiguration, IconConfigurationPersist } from "../icon-configuration/icon-configuration";
+import { BaseFieldDataPersist, DefaultValuePersist, MultiplicityPersist, RulePersist, SectionPersist } from "../description-template/description-template-persist";
 
 
 export interface PlanBlueprint extends BaseEntity {
@@ -23,20 +26,33 @@ export interface PlanBlueprint extends BaseEntity {
 	versionStatus?: PlanBlueprintVersionStatus;
 	groupId?: Guid;
 	ordinal?: number;
+	usageCount?: number;
 }
 
 export interface PlanBlueprintDefinition {
-	sections?: PlanBlueprintDefinitionSection[];
+	sections?: RootSection[];
 	pluginConfigurations?: PluginConfiguration[];
+	planCreationConsent?: PlanCreationConsent;
+	iconConfiguration?: IconConfiguration;
 }
 
+export interface RootSection extends BaseSection{
+    hasTemplates: boolean;
+    canEditDescriptionTemplates: boolean;
+	descriptionTemplates?: DescriptionTemplatesInSection[];
+	prefillingSourcesEnabled: boolean;
+	prefillingSources: PrefillingSource[];
+}
 
+/** @deprecated Use RootSection or BaseSection */
 export interface PlanBlueprintDefinitionSection {
 	id: Guid;
 	label: string;
 	description: string;
+	extendedDescription?: string;
 	ordinal: number;
-	fields: (SystemFieldInSection | ExtraFieldInSection | ReferenceTypeFieldInSection | UploadFieldInSection)[];
+	fieldSets?: BlueprintFieldSet[];
+	sections?: PlanBlueprintDefinitionSection[];
 	hasTemplates: boolean;
     canEditDescriptionTemplates: boolean;
 	descriptionTemplates?: DescriptionTemplatesInSection[];
@@ -48,41 +64,71 @@ export interface DescriptionTemplatesInSection {
 	descriptionTemplate: DescriptionTemplate;
 	minMultiplicity: number;
 	maxMultiplicity: number;
+}
 
+export interface BlueprintFieldSet {
+	id: Guid;
+	ordinal: number;
+	title: string;
+	description: string;
+	extendedDescription: string;
+	additionalInformation: string;
+	multiplicity: Multiplicity;
+	hasMultiplicity: boolean;
+	hasCommentField: boolean;
+	fields: (SystemFieldInSection | BlueprintTemplateFieldInSection)[];
 }
 
 export interface FieldInSection {
 	id: Guid;
+	ordinal: number;
+	semantics: string[];
 	category: PlanBlueprintFieldCategory;
 	label: string;
 	placeholder: string;
 	description: string;
-	semantics: string[];
 	required: boolean;
-	ordinal: number;
 }
 
 export interface SystemFieldInSection extends FieldInSection {
-	systemFieldType: PlanBlueprintSystemFieldType;
+	systemFieldType: SystemFieldType;
 }
 
+export interface BlueprintTemplateFieldInSection extends FieldInSection {
+	visibilityRules?: FieldRule[];
+	validations?: FieldValidationType[];
+	includeInExport?: boolean;
+	defaultValue?: FieldDefaultValue;
+	data?: BaseFieldData;
+}
+
+/** @deprecated Use BlueprintTemplateFieldInSection instead */
 export interface ExtraFieldInSection extends FieldInSection {
-	dataType: PlanBlueprintExtraFieldDataType;
+	dataType: number;
 }
 
+/** @deprecated Use BlueprintTemplateFieldInSection with REFERENCE_TYPES data instead */
 export interface ReferenceTypeFieldInSection extends FieldInSection {
 	referenceType: ReferenceType;
 	multipleSelect: boolean;
 }
 
+/** @deprecated Use BlueprintTemplateFieldInSection with UPLOAD data instead */
 export interface UploadFieldInSection extends FieldInSection {
 	types: UploadOption[];
 	maxFileSizeInMB: number;
 }
 
+/** @deprecated */
 export interface UploadOption {
 	label: string;
 	value: string;
+}
+
+export interface PlanCreationConsent {
+	enabled: boolean;
+	message: string;
+	details: string;
 }
 
 //
@@ -103,16 +149,27 @@ export interface NewVersionPlanBlueprintPersist {
 }
 
 export interface PlanBlueprintDefinitionPersist {
-	sections?: PlanBlueprintDefinitionSectionPersist[];
+	sections?: RootSectionPersist[];
 	pluginConfigurations?: PluginConfigurationPersist[];
+	planCreationConsent?: PlanCreationConsentPersist;
+	iconConfiguration?: IconConfigurationPersist;
 }
 
+export interface RootSectionPersist extends SectionPersist{
+	hasTemplates: boolean;
+    canEditDescriptionTemplates: boolean;
+	descriptionTemplates?: DescriptionTemplatesInSectionPersist[];
+	prefillingSourcesEnabled: boolean;
+	prefillingSourcesIds: Guid[];
+}
 export interface PlanBlueprintDefinitionSectionPersist {
 	id: Guid;
 	label: string;
 	description: string;
+	extendedDescription?: string;
 	ordinal: number;
-	fields: FieldInSectionPersist[];
+	fieldSets?: BlueprintFieldSetPersist[];
+	sections?: PlanBlueprintDefinitionSectionPersist[];
 	hasTemplates: boolean;
     canEditDescriptionTemplates: boolean;
 	descriptionTemplates?: DescriptionTemplatesInSectionPersist[];
@@ -124,6 +181,19 @@ export interface DescriptionTemplatesInSectionPersist {
 	descriptionTemplateGroupId: Guid;
 	minMultiplicity: number;
 	maxMultiplicity: number;
+}
+
+export interface BlueprintFieldSetPersist {
+	id: Guid;
+	ordinal: number;
+	title: string;
+	description: string;
+	extendedDescription: string;
+	additionalInformation: string;
+	multiplicity: MultiplicityPersist;
+	hasMultiplicity: boolean;
+	hasCommentField: boolean;
+	fields: FieldInSectionPersist[];
 }
 
 export interface FieldInSectionPersist {
@@ -138,24 +208,42 @@ export interface FieldInSectionPersist {
 }
 
 export interface SystemFieldInSectionPersist extends FieldInSectionPersist {
-	systemFieldType: PlanBlueprintSystemFieldType;
+	systemFieldType: SystemFieldType;
 }
 
+export interface BlueprintTemplateFieldInSectionPersist extends FieldInSectionPersist {
+	visibilityRules?: RulePersist[];
+	validations?: FieldValidationType[];
+	includeInExport?: boolean;
+	defaultValue?: DefaultValuePersist;
+	data?: BaseFieldDataPersist;
+}
+
+/** @deprecated Use BlueprintTemplateFieldInSectionPersist instead */
 export interface ExtraFieldInSectionPersist extends FieldInSectionPersist {
-	dataType: PlanBlueprintExtraFieldDataType;
+	dataType: number;
 }
 
+/** @deprecated Use BlueprintTemplateFieldInSectionPersist instead */
 export interface ReferenceTypeFieldInSectionPersist extends FieldInSectionPersist {
 	referenceTypeId: Guid;
 	multipleSelect: boolean;
 }
 
+/** @deprecated Use BlueprintTemplateFieldInSectionPersist instead */
 export interface UploadFieldInSectionPersist extends FieldInSectionPersist {
 	types: UploadOptionPersist[];
 	maxFileSizeInMB: number;
 }
 
+/** @deprecated */
 export interface UploadOptionPersist {
 	label: string;
 	value: string;
+}
+
+export interface PlanCreationConsentPersist {
+	enabled: boolean;
+	message: string;
+	details: string;
 }

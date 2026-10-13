@@ -22,7 +22,7 @@ public class NestedPlanDescriptionTemplateElasticEntity {
 	public final static String _descriptionTemplateGroupId = "descriptionTemplateGroupId";
 
 	@Field(value = NestedPlanDescriptionTemplateElasticEntity._sectionId, type = FieldType.Keyword)
-	private UUID sectionId;
+	private String sectionId;
 	public final static String _sectionId = "sectionId";
 	
 
@@ -42,12 +42,12 @@ public class NestedPlanDescriptionTemplateElasticEntity {
 		this.descriptionTemplateGroupId = descriptionTemplateGroupId;
 	}
 
-	public UUID getSectionId() {
+	public String getSectionId() {
 		return this.sectionId;
 	}
 
-	public void setSectionId(UUID sectionId) {
-		this.sectionId = sectionId;
+	public void setSectionId(String sectionId) {
+		this.sectionId = (sectionId == null || sectionId.isEmpty()) ? null : sectionId;
 	}
 
 	public UUID getPlanId() {

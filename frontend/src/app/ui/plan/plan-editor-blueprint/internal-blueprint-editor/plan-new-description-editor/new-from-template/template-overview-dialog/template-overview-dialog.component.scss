@@ -1,0 +1,139 @@
+@use '../../shared/pills' as pills;
+
+:host {
+	display: block;
+	height: 100%;
+}
+
+.overview {
+	display: flex;
+	flex-direction: column;
+	height: 100%;
+	background-color: var(--mat-sys-surface);
+}
+
+.overview--header {
+	display: flex;
+	align-items: flex-start;
+	gap: 0.85rem;
+	padding: 1.25rem 1.25rem 1rem 1.5rem;
+	border-bottom: 1px solid var(--mat-sys-outline-variant);
+
+	.overview--titles {
+		flex: 1;
+		min-width: 0;
+		display: flex;
+		flex-direction: column;
+		align-items: flex-start;
+		gap: 0.3rem;
+	}
+	.overview--title {
+		margin: 0;
+		font-size: var(--mat-sys-title-medium-size);
+		font-weight: 700;
+		line-height: 1.3;
+	}
+	.overview--close {
+		flex-shrink: 0;
+		margin: -0.35rem -0.35rem 0 0;
+	}
+}
+
+.type-chip {
+	@include pills.type-chip;
+}
+
+.overview--body {
+	flex: 1;
+	min-height: 0;
+	overflow: auto;
+	padding: 1.25rem 1.5rem;
+}
+
+.stats {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: 0.75rem;
+	margin-bottom: 1.5rem;
+
+	.stat {
+		display: flex;
+		flex-direction: column;
+		gap: 0.35rem;
+		padding: 0.9rem 1rem;
+		border-radius: 12px;
+		background-color: var(--mat-sys-surface-container-low);
+	}
+	.stat--label {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.35rem;
+		color: var(--mat-sys-on-surface-variant);
+		font-size: var(--mat-sys-label-large-size);
+		mat-icon { font-size: 18px; width: 18px; height: 18px; }
+	}
+	.stat--value {
+		font-size: var(--mat-sys-headline-small-size);
+		font-weight: 700;
+	}
+}
+
+.eyebrow {
+	@include pills.eyebrow;
+	color: var(--mat-sys-on-surface-variant);
+	margin-top: 0.25rem;
+}
+
+.about {
+	margin-bottom: 1.5rem;
+	color: var(--mat-sys-on-surface-variant);
+	font-size: var(--mat-sys-body-medium-size);
+	line-height: 1.5;
+	::ng-deep p:last-child { margin-bottom: 0; }
+}
+
+.structure {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+	border-radius: 12px;
+	background-color: var(--mat-sys-surface-container-low);
+	overflow: hidden;
+
+	.structure--item {
+		display: flex;
+		align-items: flex-start;
+		gap: 0.75rem;
+		padding: 0.7rem 1rem;
+		border-bottom: 1px solid var(--mat-sys-surface-container);
+		&:last-child { border-bottom: none; }
+	}
+	.structure--index {
+		flex-shrink: 0;
+		min-width: 1.5rem;
+		color: var(--mat-sys-secondary);
+		font-size: var(--mat-sys-label-large-size);
+		font-weight: 700;
+		line-height: 1.6;
+	}
+	.structure--content { min-width: 0; }
+	.structure--title {
+		font-weight: 500;
+		line-height: 1.6;
+	}
+	.structure--children {
+		list-style: none;
+		margin: 0.15rem 0 0 0;
+		padding-left: 0.75rem;
+		border-left: 2px solid var(--mat-sys-outline-variant);
+		color: var(--mat-sys-on-surface-variant);
+		font-size: var(--mat-sys-body-medium-size);
+		li { padding: 0.15rem 0; }
+	}
+}
+
+.overview--footer {
+	padding: 1rem 1.5rem;
+	border-top: 1px solid var(--mat-sys-outline-variant);
+	.overview--use { width: 100%; height: 48px; }
+}

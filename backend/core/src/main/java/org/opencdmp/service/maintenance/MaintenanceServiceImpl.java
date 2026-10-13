@@ -5,11 +5,8 @@ import gr.cite.tools.data.query.QueryFactory;
 import gr.cite.tools.fieldset.BaseFieldSet;
 import gr.cite.tools.logging.LoggerService;
 import org.opencdmp.authorization.Permission;
-import org.opencdmp.commons.XmlHandlingService;
 import org.opencdmp.commons.enums.*;
 import org.opencdmp.commons.scope.tenant.TenantScopeFactory;
-import org.opencdmp.commons.types.planblueprint.DefinitionEntity;
-import org.opencdmp.commons.types.planblueprint.SectionEntity;
 import org.opencdmp.data.*;
 import org.opencdmp.integrationevent.outbox.annotationentityremoval.AnnotationEntityRemovalIntegrationEventHandler;
 import org.opencdmp.integrationevent.outbox.annotationentitytouch.AnnotationEntityTouchedIntegrationEventHandler;
@@ -35,8 +32,8 @@ import org.opencdmp.model.reference.Reference;
 import org.opencdmp.model.referencetype.ReferenceType;
 import org.opencdmp.model.user.User;
 import org.opencdmp.query.*;
-import org.opencdmp.service.accounting.AccountingProperties;
 import org.opencdmp.service.accounting.AccountingService;
+import org.opencdmp.service.fielddatahelper.*;
 import org.opencdmp.service.kpi.KpiService;
 import org.opencdmp.service.plan.PlanServiceProperties;
 import org.slf4j.Logger;
@@ -44,15 +41,14 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import javax.management.InvalidApplicationException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 @Service
 public class MaintenanceServiceImpl implements MaintenanceService {
 
     private static final LoggerService logger = new LoggerService(LoggerFactory.getLogger(MaintenanceServiceImpl.class));
     private static final Logger log = LoggerFactory.getLogger(MaintenanceServiceImpl.class);
+    // the 1.3 -> 1.4 data migrations log a progress line every this many inspected items
     private final AuthorizationService authorizationService;
     private final QueryFactory queryFactory;
     private final UserTouchedIntegrationEventHandler userTouchedIntegrationEventHandler;
@@ -67,14 +63,13 @@ public class MaintenanceServiceImpl implements MaintenanceService {
     private final IndicatorElasticEventHandler indicatorElasticEventHandler;
     private final IndicatorResetEventHandler indicatorResetEventHandler;
     private final KpiService kpiService;
-    private final XmlHandlingService xmlHandlingService;
     private final PlanTouchedIntegrationEventHandler planTouchedIntegrationEventHandler;
     private final PlanRemovalIntegrationEventHandlerImpl planRemovalIntegrationEventHandler;
     private final PlanServiceProperties planServiceProperties;
 
     public MaintenanceServiceImpl(
             AuthorizationService authorizationService,
-            QueryFactory queryFactory, UserTouchedIntegrationEventHandler userTouchedIntegrationEventHandler, UserRemovalIntegrationEventHandler userRemovalIntegrationEventHandler, TenantTouchedIntegrationEventHandler tenantTouchedIntegrationEventHandler, TenantRemovalIntegrationEventHandler tenantRemovalIntegrationEventHandler, AnnotationEntityRemovalIntegrationEventHandler annotationEntityRemovalIntegrationEventHandler, AnnotationEntityTouchedIntegrationEventHandler annotationEntityTouchedIntegrationEventHandler, TenantScopeFactory tenantScopeFactory, TenantEntityManagerFactory tenantEntityManagerFactory, AccountingService accountingService, IndicatorElasticEventHandler indicatorElasticEventHandler, IndicatorResetEventHandler indicatorResetEventHandler, KpiService kpiService, XmlHandlingService xmlHandlingService, PlanTouchedIntegrationEventHandler planTouchedIntegrationEventHandler, PlanRemovalIntegrationEventHandlerImpl planRemovalIntegrationEventHandler, PlanServiceProperties planServiceProperties) {
+            QueryFactory queryFactory, UserTouchedIntegrationEventHandler userTouchedIntegrationEventHandler, UserRemovalIntegrationEventHandler userRemovalIntegrationEventHandler, TenantTouchedIntegrationEventHandler tenantTouchedIntegrationEventHandler, TenantRemovalIntegrationEventHandler tenantRemovalIntegrationEventHandler, AnnotationEntityRemovalIntegrationEventHandler annotationEntityRemovalIntegrationEventHandler, AnnotationEntityTouchedIntegrationEventHandler annotationEntityTouchedIntegrationEventHandler, TenantScopeFactory tenantScopeFactory, TenantEntityManagerFactory tenantEntityManagerFactory, AccountingService accountingService, IndicatorElasticEventHandler indicatorElasticEventHandler, IndicatorResetEventHandler indicatorResetEventHandler, KpiService kpiService, PlanTouchedIntegrationEventHandler planTouchedIntegrationEventHandler, PlanRemovalIntegrationEventHandlerImpl planRemovalIntegrationEventHandler, PlanServiceProperties planServiceProperties) {
         this.authorizationService = authorizationService;
         this.queryFactory = queryFactory;
 	    this.userTouchedIntegrationEventHandler = userTouchedIntegrationEventHandler;
@@ -89,7 +84,6 @@ public class MaintenanceServiceImpl implements MaintenanceService {
         this.indicatorElasticEventHandler = indicatorElasticEventHandler;
         this.indicatorResetEventHandler = indicatorResetEventHandler;
         this.kpiService = kpiService;
-        this.xmlHandlingService = xmlHandlingService;
         this.planTouchedIntegrationEventHandler = planTouchedIntegrationEventHandler;
         this.planRemovalIntegrationEventHandler = planRemovalIntegrationEventHandler;
         this.planServiceProperties = planServiceProperties;
@@ -173,7 +167,10 @@ public class MaintenanceServiceImpl implements MaintenanceService {
     private void sendTenantAnnotationEntityTouchEvents(UUID tenantId, String tenantCode) throws InvalidApplicationException {
         try {
             this.tenantScopeFactory.getInstance().setTempTenant(this.tenantEntityManagerFactory.getInstance(), tenantId, tenantCode);
-            List<PlanEntity> items = this.queryFactory.query(PlanQuery.class).disableTracking().collectAs(new BaseFieldSet().ensure(Plan._id).ensure(Plan._isActive));
+            // the tenant filter also matches default-tenant rows (tenant IS NULL), so pin the swept tenant
+            PlanQuery query = this.queryFactory.query(PlanQuery.class).disableTracking();
+            if (tenantId != null) query.tenantSubQuery(this.queryFactory.query(TenantQuery.class).disableTracking().ids(tenantId));
+            List<PlanEntity> items = query.collectAs(new BaseFieldSet().ensure(Plan._id).ensure(Plan._isActive));
             for (PlanEntity item : items) {
                 if (item.getIsActive().equals(IsActive.Active)) this.annotationEntityTouchedIntegrationEventHandler.handlePlan(item.getId());
                 else this.annotationEntityRemovalIntegrationEventHandler.handlePlan(item.getId());
@@ -186,7 +183,10 @@ public class MaintenanceServiceImpl implements MaintenanceService {
     private void sendTenantPlanTouchEvents(UUID tenantId, String tenantCode) throws InvalidApplicationException {
         try {
             this.tenantScopeFactory.getInstance().setTempTenant(this.tenantEntityManagerFactory.getInstance(), tenantId, tenantCode);
-            List<PlanEntity> items = this.queryFactory.query(PlanQuery.class).disableTracking().collectAs(new BaseFieldSet().ensure(Plan._id).ensure(Plan._isActive));
+            // the tenant filter also matches default-tenant rows (tenant IS NULL), so pin the swept tenant
+            PlanQuery query = this.queryFactory.query(PlanQuery.class).disableTracking();
+            if (tenantId != null) query.tenantSubQuery(this.queryFactory.query(TenantQuery.class).disableTracking().ids(tenantId));
+            List<PlanEntity> items = query.collectAs(new BaseFieldSet().ensure(Plan._id).ensure(Plan._isActive));
             List<UUID> planIdsPerTouchRequest = new ArrayList<>();
             List<UUID> planIdsPerRemovalRequest = new ArrayList<>();
 
@@ -241,7 +241,10 @@ public class MaintenanceServiceImpl implements MaintenanceService {
     private void sendTenantDescriptionTouchEvents(UUID tenantId, String tenantCode) throws InvalidApplicationException {
         try {
             this.tenantScopeFactory.getInstance().setTempTenant(this.tenantEntityManagerFactory.getInstance(), tenantId, tenantCode);
-            List<DescriptionEntity> items = this.queryFactory.query(DescriptionQuery.class).disableTracking().collectAs(new BaseFieldSet().ensure(Description._id).ensure(Description._isActive));
+            // the tenant filter also matches default-tenant rows (tenant IS NULL), so pin the swept tenant
+            DescriptionQuery query = this.queryFactory.query(DescriptionQuery.class).disableTracking();
+            if (tenantId != null) query.tenantSubQuery(this.queryFactory.query(TenantQuery.class).disableTracking().ids(tenantId));
+            List<DescriptionEntity> items = query.collectAs(new BaseFieldSet().ensure(Description._id).ensure(Description._isActive));
             for (DescriptionEntity item : items) {
                 if (item.getIsActive().equals(IsActive.Active)) this.annotationEntityTouchedIntegrationEventHandler.handleDescription(item.getId());
                 else this.annotationEntityRemovalIntegrationEventHandler.handleDescription(item.getId());
@@ -749,41 +752,23 @@ public class MaintenanceServiceImpl implements MaintenanceService {
     }
 
     @Override
+    public void sendIndicatorPointPlanBlueprintTypeEntryEvents() throws InvalidApplicationException {
+        this.kpiService.sendIndicatorPointPlanBlueprintTypeCountEntryEvents();
+    }
+
+    @Override
+    public void sendIndicatorPointDescriptionTemplateTypeEntryEvents() throws InvalidApplicationException {
+        this.kpiService.sendIndicatorPointDescriptionTemplateTypeCountEntryEvents();
+    }
+
+    @Override
     public void sendIndicatorPointTenantEntryEvents() throws InvalidApplicationException {
         this.kpiService.sendIndicatorPointTenantCountEntryEvents();
     }
 
     @Override
-    public void setPlanBlueprintCanEditDescriptionTemplates() throws InvalidApplicationException {
-        this.authorizationService.authorizeForce(Permission.ManageQueueEvents);
-
-        try {
-            this.tenantEntityManagerFactory.getInstance().disableTenantFilters();
-            List<PlanBlueprintEntity> items = this.queryFactory.query(PlanBlueprintQuery.class).disableTracking().collect();
-
-            for (PlanBlueprintEntity entity: items) {
-                DefinitionEntity definition = this.xmlHandlingService.fromXmlSafe(org.opencdmp.commons.types.planblueprint.DefinitionEntity.class, entity.getDefinition());
-                if (definition != null) {
-                    boolean iaCanEditDescriptionTemplatesUpdated = false;
-                    for (SectionEntity section : definition.getSections()) {
-                        if (section.getCanEditDescriptionTemplates() == null) {
-                            section.setCanEditDescriptionTemplates(true);
-                            iaCanEditDescriptionTemplatesUpdated = true;
-                        }
-                    }
-                    if (iaCanEditDescriptionTemplatesUpdated) {
-                        String newDefinition = this.xmlHandlingService.toXmlSafe(definition);
-                        if (newDefinition != null) {
-                            entity.setDefinition(newDefinition);
-                            this.tenantEntityManagerFactory.getInstance().merge(entity);
-                        }
-                    }
-                }
-            }
-            this.tenantEntityManagerFactory.getInstance().flush();
-        } finally {
-            this.tenantEntityManagerFactory.getInstance().reloadTenantFilters();
-        }
+    public void sendDashboardTouchedEntryEvents() throws InvalidApplicationException {
+        this.kpiService.sendDashboardTouchedEvents();
     }
 
 }

@@ -7,12 +7,14 @@ import gr.cite.tools.logging.LoggerService;
 import gr.cite.tools.logging.MapLogEntry;
 import org.opencdmp.commons.enums.IsActive;
 import org.opencdmp.commons.enums.UsageLimitTargetMetric;
+import org.opencdmp.commons.enums.kpi.KpiDirectionType;
 import org.opencdmp.data.PlanBlueprintEntity;
 import org.opencdmp.data.PlanBlueprintTypeEntity;
 import org.opencdmp.data.TenantEntityManagerFactory;
 import org.opencdmp.query.PlanBlueprintQuery;
 import org.opencdmp.query.PlanBlueprintTypeQuery;
 import org.opencdmp.service.accounting.AccountingService;
+import org.opencdmp.service.kpi.KpiService;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
@@ -40,16 +42,19 @@ public class PlanBlueprintTypeDeleter implements Deleter {
 
     protected final AccountingService accountingService;
 
+    private final KpiService kpiService;
+
     @Autowired
     public PlanBlueprintTypeDeleter(
             TenantEntityManagerFactory tenantEntityManagerFactory,
             QueryFactory queryFactory,
             DeleterFactory deleterFactory,
-            AccountingService accountingService) {
+            AccountingService accountingService, KpiService kpiService) {
         this.tenantEntityManagerFactory = tenantEntityManagerFactory;
         this.queryFactory = queryFactory;
         this.deleterFactory = deleterFactory;
         this.accountingService = accountingService;
+        this.kpiService = kpiService;
     }
 
     public void deleteAndSaveByIds(List<UUID> ids) throws InvalidApplicationException {
@@ -88,6 +93,7 @@ public class PlanBlueprintTypeDeleter implements Deleter {
             item.setUpdatedAt(now);
             logger.trace("updating item");
             this.tenantEntityManagerFactory.getInstance().merge(item);
+            this.kpiService.sendIndicatorPointPlanBlueprintTypeEntry(KpiDirectionType.Decrease);
             logger.trace("updated item");
             this.accountingService.decrease(UsageLimitTargetMetric.BLUEPRINT_TYPE_COUNT.getValue());
         }

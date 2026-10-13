@@ -1,6 +1,15 @@
-import { effect, Injectable, Signal, signal } from '@angular/core';
+import { effect, Injectable, signal } from '@angular/core';
+import { MatDialog } from '@angular/material/dialog';
 import { BaseService } from '@common/base/base.service';
+import { of } from 'rxjs';
 import { catchError, takeUntil } from 'rxjs/operators';
+import { ConfigurationField } from '@app/core/model/plugin-configuration/plugin-configuration';
+import { ExportOptionsDialogComponent, ExportSelectiveItem } from '@app/ui/plugin/export-options-dialog/export-options-dialog.component';
+
+export interface ExportSelectiveContext {
+	sections?: ExportSelectiveItem[];
+	descriptions?: ExportSelectiveItem[];
+}
 import { FileTransformerHttpService } from './file-transformer.http.service';
 import { Guid } from '@common/types/guid';
 import * as FileSaver from 'file-saver';
@@ -26,8 +35,9 @@ export class FileTransformerService extends BaseService {
 		private planService: PlanService,
 		private descriptionService: DescriptionService,
 		private authentication: AuthService,
-		private httpErrorHandlingService: HttpErrorHandlingService
-	) { 
+		private httpErrorHandlingService: HttpErrorHandlingService,
+		private dialog: MatDialog
+	) {
         super();
         effect(() => {
             const authenticationComplete = this.authentication.currentAccountIsAuthenticated();
@@ -71,7 +81,8 @@ export class FileTransformerService extends BaseService {
 		this.fileTransformerHttpService.getAvailableConfigurations().pipe(takeUntil(this._destroyed), catchError((error) => {
 			this._loading.set(false);
 			this._initialized = true;
-			return [];
+			// still offer the built-in XML export
+			return of([]);
 		})).subscribe(items => {
 			this._availableFormats.set([...items, this.xmlExportRepo]);
 			this._loading.set(false);
@@ -79,7 +90,35 @@ export class FileTransformerService extends BaseService {
 		});
 	}
 
-	exportPlan(id: Guid, fileTransformerId: string, format: string, isPublic: boolean = false) {
+	exportPlan(id: Guid, fileTransformerId: string, format: string, isPublic: boolean = false, selective?: ExportSelectiveContext) {
+		this.withExportOptions(fileTransformerId, FileTransformerEntityType.Plan, (options) => this.doExportPlan(id, fileTransformerId, format, isPublic, options), selective);
+	}
+
+	private withExportOptions(fileTransformerId: string, entityType: FileTransformerEntityType, proceed: (options?: { [code: string]: string }) => void, selective?: ExportSelectiveContext) {
+		const fields: ConfigurationField[] = this.availableFormats()
+			?.find(x => x.fileTransformerId === fileTransformerId)
+			?.userConfigurationFields
+			?.filter(field => field?.appliesTo?.some(applies => (applies as unknown as number) === (entityType as unknown as number))) ?? [];
+
+		const selectiveCodes = ['include-sections', 'exclude-descriptions'];
+		const regularFields = fields.filter(x => !selectiveCodes.includes(x.code));
+		const hasSelectiveUi = (selective?.sections?.length > 0 && fields.some(x => x.code === 'include-sections'))
+			|| (selective?.descriptions?.length > 0 && fields.some(x => x.code === 'exclude-descriptions'));
+		if (regularFields.length === 0 && !hasSelectiveUi) {
+			proceed(undefined);
+			return;
+		}
+		this.dialog.open(ExportOptionsDialogComponent, {
+			width: '440px',
+			restoreFocus: false,
+			data: { transformerId: fileTransformerId, fields: fields, sections: selective?.sections, descriptions: selective?.descriptions }
+		}).afterClosed().pipe(takeUntil(this._destroyed)).subscribe(result => {
+			if (result === null || result === undefined) return; // cancelled
+			proceed(result);
+		});
+	}
+
+	private doExportPlan(id: Guid, fileTransformerId: string, format: string, isPublic: boolean, options?: { [code: string]: string }) {
 		this._loading.set(true);
 		if (fileTransformerId == this.xmlExportRepo.fileTransformerId) {
 			if (!isPublic) {
@@ -103,7 +142,7 @@ export class FileTransformerService extends BaseService {
 			}
 		} else {
 			if (!isPublic) {
-				this.fileTransformerHttpService.exportPlan(id, fileTransformerId, format).pipe(takeUntil(this._destroyed), catchError((error) => {
+				this.fileTransformerHttpService.exportPlan(id, fileTransformerId, format, options).pipe(takeUntil(this._destroyed), catchError((error) => {
 					this._loading.set(false);
 					return null;
 				}))
@@ -118,7 +157,7 @@ export class FileTransformerService extends BaseService {
 				},
 				error => this.httpErrorHandlingService.handleBackedRequestError(error));
 			} else {
-				this.fileTransformerHttpService.exportPublicPlan(id, fileTransformerId, format).pipe(takeUntil(this._destroyed), catchError((error) => {
+				this.fileTransformerHttpService.exportPublicPlan(id, fileTransformerId, format, options).pipe(takeUntil(this._destroyed), catchError((error) => {
 					this._loading.set(false);
 					return null;
 				}))
@@ -137,6 +176,10 @@ export class FileTransformerService extends BaseService {
 	}
 
 	exportDescription(id: Guid, repositoryId: string, format: string, isPublic: boolean = false) {
+		this.withExportOptions(repositoryId, FileTransformerEntityType.Description, (options) => this.doExportDescription(id, repositoryId, format, isPublic, options));
+	}
+
+	private doExportDescription(id: Guid, repositoryId: string, format: string, isPublic: boolean, options?: { [code: string]: string }) {
 		this._loading.set(true);
 		if (repositoryId == this.xmlExportRepo.fileTransformerId) {
 			if (!isPublic) {
@@ -160,7 +203,7 @@ export class FileTransformerService extends BaseService {
 			}
 		} else {
 			if (!isPublic) {
-				this.fileTransformerHttpService.exportDescription(id, repositoryId, format).pipe(takeUntil(this._destroyed), catchError((error) => {
+				this.fileTransformerHttpService.exportDescription(id, repositoryId, format, options).pipe(takeUntil(this._destroyed), catchError((error) => {
 					this._loading.set(false);
 					return null;
 				}))
@@ -175,7 +218,7 @@ export class FileTransformerService extends BaseService {
 				},
 				error => this.httpErrorHandlingService.handleBackedRequestError(error));
 			} else {
-				this.fileTransformerHttpService.exportPublicDescription(id, repositoryId, format).pipe(takeUntil(this._destroyed), catchError((error) => {
+				this.fileTransformerHttpService.exportPublicDescription(id, repositoryId, format, options).pipe(takeUntil(this._destroyed), catchError((error) => {
 					this._loading.set(false);
 					return null;
 				}))

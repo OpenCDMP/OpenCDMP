@@ -11,6 +11,28 @@ public class PluginConfigurationField {
     public final static String _fileValue = "fileValue";
 
     private String textValue;
+
+    private Boolean secret;
+    public static final String _secret = "secret";
+
+    private Boolean secretSet;
+    public static final String _secretSet = "secretSet";
+
+    public Boolean getSecret() {
+        return secret;
+    }
+
+    public void setSecret(Boolean secret) {
+        this.secret = secret;
+    }
+
+    public Boolean getSecretSet() {
+        return secretSet;
+    }
+
+    public void setSecretSet(Boolean secretSet) {
+        this.secretSet = secretSet;
+    }
     public final static String _textValue = "textValue";
 
     public String getCode() {

@@ -1,5 +1,7 @@
 package org.opencdmp.service.deposit;
 
+import org.opencdmp.commons.enums.PluginType;
+import org.opencdmp.service.semantic.PluginSemantics;
 import gr.cite.commons.web.authz.service.AuthorizationService;
 import gr.cite.commons.web.oidc.filter.webflux.TokenExchangeCacheService;
 import gr.cite.commons.web.oidc.filter.webflux.TokenExchangeFilterFunction;
@@ -14,6 +16,7 @@ import gr.cite.tools.fieldset.FieldSet;
 import gr.cite.tools.logging.LoggerService;
 import gr.cite.tools.logging.MapLogEntry;
 import gr.cite.tools.validation.ValidatorFactory;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.opencdmp.authorization.AuthorizationFlags;
 import org.opencdmp.authorization.Permission;
@@ -31,18 +34,27 @@ import org.opencdmp.commons.scope.user.UserScopeFactory;
 import org.opencdmp.commons.types.deposit.DepositSourceEntity;
 import org.opencdmp.commons.types.description.PropertyDefinitionEntity;
 import org.opencdmp.commons.types.description.PropertyDefinitionFieldSetItemEntity;
+import org.opencdmp.commons.types.descriptiontemplate.FieldEntity;
 import org.opencdmp.commons.types.notification.DataType;
 import org.opencdmp.commons.types.notification.FieldInfo;
 import org.opencdmp.commons.types.notification.NotificationFieldData;
-import org.opencdmp.commons.types.plan.PlanBlueprintValueEntity;
 import org.opencdmp.commons.types.plan.PlanPropertiesEntity;
-import org.opencdmp.commons.types.planblueprint.FieldEntity;
 import org.opencdmp.commons.types.pluginconfiguration.PluginConfigurationUserEntity;
 import org.opencdmp.commons.types.pluginconfiguration.PluginConfigurationUserFieldEntity;
 import org.opencdmp.commons.types.tenantconfiguration.DepositTenantConfigurationEntity;
+import org.opencdmp.commons.types.tenantconfiguration.PluginTenantConfigurationEntity;
+import org.opencdmp.commons.types.pluginconfiguration.PluginConfigurationEntity;
+import org.opencdmp.commons.enums.TenantConfigurationType;
+import org.opencdmp.data.TenantConfigurationEntity;
+import org.opencdmp.query.TenantConfigurationQuery;
 import org.opencdmp.commons.types.user.AdditionalInfoEntity;
 import org.opencdmp.convention.ConventionService;
 import org.opencdmp.data.*;
+import org.opencdmp.commonmodels.models.deposit.DepositPreviewModel;
+import org.opencdmp.commonmodels.models.deposit.PreviewFieldOption;
+import org.opencdmp.commonmodels.models.deposit.PreviewGroupValuesModel;
+import org.opencdmp.commonmodels.models.deposit.StoredPreviewFieldModel;
+import org.opencdmp.commons.types.deposit.DepositMetadataPayloadEntity;
 import org.opencdmp.depositbase.repository.AuthInfo;
 import org.opencdmp.depositbase.repository.DepositClient;
 import org.opencdmp.depositbase.repository.DepositConfiguration;
@@ -57,9 +69,15 @@ import org.opencdmp.model.builder.commonmodels.DepositConfigurationBuilder;
 import org.opencdmp.model.builder.commonmodels.plan.PlanCommonModelBuilder;
 import org.opencdmp.model.builder.commonmodels.plugin.PluginUserFieldCommonModelBuilder;
 import org.opencdmp.model.deposit.DepositAuthMethodResult;
+import org.opencdmp.model.deposit.DepositFile;
+import org.opencdmp.depositbase.enums.DepositFileKind;
+import org.opencdmp.depositbase.repository.DepositPluginSettings;
+import org.opencdmp.commonmodels.models.plugin.PluginFieldModel;
+import org.opencdmp.commonmodels.models.plugin.PluginModel;
 import org.opencdmp.model.persist.EntityDoiPersist;
 import org.opencdmp.model.persist.StorageFilePersist;
 import org.opencdmp.model.persist.deposit.DepositAuthenticateRequest;
+import org.opencdmp.model.persist.deposit.DepositPreviewRequest;
 import org.opencdmp.model.persist.deposit.DepositRequest;
 import org.opencdmp.model.planblueprint.PlanBlueprint;
 import org.opencdmp.model.tenantconfiguration.TenantConfiguration;
@@ -67,10 +85,14 @@ import org.opencdmp.model.user.User;
 import org.opencdmp.query.*;
 import org.opencdmp.service.accounting.AccountingService;
 import org.opencdmp.service.encryption.EncryptionService;
+import org.opencdmp.service.pluginconfiguration.PluginConfigurationService;
+import org.opencdmp.model.persist.pluginconfiguration.PluginConfigurationUserFieldPersist;
+import org.opencdmp.model.persist.pluginconfiguration.PluginConfigurationUserPersist;
 import org.opencdmp.service.entitydoi.EntityDoiService;
 import org.opencdmp.service.filetransformer.FileTransformerService;
 import org.opencdmp.service.storage.StorageFileProperties;
 import org.opencdmp.service.storage.StorageFileService;
+import org.opencdmp.service.webhook.WebhookService;
 import org.opencdmp.service.tenant.TenantProperties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -94,6 +116,7 @@ import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.time.Duration;
+import java.time.Instant;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
@@ -103,6 +126,9 @@ import java.util.zip.ZipOutputStream;
 public class DepositServiceImpl implements DepositService {
     private static final LoggerService logger = new LoggerService(LoggerFactory.getLogger(DepositServiceImpl.class));
     private static final Logger log = LoggerFactory.getLogger(DepositServiceImpl.class);
+
+    /** Used when a source declares no response size limit, e.g. one a tenant added through the UI. */
+    private static final int DEFAULT_MAX_IN_MEMORY_SIZE_IN_BYTES = 6554000;
 
     private final DepositProperties depositProperties;
     private final Map<String, DepositClient> clients;
@@ -131,6 +157,8 @@ public class DepositServiceImpl implements DepositService {
     private final TenantEntityManagerFactory tenantEntityManagerFactory;
     private final XmlHandlingService xmlHandlingService;
     private final ErrorThesaurusProperties errors;
+    private final WebhookService webhookService;
+    private final PluginConfigurationService pluginConfigurationService;
     
     @Autowired
     public DepositServiceImpl(DepositProperties depositProperties,
@@ -139,7 +167,7 @@ public class DepositServiceImpl implements DepositService {
                               EntityDoiService doiService,
                               QueryFactory queryFactory,
                               MessageSource messageSource,
-                              BuilderFactory builderFactory, DepositConfigurationCacheService depositConfigurationCacheService, FileTransformerService fileTransformerService, StorageFileService storageFileService, UserScopeFactory userScopeFactory, ValidatorFactory validatorFactory, StorageFileProperties storageFileProperties, AuthorizationContentResolverFactory authorizationContentResolverFactory, ConventionService conventionService, JsonHandlingService jsonHandlingService, NotificationProperties notificationProperties, NotifyIntegrationEventHandler eventHandler, TenantScopeFactory tenantScopeFactory, EncryptionService encryptionService, TenantProperties tenantProperties, DepositSourcesCacheService depositSourcesCacheService, AccountingService accountingService, TenantEntityManagerFactory tenantEntityManagerFactory, XmlHandlingService xmlHandlingService, ErrorThesaurusProperties errors) {
+                              BuilderFactory builderFactory, DepositConfigurationCacheService depositConfigurationCacheService, FileTransformerService fileTransformerService, StorageFileService storageFileService, UserScopeFactory userScopeFactory, ValidatorFactory validatorFactory, StorageFileProperties storageFileProperties, AuthorizationContentResolverFactory authorizationContentResolverFactory, ConventionService conventionService, JsonHandlingService jsonHandlingService, NotificationProperties notificationProperties, NotifyIntegrationEventHandler eventHandler, TenantScopeFactory tenantScopeFactory, EncryptionService encryptionService, TenantProperties tenantProperties, DepositSourcesCacheService depositSourcesCacheService, AccountingService accountingService, TenantEntityManagerFactory tenantEntityManagerFactory, XmlHandlingService xmlHandlingService, ErrorThesaurusProperties errors, WebhookService webhookService, PluginConfigurationService pluginConfigurationService) {
         this.depositProperties = depositProperties;
         this.tokenExchangeCacheService = tokenExchangeCacheService;
         this.authorizationService = authorizationService;
@@ -166,6 +194,8 @@ public class DepositServiceImpl implements DepositService {
         this.tenantEntityManagerFactory = tenantEntityManagerFactory;
         this.xmlHandlingService = xmlHandlingService;
         this.errors = errors;
+        this.webhookService = webhookService;
+        this.pluginConfigurationService = pluginConfigurationService;
         this.clients = new HashMap<>();
     }
     
@@ -178,14 +208,14 @@ public class DepositServiceImpl implements DepositService {
         if (source != null) {
             TokenExchangeModel tokenExchangeModel = new TokenExchangeModel("deposit:" + repositoryIdByTenant, source.getIssuerUrl(), source.getClientId(), source.getClientSecret(), source.getScope());
             TokenExchangeFilterFunction apiKeyExchangeFilterFunction = new TokenExchangeFilterFunction(this.tokenExchangeCacheService, tokenExchangeModel);
-            WebClient webClient = WebClient.builder().baseUrl(source.getUrl() + "/api/deposit")
+            WebClient webClient = WebClient.builder().baseUrl(StringUtils.removeEnd(source.getUrl(), "/") + "/api/deposit")
                     .filters(exchangeFilterFunctions -> {
                         exchangeFilterFunctions.add(apiKeyExchangeFilterFunction);
                         exchangeFilterFunctions.add(logRequest());
                         exchangeFilterFunctions.add(logResponse());
                     }).codecs(codecs -> codecs
                             .defaultCodecs()
-                            .maxInMemorySize(source.getMaxInMemorySizeInBytes())
+                            .maxInMemorySize(source.getMaxInMemorySizeInBytes() > 0 ? source.getMaxInMemorySizeInBytes() : DEFAULT_MAX_IN_MEMORY_SIZE_IN_BYTES)
                     ).build();
 	        DepositClientImpl repository = new DepositClientImpl(webClient);
             this.clients.put(repositoryIdByTenant, repository);
@@ -209,7 +239,11 @@ public class DepositServiceImpl implements DepositService {
                     DepositTenantConfigurationEntity depositTenantConfiguration = this.jsonHandlingService.fromJsonSafe(DepositTenantConfigurationEntity.class, tenantConfiguration.getValue());
                     if (depositTenantConfiguration != null) {
                         if (depositTenantConfiguration.getDisableSystemSources()) depositSourceEntities = new ArrayList<>();
-                        depositSourceEntities.addAll(this.buildDepositSourceItems(depositTenantConfiguration.getSources()));
+                        List<DepositSourceEntity> tenantSources = this.buildDepositSourceItems(depositTenantConfiguration.getSources());
+                        // a tenant's source replaces the installation's one with the same repository id
+                        depositSourceEntities.removeIf(x -> tenantSources.stream().anyMatch(y -> y.getRepositoryId().equals(x.getRepositoryId())));
+                        depositSourceEntities.addAll(tenantSources);
+                        if (depositTenantConfiguration.getDisabledSourceIds() != null) depositSourceEntities.removeIf(x -> depositTenantConfiguration.getDisabledSourceIds().contains(x.getRepositoryId()));
                     }
                 }
             }
@@ -246,6 +280,7 @@ public class DepositServiceImpl implements DepositService {
             item.setScope(source.getScope());
             item.setRdaTransformerId(source.getRdaTransformerId());
             item.setPdfTransformerId(source.getPdfTransformerId());
+            item.setMaxInMemorySizeInBytes(source.getMaxInMemorySizeInBytes());
             items.add(item);
         }
         return items;
@@ -263,8 +298,24 @@ public class DepositServiceImpl implements DepositService {
     @Override
     public List<org.opencdmp.model.deposit.DepositConfiguration> getAvailableConfigurations(FieldSet fieldSet) throws InvalidApplicationException, InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
         this.authorizationService.authorizeForce(Permission.BrowseDeposit, Permission.DeferredAffiliation);
-        
+
         List<org.opencdmp.model.deposit.DepositConfiguration> configurations = new ArrayList<>();
+        for (DepositConfiguration configuration : this.getAvailableRawConfigurations()) {
+            configurations.add(this.builderFactory.builder(DepositConfigurationBuilder.class).build(fieldSet, configuration));
+        }
+        return configurations;
+    }
+
+    @Override
+    public List<PluginSemantics> getSemanticsManifests() throws InvalidApplicationException, InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
+        return this.getAvailableRawConfigurations().stream()
+                .filter(x -> x != null && x.getSemantics() != null)
+                .map(x -> new PluginSemantics(PluginType.Deposit, x.getRepositoryId(), x.getSemantics()))
+                .toList();
+    }
+
+    private List<DepositConfiguration> getAvailableRawConfigurations() throws InvalidApplicationException, InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
+        List<DepositConfiguration> configurations = new ArrayList<>();
 
 	    for (DepositSourceEntity depositSource : this.getDepositSources()) {
 
@@ -282,9 +333,8 @@ public class DepositServiceImpl implements DepositService {
                     logger.error(e.getMessage(), e);
                 }
             }
-            if (cacheValue != null) {
-                org.opencdmp.model.deposit.DepositConfiguration depositConfiguration = this.builderFactory.builder(DepositConfigurationBuilder.class).build(fieldSet, cacheValue.getConfiguration());
-                configurations.add(depositConfiguration);
+            if (cacheValue != null && cacheValue.getConfiguration() != null) {
+                configurations.add(cacheValue.getConfiguration());
             }
 	    }
 
@@ -310,6 +360,8 @@ public class DepositServiceImpl implements DepositService {
         DepositSourceEntity source = this.getDepositSources().stream().filter(depositSource -> depositSource.getRepositoryId().equals(planDepositModel.getRepositoryId())).findFirst().orElse(null);
         if (source == null) throw new MyNotFoundException(this.messageSource.getMessage("General_ItemNotFound", new Object[]{planDepositModel.getRepositoryId(), DepositSourceEntity.class.getSimpleName()}, LocaleContextHolder.getLocale()));
 
+        if (!this.isAllowed(this.tenantDepositSettings(depositClient.getConfiguration()), planDepositModel.getDepositAuthInfoType())) throw new MyValidationException(this.errors.getDepositWayNotAllowed().getCode(), this.errors.getDepositWayNotAllowed().getMessage());
+
         PlanDepositModel model = new PlanDepositModel();
         AuthInfo authInfo = new AuthInfo();
         if (!this.conventionService.isNullOrEmpty(planDepositModel.getAuthorizationCode()) && planDepositModel.getDepositAuthInfoType().equals(DepositAuthMethod.oAuth2Flow)) {
@@ -317,6 +369,17 @@ public class DepositServiceImpl implements DepositService {
             authenticateRequest.setRepositoryId(planDepositModel.getRepositoryId());
             authenticateRequest.setCode(planDepositModel.getAuthorizationCode());
             authInfo.setAuthToken(this.authenticate(authenticateRequest));
+            if (this.conventionService.isNullOrEmpty(authInfo.getAuthToken())) throw new MyValidationException(this.errors.getDepositSignInFailed().getCode(), this.errors.getDepositSignInFailed().getMessage());
+        } else if (planDepositModel.getDepositAuthInfoType().equals(DepositAuthMethod.oAuth2Flow)) {
+            throw new MyValidationException(this.errors.getDepositSignInFailed().getCode(), this.errors.getDepositSignInFailed().getMessage());
+        } else if (planDepositModel.getDepositAuthInfoType().equals(DepositAuthMethod.AuthInfoFromUserProfile) && !this.conventionService.isListNullOrEmpty(planDepositModel.getAuthFields())) {
+            List<String> configurationCodes = this.authInfoCodes(depositClient);
+            authInfo.setAuthFields(planDepositModel.getAuthFields().stream().filter(x -> configurationCodes.contains(x.getCode()) && !this.conventionService.isNullOrEmpty(x.getTextValue())).map(x -> {
+                PluginUserFieldModel field = new PluginUserFieldModel();
+                field.setCode(x.getCode());
+                field.setTextValue(x.getTextValue());
+                return field;
+            }).toList());
         } else if (planDepositModel.getDepositAuthInfoType().equals(DepositAuthMethod.AuthInfoFromUserProfile)){
             //Get User Plugin Configurations
             UserEntity user = this.queryFactory.query(UserQuery.class).ids(this.userScopeFactory.getInstance().getUserIdSafe()).disableTracking().firstAs(new BaseFieldSet().ensure(User._name).ensure(User._additionalInfo));
@@ -331,48 +394,71 @@ public class DepositServiceImpl implements DepositService {
                 }
             }
         }
+        if (planDepositModel.getDepositAuthInfoType().equals(DepositAuthMethod.AuthInfoFromUserProfile)) {
+            List<String> configurationCodes = this.authInfoCodes(depositClient);
+            List<String> provided = authInfo.getAuthFields() == null ? List.of() : authInfo.getAuthFields().stream().filter(x -> !this.conventionService.isNullOrEmpty(x.getTextValue())).map(PluginUserFieldModel::getCode).toList();
+            if (configurationCodes.isEmpty() || !provided.containsAll(configurationCodes)) throw new MyValidationException(this.errors.getDepositCredentialsMissing().getCode(), this.errors.getDepositCredentialsMissing().getMessage());
+        }
         model.setAuthInfo(authInfo);
         
-        org.opencdmp.model.file.FileEnvelope pdfFile = this.fileTransformerService.exportPlanInternal(planEntity.getId(), source.getPdfTransformerId(),"pdf");
-        org.opencdmp.model.file.FileEnvelope rda = this.fileTransformerService.exportPlanInternal(planEntity.getId(), source.getRdaTransformerId(),"json");
-
-        FileEnvelopeModel pdfEnvelope = new FileEnvelopeModel();
-        FileEnvelopeModel jsonEnvelope = new FileEnvelopeModel();
-
-        pdfEnvelope.setFilename(pdfFile.getFilename());
-        pdfEnvelope.setMimeType("application/pdf");
-        jsonEnvelope.setFilename(rda.getFilename());
-        jsonEnvelope.setMimeType("application/json");
-        if (!depositClient.getConfiguration().isUseSharedStorage()){
-            pdfEnvelope.setFile(pdfFile.getFile());
-            jsonEnvelope.setFile(rda.getFile());
-        } else {
-            pdfEnvelope.setFileRef(this.addFileToSharedStorage(pdfFile));
-            jsonEnvelope.setFileRef(this.addFileToSharedStorage(rda));
+        List<DepositFileKind> uploadedFiles = this.uploadedFiles(depositClient);
+        FileEnvelopeModel pdfEnvelope = null;
+        FileEnvelopeModel jsonEnvelope = null;
+        if (uploadedFiles.contains(DepositFileKind.PlanDocument)) {
+            org.opencdmp.model.file.FileEnvelope pdfFile = this.fileTransformerService.exportPlanInternal(planEntity.getId(), source.getPdfTransformerId(),"pdf");
+            pdfEnvelope = new FileEnvelopeModel();
+            pdfEnvelope.setFilename(pdfFile.getFilename());
+            pdfEnvelope.setMimeType("application/pdf");
+            if (!depositClient.getConfiguration().isUseSharedStorage()) pdfEnvelope.setFile(pdfFile.getFile());
+            else pdfEnvelope.setFileRef(this.addFileToSharedStorage(pdfFile));
+        }
+        if (uploadedFiles.contains(DepositFileKind.RdaJson)) {
+            org.opencdmp.model.file.FileEnvelope rda = this.fileTransformerService.exportPlanInternal(planEntity.getId(), source.getRdaTransformerId(),"json");
+            jsonEnvelope = new FileEnvelopeModel();
+            jsonEnvelope.setFilename(rda.getFilename());
+            jsonEnvelope.setMimeType("application/json");
+            if (!depositClient.getConfiguration().isUseSharedStorage()) jsonEnvelope.setFile(rda.getFile());
+            else jsonEnvelope.setFileRef(this.addFileToSharedStorage(rda));
         }
 
         //GK: Fifth Transform them to the DepositModel
         PlanModel depositModel = this.builderFactory.builder(PlanCommonModelBuilder.class).useSharedStorage(depositClient.getConfiguration().isUseSharedStorage()).authorize(AuthorizationFlags.All)
-                .setRepositoryId(planDepositModel.getRepositoryId()).setPdfFile(pdfEnvelope).setRdaJsonFile(jsonEnvelope).setSupportingFilesZip(this.buildSupportingFilesZip(planEntity)).build(planEntity);
+                .setRepositoryId(planDepositModel.getRepositoryId()).setPdfFile(pdfEnvelope).setRdaJsonFile(jsonEnvelope).setSupportingFilesZip(uploadedFiles.contains(DepositFileKind.SupportingFiles) ? this.buildSupportingFilesZip(planEntity) : null).build(planEntity);
         model.setPlanModel(depositModel);
+        if (planDepositModel.getStoredFields() != null && !planDepositModel.getStoredFields().isEmpty()) {
+            model.setEditedFields(planDepositModel.getStoredFields().stream().map(StoredPreviewFieldModel::getValue).filter(Objects::nonNull).toList());
+        }
+        model.setEditedGroups(planDepositModel.getStoredGroups());
 
         String doi;
         try {
             //GK: Sixth Perform the deposit
             doi = depositClient.deposit(model);
         } catch (Exception e) {
-            log.error("deposit failed for plan model: " + this.jsonHandlingService.toJsonSafe(depositModel));
+            // the model carries the plugin settings, decrypted credentials included: name the plan, never dump it
+            log.error("deposit failed for plan " + planEntity.getId() + " to " + planDepositModel.getRepositoryId(), e);
             throw e;
         }
 
         //GK: Something has gone wrong return null
         if (doi.isEmpty()) return null;
+
+        this.persistDepositMetadata(planEntity.getId(), planDepositModel.getRepositoryId(), planDepositModel.getStoredFields(), planDepositModel.getStoredGroups());
+        if (Boolean.TRUE.equals(planDepositModel.getSaveAuthFields()) && planDepositModel.getDepositAuthInfoType().equals(DepositAuthMethod.AuthInfoFromUserProfile) && !this.conventionService.isListNullOrEmpty(planDepositModel.getAuthFields())) {
+            this.saveUserAuthFields(planDepositModel.getRepositoryId(), planDepositModel.getAuthFields());
+        }
+
         //GK: doi is fine store it in database
         EntityDoiPersist doiPersist = new EntityDoiPersist();
         doiPersist.setRepositoryId(planDepositModel.getRepositoryId());
         doiPersist.setDoi(doi);
         doiPersist.setEntityId(planEntity.getId());
         this.sendNotification(planEntity, planDepositModel.getRepositoryId());
+        this.webhookService.enqueueEvent(WebhookEventType.PlanDeposited, Map.of(
+                "planId", planEntity.getId(),
+                "label", planEntity.getLabel() != null ? planEntity.getLabel() : "",
+                "repositoryId", planDepositModel.getRepositoryId(),
+                "doi", doi != null ? doi : ""));
 
         this.accountingService.increase(UsageLimitTargetMetric.DEPOSIT_EXECUTION_COUNT.getValue());
         this.increaseTargetMetricWithRepositoryId(UsageLimitTargetMetric.DEPOSIT_EXECUTION_COUNT_FOR, planDepositModel.getRepositoryId());
@@ -388,66 +474,269 @@ public class DepositServiceImpl implements DepositService {
         return this.doiService.persist(doiPersist, true, planDepositModel.getProject());
     }
 
+    @Override
+    public DepositPreviewModel preview(DepositPreviewRequest previewRequest) throws Exception {
+        this.authorizationService.authorizeAtLeastOneForce(List.of(this.authorizationContentResolverFactory.getInstance().planAffiliation(previewRequest.getPlanId())), Permission.DepositPlan);
+
+        DepositClient depositClient = this.getDepositClient(previewRequest.getRepositoryId());
+        if (depositClient == null) throw new MyNotFoundException(this.messageSource.getMessage("General_ItemNotFound", new Object[]{previewRequest.getRepositoryId(), DepositClient.class.getSimpleName()}, LocaleContextHolder.getLocale()));
+
+        DepositConfiguration configuration = depositClient.getConfiguration();
+        if (configuration == null || !configuration.isSupportsPreview()) throw new MyApplicationException("preview is not supported by repository: " + previewRequest.getRepositoryId());
+
+        PlanEntity planEntity = this.queryFactory.query(PlanQuery.class).disableTracking().ids(previewRequest.getPlanId()).first();
+        if (planEntity == null) throw new MyNotFoundException(this.messageSource.getMessage("General_ItemNotFound", new Object[]{previewRequest.getPlanId(), PlanEntity.class.getSimpleName()}, LocaleContextHolder.getLocale()));
+
+        // name-only envelopes: previews skip file generation for speed, but plugins can still
+        // present what will be uploaded; names are predicted from the export naming convention
+        List<DepositFileKind> uploadedFiles = this.uploadedFiles(depositClient);
+        String exportBaseName = this.exportBaseName(planEntity);
+        FileEnvelopeModel pdfNameOnly = null;
+        if (uploadedFiles.contains(DepositFileKind.PlanDocument)) {
+            pdfNameOnly = new FileEnvelopeModel();
+            pdfNameOnly.setFilename(exportBaseName + ".pdf");
+        }
+        FileEnvelopeModel jsonNameOnly = null;
+        if (uploadedFiles.contains(DepositFileKind.RdaJson)) {
+            jsonNameOnly = new FileEnvelopeModel();
+            jsonNameOnly.setFilename(exportBaseName + ".json");
+        }
+        FileEnvelopeModel zipNameOnly = null;
+        if (uploadedFiles.contains(DepositFileKind.SupportingFiles) && !this.collectSupportingFiles(planEntity).isEmpty()) {
+            zipNameOnly = new FileEnvelopeModel();
+            zipNameOnly.setFilename(exportBaseName.replaceAll("\\.zip$", "") + ".zip");
+        }
+
+        PlanModel previewPlanModel = this.builderFactory.builder(PlanCommonModelBuilder.class).useSharedStorage(configuration.isUseSharedStorage()).authorize(AuthorizationFlags.All)
+                .setRepositoryId(previewRequest.getRepositoryId()).setPdfFile(pdfNameOnly).setRdaJsonFile(jsonNameOnly).setSupportingFilesZip(zipNameOnly).build(planEntity);
+
+        PlanDepositModel model = new PlanDepositModel();
+        model.setPlanModel(previewPlanModel);
+
+        DepositMetadataPayloadEntity storedPayload = this.loadDepositMetadata(planEntity, previewRequest.getRepositoryId());
+        if (storedPayload != null) {
+            model.setStoredFields(storedPayload.getFields());
+            model.setStoredGroups(storedPayload.getGroups());
+        }
+
+        return depositClient.preview(model);
+    }
+
+    @Override
+    public List<PreviewFieldOption> searchVocabulary(String repositoryId, UUID planId, String fieldCode, String like) throws Exception {
+        this.authorizationService.authorizeAtLeastOneForce(List.of(this.authorizationContentResolverFactory.getInstance().planAffiliation(planId)), Permission.DepositPlan);
+
+        DepositClient depositClient = this.getDepositClient(repositoryId);
+        if (depositClient == null) throw new MyNotFoundException(this.messageSource.getMessage("General_ItemNotFound", new Object[]{repositoryId, DepositClient.class.getSimpleName()}, LocaleContextHolder.getLocale()));
+
+        return depositClient.searchVocabulary(fieldCode, like);
+    }
+
+    private List<String> authInfoCodes(DepositClient depositClient) {
+        if (depositClient.getConfiguration() == null || this.conventionService.isListNullOrEmpty(depositClient.getConfiguration().getUserConfigurationFields())) return List.of();
+        return depositClient.getConfiguration().getUserConfigurationFields().stream().filter(ConfigurationField::isAuthInfo).map(ConfigurationField::getCode).toList();
+    }
+
+    private void saveUserAuthFields(String repositoryId, List<PluginConfigurationUserFieldPersist> fields) {
+        try {
+            UserEntity user = this.queryFactory.query(UserQuery.class).ids(this.userScopeFactory.getInstance().getUserIdSafe()).first();
+            if (user == null) return;
+            AdditionalInfoEntity additionalInfo = this.conventionService.isNullOrEmpty(user.getAdditionalInfo()) ? null : this.jsonHandlingService.fromJsonSafe(AdditionalInfoEntity.class, user.getAdditionalInfo());
+            if (additionalInfo == null) additionalInfo = new AdditionalInfoEntity();
+            if (additionalInfo.getPluginConfigurations() == null) additionalInfo.setPluginConfigurations(new ArrayList<>());
+            PluginConfigurationUserEntity existing = additionalInfo.getPluginConfigurations().stream().filter(x -> repositoryId.equals(x.getPluginCode()) && PluginType.Deposit.equals(x.getPluginType())).findFirst().orElse(null);
+
+            PluginConfigurationUserPersist persist = new PluginConfigurationUserPersist();
+            persist.setPluginCode(repositoryId);
+            persist.setPluginType(PluginType.Deposit);
+            persist.setUserFields(fields);
+            PluginConfigurationUserEntity saved = this.pluginConfigurationService.buildPluginConfigurationUserEntity(persist, existing != null ? List.of(existing) : null);
+            if (existing != null && existing.getUserFields() != null) {
+                existing.getUserFields().stream().filter(x -> saved.getUserFields().stream().noneMatch(y -> y.getCode().equals(x.getCode()))).forEach(saved.getUserFields()::add);
+                additionalInfo.getPluginConfigurations().remove(existing);
+            }
+            additionalInfo.getPluginConfigurations().add(saved);
+
+            user.setAdditionalInfo(this.jsonHandlingService.toJson(additionalInfo));
+            user.setUpdatedAt(Instant.now());
+            this.tenantEntityManagerFactory.getInstance().merge(user);
+            this.tenantEntityManagerFactory.getInstance().flush();
+        } catch (Exception e) {
+            // saving the credentials for next time must never fail a successful deposit
+            logger.error("failed to save the deposit credentials of " + repositoryId + " to the user's profile", e);
+        }
+    }
+
+    private void persistDepositMetadata(UUID planId, String repositoryId, List<StoredPreviewFieldModel> storedFields, List<PreviewGroupValuesModel> storedGroups) {
+        boolean hasFields = storedFields != null && !storedFields.isEmpty();
+        boolean hasGroups = storedGroups != null && !storedGroups.isEmpty();
+        if (!hasFields && !hasGroups) return;
+
+        try {
+            DepositMetadataPayloadEntity payload = new DepositMetadataPayloadEntity();
+            payload.setFields(hasFields ? storedFields : null);
+            payload.setGroups(hasGroups ? storedGroups : null);
+            String payloadJson = this.jsonHandlingService.toJson(payload);
+
+            DepositMetadataEntity existing = this.queryFactory.query(DepositMetadataQuery.class).planIds(planId).repositoryIds(repositoryId).isActive(IsActive.Active).first();
+            if (existing != null) {
+                existing.setPayload(payloadJson);
+                existing.setUpdatedAt(Instant.now());
+                this.tenantEntityManagerFactory.getInstance().merge(existing);
+            } else {
+                DepositMetadataEntity entity = new DepositMetadataEntity();
+                entity.setId(UUID.randomUUID());
+                entity.setPlanId(planId);
+                entity.setRepositoryId(repositoryId);
+                entity.setPayload(payloadJson);
+                entity.setCreatedAt(Instant.now());
+                entity.setUpdatedAt(Instant.now());
+                entity.setIsActive(IsActive.Active);
+                this.tenantEntityManagerFactory.getInstance().persist(entity);
+            }
+            this.tenantEntityManagerFactory.getInstance().flush();
+        } catch (Exception e) {
+            // persisting overrides must never fail a successful deposit; the DOI is already minted
+            logger.error("failed to persist deposit metadata overrides for plan " + planId + " / " + repositoryId, e);
+        }
+    }
+
+    private DepositMetadataPayloadEntity loadDepositMetadata(PlanEntity planEntity, String repositoryId) {
+        try {
+            List<UUID> planIds;
+            if (planEntity.getGroupId() != null) {
+                planIds = this.queryFactory.query(PlanQuery.class).disableTracking().groupIds(planEntity.getGroupId()).collectAs(new BaseFieldSet().ensure(org.opencdmp.model.plan.Plan._id)).stream().map(PlanEntity::getId).filter(Objects::nonNull).toList();
+            } else {
+                planIds = List.of(planEntity.getId());
+            }
+            if (planIds.isEmpty()) planIds = List.of(planEntity.getId());
+
+            List<DepositMetadataEntity> candidates = this.queryFactory.query(DepositMetadataQuery.class).disableTracking().planIds(planIds).repositoryIds(repositoryId).isActive(IsActive.Active).collect();
+            DepositMetadataEntity latest = candidates.stream().filter(x -> x.getPayload() != null).max(Comparator.comparing(DepositMetadataEntity::getUpdatedAt)).orElse(null);
+            if (latest == null) return null;
+            return this.jsonHandlingService.fromJsonSafe(DepositMetadataPayloadEntity.class, latest.getPayload());
+        } catch (Exception e) {
+            logger.error("failed to load deposit metadata overrides for plan " + planEntity.getId() + " / " + repositoryId, e);
+            return null;
+        }
+    }
+
+    @Override
+    public List<DepositFile> getFiles(String repositoryId, UUID planId) throws Exception {
+        this.authorizationService.authorizeAtLeastOneForce(List.of(this.authorizationContentResolverFactory.getInstance().planAffiliation(planId)), Permission.DepositPlan);
+
+        DepositClient depositClient = this.getDepositClient(repositoryId);
+        if (depositClient == null) throw new MyNotFoundException(this.messageSource.getMessage("General_ItemNotFound", new Object[]{repositoryId, DepositClient.class.getSimpleName()}, LocaleContextHolder.getLocale()));
+        PlanEntity planEntity = this.queryFactory.query(PlanQuery.class).disableTracking().ids(planId).first();
+        if (planEntity == null) throw new MyNotFoundException(this.messageSource.getMessage("General_ItemNotFound", new Object[]{planId, PlanEntity.class.getSimpleName()}, LocaleContextHolder.getLocale()));
+
+        String exportBaseName = this.exportBaseName(planEntity);
+        List<DepositFile> files = new ArrayList<>();
+        for (DepositFileKind kind : this.uploadedFiles(depositClient)) {
+            DepositFile file = new DepositFile();
+            file.setKind(kind);
+            switch (kind) {
+                case PlanDocument -> file.setFilename(exportBaseName + ".pdf");
+                case RdaJson -> file.setFilename(exportBaseName + ".json");
+                case SupportingFiles -> {
+                    List<StorageFileEntity> supportingFiles = this.collectSupportingFiles(planEntity);
+                    if (supportingFiles.isEmpty()) continue;
+                    file.setFilename(exportBaseName.replaceAll("\\.zip$", "") + ".zip");
+                    file.setContents(supportingFiles.stream().map(x -> x.getName() + (x.getExtension().startsWith(".") ? "" : ".") + x.getExtension()).toList());
+                }
+            }
+            files.add(file);
+        }
+        return files;
+    }
+
+    @Override
+    public org.opencdmp.model.file.FileEnvelope getFile(String repositoryId, UUID planId, DepositFileKind kind) throws Exception {
+        this.authorizationService.authorizeAtLeastOneForce(List.of(this.authorizationContentResolverFactory.getInstance().planAffiliation(planId)), Permission.DepositPlan);
+
+        DepositClient depositClient = this.getDepositClient(repositoryId);
+        if (depositClient == null) throw new MyNotFoundException(this.messageSource.getMessage("General_ItemNotFound", new Object[]{repositoryId, DepositClient.class.getSimpleName()}, LocaleContextHolder.getLocale()));
+        if (!this.uploadedFiles(depositClient).contains(kind)) throw new MyNotFoundException(this.messageSource.getMessage("General_ItemNotFound", new Object[]{kind, DepositFileKind.class.getSimpleName()}, LocaleContextHolder.getLocale()));
+        DepositSourceEntity source = this.getDepositSources().stream().filter(depositSource -> depositSource.getRepositoryId().equals(repositoryId)).findFirst().orElse(null);
+        if (source == null) throw new MyNotFoundException(this.messageSource.getMessage("General_ItemNotFound", new Object[]{repositoryId, DepositSourceEntity.class.getSimpleName()}, LocaleContextHolder.getLocale()));
+        PlanEntity planEntity = this.queryFactory.query(PlanQuery.class).disableTracking().ids(planId).first();
+        if (planEntity == null) throw new MyNotFoundException(this.messageSource.getMessage("General_ItemNotFound", new Object[]{planId, PlanEntity.class.getSimpleName()}, LocaleContextHolder.getLocale()));
+
+        return switch (kind) {
+            case PlanDocument -> this.fileTransformerService.exportPlanInternal(planEntity.getId(), source.getPdfTransformerId(), "pdf");
+            case RdaJson -> this.fileTransformerService.exportPlanInternal(planEntity.getId(), source.getRdaTransformerId(), "json");
+            case SupportingFiles -> {
+                FileEnvelopeModel zip = this.buildSupportingFilesZip(planEntity);
+                if (zip == null) throw new MyNotFoundException(this.messageSource.getMessage("General_ItemNotFound", new Object[]{kind, DepositFileKind.class.getSimpleName()}, LocaleContextHolder.getLocale()));
+                org.opencdmp.model.file.FileEnvelope envelope = new org.opencdmp.model.file.FileEnvelope();
+                envelope.setFilename(zip.getFilename());
+                envelope.setFile(zip.getFile());
+                yield envelope;
+            }
+        };
+    }
+
+    private boolean isAllowed(DepositPluginSettings settings, DepositAuthMethod method) {
+        String ways = settings.text(DepositPluginSettings.PUBLISH_WAYS, DepositPluginSettings.PUBLISH_WAYS_BOTH);
+        boolean organisation = DepositAuthMethod.PluginDefault.equals(method);
+        if (DepositPluginSettings.PUBLISH_WAYS_ORGANISATION.equals(ways)) return organisation;
+        if (DepositPluginSettings.PUBLISH_WAYS_OWN.equals(ways)) return !organisation;
+        return true;
+    }
+
+    /** The plugin's settings as the organisation set them (the default tenant's when it set none), over the plugin's declared defaults. */
+    private DepositPluginSettings tenantDepositSettings(DepositConfiguration configuration) throws InvalidApplicationException {
+        if (configuration == null) return DepositPluginSettings.of((List<PluginModel>) null, null);
+        TenantConfigurationQuery query = this.queryFactory.query(TenantConfigurationQuery.class).disableTracking().isActive(IsActive.Active).types(TenantConfigurationType.PluginConfiguration);
+        if (this.tenantScopeFactory.getInstance().isDefaultTenant()) query.tenantIsSet(false);
+        else query.tenantIsSet(true).tenantIds(this.tenantScopeFactory.getInstance().getTenant());
+        TenantConfigurationEntity entity = query.firstAs(new BaseFieldSet().ensure(TenantConfiguration._pluginConfiguration));
+        if (entity == null && !this.tenantScopeFactory.getInstance().isDefaultTenant()) {
+            entity = this.queryFactory.query(TenantConfigurationQuery.class).disableTracking().isActive(IsActive.Active).types(TenantConfigurationType.PluginConfiguration).tenantIsSet(false)
+                    .firstAs(new BaseFieldSet().ensure(TenantConfiguration._pluginConfiguration));
+        }
+        PluginTenantConfigurationEntity value = entity == null || this.conventionService.isNullOrEmpty(entity.getValue()) ? null : this.jsonHandlingService.fromJsonSafe(PluginTenantConfigurationEntity.class, entity.getValue());
+        List<PluginModel> plugins = new ArrayList<>();
+        if (value != null && value.getPluginConfigurations() != null) {
+            for (PluginConfigurationEntity plugin : value.getPluginConfigurations()) {
+                if (!PluginType.Deposit.equals(plugin.getPluginType()) || !configuration.getRepositoryId().equals(plugin.getPluginCode())) continue;
+                PluginModel model = new PluginModel();
+                model.setCode(plugin.getPluginCode());
+                model.setType(org.opencdmp.commonmodels.enums.PluginType.Deposit);
+                model.setFields(plugin.getFields() == null ? List.of() : plugin.getFields().stream().map(x -> {
+                    PluginFieldModel field = new PluginFieldModel();
+                    field.setCode(x.getCode());
+                    field.setTextValue(x.getTextValue());
+                    return field;
+                }).toList());
+                plugins.add(model);
+            }
+        }
+        return DepositPluginSettings.of(plugins, configuration);
+    }
+
+    /**
+     * The files to build: what the plugin uploads (every file when it does not say), narrowed by the organisation's choice,
+     * without the plan document or RDA JSON when the organisation switched off the transformer that produces it.
+     */
+    private List<DepositFileKind> uploadedFiles(DepositClient depositClient) throws Exception {
+        DepositConfiguration configuration = depositClient.getConfiguration();
+        List<DepositFileKind> files = new ArrayList<>(this.tenantDepositSettings(configuration).depositFiles(configuration != null ? configuration.getUploadedFiles() : null));
+        String repositoryId = configuration != null ? configuration.getRepositoryId() : null;
+        DepositSourceEntity source = repositoryId == null ? null : this.getDepositSources().stream().filter(x -> repositoryId.equals(x.getRepositoryId())).findFirst().orElse(null);
+        if (source != null) {
+            if (!this.fileTransformerService.isAvailable(source.getPdfTransformerId())) files.remove(DepositFileKind.PlanDocument);
+            if (!this.fileTransformerService.isAvailable(source.getRdaTransformerId())) files.remove(DepositFileKind.RdaJson);
+        }
+        return files;
+    }
+
+    private String exportBaseName(PlanEntity planEntity) {
+        return planEntity.getLabel() != null && !planEntity.getLabel().isBlank() ? planEntity.getLabel() : "plan";
+    }
+
     private FileEnvelopeModel buildSupportingFilesZip(PlanEntity planEntity) throws InvalidApplicationException {
-
-        List<StorageFileEntity> storageFileEntities = this.queryFactory.query(StorageFileQuery.class).disableTracking().collectAs(new BaseFieldSet().ensure(StorageFile._id).ensure(StorageFile._name).ensure(StorageFile._extension));
-        List<StorageFileEntity> storageFilesForZip = new ArrayList<>();
-
-        PlanPropertiesEntity planPropertiesEntity = this.jsonHandlingService.fromJsonSafe(PlanPropertiesEntity.class, planEntity.getProperties());
-        if (planPropertiesEntity != null && !this.conventionService.isListNullOrEmpty(planPropertiesEntity.getPlanBlueprintValues())) {
-
-            PlanBlueprintEntity planBlueprintEntity = this.tenantEntityManagerFactory.getInstance().find(PlanBlueprintEntity.class, planEntity.getBlueprintId(), true);
-            if (planBlueprintEntity == null) throw new MyNotFoundException(this.messageSource.getMessage("General_ItemNotFound", new Object[]{planEntity.getBlueprintId(), PlanBlueprint.class.getSimpleName()}, LocaleContextHolder.getLocale()));
-
-            org.opencdmp.commons.types.planblueprint.DefinitionEntity definition = this.xmlHandlingService.fromXmlSafe(org.opencdmp.commons.types.planblueprint.DefinitionEntity.class, planBlueprintEntity.getDefinition());
-            if (definition != null) {
-                for (FieldEntity field: definition.getAllField().stream().filter(x -> x.getCategory().equals(PlanBlueprintFieldCategory.Upload)).toList()) {
-                    PlanBlueprintValueEntity planBlueprintValueEntity = planPropertiesEntity.getPlanBlueprintValues().stream().filter(x -> x.getFieldId().equals(field.getId()) && !this.conventionService.isNullOrEmpty(x.getValue())).findFirst().orElse(null);
-                    if (planBlueprintValueEntity != null) {
-                        UUID fileId = this.conventionService.isValidUUID(planBlueprintValueEntity.getValue()) ? UUID.fromString(planBlueprintValueEntity.getValue()) : null;
-                        if (fileId != null) {
-                            StorageFileEntity storageFile = storageFileEntities.stream().filter(x -> x.getId().equals(fileId)).findFirst().orElse(null);
-                            if (storageFile != null) storageFilesForZip.add(storageFile);
-                        }
-                    }
-                }
-            }
-        }
-
-        List<DescriptionEntity> descriptionEntities = this.queryFactory.query(DescriptionQuery.class).disableTracking().planIds(planEntity.getId()).isActive(IsActive.Active).collect();
-        for (DescriptionEntity description: descriptionEntities) {
-            PropertyDefinitionEntity properties = this.jsonHandlingService.fromJsonSafe(PropertyDefinitionEntity.class, description.getProperties());
-            if (properties != null) {
-                DescriptionTemplateEntity descriptionTemplateEntity = this.tenantEntityManagerFactory.getInstance().find(DescriptionTemplateEntity.class, description.getDescriptionTemplateId(), true);
-                if (descriptionTemplateEntity == null)
-                    throw new MyNotFoundException(this.messageSource.getMessage("General_ItemNotFound", new Object[]{description.getDescriptionTemplateId(), DescriptionTemplateEntity.class.getSimpleName()}, LocaleContextHolder.getLocale()));
-
-                org.opencdmp.commons.types.descriptiontemplate.DefinitionEntity definition = this.xmlHandlingService.fromXmlSafe(org.opencdmp.commons.types.descriptiontemplate.DefinitionEntity.class, descriptionTemplateEntity.getDefinition());
-                if (definition != null) {
-                    for (String filedSetKey : properties.getFieldSets().keySet()) {
-                        if (properties.getFieldSets().get(filedSetKey).getItems() != null) {
-                            for (PropertyDefinitionFieldSetItemEntity fieldSetItem : properties.getFieldSets().get(filedSetKey).getItems()) {
-                                if (fieldSetItem.getFields() != null) {
-                                    for (String fieldKey : fieldSetItem.getFields().keySet()) {
-                                        if (!definition.getFieldById(fieldKey).isEmpty()) {
-                                            org.opencdmp.commons.types.descriptiontemplate.FieldEntity fieldEntity = definition.getFieldById(fieldKey).getFirst();
-                                            // check if we have an upload value
-                                            if (fieldEntity.getData().getFieldType().equals(FieldType.UPLOAD) && fieldSetItem.getFields().get(fieldKey) != null && fieldSetItem.getFields().get(fieldKey).getTextValue() != null) {
-                                                UUID fileId = this.conventionService.isValidUUID(fieldSetItem.getFields().get(fieldKey).getTextValue()) ? UUID.fromString(fieldSetItem.getFields().get(fieldKey).getTextValue()) : null;
-                                                if (fileId != null) {
-                                                    StorageFileEntity storageFile = storageFileEntities.stream().filter(x -> x.getId().equals(fileId)).findFirst().orElse(null);
-                                                    if (storageFile != null) storageFilesForZip.add(storageFile);
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
+        List<StorageFileEntity> storageFilesForZip = this.collectSupportingFiles(planEntity);
 
         if (!storageFilesForZip.isEmpty()) {
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -474,6 +763,84 @@ public class DepositServiceImpl implements DepositService {
         }
 
         return null;
+    }
+
+    private List<StorageFileEntity> collectSupportingFiles(PlanEntity planEntity) throws InvalidApplicationException {
+
+        List<StorageFileEntity> storageFileEntities = this.queryFactory.query(StorageFileQuery.class).disableTracking().collectAs(new BaseFieldSet().ensure(StorageFile._id).ensure(StorageFile._name).ensure(StorageFile._extension));
+        List<StorageFileEntity> storageFilesForZip = new ArrayList<>();
+
+        PlanPropertiesEntity planPropertiesEntity = this.jsonHandlingService.fromJsonSafe(PlanPropertiesEntity.class, planEntity.getProperties());
+
+        if (planPropertiesEntity != null && planPropertiesEntity.getFieldSets() != null && !planPropertiesEntity.getFieldSets().isEmpty()) {
+            PlanBlueprintEntity planBlueprintEntity = this.tenantEntityManagerFactory.getInstance().find(PlanBlueprintEntity.class, planEntity.getBlueprintId(), true);
+            if (planBlueprintEntity == null) throw new MyNotFoundException(this.messageSource.getMessage("General_ItemNotFound", new Object[]{planEntity.getBlueprintId(), PlanBlueprint.class.getSimpleName()}, LocaleContextHolder.getLocale()));
+
+            org.opencdmp.commons.types.planblueprint.DefinitionEntity definition = this.xmlHandlingService.fromXmlSafe(org.opencdmp.commons.types.planblueprint.DefinitionEntity.class, planBlueprintEntity.getDefinition());
+            if (definition != null) {
+                for (String filedSetKey : planPropertiesEntity.getFieldSets().keySet()) {
+                    if (planPropertiesEntity.getFieldSets().get(filedSetKey).getItems() != null) {
+                        for (PropertyDefinitionFieldSetItemEntity fieldSetItem : planPropertiesEntity.getFieldSets().get(filedSetKey).getItems()) {
+                            if (fieldSetItem.getFields() != null) {
+                                for (String fieldKey : fieldSetItem.getFields().keySet()) {
+                                    if (!definition.getFieldById(fieldKey).isEmpty()) {
+                                        org.opencdmp.commons.types.descriptiontemplate.FieldEntity fieldEntity = definition.getFieldById(fieldKey).getFirst();
+                                        StorageFileEntity storageFile = this.collectStorageFilePerField(fieldEntity, fieldSetItem, fieldKey, storageFileEntities);
+                                        if (storageFile != null) storageFilesForZip.add(storageFile);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        List<DescriptionEntity> descriptionEntities = this.queryFactory.query(DescriptionQuery.class).disableTracking().planIds(planEntity.getId()).isActive(IsActive.Active).collect();
+        for (DescriptionEntity description: descriptionEntities) {
+            PropertyDefinitionEntity properties = this.jsonHandlingService.fromJsonSafe(PropertyDefinitionEntity.class, description.getProperties());
+            if (properties != null) {
+                DescriptionTemplateEntity descriptionTemplateEntity = this.tenantEntityManagerFactory.getInstance().find(DescriptionTemplateEntity.class, description.getDescriptionTemplateId(), true);
+                if (descriptionTemplateEntity == null)
+                    throw new MyNotFoundException(this.messageSource.getMessage("General_ItemNotFound", new Object[]{description.getDescriptionTemplateId(), DescriptionTemplateEntity.class.getSimpleName()}, LocaleContextHolder.getLocale()));
+
+                org.opencdmp.commons.types.descriptiontemplate.DefinitionEntity definition = this.xmlHandlingService.fromXmlSafe(org.opencdmp.commons.types.descriptiontemplate.DefinitionEntity.class, descriptionTemplateEntity.getDefinition());
+                if (definition != null) {
+                    for (String filedSetKey : properties.getFieldSets().keySet()) {
+                        if (properties.getFieldSets().get(filedSetKey).getItems() != null) {
+                            for (PropertyDefinitionFieldSetItemEntity fieldSetItem : properties.getFieldSets().get(filedSetKey).getItems()) {
+                                if (fieldSetItem.getFields() != null) {
+                                    for (String fieldKey : fieldSetItem.getFields().keySet()) {
+                                        if (!definition.getFieldById(fieldKey).isEmpty()) {
+                                            org.opencdmp.commons.types.descriptiontemplate.FieldEntity fieldEntity = definition.getFieldById(fieldKey).getFirst();
+                                            StorageFileEntity storageFile = this.collectStorageFilePerField(fieldEntity, fieldSetItem, fieldKey, storageFileEntities);
+                                            if (storageFile != null) storageFilesForZip.add(storageFile);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        return storageFilesForZip;
+    }
+
+    private StorageFileEntity collectStorageFilePerField(org.opencdmp.commons.types.descriptiontemplate.FieldEntity fieldEntity, PropertyDefinitionFieldSetItemEntity fieldSetItem, String fieldKey, List<StorageFileEntity> storageFileEntities) {
+        if (storageFileEntities == null) return null;
+
+        // check if we have an upload value
+        if (fieldEntity.getData().getFieldType().equals(FieldType.UPLOAD) && fieldSetItem.getFields().get(fieldKey) != null && fieldSetItem.getFields().get(fieldKey).getTextValue() != null) {
+            UUID fileId = this.conventionService.isValidUUID(fieldSetItem.getFields().get(fieldKey).getTextValue()) ? UUID.fromString(fieldSetItem.getFields().get(fieldKey).getTextValue()) : null;
+            if (fileId != null) {
+                return storageFileEntities.stream().filter(x -> x.getId().equals(fileId)).findFirst().orElse(null);
+            }
+        }
+
+        return null;
+
     }
 
     private void sendNotification(PlanEntity planEntity, String repositoryId) throws InvalidApplicationException {
@@ -577,6 +944,10 @@ public class DepositServiceImpl implements DepositService {
                 }
             }
         }
+        DepositPluginSettings settings = this.tenantDepositSettings(configuration);
+        authTypes.removeIf(x -> !this.isAllowed(settings, x));
+        result.setPreselected(settings.text(DepositPluginSettings.PUBLISH_PRESELECTED, DepositPluginSettings.PUBLISH_WAYS_OWN));
+        result.setOrganisationAccountName(settings.text(DepositPluginSettings.ORGANISATION_ACCOUNT_NAME));
         Collections.sort(authTypes);
         result.setDepositAuthInfoTypes(authTypes);
         return result;

@@ -1,0 +1,170 @@
+<div class="tc-es" [class.tc-es--no-preview]="!canPreview()">
+	<nav class="tc-es__nav" [attr.aria-label]="'TENANT-CONFIGURATION.EXPORT.GROUPS' | translate">
+		<ul>
+			@for (item of groups(); track item.name) {
+				@let changed = changedCount(item);
+				<li>
+					<button type="button" class="tc-es__nav-item" [class.tc-es__nav-item--active]="item === group()" [attr.aria-current]="item === group() ? 'true' : null" (click)="selected.set(item.name)">
+						<span>{{ item.name || ('TENANT-CONFIGURATION.EXPORT.OTHER' | translate) }}</span>
+						@if (changed > 0) {
+							<span class="tc-es__count" [attr.aria-label]="'TENANT-CONFIGURATION.EXPORT.CHANGED-COUNT' | translate: { count: changed }">{{ changed }}</span>
+						}
+					</button>
+				</li>
+			}
+		</ul>
+	</nav>
+
+	@if (group(); as current) {
+		<section class="tc-es__group" aria-labelledby="tc-es-group-h">
+			<h3 id="tc-es-group-h" class="tc-es__title">{{ current.name || ('TENANT-CONFIGURATION.EXPORT.OTHER' | translate) }}</h3>
+
+			@for (field of current.fields; track field.code) {
+				@let changed = isChanged(field);
+				@let fieldId = 'tc-es-' + field.code;
+				<div class="tc-es__field" [class.tc-es__field--wide]="field.type === types.KeyValue || field.type === types.OrderedList || field.type === types.ReferenceTypeFields">
+					<div class="tc-es__field-head">
+						<div>
+							<span class="tc-es__label" [id]="fieldId + '-label'">{{ field.label }}</span>
+							@if (field.description) { <p class="tc-es__description" [id]="fieldId + '-hint'">{{ field.description }}</p> }
+						</div>
+						<div class="tc-es__state">
+							@if (changed) {
+								<span class="tc-es__tag tc-es__tag--changed">{{ 'TENANT-CONFIGURATION.STATE.CHANGED' | translate }}</span>
+								@if (!readOnly()) {
+									<button type="button" class="tc-es__reset" (click)="reset(field)">{{ 'TENANT-CONFIGURATION.STATE.RESET' | translate }}<span class="tc-es__sr"> {{ field.label }}</span></button>
+								}
+							} @else {
+								<span class="tc-es__tag">{{ (isInherited(field) ? 'TENANT-CONFIGURATION.EXPORT.FROM-ORGANISATION' : 'TENANT-CONFIGURATION.EXPORT.PLUGIN-DEFAULT') | translate }}</span>
+							}
+						</div>
+					</div>
+
+					@if (!fieldGroup(field.code)) {
+						<p class="tc-es__description">{{ 'TENANT-CONFIGURATION.EXPORT.UNAVAILABLE' | translate }}</p>
+					} @else {
+						@switch (field.type) {
+							@case (types.Select) {
+								@if (isSwitch(field)) {
+									<mat-slide-toggle [checked]="effective(field) === 'true'" [disabled]="readOnly()" (change)="setText(field.code, $event.checked ? 'true' : 'false')" [attr.aria-labelledby]="fieldId + '-label'">
+										{{ optionLabel(field, effective(field)) }}
+									</mat-slide-toggle>
+								} @else if (field.optionsSource) {
+									<mat-form-field class="tc-es__full" subscriptSizing="dynamic">
+										<mat-label>{{ field.label }}</mat-label>
+										<mat-select [formControl]="text(field.code)" [placeholder]="fallback(field) ?? ''" [attr.aria-describedby]="field.description ? fieldId + '-hint' : null">
+											@for (option of options(field); track option.value) {
+												<mat-option [value]="option.value">{{ option.label }}</mat-option>
+											}
+										</mat-select>
+									</mat-form-field>
+								} @else {
+									<mat-radio-group class="tc-es__choices" [value]="effective(field)" [disabled]="readOnly()" (change)="setText(field.code, $event.value)" [attr.aria-labelledby]="fieldId + '-label'">
+										@for (option of field.options; track option.value) {
+											<mat-radio-button [value]="option.value">
+												{{ option.label }}
+												@if (option.value === field.defaultValue) { <span class="tc-es__default">{{ 'TENANT-CONFIGURATION.EXPORT.DEFAULT-MARK' | translate }}</span> }
+											</mat-radio-button>
+										}
+									</mat-radio-group>
+								}
+							}
+							@case (types.File) {
+								<app-file-uploader
+									[accept]="field.code.includes('template') ? 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' : 'image/png, image/jpeg'"
+									[storageFileIdControl]="file(field.code)"
+									[initFile]="fileMap().get(file(field.code).value)" />
+								@if (validations()[field.code]; as validation) {
+									<ul class="tc-es__validation" role="status">
+										@for (issue of validation.issues; track $index) {
+											<li class="tc-es__issue" [class.tc-es__issue--error]="issue.level === issueLevels.Error">
+												<mat-icon aria-hidden="true">{{ issue.level === issueLevels.Error ? 'error' : 'warning' }}</mat-icon>
+												<span>{{ issue.message }}</span>
+											</li>
+										}
+									</ul>
+								}
+								@if (field.code.includes('template')) {
+									<p class="tc-es__template-link">
+										<button type="button" class="tc-es__link" (click)="downloadDefaultTemplate(field)" [disabled]="downloading() === field.code">
+											<mat-icon aria-hidden="true">download</mat-icon>{{ 'TENANT-CONFIGURATION.EXPORT.DOWNLOAD-DEFAULT-TEMPLATE' | translate }}
+										</button>
+										<span>{{ 'TENANT-CONFIGURATION.EXPORT.DEFAULT-TEMPLATE-HINT' | translate }}</span>
+									</p>
+								}
+							}
+							@case (types.Color) {
+								<div class="tc-es__color">
+									<input type="color" class="tc-es__swatch" [value]="effective(field) || '#2457c5'" [disabled]="readOnly()" (change)="setText(field.code, $any($event.target).value)" [attr.aria-labelledby]="fieldId + '-label'">
+									<mat-form-field subscriptSizing="dynamic">
+										<mat-label>{{ field.label }}</mat-label>
+										<input matInput [formControl]="text(field.code)" [placeholder]="field.defaultValue ?? '#2457c5'">
+									</mat-form-field>
+								</div>
+							}
+							@case (types.OrderedList) {
+								<app-tc-ordered-list-field [control]="text(field.code)" [options]="options(field)" [defaultValue]="fallback(field)" [readOnly]="readOnly()" [label]="field.label" />
+							}
+							@case (types.KeyValue) {
+								<app-tc-key-value-field [control]="text(field.code)" [options]="options(field)" [readOnly]="readOnly()" />
+							}
+							@case (types.ReferenceTypeFields) {
+								<app-tc-reference-fields-field [control]="text(field.code)" [types]="referenceTypes()" [readOnly]="readOnly()" />
+							}
+							@case (types.TextArea) {
+								<mat-form-field class="tc-es__full" subscriptSizing="dynamic">
+									<mat-label>{{ field.label }}</mat-label>
+									<textarea matInput rows="3" [formControl]="text(field.code)" [placeholder]="fallback(field) ?? ''" [attr.aria-describedby]="field.description ? fieldId + '-hint' : null"></textarea>
+								</mat-form-field>
+							}
+							@default {
+								@if (field.authInfo) {
+									@switch (secretState(field)) {
+										@case ('stored') {
+											<div class="tc-es__secret">
+												<mat-icon aria-hidden="true">lock</mat-icon>
+												<span class="tc-es__secret-text">{{ 'TENANT-CONFIGURATION.SECRET.SET' | translate }}</span>
+												@if (!readOnly()) {
+													<button mat-stroked-button type="button" (click)="replaceSecret(field)">{{ 'TENANT-CONFIGURATION.SECRET.REPLACE' | translate }}<span class="tc-es__sr"> {{ field.label }}</span></button>
+													<button mat-button type="button" (click)="removeSecret(field)">{{ 'TENANT-CONFIGURATION.SECRET.REMOVE' | translate }}<span class="tc-es__sr"> {{ field.label }}</span></button>
+												}
+											</div>
+										}
+										@case ('removed') {
+											<div class="tc-es__secret">
+												<mat-icon aria-hidden="true">lock_open</mat-icon>
+												<span class="tc-es__secret-text">{{ 'TENANT-CONFIGURATION.SECRET.REMOVED' | translate }}</span>
+												<button mat-button type="button" (click)="keepSecret(field)">{{ 'TENANT-CONFIGURATION.SECRET.UNDO' | translate }}</button>
+											</div>
+										}
+										@default {
+											<mat-form-field class="tc-es__full" subscriptSizing="dynamic">
+												<mat-label>{{ field.label }}</mat-label>
+												<input matInput type="password" autocomplete="off" [formControl]="text(field.code)" [attr.aria-describedby]="fieldId + '-secret-hint'">
+											</mat-form-field>
+											<p class="tc-es__description" [id]="fieldId + '-secret-hint'">
+												{{ 'TENANT-CONFIGURATION.SECRET.HINT' | translate }}
+												@if (fieldGroup(field.code)?.get('secretSet')?.value) {
+													<button type="button" class="tc-es__link" (click)="keepSecret(field)">{{ 'TENANT-CONFIGURATION.SECRET.KEEP' | translate }}</button>
+												}
+											</p>
+										}
+									}
+								} @else {
+									<mat-form-field class="tc-es__full" subscriptSizing="dynamic">
+										<mat-label>{{ field.label }}</mat-label>
+										<input matInput [type]="field.type === types.Number ? 'number' : 'text'" [formControl]="text(field.code)" [placeholder]="fallback(field) ?? ''" [attr.aria-describedby]="field.description ? fieldId + '-hint' : null">
+									</mat-form-field>
+								}
+							}
+						}
+					}
+				</div>
+			}
+		</section>
+	}
+
+	@if (canPreview()) {
+		<app-tc-settings-preview class="tc-es__preview" [repositoryId]="pluginCode()" [fields]="previewFields()" />
+	}
+</div>

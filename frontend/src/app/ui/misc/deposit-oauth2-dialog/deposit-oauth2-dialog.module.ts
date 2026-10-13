@@ -7,13 +7,13 @@ import { DepositOauth2DialogService } from './service/deposit-oauth2-dialog.serv
 
 
 @NgModule({
-  declarations: [DepositOauth2DialogComponent],
-  imports: [
-	  CommonUiModule,
-	  DepositOauth2DialogRoutingModule,
-  ],
-  providers: [
-	DepositOauth2DialogService
-  ]
+    imports: [
+        CommonUiModule,
+        DepositOauth2DialogRoutingModule,
+        DepositOauth2DialogComponent,
+    ],
+    providers: [
+        DepositOauth2DialogService
+    ]
 })
 export class DepositOauth2DialogModule { }

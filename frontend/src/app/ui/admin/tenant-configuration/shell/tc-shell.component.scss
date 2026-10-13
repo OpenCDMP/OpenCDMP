@@ -1,0 +1,118 @@
+.tc-page {
+	width: 100%;
+	padding: 16px 24px 40px;
+	box-sizing: border-box;
+}
+
+.tc-page--wrapped .tc-page__content {
+	// the wrapped listings and editors are full pages of their own: the shell draws the breadcrumb, and their
+	// header, gutters and centring column give way so they line up with the settings sections
+	::ng-deep {
+		app-navigation-breadcrumb {
+			display: none;
+		}
+
+		> * > .container-fluid {
+			padding-left: 0;
+			padding-right: 0;
+
+			> .row {
+				margin-top: 0;
+				margin-left: 0;
+				margin-right: 0;
+			}
+		}
+
+		.offset-md-1 {
+			flex: 0 0 100%;
+			max-width: 100%;
+			margin-left: 0;
+			padding-left: 0;
+			padding-right: 0;
+		}
+
+		.admin-page-header {
+			margin: 0 0 20px;
+
+			.admin-page-header__bar {
+				margin-top: 0;
+			}
+
+			.admin-page-header__title {
+				font-size: 26px;
+				font-weight: 800;
+			}
+
+			.admin-page-header__description {
+				margin-top: 4px;
+				max-width: 760px;
+				font-size: 14px;
+				line-height: 1.5;
+			}
+		}
+	}
+}
+
+.tc-page__crumbs {
+	margin: 8px 0 16px;
+}
+
+.tc-page__layout {
+	display: grid;
+	grid-template-columns: 232px minmax(0, 1fr);
+	gap: 32px;
+	align-items: start;
+}
+
+.tc-nav {
+	position: sticky;
+	top: 16px;
+	display: flex;
+	flex-direction: column;
+	gap: 2px;
+}
+
+.tc-nav__item {
+	display: block;
+	padding: 8px 12px;
+	border-radius: 8px;
+	color: var(--md-sys-color-on-surface-variant, #3a4354);
+	font-size: 14px;
+	font-weight: 600;
+	text-decoration: none;
+
+	&:hover {
+		background: var(--md-sys-color-surface-variant, #eaeff8);
+		color: var(--md-sys-color-on-surface, #1c2230);
+	}
+}
+
+.tc-nav__group {
+	margin: 16px 12px 4px;
+	font-size: 12px;
+	font-weight: 700;
+	letter-spacing: 0.05em;
+	text-transform: uppercase;
+	color: var(--md-sys-color-on-surface-variant, #566072);
+}
+
+.tc-nav__item--active {
+	background: var(--md-sys-color-primary-container, #e3ebfb);
+	color: var(--md-sys-color-on-primary-container, #1f57c3);
+}
+
+.tc-page__content {
+	min-width: 0;
+}
+
+@media (max-width: 900px) {
+	.tc-page__layout {
+		grid-template-columns: minmax(0, 1fr);
+	}
+
+	.tc-nav {
+		position: static;
+		flex-direction: row;
+		flex-wrap: wrap;
+	}
+}

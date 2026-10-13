@@ -13,6 +13,7 @@ import org.opencdmp.model.evaluation.Evaluation;
 import org.opencdmp.model.persist.EvaluationPersist;
 
 import javax.management.InvalidApplicationException;
+import java.util.List;
 import java.util.UUID;
 
 public interface EvaluationService {
@@ -21,7 +22,7 @@ public interface EvaluationService {
 
     void deleteAndSave(UUID id) throws MyForbiddenException, InvalidApplicationException;
 
-    void persistInternal(RankResultModel model, RankConfig config, UUID id, EntityType type, String EntityId, UUID createdBy)  throws MyForbiddenException, MyValidationException, MyApplicationException, MyNotFoundException, InvalidApplicationException;
+    void persistInternal(List<RankResultModel> model, RankConfig config, UUID id, EntityType type, String EntityId, UUID createdBy)  throws MyForbiddenException, MyValidationException, MyApplicationException, MyNotFoundException, InvalidApplicationException;
 
 }
 

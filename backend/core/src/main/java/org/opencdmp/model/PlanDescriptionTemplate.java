@@ -27,7 +27,7 @@ public class PlanDescriptionTemplate {
 
     public static final String _descriptionTemplates = "descriptionTemplates";
 
-    private UUID sectionId;
+    private String sectionId;
 
     public static final String _sectionId = "sectionId";
 
@@ -93,12 +93,12 @@ public class PlanDescriptionTemplate {
         this.descriptionTemplateGroupId = descriptionTemplateGroupId;
     }
 
-    public UUID getSectionId() {
+    public String getSectionId() {
         return sectionId;
     }
 
-    public void setSectionId(UUID sectionId) {
-        this.sectionId = sectionId;
+    public void setSectionId(String sectionId) {
+        this.sectionId = (sectionId == null || sectionId.isEmpty()) ? null : sectionId;
     }
 
     public Instant getCreatedAt() {

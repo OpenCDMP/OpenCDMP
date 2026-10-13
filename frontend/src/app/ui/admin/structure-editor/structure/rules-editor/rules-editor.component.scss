@@ -1,0 +1,14 @@
+@use '../../bp2-shared' as *;
+
+:host { display: block; }
+.re { display: flex; flex-direction: column; gap: .5rem; }
+.re-row { display: grid; grid-template-columns: 72px minmax(0, 1fr) 44px minmax(0, 1.4fr) 32px; gap: .5rem; align-items: center; }
+.re-word { font-weight: 700; font-size: .85rem; text-align: right; &:nth-child(3) { text-align: center; } }
+.re-field { width: 100%; }
+.re-in {
+	height: 40px; border: 1px solid var(--mat-sys-outline-variant); border-radius: 8px; padding: 0 .625rem; font: inherit; font-size: .875rem; background: var(--mat-sys-surface); color: var(--mat-sys-on-surface); min-width: 0; width: 100%; box-sizing: border-box;
+	&:focus { outline: 2px solid var(--mat-sys-primary); outline-offset: -1px; border-color: transparent; }
+}
+.re-add { align-self: flex-start; }
+.re-opt { display: flex; align-items: baseline; gap: .5rem; width: 100%; &__why { margin-left: auto; font-size: .75rem; color: var(--mat-sys-on-surface-variant); } }
+@media (max-width: 900px) { .re-row { grid-template-columns: 1fr; } .re-word { text-align: left; } }

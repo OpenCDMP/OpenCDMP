@@ -3,7 +3,7 @@ package org.opencdmp.service.fielddatahelper;
 import gr.cite.tools.fieldset.FieldSet;
 import gr.cite.tools.validation.Validator;
 import org.opencdmp.authorization.AuthorizationFlags;
-import org.opencdmp.commonmodels.models.descriptiotemplate.fielddata.BaseFieldDataModel;
+import org.opencdmp.commonmodels.models.planblueprintdescriptiontemplatefields.fielddata.BaseFieldDataModel;
 import org.opencdmp.commons.enums.FieldType;
 import org.opencdmp.commons.types.descriptiontemplate.fielddata.BaseFieldDataEntity;
 import org.opencdmp.commons.types.descriptiontemplate.importexport.fielddata.BaseFieldDataImportExport;

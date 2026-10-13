@@ -1,0 +1,30 @@
+
+.filters-title{
+    padding: 1rem;
+    background-color: var(--mat-sys-surface);
+    color: var(--mat-sys-on-surface);
+    border-bottom: 1px solid var(--mat-sys-outline-variant);
+}
+.content {
+    color: var(--mat-sys-on-background);
+    height: calc(100vh - 100px);
+}
+
+.invite-users--wrapper {
+    padding: 1rem;
+    background-color: var(--mat-sys-background);
+    border-bottom: 1px solid var(--mat-sys-outline-variant);
+}
+.invite-cta {
+    height: 34px;
+    min-height: 34px;
+    --mdc-filled-button-container-height: 34px;
+    font-size: var(--mat-sys-label-large-size);
+}
+.role-info {
+    padding: 1rem;
+    border-top: 1px solid var(--mat-sys-outline-variant);
+    background-color: var(--mat-sys-background);
+    font-size: var(--mat-sys-body-small-size);
+    opacity: 0.9;
+}

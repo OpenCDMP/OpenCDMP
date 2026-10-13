@@ -1,0 +1,60 @@
+@if (groups().length === 0) {
+	<p class="tc-notifications__empty">{{ 'TENANT-CONFIGURATION.NOTIFICATIONS.EMPTY' | translate }}</p>
+} @else {
+	<div class="tc-notifications__scroll">
+		<table class="tc-notifications__table" [attr.aria-labelledby]="labelledBy()" [attr.aria-describedby]="describedBy()">
+			<thead>
+				<tr>
+					<th scope="col" class="tc-notifications__name">{{ 'TENANT-CONFIGURATION.NOTIFICATIONS.NOTIFICATION' | translate }}</th>
+					@for (channel of channels(); track channel) {
+						<th scope="col" class="tc-notifications__channel">{{ channelName(channel) }}</th>
+					}
+					<th scope="col" class="tc-notifications__first">{{ 'TENANT-CONFIGURATION.NOTIFICATIONS.TRY-FIRST' | translate }}</th>
+				</tr>
+			</thead>
+			@for (group of groups(); track group.group) {
+				<tbody>
+					<tr class="tc-notifications__group">
+						<th scope="rowgroup" [attr.colspan]="channels().length + 2">{{ 'TENANT-CONFIGURATION.NOTIFICATIONS.GROUPS.' + group.group | translate }}</th>
+					</tr>
+					@for (row of group.rows; track row.type) {
+						<tr>
+							<th scope="row" class="tc-notifications__name">{{ row.name }}</th>
+							@for (cell of row.cells; track cell.channel) {
+								<td class="tc-notifications__channel">
+									@if (cell.available) {
+										<mat-checkbox
+											[checked]="cell.enabled"
+											[disabled]="!editable() || !canToggle() || cell.locked"
+											[aria-label]="cell.label"
+											(change)="onToggle(row, cell, $event)" />
+									} @else {
+										<span aria-hidden="true">—</span>
+										<span class="tc-notifications__sr">{{ 'TENANT-CONFIGURATION.NOTIFICATIONS.NOT-AVAILABLE' | translate }}</span>
+									}
+								</td>
+							}
+							<td class="tc-notifications__first">
+								@if (row.enabled.length > 1) {
+									<mat-form-field class="tc-notifications__select" subscriptSizing="dynamic">
+										<mat-select
+											[value]="row.enabled[0]"
+											[disabled]="!editable()"
+											[aria-label]="'TENANT-CONFIGURATION.NOTIFICATIONS.TRY-FIRST-FOR' | translate: { notification: row.name }"
+											(selectionChange)="onTryFirst(row, $event)">
+											@for (channel of row.enabled; track channel) {
+												<mat-option [value]="channel">{{ channelName(channel) }}</mat-option>
+											}
+										</mat-select>
+									</mat-form-field>
+								} @else if (row.enabled.length === 1) {
+									<span class="tc-notifications__only">{{ 'TENANT-CONFIGURATION.NOTIFICATIONS.ONLY' | translate: { channel: channelName(row.enabled[0]) } }}</span>
+								}
+							</td>
+						</tr>
+					}
+				</tbody>
+			}
+		</table>
+	</div>
+}

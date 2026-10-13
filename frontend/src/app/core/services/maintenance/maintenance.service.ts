@@ -2,6 +2,7 @@ import { Injectable } from "@angular/core";
 import { BaseService } from "@common/base/base.service";
 import { Observable, throwError } from "rxjs";
 import { catchError } from "rxjs/operators";
+import { DatabaseMigrationInfo, InstallationInfo, InstallationPersist, MaintenanceRun, MaintenanceRunPersist, MaintenanceTaskRun } from "@app/core/model/maintenance/maintenance-run";
 import { ConfigurationService } from "../configuration/configuration.service";
 import { BaseHttpV2Service } from "../http/base-http-v2.service";
 
@@ -15,13 +16,6 @@ export class MaintenanceService extends BaseService {
 
 	private get apiBase(): string { return `${this.installationConfiguration.server}maintenance`; }
 
-	generateElasticIndex(): Observable<any> {
-		const url = `${this.apiBase}/index/elastic`;
-		return this.http
-			.post<any>(url, null).pipe(
-				catchError((error: any) => throwError(error)));
-	}
-
 	clearElasticIndex(): Observable<any> {
 		const url = `${this.apiBase}/index/elastic`;
 		return this.http
@@ -29,215 +23,52 @@ export class MaintenanceService extends BaseService {
 				catchError((error: any) => throwError(error)));
 	}
 
-	sendUserTouchEvents(): Observable<any> {
-		const url = `${this.apiBase}/events/users/touch`;
+	startRun(model: MaintenanceRunPersist): Observable<MaintenanceRun> {
+		const url = `${this.apiBase}/runs`;
 		return this.http
-			.post<any>(url, null).pipe(
+			.post<MaintenanceRun>(url, model).pipe(
 				catchError((error: any) => throwError(error)));
 	}
 
-	sendTenantTouchEvents(): Observable<any> {
-		const url = `${this.apiBase}/events/tenants/touch`;
+	latestRun(): Observable<MaintenanceRun | null> {
+		const url = `${this.apiBase}/runs/latest`;
 		return this.http
-			.post<any>(url, null).pipe(
+			.get<MaintenanceRun | null>(url).pipe(
 				catchError((error: any) => throwError(error)));
 	}
 
-	sendPlanTouchEvents(): Observable<any> {
-		const url = `${this.apiBase}/events/plans/touch`;
+	stopRun(id: string): Observable<MaintenanceRun> {
+		const url = `${this.apiBase}/runs/${id}/stop`;
 		return this.http
-			.post<any>(url, null).pipe(
+			.post<MaintenanceRun>(url, null).pipe(
 				catchError((error: any) => throwError(error)));
 	}
 
-	sendDescriptionTouchEvents(): Observable<any> {
-		const url = `${this.apiBase}/events/descriptions/touch`;
+	lastTaskRuns(): Observable<MaintenanceTaskRun[]> {
+		const url = `${this.apiBase}/tasks/last-runs`;
 		return this.http
-			.post<any>(url, null).pipe(
+			.get<MaintenanceTaskRun[]>(url).pipe(
 				catchError((error: any) => throwError(error)));
 	}
 
-	sendPlanAccountingEntriesEvents(): Observable<any> {
-		const url = `${this.apiBase}/events/plans/accounting-entry`;
+	databaseMigrations(): Observable<DatabaseMigrationInfo> {
+		const url = `${this.apiBase}/database-migrations`;
 		return this.http
-			.post<any>(url, null).pipe(
+			.get<DatabaseMigrationInfo>(url).pipe(
 				catchError((error: any) => throwError(error)));
 	}
 
-	sendDescriptionAccountingEntriesEvents(): Observable<any> {
-		const url = `${this.apiBase}/events/descriptions/accounting-entry`;
+	installation(): Observable<InstallationInfo> {
+		const url = `${this.apiBase}/installation`;
 		return this.http
-			.post<any>(url, null).pipe(
+			.get<InstallationInfo>(url).pipe(
 				catchError((error: any) => throwError(error)));
 	}
 
-	
-	sendBlueprintAccountingEntriesEvents(): Observable<any> {
-		const url = `${this.apiBase}/events/plan-blueprints/accounting-entry`;
+	persistInstallation(model: InstallationPersist): Observable<InstallationInfo> {
+		const url = `${this.apiBase}/installation`;
 		return this.http
-			.post<any>(url, null).pipe(
-				catchError((error: any) => throwError(error)));
-	}
-
-	sendBlueprintTypeAccountingEntriesEvents(): Observable<any> {
-		const url = `${this.apiBase}/events/plan-blueprints-types/accounting-entry`;
-		return this.http
-			.post<any>(url, null).pipe(
-				catchError((error: any) => throwError(error)));
-	}	
-
-	sendDescriptionTemplateAccountingEntriesEvents(): Observable<any> {
-		const url = `${this.apiBase}/events/description-templates/accounting-entry`;
-		return this.http
-			.post<any>(url, null).pipe(
-				catchError((error: any) => throwError(error)));
-	}
-
-	sendDescriptionTemplateTypeAccountingEntriesEvents(): Observable<any> {
-		const url = `${this.apiBase}/events/description-template-types/accounting-entry`;
-		return this.http
-			.post<any>(url, null).pipe(
-				catchError((error: any) => throwError(error)));
-	}
-
-	sendPrefillingSourceAccountingEntriesEvents(): Observable<any> {
-		const url = `${this.apiBase}/events/prefilling-sources/accounting-entry`;
-		return this.http
-			.post<any>(url, null).pipe(
-				catchError((error: any) => throwError(error)));
-	}
-
-	sendReferenceTypeAccountingEntriesEvents(): Observable<any> {
-		const url = `${this.apiBase}/events/reference-types/accounting-entry`;
-		return this.http
-			.post<any>(url, null).pipe(
-				catchError((error: any) => throwError(error)));
-	}
-
-	sendPlanStatusAccountingEntriesEvents(): Observable<any> {
-		const url = `${this.apiBase}/events/plan-statuses/accounting-entry`;
-		return this.http
-			.post<any>(url, null).pipe(
-				catchError((error: any) => throwError(error)));
-	}
-
-	sendDescriptionStatusAccountingEntriesEvents(): Observable<any> {
-		const url = `${this.apiBase}/events/description-statuses/accounting-entry`;
-		return this.http
-			.post<any>(url, null).pipe(
-				catchError((error: any) => throwError(error)));
-	}
-
-	sendUserAccountingEntriesEvents(): Observable<any> {
-		const url = `${this.apiBase}/events/users/accounting-entry`;
-		return this.http
-			.post<any>(url, null).pipe(
-				catchError((error: any) => throwError(error)));
-	}
-
-	sendReferenceAccountingEntriesEvents(): Observable<any> {
-		const url = `${this.apiBase}/events/references/accounting-entry`;
-		return this.http
-			.post<any>(url, null).pipe(
-				catchError((error: any) => throwError(error)));
-	}
-
-	sendLanguageAccountingEntriesEvents(): Observable<any> {
-		const url = `${this.apiBase}/events/languages/accounting-entry`;
-		return this.http
-			.post<any>(url, null).pipe(
-				catchError((error: any) => throwError(error)));
-	}
-
-	sendIndicatorCreateEvents(): Observable<any> {
-		const url = `${this.apiBase}/events/indicator-entry`;
-		return this.http
-			.post<any>(url, null).pipe(
-				catchError((error: any) => throwError(error)));
-	}
-
-	sendIndicatorResetEvents(): Observable<any> {
-		const url = `${this.apiBase}/events/indicator-reset-entry`;
-		return this.http
-			.post<any>(url, null).pipe(
-				catchError((error: any) => throwError(error)));
-	}
-
-	sendIndicatorAccessEvents(): Observable<any> {
-		const url = `${this.apiBase}/events/indicator-access-entry`;
-		return this.http
-			.post<any>(url, null).pipe(
-				catchError((error: any) => throwError(error)));
-	}
-
-	sendIndicatorPlanPointEvents(): Observable<any> {
-		const url = `${this.apiBase}/events/indicator-point-plan-entry`;
-		return this.http
-			.post<any>(url, null).pipe(
-				catchError((error: any) => throwError(error)));
-	}
-
-	sendIndicatorDescriptionPointEvents(): Observable<any> {
-		const url = `${this.apiBase}/events/indicator-point-description-entry`;
-		return this.http
-			.post<any>(url, null).pipe(
-				catchError((error: any) => throwError(error)));
-	}
-
-	sendIndicatorReferencePointEvents(): Observable<any> {
-		const url = `${this.apiBase}/events/indicator-point-reference-entry`;
-		return this.http
-			.post<any>(url, null).pipe(
-				catchError((error: any) => throwError(error)));
-	}
-
-	sendIndicatorUserPointEvents(): Observable<any> {
-		const url = `${this.apiBase}/events/indicator-point-user-entry`;
-		return this.http
-			.post<any>(url, null).pipe(
-				catchError((error: any) => throwError(error)));
-	}
-
-	sendIndicatorPlanBlueprintPointEvents(): Observable<any> {
-		const url = `${this.apiBase}/events/indicator-point-plan-blueprint-entry`;
-		return this.http
-			.post<any>(url, null).pipe(
-				catchError((error: any) => throwError(error)));
-	}
-
-	sendIndicatorDescriptionTemplatePointEvents(): Observable<any> {
-		const url = `${this.apiBase}/events/indicator-point-description-template-entry`;
-		return this.http
-			.post<any>(url, null).pipe(
-				catchError((error: any) => throwError(error)));
-	}
-
-	sendIndicatorTenantPointEvents(): Observable<any> {
-		const url = `${this.apiBase}/events/indicator-point-tenant-entry`;
-		return this.http
-			.post<any>(url, null).pipe(
-				catchError((error: any) => throwError(error)));
-	}
-	
-	
-	sendEvaluationPlanAccountingEntriesEvents(): Observable<any> {
-		const url = `${this.apiBase}/events/evaluation-plan/accounting-entry`;
-		return this.http
-			.post<any>(url, null).pipe(
-				catchError((error: any) => throwError(error)));
-	}
-
-	sendEvaluationDescriptionAccountingEntriesEvents(): Observable<any> {
-		const url = `${this.apiBase}/events/evaluation-description/accounting-entry`;
-		return this.http
-			.post<any>(url, null).pipe(
-				catchError((error: any) => throwError(error)));
-	}
-
-	setPlanBlueprintCanEditDescriptionTemplates(): Observable<any> {
-		const url = `${this.apiBase}/misc-actions/plan-blueprint/set-can-edit-description-templates`;
-		return this.http
-			.post<any>(url, null).pipe(
+			.post<InstallationInfo>(url, model).pipe(
 				catchError((error: any) => throwError(error)));
 	}
 }

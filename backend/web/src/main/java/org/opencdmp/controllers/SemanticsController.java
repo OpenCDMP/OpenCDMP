@@ -2,6 +2,7 @@ package org.opencdmp.controllers;
 
 import org.opencdmp.audit.AuditableAction;
 import org.opencdmp.query.lookup.SemanticsLookup;
+import org.opencdmp.service.semantic.PluginSemantics;
 import org.opencdmp.service.semantic.SemanticsService;
 import gr.cite.commons.web.authz.service.AuthorizationService;
 import gr.cite.tools.auditing.AuditService;
@@ -50,6 +51,17 @@ public class SemanticsController {
         this.auditService.track(AuditableAction.GetSemantics, Map.ofEntries(
                 new AbstractMap.SimpleEntry<String, Object>("lookup", lookup)
         ));
+
+        return semantics;
+    }
+
+    @GetMapping("plugins")
+    public List<PluginSemantics> getPluginSemantics() {
+        logger.debug(new MapLogEntry("retrieving plugin semantics"));
+
+        List<PluginSemantics> semantics = this.semanticsService.getPluginSemantics();
+
+        this.auditService.track(AuditableAction.GetPluginSemantics);
 
         return semantics;
     }

@@ -1,0 +1,177 @@
+@use './shared/pills' as pills;
+
+:host {
+	display: block;
+	height: 100%;
+	min-height: 0;
+}
+
+.new-asset {
+	display: flex;
+	flex-direction: column;
+	height: 100%;
+	min-height: 0;
+}
+
+// ---- header band ----
+.new-asset--header {
+	display: flex;
+	align-items: flex-start;
+	justify-content: space-between;
+	gap: 1.5rem;
+	padding: 1.5rem 2rem 1.25rem 2rem;
+	background-color: var(--mat-sys-surface-container-low);
+	border-bottom: 1px solid var(--mat-sys-outline-variant);
+
+	.new-asset--heading { min-width: 0; }
+	.new-asset--title-row {
+		display: flex;
+		align-items: center;
+		gap: 0.25rem;
+	}
+	.new-asset--title {
+		margin: 0;
+		font-size: var(--mat-sys-headline-small-size);
+		font-weight: 700;
+	}
+	.new-asset--info {
+		color: var(--mat-sys-secondary);
+		mat-icon { font-size: 20px; width: 20px; height: 20px; }
+	}
+	.new-asset--hint {
+		margin: 0.15rem 0 0 0;
+		color: var(--mat-sys-on-surface-variant);
+	}
+	.new-asset--close {
+		flex-shrink: 0;
+		margin: -0.35rem -0.5rem 0 0;
+	}
+}
+
+.new-asset--progress {
+	flex-shrink: 0;
+}
+
+// ---- body ----
+.new-asset--body {
+	flex: 1;
+	min-height: 0;
+	overflow: auto;
+	padding: 1.5rem 2rem 2.5rem 2rem;
+}
+
+.wizard {
+	max-width: 720px;
+}
+
+.back-link {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.15rem;
+	margin: 0 0 1.25rem -0.35rem;
+	padding: 0.25rem 0.5rem 0.25rem 0.25rem;
+	border: none;
+	border-radius: 6px;
+	background: transparent;
+	color: var(--mat-sys-on-surface-variant);
+	font: inherit;
+	cursor: pointer;
+	&:hover { background-color: var(--mat-sys-surface-container); color: var(--mat-sys-on-surface); }
+}
+
+.step-eyebrow {
+	@include pills.eyebrow;
+}
+.step-title {
+	margin: 0 0 0.35rem 0;
+	font-size: var(--mat-sys-title-large-size);
+	font-weight: 700;
+}
+.step-hint {
+	margin: 0 0 1.25rem 0;
+	color: var(--mat-sys-on-surface-variant);
+	line-height: 1.5;
+}
+
+// ---- approach cards ----
+.approach-cards {
+	display: grid;
+	// One equal column per card, so two or three cards always fill the row without an empty slot.
+	grid-auto-flow: column;
+	grid-auto-columns: minmax(0, 1fr);
+	gap: 0.75rem;
+	padding: 0.75rem;
+	border-radius: 16px;
+	border: 1px solid var(--mat-sys-outline-variant);
+	background-color: var(--mat-sys-surface-container-low);
+	@media (max-width: 900px) {
+		grid-auto-flow: row;
+		grid-auto-columns: auto;
+		grid-template-columns: minmax(0, 1fr);
+	}
+}
+
+.approach-card {
+	display: flex;
+	flex-direction: column;
+	align-items: flex-start;
+	gap: 0.5rem;
+	padding: 1rem;
+	border-radius: 12px;
+	border: 2px solid transparent;
+	background-color: var(--mat-sys-surface);
+	color: inherit;
+	font: inherit;
+	text-align: left;
+	cursor: pointer;
+	transition: border-color 120ms ease, box-shadow 120ms ease;
+
+	&:hover { border-color: var(--mat-sys-outline-variant); }
+	&.approach-card--selected {
+		border-color: var(--mat-sys-secondary);
+		box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
+	}
+
+	.approach-card--top {
+		display: flex;
+		align-items: flex-start;
+		justify-content: space-between;
+		gap: 0.5rem;
+		width: 100%;
+		margin-bottom: 0.5rem;
+	}
+	.approach-card--icon {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		width: 44px;
+		height: 44px;
+		border-radius: 12px;
+		&.approach-card--icon-manual { background-color: #E8F5E9; color: #2E7D32; }
+		&.approach-card--icon-import { background-color: #E3F2FD; color: #1565C0; }
+		&.approach-card--icon-copy { background-color: #F3E5F5; color: #6A1B9A; }
+	}
+	.approach-card--badge {
+		padding: 0.15rem 0.6rem;
+		border-radius: 999px;
+		background-color: var(--mat-sys-secondary-fixed);
+		color: var(--mat-sys-on-secondary-fixed-variant); // M3 pairing for text on *-fixed; plain secondary can fall below 4.5:1
+		font-size: var(--mat-sys-label-medium-size);
+		font-weight: 600;
+		white-space: nowrap;
+	}
+	.approach-card--title {
+		font-size: var(--mat-sys-body-large-size);
+		font-weight: 700;
+	}
+	.approach-card--hint {
+		color: var(--mat-sys-on-surface-variant);
+		font-size: var(--mat-sys-body-medium-size);
+		line-height: 1.4;
+	}
+}
+
+.copy-panel {
+	display: block;
+	margin-top: 1.75rem;
+}

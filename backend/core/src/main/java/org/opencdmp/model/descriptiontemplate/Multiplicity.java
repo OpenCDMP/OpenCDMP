@@ -14,6 +14,9 @@ public class Multiplicity {
 	public final static String _tableView = "tableView";
 	private Boolean tableView;
 
+	public final static String _transposedTableView = "transposedTableView";
+	private Boolean transposedTableView;
+
 	public Integer getMin() {
 		return min;
 	}
@@ -44,5 +47,13 @@ public class Multiplicity {
 
 	public void setTableView(Boolean tableView) {
 		this.tableView = tableView;
+	}
+
+	public Boolean getTransposedTableView() {
+		return transposedTableView;
+	}
+
+	public void setTransposedTableView(Boolean transposedTableView) {
+		this.transposedTableView = transposedTableView;
 	}
 }

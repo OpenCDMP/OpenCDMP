@@ -1,0 +1,65 @@
+@if (loading()) {
+	<mat-progress-bar mode="indeterminate" [attr.aria-label]="'ALT-TEXT.PROGRESS-BAR' | translate" />
+} @else if (templates().length) {
+	<ul class="template-list unstyled-list">
+		@for (template of templates(); track template.groupId) {
+			@let disabled = isAtMaxMultiplicity(template);
+			@let style = typeStyle(template.type);
+			<li class="template-row" [class.template-row--disabled]="disabled"
+				[matTooltip]="'PLAN-EDITOR.DESCRIPTION-TEMPLATES.MAX-MULTIPLICITY' | translate" [matTooltipDisabled]="!disabled"
+			>
+				<app-template-type-icon [template]="template" />
+				<div class="template-row--info">
+					<div class="template-row--heading">
+						@if (template.type?.name) {
+							<span class="type-chip" [style.background-color]="style.background" [style.color]="style.color">{{ template.type.name }}</span>
+						}
+						<span class="template-row--title">{{ template.label }}</span>
+					</div>
+					@if (template.description) {
+						<div class="template-row--description" [innerHTML]="template.description"></div>
+					}
+					<div class="template-row--meta">
+						<mat-icon aria-hidden="true">tag</mat-icon>
+						<span>{{ 'NEW-DESCRIPTION.FIELDS-TOTAL' | translate: { count: fieldCount(template) } }}</span>
+					</div>
+				</div>
+				<div class="template-row--actions">
+					<button mat-stroked-button type="button" (click)="previewTemplate.emit(template)"
+						[attr.aria-label]="'NEW-DESCRIPTION.FROM-TEMPLATE.ACTIONS.PREVIEW-TEMPLATE' | translate: { name: template.label }"
+					>
+						<mat-icon class="material-symbols-outlined" aria-hidden="true">info</mat-icon>
+						{{ 'NEW-DESCRIPTION.FROM-TEMPLATE.ACTIONS.OVERVIEW' | translate }}
+					</button>
+					<button mat-flat-button color="secondary" type="button" [disabled]="disabled" (click)="useTemplate.emit(template)"
+						[attr.aria-label]="'NEW-DESCRIPTION.FROM-TEMPLATE.ACTIONS.USE-TEMPLATE' | translate: { name: template.label }"
+					>
+						{{ 'NEW-DESCRIPTION.FROM-TEMPLATE.ACTIONS.USE' | translate }}
+						<mat-icon iconPositionEnd aria-hidden="true">chevron_right</mat-icon>
+					</button>
+				</div>
+			</li>
+		}
+	</ul>
+} @else {
+	<div class="no-templates" role="status">
+		<mat-icon class="material-symbols-outlined no-templates--icon" aria-hidden="true">description</mat-icon>
+		<p>
+			@if (canEditTemplateList()) {
+				<span>{{ 'NEW-DESCRIPTION.FROM-TEMPLATE.NO-RECOMMENDED-TEMPLATES.OWNER.TITLE' | translate }}</span>
+				<br />
+				<span>
+					{{ 'NEW-DESCRIPTION.FROM-TEMPLATE.NO-RECOMMENDED-TEMPLATES.OWNER.HINT.START' | translate }}
+					<button type="button" class="inline-link-button" (click)="navigateToParentSection.emit()">
+						{{ 'NEW-DESCRIPTION.FROM-TEMPLATE.NO-RECOMMENDED-TEMPLATES.OWNER.HINT.LINK-TEXT' | translate }}
+					</button>
+					{{ 'NEW-DESCRIPTION.FROM-TEMPLATE.NO-RECOMMENDED-TEMPLATES.OWNER.HINT.END' | translate }}
+				</span>
+			} @else {
+				<span>{{ 'NEW-DESCRIPTION.FROM-TEMPLATE.NO-RECOMMENDED-TEMPLATES.CONTRIBUTOR.TITLE' | translate }}</span>
+				<br />
+				<span>{{ 'NEW-DESCRIPTION.FROM-TEMPLATE.NO-RECOMMENDED-TEMPLATES.CONTRIBUTOR.HINT' | translate }}</span>
+			}
+		</p>
+	</div>
+}

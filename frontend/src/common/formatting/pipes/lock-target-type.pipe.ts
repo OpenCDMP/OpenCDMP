@@ -1,10 +1,7 @@
 import { Pipe, PipeTransform } from '@angular/core';
 import { EnumUtils } from '@app/core/services/utilities/enum-utils.service';
 
-@Pipe({
-    name: 'LockTargetTypeFormat',
-    standalone: false
-})
+@Pipe({ name: 'LockTargetTypeFormat' })
 export class LockTargetTypePipe implements PipeTransform {
 	constructor(private enumUtils: EnumUtils) { }
 

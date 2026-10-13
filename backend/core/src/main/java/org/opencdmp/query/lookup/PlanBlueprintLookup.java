@@ -1,9 +1,12 @@
 package org.opencdmp.query.lookup;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import org.opencdmp.commons.SQLUtils;
 import org.opencdmp.commons.enums.PlanBlueprintStatus;
 import org.opencdmp.commons.enums.PlanBlueprintVersionStatus;
 import org.opencdmp.commons.enums.IsActive;
+import org.opencdmp.elastic.query.InnerObjectDescriptionTemplateElasticQuery;
+import org.opencdmp.elastic.query.InnerObjectPlanBlueprintElasticQuery;
 import org.opencdmp.query.PlanBlueprintQuery;
 import gr.cite.tools.data.query.Lookup;
 import gr.cite.tools.data.query.QueryFactory;
@@ -40,6 +43,11 @@ public class PlanBlueprintLookup extends Lookup {
 
     @Schema(description = SwaggerHelpers.PlanBlueprint.versionStatuses_description)
     private List<PlanBlueprintVersionStatus> versionStatuses;
+
+    private TenantLookup tenantSubQuery;
+
+    /** false: only the default tenant's shared rows (no tenant); true: only tenant-owned rows; null: both. */
+    private Boolean tenantIsSet;
 
     public String getLike() {
         return like;
@@ -113,10 +121,16 @@ public class PlanBlueprintLookup extends Lookup {
         this.excludedGroupIds = excludedGroupIds;
     }
 
+    public Boolean getTenantIsSet() { return tenantIsSet; }
+    public void setTenantIsSet(Boolean tenantIsSet) { this.tenantIsSet = tenantIsSet; }
+
+    public TenantLookup getTenantSubQuery() { return tenantSubQuery; }
+    public void setTenantSubQuery(TenantLookup tenantSubQuery) { this.tenantSubQuery = tenantSubQuery; }
+
     public PlanBlueprintQuery enrich(QueryFactory queryFactory) {
         PlanBlueprintQuery query = queryFactory.query(PlanBlueprintQuery.class);
         if (this.like != null)
-            query.like(this.like);
+            query.like(SQLUtils.toPostgres(this.like));
         if (this.isActive != null)
             query.isActive(this.isActive);
         if (this.statuses != null)
@@ -133,7 +147,27 @@ public class PlanBlueprintLookup extends Lookup {
             query.excludedGroupIds(this.excludedGroupIds);
         if (this.versionStatuses != null)
             query.versionStatuses(this.versionStatuses);
+        if (this.tenantIsSet != null) query.tenantIsSet(this.tenantIsSet);
+        if (this.tenantSubQuery != null) query.tenantSubQuery(this.tenantSubQuery.enrich(queryFactory));
 
+        this.enrichCommon(query);
+
+        return query;
+    }
+
+    public InnerObjectPlanBlueprintElasticQuery enrichElasticInner(QueryFactory queryFactory) {
+        InnerObjectPlanBlueprintElasticQuery query = queryFactory.query(InnerObjectPlanBlueprintElasticQuery.class);
+        if (this.ids != null) query.ids(this.ids);
+        if (this.groupIds != null) query.groupIds(this.groupIds);
+        if (this.versionStatuses != null) query.versionStatuses(this.versionStatuses);
+        if (this.excludedIds != null) query.excludedIds(this.excludedIds);
+        if (this.excludedGroupIds != null) query.excludedGroupIds(this.excludedGroupIds);
+
+        if (this.like != null) throw new UnsupportedOperationException("");
+        if (this.isActive != null && this.isActive.stream().anyMatch(x -> x.equals(IsActive.Inactive)))
+            throw new UnsupportedOperationException("");
+        if (this.statuses != null) throw new UnsupportedOperationException("");
+        if (this.typeIds != null) query.typeIds(this.typeIds);
         this.enrichCommon(query);
 
         return query;

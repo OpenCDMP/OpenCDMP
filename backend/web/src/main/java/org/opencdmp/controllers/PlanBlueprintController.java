@@ -1,5 +1,6 @@
 package org.opencdmp.controllers;
 
+import org.opencdmp.service.fieldsetexpander.FieldSetExpanderService;
 import tools.jackson.core.JacksonException;
 import gr.cite.tools.auditing.AuditService;
 import gr.cite.tools.data.builder.BuilderFactory;
@@ -12,6 +13,7 @@ import gr.cite.tools.fieldset.FieldSet;
 import gr.cite.tools.logging.LoggerService;
 import gr.cite.tools.logging.MapLogEntry;
 import gr.cite.tools.validation.ValidationFilterAnnotation;
+import io.swagger.v3.oas.annotations.Hidden;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.enums.Explode;
 import io.swagger.v3.oas.annotations.enums.ParameterStyle;
@@ -80,19 +82,30 @@ public class PlanBlueprintController {
 
     private final MessageSource messageSource;
 
+    private final FieldSetExpanderService fieldSetExpanderService;
+
     public PlanBlueprintController(
             BuilderFactory builderFactory,
             AuditService auditService,
             PlanBlueprintService planBlueprintService,
             CensorFactory censorFactory,
             QueryFactory queryFactory,
-            MessageSource messageSource) {
+            MessageSource messageSource, FieldSetExpanderService fieldSetExpanderService) {
         this.builderFactory = builderFactory;
         this.auditService = auditService;
         this.planBlueprintService = planBlueprintService;
         this.censorFactory = censorFactory;
         this.queryFactory = queryFactory;
         this.messageSource = messageSource;
+        this.fieldSetExpanderService = fieldSetExpanderService;
+    }
+
+    @GetMapping("semantics-in-use")
+    @OperationWithTenantHeader(summary = "Semantic keys in use across the tenant's plan blueprints", description = "")
+    @Hidden
+    public Map<String, Integer> semanticsInUse(@RequestParam(value = "excludeGroupId", required = false) UUID excludeGroupId) {
+        logger.debug(new MapLogEntry("semantics in use").And("excludeGroupId", excludeGroupId));
+        return this.planBlueprintService.semanticsInUse(excludeGroupId);
     }
 
     @PostMapping("query")
@@ -146,6 +159,7 @@ public class PlanBlueprintController {
     ) throws MyApplicationException, MyForbiddenException, MyNotFoundException {
         logger.debug(new MapLogEntry("retrieving" + PlanBlueprint.class.getSimpleName()).And("id", id).And("fields", fieldSet));
 
+        fieldSet = this.fieldSetExpanderService.expand(fieldSet);
         this.censorFactory.censor(PlanBlueprintCensor.class).censor(fieldSet, null);
 
         PlanBlueprintQuery query = this.queryFactory.query(PlanBlueprintQuery.class).disableTracking().authorize(AuthorizationFlags.AllExceptPublic).ids(id);
@@ -183,6 +197,7 @@ public class PlanBlueprintController {
             @Parameter(name = "f", description = SwaggerHelpers.Commons.fieldset_description, required = true, style = ParameterStyle.FORM, explode = Explode.TRUE, schema = @Schema(type = "array", example = SwaggerHelpers.PlanBlueprint.endpoint_field_set_example)) FieldSet fieldSet
     ) throws MyApplicationException, MyForbiddenException, MyNotFoundException, InvalidApplicationException, JAXBException, ParserConfigurationException, JacksonException, TransformerException {
         logger.debug(new MapLogEntry("persisting" + PlanBlueprint.class.getSimpleName()).And("model", model).And("fieldSet", fieldSet));
+        fieldSet = this.fieldSetExpanderService.expand(fieldSet);
         this.censorFactory.censor(PlanBlueprintCensor.class).censor(fieldSet, null);
 
         PlanBlueprint persisted = this.planBlueprintService.persist(model, null, fieldSet);
@@ -226,6 +241,7 @@ public class PlanBlueprintController {
     ) throws MyApplicationException, MyForbiddenException, MyNotFoundException {
         logger.debug(new MapLogEntry("clone" + PlanBlueprint.class.getSimpleName()).And("id", id).And("fields", fieldSet));
 
+        fieldSet = this.fieldSetExpanderService.expand(fieldSet);
         this.censorFactory.censor(PlanBlueprintCensor.class).censor(fieldSet, null);
 
         PlanBlueprint model = this.planBlueprintService.buildClone(id, fieldSet);
@@ -260,6 +276,7 @@ public class PlanBlueprintController {
             @Parameter(name = "f", description = SwaggerHelpers.Commons.fieldset_description, required = true, style = ParameterStyle.FORM, explode = Explode.TRUE, schema = @Schema(type = "array", example = SwaggerHelpers.PlanBlueprint.endpoint_field_set_example)) FieldSet fieldSet
     ) throws JAXBException, InvalidApplicationException, ParserConfigurationException, JacksonException, TransformerException {
         logger.debug(new MapLogEntry("persisting" + NewVersionPlanBlueprintPersist.class.getSimpleName()).And("model", model).And("fieldSet", fieldSet));
+        fieldSet = this.fieldSetExpanderService.expand(fieldSet);
         PlanBlueprint persisted = this.planBlueprintService.createNewVersion(model, fieldSet);
 
         this.auditService.track(AuditableAction.PlanBlueprint_PersistNewVersion, Map.ofEntries(
@@ -305,6 +322,7 @@ public class PlanBlueprintController {
     ) throws IOException, JAXBException, InvalidApplicationException, ParserConfigurationException, TransformerException, InstantiationException, IllegalAccessException, SAXException {
         logger.debug(new MapLogEntry("clone" + PlanBlueprint.class.getSimpleName()).And("file", file));
 
+        fieldSet = this.fieldSetExpanderService.expand(fieldSet);
         this.censorFactory.censor(PlanBlueprintCensor.class).censor(fieldSet, null);
 
         PlanBlueprint model = this.planBlueprintService.importXml(file.getBytes(), groupId, file.getOriginalFilename(), fieldSet);

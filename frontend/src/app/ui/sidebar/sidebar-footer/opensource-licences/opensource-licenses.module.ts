@@ -4,12 +4,10 @@ import { OpensourceLicencesRoutingModule } from './opensource-licences.routing';
 import { OpensourceLicencesComponent } from './opensource-licences.component';
 
 @NgModule({
-	imports: [
-		CommonUiModule,
-		OpensourceLicencesRoutingModule
-	],
-	declarations: [
-		OpensourceLicencesComponent
-	],
+    imports: [
+        CommonUiModule,
+        OpensourceLicencesRoutingModule,
+        OpensourceLicencesComponent
+    ],
 })
 export class OpensourceLicencesModule { }

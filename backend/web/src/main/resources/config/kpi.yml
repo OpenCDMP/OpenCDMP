@@ -2,6 +2,20 @@ kpi:
   maxIndicatorPointsPerRequest: 1000
   task:
     enable: ${KPI_VIEWER_TASK_ENABLED:false}
+    bootstrapEnable: ${KPI_VIEWER_BOOTSTRAP_ENABLED:true}
+    bootstrapDelaySeconds: ${KPI_VIEWER_BOOTSTRAP_DELAY_SECONDS:30}
+  dashboardDefaults:
+    referenceTypeId: ${KPI_VIEWER_REFERENCE_TYPE_DEFAULT:2baab1e8-561f-4c15-84c3-571b811c52f6}
+    planStatusId: ${KPI_VIEWER_PLAN_STATUS_DEFAULT:f1a3da63-0bff-438f-8b46-1a81ca176115}
+    descriptionStatusId: ${KPI_VIEWER_DESCRIPTION_STATUS_DEFAULT:c266e2ee-9ae9-4a2f-9b4b-bc6fb1dd54aa}
+    adminDashboardInfo:
+      path: ${KPI_VIEWER_ADMIN_DASHBOARD_PATH:classpath:kpi-dashboards/admin-dashboard.json}
+      key: dmp_admin_dashboard
+      name: OpenCDMP Admin Dashboard
+    tenantDashboardInfo:
+      path: ${KPI_VIEWER_TENANT_DASHBOARD_PATH:classpath:kpi-dashboards/tenant-dashboard.json}
+      key: dmp_dashboard
+      name: OpenCDMP Dashboard
   indicator:
     id: ${KPI_VIEWER_INDICATOR_ID:97c2d685-d7d2-4bd1-a287-ba329ad45d74}
     metadata:
@@ -41,6 +55,24 @@ kpi:
           baseType: keyword
         - code: latest_version
           name: Latest_Version
+          baseType: keyword
+        - code: plan_visibility
+          name: Plan Visibility
+          baseType: keyword
+        - code: plan_blueprint_id
+          name: Plan Blueprint
+          baseType: keyword
+        - code: plan_id
+          name: Plan
+          baseType: keyword
+        - code: reference_id
+          name: Reference
+          baseType: keyword
+        - code: plan_blueprint_type_id
+          name: Plan Blueprint Type
+          baseType: keyword
+        - code: description_template_type_id
+          name: Description Template Type
           baseType: keyword
     roles:
       - Admin

@@ -1,0 +1,11 @@
+<section class="bp2-card sk-line">
+	<div class="sk-line__text">
+		@if (keyCount) {
+			<strong>{{'PLAN-BLUEPRINT-EDITOR.KEYS-LINE.KEYS' | bp2Count: keyCount : { inputs: mappedInputs } }}</strong>
+			@if (unmappedCount) { <span class="bp2-sub">{{'PLAN-BLUEPRINT-EDITOR.KEYS-LINE.UNMAPPED' | bp2Count: unmappedCount}}</span> }
+		} @else {
+			<strong>{{'PLAN-BLUEPRINT-EDITOR.KEYS-LINE.NONE' | translate}}</strong>
+		}
+	</div>
+	<button type="button" class="sk-line__link" (click)="editor.openKeysView()">{{'PLAN-BLUEPRINT-EDITOR.KEYS-LINE.OPEN' | translate}}</button>
+</section>

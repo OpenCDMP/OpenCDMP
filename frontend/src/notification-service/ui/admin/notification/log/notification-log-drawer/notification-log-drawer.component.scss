@@ -1,0 +1,150 @@
+.nd-scrim {
+	position: fixed;
+	inset: 0;
+	z-index: 1000;
+	border: 0;
+	background: rgb(28 34 48 / 0.28);
+	cursor: default;
+}
+
+.nd {
+	position: fixed;
+	top: 0;
+	right: 0;
+	bottom: 0;
+	z-index: 1001;
+	display: flex;
+	flex-direction: column;
+	gap: 20px;
+	width: min(480px, 100vw);
+	box-sizing: border-box;
+	overflow-y: auto;
+	padding: 16px 24px 32px;
+	background: var(--mat-sys-surface);
+	box-shadow: -12px 0 32px rgb(28 34 48 / 0.18);
+}
+
+.nd-head {
+	display: flex;
+	justify-content: flex-end;
+}
+
+.nd-title {
+	display: flex;
+	flex-direction: column;
+	gap: 2px;
+
+	h2 {
+		margin: 0;
+		font-size: 1.25rem;
+		font-weight: 500;
+	}
+}
+
+.nd-muted {
+	font-size: 0.8125rem;
+	color: var(--mat-sys-on-surface-variant);
+}
+
+.nd-result {
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+	padding: 14px;
+	border-radius: 10px;
+
+	p {
+		margin: 0;
+	}
+}
+
+.nd-result--sent {
+	background: var(--mat-sys-primary-container);
+	color: var(--mat-sys-on-primary-container);
+}
+
+.nd-result--read {
+	background: var(--mat-sys-primary-container);
+	color: var(--mat-sys-on-primary-container);
+}
+
+.nd-result--waiting {
+	background: var(--mat-sys-secondary-container);
+	color: var(--mat-sys-on-secondary-container);
+}
+
+.nd-result--failed {
+	background: var(--mat-sys-error-container);
+	color: var(--mat-sys-on-error-container);
+}
+
+.nd-result--skipped {
+	background: var(--mat-sys-surface-container-high);
+	color: var(--mat-sys-on-surface);
+}
+
+.nd-section h3 {
+	margin: 0 0 8px;
+	font-size: 0.8125rem;
+	font-weight: 600;
+	color: var(--mat-sys-on-surface-variant);
+}
+
+.nd-timeline {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+	margin: 0;
+	padding: 0 0 0 16px;
+	border-left: 2px solid var(--mat-sys-outline-variant);
+	list-style: none;
+
+	li {
+		display: flex;
+		flex-direction: column;
+		gap: 2px;
+	}
+}
+
+.nd-details {
+	border-top: 1px solid var(--mat-sys-outline-variant);
+	padding-top: 14px;
+
+	summary {
+		cursor: pointer;
+		font-weight: 600;
+	}
+
+	dl {
+		display: grid;
+		grid-template-columns: auto 1fr;
+		gap: 6px 16px;
+		margin: 12px 0 0;
+		font-size: 0.8125rem;
+	}
+
+	dt {
+		color: var(--mat-sys-on-surface-variant);
+	}
+
+	dd {
+		margin: 0;
+		min-width: 0;
+		overflow-wrap: anywhere;
+	}
+}
+
+.nd-code {
+	font-family: var(--app-font-mono);
+}
+
+.nd-actions {
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: space-between;
+	gap: 10px;
+}
+
+.nd-delete {
+	color: var(--mat-sys-error);
+}

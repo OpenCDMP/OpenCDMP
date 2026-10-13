@@ -1,0 +1,92 @@
+<header class="tc-head tc-integrations__head">
+	<div class="tc-integrations__intro">
+		<h1>{{ 'TENANT-CONFIGURATION.INTEGRATIONS.TITLE' | translate }}</h1>
+		<p>{{ 'TENANT-CONFIGURATION.INTEGRATIONS.HINT' | translate }}</p>
+	</div>
+	@if (section.canEdit) {
+		<button mat-flat-button color="accent" class="padded-shadow-btn" type="button" (click)="addPlugin()">
+			<mat-icon aria-hidden="true">add</mat-icon>
+			{{ 'TENANT-CONFIGURATION.INTEGRATIONS.ADD' | translate }}
+		</button>
+	}
+</header>
+
+@if (sources.loading()) {
+	<div class="tc-loading"><mat-spinner diameter="32" /></div>
+} @else {
+	<div class="tc-integrations__filters">
+		<mat-form-field subscriptSizing="dynamic" class="tc-integrations__search">
+			<mat-label>{{ 'TENANT-CONFIGURATION.INTEGRATIONS.SEARCH' | translate }}</mat-label>
+			<mat-icon matPrefix aria-hidden="true">search</mat-icon>
+			<input matInput type="search" [ngModel]="search()" (ngModelChange)="search.set($event)">
+		</mat-form-field>
+		<mat-chip-listbox [attr.aria-label]="'TENANT-CONFIGURATION.INTEGRATIONS.FILTER-LABEL' | translate" [value]="statusFilter()" (change)="statusFilter.set($event.value ?? 'all')">
+			@for (option of filters; track option) {
+				<mat-chip-option [value]="option" [selectable]="statusFilter() !== option">
+					{{ 'TENANT-CONFIGURATION.INTEGRATIONS.FILTERS.' + option.toUpperCase() | translate }}
+					@if (option === 'problems' && problemCount() > 0) { ({{ problemCount() }}) }
+				</mat-chip-option>
+			}
+		</mat-chip-listbox>
+	</div>
+
+	@for (kind of kinds; track kind.slug) {
+		@let part = sources.parts[kind.slug];
+		<section class="tc-card" [attr.aria-labelledby]="'tc-int-' + kind.slug">
+			<div class="tc-card__head">
+				<div class="tc-integrations__kind">
+					<mat-icon aria-hidden="true">{{ kind.icon }}</mat-icon>
+					<div>
+						<h2 [id]="'tc-int-' + kind.slug">{{ kind.label | translate }}</h2>
+						<p>{{ kind.hint | translate }}</p>
+					</div>
+				</div>
+				@if (part.inherited()) {
+					<span class="tc-integrations__tag">{{ 'TENANT-CONFIGURATION.STATE.INHERITED' | translate }}</span>
+				}
+			</div>
+
+			@let rows = entriesOf(kind);
+			@if (rows.length === 0) {
+				<p class="tc-integrations__empty">
+					{{ (totalOf(kind) === 0 ? 'TENANT-CONFIGURATION.INTEGRATIONS.EMPTY' : 'TENANT-CONFIGURATION.INTEGRATIONS.NO-MATCH') | translate }}
+				</p>
+			} @else {
+				<ul class="tc-integrations__list">
+					@for (entry of rows; track entry.id) {
+						<li class="tc-plugin-row" [class.tc-plugin-row--off]="!entry.enabled">
+							<div class="tc-plugin-row__main">
+								<a class="tc-plugin-row__name" [routerLink]="pluginUrl(entry)">{{ entry.id }}</a>
+								<div class="tc-plugin-row__meta">
+									<span class="tc-plugin-row__provider">{{ 'TENANT-CONFIGURATION.INTEGRATIONS.PROVIDER.' + entry.provider.toUpperCase() | translate }}</span>
+									@for (capability of entry.capabilities; track capability) {
+										<span class="tc-plugin-row__capability">{{ capability === 'preview' ? ('TENANT-CONFIGURATION.INTEGRATIONS.CAPABILITY-PREVIEW' | translate) : capability }}</span>
+									}
+									@if (entry.settingsCount > 0) {
+										<span>{{ 'TENANT-CONFIGURATION.INTEGRATIONS.SETTINGS-COUNT' | translate: { count: entry.settingsCount } }}</span>
+									}
+								</div>
+							</div>
+							<span class="tc-status" [attr.data-status]="entry.status">
+								<span class="tc-status__dot" aria-hidden="true"></span>
+								{{ 'TENANT-CONFIGURATION.INTEGRATIONS.STATUS.' + entry.status.toUpperCase() | translate }}
+							</span>
+							<mat-slide-toggle
+								[checked]="entry.enabled"
+								[disabled]="readOnly(entry)"
+								[attr.aria-label]="'TENANT-CONFIGURATION.INTEGRATIONS.TOGGLE' | translate: { name: entry.id }"
+								(change)="sources.setEnabled(entry, $event.checked)" />
+							<a mat-stroked-button [routerLink]="pluginUrl(entry)" [attr.aria-label]="'TENANT-CONFIGURATION.INTEGRATIONS.CONFIGURE-NAMED' | translate: { name: entry.id }">
+								{{ 'TENANT-CONFIGURATION.INTEGRATIONS.CONFIGURE' | translate }}
+							</a>
+						</li>
+					}
+				</ul>
+			}
+		</section>
+	}
+
+	<p class="tc-row__hint">{{ 'TENANT-CONFIGURATION.INTEGRATIONS.FOOTNOTE' | translate }}</p>
+
+	<app-tc-save-bar [dirtyCount]="section.dirtyCount()" [saving]="section.saving()" [canSave]="section.canEdit" (save)="section.saveAll()" (discard)="section.discardAll()" />
+}

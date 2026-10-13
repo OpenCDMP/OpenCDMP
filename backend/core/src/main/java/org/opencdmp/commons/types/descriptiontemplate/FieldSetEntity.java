@@ -29,6 +29,9 @@ public class FieldSetEntity {
     private boolean hasMultiplicity;
     @XmlAttribute(name="hasCommentField")
     private boolean hasCommentField;
+    @XmlElementWrapper(name = "semantics")
+    @XmlElement(name = "semantic")
+    private List<String> semantics;
 
     public List<FieldEntity> getFields() {
         return this.fields;
@@ -91,6 +94,13 @@ public class FieldSetEntity {
     }
     public void setAdditionalInformation(String additionalInformation) {
         this.additionalInformation = additionalInformation;
+    }
+
+    public List<String> getSemantics() {
+        return this.semantics;
+    }
+    public void setSemantics(List<String> semantics) {
+        this.semantics = semantics;
     }
 
 

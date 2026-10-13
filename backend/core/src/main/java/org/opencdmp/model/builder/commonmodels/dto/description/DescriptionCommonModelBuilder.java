@@ -57,7 +57,7 @@ public class DescriptionCommonModelBuilder extends BaseCommonModelBuilder<Descri
             m.setCreatedAt(d.getCreatedAt());
             m.setDescription(d.getDescription());
             m.setIsActive(IsActive.Active);
-            m.setPlan(this.builderFactory.builder(org.opencdmp.model.builder.commonmodels.dto.plan.PlanCommonModelBuilder.class).authorize(this.authorize).build(d.getPlan()));
+            m.setPlan(this.builderFactory.builder(org.opencdmp.model.builder.commonmodels.dto.plan.PlanCommonModelBuilder.class).authorize(this.authorize).setDisableDescriptions(true).build(d.getPlan()));
             m.setPlanDescriptionTemplate(this.buildPlanDescriptionTemplate(d));
             m.setDescriptionTemplate(this.builderFactory.builder(org.opencdmp.model.builder.commonmodels.dto.descriptiontemplate.DescriptionTemplateCommonModelBuilder.class).authorize(this.authorize).build(d.getDescriptionTemplate()));
             if (d.getDescriptionTemplate() != null) m.setProperties(this.builderFactory.builder(PropertyDefinitionCommonModelBuilder.class).withDefinitionModel(d.getDescriptionTemplate().getDefinition()).authorize(this.authorize).build(d.getProperties()));
@@ -90,7 +90,7 @@ public class DescriptionCommonModelBuilder extends BaseCommonModelBuilder<Descri
         if (data.getDescriptionTemplate() != null) planDescriptionTemplate.setDescriptionTemplateGroupId(data.getDescriptionTemplate().getGroupId());
 
         planDescriptionTemplate.setSectionId(data.getSectionId());
-        planDescriptionTemplate.setPlan(this.builderFactory.builder(org.opencdmp.model.builder.commonmodels.dto.plan.PlanCommonModelBuilder.class).authorize(this.authorize).build(data.getPlan()));
+        planDescriptionTemplate.setPlan(this.builderFactory.builder(org.opencdmp.model.builder.commonmodels.dto.plan.PlanCommonModelBuilder.class).authorize(this.authorize).setDisableDescriptions(true).build(data.getPlan()));
         planDescriptionTemplate.setCurrentDescriptionTemplate(this.builderFactory.builder(org.opencdmp.model.builder.commonmodels.dto.descriptiontemplate.DescriptionTemplateCommonModelBuilder.class).authorize(this.authorize).build(data.getDescriptionTemplate()));
         planDescriptionTemplate.setIsActive(IsActive.Active);
 

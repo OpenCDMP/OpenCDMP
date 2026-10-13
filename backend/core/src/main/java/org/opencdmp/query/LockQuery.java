@@ -11,6 +11,7 @@ import org.opencdmp.authorization.AuthorizationFlags;
 import org.opencdmp.commons.enums.LockTargetType;
 import org.opencdmp.convention.ConventionService;
 import org.opencdmp.data.LockEntity;
+import org.opencdmp.data.TenantEntity;
 import org.opencdmp.data.TenantEntityManagerFactory;
 import org.opencdmp.model.Lock;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
@@ -35,6 +36,11 @@ public class LockQuery extends QueryBase<LockEntity> {
     private Collection<UUID> excludedIds;
 
     private Collection<UUID> userIds;
+
+    private TenantQuery tenantQuery;
+
+    /** null: any row; false: only rows without a tenant (the default tenant's shared rows); true: only tenant-owned rows. */
+    private Boolean tenantIsSet;
 
     private EnumSet<AuthorizationFlags> authorize = EnumSet.of(AuthorizationFlags.None);
 
@@ -135,6 +141,16 @@ public class LockQuery extends QueryBase<LockEntity> {
         return this;
     }
 
+    public LockQuery tenantIsSet(Boolean value) {
+        this.tenantIsSet = value;
+        return this;
+    }
+
+    public LockQuery tenantSubQuery(TenantQuery tenantQuery) {
+        this.tenantQuery = tenantQuery;
+        return this;
+    }
+
     public LockQuery authorize(EnumSet<AuthorizationFlags> values) {
         this.authorize = values;
         return this;
@@ -217,6 +233,13 @@ public class LockQuery extends QueryBase<LockEntity> {
             for (UUID item : this.userIds)
                 inClause.value(item);
             predicates.add(inClause);
+        }
+        if (this.tenantIsSet != null) {
+            predicates.add(this.tenantIsSet ? queryContext.CriteriaBuilder.isNotNull(queryContext.Root.get(LockEntity._tenantId)) : queryContext.CriteriaBuilder.isNull(queryContext.Root.get(LockEntity._tenantId)));
+        }
+        if (this.tenantQuery != null) {
+            QueryContext<TenantEntity, UUID> subQuery = this.applySubQuery(this.tenantQuery, queryContext, UUID.class, tenantEntityRoot -> tenantEntityRoot.get(TenantEntity._id));
+            predicates.add(queryContext.CriteriaBuilder.in(queryContext.Root.get(LockEntity._tenantId)).value(subQuery.Query));
         }
         if (!predicates.isEmpty()) {
             Predicate[] predicatesArray = predicates.toArray(new Predicate[0]);

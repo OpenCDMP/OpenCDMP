@@ -1,7 +1,7 @@
 import { UntypedFormArray, UntypedFormBuilder, UntypedFormGroup, Validators } from "@angular/forms";
 import { ReferenceFieldDataType } from "@app/core/common/enum/reference-field-data-type";
 import { ReferenceSourceType } from "@app/core/common/enum/reference-source-type";
-import { Definition, DefinitionPersist, Field, FieldPersist, Reference, ReferencePersist } from "@app/core/model/reference/reference";
+import { ReferenceDefinition, ReferenceDefinitionPersist, ReferenceField, ReferenceFieldPersist, Reference, ReferencePersist } from "@app/core/model/reference/reference";
 import { BaseEditorModel } from "@common/base/base-form-editor-model";
 import { BackendErrorValidator } from "@common/forms/validation/custom-validator";
 import { ValidationErrorModel } from "@common/forms/validation/error-model/validation-error-model";
@@ -98,7 +98,7 @@ export class ReferenceEditorModel extends BaseEditorModel implements ReferencePe
 	}
 }
 
-export class DefinitionEditorModel implements DefinitionPersist {
+export class DefinitionEditorModel implements ReferenceDefinitionPersist {
 	fields: FieldEditorModel[] = [];
 
 	protected formBuilder: UntypedFormBuilder = new UntypedFormBuilder();
@@ -107,7 +107,7 @@ export class DefinitionEditorModel implements DefinitionPersist {
 		public validationErrorModel: ValidationErrorModel = new ValidationErrorModel()
 	) { }
 
-	public fromModel(item: Definition): DefinitionEditorModel {
+	public fromModel(item: ReferenceDefinition): DefinitionEditorModel {
 		if (item) {
 			if (item.fields) { item.fields.map(x => this.fields.push(new FieldEditorModel(this.validationErrorModel).fromModel(x))); }
 		}
@@ -169,7 +169,7 @@ export class DefinitionEditorModel implements DefinitionPersist {
 	}
 }
 
-export class FieldEditorModel implements FieldPersist {
+export class FieldEditorModel implements ReferenceFieldPersist {
 	code: string;
 	dataType: ReferenceFieldDataType;
 	value: string;
@@ -180,7 +180,7 @@ export class FieldEditorModel implements FieldPersist {
 		public validationErrorModel: ValidationErrorModel = new ValidationErrorModel()
 	) { }
 
-	public fromModel(item: Field): FieldEditorModel {
+	public fromModel(item: ReferenceField): FieldEditorModel {
 		if (item) {
 			this.code = item.code;
 			this.dataType = item.dataType;

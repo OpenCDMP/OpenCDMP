@@ -4,11 +4,12 @@ import gr.cite.tools.data.builder.BuilderFactory;
 import gr.cite.tools.exception.MyApplicationException;
 import gr.cite.tools.logging.LoggerService;
 import org.opencdmp.authorization.AuthorizationFlags;
-import org.opencdmp.commonmodels.models.descriptiotemplate.fielddata.RadioBoxDataModel;
+import org.opencdmp.commonmodels.models.planblueprintdescriptiontemplatefields.fielddata.RadioBoxDataModel;
 import org.opencdmp.convention.ConventionService;
 import org.opencdmp.model.builder.commonmodels.BaseCommonModelBuilder;
 import org.opencdmp.model.builder.commonmodels.CommonModelBuilderItemResponse;
 import org.opencdmp.model.descriptiontemplate.fielddata.RadioBoxData;
+import org.opencdmp.model.descriptiontemplate.fielddata.SemanticValue;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
@@ -19,6 +20,7 @@ import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Component("dto.RadioBoxDataCommonModelBuilder")
 @Scope(value = ConfigurableBeanFactory.SCOPE_PROTOTYPE)
@@ -68,6 +70,13 @@ public class RadioBoxDataCommonModelBuilder extends BaseFieldDataCommonModelBuil
                 RadioBoxData.RadioBoxOption m = new RadioBoxData.RadioBoxOption();
                 m.setLabel(d.getLabel());
                 m.setValue(d.getValue());
+                if (d.getSemantics() != null) m.setSemantics(d.getSemantics().stream().map(x -> {
+                    SemanticValue semanticValue = new SemanticValue();
+                    semanticValue.setKey(x.getKey());
+                    semanticValue.setValue(x.getValue());
+                    return semanticValue;
+                }).collect(Collectors.toList()));
+                m.setExportsNothing(d.isExportsNothing());
                 models.add(new CommonModelBuilderItemResponse<>(m, d));
             }
 

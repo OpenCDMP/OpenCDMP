@@ -4,7 +4,7 @@ import gr.cite.tools.data.builder.BuilderFactory;
 import gr.cite.tools.exception.MyApplicationException;
 import gr.cite.tools.logging.LoggerService;
 import org.opencdmp.authorization.AuthorizationFlags;
-import org.opencdmp.commonmodels.models.descriptiotemplate.FieldModel;
+import org.opencdmp.commonmodels.models.planblueprintdescriptiontemplatefields.FieldModel;
 import org.opencdmp.commons.enums.FieldValidationType;
 import org.opencdmp.convention.ConventionService;
 import org.opencdmp.model.builder.commonmodels.BaseCommonModelBuilder;
@@ -63,6 +63,7 @@ public class FieldCommonModelBuilder extends BaseCommonModelBuilder<Field, Field
                         case Url -> m.getValidations().add(FieldValidationType.Url);
                         case None -> m.getValidations().add(FieldValidationType.None);
                         case Required -> m.getValidations().add(FieldValidationType.Required);
+                        case Email -> m.getValidations().add(FieldValidationType.Email);
                         default -> throw new MyApplicationException("unrecognized type " + fieldValidationType);
                     }
                     

@@ -41,6 +41,8 @@ public class PlanUpdateRequestQuery extends QueryBase<PlanUpdateRequestEntity> {
 
     private Collection<PlanUpdateRequestActionType> actionTypes;
 
+    private Collection<String> externalIds;
+
     private final AuthorizationService authService;
 
     private final UserScopeFactory userScopeFactory;
@@ -149,6 +151,21 @@ public class PlanUpdateRequestQuery extends QueryBase<PlanUpdateRequestEntity> {
 
     public PlanUpdateRequestQuery actionTypes(Collection<PlanUpdateRequestActionType> values) {
         this.actionTypes = values;
+        return this;
+    }
+
+    public PlanUpdateRequestQuery externalIds(String value) {
+        this.externalIds = List.of(value);
+        return this;
+    }
+
+    public PlanUpdateRequestQuery externalIds(String... values) {
+        this.externalIds = Arrays.asList(values);
+        return this;
+    }
+
+    public PlanUpdateRequestQuery externalIds(Collection<String> values) {
+        this.externalIds = values;
         return this;
     }
 
@@ -271,6 +288,12 @@ public class PlanUpdateRequestQuery extends QueryBase<PlanUpdateRequestEntity> {
                 inClause.value(item);
             predicates.add(inClause);
         }
+        if (this.externalIds != null) {
+            CriteriaBuilder.In<String> inClause = queryContext.CriteriaBuilder.in(queryContext.Root.get(PlanUpdateRequestEntity._externalId));
+            for (String item : this.externalIds)
+                inClause.value(item);
+            predicates.add(inClause);
+        }
         if (!predicates.isEmpty()) {
             Predicate[] predicatesArray = predicates.toArray(new Predicate[0]);
             return queryContext.CriteriaBuilder.and(predicatesArray);
@@ -296,7 +319,8 @@ public class PlanUpdateRequestQuery extends QueryBase<PlanUpdateRequestEntity> {
         item.setUpdatedAt(QueryBase.convertSafe(tuple, columns, PlanUpdateRequestEntity._updatedAt, Instant.class));
         item.setIsActive(QueryBase.convertSafe(tuple, columns, PlanUpdateRequestEntity._isActive, IsActive.class));
         item.setTenantId(QueryBase.convertSafe(tuple, columns, PlanUpdateRequestEntity._tenantId, UUID.class));
-
+        item.setExternalId(QueryBase.convertSafe(tuple, columns, PlanUpdateRequestEntity._externalId, String.class));
+        item.setAppliedData(QueryBase.convertSafe(tuple, columns, PlanUpdateRequestEntity._appliedData, String.class));
 
         return item;
     }
@@ -319,6 +343,9 @@ public class PlanUpdateRequestQuery extends QueryBase<PlanUpdateRequestEntity> {
         else if (item.match(PlanUpdateRequest._hash)) return PlanUpdateRequestEntity._updatedAt;
         else if (item.match(PlanUpdateRequest._belongsToCurrentTenant)) return PlanUpdateRequestEntity._tenantId;
         else if (item.match(PlanUpdateRequestEntity._tenantId)) return PlanUpdateRequestEntity._tenantId;
+        else if (item.match(PlanUpdateRequest._externalId)) return PlanUpdateRequestEntity._externalId;
+        else if (item.match(PlanUpdateRequest._externalIdType)) return PlanUpdateRequestEntity._externalIdType;
+        else if (item.match(PlanUpdateRequest._appliedData)) return PlanUpdateRequestEntity._appliedData;
         else return null;
     }
 

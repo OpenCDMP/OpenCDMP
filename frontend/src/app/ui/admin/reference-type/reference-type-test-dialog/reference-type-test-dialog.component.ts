@@ -1,14 +1,16 @@
-import { Component, Inject } from '@angular/core';
+import { Component, Inject, ChangeDetectionStrategy } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialog, MatDialogRef } from "@angular/material/dialog";
 import { ExternalFetcherBaseSourceConfigurationPersist, ResultFieldsMappingConfigurationPersist } from '@app/core/model/external-fetcher/external-fetcher';
 import { Reference } from '@app/core/model/reference/reference';
-import { TranslateService } from '@ngx-translate/core';
+import { TranslateService, TranslatePipe } from '@ngx-translate/core';
+import { ReferenceFieldComponent } from '../../../reference/reference-field/reference-field.component';
 
 @Component({
     selector: 'app-reference-type-test-dialog',
     templateUrl: './reference-type-test-dialog.component.html',
     styleUrls: ['./reference-type-test-dialog.component.scss'],
-    standalone: false
+    changeDetection: ChangeDetectionStrategy.Eager,
+    imports: [ReferenceFieldComponent, TranslatePipe]
 })
 
 export class ReferenceTypeTestDialogComponent {

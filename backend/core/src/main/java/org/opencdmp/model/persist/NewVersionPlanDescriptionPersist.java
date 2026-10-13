@@ -19,7 +19,7 @@ public class NewVersionPlanDescriptionPersist {
     private UUID descriptionId;
     public static final String _descriptionId = "descriptionId";
 
-    private UUID blueprintSectionId;
+    private String blueprintSectionId;
     public static final String _blueprintSectionId = "blueprintSectionId";
 
 
@@ -31,11 +31,11 @@ public class NewVersionPlanDescriptionPersist {
         this.descriptionId = descriptionId;
     }
 
-    public UUID getBlueprintSectionId() {
+    public String getBlueprintSectionId() {
         return blueprintSectionId;
     }
 
-    public void setBlueprintSectionId(UUID blueprintSectionId) {
+    public void setBlueprintSectionId(String blueprintSectionId) {
         this.blueprintSectionId = blueprintSectionId;
     }
 
@@ -64,7 +64,7 @@ public class NewVersionPlanDescriptionPersist {
                             .must(() -> this.isValidGuid(item.getDescriptionId()))
                             .failOn(NewVersionPlanDescriptionPersist._descriptionId).failWith(this.messageSource.getMessage("Validation_Required", new Object[]{NewVersionPlanDescriptionPersist._descriptionId}, LocaleContextHolder.getLocale())),
                     this.spec()
-                            .must(() -> this.isValidGuid(item.getBlueprintSectionId()))
+                            .must(() -> !this.isEmpty(item.getBlueprintSectionId()))
                             .failOn(NewVersionPlanDescriptionPersist._blueprintSectionId).failWith(this.messageSource.getMessage("Validation_Required", new Object[]{NewVersionPlanDescriptionPersist._blueprintSectionId}, LocaleContextHolder.getLocale()))
                     );
         }

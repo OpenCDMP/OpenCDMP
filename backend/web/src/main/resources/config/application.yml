@@ -27,8 +27,6 @@ spring:
       optional:classpath:config/queue.yml[.yml], optional:classpath:config/queue-${spring.profiles.active}.yml[.yml], optional:file:../config/queue-${spring.profiles.active}.yml[.yml],
       optional:classpath:config/notification.yml[.yml], optional:classpath:config/notification-${spring.profiles.active}.yml[.yml], optional:file:../config/notification-${spring.profiles.active}.yml[.yml],
       optional:classpath:config/locale.yml[.yml], optional:classpath:config/locale-${spring.profiles.active}.yml[.yml], optional:file:../config/locale-${spring.profiles.active}.yml[.yml],
-      optional:classpath:config/public-api.yml[.yml], optional:classpath:config/public-api-${spring.profiles.active}.yml[.yml], optional:file:../config/public-api-${spring.profiles.active}.yml[.yml],
-      optional:classpath:config/dashboard.yml[.yml], optional:classpath:config/dashboard-${spring.profiles.active}.yml[.yml], optional:file:../config/dashboard-${spring.profiles.active}.yml[.yml],
       optional:classpath:config/file-transformer.yml[.yml], optional:classpath:config/file-transformer-${spring.profiles.active}.yml[.yml], optional:file:../config/file-transformer-${spring.profiles.active}.yml[.yml],
       optional:classpath:config/evaluator.yml[.yml], optional:classpath:config/evaluator-${spring.profiles.active}.yml[.yml], optional:file:../config/evaluator-${spring.profiles.active}.yml[.yml],
       optional:classpath:config/authorization.yml[.yml], optional:classpath:config/authorization-${spring.profiles.active}.yml[.yml], optional:file:../config/authorization-${spring.profiles.active}.yml[.yml],
@@ -42,7 +40,11 @@ spring:
       optional:classpath:config/external-api-fetcher.yml[.yml], optional:classpath:config/external-api-fetcher-${spring.profiles.active}.yml[.yml], optional:file:../config/external-api-fetcher-${spring.profiles.active}.yml[.yml],
       optional:classpath:config/websocket.yml[.yml], optional:classpath:config/websocket-${spring.profiles.active}.yml[.yml], optional:file:../config/websocket-${spring.profiles.active}.yml[.yml],
       optional:classpath:config/users.yml[.yml], optional:classpath:config/users-${spring.profiles.active}.yml[.yml], optional:file:../config/users-${spring.profiles.active}.yml[.yml],
-      optional:classpath:config/management.yml[.yml], optional:classpath:config/management-${spring.profiles.active}.yml[.yml], optional:file:../config/management-${spring.profiles.active}.yml[.yml]
+      optional:classpath:config/management.yml[.yml], optional:classpath:config/management-${spring.profiles.active}.yml[.yml], optional:file:../config/management-${spring.profiles.active}.yml[.yml],
+      optional:classpath:config/integration.yml[.yml], optional:classpath:config/integration-${spring.profiles.active}.yml[.yml], optional:file:../config/integration-${spring.profiles.active}.yml[.yml],
+      optional:classpath:config/webhook.yml[.yml], optional:classpath:config/webhook-${spring.profiles.active}.yml[.yml], optional:file:../config/webhook-${spring.profiles.active}.yml[.yml],
+      optional:classpath:config/report.yml[.yml], optional:classpath:config/report-${spring.profiles.active}.yml[.yml], optional:file:../config/report-${spring.profiles.active}.yml[.yml],
+      optional:classpath:config/update-check.yml[.yml], optional:classpath:config/update-check-${spring.profiles.active}.yml[.yml], optional:file:../config/update-check-${spring.profiles.active}.yml[.yml]
 
   
   

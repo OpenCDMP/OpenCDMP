@@ -1,10 +1,319 @@
 @use '@angular/material'as mat;
-
+.plan-logo {
+    padding: 0.125rem 0.75rem;
+    font-size: var(--mat-sys-headline-small-size);
+    // transform: scale(0.85);
+	background: var(--mat-sys-primary) 0% 0% no-repeat padding-box;
+	border-radius: var(--mat-button-text-container-shape);
+	color: var(--mat-sys-on-primary);
+	align-content: center;
+}
+.status-chip-overlay{
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    position: absolute;
+    pointer-events: none;
+    border-radius: inherit;
+}
+.version-btn {
+    background-color: var(--mat-sys-surface-container-highest) !important;
+    color: var(--mat-sys-on-surface) !important;
+    border-color: var(--mat-button-outlined-disabled-outline-color, color-mix(in srgb, var(--mat-sys-on-surface) 12%, transparent)) !important;
+}
+.annotation-count{
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    border-radius: var(--mat-button-text-container-shape);
+    position: relative;
+    padding: 0.25rem 0.625rem;
+    font-size: var(--mat-sys-headline-small-size);
+    color: var(--mat-sys-on-surface-variant);
+    background-color: transparent;
+    border: 1px solid var(--mat-sys-outline-variant);
+    mat-icon {
+        margin-top: 0.125rem;
+        font-size: var(--mat-sys-headline-small-size);
+        width: var(--mat-sys-headline-small-size);
+        height: var(--mat-sys-headline-small-size);
+    }
+}
+.plan-status {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    border-radius: var(--mat-button-text-container-shape);
+    position: relative;
+    padding: 0.25rem 0.625rem;
+    font-size: var(--mat-sys-headline-small-size);
+    mat-icon {
+        font-size: var(--mat-sys-headline-small-size);
+        width: var(--mat-sys-headline-small-size);
+        height: var(--mat-sys-headline-small-size);
+    }
+    // transform: scale(0.85);
+    .status-chip-overlay{
+        background-color: var(--mat-sys-on-background);
+        opacity: 0.2;
+    }
+    .status-logo {
+        height: 1.25rem;
+        width:  1.25rem;
+    }
+}
+.plan-draft{
+    color: var(--draft-color);
+    .status-chip-overlay{
+        background-color:  var(--draft-color);
+        opacity: 0.2;
+    }
+}
 .plan-overview {
-    padding: 1.5rem 2rem;
+    padding: 1.5625rem;
+    min-height: 100%;
+    background-color: var(--mat-sys-background);
     container-name: plan-overview;
     container-type: inline-size;
 }
+.mat-mdc-menu-item.mat-warn, .mat-mdc-menu-item.mat-warn .mat-icon {
+    color: var(--mat-sys-error);
+}
+.toggle-btn {
+    padding: 0.5rem 1rem;
+}
+.mat-expansion-panel.unstyled .mat-expansion-panel-header.expansion-panel-header{
+    padding: 12.75px 1.5725rem;
+    font-size: var(--mat-sys-headline-medium-size);
+    font-weight: bold;
+}
+.overview-header {
+    margin-bottom: 1rem;
+}
+.expansion-panel-body {
+    padding: 0 0.5rem;
+}
+::ng-deep .mat-expansion-panel.unstyled.section-expansion-panel .mat-expansion-panel-body {
+    padding: 0 1.525rem;
+}
+::ng-deep .mat-expansion-panel.unstyled.section-expansion-panel .description-expansion-panel .mat-expansion-panel-body:has(.description-expansion-panel--body) {
+    padding: 0;
+}
+// ---- Read-view field rows (Figma two-column: label | value) ----
+.field-row {
+    padding: 0.5rem 0;
+    border-bottom: 1px solid var(--mat-sys-outline-variant);
+}
+// Drop the trailing row separator at the end of a section's field list so it doesn't read as a
+// stray border at the card bottom (e.g. when following sections are hidden by visibility rules).
+::ng-deep .section-expansion-panel .p-1:last-of-type .field-row {
+    border-bottom: none;
+}
+.field-row--inline {
+    display: grid;
+    grid-template-columns: minmax(140px, 22%) 1fr;
+    gap: 1rem;
+    align-items: start;
+}
+.field-row .field-label {
+    color: var(--mat-sys-on-surface-variant);
+    font-weight: 500;
+}
+.field-row .field-value {
+    color: var(--mat-sys-on-surface);
+    word-break: break-word;
+    min-width: 0;
+}
+// Quiet per-field caption shown only inside multi-field field-sets (single-field sets use the
+// field-set title as the label). Groups each value under its field name.
+.field-row .field-value .field-sublabel {
+    font-size: var(--mat-sys-label-medium-size);
+    font-weight: 600;
+    color: var(--mat-sys-on-surface-variant);
+    margin-top: 0.625rem;
+}
+.field-row .field-value .field-sublabel:first-child {
+    margin-top: 0;
+}
+.field-row .field-number {
+    font-weight: 400;
+    white-space: nowrap;
+    opacity: 0.7;
+}
+// Reference values rendered with their configured logo (e.g. ORCID/ROR).
+.reference-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem 0.75rem;
+}
+.reference-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+}
+.reference-logo {
+    width: 1rem;
+    height: 1rem;
+    object-fit: contain;
+    flex-shrink: 0;
+}
+// Wide / transposed tables scroll horizontally instead of being crushed.
+.table-scroll {
+    overflow-x: auto;
+    max-width: 100%;
+}
+.table-scroll table {
+    table-layout: auto !important;
+    width: auto;
+    min-width: 100%;
+}
+.table-scroll th,
+.table-scroll td {
+    min-width: 8rem;
+    white-space: normal;
+}
+// Scalar fields collapse to a single column when the content area is narrow.
+@container plan-overview (max-width: 768px) {
+    .field-row--inline {
+        grid-template-columns: 1fr;
+        gap: 0.25rem;
+    }
+}
+.info-title {
+    font-weight: bold;
+    margin-bottom: 0.625rem;
+}
+.manage-icon-btn,
+.new-version-inline-btn {
+    color: var(--mat-sys-primary);
+}
+.section-number {
+    opacity: 0.7;
+}
+.sectionLabel {
+    font-weight: bold;
+    font-size: var(--mat-sys-headline-medium-size);
+}
+.sectionDescription {
+    font-weight: 400;
+    font-size: var(--mat-sys-body-medium-size);
+    color: var(--mat-sys-on-surface-variant);
+    margin-top: 0.25rem;
+}
+.info-row {
+    display: flex;
+    justify-content: space-between;
+    column-gap: 1rem;
+    flex-wrap: wrap;
+    overflow-wrap: anywhere;
+    margin-bottom: 0.625rem;
+}
+.info-divider{
+    margin-bottom: 0.625rem;
+}
+.pid-finalize-message {
+    font-size: 0.75rem;
+    color: var(--mat-sys-on-surface-variant);
+    margin-top: 0.25rem;
+}
+mat-icon.small {
+    width: var(--mat-sys-body-small-size);
+    height: var(--mat-sys-body-small-size);
+}
+.description-expansion-panel{
+    border: 1px solid var(--mat-card-outlined-outline-color, var(--mat-sys-outline-variant));
+    .description-expansion-panel--header{
+        background: var(--mat-sys-secondary-fixed);
+        padding: 0.25rem 1rem;
+        &.mat-expanded {
+            border-bottom: 1px solid var(--mat-card-outlined-outline-color, var(--mat-sys-outline-variant));
+            border-bottom-right-radius: 0;
+            border-bottom-left-radius: 0;
+        }
+    }
+    .description-panel-title{
+        padding: 0.5rem 0.25rem;
+        flex-direction: column;
+        font-size: var(--mat-sys-body-medium-size);
+        align-items: start;
+    }
+}
+::ng-deep .description-expansion-panel.mat-expansion-panel{
+    box-shadow: none !important;
+}
+::ng-deep .description-expansion-panel.mat-expansion-panel:not(.mat-expanded) .mat-expansion-panel-header:not([aria-disabled=true]):hover {
+    background: var(--mat-sys-secondary-fixed-dim);
+}
+::ng-deep .mat-expansion-panel.unstyled.description-expansion-panel .mat-expansion-panel-body  {
+    padding: 0;
+}
+::ng-deep .mat-expansion-panel-body .description-expansion-panel--body {
+    .mat-mdc-card-outlined{
+        border: 0;
+    }
+    .mat-expansion-panel * {
+        font-size: var(--mat-sys-body-medium-size);
+    }
+}
+.desc-title{
+    color: var(--mat-sys-secondary);
+    font-weight: 500;
+    margin-bottom: 0.25rem;
+}
+.evaluation--tab-selection {
+    margin-bottom: 0.625rem;
+}
+.evaluation-button {
+    background-color: var(--mat-sys-background);
+    color: var(--mat-sys-on-background);
+    &.mat-mdc-button-disabled{
+        background-color: var(--mat-sys-primary-container);
+        color: var(--mat-sys-on-primary-container);
+        border: 1px solid var(--mat-sys-primary);
+    }
+}
+
+.evaluate-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    .evaluator-btn{
+        display: flex;
+        gap: 0.5rem;
+        padding: 0.725rem;
+        border: 1px solid var(--mat-card-outlined-outline-color, var(--mat-sys-outline-variant));
+        border-radius: 8px;
+        &:hover{
+            background-color: var(--mat-sys-surface-container-low);
+        }
+        .evaluator-logo {
+            width: 35px;
+            height: fit-content;
+            flex-shrink: 0;
+        }
+        .evaluator-id, .evaluator-subtitle{
+            text-align: start;
+        }
+        .evaluator-subtitle{
+            font-size: var(--mat-sys-body-small-size);
+            opacity: 0.8;
+        }
+        .evaluator-id{
+            font-weight: bold;
+        }
+    }
+}
+
+
+
+
+
+
+
+
+
+
 
 .quick-actions-mobile {
     display: none;
@@ -33,8 +342,7 @@
 	// color: var(--mat-sys-on-primary);
 }
 
-.mat-mini-fab-icon,
-.status-icon {
+.mat-mini-fab-icon {
 	font-size: 1.2em;
 }
 
@@ -47,18 +355,16 @@
 // ********BUTTONS********
 
 .id-btn {
-	background: url("../../../../assets/images/orcid_unauth.png") no-repeat center;
+	// background: url("../../../../assets/images/orcid_unauth.png") no-repeat center;
 	width: 1rem;
 	height: 1rem;
-	margin-right: 0.3em;
 	align-self: center;
 }
 
 .mat-mini-fab,
 .mat-mini-fab-icon,
-.status-icon,
+
 .frame-btn,
-.plan-logo,
 .primary-btn {
 	display: flex;
 	justify-content: center;
@@ -78,40 +384,17 @@
 
 // ********TEXT********
 
-.plan-logo {
-    padding: 1rem 1.25rem;
-    max-width: min-content;
-	height: 2.6em;
-	background: var(--mat-sys-primary);
-	border-radius: 4px;
-	font-size: var(--mat-sys-title-small-size);
-	color: var(--mat-sys-on-primary);
-}
-
 
 .researcher {
     color:unset;
     &:hover {
         color: var(--link-color);
     }
-	padding-right: 0.5em;
+	padding-right: 0.25em;
 	align-self: center;
 }
 
-.evaluator-logo {
-	margin-right: 1rem;
-    margin-left: 0.5rem;
-	max-width: 50px;
-	max-height: 50px;
-}
-.evaluator-subtitle{
-    font-size: var(--mat-sys-body-small-size);
-    padding: 0 1rem;
-}
-.status-logo {
-	height: 1.25rem;
-	width:  1.25rem; 
-}
+
 // ********CENTER ELEMENTS********
 
 .description-btn,
@@ -123,23 +406,21 @@
 }
 
 /////
-/// 
-/// 
+///
+///
 .main-body, .side-actions{
     display: flex;
     flex-direction: column;
     gap: 1rem;
     padding-bottom: 0.5rem;
+    min-width: 0;
 }
 .plan-label,
 .header {
-	font-size: var(--mat-sys-headline-medium-size);
-    margin-bottom: 0.25rem;
+	font-size: var(--mat-sys-title-medium-size);
 }
 .plan-label {
-	font-weight: bold;
     word-break: break-word;
-    flex: 1;
     max-width: fit-content;
     margin: 0;
 }
@@ -175,7 +456,7 @@
             opacity: 0.1;
         }
     }
-    
+
     .description-btn-label {
         margin-right: 1em;
         overflow: hidden;
@@ -191,6 +472,7 @@
 
 .deleted-item {
     color: var(--mat-sys-error);
+    font-weight: bold;
 }
 .primary-container-btn {
     color: var(--mat-sys-on-primary-container);
@@ -204,12 +486,6 @@
 .secondary-info {
     font-size: var(--mat-sys-label-large-size);
     opacity: 0.9;
-    .current-status {
-        border: 1px solid  var(--mat-sys-outline);;
-        border-radius: 999px;
-        padding: 0.125rem 0.5rem;
-        font-weight: 500;
-    }
 
 }
 
@@ -227,4 +503,19 @@
 
 .draft-color{
 	color: var(--draft-color);
+}
+
+
+.mat-accordion .description-expansion-panel.mat-expansion-panel:last-of-type, .mat-accordion .description-expansion-panel.mat-expansion-panel:first-of-type {
+    border-top-right-radius: var(--mat-expansion-container-shape, 12px);
+    border-top-left-radius: var(--mat-expansion-container-shape, 12px);
+    border-bottom-right-radius: var(--mat-expansion-container-shape, 12px);
+    border-bottom-left-radius: var(--mat-expansion-container-shape, 12px);
+}
+.text-wrap {
+    word-break: break-word;
+}
+.text-truncated {
+    overflow: hidden;
+    text-overflow: ellipsis;
 }

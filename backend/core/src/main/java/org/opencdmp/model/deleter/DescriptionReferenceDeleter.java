@@ -1,9 +1,13 @@
 package org.opencdmp.model.deleter;
 
+import gr.cite.tools.fieldset.BaseFieldSet;
 import org.opencdmp.commons.enums.IsActive;
 import org.opencdmp.commons.enums.kpi.KpiDirectionType;
+import org.opencdmp.data.DescriptionEntity;
 import org.opencdmp.data.DescriptionReferenceEntity;
 import org.opencdmp.data.TenantEntityManagerFactory;
+import org.opencdmp.model.description.Description;
+import org.opencdmp.query.DescriptionQuery;
 import org.opencdmp.query.DescriptionReferenceQuery;
 import gr.cite.tools.data.deleter.Deleter;
 import gr.cite.tools.data.deleter.DeleterFactory;
@@ -19,9 +23,14 @@ import org.springframework.stereotype.Component;
 
 import javax.management.InvalidApplicationException;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Component
 @Scope(value = ConfigurableBeanFactory.SCOPE_PROTOTYPE)
@@ -71,6 +80,16 @@ public class DescriptionReferenceDeleter implements Deleter {
 
         Instant now = Instant.now();
 
+        // Resolve description -> plan in one query so each KPI entry carries its plan_id (matches the bulk-resync emission, which the dashboards' "References per Plan" chart aggregates by).
+        Set<UUID> descriptionIds = data.stream().map(DescriptionReferenceEntity::getDescriptionId).filter(Objects::nonNull).collect(Collectors.toSet());
+        Map<UUID, UUID> descriptionIdToPlanId = descriptionIds.isEmpty()
+                ? Map.of()
+                : this.queryFactory.query(DescriptionQuery.class).disableTracking().ids(descriptionIds).collectAs(new BaseFieldSet().ensure(Description._id).ensure(Description._plan)).stream()
+                        .filter(d -> d.getPlanId() != null)
+                        .collect(Collectors.toMap(DescriptionEntity::getId, DescriptionEntity::getPlanId, (a, b) -> a));
+
+        // Collect KPI entries up-front and emit them in one batched outbox event after the merges, instead of per-item lookups + publishes inside the loop.
+        List<KpiService.ReferenceIndicatorEntry> kpiEntries = new ArrayList<>(data.size());
         for (DescriptionReferenceEntity item : data) {
             logger.trace("deleting item {}", item.getId());
             item.setIsActive(IsActive.Inactive);
@@ -78,8 +97,9 @@ public class DescriptionReferenceDeleter implements Deleter {
             logger.trace("updating item");
             this.tenantEntityManagerFactory.getInstance().merge(item);
             logger.trace("updated item");
-            this.kpiService.sendIndicatorPointReferenceEntry(KpiDirectionType.Decrease, item.getReferenceId());
+            if (item.getReferenceId() != null) kpiEntries.add(new KpiService.ReferenceIndicatorEntry(item.getReferenceId(), descriptionIdToPlanId.get(item.getDescriptionId())));
         }
+        this.kpiService.sendIndicatorPointReferenceBatchEntry(KpiDirectionType.Decrease, kpiEntries);
     }
 
 }

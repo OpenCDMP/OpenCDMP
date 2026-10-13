@@ -1,23 +1,30 @@
-import { AfterViewInit, Component, ElementRef, Input, OnDestroy, ViewChild, ViewEncapsulation, TemplateRef, Inject, ChangeDetectorRef, DOCUMENT } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, HostListener, Input, OnDestroy, ViewChild, ViewEncapsulation, Inject, ChangeDetectorRef, DOCUMENT, AfterContentChecked, ChangeDetectionStrategy } from '@angular/core';
 import { fromEvent, Subscription } from 'rxjs';
 
 import { Orientation, TourStep } from './guided-tour.constants';
 import { GuidedTourService } from './guided-tour.service';
 import { WindowRefService } from "./windowref.service";
+import { CdkTrapFocus } from '@angular/cdk/a11y';
+import { MatIcon } from '@angular/material/icon';
+import { MatButton } from '@angular/material/button';
+import { TranslatePipe } from '@ngx-translate/core';
 
 @Component({
     selector: 'ngx-guided-tour',
     templateUrl: './guided-tour.component.html',
     styleUrls: ['./guided-tour.component.scss'],
     encapsulation: ViewEncapsulation.None,
-    standalone: false
+    changeDetection: ChangeDetectionStrategy.Eager,
+    imports: [CdkTrapFocus, MatIcon, MatButton, TranslatePipe]
 })
-export class GuidedTourComponent implements AfterViewInit, OnDestroy {
+export class GuidedTourComponent implements AfterViewInit, OnDestroy, AfterContentChecked {
     @Input() public topOfPageAdjustment?= 0;
-    @Input() public tourStepWidth?= 1043;
-    @Input() public minimalTourStepWidth?= 500;
-    @Input() public skipText?= 'Leave Tour';
-    @Input() public nextText?= 'Got it!';
+    // Compact callout: reads like a tooltip that knows more, and never covers the toolbar it describes.
+    @Input() public tourStepWidth?= 380;
+    @Input() public minimalTourStepWidth?= 300;
+    @Input() public skipText?= 'Skip';
+    @Input() public nextText?= 'Next';
+    @Input() public doneText?= 'Done';
     @ViewChild('tourStep') public tourStep: ElementRef;
     public highlightPadding = 4;
     public currentTourStep: TourStep = null;
@@ -57,16 +64,34 @@ export class GuidedTourComponent implements AfterViewInit, OnDestroy {
         return this.tourStepWidth - this.widthAdjustmentForScreenBound;
     }
 
+    /** Allow keyboard users to dismiss the tour with Escape (WCAG 2.1.1 / dialog pattern). */
+    @HostListener('document:keydown.escape')
+    public onEscape(): void {
+        if (this.currentTourStep && !this.isOrbShowing && !this.currentTourStep.isStepUnique) {
+            this.guidedTourService.skipTour();
+        }
+    }
+
     public ngAfterViewInit(): void {
         this.guidedTourService.guidedTourCurrentStepStream.subscribe((step: TourStep) => {
             this.currentTourStep = step;
+            // Move focus into the tour popover when a step appears so keyboard/AT users
+            // land on the dialog (and can then Tab to Next/Skip).
+            if (step) {
+                setTimeout(() => this.tourStep?.nativeElement?.focus());
+            }
             if (step && step.selector) {
-                const selectedElement = this.dom.querySelector(step.selector);
+                const selectedElement = GuidedTourService.findVisible(this.dom, step.selector);
                 if (selectedElement) {
                     this.handleOrb(); /*custom add*/
                     this.scrollToAndSetElement();
                 } else {
+                    // CUSTOM ADD: the service validated this step before emitting it, but the DOM can
+                    // change between that check and this subscriber running (async rendering). Rather
+                    // than leave a step with no visible target on screen — mask up, popover unpositioned,
+                    // nothing left to click — treat it the same as an invalid step and move the tour on.
                     this.selectedElementRect = null;
+                    this.guidedTourService.nextStep();
                 }
             } else {
                 this.selectedElementRect = null;
@@ -97,9 +122,18 @@ export class GuidedTourComponent implements AfterViewInit, OnDestroy {
     }
 
     public scrollToAndSetElement(): void {
+        // CUSTOM ADD: the window scrolling below cannot reach an anchor that sits inside an inner
+        // scroll container (the plan editor's asset form), leaving the callout pinned below the
+        // fold. Ask the browser to reveal the element first — it scrolls every scrollable
+        // ancestor — then re-measure so the callout is positioned against the new rect.
+        const target = GuidedTourService.findVisible(this.dom, this.currentTourStep?.selector);
+        if (target) {
+            GuidedTourService.bringIntoView(target);
+        }
         this.updateStepLocation();
         // Allow things to render to scroll to the correct location
         setTimeout(() => {
+            this.updateStepLocation();
             if (!this.isOrbShowing && !this.isTourOnScreen()) {
                 if (this.selectedElementRect && this.isBottom()) {
                     // Scroll so the element is on the top of the screen.
@@ -152,7 +186,7 @@ export class GuidedTourComponent implements AfterViewInit, OnDestroy {
 
     private isTourOnScreen(): boolean {
         return this.tourStep
-            && this.elementInViewport(this.dom.querySelector(this.currentTourStep.selector))
+            && this.elementInViewport(GuidedTourService.findVisible(this.dom, this.currentTourStep.selector))
             && this.elementInViewport(this.tourStep.nativeElement);
     }
 
@@ -190,15 +224,41 @@ export class GuidedTourComponent implements AfterViewInit, OnDestroy {
 
     public updateStepLocation(): void {
         if (this.currentTourStep && this.currentTourStep.selector) {
-            const selectedElement = this.dom.querySelector(this.currentTourStep.selector);
+            const selectedElement = GuidedTourService.findVisible(this.dom, this.currentTourStep.selector);
             if (selectedElement && typeof selectedElement.getBoundingClientRect === 'function') {
-                this.selectedElementRect = (selectedElement.getBoundingClientRect() as DOMRect);
+                this.selectedElementRect = this.unionWithExtraHighlights(selectedElement.getBoundingClientRect() as DOMRect);
             } else {
                 this.selectedElementRect = null;
             }
         } else {
             this.selectedElementRect = null;
         }
+    }
+
+    /**
+     * CUSTOM ADD: widen the highlight to cover every anchor listed in `highlightSelectors`, so a step
+     * that talks about a group of controls highlights the whole group rather than only its first
+     * button. Anchors that are absent (permission-gated, or not rendered in this state) contribute
+     * nothing, which keeps the spotlight tight around what the user can actually see.
+     */
+    private unionWithExtraHighlights(rect: DOMRect): DOMRect {
+        const extras = this.currentTourStep?.highlightSelectors;
+        if (!extras?.length) {
+            return rect;
+        }
+        let { top, left, bottom, right } = rect;
+        for (const selector of extras) {
+            const element = GuidedTourService.findVisible(this.dom, selector);
+            const extra = element?.getBoundingClientRect?.();
+            if (!extra || extra.width === 0 || extra.height === 0) {
+                continue;
+            }
+            top = Math.min(top, extra.top);
+            left = Math.min(left, extra.left);
+            bottom = Math.max(bottom, extra.bottom);
+            right = Math.max(right, extra.right);
+        }
+        return new DOMRect(left, top, right - left, bottom - top);
     }
 
     private isBottom(): boolean {
@@ -211,11 +271,27 @@ export class GuidedTourComponent implements AfterViewInit, OnDestroy {
     public get topPosition(): number {
         const paddingAdjustment = this.getHighlightPadding();
 
-        if (this.isBottom()) {
-            return this.selectedElementRect.top + this.selectedElementRect.height + paddingAdjustment;
-        }
+        const top = this.isBottom()
+            ? this.selectedElementRect.top + this.selectedElementRect.height + paddingAdjustment
+            : this.selectedElementRect.top - paddingAdjustment;
 
-        return this.selectedElementRect.top - this.getHighlightPadding();
+        return this.clampToViewport(top);
+    }
+
+    /**
+     * CUSTOM ADD: `leftPosition` already keeps the callout inside the screen horizontally; without the
+     * same guard vertically a step anchored low on the page renders below the fold and the user has to
+     * zoom out to read it. Keep the whole callout on screen, preferring to shift it up.
+     */
+    private clampToViewport(top: number): number {
+        const viewportHeight = this.windowRef.nativeWindow.innerHeight;
+        const stepHeight = this.tourStep?.nativeElement?.getBoundingClientRect?.().height ?? 0;
+        if (!viewportHeight || !stepHeight) {
+            return top;
+        }
+        const margin = 16;
+        const maxTop = viewportHeight - stepHeight - margin;
+        return Math.max(margin, Math.min(top, maxTop));
     }
 
     public get orbTopPosition(): number {

@@ -11,7 +11,7 @@ import { IsActive } from '@app/core/common/enum/is-active.enum';
 import { nameof } from 'ts-simple-nameof';
 import { EvaluationData } from '@app/core/model/evaluation/evaluation-data';
 import { RankConfig } from '@app/core/model/evaluator/rank-config';
-import { EvaluationResultMessageModel, EvaluationResultMetricModel, EvaluationResultModel, RankResultModel } from '@app/core/model/evaluator/evaluator-plan-model.model';
+import { EvaluationResultMessageModel, EvaluationResultMetricModel, EvaluationResultModel, EvaluationTargetModel, RankResultModel } from '@app/core/model/evaluator/evaluator-plan-model.model';
 import { SelectionConfiguration } from '@app/core/model/evaluator/evaluator-selection';
 import { ValueSet } from '@app/core/model/evaluator/evaluator-value-set';
 
@@ -59,6 +59,7 @@ export class EvaluationService {
                 nameof<Evaluation>(x => x.id),
                 nameof<Evaluation>(x => x.evaluatedAt),
                 nameof<Evaluation>(x => x.status),
+                nameof<Evaluation>(x => x.entityType),
                 [nameof<Evaluation>(x => x.data), nameof<EvaluationData>(x => x.evaluatorId)].join('.'),
                 [nameof<Evaluation>(x => x.data), nameof<EvaluationData>(x => x.rankConfig), nameof<RankConfig>(x => x.rankType)].join('.'),
                 [nameof<Evaluation>(x => x.data), nameof<EvaluationData>(x => x.rankConfig), nameof<RankConfig>(x => x.selectionConfiguration)].join('.'),
@@ -67,6 +68,9 @@ export class EvaluationService {
                 [nameof<Evaluation>(x => x.data), nameof<EvaluationData>(x => x.rankConfig), nameof<RankConfig>(x => x.selectionConfiguration), nameof<SelectionConfiguration>(x => x.valueSetList), nameof<ValueSet>(x => x.successStatus)].join('.'),
                 [nameof<Evaluation>(x => x.data), nameof<EvaluationData>(x => x.rankResult), nameof<RankResultModel>(x => x.details)].join('.'),
                 [nameof<Evaluation>(x => x.data), nameof<EvaluationData>(x => x.rankResult), nameof<RankResultModel>(x => x.rank)].join('.'),
+                [nameof<Evaluation>(x => x.data), nameof<EvaluationData>(x => x.rankResult), nameof<RankResultModel>(x => x.target), nameof<EvaluationTargetModel>(x => x.entityType)].join('.'),
+                [nameof<Evaluation>(x => x.data), nameof<EvaluationData>(x => x.rankResult), nameof<RankResultModel>(x => x.target), nameof<EvaluationTargetModel>(x => x.entityId)].join('.'),
+                [nameof<Evaluation>(x => x.data), nameof<EvaluationData>(x => x.rankResult), nameof<RankResultModel>(x => x.target), nameof<EvaluationTargetModel>(x => x.label)].join('.'),
                 [nameof<Evaluation>(x => x.data), nameof<EvaluationData>(x => x.rankResult), nameof<RankResultModel>(x => x.results), nameof<EvaluationResultModel>(x => x.rank)].join('.'),
                 [nameof<Evaluation>(x => x.data), nameof<EvaluationData>(x => x.rankResult), nameof<RankResultModel>(x => x.results), nameof<EvaluationResultModel>(x => x.benchmarkTitle)].join('.'),
                 [nameof<Evaluation>(x => x.data), nameof<EvaluationData>(x => x.rankResult), nameof<RankResultModel>(x => x.results), nameof<EvaluationResultModel>(x => x.benchmarkDetails)].join('.'),

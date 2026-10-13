@@ -19,6 +19,7 @@ import org.springframework.stereotype.Component;
 
 import javax.management.InvalidApplicationException;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -68,6 +69,8 @@ public class PlanReferenceDeleter implements Deleter {
         if (data == null || data.isEmpty())
             return;
 
+        // Collect KPI entries up-front and emit them in one batched outbox event after the merges, instead of per-item lookups + publishes inside the loop.
+        List<KpiService.ReferenceIndicatorEntry> kpiEntries = new ArrayList<>(data.size());
         for (PlanReferenceEntity item : data) {
             logger.trace("deleting item {}", item.getId());
             logger.trace("updating item");
@@ -75,8 +78,9 @@ public class PlanReferenceDeleter implements Deleter {
             item.setIsActive(IsActive.Inactive);
             this.tenantEntityManagerFactory.getInstance().merge(item);
             logger.trace("updated item");
-            this.kpiService.sendIndicatorPointReferenceEntry(KpiDirectionType.Decrease, item.getReferenceId());
+            if (item.getReferenceId() != null) kpiEntries.add(new KpiService.ReferenceIndicatorEntry(item.getReferenceId(), item.getPlanId()));
         }
+        this.kpiService.sendIndicatorPointReferenceBatchEntry(KpiDirectionType.Decrease, kpiEntries);
     }
 
 }

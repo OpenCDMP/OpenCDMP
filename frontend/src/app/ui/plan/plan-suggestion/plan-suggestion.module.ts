@@ -10,20 +10,18 @@ import { DescriptionTemplatePreviewDialogModule } from '@app/ui/admin/descriptio
 
 
 @NgModule({
-	imports: [
-		CommonUiModule,
-		CommonFormsModule,
-		FormattingModule,
-		AutoCompleteModule,
-		DescriptionTemplatePreviewDialogModule,
-		TextFilterModule,
-		ReactiveFormsModule
-	],
-	declarations: [
-		PlanSuggestionComponent
-	],
-	exports: [
-		PlanSuggestionComponent
-	]
+    imports: [
+        CommonUiModule,
+        CommonFormsModule,
+        FormattingModule,
+        AutoCompleteModule,
+        DescriptionTemplatePreviewDialogModule,
+        TextFilterModule,
+        ReactiveFormsModule,
+        PlanSuggestionComponent
+    ],
+    exports: [
+        PlanSuggestionComponent
+    ]
 })
 export class PlanSuggestionModule {}

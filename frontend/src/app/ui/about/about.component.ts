@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { Router } from '@angular/router';
 import { SupportiveMaterialFieldType } from '@app/core/common/enum/supportive-material-field-type';
@@ -16,7 +16,7 @@ import { takeUntil } from 'rxjs/operators';
     selector: 'app-about-componet',
     templateUrl: './about.component.html',
     styleUrls: ['./about.component.scss'],
-    standalone: false
+    changeDetection: ChangeDetectionStrategy.Eager
 })
 export class AboutComponent extends BaseComponent implements OnInit {
 

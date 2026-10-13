@@ -1,5 +1,14 @@
-<mat-button-toggle-group class="lang-menu" vertical (change)="onLanguageSelected($event)" [value]="getCurrentLanguage()">
-    @for(lang of languages; track lang){
-        <mat-button-toggle class="no-borders" [value]="lang">{{'GENERAL.LANGUAGES.' + lang | translate}}</mat-button-toggle>
-    }
+@let langs = languages;
+@let current = currentLanguageOf(langs);
+<mat-button-toggle-group class="lang-menu" vertical (change)="onLanguageSelected($event)" [value]="current" hideSingleSelectionIndicator>
+  @for(lang of langs; track lang){
+    <mat-button-toggle class="no-borders" [value]="lang">
+      <span class="language-container" >
+        {{ languageService.getLanguageName(lang) }}
+        @if (lang === current) {
+          <mat-icon iconPositionEnd  aria-hidden="true">check</mat-icon>
+        }
+      </span>
+    </mat-button-toggle>
+  }
 </mat-button-toggle-group>

@@ -1,276 +1,260 @@
 <div class="profile">
-  <div class="container-fluid">
-    @if (user | async ; as userProfile) {
-      <div class="user-profile">
-        <div class="row user-profile-title">
-          <div class="col title mb-2">
-            {{'USER-DIALOG.USER-PROFILE' | translate}}
-          </div>
-          @if (tenantFormGroup) {
-            <div class="col-auto tenant-selection">
-              <div class="row">
-                <div class="col">
-                  <mat-form-field class="w-100">
-                    <mat-label>Tenant</mat-label>
-                    <mat-select placeholder="Tenant" [formControl]="tenantFormGroup.get('tenantCode')">
-                      @for (tenant of tenants | async; track tenant) {
-                        <mat-option [value]="tenant.code">{{ tenant.name }}</mat-option>
-                      }
-                    </mat-select>
-                  </mat-form-field>
-                </div>
-                <div class="col mt-1">
-                  <button mat-mini-fab (click)="switchTenant()" [matTooltip]="'USER-PROFILE.ACTIONS.REFRESH-TENANT' | translate" [attr.aria-label]="'USER-PROFILE.ACTIONS.REFRESH-TENANT' | translate">
-                    <mat-icon class="mat-mini-fab-icon">refresh</mat-icon>
-                  </button>
-                </div>
-              </div>
-            </div>
-          }
-        </div>
-        <div class="row profile-content" [formGroup]="formGroup">
-          <div class="col">
-            <small class="row mb-4">{{'COMMONS.VALIDATION.REQUIRED-FIELDS-HINT' | translate}}</small>
-            <div class="row mb-4">
-              <div class="col-auto">
-                <img mat-card-avatar class="avatar" [src]="userProfile.avatarUrl" (error)="applyFallbackAvatar($event)" alt="{{('ALT-TEXT.USER-AVATAR' | translate) ?? 'user avatar'}}">
-              </div>
-              <div class="col-auto d-flex flex-column justify-content-center main-info">
-                <div class="name">{{formGroup.get('name').value}}</div>
-              </div>
-            </div>
-            <!-- Name -->
-            <div class="row mb-5">
-              <div class="col">
-                <div class="row">
-                  <label class="col-auto mb-1 field-title" for="nameInput">{{'USER-PROFILE.SETTINGS.NAME' | translate}} *
-                  </label>
-                </div>
-                <div class="row">
-                  <div class="col name-form">
-                    <mat-form-field>
-                      <input id="nameInput" matInput type="text" name="name" placeholder="{{'USER-PROFILE.SETTINGS.NAME' | translate}}" [formControl]="formGroup.get('name')" required>
-                      @if (formGroup.get('name').hasError('backendError')) {
-                        <mat-error>{{formGroup.get('name').getError('backendError').message}}</mat-error>
-                      }
-                      @if (formGroup.get('name').hasError('required')) {
-                        <mat-error>{{'COMMONS.VALIDATION.REQUIRED' | translate}}</mat-error>
-                      }
-                    </mat-form-field>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <!-- Accounts -->
-            <!-- TODO: How to present these. -->
-            <div class="row mb-5">
-              <div class="col">
-                <div class="row">
-                  <div class="col-auto field-title">{{'USER-PROFILE.SETTINGS.ACCOUNTS' | translate}}</div>
-                </div>
-                <div class="row mt-3">
-                  <div class="col-auto">
-                    <span class="email-title">{{'USER-PROFILE.SETTINGS.EMAILS' | translate}}</span>
-                  </div>
-                  <div class="col-auto vertical-line">
-                    @if (userCredentials) {
-                      <div>
-                        @for (userCredential of userCredentials | async; track userCredential; let i = $index) {
-                          <div>
-                            @if (userCredential.data) {
-                              <div class="row user-credential">
-                                <div class="col-auto mail-text pr-0">{{userCredential.data.email}}</div>
-                                @for (providerIcon of getProviderIcons(userCredential,  userLanguage); track providerIcon) {
-                                  <span [ngClass]="providerIcon"></span>
-                                }
-                                @if (i != 0) {
-                                  <div class="col-auto d-flex align-items-center unlink-mail" (click)="userCredential.data.email !== firstEmail && removeAccount(userCredential)">
-                                    <mat-icon [matTooltip]="(userCredential.data?.email !== firstEmail ) ? ('USER-PROFILE.ACTIONS.UNLINK-ACCOUNT' | translate) : ('USER-PROFILE.ACTIONS.UNLINK-ACCOUNT-DISABLED' | translate)" matTooltipPosition="right" [ngClass]="{'disable-unlink':userCredential.data.email === firstEmail}">link_off</mat-icon>
-                                  </div>
-                                }
-                              </div>
-                            }
-                          </div>
-                        }
-                      </div>
-                    }
-                    <div class="row add-new-btn">
-                      <div class="col-auto add-mail" (click)="addAccount()">
-                        <mat-icon class="mr-1">add</mat-icon>
-                        <span>{{'USER-PROFILE.ACTIONS.LINK-NEW' | translate}}</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <!-- Organization -->
-            <div class="row mb-5">
-              <div class="col-12 col-lg-6">
-                <div class="row">
-                  <label for="organizationInput" class="col-auto mb-1 field-title">{{'USER-PROFILE.SETTINGS.ORGANIZATION' | translate}}</label>
-                </div>
-                <div class="row">
-                  <div class="col organization-form">
-                    <mat-form-field class="w-100">
-                      <app-single-auto-complete [id]="'organizationInput'" placeholder="{{'PLAN-EDITOR.PLACEHOLDER.ORGANIZATION' | translate}}" [formControl]="formGroup.get('additionalInfo').get('organization')" [configuration]="organisationsSingleAutoCompleteConfiguration" (optionActionClicked)="onPreviewReference($event, true)" (selectedItemOptionActionClicked)="onPreviewReference($event)"></app-single-auto-complete>
-                    </mat-form-field>
-                  </div>
-                </div>
-              </div>
-              <!-- Role -->
-              <div class="col-12 col-lg-6">
-                <div class="row">
-                  <label [appFor]="'roleInput'" class="col-auto mb-1 field-title">{{'USER-PROFILE.SETTINGS.ROLE' | translate}}</label>
-                </div>
-                <div class="row">
-                  <div class="col role-form">
-                    <mat-form-field class="w-100">
-                      <mat-select id="roleInput" placeholder="{{'USER-PROFILE.SETTINGS.SELECT-ROLE' | translate}}" [formControl]="formGroup.get('additionalInfo').get('roleOrganization')">
-                        <mat-option [value]="roleOrganizationEnum.Faculty">{{enumUtils.toRoleOrganizationString(roleOrganizationEnum.Faculty)}}</mat-option>
-                        <mat-option [value]="roleOrganizationEnum.Librarian">{{enumUtils.toRoleOrganizationString(roleOrganizationEnum.Librarian)}}</mat-option>
-                        <mat-option [value]="roleOrganizationEnum.Researcher">{{enumUtils.toRoleOrganizationString(roleOrganizationEnum.Researcher)}}</mat-option>
-                        <mat-option [value]="roleOrganizationEnum.Student">{{enumUtils.toRoleOrganizationString(roleOrganizationEnum.Student)}}</mat-option>
-                        <mat-option [value]="roleOrganizationEnum.EarlyCareerResearcher">{{enumUtils.toRoleOrganizationString(roleOrganizationEnum.EarlyCareerResearcher)}}</mat-option>
-                        <mat-option [value]="roleOrganizationEnum.ResearchAdministrator">{{enumUtils.toRoleOrganizationString(roleOrganizationEnum.ResearchAdministrator)}}</mat-option>
-                        <mat-option [value]="roleOrganizationEnum.RepositoryManager">{{enumUtils.toRoleOrganizationString(roleOrganizationEnum.RepositoryManager)}}</mat-option>
-                        <mat-option [value]="roleOrganizationEnum.ResearchInfrastructure">{{enumUtils.toRoleOrganizationString(roleOrganizationEnum.ResearchInfrastructure)}}</mat-option>
-                        <mat-option [value]="roleOrganizationEnum.ServiceProvider">{{enumUtils.toRoleOrganizationString(roleOrganizationEnum.ServiceProvider)}}</mat-option>
-                        <mat-option [value]="roleOrganizationEnum.Publisher">{{enumUtils.toRoleOrganizationString(roleOrganizationEnum.Publisher)}}</mat-option>
-                        <mat-option [value]="roleOrganizationEnum.ResearchFunder">{{enumUtils.toRoleOrganizationString(roleOrganizationEnum.ResearchFunder)}}</mat-option>
-                        <mat-option [value]="roleOrganizationEnum.Policymaker">{{enumUtils.toRoleOrganizationString(roleOrganizationEnum.Policymaker)}}</mat-option>
-                        <mat-option [value]="roleOrganizationEnum.SMEIndustry">{{enumUtils.toRoleOrganizationString(roleOrganizationEnum.SMEIndustry)}}</mat-option>
-                        <mat-option [value]="roleOrganizationEnum.Other">{{enumUtils.toRoleOrganizationString(roleOrganizationEnum.Other)}}</mat-option>
-                      </mat-select>
-                    </mat-form-field>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <!-- Timezone -->
-            <div class="row mb-5">
-              <div class="col-12 col-lg-4">
-                <div class="row">
-                  <label for="timeZoneInput" class="col-auto mb-1 field-title">{{'USER-PROFILE.SETTINGS.TIMEZONE' | translate}} *
-                  </label>
-                </div>
-                <div class="row">
-                  <div class="col timezone-form">
-                    <mat-form-field class="w-100">
-                      <input id="timeZoneInput" matInput autocomplete="off" placeholder="{{'USER-PROFILE.SETTINGS.TIMEZONE' | translate}}" [matAutocomplete]="timezoneAuto" type="text" name="timezone" [formControl]="formGroup.get('additionalInfo').get('timezone')" required>
-                      @if (formGroup.get('additionalInfo').get('timezone').hasError('backendError')) {
-                        <mat-error>{{formGroup.get('additionalInfo').get('timezone').getError('backendError').message}}</mat-error>
-                      }
-                      @if (formGroup.get('additionalInfo').get('timezone').hasError('required')) {
-                        <mat-error>{{'COMMONS.VALIDATION.REQUIRED' | translate}}</mat-error>
-                      }
-                      <mat-autocomplete autoActiveFirstOption #timezoneAuto="matAutocomplete">
-                        @for (timezone of filteredTimezones; track timezone) {
-                          <mat-option [value]="timezone">{{timezone | timezoneInfoDisplay}}</mat-option>
-                        }
-                      </mat-autocomplete>
-                    </mat-form-field>
-                  </div>
-                </div>
-              </div>
-              <!-- Culture -->
-              <div class="col-12 col-lg-4">
-                <div class="row">
-                  <label for="cultureInput" class="col-auto mb-1 field-title">{{'USER-PROFILE.SETTINGS.CULTURE' | translate}} *
-                  </label>
-                </div>
-                <div class="row">
-                  <div class="col culture-form">
-                    <mat-form-field class="w-100">
-                      <input id="cultureInput" matInput autocomplete="off" placeholder="{{'USER-PROFILE.SETTINGS.CULTURE' | translate}}" [matAutocomplete]="cultureAuto" type="text" name="culture" [formControl]="formGroup.get('additionalInfo').get('culture')" required>
-                      @if (formGroup.get('additionalInfo').get('culture').hasError('backendError')) {
-                        <mat-error>{{formGroup.get('additionalInfo').get('culture').getError('backendError').message}}</mat-error>
-                      }
-                      @if (formGroup.get('additionalInfo').get('culture').hasError('required')) {
-                        <mat-error>{{'COMMONS.VALIDATION.REQUIRED' | translate}}</mat-error>
-                      }
-                      <mat-autocomplete autoActiveFirstOption #cultureAuto="matAutocomplete" [displayWith]="displayCultureFn.bind(this)">
-                        @for (culture of filteredCultures; track culture) {
-                          <mat-option [value]="culture.name">{{culture | cultureInfoDisplay}}</mat-option>
-                        }
-                      </mat-autocomplete>
-                    </mat-form-field>
-                  </div>
-                </div>
-              </div>
-              <!-- Language -->
-              <div class="col-12 col-lg-4">
-                <div class="row">
-                  <label [appFor]="'languageInput'" class="col-auto mb-1 field-title">{{'USER-PROFILE.SETTINGS.LANGUAGE' | translate}} *
-                  </label>
-                </div>
-                <div class="row">
-                  <div class="col language-form">
-                    <mat-form-field class="w-100">
-                      <mat-select id="languageInput" [formControl]="formGroup.get('additionalInfo').get('language')" name="language" required>
-                        @for (language of languages; track language) {
-                          <mat-option [value]="language">
-                            {{ "GENERAL.LANGUAGES."+ language | translate }}
-                          </mat-option>
-                        }
-                      </mat-select>
-                      @if (formGroup.get('additionalInfo').get('language').hasError('required')) {
-                        <mat-error>{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
-                      }
-                      @if (formGroup.get('additionalInfo').get('language').hasError('backendError')) {
-                        <mat-error>{{formGroup.get('additionalInfo').get('language').getError('backendError').message}}</mat-error>
-                      }
-                    </mat-form-field>
-                  </div>
-                </div>
-              </div>
-            </div>
-            @if (pluginRepos?.length > 0) {
-              <mat-accordion class="w-100 mb-5 ml-1 mr-1" tabindex="0">
-                <mat-expansion-panel (opened)="expandPluginConfigurations()">
-                  <mat-expansion-panel-header>
-                    <mat-panel-title>
-                      <span>{{ 'USER-PROFILE.SETTINGS.PLUGIN-CONFIGURATION' | translate}}</span>
-                    </mat-panel-title>
-                  </mat-expansion-panel-header>
-                  <div class="row">
-                    <div class="col-12">
-                      @if (expandedPluginConfifurations) {
-                        <app-plugin-editor
-                          [formGroup]="formGroup.get('additionalInfo').get('pluginConfigurations')"
-                          [fileMap] = "fileMap"
-                          [showPluginText] = "false"
-                          [showPluginFieldText] = "true"
-                          [pluginUserConfiguration]="pluginConfigurationService.pluginRepositoryUserConfiguration()">
-                        </app-plugin-editor>
-                      }
-                    </div>
-                  </div>
-                </mat-expansion-panel>
-              </mat-accordion>
-            }
-            <div class="row d-flex mb-5">
-              <div class="col-auto ml-auto"><button mat-flat-button color="primary" class="padded-shadow-btn" type="button" (click)="save()">{{'USER-PROFILE.ACTIONS.SAVE' | translate}}</button></div>
-            </div>
-            <mat-accordion class="w-100 mb-5 ml-1 mr-1" tabindex="0">
-              <mat-expansion-panel (opened)="expandPreferences()">
-                <mat-expansion-panel-header>
-                  <mat-panel-title>
-                    <span>{{ 'NOTIFICATION-SERVICE.USER-PROFILE.TITLE' | translate}}</span>
-                  </mat-panel-title>
-                </mat-expansion-panel-header>
-                <div class="row">
-                  <div class="col-12">
-                    @if (expandedPreferences) {
-                      <app-user-profile-notifier-list-editor></app-user-profile-notifier-list-editor>
-                    }
-                  </div>
-                </div>
-              </mat-expansion-panel>
-            </mat-accordion>
-          </div>
-        </div>
-      </div>
-    }
-  </div>
+	@if (form(); as form) {
+		<header class="profile__identity">
+			<img class="profile__avatar" [src]="authService.getPrincipalName() | userLogo" appFallbackAvatar [alt]="'ALT-TEXT.USER-AVATAR' | translate">
+			<div class="profile__who">
+				<h1>{{ displayName() }}</h1>
+				<p>
+					@if (primaryEmail(); as email) { <span>{{ email }}</span> }
+					@if (organizationLabel(); as organization) { <span>{{ organization }}</span> }
+					@if (roleLabel(); as role) { <span>{{ role }}</span> }
+				</p>
+			</div>
+		</header>
+
+		<div class="profile__layout">
+			<nav class="profile__nav" [attr.aria-label]="'USER-PROFILE.PAGE.SECTIONS' | translate">
+				<button type="button" class="profile__tab" [class.profile__tab--active]="tab() === 'profile'" [attr.aria-current]="tab() === 'profile' ? 'page' : null" (click)="tab.set('profile')">{{ 'USER-PROFILE.PAGE.TAB-PROFILE' | translate }}</button>
+				<button type="button" class="profile__tab" [class.profile__tab--active]="tab() === 'region'" [attr.aria-current]="tab() === 'region' ? 'page' : null" (click)="tab.set('region')">{{ 'USER-PROFILE.PAGE.TAB-REGION' | translate }}</button>
+				<button type="button" class="profile__tab" [class.profile__tab--active]="tab() === 'notifications'" [attr.aria-current]="tab() === 'notifications' ? 'page' : null" (click)="tab.set('notifications')">{{ 'USER-PROFILE.PAGE.TAB-NOTIFICATIONS' | translate }}</button>
+				@if (repositories().length) {
+					<button type="button" class="profile__tab" [class.profile__tab--active]="tab() === 'repositories'" [attr.aria-current]="tab() === 'repositories' ? 'page' : null" (click)="tab.set('repositories')">{{ 'USER-PROFILE.PAGE.TAB-REPOSITORIES' | translate }}</button>
+				}
+			</nav>
+
+			<div class="profile__content">
+				@switch (tab()) {
+					@case ('profile') {
+						<section class="tc-card" aria-labelledby="profile-details-h">
+							<h2 id="profile-details-h" class="profile__card-title">{{ 'USER-PROFILE.PAGE.DETAILS' | translate }}</h2>
+							<div class="profile__grid">
+								<mat-form-field class="tc-full" subscriptSizing="dynamic">
+									<mat-label>{{ 'USER-PROFILE.SETTINGS.NAME' | translate }}</mat-label>
+									<input matInput type="text" autocomplete="name" [formControl]="control('name')" required>
+									@if (control('name').hasError('required')) { <mat-error>{{ 'COMMONS.VALIDATION.REQUIRED' | translate }}</mat-error> }
+									@if (control('name').hasError('backendError')) { <mat-error>{{ control('name').getError('backendError').message }}</mat-error> }
+								</mat-form-field>
+								<mat-form-field class="tc-full" subscriptSizing="dynamic">
+									<mat-label>{{ 'USER-PROFILE.SETTINGS.ROLE' | translate }}</mat-label>
+									<mat-select [formControl]="control('additionalInfo.roleOrganization')">
+										@for (role of roles; track role) {
+											<mat-option [value]="role">{{ enumUtils.toRoleOrganizationString(role) }}</mat-option>
+										}
+									</mat-select>
+								</mat-form-field>
+							</div>
+							@if (organizationReferenceType(); as referenceType) {
+								<app-reference-field-component
+									[id]="'profile-organization'"
+									[form]="control('additionalInfo.organization')"
+									[label]="'USER-PROFILE.SETTINGS.ORGANIZATION' | translate"
+									[referenceType]="referenceType"
+									[multiple]="false" />
+							}
+						</section>
+
+						<section class="tc-card" aria-labelledby="profile-emails-h">
+							<div class="tc-card__head">
+								<div>
+									<h2 id="profile-emails-h">{{ 'USER-PROFILE.PAGE.EMAILS' | translate }}</h2>
+									<p>{{ 'USER-PROFILE.PAGE.EMAILS-HINT' | translate }}</p>
+								</div>
+								<button mat-stroked-button type="button" class="profile__nowrap" (click)="link()">
+									<mat-icon aria-hidden="true">add</mat-icon>
+									{{ 'USER-PROFILE.PAGE.LINK' | translate }}
+								</button>
+							</div>
+							<ul class="profile__list">
+								@for (credential of credentials(); track credential.id; let first = $first) {
+									@if (credential.data) {
+										<li class="profile__item">
+											@for (icon of providerClasses(credential); track icon) { <span [ngClass]="icon" aria-hidden="true"></span> }
+											<span class="profile__strong">{{ credential.data.email }}</span>
+											@if (first) {
+												<span class="profile__chip profile__chip--primary">{{ 'USER-PROFILE.PAGE.PRIMARY' | translate }}</span>
+											} @else if (credential.data.email !== primaryEmail()) {
+												<button mat-button type="button" class="profile__end" (click)="unlink(credential)" [attr.aria-label]="'USER-PROFILE.PAGE.UNLINK-LABEL' | translate: { email: credential.data.email }">
+													{{ 'USER-PROFILE.PAGE.UNLINK' | translate }}
+												</button>
+											}
+										</li>
+									}
+								}
+							</ul>
+						</section>
+					}
+
+					@case ('region') {
+						<section class="tc-card" aria-labelledby="profile-region-h">
+							<div class="tc-card__head">
+								<div>
+									<h2 id="profile-region-h">{{ 'USER-PROFILE.PAGE.TAB-REGION' | translate }}</h2>
+									<p>{{ 'USER-PROFILE.PAGE.REGION-HINT' | translate }}</p>
+								</div>
+							</div>
+							<div class="profile__grid profile__grid--three">
+								<mat-form-field class="tc-full" subscriptSizing="dynamic">
+									<mat-label>{{ 'USER-PROFILE.SETTINGS.LANGUAGE' | translate }}</mat-label>
+									<mat-select [formControl]="control('additionalInfo.language')" required>
+										@for (code of languages; track code) {
+											<mat-option [value]="code">{{ languageService.getLanguageName(code) }}</mat-option>
+										}
+									</mat-select>
+									@if (control('additionalInfo.language').hasError('required')) { <mat-error>{{ 'GENERAL.VALIDATION.REQUIRED' | translate }}</mat-error> }
+									@if (control('additionalInfo.language').hasError('backendError')) { <mat-error>{{ control('additionalInfo.language').getError('backendError').message }}</mat-error> }
+								</mat-form-field>
+								<mat-form-field class="tc-full" subscriptSizing="dynamic">
+									<mat-label>{{ 'USER-PROFILE.SETTINGS.TIMEZONE' | translate }}</mat-label>
+									<app-single-auto-complete [required]="true" [formControl]="control('additionalInfo.timezone')" [configuration]="timezoneConfiguration" />
+									@if (control('additionalInfo.timezone').hasError('required')) { <mat-error>{{ 'GENERAL.VALIDATION.REQUIRED' | translate }}</mat-error> }
+									@if (control('additionalInfo.timezone').hasError('backendError')) { <mat-error>{{ control('additionalInfo.timezone').getError('backendError').message }}</mat-error> }
+								</mat-form-field>
+								<mat-form-field class="tc-full" subscriptSizing="dynamic">
+									<mat-label>{{ 'USER-PROFILE.SETTINGS.CULTURE' | translate }}</mat-label>
+									<app-single-auto-complete [required]="true" [formControl]="control('additionalInfo.culture')" [configuration]="cultureConfiguration" />
+									@if (control('additionalInfo.culture').hasError('required')) { <mat-error>{{ 'GENERAL.VALIDATION.REQUIRED' | translate }}</mat-error> }
+									@if (control('additionalInfo.culture').hasError('backendError')) { <mat-error>{{ control('additionalInfo.culture').getError('backendError').message }}</mat-error> }
+								</mat-form-field>
+							</div>
+							@if (dateExample() || numberExample()) {
+								<div class="profile__examples">
+									@if (dateExample(); as sample) { <span class="profile__example">{{ 'USER-PROFILE.PAGE.DATES-LOOK' | translate: { example: sample } }}</span> }
+									@if (numberExample(); as sample) { <span class="profile__example">{{ 'USER-PROFILE.PAGE.NUMBERS-LOOK' | translate: { example: sample } }}</span> }
+								</div>
+							}
+						</section>
+					}
+
+					@case ('notifications') {
+						<section class="tc-card" aria-labelledby="profile-notifications-h">
+							<div class="tc-card__head">
+								<div>
+									<h2 id="profile-notifications-h">{{ 'USER-PROFILE.PAGE.TAB-NOTIFICATIONS' | translate }}</h2>
+									<p>{{ 'USER-PROFILE.PAGE.NOTIFICATIONS-HINT' | translate }}</p>
+								</div>
+							</div>
+							@if (notifiersFailed()) {
+								<p class="profile__muted">{{ 'USER-PROFILE.PAGE.NOTIFICATIONS-ERROR' | translate }}</p>
+							} @else if (notificationGroups().length) {
+								<ul class="profile__list">
+									@for (group of notificationGroups(); track group.group) {
+										@let groupName = 'TENANT-CONFIGURATION.NOTIFICATIONS.GROUPS.' + group.group | translate;
+										<li class="profile__group">
+											<div class="profile__item">
+												<div class="profile__grow">
+													<div class="profile__strong">{{ groupName }}</div>
+													<div class="profile__muted">
+														@if (group.first !== null) {
+															{{ 'USER-PROFILE.PAGE.GROUP-SUMMARY' | translate: { count: group.rows.length, channel: channelName(group.first) } }}
+														} @else {
+															{{ 'USER-PROFILE.PAGE.GROUP-SUMMARY-MIXED' | translate: { count: group.rows.length } }}
+														}
+													</div>
+												</div>
+												@if (group.channels.length > 1) {
+													<div class="profile__segments" role="group" [attr.aria-label]="'USER-PROFILE.PAGE.GROUP-FIRST' | translate: { group: groupName }">
+														@for (channel of group.channels; track channel) {
+															<button type="button" class="profile__segment" [class.profile__segment--on]="group.first === channel" [attr.aria-pressed]="group.first === channel" (click)="setGroupFirst(group, channel)">{{ 'USER-PROFILE.PAGE.CHANNEL-FIRST' | translate: { channel: channelName(channel) } }}</button>
+														}
+													</div>
+													<button mat-button type="button" [attr.aria-expanded]="openGroup() === group.group" (click)="toggleGroup(group.group)">
+														{{ (openGroup() === group.group ? 'USER-PROFILE.PAGE.DONE' : 'USER-PROFILE.PAGE.CUSTOMISE') | translate }}
+													</button>
+												} @else {
+													<span class="profile__strong">{{ 'USER-PROFILE.PAGE.CHANNEL-ONLY' | translate: { channel: channelName(group.channels[0]) } }}</span>
+												}
+											</div>
+											@if (openGroup() === group.group) {
+												<ul class="profile__sublist">
+													@for (row of group.rows; track row.type) {
+														<li class="profile__subitem">
+															<span class="profile__grow">{{ row.name }}</span>
+															@if (row.channels.length > 1) {
+																<div class="profile__segments" role="group" [attr.aria-label]="'USER-PROFILE.PAGE.TYPE-FIRST' | translate: { name: row.name }">
+																	@for (channel of row.channels; track channel) {
+																		<button type="button" class="profile__segment profile__segment--small" [class.profile__segment--on]="row.first === channel" [attr.aria-pressed]="row.first === channel" (click)="setFirst([row.type], channel)">{{ channelName(channel) }}</button>
+																	}
+																</div>
+															} @else {
+																<span class="profile__muted">{{ 'USER-PROFILE.PAGE.CHANNEL-ONLY' | translate: { channel: channelName(row.channels[0]) } }}</span>
+															}
+														</li>
+													}
+												</ul>
+											}
+										</li>
+									}
+								</ul>
+							} @else {
+								<div class="tc-loading"><mat-spinner diameter="28" /></div>
+							}
+						</section>
+					}
+
+					@case ('repositories') {
+						<section class="tc-card" aria-labelledby="profile-repositories-h">
+							<div class="tc-card__head">
+								<div>
+									<h2 id="profile-repositories-h">{{ 'USER-PROFILE.PAGE.TAB-REPOSITORIES' | translate }}</h2>
+									<p>{{ 'USER-PROFILE.PAGE.REPOSITORIES-HINT' | translate }}</p>
+								</div>
+							</div>
+							<ul class="profile__list">
+								@for (repository of repositories(); track repository.code) {
+									@let status = repositoryStatus(repository);
+									<li class="profile__group">
+										<div class="profile__item">
+											<span class="profile__initial" aria-hidden="true">{{ repository.name.charAt(0) }}</span>
+											<div class="profile__grow">
+												<div class="profile__strong">{{ repository.name }}</div>
+												<div class="profile__muted">
+													@for (field of repository.fields; track field.config.code; let last = $last) { {{ field.config.label }}@if (!last) {, } }
+												</div>
+											</div>
+											<span class="profile__chip" [class.profile__chip--ok]="status === 'connected'" [class.profile__chip--warn]="status === 'removed'" [class.profile__chip--primary]="status === 'pending'">
+												@switch (status) {
+													@case ('connected') { {{ 'USER-PROFILE.PAGE.CONNECTED' | translate }} }
+													@case ('removed') { {{ 'USER-PROFILE.PAGE.REMOVED' | translate }} }
+													@case ('pending') { {{ 'USER-PROFILE.PAGE.PENDING' | translate }} }
+													@default { {{ 'USER-PROFILE.PAGE.NOT-CONNECTED' | translate }} }
+												}
+											</span>
+											@if (status === 'removed') {
+												<button mat-button type="button" (click)="restoreRepository(repository)">{{ 'TENANT-CONFIGURATION.SECRET.UNDO' | translate }}</button>
+											} @else if (!editing().has(repository.code)) {
+												@if (repository.connected) {
+													<button mat-stroked-button type="button" (click)="editRepository(repository)" [attr.aria-label]="'USER-PROFILE.PAGE.REPLACE-LABEL' | translate: { repository: repository.name }">{{ 'TENANT-CONFIGURATION.SECRET.REPLACE' | translate }}</button>
+													<button mat-button type="button" (click)="removeRepository(repository)" [attr.aria-label]="'USER-PROFILE.PAGE.REMOVE-LABEL' | translate: { repository: repository.name }">{{ 'TENANT-CONFIGURATION.SECRET.REMOVE' | translate }}</button>
+												} @else {
+													<button mat-stroked-button type="button" (click)="editRepository(repository)" [attr.aria-label]="'USER-PROFILE.PAGE.ADD-LABEL' | translate: { repository: repository.name }">{{ 'USER-PROFILE.PAGE.ADD' | translate }}</button>
+												}
+											}
+										</div>
+										@if (editing().has(repository.code) && status !== 'removed') {
+											<div class="profile__editor">
+												@for (field of repository.fields; track field.config.code) {
+													<mat-form-field class="profile__editor-field" subscriptSizing="dynamic">
+														<mat-label>{{ field.config.label }}</mat-label>
+														<input matInput autocomplete="off" [type]="field.config.authInfo ? 'password' : 'text'" [formControl]="$any(field.group.get('textValue'))">
+													</mat-form-field>
+												}
+												<div class="profile__item">
+													<span class="profile__muted profile__grow">{{ 'TENANT-CONFIGURATION.SECRET.HINT' | translate }}</span>
+													<button mat-button type="button" (click)="restoreRepository(repository)">{{ 'COMMONS.ACTIONS.CANCEL' | translate }}</button>
+												</div>
+											</div>
+										}
+									</li>
+								}
+							</ul>
+						</section>
+					}
+				}
+			</div>
+		</div>
+
+		<app-tc-save-bar [dirtyCount]="dirtyCount()" [saving]="saving()" (save)="save()" (discard)="discard()" />
+	} @else {
+		<div class="tc-loading"><mat-spinner diameter="32" /></div>
+	}
 </div>

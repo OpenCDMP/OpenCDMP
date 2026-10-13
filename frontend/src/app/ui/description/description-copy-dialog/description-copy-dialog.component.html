@@ -2,7 +2,7 @@
   <div mat-dialog-title class="row d-flex align-items-center gap-half-rem">
     <span>{{'DESCRIPTION-COPY-DIALOG.TITLE' | translate}}</span>
     <button class="ml-auto" mat-icon-button (click)="close()"  [attr.aria-label]="'ALT-TEXT.CLOSE-DIALOG'  | translate">
-      <mat-icon aria-hidden>close</mat-icon>
+      <mat-icon aria-hidden="true">close</mat-icon>
     </button>
   </div>
 
@@ -22,7 +22,7 @@
             <mat-label>{{'DESCRIPTION-COPY-DIALOG.PLAN-SECTION' | translate}}</mat-label>
             <mat-select [formControl]="formGroup.get('sectionId')">
               @for (section of sections; track section) {
-                <mat-option [value]="section.id">{{section.label}}</mat-option>
+                <mat-option [value]="section.id">{{section.title}}</mat-option>
               }
             </mat-select>
           </mat-form-field>

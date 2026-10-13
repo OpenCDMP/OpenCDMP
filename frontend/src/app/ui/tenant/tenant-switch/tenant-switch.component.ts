@@ -1,29 +1,29 @@
-import { Component, OnInit } from "@angular/core";
-import { MatButtonToggleChange } from "@angular/material/button-toggle";
+import { Component, Input, OnInit, ChangeDetectionStrategy } from "@angular/core";
+import { MatButtonToggleChange, MatButtonToggleGroup, MatButtonToggle } from "@angular/material/button-toggle";
 import { Tenant } from "@app/core/model/tenant/tenant";
 import { AuthService } from "@app/core/services/auth/auth.service";
 import { PrincipalService } from "@app/core/services/http/principal.service";
 import { TenantHandlingService } from "@app/core/services/tenant/tenant-handling.service";
 import { BaseComponent } from "@common/base/base.component";
-import { BaseHttpParams } from "@common/http/base-http-params";
-import { InterceptorType } from "@common/http/interceptors/interceptor-type";
-import { LangChangeEvent, TranslateService } from "@ngx-translate/core";
-import { Observable } from "rxjs";
+import { NgClass } from "@angular/common";
+import { MatIcon } from "@angular/material/icon";
 
 @Component({
     selector: 'app-tenant-switch',
     templateUrl: 'tenant-switch.component.html',
     styleUrls: ['tenant-switch.component.scss'],
-    standalone: false
+    changeDetection: ChangeDetectionStrategy.Eager,
+    imports: [MatButtonToggleGroup, MatButtonToggle, NgClass, MatIcon]
 })
 export class TenantSwitchComponent extends BaseComponent implements OnInit {
-	tenants: Observable<Array<Tenant>>;
+	@Input() tenants: Tenant[];
+
+	protected readonly indicatorColorCount = 11;
 
 	constructor(
-		public principalService: PrincipalService,
+		private principalService: PrincipalService,
 		private authService: AuthService,
-		private tenantHandlingService: TenantHandlingService,
-		private translate: TranslateService,
+		private tenantHandlingService: TenantHandlingService
 	) {
 		super();
 	}
@@ -33,20 +33,6 @@ export class TenantSwitchComponent extends BaseComponent implements OnInit {
 	}
 
 	ngOnInit() {
-
-		this.translate.onLangChange.subscribe((event: LangChangeEvent) => {
-			this.tenants = this.loadUserTenants();
-		});
-
-		this.tenants = this.loadUserTenants();
-	}
-
-	loadUserTenants(): Observable<Array<Tenant>> {
-		const params = new BaseHttpParams();
-		params.interceptorContext = {
-			excludedInterceptors: [InterceptorType.TenantHeaderInterceptor]
-		};
-		return this.principalService.myTenantsTranslated({ params: params });
 	}
 
 	onTenantSelected(selectedTenant: MatButtonToggleChange) {

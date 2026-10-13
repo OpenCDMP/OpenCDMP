@@ -5,7 +5,10 @@ import jakarta.xml.bind.annotation.*;
 import java.util.ArrayList;
 import java.util.List;
 
-
+/**
+ * @deprecated / Pages will me remain ONLY for this class for migration purposes
+ */
+@Deprecated
 @XmlAccessorType(XmlAccessType.FIELD)
 public class PageEntity {
     @XmlAttribute(name="id")

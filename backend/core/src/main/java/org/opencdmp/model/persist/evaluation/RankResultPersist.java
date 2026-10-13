@@ -26,6 +26,9 @@ public class RankResultPersist {
     private List<EvaluationResultPersist> results;
     public static final String _results = "results";
 
+    private EvaluationTargetPersist target;
+    public static final String _target = "target";
+
     public double getRank() {
         return rank;
     }
@@ -48,6 +51,14 @@ public class RankResultPersist {
 
     public void setResults(List<EvaluationResultPersist> results) {
         this.results = results;
+    }
+
+    public EvaluationTargetPersist getTarget() {
+        return target;
+    }
+
+    public void setTarget(EvaluationTargetPersist target) {
+        this.target = target;
     }
 
     @Component(RankResultPersistValidator.ValidatorName)
@@ -76,7 +87,14 @@ public class RankResultPersist {
             return Arrays.asList(
                     this.spec()
                             .must(() -> !this.isNull(item.getRank()))
-                            .failOn(RankResultPersist._rank).failWith(this.messageSource.getMessage("Validation_Required", new Object[]{RankResultPersist._rank}, LocaleContextHolder.getLocale()))
+                            .failOn(RankResultPersist._rank).failWith(this.messageSource.getMessage("Validation_Required", new Object[]{RankResultPersist._rank}, LocaleContextHolder.getLocale())),
+
+                    // Optional: only evaluators that fan out per description report a target.
+                    this.refSpec()
+                            .iff(() -> !this.isNull(item.getTarget()))
+                            .on(RankResultPersist._target)
+                            .over(item.getTarget())
+                            .using(() -> this.validatorFactory.validator(EvaluationTargetPersist.EvaluationTargetPersistValidator.class))
 
             );
         }

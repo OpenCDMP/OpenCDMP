@@ -38,6 +38,8 @@ These variables are listed down below:
 - --md-sys-color-on-surface-variant
 
 
+The application's styles read these as `--mat-sys-*` (e.g. `--mat-sys-primary`). An override may use either the `--md-sys-color-*` or the `--mat-sys-*` name; it is applied under both. Only the roles listed above are generated from the primary color. Other tokens, such as `surface-container*` and the `*-fixed` roles, keep the default palette unless overridden.
+
 ## Extra resources
 For ease of use, the [Material Theme Builder](https://material-foundation.github.io/material-theme-builder/) can be used to generate the desired color values.
 Note that currently, theming in OpenCDMP is based on light theme values.

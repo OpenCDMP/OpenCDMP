@@ -9,14 +9,15 @@ import gr.cite.tools.exception.MyValidationException;
 import gr.cite.tools.fieldset.FieldSet;
 
 import javax.management.InvalidApplicationException;
-import java.io.IOException;
 import java.util.UUID;
 
 public interface LanguageService {
 
     Language persist(LanguagePersist model, FieldSet fields) throws MyForbiddenException, MyValidationException, MyApplicationException, MyNotFoundException, InvalidApplicationException;
 
-    String getPayload(String code) throws IOException;
+    String mergePayloads(String... payloads);
+
+    String getDefaultLanguageCode(UUID tenantId);
 
     void deleteAndSave(UUID id) throws MyForbiddenException, InvalidApplicationException;
 }

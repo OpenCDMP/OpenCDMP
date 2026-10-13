@@ -39,8 +39,8 @@ public class PlanPropertiesCensor extends BaseCensor {
             return;
 
         this.authService.authorizeForce(Permission.BrowsePlan, Permission.DeferredAffiliation);
-        FieldSet planBlueprintValuesFields = fields.extractPrefixed(this.asIndexerPrefix(PlanProperties._planBlueprintValues));
-        this.censorFactory.censor(PlanBlueprintValueCensor.class).censor(planBlueprintValuesFields, userId);
+        FieldSet fieldSetFields = fields.extractPrefixed(this.asIndexerPrefix(PlanProperties._fieldSets));
+        this.censorFactory.censor(PropertyDefinitionFieldSetItemCensor.class).censor(fieldSetFields, userId);
         FieldSet contactsFields = fields.extractPrefixed(this.asIndexerPrefix(PlanProperties._contacts));
         this.censorFactory.censor(PlanContactCensor.class).censor(contactsFields, userId);
     }

@@ -6,7 +6,7 @@ import gr.cite.tools.logging.LoggerService;
 import org.opencdmp.authorization.AuthorizationFlags;
 import org.opencdmp.commonmodels.models.description.PropertyDefinitionModel;
 import org.opencdmp.commonmodels.models.descriptiotemplate.DefinitionModel;
-import org.opencdmp.commonmodels.models.descriptiotemplate.FieldSetModel;
+import org.opencdmp.commonmodels.models.planblueprintdescriptiontemplatefields.FieldSetModel;
 import org.opencdmp.convention.ConventionService;
 import org.opencdmp.model.builder.commonmodels.BaseCommonModelBuilder;
 import org.opencdmp.model.builder.commonmodels.CommonModelBuilderItemResponse;

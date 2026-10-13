@@ -38,11 +38,14 @@ import org.opencdmp.model.censorship.reference.ReferenceCensor;
 import org.opencdmp.model.persist.ReferencePersist;
 import org.opencdmp.model.reference.Reference;
 import org.opencdmp.model.reference.ReferenceExist;
+import org.opencdmp.model.reference.ReferenceUsage;
 import org.opencdmp.model.result.QueryResult;
 import org.opencdmp.query.ReferenceQuery;
 import org.opencdmp.query.lookup.ReferenceLookup;
 import org.opencdmp.query.lookup.ReferenceSearchLookup;
 import org.opencdmp.query.lookup.ReferenceTestLookup;
+import org.opencdmp.query.lookup.ReferenceUsageLookup;
+import org.opencdmp.service.externalfetcher.models.ExternalFetcherTestResult;
 import org.opencdmp.service.reference.ReferenceService;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -130,6 +133,28 @@ public class ReferenceController {
         return new QueryResult<>(models, count);
     }
 
+    @PostMapping("usage")
+    @OperationWithTenantHeader(summary = "Query the references used by the plans or descriptions the caller can see, with usage counts",
+            description = "Returns the references linked to the active plans (entityType 0, the default) or descriptions (entityType 1) visible to the caller, each with the number of those plans or descriptions. Ordered by count, then label; paging applies to the references. Project reference fields with the `reference.` prefix.",
+            responses = @ApiResponse(description = "OK", responseCode = "200", content = @Content(
+                    array = @ArraySchema(
+                            schema = @Schema(
+                                    implementation = ReferenceUsage.class
+                            )
+                    ))),
+            extensions = @Extension(name = "x-order", properties = @ExtensionProperty(name = "value", value = "2")))
+    public QueryResult<ReferenceUsage> usage(@RequestBody ReferenceUsageLookup lookup) throws MyApplicationException, MyForbiddenException {
+        logger.debug("querying usage of {}", Reference.class.getSimpleName());
+
+        this.censorFactory.censor(ReferenceCensor.class).censor(lookup.getProject() == null ? null : lookup.getProject().extractPrefixed(ReferenceUsage._reference + "."), null);
+
+        QueryResult<ReferenceUsage> result = this.referenceService.usage(lookup);
+
+        this.auditService.track(AuditableAction.Reference_Usage, "lookup", lookup);
+
+        return result;
+    }
+
     @PostMapping("search")
     @OperationWithTenantHeader(summary = "Query all references including results from external APIs", description = SwaggerHelpers.Reference.endpoint_search, requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(description = SwaggerHelpers.Reference.endpoint_search_request_body, content = @Content(
             examples = {
@@ -196,6 +221,24 @@ public class ReferenceController {
         this.auditService.track(AuditableAction.Reference_Test, "lookup", lookup);
 
         return references;
+    }
+
+    @PostMapping("test-source")
+    @OperationWithTenantHeader(summary = "Test one external API source and return the raw reply with its mapped results", description = "",
+            responses = @ApiResponse(description = "OK", responseCode = "200", content = @Content(
+                    schema = @Schema(
+                            implementation = ExternalFetcherTestResult.class
+                    ))
+            ),
+            extensions = @Extension(name = "x-order", properties = @ExtensionProperty(name = "value", value = "6")))
+    public ExternalFetcherTestResult testReferenceSource(@RequestBody ReferenceTestLookup lookup) {
+        logger.debug("test source {}", lookup.getKey());
+
+        ExternalFetcherTestResult result = this.referenceService.testReferenceSource(lookup);
+
+        this.auditService.track(AuditableAction.Reference_TestSource, "lookup", lookup);
+
+        return result;
     }
 
     @GetMapping("find/{referenceTypeId}")

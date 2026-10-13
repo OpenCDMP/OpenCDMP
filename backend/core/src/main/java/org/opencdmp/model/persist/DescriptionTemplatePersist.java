@@ -207,7 +207,7 @@ public class DescriptionTemplatePersist {
                             .must(() -> !this.isNull(item.getDefinition()))
                             .failOn(DescriptionTemplatePersist._definition).failWith(this.messageSource.getMessage("Validation_Required", new Object[]{DescriptionTemplatePersist._definition}, LocaleContextHolder.getLocale())),
                     this.refSpec()
-                            .iff(() -> !this.isNull(item.getDefinition()) && !this.isListNullOrEmpty(item.getDefinition().getPages()))
+                            .iff(() -> !this.isNull(item.getDefinition()) && !this.isListNullOrEmpty(item.getDefinition().getSections()))
                             .on(DescriptionTemplatePersist._definition)
                             .over(item.getDefinition())
                             .using(() -> this.validatorFactory.validator(DefinitionPersist.DefinitionPersistValidator.class)),

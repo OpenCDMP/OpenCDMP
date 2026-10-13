@@ -6,14 +6,12 @@ import { CommonUiModule } from '@common/ui/common-ui.module';
 import { AddAccountDialogComponent } from './add-account-dialog.component';
 
 @NgModule({
-	imports: [
-		CommonUiModule,
-		CommonFormsModule,
-		FormattingModule,
-		LoginModule
-	],
-	declarations: [
-		AddAccountDialogComponent
-	]
+    imports: [
+        CommonUiModule,
+        CommonFormsModule,
+        FormattingModule,
+        LoginModule,
+        AddAccountDialogComponent
+    ]
 })
 export class AddAccountDialogModule { }

@@ -42,7 +42,7 @@ public class TenantUserCensor extends BaseCensor {
 	public void censor(FieldSet fields, UUID userId) throws MyForbiddenException {
 		logger.debug(new DataLogEntry("censoring fields", fields));
 		if (this.isEmpty(fields)) return;
-		this.authService.authorizeAtLeastOneForce(userId != null ? List.of(new OwnedResource(userId)) : null, Permission.BrowseTenantUser);
+		this.authService.authorizeAtLeastOneForce(userId != null ? List.of(new OwnedResource(userId)) : null, Permission.BrowseTenantUser, Permission.DeferredAffiliation);
 		FieldSet tenantFields = fields.extractPrefixed(this.asIndexerPrefix(TenantUser._tenant));
 		this.censorFactory.censor(TenantCensor.class).censor(tenantFields, null);
 		FieldSet userFields = fields.extractPrefixed(this.asIndexerPrefix(TenantUser._user));

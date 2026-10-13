@@ -4,12 +4,12 @@ import gr.cite.tools.data.builder.BuilderFactory;
 import gr.cite.tools.exception.MyApplicationException;
 import gr.cite.tools.logging.LoggerService;
 import org.opencdmp.authorization.AuthorizationFlags;
-import org.opencdmp.commonmodels.enums.PlanBlueprintFieldCategory;
-import org.opencdmp.commonmodels.models.planblueprint.*;
+import org.opencdmp.commonmodels.models.planblueprint.RootSectionModel;
 import org.opencdmp.convention.ConventionService;
 import org.opencdmp.model.builder.commonmodels.BaseCommonModelBuilder;
 import org.opencdmp.model.builder.commonmodels.CommonModelBuilderItemResponse;
-import org.opencdmp.model.planblueprint.Section;
+import org.opencdmp.model.builder.commonmodels.dto.descriptiontemplate.RootSectionCommonModelBuilder;
+import org.opencdmp.model.planblueprint.RootSection;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
@@ -23,7 +23,7 @@ import java.util.Optional;
 
 @Component("dto.planblueprint.SectionCommonModelBuilder")
 @Scope(value = ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-public class SectionCommonModelBuilder extends BaseCommonModelBuilder<Section, SectionModel> {
+public class SectionCommonModelBuilder extends BaseCommonModelBuilder<RootSection, RootSectionModel> {
     private final BuilderFactory builderFactory;
     private EnumSet<AuthorizationFlags> authorize = EnumSet.of(AuthorizationFlags.None);
     @Autowired
@@ -40,31 +40,23 @@ public class SectionCommonModelBuilder extends BaseCommonModelBuilder<Section, S
     }
 
     @Override
-    protected List<CommonModelBuilderItemResponse<Section, SectionModel>> buildInternal(List<SectionModel> data) throws MyApplicationException {
+    protected List<CommonModelBuilderItemResponse<RootSection, RootSectionModel>> buildInternal(List<RootSectionModel> data) throws MyApplicationException {
         this.logger.debug("building for {}", Optional.ofNullable(data).map(List::size).orElse(0));
         if (data == null || data.isEmpty()) return new ArrayList<>();
 
-        List<CommonModelBuilderItemResponse<Section, SectionModel>> models = new ArrayList<>();
-        for (SectionModel d : data) {
-            Section m = new Section();
+        List<CommonModelBuilderItemResponse<RootSection, RootSectionModel>> models = new ArrayList<>();
+        for (RootSectionModel d : data) {
+            RootSection m = new RootSection();
             m.setId(d.getId());
             m.setDescription(d.getDescription());
-            m.setLabel(d.getLabel());
             m.setOrdinal(d.getOrdinal());
+            m.setTitle(d.getTitle());
+            m.setExtendedDescription(d.getExtendedDescription());
+            m.setSemantics(d.getSemantics());
+            if (d.getSections() != null) m.setSections(this.builderFactory.builder(RootSectionCommonModelBuilder.class).authorize(this.authorize).build(d.getSections()));
+
             m.setHasTemplates(d.getHasTemplates());
             m.setCanEditDescriptionTemplates(d.getCanEditDescriptionTemplates());
-
-            if ( d.getFields() != null) {
-                m.setFields(new ArrayList<>());
-                List<SystemFieldModel> systemFieldEntities = d.getFields().stream().filter(x-> PlanBlueprintFieldCategory.System.equals(x.getCategory())).map(x-> (SystemFieldModel)x).toList();
-                m.getFields().addAll(this.builderFactory.builder(SystemFieldCommonModelBuilder.class).authorize(this.authorize).build(systemFieldEntities));
-                List<ExtraFieldModel> extraFieldEntities = d.getFields().stream().filter(x-> PlanBlueprintFieldCategory.Extra.equals(x.getCategory())).map(x-> (ExtraFieldModel)x).toList();
-                m.getFields().addAll(this.builderFactory.builder(ExtraFieldCommonModelBuilder.class).authorize(this.authorize).build(extraFieldEntities));
-                List<ReferenceTypeFieldModel> referenceFieldEntities = d.getFields().stream().filter(x-> PlanBlueprintFieldCategory.ReferenceType.equals(x.getCategory())).map(x-> (ReferenceTypeFieldModel)x).toList();
-                m.getFields().addAll(this.builderFactory.builder(ReferenceTypeFieldCommonModelBuilder.class).authorize(this.authorize).build(referenceFieldEntities));
-                List<UploadFieldModel> uploadFieldEntities = d.getFields().stream().filter(x-> PlanBlueprintFieldCategory.Upload.equals(x.getCategory())).map(x-> (UploadFieldModel)x).toList();
-                m.getFields().addAll(this.builderFactory.builder(UploadFieldCommonModelBuilder.class).authorize(this.authorize).build(uploadFieldEntities));
-            }
 
             models.add(new CommonModelBuilderItemResponse<>(m, d));
         }

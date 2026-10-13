@@ -144,7 +144,7 @@ public class ElasticServiceImpl implements ElasticService {
 		propertyMap.put(DescriptionElasticEntity._tags, new Property.Builder().nested(x -> x.properties(this.createNestedTagsTemplatePropertyMap())).build());
 		propertyMap.put(DescriptionElasticEntity._references, new Property.Builder().nested(x -> x.properties(this.createNestedReferencesTemplatePropertyMap())).build());
 		propertyMap.put(DescriptionElasticEntity._descriptionTemplate, new Property.Builder().object(x -> x.properties(this.createNestedDescriptionTemplateTemplatePropertyMap())).build());
-		propertyMap.put(DescriptionElasticEntity._plan, new Property.Builder().object(x -> x.properties(this.createNetsedPlanTemplatePropertyMap())).build());
+		propertyMap.put(DescriptionElasticEntity._plan, new Property.Builder().object(x -> x.properties(this.createNestedPlanTemplatePropertyMap())).build());
 		return propertyMap;
 	}
 	
@@ -156,7 +156,6 @@ public class ElasticServiceImpl implements ElasticService {
 		propertyMap.put(PlanElasticEntity._description, this.createElastic(FieldType.Text, false));
 		propertyMap.put(PlanElasticEntity._version, this.createElastic(FieldType.Short, false));
 		propertyMap.put(PlanElasticEntity._language, this.createElastic(FieldType.Keyword, false));
-		propertyMap.put(PlanElasticEntity._blueprintId, this.createElastic(FieldType.Keyword, false));
 		propertyMap.put(PlanElasticEntity._accessType, this.createElastic(FieldType.Short, false));
 		propertyMap.put(PlanElasticEntity._groupId, this.createElastic(FieldType.Keyword, false));
 		propertyMap.put(PlanElasticEntity._finalizedAt, this.createElastic(FieldType.Date, false));
@@ -169,7 +168,20 @@ public class ElasticServiceImpl implements ElasticService {
 		propertyMap.put(PlanElasticEntity._references, new Property.Builder().nested(x -> x.properties(this.createNestedReferencesTemplatePropertyMap())).build());
 		propertyMap.put(PlanElasticEntity._collaborators, new Property.Builder().nested(x -> x.properties(this.createNestedCollaboratorTemplatePropertyMap())).build());
 		propertyMap.put(PlanElasticEntity._dois, new Property.Builder().nested(x -> x.properties(this.createNestedDoisTemplatePropertyMap())).build());
-		propertyMap.put(PlanElasticEntity._planStatus,new Property.Builder().nested(x -> x.properties(this.createNestedPlanStatusElasticEntityPropertyMap())).build());
+		propertyMap.put(PlanElasticEntity._planStatus,new Property.Builder().object(x -> x.properties(this.createObjectPlanStatusElasticEntityPropertyMap())).build());
+		propertyMap.put(PlanElasticEntity._blueprint, new Property.Builder().object(x -> x.properties(this.createObjectPlanBlueprintElasticEntityPropertyMap())).build());
+
+		return propertyMap;
+	}
+
+	private Map<String, Property> createObjectPlanBlueprintElasticEntityPropertyMap() {
+		Map<String, Property> propertyMap = new HashMap<>();
+		propertyMap.put(NestedPlanBlueprintElasticEntity._id, this.createElastic(FieldType.Keyword, false));
+		propertyMap.put(NestedPlanBlueprintElasticEntity._label, this.createElastic(FieldType.Text, false));
+		propertyMap.put(NestedPlanBlueprintElasticEntity._groupId, this.createElastic(FieldType.Keyword, false));
+		propertyMap.put(NestedPlanBlueprintElasticEntity._versionStatus, this.createElastic(FieldType.Short, false));
+		propertyMap.put(NestedPlanBlueprintElasticEntity._typeId, this.createElastic(FieldType.Keyword, false));
+
 		return propertyMap;
 	}
 
@@ -183,7 +195,7 @@ public class ElasticServiceImpl implements ElasticService {
 		return propertyMap;
 	}
 
-	private Map<String, Property> createNestedPlanStatusElasticEntityPropertyMap(){
+	private Map<String, Property> createObjectPlanStatusElasticEntityPropertyMap(){
 		Map<String, Property> propertyMap = new HashMap<>();
 		propertyMap.put(NestedPlanStatusElasticEntity._id, this.createElastic(FieldType.Keyword, false));
 		propertyMap.put(NestedPlanStatusElasticEntity._name, this.createElastic(FieldType.Text, true));
@@ -230,11 +242,12 @@ public class ElasticServiceImpl implements ElasticService {
 		propertyMap.put(NestedDescriptionTemplateElasticEntity._label, this.createElastic(FieldType.Text, true));
 		propertyMap.put(NestedDescriptionTemplateElasticEntity._versionStatus, this.createElastic(FieldType.Short, true));
 		propertyMap.put(NestedDescriptionTemplateElasticEntity._groupId, this.createElastic(FieldType.Keyword, true));
+		propertyMap.put(NestedDescriptionTemplateElasticEntity._typeId, this.createElastic(FieldType.Keyword, true));
 
 		return propertyMap;
 	}
 	
-	private Map<String, Property> createNetsedPlanTemplatePropertyMap(){
+	private Map<String, Property> createNestedPlanTemplatePropertyMap(){
 		Map<String, Property> propertyMap = new HashMap<>();
 		propertyMap.put(NestedPlanElasticEntity._id, this.createElastic(FieldType.Keyword, false));
 		propertyMap.put(NestedPlanElasticEntity._label, this.createElastic(FieldType.Text, true));
@@ -346,9 +359,11 @@ public class ElasticServiceImpl implements ElasticService {
 		DescriptionElasticEntity descriptionElasticEntity = this.elasticsearchTemplate.get(description.getId().toString(), DescriptionElasticEntity.class, IndexCoordinates.of(this.appElasticConfiguration.getAppElasticProperties().getDescriptionIndexName()));
 		if (descriptionElasticEntity == null) return;
 		this.elasticsearchTemplate.delete(descriptionElasticEntity, IndexCoordinates.of(this.appElasticConfiguration.getAppElasticProperties().getDescriptionIndexName()));
-		
+
+		// the plan may already be gone (e.g. a tenant purge hard-deletes plan and description together
+		// before reindexing runs) - nothing left to refresh in that case
 		PlanEntity planEntity = this.tenantEntityManagerFactory.getInstance().find(PlanEntity.class, description.getPlanId(), true);
-		if (planEntity == null) throw new MyNotFoundException(this.messageSource.getMessage("General_ItemNotFound", new Object[]{description.getPlanId(), Plan.class.getSimpleName()}, LocaleContextHolder.getLocale()));
+		if (planEntity == null) return;
 		if (planEntity.getIsActive().equals(IsActive.Active)) {
 			PlanElasticEntity planElasticEntity = this.builderFactory.builder(PlanElasticBuilder.class).build(planEntity);
 			this.elasticsearchTemplate.save(planElasticEntity, IndexCoordinates.of(this.appElasticConfiguration.getAppElasticProperties().getPlanIndexName()));

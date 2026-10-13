@@ -1,4 +1,4 @@
-import { HttpHeaders, HttpParamsOptions } from '@angular/common/http';
+import { HttpHeaders } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Lock, LockPersist, LockStatus, UnlockMultipleTargetsPersist } from '@app/core/model/lock/lock.model';
 import { LockLookup } from '@app/core/query/lock.lookup';
@@ -10,7 +10,6 @@ import { catchError } from 'rxjs/operators';
 import { ConfigurationService } from '../configuration/configuration.service';
 import { BaseHttpV2Service } from '../http/base-http-v2.service';
 import { LockTargetType } from '@app/core/common/enum/lock-target-type';
-import { BaseHttpParams } from '@common/http/base-http-params';
 
 @Injectable()
 export class LockService {
@@ -65,8 +64,8 @@ export class LockService {
 			.pipe(catchError((error: any) => throwError(error)));
 	}
 
-	touchLock(targetId: Guid): Observable<Boolean> {
-		return this.http.get<Boolean>(`${this.apiBase}/target/touch/${targetId}`)
+	touchLock(targetId: Guid): Observable<boolean> {
+		return this.http.get<boolean>(`${this.apiBase}/target/touch/${targetId}`)
 			.pipe(catchError((error: any) => throwError(error)));
 	}
 
@@ -84,8 +83,8 @@ export class LockService {
 				catchError((error: any) => throwError(error)));
 	}
 
-	checkAndLock(targetId: Guid, targetType: LockTargetType): Observable<Boolean> {
-		return this.http.get<Boolean>(`${this.apiBase}/target/check-lock/${targetId}/${targetType}`)
+	checkAndLock(targetId: Guid, targetType: LockTargetType): Observable<boolean> {
+		return this.http.get<boolean>(`${this.apiBase}/target/check-lock/${targetId}/${targetType}`)
 			.pipe(catchError((error: any) => throwError(error)));
 	}
 

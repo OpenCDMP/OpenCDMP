@@ -5,6 +5,7 @@ import org.opencdmp.authorization.AuthorizationFlags;
 import org.opencdmp.commons.types.planblueprint.DefinitionEntity;
 import org.opencdmp.convention.ConventionService;
 import org.opencdmp.model.builder.BaseBuilder;
+import org.opencdmp.model.builder.IconConfigurationBuilder;
 import org.opencdmp.model.builder.pluginconfiguration.PluginConfigurationBuilder;
 import org.opencdmp.model.planblueprint.Definition;
 import gr.cite.tools.data.builder.BuilderFactory;
@@ -57,13 +58,17 @@ public class DefinitionBuilder extends BaseBuilder<Definition, DefinitionEntity>
         //Not Bulk Build because is XML no interaction with db
         FieldSet sectionsFields = fields.extractPrefixed(this.asPrefix(Definition._sections));
         FieldSet pluginConfigurationFields = fields.extractPrefixed(this.asPrefix(Definition._pluginConfigurations));
+        FieldSet planCreationConsentFields = fields.extractPrefixed(this.asPrefix(Definition._planCreationConsent));
+        FieldSet iconConfigurationFields = fields.extractPrefixed(this.asPrefix(Definition._iconConfiguration));
 
 
         List<Definition> models = new ArrayList<>();
         for (DefinitionEntity d : data) {
             Definition m = new Definition();
-            if (!sectionsFields.isEmpty() && d.getSections() != null) m.setSections(this.builderFactory.builder(SectionBuilder.class).authorize(this.authorize).isPublic(this.isPublic).build(sectionsFields, d.getSections()));
+            if (!sectionsFields.isEmpty() && d.getSections() != null) m.setSections(this.builderFactory.builder(RootSectionBuilder.class).authorize(this.authorize).isPublic(this.isPublic).build(sectionsFields, d.getSections()));
             if (!this.isPublic && !pluginConfigurationFields.isEmpty() && d.getPluginConfigurations() != null) m.setPluginConfigurations(this.builderFactory.builder(PluginConfigurationBuilder.class).authorize(this.authorize).build(pluginConfigurationFields, d.getPluginConfigurations()));
+            if (!planCreationConsentFields.isEmpty() && d.getPlanCreationConsent() != null) m.setPlanCreationConsent(this.builderFactory.builder(PlanCreationConsentBuilder.class).authorize(this.authorize).build(planCreationConsentFields, d.getPlanCreationConsent()));
+            if (!this.isPublic && !iconConfigurationFields.isEmpty() && d.getIconConfiguration() != null) m.setIconConfiguration(this.builderFactory.builder(IconConfigurationBuilder.class).authorize(this.authorize).build(iconConfigurationFields, d.getIconConfiguration()));
 
             models.add(m);
         }

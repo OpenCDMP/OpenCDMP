@@ -1,18 +1,25 @@
-import { Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges } from '@angular/core';
+import { Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges, ChangeDetectionStrategy } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
 import { UserSetting, UserSettingsService } from '@app/core/services/user-settings/user-settings.service';
 import { BaseComponent } from '@common/base/base.component';
 import { Lookup } from '@common/model/lookup';
 import { ConfirmationDialogComponent } from '@common/modules/confirmation-dialog/confirmation-dialog.component';
-import { TranslateService } from '@ngx-translate/core';
-import { isNullOrUndefined } from '@swimlane/ngx-datatable';
+import { TranslateService, TranslatePipe } from '@ngx-translate/core';
 import { takeUntil } from 'rxjs/operators';
+import { MatFormField, MatLabel } from '@angular/material/form-field';
+import { MatSelect, MatOption } from '@angular/material/select';
+import { ReactiveAsteriskDirective } from '../../../forms/reactive-asterisk-directive';
+import { FormsModule } from '@angular/forms';
+import { MatIconButton } from '@angular/material/button';
+import { MatTooltip } from '@angular/material/tooltip';
+import { MatIcon } from '@angular/material/icon';
 
 @Component({
     selector: 'app-user-settings-selector',
     templateUrl: './user-settings-selector.component.html',
     styleUrls: ['./user-settings-selector.component.scss'],
-    standalone: false
+    changeDetection: ChangeDetectionStrategy.Eager,
+    imports: [MatFormField, MatLabel, MatSelect, ReactiveAsteriskDirective, FormsModule, MatOption, MatIconButton, MatTooltip, MatIcon, TranslatePipe]
 })
 export class UserSettingsSelectorComponent extends BaseComponent implements OnInit, OnChanges {
 
@@ -80,7 +87,7 @@ export class UserSettingsSelectorComponent extends BaseComponent implements OnIn
 	}
 
 	getSettingName(setting: UserSetting<any>) {
-		return !isNullOrUndefined(setting.name) ? setting.name : 'Default';
+		return setting.name ?? 'Default';
 	}
 
 	settingSelected(event: UserSetting<any>) {
@@ -96,7 +103,6 @@ export class UserSettingsSelectorComponent extends BaseComponent implements OnIn
 		if (value) {
 			const dialogRef = this.dialog.open(ConfirmationDialogComponent, {
 				maxWidth: '400px',
-				restoreFocus: false,
 				data: {
 					message: this.language.instant('GENERAL.CONFIRMATION-DIALOG.DELETE-USER-SETTING-PROFILE'),
 					confirmButton: this.language.instant('GENERAL.CONFIRMATION-DIALOG.ACTIONS.CONFIRMATION'),

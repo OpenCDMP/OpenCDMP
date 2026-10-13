@@ -1,0 +1,66 @@
+.webhook-deliveries-dialog {
+	min-width: min(50rem, 90vw);
+
+	.flex-spacer {
+		flex: 1;
+	}
+
+	.state-container {
+		display: flex;
+		justify-content: center;
+		padding: 2rem 0;
+	}
+
+	.table-scroll {
+		overflow-x: auto;
+	}
+
+	.deliveries-table {
+		width: 100%;
+		border-collapse: collapse;
+		font-size: 0.9rem;
+
+		th {
+			text-align: left;
+			font-weight: 600;
+			padding: 0.4rem 0.5rem;
+			border-bottom: 2px solid var(--sys-outline-variant, #ddd);
+			white-space: nowrap;
+		}
+
+		td {
+			padding: 0.35rem 0.5rem;
+			border-bottom: 1px solid var(--sys-outline-variant, #eee);
+			vertical-align: middle;
+		}
+
+		.detail-cell {
+			max-width: 16rem;
+			overflow: hidden;
+			text-overflow: ellipsis;
+			white-space: nowrap;
+		}
+	}
+
+	.status-chip {
+		font-size: 0.75rem;
+		padding: 0.1rem 0.5rem;
+		border-radius: 1rem;
+		background: var(--sys-surface-variant, #eee);
+		white-space: nowrap;
+
+		&.delivered {
+			background: var(--sys-primary-container, #d3e6d0);
+		}
+
+		&.failed {
+			background: var(--sys-error-container, #f3d3d0);
+		}
+	}
+
+	.truncated-hint {
+		margin-top: 0.5rem;
+		font-size: 0.85rem;
+		opacity: 0.75;
+	}
+}

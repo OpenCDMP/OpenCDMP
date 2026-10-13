@@ -8,25 +8,27 @@ import { ReferenceFieldComponent } from './reference-field.component';
 import { ReferenceDialogEditorComponent } from './editor/reference-dialog-editor.component';
 import { ReferenceFieldInfoDialogComponent } from './info-dialog/reference-field-info-dialog.component';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { ReferenceCardComponent } from '../reference-card/reference-card.component';
+import { ReferenceManualFormComponent } from './manual-form/reference-manual-form.component';
 
 @NgModule({
-	imports: [
-		CommonUiModule,
-		CommonFormsModule,
-		FormattingModule,
-		DescriptionRoutingModule,
-		AutoCompleteModule,
-		MatTooltipModule
-	],
-	declarations: [
-		ReferenceFieldComponent,
-		ReferenceDialogEditorComponent,
-		ReferenceFieldInfoDialogComponent
-	],
-	exports: [
-		ReferenceFieldComponent,
-		ReferenceDialogEditorComponent,
-		ReferenceFieldInfoDialogComponent
-	]
+    imports: [
+        CommonUiModule,
+        CommonFormsModule,
+        FormattingModule,
+        DescriptionRoutingModule,
+        AutoCompleteModule,
+        MatTooltipModule,
+        ReferenceCardComponent,
+        ReferenceManualFormComponent,
+        ReferenceFieldComponent,
+        ReferenceDialogEditorComponent,
+        ReferenceFieldInfoDialogComponent
+    ],
+    exports: [
+        ReferenceFieldComponent,
+        ReferenceDialogEditorComponent,
+        ReferenceFieldInfoDialogComponent
+    ]
 })
 export class ReferenceFieldModule { }

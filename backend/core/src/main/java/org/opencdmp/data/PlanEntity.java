@@ -50,6 +50,13 @@ public class PlanEntity extends TenantScopedBaseEntity {
 
     public static final String _properties = "properties";
 
+    // Server-owned metadata (PlanAdditionalInfoEntity JSON): clone provenance etc.
+    // Never rebuilt from client persist models — set only by backend flows.
+    @Column(name = "additional_info", nullable = true)
+    private String additionalInfo;
+
+    public static final String _additionalInfo = "additionalInfo";
+
     @Column(name = "group_id", nullable = false)
     private UUID groupId;
 
@@ -145,6 +152,14 @@ public class PlanEntity extends TenantScopedBaseEntity {
 
     public void setProperties(String properties) {
         this.properties = properties;
+    }
+
+    public String getAdditionalInfo() {
+        return this.additionalInfo;
+    }
+
+    public void setAdditionalInfo(String additionalInfo) {
+        this.additionalInfo = additionalInfo;
     }
 
     public UUID getGroupId() {

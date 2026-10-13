@@ -6,12 +6,10 @@ import { LanguageDialogComponent } from './dialog/language-dialog.component';
 
 
 @NgModule({
-    declarations: [
+    imports: [
+        CommonUiModule,
         LanguageComponent,
         LanguageDialogComponent
-    ],
-    imports: [
-        CommonUiModule
     ],
     exports: [
         LanguageComponent,

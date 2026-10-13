@@ -1,0 +1,11 @@
+@use '../../../../structure-editor/bp2-shared' as *;
+@use '../../../../structure-editor/bp2-review' as *;
+
+.rv-consent { display: flex; align-items: center; gap: .875rem; padding: .875rem 1.125rem; border-radius: 12px; background: var(--mat-sys-primary-container); color: var(--mat-sys-on-primary-container); &__text { flex: 1 1 0; min-width: 0; } }
+.rv-start { display: flex; flex-direction: column; gap: .75rem; }
+.rv-libcard { display: flex; align-items: center; gap: .875rem; padding: .875rem 1rem; border: 1px solid var(--mat-sys-outline-variant); border-radius: 12px;
+	&__tile { width: 44px; height: 44px; }
+	&__text { flex: 1 1 auto; min-width: 0; }
+	&__desc { max-height: 3.2em; overflow: hidden; margin-top: .2rem; }
+}
+.rv-steps { margin: 0; padding-left: 0; list-style: none; display: flex; flex-direction: column; gap: .35rem; font-size: .9rem; }

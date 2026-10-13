@@ -1,37 +1,61 @@
-<div class="p-3">
-    <app-navigation-breadcrumb/>
-    @if(indicatorQueryParams?.length){
-        @let selectedIndicatorQueryParams = selectedDashboard | invokeMemoized :selectedDashboardId;
-        <div class="p-2">
-            <div class="d-flex align-items-center pl-1 pr-1 justify-content-between flex-wrap gap-1-rem">
-                <h2>{{'GENERAL.TITLES.INDICATOR-DASHBOARD' | translate}}</h2>
-                @if(selectedIndicatorQueryParams){
-                    <mat-button-toggle-group  appearance="standard" hideSingleSelectionIndicator="true" [(ngModel)]="viewType" (change)="viewChange($event)">
-                        <mat-button-toggle [value]="viewTypeEnum.List" [matTooltip]="'INDICATOR-DASHBOARD.LIST-VIEW' | translate" [attr.aria-label]="'INDICATOR-DASHBOARD.LIST-VIEW' | translate"><mat-icon aria-hidden>splitscreen</mat-icon></mat-button-toggle>
-                        <mat-button-toggle [value]="viewTypeEnum.Grid" [matTooltip]="'INDICATOR-DASHBOARD.GRID-VIEW' | translate" [attr.aria-label]="'INDICATOR-DASHBOARD.GRID-VIEW' | translate"><mat-icon aria-hidden>window</mat-icon></mat-button-toggle>
-                    </mat-button-toggle-group>
-                }
-            </div>
-            <div>
-                 @if(!disableDropDown){
-                    <mat-form-field class="dashboard-select" subscriptSizing="dynamic">
-                        <mat-select [(ngModel)]="selectedDashboardId">
-                            @for(entry of indicatorQueryParams; track entry.dashboard){
-                                <mat-option [value]="entry.dashboard">{{`KPI-SERVICE.KPI_DASHBOARD.CODES.${entry.dashboard}` | translate}}</mat-option>
-                            }
-                        </mat-select>
-                    </mat-form-field>
-                }
-            </div>
-            @if(selectedIndicatorQueryParams){
-                <div class="w-100 kpi-dashboard">
-                    <kpi-dashboard
-                    [indicatorQueryParams]="selectedIndicatorQueryParams"
-                    ></kpi-dashboard>
-                </div>
-            }
-        </div>
-    }@else {
-        <div class="p-3">{{'KPI-SERVICE.KPI_DASHBOARD.NO-DASHBOARDS' | translate}}</div>
-    }
+<div class="indicator-dashboard p-3">
+	<app-navigation-breadcrumb />
+	@if (selectedScope(); as scope) {
+		<header class="dashboard-header">
+			<div class="d-flex flex-column gap-half-rem">
+				<h1 class="dashboard-title">{{ 'GENERAL.TITLES.INDICATOR-DASHBOARD' | translate }}</h1>
+				<span class="scope-chip">
+					<mat-icon aria-hidden="true">{{ scope.isTenant ? 'apartment' : 'public' }}</mat-icon>
+					@if (scope.isTenant) {
+						{{ 'INDICATOR-DASHBOARD.SCOPE.TENANT-CHIP' | translate: { code: tenantCode } }}
+					} @else {
+						{{ 'INDICATOR-DASHBOARD.SCOPE.INSTALLATION-CHIP' | translate }}
+					}
+				</span>
+			</div>
+			@if (scopes.length > 1) {
+				<mat-button-toggle-group class="scope-toggle" hideSingleSelectionIndicator="true" [attr.aria-label]="'INDICATOR-DASHBOARD.SCOPE.LABEL' | translate" [value]="selectedKey()" (change)="selectedKey.set($event.value); selectedTab.set(0)">
+					@for (entry of scopes; track entry.key) {
+						<mat-button-toggle [value]="entry.key">{{ (entry.isTenant ? 'INDICATOR-DASHBOARD.SCOPE.TENANT' : 'INDICATOR-DASHBOARD.SCOPE.INSTALLATION') | translate }}</mat-button-toggle>
+					}
+				</mat-button-toggle-group>
+			}
+		</header>
+
+		@switch (view()?.status) {
+			@case ('error') {
+				<p class="mt-3">{{ 'INDICATOR-DASHBOARD.LOAD-ERROR' | translate }}</p>
+			}
+			@case ('ready') {
+				@if (view().gauges.length) {
+					<section class="kpi-strip" [attr.aria-label]="'INDICATOR-DASHBOARD.KEY-FIGURES' | translate">
+						@for (gauge of view().gauges; track gauge.chartId) {
+							<app-indicator-kpi-card [gauge]="gauge" [queryParams]="scope.queryParams" />
+						}
+					</section>
+				}
+				<nav mat-tab-nav-bar mat-stretch-tabs="false" mat-align-tabs="start" [tabPanel]="tabPanel">
+					@for (tab of view().tabs; track tab.name; let index = $index) {
+						<button mat-tab-link type="button" [active]="selectedTab() === index" (click)="selectedTab.set(index)">{{ tab.languageName ? (tab.languageName | translate) : tab.name }}</button>
+					}
+				</nav>
+				<mat-tab-nav-panel #tabPanel>
+					<div class="card-grid">
+						@for (block of view().tabs[selectedTab()]?.chartGroups; track block) {
+							@switch (block.type) {
+								@case ('chartgroup') {
+									<app-indicator-chart-card [class]="'width-' + (block.width ?? 'half')" [title]="block.languageName ? (block.languageName | translate) : block.name" [help]="block.descriptionLanguage" [charts]="block.charts" [queryParams]="scope.queryParams" [palette]="palette" />
+								}
+								@case ('tenant-table') {
+									<app-indicator-tenant-table [class]="'width-' + (block.width ?? 'full')" [title]="block.languageName ? (block.languageName | translate) : block.name" [indicatorId]="block.indicatorId" [currentTenant]="tenantCode" />
+								}
+							}
+						}
+					</div>
+				</mat-tab-nav-panel>
+			}
+		}
+	} @else {
+		<p class="p-3">{{ 'KPI-SERVICE.KPI_DASHBOARD.NO-DASHBOARDS' | translate }}</p>
+	}
 </div>

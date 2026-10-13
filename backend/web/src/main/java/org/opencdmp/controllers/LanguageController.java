@@ -39,7 +39,6 @@ import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import javax.management.InvalidApplicationException;
-import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -118,41 +117,32 @@ public class LanguageController {
     }
 
     @GetMapping(value = {"public/code/{code}/{tenantCode}", "public/code/{code}"})
-    public Language get(@PathVariable("code") String code, @PathVariable(value = "tenantCode", required = false) String tenantCode, FieldSet fieldSet, boolean overrideFromFile) throws MyApplicationException, MyForbiddenException, MyNotFoundException, IOException {
+    public Language get(@PathVariable("code") String code, @PathVariable(value = "tenantCode", required = false) String tenantCode, FieldSet fieldSet) throws MyApplicationException, MyForbiddenException, MyNotFoundException {
         logger.debug(new MapLogEntry("retrieving" + Language.class.getSimpleName()).And("code", code).And("fields", fieldSet));
 
         this.censorFactory.censor(LanguageCensor.class).censor(fieldSet, null);
 
         LanguageQuery query = this.queryFactory.query(LanguageQuery.class).disableTracking().authorize(EnumSet.of(Public)).codes(code).tenantIsSet(false).isActive(IsActive.Active);
-        Language model = null;
+        LanguageEntity defaultLanguage = query.firstAs(fieldSet);
+        LanguageEntity tenantLanguage = null;
 
-        if (!overrideFromFile) {
-            if (tenantCode != null && !tenantCode.isEmpty() && !tenantCode.equals(this.tenantScopeFactory.getInstance().getDefaultTenantCode())) {
-                TenantEntity tenant = this.queryFactory.query(TenantQuery.class).codes(tenantCode).firstAs(new BaseFieldSet(Tenant._id));
-                if (tenant == null)
-                    throw new MyNotFoundException(this.messageSource.getMessage("General_ItemNotFound", new Object[]{tenantCode, Tenant.class.getSimpleName()}, LocaleContextHolder.getLocale()));
+        if (tenantCode != null && !tenantCode.isEmpty() && !tenantCode.equals(this.tenantScopeFactory.getInstance().getDefaultTenantCode())) {
+            TenantEntity tenant = this.queryFactory.query(TenantQuery.class).codes(tenantCode).firstAs(new BaseFieldSet(Tenant._id));
+            if (tenant == null)
+                throw new MyNotFoundException(this.messageSource.getMessage("General_ItemNotFound", new Object[]{tenantCode, Tenant.class.getSimpleName()}, LocaleContextHolder.getLocale()));
 
-                query.tenantIds(tenant.getId()).tenantIsSet(true);
-                model = this.builderFactory.builder(LanguageBuilder.class).authorize(EnumSet.of(Public)).build(fieldSet, query.firstAs(fieldSet));
-                if (model == null) {
-                    query.clearTenantIds().tenantIsSet(false);
-                    model = this.builderFactory.builder(LanguageBuilder.class).authorize(EnumSet.of(Public)).build(fieldSet, query.firstAs(fieldSet));
-                }
-            }
-            else {
-                model = this.builderFactory.builder(LanguageBuilder.class).authorize(EnumSet.of(Public)).build(fieldSet, query.firstAs(fieldSet));
-            }
-            if (model == null)
-                throw new MyNotFoundException(this.messageSource.getMessage("General_ItemNotFound", new Object[]{code, Language.class.getSimpleName()}, LocaleContextHolder.getLocale()));
-
-        } else {
-            model = new Language();
-            model.setCode(code);
+            tenantLanguage = query.tenantIds(tenant.getId()).tenantIsSet(true).firstAs(fieldSet);
         }
 
-        if (model.getPayload() == null) {
-            model.setPayload(this.languageService.getPayload(code));
-        }
+        LanguageEntity data = tenantLanguage != null ? tenantLanguage : defaultLanguage;
+        if (data == null)
+            throw new MyNotFoundException(this.messageSource.getMessage("General_ItemNotFound", new Object[]{code, Language.class.getSimpleName()}, LocaleContextHolder.getLocale()));
+
+        Language model = this.builderFactory.builder(LanguageBuilder.class).authorize(EnumSet.of(Public)).build(fieldSet, data);
+        // The payload holds only overrides: the frontend merges them over its bundled language file, the tenant's on top of the default tenant's.
+        if (fieldSet.hasField(Language._payload))
+            model.setPayload(this.languageService.mergePayloads(defaultLanguage != null ? defaultLanguage.getPayload() : null, tenantLanguage != null ? tenantLanguage.getPayload() : null));
+
         this.auditService.track(AuditableAction.Language_Lookup, Map.ofEntries(
                 new AbstractMap.SimpleEntry<String, Object>("code", code),
                 new AbstractMap.SimpleEntry<String, Object>("fields", fieldSet)
@@ -168,27 +158,30 @@ public class LanguageController {
         this.censorFactory.censor(LanguageCensor.class).censor(lookup.getProject(), null);
 
         LanguageQuery query = lookup.enrich(this.queryFactory).authorize(EnumSet.of(Public));
-        query.setOrder(new Ordering().addAscending(Language._ordinal));
+        query.setOrder(new Ordering().addAscending(Language._code));
         query.tenantIsSet(false);
 
-        List<LanguageEntity> data = query.collectAs(new BaseFieldSet(Language._code));
+        List<LanguageEntity> data = new ArrayList<>(query.collectAs(new BaseFieldSet(Language._code)));
+        UUID tenantId = null;
         if (tenantCode != null && !tenantCode.isBlank() && !tenantCode.equals(this.tenantScopeFactory.getInstance().getDefaultTenantCode())) {
             TenantEntity tenant = this.queryFactory.query(TenantQuery.class).codes(tenantCode).firstAs(new BaseFieldSet(Tenant._id));
             if (tenant == null)
                 throw new MyNotFoundException(this.messageSource.getMessage("General_ItemNotFound", new Object[]{tenantCode, Tenant.class.getSimpleName()}, LocaleContextHolder.getLocale()));
 
-            query.tenantIsSet(true).tenantIds(tenant.getId());
-            List<LanguageEntity> tenantLanguages = query.collectAs(new BaseFieldSet(Language._code));
-            for (LanguageEntity l : tenantLanguages) {
-               if (data.stream().noneMatch(d1 -> d1.getCode().equals(l.getCode()))) {
-                   data.add(l);
-               }
-            }
+            tenantId = tenant.getId();
+            query.tenantIsSet(true).tenantIds(tenantId);
+            data.addAll(query.collectAs(new BaseFieldSet(Language._code)));
         }
 
-        long count = (lookup.getMetadata() != null && lookup.getMetadata().getCountAll()) ? query.count() : data.size();
+        List<String> codes = data.stream().map(LanguageEntity::getCode).distinct().sorted().collect(Collectors.toList());
+        // The first code is the language for visitors and users without one: the configured default, else English.
+        String defaultCode = this.languageService.getDefaultLanguageCode(tenantId);
+        if (codes.remove(defaultCode)) codes.addFirst(defaultCode);
+        else if (codes.remove("en")) codes.addFirst("en");
 
-        return new QueryResult<>(data.stream().map(LanguageEntity::getCode).distinct().collect(Collectors.toList()), count);
+        long count = (lookup.getMetadata() != null && lookup.getMetadata().getCountAll()) ? query.count() : codes.size();
+
+        return new QueryResult<>(codes, count);
     }
 
     @PostMapping("persist")

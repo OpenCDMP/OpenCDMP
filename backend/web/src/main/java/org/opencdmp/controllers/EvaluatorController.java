@@ -79,10 +79,10 @@ public class EvaluatorController {
     @OperationWithTenantHeader(summary = "Rank a plan", description = SwaggerHelpers.Evaluator.endpoint_rank_plans,
             responses = @ApiResponse(description = "OK", responseCode = "200"),
             extensions = @Extension(name = "x-order", properties = @ExtensionProperty(name = "value", value = "2")))
-    public ResponseEntity<RankResultModel> rankPlan(@RequestBody EvaluateRequestModel requestModel) throws Exception {
+    public ResponseEntity<List<RankResultModel>> rankPlan(@RequestBody EvaluateRequestModel requestModel) throws Exception {
         logger.debug(new MapLogEntry("ranking plan"));
 
-        RankResultModel rankModel = this.evaluatorService.rankPlan(requestModel.getId(), requestModel.getEvaluatorId(), requestModel.getFormat(), requestModel.getBenchmarkIds());
+        List<RankResultModel> rankModel = this.evaluatorService.rankPlan(requestModel.getId(), requestModel.getEvaluatorId(), requestModel.getFormat(), requestModel.getBenchmarkIds(), requestModel.getTestIds());
 
         return new ResponseEntity<>(rankModel, HttpStatus.OK);
     }
@@ -90,10 +90,10 @@ public class EvaluatorController {
     @OperationWithTenantHeader(summary = "Rank a description", description = SwaggerHelpers.Evaluator.endpoint_rank_descriptions,
             responses = @ApiResponse(description = "OK", responseCode = "200"),
             extensions = @Extension(name = "x-order", properties = @ExtensionProperty(name = "value", value = "3")))
-    public ResponseEntity<RankResultModel> rankDescription(@RequestBody EvaluateRequestModel requestModel) throws Exception {
+    public ResponseEntity<List<RankResultModel>> rankDescription(@RequestBody EvaluateRequestModel requestModel) throws Exception {
         logger.debug(new MapLogEntry("ranking description"));
 
-        RankResultModel rankModel = this.evaluatorService.rankDescription(requestModel.getId(), requestModel.getEvaluatorId(), requestModel.getFormat(), requestModel.getBenchmarkIds(), true);
+        List<RankResultModel> rankModel = this.evaluatorService.rankDescription(requestModel.getId(), requestModel.getEvaluatorId(), requestModel.getFormat(), requestModel.getBenchmarkIds(), requestModel.getTestIds(), true);
 
         return new ResponseEntity<>(rankModel, HttpStatus.OK);
     }

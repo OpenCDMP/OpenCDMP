@@ -1,0 +1,9 @@
+@use '../../bp2-shared' as *;
+
+:host { display: block; }
+.of { display: flex; flex-direction: column; gap: .375rem; }
+.of-head { display: flex; align-items: center; gap: .5rem; }
+.of-read { display: flex; flex-wrap: wrap; gap: .375rem; }
+.of-chip { display: inline-flex; align-items: center; gap: .25rem; height: 26px; padding: 0 .5rem; border-radius: 6px; background: var(--mat-sys-secondary-container); color: var(--mat-sys-on-secondary-container); font-family: ui-monospace, Consolas, monospace; font-size: .75rem; overflow-wrap: anywhere; mat-icon { font-size: 15px; width: 15px; height: 15px; } }
+.of-lines { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: .25rem; font-size: .85rem; }
+.of-hint { display: flex; align-items: center; gap: .375rem; flex-wrap: wrap; margin-top: .25rem; font-size: .8rem; color: var(--mat-sys-on-surface-variant); mat-icon { font-size: 16px; width: 16px; height: 16px; } }

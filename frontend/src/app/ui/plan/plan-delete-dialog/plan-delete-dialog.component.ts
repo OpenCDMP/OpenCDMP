@@ -1,15 +1,19 @@
-import { Component, computed, HostBinding, Inject } from '@angular/core';
-import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
+import { Component, Inject, ChangeDetectionStrategy } from '@angular/core';
+import { MAT_DIALOG_DATA, MatDialogRef, MatDialogTitle, MatDialogContent, MatDialogActions } from '@angular/material/dialog';
 import { Description } from '@app/core/model/description/description';
+import { MatIconButton, MatButton } from '@angular/material/button';
+import { MatIcon } from '@angular/material/icon';
+import { CdkScrollable } from '@angular/cdk/scrolling';
+import { TranslatePipe } from '@ngx-translate/core';
 
 @Component({
     selector: 'app-plan-delete-dialog',
     templateUrl: './plan-delete-dialog.component.html',
-    styleUrls: ['./plan-delete-dialog.component.scss'],
-    standalone: false
+    changeDetection: ChangeDetectionStrategy.Eager,
+    imports: [MatDialogTitle, MatIconButton, MatIcon, CdkScrollable, MatDialogContent, MatDialogActions, MatButton, TranslatePipe]
 })
 export class PlanDeleteDialogComponent {
-   
+
 
 	descriptions: Description[];
 	constructor(

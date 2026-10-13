@@ -12,6 +12,9 @@ import gr.cite.tools.logging.LoggerService;
 import gr.cite.tools.logging.MapLogEntry;
 import org.opencdmp.authorization.AuthorizationFlags;
 import org.opencdmp.authorization.Permission;
+import org.opencdmp.authorization.OwnedResource;
+import org.opencdmp.commons.scope.tenant.TenantScopeFactory;
+import org.opencdmp.commons.scope.user.UserScopeFactory;
 import org.opencdmp.convention.ConventionService;
 import org.opencdmp.data.TenantEntityManagerFactory;
 import org.opencdmp.data.UserSettingsEntity;
@@ -26,6 +29,8 @@ import org.springframework.stereotype.Service;
 
 import javax.management.InvalidApplicationException;
 import java.time.Instant;
+import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 
 @Service
@@ -37,6 +42,8 @@ public class UserSettingsServiceImpl implements UserSettingsService {
 	private final BuilderFactory builderFactory;
 	private final ConventionService conventionService;
 	private final MessageSource messageSource;
+	private final UserScopeFactory userScopeFactory;
+	private final TenantScopeFactory tenantScopeFactory;
 
 
 	@Autowired
@@ -45,38 +52,55 @@ public class UserSettingsServiceImpl implements UserSettingsService {
 			AuthorizationService authorizationService,
 			BuilderFactory builderFactory,
 			ConventionService conventionService,
-			MessageSource messageSource) {
+			MessageSource messageSource,
+			UserScopeFactory userScopeFactory,
+			TenantScopeFactory tenantScopeFactory) {
 		this.tenantEntityManagerFactory = tenantEntityManagerFactory;
+		this.tenantScopeFactory = tenantScopeFactory;
 		this.authorizationService = authorizationService;
 		this.builderFactory = builderFactory;
 		this.conventionService = conventionService;
 		this.messageSource = messageSource;
+		this.userScopeFactory = userScopeFactory;
 	}
 
 	@Override
 	public UserSettings persist(UserSettingsPersist model, FieldSet fields) throws MyForbiddenException, MyValidationException, MyApplicationException, MyNotFoundException, InvalidApplicationException {
 		logger.debug(new MapLogEntry("persisting data access request").And("model", model).And("fields", fields));
 
-		this.authorizationService.authorizeForce(Permission.EditUserSettings);
-
 		boolean isUpdate = this.conventionService.isValidGuid(model.getId());
 
-		UserSettingsEntity data;
+		UserSettingsEntity data = null;
+		UUID existingOwner = null;
 		if (isUpdate) {
 			data = this.tenantEntityManagerFactory.getInstance().find(UserSettingsEntity.class, model.getId());
 			if (data == null) throw new MyNotFoundException(this.messageSource.getMessage("General_ItemNotFound", new Object[]{model.getId(), UserSettings.class.getSimpleName()}, LocaleContextHolder.getLocale()));
-		} else {
+			existingOwner = data.getEntityId();
+			// The tenant filter also lets tenant-less rows through, so a client inside a tenant can be handed the
+			// default-scope row. Merging it from here is rejected as tenant tampering; fork a row for this tenant instead.
+			if (!Objects.equals(data.getTenantId(), this.tenantScopeFactory.getInstance().getTenant())) {
+				isUpdate = false;
+				data = null;
+			}
+		}
+		if (data == null) {
 			data = new UserSettingsEntity();
 			data.setCreatedAt(Instant.now());
 			data.setId(UUID.randomUUID());
-
 		}
+
+		// Settings are personal: the owner of an existing row is fixed, a new row belongs to the caller (or to
+		// the user the caller explicitly names). Passing the owner as an OwnedResource means a plain user can only
+		// touch their own rows, while EditUserSettings (administrators) may edit anyone's.
+		UUID currentUserId = this.userScopeFactory.getInstance().getUserIdSafe();
+		UUID owner = existingOwner != null ? existingOwner : (model.getEntityId() != null ? model.getEntityId() : currentUserId);
+		this.authorizationService.authorizeAtLeastOneForce(owner != null ? List.of(new OwnedResource(owner)) : null, Permission.EditUserSettings);
 
         data.setName(model.getKey());
 		data.setType(model.getType());
 		data.setKey(model.getKey());
 		data.setValue(model.getValue());
-		data.setEntityId(model.getEntityId());
+		data.setEntityId(owner);
 		data.setUpdatedAt(Instant.now());
 
 		if (isUpdate) this.tenantEntityManagerFactory.getInstance().merge(data);

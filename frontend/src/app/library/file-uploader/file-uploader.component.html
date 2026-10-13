@@ -1,42 +1,54 @@
-<div class=file-uploader-container>
-  <mat-form-field appearance="fill" class="w-100 dropzone-form-field" [class.error]="storageFileIdControl()?.touched && storageFileIdControl()?.invalid">
-    @if (label) {
-      <mat-label>{{label()}}</mat-label>
+<div class="file-uploader-container">
+  <!-- <mat-form-field appearance="fill" class="w-100 dropzone-form-field" [class.error]="storageFileIdControl()?.touched && storageFileIdControl()?.invalid"> -->
+    @if (label()) {
+      <label [for]="id()" class="file-uploader-label">{{label()}}</label>
     }
-    <ngx-mat-dropzone class="dropzone">
-      <input type="file" class="file-input" fileInput [formControl]="fileCtrl" [accept]="accept()" [multiple]="multiple"  [id]="id()"/>
-      @if (fileCtrl.value &&  (fileCtrl.disabled || fileCtrl.valid)) {
-        <mat-chip-row class="d-flex align-items-center selected-file" (removed)="remove()" (click)="$event.stopPropagation(); download()" [disabled]="fileCtrl.disabled">
-          {{ fileCtrl.value?.name }}
-          <button matChipRemove  class="remove-badge" role="button" type="reset" [attr.aria-label]="'COMMONS.ACTIONS.REMOVE' | translate">
-            <mat-icon aria-hidden>cancel</mat-icon>
-          </button>
-        </mat-chip-row>
+    <ngx-dropzone class="dropzone-form-field" (click)="openFilePicker()" [class.disabled]="fileCtrl.disabled">
+        <input type="file" class="file-input" fileInput [formControl]="fileCtrl" [accept]="accept()" [multiple]="multiple"  [id]="id()" [attr.aria-describedby]="id() + '-errors'" [attr.aria-invalid]="fileCtrl.touched && fileCtrl.invalid"/>
+        @if (fileCtrl.value &&  (fileCtrl.disabled || fileCtrl.valid)) {
+            <mat-chip-row class="d-flex align-items-center selected-file" (removed)="remove()" (click)="$event.stopPropagation(); download()" [disabled]="fileCtrl.disabled">
+                {{ fileCtrl.value?.name }}
+                <button matChipRemove  class="remove-badge" role="button" type="reset" [attr.aria-label]="'COMMONS.ACTIONS.REMOVE' | translate">
+                    <mat-icon aria-hidden="true">cancel</mat-icon>
+                </button>
+            </mat-chip-row>
+        }
+        @else {
+            <div class="hint-row d-flex flex-column align-items-center">
+                <mat-icon  class="upload-file-icon material-symbols-outlined mb-3" aria-hidden="true">upload_file</mat-icon>
+                <div class="hint-large mb-1">{{'FILE-UPLOADER.DRAG-AND-DROP-HERE' | translate}}</div>
+                <div class="opacity-08">{{'FILE-UPLOADER.OR' | translate}}</div>
+            </div>
+        }
+        <div class="actions d-flex justify-content-center mt-3">
+            @if(storageFileIdControl() && fileCtrl.value && (fileCtrl.disabled || fileCtrl.valid)){
+                <button mat-stroked-button color="primary" (click)="$event.stopPropagation(); download()" type="button" class="download-btn">
+                    <mat-icon class="mr-2" aria-hidden="true">download</mat-icon>
+                    <span>{{ 'FILE-UPLOADER.ACTIONS.DOWNLOAD' | translate }}</span>
+                </button>
+            }@else {
+                <button mat-flat-button type="button" [disabled]="fileCtrl.disabled">
+                    <mat-icon class="mr-2" aria-hidden="true">upload</mat-icon>
+                    <span>{{placeholder() ?? ('FILE-UPLOADER.ACTIONS.UPLOAD' | translate)}}</span>
+                </button>
+            }
+        </div>
+        @if(accept()?.length){
+            <div class="mt-3 opacity-08"><small>{{'FILE-UPLOADER.FILE-TYPES' | translate}} {{accept()}}</small></div>
+        }
+    </ngx-dropzone>
+    <div [id]="id() + '-errors'" role="alert">
+      @if(fileCtrl.hasError('accept')){
+        <mat-error class="form-error">{{'FILE-UPLOADER.ERRORS.INVALID-FILE-TYPE' | translate}} {{accept()}}</mat-error>
       }
-    </ngx-mat-dropzone>
-    @if(fileCtrl.hasError('accept')){
-      <mat-error class="form-error">{{'FILE-UPLOADER.ERRORS.INVALID-FILE-TYPE' | translate}} {{accept()}}</mat-error>
-    }
-    @if(fileCtrl.hasError('maxSize')){
-      <mat-error class="form-error">{{'FILE-UPLOADER.ERRORS.MAX-SIZE' | translate}} {{maxFileSizeInMB}}MB</mat-error>
-    }
-    @if(fileCtrl.hasError('required')){
-      <mat-error class="form-error">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
-    }
-  </mat-form-field>
-  <div class="actions d-flex justify-content-center">
-    @if(storageFileIdControl() && fileCtrl.value && (fileCtrl.disabled || fileCtrl.valid)){
-      <button mat-stroked-button color="primary" (click)="download()" type="button" class="download-btn">
-        <mat-icon class="mr-2" aria-hidden>download</mat-icon>
-        <span>{{ "FILE-UPLOADER.ACTIONS.DOWNLOAD" | translate }}</span>
-      </button>
-      }@else {
-      <button mat-flat-button color="primary" (click)="openFilePicker()" type="button" [disabled]="fileCtrl.disabled">
-        <mat-icon class="mr-2" aria-hidden>upload</mat-icon>
-        <span>{{placeholder() ?? ("FILE-UPLOADER.ACTIONS.UPLOAD" | translate)}}{{required() ? ' *' : ''}}</span>
-      </button>
-    }
-  </div>
+      @if(fileCtrl.hasError('maxSize')){
+        <mat-error class="form-error">{{'FILE-UPLOADER.ERRORS.MAX-SIZE' | translate}} {{maxFileSizeInMB}}MB</mat-error>
+      }
+      @if(fileCtrl.touched && fileCtrl.hasError('required')){
+        <mat-error class="form-error">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
+      }
+    </div>
+  <!-- </mat-form-field> -->
 </div>
 
 
@@ -60,12 +72,12 @@
 <div class="actions d-flex justify-content-center" [id]="id">
   @if(allowDownload() && fileNameDisplay()){
     <button mat-stroked-button color="primary" (click)="download()" type="button" class="download-btn" tabindex="0">
-      <mat-icon class="mr-2" aria-hidden>download</mat-icon>
+      <mat-icon class="mr-2" aria-hidden="true">download</mat-icon>
       <span>{{ "FILE-UPLOADER.ACTIONS.DOWNLOAD" | translate }}</span>
     </button>
     }@else {
     <button mat-flat-button color="primary" (click)="drop.showFileSelector()" type="button" [disabled]="form() && form().disabled" tabindex="0">
-      <mat-icon class="mr-2" aria-hidden>upload</mat-icon>
+      <mat-icon class="mr-2" aria-hidden="true">upload</mat-icon>
       <span>{{placeholder() ?? ("FILE-UPLOADER.ACTIONS.UPLOAD" | translate)}}</span>
     </button>
   }

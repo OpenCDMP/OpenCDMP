@@ -1,123 +1,103 @@
 <div class="container-fluid">
   <div class="row plan-blueprint-listing">
     <div class="col-md-10 offset-md-1">
-      <div class="row mb-4 mt-4">
-        <div class="col">
-          <app-navigation-breadcrumb />
-        </div>
-        <div class="col-auto">
+      <app-admin-page-header
+        titleKey="PLAN-BLUEPRINT-LISTING.TITLE"
+        descriptionKey="PLAN-BLUEPRINT-LISTING.DESCRIPTION">
+        <ng-container actions>
           <button mat-button class="padded-shadow-btn import" (click)="import()">
             <span class="button-text">
               {{'PLAN-BLUEPRINT-LISTING.IMPORT.UPLOAD-XML' | translate}}
             </span>
           </button>
-        </div>
 
-        <div class="col-auto">
-          @if (authService.hasPermission(authService.permissionEnum.EditDescriptionTemplateType)) {
+          @if (authService.hasPermission(authService.permissionEnum.EditPlanBlueprint)) {
             <button mat-flat-button color="accent" class="padded-shadow-btn" [routerLink]="routerUtils.generateUrl(['/plan-blueprints/new'])">
               <mat-icon>add</mat-icon>
               {{'PLAN-BLUEPRINT-LISTING.CREATE-PLAN-BLUEPRINT' | translate}}
             </button>
           }
-        </div>
-      </div>
+        </ng-container>
+      </app-admin-page-header>
 
-      <app-hybrid-listing [rows]="gridRows" [columns]="gridColumns" [visibleColumns]="visibleColumns" [count]="totalElements" [offset]="currentPageNumber" [limit]="lookup.page.size" [defaultSort]="lookup.order?.items" [externalSorting]="true" (rowActivated)="onRowActivated($event, routerUtils.generateUrl('/plan-blueprints'))" (pageLoad)="alterPage($event)" (columnSort)="onColumnSort($event)" (columnsChanged)="onColumnsChanged($event)" [listItemTemplate]="listItemTemplate">
+      <app-admin-listing [rows]="gridRows" [columns]="gridColumns" [visibleColumns]="visibleColumns" [count]="totalElements" [offset]="currentPageNumber" [limit]="lookup.page.size" [defaultSort]="$safeNavigationMigration(lookup.order?.items)" [loadingIndicator]="isListingLoading" [hasActiveFilters]="hasActiveFilters" (clearFilters)="clearAllFilters()" (rowActivated)="onRowActivated($event, routerUtils.generateUrl('/plan-blueprints'))" (pageLoad)="alterPage($event)" (columnSort)="onColumnSort($event)" (columnsChanged)="onColumnsChanged($event)" [scope]="scope" [scopeCounts]="scopeCounts" (scopeChange)="onScopeChange($event)" [showDeleted]="showDeleted" (showDeletedChange)="onShowDeletedChange($event)" [tenantName]="tenantName" [rowLink]="rowLink" [searchTerm]="lookup.like" (searchChange)="onSearchChange($event)" [rowEditable]="rowEditable">
 
-        <app-plan-blueprint-listing-filters hybrid-listing-filters [(filter)]="lookup" (filterChange)="filterChanged($event)" />
+        <app-plan-blueprint-listing-filters listing-filters [(filter)]="lookup" (filterChange)="filterChanged($event)" [hasSelectedTenant]="authService.selectedTenant() !== 'default'" />
 
+        <ng-container listing-empty-actions>
+          <button mat-flat-button color="accent" class="padded-shadow-btn" [routerLink]="routerUtils.generateUrl(['/plan-blueprints/new'])"><mat-icon aria-hidden="true">add</mat-icon>{{'ADMIN-LISTING.EMPTY-OWN.CREATE' | translate}}</button>
+          <button mat-stroked-button class="padded-shadow-btn" type="button" (click)="import()"><mat-icon aria-hidden="true">upload</mat-icon>{{'ADMIN-LISTING.EMPTY-OWN.IMPORT' | translate}}</button>
+        </ng-container>
         <app-user-settings-picker [key]="userSettingsKey" [userPreference]="lookup" (onSettingSelected)="changeSetting($event)" [autoSelectUserSettings]="autoSelectUserSettings" user-preference-settings />
-      </app-hybrid-listing>
+      </app-admin-listing>
     </div>
   </div>
 </div>
 
-<ng-template #listItemTemplate let-item="item" let-isColumnSelected="isColumnSelected">
 
-
-  <div class="d-flex align-items-center p-3 gap-1-rem">
-    <div class="row">
-      @if (isColumnSelected('label')) {
-        <a class="buttonLinkClass" [routerLink]="routerUtils.generateUrl('./' + item?.id)" class="col-12" (click)="$event.stopPropagation()">{{item?.label | nullifyValue}}</a>
-        <br />
-      }
-
-      @if (isColumnSelected('status')) {
-        <div class="col-auto">
-          <div class="status-chip" [ngClass]="{'status-chip-finalized': item.status === planBlueprintStatuses.Finalized, 'status-chip-draft' : item.status === planBlueprintStatuses.Draft}">
-            {{enumUtils.toPlanBlueprintStatusString(item.status) | nullifyValue}}
-          </div>
-        </div>
-      }
-
-      @if (isColumnSelected('createdAt')) {
-        <span class="col-12">
-          {{'PLAN-BLUEPRINT-LISTING.FIELDS.CREATED-AT' | translate}}:
-          <small>
-            {{item?.createdAt | dateTimeFormatter : 'short' | nullifyValue}}
-          </small>
-        </span>
-        <br>
-        }
-        @if (isColumnSelected('updatedAt')) {
-          <span class="col-12">
-            {{'PLAN-BLUEPRINT-LISTING.FIELDS.UPDATED-AT' | translate}}:
-            <small>
-              {{item?.updatedAt | dateTimeFormatter : 'short' | nullifyValue}}
-            </small>
-          </span>
-        }
-      </div>
+  <ng-template #planBlueprintStatus let-row="row" let-item>
+    <div class="status-chip" [class]="{'status-chip-finalized': row.status === planBlueprintStatuses.Finalized, 'status-chip-draft' : row.status === planBlueprintStatuses.Draft}">
+      {{enumUtils.toPlanBlueprintStatusString(row.status) | nullifyValue}}
     </div>
   </ng-template>
 
-  <ng-template #planBlueprintStatus let-row="row" let-item>
-    <div class="row">
-      <div class="col-auto status-chip" [ngClass]="{'status-chip-finalized': row.status === planBlueprintStatuses.Finalized, 'status-chip-draft' : row.status === planBlueprintStatuses.Draft}">
-        {{enumUtils.toPlanBlueprintStatusString(row.status) | nullifyValue}}
-      </div>
-    </div>
+  <ng-template #nameCell let-row="row">
+    <span>{{ $safeNavigationMigration(row?.label) | nullifyValue }}</span>
+    <span class="al-sub">{{ $safeNavigationMigration(row?.code) | nullifyValue }}</span>
+    <app-tenant-shared-chip [item]="row" />
   </ng-template>
 
   <ng-template #actions let-row="row" let-item>
-    <div class="row" (click)="$event.stopPropagation()">
-      <div class="col-auto">
-        <button mat-icon-button [matMenuTriggerFor]="actionsMenu" [attr.aria-label]="'ALT-TEXT.MORE-ACTIONS' | translate">
-          <mat-icon>more_horiz</mat-icon>
-        </button>
-        <mat-menu #actionsMenu="matMenu">
-          @if (canEdit(row)) {
-            <a mat-menu-item [routerLink]="routerUtils.generateUrl(['/plan-blueprints/', row.id])">
-              <mat-icon aria-hidden>edit</mat-icon>{{'PLAN-BLUEPRINT-LISTING.ACTIONS.EDIT' | translate}}
-            </a>
-          }
-          @if (canCreateNewVersion(row)) {
-            <a mat-menu-item [routerLink]="routerUtils.generateUrl(['/plan-blueprints/new-version/', row.id])">
-              <mat-icon aria-hidden>queue</mat-icon>{{'PLAN-BLUEPRINT-LISTING.ACTIONS.NEW-VERSION' | translate}}
-            </a>
-          }
-          <a mat-menu-item [routerLink]="routerUtils.generateUrl(['/plan-blueprints/clone/', row.id])">
-            <mat-icon aria-hidden>content_copy</mat-icon>{{'PLAN-BLUEPRINT-LISTING.ACTIONS.CLONE' | translate}}
+    <div class="d-inline-block" tabindex="-1" (click)="$event.stopPropagation()" (keydown)="$event.stopPropagation()">
+      @if (!canEdit(row)) {
+        <a mat-icon-button class="al-actions__clone" [routerLink]="routerUtils.generateUrl(['/plan-blueprints/clone/', row.id])" [matTooltip]="'PLAN-BLUEPRINT-LISTING.ACTIONS.CLONE' | translate" [attr.aria-label]="'PLAN-BLUEPRINT-LISTING.ACTIONS.CLONE' | translate">
+          <mat-icon class="material-symbols-outlined" aria-hidden="true">content_copy</mat-icon>
+        </a>
+      }
+      <button mat-icon-button [matMenuTriggerFor]="actionsMenu" [attr.aria-label]="'ALT-TEXT.MORE-ACTIONS' | translate">
+        <mat-icon>more_horiz</mat-icon>
+      </button>
+      <mat-menu #actionsMenu="matMenu">
+        @if (!canEdit(row)) {
+          <a mat-menu-item [routerLink]="routerUtils.generateUrl(['/plan-blueprints/', row.id])">
+            <mat-icon aria-hidden="true">visibility</mat-icon>{{'COMMONS.TENANT-SHARED.VIEW' | translate}}
           </a>
-          @if (row.isActive == isActive.Active) {
-            <a mat-menu-item [routerLink]="routerUtils.generateUrl(['/plan-blueprints/versions/', row.groupId])">
-              <mat-icon aria-hidden>library_books</mat-icon>
-              {{'PLAN-BLUEPRINT-LISTING.ACTIONS.VIEW-VERSIONS' | translate}}
-            </a>
-          }
-          @if (canDownloadXML(row)) {
-            <button mat-menu-item (click)="export($event, row.id)">
-              <mat-icon aria-hidden>download</mat-icon>{{'PLAN-BLUEPRINT-LISTING.ACTIONS.DOWNLOAD-XML' | translate}}
-            </button>
-          }
-          @if (canDelete(row)) {
-            <button mat-menu-item (click)="delete(row.id)">
-              <mat-icon aria-hidden>delete</mat-icon>
-              {{'PLAN-BLUEPRINT-LISTING.ACTIONS.DELETE' | translate}}
-            </button>
-          }
-        </mat-menu>
-      </div>
+        }
+        @if (row?.belongsToCurrentTenant === false) {
+          <span mat-menu-item disabled class="al-menu-note" [matTooltip]="'COMMONS.TENANT-SHARED.TOOLTIP' | translate">
+            <mat-icon aria-hidden="true">lock</mat-icon>{{'ADMIN-LISTING.EDIT-ON-DEFAULT' | translate}}
+          </span>
+        }
+        @if (canEdit(row)) {
+          <a mat-menu-item [routerLink]="routerUtils.generateUrl(['/plan-blueprints/', row.id])">
+            <mat-icon aria-hidden="true">edit</mat-icon>{{'PLAN-BLUEPRINT-LISTING.ACTIONS.EDIT' | translate}}
+          </a>
+        }
+        @if (canCreateNewVersion(row)) {
+          <a mat-menu-item [routerLink]="routerUtils.generateUrl(['/plan-blueprints/new-version/', row.id])">
+            <mat-icon aria-hidden="true">queue</mat-icon>{{'PLAN-BLUEPRINT-LISTING.ACTIONS.NEW-VERSION' | translate}}
+          </a>
+        }
+        <a mat-menu-item [routerLink]="routerUtils.generateUrl(['/plan-blueprints/clone/', row.id])">
+          <mat-icon aria-hidden="true">content_copy</mat-icon>{{'PLAN-BLUEPRINT-LISTING.ACTIONS.CLONE' | translate}}
+        </a>
+        @if (row.isActive === isActive.Active) {
+          <a mat-menu-item [routerLink]="routerUtils.generateUrl(['/plan-blueprints/versions/', row.groupId])" [queryParams]="{ belongsToCurrentTenant: row.belongsToCurrentTenant }">
+            <mat-icon aria-hidden="true">library_books</mat-icon>
+            {{'PLAN-BLUEPRINT-LISTING.ACTIONS.VIEW-VERSIONS' | translate}}
+          </a>
+        }
+        @if (canDownloadXML(row)) {
+          <button mat-menu-item (click)="export($event, row.id)">
+            <mat-icon aria-hidden="true">download</mat-icon>{{'PLAN-BLUEPRINT-LISTING.ACTIONS.DOWNLOAD-XML' | translate}}
+          </button>
+        }
+        @if (canDelete(row)) {
+          <button mat-menu-item (click)="delete(row.id)">
+            <mat-icon aria-hidden="true">delete</mat-icon>
+            {{'PLAN-BLUEPRINT-LISTING.ACTIONS.DELETE' | translate}}
+          </button>
+        }
+      </mat-menu>
     </div>
   </ng-template>

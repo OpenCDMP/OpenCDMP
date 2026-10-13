@@ -1,0 +1,91 @@
+@if (!sourcesLoading() && !sources().length) {
+	<div class="import-empty" role="status">
+		<mat-icon class="material-symbols-outlined import-empty--icon" aria-hidden="true">cloud_off</mat-icon>
+		<p>{{ 'NEW-DESCRIPTION.IMPORT.NO-SOURCES' | translate }}</p>
+	</div>
+} @else {
+	<form class="import-step" [formGroup]="form" (ngSubmit)="lookUp()">
+		<label class="field-label" for="new-asset-import-template">
+			{{ 'NEW-DESCRIPTION.IMPORT.TEMPLATE' | translate }} <span class="field-label--required" aria-hidden="true">*</span>
+		</label>
+		<mat-form-field class="w-100">
+			<mat-select id="new-asset-import-template" formControlName="templateId" [placeholder]="'NEW-DESCRIPTION.IMPORT.TEMPLATE-PLACEHOLDER' | translate">
+				@for (template of selectableTemplates(); track template.id) {
+					<mat-option [value]="template.id">{{ template.type?.name ? template.type.name + ' · ' : '' }}{{ template.label }}</mat-option>
+				}
+			</mat-select>
+			<mat-hint>{{ 'NEW-DESCRIPTION.IMPORT.TEMPLATE-HINT' | translate }}</mat-hint>
+		</mat-form-field>
+
+		<label class="field-label" for="new-asset-import-source">
+			{{ 'NEW-DESCRIPTION.IMPORT.SOURCE' | translate }} <span class="field-label--required" aria-hidden="true">*</span>
+		</label>
+		<mat-form-field class="w-100">
+			<mat-select id="new-asset-import-source" formControlName="sourceId" [placeholder]="'NEW-DESCRIPTION.IMPORT.SOURCE-PLACEHOLDER' | translate">
+				@for (source of sources(); track source.id) {
+					<mat-option [value]="source.id">{{ source.label }}</mat-option>
+				}
+			</mat-select>
+		</mat-form-field>
+
+		<label class="field-label" for="new-asset-import-identifier">{{ 'NEW-DESCRIPTION.IMPORT.QUERY' | translate }}</label>
+		<div class="lookup-row">
+			<mat-form-field class="lookup-row--field" subscriptSizing="dynamic">
+				<input matInput id="new-asset-import-identifier" formControlName="identifier" autocomplete="off"
+					[placeholder]="'NEW-DESCRIPTION.IMPORT.QUERY-PLACEHOLDER' | translate" />
+			</mat-form-field>
+			<button mat-flat-button color="secondary" type="submit" class="lookup-row--button" [disabled]="!canLookUp() || searching()">
+				{{ 'NEW-DESCRIPTION.IMPORT.LOOK-UP' | translate }}
+			</button>
+		</div>
+		<p class="field-hint" id="new-asset-import-identifier-hint">{{ 'NEW-DESCRIPTION.IMPORT.QUERY-HINT' | translate }}</p>
+
+		@if (searching()) {
+			<mat-progress-bar mode="indeterminate" class="import-progress" [attr.aria-label]="'ALT-TEXT.PROGRESS-BAR' | translate" />
+		}
+
+		@if (results(); as records) {
+			@if (records.length) {
+				<ul class="results unstyled-list" aria-live="polite">
+					@for (record of records; track record.id) {
+						@let template = selectedTemplate();
+						<li class="result">
+							<div class="result--info">
+								<div class="result--heading">
+									@if (template?.type?.name) {
+										@let style = typeStyle(template.type);
+										<span class="type-chip" [style.background-color]="style.background" [style.color]="style.color">{{ template.type.name }}</span>
+									}
+									<span class="result--title">{{ record.label }}</span>
+								</div>
+								<div class="result--meta">
+									@if (record.tag) {
+										<span>{{ record.tag }}</span>
+									}
+									<span class="result--id">
+										<mat-icon aria-hidden="true">link</mat-icon>
+										<span>{{ record.key || record.id }}</span>
+									</span>
+								</div>
+								<div class="result--ok">
+									<mat-icon class="material-symbols-outlined" aria-hidden="true">check_circle</mat-icon>
+									{{ 'NEW-DESCRIPTION.IMPORT.RECORD-FOUND' | translate }}
+								</div>
+							</div>
+							<button mat-flat-button color="secondary" type="button" class="result--import"
+								[disabled]="importingId() !== null"
+								[attr.aria-label]="'NEW-DESCRIPTION.IMPORT.ACTIONS.IMPORT-RECORD' | translate: { name: record.label }"
+								(click)="import(record)"
+							>
+								<mat-icon class="material-symbols-outlined" aria-hidden="true">auto_awesome</mat-icon>
+								{{ (importingId() === record.id ? 'NEW-DESCRIPTION.IMPORT.ACTIONS.IMPORTING' : 'NEW-DESCRIPTION.IMPORT.ACTIONS.IMPORT') | translate }}
+							</button>
+						</li>
+					}
+				</ul>
+			} @else {
+				<p class="no-results" role="status">{{ 'NEW-DESCRIPTION.IMPORT.NO-RESULTS' | translate: { term: lastTerm() } }}</p>
+			}
+		}
+	</form>
+}

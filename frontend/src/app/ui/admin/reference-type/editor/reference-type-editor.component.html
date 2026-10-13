@@ -1,227 +1,285 @@
-<div class="container-fluid">
-  <div class="row reference-type-editor">
-    <div class="col-md-10 offset-md-1 colums-gapped">
-      <div class="row align-items-center mt-4 mb-4">
-        <div class="col-md col-12">
-          <app-navigation-breadcrumb />
-        </div>
+@if (formGroup) {
+<div class="rt2">
+	<header class="rt2-header">
+		<div class="rt2-header__row">
+			<app-navigation-breadcrumb />
+			<div class="rt2-header__actions">
+				<span class="rt2-saved" [class.rt2-saved--dirty]="formGroup.dirty" aria-live="polite">
+					@if (isLoading()) { {{'PLAN-BLUEPRINT-EDITOR.HEADER.SAVING' | translate}} }
+					@else if (formGroup.dirty) { {{'PLAN-BLUEPRINT-EDITOR.HEADER.UNSAVED' | translate}} }
+					@else if (!isNew) { {{'PLAN-BLUEPRINT-EDITOR.HEADER.SAVED' | translate}} }
+				</span>
+				<button mat-stroked-button type="button" (click)="cancel()">{{'PLAN-BLUEPRINT-EDITOR.HEADER.CLOSE' | translate}}</button>
+				@if (canSave) {
+					<button mat-flat-button color="primary" type="button" [disabled]="isLoading()" (click)="formSubmit()">{{'PLAN-BLUEPRINT-EDITOR.HEADER.SAVE' | translate}}</button>
+				}
+				<button mat-icon-button type="button" class="rt2-more" [matMenuTriggerFor]="moreMenu" [attr.aria-label]="'ALT-TEXT.MORE-ACTIONS' | translate"><mat-icon aria-hidden="true">more_vert</mat-icon></button>
+				<mat-menu #moreMenu="matMenu">
+					@if (sourcesArray.length) {
+						<button mat-menu-item type="button" (click)="openReferenceTestDialog()"><mat-icon aria-hidden="true">play_arrow</mat-icon>{{'REFERENCE-TYPE-EDITOR.HEADER.TEST-ALL' | translate}}</button>
+					}
+					<button mat-menu-item type="button" (click)="exportDefinitionToXml()"><mat-icon aria-hidden="true">download</mat-icon>{{'REFERENCE-TYPE-EDITOR.ACTIONS.EXPORT-XML' | translate}}</button>
+					@if (canSave) {
+						<button mat-menu-item type="button" (click)="openImportXmlDialog()"><mat-icon aria-hidden="true">upload</mat-icon>{{'REFERENCE-TYPE-EDITOR.ACTIONS.IMPORT-XML' | translate}}</button>
+					}
+					@if (canDelete) {
+						<button mat-menu-item type="button" class="rt2-danger" [disabled]="isLoading()" (click)="delete()"><mat-icon aria-hidden="true">delete</mat-icon>{{'REFERENCE-TYPE-EDITOR.ACTIONS.DELETE' | translate}}</button>
+					}
+				</mat-menu>
+			</div>
+		</div>
 
-        <div class="col-auto">
-          <div matTooltip="{{ hasSources() ? ('REFERENCE-TYPE-EDITOR.ACTIONS.TEST-ALL-SOURCES' | translate) :  ('REFERENCE-TYPE-EDITOR.ACTIONS.DISABLED-ALL-SOURCES' | translate)}}"  [matTooltipDisabled]="false"  style="display: inline-block;">
-            <button mat-icon-button type="button" [disabled]="!hasSources()" (click)="openReferenceTestDialog()" [attr.aria-label]="'COMMONS.ACTIONS.TEST' | translate">
-              <mat-icon aria-hidden>bug_report</mat-icon>
-            </button>
-          </div>
-        </div>
-        <div class="col-auto">
-          <button mat-stroked-button class="padded-shadow-btn" (click)="cancel()" type="button">{{'REFERENCE-TYPE-EDITOR.ACTIONS.CANCEL' | translate}}</button>
-        </div>
-        @if (canDelete) {
-          <div class="col-auto">
-            <button mat-stroked-button color="warn" (click)="delete()" class="padded-shadow-btn" type="button">
-              <mat-icon aria-hidden>delete</mat-icon>
-              {{'REFERENCE-TYPE-EDITOR.ACTIONS.DELETE' | translate}}
-            </button>
-          </div>
-        }
-        @if (canSave) {
-          <div class="col-auto">
-            <button mat-flat-button color="primary" class="padded-shadow-btn" (click)="formSubmit()">
-              <mat-icon>save</mat-icon>
-              {{'REFERENCE-TYPE-EDITOR.ACTIONS.SAVE' | translate}}
-            </button>
-          </div>
-        }
-      </div>
-      @if (formGroup) {
-        <form (ngSubmit)="formSubmit()" [formGroup]="formGroup">
-          <mat-card appearance="outlined" class="mb-3">
-            <mat-card-content>
-              <div class="pb-3"><small>{{'COMMONS.VALIDATION.REQUIRED-FIELDS-HINT' | translate}}</small></div>
-              <div class="row">
-                <div class="col-12">
-                  <div class="container-fluid">
-                    <div class="row">
-                      <div class="col-6">
-                        <mat-form-field class="w-100">
-                          <mat-label>{{'REFERENCE-TYPE-EDITOR.FIELDS.NAME' | translate}}</mat-label>
-                          <input matInput type="text" name="name" [formControl]="formGroup.get('name')" required>
-                          @if (formGroup.get('name').hasError('backendError')) {
-                            <mat-error>{{formGroup.get('name').getError('backendError').message}}</mat-error>
-                          }
-                          @if (formGroup.get('name').hasError('required')) {
-                            <mat-error>{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
-                          }
-                        </mat-form-field>
-                      </div>
-                      <div class="col-6">
-                        <mat-form-field class="w-100">
-                          <mat-label>{{'REFERENCE-TYPE-EDITOR.FIELDS.CODE' | translate}}</mat-label>
-                          <input matInput type="text" name="name" [formControl]="formGroup.get('code')" required>
-                          @if (formGroup.get('code').hasError('backendError')) {
-                            <mat-error>{{formGroup.get('code').getError('backendError').message}}</mat-error>
-                          }
-                          @if (formGroup.get('code').hasError('required')) {
-                            <mat-error>{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
-                          }
-                        </mat-form-field>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </mat-card-content>
-          </mat-card>
-          <!-- FIELDS  -->
-          <mat-card appearance="outlined" class="mb-3">
-            <mat-card-title class="p-3 mb-1">
-              <div class="row d-flex align-items-center">
-                <div class="col-auto">
-                  <h3 class="m-0">{{'REFERENCE-TYPE-EDITOR.FIELDS.FIELDS' | translate}}</h3>
-                </div>
-                <div class="col-auto">
-                  <button mat-flat-button color="accent" class="padded-shadow-btn" type="button" (click)="addField()" [disabled]="formGroup.get('definition').get('fields').disabled">{{'REFERENCE-TYPE-EDITOR.ACTIONS.ADD-FIELD' | translate}}</button>
-                </div>
-              </div>
-            </mat-card-title>
-            <mat-card-content>
-              <div class="col-12">
-                @for (field of formGroup.get('definition').get('fields').controls; track field; let fieldIndex = $index) {
-                  <div class="d-flex justify-content-between mb-3">
-                    <div class="pt-3 pr-2">
-                      <span>{{fieldIndex + 1}}</span>
-                    </div>
-                    <div class="d-flex flex-wrap gap-half-rem align-items-center">
-                      <mat-form-field>
-                        <mat-label>{{'REFERENCE-TYPE-EDITOR.FIELDS.LABEL' | translate}}</mat-label>
-                        <input matInput type="text" name="label" [formControl]="field.get('label')" required>
-                        @if (field.get('label').hasError('backendError')) {
-                          <mat-error>{{field.get('label').getError('backendError').message}}</mat-error>
-                        }
-                        @if (field.get('label').hasError('required')) {
-                          <mat-error>{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
-                        }
-                      </mat-form-field>
-                      <mat-form-field>
-                        <mat-label>{{'REFERENCE-TYPE-EDITOR.FIELDS.DESCRIPTION' | translate}}</mat-label>
-                        <input matInput type="text" name="description" [formControl]="field.get('description')">
-                        @if (field.get('description').hasError('backendError')) {
-                          <mat-error>{{field.get('description').getError('backendError').message}}</mat-error>
-                        }
-                        @if (field.get('description').hasError('required')) {
-                          <mat-error>{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
-                        }
-                      </mat-form-field>
-                      <mat-form-field>
-                        <mat-label>{{'REFERENCE-TYPE-EDITOR.FIELDS.CODE' | translate}}</mat-label>
-                        <input matInput type="text" name="code" [formControl]="field.get('code')" required>
-                        @if (field.get('code').hasError('backendError')) {
-                          <mat-error>{{field.get('code').getError('backendError').message}}</mat-error>
-                        }
-                        @if (field.get('code').hasError('required')) {
-                          <mat-error>{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
-                        }
-                      </mat-form-field>
-                      <mat-form-field>
-                        <mat-label>{{'REFERENCE-TYPE-EDITOR.FIELDS.DATA-TYPE' | translate}}</mat-label>
-                        <mat-select name="dataType" [formControl]="field.get('dataType')" required>
-                          @for (fieldDataType of referenceFieldDataTypeEnum; track fieldDataType) {
-                            <mat-option [value]="fieldDataType">
-                              {{enumUtils.toReferenceFieldDataTypeString(fieldDataType)}}
-                            </mat-option>
-                          }
-                        </mat-select>
-                        @if (field.get('dataType').hasError('backendError')) {
-                          <mat-error>{{field.get('dataType').getError('backendError').message}}</mat-error>
-                        }
-                        @if (field.get('dataType').hasError('required')) {
-                          <mat-error>{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
-                        }
-                      </mat-form-field>
-                      <mat-form-field>
-                        <mat-label>{{'REFERENCE-TYPE-EDITOR.FIELDS.SEMANTICS' | translate}}</mat-label>
-                        <app-multiple-auto-complete placeholder="{{'REFERENCE-TYPE-EDITOR.FIELDS.SEMANTICS' | translate}}" [required]="false" [separatorKeysCodes]="separatorKeysCodes" [formControl]="field.get('semantics')" [configuration]="semanticsService.multipleAutocompleteConfiguration">
-                        </app-multiple-auto-complete>
-                        @if (field.get('semantics').hasError('backendError')) {
-                          <mat-error>{{field.get('semantics').getError('backendError').message}}</mat-error>
-                        }
-                        @if (field.get('semantics').hasError('required')) {
-                          <mat-error>{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
-                        }
-                      </mat-form-field>
-                      <mat-form-field>
-                        <mat-label>{{'REFERENCE-TYPE-EDITOR.FIELDS.REQUIRED' | translate}}</mat-label>
-                        <mat-select [formControl]="field.get('required')" required>
-                          <mat-option [value]="true">{{'REFERENCE-TYPE-EDITOR.FIELDS.REQUIRED-YES' | translate}}</mat-option>
-                          <mat-option [value]="false">{{'REFERENCE-TYPE-EDITOR.FIELDS.REQUIRED-NO' | translate}}</mat-option>
-                        </mat-select>
-                        @if (field.get('required').hasError('backendError')) {
-                          <mat-error>{{field.get('required').getError('backendError').message}}</mat-error>
-                        }
-                        @if (field.get('required').hasError('required')) {
-                          <mat-error>{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
-                        }
-                      </mat-form-field>
-                    </div>
-                    <div class="pl-2 pt-2">
-                      <button mat-icon-button matTooltip="{{'REFERENCE-TYPE-EDITOR.ACTIONS.REMOVE-FIELD' | translate}}" (click)="removeField(fieldIndex)" [disabled]="formGroup.get('definition').get('fields').disabled" [attr.aria-label]="'COMMONS.ACTIONS.REMOVE' | translate">
-                        <mat-icon aria-hidden>delete</mat-icon>
-                      </button>
-                    </div>
-                  </div>
-                }
-                @if (formGroup.get('definition').get('fields').value != '') {
-                  <button mat-flat-button color="accent" class="padded-shadow-btn " type="button" (click)="submitFields()" [disabled]="!formGroup.get('definition').get('fields').valid">{{'REFERENCE-TYPE-EDITOR.ACTIONS.SUBMIT-FIELDS' | translate}}</button>
-                }
-              </div>
-            </mat-card-content>
-          </mat-card>
-          <!--  SOURCES  -->
-          <mat-card appearance="outlined" class="mb-3">
-            <mat-card-title class="p-3 mb-1">
-              <div class="row d-flex align-items-center">
-                <div class="col-auto">
-                  <h3 class="m-0">{{'REFERENCE-TYPE-EDITOR.FIELDS.SOURCES' | translate}}</h3>
-                </div>
-                <div class="col-auto">
-                  <button mat-flat-button color="accent" class="padded-shadow-btn" type="button" (click)="addSource()" [disabled]="formGroup.get('definition').get('fields').disabled">{{'REFERENCE-TYPE-EDITOR.ACTIONS.ADD-SOURCE' | translate}}</button>
-                </div>
-              </div>
-            </mat-card-title>
-            <mat-card-content>
-              <div class="col-12">
-                @for (source of formGroup.get('definition').get('sources').controls; track source; let sourceIndex = $index) {
-                  <mat-card class="row mb-3">
-                    <mat-card-title class="p-3 mb-1 d-flex align-items-center gap-1-rem">
-                      <div>
-                        {{'REFERENCE-TYPE-EDITOR.FIELDS.SOURCE-CONFIGURATION' | translate}} {{sourceIndex + 1}}
-                      </div>
-                      <div class="col-auto d-flex">
-                        <button mat-icon-button matTooltip="{{'REFERENCE-TYPE-EDITOR.ACTIONS.TEST-SOURCE' | translate}}"  type="button" (click)="openReferenceTestDialog({key: source.get('key').value, index: sourceIndex})"  [attr.aria-label]="'COMMONS.ACTIONS.TEST' | translate">
-                          <mat-icon aria-hidden>bug_report</mat-icon>
-                        </button>
-                        <button mat-icon-button matTooltip="{{'REFERENCE-TYPE-EDITOR.ACTIONS.REMOVE-SOURCE' | translate}}" (click)="removeSource(sourceIndex)" [disabled]="formGroup.get('definition').get('fields').disabled" [attr.aria-label]="'COMMONS.ACTIONS.REMOVE' | translate">
-                          <mat-icon aria-hidden>delete</mat-icon>
-                        </button>
-                      </div>
-                    </mat-card-title>
-                    <mat-card-content class="col-12">
-                      <app-external-fetcher-source-component [formGroup]="source" [fieldsForm]="formGroup.get('definition').get('fields')" [validationErrorModel]="editorModel.validationErrorModel" [validationRootPath]="'definition.sources[' + sourceIndex + '].'" [referenceTypeSourceIndex]="sourceIndex" [referenceTypes]="referenceTypes" [sourceKeysMap]="sourceKeysMap">
-                      </app-external-fetcher-source-component>
-                    </mat-card-content>
-                  </mat-card>
-                }
-                @if (formGroup.get('definition').get('sources').dirty && formGroup.get('definition').get('sources').hasError('required')) {
-                  <mat-error>{{'REFERENCE-TYPE-EDITOR.SOURCES-REQUIRED' | translate}}</mat-error>
-                }
-                @if (formGroup.get('definition').get('sources').hasError('backendError')) {
-                  <mat-error>{{formGroup.get('definition').get('sources').getError('backendError').message}}</mat-error>
-                }
-              </div>
-            </mat-card-content>
-          </mat-card>
-        </form>
-      }
-    </div>
-  </div>
+		<div class="rt2-header__title">
+			<span class="bp2-tile" aria-hidden="true"><mat-icon>hub</mat-icon></span>
+			<div class="rt2-header__name">
+				<h1>{{ formGroup.get('name').value || ('REFERENCE-TYPE-EDITOR.HEADER.NEW-TYPE' | translate) }}</h1>
+				<div class="bp2-sub">
+					@if (formGroup.get('code').value) { {{'REFERENCE-TYPE-EDITOR.FIELDS.CODE' | translate}} <strong>{{formGroup.get('code').value}}</strong> · }
+					{{'REFERENCE-TYPE-EDITOR.HEADER.COUNTS' | translate: { fields: fieldsArray.length, sources: sourcesArray.length } }}
+				</div>
+			</div>
+		</div>
+		<app-tenant-readonly-banner [readOnly]="!isNew && editorModel?.belongsToCurrentTenant === false" />
+
+		<nav class="rt2-tabs" role="tablist">
+			<button type="button" role="tab" class="rt2-tab" [class.rt2-tab--on]="tab === 'fields'" [attr.aria-selected]="tab === 'fields'" (click)="setTab('fields')">
+				{{'REFERENCE-TYPE-EDITOR.TABS.FIELDS' | translate}}
+				@if (attemptedSave && (formGroup.get('name').invalid || formGroup.get('code').invalid || fieldsArray.invalid)) { <span class="bp2-count bp2-count--bad">!</span> }
+			</button>
+			<button type="button" role="tab" class="rt2-tab" [class.rt2-tab--on]="tab === 'sources'" [attr.aria-selected]="tab === 'sources'" (click)="setTab('sources')">
+				{{'REFERENCE-TYPE-EDITOR.TABS.SOURCES' | translate}}
+				<span class="bp2-count" [class.bp2-count--todo]="!sourcesArray.length" [class.bp2-count--bad]="attemptedSave && sourcesArray.invalid">{{sourcesArray.length}}</span>
+			</button>
+			<button type="button" role="tab" class="rt2-tab" [class.rt2-tab--on]="tab === 'manual'" [attr.aria-selected]="tab === 'manual'" (click)="setTab('manual')">{{'REFERENCE-TYPE-EDITOR.TABS.MANUAL' | translate}}</button>
+			@if (!isNew) {
+				<button type="button" role="tab" class="rt2-tab" [class.rt2-tab--on]="tab === 'entries'" [attr.aria-selected]="tab === 'entries'" (click)="setTab('entries')">{{'REFERENCE-TYPE-EDITOR.TABS.ENTRIES' | translate}}</button>
+			}
+		</nav>
+	</header>
+
+	<main class="rt2-main">
+		<!-- ============================================================ fields -->
+		@if (tab === 'fields') {
+			<div class="rt2-split">
+				<div class="rt2-grow">
+					<section class="bp2-card">
+						<div class="bp2-card__head">
+							<div>
+								<div class="bp2-card__title"><h2>{{'REFERENCE-TYPE-EDITOR.ABOUT.TITLE' | translate}}</h2></div>
+								<div class="bp2-card__desc">{{'REFERENCE-TYPE-EDITOR.ABOUT.HINT' | translate}}</div>
+							</div>
+						</div>
+						<div class="bp2-card__body rt2-about">
+							<mat-form-field subscriptSizing="dynamic">
+								<mat-label>{{'REFERENCE-TYPE-EDITOR.FIELDS.NAME' | translate}}</mat-label>
+								<input matInput type="text" name="name" [formControl]="formGroup.get('name')" required>
+								@if (formGroup.get('name').hasError('backendError')) { <mat-error>{{formGroup.get('name').getError('backendError').message}}</mat-error> }
+								@if (formGroup.get('name').hasError('required')) { <mat-error>{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error> }
+							</mat-form-field>
+							<mat-form-field subscriptSizing="dynamic">
+								<mat-label>{{'REFERENCE-TYPE-EDITOR.FIELDS.CODE' | translate}}</mat-label>
+								<input matInput type="text" name="code" class="rt2-mono" [formControl]="formGroup.get('code')" required>
+								<mat-hint>{{'REFERENCE-TYPE-EDITOR.ABOUT.CODE-HINT' | translate}}</mat-hint>
+								@if (formGroup.get('code').hasError('backendError')) { <mat-error>{{formGroup.get('code').getError('backendError').message}}</mat-error> }
+								@if (formGroup.get('code').hasError('required')) { <mat-error>{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error> }
+							</mat-form-field>
+						</div>
+					</section>
+
+					<section class="bp2-card">
+						<div class="bp2-card__head">
+							<div>
+								<div class="bp2-card__title"><h2>{{'REFERENCE-TYPE-EDITOR.FIELDS.TITLE' | translate}}</h2></div>
+								<div class="bp2-card__desc">{{'REFERENCE-TYPE-EDITOR.FIELDS.HINT' | translate: { type: formGroup.get('name').value || ('REFERENCE-TYPE-EDITOR.FIELDS.THIS-TYPE' | translate) } }}</div>
+							</div>
+						</div>
+						<div class="bp2-card__body">
+							<div class="rt2-table" role="table" [attr.aria-label]="'REFERENCE-TYPE-EDITOR.FIELDS.TITLE' | translate">
+								<div class="rt2-fields-row rt2-fields-row--head" role="row">
+									<span role="columnheader">{{'REFERENCE-TYPE-EDITOR.FIELDS.LABEL' | translate}}</span>
+									<span role="columnheader">{{'REFERENCE-TYPE-EDITOR.FIELDS.CODE' | translate}}</span>
+									<span role="columnheader">{{'REFERENCE-TYPE-EDITOR.FIELDS.DATA-TYPE' | translate}}</span>
+									<span role="columnheader">{{'REFERENCE-TYPE-EDITOR.FIELDS.REQUIRED' | translate}}</span>
+									<span role="columnheader">{{'REFERENCE-TYPE-EDITOR.FIELDS.MAPPED-IN' | translate}}</span>
+									<span role="columnheader"><span class="cdk-visually-hidden">{{'REFERENCE-TYPE-EDITOR.FIELDS.DETAILS' | translate}}</span></span>
+								</div>
+								<div class="rt2-fields-row rt2-fields-row--system" role="row">
+									<span role="cell" class="rt2-system-name"><mat-icon aria-hidden="true">lock</mat-icon><span>{{'REFERENCE-TYPE-EDITOR.FIELDS.BUILT-IN' | translate}}</span></span>
+									<span role="cell" class="rt2-codes"><code>reference_id</code><code>label</code><code>description</code></span>
+									<span role="cell">{{enumUtils.toReferenceFieldDataTypeString(dataTypes[0])}}</span>
+									<span role="cell" class="bp2-sub">{{'REFERENCE-TYPE-EDITOR.FIELDS.ALWAYS' | translate}}</span>
+									<span role="cell"><span class="bp2-tag" [class.bp2-tag--ok]="sourcesArray.length && mappedIn('reference_id') === sourcesArray.length" [class.bp2-tag--todo]="mappedIn('reference_id') < sourcesArray.length">{{'REFERENCE-TYPE-EDITOR.FIELDS.N-OF-M' | translate: { n: mappedIn('reference_id'), m: sourcesArray.length } }}</span></span>
+									<span role="cell"></span>
+								</div>
+								@for (field of fieldsArray.controls; track field; let i = $index) {
+									<div class="rt2-fields-row" role="row" [class.rt2-fields-row--open]="expandedFieldIndex === i">
+										<span role="cell">
+											<mat-form-field subscriptSizing="dynamic">
+												<mat-label>{{'REFERENCE-TYPE-EDITOR.FIELDS.LABEL' | translate}}</mat-label>
+												<input matInput type="text" [formControl]="field.get('label')" required>
+												@if (field.get('label').hasError('required')) { <mat-error>{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error> }
+												@if (field.get('label').hasError('backendError')) { <mat-error>{{field.get('label').getError('backendError').message}}</mat-error> }
+											</mat-form-field>
+										</span>
+										<span role="cell">
+											<mat-form-field subscriptSizing="dynamic">
+												<mat-label>{{'REFERENCE-TYPE-EDITOR.FIELDS.CODE' | translate}}</mat-label>
+												<input matInput type="text" class="rt2-mono" [formControl]="field.get('code')" (change)="syncFieldCodes()" required>
+												@if (field.get('code').hasError('required')) { <mat-error>{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error> }
+												@if (field.get('code').hasError('backendError')) { <mat-error>{{field.get('code').getError('backendError').message}}</mat-error> }
+											</mat-form-field>
+										</span>
+										<span role="cell">
+											<mat-form-field subscriptSizing="dynamic">
+												<mat-label>{{'REFERENCE-TYPE-EDITOR.FIELDS.DATA-TYPE' | translate}}</mat-label>
+												<mat-select [formControl]="field.get('dataType')" required>
+													@for (dataType of dataTypes; track dataType) { <mat-option [value]="dataType">{{enumUtils.toReferenceFieldDataTypeString(dataType)}}</mat-option> }
+												</mat-select>
+											</mat-form-field>
+										</span>
+										<span role="cell"><mat-slide-toggle [formControl]="field.get('required')" [attr.aria-label]="'REFERENCE-TYPE-EDITOR.FIELDS.REQUIRED' | translate"></mat-slide-toggle></span>
+										<span role="cell">
+											@let mapped = mappedIn(field.get('code').value);
+											<span class="bp2-tag" [class.bp2-tag--ok]="sourcesArray.length && mapped === sourcesArray.length" [class.bp2-tag--todo]="mapped < sourcesArray.length">{{'REFERENCE-TYPE-EDITOR.FIELDS.N-OF-M' | translate: { n: mapped, m: sourcesArray.length } }}</span>
+										</span>
+										<span role="cell">
+											<button mat-icon-button type="button" class="bp2-icon-btn-sm" (click)="toggleField(i)" [attr.aria-expanded]="expandedFieldIndex === i" [attr.aria-label]="'REFERENCE-TYPE-EDITOR.FIELDS.DETAILS-OF' | translate: { field: field.get('label').value || field.get('code').value }">
+												<mat-icon aria-hidden="true">{{ expandedFieldIndex === i ? 'expand_less' : 'expand_more' }}</mat-icon>
+											</button>
+										</span>
+									</div>
+									@if (expandedFieldIndex === i) {
+										<div class="rt2-field-details">
+											<mat-form-field subscriptSizing="dynamic">
+												<mat-label>{{'REFERENCE-TYPE-EDITOR.FIELDS.HELP-TEXT' | translate}}</mat-label>
+												<input matInput type="text" [formControl]="field.get('description')">
+											</mat-form-field>
+											<mat-form-field subscriptSizing="dynamic">
+												<mat-label>{{'REFERENCE-TYPE-EDITOR.FIELDS.SEMANTICS' | translate}}</mat-label>
+												<app-multiple-auto-complete placeholder="{{'REFERENCE-TYPE-EDITOR.FIELDS.SEMANTICS' | translate}}" [required]="false" [separatorKeysCodes]="separatorKeysCodes" [formControl]="field.get('semantics')" [configuration]="semanticsService.multipleAutocompleteConfiguration" />
+											</mat-form-field>
+											<div class="rt2-field-details__foot">
+												<span class="bp2-sub">{{'REFERENCE-TYPE-EDITOR.FIELDS.CODE-HINT' | translate}}</span>
+												@if (canSave) { <button mat-button type="button" class="rt2-danger" (click)="removeField(i)"><mat-icon aria-hidden="true">delete</mat-icon>{{'REFERENCE-TYPE-EDITOR.FIELDS.REMOVE' | translate}}</button> }
+											</div>
+										</div>
+									}
+								}
+							</div>
+							@if (canSave) { <button mat-stroked-button type="button" class="bp2-dashed" (click)="addField()"><mat-icon aria-hidden="true">add</mat-icon>{{'REFERENCE-TYPE-EDITOR.FIELDS.ADD' | translate}}</button> }
+						</div>
+					</section>
+				</div>
+
+				<aside class="rt2-aside">
+					@if (unmappedFields.length) {
+						<section class="bp2-card">
+							<div class="bp2-card__head"><div class="bp2-card__title"><h2>{{'REFERENCE-TYPE-EDITOR.FIELDS.ATTENTION' | translate}}</h2></div></div>
+							<div class="bp2-card__body">
+								@for (f of unmappedFields; track f.label) {
+									<div class="bp2-strip bp2-strip--warn"><mat-icon aria-hidden="true">warning</mat-icon><span>{{'REFERENCE-TYPE-EDITOR.FIELDS.NOT-MAPPED' | translate: { field: f.label, sources: f.sources.join(', ') } }}</span></div>
+								}
+							</div>
+						</section>
+					}
+					<section class="bp2-card">
+						<div class="bp2-card__head">
+							<div>
+								<div class="bp2-card__title"><h2>{{'REFERENCE-TYPE-EDITOR.FIELDS.AUTO-SYNC-TITLE' | translate}}</h2></div>
+								<div class="bp2-card__desc">{{'REFERENCE-TYPE-EDITOR.FIELDS.AUTO-SYNC' | translate}}</div>
+							</div>
+						</div>
+					</section>
+				</aside>
+			</div>
+		}
+
+		<!-- ============================================================ sources -->
+		@if (tab === 'sources') {
+			@if (!sourcesArray.length) {
+				<section class="bp2-card rt2-empty">
+					<span class="bp2-tile" aria-hidden="true"><mat-icon>dns</mat-icon></span>
+					<h2>{{'REFERENCE-TYPE-EDITOR.SOURCES.EMPTY-TITLE' | translate: { type: formGroup.get('name').value || ('REFERENCE-TYPE-EDITOR.FIELDS.THIS-TYPE' | translate) } }}</h2>
+					<p class="bp2-help">{{'REFERENCE-TYPE-EDITOR.SOURCES.EMPTY-HINT' | translate}}</p>
+					@if (canSave) {
+						<div class="rt2-empty__actions">
+							<button mat-flat-button color="primary" type="button" (click)="openAddSource()"><mat-icon aria-hidden="true">add</mat-icon>{{'REFERENCE-TYPE-EDITOR.SOURCES.ADD' | translate}}</button>
+							<button mat-stroked-button type="button" (click)="openImportXmlDialog()"><mat-icon aria-hidden="true">upload</mat-icon>{{'REFERENCE-TYPE-EDITOR.ACTIONS.IMPORT-XML' | translate}}</button>
+						</div>
+					}
+					@if (attemptedSave && sourcesArray.hasError('required')) { <mat-error>{{'REFERENCE-TYPE-EDITOR.SOURCES-REQUIRED' | translate}}</mat-error> }
+				</section>
+			} @else {
+				<div class="rt2-split">
+					<nav class="rt2-source-list" [attr.aria-label]="'REFERENCE-TYPE-EDITOR.TABS.SOURCES' | translate">
+						@for (source of sourcesArray.controls; track source; let i = $index) {
+							<button type="button" class="rt2-source-item" [class.rt2-source-item--on]="i === selectedSourceIndex" [class.rt2-source-item--bad]="attemptedSave && source.invalid" [attr.aria-current]="i === selectedSourceIndex" (click)="selectSource(i)">
+								<span class="rt2-source-item__icon" aria-hidden="true"><mat-icon>{{ isApi(source) ? 'travel_explore' : 'list' }}</mat-icon></span>
+								<span class="rt2-source-item__text">
+									<strong>{{source.get('label').value || ('REFERENCE-TYPE-EDITOR.SOURCES.UNNAMED' | translate)}}</strong>
+									<span class="bp2-sub">{{ (isApi(source) ? 'REFERENCE-TYPE-EDITOR.SOURCES.KIND-API' : 'REFERENCE-TYPE-EDITOR.SOURCES.KIND-STATIC') | translate }} · {{source.get('key').value}}</span>
+								</span>
+								@if (attemptedSave && source.invalid) { <mat-icon class="rt2-source-item__bad" [attr.aria-label]="'REFERENCE-TYPE-EDITOR.SOURCES.HAS-PROBLEMS' | translate">error</mat-icon> }
+							</button>
+						}
+						@if (canSave) { <button mat-stroked-button type="button" class="bp2-dashed" (click)="openAddSource()"><mat-icon aria-hidden="true">add</mat-icon>{{'REFERENCE-TYPE-EDITOR.SOURCES.ADD' | translate}}</button> }
+						<p class="bp2-help">{{'REFERENCE-TYPE-EDITOR.SOURCES.MERGED' | translate}}</p>
+					</nav>
+
+					<app-rt2-source-editor class="rt2-grow"
+						[formGroup]="selectedSource"
+						[sourceIndex]="selectedSourceIndex"
+						[fields]="fieldsArray.getRawValue()"
+						[referenceTypes]="referenceTypes"
+						[sourceKeysMap]="sourceKeysMap"
+						[canEdit]="canSave"
+						[validationErrorModel]="editorModel.validationErrorModel"
+						(remove)="removeSource(selectedSourceIndex)"
+						(addItem)="addStaticItem(selectedSourceIndex)"
+						(removeItem)="removeStaticItem(selectedSourceIndex, $event)" />
+				</div>
+			}
+		}
+
+		<!-- ============================================================ manual entries -->
+		@if (tab === 'manual') {
+			<section class="bp2-card rt2-manual">
+				<div class="bp2-card__head">
+					<div>
+						<div class="bp2-card__title"><h2>{{'REFERENCE-TYPE-EDITOR.MANUAL.TITLE' | translate}}</h2></div>
+						<div class="bp2-card__desc">{{'REFERENCE-TYPE-EDITOR.MANUAL.HINT' | translate}}</div>
+					</div>
+				</div>
+				<div class="bp2-card__body">
+					<mat-radio-group class="rt2-radios" [value]="buildsNameFromFields" (change)="setBuildsNameFromFields($event.value)" [disabled]="!canSave" [attr.aria-label]="'REFERENCE-TYPE-EDITOR.MANUAL.TITLE' | translate">
+						<mat-radio-button [value]="false">{{'REFERENCE-TYPE-EDITOR.MANUAL.USERS-TYPE' | translate}}</mat-radio-button>
+						<mat-radio-button [value]="true" [disabled]="!fieldsArray.length">{{'REFERENCE-TYPE-EDITOR.MANUAL.FROM-FIELDS' | translate}}</mat-radio-button>
+					</mat-radio-group>
+					@if (!fieldsArray.length) { <span class="bp2-sub">{{'REFERENCE-TYPE-EDITOR.MANUAL.NO-FIELDS' | translate}}</span> }
+					@if (buildsNameFromFields) {
+						<div class="rt2-manual__pattern">
+							<mat-form-field subscriptSizing="dynamic">
+								<mat-label>{{'REFERENCE-TYPE-EDITOR.MANUAL.PATTERN' | translate}}</mat-label>
+								<input matInput type="text" class="rt2-mono" [formControl]="labelTemplateControl">
+								<mat-hint>{{'REFERENCE-TYPE-EDITOR.MANUAL.REQUIRED-NOTE' | translate}}</mat-hint>
+								@if (labelTemplateControl.hasError('backendError')) { <mat-error>{{labelTemplateControl.getError('backendError').message}}</mat-error> }
+							</mat-form-field>
+							<div class="rt2-chips">
+								<span class="bp2-sub">{{'REFERENCE-TYPE-EDITOR.INSERT' | translate}}</span>
+								@for (field of fieldsArray.getRawValue(); track $index) {
+									@if (field.code) { <button type="button" class="bp2-pill" [disabled]="!canSave" (click)="insertTemplateField(field.code)"><mat-icon aria-hidden="true">add</mat-icon>{{field.label || field.code}}</button> }
+								}
+							</div>
+							<div class="rt2-example"><span class="bp2-caption">{{'REFERENCE-TYPE-EDITOR.MANUAL.EXAMPLE' | translate}}</span><strong>{{labelTemplateExample}}</strong></div>
+						</div>
+					}
+				</div>
+			</section>
+		}
+
+		@if (tab === 'entries' && !isNew) {
+			<app-reference-entries [typeId]="editorModel.id" />
+		}
+	</main>
 </div>
+}

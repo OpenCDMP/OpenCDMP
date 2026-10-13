@@ -1,7 +1,7 @@
 package org.opencdmp.model.descriptionstatus;
 
 import org.opencdmp.commons.enums.DescriptionStatusAvailableActionType;
-import org.opencdmp.model.StorageFile;
+import org.opencdmp.model.iconconfiguration.IconConfiguration;
 
 import java.util.List;
 
@@ -13,11 +13,8 @@ public class DescriptionStatusDefinition {
     public final static String _availableActions = "availableActions";
     private List<DescriptionStatusAvailableActionType> availableActions;
 
-    public final static String _matIconName = "matIconName";
-    private String matIconName;
-
-    public final static String _storageFile = "storageFile";
-    private StorageFile storageFile;
+    private IconConfiguration iconConfiguration;
+    public final static String _iconConfiguration = "iconConfiguration";;
 
     public final static String _statusColor = "statusColor";
     private String statusColor;
@@ -34,20 +31,12 @@ public class DescriptionStatusDefinition {
         this.availableActions = availableActions;
     }
 
-    public String getMatIconName() {
-        return matIconName;
+    public IconConfiguration getIconConfiguration() {
+        return iconConfiguration;
     }
 
-    public void setMatIconName(String matIconName) {
-        this.matIconName = matIconName;
-    }
-
-    public StorageFile getStorageFile() {
-        return storageFile;
-    }
-
-    public void setStorageFile(StorageFile storageFile) {
-        this.storageFile = storageFile;
+    public void setIconConfiguration(IconConfiguration iconConfiguration) {
+        this.iconConfiguration = iconConfiguration;
     }
 
     public String getStatusColor() {

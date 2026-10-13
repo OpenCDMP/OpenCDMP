@@ -10,15 +10,15 @@ import { EvaluateDialogComponent } from './evaluate-dialog.component';
 
 @NgModule({
     imports: [
-      CommonModule,
-      MatCardModule,
-      MatButtonModule,
-      MatInputModule,
-      MatFormFieldModule,
-      NgIf,
-      CommonUiModule,
+        CommonModule,
+        MatCardModule,
+        MatButtonModule,
+        MatInputModule,
+        MatFormFieldModule,
+        NgIf,
+        CommonUiModule,
+        EvaluateDialogComponent,
     ],
-    declarations: [EvaluateDialogComponent],
     exports: [EvaluateDialogComponent]
-  })
+})
   export class EvaluateDialogModule { }

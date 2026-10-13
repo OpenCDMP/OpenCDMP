@@ -1,19 +1,21 @@
 <div class="p-3">
-	<div mat-dialog-title class="row d-flex align-items-center">
+	<div mat-dialog-title class="d-flex align-items-center">
 		<div>{{ data.message }}</div>
 		<div class="ml-auto">
             <button mat-icon-button (click)="cancel()" [attr.aria-label]="'ALT-TEXT.CLOSE-DIALOG'  | translate">
-                <mat-icon aria-hidden>close</mat-icon>
+                <mat-icon aria-hidden="true">close</mat-icon>
             </button>
 		</div>
 	</div>
 	<div mat-dialog-content>
-        <app-file-uploader
-            [accept]="'text/xml'"
-            [placeholder]="(hasBlueprint() ? 'GENERAL.START-NEW-PLAN-DIALOG.REPLACE-FILE' : 'GENERAL.START-NEW-PLAN-DIALOG.UPLOAD-FILE') | translate"
-            (onChange)="selectXML($event)"
-            (onRemove)="onRemove()"
-        />
+        <p>
+            <app-file-uploader
+                [accept]="'text/xml'"
+                [placeholder]="(hasBlueprint() ? 'GENERAL.START-NEW-PLAN-DIALOG.REPLACE-FILE' : 'GENERAL.START-NEW-PLAN-DIALOG.UPLOAD-FILE') | translate"
+                (onChange)="selectXML($event)"
+                (onRemove)="onRemove()"
+            />
+        </p>
 		<div class="row">
 			<mat-form-field class="col-12">
 				<input matInput placeholder="{{'PLAN-BLUEPRINT-LISTING.IMPORT.UPLOAD-XML-NAME'| translate}}" name="descriptionBlueprintName" [(ngModel)]="data.name">

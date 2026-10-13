@@ -1,0 +1,92 @@
+// Frame of the structure editors. Children use the same class prefix (bp2-) through the shared
+// partial imported below, so cards, tags and pills match across tabs and across both editors.
+@use '../bp2-shared' as *;
+
+:host { display: block; }
+
+.bp2 { display: flex; flex-direction: column; min-height: calc(100vh - 80px); }
+
+.bp2-header {
+	background: var(--mat-sys-surface);
+	border-bottom: 1px solid var(--mat-sys-outline-variant);
+	padding: 0 1.5rem;
+	&__row { display: flex; align-items: center; justify-content: space-between; gap: 1rem; min-height: 56px; }
+	// the breadcrumb takes what the actions leave and truncates its last item, so the actions stay on one row
+	&__row > app-navigation-breadcrumb { flex: 1 1 0; min-width: 0; overflow: hidden;
+		::ng-deep .row { flex-wrap: nowrap; }
+		::ng-deep .breadcrumb-container:last-child { flex: 0 1 auto; min-width: 0; max-width: none; text-overflow: ellipsis; }
+	}
+	&__actions { display: flex; align-items: center; gap: .5rem; flex: none; justify-content: flex-end; }
+	&__title { display: flex; align-items: center; gap: .875rem; padding: .75rem 0 .5rem; }
+	&__name { min-width: 0; }
+	&__name-row { display: flex; align-items: center; gap: .625rem; flex-wrap: wrap; h1 { margin: 0; font-size: 1.5rem; font-weight: 500; } }
+}
+
+.bp2-saved { font-size: .8rem; color: var(--mat-sys-on-surface-variant); &--dirty { color: var(--mat-sys-tertiary); font-weight: 600; } }
+
+.bp2-header__more { width: 32px !important; height: 32px !important; padding: 0 !important; mat-icon { font-size: 20px; width: 20px; height: 20px; } }
+
+.bp2-danger { color: var(--mat-sys-error) !important; }
+
+.bp2-versions {
+	width: 380px; max-width: min(90vw, 420px); display: flex; flex-direction: column; overflow: hidden;
+	&__head { display: flex; flex-direction: column; gap: 2px; padding: .75rem 1rem .5rem; border-bottom: 1px solid var(--mat-sys-outline-variant); }
+	&__row { display: grid; grid-template-columns: 44px auto 1fr; align-items: center; gap: .625rem; padding: .5rem 1rem; border: none; background: transparent; text-align: left; width: 100%; color: inherit; font: inherit; cursor: pointer; border-top: 1px solid var(--mat-sys-outline-variant);
+		&:hover { background: var(--mat-sys-surface-container); }
+		&--this { background: var(--mat-sys-primary-container); color: var(--mat-sys-on-primary-container); }
+		.bp2-sub { text-align: right; }
+	}
+	&__foot { display: block; padding: .625rem 1rem; border-top: 1px solid var(--mat-sys-outline-variant); font-weight: 600; text-decoration: none; }
+}
+
+.bp2-banner {
+	display: flex; align-items: center; gap: .75rem; padding: .625rem .875rem; border-radius: 10px; margin-bottom: .75rem; font-size: .9rem;
+	> div { flex: 1 1 0; }
+	&--info { background: var(--mat-sys-primary-container); color: var(--mat-sys-on-primary-container); }
+	&--warn { background: var(--mat-sys-tertiary-container); color: var(--mat-sys-on-tertiary-container); }
+	&--muted { background: var(--mat-sys-surface-container); color: var(--mat-sys-on-surface); }
+}
+
+.bp2-tabs {
+	display: flex; align-items: center; gap: .25rem;
+	&__spacer { flex: 1 1 0; }
+}
+.bp2-tab {
+	display: inline-flex; align-items: center; gap: .5rem; height: 46px; padding: 0 .875rem; border: none; background: transparent; font: inherit; font-weight: 600; color: var(--mat-sys-on-surface-variant); border-bottom: 3px solid transparent; margin-bottom: -1px; cursor: pointer;
+	&--on { color: var(--mat-sys-primary); border-bottom-color: var(--mat-sys-primary); }
+	&:hover { color: var(--mat-sys-on-surface); }
+}
+.bp2-ready {
+	display: inline-flex; align-items: center; gap: .5rem; height: 34px; padding: 0 .625rem 0 .5rem; border-radius: 999px; border: 1px solid var(--mat-sys-outline-variant); background: var(--mat-sys-surface); font: inherit; font-size: .85rem; font-weight: 700; cursor: pointer;
+	&--ok { color: var(--mat-sys-primary); mat-icon:first-child { color: var(--bp2-ok); } }
+	&--todo { color: var(--bp2-todo-fg); }
+	mat-icon { font-size: 20px; width: 20px; height: 20px; }
+}
+
+.bp2-body { display: flex; align-items: flex-start; flex: 1 1 0; min-height: 0; }
+.bp2-main { flex: 1 1 0; min-width: 0; padding: 1.25rem 1.5rem 2rem; }
+
+.bp2-problems {
+	// floats over the tab's right edge instead of taking a column: the negative left margin cancels its width, so the
+	// page does not reflow when it opens, while sticky keeps it in view on a long tab
+	width: 360px; flex: none; position: sticky; top: .5rem; z-index: 10; align-self: flex-start; max-height: calc(100vh - 80px); overflow: auto;
+	margin: .5rem 1.5rem 0 calc(-360px - 1.5rem); padding: 1rem 1.125rem; background: var(--mat-sys-surface); border: 1px solid var(--mat-sys-outline-variant); border-radius: 14px;
+	box-shadow: 0 8px 24px rgba(0, 0, 0, .16), 0 2px 6px rgba(0, 0, 0, .08);
+	&__head { display: flex; align-items: center; justify-content: space-between; font-size: 1rem; }
+}
+.bp2-problem {
+	display: flex; align-items: flex-start; gap: .625rem; padding: .625rem 0; border-top: 1px solid var(--mat-sys-outline-variant);
+	&__icon { flex: none; font-size: 20px; width: 20px; height: 20px; margin-top: 1px; &--bad { color: var(--mat-sys-error); } &--opt { color: var(--mat-sys-on-surface-variant); } &--ok { color: var(--bp2-ok); } }
+	&__body { flex: 1 1 0; min-width: 0; font-weight: 600; font-size: .9rem; }
+}
+
+.bp2-passed {
+	margin-top: .5rem; border-top: 1px solid var(--mat-sys-outline-variant);
+	summary { padding: .625rem 0 .25rem; cursor: pointer; font-size: .85rem; font-weight: 700; color: var(--mat-sys-on-surface-variant); }
+	.bp2-problem__body { font-weight: 500; }
+}
+
+@media (max-width: 1100px) {
+	.bp2-body { flex-direction: column; }
+	.bp2-problems { order: -1; align-self: stretch; position: static; width: auto; max-height: none; margin: 1.25rem 1.5rem 0; box-shadow: none; }
+}

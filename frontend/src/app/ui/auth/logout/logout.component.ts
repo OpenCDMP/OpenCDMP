@@ -1,12 +1,14 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { AuthService } from '@app/core/services/auth/auth.service';
 import { PlanWebSocketService } from '@app/core/services/websocket/plan-websocket.service';
 import { KeycloakService } from 'keycloak-angular';
+import { TranslatePipe } from '@ngx-translate/core';
 
 @Component({
     templateUrl: "./logout.component.html",
     styleUrls: ["./logout.component.scss"],
-    standalone: false
+    changeDetection: ChangeDetectionStrategy.Eager,
+    imports: [TranslatePipe]
 })
 export class LogoutComponent implements OnInit {
 	constructor(

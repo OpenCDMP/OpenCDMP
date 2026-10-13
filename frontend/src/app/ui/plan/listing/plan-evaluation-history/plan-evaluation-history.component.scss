@@ -1,4 +1,26 @@
-.secondary-info, .date {
-    font-size: var(--mat-sys-label-large-size);
-    opacity: 0.8;
+.evaluation, .show-more {
+    font-size: var(--mat-sys-body-small-size);
+}
+.evaluation {
+    border-bottom: 1px solid var(--mat-sys-outline-variant);
+    padding-top: 0.375rem;
+}
+.eval-main {
+    min-width: 0;
+    flex: 1 1 auto;
+}
+.eval-main .header {
+    flex: 0 1 auto;
+}
+.eval-main .date {
+    flex: 0 0 auto;
+}
+.header {
+    font-weight: bold;
+}
+.header ,.date{
+    text-wrap: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    min-width: 0;
 }

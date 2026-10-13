@@ -1,7 +1,7 @@
 
-import { Component, OnInit, TemplateRef, ViewChild } from '@angular/core';
+import { Component, OnInit, TemplateRef, ViewChild, ChangeDetectionStrategy } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { PlanBlueprintStatus } from '@app/core/common/enum/plan-blueprint-status';
 import { PlanBlueprintVersionStatus } from '@app/core/common/enum/plan-blueprint-version-status';
 import { IsActive } from '@app/core/common/enum/is-active.enum';
@@ -17,53 +17,66 @@ import { QueryParamsService } from '@app/core/services/utilities/query-params.se
 import { BaseListingComponent } from '@common/base/base-listing-component';
 import { PipeService } from '@common/formatting/pipe.service';
 import { DataTableDateTimeFormatPipe } from '@app/core/pipes/date-time-format.pipe';
-import { IsActiveTypePipe } from '@common/formatting/pipes/is-active-type.pipe';
 import { QueryResult } from '@common/model/query-result';
 import { ConfirmationDialogComponent } from '@common/modules/confirmation-dialog/confirmation-dialog.component';
 import { HttpErrorHandlingService } from '@common/modules/errors/error-handling/http-error-handling.service';
-import { ColumnDefinition, ColumnsChangedEvent, HybridListingComponent, PageLoadEvent } from '@common/modules/hybrid-listing/hybrid-listing.component';
+import { ColumnDefinition, ColumnsChangedEvent, PageLoadEvent } from '@common/modules/admin-listing/listing.types';
 import { Guid } from '@common/types/guid';
-import { TranslateService } from '@ngx-translate/core';
+import { TranslateService, TranslatePipe } from '@ngx-translate/core';
 import * as FileSaver from 'file-saver';
 import { Observable } from 'rxjs';
-import { takeUntil, tap } from 'rxjs/operators';
+import { takeUntil } from 'rxjs/operators';
 import { nameof } from 'ts-simple-nameof';
 import { ImportPlanBlueprintDialogComponent } from './import-plan-blueprint/import-plan-blueprint.dialog.component';
 import { RouterUtilsService } from '@app/core/services/router/router-utils.service';
 import { AppPermission } from '@app/core/common/enum/permission.enum';
 import { BreadcrumbService } from '@app/ui/misc/breadcrumb/breadcrumb.service';
+import { PlanBlueprintType } from '@app/core/model/plan-blueprint-type/plan-blueprint-type';
+import { AdminPageHeaderComponent } from '../../../../../common/ui/admin-page-header/admin-page-header.component';
+import { MatButton, MatIconButton } from '@angular/material/button';
+import { MatIcon } from '@angular/material/icon';
+import { AdminListingComponent } from '../../../../../common/modules/admin-listing/admin-listing.component';
+import { PlanBlueprintListingFiltersComponent } from './filters/plan-blueprint-listing-filters.component';
+import { UserSettingsPickerComponent } from '../../../../../common/modules/user-settings/user-settings-picker/user-settings-picker.component';
+import { TenantSharedChipComponent } from '../../../../../common/ui/tenant-shared/tenant-shared-chip.component';
+import { MatTooltip } from '@angular/material/tooltip';
+import { MatMenuTrigger, MatMenu, MatMenuItem } from '@angular/material/menu';
+import { NullifyValuePipe } from '../../../../../common/modules/admin-listing/pipes/nullify-value.pipe';
 
 
 @Component({
     selector: 'app-plan-blueprint-listing-component',
     templateUrl: './plan-blueprint-listing.component.html',
     styleUrls: ['./plan-blueprint-listing.component.scss'],
-    standalone: false
+    changeDetection: ChangeDetectionStrategy.Eager,
+    imports: [AdminPageHeaderComponent, MatButton, RouterLink, MatIcon, AdminListingComponent, PlanBlueprintListingFiltersComponent, UserSettingsPickerComponent, TenantSharedChipComponent, MatIconButton, MatTooltip, MatMenuTrigger, MatMenu, MatMenuItem, TranslatePipe, NullifyValuePipe]
 })
 export class PlanBlueprintListingComponent extends BaseListingComponent<PlanBlueprint, PlanBlueprintLookup> implements OnInit {
 	publish = false;
+	protected override readonly tenantScoped = true;
 	userSettingsKey = { key: 'PlanBlueprintListingUserSettings' };
+	/** Admins browse: a longer page than the author-facing listings. */
+	protected override ITEMS_PER_PAGE = 25;
+	/** Rows open under an absolute route (see onRowActivated in the template). */
+	public override readonly rowLink = (row: any): string | null => row?.id ? this.routerUtils.generateUrl(['/plan-blueprints', String(row.id)], '/') : null;
 	propertiesAvailableForOrder: ColumnDefinition[];
 	planBlueprintStatuses = PlanBlueprintStatus;
 	isActive = IsActive;
-	mode;
-
-	groupId: Guid | null = null;
 
 	@ViewChild('planBlueprintStatus', { static: true }) planBlueprintStatus?: TemplateRef<any>;
 	@ViewChild('actions', { static: true }) actions?: TemplateRef<any>;
-	@ViewChild(HybridListingComponent, { static: true }) hybridListingComponent: HybridListingComponent;
+	@ViewChild('nameCell', { static: true }) nameCell?: TemplateRef<any>;
 
 	private readonly lookupFields: string[] = [
 		nameof<PlanBlueprint>(x => x.id),
 		nameof<PlanBlueprint>(x => x.label),
 		nameof<PlanBlueprint>(x => x.code),
+		[nameof<PlanBlueprint>(x => x.type), nameof<PlanBlueprintType>(x => x.name)].join('.'),
 		nameof<PlanBlueprint>(x => x.status),
 		nameof<PlanBlueprint>(x => x.version),
 		nameof<PlanBlueprint>(x => x.versionStatus),
 		nameof<PlanBlueprint>(x => x.groupId),
 		nameof<PlanBlueprint>(x => x.updatedAt),
-		nameof<PlanBlueprint>(x => x.createdAt),
 		nameof<PlanBlueprint>(x => x.hash),
 		nameof<PlanBlueprint>(x => x.isActive),
 		nameof<PlanBlueprint>(x => x.belongsToCurrentTenant)
@@ -91,14 +104,29 @@ export class PlanBlueprintListingComponent extends BaseListingComponent<PlanBlue
 		super(router, route, uiNotificationService, httpErrorHandlingService, queryParamsService);
 		// Lookup setup
 		// Default lookup values are defined in the user settings class.
-		this.mode = this.route.snapshot?.data['mode'];
 		this.lookup = this.initializeLookup();
-		this.breadcrumbService.addExcludedParam("versions", true);
 	}
 
 	ngOnInit() {
 		this.analyticsService.trackPageView(AnalyticsService.PlanBlueprintListing);
 		super.ngOnInit();
+	}
+
+	/** Whether a search term or non-default filter is currently applied (drives the "no results" empty state). */
+	public get hasActiveFilters(): boolean {
+		return !!this.lookup?.like
+			|| (this.lookup?.statuses?.length ?? 0) > 0
+			|| this.lookup?.isActive?.[0] === IsActive.Inactive;
+	}
+
+	/** Reset search & filters to their defaults while preserving column selection, ordering and page size. */
+	public clearAllFilters(): void {
+		const fresh = this.initializeLookup();
+		fresh.order = this.lookup.order;
+		fresh.project = this.lookup.project;
+		fresh.page = { offset: 0, size: this.lookup.page.size };
+		this.lookup = fresh;
+		this.filterChanged(this.lookup);
 	}
 
     protected isFinalized(blueprint: PlanBlueprint): boolean {
@@ -126,16 +154,9 @@ export class PlanBlueprintListingComponent extends BaseListingComponent<PlanBlue
 		lookup.metadata = { countAll: true };
 		lookup.page = { offset: 0, size: this.ITEMS_PER_PAGE };
 		lookup.isActive = [IsActive.Active];
+		this.applyScope(lookup, 'own');
+		lookup.versionStatuses = [PlanBlueprintVersionStatus.Current, PlanBlueprintVersionStatus.NotFinalized];
 		lookup.order = { items: [this.toDescSortField(nameof<PlanBlueprint>(x => x.updatedAt))] };
-		if (this.mode && this.mode == 'versions-listing') {
-			this.groupId = Guid.parse(this.route.snapshot.paramMap.get('groupid'));
-			this.breadcrumbService.addIdResolvedValue(this.groupId.toString(), "");
-			lookup.groupIds = [this.groupId];
-			lookup.versionStatuses = null;
-		} else {
-			this.groupId = null;
-			lookup.versionStatuses = [PlanBlueprintVersionStatus.Current, PlanBlueprintVersionStatus.NotFinalized];
-		}
 		this.updateOrderUiFields(lookup.order);
 
 		lookup.project = {
@@ -149,18 +170,19 @@ export class PlanBlueprintListingComponent extends BaseListingComponent<PlanBlue
 		this.gridColumns.push(...[{
 			prop: nameof<PlanBlueprint>(x => x.label),
 			sortable: true,
-			languageName: 'PLAN-BLUEPRINT-LISTING.FIELDS.NAME'
-		},
-		{
-			prop: nameof<PlanBlueprint>(x => x.code),
-			sortable: true,
-			languageName: 'PLAN-BLUEPRINT-LISTING.FIELDS.CODE'
+			languageName: 'PLAN-BLUEPRINT-LISTING.FIELDS.NAME',
+			cellTemplate: this.nameCell
 		},
 		{
 			prop: nameof<PlanBlueprint>(x => x.status),
 			sortable: true,
 			languageName: 'PLAN-BLUEPRINT-LISTING.FIELDS.STATUS',
 			cellTemplate: this.planBlueprintStatus
+		},
+		{
+			prop: [nameof<PlanBlueprint>(x => x.type), nameof<PlanBlueprintType>(x => x.name)].join('.'),
+			sortable: false,
+			languageName: 'PLAN-BLUEPRINT-LISTING.FIELDS.TYPE'
 		},
 		{
 			prop: nameof<PlanBlueprint>(x => x.version),
@@ -180,13 +202,8 @@ export class PlanBlueprintListingComponent extends BaseListingComponent<PlanBlue
 			pipe: this.pipeService.getPipe<DataTableDateTimeFormatPipe>(DataTableDateTimeFormatPipe).withFormat('short')
 		},
 		{
-			prop: nameof<PlanBlueprint>(x => x.isActive),
-			sortable: false,
-			languageName: 'PLAN-BLUEPRINT-LISTING.FIELDS.IS-ACTIVE',
-			pipe: this.pipeService.getPipe<IsActiveTypePipe>(IsActiveTypePipe)
-		},
-		{
 			alwaysShown: true,
+			sortable: false,
 			cellTemplate: this.actions,
 			maxWidth: 120
 		}
@@ -205,24 +222,21 @@ export class PlanBlueprintListingComponent extends BaseListingComponent<PlanBlue
 	private onColumnsChangedInternal(columns: string[]) {
 		// Here are defined the projection fields that always requested from the api.
 		const fields = new Set(this.lookupFields);
-		this.gridColumns.map(x => x.prop)
-			.filter(x => !columns?.includes(x as string))
-			.forEach(item => {
-				fields.delete(item as string)
-			});
+		this.gridColumns.map(x => x.prop).filter(x => x != null).forEach(prop => {
+			if (columns?.includes(prop as string)) { fields.add(prop as string); } else { fields.delete(prop as string); }
+		});
 		this.lookup.project = { fields: [...fields] };
 		this.onPageLoad({ offset: 0 } as PageLoadEvent);
 	}
 
+	/** The same query for an arbitrary lookup: the admin listing counts the other tenant scope with it. */
+	protected override loadListingWith(lookup: PlanBlueprintLookup): Observable<QueryResult<any>> {
+		return this.planBlueprintService.query(lookup);
+	}
+
 	protected loadListing(): Observable<QueryResult<PlanBlueprint>> {
 		return this.planBlueprintService.query(this.lookup).pipe(
-			takeUntil(this._destroyed),
-			tap((blueprints: QueryResult<PlanBlueprint>) => {
-				const groupCode = blueprints.items?.[0]?.code;
-				if (this.groupId != null && groupCode != null) {
-					this.breadcrumbService.addIdResolvedValue(this.groupId.toString(), groupCode);
-				}
-			})
+			takeUntil(this._destroyed)
 		);
 	}
 
@@ -267,7 +281,6 @@ export class PlanBlueprintListingComponent extends BaseListingComponent<PlanBlue
 
 	protected import(): void {
 		const dialogRef = this.dialog.open(ImportPlanBlueprintDialogComponent, {
-			restoreFocus: false,
 			data: {
 				message: this.language.instant('PLAN-BLUEPRINT-LISTING.IMPORT.UPLOAD-XML-FILE-TITLE'),
 				confirmButton: this.language.instant('PLAN-BLUEPRINT-LISTING.IMPORT.UPLOAD-XML'),

@@ -91,6 +91,12 @@ public class PlanUpdateRequestBuilder extends BaseBuilder<PlanUpdateRequest, Pla
             if (!userFields.isEmpty() && userItemsMap != null && userItemsMap.containsKey(d.getApprovedBy())) m.setApprovedBy(userItemsMap.get(d.getApprovedBy()));
             if (fields.hasField(this.asIndexer(PlanUpdateRequest._approvedAt)))
                 m.setApprovedAt(d.getApprovedAt());
+            if (fields.hasField(this.asIndexer(PlanUpdateRequest._externalId)))
+                m.setExternalId(d.getExternalId());
+            if (fields.hasField(this.asIndexer(PlanUpdateRequest._externalIdType)))
+                m.setExternalIdType(d.getExternalIdType());
+            if (fields.hasField(this.asIndexer(PlanUpdateRequest._appliedData)))
+                m.setAppliedData(d.getAppliedData());
             if (fields.hasField(this.asIndexer(PlanUpdateRequest._createdAt)))
                 m.setCreatedAt(d.getCreatedAt());
             if (fields.hasField(this.asIndexer(PlanUpdateRequest._updatedAt)))

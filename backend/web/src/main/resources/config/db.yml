@@ -1,13 +1,14 @@
 spring:
   jpa:
+    # Set explicitly: the services rely on the session staying open for the request, and leaving it to the
+    # default makes Spring warn about it on every start.
+    open-in-view: true
     properties:
       org:
         hibernate:
           flushMode: MANUAL
       hibernate:
         globally_quoted_identifiers: true
-        ddl-auto: validate
-        dialect: org.hibernate.dialect.PostgreSQLDialect
     hibernate:
       naming:
         physical-strategy: org.opencdmp.data.namingstrategy.PrefixPhysicalNamingStrategy
@@ -23,6 +24,13 @@ spring:
       maximum-pool-size: 10
       idle-timeout: 600000
       max-lifetime: 1800000
+  flyway:
+    table: DBMigrationHistory
+    # The schema is shared with the notification, annotation and KPI services, so a non-empty schema says nothing
+    # about ours: baseline below every migration and let V01_00_010__Baseline tell a fresh database from a 1.2+ one.
+    baseline-on-migrate: true
+    baseline-version: 0
+    validate-migration-naming: true
 
 naming-strategy:
   prefix: 

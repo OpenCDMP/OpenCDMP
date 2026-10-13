@@ -16,6 +16,9 @@ public class Rule {
 	private Boolean booleanValue;
 	public static final String _booleanValue = "booleanValue";
 
+	private Double numberValue;
+	public static final String _numberValue = "numberValue";
+
 	public String getTarget() {
 		return this.target;
 	}
@@ -48,4 +51,11 @@ public class Rule {
 		this.booleanValue = booleanValue;
 	}
 
+	public Double getNumberValue() {
+		return numberValue;
+	}
+
+	public void setNumberValue(Double numberValue) {
+		this.numberValue = numberValue;
+	}
 }

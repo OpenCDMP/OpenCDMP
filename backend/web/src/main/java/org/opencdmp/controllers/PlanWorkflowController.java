@@ -173,7 +173,10 @@ public class PlanWorkflowController {
         if (this.tenantScopeFactory.getInstance().isDefaultTenant()) query.tenantIsSet(false);
         else query.tenantIsSet(true).tenantIds(this.tenantScopeFactory.getInstance().getTenant());
 
-        PlanWorkflow model = this.builderFactory.builder(PlanWorkflowBuilder.class).build(fieldSet, query.firstAs(fieldSet));
+        // Without its own workflow a tenant follows the default tenant's, as PlanWorkflowService.getActiveWorkFlowDefinition does.
+        PlanWorkflowEntity entity = query.firstAs(fieldSet);
+        if (entity == null && !this.tenantScopeFactory.getInstance().isDefaultTenant()) entity = query.clearTenantIds().tenantIsSet(false).firstAs(fieldSet);
+        PlanWorkflow model = this.builderFactory.builder(PlanWorkflowBuilder.class).build(fieldSet, entity);
 
         this.auditService.track(AuditableAction.PlanWorkflow_Lookup, "fields", fieldSet);
 

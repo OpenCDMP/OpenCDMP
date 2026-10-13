@@ -1,0 +1,318 @@
+@if (planReviewService.active()) {
+
+    <!-- Collapsed: floating toggle button on the right edge. -->
+    @if (!expanded()) {
+<button
+            type="button"
+            class="plan-review-toggle"
+            (click)="toggleExpanded()"
+            [matTooltip]="'PLAN-UPDATE-REVIEW.BAR.SHOW-DETAILS' | translate">
+        <mat-icon>rate_review</mat-icon>
+        @if (planReviewService.pendingCount() > 0) {
+<span
+              class="plan-review-toggle__badge">
+            {{ planReviewService.pendingCount() }}
+        </span>
+}
+    </button>
+}
+
+    <!-- Expanded: slide-in side panel on the right edge. -->
+    <aside class="plan-review-panel" [class.is-open]="expanded()" role="complementary">
+
+        <!-- Header -->
+        <header class="plan-review-panel__header">
+            <div class="plan-review-panel__header-top">
+                <span class="plan-review-panel__title">
+                    <mat-icon class="plan-review-panel__title-icon">rate_review</mat-icon>
+                    {{ 'PLAN-UPDATE-REVIEW.BAR.TITLE' | translate }}
+                </span>
+                <button type="button"
+                        class="plan-review-panel__close"
+                        (click)="toggleExpanded()"
+                        [attr.aria-label]="'PLAN-UPDATE-REVIEW.BAR.HIDE-DETAILS' | translate">
+                    <mat-icon>close</mat-icon>
+                </button>
+            </div>
+
+            <!-- Status chips -->
+            <div class="plan-review-panel__chips">
+                <span class="plan-review-panel__chip plan-review-panel__chip--pending">
+                    <span class="plan-review-panel__chip-dot"></span>
+                    {{ 'PLAN-UPDATE-REVIEW.BAR.PENDING' | translate }}&nbsp;{{ planReviewService.pendingCount() }}
+                </span>
+                <span class="plan-review-panel__chip plan-review-panel__chip--accepted">
+                    <span class="plan-review-panel__chip-dot"></span>
+                    {{ 'PLAN-UPDATE-REVIEW.BAR.ACCEPTED' | translate }}&nbsp;{{ planReviewService.acceptedCount() }}
+                </span>
+                <span class="plan-review-panel__chip plan-review-panel__chip--rejected">
+                    <span class="plan-review-panel__chip-dot"></span>
+                    {{ 'PLAN-UPDATE-REVIEW.BAR.REJECTED' | translate }}&nbsp;{{ planReviewService.rejectedCount() }}
+                </span>
+            </div>
+        </header>
+
+        <!-- Bulk actions -->
+        <div class="plan-review-panel__bulk-actions">
+            <button mat-flat-button type="button" class="plan-review-panel__bulk-btn plan-review-panel__bulk-btn--accept"
+                    (click)="onAcceptAll()">
+                <mat-icon>done_all</mat-icon>
+                {{ 'PLAN-UPDATE-REVIEW.BAR.ACCEPT-ALL' | translate }}
+            </button>
+            <button mat-flat-button type="button" class="plan-review-panel__bulk-btn plan-review-panel__bulk-btn--reject"
+                    (click)="onRejectAll()">
+                <mat-icon>remove_done</mat-icon>
+                {{ 'PLAN-UPDATE-REVIEW.BAR.REJECT-ALL' | translate }}
+            </button>
+            <button mat-stroked-button type="button" class="plan-review-panel__bulk-btn plan-review-panel__bulk-btn--reset"
+                    (click)="onResetAll()">
+                <mat-icon>restart_alt</mat-icon>
+                {{ 'PLAN-UPDATE-REVIEW.BAR.RESET-ALL' | translate }}
+            </button>
+        </div>
+
+        <!-- Scrollable content area -->
+        <div class="plan-review-panel__details">
+
+            <!-- Field change groups: Pending / Accepted / Rejected -->
+            <ng-container *ngTemplateOutlet="group; context: { $implicit: pendingRows(), heading: 'PLAN-UPDATE-REVIEW.BAR.PENDING', stateClass: 'is-pending' }"/>
+            <ng-container *ngTemplateOutlet="group; context: { $implicit: acceptedRows(), heading: 'PLAN-UPDATE-REVIEW.BAR.ACCEPTED', stateClass: 'is-accepted' }"/>
+            <ng-container *ngTemplateOutlet="group; context: { $implicit: rejectedRows(), heading: 'PLAN-UPDATE-REVIEW.BAR.REJECTED', stateClass: 'is-rejected' }"/>
+
+            <!-- Deleted Descriptions section (DELETE-kind) -->
+            @if (planReviewService.deleteDescriptionChanges().length > 0) {
+<div class="plan-review-panel__desc-section"
+                >
+                <div class="plan-review-panel__desc-section-heading plan-review-panel__desc-section-heading--delete">
+                    <mat-icon>remove_circle_outline</mat-icon>
+                    {{ 'PLAN-UPDATE-REVIEW.BAR.DELETED-DESCRIPTIONS' | translate }}
+                    <span class="plan-review-panel__desc-section-count">{{ planReviewService.deleteDescriptionChanges().length }}</span>
+                </div>
+
+                <div class="plan-review-panel__desc-list">
+                    @for (dc of planReviewService.deleteDescriptionChanges(); track trackByDescriptionChangeId($index, dc)) {
+<div class="plan-review-panel__desc-card"
+                        
+                         [class]="{
+                             'is-accepted': deleteDescriptionState(dc) === 'accepted',
+                             'is-rejected': deleteDescriptionState(dc) === 'rejected'
+                         }">
+
+                        <div class="plan-review-panel__desc-card-header">
+                            <mat-icon class="plan-review-panel__desc-card-icon">description</mat-icon>
+                            <span class="plan-review-panel__desc-card-name">{{ dc.currentLabel || dc.datasetId }}</span>
+                            @if (deleteDescriptionState(dc) === 'accepted') {
+<span class="plan-review-panel__desc-status-badge"
+                                 
+                                  [ngClass]="'is-delete'">
+                                {{ 'PLAN-UPDATE-REVIEW.BAR.DELETE-CONFIRMED' | translate }}
+                            </span>
+}
+                            @if (deleteDescriptionState(dc) === 'rejected') {
+<span class="plan-review-panel__desc-status-badge"
+                                 
+                                  [ngClass]="'is-keep'">
+                                {{ 'PLAN-UPDATE-REVIEW.BAR.KEPT-DESCRIPTION' | translate }}
+                            </span>
+}
+                        </div>
+
+                        <!-- PENDING -->
+                        @if (deleteDescriptionState(dc) === 'pending') {
+<div class="plan-review-panel__desc-card-actions"
+                            >
+                            <button mat-flat-button type="button"
+                                    class="plan-review-panel__desc-action-btn plan-review-panel__desc-action-btn--danger"
+                                    (click)="onAcceptDeleteDescription(dc)">
+                                <mat-icon>delete_outline</mat-icon>
+                                {{ 'PLAN-UPDATE-REVIEW.BAR.CONFIRM-DELETE' | translate }}
+                            </button>
+                            <button mat-stroked-button type="button"
+                                    class="plan-review-panel__desc-action-btn"
+                                    (click)="onKeepDescription(dc)">
+                                <mat-icon>bookmark_border</mat-icon>
+                                {{ 'PLAN-UPDATE-REVIEW.BAR.KEEP-DESCRIPTION' | translate }}
+                            </button>
+                        </div>
+}
+
+                        <!-- ACCEPTED (deletion confirmed) -->
+                        @if (deleteDescriptionState(dc) === 'accepted') {
+<div class="plan-review-panel__desc-card-actions"
+                            >
+                            <button mat-stroked-button type="button"
+                                    class="plan-review-panel__desc-action-btn"
+                                    (click)="onUndoAcceptDeleteDescription(dc)">
+                                <mat-icon>undo</mat-icon>
+                                {{ 'PLAN-UPDATE-REVIEW.BAR.UNDO-CONFIRM-DELETE' | translate }}
+                            </button>
+                        </div>
+}
+
+                        <!-- REJECTED (kept) -->
+                        @if (deleteDescriptionState(dc) === 'rejected') {
+<div class="plan-review-panel__desc-card-actions"
+                            >
+                            <button mat-stroked-button type="button"
+                                    class="plan-review-panel__desc-action-btn"
+                                    (click)="onUndoKeepDescription(dc)">
+                                <mat-icon>undo</mat-icon>
+                                {{ 'PLAN-UPDATE-REVIEW.BAR.UNDO-KEEP' | translate }}
+                            </button>
+                        </div>
+}
+                    </div>
+}
+                </div>
+            </div>
+}
+
+            <!-- New Descriptions section (ADD-kind) -->
+            @if (planReviewService.addDescriptionChanges().length > 0 && planDescriptionTemplates?.length > 0) {
+<div class="plan-review-panel__desc-section"
+                >
+                <div class="plan-review-panel__desc-section-heading plan-review-panel__desc-section-heading--add">
+                    <mat-icon>add_circle_outline</mat-icon>
+                    {{ 'PLAN-UPDATE-REVIEW.BAR.NEW-DESCRIPTIONS' | translate }}
+                    <span class="plan-review-panel__desc-section-count">{{ planReviewService.addDescriptionChanges().length }}</span>
+                </div>
+
+                <div class="plan-review-panel__desc-list">
+                    @for (dc of planReviewService.addDescriptionChanges(); track trackByDescriptionChangeId($index, dc)) {
+<div class="plan-review-panel__desc-card"
+                        
+                         [class]="{
+                             'is-accepted': newDescriptionState(dc) === 'accepted',
+                             'is-rejected': newDescriptionState(dc) === 'rejected'
+                         }">
+
+                        <div class="plan-review-panel__desc-card-header">
+                            <mat-icon class="plan-review-panel__desc-card-icon">description</mat-icon>
+                            <span class="plan-review-panel__desc-card-name">{{ dc.currentLabel || dc.datasetId }}</span>
+                            @if (newDescriptionState(dc) === 'accepted') {
+<span class="plan-review-panel__desc-status-badge"
+                                 
+                                  [ngClass]="'is-add'">
+                                {{ 'PLAN-UPDATE-REVIEW.BAR.ADDED-TO-PLAN' | translate }}
+                            </span>
+}
+                            @if (newDescriptionState(dc) === 'rejected') {
+<span class="plan-review-panel__desc-status-badge"
+                                 
+                                  [ngClass]="'is-discard'">
+                                {{ 'PLAN-UPDATE-REVIEW.BAR.DISCARDED' | translate }}
+                            </span>
+}
+                        </div>
+
+                        <!-- PENDING: template selector + actions -->
+                        @if (newDescriptionState(dc) === 'pending') {
+
+                            @if (planDescriptionTemplates?.length) {
+<mat-form-field appearance="outline" class="plan-review-panel__desc-template-field"
+                                           >
+                                <mat-label>{{ 'PLAN-UPDATE-REVIEW.BAR.NEW-DESC-TEMPLATE' | translate }}</mat-label>
+                                <mat-select
+                                    [ngModel]="getNewDescriptionSelection(dc).planDescriptionTemplate"
+                                    (ngModelChange)="setNewDescriptionPlanTemplate(dc, $event)">
+                                    @for (pdt of planDescriptionTemplates; track pdt) {
+<mat-option [value]="pdt">
+                                        {{ planDescriptionTemplateLabel(pdt) }}
+                                    </mat-option>
+}
+                                </mat-select>
+                            </mat-form-field>
+}
+                            <div class="plan-review-panel__desc-card-actions">
+                                <button mat-flat-button type="button"
+                                        class="plan-review-panel__desc-action-btn plan-review-panel__desc-action-btn--primary"
+                                        [disabled]="!getNewDescriptionSelection(dc).planDescriptionTemplate"
+                                        (click)="onAcceptNewDescription(dc)">
+                                    <mat-icon>add</mat-icon>
+                                    {{ 'PLAN-UPDATE-REVIEW.BAR.ADD-TO-PLAN' | translate }}
+                                </button>
+                                <button mat-stroked-button type="button"
+                                        class="plan-review-panel__desc-action-btn"
+                                        (click)="onDiscardNewDescription(dc)">
+                                    <mat-icon>close</mat-icon>
+                                    {{ 'PLAN-UPDATE-REVIEW.BAR.DISCARD' | translate }}
+                                </button>
+                            </div>
+                        
+}
+
+                        <!-- ACCEPTED: revert -->
+                        @if (newDescriptionState(dc) === 'accepted') {
+<div class="plan-review-panel__desc-card-actions"
+                            >
+                            <button mat-stroked-button type="button"
+                                    class="plan-review-panel__desc-action-btn"
+                                    (click)="onRevertNewDescription(dc)">
+                                <mat-icon>undo</mat-icon>
+                                {{ 'PLAN-UPDATE-REVIEW.BAR.REVERT-FROM-PLAN' | translate }}
+                            </button>
+                        </div>
+}
+
+                        <!-- REJECTED: undo discard -->
+                        @if (newDescriptionState(dc) === 'rejected') {
+<div class="plan-review-panel__desc-card-actions"
+                            >
+                            <button mat-stroked-button type="button"
+                                    class="plan-review-panel__desc-action-btn"
+                                    (click)="onUnDiscardNewDescription(dc)">
+                                <mat-icon>undo</mat-icon>
+                                {{ 'PLAN-UPDATE-REVIEW.BAR.UNDO-DISCARD' | translate }}
+                            </button>
+                        </div>
+}
+                    </div>
+}
+                </div>
+            </div>
+}
+        </div>
+    </aside>
+
+}
+
+<ng-template #group let-rows let-heading="heading" let-stateClass="stateClass">
+    @if (rows.length > 0) {
+<div class="plan-review-panel__group" [ngClass]="stateClass">
+        <div class="plan-review-panel__group-heading">
+            <span class="plan-review-panel__group-heading-dot"></span>
+            {{ heading | translate }}
+            <span class="plan-review-panel__group-count">{{ rows.length }}</span>
+        </div>
+        <ul class="plan-review-panel__list">
+            @for (row of rows; track trackByChangeId($index, row)) {
+<li class="plan-review-panel__row"
+               
+                (click)="scrollToRow(row)"
+                [class.is-clickable]="row.anchorElementId">
+                <div class="plan-review-panel__row-label">
+                    @if (row.ordinal) {
+<span class="plan-review-panel__row-ordinal">{{ row.ordinal }}</span>
+}
+                    <span class="plan-review-panel__row-label-text">{{ row.label }}</span>
+                    @if (row.scope === 'description' && row.containerLabel) {
+<span class="plan-review-panel__row-scope">
+                        {{ row.containerLabel }}
+                    </span>
+}
+                </div>
+                <div class="plan-review-panel__row-values">
+                    <span class="plan-review-panel__row-value plan-review-panel__row-value--current">
+                        {{ displayValue(row.currentValue) }}
+                    </span>
+                    <mat-icon class="plan-review-panel__row-arrow">arrow_forward</mat-icon>
+                    <span class="plan-review-panel__row-value plan-review-panel__row-value--incoming">
+                        {{ displayValue(row.incomingValue) }}
+                    </span>
+                </div>
+            </li>
+}
+        </ul>
+    </div>
+}
+</ng-template>

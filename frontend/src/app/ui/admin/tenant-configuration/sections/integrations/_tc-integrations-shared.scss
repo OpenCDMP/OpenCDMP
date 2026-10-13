@@ -1,0 +1,34 @@
+// The connection status pill, shared by the integrations list and a plugin's page.
+
+.tc-status {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	font-size: 13px;
+	font-weight: 600;
+	white-space: nowrap;
+}
+
+.tc-status__dot {
+	width: 8px;
+	height: 8px;
+	border-radius: 50%;
+	background: var(--md-sys-color-outline, #8a93a6);
+}
+
+.tc-status[data-status="connected"] .tc-status__dot {
+	background: var(--tc-status-ok, #1f8a4c);
+}
+
+.tc-status[data-status="unreachable"] {
+	color: var(--md-sys-color-error, #b3261e);
+
+	.tc-status__dot {
+		background: var(--md-sys-color-error, #b3261e);
+	}
+}
+
+.tc-status[data-status="unsaved"] .tc-status__dot {
+	background: transparent;
+	border: 2px solid var(--md-sys-color-outline, #8a93a6);
+}

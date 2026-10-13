@@ -1,25 +1,35 @@
-import { Component, computed, HostBinding, Inject } from '@angular/core';
-import { UntypedFormGroup } from '@angular/forms';
-import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
+import { Component, Inject, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { UntypedFormGroup, FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { MAT_DIALOG_DATA, MatDialogRef, MatDialogTitle, MatDialogActions } from '@angular/material/dialog';
 import { ClonePlanPersist, Plan } from '@app/core/model/plan/plan';
 import { PlanService } from '@app/core/services/plan/plan.service';
-import { SnackBarNotificationLevel, UiNotificationService } from '@app/core/services/notification/ui-notification-service';
+import { SnackBarNotificationLevel } from '@app/core/services/notification/ui-notification-service';
 import { BaseComponent } from '@common/base/base.component';
-import { TranslateService } from '@ngx-translate/core';
+import { TranslateService, TranslatePipe } from '@ngx-translate/core';
 import { catchError, exhaustMap, takeUntil, tap } from 'rxjs/operators';
 import { PlanCloneDialogEditorModel } from './plan-clone-dialog.editor.model';
 import { PlanEditorEntityResolver } from '../plan-editor-blueprint/resolvers/plan-editor-enitity.resolver';
 import { HttpErrorHandlingService } from '@common/modules/errors/error-handling/http-error-handling.service';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Observable, of, Subject } from 'rxjs';
+import { MatIconButton, MatButton } from '@angular/material/button';
+import { MatIcon } from '@angular/material/icon';
+import { MatFormField, MatError } from '@angular/material/form-field';
+import { MatInput } from '@angular/material/input';
+import { RichTextEditorComponent } from '../../../library/rich-text-editor/rich-text-editor.component';
+import { MatCard, MatCardHeader } from '@angular/material/card';
+import { MatCheckbox } from '@angular/material/checkbox';
+import { MatSelectionList, MatListOption, MatListSubheaderCssMatStyler } from '@angular/material/list';
+import { MatTooltip } from '@angular/material/tooltip';
 
 @Component({
     selector: 'app-plan-clone-dialog',
     templateUrl: './plan-clone-dialog.component.html',
     styleUrls: ['./plan-clone-dialog.component.scss'],
-    standalone: false
+    changeDetection: ChangeDetectionStrategy.Eager,
+    imports: [MatDialogTitle, MatIconButton, MatIcon, MatFormField, MatInput, FormsModule, ReactiveFormsModule, MatError, RichTextEditorComponent, MatCard, MatCardHeader, MatCheckbox, MatSelectionList, MatListOption, MatTooltip, MatListSubheaderCssMatStyler, MatDialogActions, MatButton, TranslatePipe]
 })
-export class ClonePlanDialogComponent extends BaseComponent {
+export class ClonePlanDialogComponent extends BaseComponent implements OnInit {
    
 
 	plan: Plan;
@@ -105,7 +115,7 @@ export class ClonePlanDialogComponent extends BaseComponent {
 	}
 
 	onCallbackError(errorResponse: HttpErrorResponse) {
-		let errorOverrides = new Map<number, string>();
+		const errorOverrides = new Map<number, string>();
 		errorOverrides.set(-1, errorResponse.error.message ? errorResponse.error.message : this.language.instant('GENERAL.SNACK-BAR.UNSUCCESSFUL-UPDATE'));
 		this.httpErrorHandlingService.handleBackedRequestError(errorResponse, errorOverrides, SnackBarNotificationLevel.Error);
 	}

@@ -1,10 +1,10 @@
 <div class="new-version-dialog">
   <div mat-dialog-title class="d-flex align-items-center gap-half-rem">
     <div>{{'PLAN-NEW-VERSION-DIALOG.TITLE' | translate}}</div>
-    <button mat-icon-button (click)="close()" class="ml-auto" [attr.aria-label]="'ALT-TEXT.CLOSE-DIALOG'  | translate"><mat-icon aria-hidden>close</mat-icon></button>
+    <button mat-icon-button (click)="close()" class="ml-auto" [attr.aria-label]="'ALT-TEXT.CLOSE-DIALOG'  | translate"><mat-icon aria-hidden="true">close</mat-icon></button>
   </div>
   <div class="dialog-content">
-    <div class="pb-2"><small>{{'COMMONS.VALIDATION.REQUIRED-FIELDS-HINT' | translate}}</small></div>
+    <p><small>{{'COMMONS.VALIDATION.REQUIRED-FIELDS-HINT' | translate}}</small></p>
     <!-- Title Field -->
     <div class="row">
       <div class="col-12">
@@ -86,7 +86,7 @@
                         @for (section of selectedBlueprintSections; track section) {
                           <mat-option [value]="section.id">
                             <span style="font-size: 1rem;">
-                              {{ section.label }}
+                              {{ section.title }}
                             </span>
                           </mat-option>
                         }
@@ -108,6 +108,6 @@
     <div mat-dialog-actions class="row">
       <div class="col"></div>
       <div class="col-auto"><button mat-stroked-button type="button" class="padded-shadow-btn" (click)="cancel()">{{'PLAN-NEW-VERSION-DIALOG.ACTIONS.CANCEL' | translate}}</button></div>
-      <div class="col-auto"><button mat-stroked-button color="primary" type="button" class="padded-shadow-btn primary-inverted-hover"  appAwaitServerResponse [clickFn]="confirm">{{'PLAN-NEW-VERSION-DIALOG.ACTIONS.NEW-VERSION' | translate}}</button></div>
+      <div class="col-auto"><button mat-stroked-button color="primary" type="button" class="padded-shadow-btn primary-inverted-hover" [disabled]="isLoading()" (click)="submit()">{{'PLAN-NEW-VERSION-DIALOG.ACTIONS.NEW-VERSION' | translate}}</button></div>
     </div>
   </div>

@@ -1,0 +1,174 @@
+@use '@angular/material' as mat;
+
+.dialog--header {
+    padding: 1.25rem 1.5rem;
+    border-bottom: 1px solid var(--mat-sys-outline-variant);
+    display: flex;
+    flex-wrap: nowrap;
+    align-items: center;
+    gap: 1rem;
+
+    .dialog--title {
+        font-size: var(--mat-sys-headline-medium-size);
+        font-weight: 500;
+        margin-bottom: 0.125rem;
+    }
+
+    .dialog--hint {
+        font-size: var(--mat-sys-label-large-size);
+        color: var(--mat-sys-secondary);
+        margin-bottom: 0;
+    }
+}
+
+.add-templates-container {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.search-area {
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid var(--mat-sys-outline-variant);
+}
+
+.template-area {
+    padding: 1.5rem;
+    overflow: auto;
+    flex: 1;
+
+    .templates--list {
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+
+        .template-container {
+            border-radius: 8px;
+            border: 2px solid var(--mat-sys-outline-variant);
+            padding: 1rem;
+            display: flex;
+            justify-content: space-between;
+            gap: 1rem;
+
+            .template--title {
+                font-size: var(--mat-sys-body-large-size);
+                font-weight: 500;
+                display: flex;
+                align-items: center;
+                gap: 0.5rem;
+                margin-bottom: 0 !important;
+
+                .template-chip {
+                    font-size: var(--mat-sys-label-medium-size);
+                    font-weight: unset;
+                    background-color: var(--mat-sys-secondary-fixed);
+                    color: var(--mat-sys-secondary);
+                    padding: 0.25rem 0.5rem;
+                    border-radius: 999px;
+                }
+            }
+
+            &:hover {
+                border: 2px solid hsl(from var(--mat-sys-secondary) h s calc(l - 10));
+            }
+
+            .template--title,
+            .template--description {
+                margin-bottom: 0.75rem;
+            }
+
+            .template--footer {
+                font-size: var(--mat-sys-label-medium-size);
+                opacity: 0.7;
+                display: flex;
+                gap: 1rem;
+            }
+
+            mat-icon.arrow-right {
+                color: var(--mat-sys-outline);
+            }
+
+            &.disabled {
+
+                .template--title,
+                .template--description {
+                    opacity: 0.7;
+                }
+
+                &:hover {
+                    border-color: var(--mat-sys-outline-variant);
+                    cursor: unset;
+                }
+            }
+        }
+    }
+
+    //** Selected template *//
+    .preview--title {
+        font-weight: 600;
+        font-size: var(--mat-sys-title-large-size);
+        margin-bottom: 0.5rem;
+    }
+
+    .template--info {
+        margin-top: 1.5rem;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1rem;
+        margin-top: 1.5rem;
+    }
+
+    .info-container {
+        background-color: var(--mat-sys-background);
+        border-radius: 10px;
+        padding: 1rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
+
+        .info--title {
+            font-size: var(--mat-sys-label-large-size);
+            margin-bottom: 0;
+        }
+
+        .info--content {
+            font-weight: 500;
+            margin-bottom: 0;
+        }
+    }
+
+    .structure--title {
+        font-weight: 500;
+        margin-top: 1.5rem;
+    }
+
+    .structure--content {
+        padding: 1rem;
+        background-color: var(--mat-sys-background);
+        border-radius: 10px;
+    }
+
+    .section-list {
+        font-size: var(--mat-sys-label-large-size);
+    }
+
+    @for $i from 1 through 10 {
+        .level-#{$i} {
+            padding-left: calc(0.5rem + ($i * 1.25rem));
+        }
+    }
+    /////
+
+}
+
+.footer {
+    padding: 1rem 1.5rem;
+    background-color: var(--mat-sys-background);
+    opacity: 0.8;
+    border-top: 1px solid var(--mat-sys-outline-variant);
+
+    @include mat.button-overrides((
+        filled-label-text-size: var(--mat-sys-body-large-size),
+        filled-container-height: 50px
+    ));
+}

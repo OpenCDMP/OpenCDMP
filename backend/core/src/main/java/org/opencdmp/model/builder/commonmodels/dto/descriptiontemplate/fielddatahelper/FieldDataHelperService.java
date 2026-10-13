@@ -3,7 +3,7 @@ package org.opencdmp.model.builder.commonmodels.dto.descriptiontemplate.fielddat
 import gr.cite.tools.fieldset.FieldSet;
 import org.opencdmp.authorization.AuthorizationFlags;
 import org.opencdmp.commonmodels.enums.FieldType;
-import org.opencdmp.commonmodels.models.descriptiotemplate.fielddata.BaseFieldDataModel;
+import org.opencdmp.commonmodels.models.planblueprintdescriptiontemplatefields.fielddata.BaseFieldDataModel;
 import org.opencdmp.model.descriptiontemplate.fielddata.BaseFieldData;
 
 import java.util.EnumSet;

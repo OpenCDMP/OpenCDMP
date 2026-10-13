@@ -1,0 +1,67 @@
+<header class="tc-head">
+	<h1>{{ 'TENANT-CONFIGURATION.REGION.TITLE' | translate }}</h1>
+	<p>{{ 'TENANT-CONFIGURATION.REGION.HINT' | translate }}</p>
+</header>
+
+@if (locale.loading()) {
+	<div class="tc-loading"><mat-spinner diameter="32" /></div>
+} @else if (locale.form()) {
+	<section class="tc-card" aria-labelledby="tc-region-h">
+		<div class="tc-card__head">
+			<div>
+				<h2 id="tc-region-h">{{ 'TENANT-CONFIGURATION.REGION.DEFAULTS' | translate }}</h2>
+			</div>
+			<app-tc-state-tag [changed]="locale.changed()" [inherited]="locale.inherited()" [canCustomise]="section.canEdit" (customiseRequested)="locale.customise()" [canReset]="section.canReset" (resetRequested)="section.confirmReset(locale.reset.bind(locale))" />
+		</div>
+
+		<div class="tc-row">
+			<div>
+				<label class="tc-row__label" for="tc-region-language">{{ 'TENANT-CONFIGURATION.REGION.LANGUAGE' | translate }}</label>
+				<div class="tc-row__hint">{{ 'TENANT-CONFIGURATION.REGION.LANGUAGE-HINT' | translate }}</div>
+			</div>
+			<mat-form-field class="tc-full" subscriptSizing="dynamic">
+				<mat-label>{{ 'TENANT-CONFIGURATION.REGION.LANGUAGE' | translate }}</mat-label>
+				<mat-select id="tc-region-language" [formControl]="language()" [required]="true">
+					@for (code of languages; track code) {
+						<mat-option [value]="code">{{ languageService.getLanguageName(code) }}</mat-option>
+					}
+				</mat-select>
+				@if (language().hasError('required')) { <mat-error>{{ 'GENERAL.VALIDATION.REQUIRED' | translate }}</mat-error> }
+				@if (language().hasError('backendError')) { <mat-error>{{ language().getError('backendError').message }}</mat-error> }
+			</mat-form-field>
+		</div>
+
+		<div class="tc-row">
+			<div>
+				<span class="tc-row__label">{{ 'TENANT-CONFIGURATION.REGION.TIMEZONE' | translate }}</span>
+				<div class="tc-row__hint">{{ 'TENANT-CONFIGURATION.REGION.TIMEZONE-HINT' | translate }}</div>
+			</div>
+			<mat-form-field class="tc-full" subscriptSizing="dynamic">
+				<mat-label>{{ 'TENANT-CONFIGURATION.REGION.TIMEZONE' | translate }}</mat-label>
+				<app-single-auto-complete [required]="true" [formControl]="timezone()" [configuration]="timezoneConfiguration" />
+				@if (timezone().hasError('required')) { <mat-error>{{ 'GENERAL.VALIDATION.REQUIRED' | translate }}</mat-error> }
+				@if (timezone().hasError('backendError')) { <mat-error>{{ timezone().getError('backendError').message }}</mat-error> }
+			</mat-form-field>
+		</div>
+
+		<div class="tc-row">
+			<div>
+				<span class="tc-row__label">{{ 'TENANT-CONFIGURATION.REGION.CULTURE' | translate }}</span>
+				<div class="tc-row__hint">{{ 'TENANT-CONFIGURATION.REGION.CULTURE-HINT' | translate }}</div>
+			</div>
+			<div>
+				<mat-form-field class="tc-full" subscriptSizing="dynamic">
+					<mat-label>{{ 'TENANT-CONFIGURATION.REGION.CULTURE' | translate }}</mat-label>
+					<app-single-auto-complete [required]="true" [formControl]="culture()" [configuration]="cultureConfiguration" />
+					@if (culture().hasError('required')) { <mat-error>{{ 'GENERAL.VALIDATION.REQUIRED' | translate }}</mat-error> }
+					@if (culture().hasError('backendError')) { <mat-error>{{ culture().getError('backendError').message }}</mat-error> }
+				</mat-form-field>
+				@if (example(); as sample) {
+					<div class="tc-row__hint tc-region__example">{{ 'TENANT-CONFIGURATION.REGION.LOOKS-LIKE' | translate: { example: sample } }}</div>
+				}
+			</div>
+		</div>
+	</section>
+
+	<app-tc-save-bar [dirtyCount]="section.dirtyCount()" [saving]="section.saving()" [canSave]="section.canEdit" (save)="section.saveAll()" (discard)="section.discardAll()" />
+}

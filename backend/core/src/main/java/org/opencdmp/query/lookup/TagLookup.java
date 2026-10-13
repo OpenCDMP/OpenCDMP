@@ -1,6 +1,7 @@
 package org.opencdmp.query.lookup;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import org.opencdmp.commons.SQLUtils;
 import org.opencdmp.commons.enums.IsActive;
 import org.opencdmp.query.TagQuery;
 import gr.cite.tools.data.query.Lookup;
@@ -91,7 +92,7 @@ public class TagLookup extends Lookup {
 
     public TagQuery enrich(QueryFactory queryFactory) {
         TagQuery query = queryFactory.query(TagQuery.class);
-        if (this.like != null) query.like(this.like);
+        if (this.like != null) query.like(SQLUtils.toPostgres(this.like));
         if (this.ids != null) query.ids(this.ids);
         if (this.excludedIds != null) query.excludedIds(this.excludedIds);
         if (this.tags != null) query.tags(this.tags);

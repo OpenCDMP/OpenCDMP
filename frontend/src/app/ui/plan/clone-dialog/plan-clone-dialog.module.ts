@@ -6,8 +6,7 @@ import { AutoCompleteModule } from '@app/library/auto-complete/auto-complete.mod
 import {RichTextEditorModule} from "@app/library/rich-text-editor/rich-text-editor.module";
 
 @NgModule({
-    imports: [CommonUiModule, FormsModule, ReactiveFormsModule, AutoCompleteModule, RichTextEditorModule],
-    declarations: [ClonePlanDialogComponent],
+    imports: [CommonUiModule, FormsModule, ReactiveFormsModule, AutoCompleteModule, RichTextEditorModule, ClonePlanDialogComponent],
     exports: [ClonePlanDialogComponent]
 })
 export class ClonePlanDialogModule {

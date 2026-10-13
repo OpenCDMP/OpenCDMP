@@ -23,7 +23,7 @@ export enum AppPermission {
 
 	//Deposit
 	BrowseDeposit = "BrowseDeposit",
-	EditDeposit = "BrowseDeposit",
+	EditDeposit = "EditDeposit",
 
 
 	//Language
@@ -260,8 +260,23 @@ export enum AppPermission {
 	ViewUsageLimitPage = "ViewUsageLimitPage",
     ViewPlanStatusPage = "ViewPlanStatusPage",
     ViewDescriptionStatusPage = "ViewDescriptionStatusPage",
-    ViewPlanWorkflowPage = "ViewPlanWorkflowPage",//TODO remove if workflows remain in tenant config view
-    ViewDescriptionWorkflowPage = "ViewDescriptionWorkflowPage",//TODO remove if workflows remain in tenant config view
+    ViewPlanWorkflowPage = "ViewPlanWorkflowPage",
+    ViewDescriptionWorkflowPage = "ViewDescriptionWorkflowPage",
 	ViewIndicatorDashboardPage = "ViewIndicatorDashboardPage",
+    ViewPlanBlueprintLibraryPage = "ViewPlanBlueprintLibraryPage",
+    ViewDescriptionTemplateLibraryPage = "ViewDescriptionTemplateLibraryPage",
+    ViewTenantTransferPage = "ViewTenantTransferPage",
+    ViewWebhooksPage = "ViewWebhooksPage",
+    ViewReportsPage = "ViewReportsPage",
+    BrowseInstallationReport = "BrowseInstallationReport",
+
+    //Tenant Transfer
+    TransferTenantData = "TransferTenantData",
+    PurgeTenantData = "PurgeTenantData",
+
+    //Webhooks
+    BrowseWebhookSubscription = "BrowseWebhookSubscription",
+    EditWebhookSubscription = "EditWebhookSubscription",
+    DeleteWebhookSubscription = "DeleteWebhookSubscription"
 }
 

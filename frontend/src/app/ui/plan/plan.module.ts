@@ -7,18 +7,15 @@ import { InvitationAcceptedComponent } from './invitation/accepted/plan-invitati
 import { EvaluateDialogModule } from '../evaluation/evaluate-dialog/evaluate-dialog.module';
 
 @NgModule({
-	imports: [
-		CommonUiModule,
-		CommonFormsModule,
-		FormattingModule,
-		PlanRoutingModule,
-		EvaluateDialogModule,
-	],
-	declarations: [
-		InvitationAcceptedComponent
-	],
-	exports: [
-	]
+    imports: [
+        CommonUiModule,
+        CommonFormsModule,
+        FormattingModule,
+        PlanRoutingModule,
+        EvaluateDialogModule,
+        InvitationAcceptedComponent,
+    ],
+    exports: []
 })
 export class PlanModule { }
 

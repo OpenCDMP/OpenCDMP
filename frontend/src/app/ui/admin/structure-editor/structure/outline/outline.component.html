@@ -1,0 +1,107 @@
+<aside class="ol bp2-card" [attr.aria-label]="editor.term('PLAN-BLUEPRINT-EDITOR.OUTLINE.TITLE') | translate">
+	<div class="ol-top">
+		@if (entries.length) {
+			<div class="ol-modes" role="group" [attr.aria-label]="'PLAN-BLUEPRINT-EDITOR.OUTLINE.MODE' | translate">
+				<button type="button" class="ol-mode" [class.ol-mode--on]="editor.outlineMode === 'outline'" [attr.aria-pressed]="editor.outlineMode === 'outline'" (click)="editor.outlineMode = 'outline'">{{editor.term('PLAN-BLUEPRINT-EDITOR.OUTLINE.TITLE') | translate}}</button>
+				<button type="button" class="ol-mode" [class.ol-mode--on]="editor.outlineMode === 'keys'" [attr.aria-pressed]="editor.outlineMode === 'keys'" (click)="editor.outlineMode = 'keys'">{{'PLAN-BLUEPRINT-EDITOR.OUTLINE.MODE-KEYS' | translate}}@if (keyCount) { <span class="ol-filter__n">{{keyCount}}</span> }</button>
+			</div>
+		} @else {
+			<div class="bp2-caption ol-caption">{{editor.term('PLAN-BLUEPRINT-EDITOR.OUTLINE.TITLE') | translate}}</div>
+		}
+		@if (entries.length && editor.outlineMode === 'outline') {
+			<button type="button" class="ol-filter" [class.ol-filter--on]="unmappedOnly" (click)="unmappedOnly = !unmappedOnly" [attr.aria-pressed]="unmappedOnly" [matTooltip]="'PLAN-BLUEPRINT-EDITOR.OUTLINE.UNMAPPED-HINT' | translate">
+				<mat-icon aria-hidden="true">sell</mat-icon>{{'PLAN-BLUEPRINT-EDITOR.OUTLINE.UNMAPPED' | translate}}@if (unmappedCount) { <span class="ol-filter__n">{{unmappedCount}}</span> }
+			</button>
+		}
+	</div>
+	@if (editor.outlineMode === 'keys' && entries.length) {
+		<app-se2-keys-view />
+	} @else {
+	@if (editor.semanticHighlight) {
+		<div class="ol-hl" role="status"><mat-icon aria-hidden="true">sell</mat-icon><span>{{'PLAN-BLUEPRINT-EDITOR.OUTLINE.HIGHLIGHTING' | translate: { prefix: editor.semanticHighlight } }}</span><button type="button" (click)="editor.semanticHighlight = null" [attr.aria-label]="'PLAN-BLUEPRINT-EDITOR.OUTLINE.CLEAR-HIGHLIGHT' | translate"><mat-icon aria-hidden="true">close</mat-icon></button></div>
+	}
+	@if (!entries.length) {
+		<p class="bp2-help ol-empty">{{'PLAN-BLUEPRINT-EDITOR.OUTLINE.EMPTY' | translate}}</p>
+	}
+	<div cdkDropListGroup class="ol-tree" [class.ol-tree--dragging]="armed" (pointerleave)="hovering = false">
+		<ng-container *ngTemplateOutlet="node; context: { $implicit: entries, parent: null, depth: 0 }"></ng-container>
+		<!-- declared inside the group: embedded views resolve the drop-list group from where the template is declared -->
+		<ng-template #node let-list let-parent="parent" let-depth="depth">
+			<div class="ol-list" cdkDropList [cdkDropListData]="{ parent: parent, list: list }" [cdkDropListDisabled]="editor.readOnly" [cdkDropListEnterPredicate]="canEnter"
+				(cdkDropListDropped)="drop($event)" (pointerover)="onOver(parent, $event)"
+				[class.ol-list--no]="dragged && hovering && hoverParent === parent && blockReason(parent)" [class.ol-list--empty]="!list.length">
+				@for (e of list; track e.id) {
+					<div class="ol-item" cdkDrag [cdkDragDisabled]="editor.readOnly" [cdkDragData]="e" [class.ol-item--hidden]="hidden(e)" (pointerdown)="arm(e, $event)" (cdkDragStarted)="dragged = e" (cdkDragEnded)="disarm()">
+						<div class="ol-row" [class.ol-row--sel]="isSelected(e) || (editor.expandedQuestionId === e.id && e.type === ToCEntryType.FieldSet)" [class.ol-row--q]="e.type === ToCEntryType.FieldSet" [class.ol-row--hl]="isHighlighted(e)" [style.padding-left.px]="8 + depth * 18">
+							@if (e.type === ToCEntryType.Section && e.subEntries?.length) {
+								<button type="button" class="ol-twisty" (click)="toggle(e, $event)" [attr.aria-label]="(isCollapsed(e) ? 'PLAN-BLUEPRINT-EDITOR.OUTLINE.EXPAND' : 'PLAN-BLUEPRINT-EDITOR.OUTLINE.COLLAPSE') | translate" [attr.aria-expanded]="!isCollapsed(e)">
+									<mat-icon aria-hidden="true">{{ isCollapsed(e) ? 'chevron_right' : 'expand_more' }}</mat-icon>
+								</button>
+							} @else { <span class="ol-twisty ol-twisty--gap"></span> }
+							<button type="button" class="ol-main" (click)="select(e)" [attr.aria-current]="isSelected(e) ? 'true' : null">
+								<span class="ol-num">{{e.numbering}}</span>
+								@if (e.type === ToCEntryType.FieldSet) { <mat-icon class="ol-qicon" aria-hidden="true">{{ isPresetQuestion(e) ? 'bookmark' : 'short_text' }}</mat-icon> }
+								<span class="ol-label" [class.ol-label--empty]="!e.label" [class.ol-label--cond]="isConditional(e)">{{ e.label || ((e.type === ToCEntryType.Section ? 'PLAN-BLUEPRINT-EDITOR.UNTITLED-SECTION' : 'PLAN-BLUEPRINT-EDITOR.UNTITLED-QUESTION') | translate) }}</span>
+								@for (o of objectsOf(e); track o) { <span class="ol-object" [attr.title]="o">{{objectName(o)}}</span> }
+								@if (e.type === ToCEntryType.FieldSet) {
+									@if (controlsOthers(e)) { <mat-icon class="ol-mark" [matTooltip]="'PLAN-BLUEPRINT-EDITOR.OUTLINE.CONTROLS' | translate" aria-hidden="true">alt_route</mat-icon> }
+									@if (isConditional(e)) { <mat-icon class="ol-mark ol-mark--cond" [matTooltip]="'PLAN-BLUEPRINT-EDITOR.OUTLINE.CONDITIONAL' | translate" aria-hidden="true">visibility</mat-icon> }
+									@if (isMapped(e)) { <mat-icon class="ol-mark ol-mark--sem" [matTooltip]="'PLAN-BLUEPRINT-EDITOR.OUTLINE.MAPPED' | translate" aria-hidden="true">sell</mat-icon> }
+								}
+								@if (e.type === ToCEntryType.Section) {
+									<span class="ol-glyphs">@for (g of glyphs(e); track $index) { <span class="ol-glyph" [class.ol-glyph--miss]="g.missing" [title]="g.title">{{g.letter}}</span> }</span>
+									@if (hasTemplates(e)) { <span class="bp2-tag bp2-tag--assets ol-tag">{{'PLAN-BLUEPRINT-EDITOR.OUTLINE.ASSETS' | translate}}</span> }
+									@if (hasSubsections(e)) { <span class="bp2-sub ol-count">{{'PLAN-BLUEPRINT-EDITOR.OUTLINE.SUBSECTIONS' | bp2Count: subsectionCount(e) }}</span> }
+									@else if (questionCount(e)) { <span class="bp2-sub ol-count">{{questionCount(e)}}</span> }
+								}
+								@if (warn(e)) { <mat-icon class="ol-warn" [matTooltip]="'PLAN-BLUEPRINT-EDITOR.OUTLINE.NEEDS-ATTENTION' | translate" aria-hidden="true">error</mat-icon> }
+								@else if (e.type === ToCEntryType.FieldSet && mappingProblems(e)) { <span class="ol-dot" [matTooltip]="'PLAN-BLUEPRINT-EDITOR.OUTLINE.MAPPING-PROBLEM' | bp2Count: mappingProblems(e)" aria-hidden="true"></span> }
+							</button>
+							@if (!editor.readOnly) {
+								<button mat-icon-button type="button" class="ol-kebab bp2-icon-btn-sm" [matMenuTriggerFor]="rowMenu" [matMenuTriggerData]="{ entry: e }" [attr.aria-label]="'ALT-TEXT.MORE-ACTIONS' | translate"><mat-icon aria-hidden="true">more_vert</mat-icon></button>
+							}
+						</div>
+						@if (e.type === ToCEntryType.Section && !isCollapsed(e) && (e.subEntries?.length || armed)) {
+							<ng-container *ngTemplateOutlet="node; context: { $implicit: e.subEntries ?? [], parent: e, depth: depth + 1 }"></ng-container>
+						}
+					</div>
+				}
+			</div>
+		</ng-template>
+	</div>
+	@if (dragged) {
+		@if (hovering && blockReason(hoverParent); as why) {
+			<p class="ol-noway" aria-live="polite"><mat-icon aria-hidden="true">block</mat-icon>{{why}}</p>
+		} @else {
+			<p class="bp2-help ol-draghint" aria-live="polite">{{'PLAN-BLUEPRINT-EDITOR.MOVE.DRAG-HINT' | translate: { name: dragged.label || ('PLAN-BLUEPRINT-EDITOR.UNTITLED-QUESTION' | translate) } }}</p>
+		}
+	}
+	@if (!editor.readOnly) {
+		<div class="bp2-divider ol-divider"></div>
+		<button mat-button type="button" class="ol-add" (click)="editor.addSection(null)"><mat-icon aria-hidden="true">add</mat-icon>{{'PLAN-BLUEPRINT-EDITOR.OUTLINE.ADD-SECTION' | translate}}</button>
+		<p class="bp2-help ol-rule">{{'PLAN-BLUEPRINT-EDITOR.OUTLINE.RULE' | translate}}</p>
+	}
+	}
+</aside>
+
+
+
+<mat-menu #rowMenu="matMenu">
+	<ng-template matMenuContent let-entry="entry">
+		@if (entry.type === ToCEntryType.Section) {
+			@if (!hasSubsections(entry)) { <button mat-menu-item type="button" (click)="editor.addQuestion(entry)"><mat-icon aria-hidden="true">add</mat-icon>{{'PLAN-BLUEPRINT-EDITOR.SECTION.ADD-QUESTION' | translate}}</button> }
+			@if (!hasQuestions(entry)) { <button mat-menu-item type="button" (click)="editor.addSection(entry)"><mat-icon aria-hidden="true">create_new_folder</mat-icon>{{'PLAN-BLUEPRINT-EDITOR.SECTION.ADD-SUBSECTION' | translate}}</button> }
+			@else { <span mat-menu-item disabled class="bp2-menu-note" [matTooltip]="'PLAN-BLUEPRINT-EDITOR.SECTION.ADD-SUBSECTION-LOCKED' | translate"><mat-icon aria-hidden="true">lock</mat-icon>{{'PLAN-BLUEPRINT-EDITOR.SECTION.ADD-SUBSECTION' | translate}}</span> }
+			@if (hasQuestions(entry)) { <button mat-menu-item type="button" (click)="editor.wrapQuestionsInSubsection(entry)"><mat-icon aria-hidden="true">folder_open</mat-icon>{{'PLAN-BLUEPRINT-EDITOR.MOVE.WRAP' | translate}}</button> }
+			<button mat-menu-item type="button" (click)="editor.duplicateSection(entry)"><mat-icon aria-hidden="true">content_copy</mat-icon>{{'PLAN-BLUEPRINT-EDITOR.MOVE.DUPLICATE-SECTION' | translate}}</button>
+		} @else {
+			<button mat-menu-item type="button" (click)="editor.cloneQuestion(entry)"><mat-icon aria-hidden="true">content_copy</mat-icon>{{'PLAN-BLUEPRINT-EDITOR.QUESTION.DUPLICATE' | translate}}</button>
+		}
+		<mat-divider></mat-divider>
+		<button mat-menu-item type="button" [disabled]="!canMove(entry, -1)" (click)="editor.moveEntry(entry, -1)"><mat-icon aria-hidden="true">arrow_upward</mat-icon>{{'PLAN-BLUEPRINT-EDITOR.MOVE-UP' | translate}}</button>
+		<button mat-menu-item type="button" [disabled]="!canMove(entry, 1)" (click)="editor.moveEntry(entry, 1)"><mat-icon aria-hidden="true">arrow_downward</mat-icon>{{'PLAN-BLUEPRINT-EDITOR.MOVE-DOWN' | translate}}</button>
+		<button mat-menu-item type="button" (click)="editor.openMoveTo(entry)"><mat-icon aria-hidden="true">drive_file_move</mat-icon>{{'PLAN-BLUEPRINT-EDITOR.MOVE.MOVE-TO' | translate}}</button>
+		<mat-divider></mat-divider>
+		<button mat-menu-item type="button" class="ol-danger" (click)="editor.removeEntry(entry)"><mat-icon aria-hidden="true">delete</mat-icon>{{ (entry.type === ToCEntryType.Section ? 'PLAN-BLUEPRINT-EDITOR.SECTION.DELETE' : 'PLAN-BLUEPRINT-EDITOR.QUESTION.DELETE') | translate }}</button>
+	</ng-template>
+</mat-menu>

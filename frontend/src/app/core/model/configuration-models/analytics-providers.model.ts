@@ -13,7 +13,7 @@ export class AnalyticsProviders {
 		const analyticsProvidersObj: AnalyticsProviders = new AnalyticsProviders();
 
 		analyticsProvidersObj.providers = [];
-    for (let providerValue of value.providers) {
+    for (const providerValue of value.providers) {
       const providerObj: AnalyticsProvider = AnalyticsProvider.parseValue(providerValue);
       analyticsProvidersObj.providers.push(providerObj);
     }

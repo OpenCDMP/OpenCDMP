@@ -6,17 +6,15 @@ import { PlanUploadDialogModule } from '../upload-dialogue/plan-upload-dialog.mo
 import { StartNewPlanDialogComponent } from './start-new-plan-dialog.component';
 
 @NgModule({
-	imports: [
-		CommonUiModule,
-		CommonFormsModule,
-		FormattingModule,
-		PlanUploadDialogModule
-	],
-	declarations: [
-		StartNewPlanDialogComponent,
-	],
-	exports: [
-		StartNewPlanDialogComponent,
-	]
+    imports: [
+        CommonUiModule,
+        CommonFormsModule,
+        FormattingModule,
+        PlanUploadDialogModule,
+        StartNewPlanDialogComponent
+    ],
+    exports: [
+        StartNewPlanDialogComponent,
+    ]
 })
 export class StartNewPlanDialogModule { }

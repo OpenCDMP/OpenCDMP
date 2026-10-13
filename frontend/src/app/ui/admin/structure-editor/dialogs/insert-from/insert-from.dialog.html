@@ -1,0 +1,78 @@
+<h2 mat-dialog-title class="if-title">{{'PLAN-BLUEPRINT-EDITOR.TRANSFER.INSERT-TITLE' | translate}}</h2>
+<mat-dialog-content>
+	<p class="if-intro">{{'PLAN-BLUEPRINT-EDITOR.TRANSFER.INSERT-INTRO' | translate}}</p>
+
+	@if (!source) {
+		@if (tenantSelected) {
+			<mat-button-toggle-group class="if-scope" [value]="scope" (change)="setScope($event.value)" [attr.aria-label]="'ADMIN-LISTING.SCOPE.LABEL' | translate">
+				<mat-button-toggle value="own">{{ 'ADMIN-LISTING.SCOPE.OWN' | translate: { tenant: tenantName || ('ADMIN-LISTING.SCOPE.THIS-TENANT' | translate) } }}</mat-button-toggle>
+				<mat-button-toggle value="shared">{{ 'ADMIN-LISTING.SCOPE.SHARED' | translate }}</mat-button-toggle>
+				<mat-button-toggle value="all">{{ 'ADMIN-LISTING.SCOPE.ALL' | translate }}</mat-button-toggle>
+			</mat-button-toggle-group>
+		}
+		<mat-form-field class="if-search" subscriptSizing="dynamic">
+			<mat-label>{{'PLAN-BLUEPRINT-EDITOR.TRANSFER.SOURCE' | translate}}</mat-label>
+			<mat-icon matPrefix aria-hidden="true">search</mat-icon>
+			<input matInput type="text" [formControl]="search" [placeholder]="'PLAN-BLUEPRINT-EDITOR.TRANSFER.SEARCH' | translate">
+		</mat-form-field>
+		<div class="if-items" role="list">
+			@if (items === null) { <p class="bp2-help">{{'PLAN-BLUEPRINT-EDITOR.VERSIONS.LOADING' | translate}}</p> }
+			@for (item of items; track item.kind + item.id) {
+				<button type="button" class="if-item" role="listitem" (click)="pick(item)">
+					<mat-icon aria-hidden="true">{{ item.kind === 'template' ? 'inventory_2' : 'description' }}</mat-icon>
+					<span class="if-item__name">{{item.label}}</span>
+					<span class="bp2-tag bp2-tag--opt">{{ (item.kind === 'template' ? 'PLAN-BLUEPRINT-EDITOR.TRANSFER.KIND-TEMPLATE' : 'PLAN-BLUEPRINT-EDITOR.TRANSFER.KIND-BLUEPRINT') | translate }}</span>
+					<span class="bp2-sub">{{ (item.status === 1 ? 'PLAN-BLUEPRINT-EDITOR.TRANSFER.FINALIZED-V' : 'PLAN-BLUEPRINT-EDITOR.TRANSFER.DRAFT-V') | translate: { version: item.version } }}</span>
+					@if (item.belongsToCurrentTenant === false) { <span class="bp2-tag bp2-tag--opt">{{'COMMONS.TENANT-SHARED.CHIP' | translate}}</span> }
+				</button>
+			} @empty {
+				@if (items !== null) { <p class="bp2-help">{{'PLAN-BLUEPRINT-EDITOR.TRANSFER.NO-SOURCES' | translate}}</p> }
+			}
+		</div>
+	} @else {
+		<div class="if-source">
+			<button mat-button type="button" class="bp2-btn-sm" (click)="back()"><mat-icon aria-hidden="true">arrow_back</mat-icon>{{'PLAN-BLUEPRINT-EDITOR.TRANSFER.OTHER-SOURCE' | translate}}</button>
+			<strong>{{source.label}}</strong>
+			<span class="bp2-sub">{{ (source.status === 1 ? 'PLAN-BLUEPRINT-EDITOR.TRANSFER.FINALIZED-V' : 'PLAN-BLUEPRINT-EDITOR.TRANSFER.DRAFT-V') | translate: { version: source.version } }}</span>
+		</div>
+		@if (loading) { <p class="bp2-help">{{'PLAN-BLUEPRINT-EDITOR.VERSIONS.LOADING' | translate}}</p> }
+		@else {
+			<div class="if-tree">
+				@for (node of rows; track node.kind + node.id) {
+					<div class="if-node" [class.if-node--section]="node.kind === 'section'" [style.padding-left.px]="8 + depth(node) * 20">
+						<mat-checkbox [checked]="isChecked(node)" [disabled]="covered(node)" (change)="toggle(node)">
+							<span class="if-num">{{node.numbering}}</span>
+							{{ node.title || ((node.kind === 'section' ? 'PLAN-BLUEPRINT-EDITOR.UNTITLED-SECTION' : 'PLAN-BLUEPRINT-EDITOR.UNTITLED-QUESTION') | translate) }}
+						</mat-checkbox>
+						@if (node.kind === 'question' && isPreset(node)) { <span class="bp2-tag bp2-tag--preset">{{'PLAN-BLUEPRINT-EDITOR.TYPES.PRESET' | translate}}</span> }
+						@if (node.kind === 'section') { <span class="bp2-sub">{{'PLAN-BLUEPRINT-EDITOR.SECTION.QUESTIONS-COUNT' | bp2Count: node.children.length }}</span> }
+					</div>
+				} @empty {
+					<p class="bp2-help">{{'PLAN-BLUEPRINT-EDITOR.TRANSFER.EMPTY-SOURCE' | translate}}</p>
+				}
+			</div>
+		}
+		@if (sectionCount || questionCount) {
+			<div class="bp2-strip"><mat-icon aria-hidden="true">content_copy</mat-icon>
+				<span>
+					{{'PLAN-BLUEPRINT-EDITOR.TRANSFER.SELECTED-SECTIONS' | bp2Count: sectionCount}}, {{'PLAN-BLUEPRINT-EDITOR.TRANSFER.SELECTED-QUESTIONS' | bp2Count: questionCount}}.
+					@if (sectionCount) { {{ (data.rootLabel ? 'PLAN-BLUEPRINT-EDITOR.TRANSFER.SECTIONS-AFTER' : 'PLAN-BLUEPRINT-EDITOR.TRANSFER.SECTIONS-END') | translate: { name: data.rootLabel } }} }
+					@if (payload.questions.length) { {{ (data.sectionTakesQuestions ? 'PLAN-BLUEPRINT-EDITOR.TRANSFER.QUESTIONS-INTO' : 'PLAN-BLUEPRINT-EDITOR.TRANSFER.QUESTIONS-NEW') | translate: { name: data.sectionLabel, source: source.label } }} }
+				</span>
+			</div>
+			@if (droppedRules.length) {
+				<div class="bp2-strip bp2-strip--warn"><mat-icon aria-hidden="true">alt_route</mat-icon>
+					<span>{{'PLAN-BLUEPRINT-EDITOR.TRANSFER.RULES-DROPPED' | bp2Count: droppedRules.length }}
+						@for (r of droppedRules; track $index) { <span class="if-rule">“{{r.from}}” → {{r.to}}</span> }
+					</span>
+				</div>
+			}
+			<p class="bp2-help if-keeps">{{'PLAN-BLUEPRINT-EDITOR.TRANSFER.KEEPS' | translate}}</p>
+		}
+	}
+</mat-dialog-content>
+<div class="if-actions">
+	<button mat-button type="button" (click)="dialogRef.close(null)">{{'GENERAL.CONFIRMATION-DIALOG.ACTIONS.CANCEL' | translate}}</button>
+	<span class="if-spacer"></span>
+	<button mat-flat-button color="primary" type="button" [disabled]="!source || !(sectionCount || questionCount)" (click)="insert()">{{'PLAN-BLUEPRINT-EDITOR.TRANSFER.INSERT' | translate}}</button>
+</div>

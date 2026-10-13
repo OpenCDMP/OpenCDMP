@@ -1,0 +1,189 @@
+@if (isEmpty) {
+	<!-- ---------------------------------------------------------- empty structure: how to start -->
+	<section class="bp2-card sp-start">
+		<span class="bp2-tile sp-start__tile"><mat-icon>description</mat-icon></span>
+		<h2>{{'PLAN-BLUEPRINT-EDITOR.START.TITLE' | translate}}</h2>
+		<p class="bp2-help">{{editor.term('PLAN-BLUEPRINT-EDITOR.START.HINT') | translate}}</p>
+		@if (!editor.readOnly) {
+			<div class="sp-start__choices">
+				<button type="button" class="sp-start__choice" (click)="startBlank()">
+					<mat-icon aria-hidden="true">bookmark_added</mat-icon>
+					<strong>{{'PLAN-BLUEPRINT-EDITOR.START.BASICS' | translate}}</strong>
+					<span class="bp2-sub">{{editor.term('PLAN-BLUEPRINT-EDITOR.START.BASICS-HINT') | translate}}</span>
+				</button>
+				<button type="button" class="sp-start__choice" (click)="startEmpty()">
+					<mat-icon aria-hidden="true">add_box</mat-icon>
+					<strong>{{'PLAN-BLUEPRINT-EDITOR.START.EMPTY' | translate}}</strong>
+					<span class="bp2-sub">{{'PLAN-BLUEPRINT-EDITOR.START.EMPTY-HINT' | translate}}</span>
+				</button>
+				<button type="button" class="sp-start__choice" (click)="editor.openInsertFrom(null)">
+					<mat-icon aria-hidden="true">content_copy</mat-icon>
+					<strong>{{editor.term('PLAN-BLUEPRINT-EDITOR.START.COPY') | translate}}</strong>
+					<span class="bp2-sub">{{'PLAN-BLUEPRINT-EDITOR.START.COPY-HINT' | translate}}</span>
+				</button>
+			</div>
+		}
+	</section>
+} @else if (section) {
+	<div class="sp">
+		<!-- ---------------------------------------------------------- breadcrumb -->
+		<nav class="sp-crumbs" [attr.aria-label]="editor.term('PLAN-BLUEPRINT-EDITOR.OUTLINE.TITLE') | translate">
+			<button type="button" class="sp-crumb" (click)="editor.selectedTocEntry = null" disabled>{{editor.term('PLAN-BLUEPRINT-EDITOR.OUTLINE.TITLE') | translate}}</button>
+			@for (p of path; track p.id) {
+				<mat-icon class="sp-crumbs__sep" aria-hidden="true">chevron_right</mat-icon>
+				@if (p.id === section.id) { <span class="sp-crumb sp-crumb--current">{{p.numbering}} {{ p.label || ('PLAN-BLUEPRINT-EDITOR.UNTITLED-SECTION' | translate) }}</span> }
+				@else { <button type="button" class="sp-crumb" (click)="editor.selectEntry(p)">{{p.numbering}} {{ p.label || ('PLAN-BLUEPRINT-EDITOR.UNTITLED-SECTION' | translate) }}</button> }
+			}
+		</nav>
+
+		<!-- ---------------------------------------------------------- section card -->
+		<section class="bp2-card" [class.sp-card--bad]="showErrors && form.get('title').invalid">
+			<div class="bp2-card__head">
+				<div class="bp2-card__title">
+					<span class="sp-num">{{section.numbering}}</span>
+					<h2>{{ (isRoot ? 'PLAN-BLUEPRINT-EDITOR.SECTION.SECTION' : 'PLAN-BLUEPRINT-EDITOR.SECTION.SUBSECTION') | translate }}</h2>
+					@if (!isRoot) { <span class="bp2-tag bp2-tag--opt">{{'PLAN-BLUEPRINT-EDITOR.SECTION.IN' | translate: { name: (path[path.length - 2]?.label || ('PLAN-BLUEPRINT-EDITOR.UNTITLED-SECTION' | translate)) } }}</span> }
+					@if (hasSubsections) { <span class="bp2-tag bp2-tag--opt">{{'PLAN-BLUEPRINT-EDITOR.OUTLINE.SUBSECTIONS' | bp2Count: subsections.length}} · {{'PLAN-BLUEPRINT-EDITOR.SECTION.QUESTIONS-COUNT' | bp2Count: questionCount(section)}}</span> }
+				</div>
+				@if (!editor.readOnly) {
+					<button mat-icon-button type="button" [matMenuTriggerFor]="sectionMenu" [attr.aria-label]="'ALT-TEXT.MORE-ACTIONS' | translate"><mat-icon aria-hidden="true">more_vert</mat-icon></button>
+					<mat-menu #sectionMenu="matMenu">
+						@if (!hasSubsections) { <button mat-menu-item type="button" [matMenuTriggerFor]="addQuestionMenu"><mat-icon aria-hidden="true">add</mat-icon>{{'PLAN-BLUEPRINT-EDITOR.SECTION.ADD-QUESTION' | translate}}</button> }
+						@if (!hasQuestions) { <button mat-menu-item type="button" (click)="addSubsection()"><mat-icon aria-hidden="true">create_new_folder</mat-icon>{{'PLAN-BLUEPRINT-EDITOR.SECTION.ADD-SUBSECTION' | translate}}</button> }
+						<mat-divider></mat-divider>
+						<button mat-menu-item type="button" (click)="editor.moveEntry(section, -1)"><mat-icon aria-hidden="true">arrow_upward</mat-icon>{{'PLAN-BLUEPRINT-EDITOR.MOVE-UP' | translate}}</button>
+						<button mat-menu-item type="button" (click)="editor.moveEntry(section, 1)"><mat-icon aria-hidden="true">arrow_downward</mat-icon>{{'PLAN-BLUEPRINT-EDITOR.MOVE-DOWN' | translate}}</button>
+						<button mat-menu-item type="button" (click)="editor.openMoveTo(section)"><mat-icon aria-hidden="true">drive_file_move</mat-icon>{{'PLAN-BLUEPRINT-EDITOR.MOVE.MOVE-TO' | translate}}</button>
+						<button mat-menu-item type="button" (click)="editor.duplicateSection(section)"><mat-icon aria-hidden="true">content_copy</mat-icon>{{'PLAN-BLUEPRINT-EDITOR.MOVE.DUPLICATE-SECTION' | translate}}</button>
+						@if (hasQuestions) { <button mat-menu-item type="button" (click)="editor.wrapQuestionsInSubsection(section)"><mat-icon aria-hidden="true">folder_open</mat-icon>{{'PLAN-BLUEPRINT-EDITOR.MOVE.WRAP' | translate}}</button> }
+						<mat-divider></mat-divider>
+						<button mat-menu-item type="button" class="sp-danger" (click)="editor.removeEntry(section)"><mat-icon aria-hidden="true">delete</mat-icon>{{'PLAN-BLUEPRINT-EDITOR.SECTION.DELETE' | translate}}</button>
+					</mat-menu>
+				}
+			</div>
+			<div class="bp2-card__body">
+				@if (editor.readOnly) {
+					<dl class="bp2-read">
+						<dt>{{'PLAN-BLUEPRINT-EDITOR.SECTION.NAME' | translate}}</dt><dd>{{ form.get('title').value || ('PLAN-BLUEPRINT-EDITOR.UNTITLED-SECTION' | translate) }}</dd>
+						@if (form.get('description').value) { <dt>{{'PLAN-BLUEPRINT-EDITOR.SECTION.DESCRIPTION' | translate}}</dt><dd><div class="bp2-read__rich" [innerHTML]="form.get('description').value"></div></dd> }
+					</dl>
+				} @else {
+				<mat-form-field class="sp-grow">
+					<mat-label>{{'PLAN-BLUEPRINT-EDITOR.SECTION.NAME' | translate}}</mat-label>
+					<input matInput type="text" [formControl]="form.get('title')" required [placeholder]="'PLAN-BLUEPRINT-EDITOR.UNTITLED-SECTION' | translate">
+					@if (form.get('title').hasError('backendError')) { <mat-error>{{form.get('title').getError('backendError').message}}</mat-error> }
+					@if (form.get('title').hasError('required')) { <mat-error>{{'PLAN-BLUEPRINT-EDITOR.PROBLEMS.SECTION-TITLE' | translate}}</mat-error> }
+				</mat-form-field>
+				@if (descriptionShown()) {
+					<div class="bp2-rich-field">
+						<label class="bp2-field-label" [for]="'bp2-section-desc-' + section.id" [appFor]="'bp2-section-desc-' + section.id">{{'PLAN-BLUEPRINT-EDITOR.SECTION.DESCRIPTION' | translate}} <span class="bp2-sub">({{'PLAN-BLUEPRINT-EDITOR.OPTIONAL' | translate}})</span></label>
+						<rich-text-editor-component [id]="'bp2-section-desc-' + section.id" [form]="form.get('description')" [placeholder]="'PLAN-BLUEPRINT-EDITOR.SECTION.DESCRIPTION-PLACEHOLDER'"></rich-text-editor-component>
+						<div class="bp2-help">{{'PLAN-BLUEPRINT-EDITOR.SECTION.DESCRIPTION-HINT' | translate}}</div>
+					</div>
+				} @else if (!editor.readOnly) {
+					<button type="button" class="sp-link" (click)="openDescription()"><mat-icon aria-hidden="true">add</mat-icon>{{'PLAN-BLUEPRINT-EDITOR.SECTION.ADD-DESCRIPTION' | translate}}</button>
+				}
+				}
+				<app-se2-object-field class="sp-object" kind="section" [form]="form" [label]="form.get('title').value" />
+				@if (showErrors && form.hasError('sectionMustHaveOneChildOrTemplate')) {
+					<div class="bp2-strip bp2-strip--bad"><mat-icon aria-hidden="true">error</mat-icon><span>{{editor.term('PLAN-BLUEPRINT-EDITOR.PROBLEMS.SECTION-EMPTY') | translate}}</span></div>
+				}
+				@if (showErrors && form.hasError('sectionMustHaveOneChild')) {
+					<div class="bp2-strip bp2-strip--bad"><mat-icon aria-hidden="true">error</mat-icon><span>{{editor.term('PLAN-BLUEPRINT-EDITOR.PROBLEMS.SECTION-EMPTY') | translate}}</span></div>
+				}
+			</div>
+		</section>
+
+		<!-- ---------------------------------------------------------- assets -->
+		@if (editor.rootSectionExtra && isRoot) {
+			<ng-container *ngTemplateOutlet="editor.rootSectionExtra; context: { $implicit: section }" />
+		} @else if (editor.rootSectionExtra && rootSection) {
+			<div class="bp2-sub sp-assets-note"><mat-icon aria-hidden="true">inventory_2</mat-icon>{{'PLAN-BLUEPRINT-EDITOR.ASSETS.TOP-LEVEL-NOTE' | translate}} <button type="button" class="sp-link sp-link--inline" (click)="editor.selectEntry(rootSection)">{{rootSection.numbering}} {{ rootSection.label || ('PLAN-BLUEPRINT-EDITOR.UNTITLED-SECTION' | translate) }}</button></div>
+		}
+
+		<!-- ---------------------------------------------------------- subsections -->
+		@if (hasSubsections) {
+			<div class="bp2-caption">{{'PLAN-BLUEPRINT-EDITOR.SECTION.SUBSECTIONS' | translate}}</div>
+			<div class="sp-list" cdkDropList [cdkDropListDisabled]="editor.readOnly" (cdkDropListDropped)="dropSubsections($event)">
+				@for (sub of subsections; track sub.id) {
+					<div class="sp-row bp2-card" cdkDrag [cdkDragDisabled]="editor.readOnly" cdkDragLockAxis="y">
+						@if (!editor.readOnly) { <mat-icon class="sp-row__drag" cdkDragHandle aria-hidden="true">drag_indicator</mat-icon> }
+						<span class="sp-num">{{sub.numbering}}</span>
+						<span class="bp2-tile sp-row__tile"><mat-icon>list</mat-icon></span>
+						<div class="sp-row__text">
+							<div class="bp2-row" style="gap: .5rem;"><strong>{{ sub.label || ('PLAN-BLUEPRINT-EDITOR.UNTITLED-SECTION' | translate) }}</strong><span class="bp2-tag bp2-tag--opt">{{'PLAN-BLUEPRINT-EDITOR.SECTION.SUBSECTION' | translate}}</span></div>
+							<div class="bp2-sub">{{'PLAN-BLUEPRINT-EDITOR.SECTION.QUESTIONS-COUNT' | bp2Count: questionCount(sub) }}</div>
+						</div>
+						@if (warn(sub)) { <span class="bp2-tag bp2-tag--bad"><mat-icon aria-hidden="true">error</mat-icon>{{'PLAN-BLUEPRINT-EDITOR.OUTLINE.NEEDS-ATTENTION' | translate}}</span> }
+						<button mat-stroked-button type="button" class="bp2-btn-sm" (click)="editor.selectEntry(sub)">{{'PLAN-BLUEPRINT-EDITOR.SECTION.OPEN' | translate}}<mat-icon iconPositionEnd aria-hidden="true">chevron_right</mat-icon></button>
+					</div>
+				}
+			</div>
+			@if (!editor.readOnly) {
+				<div class="sp-adds">
+					<button mat-stroked-button type="button" class="bp2-dashed" (click)="addSubsection()"><mat-icon aria-hidden="true">add</mat-icon>{{'PLAN-BLUEPRINT-EDITOR.SECTION.ADD-SUBSECTION' | translate}}</button>
+					<button mat-stroked-button type="button" class="bp2-dashed sp-locked" disabled [matTooltip]="'PLAN-BLUEPRINT-EDITOR.SECTION.ADD-QUESTION-LOCKED' | translate"><mat-icon aria-hidden="true">lock</mat-icon>{{'PLAN-BLUEPRINT-EDITOR.SECTION.ADD-QUESTION' | translate}}</button>
+					<button mat-stroked-button type="button" class="bp2-dashed" (click)="editor.openInsertFrom(section)"><mat-icon aria-hidden="true">file_copy</mat-icon>{{editor.term('PLAN-BLUEPRINT-EDITOR.TRANSFER.INSERT-FROM') | translate}}</button>
+				</div>
+				<div class="bp2-strip"><mat-icon aria-hidden="true">info</mat-icon><span>{{'PLAN-BLUEPRINT-EDITOR.SECTION.SUBSECTIONS-HINT' | translate}}</span></div>
+			}
+		} @else {
+			<!-- ---------------------------------------------------------- questions -->
+			<div class="bp2-caption">{{'PLAN-BLUEPRINT-EDITOR.SECTION.QUESTIONS' | translate}}</div>
+			@if (!questions.length) {
+				<p class="bp2-help sp-noq">{{'PLAN-BLUEPRINT-EDITOR.SECTION.NO-QUESTIONS' | translate}}</p>
+			}
+			<div class="sp-list" cdkDropList [cdkDropListDisabled]="editor.readOnly" (cdkDropListDropped)="dropQuestions($event)">
+				@for (q of questions; track q.id) {
+					<div cdkDrag [cdkDragDisabled]="editor.readOnly || editor.expandedQuestionId === q.id" cdkDragLockAxis="y" [id]="'bp2-q-' + q.id">
+						<app-bp2-question-card [entry]="q" [section]="section" [expanded]="editor.expandedQuestionId === q.id" (toggled)="editor.toggleQuestion(q.id)" />
+					</div>
+				}
+			</div>
+			@for (p of missingPresetsHere; track p) {
+				<div class="sp-missing bp2-card">
+					<span class="sp-num sp-missing__num">–</span>
+					<span class="bp2-tile sp-missing__tile"><mat-icon>bookmark</mat-icon></span>
+					<div class="sp-row__text">
+						<div class="bp2-row" style="gap: .5rem;"><strong>{{presetName(p)}}</strong><span class="bp2-tag bp2-tag--preset">{{'PLAN-BLUEPRINT-EDITOR.TYPES.PRESET' | translate}}</span><span class="bp2-tag bp2-tag--todo">{{'PLAN-BLUEPRINT-EDITOR.PRESETS.NOT-ADDED' | translate}}</span></div>
+						<div class="bp2-sub">{{editor.term('PLAN-BLUEPRINT-EDITOR.PRESETS.NOT-ADDED-HINT') | translate: { name: presetName(p) } }}</div>
+					</div>
+					<button mat-stroked-button type="button" class="bp2-btn-sm" (click)="addPreset(p)"><mat-icon aria-hidden="true">add</mat-icon>{{'PLAN-BLUEPRINT-EDITOR.PRESETS.ADD-HERE' | translate}}</button>
+				</div>
+			}
+			@if (!editor.readOnly) {
+				<div class="sp-adds">
+					<button mat-stroked-button type="button" class="bp2-dashed" [matMenuTriggerFor]="addQuestionMenu"><mat-icon aria-hidden="true">add</mat-icon>{{'PLAN-BLUEPRINT-EDITOR.SECTION.ADD-QUESTION' | translate}}<mat-icon iconPositionEnd aria-hidden="true">expand_more</mat-icon></button>
+					<button mat-stroked-button type="button" class="bp2-dashed" (click)="editor.openInsertFrom(section)"><mat-icon aria-hidden="true">file_copy</mat-icon>{{editor.term('PLAN-BLUEPRINT-EDITOR.TRANSFER.INSERT-FROM') | translate}}</button>
+					@if (!hasQuestions) {
+						<button mat-stroked-button type="button" class="bp2-dashed" (click)="addSubsection()"><mat-icon aria-hidden="true">create_new_folder</mat-icon>{{'PLAN-BLUEPRINT-EDITOR.SECTION.ADD-SUBSECTION' | translate}}</button>
+					}
+				</div>
+			}
+		}
+
+		@if (!editor.readOnly && isRoot) {
+			<div class="sp-foot">
+				<button mat-button type="button" (click)="editor.addSection(null)"><mat-icon aria-hidden="true">add</mat-icon>{{'PLAN-BLUEPRINT-EDITOR.OUTLINE.ADD-SECTION' | translate}}</button>
+			</div>
+		}
+	</div>
+
+	<mat-menu #addQuestionMenu="matMenu" class="sp-type-menu">
+		@if (availablePresets.length) {
+			<div class="sp-type-menu__group">{{'PLAN-BLUEPRINT-EDITOR.TYPES.PRESET' | translate}}</div>
+			@for (p of availablePresets; track p) {
+				<button mat-menu-item type="button" (click)="addPreset(p)"><mat-icon aria-hidden="true">bookmark</mat-icon>{{editor.enumUtils.toSystemFieldTypeString(p)}}</button>
+			}
+			<mat-divider></mat-divider>
+		}
+		@for (group of kindGroups; track group.key) {
+			<div class="sp-type-menu__group">{{ ('PLAN-BLUEPRINT-EDITOR.TYPES.GROUP-' + group.key) | translate }}</div>
+			@for (k of group.kinds; track k) {
+				<button mat-menu-item type="button" (click)="addQuestion(k)"><mat-icon aria-hidden="true">{{kindIcon(k)}}</mat-icon><span class="sp-kind">{{kindLabelKey(k) | translate}}<span class="bp2-sub">{{kindHintKey(k) | translate}}</span></span></button>
+			}
+		}
+	</mat-menu>
+} @else {
+	<section class="bp2-card sp-start"><p class="bp2-help">{{'PLAN-BLUEPRINT-EDITOR.SECTION.PICK-ONE' | translate}}</p></section>
+}

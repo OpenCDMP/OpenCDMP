@@ -8,21 +8,19 @@ import { UserSettingsSelectorComponent } from '@common/modules/user-settings/use
 import { CommonUiModule } from '@common/ui/common-ui.module';
 
 @NgModule({
-	imports: [
-		CommonUiModule,
-		CommonFormsModule,
-		ConfirmationDialogModule,
-		DialogModule,
-		AutoCompleteModule
-	],
-	declarations: [
-		UserSettingsSelectorComponent,
-		UserSettingsPickerComponent,
-	],
-	exports: [
-		UserSettingsSelectorComponent,
-		UserSettingsPickerComponent
-	]
+    imports: [
+        CommonUiModule,
+        CommonFormsModule,
+        ConfirmationDialogModule,
+        DialogModule,
+        AutoCompleteModule,
+        UserSettingsSelectorComponent,
+        UserSettingsPickerComponent
+    ],
+    exports: [
+        UserSettingsSelectorComponent,
+        UserSettingsPickerComponent
+    ]
 })
 export class UserSettingsModule {
 	constructor() { }

@@ -1,6 +1,6 @@
 
-import { Component, OnInit } from '@angular/core';
-import { FormArray, UntypedFormGroup } from '@angular/forms';
+import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { FormArray, UntypedFormGroup, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MatDialog } from '@angular/material/dialog';
 import { Title } from '@angular/platform-browser';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -26,12 +26,24 @@ import { ConfirmationDialogComponent } from '@common/modules/confirmation-dialog
 import { HttpErrorHandlingService } from '@common/modules/errors/error-handling/http-error-handling.service';
 import { FilterService } from '@common/modules/text-filter/filter-service';
 import { Guid } from '@common/types/guid';
-import { TranslateService } from '@ngx-translate/core';
+import { TranslateService, TranslatePipe } from '@ngx-translate/core';
 import { map, takeUntil } from 'rxjs/operators';
 import { ReferenceEditorModel } from './reference-editor.model';
 import { ReferenceEditorResolver } from './reference-editor.resolver';
 import { ReferenceEditorService } from './reference-editor.service';
 import { RouterUtilsService } from '@app/core/services/router/router-utils.service';
+import { NavigationBreadcrumbComponent } from '../../../misc/breadcrumb/navigation-breadcrumb.component';
+import { TenantReadonlyBannerComponent } from '../../../../../common/ui/tenant-shared/tenant-readonly-banner.component';
+import { MatButton, MatIconButton } from '@angular/material/button';
+import { MatIcon } from '@angular/material/icon';
+import { MatCard, MatCardContent, MatCardTitle } from '@angular/material/card';
+import { MatFormField, MatLabel, MatError } from '@angular/material/form-field';
+import { MatInput } from '@angular/material/input';
+import { SingleAutoCompleteComponent } from '../../../../library/auto-complete/single/single-auto-complete.component';
+import { MatSelect, MatOption } from '@angular/material/select';
+import { ReactiveAsteriskDirective } from '../../../../../common/forms/reactive-asterisk-directive';
+import { RichTextEditorComponent } from '../../../../library/rich-text-editor/rich-text-editor.component';
+import { MatTooltip } from '@angular/material/tooltip';
 
 
 @Component({
@@ -39,7 +51,8 @@ import { RouterUtilsService } from '@app/core/services/router/router-utils.servi
     templateUrl: 'reference-editor.component.html',
     styleUrls: ['./reference-editor.component.scss'],
     providers: [ReferenceEditorService],
-    standalone: false
+    changeDetection: ChangeDetectionStrategy.Eager,
+    imports: [NavigationBreadcrumbComponent, TenantReadonlyBannerComponent, MatButton, MatIcon, FormsModule, MatCard, MatCardContent, MatFormField, MatLabel, MatInput, ReactiveFormsModule, MatError, SingleAutoCompleteComponent, MatSelect, MatOption, ReactiveAsteriskDirective, RichTextEditorComponent, MatCardTitle, MatIconButton, MatTooltip, TranslatePipe]
 })
 export class ReferenceEditorComponent extends BaseEditor<ReferenceEditorModel, Reference> implements OnInit {
 
@@ -93,12 +106,6 @@ export class ReferenceEditorComponent extends BaseEditor<ReferenceEditorModel, R
 		private routerUtils: RouterUtilsService
 	) {
 
-		const descriptionLabel: string = route.snapshot.data['entity']?.label;
-		if (descriptionLabel) {
-			titleService.setTitle(descriptionLabel);
-		} else {
-			titleService.setTitle('REFERENCE-EDITOR.TITLE-EDIT-REFERENCE');
-		}
 		super(dialog, language, formService, router, uiNotificationService, httpErrorHandlingService, filterService, route, queryParamsService, lockService, authService, configurationService);
 	}
 
@@ -145,7 +152,7 @@ export class ReferenceEditorComponent extends BaseEditor<ReferenceEditorModel, R
 	persistEntity(onSuccess?: (response) => void): void {
 		const formData = this.formService.getValue(this.formGroup.value) as ReferencePersist;
 
-		this.referenceService.persist(formData)
+		this.enqueueService.enqueueExhaustChannel(this.referenceService.persist(formData))
 			.pipe(takeUntil(this._destroyed)).subscribe(
 				complete => onSuccess ? onSuccess(complete) : this.onCallbackSuccess(complete),
 				error => this.onCallbackError(error)
@@ -174,7 +181,7 @@ export class ReferenceEditorComponent extends BaseEditor<ReferenceEditorModel, R
 			});
 			dialogRef.afterClosed().pipe(takeUntil(this._destroyed)).subscribe(result => {
 				if (result) {
-					this.referenceService.delete(value.id).pipe(takeUntil(this._destroyed))
+					this.enqueueService.enqueueExhaustChannel(this.referenceService.delete(value.id)).pipe(takeUntil(this._destroyed))
 						.subscribe(
 							complete => this.onCallbackDeleteSuccess(),
 							error => this.onCallbackError(error)

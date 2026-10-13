@@ -15,13 +15,13 @@ export class Sidebar {
 		const sidebarItemsObj: Sidebar = new Sidebar();
 
     sidebarItemsObj._infoItems = [];
-    for (let infoItem of value.infoItems) {
+    for (const infoItem of value.infoItems) {
       const infoItemObj: SidebarItem = SidebarItem.parseValue(infoItem);
       sidebarItemsObj._infoItems.push(infoItemObj);
     }
     
 		sidebarItemsObj._footerItems = [];
-    for (let footerItem of value.footerItems) {
+    for (const footerItem of value.footerItems) {
       const footerItemObj: SidebarItem = SidebarItem.parseValue(footerItem);
       sidebarItemsObj._footerItems.push(footerItemObj);
     }

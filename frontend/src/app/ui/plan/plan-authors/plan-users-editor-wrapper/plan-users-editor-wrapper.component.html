@@ -1,0 +1,48 @@
+<div class="d-flex flex-column h-100">
+    <div class="d-flex align-items-center filters-title">
+        <div>
+            <h2 class="criteria-title">{{'PLAN-OVERVIEW.COLLABORATORS'| translate}}</h2>
+            @if(distinctUserCount){
+                <div class="opacity-08">{{distinctUserCount}} {{(distinctUserCount === 1 ? 'PLAN-AUTHORS-EDITOR.PERSON' : 'PLAN-AUTHORS-EDITOR.PEOPLE') | translate}}</div>
+            }
+        </div>
+        <button 
+            mat-icon-button
+            class="ml-auto"
+            (click)="onEditorClose.emit()" 
+            [attr.aria-label]="'ALT-TEXT.CLOSE-DIALOG'  | translate"
+            [disabled]="loadingData"
+        >
+            <mat-icon aria-hidden="true">close</mat-icon>
+        </button>
+    </div>
+    <div class="content flex-1 overflow-auto">
+        @if(canInviteUsers() && canAssignUsers()){
+            <div class="invite-users--wrapper">
+                <button class="w-100 invite-cta" mat-flat-button (click)="showInviteUsers.set(true)" [class.d-none]="showInviteUsers()">
+                    <mat-icon class="material-symbols-outlined" aria-hidden="true">group_add</mat-icon>
+                    {{ 'PLAN-AUTHORS-EDITOR.INVITE' | translate }}
+                </button>
+                @if(showInviteUsers()){
+                    <app-invite-plan-user 
+                        [plan]="plan()"
+                        (onUserInvited)="usersChanged()"
+                        (onClose)="showInviteUsers.set(false)"
+                    ></app-invite-plan-user>
+                }
+            </div>
+        }
+        <div [class.d-none]="showInviteUsers()">
+            <app-existing-plan-users-editor
+                [plan]="plan()"
+                [(planUsers)]="groupedPlanUsers"
+                [(unsavedChanges)]="unsavedChanges"
+                [canEdit]="canAssignUsers() && !isFinalized()"
+                (onUsersChanged)="usersChanged(true)"
+            ></app-existing-plan-users-editor>
+        </div>
+    </div>
+    <div class="role-info">
+        <span [innerHTML]="'PLAN-AUTHORS-EDITOR.ROLE-INFO' | translate"></span>
+    </div>
+</div>

@@ -1,4 +1,4 @@
-﻿import { AfterViewInit, Component, Input } from '@angular/core';
+﻿import { AfterViewInit, Component, Input, ChangeDetectionStrategy } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { AuthService } from '@app/core/services/auth/auth.service';
 import { RouterUtilsService } from '@app/core/services/router/router-utils.service';
@@ -8,7 +8,7 @@ import { takeUntil } from 'rxjs/operators';
 @Component({
     selector: 'app-unauthorized-component',
     templateUrl: './unauthorized.component.html',
-    standalone: false
+    changeDetection: ChangeDetectionStrategy.Eager
 })
 export class UnauthorizedComponent extends BaseComponent implements AfterViewInit {
 	@Input()

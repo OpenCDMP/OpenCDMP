@@ -2,13 +2,14 @@ import { HttpClient, HttpHeaders, HttpParamsOptions, HttpResponse } from '@angul
 import { Injectable } from '@angular/core';
 import { IsActive } from '@app/core/common/enum/is-active.enum';
 import { Description, DescriptionMultiplePersist, DescriptionPersist, DescriptionSectionPermissionResolver, DescriptionStatusPersist, UpdateDescriptionTemplatePersist } from '@app/core/model/description/description';
+import { PlanUpdateRequestApply } from '@app/core/model/plan-update-request/plan-update-request';
 import { DescriptionLookup } from '@app/core/query/description.lookup';
 import { MultipleAutoCompleteConfiguration } from '@app/library/auto-complete/multiple/multiple-auto-complete-configuration';
 import { SingleAutoCompleteConfiguration } from '@app/library/auto-complete/single/single-auto-complete-configuration';
 import { QueryResult } from '@common/model/query-result';
 import { FilterService } from '@common/modules/text-filter/filter-service';
 import { Guid } from '@common/types/guid';
-import { Observable, of, throwError } from 'rxjs';
+import { Observable, throwError } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
 import { nameof } from 'ts-simple-nameof';
 import { ConfigurationService } from '../configuration/configuration.service';
@@ -16,7 +17,7 @@ import { BaseHttpV2Service } from '../http/base-http-v2.service';
 import { BaseHttpParams } from '@common/http/base-http-params';
 import { InterceptorType } from '@common/http/interceptors/interceptor-type';
 import { DescriptionValidationResult } from '@app/ui/plan/plan-finalize-dialog/plan-finalize-dialog.component';
-import { AuthService, ResolutionContext } from '../auth/auth.service';
+import { AuthService } from '../auth/auth.service';
 
 @Injectable()
 export class DescriptionService {
@@ -33,6 +34,7 @@ export class DescriptionService {
 		return this.http.post<QueryResult<Description>>(url, q).pipe(catchError((error: any) => throwError(error)));
 	}
 
+    /** @deprecated get permissions through plan.authorizationInformation.authorizationInformationPerSections */
 	getDescriptionSectionPermissions(q: DescriptionSectionPermissionResolver): Observable<Map<Guid, string[]>> {
 		const url = `${this.apiBase}/get-description-section-permissions`;
 		return this.http.post<Map<Guid, string[]>>(url, q).pipe(catchError((error: any) => throwError(error)));
@@ -55,7 +57,7 @@ export class DescriptionService {
 		const url = `${this.apiBase}/${id}`;
 		const options: HttpParamsOptions = { fromObject: { f: reqFields } };
 
-		let params: BaseHttpParams = new BaseHttpParams(options);
+		const params: BaseHttpParams = new BaseHttpParams(options);
 
 		return this.http
 			.get<Description>(url, { params: params }).pipe(
@@ -66,7 +68,7 @@ export class DescriptionService {
 		const url = `${this.apiBase}/public/${id}`;
 		const options: HttpParamsOptions = { fromObject: { f: reqFields } };
 
-		let params: BaseHttpParams = new BaseHttpParams(options);
+		const params: BaseHttpParams = new BaseHttpParams(options);
 		if (!this.authService.currentAccountIsAuthenticated) {
 			params.interceptorContext = {
 				excludedInterceptors: [InterceptorType.AuthToken,
@@ -82,7 +84,7 @@ export class DescriptionService {
 	persist(item: DescriptionPersist, fieldSet: string[] = []): Observable<Description> {
 		const url = `${this.apiBase}/persist`;
         const options: HttpParamsOptions = { fromObject: { f: fieldSet } };
-        let params: BaseHttpParams = new BaseHttpParams(options);
+        const params: BaseHttpParams = new BaseHttpParams(options);
 		return this.http
 			.post<Description>(url, item, { params: params }).pipe(
 				catchError((error: any) => throwError(error)));
@@ -91,7 +93,7 @@ export class DescriptionService {
 	persistMultiple(item: DescriptionMultiplePersist, fieldSet: string[] = []): Observable<Description[]> {
 		const url = `${this.apiBase}/persist-multiple`;
         const options: HttpParamsOptions = { fromObject: { f: fieldSet } };
-        let params: BaseHttpParams = new BaseHttpParams(options);
+        const params: BaseHttpParams = new BaseHttpParams(options);
 		return this.http
 			.post<Description[]>(url, item, { params: params }).pipe(
 				catchError((error: any) => throwError(error)));
@@ -100,7 +102,7 @@ export class DescriptionService {
 	persistStatus(item: DescriptionStatusPersist, fieldSet: string[] = []): Observable<Description> {
 		const url = `${this.apiBase}/persist-status`;
         const options: HttpParamsOptions = { fromObject: { f: fieldSet } };
-        let params: BaseHttpParams = new BaseHttpParams(options);
+        const params: BaseHttpParams = new BaseHttpParams(options);
 		return this.http
 			.post<Description>(url, item, { params: params }).pipe(
 				catchError((error: any) => throwError(error)));
@@ -110,7 +112,7 @@ export class DescriptionService {
 		const url = `${this.apiBase}/clone/${id}`;
 		const options: HttpParamsOptions = { fromObject: { f: reqFields } };
 
-		let params: BaseHttpParams = new BaseHttpParams(options);
+		const params: BaseHttpParams = new BaseHttpParams(options);
 
 		return this.http
 			.get<Description>(url, { params: params }).pipe(
@@ -122,6 +124,13 @@ export class DescriptionService {
 
 		return this.http
 			.delete<Description>(url).pipe(
+				catchError((error: any) => throwError(error)));
+	}
+
+	deleteWithApply(id: Guid, planUpdateRequestApply: PlanUpdateRequestApply): Observable<void> {
+		const url = `${this.apiBase}/delete`;
+		return this.http
+			.post<void>(url, { id, planUpdateRequestApply }).pipe(
 				catchError((error: any) => throwError(error)));
 	}
 
@@ -138,7 +147,7 @@ export class DescriptionService {
 
 	downloadXML(id: Guid): Observable<HttpResponse<Blob>> {
 		const url = `${this.apiBase}/xml/export/${id}`;
-		let headerXml: HttpHeaders = this.headers.set('Content-Type', 'application/xml');
+		const headerXml: HttpHeaders = this.headers.set('Content-Type', 'application/xml');
 		const params = new BaseHttpParams();
 		params.interceptorContext = {
 			excludedInterceptors: [InterceptorType.JSONContentType]
@@ -148,7 +157,7 @@ export class DescriptionService {
 
 	downloadPublicXML(id: Guid): Observable<HttpResponse<Blob>> {
 		const url = `${this.apiBase}/xml/export-public/${id}`;
-		let headerXml: HttpHeaders = this.headers.set('Content-Type', 'application/xml');
+		const headerXml: HttpHeaders = this.headers.set('Content-Type', 'application/xml');
 		const params = new BaseHttpParams();
 		params.interceptorContext = {
 			excludedInterceptors: [InterceptorType.JSONContentType]
@@ -186,6 +195,26 @@ export class DescriptionService {
 		titleFn: (item: Description) => item.label,
 		valueAssign: (item: Description) => item.id,
 	};
+
+    public buildLookup(partialLookup?: Partial<DescriptionLookup>): DescriptionLookup {
+        const lookup = new DescriptionLookup();
+        lookup.page = partialLookup.page ?? { size: 100, offset: 0 };
+        lookup.metadata = partialLookup.metadata ?? {countAll: true}
+		if (partialLookup.excludedIds && partialLookup.excludedIds.length > 0) { lookup.excludedIds = partialLookup.excludedIds; }
+		if (partialLookup.ids && partialLookup.ids.length > 0) { lookup.ids = partialLookup.ids; }
+		if (partialLookup.descriptionTemplateSubQuery) { lookup.descriptionTemplateSubQuery = partialLookup.descriptionTemplateSubQuery; }
+		lookup.isActive = partialLookup.isActive !== null ? partialLookup.isActive : [IsActive.Active];
+		lookup.project = partialLookup.project ?? {
+			fields: [
+				nameof<Description>(x => x.id),
+				nameof<Description>(x => x.label)
+			]
+		};
+		lookup.order = partialLookup.order ?? { items: [nameof<Description>(x => x.label)] };
+		if (partialLookup.like) { lookup.like = partialLookup.like; }
+
+		return lookup;
+    }
 
 	public buildAutocompleteLookup(isActive: IsActive[], like?: string, excludedIds?: Guid[], ids?: Guid[]): DescriptionLookup {
 		const lookup: DescriptionLookup = new DescriptionLookup();

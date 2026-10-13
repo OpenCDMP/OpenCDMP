@@ -3,10 +3,9 @@ package org.opencdmp.integrationevent.outbox.plantouch;
 import gr.cite.tools.data.builder.BuilderFactory;
 import gr.cite.tools.data.query.QueryFactory;
 import gr.cite.tools.logging.LoggerService;
-import gr.cite.tools.logging.MapLogEntry;
-import org.opencdmp.authorization.AuthorizationFlags;
 import org.opencdmp.commonmodels.models.FileEnvelopeModel;
 import org.opencdmp.commonmodels.models.plan.PlanModel;
+import org.opencdmp.commons.configuration.integration.IntegrationProperties;
 import org.opencdmp.convention.ConventionService;
 import org.opencdmp.data.PlanEntity;
 import org.opencdmp.integrationevent.outbox.OutboxIntegrationEvent;
@@ -20,13 +19,6 @@ import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import javax.crypto.BadPaddingException;
-import javax.crypto.IllegalBlockSizeException;
-import javax.crypto.NoSuchPaddingException;
-import javax.management.InvalidApplicationException;
-import java.security.InvalidAlgorithmParameterException;
-import java.security.InvalidKeyException;
-import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -49,13 +41,16 @@ public class PlanTouchedIntegrationEventHandlerImpl implements PlanTouchedIntegr
 
     private final ConventionService conventionService;
 
-    public PlanTouchedIntegrationEventHandlerImpl(OutboxService outboxService, QueryFactory queryFactory, BuilderFactory builderFactory, FileTransformerService fileTransformerService, PlanServiceProperties planServiceProperties, ConventionService conventionService) {
+    private final IntegrationProperties integrationProperties;
+
+    public PlanTouchedIntegrationEventHandlerImpl(OutboxService outboxService, QueryFactory queryFactory, BuilderFactory builderFactory, FileTransformerService fileTransformerService, PlanServiceProperties planServiceProperties, ConventionService conventionService, IntegrationProperties integrationProperties) {
         this.outboxService = outboxService;
 	    this.queryFactory = queryFactory;
         this.builderFactory = builderFactory;
         this.fileTransformerService = fileTransformerService;
         this.planServiceProperties = planServiceProperties;
         this.conventionService = conventionService;
+        this.integrationProperties = integrationProperties;
     }
 
     private void handle(PlanTouchedIntegrationEvent event) {
@@ -68,11 +63,12 @@ public class PlanTouchedIntegrationEventHandlerImpl implements PlanTouchedIntegr
 
     @Override
     public void handlePlan(List<UUID> planIds) {
+        if (this.integrationProperties.getEnabled() == null || !this.integrationProperties.getEnabled()) return;
         if (planIds == null || planIds.isEmpty()) return;
 
         List<PlanEntity> planEntities = this.queryFactory.query(PlanQuery.class).disableTracking().ids(planIds).collect();
 
-        List<PlanModel> planModels = new ArrayList<>();
+        List<PlanTouchedIntegrationEvent.PlanTouched> planModels = new ArrayList<>();
         for(PlanEntity entity : planEntities){
             try {
                 FileEnvelopeModel jsonEnvelope = new FileEnvelopeModel();
@@ -84,7 +80,11 @@ public class PlanTouchedIntegrationEventHandlerImpl implements PlanTouchedIntegr
 
                 PlanModel plan = this.builderFactory.builder(PlanCommonModelBuilder.class).setRdaJsonFile(jsonEnvelope).build(entity);
 
-                planModels.add(plan);
+                PlanTouchedIntegrationEvent.PlanTouched touched = new PlanTouchedIntegrationEvent.PlanTouched();
+                touched.setPlan(plan);
+                touched.setTenantId(entity.getTenantId());
+
+                planModels.add(touched);
             }catch (Exception e){
                 logger.error(e.getMessage(), e);
             }

@@ -11,7 +11,9 @@ export interface ToCEntry {
 	ordinal: number;
 	hidden?: boolean;
 	visibilityRuleKey: string;
-	validityAbstractControl: AbstractControl;
+	validityAbstractControls: AbstractControl[];
+	/** Field-set entries: at least one of the set's fields is required (mirrors the canvas heading asterisk). */
+	required?: boolean;
 
 	isLastEntry?: boolean;
 	isFirstEntry?: boolean;

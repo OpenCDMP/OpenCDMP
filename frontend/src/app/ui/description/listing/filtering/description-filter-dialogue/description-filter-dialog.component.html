@@ -1,8 +1,17 @@
-
-<a class="col-auto d-flex pointer" (click)="onClose()"><span class="ml-auto mt-3 material-icons clear-icon">clear</span></a>
-<app-description-filter-component 
-  [filters]="filters"
-  [isPublic]="data.isPublic"
-  [hasSelectedTenant]="data.hasSelectedTenant"
-  (filterChanged)="onFilterChanged($event)" 
-  ></app-description-filter-component>
+<div class="d-flex flex-column h-100 w-100">
+    <div class="d-flex align-items-center filters-title">
+        <h2 class="criteria-title">{{'DESCRIPTION-LISTING.FILTERS.NAME'| translate}}</h2>
+        <button mat-icon-button class="ml-auto" (click)="closed.emit()"  [attr.aria-label]="'ALT-TEXT.CLOSE-DIALOG'  | translate"><mat-icon aria-hidden="true">close</mat-icon></button>
+    </div>
+    <div class="content flex-1 overflow-auto">
+        <app-description-filter-component
+        [filters]="filters"
+        [isPublic]="isPublic"
+        [hasSelectedTenant]="hasSelectedTenant"
+        [featuredReferenceTypes]="featuredReferenceTypes"
+        [expandReferenceTypeId]="expandReferenceTypeId"
+        [embedded]="embedded"
+        (filterChanged)="filtersChanged.emit($event)"
+        ></app-description-filter-component>
+    </div>
+</div>

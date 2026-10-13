@@ -1,38 +1,46 @@
-import {Component, effect, EventEmitter, input, Input, Output} from "@angular/core";
+import {Component, effect, input, Input, OnInit, ChangeDetectionStrategy} from "@angular/core";
 import {BaseComponent} from "@common/base/base.component";
 import {nameof} from "ts-simple-nameof";
 import {DescriptionTemplate} from "@app/core/model/description-template/description-template";
-import {PlanBlueprintService} from "@app/core/services/plan/plan-blueprint.service";
 import {DescriptionTemplateService} from "@app/core/services/description-template/description-template.service";
 import {HttpErrorHandlingService} from "@common/modules/errors/error-handling/http-error-handling.service";
 import {map, startWith, takeUntil, tap} from "rxjs/operators";
 import {QueryResult} from "@common/model/query-result";
 import {DescriptionTemplateLookup} from "@app/core/query/description-template.lookup";
-import {IsActive} from "@app/core/common/enum/is-active.enum";
-import {DescriptionTemplateStatus} from "@app/core/common/enum/description-template-status";
-import {DescriptionTemplateVersionStatus} from "@app/core/common/enum/description-template-version-status";
 import {DescriptionTemplateType} from "@app/core/model/description-template-type/description-template-type";
 import {DescriptionTemplateTypeService} from "@app/core/services/description-template-type/description-template-type.service";
-import {DescriptionTemplateTypeLookup} from "@app/core/query/description-template-type.lookup";
-import {DescriptionTemplateTypeStatus} from "@app/core/common/enum/description-template-type-status";
 import {LanguageInfoService} from "@app/core/services/culture/language-info-service";
 import {LanguageInfo} from "@app/core/model/language-info";
-import {FormControl, UntypedFormBuilder} from "@angular/forms";
+import { FormControl, UntypedFormBuilder, FormsModule, ReactiveFormsModule } from "@angular/forms";
 import {Observable} from "rxjs";
 import {Guid} from "@common/types/guid";
 import {DescriptionTemplatePreviewDialogComponent} from "@app/ui/admin/description-template/description-template-preview/description-template-preview-dialog.component";
 import {MatDialog} from "@angular/material/dialog";
-import { DescriptionTemplateEditorResolver } from "@app/ui/admin/description-template/editor/description-template-editor.resolver";
-import { SortDirection } from "@common/modules/hybrid-listing/hybrid-listing.component";
+import { SortDirection } from "@common/modules/admin-listing/listing.types";
+import { MatChipSet, MatChip, MatChipRemove } from "@angular/material/chips";
+import { MatTooltip } from "@angular/material/tooltip";
+import { MatIcon } from "@angular/material/icon";
+import { MatIconButton, MatButton } from "@angular/material/button";
+import { MatCard, MatCardContent } from "@angular/material/card";
+import { ExpandableSearchFieldComponent } from "../../../../../common/modules/text-filter/expandable-search-field/expandable-search-field.component";
+import { NgTemplateOutlet, AsyncPipe, DatePipe } from "@angular/common";
+import { MatMenuTrigger, MatMenu } from "@angular/material/menu";
+import { MatBadge } from "@angular/material/badge";
+import { MatFormField, MatLabel } from "@angular/material/form-field";
+import { MatInput } from "@angular/material/input";
+import { MatAutocompleteTrigger, MatAutocomplete } from "@angular/material/autocomplete";
+import { MatOption } from "@angular/material/select";
+import { MatPaginator } from "@angular/material/paginator";
+import { TranslatePipe } from "@ngx-translate/core";
 
 @Component({
-	selector: 'app-description-template-table-select',
-	templateUrl: './description-template-table-select.component.html',
-	styleUrls: ['./description-template-table-select.component.scss'],
-	standalone: false
-
+    selector: 'app-description-template-table-select',
+    templateUrl: './description-template-table-select.component.html',
+    styleUrls: ['./description-template-table-select.component.scss'],
+    changeDetection: ChangeDetectionStrategy.Eager,
+    imports: [MatChipSet, MatChip, MatTooltip, MatChipRemove, MatIcon, MatIconButton, MatCard, MatCardContent, ExpandableSearchFieldComponent, FormsModule, ReactiveFormsModule, NgTemplateOutlet, MatMenuTrigger, MatBadge, MatMenu, MatButton, MatFormField, MatLabel, MatInput, MatAutocompleteTrigger, MatAutocomplete, MatOption, MatPaginator, AsyncPipe, DatePipe, TranslatePipe]
 })
-export class DescriptionTemplateTableSelectComponent extends BaseComponent {
+export class DescriptionTemplateTableSelectComponent extends BaseComponent implements OnInit {
     templatesInUse = input<Guid[]>();
 
 	@Input() descTemplatesControl: FormControl<Guid[]> = new FormControl([]);
@@ -141,7 +149,7 @@ export class DescriptionTemplateTableSelectComponent extends BaseComponent {
 					this.totalDescriptionTemplates = queryResults.count;
 					this.currentPageDescriptionTemplates = queryResults.items
 				}else{
-					for(let descriptionTemplate of queryResults.items){
+					for(const descriptionTemplate of queryResults.items){
 						this.selectedTemplatesInfo.set(descriptionTemplate.groupId, descriptionTemplate);
 					}
 				}
@@ -233,8 +241,8 @@ export class DescriptionTemplateTableSelectComponent extends BaseComponent {
 	}
 
 	remove(value) {
-		let selected = this.descTemplatesControl.value;
-		let index = selected.indexOf(value);
+		const selected = this.descTemplatesControl.value;
+		const index = selected.indexOf(value);
 		selected.splice(index, 1);
 		this.descTemplatesControl.setValue(selected);
         this.descTemplatesControl.markAsDirty();
@@ -242,7 +250,7 @@ export class DescriptionTemplateTableSelectComponent extends BaseComponent {
 	}
 
 	select(descriptionTemplate) {
-		let selected = this.descTemplatesControl.value;
+		const selected = this.descTemplatesControl.value;
 		selected.push(descriptionTemplate.groupId)
 		this.descTemplatesControl.setValue(selected);
 		this.descTemplatesControl.markAsDirty();
@@ -254,7 +262,6 @@ export class DescriptionTemplateTableSelectComponent extends BaseComponent {
 		const dialogRef = this.dialog.open(DescriptionTemplatePreviewDialogComponent, {
 			minWidth: 'min(800px, 95vw)',
 			minHeight: '200px',
-			restoreFocus: false,
 			data: {
 				descriptionTemplateId: description.id,
 				showSelect: !this.previewOnly && !this.descTemplatesControl.value.includes(description.groupId)

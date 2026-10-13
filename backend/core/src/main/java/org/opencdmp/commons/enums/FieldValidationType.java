@@ -11,7 +11,8 @@ public enum FieldValidationType implements DatabaseEnum<Short> {
 
     None((short) 0), 
     Required((short) 1), 
-    Url((short) 2);
+    Url((short) 2),
+    Email((short) 3);
 
     private final Short value;
 

@@ -1,0 +1,81 @@
+@if (planUsers()?.length) {
+  <div class="d-flex flex-column h-100">
+    @for(planUser of planUsers(); track $index; let last = $last){
+      @let currentUser = isCurrentUser($safeNavigationMigration(planUser.user?.id));
+      <div class="user-row d-flex gap-half-rem p-3">
+        <img
+          class="user-logo circle"
+          alt="" aria-hidden="true"
+          [src]="$safeNavigationMigration(planUser.user?.name) | userLogo"
+          appFallbackAvatar
+          >
+        <div class="user-info">
+          <div class="author-label">
+            {{ planUser.user?.name }}
+            @if (currentUser) {
+              <span class="opacity-08">({{ 'PLAN-OVERVIEW.YOU' | translate }})</span>
+            }
+          </div>
+          @let email = userEmail(planUser);
+          @if (email) {
+            <div class="user-email">{{ email }}</div>
+          }
+          <span class="role-chip">{{enumUtils.toPlanUserRoleString(planUser.role)}}</span>
+          @if(planUser.role !== PlanUserRole.Viewer && planUser.role !== PlanUserRole.Owner){
+            <div class="sections-row">
+              <span class="sections-label">{{ 'PLAN-AUTHORS-EDITOR.SECTIONS' | translate }}</span>
+              <mat-form-field class="sections-select" subscriptSizing="dynamic">
+                @if (planUser.role !== PlanUserRole.DescriptionContributor && planUser.role !== PlanUserRole.DataSteward && sections()) {
+                  <mat-select [(ngModel)]="planUser.sectionIds" multiple required [disabled]="!canEdit()" (selectionChange)="sectionChange(planUser, $event)">
+                    <mat-option value="" (onSelectionChange)="optionChanged($event)">{{'PLAN-EDITOR.FIELDS.ALL-SECTIONS' | translate}}</mat-option>
+                    @for (section of sections(); track section) {
+                      <mat-option [value]="section.id" (onSelectionChange)="optionChanged($event)">
+                        {{ section.title }}
+                      </mat-option>
+                    }
+                  </mat-select>
+                }
+                @if ((planUser.role === PlanUserRole.DescriptionContributor || planUser.role === PlanUserRole.DataSteward) && templateSections()) {
+                  <mat-select [(ngModel)]="planUser.sectionIds" multiple required [disabled]="!canEdit()" (selectionChange)="sectionChange(planUser, $event)">
+                    <mat-option value="" (onSelectionChange)="optionChanged($event)">{{'PLAN-EDITOR.FIELDS.ALL-SECTIONS' | translate}}</mat-option>
+                    @for (section of templateSections(); track section) {
+                      <mat-option [value]="section.id" (onSelectionChange)="optionChanged($event)">
+                        {{ section.title }}
+                      </mat-option>
+                    }
+                  </mat-select>
+                }
+              </mat-form-field>
+            </div>
+          }
+        </div>
+        @if(canEdit()){
+          <button class="ml-auto" mat-icon-button [matTooltip]="'ALT-TEXT.MORE-ACTIONS' | translate" [attr.aria-label]="'ALT-TEXT.MORE-ACTIONS' | translate" [matMenuTriggerFor]="moreOptionsMenu">
+            <mat-icon aria-hidden="true">more_vert</mat-icon>
+          </button>
+          <mat-menu #moreOptionsMenu="matMenu">
+            @for(role of otherRoles(planUser); track role){
+              <button mat-menu-item (click)="changeRole(planUser, role)">
+                {{'PLAN-AUTHORS-EDITOR.MAKE-ROLE' | translate :{role: enumUtils.toPlanUserRoleString(role)} }}
+              </button>
+            }
+            <button mat-menu-item class="delete-user" (click)="removeUser(planUser)">
+              <mat-icon aria-hidden="true">delete</mat-icon>
+              {{'PLAN-OVERVIEW.ACTIONS.REMOVE-AUTHOR' | translate}}
+            </button>
+          </mat-menu>
+        }
+      </div>
+      @if(!last){
+        <mat-divider></mat-divider>
+      }
+    }
+    @if(canEdit() && unsavedChanges()){
+      <div class="save-row mt-auto p-3">
+        <button class="w-100" mat-flat-button color="primary" [disabled]="invalid" (click)="saveChanges()">
+          {{'COMMONS.ACTIONS.SAVE' | translate}}
+        </button>
+      </div>
+    }
+  </div>
+}

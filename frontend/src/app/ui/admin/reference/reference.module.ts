@@ -4,7 +4,6 @@ import { AutoCompleteModule } from "@app/library/auto-complete/auto-complete.mod
 import { CommonFormattingModule } from '@common/formatting/common-formatting.module';
 import { CommonFormsModule } from '@common/forms/common-forms.module';
 import { ConfirmationDialogModule } from '@common/modules/confirmation-dialog/confirmation-dialog.module';
-import { HybridListingModule } from "@common/modules/hybrid-listing/hybrid-listing.module";
 import { TextFilterModule } from "@common/modules/text-filter/text-filter.module";
 import { UserSettingsModule } from "@common/modules/user-settings/user-settings.module";
 import { CommonUiModule } from '@common/ui/common-ui.module';
@@ -15,23 +14,20 @@ import { ReferenceListingFiltersComponent } from './listing/filters/reference-li
 import { RichTextEditorModule } from '@app/library/rich-text-editor/rich-text-editor.module';
 
 @NgModule({
-	imports: [
-		CommonUiModule,
-		CommonFormsModule,
-		ConfirmationDialogModule,
-		ReferenceRoutingModule,
-		DragDropModule,
-		AutoCompleteModule,
-		HybridListingModule,
-		TextFilterModule,
-		UserSettingsModule,
-		CommonFormattingModule,
-		RichTextEditorModule
-	],
-	declarations: [
-		ReferenceEditorComponent,
-		ReferenceListingComponent,
-		ReferenceListingFiltersComponent
-	]
+    imports: [
+        CommonUiModule,
+        CommonFormsModule,
+        ConfirmationDialogModule,
+        ReferenceRoutingModule,
+        DragDropModule,
+        AutoCompleteModule,
+        TextFilterModule,
+        UserSettingsModule,
+        CommonFormattingModule,
+        RichTextEditorModule,
+        ReferenceEditorComponent,
+        ReferenceListingComponent,
+        ReferenceListingFiltersComponent
+    ]
 })
 export class ReferenceModule { }

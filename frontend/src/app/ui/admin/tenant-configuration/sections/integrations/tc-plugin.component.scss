@@ -1,0 +1,111 @@
+@use "../../shared/tc-section";
+@use "./tc-integrations-shared";
+
+.tc-plugin__back {
+	display: inline-flex;
+	align-items: center;
+	gap: 4px;
+	margin-bottom: 12px;
+	font-size: 13px;
+	font-weight: 600;
+	color: var(--link-color, var(--md-sys-color-primary, #2457c5));
+	text-decoration: none;
+
+	mat-icon {
+		font-size: 18px;
+		width: 18px;
+		height: 18px;
+	}
+
+	&:hover,
+	&:focus-visible {
+		text-decoration: underline;
+	}
+}
+
+.tc-plugin__head {
+	display: flex;
+	align-items: flex-start;
+	justify-content: space-between;
+	gap: 16px;
+	flex-wrap: wrap;
+}
+
+.tc-plugin__kind {
+	margin: 0 0 2px !important;
+	font-size: 12px !important;
+	font-weight: 700;
+	text-transform: uppercase;
+	letter-spacing: 0.04em;
+}
+
+.tc-plugin__meta {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 6px 14px;
+	margin-top: 6px;
+	font-size: 13px;
+	color: var(--md-sys-color-on-surface-variant, #566072);
+}
+
+.tc-plugin__capability {
+	padding: 0 8px;
+	border: 1px solid var(--md-sys-color-outline-variant, #e1e5ee);
+	border-radius: 999px;
+	font-size: 12px;
+}
+
+.tc-plugin__notice {
+	margin: 0 0 16px;
+	padding: 10px 14px;
+	border-radius: 8px;
+	font-size: 13px;
+	background: var(--md-sys-color-surface-container-high, #eef1f6);
+}
+
+.tc-plugin__panel {
+	margin-top: 16px;
+}
+
+.tc-plugin__shared {
+	margin-bottom: 12px;
+}
+
+.tc-plugin__test {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	flex-wrap: wrap;
+	margin-top: 12px;
+	font-size: 13px;
+}
+
+.tc-plugin__ok {
+	font-weight: 600;
+	color: var(--tc-status-ok, #1f8a4c);
+}
+
+.tc-plugin__fail {
+	font-weight: 600;
+	color: var(--md-sys-color-error, #b3261e);
+}
+
+.tc-plugin__danger {
+	margin-top: 20px;
+	padding-top: 12px;
+	border-top: 1px solid var(--md-sys-color-outline-variant, #eef1f6);
+}
+
+.tc-plugin__deposit {
+	display: grid;
+	grid-template-columns: repeat(3, minmax(0, 1fr));
+	gap: 12px;
+	margin-top: 8px;
+}
+
+@media (max-width: 760px) {
+	.tc-plugin__deposit {
+		grid-template-columns: minmax(0, 1fr);
+	}
+}

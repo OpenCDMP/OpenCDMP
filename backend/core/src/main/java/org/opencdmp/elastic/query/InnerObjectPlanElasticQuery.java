@@ -13,6 +13,8 @@ import org.opencdmp.commons.enums.PlanAccessType;
 import org.opencdmp.commons.enums.PlanStatus;
 import org.opencdmp.commons.enums.PlanVersionStatus;
 import org.opencdmp.elastic.data.DescriptionElasticEntity;
+import org.opencdmp.elastic.data.PlanElasticEntity;
+import org.opencdmp.elastic.data.nested.NestedPlanBlueprintElasticEntity;
 import org.opencdmp.elastic.data.nested.NestedPlanElasticEntity;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.BeanDefinition;
@@ -30,12 +32,13 @@ public class InnerObjectPlanElasticQuery extends ElasticInnerObjectQuery<InnerOb
 	private String like;
 	private Collection<UUID> ids;
 	private Collection<UUID> excludedIds;
-	private Collection<UUID> statusIds;
+	private InnerObjectPlanStatusElasticQuery planStatusElasticSubQuery;
 	private Collection<PlanVersionStatus> versionStatuses;
 	private Collection<PlanAccessType> accessTypes;
 	private Collection<Integer> versions;
 	private Collection<UUID> groupIds;
 	private NestedCollaboratorElasticQuery planUserSubQuery;
+	private InnerObjectPlanBlueprintElasticQuery planBlueprintElasticSubQuery;
 
 
 	public InnerObjectPlanElasticQuery planSubQuery(NestedCollaboratorElasticQuery subQuery) {
@@ -108,18 +111,14 @@ public class InnerObjectPlanElasticQuery extends ElasticInnerObjectQuery<InnerOb
 		return this;
 	}
 
-	public InnerObjectPlanElasticQuery statusIds(UUID value) {
-		this.statusIds = List.of(value);
+	public InnerObjectPlanElasticQuery planStatusElasticQuery(InnerObjectPlanStatusElasticQuery subQuery){
+		this.planStatusElasticSubQuery = subQuery;
 		return this;
 	}
 
-	public InnerObjectPlanElasticQuery statusIds(UUID... value) {
-		this.statusIds = Arrays.asList(value);
-		return this;
-	}
-
-	public InnerObjectPlanElasticQuery statusIds(Collection<UUID> values) {
-		this.statusIds = values;
+	public InnerObjectPlanElasticQuery planBlueprintSubQuery(InnerObjectPlanBlueprintElasticQuery subQuery)
+	{
+		this.planBlueprintElasticSubQuery = subQuery;
 		return this;
 	}
 
@@ -184,8 +183,6 @@ public class InnerObjectPlanElasticQuery extends ElasticInnerObjectQuery<InnerOb
 		List<Query> predicates = new ArrayList<>();
 
 		if (this.like != null && !this.like.isBlank()) {
-			if (!this.like.startsWith("*")) this.like = "*" + this.like;
-			if (!this.like.endsWith("*")) this.like = this.like + "*";
 			ElasticFields elasticFields = new ElasticFields(this.entityClass(), List.of(this.getInnerPath()));
 			elasticFields.add(NestedPlanElasticEntity._label, true);
 			elasticFields.add(NestedPlanElasticEntity._description, true);
@@ -203,8 +200,8 @@ public class InnerObjectPlanElasticQuery extends ElasticInnerObjectQuery<InnerOb
 		if (this.excludedIds != null) {
 			predicates.add(this.not(this.containsUUID(this.elasticFieldOf(NestedPlanElasticEntity._id).disableInfer(true), this.excludedIds)._toQuery())._toQuery());
 		}
-		if (this.statusIds != null) {
-			predicates.add(this.containsUUID(this.elasticFieldOf(NestedPlanElasticEntity._id).disableInfer(true), this.statusIds)._toQuery());
+		if (this.planStatusElasticSubQuery != null) {
+			predicates.add( this.planStatusElasticSubQuery.innerPath(PlanElasticEntity._planStatus).applyFilters());
 		}
 		if (this.versionStatuses != null) {
 			predicates.add(this.contains(this.elasticFieldOf(NestedPlanElasticEntity._versionStatus).disableInfer(true), this.versionStatuses.stream().map(x-> x.getValue()).collect(Collectors.toList()).toArray(new Short[this.versionStatuses.size()]))._toQuery());
@@ -215,7 +212,9 @@ public class InnerObjectPlanElasticQuery extends ElasticInnerObjectQuery<InnerOb
 		if (this.planUserSubQuery != null) {
 			predicates.add(this.nestedQuery( this.planUserSubQuery.nestedPath(DescriptionElasticEntity._plan + "."  + NestedPlanElasticEntity._collaborators)).build()._toQuery());
 		}
-
+		if (this.planBlueprintElasticSubQuery != null) {
+			predicates.add(this.planBlueprintElasticSubQuery.innerPath(PlanElasticEntity._blueprint).applyFilters());
+		}
 		if (!predicates.isEmpty()) {
 			return this.and(predicates);
 		} else {

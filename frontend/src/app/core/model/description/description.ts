@@ -1,19 +1,19 @@
-import { DescriptionStatusEnum } from "@app/core/common/enum/description-status";
 import { BaseEntity, BaseEntityPersist } from "@common/base/base-entity.model";
 import { Guid } from "@common/types/guid";
 import { DescriptionTemplate } from "../description-template/description-template";
 import { Plan, PlanDescriptionTemplate } from "../plan/plan";
 import { Reference, ReferencePersist } from "../reference/reference";
-import { Tag, TagPersist } from "../tag/tag";
+import { Tag } from "../tag/tag";
 import { User } from "../user/user";
 import { AppPermission } from "@app/core/common/enum/permission.enum";
-import { DescriptionStatus, DescriptionStatusDefinition } from "../description-status/description-status";
+import { DescriptionStatus } from "../description-status/description-status";
 import { DescriptionStatusPermission } from "@app/core/common/enum/description-status-permission.enum";
+import { PlanUpdateRequestApply } from "../plan-update-request/plan-update-request";
 
 export interface Description extends BaseDescription {
 	label?: string;
 	status?: DescriptionStatus;
-	properties?: DescriptionPropertyDefinition;
+	properties?: PropertyDefinition;
 	description?: string;
 	createdBy?: User;
 	finalizedAt?: Date;
@@ -28,25 +28,26 @@ export interface Description extends BaseDescription {
 }
 
 
-export interface DescriptionPropertyDefinition {
-	fieldSets: Map<string, DescriptionPropertyDefinitionFieldSet>;
+export interface PropertyDefinition {
+	fieldSets: Map<string, PropertyDefinitionFieldSet>;
 }
 
-export interface DescriptionPropertyDefinitionFieldSet {
-	items?: DescriptionPropertyDefinitionFieldSetItem[];
+export interface PropertyDefinitionFieldSet {
+	items?: PropertyDefinitionFieldSetItem[];
 	comment?: string;
 }
 
-export interface DescriptionPropertyDefinitionFieldSetItem {
-	fields?: Map<string, DescriptionField>;
+export interface PropertyDefinitionFieldSetItem {
+	fields?: Map<string, PropertyDefinitionField>;
 	ordinal?: number;
 }
 
-export interface DescriptionField {
+export interface PropertyDefinitionField {
 	textValue: string;
 	textListValue: string[];
 	dateValue: Date;
 	booleanValue: boolean;
+    numberValue: number;
 	externalIdentifier?: DescriptionExternalIdentifier;
 	references: Reference[];
 	tags: Tag[];
@@ -78,6 +79,7 @@ export interface DescriptionTag extends BaseEntity {
 //
 export interface DescriptionMultiplePersist {
 	descriptions: DescriptionPersist[];
+	planUpdateRequestApply?: PlanUpdateRequestApply;
 }
 
 export interface DescriptionPersist extends BaseEntityPersist {
@@ -87,29 +89,30 @@ export interface DescriptionPersist extends BaseEntityPersist {
 	descriptionTemplateId: Guid;
 	statusId: Guid;
 	description: string;
-	properties: DescriptionPropertyDefinitionPersist;
+	properties: PropertyDefinitionPersist;
 	tags: string[];
 }
 
-export interface DescriptionPropertyDefinitionPersist {
-	fieldSets: Map<string, DescriptionPropertyDefinitionFieldSetPersist>;
+export interface PropertyDefinitionPersist {
+	fieldSets: Map<string, PropertyDefinitionFieldSetPersist>;
 }
 
-export interface DescriptionPropertyDefinitionFieldSetPersist {
-	items?: DescriptionPropertyDefinitionFieldSetItemPersist[];
+export interface PropertyDefinitionFieldSetPersist {
+	items?: PropertyDefinitionFieldSetItemPersist[];
 	comment?: string;
 }
 
-export interface DescriptionPropertyDefinitionFieldSetItemPersist {
-	fields?: Map<string, DescriptionFieldPersist>;
+export interface PropertyDefinitionFieldSetItemPersist {
+	fields?: Map<string, FieldPersist>;
 	ordinal?: number;
 }
 
-export interface DescriptionFieldPersist {
+export interface FieldPersist {
 	textValue?: string;
 	textListValue?: string[];
 	dateValue?: Date;
 	booleanValue?: boolean;
+	numberValue?: number;
 	references?: ReferencePersist[];
 	reference?: ReferencePersist;
 	externalIdentifier?: DescriptionExternalIdentifierPersist;
@@ -135,7 +138,7 @@ export interface DescriptionStatusPersist {
 
 export interface DescriptionSectionPermissionResolver {
 	planId: Guid;
-	sectionIds: Guid[];
+	sectionIds: string[];
 	permissions: string[];
 }
 

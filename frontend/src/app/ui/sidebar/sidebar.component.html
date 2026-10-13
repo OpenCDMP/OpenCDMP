@@ -1,61 +1,143 @@
-<div class="sidebar-wrapper">
+<nav class="sidebar-wrapper" [attr.aria-label]="'ALT-TEXT.MAIN-NAVIGATION' | translate">
+  <button
+    class="toggle-btn ml-auto"
+    mat-icon-button
+    (click)="toggleNav()"
+    [attr.aria-expanded]="sidenavService.isOpen()"
+    [attr.aria-label]="'ALT-TEXT.HAMBURGER' | translate"
+    >
+    <mat-icon aria-hidden="true">{{sidenavService.isOpen() ? 'keyboard_double_arrow_left' : 'keyboard_double_arrow_right'}}</mat-icon>
+  </button>
+  @if (showAdminToggle() && sidenavService.isOpen()) {
+    <mat-button-toggle-group
+      class="view-toggle"
+      [class.admin-active]="adminView"
+      hideSingleSelectionIndicator
+      [(ngModel)]="adminView"
+      [attr.aria-label]="'SIDE-BAR.VIEW-TOGGLE.LABEL' | translate"
+      >
+      <mat-button-toggle [value]="false">
+        {{'SIDE-BAR.VIEW-TOGGLE.USER' | translate}}
+      </mat-button-toggle>
+      <mat-button-toggle [value]="true">
+        <mat-icon class="material-symbols-outlined toggle-icon" aria-hidden="true">shield</mat-icon>
+        {{'SIDE-BAR.VIEW-TOGGLE.ADMIN' | translate}}
+      </mat-button-toggle>
+    </mat-button-toggle-group>
+  }
+  <div class="route-list">
+    @for (groupMenuItem of groupMenuItems; track groupMenuItem; let firstGroup = $first; let i = $index) {
+      @if (isAdminGroup(groupMenuItem)) {
+        <mat-expansion-panel
+          class="nav-expansion-panel"
+          [class.nav-list-item-hidden]="!showItemForView(groupMenuItem)"
+          [expanded]="true"
+          hideToggle="false"
+          >
+          @if (sidenavService.isOpen()) {
+            <mat-expansion-panel-header>
+              <mat-panel-title>
+                <div class="nav-group-title">
+                  {{groupMenuItem.title | translate}}
+                </div>
+              </mat-panel-title>
+            </mat-expansion-panel-header>
+          }
+          <mat-list class="nav mat-list" [class.minimized]="!sidenavService.isOpen()">
+            <ng-container *ngTemplateOutlet="routeListTpl; context: {$implicit: groupMenuItem}"></ng-container>
+          </mat-list>
+        </mat-expansion-panel>
+      } @else {
+        <mat-list
+          class="nav mat-list"
+          [class.nav-list-item]="showItemForView(groupMenuItem)"
+          [class.nav-list-item-hidden]="!showItemForView(groupMenuItem)"
+          [class.flex-grow-1]="i === groupMenuItems.length - 2"
+          [class.minimized]="!sidenavService.isOpen()"
+          [attr.data-tour]="groupMenuItem === libraryItems ? 'sidebar-library' : groupMenuItem === descriptionItems ? 'sidebar-explore' : null"
+          >
+          @if(showItemForView(groupMenuItem)){
+            @if (groupMenuItem.title) {
+              <mat-list-item>
+                <div  class="nav-group-title" [class.minimized]="!sidenavService.isOpen()">
+                  {{groupMenuItem.title | translate}}
+                </div>
+              </mat-list-item>
+            }
+            <ng-container *ngTemplateOutlet="routeListTpl; context: {$implicit: groupMenuItem}"></ng-container>
+          }
+        </mat-list>
+      }
+    }
+  </div>
 
-  @for (groupMenuItem of groupMenuItems; track groupMenuItem; let firstGroup = $first; let i = $index) {
-    <mat-list class="nav mat-list" [class.nav-list-item]="showItem(groupMenuItem)" [class.nav-list-item-hidden]="!showItem(groupMenuItem)" [ngClass]="{'flex-grow-1': i == groupMenuItems.length - 2}">
-      @if(showItem(groupMenuItem)){
-        @for (groupMenuRoute of groupMenuItem.routes; track groupMenuRoute; let first = $first) {
-          <mat-list-item routerLinkActive="active" [isActiveMatchOptions]="{ paths: 'exact', queryParams: 'ignored' }" class="nav-item" [ngClass]="{'mt-4': first && firstGroup}">
-            @if (first && !firstGroup) {
-              <hr>
+  <ng-template #routeListTpl let-groupMenuItem>
+    @for (groupMenuRoute of groupMenuItem.routes; track groupMenuRoute; let first = $first) {
+      <mat-list-item [class.active]="isRouteActive(groupMenuRoute)" [class.minimized]="!sidenavService.isOpen()"
+        class="nav-item"
+        >
+        @if (groupMenuRoute.routeType === routeType.System) {
+          <a class="nav-link nav-row"
+            [attr.aria-current]="isRouteActive(groupMenuRoute) ? 'page' : null"
+            [routerLink]="[routerUtils.generateUrl(groupMenuRoute.path)]"
+            [class.admin-link]="adminView"
+            [class.plan-tour]="groupMenuRoute.path === '/plans'"
+            [class.description-tour]="groupMenuRoute.path === '/explore-assets'"
+            >
+            <mat-icon class="material-symbols-outlined icon mr-0" aria-hidden="true">{{ groupMenuRoute.icon }}</mat-icon>
+            <span class="nav-link-title" style="text-wrap: wrap;">
+              {{groupMenuRoute.title | translate}}
+              @if(groupMenuRoute.count?.()){
+                <span class="count">({{groupMenuRoute.count()}})</span>
               }
-              @if (groupMenuRoute.routeType == routeType.System) {
-                <a class="nav-link nav-row"
-                  [routerLink]="[routerUtils.generateUrl(groupMenuRoute.path)]"
-                  [class.plan-tour]="groupMenuRoute.path == '/plans'"
-                  [class.description-tour]="groupMenuRoute.path == '/explore-descriptions'"
-                  >
-                  <i class="material-symbols-outlined icon" aria-hidden>{{ groupMenuRoute.icon }}</i>
-                  @if (groupMenuRoute.path == '/plans') {
-                    <i class="material-symbols-outlined icon-mask" aria-hidden>person</i>
-                  }
-                  <span [ngClass]="{'pl-0': groupMenuRoute.path == '/plans'}" style="text-wrap: wrap;">{{groupMenuRoute.title | translate}}</span>
-                </a>
-                <ng-template #description>
-                  @if (groupMenuRoute.path === '/descriptions') {
-                    <a class="nav-link nav-row" [routerLink]="[routerUtils.generateUrl(groupMenuRoute.path)]">
-                      <span class="mb-3 inner-line"></span>
-                      <div class="pl-0 pt-1 pb-1 container-fluid nav-subrow description-tour">
-                        <i class="mb-1 material-symbols-outlined icon" aria-hidden>{{ groupMenuRoute.icon }}</i>
-                        <i class="mb-1 material-symbols-outlined icon-mask" aria-hidden>person</i>
-                        <span class="pl-0 mt-1" style="text-wrap: wrap;">{{groupMenuRoute.title | translate}}</span>
-                      </div>
-                    </a>
-                  }
-                </ng-template>
-              } @else {
-                @if (groupMenuRoute.path && groupMenuRoute.path != '') {
-                  <a class="nav-link nav-row" [routerLink]="[routerUtils.generateUrl(groupMenuRoute.path)]">
-                    <i class="material-symbols-outlined icon" aria-hidden>{{ groupMenuRoute.icon }}</i>
-                    <span>{{groupMenuRoute.title | translate}}</span>
-                  </a>
-                } @else {
-                  @if (groupMenuRoute.externalUrl && groupMenuRoute.externalUrl!='') {
-                    <a class="nav-link nav-row" href="{{groupMenuRoute.externalUrl}}" target="_blank">
-                      <i class="material-symbols-outlined icon" aria-hidden>{{ groupMenuRoute.icon }}</i>
-                      <span>{{groupMenuRoute.title | translate}} <span class="material-symbols-outlined icon-external">open_in_new</span></span>
-                    </a>
-                  }
+            </span>
+          </a>
+        } @else {
+          @if (groupMenuRoute.path && groupMenuRoute.path !== '') {
+            <a class="nav-link nav-row" [attr.aria-current]="isRouteActive(groupMenuRoute) ? 'page' : null" [routerLink]="[routerUtils.generateUrl(groupMenuRoute.path)]">
+              <mat-icon class="material-symbols-outlined icon mr-0" aria-hidden="true">{{ groupMenuRoute.icon }}</mat-icon>
+              <span class="nav-link-title" [class.minimized]="!sidenavService.isOpen()">
+                {{groupMenuRoute.title | translate}}
+                @if(groupMenuRoute.count?.()){
+                  <span class="count">({{groupMenuRoute.count()}})</span>
                 }
+              </span>
+            </a>
+          } @else {
+            @if (groupMenuRoute.externalUrl && groupMenuRoute.externalUrl!=='') {
+              <a class="nav-link nav-row" href="{{groupMenuRoute.externalUrl}}" target="_blank" rel="noopener noreferrer">
+                <mat-icon class="material-symbols-outlined icon mr-0" aria-hidden="true">{{ groupMenuRoute.icon }}</mat-icon>
+                <span [class.minimized]="!sidenavService.isOpen()">
+                  {{groupMenuRoute.title | translate}}
+                  <span class="material-symbols-outlined icon-external" aria-hidden="true">open_in_new</span><span class="assistive-text"> ({{'ALT-TEXT.OPENS-IN-NEW-TAB' | translate}})</span></span>
+                </a>
               }
+            }
+          }
+        </mat-list-item>
+        @if(sidenavService.isOpen()){
+          @if (groupMenuRoute.path === '/plans') {
+            <mat-list-item class="route-action">
+              <a mat-button data-tour="sidebar-new-plan" [routerLink]="routerUtils.generateUrl(['plans/', 'new'])">
+                <mat-icon aria-hidden="true">add</mat-icon>
+                {{'NAV-BAR.START-NEW-PLAN' | translate}}
+              </a>
+            </mat-list-item>
+          }
+          @if (groupMenuRoute.path === '/assets') {
+            <mat-list-item class="route-action">
+              <button mat-button data-tour="sidebar-new-asset" (click)="openNewDescriptionDialog()" class="new-description-btn">
+                <mat-icon aria-hidden="true">add</mat-icon>
+                {{'NAV-BAR.START-NEW-DESCRIPTION' | translate}}
+              </button>
             </mat-list-item>
           }
         }
-      </mat-list>
-    }
+      }
+    </ng-template>
 
     <!-- Sidebar Footer -->
-    <div class="sidebar-footer pb-2">
-      <hr>
-        <app-sidebar-footer></app-sidebar-footer>
-      </div>
-    </div>
+    <!-- <div class="sidebar-footer pb-2">
+    <app-sidebar-footer></app-sidebar-footer>
+  </div> -->
+</nav>

@@ -4,6 +4,8 @@ import jakarta.xml.bind.annotation.*;
 import jakarta.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 import org.opencdmp.commons.enums.PlanAccessType;
 import org.opencdmp.commons.types.description.importexport.DescriptionImportExport;
+import org.opencdmp.commons.types.description.importexport.DescriptionPropertyDefinitionImportExport;
+import org.opencdmp.commons.types.reference.importexport.ReferenceImportExport;
 import org.opencdmp.commons.types.planblueprint.importexport.BlueprintImportExport;
 import org.opencdmp.commons.xmladapter.InstantXmlAdapter;
 
@@ -55,9 +57,8 @@ public class PlanImportExport {
     @XmlElement(name = "blueprint")
     private BlueprintImportExport blueprint;
 
-    @XmlElementWrapper(name = "blueprintValues")
-    @XmlElement(name = "blueprintValue")
-    private List<PlanBlueprintValueImportExport> blueprintValues;
+    @XmlElement(name = "properties")
+    private DescriptionPropertyDefinitionImportExport properties;
 
     @XmlElementWrapper(name = "descriptionTemplates")
     @XmlElement(name = "descriptionTemplate")
@@ -65,7 +66,7 @@ public class PlanImportExport {
 
     @XmlElementWrapper(name = "references")
     @XmlElement(name = "reference")
-    private List<PlanReferenceImportExport> references;
+    private List<ReferenceImportExport> references;
 
     @XmlElementWrapper(name = "descriptions")
     @XmlElement(name = "description")
@@ -160,12 +161,12 @@ public class PlanImportExport {
         this.blueprint = blueprint;
     }
 
-    public List<PlanBlueprintValueImportExport> getBlueprintValues() {
-        return this.blueprintValues;
+    public DescriptionPropertyDefinitionImportExport getProperties() {
+        return properties;
     }
 
-    public void setBlueprintValues(List<PlanBlueprintValueImportExport> blueprintValues) {
-        this.blueprintValues = blueprintValues;
+    public void setProperties(DescriptionPropertyDefinitionImportExport properties) {
+        this.properties = properties;
     }
 
     public List<PlanDescriptionTemplateImportExport> getDescriptionTemplates() {
@@ -176,11 +177,11 @@ public class PlanImportExport {
         this.descriptionTemplates = descriptionTemplates;
     }
 
-    public List<PlanReferenceImportExport> getReferences() {
-        return this.references;
+    public List<ReferenceImportExport> getReferences() {
+        return references;
     }
 
-    public void setReferences(List<PlanReferenceImportExport> references) {
+    public void setReferences(List<ReferenceImportExport> references) {
         this.references = references;
     }
 

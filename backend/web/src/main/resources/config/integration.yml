@@ -1,0 +1,2 @@
+integration:
+  enabled: ${INTEGRATION_EVENT_ENABLED:false}

@@ -219,15 +219,15 @@ public class AuthorizationContentResolverImpl implements AuthorizationContentRes
 	}
 
 	@Override
-	public AffiliatedResource descriptionsAffiliationBySection(UUID planId, UUID sectionId){
+	public AffiliatedResource descriptionsAffiliationBySection(UUID planId, String sectionId){
 		return this.descriptionsAffiliationBySections(planId, List.of(sectionId)).getOrDefault(sectionId, new AffiliatedResource());
 	}
 
 	@Override
-	public Map<UUID, AffiliatedResource> descriptionsAffiliationBySections(UUID planId, List<UUID> sectionIds){
+	public Map<String, AffiliatedResource> descriptionsAffiliationBySections(UUID planId, List<String> sectionIds){
 		UUID userId = this.userScopeFactory.getInstance().getUserIdSafe();
-		Map<UUID, AffiliatedResource> affiliatedResources = new HashMap<>();
-		for (UUID id : sectionIds){
+		Map<String, AffiliatedResource> affiliatedResources = new HashMap<>();
+		for (String id : sectionIds){
 			affiliatedResources.put(id, new AffiliatedResource());
 		}
 		if (userId == null || !this.userScopeFactory.getInstance().isSet()) return affiliatedResources;
@@ -249,7 +249,7 @@ public class AuthorizationContentResolverImpl implements AuthorizationContentRes
 			}
 		}
 
-		for (UUID sectionId : sectionIds.stream().distinct().toList()){
+		for (String sectionId : sectionIds.stream().distinct().toList()){
 			List<PlanUserEntity> planSectionUsers = planUsers.stream().filter(x-> x.getSectionId() == null || x.getSectionId().equals(sectionId)).toList();
 			for (PlanUserEntity planUser : planSectionUsers) {
 				if (planUser.getSectionId() == null) affiliatedResources.get(sectionId).getPlanUserRoles().add(planUser.getRole());

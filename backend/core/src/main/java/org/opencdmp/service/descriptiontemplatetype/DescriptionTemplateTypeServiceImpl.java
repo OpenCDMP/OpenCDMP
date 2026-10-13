@@ -16,6 +16,7 @@ import org.opencdmp.authorization.AuthorizationFlags;
 import org.opencdmp.authorization.Permission;
 import org.opencdmp.commons.enums.IsActive;
 import org.opencdmp.commons.enums.UsageLimitTargetMetric;
+import org.opencdmp.commons.enums.kpi.KpiDirectionType;
 import org.opencdmp.convention.ConventionService;
 import org.opencdmp.data.DescriptionTemplateTypeEntity;
 import org.opencdmp.data.TenantEntityManagerFactory;
@@ -28,6 +29,7 @@ import org.opencdmp.model.deleter.DescriptionTemplateTypeDeleter;
 import org.opencdmp.model.persist.DescriptionTemplateTypePersist;
 import org.opencdmp.query.DescriptionTemplateTypeQuery;
 import org.opencdmp.service.accounting.AccountingService;
+import org.opencdmp.service.kpi.KpiService;
 import org.opencdmp.service.usagelimit.UsageLimitServiceImpl;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -67,6 +69,8 @@ public class DescriptionTemplateTypeServiceImpl implements DescriptionTemplateTy
 
     private final AccountingService accountingService;
 
+    private final KpiService kpiService;
+
     @Autowired
     public DescriptionTemplateTypeServiceImpl(
             TenantEntityManagerFactory tenantEntityManagerFactory,
@@ -77,7 +81,7 @@ public class DescriptionTemplateTypeServiceImpl implements DescriptionTemplateTy
             ConventionService conventionService,
             ErrorThesaurusProperties errors,
             MessageSource messageSource,
-            EventBroker eventBroker, UsageLimitServiceImpl usageLimitService, AccountingService accountingService) {
+            EventBroker eventBroker, UsageLimitServiceImpl usageLimitService, AccountingService accountingService, KpiService kpiService) {
         this.tenantEntityManagerFactory = tenantEntityManagerFactory;
         this.authorizationService = authorizationService;
         this.deleterFactory = deleterFactory;
@@ -89,6 +93,7 @@ public class DescriptionTemplateTypeServiceImpl implements DescriptionTemplateTy
         this.eventBroker = eventBroker;
         this.usageLimitService = usageLimitService;
         this.accountingService = accountingService;
+        this.kpiService = kpiService;
     }
 
     public DescriptionTemplateType persist(DescriptionTemplateTypePersist model, FieldSet fields) throws MyForbiddenException, MyValidationException, MyApplicationException, MyNotFoundException, InvalidApplicationException {
@@ -123,6 +128,7 @@ public class DescriptionTemplateTypeServiceImpl implements DescriptionTemplateTy
             this.tenantEntityManagerFactory.getInstance().merge(data);
         } else {
             this.tenantEntityManagerFactory.getInstance().persist(data);
+            this.kpiService.sendIndicatorPointDescriptionTemplateTypeEntry(KpiDirectionType.Increase);
             this.accountingService.increase(UsageLimitTargetMetric.DESCRIPTION_TEMPLATE_TYPE_COUNT.getValue());
         }
 

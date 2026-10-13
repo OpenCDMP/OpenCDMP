@@ -1,5 +1,7 @@
 package org.opencdmp.service.pluginconfiguration;
 
+import gr.cite.tools.exception.MyApplicationException;
+
 import gr.cite.tools.data.builder.BuilderFactory;
 import gr.cite.tools.data.query.QueryFactory;
 import gr.cite.tools.fieldset.BaseFieldSet;
@@ -75,6 +77,11 @@ public class PluginConfigurationServiceImpl implements PluginConfigurationServic
 
 
     public PluginConfigurationEntity buildPluginConfigurationEntity(PluginConfigurationPersist persist, List<PluginConfigurationEntity> oldPlugins) throws InvalidApplicationException {
+        return this.buildPluginConfigurationEntity(persist, oldPlugins, null);
+    }
+
+    // inheritedPlugins: the record a first save copies (the default tenant's); only its secrets are kept, since the editor never receives them
+    public PluginConfigurationEntity buildPluginConfigurationEntity(PluginConfigurationPersist persist, List<PluginConfigurationEntity> oldPlugins, List<PluginConfigurationEntity> inheritedPlugins) throws InvalidApplicationException {
         PluginConfigurationEntity data = new PluginConfigurationEntity();
         if (persist == null)
             return data;
@@ -84,8 +91,9 @@ public class PluginConfigurationServiceImpl implements PluginConfigurationServic
 
         if (!this.conventionService.isListNullOrEmpty(persist.getFields())) {
             data.setFields(new ArrayList<>());
+            PluginConfigurationEntity inheritedPlugin = !this.conventionService.isListNullOrEmpty(inheritedPlugins) ? inheritedPlugins.stream().filter(x->x.getPluginCode().equals(persist.getPluginCode())).findFirst().orElse(null): null;
             for (PluginConfigurationFieldPersist pluginConfigurationFieldPersist : persist.getFields()) {
-                data.getFields().add(this.buildPluginConfigurationFieldEntity(pluginConfigurationFieldPersist, !this.conventionService.isListNullOrEmpty(oldPlugins) ? oldPlugins.stream().filter(x->x.getPluginCode().equals(persist.getPluginCode())).findFirst().orElse(null): null));
+                data.getFields().add(this.buildPluginConfigurationFieldEntity(pluginConfigurationFieldPersist, !this.conventionService.isListNullOrEmpty(oldPlugins) ? oldPlugins.stream().filter(x->x.getPluginCode().equals(persist.getPluginCode())).findFirst().orElse(null): null, inheritedPlugin));
             }
         }
 
@@ -93,13 +101,18 @@ public class PluginConfigurationServiceImpl implements PluginConfigurationServic
     }
 
 
-    private @NotNull PluginConfigurationFieldEntity buildPluginConfigurationFieldEntity(PluginConfigurationFieldPersist persist, PluginConfigurationEntity oldPlugin) throws InvalidApplicationException {
+    private @NotNull PluginConfigurationFieldEntity buildPluginConfigurationFieldEntity(PluginConfigurationFieldPersist persist, PluginConfigurationEntity oldPlugin, PluginConfigurationEntity inheritedPlugin) throws InvalidApplicationException {
         PluginConfigurationFieldEntity data = new PluginConfigurationFieldEntity();
         if (persist == null)
             return data;
 
         data.setCode(persist.getCode());
-        data.setTextValue(persist.getTextValue());
+        if (Boolean.TRUE.equals(persist.getSecret())) {
+            data.setSecret(true);
+            data.setTextValue(this.secretValue(persist, oldPlugin != null ? oldPlugin : inheritedPlugin));
+        } else {
+            data.setTextValue(persist.getTextValue());
+        }
 
         PluginConfigurationFieldEntity oldField = null;
         if(oldPlugin != null && !this.conventionService.isListNullOrEmpty(oldPlugin.getFields())) {
@@ -123,6 +136,21 @@ public class PluginConfigurationServiceImpl implements PluginConfigurationServic
         }
 
         return data;
+    }
+
+    private String secretValue(PluginConfigurationFieldPersist persist, PluginConfigurationEntity oldPlugin) {
+        try {
+            if (persist.getTextValue() == null) {
+                // the editor never receives a secret, so no value means "keep the stored one"
+                PluginConfigurationFieldEntity old = oldPlugin == null || oldPlugin.getFields() == null ? null : oldPlugin.getFields().stream().filter(x -> persist.getCode().equals(x.getCode())).findFirst().orElse(null);
+                if (old == null || this.conventionService.isNullOrEmpty(old.getTextValue())) return null;
+                return Boolean.TRUE.equals(old.getSecret()) ? old.getTextValue() : this.encryptionService.encryptAES(old.getTextValue(), this.tenantProperties.getConfigEncryptionAesKey(), this.tenantProperties.getConfigEncryptionAesIv());
+            }
+            if (persist.getTextValue().isBlank()) return null;
+            return this.encryptionService.encryptAES(persist.getTextValue(), this.tenantProperties.getConfigEncryptionAesKey(), this.tenantProperties.getConfigEncryptionAesIv());
+        } catch (Exception e) {
+            throw new MyApplicationException(e.getMessage());
+        }
     }
 
     // reAssign for clone
@@ -260,7 +288,16 @@ public class PluginConfigurationServiceImpl implements PluginConfigurationServic
             return data;
 
         data.setCode(persist.getCode());
-        if (!this.conventionService.isNullOrEmpty(persist.getTextValue())) data.setTextValue(this.encryptionService.encryptAES(persist.getTextValue(), this.tenantProperties.getConfigEncryptionAesKey(), this.tenantProperties.getConfigEncryptionAesIv()));
+        if (Boolean.TRUE.equals(persist.getSecret())) {
+            data.setSecret(true);
+            if (persist.getTextValue() == null) {
+                // the profile never receives a secret, so no value means "keep the stored one"
+                PluginConfigurationUserFieldEntity old = oldPlugin == null || oldPlugin.getUserFields() == null ? null : oldPlugin.getUserFields().stream().filter(x -> persist.getCode().equals(x.getCode())).findFirst().orElse(null);
+                if (old != null) data.setTextValue(old.getTextValue());
+            } else if (!persist.getTextValue().isBlank()) {
+                data.setTextValue(this.encryptionService.encryptAES(persist.getTextValue(), this.tenantProperties.getConfigEncryptionAesKey(), this.tenantProperties.getConfigEncryptionAesIv()));
+            }
+        } else if (!this.conventionService.isNullOrEmpty(persist.getTextValue())) data.setTextValue(this.encryptionService.encryptAES(persist.getTextValue(), this.tenantProperties.getConfigEncryptionAesKey(), this.tenantProperties.getConfigEncryptionAesIv()));
 
         PluginConfigurationUserFieldEntity oldField = null;
         if(oldPlugin != null && !this.conventionService.isListNullOrEmpty(oldPlugin.getUserFields())) {

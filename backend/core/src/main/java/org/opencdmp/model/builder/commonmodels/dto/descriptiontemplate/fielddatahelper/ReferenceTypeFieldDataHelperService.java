@@ -2,7 +2,7 @@ package org.opencdmp.model.builder.commonmodels.dto.descriptiontemplate.fielddat
 
 import gr.cite.tools.data.builder.BuilderFactory;
 import org.opencdmp.authorization.AuthorizationFlags;
-import org.opencdmp.commonmodels.models.descriptiotemplate.fielddata.ReferenceTypeDataModel;
+import org.opencdmp.commonmodels.models.planblueprintdescriptiontemplatefields.fielddata.ReferenceTypeDataModel;
 import org.opencdmp.model.builder.commonmodels.dto.descriptiontemplate.fielddata.ReferenceTypeDataCommonModelBuilder;
 import org.opencdmp.model.descriptiontemplate.fielddata.ReferenceTypeData;
 import org.springframework.stereotype.Component;

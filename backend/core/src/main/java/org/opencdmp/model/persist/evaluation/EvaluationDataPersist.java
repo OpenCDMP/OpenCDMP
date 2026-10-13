@@ -5,6 +5,7 @@ import gr.cite.tools.validation.specification.Specification;
 import org.opencdmp.commons.validation.BaseValidator;
 import org.opencdmp.convention.ConventionService;
 import org.opencdmp.errorcode.ErrorThesaurusProperties;
+import org.opencdmp.evaluatorbase.models.misc.RankResultModel;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.Scope;
@@ -22,7 +23,7 @@ public class EvaluationDataPersist {
     private RankConfigPersist rankConfig;
     public static final String _rankConfig = "rankConfig";
 
-    private RankResultPersist rankResult;
+    private List<RankResultPersist> rankResult;
     public static final String _rankResult = "rankResult";
 
     public String getEvaluatorId() {
@@ -41,11 +42,11 @@ public class EvaluationDataPersist {
         this.rankConfig = rankConfig;
     }
 
-    public RankResultPersist getRankResult() {
+    public List<RankResultPersist> getRankResult() {
         return rankResult;
     }
 
-    public void setRankResult(RankResultPersist rankResult) {
+    public void setRankResult(List<RankResultPersist> rankResult) {
         this.rankResult = rankResult;
     }
 
@@ -85,13 +86,13 @@ public class EvaluationDataPersist {
                             .over(item.getRankConfig())
                             .using(() -> this.validatorFactory.validator(RankConfigPersist.RankConfigPersistValidator.class)),
                     this.spec()
-                            .must(() -> !this.isNull(item.getRankResult()))
+                            .must(() -> !this.isListNullOrEmpty(item.getRankResult()))
                             .failOn(EvaluationDataPersist._rankResult).failWith(this.messageSource.getMessage("Validation_Required", new Object[]{EvaluationDataPersist._rankResult}, LocaleContextHolder.getLocale())),
-                    this.refSpec()
+                    this.navSpec()
                             .iff(() -> !this.isNull(item.getRankResult()))
                             .on(EvaluationDataPersist._rankResult)
                             .over(item.getRankResult())
-                            .using(() -> this.validatorFactory.validator(RankResultPersist.RankResultPersistValidator.class))
+                            .using((itm) -> this.validatorFactory.validator(RankResultPersist.RankResultPersistValidator.class))
 
                     );
         }

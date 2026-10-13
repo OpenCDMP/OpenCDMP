@@ -24,6 +24,9 @@ public class DescriptionTemplateSectionImportExport {
     @XmlElementWrapper(name = "sections")
     @XmlElement(name = "section")
     private List<DescriptionTemplateSectionImportExport> sections;
+    @XmlElementWrapper(name = "semantics")
+    @XmlElement(name = "semantic")
+    private List<String> semantics;
 
     public String getId() {
         return this.id;
@@ -71,6 +74,14 @@ public class DescriptionTemplateSectionImportExport {
 
     public void setSections(List<DescriptionTemplateSectionImportExport> sections) {
         this.sections = sections;
+    }
+
+    public List<String> getSemantics() {
+        return this.semantics;
+    }
+
+    public void setSemantics(List<String> semantics) {
+        this.semantics = semantics;
     }
 
 

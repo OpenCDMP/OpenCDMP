@@ -7,7 +7,7 @@
             <mat-icon>chevron_right</mat-icon>
           </div>
         }
-        <div class="col-auto p-0 breadcrumb-container"  [ngClass]="{'mb-1': item.title == HOME_SYMBOL}">
+        <div class="col-auto p-0 breadcrumb-container"  [class.mb-1]="item.title == HOME_SYMBOL">
           @if ((!item?.skipNavigation && !isLast)) {
             <a
               [routerLink]="computePath(index)"
@@ -43,6 +43,14 @@
             }
           }
         </div>
+        @if (isFirst && parent) {
+          <div class="col-auto mt-1 pl-0 pr-0">
+            <mat-icon>chevron_right</mat-icon>
+          </div>
+          <div class="col-auto p-0 breadcrumb-container">
+            <a [routerLink]="parent.url" class="color-unset breadcrumb-item text-padding"><span>{{ parent.titleKey | translate }}</span></a>
+          </div>
+        }
       }
     }
   </div>

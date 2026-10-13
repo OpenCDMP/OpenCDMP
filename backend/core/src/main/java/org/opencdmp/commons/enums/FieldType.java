@@ -6,6 +6,7 @@ import org.opencdmp.data.converters.enums.DatabaseEnum;
 import java.util.Map;
 
 public enum FieldType implements DatabaseEnum<String> {
+	SYSTEM(Names.System),
 	SELECT(Names.Select),
 	BOOLEAN_DECISION(Names.BooleanDecision),
 	RADIO_BOX(Names.RadioBox),
@@ -20,10 +21,12 @@ public enum FieldType implements DatabaseEnum<String> {
 	TAGS(Names.Tags),
 	REFERENCE_TYPES(Names.ReferenceTypes),
 	DATASET_IDENTIFIER(Names.DatasetIdentifier),
-	VALIDATION(Names.Validation);
+	VALIDATION(Names.Validation),
+	NUMBER(Names.Number);
 	private final String value;
-	
+
 	public static class Names {
+		public static final String System = "system";
 		public static final String Select = "select";
 		public static final String BooleanDecision = "booleanDecision";
 		public static final String RadioBox = "radiobox";
@@ -39,6 +42,7 @@ public enum FieldType implements DatabaseEnum<String> {
 		public static final String DatasetIdentifier = "datasetIdentifier";
 		public static final String Validation = "validation";
 		public static final String ReferenceTypes = "referenceTypes";
+		public static final String Number = "number";
 	}
 
 	FieldType(String value) {
@@ -85,5 +89,13 @@ public enum FieldType implements DatabaseEnum<String> {
 
 	public static boolean isExternalIdentifierType(FieldType fieldType){
 		return  fieldType.equals(FieldType.VALIDATION) ||  fieldType.equals(FieldType.DATASET_IDENTIFIER) ;
+	}
+
+	public static boolean isNumberType(FieldType fieldType){
+		return fieldType.equals(FieldType.NUMBER);
+	}
+
+	public static boolean isSystemType(FieldType fieldType){
+		return fieldType.equals(FieldType.SYSTEM);
 	}
 }

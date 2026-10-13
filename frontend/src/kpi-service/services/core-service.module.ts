@@ -9,6 +9,7 @@ import { LoggingService } from '@app/core/services/logging/logging-service';
 import { PrincipalService } from '@app/core/services/http/principal.service';
 import { KpiAuthGuard } from 'kpi-service/core/kpi-auth-guard.service';
 import { HttpErrorHandlingService } from '@citesa/kpi-client/services';
+import { StatisticsService } from '@app/core/services/statistics.service';
 
 //
 //
@@ -38,6 +39,7 @@ export class CoreKpiServiceModule {
 				KpiAuthGuard,
 				IndicatorDashboardService,
 				IndicatorPointService,
+				StatisticsService,
 				KPIProviders.provideIndicatorPointService(),
 				KPIProviders.provideTranslations(
 					({ language }) => ({
@@ -47,7 +49,7 @@ export class CoreKpiServiceModule {
 						},
 						KPI_DASHBOARD_CHART: {
 							UNEXPECTED_ERROR: language.get('KPI-SERVICE.KPI_DASHBOARD_CHART.UNEXPECTED_ERROR'),
-							INVALID_CONFIGURATION: language.get('KPI-SERVICE.KPI_DASHBOARD_CHART.INVALID_CONFIGURATION'),
+							INVALID_CONFIGURATION: language.get('KPI-SERVICE.KPI_DASHBOARD_CHART.INVALID-CONFIGURATION'),
 						},
 						KPI_CHART_FILTERS: {
 							FILTERS_FOR_TITLE: language.get('KPI-SERVICE.KPI_CHART_FILTERS.FILTERS_FOR_TITLE'),

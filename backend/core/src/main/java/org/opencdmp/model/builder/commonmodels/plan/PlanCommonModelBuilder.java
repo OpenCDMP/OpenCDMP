@@ -29,6 +29,7 @@ import org.opencdmp.model.PlanUser;
 import org.opencdmp.model.EntityDoi;
 import org.opencdmp.model.builder.commonmodels.*;
 import org.opencdmp.model.builder.commonmodels.description.DescriptionCommonModelBuilder;
+import org.opencdmp.model.builder.commonmodels.description.VisibilityStateModelBuilder;
 import org.opencdmp.model.builder.commonmodels.planblueprint.PlanBlueprintCommonModelBuilder;
 import org.opencdmp.model.builder.commonmodels.planreference.PlanReferenceCommonModelBuilder;
 import org.opencdmp.model.description.Description;
@@ -36,6 +37,8 @@ import org.opencdmp.model.plan.Plan;
 import org.opencdmp.model.planblueprint.PlanBlueprint;
 import org.opencdmp.model.planreference.PlanReference;
 import org.opencdmp.query.*;
+import org.opencdmp.service.visibility.VisibilityService;
+import org.opencdmp.service.visibility.VisibilityServiceImpl;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
@@ -158,9 +161,13 @@ public class PlanCommonModelBuilder extends BaseCommonModelBuilder<PlanModel, Pl
             if (creators != null && !creators.isEmpty() && d.getCreatorId() != null && creators.containsKey(d.getCreatorId())) m.setCreator(creators.get(d.getCreatorId()));
             if (planBlueprints != null && !planBlueprints.isEmpty() && d.getBlueprintId() != null && planBlueprints.containsKey(d.getBlueprintId())) m.setPlanBlueprint(planBlueprints.get(d.getBlueprintId()));
             if (d.getProperties() != null){
-                //TODO Update with the new logic of property definition 
                 PlanPropertiesEntity propertyDefinition = this.jsonHandlingService.fromJsonSafe(PlanPropertiesEntity.class, d.getProperties());
-                m.setProperties(this.builderFactory.builder(PlanPropertiesCommonModelBuilder.class).useSharedStorage(this.useSharedStorage).withDefinition(definitionEntityMap != null ? definitionEntityMap.getOrDefault(d.getBlueprintId(), null) : null).authorize(this.authorize).build(propertyDefinition));
+                DefinitionEntity definition = definitionEntityMap != null ? definitionEntityMap.getOrDefault(d.getBlueprintId(), null) : null;
+                m.setProperties(this.builderFactory.builder(PlanPropertiesCommonModelBuilder.class).useSharedStorage(this.useSharedStorage).withDefinition(definition).authorize(this.authorize).build(propertyDefinition));
+                if (definition != null) {
+                    VisibilityService visibilityService = VisibilityServiceImpl.fromEntity(definition.getSections(), propertyDefinition.getFieldSets());
+                    m.setVisibilityStates(this.builderFactory.builder(VisibilityStateModelBuilder.class).authorize(this.authorize).build(visibilityService.getVisibilityStates().entrySet().stream().toList()));
+                }
             }
             m.setPublicAfter(d.getPublicAfter());
             m.setUpdatedAt(d.getUpdatedAt());

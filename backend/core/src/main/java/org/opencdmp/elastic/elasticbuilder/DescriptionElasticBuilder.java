@@ -75,7 +75,7 @@ public class DescriptionElasticBuilder extends BaseElasticBuilder<DescriptionEla
             if (referenceElasticEntityMap != null) m.setReferences(referenceElasticEntityMap.getOrDefault(d.getId(), null));
             if (tagElasticEntityMap != null) m.setTags(tagElasticEntityMap.getOrDefault(d.getId(), null));
             if (planElasticEntityMap != null) m.setPlan(planElasticEntityMap.getOrDefault(d.getPlanId(), null));
-            if (descriptionTemplateElasticEntityMap != null) m.setDescriptionTemplate(descriptionTemplateElasticEntityMap.getOrDefault(d.getPlanId(), null));
+            if (descriptionTemplateElasticEntityMap != null) m.setDescriptionTemplate(descriptionTemplateElasticEntityMap.getOrDefault(d.getDescriptionTemplateId(), null));
             models.add(m);
         }
         this.logger.debug("build {} items", Optional.of(models).map(List::size).orElse(0));

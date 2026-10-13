@@ -49,7 +49,7 @@ public class PlanElasticBuilder extends BaseElasticBuilder<PlanElasticEntity, Pl
         Map<UUID, List<NestedDoiElasticEntity>> doiElasticEntityMap = this.collectDois(data);
         Map<UUID, List<NestedPlanDescriptionTemplateElasticEntity>> planDescriptionTemplateElasticEntityMap = this.collectPlanDescriptionTemplates(data);
         Map<UUID, NestedPlanStatusElasticEntity> planStatusElasticEntityMap = this.collectPlanStatus(data);
-
+        Map<UUID, NestedPlanBlueprintElasticEntity> planBlueprintsElasticEntityMap = this.collectPlanBlueprints(data);
         List<PlanElasticEntity> models = new ArrayList<>();
         for (PlanEntity d : data) {
             PlanElasticEntity m = new PlanElasticEntity();
@@ -60,7 +60,6 @@ public class PlanElasticBuilder extends BaseElasticBuilder<PlanElasticEntity, Pl
             m.setVersionStatus(d.getVersionStatus());
             m.setAccessType(d.getAccessType());
             m.setLanguage(d.getLanguage());
-            m.setBlueprintId(d.getBlueprintId());
             m.setGroupId(d.getGroupId());
             if (d.getFinalizedAt() != null) {
                 m.setFinalizedAt(Date.from(d.getFinalizedAt()));
@@ -77,6 +76,8 @@ public class PlanElasticBuilder extends BaseElasticBuilder<PlanElasticEntity, Pl
             if (collaboratorElasticEntityMap != null) m.setCollaborators(collaboratorElasticEntityMap.getOrDefault(d.getId(), null));
             if (doiElasticEntityMap != null) m.setDois(doiElasticEntityMap.getOrDefault(d.getId(), null));
             if (planStatusElasticEntityMap != null) m.setPlanStatus(planStatusElasticEntityMap.getOrDefault(d.getStatusId(), null));
+            if (planBlueprintsElasticEntityMap != null) m.setPlanBlueprint(planBlueprintsElasticEntityMap.getOrDefault(d.getBlueprintId(), null));
+
             models.add(m);
         }
         this.logger.debug("build {} items", Optional.of(models).map(List::size).orElse(0));
@@ -111,6 +112,18 @@ public class PlanElasticBuilder extends BaseElasticBuilder<PlanElasticEntity, Pl
         Map<UUID, List<NestedDescriptionElasticEntity>> itemMap;
         DescriptionQuery q = this.queryFactory.query(DescriptionQuery.class).disableTracking().isActive(IsActive.Active).planSubQuery(this.queryFactory.query(PlanQuery.class).ids(data.stream().map(PlanEntity::getId).distinct().collect(Collectors.toList())));
         itemMap = this.builderFactory.builder(NestedDescriptionElasticBuilder.class).asMasterKey(q, NestedDescriptionElasticEntity::getPlanId);
+
+        return itemMap;
+    }
+
+    private Map<UUID, NestedPlanBlueprintElasticEntity> collectPlanBlueprints(List<PlanEntity> data) throws MyApplicationException {
+        if (data.isEmpty())
+            return null;
+        this.logger.debug("checking related - {}", PlanBlueprintEntity.class.getSimpleName());
+
+        Map<UUID, NestedPlanBlueprintElasticEntity> itemMap;
+        PlanBlueprintQuery q = this.queryFactory.query(PlanBlueprintQuery.class).disableTracking().isActive(IsActive.Active).ids(data.stream().map(PlanEntity::getBlueprintId).distinct().collect(Collectors.toList()));
+        itemMap = this.builderFactory.builder(NestedPlanBlueprintElasticBuilder.class).asForeignKey(q, NestedPlanBlueprintElasticEntity::getId);
 
         return itemMap;
     }

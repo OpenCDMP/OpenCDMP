@@ -19,6 +19,6 @@ ARG PROFILE
 ENV SERVER_PORT=8080
 EXPOSE ${SERVER_PORT}
 
-COPY --from=build-stage /build/web/target/web-1.0.0-SNAPSHOT.jar /app/app.jar
+COPY --from=build-stage /build/web/target/web-*.jar /app/app.jar
 
 ENTRYPOINT ["java", "-Djava.security.egd=file:/dev/./urandom", "-Dspring.profiles.active=${PROFILE}", "-Dspring.config.additional-location=file:/config/", "-jar", "/app/app.jar"]

@@ -6,19 +6,17 @@ import { TextFilterComponent } from '@common/modules/text-filter/text-filter.com
 import { CommonUiModule } from '@common/ui/common-ui.module';
 
 @NgModule({
-	imports: [
-		CommonUiModule,
-		FormsModule,
-        CommonFormsModule
-	],
-	declarations: [
-		TextFilterComponent,
-		ExpandableSearchFieldComponent
-	],
-	exports: [
-		TextFilterComponent,
-		ExpandableSearchFieldComponent
-	]
+    imports: [
+        CommonUiModule,
+        FormsModule,
+        CommonFormsModule,
+        TextFilterComponent,
+        ExpandableSearchFieldComponent
+    ],
+    exports: [
+        TextFilterComponent,
+        ExpandableSearchFieldComponent
+    ]
 })
 export class TextFilterModule {
 	constructor() { }

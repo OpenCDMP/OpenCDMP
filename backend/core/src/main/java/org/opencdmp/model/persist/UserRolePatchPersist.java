@@ -93,8 +93,9 @@ public class UserRolePatchPersist {
                     this.spec()
                             .must(() -> !this.isNull(item.getHasTenantAdminMode()))
                             .failOn(UserRolePatchPersist._hasTenantAdminMode).failWith(this.messageSource.getMessage("Validation_Required", new Object[]{}, LocaleContextHolder.getLocale())),
+                    // In an organisation an empty list is allowed: it takes away every organisation role, so the person leaves it.
                     this.spec()
-                            .must(() -> !this.isListNullOrEmpty(item.getRoles()))
+                            .must(() -> Boolean.TRUE.equals(item.getHasTenantAdminMode()) ? item.getRoles() != null : !this.isListNullOrEmpty(item.getRoles()))
                             .failOn(UserRolePatchPersist._roles).failWith(this.messageSource.getMessage("Validation_Required", new Object[]{UserRolePatchPersist._roles}, LocaleContextHolder.getLocale()))
             );
         }

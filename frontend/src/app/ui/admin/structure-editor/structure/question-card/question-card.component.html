@@ -1,0 +1,185 @@
+@if (!expanded) {
+	<!-- ============================================================ collapsed -->
+	<div class="qc bp2-card qc--collapsed" [class.qc--bad]="invalid" [class.qc--preset]="isPreset">
+		@if (!readOnly) { <mat-icon class="qc-drag" cdkDragHandle aria-hidden="true">drag_indicator</mat-icon> }
+		<span class="qc-num">{{entry.numbering}}</span>
+		<span class="bp2-tile qc-tile" [class.qc-tile--preset]="isPreset"><mat-icon>{{ isPreset ? 'bookmark' : firstIcon }}</mat-icon></span>
+		<button type="button" class="qc-main" (click)="toggled.emit()" [attr.aria-expanded]="false">
+			<span class="qc-title" [class.qc-title--empty]="!form.get('title').value">{{ form.get('title').value || ('PLAN-BLUEPRINT-EDITOR.UNTITLED-QUESTION' | translate) }}</span>
+			<span class="qc-meta">
+				@if (isPreset) { <span class="bp2-tag bp2-tag--preset">{{'PLAN-BLUEPRINT-EDITOR.TYPES.PRESET' | translate}}</span> }
+				@for (o of objects; track o) { <span class="qc-object-chip" [attr.title]="o"><mat-icon aria-hidden="true">data_object</mat-icon>{{objectName(o)}}</span> }
+				@if (typeName) { <span>{{typeName}}</span> } @else { <span class="qc-meta__bad">{{'PLAN-BLUEPRINT-EDITOR.PROBLEMS.INPUT-NO-TYPE' | translate}}</span> }
+				<span class="qc-dot">·</span><span>{{ (required ? 'PLAN-BLUEPRINT-EDITOR.INPUT.REQUIRED' : 'PLAN-BLUEPRINT-EDITOR.INPUT.OPTIONAL') | translate }}</span>
+				@if (hasUrl) { <span class="qc-dot">·</span><span>URL</span> }
+				@if (hasEmail) { <span class="qc-dot">·</span><span>Email</span> }
+				@if (extraInputs) { <span class="qc-dot">·</span><span>{{'PLAN-BLUEPRINT-EDITOR.QUESTION.MORE-INPUTS' | bp2Count: extraInputs }}</span> }
+				@if (defaultText) { <span class="qc-dot">·</span><span>{{'PLAN-BLUEPRINT-EDITOR.INPUT.DEFAULT-IS' | translate: { value: defaultText } }}</span> }
+				@if (excludedFromDownloads) { <span class="qc-dot">·</span><span>{{'PLAN-BLUEPRINT-EDITOR.INPUT.NOT-IN-DOWNLOADS' | translate}}</span> }
+				@for (s of semantics; track $index) { <span class="qc-dot">·</span><span class="qc-sem"><mat-icon aria-hidden="true">sell</mat-icon><span><b>{{semPrefix(s)}}</b>{{semRest(s)}}</span></span> }
+				@if (rulesFromText) { <span class="qc-dot">·</span><span class="qc-sem"><mat-icon aria-hidden="true">alt_route</mat-icon>{{rulesFromText}}</span> }
+				@else if (ruleCount) { <span class="qc-dot">·</span><span class="qc-sem"><mat-icon aria-hidden="true">alt_route</mat-icon>{{'PLAN-BLUEPRINT-EDITOR.QUESTION.RULES' | bp2Count: ruleCount}}</span> }
+				@if (rulesIntoText) { <span class="qc-dot">·</span><span class="qc-cond"><mat-icon aria-hidden="true">visibility</mat-icon>{{rulesIntoText}}</span> }
+				@if (repeatable) { <span class="qc-dot">·</span><span>{{'PLAN-BLUEPRINT-EDITOR.QUESTION.REPEATABLE-SHORT' | translate}}</span> }
+			</span>
+		</button>
+		@if (isPreset) { <span class="bp2-pill bp2-pill--lock" [matTooltip]="'PLAN-BLUEPRINT-EDITOR.INPUT.PRESET-ALWAYS-REQUIRED' | translate"><mat-icon aria-hidden="true">lock</mat-icon>{{'PLAN-BLUEPRINT-EDITOR.INPUT.REQUIRED' | translate}}</span> }
+		@if (invalid) { <mat-icon class="qc-warn" [matTooltip]="'PLAN-BLUEPRINT-EDITOR.OUTLINE.NEEDS-ATTENTION' | translate" aria-hidden="true">error</mat-icon> }
+		<ng-container *ngTemplateOutlet="menuButton"></ng-container>
+	</div>
+} @else {
+	<!-- ============================================================ expanded -->
+	<div class="qc bp2-card qc--expanded" [class.qc--bad]="invalid">
+		<div class="qc-head">
+			@if (!readOnly) { <mat-icon class="qc-drag qc-drag--dim" aria-hidden="true" [matTooltip]="'PLAN-BLUEPRINT-EDITOR.QUESTION.COLLAPSE-TO-DRAG' | translate">drag_indicator</mat-icon> }
+			<span class="qc-num">{{entry.numbering}}</span>
+			@if (readOnly) { <h3 class="qc-title qc-title--read">{{ form.get('title').value || ('PLAN-BLUEPRINT-EDITOR.UNTITLED-QUESTION' | translate) }}</h3> } @else {
+			<mat-form-field class="qc-title-field" subscriptSizing="dynamic">
+				<input matInput type="text" [formControl]="form.get('title')" required [placeholder]="'PLAN-BLUEPRINT-EDITOR.QUESTION.TITLE-PLACEHOLDER' | translate" [attr.aria-label]="'PLAN-BLUEPRINT-EDITOR.QUESTION.TITLE' | translate" cdkFocusInitial>
+				@if (form.get('title').hasError('required')) { <mat-error>{{'PLAN-BLUEPRINT-EDITOR.PROBLEMS.QUESTION-TITLE' | translate}}</mat-error> }
+				@if (form.get('title').hasError('backendError')) { <mat-error>{{form.get('title').getError('backendError').message}}</mat-error> }
+			</mat-form-field>
+			}
+			<button mat-icon-button type="button" class="bp2-icon-btn-sm" (click)="toggled.emit()" [attr.aria-label]="'PLAN-BLUEPRINT-EDITOR.QUESTION.COLLAPSE' | translate" [attr.aria-expanded]="true"><mat-icon aria-hidden="true">expand_less</mat-icon></button>
+			<ng-container *ngTemplateOutlet="menuButton"></ng-container>
+		</div>
+
+		@if (isPreset) {
+			<div class="bp2-strip qc-strip"><mat-icon aria-hidden="true">bookmark</mat-icon><span>{{editor.term('PLAN-BLUEPRINT-EDITOR.INPUT.PRESET-EXPLAIN') | translate}}</span></div>
+		}
+
+		@if (readOnly) {
+			<app-bp2-question-read [entry]="entry" />
+		} @else {
+		<!-- help texts: one line of what is on, opening to the editors -->
+		<div class="qc-help-line">
+			<span class="bp2-caption qc-caption" style="margin: 0;">{{'PLAN-BLUEPRINT-EDITOR.HELP.TITLE' | translate}}</span>
+			<span class="bp2-tag" [class.bp2-tag--ok]="showDescription" [class.bp2-tag--opt]="!showDescription">{{'PLAN-BLUEPRINT-EDITOR.HELP.SHORT' | translate}}</span>
+			<span class="bp2-tag" [class.bp2-tag--ok]="showExtended" [class.bp2-tag--opt]="!showExtended">{{'PLAN-BLUEPRINT-EDITOR.HELP.LONG' | translate}}</span>
+			<span class="bp2-tag" [class.bp2-tag--ok]="showInfo" [class.bp2-tag--opt]="!showInfo">{{'PLAN-BLUEPRINT-EDITOR.HELP.TOOLTIP' | translate}}</span>
+			<button type="button" class="qc-link" (click)="helpOpen = !helpOpen" [attr.aria-expanded]="helpOpen">{{ (helpOpen ? 'PLAN-BLUEPRINT-EDITOR.HELP.DONE' : 'PLAN-BLUEPRINT-EDITOR.HELP.EDIT') | translate }}</button>
+		</div>
+		@if (helpOpen) {
+		<div class="qc-help">
+			<div class="bp2-sub">{{'PLAN-BLUEPRINT-EDITOR.HELP.HINT' | translate}}</div>
+			<div class="qc-help__row" [class.qc-help__row--off]="!showDescription">
+				<mat-slide-toggle [checked]="showDescription" (change)="setHelp('description', $event.checked)" [disabled]="readOnly" [attr.aria-label]="'PLAN-BLUEPRINT-EDITOR.HELP.SHORT' | translate"></mat-slide-toggle>
+				<div class="qc-help__text bp2-rich-field">
+					<strong>{{'PLAN-BLUEPRINT-EDITOR.HELP.SHORT' | translate}}</strong><span class="bp2-sub"> · {{'PLAN-BLUEPRINT-EDITOR.HELP.SHORT-WHERE' | translate}}</span>
+					@if (showDescription) { <rich-text-editor-component [id]="'bp2-q-desc-' + entry.id" [form]="form.get('description')" [placeholder]="'PLAN-BLUEPRINT-EDITOR.HELP.SHORT-PLACEHOLDER'"></rich-text-editor-component> }
+				</div>
+			</div>
+			<div class="qc-help__row" [class.qc-help__row--off]="!showExtended">
+				<mat-slide-toggle [checked]="showExtended" (change)="setHelp('extendedDescription', $event.checked)" [disabled]="readOnly" [attr.aria-label]="'PLAN-BLUEPRINT-EDITOR.HELP.LONG' | translate"></mat-slide-toggle>
+				<div class="qc-help__text bp2-rich-field">
+					<strong>{{'PLAN-BLUEPRINT-EDITOR.HELP.LONG' | translate}}</strong><span class="bp2-sub"> · {{'PLAN-BLUEPRINT-EDITOR.HELP.LONG-WHERE' | translate}}</span>
+					@if (showExtended) { <rich-text-editor-component [id]="'bp2-q-ext-' + entry.id" [form]="form.get('extendedDescription')" [placeholder]="'PLAN-BLUEPRINT-EDITOR.HELP.LONG-PLACEHOLDER'"></rich-text-editor-component> }
+				</div>
+			</div>
+			<div class="qc-help__row" [class.qc-help__row--off]="!showInfo">
+				<mat-slide-toggle [checked]="showInfo" (change)="setHelp('additionalInformation', $event.checked)" [disabled]="readOnly" [attr.aria-label]="'PLAN-BLUEPRINT-EDITOR.HELP.TOOLTIP' | translate"></mat-slide-toggle>
+				<div class="qc-help__text">
+					<strong>{{'PLAN-BLUEPRINT-EDITOR.HELP.TOOLTIP' | translate}}</strong><span class="bp2-sub"> · {{'PLAN-BLUEPRINT-EDITOR.HELP.TOOLTIP-WHERE' | translate}}</span>
+					@if (showInfo) { <mat-form-field class="qc-grow" subscriptSizing="dynamic"><input matInput type="text" [formControl]="form.get('additionalInformation')" [placeholder]="'PLAN-BLUEPRINT-EDITOR.HELP.TOOLTIP-PLACEHOLDER' | translate"></mat-form-field> }
+				</div>
+			</div>
+		</div>
+		}
+
+		<!-- inputs -->
+		<div class="qc-inputs">
+			@for (field of fields.controls; track field.get('id').value; let i = $index) {
+				<app-bp2-input-row [fieldForm]="field" [entry]="entry" [index]="i" [count]="fields.length" [rootPath]="fieldsRootPath + 'fields[' + i + '].'" (changed)="onInputChanged()" (remove)="removeInput(i)" (move)="moveInput(i, $event)" />
+			}
+			@if (!fields.length && showErrors) { <div class="bp2-strip bp2-strip--bad"><mat-icon aria-hidden="true">error</mat-icon><span>{{'PLAN-BLUEPRINT-EDITOR.PROBLEMS.QUESTION-NO-INPUT' | translate}}</span></div> }
+			@if (!readOnly && !isPreset) { <button mat-button type="button" class="qc-add-input" (click)="addInput()"><mat-icon aria-hidden="true">add</mat-icon>{{'PLAN-BLUEPRINT-EDITOR.INPUT.ADD-ANOTHER' | translate}}</button> }
+		</div>
+
+		<!-- export: what the question gives plugins, closed until it describes an object or answers stand for keys -->
+		@if (!isPreset) {
+			<div class="qc-export">
+				<button type="button" class="qc-export__head" (click)="exportOpen = !exportOpen" [attr.aria-expanded]="exportOpen">
+					<mat-icon aria-hidden="true">{{ exportOpen ? 'expand_more' : 'chevron_right' }}</mat-icon>
+					<strong>{{'PLAN-BLUEPRINT-EDITOR.EXPORT-ROW.TITLE' | translate}}</strong>
+					@for (o of objects; track o) { <span class="qc-object-chip" [attr.title]="o"><mat-icon aria-hidden="true">data_object</mat-icon>{{o}}</span> }
+					@if (!objects.length) {
+						@for (s of semantics.slice(0, 2); track $index) { <span class="qc-sem"><mat-icon aria-hidden="true">sell</mat-icon><span><b>{{semPrefix(s)}}</b>{{semRest(s)}}</span></span> }
+						<span class="bp2-sub">· {{ (semantics.length ? 'PLAN-BLUEPRINT-EDITOR.EXPORT-ROW.NO-OBJECT' : 'PLAN-BLUEPRINT-EDITOR.EXPORT-ROW.NOTHING') | translate }}</span>
+					}
+					@if (optionTotal && answerKeysShown) { <span class="bp2-sub">· {{'PLAN-BLUEPRINT-EDITOR.EXPORT-ROW.STAND-FOR' | translate: { count: optionsWithKeys, total: optionTotal } }}</span> }
+				</button>
+				@if (exportOpen) {
+					<div class="qc-export__body">
+						<app-se2-object-field kind="question" [form]="form" [label]="form.get('title').value" (allowMore)="setRepeatable(true)" />
+						@if (optionTotal) {
+							<div class="bp2-toggle-row">
+								<mat-slide-toggle [checked]="answerKeysShown" (change)="setAnswerKeys($event.checked)" [disabled]="readOnly || answerKeysLocked" [attr.aria-label]="'PLAN-BLUEPRINT-EDITOR.EXPORT-ROW.ANSWER-KEYS' | translate"></mat-slide-toggle>
+								<div class="bp2-toggle-row__text"><strong>{{'PLAN-BLUEPRINT-EDITOR.EXPORT-ROW.ANSWER-KEYS' | translate}}</strong><span class="bp2-help">{{ (answerKeysLocked ? 'PLAN-BLUEPRINT-EDITOR.EXPORT-ROW.ANSWER-KEYS-LOCKED' : 'PLAN-BLUEPRINT-EDITOR.EXPORT-ROW.ANSWER-KEYS-HINT') | translate }}</span></div>
+							</div>
+						}
+					</div>
+				}
+			</div>
+		}
+
+		<div class="bp2-divider"></div>
+
+		<!-- repeatable & comment -->
+		<div class="qc-settings">
+			<div class="bp2-toggle-row" [class.bp2-toggle-row--dim]="isPreset">
+				<mat-slide-toggle [checked]="repeatable" (change)="setRepeatable($event.checked)" [disabled]="readOnly || isPreset" [attr.aria-label]="'PLAN-BLUEPRINT-EDITOR.REPEAT.TITLE' | translate"></mat-slide-toggle>
+				<div class="bp2-toggle-row__text">
+					<strong>{{'PLAN-BLUEPRINT-EDITOR.REPEAT.TITLE' | translate}}</strong>
+					<span class="bp2-help">{{ (isPreset ? 'PLAN-BLUEPRINT-EDITOR.REPEAT.PRESET-LOCKED' : 'PLAN-BLUEPRINT-EDITOR.REPEAT.HINT') | translate }}</span>
+					@if (repeatable && !isPreset) {
+						<div class="qc-repeat">
+							<div class="qc-repeat__row">
+								<span class="bp2-sub">{{'PLAN-BLUEPRINT-EDITOR.REPEAT.AT-LEAST' | translate}}</span>
+								<input class="qc-num-in" type="number" min="0" [formControl]="multiplicity.get('min')" [attr.aria-label]="'PLAN-BLUEPRINT-EDITOR.REPEAT.MIN' | translate">
+								<span class="bp2-sub">{{'PLAN-BLUEPRINT-EDITOR.REPEAT.AT-MOST' | translate}}</span>
+								<input class="qc-num-in" type="number" [min]="multiplicity.get('min').value || 0" [formControl]="multiplicity.get('max')" [attr.aria-label]="'PLAN-BLUEPRINT-EDITOR.REPEAT.MAX' | translate">
+								<span class="bp2-sub">{{'PLAN-BLUEPRINT-EDITOR.REPEAT.ANSWERS' | translate}}</span>
+							</div>
+							@if (multiplicity.hasError('multiplicityMinAboveMax')) { <div class="bp2-strip bp2-strip--bad"><mat-icon aria-hidden="true">error</mat-icon><span>{{'PLAN-BLUEPRINT-EDITOR.REPEAT.MIN-ABOVE-MAX' | translate}}</span></div> }
+							<mat-form-field class="qc-repeat__name" subscriptSizing="dynamic">
+								<mat-label>{{'PLAN-BLUEPRINT-EDITOR.REPEAT.NAME' | translate}}</mat-label>
+								<input matInput type="text" [formControl]="multiplicity.get('placeholder')">
+								<mat-hint>{{'PLAN-BLUEPRINT-EDITOR.REPEAT.NAME-HINT' | translate}}</mat-hint>
+							</mat-form-field>
+							<div class="bp2-toggle-row">
+								<mat-slide-toggle [formControl]="multiplicity.get('tableView')" [attr.aria-label]="'PLAN-BLUEPRINT-EDITOR.REPEAT.TABLE' | translate"></mat-slide-toggle>
+								<div class="bp2-toggle-row__text"><strong>{{'PLAN-BLUEPRINT-EDITOR.REPEAT.TABLE' | translate}}</strong><span class="bp2-help">{{'PLAN-BLUEPRINT-EDITOR.REPEAT.TABLE-HINT' | translate}}</span></div>
+							</div>
+							@if (tableView) {
+								<div class="bp2-toggle-row">
+									<mat-slide-toggle [formControl]="multiplicity.get('transposedTableView')" [attr.aria-label]="'PLAN-BLUEPRINT-EDITOR.REPEAT.TRANSPOSED' | translate"></mat-slide-toggle>
+									<div class="bp2-toggle-row__text"><strong>{{'PLAN-BLUEPRINT-EDITOR.REPEAT.TRANSPOSED' | translate}}</strong><span class="bp2-help">{{'PLAN-BLUEPRINT-EDITOR.REPEAT.TRANSPOSED-HINT' | translate}}</span></div>
+								</div>
+							}
+						</div>
+					}
+				</div>
+			</div>
+			<div class="bp2-toggle-row">
+				<mat-slide-toggle [formControl]="form.get('hasCommentField')" [attr.aria-label]="'PLAN-BLUEPRINT-EDITOR.COMMENT.TITLE' | translate"></mat-slide-toggle>
+				<div class="bp2-toggle-row__text"><strong>{{'PLAN-BLUEPRINT-EDITOR.COMMENT.TITLE' | translate}}</strong><span class="bp2-help">{{'PLAN-BLUEPRINT-EDITOR.COMMENT.HINT' | translate}}</span></div>
+			</div>
+		</div>
+		<div class="qc-foot"><button mat-button type="button" (click)="editor.setTab('review')"><mat-icon aria-hidden="true">visibility</mat-icon>{{'PLAN-BLUEPRINT-EDITOR.REVIEW.PREVIEW-AS-AUTHOR' | translate}}</button></div>
+		}
+	</div>
+}
+
+<ng-template #menuButton>
+	@if (!readOnly) {
+		<button mat-icon-button type="button" class="bp2-icon-btn-sm qc-kebab" [matMenuTriggerFor]="qMenu" [attr.aria-label]="'ALT-TEXT.MORE-ACTIONS' | translate"><mat-icon aria-hidden="true">more_vert</mat-icon></button>
+		<mat-menu #qMenu="matMenu">
+			@if (!isPreset) { <button mat-menu-item type="button" (click)="editor.cloneQuestion(entry)"><mat-icon aria-hidden="true">content_copy</mat-icon>{{'PLAN-BLUEPRINT-EDITOR.QUESTION.DUPLICATE' | translate}}</button> }
+			<button mat-menu-item type="button" (click)="editor.moveEntry(entry, -1)"><mat-icon aria-hidden="true">arrow_upward</mat-icon>{{'PLAN-BLUEPRINT-EDITOR.MOVE-UP' | translate}}</button>
+			<button mat-menu-item type="button" (click)="editor.moveEntry(entry, 1)"><mat-icon aria-hidden="true">arrow_downward</mat-icon>{{'PLAN-BLUEPRINT-EDITOR.MOVE-DOWN' | translate}}</button>
+			<button mat-menu-item type="button" (click)="editor.openMoveTo(entry)"><mat-icon aria-hidden="true">drive_file_move</mat-icon>{{'PLAN-BLUEPRINT-EDITOR.MOVE.MOVE-TO' | translate}}</button>
+			<mat-divider></mat-divider>
+			<button mat-menu-item type="button" class="qc-danger" (click)="editor.removeEntry(entry)"><mat-icon aria-hidden="true">delete</mat-icon>{{'PLAN-BLUEPRINT-EDITOR.QUESTION.DELETE' | translate}}</button>
+		</mat-menu>
+	}
+</ng-template>

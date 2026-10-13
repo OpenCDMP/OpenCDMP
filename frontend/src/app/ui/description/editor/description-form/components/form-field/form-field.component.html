@@ -1,287 +1,523 @@
 @if(field && visible){
-    <div [id]="field.id" class="dynamic-form-field row">
-        @if(!isChild){
-            @if(fieldSet.title){
-                <label>{{fieldSet.title}}</label>
+  <div [id]="field.id" class="dynamic-form-field row">
+    @if (fieldChange()) {
+      <div class="col-12 mb-1">
+        <app-field-change-badge
+          [fieldChange]="fieldChange()"
+          [readFormValue]="readFieldValue"
+          [writeFormValue]="writeFieldValue"/>
+      </div>
+    }
+    @if(!isChild){
+      @if(fieldSet.title){
+        <label>{{fieldSet.title}}</label>
+      }
+      @if(fieldSet.additionalInformation){
+        <mat-icon matTooltip="{{fieldSet.additionalInformation}}">info</mat-icon>
+      }
+      @if(fieldSet.description){
+        <small class="col-12">{{fieldSet.description}}
+        </small>
+      }
+      @if(fieldSet.extendedDescription){
+        <small class="col-12">
+          <i>{{fieldSet.extendedDescription}}</i>
+        </small>
+      }
+    }
+    @if(!hideLabel && field.data?.label && field.data?.fieldType !== FieldTypeEnum.CHECK_BOX && field.data?.fieldType !== FieldTypeEnum.SYSTEM){
+      <label [id]="path + '-label'" class="col-12 field-label" [appFor]="path">{{field.data.label}}@if(isRequired && !hideRequiredMarker){<span class="text-danger" aria-hidden="true"> *</span>}</label>
+    }
+    @switch($safeNavigationMigration(field?.data?.fieldType)){
+      @case(FieldTypeEnum.FREE_TEXT){
+        <div class="col-12">
+          <mat-form-field class="w-100">
+            <input [id]="path" matInput [formControl]="propertiesFormGroup?.get(field.id).get('textValue')" [required]="isRequired">
+            @if (propertiesFormGroup?.get(field.id).get('textValue').hasError('backendError')) {
+              <mat-error>{{propertiesFormGroup?.get(field.id).get('textValue').getError('backendError').message}}</mat-error>
             }
-            @if(fieldSet.additionalInformation){
-                <mat-icon matTooltip="{{fieldSet.additionalInformation}}">info</mat-icon>
+            @if (propertiesFormGroup?.get(field.id).get('textValue').hasError('required')) {
+              <mat-error>{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
             }
-            @if(fieldSet.description){
-                <small class="col-12">{{fieldSet.description}}
-                </small>
+            @if (propertiesFormGroup?.get(field.id).get('textValue').hasError('pattern')) {
+              <mat-error>
+                {{'GENERAL.VALIDATION.URL.MESSAGE' | translate}}
+              </mat-error>
             }
-            @if(fieldSet.extendedDescription){
-                <small class="col-12">
-                    <i>{{fieldSet.extendedDescription}}</i>
-                </small>
+            @if (propertiesFormGroup?.get(field.id).get('textValue').hasError('email')) {
+              <mat-error>
+                {{'GENERAL.VALIDATION.EMAIL.MESSAGE' | translate}}
+              </mat-error>
             }
+          </mat-form-field>
+        </div>
+      }
+      @case(FieldTypeEnum.REFERENCE_TYPES){
+        <div class="col-12">
+          @if(field.data.multipleSelect){
+            <app-reference-field-component
+              [id]="path"
+              [form]="propertiesFormGroup?.get(field.id).get('references')"
+              [label]="field.data.label"
+              [hideLabel]="true"
+              [referenceType]="field.data.referenceType"
+              [multiple]="true"
+              [required]="isRequired"
+              hint="{{ 'TYPES.DESCRIPTION-TEMPLATE-COMBO-BOX-TYPE.EXTERNAL-SOURCE-HINT' | translate }}"
+            ></app-reference-field-component>
+          } @else {
+            <app-reference-field-component
+              [id]="path"
+              [form]="propertiesFormGroup?.get(field.id).get('reference')"
+              [label]="field.data.label"
+              [hideLabel]="true"
+              [referenceType]="field.data.referenceType"
+              [multiple]="false"
+              [required]="isRequired"
+              hint="{{ 'TYPES.DESCRIPTION-TEMPLATE-COMBO-BOX-TYPE.EXTERNAL-SOURCE-HINT' | translate }}"
+            ></app-reference-field-component>
+          }
+        </div>
+      }
+      @case(FieldTypeEnum.SELECT){
+        <div class="col-12">
+          <div class="row">
+            @if(field.data.multipleSelect){
+              <mat-form-field class="col-md-12">
+                <mat-select [id]="path" [formControl]="propertiesFormGroup?.get(field.id).get('textListValue')" [multiple]="field.data.multipleSelect" [required]="isRequired">
+                  @for (opt of field.data.options; track opt) {
+                    <mat-option [value]="opt.value">{{opt.label}}</mat-option>
+                  }
+                </mat-select>
+                @if (propertiesFormGroup?.get(field.id).get('textListValue').hasError('backendError')) {
+                  <mat-error>{{propertiesFormGroup?.get(field.id).get('textListValue').getError('backendError').message}}</mat-error>
+                }
+                @if (propertiesFormGroup?.get(field.id).get('textListValue').hasError('required')) {
+                  <mat-error>{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
+                }
+              </mat-form-field>
+              }@else {
+              <mat-form-field class="col-md-12">
+                <mat-select [id]="path" [formControl]="propertiesFormGroup?.get(field.id).get('textValue')" [multiple]="field.data.multipleSelect" [required]="isRequired">
+                  @for (opt of field.data.options; track opt) {
+                    <mat-option [value]="opt.value">{{opt.label}}
+                    </mat-option>
+                  }
+                </mat-select>
+                @if (propertiesFormGroup?.get(field.id).get('textValue').hasError('backendError')) {
+                  <mat-error>{{propertiesFormGroup?.get(field.id).get('textValue').getError('backendError').message}}</mat-error>
+                }
+                @if (propertiesFormGroup?.get(field.id).get('textValue').hasError('required')) {
+                  <mat-error>{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
+                }
+              </mat-form-field>
+            }
+          </div>
+        </div>
+      }
+      @case(FieldTypeEnum.INTERNAL_ENTRIES_DESCRIPTIONS){
+        <div class="col-12">
+          <div class="row">
+            @if(field.data.multipleSelect){
+              <mat-form-field class="col-md-12">
+                <app-multiple-auto-complete [id]="path" [formControl]="propertiesFormGroup?.get(field.id).get('textListValue')" [configuration]="descriptionService.multipleAutocompleteConfiguration" [required]="isRequired">
+                </app-multiple-auto-complete>
+                @if (propertiesFormGroup?.get(field.id).get('textListValue').hasError('backendError')) {
+                  <mat-error>{{propertiesFormGroup?.get(field.id).get('textListValue').getError('backendError').message}}</mat-error>
+                }
+                @if (propertiesFormGroup?.get(field.id).get('textListValue').hasError('required')) {
+                  <mat-error>{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
+                }
+                <mat-hint class="mb-2">{{ "TYPES.DESCRIPTION-TEMPLATE-COMBO-BOX-TYPE.EXTERNAL-SOURCE-HINT" | translate }}</mat-hint>
+              </mat-form-field>
+            }
+            @else {
+            <mat-form-field class="col-md-12">
+              <app-single-auto-complete [id]="path" [formControl]="propertiesFormGroup?.get(field.id).get('textValue')" [configuration]="descriptionService.singleAutocompleteConfiguration" [required]="isRequired">
+              </app-single-auto-complete>
+              @if (propertiesFormGroup?.get(field.id).get('textValue').hasError('backendError')) {
+                <mat-error>{{propertiesFormGroup?.get(field.id).get('textValue').getError('backendError').message}}</mat-error>
+              }
+              @if (propertiesFormGroup?.get(field.id).get('textValue').hasError('required')) {
+                <mat-error>{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
+              }
+              <mat-hint class="mb-2">{{ "TYPES.DESCRIPTION-TEMPLATE-COMBO-BOX-TYPE.EXTERNAL-SOURCE-HINT" | translate }}</mat-hint>
+            </mat-form-field>
+          }
+        </div>
+      </div>
+    }
+    @case(FieldTypeEnum.INTERNAL_ENTRIES_PLANS){
+      <div class="col-12">
+        <div class="row">
+          @if(field.data.multipleSelect){
+            <mat-form-field class="col-md-12">
+              <app-multiple-auto-complete [id]="path" [formControl]="propertiesFormGroup?.get(field.id).get('textListValue')" [configuration]="planService.multipleAutocompleteConfiguration" [required]="isRequired">
+              </app-multiple-auto-complete>
+              @if (propertiesFormGroup?.get(field.id).get('textListValue').hasError('backendError')) {
+                <mat-error>{{propertiesFormGroup?.get(field.id).get('textListValue').getError('backendError').message}}</mat-error>
+              }
+              @if (propertiesFormGroup?.get(field.id).get('textListValue').hasError('required')) {
+                <mat-error>{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
+              }
+              <mat-hint  class="mb-2">{{ "TYPES.DESCRIPTION-TEMPLATE-COMBO-BOX-TYPE.EXTERNAL-SOURCE-HINT" | translate }}</mat-hint>
+            </mat-form-field>
+          }
+          @else{
+          <mat-form-field class="col-md-12">
+            <app-single-auto-complete [id]="path" [formControl]="propertiesFormGroup?.get(field.id).get('textValue')" [configuration]="planService.singleAutocompleteConfiguration" [required]="isRequired">
+            </app-single-auto-complete>
+            @if (propertiesFormGroup?.get(field.id).get('textValue').hasError('backendError')) {
+              <mat-error>{{propertiesFormGroup?.get(field.id).get('textValue').getError('backendError').message}}</mat-error>
+            }
+            @if (propertiesFormGroup?.get(field.id).get('textValue').hasError('required')) {
+              <mat-error>{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
+            }
+            <mat-hint  class="mb-2">{{ "TYPES.DESCRIPTION-TEMPLATE-COMBO-BOX-TYPE.EXTERNAL-SOURCE-HINT" | translate }}</mat-hint>
+          </mat-form-field>
         }
-        @switch(field?.data?.fieldType){
-            @case(descriptionTemplateFieldTypeEnum.FREE_TEXT){
-                <div class="col-12">
-                    <mat-form-field class="w-100">
-                        <mat-label>{{ field.data.label }}</mat-label>
-                        <input [id]="path" matInput [formControl]="propertiesFormGroup?.get(field.id).get('textValue')" [required]="isRequired">
-                        <mat-error *ngIf="propertiesFormGroup?.get(field.id).get('textValue').hasError('backendError')">{{propertiesFormGroup?.get(field.id).get('textValue').getError('backendError').message}}</mat-error>
-                        <mat-error *ngIf="propertiesFormGroup?.get(field.id).get('textValue').hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
-                        <mat-error *ngIf="propertiesFormGroup?.get(field.id).get('textValue').hasError('pattern')">{{'GENERAL.VALIDATION.URL.MESSAGE' | translate}}</mat-error>
-                    </mat-form-field>
-                </div>
-            }
-            @case(descriptionTemplateFieldTypeEnum.REFERENCE_TYPES){
-                <div class="col-12">
-                    @if(field.data.multipleSelect){
-                        <app-reference-field-component 
-                            [id]="path" 
-                            [form]="propertiesFormGroup?.get(field.id).get('references')" 
-                            [label]="field.data.label" 
-                            [placeholder]="field.data.label" 
-                            [referenceType]="field.data.referenceType" 
-                            [multiple]="true" 
-                            [required]="isRequired"
-                            hint="{{ 'TYPES.DESCRIPTION-TEMPLATE-COMBO-BOX-TYPE.EXTERNAL-SOURCE-HINT' | translate }}"
-                        ></app-reference-field-component>
-                    } @else {
-                        <app-reference-field-component 
-                            [id]="path" 
-                            [form]="propertiesFormGroup?.get(field.id).get('reference')" 
-                            [label]="field.data.label" 
-                            [placeholder]="field.data.label" 
-                            [referenceType]="field.data.referenceType" 
-                            [multiple]="false" 
-                            [required]="isRequired"
-                            hint="{{ 'TYPES.DESCRIPTION-TEMPLATE-COMBO-BOX-TYPE.EXTERNAL-SOURCE-HINT' | translate }}"
-                        ></app-reference-field-component>
-                    }
-                </div>
-            }
-            @case(descriptionTemplateFieldTypeEnum.SELECT){
-                <div class="col-12">
-                    <div class="row">
-                        @if(field.data.multipleSelect){
-                            <mat-form-field class="col-md-12">
-                                <mat-label>{{ field.data.label }}</mat-label>
-                                <mat-select [id]="path" [formControl]="propertiesFormGroup?.get(field.id).get('textListValue')" [multiple]="field.data.multipleSelect" [required]="isRequired">
-                                    <mat-option *ngFor="let opt of field.data.options" [value]="opt.value">{{opt.label}}</mat-option>
-                                </mat-select>
-                                <mat-error *ngIf="propertiesFormGroup?.get(field.id).get('textListValue').hasError('backendError')">{{propertiesFormGroup?.get(field.id).get('textListValue').getError('backendError').message}}</mat-error>
-                                <mat-error *ngIf="propertiesFormGroup?.get(field.id).get('textListValue').hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
-                            </mat-form-field>
-                        }@else {
-                            <mat-form-field class="col-md-12">
-                                <mat-label>{{ field.data.label }}</mat-label>
-                                <mat-select [id]="path" [formControl]="propertiesFormGroup?.get(field.id).get('textValue')" [multiple]="field.data.multipleSelect" [required]="isRequired">
-                                    <mat-option *ngFor="let opt of field.data.options" [value]="opt.value">{{opt.label}}
-                                    </mat-option>
-                                </mat-select>
-                                <mat-error *ngIf="propertiesFormGroup?.get(field.id).get('textValue').hasError('backendError')">{{propertiesFormGroup?.get(field.id).get('textValue').getError('backendError').message}}</mat-error>
-                                <mat-error *ngIf="propertiesFormGroup?.get(field.id).get('textValue').hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
-                            </mat-form-field>
-                        }
-                    </div>
-                </div>
-            }
-            @case(descriptionTemplateFieldTypeEnum.INTERNAL_ENTRIES_DESCRIPTIONS){
-                <div class="col-12">
-                    <div class="row">
-                        @if(field.data.multipleSelect){
-                            <mat-form-field class="col-md-12">
-                                <mat-label>{{ field.data.label }}</mat-label>
-                                <app-multiple-auto-complete [id]="path" [formControl]="propertiesFormGroup?.get(field.id).get('textListValue')" [configuration]="descriptionService.multipleAutocompleteConfiguration" [required]="isRequired">
-                                </app-multiple-auto-complete>
-                                <mat-error *ngIf="propertiesFormGroup?.get(field.id).get('textListValue').hasError('backendError')">{{propertiesFormGroup?.get(field.id).get('textListValue').getError('backendError').message}}</mat-error>
-                                <mat-error *ngIf="propertiesFormGroup?.get(field.id).get('textListValue').hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
-                                <mat-hint class="mb-2">{{ "TYPES.DESCRIPTION-TEMPLATE-COMBO-BOX-TYPE.EXTERNAL-SOURCE-HINT" | translate }}</mat-hint>
-                            </mat-form-field>
-                        }
-                        @else {
-                            <mat-form-field class="col-md-12">
-                                <mat-label>{{ field.data.label }}</mat-label>
-                                <app-single-auto-complete [id]="path" [formControl]="propertiesFormGroup?.get(field.id).get('textValue')" [configuration]="descriptionService.singleAutocompleteConfiguration" [required]="isRequired">
-                                </app-single-auto-complete>
-                                <mat-error *ngIf="propertiesFormGroup?.get(field.id).get('textValue').hasError('backendError')">{{propertiesFormGroup?.get(field.id).get('textValue').getError('backendError').message}}</mat-error>
-                                <mat-error *ngIf="propertiesFormGroup?.get(field.id).get('textValue').hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
-                                <mat-hint class="mb-2">{{ "TYPES.DESCRIPTION-TEMPLATE-COMBO-BOX-TYPE.EXTERNAL-SOURCE-HINT" | translate }}</mat-hint>
-                            </mat-form-field>
-                        }
-                    </div>
-                </div>
-            }
-            @case(descriptionTemplateFieldTypeEnum.INTERNAL_ENTRIES_PLANS){
-                <div class="col-12">
-                    <div class="row">
-                        @if(field.data.multipleSelect){
-                            <mat-form-field class="col-md-12">
-                                <mat-label>{{ field.data.label }}</mat-label>
-                                <app-multiple-auto-complete [id]="path" [formControl]="propertiesFormGroup?.get(field.id).get('textListValue')" [configuration]="planService.multipleAutocompleteConfiguration" [required]="isRequired">
-                                </app-multiple-auto-complete>
-                                <mat-error *ngIf="propertiesFormGroup?.get(field.id).get('textListValue').hasError('backendError')">{{propertiesFormGroup?.get(field.id).get('textListValue').getError('backendError').message}}</mat-error>
-                                <mat-error *ngIf="propertiesFormGroup?.get(field.id).get('textListValue').hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
-                                <mat-hint  class="mb-2">{{ "TYPES.DESCRIPTION-TEMPLATE-COMBO-BOX-TYPE.EXTERNAL-SOURCE-HINT" | translate }}</mat-hint>
-                            </mat-form-field>
-                        }
-                        @else{
-                            <mat-form-field class="col-md-12">
-                                <mat-label>{{ field.data.label }}</mat-label>
-                                <app-single-auto-complete [id]="path" [formControl]="propertiesFormGroup?.get(field.id).get('textValue')" [configuration]="planService.singleAutocompleteConfiguration" [required]="isRequired">
-                                </app-single-auto-complete>
-                                <mat-error *ngIf="propertiesFormGroup?.get(field.id).get('textValue').hasError('backendError')">{{propertiesFormGroup?.get(field.id).get('textValue').getError('backendError').message}}</mat-error>
-                                <mat-error *ngIf="propertiesFormGroup?.get(field.id).get('textValue').hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
-                                <mat-hint  class="mb-2">{{ "TYPES.DESCRIPTION-TEMPLATE-COMBO-BOX-TYPE.EXTERNAL-SOURCE-HINT" | translate }}</mat-hint>
-                            </mat-form-field>
-                        }
-                    </div>
-                </div>
-            }
-            @case(descriptionTemplateFieldTypeEnum.CHECK_BOX){
-                <div class="col-12">
-                    <mat-checkbox [id]="path" [formControl]="propertiesFormGroup?.get(field.id).get('booleanValue')" [required]="isRequired">
-                        {{field.data.label}}</mat-checkbox>
-                    <mat-error *ngIf="propertiesFormGroup?.get(field.id).get('booleanValue').hasError('backendError')">{{propertiesFormGroup?.get(field.id).get('booleanValue').getError('backendError').message}}</mat-error>
-                </div>
-            }
-            @case(descriptionTemplateFieldTypeEnum.TEXT_AREA){
-                <div class="col-12">
-                    <mat-form-field class="w-100">
-                        <mat-label>{{ field.data.label }}</mat-label>
-                        <textarea [id]="path" matInput class="text-area" [formControl]="propertiesFormGroup?.get(field.id).get('textValue')" matTextareaAutosize matAutosizeMinRows="3" matAutosizeMaxRows="15" [required]="isRequired"></textarea>
-                        <button mat-icon-button 
-                            type="button" 
-                            *ngIf="!propertiesFormGroup?.get(field.id).get('textValue').disabled && propertiesFormGroup?.get(field.id).get('textValue').value" 
-                            matSuffix 
-                            aria-label="Clear" 
-                            (click)="propertiesFormGroup?.get(field.id).get('textValue').patchValue('')"
-                            [attr.aria-label]="'ALT-TEXT.CLEAR'  | translate"
-                        >
-                            <mat-icon aria-hidden>close</mat-icon>
-                        </button>
-                        <mat-error *ngIf="propertiesFormGroup?.get(field.id).get('textValue').hasError('backendError')">{{propertiesFormGroup?.get(field.id).get('textValue').getError('backendError').message}}</mat-error>
-                        <mat-error *ngIf="propertiesFormGroup?.get(field.id).get('textValue')['errors'] && propertiesFormGroup?.get(field.id).get('textValue').hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
-                    </mat-form-field>
-                </div>
-            }
-            @case(descriptionTemplateFieldTypeEnum.RICH_TEXT_AREA){            
-                <div class="col-12">
-                    <rich-text-editor-component 
-                        [id]="path"
-                        [form]="propertiesFormGroup?.get(field.id).get('textValue')" 
-                        [placeholder]="field.data.label" 
-                        [required]="isRequired" 
-                        [wrapperClasses]="'full-width editor ' + ((isRequired && propertiesFormGroup?.get(field.id).get('textValue').touched && propertiesFormGroup?.get(field.id).get('textValue').hasError('required')) ? 
-                        'required' : '')" 
-                    >
-                    </rich-text-editor-component>
-                </div>
-                <div [class]="(propertiesFormGroup?.get(field.id).get('textValue')['errors'] && propertiesFormGroup?.get(field.id).get('textValue').hasError('required') && propertiesFormGroup?.get(field.id).get('textValue').touched) ? 'visible' : 'invisible'" class="col-12">
-                    <div class="mat-form-field form-field-subscript-wrapper">
-                        <mat-error *ngIf="propertiesFormGroup?.get(field.id).get('textValue').hasError('backendError')">{{propertiesFormGroup?.get(field.id).get('textValue').getError('backendError').message}}</mat-error>
-                        <mat-error *ngIf="propertiesFormGroup?.get(field.id).get('textValue')['errors'] && propertiesFormGroup?.get(field.id).get('textValue').hasError('required') && propertiesFormGroup?.get(field.id).get('textValue').touched">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
-                    </div>
-                </div>
-            }
-            @case(descriptionTemplateFieldTypeEnum.UPLOAD){
-                <div class="col-12">
-                    <app-file-uploader
-                        [id]="path"
-                        [accept]="typesToString()"
-                        [storageFileIdControl]="propertiesFormGroup?.get(field.id).get('textValue')"
-                        [required]="isRequired"
-                        [maxSize]="maxFileSize"
-                    />
-                </div>
-            }
-            @case(descriptionTemplateFieldTypeEnum.BOOLEAN_DECISION){
-                <div class="col-12">
-                    <mat-radio-group  [formControl]="propertiesFormGroup?.get(field.id).get('booleanValue')" [required]="isRequired">
-                        <mat-radio-button [id]="path" class="radio-button-item" [value]="true" tabindex="0" aria-label="{{ 'TYPES.DESCRIPTION-TEMPLATE-COMBO-BOX-TYPE.ACTIONS.YES' | translate }}">{{ "TYPES.DESCRIPTION-TEMPLATE-COMBO-BOX-TYPE.ACTIONS.YES" | translate }}</mat-radio-button>
-                        <mat-radio-button class="radio-button-item" [value]="false" tabindex="0" aria-label="{{ 'TYPES.DESCRIPTION-TEMPLATE-COMBO-BOX-TYPE.ACTIONS.NO' | translate }}">{{ "TYPES.DESCRIPTION-TEMPLATE-COMBO-BOX-TYPE.ACTIONS.NO" | translate }}</mat-radio-button>
-                        <mat-error *ngIf="propertiesFormGroup?.get(field.id).get('booleanValue').hasError('backendError')">{{propertiesFormGroup?.get(field.id).get('booleanValue').getError('backendError').message}}</mat-error>
-                    </mat-radio-group>
-                    <small class="text-danger d-block" *ngIf="propertiesFormGroup?.get(field.id).get('booleanValue').hasError('required') && propertiesFormGroup?.get(field.id).get('booleanValue').touched">{{'GENERAL.VALIDATION.REQUIRED' | translate}}
-                    </small>
-                    <small class="text-danger" *ngIf="(isRequired) && !propertiesFormGroup?.get(field.id).get('booleanValue').touched">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</small>
-                </div>
-            }
-            @case(descriptionTemplateFieldTypeEnum.RADIO_BOX){
-                <div class="col-12">
-                    <mat-radio-group  [formControl]="propertiesFormGroup?.get(field.id).get('textValue')" [required]="isRequired">
-                        <mat-radio-button id="{{path}}{{index > 0 ? '.' + index : ''}}" *ngFor="let option of field.data.options let index = index" class="radio-button-item" [value]="option.value" tabindex="0" aria-label="{{option.label}}">{{option.label}}</mat-radio-button>
-                        <mat-error *ngIf="propertiesFormGroup?.get(field.id).get('textValue').hasError('backendError')">{{propertiesFormGroup?.get(field.id).get('textValue').getError('backendError').message}}</mat-error>
-                    </mat-radio-group>
-                    <small class="text-danger d-block" *ngIf="propertiesFormGroup?.get(field.id).get('textValue').hasError('required') && propertiesFormGroup?.get(field.id).get('textValue').touched">{{'GENERAL.VALIDATION.REQUIRED' | translate}}
-                    </small>
-                    <small class="text-danger" *ngIf="(isRequired) && !propertiesFormGroup?.get(field.id).get('textValue').touched">{{'GENERAL.VALIDATION.REQUIRED' | translate}} *</small>
-                </div>
-            }
-            @case(descriptionTemplateFieldTypeEnum.DATE_PICKER){
-                <mat-form-field class="col-12">
-                    <mat-label>{{ field.data.label }}</mat-label>
-                    <input [id]="path" matInput class="table-input" [matDatepicker]="date" [formControl]="propertiesFormGroup?.get(field.id).get('dateValue')" [required]="isRequired">
-                    <mat-datepicker-toggle matSuffix [for]="date"></mat-datepicker-toggle>
-                    <mat-datepicker #date></mat-datepicker>
-                    <mat-error *ngIf="propertiesFormGroup?.get(field.id).get('dateValue').hasError('backendError')">{{propertiesFormGroup?.get(field.id).get('dateValue').getError('backendError').message}}</mat-error>
-                    <mat-error *ngIf="propertiesFormGroup?.get(field.id).get('dateValue').hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
-                </mat-form-field>
-            }
-            @case(descriptionTemplateFieldTypeEnum.TAGS){
-                <div class="col-12">
-                    <app-tags-field-component [label]="field.data.label" [placeholder]="field.data.label" [form]="propertiesFormGroup?.get(field.id).get('tags')" [required]="isRequired"></app-tags-field-component>
-                </div>
-            }
-            @case(descriptionTemplateFieldTypeEnum.DATASET_IDENTIFIER){
-                <div class="col-12">
-                    <div class="row">
-                        <mat-form-field class="col-md-12">
-                            <mat-label>{{ field.data.label }}</mat-label>
-                            <input [id]="path" matInput class="col-md-12" [formControl]="propertiesFormGroup?.get(field.id).get('externalIdentifier')?.get('identifier')" [required]="isRequired">
-                            <mat-error *ngIf="propertiesFormGroup?.get(field.id).get('externalIdentifier')?.get('identifier').hasError('backendError')">{{propertiesFormGroup?.get(field.id).get('externalIdentifier')?.get('identifier').getError('backendError').message}}</mat-error>
-                            <mat-error *ngIf="propertiesFormGroup?.get(field.id).get('externalIdentifier')?.get('identifier').hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
-                        </mat-form-field>
-                        <mat-form-field class="col-md-12">
-                            <mat-label> {{'TYPES.DESCRIPTION-TEMPLATE-FIELD-TYPE.TYPE' | translate }} </mat-label>
-                            <mat-select class="col-md-12" [formControl]="propertiesFormGroup?.get(field.id).get('externalIdentifier')?.get('type')" [required]="isRequired">
-                                <mat-option *ngFor="let type of datasetIdTypes" [value]="type.value">
-                                    {{ type.name }}
-                                </mat-option>
-                            </mat-select>
-                            <mat-error *ngIf="propertiesFormGroup?.get(field.id).get('externalIdentifier')?.get('type').hasError('backendError')">{{propertiesFormGroup?.get(field.id).get('externalIdentifier')?.get('type').getError('backendError').message}}</mat-error>
-                            <mat-error *ngIf="propertiesFormGroup?.get(field.id).get('externalIdentifier')?.get('type').hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
-                        </mat-form-field>
-                    </div>
-                </div>
-            }
-            @case(descriptionTemplateFieldTypeEnum.VALIDATION){
-                <div  class="col-12">
-                    <div class="row align-items-baseline">
-                        <mat-form-field class="col-md-4">
-                            <mat-label>{{ field.data.label }}</mat-label>
-                            <input [id]="path" matInput class="col-md-12" [formControl]="propertiesFormGroup?.get(field.id).get('externalIdentifier')?.get('identifier')" [required]="isRequired">
-                            <mat-error *ngIf="propertiesFormGroup?.get(field.id).get('externalIdentifier')?.get('identifier').hasError('backendError')">{{propertiesFormGroup?.get(field.id).get('externalIdentifier')?.get('identifier').getError('backendError').message}}</mat-error>
-                            <mat-error *ngIf="propertiesFormGroup?.get(field.id).get('externalIdentifier')?.get('identifier').hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
-                        </mat-form-field>
-                        <mat-form-field class="col-md-4">
-                            <mat-label>{{ field.data.label }}</mat-label>
-                            <mat-select class="col-md-12" [formControl]="propertiesFormGroup?.get(field.id).get('externalIdentifier')?.get('type')" [placeholder]="'TYPES.DESCRIPTION-TEMPLATE-VALIDATOR.REPOSITORIES-PLACEHOLDER' | translate" [required]="isRequired">
-                                <mat-option *ngFor="let type of validationTypes" [value]="type.value">
-                                    {{ type.name }}
-                                </mat-option>
-                            </mat-select>
-                            <mat-error *ngIf="propertiesFormGroup?.get(field.id).get('externalIdentifier')?.get('type').hasError('backendError')">{{propertiesFormGroup?.get(field.id).get('externalIdentifier')?.get('type').getError('backendError').message}}</mat-error>
-                            <mat-error *ngIf="propertiesFormGroup?.get(field.id).get('externalIdentifier')?.get('type').hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
-                        </mat-form-field>
-                        <div class="col-md-2">
-                            <button type="button" mat-flat-button color="primary" class="padded-shadow-btn" (click)="validateId()" [disabled]="propertiesFormGroup?.get(field.id).get('externalIdentifier')?.get('identifier').disabled">{{ "TYPES.DESCRIPTION-TEMPLATE-VALIDATOR.ACTION" | translate }}</button>
-                            <mat-error *ngIf="propertiesFormGroup?.get(field.id).get('externalIdentifier')?.get('identifier').hasError('backendError')">{{propertiesFormGroup?.get(field.id).get('externalIdentifier')?.get('identifier').getError('backendError').message}}</mat-error>
-                            <mat-error *ngIf="propertiesFormGroup?.get(field.id).get('externalIdentifier')?.get('identifier').hasError('required')">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
-                        </div>
-                        <div class="col-md-1">
-                            <mat-progress-spinner *ngIf="validationIcon === 'loading'" mode="indeterminate" [diameter]="24" ></mat-progress-spinner>
-                            <mat-icon *ngIf="validationIcon !== 'loading'" [ngClass]="{'text-success': validationIcon === 'done', 'text-danger': validationIcon === 'clear'}">{{validationIcon}}</mat-icon>
-                        </div>
-                    </div>
-                </div>
-            }
-        }
+      </div>
     </div>
+  }
+  @case(FieldTypeEnum.CHECK_BOX){
+    <div class="col-12">
+      <mat-checkbox [id]="path" [formControl]="propertiesFormGroup?.get(field.id).get('booleanValue')" [required]="isRequired">
+      {{field.data.label}}</mat-checkbox>
+      @if (propertiesFormGroup?.get(field.id).get('booleanValue').hasError('backendError')) {
+        <mat-error>{{propertiesFormGroup?.get(field.id).get('booleanValue').getError('backendError').message}}</mat-error>
+      }
+    </div>
+  }
+  @case(FieldTypeEnum.TEXT_AREA){
+    <div class="col-12">
+      <mat-form-field class="w-100">
+        <textarea [id]="path" matInput class="text-area" [formControl]="propertiesFormGroup?.get(field.id).get('textValue')" matTextareaAutosize matAutosizeMinRows="3" matAutosizeMaxRows="15" [required]="isRequired"></textarea>
+        @if (!propertiesFormGroup?.get(field.id).get('textValue').disabled && propertiesFormGroup?.get(field.id).get('textValue').value) {
+          <button mat-icon-button
+            type="button"
+            matSuffix
+            aria-label="Clear"
+            (click)="propertiesFormGroup?.get(field.id).get('textValue').patchValue('')"
+            [attr.aria-label]="'ALT-TEXT.CLEAR'  | translate"
+            >
+            <mat-icon aria-hidden="true">close</mat-icon>
+          </button>
+        }
+        @if (propertiesFormGroup?.get(field.id).get('textValue').hasError('backendError')) {
+          <mat-error>{{propertiesFormGroup?.get(field.id).get('textValue').getError('backendError').message}}</mat-error>
+        }
+        @if (propertiesFormGroup?.get(field.id).get('textValue')['errors'] && propertiesFormGroup?.get(field.id).get('textValue').hasError('required')) {
+          <mat-error>{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
+        }
+      </mat-form-field>
+    </div>
+  }
+  @case(FieldTypeEnum.RICH_TEXT_AREA){
+    <div class="col-12">
+      <rich-text-editor-component
+        [id]="path"
+        [form]="propertiesFormGroup?.get(field.id).get('textValue')"
+        [placeholder]="''"
+        [required]="isRequired"
+        [showRequiredMarker]="!hideRequiredMarker"
+                        [wrapperClasses]="'full-width editor ' + ((isRequired && propertiesFormGroup?.get(field.id).get('textValue').touched && propertiesFormGroup?.get(field.id).get('textValue').hasError('required')) ?
+                        'required' : '')"
+        >
+      </rich-text-editor-component>
+      @if (propertiesFormGroup?.get(field.id).get('textValue')?.hasError('backendError')) {
+        <mat-error class="mat-error">{{propertiesFormGroup?.get(field.id).get('textValue')?.getError('backendError').message}}</mat-error>
+      }
+      @if (propertiesFormGroup?.get(field.id).get('textValue')?.touched && propertiesFormGroup?.get(field.id).get('textValue')?.hasError('required')) {
+        <mat-error class="mat-error">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
+      }
+    </div>
+    <div [class]="(propertiesFormGroup?.get(field.id).get('textValue')['errors'] && propertiesFormGroup?.get(field.id).get('textValue').hasError('required') && propertiesFormGroup?.get(field.id).get('textValue').touched) ? 'visible' : 'invisible'" class="col-12">
+      <div class="mat-form-field form-field-subscript-wrapper">
+        @if (propertiesFormGroup?.get(field.id).get('textValue').hasError('backendError')) {
+          <mat-error>{{propertiesFormGroup?.get(field.id).get('textValue').getError('backendError').message}}</mat-error>
+        }
+        @if (propertiesFormGroup?.get(field.id).get('textValue')['errors'] && propertiesFormGroup?.get(field.id).get('textValue').hasError('required') && propertiesFormGroup?.get(field.id).get('textValue').touched) {
+          <mat-error>{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
+        }
+      </div>
+    </div>
+  }
+  @case(FieldTypeEnum.UPLOAD){
+    <div class="col-12">
+      <app-file-uploader
+        [id]="path"
+        [accept]="typesToString()"
+        [storageFileIdControl]="propertiesFormGroup?.get(field.id).get('textValue')"
+        [required]="isRequired"
+        [maxSize]="maxFileSize"
+        />
+      </div>
+    }
+    @case(FieldTypeEnum.BOOLEAN_DECISION){
+      <div class="col-12">
+        <mat-radio-group  [formControl]="propertiesFormGroup?.get(field.id).get('booleanValue')" [required]="isRequired"
+          [attr.aria-labelledby]="path + '-label'"
+          [attr.aria-describedby]="path + '-error'">
+          <mat-radio-button [id]="path" class="radio-button-item" [value]="true" aria-label="{{ 'TYPES.DESCRIPTION-TEMPLATE-COMBO-BOX-TYPE.ACTIONS.YES' | translate }}">{{ "TYPES.DESCRIPTION-TEMPLATE-COMBO-BOX-TYPE.ACTIONS.YES" | translate }}</mat-radio-button>
+          <mat-radio-button class="radio-button-item" [value]="false" aria-label="{{ 'TYPES.DESCRIPTION-TEMPLATE-COMBO-BOX-TYPE.ACTIONS.NO' | translate }}">{{ "TYPES.DESCRIPTION-TEMPLATE-COMBO-BOX-TYPE.ACTIONS.NO" | translate }}</mat-radio-button>
+          @if (propertiesFormGroup?.get(field.id).get('booleanValue').hasError('backendError')) {
+            <mat-error>{{propertiesFormGroup?.get(field.id).get('booleanValue').getError('backendError').message}}</mat-error>
+          }
+        </mat-radio-group>
+        @if (propertiesFormGroup?.get(field.id).get('booleanValue').hasError('required') && propertiesFormGroup?.get(field.id).get('booleanValue').touched) {
+          <small [id]="path + '-error'" role="alert" class="text-danger d-block">{{'GENERAL.VALIDATION.REQUIRED' | translate}}
+          </small>
+        }
+      </div>
+    }
+    @case(FieldTypeEnum.RADIO_BOX){
+      <div class="col-12">
+        <mat-radio-group  [formControl]="propertiesFormGroup?.get(field.id).get('textValue')" [required]="isRequired"
+          [attr.aria-labelledby]="path + '-label'"
+          [attr.aria-describedby]="path + '-error'">
+          @for (option of field.data.options; track option; let index = $index) {
+            <mat-radio-button id="{{path}}{{index > 0 ? '.' + index : ''}}" class="radio-button-item" [value]="option.value" aria-label="{{option.label}}">{{option.label}}</mat-radio-button>
+          }
+          @if (propertiesFormGroup?.get(field.id).get('textValue').hasError('backendError')) {
+            <mat-error>{{propertiesFormGroup?.get(field.id).get('textValue').getError('backendError').message}}</mat-error>
+          }
+        </mat-radio-group>
+        @if (propertiesFormGroup?.get(field.id).get('textValue').hasError('required') && propertiesFormGroup?.get(field.id).get('textValue').touched) {
+          <small [id]="path + '-error'" role="alert" class="text-danger d-block">{{'GENERAL.VALIDATION.REQUIRED' | translate}}
+          </small>
+        }
+      </div>
+    }
+    @case(FieldTypeEnum.DATE_PICKER){
+      <mat-form-field class="col-12">
+        <input [id]="path" matInput class="table-input" [matDatepicker]="date" [formControl]="propertiesFormGroup?.get(field.id).get('dateValue')" [required]="isRequired">
+        <mat-datepicker-toggle matSuffix [for]="date"></mat-datepicker-toggle>
+        <mat-datepicker #date></mat-datepicker>
+        @if (propertiesFormGroup?.get(field.id).get('dateValue').hasError('backendError')) {
+          <mat-error>{{propertiesFormGroup?.get(field.id).get('dateValue').getError('backendError').message}}</mat-error>
+        }
+        @if (propertiesFormGroup?.get(field.id).get('dateValue').hasError('required')) {
+          <mat-error>{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
+        }
+      </mat-form-field>
+    }
+    @case(FieldTypeEnum.TAGS){
+      <div class="col-12">
+        <app-tags-field-component [label]="field.data.label" [hideLabel]="true" [placeholder]="field.data.label" [form]="propertiesFormGroup?.get(field.id).get('tags')" [required]="isRequired"></app-tags-field-component>
+      </div>
+    }
+    @case(FieldTypeEnum.DATASET_IDENTIFIER){
+      <div class="col-12">
+        <div class="row">
+          <mat-form-field class="col-md-12">
+            <input [id]="path" matInput class="col-md-12" [formControl]="$safeNavigationMigration(propertiesFormGroup?.get(field.id).get('externalIdentifier')?.get('identifier'))" [required]="isRequired">
+            @if (propertiesFormGroup?.get(field.id).get('externalIdentifier')?.get('identifier').hasError('backendError')) {
+              <mat-error>{{propertiesFormGroup?.get(field.id).get('externalIdentifier')?.get('identifier').getError('backendError').message}}</mat-error>
+            }
+            @if (propertiesFormGroup?.get(field.id).get('externalIdentifier')?.get('identifier').hasError('required')) {
+              <mat-error>{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
+            }
+          </mat-form-field>
+          <mat-form-field class="col-md-12">
+            <mat-label> {{'TYPES.DESCRIPTION-TEMPLATE-FIELD-TYPE.TYPE' | translate }} </mat-label>
+            <mat-select class="col-md-12" [formControl]="$safeNavigationMigration(propertiesFormGroup?.get(field.id).get('externalIdentifier')?.get('type'))" [required]="isRequired">
+              @for (type of datasetIdTypes; track type) {
+                <mat-option [value]="type.value">
+                  {{ type.name }}
+                </mat-option>
+              }
+            </mat-select>
+            @if (propertiesFormGroup?.get(field.id).get('externalIdentifier')?.get('type').hasError('backendError')) {
+              <mat-error>{{propertiesFormGroup?.get(field.id).get('externalIdentifier')?.get('type').getError('backendError').message}}</mat-error>
+            }
+            @if (propertiesFormGroup?.get(field.id).get('externalIdentifier')?.get('type').hasError('required')) {
+              <mat-error>{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
+            }
+          </mat-form-field>
+        </div>
+      </div>
+    }
+    @case(FieldTypeEnum.VALIDATION){
+      <div  class="col-12">
+        <div class="row align-items-baseline">
+          <mat-form-field class="col-md-4">
+            <input [id]="path" matInput class="col-md-12" [formControl]="$safeNavigationMigration(propertiesFormGroup?.get(field.id).get('externalIdentifier')?.get('identifier'))" [required]="isRequired">
+            @if (propertiesFormGroup?.get(field.id).get('externalIdentifier')?.get('identifier').hasError('backendError')) {
+              <mat-error>{{propertiesFormGroup?.get(field.id).get('externalIdentifier')?.get('identifier').getError('backendError').message}}</mat-error>
+            }
+            @if (propertiesFormGroup?.get(field.id).get('externalIdentifier')?.get('identifier').hasError('required')) {
+              <mat-error>{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
+            }
+          </mat-form-field>
+          <mat-form-field class="col-md-4">
+            <mat-label>{{'TYPES.DESCRIPTION-TEMPLATE-FIELD-TYPE.TYPE' | translate }}</mat-label>
+            <mat-select class="col-md-12" [formControl]="$safeNavigationMigration(propertiesFormGroup?.get(field.id).get('externalIdentifier')?.get('type'))" [placeholder]="'TYPES.DESCRIPTION-TEMPLATE-VALIDATOR.REPOSITORIES-PLACEHOLDER' | translate" [required]="isRequired">
+              @for (type of validationTypes; track type) {
+                <mat-option [value]="type.value">
+                  {{ type.name }}
+                </mat-option>
+              }
+            </mat-select>
+            @if (propertiesFormGroup?.get(field.id).get('externalIdentifier')?.get('type').hasError('backendError')) {
+              <mat-error>{{propertiesFormGroup?.get(field.id).get('externalIdentifier')?.get('type').getError('backendError').message}}</mat-error>
+            }
+            @if (propertiesFormGroup?.get(field.id).get('externalIdentifier')?.get('type').hasError('required')) {
+              <mat-error>{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
+            }
+          </mat-form-field>
+          <div class="col-md-2">
+            <button type="button" mat-flat-button color="primary" class="padded-shadow-btn" (click)="validateId()" [disabled]="propertiesFormGroup?.get(field.id).get('externalIdentifier')?.get('identifier').disabled">{{ "TYPES.DESCRIPTION-TEMPLATE-VALIDATOR.ACTION" | translate }}</button>
+            @if (propertiesFormGroup?.get(field.id).get('externalIdentifier')?.get('identifier').hasError('backendError')) {
+              <mat-error>{{propertiesFormGroup?.get(field.id).get('externalIdentifier')?.get('identifier').getError('backendError').message}}</mat-error>
+            }
+            @if (propertiesFormGroup?.get(field.id).get('externalIdentifier')?.get('identifier').hasError('required')) {
+              <mat-error>{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
+            }
+          </div>
+          <div class="col-md-1">
+            @if (validationIcon === 'loading') {
+              <mat-progress-spinner mode="indeterminate" [diameter]="24" ></mat-progress-spinner>
+            }
+            @if (validationIcon !== 'loading') {
+              <mat-icon [class]="{'text-success': validationIcon === 'done', 'text-danger': validationIcon === 'clear'}">{{validationIcon}}</mat-icon>
+            }
+          </div>
+        </div>
+      </div>
+    }
+
+    @case(FieldTypeEnum.SYSTEM){
+      <div class="col-12">
+        @switch($safeNavigationMigration(field.data?.systemFieldType)){
+          @case(SystemFieldTypeEnum.PlanDescriptionTitle){
+            <ng-container *ngTemplateOutlet="systemTitleTemplate"></ng-container>
+          }
+          @case(SystemFieldTypeEnum.PlanTitle){
+            <ng-container *ngTemplateOutlet="systemTitleTemplate"></ng-container>
+          }
+          @case(SystemFieldTypeEnum.PlanDescription){
+            <ng-container *ngTemplateOutlet="systemDescriptionTemplate"></ng-container>
+          }
+          @case(SystemFieldTypeEnum.PlanDescriptionDescription){
+            <ng-container *ngTemplateOutlet="systemDescriptionTemplate"></ng-container>
+          }
+          @case(SystemFieldTypeEnum.PlanDescriptionTag){
+            @if(formGroup?.get('tags')){
+              <!-- label="{{field.data.label?.length ? field.data.label : 'DESCRIPTION-EDITOR.BASE-INFO.FIELDS.TAGS' | translate}}" -->
+              <app-tags-field-component
+                [name]="'tagInput'"
+                placeholder="{{field.data.label?.length ? field.data.label : 'DESCRIPTION-EDITOR.BASE-INFO.FIELDS.TAGS-PLACEHOLDER' | translate}}"
+                [form]="formGroup.get('tags')"
+              ></app-tags-field-component>
+            }
+          }
+
+          @case(SystemFieldTypeEnum.PlanLanguage){
+            @if(formGroup?.get('language')){
+              <mat-form-field class="w-100">
+                <mat-select [formControl]="formGroup.get('language')" placeholder="{{field.data.label?.length ? field.data.label : 'PLAN-EDITOR.FIELDS.LANGUAGE' | translate}}" required>
+                  @for (lang of getLanguageInfos(); track lang) {
+                    <mat-option [value]="lang.code">
+                      {{ lang.name }}
+                    </mat-option>
+                  }
+                </mat-select>
+                @if (formGroup.get('language')?.hasError('backendError')) {
+                  <mat-error>{{formGroup.get('language')?.getError('backendError').message}}</mat-error>
+                }
+                @if (formGroup.get('language')?.hasError('required')) {
+                  <mat-error>{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
+                }
+              </mat-form-field>
+            }
+          }
+          @case(SystemFieldTypeEnum.PlanContact){
+            @if(formGroup?.get('properties')){
+              <app-plan-contact-editor
+                [contactsFormArray]="$safeNavigationMigration(formGroup.get('properties')?.get('contacts'))"
+                [canEdit]="!formGroup.get('properties')?.get('contacts')?.disabled"
+                [path]="path"
+                [field]="field"
+                (reApplyPropertiesValidators)="reApplyPropertiesValidators.emit()"
+                />
+              }
+            }
+            @case(SystemFieldTypeEnum.PlanAccessRights){
+              @if(formGroup?.get('accessType')){
+                <mat-form-field class="w-100">
+                  <mat-select [id]="path" [formControl]="formGroup.get('accessType')" placeholder="{{ field.data?.label ?? 'PLAN-EDITOR.FIELDS.ACCESS-TYPE' | translate}}" [required]="isRequired">
+                    @for (planAccessType of planAccessTypeEnumValues; track planAccessType) {
+                      <mat-option [value]="planAccessType">
+                        {{enumUtils.toPlanAccessTypeString(planAccessType)}}
+                      </mat-option>
+                    }
+                  </mat-select>
+                  @if (formGroup?.get('accessType')?.hasError('backendError')) {
+                    <mat-error>{{formGroup?.get('accessType').getError('backendError').message}}</mat-error>
+                  }
+                  @if (formGroup?.get('accessType')?.hasError('required')) {
+                    <mat-error>{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
+                  }
+                </mat-form-field>
+              }
+            }
+          }
+        </div>
+      }
+      @case(FieldTypeEnum.NUMBER){
+        <div class="col-12">
+          <mat-form-field class="w-100">
+            <input [id]="path" matInput type="number" [formControl]="propertiesFormGroup?.get(field.id).get('numberValue')" [required]="isRequired">
+            @if (propertiesFormGroup?.get(field.id).get('numberValue').hasError('backendError')) {
+              <mat-error>{{propertiesFormGroup?.get(field.id).get('numberValue').getError('backendError').message}}</mat-error>
+            }
+            @if (propertiesFormGroup?.get(field.id).get('numberValue').hasError('required')) {
+              <mat-error>{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
+            }
+            @if (propertiesFormGroup?.get(field.id).get('numberValue').hasError('pattern')) {
+              <mat-error>{{'GENERAL.VALIDATION.NUMBER.MESSAGE' | translate}}</mat-error>
+            }
+          </mat-form-field>
+        </div>
+      }
+    }
+  </div>
 }
+
+<ng-template #systemTitleTemplate>
+  @if(formGroup?.get('label')){
+    <mat-form-field class="w-100" [hideRequiredMarker]="hideRequiredMarker">
+      @if(!hideLabel){
+        <mat-label>{{ field.data?.label ?? ('PLAN-EDITOR.FIELDS.TITLE' | translate) }}</mat-label>
+      }
+      <input [id]="path" matInput [formControl]="formGroup.get('label')" [required]="isRequired">
+      @if (formGroup.get('label')?.hasError('backendError')) {
+        <mat-error>{{formGroup.get('label')?.getError('backendError').message}}</mat-error>
+      }
+      @if (formGroup.get('label')?.hasError('required')) {
+        <mat-error>{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
+      }
+    </mat-form-field>
+  }
+</ng-template>
+<ng-template #systemDescriptionTemplate>
+  @if(formGroup?.get('description')){
+    <!-- <mat-label>{{ field.data.label ?? ('PLAN-EDITOR.PLACEHOLDER.DESCRIPTION' | translate) }}</mat-label> -->
+    <rich-text-editor-component
+      [id]="path"
+      [form]="formGroup.get('description')"
+      [placeholder]="field.data?.label ?? 'PLAN-EDITOR.PLACEHOLDER.DESCRIPTION'"
+      [required]="isRequired"
+      [showRequiredMarker]="!hideRequiredMarker"
+            [wrapperClasses]="'full-width editor ' + ((isRequired && formGroup.get('description').touched && formGroup.get('description').hasError('required')) ?
+            'required' : '')"
+      >
+    </rich-text-editor-component>
+    @if (formGroup.get('description')?.hasError('backendError')) {
+      <mat-error class="mat-error">{{formGroup.get('description')?.getError('backendError').message}}</mat-error>
+    }
+    @if (formGroup.get('description')?.touched && formGroup.get('description')?.hasError('required')) {
+      <mat-error class="mat-error">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
+    }
+  }
+</ng-template>

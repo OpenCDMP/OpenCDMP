@@ -1,5 +1,8 @@
 package org.opencdmp.service.descriptiontemplate;
 
+import org.opencdmp.commonmodels.models.planblueprintdescriptiontemplatefields.SectionModel;
+import org.opencdmp.service.iconconfiguration.IconConfigurationService;
+import org.opencdmp.service.planblueprintdescriptiontemplatefields.PlanBlueprintDescriptionTemplateFieldsService;
 import tools.jackson.core.JacksonException;
 import gr.cite.commons.web.authz.service.AuthorizationService;
 import gr.cite.tools.data.builder.BuilderFactory;
@@ -138,6 +141,10 @@ public class DescriptionTemplateServiceImpl implements DescriptionTemplateServic
 
     private final KpiService kpiService;
 
+    private final IconConfigurationService iconConfigurationService;
+
+    private final PlanBlueprintDescriptionTemplateFieldsService fieldsService;
+
     @Autowired
     public DescriptionTemplateServiceImpl(
             TenantEntityManagerFactory tenantEntityManagerFactory,
@@ -154,7 +161,7 @@ public class DescriptionTemplateServiceImpl implements DescriptionTemplateServic
             JsonHandlingService jsonHandlingService,
             NotifyIntegrationEventHandler eventHandler,
             NotificationProperties notificationProperties,
-            ValidatorFactory validatorFactory, DescriptionTemplateTypeService descriptionTemplateTypeService, AuthorizationContentResolverFactory authorizationContentResolverFactory, UsageLimitService usageLimitService, AccountingService accountingService, LockService lockService, StorageFileService storageFileService, PluginConfigurationService pluginConfigurationService, KpiService kpiService) {
+            ValidatorFactory validatorFactory, DescriptionTemplateTypeService descriptionTemplateTypeService, AuthorizationContentResolverFactory authorizationContentResolverFactory, UsageLimitService usageLimitService, AccountingService accountingService, LockService lockService, StorageFileService storageFileService, PluginConfigurationService pluginConfigurationService, KpiService kpiService, IconConfigurationService iconConfigurationService, PlanBlueprintDescriptionTemplateFieldsService fieldsService) {
         this.tenantEntityManagerFactory = tenantEntityManagerFactory;
         this.userScopeFactory = userScopeFactory;
         this.authorizationService = authorizationService;
@@ -180,6 +187,8 @@ public class DescriptionTemplateServiceImpl implements DescriptionTemplateServic
         this.storageFileService = storageFileService;
         this.pluginConfigurationService = pluginConfigurationService;
         this.kpiService = kpiService;
+        this.iconConfigurationService = iconConfigurationService;
+        this.fieldsService = fieldsService;
     }
 
     //region Persist
@@ -219,6 +228,7 @@ public class DescriptionTemplateServiceImpl implements DescriptionTemplateServic
 
         DescriptionTemplateStatus previousStatus = data.getStatus();
         DescriptionTemplateVersionStatus previousVersionStatus = data.getVersionStatus();
+        UUID previousType = data.getTypeId();
 
         data.setDescription(model.getDescription());
         data.setLabel(model.getLabel());
@@ -237,11 +247,16 @@ public class DescriptionTemplateServiceImpl implements DescriptionTemplateServic
                 this.accountingService.increase(UsageLimitTargetMetric.DESCRIPTION_TEMPLATE_FINALIZED_COUNT.getValue());
                 this.accountingService.decrease(UsageLimitTargetMetric.DESCRIPTION_TEMPLATE_DRAFT_COUNT.getValue());
             }
+            if (!previousType.equals(data.getTypeId())) {
+                this.kpiService.sendIndicatorPointDescriptionTemplatePerTypeEntry(KpiDirectionType.Decrease, previousType);
+                this.kpiService.sendIndicatorPointDescriptionTemplatePerTypeEntry(KpiDirectionType.Increase, data.getTypeId());
+            }
         } else {
             this.tenantEntityManagerFactory.getInstance().persist(data);
             this.accountingService.increase(UsageLimitTargetMetric.DESCRIPTION_TEMPLATE_COUNT.getValue());
             if (data.getStatus().equals(DescriptionTemplateStatus.Draft)) this.accountingService.increase(UsageLimitTargetMetric.DESCRIPTION_TEMPLATE_DRAFT_COUNT.getValue());
             if (data.getStatus().equals(DescriptionTemplateStatus.Finalized)) this.accountingService.increase(UsageLimitTargetMetric.DESCRIPTION_TEMPLATE_FINALIZED_COUNT.getValue());
+            if(data.getTypeId() != null) this.kpiService.sendIndicatorPointDescriptionTemplatePerTypeEntry(KpiDirectionType.Increase, data.getTypeId());
             this.kpiService.sendIndicatorPointDescriptionTemplateEntry(KpiDirectionType.Increase, KpiVersionType.TotalCount);
         }
 
@@ -303,13 +318,60 @@ public class DescriptionTemplateServiceImpl implements DescriptionTemplateServic
 
     }
 
+    /**
+     * The template's editors, saved on their own like plan collaborators: the template itself (and its hash) is left
+     * untouched, so a draft being edited elsewhere does not conflict with it.
+     */
+    public DescriptionTemplate assignUsers(UUID id, List<UserDescriptionTemplatePersist> users, FieldSet fields) throws MyForbiddenException, MyApplicationException, MyNotFoundException, InvalidApplicationException {
+        logger.debug(new MapLogEntry("assigning users to descriptionTemplate").And("id", id).And("users", users));
+
+        this.authorizationService.authorizeAtLeastOneForce(List.of(this.authorizationContentResolverFactory.getInstance().descriptionTemplateAffiliation(id)), Permission.EditDescriptionTemplate);
+
+        DescriptionTemplateEntity data = this.tenantEntityManagerFactory.getInstance().find(DescriptionTemplateEntity.class, id);
+        if (data == null || data.getIsActive() != IsActive.Active)
+            throw new MyNotFoundException(this.messageSource.getMessage("General_ItemNotFound", new Object[]{id, DescriptionTemplate.class.getSimpleName()}, LocaleContextHolder.getLocale()));
+        if (this.lockService.isLocked(data.getId(), null).getStatus()) throw new MyApplicationException(this.errors.getLockedDescriptionTemplate().getCode(), this.errors.getLockedDescriptionTemplate().getMessage());
+
+        this.persistUsers(data.getId(), users);
+        this.tenantEntityManagerFactory.getInstance().flush();
+
+        return this.builderFactory.builder(DescriptionTemplateBuilder.class).authorize(AuthorizationFlags.AllExceptPublic).build(BaseFieldSet.build(fields, DescriptionTemplate._id), data);
+    }
+
+    /**
+     * Every semantic key the tenant's other templates carry, with how many of them (counted by group, so versions of
+     * one template count once). The editors suggest these first, so custom vocabularies stay consistent.
+     */
+    public Map<String, Integer> semanticsInUse(UUID excludeGroupId) {
+        this.authorizationService.authorizeForce(Permission.BrowseDescriptionTemplate);
+        List<DescriptionTemplateEntity> items = this.queryFactory.query(DescriptionTemplateQuery.class).disableTracking().authorize(AuthorizationFlags.AllExceptPublic).isActive(IsActive.Active).collect();
+        Map<String, Set<UUID>> groups = new HashMap<>();
+        for (DescriptionTemplateEntity item : items) {
+            if (item.getGroupId() == null || item.getGroupId().equals(excludeGroupId) || this.conventionService.isNullOrEmpty(item.getDefinition())) continue;
+            DefinitionEntity definition = this.xmlHandlingService.fromXmlSafe(DefinitionEntity.class, item.getDefinition());
+            if (definition == null || definition.getSections() == null) continue;
+            // keys on inputs, answer options, questions and sections all count
+            definition.getSections().forEach(section -> section.getAllSemantics().stream().filter(k -> k != null && !k.isBlank())
+                    .forEach(k -> groups.computeIfAbsent(k, x -> new HashSet<>()).add(item.getGroupId())));
+        }
+        Map<String, Integer> result = new LinkedHashMap<>();
+        groups.entrySet().stream().sorted((a, b) -> b.getValue().size() - a.getValue().size()).forEach(e -> result.put(e.getKey(), e.getValue().size()));
+        return result;
+    }
+
     private void persistUsers(UUID id, List<UserDescriptionTemplatePersist> users) throws InvalidApplicationException {
         if (users == null)
             users = new ArrayList<>();
         List<UserDescriptionTemplateEntity> items = this.queryFactory.query(UserDescriptionTemplateQuery.class).disableTracking().isActive(IsActive.Active).descriptionTemplateIds(id).collect();
         List<UUID> updatedCreatedIds = new ArrayList<>();
         for (UserDescriptionTemplatePersist user : users) {
-            UserDescriptionTemplateEntity data = items.stream().filter(x -> x.getUserId().equals(user.getUserId()) && x.getRole().equals(user.getRole())).findFirst().orElse(null);
+            // one row per person: a changed role updates the row instead of adding a second one next to it
+            UserDescriptionTemplateEntity data = items.stream().filter(x -> x.getUserId().equals(user.getUserId())).findFirst().orElse(null);
+            if (data != null && !data.getRole().equals(user.getRole())) {
+                data.setRole(user.getRole());
+                data.setUpdatedAt(Instant.now());
+                this.tenantEntityManagerFactory.getInstance().merge(data);
+            }
             if (data == null) {
                 data = new UserDescriptionTemplateEntity();
                 data.setId(UUID.randomUUID());
@@ -365,10 +427,10 @@ public class DescriptionTemplateServiceImpl implements DescriptionTemplateServic
         if (persist == null)
             return data;
 
-        if (!this.conventionService.isListNullOrEmpty(persist.getPages())) {
-            data.setPages(new ArrayList<>());
-            for (PagePersist pagePersist : persist.getPages()) {
-                data.getPages().add(this.buildPageEntity(pagePersist));
+        if (!this.conventionService.isListNullOrEmpty(persist.getSections())) {
+            data.setSections(new ArrayList<>());
+            for (SectionPersist sectionPersist : persist.getSections()) {
+                data.getSections().add(this.fieldsService.buildSectionEntity(sectionPersist));
             }
         }
 
@@ -379,178 +441,15 @@ public class DescriptionTemplateServiceImpl implements DescriptionTemplateServic
             }
         }
 
-        return data;
-    }
-
-    private @NotNull SectionEntity buildSectionEntity(SectionPersist persist) {
-        SectionEntity data = new SectionEntity();
-        if (persist == null)
-            return data;
-
-        data.setId(persist.getId());
-        data.setDescription(persist.getDescription());
-        data.setOrdinal(persist.getOrdinal());
-        data.setTitle(persist.getTitle());
-
-        if (!this.conventionService.isListNullOrEmpty(persist.getSections())) {
-            data.setSections(new ArrayList<>());
-            for (SectionPersist sectionPersist : persist.getSections()) {
-                data.getSections().add(this.buildSectionEntity(sectionPersist));
-            }
+        UUID oldStorageFileId = null;
+        if (oldValue != null && oldValue.getIconConfiguration() != null && oldValue.getIconConfiguration().getStorageFileId() != null) {
+            oldStorageFileId = oldValue.getIconConfiguration().getStorageFileId();
         }
-
-        if (!this.conventionService.isListNullOrEmpty(persist.getFieldSets())) {
-            data.setFieldSets(new ArrayList<>());
-            for (FieldSetPersist fieldSetPersist : persist.getFieldSets()) {
-                data.getFieldSets().add(this.buildFieldSetEntity(fieldSetPersist));
-            }
-        }
+        data.setIconConfiguration(this.iconConfigurationService.buildIconConfigurationEntity(persist.getIconConfiguration(), oldStorageFileId));
 
         return data;
     }
 
-    private @NotNull FieldSetEntity buildFieldSetEntity(FieldSetPersist persist) {
-        FieldSetEntity data = new FieldSetEntity();
-        if (persist == null)
-            return data;
-
-        data.setId(persist.getId());
-        data.setDescription(persist.getDescription());
-        data.setOrdinal(persist.getOrdinal());
-        data.setTitle(persist.getTitle());
-        data.setHasMultiplicity(persist.getHasMultiplicity());
-        data.setAdditionalInformation(persist.getAdditionalInformation());
-        data.setExtendedDescription(persist.getExtendedDescription());
-        if (persist.getMultiplicity() != null && persist.getHasMultiplicity()) {
-            data.setMultiplicity(this.buildMultiplicityEntity(persist.getMultiplicity()));
-        }
-        data.setHasCommentField(persist.getHasCommentField());
-
-        if (!this.conventionService.isListNullOrEmpty(persist.getFields())) {
-            data.setFields(new ArrayList<>());
-            for (FieldPersist fieldPersist : persist.getFields()) {
-                data.getFields().add(this.buildFieldEntity(fieldPersist));
-            }
-        }
-        return data;
-    }
-
-    private @NotNull FieldEntity buildFieldEntity(FieldPersist persist) {
-        FieldEntity data = new FieldEntity();
-        if (persist == null)
-            return data;
-
-        data.setId(persist.getId());
-        data.setOrdinal(persist.getOrdinal());
-        data.setSemantics(persist.getSemantics());
-        //data.setNumbering(persist.get()); //TODO
-        data.setValidations(persist.getValidations());
-        data.setIncludeInExport(persist.getIncludeInExport());
-        if (persist.getData() != null)
-            data.setData(this.buildFieldDataEntity(persist.getData()));
-
-        data.setDefaultValue(this.buildDefaultValueEntity(persist.getDefaultValue(), data));
-        if (!this.conventionService.isListNullOrEmpty(persist.getVisibilityRules())) {
-            data.setVisibilityRules(new ArrayList<>());
-            for (RulePersist fieldPersist : persist.getVisibilityRules()) {
-                data.getVisibilityRules().add(this.buildRuleEntity(fieldPersist, data));
-            }
-        }
-        return data;
-    }
-
-    private BaseFieldDataEntity buildFieldDataEntity(BaseFieldDataPersist persist) {
-        if (persist == null)
-            return null;
-        return this.fieldDataHelperServiceProvider.get(persist.getFieldType()).applyPersist(persist);
-    }
-
-    private @NotNull RuleEntity buildRuleEntity(RulePersist persist, FieldEntity fieldEntity) {
-        FieldType fieldType = fieldEntity != null && fieldEntity.getData() != null ? fieldEntity.getData().getFieldType() :  FieldType.FREE_TEXT;
-        RuleEntity data = new RuleEntity();
-        if (persist == null) return data;
-        data.setTarget(persist.getTarget());
-
-        if (FieldType.isTextType(fieldType) || FieldType.isTextListType(fieldType)) {
-            if (FieldType.UPLOAD.equals(fieldType) && !this.conventionService.isNullOrEmpty(persist.getTextValue())) throw new NotImplementedException("Upload not supported");
-            if (FieldType.INTERNAL_ENTRIES_PLANS.equals(fieldType) && !this.conventionService.isNullOrEmpty(persist.getTextValue()))  throw new NotImplementedException("plans not supported");
-            if (FieldType.INTERNAL_ENTRIES_DESCRIPTIONS.equals(fieldType) && !this.conventionService.isNullOrEmpty(persist.getTextValue())) throw new NotImplementedException("descriptions not supported");
-            
-            data.setTextValue(persist.getTextValue());
-        }
-        else if (FieldType.isReferenceType(fieldType) ) {
-            throw new NotImplementedException("reference not supported");
-        }  
-        else if (FieldType.isTagType(fieldType) ) {
-            throw new NotImplementedException("tags not supported");
-        }
-        else if (FieldType.isDateType(fieldType))  data.setDateValue(persist.getDateValue());
-        else if (FieldType.isBooleanType(fieldType))  data.setBooleanValue(persist.getBooleanValue());
-        else if (FieldType.isExternalIdentifierType(fieldType)) throw new NotImplementedException("ExternalIdentifier not supported");
-
-        return data;
-    }
-
-    private @NotNull DefaultValueEntity buildDefaultValueEntity(DefaultValuePersist persist, FieldEntity fieldEntity)  {
-        FieldType fieldType = fieldEntity != null && fieldEntity.getData() != null ? fieldEntity.getData().getFieldType() :  FieldType.FREE_TEXT;
-        DefaultValueEntity data = new DefaultValueEntity();
-        if (persist == null || persist.isNullOrEmpty()) return data;
-
-        if (FieldType.isTextType(fieldType) || FieldType.isTextListType(fieldType)) {
-            if (FieldType.UPLOAD.equals(fieldType) && !this.conventionService.isNullOrEmpty(persist.getTextValue())) throw new NotImplementedException("Upload not supported");
-            if (FieldType.INTERNAL_ENTRIES_PLANS.equals(fieldType) && !this.conventionService.isNullOrEmpty(persist.getTextValue()))  throw new NotImplementedException("plans not supported");
-            if (FieldType.INTERNAL_ENTRIES_DESCRIPTIONS.equals(fieldType) && !this.conventionService.isNullOrEmpty(persist.getTextValue())) throw new NotImplementedException("descriptions not supported");
-
-            data.setTextValue(persist.getTextValue());
-        }
-        else if (FieldType.isReferenceType(fieldType) ) {
-            throw new NotImplementedException("reference not supported");
-        }
-        else if (FieldType.isTagType(fieldType) ) {
-            throw new NotImplementedException("tags not supported");
-        }
-        else if (FieldType.isDateType(fieldType))  data.setDateValue(persist.getDateValue());
-        else if (FieldType.isBooleanType(fieldType))  data.setBooleanValue(persist.getBooleanValue());
-        else if (FieldType.isExternalIdentifierType(fieldType)){
-            throw new NotImplementedException("external identifier not supported");
-        }
-
-        return data;
-    }
-
-    private @NotNull MultiplicityEntity buildMultiplicityEntity(MultiplicityPersist persist) {
-        MultiplicityEntity data = new MultiplicityEntity();
-        if (persist == null)
-            return data;
-
-        if (persist.getMax() != null)
-            data.setMax(persist.getMax());
-        if (persist.getMin() != null)
-            data.setMin(persist.getMin());
-        if (persist.getPlaceholder() != null)
-            data.setPlaceholder(persist.getPlaceholder());
-        if (persist.getTableView() != null)
-            data.setTableView(persist.getTableView());
-        return data;
-    }
-
-    private @NotNull PageEntity buildPageEntity(PagePersist persist) {
-        PageEntity data = new PageEntity();
-        if (persist == null)
-            return data;
-
-        data.setId(persist.getId());
-        data.setOrdinal(persist.getOrdinal());
-        data.setTitle(persist.getTitle());
-
-        if (!this.conventionService.isListNullOrEmpty(persist.getSections())) {
-            data.setSections(new ArrayList<>());
-            for (SectionPersist sectionPersist : persist.getSections()) {
-                data.getSections().add(this.buildSectionEntity(sectionPersist));
-            }
-        }
-        return data;
-    }
 
     //endregion 
 
@@ -624,9 +523,9 @@ public class DescriptionTemplateServiceImpl implements DescriptionTemplateServic
                 }
             }
         }
-        if (model.getPages() != null) {
-            for (Page page : model.getPages()) {
-                this.reassignPage(page, visibilityRulesMap);
+        if (model.getSections() != null) {
+            for (Section section : model.getSections()) {
+                this.fieldsService.reassignSection(section, visibilityRulesMap);
             }
         }
 
@@ -643,66 +542,9 @@ public class DescriptionTemplateServiceImpl implements DescriptionTemplateServic
                 }
             }
         }
-    }
 
-    private void reassignPage(Page model, Map<String, String> visibilityRulesMap) {
-        if (model == null)
-            return;
-        model.setId(UUID.randomUUID().toString());
-
-        if (model.getSections() != null) {
-            for (Section section : model.getSections()) {
-                this.reassignSection(section, visibilityRulesMap);
-            }
-        }
-
-    }
-
-    private void reassignSection(Section model, Map<String, String> visibilityRulesMap) {
-        if (model == null)
-            return;
-        model.setId(UUID.randomUUID().toString());
-
-        if (model.getSections() != null) {
-            for (Section section : model.getSections()) {
-                this.reassignSection(section, visibilityRulesMap);
-            }
-        }
-        if (model.getFieldSets() != null) {
-            for (org.opencdmp.model.descriptiontemplate.FieldSet fieldSet : model.getFieldSets()) {
-                this.reassignFieldSet(fieldSet, visibilityRulesMap);
-            }
-        }
-    }
-
-    private void reassignFieldSet(org.opencdmp.model.descriptiontemplate.FieldSet model, Map<String, String> visibilityRulesMap) {
-        if (model == null)
-            return;
-
-        String oldFieldSetId = model.getId();
-        if (visibilityRulesMap != null && visibilityRulesMap.containsKey(oldFieldSetId)){
-            model.setId(UUID.randomUUID().toString());
-            visibilityRulesMap.put(oldFieldSetId, model.getId());
-        } else {
-            model.setId(UUID.randomUUID().toString());
-        }
-
-        if (model.getFields() != null) {
-            for (Field field : model.getFields()) {
-                this.reassignField(field, visibilityRulesMap);
-            }
-        }
-    }
-
-    private void reassignField(Field model, Map<String, String> visibilityRulesMap) {
-        if (model == null)
-            return;
-        String oldFieldId = model.getId();
-        if (visibilityRulesMap != null && visibilityRulesMap.containsKey(oldFieldId)){
-            model.setId(UUID.randomUUID().toString());
-            visibilityRulesMap.put(oldFieldId, model.getId());
-        } else {
-            model.setId(UUID.randomUUID().toString());
+        if (model.getIconConfiguration() != null) {
+            this.iconConfigurationService.reassignIconConfiguration(model.getIconConfiguration());
         }
     }
 
@@ -710,10 +552,8 @@ public class DescriptionTemplateServiceImpl implements DescriptionTemplateServic
         List<Field> fields = new ArrayList<>();
         if (definition == null) return  fields;
 
-        if (definition.getPages() != null){
-            for (Page page: definition.getPages()) {
-                fields.addAll(this.getAllFieldBySections(page.getSections()));
-            }
+        if (definition.getSections() != null){
+            fields.addAll(this.getAllFieldBySections(definition.getSections()));
         }
         return fields;
     }
@@ -796,6 +636,12 @@ public class DescriptionTemplateServiceImpl implements DescriptionTemplateServic
                 this.pluginConfigurationService.reassignNewStorageFilesIfEqualsWithOld(model.getDefinition().getPluginConfigurations(), oldDefinition.getPluginConfigurations());
             }
         }
+
+        if (model.getDefinition().getIconConfiguration() != null) {
+            // reassign new icon storage file if equals with old
+            this.iconConfigurationService.reassignNewStorageFilesIfEqualsWithOld(model.getDefinition().getIconConfiguration());
+        }
+
         data.setDefinition(this.xmlHandlingService.toXml(this.buildDefinitionEntity(model.getDefinition(), null)));
 
         this.tenantEntityManagerFactory.getInstance().persist(data);
@@ -814,12 +660,12 @@ public class DescriptionTemplateServiceImpl implements DescriptionTemplateServic
         if (data.getStatus().equals(DescriptionTemplateStatus.Draft)) this.accountingService.increase(UsageLimitTargetMetric.DESCRIPTION_TEMPLATE_DRAFT_COUNT.getValue());
         if (data.getStatus().equals(DescriptionTemplateStatus.Finalized)) this.accountingService.increase(UsageLimitTargetMetric.DESCRIPTION_TEMPLATE_FINALIZED_COUNT.getValue());
 
-        if (oldDescriptionTemplateEntity.getVersionStatus() != null && !oldDescriptionTemplateEntity.getVersionStatus().equals(data.getVersionStatus()) && data.getVersionStatus().equals(DescriptionTemplateVersionStatus.Current)) {
+        if (data.getVersionStatus().equals(DescriptionTemplateVersionStatus.Current)) {
             this.kpiService.sendIndicatorPointDescriptionTemplateEntry(KpiDirectionType.Increase, KpiVersionType.LatestVersion);
         }
 
         this.kpiService.sendIndicatorPointDescriptionTemplateEntry(KpiDirectionType.Increase, KpiVersionType.TotalCount);
-
+        this.kpiService.sendIndicatorPointDescriptionTemplatePerTypeEntry(KpiDirectionType.Increase,data.getTypeId());
         return this.builderFactory.builder(DescriptionTemplateBuilder.class).authorize(AuthorizationFlags.AllExceptPublic).build(BaseFieldSet.build(fields, DescriptionTemplate._id), data);
     }
 
@@ -940,13 +786,13 @@ public class DescriptionTemplateServiceImpl implements DescriptionTemplateServic
         if (importExport == null)
             return null;
 
-        List<PagePersist> pagesDatasetEntity = new LinkedList<>();
-        if (!this.conventionService.isListNullOrEmpty(importExport.getPages())) {
-            for (DescriptionTemplatePageImportExport xmlPage : importExport.getPages()) {
-                pagesDatasetEntity.add(this.xmlPageToPersist(xmlPage));
+        List<SectionPersist> sectionsDatasetEntity = new LinkedList<>();
+        if (!this.conventionService.isListNullOrEmpty(importExport.getSections())) {
+            for (DescriptionTemplateSectionImportExport xmlSection : importExport.getSections()) {
+                sectionsDatasetEntity.add(this.fieldsService.xmlSectionToPersist(xmlSection));
             }
         }
-        definitionPersist.setPages(pagesDatasetEntity);
+        definitionPersist.setSections(sectionsDatasetEntity);
 
         List<PluginConfigurationPersist> pluginConfigurations = new ArrayList<>();
         if (!this.conventionService.isListNullOrEmpty(importExport.getPluginConfigurations())) {
@@ -957,121 +803,6 @@ public class DescriptionTemplateServiceImpl implements DescriptionTemplateServic
         definitionPersist.setPluginConfigurations(pluginConfigurations);
 
         return definitionPersist;
-    }
-
-    private PagePersist xmlPageToPersist(DescriptionTemplatePageImportExport importExport) {
-        PagePersist pageEntity = new PagePersist();
-        pageEntity.setId(importExport.getId());
-        pageEntity.setOrdinal(importExport.getOrdinal());
-        pageEntity.setTitle(importExport.getTitle());
-        if (!this.conventionService.isListNullOrEmpty(importExport.getSections())) {
-            List<SectionPersist> sectionsListEntity = new LinkedList<>();
-            for (DescriptionTemplateSectionImportExport xmlSection : importExport.getSections()) {
-                sectionsListEntity.add(this.xmlSectionToPersist(xmlSection));
-            }
-            pageEntity.setSections(sectionsListEntity);
-
-        }
-        return pageEntity;
-    }
-
-    private SectionPersist xmlSectionToPersist(DescriptionTemplateSectionImportExport importExport) {
-        SectionPersist sectionEntity = new SectionPersist();
-        List<SectionPersist> sectionsListEntity = new LinkedList<>();
-
-        if (!this.conventionService.isListNullOrEmpty(importExport.getSections())) {
-            for (DescriptionTemplateSectionImportExport xmlSection : importExport.getSections()) {
-                sectionsListEntity.add(this.xmlSectionToPersist(xmlSection));
-            }
-        }
-        sectionEntity.setId(importExport.getId());
-        sectionEntity.setOrdinal(importExport.getOrdinal());
-        sectionEntity.setTitle(importExport.getTitle());
-        sectionEntity.setDescription(importExport.getDescription());
-        List<FieldSetPersist> fieldSetEntity = new LinkedList<>();
-        if (!this.conventionService.isListNullOrEmpty(importExport.getFieldSets())) {
-            for (DescriptionTemplateFieldSetImportExport xmlFieldSet : importExport.getFieldSets()) {
-                fieldSetEntity.add(this.toFieldSetModel(xmlFieldSet));
-            }
-        }
-        sectionEntity.setFieldSets(fieldSetEntity);
-
-        sectionEntity.setSections(sectionsListEntity);
-        return sectionEntity;
-    }
-
-    private FieldSetPersist toFieldSetModel(DescriptionTemplateFieldSetImportExport importExport) {
-        FieldSetPersist fieldSet1Entity = new FieldSetPersist();
-        fieldSet1Entity.setId(importExport.getId());
-        fieldSet1Entity.setOrdinal(importExport.getOrdinal());
-        fieldSet1Entity.setHasCommentField(importExport.getHasCommentField() != null ? importExport.getHasCommentField() : false);
-        fieldSet1Entity.setMultiplicity(importExport.getMultiplicity() != null ? this.xmlMultiplicityToPersist(importExport.getMultiplicity()) : null);
-        fieldSet1Entity.setHasMultiplicity(importExport.getHasMultiplicity());
-        fieldSet1Entity.setTitle(importExport.getTitle());
-        fieldSet1Entity.setDescription(importExport.getDescription());
-        fieldSet1Entity.setExtendedDescription(importExport.getExtendedDescription());
-        fieldSet1Entity.setAdditionalInformation(importExport.getAdditionalInformation());
-
-        List<FieldPersist> fieldsEntity = new LinkedList<>();
-        if (!this.conventionService.isListNullOrEmpty(importExport.getFields())) {
-            for (DescriptionTemplateFieldImportExport xmlField : importExport.getFields()) {
-                fieldsEntity.add(this.xmlFieldToPersist(xmlField));
-            }
-        }
-        fieldSet1Entity.setFields(fieldsEntity);
-        return fieldSet1Entity;
-    }
-
-    private FieldPersist xmlFieldToPersist(DescriptionTemplateFieldImportExport importExport) {
-        FieldPersist fieldEntity = new FieldPersist();
-        fieldEntity.setId(importExport.getId());
-        fieldEntity.setOrdinal(importExport.getOrdinal());
-        fieldEntity.setValidations(importExport.getValidations());
-        fieldEntity.setIncludeInExport(importExport.getIncludeInExport());
-        fieldEntity.setDefaultValue(this.toRuleModel(importExport.getDefaultValue()));
-        List<RulePersist> rulePersists = new ArrayList<>();
-        if (importExport.getVisibilityRules() != null) {
-            for (DescriptionTemplateRuleImportExport xmlRule : importExport.getVisibilityRules()) {
-                rulePersists.add(this.toRuleModel(xmlRule));
-            }
-        }
-        fieldEntity.setVisibilityRules(rulePersists);
-        FieldType fieldType = importExport.getData().getFieldType();
-
-        if (importExport.getData() != null) {
-            FieldDataHelperService fieldDataHelperService = this.fieldDataHelperServiceProvider.get(fieldType);
-            fieldEntity.setData(fieldDataHelperService.importExportMapDataToPersist(importExport.getData()));
-        }
-        fieldEntity.setSemantics(importExport.getSemantics());
-        return fieldEntity;
-    }
-
-    private RulePersist toRuleModel(DescriptionTemplateRuleImportExport importExport) {
-        RulePersist ruleEntity = new RulePersist();
-        ruleEntity.setTarget(importExport.getTarget());
-        ruleEntity.setDateValue(importExport.getDateValue());
-        ruleEntity.setBooleanValue(importExport.getBooleanValue());
-        //ruleEntity.setReferences(importExport.get()); //TODO
-        ruleEntity.setTextValue(importExport.getTextValue());
-        return ruleEntity;
-    }
-
-    private DefaultValuePersist toRuleModel(DescriptionTemplateDefaultValueImportExport importExport) {
-        if (importExport == null) return null;
-        DefaultValuePersist ruleEntity = new DefaultValuePersist();
-        ruleEntity.setDateValue(importExport.getDateValue());
-        ruleEntity.setBooleanValue(importExport.getBooleanValue());
-        ruleEntity.setTextValue(importExport.getTextValue());
-        return ruleEntity;
-    }
-
-    private MultiplicityPersist xmlMultiplicityToPersist(DescriptionTemplateMultiplicityImportExport importXml) {
-        MultiplicityPersist multiplicityEntity = new MultiplicityPersist();
-        multiplicityEntity.setMax(importXml.getMax());
-        multiplicityEntity.setMin(importXml.getMin());
-        multiplicityEntity.setPlaceholder(importXml.getPlaceholder());
-        multiplicityEntity.setTableView(importXml.getTableView());
-        return multiplicityEntity;
     }
 
     //endregion
@@ -1116,11 +847,11 @@ public class DescriptionTemplateServiceImpl implements DescriptionTemplateServic
         xml.setGroupId(data.getGroupId());
         xml.setVersion(data.getVersion());
 
-        List<DescriptionTemplatePageImportExport> pagesDatasetEntity = new LinkedList<>();
-        for (PageEntity xmlPage : entity.getPages()) {
-            pagesDatasetEntity.add(this.pageXmlToExport(xmlPage));
+        List<DescriptionTemplateSectionImportExport> sectionsDatasetEntity = new LinkedList<>();
+        for (SectionEntity xmlSection : entity.getSections()) {
+            sectionsDatasetEntity.add(this.fieldsService.sectionXmlToExport(xmlSection));
         }
-        xml.setPages(pagesDatasetEntity);
+        xml.setSections(sectionsDatasetEntity);
 
         List<PluginConfigurationImportExport> pluginConfigurations = new ArrayList<>();
         if (!this.conventionService.isListNullOrEmpty(entity.getPluginConfigurations())) {
@@ -1145,129 +876,6 @@ public class DescriptionTemplateServiceImpl implements DescriptionTemplateServic
         xml.setName(data.getName());
         xml.setCode(data.getCode());
 
-        return xml;
-    }
-
-    private DescriptionTemplatePageImportExport pageXmlToExport(PageEntity entity) {
-        DescriptionTemplatePageImportExport xml = new DescriptionTemplatePageImportExport();
-        xml.setId(entity.getId());
-        xml.setOrdinal(entity.getOrdinal());
-        xml.setTitle(entity.getTitle());
-        List<DescriptionTemplateSectionImportExport> sectionsListEntity = new LinkedList<>();
-        if (!this.conventionService.isListNullOrEmpty(entity.getSections())) {
-            for (SectionEntity section : entity.getSections()) {
-                sectionsListEntity.add(this.sectionXmlToExport(section));
-            }
-        }
-        xml.setSections(sectionsListEntity);
-
-        return xml;
-    }
-
-    private DescriptionTemplateSectionImportExport sectionXmlToExport(SectionEntity entity) {
-        DescriptionTemplateSectionImportExport xml = new DescriptionTemplateSectionImportExport();
-        List<DescriptionTemplateSectionImportExport> sectionsListEntity = new LinkedList<>();
-
-        if (!this.conventionService.isListNullOrEmpty(entity.getSections())) {
-            for (SectionEntity xmlSection : entity.getSections()) {
-                sectionsListEntity.add(this.sectionXmlToExport(xmlSection));
-            }
-        }
-        xml.setSections(sectionsListEntity);
-
-        xml.setId(entity.getId());
-        xml.setOrdinal(entity.getOrdinal());
-        xml.setTitle(entity.getTitle());
-        xml.setDescription(entity.getDescription());
-        List<DescriptionTemplateFieldSetImportExport> fieldSetEntity = new LinkedList<>();
-        if (!this.conventionService.isListNullOrEmpty(entity.getFieldSets())) {
-            for (FieldSetEntity xmlFieldSet : entity.getFieldSets()) {
-                fieldSetEntity.add(this.fieldSetXmlToExport(xmlFieldSet));
-            }
-        }
-        xml.setFieldSets(fieldSetEntity);
-
-        return xml;
-    }
-
-    private DescriptionTemplateFieldSetImportExport fieldSetXmlToExport(FieldSetEntity entity) {
-        DescriptionTemplateFieldSetImportExport fieldSet1Entity = new DescriptionTemplateFieldSetImportExport();
-        fieldSet1Entity.setId(entity.getId());
-        fieldSet1Entity.setOrdinal(entity.getOrdinal());
-        fieldSet1Entity.setHasCommentField(entity.getHasCommentField());
-        fieldSet1Entity.setHasMultiplicity(entity.getHasMultiplicity());
-        fieldSet1Entity.setMultiplicity(entity.getMultiplicity() != null ? this.multiplicityXmlToExport(entity.getMultiplicity()) : null);
-        fieldSet1Entity.setTitle(entity.getTitle());
-        fieldSet1Entity.setDescription(entity.getDescription());
-        fieldSet1Entity.setExtendedDescription(entity.getExtendedDescription());
-        fieldSet1Entity.setAdditionalInformation(entity.getAdditionalInformation());
-
-        List<DescriptionTemplateFieldImportExport> fieldsEntity = new LinkedList<>();
-        if (entity.getFields() != null) {
-            for (FieldEntity xmlField : entity.getFields()) {
-                fieldsEntity.add(this.fieldXmlToExport(xmlField));
-            }
-        }
-        fieldSet1Entity.setFields(fieldsEntity);
-        return fieldSet1Entity;
-    }
-
-    private DescriptionTemplateFieldImportExport fieldXmlToExport(FieldEntity entity) {
-        DescriptionTemplateFieldImportExport xml = new DescriptionTemplateFieldImportExport();
-        xml.setId(entity.getId());
-        xml.setOrdinal(entity.getOrdinal());
-        xml.setValidations(entity.getValidations());
-        xml.setDefaultValue(this.toDefaultValueModel(entity.getDefaultValue()));
-        xml.setIncludeInExport(entity.getIncludeInExport());
-        List<DescriptionTemplateRuleImportExport> rulePersists = new ArrayList<>();
-        if (!this.conventionService.isListNullOrEmpty(entity.getVisibilityRules())) {
-            for (RuleEntity xmlRule : entity.getVisibilityRules()) {
-                rulePersists.add(this.toRuleModel(xmlRule));
-            }
-        }
-        xml.setVisibilityRules(rulePersists);
-
-        if (entity.getData() != null) {
-            FieldType fieldType = entity.getData().getFieldType();
-            FieldDataHelperService fieldDataHelperService = this.fieldDataHelperServiceProvider.get(fieldType);
-            xml.setData(fieldDataHelperService.dataToImportExportXml(entity.getData()));
-        }
-        xml.setSemantics(entity.getSemantics());
-        return xml;
-    }
-
-    private DescriptionTemplateDefaultValueImportExport toDefaultValueModel(DefaultValueEntity entity) {
-        DescriptionTemplateDefaultValueImportExport xml = new DescriptionTemplateDefaultValueImportExport();
-
-        if (entity == null) return xml;
-
-        xml.setDateValue(entity.getDateValue());
-        xml.setBooleanValue(entity.getBooleanValue());
-        xml.setTextValue(entity.getTextValue());
-        return xml;
-    }
-
-    private DescriptionTemplateRuleImportExport toRuleModel(RuleEntity entity) {
-        DescriptionTemplateRuleImportExport xml = new DescriptionTemplateRuleImportExport();
-
-        if (entity == null) return xml;
-
-        xml.setTarget(entity.getTarget());
-        xml.setDateValue(entity.getDateValue());
-        xml.setBooleanValue(entity.getBooleanValue());
-        xml.setTextValue(entity.getTextValue());
-        return xml;
-    }
-
-    private DescriptionTemplateMultiplicityImportExport multiplicityXmlToExport(MultiplicityEntity entity) {
-        DescriptionTemplateMultiplicityImportExport xml = new DescriptionTemplateMultiplicityImportExport();
-
-        if (entity == null) return xml;
-
-        xml.setMax(entity.getMax());
-        xml.setMin(entity.getMin());
-        xml.setPlaceholder(entity.getPlaceholder());
-        xml.setTableView(entity.getTableView());
         return xml;
     }
 
@@ -1341,152 +949,15 @@ public class DescriptionTemplateServiceImpl implements DescriptionTemplateServic
         if (commonModel == null)
             return null;
 
-        List<PagePersist> pagesDatasetEntity = new LinkedList<>();
-        if (!this.conventionService.isListNullOrEmpty(commonModel.getPages())) {
-            for (PageModel pageModel : commonModel.getPages()) {
-                pagesDatasetEntity.add(this.commonModelPageToPersist(pageModel));
+        List<SectionPersist> sectionsDatasetEntity = new LinkedList<>();
+        if (!this.conventionService.isListNullOrEmpty(commonModel.getSections())) {
+            for (SectionModel sectionModel : commonModel.getSections()) {
+                sectionsDatasetEntity.add(this.fieldsService.commonModelSectionToPersist(sectionModel));
             }
         }
-        definitionPersist.setPages(pagesDatasetEntity);
+        definitionPersist.setSections(sectionsDatasetEntity);
 
         return definitionPersist;
-    }
-
-    private PagePersist commonModelPageToPersist(PageModel commonModel) {
-        PagePersist pageEntity = new PagePersist();
-        pageEntity.setId(commonModel.getId());
-        pageEntity.setOrdinal(commonModel.getOrdinal());
-        pageEntity.setTitle(commonModel.getTitle());
-        if (!this.conventionService.isListNullOrEmpty(commonModel.getSections())) {
-            List<SectionPersist> sectionsListEntity = new LinkedList<>();
-            for (SectionModel sectionModel : commonModel.getSections()) {
-                sectionsListEntity.add(this.commonModelSectionToPersist(sectionModel));
-            }
-            pageEntity.setSections(sectionsListEntity);
-
-        }
-        return pageEntity;
-    }
-
-    private SectionPersist commonModelSectionToPersist(SectionModel commonModel) {
-        SectionPersist sectionEntity = new SectionPersist();
-        List<SectionPersist> sectionsListEntity = new LinkedList<>();
-
-        if (!this.conventionService.isListNullOrEmpty(commonModel.getSections())) {
-            for (SectionModel sectionModel : commonModel.getSections()) {
-                sectionsListEntity.add(this.commonModelSectionToPersist(sectionModel));
-            }
-        }
-        sectionEntity.setId(commonModel.getId());
-        sectionEntity.setOrdinal(commonModel.getOrdinal());
-        sectionEntity.setTitle(commonModel.getTitle());
-        sectionEntity.setDescription(commonModel.getDescription());
-        List<FieldSetPersist> fieldSetEntity = new LinkedList<>();
-        if (!this.conventionService.isListNullOrEmpty(commonModel.getFieldSets())) {
-            for (FieldSetModel fieldSetModel : commonModel.getFieldSets()) {
-                fieldSetEntity.add(this.commonModelToFieldSetModel(fieldSetModel));
-            }
-        }
-        sectionEntity.setFieldSets(fieldSetEntity);
-
-        sectionEntity.setSections(sectionsListEntity);
-        return sectionEntity;
-    }
-
-    private FieldSetPersist commonModelToFieldSetModel(FieldSetModel commonModel) {
-        FieldSetPersist fieldSet1Entity = new FieldSetPersist();
-        fieldSet1Entity.setId(commonModel.getId());
-        fieldSet1Entity.setOrdinal(commonModel.getOrdinal());
-//        fieldSet1Entity.setHasCommentField(commonModel.getHasCommentField() != null ? commonModel.getHasCommentField() : false);//TODO add to common model
-        fieldSet1Entity.setMultiplicity(commonModel.getMultiplicity() != null ? this.commonModelMultiplicityToPersist(commonModel.getMultiplicity()) : null);
-        fieldSet1Entity.setHasMultiplicity(commonModel.getMultiplicity() != null); //TODO add to common model
-        fieldSet1Entity.setTitle(commonModel.getTitle());
-        fieldSet1Entity.setDescription(commonModel.getDescription());
-        fieldSet1Entity.setExtendedDescription(commonModel.getExtendedDescription());
-        fieldSet1Entity.setAdditionalInformation(commonModel.getAdditionalInformation());
-
-        List<FieldPersist> fieldsEntity = new LinkedList<>();
-        if (!this.conventionService.isListNullOrEmpty(commonModel.getFields())) {
-            for (FieldModel fieldModel : commonModel.getFields()) {
-                fieldsEntity.add(this.commonModelFieldToPersist(fieldModel));
-            }
-        }
-        fieldSet1Entity.setFields(fieldsEntity);
-        return fieldSet1Entity;
-    }
-
-    private FieldPersist commonModelFieldToPersist(FieldModel commonModel) {
-        FieldPersist fieldEntity = new FieldPersist();
-        fieldEntity.setId(commonModel.getId());
-        fieldEntity.setOrdinal(commonModel.getOrdinal());
-        fieldEntity.setValidations(this.commonModelValidationsToPersist(commonModel.getValidations()));
-        fieldEntity.setIncludeInExport(commonModel.getIncludeInExport());
-        fieldEntity.setDefaultValue(this.commonModelRuleToPersist(commonModel.getDefaultValue()));
-        List<RulePersist> rulePersists = new ArrayList<>();
-//        if (commonModel.getVisibilityRules() != null) {  //TODO add to common model
-//            for (DescriptionTemplateRuleImportExport xmlRule : commonModel.getVisibilityRules()) {
-//                rulePersists.add(this.toRuleModel(xmlRule));
-//            }
-//        }
-        fieldEntity.setVisibilityRules(rulePersists);
-        FieldType fieldType;
-        switch (commonModel.getData().getFieldType()){
-            case SELECT -> fieldType = FieldType.SELECT;
-            case BOOLEAN_DECISION -> fieldType = FieldType.BOOLEAN_DECISION;
-            case RADIO_BOX -> fieldType = FieldType.RADIO_BOX;
-            case INTERNAL_ENTRIES_PlANS -> fieldType = FieldType.INTERNAL_ENTRIES_PLANS;
-            case INTERNAL_ENTRIES_DESCRIPTIONS -> fieldType = FieldType.INTERNAL_ENTRIES_DESCRIPTIONS;
-            case CHECK_BOX -> fieldType = FieldType.CHECK_BOX;
-            case FREE_TEXT -> fieldType = FieldType.FREE_TEXT;
-            case TEXT_AREA -> fieldType = FieldType.TEXT_AREA;
-            case RICH_TEXT_AREA -> fieldType = FieldType.RICH_TEXT_AREA;
-            case UPLOAD -> fieldType = FieldType.UPLOAD;
-            case DATE_PICKER -> fieldType = FieldType.DATE_PICKER;
-            case TAGS -> fieldType = FieldType.TAGS;
-            case REFERENCE_TYPES -> fieldType = FieldType.REFERENCE_TYPES;
-            case DATASET_IDENTIFIER -> fieldType = FieldType.DATASET_IDENTIFIER;
-            case VALIDATION -> fieldType = FieldType.VALIDATION;
-            default -> throw new InternalError("unknown type: " + commonModel.getData().getFieldType());
-        }
-
-        if (commonModel.getData() != null) {
-            FieldDataHelperService fieldDataHelperService = this.fieldDataHelperServiceProvider.get(fieldType);
-            fieldEntity.setData(fieldDataHelperService.commonModelMapDataToPersist(commonModel.getData()));
-        }
-        fieldEntity.setSemantics(commonModel.getSemantics());
-        return fieldEntity;
-    }
-    
-    private List<FieldValidationType> commonModelValidationsToPersist(List<org.opencdmp.commonmodels.enums.FieldValidationType> commonModel) {
-        if (this.conventionService.isListNullOrEmpty(commonModel)) return null;
-        List<FieldValidationType> validationTypes = new ArrayList<>();
-        for (org.opencdmp.commonmodels.enums.FieldValidationType fieldValidationType : commonModel){
-            switch (fieldValidationType){
-                case Url -> validationTypes.add(FieldValidationType.Url);
-                case Required -> validationTypes.add(FieldValidationType.Required);
-                case None -> validationTypes.add(FieldValidationType.None);
-                default -> throw new InternalError("unknown type: " + fieldValidationType);
-            }
-        }
-        return validationTypes;
-    }
-
-    private DefaultValuePersist commonModelRuleToPersist(DefaultValueModel commonModel) {
-        if (commonModel == null) return null;
-        DefaultValuePersist ruleEntity = new DefaultValuePersist();
-        ruleEntity.setDateValue(commonModel.getDateValue());
-        ruleEntity.setBooleanValue(commonModel.getBooleanValue());
-        ruleEntity.setTextValue(commonModel.getTextValue());
-        return ruleEntity;
-    }
-
-    private MultiplicityPersist commonModelMultiplicityToPersist(MultiplicityModel commonModel) {
-        MultiplicityPersist multiplicityEntity = new MultiplicityPersist();
-        multiplicityEntity.setMax(commonModel.getMax());
-        multiplicityEntity.setMin(commonModel.getMin());
-        multiplicityEntity.setPlaceholder(commonModel.getPlaceholder());
-        multiplicityEntity.setTableView(commonModel.getTableView());
-        return multiplicityEntity;
     }
 
     //endregion

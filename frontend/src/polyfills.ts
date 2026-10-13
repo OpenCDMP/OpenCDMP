@@ -47,4 +47,4 @@ import 'zone.js';  // Included with Angular CLI.
 //import 'intl/locale-data/jsonp/en';
 
 
-(window as any).global = window;//ng2-dragula
+(window as any).global = window;// sockjs-client expects Node's `global`

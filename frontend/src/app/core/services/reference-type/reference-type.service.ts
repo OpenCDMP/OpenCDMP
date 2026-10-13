@@ -49,11 +49,12 @@ export class ReferenceTypeService {
 				catchError((error: any) => throwError(error)));
 	}
 
-	persist(item: ReferenceTypePersist): Observable<ReferenceType> {
+	persist(item: ReferenceTypePersist, reqFields: string[] = []): Observable<ReferenceType> {
 		const url = `${this.apiBase}/persist`;
+		const options = { params: { f: reqFields } };
 
 		return this.http
-			.post<ReferenceType>(url, item).pipe(
+			.post<ReferenceType>(url, item, options).pipe(
 				catchError((error: any) => throwError(error)));
 	}
 
@@ -143,10 +144,6 @@ export class ReferenceTypeService {
 
 	public getResearcherReferenceType(): any {
 		return this.configurationService.researcherId;
-	}
-
-	public getGrantReferenceType(): any {
-		return this.configurationService.grantId;
 	}
 
 	public getOrganizationReferenceType(): any {

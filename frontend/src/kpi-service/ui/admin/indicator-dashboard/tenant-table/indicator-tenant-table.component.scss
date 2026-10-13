@@ -1,0 +1,90 @@
+:host {
+	display: block;
+}
+
+.tenant-table {
+	display: flex;
+	flex-direction: column;
+	gap: 0.75rem;
+	padding: 1.25rem 0 0.5rem;
+	border: 1px solid var(--mat-sys-outline-variant);
+	border-radius: 0.75rem;
+	background: var(--mat-sys-surface);
+
+	> h2, > p {
+		padding: 0 1.25rem;
+	}
+}
+
+.table-title {
+	margin: 0;
+	font: var(--mat-sys-title-medium);
+}
+
+.table-scroll {
+	overflow-x: auto;
+}
+
+table {
+	width: 100%;
+	border-collapse: collapse;
+	font: var(--mat-sys-body-medium);
+	font-variant-numeric: tabular-nums;
+}
+
+th, td {
+	padding: 0.75rem 1.25rem;
+	text-align: right;
+	white-space: nowrap;
+	border-bottom: 1px solid var(--mat-sys-outline-variant);
+}
+
+thead th {
+	font: var(--mat-sys-label-large);
+	color: var(--mat-sys-on-surface-variant);
+}
+
+th:first-child {
+	text-align: left;
+}
+
+tbody tr:last-child > * {
+	border-bottom: 0;
+}
+
+tr.current {
+	background: var(--mat-sys-surface-container-low);
+}
+
+.current-badge {
+	margin-left: 0.5rem;
+	padding: 0.125rem 0.5rem;
+	border: 1px solid var(--mat-sys-outline-variant);
+	border-radius: 999px;
+	font: var(--mat-sys-label-small);
+	color: var(--mat-sys-on-surface-variant);
+}
+
+.plan-cell {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.625rem;
+}
+
+.plan-count {
+	min-width: 3.5rem;
+}
+
+.plan-bar {
+	width: 7.5rem;
+	height: 0.5rem;
+	border-radius: 999px;
+	background: var(--mat-sys-primary-container);
+
+	> span {
+		display: block;
+		height: 100%;
+		border-radius: 999px;
+		background: var(--mat-sys-primary);
+	}
+}

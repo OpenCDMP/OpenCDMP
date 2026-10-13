@@ -49,6 +49,7 @@ queue:
         indicator-reset-topic: indicator_reset.entry
         indicator-point-topic: indicator_point.entry
         indicator-access-topic: indicator_access.entry
+        dashboard-touched-topic: dashboard.touch
         generate-file-topic: generate.file
       rabbitmq:
         enable: ${QUEUE_ENABLED:true}

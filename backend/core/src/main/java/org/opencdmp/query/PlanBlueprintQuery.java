@@ -13,6 +13,7 @@ import org.opencdmp.commons.enums.PlanBlueprintStatus;
 import org.opencdmp.commons.enums.PlanBlueprintVersionStatus;
 import org.opencdmp.commons.enums.IsActive;
 import org.opencdmp.data.PlanBlueprintEntity;
+import org.opencdmp.data.TenantEntity;
 import org.opencdmp.data.TenantEntityManagerFactory;
 import org.opencdmp.model.planblueprint.PlanBlueprint;
 import org.opencdmp.query.utils.QueryUtilsService;
@@ -48,6 +49,11 @@ public class PlanBlueprintQuery extends QueryBase<PlanBlueprintEntity> {
     private Collection<String> codes;
 
     private Collection<PlanBlueprintVersionStatus> versionStatuses;
+
+    private TenantQuery tenantQuery;
+
+    /** null: any row; false: only rows without a tenant (the default tenant's shared rows); true: only tenant-owned rows. */
+    private Boolean tenantIsSet;
 
     private EnumSet<AuthorizationFlags> authorize = EnumSet.of(AuthorizationFlags.None);
 
@@ -206,6 +212,16 @@ public class PlanBlueprintQuery extends QueryBase<PlanBlueprintEntity> {
         return this;
     }
 
+    public PlanBlueprintQuery tenantIsSet(Boolean value) {
+        this.tenantIsSet = value;
+        return this;
+    }
+
+    public PlanBlueprintQuery tenantSubQuery(TenantQuery tenantQuery) {
+        this.tenantQuery = tenantQuery;
+        return this;
+    }
+
     public PlanBlueprintQuery authorize(EnumSet<AuthorizationFlags> values) {
         this.authorize = values;
         return this;
@@ -326,6 +342,15 @@ public class PlanBlueprintQuery extends QueryBase<PlanBlueprintEntity> {
             predicates.add(inClause);
         }
 
+        if (this.tenantIsSet != null) {
+            predicates.add(this.tenantIsSet ? queryContext.CriteriaBuilder.isNotNull(queryContext.Root.get(PlanBlueprintEntity._tenantId)) : queryContext.CriteriaBuilder.isNull(queryContext.Root.get(PlanBlueprintEntity._tenantId)));
+        }
+
+        if (this.tenantQuery != null) {
+            QueryContext<TenantEntity, UUID> subQuery = this.applySubQuery(this.tenantQuery, queryContext, UUID.class, tenantEntityRoot -> tenantEntityRoot.get(TenantEntity._id));
+            predicates.add(queryContext.CriteriaBuilder.in(queryContext.Root.get(PlanBlueprintEntity._tenantId)).value(subQuery.Query));
+        }
+
         if (!predicates.isEmpty()) {
             Predicate[] predicatesArray = predicates.toArray(new Predicate[0]);
             return queryContext.CriteriaBuilder.and(predicatesArray);
@@ -368,6 +393,8 @@ public class PlanBlueprintQuery extends QueryBase<PlanBlueprintEntity> {
         else if (item.prefix(PlanBlueprint._definition))
             return PlanBlueprintEntity._definition;
         else if (item.prefix(PlanBlueprint._type))
+            return PlanBlueprintEntity._typeId;
+        else if (item.match(PlanBlueprint._type))
             return PlanBlueprintEntity._typeId;
         else if (item.match(PlanBlueprint._status))
             return PlanBlueprintEntity._status;

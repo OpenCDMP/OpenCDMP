@@ -2,7 +2,7 @@ import { Pipe, PipeTransform } from "@angular/core";
 
 @Pipe({
     name: 'invokeMemoized',
-    standalone: false
+    standalone: true
   })
   export class InvokeMemoizedPipe implements PipeTransform {
   

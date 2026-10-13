@@ -75,7 +75,7 @@ public class TenantEntityManagerImpl implements TenantEntityManager {
 		if (!this.tenantFiltersDisabled && this.tenantScopeFactory.getInstance().isMultitenant() && (entity instanceof TenantScoped tenantScopedEntity)) {
 			if (tenantScopedEntity.getTenantId() != null && !tenantScopedEntity.getTenantId().equals(this.tenantScopeFactory.getInstance().getTenant())) return null;
 		}
-		if (disableTracking) this.entityManager.detach(entity);
+		if (disableTracking && entity != null) this.entityManager.detach(entity);
 		return entity;
 	}
 

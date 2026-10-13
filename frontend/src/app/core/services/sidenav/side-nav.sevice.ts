@@ -7,18 +7,25 @@ import { BehaviorSubject } from "rxjs";
 })
 export class SideNavService {
 
-    private sidebar$:BehaviorSubject<boolean> =  new BehaviorSubject<boolean>(true);
+    private _open: boolean = true;
+    private sidebar$:BehaviorSubject<boolean> =  new BehaviorSubject<boolean>(this._open);
+
+    public isOpen(): boolean {
+        return this._open;
+    }
 
     public status():Observable<boolean>{
         return this.sidebar$.asObservable();
     }
 
     public setStatus(isOpen: boolean){
+        this._open = isOpen;
         this.sidebar$.next(isOpen);
     }
 
     public toggle(){
-        this.sidebar$.next(!this.sidebar$.getValue());
+        this._open = !this._open;
+        this.sidebar$.next(this._open);
     }
 
 }

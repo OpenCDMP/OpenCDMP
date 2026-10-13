@@ -1,0 +1,102 @@
+@use "../../shared/tc-section";
+
+.tc-onboarding {
+	display: grid;
+	grid-template-columns: minmax(0, 3fr) minmax(360px, 2fr);
+	gap: 16px;
+	align-items: start;
+}
+
+.tc-onboarding__version {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	justify-content: space-between;
+	gap: 12px 20px;
+	margin-top: 16px;
+	padding: 14px 16px;
+	border-radius: 10px;
+	background: var(--md-sys-color-surface-container-low, #f5f7fb);
+	border: 1px solid var(--md-sys-color-outline-variant, #e1e5ee);
+
+	> div {
+		flex: 1 1 260px;
+		min-width: 0;
+	}
+}
+
+.tc-onboarding__link {
+	font: inherit;
+	font-size: 13px;
+	font-weight: 700;
+	color: var(--link-color, #1f57c3);
+	background: none;
+	border: 0;
+	padding: 0;
+	cursor: pointer;
+	text-decoration: underline;
+}
+
+.tc-onboarding__dialog {
+	padding: 18px;
+	border-radius: 12px;
+	border: 1px solid var(--md-sys-color-outline-variant, #e1e5ee);
+	background: var(--md-sys-color-surface, #fff);
+	box-shadow: 0 6px 20px rgb(0 0 0 / 8%);
+}
+
+.tc-onboarding__dialog-title {
+	margin-bottom: 10px;
+	font-size: 16px;
+	font-weight: 800;
+}
+
+.tc-onboarding__dialog-body {
+	max-height: 260px;
+	overflow-y: auto;
+	overflow-wrap: anywhere;
+	font-size: 13px;
+	line-height: 1.5;
+
+	// The rendered content carries no view encapsulation attributes.
+	::ng-deep {
+		> :first-child {
+			margin-top: 0;
+		}
+
+		a {
+			color: var(--link-color, #1f57c3);
+		}
+	}
+}
+
+.tc-onboarding__dialog-body--empty {
+	font-style: italic;
+	color: var(--md-sys-color-on-surface-variant, #566072);
+}
+
+.tc-onboarding__dialog-actions {
+	display: flex;
+	justify-content: flex-end;
+	margin-top: 14px;
+}
+
+.tc-onboarding__pill {
+	padding: 6px 16px;
+	border-radius: 999px;
+	font-size: 13px;
+	font-weight: 700;
+	background: var(--md-sys-color-primary, #1f57c3);
+	color: var(--md-sys-color-on-primary, #fff);
+	user-select: none;
+}
+
+.tc-onboarding__tours-hint {
+	margin-top: 8px;
+}
+
+@media (max-width: 1100px) {
+	.tc-onboarding {
+		grid-template-columns: minmax(0, 1fr);
+	}
+}

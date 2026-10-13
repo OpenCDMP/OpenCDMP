@@ -1,0 +1,161 @@
+@if (report(); as current) {
+	@if (lead()) {
+		<div class="lead"><p>{{lead()}}</p></div>
+	}
+
+	@if (hasNotMigrated()) {
+		<div class="warning" role="status">
+			<mat-icon>warning</mat-icon>
+			<span>{{plural('REPORTS.RESULTS.NOT-MIGRATED-WARNING', notMigratedCount()) | translate: { count: notMigratedCount() | number } }}</span>
+		</div>
+	}
+
+	@for (question of questions(); track question.key) {
+		<section class="question">
+			@if (questions().length > 1) {
+				<h3>{{question.label}}</h3>
+				<p class="answer-sentence">{{answerSentence(question, true)}}</p>
+			}
+
+			<div class="grid">
+				<div class="panel">
+					<h4>{{'REPORTS.RESULTS.ANSWERS' | translate: { count: question.states.answered | number } }}</h4>
+					@if (question.multiValue) {
+						<p class="note">{{'REPORTS.RESULTS.MULTI-VALUE-NOTE' | translate}}</p>
+					}
+					@if (question.distribution.length === 0) {
+						<p class="note">{{'REPORTS.RESULTS.NO-ANSWERS' | translate}}</p>
+					} @else {
+						<table class="distribution">
+							<thead class="visually-hidden">
+								<tr>
+									<th scope="col">{{'REPORTS.RESULTS.VALUE' | translate}}</th>
+									<th scope="col"></th>
+									<th scope="col">{{'REPORTS.RESULTS.COUNT' | translate}}</th>
+									<th scope="col">{{'REPORTS.RESULTS.PERCENT' | translate}}</th>
+								</tr>
+							</thead>
+							<tbody>
+								@for (entry of visibleRows(question); track entry.value) {
+									<tr>
+										<td class="value" [title]="entry.value">{{entry.value}}</td>
+										<td class="bar-column"><span class="bar" [style.width.%]="barWidth(entry, question)"></span></td>
+										<td class="numeric count">{{entry.count | number}}</td>
+										<td class="numeric percent">{{entry.percentOfAnswered | number:'1.0-0'}}%</td>
+									</tr>
+								}
+							</tbody>
+						</table>
+						@if (hiddenRows(question) > 0) {
+							<button type="button" class="show-all" (click)="toggleExpanded(question)">
+								{{'REPORTS.RESULTS.SHOW-ALL' | translate: { count: question.distribution.length } }}
+							</button>
+						} @else if (expanded().has(question.key)) {
+							<button type="button" class="show-all" (click)="toggleExpanded(question)">
+								{{'REPORTS.RESULTS.SHOW-FEWER' | translate}}
+							</button>
+						}
+					}
+					@if (question.numberSummary) {
+						<p class="note">
+							{{'REPORTS.RESULTS.SUM' | translate}}: {{question.numberSummary.sum | number:'1.0-2'}} ·
+							{{'REPORTS.RESULTS.AVERAGE' | translate}}: {{question.numberSummary.average | number:'1.0-2'}} ·
+							{{'REPORTS.RESULTS.MIN' | translate}}: {{question.numberSummary.min | number:'1.0-2'}} ·
+							{{'REPORTS.RESULTS.MAX' | translate}}: {{question.numberSummary.max | number:'1.0-2'}}
+						</p>
+					}
+				</div>
+
+				<div class="panel">
+					<h4>{{'REPORTS.RESULTS.WHO-ANSWERED' | translate}}</h4>
+					<div class="states">
+						<div class="state answered">
+							<span class="state-value">{{question.states.answered | number}}</span>
+							<span class="state-label">{{'REPORTS.RESULTS.ANSWERED' | translate}}</span>
+						</div>
+						<div class="state">
+							<span class="state-value">{{question.states.notAnswered | number}}</span>
+							<span class="state-label">{{'REPORTS.RESULTS.NOT-ANSWERED' | translate}}</span>
+						</div>
+						<div class="state" [class.muted]="!question.states.notApplicable">
+							<span class="state-value">{{question.states.notApplicable | number}}</span>
+							<span class="state-label">
+								{{'REPORTS.RESULTS.NOT-APPLICABLE' | translate}}
+								<mat-icon class="hint-icon" [matTooltip]="'REPORTS.RESULTS.NOT-APPLICABLE-HINT' | translate">info_outline</mat-icon>
+							</span>
+						</div>
+						<div class="state" [class.muted]="!question.states.notMigrated">
+							<span class="state-value">{{question.states.notMigrated | number}}</span>
+							<span class="state-label">
+								{{'REPORTS.RESULTS.NOT-MIGRATED' | translate}}
+								<mat-icon class="hint-icon" [matTooltip]="'REPORTS.RESULTS.NOT-MIGRATED-HINT' | translate">info_outline</mat-icon>
+							</span>
+						</div>
+					</div>
+					<p class="note">
+						{{(isPlanSubject() ? 'REPORTS.RESULTS.SCOPE-NOTE-PLANS' : 'REPORTS.RESULTS.SCOPE-NOTE') | translate: {
+							items: current.subjects | number,
+							plans: current.distinctPlans | number,
+							versions: current.sourceVersionCount | number
+						} }}
+					</p>
+				</div>
+			</div>
+		</section>
+	}
+
+	@for (pivot of pivots(); track pivot.question.key) {
+		<section class="pivot">
+			<h3>
+				{{'REPORTS.RESULTS.BREAKDOWN' | translate}}
+				@if (questions().length > 1) { — {{pivot.question.label}} }
+			</h3>
+			<div class="table-scroll" tabindex="0" [attr.aria-label]="'REPORTS.RESULTS.BREAKDOWN' | translate">
+				<table>
+					<thead>
+						<tr>
+							@for (dimension of dimensions(); track dimension.label) {
+								<th scope="col">{{dimension.label}}</th>
+							}
+							<th scope="col" class="numeric">{{(isPlanSubject() ? 'REPORTS.RESULTS.PLANS' : 'REPORTS.RESULTS.ASSETS') | translate}}</th>
+							<th scope="col" class="numeric">{{'REPORTS.RESULTS.ANSWERED' | translate}}</th>
+							@for (column of pivot.valueColumns; track column) {
+								<th scope="col" class="numeric value-column" [title]="column">{{column}}</th>
+							}
+							<th scope="col" class="numeric">{{'REPORTS.RESULTS.NOT-ANSWERED' | translate}}</th>
+						</tr>
+					</thead>
+					<tbody>
+						@for (row of pivot.rows; track row.dimensionValues.join('|')) {
+							<tr>
+								@for (value of row.dimensionValues; track $index) {
+									<td><div class="dimension-value" [title]="value">{{value}}</div></td>
+								}
+								<td class="numeric">{{row.subjects | number}}</td>
+								<td class="numeric">{{row.answered | number}}</td>
+								@for (cell of row.cells; track $index) {
+									<td class="numeric">
+										<span class="heat" [style.--heat]="heat(cell, pivot.maxCell) + '%'">{{cell | number}}</span>
+									</td>
+								}
+								<td class="numeric">{{row.notAnswered | number}}</td>
+							</tr>
+						}
+						<tr class="total">
+							<td [attr.colspan]="dimensions().length">{{'REPORTS.RESULTS.TOTAL' | translate}}</td>
+							<td class="numeric">{{pivot.total.subjects | number}}</td>
+							<td class="numeric">{{pivot.total.answered | number}}</td>
+							@for (cell of pivot.total.cells; track $index) {
+								<td class="numeric">{{cell | number}}</td>
+							}
+							<td class="numeric">{{pivot.total.notAnswered | number}}</td>
+						</tr>
+					</tbody>
+				</table>
+			</div>
+			@if (pivot.question.distribution.length > pivot.valueColumns.length) {
+				<p class="note">{{'REPORTS.RESULTS.PIVOT-COLUMNS-NOTE' | translate: { shown: pivot.valueColumns.length, total: pivot.question.distribution.length } }}</p>
+			}
+		</section>
+	}
+}

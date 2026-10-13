@@ -1,6 +1,6 @@
 import { UntypedFormArray, UntypedFormBuilder, UntypedFormGroup, Validators } from "@angular/forms";
 import { PrefillingSource, PrefillingSourceDefinition, PrefillingSourceDefinitionField, PrefillingSourceDefinitionFieldPersist, PrefillingSourceDefinitionFixedValueField, PrefillingSourceDefinitionFixedValueFieldPersist, PrefillingSourceDefinitionPersist, PrefillingSourcePersist } from "@app/core/model/prefilling-source/prefilling-source";
-import { ExternalFetcherBaseSourceConfigurationEditorModel, QueryCaseConfigEditorModel, QueryConfigEditorModel } from "@app/ui/external-fetcher/external-fetcher-source-editor.model";
+import { ExternalFetcherBaseSourceConfigurationEditorModel } from "@app/ui/external-fetcher/external-fetcher-source-editor.model";
 
 import { BaseEditorModel } from "@common/base/base-form-editor-model";
 import { BackendErrorValidator } from "@common/forms/validation/custom-validator";

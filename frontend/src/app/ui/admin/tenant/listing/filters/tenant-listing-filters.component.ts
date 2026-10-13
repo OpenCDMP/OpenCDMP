@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges } from '@angular/core';
+import { Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges, ChangeDetectionStrategy } from '@angular/core';
 import { FormControl, FormGroup } from '@angular/forms';
 import { IsActive } from '@app/core/common/enum/is-active.enum';
 import { TenantFilter } from '@app/core/query/tenant.lookup';
@@ -10,7 +10,7 @@ import { nameof } from 'ts-simple-nameof';
     selector: 'app-tenant-listing-filters',
     templateUrl: './tenant-listing-filters.component.html',
     styleUrls: ['./tenant-listing-filters.component.scss'],
-    standalone: false
+    changeDetection: ChangeDetectionStrategy.Eager
 })
 export class TenantListingFiltersComponent extends BaseComponent implements OnInit, OnChanges {
 
@@ -19,7 +19,7 @@ export class TenantListingFiltersComponent extends BaseComponent implements OnIn
 
 	// * State
 	internalFilters: FormGroup<TenantListingFilters> = new FormGroup({
-        isActive: new FormControl(true),
+        showDeleted: new FormControl<boolean>(false, { nonNullable: true }),
         like: new FormControl(null),
     })
     
@@ -51,11 +51,11 @@ export class TenantListingFiltersComponent extends BaseComponent implements OnIn
 	}
 
 	protected applyFilters(): void {
-		const { isActive, like } = this.internalFilters?.value ?? {}
+		const { showDeleted, like } = this.internalFilters?.value ?? {}
 		this.filterChange.emit({
+			// search, deleted state and tenant scope live in the listing toolbar and arrive through `filter`
 			...this.filter,
 			like,
-			isActive: isActive ? [IsActive.Active] : [IsActive.Inactive]
 		});
         this.internalFilters.markAsPristine();
 	}
@@ -63,13 +63,13 @@ export class TenantListingFiltersComponent extends BaseComponent implements OnIn
 
 	private _parseToInternalFilters(inputFilter: TenantFilter) {
 		if (!inputFilter) {
-			this._getEmptyFilters();
+			return this._getEmptyFilters();
 		}
 
-		let { isActive, like } = inputFilter;
+		const { isActive, like } = inputFilter;
 
 		this.internalFilters.setValue({
-			isActive: (isActive ?? [])?.includes(IsActive.Active) || !isActive?.length,
+			showDeleted: (isActive ?? []).includes(IsActive.Inactive),
 			like: like ?? null
 		});
 
@@ -77,7 +77,7 @@ export class TenantListingFiltersComponent extends BaseComponent implements OnIn
 
 	private _getEmptyFilters() {
 		this.internalFilters.setValue({
-			isActive: true,
+			showDeleted: false,
 			like: null,
 		});
 	}
@@ -85,9 +85,6 @@ export class TenantListingFiltersComponent extends BaseComponent implements OnIn
 	private _computeAppliedFilters(formGroup: FormGroup<TenantListingFilters>): number {
 		const filters = formGroup?.value;
         let count = 0;
-		if (!filters?.isActive) {
-			count++;
-		}
 		if (filters?.like) {
 			count++;
 		}
@@ -102,6 +99,6 @@ export class TenantListingFiltersComponent extends BaseComponent implements OnIn
 }
 
 interface TenantListingFilters {
-    isActive: FormControl<boolean>;
+    showDeleted: FormControl<boolean>;
     like: FormControl<string>;
 }

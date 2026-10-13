@@ -85,6 +85,20 @@ permissions:
       allowAnonymous: false
       allowAuthenticated: false
 
+    # Tenant Transfer
+    TransferTenantData:
+      roles:
+        - Admin
+      clients: [ ]
+      allowAnonymous: false
+      allowAuthenticated: false
+    PurgeTenantData:
+      roles:
+        - Admin
+      clients: [ ]
+      allowAnonymous: false
+      allowAuthenticated: false
+
     # Deposit
     BrowseDeposit:
       roles:
@@ -100,6 +114,13 @@ permissions:
       clients: [ ]
       allowAnonymous: false
       allowAuthenticated: false
+
+    #Statistics
+    QueryStatistics:
+      roles: []
+      clients: [ ]
+      allowAnonymous: false
+      allowAuthenticated: true
 
     #DescriptionStatus
     BrowseDescriptionStatus:
@@ -261,6 +282,35 @@ permissions:
       allowAnonymous: false
       allowAuthenticated: false
     DeleteTenantConfiguration:
+      roles:
+        - Admin
+        - TenantAdmin
+      clients: [ ]
+      allowAnonymous: false
+      allowAuthenticated: false
+    # WebhookSubscription
+    BrowseWebhookSubscription:
+      roles:
+        - Admin
+        - TenantAdmin
+      clients: [ ]
+      allowAnonymous: false
+      allowAuthenticated: false
+    EditWebhookSubscription:
+      roles:
+        - Admin
+        - TenantAdmin
+      clients: [ ]
+      allowAnonymous: false
+      allowAuthenticated: false
+    DeleteWebhookSubscription:
+      roles:
+        - Admin
+        - TenantAdmin
+      clients: [ ]
+      allowAnonymous: false
+      allowAuthenticated: false
+    ViewWebhooksPage:
       roles:
         - Admin
         - TenantAdmin
@@ -458,6 +508,7 @@ permissions:
     EditTenantUserRole:
       roles:
         - Admin
+        - InstallationAdmin
         - TenantAdmin
       clients: [ ]
       allowAnonymous: false
@@ -465,6 +516,7 @@ permissions:
     InviteTenantUser:
       roles:
         - Admin
+        - InstallationAdmin
         - TenantAdmin
       clients: [ ]
       allowAnonymous: false
@@ -942,6 +994,15 @@ permissions:
       roles:
         - Admin
         - TenantAdmin
+      plan:
+        roles:
+          - Owner
+          - Viewer
+          - DescriptionContributor
+          - DataSteward
+          - Reviewer
+          - DataPrivacyOfficer
+          - EthicsReviewer
       clients: [ ]
       allowAnonymous: false
       allowAuthenticated: false
@@ -1367,7 +1428,7 @@ permissions:
       plan:
         roles:
           - Owner
-      clients: [ "opencdmp-rda-madmp-dev" ]
+      clients: [ "${RDA_MADMP_QUEUE_APP_ID:}" ]
       allowAnonymous: false
       allowAuthenticated: false
     EditPlanUpdateRequest:
@@ -1377,7 +1438,7 @@ permissions:
       plan:
         roles:
           - Owner
-      clients: [ "opencdmp-rda-madmp-dev" ]
+      clients: [ "${RDA_MADMP_QUEUE_APP_ID:}" ]
       allowAnonymous: false
       allowAuthenticated: false
     DeletePlanUpdateRequest:
@@ -1388,7 +1449,7 @@ permissions:
         roles:
           - Owner
       claims: [ ]
-      clients: [ "opencdmp-rda-madmp-dev" ]
+      clients: [ "${RDA_MADMP_QUEUE_APP_ID:}" ]
       allowAnonymous: false
       allowAuthenticated: false
 
@@ -1402,6 +1463,12 @@ permissions:
       allowAnonymous: false
       allowAuthenticated: false
     ViewMaintenancePage:
+      roles:
+        - Admin
+      clients: [ ]
+      allowAnonymous: false
+      allowAuthenticated: false
+    ViewTenantTransferPage:
       roles:
         - Admin
       clients: [ ]
@@ -1601,6 +1668,89 @@ permissions:
         - Admin
         - InstallationAdmin
         - TenantAdmin
+      clients: [ ]
+      allowAnonymous: false
+      allowAuthenticated: false
+    ViewPlanBlueprintLibraryPage:
+      roles:
+        - Admin
+        - InstallationAdmin
+        - User
+        - TenantAdmin
+        - TenantUser
+        - TenantPlanManager
+        - TenantConfigManager
+      clients: [ ]
+      allowAnonymous: false
+      allowAuthenticated: false
+    ViewDescriptionTemplateLibraryPage:
+      roles:
+        - Admin
+        - InstallationAdmin
+        - User
+        - TenantAdmin
+        - TenantUser
+        - TenantPlanManager
+        - TenantConfigManager
+      clients: [ ]
+      allowAnonymous: false
+      allowAuthenticated: false
+    # User Settings (per-user UI preferences: listing layouts, dismissed guided tours).
+    # These two permissions are the ADMINISTRATIVE override only: a user who holds them can read and edit
+    # every user's settings. Ordinary users are NOT listed here on purpose - without the permission the
+    # query falls back to the owner filter (entityId = current user) and persist authorizes the caller as
+    # OwnedResource, so everyone can still manage their own settings and nobody else's.
+    BrowseUserSettings:
+      roles:
+        - Admin
+        - InstallationAdmin
+      clients: [ ]
+      allowAnonymous: false
+      allowAuthenticated: false
+    EditUserSettings:
+      roles:
+        - Admin
+        - InstallationAdmin
+      clients: [ ]
+      allowAnonymous: false
+      allowAuthenticated: false
+    # Report
+    BrowseReport:
+      roles:
+        - Admin
+        - InstallationAdmin
+        - TenantAdmin
+      clients: [ ]
+      allowAnonymous: false
+      allowAuthenticated: false
+    ExportReport:
+      roles:
+        - Admin
+        - InstallationAdmin
+        - TenantAdmin
+      clients: [ ]
+      allowAnonymous: false
+      allowAuthenticated: false
+    ViewReportsPage:
+      roles:
+        - Admin
+        - InstallationAdmin
+        - TenantAdmin
+      clients: [ ]
+      allowAnonymous: false
+      allowAuthenticated: false
+    # Reports across every tenant of the installation
+    BrowseInstallationReport:
+      roles:
+        - Admin
+        - InstallationAdmin
+      clients: [ ]
+      allowAnonymous: false
+      allowAuthenticated: false
+    ExportInstallationReport:
+      roles:
+        - Admin
+        - InstallationAdmin
       clients: [ ]
       allowAnonymous: false
       allowAuthenticated: false

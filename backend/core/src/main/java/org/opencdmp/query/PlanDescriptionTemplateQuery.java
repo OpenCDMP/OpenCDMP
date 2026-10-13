@@ -34,7 +34,7 @@ public class PlanDescriptionTemplateQuery extends QueryBase<PlanDescriptionTempl
 
     private Collection<UUID> descriptionTemplateGroupIds;
 
-    private Collection<UUID> sectionIds;
+    private Collection<String> sectionIds;
 
     private Collection<IsActive> isActives;
 
@@ -91,17 +91,17 @@ public class PlanDescriptionTemplateQuery extends QueryBase<PlanDescriptionTempl
         return this;
     }
 
-    public PlanDescriptionTemplateQuery sectionIds(UUID value) {
+    public PlanDescriptionTemplateQuery sectionIds(String value) {
         this.sectionIds = List.of(value);
         return this;
     }
 
-    public PlanDescriptionTemplateQuery sectionIds(UUID... value) {
+    public PlanDescriptionTemplateQuery sectionIds(String... value) {
         this.sectionIds = Arrays.asList(value);
         return this;
     }
 
-    public PlanDescriptionTemplateQuery sectionIds(Collection<UUID> values) {
+    public PlanDescriptionTemplateQuery sectionIds(Collection<String> values) {
         this.sectionIds = values;
         return this;
     }
@@ -246,8 +246,8 @@ public class PlanDescriptionTemplateQuery extends QueryBase<PlanDescriptionTempl
             predicates.add(inClause);
         }
         if (this.sectionIds != null) {
-            CriteriaBuilder.In<UUID> inClause = queryContext.CriteriaBuilder.in(queryContext.Root.get(PlanDescriptionTemplateEntity._sectionId));
-            for (UUID item : this.sectionIds)
+            CriteriaBuilder.In<String> inClause = queryContext.CriteriaBuilder.in(queryContext.Root.get(PlanDescriptionTemplateEntity._sectionId));
+            for (String item : this.sectionIds)
                 inClause.value(item);
             predicates.add(inClause);
         }
@@ -281,7 +281,7 @@ public class PlanDescriptionTemplateQuery extends QueryBase<PlanDescriptionTempl
         item.setTenantId(QueryBase.convertSafe(tuple, columns, PlanDescriptionTemplateEntity._tenantId, UUID.class));
         item.setPlanId(QueryBase.convertSafe(tuple, columns, PlanDescriptionTemplateEntity._planId, UUID.class));
         item.setDescriptionTemplateGroupId(QueryBase.convertSafe(tuple, columns, PlanDescriptionTemplateEntity._descriptionTemplateGroupId, UUID.class));
-        item.setSectionId(QueryBase.convertSafe(tuple, columns, PlanDescriptionTemplateEntity._sectionId, UUID.class));
+        item.setSectionId(QueryBase.convertSafe(tuple, columns, PlanDescriptionTemplateEntity._sectionId, String.class));
         item.setCreatedAt(QueryBase.convertSafe(tuple, columns, PlanDescriptionTemplateEntity._createdAt, Instant.class));
         item.setUpdatedAt(QueryBase.convertSafe(tuple, columns, PlanDescriptionTemplateEntity._updatedAt, Instant.class));
         item.setIsActive(QueryBase.convertSafe(tuple, columns, PlanDescriptionTemplateEntity._isActive, IsActive.class));

@@ -19,6 +19,7 @@ import org.opencdmp.data.TenantEntityManagerFactory;
 import org.opencdmp.data.UserEntity;
 import org.opencdmp.model.builder.TenantBuilder;
 import org.opencdmp.query.TenantQuery;
+import org.opencdmp.service.usertermsacceptance.UserTermsAcceptanceService;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
@@ -42,8 +43,9 @@ public class AccountBuilder {
     private final TenantScopeFactory tenantScopeFactory;
     private final QueryFactory queryFactory;
     private final BuilderFactory builderFactory;
+    private final UserTermsAcceptanceService userTermsAcceptanceService;
 
-    public AccountBuilder(ClaimExtractorFactory claimExtractorFactory, CurrentPrincipalResolverFactory currentPrincipalResolver, @Qualifier("OpencdmpPermissionPolicyContextImpl") PermissionPolicyContext permissionPolicyContext, AuthorizationContentResolverFactory authorizationContentResolverFactory, JsonHandlingService jsonHandlingService, UserScopeFactory userScopeFactory, TenantEntityManagerFactory tenantEntityManagerFactory, TenantScopeFactory tenantScopeFactory, QueryFactory queryFactory, BuilderFactory builderFactory) {
+    public AccountBuilder(ClaimExtractorFactory claimExtractorFactory, CurrentPrincipalResolverFactory currentPrincipalResolver, @Qualifier("OpencdmpPermissionPolicyContextImpl") PermissionPolicyContext permissionPolicyContext, AuthorizationContentResolverFactory authorizationContentResolverFactory, JsonHandlingService jsonHandlingService, UserScopeFactory userScopeFactory, TenantEntityManagerFactory tenantEntityManagerFactory, TenantScopeFactory tenantScopeFactory, QueryFactory queryFactory, BuilderFactory builderFactory, UserTermsAcceptanceService userTermsAcceptanceService) {
         this.claimExtractorFactory = claimExtractorFactory;
         this.currentPrincipalResolver = currentPrincipalResolver;
         this.permissionPolicyContext = permissionPolicyContext;
@@ -54,6 +56,7 @@ public class AccountBuilder {
         this.tenantScopeFactory = tenantScopeFactory;
         this.queryFactory = queryFactory;
         this.builderFactory = builderFactory;
+        this.userTermsAcceptanceService = userTermsAcceptanceService;
         this.excludeMoreClaim = Set.of(
                 ClaimExtractorKeys.Subject,
                 ClaimExtractorKeys.Name,
@@ -140,6 +143,10 @@ public class AccountBuilder {
             if (profileFields.hasField(Account.UserProfileInfo._language) && additionalInfoEntity != null) model.getProfile().setLanguage(additionalInfoEntity.getLanguage());
             if (profileFields.hasField(Account.UserProfileInfo._timezone) && additionalInfoEntity != null) model.getProfile().setTimezone(additionalInfoEntity.getTimezone());
             if (profileFields.hasField(Account.UserProfileInfo._culture) && additionalInfoEntity != null) model.getProfile().setCulture(additionalInfoEntity.getCulture());
+        }
+
+        if (fields.hasField(Account._userTermsStatus)) {
+            model.setUserTermsStatus(this.userTermsAcceptanceService.getStatus());
         }
        
         return model;

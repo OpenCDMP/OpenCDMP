@@ -1,5 +1,6 @@
 package org.opencdmp.controllers;
 
+import org.xml.sax.SAXException;
 import tools.jackson.core.JacksonException;
 import gr.cite.tools.auditing.AuditService;
 import gr.cite.tools.data.builder.BuilderFactory;
@@ -19,13 +20,16 @@ import org.opencdmp.data.PlanUpdateRequestEntity;
 import org.opencdmp.filetransformerbase.models.misc.PreprocessingPlanModel;
 import org.opencdmp.model.builder.planupdaterequest.PlanUpdateRequestBuilder;
 import org.opencdmp.model.censorship.PlanUpdateRequestCensor;
-import org.opencdmp.model.persist.PlanSuggestion;
+import org.opencdmp.model.description.Description;
+import org.opencdmp.model.persist.PlanUpdateRequestApply;
 import org.opencdmp.model.persist.PlanUpdateRequestPersist;
 import org.opencdmp.model.plan.Plan;
 import org.opencdmp.model.planupdaterequest.PlanUpdateRequest;
+import org.opencdmp.model.planupdaterequest.preview.PlanUpdatePreview;
 import org.opencdmp.model.result.QueryResult;
 import org.opencdmp.query.PlanUpdateRequestQuery;
 import org.opencdmp.query.lookup.PlanUpdateRequestLookup;
+import org.opencdmp.service.planupdaterequest.PlanUpdatePreviewService;
 import org.opencdmp.service.planupdaterequest.PlanUpdateRequestService;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.MessageSource;
@@ -37,6 +41,8 @@ import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
 import javax.management.InvalidApplicationException;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.TransformerException;
 import java.io.IOException;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
@@ -55,6 +61,8 @@ public class PlanUpdateRequestController {
 
     private final PlanUpdateRequestService planUpdateRequestService;
 
+    private final PlanUpdatePreviewService planUpdatePreviewService;
+
     private final CensorFactory censorFactory;
 
     private final QueryFactory queryFactory;
@@ -65,12 +73,14 @@ public class PlanUpdateRequestController {
             BuilderFactory builderFactory,
             AuditService auditService,
             PlanUpdateRequestService planUpdateRequestService,
+            PlanUpdatePreviewService planUpdatePreviewService,
             CensorFactory censorFactory,
             QueryFactory queryFactory,
             MessageSource messageSource) {
         this.builderFactory = builderFactory;
         this.auditService = auditService;
         this.planUpdateRequestService = planUpdateRequestService;
+        this.planUpdatePreviewService = planUpdatePreviewService;
         this.censorFactory = censorFactory;
         this.queryFactory = queryFactory;
         this.messageSource = messageSource;
@@ -140,6 +150,17 @@ public class PlanUpdateRequestController {
         this.auditService.track(AuditableAction.PlanUpdateRequest_Delete, "id", id);
     }
 
+    @GetMapping("{id}/preview")
+    public PlanUpdatePreview preview(@PathVariable("id") UUID id) throws MyApplicationException, MyForbiddenException, MyNotFoundException, InvalidApplicationException {
+        logger.debug(new MapLogEntry("previewing plan update request").And("id", id));
+
+        PlanUpdatePreview preview = this.planUpdatePreviewService.preview(id);
+
+        this.auditService.track(AuditableAction.PlanUpdateRequest_Preview, "id", id);
+
+        return preview;
+    }
+
     @GetMapping("preprocessing/{id}")
     public PreprocessingPlanModel preprocessing(@PathVariable("id") UUID id) throws InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, InvalidApplicationException, IOException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
         logger.debug(new MapLogEntry("preprocessing plan update request" + PlanUpdateRequest.class.getSimpleName()).And("id", id));
@@ -153,15 +174,35 @@ public class PlanUpdateRequestController {
         return model;
     }
 
-    @PostMapping("build-plan")
-    @Transactional
-    @ValidationFilterAnnotation(validator = PlanSuggestion.PlanSuggestionValidator.ValidatorName, argumentName = "model")
-    public Plan buildPlan(@RequestBody PlanSuggestion model) throws InvalidAlgorithmParameterException, JAXBException, NoSuchPaddingException, IllegalBlockSizeException, InvalidApplicationException, NoSuchAlgorithmException, BadPaddingException, IOException, InvalidKeyException {
-        logger.debug(new MapLogEntry("build plan from plan update suggestion" + PlanSuggestion.class.getSimpleName()).And("model", model));
-        Plan plan = this.planUpdateRequestService.buildPlan(model);
+    @GetMapping("{id}/description")
+    public Description descriptionPersistFromPreview(
+            @PathVariable("id") UUID id,
+            @RequestParam("datasetId") String datasetId,
+            @RequestParam("planDescriptionTemplateId") UUID planDescriptionTemplateId
+    ) throws MyApplicationException, MyForbiddenException, MyNotFoundException, InvalidApplicationException {
+        logger.debug(new MapLogEntry("description persist from preview").And("id", id).And("datasetId", datasetId).And("planDescriptionTemplateId", planDescriptionTemplateId));
 
-        this.auditService.track(AuditableAction.PlanUpdateRequest_BuildPlan, Map.ofEntries(
-                new AbstractMap.SimpleEntry<String, Object>("model", model)
+        Description model = this.planUpdatePreviewService.descriptionFromPreview(id, datasetId, planDescriptionTemplateId);
+
+        this.auditService.track(AuditableAction.PlanUpdateRequest_Preview, Map.ofEntries(
+                new AbstractMap.SimpleEntry<String, Object>("id", id),
+                new AbstractMap.SimpleEntry<String, Object>("datasetId", datasetId),
+                new AbstractMap.SimpleEntry<String, Object>("planDescriptionTemplateId", planDescriptionTemplateId)
+        ));
+
+        return model;
+    }
+
+    @PostMapping("apply-create")
+    @Transactional
+    @ValidationFilterAnnotation(validator = PlanUpdateRequestApply.PlanUpdateRequestApplyValidator.ValidatorName, argumentName = "model")
+    public Plan applyCreate(@RequestBody PlanUpdateRequestApply model, FieldSet fieldSet) throws InvalidAlgorithmParameterException, JAXBException, NoSuchPaddingException, IllegalBlockSizeException, InvalidApplicationException, NoSuchAlgorithmException, BadPaddingException, IOException, InvalidKeyException, ParserConfigurationException, TransformerException, InstantiationException, IllegalAccessException, SAXException {
+        logger.debug(new MapLogEntry("applying create plan update request" + PlanUpdateRequestApply.class.getSimpleName()).And("model", model));
+        Plan plan = this.planUpdateRequestService.applyCreate(model, fieldSet);
+
+        this.auditService.track(AuditableAction.PlanUpdateRequest_Apply, Map.ofEntries(
+                new AbstractMap.SimpleEntry<String, Object>("model", model),
+                new AbstractMap.SimpleEntry<String, Object>("fields", fieldSet)
         ));
 
         return plan;

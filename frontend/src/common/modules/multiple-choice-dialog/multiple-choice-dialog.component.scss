@@ -1,3 +1,31 @@
+.message {
+	font-size: var(--mat-sys-title-medium-size);
+	font-weight: 500;
+	line-height: 1.4;
+	color: var(--mat-sys-on-surface);
+}
+
+mat-dialog-actions {
+	gap: 0.5rem;
+	padding: 0.5rem 1.5rem 1.25rem;
+	flex-wrap: nowrap;
+
+	button {
+		min-width: 7.5rem;
+		flex: 1 1 0;
+		white-space: normal;
+		line-height: 1.2;
+		padding-top: 0.5rem;
+		padding-bottom: 0.5rem;
+		height: auto;
+
+		.mdc-button__label {
+			display: block;
+			text-align: center;
+		}
+	}
+}
+
 .confirmation-dialog {
 	.confirmation {
 	  padding-bottom: 20px;

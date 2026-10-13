@@ -1,17 +1,17 @@
-import { Component, Inject } from '@angular/core';
-import { AbstractControl, FormArray, UntypedFormGroup } from '@angular/forms';
-import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
+import { Component, Inject, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { AbstractControl, FormArray, UntypedFormGroup, FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { MAT_DIALOG_DATA, MatDialogRef, MatDialogTitle, MatDialogActions } from '@angular/material/dialog';
 import { Plan, NewVersionPlanDescriptionPersist, NewVersionPlanPersist } from '@app/core/model/plan/plan';
 import { PlanService } from '@app/core/services/plan/plan.service';
 import { SnackBarNotificationLevel } from '@app/core/services/notification/ui-notification-service';
 import { BaseComponent } from '@common/base/base.component';
-import { TranslateService } from '@ngx-translate/core';
+import { TranslateService, TranslatePipe } from '@ngx-translate/core';
 import { catchError, map, takeUntil, tap } from 'rxjs/operators';
 import { PlanNewVersionDialogEditorModel } from './plan-new-version-dialog.editor.model';
 import { PlanBlueprintService } from '@app/core/services/plan/plan-blueprint.service';
 import { PlanEditorEntityResolver } from '../plan-editor-blueprint/resolvers/plan-editor-enitity.resolver';
 import { SingleAutoCompleteConfiguration } from '@app/library/auto-complete/single/single-auto-complete-configuration';
-import { DescriptionTemplatesInSection, PlanBlueprint, PlanBlueprintDefinition, PlanBlueprintDefinitionSection } from '@app/core/model/plan-blueprint/plan-blueprint';
+import { DescriptionTemplatesInSection, PlanBlueprint, PlanBlueprintDefinition, RootSection } from '@app/core/model/plan-blueprint/plan-blueprint';
 import { PlanBlueprintStatus } from '@app/core/common/enum/plan-blueprint-status';
 import { PlanBlueprintLookup } from '@app/core/query/plan-blueprint.lookup';
 import { IsActive } from '@notification-service/core/enum/is-active.enum';
@@ -20,28 +20,37 @@ import { PlanBlueprintVersionStatus } from '@app/core/common/enum/plan-blueprint
 import { FilterService } from '@common/modules/text-filter/filter-service';
 import { Guid } from '@common/types/guid';
 import { FormService } from '@common/forms/form-service';
-import { MatSelectionListChange } from '@angular/material/list';
+import { MatSelectionListChange, MatSelectionList, MatListOption, MatListSubheaderCssMatStyler } from '@angular/material/list';
 import { HttpErrorHandlingService } from '@common/modules/errors/error-handling/http-error-handling.service';
 import { HttpErrorResponse } from '@angular/common/http';
-import { Description } from '@app/core/model/description/description';
-import { of, throwError } from 'rxjs';
+import { of } from 'rxjs';
 import { DescriptionTemplate } from '@app/core/model/description-template/description-template';
 import { DescriptionStatusEnum } from '@app/core/common/enum/description-status';
-import { ResponseErrorCode } from '@app/core/common/enum/respone-error-code';
+import { EnqueueService } from '@app/core/services/enqueue.service';
+import { MatIconButton, MatButton } from '@angular/material/button';
+import { MatIcon } from '@angular/material/icon';
+import { MatFormField, MatError } from '@angular/material/form-field';
+import { MatInput } from '@angular/material/input';
+import { RichTextEditorComponent } from '../../../library/rich-text-editor/rich-text-editor.component';
+import { SingleAutoCompleteComponent } from '../../../library/auto-complete/single/single-auto-complete.component';
+import { MatCard, MatCardHeader } from '@angular/material/card';
+import { MatCheckbox } from '@angular/material/checkbox';
+import { MatSelect, MatSelectTrigger, MatOption } from '@angular/material/select';
 
 @Component({
     selector: 'app-plan-new-version-dialog',
     templateUrl: './plan-new-version-dialog.component.html',
     styleUrls: ['./plan-new-version-dialog.component.scss'],
-    standalone: false
+    changeDetection: ChangeDetectionStrategy.Eager,
+    imports: [MatDialogTitle, MatIconButton, MatIcon, MatFormField, MatInput, FormsModule, ReactiveFormsModule, MatError, RichTextEditorComponent, SingleAutoCompleteComponent, MatCard, MatCardHeader, MatCheckbox, MatSelectionList, MatListOption, MatSelect, MatSelectTrigger, MatOption, MatListSubheaderCssMatStyler, MatDialogActions, MatButton, TranslatePipe]
 })
-export class NewVersionPlanDialogComponent extends BaseComponent {
+export class NewVersionPlanDialogComponent extends BaseComponent implements OnInit {
    
 
 	plan: Plan;
 	editorModel: PlanNewVersionDialogEditorModel;
 	formGroup: UntypedFormGroup;
-	selectedBlueprintSections: PlanBlueprintDefinitionSection[];
+	selectedBlueprintSections: RootSection[];
 
 	singleAutocompleteBlueprintConfiguration: SingleAutoCompleteConfiguration = {
 		initialItems: (data?: any) => this.planBlueprintService.query(this.buildAutocompleteLookup(null, null, null, [PlanBlueprintStatus.Finalized])).pipe(map(x => x.items)),
@@ -65,10 +74,11 @@ export class NewVersionPlanDialogComponent extends BaseComponent {
 				nameof<PlanBlueprint>(x => x.id),
 				nameof<PlanBlueprint>(x => x.label),
 				nameof<PlanBlueprint>(x => x.version),
-				[nameof<PlanBlueprint>(x => x.definition), nameof<PlanBlueprintDefinition>(x => x.sections), nameof<PlanBlueprintDefinitionSection>(x => x.id)].join('.'),
-				[nameof<PlanBlueprint>(x => x.definition), nameof<PlanBlueprintDefinition>(x => x.sections), nameof<PlanBlueprintDefinitionSection>(x => x.label)].join('.'),
-				[nameof<PlanBlueprint>(x => x.definition), nameof<PlanBlueprintDefinition>(x => x.sections), nameof<PlanBlueprintDefinitionSection>(x => x.hasTemplates)].join('.'),
-				[nameof<PlanBlueprint>(x => x.definition), nameof<PlanBlueprintDefinition>(x => x.sections), nameof<PlanBlueprintDefinitionSection>(x => x.descriptionTemplates), nameof<DescriptionTemplatesInSection>(x => x.descriptionTemplate), nameof<DescriptionTemplate>(x => x.groupId)].join('.'),
+				[nameof<PlanBlueprint>(x => x.definition), nameof<PlanBlueprintDefinition>(x => x.sections), nameof<RootSection>(x => x.id)].join('.'),
+				[nameof<PlanBlueprint>(x => x.definition), nameof<PlanBlueprintDefinition>(x => x.sections), nameof<RootSection>(x => x.title)].join('.'),
+				[nameof<PlanBlueprint>(x => x.definition), nameof<PlanBlueprintDefinition>(x => x.sections), nameof<RootSection>(x => x.sections)].join('.'),
+				[nameof<PlanBlueprint>(x => x.definition), nameof<PlanBlueprintDefinition>(x => x.sections), nameof<RootSection>(x => x.hasTemplates)].join('.'),
+				[nameof<PlanBlueprint>(x => x.definition), nameof<PlanBlueprintDefinition>(x => x.sections), nameof<RootSection>(x => x.descriptionTemplates), nameof<DescriptionTemplatesInSection>(x => x.descriptionTemplate), nameof<DescriptionTemplate>(x => x.groupId)].join('.'),
 			]
 		};
 		lookup.order = { items: [nameof<PlanBlueprint>(x => x.label)] };
@@ -79,6 +89,8 @@ export class NewVersionPlanDialogComponent extends BaseComponent {
 
     IsActiveEnum = IsActive;
 	descriptionStatusEnum = DescriptionStatusEnum;
+	isLoading = this.enqueueService.exhaustPipelineBusy;
+
 	constructor(
 		public dialogRef: MatDialogRef<NewVersionPlanDialogComponent>,
 		private planService: PlanService,
@@ -87,6 +99,7 @@ export class NewVersionPlanDialogComponent extends BaseComponent {
 		private language: TranslateService,
 		private filterService: FilterService,
 		private formService: FormService,
+		private enqueueService: EnqueueService,
 		@Inject(MAT_DIALOG_DATA) public data: any
 	) {
 		super();
@@ -168,7 +181,7 @@ export class NewVersionPlanDialogComponent extends BaseComponent {
 
 	getDescriptionSectionLabel(descriptionFormArray: FormArray, descriptionId: Guid) {
 		const descriptionSection = this.getDescriptionSectionFormControl(descriptionFormArray, descriptionId);
-		return this.selectedBlueprintSections.find(s => s.id == descriptionSection?.value)?.label;
+		return this.selectedBlueprintSections.find(s => s.id == descriptionSection?.value)?.title;
 	}
 
 	getDescriptionSectionFormControl(descriptionFormArray: FormArray, descriptionId: Guid) {
@@ -190,6 +203,11 @@ export class NewVersionPlanDialogComponent extends BaseComponent {
 
 	cancel() {
 		this.dialogRef.close(null);
+	}
+
+	submit(): void {
+		const request = this.confirm();
+		if (request) this.enqueueService.enqueueExhaustChannel(request).subscribe();
 	}
 
 	confirm = () => {
@@ -223,7 +241,7 @@ export class NewVersionPlanDialogComponent extends BaseComponent {
 	}
 
 	onCallbackError(errorResponse: HttpErrorResponse) {
-		let errorOverrides = new Map<number, string>();
+		const errorOverrides = new Map<number, string>();
 		errorOverrides.set(-1, errorResponse.error.message ? errorResponse.error.message : errorResponse.error.error ? errorResponse.error.error : this.language.instant('GENERAL.SNACK-BAR.UNSUCCESSFUL-DELETE'));
 		this.httpErrorHandlingService.handleBackedRequestError(errorResponse, errorOverrides, SnackBarNotificationLevel.Error);
 	}

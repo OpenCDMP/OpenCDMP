@@ -1,0 +1,198 @@
+:host {
+    min-width: 0;
+}
+
+.reference-card {
+    min-width: 0;
+
+    .reference-card--main {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        min-width: 0;
+    }
+
+    .reference-card--logo {
+        height: 1.25rem;
+        width: auto;
+        max-width: 1.75rem;
+        object-fit: contain;
+        flex-shrink: 0;
+    }
+
+    .reference-card--text {
+        display: flex;
+        flex-direction: column;
+        gap: 0.125rem;
+        min-width: 0;
+    }
+
+    .reference-card--label {
+        font-weight: 500;
+        color: var(--mat-sys-on-surface);
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .reference-card--meta {
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 0.375rem;
+        min-width: 0;
+        font-size: var(--mat-sys-label-small-size);
+        color: var(--mat-sys-on-surface-variant);
+    }
+
+    .reference-card--id {
+        opacity: 0.85;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .reference-card--description {
+        font-size: var(--mat-sys-label-small-size);
+        color: var(--mat-sys-on-surface-variant);
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        max-width: 100%;
+    }
+
+    .reference-card--id-link {
+        color: var(--mat-sys-primary);
+        text-decoration: none;
+        &:hover {
+            text-decoration: underline;
+        }
+    }
+
+    // Fallback visual anchor when the source has no configured logo.
+    .reference-card--icon {
+        font-size: 1.25rem;
+        height: 1.25rem;
+        width: 1.25rem;
+        line-height: 1.25rem;
+        color: var(--mat-sys-on-surface-variant);
+        opacity: 0.7;
+        flex-shrink: 0;
+    }
+
+    .reference-card--toggle {
+        min-width: auto;
+        padding: 0 0.5rem;
+
+        .reference-card--field-count {
+            font-size: var(--mat-sys-label-small-size);
+            color: var(--mat-sys-on-surface-variant);
+        }
+    }
+
+    .reference-card--source-badge {
+        padding: 0 0.375rem;
+        border-radius: 999px;
+        background-color: var(--mat-sys-surface-container-high);
+        color: var(--mat-sys-on-surface-variant);
+        line-height: 1.6;
+        white-space: nowrap;
+
+        &.internal {
+            background-color: var(--mat-sys-secondary-container);
+            color: var(--mat-sys-on-secondary-container);
+        }
+    }
+
+    .reference-card--actions {
+        display: flex;
+        align-items: center;
+        flex-shrink: 0;
+        margin-left: auto;
+    }
+
+    .reference-card--fields {
+        margin-top: 0.5rem;
+        padding-left: 1.75rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
+    }
+
+    .reference-card--field {
+        display: flex;
+        gap: 0.5rem;
+        font-size: var(--mat-sys-label-medium-size);
+
+        .reference-card--field-label {
+            color: var(--mat-sys-on-surface-variant);
+            min-width: 8rem;
+            font-weight: 500;
+        }
+
+        .reference-card--field-value {
+            color: var(--mat-sys-on-surface);
+            word-break: break-word;
+        }
+    }
+
+    // Full card chrome (read views)
+    &:not(.compact) {
+        border: 1px solid var(--mat-sys-outline-variant);
+        border-radius: 10px;
+        padding: 0.5rem 0.75rem;
+        background-color: var(--mat-sys-surface);
+    }
+
+    // Host supplies the chrome (e.g. inside a mat-option): keep the multiline layout, drop the box.
+    &.no-chrome:not(.compact) {
+        border: none;
+        border-radius: 0;
+        padding: 0;
+        background-color: transparent;
+    }
+
+    // Denser full card for list/picker contexts (more rows per screen).
+    &.dense:not(.compact) {
+        border-radius: 8px;
+        padding: 0.375rem 0.625rem;
+
+        .reference-card--main {
+            gap: 0.375rem;
+        }
+
+        .reference-card--logo {
+            height: 1rem;
+        }
+
+        .reference-card--icon {
+            height: 1rem;
+            width: 1rem;
+            font-size: 1rem;
+            line-height: 1rem;
+        }
+
+        .reference-card--fields {
+            padding-left: 1.5rem;
+        }
+    }
+
+    // Compact variant (editor chip / dropdown option): inline, no chrome
+    &.compact {
+        .reference-card--text {
+            flex-direction: row;
+            align-items: center;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+        .reference-card--logo {
+            height: 1rem;
+        }
+        .reference-card--icon {
+            font-size: 1rem;
+            height: 1rem;
+            width: 1rem;
+            line-height: 1rem;
+        }
+    }
+}

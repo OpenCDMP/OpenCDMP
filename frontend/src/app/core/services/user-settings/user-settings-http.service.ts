@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { UserSettingPersist, UserSettings } from '@app/core/model/user-settings/user-settings.model';
 import { Guid } from '@common/types/guid';
-import { Observable } from 'rxjs';
+import { Observable, forkJoin, of } from 'rxjs';
 import { ConfigurationService } from '../configuration/configuration.service';
 import { BaseHttpV2Service } from '../http/base-http-v2.service';
 
@@ -21,14 +21,20 @@ export class UserSettingsHttpService {
 
 	persist(item: UserSettingPersist): Observable<UserSettings> {
 		const url = `${this.apiBase}/persist`;
+		// Ask for the full row back: the caller re-caches the response, and the next update needs the new hash.
+		const options = { params: { f: ['id', 'key', 'value', 'entityId', 'type', 'hash', 'createdAt', 'updatedAt'] } };
 
-		return this.http.post<UserSettings>(url, item);
+		return this.http.post<UserSettings>(url, item, options);
 	}
 
+	/**
+	 * The backend only exposes a single-item `persist` (the former `persist-all-default` URL never
+	 * existed server-side, so settings were only ever cached in localStorage). Persist each item and
+	 * hand back the per-key results in the same shape the callers expect.
+	 */
 	persistAll(items: UserSettingPersist[]): Observable<UserSettings[]> {
-		const url = `${this.apiBase}/persist-all-default`;
-
-		return this.http.post<UserSettings[]>(url, items);
+		if (!items?.length) { return of([]); }
+		return forkJoin(items.map(item => this.persist(item)));
 	}
 
 	delete(id: Guid): Observable<UserSettings> {

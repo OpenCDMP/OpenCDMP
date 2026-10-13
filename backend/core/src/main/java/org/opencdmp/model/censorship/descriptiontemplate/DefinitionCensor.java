@@ -39,8 +39,8 @@ public class DefinitionCensor extends BaseCensor {
             return;
 
         this.authService.authorizeForce(Permission.BrowseDescriptionTemplate);
-        FieldSet pagesFields = fields.extractPrefixed(this.asIndexerPrefix(Definition._pages));
-        this.censorFactory.censor(PageCensor.class).censor(pagesFields, userId);
+        FieldSet sectionsFields = fields.extractPrefixed(this.asIndexerPrefix(Definition._sections));
+        this.censorFactory.censor(SectionCensor.class).censor(sectionsFields, userId);
     }
 
 }

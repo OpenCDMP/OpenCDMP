@@ -25,7 +25,7 @@ export class MatomoService {
 
 	trackPageView(provider: AnalyticsProvider, customTitle?: string): void {
 		if (provider.enabled) {
-			var principalid = this.authService.userId();
+			const principalid = this.authService.userId();
 			if (principalid != null) { this.matomoTracker.setUserId(principalid.toString()); }
 			this.matomoTracker.trackPageView(customTitle);
 		}
@@ -34,7 +34,7 @@ export class MatomoService {
 	trackSiteSearch(keyword: string, category?: string, resultsCount?: number): void {
 		const matomo = this.configurationService?.analyticsProviders?.providers?.find(x => x.type === AnalyticsProviderType.Matomo);
 		if (matomo?.enabled) {
-			var principalid = this.authService.userId();
+			const principalid = this.authService.userId();
 			if (principalid != null) { this.matomoTracker.setUserId(principalid.toString()); }
 			this.matomoTracker.trackSiteSearch(keyword, category, resultsCount);
 		}
@@ -43,7 +43,7 @@ export class MatomoService {
 	trackDownload(category: string, type: string, id: string): void {
 		const matomo = this.configurationService?.analyticsProviders?.providers?.find(x => x.type === AnalyticsProviderType.Matomo);
 		if (matomo) {
-			var principalid = this.authService.userId();
+			const principalid = this.authService.userId();
 			if (principalid != null) { this.matomoTracker.setUserId(principalid.toString()); }
 			this.matomoTracker.trackLink(this.configurationService.server + category + "/" + type + "/" + id, "download");
 		}

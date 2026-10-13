@@ -8,11 +8,13 @@ export interface Reference extends BaseEntity {
 	label: string;
 	type: ReferenceType;
 	description: string;
-	definition: Definition;
+	definition: ReferenceDefinition;
 	reference: string;
 	abbreviation: string;
 	source: string;
 	sourceType: ReferenceSourceType;
+	planCount?: number;
+	descriptionCount?: number;
 }
 
 export interface BaseReference extends BaseEntity{
@@ -23,14 +25,27 @@ export interface BaseReference extends BaseEntity{
 }
 
 
-export interface Definition {
-	fields: Field[];
+export interface ReferenceDefinition {
+	fields: ReferenceField[];
 }
 
-export interface Field {
+export interface ReferenceField {
 	code: string;
 	dataType: ReferenceFieldDataType;
 	value: string;
+}
+
+// What one source sent back for a test search: the reply as received and the entries it maps to.
+export interface ReferenceSourceTestResult {
+	url?: string;
+	status?: number;
+	error?: string;
+	durationMs?: number;
+	body?: string;
+	bodyTruncated?: boolean;
+	items?: Record<string, unknown>[];
+	total?: number;
+	results?: Record<string, string>[];
 }
 
 export interface ReferenceExist {
@@ -63,18 +78,18 @@ export interface ReferencePersist extends BaseEntityPersist {
 	label: string;
 	typeId: Guid;
 	description: string;
-	definition: DefinitionPersist;
+	definition: ReferenceDefinitionPersist;
 	reference: string;
 	abbreviation: string;
 	source: string;
 	sourceType: ReferenceSourceType;
 }
 
-export interface DefinitionPersist {
-	fields: FieldPersist[];
+export interface ReferenceDefinitionPersist {
+	fields: ReferenceFieldPersist[];
 }
 
-export interface FieldPersist {
+export interface ReferenceFieldPersist {
 	code: string;
 	dataType: ReferenceFieldDataType;
 	value: string;

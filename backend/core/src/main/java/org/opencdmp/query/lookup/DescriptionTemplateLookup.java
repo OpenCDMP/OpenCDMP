@@ -3,9 +3,11 @@ package org.opencdmp.query.lookup;
 import gr.cite.tools.data.query.Lookup;
 import gr.cite.tools.data.query.QueryFactory;
 import io.swagger.v3.oas.annotations.media.Schema;
+import org.opencdmp.commons.SQLUtils;
 import org.opencdmp.commons.enums.DescriptionTemplateStatus;
 import org.opencdmp.commons.enums.DescriptionTemplateVersionStatus;
 import org.opencdmp.commons.enums.IsActive;
+import org.opencdmp.elastic.query.InnerObjectDescriptionTemplateElasticQuery;
 import org.opencdmp.elastic.query.NestedDescriptionTemplateElasticQuery;
 import org.opencdmp.query.DescriptionTemplateQuery;
 import org.opencdmp.query.lookup.swagger.SwaggerHelpers;
@@ -50,6 +52,11 @@ public class DescriptionTemplateLookup extends Lookup {
 
     @Schema(description = SwaggerHelpers.DescriptionTemplate.onlyCanEdit_description)
     private Boolean onlyCanEdit;
+
+    private TenantLookup tenantSubQuery;
+
+    /** false: only the default tenant's shared rows (no tenant); true: only tenant-owned rows; null: both. */
+    private Boolean tenantIsSet;
 
     public String getLike() {
         return this.like;
@@ -147,10 +154,16 @@ public class DescriptionTemplateLookup extends Lookup {
         this.onlyCanEdit = onlyCanEdit;
     }
 
+    public Boolean getTenantIsSet() { return tenantIsSet; }
+    public void setTenantIsSet(Boolean tenantIsSet) { this.tenantIsSet = tenantIsSet; }
+
+    public TenantLookup getTenantSubQuery() { return tenantSubQuery; }
+    public void setTenantSubQuery(TenantLookup tenantSubQuery) { this.tenantSubQuery = tenantSubQuery; }
+
     public DescriptionTemplateQuery enrich(QueryFactory queryFactory) {
         DescriptionTemplateQuery query = queryFactory.query(DescriptionTemplateQuery.class);
         if (this.like != null)
-            query.like(this.like);
+            query.like(SQLUtils.toPostgres(this.like));
         if (this.isActive != null)
             query.isActive(this.isActive);
         if (this.groupIds != null)
@@ -173,13 +186,15 @@ public class DescriptionTemplateLookup extends Lookup {
             query.languages(this.languages);
         if (this.onlyCanEdit != null)
             query.onlyCanEdit(this.onlyCanEdit);
+        if (this.tenantIsSet != null) query.tenantIsSet(this.tenantIsSet);
+        if (this.tenantSubQuery != null) query.tenantSubQuery(this.tenantSubQuery.enrich(queryFactory));
         this.enrichCommon(query);
 
         return query;
     }
 
-    public NestedDescriptionTemplateElasticQuery enrichElasticInner(QueryFactory queryFactory) {
-        NestedDescriptionTemplateElasticQuery query = queryFactory.query(NestedDescriptionTemplateElasticQuery.class);
+    public InnerObjectDescriptionTemplateElasticQuery enrichElasticInner(QueryFactory queryFactory) {
+        InnerObjectDescriptionTemplateElasticQuery query = queryFactory.query(InnerObjectDescriptionTemplateElasticQuery.class);
         if (this.ids != null) query.ids(this.ids);
         if (this.groupIds != null) query.groupIds(this.groupIds);
         if (this.versionStatuses != null) query.versionStatuses(this.versionStatuses);
@@ -187,9 +202,9 @@ public class DescriptionTemplateLookup extends Lookup {
         if (this.excludedGroupIds != null) query.excludedGroupIds(this.excludedGroupIds);
 
         if (this.like != null) throw new UnsupportedOperationException("");
-        if (this.isActive != null) throw new UnsupportedOperationException("");
+        if (this.isActive != null && this.isActive.stream().anyMatch(x->x.equals(IsActive.Inactive))) throw new UnsupportedOperationException("");
         if (this.statuses != null) throw new UnsupportedOperationException("");
-        if (this.typeIds != null) throw new UnsupportedOperationException("");
+        if (this.typeIds != null) query.typeIds(this.typeIds);
         if (this.versions != null) throw new UnsupportedOperationException("");
         if (this.onlyCanEdit != null) throw new UnsupportedOperationException("");
 

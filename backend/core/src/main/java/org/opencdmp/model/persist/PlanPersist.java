@@ -5,6 +5,9 @@ import gr.cite.tools.validation.ValidatorFactory;
 import gr.cite.tools.validation.specification.Specification;
 import org.opencdmp.commons.XmlHandlingService;
 import org.opencdmp.commons.enums.*;
+import org.opencdmp.commons.types.descriptiontemplate.FieldEntity;
+import org.opencdmp.commons.types.descriptiontemplate.FieldSetEntity;
+import org.opencdmp.commons.types.descriptiontemplate.fielddata.SystemFieldDataEntity;
 import org.opencdmp.commons.types.planblueprint.*;
 import org.opencdmp.commons.validation.BaseValidator;
 import org.opencdmp.convention.ConventionService;
@@ -64,6 +67,9 @@ public class PlanPersist {
     private String hash;
 
     public static final String _hash = "hash";
+
+    private PlanUpdateRequestApply planUpdateRequestApply;
+    public static final String _planUpdateRequestApply = "planUpdateRequestApply";
 
     public UUID getId() {
         return this.id;
@@ -153,6 +159,14 @@ public class PlanPersist {
         this.hash = hash;
     }
 
+    public PlanUpdateRequestApply getPlanUpdateRequestApply() {
+        return planUpdateRequestApply;
+    }
+
+    public void setPlanUpdateRequestApply(PlanUpdateRequestApply planUpdateRequestApply) {
+        this.planUpdateRequestApply = planUpdateRequestApply;
+    }
+
     @Component(PlanPersistValidator.ValidatorName)
     @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
     public static class PlanPersistValidator extends BaseValidator<PlanPersist> {
@@ -197,8 +211,8 @@ public class PlanPersist {
             String accessFieldLabel = null;
 
             if (definition != null){
-                languageFieldLabel = this.getSystemFieldLabel(definition, PlanBlueprintSystemFieldType.Language);
-                accessFieldLabel = this.getSystemFieldLabel(definition, PlanBlueprintSystemFieldType.AccessRights);
+                languageFieldLabel = this.getSystemFieldLabel(definition, SystemFieldType.PlanLanguage);
+                accessFieldLabel = this.getSystemFieldLabel(definition, SystemFieldType.PlanAccessRights);
             }
 
             PlanStatusEntity finalStatusEntity = statusEntity;
@@ -232,7 +246,6 @@ public class PlanPersist {
                             .failOn(PlanPersist._blueprint).failWith(this.messageSource.getMessage("Validation_Required", new Object[]{PlanPersist._blueprint}, LocaleContextHolder.getLocale())),
 
                     this.spec()
-                            .iff(() -> finalStatusEntity != null && finalStatusEntity.getInternalStatus() != null && finalStatusEntity.getInternalStatus() == PlanStatus.Finalized)
                             .must(() -> !this.isNull(item.getProperties()))
                             .failOn(PlanPersist._properties).failWith(this.messageSource.getMessage("Validation_Required", new Object[]{PlanPersist._properties}, LocaleContextHolder.getLocale())),
                     this.spec()
@@ -243,15 +256,15 @@ public class PlanPersist {
                             .iff(() -> !this.isNull(item.getProperties()) && finalStatusEntity != null)
                             .on(PlanPersist._properties)
                             .over(item.getProperties())
-                            .using(() -> this.validatorFactory.validator(PlanPropertiesPersist.PlanPropertiesPersistValidator.class).setStatus(finalStatusEntity.getInternalStatus()).withDefinition(definition)),
+                            .using(() -> this.validatorFactory.validator(PlanPropertiesPersist.PlanPropertiesPersistValidator.class).setStatus(finalStatusEntity.getInternalStatus()).withDefinition(definition).setVisibilityService(definition, item.getProperties())),
                     this.spec()
                             .iff(() -> finalStatusEntity != null && finalStatusEntity.getInternalStatus() != null && finalStatusEntity.getInternalStatus() == PlanStatus.Finalized)
                             .must(() -> !this.isNull(item.getLanguage()))
-                            .failOn(PlanPersist._language).failWith(this.messageSource.getMessage("Validation_Required", new Object[]{languageFieldLabel != null ? languageFieldLabel :  PlanBlueprintSystemFieldType.Language.name()}, LocaleContextHolder.getLocale())),
+                            .failOn(PlanPersist._language).failWith(this.messageSource.getMessage("Validation_Required", new Object[]{languageFieldLabel != null ? languageFieldLabel :  SystemFieldType.PlanLanguage.name()}, LocaleContextHolder.getLocale())),
                     this.spec()
                             .iff(() -> finalStatusEntity != null && finalStatusEntity.getInternalStatus() != null && finalStatusEntity.getInternalStatus() == PlanStatus.Finalized)
                             .must(() -> !this.isNull(item.getAccessType()))
-                            .failOn(PlanPersist._accessType).failWith(this.messageSource.getMessage("Validation_Required", new Object[]{accessFieldLabel != null ? accessFieldLabel :  PlanBlueprintSystemFieldType.AccessRights.name()}, LocaleContextHolder.getLocale())),
+                            .failOn(PlanPersist._accessType).failWith(this.messageSource.getMessage("Validation_Required", new Object[]{accessFieldLabel != null ? accessFieldLabel :  SystemFieldType.PlanAccessRights.name()}, LocaleContextHolder.getLocale())),
                     this.spec()
                             .iff(() -> finalStatusEntity != null && finalStatusEntity.getInternalStatus() != null && finalStatusEntity.getInternalStatus() == PlanStatus.Finalized)
                             .must(() -> !this.isListNullOrEmpty(item.getDescriptionTemplates()))
@@ -265,7 +278,12 @@ public class PlanPersist {
                             .iff(() -> !this.isListNullOrEmpty(item.getUsers()))
                             .on(PlanPersist._users)
                             .over(item.getUsers())
-                            .using((itm) -> this.validatorFactory.validator(PlanUserPersist.PlanUserPersistValidator.class))
+                            .using((itm) -> this.validatorFactory.validator(PlanUserPersist.PlanUserPersistValidator.class)),
+                    this.refSpec()
+                            .iff(() -> item.getPlanUpdateRequestApply() != null)
+                            .on(PlanPersist._planUpdateRequestApply)
+                            .over(item.getPlanUpdateRequestApply())
+                            .using(() -> this.validatorFactory.validator(PlanUpdateRequestApply.PlanUpdateRequestApplyValidator.class))
             );
         }
 
@@ -276,7 +294,7 @@ public class PlanPersist {
             List<PlanDescriptionTemplateEntity> planDescriptionTemplateEntities = this.queryFactory.query(PlanDescriptionTemplateQuery.class).disableTracking().isActive(IsActive.Active).planIds(planId).collect();
             List<DescriptionEntity> descriptionEntities = this.queryFactory.query(DescriptionQuery.class).disableTracking().planIds(planId).isActive(IsActive.Active).collect();
 
-            for (SectionEntity section: definition.getSections()) {
+            for (RootSectionEntity section: definition.getSections()) {
                 if (section.getHasTemplates() && !this.isListNullOrEmpty(section.getDescriptionTemplates())){
 
                     for (BlueprintDescriptionTemplateEntity sectionDescriptionTemplate: section.getDescriptionTemplates()) {
@@ -305,22 +323,20 @@ public class PlanPersist {
             return true;
         }
 
-        private String getSystemFieldLabel(DefinitionEntity definition, PlanBlueprintSystemFieldType type){
+        private String getSystemFieldLabel(DefinitionEntity definition, SystemFieldType type){
             if (this.isListNullOrEmpty(definition.getSections())) return null;
 
-            for (SectionEntity section: definition.getSections()) {
-                if (!this.isListNullOrEmpty(section.getFields())) {
-                    List<FieldEntity> fields = section.getFields().stream().filter(x -> x.getCategory().equals(PlanBlueprintFieldCategory.System)).collect(Collectors.toList());
+            for (RootSectionEntity section: definition.getSections()) {
+                if (!this.isListNullOrEmpty(section.getAllField())) {
+                    List<FieldEntity> fields = section.getAllField().stream().filter(x -> x.getData() != null && x.getData().getFieldType() != null && x.getData().getFieldType().equals(FieldType.SYSTEM)).collect(Collectors.toList());
                     if (!this.isListNullOrEmpty(fields)){
 
-                        List<SystemFieldEntity> systemFields = (List<SystemFieldEntity>)(List<?>) fields;
-                        if (!this.isListNullOrEmpty(systemFields)){
-                            List<SystemFieldEntity> contactSystemFields = systemFields.stream().filter(x -> x.getType().equals(type) && x.isRequired()).collect(Collectors.toList());
-                            if(!this.isListNullOrEmpty(contactSystemFields)) {
-                                return contactSystemFields.getFirst().getLabel() != null ? contactSystemFields.getFirst().getLabel() : type.name();
+                        for (FieldEntity fieldEntity: fields) {
+                            SystemFieldDataEntity data = (SystemFieldDataEntity) fieldEntity.getData();
+                            if (data != null && data.getSystemFieldType() != null && data.getSystemFieldType().equals(type) && fieldEntity.getValidations() != null && fieldEntity.getValidations().contains(FieldValidationType.Required)); {
+                                return data != null && !this.conventionService.isNullOrEmpty(data.getLabel()) ? data.getLabel() : type.name();
                             }
                         }
-
                     }
                 }
             }

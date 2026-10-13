@@ -1,4 +1,4 @@
-import { Component, OnInit, Input } from '@angular/core';
+import { Component, OnInit, Input, ChangeDetectionStrategy } from '@angular/core';
 import { SafeResourceUrl, DomSanitizer } from '@angular/platform-browser';
 import { LanguageService } from '@app/core/services/language/language.service';
 import { SupportiveMaterialService } from '@app/core/services/supportive-material/supportive-material.service';
@@ -12,7 +12,7 @@ import { AuthService } from '@app/core/services/auth/auth.service';
     selector: 'app-faq-content',
     templateUrl: './faq-content.component.html',
     styleUrls: ['./faq-content.component.scss'],
-    standalone: false
+    changeDetection: ChangeDetectionStrategy.Eager
 })
 export class FaqContentComponent extends BaseComponent implements OnInit {
 

@@ -1,6 +1,7 @@
 import { NgModule } from '@angular/core';
-import { RouterModule, Routes } from '@angular/router';
+import { RouterModule, Routes, TitleStrategy } from '@angular/router';
 import { AppPermission } from './core/common/enum/permission.enum';
+import { AppTitleStrategy } from './core/services/ui/app-title.strategy';
 import { BreadcrumbService } from './ui/misc/breadcrumb/breadcrumb.service';
 import { ReloadHelperComponent } from './ui/misc/reload-helper/reload-helper.component';
 import { AuthGuard } from './core/auth-guard.service';
@@ -11,6 +12,16 @@ const appRoutes: Routes = [
 		redirectTo: 'home',
 		pathMatch: 'full'
 	},
+	// Legacy redirects: the "Description*" entity routes were renamed to "Asset*" (v1 rename).
+	// Prefix redirects preserve trailing segments so old bookmarks/links keep working.
+	{ path: 'descriptions', redirectTo: 'assets', pathMatch: 'prefix' },
+	{ path: 'explore-descriptions', redirectTo: 'explore-assets', pathMatch: 'prefix' },
+	{ path: 'description-template-library', redirectTo: 'asset-template-library', pathMatch: 'prefix' },
+	{ path: 'description-templates', redirectTo: 'asset-templates', pathMatch: 'prefix' },
+	{ path: 'description-template-type', redirectTo: 'types', pathMatch: 'full' },
+	{ path: 'description-template-type/:id', redirectTo: 'types', pathMatch: 'full' },
+	{ path: 'description-statuses', redirectTo: 'tenant-configuration/workflows', pathMatch: 'full' },
+	{ path: 'description-statuses/:id', redirectTo: 'tenant-configuration/workflows', pathMatch: 'full' },
 	{
 		path: 'home',
 		loadChildren: () => import('./ui/dashboard/dashboard.module').then(m => m.DashboardModule),
@@ -20,7 +31,7 @@ const appRoutes: Routes = [
 		}
 	},
 	{
-        path: 'descriptions',
+        path: 'assets',
         loadChildren: () => import('./ui/description/description.module').then(m => m.DescriptionModule),
         data: {
             authContext: {
@@ -34,7 +45,7 @@ const appRoutes: Routes = [
         }
     },
 	{
-		path: 'explore-descriptions',
+		path: 'explore-assets',
 		loadChildren: () => import('./ui/description/description.module').then(m => m.PublicDescriptionModule),
 		data: {
 			breadcrumb: true,
@@ -69,6 +80,32 @@ const appRoutes: Routes = [
 			title: 'GENERAL.TITLES.EXPLORE-PLANS'
 		}
 	},
+    {
+        path: 'plan-blueprint-library',
+        loadChildren: () => import('./ui/library/plan-blueprint-library/plan-blueprint-library.module').then(m => m.PlanBlueprintLibraryModule),
+        data: {
+            authContext: {
+				permissions: [AppPermission.ViewPlanBlueprintLibraryPage]
+			},
+			...BreadcrumbService.generateRouteDataConfiguration({
+				title: 'BREADCRUMBS.PLAN-BLUEPRINTS'
+			}),
+			title: 'GENERAL.TITLES.BLUEPRINTS'
+        }
+    },
+    {
+		path: 'asset-template-library',
+        loadChildren: () => import('./ui/library/description-template-library/description-template-library.module').then(m => m.DescriptionTemplateLibraryModule),
+		data: {
+			authContext: {
+				permissions: [AppPermission.ViewDescriptionTemplateLibraryPage]
+			},
+			...BreadcrumbService.generateRouteDataConfiguration({
+				title: 'BREADCRUMBS.DESCRIPTION-TEMPLATES'
+			}),
+			title: 'GENERAL.TITLES.DESCRIPTION-TEMPLATES'
+		}
+	},
 	{
 		path: 'plan-blueprints',
 		loadChildren: () => import('./ui/admin/plan-blueprint/plan-blueprint.module').then(m => m.PlanBlueprintModule),
@@ -83,18 +120,21 @@ const appRoutes: Routes = [
 		}
 	},
 	{
-		path: 'plan-blueprint-type',
-		loadChildren: () => import('./ui/admin/blueprint-types/plan-blueprint-type.module').then(m => m.PlanBlueprintTypesModule),
+		path: 'types',
+		loadComponent: () => import('./ui/admin/types/types-page.component').then(m => m.TypesPageComponent),
+		canActivate: [AuthGuard],
 		data: {
 			authContext: {
-				permissions: [AppPermission.ViewPlanBlueprintTypePage]
+				permissions: [AppPermission.ViewPlanBlueprintTypePage, AppPermission.ViewDescriptionTemplateTypePage]
 			},
 			...BreadcrumbService.generateRouteDataConfiguration({
-				title: 'BREADCRUMBS.PLAN-BLUEPRINT-TYPE'
+				title: 'BREADCRUMBS.TYPES'
 			}),
-			title: 'GENERAL.TITLES.PLAN-BLUEPRINT-TYPE'
-		},
+			title: 'GENERAL.TITLES.TYPES'
+		}
 	},
+	{ path: 'plan-blueprint-type', redirectTo: 'types', pathMatch: 'full' },
+	{ path: 'plan-blueprint-type/:id', redirectTo: 'types', pathMatch: 'full' },
 
 
 	{
@@ -107,7 +147,7 @@ const appRoutes: Routes = [
 	},
 
 	{
-		path: 'description-templates',
+		path: 'asset-templates',
 		loadChildren: () => import('./ui/admin/description-template/description-template.module').then(m => m.DescriptionTemplateModule),
 		data: {
 			authContext: {
@@ -119,19 +159,8 @@ const appRoutes: Routes = [
 			title: 'GENERAL.TITLES.DESCRIPTION-TEMPLATES'
 		}
 	},
-	{
-		path: 'description-template-type',
-		loadChildren: () => import('./ui/admin/description-types/description-template-type.module').then(m => m.DescriptionTemplateTypesModule),
-		data: {
-			authContext: {
-				permissions: [AppPermission.ViewDescriptionTemplateTypePage]
-			},
-			...BreadcrumbService.generateRouteDataConfiguration({
-				title: 'BREADCRUMBS.DESCRIPTION-TEMPLATE-TYPES'
-			}),
-			title: 'GENERAL.TITLES.DESCRIPTION-TEMPLATE-TYPES'
-		},
-	},
+	{ path: 'asset-template-type', redirectTo: 'types', pathMatch: 'full' },
+	{ path: 'asset-template-type/:id', redirectTo: 'types', pathMatch: 'full' },
 	{
 		path: 'contact-support',
 		loadChildren: () => import('./ui/contact/contact.module').then(m => m.ContactModule),
@@ -233,26 +262,32 @@ const appRoutes: Routes = [
 	},
 	{
 		path: 'languages',
-		loadChildren: () => import('./ui/admin/language/language.module').then(m => m.LanguageModule),
+		// shown inside the settings hub, next to its section menu
+		loadComponent: () => import('./ui/admin/tenant-configuration/shell/tc-shell.component').then(m => m.TcShellComponent),
+		children: [{ path: '', loadChildren: () => import('./ui/admin/language/language.module').then(m => m.LanguageModule) }],
 		data: {
+			tcWrapped: true,
 			authContext: {
 				permissions: [AppPermission.ViewLanguagePage]
 			},
 			...BreadcrumbService.generateRouteDataConfiguration({
-				title: 'BREADCRUMBS.LANGUAGES'
+				title: 'TENANT-CONFIGURATION.NAV.LANGUAGES'
 			}),
 			title: 'GENERAL.TITLES.LANGUAGES'
 		},
 	},
 	{
 		path: 'supportive-materials',
-		loadChildren: () => import('./ui/admin/supportive-material/supportive-material.module').then(m => m.SupportiveMaterialModule),
+		// shown inside the settings hub, next to its section menu
+		loadComponent: () => import('./ui/admin/tenant-configuration/shell/tc-shell.component').then(m => m.TcShellComponent),
+		children: [{ path: '', loadChildren: () => import('./ui/admin/supportive-material/supportive-material.module').then(m => m.SupportiveMaterialModule) }],
 		data: {
+			tcWrapped: true,
 			authContext: {
 				permissions: [AppPermission.ViewSupportiveMaterialPage]
 			},
 			...BreadcrumbService.generateRouteDataConfiguration({
-				title: 'BREADCRUMBS.SUPPORTIVE-MATERIALS'
+				title: 'TENANT-CONFIGURATION.NAV.SUPPORTIVE-MATERIAL'
 			}),
 			title: 'GENERAL.TITLES.SUPPORTIVE-MATERIAL'
 		},
@@ -310,11 +345,16 @@ const appRoutes: Routes = [
 		},
 	},
 	{
+		// the address of the redesigned page while it ran next to the previous one; kept for bookmarks, sub-paths included
+		path: 'tenant-configuration-v2',
+		redirectTo: 'tenant-configuration',
+	},
+	{
 		path: 'tenant-configuration',
-		loadChildren: () => import('./ui/admin/tenant-configuration/tenant-configuration.module').then(m => m.TenantConfigurationModule),
+		loadChildren: () => import('./ui/admin/tenant-configuration/tenant-configuration.routes').then(m => m.TENANT_CONFIGURATION_ROUTES),
 		data: {
 			authContext: {
-				permissions: [AppPermission.ViewTenantConfigurationPage]
+				permissions: [AppPermission.ViewTenantConfigurationPage, AppPermission.ViewPlanWorkflowPage, AppPermission.ViewDescriptionWorkflowPage]
 			},
 			...BreadcrumbService.generateRouteDataConfiguration({
 				title: 'BREADCRUMBS.TENANT-CONFIGURATION'
@@ -337,13 +377,16 @@ const appRoutes: Routes = [
 	},
 	{
 		path: 'notification-templates',
-		loadChildren: () => import('@notification-service/ui/admin/notification-template/notification-template.module').then(m => m.NotificationTemplateModule),
+		// shown inside the settings hub, next to its section menu
+		loadComponent: () => import('./ui/admin/tenant-configuration/shell/tc-shell.component').then(m => m.TcShellComponent),
+		children: [{ path: '', loadChildren: () => import('@notification-service/ui/admin/notification-template/notification-template.module').then(m => m.NotificationTemplateModule) }],
 		data: {
+			tcWrapped: true,
 			authContext: {
 				permissions: [AppPermission.ViewNotificationTemplatePage]
 			},
 			...BreadcrumbService.generateRouteDataConfiguration({
-				title: 'BREADCRUMBS.NOTIFICATION-TEMPLATES'
+				title: 'TENANT-CONFIGURATION.NAV.NOTIFICATION-TEMPLATES'
 			}),
 			title: 'GENERAL.TITLES.NOTIFICATION-TEMPLATES'
 		},
@@ -387,21 +430,53 @@ const appRoutes: Routes = [
 		},
 	},
 	{
-		path: 'annotation-statuses',
-		loadChildren: () => import('@annotation-service/ui/admin/status/status.module').then(m => m.StatusModule),
+		path: 'reports',
+		loadChildren: () => import('./ui/admin/reports/reports.routing').then(m => m.ReportsRoutingModule),
 		data: {
+			authContext: {
+				permissions: [AppPermission.ViewReportsPage]
+			},
+			...BreadcrumbService.generateRouteDataConfiguration({
+				title: 'BREADCRUMBS.REPORTS'
+			}),
+			title: 'GENERAL.TITLES.REPORTS'
+		},
+	},
+	{
+		path: 'webhooks',
+		// shown inside the settings hub, next to its section menu
+		loadComponent: () => import('./ui/admin/tenant-configuration/shell/tc-shell.component').then(m => m.TcShellComponent),
+		children: [{ path: '', loadChildren: () => import('./ui/admin/webhooks/webhooks.module').then(m => m.WebhooksModule) }],
+		data: {
+			tcWrapped: true,
+			authContext: {
+				permissions: [AppPermission.ViewWebhooksPage]
+			},
+			...BreadcrumbService.generateRouteDataConfiguration({
+				title: 'TENANT-CONFIGURATION.NAV.WEBHOOKS'
+			}),
+			title: 'GENERAL.TITLES.WEBHOOKS'
+		},
+	},
+	{
+		path: 'annotation-statuses',
+		// shown inside the settings hub, next to its section menu
+		loadComponent: () => import('./ui/admin/tenant-configuration/shell/tc-shell.component').then(m => m.TcShellComponent),
+		children: [{ path: '', loadChildren: () => import('@annotation-service/ui/admin/status/status.module').then(m => m.StatusModule) }],
+		data: {
+			tcWrapped: true,
 			authContext: {
 				permissions: [AppPermission.ViewStatusPage]
 			},
 			...BreadcrumbService.generateRouteDataConfiguration({
-				title: 'BREADCRUMBS.ANNOTATION-STATUSES'
+				title: 'TENANT-CONFIGURATION.NAV.ANNOTATION-STATUSES'
 			}),
 			title: 'GENERAL.TITLES.ANNOTATION-STATUSES'
 		},
 	},
 	{
 		path: 'maintenance-tasks',
-		loadChildren: () => import('./ui/admin/maintenance-tasks/maintenance-tasks.module').then(m => m.MaintenanceTasksModule),
+		loadChildren: () => import('./ui/admin/maintenance/maintenance.routes').then(m => m.MAINTENANCE_ROUTES),
 		data: {
 			authContext: {
 				permissions: [AppPermission.ViewMaintenancePage]
@@ -414,45 +489,36 @@ const appRoutes: Routes = [
 		},
 	},
 	{
-		path: 'plan-statuses',
-		loadChildren: () => import('./ui/admin/plan-status/plan-status.module').then(m => m.PlanStatusModule),
+		path: 'tenant-transfer',
+		loadChildren: () => import('./ui/admin/tenant-transfer/tenant-transfer.module').then(m => m.TenantTransferModule),
 		data: {
 			authContext: {
-				permissions: [AppPermission.ViewPlanStatusPage]
+				permissions: [AppPermission.ViewTenantTransferPage]
 			},
-            breadcrumb: true,
+			breadcrumb: true,
 			...BreadcrumbService.generateRouteDataConfiguration({
-				title: 'GENERAL.TITLES.PLAN-STATUSES'
+				title: 'GENERAL.TITLES.TENANT-TRANSFER'
 			}),
-            title: 'GENERAL.TITLES.PLAN-STATUSES'
-		}
+			title: 'GENERAL.TITLES.TENANT-TRANSFER'
+		},
 	},
-    {
-		path: 'description-statuses',
-		loadChildren: () => import('./ui/admin/description-status/description-status.module').then(m => m.DescriptionStatusModule),
-		data: {
-			authContext: {
-				permissions: [AppPermission.ViewDescriptionStatusPage]
-			},
-            breadcrumb: true,
-			...BreadcrumbService.generateRouteDataConfiguration({
-				title: 'GENERAL.TITLES.DESCRIPTION-STATUSES'
-			}),
-            title: 'GENERAL.TITLES.DESCRIPTION-STATUSES'
-		}
-	},
+	// statuses are edited from the Workflows diagram; old bookmarks land there
+	{ path: 'plan-statuses', redirectTo: 'tenant-configuration/workflows', pathMatch: 'full' },
+	{ path: 'plan-statuses/:id', redirectTo: 'tenant-configuration/workflows', pathMatch: 'full' },
+	{ path: 'asset-statuses', redirectTo: 'tenant-configuration/workflows', pathMatch: 'full' },
+	{ path: 'asset-statuses/:id', redirectTo: 'tenant-configuration/workflows', pathMatch: 'full' },
 	{
-		path: 'indicator-dashboard',
-		loadChildren: () => import('../kpi-service/ui/admin/indicator-dashboard/indicator-dashboard.module').then(m => m.IndicatorDashboardModule),
+		path: 'usage',
+		loadChildren: () => import('../kpi-service/ui/admin/indicator-dashboard/indicator-dashboard.routes').then(m => m.INDICATOR_DASHBOARD_ROUTES),
 		data: {
 			authContext: {
 				permissions: [AppPermission.ViewIndicatorDashboardPage]
 			},
-            breadcrumb: true,
+			breadcrumb: true,
 			...BreadcrumbService.generateRouteDataConfiguration({
 				title: 'GENERAL.TITLES.INDICATOR-DASHBOARD'
 			}),
-            title: 'GENERAL.TITLES.INDICATOR-DASHBOARD'
+			title: 'GENERAL.TITLES.INDICATOR-DASHBOARD'
 		}
 	},
 	{
@@ -492,7 +558,12 @@ const tenantEnrichedRoutes: Routes = [
 ];
 
 @NgModule({
-	imports: [RouterModule.forRoot(tenantEnrichedRoutes, {})],
+	// Angular 22 defaults to 'always', which would hand every child route the parent's :tenant_code and :id params.
+	imports: [RouterModule.forRoot(tenantEnrichedRoutes, { paramsInheritanceStrategy: 'emptyOnly' })],
 	exports: [RouterModule],
+	providers: [
+		// Composes the browser-tab title from the per-route breadcrumb taxonomy.
+		{ provide: TitleStrategy, useClass: AppTitleStrategy },
+	],
 })
 export class AppRoutingModule { }

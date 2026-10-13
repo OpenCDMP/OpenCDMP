@@ -14,7 +14,7 @@ export class AnnotationPrincipalService {
 		private http: BaseHttpV2Service
 	) { }
 
-	public me(options?: Object): Observable<AnnotationAccount> {
+	public me(options?: object): Observable<AnnotationAccount> {
 		const url = `${this.apiBase}/me`;
 		return this.http.get<AnnotationAccount>(url, options);
 	}

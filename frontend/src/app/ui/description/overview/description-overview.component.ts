@@ -1,9 +1,11 @@
-import { Location } from '@angular/common';
-import { Component, OnInit, signal } from '@angular/core';
+import { Location, NgTemplateOutlet, NgClass, UpperCasePipe, LowerCasePipe } from '@angular/common';
+import { Component, effect, inject, OnInit, signal, ChangeDetectionStrategy } from '@angular/core';
+import { TourStateService } from '@app/library/guided-tour/tour-state.service';
+import { descriptionOverviewPageTour } from './description-overview.tour';
 import { UntypedFormBuilder, Validators } from '@angular/forms';
 import { MatDialog } from '@angular/material/dialog';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
-import { ActivatedRoute, Params, Router } from '@angular/router';
+import { ActivatedRoute, Params, Router, RouterLink } from '@angular/router';
 import { DescriptionStatusEnum } from '@app/core/common/enum/description-status';
 import { DescriptionStatusAvailableActionType } from '@app/core/common/enum/description-status-available-action-type';
 import { DescriptionStatusPermission } from '@app/core/common/enum/description-status-permission.enum';
@@ -15,14 +17,14 @@ import { PlanAccessType } from '@app/core/common/enum/plan-access-type';
 import { PlanStatusEnum } from '@app/core/common/enum/plan-status';
 import { PlanUserRole } from '@app/core/common/enum/plan-user-role';
 import { DescriptionStatus, DescriptionStatusDefinition } from '@app/core/model/description-status/description-status';
-import { DescriptionTemplate, DescriptionTemplateDefinition, DescriptionTemplateField, DescriptionTemplateFieldSet, DescriptionTemplatePage, DescriptionTemplateSection } from '@app/core/model/description-template/description-template';
-import { BaseDescription, Description, DescriptionStatusPersist } from '@app/core/model/description/description';
+import { DescriptionTemplate } from '@app/core/model/description-template/description-template';
+import { BaseDescription, Description, DescriptionReference, DescriptionReferenceData, DescriptionTag } from '@app/core/model/description/description';
 import { RankResultModel } from '@app/core/model/evaluator/evaluator-plan-model.model';
-import { PlanBlueprint, PlanBlueprintDefinition, PlanBlueprintDefinitionSection } from '@app/core/model/plan-blueprint/plan-blueprint';
-import {PlanStatus, PlanStatusDefinition} from '@app/core/model/plan-status/plan-status';
-import { Plan, PlanDescriptionTemplate, PlanUser, PlanUserRemovePersist } from '@app/core/model/plan/plan';
+import { PlanBlueprint, PlanBlueprintDefinition, RootSection } from '@app/core/model/plan-blueprint/plan-blueprint';
+import {PlanStatus} from '@app/core/model/plan-status/plan-status';
+import { Plan, PlanAuthorizationInformation, PlanDescriptionTemplate, PlanUser, PlanUserRemovePersist } from '@app/core/model/plan/plan';
 import { PlanReference } from '@app/core/model/plan/plan-reference';
-import { ReferenceType } from '@app/core/model/reference-type/reference-type';
+import { ReferenceType, ReferenceTypeDefinition } from '@app/core/model/reference-type/reference-type';
 import { Reference } from '@app/core/model/reference/reference';
 import { User } from '@app/core/model/user/user';
 import { AuthService } from '@app/core/services/auth/auth.service';
@@ -43,13 +45,11 @@ import { EnumUtils } from '@app/core/services/utilities/enum-utils.service';
 import { FileUtils } from '@app/core/services/utilities/file-utils.service';
 import { PopupNotificationDialogComponent } from '@app/library/notification/popup/popup-notification.component';
 import { BreadcrumbService } from '@app/ui/misc/breadcrumb/breadcrumb.service';
-import { PlanInvitationDialogComponent } from '@app/ui/plan/invitation/dialog/plan-invitation-dialog.component';
-import { DescriptionValidationOutput } from '@app/ui/plan/plan-finalize-dialog/plan-finalize-dialog.component';
 import { BaseComponent } from '@common/base/base.component';
 import { ConfirmationDialogComponent } from '@common/modules/confirmation-dialog/confirmation-dialog.component';
 import { HttpErrorHandlingService } from '@common/modules/errors/error-handling/http-error-handling.service';
 import { Guid } from '@common/types/guid';
-import { TranslateService } from '@ngx-translate/core';
+import { TranslateService, TranslatePipe } from '@ngx-translate/core';
 import { map, takeUntil } from 'rxjs/operators';
 import { nameof } from 'ts-simple-nameof';
 import { CopyDialogReturnParams, DescriptionCopyDialogComponent } from '../description-copy-dialog/description-copy-dialog.component';
@@ -62,16 +62,30 @@ import { EvaluationService } from '@app/core/services/evaluation/evaluation.serv
 import { PluginEntityType } from '@app/core/common/enum/plugin-entity-type';
 import { EvaluateDialogComponent } from '@app/ui/evaluation/evaluate-dialog/evaluate-dialog.component';
 import { RankConfig } from '@app/core/model/evaluator/rank-config';
-import { BenchmarkDialogComponent } from '@app/ui/evaluation/benchmark-dialog/benchmark-dialog.component';
+import { BenchmarkDialogComponent, BenchmarkDialogResult } from '@app/ui/evaluation/benchmark-dialog/benchmark-dialog.component';
 import { DescriptionEditorEntityResolver } from '../editor/resolvers/description-editor-entity.resolver';
 import { PlanEditorEntityResolver } from '@app/ui/plan/plan-editor-blueprint/resolvers/plan-editor-enitity.resolver';
+import { IconConfiguration } from '@app/core/model/icon-configuration/icon-configuration';
+import { ExternalFetcherBaseSourceConfiguration } from '@app/core/model/external-fetcher/external-fetcher';
+import { DescriptionTemplateType } from '@app/core/model/description-template-type/description-template-type';
+import { Tag } from '@app/core/model/tag/tag';
+import { MatCard, MatCardHeader, MatCardTitle, MatCardContent } from '@angular/material/card';
+import { DescriptionPreviewComponent } from './description-preview/description-preview.component';
+import { MatDivider } from '@angular/material/list';
+import { MatButton, MatIconButton } from '@angular/material/button';
+import { PlanEvaluationHistoryComponent } from '../../plan/listing/plan-evaluation-history/plan-evaluation-history.component';
+import { MatIcon } from '@angular/material/icon';
+import { MatMenuTrigger, MatMenu, MatMenuItem } from '@angular/material/menu';
+import { MatTooltip } from '@angular/material/tooltip';
+import { DateTimeFormatPipe } from '../../../core/pipes/date-time-format.pipe';
 
 
 @Component({
     selector: 'app-description-overview',
     templateUrl: './description-overview.component.html',
     styleUrls: ['./description-overview.component.scss'],
-    standalone: false
+    changeDetection: ChangeDetectionStrategy.Eager,
+    imports: [NgTemplateOutlet, MatCard, MatCardHeader, MatCardTitle, MatCardContent, RouterLink, DescriptionPreviewComponent, MatDivider, MatButton, PlanEvaluationHistoryComponent, MatIcon, MatIconButton, MatMenuTrigger, MatMenu, MatMenuItem, NgClass, MatTooltip, UpperCasePipe, LowerCasePipe, TranslatePipe, DateTimeFormatPipe]
 })
 export class DescriptionOverviewComponent extends BaseComponent implements OnInit {
 	isDraft:boolean = false;
@@ -80,9 +94,18 @@ export class DescriptionOverviewComponent extends BaseComponent implements OnIni
 	isNew = true;
 	isFinalized = false;
 	isPublicView = true;
+
+	// "What's new" tour for the 2.0.0 asset overview (private view only), see plan-overview for the pattern.
+	private readonly tourState = inject(TourStateService);
+	private readonly pageTour = descriptionOverviewPageTour(inject(TranslateService));
+
+	override ngOnDestroy(): void {
+		this.tourState.unregisterPageTour(this.pageTour);
+		super.ngOnDestroy();
+	}
 	hasPublishButton: boolean = true;
 	expand = false;
-	isLocked: Boolean;
+	isLocked: boolean;
 	descriptionStatusEnum = DescriptionStatusEnum;
 	planAccessTypeEnum = PlanAccessType;
 	planStatusEnum = PlanStatusEnum;
@@ -103,9 +126,10 @@ export class DescriptionOverviewComponent extends BaseComponent implements OnIni
 	canInvitePlanUsers = false;
 	canEvaluate = false;
     descriptionEvaluations: Evaluation[];
+	showEvaluationHistory: boolean = true;
 
 	get canAssignPlanUsers(): boolean {
-		const authorizationFlags = !this.isPublicView ? (this.description?.plan as Plan)?.authorizationFlags : [];
+		const authorizationFlags = !this.isPublicView ? (this.description?.plan as Plan)?.authorizationInformation?.globalAuthorizationFlags : [];
 		return (authorizationFlags?.some(x => x === AppPermission.InvitePlanUsers) || this.authentication.hasPermission(AppPermission.InvitePlanUsers)) &&
 			!this.isPublicView && this.description?.belongsToCurrentTenant && this.isActive && (this.description?.plan?.status?.internalStatus == null || this.description?.plan?.status?.internalStatus != PlanStatusEnum.Finalized);
 	}
@@ -119,7 +143,7 @@ export class DescriptionOverviewComponent extends BaseComponent implements OnIni
         this.showMoreResearchers.update((value) => !value);
     }
     
-    private DESCRIPTION_PAGE_SIZE = 100;
+    private DESCRIPTION_PAGE_SIZE = 50;
     minimizedDescription: string;
     showLongDescription = signal<boolean>(true);
     toggleShowDescription(){
@@ -157,9 +181,18 @@ export class DescriptionOverviewComponent extends BaseComponent implements OnIni
         private evaluationService: EvaluationService
 	) {
 		super();
+		effect(() => {
+			if(this.evaluatorService.availableEvaluators()){
+				this.getEvaluators();
+			}
+		})
 	}
 
 	ngOnInit() {
+		// No "what's new" tour on the public, unauthenticated view — same rule as the listing pages.
+		if (!this.route.snapshot.data['isPublic']) {
+			this.tourState.registerPageTour(this.pageTour);
+		}
 		this.analyticsService.trackPageView(AnalyticsService.DescriptionOverview);
 
 		this.canDelete = false;
@@ -176,7 +209,6 @@ export class DescriptionOverviewComponent extends BaseComponent implements OnIni
 				const publicId = params['publicId'];
 				this.getItem({itemId, publicId});
 			});
-            this.getEvaluators();
 	}
 
     getItem(params?: {itemId?: Guid; publicId?: Guid}){
@@ -194,10 +226,13 @@ export class DescriptionOverviewComponent extends BaseComponent implements OnIni
                                 this.breadcrumbService.addIdResolvedValue(data.plan.id.toString(), data.plan.label);
                             }
                             this.description = data;
+                            this.tourState.startIfUnseen(this.pageTour);
                             if (this.description.status?.internalStatus == DescriptionStatusEnum.Draft) {
                                 this.isDraft = true;
                             }
-                            this.description.plan.planUsers = this.isActive || this.description.plan.isActive === IsActive.Active ? data.plan.planUsers.filter(x => x.isActive === IsActive.Active) : data.plan.planUsers;
+                            if(this.description.plan?.planUsers){
+                                this.description.plan.planUsers = this.isActive || this.description.plan.isActive === IsActive.Active ? data.plan.planUsers?.filter(x => x.isActive === IsActive.Active) : data.plan.planUsers;
+                            }
                             this.researchers = this.referenceService.getReferencesForTypes(this.description?.plan?.planReferences, this.isActive, [this.referenceTypeService.getResearcherReferenceType()]);
                             this.checkLockStatus(this.description.id);
                             this.canDelete = this.isActive && (this.authService.hasPermission(AppPermission.DeleteDescription) ||
@@ -206,7 +241,7 @@ export class DescriptionOverviewComponent extends BaseComponent implements OnIni
                             this.canEdit = this.isActive && (this.authService.hasPermission(AppPermission.EditDescription) ||
                                 this.description.authorizationFlags?.some(x => x === AppPermission.EditDescription)) && this.description.belongsToCurrentTenant != false;
 
-                            this.canCopy = this.isActive && (this.canEdit || (this.authService.hasPermission(AppPermission.PublicCloneDescription) && this.isPublicView));
+                            this.canCopy = this.isActive && (this.authService.hasPermission(AppPermission.CloneDescription) || (this.authService.hasPermission(AppPermission.PublicCloneDescription) && this.isPublicView));
 
                             this.canAnnotate = this.isActive && (this.authService.hasPermission(AppPermission.AnnotateDescription) ||
                                 this.description.authorizationFlags?.some(x => x === AppPermission.AnnotateDescription)) && this.description.belongsToCurrentTenant != false;
@@ -222,6 +257,7 @@ export class DescriptionOverviewComponent extends BaseComponent implements OnIni
 
                             this.loadStatusLogo();
                             this.getEvaluations(this.description.id);
+                            // this.loadReferenceData();
 
                             if(this.description.description && this.description.description.split(' ')?.length > this.DESCRIPTION_PAGE_SIZE) {
                                 this.minimizedDescription = this.description.description.split(' ').slice(0, this.DESCRIPTION_PAGE_SIZE).join(' ') + '...';
@@ -235,10 +271,10 @@ export class DescriptionOverviewComponent extends BaseComponent implements OnIni
                             this.httpErrorHandlingService.handleBackedRequestError(error);
 
                             if (error.status === 404) {
-                                return this.onFetchingDeletedCallbackError('/descriptions/');
+                                return this.onFetchingDeletedCallbackError('/assets/');
                             }
                             if (error.status === 403) {
-                                return this.onFetchingForbiddenCallbackError('/descriptions/');
+                                return this.onFetchingForbiddenCallbackError('/assets/');
                             }
                         }
                     });
@@ -260,7 +296,7 @@ export class DescriptionOverviewComponent extends BaseComponent implements OnIni
                         if (this.description.status?.internalStatus == DescriptionStatusEnum.Draft) {
                             this.isDraft = true;
                         }
-                        this.description.plan.planUsers = this.isActive || this.description.plan.isActive === IsActive.Active ? data.plan.planUsers.filter(x => x.isActive === IsActive.Active) : data.plan.planUsers;
+                        this.description.plan.planUsers = this.isActive || this.description.plan.isActive === IsActive.Active ? data.plan.planUsers?.filter(x => x.isActive === IsActive.Active) : data.plan.planUsers;
                         this.researchers = this.referenceService.getReferencesForTypes(this.description?.plan?.planReferences, this.isActive [this.referenceTypeService.getResearcherReferenceType()]);
 
                         if(this.description.description && this.description.description.split(' ')?.length > this.DESCRIPTION_PAGE_SIZE) {
@@ -270,15 +306,16 @@ export class DescriptionOverviewComponent extends BaseComponent implements OnIni
                             this.minimizedDescription = null;
                             this.showLongDescription.set(true);
                         }
+                        // this.loadReferenceData();
                     },
                     error: (error: any) => {
                         this.httpErrorHandlingService.handleBackedRequestError(error);
 
                         if (error.status === 404) {
-                            return this.onFetchingDeletedCallbackError('/explore-descriptions');
+                            return this.onFetchingDeletedCallbackError('/explore-assets');
                         }
                         if (error.status === 403) {
-                            return this.onFetchingForbiddenCallbackError('/explore-descriptions');
+                            return this.onFetchingForbiddenCallbackError('/explore-assets');
                         }
                     }
                 });
@@ -288,7 +325,7 @@ export class DescriptionOverviewComponent extends BaseComponent implements OnIni
     getEvaluators() {
 		if (this.isAuthenticated()) {
 
-			this.evaluatorRepos = this.evaluatorService.availableEvaluators();
+			this.evaluatorRepos = this.evaluatorService.availableEvaluatorsFor(EvaluatorEntityType.Description);
 			if (this.evaluatorRepos?.length > 0) {
 				this.evaluatorRepos.forEach(repo => {
 				if (repo.hasLogo) {
@@ -317,10 +354,6 @@ export class DescriptionOverviewComponent extends BaseComponent implements OnIni
 		return this.description && this.description.isActive != IsActive.Inactive;
 	}
 
-	get unauthorizedTootipText(): string {
-		return this.language.instant('DESCRIPTION-OVERVIEW.INFOS.UNAUTHORIZED-ORCID');
-	}
-
 	get canExport(): boolean {
 		if (!this.isAuthenticated()) return false;
 		return this.isActive && this.description?.status?.definition?.availableActions?.filter(x => x === DescriptionStatusAvailableActionType.Export).length > 0;
@@ -329,6 +362,14 @@ export class DescriptionOverviewComponent extends BaseComponent implements OnIni
 	get canEditStatus(): boolean {
 		return this.isActive && (this.description as Description).statusAuthorizationFlags?.some(x => x.toLowerCase() === DescriptionStatusPermission.Edit.toLowerCase())
 	}
+
+    get planOwners(): string {
+        return this.description.plan?.planUsers?.filter(x => x.isActive === IsActive.Active && x.role === PlanUserRole.Owner)?.map(x => x.user?.name).join(', ');
+    }
+
+    get collaboratorCount(): number {
+        return this.description.plan?.planUsers?.filter(x => x.isActive === IsActive.Active)?.length;
+    }
 
 	hasAvailableFinalizeStatus() {
 		return (this.description as Description).availableStatuses?.find(x => x.internalStatus === DescriptionStatusEnum.Finalized) != null;
@@ -348,33 +389,40 @@ export class DescriptionOverviewComponent extends BaseComponent implements OnIni
         })
     }
 
-	onEvaluateDescription(descriptionId: Guid, evaluatorId: string, format: string, rankConfig: RankConfig, availableBenchmarks: BenchmarkConfiguration[] = [], isPublicView: boolean) {
+	onEvaluateDescription(descriptionId: Guid, evaluatorId: string, format: string, rankConfig: RankConfig, availableBenchmarks: BenchmarkConfiguration[] = [], availableTests: BenchmarkConfiguration[] = [], isPublicView: boolean) {
 		
 		availableBenchmarks = availableBenchmarks?.filter(x => x.appliesTo.includes(PluginEntityType.Description)) || [];
+		availableTests = availableTests?.filter(x => x.appliesTo.includes(PluginEntityType.Description)) || [];
 		
-		if (availableBenchmarks?.length > 1) {
+		if (availableBenchmarks?.length > 1 || availableTests?.length > 1) {
 			const dialogRef = this.dialog.open(BenchmarkDialogComponent, {
 				width: '500px',
-				restoreFocus: false,
 				data: {
-					availableBenchmarks: availableBenchmarks
+					availableBenchmarks: availableBenchmarks,
+					availableTests: availableTests,
+					evaluatorId: evaluatorId
 				}
 			});
-			dialogRef.afterClosed().subscribe(result => {
-				if (result?.length > 0) this.rankDescription(descriptionId, evaluatorId, format, rankConfig, result);
-					else return;
-				});
-		} else if (availableBenchmarks?.length == 1){
-			this.rankDescription(descriptionId, evaluatorId, format, rankConfig, [availableBenchmarks[0].id])
+			dialogRef.afterClosed().subscribe((result: BenchmarkDialogResult) => {
+				if (result?.values?.length > 0) {
+					const benchmarkIds = result.type === 'benchmarks' ? result.values : null;
+					const testIds = result.type === 'tests' ? result.values : null;
+					this.rankDescription(descriptionId, evaluatorId, format, rankConfig, benchmarkIds, testIds);
+				}
+			});
+		} else if (availableBenchmarks?.length == 1 && !(availableTests?.length > 0)){
+			this.rankDescription(descriptionId, evaluatorId, format, rankConfig, [availableBenchmarks[0].id], null)
+		} else if (availableTests?.length == 1 && !(availableBenchmarks?.length > 0)){
+			this.rankDescription(descriptionId, evaluatorId, format, rankConfig, null, [availableTests[0].id])
 		} else {
-			this.rankDescription(descriptionId, evaluatorId, format, rankConfig, null)
+			this.rankDescription(descriptionId, evaluatorId, format, rankConfig, null, null)
 		}
 		
 	}
 
-	private rankDescription(descriptionId: Guid, evaluatorId: string, format: string, rankConfig: RankConfig, benchmarkIds: string[]) {
-		this.evaluatorService.rankDescription(descriptionId, evaluatorId, format, benchmarkIds).subscribe(
-			(response: RankResultModel) => {
+	private rankDescription(descriptionId: Guid, evaluatorId: string, format: string, rankConfig: RankConfig, benchmarkIds: string[] | null, testIds: string[] | null) {
+		this.evaluatorService.rankDescription(descriptionId, evaluatorId, format, benchmarkIds ?? undefined, testIds ?? undefined).subscribe(
+			(response: RankResultModel[]) => {
 				const dialogRef = this.dialog.open(EvaluateDialogComponent, {
 					maxWidth: '90vw',
 					data: {
@@ -410,7 +458,7 @@ export class DescriptionOverviewComponent extends BaseComponent implements OnIni
 					}
 				},
 				error: (error) => {
-					this.router.navigate([this.routerUtils.generateUrl('/descriptions')]);
+					this.router.navigate([this.routerUtils.generateUrl('/assets')]);
 					this.httpErrorHandlingService.handleBackedRequestError(error);
 				}
 			});
@@ -456,17 +504,17 @@ export class DescriptionOverviewComponent extends BaseComponent implements OnIni
 		return `${planUserId}-${order}` == this.authorFocus;
 	}
 
-	openShareDialog() {
-		const dialogRef = this.dialog.open(PlanInvitationDialogComponent, {
-			restoreFocus: false,
-			data: {
-				planId: this.description.plan.id,
-				planName: this.description.plan.label,
-				blueprint: this.isPublicView ? null : (this.description?.plan as Plan)?.blueprint,
-			},
-            minWidth: 'min(65rem, 90vw)'
-		});
-	}
+	// openShareDialog() {
+	// 	const dialogRef = this.dialog.open(PlanInvitationDialogComponent, {
+	// 		restoreFocus: false,
+	// 		data: {
+	// 			planId: this.description.plan.id,
+	// 			planName: this.description.plan.label,
+	// 			blueprint: this.isPublicView ? null : (this.description?.plan as Plan)?.blueprint,
+	// 		},
+    //         minWidth: 'min(65rem, 90vw)'
+	// 	});
+	// }
 
 	public isAuthenticated(): boolean {
 		return this.authentication.currentAccountIsAuthenticated();
@@ -522,7 +570,7 @@ export class DescriptionOverviewComponent extends BaseComponent implements OnIni
 
 	private onDeleteCallbackSuccess(): void {
 		this.uiNotificationService.snackBarNotification(this.language.instant('GENERAL.SNACK-BAR.SUCCESSFUL-DELETE'), SnackBarNotificationLevel.Success);
-		this.router.navigate([this.routerUtils.generateUrl('/descriptions')]);
+		this.router.navigate([this.routerUtils.generateUrl('/assets')]);
 	}
 
 	private onDeleteCallbackError(error) {
@@ -543,28 +591,15 @@ export class DescriptionOverviewComponent extends BaseComponent implements OnIni
 			.replace('must be filled', this.language.instant('must be filled'));
 	}
 
-	public getOrcidPath(): string {
-		return this.configurationService.orcidPath;
-	}
+	// getSectionNameById(sectionId: Guid): string {
+	// 	if (sectionId == null) return '';
 
-	isOrcid(reference: Reference) {
-		return reference.source === 'orcid';
-	}
+	// 	const blueprint = this.isPublicView ? null : (this.description?.plan as Plan)?.blueprint;
+        
+	// 	let sections: PlanBlueprintDefinitionSection[] = blueprint?.definition?.sections?.filter((section: PlanBlueprintDefinitionSection) => sectionId === section.id);
 
-	getOrcidPathForResearcher(reference: string): string {
-		const path = this.getOrcidPath();
-		return path + reference;
-	}
-
-	getSectionNameById(sectionId: Guid): string {
-		if (sectionId == null) return '';
-
-		const blueprint = this.isPublicView ? null : (this.description?.plan as Plan)?.blueprint;
-
-		let sections: PlanBlueprintDefinitionSection[] = blueprint?.definition?.sections?.filter((section: PlanBlueprintDefinitionSection) => sectionId === section.id);
-
-		return sections == null ? '' : sections[0].label;
-	}
+	// 	return sections == null ? '' : sections[0].label;
+	// }
 
 	openCopyToPlanDialog() {
 		const formGroup = this.fb.group({
@@ -573,7 +608,6 @@ export class DescriptionOverviewComponent extends BaseComponent implements OnIni
 		})
 		const dialogRef = this.dialog.open<DescriptionCopyDialogComponent, any, CopyDialogReturnParams>(DescriptionCopyDialogComponent, {
 			width: '500px',
-			restoreFocus: false,
 			data: {
 				formGroup: formGroup,
 				description: this.description,
@@ -638,11 +672,11 @@ export class DescriptionOverviewComponent extends BaseComponent implements OnIni
 		this.planService.removeUser(planUserRemovePersist, PlanEditorEntityResolver.lookupFields()).pipe(takeUntil(this._destroyed))
 			.subscribe({
 				next: (plan) => {
-					if ((plan?.planUsers?.find(x => x?.user?.id == planUser?.user?.id && x.isActive === IsActive.Active)) || (plan?.authorizationFlags?.some(x => x === AppPermission.AssignPlanUsers) || this.authentication.hasPermission(AppPermission.AssignPlanUsers))) {
+					if ((plan?.planUsers?.find(x => x?.user?.id == planUser?.user?.id && x.isActive === IsActive.Active)) || (plan?.authorizationInformation?.globalAuthorizationFlags?.some(x => x === AppPermission.AssignPlanUsers) || this.authentication.hasPermission(AppPermission.AssignPlanUsers))) {
 						this.onUpdateCallbackSuccess();
 					} else {
 						this.uiNotificationService.snackBarNotification(this.language.instant('GENERAL.SNACK-BAR.SUCCESSFUL-UPDATE'), SnackBarNotificationLevel.Success);
-						this.router.navigate([this.routerUtils.generateUrl('/descriptions')]);
+						this.router.navigate([this.routerUtils.generateUrl('/assets')]);
 					}
 				},
 				error: (error) => {
@@ -650,119 +684,15 @@ export class DescriptionOverviewComponent extends BaseComponent implements OnIni
 				}
 			});
 	}
-
-	persistStatus(status: DescriptionStatus, description: Description) {
-		if (status.internalStatus != null && status.internalStatus === DescriptionStatusEnum.Finalized) {
-			this.finalize(description, status.id);
-		} else if (status.internalStatus != null && description.status.internalStatus === DescriptionStatusEnum.Finalized) {
-			this.reverseFinalization(description, status.id);
-		} else {
-			// other statuses
-			const descriptionStatusPersist: DescriptionStatusPersist = {
-				id: description.id,
-				statusId: status.id,
-				hash: description.hash
-			};
-			this.descriptionService.persistStatus(descriptionStatusPersist).pipe(takeUntil(this._destroyed))
-				.subscribe({
-					next: () => {
-						this.reloadPage();
-						this.onUpdateCallbackSuccess()
-					},
-					error: (error: any) => this.onUpdateCallbackError(error)
-				})
-		}
-	}
-
-	finalize(description: Description, statusId: Guid) {
-
-		this.descriptionService.validate([description.id]).pipe(takeUntil(this._destroyed))
-			.subscribe({
-				next: (result) => {
-					if (result[0].result == DescriptionValidationOutput.Invalid) {
-						this.router.navigate([this.routerUtils.generateUrl(['plans/edit', description.plan.id.toString(), 'd', description.id.toString(), 'finalize'], '/')]);
-					} else {
-						const dialogRef = this.dialog.open(ConfirmationDialogComponent, {
-							restoreFocus: false,
-							data: {
-								message: this.language.instant('DESCRIPTION-OVERVIEW.FINALIZE-DIALOG.TITLE'),
-								confirmButton: this.language.instant('DESCRIPTION-OVERVIEW.FINALIZE-DIALOG.CONFIRM'),
-								cancelButton: this.language.instant('DESCRIPTION-OVERVIEW.FINALIZE-DIALOG.NEGATIVE'),
-								isDeleteConfirmation: false
-							}
-						});
-						dialogRef.afterClosed().pipe(takeUntil(this._destroyed)).subscribe({
-							next: (result) => {
-								if (result) {
-									const descriptionStatusPersist: DescriptionStatusPersist = {
-										id: description.id,
-										statusId: statusId,
-										hash: description.hash
-									};
-									this.descriptionService.persistStatus(descriptionStatusPersist).pipe(takeUntil(this._destroyed))
-										.subscribe({
-											next: () => {
-												this.reloadPage();
-												this.onUpdateCallbackSuccess()
-											},
-											error: (error: any) => this.onUpdateCallbackError(error)
-
-										})
-								}
-							},
-							error: (error) => this.httpErrorHandlingService.handleBackedRequestError(error)
-						})
-					}
-				},
-				error: (error) => this.httpErrorHandlingService.handleBackedRequestError(error)
-			});
-
-	}
-
-	hasReversableStatus(description: Description): boolean {
-		return description.plan.status.internalStatus == PlanStatusEnum.Draft && description?.status?.internalStatus == DescriptionStatusEnum.Finalized && this.canFinalize && (this.description as Description).availableStatuses?.find(x => x.internalStatus === DescriptionStatusEnum.Draft) != null
-	}
-
-	reverseFinalization(description: Description, statusId: Guid) {
-		const dialogRef = this.dialog.open(ConfirmationDialogComponent, {
-			restoreFocus: false,
-			data: {
-				message: this.language.instant('DESCRIPTION-OVERVIEW.UNDO-FINALIZATION-DIALOG.TITLE'),
-				confirmButton: this.language.instant('DESCRIPTION-OVERVIEW.UNDO-FINALIZATION-DIALOG.CONFIRM'),
-				cancelButton: this.language.instant('DESCRIPTION-OVERVIEW.UNDO-FINALIZATION-DIALOG.NEGATIVE'),
-				isDeleteConfirmation: false
-			}
-		});
-		dialogRef.afterClosed().pipe(takeUntil(this._destroyed)).subscribe(result => {
-			if (result) {
-				const planUserRemovePersist: DescriptionStatusPersist = {
-					id: description.id,
-					statusId: statusId,
-					hash: description.hash
-				};
-				this.descriptionService.persistStatus(planUserRemovePersist).pipe(takeUntil(this._destroyed))
-					.subscribe({
-						next: (data) => {
-							this.reloadPage();
-							this.onUpdateCallbackSuccess()
-						},
-						error: (error: any) => {
-							this.onUpdateCallbackError(error)
-						}
-					});
-			}
-		});
-		
-	}
-
-	private loadStatusLogo(){
+    
+    private loadStatusLogo(){
 		const availableStatus = [...(this.description as Description).availableStatuses, this.description.status];
 		if (availableStatus?.length > 0) {
 			availableStatus.forEach(x => {
-				if (x.definition?.storageFile?.id) {
-					this.storageFileService.download(x.definition?.storageFile?.id).pipe(takeUntil(this._destroyed))
+				if (x.definition?.iconConfiguration?.storageFile?.id) {
+					this.storageFileService.download(x.definition?.iconConfiguration?.storageFile?.id).pipe(takeUntil(this._destroyed))
 					.subscribe(response => {
-						this.statuslogos.set(x.definition?.storageFile?.id,this.sanitizer.bypassSecurityTrustUrl(URL.createObjectURL(response.body)));
+						this.statuslogos.set(x.definition?.iconConfiguration?.storageFile?.id,this.sanitizer.bypassSecurityTrustUrl(URL.createObjectURL(response.body)));
 					});		
 				}
 			})
@@ -770,7 +700,7 @@ export class DescriptionOverviewComponent extends BaseComponent implements OnIni
 		return 	
 	}
 
-	private lookupFields(): string[] {
+    private lookupFields(): string[] {
 		return [
             ...DescriptionEditorEntityResolver.descriptionLookupFields(),
             ...DescriptionEditorEntityResolver.descriptionTemplateLookupFieldsForDescription(),
@@ -782,9 +712,11 @@ export class DescriptionOverviewComponent extends BaseComponent implements OnIni
 			[nameof<Description>(x => x.status), nameof<DescriptionStatus>(x => x.name)].join('.'),
 			[nameof<Description>(x => x.status), nameof<DescriptionStatus>(x => x.internalStatus)].join('.'),
 			[nameof<Description>(x => x.status), nameof<DescriptionStatus>(x => x.definition), nameof<DescriptionStatusDefinition>(x => x.availableActions)].join('.'),
-			[nameof<Description>(x => x.status), nameof<DescriptionStatus>(x => x.definition), nameof<DescriptionStatusDefinition>(x => x.matIconName)].join('.'),
+			[nameof<Description>(x => x.status), nameof<DescriptionStatus>(x => x.definition), nameof<DescriptionStatusDefinition>(x => x.iconConfiguration), nameof<IconConfiguration>(x => x.matIconName)].join('.'),
 			[nameof<Description>(x => x.status), nameof<DescriptionStatus>(x => x.definition), nameof<DescriptionStatusDefinition>(x => x.statusColor)].join('.'),
-			[nameof<Description>(x => x.status), nameof<DescriptionStatus>(x => x.definition), nameof<DescriptionStatusDefinition>(x => x.storageFile), nameof<StorageFile>(x => x.id)].join('.'),
+			[nameof<Description>(x => x.status), nameof<DescriptionStatus>(x => x.definition), nameof<DescriptionStatusDefinition>(x => x.iconConfiguration), nameof<IconConfiguration>(x => x.storageFile), nameof<StorageFile>(x => x.id)].join('.'),
+			[nameof<Description>(x => x.descriptionTags), nameof<DescriptionTag>(x => x.tag), nameof<Tag>(x => x.id)].join('.'),
+			[nameof<Description>(x => x.descriptionTags), nameof<DescriptionTag>(x => x.tag), nameof<Tag>(x => x.label)].join('.'),
 
 			nameof<Description>(x => x.updatedAt),
 			nameof<Description>(x => x.belongsToCurrentTenant),
@@ -808,24 +740,40 @@ export class DescriptionOverviewComponent extends BaseComponent implements OnIni
 			[nameof<Description>(x => x.plan), nameof<Plan>(x => x.status), nameof<PlanStatus>(x => x.id)].join('.'),
 			[nameof<Description>(x => x.plan), nameof<Plan>(x => x.status), nameof<PlanStatus>(x => x.name)].join('.'),
 			[nameof<Description>(x => x.plan), nameof<Plan>(x => x.status), nameof<PlanStatus>(x => x.internalStatus)].join('.'),
-			[nameof<Description>(x => x.plan), nameof<Plan>(x => x.authorizationFlags), AppPermission.InvitePlanUsers].join('.'),
+			[nameof<Description>(x => x.plan), nameof<Plan>(x => x.authorizationInformation), nameof<PlanAuthorizationInformation>(x => x.globalAuthorizationFlags), AppPermission.InvitePlanUsers].join('.'),
 			[nameof<Description>(x => x.plan), nameof<Plan>(x => x.blueprint), nameof<PlanBlueprint>(x => x.id)].join('.'),
 			[nameof<Description>(x => x.plan), nameof<Plan>(x => x.blueprint), nameof<PlanBlueprint>(x => x.label)].join('.'),
-			[nameof<Description>(x => x.plan), nameof<Plan>(x => x.blueprint), nameof<PlanBlueprint>(x => x.definition), nameof<PlanBlueprintDefinition>(x => x.sections), nameof<PlanBlueprintDefinitionSection>(x => x.id)].join('.'),
-			[nameof<Description>(x => x.plan), nameof<Plan>(x => x.blueprint), nameof<PlanBlueprint>(x => x.definition), nameof<PlanBlueprintDefinition>(x => x.sections), nameof<PlanBlueprintDefinitionSection>(x => x.label)].join('.'),
-			[nameof<Description>(x => x.plan), nameof<Plan>(x => x.blueprint), nameof<PlanBlueprint>(x => x.definition), nameof<PlanBlueprintDefinition>(x => x.sections), nameof<PlanBlueprintDefinitionSection>(x => x.hasTemplates)].join('.'),
+			[nameof<Description>(x => x.plan), nameof<Plan>(x => x.blueprint), nameof<PlanBlueprint>(x => x.definition), nameof<PlanBlueprintDefinition>(x => x.sections), nameof<RootSection>(x => x.id)].join('.'),
+			[nameof<Description>(x => x.plan), nameof<Plan>(x => x.blueprint), nameof<PlanBlueprint>(x => x.definition), nameof<PlanBlueprintDefinition>(x => x.sections), nameof<RootSection>(x => x.title)].join('.'),
+			[nameof<Description>(x => x.plan), nameof<Plan>(x => x.blueprint), nameof<PlanBlueprint>(x => x.definition), nameof<PlanBlueprintDefinition>(x => x.sections), nameof<RootSection>(x => x.sections)].join('.'),
+			[nameof<Description>(x => x.plan), nameof<Plan>(x => x.blueprint), nameof<PlanBlueprint>(x => x.definition), nameof<PlanBlueprintDefinition>(x => x.sections), nameof<RootSection>(x => x.hasTemplates)].join('.'),
 			[nameof<Description>(x => x.plan), nameof<Plan>(x => x.planUsers), nameof<PlanUser>(x => x.id)].join('.'),
 			[nameof<Description>(x => x.plan), nameof<Plan>(x => x.planUsers), nameof<PlanUser>(x => x.sectionId)].join('.'),
 			[nameof<Description>(x => x.plan), nameof<Plan>(x => x.planUsers), nameof<PlanUser>(x => x.user.id)].join('.'),
 			[nameof<Description>(x => x.plan), nameof<Plan>(x => x.planUsers), nameof<PlanUser>(x => x.user.name)].join('.'),
 			[nameof<Description>(x => x.plan), nameof<Plan>(x => x.planUsers), nameof<PlanUser>(x => x.role)].join('.'),
 			[nameof<Description>(x => x.plan), nameof<Plan>(x => x.planUsers), nameof<PlanUser>(x => x.isActive)].join('.'),
+            [nameof<Description>(x => x.descriptionReferences), nameof<DescriptionReference>(x => x.id)].join('.'),
+            [nameof<Description>(x => x.descriptionReferences), nameof<DescriptionReference>(x => x.reference), nameof<Reference>(x => x.id)].join('.'),
+            [nameof<Description>(x => x.descriptionReferences), nameof<DescriptionReference>(x => x.reference), nameof<Reference>(x => x.label)].join('.'),
+            [nameof<Description>(x => x.descriptionReferences), nameof<DescriptionReference>(x => x.reference), nameof<Reference>(x => x.type), nameof<ReferenceType>(x => x.id)].join('.'),
+            [nameof<Description>(x => x.descriptionReferences), nameof<DescriptionReference>(x => x.reference), nameof<Reference>(x => x.reference)].join('.'),
+            [nameof<Description>(x => x.descriptionReferences), nameof<DescriptionReference>(x => x.isActive)].join('.'),
+            [nameof<Description>(x => x.descriptionReferences), nameof<DescriptionReference>(x => x.data), nameof<DescriptionReferenceData>(x => x.fieldId)].join('.'),
+            [nameof<Description>(x => x.descriptionReferences), nameof<DescriptionReference>(x => x.data), nameof<DescriptionReferenceData>(x => x.ordinal)].join('.'),
+            [nameof<Description>(x => x.descriptionReferences), nameof<DescriptionReference>(x => x.reference), nameof<Reference>(x => x.source)].join('.'),
+            [nameof<Description>(x => x.descriptionReferences), nameof<DescriptionReference>(x => x.reference), nameof<Reference>(x => x.type), nameof<ReferenceType>(x => x.definition), nameof<ReferenceTypeDefinition>(x => x.sources), nameof<ExternalFetcherBaseSourceConfiguration>(x => x.key)].join('.'),
+            [nameof<Description>(x => x.descriptionReferences), nameof<DescriptionReference>(x => x.reference), nameof<Reference>(x => x.type), nameof<ReferenceType>(x => x.definition), nameof<ReferenceTypeDefinition>(x => x.sources), nameof<ExternalFetcherBaseSourceConfiguration>(x => x.storageFile), nameof<StorageFile>(x => x.id)].join('.'),
+            [nameof<Description>(x => x.descriptionReferences), nameof<DescriptionReference>(x => x.reference), nameof<Reference>(x => x.type), nameof<ReferenceType>(x => x.definition), nameof<ReferenceTypeDefinition>(x => x.sources), nameof<ExternalFetcherBaseSourceConfiguration>(x => x.tooltipMessage)].join('.'),
 			[nameof<Description>(x => x.plan), nameof<Plan>(x => x.planReferences), nameof<PlanReference>(x => x.id)].join('.'),
 			[nameof<Description>(x => x.plan), nameof<Plan>(x => x.planReferences), nameof<PlanReference>(x => x.reference), nameof<Reference>(x => x.id)].join('.'),
 			[nameof<Description>(x => x.plan), nameof<Plan>(x => x.planReferences), nameof<PlanReference>(x => x.reference), nameof<Reference>(x => x.label)].join('.'),
 			[nameof<Description>(x => x.plan), nameof<Plan>(x => x.planReferences), nameof<PlanReference>(x => x.reference), nameof<Reference>(x => x.type), nameof<ReferenceType>(x => x.id)].join('.'),
 			[nameof<Description>(x => x.plan), nameof<Plan>(x => x.planReferences), nameof<PlanReference>(x => x.reference), nameof<Reference>(x => x.source)].join('.'),
 			[nameof<Description>(x => x.plan), nameof<Plan>(x => x.planReferences), nameof<PlanReference>(x => x.reference), nameof<Reference>(x => x.reference)].join('.'),
+            // [nameof<Description>(x => x.plan), nameof<Plan>(x => x.planReferences), nameof<PlanReference>(x => x.reference), nameof<Reference>(x => x.type), nameof<ReferenceType>(x => x.definition), nameof<ReferenceTypeDefinition>(x => x.sources), nameof<ExternalFetcherBaseSourceConfiguration>(x => x.navigationUrl)].join('.'),
+            // [nameof<Description>(x => x.plan), nameof<Plan>(x => x.planReferences), nameof<PlanReference>(x => x.reference), nameof<Reference>(x => x.type), nameof<ReferenceType>(x => x.definition), nameof<ReferenceTypeDefinition>(x => x.sources), nameof<ExternalFetcherBaseSourceConfiguration>(x => x.storageFile), nameof<StorageFile>(x => x.id)].join('.'),
+            // [nameof<Description>(x => x.plan), nameof<Plan>(x => x.planReferences), nameof<PlanReference>(x => x.reference), nameof<Reference>(x => x.type), nameof<ReferenceType>(x => x.definition), nameof<ReferenceTypeDefinition>(x => x.sources), nameof<ExternalFetcherBaseSourceConfiguration>(x => x.tooltipMessage)].join('.'),
 			[nameof<Description>(x => x.plan), nameof<Plan>(x => x.planReferences), nameof<PlanReference>(x => x.isActive)].join('.'),
             [nameof<Description>(x => x.plan), nameof<Plan>(x => x.status), nameof<PlanStatus>(x => x.definition), nameof<DescriptionStatusDefinition>(x => x.statusColor)].join('.'),
 
@@ -833,10 +781,146 @@ export class DescriptionOverviewComponent extends BaseComponent implements OnIni
 			[nameof<Description>(x => x.availableStatuses), nameof<DescriptionStatus>(x => x.name)].join('.'),
 			[nameof<Description>(x => x.availableStatuses), nameof<DescriptionStatus>(x => x.internalStatus)].join('.'),
 			[nameof<Description>(x => x.availableStatuses), nameof<DescriptionStatus>(x => x.action)].join('.'),
-			[nameof<Description>(x => x.availableStatuses), nameof<DescriptionStatus>(x => x.definition), nameof<DescriptionStatusDefinition>(x => x.matIconName)].join('.'),
-			[nameof<Description>(x => x.availableStatuses), nameof<DescriptionStatus>(x => x.definition), nameof<DescriptionStatusDefinition>(x => x.storageFile), nameof<StorageFile>(x => x.id)].join('.'),
+			[nameof<Description>(x => x.availableStatuses), nameof<DescriptionStatus>(x => x.definition), nameof<DescriptionStatusDefinition>(x => x.iconConfiguration), nameof<IconConfiguration>(x => x.matIconName)].join('.'),
+			[nameof<Description>(x => x.availableStatuses), nameof<DescriptionStatus>(x => x.definition), nameof<DescriptionStatusDefinition>(x => x.iconConfiguration), nameof<IconConfiguration>(x => x.storageFile), nameof<StorageFile>(x => x.id)].join('.'),
+			[nameof<Description>(x => x.descriptionTemplate), nameof<DescriptionTemplate>(x => x.type), nameof<DescriptionTemplateType>(x => x.name)].join('.'),
 
 		]
 	}
 
+    /** @deprecated not in use anymore, change description status in editor*/
+	// persistStatus(status: DescriptionStatus, description: Description) {
+	// 	if (status.internalStatus != null && status.internalStatus === DescriptionStatusEnum.Finalized) {
+	// 		this.finalize(description, status.id);
+	// 	} else if (status.internalStatus != null && description.status.internalStatus === DescriptionStatusEnum.Finalized) {
+	// 		this.reverseFinalization(description, status.id);
+	// 	} else {
+	// 		// other statuses
+	// 		const descriptionStatusPersist: DescriptionStatusPersist = {
+	// 			id: description.id,
+	// 			statusId: status.id,
+	// 			hash: description.hash
+	// 		};
+	// 		this.descriptionService.persistStatus(descriptionStatusPersist).pipe(takeUntil(this._destroyed))
+	// 			.subscribe({
+	// 				next: () => {
+	// 					this.reloadPage();
+	// 					this.onUpdateCallbackSuccess()
+	// 				},
+	// 				error: (error: any) => this.onUpdateCallbackError(error)
+	// 			})
+	// 	}
+	// }
+
+	// finalize(description: Description, statusId: Guid) {
+
+	// 	this.descriptionService.validate([description.id]).pipe(takeUntil(this._destroyed))
+	// 		.subscribe({
+	// 			next: (result) => {
+	// 				if (result[0].result == DescriptionValidationOutput.Invalid) {
+	// 					this.router.navigate([this.routerUtils.generateUrl(['plans/edit', description.plan.id.toString(), 'd', description.id.toString(), 'finalize'], '/')]);
+	// 				} else {
+	// 					const dialogRef = this.dialog.open(ConfirmationDialogComponent, {
+	// 						restoreFocus: false,
+	// 						data: {
+	// 							message: this.language.instant('DESCRIPTION-OVERVIEW.FINALIZE-DIALOG.TITLE'),
+	// 							confirmButton: this.language.instant('DESCRIPTION-OVERVIEW.FINALIZE-DIALOG.CONFIRM'),
+	// 							cancelButton: this.language.instant('DESCRIPTION-OVERVIEW.FINALIZE-DIALOG.NEGATIVE'),
+	// 							isDeleteConfirmation: false
+	// 						}
+	// 					});
+	// 					dialogRef.afterClosed().pipe(takeUntil(this._destroyed)).subscribe({
+	// 						next: (result) => {
+	// 							if (result) {
+	// 								const descriptionStatusPersist: DescriptionStatusPersist = {
+	// 									id: description.id,
+	// 									statusId: statusId,
+	// 									hash: description.hash
+	// 								};
+	// 								this.descriptionService.persistStatus(descriptionStatusPersist).pipe(takeUntil(this._destroyed))
+	// 									.subscribe({
+	// 										next: () => {
+	// 											this.reloadPage();
+	// 											this.onUpdateCallbackSuccess()
+	// 										},
+	// 										error: (error: any) => this.onUpdateCallbackError(error)
+
+	// 									})
+	// 							}
+	// 						},
+	// 						error: (error) => this.httpErrorHandlingService.handleBackedRequestError(error)
+	// 					})
+	// 				}
+	// 			},
+	// 			error: (error) => this.httpErrorHandlingService.handleBackedRequestError(error)
+	// 		});
+
+	// }
+
+	// hasReversableStatus(description: Description): boolean {
+	// 	return description.plan.status.internalStatus == PlanStatusEnum.Draft && description?.status?.internalStatus == DescriptionStatusEnum.Finalized && this.canFinalize && (this.description as Description).availableStatuses?.find(x => x.internalStatus === DescriptionStatusEnum.Draft) != null
+	// }
+
+	// reverseFinalization(description: Description, statusId: Guid) {
+	// 	const dialogRef = this.dialog.open(ConfirmationDialogComponent, {
+	// 		restoreFocus: false,
+	// 		data: {
+	// 			message: this.language.instant('DESCRIPTION-OVERVIEW.UNDO-FINALIZATION-DIALOG.TITLE'),
+	// 			confirmButton: this.language.instant('DESCRIPTION-OVERVIEW.UNDO-FINALIZATION-DIALOG.CONFIRM'),
+	// 			cancelButton: this.language.instant('DESCRIPTION-OVERVIEW.UNDO-FINALIZATION-DIALOG.NEGATIVE'),
+	// 			isDeleteConfirmation: false
+	// 		}
+	// 	});
+	// 	dialogRef.afterClosed().pipe(takeUntil(this._destroyed)).subscribe(result => {
+	// 		if (result) {
+	// 			const planUserRemovePersist: DescriptionStatusPersist = {
+	// 				id: description.id,
+	// 				statusId: statusId,
+	// 				hash: description.hash
+	// 			};
+	// 			this.descriptionService.persistStatus(planUserRemovePersist).pipe(takeUntil(this._destroyed))
+	// 				.subscribe({
+	// 					next: (data) => {
+	// 						this.reloadPage();
+	// 						this.onUpdateCallbackSuccess()
+	// 					},
+	// 					error: (error: any) => {
+	// 						this.onUpdateCallbackError(error)
+	// 					}
+	// 				});
+	// 		}
+	// 	});
+		
+	// }
+
+
+    
+    // referenceLogos:  Map<Guid, SafeResourceUrl>;
+    // referenceNavigationUrls: Map<Guid, string>;
+    // referenceTooltips: Map<Guid, string>;
+    // private loadReferenceData(){
+    //     this.referenceLogos = new Map<Guid, SafeResourceUrl>([]);
+    //     this.referenceNavigationUrls = new Map<Guid, string>([]);
+    //     this.referenceTooltips = new Map<Guid, string>([]);
+
+    //     if(!this.description.plan?.planReferences?.length){ return; }
+    //     const tempStorageFileIdSet = new Set([]);
+
+    //     this.description.plan.planReferences.forEach((ref) => {
+    //         const sourceDefinition = ref.reference.type.definition?.sources?.find(x => x.key == ref.reference.source);
+    //         if(!sourceDefinition){ return; }
+    //         const navigationUrl = sourceDefinition?.navigationUrl;
+    //         this.referenceNavigationUrls.set(ref.id, navigationUrl);
+    //         const tooltip = sourceDefinition?.tooltipMessage;
+    //         this.referenceTooltips.set(ref.id, tooltip);
+    //         const storageFileId = sourceDefinition?.storageFile?.id;
+    //         if(storageFileId && !tempStorageFileIdSet.has(storageFileId)){
+    //             tempStorageFileIdSet.add(storageFileId);
+    //             this.storageFileService.download(storageFileId).pipe(takeUntil(this._destroyed))
+    //             .subscribe(response => {
+    //                 this.referenceLogos.set(storageFileId,this.sanitizer.bypassSecurityTrustUrl(URL.createObjectURL(response.body)));
+    //             });
+    //         }
+    //     })
+    // }
 }

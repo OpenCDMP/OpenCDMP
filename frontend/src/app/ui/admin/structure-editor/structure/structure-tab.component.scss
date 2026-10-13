@@ -1,0 +1,14 @@
+@use '../bp2-shared' as *;
+
+:host { display: block; }
+.st { display: flex; flex-direction: column; gap: 1rem; }
+.st-presets {
+	display: flex; align-items: center; gap: .75rem; flex-wrap: wrap; padding: .625rem 1rem; background: var(--mat-sys-surface); border: 1px solid var(--mat-sys-outline-variant); border-radius: 12px;
+	&__icon { color: var(--mat-sys-primary); }
+	&__chips { display: flex; gap: .5rem; flex-wrap: wrap; flex: 1 1 0; }
+	&__add { border: none; cursor: pointer; font: inherit; font-size: .75rem; font-weight: 700; &:hover { filter: brightness(.96); } &[disabled] { cursor: default; opacity: .7; } }
+}
+.st-body { display: flex; gap: 1.5rem; align-items: flex-start; }
+.st-outline { width: 340px; flex: none; position: sticky; top: .5rem; }
+.st-pane { flex: 1 1 0; min-width: 0; }
+@media (max-width: 1000px) { .st-body { flex-direction: column; } .st-outline { width: 100%; position: static; } }

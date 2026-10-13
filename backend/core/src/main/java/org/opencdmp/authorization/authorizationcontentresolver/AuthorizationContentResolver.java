@@ -23,7 +23,7 @@ public interface AuthorizationContentResolver {
 
 	Map<UUID, AffiliatedResource> descriptionsAffiliation(List<UUID> ids);
 
-	AffiliatedResource descriptionsAffiliationBySection(UUID planId, UUID sectionId);
+	AffiliatedResource descriptionsAffiliationBySection(UUID planId, String sectionId);
 
-	Map<UUID, AffiliatedResource> descriptionsAffiliationBySections(UUID planId, List<UUID> sectionIds);
+	Map<String, AffiliatedResource> descriptionsAffiliationBySections(UUID planId, List<String> sectionIds);
 }

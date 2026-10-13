@@ -1,0 +1,12 @@
+@use '../../bp2-shared' as *;
+
+:host { display: block; }
+.dt-identity { display: flex; gap: 1.25rem; align-items: flex-start; }
+.dt-fields { flex: 1 1 0; min-width: 0; display: flex; flex-direction: column; gap: .25rem; &__row { display: flex; gap: 1rem; flex-wrap: wrap; align-items: flex-start; } }
+.dt-grow { flex: 1 1 200px; width: 100%; }
+.dt-code { flex: 0 0 240px; }
+.dt-full { width: 100%; }
+.dt-read { flex: 1 1 0; min-width: 0; }
+
+// the description grows with its text instead of scrolling inside a fixed box
+:host ::ng-deep .dt-rich .angular-editor-textarea { height: auto !important; min-height: 5.625rem; max-height: none !important; resize: none !important; }

@@ -6,13 +6,13 @@
         <mat-icon>close</mat-icon>
       </button>
     </div>
-    <div mat-dialog-content class="row">
+    <div mat-dialog-content>
       @for (user of formGroup.get('users').controls; track user; let userIndex = $index) {
         <div class="row align-items-center mb-2">
           <div class="col-12 col-xl mt-3">
             <mat-form-field class="w-100">
               <mat-label>{{'USER-INVITE-TO-TENANT-DIALOG.FIELDS.EMAIL' | translate}}</mat-label>
-              <input matInput type="text" name="email" [formControl]="user.get('email')">
+              <input matInput type="email" name="email" autocomplete="email" inputmode="email" [formControl]="user.get('email')">
               @if (user.get('email').hasError('backendError')) {
                 <mat-error>{{user.get('email').getError('backendError').message}}</mat-error>
               }
@@ -21,7 +21,7 @@
               }
             </mat-form-field>
           </div>
-          <div class="col-12 col-xl mt-3">
+          <div class="col-12 col-xl">
             <mat-form-field class="w-100">
               <mat-label>{{'USER-INVITE-TO-TENANT-DIALOG.FIELDS.ROLES' | translate}}</mat-label>
               <mat-select multiple [formControl]="user.get('roles')">
@@ -40,7 +40,7 @@
           </div>
           <div class="col-12 col-xl-auto">
             <button mat-icon-button class="action-list-icon" matTooltip="{{'USER-INVITE-TO-TENANT-DIALOG.ACTIONS.REMOVE-USER' | translate}}" (click)="removeUser(userIndex)" [disabled]="formGroup.get('users').controls.length == 1" [attr.aria-label]="'USER-INVITE-TO-TENANT-DIALOG.ACTIONS.REMOVE-USER' | translate">
-              <mat-icon aria-hidden>delete</mat-icon>
+              <mat-icon aria-hidden="true">delete</mat-icon>
             </button>
           </div>
         </div>

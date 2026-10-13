@@ -4,7 +4,7 @@ import gr.cite.tools.data.builder.BuilderFactory;
 import gr.cite.tools.exception.MyApplicationException;
 import gr.cite.tools.logging.LoggerService;
 import org.opencdmp.authorization.AuthorizationFlags;
-import org.opencdmp.commonmodels.models.description.PropertyDefinitionFieldSetItemModel;
+import org.opencdmp.commonmodels.models.plandescriptionfields.PropertyDefinitionFieldSetItemModel;
 import org.opencdmp.commons.types.description.PropertyDefinitionFieldSetItemEntity;
 import org.opencdmp.commons.types.descriptiontemplate.FieldEntity;
 import org.opencdmp.commons.types.descriptiontemplate.FieldSetEntity;

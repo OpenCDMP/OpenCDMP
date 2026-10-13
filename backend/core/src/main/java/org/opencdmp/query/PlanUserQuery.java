@@ -311,7 +311,7 @@ public class PlanUserQuery extends QueryBase<PlanUserEntity> {
         item.setTenantId(QueryBase.convertSafe(tuple, columns, PlanUserEntity._tenantId, UUID.class));
         item.setPlanId(QueryBase.convertSafe(tuple, columns, PlanUserEntity._planId, UUID.class));
         item.setUserId(QueryBase.convertSafe(tuple, columns, PlanUserEntity._userId, UUID.class));
-        item.setSectionId(QueryBase.convertSafe(tuple, columns, PlanUserEntity._sectionId, UUID.class));
+        item.setSectionId(QueryBase.convertSafe(tuple, columns, PlanUserEntity._sectionId, String.class));
         item.setOrdinal(QueryBase.convertSafe(tuple, columns, PlanUserEntity._ordinal, Integer.class));
         item.setRole(QueryBase.convertSafe(tuple, columns, PlanUserEntity._role, PlanUserRole.class));
         item.setCreatedAt(QueryBase.convertSafe(tuple, columns, PlanUserEntity._createdAt, Instant.class));

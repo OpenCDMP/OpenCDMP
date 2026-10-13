@@ -1,35 +1,249 @@
-.header-title {
-  text-align: left;
-  font-size: var(--mat-sys-headline-medium-size);
-  font-weight: 300;
-  color: var(--dark-text);
-  padding: 0px;
+@use './../../../../assets/scss/variables.scss';
+.search-form {
+    flex: 1;
 }
 
-.header-text-container {
-  background: rgba(255, 255, 255, 0.7);
-  position: absolute;
-  bottom: 0px;
-  padding-left: 5em;
-  padding-right: 10em;
-  padding-top: 2em;
-  padding-bottom: 2em;
+// ---- Pill filter design ----
+$pill-bg: #ffffff;
+$pill-border: var(--mat-sys-outline, #d1d5db);
+$pill-radius: 12px;
+$pill-height: 40px;
+$icon-muted: var(--mat-sys-on-surface-variant, #5f6368);
+
+.filters {
+    row-gap: 0.75rem;
 }
 
-.explore-plan-content {
-  padding: 30px 15px;
+// Search field: pill-shaped, outlined
+::ng-deep .search-form .mat-mdc-text-field-wrapper {
+    background-color: $pill-bg !important;
+    border-radius: $pill-radius !important;
+    padding: 0 1rem !important;
+}
+::ng-deep .search-form .mdc-notched-outline__leading {
+    border-radius: $pill-radius 0 0 $pill-radius !important;
+    border-color: $pill-border !important;
+    width: 1.25rem !important;
+}
+::ng-deep .search-form .mdc-notched-outline__trailing {
+    border-radius: 0 $pill-radius $pill-radius 0 !important;
+    border-color: $pill-border !important;
+}
+::ng-deep .search-form .mdc-notched-outline__notch {
+    border-color: $pill-border !important;
+}
+::ng-deep .search-form .mat-mdc-form-field-flex {
+    height: $pill-height;
+    align-items: center;
+}
+::ng-deep .search-form .mat-mdc-form-field-infix {
+    padding-top: 0.5rem !important;
+    padding-bottom: 0.5rem !important;
+    min-height: auto !important;
+}
+::ng-deep .search-form .mat-mdc-form-field-icon-prefix {
+    color: $icon-muted;
+}
+::ng-deep .search-form:focus-within .mdc-notched-outline__leading,
+::ng-deep .search-form:focus-within .mdc-notched-outline__notch,
+::ng-deep .search-form:focus-within .mdc-notched-outline__trailing {
+    border-color: var(--mat-sys-primary) !important;
 }
 
-.main-content {
-  background-color: var(--mat-sys-background);
-  padding-top: 4.68rem;
-  padding-bottom: 3rem;
-  padding-left: 3rem;
-  padding-right: 3rem;
-  margin: 0;
-  display: flex;
-  flex-grow: 1;
+// View toggle: pill-shaped segmented control
+::ng-deep .filters mat-button-toggle-group {
+    border-radius: $pill-radius !important;
+    overflow: hidden;
+    border: 1px solid $pill-border;
+    height: $pill-height;
+    background-color: $pill-bg;
 }
+::ng-deep .filters mat-button-toggle {
+    border: none !important;
+    background: transparent;
+}
+::ng-deep .filters mat-button-toggle .mat-button-toggle-button,
+::ng-deep .filters mat-button-toggle .mat-button-toggle-label-content {
+    height: $pill-height;
+    line-height: $pill-height;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+// Sort pill: outlined rounded container holding icon + dropdown + direction button
+.sort-pill {
+    display: flex;
+    align-items: center;
+    background-color: $pill-bg;
+    border: 1px solid $pill-border;
+    border-radius: $pill-radius;
+    padding: 0 0.25rem 0 0.875rem;
+    height: $pill-height;
+    gap: 0.25rem;
+}
+.sort-pill:focus-within {
+    border-color: var(--mat-sys-primary);
+    border-width: 2px;
+}
+
+.sort-pill-icon {
+    color: $icon-muted;
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
+    line-height: 18px;
+    flex-shrink: 0;
+    opacity: 0.75;
+    margin-right: 0.5rem;
+}
+
+::ng-deep .sort-pill .sort-form {
+    min-width: 110px;
+}
+::ng-deep .sort-pill .sort-form .mat-mdc-text-field-wrapper {
+    background-color: transparent !important;
+    padding: 0 !important;
+}
+// Hide the mat-form-field's notched outline + flatten wrapper/flex/infix backgrounds so only the
+// .sort-pill border shows (the notch otherwise leaves a white rounded gap on top of the border).
+::ng-deep .sort-pill .sort-form .mdc-notched-outline {
+    display: none !important;
+}
+::ng-deep .sort-pill .sort-form .mat-mdc-text-field-wrapper,
+::ng-deep .sort-pill .sort-form .mat-mdc-form-field-flex,
+::ng-deep .sort-pill .sort-form .mat-mdc-form-field-infix {
+    background: transparent !important;
+    border: none !important;
+    border-radius: 0 !important;
+}
+::ng-deep .sort-pill .sort-form .mat-mdc-form-field-infix {
+    padding-top: 0.5rem !important;
+    padding-bottom: 0.5rem !important;
+    min-height: auto !important;
+    width: auto;
+}
+
+.sort-divider {
+    width: 1px;
+    align-self: stretch;
+    background-color: $pill-border;
+    flex-shrink: 0;
+    margin-left: 0.5rem;
+}
+
+.sort-direction-btn {
+    width: 32px;
+    height: 32px;
+    line-height: 32px;
+    border: none;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+h1.page-title {
+    margin: 0;
+    font-weight: inherit;
+}
+p.page-subtitle {
+    margin: 0;
+}
+ul.listing {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    > li {
+        list-style: none;
+    }
+}
+.filter-btn {
+    --mdc-outlined-button-container-shape: #{$pill-radius};
+    height: $pill-height;
+    border-radius: $pill-radius !important;
+    background-color: $pill-bg;
+    box-shadow: none;
+    font-weight: 500;
+    font-size: var(--mat-sys-body-medium-size);
+    padding: 0 1rem;
+    mat-icon {
+        height: 20px;
+        width: 20px;
+        font-size: 20px;
+        color: $icon-muted;
+        margin-right: -4px;
+    }
+}
+::ng-deep .filter-btn .mdc-button__label {
+    width: 100%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+::ng-deep .filter-btn.mat-badge-large .mat-badge-content{
+    width: 22px;
+    height: 22px;
+    line-height: 22px;
+    font-size: var(--mat-sys-body-small-size);
+    top: 8px;
+    left: calc(100% - 3px);
+}
+.description-listing {
+    display: flex;
+    overflow: hidden;
+    height: variables.$main-content-full-height;
+    .listing-container{
+        flex: 1;
+        padding: 1.5rem;
+        overflow: auto;
+        height: 100%;
+    }
+    .listing-filters {
+        background: var(--mat-sys-background);
+        position: sticky;
+        top: 0;
+        flex-grow: auto;
+        transition: width 400ms ease-in-out;
+        width: 0;
+        overflow: hidden;
+        height: variables.$main-content-full-height;
+        &.open {
+            overflow-x: auto;
+            width: 400px;
+        }
+        border-left: 1px solid var(--mat-sys-outline-variant);
+    }
+}
+// .header-title {
+//   text-align: left;
+//   font-size: var(--mat-sys-headline-medium-size);
+//   font-weight: 300;
+//   color: var(--dark-text);
+//   padding: 0px;
+// }
+
+// .header-text-container {
+//   background: rgba(255, 255, 255, 0.7);
+//   position: absolute;
+//   bottom: 0px;
+//   padding-left: 5em;
+//   padding-right: 10em;
+//   padding-top: 2em;
+//   padding-bottom: 2em;
+// }
+
+// .explore-plan-content {
+//   padding: 30px 15px;
+// }
+
+// .main-content {
+// //   background-color: var(--mat-sys-background);
+// //   padding-top: 4.68rem;
+// //   padding-bottom: 3rem;
+// //   padding-left: 3rem;
+// //   padding-right: 3rem;
+//   margin: 0;
+//   display: flex;
+//   flex-grow: 1;
+// }
 
 .card {
   background: var(--mat-sys-surface) 0% 0% no-repeat padding-box;
@@ -39,15 +253,15 @@
   opacity: 1;
 }
 
-.card-title {
-  text-align: left;
-  font: Bold 20px/30px Roboto;
-  letter-spacing: 0px;
-  color: var(--dark-text);
-  padding-left: 40px;
-  padding-right: 55px;
-  opacity: 1;
-}
+// .card-title {
+//   text-align: left;
+//   font: Bold 20px/30px Roboto;
+//   letter-spacing: 0px;
+//   color: var(--dark-text);
+//   padding-left: 40px;
+//   padding-right: 55px;
+//   opacity: 1;
+// }
 
 .card-content {
   text-align: left;
@@ -60,17 +274,17 @@
   opacity: 1;
 }
 
-.clear-icon {
-	cursor: pointer;
-	color: var(--dark-text);
-	padding: 0.4rem;
-}
+// .clear-icon {
+// 	cursor: pointer;
+// 	color: var(--dark-text);
+// 	padding: 0.4rem;
+// }
 
-.clear-icon:hover {
-	background-color: rgb(0,0,0,0.05) !important;
-	border-radius: 50%;
-	padding: 0.4rem;
-}
+// .clear-icon:hover {
+// 	background-color: rgb(0,0,0,0.05) !important;
+// 	border-radius: 50%;
+// 	padding: 0.4rem;
+// }
 
 
 .info-text {
@@ -81,47 +295,44 @@
   color: var(--dark-text);
 }
 
-.filter-btn {
-    position: fixed;
-    right: 0px;
-    z-index: 100;
-    width: 37px;
-    transition: 0.3s ease-in-out;
-    -webkit-transition: 0.3s ease-in-out;
-    -moz-transition: 0.3s ease-in-out;
-    .filter-icon {
-        width: 1.5rem;
-        height: 1.5rem;
-        font-size: 1.5rem;
-    }
-}
+// .filter-btn {
+//     position: fixed;
+//     right: 0px;
+//     z-index: 100;
+//     width: 37px;
+//     transition: 0.3s ease-in-out;
+//     -webkit-transition: 0.3s ease-in-out;
+//     -moz-transition: 0.3s ease-in-out;
+//     .filter-icon {
+//         width: 1.5rem;
+//         height: 1.5rem;
+//         font-size: 1.5rem;
+//     }
+// }
 
-.filter-btn button {
-  color: white;
-  background-color: var(--mat-sys-primary);
-  width: 37px;
-  height: 45px;
-}
+// .filter-btn button {
+//   color: white;
+//   background-color: var(--mat-sys-primary);
+//   width: 37px;
+//   height: 45px;
+// }
 
-.center-content {
-  font-size: var(--mat-sys-title-small-size);
-  font-weight: 600;
-  letter-spacing: 0.02rem;
-  color: var(--link-color);
-  cursor: pointer;
-  &:hover{
-    color: var(--mat-sys-primary);
-  }
-}
+// .center-content {
+//   font-size: var(--mat-sys-title-small-size);
+//   font-weight: 600;
+//   letter-spacing: 0.02rem;
+//   color: var(--link-color);
+//   cursor: pointer;
+//   &:hover{
+//     color: var(--mat-sys-primary);
+//   }
+// }
 
-.search-form {
-  text-align: left;
-  width: 20rem;
-}
+// .search-form {
+//   text-align: left;
+//   width: 20rem;
+// }
 
-.search-form mat-icon {
-  color: var(--mat-sys-primary);
-}
 
 .empty-list {
   text-align: center;
@@ -132,78 +343,88 @@
   opacity: 0.6;
 }
 
-.pointer:hover {
-  color: var(--mat-sys-primary);
-}
+// .pointer:hover {
+//   color: var(--mat-sys-primary);
+// }
 
-::ng-deep .search-form .mat-form-field-wrapper {
-  background-color: white !important;
-  padding-bottom: 0 !important;
-}
+// ::ng-deep .search-form .mat-form-field-wrapper {
+//   background-color: white !important;
+//   padding-bottom: 0 !important;
+// }
 
-::ng-deep .sort-form .mat-form-field-wrapper {
-  background-color: white !important;
-  padding-bottom: 0 !important;
-}
+// ::ng-deep .sort-form .mat-form-field-wrapper {
+//   background-color: white !important;
+//   padding-bottom: 0 !important;
+// }
 
-:host ::ng-deep .mat-form-field-appearance-outline .mat-form-field-infix {
-  padding: 0.3rem 0rem 0.6rem 0rem !important;
-}
+// :host ::ng-deep .mat-form-field-appearance-outline .mat-form-field-infix {
+//   padding: 0.3rem 0rem 0.6rem 0rem !important;
+// }
 
-:host ::ng-deep .mat-paginator-container {
-  flex-direction: row-reverse !important;
-  justify-content: space-between !important;
-  background-color: #f6f6f6;
-  height: 30px;
-  min-height: 30px !important;
-}
+// :host ::ng-deep .mat-paginator-container {
+//   flex-direction: row-reverse !important;
+//   justify-content: space-between !important;
+//   background-color: #f6f6f6;
+//   height: 30px;
+//   min-height: 30px !important;
+// }
 
-:host ::ng-deep .mat-paginator-page-size {
-  height: 43px;
-}
+// :host ::ng-deep .mat-paginator-page-size {
+//   height: 43px;
+// }
 
-:host ::ng-deep .mat-icon-button {
-  height: 30px !important;
-  font-size: 12px !important;
-}
+// :host ::ng-deep .mat-icon-button {
+//   height: 30px !important;
+//   font-size: 12px !important;
+// }
 
-:host ::ng-deep .mat-paginator-range-label {
-  margin: 15px 32px 0 24px !important;
-}
+// :host ::ng-deep .mat-paginator-range-label {
+//   margin: 15px 32px 0 24px !important;
+// }
 
-:host ::ng-deep .mat-paginator-range-actions {
-  width: auto !important;
-  min-width: 55% !important;
-  min-height: 43px !important;
-  justify-content: space-between;
-}
+// :host ::ng-deep .mat-paginator-range-actions {
+//   width: auto !important;
+//   min-width: 55% !important;
+//   min-height: 43px !important;
+//   justify-content: space-between;
+// }
 
-:host ::ng-deep .mat-paginator-navigation-previous {
-  margin-left: auto !important;
-}
+// :host ::ng-deep .mat-paginator-navigation-previous {
+//   margin-left: auto !important;
+// }
 
-::ng-deep .mat-ripple-element {
-  background-color: #2e74b649 !important;
-}
+// ::ng-deep .mat-ripple-element {
+//   background-color: #2e74b649 !important;
+// }
 
-::ng-deep .mat-radio-container {
-  border-radius: 1em;
-  background: white;
-}
+// ::ng-deep .mat-radio-container {
+//   border-radius: 1em;
+//   background: white;
+// }
 
-::ng-deep .mat-radio-button .mat-radio-outer-circle {
-  border: 1px solid var(--light-gray);
-}
+// ::ng-deep .mat-radio-button .mat-radio-outer-circle {
+//   border: 1px solid var(--light-gray);
+// }
 
-::ng-deep .mat-radio-button.mat-accent.mat-radio-checked .mat-radio-outer-circle {
-  border-color: #777777;
-}
+// ::ng-deep .mat-radio-button.mat-accent.mat-radio-checked .mat-radio-outer-circle {
+//   border-color: #777777;
+// }
 
-::ng-deep .mat-radio-button.mat-accent .mat-radio-inner-circle {
-  color: #777777;
-  background-color: #777777;
-}
+// ::ng-deep .mat-radio-button.mat-accent .mat-radio-inner-circle {
+//   color: #777777;
+//   background-color: #777777;
+// }
 
-.mat-radio-button.mat-accent .mat-radio-ripple .mat-ripple-element {
-  background-color: #2e74b649;
+// .mat-radio-button.mat-accent .mat-radio-ripple .mat-ripple-element {
+//   background-color: #2e74b649;
+// }
+
+::ng-deep .no-bottom-border .description-card{
+    border-bottom: 0;
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+}
+::ng-deep .no-top-border .description-card{
+    border-top-left-radius: 0;
+    border-top-right-radius: 0;
 }

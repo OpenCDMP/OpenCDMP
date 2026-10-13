@@ -19,9 +19,6 @@ const routes: Routes = [
 		},
 		data: {
 			breadcrumbs: true,
-			getFromTitleService: true,
-			usePrefix: false
-
 		}
 	},
 	{
@@ -38,7 +35,6 @@ const routes: Routes = [
 			...BreadcrumbService.generateRouteDataConfiguration({
 				hideNavigationItem: true
 			}),
-			title: 'DESCRIPTION-EDITOR.TITLE-EDIT-DESCRIPTION',
 		}
 	},
 	{
@@ -52,12 +48,9 @@ const routes: Routes = [
 		},
 		data: {
 			breadcrumbs: true,
-			getFromTitleService: true,
-			usePrefix: false,
 			...BreadcrumbService.generateRouteDataConfiguration({
 				skipNavigation: true,
 			}),
-			title: 'DESCRIPTION-EDITOR.TITLE-EDIT-DESCRIPTION',
 			scrollToField: true,
 		}
 	},
@@ -72,12 +65,9 @@ const routes: Routes = [
 		},
 		data: {
 			breadcrumbs: true,
-			getFromTitleService: true,
-			usePrefix: false,
 			...BreadcrumbService.generateRouteDataConfiguration({
 				skipNavigation: true,
 			}),
-			title: 'DESCRIPTION-EDITOR.TITLE-EDIT-DESCRIPTION',
 			scrollToField: true,
 			openAnnotation: true,
 		}
@@ -93,9 +83,7 @@ const routes: Routes = [
 		},
 		data: {
 			breadcrumbs: true,
-			title: 'DESCRIPTION-EDITOR.TITLE-NEW',
-			getFromTitleService: true,
-			usePrefix: false
+			title: 'DESCRIPTION-EDITOR.TITLE-NEW'
 		}
 	},
 	{
@@ -110,8 +98,6 @@ const routes: Routes = [
 		data: {
 			breadcrumbs: true,
 			title: 'DESCRIPTION-EDITOR.TITLE-NEW',
-			getFromTitleService: true,
-			usePrefix: false,
 			...BreadcrumbService.generateRouteDataConfiguration({
 				skipNavigation: true
 			})

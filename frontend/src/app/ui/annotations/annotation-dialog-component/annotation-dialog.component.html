@@ -1,5 +1,5 @@
 <div class="dialog-container">
-  <div mat-dialog-title  class="d-flex align-items-center">
+    <!-- <div mat-dialog-title  class="d-flex align-items-center">
     <div class="d-flex gap-half-rem align-items-center">
       <span class="title">{{'ANNOTATION-DIALOG.TITLE' | translate}}</span>
       @if(threads?.size > 0){
@@ -10,199 +10,246 @@
     </div>
     <div class="ml-auto d-flex justify-content-end gap-quarter-rem align-items-center">
       <button mat-icon-button matTooltip="{{ 'DESCRIPTION-EDITOR.QUESTION.EXTENDED-DESCRIPTION.COPY-LINK' | translate }}" (click)="copyLink()" [attr.aria-label]="'DESCRIPTION-EDITOR.QUESTION.EXTENDED-DESCRIPTION.COPY-LINK' | translate">
-        <mat-icon aria-hidden>link</mat-icon>
+        <mat-icon aria-hidden="true">link</mat-icon>
       </button>
       <button mat-icon-button (click)="close()" [attr.aria-label]="'ALT-TEXT.CLOSE-DIALOG'  | translate">
-        <mat-icon aria-hidden>close</mat-icon>
+        <mat-icon aria-hidden="true">close</mat-icon>
       </button>
     </div>
-  </div>
-  <mat-dialog-content>
-    <div class="row">
-      <!-- Create New Thread -->
-      @if (canAnnotate) {
-        <div class="col-12">
-          <form [formGroup]="threadFormGroup">
-            <div class="row mt-2 mb-3">
-              <div class="col-12 pb-1">
-                <text-area-with-mentions
-                  [form]="threadFormGroup.get('text')"
-                  [planUsers]="planUsers"
-                  [clearCommentObservable]="clearCommentSubject.asObservable()"
-                  [threadId]="ROOT_COMMENT"
-                ></text-area-with-mentions>
-              </div>
-              <div class="col-6">
-                <mat-button-toggle-group appearance="standard" name="fontStyle" hideSingleSelectionIndicator="true" [formControl]="threadFormGroup.get('protectionType')" aria-label="Font Style" required>
-                  <mat-button-toggle [value]="annotationProtectionTypeEnum.Private" [matTooltip]="enumUtils.toAnnotationProtectionTypeString(annotationProtectionTypeEnum.Private)" [attr.aria-label]="enumUtils.toAnnotationProtectionTypeString(annotationProtectionTypeEnum.Private)"><mat-icon aria-hidden>visibility_off</mat-icon></mat-button-toggle>
-                  <mat-button-toggle [value]="annotationProtectionTypeEnum.EntityAccessors" [matTooltip]="enumUtils.toAnnotationProtectionTypeString(annotationProtectionTypeEnum.EntityAccessors)" [attr.aria-label]="enumUtils.toAnnotationProtectionTypeString(annotationProtectionTypeEnum.EntityAccessors)"><mat-icon aria-hidden>public</mat-icon></mat-button-toggle>
-                </mat-button-toggle-group>
-              </div>
-              <div class="col-auto  ml-auto pr-1">
-                <button type="button" mat-stroked-button color="primary" class="padded-shadow-btn mt-2" (click)="close()">{{ 'ANNOTATION-DIALOG.THREADS.CANCEL' | translate }}</button>
-              </div>
-              <div class="col-auto">
-                <button type="button" mat-flat-button color="primary" class="padded-shadow-btn mt-2" (click)="createThread()" [disabled]="!canAnnotate">{{ 'ANNOTATION-DIALOG.THREADS.SEND' | translate }} <i class="fa fa-paper-plane ml-2"></i></button>
-              </div>
-            </div>
-          </form>
-        </div>
-      }
-      <div class="col-12">
+  </div> -->
+
+    <div class="threads">
         @if(!threads?.size && !loadingResults){
-          <div class="p-2" style="text-align: center">{{'ANNOTATION-DIALOG.NO-COMMENTS' | translate}}</div>
+            <div class="w-100 d-flex flex-column justify-content-center align-items-center gap-1-rem" style="padding-top: 4rem">
+                <mat-icon class="big-bg-icon material-symbols-outlined" aria-hidden="true">chat_bubble</mat-icon>
+                <div>{{'ANNOTATION-DIALOG.NO-COMMENTS' | translate}}</div>
+                <div class="opacity-08"><small>{{'ANNOTATION-DIALOG.BE-THE-FIRST-TO-COMMENT' | translate}}</small></div>
+            </div>
         }
         @for (thread of threads; track thread; let isFirst = $first) {
-          @if (getParentAnnotation(thread).protectionType === annotationProtectionTypeEnum.Private) {
-            <div class="row">
-              <div class="col-auto">
-                <div class="d-flex align-items-center" matTooltip="{{'ANNOTATION-DIALOG.PROTECTION.PRIVATE' | translate}}">
-                  <mat-icon class="material-icons-outlined">visibility_off</mat-icon>
-                  <div class="ml-1 mt-1">
-                    {{getAnnotationProtectionType(thread)}}
-                  </div>
-                </div>
-              </div>
-            </div>
-          }
-          <div class="row mt-2 mb-3">
-            <!-- Parent Thread -->
-            <div class="col-12">
-              <div class="container">
-                <div class="row comment-wrapper pt-2 pb-2 h-100" [ngClass]="{'focus-thread': isFirst && changesMade}">
-                  <div class="col-12 pt-1">
-                    <div class="row">
-                      <div class="col-12">
-                        <div class="row h-100">
-                          <div class="col-12">
-                            <div class="row pt-1 pb-2">
-                              <div class="col-auto pr-0 account-icon-wrapper"><mat-icon class="account-icon">account_circle</mat-icon></div>
-                              <div class="col">
-                                <div class="row mt-2 align-items-center">
-                                  <span class="col user">{{getParentAnnotation(thread).author.name}}</span>
-                                  <div class="col-auto annotation-time">{{getParentAnnotation(thread).timeStamp | dateTimeFormatter: "d MMMM, y 'at' h:mm a"}}</div>
-                                  @if (listingStatuses?.length) {
-                                    <div class="col-auto pl-0 dense-10">
-                                      <button
-                                        mat-icon-button
-                                        [matMenuTriggerFor]="annotationStatuses"
-                                        matTooltip="{{ 'ANNOTATION-DIALOG.ANNOTATION-STATUS.ACTIONS.EDIT' | translate }}"
-                                        [matTooltipDisabled]="!canAnnotate"
-                                        [disabled]="!canAnnotate"
-                                        >
-                                        @if (getSelectedStatusIcon(getParentAnnotation(thread).id)) {
-                                          <mat-icon>{{getSelectedStatusIcon(getParentAnnotation(thread).id)}}</mat-icon>
-                                        } @else {
-                                          <mat-icon>edit_note</mat-icon>
-                                        }
-                                      </button>
-                                      <mat-menu class="statuses-menu" #annotationStatuses>
-                                        @for (status of listingStatuses; track status) {
-                                          <button mat-menu-item
-                                            class="w-auto"
-                                            [matTooltip]="status?.label" matTooltipPosition="left"
-                                            (click)="setAnnotationStatus(annotationStatusFormGroup?.get('annotationsStatusArray'), getParentAnnotation(thread).id, status?.id); persistAnnotationStatus(annotationStatusFormGroup.get('annotationsStatusArray'), getParentAnnotation(thread).id)"
-                                            >
-                                            <span>
-                                              <mat-icon style="margin-left: auto; margin-right: auto;">{{getStatusIcon(status)}}</mat-icon>
-                                            </span>
-                                          </button>
-                                        }
-                                      </mat-menu>
-                                    </div>
-                                  }
-                                </div>
-                                <div class="row mt-3">
-                                  <div class="col-12" [innerHTML]="getParentAnnotation(thread).payload"></div>
-                                  @if (canAnnotate) {
-                                    <div class="col-12 align-self-end">
-                                      <div class="row mt-1">
-                                        <button mat-button (click)="enableReply(thread)" class="action-button" [ngClass]="replyEnabledPerThread[thread] ? 'active-action' : ''" [disabled]="replyEnabledPerThread[thread]">{{ 'ANNOTATION-DIALOG.THREADS.REPLY' | translate}}</button>
-                                      </div>
-                                    </div>
-                                  }
-                                  <div class="row">
-                                    @if (annotationsPerThread[thread].length === 1 && !showRepliesPerThread[thread]) {
-                                      <button mat-button class="action-button mt-3" (click)="showReplies(thread)">
-                                        <img src="/assets/images/annotations/reply.png" alt="{{ ('ANNOTATION-DIALOG.THREADS.REPLY' | translate) ?? 'reply'}}"> <span class="mt-1 reply-btn"> 1 {{ 'ANNOTATION-DIALOG.THREADS.REPLY' | translate}} </span>
-                                      </button>
-                                    }
-                                    @if (annotationsPerThread[thread].length > 1 && !showRepliesPerThread[thread]) {
-                                      <button mat-button class="action-button mt-3" (click)="showReplies(thread)">
-                                        <img src="/assets/images/annotations/reply.png" alt="{{ ('ANNOTATION-DIALOG.THREADS.REPLY' | translate) ?? 'reply'}}"> <span class="mt-1 reply-btn"> {{ annotationsPerThread[thread].length }} {{ 'ANNOTATION-DIALOG.THREADS.REPLIES' | translate}} </span>
-                                      </button>
-                                    }
-                                  </div>
-                                </div>
-                              </div>
+            @if (getParentAnnotation(thread).protectionType === annotationProtectionTypeEnum.Private) {
+                <div class="row">
+                    <div class="col-auto">
+                        <div class="d-flex align-items-center" matTooltip="{{'ANNOTATION-DIALOG.PROTECTION.PRIVATE' | translate}}">
+                            <mat-icon class="material-icons-outlined">visibility_off</mat-icon>
+                            <div class="ml-1 mt-1">
+                                {{getAnnotationProtectionType(thread)}}
                             </div>
-                            <!-- Previous Replies -->
-                            @if (showRepliesPerThread[thread]) {
-                              <div class="row pt-1 thread-replies">
-                                @for (annotation of annotationsPerThread[thread]; track annotation; let i = $index) {
-                                  <div class="col-12">
-                                    <div  class="row m-0 mt-2 h-100">
-                                      <div class="col-auto pr-0 pl-0">
-                                        <div class="side-color"></div>
-                                      </div>
-                                      <div class="col pt-1">
-                                        <div class="row">
-                                          <div class="col-12">
-                                            <div class="row h-100">
-                                              <div class="col-auto p-0 account-icon-wrapper">
-                                                <mat-icon class="account-icon">account_circle</mat-icon>
-                                              </div>
-                                              <div class="col">
-                                                <div class="row mt-2">
-                                                  <span class="col user">{{annotation.author.name}}</span>
-                                                  <div class="col-auto annotation-time">{{annotation.timeStamp |  dateTimeFormatter:"d MMMM, y 'at' h:mm a"}}</div>
-                                                </div>
-                                                <div class="row mt-3 pt-1 pb-1">
-                                                  <div class="col-12" [innerHTML]="annotation.payload"></div>
-                                                </div>
-                                              </div>
-                                            </div>
-                                          </div>
-                                        </div>
-                                      </div>
-                                    </div>
-                                  </div>
-                                }
-                              </div>
-                            }
-                            <!-- Type reply in thread -->
-                            @if (replyEnabledPerThread[thread] && canAnnotate) {
-                              <div class="row">
-                                <div class="col-12 mt-2">
-                                  <div class="row new-reply mr-0">
-                                    <div class="col">
-                                      <text-area-with-mentions
-                                        [form]="threadReplyTextsFG[thread.toString()].get('replyText')"
-                                        [planUsers]="planUsers"
-                                        [clearCommentObservable]="clearCommentSubject.asObservable()"
-                                        [threadId]="thread"
-                                      ></text-area-with-mentions>
-                                    </div>
-                                    <div class="col-auto p-0 send-msg">
-                                      <button mat-icon-button (click)="replyThread(thread)" matTooltip="{{'ANNOTATION-DIALOG.THREADS.REPLY' | translate}}">
-                                        <mat-icon svgIcon="paperPlane"></mat-icon>
-                                      </button>
-                                    </div>
-                                  </div>
-                                </div>
-                              </div>
-                            }
-                          </div>
                         </div>
-                      </div>
                     </div>
-                  </div>
                 </div>
-              </div>
+            }
+            <!-- Parent Thread -->
+            <div class="d-flex gap-half-rem">
+                @let parentThread = getParentAnnotation(thread);
+                <img class="user-logo circle" alt="" aria-hidden="true" [src]="parentThread.author.name | userLogo" appFallbackAvatar>
+                <div class="flex-1">
+                    <div class="chat-content">
+                        <div class="d-flex align-items-start column-gap-1-rem mb-2">
+                            <div class="d-flex flex-wrap align-items-center column-gap-1-rem comment-author">
+                                <span class="user">{{parentThread.author.name}}</span>
+                                <ng-container *ngTemplateOutlet="userRoleTemplate; context: {userId: parentThread.author.id}"></ng-container>
+                            </div>
+                            <div class="annotation-time ml-auto">{{parentThread.timeStamp | relativeTime}}</div>
+                            <ng-container *ngTemplateOutlet="commentActionsMenu; context: {annotation: parentThread}"></ng-container>
+                        </div>
+                        @let status = annotationStatus(parentThread.id);
+                        @if(status){
+                            @let icon = getStatusIcon(status);
+                            <div class="status-chip mb-1">
+                                @if(icon){ 
+                                    <mat-icon aria-hidden="true">{{icon}}</mat-icon>
+                                    {{status.label}}
+                                }
+                            </div>
+                        }
+                        @if (isEditing(parentThread)) {
+                            <text-area-with-mentions [form]="editFormControl" [planUsers]="uniqueActivePlanUsers()" [initialPayload]="editFormControl.value"></text-area-with-mentions>
+                            <div class="d-flex gap-half-rem justify-content-end mt-2">
+                                <button type="button" mat-stroked-button color="primary" (click)="cancelEdit()">{{ 'ANNOTATION-DIALOG.THREADS.CANCEL' | translate }}</button>
+                                <button [disabled]="isLoading()" type="button" mat-flat-button color="primary" (click)="saveEdit(parentThread)">{{ 'ANNOTATION-DIALOG.ACTIONS.SAVE' | translate }}</button>
+                            </div>
+                        } @else {
+                            <div [innerHTML]="parentThread.payload" class="opacity-09"></div>
+                        }
+                    </div>
+                    <div>
+                        @if (canAnnotate()) {
+                            <div class="d-flex align-items-center">
+                                <button 
+                                    mat-button 
+                                    (click)="enableReply(thread)"
+                                    class="action-button reply-btn"
+                                    [ngClass]="replyEnabledPerThread[thread] ? 'active-action' : ''"
+                                    [disabled]="replyEnabledPerThread[thread]"
+                                >
+                                    {{'ANNOTATION-DIALOG.THREADS.REPLY' | translate}}
+                                </button>
+                                @let statuses = annotationStatuses(parentThread.id);
+                                @if (statuses?.length) {
+                                    @if(statuses.length > 1){
+                                        <button mat-icon-button [matMenuTriggerFor]="annotationStatuses" matTooltip="{{ 'ANNOTATION-DIALOG.ANNOTATION-STATUS.ACTIONS.EDIT' | translate }}" [matTooltipDisabled]="!canAnnotate()" [disabled]="!canAnnotate()">
+                                            <!-- @if (getSelectedStatusIcon(parentThread.id)) {
+                                            <mat-icon>{{getSelectedStatusIcon(parentThread.id)}}</mat-icon>
+                                            } @else { -->
+                                            <mat-icon>edit_note</mat-icon>
+                                            <!-- } -->
+                                        </button>
+                                        <mat-menu class="statuses-menu" #annotationStatuses>
+                                            @for (status of statuses; track status) {
+                                            <button [disabled]="isLoading()" mat-menu-item class="w-auto" (click)="setAnnotationStatus($safeNavigationMigration(annotationStatusFormGroup?.get('annotationsStatusArray')), getParentAnnotation(thread).id, $safeNavigationMigration(status?.id))">
+                                                <span>
+                                                    <mat-icon style="margin-left: auto; margin-right: auto;">{{getStatusIcon(status)}}</mat-icon>
+                                                    {{status?.label}}
+                                                </span>
+                                            </button>
+                                            }
+                                        </mat-menu>
+                                    }@else {
+                                        @let status = statuses[0];
+                                        <button [disabled]="isLoading()" mat-button class="action-button" (click)="setAnnotationStatus($safeNavigationMigration(annotationStatusFormGroup?.get('annotationsStatusArray')), getParentAnnotation(thread).id, $safeNavigationMigration(status?.id))">
+                                            {{'ANNOTATION-DIALOG.THREADS.MARK-AS' | translate}} {{status.label}}
+                                        </button>
+
+                                    }
+                                }
+                            </div>
+                        }
+                        @if (annotationsPerThread[thread].length){
+                            <button mat-button (click)="toggleReplies(thread)">
+                                <mat-icon aria-hidden="true">{{showRepliesPerThread[thread] ? 'keyboard_arrow_up' : 'keyboard_arrow_down'}}</mat-icon>
+                                {{(showRepliesPerThread[thread] ? 'ANNOTATION-DIALOG.THREADS.HIDE-REPLIES' : 'ANNOTATION-DIALOG.THREADS.SHOW-REPLIES') | translate}}
+                                    ({{annotationsPerThread[thread].length}})
+                            </button>
+                            <!-- @if (annotationsPerThread[thread].length === 1 && !showRepliesPerThread[thread]) {
+                            <button mat-button class="action-button mt-3" (click)="showReplies(thread)">
+                                <img src="/assets/images/annotations/reply.png" alt="{{ ('ANNOTATION-DIALOG.THREADS.REPLY' | translate) ?? 'reply'}}"> <span class="mt-1 reply-btn"> 1 {{ 'ANNOTATION-DIALOG.THREADS.REPLY' | translate}} </span>
+                            </button>
+                            }
+                            @if (annotationsPerThread[thread].length > 1 && !showRepliesPerThread[thread]) {
+                            <button mat-button class="action-button mt-3" (click)="showReplies(thread)">
+                                <img src="/assets/images/annotations/reply.png" alt="{{ ('ANNOTATION-DIALOG.THREADS.REPLY' | translate) ?? 'reply'}}"> <span class="mt-1 reply-btn"> {{ annotationsPerThread[thread].length }} {{ 'ANNOTATION-DIALOG.THREADS.REPLIES' | translate}} </span>
+                            </button>
+                            } -->
+                        }
+                    </div>
+                    <!-- Previous Replies -->
+                    @if (showRepliesPerThread[thread]) {
+                    <div class="thread-replies">
+                        @for (annotation of annotationsPerThread[thread]; track annotation; let i = $index) {
+                            <div class="d-flex gap-half-rem">             
+                                <img class="user-logo circle" alt="" aria-hidden="true" [src]="annotation.author.name | userLogo" appFallbackAvatar>
+                                <div class="flex-1">
+                                    <div class="chat-content">
+                                        <div class="d-flex align-items-start column-gap-1-rem mb-2">
+                                            <div class="d-flex flex-wrap align-items-center column-gap-1-rem comment-author">
+                                                <span class="user">{{annotation.author.name}}</span>
+                                                <ng-container *ngTemplateOutlet="userRoleTemplate; context: {userId: annotation.author.id}"></ng-container>
+                                            </div>
+                                            <div class="d-flex flex-nowrap align-items-center column-gap-1-rem ml-auto reply-meta">
+                                                <div class="annotation-time">
+                                                    {{'ANNOTATION-DIALOG.THREADS.REPLIED' | translate}} · {{annotation.timeStamp | relativeTime}}
+                                                </div>
+                                                <ng-container *ngTemplateOutlet="commentActionsMenu; context: {annotation: annotation}"></ng-container>
+                                            </div>
+                                        </div>
+                                        @if (isEditing(annotation)) {
+                                            <text-area-with-mentions [form]="editFormControl" [planUsers]="uniqueActivePlanUsers()" [initialPayload]="editFormControl.value"></text-area-with-mentions>
+                                            <div class="d-flex gap-half-rem justify-content-end mt-2">
+                                                <button type="button" mat-stroked-button color="primary" (click)="cancelEdit()">{{ 'ANNOTATION-DIALOG.THREADS.CANCEL' | translate }}</button>
+                                                <button [disabled]="isLoading()" type="button" mat-flat-button color="primary" (click)="saveEdit(annotation)">{{ 'ANNOTATION-DIALOG.ACTIONS.SAVE' | translate }}</button>
+                                            </div>
+                                        } @else {
+                                            <div [innerHTML]="annotation.payload" class="opacity-09"></div>
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                    }
+                    <!-- Type reply in thread -->
+                    @if (replyEnabledPerThread[thread] && canAnnotate()) {
+                        <div class="new-reply">
+                            <text-area-with-mentions 
+                                [form]="threadReplyTextsFG[thread.toString()].get('replyText')" 
+                                [planUsers]="uniqueActivePlanUsers()" 
+                                [clearCommentObservable]="clearCommentSubject.asObservable()" 
+                                [threadId]="thread"
+                                [placeholder]="'ANNOTATION-DIALOG.THREADS.WRITE-REPLY'"
+                            ></text-area-with-mentions>
+                        </div>
+                        <div class="col-auto p-0 send-msg">
+                            <button mat-button (click)="cancelReply(thread)">
+                                {{'COMMONS.ACTIONS.CANCEL' | translate}}
+                            </button>
+                            <button mat-flat-button (click)="replyThread(thread)" [disabled]="isLoading() || !threadReplyTextsFG[thread.toString()].get('replyText').valid">
+                                <mat-icon class="material-symbols-outlined" aria-hidden="true">send</mat-icon>
+                                {{'ANNOTATION-DIALOG.THREADS.REPLY' | translate}}
+                            </button>
+                        </div>
+                    }
+                </div>
             </div>
-          </div>
         }
-      </div>
     </div>
-  </mat-dialog-content>
+    <!-- Create New Thread -->
+    @if (canAnnotate() && canCreateComment() && threadFormGroup) {
+        <form [formGroup]="threadFormGroup" class="new-comment-area">
+            <text-area-with-mentions
+                [form]="threadFormGroup.get('text')"
+                [planUsers]="uniqueActivePlanUsers()"
+                [clearCommentObservable]="clearCommentSubject.asObservable()"
+                [threadId]="ROOT_COMMENT"
+                [placeholder]="'ANNOTATION-DIALOG.THREADS.ADD-COMMENT'"
+            ></text-area-with-mentions>
+            <p class="new-comment-hint">{{ 'ANNOTATION-DIALOG.THREADS.MENTION-HINT' | translate }}</p>
+            <div class="d-flex gap-1-rem justify-content-between align-items-center">
+                <mat-button-toggle-group appearance="standard" name="fontStyle" hideSingleSelectionIndicator="true" [formControl]="threadFormGroup.get('protectionType')" aria-label="Font Style" required>
+                    <mat-button-toggle [value]="annotationProtectionTypeEnum.Private" [matTooltip]="enumUtils.toAnnotationProtectionTypeString(annotationProtectionTypeEnum.Private)" [aria-label]="enumUtils.toAnnotationProtectionTypeString(annotationProtectionTypeEnum.Private)"><mat-icon aria-hidden="true">visibility_off</mat-icon></mat-button-toggle>
+                    <mat-button-toggle [value]="annotationProtectionTypeEnum.EntityAccessors" [matTooltip]="enumUtils.toAnnotationProtectionTypeString(annotationProtectionTypeEnum.EntityAccessors)" [aria-label]="enumUtils.toAnnotationProtectionTypeString(annotationProtectionTypeEnum.EntityAccessors)"><mat-icon aria-hidden="true">public</mat-icon></mat-button-toggle>
+                </mat-button-toggle-group>
+                <button [disabled]="isLoading()" type="button" mat-flat-button color="primary" class="padded-shadow-btn mt-2" (click)="createThread()">
+                    <mat-icon class="material-symbols-outlined" aria-hidden="true">send</mat-icon>
+                    {{ 'ANNOTATION-DIALOG.THREADS.SEND' | translate }}
+                </button>
+            </div>
+        </form>
+    }
 </div>
+
+<ng-template #userRoleTemplate let-userId="userId">
+    @let userRoles = planUserRoles(userId);
+    <div class="d-flex gap-half-rem">
+        @if(userRoles?.length){
+            <div class="user-role-chip">{{enumUtils.toPlanUserRoleString(userRoles[0])}}</div>
+            @if(userRoles.length > 1){
+                <div class="user-role-more-chip" [matTooltip]="enumUtils.toPlanUserRolesString(userRoles.slice(1))">
+                    +{{userRoles.length - 1}}
+                </div>
+            }
+        }
+    </div>
+</ng-template>
+
+<ng-template #commentActionsMenu let-annotation="annotation">
+    @if ((canEdit(annotation) || canDelete(annotation)) && !isEditing(annotation)) {
+        <button mat-icon-button class="comment-actions-trigger" [matMenuTriggerFor]="commentActions" matTooltip="{{ 'ANNOTATION-DIALOG.ACTIONS.MORE' | translate }}" [attr.aria-label]="'ANNOTATION-DIALOG.ACTIONS.MORE' | translate">
+            <mat-icon aria-hidden="true">more_vert</mat-icon>
+        </button>
+        <mat-menu #commentActions="matMenu">
+            @if (canEdit(annotation)) {
+                <button mat-menu-item (click)="startEdit(annotation)">
+                    <mat-icon aria-hidden="true">edit</mat-icon>
+                    <span>{{ 'ANNOTATION-DIALOG.ACTIONS.EDIT' | translate }}</span>
+                </button>
+            }
+            @if (canDelete(annotation)) {
+                <button mat-menu-item (click)="deleteAnnotation(annotation)">
+                    <mat-icon aria-hidden="true">delete</mat-icon>
+                    <span>{{ 'ANNOTATION-DIALOG.ACTIONS.DELETE' | translate }}</span>
+                </button>
+            }
+        </mat-menu>
+    }
+</ng-template>

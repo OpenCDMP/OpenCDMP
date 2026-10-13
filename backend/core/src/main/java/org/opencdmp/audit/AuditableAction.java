@@ -52,12 +52,15 @@ public class AuditableAction {
     public static final EventId Plan_Validate = new EventId(5015, "Plan_Validate");
     public static final EventId Plan_GetXml = new EventId(5016, "Plan_GetXml");
     public static final EventId Plan_Import = new EventId(5017, "Plan_Import");
-    public static final EventId Plan_GetPublicXml = new EventId(5017, "Plan_GetPublicXml");
+    public static final EventId Plan_GetPublicXml = new EventId(5026, "Plan_GetPublicXml");
     public static final EventId Plan_ExportPublic = new EventId(5018, "Plan_ExportPublic");
     public static final EventId Plan_PublicClone = new EventId(5019, "Plan_PublicClone");
     public static final EventId Plan_SetStatus = new EventId(5020, "Plan_SetStatus");
     public static final EventId Plan_Creation_From_Request = new EventId(5021, "Plan_Creation_From_Request");
     public static final EventId Plan_GetActiveUsers = new EventId(5022, "Plan_GetActiveUsers");
+    public static final EventId Plan_UpdateDescriptionTemplates = new EventId(5023, "Plan_UpdateDescriptionTemplates");
+    public static final EventId Plan_GetUsers = new EventId(5024, "Plan_GetUsers");
+    public static final EventId Plan_VersionDiff = new EventId(5025, "Plan_VersionDiff");
 
 
     public static final EventId Description_Query = new EventId(6000, "Description_Query");
@@ -84,6 +87,8 @@ public class AuditableAction {
     public static final EventId Reference_Delete = new EventId(7003, "Reference_Delete");
     public static final EventId Reference_Search = new EventId(7004, "Reference_Search");
     public static final EventId Reference_Test = new EventId(7005, "Reference_Test");
+    public static final EventId Reference_Usage = new EventId(7006, "Reference_Usage");
+    public static final EventId Reference_TestSource = new EventId(7007, "Reference_TestSource");
     
     public static final EventId DescriptionTemplate_Query = new EventId(8000, "DescriptionTemplate_Query");
     public static final EventId DescriptionTemplate_Lookup = new EventId(8001, "DescriptionTemplate_Lookup");
@@ -93,6 +98,7 @@ public class AuditableAction {
     public static final EventId DescriptionTemplate_PersistNewVersion = new EventId(8005, "DescriptionTemplate_PersistNewVersion");
     public static final EventId DescriptionTemplate_GetXml = new EventId(8006, "DescriptionTemplate_GetXml");
     public static final EventId DescriptionTemplate_Import = new EventId(8007, "DescriptionTemplate_Import");
+    public static final EventId DescriptionTemplate_AssignUsers = new EventId(8008, "DescriptionTemplate_AssignUsers");
     
     public static final EventId SupportiveMaterial_Query = new EventId(9000, "SupportiveMaterial_Query");
     public static final EventId SupportiveMaterial_Lookup = new EventId(9001, "SupportiveMaterial_Lookup");
@@ -103,6 +109,7 @@ public class AuditableAction {
     public static final EventId ReferenceType_Lookup = new EventId(10001, "ReferenceType_Lookup");
     public static final EventId ReferenceType_Persist = new EventId(10002, "ReferenceType_Persist");
     public static final EventId ReferenceType_Delete = new EventId(10003, "ReferenceType_Delete");
+    public static final EventId ReferenceType_PublicLogo = new EventId(10004, "ReferenceType_PublicLogo");
 
     public static final EventId User_Query = new EventId(11000, "User_Query");
     public static final EventId User_Lookup = new EventId(11001, "User_Lookup");
@@ -160,6 +167,10 @@ public class AuditableAction {
     public static final EventId Deposit_GetLogo = new EventId(18003, "Deposit_GetLogo");
     public static final EventId Deposit_GetRepository = new EventId(18004, "Deposit_GetRepository");
     public static final EventId Deposit_GetAuthMethods = new EventId(18005, "Deposit_GetAuthMethods");
+    public static final EventId Deposit_Preview = new EventId(18006, "Deposit_Preview");
+    public static final EventId Deposit_SearchVocabulary = new EventId(18007, "Deposit_SearchVocabulary");
+    public static final EventId Deposit_GetFiles = new EventId(18008, "Deposit_GetFiles");
+    public static final EventId Deposit_GetFile = new EventId(18009, "Deposit_GetFile");
 
     public static final EventId Tag_Query = new EventId(19000, "Tag_Query");
     public static final EventId Tag_Lookup = new EventId(19001, "Tag_Lookup");
@@ -167,11 +178,12 @@ public class AuditableAction {
     public static final EventId Tag_Delete = new EventId(19003, "Tag_Delete");
 
     public static final EventId FileTransformer_GetAvailableConfigurations = new EventId(20000, "FileTransformer_GetAvailableConfigurations");
+    public static final EventId FileTransformer_ValidateTemplate = new EventId(20002, "FileTransformer_ValidateTemplate");
 
-    public static final EventId Evaluation_Query = new EventId(7000, "Evaluation_Query");
-    public static final EventId Evaluation_Lookup = new EventId(10001, "Evaluation_Lookup");
-    public static final EventId Evaluation_Persist = new EventId(10002, "Evaluation_Persist");
-    public static final EventId Evaluation_Delete = new EventId(10003, "Evaluation_Delete");
+    public static final EventId Evaluation_Query = new EventId(1100000, "Evaluation_Query");
+    public static final EventId Evaluation_Lookup = new EventId(1100001, "Evaluation_Lookup");
+    public static final EventId Evaluation_Persist = new EventId(1100002, "Evaluation_Persist");
+    public static final EventId Evaluation_Delete = new EventId(1100003, "Evaluation_Delete");
 
     public static final EventId Evaluator_GetAvailableConfigurations = new EventId(20001, "Evaluator_GetAvailableConfigurations");
 
@@ -206,15 +218,26 @@ public class AuditableAction {
     public static final EventId Maintenance_SendEvaluationPlanAccountingEntriesEvents = new EventId(230024, "Maintenance_SendEvaluationPlanAccountingEntriesEvents");
     public static final EventId Maintenance_SendEvaluationDescriptionAccountingEntriesEvents = new EventId(230025, "Maintenance_SendEvaluationDescriptionAccountingEntriesEvents");
     public static final EventId Maintenance_SendIndicatorPointTenantEntryEvents = new EventId(230026, "Maintenance_SendIndicatorPointTenantEntryEvents");
-    public static final EventId Maintenance_SetPlanBlueprintCanEditDescriptionTemplates = new EventId(230027, "Maintenance_SetPlanBlueprintCanEditDescriptionTemplates");
     public static final EventId Maintenance_SendReferenceEntriesEvents = new EventId(230028, "Maintenance_SendReferenceEntriesEvents");
     public static final EventId Maintenance_SendLanguageEntriesEvents = new EventId(230029, "Maintenance_SendLanguageEntriesEvents");
     public static final EventId Maintenance_SendBlueprintTypeAccountingEntriesEvents = new EventId(230030, "Maintenance_SendBlueprintTypeAccountingEntriesEvents");
+    public static final EventId Maintenance_SendDashboardTouchedEntryEvents = new EventId(230031, "Maintenance_SendDashboardTouchedEntryEvents");
+    public static final EventId Maintenance_SendIndicatorPointPlanBlueprintTypeEntryEvents = new EventId(230035,"Maintenance_SendIndicatorPointPlanBlueprintTypeEntryEvents") ;
+    public static final EventId Maintenance_SendIndicatorPointDescriptionTemplateTypeEntryEvents = new EventId(230036,"Maintenance_SendIndicatorPointDescriptionTemplateTypeEntryEvents");
+    public static final EventId Maintenance_StartRun = new EventId(230037, "Maintenance_StartRun");
+    public static final EventId Maintenance_LatestRun = new EventId(230038, "Maintenance_LatestRun");
+    public static final EventId Maintenance_StopRun = new EventId(230039, "Maintenance_StopRun");
+    public static final EventId Maintenance_LastTaskRuns = new EventId(230040, "Maintenance_LastTaskRuns");
+    public static final EventId Maintenance_DatabaseMigrations = new EventId(230041, "Maintenance_DatabaseMigrations");
+    public static final EventId Maintenance_Installation = new EventId(230042, "Maintenance_Installation");
+    public static final EventId Maintenance_PersistInstallation = new EventId(230043, "Maintenance_PersistInstallation");
+
 
     public static final EventId Principal_Lookup = new EventId(240000, "Principal_Lookup");
     public static final EventId Principal_MyTenants = new EventId(240001, "Principal_MyTenants");
 
     public static final EventId GetSemantics = new EventId(250000, "GetSemantics");
+    public static final EventId GetPluginSemantics = new EventId(250001, "GetPluginSemantics");
 
     public static final EventId PrefillingSource_Query = new EventId(260000, "PrefillingSource_Query");
     public static final EventId PrefillingSource_Lookup = new EventId(260001, "PrefillingSource_Lookup");
@@ -222,6 +245,7 @@ public class AuditableAction {
     public static final EventId PrefillingSource_Delete = new EventId(260003, "PrefillingSource_Delete");
     public static final EventId PrefillingSource_Generate = new EventId(260004, "PrefillingSource_Generate");
     public static final EventId PrefillingSource_Test = new EventId(260005, "PrefillingSource_Test");
+    public static final EventId PrefillingSource_TestSource = new EventId(260006, "PrefillingSource_TestSource");
 
     public static final EventId TenantConfiguration_Query = new EventId(270000, "TenantConfiguration_Query");
     public static final EventId TenantConfiguration_Lookup = new EventId(270001, "TenantConfiguration_Lookup");
@@ -264,4 +288,32 @@ public class AuditableAction {
     public static final EventId PlanUpdateRequest_Delete = new EventId(700003, "PlanUpdateRequest_Delete");
     public static final EventId PlanUpdateRequest_Preprocessing = new EventId(700004, "PlanUpdateRequest_Preprocessing");
     public static final EventId PlanUpdateRequest_BuildPlan = new EventId(700005, "PlanUpdateRequest_BuildPlan");
+    public static final EventId PlanUpdateRequest_Apply = new EventId(700006, "PlanUpdateRequest_Apply");
+    public static final EventId PlanUpdateRequest_Preview = new EventId(700007, "PlanUpdateRequest_Preview");
+
+    public static final EventId UserTermsAcceptance_Accept = new EventId(800000, "UserTermsAcceptance_Accept");
+
+    public static final EventId TenantTransfer_Export = new EventId(900000, "TenantTransfer_Export");
+    public static final EventId TenantTransfer_AnalyzeImport = new EventId(900001, "TenantTransfer_AnalyzeImport");
+    public static final EventId TenantTransfer_Import = new EventId(900002, "TenantTransfer_Import");
+    public static final EventId TenantTransfer_AnalyzePurge = new EventId(900003, "TenantTransfer_AnalyzePurge");
+    public static final EventId TenantTransfer_Purge = new EventId(900004, "TenantTransfer_Purge");
+    public static final EventId TenantTransfer_AnalyzeCopy = new EventId(900005, "TenantTransfer_AnalyzeCopy");
+    public static final EventId TenantTransfer_Copy = new EventId(900006, "TenantTransfer_Copy");
+
+    public static final EventId Statistics_Query = new EventId(1000000, "Statistics_Query");
+
+    public static final EventId WebhookSubscription_Query = new EventId(1200000, "WebhookSubscription_Query");
+    public static final EventId WebhookSubscription_Lookup = new EventId(1200001, "WebhookSubscription_Lookup");
+    public static final EventId WebhookSubscription_Persist = new EventId(1200002, "WebhookSubscription_Persist");
+    public static final EventId WebhookSubscription_Delete = new EventId(1200003, "WebhookSubscription_Delete");
+    public static final EventId WebhookSubscription_Ping = new EventId(1200004, "WebhookSubscription_Ping");
+    public static final EventId WebhookDelivery_Query = new EventId(1200005, "WebhookDelivery_Query");
+    public static final EventId WebhookDelivery_Redeliver = new EventId(1200006, "WebhookDelivery_Redeliver");
+
+    public static final EventId Report_Outline = new EventId(1500000, "Report_Outline");
+    public static final EventId Report_Query = new EventId(1500001, "Report_Query");
+    public static final EventId Report_ExportCsv = new EventId(1500002, "Report_ExportCsv");
+    public static final EventId Report_SearchQuestions = new EventId(1500003, "Report_SearchQuestions");
+
 }

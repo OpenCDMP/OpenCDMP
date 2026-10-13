@@ -12,10 +12,10 @@
 	</div>-->
 
 	<div class="row align-items-center">
-		<h3 class="col message pl-3"> {{'DESCRIPTION-TEMPLATES-TABLE-LIST.TEMPLATES-LIST-TITLE' | translate}}</h3>
+		<h3 mat-dialog-title class="col message pl-3"> {{'DESCRIPTION-TEMPLATES-TABLE-LIST.TEMPLATES-LIST-TITLE' | translate}}</h3>
 		<div  class="col-auto justify-content-end">
-			<button mat-icon-button (click)="close()">
-				<mat-icon>close</mat-icon>
+			<button mat-icon-button (click)="close()" [attr.aria-label]="'ALT-TEXT.CLOSE-DIALOG' | translate">
+				<mat-icon aria-hidden="true">close</mat-icon>
 			</button>
 		</div>
 	</div>

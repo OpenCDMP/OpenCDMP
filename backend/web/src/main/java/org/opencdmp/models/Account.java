@@ -2,6 +2,7 @@ package org.opencdmp.models;
 
 import gr.cite.tools.logging.annotation.LogSensitive;
 import org.opencdmp.model.Tenant;
+import org.opencdmp.service.usertermsacceptance.UserTermsStatus;
 
 import java.time.Instant;
 import java.util.List;
@@ -193,6 +194,9 @@ public class Account {
 	public final static String _selectedTenant = "selectedTenant";
 	public Tenant selectedTenant;
 
+	public final static String _userTermsStatus = "userTermsStatus";
+	public UserTermsStatus userTermsStatus;
+
 	public PrincipalInfo getPrincipal() {
 		return principal;
 	}
@@ -239,5 +243,13 @@ public class Account {
 
 	public void setUserExists(Boolean userExists) {
 		this.userExists = userExists;
+	}
+
+	public UserTermsStatus getUserTermsStatus() {
+		return userTermsStatus;
+	}
+
+	public void setUserTermsStatus(UserTermsStatus userTermsStatus) {
+		this.userTermsStatus = userTermsStatus;
 	}
 }

@@ -1,0 +1,66 @@
+<section class="ts" [attr.aria-labelledby]="config().titleKey">
+	<div class="ts-head">
+		<div>
+			<h2 [id]="config().titleKey">{{ config().titleKey | translate }}</h2>
+			<p>{{ config().descriptionKey | translate }}</p>
+		</div>
+		@if (config().canEdit) {
+			<button mat-stroked-button type="button" (click)="opened.set(null)"><mat-icon>add</mat-icon>{{ 'TYPES-PAGE.ADD' | translate }}</button>
+		}
+	</div>
+
+	@if (loading() || reordering()) {
+		<mat-progress-bar mode="indeterminate" />
+	}
+	<ul class="ts-list" cdkDropList [cdkDropListDisabled]="!config().reorderable || !config().canEdit || reordering()" (cdkDropListDropped)="drop($event)">
+		@for (item of own(); track item.id; let i = $index; let lastRow = $last) {
+			<li class="ts-row" cdkDrag cdkDragLockAxis="y">
+				@if (config().reorderable && config().canEdit) {
+					<span class="ts-order">
+						<mat-icon class="ts-handle" cdkDragHandle aria-hidden="true">drag_indicator</mat-icon>
+						<button mat-icon-button type="button" [disabled]="i === 0 || reordering()" (click)="move(i, i - 1)" [attr.aria-label]="'TYPES-PAGE.MOVE-UP' | translate: { name: item.name }"><mat-icon>arrow_upward</mat-icon></button>
+						<button mat-icon-button type="button" [disabled]="lastRow || reordering()" (click)="move(i, i + 1)" [attr.aria-label]="'TYPES-PAGE.MOVE-DOWN' | translate: { name: item.name }"><mat-icon>arrow_downward</mat-icon></button>
+					</span>
+				}
+				<button type="button" class="ts-open" (click)="opened.set(item)">
+					<b>{{ item.name }}</b>
+					<span class="ts-code">{{ item.code }}</span>
+				</button>
+				<span class="ts-state" [class.ts-state--off]="!item.available">{{ (item.available ? 'TYPES-PAGE.AVAILABLE' : 'TYPES-PAGE.HIDDEN') | translate }}</span>
+				@if (item.uses > 0) {
+					<a class="ts-uses" [routerLink]="config().listLink(item.id).route" [queryParams]="{ lookup: config().listLink(item.id).lookup }">{{ config().usesKey | translate: { count: item.uses } }}</a>
+				} @else {
+					<span class="ts-uses ts-uses--none">{{ 'TYPES-PAGE.UNUSED' | translate }}</span>
+				}
+			</li>
+		} @empty {
+			@if (!loading()) {
+				<li class="ts-empty">{{ 'TYPES-PAGE.EMPTY' | translate }}</li>
+			}
+		}
+	</ul>
+
+	@if (shared().length > 0) {
+		<h3 class="ts-shared-title">{{ 'TYPES-PAGE.SHARED-TITLE' | translate }}</h3>
+		<ul class="ts-list">
+			@for (item of shared(); track item.id) {
+				<li class="ts-row">
+					<span class="ts-open ts-open--static">
+						<b>{{ item.name }}</b>
+						<span class="ts-code">{{ item.code }}</span>
+					</span>
+					<span class="ts-state" [class.ts-state--off]="!item.available">{{ (item.available ? 'TYPES-PAGE.AVAILABLE' : 'TYPES-PAGE.HIDDEN') | translate }}</span>
+					@if (item.uses > 0) {
+						<a class="ts-uses" [routerLink]="config().listLink(item.id).route" [queryParams]="{ lookup: config().listLink(item.id).lookup }">{{ config().usesKey | translate: { count: item.uses } }}</a>
+					} @else {
+						<span class="ts-uses ts-uses--none">{{ 'TYPES-PAGE.UNUSED' | translate }}</span>
+					}
+				</li>
+			}
+		</ul>
+	}
+</section>
+
+@if (opened() !== undefined) {
+	<app-type-drawer [item]="opened()" [config]="config()" (closed)="opened.set(undefined)" (saved)="onSaved()" />
+}

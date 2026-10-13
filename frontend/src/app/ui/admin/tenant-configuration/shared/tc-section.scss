@@ -1,0 +1,89 @@
+// Shared layout of the tenant configuration sections, imported by each section's stylesheet.
+
+.tc-head {
+	margin-bottom: 20px;
+
+	h1 {
+		margin: 0;
+		font-size: 26px;
+		font-weight: 800;
+	}
+
+	p {
+		margin: 4px 0 0;
+		max-width: 760px;
+		font-size: 14px;
+		line-height: 1.5;
+		color: var(--md-sys-color-on-surface-variant, #566072);
+	}
+}
+
+.tc-card {
+	margin-bottom: 16px;
+	padding: 20px 22px;
+	border: 1px solid var(--md-sys-color-outline-variant, #e1e5ee);
+	border-radius: 12px;
+	background: var(--md-sys-color-surface, #fff);
+}
+
+.tc-card__head {
+	display: flex;
+	align-items: flex-start;
+	justify-content: space-between;
+	gap: 16px;
+	margin-bottom: 14px;
+
+	h2 {
+		margin: 0;
+		font-size: 16px;
+		font-weight: 800;
+	}
+
+	p {
+		margin: 4px 0 0;
+		font-size: 13px;
+		line-height: 1.45;
+		color: var(--md-sys-color-on-surface-variant, #566072);
+	}
+}
+
+.tc-row {
+	display: grid;
+	grid-template-columns: minmax(200px, 280px) minmax(0, 1fr);
+	gap: 20px;
+	align-items: center;
+	padding: 12px 0;
+	border-top: 1px solid var(--md-sys-color-outline-variant, #eef1f6);
+
+	&:first-of-type {
+		border-top: 0;
+	}
+}
+
+.tc-row__label {
+	font-size: 14px;
+	font-weight: 700;
+}
+
+.tc-row__hint {
+	margin-top: 2px;
+	font-size: 12px;
+	color: var(--md-sys-color-on-surface-variant, #566072);
+}
+
+.tc-loading {
+	display: flex;
+	justify-content: center;
+	padding: 48px 0;
+}
+
+.tc-full {
+	width: 100%;
+}
+
+@media (max-width: 700px) {
+	.tc-row {
+		grid-template-columns: minmax(0, 1fr);
+		gap: 6px;
+	}
+}

@@ -1,4 +1,4 @@
-import { Component, OnInit, Input } from '@angular/core';
+import { Component, OnInit, Input, ChangeDetectionStrategy } from '@angular/core';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { Router } from '@angular/router';
 import { SupportiveMaterialFieldType } from '@app/core/common/enum/supportive-material-field-type';
@@ -15,7 +15,7 @@ import { takeUntil } from 'rxjs/operators';
     selector: 'app-glossary-content',
     templateUrl: './glossary-content.component.html',
     styleUrls: ['./glossary-content.component.scss'],
-    standalone: false
+    changeDetection: ChangeDetectionStrategy.Eager
 })
 export class GlossaryContentComponent extends BaseComponent implements OnInit {
 

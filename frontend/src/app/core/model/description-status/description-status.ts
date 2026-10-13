@@ -3,7 +3,7 @@ import { DescriptionStatusEnum } from "@app/core/common/enum/description-status"
 import { DescriptionStatusAvailableActionType } from "@app/core/common/enum/description-status-available-action-type";
 import { PlanUserRole } from "@app/core/common/enum/plan-user-role";
 import { BaseEntity } from "@common/base/base-entity.model";
-import { StorageFile } from "../storage-file/storage-file";
+import { IconConfiguration } from "../icon-configuration/icon-configuration";
 
 export interface DescriptionStatus extends BaseEntity{
     name: string;
@@ -17,8 +17,7 @@ export interface DescriptionStatus extends BaseEntity{
 export interface DescriptionStatusDefinition {
     authorization: DescriptionStatusDefinitionAuthorization
     availableActions: DescriptionStatusAvailableActionType[];
-    matIconName: string;
-    storageFile: StorageFile;
+    iconConfiguration?: IconConfiguration;
     statusColor: string;
 }
 

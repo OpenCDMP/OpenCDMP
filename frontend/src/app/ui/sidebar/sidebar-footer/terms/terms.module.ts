@@ -4,12 +4,10 @@ import { TermsRoutingModule } from '@app/ui/sidebar/sidebar-footer/terms/terms.r
 import { CommonUiModule } from '@common/ui/common-ui.module';
 
 @NgModule({
-	imports: [
-		CommonUiModule,
-		TermsRoutingModule
-	],
-	declarations: [
-		TermsComponent
-	],
+    imports: [
+        CommonUiModule,
+        TermsRoutingModule,
+        TermsComponent
+    ],
 })
 export class TermsModule { }

@@ -21,10 +21,25 @@ export interface TourStep {
     /** Adds padding around tour highlighting in pixels, this overwrites the default for this step. Is not dependent on useHighlightPadding being true */
     highlightPadding?: number;
 
+    /**
+     * CUSTOM ADD: extra anchors to include in the highlight when one step describes a group of
+     * controls (e.g. "download, evaluate, publish"). The spotlight and the callout are positioned
+     * against the union of `selector` and these; anchors that are not rendered — a button behind a
+     * permission, say — are ignored, so the highlight always fits what is actually on screen.
+     * `selector` stays the step's primary anchor for validity and scrolling.
+     */
+    highlightSelectors?: string[];
+
     /** CUSTOM ADD: True if the tour has no other step */
     isStepUnique?: boolean;
     /** CUSTOM ADD: Adds offset in pixels to the calculated overlayTop */
     customTopOffset?: number;
+    /** CUSTOM ADD: Overrides the "Next" button label for this step only (e.g. "Start tour" on an intro step) */
+    nextText?: string;
+    /** CUSTOM ADD: small label above the title (e.g. "What's new in 1.4"), rendered in the intro band */
+    eyebrow?: string;
+    /** CUSTOM ADD: 'intro' renders the step as the larger, banded "what's new" card */
+    variant?: 'intro';
 }
 
 export interface GuidedTour {

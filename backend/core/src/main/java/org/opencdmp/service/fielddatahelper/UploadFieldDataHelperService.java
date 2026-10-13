@@ -6,7 +6,7 @@ import gr.cite.tools.validation.Validator;
 import gr.cite.tools.validation.ValidatorFactory;
 import org.jetbrains.annotations.NotNull;
 import org.opencdmp.authorization.AuthorizationFlags;
-import org.opencdmp.commonmodels.models.descriptiotemplate.fielddata.UploadDataModel;
+import org.opencdmp.commonmodels.models.planblueprintdescriptiontemplatefields.fielddata.UploadDataModel;
 import org.opencdmp.commons.types.descriptiontemplate.fielddata.UploadDataEntity;
 import org.opencdmp.commons.types.descriptiontemplate.importexport.fielddata.UploadDataImportExport;
 import org.opencdmp.convention.ConventionService;

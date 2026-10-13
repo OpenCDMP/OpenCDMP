@@ -15,25 +15,25 @@ export interface User extends BaseEntity {
 }
 
 export interface UserPersist extends BaseEntityPersist {
-	name: String;
+	name: string;
 	additionalInfo: UserAdditionalInfoPersist;
 }
 
 export interface UserAdditionalInfoPersist {
-	avatarUrl: String;
-	timezone: String;
-	culture: String;
-	language: String;
-	roleOrganization: String;
+	avatarUrl: string;
+	timezone: string;
+	culture: string;
+	language: string;
+	roleOrganization: string;
 	organization: ReferencePersist;
 	pluginConfigurations?: PluginConfigurationUserPersist[];
 }
 
 export interface UserAdditionalInfo {
-	avatarUrl: String;
-	timezone: String;
-	culture: String;
-	language: String;
+	avatarUrl: string;
+	timezone: string;
+	culture: string;
+	language: string;
 	roleOrganization: RoleOrganizationType;
 	organization: Reference;
 	pluginConfigurations?: PluginConfigurationUser[];
@@ -41,7 +41,7 @@ export interface UserAdditionalInfo {
 
 export interface UserContactInfo {
 	id: Guid;
-	value: String;
+	value: string;
 	type: ContactInfoType;
 	ordinal: number;
 	user: User;
@@ -50,29 +50,29 @@ export interface UserContactInfo {
 
 export interface UserRole {
 	id: Guid;
-	role: String;
+	role: string;
 	user: User;
 	createdAt: Date;
 }
 
 export interface UserRolePatchPersist {
 	id: Guid;
-	roles: String[];
+	roles: string[];
 	hasTenantAdminMode: boolean;
 	hash: string;
 }
 
 export interface UserCredential {
 	id: Guid;
-	externalId: String;
+	externalId: string;
 	user: User;
 	createdAt: Date;
 	data: UserCredentialData
 }
 
 export interface UserCredentialData {
-	externalProviderNames: String[];
-	email: String;
+	externalProviderNames: string[];
+	email: string;
 }
 
 export interface PlanAssociatedUser {

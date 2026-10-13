@@ -1,0 +1,11 @@
+webhook:
+  enabled: ${WEBHOOKS_ENABLED:true}
+  maxAttempts: ${WEBHOOKS_MAX_ATTEMPTS:8}
+  timeoutSeconds: ${WEBHOOKS_TIMEOUT_SECONDS:10}
+  # Refuse deliveries to targets resolving to loopback, link-local or private addresses (SSRF guard)
+  denyPrivateAddresses: ${WEBHOOKS_DENY_PRIVATE_ADDRESSES:true}
+  task:
+    # Enable on a single instance in clustered deployments — delivery rows are not locked across processes
+    enable: ${WEBHOOKS_TASK_ENABLED:true}
+    intervalSeconds: ${WEBHOOKS_TASK_INTERVAL_SECONDS:30}
+    batchSize: ${WEBHOOKS_TASK_BATCH_SIZE:50}

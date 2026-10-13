@@ -1,0 +1,86 @@
+@for (r of reviews; track r.id) {
+	<section class="bp2-card pr">
+		<div class="pr-head">
+			<div class="pr-head__text">
+				<h2 class="pr-name">{{r.name}}</h2>
+				<div class="bp2-sub">
+					@if (r.fix.length) { {{'PLAN-BLUEPRINT-EDITOR.PLUGIN-REVIEW.SUMMARY-GAP' | bp2Count: r.fix.length}} }
+					@else if (r.fallback.length) { {{'PLAN-BLUEPRINT-EDITOR.PLUGIN-REVIEW.SUMMARY-FALLBACK' | bp2Count: r.fallback.length}} }
+					@else { {{'PLAN-BLUEPRINT-EDITOR.PLUGIN-REVIEW.SUMMARY-OK' | translate}} }
+				</div>
+			</div>
+			@if (r.fix.length) { <span class="bp2-tag bp2-tag--bad">{{'PLAN-BLUEPRINT-EDITOR.PLUGIN-REVIEW.TO-FIX' | bp2Count: r.fix.length}}</span> }
+			@else { <span class="bp2-tag bp2-tag--ok"><mat-icon aria-hidden="true">check</mat-icon>{{'PLAN-BLUEPRINT-EDITOR.PLUGIN-REVIEW.READY' | translate}}</span> }
+		</div>
+		<div class="pr-tags">
+			@if (r.coverage.needs.length) { <span class="bp2-tag" [class.bp2-tag--ok]="r.tone === 'ok'" [class.bp2-tag--todo]="r.tone === 'fallback'" [class.bp2-tag--bad]="r.tone === 'gap'">{{'PLAN-BLUEPRINT-EDITOR.COVERAGE.NEEDS-COUNT' | translate: { done: r.coverage.needsDone, total: r.coverage.needs.length } }}</span> }
+			@if (r.fallback.length) { <span class="bp2-tag bp2-tag--todo">{{'PLAN-BLUEPRINT-EDITOR.PLUGIN-REVIEW.FALLBACK-COUNT' | bp2Count: r.fallback.length}}</span> }
+			@if (r.coverage.canUse.length) { <span class="bp2-tag bp2-tag--opt">{{'PLAN-BLUEPRINT-EDITOR.COVERAGE.CAN-USE-COUNT' | translate: { done: r.coverage.canUseDone, total: r.coverage.canUse.length } }}</span> }
+		</div>
+		@if (r.fromTemplates.length) { <p class="bp2-sub pr-from">{{'PLAN-BLUEPRINT-EDITOR.PLUGIN-REVIEW.FROM-TEMPLATES' | bp2Count: r.fromTemplates.length : { templates: r.templates.join(', ') } }}</p> }
+		@if (r.coverage.needs.length) {
+			<div class="pr-bar" role="progressbar" [attr.aria-valuenow]="r.coverage.needsDone" aria-valuemin="0" [attr.aria-valuemax]="r.coverage.needs.length" [attr.aria-label]="r.name">
+				<div class="pr-bar__fill" [class.pr-bar__fill--ok]="r.tone === 'ok'" [style.width.%]="percent(r.coverage.needsDone, r.coverage.needs.length)"></div>
+			</div>
+		}
+
+		@if (r.fix.length) {
+			<div class="pr-group pr-group--bad">{{'PLAN-BLUEPRINT-EDITOR.PLUGIN-REVIEW.FIX' | translate}}</div>
+			<ol class="pr-list">
+				@for (item of r.fix; track $index; let i = $index) {
+					<li class="pr-item">
+						<span class="pr-num pr-num--bad" aria-hidden="true">{{i + 1}}</span>
+						<div class="pr-item__main">
+							@if (item.targets.length) {
+								<div class="pr-targets">@for (t of item.targets.slice(0, 5); track t.id) { <button type="button" class="pr-target" (click)="show(t)" [attr.aria-label]="'PLAN-BLUEPRINT-EDITOR.PLUGIN-REVIEW.SHOW-QUESTION' | translate: { numbering: t.numbering }" [title]="t.title">{{t.numbering}}</button> }@if (item.targets.length > 5) { <span class="bp2-sub">+{{item.targets.length - 5}}</span> }</div>
+							}
+							<div class="pr-text">{{item.text}}</div>
+							@if (!item.targets.length) { <code class="pr-key">@for (part of item.key | bp2KeyParts; track $index) {<span>{{part}}</span><wbr>}</code> }
+							@if (item.targets.length) { <button type="button" class="pr-link" (click)="open(item.targets[0])">{{'PLAN-BLUEPRINT-EDITOR.PLUGIN-REVIEW.OPEN-IN-STRUCTURE' | translate}}</button> }
+						</div>
+					</li>
+				}
+			</ol>
+		}
+
+		@if (r.fallback.length) {
+			<div class="pr-group pr-group--todo">{{'PLAN-BLUEPRINT-EDITOR.PLUGIN-REVIEW.FALLS-BACK' | translate}}</div>
+			<ul class="pr-list">
+				@for (x of r.fallback; track keyOf(x)) {
+					<li class="pr-item">
+						<mat-icon class="pr-icon pr-icon--todo" aria-hidden="true">info</mat-icon>
+						<div class="pr-item__main">
+							<code class="pr-key" [title]="titleOf(x)">@for (part of keyOf(x) | bp2KeyParts; track $index) {<span>{{part}}</span><wbr>}</code>
+							<div class="bp2-sub">{{'PLAN-BLUEPRINT-EDITOR.COVERAGE.FALLBACK' | translate: { fallback: x.usage.fallback } }}</div>
+						</div>
+					</li>
+				}
+			</ul>
+		}
+
+		@if (r.notices.length) {
+			<div class="pr-group">{{'PLAN-BLUEPRINT-EDITOR.PLUGIN-REVIEW.NOTES' | translate}}</div>
+			<ul class="pr-list">
+				@for (item of r.notices; track $index) {
+					<li class="pr-item">
+						<mat-icon class="pr-icon" aria-hidden="true">info</mat-icon>
+						<div class="pr-item__main">
+							<div class="pr-text">{{item.text}}</div>
+							@if (item.targets.length) { <div class="pr-targets">@for (t of item.targets.slice(0, 5); track t.id) { <button type="button" class="pr-target" (click)="show(t)" [attr.aria-label]="'PLAN-BLUEPRINT-EDITOR.PLUGIN-REVIEW.SHOW-QUESTION' | translate: { numbering: t.numbering }" [title]="t.title">{{t.numbering}}</button> }</div> }
+						</div>
+					</li>
+				}
+			</ul>
+		}
+
+		@if (r.couldUse.length) {
+			<div class="pr-more">
+				<span class="bp2-sub">{{'PLAN-BLUEPRINT-EDITOR.PLUGIN-REVIEW.COULD-USE' | bp2Count: r.couldUse.length}}</span>
+				<button type="button" class="pr-link" (click)="toggle(r)" [attr.aria-expanded]="expanded.has(r.id)">{{ (expanded.has(r.id) ? 'PLAN-BLUEPRINT-EDITOR.COVERAGE.SHOW-FEWER' : 'PLAN-BLUEPRINT-EDITOR.PLUGIN-REVIEW.SHOW') | translate }}</button>
+			</div>
+			@if (expanded.has(r.id)) {
+				<div class="pr-keys">@for (x of r.couldUse; track keyOf(x)) { <code class="pr-key" [title]="titleOf(x)">@for (part of keyOf(x) | bp2KeyParts; track $index) {<span>{{part}}</span><wbr>}</code> }</div>
+			}
+		}
+	</section>
+}

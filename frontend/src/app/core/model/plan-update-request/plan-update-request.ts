@@ -3,6 +3,7 @@ import { Plan } from "../plan/plan";
 import { User } from "../user/user";
 import { PlanUpdateRequestActionType } from "@app/core/common/enum/plan-update-request-action-type.enum";
 import { PlanUpdateRequestStatus } from "@app/core/common/enum/plan-update-request-status.enum";
+import { PlanUpdateRequestApplyDecision } from "@app/core/common/enum/plan-update-request-apply-decision.enum";
 import { DescriptionCommonModelConfig } from "../description/description-import";
 import { Guid } from "@common/types/guid";
 
@@ -35,4 +36,13 @@ export interface PlanSuggestion {
 	planUpdateRequestId?: Guid;
 	blueprintId: Guid;
 	descriptions: DescriptionCommonModelConfig[];
+}
+
+export interface PlanUpdateRequestApply {
+	planUpdateRequestId: Guid;
+	decision: PlanUpdateRequestApplyDecision;
+	suggestion?: PlanSuggestion;
+	acceptedChangeIds?: Guid[];
+	newDescriptionTemplateSelections?: { [changeId: string]: Guid };
+	previewPlanVersion?: string;
 }

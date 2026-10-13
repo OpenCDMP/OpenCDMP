@@ -1,7 +1,7 @@
 package org.opencdmp.model.builder.commonmodels.descriptiontemplate;
 
 import org.opencdmp.authorization.AuthorizationFlags;
-import org.opencdmp.commonmodels.models.descriptiotemplate.MultiplicityModel;
+import org.opencdmp.commonmodels.models.planblueprintdescriptiontemplatefields.MultiplicityModel;
 import org.opencdmp.commons.types.descriptiontemplate.MultiplicityEntity;
 import org.opencdmp.convention.ConventionService;
 import org.opencdmp.model.builder.commonmodels.BaseCommonModelBuilder;
@@ -50,6 +50,7 @@ public class MultiplicityCommonModelBuilder extends BaseCommonModelBuilder<Multi
             m.setMax(d.getMax());
             m.setPlaceholder(d.getPlaceholder());
             m.setTableView(d.getTableView());
+            m.setTransposedTableView(d.isTransposedTableView());
             models.add(new CommonModelBuilderItemResponse<>(m, d));
         }
 

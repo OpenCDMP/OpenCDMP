@@ -1,37 +1,51 @@
 package org.opencdmp.service.visibility;
 
-import org.apache.commons.lang3.NotImplementedException;
 import org.opencdmp.commons.enums.FieldType;
 import org.opencdmp.commons.types.description.PropertyDefinitionEntity;
+import org.opencdmp.commons.types.description.PropertyDefinitionFieldSetEntity;
 import org.opencdmp.commons.types.descriptiontemplate.*;
+import org.opencdmp.model.persist.descriptionproperties.PropertyDefinitionFieldSetPersist;
 import org.opencdmp.model.persist.descriptionproperties.PropertyDefinitionPersist;
 
 import java.util.*;
 
 public class VisibilityServiceImpl implements VisibilityService {
 
-	private final DefinitionEntity definition;
-	private final PropertyDefinition propertyDefinition;
+	private final List<? extends SectionEntity> sections;
+	private final Map<String, PropertyDefinitionFieldSet> fieldSets;
 
 	private Map<String, List<RuleWithTarget>> rulesBySources;
 	private Map<String, List<RuleWithTarget>> rulesByTarget;
 	private Map<FieldKey, Boolean> visibility;
-	
-    public VisibilityServiceImpl(DefinitionEntity definition, PropertyDefinitionPersist propertyDefinition) {
-	    this.definition = definition;
-	    this.propertyDefinition = new PropertyDefinition(propertyDefinition);
-    }
 
-	public VisibilityServiceImpl(DefinitionEntity definition, PropertyDefinitionEntity propertyDefinition) {
-		this.definition = definition;
-		this.propertyDefinition = new PropertyDefinition(propertyDefinition);
+	private VisibilityServiceImpl(List<? extends SectionEntity> sections, Map<String, PropertyDefinitionFieldSet> fieldSets) {
+		this.sections = sections;
+		this.fieldSets = fieldSets;
+	}
+
+	public static VisibilityServiceImpl fromPersist(List<? extends SectionEntity> sections, Map<String, PropertyDefinitionFieldSetPersist> fieldSets) {
+
+		PropertyDefinitionPersist persist = new PropertyDefinitionPersist();
+		persist.setFieldSets(fieldSets);
+		Map<String, PropertyDefinitionFieldSet> converted = new PropertyDefinition(persist).getFieldSets();
+
+		return new VisibilityServiceImpl(sections, converted);
+	}
+
+	public static VisibilityServiceImpl fromEntity(List<? extends SectionEntity> sections, Map<String, PropertyDefinitionFieldSetEntity> fieldSets) {
+
+		PropertyDefinitionEntity entity = new PropertyDefinitionEntity();
+		entity.setFieldSets(fieldSets);
+		Map<String, PropertyDefinitionFieldSet> converted = new PropertyDefinition(entity).getFieldSets();
+
+		return new VisibilityServiceImpl(sections, converted);
 	}
 
 	private void initRules(){
 		if (this.rulesBySources != null && this.rulesByTarget != null) return;
 		this.rulesBySources = new HashMap<>();
 		this.rulesByTarget = new HashMap<>();
-		for (FieldEntity fieldEntity : this.definition.getAllField()){
+		for (FieldEntity fieldEntity : this.getAllFields()){
 			if (fieldEntity.getVisibilityRules() != null && !fieldEntity.getVisibilityRules().isEmpty()) {
 				for (RuleEntity rule : fieldEntity.getVisibilityRules()){
 					if (!this.rulesBySources.containsKey(fieldEntity.getId())) this.rulesBySources.put(fieldEntity.getId(), new ArrayList<>());
@@ -72,8 +86,8 @@ public class VisibilityServiceImpl implements VisibilityService {
 		this.visibility = new HashMap<>();
 		for (Map.Entry<String, List<RuleWithTarget>> ruleForSource : this.rulesBySources.entrySet()){
 			for (RuleWithTarget rule : ruleForSource.getValue()){
-				if (this.propertyDefinition.getFieldSets() != null && !this.propertyDefinition.getFieldSets().isEmpty()){
-					for (PropertyDefinitionFieldSet propertyDefinitionFieldSet: this.propertyDefinition.getFieldSets().values()) {
+				if (this.fieldSets != null && !this.fieldSets.isEmpty()){
+					for (PropertyDefinitionFieldSet propertyDefinitionFieldSet: this.fieldSets.values()) {
 						if (propertyDefinitionFieldSet.getItems() != null && !propertyDefinitionFieldSet.getItems().isEmpty()) {
 							for (PropertyDefinitionFieldSetItem definitionFieldSetItem : propertyDefinitionFieldSet.getItems()) {
 								if (definitionFieldSetItem.getFields() != null && !definitionFieldSetItem.getFields().isEmpty()) {
@@ -88,7 +102,7 @@ public class VisibilityServiceImpl implements VisibilityService {
 												FieldKey fieldKey = new FieldKey(rule.getTarget(), definitionFieldSetItem.getOrdinal());
 												boolean currentState = this.visibility.getOrDefault(fieldKey, false);
 												this.visibility.put(fieldKey, parentIsVisible && (currentState || this.ruleIsTrue(rule, field)));
-											} else if (!this.definition.getFieldById(rule.getTarget()).isEmpty() || !this.definition.getFieldSetById(rule.getTarget()).isEmpty()) { //Rule applies to different fieldset, so we apply for all multiple items
+											} else if (!this.getFieldById(rule.getTarget()).isEmpty() || !this.getFieldSetById(rule.getTarget()).isEmpty()) { //Rule applies to different fieldset, so we apply for all multiple items
 												List<Integer> ordinals = this.getKeyOrdinals(rule.getTarget());
 												for (Integer ordinal : ordinals){
 													FieldKey fieldKey = new FieldKey(rule.getTarget(), ordinal);
@@ -126,7 +140,7 @@ public class VisibilityServiceImpl implements VisibilityService {
 				isVisible = isVisible || currentState || this.ruleIsTrue(ruleForParentKey, field);
 				if (rulesForGrandParentKey != null && !rulesForGrandParentKey.isEmpty()) isVisible = isVisible || this.isChainParentVisible(rulesForGrandParentKey, fieldsMap, ordinal);
 
-			} else if (!this.definition.getFieldById(ruleForParentKey.getTarget()).isEmpty() || !this.definition.getFieldSetById(ruleForParentKey.getTarget()).isEmpty()) { //Rule applies to different fieldset, so we apply for all multiple items
+			} else if (!this.getFieldById(ruleForParentKey.getTarget()).isEmpty() || !this.getFieldSetById(ruleForParentKey.getTarget()).isEmpty()) { //Rule applies to different fieldset, so we apply for all multiple items
 				List<Integer> ordinals = this.getKeyOrdinals(ruleForParentKey.getTarget());
 				for (Integer curentOrdinal : ordinals){
 					FieldKey fieldKey = new FieldKey(ruleForParentKey.getTarget(), curentOrdinal);
@@ -152,8 +166,8 @@ public class VisibilityServiceImpl implements VisibilityService {
 	}
 
 	private Map<String, Field> getKeyFields(String key, int ordinal){
-		if (this.propertyDefinition.getFieldSets() != null && !this.propertyDefinition.getFieldSets().isEmpty()){
-			for (Map.Entry<String, PropertyDefinitionFieldSet> propertyDefinitionFieldSet: this.propertyDefinition.getFieldSets().entrySet()) {
+		if (this.fieldSets != null && !this.fieldSets.isEmpty()){
+			for (Map.Entry<String, PropertyDefinitionFieldSet> propertyDefinitionFieldSet: this.fieldSets.entrySet()) {
 				if (propertyDefinitionFieldSet.getKey().equals(key)) return propertyDefinitionFieldSet.getValue().getItems().stream().filter(x-> x.getOrdinal() == ordinal).map(PropertyDefinitionFieldSetItem::getFields).findFirst().orElse(new HashMap<>());
 
 				if (propertyDefinitionFieldSet.getValue() != null && propertyDefinitionFieldSet.getValue().getItems() != null && !propertyDefinitionFieldSet.getValue().getItems().isEmpty()) {
@@ -171,8 +185,8 @@ public class VisibilityServiceImpl implements VisibilityService {
 	}
 	
 	private List<Integer> getKeyOrdinals(String key){
-		if (this.propertyDefinition.getFieldSets() != null && !this.propertyDefinition.getFieldSets().isEmpty()){
-			for (Map.Entry<String, PropertyDefinitionFieldSet> propertyDefinitionFieldSet: this.propertyDefinition.getFieldSets().entrySet()) {
+		if (this.fieldSets != null && !this.fieldSets.isEmpty()){
+			for (Map.Entry<String, PropertyDefinitionFieldSet> propertyDefinitionFieldSet: this.fieldSets.entrySet()) {
 				if (propertyDefinitionFieldSet.getKey().equals(key)) return propertyDefinitionFieldSet.getValue().getItems().stream().map(PropertyDefinitionFieldSetItem::getOrdinal).toList();
 				
 				if (propertyDefinitionFieldSet.getValue() != null && propertyDefinitionFieldSet.getValue().getItems() != null && !propertyDefinitionFieldSet.getValue().getItems().isEmpty()) {
@@ -190,32 +204,14 @@ public class VisibilityServiceImpl implements VisibilityService {
 	}
 	
 	private void expandVisibilityToChildren(){
-		if (this.definition.getPages() == null) return;
-		for (PageEntity pageEntity : this.definition.getPages()){
-			FieldKey fieldKey = new FieldKey(pageEntity.getId(), null);
-			Boolean currentValue = this.visibility.getOrDefault(fieldKey, null);
-			this.expandPageVisibility(pageEntity, currentValue);
-		}
-	}
-	
-	private void expandPageVisibility(PageEntity pageEntity, Boolean parentVisibility){
-		if (pageEntity.getSections() == null) return;
-		for (SectionEntity sectionEntity : pageEntity.getSections()){
+		if (this.sections == null) return;
+		for (SectionEntity sectionEntity : this.sections){
 			FieldKey fieldKey = new FieldKey(sectionEntity.getId(), null);
 			Boolean currentValue = this.visibility.getOrDefault(fieldKey, null);
-			if (currentValue != null){
-				if (parentVisibility != null && !parentVisibility) { //Parent is hidden so all childs should be hidden
-					this.visibility.put(fieldKey, false);
-					this.expandSectionVisibility(sectionEntity, currentValue);
-				} else {
-					this.expandSectionVisibility(sectionEntity, currentValue);
-				}
-			} else {
-				if (parentVisibility != null) this.visibility.put(fieldKey, parentVisibility);
-				this.expandSectionVisibility(sectionEntity, parentVisibility);
-			}
+			this.expandSectionVisibility(sectionEntity, currentValue);
 		}
 	}
+
 	private void expandSectionVisibility(SectionEntity sectionEntity, Boolean parentVisibility){
 		if (sectionEntity.getSections() != null) {
 			for (SectionEntity subSectionEntity : sectionEntity.getSections()) {
@@ -236,8 +232,8 @@ public class VisibilityServiceImpl implements VisibilityService {
 		}
 		if (sectionEntity.getFieldSets() != null) {
 			for (FieldSetEntity fieldSetEntity : sectionEntity.getFieldSets()) {
-				if (this.propertyDefinition.getFieldSets() != null && !this.propertyDefinition.getFieldSets().isEmpty()){
-					PropertyDefinitionFieldSet propertyDefinitionFieldSet = this.propertyDefinition.getFieldSets().getOrDefault(fieldSetEntity.getId(), null);
+				if (this.fieldSets != null && !this.fieldSets.isEmpty()){
+					PropertyDefinitionFieldSet propertyDefinitionFieldSet = this.fieldSets.getOrDefault(fieldSetEntity.getId(), null);
 					if (propertyDefinitionFieldSet != null && propertyDefinitionFieldSet.getItems() != null && !propertyDefinitionFieldSet.getItems().isEmpty()) {
 						for (PropertyDefinitionFieldSetItem definitionFieldSetItem : propertyDefinitionFieldSet.getItems()) {
 							FieldKey fieldKey = new FieldKey(fieldSetEntity.getId(), definitionFieldSetItem.getOrdinal());
@@ -278,24 +274,12 @@ public class VisibilityServiceImpl implements VisibilityService {
 
 
 	private void setDefaultVisibilityForNotCaclucted(){
-		if (this.definition.getPages() == null) return;
-		for (PageEntity pageEntity : this.definition.getPages()){
-			FieldKey fieldKey = new FieldKey(pageEntity.getId(), null);
-			Boolean currentValue = this.visibility.getOrDefault(fieldKey, null);
-			if (currentValue == null) this.visibility.put(fieldKey, true);
-			this.setDefaultPageVisibility(pageEntity);
-		}
-	}
-
-	private void setDefaultPageVisibility(PageEntity pageEntity){
-		if (pageEntity.getSections() == null) return;
-		for (SectionEntity sectionEntity : pageEntity.getSections()){
+		if (this.sections == null) return;
+		for (SectionEntity sectionEntity : this.sections){
 			FieldKey fieldKey = new FieldKey(sectionEntity.getId(), null);
 			Boolean currentValue = this.visibility.getOrDefault(fieldKey, null);
-			if (currentValue == null){
-				this.visibility.put(fieldKey, true);
-				this.setDefaultSectionVisibility(sectionEntity);
-			}
+			if (currentValue == null) this.visibility.put(fieldKey, true);
+			this.setDefaultSectionVisibility(sectionEntity);
 		}
 	}
 	
@@ -312,8 +296,8 @@ public class VisibilityServiceImpl implements VisibilityService {
 		}
 		if (sectionEntity.getFieldSets() != null) {
 			for (FieldSetEntity fieldSetEntity : sectionEntity.getFieldSets()) {
-				if (this.propertyDefinition.getFieldSets() != null && !this.propertyDefinition.getFieldSets().isEmpty()){
-					PropertyDefinitionFieldSet propertyDefinitionFieldSet = this.propertyDefinition.getFieldSets().getOrDefault(fieldSetEntity.getId(), null);
+				if (this.fieldSets != null && !this.fieldSets.isEmpty()){
+					PropertyDefinitionFieldSet propertyDefinitionFieldSet = this.fieldSets.getOrDefault(fieldSetEntity.getId(), null);
 					if (propertyDefinitionFieldSet != null && propertyDefinitionFieldSet.getItems() != null && !propertyDefinitionFieldSet.getItems().isEmpty()) {
 						for (PropertyDefinitionFieldSetItem definitionFieldSetItem : propertyDefinitionFieldSet.getItems()) {
 							FieldKey fieldKey = new FieldKey(fieldSetEntity.getId(), definitionFieldSetItem.getOrdinal());
@@ -342,29 +326,14 @@ public class VisibilityServiceImpl implements VisibilityService {
 	}
 
 	private void hideParentIfAllChildrenAreHidden(){
-		if (this.definition.getPages() == null) return;
-		for (PageEntity pageEntity : this.definition.getPages()){
-			FieldKey fieldKey = new FieldKey(pageEntity.getId(), null);
-			boolean isCurrentHidden = this.isHiddenPageVisibilityIfAllChildrenIsHidden(pageEntity);
-			if (this.visibility.getOrDefault(fieldKey, true) && isCurrentHidden){
-				this.visibility.put(fieldKey, false);
-			}
-		}
-	}
-
-	private boolean isHiddenPageVisibilityIfAllChildrenIsHidden(PageEntity pageEntity){
-		boolean isHidden = true;
-		if (pageEntity.getSections() == null) return isHidden;
-		
-		for (SectionEntity sectionEntity : pageEntity.getSections()){
+		if (this.sections == null) return;
+		for (SectionEntity sectionEntity : this.sections){
 			FieldKey fieldKey = new FieldKey(sectionEntity.getId(), null);
 			boolean isCurrentHidden = this.isHiddenSectionIfAllChildrenIsHidden(sectionEntity);
 			if (this.visibility.getOrDefault(fieldKey, true) && isCurrentHidden){
 				this.visibility.put(fieldKey, false);
 			}
-			isHidden = isHidden && isCurrentHidden;
 		}
-		return isHidden;
 	}
 
 	private boolean isHiddenSectionIfAllChildrenIsHidden(SectionEntity sectionEntity){
@@ -381,8 +350,8 @@ public class VisibilityServiceImpl implements VisibilityService {
 		}
 		if (sectionEntity.getFieldSets() != null) {
 			for (FieldSetEntity fieldSetEntity : sectionEntity.getFieldSets()) {
-				if (this.propertyDefinition.getFieldSets() != null && !this.propertyDefinition.getFieldSets().isEmpty()){
-					PropertyDefinitionFieldSet propertyDefinitionFieldSet = this.propertyDefinition.getFieldSets().getOrDefault(fieldSetEntity.getId(), null);
+				if (this.fieldSets != null && !this.fieldSets.isEmpty()){
+					PropertyDefinitionFieldSet propertyDefinitionFieldSet = this.fieldSets.getOrDefault(fieldSetEntity.getId(), null);
 					if (propertyDefinitionFieldSet != null && propertyDefinitionFieldSet.getItems() != null && !propertyDefinitionFieldSet.getItems().isEmpty()) {
 						for (PropertyDefinitionFieldSetItem definitionFieldSetItem : propertyDefinitionFieldSet.getItems()) {
 							FieldKey fieldKey = new FieldKey(fieldSetEntity.getId(), definitionFieldSetItem.getOrdinal());
@@ -433,10 +402,44 @@ public class VisibilityServiceImpl implements VisibilityService {
 			}
 			else if (org.opencdmp.commons.enums.FieldType.isDateType(fieldType) && field.getDateValue() != null) return field.getDateValue().equals(rule.getDateValue());
 			else if (org.opencdmp.commons.enums.FieldType.isBooleanType(fieldType) && field.getBooleanValue() != null) return field.getBooleanValue().equals(rule.getBooleanValue());
+			else if (org.opencdmp.commons.enums.FieldType.isNumberType(fieldType) && field.getNumberValue() != null) return field.getNumberValue().equals(rule.getNumberValue());
 			else if (org.opencdmp.commons.enums.FieldType.isExternalIdentifierType(fieldType) && field.getExternalIdentifier() != null)  {
 				return false;
 			}
 		}
 		return false;
+	}
+
+	//helper methods
+	private List<FieldEntity> getAllFields() {
+		List<FieldEntity> result = new ArrayList<>();
+		if (this.sections != null) {
+			for (SectionEntity section : this.sections) {
+				result.addAll(section.getAllField());
+			}
+		}
+		return result;
+	}
+
+	private List<FieldSetEntity> getAllFieldSets() {
+		List<FieldSetEntity> result = new ArrayList<>();
+		if (this.sections != null) {
+			for (SectionEntity section : this.sections) {
+				result.addAll(section.getAllFieldSets());
+			}
+		}
+		return result;
+	}
+
+	private List<FieldEntity> getFieldById(String id) {
+		return this.getAllFields().stream()
+				.filter(x -> id != null && id.equals(x.getId()))
+				.toList();
+	}
+
+	private List<FieldSetEntity> getFieldSetById(String id) {
+		return this.getAllFieldSets().stream()
+				.filter(x -> id != null && id.equals(x.getId()))
+				.toList();
 	}
 }

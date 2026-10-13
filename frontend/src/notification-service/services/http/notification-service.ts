@@ -24,6 +24,14 @@ export class NotificationService {
 				catchError((error: any) => throwError(error)));
 	}
 
+	resend(id: Guid): Observable<Notification> {
+		const url = `${this.apiBase}/${id}/resend`;
+
+		return this.http
+			.post<Notification>(url, null).pipe(
+				catchError((error: any) => throwError(error)));
+	}
+
 	delete(id: Guid): Observable<Notification> {
 		const url = `${this.apiBase}/${id}`;
 

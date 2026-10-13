@@ -17,36 +17,24 @@ const routes: Routes = [
 	},
 	{
 		path: 'new',
-		component: ReferenceTypeEditorComponent,
 		canActivate: [AuthGuard],
+		component: ReferenceTypeEditorComponent,
 		canDeactivate: [PendingChangesGuard],
 		data: {
-				authContext: {
-					permissions: [AppPermission.EditReferenceType]
-				},
-				...BreadcrumbService.generateRouteDataConfiguration({
-					title: 'BREADCRUMBS.NEW-REFERENCE-TYPE'
-				}),
-				getFromTitleService: true,
-				usePrefix: false
-			}
+			authContext: { permissions: [AppPermission.EditReferenceType] },
+			...BreadcrumbService.generateRouteDataConfiguration({ title: 'BREADCRUMBS.NEW-REFERENCE-TYPE' })
+		}
 	},
- 	{
+	{
 		path: ':id',
 		canActivate: [AuthGuard],
 		component: ReferenceTypeEditorComponent,
 		canDeactivate: [PendingChangesGuard],
-		resolve: {
-			'entity': ReferenceTypeEditorResolver
-		},
+		resolve: { 'entity': ReferenceTypeEditorResolver },
 		data: {
-			authContext: {
-				permissions: [AppPermission.EditReferenceType]
-			},
-			getFromTitleService: true,
-			usePrefix: false
+			...BreadcrumbService.generateRouteDataConfiguration({ skipNavigation: true }),
+			authContext: { permissions: [AppPermission.EditReferenceType] }
 		}
-
 	},
   	{ path: '**', loadComponent: () => import('@common/modules/page-not-found/page-not-found.component').then(m => m.PageNotFoundComponent)},
 ];

@@ -29,7 +29,7 @@ public class PlanDescriptionTemplateEntity extends TenantScopedBaseEntity {
     public static final String _descriptionTemplateGroupId = "descriptionTemplateGroupId";
 
     @Column(name = "section_id")
-    private UUID sectionId;
+    private String sectionId;
 
     public static final String _sectionId = "sectionId";
 
@@ -73,12 +73,12 @@ public class PlanDescriptionTemplateEntity extends TenantScopedBaseEntity {
         this.descriptionTemplateGroupId = descriptionTemplateGroupId;
     }
 
-    public UUID getSectionId() {
+    public String getSectionId() {
         return this.sectionId;
     }
 
-    public void setSectionId(UUID sectionId) {
-        this.sectionId = sectionId;
+    public void setSectionId(String sectionId) {
+        this.sectionId = (sectionId == null || sectionId.isEmpty()) ? null : sectionId;
     }
 
     public Instant getCreatedAt() {

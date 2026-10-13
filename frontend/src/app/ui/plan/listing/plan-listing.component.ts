@@ -1,6 +1,5 @@
-import { Component, OnInit, ViewChild } from '@angular/core';
-import { UntypedFormBuilder, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
-import { MatDialog, MatDialogRef } from '@angular/material/dialog';
+import { Component, OnInit, ViewChild, AfterContentChecked, inject, ChangeDetectionStrategy } from '@angular/core';
+import { MatDialog } from '@angular/material/dialog';
 import { MatPaginator } from '@angular/material/paginator';
 import { MatSort } from '@angular/material/sort';
 import { ActivatedRoute, Params, Router } from '@angular/router';
@@ -9,8 +8,8 @@ import { AppPermission } from '@app/core/common/enum/permission.enum';
 import { RecentActivityOrder } from '@app/core/common/enum/recent-activity-order';
 import { DescriptionTemplate } from '@app/core/model/description-template/description-template';
 import { Description } from '@app/core/model/description/description';
-import { DescriptionTemplatesInSection, PlanBlueprint, PlanBlueprintDefinition, PlanBlueprintDefinitionSection } from '@app/core/model/plan-blueprint/plan-blueprint';
-import { BasePlan, Plan, PlanDescriptionTemplate, PlanUser } from '@app/core/model/plan/plan';
+import { DescriptionTemplatesInSection, PlanBlueprint, PlanBlueprintDefinition, RootSection } from '@app/core/model/plan-blueprint/plan-blueprint';
+import { BasePlan, Plan, PlanAuthorizationInformation, PlanDescriptionTemplate, PlanUser } from '@app/core/model/plan/plan';
 import { PlanReference } from '@app/core/model/plan/plan-reference';
 import { ReferenceType } from '@app/core/model/reference-type/reference-type';
 import { Reference } from '@app/core/model/reference/reference';
@@ -19,12 +18,11 @@ import { AuthService } from '@app/core/services/auth/auth.service';
 import { PlanService } from '@app/core/services/plan/plan.service';
 import { AnalyticsService } from '@app/core/services/matomo/analytics-service';
 import { EnumUtils } from '@app/core/services/utilities/enum-utils.service';
-import { GuidedTour, Orientation } from '@app/library/guided-tour/guided-tour.constants';
-import { GuidedTourService } from '@app/library/guided-tour/guided-tour.service';
+import { TourStateService } from '@app/library/guided-tour/tour-state.service';
+import { planListingPageTour } from './plan-listing.tour';
 import { HttpErrorHandlingService } from '@common/modules/errors/error-handling/http-error-handling.service';
-import { PageLoadEvent } from '@common/modules/hybrid-listing/hybrid-listing.component';
-import { LangChangeEvent, TranslateService } from '@ngx-translate/core';
-import { NgDialogAnimationService } from "ng-dialog-animation";
+import { PageLoadEvent } from '@common/modules/admin-listing/listing.types';
+import { TranslateService, TranslatePipe } from '@ngx-translate/core';
 import {  takeUntil, tap } from 'rxjs/operators';
 import { nameof } from 'ts-simple-nameof';
 import { BaseListingComponent } from '@common/base/base-listing-component';
@@ -42,8 +40,7 @@ import { PrincipalService } from '@app/core/services/http/principal.service';
 import { BreadcrumbService } from '@app/ui/misc/breadcrumb/breadcrumb.service';
 import { PlanFilterDialogComponent } from './filtering/plan-filter-dialog/plan-filter-dialog.component';
 import { PlanListingFilters } from './filtering/plan-filter.component';
-import { Lookup } from '@common/model/lookup';
-import { MatSelectChange } from '@angular/material/select';
+import { MatSelectChange, MatSelect, MatOption } from '@angular/material/select';
 import { DescriptionStatus } from '@app/core/model/description-status/description-status';
 import { PlanStatus, PlanStatusDefinition } from '@app/core/model/plan-status/plan-status';
 import { StorageFile } from '@app/core/model/storage-file/storage-file';
@@ -51,20 +48,35 @@ import { StorageFileService } from '@app/core/services/storage-file/storage-file
 import { DomSanitizer, SafeUrl } from '@angular/platform-browser';
 import {EntityDoi} from "@app/core/model/entity-doi/entity-doi";
 import {TenantConfigurationType} from "@app/core/common/enum/tenant-configuration-type";
-import {ViewPreferencesEditorResolver} from "@app/ui/admin/tenant-configuration/editor/view-preferences/view-preferences-editor.resolver";
+import {ViewPreferencesEditorResolver} from "@app/ui/admin/tenant-configuration/models/view-preferences/view-preferences-editor.resolver";
 import {TenantConfigurationService} from "@app/core/services/tenant-configuration/tenant-configuration.service";
+import { IconConfiguration } from '@app/core/model/icon-configuration/icon-configuration';
+import { TextFilterComponent } from '../../../../common/modules/text-filter/text-filter.component';
+import { MatButtonToggleGroup, MatButtonToggle } from '@angular/material/button-toggle';
+import { MatTooltip } from '@angular/material/tooltip';
+import { MatIcon } from '@angular/material/icon';
+import { MatFormField } from '@angular/material/form-field';
+import { ReactiveAsteriskDirective } from '../../../../common/forms/reactive-asterisk-directive';
+import { FormsModule } from '@angular/forms';
+import { MatIconButton, MatButton } from '@angular/material/button';
+import { MatBadge } from '@angular/material/badge';
+import { ActiveReferenceFiltersComponent } from '../../reference/reference-usage-filter/active-reference-filters.component';
+import { PlanListingItemComponent } from './listing-item/plan-listing-item.component';
 
 @Component({
     selector: 'app-plan-listing-component',
     templateUrl: 'plan-listing.component.html',
     styleUrls: ['./plan-listing.component.scss'],
-    standalone: false
+    changeDetection: ChangeDetectionStrategy.Eager,
+    imports: [TextFilterComponent, MatButtonToggleGroup, MatButtonToggle, MatTooltip, MatIcon, MatFormField, MatSelect, ReactiveAsteriskDirective, FormsModule, MatOption, MatIconButton, MatButton, MatBadge, ActiveReferenceFiltersComponent, PlanListingItemComponent, PlanFilterDialogComponent, TranslatePipe]
 })
-export class PlanListingComponent extends BaseListingComponent<BasePlan, PlanLookup> implements OnInit {
+export class PlanListingComponent extends BaseListingComponent<BasePlan, PlanLookup> implements OnInit, AfterContentChecked {
 
 	userSettingsKey = { key: 'PlanListingUserSettings' };
 
+    @ViewChild('filterSideDialog') filterSideDialog: PlanFilterDialogComponent;
 	@ViewChild(MatPaginator, { static: true }) _paginator: MatPaginator;
+
 	@ViewChild(MatSort) sort: MatSort;
 	lookup: PlanLookup;
 	totalCount: number;
@@ -76,6 +88,10 @@ export class PlanListingComponent extends BaseListingComponent<BasePlan, PlanLoo
 	filtersCount: number;
 
 	referenceFilters: ReferencesWithType[];
+	/** Reference type whose filter section opens on arrival (`?referenceType=<id>`, e.g. from the dashboard overview). */
+	expandReferenceTypeId: Guid = null;
+
+    compactView: boolean = false;
 
 	groupId: Guid | null = null;
 	mode;
@@ -91,24 +107,20 @@ export class PlanListingComponent extends BaseListingComponent<BasePlan, PlanLoo
 	tenants: Tenant[];
 	orderedPlanPreferencesList:ReferenceType[];
 
-	get isAscending(): boolean {
+	get isDescending(): boolean {
 		return this.lookup?.order?.items?.[0].startsWith("-");
 	}
-	get isDescending(): boolean {
-		return this.lookup?.order?.items?.[0].startsWith("+");
-	}
+
 
 	get sortingTooltipText(): string {
-		return this.isAscending ? this.language.instant('PLAN-LISTING.ACTIONS.TOGGLE-ΑSCENDING') : this.language.instant('PLAN-LISTING.ACTIONS.TOGGLE-DESCENDING');
+		return this.isDescending ? this.language.instant('PLAN-LISTING.ACTIONS.TOGGLE-ASCENDING') : this.language.instant('PLAN-LISTING.ACTIONS.TOGGLE-DESCENDING');
 	}
-	get hasListingItems(): boolean {
-		return this.listingItems != null && this.listingItems.length > 0;
-	}
+
 	get hasFilters(): boolean {
 		return (this.lookup.like != null && this.lookup.like != '') || this.lookup.statusIds  != null ||
 			this.lookup.planReferenceSubQuery  != null || this.lookup.planDescriptionTemplateSubQuery  != null ||
 			this.lookup.planBlueprintSubQuery  != null || this.lookup.planUserSubQuery  != null ||
-			this.lookup.tenantSubQuery != null || this.lookup.isActive != null;
+			this.lookup.tenantSubQuery != null || (this.lookup.isActive != null && this.lookup.isActive?.find(x => x == IsActive.Inactive)) || this.lookup.planUserSubQuery != null;
 	}
 	get versionsModeEnabled(): boolean {
 		return this.groupId != null;
@@ -120,13 +132,11 @@ export class PlanListingComponent extends BaseListingComponent<BasePlan, PlanLoo
 		protected uiNotificationService: UiNotificationService,
 		protected httpErrorHandlingService: HttpErrorHandlingService,
 		protected queryParamsService: QueryParamsService,
-		private planService: PlanService,
-		public dialogAnimation: NgDialogAnimationService,
+		protected authService: AuthService,
 		public dialog: MatDialog,
 		public enumUtils: EnumUtils,
+		private planService: PlanService,
 		private language: TranslateService,
-		private authService: AuthService,
-		private guidedTourService: GuidedTourService,
 		private analyticsService: AnalyticsService,
 		private principalService: PrincipalService,
 		private breadcrumbService: BreadcrumbService,
@@ -146,6 +156,12 @@ export class PlanListingComponent extends BaseListingComponent<BasePlan, PlanLoo
 		if (!this.isPublic && !this.authService.currentAccountIsAuthenticated()) {
 			this.router.navigateByUrl("/explore-plans");
 		}
+		if (!this.isPublic) {
+			// "What's new" tour for the 2.0.0 listing. TourStateService waits for the anchors (the first
+			// card renders after the query returns) and drops any that never appear, e.g. an empty list.
+			this.tourState.registerPageTour(this.pageTour);
+			this.tourState.startIfUnseen(this.pageTour);
+		}
 
 		this.route.queryParamMap
 			.pipe(takeUntil(this._destroyed))
@@ -161,6 +177,12 @@ export class PlanListingComponent extends BaseListingComponent<BasePlan, PlanLoo
 					this.filtersCount = this._countFilters(this.lookup);
 				}
 				else if (!this.lookup) this.lookup = this.initializeLookup();
+
+				const referenceType = queryParams['referenceType'];
+				if (referenceType && !this.isPublic && !this.expandReferenceTypeId) {
+					this.expandReferenceTypeId = Guid.parse(referenceType);
+					this.filtersDialogOpen = true;
+				}
 
                 this.sortBy = this._getRecentActivityOrder(this.lookup.order.items[0]?.substring(1))
 				this.onPageLoad({ offset: this.lookup.page.offset / this.lookup.page.size } as PageLoadEvent);
@@ -183,25 +205,13 @@ export class PlanListingComponent extends BaseListingComponent<BasePlan, PlanLoo
 		}
 	}
 
-	public dashboardTour: GuidedTour = {
-		tourId: 'plan-description-tour',
-		useOrb: true,
-		steps: [
-			{
-				selector: '.plan-tour',
-				content: 'Step 1',
-				orientation: Orientation.Right,
-				isStepUnique: false
-			},
-			{
-				selector: '.description-tour',
-				content: 'Step 2',
-				orientation: Orientation.Right,
-				isStepUnique: false,
-				useHighlightPadding: true
-			}
-		]
-	};
+	private readonly tourState = inject(TourStateService);
+	private readonly pageTour = planListingPageTour(inject(TranslateService));
+
+	override ngOnDestroy(): void {
+		this.tourState.unregisterPageTour(this.pageTour);
+		super.ngOnDestroy();
+	}
 
 	public isAuthenticated(): boolean {
 		return this.authService.currentAccountIsAuthenticated();
@@ -226,8 +236,9 @@ export class PlanListingComponent extends BaseListingComponent<BasePlan, PlanLoo
 					if (!result) { return []; }
 					this.totalCount = result.count;
 					if (this.lookup?.page?.offset === 0) this.listingItems = [];
-					let plans = this._filterPlan([...result.items]);
+					const plans = this._filterPlan([...result.items]);
 					this.listingItems.push(...plans);
+                    this.downloadStorageFiles(plans.map((x: Plan) => x.status?.definition?.iconConfiguration?.storageFile?.id)?.filter((x) => x) ?? [])
 				}));
 		} else {
 			return this.planService.query(this.lookup).pipe(takeUntil(this._destroyed))
@@ -251,7 +262,7 @@ export class PlanListingComponent extends BaseListingComponent<BasePlan, PlanLoo
 						plans = this._filterPlan([...result.items]);
 					}
 					this.listingItems.push(...plans);
-                    this.downloadStorageFiles(plans.map((x) => x.status?.definition?.storageFile?.id)?.filter((x) => x) ?? [])
+                    this.downloadStorageFiles(plans.map((x: Plan) => x.status?.definition?.iconConfiguration?.storageFile?.id)?.filter((x) => x) ?? [])
 				}));
 		}
 	}
@@ -276,7 +287,7 @@ export class PlanListingComponent extends BaseListingComponent<BasePlan, PlanLoo
 		lookup.page = { offset: 0, size: this.ITEMS_PER_PAGE };
 		lookup.isActive = [IsActive.Active];
 
-		let recentActivityOrder = this.isPublic ? this.toDescSortField(nameof<Description>(x => x.finalizedAt)) : this.toDescSortField(nameof<Description>(x => x.updatedAt));
+		const recentActivityOrder = this.isPublic ? this.toDescSortField(nameof<Description>(x => x.finalizedAt)) : this.toDescSortField(nameof<Description>(x => x.updatedAt));
 		lookup.order = { items: [recentActivityOrder] };
 
 		if (this.mode && this.isVersionsListing) {
@@ -299,21 +310,6 @@ export class PlanListingComponent extends BaseListingComponent<BasePlan, PlanLoo
 
 	protected setupColumns() { }
 
-	openTour() {
-		this.language.get('PLAN-LISTING.TEXT-INFO').pipe(takeUntil(this._destroyed)).subscribe((x: string) => {
-			this.dashboardTour.steps[0].title = x + '\n\n' +
-				this.language.instant('PLAN-LISTING.TEXT-INFO-QUESTION') + ' ' +
-				this.language.instant('PLAN-LISTING.LINK-ZENODO') + ' ' +
-				this.language.instant('PLAN-LISTING.GET-IDEA');
-
-			this.dashboardTour.steps[1].title = this.language.instant('DESCRIPTION-LISTING.TEXT-INFO') + '\n\n' +
-				this.language.instant('DESCRIPTION-LISTING.TEXT-INFO-QUESTION') + ' ' +
-				this.language.instant('DESCRIPTION-LISTING.GET-IDEA');
-
-			this.guidedTourService.startTour(this.dashboardTour);
-		});
-	}
-
 	loadMore() {
 		this.lookup.page = { size: this.pageSize, offset: this.lookup.page.offset + this.pageSize };
 
@@ -322,7 +318,7 @@ export class PlanListingComponent extends BaseListingComponent<BasePlan, PlanLoo
 
 	orderByChanged($event: MatSelectChange) {
         const value = $event.value as RecentActivityOrder;
-        const directionPrefix = this.isAscending ? '-' : '+';
+        const directionPrefix = this.isDescending ? '-' : '+';
         switch(value){
             case RecentActivityOrder.Status: {
                 this.lookup.order = { items: [directionPrefix + nameof<Plan>(x => x.status)] };
@@ -334,6 +330,7 @@ export class PlanListingComponent extends BaseListingComponent<BasePlan, PlanLoo
             }
             case RecentActivityOrder.PublishedAt: {
                 this.lookup.order = { items: [directionPrefix + nameof<Plan>(x => x.finalizedAt)] };
+                break;
             }
             default: {
                 this.lookup.order = { items: [directionPrefix + nameof<Plan>(x => x.updatedAt)] };
@@ -348,29 +345,37 @@ export class PlanListingComponent extends BaseListingComponent<BasePlan, PlanLoo
 		this.filterChanged(this.lookup, true);
 	}
 
-	openFiltersDialog(): void {
-		let dialogRef: MatDialogRef<PlanFilterDialogComponent, PlanListingFilters> = this.dialog.open(PlanFilterDialogComponent, {
-			width: '456px',
-			height: '100%',
-			id: 'filters',
-			restoreFocus: false,
-			position: { right: '0px;' },
-			panelClass: 'dialog-side-panel',
-			data: {
-				isPublic: this.isPublic ?? true,
-				hasSelectedTenant: this.authService.selectedTenant() != 'default',
-                lookup: this.lookup,
-				//filterForm: this._buildFormFromLookup(this.lookup),
-				referencesWithTypeItems: this.referenceFilters ?? [],
-			}
-		});
+    filtersDialogOpen: boolean = false;
+	toggleFilters(): void {
+        this.filtersDialogOpen = !this.filtersDialogOpen;
+		// let dialogRef: MatDialogRef<PlanFilterDialogComponent, PlanListingFilters> = this.dialog.open(PlanFilterDialogComponent, {
+		// 	width: '400px',
+		// 	height: '100%',
+		// 	id: 'filters',
+		// 	restoreFocus: false,
+		// 	position: { right: '0px;' },
+		// 	panelClass: 'dialog-side-panel',
+		// 	data: {
+		// 		isPublic: this.isPublic ?? true,
+		// 		hasSelectedTenant: this.authService.selectedTenant() != 'default',
+        //         lookup: this.lookup,
+		// 		//filterForm: this._buildFormFromLookup(this.lookup),
+		// 		referencesWithTypeItems: this.referenceFilters ?? [],
+		// 	}
+		// });
 
-		dialogRef.afterClosed().pipe(takeUntil(this._destroyed)).subscribe(result => {
-			if (!result) return;
+		// dialogRef.afterClosed().pipe(takeUntil(this._destroyed)).subscribe(result => {
+        //     this.filtersDialogOpen = false;
+		// 	if (!result) return;
 
-			this.updateDataFn(result);
-		});
+		// 	this.updateDataFn(result);
+		// });
 	}
+
+    onFiltersChanged(filters: PlanListingFilters){
+        this.filtersDialogOpen = false;
+        this.updateDataFn(filters);
+    }
 
 	updateDataFn(filters: PlanListingFilters): void {
 		this.referenceFilters = this._patchReferenceFilters(filters);
@@ -384,25 +389,9 @@ export class PlanListingComponent extends BaseListingComponent<BasePlan, PlanLoo
 		return document.getElementById("main-page").scrollHeight > document.documentElement.clientHeight
 	}
 
-	public setDashboardTourPlanText(): void {
-		const planText = this.language.instant('PLAN-LISTING.TEXT-INFO') + '\n\n' +
-			this.language.instant('PLAN-LISTING.TEXT-INFO-QUESTION') + ' ' +
-			this.language.instant('PLAN-LISTING.LINK-ZENODO') + ' ' +
-			this.language.instant('PLAN-LISTING.GET-IDEA');
-		this.dashboardTour.steps[0].title = planText;
-	}
-
-	public setDashboardTourDescriptionText(): void {
-		const descriptionText = this.language.instant('DESCRIPTION-LISTING.TEXT-INFO') + '\n\n' +
-			this.language.instant('DESCRIPTION-LISTING.TEXT-INFO-QUESTION') + ' ' +
-			this.language.instant('DESCRIPTION-LISTING.GET-IDEA');
-		this.dashboardTour.steps[1].title = descriptionText;
-	}
-
+	/** Kept for the (currently commented-out) in-page "Take a tour" prompt; Support > Take a tour uses the same. */
 	public restartTour(): void {
-		this.setDashboardTourPlanText();
-		this.setDashboardTourDescriptionText();
-		this.guidedTourService.startTour(this.dashboardTour);
+		this.tourState.startPageTour();
 	}
 
 	hasLikeFilters(): boolean {
@@ -411,7 +400,7 @@ export class PlanListingComponent extends BaseListingComponent<BasePlan, PlanLoo
 
 	toggleSortDirection(): void {
         const orderBy = this.lookup?.order?.items[0]?.substring(1) ?? nameof<Plan>(x => x.updatedAt);
-		const sortDirection = this.isAscending ? '+' : '-';
+		const sortDirection = this.isDescending ? '+' : '-';
 		this.lookup.order.items = [`${sortDirection}${orderBy}`];
         this.filterChanged(this.lookup);
 	}
@@ -425,7 +414,7 @@ export class PlanListingComponent extends BaseListingComponent<BasePlan, PlanLoo
 	}
 
 	private _parseLookupFromParams(params: Params): PlanLookup {
-		let lookup: PlanLookup = JSON.parse(params['lookup']);
+		const lookup: PlanLookup = JSON.parse(params['lookup']);
 
 		if (!lookup) return this.initializeLookup();
 		lookup.like = lookup.like ?? null;
@@ -459,49 +448,26 @@ export class PlanListingComponent extends BaseListingComponent<BasePlan, PlanLoo
 	}
 
 	private _patchLookupFromFilters(filters: PlanListingFilters): PlanLookup {
+		const tenant = this.tenants?.find(t => t.code && t.code?.toString() == this.authService.selectedTenant());
+		return PlanFilterService.patchLookup(this.lookup, filters, { tenantCode: tenant?.code ?? null, principalId: this.authService.userId() });
+	}
 
-		this.lookup.statusIds = filters?.statusId != null ? [filters.statusId] : null;
+	/** Drops one reference from the active reference filter (the chip's remove button). */
+	removeReferenceFilter(referenceId: Guid): void {
+		const remaining = (this.lookup.planReferenceSubQuery?.referenceIds ?? []).filter(x => x?.toString() !== referenceId?.toString());
+		this._setReferenceFilter(remaining);
+	}
 
-		this.lookup.isActive = filters?.isActive ? [IsActive.Active] : [IsActive.Inactive];
+	clearReferenceFilters(): void {
+		this._setReferenceFilter([]);
+	}
 
-		// Description Templates
-		let descriptionTemplates = filters?.descriptionTemplates ?? null;
-		if (descriptionTemplates && descriptionTemplates?.length > 0) {
-			this.lookup.planDescriptionTemplateSubQuery = PlanFilterService.initializePlanDescriptionTemplateLookup();
-			this.lookup.planDescriptionTemplateSubQuery.isActive = filters.isActive == true ? [IsActive.Active] : [IsActive.Inactive];
-			this.lookup.planDescriptionTemplateSubQuery.descriptionTemplateGroupIds = descriptionTemplates;
-		} else this.lookup.planDescriptionTemplateSubQuery = null;
-
-		// Blueprints
-
-		let planBlueprints = filters?.planBlueprints ?? null;
-		if (planBlueprints && planBlueprints?.length > 0) {
-			this.lookup.planBlueprintSubQuery = PlanFilterService.initializePlanBlueprintLookup();
-			this.lookup.planBlueprintSubQuery.groupIds = planBlueprints;
-		} else this.lookup.planBlueprintSubQuery = null;
-
-		// plans
-		let roles = filters?.role != null ? [filters.role] : null;
-		if (roles && roles?.length > 0) {
-			this.lookup.planUserSubQuery = PlanFilterService.initializePlanUserLookup();
-				this.lookup.planUserSubQuery.userRoles = roles;
-				this.lookup.planUserSubQuery.isActive = filters.isActive == true ? [IsActive.Active] : [IsActive.Inactive];
-				const principalId: Guid = this.authService.userId();
-				if (principalId) this.lookup.planUserSubQuery.userIds = [principalId];
-		} else this.lookup.planUserSubQuery = null;
-
-		let references: Guid[] = filters?.references
-				?.filter((reference: ReferencesWithType) => reference.referenceTypeId != null && reference.referenceIds?.length > 0)
-				?.flatMap((referencesWithType: ReferencesWithType) => referencesWithType.referenceIds) as Guid[];
-
-		if (references && references?.length > 0) {
-			this.lookup.planReferenceSubQuery = PlanFilterService.initializePlanReferenceLookup();
-			this.lookup.planReferenceSubQuery.isActive = filters.isActive == true ? [IsActive.Active] : [IsActive.Inactive];
-			this.lookup.planReferenceSubQuery.referenceIds = references;
-		} else this.lookup.planReferenceSubQuery = null;
-
-
-		return this.lookup;
+	private _setReferenceFilter(referenceIds: Guid[]): void {
+		PlanFilterService.setReferenceIds(this.lookup, referenceIds);
+		this.referenceFilters = referenceIds.length ? [{ referenceTypeId: null, referenceIds }] : null;
+		this.filtersCount = this._countFilters(this.lookup);
+		this.lookup.page = { size: this.pageSize, offset: 0 };
+		this.filterChanged(this.lookup);
 	}
 
 	_patchReferenceFilters(filters: PlanListingFilters): ReferencesWithType[] {
@@ -511,17 +477,7 @@ export class PlanListingComponent extends BaseListingComponent<BasePlan, PlanLoo
 
 
 	private _countFilters(lookup: PlanLookup): number {
-		let count = 0;
-
-		if (lookup.statusIds) count += lookup.statusIds.length;
-		if (lookup.isActive[0] == IsActive.Inactive) count += lookup.isActive.length;
-		if (lookup.tenantSubQuery) count += 1;
-		if (lookup.planDescriptionTemplateSubQuery) count += lookup.planDescriptionTemplateSubQuery.descriptionTemplateGroupIds?.length;
-		if (lookup.planBlueprintSubQuery) count += lookup.planBlueprintSubQuery.groupIds?.length;
-		if (lookup.planUserSubQuery) count += lookup.planUserSubQuery.userRoles?.length;
-		if (lookup.planReferenceSubQuery) count += lookup.planReferenceSubQuery.referenceIds?.length;
-
-		return count;
+		return PlanFilterService.countFilters(lookup);
 	}
 
 	private _filterPlan(plans: BasePlan[]): BasePlan[] {
@@ -537,14 +493,15 @@ export class PlanListingComponent extends BaseListingComponent<BasePlan, PlanLoo
 			nameof<Plan>(x => x.label),
 			nameof<Plan>(x => x.description),
 			nameof<Plan>(x => x.isActive),
+			nameof<Plan>(x => x.createdAt),
 
 			[nameof<Plan>(x => x.status), nameof<PlanStatus>(x => x.id)].join('.'),
 			[nameof<Plan>(x => x.status), nameof<PlanStatus>(x => x.name)].join('.'),
 			[nameof<Plan>(x => x.status), nameof<PlanStatus>(x => x.internalStatus)].join('.'),
 			[nameof<Plan>(x => x.status), nameof<PlanStatus>(x => x.definition), nameof<PlanStatusDefinition>(x => x.statusColor)].join('.'),
 			[nameof<Plan>(x => x.status), nameof<PlanStatus>(x => x.definition), nameof<PlanStatusDefinition>(x => x.availableActions)].join('.'),
-			[nameof<Plan>(x => x.status), nameof<PlanStatus>(x => x.definition), nameof<PlanStatusDefinition>(x => x.matIconName)].join('.'),
-			[nameof<Plan>(x => x.status), nameof<PlanStatus>(x => x.definition), nameof<PlanStatusDefinition>(x => x.storageFile), nameof<StorageFile>(x => x.id)].join('.'),
+			[nameof<Plan>(x => x.status), nameof<PlanStatus>(x => x.definition), nameof<PlanStatusDefinition>(x => x.iconConfiguration), nameof<IconConfiguration>(x => x.matIconName)].join('.'),
+			[nameof<Plan>(x => x.status), nameof<PlanStatus>(x => x.definition), nameof<PlanStatusDefinition>(x => x.iconConfiguration), nameof<IconConfiguration>(x => x.storageFile), nameof<StorageFile>(x => x.id)].join('.'),
 
 			nameof<Plan>(x => x.accessType),
 			nameof<Plan>(x => x.version),
@@ -558,14 +515,15 @@ export class PlanListingComponent extends BaseListingComponent<BasePlan, PlanLoo
 			nameof<Plan>(x => x.entityDois),
 			[nameof<Plan>(x => x.entityDois), nameof<EntityDoi>(x => x.id)].join('.'),
 			[nameof<Plan>(x => x.entityDois), nameof<EntityDoi>(x => x.doi)].join('.'),
-			[nameof<Plan>(x => x.authorizationFlags), AppPermission.CreateNewVersionPlan].join('.'),
-			[nameof<Plan>(x => x.authorizationFlags), AppPermission.DeletePlan].join('.'),
-			[nameof<Plan>(x => x.authorizationFlags), AppPermission.ClonePlan].join('.'),
-			[nameof<Plan>(x => x.authorizationFlags), AppPermission.FinalizePlan].join('.'),
-			[nameof<Plan>(x => x.authorizationFlags), AppPermission.ExportPlan].join('.'),
-			[nameof<Plan>(x => x.authorizationFlags), AppPermission.InvitePlanUsers].join('.'),
-			[nameof<Plan>(x => x.authorizationFlags), AppPermission.AssignPlanUsers].join('.'),
-			[nameof<Plan>(x => x.authorizationFlags), AppPermission.EditPlan].join('.'),
+			[nameof<Plan>(x => x.entityDois), nameof<EntityDoi>(x => x.repositoryId)].join('.'),
+			[nameof<Plan>(x => x.authorizationInformation), nameof<PlanAuthorizationInformation>(x => x.globalAuthorizationFlags), AppPermission.CreateNewVersionPlan].join('.'),
+			[nameof<Plan>(x => x.authorizationInformation), nameof<PlanAuthorizationInformation>(x => x.globalAuthorizationFlags), AppPermission.DeletePlan].join('.'),
+			[nameof<Plan>(x => x.authorizationInformation), nameof<PlanAuthorizationInformation>(x => x.globalAuthorizationFlags), AppPermission.ClonePlan].join('.'),
+			[nameof<Plan>(x => x.authorizationInformation), nameof<PlanAuthorizationInformation>(x => x.globalAuthorizationFlags), AppPermission.FinalizePlan].join('.'),
+			[nameof<Plan>(x => x.authorizationInformation), nameof<PlanAuthorizationInformation>(x => x.globalAuthorizationFlags), AppPermission.ExportPlan].join('.'),
+			[nameof<Plan>(x => x.authorizationInformation), nameof<PlanAuthorizationInformation>(x => x.globalAuthorizationFlags), AppPermission.InvitePlanUsers].join('.'),
+			[nameof<Plan>(x => x.authorizationInformation), nameof<PlanAuthorizationInformation>(x => x.globalAuthorizationFlags), AppPermission.AssignPlanUsers].join('.'),
+			[nameof<Plan>(x => x.authorizationInformation), nameof<PlanAuthorizationInformation>(x => x.globalAuthorizationFlags), AppPermission.EditPlan].join('.'),
 
 			[nameof<Plan>(x => x.descriptions), nameof<Description>(x => x.id)].join('.'),
 			[nameof<Plan>(x => x.descriptions), nameof<Description>(x => x.label)].join('.'),
@@ -579,13 +537,15 @@ export class PlanListingComponent extends BaseListingComponent<BasePlan, PlanLoo
 
 			[nameof<Plan>(x => x.blueprint), nameof<PlanBlueprint>(x => x.id)].join('.'),
 			[nameof<Plan>(x => x.blueprint), nameof<PlanBlueprint>(x => x.label)].join('.'),
-			[nameof<Plan>(x => x.blueprint), nameof<PlanBlueprint>(x => x.definition), nameof<PlanBlueprintDefinition>(x => x.sections), nameof<PlanBlueprintDefinitionSection>(x => x.id)].join('.'),
-			[nameof<Plan>(x => x.blueprint), nameof<PlanBlueprint>(x => x.definition), nameof<PlanBlueprintDefinition>(x => x.sections), nameof<PlanBlueprintDefinitionSection>(x => x.label)].join('.'),
-			[nameof<Plan>(x => x.blueprint), nameof<PlanBlueprint>(x => x.definition), nameof<PlanBlueprintDefinition>(x => x.sections), nameof<PlanBlueprintDefinitionSection>(x => x.hasTemplates)].join('.'),
-			[nameof<Plan>(x => x.blueprint), nameof<PlanBlueprint>(x => x.definition), nameof<PlanBlueprintDefinition>(x => x.sections), nameof<PlanBlueprintDefinitionSection>(x => x.descriptionTemplates), nameof<DescriptionTemplatesInSection>(x => x.descriptionTemplate), nameof<DescriptionTemplate>(x => x.groupId)].join('.'),
+			[nameof<Plan>(x => x.blueprint), nameof<PlanBlueprint>(x => x.definition), nameof<PlanBlueprintDefinition>(x => x.sections), nameof<RootSection>(x => x.id)].join('.'),
+			[nameof<Plan>(x => x.blueprint), nameof<PlanBlueprint>(x => x.definition), nameof<PlanBlueprintDefinition>(x => x.sections), nameof<RootSection>(x => x.title)].join('.'),
+			[nameof<Plan>(x => x.blueprint), nameof<PlanBlueprint>(x => x.definition), nameof<PlanBlueprintDefinition>(x => x.sections), nameof<RootSection>(x => x.sections)].join('.'),
+			[nameof<Plan>(x => x.blueprint), nameof<PlanBlueprint>(x => x.definition), nameof<PlanBlueprintDefinition>(x => x.sections), nameof<RootSection>(x => x.hasTemplates)].join('.'),
+			[nameof<Plan>(x => x.blueprint), nameof<PlanBlueprint>(x => x.definition), nameof<PlanBlueprintDefinition>(x => x.sections), nameof<RootSection>(x => x.descriptionTemplates), nameof<DescriptionTemplatesInSection>(x => x.descriptionTemplate), nameof<DescriptionTemplate>(x => x.groupId)].join('.'),
 
 			[nameof<Plan>(x => x.planUsers), nameof<PlanUser>(x => x.id)].join('.'),
 			[nameof<Plan>(x => x.planUsers), nameof<PlanUser>(x => x.user.id)].join('.'),
+			[nameof<Plan>(x => x.planUsers), nameof<PlanUser>(x => x.user.name)].join('.'),
 			[nameof<Plan>(x => x.planUsers), nameof<PlanUser>(x => x.role)].join('.'),
 			[nameof<Plan>(x => x.planUsers), nameof<PlanUser>(x => x.plan.id)].join('.'),
 			[nameof<Plan>(x => x.planUsers), nameof<PlanUser>(x => x.isActive)].join('.'),

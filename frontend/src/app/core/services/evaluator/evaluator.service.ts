@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, OnInit, Output, Injectable, effect, signal } from '@angular/core';
+import { Injectable, effect, signal } from '@angular/core';
 import { BaseService } from '@common/base/base.service';
 import { catchError, map, takeUntil } from 'rxjs/operators';
 import { EvaluatorHttpService } from './evaluator.http.service';
@@ -77,11 +77,11 @@ export class EvaluatorService extends BaseService {
 	  });
     }
 	
-	rankPlan(id: Guid, evaluatorId: string, format: string, benchmarkIds: string[] = [], isPublic: boolean = false): Observable<RankResultModel> {
+	rankPlan(id: Guid, evaluatorId: string, format: string, benchmarkIds: string[] = [], testIds: string[] = [], isPublic: boolean = false): Observable<RankResultModel[]> {
 		this._loading.set(true);
 		
-		return this.evaluatorHttpService.rankPlan(id, evaluatorId, format, benchmarkIds).pipe(
-            map((response) => response.body),
+		return this.evaluatorHttpService.rankPlan(id, evaluatorId, format, benchmarkIds, testIds).pipe(
+            map((response) => response.body ?? []),
             tap({
                 next: (doi) => {
                     this.onCallbackSuccess();
@@ -104,12 +104,12 @@ export class EvaluatorService extends BaseService {
 		);
 	  }
 
-	  rankDescription(id: Guid, evaluatorId: string, format: string, benchmarkIds: string[] = [], isPublic: boolean = false): Observable<RankResultModel> {
+	  rankDescription(id: Guid, evaluatorId: string, format: string, benchmarkIds: string[] = [], testIds: string[] = [], isPublic: boolean = false): Observable<RankResultModel[]> {
 		this._loading.set(true);
-		return this.evaluatorHttpService.rankDescription(id, evaluatorId, format, benchmarkIds)
+		return this.evaluatorHttpService.rankDescription(id, evaluatorId, format, benchmarkIds, testIds)
 		  .pipe(
 			takeUntil(this._destroyed),
-            map((response) => response.body),
+            map((response) => response.body ?? []),
 			tap(response => {
 			  this._loading.set(false);
 			  this.onCallbackSuccess();

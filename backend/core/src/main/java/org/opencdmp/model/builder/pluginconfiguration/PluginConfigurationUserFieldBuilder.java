@@ -68,7 +68,9 @@ public class PluginConfigurationUserFieldBuilder extends BaseBuilder<PluginConfi
         for (PluginConfigurationUserFieldEntity d : data) {
             PluginConfigurationUserField m = new PluginConfigurationUserField();
             if (fields.hasField(this.asIndexer(PluginConfigurationUserField._code))) m.setCode(d.getCode());
-            if (fields.hasField(this.asIndexer(PluginConfigurationUserField._textValue))){
+            boolean secret = Boolean.TRUE.equals(d.getSecret());
+            if (fields.hasField(this.asIndexer(PluginConfigurationUserField._secretSet))) m.setSecretSet(secret && !this.conventionService.isNullOrEmpty(d.getTextValue()));
+            if (!secret && fields.hasField(this.asIndexer(PluginConfigurationUserField._textValue))){
                 try {
                     if (!this.conventionService.isNullOrEmpty(d.getTextValue())) m.setTextValue(this.encryptionService.decryptAES(d.getTextValue(), tenantProperties.getConfigEncryptionAesKey(), tenantProperties.getConfigEncryptionAesIv()));
                 } catch (Exception e) {

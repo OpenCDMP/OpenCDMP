@@ -69,6 +69,9 @@ public class DescriptionTemplate {
     private Integer ordinal;
     public static final String _ordinal = "ordinal";
 
+    private Long usageCount;
+    public static final String _usageCount = "usageCount";
+
     public UUID getId() {
         return this.id;
     }
@@ -219,5 +222,13 @@ public class DescriptionTemplate {
 
     public void setOrdinal(Integer ordinal) {
         this.ordinal = ordinal;
+    }
+
+    public Long getUsageCount() {
+        return usageCount;
+    }
+
+    public void setUsageCount(Long usageCount) {
+        this.usageCount = usageCount;
     }
 }

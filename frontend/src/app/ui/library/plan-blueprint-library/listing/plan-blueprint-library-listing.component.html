@@ -1,0 +1,67 @@
+<div class="main-content plan-blueprint-library-listing">
+    <h1 class="page-title text-primary">{{'PLAN-BLUEPRINT-LIBRARY-LISTING.TITLE' | translate}}</h1>
+    <div class="page-subtitle opacity-08">{{'PLAN-BLUEPRINT-LIBRARY-LISTING.HINT' | translate}}</div>
+    <div class="search">
+        <app-text-filter prefixIcon="search" [(value)]=searchTerm (valueChange)="search()"/>
+    </div>
+    @if(initialLoad){
+        @if(!blueprints?.length){
+            <div class="d-flex justify-content-center mt-3">
+                <div class="opacity-08">{{'PLAN-BLUEPRINT-LIBRARY-LISTING.NO-ITEMS' | translate}}</div>
+            </div>
+        }@else{
+            <mat-card appearance="outlined" class="mt-3">
+                <mat-card-header class="card-title ">
+                    <h2 class="page-title text-primary">{{'PLAN-BLUEPRINT-LIBRARY-LISTING.AVAILABLE-BLUEPRINTS' | translate}} ({{count}})</h2>
+                </mat-card-header>
+                <mat-card-content>
+                    <div class="blueprint-container">
+                        @for(blueprint of blueprints; track blueprint.id){
+                            <ng-container *ngTemplateOutlet="blueprintTemplate; context: {blueprint: blueprint}"></ng-container>
+                        }
+                    </div>
+                </mat-card-content>
+            </mat-card>
+            <div class="mt-3 opacity-08">{{('PLAN-BLUEPRINT-LIBRARY-LISTING.BLUEPRINTS-SHOWN' | translate :{currentCount: blueprints?.length ?? 0, totalCount: count})}}</div>
+            @if(blueprints.length < count){
+                <div class="d-flex justify-content-center pb-1">
+                    <button type="button" mat-button class="padded-shadow-btn load-more mt-0" (click)="loadMore()">{{'GENERAL.ACTIONS.LOAD-MORE' | translate}}</button>
+                </div>
+            }
+        }
+    }
+</div>
+
+<ng-template #blueprintTemplate let-blueprint="blueprint">
+    <mat-card appearance="outlined" class="pointer blueprint-card" [routerLink]="[blueprint.groupId]" [attr.aria-label]="blueprint.label">
+        <mat-card-content>
+            <div class="mb-3 d-flex gap-1-rem align-items-center">
+                <ng-container *ngTemplateOutlet="iconTemplate; context: {iconConfiguration: $safeNavigationMigration(blueprint.definition?.iconConfiguration)}"></ng-container>
+                <div class=" overflow-hidden">
+                    <div class="blueprint-label mb-1">{{blueprint.label}}</div>
+                    <div class="blueprint-version">v.{{blueprint.version ?? 0}}</div>
+                </div>
+            </div>
+            @if(blueprint.description){
+                <div [innerHTML]="blueprint.description"></div>
+            }
+            <div class="mt-auto d-flex text-muted small gap-1-rem pt-3">
+                <span>{{'PLAN-BLUEPRINT-LIBRARY-LISTING.UPDATED' | translate}} {{(blueprint.updatedAt ?? blueprint.createdAt) | dateTimeFormatter: 'mediumDate'}}</span>
+                <span class="ml-auto">{{blueprint.usageCount ?? 0}} {{'PLAN-BLUEPRINT-LIBRARY-LISTING.USES' | translate}}</span>
+            </div>
+        </mat-card-content>
+    </mat-card>
+</ng-template>
+
+<ng-template #iconTemplate let-iconConfiguration="iconConfiguration">
+    <div class="icon-container">
+        @if(iconConfiguration?.storageFile?.id) {
+            @let statusStorageFile = storageFileMap.get(iconConfiguration.storageFile.id);
+            <img alt="" [src]="statusStorageFile" aria-hidden="true">
+        }@else if(iconConfiguration?.matIconName) {
+            <mat-icon aria-hidden="true">{{iconConfiguration.matIconName}}</mat-icon>
+        }@else {
+            <mat-icon class="material-symbols-outlined" aria-hidden="true">assignment</mat-icon>
+        }
+    </div>
+</ng-template>

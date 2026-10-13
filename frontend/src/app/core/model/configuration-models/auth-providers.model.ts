@@ -17,7 +17,7 @@ export class AuthProviders {
     authProvidersObj._defaultAuthProvider = AuthProvider.parseValue(value.defaultAuthProvider);
 
 		authProvidersObj._authProviders = [];
-    for (let authProviderValue of value.authProviders) {
+    for (const authProviderValue of value.authProviders) {
       const authProviderObj: AuthProvider = AuthProvider.parseValue(authProviderValue);
       authProvidersObj._authProviders.push(authProviderObj);
     }

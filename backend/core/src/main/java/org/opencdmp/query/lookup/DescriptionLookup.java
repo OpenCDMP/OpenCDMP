@@ -4,6 +4,7 @@ import gr.cite.tools.data.query.Lookup;
 import gr.cite.tools.data.query.QueryFactory;
 import io.swagger.v3.oas.annotations.media.Schema;
 import org.apache.commons.lang3.StringUtils;
+import org.opencdmp.commons.SQLUtils;
 import org.opencdmp.commons.enums.IsActive;
 import org.opencdmp.elastic.query.DescriptionElasticQuery;
 import org.opencdmp.query.DescriptionQuery;
@@ -164,7 +165,7 @@ public class DescriptionLookup extends Lookup {
 
     public DescriptionQuery enrich(QueryFactory queryFactory) {
         DescriptionQuery query = queryFactory.query(DescriptionQuery.class);
-        if (this.like != null) query.like(this.like);
+        if (this.like != null) query.like(SQLUtils.toPostgres(this.like));
         if (this.ids != null) query.ids(this.ids);
         if (this.excludedIds != null) query.excludedIds(this.excludedIds);
         if (this.planSubQuery != null) query.planSubQuery(this.planSubQuery.enrich(queryFactory));
@@ -187,7 +188,7 @@ public class DescriptionLookup extends Lookup {
 
     public DescriptionElasticQuery enrichElastic(QueryFactory queryFactory) {
         DescriptionElasticQuery query = queryFactory.query(DescriptionElasticQuery.class);
-        if (this.like != null) query.like(StringUtils.strip(this.like, "%"));
+        if (this.like != null) query.like(SQLUtils.toLucene(this.like));
         if (this.ids != null) query.ids(this.ids);
         if (this.excludedIds != null) query.excludedIds(this.excludedIds);
         if (this.statusIds != null) query.statusIds(this.statusIds);

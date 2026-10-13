@@ -8,37 +8,29 @@ import { FileUploadComponent } from '@app/library/file-uploader/file-uploader.co
 import { RichTextEditorModule } from '@app/library/rich-text-editor/rich-text-editor.module';
 import { CommonFormattingModule } from '@common/formatting/common-formatting.module';
 import { ConfirmationDialogModule } from '@common/modules/confirmation-dialog/confirmation-dialog.module';
-import { HybridListingModule } from '@common/modules/hybrid-listing/hybrid-listing.module';
 import { TextFilterModule } from '@common/modules/text-filter/text-filter.module';
 import { UserSettingsModule } from '@common/modules/user-settings/user-settings.module';
-import { NotifierListModule } from '@notification-service/ui/admin/tenant-configuration/notifier-list/notifier-list-editor.module';
 import { NgxColorsModule } from 'ngx-colors';
-import { TenantConfigurationRoutingModule } from '../admin/tenant-configuration/tenant-configuration.routing';
 import { CommonFormsModule } from '@common/forms/common-forms.module';
 
 @NgModule({
-	imports: [
-		CommonUiModule,
-		CommonFormsModule,
-		ConfirmationDialogModule,
-		TenantConfigurationRoutingModule,
-		DragDropModule,
-		FormattingModule,
-		AutoCompleteModule,
-		HybridListingModule,
-		TextFilterModule,
-		UserSettingsModule,
-		CommonFormattingModule,
-		RichTextEditorModule,
-		NgxColorsModule,
-		NotifierListModule,
-		FileUploadComponent,
-	],
-	declarations: [
-		PluginEditorComponent,
-	],
-	exports: [
-		PluginEditorComponent,
-	]
+    imports: [
+        CommonUiModule,
+        CommonFormsModule,
+        ConfirmationDialogModule,
+        DragDropModule,
+        FormattingModule,
+        AutoCompleteModule,
+        TextFilterModule,
+        UserSettingsModule,
+        CommonFormattingModule,
+        RichTextEditorModule,
+        NgxColorsModule,
+        FileUploadComponent,
+        PluginEditorComponent,
+    ],
+    exports: [
+        PluginEditorComponent,
+    ]
 })
 export class PluginEditorModule { }

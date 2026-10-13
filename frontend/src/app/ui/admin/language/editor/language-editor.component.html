@@ -1,110 +1,291 @@
 <div class="container-fluid">
-  <div class="row tenant-editor">
-    <div class="col-md-10 offset-md-1 colums-gapped">
+  <div class="row language-editor">
+    <div class="col-md-10 offset-md-1">
       @if (formGroup) {
-        <div class="row align-items-center mt-4 mb-4">
+        <div class="row align-items-center mt-4 mb-3">
           <div class="col">
             <app-navigation-breadcrumb />
+          </div>
+          <div class="col-12 order-last mt-3">
+            <app-tenant-readonly-banner [readOnly]="!isNew && editorModel?.belongsToCurrentTenant === false" />
           </div>
           <div class="col-auto">
             <button mat-stroked-button class="padded-shadow-btn" (click)="cancel()" type="button">{{'LANGUAGE-EDITOR.ACTIONS.CANCEL' | translate}}</button>
           </div>
-          @if (!isNew && editorModel.belongsToCurrentTenant != false && canDelete) {
+          @if (!isNew && editorModel.belongsToCurrentTenant !== false && canDelete) {
             <div class="col-auto">
-              <button mat-stroked-button color="warn" class="padded-shadow-btn" type="button" (click)="delete()">
-                <mat-icon aria-hidden>delete</mat-icon>
+              <button [disabled]="isLoading()" mat-stroked-button color="warn" class="padded-shadow-btn" type="button" (click)="delete()">
+                <mat-icon aria-hidden="true">delete</mat-icon>
                 {{'LANGUAGE-EDITOR.ACTIONS.DELETE' | translate}}
               </button>
             </div>
           }
           @if (canSave) {
             <div class="col-auto">
-              <button mat-flat-button color="primary" class="padded-shadow-btn" (click)="formSubmit()">
-                <mat-icon>save</mat-icon>
-                {{'LANGUAGE-EDITOR.ACTIONS.SAVE' | translate}}
+              <button [disabled]="isLoading()" mat-flat-button color="primary" class="padded-shadow-btn" type="button" (click)="formSubmit()">
+                <mat-icon aria-hidden="true">{{ isNew ? 'add' : 'save' }}</mat-icon>
+                {{ (isNew ? 'LANGUAGE-EDITOR.ACTIONS.ADD' : 'LANGUAGE-EDITOR.ACTIONS.SAVE') | translate }}
               </button>
             </div>
           }
         </div>
-      }
 
-      @if (formGroup) {
+        <div class="language-editor__title mb-3">
+          @if (isNew) {
+            <h1>{{ 'LANGUAGE-EDITOR.NEW-TITLE' | translate }}</h1>
+          } @else {
+            <h1>{{ languageService.getLanguageName(formGroup.get('code').value) }}</h1>
+            <span class="language-editor__chip language-editor__chip--code">{{ formGroup.get('code').value }}</span>
+            <span class="language-editor__chip" [class.language-editor__chip--custom]="!isBuiltIn">{{ (isBuiltIn ? 'LANGUAGE-EDITOR.KIND.BUILT-IN' : 'LANGUAGE-EDITOR.KIND.CUSTOM') | translate }}</span>
+            @if (isDefaultLanguage) {
+              <span class="language-editor__chip">{{ 'LANGUAGE-EDITOR.DEFAULT' | translate }}</span>
+            }
+          }
+        </div>
+
         <form (ngSubmit)="formSubmit()">
-          <mat-card appearance="outlined" class="pb-3">
+          <mat-card appearance="outlined" class="mb-3 pb-3">
             <mat-card-content>
-              <div class="pb-3"><small>{{'COMMONS.VALIDATION.REQUIRED-FIELDS-HINT' | translate}}</small></div>
+              <h2 class="language-editor__heading">{{ (isNew ? 'LANGUAGE-EDITOR.SECTIONS.WHICH-LANGUAGE' : 'LANGUAGE-EDITOR.SECTIONS.SETTINGS') | translate }}</h2>
+              @if (isNew) {
+                <mat-radio-group class="language-editor__kinds" [attr.aria-label]="'LANGUAGE-EDITOR.NEW.KIND' | translate" [value]="newLanguageKind" (change)="onNewLanguageKindChanged($event.value)">
+                  <mat-radio-button value="builtIn" class="language-editor__kind" [class.language-editor__kind--selected]="newLanguageKind === 'builtIn'">
+                    <span class="language-editor__kind-title">{{ 'LANGUAGE-EDITOR.NEW.BUILT-IN-TITLE' | translate }}</span>
+                    <span class="language-editor__hint">{{ 'LANGUAGE-EDITOR.NEW.BUILT-IN-DESCRIPTION' | translate }}</span>
+                  </mat-radio-button>
+                  <mat-radio-button value="custom" class="language-editor__kind" [class.language-editor__kind--selected]="newLanguageKind === 'custom'">
+                    <span class="language-editor__kind-title">{{ 'LANGUAGE-EDITOR.NEW.CUSTOM-TITLE' | translate }}</span>
+                    <span class="language-editor__hint">{{ 'LANGUAGE-EDITOR.NEW.CUSTOM-DESCRIPTION' | translate }}</span>
+                  </mat-radio-button>
+                </mat-radio-group>
+              }
               <div class="row">
-                <div class="col-12">
-                  <div class="container-fluid">
-                    <div class="row" style="row-gap: 0.5rem">
-                      @if (isNew) {
-                        <div class="col-6">
-                          <mat-form-field class="w-100">
-                            <mat-label>{{'LANGUAGE-EDITOR.FIELDS.CODE' | translate}}</mat-label>
-                            <input matInput type="text" name="code" [formControl]="formGroup.get('code')" required>
-                            @if (formGroup.get('code').hasError('backendError')) {
-                              <mat-error>{{formGroup.get('code').getError('backendError').message}}</mat-error>
-                            }
-                            @if (formGroup.get('code').hasError('required')) {
-                              <mat-error>{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
-                            }
-                          </mat-form-field>
-                        </div>
+                <div class="col-md-6">
+                  @if (!isNew) {
+                    <mat-form-field class="w-100">
+                      <mat-label>{{'LANGUAGE-EDITOR.FIELDS.LANGUAGE' | translate}}</mat-label>
+                      <input matInput type="text" name="language" [value]="languageService.getLanguageName(formGroup.get('code').value) + ' (' + formGroup.get('code').value + ')'" readonly>
+                      <mat-hint>{{ (isBuiltIn ? 'LANGUAGE-EDITOR.HINTS.LANGUAGE-FIXED' : 'LANGUAGE-EDITOR.HINTS.NO-BUILT-IN') | translate }}</mat-hint>
+                    </mat-form-field>
+                  } @else if (newLanguageKind === 'builtIn') {
+                    <mat-form-field class="w-100">
+                      <mat-label>{{'LANGUAGE-EDITOR.FIELDS.LANGUAGE' | translate}}</mat-label>
+                      <mat-select name="code" [formControl]="formGroup.get('code')" required>
+                        @for (code of availableBuiltInCodes; track code) {
+                          <mat-option [value]="code">{{ languageService.getLanguageName(code) }} ({{ code }})</mat-option>
+                        }
+                      </mat-select>
+                      <mat-hint>{{ 'LANGUAGE-EDITOR.HINTS.BUILT-IN-NOT-ADDED' | translate }}</mat-hint>
+                      @if (formGroup.get('code').hasError('backendError')) {
+                        <mat-error>{{formGroup.get('code').getError('backendError').message}}</mat-error>
                       }
-                      @if (!isNew) {
-                        <div class="col-6">
-                          <mat-form-field class="w-100">
-                            <mat-label>{{'LANGUAGE-EDITOR.FIELDS.CODE' | translate}}</mat-label>
-                            <mat-select (selectionChange)="selectedCodeChanged($event.value)" name= "code" [formControl]="formGroup.get('code')">
-                              @for (languageCode of availableLanguageCodes; track languageCode) {
-                                <mat-option [value]="languageCode">
-                                  {{languageCode}}
-                                </mat-option>
-                              }
-                            </mat-select>
-                            @if (formGroup.get('code').hasError('backendError')) {
-                              <mat-error>{{formGroup.get('code').getError('backendError').message}}</mat-error>
-                            }
-                            @if (formGroup.get('code').hasError('required')) {
-                              <mat-error>{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
-                            }
-                          </mat-form-field>
-                        </div>
+                      @if (formGroup.get('code').hasError('required')) {
+                        <mat-error>{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
                       }
-                      <div class="col-6">
-                        <mat-form-field class="w-100">
-                          <mat-label>{{'LANGUAGE-EDITOR.FIELDS.ORDINAL' | translate}}</mat-label>
-                          <input matInput type="text" name="ordinal" [formControl]="formGroup.get('ordinal')" required>
-                          @if (formGroup.get('ordinal').hasError('backendError')) {
-                            <mat-error>{{formGroup.get('ordinal').getError('backendError').message}}</mat-error>
-                          }
-                          @if (formGroup.get('ordinal').hasError('required')) {
-                            <mat-error>{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
-                          }
-                        </mat-form-field>
-                      </div>
-                      <div class="col-12">
-                        <mat-form-field class="w-100">
-                          <mat-label>{{'LANGUAGE-EDITOR.FIELDS.PAYLOAD' | translate}}</mat-label>
-                          <input matInput type="text" name="payload" [formControl]="formGroup.get('payload')">
-                          @if (formGroup.get('payload').hasError('backendError')) {
-                            <mat-error>{{formGroup.get('payload').getError('backendError').message}}</mat-error>
-                          }
-                          @if (formGroup.get('payload').hasError('required')) {
-                            <mat-error>{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
-                          }
-                        </mat-form-field>
-                        <h9 class="col-12">{{'LANGUAGE-EDITOR.FIELDS.OVERRIDE' | translate}}
-                          <mat-checkbox [disabled]="editorModel.belongsToCurrentTenant == false || isDeleted" (change)="overrideFromFile($event, formGroup.get('code').value)"></mat-checkbox>
-                        </h9>
-                      </div>
-                    </div>
-                  </div>
+                    </mat-form-field>
+                  } @else {
+                    <mat-form-field class="w-100">
+                      <mat-label>{{'LANGUAGE-EDITOR.FIELDS.CODE' | translate}}</mat-label>
+                      <input matInput type="text" name="code" class="language-editor__mono" [formControl]="formGroup.get('code')" required>
+                      <mat-hint>
+                        @if (formGroup.get('code').value) {
+                          {{ 'LANGUAGE-EDITOR.HINTS.SHOWN-AS' | translate: { name: languageService.getLanguageName(formGroup.get('code').value) } }}
+                        } @else {
+                          {{ 'LANGUAGE-EDITOR.HINTS.CODE' | translate }}
+                        }
+                      </mat-hint>
+                      @if (formGroup.get('code').hasError('backendError')) {
+                        <mat-error>{{formGroup.get('code').getError('backendError').message}}</mat-error>
+                      }
+                      @if (formGroup.get('code').hasError('required')) {
+                        <mat-error>{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
+                      }
+                      @if (formGroup.get('code').hasError('pattern')) {
+                        <mat-error>{{'LANGUAGE-EDITOR.VALIDATION.CODE-PATTERN' | translate}}</mat-error>
+                      }
+                      @if (formGroup.get('code').hasError('taken')) {
+                        <mat-error>{{'LANGUAGE-EDITOR.VALIDATION.CODE-TAKEN' | translate}}</mat-error>
+                      }
+                    </mat-form-field>
+                  }
+                </div>
+                <div class="col-md-6">
+                  <p class="language-editor__menu-note">
+                    {{ (isDefaultLanguage ? 'LANGUAGE-EDITOR.HINTS.IS-DEFAULT' : 'LANGUAGE-EDITOR.HINTS.MENU-ORDER') | translate }}
+                    <a [routerLink]="routerUtils.generateUrl('/tenant-configuration/region')">{{ 'LANGUAGE-EDITOR.ACTIONS.CHOOSE-DEFAULT' | translate }}</a>
+                  </p>
                 </div>
               </div>
             </mat-card-content>
           </mat-card>
         </form>
+
+        @if (!isNew && referenceCode) {
+          <mat-card appearance="outlined" class="mb-5">
+            <mat-card-content>
+              <div class="language-editor__texts-header">
+                <h2 class="language-editor__heading">{{ (isBuiltIn ? 'LANGUAGE-EDITOR.SECTIONS.TEXTS' : 'LANGUAGE-EDITOR.SECTIONS.TRANSLATIONS') | translate }}</h2>
+                @if (isBuiltIn) {
+                  <span><strong class="language-editor__changed">{{ 'LANGUAGE-EDITOR.SUMMARY.CHANGED' | translate: { count: overrides.size } }}</strong> · {{ 'LANGUAGE-EDITOR.SUMMARY.TOTAL' | translate: { count: texts.length } }}</span>
+                } @else {
+                  <span class="language-editor__progress">
+                    {{ 'LANGUAGE-EDITOR.SUMMARY.TRANSLATED' | translate: { count: overrides.size, total: texts.length } }}
+                    <mat-progress-bar mode="determinate" [value]="texts.length ? overrides.size * 100 / texts.length : 0" aria-hidden="true" />
+                  </span>
+                }
+              </div>
+
+              <p class="language-editor__info">
+                <mat-icon aria-hidden="true">info</mat-icon>
+                <span>{{ (isBuiltIn ? 'LANGUAGE-EDITOR.INFO.BUILT-IN' : 'LANGUAGE-EDITOR.INFO.CUSTOM') | translate: { language: languageService.getLanguageName(formGroup.get('code').value) } }}</span>
+              </p>
+
+              <div class="language-editor__toolbar">
+                <mat-form-field class="language-editor__search" subscriptSizing="dynamic">
+                  <mat-label>{{ 'LANGUAGE-EDITOR.FIELDS.SEARCH' | translate }}</mat-label>
+                  <mat-icon matPrefix aria-hidden="true">search</mat-icon>
+                  <input matInput type="search" name="search" [(ngModel)]="searchTerm" (ngModelChange)="applyTextFilters()">
+                </mat-form-field>
+                <mat-button-toggle-group [attr.aria-label]="'LANGUAGE-EDITOR.FIELDS.SHOW' | translate" [value]="changedOnly" (change)="changedOnly = $event.value; applyTextFilters()" hideSingleSelectionIndicator>
+                  <mat-button-toggle [value]="false">{{ 'LANGUAGE-EDITOR.FILTERS.ALL' | translate }}</mat-button-toggle>
+                  <mat-button-toggle [value]="true">
+                    {{ isBuiltIn ? ('LANGUAGE-EDITOR.FILTERS.CHANGED' | translate: { count: overrides.size }) : ('LANGUAGE-EDITOR.FILTERS.NOT-TRANSLATED' | translate) }}
+                  </mat-button-toggle>
+                </mat-button-toggle-group>
+                <mat-form-field class="language-editor__select" subscriptSizing="dynamic">
+                  <mat-label>{{ 'LANGUAGE-EDITOR.FIELDS.SECTION' | translate }}</mat-label>
+                  <mat-select [(value)]="sectionFilter" (selectionChange)="applyTextFilters()">
+                    <mat-option [value]="null">{{ 'LANGUAGE-EDITOR.FIELDS.ALL-SECTIONS' | translate }}</mat-option>
+                    @for (section of sections; track section.key) {
+                      <mat-option [value]="section.key">{{ section.label }}</mat-option>
+                    }
+                  </mat-select>
+                </mat-form-field>
+                @if (!isBuiltIn) {
+                  <mat-form-field class="language-editor__select" subscriptSizing="dynamic">
+                    <mat-label>{{ 'LANGUAGE-EDITOR.FIELDS.TRANSLATE-FROM' | translate }}</mat-label>
+                    <mat-select [value]="referenceCode" (selectionChange)="loadReference($event.value)">
+                      @for (code of bundledLanguageCodes; track code) {
+                        <mat-option [value]="code">{{ languageService.getLanguageName(code) }}</mat-option>
+                      }
+                    </mat-select>
+                  </mat-form-field>
+                }
+                <div class="language-editor__toolbar-actions">
+                  <button mat-button type="button" (click)="exportTexts()">{{ 'LANGUAGE-EDITOR.ACTIONS.EXPORT' | translate }}</button>
+                  @if (canSave) {
+                    <button mat-button type="button" (click)="addingText = true">{{ 'LANGUAGE-EDITOR.ACTIONS.ADD-TEXT' | translate }}</button>
+                    <button mat-button type="button" (click)="importInput.click()">{{ 'LANGUAGE-EDITOR.ACTIONS.IMPORT' | translate }}</button>
+                    <input #importInput type="file" accept=".json,application/json" hidden (change)="importTexts(importInput)">
+                    @if (isBuiltIn) {
+                      <button mat-button type="button" [disabled]="overrides.size === 0" (click)="resetAllTexts()">{{ 'LANGUAGE-EDITOR.ACTIONS.RESET-ALL' | translate }}</button>
+                    }
+                  }
+                </div>
+              </div>
+
+              @if (addingText) {
+                <div class="language-editor__add">
+                  <p class="language-editor__hint">{{ 'LANGUAGE-EDITOR.HINTS.ADD-TEXT' | translate }}</p>
+                  <div class="language-editor__add-fields">
+                    <mat-form-field class="language-editor__add-key" subscriptSizing="dynamic">
+                      <mat-label>{{ 'LANGUAGE-EDITOR.FIELDS.NEW-KEY' | translate }}</mat-label>
+                      <input matInput type="text" name="newTextKey" class="language-editor__mono" [(ngModel)]="newTextKey">
+                    </mat-form-field>
+                    <mat-form-field class="language-editor__add-value" subscriptSizing="dynamic">
+                      <mat-label>{{ 'LANGUAGE-EDITOR.FIELDS.NEW-VALUE' | translate }}</mat-label>
+                      <input matInput type="text" name="newTextValue" [(ngModel)]="newTextValue" (keydown.enter)="addText()">
+                    </mat-form-field>
+                    <button mat-flat-button color="primary" type="button" (click)="addText()">{{ 'LANGUAGE-EDITOR.ACTIONS.ADD-TEXT-CONFIRM' | translate }}</button>
+                    <button mat-button type="button" (click)="cancelAddText()">{{ 'LANGUAGE-EDITOR.ACTIONS.CANCEL' | translate }}</button>
+                  </div>
+                  @if (newTextError) {
+                    <span class="language-editor__warning" role="alert">
+                      <mat-icon aria-hidden="true">error</mat-icon>
+                      {{ newTextError.key | translate: newTextError.params }}
+                    </span>
+                  }
+                </div>
+              }
+
+              <div class="language-editor__table-wrap">
+                <table class="language-editor__table">
+                  <thead>
+                    <tr>
+                      <th scope="col">{{ 'LANGUAGE-EDITOR.FIELDS.WHERE' | translate }}</th>
+                      <th scope="col">{{ isBuiltIn ? ('LANGUAGE-EDITOR.FIELDS.BUILT-IN-TEXT' | translate) : ('LANGUAGE-EDITOR.FIELDS.REFERENCE-TEXT' | translate: { language: languageService.getLanguageName(referenceCode) }) }}</th>
+                      <th scope="col">{{ isBuiltIn ? ('LANGUAGE-EDITOR.FIELDS.YOUR-TEXT' | translate) : languageService.getLanguageName(formGroup.get('code').value) }}</th>
+                      <th scope="col"><span class="sr-only">{{ 'LANGUAGE-EDITOR.ACTIONS.RESET' | translate }}</span></th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    @for (row of pageTexts; track row.id) {
+                      <tr [class.language-editor__row--changed]="row.added || (isBuiltIn && overrides.has(row.id))">
+                        <td>
+                          @if (row.section) {
+                            <span class="language-editor__section">{{ row.section }}</span>
+                          }
+                          <span class="language-editor__key language-editor__mono">{{ row.key }}</span>
+                        </td>
+                        <td class="language-editor__reference">
+                          @if (row.added) {
+                            <span class="language-editor__chip language-editor__chip--changed">{{ 'LANGUAGE-EDITOR.STATUS.ADDED' | translate }}</span>
+                          } @else {
+                            {{ row.reference }}
+                          }
+                        </td>
+                        <td>
+                          <textarea class="language-editor__input" rows="1" [id]="'text-' + row.id"
+                            [attr.aria-label]="'LANGUAGE-EDITOR.FIELDS.YOUR-TEXT-FOR' | translate: { key: row.key }"
+                            [class.language-editor__input--changed]="isBuiltIn && overrides.has(row.id)"
+                            [class.language-editor__input--invalid]="invalidTexts.has(row.id)"
+                            [placeholder]="isBuiltIn ? row.reference : ('LANGUAGE-EDITOR.PLACEHOLDERS.NOT-TRANSLATED' | translate)"
+                            [value]="overrides.get(row.id) ?? ''" [disabled]="formGroup.disabled"
+                            (input)="onTextChanged(row, $any($event.target).value)"></textarea>
+                          @if (isBuiltIn && !row.added && overrides.has(row.id)) {
+                            <span class="language-editor__chip language-editor__chip--changed">{{ 'LANGUAGE-EDITOR.STATUS.CHANGED' | translate }}</span>
+                          }
+                          @if (missingPlaceholders(row); as missing) {
+                            <span class="language-editor__warning">
+                              <mat-icon aria-hidden="true">warning</mat-icon>
+                              {{ 'LANGUAGE-EDITOR.WARNINGS.MISSING-PLACEHOLDERS' | translate: { placeholders: missing } }}
+                            </span>
+                          }
+                          @if (invalidTexts.has(row.id)) {
+                            <span class="language-editor__warning">
+                              <mat-icon aria-hidden="true">error</mat-icon>
+                              {{ 'LANGUAGE-EDITOR.WARNINGS.INVALID-JSON' | translate }}
+                            </span>
+                          }
+                        </td>
+                        <td>
+                          @if (row.added && !formGroup.disabled) {
+                            <button mat-icon-button type="button" (click)="resetText(row)"
+                              [attr.aria-label]="'LANGUAGE-EDITOR.ACTIONS.REMOVE-TEXT' | translate"
+                              [matTooltip]="'LANGUAGE-EDITOR.ACTIONS.REMOVE-TEXT' | translate">
+                              <mat-icon aria-hidden="true">delete</mat-icon>
+                            </button>
+                          } @else if (overrides.has(row.id) && !formGroup.disabled) {
+                            <button mat-icon-button type="button" (click)="resetText(row)"
+                              [attr.aria-label]="(isBuiltIn ? 'LANGUAGE-EDITOR.ACTIONS.RESET' : 'LANGUAGE-EDITOR.ACTIONS.CLEAR') | translate"
+                              [matTooltip]="(isBuiltIn ? 'LANGUAGE-EDITOR.ACTIONS.RESET' : 'LANGUAGE-EDITOR.ACTIONS.CLEAR') | translate">
+                              <mat-icon aria-hidden="true">{{ isBuiltIn ? 'undo' : 'close' }}</mat-icon>
+                            </button>
+                          }
+                        </td>
+                      </tr>
+                    } @empty {
+                      <tr>
+                        <td colspan="4" class="language-editor__empty">{{ 'LANGUAGE-EDITOR.NO-RESULTS' | translate }}</td>
+                      </tr>
+                    }
+                  </tbody>
+                </table>
+              </div>
+              <mat-paginator [length]="visibleTexts.length" [pageIndex]="pageIndex" [pageSize]="pageSize" [pageSizeOptions]="[25, 50, 100]" (page)="onPage($event)" />
+            </mat-card-content>
+          </mat-card>
+        }
       }
     </div>
   </div>

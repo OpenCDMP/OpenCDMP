@@ -56,6 +56,7 @@ public class FieldSetBuilder extends BaseBuilder<org.opencdmp.model.descriptiont
             if (fields.hasField(this.asIndexer(org.opencdmp.model.descriptiontemplate.FieldSet._additionalInformation))) m.setAdditionalInformation(d.getAdditionalInformation());
             if (fields.hasField(this.asIndexer(org.opencdmp.model.descriptiontemplate.FieldSet._hasCommentField))) m.setHasCommentField(d.getHasCommentField());
             if (fields.hasField(this.asIndexer(org.opencdmp.model.descriptiontemplate.FieldSet._hasMultiplicity))) m.setHasMultiplicity(d.getHasMultiplicity());
+            if (fields.hasField(this.asIndexer(org.opencdmp.model.descriptiontemplate.FieldSet._semantics))) m.setSemantics(d.getSemantics());
             if (!multiplicityFields.isEmpty() && d.getMultiplicity() != null) m.setMultiplicity(this.builderFactory.builder(MultiplicityBuilder.class).authorize(this.authorize).build(multiplicityFields, d.getMultiplicity()));
             if (!fieldsFields.isEmpty() && d.getFields() != null) m.setFields(this.builderFactory.builder(FieldBuilder.class).authorize(this.authorize).build(fieldsFields, d.getFields()));
             models.add(m);

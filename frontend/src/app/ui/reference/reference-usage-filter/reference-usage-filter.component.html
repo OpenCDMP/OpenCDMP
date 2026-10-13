@@ -1,0 +1,23 @@
+@for (type of sections(); track type.id) {
+	<app-reference-usage-section
+		[title]="type.name"
+		[searchLabel]="searchLabelFor(type)"
+		[entityType]="entityType()"
+		[typeIds]="[type.id]"
+		[selected]="selectedFor(type.id)"
+		[expanded]="isExpanded(type.id.toString())"
+		(expandedChange)="setExpanded(type.id.toString(), $event)"
+		(toggled)="onToggle($event)"
+	></app-reference-usage-section>
+}
+<app-reference-usage-section
+	[title]="(sections().length ? 'REFERENCE-USAGE-FILTER.MORE-TYPES' : 'REFERENCE-USAGE-FILTER.ALL-TYPES') | translate"
+	[searchLabel]="moreSearchLabel()"
+	[entityType]="entityType()"
+	[excludedTypeIds]="sectionTypeIds()"
+	[groupByType]="true"
+	[selected]="moreSelected()"
+	[expanded]="isExpanded('more')"
+	(expandedChange)="setExpanded('more', $event)"
+	(toggled)="onToggle($event)"
+></app-reference-usage-section>

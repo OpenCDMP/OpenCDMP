@@ -1,7 +1,7 @@
 package org.opencdmp.model.builder.commonmodels.description;
 
 import org.opencdmp.authorization.AuthorizationFlags;
-import org.opencdmp.commonmodels.models.description.ExternalIdentifierModel;
+import org.opencdmp.commonmodels.models.plandescriptionfields.ExternalIdentifierModel;
 import org.opencdmp.commons.types.description.ExternalIdentifierEntity;
 import org.opencdmp.convention.ConventionService;
 import org.opencdmp.model.builder.commonmodels.BaseCommonModelBuilder;

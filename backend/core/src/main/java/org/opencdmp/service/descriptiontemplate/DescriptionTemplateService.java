@@ -11,6 +11,7 @@ import org.opencdmp.commonmodels.models.descriptiotemplate.DescriptionTemplateMo
 import org.opencdmp.commons.types.descriptiontemplate.importexport.DescriptionTemplateImportExport;
 import org.opencdmp.model.descriptiontemplate.DescriptionTemplate;
 import org.opencdmp.model.persist.DescriptionTemplatePersist;
+import org.opencdmp.model.persist.UserDescriptionTemplatePersist;
 import org.opencdmp.model.persist.NewVersionDescriptionTemplatePersist;
 import org.springframework.http.ResponseEntity;
 import org.xml.sax.SAXException;
@@ -18,12 +19,15 @@ import javax.management.InvalidApplicationException;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.TransformerException;
 import java.io.IOException;
+import java.util.List;
 import java.util.UUID;
 
 public interface DescriptionTemplateService {
 
     DescriptionTemplate persist(DescriptionTemplatePersist model, UUID groupId, FieldSet fields)throws MyForbiddenException, MyValidationException, MyApplicationException, MyNotFoundException, InvalidApplicationException, JAXBException, ParserConfigurationException, JacksonException, TransformerException;
     void deleteAndSave(UUID id) throws MyForbiddenException, InvalidApplicationException;
+    java.util.Map<String, Integer> semanticsInUse(UUID excludeGroupId);
+    DescriptionTemplate assignUsers(UUID id, List<UserDescriptionTemplatePersist> users, FieldSet fields) throws MyForbiddenException, MyApplicationException, MyNotFoundException, InvalidApplicationException;
     DescriptionTemplate buildClone(UUID id, FieldSet fields) throws MyForbiddenException, MyValidationException, MyApplicationException, MyNotFoundException;
     DescriptionTemplate createNewVersion(NewVersionDescriptionTemplatePersist model, FieldSet fields)  throws MyForbiddenException, MyValidationException, MyApplicationException, MyNotFoundException, InvalidApplicationException, JAXBException;
 

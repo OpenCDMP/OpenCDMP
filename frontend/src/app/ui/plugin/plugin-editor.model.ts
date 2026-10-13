@@ -114,6 +114,8 @@ export class PluginConfigurationFieldEditorModel implements PluginConfigurationF
 	fileValue: Guid;
 	textValue: string;
 	type: PluginDataType = PluginDataType.String;
+	secret = false;
+	secretSet = false;
 
 	protected formBuilder: UntypedFormBuilder = new UntypedFormBuilder();
 
@@ -126,9 +128,12 @@ export class PluginConfigurationFieldEditorModel implements PluginConfigurationF
 			this.code = item.code;
 			if (item.fileValue) this.fileValue = item.fileValue.id;
 			this.textValue = item.textValue;
+			this.secretSet = !!item.secretSet;
 		}
 		if (configuration) {
-			this.type = configuration.fields?.find(x => x.code === this.code)?.type ?? PluginDataType.String;
+			const field = configuration.fields?.find(x => x.code === this.code);
+			this.type = field?.type ?? PluginDataType.String;
+			this.secret = !!field?.authInfo;
 		}
 		return this;
 	}
@@ -151,6 +156,8 @@ export class PluginConfigurationFieldEditorModel implements PluginConfigurationF
 			fileValue: [{ value: this.fileValue, disabled: disabled }, context.getValidation('fileValue').validators],
 			textValue: [{ value: this.textValue, disabled: disabled }, context.getValidation('textValue').validators],
 			type: [{ value: this.type, disabled: disabled }, context.getValidation('type').validators],
+			secret: [{ value: this.secret, disabled: disabled }],
+			secretSet: [{ value: this.secretSet, disabled: disabled }],
 		});
 
 		return form;

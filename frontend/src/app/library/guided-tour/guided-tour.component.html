@@ -14,9 +14,15 @@
   <div>
     @if (currentTourStep) {
       <div #tourStep
-        role="alert"
+        role="dialog"
+        aria-modal="true"
+        tabindex="-1"
+        cdkTrapFocus
+        [cdkTrapFocusAutoCapture]="true"
+        [attr.aria-labelledby]="currentTourStep.title ? 'guided-tour-title' : null"
         class="tour-step tour-{{ currentTourStep.orientation }}"
-        [ngClass]="{ 'page-tour-step': !currentTourStep.selector }"
+        [class.page-tour-step]="!currentTourStep.selector"
+        [class.tour-step--intro]="currentTourStep.variant === 'intro'"
         [style.top.px]="(currentTourStep.selector && selectedElementRect ? topPosition : null)"
         [style.left.px]="(currentTourStep.selector && selectedElementRect ? leftPosition : null)"
         [style.width.px]="(currentTourStep.selector && selectedElementRect ? calculatedTourStepWidth : null)"
@@ -24,35 +30,40 @@
         @if (currentTourStep.selector) {
           <div class="tour-arrow"></div>
         }
-        <div class="row tour-block d-flex">
-          <div class="col p-0">
-            @if (currentTourStep.title && currentTourStep.selector) {
-              <h3 class="tour-title">
-                {{currentTourStep.title}}
-              </h3>
+        @if (currentTourStep.variant === 'intro') {
+          <div class="tour-intro-band" aria-hidden="true">
+            <span class="tour-intro-band--glow"></span>
+            <mat-icon class="material-symbols-outlined tour-intro-band--icon">auto_awesome</mat-icon>
+            @if (currentTourStep.eyebrow) {
+              <span class="tour-intro-band--eyebrow">{{ currentTourStep.eyebrow }}</span>
             }
-            @if (currentTourStep.title && !currentTourStep.selector) {
-              <h2 class="tour-title">
-                {{ currentTourStep.title }}
-              </h2>
-            }
-            <div class="tour-buttons">
-              @if (!guidedTourService.onResizeMessage) {
-                <button mat-flat-button color="primary" type="button" class="padded-shadow-btn"
-                  (click)="guidedTourService.nextStep()">
-                  {{ nextText }}
-                </button>
-              }
-              @if (!guidedTourService.onResizeMessage && !currentTourStep.isStepUnique) {
-                <button mat-stroked-button color="primary"
-                  (click)="guidedTourService.skipTour()" class="padded-shadow-btn">
-                  {{ skipText }}
-                </button>
-              }
-            </div>
           </div>
-          <div class="col-auto p-0 d-flex align-items-end">
-            <img src="../../../assets/images/guided-tour-side.png" alt="{{('ALT-TEXT.GUIDED-TOUR-IMG' | translate) ?? 'tour guide image'}}">
+        }
+        <div class="tour-block">
+          @if (currentTourStep.title && currentTourStep.selector) {
+            <h3 id="guided-tour-title" class="tour-title">{{ currentTourStep.title }}</h3>
+          }
+          @if (currentTourStep.title && !currentTourStep.selector) {
+            <h2 id="guided-tour-title" class="tour-title">{{ currentTourStep.title }}</h2>
+          }
+          @if (currentTourStep.content) {
+            <p class="tour-content">{{ currentTourStep.content }}</p>
+          }
+          <div class="tour-buttons">
+            <!-- The counter is hidden on an untargeted intro step: it is the invitation, not stop one. -->
+            @if (currentTourStep.selector && guidedTourService.currentTourStepCount - guidedTourService.introStepOffset > 1) {
+              <span class="tour-progress">{{ 'GUIDED-TOUR.PROGRESS' | translate:{ current: guidedTourService.currentTourStepDisplay - guidedTourService.introStepOffset, total: guidedTourService.currentTourStepCount - guidedTourService.introStepOffset } }}</span>
+            }
+            @if (!guidedTourService.onResizeMessage && !currentTourStep.isStepUnique && !guidedTourService.onLastStep) {
+              <button mat-button type="button" class="tour-skip" (click)="guidedTourService.skipTour()">
+                {{ skipText }}
+              </button>
+            }
+            @if (!guidedTourService.onResizeMessage) {
+              <button mat-flat-button type="button" class="tour-next" (click)="guidedTourService.nextStep()">
+                {{ guidedTourService.onLastStep ? doneText : (currentTourStep.nextText || nextText) }}
+              </button>
+            }
           </div>
         </div>
       </div>

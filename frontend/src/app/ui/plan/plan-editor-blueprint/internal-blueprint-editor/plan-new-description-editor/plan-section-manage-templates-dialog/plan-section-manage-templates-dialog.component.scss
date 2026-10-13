@@ -1,0 +1,128 @@
+.manage-templates-dialog {
+    display: flex;
+    flex-direction: column;
+    min-width: min(680px, 90vw);
+    max-height: 80vh;
+
+    .dialog-header {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 1rem;
+        padding: 1.25rem 1.5rem 0.75rem 1.5rem;
+        .dialog-header--titles {
+            display: flex;
+            flex-direction: column;
+            gap: 0.15rem;
+            .dialog-title {
+                margin: 0;
+                font-weight: 700;
+                font-size: var(--mat-sys-headline-small-size);
+            }
+            .dialog-subtitle {
+                font-size: var(--mat-sys-body-medium-size);
+                opacity: 0.7;
+            }
+        }
+    }
+
+    .dialog-body {
+        padding: 0.5rem 1.5rem 1rem 1.5rem;
+        overflow: auto;
+
+        .info {
+            padding: 0.75rem 1rem;
+            border-radius: 10px;
+            border: 1px solid var(--mat-sys-outline-variant);
+            background-color: var(--mat-sys-surface-container-low);
+            color: var(--mat-sys-on-surface-variant);
+            margin-bottom: 1.25rem;
+            font-size: var(--mat-sys-body-medium-size);
+        }
+
+        .linked-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+
+            .linked-row {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                gap: 1rem;
+                border: 1px solid var(--mat-sys-outline-variant);
+                border-radius: 8px;
+                padding: 0.75rem 1rem;
+
+                .linked-row--info {
+                    display: flex;
+                    flex-direction: column;
+                    gap: 0.25rem;
+                    .linked-row--title {
+                        font-weight: 500;
+                    }
+                    .linked-row--type {
+                        font-size: var(--mat-sys-label-medium-size);
+                        opacity: 0.7;
+                    }
+                    .provenance {
+                        display: inline-flex;
+                        align-items: center;
+                        gap: 0.25rem;
+                        width: fit-content;
+                        font-size: var(--mat-sys-label-medium-size);
+                        padding: 0.1rem 0.5rem;
+                        border-radius: 999px;
+                        background-color: var(--mat-sys-surface-container-highest);
+                        color: var(--mat-sys-on-surface-variant);
+                        .provenance--icon {
+                            font-size: 14px;
+                            width: 14px;
+                            height: 14px;
+                        }
+                        &.provenance--blueprint {
+                            background-color: var(--mat-sys-secondary-fixed);
+                            color: var(--mat-sys-secondary);
+                        }
+                    }
+                }
+
+                .remove-btn {
+                    flex-shrink: 0;
+                    color: var(--mat-sys-outline);
+                    &:hover:not(:disabled):not([aria-disabled="true"]) {
+                        color: var(--mat-sys-error);
+                    }
+                    &:disabled,
+                    &[aria-disabled="true"] {
+                        opacity: 0.4;
+                    }
+                }
+            }
+        }
+
+        .empty {
+            display: block;
+            padding: 1.5rem 0;
+            text-align: center;
+            opacity: 0.7;
+        }
+
+        .add-btn {
+            width: 100%;
+        }
+    }
+
+    .dialog-footer {
+        display: flex;
+        justify-content: flex-end;
+        gap: 0.5rem;
+        padding: 0.75rem 1.5rem 1.25rem 1.5rem;
+        border-top: 1px solid var(--mat-sys-outline-variant);
+    }
+
+    .add-view {
+        overflow: auto;
+    }
+}

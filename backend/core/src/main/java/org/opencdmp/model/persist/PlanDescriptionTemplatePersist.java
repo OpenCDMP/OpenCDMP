@@ -21,7 +21,7 @@ public class PlanDescriptionTemplatePersist {
 
     public static final String _descriptionTemplateGroupId = "descriptionTemplateGroupId";
 
-    private UUID sectionId;
+    private String sectionId;
 
     public static final String _sectionId = "sectionId";
 
@@ -33,12 +33,12 @@ public class PlanDescriptionTemplatePersist {
         this.descriptionTemplateGroupId = descriptionTemplateGroupId;
     }
 
-    public UUID getSectionId() {
+    public String getSectionId() {
         return this.sectionId;
     }
 
-    public void setSectionId(UUID sectionId) {
-        this.sectionId = sectionId;
+    public void setSectionId(String sectionId) {
+        this.sectionId = (sectionId == null || sectionId.isEmpty()) ? null : sectionId;
     }
 
     @Component(PlanDescriptionTemplatePersistValidator.ValidatorName)
@@ -68,7 +68,7 @@ public class PlanDescriptionTemplatePersist {
                             .must(() -> this.isValidGuid(item.getDescriptionTemplateGroupId()))
                             .failOn(PlanDescriptionTemplatePersist._descriptionTemplateGroupId).failWith(this.messageSource.getMessage("Validation_Required", new Object[]{PlanDescriptionTemplatePersist._descriptionTemplateGroupId}, LocaleContextHolder.getLocale())),
                     this.spec()
-                            .must(() -> this.isValidGuid(item.getSectionId()))
+                            .must(() -> !this.isEmpty(item.getSectionId()))
                             .failOn(PlanDescriptionTemplatePersist._sectionId).failWith(this.messageSource.getMessage("Validation_Required", new Object[]{PlanDescriptionTemplatePersist._sectionId}, LocaleContextHolder.getLocale()))
             );
         }

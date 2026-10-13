@@ -1,16 +1,22 @@
 
-import { Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges } from '@angular/core';
+import { Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges, ChangeDetectionStrategy } from '@angular/core';
 import { BaseComponent } from '@common/base/base.component';
 import { FilterService } from '@common/modules/text-filter/filter-service';
-import { TranslateService } from '@ngx-translate/core';
+import { TranslateService, TranslatePipe } from '@ngx-translate/core';
 import { Subject } from 'rxjs';
 import { debounceTime, takeUntil } from 'rxjs/operators';
+import { MatFormField, MatPrefix, MatSuffix, MatLabel } from '@angular/material/form-field';
+import { MatIcon } from '@angular/material/icon';
+import { ReactiveAsteriskDirective } from '../../forms/reactive-asterisk-directive';
+import { MatInput } from '@angular/material/input';
+import { FormsModule } from '@angular/forms';
 
 @Component({
     selector: 'app-text-filter',
     templateUrl: './text-filter.component.html',
     styleUrls: ['./text-filter.component.scss'],
-    standalone: false
+    changeDetection: ChangeDetectionStrategy.Eager,
+    imports: [MatFormField, MatIcon, MatPrefix, MatSuffix, MatLabel, ReactiveAsteriskDirective, MatInput, FormsModule, TranslatePipe]
 })
 export class TextFilterComponent extends BaseComponent implements OnInit, OnChanges {
 	@Input() typeaheadMS = 700;
@@ -19,13 +25,14 @@ export class TextFilterComponent extends BaseComponent implements OnInit, OnChan
 	@Input() label: string | null;
 	@Input() placeholder: string | null;
 	@Input() suffixIcon: string | null;
+	@Input() prefixIcon: string | null;
 	@Input() value: string;
 	@Output() valueChange = new EventEmitter<string>();
 
 	private valueSubject: Subject<string>;
 
 	get textPlaceholder(): string {
-		return this.placeholder ? this.language.instant(this.placeholder) : this.language.instant('GENERAL.CRITERIA.LIKE');
+		return this.placeholder ? this.placeholder : 'GENERAL.CRITERIA.LIKE';
 	}
 
 	private _inputValue: string;

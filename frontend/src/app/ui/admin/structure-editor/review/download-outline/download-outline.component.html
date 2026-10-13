@@ -1,0 +1,25 @@
+<section class="bp2-card rv-preview rv-download">
+	<div class="rv-download__head">
+		<mat-icon aria-hidden="true">description</mat-icon>
+		<div>
+			<strong>{{editor.term('PLAN-BLUEPRINT-EDITOR.REVIEW.DOWNLOAD-TITLE') | translate}}</strong>
+			<div class="bp2-sub">{{ (exportCustomized ? editor.term('PLAN-BLUEPRINT-EDITOR.REVIEW.DOWNLOAD-CUSTOM') : 'PLAN-BLUEPRINT-EDITOR.REVIEW.DOWNLOAD-DEFAULT') | translate }}</div>
+		</div>
+	</div>
+	@for (s of sections; track s.numbering) {
+		<div class="rv-dl-section" [style.margin-left.px]="s.depth * 16">
+			<div class="rv-dl-section__title">{{s.numbering}} {{ s.title || ('PLAN-BLUEPRINT-EDITOR.UNTITLED-SECTION' | translate) }}</div>
+			@for (q of s.questions; track q.numbering) {
+				<div class="rv-dl-q" [class.rv-dl-q--out]="!q.included">
+					<span class="rv-dl-q__num">{{q.numbering}}</span>
+					<span class="rv-dl-q__title">{{ q.title || ('PLAN-BLUEPRINT-EDITOR.UNTITLED-QUESTION' | translate) }}</span>
+					@if (!q.included) { <span class="bp2-tag">{{'PLAN-BLUEPRINT-EDITOR.INPUT.NOT-IN-DOWNLOADS' | translate}}</span> }
+					@else if (q.partial) { <span class="bp2-tag bp2-tag--todo">{{'PLAN-BLUEPRINT-EDITOR.REVIEW.PARTLY-INCLUDED' | translate}}</span> }
+					@if (q.conditional) { <span class="bp2-sub">{{'PLAN-BLUEPRINT-EDITOR.REVIEW.ONLY-IF-SHOWN' | translate}}</span> }
+				</div>
+			}
+			@if (s.assets) { <div class="rv-dl-q"><span class="rv-dl-q__num"><mat-icon aria-hidden="true">inventory_2</mat-icon></span><span class="rv-dl-q__title">{{'PLAN-BLUEPRINT-EDITOR.REVIEW.ASSETS-IN-DOWNLOAD' | translate}}</span></div> }
+		</div>
+	}
+	@if (!sections.length) { <p class="bp2-help">{{'PLAN-BLUEPRINT-EDITOR.REVIEW.NOTHING-YET' | translate}}</p> }
+</section>

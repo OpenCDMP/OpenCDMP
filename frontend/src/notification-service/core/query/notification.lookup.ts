@@ -18,6 +18,7 @@ export class NotificationLookup extends Lookup implements NotificationFilter {
 	trackingState: NotificationTrackingState[];
 	trackingProcess: NotificationTrackingProcess[];
 	userIds: Guid[];
+	createdAfter: Date;
 
 	constructor() {
 		super();

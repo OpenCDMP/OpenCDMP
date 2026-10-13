@@ -1,0 +1,100 @@
+<div class="container-fluid">
+  <div class="row">
+    <div class="col-md-10 offset-md-1 webhook-editor">
+      @if (formGroup) {
+        <div class="row align-items-center mb-4 mt-4">
+          <div class="col-md col-12">
+            <app-navigation-breadcrumb />
+          </div>
+          <div class="col-12 order-last mt-3">
+            <app-tenant-readonly-banner [readOnly]="!isNew && editorModel?.belongsToCurrentTenant === false" />
+          </div>
+          <div class="col-auto">
+            <button mat-stroked-button class="padded-shadow-btn" (click)="cancel()" type="button">{{'WEBHOOK-EDITOR.ACTIONS.CANCEL' | translate}}</button>
+          </div>
+          @if (canDelete) {
+            <div class="col-auto">
+              <button [disabled]="isLoading()" mat-stroked-button color="warn" class="padded-shadow-btn" type="button" (click)="delete()">
+                <mat-icon aria-hidden="true">delete</mat-icon>
+                {{'WEBHOOK-EDITOR.ACTIONS.DELETE' | translate}}
+              </button>
+            </div>
+          }
+          @if (canSave) {
+            <div class="col-auto">
+              <button [disabled]="isLoading()" mat-flat-button color="primary" class="padded-shadow-btn" (click)="formSubmit()">
+                <mat-icon>save</mat-icon>
+                {{'WEBHOOK-EDITOR.ACTIONS.SAVE' | translate}}
+              </button>
+            </div>
+          }
+        </div>
+      }
+
+      @if (formGroup) {
+        <form (ngSubmit)="formSubmit()">
+          <mat-card appearance="outlined" class="pb-3">
+            <mat-card-content>
+              <p><small>{{'COMMONS.VALIDATION.REQUIRED-FIELDS-HINT' | translate}}</small></p>
+              <div class="row">
+                <div class="col-md-4 col-12">
+                  <mat-form-field class="w-100">
+                    <mat-label>{{'WEBHOOK-EDITOR.FIELDS.LABEL' | translate}}</mat-label>
+                    <input matInput type="text" name="label" [formControl]="formGroup.get('label')">
+                    @if (formGroup.get('label').hasError('backendError')) {
+                      <mat-error>{{formGroup.get('label').getError('backendError').message}}</mat-error>
+                    }
+                    @if (formGroup.get('label').hasError('required')) {
+                      <mat-error>{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
+                    }
+                  </mat-form-field>
+                </div>
+                <div class="col-md-8 col-12">
+                  <mat-form-field class="w-100">
+                    <mat-label>{{'WEBHOOK-EDITOR.FIELDS.URL' | translate}}</mat-label>
+                    <input matInput type="url" name="url" placeholder="https://" [formControl]="formGroup.get('url')">
+                    @if (formGroup.get('url').hasError('backendError')) {
+                      <mat-error>{{formGroup.get('url').getError('backendError').message}}</mat-error>
+                    }
+                    @if (formGroup.get('url').hasError('required')) {
+                      <mat-error>{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
+                    }
+                    @if (formGroup.get('url').hasError('pattern')) {
+                      <mat-error>{{'WEBHOOK-EDITOR.VALIDATION.URL' | translate}}</mat-error>
+                    }
+                  </mat-form-field>
+                </div>
+                <div class="col-md-8 col-12">
+                  <mat-form-field class="w-100">
+                    <mat-label>{{'WEBHOOK-EDITOR.FIELDS.EVENT-TYPES' | translate}}</mat-label>
+                    <mat-select multiple [formControl]="formGroup.get('eventTypes')">
+                      @for (eventType of availableEventTypes; track eventType) {
+                        <mat-option [value]="eventType">{{enumUtils.toWebhookEventTypeString(eventType)}}</mat-option>
+                      }
+                    </mat-select>
+                    @if (formGroup.get('eventTypes').hasError('backendError')) {
+                      <mat-error>{{formGroup.get('eventTypes').getError('backendError').message}}</mat-error>
+                    }
+                    @if (formGroup.get('eventTypes').hasError('required')) {
+                      <mat-error>{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
+                    }
+                  </mat-form-field>
+                </div>
+                <div class="col-md-4 col-12 d-flex align-items-center">
+                  <mat-slide-toggle labelPosition="before" [formControl]="formGroup.get('enabled')">
+                    {{'WEBHOOK-EDITOR.FIELDS.ENABLED' | translate}}
+                  </mat-slide-toggle>
+                </div>
+                @if (isNew) {
+                  <div class="col-12 mt-3">
+                    <small>{{'WEBHOOK-EDITOR.SECRET-HINT' | translate}}</small>
+                  </div>
+                }
+              </div>
+            </mat-card-content>
+          </mat-card>
+        </form>
+      }
+    </div>
+  </div>
+</div>

@@ -31,5 +31,6 @@
 }
 
 .table-field{
-    word-break:break-all
+    overflow: hidden;
+    text-overflow: ellipsis;
 }

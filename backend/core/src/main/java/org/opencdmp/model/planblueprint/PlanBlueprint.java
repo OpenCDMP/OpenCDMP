@@ -72,6 +72,9 @@ public class PlanBlueprint {
     private Integer ordinal;
     public static final String _ordinal = "ordinal";
 
+    private Long usageCount;
+    public static final String _usageCount = "usageCount";
+
     public UUID getId() {
         return id;
     }
@@ -198,5 +201,13 @@ public class PlanBlueprint {
 
     public void setDescription(String description) {
         this.description = description;
+    }
+
+    public Long getUsageCount() {
+        return usageCount;
+    }
+
+    public void setUsageCount(Long usageCount) {
+        this.usageCount = usageCount;
     }
 }

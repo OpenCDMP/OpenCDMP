@@ -19,7 +19,7 @@ public class PlanInvitationEntity {
 	private PlanUserRole role;
 
 	@XmlAttribute(name = "section")
-	private UUID sectionId;
+	private String sectionId;
 
 	public String getEmail() {
 		return email;
@@ -45,11 +45,11 @@ public class PlanInvitationEntity {
 		this.role = role;
 	}
 
-	public UUID getSectionId() {
+	public String getSectionId() {
 		return sectionId;
 	}
 
-	public void setSectionId(UUID sectionId) {
-		this.sectionId = sectionId;
+	public void setSectionId(String sectionId) {
+		this.sectionId = (sectionId == null || sectionId.isEmpty()) ? null : sectionId;
 	}
 }

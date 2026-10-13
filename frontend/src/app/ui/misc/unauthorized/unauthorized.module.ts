@@ -4,12 +4,10 @@ import { UnauthorizedRoutingModule } from '@app/ui/misc/unauthorized/unauthorize
 import { CommonUiModule } from '@common/ui/common-ui.module';
 
 @NgModule({
-	imports: [
-		CommonUiModule,
-		UnauthorizedRoutingModule
-	],
-	declarations: [
-		UnauthorizedComponent,
-	],
+    imports: [
+        CommonUiModule,
+        UnauthorizedRoutingModule,
+        UnauthorizedComponent
+    ],
 })
 export class UnauthorizedModule { }

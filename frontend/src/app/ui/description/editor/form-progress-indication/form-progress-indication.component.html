@@ -4,12 +4,12 @@
       <span>{{progressSoFar}} {{'GENERAL.PREPOSITIONS.OF' | translate}} {{total}}</span>
     }&nbsp;</div>
     @if (value) {
-      <mat-progress-bar class="form-progress-bar" [ngClass]="{'progress-bar': true}" mode="determinate" [value]="value" [attr.aria-label]="'ALT-TEXT.PROGRESS-BAR' | translate"></mat-progress-bar>
+      <mat-progress-bar class="form-progress-bar" [class.progress-bar]="true" mode="determinate" [value]="value" [attr.aria-label]="'ALT-TEXT.PROGRESS-BAR' | translate"></mat-progress-bar>
     }
     @if (!value) {
-      <mat-progress-bar class="form-progress-bar" [ngClass]="{'progress-bar': true}" mode="determinate" [value]="0" [attr.aria-label]="'ALT-TEXT.PROGRESS-BAR' | translate"></mat-progress-bar>
+      <mat-progress-bar class="form-progress-bar" [class.progress-bar]="true" mode="determinate" [value]="0" [attr.aria-label]="'ALT-TEXT.PROGRESS-BAR' | translate"></mat-progress-bar>
     }
-    <div class="percentage" [ngStyle]="{'padding-left': value ? value - 10 + '%' : 0 + '%' }">
+    <div class="percentage" [style.padding-left]="value ? value - 10 + '%' : 0 + '%'">
       @if (value) {
         <span>{{value}}%</span>
       }

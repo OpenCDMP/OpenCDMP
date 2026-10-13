@@ -12,9 +12,14 @@ import jakarta.xml.bind.JAXBException;
 import javax.management.InvalidApplicationException;
 import java.util.UUID;
 
+import org.opencdmp.model.referencetype.ReferenceTypeLogo;
+
 public interface ReferenceTypeService {
 
     ReferenceType persist(ReferenceTypePersist model, FieldSet fields) throws MyForbiddenException, MyValidationException, MyApplicationException, MyNotFoundException, InvalidApplicationException, JAXBException;
 
     void deleteAndSave(UUID id) throws MyForbiddenException, InvalidApplicationException;
+
+    /** The logo of an active reference type, or null when none of its sources has one. */
+    ReferenceTypeLogo getLogo(UUID referenceTypeId);
 }

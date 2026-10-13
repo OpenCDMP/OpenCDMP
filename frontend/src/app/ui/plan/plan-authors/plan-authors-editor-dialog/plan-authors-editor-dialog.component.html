@@ -1,0 +1,11 @@
+@if(plan){
+    <app-plan-users-editor-wrapper
+        class="h-100"
+        [plan]="plan"
+        [canAssignUsers]="canAssignUsers"
+        [canInviteUsers]="canInviteUsers"
+        [(showInviteUsers)]="showInviteUsers"
+        (onUsersChanged)="usersChanged($event)"
+        (onEditorClose)="dialogRef.close({users: plan.planUsers})"
+    />
+}

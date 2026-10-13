@@ -1,0 +1,51 @@
+<section class="tenant-table">
+	<h2 class="table-title">{{ title() }}</h2>
+	@if (rows(); as rows) {
+		@if (rows.length) {
+			<div class="table-scroll">
+				<table>
+					<thead>
+						<tr>
+							<th scope="col">{{ 'INDICATOR-DASHBOARD.TENANT-TABLE.TENANT' | translate }}</th>
+							<th scope="col" aria-sort="descending">{{ 'INDICATOR-DASHBOARD.TENANT-TABLE.PLANS' | translate }}</th>
+							<th scope="col">{{ 'INDICATOR-DASHBOARD.TENANT-TABLE.DESCRIPTIONS' | translate }}</th>
+							<th scope="col">{{ 'INDICATOR-DASHBOARD.TENANT-TABLE.USERS' | translate }}</th>
+							<th scope="col">{{ 'INDICATOR-DASHBOARD.TENANT-TABLE.PLAN-BLUEPRINTS' | translate }}</th>
+							<th scope="col">{{ 'INDICATOR-DASHBOARD.TENANT-TABLE.DESCRIPTION-TEMPLATES' | translate }}</th>
+							<th scope="col">{{ 'INDICATOR-DASHBOARD.TENANT-TABLE.NEW-PLANS' | translate }}</th>
+						</tr>
+					</thead>
+					<tbody>
+						@for (row of rows; track row.tenantCode) {
+							<tr [class.current]="row.tenantCode === currentTenant()">
+								<th scope="row">
+									{{ row.tenantCode }}
+									@if (row.tenantCode === currentTenant()) {
+										<span class="current-badge">{{ 'INDICATOR-DASHBOARD.TENANT-TABLE.CURRENT' | translate }}</span>
+									}
+								</th>
+								<td>
+									<span class="plan-cell">
+										<span class="plan-bar" aria-hidden="true"><span [style.width.%]="row.plan / maxPlans() * 100"></span></span>
+										<span class="plan-count">{{ row.plan | number }}</span>
+									</span>
+								</td>
+								<td>{{ row.description | number }}</td>
+								<td>{{ row.user | number }}</td>
+								<td>{{ row.planBlueprint | number }}</td>
+								<td>{{ row.descriptionTemplate | number }}</td>
+								<td>{{ row.newPlans | number }}</td>
+							</tr>
+						}
+					</tbody>
+				</table>
+			</div>
+		} @else {
+			<p>{{ 'INDICATOR-DASHBOARD.TENANT-TABLE.EMPTY' | translate }}</p>
+		}
+	} @else if (rows() === null) {
+		<p>{{ 'INDICATOR-DASHBOARD.TENANT-TABLE.ERROR' | translate }}</p>
+	} @else {
+		<mat-spinner diameter="32" class="mx-auto my-4" />
+	}
+</section>

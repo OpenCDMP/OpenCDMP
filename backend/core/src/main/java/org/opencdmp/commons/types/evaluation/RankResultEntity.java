@@ -23,6 +23,10 @@ public class RankResultEntity {
     private List<EvaluationResultEntity> results;
     public static final String _results = "results";
 
+    @XmlElement(name = "target")
+    private EvaluationTargetEntity target;
+    public static final String _target = "target";
+
     public double getRank() {
         return rank;
     }
@@ -45,5 +49,13 @@ public class RankResultEntity {
 
     public void setResults(List<EvaluationResultEntity> results) {
         this.results = results;
+    }
+
+    public EvaluationTargetEntity getTarget() {
+        return target;
+    }
+
+    public void setTarget(EvaluationTargetEntity target) {
+        this.target = target;
     }
 }

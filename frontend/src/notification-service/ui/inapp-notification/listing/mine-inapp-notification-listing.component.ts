@@ -1,11 +1,11 @@
-import { Component, OnInit, TemplateRef, ViewChild, EventEmitter, Output, Input } from '@angular/core';
+import { Component, OnInit, TemplateRef, ViewChild, ChangeDetectionStrategy } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { AuthService } from '@app/core/services/auth/auth.service';
 import { QueryParamsService } from '@app/core/services/utilities/query-params.service';
 import { BaseListingComponent } from '@common/base/base-listing-component';
 import { PipeService } from '@common/formatting/pipe.service';
 import { HttpErrorHandlingService } from '@common/modules/errors/error-handling/http-error-handling.service';
-import { ColumnDefinition, ColumnsChangedEvent, HybridListingComponent, PageLoadEvent } from '@common/modules/hybrid-listing/hybrid-listing.component';
+import { ColumnDefinition, ColumnsChangedEvent, PageLoadEvent } from '@common/modules/admin-listing/listing.types';
 import { SnackBarNotificationLevel, UiNotificationService } from '@app/core/services/notification/ui-notification-service';
 import { InAppNotificationLookup } from '@notification-service/core/query/inapp-notification.lookup';
 import { InAppNotificationService } from '@notification-service/services/http/inapp-notification.service';
@@ -14,7 +14,7 @@ import { nameof } from 'ts-simple-nameof';
 import { Observable } from 'rxjs';
 import { QueryResult } from '@common/model/query-result';
 import { NotificationServiceEnumUtils } from '@notification-service/core/formatting/enum-utils.service';
-import { TranslateService } from '@ngx-translate/core';
+import { TranslateService, TranslatePipe } from '@ngx-translate/core';
 import { MatDialog } from '@angular/material/dialog';
 import { Guid } from '@common/types/guid';
 import { ConfirmationDialogComponent } from '@common/modules/confirmation-dialog/confirmation-dialog.component';
@@ -23,22 +23,31 @@ import { NotificationTypePipe } from '@common/formatting/pipes/notification-type
 import { NotificationInAppTracking } from '@notification-service/core/enum/notification-inapp-tracking.enum';
 import { InAppNotification } from '@notification-service/core/model/inapp-notification.model';
 import { DataTableDateTimeFormatPipe } from '@app/core/pipes/date-time-format.pipe';
+import { NavigationBreadcrumbComponent } from '../../../../app/ui/misc/breadcrumb/navigation-breadcrumb.component';
+import { AdminListingComponent } from '../../../../common/modules/admin-listing/admin-listing.component';
+import { MineInAppNotificationListingFiltersComponent } from './filters/mine-inapp-notification-listing-filters.component';
+import { UserSettingsPickerComponent } from '../../../../common/modules/user-settings/user-settings-picker/user-settings-picker.component';
+import { MatIconButton } from '@angular/material/button';
+import { MatMenuTrigger, MatMenu, MatMenuItem } from '@angular/material/menu';
+import { MatIcon } from '@angular/material/icon';
 
 @Component({
     selector: 'app-mine-inapp-notification-listing',
     templateUrl: './mine-inapp-notification-listing.component.html',
     styleUrls: ['./mine-inapp-notification-listing.component.scss'],
-    standalone: false
+    changeDetection: ChangeDetectionStrategy.Eager,
+    imports: [NavigationBreadcrumbComponent, AdminListingComponent, MineInAppNotificationListingFiltersComponent, UserSettingsPickerComponent, MatIconButton, MatMenuTrigger, MatIcon, MatMenu, MatMenuItem, TranslatePipe]
 })
 export class MineInAppNotificationListingComponent extends BaseListingComponent<InAppNotification, InAppNotificationLookup> implements OnInit {
 	publish = false;
 	userSettingsKey = { key: 'InAppNotificationListingUserSettings' };
+	/** Admins browse: a longer page than the author-facing listings. */
+	protected override ITEMS_PER_PAGE = 25;
 	propertiesAvailableForOrder: ColumnDefinition[];
 	notificationInAppTracking= NotificationInAppTracking;
 
 	@ViewChild('actions', { static: true }) actions?: TemplateRef<any>;
 	@ViewChild('state', { static: true }) state?: TemplateRef<any>;
-	@ViewChild(HybridListingComponent, { static: true }) hybridListingComponent: HybridListingComponent;
 
 	private readonly lookupFields: string[] = [
 		nameof<InAppNotification>(x => x.id),
@@ -72,6 +81,23 @@ export class MineInAppNotificationListingComponent extends BaseListingComponent<
 
 	ngOnInit() {
 		super.ngOnInit();
+	}
+
+	/** Whether a search term or non-default filter is currently applied (drives the "no results" empty state). */
+	public get hasActiveFilters(): boolean {
+		return !!this.lookup?.like
+			|| (this.lookup?.trackingState?.length ?? 0) > 0
+			|| (this.lookup?.type?.length ?? 0) > 0;
+	}
+
+	/** Reset search & filters to their defaults while preserving column selection, ordering and page size. */
+	public clearAllFilters(): void {
+		const fresh = this.initializeLookup();
+		fresh.order = this.lookup.order;
+		fresh.project = this.lookup.project;
+		fresh.page = { offset: 0, size: this.lookup.page.size };
+		this.lookup = fresh;
+		this.filterChanged(this.lookup);
 	}
 
 	protected initializeLookup(): InAppNotificationLookup {
@@ -116,6 +142,7 @@ export class MineInAppNotificationListingComponent extends BaseListingComponent<
 		},
 		{
 			alwaysShown: true,
+			sortable: false,
 			cellTemplate: this.actions,
 			maxWidth: 120
 		}
@@ -134,11 +161,9 @@ export class MineInAppNotificationListingComponent extends BaseListingComponent<
 	private onColumnsChangedInternal(columns: string[]) {
 		// Here are defined the projection fields that always requested from the api.
 		const fields = new Set(this.lookupFields);
-		this.gridColumns.map(x => x.prop)
-			.filter(x => !columns?.includes(x as string))
-			.forEach(item => {
-				fields.delete(item as string)
-			});
+		this.gridColumns.map(x => x.prop).filter(x => x != null).forEach(prop => {
+			if (columns?.includes(prop as string)) { fields.add(prop as string); } else { fields.delete(prop as string); }
+		});
 		this.lookup.project = { fields: [...fields] };
 		this.onPageLoad({ offset: 0 } as PageLoadEvent);
 	}

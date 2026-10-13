@@ -39,7 +39,7 @@ public class UserAdditionalInfoCensor extends BaseCensor {
         logger.debug(new DataLogEntry("censoring fields", fields));
         if (fields == null || fields.isEmpty())
             return;
-        this.authService.authorizeAtLeastOneForce(userId != null ? List.of(new OwnedResource(userId)) : null, Permission.BrowseUser);
+        this.authService.authorizeAtLeastOneForce(userId != null ? List.of(new OwnedResource(userId)) : null, Permission.BrowseUser, Permission.DeferredAffiliation);
 
         FieldSet descriptionReferenceFields = fields.extractPrefixed(this.asIndexerPrefix(UserAdditionalInfo._organization));
         this.censorFactory.censor(ReferenceCensor.class).censor(descriptionReferenceFields, userId);

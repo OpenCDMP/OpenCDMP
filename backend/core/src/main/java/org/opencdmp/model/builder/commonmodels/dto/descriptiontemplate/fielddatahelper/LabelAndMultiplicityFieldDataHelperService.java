@@ -3,7 +3,7 @@ package org.opencdmp.model.builder.commonmodels.dto.descriptiontemplate.fielddat
 import gr.cite.tools.data.builder.BuilderFactory;
 import gr.cite.tools.validation.ValidatorFactory;
 import org.opencdmp.authorization.AuthorizationFlags;
-import org.opencdmp.commonmodels.models.descriptiotemplate.fielddata.LabelAndMultiplicityDataModel;
+import org.opencdmp.commonmodels.models.planblueprintdescriptiontemplatefields.fielddata.LabelAndMultiplicityDataModel;
 import org.opencdmp.model.builder.commonmodels.dto.descriptiontemplate.fielddata.LabelAndMultiplicityDataCommonModelBuilder;
 import org.opencdmp.model.descriptiontemplate.fielddata.LabelAndMultiplicityData;
 import org.springframework.stereotype.Component;

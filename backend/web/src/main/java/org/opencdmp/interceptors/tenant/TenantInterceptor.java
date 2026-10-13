@@ -8,6 +8,7 @@ import gr.cite.tools.exception.MyApplicationException;
 import gr.cite.tools.exception.MyForbiddenException;
 import gr.cite.tools.logging.LoggerService;
 import jakarta.persistence.EntityManager;
+import jakarta.persistence.OptimisticLockException;
 import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;
@@ -122,7 +123,7 @@ public class TenantInterceptor implements WebRequestInterceptor {
 		if (this.tenantScopeFactory.getInstance().isSet() && this.entityManager != null) {
 			List<String> currentPrincipalTenantCodes = this.claimExtractorFactory.getInstance().asStrings(this.currentPrincipalResolverFactory.getInstance().currentPrincipal(), ClaimNames.TenantCodesClaimName);
 			if ((currentPrincipalTenantCodes == null || !currentPrincipalTenantCodes.contains(this.tenantScopeFactory.getInstance().getTenantCode())) && !isAllowedNoTenant) {
-				logger.warn("tenant not allowed {}", this.tenantScopeFactory.getInstance().getTenant());
+				logger.warn("tenant {} not allowed for user {}", this.tenantScopeFactory.getInstance().getTenantCode(), this.userScopeFactory.getInstance().getUserIdSafe());
 				throw new MyForbiddenException(this.errors.getTenantNotAllowed().getCode(), this.errors.getTenantNotAllowed().getMessage());
 			}
 
@@ -149,7 +150,7 @@ public class TenantInterceptor implements WebRequestInterceptor {
 				if (isAllowedNoTenant || this.isWhiteListedEndpoint(request)) {
 					this.tenantScopeFactory.getInstance().setTenant(null, null);
 				} else {
-					logger.warn("tenant not allowed {}", this.tenantScopeFactory.getInstance().getTenant());
+					logger.warn("tenant {} not allowed for user {}", this.tenantScopeFactory.getInstance().getTenantCode(), this.userScopeFactory.getInstance().getUserIdSafe());
 					throw new MyForbiddenException(this.errors.getTenantNotAllowed().getCode(), this.errors.getTenantNotAllowed().getMessage());
 				}
 			}
@@ -284,6 +285,15 @@ public class TenantInterceptor implements WebRequestInterceptor {
 					this.indicatorAccessEventHandler.handle(this.userScopeFactory.getInstance().getUserId());
 				}
 				this.transactionManager.commit(status);
+			} catch (OptimisticLockException ex) {
+				// The in-memory lock above only covers this JVM and can time out, and the app runs more than one
+				// replica, so two requests for the same user can sync roles at once - typically the parallel calls
+				// the webapp fires right after login. Both converge on the same set of roles, so the loser has
+				// nothing left to do: its rows were already written or deleted by the winner. Failing the request
+				// here turned that into a 500 on login. JpaTransactionManager clears the request-bound EntityManager
+				// as part of the rollback, so the rest of the request starts from a clean persistence context.
+				if (status != null) this.transactionManager.rollback(status);
+				logger.warn("roles for user {} were synced concurrently by another request. Continuing with the roles that request committed", this.userScopeFactory.getInstance().getUserId());
 			} catch (Exception ex) {
 				if (status != null) this.transactionManager.rollback(status);
 				throw ex;

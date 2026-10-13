@@ -1,0 +1,73 @@
+<mat-form-field appearance="outline" class="search-field" subscriptSizing="dynamic">
+	<mat-icon matPrefix>search</mat-icon>
+	<input matInput type="search" [formControl]="term" [matAutocomplete]="auto"
+		[placeholder]="'REPORTS.SEARCH.PLACEHOLDER' | translate"
+		[attr.aria-label]="'REPORTS.SEARCH.LABEL' | translate">
+	@if (searching()) {
+		<mat-spinner matSuffix diameter="20"></mat-spinner>
+	}
+	<mat-autocomplete #auto="matAutocomplete" class="question-search-panel" [displayWith]="displayNothing" autoActiveFirstOption
+		(optionSelected)="onSelected($event)">
+		@if (semanticHits().length > 0) {
+			<mat-optgroup [label]="'REPORTS.SEARCH.GROUP-SEMANTICS' | translate">
+				@for (hit of semanticHits(); track hit.subject + hit.semantic) {
+					<mat-option [value]="semanticPick(hit)">
+						<div class="hit">
+							<div class="hit-main">
+								<span class="hit-title">{{hit.semantic}}</span>
+								<span class="hit-kind">{{(hit.subject === subjectTypes.Plan ? 'REPORTS.SUBJECT.PLANS' : 'REPORTS.SUBJECT.ASSETS') | translate}}</span>
+							</div>
+							<div class="hit-sub">
+								@if (hit.label) { {{'REPORTS.SEARCH.AS-CALLED' | translate: { title: hit.label } }} · }
+								{{(hit.groupCount === 1 ? 'REPORTS.SEARCH.ACROSS-GROUPS-ONE' : 'REPORTS.SEARCH.ACROSS-GROUPS') | translate: { count: hit.groupCount } }}
+								@for (word of typeWords(hit); track word) { · {{word | translate}} }
+							</div>
+						</div>
+					</mat-option>
+				}
+			</mat-optgroup>
+		}
+		@if (assetHits().length > 0) {
+			<mat-optgroup [label]="'REPORTS.SEARCH.GROUP-ASSET-QUESTIONS' | translate">
+				@for (hit of assetHits(); track hit.groupId + hit.fieldSetId) {
+					<mat-option [value]="questionPick(hit)">
+						<div class="hit">
+							<div class="hit-main">
+								<span class="hit-numbering">{{hit.numbering}}</span>
+								<span class="hit-title">{{hit.title}}</span>
+							</div>
+							<div class="hit-sub">
+								{{hit.groupLabel}}@if (hit.tenantCode) { ({{hit.tenantCode}}) }
+								@for (word of typeWords(hit); track word) { · {{word | translate}} }
+								· {{(hit.versionCount === 1 ? 'REPORTS.SEARCH.VERSIONS-ONE' : 'REPORTS.SEARCH.VERSIONS') | translate: { count: hit.versionCount } }}
+							</div>
+						</div>
+					</mat-option>
+				}
+			</mat-optgroup>
+		}
+		@if (planHits().length > 0) {
+			<mat-optgroup [label]="'REPORTS.SEARCH.GROUP-PLAN-QUESTIONS' | translate">
+				@for (hit of planHits(); track hit.groupId + hit.fieldSetId) {
+					<mat-option [value]="questionPick(hit)">
+						<div class="hit">
+							<div class="hit-main">
+								<span class="hit-numbering">{{hit.numbering}}</span>
+								<span class="hit-title">{{hit.title}}</span>
+							</div>
+							<div class="hit-sub">
+								{{hit.groupLabel}}@if (hit.tenantCode) { ({{hit.tenantCode}}) }
+								@for (word of typeWords(hit); track word) { · {{word | translate}} }
+								· {{(hit.versionCount === 1 ? 'REPORTS.SEARCH.VERSIONS-ONE' : 'REPORTS.SEARCH.VERSIONS') | translate: { count: hit.versionCount } }}
+							</div>
+						</div>
+					</mat-option>
+				}
+			</mat-optgroup>
+		}
+		@if (nothingFound()) {
+			<mat-option disabled>{{'REPORTS.SEARCH.NOTHING-FOUND' | translate}}</mat-option>
+		}
+	</mat-autocomplete>
+</mat-form-field>
+<p class="search-hint">{{'REPORTS.SEARCH.HINT' | translate}}</p>

@@ -56,6 +56,7 @@ public class DefaultValueBuilder extends BaseBuilder<DefaultValue, DefaultValueE
             if (fields.hasField(this.asIndexer(DefaultValue._dateValue))) m.setDateValue(d.getDateValue());
             if (fields.hasField(this.asIndexer(DefaultValue._booleanValue))) m.setBooleanValue(d.getBooleanValue());
             if (fields.hasField(this.asIndexer(DefaultValue._textValue))) m.setTextValue(d.getTextValue());
+            if (fields.hasField(this.asIndexer(DefaultValue._numberValue))) m.setNumberValue(d.getNumberValue());
 
             models.add(m);
         }

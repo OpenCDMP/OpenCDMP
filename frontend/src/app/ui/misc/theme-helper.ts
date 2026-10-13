@@ -46,6 +46,7 @@ export function generateDynamicTheme(primaryColor: string) {
 
     // Apply the theme to the body by updating custom properties for material tokens
     applyTheme(theme, {target: targetElement, dark: false})
+
     // // Get the theme from a hex color
     // const theme = themeFromSourceColor(argbPrimary);
 

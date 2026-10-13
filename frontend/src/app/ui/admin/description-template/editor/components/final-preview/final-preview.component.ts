@@ -1,23 +1,24 @@
-﻿import { Component, Input, OnInit, SimpleChanges } from '@angular/core';
-import { UntypedFormGroup } from '@angular/forms';
-import { DescriptionTemplateFieldType } from '@app/core/common/enum/description-template-field-type';
-import { DescriptionTemplate, DescriptionTemplateBaseFieldData, DescriptionTemplateDefinition, DescriptionTemplateField, DescriptionTemplateFieldSet, DescriptionTemplateMultiplicity, DescriptionTemplatePage, DescriptionTemplateReferenceTypeData, DescriptionTemplateRule, DescriptionTemplateSection } from '@app/core/model/description-template/description-template';
-import { DescriptionTemplateBaseFieldDataPersist, DescriptionTemplateDefinitionPersist, DescriptionTemplateFieldPersist, DescriptionTemplateFieldSetPersist, DescriptionTemplateMultiplicityPersist, DescriptionTemplatePagePersist, DescriptionTemplatePersist, DescriptionTemplateReferenceTypeFieldPersist, DescriptionTemplateRulePersist, DescriptionTemplateSectionPersist } from '@app/core/model/description-template/description-template-persist';
+﻿import { Component, Input, OnInit, SimpleChanges, OnChanges, ChangeDetectionStrategy } from '@angular/core';
+import { FormGroup, UntypedFormGroup, FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { FieldType } from '@app/core/common/enum/field-type';
+import { DescriptionTemplate, DescriptionTemplateDefinition, BaseField, BaseFieldSet, FieldReferenceTypeData, BaseSection } from '@app/core/model/description-template/description-template';
+import { DescriptionTemplateDefinitionPersist, BaseFieldPersist, FieldSetPersist, DescriptionTemplatePersist, FieldReferenceTypePersist, SectionPersist } from '@app/core/model/description-template/description-template-persist';
 import { Description } from '@app/core/model/description/description';
 import { ReferenceType } from '@app/core/model/reference-type/reference-type';
-import { DescriptionEditorModel } from '@app/ui/description/editor/description-editor.model';
+import { DescriptionEditorForm, DescriptionEditorModel } from '@app/ui/description/editor/description-editor.model';
 import { VisibilityRulesService } from '@app/ui/description/editor/description-form/visibility-rules/visibility-rules.service';
+import { DescriptionFormComponent } from '../../../../../description/editor/description-form/description-form.component';
 
 
 @Component({
     selector: 'app-final-preview-component',
     templateUrl: './final-preview.component.html',
-    styleUrls: ['./final-preview.component.scss'],
     providers: [VisibilityRulesService],
-    standalone: false
+    changeDetection: ChangeDetectionStrategy.Eager,
+    imports: [DescriptionFormComponent, FormsModule, ReactiveFormsModule]
 })
 
-export class FinalPreviewComponent implements OnInit {
+export class FinalPreviewComponent implements OnInit, OnChanges {
 
 
 	@Input() descriptionTemplatePersist: DescriptionTemplatePersist;
@@ -26,6 +27,7 @@ export class FinalPreviewComponent implements OnInit {
 	descriptionTemplate: DescriptionTemplate;
 
 	previewPropertiesFormGroup: UntypedFormGroup;
+    formGroup: FormGroup<DescriptionEditorForm>;
 
 	constructor(public visibilityRulesService: VisibilityRulesService) {
 
@@ -48,6 +50,7 @@ export class FinalPreviewComponent implements OnInit {
 				descriptionTemplate: this.descriptionTemplate
 			}
 			const descriptionEditorModel = new DescriptionEditorModel().fromModel(mockDescription, mockDescription.descriptionTemplate);
+            this.formGroup = descriptionEditorModel.buildForm(null, false, this.visibilityRulesService);
 			this.previewPropertiesFormGroup = descriptionEditorModel.properties.buildForm({visibilityRulesService: this.visibilityRulesService}) as UntypedFormGroup;
 
 			this.visibilityRulesService.setContext(this.descriptionTemplate.definition, this.previewPropertiesFormGroup);
@@ -74,21 +77,21 @@ export class FinalPreviewComponent implements OnInit {
 	private buildDescriptionTemplateDefinition(persist: DescriptionTemplateDefinitionPersist) : DescriptionTemplateDefinition{
 		if (persist == null) return null;
 		return {
-			pages: persist.pages.map(x => this.buildDescriptionTemplatePage(x))
-		}
-	}
-
-	private buildDescriptionTemplatePage(persist: DescriptionTemplatePagePersist) : DescriptionTemplatePage{
-		if (persist == null) return null;
-		return {
-			id: persist.id,
-			ordinal: persist.ordinal,
-			title: persist.title,
 			sections: persist.sections.map(x => this.buildDescriptionTemplateSection(x)),
 		}
 	}
 
-	private buildDescriptionTemplateSection(persist: DescriptionTemplateSectionPersist) : DescriptionTemplateSection{
+	// private buildDescriptionTemplatePage(persist: DescriptionTemplatePagePersist) : DescriptionTemplatePage{
+	// 	if (persist == null) return null;
+	// 	return {
+	// 		id: persist.id,
+	// 		ordinal: persist.ordinal,
+	// 		title: persist.title,
+	// 		sections: persist.sections.map(x => this.buildDescriptionTemplateSection(x)),
+	// 	}
+	// }
+
+	private buildDescriptionTemplateSection(persist: SectionPersist) : BaseSection{
 		if (persist == null) return null;
 		return {
 			id: persist.id,
@@ -100,7 +103,7 @@ export class FinalPreviewComponent implements OnInit {
 		}
 	}
 
-	private buildDescriptionTemplateFieldSet(persist: DescriptionTemplateFieldSetPersist) : DescriptionTemplateFieldSet{
+	private buildDescriptionTemplateFieldSet(persist: FieldSetPersist) : BaseFieldSet{
 		if (persist == null) return null;
 		return {
 			id: persist.id,
@@ -114,16 +117,17 @@ export class FinalPreviewComponent implements OnInit {
 				max: persist.multiplicity?.max,
 				min: persist.multiplicity?.min,
 				placeholder: persist.multiplicity?.placeholder,
-				tableView: persist.multiplicity?.tableView
+				tableView: persist.multiplicity?.tableView,
+				transposedTableView: persist.multiplicity?.transposedTableView,
 			},
 			hasCommentField: persist.hasCommentField,
 			fields: persist.fields.map(x => this.buildDescriptionTemplateField(x)),
 		}
 	}
 
-	private buildDescriptionTemplateField (persist: DescriptionTemplateFieldPersist) : DescriptionTemplateField{
+	private buildDescriptionTemplateField (persist: BaseFieldPersist) : BaseField{
 		if (persist == null) return null;
-		let convertedField: DescriptionTemplateField ={
+		const convertedField: BaseField ={
 			id: persist.id,
 			ordinal: persist.ordinal,
 			semantics: persist.semantics,
@@ -134,11 +138,11 @@ export class FinalPreviewComponent implements OnInit {
 			data: persist.data,
 		}
 
-		if (persist.data.fieldType === DescriptionTemplateFieldType.REFERENCE_TYPES) {
+		if (persist.data.fieldType === FieldType.REFERENCE_TYPES) {
 			convertedField.data = persist.data;
-			let selectedReferenceType = this.availableReferenceTypes.find(referenceType => referenceType.id == (persist.data as DescriptionTemplateReferenceTypeFieldPersist).referenceTypeId);
-			(convertedField.data as DescriptionTemplateReferenceTypeData).referenceType = {
-					id: (persist.data as DescriptionTemplateReferenceTypeFieldPersist).referenceTypeId,
+			const selectedReferenceType = this.availableReferenceTypes.find(referenceType => referenceType.id == (persist.data as FieldReferenceTypePersist).referenceTypeId);
+			(convertedField.data as FieldReferenceTypeData).referenceType = {
+					id: (persist.data as FieldReferenceTypePersist).referenceTypeId,
 					name: selectedReferenceType?.name,
 				};
 		} else {

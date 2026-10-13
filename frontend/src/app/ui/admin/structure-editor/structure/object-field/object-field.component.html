@@ -1,0 +1,32 @@
+<div class="of">
+	<div class="of-head">
+		<span class="bp2-field-label of-label">{{ (kind === 'section' ? 'PLAN-BLUEPRINT-EDITOR.OBJECTS.SECTION-IS' : 'PLAN-BLUEPRINT-EDITOR.OBJECTS.QUESTION-IS') | translate }} <span class="bp2-sub">({{'PLAN-BLUEPRINT-EDITOR.OPTIONAL' | translate}})</span></span>
+	</div>
+	@if (editor.readOnly) {
+		@if (objects.length) {
+			<div class="of-read">@for (k of objects; track k) { <span class="of-chip"><mat-icon aria-hidden="true">data_object</mat-icon>{{k}}</span> }</div>
+		} @else { <span class="bp2-sub">{{'PLAN-BLUEPRINT-EDITOR.OBJECTS.NONE' | translate}}</span> }
+	} @else {
+		<app-bp2-semantics-picker mode="objects" [control]="form.get('semantics')" [ariaLabel]="((kind === 'section' ? 'PLAN-BLUEPRINT-EDITOR.OBJECTS.SECTION-IS' : 'PLAN-BLUEPRINT-EDITOR.OBJECTS.QUESTION-IS') | translate) + (label ? ' · ' + label : '')" />
+	}
+	@if (lines.length) {
+		<ul class="of-lines">
+			@for (l of lines; track l.key) {
+				<li>
+					<strong>{{ l.known?.label || l.key }}</strong>
+					<span class="bp2-sub">
+						· {{ kind === 'section' ? (editor.term('PLAN-BLUEPRINT-EDITOR.OBJECTS.ONE-PER-SECTION') | translate) : ('PLAN-BLUEPRINT-EDITOR.OBJECTS.ONE-PER-ANSWER' | translate) }}
+						@if (l.parentLabel) { · {{'PLAN-BLUEPRINT-EDITOR.OBJECTS.INSIDE' | translate: { parent: l.parentLabel } }} }
+						@if (!l.known) { · {{'PLAN-BLUEPRINT-EDITOR.OBJECTS.OWN' | translate}} }
+					</span>
+					@if (suggestRepeat(l)) {
+						<div class="of-hint"><mat-icon aria-hidden="true">lightbulb</mat-icon><span>{{'PLAN-BLUEPRINT-EDITOR.OBJECTS.LIST-HINT' | translate}}</span><button mat-button type="button" class="bp2-btn-sm" (click)="allowMore.emit()">{{'PLAN-BLUEPRINT-EDITOR.OBJECTS.ALLOW-MORE' | translate}}</button></div>
+					}
+				</li>
+			}
+		</ul>
+		<div class="bp2-help">{{ (kind === 'section' ? 'PLAN-BLUEPRINT-EDITOR.OBJECTS.SECTION-HELP' : 'PLAN-BLUEPRINT-EDITOR.OBJECTS.QUESTION-HELP') | translate }}</div>
+	} @else if (!editor.readOnly) {
+		<div class="bp2-help">{{ (kind === 'section' ? 'PLAN-BLUEPRINT-EDITOR.OBJECTS.SECTION-EMPTY-HELP' : 'PLAN-BLUEPRINT-EDITOR.OBJECTS.QUESTION-EMPTY-HELP') | translate }}</div>
+	}
+</div>

@@ -1,0 +1,21 @@
+<div class="p-3">
+	<div mat-dialog-title class="row d-flex align-items-center">
+		<div>{{ data.title }}</div>
+		<div class="ml-auto">
+			<button mat-icon-button (click)="cancel()" [attr.aria-label]="'ALT-TEXT.CLOSE-DIALOG' | translate">
+				<mat-icon aria-hidden="true">close</mat-icon>
+			</button>
+		</div>
+	</div>
+	<div mat-dialog-content>
+		<app-file-uploader
+			[accept]="'text/xml, .xml'"
+			(onChange)="selectFile($event)"
+			(onRemove)="onRemove()"
+		/>
+	</div>
+	<div mat-dialog-actions class="d-flex justify-content-between gap-half-rem">
+		<button mat-stroked-button type="button" class="padded-shadow-btn" (click)="cancel()">{{ data.cancelButton }}</button>
+		<button mat-flat-button color="primary" class="padded-shadow-btn" type="button" (click)="confirm()" [disabled]="!file">{{ data.confirmButton }}</button>
+	</div>
+</div>

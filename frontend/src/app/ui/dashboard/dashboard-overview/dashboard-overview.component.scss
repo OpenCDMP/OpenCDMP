@@ -1,0 +1,44 @@
+.overview-container {
+    background-color: var(--mat-sys-background);
+    color: var(--mat-sys-on-background);
+    .overview-title{
+        font-size: var(--mat-sys-title-medium-size);
+        font-weight: bold;
+        margin-bottom: 0.25rem;
+        color: var(--mat-sys-secondary);
+    }
+    .overview-item-title {
+        opacity: 0.9;
+    }
+    .mat-icon-fab {
+        background-color: var(--mat-sys-primary-fixed);
+        color: var(--mat-sys-on-primary-fixed);
+        padding: 0.5rem;
+        border-radius: 8px;
+        margin: 0.25rem 0;
+        width: 42px;
+        height: 42px;
+    }
+    .overview-link {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        padding: 0.25rem 0.5rem;
+        margin: 0 -0.5rem;
+        border-radius: 12px;
+        color: inherit;
+        text-decoration: none;
+        &:hover {
+            background-color: color-mix(in srgb, var(--mat-sys-on-surface) 8%, transparent);
+        }
+    }
+    .overview-logo {
+        display: block;
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+    }
+    .overview-chevron {
+        color: var(--mat-sys-on-surface-variant);
+    }
+}

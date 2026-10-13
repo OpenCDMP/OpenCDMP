@@ -1,0 +1,226 @@
+<div class="container-fluid">
+	<div class="row">
+		<div class="col-md-10 offset-md-1 maintenance">
+			<app-admin-page-header titleKey="MAINTENANCE-TASKS.TITLE" descriptionKey="MAINTENANCE-TASKS.DESCRIPTION">
+				@if (run() && !runPanelVisible()) {
+					<ng-container actions>
+						<button mat-stroked-button type="button" (click)="showRunPanel()">{{ 'MAINTENANCE-TASKS.RUN.SHOW' | translate }}</button>
+					</ng-container>
+				}
+			</app-admin-page-header>
+
+			@if (runPanelVisible() && run(); as current) {
+				<section #runPanel class="maintenance__card maintenance__run" aria-labelledby="maintenance-run-title" aria-live="polite">
+					<div class="maintenance__run-head">
+						<h2 id="maintenance-run-title" class="maintenance__card-title">
+							@switch (current.status) {
+								@case (runStatus.Running) { {{ 'MAINTENANCE-TASKS.RUN.RUNNING' | translate }} }
+								@case (runStatus.Succeeded) { {{ 'MAINTENANCE-TASKS.RUN.SUCCEEDED' | translate }} }
+								@case (runStatus.Failed) { {{ 'MAINTENANCE-TASKS.RUN.FAILED' | translate: { count: runFailedCount() } }} }
+								@case (runStatus.Stopped) { {{ 'MAINTENANCE-TASKS.RUN.STOPPED' | translate }} }
+								@case (runStatus.Interrupted) { {{ 'MAINTENANCE-TASKS.RUN.INTERRUPTED' | translate }} }
+							}
+							· {{ (current.preset === afterUpgradePreset ? 'MAINTENANCE-TASKS.PRESET.TITLE' : 'MAINTENANCE-TASKS.RUN.SELECTED-TASKS') | translate }}
+						</h2>
+						<span class="maintenance__run-count">{{ 'MAINTENANCE-TASKS.RUN.PROGRESS' | translate: { done: runFinishedCount(), total: current.tasks.length } }}</span>
+					</div>
+					<mat-progress-bar mode="determinate" [value]="current.tasks.length ? runFinishedCount() * 100 / current.tasks.length : 0" [attr.aria-label]="'MAINTENANCE-TASKS.RUN.PROGRESS-LABEL' | translate" />
+					<p class="maintenance__muted">
+						@if (current.status === runStatus.Running) {
+							{{ (current.stopRequested ? 'MAINTENANCE-TASKS.RUN.STOPPING' : 'MAINTENANCE-TASKS.RUN.HINT') | translate }}
+						} @else if (current.status === runStatus.Interrupted) {
+							{{ 'MAINTENANCE-TASKS.RUN.INTERRUPTED-HINT' | translate }}
+						} @else {
+							{{ 'MAINTENANCE-TASKS.RUN.FINISHED-AT' | translate: { date: (current.finishedAt | dateTimeFormatter: 'short') } }}
+						}
+					</p>
+
+					<div class="maintenance__run-groups">
+						@for (entry of runPanelGroups(); track entry.group.key) {
+							<div class="maintenance__run-group">
+								<div class="maintenance__run-group-head">
+									<h3>{{ 'MAINTENANCE-TASKS.GROUPS.' + entry.group.key + '.TITLE' | translate }}</h3>
+									<span class="maintenance__muted">{{ 'MAINTENANCE-TASKS.RUN.PROGRESS' | translate: { done: entry.finished, total: entry.tasks.length } }}</span>
+								</div>
+								<ul class="maintenance__run-tasks">
+									@for (task of entry.tasks; track task.task) {
+										<li class="maintenance__run-task" [class.maintenance__run-task--running]="task.status === taskStatus.Running">
+											@switch (task.status) {
+												@case (taskStatus.Succeeded) { <mat-icon class="maintenance__ok" aria-hidden="true">check_circle</mat-icon> }
+												@case (taskStatus.Failed) { <mat-icon class="maintenance__error" aria-hidden="true">error</mat-icon> }
+												@case (taskStatus.Running) { <mat-spinner diameter="20" aria-hidden="true" /> }
+												@case (taskStatus.Skipped) { <mat-icon class="maintenance__muted" aria-hidden="true">block</mat-icon> }
+												@default { <mat-icon class="maintenance__muted" aria-hidden="true">schedule</mat-icon> }
+											}
+											<span class="maintenance__run-task-label">
+												{{ taskLabelKey(task.task) | translate }}
+												@if (task.error) {
+													<span class="maintenance__run-task-error">{{ task.error }}</span>
+												}
+											</span>
+											<span class="maintenance__run-task-state">{{ 'MAINTENANCE-TASKS.TASK-RUN-STATUS.' + task.status | translate }}</span>
+										</li>
+									}
+								</ul>
+							</div>
+						}
+					</div>
+
+					<div class="maintenance__actions">
+						@if (current.status === runStatus.Running) {
+							<button mat-stroked-button type="button" [disabled]="current.stopRequested" (click)="stop()">{{ 'MAINTENANCE-TASKS.RUN.STOP' | translate }}</button>
+						}
+						<button mat-button type="button" (click)="hideRunPanel()">{{ 'MAINTENANCE-TASKS.RUN.HIDE' | translate }}</button>
+					</div>
+				</section>
+			}
+
+			<div class="maintenance__overview">
+				<section class="maintenance__card maintenance__preset" aria-labelledby="maintenance-preset-title">
+					<div>
+						<div class="maintenance__eyebrow">{{ 'MAINTENANCE-TASKS.PRESET.EYEBROW' | translate }}</div>
+						<h2 id="maintenance-preset-title" class="maintenance__card-title">{{ 'MAINTENANCE-TASKS.PRESET.TITLE' | translate }}</h2>
+						<p>{{ 'MAINTENANCE-TASKS.PRESET.DESCRIPTION' | translate: { count: allTaskCount } }}</p>
+					</div>
+					<button mat-flat-button type="button" class="maintenance__preset-action" [disabled]="running() || busy()" (click)="runPreset()">{{ 'MAINTENANCE-TASKS.PRESET.ACTION' | translate }}</button>
+				</section>
+
+				<section class="maintenance__card maintenance__database" aria-labelledby="maintenance-database-title">
+					<h2 id="maintenance-database-title" class="maintenance__eyebrow">{{ 'MAINTENANCE-TASKS.DATABASE.EYEBROW' | translate }}</h2>
+					@if (migrations(); as info) {
+						@if (!info.enabled) {
+							<div class="maintenance__muted">{{ 'MAINTENANCE-TASKS.DATABASE.DISABLED' | translate }}</div>
+						} @else {
+							<code class="maintenance__version">v{{ info.currentVersion }}</code>
+							@if (info.failed) {
+								<div class="maintenance__error">{{ 'MAINTENANCE-TASKS.DATABASE.FAILED' | translate: { count: info.failed } }}</div>
+							} @else if (info.pending) {
+								<div class="maintenance__warning">{{ 'MAINTENANCE-TASKS.DATABASE.PENDING' | translate: { count: info.pending } }}</div>
+							} @else {
+								<div class="maintenance__ok">{{ 'MAINTENANCE-TASKS.DATABASE.UP-TO-DATE' | translate: { count: info.applied } }}</div>
+							}
+							<button mat-button type="button" class="maintenance__link" (click)="openHistory()">{{ 'MAINTENANCE-TASKS.DATABASE.VIEW-HISTORY' | translate }}</button>
+						}
+					}
+				</section>
+			</div>
+
+			@if (installation(); as info) {
+				<section class="maintenance__card maintenance__installation" aria-labelledby="maintenance-installation-title">
+					<div class="maintenance__installation-status">
+						<h2 id="maintenance-installation-title" class="maintenance__eyebrow">{{ 'MAINTENANCE-TASKS.INSTALLATION.EYEBROW' | translate }}</h2>
+						@if (info.version) {
+							<code class="maintenance__version">v{{ info.version }}</code>
+						} @else {
+							<div class="maintenance__muted">{{ 'MAINTENANCE-TASKS.INSTALLATION.UNKNOWN-VERSION' | translate }}</div>
+						}
+						@if (!info.updateCheckEnabled) {
+							<div class="maintenance__muted">{{ 'MAINTENANCE-TASKS.INSTALLATION.CHECK-DISABLED' | translate }}</div>
+						} @else if (!info.checkedAt) {
+							<div class="maintenance__muted">{{ 'MAINTENANCE-TASKS.INSTALLATION.NOT-CHECKED' | translate }}</div>
+						} @else {
+							@if (info.updateAvailable) {
+								<div class="maintenance__warning">{{ 'MAINTENANCE-TASKS.INSTALLATION.UPDATE-AVAILABLE' | translate: { version: info.latestVersion } }}</div>
+								@if (info.releaseUrl) {
+									<a mat-button class="maintenance__link" [href]="info.releaseUrl" target="_blank" rel="noopener">{{ 'MAINTENANCE-TASKS.INSTALLATION.RELEASE-NOTES' | translate }}<span class="cdk-visually-hidden"> ({{ 'ALT-TEXT.OPENS-IN-NEW-TAB' | translate }})</span></a>
+								}
+							} @else {
+								<div class="maintenance__ok">{{ 'MAINTENANCE-TASKS.INSTALLATION.UP-TO-DATE' | translate }}</div>
+							}
+							<div class="maintenance__muted">{{ 'MAINTENANCE-TASKS.INSTALLATION.LAST-CHECKED' | translate: { date: (info.checkedAt | dateTimeFormatter: 'short') } }}</div>
+						}
+						<div class="maintenance__muted">{{ 'MAINTENANCE-TASKS.INSTALLATION.ID' | translate }} <code>{{ info.id }}</code></div>
+						@if (info.updateCheckEnabled) {
+							<p class="maintenance__muted">{{ 'MAINTENANCE-TASKS.INSTALLATION.HINT' | translate }}</p>
+							<mat-checkbox [checked]="info.shareUsage" aria-describedby="maintenance-share-usage-hint" (change)="setShareUsage($event)">{{ 'MAINTENANCE-TASKS.INSTALLATION.SHARE-USAGE' | translate }}</mat-checkbox>
+							<p id="maintenance-share-usage-hint" class="maintenance__muted">{{ 'MAINTENANCE-TASKS.INSTALLATION.SHARE-USAGE-HINT' | translate }}</p>
+						}
+					</div>
+					@if (info.notices?.length) {
+						<div class="maintenance__news">
+							<h3>{{ 'MAINTENANCE-TASKS.INSTALLATION.NEWS' | translate }}</h3>
+							<ul>
+								@for (notice of info.notices; track $index) {
+									<li>
+										@if (notice.link) {
+											<a [href]="notice.link" target="_blank" rel="noopener">{{ notice.title }}<span class="cdk-visually-hidden"> ({{ 'ALT-TEXT.OPENS-IN-NEW-TAB' | translate }})</span></a>
+										} @else {
+											<strong>{{ notice.title }}</strong>
+										}
+										@if (notice.body) {
+											<p class="maintenance__muted">{{ notice.body }}</p>
+										}
+									</li>
+								}
+							</ul>
+						</div>
+					}
+				</section>
+			}
+
+			@for (group of groups; track group.key) {
+				<section class="maintenance__card" [attr.aria-labelledby]="'maintenance-group-' + group.key">
+					<div class="maintenance__group-head">
+						<div>
+							<div class="maintenance__group-title">
+								<h2 [id]="'maintenance-group-' + group.key" class="maintenance__card-title">{{ 'MAINTENANCE-TASKS.GROUPS.' + group.key + '.TITLE' | translate }}</h2>
+								<span class="maintenance__badge">{{ 'MAINTENANCE-TASKS.GROUPS.' + group.key + '.SERVICE' | translate }}</span>
+							</div>
+							<p class="maintenance__muted">{{ 'MAINTENANCE-TASKS.GROUPS.' + group.key + '.DESCRIPTION' | translate }}</p>
+						</div>
+						<div class="maintenance__actions">
+							@if (group.tasks.length > 1) {
+								<button mat-stroked-button type="button" (click)="toggleGroup(group)">{{ (allSelected(group) ? 'MAINTENANCE-TASKS.ACTIONS.CLEAR-ALL' : 'MAINTENANCE-TASKS.ACTIONS.SELECT-ALL') | translate }}</button>
+							}
+							<button mat-stroked-button color="primary" type="button" [disabled]="running() || busy()" (click)="runGroup(group)">
+								{{ (group.tasks.length > 1 ? 'MAINTENANCE-TASKS.ACTIONS.RUN-ALL' : 'MAINTENANCE-TASKS.ACTIONS.RUN') | translate: { count: group.tasks.length } }}
+							</button>
+						</div>
+					</div>
+					<div class="maintenance__tasks">
+						@for (task of group.tasks; track task) {
+							<div class="maintenance__task" [class.maintenance__task--selected]="isSelected(task)">
+								<mat-checkbox [checked]="isSelected(task)" (change)="toggle(task)">
+									<span class="maintenance__task-label">{{ taskLabelKey(task) | translate }}</span>
+									@if (lastRun(task); as last) {
+										@if (last.status === taskStatus.Failed) {
+											<span class="maintenance__task-status maintenance__error">{{ 'MAINTENANCE-TASKS.TASK-STATUS.FAILED' | translate: { date: (last.finishedAt | dateTimeFormatter: 'short') } }}</span>
+										} @else {
+											<span class="maintenance__task-status maintenance__ok">{{ 'MAINTENANCE-TASKS.TASK-STATUS.DONE' | translate: { date: (last.finishedAt | dateTimeFormatter: 'short') } }}</span>
+										}
+									} @else {
+										<span class="maintenance__task-status maintenance__muted">{{ 'MAINTENANCE-TASKS.TASK-STATUS.NEVER' | translate }}</span>
+									}
+								</mat-checkbox>
+							</div>
+						}
+					</div>
+					@if (group.key === 'KPI') {
+						<p class="maintenance__muted maintenance__note">{{ 'MAINTENANCE-TASKS.GROUPS.KPI.NOTE' | translate }}</p>
+					}
+				</section>
+			}
+
+			<section class="maintenance__card maintenance__danger" aria-labelledby="maintenance-clear-title">
+				<div>
+					<h2 id="maintenance-clear-title" class="maintenance__card-title">{{ 'MAINTENANCE-TASKS.CLEAR-INDEX.TITLE' | translate }}</h2>
+					<p class="maintenance__muted">{{ 'MAINTENANCE-TASKS.CLEAR-INDEX.DESCRIPTION' | translate }}</p>
+				</div>
+				<button mat-stroked-button color="warn" type="button" [disabled]="running()" (click)="clearIndexes()">{{ 'MAINTENANCE-TASKS.CLEAR-INDEX.ACTION' | translate }}</button>
+			</section>
+
+			@if (selectedCount() > 0) {
+				<div class="maintenance__selection" role="region" [attr.aria-label]="'MAINTENANCE-TASKS.SELECTION.COUNT' | translate: { count: selectedCount() }">
+					<div>
+						<div class="maintenance__selection-count">{{ 'MAINTENANCE-TASKS.SELECTION.COUNT' | translate: { count: selectedCount() } }}</div>
+						<div class="maintenance__muted">{{ 'MAINTENANCE-TASKS.SELECTION.HINT' | translate }}</div>
+					</div>
+					<div class="maintenance__actions">
+						<button mat-stroked-button type="button" (click)="clearSelection()">{{ 'MAINTENANCE-TASKS.ACTIONS.CLEAR-SELECTION' | translate }}</button>
+						<button mat-flat-button color="primary" type="button" [disabled]="running() || busy()" (click)="runSelected()">{{ 'MAINTENANCE-TASKS.ACTIONS.RUN-SELECTED' | translate: { count: selectedCount() } }}</button>
+					</div>
+				</div>
+			}
+		</div>
+	</div>
+</div>

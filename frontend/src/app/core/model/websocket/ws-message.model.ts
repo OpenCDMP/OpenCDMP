@@ -9,11 +9,8 @@ export interface WSMessage {
 }
 
 export interface UserActionPayload {
-	blueprintSectionId?: Guid;
-	blueprintFieldId?: Guid;
 	descriptionId?: Guid;
-	descriptionPageId?: string;
-	descriptionSectionId?: string;
-	descriptionFieldSetId?: string;
+	sectionId?: string;
+	fieldSetId?: string;
 }
 

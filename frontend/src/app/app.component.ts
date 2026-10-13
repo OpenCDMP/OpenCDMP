@@ -1,9 +1,10 @@
 
-import { of as observableOf, Subscription, timer } from 'rxjs';
+import { of as observableOf, Subscription } from 'rxjs';
 
-import { AfterViewInit, Component, effect, OnInit, Renderer2, ViewChild } from '@angular/core';
-import { ActivatedRoute, NavigationEnd, Router } from '@angular/router';
-import { LangChangeEvent, TranslateService } from '@ngx-translate/core';
+import { AfterViewInit, Component, effect, OnInit, Renderer2, ViewChild, OnDestroy, ChangeDetectionStrategy } from '@angular/core';
+import { ActivatedRoute, NavigationEnd, Router, RouterOutlet } from '@angular/router';
+import { MatDialog } from '@angular/material/dialog';
+import { LangChangeEvent, TranslateService, TranslatePipe } from '@ngx-translate/core';
 import { filter, map, switchMap, takeUntil } from 'rxjs/operators';
 import { AuthService, LoginStatus } from './core/services/auth/auth.service';
 import { CultureService } from './core/services/culture/culture-service';
@@ -22,18 +23,26 @@ import { CookieConsentService } from './core/services/cookie-consent/cookieconse
 import { PlanWebSocketService } from './core/services/websocket/plan-websocket.service';
 import { PrincipalService } from './core/services/http/principal.service';
 import { BaseComponent } from '@common/base/base.component';
+import { UserTermsAcceptanceService } from './core/services/http/user-terms-acceptance.service';
+import { TermsAcceptanceDialogComponent } from './ui/misc/terms-acceptance-dialog/terms-acceptance-dialog.component';
+import { A11yAnnouncerService } from './core/services/accessibility/a11y-announcer.service';
+import { GuidedTourComponent } from './library/guided-tour/guided-tour.component';
+import { NavbarComponent } from './ui/navbar/navbar.component';
+import { SidebarComponent } from './ui/sidebar/sidebar.component';
+import { NotificationComponent } from './library/notification/notification.component';
 
 
 declare const gapi: any;
-declare var $: any;
+declare let $: any;
 
 @Component({
     selector: 'app-root',
     templateUrl: './app.component.html',
     styleUrls: ['./app.component.scss'],
-    standalone: false
+    changeDetection: ChangeDetectionStrategy.Eager,
+    imports: [GuidedTourComponent, NavbarComponent, SidebarComponent, RouterOutlet, NotificationComponent, TranslatePipe]
 })
-export class AppComponent extends BaseComponent implements OnInit, AfterViewInit {
+export class AppComponent extends BaseComponent implements OnInit, AfterViewInit, OnDestroy {
 
 	hasBreadCrumb = observableOf(false);
 	private sideNavSubscription: Subscription;
@@ -57,7 +66,6 @@ export class AppComponent extends BaseComponent implements OnInit, AfterViewInit
 		private configurationService: ConfigurationService,
 		private matomoService: MatomoService,
 		private tenantHandlingService: TenantHandlingService,
-		private sidenavService: SideNavService,
 		private breadcrumbService: BreadcrumbService,
 		private sanitizer: DomSanitizer,
 		private planWebSocketService: PlanWebSocketService,
@@ -65,9 +73,20 @@ export class AppComponent extends BaseComponent implements OnInit, AfterViewInit
         private renderer: Renderer2,
         private cookieConsentService: CookieConsentService,
 		private principalService: PrincipalService,
+		private dialog: MatDialog,
+		private userTermsAcceptanceService: UserTermsAcceptanceService,
+		protected sidenavService: SideNavService,
+		private announcer: A11yAnnouncerService,
 	) {
 		super();
 		this.initializeServices();
+
+		effect(() => {
+			const termsStatus = this.authentication.termsAcceptanceStatus();
+			if (termsStatus?.termsOfServiceAcceptanceRequired && termsStatus?.content) {
+				this.openTermsAcceptanceDialog(termsStatus.content);
+			}
+		});
 		this.matomoService.init();
 
 		const paperPlaneIconSrc = this.sanitizer.bypassSecurityTrustResourceUrl('/assets/images/annotations/paper-plane.svg');
@@ -75,43 +94,18 @@ export class AppComponent extends BaseComponent implements OnInit, AfterViewInit
 
         effect(() => {
             const language = this.languageSignal();
-            document.querySelector('html')?.setAttribute('lang', language);
+            const html = document.querySelector('html');
+            html?.setAttribute('lang', language);
+            // WCAG 1.3.2 / 3.1.x: keep document direction in sync with the language so
+            // RTL locales render correctly. (Full Material mirroring would also need CDK
+            // BidiModule/Dir — tracked as a follow-up.)
+            const rtlCodes = ['ar', 'he', 'fa', 'ur', 'ps', 'sd', 'ug', 'yi', 'dv'];
+            const base = (language || '').split('-')[0].toLowerCase();
+            html?.setAttribute('dir', rtlCodes.includes(base) ? 'rtl' : 'ltr');
         })
 	}
 	ngAfterViewInit(): void {
         this.cookieConsentService.init();
-		setTimeout(() => {
-			this.sideNavSubscription = this.sidenavService.status().subscribe(isopen => {
-				const hamburger = document.getElementById('hamburger');
-				if (isopen) {
-					//update value of hamburfer
-					if (!hamburger) {//try later
-						setTimeout(() => {
-							const hamburger = document.getElementById('hamburger');
-							if (hamburger) {
-								hamburger.classList.add('change');
-							}
-						}, 300);
-					} else {
-						hamburger.classList.add('change');
-					}
-					this.sidenav.open()
-				} else {//closed
-					if (!hamburger) {//try later
-						setTimeout(() => {
-							const hamburger = document.getElementById('hamburger');
-							if (hamburger) {
-								hamburger.classList.remove('change');
-							}
-						}, 300);
-					} else {
-						hamburger.classList.remove('change');
-					}
-					this.sidenav.close();
-
-				}
-			});
-		});
 	}
 
 	onActivate(event: any) {
@@ -130,35 +124,22 @@ export class AppComponent extends BaseComponent implements OnInit, AfterViewInit
 			switchMap(route => route.data),
 			map(data => data['breadcrumb']));
 
-		const appTitle = this.titleService.getTitle();
+		// The browser-tab title is composed by AppTitleStrategy from the route breadcrumb
+		// taxonomy. Here we only react to navigation for layout + accessibility: toggle the
+		// router-outlet-only shell, then move focus to the main content and announce the new
+		// page so screen-reader/keyboard users are taken to it (WCAG 2.4.3 / 4.1.3).
 		this.router
 			.events.pipe(
-				filter(event => event instanceof NavigationEnd),
-				map(() => {
-					let child = this.route.firstChild;
-					if (child != null) {
-						while (child.firstChild) {
-							child = child.firstChild;
-						}
-						if (child.snapshot.data && child.snapshot.data.showOnlyRouterOutlet) {
-							this.showOnlyRouterOutlet = true;
-						} else {
-							this.showOnlyRouterOutlet = false;
-						}
-
-						const usePrefix = child.snapshot.data['usePrefix'] ?? true;
-						if (child.snapshot.data['getFromTitleService']) {
-							return { title: this.titleService.getTitle(), usePrefix: usePrefix };
-						}
-						else if (child.snapshot.data['title']) {
-							return { title: child.snapshot.data['title'], usePrefix: usePrefix };
-						}
+				filter(event => event instanceof NavigationEnd)
+			).subscribe(() => {
+				let child = this.route.firstChild;
+				if (child != null) {
+					while (child.firstChild) {
+						child = child.firstChild;
 					}
-					return { title: appTitle, usePrefix: true };
-				})
-			).subscribe((titleOptions: { title: string, usePrefix: boolean }) => {
-				this.translateTitle(titleOptions.title, titleOptions.usePrefix);
-				this.translate.onLangChange.subscribe(() => this.translateTitle(titleOptions.title, titleOptions.usePrefix));
+					this.showOnlyRouterOutlet = !!child.snapshot.data['showOnlyRouterOutlet'];
+				}
+				this.onPageChanged(this.currentPageLabel());
 			});
 
 
@@ -192,26 +173,31 @@ export class AppComponent extends BaseComponent implements OnInit, AfterViewInit
         }
 	}
 
-	translateTitle(ttl: string, usePrefix: boolean) {
-		if (ttl.length > 0) {
-			this.translate.get(ttl).subscribe((translated: string) => {
-				if (usePrefix) {
-					this.translate.get('GENERAL.TITLES.PREFIX').subscribe((titlePrefix: string) => {
-						this.titleService.setTitle(titlePrefix + translated);
-					});
-				} else {
-					this.titleService.setTitle(translated);
-				}
-			});
-		} else {
-			this.translate.get('GENERAL.TITLES.GENERAL').subscribe((translated: string) => {
-				this.titleService.setTitle(translated);
-			});
-		}
+	/**
+	 * The human page label to announce on navigation — the current document title with the
+	 * "OpenCDMP - " brand prefix stripped (the prefix is noise for screen-reader users).
+	 * The title itself is set by AppTitleStrategy before NavigationEnd fires.
+	 */
+	private currentPageLabel(): string {
+		const full = this.titleService.getTitle();
+		const prefix = this.translate.instant('GENERAL.TITLES.PREFIX');
+		return prefix && full?.startsWith(prefix) ? full.slice(prefix.length) : full;
+	}
+
+	/**
+	 * On client-side navigation, move focus to the main content region and announce
+	 * the new page to assistive tech (WCAG 2.4.3 / 4.1.3). #main-page is `tabindex="-1"`
+	 * so it is programmatically focusable without being a tab stop.
+	 */
+	private onPageChanged(pageTitle: string) {
+		const main = document.getElementById('main-page');
+		main?.focus({ preventScroll: true });
+		this.announcer.announce(pageTitle, 'polite');
 	}
 
 	ngOnDestroy() {
-		this.statusChangeSubscription.unsubscribe();
+		super.ngOnDestroy();
+		this.statusChangeSubscription?.unsubscribe();
 		if (this.sideNavSubscription) {
 			this.sideNavSubscription.unsubscribe();
 		}
@@ -219,6 +205,22 @@ export class AppComponent extends BaseComponent implements OnInit, AfterViewInit
 
 	public isAuthenticated(): boolean {
 		return this.authentication.currentAccountIsAuthenticated();
+	}
+
+	private openTermsAcceptanceDialog(content: string): void {
+		const dialogRef = this.dialog.open(TermsAcceptanceDialogComponent, {
+			disableClose: true,
+			data: { content },
+			maxWidth: '1000px',
+			width: '100%',
+		});
+		dialogRef.afterClosed().pipe(takeUntil(this._destroyed)).subscribe(accepted => {
+			if (accepted) {
+				this.userTermsAcceptanceService.accept()
+					.pipe(takeUntil(this._destroyed))
+					.subscribe({ error: () => {} });
+			}
+		});
 	}
 
 	initializeServices() {
@@ -230,7 +232,8 @@ export class AppComponent extends BaseComponent implements OnInit, AfterViewInit
 		this.translate.setDefaultLang(this.language.getDefaultLanguagesCode());
 		this.authentication.currentAccountIsAuthenticated() && this.authentication.getUserProfileCulture() ? this.cultureService.cultureSelected(this.authentication.getUserProfileCulture()) : this.cultureService.cultureSelected(this.configurationService.defaultCulture);
 		this.authentication.currentAccountIsAuthenticated() && this.authentication.getUserProfileTimezone() ? this.timezoneService.timezoneSelected(this.authentication.getUserProfileTimezone()) : this.timezoneService.timezoneSelected(this.configurationService.defaultTimezone);
-		this.authentication.currentAccountIsAuthenticated() && this.authentication.getUserProfileLanguage() ? this.language.changeLanguage(this.authentication.getUserProfileLanguage()) : (this.language.getDefaultLanguagesCode());
+		const profileLanguage = this.authentication.currentAccountIsAuthenticated() ? this.authentication.getUserProfileLanguage() : null;
+		this.language.changeLanguage(profileLanguage ?? this.language.getDefaultLanguagesCode());
 
 		if (this.authentication.currentAccountIsAuthenticated()) {
 			this.planWebSocketService.connect();

@@ -10,6 +10,8 @@ export class LanguageLookup extends Lookup implements LanguageFilter {
 	isActive: IsActive[];
 	codes: string[];
 	tenantSubQuery: TenantLookup;
+	/** false: only the default tenant's shared rows; true: only tenant-owned rows; absent: both. */
+	tenantIsSet?: boolean;
 
 	constructor() {
 		super();
@@ -22,6 +24,5 @@ export interface LanguageFilter {
 	like: string;
 	isActive: IsActive[];
 	codes: string[];
-	viewOnlyTenant?: boolean;
 	tenantSubQuery: TenantLookup;
 }

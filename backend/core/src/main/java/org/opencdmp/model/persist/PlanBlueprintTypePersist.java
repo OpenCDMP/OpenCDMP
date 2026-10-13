@@ -32,6 +32,10 @@ public class PlanBlueprintTypePersist {
 
     public final static String _name = "name";
 
+    private Integer ordinal;
+
+    public static final String _ordinal = "ordinal";
+
     private String hash;
 
     public final static String _hash = "hash";
@@ -62,6 +66,14 @@ public class PlanBlueprintTypePersist {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public Integer getOrdinal() {
+        return ordinal;
+    }
+
+    public void setOrdinal(Integer ordinal) {
+        this.ordinal = ordinal;
     }
 
     public String getHash() {

@@ -37,7 +37,7 @@ public class PlanUserEntity extends TenantScopedBaseEntity {
     public static final String _role = "role";
 
     @Column(name = "section_id", columnDefinition = "uuid", nullable = true)
-    private UUID sectionId;
+    private String sectionId;
     public static final String _sectionId = "sectionId";
 
     @Column(name = "\"ordinal\"", nullable = false)
@@ -92,12 +92,12 @@ public class PlanUserEntity extends TenantScopedBaseEntity {
         this.role = role;
     }
 
-    public UUID getSectionId() {
+    public String getSectionId() {
         return this.sectionId;
     }
 
-    public void setSectionId(UUID sectionId) {
-        this.sectionId = sectionId;
+    public void setSectionId(String sectionId) {
+        this.sectionId = (sectionId == null || sectionId.isEmpty()) ? null : sectionId;
     }
 
     public Integer getOrdinal() {

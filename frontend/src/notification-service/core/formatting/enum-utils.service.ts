@@ -117,8 +117,8 @@ export class NotificationServiceEnumUtils extends BaseEnumUtilsService {
 
 	public toNotificationChannelString(value: NotificationTemplateChannel): string {
 		switch (value) {
-			case NotificationTemplateChannel.Email: return this.language.instant('NOTIFICATION-SERVICE.TYPES.NOTIFICATION-TEMPLATE-CHANNEL.EMAIL');
-			case NotificationTemplateChannel.InApp: return this.language.instant('NOTIFICATION-SERVICE.TYPES.NOTIFICATION-TEMPLATE-CHANNEL.IN-APP');
+			case NotificationTemplateChannel.Email: return this.language.instant('TYPES.NOTIFICATION-TEMPLATE-CHANNEL.EMAIL');
+			case NotificationTemplateChannel.InApp: return this.language.instant('TYPES.NOTIFICATION-TEMPLATE-CHANNEL.INAPP');
 			default: return '';
 		}
 	}

@@ -32,7 +32,8 @@ export class PluginConfigurationUserEditorModel implements PluginConfigurationUs
 		disabled?: boolean,
 		rootPath?: string
 	}): UntypedFormGroup {
-		let {context = null, disabled = false, rootPath } = params ?? {}
+		const { disabled = false, rootPath } = params ?? {};
+		let { context = null } = params ?? {};
 		if (context == null) {
 			context = PluginConfigurationUserEditorModel.createValidationContext({
 				validationErrorModel: this.validationErrorModel,
@@ -103,6 +104,8 @@ export class PluginConfigurationUserFieldEditorModel implements PluginConfigurat
 	fileValue: Guid;
 	textValue: string;
 	type: PluginDataType = PluginDataType.String;
+	secret: boolean = false;
+	secretSet: boolean = false;
 
 	protected formBuilder: UntypedFormBuilder = new UntypedFormBuilder();
 
@@ -115,10 +118,15 @@ export class PluginConfigurationUserFieldEditorModel implements PluginConfigurat
 			this.code = item.code;
 			if (item.fileValue) this.fileValue = item.fileValue.id;
 			this.textValue = item.textValue;
+			this.secretSet = !!item.secretSet;
 		}
 		if (configuration) {
-			this.type = configuration.fields?.find(x => x.code === this.code)?.type ?? PluginDataType.String;
+			const field = configuration.fields?.find(x => x.code === this.code);
+			this.type = field?.type ?? PluginDataType.String;
+			this.secret = !!field?.authInfo;
 		}
+		// a stored secret is never sent back: null keeps it
+		if (this.secret) this.textValue = null;
 		return this;
 	}
 
@@ -127,7 +135,8 @@ export class PluginConfigurationUserFieldEditorModel implements PluginConfigurat
 		disabled?: boolean,
 		rootPath?: string
 	}): UntypedFormGroup {
-		let { context = null, disabled = false, rootPath } = params ?? {}
+		const { disabled = false, rootPath } = params ?? {};
+		let { context = null } = params ?? {};
 		if (context == null) {
 			context = PluginConfigurationUserFieldEditorModel.createValidationContext({
 				validationErrorModel: this.validationErrorModel,
@@ -140,6 +149,8 @@ export class PluginConfigurationUserFieldEditorModel implements PluginConfigurat
 			fileValue: [{ value: this.fileValue, disabled: disabled }, context.getValidation('fileValue').validators],
 			textValue: [{ value: this.textValue, disabled: disabled }, context.getValidation('textValue').validators],
 			type: [{ value: this.type, disabled: disabled }, context.getValidation('type').validators],
+			secret: [{ value: this.secret, disabled: disabled }],
+			secretSet: [{ value: this.secretSet, disabled: disabled }],
 		});
 
 		return form;

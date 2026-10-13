@@ -2,8 +2,6 @@ package org.opencdmp.configurations.swagger;
 
 public class SwaggerGroupConfig {
 
-    private Group legacyApi;
-
     private Group currentApi;
 
     public static class Group {
@@ -56,14 +54,6 @@ public class SwaggerGroupConfig {
         public void setPathsToMatch(String pathsToMatch) {
             this.pathsToMatch = pathsToMatch;
         }
-    }
-
-    public Group getLegacyApi() {
-        return legacyApi;
-    }
-
-    public void setLegacyApi(Group legacyApi) {
-        this.legacyApi = legacyApi;
     }
 
     public Group getCurrentApi() {

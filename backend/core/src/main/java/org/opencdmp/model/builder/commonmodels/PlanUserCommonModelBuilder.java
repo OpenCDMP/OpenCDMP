@@ -58,6 +58,7 @@ public class PlanUserCommonModelBuilder extends BaseCommonModelBuilder<PlanUserM
         List<CommonModelBuilderItemResponse<PlanUserModel, PlanUserEntity>> models = new ArrayList<>();
         for (PlanUserEntity d : data) {
             PlanUserModel m = new PlanUserModel();
+            m.setSectionId(d.getSectionId());
             switch (d.getRole()){
                 case Viewer -> m.setRole(PlanUserRole.Viewer);
                 case Owner -> m.setRole(PlanUserRole.Owner);

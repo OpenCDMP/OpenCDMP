@@ -1,11 +1,13 @@
-import { DescriptionTemplateFieldDataExternalDatasetType } from "@app/core/common/enum/description-template-field-data-external-dataset-type";
-import { DescriptionTemplateFieldType } from "@app/core/common/enum/description-template-field-type";
-import { DescriptionTemplateFieldValidationType } from "@app/core/common/enum/description-template-field-validation-type";
+import { FieldDataExternalDatasetType } from "@app/core/common/enum/field-data-external-dataset-type";
+import { FieldType } from "@app/core/common/enum/field-type";
+import { FieldValidationType } from "@app/core/common/enum/field-validation-type";
 import { DescriptionTemplateStatus } from "@app/core/common/enum/description-template-status";
 import { UserDescriptionTemplateRole } from "@app/core/common/enum/user-description-template-role";
 import { BaseEntityPersist } from "@common/base/base-entity.model";
 import { Guid } from "@common/types/guid";
 import { PluginConfigurationPersist } from "../plugin-configuration/plugin-configuration";
+import { IconConfigurationPersist } from "../icon-configuration/icon-configuration";
+import { SystemFieldType } from "@app/core/common/enum/system-field-type";
 
 
 export interface DescriptionTemplatePersist extends BaseEntityPersist {
@@ -36,123 +38,142 @@ export interface UserDescriptionTemplatePersist {
 }
 
 export interface DescriptionTemplateDefinitionPersist {
-	pages?: DescriptionTemplatePagePersist[];
+	sections?: SectionPersist[];
 	pluginConfigurations?: PluginConfigurationPersist[];
+	iconConfiguration?: IconConfigurationPersist;
 }
 
 
-export interface DescriptionTemplatePagePersist {
-	id: string;
-	ordinal: number;
-	title: string;
-	sections: DescriptionTemplateSectionPersist[];
-}
+// export interface DescriptionTemplatePagePersist {
+// 	id: string;
+// 	ordinal: number;
+// 	title: string;
+// 	sections: DescriptionTemplateSectionPersist[];
+// }
 
-export interface DescriptionTemplateSectionPersist {
+export interface SectionPersist {
 	id: string;
 	ordinal: number;
 	title: string;
 	description: string;
 
-	sections?: DescriptionTemplateSectionPersist[];
-	fieldSets: DescriptionTemplateFieldSetPersist[];
+	sections?: SectionPersist[];
+	fieldSets: FieldSetPersist[];
+	semantics?: string[];
 }
 
-export interface DescriptionTemplateFieldSetPersist {
+export interface FieldSetPersist {
 	id: string;
 	ordinal: number;
 	title: string;
 	description: string;
 	extendedDescription: string;
 	additionalInformation: string;
-	multiplicity: DescriptionTemplateMultiplicityPersist;
+	multiplicity: MultiplicityPersist;
 	hasMultiplicity: boolean;
 	hasCommentField: boolean;
-	fields: DescriptionTemplateFieldPersist[];
+	fields: BaseFieldPersist[];
+	semantics?: string[];
 }
 
-export interface DescriptionTemplateFieldPersist {
+export interface BaseFieldPersist {
 	id: string;
 	ordinal: number;
 	semantics: string[];
-	defaultValue: DescriptionTemplateDefaultValuePersist;
-	visibilityRules: DescriptionTemplateRulePersist[];
-	validations: DescriptionTemplateFieldValidationType[];
+	defaultValue: DefaultValuePersist;
+	visibilityRules: RulePersist[];
+	validations: FieldValidationType[];
 	includeInExport: boolean;
-	data: DescriptionTemplateBaseFieldDataPersist;
+	data: BaseFieldDataPersist;
 }
 
-export interface DescriptionTemplateDefaultValuePersist {
+export interface DefaultValuePersist {
 	textValue: string;
 	dateValue: Date;
 	booleanValue: boolean;
+    numberValue: number;
 }
 
-export interface DescriptionTemplateRulePersist {
+export interface RulePersist {
 	target: string;
 	textValue: string;
 	dateValue: Date;
 	booleanValue: boolean;
+    numberValue: number;
 }
 
-export interface DescriptionTemplateMultiplicityPersist {
+export interface MultiplicityPersist {
 	min: number;
 	max: number;
 	placeholder: string;
 	tableView: boolean;
+	transposedTableView: boolean;
 }
 
-export interface DescriptionTemplateBaseFieldDataPersist {
+export interface BaseFieldDataPersist {
 	label: string;
-	fieldType: DescriptionTemplateFieldType;
+	fieldType: FieldType;
 }
 
 //
 // Field Types
 //
 
-export interface DescriptionTemplateReferenceTypeFieldPersist extends DescriptionTemplateLabelAndMultiplicityDataPersist {
+
+
+export interface FieldLabelAndMultiplicityDataPersist extends BaseFieldDataPersist {
+    multipleSelect: boolean;
+}
+export interface FieldExternalDatasetDataPersist extends FieldLabelAndMultiplicityDataPersist {
+    type: FieldDataExternalDatasetType;
+}
+export interface FieldReferenceTypePersist extends FieldLabelAndMultiplicityDataPersist {
 	referenceTypeId: Guid;
 }
 
-export interface DescriptionTemplateExternalDatasetDataPersist extends DescriptionTemplateLabelAndMultiplicityDataPersist {
-	type: DescriptionTemplateFieldDataExternalDatasetType;
+export interface FieldLabelDataPersist extends BaseFieldDataPersist {
 }
 
-export interface DescriptionTemplateLabelAndMultiplicityDataPersist extends DescriptionTemplateBaseFieldDataPersist {
-	multipleSelect: boolean;
+export interface FieldRadioBoxDataPersist extends BaseFieldDataPersist {
+	options: FieldRadioBoxOptionPersist[];
 }
 
-export interface DescriptionTemplateLabelDataPersist extends DescriptionTemplateBaseFieldDataPersist {
+export interface FieldSelectDataPersist extends FieldLabelAndMultiplicityDataPersist {
+	options: FieldSelectOptionPersist[];
 }
 
-export interface DescriptionTemplateRadioBoxDataPersist extends DescriptionTemplateBaseFieldDataPersist {
-	options: DescriptionTemplateRadioBoxOptionPersist[];
-}
-
-export interface DescriptionTemplateSelectDataPersist extends DescriptionTemplateLabelAndMultiplicityDataPersist {
-	options: DescriptionTemplateSelectOptionPersist[];
-}
-
-export interface DescriptionTemplateUploadDataPersist extends DescriptionTemplateBaseFieldDataPersist {
-	types: DescriptionTemplateUploadOptionPersist[];
+export interface FieldUploadDataPersist extends BaseFieldDataPersist {
+	types: FieldUploadOptionPersist[];
 	maxFileSizeInMB: number;
 }
-
+export interface FieldNumberDataPersist extends BaseFieldDataPersist {
+}
+export interface FieldSystemDataPersist extends BaseFieldDataPersist {
+    systemFieldType: SystemFieldType;
+}
 //
 // Others
 //
-export interface DescriptionTemplateSelectOptionPersist {
+export interface FieldSelectOptionPersist {
 	label: string;
+	value: string;
+	semantics?: SemanticValuePersist[];
+	exportsNothing?: boolean;
+}
+
+export interface FieldRadioBoxOptionPersist {
+	label: string;
+	value: string;
+	semantics?: SemanticValuePersist[];
+	exportsNothing?: boolean;
+}
+
+export interface SemanticValuePersist {
+	key: string;
 	value: string;
 }
 
-export interface DescriptionTemplateRadioBoxOptionPersist {
-	label: string;
-	value: string;
-}
-
-export interface DescriptionTemplateUploadOptionPersist {
+export interface FieldUploadOptionPersist {
 	label: string;
 	value: string;
 }

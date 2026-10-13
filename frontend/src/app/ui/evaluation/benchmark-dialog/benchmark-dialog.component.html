@@ -1,24 +1,54 @@
-<div>
-  <div mat-dialog-title >
-    <span>{{'BENCHMARK-DIALOG.TITLE' | translate}}</span>
+<div class="evaluate-dialog">
+  <div mat-dialog-title class="dialog-title">
+    @if (evaluatorId?.length > 0) {
+       <span>{{'GENERAL.EVALUATOR.' + $safeNavigationMigration(evaluatorId?.toUpperCase()) + '.TITLE' | translate}}</span>
+    } @else {
+       <span>{{'BENCHMARK-DIALOG.TITLE' | translate}}</span>
+    }
+    @if (evaluatorId?.length > 0) {
+      <div class="dialog-subtitle">{{'BENCHMARK-DIALOG.' + $safeNavigationMigration(evaluatorId?.toUpperCase()) + '.TITLE' | translate}}</div>
+    }
   </div>
+
+  <mat-divider></mat-divider>
 
   <div mat-dialog-content class="benchmark-select">
-    <div class="row mt-3">
-      <div class="col-12">
-        <mat-form-field class="w-100">
-          <mat-select multiple [formControl]="formGroup.get('benchmarks')">
-            @for (benchmark of benchmarks; track benchmark) {
-              <mat-option [value]="benchmark.id">{{benchmark.label}}</mat-option>
-            }
-          </mat-select>
-        </mat-form-field>
-      </div>
-    </div>
-  </div>
-</div>
+    @if (hasBoth) {
+      <mat-button-toggle-group hideSingleSelectionIndicator class="type-toggle" [formControl]="formGroup.get('selectionType')" (change)="onSelectionTypeChange($event.value)">
+        <mat-button-toggle value="benchmarks">{{'BENCHMARK-DIALOG.SELECTION-TYPE.BENCHMARKS' | translate}}</mat-button-toggle>
+        <mat-button-toggle value="tests">{{'BENCHMARK-DIALOG.SELECTION-TYPE.TESTS' | translate}}</mat-button-toggle>
+      </mat-button-toggle-group>
+    }
 
-<div mat-dialog-actions class="row">
-  <div class="col-auto"><button mat-stroked-button class="padded-shadow-btn" type="button" (click)="cancel()">{{'BENCHMARK-DIALOG.ACTIONS.CANCEL' | translate}}</button></div>
-  <div class="col-auto"><button mat-stroked-button color="primary" class="padded-shadow-btn primary-inverted-hover confirm-btn" type="button" (click)="confirm()" [disabled]="!formGroup.valid">{{'BENCHMARK-DIALOG.ACTIONS.EVALUATE' | translate}}</button></div>
+    @if (showBenchmarks) {
+      <div class="option-list">
+        @for (benchmark of benchmarks; track benchmark.id) {
+          <mat-checkbox
+            class="option-card"
+            [class.selected]="isSelected('benchmarks', benchmark.id)"
+            [checked]="isSelected('benchmarks', benchmark.id)"
+            (change)="toggleSelection('benchmarks', benchmark.id, $event.checked)"
+          >{{benchmark.label}}</mat-checkbox>
+        }
+      </div>
+    }
+
+    @if (showTests) {
+      <div class="option-list">
+        @for (test of tests; track test.id) {
+          <mat-checkbox
+            class="option-card"
+            [class.selected]="isSelected('tests', test.id)"
+            [checked]="isSelected('tests', test.id)"
+            (change)="toggleSelection('tests', test.id, $event.checked)"
+          >{{test.label}}</mat-checkbox>
+        }
+      </div>
+    }
+  </div>
+
+  <div mat-dialog-actions align="end" class="dialog-actions">
+    <button mat-button type="button" (click)="cancel()">{{'BENCHMARK-DIALOG.ACTIONS.CANCEL' | translate}}</button>
+    <button mat-flat-button color="primary" type="button" (click)="confirm()" [disabled]="!formGroup.valid">{{'BENCHMARK-DIALOG.ACTIONS.EVALUATE' | translate}}</button>
+  </div>
 </div>

@@ -1,4 +1,4 @@
-import { UntypedFormArray, UntypedFormBuilder, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
+import { UntypedFormArray, UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
 import { RoleOrganizationType } from '@app/core/common/enum/role-organization-type';
 import { ReferencePersist } from '@app/core/model/reference/reference';
 import { User, UserAdditionalInfo, UserAdditionalInfoPersist, UserPersist } from '@app/core/model/user/user';
@@ -73,10 +73,10 @@ export class UserProfileEditorModel extends BaseEditorModel implements UserPersi
 }
 
 export class UserAdditionalInfoEditorModel implements UserAdditionalInfoPersist {
-	avatarUrl: String;
-	timezone: String;
-	culture: String;
-	language: String;
+	avatarUrl: string;
+	timezone: string;
+	culture: string;
+	language: string;
 	roleOrganization: RoleOrganizationType;
 	organization: ReferencePersist;
 	pluginConfigurations: PluginConfigurationUserEditorModel[] = [];

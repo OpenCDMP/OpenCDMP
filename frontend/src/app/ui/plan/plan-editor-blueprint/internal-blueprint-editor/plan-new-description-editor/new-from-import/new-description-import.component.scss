@@ -1,0 +1,115 @@
+@use '@angular/material' as mat;
+@use '../shared/pills' as pills;
+
+:host {
+	display: block;
+}
+
+.field-label {
+	display: block;
+	margin-bottom: 0.35rem;
+	font-weight: 500;
+	.field-label--required { color: var(--mat-sys-error); }
+}
+
+
+mat-form-field {
+	margin-bottom: 0.75rem;
+}
+
+.lookup-row {
+	display: flex;
+	align-items: stretch;
+	gap: 0.75rem;
+	.lookup-row--field {
+		flex: 1;
+		min-width: 0;
+		margin-bottom: 0;
+	}
+	// Same height and corner radius as the input it sits next to (the theme default is a full pill).
+	.lookup-row--button {
+		@include mat.button-overrides((filled-container-shape: 8px));
+		flex-shrink: 0;
+		height: auto;
+		padding: 0 1.5rem;
+	}
+}
+
+.field-hint {
+	margin: 0.4rem 0 0 0;
+	color: var(--mat-sys-on-surface-variant);
+	font-size: var(--mat-sys-body-small-size);
+}
+
+.import-progress {
+	margin: 0.5rem 0;
+}
+
+.results {
+	display: flex;
+	flex-direction: column;
+	gap: 0.75rem;
+	margin: 1rem 0 0 0;
+	padding: 0;
+	list-style: none;
+}
+
+.result {
+	display: flex;
+	align-items: center;
+	gap: 1rem;
+	padding: 1rem 1.25rem;
+	border-radius: 12px;
+	border: 1px solid var(--mat-sys-secondary);
+	background-color: var(--mat-sys-secondary-fixed);
+
+	.result--info { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 0.35rem; }
+	.result--heading { display: flex; align-items: center; flex-wrap: wrap; gap: 0.5rem; }
+	.result--title { font-weight: 600; }
+	.result--meta {
+		display: flex;
+		align-items: center;
+		flex-wrap: wrap;
+		gap: 0.75rem;
+		color: var(--mat-sys-on-surface-variant);
+		font-size: var(--mat-sys-body-medium-size);
+	}
+	.result--id {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.25rem;
+		font-family: monospace;
+		word-break: break-all;
+		mat-icon { font-size: 16px; width: 16px; height: 16px; }
+	}
+	.result--ok {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.35rem;
+		color: var(--mat-sys-on-secondary-fixed-variant); // text on the secondary-fixed card
+		font-size: var(--mat-sys-body-medium-size);
+		mat-icon { font-size: 18px; width: 18px; height: 18px; }
+	}
+	.result--import { flex-shrink: 0; }
+}
+
+.type-chip {
+	@include pills.type-chip;
+}
+
+.no-results {
+	margin: 1rem 0 0 0;
+	color: var(--mat-sys-on-surface-variant);
+}
+
+.import-empty {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 0.75rem;
+	padding: 3rem 1rem;
+	text-align: center;
+	color: var(--mat-sys-on-surface-variant);
+	.import-empty--icon { font-size: 2.5rem; width: 2.5rem; height: 2.5rem; opacity: 0.6; }
+	p { margin: 0; }
+}

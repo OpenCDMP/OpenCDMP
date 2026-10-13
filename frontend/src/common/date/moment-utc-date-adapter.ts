@@ -1,14 +1,9 @@
-import { Inject, Injectable, Optional } from '@angular/core';
+import { Injectable } from '@angular/core';
 import { MomentDateAdapter } from '@angular/material-moment-adapter';
-import { MAT_DATE_LOCALE } from '@angular/material/core';
 import moment, { Moment } from 'moment';
 
 @Injectable()
 export class MomentUtcDateAdapter extends MomentDateAdapter {
-
-	constructor(@Optional() @Inject(MAT_DATE_LOCALE) dateLocale: string) {
-		super(dateLocale);
-	}
 
 	// selected from datepicker
 	createDate(year: number, month: number, date: number): Moment {

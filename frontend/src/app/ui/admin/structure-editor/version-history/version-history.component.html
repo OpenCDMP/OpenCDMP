@@ -1,0 +1,67 @@
+<div class="vh">
+	<header class="vh-head">
+		<app-navigation-breadcrumb />
+		<div class="vh-title">
+			<div>
+				<h1>{{ name ? ('PLAN-BLUEPRINT-EDITOR.HISTORY.TITLE' | translate: { name: name }) : ('PLAN-BLUEPRINT-EDITOR.HEADER.VERSION-HISTORY' | translate) }}</h1>
+				@if (versions?.length) {
+					<div class="bp2-sub">
+						{{'PLAN-BLUEPRINT-EDITOR.HISTORY.COUNT' | bp2Count: versions.length}} · {{t('PLAN-BLUEPRINT-EDITOR.HISTORY.PLANS-TOTAL') | bp2Count: totalUses}}
+						@if (current) { · {{'PLAN-BLUEPRINT-EDITOR.HISTORY.AUTHORS-GET' | translate: { version: current.version } }} }
+						@if (shared) { · <span class="bp2-tag bp2-tag--opt">{{'COMMONS.TENANT-SHARED.CHIP' | translate}}</span> }
+					</div>
+				}
+			</div>
+			@if (canStartNewVersion) {
+				<a mat-flat-button color="primary" [routerLink]="newVersionLink()"><mat-icon aria-hidden="true">add</mat-icon>{{'PLAN-BLUEPRINT-EDITOR.HEADER.NEW-VERSION' | translate}}</a>
+			}
+		</div>
+	</header>
+
+	<section class="bp2-card vh-card">
+		@if (versions === null) {
+			<p class="bp2-help vh-empty">{{'PLAN-BLUEPRINT-EDITOR.VERSIONS.LOADING' | translate}}</p>
+		} @else if (!versions.length) {
+			<p class="bp2-help vh-empty">{{'PLAN-BLUEPRINT-EDITOR.HISTORY.EMPTY' | translate}}</p>
+		} @else {
+			<div class="vh-row vh-row--head" role="row">
+				<span>{{'PLAN-BLUEPRINT-EDITOR.HISTORY.VERSION' | translate}}</span>
+				<span>{{'PLAN-BLUEPRINT-EDITOR.HISTORY.STATUS' | translate}}</span>
+				<span>{{t('PLAN-BLUEPRINT-EDITOR.HISTORY.PLANS') | translate}}</span>
+				<span></span>
+			</div>
+			@for (v of versions; track v.id) {
+				<div class="vh-row" role="row" [class.vh-row--current]="state(v) === 'current'">
+					<span class="vh-version">v{{v.version}}</span>
+					<div class="vh-status">
+						<div class="bp2-row" style="gap: .5rem;">
+							<span class="bp2-tag" [class.bp2-tag--draft]="state(v) === 'draft'" [class.bp2-tag--final]="state(v) === 'current'" [class.bp2-tag--opt]="state(v) === 'previous'">{{ ('PLAN-BLUEPRINT-EDITOR.HISTORY.STATE-' + state(v).toUpperCase()) | translate }}</span>
+							<span>{{ t('PLAN-BLUEPRINT-EDITOR.HISTORY.MEANS-' + state(v).toUpperCase()) | translate }}</span>
+						</div>
+						<div class="bp2-sub">{{ (state(v) === 'draft' ? 'PLAN-BLUEPRINT-EDITOR.HISTORY.STARTED' : 'PLAN-BLUEPRINT-EDITOR.HISTORY.FINALIZED') | translate: { date: ((state(v) === 'draft' ? v.createdAt : v.updatedAt) | dateTimeFormatter: 'short') } }}</div>
+					</div>
+					<span class="vh-plans">{{ v.usageCount ? (t('PLAN-BLUEPRINT-EDITOR.VERSIONS.PLANS') | bp2Count: v.usageCount) : (t('PLAN-BLUEPRINT-EDITOR.HISTORY.NO-PLANS') | translate) }}</span>
+					<div class="vh-actions">
+						@if (state(v) === 'draft' && canEdit) {
+							<a mat-flat-button color="primary" class="bp2-btn-sm" [routerLink]="editorLink(v)">{{'PLAN-BLUEPRINT-EDITOR.HISTORY.CONTINUE' | translate}}</a>
+						} @else {
+							<a mat-stroked-button class="bp2-btn-sm" [routerLink]="editorLink(v)">{{'PLAN-BLUEPRINT-EDITOR.SECTION.OPEN' | translate}}</a>
+						}
+						<button mat-icon-button type="button" class="bp2-icon-btn-sm" [matMenuTriggerFor]="rowMenu" [matMenuTriggerData]="{ v: v }" [attr.aria-label]="'ALT-TEXT.MORE-ACTIONS' | translate"><mat-icon aria-hidden="true">more_vert</mat-icon></button>
+					</div>
+				</div>
+			}
+		}
+	</section>
+
+	<div class="bp2-strip vh-how"><mat-icon aria-hidden="true">info</mat-icon><span>{{t('PLAN-BLUEPRINT-EDITOR.HISTORY.HOW') | translate}}</span></div>
+</div>
+
+<mat-menu #rowMenu="matMenu">
+	<ng-template matMenuContent let-v="v">
+		<a mat-menu-item [routerLink]="editorLink(v)"><mat-icon aria-hidden="true">visibility</mat-icon>{{ (state(v) === 'draft' && canEdit ? 'PLAN-BLUEPRINT-EDITOR.HISTORY.CONTINUE' : 'PLAN-BLUEPRINT-EDITOR.HISTORY.OPEN-READ') | translate }}</a>
+		@if (canEdit || shared) { <a mat-menu-item [routerLink]="cloneLink(v)"><mat-icon aria-hidden="true">content_copy</mat-icon>{{t('PLAN-BLUEPRINT-EDITOR.HISTORY.CLONE') | translate}}</a> }
+		@if (v.usageCount) { <a mat-menu-item [routerLink]="usageRoute(v)" [queryParams]="source.usageLink(v).queryParams"><mat-icon aria-hidden="true">list</mat-icon>{{ t('PLAN-BLUEPRINT-EDITOR.HISTORY.SHOW-USES') | bp2Count: v.usageCount }}</a> }
+		@if (state(v) !== 'draft') { <button mat-menu-item type="button" (click)="downloadXML(v)"><mat-icon aria-hidden="true">download</mat-icon>{{t('PLAN-BLUEPRINT-LISTING.ACTIONS.DOWNLOAD-XML') | translate}}</button> }
+	</ng-template>
+</mat-menu>

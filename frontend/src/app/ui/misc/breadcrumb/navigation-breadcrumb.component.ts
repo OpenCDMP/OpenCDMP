@@ -1,10 +1,12 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component } from "@angular/core";
-import { ActivatedRouteSnapshot, NavigationEnd, Router } from "@angular/router";
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Input } from "@angular/core";
+import { ActivatedRouteSnapshot, NavigationEnd, Router, RouterLink } from "@angular/router";
 import { BaseComponent } from "@common/base/base.component";
 import { combineLatest, of } from "rxjs";
 import { debounceTime, distinctUntilChanged, filter, map, startWith, takeUntil, tap } from "rxjs/operators";
 import { BreadCrumbRouteData, BreadcrumbService } from "./breadcrumb.service";
 import { RouterUtilsService } from "@app/core/services/router/router-utils.service";
+import { MatIcon } from "@angular/material/icon";
+import { TranslatePipe } from "@ngx-translate/core";
 
 
 @Component({
@@ -14,9 +16,12 @@ import { RouterUtilsService } from "@app/core/services/router/router-utils.servi
     ],
     templateUrl: './navigation-breadcrumb.component.html',
     changeDetection: ChangeDetectionStrategy.OnPush,
-    standalone: false
+    imports: [MatIcon, RouterLink, TranslatePipe]
 })
 export class NavigationBreadcrumbComponent extends BaseComponent {
+
+	/** A crumb shown right after home, for pages that live outside the route of the section they belong to. */
+	@Input() parent: { titleKey: string, url: string } | null = null;
 
 	breadCrumbs: BreadCrumbItem[] = [];
 
@@ -95,7 +100,7 @@ export class NavigationBreadcrumbComponent extends BaseComponent {
 			return [];
 		}
 
-		let path = activatedRoute.routeConfig?.path ?? '/'; // undefined path is the root path
+		const path = activatedRoute.routeConfig?.path ?? '/'; // undefined path is the root path
 
 
 		const breadcrumbData: BreadCrumbRouteData | undefined = activatedRoute.routeConfig?.data?.[BreadcrumbService.ROUTE_DATA_KEY];
@@ -103,7 +108,7 @@ export class NavigationBreadcrumbComponent extends BaseComponent {
 		const pathItems = path == '/' ? ['/'] : path.split('/');
 		const currentItems: BreadCrumbItem[] = [];
 
-		for (let pathItem of pathItems) {
+		for (const pathItem of pathItems) {
 
 			const [title, translateParams] = this._composeBreadCrumbTitle({
 				path: pathItem,
@@ -111,7 +116,7 @@ export class NavigationBreadcrumbComponent extends BaseComponent {
 				pathParams: activatedRoute.params
 			});		
 			
-			let pathName = this._enrichPathParamNames(pathItem, activatedRoute.params); // somepath/:id => somepath/1239dfg123-123-123...etc
+			const pathName = this._enrichPathParamNames(pathItem, activatedRoute.params); // somepath/:id => somepath/1239dfg123-123-123...etc
 			
 			const skipNavigation = activatedRoute.routeConfig?.data?.breadcrumb?.skipNavigation ?? false;
 			const hideItem = (breadcrumbData?.hideNavigationItem || this.excludedParamsDictionary[pathName]) ?? false;

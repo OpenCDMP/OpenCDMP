@@ -3,6 +3,7 @@ package org.opencdmp.model.builder.commonmodels;
 import org.opencdmp.authorization.AuthorizationFlags;
 import org.opencdmp.commons.enums.PluginType;
 import org.opencdmp.convention.ConventionService;
+import org.opencdmp.depositbase.enums.DepositFileKind;
 import org.opencdmp.model.builder.BaseBuilder;
 import org.opencdmp.model.deposit.DepositConfiguration;
 import gr.cite.tools.exception.MyApplicationException;
@@ -51,10 +52,13 @@ public class DepositConfigurationBuilder extends BaseBuilder<DepositConfiguratio
             if (fields.hasField(this.asIndexer(DepositConfiguration._repositoryRecordUrl))) m.setRepositoryRecordUrl(d.getRepositoryRecordUrl());
             if (fields.hasField(this.asIndexer(DepositConfiguration._repositoryClientId))) m.setRepositoryClientId(d.getRepositoryClientId());
             if (fields.hasField(this.asIndexer(DepositConfiguration._hasLogo))) m.setHasLogo(d.isHasLogo());
+            if (fields.hasField(this.asIndexer(DepositConfiguration._supportsPreview))) m.setSupportsPreview(d.isSupportsPreview());
             if (fields.hasField(this.asIndexer(DepositConfiguration._configurationFields))) m.setConfigurationFields(d.getConfigurationFields());
             if (fields.hasField(this.asIndexer(DepositConfiguration._userConfigurationFields))) m.setUserConfigurationFields(d.getUserConfigurationFields());
             if (fields.hasField(this.asIndexer(DepositConfiguration._pluginType))) m.setPluginType(PluginType.Deposit);
             if (fields.hasField(this.asIndexer(DepositConfiguration._authMethods))) m.setAuthMethods(d.getAuthMethods());
+            if (fields.hasField(this.asIndexer(DepositConfiguration._uploadedFiles))) m.setUploadedFiles(d.getUploadedFiles() == null || d.getUploadedFiles().isEmpty() ? List.of(DepositFileKind.values()) : d.getUploadedFiles());
+            if (fields.hasField(this.asIndexer(DepositConfiguration._oauthScope))) m.setOauthScope(d.getOauthScope());
 
             models.add(m);
         }

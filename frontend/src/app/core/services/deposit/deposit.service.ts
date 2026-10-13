@@ -7,7 +7,9 @@ import { DepositHttpService } from "./deposit.http.service";
 import { Observable, throwError } from 'rxjs';
 import { tap, catchError, takeUntil } from 'rxjs/operators';
 import { HttpErrorHandlingService } from "@common/modules/errors/error-handling/http-error-handling.service";
+import { DepositPreviewModel, DepositPreviewRequest, PreviewFieldOption } from "@app/core/model/deposit/deposit-preview";
 import { DepositAuthenticateRequest, DepositRequest } from "@app/core/model/deposit/deposit-request";
+import { Guid } from "@common/types/guid";
 import { SnackBarNotificationLevel, UiNotificationService } from "../notification/ui-notification-service";
 import { TranslateService } from "@ngx-translate/core";
 import { EntityDoi } from "@app/core/model/entity-doi/entity-doi";
@@ -54,10 +56,13 @@ export class DepositService extends BaseService {
                 nameof<DepositConfiguration>(x => x.repositoryRecordUrl),
                 nameof<DepositConfiguration>(x => x.repositoryClientId),
                 nameof<DepositConfiguration>(x => x.hasLogo),
+                nameof<DepositConfiguration>(x => x.supportsPreview),
                 nameof<DepositConfiguration>(x => x.redirectUri),
                 nameof<DepositConfiguration>(x => x.configurationFields),
                 nameof<DepositConfiguration>(x => x.userConfigurationFields),
-                nameof<DepositConfiguration>(x => x.pluginType)
+                nameof<DepositConfiguration>(x => x.pluginType),
+                nameof<DepositConfiguration>(x => x.uploadedFiles),
+                nameof<DepositConfiguration>(x => x.oauthScope)
               ])
             .pipe(takeUntil(this._destroyed), catchError((error) => {
                 this._loading.set(false);
@@ -114,7 +119,25 @@ export class DepositService extends BaseService {
                 return throwError(error);
             })
         );
-    }        
+    }
+
+    preview(item: DepositPreviewRequest): Observable<DepositPreviewModel> {
+        return this.depositHttpService.preview(item).pipe(
+            catchError((error) => {
+                this.httpErrorHandlingService.handleBackedRequestError(error);
+                return throwError(error);
+            })
+        );
+    }
+
+    searchVocabulary(repositoryId: string, fieldCode: string, planId: Guid, like?: string): Observable<PreviewFieldOption[]> {
+        return this.depositHttpService.searchVocabulary(repositoryId, fieldCode, planId, like).pipe(
+            catchError((error) => {
+                this.httpErrorHandlingService.handleBackedRequestError(error);
+                return throwError(error);
+            })
+        );
+    }
 
     getLogo(repositoryId: string): Observable<HttpResponse<string>> {
         return this.depositHttpService.getLogo(repositoryId).pipe(

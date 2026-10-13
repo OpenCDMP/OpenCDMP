@@ -1,11 +1,10 @@
 import { FocusMonitor } from '@angular/cdk/a11y';
 import { ENTER } from '@angular/cdk/keycodes';
-import { Component, DoCheck, ElementRef, EventEmitter, Input, OnChanges, OnDestroy, OnInit, Optional, Output, Self, SimpleChanges, TemplateRef, Type, ViewChild } from '@angular/core';
-import { ControlValueAccessor, FormGroupDirective, NgControl, NgForm } from '@angular/forms';
+import { Component, DoCheck, ElementRef, EventEmitter, Input, OnChanges, OnDestroy, OnInit, Optional, Output, Self, SimpleChanges, TemplateRef, Type, ViewChild, ChangeDetectionStrategy } from '@angular/core';
+import { ControlValueAccessor, FormGroupDirective, NgControl, NgForm, FormsModule } from '@angular/forms';
 import { MatAutocomplete, MatAutocompleteSelectedEvent, MatAutocompleteTrigger } from '@angular/material/autocomplete';
-import { MatChipInputEvent } from '@angular/material/chips';
 import { ErrorStateMatcher, _ErrorStateTracker } from '@angular/material/core';
-import { MatFormFieldControl } from '@angular/material/form-field';
+import { MatFormFieldControl, MatSuffix } from '@angular/material/form-field';
 import { AutoCompleteGroup } from '@app/library/auto-complete/auto-complete-group';
 import {
 	MultipleAutoCompleteConfiguration
@@ -13,6 +12,15 @@ import {
 import { BaseComponent } from '@common/base/base.component';
 import { BehaviorSubject, Observable, Subject, Subscription, interval, of as observableOf, of } from 'rxjs';
 import { catchError, debounceTime, delayWhen, distinctUntilChanged, map, mergeMap, startWith, switchMap, take, takeUntil } from 'rxjs/operators';
+import { MatChipGrid, MatChipRow, MatChipRemove, MatChipInput } from '@angular/material/chips';
+import { NgClass, NgTemplateOutlet, NgComponentOutlet, AsyncPipe } from '@angular/common';
+import { MatTooltip } from '@angular/material/tooltip';
+import { MatIconButton } from '@angular/material/button';
+import { MatIcon } from '@angular/material/icon';
+import { MatInput } from '@angular/material/input';
+import { MatOptgroup, MatOption } from '@angular/material/select';
+import { TranslatePipe } from '@ngx-translate/core';
+import { RemoveHtmlTagsPipe } from '../../../core/pipes/remove-html-tags.pipe';
 
 export class CustomComponentBase extends BaseComponent {
     private _errorStateTracker: _ErrorStateTracker;
@@ -52,7 +60,8 @@ export class CustomComponentBase extends BaseComponent {
     templateUrl: './multiple-auto-complete.component.html',
     styleUrls: ['./multiple-auto-complete.component.scss'],
     providers: [{ provide: MatFormFieldControl, useExisting: MultipleAutoCompleteComponent }],
-    standalone: false
+    changeDetection: ChangeDetectionStrategy.Eager,
+    imports: [MatChipGrid, FormsModule, MatChipRow, NgClass, MatTooltip, NgTemplateOutlet, MatIconButton, MatIcon, MatChipRemove, MatInput, MatAutocompleteTrigger, MatChipInput, MatAutocomplete, MatOptgroup, MatOption, NgComponentOutlet, MatSuffix, AsyncPipe, TranslatePipe, RemoveHtmlTagsPipe]
 })
 export class MultipleAutoCompleteComponent extends CustomComponentBase implements OnInit, MatFormFieldControl<string>, ControlValueAccessor, OnDestroy, DoCheck, OnChanges {
 
@@ -103,6 +112,8 @@ export class MultipleAutoCompleteComponent extends CustomComponentBase implement
 
 	isMouseOverPanel: boolean = false;
 	panelClosedSubscription: Subscription;
+	private _panelMousedownListener: (() => void) | null = null;
+	private _panelMouseupListener: (() => void) | null = null;
 
 	get empty() {
 		return (!this.value || this.value.length === 0) && (!this.inputValue || this.inputValue.length === 0);
@@ -178,7 +189,7 @@ export class MultipleAutoCompleteComponent extends CustomComponentBase implement
 				distinctUntilChanged(),
 				switchMap(
 					(origin) => of(origin).pipe(
-						delayWhen((origin) => interval(!!origin ? 0 : 200).pipe(take(1))), // delay focusout (user may have made a selection) then close options if open
+						delayWhen((origin) => interval(origin ? 0 : 200).pipe(take(1))), // delay focusout (user may have made a selection) then close options if open
 					)
 				),
 				takeUntil(this._destroyed)
@@ -200,10 +211,38 @@ export class MultipleAutoCompleteComponent extends CustomComponentBase implement
 	}
 
 	ngOnInit() {
-		this.panelClosedSubscription = this.autocomplete.closed.subscribe((next) => {
-			this.isMouseOverPanel=false;
-		})
-	 }
+		this.panelClosedSubscription = this.autocomplete.closed.subscribe(() => {
+			this.isMouseOverPanel = false;
+			this._removePanelListeners();
+		});
+
+		this.autocomplete.opened.subscribe(() => {
+			setTimeout(() => this._attachPanelListeners());
+		});
+	}
+
+	private _attachPanelListeners() {
+		const panel = this.autocomplete.panel?.nativeElement as HTMLElement;
+		if (!panel) { return; }
+
+		this._panelMousedownListener = () => { this.isMouseOverPanel = true; };
+		this._panelMouseupListener = () => { this.isMouseOverPanel = false; };
+
+		panel.addEventListener('mousedown', this._panelMousedownListener);
+		document.addEventListener('mouseup', this._panelMouseupListener);
+	}
+
+	private _removePanelListeners() {
+		const panel = this.autocomplete.panel?.nativeElement as HTMLElement;
+		if (panel && this._panelMousedownListener) {
+			panel.removeEventListener('mousedown', this._panelMousedownListener);
+		}
+		if (this._panelMouseupListener) {
+			document.removeEventListener('mouseup', this._panelMouseupListener);
+		}
+		this._panelMousedownListener = null;
+		this._panelMouseupListener = null;
+	}
 
 	ngDoCheck(): void {
 		if (this.ngControl) {
@@ -369,6 +408,7 @@ export class MultipleAutoCompleteComponent extends CustomComponentBase implement
 	}
 
 	ngOnDestroy() {
+		this._removePanelListeners();
 		this.stateChanges.complete();
 		this.fm.stopMonitoring(this.elRef.nativeElement);
 		this.gettingSelectedItem$.complete();

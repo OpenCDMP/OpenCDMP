@@ -1,0 +1,123 @@
+<section class="re">
+	<p class="re-intro">{{ 'REFERENCE-ENTRIES.INTRO' | translate }}</p>
+
+	<div class="re-tools">
+		<mat-form-field appearance="outline" subscriptSizing="dynamic" class="re-search">
+			<mat-label>{{ 'REFERENCE-ENTRIES.SEARCH' | translate }}</mat-label>
+			<input matInput type="search" (input)="onSearch($any($event.target).value)">
+		</mat-form-field>
+		<mat-form-field appearance="outline" subscriptSizing="dynamic">
+			<mat-label>{{ 'REFERENCE-ENTRIES.FROM' | translate }}</mat-label>
+			<mat-select [value]="source()" (selectionChange)="onSource($event.value)">
+				<mat-option value="any">{{ 'REFERENCE-ENTRIES.FROM-ANY' | translate }}</mat-option>
+				<mat-option value="external">{{ 'REFERENCE-ENTRIES.FROM-SOURCES' | translate }}</mat-option>
+				<mat-option value="internal">{{ 'REFERENCE-ENTRIES.FROM-PEOPLE' | translate }}</mat-option>
+			</mat-select>
+		</mat-form-field>
+		<mat-slide-toggle [checked]="usedOnly()" (change)="onUsedOnly($event.checked)">{{ 'REFERENCE-ENTRIES.USED-ONLY' | translate }}</mat-slide-toggle>
+		<span class="re-spacer"></span>
+		@if (canEdit) {
+			<a mat-flat-button color="primary" [routerLink]="routerUtils.generateUrl('/references/new')"><mat-icon>add</mat-icon>{{ 'REFERENCE-ENTRIES.ADD' | translate }}</a>
+		}
+	</div>
+
+	@if (loading()) {
+		<mat-progress-bar mode="indeterminate" />
+	}
+	<div class="re-table-wrap">
+		<table class="re-table">
+			<thead>
+				<tr>
+					<th scope="col">{{ 'REFERENCE-ENTRIES.NAME' | translate }}</th>
+					<th scope="col">{{ 'REFERENCE-ENTRIES.FROM' | translate }}</th>
+					<th scope="col">{{ 'REFERENCE-ENTRIES.USED' | translate }}</th>
+					<th scope="col">{{ 'REFERENCE-ENTRIES.UPDATED' | translate }}</th>
+				</tr>
+			</thead>
+			<tbody>
+				@for (item of items(); track item.id) {
+					<tr [class.re-row--on]="selected()?.id === item.id">
+						<td>
+							<button type="button" class="re-open" (click)="open(item)">
+								<b>{{ item.label }}</b>
+								@if (item.reference) { <span class="re-ref">{{ item.reference }}</span> }
+							</button>
+						</td>
+						<td><span class="re-badge" [class.re-badge--manual]="isManual(item)">{{ isManual(item) ? ('REFERENCE-ENTRIES.FROM-PEOPLE' | translate) : item.source }}</span></td>
+						<td>{{ usage(item) }}</td>
+						<td>{{ item.updatedAt | dateTimeFormatter: 'short' }}</td>
+					</tr>
+				} @empty {
+					@if (!loading()) {
+						<tr><td colspan="4" class="re-empty">{{ 'REFERENCE-ENTRIES.EMPTY' | translate }}</td></tr>
+					}
+				}
+			</tbody>
+		</table>
+	</div>
+	<mat-paginator [length]="count()" [pageIndex]="pageIndex()" [pageSize]="pageSize()" [pageSizeOptions]="[25, 50, 100]" (page)="onPage($event)" />
+</section>
+
+@if (selected(); as item) {
+	<button type="button" class="re-scrim" tabindex="-1" [attr.aria-label]="'REFERENCE-ENTRIES.CLOSE' | translate" (click)="close()"></button>
+	<aside class="re-drawer" role="dialog" aria-modal="true" aria-labelledby="re-title">
+		<div class="re-drawer__head">
+			<div class="re-drawer__title">
+				<h2 id="re-title">{{ item.label }}</h2>
+				<span class="re-badge" [class.re-badge--manual]="isManual(item)">{{ isManual(item) ? ('REFERENCE-ENTRIES.FROM-PEOPLE' | translate) : item.source }}</span>
+			</div>
+			<button mat-icon-button type="button" (click)="close()" [attr.aria-label]="'REFERENCE-ENTRIES.CLOSE' | translate"><mat-icon aria-hidden="true">close</mat-icon></button>
+		</div>
+		@if (editing() && form) {
+			<form class="re-form" [formGroup]="form" (ngSubmit)="save(item)">
+				<p class="re-note">{{ 'REFERENCE-ENTRIES.EDIT-HINT' | translate }}</p>
+				@if (form.get('label')) {
+					<mat-form-field appearance="outline">
+						<mat-label>{{ 'REFERENCE-ENTRIES.NAME' | translate }}</mat-label>
+						<input matInput formControlName="label" required>
+						@if (form.get('label').hasError('required')) { <mat-error>{{ 'GENERAL.VALIDATION.REQUIRED' | translate }}</mat-error> }
+					</mat-form-field>
+				}
+				@for (field of typeFields; track field.code) {
+					<mat-form-field appearance="outline">
+						<mat-label>{{ field.label || field.code }}</mat-label>
+						<input matInput [formControlName]="field.code" [required]="isRequired(field.code)">
+						@if (form.get(field.code).hasError('required')) { <mat-error>{{ 'GENERAL.VALIDATION.REQUIRED' | translate }}</mat-error> }
+					</mat-form-field>
+				}
+				<mat-form-field appearance="outline">
+					<mat-label>{{ 'REFERENCE-ENTRIES.DESCRIPTION' | translate }}</mat-label>
+					<textarea matInput formControlName="description" rows="3"></textarea>
+				</mat-form-field>
+				<div class="re-drawer__actions">
+					<button mat-button type="button" (click)="editing.set(false)">{{ 'GENERAL.CONFIRMATION-DIALOG.ACTIONS.CANCEL' | translate }}</button>
+					<button mat-flat-button color="primary" type="submit" [disabled]="saving()">{{ 'REFERENCE-ENTRIES.SAVE' | translate }}</button>
+				</div>
+			</form>
+		} @else {
+			@if (!isManual(item)) {
+				<p class="re-note">{{ 'REFERENCE-ENTRIES.FETCHED-NOTE' | translate: { source: item.source } }}</p>
+			}
+			<dl class="re-details">
+				@if (item.reference) { <dt>{{ 'REFERENCE-ENTRIES.IDENTIFIER' | translate }}</dt><dd class="re-ref">{{ item.reference }}</dd> }
+				@if (item.abbreviation) { <dt>{{ 'REFERENCE-ENTRIES.SHORT-NAME' | translate }}</dt><dd>{{ item.abbreviation }}</dd> }
+				@if (item.description) { <dt>{{ 'REFERENCE-ENTRIES.DESCRIPTION' | translate }}</dt><dd>{{ item.description }}</dd> }
+				@for (field of selectedFields(); track field.code) { <dt>{{ field.code }}</dt><dd>{{ field.value }}</dd> }
+				<dt>{{ 'REFERENCE-ENTRIES.USED' | translate }}</dt><dd>{{ usage(item) }}</dd>
+			</dl>
+			@if (item.belongsToCurrentTenant !== false) {
+				<div class="re-drawer__actions">
+					@if (canDelete) {
+						<button mat-button type="button" class="re-delete" (click)="delete(item)">{{ 'REFERENCE-ENTRIES.DELETE' | translate }}</button>
+					}
+					@if (canEdit && isManual(item)) {
+						<button mat-flat-button color="primary" type="button" (click)="startEdit(item)">{{ 'REFERENCE-ENTRIES.EDIT' | translate }}</button>
+					}
+				</div>
+				@if (canDelete) {
+					<span class="re-muted">{{ 'REFERENCE-ENTRIES.DELETE-HINT' | translate }}</span>
+				}
+			}
+		}
+	</aside>
+}

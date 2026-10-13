@@ -1,19 +1,26 @@
 
 import { TAB } from '@angular/cdk/keycodes';
-import { Component, ElementRef, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges, ViewChild } from '@angular/core';
+import { Component, ElementRef, EventEmitter, Input, OnInit, Output, ViewChild, ChangeDetectionStrategy } from '@angular/core';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 import { BaseComponent } from '@common/base/base.component';
 import { FilterService } from '@common/modules/text-filter/filter-service';
-import { TranslateService } from '@ngx-translate/core';
+import { TranslateService, TranslatePipe } from '@ngx-translate/core';
 import { Subject } from 'rxjs';
 import { debounceTime, shareReplay, startWith, takeUntil } from 'rxjs/operators';
+import { MatFormField, MatSuffix } from '@angular/material/form-field';
+import { ReactiveAsteriskDirective } from '../../../forms/reactive-asterisk-directive';
+import { MatInput } from '@angular/material/input';
+import { MatIconButton } from '@angular/material/button';
+import { MatIcon } from '@angular/material/icon';
+import { AsyncPipe } from '@angular/common';
 
 @Component({
     selector: 'app-expandable-search-field',
     templateUrl: './expandable-search-field.component.html',
     styleUrls: ['./expandable-search-field.component.scss'],
-    standalone: false,
-    providers: [{ provide: NG_VALUE_ACCESSOR, useExisting: ExpandableSearchFieldComponent, multi: true }]
+    changeDetection: ChangeDetectionStrategy.Eager,
+    providers: [{ provide: NG_VALUE_ACCESSOR, useExisting: ExpandableSearchFieldComponent, multi: true }],
+    imports: [MatFormField, ReactiveAsteriskDirective, MatInput, MatIconButton, MatSuffix, MatIcon, AsyncPipe, TranslatePipe]
 })
 export class ExpandableSearchFieldComponent extends BaseComponent implements OnInit, ControlValueAccessor {
     @ViewChild('inputField', { static: true }) inputField: ElementRef;
@@ -113,6 +120,6 @@ export class ExpandableSearchFieldComponent extends BaseComponent implements OnI
 	// }
 
 	getPlaceholder(): string {
-		return this.placeholder ? this.language.instant(this.placeholder) : this.language.instant('COMMONS.TEXT-FILTER.LIKE');
+		return this.placeholder ? this.language.instant(this.placeholder) : this.language.instant('GENERAL.CRITERIA.LIKE');
 	}
 }

@@ -3,6 +3,7 @@ package org.opencdmp.service.planblueprinttype;
 import gr.cite.commons.web.authz.service.AuthorizationService;
 import gr.cite.tools.data.builder.BuilderFactory;
 import gr.cite.tools.data.deleter.DeleterFactory;
+import gr.cite.tools.data.query.Ordering;
 import gr.cite.tools.data.query.QueryFactory;
 import gr.cite.tools.exception.MyApplicationException;
 import gr.cite.tools.exception.MyForbiddenException;
@@ -16,6 +17,8 @@ import org.opencdmp.authorization.AuthorizationFlags;
 import org.opencdmp.authorization.Permission;
 import org.opencdmp.commons.enums.IsActive;
 import org.opencdmp.commons.enums.UsageLimitTargetMetric;
+import org.opencdmp.commons.enums.kpi.KpiDirectionType;
+import org.opencdmp.commons.enums.kpi.KpiVersionType;
 import org.opencdmp.convention.ConventionService;
 import org.opencdmp.data.PlanBlueprintTypeEntity;
 import org.opencdmp.data.TenantEntityManagerFactory;
@@ -28,6 +31,7 @@ import org.opencdmp.model.deleter.PlanBlueprintTypeDeleter;
 import org.opencdmp.model.persist.PlanBlueprintTypePersist;
 import org.opencdmp.query.PlanBlueprintTypeQuery;
 import org.opencdmp.service.accounting.AccountingService;
+import org.opencdmp.service.kpi.KpiService;
 import org.opencdmp.service.usagelimit.UsageLimitServiceImpl;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -67,6 +71,8 @@ public class PlanBlueprintTypeServiceImpl implements PlanBlueprintTypeService {
 
     private final AccountingService accountingService;
 
+    private final KpiService kpiService;
+
     @Autowired
     public PlanBlueprintTypeServiceImpl(
             TenantEntityManagerFactory tenantEntityManagerFactory,
@@ -77,7 +83,7 @@ public class PlanBlueprintTypeServiceImpl implements PlanBlueprintTypeService {
             ConventionService conventionService,
             ErrorThesaurusProperties errors,
             MessageSource messageSource,
-            EventBroker eventBroker, UsageLimitServiceImpl usageLimitService, AccountingService accountingService) {
+            EventBroker eventBroker, UsageLimitServiceImpl usageLimitService, AccountingService accountingService, KpiService kpiService) {
         this.tenantEntityManagerFactory = tenantEntityManagerFactory;
         this.authorizationService = authorizationService;
         this.deleterFactory = deleterFactory;
@@ -89,6 +95,7 @@ public class PlanBlueprintTypeServiceImpl implements PlanBlueprintTypeService {
         this.eventBroker = eventBroker;
         this.usageLimitService = usageLimitService;
         this.accountingService = accountingService;
+        this.kpiService = kpiService;
     }
 
     public PlanBlueprintType persist(PlanBlueprintTypePersist model, FieldSet fields) throws MyForbiddenException, MyValidationException, MyApplicationException, MyNotFoundException, InvalidApplicationException {
@@ -113,6 +120,16 @@ public class PlanBlueprintTypeServiceImpl implements PlanBlueprintTypeService {
             data.setCreatedAt(Instant.now());
         }
 
+        if (model.getOrdinal() == null) {
+            PlanBlueprintTypeQuery query = this.queryFactory.query(PlanBlueprintTypeQuery.class).isActive(IsActive.Active);
+            query.setOrder(new Ordering().addDescending(PlanBlueprintTypeEntity._ordinal));
+            PlanBlueprintTypeEntity maxOrdinal = query.firstAs(new BaseFieldSet().ensure(PlanBlueprintTypeEntity._ordinal));
+            if (maxOrdinal != null) data.setOrdinal(maxOrdinal.getOrdinal() + 1);
+            else data.setOrdinal(1);
+        } else {
+            data.setOrdinal(model.getOrdinal());
+        }
+
         data.setCode(model.getCode());
         data.setName(model.getName());
         data.setStatus(model.getStatus());
@@ -124,6 +141,7 @@ public class PlanBlueprintTypeServiceImpl implements PlanBlueprintTypeService {
         } else {
             this.tenantEntityManagerFactory.getInstance().persist(data);
             this.accountingService.increase(UsageLimitTargetMetric.BLUEPRINT_TYPE_COUNT.getValue());
+            this.kpiService.sendIndicatorPointPlanBlueprintTypeEntry(KpiDirectionType.Increase);
         }
 
         this.tenantEntityManagerFactory.getInstance().flush();

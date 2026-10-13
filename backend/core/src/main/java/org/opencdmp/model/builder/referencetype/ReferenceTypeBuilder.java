@@ -30,6 +30,7 @@ public class ReferenceTypeBuilder extends BaseBuilder<ReferenceType, ReferenceTy
     private final TenantScopeFactory tenantScopeFactory;
     private EnumSet<AuthorizationFlags> authorize = EnumSet.of(AuthorizationFlags.None);
     private boolean isPublic;
+    private boolean enableNavigationUrlFieldValues;
 
     @Autowired
     public ReferenceTypeBuilder(
@@ -48,6 +49,11 @@ public class ReferenceTypeBuilder extends BaseBuilder<ReferenceType, ReferenceTy
 
     public ReferenceTypeBuilder isPublic(boolean isPublic) {
         this.isPublic = isPublic;
+        return this;
+    }
+
+    public ReferenceTypeBuilder enableNavigationUrlFieldValues(Boolean enableNavigationUrlFieldValues) {
+        this.enableNavigationUrlFieldValues = enableNavigationUrlFieldValues;
         return this;
     }
 
@@ -73,7 +79,7 @@ public class ReferenceTypeBuilder extends BaseBuilder<ReferenceType, ReferenceTy
             if (!this.isPublic && fields.hasField(this.asIndexer(ReferenceType._belongsToCurrentTenant))) m.setBelongsToCurrentTenant(this.getBelongsToCurrentTenant(d, this.tenantScopeFactory.getInstance()));
             if (!this.isPublic && !definitionFields.isEmpty() && d.getDefinition() != null){
                 ReferenceTypeDefinitionEntity definition = this.xmlHandlingService.fromXmlSafe(ReferenceTypeDefinitionEntity.class, d.getDefinition());
-                m.setDefinition(this.builderFactory.builder(ReferenceTypeDefinitionBuilder.class).authorize(this.authorize).build(definitionFields, definition));
+                m.setDefinition(this.builderFactory.builder(ReferenceTypeDefinitionBuilder.class).authorize(this.authorize).enableNavigationUrlFieldValues(this.enableNavigationUrlFieldValues).build(definitionFields, definition));
             }
             models.add(m);
         }

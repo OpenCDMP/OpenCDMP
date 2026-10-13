@@ -1,0 +1,48 @@
+@use '@angular/material' as mat;
+
+// Segmented pill toggle (Guided/Expert, My/Public assets).
+@mixin pill-toggle-group($height: 32px) {
+	@include mat.button-toggle-overrides((
+		background-color: var(--mat-sys-surface-container-low),
+		shape: 999px,
+		divider-color: transparent,
+		height: $height,
+		selected-state-background-color: var(--mat-sys-secondary),
+		selected-state-text-color: var(--mat-sys-on-secondary),
+		label-text-size: var(--mat-sys-label-large-size),
+	));
+	border: none;
+	.mat-button-toggle {
+		border-radius: 999px;
+		font-weight: 500;
+		mat-icon {
+			font-size: 18px;
+			width: 18px;
+			height: 18px;
+			margin-right: 0.25rem;
+		}
+	}
+}
+
+// Small coloured chip naming an asset template type.
+@mixin type-chip {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.25rem;
+	padding: 0.1rem 0.6rem;
+	border-radius: 999px;
+	font-size: var(--mat-sys-label-medium-size);
+	font-weight: 600;
+	line-height: 1.5;
+	white-space: nowrap;
+}
+
+// Uppercase "Step x of y" / section eyebrow label.
+@mixin eyebrow {
+	margin: 0 0 0.35rem 0;
+	color: var(--mat-sys-secondary);
+	font-size: var(--mat-sys-label-medium-size);
+	font-weight: 700;
+	letter-spacing: 0.08em;
+	text-transform: uppercase;
+}

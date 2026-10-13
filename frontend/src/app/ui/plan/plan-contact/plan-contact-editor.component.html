@@ -1,0 +1,89 @@
+<div class="row">
+    <span aria-live="assertive" class="assistive-text">{{reorderAssistiveText()}}.</span>
+    <span id="operation" class="assistive-text"> {{'ALT-TEXT.REORDER-TABLE.BEGIN-EDITING' | translate}}</span>
+    <ul cdkDropList id="contact-list" class="col-12 unstyled-list" (cdkDropListDropped)="dropContacts($event)" tabindex="0">
+        @for (contact of contactsFormArray()?.controls; track contact; let contactIndex = $index) {
+            <li
+            cdkDrag
+            class="d-flex flex-wrap gap-half-rem align-items-center pb-1 pr-2"
+            [cdkDragDisabled]="contactsFormArray()?.disabled || !canEdit()"
+            >
+            <button
+                class="mb-3"
+                [id]="'drag-handle-' + contactIndex"
+                (keydown)="onContactKeyDown($event, contactIndex, contact.get('firstName').value)"
+                cdkDragHandle
+                [disabled]="contactsFormArray()?.disabled || !canEdit()"
+                mat-icon-button aria-labelledby="operation"
+                [class.reorder-mode]="reorderMode"
+                >
+                <mat-icon aria-hidden="true">drag_indicator</mat-icon>
+            </button>
+            <span class="mb-3 title-size-md">{{contactIndex + 1}}</span>
+            <mat-form-field >
+                <mat-label>{{'PLAN-EDITOR.FIELDS.FIRST-NAME' | translate}}</mat-label>
+                <input id="{{path()}}{{contactIndex > 0 ? '.' + contactIndex : ''}}" matInput type="text" name="firstName" [formControl]="contact.get('firstName')" required>
+                @if (contact.get('firstName').hasError('backendError')) {
+                <mat-error>{{contact.get('firstName').getError('backendError').message}}</mat-error>
+                }
+                @if (contact.get('firstName').hasError('required')) {
+                <mat-error>{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
+                }
+            </mat-form-field>
+            <mat-form-field >
+                <mat-label>{{'PLAN-EDITOR.FIELDS.LAST-NAME' | translate}}</mat-label>
+                <input matInput type="text" name="lastName" [formControl]="contact.get('lastName')" required>
+                @if (contact.get('lastName').hasError('backendError')) {
+                <mat-error>{{contact.get('lastName').getError('backendError').message}}</mat-error>
+                }
+                @if (contact.get('lastName').hasError('required')) {
+                <mat-error>{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
+                }
+            </mat-form-field>
+            <mat-form-field >
+                <mat-label>{{'PLAN-EDITOR.FIELDS.EMAIL' | translate}}</mat-label>
+                <input matInput type="text" name="email" [formControl]="contact.get('email')" required>
+                @if (contact.get('email').hasError('backendError')) {
+                <mat-error>{{contact.get('email').getError('backendError').message}}</mat-error>
+                }
+                @if (contact.get('email').hasError('required')) {
+                <mat-error>{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
+                }
+            </mat-form-field>
+            @if(canEdit()){
+                <button 
+                    mat-icon-button 
+                    class="action-list-icon mb-3" 
+                    matTooltip="{{'PLAN-EDITOR.ACTIONS.SEARCH-CONTACT' | translate}}" 
+                    (click)="searchContact(contactIndex)"
+                    [disabled]="fieldFormControl?.disabled || !canEdit()" 
+                    [attr.aria-label]="'PLAN-EDITOR.ACTIONS.SEARCH-CONTACT' | translate"
+                >
+                    <mat-icon aria-hidden="true">search</mat-icon>
+                </button>
+            }
+            @if(canEdit()){
+                <button 
+                    mat-icon-button 
+                    class="action-list-icon mb-3" 
+                    matTooltip="{{'PLAN-EDITOR.ACTIONS.REMOVE-CONTACT' | translate}}" 
+                    (click)="removeContact(contactIndex)"
+                    [disabled]="fieldFormControl?.disabled || !canEdit()" 
+                    [attr.aria-label]="'PLAN-EDITOR.ACTIONS.REMOVE-CONTACT' | translate"
+                >
+                    <mat-icon aria-hidden="true">delete</mat-icon>
+                </button>
+            }
+            </li>
+        }
+    </ul>
+    <button mat-icon-button (click)="addContact()" [disabled]="contactsFormArray()?.disabled || !canEdit()" matTooltip="{{'PLAN-EDITOR.ACTIONS.ADD-CONTACT' | translate}}" [attr.aria-label]="'PLAN-EDITOR.ACTIONS.ADD-CONTACT' | translate">
+    <mat-icon aria-hidden="true">add</mat-icon>
+    </button>
+    @if (contactsFormArray()?.hasError('backendError')) {
+        <mat-error>{{contactsFormArray().getError('backendError').message}}</mat-error>
+    }
+    @if (contactsFormArray()?.hasError('required')) {
+        <mat-error>{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
+    }
+</div>

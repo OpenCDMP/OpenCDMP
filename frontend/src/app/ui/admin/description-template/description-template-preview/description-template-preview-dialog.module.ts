@@ -7,20 +7,18 @@ import { CommonUiModule } from '@common/ui/common-ui.module';
 import { DescriptionTemplatePreviewDialogComponent } from './description-template-preview-dialog.component';
 
 @NgModule({
-	imports: [
-		CommonUiModule,
-		CommonFormsModule,
-		FormattingModule,
-		DescriptionFormModule
-	],
-	declarations: [
-		DescriptionTemplatePreviewDialogComponent,
-	],
-	exports: [
-		DescriptionTemplatePreviewDialogComponent,
-	],
-	providers: [
-		VisibilityRulesService
-	]
+    imports: [
+        CommonUiModule,
+        CommonFormsModule,
+        FormattingModule,
+        DescriptionFormModule,
+        DescriptionTemplatePreviewDialogComponent
+    ],
+    exports: [
+        DescriptionTemplatePreviewDialogComponent,
+    ],
+    providers: [
+        VisibilityRulesService
+    ]
 })
 export class DescriptionTemplatePreviewDialogModule { }

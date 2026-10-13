@@ -1,0 +1,79 @@
+<div class="overview">
+	<header class="overview--header">
+		<app-template-type-icon [template]="template" />
+		<div class="overview--titles">
+			@if (template.type?.name) {
+				<span class="type-chip" [style.background-color]="typeStyle.background" [style.color]="typeStyle.color">{{ template.type.name }}</span>
+			}
+			<h2 class="overview--title" id="template-overview-title">{{ template.label }}</h2>
+		</div>
+		<button mat-icon-button type="button" class="overview--close" (click)="close()" [attr.aria-label]="'ALT-TEXT.CLOSE-DIALOG' | translate">
+			<mat-icon aria-hidden="true">close</mat-icon>
+		</button>
+	</header>
+
+	<div class="overview--body">
+		<div class="stats">
+			<div class="stat">
+				<span class="stat--label">
+					<mat-icon class="material-symbols-outlined" aria-hidden="true">account_tree</mat-icon>
+					{{ 'NEW-DESCRIPTION.TEMPLATE-OVERVIEW.SECTIONS' | translate }}
+				</span>
+				<span class="stat--value">{{ sectionCount }}</span>
+			</div>
+			<div class="stat">
+				<span class="stat--label">
+					<mat-icon aria-hidden="true">tag</mat-icon>
+					{{ 'NEW-DESCRIPTION.TEMPLATE-OVERVIEW.FIELDS' | translate }}
+				</span>
+				<span class="stat--value">{{ fieldCount }}</span>
+			</div>
+		</div>
+
+		@if (template.description) {
+			<p class="eyebrow">{{ 'NEW-DESCRIPTION.TEMPLATE-OVERVIEW.ABOUT' | translate }}</p>
+			<div class="about" [innerHTML]="template.description"></div>
+		}
+
+		@if (template.definition?.sections?.length) {
+			<p class="eyebrow">{{ 'NEW-DESCRIPTION.TEMPLATE-OVERVIEW.STRUCTURE' | translate }}</p>
+			<ol class="structure">
+				@for (section of template.definition.sections; track section.id; let i = $index) {
+					<li class="structure--item">
+						<span class="structure--index" aria-hidden="true">{{ i + 1 }}</span>
+						<div class="structure--content">
+							<span class="structure--title">{{ section.title }}</span>
+							@if (section.sections?.length) {
+								<ng-container *ngTemplateOutlet="subsections; context: { sections: section.sections }" />
+							}
+						</div>
+					</li>
+				}
+			</ol>
+		}
+	</div>
+
+	<footer class="overview--footer">
+		<button mat-flat-button color="secondary" type="button" class="overview--use"
+			[disabled]="data.disabled" disabledInteractive
+			[matTooltip]="(data.disabledReason ?? '') | translate" [matTooltipDisabled]="!data.disabled"
+			(click)="use()"
+		>
+			{{ 'NEW-DESCRIPTION.TEMPLATE-OVERVIEW.USE' | translate }}
+			<mat-icon iconPositionEnd aria-hidden="true">arrow_forward</mat-icon>
+		</button>
+	</footer>
+</div>
+
+<ng-template #subsections let-sections="sections">
+	<ul class="structure--children">
+		@for (child of sections; track child.id) {
+			<li>
+				<span class="structure--child-title">{{ child.title }}</span>
+				@if (child.sections?.length) {
+					<ng-container *ngTemplateOutlet="subsections; context: { sections: child.sections }" />
+				}
+			</li>
+		}
+	</ul>
+</ng-template>

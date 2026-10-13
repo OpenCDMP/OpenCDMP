@@ -1,235 +1,241 @@
-<div class="container-fluid">
-  <div class="row prefilling-source-editor">
-    @if (formGroup) {
-      <div class="col-md-10 offset-md-1 colums-gapped">
-        <div class="row justify-content-between align-items-center mt-4 mb-4">
-          <div class="col">
-            <app-navigation-breadcrumb />
-          </div>
-          <div class="col-auto">
-            <button mat-stroked-button class="padded-shadow-btn" (click)="cancel()" type="button">{{'PREFILLING-SOURCE-EDITOR.ACTIONS.CANCEL' | translate}}</button>
-          </div>
-          @if (canDelete) {
-            <div class="col-auto">
-              <button mat-stroked-button color="warn" class="padded-shadow-btn" type="button" (click)="delete()">
-                <mat-icon aria-hidden>delete</mat-icon>
-                {{'PREFILLING-SOURCE-EDITOR.ACTIONS.DELETE' | translate}}
-              </button>
-            </div>
-          }
-          @if (canSave) {
-            <div class="col-auto">
-              <button mat-flat-button color="primary" class="padded-shadow-btn" (click)="formSubmit()">
-                <mat-icon>save</mat-icon>
-                {{'PREFILLING-SOURCE-EDITOR.ACTIONS.SAVE' | translate}}
-              </button>
-            </div>
-          }
-        </div>
-        @if (formGroup) {
-          <form (ngSubmit)="formSubmit()" class="d-flex flex-column gap-half-rem">
-            <mat-card appearance="outlined" class="pb-3">
-              <mat-card-content>
-                <div class="pb-3"><small>{{'COMMONS.VALIDATION.REQUIRED-FIELDS-HINT' | translate}}</small></div>
-                <div class="row">
-                  <div class="col-12">
-                    <div class="container-fluid">
-                      <div class="row">
-                        <div class="col-6">
-                          <mat-form-field class="w-100">
-                            <mat-label>{{'PREFILLING-SOURCE-EDITOR.FIELDS.LABEL' | translate}}</mat-label>
-                            <input matInput type="text" name="label" [formControl]="formGroup.get('label')" required>
-                            @if (formGroup.get('label').hasError('backendError')) {
-                              <mat-error>{{formGroup.get('label').getError('backendError').message}}</mat-error>
-                            }
-                            @if (formGroup.get('label').hasError('required')) {
-                              <mat-error>{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
-                            }
-                          </mat-form-field>
-                        </div>
-                        <div class="col-6">
-                          <mat-form-field class="w-100">
-                            <mat-label>{{'PREFILLING-SOURCE-EDITOR.FIELDS.CODE' | translate}}</mat-label>
-                            <input matInput type="text" name="code" [formControl]="formGroup.get('code')" required>
-                            @if (formGroup.get('code').hasError('backendError')) {
-                              <mat-error>{{formGroup.get('code').getError('backendError').message}}</mat-error>
-                            }
-                            @if (formGroup.get('code').hasError('required')) {
-                              <mat-error>{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
-                            }
-                          </mat-form-field>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </mat-card-content>
-            </mat-card>
-            <mat-card appearance="outlined" class="mb-1">
-              <mat-card-header>
-                <mat-card-title>{{'PREFILLING-SOURCE-EDITOR.FIELDS.FIXED-VALUE-FIELDS' | translate}}</mat-card-title>
-              </mat-card-header>
-              <mat-card-content>
-                <div class="row">
-                  <!-- Fixed Value Fields -->
-                  <div class="col-12">
-                    <div class="container-fluid">
-                      <div class="row">
-                        <div class="col-12">
-                          @for (field of formGroup.get('definition').get('fixedValueFields').controls; track field; let fieldIndex = $index) {
-                            <div class="row mb-3">
-                              <div class="col-12">
-                                <div class="row mb-3 d-flex align-items-center">
-                                  <div class="col-auto d-flex">
-                                    <mat-card-title>{{'PREFILLING-SOURCE-EDITOR.FIELDS.FIELD' | translate}} {{fieldIndex + 1}}</mat-card-title>
-                                  </div>
-                                  <div class="col-auto d-flex">
-                                    <button mat-icon-button matTooltip="{{'PREFILLING-SOURCE-EDITOR.ACTIONS.REMOVE-FIELD' | translate}}" (click)="removeFixedValueField(fieldIndex)" [disabled]="formGroup.disabled" [attr.aria-label]="'COMMONS.ACTIONS.REMOVE' | translate">
-                                      <mat-icon aria-hidden>delete</mat-icon>
-                                    </button>
-                                  </div>
-                                </div>
-                                <div class="row">
-                                  <div class="col-9">
-                                    <app-prefilling-source-field-component [form]="field"></app-prefilling-source-field-component>
-                                  </div>
-                                  <div class="col-3">
-                                    <mat-form-field class="w-100">
-                                      <mat-label>{{'PREFILLING-SOURCE-EDITOR.FIELDS.FIXED-VALUE' | translate}}</mat-label>
-                                      <input matInput type="text" name="fixedValue" [formControl]="field.get('fixedValue')">
-                                      @if (field.get('fixedValue').hasError('backendError')) {
-                                        <mat-error>{{field.get('fixedValue').getError('backendError').message}}</mat-error>
-                                      }
-                                      @if (field.get('fixedValue').hasError('required')) {
-                                        <mat-error>{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
-                                      }
-                                    </mat-form-field>
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-                          }
-                          <button mat-flat-button color="accent" class="padded-shadow-btn" type="button" (click)="addFixedValiueField()" [disabled]="formGroup.disabled">{{'PREFILLING-SOURCE-EDITOR.ACTIONS.ADD-FIELD' | translate}}</button>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </mat-card-content>
-            </mat-card>
-            <mat-card appearance="outlined" class="mb-1">
-              <mat-card-header>
-                <mat-card-title>{{'PREFILLING-SOURCE-EDITOR.FIELDS.FIELDS' | translate}}</mat-card-title>
-              </mat-card-header>
-              <mat-card-content>
-                <!-- Fields -->
-                <div class="col-12">
-                  @for (field of formGroup.get('definition').get('fields').controls; track field; let fieldIndex = $index) {
-                    <div class="row mb-3">
-                      <div class="col-12">
-                        <div class="row mb-3 d-flex align-items-center">
-                          <div class="col-auto d-flex">
-                            <mat-card-title>{{'PREFILLING-SOURCE-EDITOR.FIELDS.FIELD' | translate}} {{fieldIndex + 1}}</mat-card-title>
-                          </div>
-                          <div class="col-auto d-flex">
-                            <button mat-icon-button matTooltip="{{'PREFILLING-SOURCE-EDITOR.ACTIONS.REMOVE-FIELD' | translate}}" (click)="removeField(fieldIndex)" [disabled]="formGroup.disabled" [attr.aria-label]="'COMMONS.ACTIONS.REMOVE' | translate">
-                              <mat-icon aria-hidden>delete</mat-icon>
-                            </button>
-                          </div>
-                        </div>
-                        <div class="row">
-                          <div class="col-3">
-                            <mat-form-field class="w-100">
-                              <mat-label>{{'PREFILLING-SOURCE-EDITOR.FIELDS.CODE' | translate}}</mat-label>
-                              <input matInput type="text" name="code" [formControl]="field.get('code')">
-                              @if (field.get('code').hasError('backendError')) {
-                                <mat-error>{{field.get('code').getError('backendError').message}}</mat-error>
-                              }
-                              @if (field.get('code').hasError('required')) {
-                                <mat-error>{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
-                              }
-                            </mat-form-field>
-                          </div>
-                          <div class="col-9">
-                            <app-prefilling-source-field-component [form]="field"></app-prefilling-source-field-component>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  }
-                  <div class="d-flex gap-half-rem">
-                    <button mat-flat-button color="accent" class="padded-shadow-btn" type="button" (click)="addField()" [disabled]="formGroup.disabled">{{'PREFILLING-SOURCE-EDITOR.ACTIONS.ADD-FIELD' | translate}}</button>
-                    @if (formGroup.get('definition').get('fields').value != '') {
-                      <button mat-flat-button color="accent" class="padded-shadow-btn" type="button" (click)="submitFields()" [disabled]="!formGroup.get('definition').get('fields').valid">{{'PREFILLING-SOURCE-EDITOR.ACTIONS.SUBMIT-FIELDS' | translate}}</button>
-                    }
-                  </div>
-                </div>
-              </mat-card-content>
-            </mat-card>
-            <mat-card appearance="outlined" class="mb-1">
-              <mat-card-header>
-                <mat-card-title class="p-3 mb-1 d-flex align-items-center gap-1-rem">
-							    <div>
-							      	{{'PREFILLING-SOURCE-EDITOR.FIELDS.SOURCE-CONFIGURATION' | translate}}
-							    </div>
-                <div class="col-auto d-flex">
-								  <div style="display: inline-block;">
-									  <button mat-icon-button type="button" (click)="openPrefillingSourceTestDialog({key: formGroup.get('definition').get('searchConfiguration').get('key').value})" [attr.aria-label]="'COMMONS.ACTIONS.TEST' | translate">
-										  <mat-icon aria-hidden>bug_report</mat-icon>
-								    </button>
-								  </div>
-							  </div>
-						</mat-card-title>
-              </mat-card-header>
-              <mat-card-content>
-                <div class="row mt-3">
-                  <div class="col-12">
-                    <div class="container-fluid">
-                      <div class="row">
-                        <div class="col-12">
-                          <app-external-fetcher-source-component [formGroup]="formGroup.get('definition').get('searchConfiguration')" [validationErrorModel]="editorModel.validationErrorModel" [validationRootPath]="'definition.searchConfiguration.'"></app-external-fetcher-source-component>
-                          <div>
-                            <mat-checkbox [formControl]="formGroup.get('definition').get('getEnabled')" (change)="getEnabledChanged($event)">
-                              {{'PREFILLING-SOURCE-EDITOR.FIELDS.GET-SOURCE-CONFIGURATION' | translate}}
-                              @if (formGroup.get('definition').get('getEnabled').hasError('backendError')) {
-                                <mat-error>{{formGroup.get('definition').get('getEnabled').getError('backendError').message}}</mat-error>
-                              }
-                              @if (formGroup.get('definition').get('getEnabled').hasError('required')) {
-                                <mat-error>{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
-                              }
-                            </mat-checkbox>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </mat-card-content>
-            </mat-card>
-            @if (formGroup.get('definition').get('getEnabled').value == true) {
-              <mat-card appearance="outlined" class="mb-1">
-                <mat-card-header>
-                  <mat-card-title class="p-3 mb-1 d-flex align-items-center gap-1-rem">
-							      <div>
-								        {{'PREFILLING-SOURCE-EDITOR.FIELDS.GET-SOURCE-CONFIGURATION' | translate}}
-							      </div>
-                  <div class="col-auto d-flex">
-								<div style="display: inline-block;">
-									<button mat-icon-button type="button" (click)="openPrefillingSourceTestDialog({key: formGroup.get('definition').get('getConfiguration').get('key').value})" [attr.aria-label]="'COMMONS.ACTIONS.TEST' | translate">
-										<mat-icon aria-hidden>bug_report</mat-icon>
-								</button>
-								</div>
+@if (formGroup) {
+<div class="pf2">
+	<header class="pf2-header">
+		<div class="pf2-header__row">
+			<app-navigation-breadcrumb />
+			<div class="pf2-header__actions">
+				<span class="pf2-saved" [class.pf2-saved--dirty]="formGroup.dirty" aria-live="polite">
+					@if (isLoading()) { {{'PLAN-BLUEPRINT-EDITOR.HEADER.SAVING' | translate}} }
+					@else if (formGroup.dirty) { {{'PLAN-BLUEPRINT-EDITOR.HEADER.UNSAVED' | translate}} }
+					@else if (!isNew) { {{'PLAN-BLUEPRINT-EDITOR.HEADER.SAVED' | translate}} }
+				</span>
+				<button mat-stroked-button type="button" (click)="cancel()">{{'PLAN-BLUEPRINT-EDITOR.HEADER.CLOSE' | translate}}</button>
+				@if (canSave) {
+					<button mat-flat-button color="primary" type="button" [disabled]="isLoading()" (click)="formSubmit()">{{'PLAN-BLUEPRINT-EDITOR.HEADER.SAVE' | translate}}</button>
+				}
+				<button mat-icon-button type="button" class="pf2-more" [matMenuTriggerFor]="moreMenu" [attr.aria-label]="'ALT-TEXT.MORE-ACTIONS' | translate"><mat-icon aria-hidden="true">more_vert</mat-icon></button>
+				<mat-menu #moreMenu="matMenu">
+					<button mat-menu-item type="button" (click)="exportDefinitionToXml()"><mat-icon aria-hidden="true">download</mat-icon>{{'PREFILLING-SOURCE-EDITOR.ACTIONS.EXPORT-XML' | translate}}</button>
+					@if (canSave) {
+						<button mat-menu-item type="button" (click)="openImportXmlDialog()"><mat-icon aria-hidden="true">upload</mat-icon>{{'PREFILLING-SOURCE-EDITOR.ACTIONS.IMPORT-XML' | translate}}</button>
+					}
+					@if (canDelete) {
+						<button mat-menu-item type="button" class="pf2-danger" [disabled]="isLoading()" (click)="delete()"><mat-icon aria-hidden="true">delete</mat-icon>{{'PREFILLING-SOURCE-EDITOR.ACTIONS.DELETE' | translate}}</button>
+					}
+				</mat-menu>
+			</div>
+		</div>
+
+		<div class="pf2-header__title">
+			<span class="bp2-tile" aria-hidden="true"><mat-icon>file_download</mat-icon></span>
+			<div class="pf2-header__name">
+				<h1>{{ formGroup.get('label').value || ('PREFILLING-SOURCE-EDITOR.HEADER.NEW' | translate) }}</h1>
+				<div class="bp2-sub">
+					@if (formGroup.get('code').value) { {{'PREFILLING-SOURCE-EDITOR.FIELDS.CODE' | translate}} <strong>{{formGroup.get('code').value}}</strong> · }
+					{{'PREFILLING-SOURCE-EDITOR.HEADER.COUNTS' | translate: { rules: rules.length } }}
+				</div>
+			</div>
+		</div>
+		<app-tenant-readonly-banner [readOnly]="!isNew && editorModel?.belongsToCurrentTenant === false" />
+
+		<nav class="pf2-tabs" role="tablist">
+			<button type="button" role="tab" class="pf2-tab" [class.pf2-tab--on]="tab === 'connection'" [attr.aria-selected]="tab === 'connection'" (click)="setTab('connection')"><span class="pf2-step">1</span>{{'PREFILLING-SOURCE-EDITOR.TABS.CONNECTION' | translate}}</button>
+			<button type="button" role="tab" class="pf2-tab" [class.pf2-tab--on]="tab === 'search'" [attr.aria-selected]="tab === 'search'" (click)="setTab('search')">
+				<span class="pf2-step">2</span>{{'PREFILLING-SOURCE-EDITOR.TABS.SEARCH' | translate}}
+				@if (attemptedSave && searchConfig.invalid) { <span class="bp2-count bp2-count--bad">!</span> }
+			</button>
+			<button type="button" role="tab" class="pf2-tab" [class.pf2-tab--on]="tab === 'record'" [attr.aria-selected]="tab === 'record'" (click)="setTab('record')">
+				<span class="pf2-step">3</span>{{'PREFILLING-SOURCE-EDITOR.TABS.RECORD' | translate}}
+				<span class="bp2-count">{{ (recordEnabled ? 'PREFILLING-SOURCE-EDITOR.TABS.ON' : 'PREFILLING-SOURCE-EDITOR.TABS.OFF') | translate }}</span>
+			</button>
+			<button type="button" role="tab" class="pf2-tab" [class.pf2-tab--on]="tab === 'fill'" [attr.aria-selected]="tab === 'fill'" (click)="setTab('fill')">
+				<span class="pf2-step">4</span>{{'PREFILLING-SOURCE-EDITOR.TABS.FILL' | translate}} <span class="bp2-count" [class.bp2-count--todo]="problemCount">{{rules.length}}</span>
+			</button>
+			<button type="button" role="tab" class="pf2-tab" [class.pf2-tab--on]="tab === 'try'" [attr.aria-selected]="tab === 'try'" (click)="setTab('try')"><mat-icon aria-hidden="true">play_arrow</mat-icon>{{'PREFILLING-SOURCE-EDITOR.TABS.TRY' | translate}}</button>
+		</nav>
+	</header>
+
+	<main class="pf2-main">
+		<!-- ============================================================ 1 · connection -->
+		@if (tab === 'connection') {
+			<div class="pf2-stack">
+				<section class="bp2-card">
+					<div class="bp2-card__head"><div><div class="bp2-card__title"><h2>{{'PREFILLING-SOURCE-EDITOR.ABOUT.TITLE' | translate}}</h2></div><div class="bp2-card__desc">{{'PREFILLING-SOURCE-EDITOR.ABOUT.HINT' | translate}}</div></div></div>
+					<div class="bp2-card__body pf2-about">
+						<mat-form-field subscriptSizing="dynamic">
+							<mat-label>{{'PREFILLING-SOURCE-EDITOR.FIELDS.LABEL' | translate}}</mat-label>
+							<input matInput type="text" [formControl]="formGroup.get('label')" required>
+							@if (formGroup.get('label').hasError('required')) { <mat-error>{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error> }
+							@if (formGroup.get('label').hasError('backendError')) { <mat-error>{{formGroup.get('label').getError('backendError').message}}</mat-error> }
+						</mat-form-field>
+						<mat-form-field subscriptSizing="dynamic">
+							<mat-label>{{'PREFILLING-SOURCE-EDITOR.FIELDS.CODE' | translate}}</mat-label>
+							<input matInput type="text" class="pf2-mono" [formControl]="formGroup.get('code')" required>
+							@if (formGroup.get('code').hasError('required')) { <mat-error>{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error> }
+							@if (formGroup.get('code').hasError('backendError')) { <mat-error>{{formGroup.get('code').getError('backendError').message}}</mat-error> }
+						</mat-form-field>
+					</div>
+				</section>
+				<section class="pf2-section">
+					<div class="pf2-section__head"><h2>{{'PREFILLING-SOURCE-EDITOR.CONNECTION.TITLE' | translate}}</h2><span class="bp2-sub">{{'PREFILLING-SOURCE-EDITOR.CONNECTION.HINT' | translate}}</span></div>
+					<app-rt2-source-editor
+						[formGroup]="searchConfig" [sourceIndex]="0" [steps]="['connection']" [showHead]="false" [canEdit]="canSave"
+						[validationRootPath]="'definition.searchConfiguration.'" [validationErrorModel]="editorModel.validationErrorModel" />
+				</section>
+				<div class="pf2-next"><button mat-flat-button color="primary" type="button" (click)="setTab('search')">{{'PREFILLING-SOURCE-EDITOR.CONNECTION.NEXT' | translate}}</button></div>
+			</div>
+		}
+
+		<!-- ============================================================ 2 · search -->
+		@if (tab === 'search') {
+			<section class="pf2-section">
+				<div class="pf2-section__head"><h2>{{'PREFILLING-SOURCE-EDITOR.SEARCH.TITLE' | translate}}</h2><span class="bp2-sub">{{ (recordEnabled ? 'PREFILLING-SOURCE-EDITOR.SEARCH.HINT-RECORD' : 'PREFILLING-SOURCE-EDITOR.SEARCH.HINT-NO-RECORD') | translate }}</span></div>
+				<app-rt2-source-editor
+					[formGroup]="searchConfig" [sourceIndex]="0" [steps]="['request', 'rules', 'test']" [showHead]="false" [connectionManaged]="true" [canEdit]="canSave"
+					[freeMapping]="!recordEnabled" [testFn]="testSearchFn" [mapTitle]="'PREFILLING-SOURCE-EDITOR.SEARCH.MAP-TITLE'" [mapHint]="(recordEnabled ? 'PREFILLING-SOURCE-EDITOR.SEARCH.MAP-HINT-RECORD' : 'PREFILLING-SOURCE-EDITOR.SEARCH.MAP-HINT-NO-RECORD')"
+					[validationRootPath]="'definition.searchConfiguration.'" [validationErrorModel]="editorModel.validationErrorModel"
+					(openConnection)="setTab('connection')" (tested)="searchTest.set($event)" />
+			</section>
+		}
+
+		<!-- ============================================================ 3 · full record -->
+		@if (tab === 'record') {
+			<div class="pf2-stack">
+				<section class="bp2-card">
+					<div class="bp2-card__head">
+						<div><div class="bp2-card__title"><h2>{{'PREFILLING-SOURCE-EDITOR.RECORD.TITLE' | translate}}</h2></div><div class="bp2-card__desc">{{'PREFILLING-SOURCE-EDITOR.RECORD.HINT' | translate}}</div></div>
+						<mat-slide-toggle [checked]="recordEnabled" (change)="setRecordEnabled($event.checked)" [disabled]="!canSave">{{'PREFILLING-SOURCE-EDITOR.RECORD.TOGGLE' | translate}}</mat-slide-toggle>
+					</div>
+					@if (!recordEnabled) {
+						<div class="bp2-card__body">
+							<span class="bp2-field-label">{{'PREFILLING-SOURCE-EDITOR.RECORD.OFF-FIELDS' | translate}}</span>
+							<div class="pf2-codes">@for (code of recordCodes; track code) { <span class="pf2-code">{{code}}</span> }</div>
+							<button mat-button type="button" class="pf2-start" (click)="setTab('search')">{{'PREFILLING-SOURCE-EDITOR.RECORD.OFF-MAP-MORE' | translate}}</button>
+						</div>
+					}
+				</section>
+				@if (recordEnabled) {
+					<app-rt2-source-editor
+						[formGroup]="recordSourceConfig" [sourceIndex]="1" [filterChoice]="false" [steps]="['request', 'rules', 'test']" [showHead]="false" [connectionManaged]="true" [canEdit]="canSave"
+						[freeMapping]="true" [systemCodes]="[]" [testFn]="testSearchFn" [testOptions]="pickedRecordOptions"
+						[testOptionsLabel]="'PREFILLING-SOURCE-EDITOR.RECORD.PICK'" [testOptionsEmpty]="'PREFILLING-SOURCE-EDITOR.RECORD.PICK-EMPTY'"
+						[mapTitle]="'PREFILLING-SOURCE-EDITOR.RECORD.MAP-TITLE'" [mapHint]="'PREFILLING-SOURCE-EDITOR.RECORD.MAP-HINT'"
+						[validationRootPath]="'definition.getConfiguration.'" [validationErrorModel]="editorModel.validationErrorModel"
+						(openConnection)="setTab('connection')" (tested)="recordTest.set($event)" />
+				}
+			</div>
+		}
+
+		<!-- ============================================================ 4 · fill rules -->
+		@if (tab === 'fill') {
+			<div class="pf2-split">
+				<section class="bp2-card pf2-grow">
+					<div class="bp2-card__head">
+						<div><div class="bp2-card__title"><h2>{{'PREFILLING-SOURCE-EDITOR.FILL.TITLE' | translate}}</h2></div><div class="bp2-card__desc">{{'PREFILLING-SOURCE-EDITOR.FILL.HINT' | translate}}</div></div>
+						@if (canSave) { <button mat-stroked-button type="button" (click)="openRule()"><mat-icon aria-hidden="true">add</mat-icon>{{'PREFILLING-SOURCE-EDITOR.FILL.ADD' | translate}}</button> }
+					</div>
+					<div class="bp2-card__body">
+						@if (rules.length) {
+							<div class="pf2-rules" role="table" [attr.aria-label]="'PREFILLING-SOURCE-EDITOR.FILL.TITLE' | translate">
+								<div class="pf2-rule pf2-rule--head" role="row"><span role="columnheader">{{'PREFILLING-SOURCE-EDITOR.FILL.TAKE' | translate}}</span><span role="columnheader"></span><span role="columnheader">{{'PREFILLING-SOURCE-EDITOR.FILL.PUT-INTO' | translate}}</span><span role="columnheader"></span></div>
+								@for (rule of rules; track rule.form) {
+									@let v = rule.form.getRawValue();
+									@let problem = ruleProblem(rule);
+									<div class="pf2-rule" role="row" [class.pf2-rule--warn]="problem">
+										<span role="cell" class="pf2-rule__from">
+											@if (rule.kind === 'field') {
+												<span class="pf2-mono">{{v.code}}</span>
+												@if (sampleOf(v.code); as s) { <span class="bp2-sub pf2-ellipsis">{{s}}</span> }
+											} @else {
+												<span><span class="bp2-tag bp2-tag--todo">{{'PREFILLING-SOURCE-EDITOR.FILL.FIXED' | translate}}</span> <span class="pf2-mono">{{v.fixedValue}}</span></span>
+											}
+										</span>
+										<mat-icon role="cell" aria-hidden="true" class="pf2-rule__arrow">arrow_forward</mat-icon>
+										<span role="cell" class="pf2-rule__to">
+											@if (v.systemFieldTarget) { <span class="bp2-tag bp2-tag--preset">{{ systemTargetName(v.systemFieldTarget) }}</span> }
+											@if (v.semanticTarget) { <span class="bp2-tag bp2-tag--assets pf2-ellipsis" [matTooltip]="v.semanticTarget">{{shortSemantic(v.semanticTarget)}}</span> }
+											@if (problem) { <span class="bp2-tag bp2-tag--todo">{{problem | translate}}</span> }
+										</span>
+										<span role="cell">@if (canSave) { <button mat-icon-button type="button" class="bp2-icon-btn-sm" (click)="openRule(rule)" [attr.aria-label]="'PREFILLING-SOURCE-EDITOR.FILL.EDIT' | translate: { field: v.code || v.fixedValue }"><mat-icon aria-hidden="true">edit</mat-icon></button> }</span>
+									</div>
+								}
 							</div>
-						</mat-card-title>
-                </mat-card-header>
-                <mat-card-content>
-                  <app-external-fetcher-source-component [formGroup]="formGroup.get('definition').get('getConfiguration')" [validationErrorModel]="editorModel.validationErrorModel" [validationRootPath]="'definition.getConfiguration.'"></app-external-fetcher-source-component>
-                </mat-card-content>
-              </mat-card>
-            }
-          </form>
-        }
-      </div>
-    }
-  </div>
+						} @else {
+							<div class="pf2-empty"><mat-icon aria-hidden="true">input</mat-icon><strong>{{'PREFILLING-SOURCE-EDITOR.FILL.EMPTY-TITLE' | translate}}</strong><span class="bp2-sub">{{'PREFILLING-SOURCE-EDITOR.FILL.EMPTY-HINT' | translate}}</span></div>
+						}
+					</div>
+				</section>
+				<aside class="pf2-aside">
+					@if (problemCount) {
+						<section class="bp2-card"><div class="bp2-card__head"><div class="bp2-card__title"><h2>{{'PREFILLING-SOURCE-EDITOR.FILL.ATTENTION' | translate}}</h2></div></div>
+							<div class="bp2-card__body"><div class="bp2-strip bp2-strip--warn"><mat-icon aria-hidden="true">warning</mat-icon><span>{{'PREFILLING-SOURCE-EDITOR.FILL.PROBLEMS' | translate: { n: problemCount } }}</span></div></div>
+						</section>
+					}
+					<section class="bp2-card"><div class="bp2-card__head"><div><div class="bp2-card__title"><h2>{{'PREFILLING-SOURCE-EDITOR.FILL.WHERE-TITLE' | translate}}</h2></div><div class="bp2-card__desc">{{ (recordEnabled ? 'PREFILLING-SOURCE-EDITOR.FILL.WHERE-RECORD' : 'PREFILLING-SOURCE-EDITOR.FILL.WHERE-SEARCH') | translate }}</div></div></div></section>
+					<section class="bp2-card"><div class="bp2-card__head"><div><div class="bp2-card__title"><h2>{{'PREFILLING-SOURCE-EDITOR.FILL.NO-SUBMIT-TITLE' | translate}}</h2></div><div class="bp2-card__desc">{{'PREFILLING-SOURCE-EDITOR.FILL.NO-SUBMIT' | translate}}</div></div></div></section>
+				</aside>
+			</div>
+		}
+
+		<!-- ============================================================ 5 · try it -->
+		@if (tab === 'try') {
+			<div class="pf2-try">
+				<section class="bp2-card">
+					<div class="bp2-card__head"><div><div class="bp2-card__title"><h2>{{'PREFILLING-SOURCE-EDITOR.TRY.TITLE' | translate}}</h2></div><div class="bp2-card__desc">{{'PREFILLING-SOURCE-EDITOR.TRY.HINT' | translate}}</div></div></div>
+					<div class="bp2-card__body">
+						<div class="pf2-try__search">
+							<mat-form-field subscriptSizing="dynamic">
+								<mat-label>{{'PREFILLING-SOURCE-EDITOR.TRY.SEARCH' | translate}}</mat-label>
+								<input matInput type="text" [value]="tryLike()" (input)="tryLike.set($any($event.target).value)" (keydown.enter)="runTrySearch()">
+							</mat-form-field>
+							<button mat-flat-button color="primary" type="button" [disabled]="tryRunning() || !!tryBlocker" (click)="runTrySearch()"><mat-icon aria-hidden="true">search</mat-icon>{{'PREFILLING-SOURCE-EDITOR.TRY.RUN' | translate}}</button>
+						</div>
+						@if (tryBlocker; as blocker) {
+							<div class="bp2-strip"><mat-icon aria-hidden="true">info</mat-icon><span>{{(blocker === 'record' ? 'PREFILLING-SOURCE-EDITOR.TRY.NEEDS-RECORD' : 'PREFILLING-SOURCE-EDITOR.TRY.NEEDS-SEARCH') | translate}}</span><button mat-button type="button" (click)="setTab(blocker)">{{(blocker === 'record' ? 'PREFILLING-SOURCE-EDITOR.TRY.OPEN-RECORD' : 'PREFILLING-SOURCE-EDITOR.TRY.OPEN-SEARCH') | translate}}</button></div>
+						}
+						@if (tryError()) { <div class="bp2-strip bp2-strip--bad"><mat-icon aria-hidden="true">error</mat-icon><span>{{tryError()}}</span></div> }
+						@if (tryResults(); as results) {
+							@if (results.length) {
+								<div class="pf2-picks" role="radiogroup" [attr.aria-label]="'PREFILLING-SOURCE-EDITOR.TRY.PICK' | translate">
+									@for (r of results.slice(0, 10); track $index) {
+										<button type="button" role="radio" class="pf2-pick" [class.pf2-pick--on]="tryPicked() === r" [attr.aria-checked]="tryPicked() === r" (click)="pickTryResult(r)">
+											<strong>{{ r['label'] }}</strong>
+											@if (r['description']) { <span class="bp2-sub pf2-ellipsis">{{ r['description'] }}</span> }
+											<span class="pf2-mono bp2-sub">{{ r['reference_id'] }}</span>
+										</button>
+									}
+								</div>
+							} @else { <span class="bp2-sub">{{'PREFILLING-SOURCE-EDITOR.TRY.NO-RESULTS' | translate}}</span> }
+						}
+					</div>
+				</section>
+				<section class="bp2-card">
+					<div class="bp2-card__head"><div><div class="bp2-card__title"><h2>{{'PREFILLING-SOURCE-EDITOR.TRY.RESULT-TITLE' | translate}}</h2></div><div class="bp2-card__desc">{{'PREFILLING-SOURCE-EDITOR.TRY.RESULT-HINT' | translate}}</div></div></div>
+					<div class="bp2-card__body">
+						@if (tryOutcome; as o) {
+							<span class="bp2-tag bp2-tag--ok pf2-start">{{'PREFILLING-SOURCE-EDITOR.TRY.FILLED' | translate: { n: o.filled, m: rules.length } }}</span>
+							<dl class="bp2-read">
+								<dt>{{'TYPES.PREFILLING-SOURCE-SYSTEM-TARGET-TYPE.LABEL' | translate}}</dt><dd>{{ o.title || '—' }}</dd>
+								<dt>{{'TYPES.PREFILLING-SOURCE-SYSTEM-TARGET-TYPE.DESCRIPTION' | translate}}</dt><dd><span class="pf2-clamp" [attr.title]="o.description">{{ o.description || '—' }}</span></dd>
+								<dt>{{'TYPES.PREFILLING-SOURCE-SYSTEM-TARGET-TYPE.TAGS' | translate}}</dt><dd>@for (t of o.tags; track t) { <span class="bp2-tag">{{t}}</span> } @empty { — }</dd>
+							</dl>
+							@if (o.semantics.length) {
+								<span class="bp2-caption">{{'PREFILLING-SOURCE-EDITOR.TRY.SEMANTICS' | translate}}</span>
+								<div class="pf2-outcome">
+									@for (s of o.semantics; track $index) {
+										<div class="pf2-outcome__row"><span class="pf2-mono pf2-ellipsis" [matTooltip]="s.semantic">{{shortSemantic(s.semantic)}}</span><span class="pf2-outcome__value" [attr.title]="s.value">{{s.value}}</span><span class="bp2-sub">{{'PREFILLING-SOURCE-EDITOR.TRY.FROM' | translate: { from: s.from } }}</span></div>
+									}
+								</div>
+							}
+						} @else if (tryRunning()) {
+							<span class="bp2-sub">{{'PREFILLING-SOURCE-EDITOR.TRY.RUNNING' | translate}}</span>
+						} @else {
+							<div class="pf2-empty"><mat-icon aria-hidden="true">play_circle</mat-icon><strong>{{'PREFILLING-SOURCE-EDITOR.TRY.EMPTY-TITLE' | translate}}</strong><span class="bp2-sub">{{'PREFILLING-SOURCE-EDITOR.TRY.EMPTY-HINT' | translate}}</span></div>
+						}
+					</div>
+				</section>
+			</div>
+		}
+	</main>
 </div>
+}

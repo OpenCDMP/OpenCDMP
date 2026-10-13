@@ -1,10 +1,17 @@
-<div mat-dialog-title class="d-flex align-items-center">
-    <div class="criteria-title ml-2">{{'PLAN-LISTING.FILTERS.NAME'| translate}}</div>
-    <button mat-icon-button class="ml-auto d-flex pointer" (click)="onClose()"  [attr.aria-label]="'ALT-TEXT.CLOSE-DIALOG'  | translate"><mat-icon aria-hidden>close</mat-icon></button>
+<div class="d-flex flex-column h-100 w-100">
+    <div class="d-flex align-items-center filters-title">
+        <h2 class="criteria-title">{{'PLAN-LISTING.FILTERS.NAME'| translate}}</h2>
+        <button mat-icon-button class="ml-auto" (click)="closed.emit()"  [attr.aria-label]="'ALT-TEXT.CLOSE-DIALOG'  | translate"><mat-icon aria-hidden="true">close</mat-icon></button>
+    </div>
+    <div class="content flex-1 overflow-auto">
+        <app-plan-filter-component
+          [filters]="filters"
+          [isPublic]="isPublic"
+          [hasSelectedTenant]="hasSelectedTenant"
+          [featuredReferenceTypes]="featuredReferenceTypes"
+          [expandReferenceTypeId]="expandReferenceTypeId"
+          [embedded]="embedded"
+          (filterChanged)="filtersChanged.emit($event)"
+          ></app-plan-filter-component>
+    </div>
 </div>
-<app-plan-filter-component 
-  [filters]="filters"
-  [isPublic]="data.isPublic" 
-  [hasSelectedTenant]="data.hasSelectedTenant" 
-  (filterChanged)="onFilterChanged($event)"
-  ></app-plan-filter-component>

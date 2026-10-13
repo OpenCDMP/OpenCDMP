@@ -1,0 +1,48 @@
+<div class="us">
+	<div class="us-size">
+		<label class="bp2-field-label" [for]="'bp2-maxsize-' + fieldForm.get('id').value">{{'PLAN-BLUEPRINT-EDITOR.UPLOAD.MAX-SIZE' | translate}}</label>
+		<div class="us-size__row">
+			<input class="us-num" type="number" min="1" [max]="maxAllowed" [id]="'bp2-maxsize-' + fieldForm.get('id').value" [formControl]="data.get('maxFileSizeInMB')" [class.us-num--bad]="showErrors && data.get('maxFileSizeInMB').invalid">
+			<span class="bp2-sub">MB</span>
+		</div>
+		<div class="bp2-help">{{'PLAN-BLUEPRINT-EDITOR.UPLOAD.MAX-SIZE-HINT' | translate: { max: maxAllowed } }}</div>
+	</div>
+	<div class="us-types">
+		<div class="bp2-field-label">{{'PLAN-BLUEPRINT-EDITOR.UPLOAD.TYPES' | translate}}</div>
+		<div class="us-chips">
+			@for (t of types.controls; track t; let i = $index) {
+				<span class="us-chip" [matTooltip]="t.get('label').value + ' · ' + t.get('value').value">
+					{{shortName(t.value)}}
+					@if (!readOnly) { <button type="button" class="us-chip__x" (click)="remove(i)" [attr.aria-label]="('PLAN-BLUEPRINT-EDITOR.UPLOAD.REMOVE-TYPE' | translate) + ' ' + shortName(t.value)"><mat-icon aria-hidden="true">close</mat-icon></button> }
+				</span>
+			}
+			@if (!readOnly) {
+				<button type="button" class="us-chip us-chip--add" [matMenuTriggerFor]="typeMenu"><mat-icon aria-hidden="true">add</mat-icon>{{'PLAN-BLUEPRINT-EDITOR.UPLOAD.ADD-TYPE' | translate}}</button>
+			}
+		</div>
+		@if (showErrors && types.hasError('required')) {
+			<div class="bp2-strip bp2-strip--bad"><mat-icon aria-hidden="true">error</mat-icon><span>{{'PLAN-BLUEPRINT-EDITOR.PROBLEMS.INPUT-UPLOAD-TYPES' | translate}}</span></div>
+		}
+		@if (showCustom) {
+			<div class="us-custom">
+				<input class="us-in" type="text" [(ngModel)]="customLabel" [ngModelOptions]="{ standalone: true }" [placeholder]="'PLAN-BLUEPRINT-EDITOR.UPLOAD.CUSTOM-LABEL' | translate" [attr.aria-label]="'PLAN-BLUEPRINT-EDITOR.UPLOAD.CUSTOM-LABEL' | translate">
+				<input class="us-in us-in--mono" type="text" [(ngModel)]="customValue" [ngModelOptions]="{ standalone: true }" (keydown.enter)="addCustom(); $event.preventDefault()" placeholder="application/x-netcdf" [attr.aria-label]="'PLAN-BLUEPRINT-EDITOR.UPLOAD.CUSTOM-VALUE' | translate">
+				<button mat-stroked-button type="button" class="bp2-btn-sm" (click)="addCustom()" [disabled]="!customValue.trim()">{{'PLAN-BLUEPRINT-EDITOR.UPLOAD.ADD' | translate}}</button>
+				<button mat-button type="button" class="bp2-btn-sm" (click)="showCustom = false">{{'GENERAL.CONFIRMATION-DIALOG.ACTIONS.CANCEL' | translate}}</button>
+			</div>
+		}
+	</div>
+</div>
+
+<mat-menu #typeMenu="matMenu" class="us-menu">
+	@for (g of groups; track g) {
+		<div class="us-menu__group">{{ ('PLAN-BLUEPRINT-EDITOR.UPLOAD.GROUP-' + g) | translate }}</div>
+		@for (k of knownIn(g); track k.value) {
+			<button mat-menu-item type="button" (click)="toggleKnown(k); $event.stopPropagation()">
+				<mat-icon aria-hidden="true">{{ isSelected(k.value) ? 'check_box' : 'check_box_outline_blank' }}</mat-icon>{{k.short}} <span class="bp2-sub">· {{k.label}}</span>
+			</button>
+		}
+	}
+	<mat-divider></mat-divider>
+	<button mat-menu-item type="button" (click)="showCustom = true"><mat-icon aria-hidden="true">edit</mat-icon>{{'PLAN-BLUEPRINT-EDITOR.UPLOAD.OTHER' | translate}}</button>
+</mat-menu>

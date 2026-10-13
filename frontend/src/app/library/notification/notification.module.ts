@@ -6,12 +6,10 @@ import { CommonUiModule } from '@common/ui/common-ui.module';
 
 @NgModule({
     imports: [
-        CommonUiModule
-    ],
-    declarations: [
+        CommonUiModule,
         NotificationComponent,
         SnackBarNotificationComponent,
-        PopupNotificationDialogComponent,
+        PopupNotificationDialogComponent
     ],
     exports: [
         NotificationComponent

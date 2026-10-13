@@ -6,7 +6,7 @@ import gr.cite.tools.validation.Validator;
 import gr.cite.tools.validation.ValidatorFactory;
 import org.jetbrains.annotations.NotNull;
 import org.opencdmp.authorization.AuthorizationFlags;
-import org.opencdmp.commonmodels.models.descriptiotemplate.fielddata.RadioBoxDataModel;
+import org.opencdmp.commonmodels.models.planblueprintdescriptiontemplatefields.fielddata.RadioBoxDataModel;
 import org.opencdmp.commons.types.descriptiontemplate.fielddata.RadioBoxDataEntity;
 import org.opencdmp.commons.types.descriptiontemplate.importexport.fielddata.RadioBoxDataImportExport;
 import org.opencdmp.convention.ConventionService;
@@ -114,6 +114,8 @@ public class RadioBoxFieldDataHelperService extends BaseFieldDataHelperService<R
 
 		data.setLabel(persist.getLabel());
 		data.setValue(persist.getValue());
+		data.setSemantics(this.buildSemanticValueEntities(persist.getSemantics()));
+		data.setExportsNothing(Boolean.TRUE.equals(persist.getExportsNothing()));
 
 		return data;
 	}
@@ -135,6 +137,8 @@ public class RadioBoxFieldDataHelperService extends BaseFieldDataHelperService<R
 
 		persist.setLabel(data.getLabel());
 		persist.setValue(data.getValue());
+		persist.setSemantics(this.importExportSemanticValuesToPersist(data.getSemantics()));
+		persist.setExportsNothing(data.getExportsNothing());
 
 		return persist;
 	}
@@ -158,6 +162,8 @@ public class RadioBoxFieldDataHelperService extends BaseFieldDataHelperService<R
 
 		persist.setLabel(data.getLabel());
 		persist.setValue(data.getValue());
+		persist.setSemantics(this.commonModelSemanticValuesToPersist(data.getSemantics()));
+		persist.setExportsNothing(data.isExportsNothing());
 
 		return persist;
 	}
@@ -184,6 +190,8 @@ public class RadioBoxFieldDataHelperService extends BaseFieldDataHelperService<R
 
 		xml.setLabel(data.getLabel());
 		xml.setValue(data.getValue());
+		xml.setSemantics(this.semanticValuesToImportExport(data.getSemantics()));
+		xml.setExportsNothing(data.getExportsNothing());
 
 		return xml;
 	}

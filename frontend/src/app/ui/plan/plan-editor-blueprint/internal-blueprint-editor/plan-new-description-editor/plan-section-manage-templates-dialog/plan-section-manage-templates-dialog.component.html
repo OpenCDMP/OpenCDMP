@@ -1,0 +1,78 @@
+<div class="manage-templates-dialog">
+    <div class="dialog-header">
+        <div class="dialog-header--titles">
+            <h2 class="dialog-title">{{'PLAN-EDITOR.MANAGE-TEMPLATES.TITLE' | translate}}</h2>
+            @if(data?.section?.label){
+                <span class="dialog-subtitle">{{ data.section.label }}</span>
+            }
+        </div>
+        <button mat-icon-button (click)="close()" [attr.aria-label]="'COMMONS.ACTIONS.CANCEL' | translate">
+            <mat-icon aria-hidden="true">close</mat-icon>
+        </button>
+    </div>
+
+    @if(view === 'list'){
+        <div class="dialog-body">
+            <div class="info">{{'PLAN-EDITOR.MANAGE-TEMPLATES.HINT' | translate}}</div>
+
+            @if(linkedTemplates?.length){
+                <ul class="linked-list unstyled-list">
+                    @for(template of linkedTemplates; track template.groupId){
+                        <li class="linked-row">
+                            <div class="linked-row--info">
+                                <span class="linked-row--title">{{ template.label }}</span>
+                                <span class="provenance"
+                                    [class.provenance--blueprint]="isFromBlueprint(template.groupId)"
+                                    [matTooltip]="(isFromBlueprint(template.groupId) ? 'PLAN-EDITOR.MANAGE-TEMPLATES.FROM-BLUEPRINT-TOOLTIP' : 'PLAN-EDITOR.MANAGE-TEMPLATES.ADDED-TO-PLAN-TOOLTIP') | translate"
+                                >
+                                    @if(isFromBlueprint(template.groupId)){
+                                        <mat-icon class="provenance--icon material-symbols-outlined" aria-hidden="true">lock</mat-icon>
+                                        {{'PLAN-EDITOR.MANAGE-TEMPLATES.FROM-BLUEPRINT' | translate}}
+                                    }@else{
+                                        {{'PLAN-EDITOR.MANAGE-TEMPLATES.ADDED-TO-PLAN' | translate}}
+                                    }
+                                </span>
+                                @if(template.type?.name){
+                                    <span class="linked-row--type">{{'COMMONS.FIELDS.TYPE' | translate}}: {{ template.type.name }}</span>
+                                }
+                            </div>
+                            <button mat-icon-button
+                                class="remove-btn"
+                                disabledInteractive
+                                [disabled]="isInUse(template.groupId)"
+                                [matTooltip]="'PLAN-EDITOR.UNSUCCESSFUL-REMOVE-TEMPLATE' | translate"
+                                [matTooltipDisabled]="!isInUse(template.groupId)"
+                                (click)="remove(template)"
+                                [attr.aria-label]="'COMMONS.ACTIONS.REMOVE' | translate"
+                            >
+                                <mat-icon class="material-symbols-outlined" aria-hidden="true">close</mat-icon>
+                            </button>
+                        </li>
+                    }
+                </ul>
+            }@else{
+                @if(initialized){
+                    <span class="empty">{{'PLAN-EDITOR.MANAGE-TEMPLATES.NONE-LINKED' | translate}}</span>
+                }
+            }
+
+            <button mat-stroked-button color="secondary" class="add-btn" (click)="view = 'add'">
+                <mat-icon aria-hidden="true">add</mat-icon>
+                {{'PLAN-EDITOR.MANAGE-TEMPLATES.ACTIONS.ADD-TEMPLATE' | translate}}
+            </button>
+        </div>
+
+        <div class="dialog-footer">
+            <button mat-button (click)="close()">{{'COMMONS.ACTIONS.CANCEL' | translate}}</button>
+            <button mat-flat-button color="primary" (click)="save()">{{'COMMONS.ACTIONS.SAVE' | translate}}</button>
+        </div>
+    }@else{
+        <div class="add-view">
+            <app-plan-section-add-templates-dialog
+                [sectionTemplates]="workingGroupIds"
+                (onTemplateSelected)="onTemplateAdded($event)"
+                (onClose)="view = 'list'"
+            />
+        </div>
+    }
+</div>

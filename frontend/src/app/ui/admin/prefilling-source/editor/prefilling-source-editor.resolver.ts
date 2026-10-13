@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { ActivatedRouteSnapshot, RouterStateSnapshot } from '@angular/router';
-import { AuthenticationConfiguration, ExternalFetcherBaseSourceConfiguration, HeaderConfig, QueryCaseConfig, QueryConfig, ResultFieldsMappingConfiguration, ResultsConfiguration } from '@app/core/model/external-fetcher/external-fetcher';
+import { AuthenticationConfiguration, ExternalFetcherBaseSourceConfiguration, HeaderConfig, QueryCaseConfig, QueryConfig, ResultFieldsMappingConfiguration, ResultsConfiguration, XmlNamespaceConfig } from '@app/core/model/external-fetcher/external-fetcher';
 import { PrefillingSource, PrefillingSourceDefinition, PrefillingSourceDefinitionField, PrefillingSourceDefinitionFixedValueField } from '@app/core/model/prefilling-source/prefilling-source';
 import { PrefillingSourceService } from '@app/core/services/prefilling-source/prefilling-source.service';
 import { BreadcrumbService } from '@app/ui/misc/breadcrumb/breadcrumb.service';
@@ -47,6 +47,7 @@ export class PrefillingSourceEditorResolver extends BaseEditorResolver {
 			[nameof<PrefillingSource>(x => x.definition), nameof<PrefillingSourceDefinition>(x => x.searchConfiguration), nameof<ExternalFetcherBaseSourceConfiguration>(x => x.httpMethod)].join('.'),
 			[nameof<PrefillingSource>(x => x.definition), nameof<PrefillingSourceDefinition>(x => x.searchConfiguration), nameof<ExternalFetcherBaseSourceConfiguration>(x => x.requestBody)].join('.'),
 			[nameof<PrefillingSource>(x => x.definition), nameof<PrefillingSourceDefinition>(x => x.searchConfiguration), nameof<ExternalFetcherBaseSourceConfiguration>(x => x.filterType)].join('.'),
+			[nameof<PrefillingSource>(x => x.definition), nameof<PrefillingSourceDefinition>(x => x.searchConfiguration), nameof<ExternalFetcherBaseSourceConfiguration>(x => x.responseFormat)].join('.'),
 			[nameof<PrefillingSource>(x => x.definition), nameof<PrefillingSourceDefinition>(x => x.searchConfiguration), nameof<ExternalFetcherBaseSourceConfiguration>(x => x.auth), nameof<AuthenticationConfiguration>(x => x.enabled)].join('.'),
 			[nameof<PrefillingSource>(x => x.definition), nameof<PrefillingSourceDefinition>(x => x.searchConfiguration), nameof<ExternalFetcherBaseSourceConfiguration>(x => x.auth), nameof<AuthenticationConfiguration>(x => x.authUrl)].join('.'),
 			[nameof<PrefillingSource>(x => x.definition), nameof<PrefillingSourceDefinition>(x => x.searchConfiguration), nameof<ExternalFetcherBaseSourceConfiguration>(x => x.auth), nameof<AuthenticationConfiguration>(x => x.authMethod)].join('.'),
@@ -60,6 +61,8 @@ export class PrefillingSourceEditorResolver extends BaseEditorResolver {
 			[nameof<PrefillingSource>(x => x.definition), nameof<PrefillingSourceDefinition>(x => x.searchConfiguration), nameof<ExternalFetcherBaseSourceConfiguration>(x => x.queries), nameof<QueryConfig>(x => x.cases),nameof<QueryCaseConfig>(x => x.value)].join('.'),
 			[nameof<PrefillingSource>(x => x.definition), nameof<PrefillingSourceDefinition>(x => x.searchConfiguration), nameof<ExternalFetcherBaseSourceConfiguration>(x => x.headers),nameof<HeaderConfig>(x => x.key)].join('.'),
 			[nameof<PrefillingSource>(x => x.definition), nameof<PrefillingSourceDefinition>(x => x.searchConfiguration), nameof<ExternalFetcherBaseSourceConfiguration>(x => x.headers),nameof<HeaderConfig>(x => x.value)].join('.'),
+			[nameof<PrefillingSource>(x => x.definition), nameof<PrefillingSourceDefinition>(x => x.searchConfiguration), nameof<ExternalFetcherBaseSourceConfiguration>(x => x.namespaces),nameof<XmlNamespaceConfig>(x => x.prefix)].join('.'),
+			[nameof<PrefillingSource>(x => x.definition), nameof<PrefillingSourceDefinition>(x => x.searchConfiguration), nameof<ExternalFetcherBaseSourceConfiguration>(x => x.namespaces),nameof<XmlNamespaceConfig>(x => x.uri)].join('.'),
 
 			[nameof<PrefillingSource>(x => x.definition), nameof<PrefillingSourceDefinition>(x => x.getConfiguration), nameof<ExternalFetcherBaseSourceConfiguration>(x => x.type)].join('.'),
 			[nameof<PrefillingSource>(x => x.definition), nameof<PrefillingSourceDefinition>(x => x.getConfiguration), nameof<ExternalFetcherBaseSourceConfiguration>(x => x.key)].join('.'),
@@ -75,6 +78,7 @@ export class PrefillingSourceEditorResolver extends BaseEditorResolver {
 			[nameof<PrefillingSource>(x => x.definition), nameof<PrefillingSourceDefinition>(x => x.getConfiguration), nameof<ExternalFetcherBaseSourceConfiguration>(x => x.httpMethod)].join('.'),
 			[nameof<PrefillingSource>(x => x.definition), nameof<PrefillingSourceDefinition>(x => x.getConfiguration), nameof<ExternalFetcherBaseSourceConfiguration>(x => x.requestBody)].join('.'),
 			[nameof<PrefillingSource>(x => x.definition), nameof<PrefillingSourceDefinition>(x => x.getConfiguration), nameof<ExternalFetcherBaseSourceConfiguration>(x => x.filterType)].join('.'),
+			[nameof<PrefillingSource>(x => x.definition), nameof<PrefillingSourceDefinition>(x => x.getConfiguration), nameof<ExternalFetcherBaseSourceConfiguration>(x => x.responseFormat)].join('.'),
 			[nameof<PrefillingSource>(x => x.definition), nameof<PrefillingSourceDefinition>(x => x.getConfiguration), nameof<ExternalFetcherBaseSourceConfiguration>(x => x.auth), nameof<AuthenticationConfiguration>(x => x.enabled)].join('.'),
 			[nameof<PrefillingSource>(x => x.definition), nameof<PrefillingSourceDefinition>(x => x.getConfiguration), nameof<ExternalFetcherBaseSourceConfiguration>(x => x.auth), nameof<AuthenticationConfiguration>(x => x.authUrl)].join('.'),
 			[nameof<PrefillingSource>(x => x.definition), nameof<PrefillingSourceDefinition>(x => x.getConfiguration), nameof<ExternalFetcherBaseSourceConfiguration>(x => x.auth), nameof<AuthenticationConfiguration>(x => x.authMethod)].join('.'),
@@ -88,6 +92,8 @@ export class PrefillingSourceEditorResolver extends BaseEditorResolver {
 			[nameof<PrefillingSource>(x => x.definition), nameof<PrefillingSourceDefinition>(x => x.getConfiguration), nameof<ExternalFetcherBaseSourceConfiguration>(x => x.queries), nameof<QueryConfig>(x => x.cases),nameof<QueryCaseConfig>(x => x.value)].join('.'),
 			[nameof<PrefillingSource>(x => x.definition), nameof<PrefillingSourceDefinition>(x => x.getConfiguration), nameof<ExternalFetcherBaseSourceConfiguration>(x => x.headers),nameof<HeaderConfig>(x => x.key)].join('.'),
 			[nameof<PrefillingSource>(x => x.definition), nameof<PrefillingSourceDefinition>(x => x.getConfiguration), nameof<ExternalFetcherBaseSourceConfiguration>(x => x.headers),nameof<HeaderConfig>(x => x.value)].join('.'),
+			[nameof<PrefillingSource>(x => x.definition), nameof<PrefillingSourceDefinition>(x => x.getConfiguration), nameof<ExternalFetcherBaseSourceConfiguration>(x => x.namespaces),nameof<XmlNamespaceConfig>(x => x.prefix)].join('.'),
+			[nameof<PrefillingSource>(x => x.definition), nameof<PrefillingSourceDefinition>(x => x.getConfiguration), nameof<ExternalFetcherBaseSourceConfiguration>(x => x.namespaces),nameof<XmlNamespaceConfig>(x => x.uri)].join('.'),
 
 			nameof<PrefillingSource>(x => x.createdAt),
 			nameof<PrefillingSource>(x => x.updatedAt),

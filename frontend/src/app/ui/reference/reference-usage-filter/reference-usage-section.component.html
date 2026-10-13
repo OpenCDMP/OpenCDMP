@@ -1,0 +1,55 @@
+<div class="usage-section">
+	<button
+		type="button"
+		class="usage-section-header"
+		[attr.aria-expanded]="expanded()"
+		[attr.aria-controls]="sectionId"
+		(click)="toggleExpanded()"
+	>
+		<span class="usage-section-title">{{ title() }}</span>
+		@if (selected().length) {
+			<span class="usage-section-badge">{{ selected().length }}<span class="visually-hidden"> {{ 'REFERENCE-USAGE-FILTER.SELECTED' | translate }}</span></span>
+		}
+		<mat-icon aria-hidden="true">{{ expanded() ? 'expand_less' : 'expand_more' }}</mat-icon>
+	</button>
+	@if (expanded()) {
+		<div class="usage-section-body" [id]="sectionId" role="group" [attr.aria-label]="title()">
+			<mat-form-field class="w-100" appearance="outline" subscriptSizing="dynamic">
+				<mat-icon matPrefix aria-hidden="true">search</mat-icon>
+				<input matInput type="text" [formControl]="search" [placeholder]="searchLabel()" [attr.aria-label]="searchLabel()">
+			</mat-form-field>
+			<div class="usage-list" [attr.aria-busy]="loading()">
+				@for (group of groups(); track group.name) {
+					@if (group.name) {
+						<div class="usage-group-title" aria-hidden="true">{{ group.name }}</div>
+					}
+					@for (row of group.rows; track row.reference.id) {
+						<mat-checkbox
+							class="usage-row"
+							[checked]="selectedIds().has($safeNavigationMigration(row.reference.id?.toString()))"
+							(change)="onChange(row.reference, $event.checked)"
+						>
+							<span class="usage-row-label">
+								@if (group.name) {
+									<span class="visually-hidden">{{ group.name }}: </span>
+								}
+								<span class="usage-row-text">{{ row.reference.label }}</span>
+								@if (row.count != null) {
+									<span class="usage-row-count">{{ row.count }}</span>
+								}
+							</span>
+						</mat-checkbox>
+					}
+				}
+				@if (!loading() && !rows().length) {
+					<p class="usage-hint" role="status">{{ (like() ? 'REFERENCE-USAGE-FILTER.NO-MATCHES' : 'REFERENCE-USAGE-FILTER.EMPTY') | translate }}</p>
+				}
+			</div>
+			@if (remaining() > 0) {
+				<button type="button" mat-button class="usage-show-more" (click)="showMore()">
+					{{ 'REFERENCE-USAGE-FILTER.SHOW-MORE' | translate: { count: nextPage() } }}
+				</button>
+			}
+		</div>
+	}
+</div>

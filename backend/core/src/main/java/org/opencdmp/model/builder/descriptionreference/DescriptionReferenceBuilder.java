@@ -150,7 +150,7 @@ public class DescriptionReferenceBuilder extends BaseBuilder<DescriptionReferenc
         } else {
             FieldSet clone = new BaseFieldSet(fields.getFields()).ensure(Reference._id);
             ReferenceQuery q = this.queryFactory.query(ReferenceQuery.class).disableTracking().authorize(this.authorize).ids(data.stream().map(DescriptionReferenceEntity::getReferenceId).distinct().collect(Collectors.toList()));
-            itemMap = this.builderFactory.builder(ReferenceBuilder.class).authorize(this.authorize).isPublic(this.isPublic).asForeignKey(q, clone, Reference::getId);
+            itemMap = this.builderFactory.builder(ReferenceBuilder.class).authorize(this.authorize).isPublic(this.isPublic).enableNavigationUrlFieldValues(true).asForeignKey(q, clone, Reference::getId);
         }
         if (!fields.hasField(Reference._id)) {
             itemMap.forEach((id, item) -> {

@@ -1,9 +1,8 @@
-import { Component, Inject } from '@angular/core';
-import { UntypedFormGroup } from '@angular/forms';
-import { MAT_DIALOG_DATA, MatDialog, MatDialogRef } from '@angular/material/dialog';
+import { Component, Inject, ChangeDetectionStrategy } from '@angular/core';
+import { UntypedFormGroup, FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { MAT_DIALOG_DATA, MatDialog, MatDialogRef, MatDialogTitle, MatDialogContent, MatDialogActions } from '@angular/material/dialog';
 import { IsActive } from '@app/core/common/enum/is-active.enum';
 import { PlanStatusEnum } from '@app/core/common/enum/plan-status';
-import { PlanBlueprintDefinitionSection } from '@app/core/model/plan-blueprint/plan-blueprint';
 import { Plan } from '@app/core/model/plan/plan';
 import { Tenant } from '@app/core/model/tenant/tenant';
 import { DateTimeFormatPipe } from '@app/core/pipes/date-time-format.pipe';
@@ -13,24 +12,31 @@ import { PlanLookup } from '@app/core/query/plan.lookup';
 import { TenantLookup } from '@app/core/query/tenant.lookup';
 import { AuthService } from '@app/core/services/auth/auth.service';
 import { PlanService } from '@app/core/services/plan/plan.service';
+import { RouterUtilsService } from '@app/core/services/router/router-utils.service';
 import { SingleAutoCompleteConfiguration } from '@app/library/auto-complete/single/single-auto-complete-configuration';
 import { BaseComponent } from '@common/base/base.component';
 import { FilterService } from '@common/modules/text-filter/filter-service';
 import { Guid } from '@common/types/guid';
-import { TranslateService } from '@ngx-translate/core';
+import { TranslateService, TranslatePipe } from '@ngx-translate/core';
 import { map } from 'rxjs/operators';
 import { nameof } from 'ts-simple-nameof';
+import { MatIconButton, MatButton } from '@angular/material/button';
+import { MatIcon } from '@angular/material/icon';
+import { CdkScrollable } from '@angular/cdk/scrolling';
+import { MatFormField } from '@angular/material/form-field';
+import { SingleAutoCompleteComponent } from '../../../library/auto-complete/single/single-auto-complete.component';
+import { RouterLink } from '@angular/router';
 
 @Component({
     selector: 'app-start-new-description-dialog',
     templateUrl: './start-new-description-dialog.component.html',
     styleUrls: ['./start-new-description-dialog.component.scss'],
-    standalone: false
+    changeDetection: ChangeDetectionStrategy.Eager,
+    imports: [MatDialogTitle, MatIconButton, MatIcon, CdkScrollable, MatDialogContent, MatFormField, SingleAutoCompleteComponent, FormsModule, ReactiveFormsModule, RouterLink, MatDialogActions, MatButton, TranslatePipe]
 })
 export class StartNewDescriptionDialogComponent extends BaseComponent {
 	public isDialog: boolean = false;
 	public formGroup: UntypedFormGroup;
-	public sections: PlanBlueprintDefinitionSection[] = [];
 
 	planAutoCompleteConfiguration: SingleAutoCompleteConfiguration = {
 		initialItems: (data?: any) => this.planService.query(this.buildAutocompleteLookup()).pipe(map(x => x.items)),
@@ -86,6 +92,7 @@ export class StartNewDescriptionDialogComponent extends BaseComponent {
 		private filterService: FilterService,
 		private dateTimeFormatPipe: DateTimeFormatPipe,
 		private authService: AuthService,
+        protected routerUtils: RouterUtilsService
 	) {
 		super();
 		this.formGroup = data.formGroup;

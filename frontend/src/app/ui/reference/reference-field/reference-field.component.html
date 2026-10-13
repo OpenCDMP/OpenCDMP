@@ -1,47 +1,113 @@
 @if (singleAutoCompleteSearchConfiguration || multipleAutoCompleteSearchConfiguration) {
   <div class="d-flex flex-column">
-    @if(multiple()){
-      <mat-form-field class="w-100" subscriptSizing="dynamic">
-        <mat-label>{{label?.length ? label : referenceType()?.name}}</mat-label>
-        @if(sources()?.length){
-          <app-multiple-auto-complete placeholder="{{ placeholder?.length ? placeholder : referenceType()?.name}}" (optionSelected)="onOptionSelected($event)"  [configuration]="multipleAutoCompleteSearchConfiguration" [required]="required"></app-multiple-auto-complete>
-          }@else {
-          <app-multiple-auto-complete [id]="id" placeholder="{{ placeholder?.length ? placeholder : referenceType()?.name}}" [formControl]="form" [configuration]="multipleAutoCompleteSearchConfiguration" [required]="required" (optionActionClicked)="onPreviewReference($event, true)" (selectedItemOptionActionClicked)="onPreviewReference($event)"></app-multiple-auto-complete>
-        }
-        @if (form?.hasError('backendError')) {
-          <mat-error>{{form.getError('backendError').message}}</mat-error>
-        }
-        @if (form?.hasError('required')) {
-          <mat-error>{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
-        }
-        @if (hint) {
-          <mat-hint align="start" class="mb-2">{{hint}}</mat-hint>
-        }
-      </mat-form-field>
-      }@else{
-      <mat-form-field class="w-100" subscriptSizing="dynamic">
-        <mat-label>{{label?.length ? label : referenceType()?.name}}</mat-label>
-        @if(sources()?.length){
+    @if (sources()?.length) {
+      <!-- External-source TEST mode (admin reference-type test dialog): keep the inline picker. -->
+      @if (multiple()) {
+        <mat-form-field class="w-100" subscriptSizing="dynamic">
+          @if(!hideLabel){
+            <mat-label>{{label?.length ? label : referenceType()?.name}}</mat-label>
+          }
+          <app-multiple-auto-complete placeholder="{{ placeholder?.length ? placeholder : referenceType()?.name}}" (optionSelected)="onOptionSelected($event)" [configuration]="multipleAutoCompleteSearchConfiguration" [required]="required"></app-multiple-auto-complete>
+          @if (form?.hasError('backendError')) {
+            <mat-error>{{form.getError('backendError').message}}</mat-error>
+          }
+          @if (form?.hasError('required')) {
+            <mat-error>{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
+          }
+          @if (hint || searchSourceNames()) {
+            <mat-hint align="start" class="mb-2">{{hint}}@if(searchSourceNames()){ ({{searchSourceNames()}})}</mat-hint>
+          }
+        </mat-form-field>
+      } @else {
+        <mat-form-field class="w-100" subscriptSizing="dynamic">
+          @if(!hideLabel){
+            <mat-label>{{label?.length ? label : referenceType()?.name}}</mat-label>
+          }
           <app-single-auto-complete [id]="id" placeholder="{{ placeholder?.length ? placeholder : referenceType()?.name}}" (optionSelected)="onOptionSelected($event)" [configuration]="singleAutoCompleteSearchConfiguration" [required]="required"></app-single-auto-complete>
-          }@else {
-          <app-single-auto-complete [id]="id" placeholder="{{ placeholder?.length ? placeholder : referenceType()?.name}}" [formControl]="form" [configuration]="singleAutoCompleteSearchConfiguration" [required]="required" (optionActionClicked)="onPreviewReference($event, true)" (selectedItemOptionActionClicked)="onPreviewReference($event)"></app-single-auto-complete>
+          @if (form?.hasError('backendError')) {
+            <mat-error>{{form.getError('backendError').message}}</mat-error>
+          }
+          @if (form?.hasError('required')) {
+            <mat-error>{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
+          }
+          @if (hint || searchSourceNames()) {
+            <mat-hint align="start" class="mb-2">{{hint}}@if(searchSourceNames()){ ({{searchSourceNames()}})}</mat-hint>
+          }
+        </mat-form-field>
+      }
+    } @else {
+      <!-- Reference-TYPE mode: a permanent search bar (autocomplete with card options in a floating
+           dropdown) + selected references as cards below. Single collapses to a card once chosen. -->
+      @if(!hideLabel){
+        <label class="reference-field--heading">{{label?.length ? label : referenceType()?.name}}@if(required){<span class="reference-field--required" aria-hidden="true"> *</span>}</label>
+      }
+
+      @if (multiple()) {
+        @if (!form?.disabled) {
+          <mat-form-field class="w-100 reference-field--search-field" subscriptSizing="dynamic">
+            <mat-icon matPrefix class="reference-field--search-prefix" aria-hidden="true">search</mat-icon>
+            <app-multiple-auto-complete [id]="id"
+              placeholder="{{ placeholder?.length ? placeholder : ('REFERENCE-FIELD.SEARCH-DIALOG.SEARCH-PLACEHOLDER' | translate) }}"
+              [formControl]="form" [configuration]="multipleAutoCompleteSearchConfiguration" [required]="required"
+              (optionActionClicked)="onPreviewReference($event, true)" (selectedItemOptionActionClicked)="onPreviewReference($event)"></app-multiple-auto-complete>
+            @if (form?.hasError('backendError')) {
+              <mat-error>{{form.getError('backendError').message}}</mat-error>
+            }
+            @if (form?.hasError('required')) {
+              <mat-error>{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
+            }
+            @if (hint || searchSourceNames()) {
+              <mat-hint align="start">{{hint}}@if(searchSourceNames()){ ({{searchSourceNames()}})}</mat-hint>
+            }
+          </mat-form-field>
         }
-        @if (form?.hasError('backendError')) {
-          <mat-error>{{form.getError('backendError').message}}</mat-error>
+        @if (selectedReferences.length) {
+          <div class="selected-references">
+            @for (ref of selectedReferences; track ref.reference ?? $index) {
+              <app-reference-card [reference]="ref" [referenceType]="referenceType()" [canRemove]="!form?.disabled" (remove)="removeReference(ref)" [canEdit]="!form?.disabled" (edit)="editManual(ref)"></app-reference-card>
+            }
+          </div>
         }
-        @if (form?.hasError('required')) {
-          <mat-error>{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
+      } @else {
+        @if (form?.value) {
+          <div class="selected-references">
+            <app-reference-card [reference]="form.value" [referenceType]="referenceType()" [canRemove]="!form?.disabled" (remove)="removeReference(form.value)" [canEdit]="!form?.disabled" (edit)="editManual(form.value)"></app-reference-card>
+          </div>
+        } @else if (!form?.disabled) {
+          <mat-form-field class="w-100 reference-field--search-field" subscriptSizing="dynamic">
+            <mat-icon matPrefix class="reference-field--search-prefix" aria-hidden="true">search</mat-icon>
+            <app-single-auto-complete [id]="id"
+              placeholder="{{ placeholder?.length ? placeholder : ('REFERENCE-FIELD.SEARCH-DIALOG.SEARCH-PLACEHOLDER' | translate) }}"
+              [formControl]="form" [configuration]="singleAutoCompleteSearchConfiguration" [required]="required"
+              (optionActionClicked)="onPreviewReference($event, true)" (selectedItemOptionActionClicked)="onPreviewReference($event)"></app-single-auto-complete>
+            @if (form?.hasError('backendError')) {
+              <mat-error>{{form.getError('backendError').message}}</mat-error>
+            }
+            @if (form?.hasError('required')) {
+              <mat-error>{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
+            }
+            @if (hint || searchSourceNames()) {
+              <mat-hint align="start">{{hint}}@if(searchSourceNames()){ ({{searchSourceNames()}})}</mat-hint>
+            }
+          </mat-form-field>
         }
-        @if (hint) {
-          <mat-hint align="start" class="mb-2">{{hint}}</mat-hint>
-        }
-      </mat-form-field>
-    }
-    @if (!form?.disabled && !sources()?.length) {
-      <div class="w-auto ml-auto mt-1 mb-1 mat-mdc-form-field-subscript-wrapper ng-star-inserted" >
-        <span class="not-found">{{'REFERENCE-FIELD.COULD-NOT-FIND-MESSAGE' | translate}} </span>
-        <span class="insert-manually" (click)="addReference($event)">{{'REFERENCE-FIELD.ACTIONS.INSERT-MANUALLY' | translate}}</span>
-      </div>
+      }
+
+      @if (canAddManually && (multiple() || !form?.value)) {
+        <div class="reference-field--add-manually">
+          <span class="reference-field--not-found">{{ 'REFERENCE-FIELD.COULD-NOT-FIND-MESSAGE' | translate }}</span>
+          <button mat-stroked-button type="button" (click)="openManual($event)">
+            <mat-icon aria-hidden="true">add</mat-icon>
+            {{ 'REFERENCE-FIELD.ACTIONS.INSERT-MANUALLY' | translate }}
+          </button>
+        </div>
+      }
     }
   </div>
 }
+
+<!-- Rich option rendering for the autocomplete dropdown: multiline card (name / identifier + badge /
+     description) for disambiguation. No expansion here — it doesn't fit a transient dropdown option. -->
+<ng-template #optionCardTemplate let-item="item">
+  <app-reference-card [reference]="item" [referenceType]="referenceType()" [dense]="true" [showDescription]="true" [expandable]="false" [bordered]="false"></app-reference-card>
+</ng-template>

@@ -1,12 +1,11 @@
 import { HttpClient, HttpHeaders, HttpResponse } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { DescriptionTemplate } from '@app/core/model/description-template/description-template';
 import { BaseHttpParams } from '@common/http/base-http-params';
 import { InterceptorType } from '@common/http/interceptors/interceptor-type';
 import { FilterService } from '@common/modules/text-filter/filter-service';
 import { Guid } from '@common/types/guid';
 import { Observable, throwError } from 'rxjs';
-import { catchError, map } from 'rxjs/operators';
+import { catchError } from 'rxjs/operators';
 import { ConfigurationService } from '../configuration/configuration.service';
 import { BaseHttpV2Service } from '../http/base-http-v2.service';
 import { StorageFile } from '@app/core/model/storage-file/storage-file';

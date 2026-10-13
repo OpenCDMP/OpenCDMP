@@ -20,7 +20,7 @@ public class PlanUserImportExport {
     private PlanUserRole role;
 
     @XmlElement(name = "sectionId")
-    private UUID sectionId;
+    private String sectionId;
 
     public UUID getId() {
         return this.id;
@@ -46,11 +46,11 @@ public class PlanUserImportExport {
         this.role = role;
     }
 
-    public UUID getSectionId() {
+    public String getSectionId() {
         return this.sectionId;
     }
 
-    public void setSectionId(UUID sectionId) {
-        this.sectionId = sectionId;
+    public void setSectionId(String sectionId) {
+        this.sectionId = (sectionId == null || sectionId.isEmpty()) ? null : sectionId;
     }
 }

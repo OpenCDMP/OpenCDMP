@@ -31,6 +31,7 @@ import org.opencdmp.model.prefillingsource.PrefillingSource;
 import org.opencdmp.model.result.QueryResult;
 import org.opencdmp.query.PrefillingSourceQuery;
 import org.opencdmp.query.lookup.PrefillingSourceLookup;
+import org.opencdmp.service.externalfetcher.models.ExternalFetcherTestResult;
 import org.opencdmp.service.fieldsetexpander.FieldSetExpanderService;
 import org.opencdmp.service.prefillingsource.PrefillingSourceService;
 import org.slf4j.LoggerFactory;
@@ -175,6 +176,19 @@ public class PrefillingSourceController {
         ));
 
         return item;
+    }
+
+    @PostMapping("test-source")
+    public ExternalFetcherTestResult testPrefillingSource(@RequestBody PrefillingTestRequest model) {
+        logger.debug(new MapLogEntry("testing source" + Prefilling.class.getSimpleName()).And("key", model.getKey()));
+
+        ExternalFetcherTestResult result = this.prefillingSourceService.testPrefillingSource(model);
+
+        this.auditService.track(AuditableAction.PrefillingSource_TestSource, Map.ofEntries(
+                new AbstractMap.SimpleEntry<String, Object>("model", model)
+        ));
+
+        return result;
     }
 
     @PostMapping("generate")

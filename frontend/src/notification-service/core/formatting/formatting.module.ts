@@ -1,4 +1,4 @@
-import { ModuleWithProviders, NgModule, Optional, SkipSelf } from '@angular/core';
+import { NgModule } from '@angular/core';
 import { CommonFormattingModule } from '@common/formatting/common-formatting.module';
 import { PipeService } from '@common/formatting/pipe.service';
 import { IsActiveTypePipe } from '@notification-service/core/formatting/pipes/is-active-type.pipe';
@@ -11,23 +11,21 @@ import { NotificationServiceEnumUtils } from './enum-utils.service';
 //
 //
 @NgModule({
-	imports: [
-		CommonFormattingModule,
-	],
-	declarations: [
-		IsActiveTypePipe,
-		NotificationInAppTrackingTypePipe
-	],
-	exports: [
-		CommonFormattingModule,
-		IsActiveTypePipe,
-		NotificationInAppTrackingTypePipe,
-	],
-	providers: [
-		PipeService,
-		IsActiveTypePipe,
-		NotificationInAppTrackingTypePipe,
-		NotificationServiceEnumUtils
-	]
+    imports: [
+        CommonFormattingModule,
+        IsActiveTypePipe,
+        NotificationInAppTrackingTypePipe,
+    ],
+    exports: [
+        CommonFormattingModule,
+        IsActiveTypePipe,
+        NotificationInAppTrackingTypePipe,
+    ],
+    providers: [
+        PipeService,
+        IsActiveTypePipe,
+        NotificationInAppTrackingTypePipe,
+        NotificationServiceEnumUtils
+    ]
 })
 export class NotificationServiceFormattingModule { }

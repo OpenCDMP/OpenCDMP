@@ -10,6 +10,8 @@ public class EvaluatorTenantConfiguration {
     public static final String _sources = "sources";
     private Boolean disableSystemSources;
     public static final String _disableSystemSources = "disableSystemSources";
+    private List<String> disabledSourceIds;
+    public static final String _disabledSourceIds = "disabledSourceIds";
 
     public List<EvaluatorSource> getSources() {
         return sources;
@@ -25,5 +27,12 @@ public class EvaluatorTenantConfiguration {
 
     public void setDisableSystemSources(Boolean disableSystemSources) {
         this.disableSystemSources = disableSystemSources;
+    }
+    public List<String> getDisabledSourceIds() {
+        return disabledSourceIds;
+    }
+
+    public void setDisabledSourceIds(List<String> disabledSourceIds) {
+        this.disabledSourceIds = disabledSourceIds;
     }
 }

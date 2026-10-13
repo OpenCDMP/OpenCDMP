@@ -6,20 +6,23 @@
           <div class="col-md col-12">
             <app-navigation-breadcrumb />
           </div>
+          <div class="col-12 order-last mt-3">
+            <app-tenant-readonly-banner [readOnly]="!isNew && editorModel?.belongsToCurrentTenant === false" />
+          </div>
           <div class="col-auto">
             <button mat-stroked-button class="padded-shadow-btn" (click)="cancel()" type="button">{{'REFERENCE-EDITOR.ACTIONS.CANCEL' | translate}}</button>
           </div>
           @if (canDelete) {
             <div class="col-auto">
-              <button mat-stroked-button color="warn" class="padded-shadow-btn" type="button" (click)="delete()">
-                <mat-icon aria-hidden>delete</mat-icon>
+              <button [disabled]="isLoading()" mat-stroked-button color="warn" class="padded-shadow-btn" type="button" (click)="delete()">
+                <mat-icon aria-hidden="true">delete</mat-icon>
                 {{'REFERENCE-EDITOR.ACTIONS.DELETE' | translate}}
               </button>
             </div>
           }
           @if (canSave) {
             <div class="col-auto">
-              <button mat-flat-button color="primary" class="padded-shadow-btn" (click)="formSubmit()">
+              <button [disabled]="isLoading()" mat-flat-button color="primary" class="padded-shadow-btn" (click)="formSubmit()">
                 <mat-icon>save</mat-icon>
                 {{'REFERENCE-EDITOR.ACTIONS.SAVE' | translate}}
               </button>
@@ -32,9 +35,9 @@
         <form (ngSubmit)="formSubmit()">
           <mat-card class="pb-3" appearance="outlined">
             <mat-card-content>
-              <div class="pb-3"><small>{{'COMMONS.VALIDATION.REQUIRED-FIELDS-HINT' | translate}}</small></div>
+              <p><small>{{'COMMONS.VALIDATION.REQUIRED-FIELDS-HINT' | translate}}</small></p>
               <div class="row" style="row-gap: 0.5rem">
-                <div class="col-4">
+                <p class="col-4">
                   <mat-form-field class="w-100">
                     <mat-label>{{'REFERENCE-EDITOR.FIELDS.LABEL' | translate}}</mat-label>
                     <input matInput type="text" name="label" [formControl]="formGroup.get('label')" required>
@@ -45,8 +48,8 @@
                       <mat-error>{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
                     }
                   </mat-form-field>
-                </div>
-                <div class="col-4">
+                </p>
+                <p class="col-4">
                   <mat-form-field class="w-100">
                     <mat-label>{{'REFERENCE-EDITOR.FIELDS.REFERENCE' | translate}}</mat-label>
                     <input matInput type="text" name="reference" [formControl]="formGroup.get('reference')" required>
@@ -57,8 +60,8 @@
                       <mat-error>{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
                     }
                   </mat-form-field>
-                </div>
-                <div class="col-4">
+                </p>
+                <p class="col-4">
                   <mat-form-field class="w-100">
                     <mat-label>{{'REFERENCE-EDITOR.FIELDS.TYPE' | translate}}</mat-label>
                     <app-single-auto-complete [required]="formGroup.get('typeId').required" [formControl]="formGroup.get('typeId')" placeholder="{{'REFERENCE-EDITOR.FIELDS.TYPE' | translate}}" [configuration]="referenceTypeService.singleAutocompleteConfiguration">
@@ -70,8 +73,8 @@
                       <mat-error>{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
                     }
                   </mat-form-field>
-                </div>
-                <div class="col-4">
+                </p>
+                <p class="col-4">
                   <mat-form-field class="w-100">
                     <mat-label>{{'REFERENCE-EDITOR.FIELDS.SOURCE' | translate}}</mat-label>
                     <input matInput type="text" name="source" [formControl]="formGroup.get('source')" required>
@@ -82,8 +85,8 @@
                       <mat-error>{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
                     }
                   </mat-form-field>
-                </div>
-                <div class="col-4">
+                </p>
+                <p class="col-4">
                   <mat-form-field class="w-100">
                     <mat-label>{{'REFERENCE-EDITOR.FIELDS.SOURCE-TYPE' | translate}}</mat-label>
                     <mat-select name="type" [formControl]="formGroup.get('sourceType')" required>
@@ -100,8 +103,8 @@
                       <mat-error>{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
                     }
                   </mat-form-field>
-                </div>
-                <div class="col-4">
+                </p>
+                <p class="col-4">
                   <mat-form-field class="w-100">
                     <mat-label>{{'REFERENCE-EDITOR.FIELDS.ABBREVIATION' | translate}}</mat-label>
                     <input matInput type="text" name="abbreviation" [formControl]="formGroup.get('abbreviation')">
@@ -112,7 +115,7 @@
                       <mat-error>{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
                     }
                   </mat-form-field>
-                </div>
+                </p>
                 <div class="col-12">
                   <rich-text-editor-component [form]="formGroup.controls.description" [placeholder]="'REFERENCE-EDITOR.FIELDS.DESCRIPTION-PLACEHOLDER'" [wrapperClasses]="(formGroup.get('description').touched && formGroup.get('description').hasError('required')) ? 'required' : ''" >
                   </rich-text-editor-component>
@@ -130,60 +133,56 @@
                     <button mat-flat-button color="accent" class="padded-shadow-btn" type="button" (click)="addField()" [disabled]="formGroup.disabled">{{'REFERENCE-EDITOR.ACTIONS.ADD-FIELD' | translate}}</button>
                   </h3>
                   @for (field of formGroup.get('definition').get('fields').controls; track field; let fieldIndex = $index) {
-                    <div class="row mb-3">
-                      <div class="col-12">
-                        <div class="row d-flex align-items-center">
-                          <div class="col-auto pb-3 d-flex">
-                            <mat-card-title>{{fieldIndex + 1}}</mat-card-title>
-                          </div>
-                          <div class="col">
-                            <mat-form-field class="w-100">
-                              <mat-label>{{'REFERENCE-EDITOR.FIELDS.CODE' | translate}}</mat-label>
-                              <input matInput type="text" name="code" [formControl]="field.get('code')" required>
-                              @if (field.get('code').hasError('backendError')) {
-                                <mat-error>{{field.get('code').getError('backendError').message}}</mat-error>
-                              }
-                              @if (field.get('code').hasError('required')) {
-                                <mat-error>{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
-                              }
-                            </mat-form-field>
-                          </div>
-                          <div class="col">
-                            <mat-form-field class="w-100">
-                              <mat-label>{{'REFERENCE-EDITOR.FIELDS.DATA-TYPE' | translate}}</mat-label>
-                              <mat-select name="type" [formControl]="field.get('dataType')" required>
-                                @for (dataType of referenceFieldDataTypeEnum; track dataType) {
-                                  <mat-option [value]="dataType">
-                                    {{enumUtils.toReferenceFieldDataTypeString(dataType)}}
-                                  </mat-option>
-                                }
-                              </mat-select>
-                              @if (field.get('dataType').hasError('backendError')) {
-                                <mat-error>{{field.get('dataType').getError('backendError').message}}</mat-error>
-                              }
-                              @if (field.get('dataType').hasError('required')) {
-                                <mat-error>{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
-                              }
-                            </mat-form-field>
-                          </div>
-                          <div class="col">
-                            <mat-form-field class="w-100">
-                              <mat-label>{{'REFERENCE-EDITOR.FIELDS.VALUE' | translate}}</mat-label>
-                              <input matInput type="text" name="value" [formControl]="field.get('value')">
-                              @if (field.get('value').hasError('backendError')) {
-                                <mat-error>{{field.get('value').getError('backendError').message}}</mat-error>
-                              }
-                              @if (field.get('value').hasError('required')) {
-                                <mat-error>{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
-                              }
-                            </mat-form-field>
-                          </div>
-                          <div class="col-auto pb-3 d-flex">
-                            <button mat-icon-button matTooltip="{{'REFERENCE-EDITOR.ACTIONS.REMOVE-FIELD' | translate}}" (click)="removeField(fieldIndex)" [disabled]="formGroup.disabled" [attr.aria-label]="'COMMONS.ACTIONS.REMOVE' | translate">
-                              <mat-icon aria-hidden>delete</mat-icon>
-                            </button>
-                          </div>
-                        </div>
+                    <div class="row d-flex align-items-center">
+                      <div class="col-auto pb-3 d-flex">
+                        <mat-card-title role="heading" aria-level="2">{{fieldIndex + 1}}</mat-card-title>
+                      </div>
+                      <div class="col">
+                        <mat-form-field class="w-100">
+                          <mat-label>{{'REFERENCE-EDITOR.FIELDS.CODE' | translate}}</mat-label>
+                          <input matInput type="text" name="code" [formControl]="field.get('code')" required>
+                          @if (field.get('code').hasError('backendError')) {
+                            <mat-error>{{field.get('code').getError('backendError').message}}</mat-error>
+                          }
+                          @if (field.get('code').hasError('required')) {
+                            <mat-error>{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
+                          }
+                        </mat-form-field>
+                      </div>
+                      <div class="col">
+                        <mat-form-field class="w-100">
+                          <mat-label>{{'REFERENCE-EDITOR.FIELDS.DATA-TYPE' | translate}}</mat-label>
+                          <mat-select name="type" [formControl]="field.get('dataType')" required>
+                            @for (dataType of referenceFieldDataTypeEnum; track dataType) {
+                              <mat-option [value]="dataType">
+                                {{enumUtils.toReferenceFieldDataTypeString(dataType)}}
+                              </mat-option>
+                            }
+                          </mat-select>
+                          @if (field.get('dataType').hasError('backendError')) {
+                            <mat-error>{{field.get('dataType').getError('backendError').message}}</mat-error>
+                          }
+                          @if (field.get('dataType').hasError('required')) {
+                            <mat-error>{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
+                          }
+                        </mat-form-field>
+                      </div>
+                      <div class="col">
+                        <mat-form-field class="w-100">
+                          <mat-label>{{'REFERENCE-EDITOR.FIELDS.VALUE' | translate}}</mat-label>
+                          <input matInput type="text" name="value" [formControl]="field.get('value')">
+                          @if (field.get('value').hasError('backendError')) {
+                            <mat-error>{{field.get('value').getError('backendError').message}}</mat-error>
+                          }
+                          @if (field.get('value').hasError('required')) {
+                            <mat-error>{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
+                          }
+                        </mat-form-field>
+                      </div>
+                      <div class="col-auto pb-3 d-flex">
+                        <button mat-icon-button matTooltip="{{'REFERENCE-EDITOR.ACTIONS.REMOVE-FIELD' | translate}}" (click)="removeField(fieldIndex)" [disabled]="formGroup.disabled" [attr.aria-label]="'COMMONS.ACTIONS.REMOVE' | translate">
+                          <mat-icon aria-hidden="true">delete</mat-icon>
+                        </button>
                       </div>
                     </div>
                   }

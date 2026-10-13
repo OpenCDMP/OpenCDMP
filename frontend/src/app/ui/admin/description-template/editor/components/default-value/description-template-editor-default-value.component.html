@@ -92,7 +92,7 @@
   }
 
   <!-- TextArea -->
-  @if (fieldType === descriptionTemplateFieldTypeEnum.TEXT_AREA) {
+  @if (fieldType === descriptionTemplateFieldTypeEnum.TEXT_AREA || fieldType === descriptionTemplateFieldTypeEnum.SYSTEM) {
     <mat-form-field class="col-md-12">
       <mat-label>{{placeHolder}}</mat-label>
       <input matInput type="text" [placeholder]="placeHolder" [formControl]="form" [required]="required">
@@ -132,6 +132,20 @@
       @if (form.hasError('required')) {
         <mat-error>{{'GENERAL.VALIDATION.REQUIRED' | translate}}
         </mat-error>
+      }
+    </mat-form-field>
+  }
+
+  <!-- Number -->
+  @if (fieldType === descriptionTemplateFieldTypeEnum.NUMBER) {
+    <mat-form-field class="col-md-12">
+      <mat-label>{{placeHolder}}</mat-label>
+      <input matInput type="number" [placeholder]="placeHolder" [formControl]="form" [required]="required">
+      @if (form.hasError('backendError')) {
+        <mat-error>{{form.getError('backendError').message}}</mat-error>
+      }
+      @if (form.hasError('required')) {
+        <mat-error>{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
       }
     </mat-form-field>
   }

@@ -27,6 +27,8 @@ import org.opencdmp.commons.types.featured.DescriptionTemplateEntity;
 import org.opencdmp.commons.types.featured.PlanBlueprintEntity;
 import org.opencdmp.commons.types.filetransformer.FileTransformerSourceEntity;
 import org.opencdmp.commons.types.tenantconfiguration.*;
+import org.opencdmp.model.persist.tenantconfiguration.TermsAndConditionsTenantConfigurationPersist;
+import org.opencdmp.model.persist.tenantconfiguration.GuidedToursTenantConfigurationPersist;
 import org.opencdmp.commons.types.viewpreference.ViewPreferenceEntity;
 import org.opencdmp.convention.ConventionService;
 import org.opencdmp.data.TenantConfigurationEntity;
@@ -174,11 +176,14 @@ public class TenantConfigurationServiceImpl implements TenantConfigurationServic
             }
             case PluginConfiguration -> {
                 PluginTenantConfigurationEntity oldValue = this.conventionService.isNullOrEmpty(data.getValue()) ? null : this.jsonHandlingService.fromJsonSafe(PluginTenantConfigurationEntity.class, data.getValue());
-                data.setValue(this.jsonHandlingService.toJson(this.buildPluginConfigEntity(model.getPluginConfiguration(), oldValue)));
+                PluginTenantConfigurationEntity inheritedValue = oldValue == null && !this.tenantScopeFactory.getInstance().isDefaultTenant() ? this.defaultTenantPluginConfiguration() : null;
+                data.setValue(this.jsonHandlingService.toJson(this.buildPluginConfigEntity(model.getPluginConfiguration(), oldValue, inheritedValue)));
             }
             case FeaturedEntities -> data.setValue(this.jsonHandlingService.toJson(this.buildFeaturedEntitiesEntity(model.getFeaturedEntities())));
             case DefaultPlanBlueprint -> data.setValue(this.jsonHandlingService.toJson(this.buildDefaultPlanBlueprintConfigurationEntity(model.getDefaultPlanBlueprint())));
             case ViewPreferences -> data.setValue(this.jsonHandlingService.toJson(this.buildViewPreferencesConfigurationEntity(model.getViewPreferences())));
+            case TermsAndConditions -> data.setValue(this.jsonHandlingService.toJson(this.buildTermsAndConditionsTenantConfigurationEntity(model.getTermsAndConditions())));
+            case GuidedTours -> data.setValue(this.jsonHandlingService.toJson(this.buildGuidedToursTenantConfigurationEntity(model.getGuidedTours())));
             default -> throw new InternalError("unknown type: " + data.getType());
         }
         data.setUpdatedAt(Instant.now());
@@ -212,9 +217,11 @@ public class TenantConfigurationServiceImpl implements TenantConfigurationServic
 
     private @NotNull DepositTenantConfigurationEntity buildDepositTenantConfigurationEntity(DepositTenantConfigurationPersist persist) throws InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
         DepositTenantConfigurationEntity data = new DepositTenantConfigurationEntity();
-        if (persist == null || this.conventionService.isListNullOrEmpty(persist.getSources())) return data;
-        data.setDisableSystemSources(persist.getDisableSystemSources());
+        if (persist == null) return data;
+        data.setDisableSystemSources(Boolean.TRUE.equals(persist.getDisableSystemSources()));
+        data.setDisabledSourceIds(persist.getDisabledSourceIds() != null ? new ArrayList<>(persist.getDisabledSourceIds()) : new ArrayList<>());
         data.setSources(new ArrayList<>());
+        if (this.conventionService.isListNullOrEmpty(persist.getSources())) return data;
         for (DepositSourcePersist depositSourcePersist : persist.getSources()) {
             data.getSources().add(this.buildDepositSourceEntity(depositSourcePersist));
         }
@@ -231,14 +238,17 @@ public class TenantConfigurationServiceImpl implements TenantConfigurationServic
         depositSourceEntity.setScope(depositSourcePersist.getScope());
         depositSourceEntity.setPdfTransformerId(depositSourcePersist.getPdfTransformerId());
         depositSourceEntity.setRdaTransformerId(depositSourcePersist.getRdaTransformerId());
+        depositSourceEntity.setMaxInMemorySizeInBytes(depositSourcePersist.getMaxInMemorySizeInBytes());
         return depositSourceEntity;
     }
 
     private @NotNull EvaluatorTenantConfigurationEntity buildEvaluatorTenantConfigurationEntity(EvaluatorTenantConfigurationPersist persist) throws InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
         EvaluatorTenantConfigurationEntity data = new EvaluatorTenantConfigurationEntity();
-        if (persist == null || this.conventionService.isListNullOrEmpty(persist.getSources())) return data;
-        data.setDisableSystemSources(persist.getDisableSystemSources());
+        if (persist == null) return data;
+        data.setDisableSystemSources(Boolean.TRUE.equals(persist.getDisableSystemSources()));
+        data.setDisabledSourceIds(persist.getDisabledSourceIds() != null ? new ArrayList<>(persist.getDisabledSourceIds()) : new ArrayList<>());
         data.setSources(new ArrayList<>());
+        if (this.conventionService.isListNullOrEmpty(persist.getSources())) return data;
         for (EvaluatorSourcePersist sourcePersist : persist.getSources()) {
             data.getSources().add(this.buildEvaluatorSourceEntity(sourcePersist));
         }
@@ -258,9 +268,11 @@ public class TenantConfigurationServiceImpl implements TenantConfigurationServic
 
     private @NotNull FileTransformerTenantConfigurationEntity buildFileTransformerTenantConfigurationEntity(FileTransformerTenantConfigurationPersist persist) throws InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
         FileTransformerTenantConfigurationEntity data = new FileTransformerTenantConfigurationEntity();
-        if (persist == null || this.conventionService.isListNullOrEmpty(persist.getSources())) return data;
-        data.setDisableSystemSources(persist.getDisableSystemSources());
+        if (persist == null) return data;
+        data.setDisableSystemSources(Boolean.TRUE.equals(persist.getDisableSystemSources()));
+        data.setDisabledSourceIds(persist.getDisabledSourceIds() != null ? new ArrayList<>(persist.getDisabledSourceIds()) : new ArrayList<>());
         data.setSources(new ArrayList<>());
+        if (this.conventionService.isListNullOrEmpty(persist.getSources())) return data;
         for (FileTransformerSourcePersist depositSourcePersist : persist.getSources()) {
             data.getSources().add(this.buildFileTransformerSourceEntity(depositSourcePersist));
         }
@@ -317,18 +329,24 @@ public class TenantConfigurationServiceImpl implements TenantConfigurationServic
         return data;
     }
 
-    private @NotNull PluginTenantConfigurationEntity buildPluginConfigEntity (PluginTenantConfigurationPersist persist, PluginTenantConfigurationEntity oldValue) throws InvalidApplicationException {
+    private @NotNull PluginTenantConfigurationEntity buildPluginConfigEntity (PluginTenantConfigurationPersist persist, PluginTenantConfigurationEntity oldValue, PluginTenantConfigurationEntity inheritedValue) throws InvalidApplicationException {
         PluginTenantConfigurationEntity data = new PluginTenantConfigurationEntity();
         if (persist == null) return data;
 
         if (!this.conventionService.isListNullOrEmpty(persist.getPluginConfigurations())) {
             data.setPluginConfigurations(new ArrayList<>());
             for (PluginConfigurationPersist pluginConfigurationPersist : persist.getPluginConfigurations()) {
-                data.getPluginConfigurations().add(this.pluginConfigurationService.buildPluginConfigurationEntity(pluginConfigurationPersist, oldValue != null ? oldValue.getPluginConfigurations(): null));
+                data.getPluginConfigurations().add(this.pluginConfigurationService.buildPluginConfigurationEntity(pluginConfigurationPersist, oldValue != null ? oldValue.getPluginConfigurations(): null, inheritedValue != null ? inheritedValue.getPluginConfigurations() : null));
             }
         }
 
         return data;
+    }
+
+    /** The default tenant's plugin settings, which a tenant without its own record inherits. */
+    private PluginTenantConfigurationEntity defaultTenantPluginConfiguration() throws InvalidApplicationException {
+        TenantConfigurationEntity entity = this.queryFactory.query(TenantConfigurationQuery.class).disableTracking().isActive(IsActive.Active).types(TenantConfigurationType.PluginConfiguration).tenantIsSet(false).first();
+        return entity == null || this.conventionService.isNullOrEmpty(entity.getValue()) ? null : this.jsonHandlingService.fromJsonSafe(PluginTenantConfigurationEntity.class, entity.getValue());
     }
 
     private @NotNull FeaturedEntitiesEntity buildFeaturedEntitiesEntity(FeaturedEntitiesPersist persist) {
@@ -404,6 +422,21 @@ public class TenantConfigurationServiceImpl implements TenantConfigurationServic
         data.setReferenceTypeId(persist.getReferenceTypeId());
         data.setOrdinal(persist.getOrdinal());
 
+        return data;
+    }
+
+    private @NotNull TermsAndConditionsTenantConfigurationEntity buildTermsAndConditionsTenantConfigurationEntity(TermsAndConditionsTenantConfigurationPersist persist) {
+        TermsAndConditionsTenantConfigurationEntity data = new TermsAndConditionsTenantConfigurationEntity();
+        if (persist == null) return data;
+        data.setContent(persist.getContent());
+        data.setVersion(persist.getVersion());
+        return data;
+    }
+
+    private @NotNull GuidedToursTenantConfigurationEntity buildGuidedToursTenantConfigurationEntity(GuidedToursTenantConfigurationPersist persist) {
+        GuidedToursTenantConfigurationEntity data = new GuidedToursTenantConfigurationEntity();
+        if (persist == null) return data;
+        data.setEnabled(persist.getEnabled());
         return data;
     }
 

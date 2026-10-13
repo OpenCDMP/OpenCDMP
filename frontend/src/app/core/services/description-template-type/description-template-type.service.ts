@@ -102,7 +102,7 @@ export class DescriptionTemplateTypeService {
 		};
 	}
 
-	private buildAutocompleteLookup(isActive: IsActive[], like?: string, excludedIds?: Guid[], ids?: Guid[], statuses?: DescriptionTemplateTypeStatus[]): DescriptionTemplateTypeLookup {
+	public buildAutocompleteLookup(isActive: IsActive[], like?: string, excludedIds?: Guid[], ids?: Guid[], statuses?: DescriptionTemplateTypeStatus[]): DescriptionTemplateTypeLookup {
 		const lookup: DescriptionTemplateTypeLookup = new DescriptionTemplateTypeLookup();
 		lookup.page = { size: 100, offset: 0 };
 		if (excludedIds && excludedIds.length > 0) { lookup.excludedIds = excludedIds; }

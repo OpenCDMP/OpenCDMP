@@ -1,12 +1,8 @@
-import {Component, EventEmitter, inject, Input, Output, QueryList, ViewChildren} from "@angular/core";
+import {Component, computed, EventEmitter, inject, Input, Output, QueryList, Signal, signal, ViewChildren, OnInit, ChangeDetectionStrategy} from "@angular/core";
 import {
-	DescriptionTemplatesInSection,
-	FieldInSection,
 	PlanBlueprint,
 	PlanBlueprintDefinition,
-	PlanBlueprintDefinitionSection,
-    ReferenceTypeFieldInSection,
-    SystemFieldInSection
+    RootSection,
 } from "@app/core/model/plan-blueprint/plan-blueprint";
 import {PlanBlueprintService} from "@app/core/services/plan/plan-blueprint.service";
 import {QueryResult} from "@common/model/query-result";
@@ -18,9 +14,9 @@ import {nameof} from "ts-simple-nameof";
 import {
 	DescriptionTemplate,
 	DescriptionTemplateDefinition,
-    DescriptionTemplateFieldSet,
-	DescriptionTemplatePage,
-	DescriptionTemplateSection
+    BaseFieldSet,
+	BaseSection,
+    BaseField
 } from "@app/core/model/description-template/description-template";
 import {DescriptionTemplateService} from "@app/core/services/description-template/description-template.service";
 import {DescriptionTemplateLookup} from "@app/core/query/description-template.lookup";
@@ -39,39 +35,80 @@ import { TenantConfiguration } from "@app/core/model/tenant-configuaration/tenan
 import { combineLatest, Observable, of } from "rxjs";
 import { PlanBlueprintFieldCategory } from "@app/core/common/enum/plan-blueprint-field-category";
 import { EnumUtils } from "@app/core/services/utilities/enum-utils.service";
-import { ReferenceType } from "@app/core/model/reference-type/reference-type";
-import {MatExpansionPanel} from "@angular/material/expansion";
+import { MatExpansionPanel, MatAccordion, MatExpansionPanelHeader, MatExpansionPanelTitle } from "@angular/material/expansion";
 import { PlanEditorEntityResolver } from "../resolvers/plan-editor-enitity.resolver";
+import { PlanBlueprintType } from "@app/core/model/plan-blueprint-type/plan-blueprint-type";
+import { IconConfiguration } from "@app/core/model/icon-configuration/icon-configuration";
+import { StorageFileService } from "@app/core/services/storage-file/storage-file.service";
+import { DomSanitizer, SafeUrl } from "@angular/platform-browser";
+import { StorageFile } from "@app/core/model/storage-file/storage-file";
+import { PlanService } from "@app/core/services/plan/plan.service";
+import { UiNotificationService } from "@app/core/services/notification/ui-notification-service";
+import { Router, RouterLink } from "@angular/router";
+import { TranslateService, TranslatePipe } from "@ngx-translate/core";
+import { RouterUtilsService } from "@app/core/services/router/router-utils.service";
+import { MatIcon } from "@angular/material/icon";
+import { TextFilterComponent } from "../../../../../common/modules/text-filter/text-filter.component";
+import { NgTemplateOutlet, UpperCasePipe } from "@angular/common";
+import { MatButton } from "@angular/material/button";
+import { MatCard, MatCardHeader, MatCardTitle, MatCardContent } from "@angular/material/card";
+import { PlanCreationConsentComponent } from "../../plan-creation-consent/plan-creation-consent.component";
+import { PlanUploadDialogComponent } from "../../new/upload-dialogue/plan-upload-dialog.component";
+import { InvokeMemoizedPipe } from "../../../../../common/formatting/pipes/invoke-memoized.pipe";
 
 @Component({
-	selector: 'app-plan-blueprints-preview-component',
-	templateUrl: './plan-blueprints-preview.component.html',
-	styleUrls: ['./plan-blueprints-preview.component.scss'],
-	standalone: false
-
+    selector: 'app-plan-blueprints-preview-component',
+    templateUrl: './plan-blueprints-preview.component.html',
+    styleUrls: ['./plan-blueprints-preview.component.scss'],
+    changeDetection: ChangeDetectionStrategy.Eager,
+    imports: [RouterLink, MatIcon, TextFilterComponent, NgTemplateOutlet, MatButton, MatCard, MatCardHeader, MatCardTitle, MatCardContent, MatAccordion, PlanCreationConsentComponent, PlanUploadDialogComponent, MatExpansionPanel, MatExpansionPanelHeader, MatExpansionPanelTitle, UpperCasePipe, TranslatePipe, InvokeMemoizedPipe]
 })
 
-export class PlanBlueprintsPreviewComponent extends BaseComponent {
+export class PlanBlueprintsPreviewComponent extends BaseComponent implements OnInit {
     @ViewChildren('baseExpansionPanel') baseExpansionPanels: QueryList<MatExpansionPanel>;
     @ViewChildren('nestedExpansionPanel') nestedExpansionPanels: QueryList<MatExpansionPanel>;
 	public lookup: PlanBlueprintLookup;
-	public planBlueprints: PlanBlueprint[];
 	public planBlueprintCount = 0;
-	pageSize: number = 5;
+	pageSize: number = 100;
 	page: number = 1;
 	searchTerm = "";
 	public selectedBlueprint: PlanBlueprint = null; // selected blueprint
 	@Input() public selectedBlueprintId = null; // selected blueprint
+	@Input() public readOnly: boolean = false; // read-only view: hides the wizard chrome (stepper/list/search/proceed/import) and shows only the selected blueprint
 	public defaultBlueprint: PlanBlueprint = null;
 	public descriptionTemplates = new Map();
 	public sectionIsOpen = [];
 	@Output() proceedWithBlueprint: EventEmitter<PlanBlueprint> = new EventEmitter();
+	/** Emitted once the blueprint list and the initial selection are on screen (the "start a plan" tour waits for it). */
+	@Output() ready: EventEmitter<void> = new EventEmitter();
 	img = "";
 	exportingPDF = false;
 	dialog = inject(MatDialog);
+	public planCreationConsentAccepted = false;
 
     planBlueprintSectionFieldCategoryEnum = PlanBlueprintFieldCategory;
-
+	
+    planBlueprints = signal<PlanBlueprint[]>([]);
+    groupedBlueprints: Signal<PlanBlueprint[][]> = computed(() => {
+        if(!this.planBlueprints()?.length){ return []}
+        const grouped = this.planBlueprints()?.reduce((prev: PlanBlueprint[][], curr: PlanBlueprint) => {
+            const existing = prev?.findIndex(x => x.length && x[0].type?.id == curr.type?.id);
+            if(existing >= 0){
+                prev[existing].push(curr);
+            } else {
+                prev.push([curr]);
+            }
+            return prev;
+        }, [] as PlanBlueprint[][]);
+        return grouped?.sort((a, b) => {
+            const aType = a?.[0]?.type;
+            const bType = b?.[0]?.type;
+            if(!aType?.id){ return 1 }
+            if(!bType?.id){ return -1 }
+            return aType.ordinal - bType.ordinal;
+        })
+    })
+    
 	openDialog() {
 		this.dialog.open(DescriptionTemplatesDialogComponent, {
 			width: '80vw',
@@ -87,8 +124,15 @@ export class PlanBlueprintsPreviewComponent extends BaseComponent {
 		nameof<PlanBlueprint>(x => x.description),
 		nameof<PlanBlueprint>(x => x.code),
 		nameof<PlanBlueprint>(x => x.groupId),
-		[nameof<PlanBlueprint>(x => x.definition), nameof<PlanBlueprintDefinition>(x => x.sections), nameof<PlanBlueprintDefinitionSection>(x => x.fields), nameof<ReferenceTypeFieldInSection>(x => x.referenceType), nameof<ReferenceType>(x => x.name)].join('.'),
-		[nameof<PlanBlueprint>(x => x.definition), nameof<PlanBlueprintDefinition>(x => x.sections), nameof<PlanBlueprintDefinitionSection>(x => x.hasTemplates)].join('.'),
+		nameof<PlanBlueprint>(x => x.ordinal),
+		[nameof<PlanBlueprint>(x => x.type), nameof<PlanBlueprintType>(x => x.id)].join('.'),
+		[nameof<PlanBlueprint>(x => x.type), nameof<PlanBlueprintType>(x => x.name)].join('.'),
+		[nameof<PlanBlueprint>(x => x.type), nameof<PlanBlueprintType>(x => x.ordinal)].join('.'),
+		[nameof<PlanBlueprint>(x => x.definition), nameof<PlanBlueprintDefinition>(x => x.iconConfiguration), nameof<IconConfiguration>(x => x.matIconName)].join('.'),
+		[nameof<PlanBlueprint>(x => x.definition), nameof<PlanBlueprintDefinition>(x => x.iconConfiguration), nameof<IconConfiguration>(x => x.storageFile), nameof<StorageFile>(x => x.id)].join('.'),
+		[nameof<PlanBlueprint>(x => x.definition), nameof<PlanBlueprintDefinition>(x => x.sections), nameof<RootSection>(x => x.fieldSets), nameof<BaseFieldSet>(x => x.fields), nameof<BaseField>(x => x.data)].join('.'),
+		[nameof<PlanBlueprint>(x => x.definition), nameof<PlanBlueprintDefinition>(x => x.sections), nameof<RootSection>(x => x.sections)].join('.'),
+		[nameof<PlanBlueprint>(x => x.definition), nameof<PlanBlueprintDefinition>(x => x.sections), nameof<RootSection>(x => x.hasTemplates)].join('.'),
 	];
 
 	private readonly descriptionTemplateLookupFields: string[] = [
@@ -98,18 +142,18 @@ export class PlanBlueprintsPreviewComponent extends BaseComponent {
 		nameof<DescriptionTemplate>(x => x.description),
 		nameof<DescriptionTemplate>(x => x.version),
 		nameof<DescriptionTemplate>(x => x.groupId),
-		[nameof<DescriptionTemplate>(x => x.definition), nameof<DescriptionTemplateDefinition>(x => x.pages), nameof<DescriptionTemplatePage>(x => x.id)].join('.'),
-		[nameof<DescriptionTemplate>(x => x.definition), nameof<DescriptionTemplateDefinition>(x => x.pages), nameof<DescriptionTemplatePage>(x => x.ordinal)].join('.'),
-		[nameof<DescriptionTemplate>(x => x.definition), nameof<DescriptionTemplateDefinition>(x => x.pages), nameof<DescriptionTemplatePage>(x => x.title)].join('.'),
-		[nameof<DescriptionTemplate>(x => x.definition), nameof<DescriptionTemplateDefinition>(x => x.pages), nameof<DescriptionTemplatePage>(x => x.sections), nameof<DescriptionTemplateSection>(x => x.id)].join('.'),
-		[nameof<DescriptionTemplate>(x => x.definition), nameof<DescriptionTemplateDefinition>(x => x.pages), nameof<DescriptionTemplatePage>(x => x.sections), nameof<DescriptionTemplateSection>(x => x.ordinal)].join('.'),
-		[nameof<DescriptionTemplate>(x => x.definition), nameof<DescriptionTemplateDefinition>(x => x.pages), nameof<DescriptionTemplatePage>(x => x.sections), nameof<DescriptionTemplateSection>(x => x.title)].join('.'),
-		[nameof<DescriptionTemplate>(x => x.definition), nameof<DescriptionTemplateDefinition>(x => x.pages), nameof<DescriptionTemplatePage>(x => x.sections), nameof<DescriptionTemplateSection>(x => x.description)].join('.'),
-		[nameof<DescriptionTemplate>(x => x.definition), nameof<DescriptionTemplateDefinition>(x => x.pages), nameof<DescriptionTemplatePage>(x => x.sections), nameof<DescriptionTemplateSection>(x => x.sections)].join('.'),
-		[nameof<DescriptionTemplate>(x => x.definition), nameof<DescriptionTemplateDefinition>(x => x.pages), nameof<DescriptionTemplatePage>(x => x.sections), nameof<DescriptionTemplateSection>(x => x.fieldSets), nameof<DescriptionTemplateFieldSet>(x => x.id)].join('.'),
-		[nameof<DescriptionTemplate>(x => x.definition), nameof<DescriptionTemplateDefinition>(x => x.pages), nameof<DescriptionTemplatePage>(x => x.sections), nameof<DescriptionTemplateSection>(x => x.fieldSets), nameof<DescriptionTemplateFieldSet>(x => x.ordinal)].join('.'),
-		[nameof<DescriptionTemplate>(x => x.definition), nameof<DescriptionTemplateDefinition>(x => x.pages), nameof<DescriptionTemplatePage>(x => x.sections), nameof<DescriptionTemplateSection>(x => x.fieldSets), nameof<DescriptionTemplateFieldSet>(x => x.title)].join('.'),
-		[nameof<DescriptionTemplate>(x => x.definition), nameof<DescriptionTemplateDefinition>(x => x.pages), nameof<DescriptionTemplatePage>(x => x.sections), nameof<DescriptionTemplateSection>(x => x.fieldSets)].join('.'),
+		[nameof<DescriptionTemplate>(x => x.definition), nameof<DescriptionTemplateDefinition>(x => x.sections), nameof<BaseSection>(x => x.id)].join('.'),
+		[nameof<DescriptionTemplate>(x => x.definition), nameof<DescriptionTemplateDefinition>(x => x.sections), nameof<BaseSection>(x => x.ordinal)].join('.'),
+		[nameof<DescriptionTemplate>(x => x.definition), nameof<DescriptionTemplateDefinition>(x => x.sections), nameof<BaseSection>(x => x.title)].join('.'),
+		[nameof<DescriptionTemplate>(x => x.definition), nameof<DescriptionTemplateDefinition>(x => x.sections), nameof<BaseSection>(x => x.sections), nameof<BaseSection>(x => x.id)].join('.'),
+		[nameof<DescriptionTemplate>(x => x.definition), nameof<DescriptionTemplateDefinition>(x => x.sections), nameof<BaseSection>(x => x.sections), nameof<BaseSection>(x => x.ordinal)].join('.'),
+		[nameof<DescriptionTemplate>(x => x.definition), nameof<DescriptionTemplateDefinition>(x => x.sections), nameof<BaseSection>(x => x.sections), nameof<BaseSection>(x => x.title)].join('.'),
+		[nameof<DescriptionTemplate>(x => x.definition), nameof<DescriptionTemplateDefinition>(x => x.sections), nameof<BaseSection>(x => x.sections), nameof<BaseSection>(x => x.description)].join('.'),
+		[nameof<DescriptionTemplate>(x => x.definition), nameof<DescriptionTemplateDefinition>(x => x.sections), nameof<BaseSection>(x => x.sections), nameof<BaseSection>(x => x.sections)].join('.'),
+		[nameof<DescriptionTemplate>(x => x.definition), nameof<DescriptionTemplateDefinition>(x => x.sections), nameof<BaseSection>(x => x.sections), nameof<BaseSection>(x => x.fieldSets), nameof<BaseFieldSet>(x => x.id)].join('.'),
+		[nameof<DescriptionTemplate>(x => x.definition), nameof<DescriptionTemplateDefinition>(x => x.sections), nameof<BaseSection>(x => x.sections), nameof<BaseSection>(x => x.fieldSets), nameof<BaseFieldSet>(x => x.ordinal)].join('.'),
+		[nameof<DescriptionTemplate>(x => x.definition), nameof<DescriptionTemplateDefinition>(x => x.sections), nameof<BaseSection>(x => x.sections), nameof<BaseSection>(x => x.fieldSets), nameof<BaseFieldSet>(x => x.title)].join('.'),
+		[nameof<DescriptionTemplate>(x => x.definition), nameof<DescriptionTemplateDefinition>(x => x.sections), nameof<BaseSection>(x => x.sections), nameof<BaseSection>(x => x.fieldSets)].join('.'),
 
 	];
 
@@ -118,7 +162,14 @@ export class PlanBlueprintsPreviewComponent extends BaseComponent {
         private descriptionTemplateService: DescriptionTemplateService,
         private tenantHandlingService: TenantHandlingService,
         protected httpErrorHandlingService: HttpErrorHandlingService,
-        protected enumUtils: EnumUtils
+        protected enumUtils: EnumUtils,
+        private storageFileService: StorageFileService,
+        private sanitizer: DomSanitizer,
+        private planService: PlanService,
+        private uiNotificationService: UiNotificationService,
+        private router: Router,
+        private language: TranslateService,
+        private routerUtils: RouterUtilsService
     ) {
 		super();
 	}
@@ -132,25 +183,30 @@ export class PlanBlueprintsPreviewComponent extends BaseComponent {
         ])
         .subscribe(([defaultBlueprint, blueprints]) => {
             this.defaultBlueprint = defaultBlueprint;
-            this.planBlueprints = blueprints.items;
+            this.planBlueprints.set(blueprints.items);
             this.planBlueprintCount = blueprints.count;
             if(this.selectedBlueprintId){ //pre-selected blueprint from input
                 this.selectedBlueprint = this.selectedBlueprintId === this.defaultBlueprint?.groupId ? this.defaultBlueprint :
-                    this.planBlueprints.find((x) => x.groupId === this.selectedBlueprintId)
+                    this.planBlueprints().find((x) => x.groupId === this.selectedBlueprintId)
             } else {
-                this.selectedBlueprint = this.defaultBlueprint ?? this.planBlueprints?.[0];
+                this.selectedBlueprint = this.defaultBlueprint ?? this.planBlueprints()?.[0];
             }
-			this.getDescriptionTemplates(this.planBlueprints);
+			this.getDescriptionTemplates(this.planBlueprints());
+            this.downloadStorageFiles([
+                ...(this.planBlueprints()?.map(x => x.definition?.iconConfiguration?.storageFile?.id)?.filter(x => !!x) ?? []),
+                this.defaultBlueprint?.definition?.iconConfiguration?.storageFile?.id
+            ])
+            this.ready.emit();
         })
     }
 	getDescriptionTemplates(planBlueprints){
-		let ids = [];
-		for (let blueprint of planBlueprints) {
+		const ids = [];
+		for (const blueprint of planBlueprints) {
 			if (blueprint && blueprint.definition?.sections) {
 				const sectionWithDescriptionTemplates = blueprint.definition.sections.filter(x => x.hasTemplates == true && x.descriptionTemplates != null && x.descriptionTemplates.length > 0) || [];
 				if (sectionWithDescriptionTemplates.length > 0) {
-					for (let section of sectionWithDescriptionTemplates) {
-						for (let descriptionTemplate of section.descriptionTemplates) {
+					for (const section of sectionWithDescriptionTemplates) {
+						for (const descriptionTemplate of section.descriptionTemplates) {
 							if(descriptionTemplate.descriptionTemplate?.groupId && !this.descriptionTemplates.has(descriptionTemplate.descriptionTemplate.groupId)) {
 								this.descriptionTemplates.set(descriptionTemplate.descriptionTemplate.groupId, []);
 								ids.push(descriptionTemplate.descriptionTemplate.groupId);
@@ -166,7 +222,7 @@ export class PlanBlueprintsPreviewComponent extends BaseComponent {
 				takeUntil(this._destroyed),
 				tap((descriptionTemplates: QueryResult<DescriptionTemplate>) => {
 				})).subscribe(queryResults => {
-				for (let descriptionTemplate of queryResults.items) {
+				for (const descriptionTemplate of queryResults.items) {
 					this.descriptionTemplates.get(descriptionTemplate.groupId.toString()).push(descriptionTemplate);
 				}
 
@@ -209,7 +265,7 @@ export class PlanBlueprintsPreviewComponent extends BaseComponent {
 	exportToPDF(name) {
 		this.exportingPDF = true;
 		this.expandAll();
-		let divs = [];
+		const divs = [];
 		if (document.getElementById('blueprint-title')) {
 			divs.push(document.getElementById('blueprint-title'));
 		}
@@ -234,13 +290,13 @@ export class PlanBlueprintsPreviewComponent extends BaseComponent {
 				}
 				for (let x = 0; x < this.selectedBlueprint.definition.sections[i].descriptionTemplates.length; x++) {
 
-					let template: DescriptionTemplate =
+					const template: DescriptionTemplate =
 						this.descriptionTemplates.get(this.selectedBlueprint.definition.sections[i].descriptionTemplates[x].descriptionTemplate?.groupId)[0];
 					if (document.getElementById('blueprint-section-' + i + '-template-' + x + '-title')) {
 						divs.push(document.getElementById('blueprint-section-' + i + '-template-' + x + '-title'));
 					}
-					if (template.definition && template.definition.pages) {
-						for (let y = 0; y < template.definition.pages.length; y++) {
+					if (template.definition && template.definition.sections) {
+						for (let y = 0; y < template.definition.sections.length; y++) {
 							if (document.getElementById('blueprint-section-' + i + '-template-' + x + '-page-' + y)) {
 								divs.push(document.getElementById('blueprint-section-' + i + '-template-' + x + '-page-' + y));
 							}
@@ -281,7 +337,7 @@ export class PlanBlueprintsPreviewComponent extends BaseComponent {
 
 			// Helper function to add a watermark to each page
 			const addWatermark = () => {
-				let offset = 15
+				const offset = 15
 				if (watermarkData) {
 					const watermarkX = (pageWidth - watermarkWidth) / 2; // Center horizontally
 					const watermarkY = (pageHeight - watermarkHeight) / 2; // Center vertically
@@ -420,8 +476,9 @@ export class PlanBlueprintsPreviewComponent extends BaseComponent {
 		this.planBlueprintService.query(this.initializeLookup()).pipe(
 			takeUntil(this._destroyed)
 		).subscribe(blueprints => {
-			this.planBlueprints = blueprints.items
-			this.getDescriptionTemplates(this.planBlueprints);
+			this.planBlueprints.set(blueprints.items)
+			this.getDescriptionTemplates(this.planBlueprints());
+            this.downloadStorageFiles(this.planBlueprints()?.map(x => x.definition?.iconConfiguration?.storageFile?.id)?.filter(x => !!x))
 		});
 	}
 
@@ -430,11 +487,25 @@ export class PlanBlueprintsPreviewComponent extends BaseComponent {
 		this.planBlueprintService.query(this.initializeLookup()).pipe(
 			takeUntil(this._destroyed)
 		).subscribe(blueprints => {
-			this.planBlueprints = blueprints.items
+			this.planBlueprints.set(blueprints.items);
 			this.planBlueprintCount = blueprints.count;
-			this.getDescriptionTemplates(this.planBlueprints);
+			this.getDescriptionTemplates(this.planBlueprints());
+            this.downloadStorageFiles(this.planBlueprints()?.map(x => x.definition?.iconConfiguration?.storageFile?.id)?.filter(x => !!x))
 		});
 	}
+
+    protected storageFileMap = new Map<Guid, SafeUrl>([]);
+    protected downloadStorageFiles(storageFileIds: Guid[]){
+        const newIds = new Set(storageFileIds.filter((id) => !!id && !this.storageFileMap.has(id)));
+        newIds.forEach((id) => {
+            this.storageFileService.download(id).pipe(takeUntil(this._destroyed))
+            .subscribe({
+                next: response => {
+                    this.storageFileMap.set(id, this.sanitizer.bypassSecurityTrustUrl(URL.createObjectURL(response.body)));
+                }
+            });
+        })
+    }
 
     expand(){
         this.baseExpansionPanels?.forEach((panel) => panel?.open());
@@ -450,4 +521,120 @@ export class PlanBlueprintsPreviewComponent extends BaseComponent {
         this.nestedExpansionPanels?.forEach((panel) => panel?.close());
     }
 
+	onPlanCreationConsentChange(checked: boolean): void {
+		this.planCreationConsentAccepted = checked;
+	}
+
+	selectBlueprint(blueprint: PlanBlueprint): void {
+		this.selectedBlueprint = blueprint;
+		this.planCreationConsentAccepted = false;
+	}
+
+    getBlueprintSortDesc: (description: string) => string = (description) => {
+        if(!description?.length){ return ''}
+        return this.stripHTML(description);
+    }
+    getSectionFields(section: RootSection | BaseSection): BaseField[] {
+        return (section?.fieldSets ?? []).flatMap(fs => fs.fields ?? []);
+    }
+
+    stripHTML(text: string): string {
+        if(!text) return;
+
+        let html = text;
+        html = html.replace(/<style([\s\S]*?)<\/style>/gi, '');
+        html = html.replace(/<script([\s\S]*?)<\/script>/gi, '');
+        html = html.replace(/<\/div>/ig, '\n');
+        html = html.replace(/<\/li>/ig, '\n');
+        html = html.replace(/<li>/ig, '  *  ');
+        html = html.replace(/<\/ul>/ig, '\n');
+        html = html.replace(/<\/p>/ig, '\n');
+        html = html.replace(/<br\s*[\/]?>/gi, "\n");
+        html = html.replace(/<[^>]+>/ig, '');
+        html = html.replace('&#160;', ' ');
+        return html;
+    }
+
+    importPlanDialogOpen: boolean = false;
+    openImportPlanDialog(){
+        this.importPlanDialogOpen = true;
+        // this.dialog.open(PlanUploadDialogComponent, {
+        //     width: '500px',
+		// 	height: 'calc(100% - 80px)',
+		// 	id: 'filters',
+		// 	restoreFocus: false,
+		// 	position: { right: '0px;' },
+		// 	panelClass: 'plan-upload-dialog',
+        // }).afterClosed().pipe(takeUntil(this._destroyed)).subscribe(result => {
+		// 	if (result && result.success) {
+		// 		const file = result.file;
+		// 		if (file?.type.includes('/xml')){
+		// 			this.planService.uploadXml(result.file, result.planTitle)
+		// 				.pipe(takeUntil(this._destroyed))
+		// 				.subscribe({
+        //                     next: (res) => {
+		//                         this.onCallbackImportComplete(res?.id);
+		// 						this.dialog.closeAll();
+        //                     },
+        //                     error: (error) => this.httpErrorHandlingService.handleBackedRequestError(error)
+        //                 }	);
+		// 		} else if (file?.type.includes('/json') && result.planCommonModelConfig){
+		// 			this.planService.uploadJson(result.planCommonModelConfig)	
+		// 				.pipe(takeUntil(this._destroyed))
+		// 				.subscribe({
+        //                     next: (res) => {
+		// 				        this.onCallbackImportComplete(res?.id);
+		// 						this.dialog.closeAll();
+        //                     },
+        //                     error: (error) => this.onCallbackImportFail(error)
+        //                 });
+		// 		}
+		// 	}
+		// });
+    }
+    onImportPlanDialogClosed(result?: any){
+        this.importPlanDialogOpen = false;
+        if (result && result.success) {
+            if(result.planId){
+                this.router.navigate([this.routerUtils.generateUrl(['/plans/edit/', result.planId.toString()])])
+            } else {
+                this.router.navigate([this.routerUtils.generateUrl('/plans')])
+            }
+            // const file = result.file;
+            // if (file?.type.includes('/xml')){
+            //     this.planService.uploadXml(result.file, result.planTitle)
+            //         .pipe(takeUntil(this._destroyed))
+            //         .subscribe({
+            //             next: (res) => {
+            //                 this.onCallbackImportComplete(res?.id);
+            //                 this.dialog.closeAll();
+            //             },
+            //             error: (error) => this.httpErrorHandlingService.handleBackedRequestError(error)
+            //         }	);
+            // } else if (file?.type.includes('/json') && result.planCommonModelConfig){
+            //     this.planService.uploadJson(result.planCommonModelConfig)	
+            //         .pipe(takeUntil(this._destroyed))
+            //         .subscribe({
+            //             next: (res) => {
+            //                 this.onCallbackImportComplete(res?.id);
+            //                 this.dialog.closeAll();
+            //             },
+            //             error: (error) => this.onCallbackImportFail(error)
+            //         });
+            // }
+        }
+    }
+
+    // private onCallbackImportComplete(planId: Guid) {
+    //     this.uiNotificationService.snackBarNotification(this.language.instant('PLAN-UPLOAD.UPLOAD-SUCCESS'), SnackBarNotificationLevel.Success);
+    //     if(planId){
+    //         this.router.navigate([this.routerUtils.generateUrl(['/plans/edit/', planId.toString()])])
+    //     } else {
+    //         this.router.navigate([this.routerUtils.generateUrl('/plans')])
+    //     }
+    // }
+
+    // private onCallbackImportFail(error: any) {
+    //     this.httpErrorHandlingService.handleBackedRequestError(error, null, SnackBarNotificationLevel.Error);
+    // }
 }

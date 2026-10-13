@@ -1,6 +1,6 @@
-import { Component, OnInit, TemplateRef, ViewChild } from '@angular/core';
+import { Component, OnInit, TemplateRef, ViewChild, ChangeDetectionStrategy } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { IsActive } from '@app/core/common/enum/is-active.enum';
 import { ReferenceType } from '@app/core/model/reference-type/reference-type';
 import { ReferenceTypeLookup } from '@app/core/query/reference-type.lookup';
@@ -15,35 +15,47 @@ import { DataTableDateTimeFormatPipe } from '@app/core/pipes/date-time-format.pi
 import { QueryResult } from '@common/model/query-result';
 import { ConfirmationDialogComponent } from '@common/modules/confirmation-dialog/confirmation-dialog.component';
 import { HttpErrorHandlingService } from '@common/modules/errors/error-handling/http-error-handling.service';
-import { ColumnDefinition, ColumnsChangedEvent, HybridListingComponent, PageLoadEvent } from '@common/modules/hybrid-listing/hybrid-listing.component';
+import { ColumnDefinition, ColumnsChangedEvent, PageLoadEvent } from '@common/modules/admin-listing/listing.types';
 import { Guid } from '@common/types/guid';
-import { TranslateService } from '@ngx-translate/core';
+import { TranslateService, TranslatePipe } from '@ngx-translate/core';
 import { Observable } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { nameof } from 'ts-simple-nameof';
-import { IsActiveTypePipe } from '@common/formatting/pipes/is-active-type.pipe';
 import { RouterUtilsService } from '@app/core/services/router/router-utils.service';
 import { AppPermission } from '@app/core/common/enum/permission.enum';
+import { AdminPageHeaderComponent } from '../../../../../common/ui/admin-page-header/admin-page-header.component';
+import { MatButton, MatIconButton } from '@angular/material/button';
+import { MatIcon } from '@angular/material/icon';
+import { AdminListingComponent } from '../../../../../common/modules/admin-listing/admin-listing.component';
+import { ReferenceTypeListingFiltersComponent } from './filters/reference-type-listing-filters.component';
+import { UserSettingsPickerComponent } from '../../../../../common/modules/user-settings/user-settings-picker/user-settings-picker.component';
+import { TenantSharedChipComponent } from '../../../../../common/ui/tenant-shared/tenant-shared-chip.component';
+import { MatMenuTrigger, MatMenu, MatMenuItem, MatMenuContent } from '@angular/material/menu';
+import { MatTooltip } from '@angular/material/tooltip';
+import { NullifyValuePipe } from '../../../../../common/modules/admin-listing/pipes/nullify-value.pipe';
 
 @Component({
     templateUrl: './reference-type-listing.component.html',
     styleUrls: ['./reference-type-listing.component.scss'],
-    standalone: false
+    changeDetection: ChangeDetectionStrategy.Eager,
+    imports: [AdminPageHeaderComponent, MatButton, RouterLink, MatIcon, AdminListingComponent, ReferenceTypeListingFiltersComponent, UserSettingsPickerComponent, TenantSharedChipComponent, MatIconButton, MatMenuTrigger, MatMenu, MatMenuItem, MatMenuContent, MatTooltip, TranslatePipe, NullifyValuePipe]
 })
 export class ReferenceTypeListingComponent extends BaseListingComponent<ReferenceType, ReferenceTypeLookup> implements OnInit {
 	publish = false;
+	protected override readonly tenantScoped = true;
 	userSettingsKey = { key: 'ReferenceTypeListingUserSettings' };
+	/** Admins browse: a longer page than the author-facing listings. */
+	protected override ITEMS_PER_PAGE = 25;
 	propertiesAvailableForOrder: ColumnDefinition[];
 
 	@ViewChild('actions', { static: true }) actions?: TemplateRef<any>;
-	@ViewChild(HybridListingComponent, { static: true }) hybridListingComponent: HybridListingComponent;
+	@ViewChild('nameCell', { static: true }) nameCell?: TemplateRef<any>;
 
 	private readonly lookupFields: string[] = [
 		nameof<ReferenceType>(x => x.id),
 		nameof<ReferenceType>(x => x.name),
 		nameof<ReferenceType>(x => x.code),
 		nameof<ReferenceType>(x => x.updatedAt),
-		nameof<ReferenceType>(x => x.createdAt),
 		nameof<ReferenceType>(x => x.belongsToCurrentTenant),
 		nameof<ReferenceType>(x => x.isActive)
 	];
@@ -74,6 +86,22 @@ export class ReferenceTypeListingComponent extends BaseListingComponent<Referenc
 		super.ngOnInit();
 	}
 
+	/** Whether a search term or non-default filter is currently applied (drives the "no results" empty state). */
+	public get hasActiveFilters(): boolean {
+		return !!this.lookup?.like
+			|| this.lookup?.isActive?.[0] === IsActive.Inactive;
+	}
+
+	/** Reset search & filters to their defaults while preserving column selection, ordering and page size. */
+	public clearAllFilters(): void {
+		const fresh = this.initializeLookup();
+		fresh.order = this.lookup.order;
+		fresh.project = this.lookup.project;
+		fresh.page = { offset: 0, size: this.lookup.page.size };
+		this.lookup = fresh;
+		this.filterChanged(this.lookup);
+	}
+
 	protected canEdit(referenceType: ReferenceType): boolean {
 		return this.authService.hasPermission(AppPermission.EditReferenceType) && referenceType?.belongsToCurrentTenant && referenceType?.isActive === IsActive.Active;
 	}
@@ -87,6 +115,8 @@ export class ReferenceTypeListingComponent extends BaseListingComponent<Referenc
 		lookup.metadata = { countAll: true };
 		lookup.page = { offset: 0, size: this.ITEMS_PER_PAGE };
 		lookup.isActive = [IsActive.Active];
+		// Admin listings open on the current tenant's own rows; the shared (default-tenant) rows are one toggle away.
+		this.applyScope(lookup, 'own');
 		lookup.order = { items: [this.toDescSortField(nameof<ReferenceType>(x => x.updatedAt))] };
 		this.updateOrderUiFields(lookup.order);
 
@@ -101,12 +131,8 @@ export class ReferenceTypeListingComponent extends BaseListingComponent<Referenc
 		this.gridColumns.push(...[{
 			prop: nameof<ReferenceType>(x => x.name),
 			sortable: true,
-			languageName: 'REFERENCE-TYPE-LISTING.FIELDS.NAME'
-		},
-		{
-			prop: nameof<ReferenceType>(x => x.code),
-			sortable: true,
-			languageName: 'REFERENCE-TYPE-LISTING.FIELDS.CODE',
+			languageName: 'REFERENCE-TYPE-LISTING.FIELDS.NAME',
+			cellTemplate: this.nameCell
 		},
 		{
 			prop: nameof<ReferenceType>(x => x.createdAt),
@@ -121,13 +147,8 @@ export class ReferenceTypeListingComponent extends BaseListingComponent<Referenc
 			pipe: this.pipeService.getPipe<DataTableDateTimeFormatPipe>(DataTableDateTimeFormatPipe).withFormat('short')
 		},
 		{
-			prop: nameof<ReferenceType>(x => x.isActive),
-			sortable: false,
-			languageName: 'REFERENCE-TYPE-LISTING.FIELDS.IS-ACTIVE',
-			pipe: this.pipeService.getPipe<IsActiveTypePipe>(IsActiveTypePipe)
-		},
-		{
 			alwaysShown: true,
+			sortable: false,
 			cellTemplate: this.actions,
 			maxWidth: 120
 		}
@@ -151,13 +172,16 @@ export class ReferenceTypeListingComponent extends BaseListingComponent<Referenc
 	private onColumnsChangedInternal(columns: string[]) {
 		// Here are defined the projection fields that always requested from the api.
 		const fields = new Set(this.lookupFields);
-		this.gridColumns.map(x => x.prop)
-			.filter(x => !columns?.includes(x as string))
-			.forEach(item => {
-				fields.delete(item as string)
-			});
+		this.gridColumns.map(x => x.prop).filter(x => x != null).forEach(prop => {
+			if (columns?.includes(prop as string)) { fields.add(prop as string); } else { fields.delete(prop as string); }
+		});
 		this.lookup.project = { fields: [...fields] };
 		this.onPageLoad({ offset: 0 } as PageLoadEvent);
+	}
+
+	/** The same query for an arbitrary lookup: the admin listing counts the other tenant scope with it. */
+	protected override loadListingWith(lookup: ReferenceTypeLookup): Observable<QueryResult<any>> {
+		return this.referenceTypeService.query(lookup);
 	}
 
 	protected loadListing(): Observable<QueryResult<ReferenceType>> {

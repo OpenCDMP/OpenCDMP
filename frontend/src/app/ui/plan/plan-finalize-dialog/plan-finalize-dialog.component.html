@@ -2,7 +2,7 @@
   <div mat-dialog-title class="d-flex align-items-center gap-half-rem">
     {{ 'PLAN-FINALISE-DIALOG.TITLE' | translate }}
     <button mat-icon-button (click)="close()" class="ml-auto" [attr.aria-label]="'ALT-TEXT.CLOSE-DIALOG'  | translate">
-      <mat-icon aria-hidden>close</mat-icon>
+      <mat-icon aria-hidden="true">close</mat-icon>
     </button>
   </div>
   <div mat-dialog-content class="pt-2 pb-2">
@@ -18,16 +18,33 @@
             </mat-panel-title>
           </mat-expansion-panel-header>
           <div [innerHTML]="plan.description"></div>
-          @if(isPlanValid == false){
+          @if(isPlanValid === false){
             <div class="text-danger pt-3 pb-1">
               {{ 'PLAN-FINALISE-DIALOG.VALIDATION.INVALID-PLAN' | translate }}
             </div>
-            @if (planErrors?.length) {
+            <!-- Only fall back to the raw backend error strings when we can't point to a section
+                 that explains them (e.g. structural errors unrelated to any blueprint section). -->
+            @if (planErrors?.length && !incompleteSections.length) {
               <ul class="text-danger">
                 @for(error of planErrors; track error){
                   <li>{{error | titlecase}}</li>
                 }
               </ul>
+            }
+            <!-- FE-2: which plan sections still need input, with jump-to -->
+            @if (incompleteSections.length) {
+              <div class="sections-needing-input">
+                <div class="pt-2 pb-1">{{ 'PLAN-FINALISE-DIALOG.SECTIONS-NEEDING-INPUT' | translate }}</div>
+                @for (section of incompleteSections; track section.id) {
+                  <div class="section-needing-input-row">
+                    <span class="text-truncate">{{ section.numbering }}. {{ section.label }}</span>
+                    <button mat-stroked-button class="fix-fields-btn" (click)="fixSection(section.id)">
+                      <mat-icon class="material-symbols-outlined" aria-hidden="true">edit</mat-icon>
+                      {{ 'PLAN-FINALISE-DIALOG.FIX-FIELDS' | translate }}
+                    </button>
+                  </div>
+                }
+              </div>
             }
           }
         </mat-expansion-panel>
@@ -42,13 +59,13 @@
             <div>
               @for(description of descriptions; track $index){
                 <div class="row pl-3 descriptions">
-                  @if (description?.status?.internalStatus == descriptionStatusEnum.Draft) {
+                  @if (description?.status?.internalStatus === descriptionStatusEnum.Draft) {
                     <mat-icon class="col-1 draft-bookmark">bookmark</mat-icon>
                   }
-                  @if (description?.status?.internalStatus == descriptionStatusEnum.Finalized) {
+                  @if (description?.status?.internalStatus === descriptionStatusEnum.Finalized) {
                     <mat-icon class="col-1 finalized-bookmark">bookmark</mat-icon>
                   }
-                  @if (description.status?.internalStatus == descriptionStatusEnum.Draft) {
+                  @if (description.status?.internalStatus === descriptionStatusEnum.Draft) {
                     <b class="col-11 ml-auto mt-1 mb-2">
                       <span>{{ description?.status?.name}}
                         @if(draftDescriptionValidationOutputMap.get(description.id) === descriptionValidationOutputEnum.Invalid){
@@ -57,11 +74,11 @@
                       :</span>
                       {{ description.label }}
                       @if (draftDescriptionValidationOutputMap.get(description.id) === descriptionValidationOutputEnum.Pending) {
-                        <i class="fa fa-spinner fa-spin" aria-hidden></i>
+                        <i class="fa fa-spinner fa-spin" aria-hidden="true"></i>
                       }
                     </b>
                   }
-                  @if (description.status.internalStatus == descriptionStatusEnum.Finalized) {
+                  @if (description.status.internalStatus === descriptionStatusEnum.Finalized) {
                     <b class="col-11 ml-auto mt-1 mb-2">{{ description.label }}</b>
                   }
                 </div>
@@ -75,12 +92,17 @@
                         }
                       </ul>
                     }
+                    <!-- FE-3: jump straight to the description to fix its missing fields -->
+                    <button mat-stroked-button class="fix-fields-btn" (click)="fixDescription(description.id)">
+                      <mat-icon class="material-symbols-outlined" aria-hidden="true">edit</mat-icon>
+                      {{ 'PLAN-FINALISE-DIALOG.FIX-FIELDS' | translate }}
+                    </button>
                   </div>
                 }
               }
             </div>
           }
-          @if (!plan.descriptions || plan.descriptions?.length == 0) {
+          @if (!plan.descriptions || plan.descriptions?.length === 0) {
             <div class="emptyList">{{ 'PLAN-FINALISE-DIALOG.EMPTY' | translate }} </div>
           }
         </mat-expansion-panel>
@@ -97,7 +119,7 @@
           <mat-selection-list [(ngModel)]="descriptionsToBeFinalized">
             @for (description of validDraftDescriptions; track description) {
               <div class="styleBorder">
-                <mat-list-option [value]='description.id' [disabled]="draftDescriptionValidationOutputMap.get(description.id) != descriptionValidationOutputEnum.Valid">
+                <mat-list-option [value]='description.id' [disabled]="draftDescriptionValidationOutputMap.get(description.id) !== descriptionValidationOutputEnum.Valid">
                   <span class="text-truncate" [matTooltip]="description.label">{{ description.label }}</span>
                 </mat-list-option>
               </div>
@@ -106,21 +128,37 @@
         </div>
       }
     </div>
-    @if (getFinalizedDescriptions().length != 0) {
+    @if (willBeFinalizedCount !== 0) {
       <div>
         <div class="row pt-2 pb-2 pl-3 pr-3">
           {{ 'PLAN-FINALISE-DIALOG.IMPACT' | translate }}
         </div>
-        @if (plan.accessType == planAccessTypeEnum.Public) {
+        @if (plan.accessType === planAccessTypeEnum.Public) {
           <div class="row pl-3 pr-3">
             {{ 'PLAN-FINALISE-DIALOG.PUBLIC-PLAN-MESSAGE' | translate }}
           </div>
         }
-        @if (plan.accessType == planAccessTypeEnum.Restricted) {
+        @if (plan.accessType === planAccessTypeEnum.Restricted) {
           <div class="row pl-3 pr-3">
             {{ 'PLAN-FINALISE-DIALOG.RESTRICTED-PLAN-MESSAGE' | translate }}
           </div>
         }
+      </div>
+    }
+    <!-- FE-3: make the exclusion of unfinalized descriptions explicit instead of silently dropping them -->
+    @if (isPlanValid && excludedDraftDescriptions.length > 0) {
+      <div class="exclusion-warning">
+        <mat-icon class="material-symbols-outlined exclusion-warning--icon" aria-hidden="true">warning</mat-icon>
+        <div>
+          <div class="exclusion-warning--title">
+            {{ 'PLAN-FINALISE-DIALOG.EXCLUSION-WARNING' | translate: { count: excludedDraftDescriptions.length } }}
+          </div>
+          <ul class="exclusion-warning--list">
+            @for (description of excludedDraftDescriptions; track description.id) {
+              <li>{{ description.label }}</li>
+            }
+          </ul>
+        </div>
       </div>
     }
   </div>
@@ -130,7 +168,9 @@
       <button mat-stroked-button cdkFocusInitial (click)="close()" class="padded-shadow-btn">{{ 'PLAN-FINALISE-DIALOG.ACTIONS.CANCEL' | translate }}</button>
     </div>
     <div class="col-auto">
-      <button mat-flat-button color="primary" [disabled]="!isPlanValid || getFinalizedDescriptions().length === 0 && descriptionsToBeFinalized.length === 0" class="padded-shadow-btn" (click)="onSubmit()">{{ 'PLAN-FINALISE-DIALOG.ACTIONS.SUBMIT' | translate }}</button>
+      <button mat-flat-button color="primary" [disabled]="!isPlanValid || getFinalizedDescriptions().length === 0 && descriptionsToBeFinalized.length === 0" class="padded-shadow-btn" (click)="onSubmit()">
+        {{ 'PLAN-FINALISE-DIALOG.ACTIONS.SUBMIT-WITH-COUNT' | translate: { count: willBeFinalizedCount } }}
+      </button>
     </div>
   </div>
 </div>

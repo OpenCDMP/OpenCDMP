@@ -3,6 +3,7 @@
 	flex-direction: row;
 	column-gap: 1rem;
     padding: 0.25rem 0rem;
+    font-size: var(--mat-sys-body-small-size);
 
     // &:hover {
     //     background-color: #e0e0e08c;
@@ -30,4 +31,19 @@
         background-color: var(--mat-sys-primary);
         color: var(--mat-sys-on-primary);
     }
+}
+.show-more{
+    font-size: var(--mat-sys-body-small-size);
+}
+img.circle{
+    border-radius: 50%;
+}
+
+.user-logo{
+    width: 2rem;
+    height: 2rem;
+}
+.manage-btn {
+    margin-bottom: 0.625rem;
+    font-weight: bold;
 }

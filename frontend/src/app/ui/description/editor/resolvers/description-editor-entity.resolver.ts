@@ -5,13 +5,13 @@ import { IsActive } from '@app/core/common/enum/is-active.enum';
 import { AppPermission } from '@app/core/common/enum/permission.enum';
 import { DescriptionStatus, DescriptionStatusDefinition } from '@app/core/model/description-status/description-status';
 import { DescriptionTemplate } from '@app/core/model/description-template/description-template';
-import { Description, DescriptionExternalIdentifier, DescriptionField, DescriptionPropertyDefinition, DescriptionPropertyDefinitionFieldSet, DescriptionPropertyDefinitionFieldSetItem, DescriptionReference, DescriptionReferenceData, DescriptionTag } from '@app/core/model/description/description';
-import { DescriptionTemplatesInSection, PlanBlueprint, PlanBlueprintDefinition, PlanBlueprintDefinitionSection } from '@app/core/model/plan-blueprint/plan-blueprint';
+import { Description, DescriptionExternalIdentifier, PropertyDefinitionField, PropertyDefinition, PropertyDefinitionFieldSet, PropertyDefinitionFieldSetItem, DescriptionReference, DescriptionReferenceData, DescriptionTag } from '@app/core/model/description/description';
+import { DescriptionTemplatesInSection, PlanBlueprint, PlanBlueprintDefinition, RootSection } from '@app/core/model/plan-blueprint/plan-blueprint';
 import { PlanStatus } from '@app/core/model/plan-status/plan-status';
-import { Plan, PlanDescriptionTemplate, PlanUser } from '@app/core/model/plan/plan';
+import { Plan, PlanAuthorizationInformation, PlanDescriptionTemplate, PlanUser } from '@app/core/model/plan/plan';
 import { PrefillingSource } from '@app/core/model/prefilling-source/prefilling-source';
 import { ReferenceType } from '@app/core/model/reference-type/reference-type';
-import { Definition, Field, Reference } from '@app/core/model/reference/reference';
+import { ReferenceDefinition, ReferenceField, Reference } from '@app/core/model/reference/reference';
 import { Tag } from '@app/core/model/tag/tag';
 import { DescriptionService } from '@app/core/services/description/description.service';
 import { PlanService } from '@app/core/services/plan/plan.service';
@@ -80,24 +80,25 @@ export class DescriptionEditorEntityResolver extends BaseEditorResolver {
 			[nameof<Description>(x => x.planDescriptionTemplate), nameof<PlanDescriptionTemplate>(x => x.sectionId)].join('.'),
 			[nameof<Description>(x => x.planDescriptionTemplate), nameof<PlanDescriptionTemplate>(x => x.isActive)].join('.'),
 
-			[nameof<Description>(x => x.properties), nameof<DescriptionPropertyDefinition>(x => x.fieldSets), nameof<DescriptionPropertyDefinitionFieldSet>(x => x.comment)].join('.'),
-			[nameof<Description>(x => x.properties), nameof<DescriptionPropertyDefinition>(x => x.fieldSets), nameof<DescriptionPropertyDefinitionFieldSet>(x => x.items), nameof<DescriptionPropertyDefinitionFieldSetItem>(x => x.ordinal)].join('.'),
-			[nameof<Description>(x => x.properties), nameof<DescriptionPropertyDefinition>(x => x.fieldSets), nameof<DescriptionPropertyDefinitionFieldSet>(x => x.items), nameof<DescriptionPropertyDefinitionFieldSetItem>(x => x.fields), nameof<DescriptionField>(x => x.textValue)].join('.'),
-			[nameof<Description>(x => x.properties), nameof<DescriptionPropertyDefinition>(x => x.fieldSets), nameof<DescriptionPropertyDefinitionFieldSet>(x => x.items), nameof<DescriptionPropertyDefinitionFieldSetItem>(x => x.fields), nameof<DescriptionField>(x => x.textListValue)].join('.'),
-			[nameof<Description>(x => x.properties), nameof<DescriptionPropertyDefinition>(x => x.fieldSets), nameof<DescriptionPropertyDefinitionFieldSet>(x => x.items), nameof<DescriptionPropertyDefinitionFieldSetItem>(x => x.fields), nameof<DescriptionField>(x => x.dateValue)].join('.'),
-			[nameof<Description>(x => x.properties), nameof<DescriptionPropertyDefinition>(x => x.fieldSets), nameof<DescriptionPropertyDefinitionFieldSet>(x => x.items), nameof<DescriptionPropertyDefinitionFieldSetItem>(x => x.fields), nameof<DescriptionField>(x => x.booleanValue)].join('.'),
-			[nameof<Description>(x => x.properties), nameof<DescriptionPropertyDefinition>(x => x.fieldSets), nameof<DescriptionPropertyDefinitionFieldSet>(x => x.items), nameof<DescriptionPropertyDefinitionFieldSetItem>(x => x.fields), nameof<DescriptionField>(x => x.externalIdentifier), nameof<DescriptionExternalIdentifier>(x => x.identifier)].join('.'),
-			[nameof<Description>(x => x.properties), nameof<DescriptionPropertyDefinition>(x => x.fieldSets), nameof<DescriptionPropertyDefinitionFieldSet>(x => x.items), nameof<DescriptionPropertyDefinitionFieldSetItem>(x => x.fields), nameof<DescriptionField>(x => x.externalIdentifier), nameof<DescriptionExternalIdentifier>(x => x.type)].join('.'),
-			[nameof<Description>(x => x.properties), nameof<DescriptionPropertyDefinition>(x => x.fieldSets), nameof<DescriptionPropertyDefinitionFieldSet>(x => x.items), nameof<DescriptionPropertyDefinitionFieldSetItem>(x => x.fields), nameof<DescriptionField>(x => x.references), nameof<Reference>(x => x.id)].join('.'),
-			[nameof<Description>(x => x.properties), nameof<DescriptionPropertyDefinition>(x => x.fieldSets), nameof<DescriptionPropertyDefinitionFieldSet>(x => x.items), nameof<DescriptionPropertyDefinitionFieldSetItem>(x => x.fields), nameof<DescriptionField>(x => x.references), nameof<Reference>(x => x.label)].join('.'),
-			[nameof<Description>(x => x.properties), nameof<DescriptionPropertyDefinition>(x => x.fieldSets), nameof<DescriptionPropertyDefinitionFieldSet>(x => x.items), nameof<DescriptionPropertyDefinitionFieldSetItem>(x => x.fields), nameof<DescriptionField>(x => x.references), nameof<Reference>(x => x.type), nameof<ReferenceType>(x => x.id)].join('.'),
-			[nameof<Description>(x => x.properties), nameof<DescriptionPropertyDefinition>(x => x.fieldSets), nameof<DescriptionPropertyDefinitionFieldSet>(x => x.items), nameof<DescriptionPropertyDefinitionFieldSetItem>(x => x.fields), nameof<DescriptionField>(x => x.references), nameof<Reference>(x => x.type), nameof<ReferenceType>(x => x.name)].join('.'),
-			[nameof<Description>(x => x.properties), nameof<DescriptionPropertyDefinition>(x => x.fieldSets), nameof<DescriptionPropertyDefinitionFieldSet>(x => x.items), nameof<DescriptionPropertyDefinitionFieldSetItem>(x => x.fields), nameof<DescriptionField>(x => x.references), nameof<Reference>(x => x.reference)].join('.'),
-			[nameof<Description>(x => x.properties), nameof<DescriptionPropertyDefinition>(x => x.fieldSets), nameof<DescriptionPropertyDefinitionFieldSet>(x => x.items), nameof<DescriptionPropertyDefinitionFieldSetItem>(x => x.fields), nameof<DescriptionField>(x => x.references), nameof<Reference>(x => x.isActive)].join('.'),
-			[nameof<Description>(x => x.properties), nameof<DescriptionPropertyDefinition>(x => x.fieldSets), nameof<DescriptionPropertyDefinitionFieldSet>(x => x.items), nameof<DescriptionPropertyDefinitionFieldSetItem>(x => x.fields), nameof<DescriptionField>(x => x.tags), nameof<Tag>(x => x.id)].join('.'),
-			[nameof<Description>(x => x.properties), nameof<DescriptionPropertyDefinition>(x => x.fieldSets), nameof<DescriptionPropertyDefinitionFieldSet>(x => x.items), nameof<DescriptionPropertyDefinitionFieldSetItem>(x => x.fields), nameof<DescriptionField>(x => x.tags), nameof<Tag>(x => x.label)].join('.'),
-			[nameof<Description>(x => x.properties), nameof<DescriptionPropertyDefinition>(x => x.fieldSets), nameof<DescriptionPropertyDefinitionFieldSet>(x => x.items), nameof<DescriptionPropertyDefinitionFieldSetItem>(x => x.fields), nameof<DescriptionField>(x => x.tags), nameof<Tag>(x => x.isActive)].join('.'),
-			[nameof<Description>(x => x.properties), nameof<DescriptionPropertyDefinition>(x => x.fieldSets), nameof<DescriptionPropertyDefinitionFieldSet>(x => x.items), nameof<DescriptionPropertyDefinitionFieldSetItem>(x => x.fields), nameof<DescriptionField>(x => x.tags), nameof<Tag>(x => x.hash)].join('.'),
+			[nameof<Description>(x => x.properties), nameof<PropertyDefinition>(x => x.fieldSets), nameof<PropertyDefinitionFieldSet>(x => x.comment)].join('.'),
+			[nameof<Description>(x => x.properties), nameof<PropertyDefinition>(x => x.fieldSets), nameof<PropertyDefinitionFieldSet>(x => x.items), nameof<PropertyDefinitionFieldSetItem>(x => x.ordinal)].join('.'),
+			[nameof<Description>(x => x.properties), nameof<PropertyDefinition>(x => x.fieldSets), nameof<PropertyDefinitionFieldSet>(x => x.items), nameof<PropertyDefinitionFieldSetItem>(x => x.fields), nameof<PropertyDefinitionField>(x => x.textValue)].join('.'),
+			[nameof<Description>(x => x.properties), nameof<PropertyDefinition>(x => x.fieldSets), nameof<PropertyDefinitionFieldSet>(x => x.items), nameof<PropertyDefinitionFieldSetItem>(x => x.fields), nameof<PropertyDefinitionField>(x => x.textListValue)].join('.'),
+			[nameof<Description>(x => x.properties), nameof<PropertyDefinition>(x => x.fieldSets), nameof<PropertyDefinitionFieldSet>(x => x.items), nameof<PropertyDefinitionFieldSetItem>(x => x.fields), nameof<PropertyDefinitionField>(x => x.dateValue)].join('.'),
+			[nameof<Description>(x => x.properties), nameof<PropertyDefinition>(x => x.fieldSets), nameof<PropertyDefinitionFieldSet>(x => x.items), nameof<PropertyDefinitionFieldSetItem>(x => x.fields), nameof<PropertyDefinitionField>(x => x.booleanValue)].join('.'),
+			[nameof<Description>(x => x.properties), nameof<PropertyDefinition>(x => x.fieldSets), nameof<PropertyDefinitionFieldSet>(x => x.items), nameof<PropertyDefinitionFieldSetItem>(x => x.fields), nameof<PropertyDefinitionField>(x => x.numberValue)].join('.'),
+			[nameof<Description>(x => x.properties), nameof<PropertyDefinition>(x => x.fieldSets), nameof<PropertyDefinitionFieldSet>(x => x.items), nameof<PropertyDefinitionFieldSetItem>(x => x.fields), nameof<PropertyDefinitionField>(x => x.externalIdentifier), nameof<DescriptionExternalIdentifier>(x => x.identifier)].join('.'),
+			[nameof<Description>(x => x.properties), nameof<PropertyDefinition>(x => x.fieldSets), nameof<PropertyDefinitionFieldSet>(x => x.items), nameof<PropertyDefinitionFieldSetItem>(x => x.fields), nameof<PropertyDefinitionField>(x => x.externalIdentifier), nameof<DescriptionExternalIdentifier>(x => x.type)].join('.'),
+			[nameof<Description>(x => x.properties), nameof<PropertyDefinition>(x => x.fieldSets), nameof<PropertyDefinitionFieldSet>(x => x.items), nameof<PropertyDefinitionFieldSetItem>(x => x.fields), nameof<PropertyDefinitionField>(x => x.references), nameof<Reference>(x => x.id)].join('.'),
+			[nameof<Description>(x => x.properties), nameof<PropertyDefinition>(x => x.fieldSets), nameof<PropertyDefinitionFieldSet>(x => x.items), nameof<PropertyDefinitionFieldSetItem>(x => x.fields), nameof<PropertyDefinitionField>(x => x.references), nameof<Reference>(x => x.label)].join('.'),
+			[nameof<Description>(x => x.properties), nameof<PropertyDefinition>(x => x.fieldSets), nameof<PropertyDefinitionFieldSet>(x => x.items), nameof<PropertyDefinitionFieldSetItem>(x => x.fields), nameof<PropertyDefinitionField>(x => x.references), nameof<Reference>(x => x.type), nameof<ReferenceType>(x => x.id)].join('.'),
+			[nameof<Description>(x => x.properties), nameof<PropertyDefinition>(x => x.fieldSets), nameof<PropertyDefinitionFieldSet>(x => x.items), nameof<PropertyDefinitionFieldSetItem>(x => x.fields), nameof<PropertyDefinitionField>(x => x.references), nameof<Reference>(x => x.type), nameof<ReferenceType>(x => x.name)].join('.'),
+			[nameof<Description>(x => x.properties), nameof<PropertyDefinition>(x => x.fieldSets), nameof<PropertyDefinitionFieldSet>(x => x.items), nameof<PropertyDefinitionFieldSetItem>(x => x.fields), nameof<PropertyDefinitionField>(x => x.references), nameof<Reference>(x => x.reference)].join('.'),
+			[nameof<Description>(x => x.properties), nameof<PropertyDefinition>(x => x.fieldSets), nameof<PropertyDefinitionFieldSet>(x => x.items), nameof<PropertyDefinitionFieldSetItem>(x => x.fields), nameof<PropertyDefinitionField>(x => x.references), nameof<Reference>(x => x.isActive)].join('.'),
+			[nameof<Description>(x => x.properties), nameof<PropertyDefinition>(x => x.fieldSets), nameof<PropertyDefinitionFieldSet>(x => x.items), nameof<PropertyDefinitionFieldSetItem>(x => x.fields), nameof<PropertyDefinitionField>(x => x.tags), nameof<Tag>(x => x.id)].join('.'),
+			[nameof<Description>(x => x.properties), nameof<PropertyDefinition>(x => x.fieldSets), nameof<PropertyDefinitionFieldSet>(x => x.items), nameof<PropertyDefinitionFieldSetItem>(x => x.fields), nameof<PropertyDefinitionField>(x => x.tags), nameof<Tag>(x => x.label)].join('.'),
+			[nameof<Description>(x => x.properties), nameof<PropertyDefinition>(x => x.fieldSets), nameof<PropertyDefinitionFieldSet>(x => x.items), nameof<PropertyDefinitionFieldSetItem>(x => x.fields), nameof<PropertyDefinitionField>(x => x.tags), nameof<Tag>(x => x.isActive)].join('.'),
+			[nameof<Description>(x => x.properties), nameof<PropertyDefinition>(x => x.fieldSets), nameof<PropertyDefinitionFieldSet>(x => x.items), nameof<PropertyDefinitionFieldSetItem>(x => x.fields), nameof<PropertyDefinitionField>(x => x.tags), nameof<Tag>(x => x.hash)].join('.'),
 
 			[nameof<Description>(x => x.descriptionTags), nameof<DescriptionTag>(x => x.id),].join('.'),
 			[nameof<Description>(x => x.descriptionTags), nameof<DescriptionTag>(x => x.tag), nameof<Tag>(x => x.label)].join('.'),
@@ -112,9 +113,9 @@ export class DescriptionEditorEntityResolver extends BaseEditorResolver {
 			[nameof<Description>(x => x.descriptionReferences), nameof<DescriptionReference>(x => x.reference), nameof<Reference>(x => x.source)].join('.'),
 			[nameof<Description>(x => x.descriptionReferences), nameof<DescriptionReference>(x => x.reference), nameof<Reference>(x => x.sourceType)].join('.'),
 			[nameof<Description>(x => x.descriptionReferences), nameof<DescriptionReference>(x => x.reference), nameof<Reference>(x => x.description)].join('.'),
-			[nameof<Description>(x => x.descriptionReferences), nameof<DescriptionReference>(x => x.reference), nameof<Reference>(x => x.definition), nameof<Definition>(x => x.fields), nameof<Field>(x => x.code)].join('.'),
-			[nameof<Description>(x => x.descriptionReferences), nameof<DescriptionReference>(x => x.reference), nameof<Reference>(x => x.definition), nameof<Definition>(x => x.fields), nameof<Field>(x => x.dataType)].join('.'),
-			[nameof<Description>(x => x.descriptionReferences), nameof<DescriptionReference>(x => x.reference), nameof<Reference>(x => x.definition), nameof<Definition>(x => x.fields), nameof<Field>(x => x.value)].join('.'),
+			[nameof<Description>(x => x.descriptionReferences), nameof<DescriptionReference>(x => x.reference), nameof<Reference>(x => x.definition), nameof<ReferenceDefinition>(x => x.fields), nameof<ReferenceField>(x => x.code)].join('.'),
+			[nameof<Description>(x => x.descriptionReferences), nameof<DescriptionReference>(x => x.reference), nameof<Reference>(x => x.definition), nameof<ReferenceDefinition>(x => x.fields), nameof<ReferenceField>(x => x.dataType)].join('.'),
+			[nameof<Description>(x => x.descriptionReferences), nameof<DescriptionReference>(x => x.reference), nameof<Reference>(x => x.definition), nameof<ReferenceDefinition>(x => x.fields), nameof<ReferenceField>(x => x.value)].join('.'),
 			[nameof<Description>(x => x.descriptionReferences), nameof<DescriptionReference>(x => x.isActive)].join('.'),
 
 			nameof<Description>(x => x.createdAt),
@@ -152,19 +153,19 @@ export class DescriptionEditorEntityResolver extends BaseEditorResolver {
 
 			(prefix ? prefix + '.' : '') + [nameof<Plan>(x => x.isActive)].join('.'),
 
-			(prefix ? prefix + '.' : '') + [nameof<Plan>(x => x.authorizationFlags), AppPermission.EditPlan].join('.'),
+			(prefix ? prefix + '.' : '') + [nameof<Plan>(x => x.authorizationInformation), nameof<PlanAuthorizationInformation>(x => x.globalAuthorizationFlags), AppPermission.EditPlan].join('.'),
 
 			(prefix ? prefix + '.' : '') + [nameof<Plan>(x => x.blueprint), nameof<PlanBlueprint>(x => x.id)].join('.'),
 			(prefix ? prefix + '.' : '') + [nameof<Plan>(x => x.blueprint), nameof<PlanBlueprint>(x => x.isActive)].join('.'),
 			(prefix ? prefix + '.' : '') + [nameof<Plan>(x => x.blueprint), nameof<PlanBlueprint>(x => x.definition)].join('.'),
-			(prefix ? prefix + '.' : '') + [nameof<Plan>(x => x.blueprint), nameof<PlanBlueprint>(x => x.definition), nameof<PlanBlueprintDefinition>(x => x.sections), nameof<PlanBlueprintDefinitionSection>(x => x.id)].join('.'),
-			(prefix ? prefix + '.' : '') + [nameof<Plan>(x => x.blueprint), nameof<PlanBlueprint>(x => x.definition), nameof<PlanBlueprintDefinition>(x => x.sections), nameof<PlanBlueprintDefinitionSection>(x => x.label)].join('.'),
-			(prefix ? prefix + '.' : '') + [nameof<Plan>(x => x.blueprint), nameof<PlanBlueprint>(x => x.definition), nameof<PlanBlueprintDefinition>(x => x.sections), nameof<PlanBlueprintDefinitionSection>(x => x.ordinal)].join('.'),
-			(prefix ? prefix + '.' : '') + [nameof<Plan>(x => x.blueprint), nameof<PlanBlueprint>(x => x.definition), nameof<PlanBlueprintDefinition>(x => x.sections), nameof<PlanBlueprintDefinitionSection>(x => x.hasTemplates)].join('.'),
-			(prefix ? prefix + '.' : '') + [nameof<Plan>(x => x.blueprint), nameof<PlanBlueprint>(x => x.definition), nameof<PlanBlueprintDefinition>(x => x.sections), nameof<PlanBlueprintDefinitionSection>(x => x.descriptionTemplates), nameof<DescriptionTemplatesInSection>(x => x.descriptionTemplate), nameof<DescriptionTemplate>(x => x.groupId)].join('.'),
-			(prefix ? prefix + '.' : '') + [nameof<Plan>(x => x.blueprint), nameof<PlanBlueprint>(x => x.definition), nameof<PlanBlueprintDefinition>(x => x.sections), nameof<PlanBlueprintDefinitionSection>(x => x.descriptionTemplates), nameof<DescriptionTemplatesInSection>(x => x.maxMultiplicity)].join('.'),
-			(prefix ? prefix + '.' : '') + [nameof<Plan>(x => x.blueprint), nameof<PlanBlueprint>(x => x.definition), nameof<PlanBlueprintDefinition>(x => x.sections), nameof<PlanBlueprintDefinitionSection>(x => x.prefillingSourcesEnabled)].join('.'),
-			(prefix ? prefix + '.' : '') + [nameof<Plan>(x => x.blueprint), nameof<PlanBlueprint>(x => x.definition), nameof<PlanBlueprintDefinition>(x => x.sections), nameof<PlanBlueprintDefinitionSection>(x => x.prefillingSources), nameof<PrefillingSource>(x => x.id)].join('.'),
+			(prefix ? prefix + '.' : '') + [nameof<Plan>(x => x.blueprint), nameof<PlanBlueprint>(x => x.definition), nameof<PlanBlueprintDefinition>(x => x.sections), nameof<RootSection>(x => x.id)].join('.'),
+			(prefix ? prefix + '.' : '') + [nameof<Plan>(x => x.blueprint), nameof<PlanBlueprint>(x => x.definition), nameof<PlanBlueprintDefinition>(x => x.sections), nameof<RootSection>(x => x.title)].join('.'),
+			(prefix ? prefix + '.' : '') + [nameof<Plan>(x => x.blueprint), nameof<PlanBlueprint>(x => x.definition), nameof<PlanBlueprintDefinition>(x => x.sections), nameof<RootSection>(x => x.ordinal)].join('.'),
+			(prefix ? prefix + '.' : '') + [nameof<Plan>(x => x.blueprint), nameof<PlanBlueprint>(x => x.definition), nameof<PlanBlueprintDefinition>(x => x.sections), nameof<RootSection>(x => x.hasTemplates)].join('.'),
+			(prefix ? prefix + '.' : '') + [nameof<Plan>(x => x.blueprint), nameof<PlanBlueprint>(x => x.definition), nameof<PlanBlueprintDefinition>(x => x.sections), nameof<RootSection>(x => x.descriptionTemplates), nameof<DescriptionTemplatesInSection>(x => x.descriptionTemplate), nameof<DescriptionTemplate>(x => x.groupId)].join('.'),
+			(prefix ? prefix + '.' : '') + [nameof<Plan>(x => x.blueprint), nameof<PlanBlueprint>(x => x.definition), nameof<PlanBlueprintDefinition>(x => x.sections), nameof<RootSection>(x => x.descriptionTemplates), nameof<DescriptionTemplatesInSection>(x => x.maxMultiplicity)].join('.'),
+			(prefix ? prefix + '.' : '') + [nameof<Plan>(x => x.blueprint), nameof<PlanBlueprint>(x => x.definition), nameof<PlanBlueprintDefinition>(x => x.sections), nameof<RootSection>(x => x.prefillingSourcesEnabled)].join('.'),
+			(prefix ? prefix + '.' : '') + [nameof<Plan>(x => x.blueprint), nameof<PlanBlueprint>(x => x.definition), nameof<PlanBlueprintDefinition>(x => x.sections), nameof<RootSection>(x => x.prefillingSources), nameof<PrefillingSource>(x => x.id)].join('.'),
 
 			(prefix ? prefix + '.' : '') + [nameof<Plan>(x => x.planDescriptionTemplates), nameof<PlanDescriptionTemplate>(x => x.id)].join('.'),
 			(prefix ? prefix + '.' : '') + [nameof<Plan>(x => x.planDescriptionTemplates), nameof<PlanDescriptionTemplate>(x => x.sectionId)].join('.'),
@@ -215,7 +216,7 @@ export class DescriptionEditorEntityResolver extends BaseEditorResolver {
 					const description: Description = {};
 					description.plan = plan;
 					description.planDescriptionTemplate = {
-						sectionId: Guid.parse(planSectionId)
+						sectionId: planSectionId
 					}
 					return description;
 				}));
@@ -235,8 +236,8 @@ export class DescriptionEditorEntityResolver extends BaseEditorResolver {
 					description.status = null;
 					description.plan = plan;
 					description.planDescriptionTemplate = {
-						id: plan.planDescriptionTemplates.filter(x => x.sectionId == Guid.parse(planSectionId) && x.descriptionTemplateGroupId == description.descriptionTemplate.groupId)[0].id,
-						sectionId: Guid.parse(planSectionId)
+						id: plan.planDescriptionTemplates.filter(x => x.sectionId == planSectionId && x.descriptionTemplateGroupId == description.descriptionTemplate.groupId)[0].id,
+						sectionId: planSectionId
 					}
 					return description;
 				}));

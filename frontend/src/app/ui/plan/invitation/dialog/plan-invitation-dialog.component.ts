@@ -1,9 +1,9 @@
 
 import { COMMA, ENTER } from '@angular/cdk/keycodes';
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, Inject, OnInit } from '@angular/core';
+import { Component, Inject, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { UntypedFormGroup } from '@angular/forms';
-import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
+import { MAT_DIALOG_DATA, MatDialogRef, MatDialogTitle, MatDialogContent, MatDialogActions } from '@angular/material/dialog';
 import { ActivatedRoute, Router } from '@angular/router';
 import { PlanUserRole } from '@app/core/common/enum/plan-user-role';
 import { PlanBlueprint } from '@app/core/model/plan-blueprint/plan-blueprint';
@@ -15,18 +15,24 @@ import { BaseComponent } from '@common/base/base.component';
 import { FormService } from '@common/forms/form-service';
 import { HttpError, HttpErrorHandlingService } from '@common/modules/errors/error-handling/http-error-handling.service';
 import { Guid } from '@common/types/guid';
-import { TranslateService } from '@ngx-translate/core';
+import { TranslateService, TranslatePipe } from '@ngx-translate/core';
 import { catchError, takeUntil, tap } from 'rxjs/operators';
 import { PlanEditorModel } from '../../plan-editor-blueprint/plan-editor.model';
 import { EnqueueService } from '@app/core/services/enqueue.service';
-import { of, throwError } from 'rxjs';
+import { throwError } from 'rxjs';
 import { AuthService } from '@app/core/services/auth/auth.service';
-
+import { MatIconButton, MatButton } from '@angular/material/button';
+import { MatIcon } from '@angular/material/icon';
+import { CdkScrollable } from '@angular/cdk/scrolling';
+import { PlanUserFieldComponent } from '../../plan-user-field/plan-user-field.component';
+import { MatError } from '@angular/material/form-field';
+/** @deprecated  use planAuthorsModule */
 @Component({
     selector: 'app-invitation-dialog-component',
     templateUrl: 'plan-invitation-dialog.component.html',
     styleUrls: ['./plan-invitation-dialog.component.scss'],
-    standalone: false
+    changeDetection: ChangeDetectionStrategy.Eager,
+    imports: [MatDialogTitle, MatIconButton, MatIcon, CdkScrollable, MatDialogContent, PlanUserFieldComponent, MatDialogActions, MatButton, MatError, TranslatePipe]
 })
 export class PlanInvitationDialogComponent extends BaseComponent implements OnInit {
    
@@ -59,7 +65,9 @@ export class PlanInvitationDialogComponent extends BaseComponent implements OnIn
 	}
 
 	ngOnInit() {
-		this.formGroup = this.editorModel.buildForm(null, null, true);
+		this.formGroup = this.editorModel.buildForm({
+            disabled: true
+        });
 	}
 
 	send() {
@@ -94,7 +102,7 @@ export class PlanInvitationDialogComponent extends BaseComponent implements OnIn
 	}
 
 	onCallbackError(errorResponse: HttpErrorResponse) {
-		let errorOverrides = new Map<number, string>();
+		const errorOverrides = new Map<number, string>();
 		errorOverrides.set(-1, this.language.instant('PLAN-USER-INVITATION-DIALOG.ERROR'));
 		this.httpErrorHandlingService.handleBackedRequestError(errorResponse, errorOverrides, SnackBarNotificationLevel.Error);
 

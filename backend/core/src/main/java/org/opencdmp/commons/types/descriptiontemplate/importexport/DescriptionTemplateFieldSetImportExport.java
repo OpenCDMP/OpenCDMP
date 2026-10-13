@@ -34,6 +34,9 @@ public class DescriptionTemplateFieldSetImportExport {
     private boolean hasMultiplicity;
     @XmlElement(name="hasCommentField")
     private Boolean hasCommentField;
+    @XmlElementWrapper(name = "semantics")
+    @XmlElement(name = "semantic")
+    private List<String> semantics;
 
     public String getId() {
         return this.id;
@@ -112,6 +115,14 @@ public class DescriptionTemplateFieldSetImportExport {
 
     public void setHasMultiplicity(boolean hasMultiplicity) {
         this.hasMultiplicity = hasMultiplicity;
+    }
+
+    public List<String> getSemantics() {
+        return this.semantics;
+    }
+
+    public void setSemantics(List<String> semantics) {
+        this.semantics = semantics;
     }
 
     public List<DescriptionTemplateFieldImportExport> getAllField() {

@@ -1,0 +1,69 @@
+<div class="rv">
+	<div class="rv-main">
+		<div class="rv-bar">
+			<span class="bp2-caption" style="margin: 0;">{{'PLAN-BLUEPRINT-EDITOR.REVIEW.PREVIEW-AS-AUTHOR' | translate}}</span>
+			<span class="rv-bar__tools">
+				@if (mode === 'fill') { <mat-slide-toggle [(ngModel)]="showMappings" labelPosition="before">{{'PLAN-BLUEPRINT-EDITOR.REVIEW.SHOW-MAPPINGS' | translate}}</mat-slide-toggle> }
+				<span class="bp2-sub rv-bar__note"><mat-icon aria-hidden="true">visibility</mat-icon>{{'PLAN-BLUEPRINT-EDITOR.REVIEW.READ-ONLY' | translate}}</span>
+			</span>
+		</div>
+		<mat-button-toggle-group class="rv-modes" [value]="mode" (change)="mode = $event.value" [attr.aria-label]="'PLAN-BLUEPRINT-EDITOR.REVIEW.MODE' | translate">
+			<mat-button-toggle value="start"><mat-icon aria-hidden="true">play_circle</mat-icon>{{'PLAN-BLUEPRINT-EDITOR.REVIEW.MODE-START' | translate}}</mat-button-toggle>
+			<mat-button-toggle value="fill"><mat-icon aria-hidden="true">edit_note</mat-icon>{{'PLAN-BLUEPRINT-EDITOR.REVIEW.MODE-FILL' | translate}}</mat-button-toggle>
+			<mat-button-toggle value="download"><mat-icon aria-hidden="true">download</mat-icon>{{'PLAN-BLUEPRINT-EDITOR.REVIEW.MODE-DOWNLOAD' | translate}}</mat-button-toggle>
+		</mat-button-toggle-group>
+
+		@switch (mode) {
+			@case ('start') {
+				<section class="bp2-card rv-preview rv-start">
+					<div class="bp2-caption" style="margin-top: 0;">{{'PLAN-BLUEPRINT-EDITOR.PREVIEW.IN-LIBRARY' | translate}}</div>
+					<div class="rv-libcard">
+						<span class="bp2-tile rv-libcard__tile">@if (iconName) { <mat-icon>{{iconName}}</mat-icon> } @else { <mat-icon>description</mat-icon> }</span>
+						<div class="rv-libcard__text">
+							<div class="bp2-row" style="gap: .5rem; flex-wrap: wrap;"><strong>{{ editor.formGroup.get('label').value || ('PLAN-BLUEPRINT-EDITOR.HEADER.NEW-BLUEPRINT' | translate) }}</strong>@if (editor.item?.type?.name) { <span class="bp2-tag bp2-tag--type">{{editor.item.type.name}}</span> }</div>
+							@if (editor.formGroup.get('description').value) { <div class="bp2-sub rv-libcard__desc" [innerHTML]="editor.formGroup.get('description').value"></div> }
+							@else { <div class="bp2-sub">{{'PLAN-BLUEPRINT-EDITOR.PREVIEW.NO-DESCRIPTION' | translate}}</div> }
+						</div>
+						<button mat-stroked-button type="button" class="bp2-btn-sm" disabled>{{'PLAN-BLUEPRINT-EDITOR.REVIEW.START-PLAN' | translate}}</button>
+					</div>
+					<div class="bp2-caption">{{'PLAN-BLUEPRINT-EDITOR.PREVIEW.BEFORE-CREATE' | translate}}</div>
+					@if (consentOn) {
+						<div class="rv-consent">
+							<span class="bp2-tile"><mat-icon>verified_user</mat-icon></span>
+							<div class="rv-consent__text">
+								<strong>{{editor.formGroup.controls.definition.get('planCreationConsent').get('message').value || ('PLAN-BLUEPRINT-EDITOR.CONSENT.MESSAGE' | translate)}}</strong>
+								@if (editor.formGroup.controls.definition.get('planCreationConsent').get('details').value) { <div class="bp2-sub" [innerHTML]="editor.formGroup.controls.definition.get('planCreationConsent').get('details').value"></div> }
+							</div>
+							<button mat-flat-button color="primary" class="bp2-btn-sm" type="button" disabled>{{'PLAN-BLUEPRINT-EDITOR.PREVIEW.ACCEPT' | translate}}</button>
+						</div>
+					} @else {
+						<p class="bp2-help" style="margin: 0;">{{'PLAN-BLUEPRINT-EDITOR.REVIEW.NO-CONSENT-STEP' | translate}}</p>
+					}
+					<div class="bp2-caption">{{'PLAN-BLUEPRINT-EDITOR.REVIEW.FIRST-STEPS' | translate}}</div>
+					<ul class="rv-steps">
+						@for (s of sectionSteps; track s.numbering) { <li><strong>{{s.numbering}}</strong> {{ s.title || ('PLAN-BLUEPRINT-EDITOR.UNTITLED-SECTION' | translate) }} <span class="bp2-sub">· {{ s.summary }}</span></li> }
+					</ul>
+				</section>
+			}
+			@case ('fill') {
+				<section class="bp2-card rv-preview" [appSe2PreviewMappings]="showMappings">
+					@if (editor.saveBlockers.length) {
+						<div class="bp2-strip bp2-strip--warn"><mat-icon aria-hidden="true">warning</mat-icon><span>{{'PLAN-BLUEPRINT-EDITOR.REVIEW.FIX-TO-PREVIEW' | bp2Count: editor.saveBlockers.length }}</span><button mat-button type="button" class="bp2-btn-sm" (click)="editor.showProblems = true">{{'PLAN-BLUEPRINT-EDITOR.REVIEW.SHOW-PROBLEMS' | translate}}</button></div>
+					} @else if (previewError) {
+						<div class="bp2-strip bp2-strip--warn"><mat-icon aria-hidden="true">warning</mat-icon><span>{{'PLAN-BLUEPRINT-EDITOR.REVIEW.PREVIEW-FAILED' | translate}}</span></div>
+					} @else if (formGroup && planBlueprint?.definition?.sections?.length) {
+						<app-plan-internal-blueprint-editor [editorModel]="planEditorModel" [blueprint]="planBlueprint" [formGroup]="formGroup" [visibilityRulesService]="visibilityRules" [canEditEntirePlan]="true" [planIsEditable]="true" [showAllSections]="true" />
+					} @else {
+						<p class="bp2-help">{{'PLAN-BLUEPRINT-EDITOR.REVIEW.NOTHING-YET' | translate}}</p>
+					}
+				</section>
+			}
+			@case ('download') { <app-se2-download-outline /> }
+		}
+	</div>
+
+	<aside class="rv-aside" [attr.aria-label]="'PLAN-BLUEPRINT-EDITOR.REVIEW.SUMMARY' | translate">
+		<app-se2-plugin-review />
+		<app-se2-semantics-card />
+	</aside>
+</div>

@@ -1,3 +1,4 @@
+import { AnnotationEntityType } from "@app/core/common/enum/annotation-entity-type";
 import { IsActive } from "@app/core/common/enum/is-active.enum";
 import { Lookup } from "@common/model/lookup";
 import { Guid } from "@common/types/guid";
@@ -9,7 +10,7 @@ export class AnnotationLookup extends Lookup implements AnnotationFilter {
   excludedIds: Guid[];
   isActive: IsActive[];
   entityIds: Guid[];
-  entityTypes: string[];
+  entityTypes: AnnotationEntityType[];
   anchors: string[];
   groupIds: Guid[];
 

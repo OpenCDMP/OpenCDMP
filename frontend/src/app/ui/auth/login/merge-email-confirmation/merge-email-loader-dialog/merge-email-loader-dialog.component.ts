@@ -1,13 +1,17 @@
-import { Component,Inject, OnDestroy, OnInit } from "@angular/core";
-import { MAT_DIALOG_DATA, MatDialogRef } from "@angular/material/dialog";
+import { Component, Inject, OnDestroy, OnInit, ChangeDetectionStrategy } from "@angular/core";
+import { MAT_DIALOG_DATA, MatDialogRef, MatDialogTitle, MatDialogContent } from "@angular/material/dialog";
 import { ConfigurationService } from "@app/core/services/configuration/configuration.service";
 import { Subscription } from "rxjs";
+import { MatProgressSpinner } from "@angular/material/progress-spinner";
+import { CdkScrollable } from "@angular/cdk/scrolling";
+import { TranslatePipe } from "@ngx-translate/core";
 
 @Component({
     selector: 'merge-email-loader',
     templateUrl: './merge-email-loader-dialog.component.html',
     styleUrls: ['./merge-email-loader-dialog.component.scss'],
-    standalone: false
+    changeDetection: ChangeDetectionStrategy.Eager,
+    imports: [MatDialogTitle, MatProgressSpinner, CdkScrollable, MatDialogContent, TranslatePipe]
 })
 export class MergeEmailLoaderDialogComponent implements OnInit, OnDestroy {
    

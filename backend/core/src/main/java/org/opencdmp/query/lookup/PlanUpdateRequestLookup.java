@@ -24,6 +24,8 @@ public class PlanUpdateRequestLookup extends Lookup {
 
     private List<PlanUpdateRequestActionType> actionTypes;
 
+    private List<String> externalIds;
+
     public List<IsActive> getIsActive() {
         return isActive;
     }
@@ -80,6 +82,14 @@ public class PlanUpdateRequestLookup extends Lookup {
         this.actionTypes = actionTypes;
     }
 
+    public List<String> getExternalIds() {
+        return externalIds;
+    }
+
+    public void setExternalIds(List<String> externalIds) {
+        this.externalIds = externalIds;
+    }
+
     public PlanUpdateRequestQuery enrich(QueryFactory queryFactory) {
         PlanUpdateRequestQuery query = queryFactory.query(PlanUpdateRequestQuery.class);
         if (this.isActive != null) query.isActive(this.isActive);
@@ -89,6 +99,7 @@ public class PlanUpdateRequestLookup extends Lookup {
         if (this.status != null) query.status(this.status);
         if (this.approvedByIds != null) query.approvedByIds(this.approvedByIds);
         if (this.actionTypes != null) query.actionTypes(this.actionTypes);
+        if (this.externalIds != null) query.externalIds(this.externalIds);
 
         this.enrichCommon(query);
 

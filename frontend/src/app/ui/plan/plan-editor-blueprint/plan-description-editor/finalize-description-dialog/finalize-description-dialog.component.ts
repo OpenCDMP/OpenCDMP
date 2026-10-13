@@ -1,16 +1,20 @@
-import { Component, Inject, OnInit } from '@angular/core';
+import { Component, Inject, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { FormGroup } from '@angular/forms';
-import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
+import { MAT_DIALOG_DATA, MatDialogRef, MatDialogTitle, MatDialogContent, MatDialogActions } from '@angular/material/dialog';
 import { DescriptionEditorForm} from '@app/ui/description/editor/description-editor.model';
 import { BaseComponent } from '@common/base/base.component';
-import { TranslateService } from '@ngx-translate/core';
+import { TranslateService, TranslatePipe } from '@ngx-translate/core';
 import { DescriptionEditorHelper } from '../plan-description-editor-helper';
+import { MatIconButton, MatButton } from '@angular/material/button';
+import { MatIcon } from '@angular/material/icon';
+import { CdkScrollable } from '@angular/cdk/scrolling';
 
 @Component({
-  selector: 'app-finalize-description-dialog',
-  standalone: false,
-  templateUrl: './finalize-description-dialog.component.html',
-  styleUrl: './finalize-description-dialog.component.scss'
+    selector: 'app-finalize-description-dialog',
+    templateUrl: './finalize-description-dialog.component.html',
+    changeDetection: ChangeDetectionStrategy.Eager,
+    styleUrl: './finalize-description-dialog.component.scss',
+    imports: [MatDialogTitle, MatIconButton, MatIcon, CdkScrollable, MatDialogContent, MatDialogActions, MatButton, TranslatePipe]
 })
 export class FinalizeDescriptionDialogComponent extends BaseComponent implements OnInit{
     formGroup: FormGroup<DescriptionEditorForm>;

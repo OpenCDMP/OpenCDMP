@@ -7,22 +7,27 @@ import { AutoCompleteModule } from '@app/library/auto-complete/auto-complete.mod
 import { TextAreaWithMentionsComponent } from '../components/text-area-with-mentions.component';
 import { NgxMentionsModule } from 'ngx-mentions';
 import { OverlayModule } from '@angular/cdk/overlay';
+import { UserLogoPipe } from '@common/http/image/user-logo.pipe';
+import { FallbackAvatarDirective } from '@common/http/image/fallback-avatar.directive';
+import { RelativeTimeFormatPipe } from '@app/core/pipes/relative-time.pipe';
 
 @NgModule({
-	imports: [
-		CommonUiModule,
-		CommonFormsModule,
-		FormattingModule,
-		AutoCompleteModule,
-		NgxMentionsModule,
-		OverlayModule,
-	],
-	declarations: [
-		AnnotationDialogComponent,
-		TextAreaWithMentionsComponent,
-	],
-	exports: [
-		AnnotationDialogComponent,
-	],
+    imports: [
+        CommonUiModule,
+        CommonFormsModule,
+        FormattingModule,
+        AutoCompleteModule,
+        NgxMentionsModule,
+        OverlayModule,
+        UserLogoPipe,
+        FallbackAvatarDirective,
+        RelativeTimeFormatPipe,
+        AnnotationDialogComponent,
+        TextAreaWithMentionsComponent
+    ],
+    exports: [
+        AnnotationDialogComponent,
+        TextAreaWithMentionsComponent
+    ],
 })
 export class AnnotationDialogModule { }

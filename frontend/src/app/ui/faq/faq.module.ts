@@ -7,9 +7,7 @@ import { FaqRoutingModule } from './faq.routing';
 @NgModule({
     imports: [
         CommonUiModule,
-        FaqRoutingModule
-    ],
-    declarations: [
+        FaqRoutingModule,
         FaqContentComponent,
         FaqDialogComponent
     ],

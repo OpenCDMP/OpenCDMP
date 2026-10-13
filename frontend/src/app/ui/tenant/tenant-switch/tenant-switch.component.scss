@@ -2,3 +2,51 @@
 	border-color: transparent;
 	padding: 8px;
 }
+.tenant-container{
+    min-width: min(200px, 90vw);
+    padding: 0.75rem 0;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    
+    mat-icon{
+        transform: scale(0.9);
+    }
+    .selection-indicator {
+        width: 5px;
+        position: absolute;
+        top: 0.5rem;
+        border-radius: 4px;
+        display: block;
+        bottom: 0.5rem;
+    }
+    mat-icon{
+        color: var(--mat-sys-primary);
+    }
+    .tenant-details{
+        display: block;
+        margin-left: 1rem;
+        line-height: 1.5;
+        text-align: left;
+        overflow: hidden;
+    }
+
+    .tenant-name.selected{
+        // color: var(--mat-sys-primary);
+        font-weight: 500;
+    }
+    .tenant-description{
+        text-wrap: nowrap;
+        text-overflow: ellipsis;
+        max-width: 100%;
+        font-size: var(--mat-sys-label-medium-size);
+        opacity: 0.8;
+        overflow: hidden;
+    }
+}
+
+@for $i from 0 through 10 {
+  .background-color-#{$i} {
+    background-color: hsl(from var(--mat-sys-primary) calc(h + 15*#{$i}) s l);
+  }
+}

@@ -30,6 +30,7 @@ public class PlanCommonModelBuilder extends BaseCommonModelBuilder<Plan, PlanMod
 
     private final BuilderFactory builderFactory;
     private EnumSet<AuthorizationFlags> authorize = EnumSet.of(AuthorizationFlags.None);
+    private boolean disableDescriptions;
 
     @Autowired
     public PlanCommonModelBuilder(ConventionService conventionService,
@@ -40,6 +41,11 @@ public class PlanCommonModelBuilder extends BaseCommonModelBuilder<Plan, PlanMod
 
     public PlanCommonModelBuilder authorize(EnumSet<AuthorizationFlags> values) {
         this.authorize = values;
+        return this;
+    }
+
+    public PlanCommonModelBuilder setDisableDescriptions(boolean disableDescriptions) {
+        this.disableDescriptions = disableDescriptions;
         return this;
     }
 
@@ -63,7 +69,7 @@ public class PlanCommonModelBuilder extends BaseCommonModelBuilder<Plan, PlanMod
             m.setEntityDois(this.builderFactory.builder(EntityDoiCommonModelBuilder.class).authorize(this.authorize).build(d.getEntityDois()));
             m.setCreator(this.builderFactory.builder(UserCommonModelBuilder.class).authorize(this.authorize).build(d.getCreator()));
             m.setBlueprint(this.builderFactory.builder(org.opencdmp.model.builder.commonmodels.dto.planblueprint.PlanBlueprintCommonModelBuilder.class).authorize(this.authorize).build(d.getPlanBlueprint()));
-            m.setProperties(this.builderFactory.builder(PlanPropertiesCommonModelBuilder.class).authorize(this.authorize).build(d.getProperties()));
+            m.setProperties(this.builderFactory.builder(PlanPropertiesCommonModelBuilder.class).authorize(this.authorize).withDefinitionModel(d.getPlanBlueprint() != null ? d.getPlanBlueprint().getDefinition(): null ).build(d.getProperties()));
             m.setPublicAfter(d.getPublicAfter());
             m.setUpdatedAt(d.getUpdatedAt());
             m.setIsActive(IsActive.Active);
@@ -78,7 +84,7 @@ public class PlanCommonModelBuilder extends BaseCommonModelBuilder<Plan, PlanMod
 
             m.setPlanReferences(this.builderFactory.builder(PlanReferenceCommonModelBuilder.class).authorize(this.authorize).build(d.getReferences()));
             m.setPlanUsers(this.builderFactory.builder(PlanUserCommonModelBuilder.class).authorize(this.authorize).build(d.getUsers()));
-            m.setDescriptions(this.builderFactory.builder(DescriptionCommonModelBuilder.class).authorize(this.authorize).build(d.getDescriptions()));
+            m.setDescriptions(this.disableDescriptions ? null: this.builderFactory.builder(DescriptionCommonModelBuilder.class).authorize(this.authorize).build(d.getDescriptions()));
 
             models.add(new CommonModelBuilderItemResponse<>(m, d));
         }

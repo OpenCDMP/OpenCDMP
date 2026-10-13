@@ -1,0 +1,98 @@
+<button type="button" class="tc-drawer__scrim" tabindex="-1" [attr.aria-label]="'TENANT-CONFIGURATION.WORKFLOWS.STATUS.CLOSE' | translate" (click)="close()"></button>
+<aside class="tc-drawer" role="dialog" aria-modal="true" aria-labelledby="tc-status-drawer-title">
+	<div class="tc-drawer__head">
+		<h2 id="tc-status-drawer-title">
+			@if (statusId()) {
+				{{ 'TENANT-CONFIGURATION.WORKFLOWS.STATUS.EDIT-TITLE' | translate: { name: title() } }}
+			} @else {
+				{{ 'TENANT-CONFIGURATION.WORKFLOWS.STATUS.NEW-TITLE' | translate }}
+			}
+		</h2>
+		<button mat-icon-button type="button" (click)="close()" [attr.aria-label]="'TENANT-CONFIGURATION.WORKFLOWS.STATUS.CLOSE' | translate">
+			<mat-icon aria-hidden="true">close</mat-icon>
+		</button>
+	</div>
+
+	@if (loading()) {
+		<div class="tc-loading"><mat-spinner diameter="32" /></div>
+	} @else {
+		<form class="tc-drawer__body" [formGroup]="form" (ngSubmit)="save()">
+			@if (shared()) {
+				<p class="tc-drawer__hint">{{ 'TENANT-CONFIGURATION.WORKFLOWS.STATUS.SHARED-HINT' | translate }}</p>
+			}
+			<mat-form-field subscriptSizing="dynamic">
+				<mat-label>{{ 'TENANT-CONFIGURATION.WORKFLOWS.STATUS.NAME' | translate }}</mat-label>
+				<input #nameField matInput formControlName="name" required />
+				@if (form.controls.name.hasError('required')) { <mat-error>{{ 'GENERAL.VALIDATION.REQUIRED' | translate }}</mat-error> }
+			</mat-form-field>
+
+			<fieldset class="tc-drawer__group">
+				<legend>{{ 'TENANT-CONFIGURATION.WORKFLOWS.STATUS.COLOUR' | translate }}</legend>
+				<div class="tc-drawer__swatches">
+					@for (colour of swatches(); track colour) {
+						<button type="button" class="tc-drawer__swatch" [class.tc-drawer__swatch--on]="form.controls.statusColor.value === colour" [style.background]="colour"
+							[attr.aria-pressed]="form.controls.statusColor.value === colour" [attr.aria-label]="colour" [disabled]="form.disabled" (click)="pickColour(colour)"></button>
+					}
+				</div>
+			</fieldset>
+
+			<fieldset class="tc-drawer__group">
+				<legend>{{ 'TENANT-CONFIGURATION.WORKFLOWS.STATUS.ICON' | translate }}</legend>
+				<span class="tc-drawer__hint">{{ 'TENANT-CONFIGURATION.WORKFLOWS.STATUS.ICON-HELP' | translate }}</span>
+				<app-icon-configuration-editor [formGroup]="form.controls.iconConfiguration" />
+			</fieldset>
+
+			<fieldset class="tc-drawer__group">
+				<legend>{{ 'TENANT-CONFIGURATION.WORKFLOWS.STATUS.COUNTS-AS' | translate }}</legend>
+				<mat-radio-group formControlName="countsAs" class="tc-drawer__radios">
+					@for (option of countsAsOptions(); track option) {
+						<mat-radio-button [value]="option">
+							<b>{{ 'TENANT-CONFIGURATION.WORKFLOWS.STATUS.KIND.' + option.toUpperCase() | translate }}</b>:
+							{{ 'TENANT-CONFIGURATION.WORKFLOWS.STATUS.KIND-HINT.' + (isPlan() ? 'PLAN-' : 'ASSET-') + option.toUpperCase() | translate }}
+						</mat-radio-button>
+					}
+				</mat-radio-group>
+			</fieldset>
+
+			<mat-form-field subscriptSizing="dynamic">
+				<mat-label>{{ 'TENANT-CONFIGURATION.WORKFLOWS.STATUS.ACTION' | translate }}</mat-label>
+				<input matInput formControlName="action" />
+				<mat-hint>{{ 'TENANT-CONFIGURATION.WORKFLOWS.STATUS.ACTION-HINT' | translate }}</mat-hint>
+			</mat-form-field>
+
+			<fieldset class="tc-drawer__group">
+				<legend>{{ (isPlan() ? 'TENANT-CONFIGURATION.WORKFLOWS.STATUS.WHO-PLAN' : 'TENANT-CONFIGURATION.WORKFLOWS.STATUS.WHO-ASSET') | translate }}</legend>
+				@for (role of planRoles; track role) {
+					<mat-checkbox [checked]="$safeNavigationMigration(form.controls.planRoles.value?.includes(role))" [disabled]="form.disabled" (change)="togglePlanRole(role, $event.checked)">{{ enumUtils.toPlanUserRoleString(role) }}</mat-checkbox>
+				}
+				<span class="tc-drawer__hint">{{ 'TENANT-CONFIGURATION.WORKFLOWS.STATUS.ACCOUNT-ROLES' | translate }}</span>
+				@for (role of accountRoles; track role) {
+					<mat-checkbox [checked]="form.controls.roles.value?.includes(role)" [disabled]="form.disabled" (change)="toggleAccountRole(role, $event.checked)">{{ enumUtils.toAppRoleString(role) }}</mat-checkbox>
+				}
+			</fieldset>
+
+			<fieldset class="tc-drawer__group">
+				<legend>{{ 'TENANT-CONFIGURATION.WORKFLOWS.STATUS.CAN-DO' | translate }}</legend>
+				<div class="tc-drawer__inline">
+					@for (action of actionOptions(); track action) {
+						<mat-checkbox [checked]="$safeNavigationMigration(form.controls.availableActions.value?.includes(action))" [disabled]="form.disabled" (change)="toggleAction(action, $event.checked)">{{ actionLabel(action) }}</mat-checkbox>
+					}
+				</div>
+			</fieldset>
+
+			<div class="tc-drawer__actions">
+				@if (statusId() && canDelete() && !shared()) {
+					<div class="tc-drawer__delete">
+						<button mat-button type="button" class="tc-drawer__danger" [disabled]="busy()" (click)="delete()">{{ 'TENANT-CONFIGURATION.WORKFLOWS.STATUS.DELETE' | translate }}</button>
+						<span class="tc-drawer__hint">{{ 'TENANT-CONFIGURATION.WORKFLOWS.STATUS.DELETE-HINT' | translate }}</span>
+					</div>
+				} @else {
+					<span></span>
+				}
+				@if (editable()) {
+					<button mat-flat-button color="primary" type="submit" [disabled]="busy()">{{ 'TENANT-CONFIGURATION.WORKFLOWS.STATUS.SAVE' | translate }}</button>
+				}
+			</div>
+		</form>
+	}
+</aside>

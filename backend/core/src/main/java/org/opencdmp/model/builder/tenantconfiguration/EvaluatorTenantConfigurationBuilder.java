@@ -50,8 +50,9 @@ public class EvaluatorTenantConfigurationBuilder extends BaseBuilder<EvaluatorTe
         List<EvaluatorTenantConfiguration> models = new ArrayList<>();
         for(EvaluatorTenantConfigurationEntity d : data){
             EvaluatorTenantConfiguration m = new EvaluatorTenantConfiguration();
-            if(!sourcesFields.isEmpty() && d.getSources() != null) {
-                if(fields.hasField(this.asIndexer(EvaluatorTenantConfiguration._disableSystemSources)))  m.setDisableSystemSources(d.getDisableSystemSources());
+            if (fields.hasField(this.asIndexer(EvaluatorTenantConfiguration._disableSystemSources))) m.setDisableSystemSources(d.getDisableSystemSources());
+            if (fields.hasField(this.asIndexer(EvaluatorTenantConfiguration._disabledSourceIds))) m.setDisabledSourceIds(d.getDisabledSourceIds() != null ? d.getDisabledSourceIds() : new ArrayList<>());
+            if (!sourcesFields.isEmpty() && d.getSources() != null){
                 m.setSources(this.builderFactory.builder(EvaluatorSourceBuilder.class).encrypted(true).authorize(this.authorize).build(sourcesFields, d.getSources()));
             }
             models.add(m);

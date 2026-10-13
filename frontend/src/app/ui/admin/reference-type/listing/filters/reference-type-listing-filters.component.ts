@@ -1,7 +1,8 @@
-import { Component, computed, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges } from '@angular/core';
+import { Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges, ChangeDetectionStrategy } from '@angular/core';
 import { FormControl, FormGroup } from '@angular/forms';
 import { IsActive } from '@app/core/common/enum/is-active.enum';
 import { ReferenceTypeFilter } from '@app/core/query/reference-type.lookup';
+import { AuthService } from '@app/core/services/auth/auth.service';
 import { EnumUtils } from '@app/core/services/utilities/enum-utils.service';
 import { BaseComponent } from '@common/base/base.component';
 import { nameof } from 'ts-simple-nameof';
@@ -10,23 +11,28 @@ import { nameof } from 'ts-simple-nameof';
     selector: 'app-reference-type-listing-filters',
     templateUrl: './reference-type-listing-filters.component.html',
     styleUrls: ['./reference-type-listing-filters.component.scss'],
-    standalone: false
+    changeDetection: ChangeDetectionStrategy.Eager
 })
 export class ReferenceTypeListingFiltersComponent extends BaseComponent implements OnInit, OnChanges {
 
 	@Input() readonly filter: ReferenceTypeFilter;
+	@Input() hasSelectedTenant: boolean = false;
 	@Output() filterChange = new EventEmitter<ReferenceTypeFilter>();
 
 	// * State
 	internalFilters: FormGroup<ReferenceTypeListingFilters> = new FormGroup({
-        isActive: new FormControl(true),
-        like: new FormControl(null),
+        showDeleted: new FormControl<boolean>(false, { nonNullable: true }),
+        like: new FormControl<string | null>(null),
     })
-    
+
+    get formIsDirty(): boolean {
+        return this.internalFilters.controls.showDeleted.dirty;
+    }
 
 	protected appliedFilterCount: number = 0;
 	constructor(
-		public enumUtils: EnumUtils
+		public enumUtils: EnumUtils,
+		private authService: AuthService,
 	) { super(); }
 
 	ngOnInit() {
@@ -51,11 +57,10 @@ export class ReferenceTypeListingFiltersComponent extends BaseComponent implemen
 	}
 
 	protected applyFilters(): void {
-		const { isActive, like } = this.internalFilters?.value ?? {}
+		const { showDeleted, like } = this.internalFilters?.value ?? {}
 		this.filterChange.emit({
+			// search, deleted state and tenant scope live in the listing toolbar and arrive through `filter`
 			...this.filter,
-			like,
-			isActive: isActive ? [IsActive.Active] : [IsActive.Inactive]
 		});
         this.internalFilters.markAsPristine();
 	}
@@ -66,18 +71,18 @@ export class ReferenceTypeListingFiltersComponent extends BaseComponent implemen
 			return this._getEmptyFilters();
 		}
 
-		let { excludedIds, ids, isActive, like } = inputFilter;
+		const { isActive, like } = inputFilter;
 
 		this.internalFilters.setValue({
-			isActive: (isActive ?? [])?.includes(IsActive.Active) || !isActive?.length,
-			like: like ?? null
+			showDeleted: (isActive ?? []).includes(IsActive.Inactive),
+			like: like ?? null,
 		});
 
 	}
 
 	private _getEmptyFilters() {
 		this.internalFilters.setValue({
-			isActive: true,
+			showDeleted: false,
 			like: null,
 		});
 	}
@@ -85,23 +90,20 @@ export class ReferenceTypeListingFiltersComponent extends BaseComponent implemen
 	private _computeAppliedFilters(formGroup: FormGroup<ReferenceTypeListingFilters>): number {
 		const filters = formGroup?.value;
         let count = 0;
-		if (!filters?.isActive) {
-			count++
-		}
 		if (filters?.like) {
 			count++;
 		}
-		
+
 		return count;
 	}
 
 	clearFilters() {
 		this._getEmptyFilters();
-        this.internalFilters.markAsDirty();
+        this.internalFilters.controls.showDeleted.markAsDirty();
 	}
 }
 
 interface ReferenceTypeListingFilters {
-    isActive: FormControl<boolean>;
-    like: FormControl<string>;
+    showDeleted: FormControl<boolean>;
+    like: FormControl<string | null>;
 }

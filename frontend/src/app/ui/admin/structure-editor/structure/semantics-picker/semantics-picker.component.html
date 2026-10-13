@@ -1,0 +1,48 @@
+<div class="sem">
+	<label class="sem-box" [class.sem-box--open]="open && !readOnly" [class.sem-box--object]="mode === 'objects'" [for]="listId + '-input'">
+		@for (k of keys; track k; let i = $index) {
+			<span class="sem-chip" [class.sem-chip--object]="mode === 'objects'" [attr.title]="isShort(k) ? k : null">
+				@if (mode === 'objects') { <mat-icon class="sem-chip__icon" aria-hidden="true">data_object</mat-icon> }
+				@if (isShort(k)) { <span>{{shown(k)}}</span> }
+				@else { <span><b>{{prefix(k)}}</b>@if (rest(k)) {<span class="sem-chip__dot">.</span>{{rest(k)}}}</span> }
+				@if (!readOnly) { <button type="button" class="sem-chip__x" (click)="remove(i); $event.stopPropagation()" [attr.aria-label]="('PLAN-BLUEPRINT-EDITOR.SEMANTICS.REMOVE' | translate) + ' ' + k"><mat-icon aria-hidden="true">close</mat-icon></button> }
+			</span>
+		}
+		@if (!readOnly && !(single && keys.length)) {
+			<input #search class="sem-input" type="text" [id]="listId + '-input'" [value]="query" (input)="onInput($any($event.target).value)" (focus)="onFocus()" (blur)="onBlur()" (keydown)="onKeydown($event)"
+				[placeholder]="keys.length ? '' : ((mode === 'objects' ? 'PLAN-BLUEPRINT-EDITOR.OBJECTS.PLACEHOLDER' : 'PLAN-BLUEPRINT-EDITOR.SEMANTICS.PLACEHOLDER') | translate)"
+				role="combobox" [attr.aria-expanded]="open" aria-autocomplete="list" [attr.aria-controls]="listId" [attr.aria-label]="ariaLabel || (('PLAN-BLUEPRINT-EDITOR.SEMANTICS.TITLE' | translate) + (inputLabel ? ' · ' + inputLabel : ''))">
+		}
+	</label>
+	@if (open && !readOnly && flat.length) {
+		<div class="sem-list" role="listbox" [id]="listId">
+			@for (s of sections; track $index) {
+				@if (s.title) { <div class="sem-list__group">{{s.title}}</div> }
+				@for (c of s.items; track c.kind + c.key) {
+					<button type="button" class="sem-item" role="option" [class.sem-item--active]="indexOf(c) === active" [attr.aria-selected]="indexOf(c) === active" (mousedown)="$event.preventDefault()" (click)="add(c.key)" (mouseenter)="active = indexOf(c)">
+						@if (c.kind === 'typed') {
+							<mat-icon aria-hidden="true">add</mat-icon>
+							<span class="sem-item__main">{{ (mode === 'objects' ? 'PLAN-BLUEPRINT-EDITOR.OBJECTS.ADD-TYPED' : 'PLAN-BLUEPRINT-EDITOR.SEMANTICS.ADD-TYPED') | translate: { key: c.key } }}<span class="bp2-sub">{{ (mode === 'objects' ? 'PLAN-BLUEPRINT-EDITOR.OBJECTS.ADD-TYPED-HINT' : 'PLAN-BLUEPRINT-EDITOR.SEMANTICS.ADD-TYPED-HINT') | translate}}</span></span>
+							<kbd>Enter</kbd>
+						} @else if (c.kind === 'object') {
+							<mat-icon aria-hidden="true">data_object</mat-icon>
+							<span class="sem-item__main"><strong>{{c.label || c.key}}</strong><span class="sem-item__mono">{{c.key}}</span></span>
+							<span class="bp2-sub sem-item__count">{{c.sub}}</span>
+						} @else if (c.kind === 'plugin') {
+							<mat-icon aria-hidden="true">extension</mat-icon>
+							<span class="sem-item__main"><span class="sem-item__mono">{{shown(c.key)}}</span>@if (c.label) { <span class="bp2-sub">{{c.label}}</span> }</span>
+						} @else {
+							<mat-icon aria-hidden="true">{{ c.kind === 'used' || c.kind === 'tenant' ? 'history' : 'sell' }}</mat-icon>
+							<span class="sem-item__main sem-item__key"><span><b>{{prefix(c.key)}}</b>@if (rest(c.key)) {.{{rest(c.key)}}}</span></span>
+							@if (c.kind === 'tenant') { <span class="bp2-sub sem-item__count">{{ editor.term('PLAN-BLUEPRINT-EDITOR.SEMANTICS.USED-IN') | bp2Count: c.count }}</span> }
+						}
+					</button>
+				}
+			}
+			<div class="sem-list__foot bp2-sub">
+				@if (mode === 'objects') { {{'PLAN-BLUEPRINT-EDITOR.OBJECTS.FOOT' | translate}} }
+				@else { {{'PLAN-BLUEPRINT-EDITOR.SEMANTICS.CATALOGUE' | translate: { count: catalogue.length, groups: groupCount } }} }
+			</div>
+		</div>
+	}
+</div>

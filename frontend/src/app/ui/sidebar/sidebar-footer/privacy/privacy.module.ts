@@ -4,12 +4,10 @@ import { PrivacyRoutingModule } from '@app/ui/sidebar/sidebar-footer/privacy/pri
 import { CommonUiModule } from '@common/ui/common-ui.module';
 
 @NgModule({
-  imports: [
-    CommonUiModule,
-    PrivacyRoutingModule
-  ],
-  declarations: [
-    PrivacyComponent
-  ]
+    imports: [
+        CommonUiModule,
+        PrivacyRoutingModule,
+        PrivacyComponent
+    ]
 })
 export class PrivacyModule { }

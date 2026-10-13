@@ -10,6 +10,7 @@ public class FieldEntity {
     private Instant dateValue;
     private Boolean booleanValue;
     private ExternalIdentifierEntity externalIdentifier;
+    private Double numberValue;
 
     public String getTextValue() {
         return this.textValue;
@@ -49,5 +50,13 @@ public class FieldEntity {
 
     public void setBooleanValue(Boolean booleanValue) {
         this.booleanValue = booleanValue;
+    }
+
+    public Double getNumberValue() {
+        return numberValue;
+    }
+
+    public void setNumberValue(Double numberValue) {
+        this.numberValue = numberValue;
     }
 }

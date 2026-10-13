@@ -1,0 +1,23 @@
+<div class="plan-creation-consent-dialog">
+
+  @if (!data.canEditPlan) {
+     <div class="row justify-content-end mb-1">
+      <div class="col-auto">
+        <button mat-icon-button (click)="close()" [attr.aria-label]="'ALT-TEXT.CLOSE-DIALOG'  | translate"><mat-icon aria-hidden>close</mat-icon></button>
+      </div>
+    </div>
+    <div class="row d-flex flex-row mb-2">
+      <div class="col message pb-4 pl-3">{{ 'PLAN-EDITOR.CONSENT-DIAGLOG.MESSAGE-FOR-USERS-WITH-NO-EDIT-ACCESS' | translate }}</div>
+    </div>
+  } @else {
+    <div class="row d-flex flex-row mb-2">
+      <div class="col message pb-4 pl-3">{{ 'PLAN-EDITOR.CONSENT-DIAGLOG.MESSAGE-FOR-ACCEPT' | translate }}</div>
+    </div>
+    <app-plan-creation-consent-component [selectedBlueprint]="data.selectedBlueprint" (planCreationConsentChange)="onPlanCreationConsentChange($event)"></app-plan-creation-consent-component>
+    <div class="row" style="justify-content: space-between;">
+      <div class="col-auto"><button mat-stroked-button type="button" class="padded-shadow-btn" (click)="cancel()">{{ 'PLAN-EDITOR.CONSENT-DIAGLOG.ACTIONS.CANCEL' | translate }}</button></div>
+      <div class="col-auto"><button [disabled]="!planCreationConsentAccepted" mat-stroked-button color="primary" type="button" (click)="confirm()" class="padded-shadow-btn primary-inverted-hover">{{ 'PLAN-EDITOR.CONSENT-DIAGLOG.ACTIONS.CONFIRM' | translate }}</button></div>
+    </div>
+  }
+  
+</div>

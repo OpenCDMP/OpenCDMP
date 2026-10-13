@@ -1,0 +1,55 @@
+<mat-card class="overview-container" appearance="outlined" data-tour="dashboard-overview">
+    <mat-card-content>
+        <div class="overview-title">
+            {{(authService.currentAccountIsAuthenticated() ?  'DASHBOARD.PERSONAL-USAGE' : 'DASHBOARD.PUBLIC-USAGE') | translate}}
+        </div>
+        <!-- Each row opens the listing behind its count; a reference type row opens My Plans with
+             that type's filter section expanded, listing the user's own references. -->
+        @let authenticated = authService.currentAccountIsAuthenticated();
+        <ul class="unstyled-list">
+            <li>
+                <a class="overview-link" [routerLink]="routerUtils.generateUrl([authenticated ? '/plans' : '/explore-plans'])">
+                    <div class="mat-icon-fab" aria-hidden="true">
+                        <mat-icon class="material-symbols-outlined">docs</mat-icon>
+                    </div>
+                    <div class="overview-item-title">
+                        {{(authenticated ? 'DASHBOARD.MY-PLANS' : 'DASHBOARD.PUBLIC-PLANS') | translate}}
+                    </div>
+                    <div class="ml-auto">{{(authenticated ? dashboardStatistics()?.planCount : dashboardStatistics()?.publicPlanCount) ?? 0}}</div>
+                    <mat-icon class="overview-chevron" aria-hidden="true">chevron_right</mat-icon>
+                </a>
+            </li>
+
+            <li>
+                <a class="overview-link" [routerLink]="routerUtils.generateUrl([authenticated ? '/assets' : '/explore-assets'])">
+                    <div class="mat-icon-fab" aria-hidden="true">
+                        <mat-icon class="material-symbols-outlined">database</mat-icon>
+                    </div>
+                    <div class="overview-item-title">
+                        {{(authenticated ? 'DASHBOARD.MY-DESCRIPTIONS' : 'DASHBOARD.PUBLIC-DESCRIPTIONS') | translate}}
+                    </div>
+                    <div class="ml-auto">{{(authenticated ? dashboardStatistics()?.descriptionCount : dashboardStatistics()?.publicDescriptionCount) ?? 0}}</div>
+                    <mat-icon class="overview-chevron" aria-hidden="true">chevron_right</mat-icon>
+                </a>
+            </li>
+
+            <!-- One row per featured reference type; its sources' logo when there is one, else a default icon. -->
+            @for (row of referenceRows(); track row.id) {
+                <li>
+                    <a class="overview-link" [routerLink]="routerUtils.generateUrl([authenticated ? '/plans' : '/explore-plans'])" [queryParams]="authenticated ? { referenceType: row.id } : null">
+                        <div class="mat-icon-fab" aria-hidden="true">
+                            @if (row.hasLogo) {
+                                <img class="overview-logo" [src]="logoUrl(row.id)" alt="" (error)="onLogoError(row.id)">
+                            } @else {
+                                <mat-icon class="material-symbols-outlined">sell</mat-icon>
+                            }
+                        </div>
+                        <div class="overview-item-title">{{row.name}}</div>
+                        <div class="ml-auto">{{row.count ?? '-'}}</div>
+                        <mat-icon class="overview-chevron" aria-hidden="true">chevron_right</mat-icon>
+                    </a>
+                </li>
+            }
+        </ul>
+    </mat-card-content>
+</mat-card>

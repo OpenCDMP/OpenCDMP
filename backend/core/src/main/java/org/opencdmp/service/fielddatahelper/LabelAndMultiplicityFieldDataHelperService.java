@@ -5,7 +5,7 @@ import gr.cite.tools.fieldset.FieldSet;
 import gr.cite.tools.validation.Validator;
 import gr.cite.tools.validation.ValidatorFactory;
 import org.opencdmp.authorization.AuthorizationFlags;
-import org.opencdmp.commonmodels.models.descriptiotemplate.fielddata.LabelAndMultiplicityDataModel;
+import org.opencdmp.commonmodels.models.planblueprintdescriptiontemplatefields.fielddata.LabelAndMultiplicityDataModel;
 import org.opencdmp.commons.types.descriptiontemplate.fielddata.LabelAndMultiplicityDataEntity;
 import org.opencdmp.commons.types.descriptiontemplate.importexport.fielddata.LabelAndMultiplicityDataImportExport;
 import org.opencdmp.model.builder.commonmodels.descriptiontemplate.fielddata.LabelAndMultiplicityDataCommonModelBuilder;

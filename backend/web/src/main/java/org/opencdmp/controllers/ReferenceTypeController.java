@@ -51,6 +51,15 @@ import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import javax.management.InvalidApplicationException;
+import org.opencdmp.authorization.Permission;
+import org.opencdmp.data.TenantEntityManagerFactory;
+import org.opencdmp.model.referencetype.ReferenceTypeLogo;
+import org.springframework.http.CacheControl;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import java.time.Duration;
 import java.util.AbstractMap;
 import java.util.List;
 import java.util.Map;
@@ -78,13 +87,15 @@ public class ReferenceTypeController{
 
     private final ReferenceTypeService referenceTypeService;
 
+    private final TenantEntityManagerFactory tenantEntityManagerFactory;
+
     @Autowired
     public ReferenceTypeController(
             BuilderFactory builderFactory,
             AuditService auditService,
             CensorFactory censorFactory,
             QueryFactory queryFactory,
-            MessageSource messageSource, AuthorizationService authorizationService, ReferenceTypeService referenceTypeService) {
+            MessageSource messageSource, AuthorizationService authorizationService, ReferenceTypeService referenceTypeService, TenantEntityManagerFactory tenantEntityManagerFactory) {
         this.builderFactory = builderFactory;
         this.auditService = auditService;
         this.censorFactory = censorFactory;
@@ -92,6 +103,36 @@ public class ReferenceTypeController{
         this.messageSource = messageSource;
         this.authorizationService = authorizationService;
         this.referenceTypeService = referenceTypeService;
+        this.tenantEntityManagerFactory = tenantEntityManagerFactory;
+    }
+
+    @GetMapping("public/{id}/logo")
+    @io.swagger.v3.oas.annotations.Operation(summary = "Get the logo of a reference type",
+            description = "Returns the image of the first source of the reference type that has a logo, or 404 when none has. Anonymous access is allowed, so it can be used directly as an image URL.")
+    public ResponseEntity<byte[]> getPublicLogo(@PathVariable("id") UUID id) throws MyNotFoundException, InvalidApplicationException {
+        logger.debug(new MapLogEntry("retrieving public logo of " + ReferenceType.class.getSimpleName()).And("id", id));
+
+        this.authorizationService.authorizeForce(Permission.PublicBrowseReferenceType);
+
+        ReferenceTypeLogo logo;
+        try {
+            // Reference types of any tenant; the request carries no tenant (plain image URL).
+            this.tenantEntityManagerFactory.getInstance().disableTenantFilters();
+            logo = this.referenceTypeService.getLogo(id);
+        } finally {
+            this.tenantEntityManagerFactory.getInstance().reloadTenantFilters();
+        }
+        if (logo == null || logo.getContent() == null) throw new MyNotFoundException(this.messageSource.getMessage("General_ItemNotFound", new Object[]{id, ReferenceType.class.getSimpleName()}, LocaleContextHolder.getLocale()));
+
+        this.auditService.track(AuditableAction.ReferenceType_PublicLogo, Map.ofEntries(
+                new AbstractMap.SimpleEntry<String, Object>("id", id)
+        ));
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(logo.getMimeType() != null ? MediaType.valueOf(logo.getMimeType()) : MediaType.APPLICATION_OCTET_STREAM);
+        headers.setContentLength(logo.getContent().length);
+        headers.setCacheControl(CacheControl.maxAge(Duration.ofHours(1)).cachePublic());
+        return new ResponseEntity<>(logo.getContent(), headers, HttpStatus.OK);
     }
 
     @PostMapping("query")

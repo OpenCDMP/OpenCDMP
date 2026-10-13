@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import CookieConsent, {
+import {
     run,
     setLanguage,
     show,
@@ -10,6 +10,11 @@ import { LanguageService } from '../language/language.service';
 import { Guid } from '@common/types/guid';
 import { CookieService } from 'ngx-cookie-service';
 import { ConfigurationService } from '../configuration/configuration.service';
+import { OpenCDMPCustomTranslationCompiler } from '@app/utilities/translate/opencdmp-custom-translation-compiler';
+import { firstValueFrom } from 'rxjs';
+import { AuthService } from '../auth/auth.service';
+import { LanguageHttpService } from '../language/language.http.service';
+import { TranslateServerLoader } from '../language/server.loader';
 
 @Injectable({
     providedIn: 'root',
@@ -36,7 +41,9 @@ export class CookieConsentService {
     constructor(
         private languageService: LanguageService,
         private cookieService: CookieService,
-        private installationConfiguration: ConfigurationService
+        private installationConfiguration: ConfigurationService,
+        private languageHttpService: LanguageHttpService,
+        private authService: AuthService
     ) { }
 
     init(): void {
@@ -46,7 +53,12 @@ export class CookieConsentService {
         }
 
         try {
-            this.languageService.getAvailableLanguagesCodes().forEach((lang) => this.config.language.translations[lang] = `assets/i18n/${lang}.json`)
+            // Load through the app's loader (bundled file plus overrides) and the custom compiler, as ngx-translate does
+            const loader = new TranslateServerLoader(this.languageHttpService, this.authService);
+            this.languageService.getAvailableLanguagesCodes().forEach((lang) => this.config.language.translations[lang] = () =>
+                firstValueFrom(loader.getTranslation(lang))
+                    .then((translations) => new OpenCDMPCustomTranslationCompiler().compileTranslations(translations, lang))
+            );
             run(this.config);
             this.isInitialized = true;
             console.log('CookieConsent initialized successfully');
@@ -76,10 +88,10 @@ export class CookieConsentService {
     }
 
     public currentConsents(): CurrentConsent{
-        let consents = this.cookieService.get('cc_cookie');
+        const consents = this.cookieService.get('cc_cookie');
         if(!consents){ return null; }
         try {
-            let parsedConsents = JSON.parse(consents) as CurrentConsent;
+            const parsedConsents = JSON.parse(consents) as CurrentConsent;
             return parsedConsents
         } catch {
             return null;

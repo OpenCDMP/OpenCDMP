@@ -1,0 +1,74 @@
+<div class="webhook-deliveries-dialog">
+	<div mat-dialog-title class="d-flex align-items-center gap-half-rem">
+		<mat-icon aria-hidden="true">receipt_long</mat-icon>
+		<span>{{'WEBHOOK-LISTING.DELIVERIES-DIALOG.TITLE' | translate}} — {{data.subscriptionLabel}}</span>
+		<span class="flex-spacer"></span>
+		<button mat-icon-button (click)="load()" [attr.aria-label]="'WEBHOOK-LISTING.DELIVERIES-DIALOG.REFRESH' | translate" [matTooltip]="'WEBHOOK-LISTING.DELIVERIES-DIALOG.REFRESH' | translate">
+			<mat-icon aria-hidden="true">refresh</mat-icon>
+		</button>
+	</div>
+	<div mat-dialog-content>
+		@if (loading()) {
+			<div class="state-container">
+				<mat-progress-spinner mode="indeterminate" diameter="40"/>
+			</div>
+		} @else if (!deliveries().length) {
+			<div class="state-container">{{'WEBHOOK-LISTING.DELIVERIES-DIALOG.EMPTY' | translate}}</div>
+		} @else {
+			<div class="table-scroll">
+				<table class="deliveries-table">
+					<thead>
+						<tr>
+							<th>{{'WEBHOOK-LISTING.DELIVERIES-DIALOG.FIELDS.EVENT' | translate}}</th>
+							<th>{{'WEBHOOK-LISTING.DELIVERIES-DIALOG.FIELDS.STATUS' | translate}}</th>
+							<th>{{'WEBHOOK-LISTING.DELIVERIES-DIALOG.FIELDS.ATTEMPTS' | translate}}</th>
+							<th>{{'WEBHOOK-LISTING.DELIVERIES-DIALOG.FIELDS.HTTP-STATUS' | translate}}</th>
+							<th>{{'WEBHOOK-LISTING.DELIVERIES-DIALOG.FIELDS.CREATED-AT' | translate}}</th>
+							<th>{{'WEBHOOK-LISTING.DELIVERIES-DIALOG.FIELDS.DETAIL' | translate}}</th>
+							<th></th>
+						</tr>
+					</thead>
+					<tbody>
+						@for (delivery of deliveries(); track delivery.id) {
+							<tr>
+								<td>{{enumUtils.toWebhookEventTypeString(delivery.eventType)}}</td>
+								<td>
+									<span class="status-chip" [class.delivered]="delivery.status === deliveryStatus.Delivered" [class.failed]="delivery.status === deliveryStatus.Failed">
+										{{enumUtils.toWebhookDeliveryStatusString(delivery.status)}}
+									</span>
+								</td>
+								<td>{{delivery.attempts}}</td>
+								<td>{{delivery.lastHttpStatus ?? '—'}}</td>
+								<td>{{delivery.createdAt | date:'short'}}</td>
+								<td class="detail-cell">
+									@if (delivery.status === deliveryStatus.Delivered && delivery.deliveredAt) {
+										{{delivery.deliveredAt | date:'short'}}
+									} @else if (delivery.status === deliveryStatus.Pending && delivery.nextRetryAt) {
+										{{'WEBHOOK-LISTING.DELIVERIES-DIALOG.NEXT-RETRY' | translate}}: {{delivery.nextRetryAt | date:'short'}}
+									} @else if (delivery.lastError) {
+										<span [matTooltip]="delivery.lastError">{{delivery.lastError}}</span>
+									} @else {
+										—
+									}
+								</td>
+								<td>
+									@if (canRedeliver(delivery)) {
+										<button mat-icon-button (click)="redeliver(delivery)" [attr.aria-label]="'WEBHOOK-LISTING.DELIVERIES-DIALOG.REDELIVER' | translate" [matTooltip]="'WEBHOOK-LISTING.DELIVERIES-DIALOG.REDELIVER' | translate">
+											<mat-icon aria-hidden="true">replay</mat-icon>
+										</button>
+									}
+								</td>
+							</tr>
+						}
+					</tbody>
+				</table>
+			</div>
+			@if (totalCount() > pageSize) {
+				<p class="truncated-hint">{{'WEBHOOK-LISTING.DELIVERIES-DIALOG.SHOWING-LATEST' | translate}}</p>
+			}
+		}
+	</div>
+	<div mat-dialog-actions class="justify-content-end">
+		<button mat-button (click)="close()">{{'WEBHOOK-LISTING.DELIVERIES-DIALOG.CLOSE' | translate}}</button>
+	</div>
+</div>

@@ -20,6 +20,15 @@ export interface NotificationTemplate {
 	belongsToCurrentTenant?: boolean;
 }
 
+// the built-in template the notification service reads from its configuration files
+export interface NotificationTemplateDefault {
+	notificationType: NotificationType;
+	channel: NotificationTemplateChannel;
+	languageCode?: string;
+	fallbackLanguage?: boolean;
+	value: NotificationTemplateValue;
+}
+
 export interface NotificationTemplateValue {
 	subjectText: string;
     subjectKey: string;
@@ -27,7 +36,7 @@ export interface NotificationTemplateValue {
 	bodyText: string;
     bodyKey: string;
     priorityKey: string;
-    allowAttachments: Boolean;
+    allowAttachments: boolean;
     cc: string[];
     ccMode: EmailOverrideMode;
     bcc: string[];
@@ -67,7 +76,7 @@ export interface NotificationTemplateValuePersist {
 	bodyText: string;
     bodyKey: string;
     priorityKey: string;
-    allowAttachments: Boolean;
+    allowAttachments: boolean;
     cc: string[];
     ccMode: EmailOverrideMode;
     bcc: string[];

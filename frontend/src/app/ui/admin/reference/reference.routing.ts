@@ -28,9 +28,7 @@ const routes: Routes = [
 			},
 			...BreadcrumbService.generateRouteDataConfiguration({
 				title: 'BREADCRUMBS.NEW-REFERENCE'
-			}),
-			getFromTitleService: true,
-			usePrefix: false
+			})
 		}
 	},
 	{
@@ -45,9 +43,7 @@ const routes: Routes = [
 			breadcrumb: true,
 			authContext: {
 				permissions: [AppPermission.EditReference]
-			},
-			getFromTitleService: true,
-			usePrefix: false
+			}
 		}
 
 	},

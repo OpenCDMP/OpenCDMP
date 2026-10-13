@@ -1,10 +1,7 @@
 import { Pipe, PipeTransform } from '@angular/core';
 import { CultureInfo } from '../services/culture/culture-service';
 
-@Pipe({
-    name: 'cultureInfoDisplay',
-    standalone: false
-})
+@Pipe({ name: 'cultureInfoDisplay' })
 export class CultureInfoDisplayPipe implements PipeTransform {
 	constructor() { }
 

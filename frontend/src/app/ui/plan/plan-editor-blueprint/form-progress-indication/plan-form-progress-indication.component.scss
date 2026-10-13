@@ -5,8 +5,8 @@
     container-name: demo-progress-bar-container;
     container-type: inline-size;
     @include mat.progress-bar-overrides((
-        active-indicator-height: 11px,
-        track-height: 11px,
+        active-indicator-height: 6.5px,
+        track-height: 6.5px,
         active-indicator-color: var(--mat-sys-primary),
         track-color: #e0e2ec,
         track-shape: 20px
@@ -14,16 +14,26 @@
 }
 
 .percentage {
-	color: var(--dark-text);
 	opacity: 0.7;
 	font-weight: 400;
-	font-size: var(--mat-sys-title-small-size);
+	font-size: var(--mat-sys-body-small-size);
 }
+
+// Sits inline with the "Required fields" label, so it matches the label's size rather than the
+// 24px Material default, and carries the label's own muted tone.
+.progress-hint-icon {
+	font-size: 1rem;
+	width: 1rem;
+	height: 1rem;
+	margin-left: 0.25rem;
+	cursor: help;
+}
+
 
 
 // Bar container
 .progress-bar {
-	height: 11px;
+	height: 6.5px;
 	border-radius: 20px;
 }
 

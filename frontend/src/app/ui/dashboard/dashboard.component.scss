@@ -1,8 +1,65 @@
 .main-content {
-	background-color: var(--mat-sys-background);
-	padding: 1rem;
+    color: var(--mat-sys-on-surface);
 	display: flex;
 	flex-grow: 1;
+    // Fill the scroll container (#main-page = viewport − navbar), not the full viewport. Using 100vh
+    // here overflowed #main-page by the navbar's height and produced a spurious/second scrollbar
+    // (most visible when logged out, where content is short).
+    min-height: 100%;
+}
+
+.getting-started-guide--link{
+    display: block;
+    text-decoration: none;
+    border-radius: 4px;
+    outline: none;
+
+    &:focus-visible .getting-started-guide,
+    &:hover .getting-started-guide{
+        background: linear-gradient(135deg, var(--mat-sys-primary-container) 0%, var(--mat-sys-primary) 150%);
+        outline: 1px solid var(--mat-sys-primary);
+    }
+}
+
+.getting-started-guide{
+    background: linear-gradient(135deg, var(--mat-sys-surface) 0%, var(--mat-sys-primary-container) 80%);
+    color: var(--mat-sys-on-primary-container);
+    border: 1px solid var(--mat-sys-primary);
+    transition: background 0.2s ease;
+    .getting-started-guide--info-icon{
+        flex-shrink: 0;
+        color: var(--mat-sys-on-primary);
+        background-color: var(--mat-sys-primary);
+        width: 40px;
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 999px;
+    }
+    .getting-started-guide--icon{
+        flex-shrink: 0;
+    }
+    .getting-started--title{
+        font-weight: 500;
+        color: var(--mat-sys-primary);
+    }
+    .getting-started--message{
+        font-size: var(--mat-sys-label-medium-size);
+    }
+    .getting-started--hint{
+        font-size: var(--mat-sys-label-medium-size);
+        margin-top: 0.25rem;
+        opacity: 0.8;
+    }
+}
+
+.overview-card {
+    position: sticky;
+    top: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
 }
 
 .card {
@@ -98,12 +155,14 @@
 
 .latest-activity-title {
 	text-align: left;
-	font-weight: 300;
 	font-size: var(--mat-sys-title-large-size);
-	letter-spacing: 0px;
-	color: var(--dark-text);
+    margin-bottom: 0.5rem;
+}
+.latest-activity-subtitle{
+    text-align: left;
+    color: var(--dark-text);
 	opacity: 0.7;
-	padding-bottom: 1.2rem;
+    padding-bottom: 1.2rem;
 }
 
 .activity {
@@ -341,6 +400,16 @@ mat-tab-group.my-mat-tab .mat-mdc-tab-header .mat-mdc-tab-label-container .mat-m
 @media(max-width: 720px){
     .laptop-img {
         display: none;
+    }
+}
+
+@media (max-width: 1200px) {
+    .wrapper {
+        display: flex;
+        flex-direction: column-reverse;
+        .overview-card {
+            position: relative;
+        }
     }
 }
 

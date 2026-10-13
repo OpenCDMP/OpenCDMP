@@ -25,9 +25,7 @@ const routes: Routes = [
 			},
 			...BreadcrumbService.generateRouteDataConfiguration({
 				title: 'BREADCRUMBS.NEW-TENANT'
-			}),
-			getFromTitleService: true,
-			usePrefix: false
+			})
 		}
 	},
 	{
@@ -41,9 +39,7 @@ const routes: Routes = [
 		data: {
 			authContext: {
 				permissions: [AppPermission.EditStatus]
-			},
-			getFromTitleService: true,
-			usePrefix: false
+			}
 		}
 
 	},

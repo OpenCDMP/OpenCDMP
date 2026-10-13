@@ -8,6 +8,7 @@ import java.io.File;
 public class FileEnvelope {
     private String filename;
     private byte[] file;
+    private String mimeType;
 
     public String getFilename() {
         return filename;
@@ -23,5 +24,13 @@ public class FileEnvelope {
 
     public void setFile(byte[] file) {
         this.file = file;
+    }
+
+    public String getMimeType() {
+        return mimeType;
+    }
+
+    public void setMimeType(String mimeType) {
+        this.mimeType = mimeType;
     }
 }

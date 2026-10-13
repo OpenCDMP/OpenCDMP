@@ -1,0 +1,59 @@
+:host {
+	display: block;
+}
+
+.chart-card {
+	display: flex;
+	flex-direction: column;
+	gap: 0.75rem;
+	height: 100%;
+	box-sizing: border-box;
+	padding: 1.25rem;
+	border: 1px solid var(--mat-sys-outline-variant);
+	border-radius: 0.75rem;
+	background: var(--mat-sys-surface);
+}
+
+.chart-card-header {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	justify-content: space-between;
+	gap: 0.5rem 1rem;
+}
+
+.chart-card-title {
+	margin: 0;
+	font: var(--mat-sys-title-medium);
+}
+
+.chart-card-actions {
+	display: flex;
+	align-items: center;
+	gap: 0.25rem;
+}
+
+// same pill toggle as the page's scope switch and the Answers page
+.view-toggle {
+	--mat-button-toggle-shape: 9999px;
+	--mat-button-toggle-height: 30px;
+	--mat-button-toggle-divider-color: var(--mat-sys-outline);
+	--mat-button-toggle-selected-state-background-color: var(--mat-sys-primary-container);
+	--mat-button-toggle-selected-state-text-color: var(--mat-sys-on-surface);
+	border-color: var(--mat-sys-outline);
+	font-size: 0.8125rem;
+
+	.mat-button-toggle-checked {
+		font-weight: 500;
+	}
+}
+
+.help-button {
+	color: var(--mat-sys-on-surface-variant);
+
+	mat-icon {
+		width: 1.25rem;
+		height: 1.25rem;
+		font-size: 1.25rem;
+	}
+}

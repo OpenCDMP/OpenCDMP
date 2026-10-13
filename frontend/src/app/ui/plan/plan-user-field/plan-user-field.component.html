@@ -39,11 +39,11 @@
       class="mb-3"
       [id]="'drag-handle-' + userIndex"
       (keydown)="onDragKeyDown($event, userIndex)"
-      [ngClass]="{'drag-handle-disabled': viewOnly}" cdkDragHandle
+      [class.drag-handle-disabled]="viewOnly" cdkDragHandle
       mat-icon-button aria-labelledby="operation"
       [class.reorder-mode]="reorderMode"
       >
-      <mat-icon aria-hidden>drag_indicator</mat-icon>
+      <mat-icon aria-hidden="true">drag_indicator</mat-icon>
     </button>
   }
   <span class="title-size-md mb-3 mr-2">{{userIndex + 1}}</span>
@@ -123,6 +123,6 @@
     </mat-form-field>
   }
   <button mat-icon-button class="action-list-icon mb-3" matTooltip="{{'PLAN-EDITOR.ACTIONS.REMOVE-USER' | translate}}" (click)="removeUser(userIndex)" [disabled]="viewOnly" [attr.aria-label]="'PLAN-EDITOR.ACTIONS.REMOVE-USER' | translate">
-    <mat-icon aria-hidden>delete</mat-icon>
+    <mat-icon aria-hidden="true">delete</mat-icon>
   </button>
 </ng-template>

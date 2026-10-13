@@ -1,0 +1,76 @@
+<button type="button" class="nd-scrim" tabindex="-1" [attr.aria-label]="'NOTIFICATION-LOG.DRAWER.CLOSE' | translate" (click)="close()"></button>
+<aside class="nd" role="dialog" aria-modal="true" aria-labelledby="nd-title">
+	<div class="nd-head">
+		<button mat-icon-button type="button" (click)="close()" [attr.aria-label]="'NOTIFICATION-LOG.DRAWER.CLOSE' | translate">
+			<mat-icon aria-hidden="true">close</mat-icon>
+		</button>
+	</div>
+
+	<div class="nd-title">
+		<h2 id="nd-title">{{ enumUtils.toNotificationTypeString(notification().type) || notification().type }}</h2>
+		<span class="nd-muted">{{ 'NOTIFICATION-LOG.DRAWER.CHANNEL-TO' | translate: { channel: enumUtils.toNotificationContactTypeString(channel()), person: notification().user?.name || ('NOTIFICATION-LOG.UNKNOWN-PERSON' | translate) } }}</span>
+	</div>
+
+	<div class="nd-result nd-result--{{ result() }}">
+		<strong>{{ 'NOTIFICATION-LOG.RESULTS.' + (result() | uppercase) | translate }}</strong>
+		<p>{{ 'NOTIFICATION-LOG.EXPLANATIONS.' + (result() | uppercase) | translate: { count: notification().retryCount || 1 } }}</p>
+	</div>
+
+	<section class="nd-section">
+		<h3>{{ 'NOTIFICATION-LOG.DRAWER.TIMELINE' | translate }}</h3>
+		<ol class="nd-timeline">
+			<li>
+				<span>{{ 'NOTIFICATION-LOG.TIMELINE.CREATED' | translate }}</span>
+				<span class="nd-muted">{{ notification().createdAt | dateTimeFormatter: 'short' }}</span>
+			</li>
+			@if (notification().retryCount > 0) {
+				<li>
+					<span>{{ 'NOTIFICATION-LOG.TIMELINE.TRIES' | translate: { count: notification().retryCount } }}</span>
+				</li>
+			}
+			@if (result() === 'sent' || result() === 'read') {
+				@if (notification().notifiedAt) {
+					<li>
+						<span>{{ 'NOTIFICATION-LOG.TIMELINE.SENT' | translate: { channel: enumUtils.toNotificationContactTypeString(channel()) } }}</span>
+						<span class="nd-muted">{{ notification().notifiedAt | dateTimeFormatter: 'short' }}</span>
+					</li>
+				}
+			}
+			@if (notification().updatedAt) {
+				<li>
+					<span>{{ 'NOTIFICATION-LOG.TIMELINE.UPDATED' | translate }}</span>
+					<span class="nd-muted">{{ notification().updatedAt | dateTimeFormatter: 'short' }}</span>
+				</li>
+			}
+		</ol>
+	</section>
+
+	<details class="nd-details">
+		<summary>{{ 'NOTIFICATION-LOG.DRAWER.TECHNICAL-DETAILS' | translate }}</summary>
+		<dl>
+			<dt>{{ 'NOTIFICATION-LOG.TECHNICAL.NOTIFY-STATE' | translate }}</dt>
+			<dd>{{ enumUtils.toNotificationNotifyStateString(notification().notifyState) }}</dd>
+			<dt>{{ 'NOTIFICATION-LOG.TECHNICAL.TRACKING-STATE' | translate }}</dt>
+			<dd>{{ enumUtils.toNotificationTrackingStateString(notification().trackingState) }}</dd>
+			<dt>{{ 'NOTIFICATION-LOG.TECHNICAL.TRACKING-PROCESS' | translate }}</dt>
+			<dd>{{ enumUtils.toNotificationTrackingProcessString(notification().trackingProcess) }}</dd>
+			<dt>{{ 'NOTIFICATION-LOG.TECHNICAL.RETRY-COUNT' | translate }}</dt>
+			<dd>{{ notification().retryCount ?? 0 }}</dd>
+			<dt>{{ 'NOTIFICATION-LOG.TECHNICAL.NOTIFIED-WITH' | translate }}</dt>
+			<dd>{{ enumUtils.toNotificationContactTypeString(notification().notifiedWith) }}</dd>
+			<dt>{{ 'NOTIFICATION-LOG.TECHNICAL.NOTIFICATION-ID' | translate }}</dt>
+			<dd class="nd-code">{{ notification().id }}</dd>
+			<dt>{{ 'NOTIFICATION-LOG.TECHNICAL.USER-ID' | translate }}</dt>
+			<dd class="nd-code">{{ notification().user?.id }}</dd>
+			<dt>{{ 'NOTIFICATION-LOG.TECHNICAL.TYPE-ID' | translate }}</dt>
+			<dd class="nd-code">{{ notification().type }}</dd>
+		</dl>
+	</details>
+
+	<div class="nd-actions">
+		<button mat-button type="button" class="nd-delete" [disabled]="busy()" (click)="delete()">{{ 'NOTIFICATION-LOG.DRAWER.DELETE' | translate }}</button>
+		@if (canResend()) {
+			<button mat-flat-button color="primary" type="button" [disabled]="busy()" (click)="resend()">{{ 'NOTIFICATION-LOG.DRAWER.SEND-AGAIN' | translate }}</button>
+		}
+	</div>
+</aside>

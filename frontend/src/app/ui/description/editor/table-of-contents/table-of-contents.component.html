@@ -1,17 +1,16 @@
-@if(tocentries){
+@if(tocEntries()?.length){
     <table-of-contents-internal #internalTable 
         isTopLevel
-        [tocentries]="tocentries"
+        [tocentries]="tocEntries()"
         [showErrors]="showErrors()"
         (entrySelected)="onToCentrySelected($event)"
-        [selected]="tocentrySelected"
+        [selected]="selected()"
         [visibilityRulesService]="visibilityRulesService()"
         [propertiesFormGroup]="formGroup()"
-        [ordinal]="ordinal()"
+        [numbering]="numbering()"
 		[annotationsPerAnchor]="annotationsPerAnchor"
-		[annotationsPerEntry]=annotationsPerEntry
-		[descriptionId]="descriptionId"
-
+		[annotationsPerEntry]="annotationsPerEntry()"
+		[descriptionId]="descriptionId()"
     />
 }
 

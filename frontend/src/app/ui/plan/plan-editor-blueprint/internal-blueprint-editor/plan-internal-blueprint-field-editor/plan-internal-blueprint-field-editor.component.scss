@@ -32,3 +32,12 @@
     margin-bottom: 1rem;
     opacity: 1;
 }
+
+// Contact row: let the First/Last/Email fields share space and wrap cleanly
+// (full-width when the area is narrow) instead of breaking one-by-one.
+.contact-row {
+    mat-form-field {
+        flex: 1 1 12rem;
+        min-width: 0;
+    }
+}

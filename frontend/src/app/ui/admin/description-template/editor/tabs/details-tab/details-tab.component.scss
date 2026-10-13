@@ -1,0 +1,11 @@
+@use '../../../../structure-editor/bp2-shared' as *;
+@use '../../../../structure-editor/bp2-details' as *;
+
+.dt-full { width: 100%; }
+.dt-editors { gap: .5rem !important; }
+.dt-preview-row__meta { margin-top: .375rem; }
+.dt-editors__people { display: flex; align-items: center; gap: .875rem; }
+.dt-editors__text { display: flex; flex-direction: column; gap: .125rem; min-width: 0; }
+.dt-avatars { display: flex; flex: none; }
+.dt-avatar { width: 34px; height: 34px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: .75rem; font-weight: 700; background: var(--mat-sys-secondary-container); color: var(--mat-sys-on-secondary-container); border: 2px solid var(--mat-sys-surface); & + & { margin-left: -8px; } &--more { background: var(--mat-sys-surface-container-high); color: var(--mat-sys-on-surface); } }
+.dt-preview-actions { display: flex; justify-content: flex-end; gap: .5rem; margin-top: .625rem; }

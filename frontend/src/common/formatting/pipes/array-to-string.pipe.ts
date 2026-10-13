@@ -1,9 +1,6 @@
 import { Pipe, PipeTransform } from "@angular/core";
 
-@Pipe({
-    name: 'arrayToString',
-    standalone: false
-})
+@Pipe({ name: 'arrayToString' })
 export class ArrayToStringPipe implements PipeTransform {
 
 	transform(list: any, path: string): string {

@@ -1,3 +1,6 @@
 .search-box {
 	color: #3f51b5;
 }
+::ng-deep input.search-box {
+    line-height: 24px !important;
+}

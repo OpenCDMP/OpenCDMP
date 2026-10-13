@@ -3,12 +3,12 @@ package org.opencdmp.service.dashborad;
 import org.opencdmp.model.DashboardStatistics;
 import org.opencdmp.model.RecentActivityItem;
 import org.opencdmp.model.RecentActivityItemLookup;
+import org.opencdmp.model.result.QueryResult;
 
 import javax.management.InvalidApplicationException;
-import java.util.List;
 
 public interface DashboardService {
-    List<RecentActivityItem> getMyRecentActivityItems(RecentActivityItemLookup model) throws InvalidApplicationException;
+    QueryResult<RecentActivityItem> getMyRecentActivityItems(RecentActivityItemLookup model) throws InvalidApplicationException;
 
     DashboardStatistics getPublicDashboardStatistics();
 

@@ -4,9 +4,8 @@ import { CommonUiModule } from '@common/ui/common-ui.module';
 import { UserInviteToTenantDialogComponent } from './user-invite-to-tenant-dialog.component';
 
 @NgModule({
-	imports: [CommonUiModule, FormsModule, ReactiveFormsModule],
-	declarations: [UserInviteToTenantDialogComponent],
-	exports: [UserInviteToTenantDialogComponent]
+    imports: [CommonUiModule, FormsModule, ReactiveFormsModule, UserInviteToTenantDialogComponent],
+    exports: [UserInviteToTenantDialogComponent]
 })
 export class UserInviteToTenantDialogModule {
 	constructor() { }

@@ -1,19 +1,18 @@
-import { AbstractControl, FormControl, UntypedFormArray, UntypedFormControl, UntypedFormGroup, ValidatorFn, Validators } from '@angular/forms';
+import { AbstractControl, FormArray, FormControl, FormGroup, UntypedFormArray, UntypedFormControl, ValidatorFn, Validators } from '@angular/forms';
 import { ValidationErrorModel } from '@common/forms/validation/error-model/validation-error-model';
-import { isNullOrUndefined } from '@app/utilities/enhancers/utils';
-import { PlanBlueprintSystemFieldType } from '@app/core/common/enum/plan-blueprint-system-field-type';
+import { SystemFieldType } from '@app/core/common/enum/system-field-type';
 import { VisibilityRulesService } from '@app/ui/description/editor/description-form/visibility-rules/visibility-rules.service';
 import { FormService } from '../form-service';
 import { PlanUserRole } from '@app/core/common/enum/plan-user-role';
-import { AuthService } from '@app/core/services/auth/auth.service';
-import { PlanUser } from '@app/core/model/plan/plan';
+import { PlanBlueprintRootSectionForm } from '@app/ui/admin/plan-blueprint/editor/plan-blueprint-editor.model';
+import { TemplateFieldForm } from '@app/ui/admin/description-template/editor/description-template-editor.model';
 
 export type MarkedValidatorFn = ValidatorFn & { type: string, metadata: unknown };
 
 // **Workaround for Angular limitation:**
-// Angular's 'hasValidator' method has a limitation https://v17.angular.io/api/forms/AbstractControl#hasValidator 
+// Angular's 'hasValidator' method has a limitation https://v17.angular.io/api/forms/AbstractControl#hasValidator
 // when counting different controls of the same validator
-// To address this we followed the approach discussed here https://github.com/angular/angular/issues/54305 
+// To address this we followed the approach discussed here https://github.com/angular/angular/issues/54305
 export class CustomValidators {
 
 	static urlRegex = /^(?:http(s)?:\/\/)[\w.-]+(?:\.[\w\.-]+)+[\w\-\._~:\/?#[\]@!\$&'\(\)\*\+,;=.]+$/;
@@ -113,13 +112,13 @@ export function DateValidator(): ValidatorFn {
 			let monthParsed: number = null;
 			let dayParsed: number = null;
 
-			if (!isNullOrUndefined(yearString) && yearString.length === 4 && !Number.isNaN(Number(yearString))) {
+			if (yearString?.length === 4 && !Number.isNaN(Number(yearString))) {
 				yearParsed = Number(yearString);
 			}
-			if (!isNullOrUndefined(monthString) && monthString.length > 0 && !Number.isNaN(Number(monthString))) {
+			if (monthString && monthString.length > 0 && !Number.isNaN(Number(monthString))) {
 				monthParsed = Number(monthString);
 			}
-			if (!isNullOrUndefined(dayString) && dayString.length > 0 && !Number.isNaN(Number(dayString))) {
+			if (dayString && dayString.length > 0 && !Number.isNaN(Number(dayString))) {
 				dayParsed = Number(dayString);
 			}
 
@@ -155,6 +154,15 @@ export function DateFromToValidator(): ValidatorFn {
 	};
 }
 
+export function MultiplicityMinMaxValidator(): ValidatorFn {
+	return (control: AbstractControl): { [key: string]: any } => {
+		const min = control.get('min').value;
+		const max = control.get('max').value;
+		if (min != null && max != null && min > max) { return { 'multiplicityMinAboveMax': true }; }
+		return null;
+	};
+}
+
 export function EmailMatchValidator(): ValidatorFn {
 	return (control: AbstractControl): { [key: string]: any } => {
 		return control.get('email').value === control.get('emailConfirm').value ? null : { 'emailMismatch': true };
@@ -174,33 +182,102 @@ export function PasswordMatchValidator(passwordControlName: string, repeatPasswo
 }
 
 export function PlanBlueprintSystemFieldRequiredValidator(): ValidatorFn {
-	return (control: AbstractControl): { [key: string]: any } => {
+	return (formArray: FormArray<FormGroup<PlanBlueprintRootSectionForm>>): { [key: string]: any } => {
 		let foundTitle = false;
 		let foundDescription = false;
 		let foundLanguage = false;
 		let foundAccess = false;
 
-		const sectionsFormArray = (control as UntypedFormArray);
-		if (sectionsFormArray.controls != null && sectionsFormArray.controls.length > 0) {
-			sectionsFormArray.controls.forEach((section, index) => {
-				const fieldsFormArray = section.get('fields') as UntypedFormArray;
-				if (fieldsFormArray && fieldsFormArray.length > 0) {
-					if (fieldsFormArray.controls.some(y => (y as UntypedFormGroup).get('systemFieldType')?.value === PlanBlueprintSystemFieldType.Title)) {
-						foundTitle = true;
-					}
-					if (fieldsFormArray.controls.some(y => (y as UntypedFormGroup).get('systemFieldType')?.value === PlanBlueprintSystemFieldType.Description)) {
-						foundDescription = true;
-					}
-					if (fieldsFormArray.controls.some(y => (y as UntypedFormGroup).get('systemFieldType')?.value === PlanBlueprintSystemFieldType.Language)) {
-						foundLanguage = true;
-					}
-					if (fieldsFormArray.controls.some(y => (y as UntypedFormGroup).get('systemFieldType')?.value === PlanBlueprintSystemFieldType.AccessRights)) {
-						foundAccess = true;
-					}
+		const checkFieldsArray = (fieldsFormArray: FormArray<FormGroup<TemplateFieldForm>>) => {
+			if (fieldsFormArray && fieldsFormArray.length > 0) {
+				if (fieldsFormArray.controls.some(y => y.get('data')?.get('systemFieldType')?.value === SystemFieldType.PlanTitle)) {
+					foundTitle = true;
 				}
-			});
+				if (fieldsFormArray.controls.some(y => y.get('data')?.get('systemFieldType')?.value === SystemFieldType.PlanDescription)) {
+					foundDescription = true;
+				}
+				if (fieldsFormArray.controls.some(y => y.get('data')?.get('systemFieldType')?.value === SystemFieldType.PlanLanguage)) {
+					foundLanguage = true;
+				}
+				if (fieldsFormArray.controls.some(y => y.get('data')?.get('systemFieldType')?.value === SystemFieldType.PlanAccessRights)) {
+					foundAccess = true;
+				}
+			}
+		};
+
+		const checkSection = (section: AbstractControl) => {
+			const fieldSetsFormArray = section.get('fieldSets') as UntypedFormArray;
+			if (fieldSetsFormArray && fieldSetsFormArray.length > 0) {
+				fieldSetsFormArray.controls.forEach(fieldSet => {
+					checkFieldsArray(fieldSet.get('fields') as UntypedFormArray);
+				});
+			}
+			const subsectionsFormArray = section.get('sections') as UntypedFormArray;
+			if (subsectionsFormArray && subsectionsFormArray.length > 0) {
+				subsectionsFormArray.controls.forEach(sub => checkSection(sub));
+			}
+		};
+
+		if (formArray.controls != null && formArray.controls.length > 0) {
+			formArray.controls.forEach(section => checkSection(section));
 		}
-		return foundTitle && foundDescription && foundAccess && foundLanguage ? null : { 'planBlueprintSystemFieldRequired': true };
+		return foundTitle && foundDescription && foundAccess && foundLanguage ? null : {
+            'planBlueprintSystemFieldRequired': true,
+            'titleRequired': !foundTitle,
+            'descriptionRequired': !foundDescription,
+            'accessRequired': !foundAccess,
+            'languageRequired': !foundLanguage
+        };
+
+	};
+}
+
+export function PlanBlueprintHasDescriptionTemplatesValidator(): ValidatorFn {
+	return (formArray: FormArray<FormGroup<PlanBlueprintRootSectionForm>>): { [key: string]: any } => {
+		const sectionHasTemplates = (section: AbstractControl): boolean => {
+			if (section.get('hasTemplates')?.value === true) { return true; }
+			const subsectionsFormArray = section.get('sections') as UntypedFormArray;
+			if (subsectionsFormArray && subsectionsFormArray.length > 0) {
+				return subsectionsFormArray.controls.some(sub => sectionHasTemplates(sub));
+			}
+			return false;
+		};
+
+		const foundDescriptionTemplates = formArray.controls?.some(section => sectionHasTemplates(section)) ?? false;
+
+		return foundDescriptionTemplates ? null : { 'planBlueprintDescriptionTemplatesRequired': true };
+	};
+}
+
+export function DescriptionTemplateSystemFieldRequiredValidator(): ValidatorFn {
+	return (formArray: FormArray<FormGroup<PlanBlueprintRootSectionForm>>): { [key: string]: any } => {
+		let foundTitle = false;
+
+		const checkFieldsArray = (fieldsFormArray: FormArray<FormGroup<TemplateFieldForm>>) => {
+			if (fieldsFormArray && fieldsFormArray.length > 0) {
+				if (fieldsFormArray.controls.some(y => y.get('data')?.get('systemFieldType')?.value === SystemFieldType.PlanDescriptionTitle)) {
+					foundTitle = true;
+				}
+			}
+		};
+
+		const checkSection = (section: AbstractControl) => {
+			const fieldSetsFormArray = section.get('fieldSets') as UntypedFormArray;
+			if (fieldSetsFormArray && fieldSetsFormArray.length > 0) {
+				fieldSetsFormArray.controls.forEach(fieldSet => {
+					checkFieldsArray(fieldSet.get('fields') as UntypedFormArray);
+				});
+			}
+			const subsectionsFormArray = section.get('sections') as UntypedFormArray;
+			if (subsectionsFormArray && subsectionsFormArray.length > 0) {
+				subsectionsFormArray.controls.forEach(sub => checkSection(sub));
+			}
+		};
+
+		if (formArray.controls != null && formArray.controls.length > 0) {
+			formArray.controls.forEach(section => checkSection(section));
+		}
+		return foundTitle ? null : { 'systemFieldRequired': true };
 
 	};
 }

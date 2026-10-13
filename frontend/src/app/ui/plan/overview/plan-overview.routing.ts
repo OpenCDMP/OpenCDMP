@@ -16,7 +16,7 @@ const routes: Routes = [
                 },
             },
             {
-                path: 'descriptions',
+                path: 'assets',
                 loadChildren: () => import('../../description/overview/description-overview.module').then(m => m.DescriptionOverviewModule),
                 data: {
                     breadcrumb: true,
@@ -25,7 +25,9 @@ const routes: Routes = [
                         title: 'GENERAL.TITLES.DESCRIPTIONS'
                     }),
                 },
-            }
+            },
+            // Legacy redirect: nested "descriptions" route renamed to "assets".
+            { path: 'descriptions', redirectTo: 'assets', pathMatch: 'prefix' }
         ]
 	},
 	{
@@ -33,7 +35,8 @@ const routes: Routes = [
 		component: PlanOverviewComponent,
 		data: {
 			breadcrumb: true,
-			title: 'GENERAL.TITLES.PLAN-OVERVIEW'
+			title: 'GENERAL.TITLES.PLAN-OVERVIEW',
+			isPublic: true
 		},
 	},
     { path: '**', loadComponent: () => import('@common/modules/page-not-found/page-not-found.component').then(m => m.PageNotFoundComponent)}

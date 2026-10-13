@@ -1,60 +1,58 @@
-import { Component, computed, HostBinding, Inject, OnInit, ViewChild } from '@angular/core';
-import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
-import { IsActive } from '@app/core/common/enum/is-active.enum';
+import { DescriptionFilterService } from '../description-filter.service';
+import { ReferenceType } from '@app/core/model/reference-type/reference-type';
+import { Guid } from '@common/types/guid';
+import { Component, EventEmitter, Input, OnInit, Output, ViewChild, ChangeDetectionStrategy } from '@angular/core';
 import { DescriptionLookup, ReferencesWithType } from '@app/core/query/description.lookup';
 import { AnalyticsService } from '@app/core/services/matomo/analytics-service';
 import { DescriptionFilterComponent, DescriptionListingFilters } from '../description-filter.component';
+import { MatIconButton } from '@angular/material/button';
+import { MatIcon } from '@angular/material/icon';
+import { TranslatePipe } from '@ngx-translate/core';
 
 @Component({
-    selector: 'description-filter-dialog-component',
+    selector: 'app-description-filter-dialog',
     templateUrl: './description-filter-dialog.component.html',
     styleUrls: ['./description-filter-dialog.component.scss'],
-    standalone: false
+    changeDetection: ChangeDetectionStrategy.Eager,
+    imports: [MatIconButton, MatIcon, DescriptionFilterComponent, TranslatePipe]
 })
 
 export class DescriptionFilterDialogComponent implements OnInit {
 	@ViewChild(DescriptionFilterComponent, { static: true }) filter: DescriptionFilterComponent;
 
+    @Input() isPublic: boolean;
+	@Input() hasSelectedTenant: boolean;
+	@Input() lookup: DescriptionLookup;
+	@Input() referencesWithTypeItems: ReferencesWithType[];
+	@Input() featuredReferenceTypes: ReferenceType[] = [];
+	@Input() expandReferenceTypeId: Guid = null;
+	/** Hosted outside its listing (the dashboard): hides the deleted-items toggle and the status field. */
+	@Input() embedded = false;
+    private _isOpen: boolean = false;
+    get isOpen(){return this._isOpen}
+    @Input() set isOpen(val: boolean){
+        this._isOpen = val ?? false;
+        if(this.isOpen){
+            this.open();
+        }
+    }
+    
+    @Output() closed = new EventEmitter<void>();
+    @Output() filtersChanged = new EventEmitter<DescriptionListingFilters>();
+    
 	filters: DescriptionListingFilters;
 
 	constructor(
-		public dialogRef: MatDialogRef<DescriptionFilterComponent>,
 		private analyticsService: AnalyticsService,
-		@Inject(MAT_DIALOG_DATA) public data: {
-			isPublic: boolean,
-			hasSelectedTenant: boolean,
-			lookup: DescriptionLookup,
-			referencesWithTypeItems: ReferencesWithType[],
-		}
 	) {
-		this.filters = this._buildDescriptionFilters(data?.lookup, data?.referencesWithTypeItems);
 	}
 
 	ngOnInit() {
 		this.analyticsService.trackPageView(AnalyticsService.DescriptionFilterDialog);
 	}
 
-	onNoClick(): void {
-		this.dialogRef.close();
-	}
-
-	onClose(): void {
-		this.dialogRef.close();
-	}
-
-	onFilterChanged(filters: DescriptionListingFilters) {
-		this.dialogRef.close(filters);
-	}
-
-	private _buildDescriptionFilters(lookup: DescriptionLookup, references: ReferencesWithType[]): DescriptionListingFilters {
-		return {
-			statusId: lookup.statusIds?.[0] ?? null,
-			isActive: lookup.isActive?.[0] == IsActive.Active,
-			role: lookup.planSubQuery?.planUserSubQuery?.userRoles?.[0] ?? null,
-			descriptionTemplates: lookup.descriptionTemplateSubQuery?.groupIds ?? [],
-			associatedPlanIds: lookup.planSubQuery?.ids ?? [],
-			tags: lookup.descriptionTagSubQuery?.tagIds ?? [],
-			references: references ?? []
-		};
-	}
+    
+    public open(){
+        this.filters = DescriptionFilterService.buildFilters(this.lookup, this.referencesWithTypeItems)
+    }
 }

@@ -1,4 +1,4 @@
-import { HttpClient, HttpHeaders, HttpResponse } from '@angular/common/http';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { MultipleAutoCompleteConfiguration } from '@app/library/auto-complete/multiple/multiple-auto-complete-configuration';
 import { FilterService } from '@common/modules/text-filter/filter-service';
@@ -7,6 +7,7 @@ import { catchError, map } from 'rxjs/operators';
 import { ConfigurationService } from '../configuration/configuration.service';
 import { BaseHttpV2Service } from '../http/base-http-v2.service';
 import { SemanticsLookup } from '@app/core/query/semantic.lookup';
+import { PluginSemantics } from '@app/core/model/semantic/plugin-semantics';
 import { SingleAutoCompleteConfiguration } from '@app/library/auto-complete/single/single-auto-complete-configuration';
 
 @Injectable()
@@ -20,9 +21,14 @@ export class SemanticsService {
 	private get apiBase(): string { return `${this.configurationService.server}semantics`; }
 
 
-	searchSemantics(q: SemanticsLookup ): Observable<String[]> {
+	searchSemantics(q: SemanticsLookup ): Observable<string[]> {
 		const url = `${this.apiBase}`;
-		return this.http.post<String[]>(url, q).pipe(catchError((error: any) => throwError(error)));
+		return this.http.post<string[]>(url, q).pipe(catchError((error: any) => throwError(error)));
+	}
+
+	/** The semantic keys the tenant's plugins read, from the manifests they publish. */
+	getPluginSemantics(): Observable<PluginSemantics[]> {
+		return this.http.get<PluginSemantics[]>(`${this.apiBase}/plugins`).pipe(catchError((error: any) => throwError(error)));
 	}
 
 

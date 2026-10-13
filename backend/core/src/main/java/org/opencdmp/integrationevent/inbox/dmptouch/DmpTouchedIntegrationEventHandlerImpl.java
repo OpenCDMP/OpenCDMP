@@ -10,15 +10,12 @@ import gr.cite.tools.logging.LoggerService;
 import gr.cite.tools.validation.ValidatorFactory;
 import org.opencdmp.audit.AuditableAction;
 import org.opencdmp.commons.JsonHandlingService;
-import org.opencdmp.commons.enums.PlanUpdateRequestActionType;
-import org.opencdmp.commons.enums.PlanUpdateRequestStatus;
 import org.opencdmp.commons.scope.tenant.TenantScopeFactory;
 import org.opencdmp.data.*;
 import org.opencdmp.integrationevent.inbox.EventProcessingStatus;
 import org.opencdmp.integrationevent.inbox.InboxPrincipal;
 import org.opencdmp.integrationevent.inbox.IntegrationEventProperties;
 import org.opencdmp.model.Tenant;
-import org.opencdmp.model.persist.PlanUpdateRequestPersist;
 import org.opencdmp.query.*;
 import org.opencdmp.service.planupdaterequest.PlanUpdateRequestService;
 import org.slf4j.LoggerFactory;
@@ -42,22 +39,18 @@ public class DmpTouchedIntegrationEventHandlerImpl implements DmpTouchedIntegrat
     private final CurrentPrincipalResolver currentPrincipalResolver;
     private final ClaimExtractorProperties claimExtractorProperties;
     private final TenantEntityManagerFactory tenantEntityManagerFactory;
-    private final ValidatorFactory validatorFactory;
     private final AuditService auditService;
     private final PlanUpdateRequestService planUpdateRequestService;
-    private final BuilderFactory builderFactory;
 
-    public DmpTouchedIntegrationEventHandlerImpl(QueryFactory queryFactory, JsonHandlingService jsonHandlingService, TenantScopeFactory tenantScopeFactory, CurrentPrincipalResolver currentPrincipalResolver, ClaimExtractorProperties claimExtractorProperties, TenantEntityManagerFactory tenantEntityManagerFactory, ValidatorFactory validatorFactory, AuditService auditService, PlanUpdateRequestService planUpdateRequestService, BuilderFactory builderFactory) {
-	    this.queryFactory = queryFactory;
+    public DmpTouchedIntegrationEventHandlerImpl(QueryFactory queryFactory, JsonHandlingService jsonHandlingService, TenantScopeFactory tenantScopeFactory, CurrentPrincipalResolver currentPrincipalResolver, ClaimExtractorProperties claimExtractorProperties, TenantEntityManagerFactory tenantEntityManagerFactory, AuditService auditService, PlanUpdateRequestService planUpdateRequestService) {
+        this.queryFactory = queryFactory;
         this.jsonHandlingService = jsonHandlingService;
         this.tenantScopeFactory = tenantScopeFactory;
         this.currentPrincipalResolver = currentPrincipalResolver;
         this.claimExtractorProperties = claimExtractorProperties;
         this.tenantEntityManagerFactory = tenantEntityManagerFactory;
-        this.validatorFactory = validatorFactory;
         this.auditService = auditService;
         this.planUpdateRequestService = planUpdateRequestService;
-        this.builderFactory = builderFactory;
     }
 
     @Override
@@ -89,9 +82,7 @@ public class DmpTouchedIntegrationEventHandlerImpl implements DmpTouchedIntegrat
 
 	        this.currentPrincipalResolver.push(InboxPrincipal.build(properties, this.claimExtractorProperties));
 
-            PlanUpdateRequestPersist persist = this.buildPlanUpdateRequestPersist(event);
-            this.validatorFactory.validator(PlanUpdateRequestPersist.PlanUpdateRequestPersistValidator.class).validateForce(persist);
-            this.planUpdateRequestService.persist(persist, null);
+            this.planUpdateRequestService.persistFromEvent(event);
 
             this.auditService.track(AuditableAction.MaDMP_Touched, Map.ofEntries(
                     new AbstractMap.SimpleEntry<String, Object>("model", event)
@@ -112,18 +103,4 @@ public class DmpTouchedIntegrationEventHandlerImpl implements DmpTouchedIntegrat
         return status;
     }
 
-    private PlanUpdateRequestPersist buildPlanUpdateRequestPersist(DmpTouchedIntegrationEvent event) {
-        PlanUpdateRequestPersist persist = new PlanUpdateRequestPersist();
-        if (event == null) return persist;
-
-        if (event.getActionType() != null && event.getActionType().equals(PlanUpdateRequestActionType.UpdatePlan)) persist.setPlanId(event.getDmpId());
-
-        persist.setActionType(event.getActionType());
-        persist.setStatus(PlanUpdateRequestStatus.Pending);
-        persist.setSubmitterId(event.getSubmitterId());
-        persist.setData(event.getData());
-        persist.setSourceCode(event.getSourceCode());
-
-        return persist;
-    }
 }

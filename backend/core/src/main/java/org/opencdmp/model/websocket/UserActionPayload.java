@@ -4,25 +4,11 @@ import java.util.UUID;
 
 public class UserActionPayload {
 
-    private UUID blueprintSectionId;
-
-    private UUID blueprintFieldId;
-
     private UUID descriptionId;
 
-    private String descriptionPageId;
+    private String sectionId;
 
-    private String descriptionSectionId;
-
-    private String descriptionFieldSetId;
-
-    public UUID getBlueprintSectionId() {
-        return blueprintSectionId;
-    }
-
-    public void setBlueprintSectionId(UUID blueprintSectionId) {
-        this.blueprintSectionId = blueprintSectionId;
-    }
+    private String fieldSetId;
 
     public UUID getDescriptionId() {
         return descriptionId;
@@ -32,35 +18,19 @@ public class UserActionPayload {
         this.descriptionId = descriptionId;
     }
 
-    public String getDescriptionSectionId() {
-        return descriptionSectionId;
+    public String getSectionId() {
+        return sectionId;
     }
 
-    public void setDescriptionSectionId(String descriptionSectionId) {
-        this.descriptionSectionId = descriptionSectionId;
+    public void setSectionId(String sectionId) {
+        this.sectionId = sectionId;
     }
 
-    public UUID getBlueprintFieldId() {
-        return blueprintFieldId;
+    public String getFieldSetId() {
+        return fieldSetId;
     }
 
-    public void setBlueprintFieldId(UUID blueprintFieldId) {
-        this.blueprintFieldId = blueprintFieldId;
-    }
-
-    public String getDescriptionPageId() {
-        return descriptionPageId;
-    }
-
-    public void setDescriptionPageId(String descriptionPageId) {
-        this.descriptionPageId = descriptionPageId;
-    }
-
-    public String getDescriptionFieldSetId() {
-        return descriptionFieldSetId;
-    }
-
-    public void setDescriptionFieldSetId(String descriptionFieldSetId) {
-        this.descriptionFieldSetId = descriptionFieldSetId;
+    public void setFieldSetId(String fieldSetId) {
+        this.fieldSetId = fieldSetId;
     }
 }

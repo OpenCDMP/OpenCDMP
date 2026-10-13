@@ -17,7 +17,12 @@ public enum KpiEntityType {
     DescriptionTemplate("descriptionTemplate"),
     Tenant("tenant"),
     PlanPerBlueprint("planPerBlueprint"),
-    DescriptionPerTemplate("descriptionPerTemplate");
+    DescriptionPerTemplate("descriptionPerTemplate"),
+    PlanBlueprintType("planBlueprintType"),
+    DescriptionTemplateType("descriptionTemplateType"),
+    PlanBlueprintPerType("planBlueprintPerType"),
+    DescriptionTemplatePerType("descriptionTemplatePerType");
+
 
     private static final Map<String, KpiEntityType> values = new HashMap<>();
 

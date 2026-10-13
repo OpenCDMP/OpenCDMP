@@ -1,6 +1,7 @@
 @if (formGroup) {
   <div class="container-fluid pluginConfiguration">
     @for(plugin of formGroup?.controls; track $index; let i=$index; let last=$last){
+      @if (!onlyPluginCode || plugin.get('pluginCode').value === onlyPluginCode) {
       <div class="row">
         @if (showPluginText) {
           <div class="title col-auto" mat-subheader>{{plugin.get('pluginCode').value}}</div>
@@ -8,10 +9,16 @@
         @if (plugin.get('fields')){
           @for(field of plugin.get('fields')?.controls; track field; let fieldIndex=$index; let lastFieldIndex=$last){
             @if (field.get('type').value == pluginDataTypeEnum.String) {
+              @let secret = isSecretField(plugin.get('pluginCode').value, field.get('code').value, false);
               <mat-form-field class="col-12">
-                <mat-label>{{ getConfigurationUserFieldLabel(plugin.get('pluginCode').value, field.get('code').value) }}</mat-label>
-                <input [id]="fieldIndex" matInput	class="col-md-12" [formControl]="field.get('textValue')" [type]="hideStates[i + '_' + fieldIndex] ? 'text' : 'password'" >
-                <mat-icon matSuffix (click)="toggleVisibility(i, fieldIndex)" > {{ hideStates[i + '_' + fieldIndex] ? 'visibility_off' : 'visibility' }} </mat-icon>
+                <mat-label>{{ getConfigurationFieldLabel(plugin.get('pluginCode').value, field.get('code').value) }}</mat-label>
+                <input [id]="fieldIndex" matInput	class="col-md-12" [formControl]="field.get('textValue')" [type]="!secret || hideStates[i + '_' + fieldIndex] ? 'text' : 'password'" >
+                @if (secret) {
+                  <mat-icon matSuffix (click)="toggleVisibility(i, fieldIndex)" > {{ hideStates[i + '_' + fieldIndex] ? 'visibility_off' : 'visibility' }} </mat-icon>
+                }
+                @if (!secret && defaultValue(plugin.get('pluginCode').value, field.get('code').value, false); as fallback) {
+                  <mat-hint>{{ 'PLUGIN-EDITOR.DEFAULT-VALUE-HINT' | translate: { value: fallback } }}</mat-hint>
+                }
                 @if (field.get('textValue').hasError('backendError')) {
                   <mat-error>{{field.get('textValue').getError('backendError').message}}</mat-error>
                 }
@@ -26,11 +33,75 @@
               }
               <div class="col-12">
                 <app-file-uploader
-                  [accept]="'application/vnd.openxmlformats-officedocument.wordprocessingml.document'"
+                  [accept]="'application/vnd.openxmlformats-officedocument.wordprocessingml.document, image/png, image/jpeg'"
                   [storageFileIdControl]="field.get('fileValue')"
                   [initFile]="fileMap.get(field.get('fileValue').value)"
+                  (onChange)="validateUploadedTemplate(plugin, field, i + '_' + fieldIndex)"
+                  (onRemove)="clearTemplateValidation(i + '_' + fieldIndex)"
                   />
                 </div>
+                @if (templateValidationResults[i + '_' + fieldIndex]; as validation) {
+                  <div class="col-12 template-validation">
+                    @for (issue of validation.issues; track $index) {
+                      <div class="template-validation-issue" [class.template-validation-error]="issue.level === templateValidationIssueLevelEnum.Error">
+                        <mat-icon inline>{{ issue.level === templateValidationIssueLevelEnum.Error ? 'error' : 'warning' }}</mat-icon>
+                        <span>{{ issue.message }}</span>
+                      </div>
+                    }
+                  </div>
+                }
+              }
+              @if (field.get('type').value == pluginDataTypeEnum.Boolean) {
+                <div class="col-12 pt-2 pb-2">
+                  <mat-slide-toggle [checked]="isBooleanFieldChecked(field)" (change)="setBooleanField(field, $event.checked)">
+                    {{ getConfigurationFieldLabel(plugin.get('pluginCode').value, field.get('code').value) }}
+                  </mat-slide-toggle>
+                </div>
+              }
+              @if (field.get('type').value == pluginDataTypeEnum.Select) {
+                <mat-form-field class="col-12">
+                  <mat-label>{{ getConfigurationFieldLabel(plugin.get('pluginCode').value, field.get('code').value) }}</mat-label>
+                  <mat-select [formControl]="field.get('textValue')">
+                    <mat-option [value]="null">{{ defaultOptionLabel(plugin.get('pluginCode').value, field.get('code').value, false) }}</mat-option>
+                    @for (option of getConfigurationFieldOptions(plugin.get('pluginCode').value, field.get('code').value); track option.value) {
+                      <mat-option [value]="option.value">{{ option.label }}</mat-option>
+                    }
+                  </mat-select>
+                  @if (field.get('textValue').hasError('backendError')) {
+                    <mat-error>{{field.get('textValue').getError('backendError').message}}</mat-error>
+                  }
+                </mat-form-field>
+              }
+              @if (field.get('type').value == pluginDataTypeEnum.Color) {
+                <mat-form-field class="col-12">
+                  <mat-label>{{ getConfigurationFieldLabel(plugin.get('pluginCode').value, field.get('code').value) }}</mat-label>
+                  <input matInput [formControl]="field.get('textValue')" />
+                  <ngx-colors class="suffix" matSuffix ngx-colors-trigger [formControl]="field.get('textValue')"></ngx-colors>
+                  @if (field.get('textValue').hasError('backendError')) {
+                    <mat-error>{{field.get('textValue').getError('backendError').message}}</mat-error>
+                  }
+                </mat-form-field>
+              }
+              @if (isMultiLine(field.get('type').value)) {
+                <mat-form-field class="col-12">
+                  <mat-label>{{ getConfigurationFieldLabel(plugin.get('pluginCode').value, field.get('code').value) }}</mat-label>
+                  <textarea matInput rows="3" [formControl]="field.get('textValue')"></textarea>
+                  @if (defaultValue(plugin.get('pluginCode').value, field.get('code').value, false); as fallback) {
+                    <mat-hint>{{ 'PLUGIN-EDITOR.DEFAULT-VALUE-HINT' | translate: { value: fallback } }}</mat-hint>
+                  }
+                  @if (field.get('textValue').hasError('backendError')) {
+                    <mat-error>{{field.get('textValue').getError('backendError').message}}</mat-error>
+                  }
+                </mat-form-field>
+              }
+              @if (field.get('type').value == pluginDataTypeEnum.Number) {
+                <mat-form-field class="col-12">
+                  <mat-label>{{ getConfigurationFieldLabel(plugin.get('pluginCode').value, field.get('code').value) }}</mat-label>
+                  <input matInput type="number" [formControl]="field.get('textValue')">
+                  @if (field.get('textValue').hasError('backendError')) {
+                    <mat-error>{{field.get('textValue').getError('backendError').message}}</mat-error>
+                  }
+                </mat-form-field>
               }
             }
           }
@@ -40,10 +111,16 @@
             }
             @for(field of plugin.get('userFields')?.controls; track field; let fieldIndex=$index; let lastFieldIndex=$last){
               @if (field.get('type').value == pluginDataTypeEnum.String) {
+                @let secret = isSecretField(plugin.get('pluginCode').value, field.get('code').value, true);
                 <mat-form-field class="col-12">
                   <mat-label>{{ getConfigurationUserFieldLabel(plugin.get('pluginCode').value, field.get('code').value) }}</mat-label>
-                  <input [id]="fieldIndex" matInput class="col-md-12" [formControl]="field.get('textValue')" [type]="hideStates[i + '_' + fieldIndex] ? 'text' : 'password'">
-                  <mat-icon matSuffix (click)="toggleVisibility(i, fieldIndex)">{{ hideStates[i + '_' + fieldIndex] ? 'visibility_off' : 'visibility' }}</mat-icon>
+                  <input [id]="fieldIndex" matInput class="col-md-12" [formControl]="field.get('textValue')" [type]="!secret || hideStates[i + '_' + fieldIndex] ? 'text' : 'password'">
+                  @if (secret) {
+                    <mat-icon matSuffix (click)="toggleVisibility(i, fieldIndex)">{{ hideStates[i + '_' + fieldIndex] ? 'visibility_off' : 'visibility' }}</mat-icon>
+                  }
+                  @if (!secret && defaultValue(plugin.get('pluginCode').value, field.get('code').value, true); as fallback) {
+                    <mat-hint>{{ 'PLUGIN-EDITOR.DEFAULT-VALUE-HINT' | translate: { value: fallback } }}</mat-hint>
+                  }
                   @if (field.get('textValue').hasError('backendError')) {
                     <mat-error>{{field.get('textValue').getError('backendError').message}}</mat-error>
                   }
@@ -58,15 +135,80 @@
                 }
                 <div class="col-12">
                   <app-file-uploader
-                    [accept]="'application/vnd.openxmlformats-officedocument.wordprocessingml.document'"
+                    [accept]="'application/vnd.openxmlformats-officedocument.wordprocessingml.document, image/png, image/jpeg'"
                     [storageFileIdControl]="field.get('fileValue')"
                     [initFile]="fileMap.get(field.get('fileValue').value)"
+                    (onChange)="validateUploadedTemplate(plugin, field, i + '_' + fieldIndex)"
+                    (onRemove)="clearTemplateValidation(i + '_' + fieldIndex)"
                     />
                   </div>
+                  @if (templateValidationResults[i + '_' + fieldIndex]; as validation) {
+                    <div class="col-12 template-validation">
+                      @for (issue of validation.issues; track $index) {
+                        <div class="template-validation-issue" [class.template-validation-error]="issue.level === templateValidationIssueLevelEnum.Error">
+                          <mat-icon inline>{{ issue.level === templateValidationIssueLevelEnum.Error ? 'error' : 'warning' }}</mat-icon>
+                          <span>{{ issue.message }}</span>
+                        </div>
+                      }
+                    </div>
+                  }
+                }
+                @if (field.get('type').value == pluginDataTypeEnum.Boolean) {
+                  <div class="col-12 pt-2 pb-2">
+                    <mat-slide-toggle [checked]="isBooleanFieldChecked(field)" (change)="setBooleanField(field, $event.checked)">
+                      {{ getConfigurationUserFieldLabel(plugin.get('pluginCode').value, field.get('code').value) }}
+                    </mat-slide-toggle>
+                  </div>
+                }
+                @if (field.get('type').value == pluginDataTypeEnum.Select) {
+                  <mat-form-field class="col-12">
+                    <mat-label>{{ getConfigurationUserFieldLabel(plugin.get('pluginCode').value, field.get('code').value) }}</mat-label>
+                    <mat-select [formControl]="field.get('textValue')">
+                      <mat-option [value]="null">{{ defaultOptionLabel(plugin.get('pluginCode').value, field.get('code').value, true) }}</mat-option>
+                      @for (option of getConfigurationUserFieldOptions(plugin.get('pluginCode').value, field.get('code').value); track option.value) {
+                        <mat-option [value]="option.value">{{ option.label }}</mat-option>
+                      }
+                    </mat-select>
+                    @if (field.get('textValue').hasError('backendError')) {
+                      <mat-error>{{field.get('textValue').getError('backendError').message}}</mat-error>
+                    }
+                  </mat-form-field>
+                }
+                @if (field.get('type').value == pluginDataTypeEnum.Color) {
+                  <mat-form-field class="col-12">
+                    <mat-label>{{ getConfigurationUserFieldLabel(plugin.get('pluginCode').value, field.get('code').value) }}</mat-label>
+                    <input matInput [formControl]="field.get('textValue')" />
+                    <ngx-colors class="suffix" matSuffix ngx-colors-trigger [formControl]="field.get('textValue')"></ngx-colors>
+                    @if (field.get('textValue').hasError('backendError')) {
+                      <mat-error>{{field.get('textValue').getError('backendError').message}}</mat-error>
+                    }
+                  </mat-form-field>
+                }
+                @if (isMultiLine(field.get('type').value)) {
+                  <mat-form-field class="col-12">
+                    <mat-label>{{ getConfigurationUserFieldLabel(plugin.get('pluginCode').value, field.get('code').value) }}</mat-label>
+                    <textarea matInput rows="3" [formControl]="field.get('textValue')"></textarea>
+                    @if (defaultValue(plugin.get('pluginCode').value, field.get('code').value, true); as fallback) {
+                      <mat-hint>{{ 'PLUGIN-EDITOR.DEFAULT-VALUE-HINT' | translate: { value: fallback } }}</mat-hint>
+                    }
+                    @if (field.get('textValue').hasError('backendError')) {
+                      <mat-error>{{field.get('textValue').getError('backendError').message}}</mat-error>
+                    }
+                  </mat-form-field>
+                }
+                @if (field.get('type').value == pluginDataTypeEnum.Number) {
+                  <mat-form-field class="col-12">
+                    <mat-label>{{ getConfigurationUserFieldLabel(plugin.get('pluginCode').value, field.get('code').value) }}</mat-label>
+                    <input matInput type="number" [formControl]="field.get('textValue')">
+                    @if (field.get('textValue').hasError('backendError')) {
+                      <mat-error>{{field.get('textValue').getError('backendError').message}}</mat-error>
+                    }
+                  </mat-form-field>
                 }
               }
             }
-          </div>
-        }
-      </div>
+        </div>
+      }
     }
+  </div>
+}

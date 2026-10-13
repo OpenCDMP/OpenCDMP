@@ -1,5 +1,5 @@
-import { Component, OnInit } from '@angular/core';
-import { UntypedFormGroup } from '@angular/forms';
+import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { UntypedFormGroup, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MatDialog } from '@angular/material/dialog';
 import { Title } from '@angular/platform-browser';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -17,7 +17,7 @@ import { ConfirmationDialogComponent } from '@common/modules/confirmation-dialog
 import { HttpErrorHandlingService } from '@common/modules/errors/error-handling/http-error-handling.service';
 import { FilterService } from '@common/modules/text-filter/filter-service';
 import { Guid } from '@common/types/guid';
-import { TranslateService } from '@ngx-translate/core';
+import { TranslateService, TranslatePipe } from '@ngx-translate/core';
 import { map, takeUntil } from 'rxjs/operators';
 import { StatusEditorModel } from './status-editor.model';
 import { StatusEditorService } from './status-editor.service';
@@ -27,12 +27,21 @@ import { Status, StatusPersist } from '@annotation-service/core/model/status.mod
 import { StatusService } from '@annotation-service/services/http/status.service';
 import { StatusEditorResolver } from './status-editor.resolver';
 import { InternalStatus } from '@annotation-service/core/enum/internal-status.enum';
+import { NavigationBreadcrumbComponent } from '../../../../../app/ui/misc/breadcrumb/navigation-breadcrumb.component';
+import { MatButton } from '@angular/material/button';
+import { MatIcon } from '@angular/material/icon';
+import { MatCard, MatCardContent } from '@angular/material/card';
+import { MatFormField, MatLabel, MatError } from '@angular/material/form-field';
+import { MatInput } from '@angular/material/input';
+import { MatSelect, MatOption } from '@angular/material/select';
+import { ReactiveAsteriskDirective } from '../../../../../common/forms/reactive-asterisk-directive';
 
 @Component({
     templateUrl: './status-editor.component.html',
     styleUrls: ['./status-editor.component.scss'],
     providers: [StatusEditorService],
-    standalone: false
+    changeDetection: ChangeDetectionStrategy.Eager,
+    imports: [NavigationBreadcrumbComponent, MatButton, MatIcon, MatCard, MatCardContent, FormsModule, ReactiveFormsModule, MatFormField, MatLabel, MatInput, MatError, MatSelect, ReactiveAsteriskDirective, MatOption, TranslatePipe]
 })
 export class StatusEditorComponent extends BaseEditor<StatusEditorModel, Status> implements OnInit {
 
@@ -77,12 +86,6 @@ export class StatusEditorComponent extends BaseEditor<StatusEditorModel, Status>
 		public titleService: Title,
 		protected routerUtils: RouterUtilsService
 	) {
-		const statusLabel: string = route.snapshot.data['entity']?.name;
-		if (statusLabel) {
-			titleService.setTitle(statusLabel);
-		} else {
-			titleService.setTitle('ANNOTATION-SERVICE.STATUS-EDITOR.TITLE-EDIT-ANNOTATION-STATUS');
-		}
 		super(dialog, language, formService, router, uiNotificationService, httpErrorHandlingService, filterService, route, queryParamsService, lockService, authService, configurationService);
 	}
 

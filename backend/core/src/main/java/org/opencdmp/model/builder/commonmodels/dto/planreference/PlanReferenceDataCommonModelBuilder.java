@@ -48,6 +48,7 @@ public class PlanReferenceDataCommonModelBuilder extends BaseCommonModelBuilder<
         for (PlanReferenceDataModel d : data) {
             PlanReferenceData m = new PlanReferenceData();
             m.setBlueprintFieldId(d.getBlueprintFieldId());
+            m.setOrdinal(d.getOrdinal());
             models.add(new CommonModelBuilderItemResponse<>(m, d));
         }
         this.logger.debug("build {} items", Optional.of(models).map(List::size).orElse(0));

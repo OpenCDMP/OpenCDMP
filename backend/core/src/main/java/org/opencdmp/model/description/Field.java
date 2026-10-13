@@ -30,6 +30,9 @@ public class Field {
 	private ExternalIdentifier externalIdentifier;
 	public static final String _externalIdentifier = "externalIdentifier";
 
+	private Double numberValue;
+	public static final String _numberValue = "numberValue";
+
 	public String getTextValue() {
 		return this.textValue;
 	}
@@ -84,6 +87,14 @@ public class Field {
 
 	public void setExternalIdentifier(ExternalIdentifier externalIdentifier) {
 		this.externalIdentifier = externalIdentifier;
+	}
+
+	public Double getNumberValue() {
+		return numberValue;
+	}
+
+	public void setNumberValue(Double numberValue) {
+		this.numberValue = numberValue;
 	}
 }
 

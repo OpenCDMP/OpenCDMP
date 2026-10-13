@@ -1,9 +1,12 @@
 @if(!hideTitle){
   <div class="title">
     @if (fieldSet.title && !isChild) {
-      <label [appFor]="path" class="field-set toc-field-set-header" [id]="fieldSet.id" [ngClass]="{'focused': isAnchor}">
+      <label [appFor]="path" class="field-set toc-field-set-header" [id]="fieldSet.id" [class.focused]="isAnchor">
         <span class="path">{{path}}.</span>
         <span class=" toc-field-set-title">{{fieldSet.title}}</span>
+        @if (required) {
+          <span class="required-marker" aria-hidden="true">*</span>
+        }
       </label>
     }
     @if (fieldSet.additionalInformation && !isChild) {

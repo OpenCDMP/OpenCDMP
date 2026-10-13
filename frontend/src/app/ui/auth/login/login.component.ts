@@ -1,4 +1,4 @@
-import { Component, Input, NgZone, OnInit } from '@angular/core';
+import { Component, Input, NgZone, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { AuthService } from '@app/core/services/auth/auth.service';
 import { PrincipalService } from '@app/core/services/http/principal.service';
@@ -10,14 +10,12 @@ import { BaseHttpParams } from '@common/http/base-http-params';
 import { InterceptorType } from '@common/http/interceptors/interceptor-type';
 import { TranslateService } from '@ngx-translate/core';
 import { KeycloakService } from 'keycloak-angular';
-import { from } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 
 @Component({
     selector: 'app-login',
     templateUrl: './login.component.html',
-    styleUrls: ['./login.component.scss'],
-    standalone: false
+    changeDetection: ChangeDetectionStrategy.Eager
 })
 export class LoginComponent extends BaseComponent implements OnInit {
 
@@ -42,6 +40,9 @@ export class LoginComponent extends BaseComponent implements OnInit {
 
 	ngOnInit(): void {
 		this.returnUrl = this.route.snapshot.queryParamMap.get('returnUrl') || '/';
+		if (this.keycloakService.isLoggedIn() && !this.authService.isLoggedIn()) {
+			this.keycloakService.clearToken();
+		}
 		if (!this.keycloakService.isLoggedIn()) {
 			this.authService.authenticate(this.returnUrl)
             .pipe(takeUntil(this._destroyed))
@@ -56,9 +57,9 @@ export class LoginComponent extends BaseComponent implements OnInit {
             });
 		} else {
 			const tenantCode = this.tenantHandlingService.extractTenantCodeFromUrlPath(this.returnUrl) ?? this.authService.selectedTenant() ?? 'default';
-			let returnUrl = this.returnUrl;
-            let emptyUrl = this.routerUtils.generateUrl('/');
-			if (this.authService.selectedTenant() != tenantCode){ 
+			const returnUrl = this.returnUrl;
+            const emptyUrl = this.routerUtils.generateUrl('/');
+			if (this.authService.selectedTenant() != tenantCode){
                 const params = new BaseHttpParams();
                 params.interceptorContext = {
                     excludedInterceptors: [InterceptorType.TenantHeaderInterceptor]

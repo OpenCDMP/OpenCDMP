@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { ActivatedRouteSnapshot, RouterStateSnapshot } from '@angular/router';
 import { Language } from '@app/core/model/language/language';
 import { LanguageHttpService } from '@app/core/services/language/language.http.service';
+import { LanguageService } from '@app/core/services/language/language.service';
 import { BreadcrumbService } from '@app/ui/misc/breadcrumb/breadcrumb.service';
 import { BaseEditorResolver } from '@common/base/base-editor.resolver';
 import { Guid } from '@common/types/guid';
@@ -11,7 +12,7 @@ import { nameof } from 'ts-simple-nameof';
 @Injectable()
 export class LanguageEditorResolver extends BaseEditorResolver {
 
-	constructor(private languageV2Service: LanguageHttpService, private breadcrumbService: BreadcrumbService) {
+	constructor(private languageV2Service: LanguageHttpService, private languageService: LanguageService, private breadcrumbService: BreadcrumbService) {
 		super();
 	}
 
@@ -37,7 +38,7 @@ export class LanguageEditorResolver extends BaseEditorResolver {
 		const id = route.paramMap.get('id');
 
 		if (id != null) {
-			return this.languageV2Service.getSingle(Guid.parse(id), fields).pipe(tap(x => this.breadcrumbService.addIdResolvedValue(x.id?.toString(), x.code)), takeUntil(this._destroyed));
+			return this.languageV2Service.getSingle(Guid.parse(id), fields).pipe(tap(x => this.breadcrumbService.addIdResolvedValue(x.id?.toString(), this.languageService.getLanguageName(x.code))), takeUntil(this._destroyed));
 		}
 	}
 }

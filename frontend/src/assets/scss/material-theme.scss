@@ -10,131 +10,131 @@
 	--draft-color: #f16868;
     
     --gray: #707070; //previously #848484
-    --light-gray: #aaaaaa;
+    --light-gray: #767676; // was #aaaaaa (2.3:1, failed WCAG 1.4.3); #767676 ≈ 4.5:1 on white
     --dark-text: #212121;
 
     --mat-badge-legacy-large-size-container-size: 1.2rem;
 }
 
 $_palettes: (
-  primary: (
-    0: #000000,
-    10: #001a41,
-    20: #002e68,
-    25: #00397d,
-    30: #13458c,
-    35: #245198,
-    40: #335da5,
-    50: #4e76c0,
-    60: #6990dc,
-    70: #84abf8,
-    80: #adc6ff,
-    90: #d8e2ff,
-    95: #edf0ff,
-    98: #f9f9ff,
-    99: #fefbff,
-    100: #ffffff,
-  ),
-  secondary: (
-    0: #000000,
-    10: #0c1b35,
-    20: #22304b,
-    25: #2e3b57,
-    30: #394763,
-    35: #45526f,
-    40: #515e7c,
-    50: #697796,
-    60: #8391b1,
-    70: #9dabcc,
-    80: #b8c6e9,
-    90: #d8e2ff,
-    95: #edf0ff,
-    98: #f9f9ff,
-    99: #fefbff,
-    100: #ffffff,
-  ),
-  tertiary: (
-    0: #000000,
-    10: #002200,
-    20: #003a00,
-    25: #004600,
-    30: #005301,
-    35: #006101,
-    40: #006e01,
-    50: #198a12,
-    60: #3ba52e,
-    70: #57c147,
-    80: #73de60,
-    90: #8efb79,
-    95: #caffb9,
-    98: #edffe2,
-    99: #f7ffee,
-    100: #ffffff,
-  ),
-  neutral: (
-    0: #000000,
-    10: #1a1b20,
-    20: #2f3035,
-    25: #3a3b41,
-    30: #45474c,
-    35: #515258,
-    40: #5d5e64,
-    50: #76777d,
-    60: #909096,
-    70: #aaabb1,
-    80: #c6c6cc,
-    90: #e2e2e9,
-    95: #f0f0f7,
-    98: #f9f9ff,
-    99: #fefbff,
-    100: #ffffff,
-    4: #0c0e13,
-    6: #111318,
-    12: #1e1f24,
-    17: #282a2f,
-    22: #33353a,
-    24: #37393e,
-    87: #dad9e0,
-    92: #e8e7ee,
-    94: #eeedf4,
-    96: #f3f3fa,
-  ),
-  neutral-variant: (
-    0: #000000,
-    10: #181c24,
-    20: #2c303a,
-    25: #373b45,
-    30: #434751,
-    35: #4f525d,
-    40: #5b5e69,
-    50: #737782,
-    60: #8d909c,
-    70: #a8abb7,
-    80: #c3c6d2,
-    90: #dfe2ef,
-    95: #eef0fd,
-    98: #f9f9ff,
-    99: #fefbff,
-    100: #ffffff,
-  ),
-  error: (
-    0: #000000,
-    10: #410002,
-    20: #690005,
-    25: #7e0007,
-    30: #93000a,
-    35: #a80710,
-    40: #ba1a1a,
-    50: #de3730,
-    60: #ff5449,
-    70: #ff897d,
-    80: #ffb4ab,
-    90: #ffdad6,
-    95: #ffedea,
-    98: #fff8f7,
-    99: #fffbff,
-    100: #ffffff,
-  ),
+    primary: (
+        0: #000000,
+        10: #001B3F,
+        20: #002F66,
+        25: #003A7B,
+        30: #004590,
+        35: #18519D,
+        40: #295DAA,
+        50: #4776C5,
+        60: #6290E1,
+        70: #7EABFE,
+        80: #ABC7FF,
+        90: #D7E2FF,
+        95: #ECF0FF,
+        98: #F9F9FF,
+        99: #FDFBFF,
+        100: #FFFFFF
+    ),
+    secondary: (
+        0: #000000,
+        10: #001F2A,
+        20: #003546,
+        25: #004155,
+        30: #004D65,
+        35: #015974,
+        40: #1B6681,
+        50: #3B7F9B,
+        60: #5899B6,
+        70: #73B4D2,
+        80: #8FCFEE,
+        90: #E0F4FF,
+        95: #F4FAFF,
+        98: #FAFCFF,
+        99: #FFFFFF,
+        100: #FFFFFF
+    ),
+    tertiary: (
+        0: #000000,
+        10: #301400,
+        20: #4F2500,
+        25: #602E00,
+        30: #713700,
+        35: #824100,
+        40: #d27605,
+        50: #B95F00,
+        60: #DB7619,
+        70: #FC8F34,
+        80: #FFB783,
+        90: #FFDCC5,
+        95: #FFEDE4,
+        98: #FFF8F5,
+        99: #FFFBFF,
+        100: #FFFFFF
+    ),
+    neutral: (
+        0: #000000,
+        4: #0c0e13,
+        6: #111318,
+        10: #1A1B1F,
+        12: #1e1f24,
+        17: #282a2f,
+        20: #2F3033,
+        22: #33353a,
+        24: #37393e,
+        25: #3B3B3F,
+        30: #46464A,
+        35: #525256,
+        40: #5E5E62,
+        50: #77777A,
+        60: #919094,
+        70: #ABABAF,
+        80: #C7C6CA,
+        87: #dad9e0,
+        90: #E3E2E6,
+        92: #e8e7ee,
+        94: #eeedf4,
+        95: #F2F0F4,
+        96: #f3f3fa,
+        98: #FAF9FD,
+        99: #FDFBFF,
+        100: #FFFFFF,
+    ),
+    neutral-variant: (
+        0: #000000,
+        10: #181C22,
+        20: #2D3038,
+        25: #383B43,
+        30: #44474E,
+        35: #4F525A,
+        40: #5B5E66,
+        50: #74777F,
+        60: #8E9099,
+        70: #A9ABB4,
+        80: #C4C6D0,
+        90: #E0E2EC,
+        95: #EFF0FA,
+        98: #F9F9FF,
+        99: #FDFBFF,
+        100: #FFFFFF
+    ),
+    error: (
+        0: #000000,
+        10: #410002,
+        20: #690005,
+        25: #7e0007,
+        30: #93000a,
+        35: #a80710,
+        40: #ba1a1a,
+        50: #de3730,
+        60: #ff5449,
+        70: #ff897d,
+        80: #ffb4ab,
+        90: #ffdad6,
+        95: #ffedea,
+        98: #fff8f7,
+        99: #fffbff,
+        100: #ffffff,
+    ),
 );
 
 $_rest: (
@@ -154,15 +154,15 @@ $angular-material-3-theme: mat.define-theme((
         use-system-variables: true,
     ),
     typography: (
-        plain-family: 'Roboto, sans-serif',
-        brand-family: 'Roboto, sans-serif',
+        plain-family: 'Nunito Sans, Roboto, sans-serif',
+        brand-family: 'Ubuntu, Roboto, sans-serif',
         regular-weight: 400,
         medium-weight: 400,
         bold-weight: 700,
         use-system-variables: true
     ),
     density: (
-        scale: 0
+        scale: -2
     )
 ));
 
@@ -205,11 +205,19 @@ $disabled-form-field-color: color-mix(in srgb, var(--mat-sys-on-surface) 60%, tr
         select-disabled-option-text-color: $disabled-form-field-color,
         disabled-leading-icon-color: $disabled-form-field-color,
         disabled-trailing-icon-color: $disabled-form-field-color,
-        disabled-select-arrow-color: $disabled-form-field-color
+        disabled-select-arrow-color: $disabled-form-field-color,
+        outlined-container-shape: 10px,
+        filled-container-shape: 10px,
+        container-height: 36px,
+        container-vertical-padding: 8px,
+        container-text-size: var(--mat-sys-body-medium-size),
+        container-text-line-height: 1.2
+
     ));
     @include mat.select-overrides((
         disabled-trigger-text-color: $disabled-form-field-color,
-        disabled-arrow-color: $disabled-form-field-color
+        disabled-arrow-color: $disabled-form-field-color,
+        trigger-text-size: var(--mat-sys-body-medium-size)
     ));
     @include mat.datepicker-overrides((
         calendar-date-disabled-state-text-color: $disabled-form-field-color,
@@ -230,6 +238,12 @@ $disabled-form-field-color: color-mix(in srgb, var(--mat-sys-on-surface) 60%, tr
     @include mat.card-overrides((
         filled-container-color: var(--mat-sys-surface),
         elevated-container-color: var(--mat-sys-surface),
+    )); 
+    @include mat.menu-overrides((
+        container-color: var(--mat-sys-surface)
+    ));
+    @include mat.button-toggle-overrides((
+        shape: 4px
     ))
 }
 

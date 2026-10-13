@@ -1,0 +1,91 @@
+:host {
+	display: block;
+	border-bottom: 1px solid var(--mat-sys-outline-variant);
+}
+
+.usage-section-header {
+	display: flex;
+	align-items: center;
+	gap: 0.5rem;
+	width: 100%;
+	min-height: 48px;
+	padding: 0;
+	border: 0;
+	background: transparent;
+	color: var(--mat-sys-on-surface);
+	font: inherit;
+	font-weight: 600;
+	text-align: left;
+	cursor: pointer;
+}
+
+.usage-section-title {
+	flex: 1;
+}
+
+.usage-section-badge {
+	min-width: 20px;
+	height: 20px;
+	padding: 0 6px;
+	box-sizing: border-box;
+	border-radius: 10px;
+	background: var(--mat-sys-primary);
+	color: var(--mat-sys-on-primary);
+	font-size: 0.75rem;
+	line-height: 20px;
+	text-align: center;
+}
+
+.usage-section-body {
+	padding-bottom: 0.75rem;
+}
+
+.usage-list {
+	display: flex;
+	flex-direction: column;
+	margin-top: 0.25rem;
+}
+
+.usage-group-title {
+	padding: 0.5rem 0 0.125rem;
+	color: var(--mat-sys-on-surface-variant);
+	font-size: 0.75rem;
+	font-weight: 700;
+	letter-spacing: 0.04em;
+	text-transform: uppercase;
+}
+
+.usage-row {
+	min-height: 44px;
+
+	::ng-deep .mdc-form-field,
+	::ng-deep label {
+		width: 100%;
+	}
+}
+
+.usage-row-label {
+	display: flex;
+	align-items: center;
+	gap: 0.75rem;
+	width: 100%;
+}
+
+.usage-row-text {
+	flex: 1;
+	overflow-wrap: anywhere;
+}
+
+.usage-row-count {
+	color: var(--mat-sys-on-surface-variant);
+}
+
+.usage-hint {
+	margin: 0.5rem 0 0;
+	color: var(--mat-sys-on-surface-variant);
+	font-size: 0.875rem;
+}
+
+.usage-show-more {
+	margin-top: 0.25rem;
+}

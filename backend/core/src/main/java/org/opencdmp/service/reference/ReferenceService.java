@@ -4,6 +4,9 @@ import tools.jackson.core.JacksonException;
 import org.opencdmp.model.reference.Reference;
 import org.opencdmp.model.persist.ReferencePersist;
 import org.opencdmp.model.reference.ReferenceExist;
+import org.opencdmp.model.reference.ReferenceUsage;
+import org.opencdmp.model.result.QueryResult;
+import org.opencdmp.query.lookup.ReferenceUsageLookup;
 import org.opencdmp.query.lookup.ReferenceSearchLookup;
 import gr.cite.tools.exception.MyApplicationException;
 import gr.cite.tools.exception.MyForbiddenException;
@@ -12,6 +15,7 @@ import gr.cite.tools.exception.MyValidationException;
 import gr.cite.tools.fieldset.FieldSet;
 import jakarta.xml.bind.JAXBException;
 import org.opencdmp.query.lookup.ReferenceTestLookup;
+import org.opencdmp.service.externalfetcher.models.ExternalFetcherTestResult;
 
 import javax.management.InvalidApplicationException;
 import javax.xml.parsers.ParserConfigurationException;
@@ -28,5 +32,9 @@ public interface ReferenceService {
 
 	List<Reference> testReferenceData(ReferenceTestLookup lookup) throws MyNotFoundException, InvalidApplicationException;
 
+	ExternalFetcherTestResult testReferenceSource(ReferenceTestLookup lookup);
+
 	ReferenceExist findReference(String reference, UUID referenceTypeId, FieldSet fields);
+
+	QueryResult<ReferenceUsage> usage(ReferenceUsageLookup lookup) throws MyApplicationException, MyForbiddenException;
 }

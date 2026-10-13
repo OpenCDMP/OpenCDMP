@@ -1,7 +1,7 @@
 package org.opencdmp.model.builder.commonmodels.descriptiontemplate.fielddata;
 
 import org.opencdmp.authorization.AuthorizationFlags;
-import org.opencdmp.commonmodels.models.descriptiotemplate.fielddata.UploadDataModel;
+import org.opencdmp.commonmodels.models.planblueprintdescriptiontemplatefields.fielddata.UploadDataModel;
 import org.opencdmp.commons.types.descriptiontemplate.fielddata.UploadDataEntity;
 import org.opencdmp.convention.ConventionService;
 import org.opencdmp.model.builder.commonmodels.BaseCommonModelBuilder;

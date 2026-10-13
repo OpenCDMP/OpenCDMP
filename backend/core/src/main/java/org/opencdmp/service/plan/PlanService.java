@@ -6,6 +6,7 @@ import gr.cite.tools.exception.MyNotFoundException;
 import gr.cite.tools.exception.MyValidationException;
 import gr.cite.tools.fieldset.FieldSet;
 import jakarta.xml.bind.JAXBException;
+import org.opencdmp.commonmodels.models.plan.PlanModel;
 import org.opencdmp.commons.types.plan.importexport.PlanImportExport;
 import org.opencdmp.filetransformerbase.models.misc.PreprocessingPlanModel;
 import org.opencdmp.model.PlanInvitationResult;
@@ -61,9 +62,14 @@ public interface PlanService {
 
     Plan importXml(byte[] bytes, String label, FieldSet fields) throws MyForbiddenException, MyNotFoundException, JAXBException, ParserConfigurationException, TransformerException, InvalidApplicationException, IOException, InstantiationException, IllegalAccessException, SAXException;
 
-    Plan createPlanFromRequest(PlanSuggestion suggestion, FieldSet fields) throws MyForbiddenException, MyNotFoundException, JAXBException, InvalidApplicationException, IOException, InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException, ParserConfigurationException, TransformerException, InstantiationException, IllegalAccessException, SAXException;
-
     Plan importJson(PlanCommonModelConfig planCommonModelConfig, FieldSet fields) throws MyForbiddenException, MyNotFoundException, JAXBException, InvalidApplicationException, IOException, InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException, ParserConfigurationException, TransformerException, InstantiationException, IllegalAccessException, SAXException;
 
     PreprocessingPlanModel preprocessingPlan(UUID fileId, String repositoryId) throws InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, InvalidApplicationException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException, IOException;
+
+    Plan commonModelPlanToPersist(PlanModel model, String label, FieldSet fields) throws InvalidApplicationException, JAXBException, ParserConfigurationException, IOException, TransformerException, InstantiationException, IllegalAccessException, SAXException;
+
+    Plan updatePlanDescriptionTemplate(UpdatePlanDescriptionTemplate model, FieldSet fields) throws MyForbiddenException, MyValidationException, MyApplicationException, MyNotFoundException, InvalidApplicationException, JAXBException, IOException;
+
+    List<PlanUser> getUsers(UUID planId, FieldSet fields);
+
 }

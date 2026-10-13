@@ -1,0 +1,61 @@
+@if (fieldChange; as change) {
+<div class="field-change-badge"
+    
+     [class.is-pending]="state() === 'pending'"
+     [class.is-accepted]="state() === 'accepted'"
+     [class.is-rejected]="state() === 'rejected'">
+    <div class="field-change-badge__values">
+        <span class="field-change-badge__value field-change-badge__value--current"
+              [title]="'PLAN-UPDATE-REVIEW.CURRENT-VALUE' | translate">
+            {{ displayValue(change.currentValue) }}
+        </span>
+        <span class="field-change-badge__arrow" aria-hidden="true">→</span>
+        <span class="field-change-badge__value field-change-badge__value--incoming"
+              [title]="'PLAN-UPDATE-REVIEW.INCOMING-VALUE' | translate">
+            {{ displayValue(change.incomingValue) }}
+        </span>
+    </div>
+
+    @if (state() === 'pending') {
+<div class="field-change-badge__actions">
+        <button type="button"
+                class="field-change-badge__btn field-change-badge__btn--accept"
+                (click)="accept()"
+                [attr.aria-label]="'PLAN-UPDATE-REVIEW.BAR.ACCEPTED' | translate">
+            <mat-icon>check</mat-icon>
+        </button>
+        <button type="button"
+                class="field-change-badge__btn field-change-badge__btn--reject"
+                (click)="reject()"
+                [attr.aria-label]="'PLAN-UPDATE-REVIEW.BAR.REJECTED' | translate">
+            <mat-icon>close</mat-icon>
+        </button>
+    </div>
+}
+
+    @if (state() !== 'pending') {
+<div class="field-change-badge__actions">
+        @if (state() === 'accepted') {
+<span class="field-change-badge__status"
+             >
+            <mat-icon>check_circle</mat-icon>
+            {{ 'PLAN-UPDATE-REVIEW.BAR.ACCEPTED' | translate }}
+        </span>
+}
+        @if (state() === 'rejected') {
+<span class="field-change-badge__status"
+             >
+            <mat-icon>cancel</mat-icon>
+            {{ 'PLAN-UPDATE-REVIEW.BAR.REJECTED' | translate }}
+        </span>
+}
+        <button type="button"
+                class="field-change-badge__btn field-change-badge__btn--undo"
+                (click)="reset()"
+                [attr.aria-label]="'PLAN-UPDATE-REVIEW.UNDO' | translate">
+            <mat-icon>undo</mat-icon>
+        </button>
+    </div>
+}
+</div>
+}

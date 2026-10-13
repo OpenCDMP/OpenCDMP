@@ -42,6 +42,9 @@ public class DescriptionFieldImportExport {
     @XmlElement(name = "tag")
     private List<String> tags;
 
+    @XmlElement(name = "numberValue")
+    private Double numberValue;
+
     public String getFieldId() {
         return this.fieldId;
     }
@@ -104,5 +107,13 @@ public class DescriptionFieldImportExport {
 
     public void setTags(List<String> tags) {
         this.tags = tags;
+    }
+
+    public Double getNumberValue() {
+        return numberValue;
+    }
+
+    public void setNumberValue(Double numberValue) {
+        this.numberValue = numberValue;
     }
 }

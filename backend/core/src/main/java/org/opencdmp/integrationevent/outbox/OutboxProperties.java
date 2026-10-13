@@ -44,6 +44,8 @@ public class OutboxProperties {
 
 	private final String indicatorAccessTopic;
 
+	private final String dashboardTouchedTopic;
+
 	private final String generateFileTopic;
 
 	private final String planTouchTopic;
@@ -63,7 +65,7 @@ public class OutboxProperties {
 							String notifyTopic,
 							String forgetMeCompletedTopic,
 							String whatYouKnowAboutMeCompletedTopic,
-							String accountingEntryCreatedTopic, String indicatorPointTopic, String indicatorTopic, String indicatorResetTopic, String indicatorAccessTopic, String generateFileTopic, String planTouchTopic, String planRemovalTopic
+							String accountingEntryCreatedTopic, String indicatorPointTopic, String indicatorTopic, String indicatorResetTopic, String indicatorAccessTopic, String dashboardTouchedTopic, String generateFileTopic, String planTouchTopic, String planRemovalTopic
     ) {
 		this.exchange = exchange;
 		this.handleAckRetries = handleAckRetries;
@@ -88,6 +90,7 @@ public class OutboxProperties {
         this.indicatorTopic = indicatorTopic;
         this.indicatorResetTopic = indicatorResetTopic;
         this.indicatorAccessTopic = indicatorAccessTopic;
+        this.dashboardTouchedTopic = dashboardTouchedTopic;
         this.generateFileTopic = generateFileTopic;
         this.planTouchTopic = planTouchTopic;
         this.planRemovalTopic = planRemovalTopic;
@@ -187,6 +190,10 @@ public class OutboxProperties {
 
 	public String getIndicatorAccessTopic() {
 		return indicatorAccessTopic;
+	}
+
+	public String getDashboardTouchedTopic() {
+		return dashboardTouchedTopic;
 	}
 
 	public String getPlanTouchTopic() {

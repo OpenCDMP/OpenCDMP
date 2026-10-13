@@ -33,6 +33,9 @@ public class Lock {
     private Boolean belongsToCurrentTenant;
     public static final String _belongsToCurrentTenant = "belongsToCurrentTenant";
 
+    private String targetLabel;
+    public static final String _targetLabel = "targetLabel";
+
     public UUID getId() {
         return id;
     }
@@ -95,5 +98,13 @@ public class Lock {
 
     public void setBelongsToCurrentTenant(Boolean belongsToCurrentTenant) {
         this.belongsToCurrentTenant = belongsToCurrentTenant;
+    }
+
+    public String getTargetLabel() {
+        return targetLabel;
+    }
+
+    public void setTargetLabel(String targetLabel) {
+        this.targetLabel = targetLabel;
     }
 }

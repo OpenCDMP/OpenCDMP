@@ -7,13 +7,11 @@ import { CommonUiModule } from '@common/ui/common-ui.module';
 
 
 @NgModule({
-    declarations: [
-        UserGuideContentComponent,
-        UserGuideDialogComponent
-    ],
     imports: [
         CommonUiModule,
-        UserGuideRoutingModule
+        UserGuideRoutingModule,
+        UserGuideContentComponent,
+        UserGuideDialogComponent
     ],
     exports: [
         UserGuideDialogComponent

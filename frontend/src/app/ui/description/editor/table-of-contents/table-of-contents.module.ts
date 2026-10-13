@@ -5,14 +5,13 @@ import { TableOfContentsInternal } from './table-of-contents-internal/table-of-c
 import { MatIconModule } from '@angular/material/icon';
 import { VisibilityRulesService } from '@app/ui/description/editor/description-form/visibility-rules/visibility-rules.service';
 import { TableOfContentsComponent } from './table-of-contents.component';
-import { TableOfContentsService } from './services/table-of-contents-service';
 import {TranslateModule} from "@ngx-translate/core";
 import {MatBadgeModule} from "@angular/material/badge";
+import { MatExpansionModule } from '@angular/material/expansion';
 
 @NgModule({
-    imports: [CommonModule, RouterModule, MatIconModule, MatBadgeModule, TranslateModule,],
-    declarations: [TableOfContentsComponent, TableOfContentsInternal],
-    exports: [TableOfContentsComponent],
-    providers: [VisibilityRulesService, TableOfContentsService]
+    imports: [CommonModule, RouterModule, MatIconModule, MatBadgeModule, TranslateModule, MatExpansionModule, TableOfContentsComponent, TableOfContentsInternal],
+    exports: [TableOfContentsComponent, TableOfContentsInternal],
+    providers: [VisibilityRulesService]
 })
 export class TableOfContentsModule { }

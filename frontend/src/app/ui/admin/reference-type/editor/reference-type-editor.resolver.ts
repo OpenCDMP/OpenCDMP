@@ -1,7 +1,8 @@
 import { Injectable } from '@angular/core';
 import { ActivatedRouteSnapshot, RouterStateSnapshot } from '@angular/router';
-import { AuthenticationConfiguration, ExternalFetcherBaseSourceConfiguration, HeaderConfig, QueryCaseConfig, QueryConfig, ResultFieldsMappingConfiguration, ResultsConfiguration, Static, StaticOption } from '@app/core/model/external-fetcher/external-fetcher';
+import { AuthenticationConfiguration, ExternalFetcherBaseSourceConfiguration, HeaderConfig, QueryCaseConfig, QueryConfig, ResultFieldsMappingConfiguration, ResultsConfiguration, Static, StaticOption, XmlNamespaceConfig } from '@app/core/model/external-fetcher/external-fetcher';
 import { ReferenceType, ReferenceTypeDefinition, ReferenceTypeField } from '@app/core/model/reference-type/reference-type';
+import { StorageFile } from '@app/core/model/storage-file/storage-file';
 import { ReferenceTypeService } from '@app/core/services/reference-type/reference-type.service';
 import { BreadcrumbService } from '@app/ui/misc/breadcrumb/breadcrumb.service';
 import { BaseEditorResolver } from '@common/base/base-editor.resolver';
@@ -23,6 +24,7 @@ export class ReferenceTypeEditorResolver extends BaseEditorResolver {
 			nameof<ReferenceType>(x => x.name),
 			nameof<ReferenceType>(x => x.code),
 
+			[nameof<ReferenceType>(x => x.definition), nameof<ReferenceTypeDefinition>(x => x.labelTemplate)].join('.'),
 			[nameof<ReferenceType>(x => x.definition), nameof<ReferenceTypeDefinition>(x => x.fields), nameof<ReferenceTypeField>(x => x.code)].join('.'),
 			[nameof<ReferenceType>(x => x.definition), nameof<ReferenceTypeDefinition>(x => x.fields), nameof<ReferenceTypeField>(x => x.label)].join('.'),
 			[nameof<ReferenceType>(x => x.definition), nameof<ReferenceTypeDefinition>(x => x.fields), nameof<ReferenceTypeField>(x => x.description)].join('.'),
@@ -49,6 +51,7 @@ export class ReferenceTypeEditorResolver extends BaseEditorResolver {
 			[nameof<ReferenceType>(x => x.definition), nameof<ReferenceTypeDefinition>(x => x.sources), nameof<ExternalFetcherBaseSourceConfiguration>(x => x.httpMethod)].join('.'),
 			[nameof<ReferenceType>(x => x.definition), nameof<ReferenceTypeDefinition>(x => x.sources), nameof<ExternalFetcherBaseSourceConfiguration>(x => x.requestBody)].join('.'),
 			[nameof<ReferenceType>(x => x.definition), nameof<ReferenceTypeDefinition>(x => x.sources), nameof<ExternalFetcherBaseSourceConfiguration>(x => x.filterType)].join('.'),
+			[nameof<ReferenceType>(x => x.definition), nameof<ReferenceTypeDefinition>(x => x.sources), nameof<ExternalFetcherBaseSourceConfiguration>(x => x.responseFormat)].join('.'),
 
 			[nameof<ReferenceType>(x => x.definition), nameof<ReferenceTypeDefinition>(x => x.sources), nameof<ExternalFetcherBaseSourceConfiguration>(x => x.auth),nameof<AuthenticationConfiguration>(x => x.enabled)].join('.'),
 			[nameof<ReferenceType>(x => x.definition), nameof<ReferenceTypeDefinition>(x => x.sources), nameof<ExternalFetcherBaseSourceConfiguration>(x => x.auth),nameof<AuthenticationConfiguration>(x => x.authUrl)].join('.'),
@@ -70,8 +73,19 @@ export class ReferenceTypeEditorResolver extends BaseEditorResolver {
 			[nameof<ReferenceType>(x => x.definition), nameof<ReferenceTypeDefinition>(x => x.sources), nameof<ExternalFetcherBaseSourceConfiguration>(x => x.headers),nameof<HeaderConfig>(x => x.key)].join('.'),
 			[nameof<ReferenceType>(x => x.definition), nameof<ReferenceTypeDefinition>(x => x.sources), nameof<ExternalFetcherBaseSourceConfiguration>(x => x.headers),nameof<HeaderConfig>(x => x.value)].join('.'),
 
+			[nameof<ReferenceType>(x => x.definition), nameof<ReferenceTypeDefinition>(x => x.sources), nameof<ExternalFetcherBaseSourceConfiguration>(x => x.namespaces),nameof<XmlNamespaceConfig>(x => x.prefix)].join('.'),
+			[nameof<ReferenceType>(x => x.definition), nameof<ReferenceTypeDefinition>(x => x.sources), nameof<ExternalFetcherBaseSourceConfiguration>(x => x.namespaces),nameof<XmlNamespaceConfig>(x => x.uri)].join('.'),
+
 			[nameof<ReferenceType>(x => x.definition), nameof<ReferenceTypeDefinition>(x => x.sources), nameof<ExternalFetcherBaseSourceConfiguration>(x => x.items),nameof<Static>(x => x.options),nameof<StaticOption>(x => x.code)].join('.'),
 			[nameof<ReferenceType>(x => x.definition), nameof<ReferenceTypeDefinition>(x => x.sources), nameof<ExternalFetcherBaseSourceConfiguration>(x => x.items),nameof<Static>(x => x.options),nameof<StaticOption>(x => x.value)].join('.'),
+
+			[nameof<ReferenceType>(x => x.definition), nameof<ReferenceTypeDefinition>(x => x.sources), nameof<ExternalFetcherBaseSourceConfiguration>(x => x.navigationUrl)].join('.'),
+			[nameof<ReferenceType>(x => x.definition), nameof<ReferenceTypeDefinition>(x => x.sources), nameof<ExternalFetcherBaseSourceConfiguration>(x => x.storageFile), nameof<StorageFile>(x => x.id)].join('.'),
+			[nameof<ReferenceType>(x => x.definition), nameof<ReferenceTypeDefinition>(x => x.sources), nameof<ExternalFetcherBaseSourceConfiguration>(x => x.storageFile), nameof<StorageFile>(x => x.name)].join('.'),
+			[nameof<ReferenceType>(x => x.definition), nameof<ReferenceTypeDefinition>(x => x.sources), nameof<ExternalFetcherBaseSourceConfiguration>(x => x.storageFile), nameof<StorageFile>(x => x.extension)].join('.'),
+			[nameof<ReferenceType>(x => x.definition), nameof<ReferenceTypeDefinition>(x => x.sources), nameof<ExternalFetcherBaseSourceConfiguration>(x => x.storageFile), nameof<StorageFile>(x => x.fullName)].join('.'),
+			[nameof<ReferenceType>(x => x.definition), nameof<ReferenceTypeDefinition>(x => x.sources), nameof<ExternalFetcherBaseSourceConfiguration>(x => x.storageFile), nameof<StorageFile>(x => x.mimeType)].join('.'),
+			[nameof<ReferenceType>(x => x.definition), nameof<ReferenceTypeDefinition>(x => x.sources), nameof<ExternalFetcherBaseSourceConfiguration>(x => x.tooltipMessage)].join('.'),
 
 			nameof<ReferenceType>(x => x.createdAt),
 			nameof<ReferenceType>(x => x.updatedAt),

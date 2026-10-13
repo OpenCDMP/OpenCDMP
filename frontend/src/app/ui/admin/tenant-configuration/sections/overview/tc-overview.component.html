@@ -1,0 +1,53 @@
+<header class="tc-head">
+	<h1>{{ 'TENANT-CONFIGURATION.OVERVIEW.TITLE' | translate }}</h1>
+	<p>{{ 'TENANT-CONFIGURATION.OVERVIEW.HINT' | translate }}</p>
+</header>
+
+@if (loading()) {
+	<div class="tc-loading"><mat-spinner diameter="32" /></div>
+} @else {
+	@for (group of groups; track group.key) {
+		<section class="tc-overview__group" [attr.aria-labelledby]="'tc-overview-' + group.key">
+			<h2 class="tc-overview__heading" [id]="'tc-overview-' + group.key">{{ ('TENANT-CONFIGURATION.NAV.GROUPS.' + group.key) | translate }}</h2>
+			<ul class="tc-overview">
+				@for (card of group.pages; track card.path) {
+					<li>
+						<a class="tc-overview__card" [routerLink]="url(card)">
+							<mat-icon class="tc-overview__icon" aria-hidden="true">{{ card.icon }}</mat-icon>
+							<span class="tc-overview__body">
+								<span class="tc-overview__title">{{ card.label | translate }}</span>
+								<span class="tc-overview__hint">{{ card.hint | translate }}</span>
+								@if (card.types?.length) {
+									<span class="tc-overview__state">
+										@if (changedCount(card) === 0 && inheritedCount(card) === 0) {
+											{{ 'TENANT-CONFIGURATION.OVERVIEW.ALL-DEFAULT' | translate }}
+										}
+										@if (changedCount(card) > 0) {
+											<strong>{{ 'TENANT-CONFIGURATION.OVERVIEW.CHANGED' | translate: { changed: changedCount(card), total: card.types.length } }}</strong>
+											@if (lastUpdated(card); as updated) {
+												· {{ 'TENANT-CONFIGURATION.OVERVIEW.UPDATED' | translate: { date: (updated | date: 'mediumDate') } }}
+											}
+										}
+										@if (inheritedCount(card) > 0) {
+											@if (changedCount(card) > 0) { · }
+											{{ 'TENANT-CONFIGURATION.OVERVIEW.INHERITED' | translate: { count: inheritedCount(card) } }}
+										}
+										@if (card.path === '/tenant-configuration/integrations' && pluginSummary(); as summary) {
+											<span class="tc-overview__plugins">
+												{{ 'TENANT-CONFIGURATION.OVERVIEW.PLUGINS-ON' | translate: { on: summary.on, total: summary.total } }}
+												@if (summary.problems > 0) {
+													<span class="tc-overview__problem">{{ 'TENANT-CONFIGURATION.OVERVIEW.PLUGINS-PROBLEMS' | translate: { count: summary.problems } }}</span>
+												}
+											</span>
+										}
+									</span>
+								}
+							</span>
+							<mat-icon class="tc-overview__chevron" aria-hidden="true">chevron_right</mat-icon>
+						</a>
+					</li>
+				}
+			</ul>
+		</section>
+	}
+}

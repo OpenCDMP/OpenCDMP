@@ -1,0 +1,29 @@
+<header class="tc-head">
+	<h1>{{ 'TENANT-CONFIGURATION.NOTIFICATIONS.TITLE' | translate }}</h1>
+	<p>{{ 'TENANT-CONFIGURATION.NOTIFICATIONS.HINT' | translate }}</p>
+</header>
+
+@if (notifiers.loading()) {
+	<div class="tc-loading"><mat-spinner diameter="32" /></div>
+} @else if (notifiers.form()) {
+	<section class="tc-card" aria-labelledby="tc-notifications-h">
+		<div class="tc-card__head">
+			<div>
+				<h2 id="tc-notifications-h">{{ 'TENANT-CONFIGURATION.NOTIFICATIONS.CHANNELS' | translate }}</h2>
+				<p id="tc-notifications-d">{{ 'TENANT-CONFIGURATION.NOTIFICATIONS.CHANNELS-HINT' | translate }}</p>
+			</div>
+			<app-tc-state-tag [changed]="notifiers.changed()" [canReset]="section.canReset" (resetRequested)="reset()" />
+		</div>
+
+		<app-notification-channels-table
+			[available]="notifiers.available()"
+			[enabled]="enabled()"
+			[editable]="editable"
+			labelledBy="tc-notifications-h"
+			describedBy="tc-notifications-d"
+			(toggled)="onToggle($event)"
+			(tryFirst)="onTryFirst($event)" />
+	</section>
+
+	<app-tc-save-bar [dirtyCount]="section.dirtyCount()" [saving]="section.saving()" [canSave]="section.canEdit" (save)="section.saveAll()" (discard)="section.discardAll()" />
+}

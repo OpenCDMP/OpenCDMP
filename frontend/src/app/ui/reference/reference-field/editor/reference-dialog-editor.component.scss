@@ -1,3 +1,17 @@
+// The form's body scrolls instead of the whole content, so its Cancel / Add row stays in view on short windows.
+.reference-dialog-editor--content {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+
+    app-reference-manual-form {
+        display: flex;
+        flex-direction: column;
+        flex: 1 1 auto;
+        min-height: 0;
+    }
+}
+
 // Dialog Container
 :host ::ng-deep .mat-dialog-container {
     min-width: 600px;

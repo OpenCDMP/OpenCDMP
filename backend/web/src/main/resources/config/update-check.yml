@@ -1,0 +1,9 @@
+update-check:
+  # Once a day, sends the installation id and version to the url and reads back the latest version and notices.
+  # Unless switched off on the Maintenance page, the check also carries installationUrl and usage counts.
+  enabled: ${UPDATE_CHECK_ENABLED:true}
+  url: ${UPDATE_CHECK_URL:https://updates.opencdmp.eu/v1/feed}
+  # The address users open; the CORS origin is the frontend address in every deployment
+  installationUrl: ${UPDATE_CHECK_INSTALLATION_URL:${CORS_ALLOWED_ORIGIN:}}
+  intervalSeconds: 86400
+  timeoutSeconds: 10

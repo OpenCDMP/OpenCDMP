@@ -1,10 +1,7 @@
 import { Pipe, PipeTransform } from '@angular/core';
 import { NotificationServiceEnumUtils } from '@notification-service/core/formatting/enum-utils.service';
 
-@Pipe({
-    name: 'NotificationTypeFormat',
-    standalone: false
-})
+@Pipe({ name: 'NotificationTypeFormat' })
 export class NotificationTypePipe implements PipeTransform {
 	constructor(private enumUtils: NotificationServiceEnumUtils) { }
 

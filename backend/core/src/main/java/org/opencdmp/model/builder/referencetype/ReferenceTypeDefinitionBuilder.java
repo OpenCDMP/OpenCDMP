@@ -29,6 +29,7 @@ public class ReferenceTypeDefinitionBuilder extends BaseBuilder<ReferenceTypeDef
 
     private final BuilderFactory builderFactory;
     private EnumSet<AuthorizationFlags> authorize = EnumSet.of(AuthorizationFlags.None);
+    boolean enableNavigationUrlFieldValues;
 
     @Autowired
     public ReferenceTypeDefinitionBuilder(
@@ -39,6 +40,11 @@ public class ReferenceTypeDefinitionBuilder extends BaseBuilder<ReferenceTypeDef
 
     public ReferenceTypeDefinitionBuilder authorize(EnumSet<AuthorizationFlags> values) {
         this.authorize = values;
+        return this;
+    }
+
+    public ReferenceTypeDefinitionBuilder enableNavigationUrlFieldValues(Boolean enableNavigationUrlFieldValues) {
+        this.enableNavigationUrlFieldValues = enableNavigationUrlFieldValues;
         return this;
     }
 
@@ -55,13 +61,14 @@ public class ReferenceTypeDefinitionBuilder extends BaseBuilder<ReferenceTypeDef
         List<ReferenceTypeDefinition> models = new ArrayList<>();
         for (ReferenceTypeDefinitionEntity d : data) {
             ReferenceTypeDefinition m = new ReferenceTypeDefinition();
+            if (fields.hasField(this.asIndexer(ReferenceTypeDefinition._labelTemplate))) m.setLabelTemplate(d.getLabelTemplate());
             if (!fieldsFields.isEmpty() && d.getFields() != null) m.setFields(this.builderFactory.builder(ReferenceTypeFieldBuilder.class).authorize(this.authorize).build(fieldsFields, d.getFields()));
             if (!sourcesFields.isEmpty() && d.getSources() != null) {
                 List<ExternalFetcherApiSourceConfigurationEntity> externalApiConfigEntities = d.getSources().stream().filter(x-> ExternalFetcherSourceType.API.equals(x.getType())).map(x-> (ExternalFetcherApiSourceConfigurationEntity)x).toList();
                 List<ExternalFetcherStaticOptionSourceConfigurationEntity> staticOptionConfigEntities = d.getSources().stream().filter(x-> ExternalFetcherSourceType.STATIC.equals(x.getType())).map(x-> (ExternalFetcherStaticOptionSourceConfigurationEntity)x).toList();
                 m.setSources(new ArrayList<>());
-                m.getSources().addAll(this.builderFactory.builder(ExternalFetcherApiSourceConfigurationBuilder.class).authorize(this.authorize).build(sourcesFields, externalApiConfigEntities));
-                m.getSources().addAll(this.builderFactory.builder(ExternalFetcherStaticOptionSourceConfigurationBuilder.class).authorize(this.authorize).build(sourcesFields, staticOptionConfigEntities));
+                m.getSources().addAll(this.builderFactory.builder(ExternalFetcherApiSourceConfigurationBuilder.class).authorize(this.authorize).enableNavigationUrlFieldValues(this.enableNavigationUrlFieldValues).build(sourcesFields, externalApiConfigEntities));
+                m.getSources().addAll(this.builderFactory.builder(ExternalFetcherStaticOptionSourceConfigurationBuilder.class).authorize(this.authorize).enableNavigationUrlFieldValues(this.enableNavigationUrlFieldValues).build(sourcesFields, staticOptionConfigEntities));
                 m.getSources().sort(Comparator.comparing(x -> x.getOrdinal() == null ? 0 : x.getOrdinal()));
             }
             models.add(m);

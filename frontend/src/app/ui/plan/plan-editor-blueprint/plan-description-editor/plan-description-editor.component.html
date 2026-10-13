@@ -1,54 +1,57 @@
 @if(id() && formGroup()){
   <div class="description-editor">
     <div class="description-actions">
-      @if (!viewOnly()) {
-        <div class="action-btns">
-          @if(formGroup()?.dirty){
-            <button mat-stroked-button [disabled]="isLoading() || isLocked" type="button" class="padded-shadow-btn description-discard-btn" (click)="discardChanges()">
-              {{'DESCRIPTION-EDITOR.ACTIONS.DISCARD.DISCARD' | translate}}
-            </button>
-          }
-          @if(canEditStatus() && !isNew() && description().availableStatuses && description().availableStatuses.length > 0 && !isLocked && planNotFinalized() && description().belongsToCurrentTenant){
-            @for(status of description().availableStatuses; track $index){
-              <span [matTooltip]="'PLAN-EDITOR.ACTIONS.FINALIZE.CAN-NOT-FINALIZE' | translate" [matTooltipDisabled]="!formGroup().dirty">
-                <button
-                  mat-flat-button
-                  color="accent"
-                  [disabled]="isLoading() || formGroup().dirty"
-                  class="padded-shadow-btn mr-2"
-                  type="button"
-                  (click)="changeStatus(status)"
-                  >
-                  {{ status.action?.length > 0 ? status.action : status.name }}
-                </button>
-              </span>
-            }
-          }
-          @if (isLocked) {
-            <button mat-raised-button disabled class="padded-shadow-btn cursor-default" type="button">{{ 'PLAN-OVERVIEW.LOCKED' | translate}}</button>
-          }
-        </div>
-      }
+      <!-- FE-2: the description's status control, Discard and Delete now all live in the plan editor's
+           context band (merged), driven from there via the #descriptionEditor template reference. The
+           status-change / discard logic still lives in this component. -->
       <div class="form" id="description-editor-form" tabindex="0">
-        <app-description-base-fields-editor-component
-          [class.d-none]="!atBaseEditor()"
-          [descriptionId]="id()"
-          (refresh)="onDescriptionTemplateChange($event)"
-        ></app-description-base-fields-editor-component>
-        <app-description-form #descriptionForm
-          [class.d-none]="atBaseEditor()"
-          [descriptionId]="id()"
-          [planId]="plan()?.id"
-          [canAnnotate]="canAnnotate()"
-          [planUsers]="plan()?.planUsers ?? []"
-          [ordinal]="ordinal()"
-          [propertiesFormGroup]="formGroup()?.controls?.properties"
-          [descriptionTemplate]="descriptionTemplate()"
-          [visibilityRulesService]="visibilityRulesService()"
-          [validationErrorModel]="validationErrorModel()"
-          [isNew]="isNew()"
-        ></app-description-form>
+        <div class="editor-form--wrapper">
+            <small class="pl-3">{{'COMMONS.VALIDATION.REQUIRED-FIELDS-HINT' | translate}}</small>
+            <app-description-base-fields-editor-component
+                [fields]="templateMissingSystemFields()"
+                [descriptionId]="id()"
+            ></app-description-base-fields-editor-component>
+                <!-- (refresh)="onDescriptionTemplateChange($event)" -->
+            <app-description-form #descriptionForm
+                [descriptionId]="id()"
+                [planId]="$safeNavigationMigration(plan()?.id)"
+                [canAnnotate]="canAnnotate()"
+                [canEdit]="canEdit() && !isLocked()"
+                [planUsers]="plan()?.planUsers ?? []"
+                [ordinal]="ordinal()"
+                [propertiesFormGroup]="$safeNavigationMigration(formGroup()?.controls?.properties)"
+                [formGroup]="formGroup()"
+                [descriptionTemplate]="descriptionTemplate()"
+                [visibilityRulesService]="visibilityRulesService()"
+                [validationErrorModel]="validationErrorModel()"
+                [isNew]="isNew()"
+            ></app-description-form>
+        </div>
       </div>
     </div>
   </div>
 }
+<ng-template #statusTemplate>
+    <span class="status-chip-overlay" [style.background]="descriptionInfo()?.lastPersist?.status?.definition?.statusColor ?? ''"></span>
+    @let status = $safeNavigationMigration(descriptionInfo()?.lastPersist?.status);
+    @let statusStorageFile = status.definition?.iconConfiguration?.storageFile?.id ? statusLogos.get(status.definition.iconConfiguration.storageFile.id.toString()) : null;
+    @if(status.definition?.iconConfiguration?.storageFile?.id && statusStorageFile) {
+      <img alt="" class="status-logo" [src]="statusStorageFile" aria-hidden="true">
+    }@else if(status.definition?.iconConfiguration?.matIconName) {
+        <mat-icon >{{status.definition.iconConfiguration.matIconName}}</mat-icon>
+    }@else {
+        @switch(status.internalStatus){
+            @case(DescriptionStatusEnum.Finalized){
+                <mat-icon>check</mat-icon>
+            }
+            @case(DescriptionStatusEnum.Draft){
+                <mat-icon>edit</mat-icon>
+            }
+            @default {
+                <mat-icon>arrow_forward</mat-icon>
+            }
+        }
+    }
+    <span>{{ descriptionInfo()?.lastPersist?.status.action?.length > 0 ? descriptionInfo()?.lastPersist?.status.action : descriptionInfo()?.lastPersist?.status.name }}</span>
+    <mat-icon iconPositionEnd aria-hidden="true">expand_more</mat-icon>
+</ng-template>

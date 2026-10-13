@@ -2,6 +2,7 @@ package org.opencdmp.model.externalfetcher;
 
 
 import org.opencdmp.commons.enums.ExternalFetcherApiHTTPMethodType;
+import org.opencdmp.commons.enums.ExternalFetcherApiResponseFormatType;
 import java.util.List;
 
 public class ExternalFetcherApiSourceConfiguration extends ExternalFetcherBaseSourceConfiguration {
@@ -31,6 +32,9 @@ public class ExternalFetcherApiSourceConfiguration extends ExternalFetcherBaseSo
     public final static String _filterType = "filterType";
     private String filterType = "remote";
 
+    public final static String _responseFormat = "responseFormat";
+    private ExternalFetcherApiResponseFormatType responseFormat;
+
     public final static String _auth = "auth";
     private AuthenticationConfiguration auth;
 
@@ -39,6 +43,9 @@ public class ExternalFetcherApiSourceConfiguration extends ExternalFetcherBaseSo
 
     public final static String _queries = "queries";
     private List<QueryConfig> queries;
+
+    public final static String _namespaces = "namespaces";
+    private List<XmlNamespaceConfiguration> namespaces;
 
     public String getUrl() {
         return url;
@@ -104,6 +111,14 @@ public class ExternalFetcherApiSourceConfiguration extends ExternalFetcherBaseSo
         this.filterType = filterType;
     }
 
+    public ExternalFetcherApiResponseFormatType getResponseFormat() {
+        return responseFormat;
+    }
+
+    public void setResponseFormat(ExternalFetcherApiResponseFormatType responseFormat) {
+        this.responseFormat = responseFormat;
+    }
+
     public AuthenticationConfiguration getAuth() {
         return auth;
     }
@@ -126,5 +141,13 @@ public class ExternalFetcherApiSourceConfiguration extends ExternalFetcherBaseSo
 
     public void setQueries(List<QueryConfig> queries) {
         this.queries = queries;
+    }
+
+    public List<XmlNamespaceConfiguration> getNamespaces() {
+        return namespaces;
+    }
+
+    public void setNamespaces(List<XmlNamespaceConfiguration> namespaces) {
+        this.namespaces = namespaces;
     }
 }

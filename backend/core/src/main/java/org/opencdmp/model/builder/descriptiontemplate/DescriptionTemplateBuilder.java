@@ -12,6 +12,7 @@ import org.opencdmp.authorization.AffiliatedResource;
 import org.opencdmp.authorization.AuthorizationFlags;
 import org.opencdmp.authorization.authorizationcontentresolver.AuthorizationContentResolverFactory;
 import org.opencdmp.commons.XmlHandlingService;
+import org.opencdmp.commons.enums.IsActive;
 import org.opencdmp.commons.scope.tenant.TenantScopeFactory;
 import org.opencdmp.commons.types.descriptiontemplate.DefinitionEntity;
 import org.opencdmp.convention.ConventionService;
@@ -21,8 +22,12 @@ import org.opencdmp.model.UserDescriptionTemplate;
 import org.opencdmp.model.builder.BaseBuilder;
 import org.opencdmp.model.builder.DescriptionTemplateTypeBuilder;
 import org.opencdmp.model.builder.UserDescriptionTemplateBuilder;
+import org.opencdmp.model.builder.description.DescriptionBuilder;
+import org.opencdmp.model.description.Description;
 import org.opencdmp.model.descriptiontemplate.DescriptionTemplate;
 import org.opencdmp.model.plan.Plan;
+import org.opencdmp.query.DescriptionQuery;
+import org.opencdmp.query.DescriptionTemplateQuery;
 import org.opencdmp.query.DescriptionTemplateTypeQuery;
 import org.opencdmp.query.UserDescriptionTemplateQuery;
 import org.slf4j.LoggerFactory;
@@ -91,8 +96,10 @@ public class DescriptionTemplateBuilder extends BaseBuilder<DescriptionTemplate,
         FieldSet usersFields = fields.extractPrefixed(this.asPrefix(DescriptionTemplate._users));
         Map<UUID, List<UserDescriptionTemplate>> usersMap = this.collectUserDescriptionTemplates(usersFields, data);
 
-        Set<String> authorizationFlags = this.extractAuthorizationFlags(fields, Plan._authorizationFlags, this.authorizationContentResolverFactory.getInstance().getPermissionNames());
+        Set<String> authorizationFlags = this.extractAuthorizationFlags(fields, DescriptionTemplate._authorizationFlags, this.authorizationContentResolverFactory.getInstance().getPermissionNames());
         Map<UUID, AffiliatedResource>  affiliatedResourceMap = authorizationFlags == null || authorizationFlags.isEmpty() ? null : this.authorizationContentResolverFactory.getInstance().descriptionTemplateAffiliation(data.stream().map(DescriptionTemplateEntity::getId).collect(Collectors.toList()));
+
+        Map<UUID, Long> usageCountsMap = this.collectUsageCounts(fields, data);
 
         FieldSet definitionFields = fields.extractPrefixed(this.asPrefix(DescriptionTemplate._definition));
         List<DescriptionTemplate> models = new ArrayList<>();
@@ -131,11 +138,14 @@ public class DescriptionTemplateBuilder extends BaseBuilder<DescriptionTemplate,
             }
             if (!this.isPublic && !usersFields.isEmpty() && usersMap != null && usersMap.containsKey(d.getId()))
                 m.setUsers(usersMap.get(d.getId()));
-            if (!this.isPublic && !descriptionTemplateTypeFields.isEmpty() && descriptionTemplateTypeMap != null && descriptionTemplateTypeMap.containsKey(d.getTypeId()))
+            if (!descriptionTemplateTypeFields.isEmpty() && descriptionTemplateTypeMap != null && descriptionTemplateTypeMap.containsKey(d.getTypeId()))
                 m.setType(descriptionTemplateTypeMap.get(d.getTypeId()));
             if (!this.isPublic && affiliatedResourceMap != null && !authorizationFlags.isEmpty()) m.setAuthorizationFlags(this.evaluateAuthorizationFlags(this.authorizationService, authorizationFlags, affiliatedResourceMap.getOrDefault(d.getId(), null)));
             if (!this.isPublic && fields.hasField(this.asIndexer(DescriptionTemplate._ordinal)) && this.featuredOrdinalMap != null && this.featuredOrdinalMap.containsKey(d.getGroupId())) {
                 m.setOrdinal(this.featuredOrdinalMap.get(d.getGroupId()));
+            }
+            if (!this.isPublic && fields.hasField(this.asIndexer(DescriptionTemplate._usageCount)) && usageCountsMap != null && usageCountsMap.containsKey(d.getId())) {
+                m.setUsageCount(usageCountsMap.get(d.getId()));
             }
             models.add(m);
         }
@@ -144,7 +154,7 @@ public class DescriptionTemplateBuilder extends BaseBuilder<DescriptionTemplate,
     }
 
     private Map<UUID, DescriptionTemplateType> collectDescriptionTemplateTypes(FieldSet fields, List<DescriptionTemplateEntity> data) throws MyApplicationException {
-        if (fields.isEmpty() || data.isEmpty() || this.isPublic)
+        if (fields.isEmpty() || data.isEmpty())
             return null;
         this.logger.debug("checking related - {}", DescriptionTemplateType.class.getSimpleName());
 
@@ -187,6 +197,27 @@ public class DescriptionTemplateBuilder extends BaseBuilder<DescriptionTemplate,
                 x.getDescriptionTemplate().setId(null);
             });
         }
+        return itemMap;
+    }
+
+    private Map<UUID, Long> collectUsageCounts(FieldSet fields, List<DescriptionTemplateEntity> data) throws MyApplicationException {
+        if (fields.isEmpty() || !fields.hasField(this.asIndexer(DescriptionTemplate._usageCount)) || data.isEmpty() || this.isPublic)
+            return null;
+        this.logger.debug("calculating usages - {}", DescriptionTemplateEntity.class.getSimpleName());
+
+        Map<UUID, Long> itemMap = null;
+
+        DescriptionTemplateQuery subQuery = this.queryFactory.query(DescriptionTemplateQuery.class).disableTracking().ids(data.stream().map(DescriptionTemplateEntity::getId).distinct().toList());
+        BaseFieldSet descriptionFields = new BaseFieldSet(List.of(String.join(".", Description._descriptionTemplate, DescriptionTemplate._id)));
+        List<Description> descriptions = this.builderFactory.builder(DescriptionBuilder.class).authorize(this.authorize).build(descriptionFields, this.queryFactory.query(DescriptionQuery.class).disableTracking().isActive(IsActive.Active).descriptionTemplateSubQuery(subQuery).collectAs(descriptionFields));
+
+        if (descriptions != null && !descriptions.isEmpty()) {
+            itemMap = descriptions.stream().collect(Collectors.groupingBy(
+                    description -> description.getDescriptionTemplate().getId(),
+                    Collectors.counting()
+            ));
+        }
+
         return itemMap;
     }
 }

@@ -1,167 +1,248 @@
-<div class="container p-0">
-  @if (fieldSet()) {
-    <div class="row">
+<div class="field-set">
+    @if (fieldSet()) {
       @if (showTitle) {
-        <div class="col-12 pb-2">
-          <div class="row align-items-center">
-            <div class="col">
-              <app-description-form-field-set-title [fieldSet]="fieldSet()" [path]="path" [isChild]="isChild" [hideLink]="isNew" (copyLinkEvent)="copyLink(fieldSet().id)" [isAnchor]="isAnchor"></app-description-form-field-set-title>
-            </div>
-            @if (!isNew) {
-              <div class="col-lg-auto col-md-auto col-3" style="margin-top: 1rem;">
-                <button mat-icon-button class="annotation-icon" (click)="showAnnotations(fieldSet().id)" matTooltip="{{ 'DESCRIPTION-EDITOR.QUESTION.EXTENDED-DESCRIPTION.ANNOTATIONS' | translate }}" [attr.aria-label]="'PLAN-EDITOR.ACTIONS.ANNOTATIONS' | translate">
-                  <mat-icon
-                    [matBadge]="annotationsCount"
-                    [matBadgeHidden]="annotationsCount <= 0"
-                    [attr.aria-label]="(annotationsPerAnchor?.get(field.id) ?? 0) + ' ' + ('ANNOTATION-DIALOG.TITLE' | translate)"
+        <div class="row align-items-center">
+        <div class="col">
+            <app-form-field-set-title 
+                [fieldSet]="fieldSet()"
+                [path]="path"
+                [isChild]="isChild"
+                [hideLink]="isNew"
+                (copyLinkEvent)="copyLink(fieldSet().id)"
+                [isAnchor]="isAnchor"
+                [required]="fieldSetRequired"
+            ></app-form-field-set-title>
+        </div>
+        @if (!isNew) {
+            <div class="col-lg-auto col-md-auto col-3">
+            <button mat-icon-button class="annotation-icon" data-tour="plan-editor-question-comments" (click)="showAnnotations(fieldSet().id)" matTooltip="{{ 'DESCRIPTION-EDITOR.QUESTION.EXTENDED-DESCRIPTION.ANNOTATIONS' | translate }}" [attr.aria-label]="'PLAN-EDITOR.ACTIONS.ANNOTATIONS' | translate">
+                <mat-icon
+                    class="material-symbols-outlined"
+                    [matBadge]="annotationsCount()"
+                    [matBadgeHidden]="annotationsCount() <= 0"
+                    [attr.aria-label]="annotationsCount() + ' ' + ('ANNOTATION-DIALOG.TITLE' | translate)"
                     aria-hidden="false"
-                    >
-                    comment
-                  </mat-icon>
-                </button>
-              </div>
-            }
-          </div>
+                >
+                    chat_bubble
+                </mat-icon>
+            </button>
+            </div>
+        }
         </div>
       }
       @if (!fieldSet()?.multiplicity?.tableView) {
-        <div class="col-12">
-          @for (fieldSetItemPropertiesControl of propertiesFormGroup()?.get('items')?.controls; track fieldSetItemPropertiesControl; let i = $index) {
-            <div class="row">
-              @if (visibilityRulesService && visibilityRulesService.isVisibleMap[fieldSet().id + '_' + fieldSetItemPropertiesControl.get('ordinal').value] ?? true) {
+        @for (fieldSetItemPropertiesControl of propertiesFormGroup()?.get('items')?.controls; track $index; let i = $index) {
+        <div class="row">
+            @if ((visibilityRulesService?.isVisibleMap[fieldSet().id + '_' + fieldSetItemPropertiesControl.get('ordinal').value] ?? true)) {
                 <div class="col">
-                  <div class="row">
-                    @for (field of fieldSet().fields; track field; let i = $index) {
-                      <div class="col-12">
-                        @if (visibilityRulesService && visibilityRulesService.isVisibleMap[field.id + '_' + fieldSetItemPropertiesControl.get('ordinal').value] ?? true) {
-                          <div class="row">
-                            @if (placeholderTitle) {
-                              <label class="col-auto font-weight-bold">{{field.label}}</label>
+                    <div class="d-flex flex-column gap-half-rem">
+                        @for (field of fieldSet().fields; track $index; let fieldIndex = $index) {
+                            @if ((visibilityRulesService?.isVisibleMap[field.id + '_' + fieldSetItemPropertiesControl.get('ordinal').value] ?? true)) {
+                                <div>
+                                    <app-form-field
+                                        [propertiesFormGroup]="fieldSetItemPropertiesControl.get('fields')"
+                                        [formGroup]="formGroup"
+                                        [path]="path + '.' + i + '.' + fieldIndex"
+                                        [field]="field"
+                                        [fieldSet]="fieldSet"
+                                        [visibilityRulesService]="visibilityRulesService"
+                                        [descriptionTemplateId]="descriptionTemplateId"
+                                        [isChild]="true"
+                                        [hideLabel]="hideFieldLabel(field)"
+                                        [hideRequiredMarker]="headingCarriesRequiredMarker"
+                                    ></app-form-field>
+                                </div>
                             }
-                          </div>
-                          <app-description-form-field [propertiesFormGroup]="fieldSetItemPropertiesControl.get('fields')" [path]="path + '.' + i" [field]="field" [fieldSet]="fieldSet" [visibilityRulesService]="visibilityRulesService" [descriptionTemplateId]="descriptionTemplateId" [isChild]="true"></app-description-form-field>
                         }
-                      </div>
+                    </div>
+                </div>
+                @if (propertiesFormGroup().get('items').length > 1) {
+                    <div class="col-auto align-self-center">
+                        <button mat-icon-button type="button" class="deleteBtn" (click)="deleteMultiplicityField(i);" [disabled]="fieldSetItemPropertiesControl.disabled" [attr.aria-label]="'COMMONS.ACTIONS.REMOVE' | translate">
+                            <mat-icon aria-hidden="true">delete</mat-icon>
+                        </button>
+                    </div>
+                }
+            }
+        </div>
+        }
+        @if (canAddMultiplicityField()) {
+        <div class="col-12 mt-1 ml-0 mr-0 addOneFieldButton">
+            @if (fieldSet().hasMultiplicity && fieldSet()?.multiplicity?.min && propertiesFormGroup().get('items').hasError('minlength')) {
+            <mat-error>{{'GENERAL.VALIDATION.MULTIPLICITY.MIN' | translate: { min: fieldSet().multiplicity.min} }}</mat-error>
+            }
+            @if (fieldSet().hasMultiplicity && fieldSet()?.multiplicity?.max && propertiesFormGroup().get('items').hasError('maxlength')) {
+            <mat-error>{{'GENERAL.VALIDATION.MULTIPLICITY.MAX' | translate: { max: fieldSet().multiplicity.max} }}</mat-error>
+            }
+            <span class="d-inline-flex align-items-center">
+            <button class="add-more-btn" mat-button [disabled]="propertiesFormGroup().disabled" (click)="addMultiplicityField()">
+                <mat-icon aria-hidden="true">add_circle</mat-icon>
+                <span>
+                @if(fieldSet()?.multiplicity?.placeholder){
+                    {{fieldSet()?.multiplicity?.placeholder}}
+                    }@else{
+                    {{'DESCRIPTION-EDITOR.ACTIONS.MULTIPLICITY-ADD-ONE-FIELD' | translate}}
+                }
+                </span>
+            </button>
+            </span>
+        </div>
+        }
+      }
+      @if (fieldSet().hasMultiplicity && fieldSet()?.multiplicity?.tableView && !fieldSet()?.multiplicity?.transposedTableView) {
+        <div class="table-scroll">
+        <table class="table table-bordered" id="field-table">
+        <tr>
+            @for (field of fieldSet().fields; track field; let i = $index) {
+            <th class="text-truncated">
+                @if (field?.data?.fieldType !== descriptionTemplateFieldType.REFERENCE_TYPES) {
+                {{field.data?.label}}
+                } @else {
+                {{field.data?.label != null && field.data?.label !== '' ? field.data?.label: field.data?.referenceType?.name }}
+                }
+            </th>
+            }
+            <th class="actions"></th>
+        </tr>
+        @if(properties?.length){
+            @for(fieldSetItemPropertiesControl of properties; track $index; let j = $index){
+            @if ((visibilityRulesService?.isVisibleMap[fieldSet().id + '_' + fieldSetItemPropertiesControl.get('ordinal').value] ?? true)) {
+                <tr
+                [class.error-row]="fieldSetItemPropertiesControl.touched && fieldSetItemPropertiesControl.invalid"
+                >
+                @let fieldValueMap = fieldValueMapArray[j];
+                @for(field of fieldSet()?.fields; track field.id){
+                    <td class="table-field">
+                    @if (fieldValueMap && (visibilityRulesService?.isVisibleMap[field.id + '_' + fieldSetItemPropertiesControl.get('ordinal').value] ?? true)) {
+                        @if(field?.data?.fieldType === descriptionTemplateFieldType.RICH_TEXT_AREA){
+                        <span [innerHTML]="fieldValueMap.get(field.id)"></span>
+                        } @else {
+                        {{ fieldValueMap.get(field.id) }}
+                        }
                     }
-                  </div>
-                </div>
-              }
-              @if (propertiesFormGroup().get('items').length > 1) {
-                <div class="col-auto align-self-center">
-                  <button mat-icon-button type="button" class="deleteBtn" (click)="deleteMultiplicityField(i);" [disabled]="fieldSetItemPropertiesControl.disabled" [attr.aria-label]="'COMMONS.ACTIONS.REMOVE' | translate">
-                    <mat-icon aria-hidden>delete</mat-icon>
-                  </button>
-                </div>
-              }
-            </div>
-          }
-          @if (canAddMultiplicityField()) {
-            <div class="col-12 mt-1 ml-0 mr-0 addOneFieldButton">
-              @if (fieldSet().hasMultiplicity && fieldSet()?.multiplicity?.min && propertiesFormGroup().get('items').hasError('minlength')) {
+                    </td>
+                }
+                <td class="actions">
+                    <div class="w-100 d-flex justify-content-center">
+                    <button mat-icon-button type="button" class="deleteBtn btn-sm" (click)="editTableMultiplicityFieldInDialog(j)" [disabled]="fieldSetItemPropertiesControl.disabled">
+                        <mat-icon>edit</mat-icon>
+                    </button>
+                    @if (propertiesFormGroup().get('items').length > 1) {
+                        <button mat-icon-button type="button" class="deleteBtn" (click)="deleteMultiplicityField(j);" [disabled]="fieldSetItemPropertiesControl.disabled" [attr.aria-label]="'COMMONS.ACTIONS.REMOVE' | translate">
+                        <mat-icon aria-hidden="true">delete</mat-icon>
+                        </button>
+                    }
+                    </div>
+                </td>
+                </tr>
+            }
+            }
+        }
+        @if (canAddMultiplicityField()) {
+            <tr>
+            <td [colSpan]="fieldSet().fields.length + 1" class="text-center">
+                @if (fieldSet().hasMultiplicity && fieldSet()?.multiplicity?.min && propertiesFormGroup().get('items').hasError('minlength')) {
                 <mat-error>{{'GENERAL.VALIDATION.MULTIPLICITY.MIN' | translate: { min: fieldSet().multiplicity.min} }}</mat-error>
-              }
-              @if (fieldSet().hasMultiplicity && fieldSet()?.multiplicity?.max && propertiesFormGroup().get('items').hasError('maxlength')) {
-                <mat-error>{{'GENERAL.VALIDATION,MULTIPLICITY.MAX' | translate: { max: fieldSet().multiplicity.max} }}</mat-error>
-              }
-              <span class="d-inline-flex align-items-center">
+                }
+                @if (fieldSet().hasMultiplicity && fieldSet()?.multiplicity?.max && propertiesFormGroup().get('items').hasError('maxlength')) {
+                <mat-error>{{'GENERAL.VALIDATION.MULTIPLICITY.MAX' | translate: { max: fieldSet().multiplicity.max} }}</mat-error>
+                }
+                <span class="d-inline-flex align-items-center" [ngClass]="propertiesFormGroup().disabled ? '' : 'pointer'">
                 <button class="add-more-btn" mat-button [disabled]="propertiesFormGroup().disabled" (click)="addMultiplicityField()">
-                  <mat-icon aria-hidden>add_circle</mat-icon>
-                  <span>
+                    <mat-icon>add_circle</mat-icon>
+                    <span class="mt-1">
                     @if(fieldSet()?.multiplicity?.placeholder){
-                      {{fieldSet()?.multiplicity?.placeholder}}
-                      }@else{
-                      {{'DESCRIPTION-EDITOR.ACTIONS.MULTIPLICITY-ADD-ONE-FIELD' | translate}}
+                        {{fieldSet()?.multiplicity?.placeholder}}
+                    } @else{
+                        {{'DESCRIPTION-EDITOR.ACTIONS.MULTIPLICITY-ADD-ONE-FIELD-TABLEVIEW' | translate}}
                     }
-                  </span>
+                    </span>
                 </button>
-              </span>
-            </div>
-          }
+                </span>
+            </td>
+            </tr>
+        }
+        </table>
         </div>
       }
-      @if (fieldSet().hasMultiplicity && fieldSet()?.multiplicity?.tableView) {
-        <div class="col-12">
-          <table class="table table-bordered" id="field-table" style="table-layout: fixed">
-            <tr>
-              @for (field of fieldSet().fields; track field; let i = $index) {
-                <th class="text-truncated">
-                  @if (field?.data?.fieldType !== descriptionTemplateFieldType.REFERENCE_TYPES) {
-                    {{field.data?.label}}
-                  } @else {
-                    {{field.data?.label != null && field.data?.label != '' ? field.data?.label: field.data?.referenceType?.name }}
-                  }
-                </th>
-              }
-              <th class="actions"></th>
-            </tr>
+      @if (fieldSet().hasMultiplicity && fieldSet()?.multiplicity?.tableView && fieldSet()?.multiplicity?.transposedTableView) {
+        <div class="table-scroll">
+        <table class="table table-bordered" id="field-table-transposed">
+          <tr>
+            <th class="text-truncated">{{'DESCRIPTION-EDITOR.FIELDS.TRANSPOSED-TABLE-FIELD-NAME' | translate}}</th>
             @if(properties?.length){
               @for(fieldSetItemPropertiesControl of properties; track $index; let j = $index){
-                @if (visibilityRulesService && visibilityRulesService.isVisibleMap[fieldSet().id + '_' + fieldSetItemPropertiesControl.get('ordinal').value] ?? true) {
-                  <tr
-                    [class.error-row]="fieldSetItemPropertiesControl.touched && fieldSetItemPropertiesControl.invalid"
-                    >
-                    @let fieldValueMap = fieldValueMapArray[j];
-                    @for(field of fieldSet()?.fields; track field.id){
-                      <td class="text-wrap table-field">
-                        @if (fieldValueMap && visibilityRulesService && visibilityRulesService.isVisibleMap[field.id + '_' + fieldSetItemPropertiesControl.get('ordinal').value] ?? true) {
-                          @if(field?.data?.fieldType == descriptionTemplateFieldType.RICH_TEXT_AREA){
-                            <span [innerHTML]="fieldValueMap.get(field.id)"></span>
-                          } @else {
-                            {{ fieldValueMap.get(field.id) }}
-                          }
-                        }
-                      </td>
-                    }
-                    <td class="actions">
-                      <div class="w-100 d-flex justify-content-center">
-                        <button mat-icon-button type="button" class="deleteBtn btn-sm" (click)="editTableMultiplicityFieldInDialog(j)" [disabled]="fieldSetItemPropertiesControl.disabled">
-                          <mat-icon>edit</mat-icon>
+                @if ((visibilityRulesService?.isVisibleMap[fieldSet().id + '_' + fieldSetItemPropertiesControl.get('ordinal').value] ?? true)) {
+                  <th [class.error-col]="fieldSetItemPropertiesControl.touched && fieldSetItemPropertiesControl.invalid">
+                    <div class="w-100 d-flex justify-content-center">
+                      <button mat-icon-button type="button" class="deleteBtn btn-sm" (click)="editTableMultiplicityFieldInDialog(j)" [disabled]="fieldSetItemPropertiesControl.disabled">
+                        <mat-icon>edit</mat-icon>
+                      </button>
+                      @if (propertiesFormGroup().get('items').length > 1) {
+                        <button mat-icon-button type="button" class="deleteBtn" (click)="deleteMultiplicityField(j);" [disabled]="fieldSetItemPropertiesControl.disabled" [attr.aria-label]="'COMMONS.ACTIONS.REMOVE' | translate">
+                          <mat-icon aria-hidden="true">delete</mat-icon>
                         </button>
-                        @if (propertiesFormGroup().get('items').length > 1) {
-                          <button mat-icon-button type="button" class="deleteBtn" (click)="deleteMultiplicityField(j);" [disabled]="fieldSetItemPropertiesControl.disabled" [attr.aria-label]="'COMMONS.ACTIONS.REMOVE' | translate">
-                            <mat-icon aria-hidden>delete</mat-icon>
-                          </button>
-                        }
-                      </div>
-                    </td>
-                  </tr>
+                      }
+                    </div>
+                  </th>
                 }
               }
             }
             @if (canAddMultiplicityField()) {
-              <tr>
-                <td [colSpan]="fieldSet().fields.length + 1" class="text-center">
-                  @if (fieldSet().hasMultiplicity && fieldSet()?.multiplicity?.min && propertiesFormGroup().get('items').hasError('minlength')) {
-                    <mat-error>{{'GENERAL.VALIDATION.MULTIPLICITY.MIN' | translate: { min: fieldSet().multiplicity.min} }}</mat-error>
-                  }
-                  @if (fieldSet().hasMultiplicity && fieldSet()?.multiplicity?.max && propertiesFormGroup().get('items').hasError('maxlength')) {
-                    <mat-error>{{'GENERAL.VALIDATION,MULTIPLICITY.MAX' | translate: { max: fieldSet().multiplicity.max} }}</mat-error>
-                  }
-                  <span class="d-inline-flex align-items-center" [ngClass]="propertiesFormGroup().disabled ? '' : 'pointer'" (click)="addMultiplicityField()">
-                    <button class="add-more-btn" mat-button [disabled]="propertiesFormGroup().disabled">
-                      <mat-icon>add_circle</mat-icon>
-                      <span class="mt-1">
-                        @if(fieldSet()?.multiplicity?.placeholder){
-                          {{fieldSet()?.multiplicity?.placeholder}}
-                        } @else{
-                          {{'DESCRIPTION-EDITOR.ACTIONS.MULTIPLICITY-ADD-ONE-FIELD-TABLEVIEW' | translate}}
-                        }
-                      </span>
-                    </button>
-                  </span>
-                </td>
-              </tr>
+              <th class="text-center actions" [attr.rowspan]="fieldSet().fields.length + 1" style="vertical-align: middle">
+                @if (fieldSet().hasMultiplicity && fieldSet()?.multiplicity?.min && propertiesFormGroup().get('items').hasError('minlength')) {
+                  <mat-error>{{'GENERAL.VALIDATION.MULTIPLICITY.MIN' | translate: { min: fieldSet().multiplicity.min} }}</mat-error>
+                }
+                @if (fieldSet().hasMultiplicity && fieldSet()?.multiplicity?.max && propertiesFormGroup().get('items').hasError('maxlength')) {
+                  <mat-error>{{'GENERAL.VALIDATION.MULTIPLICITY.MAX' | translate: { max: fieldSet().multiplicity.max} }}</mat-error>
+                }
+                <span class="d-inline-flex align-items-center" [ngClass]="propertiesFormGroup().disabled ? '' : 'pointer'">
+                  <button class="add-more-btn" mat-button [disabled]="propertiesFormGroup().disabled" (click)="addMultiplicityField()">
+                    <mat-icon>add_circle</mat-icon>
+                    <span class="mt-1">
+                      @if(fieldSet()?.multiplicity?.placeholder){
+                        {{fieldSet()?.multiplicity?.placeholder}}
+                      } @else{
+                        {{'DESCRIPTION-EDITOR.ACTIONS.MULTIPLICITY-ADD-ONE-FIELD-TABLEVIEW' | translate}}
+                      }
+                    </span>
+                  </button>
+                </span>
+              </th>
             }
-          </table>
+          </tr>
+          @for (field of fieldSet().fields; track field.id) {
+            <tr>
+              <td class="text-truncated">
+                @if (field?.data?.fieldType !== descriptionTemplateFieldType.REFERENCE_TYPES) {
+                  {{field.data?.label}}
+                } @else {
+                  {{field.data?.label != null && field.data?.label !== '' ? field.data?.label : field.data?.referenceType?.name}}
+                }
+              </td>
+              @if(properties?.length){
+                @for(fieldSetItemPropertiesControl of properties; track $index; let j = $index){
+                  @if ((visibilityRulesService?.isVisibleMap[fieldSet().id + '_' + fieldSetItemPropertiesControl.get('ordinal').value] ?? true)) {
+                    <td class="table-field">
+                      @let fieldValueMap = fieldValueMapArray[j];
+                      @if (fieldValueMap && (visibilityRulesService?.isVisibleMap[field.id + '_' + fieldSetItemPropertiesControl.get('ordinal').value] ?? true)) {
+                        @if(field?.data?.fieldType === descriptionTemplateFieldType.RICH_TEXT_AREA){
+                          <span [innerHTML]="fieldValueMap.get(field.id)"></span>
+                        } @else {
+                          {{ fieldValueMap.get(field.id) }}
+                        }
+                      }
+                    </td>
+                  }
+                }
+              }
+            </tr>
+          }
+        </table>
         </div>
       }
-    </div>
-  }
-  <div class="row">
-    @if (fieldSet().hasCommentField && propertiesFormGroup()?.get('comment')) {
-      <div class="col-12">
-        <rich-text-editor-component [form]="propertiesFormGroup()?.get('comment')" [placeholder]="'DESCRIPTION-EDITOR.FIELDS.COMMENT-PLACEHOLDER' | translate" [wrapperClasses]="'mb-2'" [required]="isRequired"></rich-text-editor-component>
-      </div>
     }
-  </div>
+    @if (fieldSet().hasCommentField && propertiesFormGroup()?.get('comment')) {
+        <rich-text-editor-component [form]="$safeNavigationMigration(propertiesFormGroup()?.get('comment'))" [placeholder]="'DESCRIPTION-EDITOR.FIELDS.COMMENT-PLACEHOLDER' | translate" [wrapperClasses]="'mb-2'" [required]="isRequired"></rich-text-editor-component>
+    }
 </div>

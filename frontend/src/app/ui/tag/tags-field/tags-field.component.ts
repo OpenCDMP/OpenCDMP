@@ -1,26 +1,26 @@
 import { COMMA, ENTER } from '@angular/cdk/keycodes';
-import { Component, ElementRef, Input, OnChanges, OnInit, SimpleChanges, ViewChild } from '@angular/core';
-import { FormControl, UntypedFormControl, Validators } from '@angular/forms';
-import { MatAutocompleteSelectedEvent } from '@angular/material/autocomplete';
-import { MatChipInputEvent } from '@angular/material/chips';
-import { Tag } from '@app/core/model/tag/tag';
+import { Component, ElementRef, Input, ViewChild, ChangeDetectionStrategy } from '@angular/core';
+import { FormControl, Validators, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { TagService } from '@app/core/services/tag/tag.service';
 import { MultipleAutoCompleteConfiguration } from '@app/library/auto-complete/multiple/multiple-auto-complete-configuration';
 import { BaseComponent } from '@common/base/base.component';
-import { QueryResult } from '@common/model/query-result';
 import { Observable, of } from 'rxjs';
-import { filter, map, mergeMap, startWith, takeUntil } from 'rxjs/operators';
+import { map } from 'rxjs/operators';
+import { MatFormField, MatLabel } from '@angular/material/form-field';
+import { MultipleAutoCompleteComponent } from '../../../library/auto-complete/multiple/multiple-auto-complete.component';
 
 @Component({
     selector: 'app-tags-field-component',
     templateUrl: 'tags-field.component.html',
     styleUrls: ['./tags-field.component.scss'],
-    standalone: false
+    changeDetection: ChangeDetectionStrategy.Eager,
+    imports: [MatFormField, MatLabel, MultipleAutoCompleteComponent, FormsModule, ReactiveFormsModule]
 })
 export class TagsComponent extends BaseComponent {
     static nextId: number = 0;
 	@Input() form: FormControl<string> = null;
 	@Input() label: string;
+	@Input() hideLabel: boolean = false;
 	@Input() placeholder: string;
     @Input() name: string = `tag-field-${TagsComponent.nextId++}`;
     @Input() required: boolean = false;

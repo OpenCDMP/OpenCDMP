@@ -5,7 +5,7 @@ export enum InterceptorType {
 	ProgressIndication = 3,
 	RequestTiming = 4,
 	UnauthorizedResponse = 5,
-	ResponsePayload = 5,
 	StatusCode = 6,
-	TenantHeaderInterceptor = 7
+	TenantHeaderInterceptor = 7,
+	ResponsePayload = 8
 }

@@ -1,0 +1,20 @@
+<div class="tc-page" [class.tc-page--wrapped]="wrapped">
+	<div class="tc-page__crumbs">
+		<app-navigation-breadcrumb [parent]="wrapped ? { titleKey: 'BREADCRUMBS.TENANT-CONFIGURATION', url: settingsUrl } : null" />
+	</div>
+	<div class="tc-page__layout">
+		<nav class="tc-nav" [attr.aria-label]="'TENANT-CONFIGURATION.NAV.LABEL' | translate">
+			@for (group of groups; track group.key) {
+				@if (group.key) {
+					<span class="tc-nav__group" aria-hidden="true">{{ ('TENANT-CONFIGURATION.NAV.GROUPS.' + group.key) | translate }}</span>
+				}
+				@for (item of group.pages; track item.path) {
+					<a class="tc-nav__item" [routerLink]="item.url" routerLinkActive="tc-nav__item--active" ariaCurrentWhenActive="page">{{ item.label | translate }}</a>
+				}
+			}
+		</nav>
+		<main class="tc-page__content">
+			<router-outlet />
+		</main>
+	</div>
+</div>

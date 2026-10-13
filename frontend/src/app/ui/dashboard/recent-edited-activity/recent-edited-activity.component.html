@@ -7,60 +7,219 @@
     }
     @if (listingItems != null) {
       <div id="results" class="col-12" #results>
-        <div class="row pt-4">
-          <!-- Sort by -->
-          <div class="col-12 col-xl-auto pr-0 d-flex align-items-center">
-            <span class="mb-4">{{'PLAN-LISTING.SORT-BY' | translate}}:</span>
-          </div>
-          <div class="col-12 col-xl-auto">
-            <mat-form-field appearance="outline" class="w-100 sort-form">
-              <mat-select placeholder="{{'GENERAL.CRITERIA.LIKE'| translate}}" [formControl]="formGroup.get('order')">
-                @if (!publicMode) {
-                  <mat-option [value]="RecentActivityOrder.UpdatedAt">{{enumUtils.toRecentActivityOrderString(RecentActivityOrder.UpdatedAt)}}</mat-option>
+        <!-- STATUS FILTER -->
+        @if(statuses?.length){
+            <div class="d-flex align-items-center gap-half-rem flex-wrap pt-4" role="group" [attr.aria-label]="'COMMONS.FIELDS.STATUS' | translate">
+                <span class="button-size-text" id="status-filter-label">{{'COMMONS.FIELDS.STATUS' | translate}}: </span>
+                @for(status of statuses; track status.id){
+                    @let selected = $safeNavigationMigration(formGroup?.controls?.statuses?.value?.includes(status.id));
+                    <button class="status-btn" [matButton]="selected ? 'filled' : 'tonal'" [attr.aria-pressed]="selected" (click)="statusSelected(status.id)">
+                        {{status.name}}
+                    </button>
                 }
-                <mat-option [value]="RecentActivityOrder.Label">{{enumUtils.toRecentActivityOrderString(RecentActivityOrder.Label)}}</mat-option>
-                @if (!publicMode) {
-                  <mat-option [value]="RecentActivityOrder.Status">{{enumUtils.toRecentActivityOrderString(RecentActivityOrder.Status)}}</mat-option>
+            </div>
+        }
+        <div class="filters d-flex align-items-center gap-1-rem flex-wrap pt-4 pb-4" data-tour="dashboard-activity-filters">
+            <!-- Search Filter-->
+            <mat-form-field appearance="outline" class="search-form " floatLabel="never" subscriptSizing="dynamic">
+                <mat-icon matPrefix aria-hidden="true">search</mat-icon>
+                <input
+                    matInput
+                    [placeholder]="
+                        (
+                            onlyPlans ? 'PLAN-LISTING.FILTERS.LIKE' :
+                            (onlyDescriptions ?  'DESCRIPTION-LISTING.FILTERS.LIKE' :  'DASHBOARD.RECENT-EDITED-ACTIVITY.FILTERS.LIKE')
+                        ) | translate
+                    "
+                    [attr.aria-label]="
+                        (
+                            onlyPlans ? 'PLAN-LISTING.FILTERS.LIKE' :
+                            (onlyDescriptions ?  'DESCRIPTION-LISTING.FILTERS.LIKE' :  'DASHBOARD.RECENT-EDITED-ACTIVITY.FILTERS.LIKE')
+                        ) | translate
+                    "
+                    name="likeCriteria"
+                    [formControl]="formGroup.get('like')
+                ">
+                @if (formGroup.get('like').hasError('backendError')) {
+                    <mat-error>{{formGroup.get('like').getError('backendError').message}}</mat-error>
                 }
-              </mat-select>
             </mat-form-field>
-          </div>
-          <!-- End of Sort by -->
-          <!-- Search Filter-->
-          <div class="col-12 col-xl-auto ml-auto">
-            <mat-form-field appearance="outline" class="search-form pr-0" floatLabel="never" style="max-width: 100%;">
-              <mat-icon matSuffix>search</mat-icon>
-              <input matInput placeholder="{{'GENERAL.CRITERIA.LIKE'| translate}}" name="likeCriteria" [formControl]="formGroup.get('like')">
-              @if (formGroup.get('like').hasError('backendError')) {
-                <mat-error>{{formGroup.get('like').getError('backendError').message}}</mat-error>
-              }
-            </mat-form-field>
-          </div>
-          <!-- End of Search Filter -->
+            <!-- view type -->
+            <mat-button-toggle-group hideSingleSelectionIndicator [attr.aria-label]="'DASHBOARD.RECENT-EDITED-ACTIVITY.VIEW-OPTION.LABEL' | translate" (change)="compactView = $event.value; updateUrl()">
+                <mat-button-toggle
+                    [matTooltip]="'DASHBOARD.RECENT-EDITED-ACTIVITY.VIEW-OPTION.COMPACT' | translate"
+                    [aria-label]="'DASHBOARD.RECENT-EDITED-ACTIVITY.VIEW-OPTION.COMPACT' | translate"
+                    [checked]="compactView"
+                    [value]="true"
+                >
+                    <mat-icon class="material-symbols-outlined" aria-hidden="true">view_list</mat-icon>
+                </mat-button-toggle>
+                <mat-button-toggle
+                    [matTooltip]="'DASHBOARD.RECENT-EDITED-ACTIVITY.VIEW-OPTION.FULL' | translate"
+                    [aria-label]="'DASHBOARD.RECENT-EDITED-ACTIVITY.VIEW-OPTION.FULL' | translate"
+                    [checked]="!compactView"
+                    [value]="false"
+                >
+                    <mat-icon class="material-symbols-outlined" aria-hidden="true">view_cozy</mat-icon>
+                </mat-button-toggle>
+            </mat-button-toggle-group>
+            <!-- Sort by -->
+            <div class="sort-pill">
+                <mat-icon class="sort-pill-icon" aria-hidden="true">sort</mat-icon>
+                <mat-form-field appearance="outline" class="sort-form" subscriptSizing="dynamic">
+                    <mat-select panelClass="sort-select-panel" [attr.aria-label]="'PLAN-LISTING.SORT-BY' | translate" placeholder="{{'GENERAL.CRITERIA.LIKE'| translate}}" [formControl]="formGroup.get('order')">
+                        @if (!publicMode) {
+                        <mat-option [value]="RecentActivityOrder.UpdatedAt">{{enumUtils.toRecentActivityOrderString(RecentActivityOrder.UpdatedAt)}}</mat-option>
+                        }
+                        <mat-option [value]="RecentActivityOrder.Label">{{enumUtils.toRecentActivityOrderString(RecentActivityOrder.Label)}}</mat-option>
+                        @if (!publicMode) {
+                        <mat-option [value]="RecentActivityOrder.Status">{{enumUtils.toRecentActivityOrderString(RecentActivityOrder.Status)}}</mat-option>
+                        }
+                    </mat-select>
+                </mat-form-field>
+                <div class="sort-divider" aria-hidden="true"></div>
+                <!-- Ascending / Descending -->
+                @let isAsc = formGroup.get('direction')?.value === SortDirection.ASC;
+                <button
+                    mat-icon-button
+                    class="sort-direction-btn"
+                    [matTooltip]="(isAsc ? 'PLAN-LISTING.ACTIONS.TOGGLE-DESCENDING' : 'PLAN-LISTING.ACTIONS.TOGGLE-ASCENDING') | translate"
+                    [attr.aria-label]="(isAsc ? 'PLAN-LISTING.ACTIONS.TOGGLE-DESCENDING' : 'PLAN-LISTING.ACTIONS.TOGGLE-ASCENDING') | translate"
+                    (click)="isAsc ? formGroup.controls.direction.setValue(SortDirection.DESC) : formGroup.controls.direction.setValue(SortDirection.ASC)"
+                >
+                    @if (!isAsc) {
+                      <mat-icon aria-hidden="true">keyboard_double_arrow_up</mat-icon>
+                    }
+                    @else {
+                      <mat-icon aria-hidden="true">keyboard_double_arrow_down</mat-icon>
+                    }
+                </button>
+            </div>
+            <!-- <mat-button-toggle-group hideSingleSelectionIndicator [formControl]="formGroup.get('direction')">
+                <mat-button-toggle [value]="SortDirection.DESC" [matTooltip]="'PLAN-LISTING.ACTIONS.TOGGLE-DESCENDING' | translate">
+                    <mat-icon aria-hidden="true">sort</mat-icon>
+                </mat-button-toggle>
+                <mat-button-toggle [value]="SortDirection.ASC" [matTooltip]="'PLAN-LISTING.ACTIONS.TOGGLE-ASCENDING' | translate">
+                    <mat-icon  class="ascending-icon" aria-hidden="true">sort</mat-icon>
+                </mat-button-toggle>
+            </mat-button-toggle-group> -->
+            @if (supportsFilters) {
+                <button
+                    type="button"
+                    mat-stroked-button
+                    class="filter-btn"
+                    #filtersButton
+                    [attr.aria-expanded]="filtersOpen"
+                    [attr.aria-controls]="filtersOpen ? 'recent-activity-filters-' + type : null"
+                    [attr.aria-label]="'ALT-TEXT.OPEN-FILTERS' | translate"
+                    [matBadge]="filtersCount"
+                    [matBadgeHidden]="!filtersCount"
+                    matBadgePosition="after"
+                    matBadgeSize="large"
+                    matBadgeOverlap="true"
+                    (click)="filtersOpen = !filtersOpen"
+                >
+                    <div class="d-flex gap-quarter-rem align-items-center">
+                        {{ 'PLAN-LISTING.FILTERS.NAME' | translate }}
+                        <mat-icon aria-hidden="true">{{ filtersOpen ? 'keyboard_arrow_left' : 'keyboard_arrow_right' }}</mat-icon>
+                    </div>
+                </button>
+                <!-- The same panels as My Plans / My Assets, as a drawer over the right edge; the status chips above stand in for their status field. -->
+                @if (filtersOpen) {
+                    <div class="filters-drawer-backdrop" aria-hidden="true" (click)="closeFilters(filtersButton)"></div>
+                    <aside
+                        class="filters-drawer"
+                        role="dialog"
+                        [id]="'recent-activity-filters-' + type"
+                        [attr.aria-label]="'PLAN-LISTING.FILTERS.NAME' | translate"
+                        cdkTrapFocus
+                        cdkTrapFocusAutoCapture
+                        (keydown.escape)="closeFilters(filtersButton)"
+                    >
+                    @if (onlyDescriptions) {
+                        <app-description-filter-dialog
+                            [lookup]="descriptionFilterLookup"
+                            [isPublic]="false"
+                            [hasSelectedTenant]="false"
+                            [referencesWithTypeItems]="filterReferences"
+                            [featuredReferenceTypes]="featuredReferenceTypes"
+                            [embedded]="true"
+                            [isOpen]="filtersOpen"
+                            (closed)="closeFilters(filtersButton)"
+                            (filtersChanged)="onFiltersChanged($event)"
+                        ></app-description-filter-dialog>
+                    } @else {
+                        <app-plan-filter-dialog
+                            [lookup]="planFilterLookup"
+                            [isPublic]="false"
+                            [hasSelectedTenant]="false"
+                            [referencesWithTypeItems]="filterReferences"
+                            [featuredReferenceTypes]="featuredReferenceTypes"
+                            [embedded]="true"
+                            [isOpen]="filtersOpen"
+                            (closed)="closeFilters(filtersButton)"
+                            (filtersChanged)="onFiltersChanged($event)"
+                        ></app-plan-filter-dialog>
+                    }
+                    </aside>
+                }
+            }
         </div>
-        @for (item of listingItems; track item; let i = $index) {
-          <div>
+        @if (supportsFilters) {
+            <app-active-reference-filters
+                [referenceIds]="filterReferenceIds"
+                (removed)="removeReferenceFilter($event)"
+                (cleared)="setFilterReferenceIds([])"
+            ></app-active-reference-filters>
+        }
+        @for (item of listingItems; track item; let i = $index; let last = $last) {
             @if (item.plan) {
-              <app-plan-listing-item-component [orderedPlanPreferencesList] = orderedPlanPreferencesList [showDivider]="i != (listingItems.length - 1)" [plan]="item.plan" [isPublic]="false" [statusStorageFile]="storageFileMap.get(item.plan.status?.definition?.storageFile?.id)"></app-plan-listing-item-component>
+                <app-plan-listing-item-component
+                    [class.no-top-border]="i > 0"
+                    [class.no-bottom-border]="!last"
+                    [orderedPlanPreferencesList] = orderedPlanPreferencesList 
+                    [plan]="item.plan"
+                    [isPublic]="false"
+                    [statusStorageFile]="storageFileMap.get($safeNavigationMigration(item.plan.status?.definition?.iconConfiguration?.storageFile?.id))"
+                    [compactView]="compactView"
+                ></app-plan-listing-item-component>
             }
             @if (item?.description) {
-              <app-description-listing-item-component [orderedDescriptionPreferencesList] = orderedDescriptionPreferencesList [showDivider]="i != (listingItems.length - 1)" [description]="item?.description" [isPublic]="false"  [statusStorageFile]="storageFileMap.get(item.description.status?.definition?.storageFile?.id)"></app-description-listing-item-component>
+                <app-description-listing-item-component
+                    [class.no-top-border]="i > 0"
+                    [class.no-bottom-border]="!last"
+                    [orderedDescriptionPreferencesList] = orderedDescriptionPreferencesList 
+                    [description]="$safeNavigationMigration(item?.description)"
+                    [isPublic]="false" 
+                    [statusStorageFile]="storageFileMap.get($safeNavigationMigration(item.description.status?.definition?.iconConfiguration?.storageFile?.id))"
+                    [compactView]="compactView"
+                ></app-description-listing-item-component>
             }
-          </div>
         }
         @if (!loading && listingItems && listingItems.length > 0 && lookup.page.offset >= currentPage*pageSize) {
           <div class="text-muted d-flex justify-content-center mt-5">
             {{'GENERAL.ACTIONS.NO-MORE-AVAILABLE' | translate}}
           </div>
         }
-        @if (listingItems?.length == 0 && onlyDescriptions && hasPlans) {
-          <div class="row justify-content-center mt-5">
-            <div class="col-auto p-0 add-description">
-              <button mat-flat-button color="accent" type="button" class="padded-shadow-btn" (click)="addDescription()">{{'DASHBOARD.ACTIONS.ADD-DESCRIPTION' | translate}}</button>
-            </div>
-          </div>
+        <!-- Empty states. A search term or a status chip turns "nothing yet" into "no match", so the
+             onboarding copy only shows when the tab is genuinely empty. -->
+        @if (!loading && listingItems?.length === 0) {
+          <p class="empty-state" role="status">
+            @if (hasActiveFilters) {
+              {{'DASHBOARD.RECENT-EDITED-ACTIVITY.EMPTY.NO-MATCHES' | translate}}
+            } @else if (onlyPlans) {
+              {{'DASHBOARD.RECENT-EDITED-ACTIVITY.EMPTY.PLANS' | translate}}
+            } @else if (onlyDescriptions) {
+              {{'DASHBOARD.RECENT-EDITED-ACTIVITY.EMPTY.DESCRIPTIONS' | translate}}
+            } @else {
+              {{'DASHBOARD.RECENT-EDITED-ACTIVITY.EMPTY.ALL' | translate}}
+            }
+          </p>
         }
-        @if (listingItems && listingItems.length > 0 && lookup.page.offset < currentPage*pageSize) {
+        @if(totalCount){
+            <div class="mt-3 opacity-08">{{('DASHBOARD.RECENT-EDITED-ACTIVITY.ITEMS-SHOWN' | translate :{currentCount: listingItems?.length ?? 0, totalCount: totalCount})}}</div>
+        }
+        @if (listingItems?.length < totalCount) {
           <div class="d-flex justify-content-center pb-1">
             <button type="button" mat-button class="padded-shadow-btn load-more" (click)="loadMore()">{{'GENERAL.ACTIONS.LOAD-MORE' | translate}}</button>
           </div>

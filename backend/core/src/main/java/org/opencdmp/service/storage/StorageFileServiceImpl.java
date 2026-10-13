@@ -4,6 +4,7 @@ import gr.cite.commons.web.authz.service.AuthorizationService;
 import gr.cite.tools.data.builder.BuilderFactory;
 import gr.cite.tools.data.query.QueryFactory;
 import gr.cite.tools.exception.MyApplicationException;
+import gr.cite.tools.exception.MyNotFoundException;
 import gr.cite.tools.fieldset.BaseFieldSet;
 import gr.cite.tools.fieldset.FieldSet;
 import gr.cite.tools.logging.LoggerService;
@@ -18,6 +19,7 @@ import org.opencdmp.commons.scope.user.UserScopeFactory;
 import org.opencdmp.commons.types.storagefile.importexport.StorageFileImportExport;
 import org.opencdmp.data.StorageFileEntity;
 import org.opencdmp.data.TenantEntityManagerFactory;
+import org.opencdmp.errorcode.ErrorThesaurusProperties;
 import org.opencdmp.model.StorageFile;
 import org.opencdmp.model.builder.StorageFileBuilder;
 import org.opencdmp.model.persist.StorageFilePersist;
@@ -25,6 +27,8 @@ import org.opencdmp.query.StorageFileQuery;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
+import org.springframework.context.MessageSource;
+import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.stereotype.Service;
@@ -55,6 +59,8 @@ public class StorageFileServiceImpl implements StorageFileService {
     private final ValidatorFactory validatorFactory;
     private final QueryFactory queryFactory;
     private final ResourceLoader resourceLoader;
+    private final MessageSource messageSource;
+    private final ErrorThesaurusProperties errors;
 
     @Autowired
     public StorageFileServiceImpl(
@@ -62,7 +68,8 @@ public class StorageFileServiceImpl implements StorageFileService {
             AuthorizationService authorizationService,
             BuilderFactory builderFactory,
             UserScopeFactory userScopeFactory,
-            StorageFileProperties config, ValidatorFactory validatorFactory, QueryFactory queryFactory, ResourceLoader resourceLoader
+            StorageFileProperties config, ValidatorFactory validatorFactory, QueryFactory queryFactory, ResourceLoader resourceLoader,
+            MessageSource messageSource, ErrorThesaurusProperties errors
     ) {
         this.tenantEntityManagerFactory = tenantEntityManagerFactory;
         this.authorizationService = authorizationService;
@@ -73,6 +80,8 @@ public class StorageFileServiceImpl implements StorageFileService {
         this.validatorFactory = validatorFactory;
         this.queryFactory = queryFactory;
         this.resourceLoader = resourceLoader;
+        this.messageSource = messageSource;
+        this.errors = errors;
     }
 
     //region storage management
@@ -134,57 +143,26 @@ public class StorageFileServiceImpl implements StorageFileService {
     }
 
     @Override
-    public StorageFile moveToStorage(UUID fileId, StorageType storageType, boolean replaceDestination, FieldSet fields) {
-        try {
-            StorageFileEntity storageFile = this.tenantEntityManagerFactory.getInstance().find(StorageFileEntity.class, fileId);
-            if (storageFile == null) return null;
-            
-            this.authorizeForce(storageFile, StorageFilePermission.Read);
-
-            File file = new File(this.filePath(storageFile.getFileRef(), storageFile.getStorageType()));
-            if (!file.exists()) return null;
-
-            File destinationFile = new File(this.filePath(storageFile.getFileRef(), storageFile.getStorageType()));
-            if (file.exists() && !replaceDestination) return null;
-            
-            boolean fileCopied = FileCopyUtils.copy(file, destinationFile) > 0;
-            if (!fileCopied) return null;
-
-            storageFile.setStorageType(storageType);
-
-            this.tenantEntityManagerFactory.getInstance().merge(storageFile);
-            
-            file.delete();
-
-            this.tenantEntityManagerFactory.getInstance().merge(storageFile);
-            return this.builderFactory.builder(StorageFileBuilder.class).authorize(AuthorizationFlags.AllExceptPublic).build(BaseFieldSet.build(fields, StorageFile._id), storageFile);
-        }
-        catch (Exception ex) {
-            logger.warn("problem reading byte content of storage file " + fileId, ex);
-            return null;
-        }
-    }
-
-    @Override
     public StorageFile copyToStorage(UUID fileId, StorageType storageType, boolean replaceDestination, FieldSet fields) {
         try {
             StorageFileEntity storageFile = this.tenantEntityManagerFactory.getInstance().find(StorageFileEntity.class, fileId);
-            if (storageFile == null) return null;
-            
+            if (storageFile == null) throw new MyNotFoundException(this.messageSource.getMessage("General_ItemNotFound", new Object[]{fileId, StorageFile.class.getSimpleName()}, LocaleContextHolder.getLocale()));
+
             this.authorizeForce(storageFile, StorageFilePermission.Read);
 
             File file = new File(this.filePath(storageFile.getFileRef(), storageFile.getStorageType()));
-            if (!file.exists()) return null;
+            if (!file.exists()) throw new MyNotFoundException(this.messageSource.getMessage("General_ItemNotFound", new Object[]{fileId, StorageFile.class.getSimpleName()}, LocaleContextHolder.getLocale()));
 
-            File destinationFile = new File(this.filePath(storageFile.getFileRef(), storageType));
-            if (destinationFile.exists() && !replaceDestination) return null;
-            
-            boolean fileCopied = FileCopyUtils.copy(file, destinationFile) > 0;
-            if (!fileCopied) return null;
+            // a copy within the same storage gets its own file: copying onto the source truncates it, and a shared file is purged with either record
+            String fileRef = storageType.equals(storageFile.getStorageType()) ? UUID.randomUUID().toString().replaceAll("-", "").toLowerCase(Locale.ROOT) : storageFile.getFileRef();
+            File destinationFile = new File(this.filePath(fileRef, storageType));
+            if (destinationFile.exists() && !replaceDestination) throw new MyApplicationException(this.errors.getSystemError().getCode(), this.errors.getSystemError().getMessage());
+
+            FileCopyUtils.copy(file, destinationFile);
 
             StorageFileEntity data = new StorageFileEntity();
             data.setId(UUID.randomUUID());
-            data.setFileRef(storageFile.getFileRef());
+            data.setFileRef(fileRef);
             data.setName(storageFile.getName());
             data.setOwnerId(storageFile.getOwnerId());
             data.setExtension(storageFile.getExtension());
@@ -195,13 +173,12 @@ public class StorageFileServiceImpl implements StorageFileService {
 
             this.tenantEntityManagerFactory.getInstance().persist(data);
             
-            this.tenantEntityManagerFactory.getInstance().merge(storageFile);
             return this.builderFactory.builder(StorageFileBuilder.class).authorize(AuthorizationFlags.AllExceptPublic).build(BaseFieldSet.build(fields, StorageFile._id), data);
-            
+
         }
-        catch (Exception ex) {
-            logger.warn("problem reading byte content of storage file " + fileId, ex);
-            return null;
+        catch (IOException | InvalidApplicationException ex) {
+            logger.error("problem copying storage file " + fileId, ex);
+            throw new MyApplicationException(this.errors.getSystemError().getCode(), this.errors.getSystemError().getMessage());
         }
     }
 
@@ -328,6 +305,37 @@ public class StorageFileServiceImpl implements StorageFileService {
         catch (Exception ex) {
             logger.warn("problem reading byte content of storage file " + fileRef, ex);
             return null;
+        }
+    }
+
+    @Override
+    public boolean writeBytesByFileRef(String fileRef, StorageType storageType, byte[] payload) {
+        try {
+            if (fileRef == null || !fileRef.matches("[A-Za-z0-9_-]{1,128}")) {
+                logger.error("refusing to write storage file with unsafe file ref " + fileRef);
+                return false;
+            }
+            File file = new File(this.filePath(fileRef, storageType));
+            try (FileOutputStream fos = new FileOutputStream(file)) {
+                fos.write(payload);
+                fos.flush();
+            }
+            return true;
+        } catch (Exception ex) {
+            logger.error("problem writing byte content of storage file " + fileRef, ex);
+            return false;
+        }
+    }
+
+    @Override
+    public boolean deletePhysicalFileByRefSafe(String fileRef, StorageType storageType) {
+        try {
+            File file = new File(this.filePath(fileRef, storageType));
+            if (!file.exists()) return true;
+            return file.delete();
+        } catch (Exception ex) {
+            logger.warn("problem deleting physical file of storage file " + fileRef, ex);
+            return false;
         }
     }
 

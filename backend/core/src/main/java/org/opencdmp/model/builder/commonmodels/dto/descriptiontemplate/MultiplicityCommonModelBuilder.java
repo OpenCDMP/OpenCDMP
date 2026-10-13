@@ -4,7 +4,7 @@ import gr.cite.tools.data.builder.BuilderFactory;
 import gr.cite.tools.exception.MyApplicationException;
 import gr.cite.tools.logging.LoggerService;
 import org.opencdmp.authorization.AuthorizationFlags;
-import org.opencdmp.commonmodels.models.descriptiotemplate.MultiplicityModel;
+import org.opencdmp.commonmodels.models.planblueprintdescriptiontemplatefields.MultiplicityModel;
 import org.opencdmp.convention.ConventionService;
 import org.opencdmp.model.builder.commonmodels.BaseCommonModelBuilder;
 import org.opencdmp.model.builder.commonmodels.CommonModelBuilderItemResponse;
@@ -50,6 +50,7 @@ public class MultiplicityCommonModelBuilder extends BaseCommonModelBuilder<Multi
             m.setMax(d.getMax());
             m.setPlaceholder(d.getPlaceholder());
             m.setTableView(d.getTableView());
+            m.setTransposedTableView(d.getTransposedTableView());
             models.add(new CommonModelBuilderItemResponse<>(m, d));
         }
 

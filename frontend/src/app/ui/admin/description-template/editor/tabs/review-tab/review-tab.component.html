@@ -1,0 +1,35 @@
+<div class="rv">
+	<div class="rv-main">
+		<div class="rv-bar">
+			<span class="bp2-caption" style="margin: 0;">{{'PLAN-BLUEPRINT-EDITOR.REVIEW.PREVIEW-AS-AUTHOR' | translate}}</span>
+			<span class="rv-bar__tools">
+				@if (mode === 'fill') { <mat-slide-toggle [(ngModel)]="showMappings" labelPosition="before">{{'PLAN-BLUEPRINT-EDITOR.REVIEW.SHOW-MAPPINGS' | translate}}</mat-slide-toggle> }
+				<span class="bp2-sub rv-bar__note"><mat-icon aria-hidden="true">visibility</mat-icon>{{'PLAN-BLUEPRINT-EDITOR.REVIEW.READ-ONLY' | translate}}</span>
+			</span>
+		</div>
+		<mat-button-toggle-group class="rv-modes" [value]="mode" (change)="mode = $event.value" [attr.aria-label]="'PLAN-BLUEPRINT-EDITOR.REVIEW.MODE' | translate">
+			<mat-button-toggle value="fill"><mat-icon aria-hidden="true">edit_note</mat-icon>{{'DESCRIPTION-TEMPLATE-EDITOR.REVIEW.MODE-FILL' | translate}}</mat-button-toggle>
+			<mat-button-toggle value="download"><mat-icon aria-hidden="true">download</mat-icon>{{'PLAN-BLUEPRINT-EDITOR.REVIEW.MODE-DOWNLOAD' | translate}}</mat-button-toggle>
+		</mat-button-toggle-group>
+
+		@switch (mode) {
+			@case ('fill') {
+				<section class="bp2-card rv-preview" [appSe2PreviewMappings]="showMappings">
+					@if (editor.saveBlockers.length) {
+						<div class="bp2-strip bp2-strip--warn"><mat-icon aria-hidden="true">warning</mat-icon><span>{{'PLAN-BLUEPRINT-EDITOR.REVIEW.FIX-TO-PREVIEW' | bp2Count: editor.saveBlockers.length }}</span><button mat-button type="button" class="bp2-btn-sm" (click)="editor.showProblems = true">{{'PLAN-BLUEPRINT-EDITOR.REVIEW.SHOW-PROBLEMS' | translate}}</button></div>
+					} @else if (hasSections) {
+						<app-final-preview-component [descriptionTemplatePersist]="persist" [availableReferenceTypes]="editor.availableReferenceTypes" />
+					} @else {
+						<p class="bp2-help">{{'PLAN-BLUEPRINT-EDITOR.REVIEW.NOTHING-YET' | translate}}</p>
+					}
+				</section>
+			}
+			@case ('download') { <app-se2-download-outline /> }
+		}
+	</div>
+
+	<aside class="rv-aside" [attr.aria-label]="'PLAN-BLUEPRINT-EDITOR.REVIEW.SUMMARY' | translate">
+		<app-se2-plugin-review />
+		<app-se2-semantics-card />
+	</aside>
+</div>

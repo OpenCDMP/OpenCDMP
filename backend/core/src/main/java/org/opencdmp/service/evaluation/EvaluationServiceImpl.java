@@ -42,9 +42,17 @@ import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.stereotype.Service;
 
 import javax.management.InvalidApplicationException;
+import org.opencdmp.commonmodels.enums.PluginEntityType;
+import org.opencdmp.data.DescriptionEntity;
+import org.opencdmp.data.PlanEntity;
+import org.opencdmp.query.DescriptionQuery;
+import org.opencdmp.query.PlanQuery;
+
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 
@@ -135,7 +143,13 @@ public class EvaluationServiceImpl implements EvaluationService {
 
         data.setEvaluatorId(persist.getEvaluatorId());
         data.setRankConfig(this.buildRankConfigEntity(persist.getRankConfig()));
-        data.setRankResult(this.buildRankResultEntity(persist.getRankResult()));
+
+        if (persist.getRankResult() != null) {
+            data.setRankResult(new ArrayList<>());
+            for (RankResultPersist resultModel: persist.getRankResult()) {
+                data.getRankResult().add(this.buildRankResultEntity(resultModel));
+            }
+        }
 
         return data;
     }
@@ -146,6 +160,7 @@ public class EvaluationServiceImpl implements EvaluationService {
 
         data.setRank(persist.getRank());
         data.setDetails(persist.getDetails());
+        data.setTarget(this.buildEvaluationTargetEntity(persist.getTarget()));
 
         if (!this.conventionService.isListNullOrEmpty(persist.getResults())){
             data.setResults(new ArrayList<>());
@@ -251,7 +266,7 @@ public class EvaluationServiceImpl implements EvaluationService {
     }
 
 
-    public void persistInternal(RankResultModel rankModel, RankConfig rankConfig, UUID entityId, EntityType type, String evaluatorId, UUID userId) throws MyForbiddenException, MyValidationException, MyApplicationException, MyNotFoundException, InvalidApplicationException {
+    public void persistInternal(List<RankResultModel> rankModel, RankConfig rankConfig, UUID entityId, EntityType type, String evaluatorId, UUID userId) throws MyForbiddenException, MyValidationException, MyApplicationException, MyNotFoundException, InvalidApplicationException {
 
         EvaluationPersist evaluationPersist = new EvaluationPersist();
 
@@ -259,22 +274,113 @@ public class EvaluationServiceImpl implements EvaluationService {
         evaluationPersist.setEntityId(entityId);
         evaluationPersist.setCreatedById(userId);
         evaluationPersist.setEntityType(type);
-        evaluationPersist.setData(this.buildDataPersist(rankConfig, rankModel, evaluatorId));
+        evaluationPersist.setData(this.buildDataPersist(rankConfig, rankModel, evaluatorId, this.resolveAllowedTargets(entityId, type)));
 
         this.validatorFactory.validator(EvaluationPersist.EvaluationPersistValidator.class).validateForce(evaluationPersist);
         this.persist(evaluationPersist, null);
 
     }
 
-    private @NotNull EvaluationDataPersist buildDataPersist(RankConfig rankConfig, RankResultModel rankModel, String evaluatorId){
+    private @NotNull EvaluationDataPersist buildDataPersist(RankConfig rankConfig, List<RankResultModel> rankModel, String evaluatorId, Map<UUID, AllowedTarget> allowedTargets){
         EvaluationDataPersist evaluationDataPersist = new EvaluationDataPersist();
 
         evaluationDataPersist.setEvaluatorId(evaluatorId);
         evaluationDataPersist.setRankConfig(this.buildRankConfigPersist(rankConfig));
-        evaluationDataPersist.setRankResult(this.buildRankResultModelPersist(rankModel));
+
+        if (rankModel != null) {
+            evaluationDataPersist.setRankResult(new ArrayList<>());
+            for (RankResultModel resultModel: rankModel) {
+                evaluationDataPersist.getRankResult().add(this.buildRankResultModelPersist(resultModel, allowedTargets));
+            }
+        }
 
         return evaluationDataPersist;
 
+    }
+
+    /**
+     * The evaluated entity, plus its descriptions when it is a plan, keyed by id with the
+     * label as it reads right now.
+     * <p>
+     * An evaluator is an external service, so the target it reports back is untrusted input.
+     * Everything it names is checked against this map before being stored, otherwise a buggy
+     * or hostile plugin could have the dialog render a label belonging to another plan or
+     * another tenant. The label is taken from here rather than from the plugin for the same
+     * reason.
+     */
+    private Map<UUID, AllowedTarget> resolveAllowedTargets(UUID entityId, EntityType type) throws InvalidApplicationException {
+        Map<UUID, AllowedTarget> allowed = new HashMap<>();
+        if (entityId == null || type == null) return allowed;
+
+        switch (type) {
+            case Plan -> {
+                PlanEntity plan = this.queryFactory.query(PlanQuery.class).disableTracking().ids(entityId).first();
+                if (plan != null) allowed.put(plan.getId(), new AllowedTarget(EntityType.Plan, plan.getLabel()));
+
+                List<DescriptionEntity> descriptions = this.queryFactory.query(DescriptionQuery.class).disableTracking().planIds(entityId).isActive(IsActive.Active).collect();
+                if (descriptions != null) {
+                    for (DescriptionEntity description : descriptions) {
+                        allowed.put(description.getId(), new AllowedTarget(EntityType.Description, description.getLabel()));
+                    }
+                }
+            }
+            case Description -> {
+                DescriptionEntity description = this.queryFactory.query(DescriptionQuery.class).disableTracking().ids(entityId).first();
+                if (description != null) allowed.put(description.getId(), new AllowedTarget(EntityType.Description, description.getLabel()));
+            }
+        }
+
+        return allowed;
+    }
+
+    private record AllowedTarget(EntityType entityType, String label) {}
+
+    /**
+     * Maps a plugin-reported target onto our own vocabulary, or returns null when the plugin
+     * named something that is not part of the entity we just evaluated. A rejected target only
+     * costs that result its label; the evaluation itself is still stored, because a plugin bug
+     * should not throw away a report the user waited for.
+     */
+    private EvaluationTargetPersist buildEvaluationTargetPersist(EvaluationTargetModel target, Map<UUID, AllowedTarget> allowedTargets){
+        if (target == null || target.getEntityId() == null) return null;
+
+        AllowedTarget allowed = allowedTargets == null ? null : allowedTargets.get(target.getEntityId());
+        if (allowed == null) {
+            logger.warn("evaluator reported target {} which is not part of the evaluated entity, dropping it", target.getEntityId());
+            return null;
+        }
+
+        PluginEntityType reportedType = target.getEntityType();
+        if (reportedType != null && !this.toEntityType(reportedType).equals(allowed.entityType())) {
+            logger.warn("evaluator reported target {} as {} but it is a {}, dropping it", target.getEntityId(), reportedType, allowed.entityType());
+            return null;
+        }
+
+        EvaluationTargetPersist persist = new EvaluationTargetPersist();
+        persist.setEntityType(allowed.entityType());
+        persist.setEntityId(target.getEntityId());
+        // Our label wins; the plugin one is only a fallback for an entity that has none.
+        persist.setLabel(this.conventionService.isNullOrEmpty(allowed.label()) ? target.getLabel() : allowed.label());
+
+        return persist;
+    }
+
+    private EntityType toEntityType(PluginEntityType pluginEntityType){
+        return switch (pluginEntityType) {
+            case Plan -> EntityType.Plan;
+            case Description -> EntityType.Description;
+        };
+    }
+
+    private EvaluationTargetEntity buildEvaluationTargetEntity(EvaluationTargetPersist persist){
+        if (persist == null) return null;
+
+        EvaluationTargetEntity data = new EvaluationTargetEntity();
+        data.setEntityType(persist.getEntityType());
+        data.setEntityId(persist.getEntityId());
+        data.setLabel(persist.getLabel());
+
+        return data;
     }
 
     private @NotNull RankConfigPersist buildRankConfigPersist(RankConfig rankConfig){
@@ -322,11 +428,12 @@ public class EvaluationServiceImpl implements EvaluationService {
         return data;
     }
 
-    private @NotNull RankResultPersist buildRankResultModelPersist(RankResultModel rankModel){
+    private @NotNull RankResultPersist buildRankResultModelPersist(RankResultModel rankModel, Map<UUID, AllowedTarget> allowedTargets){
         RankResultPersist persist = new RankResultPersist();
 
         persist.setRank(rankModel.getRank());
         persist.setDetails(rankModel.getDetails());
+        persist.setTarget(this.buildEvaluationTargetPersist(rankModel.getTarget(), allowedTargets));
 
         if (!this.conventionService.isListNullOrEmpty(rankModel.getResults())){
             persist.setResults(new ArrayList<>());

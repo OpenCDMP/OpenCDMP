@@ -95,7 +95,7 @@ export class PlanStatusService {
 		return lookup;
 	}
 
-    buildLookup(params: {
+    buildLookup(params?: {
         like?: string, 
         excludedIds?: Guid[], 
         ids?: Guid[],
@@ -104,7 +104,7 @@ export class PlanStatusService {
         order?: string[],
         internalStatuses?: PlanStatusEnum[]
     }): PlanStatusLookup {
-        const {like, excludedIds, ids, lookupFields, size = 100, order, internalStatuses} = params;
+        const {like, excludedIds, ids, lookupFields, size = 100, order, internalStatuses} = params ?? {};
         const lookup = new PlanStatusLookup();
         lookup.isActive = [IsActive.Active];
 
@@ -115,11 +115,12 @@ export class PlanStatusService {
 		if (excludedIds && excludedIds.length > 0) { lookup.excludedIds = excludedIds; }
 		if (ids && ids.length > 0) { lookup.ids = ids; }
         if (like) { lookup.like = this.filterService.transformLike(like); }
-        if(lookupFields){
-            lookup.project = {
-                fields: lookupFields
-            }
-        };
+        lookup.project = {
+            fields: lookupFields ?? [
+                nameof<PlanStatus>(x => x.id),
+                nameof<PlanStatus>(x => x.name),
+            ]
+        }
         return lookup;
     }
 }

@@ -37,6 +37,8 @@ public class DescriptionTemplateFieldImportExport {
             @XmlElement(name = RadioBoxDataImportExport.XmlElementName, type = RadioBoxDataImportExport.class),
             @XmlElement(name = SelectDataImportExport.XmlElementName, type = SelectDataImportExport.class),
             @XmlElement(name = ReferenceTypeDataImportExport.XmlElementName, type = ReferenceTypeDataImportExport.class),
+            @XmlElement(name = SystemFieldDataImportExport.XmlElementName, type = SystemFieldDataImportExport.class),
+            @XmlElement(name = NumberDataImportExport.XmlElementName, type = NumberDataImportExport.class),
     })
     private BaseFieldDataImportExport data;
 

@@ -1,11 +1,10 @@
 <div class="container-fluid">
   <div class="row language-listing">
     <div class="col-md-10 offset-md-1">
-      <div class="row mb-4 mt-4">
-        <div class="col">
-          <app-navigation-breadcrumb />
-        </div>
-        <div class="col-auto">
+      <app-admin-page-header
+        titleKey="LANGUAGE-LISTING.TITLE"
+        descriptionKey="LANGUAGE-LISTING.DESCRIPTION">
+        <ng-container actions>
           @if (authService.hasPermission(authService.permissionEnum.EditLanguage)) {
             <button mat-flat-button color="accent" class="padded-shadow-btn"
               [routerLink]="routerUtils.generateUrl(['/languages/new'])">
@@ -13,89 +12,76 @@
               {{'LANGUAGE-LISTING.CREATE' | translate}}
             </button>
           }
-        </div>
-      </div>
+        </ng-container>
+      </app-admin-page-header>
 
-      <app-hybrid-listing [rows]="gridRows" [columns]="gridColumns" [visibleColumns]="visibleColumns"
+      <app-admin-listing [rows]="gridRows" [columns]="gridColumns" [visibleColumns]="visibleColumns"
         [count]="totalElements" [offset]="currentPageNumber" [limit]="lookup.page.size"
-        [defaultSort]="lookup.order?.items" [externalSorting]="true" (rowActivated)="onRowActivated($event)"
+        [defaultSort]="$safeNavigationMigration(lookup.order?.items)" [loadingIndicator]="isListingLoading" [hasActiveFilters]="hasActiveFilters" (clearFilters)="clearAllFilters()" (rowActivated)="onRowActivated($event)"
         (pageLoad)="alterPage($event)" (columnSort)="onColumnSort($event)"
-        (columnsChanged)="onColumnsChanged($event)" [listItemTemplate]="listItemTemplate">
+        (columnsChanged)="onColumnsChanged($event)" [scope]="scope" [scopeCounts]="scopeCounts" (scopeChange)="onScopeChange($event)" [showDeleted]="showDeleted" (showDeletedChange)="onShowDeletedChange($event)" [tenantName]="tenantName" [rowLink]="rowLink" [createRoute]="routerUtils.generateUrl(['/languages/new'])" [canCreate]="authService.hasPermission(authService.permissionEnum.EditLanguage)" [searchTerm]="lookup.like" (searchChange)="onSearchChange($event)" [rowEditable]="rowEditable">
 
-        <app-language-listing-filters hybrid-listing-filters [(filter)]="lookup"
-          (filterChange)="filterChanged($event)" [hasSelectedTenant]="authService.selectedTenant() != 'default'"/>
+        <app-language-listing-filters listing-filters [(filter)]="lookup"
+          (filterChange)="filterChanged($event)" [hasSelectedTenant]="authService.selectedTenant() !== 'default'"/>
 
           <app-user-settings-picker [key]="userSettingsKey" [userPreference]="lookup"
             (onSettingSelected)="changeSetting($event)" [autoSelectUserSettings]="autoSelectUserSettings"
             user-preference-settings />
-          </app-hybrid-listing>
+          </app-admin-listing>
 
         </div>
       </div>
     </div>
 
-    <ng-template #listItemTemplate let-item="item" let-isColumnSelected="isColumnSelected">
 
+      <ng-template #nameCell let-row="row">
+        <span class="language-name">{{ languageService.getLanguageName($safeNavigationMigration(row?.code)) }}</span>
+        <app-tenant-shared-chip [item]="row" />
+        @if (row?.code === languageService.getDefaultLanguagesCode()) {
+          <span class="language-default" [matTooltip]="'LANGUAGE-LISTING.DEFAULT-HINT' | translate">{{ 'LANGUAGE-LISTING.DEFAULT' | translate }}</span>
+        }
+        <span class="language-code">{{ $safeNavigationMigration(row?.code) | nullifyValue }}</span>
+      </ng-template>
 
-      <div class="d-flex align-items-center p-3 gap-1-rem">
-        <div class="row">
-          @if (isColumnSelected('code')) {
-            <a class="buttonLinkClass" [routerLink]="routerUtils.generateUrl('./' + item?.id)" class="col-12"
-            (click)="$event.stopPropagation()">{{item?.code | nullifyValue}}</a>
-            <br />
+      <ng-template #textsCell let-row="row">
+        @if (isBuiltIn(row)) {
+          @if (textCount(row) === 0) {
+            <span>{{ 'LANGUAGE-LISTING.TEXTS.BUILT-IN-UNCHANGED' | translate }}</span>
+          } @else {
+            <span>{{ 'LANGUAGE-LISTING.TEXTS.BUILT-IN-CHANGED' | translate: { count: textCount(row) } }}</span>
           }
-
-          @if (isColumnSelected('status')) {
-            <div class="col-auto">
-              <div class="status-chip"
-                [ngClass]="{'status-chip-finalized': item.status === descriptionTemplateTypeStatuses.Finalized, 'status-chip-draft' : item.status === descriptionTemplateTypeStatuses.Draft}">
-                {{enumUtils.toDescriptionTemplateTypeStatusString(item.status) | nullifyValue}}
-              </div>
-            </div>
-          }
-
-          @if (isColumnSelected('createdAt')) {
-            <span class="col-12">
-              {{'LANGUAGE-LISTING.FIELDS.CREATED-AT' | translate}}:
-              <small>
-                {{item?.createdAt | dateTimeFormatter : 'short' | nullifyValue}}
-              </small>
-            </span>
-            <br>
-            }
-            @if (isColumnSelected('updatedAt')) {
-              <span class="col-12">
-                {{'LANGUAGE-LISTING.FIELDS.UPDATED-AT' | translate}}:
-                <small>
-                  {{item?.updatedAt | dateTimeFormatter : 'short' | nullifyValue}}
-                </small>
-              </span>
-            }
-          </div>
-        </div>
+        } @else {
+          <span>{{ 'LANGUAGE-LISTING.TEXTS.CUSTOM' | translate: { count: textCount(row), total: englishTextCount } }}</span>
+        }
       </ng-template>
 
       <ng-template #actions let-row="row" let-item>
-        @if (canEdit(row) || canDelete(row)) {
-          <div class="row" (click)="$event.stopPropagation()">
-            <div class="col-auto">
-              <button mat-icon-button [matMenuTriggerFor]="actionsMenu" [attr.aria-label]="'ALT-TEXT.MORE-ACTIONS' | translate">
-                <mat-icon>more_horiz</mat-icon>
-              </button>
-              <mat-menu #actionsMenu="matMenu">
-                @if (canEdit(row)) {
-                  <a mat-menu-item [routerLink]="routerUtils.generateUrl(['/languages/', row.id])">
-                    <mat-icon aria-hidden>edit</mat-icon>{{'LANGUAGE-LISTING.ACTIONS.EDIT' | translate}}
-                  </a>
-                }
-                @if (canDelete(row)) {
-                  <button mat-menu-item (click)="deleteType(row.id)">
-                    <mat-icon aria-hidden>delete</mat-icon>
-                    {{'LANGUAGE-LISTING.ACTIONS.DELETE' | translate}}
-                  </button>
-                }
-              </mat-menu>
-            </div>
+          <div class="d-inline-block" tabindex="-1" (click)="$event.stopPropagation()" (keydown)="$event.stopPropagation()">
+            <button mat-icon-button [matMenuTriggerFor]="actionsMenu" [attr.aria-label]="'ALT-TEXT.MORE-ACTIONS' | translate">
+              <mat-icon>more_horiz</mat-icon>
+            </button>
+            <mat-menu #actionsMenu="matMenu">
+              @if (!canEdit(row)) {
+                <a mat-menu-item [routerLink]="routerUtils.generateUrl(['/languages/', row.id])">
+                  <mat-icon aria-hidden="true">visibility</mat-icon>{{'COMMONS.TENANT-SHARED.VIEW' | translate}}
+                </a>
+              }
+              @if (row?.belongsToCurrentTenant === false) {
+                <span mat-menu-item disabled class="al-menu-note" [matTooltip]="'COMMONS.TENANT-SHARED.TOOLTIP' | translate">
+                  <mat-icon aria-hidden="true">lock</mat-icon>{{'ADMIN-LISTING.EDIT-ON-DEFAULT' | translate}}
+                </span>
+              }
+              @if (canEdit(row)) {
+                <a mat-menu-item [routerLink]="routerUtils.generateUrl(['/languages/', row.id])">
+                  <mat-icon aria-hidden="true">edit</mat-icon>{{'LANGUAGE-LISTING.ACTIONS.EDIT' | translate}}
+                </a>
+              }
+              @if (canDelete(row)) {
+                <button mat-menu-item (click)="deleteType(row.id)">
+                  <mat-icon aria-hidden="true">delete</mat-icon>
+                  {{'LANGUAGE-LISTING.ACTIONS.DELETE' | translate}}
+                </button>
+              }
+            </mat-menu>
           </div>
-        }
       </ng-template>

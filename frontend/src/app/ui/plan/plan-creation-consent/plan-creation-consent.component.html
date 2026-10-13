@@ -1,0 +1,16 @@
+@if (selectedBlueprint?.definition?.planCreationConsent?.enabled) {
+  <div class="plan-consent" >
+    <mat-checkbox
+      class="plan-consent__checkbox"
+      [checked]="checked"
+      (change)="onChange($event.checked)">
+      <span class="plan-consent__label">{{ selectedBlueprint.definition.planCreationConsent.message }}</span>
+    </mat-checkbox>
+
+    @if (selectedBlueprint?.definition?.planCreationConsent?.details?.length > 0) {
+      <div class="plan-consent__details" [innerHTML]="selectedBlueprint.definition.planCreationConsent.details"></div>
+    }
+
+  </div>
+}
+

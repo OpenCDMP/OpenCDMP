@@ -1,6 +1,74 @@
-.insert-manually {
-    text-decoration: underline;
-    color: var(--link-color);
-    cursor: pointer;
-    font-weight: 400;
+// Reference-type mode: heading + permanent search bar (autocomplete) + selected cards.
+.reference-field--heading {
+    display: block;
+    margin-bottom: 0.5rem;
+    color: var(--mat-sys-on-surface);
+    font-weight: 500;
+
+    .reference-field--required {
+        color: var(--mat-sys-error);
+    }
+}
+
+.selected-references {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+}
+
+.reference-field--error {
+    display: block;
+    margin-top: 0.5rem;
+    color: var(--mat-sys-error);
+    font-size: 0.85rem;
+}
+
+.reference-field--hint {
+    display: block;
+    margin-top: 0.375rem;
+    color: var(--mat-sys-on-surface-variant);
+    font-size: 0.8rem;
+}
+
+// Search field: the autocomplete's own chips are hidden (selected items show as cards below);
+// a leading search icon makes the outlined field read as a search bar rather than a select.
+.reference-field--search-field {
+    .reference-field--search-prefix {
+        margin-right: 0.5rem;
+        color: var(--mat-sys-on-surface-variant);
+    }
+
+    // Hide the autocomplete's drop-down arrow — this is a search, not a pick-list.
+    ::ng-deep .align-arrow-right {
+        display: none;
+    }
+
+    // Selected references render as cards below, so hide the built-in chip list.
+    ::ng-deep app-multiple-auto-complete .chip-list {
+        display: none;
+    }
+}
+
+// "Couldn't find it? Insert manually" row.
+.reference-field--add-manually {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+    flex-wrap: wrap;
+
+    .reference-field--not-found {
+        color: var(--mat-sys-on-surface-variant);
+        font-size: 0.85rem;
+    }
+
+    button mat-icon {
+        margin-right: 0.25rem;
+        width: 1.125rem;
+        height: 1.125rem;
+        font-size: 1.125rem;
+        line-height: 1.125rem;
+    }
 }

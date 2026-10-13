@@ -1,0 +1,124 @@
+@use '../shared/pills' as pills;
+
+:host {
+	display: block;
+}
+
+.copy-panel--toolbar {
+	display: flex;
+	flex-direction: column;
+	gap: 0.75rem;
+	margin-bottom: 1rem;
+
+	.copy-panel--title {
+		margin: 0;
+		font-size: var(--mat-sys-title-medium-size);
+		font-weight: 600;
+	}
+	.copy-panel--controls {
+		display: flex;
+		align-items: center;
+		flex-wrap: wrap;
+		gap: 0.75rem 1rem;
+	}
+	.copy-panel--search {
+		flex: 1;
+		min-width: 220px;
+		max-width: 360px;
+	}
+}
+
+.pill-toggle {
+	@include pills.pill-toggle-group;
+}
+
+.copy-list {
+	display: flex;
+	flex-direction: column;
+	gap: 0.75rem;
+	margin: 0;
+	padding: 0;
+	list-style: none;
+
+	.copy-list--more {
+		display: flex;
+		justify-content: center;
+		padding: 0.5rem 0;
+	}
+}
+
+.copy-row {
+	display: flex;
+	align-items: center;
+	gap: 1rem;
+	width: 100%;
+	padding: 1rem 1.25rem;
+	border-radius: 12px;
+	border: 1px solid var(--mat-sys-outline-variant);
+	background-color: var(--mat-sys-surface);
+	color: inherit;
+	font: inherit;
+	text-align: left;
+	cursor: pointer;
+	transition: border-color 120ms ease;
+
+	&:hover:not(:disabled) {
+		border-color: var(--mat-sys-secondary);
+		.copy-row--icon { color: var(--mat-sys-secondary); }
+	}
+	&:disabled {
+		cursor: not-allowed;
+		.copy-row--info { opacity: 0.55; }
+	}
+
+	.copy-row--info {
+		flex: 1;
+		min-width: 0;
+		display: flex;
+		flex-direction: column;
+		gap: 0.3rem;
+	}
+	.copy-row--heading {
+		display: flex;
+		align-items: center;
+		flex-wrap: wrap;
+		gap: 0.5rem;
+	}
+	.copy-row--title {
+		font-weight: 600;
+		font-size: var(--mat-sys-body-large-size);
+	}
+	.copy-row--template {
+		color: var(--mat-sys-on-surface-variant);
+		font-size: var(--mat-sys-body-medium-size);
+	}
+	.copy-row--meta {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.3rem;
+		color: var(--mat-sys-on-surface-variant);
+		font-size: var(--mat-sys-label-large-size);
+		mat-icon { font-size: 16px; width: 16px; height: 16px; }
+	}
+	.copy-row--icon {
+		flex-shrink: 0;
+		color: var(--mat-sys-outline);
+	}
+}
+
+.type-chip {
+	@include pills.type-chip;
+}
+
+.no-descriptions {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 0.75rem;
+	padding: 3rem 1rem;
+	text-align: center;
+	color: var(--mat-sys-on-surface-variant);
+	font-size: var(--mat-sys-body-large-size);
+	.no-descriptions--icon { font-size: 2.5rem; width: 2.5rem; height: 2.5rem; opacity: 0.5; }
+	p { margin: 0; }
+}

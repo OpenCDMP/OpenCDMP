@@ -2,16 +2,18 @@ import { Injectable } from '@angular/core';
 import { IsActive } from '@app/core/common/enum/is-active.enum';
 import { ReferenceSourceType } from '@app/core/common/enum/reference-source-type';
 import { PlanReference } from '@app/core/model/plan/plan-reference';
-import { Definition, Field, Reference, ReferenceExist, ReferencePersist } from '@app/core/model/reference/reference';
+import { ReferenceDefinition, ReferenceField, Reference, ReferenceExist, ReferencePersist, ReferenceSourceTestResult } from '@app/core/model/reference/reference';
 import { ReferenceSearchDefinitionLookup, ReferenceSearchLookup } from '@app/core/query/reference-search.lookup';
 import { ReferenceLookup } from '@app/core/query/reference.lookup';
+import { ReferenceUsageLookup } from '@app/core/query/reference-usage.lookup';
+import { ReferenceUsage } from '@app/core/model/reference/reference-usage';
 import { MultipleAutoCompleteConfiguration } from '@app/library/auto-complete/multiple/multiple-auto-complete-configuration';
 import { SingleAutoCompleteConfiguration } from '@app/library/auto-complete/single/single-auto-complete-configuration';
 import { QueryResult } from '@common/model/query-result';
 import { FilterService } from '@common/modules/text-filter/filter-service';
 import { Guid } from '@common/types/guid';
 import { Observable, throwError } from 'rxjs';
-import { catchError, filter, map } from 'rxjs/operators';
+import { catchError, map } from 'rxjs/operators';
 import { nameof } from 'ts-simple-nameof';
 import { ConfigurationService } from '../configuration/configuration.service';
 import { BaseHttpV2Service } from '../http/base-http-v2.service';
@@ -38,6 +40,12 @@ export class ReferenceService {
 		return this.http.post<QueryResult<Reference>>(url, q).pipe(catchError((error: any) => throwError(error)));
 	}
 
+	/** The references linked to the plans or descriptions visible to the caller, with how many link to each. */
+	usage(q: ReferenceUsageLookup): Observable<QueryResult<ReferenceUsage>> {
+		const url = `${this.apiBase}/usage`;
+		return this.http.post<QueryResult<ReferenceUsage>>(url, q).pipe(catchError((error: any) => throwError(error)));
+	}
+
 	searchWithDefinition(q: ReferenceSearchDefinitionLookup): Observable<Reference[]> {
 		const url = `${this.apiBase}/search`;
 		return this.http.post<Reference[]>(url, q).pipe(catchError((error: any) => throwError(error)));
@@ -46,6 +54,11 @@ export class ReferenceService {
 	testDefinition(q: ReferenceTestLookup): Observable<Reference[]> {
 		const url = `${this.apiBase}/test`;
 		return this.http.post<Reference[]>(url, q).pipe(catchError((error: any) => throwError(error)));
+	}
+
+	testSource(q: ReferenceTestLookup): Observable<ReferenceSourceTestResult> {
+		const url = `${this.apiBase}/test-source`;
+		return this.http.post<ReferenceSourceTestResult>(url, q).pipe(catchError((error: any) => throwError(error)));
 	}
 
 	findReference(reference: string, referenceTypeId: Guid, reqFields: string[] = []): Observable<ReferenceExist> {
@@ -106,7 +119,7 @@ export class ReferenceService {
 		};
 	}
 
-	private buildAutocompleteQueryLookup(referenceTypeIds?: Guid[], sourceTypes?: ReferenceSourceType[], like?: string, excludedIds?: Guid[], ids?: Guid[]): ReferenceLookup {
+	public buildAutocompleteQueryLookup(referenceTypeIds?: Guid[], sourceTypes?: ReferenceSourceType[], like?: string, excludedIds?: Guid[], ids?: Guid[]): ReferenceLookup {
 		const lookup: ReferenceLookup = new ReferenceLookup();
 		lookup.page = { size: 100, offset: 0 };
 		if (excludedIds && excludedIds.length > 0) { lookup.excludedIds = excludedIds; }
@@ -167,9 +180,9 @@ export class ReferenceService {
 				nameof<Reference>(x => x.type),
 				[nameof<Reference>(x => x.type), nameof<ReferenceType>(x => x.id)].join('.'),
 				nameof<Reference>(x => x.description),
-				[nameof<Reference>(x => x.definition), nameof<Definition>(x => x.fields), nameof<Field>(x => x.code)].join('.'),
-				[nameof<Reference>(x => x.definition), nameof<Definition>(x => x.fields), nameof<Field>(x => x.dataType)].join('.'),
-				[nameof<Reference>(x => x.definition), nameof<Definition>(x => x.fields), nameof<Field>(x => x.value)].join('.'),
+				[nameof<Reference>(x => x.definition), nameof<ReferenceDefinition>(x => x.fields), nameof<ReferenceField>(x => x.code)].join('.'),
+				[nameof<Reference>(x => x.definition), nameof<ReferenceDefinition>(x => x.fields), nameof<ReferenceField>(x => x.dataType)].join('.'),
+				[nameof<Reference>(x => x.definition), nameof<ReferenceDefinition>(x => x.fields), nameof<ReferenceField>(x => x.value)].join('.'),
 				nameof<Reference>(x => x.reference),
 				nameof<Reference>(x => x.abbreviation),
 				nameof<Reference>(x => x.source),
@@ -219,9 +232,9 @@ export class ReferenceService {
 				nameof<Reference>(x => x.type),
 				[nameof<Reference>(x => x.type), nameof<ReferenceType>(x => x.id)].join('.'),
 				nameof<Reference>(x => x.description),
-				[nameof<Reference>(x => x.definition), nameof<Definition>(x => x.fields), nameof<Field>(x => x.code)].join('.'),
-				[nameof<Reference>(x => x.definition), nameof<Definition>(x => x.fields), nameof<Field>(x => x.dataType)].join('.'),
-				[nameof<Reference>(x => x.definition), nameof<Definition>(x => x.fields), nameof<Field>(x => x.value)].join('.'),
+				[nameof<Reference>(x => x.definition), nameof<ReferenceDefinition>(x => x.fields), nameof<ReferenceField>(x => x.code)].join('.'),
+				[nameof<Reference>(x => x.definition), nameof<ReferenceDefinition>(x => x.fields), nameof<ReferenceField>(x => x.dataType)].join('.'),
+				[nameof<Reference>(x => x.definition), nameof<ReferenceDefinition>(x => x.fields), nameof<ReferenceField>(x => x.value)].join('.'),
 				nameof<Reference>(x => x.reference),
 				nameof<Reference>(x => x.abbreviation),
 				nameof<Reference>(x => x.source),

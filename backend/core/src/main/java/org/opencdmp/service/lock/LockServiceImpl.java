@@ -12,6 +12,7 @@ import gr.cite.tools.fieldset.BaseFieldSet;
 import gr.cite.tools.fieldset.FieldSet;
 import gr.cite.tools.logging.LoggerService;
 import gr.cite.tools.logging.MapLogEntry;
+import jakarta.persistence.LockModeType;
 import org.opencdmp.authorization.AffiliatedResource;
 import org.opencdmp.authorization.AuthorizationFlags;
 import org.opencdmp.authorization.Permission;
@@ -176,13 +177,23 @@ public class LockServiceImpl implements LockService {
     }
 
     public void unlock(UUID target) throws InvalidApplicationException {
-        LockEntity lock = this.queryFactory.query(LockQuery.class).authorize(AuthorizationFlags.AllExceptPublic).targetIds(target).first();
+        LockEntity lock = this.queryFactory.query(LockQuery.class).disableTracking().authorize(AuthorizationFlags.AllExceptPublic).targetIds(target).first();
 
-        if (lock == null) throw new MyNotFoundException(this.messageSource.getMessage("General_ItemNotFound", new Object[]{target, Lock.class.getSimpleName()}, LocaleContextHolder.getLocale()));
+        // already released, e.g. by a concurrent unlock: the target is unlocked, which is what was asked
+        if (lock == null) return;
         if (!lock.getLockedBy().equals(this.userScopeFactory.getInstance().getUserId())) {
             throw new InvalidApplicationException("Only the user who created that lock can delete it");
         }
-        this.deleteAndSave(lock.getId(), lock.getTarget());
+        AffiliatedResource affiliatedResourcePlan = this.authorizationContentResolverFactory.getInstance().planAffiliation(target);
+        AffiliatedResource affiliatedResourceDescription = this.authorizationContentResolverFactory.getInstance().descriptionAffiliation(target);
+        AffiliatedResource affiliatedResourceDescriptionTemplate = this.authorizationContentResolverFactory.getInstance().descriptionTemplateAffiliation(target);
+        this.authorizationService.authorizeAtLeastOneForce(List.of(affiliatedResourcePlan, affiliatedResourceDescription, affiliatedResourceDescriptionTemplate), Permission.DeleteLock);
+
+        // row lock first: a concurrent unlock waits here until the first commits and then finds the row gone, instead of failing the deleter's flush
+        LockEntity lockedRow = this.tenantEntityManagerFactory.getInstance().getEntityManager().find(LockEntity.class, lock.getId(), LockModeType.PESSIMISTIC_WRITE);
+        if (lockedRow == null) return;
+
+        this.deleterFactory.deleter(LockDeleter.class).deleteAndSave(List.of(lockedRow));
     }
 
     public void unlockMultipleTargets(UnlockMultipleTargetsPersist model) throws InvalidApplicationException {

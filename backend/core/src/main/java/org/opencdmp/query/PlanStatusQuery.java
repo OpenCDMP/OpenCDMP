@@ -10,6 +10,7 @@ import jakarta.persistence.criteria.Predicate;
 import org.opencdmp.authorization.AuthorizationFlags;
 import org.opencdmp.commons.enums.IsActive;
 import org.opencdmp.data.PlanStatusEntity;
+import org.opencdmp.data.TenantEntity;
 import org.opencdmp.data.TenantEntityManagerFactory;
 import org.opencdmp.model.planstatus.PlanStatus;
 import org.opencdmp.query.utils.QueryUtilsService;
@@ -33,6 +34,11 @@ public class PlanStatusQuery extends QueryBase<PlanStatusEntity> {
     private Collection<org.opencdmp.commons.enums.PlanStatus> internalStatuses;
 
     private Collection<UUID> excludedIds;
+
+    private TenantQuery tenantQuery;
+
+    /** null: any row; false: only rows without a tenant (the default tenant's shared rows); true: only tenant-owned rows. */
+    private Boolean tenantIsSet;
 
     private EnumSet<AuthorizationFlags> authorize = EnumSet.of(AuthorizationFlags.None);
 
@@ -112,6 +118,16 @@ public class PlanStatusQuery extends QueryBase<PlanStatusEntity> {
         return this;
     }
 
+    public PlanStatusQuery tenantIsSet(Boolean value) {
+        this.tenantIsSet = value;
+        return this;
+    }
+
+    public PlanStatusQuery tenantSubQuery(TenantQuery tenantQuery) {
+        this.tenantQuery = tenantQuery;
+        return this;
+    }
+
     public PlanStatusQuery authorize(EnumSet<AuthorizationFlags> values) {
         this.authorize = values;
         return this;
@@ -171,6 +187,14 @@ public class PlanStatusQuery extends QueryBase<PlanStatusEntity> {
             for (UUID item : this.excludedIds)
                 notInClause.value(item);
             predicates.add(notInClause.not());
+        }
+        if (this.tenantIsSet != null) {
+            predicates.add(this.tenantIsSet ? queryContext.CriteriaBuilder.isNotNull(queryContext.Root.get(PlanStatusEntity._tenantId)) : queryContext.CriteriaBuilder.isNull(queryContext.Root.get(PlanStatusEntity._tenantId)));
+        }
+
+        if (this.tenantQuery != null) {
+            QueryContext<TenantEntity, UUID> subQuery = this.applySubQuery(this.tenantQuery, queryContext, UUID.class, tenantEntityRoot -> tenantEntityRoot.get(TenantEntity._id));
+            predicates.add(queryContext.CriteriaBuilder.in(queryContext.Root.get(PlanStatusEntity._tenantId)).value(subQuery.Query));
         }
         if (!predicates.isEmpty()) {
             Predicate[] predicatesArray = predicates.toArray(new Predicate[0]);

@@ -1,3 +1,10 @@
 ﻿@if (previewPropertiesFormGroup) {
-  <app-description-form [propertiesFormGroup]="previewPropertiesFormGroup" [descriptionTemplate]="descriptionTemplate" [visibilityRulesService]="visibilityRulesService" [isNew]="true"></app-description-form>
+    <app-description-form 
+        [propertiesFormGroup]="previewPropertiesFormGroup"
+        [formGroup]="formGroup"
+        [descriptionTemplate]="descriptionTemplate"
+        [visibilityRulesService]="visibilityRulesService"
+        [canEdit]="true"
+        [isNew]="true"
+    ></app-description-form>
 }

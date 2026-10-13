@@ -100,7 +100,7 @@ public class DescriptionCommonModelBuilder extends BaseCommonModelBuilder<Descri
         Map<UUID, PlanModel> plans = this.collectPlans(data);
 
         Map<UUID, DefinitionEntity> definitionEntityMap =  this.collectDescriptionTemplateDefinitions(data);
-        Map<UUID, UUID> planDescriptionTemplateSections =  this.collectPlanDescriptionTemplateSections(data);
+        Map<UUID, String> planDescriptionTemplateSections =  this.collectPlanDescriptionTemplateSections(data);
 
         Map<UUID, DescriptionStatusModel> descriptionStatuses =  this.collectDescriptionStatuses(data);
         Map<UUID, List<String>> descriptionTagsMap = this.collectDescriptionTags(data);
@@ -121,8 +121,10 @@ public class DescriptionCommonModelBuilder extends BaseCommonModelBuilder<Descri
                 PropertyDefinitionEntity propertyDefinition = this.jsonHandlingService.fromJsonSafe(PropertyDefinitionEntity.class, d.getProperties());
                 DefinitionEntity definition = definitionEntityMap != null ? definitionEntityMap.getOrDefault(d.getDescriptionTemplateId(), null) : null;
                 m.setProperties(this.builderFactory.builder(PropertyDefinitionCommonModelBuilder.class).useSharedStorage(this.useSharedStorage).withDefinition(definition).authorize(this.authorize).build(propertyDefinition));
-                VisibilityService visibilityService = new VisibilityServiceImpl(definition, propertyDefinition);
-                m.setVisibilityStates(this.builderFactory.builder(VisibilityStateModelBuilder.class).authorize(this.authorize).build(visibilityService.getVisibilityStates().entrySet().stream().toList()));
+                if (definition != null) {
+                    VisibilityService visibilityService = VisibilityServiceImpl.fromEntity(definition.getSections(), propertyDefinition.getFieldSets());
+                    m.setVisibilityStates(this.builderFactory.builder(VisibilityStateModelBuilder.class).authorize(this.authorize).build(visibilityService.getVisibilityStates().entrySet().stream().toList()));
+                }
             }
             if (descriptionTagsMap != null && descriptionTagsMap.containsKey(d.getId())) m.setTags(descriptionTagsMap.get(d.getId()));
             models.add(new CommonModelBuilderItemResponse<>(m, d));
@@ -149,12 +151,12 @@ public class DescriptionCommonModelBuilder extends BaseCommonModelBuilder<Descri
         return itemMap;
     }
 
-    private Map<UUID, UUID> collectPlanDescriptionTemplateSections(List<DescriptionEntity> data) throws MyApplicationException {
+    private Map<UUID, String> collectPlanDescriptionTemplateSections(List<DescriptionEntity> data) throws MyApplicationException {
         if (data.isEmpty())
             return null;
         this.logger.debug("checking related - {}", DefinitionEntity.class.getSimpleName());
 
-        Map<UUID, UUID> itemMap = new HashMap<>();
+        Map<UUID, String> itemMap = new HashMap<>();
         PlanDescriptionTemplateQuery q = null;
         List<PlanDescriptionTemplateEntity> items;
         if (this.isPublic) {

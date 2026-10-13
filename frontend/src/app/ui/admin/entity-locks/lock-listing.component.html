@@ -2,83 +2,56 @@
   <div class="row lock-listing">
     <div class="col-md-10 offset-md-1">
 
-      <div class="row mb-4 mt-4">
-        <div class="col">
-          <app-navigation-breadcrumb />
-        </div>
-      </div>
+      <app-admin-page-header
+        titleKey="LOCK-LISTING.TITLE"
+        descriptionKey="LOCK-LISTING.DESCRIPTION">
+      </app-admin-page-header>
 
-      <app-hybrid-listing [rows]="gridRows" [columns]="gridColumns" [visibleColumns]="visibleColumns"
+      <app-admin-listing [rows]="gridRows" [columns]="gridColumns" [visibleColumns]="visibleColumns"
         [count]="totalElements" [offset]="currentPageNumber" [limit]="lookup.page.size"
-        [defaultSort]="lookup.order?.items" [externalSorting]="true"
+        [defaultSort]="$safeNavigationMigration(lookup.order?.items)" [loadingIndicator]="isListingLoading"
+        [hasActiveFilters]="hasActiveFilters" (clearFilters)="clearAllFilters()"
         (pageLoad)="alterPage($event)" (columnSort)="onColumnSort($event)"
-        (columnsChanged)="onColumnsChanged($event)" [listItemTemplate]="listItemTemplate">
+        (columnsChanged)="onColumnsChanged($event)" [scope]="scope" [scopeCounts]="scopeCounts" (scopeChange)="onScopeChange($event)" [showDeleted]="showDeleted" (showDeletedChange)="onShowDeletedChange($event)" [tenantName]="tenantName" [rowLink]="rowLink" [searchTerm]="lookup.like" (searchChange)="onSearchChange($event)" [rowEditable]="rowEditable" emptyOwnMessageKey="ADMIN-LISTING.EMPTY-OWN.MESSAGE-SYSTEM-CREATED">
 
-        <app-lock-listing-filters hybrid-listing-filters [(filter)]="lookup"
+        <app-lock-listing-filters listing-filters [(filter)]="lookup"
           (filterChange)="filterChanged($event)" />
 
           <app-user-settings-picker [key]="userSettingsKey" [userPreference]="lookup"
             (onSettingSelected)="changeSetting($event)" [autoSelectUserSettings]="autoSelectUserSettings"
             user-preference-settings />
-          </app-hybrid-listing>
+          </app-admin-listing>
 
         </div>
       </div>
     </div>
 
 
-    <ng-template #listItemTemplate let-item="item" let-isColumnSelected="isColumnSelected">
 
-
-      <div class="d-flex align-items-center p-3 gap-1-rem">
-        <div class="row">
-          @if (isColumnSelected('targetType')) {
-            <span class="col-12">
-              {{'LOCK-LISTING.FIELDS.TARGET-TYPE' | translate}}:
-              <small>
-                {{enumUtils.toLockTargetTypeString(item.targetType) | nullifyValue}}
-              </small>
-            </span>
-            <br>
-            }
-            @if (isColumnSelected('lockedAt')) {
-              <span class="col-12">
-                {{'LOCK-LISTING.FIELDS.LOCKED-AT' | translate}}:
-                <small>
-                  {{item?.lockedAt | dateTimeFormatter : 'short' | nullifyValue}}
-                </small>
-              </span>
-              <br>
-              }
-              @if (isColumnSelected('touchedAt')) {
-                <span class="col-12">
-                  {{'LOCK-LISTING.FIELDS.TOUCHED-AT' | translate}}:
-                  <small>
-                    {{item?.touchedAt | dateTimeFormatter : 'short' | nullifyValue}}
-                  </small>
-                </span>
-              }
-
-            </div>
-          </div>
+        <ng-template #targetCell let-row="row" let-value="value">
+          @let link = targetLink(row);
+          @if (link) {
+            <a [routerLink]="link">{{ row.targetLabel || ('LOCK-LISTING.UNKNOWN-TARGET' | translate) }}</a>
+          } @else {
+            <span [matTooltip]="'LOCK-LISTING.TARGET-ELSEWHERE' | translate">{{ row.targetLabel || ('LOCK-LISTING.UNKNOWN-TARGET' | translate) }}</span>
+          }
+          <app-tenant-shared-chip [item]="row" />
         </ng-template>
 
         <ng-template #actions let-row="row" let-item>
           @if (canDelete(row)) {
-            <div  class="row" (click)="$event.stopPropagation()">
-              <div class="col-auto">
-                <button mat-icon-button [matMenuTriggerFor]="actionsMenu" [attr.aria-label]="'ALT-TEXT.MORE-ACTIONS' | translate">
-                  <mat-icon>more_horiz</mat-icon>
-                </button>
-                <mat-menu #actionsMenu="matMenu">
-                  @if (canDelete(row)) {
-                    <button mat-menu-item (click)="deleteType(row.id, row.target)">
-                      <mat-icon aria-hidden>delete</mat-icon>
-                      {{'LOCK-LISTING.ACTIONS.DELETE' | translate}}
-                    </button>
-                  }
-                </mat-menu>
-              </div>
+            <div class="d-inline-block" (click)="$event.stopPropagation()">
+              <button mat-icon-button [matMenuTriggerFor]="actionsMenu" [attr.aria-label]="'ALT-TEXT.MORE-ACTIONS' | translate">
+                <mat-icon>more_horiz</mat-icon>
+              </button>
+              <mat-menu #actionsMenu="matMenu">
+                @if (canDelete(row)) {
+                  <button mat-menu-item (click)="deleteType(row.id, row.target)">
+                    <mat-icon aria-hidden="true">delete</mat-icon>
+                    {{'LOCK-LISTING.ACTIONS.DELETE' | translate}}
+                  </button>
+                }
+              </mat-menu>
             </div>
           }
         </ng-template>

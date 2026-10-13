@@ -7,9 +7,7 @@ import { LogoutComponent } from './logout.component';
     imports: [
         CommonUiModule,
         LogoutRoutingModule,
-    ],
-    declarations: [
-        LogoutComponent
+        LogoutComponent,
     ]
 })
 export class LogoutModule { }

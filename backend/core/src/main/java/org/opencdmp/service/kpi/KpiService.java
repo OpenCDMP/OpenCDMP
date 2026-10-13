@@ -6,9 +6,13 @@ import org.opencdmp.integrationevent.outbox.indicator.IndicatorElasticEvent;
 import org.opencdmp.integrationevent.outbox.indicatorreset.IndicatorResetEvent;
 
 import javax.management.InvalidApplicationException;
+import java.util.List;
 import java.util.UUID;
 
 public interface KpiService {
+
+    record ReferenceIndicatorEntry(UUID referenceId, UUID planId) {}
+
 
     IndicatorElasticEvent createIndicator();
 
@@ -28,7 +32,13 @@ public interface KpiService {
 
     void sendIndicatorPointDescriptionTemplateCountEntryEvents() throws InvalidApplicationException;
 
+    void sendIndicatorPointPlanBlueprintTypeCountEntryEvents() throws InvalidApplicationException;
+
+    void sendIndicatorPointDescriptionTemplateTypeCountEntryEvents() throws InvalidApplicationException;
+
     void sendIndicatorPointTenantCountEntryEvents() throws InvalidApplicationException;
+
+    void sendDashboardTouchedEvents() throws InvalidApplicationException;
 
     //
     // single indicator point
@@ -41,7 +51,9 @@ public interface KpiService {
 
     void sendIndicatorPointDescriptionPerTemplateEntry(KpiDirectionType type, UUID descriptionId) throws InvalidApplicationException;
 
-    void sendIndicatorPointReferenceEntry(KpiDirectionType type, UUID referenceId) throws InvalidApplicationException;
+    void sendIndicatorPointReferenceEntry(KpiDirectionType type, UUID referenceId, UUID planId) throws InvalidApplicationException;
+
+    void sendIndicatorPointReferenceBatchEntry(KpiDirectionType type, List<ReferenceIndicatorEntry> entries) throws InvalidApplicationException;
 
     void sendIndicatorPointPlanBlueprintEntry(KpiDirectionType type, KpiVersionType versionType) throws InvalidApplicationException;
 
@@ -52,4 +64,12 @@ public interface KpiService {
     void sendIndicatorPointUserEntry(KpiDirectionType type, Boolean useDefaultTenantCode) throws InvalidApplicationException;
 
     void sendIndicatorPointTenantEntry(KpiDirectionType type) throws InvalidApplicationException;
+
+    void sendIndicatorPointPlanBlueprintPerTypeEntry(KpiDirectionType type, UUID blueprintId) throws InvalidApplicationException;
+
+    void sendIndicatorPointDescriptionTemplatePerTypeEntry(KpiDirectionType type, UUID descriptionTemplateTypeId) throws InvalidApplicationException;
+
+    void sendIndicatorPointPlanBlueprintTypeEntry(KpiDirectionType type) throws InvalidApplicationException;
+
+    void sendIndicatorPointDescriptionTemplateTypeEntry(KpiDirectionType type) throws InvalidApplicationException;
 }

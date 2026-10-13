@@ -1,6 +1,8 @@
 export enum ToCEntryType {
-	Page = 0,
-	Section = 1,
-	FieldSet = 2,
-	Field = 3
+	RootPlanSection = 0,
+    RootDescriptionSection = 1,
+	Section = 2,
+	FieldSet = 3,
+	Field = 4,
+    Description = 5
 }

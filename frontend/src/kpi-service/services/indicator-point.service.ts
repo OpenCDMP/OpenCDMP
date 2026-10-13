@@ -1,4 +1,4 @@
-import { HttpHeaders, HttpResponse } from "@angular/common/http";
+import { HttpResponse } from "@angular/common/http";
 import { Injectable } from "@angular/core";
 import { BaseHttpParams } from "@common/http/base-http-params";
 import { InterceptorType } from "@common/http/interceptors/interceptor-type";
@@ -23,7 +23,7 @@ export class IndicatorPointService {
     public getIndicatorPointReport(id: Guid | string, code: string, lookup: IndicatorPointReportLookup, skipLoader?: boolean,): Observable<AggregateResponseModel> {
 
 
-        let _id = id;
+        const _id = id;
 
         if (_id === 'inherited') {
             return of({

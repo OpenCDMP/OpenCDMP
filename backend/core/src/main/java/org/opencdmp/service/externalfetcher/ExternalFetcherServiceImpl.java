@@ -14,6 +14,7 @@ import io.netty.handler.ssl.util.InsecureTrustManagerFactory;
 import net.minidev.json.JSONArray;
 import org.opencdmp.commons.JsonHandlingService;
 import org.opencdmp.commons.enums.ExternalFetcherApiHeaderType;
+import org.opencdmp.commons.enums.ExternalFetcherApiResponseFormatType;
 import org.opencdmp.commons.enums.ExternalFetcherSourceType;
 import org.opencdmp.commons.types.externalfetcher.StaticOptionEntity;
 import org.opencdmp.convention.ConventionService;
@@ -24,6 +25,7 @@ import org.opencdmp.model.reference.Reference;
 import org.opencdmp.service.externalfetcher.config.entities.*;
 import org.opencdmp.service.externalfetcher.criteria.ExternalReferenceCriteria;
 import org.opencdmp.service.externalfetcher.models.ExternalDataResult;
+import org.opencdmp.service.externalfetcher.models.ExternalFetcherTestResult;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.ParameterizedTypeReference;
@@ -32,10 +34,26 @@ import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.ExchangeFilterFunction;
 import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.web.reactive.function.client.WebClientResponseException;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+import org.xml.sax.InputSource;
 import reactor.core.publisher.Mono;
 import reactor.netty.http.client.HttpClient;
 import tools.jackson.databind.json.JsonMapper;
 
+import javax.xml.XMLConstants;
+import javax.xml.namespace.NamespaceContext;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.xpath.XPath;
+import javax.xml.xpath.XPathConstants;
+import javax.xml.xpath.XPathExpression;
+import javax.xml.xpath.XPathExpressionException;
+import javax.xml.xpath.XPathFactory;
+import java.io.StringReader;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -44,6 +62,18 @@ import java.util.stream.Collectors;
 @Service
 public class ExternalFetcherServiceImpl implements ExternalFetcherService {
     private static final LoggerService logger = new LoggerService(LoggerFactory.getLogger(ExternalFetcherServiceImpl.class));
+
+    private static final XPathFactory XPATH_FACTORY = XPathFactory.newInstance();
+    private static final Pattern AT_PLACEHOLDER_PATTERN = Pattern.compile("@\\{\\{(.*?)}}");
+    private static final String FIRST_SUFFIX = ".first()";
+    // Matches "name", "./name", "name/@attr", "./name/@attr", optionally followed by "/text()"
+    private static final Pattern SIMPLE_CHILD_PATTERN = Pattern.compile("^(?:\\./)?([A-Za-z_][\\w.-]*)(?:/@([\\w-]+)|/text\\(\\))?$");
+    // Matches "@attr", "./@attr"
+    private static final Pattern SIMPLE_SELF_ATTR_PATTERN = Pattern.compile("^(?:\\./)?@([\\w-]+)$");
+    // Matches absolute "/list/repository" (no predicates, no functions)
+    private static final Pattern SIMPLE_ABSOLUTE_PATTERN = Pattern.compile("^/([A-Za-z_][\\w.-]*)(?:/([A-Za-z_][\\w.-]*))*$");
+    // Matches "//name" — descendant-or-self of root, single element name
+    private static final Pattern SIMPLE_DESCENDANT_PATTERN = Pattern.compile("^//([A-Za-z_][\\w.-]*)$");
 
     private WebClient webClient;
 	private final ConventionService conventionService;
@@ -104,7 +134,78 @@ public class ExternalFetcherServiceImpl implements ExternalFetcherService {
 
     @Override
     public Integer countExternalData(List<SourceBaseConfiguration> sources, ExternalReferenceCriteria externalReferenceCriteria, String key, boolean  isTestMode) {
-        return this.getExternalData(sources, externalReferenceCriteria, key,isTestMode).getResults().size();
+        ExternalDataResult fetched = this.getExternalData(sources, externalReferenceCriteria, key, isTestMode);
+        if (fetched.getTotal() != null) return fetched.getTotal();
+        return fetched.getResults().size();
+    }
+
+    private static final int TEST_BODY_MAX_LENGTH = 200_000;
+    private static final int TEST_ITEMS_MAX = 10;
+
+    @Override
+    public ExternalFetcherTestResult testSource(SourceBaseConfiguration source, ExternalReferenceCriteria externalReferenceCriteria) {
+        ExternalFetcherTestResult testResult = new ExternalFetcherTestResult();
+        if (source.getType() != null && source.getType().equals(ExternalFetcherSourceType.STATIC)) {
+            ExternalDataResult staticData = this.queryStaticData((SourceStaticOptionConfiguration) source, externalReferenceCriteria, true);
+            testResult.setResults(staticData.getResults());
+            testResult.setTotal(staticData.getResults().size());
+            return testResult;
+        }
+
+        SourceExternalApiConfiguration<ResultsConfiguration<ResultFieldsMappingConfiguration>, AuthenticationConfiguration, QueryConfig<QueryCaseConfig>, ExternalFetcherApiHeaderConfiguration> apiSource = (SourceExternalApiConfiguration) source;
+        long started = System.currentTimeMillis();
+        try {
+            String auth = null;
+            if (apiSource.getAuth() != null && apiSource.getAuth().getEnabled() != null && apiSource.getAuth().getEnabled()) {
+                try {
+                    auth = this.buildAuthentication(apiSource.getAuth());
+                } catch (Exception e) {
+                    testResult.setError("Authentication: " + e.getMessage());
+                    return testResult;
+                }
+            }
+
+            String replacedPath = this.replaceLookupFields(apiSource.getUrl(), apiSource, externalReferenceCriteria);
+            String replacedBody = this.replaceLookupFields(apiSource.getRequestBody(), apiSource, externalReferenceCriteria);
+            testResult.setUrl(replacedPath);
+
+            ResponseEntity<String> response;
+            try {
+                response = this.exchange(replacedPath, apiSource, replacedBody, auth);
+            } catch (WebClientResponseException e) {
+                testResult.setStatus(e.getStatusCode().value());
+                this.setTestBody(testResult, e.getResponseBodyAsString());
+                return testResult;
+            }
+            if (response == null) return testResult;
+            testResult.setStatus(response.getStatusCode().value());
+            this.setTestBody(testResult, response.getBody());
+            if (!response.getStatusCode().isSameCodeAs(HttpStatus.OK) || response.getBody() == null) return testResult;
+
+            // the extracted items are read on their own, so they show even before any field is mapped
+            if (apiSource.getResponseFormat() != ExternalFetcherApiResponseFormatType.XML && !this.conventionService.isNullOrEmpty(apiSource.getResults().getResultsArrayPath())) {
+                Object jsonData = JsonPath.parse(response.getBody()).read(apiSource.getResults().getResultsArrayPath());
+                List<Map<String, Object>> items = jsonData instanceof List ? (List<Map<String, Object>>) jsonData : Collections.singletonList((Map<String, Object>) jsonData);
+                testResult.setItems(items.stream().limit(TEST_ITEMS_MAX).toList());
+            }
+
+            ExternalDataResult externalDataResult = this.parseResponseBody(response.getBody(), apiSource);
+            this.applyLocalFilter(externalDataResult, apiSource, externalReferenceCriteria);
+            testResult.setResults(externalDataResult.getResults());
+            testResult.setTotal(externalDataResult.getTotal());
+        } catch (Exception e) {
+            logger.debug(e.getMessage(), e);
+            testResult.setError(e.getMessage());
+        } finally {
+            testResult.setDurationMs(System.currentTimeMillis() - started);
+        }
+        return testResult;
+    }
+
+    private void setTestBody(ExternalFetcherTestResult testResult, String body) {
+        if (body == null) return;
+        testResult.setBodyTruncated(body.length() > TEST_BODY_MAX_LENGTH);
+        testResult.setBody(body.length() > TEST_BODY_MAX_LENGTH ? body.substring(0, TEST_BODY_MAX_LENGTH) : body);
     }
 
     private ExternalDataResult queryExternalData(List<SourceBaseConfiguration> sources, ExternalReferenceCriteria externalReferenceCriteria, boolean isTestMode) {
@@ -274,11 +375,7 @@ public class ExternalFetcherServiceImpl implements ExternalFetcherService {
 
         ExternalDataResult externalDataResult = this.getExternalDataResults(replacedPath, apiSource, replacedBody, auth);
         if(externalDataResult != null) {
-            if (apiSource.getFilterType() != null && "local".equals(apiSource.getFilterType()) && (externalReferenceCriteria.getLike() != null && !externalReferenceCriteria.getLike().isEmpty())) {
-                externalDataResult.setResults(externalDataResult.getResults().stream()
-                        .filter(r -> r.get(ReferenceEntity.KnownFields.Label).toLowerCase().contains(externalReferenceCriteria.getLike().toLowerCase()))
-                        .collect(Collectors.toList()));
-            }
+            this.applyLocalFilter(externalDataResult, apiSource, externalReferenceCriteria);
             externalDataResult.setResults(externalDataResult.getResults().stream().peek(x -> x.put(ReferenceEntity.KnownFields.SourceLabel, apiSource.getLabel())).peek(x -> x.put(ReferenceEntity.KnownFields.Key, apiSource.getKey())).toList());
             return externalDataResult;
         }
@@ -287,50 +384,68 @@ public class ExternalFetcherServiceImpl implements ExternalFetcherService {
         }
     }
 
+    private void applyLocalFilter(ExternalDataResult externalDataResult, final SourceExternalApiConfiguration<ResultsConfiguration<ResultFieldsMappingConfiguration>, AuthenticationConfiguration, QueryConfig<QueryCaseConfig>, ExternalFetcherApiHeaderConfiguration> apiSource, ExternalReferenceCriteria externalReferenceCriteria) {
+        if (apiSource.getFilterType() != null && "local".equals(apiSource.getFilterType()) && (externalReferenceCriteria.getLike() != null && !externalReferenceCriteria.getLike().isEmpty())) {
+            externalDataResult.setResults(externalDataResult.getResults().stream()
+                    .filter(r -> r.get(ReferenceEntity.KnownFields.Label).toLowerCase().contains(externalReferenceCriteria.getLike().toLowerCase()))
+                    .collect(Collectors.toList()));
+            externalDataResult.setTotal(null);
+        }
+    }
+
     protected ExternalDataResult getExternalDataResults(String urlString, final SourceExternalApiConfiguration<ResultsConfiguration<ResultFieldsMappingConfiguration>, AuthenticationConfiguration, QueryConfig<QueryCaseConfig>, ExternalFetcherApiHeaderConfiguration>  apiSource, String requestBody, String auth) {
 
         try {
-            JsonNode jsonBody = new ObjectMapper().readTree(requestBody != null ? requestBody : "");
-            HttpMethod method;
-            switch (apiSource.getHttpMethod()) {
-                case GET -> method = HttpMethod.GET;
-                case POST -> method =HttpMethod.POST;
-                default -> throw new MyApplicationException("unrecognized type " + apiSource.getHttpMethod());
-            }
-
-            logger.debug(new MapLogEntry("Fetch data")
-                    .And("url", urlString)
-                    .And("body", jsonBody));
-            ResponseEntity<String> response;
-
-            if (!this.conventionService.isNullOrEmpty(requestBody) && method == HttpMethod.POST) {
-                response = this.getWebClient().method(method).uri(urlString).headers(httpHeaders -> {
-                    this.setHeaders(apiSource, httpHeaders, auth);
-                }).bodyValue(jsonBody).retrieve().toEntity(String.class).block();
-            }else {
-                response = this.getWebClient().method(method).uri(urlString).headers(httpHeaders -> {
-                    this.setHeaders(apiSource, httpHeaders, auth);
-                }).retrieve().toEntity(String.class).block();
-            }
+            ResponseEntity<String> response = this.exchange(urlString, apiSource, requestBody, auth);
 
             if (response == null || !response.getStatusCode().isSameCodeAs(HttpStatus.OK) || !response.hasBody() || response.getBody()  == null) return null;
 
-            //do here all the parsing
-            List<String> responseContentTypeHeader = response.getHeaders().getOrDefault("Content-Type", null);
-            String responseContentType =  !this.conventionService.isListNullOrEmpty(responseContentTypeHeader)  && responseContentTypeHeader.getFirst() != null ? responseContentTypeHeader.getFirst() : "";
-
-            if (responseContentType.contains("json") ) {
-                DocumentContext jsonContext = JsonPath.parse(response.getBody());
-                return this.jsonToExternalDataResult(jsonContext, apiSource.getResults());
-            } else {
-                throw new MyApplicationException("Unsupported response type" + responseContentType);
-            }
-
+            return this.parseResponseBody(response.getBody(), apiSource);
         } catch (Exception exception) {
             logger.error(exception.getMessage(), exception);
         }
 
         return null;
+    }
+
+    private ResponseEntity<String> exchange(String urlString, final SourceExternalApiConfiguration<ResultsConfiguration<ResultFieldsMappingConfiguration>, AuthenticationConfiguration, QueryConfig<QueryCaseConfig>, ExternalFetcherApiHeaderConfiguration>  apiSource, String requestBody, String auth) {
+        JsonNode jsonBody = new ObjectMapper().readTree(requestBody != null ? requestBody : "");
+        HttpMethod method;
+        switch (apiSource.getHttpMethod()) {
+            case GET -> method = HttpMethod.GET;
+            case POST -> method =HttpMethod.POST;
+            default -> throw new MyApplicationException("unrecognized type " + apiSource.getHttpMethod());
+        }
+
+        logger.debug(new MapLogEntry("Fetch data")
+                .And("url", urlString)
+                .And("body", jsonBody));
+
+        if (!this.conventionService.isNullOrEmpty(requestBody) && method == HttpMethod.POST) {
+            return this.getWebClient().method(method).uri(urlString).headers(httpHeaders -> {
+                this.setHeaders(apiSource, httpHeaders, auth);
+            }).bodyValue(jsonBody).retrieve().toEntity(String.class).block();
+        }
+        return this.getWebClient().method(method).uri(urlString).headers(httpHeaders -> {
+            this.setHeaders(apiSource, httpHeaders, auth);
+        }).retrieve().toEntity(String.class).block();
+    }
+
+    private ExternalDataResult parseResponseBody(String body, final SourceExternalApiConfiguration<ResultsConfiguration<ResultFieldsMappingConfiguration>, AuthenticationConfiguration, QueryConfig<QueryCaseConfig>, ExternalFetcherApiHeaderConfiguration>  apiSource) {
+        ExternalFetcherApiResponseFormatType responseFormat = apiSource.getResponseFormat();
+        if (responseFormat == null) responseFormat = ExternalFetcherApiResponseFormatType.JSON;
+
+        switch (responseFormat) {
+            case JSON: {
+                DocumentContext jsonContext = JsonPath.parse(body);
+                return this.jsonToExternalDataResult(jsonContext, apiSource.getResults(), apiSource.getPaginationPath());
+            }
+            case XML: {
+                return this.xmlToExternalDataResult(body, apiSource.getResults(), apiSource.getNamespaces(), apiSource.getPaginationPath());
+            }
+            default:
+                throw new MyApplicationException("Unsupported response format " + responseFormat);
+        }
     }
 
     private void setHeaders( final SourceExternalApiConfiguration<ResultsConfiguration<ResultFieldsMappingConfiguration>, AuthenticationConfiguration, QueryConfig<QueryCaseConfig>, ExternalFetcherApiHeaderConfiguration> apiSource , HttpHeaders httpHeaders, String auth){
@@ -438,9 +553,11 @@ public class ExternalFetcherServiceImpl implements ExternalFetcherService {
         }
     }
 
-    private ExternalDataResult jsonToExternalDataResult(DocumentContext jsonContext, ResultsConfiguration<ResultFieldsMappingConfiguration> resultsConfigurationEntity) {
+    private ExternalDataResult jsonToExternalDataResult(DocumentContext jsonContext, ResultsConfiguration<ResultFieldsMappingConfiguration> resultsConfigurationEntity, String paginationPath) {
         ExternalDataResult result = new ExternalDataResult();
         if (this.conventionService.isNullOrEmpty(resultsConfigurationEntity.getResultsArrayPath())) return new ExternalDataResult();
+        Integer jsonTotal = readJsonTotal(jsonContext, paginationPath);
+        if (jsonTotal != null) result.setTotal(jsonTotal);
         Object jsonData = jsonContext.read(resultsConfigurationEntity.getResultsArrayPath());
         List<Map<String, Object>> rawData = new ArrayList<>();
         if (jsonData instanceof List) {
@@ -525,6 +642,366 @@ public class ExternalFetcherServiceImpl implements ExternalFetcherService {
         }
 
         return jsonPathResponse.toString();
+    }
+
+    private ExternalDataResult xmlToExternalDataResult(String body, ResultsConfiguration<ResultFieldsMappingConfiguration> resultsConfiguration, List<? extends XmlNamespaceConfiguration> namespaces, String paginationPath) {
+        ExternalDataResult result = new ExternalDataResult();
+        if (this.conventionService.isNullOrEmpty(resultsConfiguration.getResultsArrayPath())) return new ExternalDataResult();
+
+        Document document;
+        try {
+            document = parseXmlSecurely(body);
+        } catch (Exception e) {
+            logger.error("Could not parse XML response: " + e.getMessage(), e);
+            return new ExternalDataResult();
+        }
+
+        XPath xpath = XPATH_FACTORY.newXPath();
+        boolean hasNamespaces = !this.conventionService.isListNullOrEmpty(namespaces);
+        if (hasNamespaces) {
+            xpath.setNamespaceContext(buildNamespaceContext(namespaces));
+        }
+
+        Integer xmlTotal = readXmlTotal(xpath, document, paginationPath);
+        if (xmlTotal != null) result.setTotal(xmlTotal);
+
+        String resultsArrayPath = resultsConfiguration.getResultsArrayPath();
+        List<Element> itemElements = null;
+        if (!hasNamespaces) {
+            itemElements = resolveItemNodesFast(document, resultsArrayPath);
+        }
+
+        NodeList itemNodes = null;
+        int itemCount;
+        if (itemElements != null) {
+            itemCount = itemElements.size();
+        } else {
+            try {
+                itemNodes = (NodeList) xpath.compile(resultsArrayPath).evaluate(document, XPathConstants.NODESET);
+            } catch (XPathExpressionException e) {
+                logger.error("Invalid XPath for resultsArrayPath '" + resultsArrayPath + "': " + e.getMessage(), e);
+                return new ExternalDataResult();
+            }
+            if (itemNodes == null) return new ExternalDataResult();
+            itemCount = itemNodes.getLength();
+        }
+        if (itemCount == 0) return new ExternalDataResult();
+
+        if (this.conventionService.isListNullOrEmpty(resultsConfiguration.getFieldsMapping())) {
+            return new ExternalDataResult();
+        }
+
+        List<CompiledFieldXPath> compiledFields = compileFieldXPaths(xpath, resultsConfiguration.getFieldsMapping());
+
+        List<Map<String, String>> parsedData = new ArrayList<>(itemCount);
+
+        for (int i = 0; i < itemCount; i++) {
+            Node itemNode = itemElements != null ? itemElements.get(i) : itemNodes.item(i);
+            if (itemNode == null) continue;
+            Element itemElement = itemNode.getNodeType() == Node.ELEMENT_NODE ? (Element) itemNode : null;
+
+            Map<String, String> map = new HashMap<>();
+            boolean isValid = true;
+            for (CompiledFieldXPath cf : compiledFields) {
+                try {
+                    String value;
+                    switch (cf.mode) {
+                        case CHILD_TEXT, CHILD_ATTR, SELF_ATTR -> {
+                            value = itemElement != null ? resolveFastField(itemElement, cf) : evaluateFastFallback(xpath, itemNode, cf);
+                        }
+                        case PLACEHOLDER -> {
+                            StringBuilder out = new StringBuilder();
+                            for (int s = 0; s < cf.literalSegments.size(); s++) {
+                                out.append(cf.literalSegments.get(s));
+                                if (s < cf.compiledPlaceholders.size()) {
+                                    String partValue = evaluateXPathString(cf.compiledPlaceholders.get(s), itemNode);
+                                    if (partValue != null) out.append(partValue);
+                                }
+                            }
+                            value = out.toString();
+                        }
+                        default -> value = evaluateXPathString(cf.compiledPath, itemNode);
+                    }
+                    map.put(cf.code, value);
+                } catch (XPathExpressionException e) {
+                    logger.debug("XPath Error: " + e.getMessage() + " on path " + cf.responsePath);
+                    if (ReferenceEntity.KnownFields.ReferenceId.equals(cf.code)) {
+                        isValid = false;
+                        break;
+                    }
+                }
+            }
+            if (this.conventionService.isNullOrEmpty(map.getOrDefault(ReferenceEntity.KnownFields.ReferenceId, null))) {
+                logger.warn("Invalid reference on XML source");
+                isValid = false;
+            }
+            if (isValid) parsedData.add(map);
+        }
+
+        result.setResults(parsedData);
+        return result;
+    }
+
+    private static String evaluateFastFallback(XPath xpath, Node itemNode, CompiledFieldXPath cf) throws XPathExpressionException {
+        // Reached when item is not an Element (shouldn't normally happen) — fall back to a one-off XPath compile.
+        return evaluateXPathString(xpath.compile(cf.responsePath), itemNode);
+    }
+
+    private enum FieldMode { CHILD_TEXT, CHILD_ATTR, SELF_ATTR, XPATH, PLACEHOLDER }
+
+    private static final class CompiledFieldXPath {
+        final String code;
+        final String responsePath;
+        final FieldMode mode;
+        // CHILD_TEXT/CHILD_ATTR: child element name; SELF_ATTR: null; XPATH/PLACEHOLDER: null
+        final String childName;
+        // CHILD_ATTR/SELF_ATTR: attribute name
+        final String attrName;
+        // XPATH fallback
+        final XPathExpression compiledPath;
+        // PLACEHOLDER mode
+        final List<String> literalSegments;
+        final List<XPathExpression> compiledPlaceholders;
+
+        CompiledFieldXPath(String code, String responsePath, FieldMode mode, String childName, String attrName,
+                           XPathExpression compiledPath, List<String> literalSegments, List<XPathExpression> compiledPlaceholders) {
+            this.code = code;
+            this.responsePath = responsePath;
+            this.mode = mode;
+            this.childName = childName;
+            this.attrName = attrName;
+            this.compiledPath = compiledPath;
+            this.literalSegments = literalSegments;
+            this.compiledPlaceholders = compiledPlaceholders;
+        }
+    }
+
+    private List<CompiledFieldXPath> compileFieldXPaths(XPath xpath, List<? extends ResultFieldsMappingConfiguration> fields) {
+        List<CompiledFieldXPath> compiled = new ArrayList<>(fields.size());
+        for (ResultFieldsMappingConfiguration field : fields) {
+            if (this.conventionService.isNullOrEmpty(field.getResponsePath()) || this.conventionService.isNullOrEmpty(field.getCode())) continue;
+
+            String rawPath = field.getResponsePath();
+            String responsePath = rawPath.endsWith(FIRST_SUFFIX) ? rawPath.substring(0, rawPath.length() - FIRST_SUFFIX.length()) : rawPath;
+
+            try {
+                if (responsePath.contains("@{{")) {
+                    Matcher m = AT_PLACEHOLDER_PATTERN.matcher(responsePath);
+                    List<String> literals = new ArrayList<>();
+                    List<XPathExpression> placeholders = new ArrayList<>();
+                    int last = 0;
+                    while (m.find()) {
+                        literals.add(responsePath.substring(last, m.start()));
+                        String inner = m.group(1);
+                        String innerStripped = inner.endsWith(FIRST_SUFFIX) ? inner.substring(0, inner.length() - FIRST_SUFFIX.length()) : inner;
+                        placeholders.add(xpath.compile(innerStripped));
+                        last = m.end();
+                    }
+                    literals.add(responsePath.substring(last));
+                    compiled.add(new CompiledFieldXPath(field.getCode(), responsePath, FieldMode.PLACEHOLDER, null, null, null, literals, placeholders));
+                    continue;
+                }
+
+                Matcher selfAttr = SIMPLE_SELF_ATTR_PATTERN.matcher(responsePath);
+                if (selfAttr.matches()) {
+                    compiled.add(new CompiledFieldXPath(field.getCode(), responsePath, FieldMode.SELF_ATTR, null, selfAttr.group(1), null, null, null));
+                    continue;
+                }
+
+                Matcher simple = SIMPLE_CHILD_PATTERN.matcher(responsePath);
+                if (simple.matches()) {
+                    String child = simple.group(1);
+                    String attr = simple.group(2);
+                    FieldMode mode = attr != null ? FieldMode.CHILD_ATTR : FieldMode.CHILD_TEXT;
+                    compiled.add(new CompiledFieldXPath(field.getCode(), responsePath, mode, child, attr, null, null, null));
+                    continue;
+                }
+
+                compiled.add(new CompiledFieldXPath(field.getCode(), responsePath, FieldMode.XPATH, null, null, xpath.compile(responsePath), null, null));
+            } catch (XPathExpressionException e) {
+                logger.error("Invalid XPath for field '" + field.getCode() + "': " + e.getMessage(), e);
+            }
+        }
+        return compiled;
+    }
+
+    private static String resolveFastField(Element item, CompiledFieldXPath cf) {
+        switch (cf.mode) {
+            case SELF_ATTR -> {
+                String v = item.getAttribute(cf.attrName);
+                return v.isEmpty() ? null : v;
+            }
+            case CHILD_TEXT, CHILD_ATTR -> {
+                Node child = firstChildElement(item, cf.childName);
+                if (child == null) return null;
+                if (cf.mode == FieldMode.CHILD_ATTR) {
+                    String v = ((Element) child).getAttribute(cf.attrName);
+                    return v.isEmpty() ? null : v;
+                }
+                String text = child.getTextContent();
+                if (text == null) return null;
+                text = text.trim();
+                return text.isEmpty() ? null : text;
+            }
+            default -> {
+                return null;
+            }
+        }
+    }
+
+    private static Element firstChildElement(Element parent, String localName) {
+        Node n = parent.getFirstChild();
+        while (n != null) {
+            if (n.getNodeType() == Node.ELEMENT_NODE && localName.equals(n.getNodeName())) {
+                return (Element) n;
+            }
+            n = n.getNextSibling();
+        }
+        return null;
+    }
+
+    private static List<Element> resolveItemNodesFast(Document document, String resultsArrayPath) {
+        Element root = document.getDocumentElement();
+        if (root == null) return null;
+
+        Matcher descendant = SIMPLE_DESCENDANT_PATTERN.matcher(resultsArrayPath);
+        if (descendant.matches()) {
+            String name = descendant.group(1);
+            List<Element> result = new ArrayList<>();
+            collectDescendantsByName(root, name, result);
+            return result;
+        }
+
+        if (!SIMPLE_ABSOLUTE_PATTERN.matcher(resultsArrayPath).matches()) return null;
+        String[] parts = resultsArrayPath.substring(1).split("/");
+        if (parts.length == 0) return null;
+        if (!parts[0].equals(root.getNodeName())) return null;
+        List<Element> current = Collections.singletonList(root);
+        for (int i = 1; i < parts.length; i++) {
+            String name = parts[i];
+            List<Element> next = new ArrayList<>();
+            for (Element parent : current) {
+                Node n = parent.getFirstChild();
+                while (n != null) {
+                    if (n.getNodeType() == Node.ELEMENT_NODE && name.equals(n.getNodeName())) {
+                        next.add((Element) n);
+                    }
+                    n = n.getNextSibling();
+                }
+            }
+            current = next;
+            if (current.isEmpty()) break;
+        }
+        return current;
+    }
+
+    private static void collectDescendantsByName(Element element, String name, List<Element> out) {
+        if (name.equals(element.getNodeName())) {
+            out.add(element);
+        }
+        Node n = element.getFirstChild();
+        while (n != null) {
+            if (n.getNodeType() == Node.ELEMENT_NODE) {
+                collectDescendantsByName((Element) n, name, out);
+            }
+            n = n.getNextSibling();
+        }
+    }
+
+    private static Integer readJsonTotal(DocumentContext jsonContext, String paginationPath) {
+        if (paginationPath == null || paginationPath.isBlank()) return null;
+        try {
+            Object value = jsonContext.read(paginationPath);
+            return coerceToInteger(value);
+        } catch (Exception e) {
+            logger.debug("Could not evaluate paginationPath '" + paginationPath + "': " + e.getMessage());
+            return null;
+        }
+    }
+
+    private static Integer readXmlTotal(XPath xpath, Document document, String paginationPath) {
+        if (paginationPath == null || paginationPath.isBlank()) return null;
+        try {
+            String value = (String) xpath.compile(paginationPath).evaluate(document, XPathConstants.STRING);
+            return coerceToInteger(value);
+        } catch (Exception e) {
+            logger.debug("Could not evaluate paginationPath '" + paginationPath + "': " + e.getMessage());
+            return null;
+        }
+    }
+
+    private static Integer coerceToInteger(Object value) {
+        if (value == null) return null;
+        if (value instanceof Number n) return n.intValue();
+        if (value instanceof CharSequence cs) {
+            String s = cs.toString().trim();
+            if (s.isEmpty()) return null;
+            try {
+                return Integer.valueOf(s);
+            } catch (NumberFormatException e) {
+                try {
+                    return (int) Math.round(Double.parseDouble(s));
+                } catch (NumberFormatException ignored) {
+                    return null;
+                }
+            }
+        }
+        return null;
+    }
+
+    private static NamespaceContext buildNamespaceContext(List<? extends XmlNamespaceConfiguration> namespaces) {
+        Map<String, String> prefixToUri = new HashMap<>();
+        Map<String, String> uriToPrefix = new HashMap<>();
+        for (XmlNamespaceConfiguration ns : namespaces) {
+            if (ns == null || ns.getPrefix() == null || ns.getPrefix().isEmpty() || ns.getUri() == null || ns.getUri().isEmpty()) continue;
+            prefixToUri.put(ns.getPrefix(), ns.getUri());
+            uriToPrefix.putIfAbsent(ns.getUri(), ns.getPrefix());
+        }
+        return new NamespaceContext() {
+            @Override
+            public String getNamespaceURI(String prefix) {
+                if (prefix == null) throw new IllegalArgumentException("prefix is null");
+                if (XMLConstants.XML_NS_PREFIX.equals(prefix)) return XMLConstants.XML_NS_URI;
+                if (XMLConstants.XMLNS_ATTRIBUTE.equals(prefix)) return XMLConstants.XMLNS_ATTRIBUTE_NS_URI;
+                String uri = prefixToUri.get(prefix);
+                return uri != null ? uri : XMLConstants.NULL_NS_URI;
+            }
+
+            @Override
+            public String getPrefix(String uri) {
+                if (uri == null) throw new IllegalArgumentException("uri is null");
+                if (XMLConstants.XML_NS_URI.equals(uri)) return XMLConstants.XML_NS_PREFIX;
+                if (XMLConstants.XMLNS_ATTRIBUTE_NS_URI.equals(uri)) return XMLConstants.XMLNS_ATTRIBUTE;
+                return uriToPrefix.get(uri);
+            }
+
+            @Override
+            public Iterator<String> getPrefixes(String uri) {
+                String prefix = getPrefix(uri);
+                return prefix != null ? Collections.singletonList(prefix).iterator() : Collections.emptyIterator();
+            }
+        };
+    }
+
+    private static Document parseXmlSecurely(String body) throws Exception {
+        DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+        dbf.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
+        dbf.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true);
+        dbf.setFeature("http://xml.org/sax/features/external-general-entities", false);
+        dbf.setFeature("http://xml.org/sax/features/external-parameter-entities", false);
+        dbf.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false);
+        dbf.setXIncludeAware(false);
+        dbf.setExpandEntityReferences(false);
+        dbf.setNamespaceAware(true);
+        DocumentBuilder builder = dbf.newDocumentBuilder();
+        return builder.parse(new InputSource(new StringReader(body)));
+    }
+
+    private static String evaluateXPathString(XPathExpression expression, Node context) throws XPathExpressionException {
+        String value = (String) expression.evaluate(context, XPathConstants.STRING);
+        if (value == null) return null;
+        value = value.trim();
+        return value.isEmpty() ? null : value;
     }
 
     private static String normalizeJsonValue(Object value, boolean getfirst) {

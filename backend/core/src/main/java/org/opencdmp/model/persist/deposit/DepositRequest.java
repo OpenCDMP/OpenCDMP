@@ -2,10 +2,13 @@ package org.opencdmp.model.persist.deposit;
 
 import gr.cite.tools.fieldset.BaseFieldSet;
 import gr.cite.tools.validation.specification.Specification;
+import org.opencdmp.commonmodels.models.deposit.PreviewGroupValuesModel;
+import org.opencdmp.commonmodels.models.deposit.StoredPreviewFieldModel;
 import org.opencdmp.commons.enums.DepositAuthMethod;
 import org.opencdmp.commons.validation.BaseValidator;
 import org.opencdmp.convention.ConventionService;
 import org.opencdmp.errorcode.ErrorThesaurusProperties;
+import org.opencdmp.model.persist.pluginconfiguration.PluginConfigurationUserFieldPersist;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.Scope;
@@ -33,6 +36,46 @@ public class DepositRequest {
     public static final String _depositAuthInfoType = "depositAuthInfoType";
 
     private BaseFieldSet project;
+
+    private List<StoredPreviewFieldModel> storedFields;
+
+    private List<PreviewGroupValuesModel> storedGroups;
+
+    private List<PluginConfigurationUserFieldPersist> authFields;
+
+    private Boolean saveAuthFields;
+
+    public List<PluginConfigurationUserFieldPersist> getAuthFields() {
+        return this.authFields;
+    }
+
+    public void setAuthFields(List<PluginConfigurationUserFieldPersist> authFields) {
+        this.authFields = authFields;
+    }
+
+    public Boolean getSaveAuthFields() {
+        return this.saveAuthFields;
+    }
+
+    public void setSaveAuthFields(Boolean saveAuthFields) {
+        this.saveAuthFields = saveAuthFields;
+    }
+
+    public List<StoredPreviewFieldModel> getStoredFields() {
+        return this.storedFields;
+    }
+
+    public void setStoredFields(List<StoredPreviewFieldModel> storedFields) {
+        this.storedFields = storedFields;
+    }
+
+    public List<PreviewGroupValuesModel> getStoredGroups() {
+        return this.storedGroups;
+    }
+
+    public void setStoredGroups(List<PreviewGroupValuesModel> storedGroups) {
+        this.storedGroups = storedGroups;
+    }
 
     public String getRepositoryId() {
         return this.repositoryId;

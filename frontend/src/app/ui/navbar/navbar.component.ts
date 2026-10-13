@@ -1,9 +1,10 @@
-import { Location } from '@angular/common';
-import { Component, EventEmitter, OnInit, Output, ViewChild } from '@angular/core';
+import { Location, NgTemplateOutlet } from '@angular/common';
+import { Component, OnInit, ViewChild, inject, ChangeDetectionStrategy } from '@angular/core';
+import { TourStateService } from '@app/library/guided-tour/tour-state.service';
 import { MatDialog, MatDialogRef } from '@angular/material/dialog';
-import { MatMenuTrigger } from '@angular/material/menu';
+import { MatMenuTrigger, MatMenu, MatMenuItem } from '@angular/material/menu';
 import { DomSanitizer, SafeUrl } from '@angular/platform-browser';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { TenantConfigurationType } from '@app/core/common/enum/tenant-configuration-type';
 import { StorageFile } from '@app/core/model/storage-file/storage-file';
 import { LogoTenantConfiguration, TenantConfiguration } from '@app/core/model/tenant-configuaration/tenant-configuration';
@@ -14,7 +15,6 @@ import { LanguageService } from '@app/core/services/language/language.service';
 import { AnalyticsService } from '@app/core/services/matomo/analytics-service';
 import { ProgressIndicationService } from '@app/core/services/progress-indication/progress-indication-service';
 import { RouterUtilsService } from '@app/core/services/router/router-utils.service';
-import { SideNavService } from '@app/core/services/sidenav/side-nav.sevice';
 import { StorageFileService } from '@app/core/services/storage-file/storage-file.service';
 import { TenantConfigurationService } from '@app/core/services/tenant-configuration/tenant-configuration.service';
 import { UserService } from '@app/core/services/user/user.service';
@@ -22,11 +22,28 @@ import { BaseComponent } from '@common/base/base.component';
 import { InAppNotificationService } from '@notification-service/services/http/inapp-notification.service';
 import { MineInAppNotificationListingDialogComponent } from '@notification-service/ui/inapp-notification/listing-dialog/mine-inapp-notification-listing-dialog.component';
 import { timer } from 'rxjs';
-import { map, takeUntil } from 'rxjs/operators';
+import { map, startWith, takeUntil } from 'rxjs/operators';
 import { nameof } from 'ts-simple-nameof';
-import { StartNewPlanDialogComponent } from '../plan/new/start-new-plan-dialogue/start-new-plan-dialog.component';
 import { FaqDialogComponent } from '../faq/dialog/faq-dialog.component';
-import { UserDialogComponent } from './user-dialog/user-dialog.component';
+import { AccessLevel, SidebarItem } from '@app/core/model/configuration-models/sidebar.model';
+import { PrincipalService } from '@app/core/services/http/principal.service';
+import { BaseHttpParams } from '@common/http/base-http-params';
+import { InterceptorType } from '@common/http/interceptors/interceptor-type';
+import { Tenant } from '@app/core/model/tenant/tenant';
+import { SideNavService } from '@app/core/services/sidenav/side-nav.sevice';
+import { StartNewPlanDialogComponent } from '../plan/new/start-new-plan-dialogue/start-new-plan-dialog.component';
+import { MatIconButton, MatButton } from '@angular/material/button';
+import { MatIcon } from '@angular/material/icon';
+import { LanguageComponent } from '../language/language-content/language.component';
+import { MatTooltip } from '@angular/material/tooltip';
+import { MatBadge } from '@angular/material/badge';
+import { MatProgressBar } from '@angular/material/progress-bar';
+import { TenantSwitchComponent } from '../tenant/tenant-switch/tenant-switch.component';
+import { MatDivider } from '@angular/material/list';
+import { FallbackAvatarDirective } from '../../../common/http/image/fallback-avatar.directive';
+import { MatCardAvatar } from '@angular/material/card';
+import { TranslatePipe } from '@ngx-translate/core';
+import { UserLogoPipe } from '../../../common/http/image/user-logo.pipe';
 // import { TranslateService } from '@ngx-translate/core';
 // import { FontAccessibilityService } from '@app/core/services/font-accessibility.service';
 
@@ -34,53 +51,50 @@ import { UserDialogComponent } from './user-dialog/user-dialog.component';
     selector: 'app-navbar',
     templateUrl: './navbar.component.html',
     styleUrls: ['./navbar.component.css', './navbar.component.scss'],
-    standalone: false
+    changeDetection: ChangeDetectionStrategy.Eager,
+    imports: [RouterLink, MatIconButton, MatMenuTrigger, MatIcon, NgTemplateOutlet, MatMenu, LanguageComponent, MatTooltip, MatBadge, MatProgressBar, MatMenuItem, TenantSwitchComponent, MatDivider, MatButton, FallbackAvatarDirective, MatCardAvatar, TranslatePipe, UserLogoPipe]
 })
 export class NavbarComponent extends BaseComponent implements OnInit {
 	userName: string = '';
 	progressIndication = false;
 	location: Location;
 	mobile_menu_visible: any = 0;
-	private toggleButton: any;
-	private sidebarVisible: boolean;
 	languages = [];
 	currentRoute: string;
 	selectedLanguage: string;
 	private user: User;
 	inAppNotificationDialog: MatDialogRef<MineInAppNotificationListingDialogComponent> = null;
 	inAppNotificationCount = 0;
-	@Output() sidebarToggled: EventEmitter<any> = new EventEmitter();
 	@ViewChild(MatMenuTrigger) trigger: MatMenuTrigger;
 	extraImageURL: SafeUrl;
 
+    supportItems: SidebarItem[] = [];
+	/** "Take a tour" in the Support menu replays the tour registered by the current page, if any. */
+	protected readonly tourState = inject(TourStateService);
+
 	constructor(location: Location,
-		public routerUtils: RouterUtilsService,
-		public authentication: AuthService,
+		protected routerUtils: RouterUtilsService,
+		protected authentication: AuthService,
+		protected configurationService: ConfigurationService,
 		private router: Router,
 		private userService: UserService,
 		private dialog: MatDialog,
 		private progressIndicationService: ProgressIndicationService,
 		private languageService: LanguageService,
-		private sidenavService: SideNavService,
 		private tenantConfigurationService: TenantConfigurationService,
 		private inappNotificationService: InAppNotificationService,
-		public configurationService: ConfigurationService,
 		private storageFileService: StorageFileService,
 		private sanitizer: DomSanitizer,
 		private analyticsService: AnalyticsService,
+        private principalService: PrincipalService,
+		private sidenavService: SideNavService
         // private fontService: FontAccessibilityService,
         // private language: TranslateService
 	) {
 		super();
 		this.location = location;
-		this.sidebarVisible = false;
 		this.languages = this.languageService.getAvailableLanguagesCodes();
 		this.selectedLanguage = this.languageService.getDefaultLanguagesCode();
-        router.events.subscribe(() => {
-            if(window.innerWidth <= 500){
-                this.sidenavService.setStatus(false);
-            }
-        })
 	}
 
 	ngOnInit() {
@@ -96,15 +110,46 @@ export class NavbarComponent extends BaseComponent implements OnInit {
 			.subscribe(x => {
 				this.countUnreadInappNotifications();
 			});
-		this.authentication.getAuthenticationStateObservable().subscribe(authenticationState => {
-			if (authenticationState.loginStatus === LoginStatus.LoggedIn) {
+		this.authentication.getAuthenticationStateObservable()
+        .pipe(
+            map((state) => state.loginStatus),
+            startWith(this.isAuthenticated() ? LoginStatus.LoggedIn : LoginStatus.LoggedOut)
+        )
+        .subscribe(loginStatus => {
+			if (loginStatus === LoginStatus.LoggedIn) {
+                this.loadUserTenants();
 				this.loadLogo();
 				this.loadUser();
 			}
+            const flattenedFooterItems = this.configurationService.sidebar?.footerItems ?? [];
+            const flattenedInfoItems = this.configurationService?.sidebar?.infoItems ?? [];
+            const flattenedSupportItems = [...flattenedInfoItems, ...flattenedFooterItems]
+            
+            this.supportItems = flattenedSupportItems.filter(x => {
+                switch(x.accessLevel){
+                    case AccessLevel.Authenticated: return this.isAuthenticated();
+                    case AccessLevel.Unauthenticated: return !this.isAuthenticated();
+                    default: return true;
+                }
+            })
 		});
-		this.loadLogo();
-		this.loadUser();
 	}
+
+    tenants: Tenant[] = [];
+    loadUserTenants() {
+		const params = new BaseHttpParams();
+		params.interceptorContext = {
+			excludedInterceptors: [InterceptorType.TenantHeaderInterceptor]
+		};
+		this.principalService.myTenantsTranslated({ params: params })
+        .pipe(takeUntil(this._destroyed))
+        .subscribe((res) => this.tenants = res )
+	}
+    get currentTenant(): string{
+        if(!this.tenants?.length || !this.authentication.selectedTenant()){ return;}
+        return this.tenants.find(x => x.code == this.authentication.selectedTenant())?.name;
+    }
+
 
 	private loadUser() {
 		if (this.authentication.currentAccountIsAuthenticated() && this.authentication.userId()) {
@@ -156,79 +201,6 @@ export class NavbarComponent extends BaseComponent implements OnInit {
 		return this.currentRoute === '/language-editor' || this.currentRoute === '/profile';
 	}
 
-	sidebarOpen() {
-		const toggleButton = this.toggleButton;
-		const body = document.getElementsByTagName('body')[0];
-		setTimeout(function () {
-			toggleButton.classList.add('toggled');
-		}, 500);
-
-		body.classList.add('nav-open');
-
-		this.sidebarVisible = true;
-	};
-	sidebarClose() {
-		const body = document.getElementsByTagName('body')[0];
-		this.toggleButton.classList.remove('toggled');
-		this.sidebarVisible = false;
-		body.classList.remove('nav-open');
-	};
-	sidebarToggle() {
-		var $toggle = document.getElementsByClassName('navbar-toggler')[0];
-
-		if (this.sidebarVisible === false) {
-			this.sidebarOpen();
-		} else {
-			this.sidebarClose();
-		}
-		const body = document.getElementsByTagName('body')[0];
-
-		if (this.mobile_menu_visible == 1) {
-			// $('html').removeClass('nav-open');
-			body.classList.remove('nav-open');
-			if ($layer) {
-				$layer.remove();
-			}
-			setTimeout(function () {
-				$toggle.classList.remove('toggled');
-			}, 400);
-
-			this.mobile_menu_visible = 0;
-		} else {
-			setTimeout(function () {
-				$toggle.classList.add('toggled');
-			}, 430);
-
-			var $layer = document.createElement('div');
-			$layer.setAttribute('class', 'close-layer');
-
-
-			if (body.querySelectorAll('.main-panel')) {
-				document.getElementsByClassName('main-panel')[0].appendChild($layer);
-			} else if (body.classList.contains('off-canvas-sidebar')) {
-				document.getElementsByClassName('wrapper-full-page')[0].appendChild($layer);
-			}
-
-			setTimeout(function () {
-				$layer.classList.add('visible');
-			}, 100);
-
-			$layer.onclick = function () { //asign a function
-				body.classList.remove('nav-open');
-				this.mobile_menu_visible = 0;
-				$layer.classList.remove('visible');
-				setTimeout(function () {
-					$layer.remove();
-					$toggle.classList.remove('toggled');
-				}, 400);
-			}.bind(this);
-
-			body.classList.add('nav-open');
-			this.mobile_menu_visible = 1;
-
-		}
-	};
-
 	public getCurrentLanguage(): any {
 		const lang = this.languages.find(lang => lang.value === this.languageService.getCurrentLanguage());
 		return lang;
@@ -238,31 +210,23 @@ export class NavbarComponent extends BaseComponent implements OnInit {
 		return this.authentication.getPrincipalName();
 	}
 
-	public principalHasAvatar(): boolean {
-		return this.authentication.getUserProfileAvatarUrl() != null && this.authentication.getUserProfileAvatarUrl().length > 0;
-	}
+	// public principalHasAvatar(): boolean {
+	// 	return this.authentication.getUserProfileAvatarUrl() != null && this.authentication.getUserProfileAvatarUrl().length > 0;
+	// }
 
-	public getPrincipalAvatar(): string {
-		return this.authentication.getUserProfileAvatarUrl();
-	}
+	// public getPrincipalAvatar(): string {
+	// 	return this.authentication.getUserProfileAvatarUrl();
+	// }
 
-	public getDefaultAvatar(): string {
-		return 'assets/images/profile-placeholder.png';
-	}
-
-	public applyFallbackAvatar(ev: Event) {
-		(ev.target as HTMLImageElement).src = this.getDefaultAvatar();
-	}
-
-	openProfile() {
-		const dialogRef = this.dialog.open(UserDialogComponent, {
-			hasBackdrop: true,
-			closeOnNavigation: true,
-			disableClose: false,
-			position: { top: '71px', right: '1em' },
-			panelClass: 'custom-userbox'
-		});
-	}
+	// openProfile() {
+	// 	const dialogRef = this.dialog.open(UserDialogComponent, {
+	// 		hasBackdrop: true,
+	// 		closeOnNavigation: true,
+	// 		disableClose: false,
+	// 		position: { top: '71px', right: '1em' },
+	// 		panelClass: 'custom-userbox'
+	// 	});
+	// }
 
 	openFaqDialog() {
 		if (this.dialog.openDialogs.length > 0) {
@@ -287,9 +251,6 @@ export class NavbarComponent extends BaseComponent implements OnInit {
 		document.getElementById('hamburger').classList.toggle("change");
 	}
 
-	sidebarToggleOutput(event) {
-		this.sidebarToggled.emit(event);
-	}
 
 	toggleMyNav(event) {
 		this.sidenavService.toggle();
@@ -328,9 +289,12 @@ export class NavbarComponent extends BaseComponent implements OnInit {
 				hasBackdrop: true,
 				closeOnNavigation: true,
 				disableClose: false,
-				position: { top: '71px', right: '4.8em' },
-				minWidth: "min(600px, 90vw)",
-                maxWidth: '90vw'
+                maxHeight: 'min(500px, 90vh)',
+				position: { top: '70px', right: '25px' },
+				width: "min(400px, 90vw)",
+                data: {
+                    unreadCount: this.inAppNotificationCount
+                }
 			});
 			const onReadAllSubscription = this.inAppNotificationDialog.componentInstance.onReadAll.subscribe(() => {
 				this.countUnreadInappNotifications();

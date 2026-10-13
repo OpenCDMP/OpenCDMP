@@ -1,0 +1,16 @@
+.description-template-library-view {
+    .back-btn {
+        margin-bottom: 0.5rem;
+    }
+
+    .template-header {
+        display: flex;
+        align-items: baseline;
+        flex-wrap: wrap;
+        gap: 0.75rem;
+    }
+
+    .template-description {
+        margin-top: 0.5rem;
+    }
+}

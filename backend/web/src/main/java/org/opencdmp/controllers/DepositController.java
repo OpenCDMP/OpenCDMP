@@ -26,8 +26,18 @@ import org.opencdmp.controllers.swagger.annotation.SwaggerCommonErrorResponses;
 import org.opencdmp.model.EntityDoi;
 import org.opencdmp.model.censorship.EntityDoiCensor;
 import org.opencdmp.model.censorship.deposit.DepositConfigurationCensor;
+import org.opencdmp.commonmodels.models.deposit.DepositPreviewModel;
+import org.opencdmp.commonmodels.models.deposit.PreviewFieldOption;
 import org.opencdmp.model.deposit.DepositAuthMethodResult;
 import org.opencdmp.model.deposit.DepositConfiguration;
+import org.opencdmp.model.deposit.DepositFile;
+import org.opencdmp.depositbase.enums.DepositFileKind;
+import org.opencdmp.model.file.FileEnvelope;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.opencdmp.model.persist.deposit.DepositPreviewRequest;
 import org.opencdmp.model.persist.deposit.DepositRequest;
 import org.opencdmp.service.deposit.DepositService;
 import org.slf4j.LoggerFactory;
@@ -44,6 +54,8 @@ import javax.management.InvalidApplicationException;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.AbstractMap;
 import java.util.List;
 import java.util.Map;
@@ -118,6 +130,104 @@ public class DepositController {
         ));
 
         return persisted;
+    }
+
+    @PostMapping("/preview")
+    @OperationWithTenantHeader(summary = "Preview the metadata that would be deposited for a plan", description = "Returns the target repository's deposit form descriptor with values prefilled by the plugin's mapping, without submitting anything. Only available for repositories whose configuration declares supportsPreview.",
+            responses = @ApiResponse(description = "OK", responseCode = "200", content = @Content(
+                    schema = @Schema(
+                            implementation = DepositPreviewModel.class
+                    ))
+            ),
+            extensions = @Extension(name = "x-order", properties = @ExtensionProperty(name = "value", value = "6")))
+    @Swagger400
+    @ValidationFilterAnnotation(validator = DepositPreviewRequest.DepositPreviewRequestValidator.ValidatorName, argumentName = "model")
+    public DepositPreviewModel preview(@RequestBody DepositPreviewRequest model) throws Exception {
+        logger.debug(new MapLogEntry("previewing" + DepositPreviewRequest.class.getSimpleName()).And("model", model));
+
+        DepositPreviewModel previewModel = this.depositService.preview(model);
+        this.auditService.track(AuditableAction.Deposit_Preview, Map.ofEntries(
+                new AbstractMap.SimpleEntry<String, Object>("model", model)
+        ));
+
+        return previewModel;
+    }
+
+    @GetMapping("/repositories/{repositoryId}/files")
+    @OperationWithTenantHeader(summary = "List the files a deposit of a plan would upload", description = "Returns the files the repository's plugin uploads, with the names they would get and, for the supporting files archive, the files inside it. Nothing is generated.",
+            responses = @ApiResponse(description = "OK", responseCode = "200", content = @Content(
+                    array = @ArraySchema(
+                            schema = @Schema(
+                                    implementation = DepositFile.class
+                            )))
+            ),
+            extensions = @Extension(name = "x-order", properties = @ExtensionProperty(name = "value", value = "8")))
+    @Swagger404
+    public List<DepositFile> getFiles(
+            @Parameter(name = "repositoryId", description = "The id of the repository to deposit to", example = "zenodo", required = true) @PathVariable("repositoryId") String repositoryId,
+            @Parameter(name = "planId", description = "The plan to deposit", required = true) @RequestParam("planId") java.util.UUID planId
+    ) throws Exception {
+        logger.debug(new MapLogEntry("get files" + DepositConfiguration.class.getSimpleName()).And("repositoryId", repositoryId).And("planId", planId));
+
+        List<DepositFile> files = this.depositService.getFiles(repositoryId, planId);
+        this.auditService.track(AuditableAction.Deposit_GetFiles, Map.ofEntries(
+                new AbstractMap.SimpleEntry<String, Object>("repositoryId", repositoryId),
+                new AbstractMap.SimpleEntry<String, Object>("planId", planId)
+        ));
+
+        return files;
+    }
+
+    @GetMapping("/repositories/{repositoryId}/files/{kind}")
+    @OperationWithTenantHeader(summary = "Download a file a deposit of a plan would upload", description = "Generates the file exactly as a deposit to the repository would: the plan document and the RDA JSON with the repository's exporters, or the supporting files archive.",
+            responses = @ApiResponse(description = "OK", responseCode = "200"),
+            extensions = @Extension(name = "x-order", properties = @ExtensionProperty(name = "value", value = "9")))
+    @Swagger404
+    public ResponseEntity<byte[]> getFile(
+            @Parameter(name = "repositoryId", description = "The id of the repository to deposit to", example = "zenodo", required = true) @PathVariable("repositoryId") String repositoryId,
+            @Parameter(name = "kind", description = "The file: 0 plan document, 1 RDA JSON, 2 supporting files", example = "0", required = true) @PathVariable("kind") Short kind,
+            @Parameter(name = "planId", description = "The plan to deposit", required = true) @RequestParam("planId") java.util.UUID planId
+    ) throws Exception {
+        logger.debug(new MapLogEntry("get file" + DepositConfiguration.class.getSimpleName()).And("repositoryId", repositoryId).And("planId", planId).And("kind", kind));
+
+        FileEnvelope fileEnvelope = this.depositService.getFile(repositoryId, planId, DepositFileKind.of(kind));
+        this.auditService.track(AuditableAction.Deposit_GetFile, Map.ofEntries(
+                new AbstractMap.SimpleEntry<String, Object>("repositoryId", repositoryId),
+                new AbstractMap.SimpleEntry<String, Object>("planId", planId),
+                new AbstractMap.SimpleEntry<String, Object>("kind", kind)
+        ));
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("Content-Disposition", "attachment;filename=" + URLEncoder.encode(fileEnvelope.getFilename(), StandardCharsets.UTF_8).replace("+", "_"));
+        headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
+        return new ResponseEntity<>(fileEnvelope.getFile(), headers, HttpStatus.OK);
+    }
+
+    @GetMapping("/repositories/{repositoryId}/vocab/{fieldCode}")
+    @OperationWithTenantHeader(summary = "Search a repository's controlled vocabulary for a preview field", description = "Proxies a vocabulary search (e.g. licenses, languages) to the deposit plugin; only meaningful for preview fields declaring vocabSearch.",
+            responses = @ApiResponse(description = "OK", responseCode = "200", content = @Content(
+                    array = @ArraySchema(
+                            schema = @Schema(
+                                    implementation = PreviewFieldOption.class
+                            )))
+            ),
+            extensions = @Extension(name = "x-order", properties = @ExtensionProperty(name = "value", value = "7")))
+    @Swagger404
+    public List<PreviewFieldOption> searchVocabulary(
+            @Parameter(name = "repositoryId", description = "The id of the repository whose vocabulary to search", example = "zenodo", required = true) @PathVariable("repositoryId") String repositoryId,
+            @Parameter(name = "fieldCode", description = "The preview field code backing the vocabulary", example = "license", required = true) @PathVariable("fieldCode") String fieldCode,
+            @Parameter(name = "planId", description = "The plan being previewed for deposit", required = true) @RequestParam("planId") java.util.UUID planId,
+            @Parameter(name = "like", description = "Optional filter term") @RequestParam(value = "like", required = false) String like
+    ) throws Exception {
+        logger.debug(new MapLogEntry("vocab search" + DepositConfiguration.class.getSimpleName()).And("repositoryId", repositoryId).And("fieldCode", fieldCode));
+
+        List<PreviewFieldOption> options = this.depositService.searchVocabulary(repositoryId, planId, fieldCode, like);
+        this.auditService.track(AuditableAction.Deposit_SearchVocabulary, Map.ofEntries(
+                new AbstractMap.SimpleEntry<String, Object>("repositoryId", repositoryId),
+                new AbstractMap.SimpleEntry<String, Object>("fieldCode", fieldCode)
+        ));
+
+        return options;
     }
 
     @GetMapping("/repositories/{repositoryId}")

@@ -8,5 +8,7 @@ export enum TenantConfigurationType {
 	FeaturedEntities = 6,
 	DefaultPlanBlueprint = 7,
 	PluginConfiguration = 8,
-	ViewPreferences = 9
+	ViewPreferences = 9,
+	TermsAndConditions = 10,
+	GuidedTours = 11
 }

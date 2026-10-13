@@ -1,0 +1,37 @@
+<form class="name-step" [formGroup]="form" (ngSubmit)="submit()">
+	@if (banner(); as banner) {
+		<div class="name-step--banner" role="status">
+			<mat-icon class="material-symbols-outlined" aria-hidden="true">check_circle</mat-icon>
+			<div>
+				<div class="name-step--banner-title">{{ banner.titleKey | translate: banner.titleParams }}</div>
+				@if (banner.subtitle) {
+					<div class="name-step--banner-subtitle">{{ banner.subtitle }}</div>
+				}
+			</div>
+		</div>
+	}
+
+	<label class="field-label" for="new-asset-name">
+		{{ 'NEW-DESCRIPTION.NAME-STEP.NAME' | translate }} <span class="field-label--required" aria-hidden="true">*</span>
+	</label>
+	<mat-form-field class="w-100">
+		<input matInput #nameInput id="new-asset-name" formControlName="label" required autocomplete="off"
+			[placeholder]="'NEW-DESCRIPTION.NAME-STEP.NAME-PLACEHOLDER' | translate" />
+		<mat-hint>{{ 'NEW-DESCRIPTION.NAME-STEP.NAME-HINT' | translate }}</mat-hint>
+		@if (form.controls.label.touched && form.controls.label.hasError('required')) {
+			<mat-error>{{ 'GENERAL.VALIDATION.REQUIRED' | translate }}</mat-error>
+		}
+	</mat-form-field>
+
+	<div class="name-step--description">
+		<rich-text-editor-component
+			[form]="form.controls.description"
+			[label]="'NEW-DESCRIPTION.NAME-STEP.DESCRIPTION-OPTIONAL'"
+			[placeholder]="'NEW-DESCRIPTION.NAME-STEP.DESCRIPTION-PLACEHOLDER' | translate"
+		/>
+	</div>
+
+	<button mat-flat-button color="secondary" type="submit" class="name-step--submit" [disabled]="!canSubmit">
+		{{ 'NEW-DESCRIPTION.NAME-STEP.CONTINUE' | translate }}
+	</button>
+</form>

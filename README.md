@@ -1,120 +1,128 @@
-# Introduction
+# OpenCDMP
 
-**OpenCDMP** is an open and extensible software platform designed to simplify the management, monitoring, and maintenance of **Output Management Plans (OMPs)**, such as **Data Management Plans (DMPs)** and **Software Management Plans (SMPs)**. It provides a flexible and customizable environment that streamlines the complex processes involved in handling OMPs, ensuring efficiency, compliance, and collaboration across various projects and organizations.
+OpenCDMP is an open-source platform for writing, reviewing, and publishing Output Management Plans (OMPs), such as Data Management Plans (DMPs) and Software Management Plans (SMPs). Administrators define what a plan asks with plan blueprints and asset templates; researchers fill in plans together, evaluate them, download them, and publish them to repositories to get a DOI.
 
-## 📖 **Documentation**
+This repository holds the core of the platform: the API service (Java, Spring Boot), the web application (Angular), and the database migrations. The plugins (file transformers, deposit services, evaluators) and the shared libraries live in their own repositories under the [OpenCDMP organisation](https://github.com/OpenCDMP).
 
-**[View the complete documentation →](https://opencdmp.github.io/)**
+**Documentation: [opencdmp.github.io](https://opencdmp.github.io/)**
 
-For detailed guides, configuration references, and API documentation, visit our comprehensive documentation site.
+## Features
 
-## 🚀 **Key Features**
+- Invite collaborators to a whole plan or to some of its sections, with roles such as Editor, Reviewer, or Viewer, and discuss the content in comments.
+- Define what a plan and each of its assets ask, with plan blueprints and asset templates.
+- Move plans through the statuses and transitions each organisation defines, keep versions of a plan, and compare two versions field by field.
+- Download plans as PDF, DOCX, JSON, or XML, and publish them to repositories such as Zenodo to get a DOI.
+- Check plans against standards such as the RDA maDMP schema with evaluator plugins.
+- Add file-transformer, deposit, and evaluator plugins, and connect other systems through the REST API and webhooks.
+- Run many organisations on one installation, each with its own users, templates, workflows, branding, and settings.
+- Notify users by email and in the app.
 
-- **Modular Architecture**: Easily extend the platform with new modules and plugins to meet specific needs.
-- **Evaluation via Plugins**: Perform evaluation through customizable plugins tailored to specific standards and requirements.
-- **Collaborative Environment**: Supports teamwork with multi-user access, version control, and change tracking.
-- **Role-Based Access Control**: Invite users to a Plan with different roles—Viewer, Contributor, Reviewer, etc.—and set access rights at the Plan or Section level.
-- **Review and Annotation System**: Reviewers can add annotations (comments) to Plans or Descriptions, with statuses to track their lifecycle.
-- **Notification Features**: Receive Email and In-App notifications for updates, comments, and changes to Plans or Descriptions you are involved in.
-- **Flexible Export Options**: Export Plans in human and machine-readable formats like XML, JSON, DOCX, and PDF.
-- **Pluggable Export Mechanism**: Implement custom export plugins to suit specific requirements.
-- **Repository Deposits for DOI Assignment**: Deposit OMPs directly to repositories for DOI (Digital Object Identifier) assignment.
-- **Pluggable Deposit Mechanism**: Implement custom deposit plugins to integrate with different repositories.
-- **Customizable Templates**: Offers a library of templates for various types of OMPs, customizable to fit specific project requirements.
-- **Integration Capabilities**: Seamlessly connects with other software tools and platforms, enabling data import/export and interoperability via APIs.
+## Core concepts
 
-## 🧩 **Core Concepts**
+- **Plan blueprints** define the structure of a plan: its sections and fields.
+- **Plans** are the OMPs themselves, from the first draft to a finalized, published version.
+- **Asset templates** define the questions of an asset.
+- **Assets** describe one research output, input, or process of a plan, such as a dataset or a piece of software.
 
-  - #### **Blueprints**
+## Architecture
 
-    Define the structure of a Plan by specifying its Sections and content.
+OpenCDMP runs as a set of services:
 
-  - #### **Plans**
+- **Webapp**: the Angular frontend (`frontend/`).
+- **API service**: the Spring Boot backend (`backend/`).
+- **Notification** and **annotation** services: email and in-app notifications, and comments. They are distributed as Docker images only.
+- **Plugins**: file transformers (export and import), deposit services (publishing to repositories), and evaluators.
+- **Infrastructure**: PostgreSQL, Elasticsearch, RabbitMQ, Keycloak for authentication, and Gotenberg for PDF conversion.
 
-    Primary entities representing comprehensive OMPs that guide research outputs throughout their lifecycle.
+See the [architecture overview](https://opencdmp.github.io/deployment/architecture/) for how they connect.
 
-  - #### **Description Templates**
+## Try it with Docker
 
-    Define the structure of Descriptions within a Plan, specifying required fields and content.
-
-  - #### **Descriptions**
-
-    Detailed entries providing specific information about research inputs, outputs, and processes within a Plan.
-
-## 🏗️ **Architecture**
-
-OpenCDMP uses a **microservices architecture** with the following main components:
-
-- **API Service**: Main backend (Java/Spring Boot)
-- **Webapp Service**: Frontend application (Angular)
-- **Notification Service**: Email and in-app notifications
-- **Annotation Service**: Comments and review system
-- **Repository Deposit Services**: Pluggable DOI assignment (Zenodo, Dataverse, etc.)
-- **File Transformation Services**: Pluggable export/import (XML, JSON, DOCX, PDF)
-- **Keycloak**: OAuth2/OIDC authentication server
-- **PostgreSQL**: Primary database
-- **RabbitMQ**: Message broker for inter-service communication
-- **Elasticsearch**: Search and indexing
-
-For detailed architecture diagrams and workflows, see the [Architecture Overview](https://opencdmp.github.io/getting-started/architecture/).
-
-## 🚀 **Getting Started**
-
-### Quick Deployment
-
-The easiest way to deploy OpenCDMP is using our **docker-deployment** repository with pre-configured Docker Compose files:
+The [docker-deployment](https://github.com/OpenCDMP/docker-deployment) repository starts a complete installation on one machine with Docker Compose:
 
 ```bash
 git clone https://github.com/OpenCDMP/docker-deployment.git
 cd docker-deployment
-docker-compose up -d
+docker compose up -d
 ```
 
-**[View Deployment Guide →](https://opencdmp.github.io/getting-started/deployment/)**
+The example is for local evaluation only. See [Installation](https://opencdmp.github.io/deployment/install/) for the full walkthrough and [Before going to production](https://opencdmp.github.io/deployment/install/production/) for what a real installation needs.
 
-### Requirements
+Released images are on Docker Hub as [`opencdmp/opencdmp-api`](https://hub.docker.com/r/opencdmp/opencdmp-api) and [`opencdmp/opencdmp-webapp`](https://hub.docker.com/r/opencdmp/opencdmp-webapp).
 
-- **Node.js**: >= 18.0 (for frontend development)
-- **Java**: >= 21 (for backend development)
-- **Docker**: For containerized deployment
-- **PostgreSQL**: >= 12
-- **Keycloak**: >= 20.0
+## Build from source
 
-### Documentation Resources
+| Tool | Version |
+| --- | --- |
+| Java | 21 |
+| Maven | 3.9 |
+| Node.js | 24.15 or later, or 22.22 or later on the 22 line |
+| Docker | to build the images and run the dependencies |
 
-- **[Getting Started Guide](https://opencdmp.github.io/getting-started/)** - Platform introduction and deployment
-- **[User Guide](https://opencdmp.github.io/user-guide/)** - End-user documentation
-- **[Admin Guide](https://opencdmp.github.io/admin-guide/)** - Administrator setup and configuration
-- **[Developer Guide](https://opencdmp.github.io/developers/)** - For those interested in extending the platform
-- **[API Documentation (Swagger)](https://opencdmp.github.io/developers/swagger/)** - Interactive API reference
-- **[Configuration Reference](https://opencdmp.github.io/getting-started/configuration/)** - Complete configuration options
-- **[Troubleshooting](https://opencdmp.github.io/troubleshooting/)** - Common issues and solutions
+A running instance also needs PostgreSQL, Elasticsearch with the `analysis-icu` plugin, RabbitMQ, and Keycloak. The Docker example uses PostgreSQL 17, Elasticsearch 9.1, RabbitMQ 4.1, and Keycloak 26.1.
 
-## ✨ **Benefits**
+### Backend
 
-- **Efficiency**: Simplifies the creation and management of Output Management Plans, saving time and reducing complexity.
-- **Enhanced Collaboration**: Facilitates communication and cooperation among team members with shared access and collaborative features.
-- **Quality Control**: Ensures high-quality OMPs through structured templates, review workflows, and validation mechanisms.
-- **Flexible Sharing and Distribution**: Easily export and share Plans in multiple formats suitable for different audiences.
-- **Customizability**: Adapts to the unique needs of different projects, disciplines, and organizations.
-- **Stay Informed**: Keep track of all changes and updates with comprehensive notification features.
-- **Flexibility and Scalability**: Scales to accommodate projects of all sizes, from small teams to large organizations.
+```bash
+cd backend
+mvn clean install
+mvn spring-boot:run -pl web -Dspring-boot.run.profiles=devel
+```
 
-## 🤝 **Community and Support**
+The API listens on `http://localhost:8081/api`, with the Swagger UI at `http://localhost:8081/api/swagger-ui`. It creates and migrates its database schema at startup. All its dependencies are on Maven Central.
 
-- **GitHub Repository**: [https://github.com/OpenCDMP/OpenCDMP](https://github.com/OpenCDMP/OpenCDMP)
-- **Documentation**: [https://opencdmp.github.io/](https://opencdmp.github.io/)
-- **Issue Tracker**: Report bugs and request features via [GitHub Issues](https://github.com/OpenCDMP/OpenCDMP/issues)
-- **Email**: opencdmp at cite.gr
+To point the API at your own PostgreSQL, Elasticsearch, RabbitMQ, and Keycloak, create `app-devel.env` or `<name>-devel.yml` files (for example `db-devel.yml`) in `web/src/main/resources/config/` or in a `config/` folder next to the working directory. The `devel` profile reads them when they exist. `app.env` and the `.yml` files next to it list every setting, and [Backend configuration](https://opencdmp.github.io/deployment/configuration/backend/) describes them.
 
-## 📄 **License**
+### Frontend
 
-This project is licensed under the **EUPL 1.2 License**. See the [LICENSE](LICENSE) file for details.
+```bash
+cd frontend
+npm install
+npm start           # development server on http://localhost:4200
+npm run build       # production build in dist/
+```
 
-## 🌐 **Contact**
+The webapp reads `src/assets/config/config.json`, overlaid by `src/assets/config/config-override.json` when that file exists. For local development, set the API, Keycloak, notification, and annotation addresses in the override file. See [Frontend configuration](https://opencdmp.github.io/deployment/configuration/frontend/).
 
-For questions or support, please contact:
-- **Email**: opencdmp at cite.gr
----
+### Docker images
 
-**Start simplifying your Output Management Plans with OpenCDMP today!**
+`backend/Dockerfile` and `frontend/Dockerfile` build the API and the webapp from source, without the steps above:
+
+```bash
+docker build -t opencdmp-api backend
+docker build -t opencdmp-webapp frontend
+```
+
+## Repository layout
+
+| Path | Contents |
+| --- | --- |
+| [`backend/`](backend/) | The API service: Maven modules `core` (entities, queries, services) and `web` (controllers, configuration, Flyway migrations) |
+| [`frontend/`](frontend/) | The Angular webapp |
+| [`THEMING.md`](THEMING.md) | The CSS variables an organisation can override in its branding |
+
+## Releases and upgrades
+
+Releases are tagged `X.Y.Z`. The [changelog](https://opencdmp.github.io/deployment/install/changelog/) lists what changed in each release and which service versions belong together. The [upgrade guide](https://opencdmp.github.io/deployment/install/upgrade/) covers moving an installation to a new version, including the database migrations.
+
+## Update check and usage data
+
+Once a day, an installation sends its version and a random installation ID to the OpenCDMP update service, and shows the latest release and project notices on its [Maintenance](https://opencdmp.github.io/administering/maintenance/#installation) page. By default the check also carries anonymous usage data: the installation's address, the number of organisations, users, plans and assets, and the Java and database versions. A system administrator can stop the usage data on the Maintenance page; `UPDATE_CHECK_ENABLED=false` switches the check off entirely.
+
+## Documentation
+
+- [Using OpenCDMP](https://opencdmp.github.io/using/): creating and managing plans and assets
+- [Administering OpenCDMP](https://opencdmp.github.io/administering/): blueprints, templates, users, organisations, and workflows
+- [Deployment and configuration](https://opencdmp.github.io/deployment/): installation, configuration of every service, upgrades
+- [API and integration](https://opencdmp.github.io/developers/): [API usage](https://opencdmp.github.io/developers/api-usage/), [Swagger](https://opencdmp.github.io/developers/swagger/), and [plugin development](https://opencdmp.github.io/developers/plugins/)
+- [Troubleshooting](https://opencdmp.github.io/troubleshooting/)
+
+## Contributing and support
+
+Report bugs and request features in [GitHub Issues](https://github.com/OpenCDMP/OpenCDMP/issues), and read [Contributing](https://opencdmp.github.io/developers/contributing/) before opening a pull request.
+
+Questions: email opencdmp at cite.gr.
+
+## License
+
+OpenCDMP is licensed under the [European Union Public Licence (EUPL) v1.2](LICENSE).

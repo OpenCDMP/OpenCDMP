@@ -53,7 +53,7 @@ public class PropertyDefinitionFieldSetItemPersist {
 
         private final MessageSource messageSource;
         private FieldSetEntity fieldSetEntity;
-        private DescriptionStatus status;
+        boolean finalized;
         private VisibilityService visibilityService;
         protected PersistValidator(ConventionService conventionService, ErrorThesaurusProperties errors, ValidatorFactory validatorFactory, MessageSource messageSource) {
             super(conventionService, errors);
@@ -80,7 +80,7 @@ public class PropertyDefinitionFieldSetItemPersist {
                             .using((itm) ->
                             {
                                 FieldEntity fieldEntity = fieldSetEntity != null ? fieldSetEntity.getFieldById((String)itm.getKey()).stream().findFirst().orElse(null) : null;
-                                return this.validatorFactory.validator(FieldPersist.PersistValidator.class).withFieldEntity(fieldEntity).withVisibilityService(visibilityService).withOrdinal(item.getOrdinal()).setStatus(this.status);
+                                return this.validatorFactory.validator(FieldPersist.PersistValidator.class).withFieldEntity(fieldEntity).withVisibilityService(visibilityService).withOrdinal(item.getOrdinal()).isFinalized(this.finalized);
                             })
 
             );
@@ -91,8 +91,8 @@ public class PropertyDefinitionFieldSetItemPersist {
             return this;
         }
 
-        public PersistValidator setStatus(DescriptionStatus status) {
-            this.status = status;
+        public PersistValidator isFinalized(boolean isFinalized) {
+            this.finalized = isFinalized;
             return this;
         }
 

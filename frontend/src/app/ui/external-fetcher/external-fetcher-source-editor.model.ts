@@ -1,10 +1,11 @@
-import { FormArray, FormControl, FormGroup, UntypedFormArray, UntypedFormBuilder, UntypedFormGroup, Validators } from "@angular/forms";
+import { FormArray, FormControl, FormGroup, UntypedFormBuilder, UntypedFormGroup, Validators } from "@angular/forms";
 import { ValidationErrorModel } from "@common/forms/validation/error-model/validation-error-model";
 import { Validation, ValidationContext } from "@common/forms/validation/validation-context";
 import { BackendErrorValidator } from "@common/forms/validation/custom-validator";
 import { ExternalFetcherApiHTTPMethodType } from "@app/core/common/enum/external-fetcher-api-http-method-type";
+import { ExternalFetcherApiResponseFormatType } from "@app/core/common/enum/external-fetcher-api-response-format-type";
 import { ExternalFetcherSourceType } from "@app/core/common/enum/external-fetcher-source-type";
-import { AuthenticationConfiguration, AuthenticationConfigurationPersist, ExternalFetcherBaseSourceConfiguration, ExternalFetcherBaseSourceConfigurationPersist, HeaderConfig, HeadersConfigPersist, QueryCaseConfig, QueryCaseConfigPersist, QueryConfig, QueryConfigPersist, ResultFieldsMappingConfiguration, ResultFieldsMappingConfigurationPersist, ResultsConfiguration, ResultsConfigurationPersist, Static, StaticOption, StaticOptionPersist, StaticPersist } from "@app/core/model/external-fetcher/external-fetcher";
+import { AuthenticationConfiguration, AuthenticationConfigurationPersist, ExternalFetcherBaseSourceConfiguration, ExternalFetcherBaseSourceConfigurationPersist, HeaderConfig, HeadersConfigPersist, QueryCaseConfig, QueryCaseConfigPersist, QueryConfig, QueryConfigPersist, ResultFieldsMappingConfiguration, ResultFieldsMappingConfigurationPersist, ResultsConfiguration, ResultsConfigurationPersist, Static, StaticOption, StaticOptionPersist, StaticPersist, XmlNamespaceConfig, XmlNamespaceConfigPersist } from "@app/core/model/external-fetcher/external-fetcher";
 import { Guid } from "@common/types/guid";
 import { ExternalFetcherApiHeaderType } from "@app/core/common/enum/ExternalFetcherApiHeader.enum";
 
@@ -13,6 +14,9 @@ export class ExternalFetcherBaseSourceConfigurationEditorModel implements Extern
 	key: string;
 	label: string;
 	ordinal: number;
+	storageFileId: Guid;
+	navigationUrl: string;
+	tooltipMessage: string;
 
 	url: string;
 	results: ResultsConfigurationEditorModel = new ResultsConfigurationEditorModel(this.validationErrorModel);
@@ -22,9 +26,11 @@ export class ExternalFetcherBaseSourceConfigurationEditorModel implements Extern
 	httpMethod: ExternalFetcherApiHTTPMethodType;
 	requestBody?: string;
 	filterType?: string;
+	responseFormat?: ExternalFetcherApiResponseFormatType;
 	auth: AuthenticationConfigurationEditorModel = new AuthenticationConfigurationEditorModel(this.validationErrorModel);
 	queries?: QueryConfigEditorModel[] = [];
 	headers?: HeaderConfigEditorModel[] = [];
+	namespaces?: XmlNamespaceConfigEditorModel[] = [];
 
 	items: StaticEditorModel[] = [];
 
@@ -42,6 +48,9 @@ export class ExternalFetcherBaseSourceConfigurationEditorModel implements Extern
 			this.key = item.key;
 			this.label = item.label;
 			this.ordinal = item.ordinal;
+			if (item.storageFile) this.storageFileId = item.storageFile?.id;
+			if (item.navigationUrl) this.navigationUrl = item.navigationUrl;
+			if (item.tooltipMessage) this.tooltipMessage = item.tooltipMessage;
 
 			if (item.url) this.url = item.url;
 			if (item.results) this.results = new ResultsConfigurationEditorModel(this.validationErrorModel).fromModel(item.results);
@@ -51,9 +60,11 @@ export class ExternalFetcherBaseSourceConfigurationEditorModel implements Extern
 			if (item.httpMethod != null) this.httpMethod = item.httpMethod;
 			if (item.requestBody) this.requestBody = item.requestBody;
 			if (item.filterType) this.filterType = item.filterType;
+			if (item.responseFormat != null) this.responseFormat = item.responseFormat;
 			if (item.auth) this.auth = new AuthenticationConfigurationEditorModel(this.validationErrorModel).fromModel(item.auth);
 			if (item.queries) { item.queries.map(x => this.queries.push(new QueryConfigEditorModel(this.validationErrorModel).fromModel(x))); }
 			if (item.headers) { item.headers.map(x => this.headers.push(new HeaderConfigEditorModel(this.validationErrorModel).fromModel(x))); }
+			if (item.namespaces) { item.namespaces.map(x => this.namespaces.push(new XmlNamespaceConfigEditorModel(this.validationErrorModel).fromModel(x))); }
 
 			if (item.items) item.items.map(x => this.items.push(new StaticEditorModel(this.validationErrorModel).fromModel(x)));
 
@@ -92,6 +103,7 @@ export class ExternalFetcherBaseSourceConfigurationEditorModel implements Extern
 			httpMethod: [{ value: this.httpMethod, disabled: disabled }, context.getValidation('httpMethod').validators],
 			requestBody: [{ value: this.requestBody, disabled: disabled }, context.getValidation('requestBody').validators],
 			filterType: [{ value: this.filterType, disabled: disabled }, context.getValidation('filterType').validators],
+			responseFormat: [{ value: this.responseFormat, disabled: disabled }, context.getValidation('responseFormat').validators],
 			auth: this.auth.buildForm({
 				rootPath: `${rootPath}auth.`,
 				disabled: disabled
@@ -112,6 +124,14 @@ export class ExternalFetcherBaseSourceConfigurationEditorModel implements Extern
 					})
 				), context.getValidation('headers').validators
 			),
+			namespaces: this.formBuilder.array(
+				(this.namespaces ?? []).map(
+					(item, index) => item.buildForm({
+						rootPath: `${rootPath}namespaces[${index}].`,
+						disabled: disabled
+					})
+				), context.getValidation('namespaces').validators
+			),
 			items: this.formBuilder.array(
 				(this.items ?? []).map(
 					(item, index) => item.buildForm({
@@ -121,9 +141,14 @@ export class ExternalFetcherBaseSourceConfigurationEditorModel implements Extern
 				), context.getValidation('items').validators
 			),
 			referenceTypeDependencyIds: [{ value: this.referenceTypeDependencyIds, disabled: disabled }, context.getValidation('referenceTypeDependencyIds').validators],
+			storageFileId: [{ value: this.storageFileId, disabled: disabled }, context.getValidation('storageFileId').validators],
+			navigationUrl: [{ value: this.navigationUrl, disabled: disabled }, context.getValidation('navigationUrl').validators],
+			tooltipMessage: [{ value: this.tooltipMessage, disabled: disabled }, context.getValidation('tooltipMessage').validators],
 
 		});
 	}
+
+	static urlWithMappingsRegex = /^(https?:\/\/)[\w.-]+(?:\.[\w.-]+)+(?:\/(?:[\w\-._~%!$&'()*+,;=:@]|{[a-zA-Z0-9_-]+})*)*(?:\?(?:[\w\-._~%!$&'()*+,;=:@/?]|{[a-zA-Z0-9_-]+})*)?(?:#(?:[\w\-._~%!$&'()*+,;=:@/?]|{[a-zA-Z0-9_-]+})*)?$/;
 
 	static createValidationContext(params: {
 		rootPath?: string,
@@ -145,14 +170,19 @@ export class ExternalFetcherBaseSourceConfigurationEditorModel implements Extern
 		baseValidationArray.push({ key: 'httpMethod', validators: [BackendErrorValidator(validationErrorModel, `${rootPath}httpMethod`)] });
 		baseValidationArray.push({ key: 'requestBody', validators: [BackendErrorValidator(validationErrorModel, `${rootPath}requestBody`)] });
 		baseValidationArray.push({ key: 'filterType', validators: [BackendErrorValidator(validationErrorModel, `${rootPath}filterType`)] });
+		baseValidationArray.push({ key: 'responseFormat', validators: [BackendErrorValidator(validationErrorModel, `${rootPath}responseFormat`)] });
 		baseValidationArray.push({ key: 'results', validators: [BackendErrorValidator(validationErrorModel, `${rootPath}results`)] });
 		baseValidationArray.push({ key: 'queries', validators: [BackendErrorValidator(validationErrorModel, `${rootPath}queries`)] });
 		baseValidationArray.push({ key: 'headers', validators: [BackendErrorValidator(validationErrorModel, `${rootPath}headers`)] });
+		baseValidationArray.push({ key: 'namespaces', validators: [BackendErrorValidator(validationErrorModel, `${rootPath}namespaces`)] });
 
 
 		baseValidationArray.push({ key: 'items', validators: [BackendErrorValidator(validationErrorModel, `${rootPath}items`)] });
 
 		baseValidationArray.push({ key: 'referenceTypeDependencyIds', validators: [BackendErrorValidator(validationErrorModel, `${rootPath}referenceTypeDependencyIds`)] });
+		baseValidationArray.push({ key: 'storageFileId', validators: [BackendErrorValidator(validationErrorModel, `${rootPath}storageFileId`)] });
+		baseValidationArray.push({ key: 'navigationUrl', validators: [Validators.pattern(ExternalFetcherBaseSourceConfigurationEditorModel.urlWithMappingsRegex), BackendErrorValidator(validationErrorModel, `${rootPath}navigationUrl`)] });
+		baseValidationArray.push({ key: 'tooltipMessage', validators: [BackendErrorValidator(validationErrorModel, `${rootPath}tooltipMessage`)] });
 
 		baseContext.validation = baseValidationArray;
 		return baseContext;
@@ -170,7 +200,7 @@ export class ExternalFetcherBaseSourceConfigurationEditorModel implements Extern
 			validationErrorModel
 		});
 
-		['type', 'key', 'label', 'ordinal', 'url', 'paginationPath', 'contentType', 'firstPage', 'httpMethod', 'requestBody','filterType', 'referenceTypeDependencyIds'].forEach(keyField => {
+		['type', 'key', 'label', 'ordinal', 'url', 'paginationPath', 'contentType', 'firstPage', 'httpMethod', 'requestBody','filterType', 'responseFormat', 'referenceTypeDependencyIds', 'storageFileId', 'navigationUrl', 'tooltipMessage'].forEach(keyField => {
 			const control = formGroup?.get(keyField);
 			control?.clearValidators();
 			control?.addValidators(context.getValidation(keyField).validators);
@@ -209,6 +239,14 @@ export class ExternalFetcherBaseSourceConfigurationEditorModel implements Extern
 			(control, index) => HeaderConfigEditorModel.reapplyValidators({
 				formGroup: control as UntypedFormGroup,
 				rootPath: `${rootPath}headers[${index}].`,
+				validationErrorModel: validationErrorModel
+			})
+		);
+
+		(formGroup.get('namespaces') as FormArray).controls?.forEach(
+			(control, index) => XmlNamespaceConfigEditorModel.reapplyValidators({
+				formGroup: control as UntypedFormGroup,
+				rootPath: `${rootPath}namespaces[${index}].`,
 				validationErrorModel: validationErrorModel
 			})
 		);
@@ -712,6 +750,78 @@ export class HeaderConfigEditorModel implements HeadersConfigPersist {
 			control?.addValidators(context.getValidation(keyField).validators);
 		});
 
+	}
+}
+
+export class XmlNamespaceConfigEditorModel implements XmlNamespaceConfigPersist {
+	public prefix: string;
+	public uri: string;
+
+	protected formBuilder: UntypedFormBuilder = new UntypedFormBuilder();
+
+	constructor(
+		public validationErrorModel: ValidationErrorModel = new ValidationErrorModel()
+	) { }
+
+	fromModel(item: XmlNamespaceConfig): XmlNamespaceConfigEditorModel {
+		if (item != null) {
+			this.prefix = item.prefix;
+			this.uri = item.uri;
+		}
+		return this;
+	}
+
+	buildForm(params?: {
+		context?: ValidationContext,
+		disabled?: boolean,
+		rootPath?: string
+	}): UntypedFormGroup {
+		let { context = null, disabled = false, rootPath } = params ?? {}
+		if (context == null) {
+			context = XmlNamespaceConfigEditorModel.createValidationContext({
+				validationErrorModel: this.validationErrorModel,
+				rootPath
+			});
+		}
+
+		return this.formBuilder.group({
+			prefix: [{ value: this.prefix, disabled: disabled }, context.getValidation('prefix').validators],
+			uri: [{ value: this.uri, disabled: disabled }, context.getValidation('uri').validators],
+		});
+	}
+
+	static createValidationContext(params: {
+		rootPath?: string,
+		validationErrorModel: ValidationErrorModel
+	}): ValidationContext {
+		const { rootPath = '', validationErrorModel } = params;
+
+		const baseContext: ValidationContext = new ValidationContext();
+		const baseValidationArray: Validation[] = new Array<Validation>();
+		baseValidationArray.push({ key: 'prefix', validators: [Validators.required, BackendErrorValidator(validationErrorModel, `${rootPath}prefix`)] });
+		baseValidationArray.push({ key: 'uri', validators: [Validators.required, BackendErrorValidator(validationErrorModel, `${rootPath}uri`)] });
+
+		baseContext.validation = baseValidationArray;
+		return baseContext;
+	}
+
+	static reapplyValidators(params: {
+		formGroup: UntypedFormGroup,
+		validationErrorModel: ValidationErrorModel,
+		rootPath: string
+	}): void {
+
+		const { formGroup, rootPath, validationErrorModel } = params;
+		const context = XmlNamespaceConfigEditorModel.createValidationContext({
+			rootPath,
+			validationErrorModel
+		});
+
+		['prefix', 'uri'].forEach(keyField => {
+			const control = formGroup?.get(keyField);
+			control?.clearValidators();
+			control?.addValidators(context.getValidation(keyField).validators);
+		});
 	}
 }
 

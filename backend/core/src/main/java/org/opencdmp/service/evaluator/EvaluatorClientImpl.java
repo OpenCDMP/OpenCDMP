@@ -15,6 +15,8 @@ import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
+import java.util.List;
+
 public class EvaluatorClientImpl implements EvaluatorClient {
 
     private static final LoggerService logger = new LoggerService(LoggerFactory.getLogger(FileTransformerRepository.class));
@@ -26,18 +28,18 @@ public class EvaluatorClientImpl implements EvaluatorClient {
     }
 
     @Override
-    public RankResultModel rankPlan(PlanEvaluationModel planModel) {
+    public List<RankResultModel> rankPlan(PlanEvaluationModel planModel) {
         logger.debug(new MapLogEntry("rankPlan").And("planModel", planModel));
 
         return this.transformerClient.post().uri("/rank/plan").bodyValue(planModel)  // Send planModel in the body
-                .exchangeToMono(mono -> mono.statusCode().isError() ? mono.createException().flatMap(Mono::error) : mono.bodyToMono(RankResultModel.class)).block();
+                .exchangeToMono(mono -> mono.statusCode().isError() ? mono.createException().flatMap(Mono::error) : mono.bodyToMono(new ParameterizedTypeReference<List<RankResultModel>>() {})).block();
     }
 
     @Override
-    public RankResultModel rankDescription(DescriptionEvaluationModel descriptionModel) {
+    public List<RankResultModel> rankDescription(DescriptionEvaluationModel descriptionModel) {
         logger.debug(new MapLogEntry("rankDescription").And("descriptionModel", descriptionModel));
         return this.transformerClient.post().uri("/rank/description").bodyValue(descriptionModel)  // Send descriptionModel in the body
-                .exchangeToMono(mono -> mono.statusCode().isError() ? mono.createException().flatMap(Mono::error) : mono.bodyToMono(RankResultModel.class)).block();
+                .exchangeToMono(mono -> mono.statusCode().isError() ? mono.createException().flatMap(Mono::error) : mono.bodyToMono(new ParameterizedTypeReference<List<RankResultModel>>() {})).block();
 
     }
 

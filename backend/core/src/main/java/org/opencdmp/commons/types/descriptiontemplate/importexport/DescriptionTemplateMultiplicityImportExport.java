@@ -16,6 +16,8 @@ public class DescriptionTemplateMultiplicityImportExport {
     private String placeholder;
     @XmlElement(name="tableView")
     private boolean tableView;
+    @XmlElement(name="transposedTableView")
+    private boolean transposedTableView;
 
     public Integer getMin() {
         return min;
@@ -49,4 +51,11 @@ public class DescriptionTemplateMultiplicityImportExport {
         this.tableView = tableView;
     }
 
+    public boolean isTransposedTableView() {
+        return transposedTableView;
+    }
+
+    public void setTransposedTableView(boolean transposedTableView) {
+        this.transposedTableView = transposedTableView;
+    }
 }

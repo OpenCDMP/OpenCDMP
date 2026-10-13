@@ -27,8 +27,6 @@ storage:
       glossaryNamePattern: "Glossary_{lang}.html"
       faq: ${SUPPORTIVE_MATERIAL_FAQ_PATH:classpath:/material/faq/}
       faqNamePattern: "Faq_{lang}.html"
-      language: ${SUPPORTIVE_MATERIAL_LANGUAGE_PATH:file:frontend/src/assets/i18n/}
-      languageNamePattern: "{lang}.json"
       cookiePolicy: ${SUPPORTIVE_MATERIAL_COOKIE_POLICY_PATH:classpath:/material/cookie-policy/}
       cookiePolicyNamePattern: "CookiePolicy_{lang}.html"
     static-files:

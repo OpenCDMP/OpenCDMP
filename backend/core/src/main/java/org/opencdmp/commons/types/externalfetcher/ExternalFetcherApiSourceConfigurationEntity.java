@@ -2,6 +2,7 @@ package org.opencdmp.commons.types.externalfetcher;
 
 
 import org.opencdmp.commons.enums.ExternalFetcherApiHTTPMethodType;
+import org.opencdmp.commons.enums.ExternalFetcherApiResponseFormatType;
 import org.opencdmp.service.externalfetcher.config.entities.ExternalFetcherApiHeaderConfiguration;
 import org.opencdmp.service.externalfetcher.config.entities.SourceExternalApiConfiguration;
 import jakarta.xml.bind.annotation.XmlElement;
@@ -18,10 +19,12 @@ public class ExternalFetcherApiSourceConfigurationEntity extends ExternalFetcher
     private ExternalFetcherApiHTTPMethodType httpMethod;
     private String requestBody = "";
     private String filterType = "remote";
+    private ExternalFetcherApiResponseFormatType responseFormat;
     private AuthenticationConfigurationEntity auth;
 
     private List<ExternalFetcherApiHeaderConfigurationEntity> headers;
     private List<QueryConfigEntity> queries;
+    private List<XmlNamespaceConfigurationEntity> namespaces;
 
     public String getUrl() {
         return url;
@@ -86,6 +89,14 @@ public class ExternalFetcherApiSourceConfigurationEntity extends ExternalFetcher
         this.filterType = filterType;
     }
 
+    public ExternalFetcherApiResponseFormatType getResponseFormat() {
+        return responseFormat;
+    }
+    @XmlElement(name = "responseFormat")
+    public void setResponseFormat(ExternalFetcherApiResponseFormatType responseFormat) {
+        this.responseFormat = responseFormat;
+    }
+
     public List<QueryConfigEntity> getQueries() {
         return queries;
     }
@@ -113,5 +124,15 @@ public class ExternalFetcherApiSourceConfigurationEntity extends ExternalFetcher
     @XmlElement(name = "headers")
     public void setHeaders(List<ExternalFetcherApiHeaderConfigurationEntity> headers) {
         this.headers = headers;
+    }
+
+    public List<XmlNamespaceConfigurationEntity> getNamespaces() {
+        return namespaces;
+    }
+
+    @XmlElementWrapper
+    @XmlElement(name = "namespace")
+    public void setNamespaces(List<XmlNamespaceConfigurationEntity> namespaces) {
+        this.namespaces = namespaces;
     }
 }

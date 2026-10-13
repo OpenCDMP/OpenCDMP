@@ -7,25 +7,23 @@ import { CommonUiModule } from '@common/ui/common-ui.module';
 import { DescriptionCopyDialogModule } from '../description-copy-dialog/description-copy-dialog.module';
 import { DescriptionOverviewComponent } from './description-overview.component';
 import { DescriptionOverviewRoutingModule } from './description-overview.routing';
-import { PlanAuthorsComponent } from '@app/ui/plan/plan-authors/plan-authors.component';
 import { PlanEvaluationHistoryComponent } from '@app/ui/plan/listing/plan-evaluation-history/plan-evaluation-history.component';
 import { DescriptionPreviewComponent } from './description-preview/description-preview.component';
+import { PlanAuthorsModule } from '@app/ui/plan/plan-authors/plan-authors.module';
 
 @NgModule({
-	imports: [
-		CommonUiModule,
-		CommonFormsModule,
-		ConfirmationDialogModule,
-		FormattingModule,
-		AutoCompleteModule,
-		DescriptionCopyDialogModule,
-		DescriptionOverviewRoutingModule,
-        PlanAuthorsComponent,
+    imports: [
+        CommonUiModule,
+        CommonFormsModule,
+        ConfirmationDialogModule,
+        FormattingModule,
+        AutoCompleteModule,
+        DescriptionCopyDialogModule,
+        DescriptionOverviewRoutingModule,
+        PlanAuthorsModule,
         PlanEvaluationHistoryComponent,
-        DescriptionPreviewComponent
-	],
-	declarations: [
-		DescriptionOverviewComponent
-	]
+        DescriptionPreviewComponent,
+        DescriptionOverviewComponent
+    ]
 })
 export class DescriptionOverviewModule { }

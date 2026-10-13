@@ -10,14 +10,14 @@
         <div class="col justify-content-center warn-text"> <h5><strong>{{ data.warning }}</strong></h5></div>
       }
       <div class="col-auto">
-        <button mat-icon-button (click)="close()" [attr.aria-label]="'ALT-TEXT.CLOSE-DIALOG'  | translate"><mat-icon aria-hidden>close</mat-icon></button>
+        <button mat-icon-button (click)="close()" [attr.aria-label]="'ALT-TEXT.CLOSE-DIALOG'  | translate"><mat-icon aria-hidden="true">close</mat-icon></button>
       </div>
     </div>
   }
   @if (!data.icon && !data.warning) {
     <div class="row justify-content-end mb-1">
       <div class="col-auto">
-        <button mat-icon-button (click)="close()" [attr.aria-label]="'ALT-TEXT.CLOSE-DIALOG'  | translate"><mat-icon aria-hidden>close</mat-icon></button>
+        <button mat-icon-button (click)="close()" [attr.aria-label]="'ALT-TEXT.CLOSE-DIALOG'  | translate"><mat-icon aria-hidden="true">close</mat-icon></button>
       </div>
     </div>
   }

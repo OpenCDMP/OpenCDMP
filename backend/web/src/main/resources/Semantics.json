@@ -33,15 +33,19 @@
   },
   {
     "category": "rda",
-    "name": "rda.dmp.contact.affiliation.name"
+    "name": "rda.dmp.affiliation.name"
   },
   {
     "category": "rda",
-    "name": "rda.dmp.contact.affiliation.affiliation_id.type"
+    "name": "rda.dmp.affiliation.affiliation_id"
   },
   {
     "category": "rda",
-    "name": "rda.dmp.contact.affiliation.affiliation_id.identifier"
+    "name": "rda.dmp.affiliation.affiliation_id.identifier"
+  },
+  {
+    "category": "rda",
+    "name": "rda.dmp.affiliation.affiliation_id.type"
   },
   {
     "category": "rda",
@@ -169,6 +173,10 @@
   },
   {
     "category": "rda",
+    "name": "rda.dataset.distribution"
+  },
+  {
+    "category": "rda",
     "name": "rda.dataset.distribution.exists"
   },
   {
@@ -198,6 +206,10 @@
   {
     "category": "rda",
     "name": "rda.dataset.distribution.format"
+  },
+  {
+    "category": "rda",
+    "name": "rda.dataset.distribution.host"
   },
   {
     "category": "rda",
@@ -1381,119 +1393,111 @@
   },
   {
     "category": "dataverse",
-    "name": "dataverse.related_publication.relation_type.isCitedBy"
+    "name": "dataverse.publication.relation_type.iscitedby"
   },
   {
     "category": "dataverse",
-    "name": "dataverse.related_publication.relation_type.Cites"
+    "name": "dataverse.publication.relation_type.cites"
   },
   {
     "category": "dataverse",
-    "name": "dataverse.related_publication.relation_type.IsSupplementTo"
+    "name": "dataverse.publication.relation_type.issupplementto"
   },
   {
     "category": "dataverse",
-    "name": "dataverse.related_publication.relation_type.IsSupplementedBy"
+    "name": "dataverse.publication.relation_type.issupplementedby"
   },
   {
     "category": "dataverse",
-    "name": "dataverse.related_publication.relation_type.IsContinuedBy"
+    "name": "dataverse.publication.relation_type.iscontinuedby"
   },
   {
     "category": "dataverse",
-    "name": "dataverse.related_publication.relation_type.Continues"
+    "name": "dataverse.publication.relation_type.continues"
   },
   {
     "category": "dataverse",
-    "name": "dataverse.related_publication.relation_type.References"
+    "name": "dataverse.publication.relation_type.references"
   },
   {
     "category": "dataverse",
-    "name": "dataverse.related_publication.relation_type.IsReferencedBy"
+    "name": "dataverse.publication.relation_type.isreferencedby"
   },
   {
     "category": "dataverse",
-    "name": "dataverse.related_publication.relation_type.References"
+    "name": "dataverse.publication.type.ark"
   },
   {
     "category": "dataverse",
-    "name": "dataverse.related_publication.relation_type.References"
+    "name": "dataverse.publication.type.arxiv"
   },
   {
     "category": "dataverse",
-    "name": "dataverse.related_publication.relation_type.References"
+    "name": "dataverse.publication.type.bibcode"
   },
   {
     "category": "dataverse",
-    "name": "dataverse.related_publication.identifier_type.ark"
+    "name": "dataverse.publication.type.cstr"
   },
   {
     "category": "dataverse",
-    "name": "dataverse.related_publication.identifier_type.arxiv"
+    "name": "dataverse.publication.type.doi"
   },
   {
     "category": "dataverse",
-    "name": "dataverse.related_publication.identifier_type.bibcode"
+    "name": "dataverse.publication.type.ean13"
   },
   {
     "category": "dataverse",
-    "name": "dataverse.related_publication.identifier_type.cstr"
+    "name": "dataverse.publication.type.eissn"
   },
   {
     "category": "dataverse",
-    "name": "dataverse.related_publication.identifier_type.doi"
+    "name": "dataverse.publication.type.handle"
   },
   {
     "category": "dataverse",
-    "name": "dataverse.related_publication.identifier_type.ean13"
+    "name": "dataverse.publication.type.isbn"
   },
   {
     "category": "dataverse",
-    "name": "dataverse.related_publication.identifier_type.eissn"
+    "name": "dataverse.publication.type.issn"
   },
   {
     "category": "dataverse",
-    "name": "dataverse.related_publication.identifier_type.handle"
+    "name": "dataverse.publication.type.istc"
   },
   {
     "category": "dataverse",
-    "name": "dataverse.related_publication.identifier_type.isbn"
+    "name": "dataverse.publication.type.lissn"
   },
   {
     "category": "dataverse",
-    "name": "dataverse.related_publication.identifier_type.issn"
+    "name": "dataverse.publication.type.lsid"
   },
   {
     "category": "dataverse",
-    "name": "dataverse.related_publication.identifier_type.lissn"
+    "name": "dataverse.publication.type.pmid"
   },
   {
     "category": "dataverse",
-    "name": "dataverse.related_publication.identifier_type.lsid"
+    "name": "dataverse.publication.type.purl"
   },
   {
     "category": "dataverse",
-    "name": "dataverse.related_publication.identifier_type.pmid"
+    "name": "dataverse.publication.type.upc"
   },
   {
     "category": "dataverse",
-    "name": "dataverse.related_publication.identifier_type.purl"
+    "name": "dataverse.publication.type.url"
   },
   {
     "category": "dataverse",
-    "name": "dataverse.related_publication.identifier_type.upc"
+    "name": "dataverse.publication.type.urn"
   },
   {
     "category": "dataverse",
-    "name": "dataverse.related_publication.identifier_type.url"
-  },
-  {
-    "category": "dataverse",
-    "name": "dataverse.related_publication.identifier_type.urm"
-  },
-  {
-    "category": "dataverse",
-    "name": "dataverse.related_publication.identifier_type.DASH-NRS"
+    "name": "dataverse.publication.type.dash_nrs"
   },
   {
     "category": "dataverse",

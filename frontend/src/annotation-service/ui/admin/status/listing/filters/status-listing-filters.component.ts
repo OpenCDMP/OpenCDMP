@@ -1,4 +1,4 @@
-import { Component, computed, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges } from '@angular/core';
+import { Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges, ChangeDetectionStrategy } from '@angular/core';
 import { BaseComponent } from '@common/base/base.component';
 import { IsActive } from '@notification-service/core/enum/is-active.enum';
 import { nameof } from 'ts-simple-nameof';
@@ -6,31 +6,36 @@ import { StatusFilter } from '@annotation-service/core/query/status.lookup';
 import { InternalStatus } from '@annotation-service/core/enum/internal-status.enum';
 import { AnnotationServiceEnumUtils } from '@annotation-service/core/formatting/enum-utils.service';
 import { FormControl, FormGroup } from '@angular/forms';
-import { FormService } from '@common/forms/form-service';
+import { ListingFilterChipComponent } from '../../../../../../common/modules/admin-listing/listing-filter-chip.component';
+import { TranslatePipe } from '@ngx-translate/core';
 
 @Component({
     selector: 'app-status-listing-filters',
     templateUrl: './status-listing-filters.component.html',
     styleUrls: ['./status-listing-filters.component.scss'],
-    standalone: false
+    changeDetection: ChangeDetectionStrategy.Eager,
+    imports: [ListingFilterChipComponent, TranslatePipe]
 })
 export class StatusListingFiltersComponent extends BaseComponent implements OnInit, OnChanges {
-    
+
 	@Input() readonly filter: StatusFilter;
 	@Output() filterChange = new EventEmitter<StatusFilter>();
 	internalStatusEnumValues = this.enumUtils.getEnumValues<InternalStatus>(InternalStatus)
 
 	// * State
+    protected readonly labelOfInternalStatuses = (value: any): string => this.enumUtils.toInternalStatusString(value);
+
     internalFilters = new FormGroup<StatusListingFilters>({
-        internalStatuses: new FormControl<InternalStatus[]>(null),
-        isActive: new FormControl<boolean>(true),
-        like: new FormControl<string>(null)
+        internalStatuses: new FormControl<InternalStatus[] | null>(null),
+        showDeleted: new FormControl<boolean>(false, { nonNullable: true }),
+        like: new FormControl<string | null>(null),
     })
 
     like = ''
 	protected appliedFilterCount: number = 0;
 	constructor(
-		public enumUtils: AnnotationServiceEnumUtils	) { super(); }
+		public enumUtils: AnnotationServiceEnumUtils,
+	) { super(); }
 
 	ngOnInit() {
 	}
@@ -43,7 +48,7 @@ export class StatusListingFiltersComponent extends BaseComponent implements OnIn
 	}
 
     get formIsDirty(): boolean {
-        return this.internalFilters.controls.isActive.dirty || this.internalFilters.controls.internalStatuses.dirty;
+        return this.internalFilters.controls.showDeleted.dirty || this.internalFilters.controls.internalStatuses.dirty;
     }
 
 
@@ -58,11 +63,9 @@ export class StatusListingFiltersComponent extends BaseComponent implements OnIn
 	}
 
 	protected applyFilters(): void {
-		const { isActive, internalStatuses, like } = this.internalFilters?.value ?? {}
+		const { showDeleted, internalStatuses, like } = this.internalFilters?.value ?? {}
 		this.filterChange.emit({
 			...this.filter,
-			like: like ?? null,
-			isActive: isActive ? [IsActive.Active] : [IsActive.Inactive],
 			internalStatuses: internalStatuses?.length > 0 ? internalStatuses : null,
 		})
         this.internalFilters.markAsPristine();
@@ -71,22 +74,22 @@ export class StatusListingFiltersComponent extends BaseComponent implements OnIn
 
 	private _parseToInternalFilters(inputFilter: StatusFilter) {
 		if (!inputFilter) {
-			this._getEmptyFilters();
+			return this._getEmptyFilters();
 		}
 
-		let { isActive, internalStatuses, like } = inputFilter;
+		const { isActive, internalStatuses, like } = inputFilter;
 
 		this.internalFilters.setValue({
-			isActive: (isActive ?? [])?.includes(IsActive.Active) || !isActive?.length,
+			showDeleted: (isActive ?? []).includes(IsActive.Inactive),
 			internalStatuses: internalStatuses ?? null,
-			like: like ?? null
+			like: like ?? null,
 		});
         this.internalFilters.markAsPristine();
 	}
 
 	private _getEmptyFilters() {
 		this.internalFilters.setValue({
-			isActive: true,
+			showDeleted: false,
 			internalStatuses: null,
 			like: null,
 		})
@@ -95,7 +98,7 @@ export class StatusListingFiltersComponent extends BaseComponent implements OnIn
 	private _computeAppliedFilters(form: FormGroup<StatusListingFilters>): number {
         const filters = form.value;
 		let count = 0;
-		if (!filters?.isActive) {
+		if (filters?.showDeleted) {
 			count++
 		}
 		if (filters?.like) {
@@ -111,12 +114,12 @@ export class StatusListingFiltersComponent extends BaseComponent implements OnIn
 	clearFilters() {
 		this._getEmptyFilters();
         this.internalFilters.controls.internalStatuses.markAsDirty();
-        this.internalFilters.controls.isActive.markAsDirty();
+        this.internalFilters.controls.showDeleted.markAsDirty();
 	}
 }
 
 interface StatusListingFilters {
-	like: FormControl<string>;
-	isActive: FormControl<boolean>;
-	internalStatuses: FormControl<InternalStatus[]>;
+	like: FormControl<string | null>;
+	showDeleted: FormControl<boolean>;
+	internalStatuses: FormControl<InternalStatus[] | null>;
 }

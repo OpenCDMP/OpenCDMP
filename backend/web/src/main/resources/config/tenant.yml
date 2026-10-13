@@ -1,3 +1,7 @@
+tenant-transfer:
+  # base url of the annotation service (e.g. http://opencdmp.annotation:8080); empty disables annotation transfer
+  annotation-service-url: ${ANNOTATION_SERVICE_URL:}
+
 tenant:
   #32byte string
   configEncryptionAesKey: ${TENANT_CONFIG_ENCRYPTION_AES_KEY:rmpTvZnRWzyisUtFADBcZCn0q7Z75Xdz}

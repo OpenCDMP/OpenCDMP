@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { Router } from '@angular/router';
 import { SupportiveMaterialFieldType } from '@app/core/common/enum/supportive-material-field-type';
@@ -15,7 +15,7 @@ import { takeUntil } from 'rxjs/operators';
     selector: 'app-terms',
     templateUrl: './terms.component.html',
     styleUrls: ['./terms.component.scss'],
-    standalone: false
+    changeDetection: ChangeDetectionStrategy.Eager
 })
 export class TermsComponent extends BaseComponent implements OnInit {
 

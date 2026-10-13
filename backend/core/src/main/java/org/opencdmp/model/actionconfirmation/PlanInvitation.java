@@ -12,7 +12,7 @@ public class PlanInvitation {
 	private UUID planId;
 	public static final String _planId = "planId";
 
-	private UUID sectionId;
+	private String sectionId;
 	public static final String _sectionId = "sectionId";
 
 	private PlanUserRole role;
@@ -35,12 +35,12 @@ public class PlanInvitation {
 		this.planId = planId;
 	}
 
-	public UUID getSectionId() {
+	public String getSectionId() {
 		return sectionId;
 	}
 
-	public void setSectionId(UUID sectionId) {
-		this.sectionId = sectionId;
+	public void setSectionId(String sectionId) {
+		this.sectionId = (sectionId == null || sectionId.isEmpty()) ? null : sectionId;
 	}
 
 	public PlanUserRole getRole() {

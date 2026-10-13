@@ -34,6 +34,7 @@ import org.opencdmp.controllers.swagger.annotation.OperationWithTenantHeader;
 import org.opencdmp.controllers.swagger.annotation.Swagger400;
 import org.opencdmp.controllers.swagger.annotation.Swagger404;
 import org.opencdmp.controllers.swagger.annotation.SwaggerCommonErrorResponses;
+import org.opencdmp.data.TenantEntityManagerFactory;
 import org.opencdmp.filetransformerbase.models.misc.PreprocessingPlanModel;
 import org.opencdmp.model.*;
 import org.opencdmp.model.builder.plan.PlanBuilder;
@@ -41,13 +42,16 @@ import org.opencdmp.model.censorship.PublicPlanCensor;
 import org.opencdmp.model.censorship.plan.PlanCensor;
 import org.opencdmp.model.persist.*;
 import org.opencdmp.model.plan.Plan;
+import org.opencdmp.model.plan.versiondiff.PlanVersionDiff;
 import org.opencdmp.model.result.QueryResult;
 import org.opencdmp.model.user.User;
 import org.opencdmp.query.PlanQuery;
 import org.opencdmp.query.PlanStatusQuery;
 import org.opencdmp.query.lookup.PlanLookup;
 import org.opencdmp.service.elastic.ElasticQueryHelperService;
+import org.opencdmp.service.description.DescriptionService;
 import org.opencdmp.service.plan.PlanService;
+import org.opencdmp.service.plan.PlanVersionDiffService;
 import org.opencdmp.service.fieldsetexpander.FieldSetExpanderService;
 import org.opencdmp.service.plan.PlanWebSocketService;
 import org.slf4j.LoggerFactory;
@@ -87,6 +91,10 @@ public class PlanController {
 
     private final PlanService planService;
 
+    private final PlanVersionDiffService planVersionDiffService;
+
+    private final DescriptionService descriptionService;
+
     private final CensorFactory censorFactory;
 
     private final QueryFactory queryFactory;
@@ -99,24 +107,31 @@ public class PlanController {
 
     private final PlanWebSocketService planWebSocketService;
 
+    private final TenantEntityManagerFactory tenantEntityManagerFactory;
+
     public PlanController(
             BuilderFactory builderFactory,
             AuditService auditService,
             PlanService planService,
+            PlanVersionDiffService planVersionDiffService,
+            DescriptionService descriptionService,
             CensorFactory censorFactory,
             QueryFactory queryFactory,
             MessageSource messageSource,
             FieldSetExpanderService fieldSetExpanderService,
-            ElasticQueryHelperService elasticQueryHelperService, PlanWebSocketService planWebSocketService) {
+            ElasticQueryHelperService elasticQueryHelperService, PlanWebSocketService planWebSocketService, TenantEntityManagerFactory tenantEntityManagerFactory) {
         this.builderFactory = builderFactory;
         this.auditService = auditService;
         this.planService = planService;
+        this.planVersionDiffService = planVersionDiffService;
+        this.descriptionService = descriptionService;
         this.censorFactory = censorFactory;
         this.queryFactory = queryFactory;
         this.messageSource = messageSource;
         this.elasticQueryHelperService = elasticQueryHelperService;
         this.fieldSetExpanderService = fieldSetExpanderService;
         this.planWebSocketService = planWebSocketService;
+        this.tenantEntityManagerFactory = tenantEntityManagerFactory;
     }
 
     @PostMapping("public/query")
@@ -136,14 +151,21 @@ public class PlanController {
                     value = SwaggerHelpers.Plan.endpoint_public_query_response_example
             ))),
             extensions = @Extension(name = "x-order", properties = @ExtensionProperty(name = "value", value = "2")))
-    public QueryResult<Plan> publicQuery(@RequestBody PlanLookup lookup) throws MyApplicationException, MyForbiddenException {
+    public QueryResult<Plan> publicQuery(@RequestBody PlanLookup lookup) throws MyApplicationException, MyForbiddenException, InvalidApplicationException {
         logger.debug("querying {}", Plan.class.getSimpleName());
 
         this.censorFactory.censor(PublicPlanCensor.class).censor(lookup.getProject());
 
-        QueryResult<Plan> queryResult = this.elasticQueryHelperService.collectPublic(lookup, EnumSet.of(Public), null);
+        QueryResult<Plan> queryResult;
+        try {
+            this.tenantEntityManagerFactory.getInstance().disableTenantFilters();
 
-        this.auditService.track(AuditableAction.Plan_PublicQuery, "lookup", lookup);
+            queryResult = this.elasticQueryHelperService.collectPublic(lookup, EnumSet.of(Public), null);
+
+            this.auditService.track(AuditableAction.Plan_PublicQuery, "lookup", lookup);
+        } finally {
+            this.tenantEntityManagerFactory.getInstance().reloadTenantFilters();
+        }
 
         return queryResult;
     }
@@ -156,22 +178,31 @@ public class PlanController {
                     ))
             ),
             extensions = @Extension(name = "x-order", properties = @ExtensionProperty(name = "value", value = "3")))
-    public Plan publicGet(@PathVariable("id") UUID id, @Parameter(name = "f", description = SwaggerHelpers.Commons.fieldset_description, required = true, style = ParameterStyle.FORM, explode = Explode.TRUE, schema = @Schema(type = "array", example = SwaggerHelpers.Plan.endpoint_field_set_example)) FieldSet fieldSet) throws MyApplicationException, MyForbiddenException, MyNotFoundException {
+    public Plan publicGet(@PathVariable("id") UUID id, @Parameter(name = "f", description = SwaggerHelpers.Commons.fieldset_description, required = true, style = ParameterStyle.FORM, explode = Explode.TRUE, schema = @Schema(type = "array", example = SwaggerHelpers.Plan.endpoint_field_set_example)) FieldSet fieldSet) throws MyApplicationException, MyForbiddenException, MyNotFoundException, InvalidApplicationException {
         logger.debug(new MapLogEntry("retrieving" + Plan.class.getSimpleName()).And("id", id).And("fields", fieldSet));
 
+        fieldSet = this.fieldSetExpanderService.expand(fieldSet);
         this.censorFactory.censor(PublicPlanCensor.class).censor(fieldSet);
 
-        PlanStatusQuery statusQuery = this.queryFactory.query(PlanStatusQuery.class).disableTracking().internalStatuses(PlanStatus.Finalized).isActives(IsActive.Active);
-        PlanQuery query = this.queryFactory.query(PlanQuery.class).disableTracking().authorize(EnumSet.of(Public)).ids(id).isActive(IsActive.Active).planStatusSubQuery(statusQuery).accessTypes(PlanAccessType.Public);
+        Plan model;
+        try {
+            this.tenantEntityManagerFactory.getInstance().disableTenantFilters();
 
-        Plan model = this.builderFactory.builder(PlanBuilder.class).authorize(EnumSet.of(Public)).isPublic(true).build(fieldSet, query.firstAs(fieldSet));
-        if (model == null)
-            throw new MyNotFoundException(this.messageSource.getMessage("General_ItemNotFound", new Object[]{id, Plan.class.getSimpleName()}, LocaleContextHolder.getLocale()));
+            PlanStatusQuery statusQuery = this.queryFactory.query(PlanStatusQuery.class).disableTracking().internalStatuses(PlanStatus.Finalized).isActives(IsActive.Active);
+            PlanQuery query = this.queryFactory.query(PlanQuery.class).disableTracking().authorize(EnumSet.of(Public)).ids(id).isActive(IsActive.Active).planStatusSubQuery(statusQuery).accessTypes(PlanAccessType.Public);
 
-        this.auditService.track(AuditableAction.Plan_PublicLookup, Map.ofEntries(
-                new AbstractMap.SimpleEntry<String, Object>("id", id),
-                new AbstractMap.SimpleEntry<String, Object>("fields", fieldSet)
-        ));
+            model = this.builderFactory.builder(PlanBuilder.class).authorize(EnumSet.of(Public)).isPublic(true).build(fieldSet, query.firstAs(fieldSet));
+            if (model == null)
+                throw new MyNotFoundException(this.messageSource.getMessage("General_ItemNotFound", new Object[]{id, Plan.class.getSimpleName()}, LocaleContextHolder.getLocale()));
+
+            this.auditService.track(AuditableAction.Plan_PublicLookup, Map.ofEntries(
+                    new AbstractMap.SimpleEntry<String, Object>("id", id),
+                    new AbstractMap.SimpleEntry<String, Object>("fields", fieldSet)
+            ));
+
+        } finally {
+            this.tenantEntityManagerFactory.getInstance().reloadTenantFilters();
+        }
 
         return model;
     }
@@ -236,6 +267,30 @@ public class PlanController {
         return model;
     }
 
+    @GetMapping("{id}/version-diff/{otherId}")
+    @OperationWithTenantHeader(summary = "Compute the field-level differences between two versions of the same plan", description = "",
+            responses = @ApiResponse(description = "OK", responseCode = "200", content = @Content(
+                    schema = @Schema(
+                            implementation = PlanVersionDiff.class
+                    ))
+            ))
+    @Swagger404
+    public PlanVersionDiff versionDiff(
+            @Parameter(name = "id", description = "The id of a plan version to compare", required = true) @PathVariable("id") UUID id,
+            @Parameter(name = "otherId", description = "The id of the other plan version to compare against", required = true) @PathVariable("otherId") UUID otherId
+    ) throws MyApplicationException, MyForbiddenException, MyNotFoundException {
+        logger.debug(new MapLogEntry("computing plan version diff").And("id", id).And("otherId", otherId));
+
+        PlanVersionDiff diff = this.planVersionDiffService.diff(id, otherId);
+
+        this.auditService.track(AuditableAction.Plan_VersionDiff, Map.ofEntries(
+                new AbstractMap.SimpleEntry<String, Object>("id", id),
+                new AbstractMap.SimpleEntry<String, Object>("otherId", otherId)
+        ));
+
+        return diff;
+    }
+
     @PostMapping("persist")
     @OperationWithTenantHeader(summary = "Create a new or update an existing plan", description = "",
             responses = @ApiResponse(description = "OK", responseCode = "200", content = @Content(
@@ -255,6 +310,50 @@ public class PlanController {
         logger.debug(new MapLogEntry("persisting" + Plan.class.getSimpleName()).And("model", model).And("fieldSet", fieldSet));
 
         Plan persisted = this.planService.persist(model, fieldSet);
+
+        this.auditService.track(AuditableAction.Plan_Persist, Map.ofEntries(
+                new AbstractMap.SimpleEntry<String, Object>("model", model),
+                new AbstractMap.SimpleEntry<String, Object>("fields", fieldSet)
+        ));
+
+        return persisted;
+    }
+
+    @PostMapping("persist-with-descriptions")
+    @OperationWithTenantHeader(summary = "Create or update a plan together with its edited descriptions in a single transaction", description = "",
+            responses = @ApiResponse(description = "OK", responseCode = "200", content = @Content(
+                    schema = @Schema(
+                            implementation = Plan.class
+                    ))
+            ),
+            extensions = @Extension(name = "x-order", properties = @ExtensionProperty(name = "value", value = "6")))
+    @Swagger400
+    @Swagger404
+    @Transactional
+    @ValidationFilterAnnotation(validator = PlanWithDescriptionsPersist.PlanWithDescriptionsPersistValidator.ValidatorName, argumentName = "model")
+    public Plan PersistWithDescriptions(
+            @RequestBody PlanWithDescriptionsPersist model,
+            @Parameter(name = "f", description = SwaggerHelpers.Commons.fieldset_description, required = true, style = ParameterStyle.FORM, explode = Explode.TRUE, schema = @Schema(type = "array", example = SwaggerHelpers.Plan.endpoint_field_set_example )) FieldSet fieldSet
+    ) throws MyApplicationException, MyForbiddenException, MyNotFoundException, InvalidApplicationException, IOException, JAXBException {
+        logger.debug(new MapLogEntry("persisting plan with descriptions").And("model", model).And("fieldSet", fieldSet));
+
+        // Persist the plan first. PlanServiceImpl.persist flushes the (possibly new) plan id within this
+        // transaction, so descriptions created in the same call can reference it via planId below.
+        Plan persisted = this.planService.persist(model.getPlan(), fieldSet);
+
+        if (model.getDescriptions() != null) {
+            for (DescriptionPersist description : model.getDescriptions()) {
+                // Defensive for the new-plan case: bind each description to the persisted plan id.
+                // In edit mode this is already the same id (no-op).
+                description.setPlanId(persisted.getId());
+                this.descriptionService.persist(description, fieldSet);
+            }
+        }
+
+        // The whole method runs under one @Transactional boundary (same pattern as SetStatus), so a
+        // failure in any description persist rolls back the plan and all descriptions together — no
+        // partial commit. Per-entity authorization / hash / lock checks are preserved because the
+        // existing service methods are composed unchanged.
 
         this.auditService.track(AuditableAction.Plan_Persist, Map.ofEntries(
                 new AbstractMap.SimpleEntry<String, Object>("model", model),
@@ -593,32 +692,6 @@ public class PlanController {
         return model;
     }
 
-    @PostMapping("create-from-request")
-    @OperationWithTenantHeader(summary = "Create a plan from an external request", description = "",
-            responses = @ApiResponse(description = "OK", responseCode = "200", content = @Content(
-                    schema = @Schema(
-                            implementation = Plan.class
-                    ))
-            ),
-            extensions = @Extension(name = "x-order", properties = @ExtensionProperty(name = "value", value = "16")))
-    @ValidationFilterAnnotation(validator = PlanSuggestion.PlanSuggestionValidator.ValidatorName, argumentName = "model")
-    @Transactional
-    public Plan createPlanFromRequest(
-            @RequestBody PlanSuggestion suggestion,
-            @Parameter(name = "f", description = SwaggerHelpers.Commons.fieldset_description, required = true, style = ParameterStyle.FORM, explode = Explode.TRUE, schema = @Schema(type = "array", example = SwaggerHelpers.Plan.endpoint_field_set_example)) FieldSet fields
-    ) throws InvalidAlgorithmParameterException, JAXBException, NoSuchPaddingException, IllegalBlockSizeException, InvalidApplicationException, IOException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException, ParserConfigurationException, TransformerException, InstantiationException, IllegalAccessException, SAXException {
-        logger.debug(new MapLogEntry("create plan from request" + Plan.class.getSimpleName()).And("plan request id", suggestion.getPlanUpdateRequestId()));
-
-        Plan model = this.planService.createPlanFromRequest(suggestion, fields);
-
-        this.auditService.track(AuditableAction.Plan_Creation_From_Request, Map.ofEntries(
-                new AbstractMap.SimpleEntry<String, Object>("plan update request", suggestion.getPlanUpdateRequestId()),
-                new AbstractMap.SimpleEntry<String, Object>("fields", fields)
-        ));
-
-        return model;
-    }
-
     @GetMapping("active-users/{id}")
     @OperationWithTenantHeader(summary = "Get live active users that edits a plan", description = "",
             responses = @ApiResponse(description = "OK", responseCode = "200"),
@@ -633,6 +706,54 @@ public class PlanController {
 
         this.auditService.track(AuditableAction.Plan_GetActiveUsers, Map.ofEntries(
                 new AbstractMap.SimpleEntry<String, Object>("id", id)
+        ));
+        return users;
+    }
+
+    @PostMapping("update-plan-description-templates")
+    @OperationWithTenantHeader(summary = "Add or delete description templates for an existing plan", description = "",
+            responses = @ApiResponse(description = "OK", responseCode = "200", content = @Content(
+                    schema = @Schema(
+                            implementation = Plan.class
+                    ))
+            ),
+            extensions = @Extension(name = "x-order", properties = @ExtensionProperty(name = "value", value = "18")))
+    @Swagger400
+    @Swagger404
+    @Transactional
+    @ValidationFilterAnnotation(validator = UpdatePlanDescriptionTemplate.UpdatePlanDescriptionTemplateValidator.ValidatorName, argumentName = "model")
+    public Plan updateDescriptionTemplates(
+            @RequestBody UpdatePlanDescriptionTemplate model,
+            @Parameter(name = "f", description = SwaggerHelpers.Commons.fieldset_description, required = true, style = ParameterStyle.FORM, explode = Explode.TRUE, schema = @Schema(type = "array", example = SwaggerHelpers.Plan.endpoint_field_set_example )) FieldSet fieldSet
+    ) throws MyApplicationException, MyForbiddenException, MyNotFoundException, InvalidApplicationException, IOException, JAXBException {
+        logger.debug(new MapLogEntry("update description templates" + UpdatePlanDescriptionTemplate.class.getSimpleName()).And("model", model).And("fieldSet", fieldSet));
+
+        Plan persisted = this.planService.updatePlanDescriptionTemplate(model, fieldSet);
+
+        this.auditService.track(AuditableAction.Plan_UpdateDescriptionTemplates, Map.ofEntries(
+                new AbstractMap.SimpleEntry<String, Object>("model", model),
+                new AbstractMap.SimpleEntry<String, Object>("fields", fieldSet)
+        ));
+
+        return persisted;
+    }
+
+    @GetMapping("get-users/{id}")
+    @OperationWithTenantHeader(summary = "Get plan users", description = "",
+            responses = @ApiResponse(description = "OK", responseCode = "200"),
+            extensions = @Extension(name = "x-order", properties = @ExtensionProperty(name = "value", value = "19")))
+    @Swagger404
+    public List<PlanUser> getUsers(
+            @Parameter(name = "id", description = "The id of a plan", required = true) @PathVariable UUID id,
+            @Parameter(name = "f", description = SwaggerHelpers.Commons.fieldset_description, required = true, style = ParameterStyle.FORM, explode = Explode.TRUE, schema = @Schema(type = "array", example = SwaggerHelpers.Plan.endpoint_field_set_example)) FieldSet fieldSet
+    ) {
+        logger.debug(new MapLogEntry("get users from a plan" + PlanUser.class.getSimpleName()).And("id", id).And("fields", fieldSet));
+
+        List<PlanUser> users = this.planService.getUsers(id, fieldSet);
+
+        this.auditService.track(AuditableAction.Plan_GetUsers, Map.ofEntries(
+                new AbstractMap.SimpleEntry<String, Object>("id", id),
+                new AbstractMap.SimpleEntry<String, Object>("fields", fieldSet)
         ));
         return users;
     }

@@ -12,29 +12,32 @@ import { DescriptionFilterComponent } from './filtering/description-filter.compo
 import { AutoCompleteModule } from '@app/library/auto-complete/auto-complete.module';
 import { DescriptionFilterService } from './filtering/description-filter.service';
 import { TextFilterModule } from '@common/modules/text-filter/text-filter.module';
+import { ActiveReferenceFiltersComponent } from '@app/ui/reference/reference-usage-filter/active-reference-filters.component';
+import { ReferenceUsageFilterComponent } from '@app/ui/reference/reference-usage-filter/reference-usage-filter.component';
 
 @NgModule({
-	imports: [
-		CommonUiModule,
-		CommonFormsModule,
-		FormattingModule,
-		DescriptionCopyDialogModule,
-		StartNewDescriptionDialogModule,
-		DescriptionListingRoutingModule,
-		AutoCompleteModule,
-		TextFilterModule,
-	],
-	declarations: [
-		DescriptionListingComponent,
-		DescriptionListingItemComponent,
-		DescriptionFilterDialogComponent,
-		DescriptionFilterComponent,
-	],
-	exports: [
-		DescriptionListingItemComponent,
-	],
-	providers: [
-		DescriptionFilterService,
-	]
+    imports: [
+        CommonUiModule,
+        ReferenceUsageFilterComponent,
+        ActiveReferenceFiltersComponent,
+        CommonFormsModule,
+        FormattingModule,
+        DescriptionCopyDialogModule,
+        StartNewDescriptionDialogModule,
+        DescriptionListingRoutingModule,
+        AutoCompleteModule,
+        TextFilterModule,
+        DescriptionListingComponent,
+        DescriptionListingItemComponent,
+        DescriptionFilterDialogComponent,
+        DescriptionFilterComponent,
+    ],
+    exports: [
+        DescriptionListingItemComponent,
+        DescriptionFilterDialogComponent,
+    ],
+    providers: [
+        DescriptionFilterService,
+    ]
 })
 export class DescriptionListingModule { }

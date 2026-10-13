@@ -46,6 +46,7 @@ import org.opencdmp.query.PlanStatusQuery;
 import org.opencdmp.query.StorageFileQuery;
 import org.opencdmp.service.accounting.AccountingService;
 import org.opencdmp.service.custompolicy.CustomPolicyService;
+import org.opencdmp.service.iconconfiguration.IconConfigurationService;
 import org.opencdmp.service.planworkflow.PlanWorkflowService;
 import org.opencdmp.service.storage.StorageFileService;
 import org.opencdmp.service.usagelimit.UsageLimitService;
@@ -81,9 +82,9 @@ public class PlanStatusServiceImpl implements PlanStatusService {
     private final QueryFactory queryFactory;
     private final UsageLimitService usageLimitService;
     private final AccountingService accountingService;
-    private final StorageFileService storageFileService;
+    private final IconConfigurationService iconConfigurationService;
 
-    public PlanStatusServiceImpl(BuilderFactory builderFactory, DeleterFactory deleterFactory, AuthorizationService authorizationService, ConventionService conventionService, XmlHandlingService xmlHandlingService, TenantEntityManagerFactory tenantEntityManagerFactory, MessageSource messageSource, ErrorThesaurusProperties errors, EventBroker eventBroker, TenantScopeFactory tenantScopeFactory, PlanWorkflowService planWorkflowService, CustomPolicyService customPolicyService, AuthorizationContentResolverFactory authorizationContentResolverFactory, QueryFactory queryFactory, UsageLimitService usageLimitService, AccountingService accountingService, StorageFileService storageFileService) {
+    public PlanStatusServiceImpl(BuilderFactory builderFactory, DeleterFactory deleterFactory, AuthorizationService authorizationService, ConventionService conventionService, XmlHandlingService xmlHandlingService, TenantEntityManagerFactory tenantEntityManagerFactory, MessageSource messageSource, ErrorThesaurusProperties errors, EventBroker eventBroker, TenantScopeFactory tenantScopeFactory, PlanWorkflowService planWorkflowService, CustomPolicyService customPolicyService, AuthorizationContentResolverFactory authorizationContentResolverFactory, QueryFactory queryFactory, UsageLimitService usageLimitService, AccountingService accountingService, IconConfigurationService iconConfigurationService) {
         this.builderFactory = builderFactory;
         this.deleterFactory = deleterFactory;
 
@@ -101,7 +102,7 @@ public class PlanStatusServiceImpl implements PlanStatusService {
         this.queryFactory = queryFactory;
         this.usageLimitService = usageLimitService;
         this.accountingService = accountingService;
-        this.storageFileService = storageFileService;
+        this.iconConfigurationService = iconConfigurationService;
     }
 
     @Override
@@ -132,7 +133,7 @@ public class PlanStatusServiceImpl implements PlanStatusService {
         data.setOrdinal(model.getOrdinal());
         data.setInternalStatus(model.getInternalStatus());
         PlanStatusDefinitionEntity oldDefinition = this.conventionService.isNullOrEmpty(data.getDefinition()) ? null : this.xmlHandlingService.fromXmlSafe(PlanStatusDefinitionEntity.class, data.getDefinition());
-        data.setDefinition(this.xmlHandlingService.toXml(this.buildPlanStatusDefinitionEntity(model.getDefinition(), oldDefinition != null ? oldDefinition.getStorageFileId(): null)));
+        data.setDefinition(this.xmlHandlingService.toXml(this.buildPlanStatusDefinitionEntity(model.getDefinition(), oldDefinition)));
         data.setUpdatedAt(Instant.now());
 
         if (isUpdate)
@@ -157,7 +158,7 @@ public class PlanStatusServiceImpl implements PlanStatusService {
         this.deleterFactory.deleter(PlanStatusDeleter.class).deleteAndSaveByIds(List.of(id));
     }
 
-    private @NotNull PlanStatusDefinitionEntity buildPlanStatusDefinitionEntity(PlanStatusDefinitionPersist persist, UUID oldStorageFileId) throws InvalidApplicationException {
+    private @NotNull PlanStatusDefinitionEntity buildPlanStatusDefinitionEntity(PlanStatusDefinitionPersist persist, PlanStatusDefinitionEntity oldValue) throws InvalidApplicationException {
         PlanStatusDefinitionEntity data = new PlanStatusDefinitionEntity();
         if (persist == null)
             return data;
@@ -167,22 +168,12 @@ public class PlanStatusServiceImpl implements PlanStatusService {
             data.setAuthorization(definitionAuthorizationData);
         }
 
-        data.setMatIconName(persist.getMatIconName());
-        if (persist.getStorageFileId() != null) {
-            if (!persist.getStorageFileId().equals(oldStorageFileId)) {
-                StorageFileEntity storageFileEntity = this.queryFactory.query(StorageFileQuery.class).disableTracking().ids(persist.getStorageFileId()).firstAs(new BaseFieldSet().ensure(StorageFile._id).ensure(StorageFile._storageType));
-                if (storageFileEntity == null || storageFileEntity.getStorageType().equals(StorageType.Temp)) {
-                    StorageFile storageFile = this.storageFileService.copyToStorage(persist.getStorageFileId(), StorageType.Main, true, new BaseFieldSet().ensure(StorageFile._id));
-                    this.storageFileService.updatePurgeAt(storageFile.getId(), null);
-                    if (oldStorageFileId != null) this.storageFileService.updatePurgeAt(oldStorageFileId, Instant.now().plusSeconds(60));
-                    data.setStorageFileId(storageFile.getId());
-                }
-            } else {
-                data.setStorageFileId(persist.getStorageFileId());
-            }
-        } else {
-            if (oldStorageFileId != null) this.storageFileService.updatePurgeAt(oldStorageFileId, Instant.now().plusSeconds(60));
+        UUID oldStorageFileId = null;
+        if (oldValue != null && oldValue.getIconConfiguration() != null && oldValue.getIconConfiguration().getStorageFileId() != null) {
+            oldStorageFileId = oldValue.getIconConfiguration().getStorageFileId();
         }
+        data.setIconConfiguration(this.iconConfigurationService.buildIconConfigurationEntity(persist.getIconConfiguration(), oldStorageFileId));
+
         data.setStatusColor(persist.getStatusColor());
 
         if (!this.conventionService.isListNullOrEmpty(persist.getAvailableActions())) data.setAvailableActions(persist.getAvailableActions());

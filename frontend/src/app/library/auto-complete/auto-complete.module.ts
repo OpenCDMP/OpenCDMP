@@ -7,19 +7,17 @@ import { CommonUiModule } from '@common/ui/common-ui.module';
 
 
 @NgModule({
-	imports: [
-		CommonUiModule,
-		CommonFormsModule,
-		FormattingModule
-	],
-	declarations: [
-		SingleAutoCompleteComponent,
-		MultipleAutoCompleteComponent
-	],
-	exports: [
-		SingleAutoCompleteComponent,
-		MultipleAutoCompleteComponent
-	]
+    imports: [
+        CommonUiModule,
+        CommonFormsModule,
+        FormattingModule,
+        SingleAutoCompleteComponent,
+        MultipleAutoCompleteComponent
+    ],
+    exports: [
+        SingleAutoCompleteComponent,
+        MultipleAutoCompleteComponent
+    ]
 })
 export class AutoCompleteModule {
 	constructor() { }

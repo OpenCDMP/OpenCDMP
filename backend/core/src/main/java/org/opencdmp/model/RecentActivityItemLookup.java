@@ -2,6 +2,7 @@ package org.opencdmp.model;
 
 import org.opencdmp.commons.enums.DescriptionStatus;
 import org.opencdmp.commons.enums.PlanStatus;
+import org.opencdmp.commons.enums.PlanUserRole;
 import org.opencdmp.commons.enums.IsActive;
 import org.opencdmp.commons.enums.RecentActivityOrder;
 import org.opencdmp.model.description.Description;
@@ -10,6 +11,7 @@ import org.opencdmp.query.lookup.*;
 import gr.cite.tools.data.query.Ordering;
 import gr.cite.tools.data.query.Paging;
 import gr.cite.tools.fieldset.BaseFieldSet;
+import org.springframework.data.domain.Sort;
 
 import java.util.List;
 import java.util.UUID;
@@ -21,9 +23,40 @@ public class RecentActivityItemLookup{
     private Boolean onlyPlan;
     private Boolean onlyDescription;
     private List<UUID> userIds;
+    private List<UUID> statusIds;
+    /**
+     * The My Plans filter panel's lookup. Only its filter parts are applied (blueprints, templates,
+     * roles, references); paging, order, projection and the "my plans" restriction stay the dashboard's.
+     */
+    private PlanLookup planFilter;
+    /** The My Assets filter panel's lookup, applied the same way as {@link #planFilter}. */
+    private DescriptionLookup descriptionFilter;
     private Paging page;
     private BaseFieldSet project;
-    private RecentActivityOrder orderField;
+    private Order order;
+
+    public static class Order {
+
+        private RecentActivityOrder orderField;
+
+        private Sort.Direction sortDirection;
+
+        public RecentActivityOrder getOrderField() {
+            return orderField;
+        }
+
+        public void setOrderField(RecentActivityOrder orderField) {
+            this.orderField = orderField;
+        }
+
+        public Sort.Direction getSortDirection() {
+            return sortDirection;
+        }
+
+        public void setSortDirection(Sort.Direction sortDirection) {
+            this.sortDirection = sortDirection;
+        }
+    }
 
     public String getLike() {
         return like;
@@ -49,12 +82,36 @@ public class RecentActivityItemLookup{
         this.userIds = userIds;
     }
 
+    public List<UUID> getStatusIds() {
+        return statusIds;
+    }
+
+    public void setStatusIds(List<UUID> statusIds) {
+        this.statusIds = statusIds;
+    }
+
     public Paging getPage() {
         return page;
     }
 
     public void setPage(Paging page) {
         this.page = page;
+    }
+
+    public PlanLookup getPlanFilter() {
+        return planFilter;
+    }
+
+    public void setPlanFilter(PlanLookup planFilter) {
+        this.planFilter = planFilter;
+    }
+
+    public DescriptionLookup getDescriptionFilter() {
+        return descriptionFilter;
+    }
+
+    public void setDescriptionFilter(DescriptionLookup descriptionFilter) {
+        this.descriptionFilter = descriptionFilter;
     }
 
     public BaseFieldSet getProject() {
@@ -65,12 +122,12 @@ public class RecentActivityItemLookup{
         this.project = project;
     }
 
-    public RecentActivityOrder getOrderField() {
-        return orderField;
+    public Order getOrder() {
+        return order;
     }
 
-    public void setOrderField(RecentActivityOrder orderField) {
-        this.orderField = orderField;
+    public void setOrder(Order order) {
+        this.order = order;
     }
 
     public Boolean getOnlyPlan() {
@@ -110,14 +167,18 @@ public class RecentActivityItemLookup{
             planLookup.setIsActive(List.of(IsActive.Active));
             lookup.setPlanSubQuery(planLookup);
         }
+        if (this.statusIds != null) {
+            lookup.setStatusIds(this.statusIds);
+        }
+        this.applyDescriptionFilter(lookup);
         if (this.page != null)  lookup.setPage(new Paging(this.page.getOffset(), this.page.getSize()));
         Ordering ordering = new Ordering();
-        if (this.orderField != null) {
-            switch (this.orderField){
-                case Label -> ordering.addDescending(Description._label).addDescending(Description._updatedAt);
-                case UpdatedAt -> ordering.addDescending(Description._updatedAt);
-                case Status -> ordering.addDescending(Description._status).addDescending(Description._updatedAt);
-                default -> throw  new IllegalArgumentException("Type not found" + this.orderField) ;
+        if (this.order != null && this.order.getOrderField() != null) {
+            switch (this.order.getOrderField()){
+                case Label -> this.applySortField(ordering, Description._label);
+                case UpdatedAt -> this.applySortField(ordering, Description._updatedAt);
+                case Status -> this.applySortField(ordering, Description._status);
+                default -> throw  new IllegalArgumentException("Type not found" + this.order.getOrderField()) ;
             }
         } else {
             ordering.addDescending(Description._updatedAt);
@@ -145,14 +206,21 @@ public class RecentActivityItemLookup{
             planUserLookup.setIsActive(List.of(IsActive.Active));
             lookup.setPlanUserSubQuery(planUserLookup);
         }
+        if (this.statusIds != null) {
+            PlanStatusLookup planStatusLookup = new PlanStatusLookup();
+            planStatusLookup.setIds(this.statusIds);
+            planStatusLookup.setIsActive(List.of(IsActive.Active));
+            lookup.setPlanStatusSubQuery(planStatusLookup);
+        }
+        this.applyPlanFilter(lookup);
         if (this.page != null)  lookup.setPage(new Paging(this.page.getOffset(), this.page.getSize()));
         Ordering ordering = new Ordering();
-        if (this.orderField != null) {
-            switch (this.orderField){
-                case Label -> ordering.addDescending(Plan._label);
-                case UpdatedAt -> ordering.addDescending(Plan._updatedAt);
-                case Status -> ordering.addDescending(Plan._status).addDescending(Plan._updatedAt);
-                default -> throw  new IllegalArgumentException("Type not found" + this.orderField) ;
+        if (this.order != null && this.order.getOrderField() != null) {
+            switch (this.order.getOrderField()){
+                case Label -> this.applySortField(ordering, Plan._label);
+                case UpdatedAt -> this.applySortField(ordering, Plan._updatedAt);
+                case Status -> this.applySortField(ordering, Plan._status);
+                default -> throw  new IllegalArgumentException("Type not found" + this.order.getOrderField()) ;
             }
         } else {
             ordering.addDescending(Plan._updatedAt);
@@ -160,6 +228,46 @@ public class RecentActivityItemLookup{
         lookup.setOrder(ordering);
         if (this.project !=null)lookup.setProject((BaseFieldSet) this.project.extractPrefixed(RecentActivityItem._plan));
         return lookup;
+    }
+
+    /** Copies the panel's narrowing sub-queries onto the dashboard's plan lookup; nothing that widens it. */
+    private void applyPlanFilter(PlanLookup lookup) {
+        if (this.planFilter == null) return;
+        if (this.planFilter.getPlanBlueprintSubQuery() != null) lookup.setPlanBlueprintLookup(this.planFilter.getPlanBlueprintSubQuery());
+        if (this.planFilter.getPlanDescriptionTemplateSubQuery() != null) lookup.setPlanDescriptionTemplateSubQuery(this.planFilter.getPlanDescriptionTemplateSubQuery());
+        if (this.planFilter.getPlanReferenceSubQuery() != null) lookup.setPlanReferenceLookup(this.planFilter.getPlanReferenceSubQuery());
+        // Roles narrow the dashboard's own "plans I am a member of" sub-query instead of replacing it.
+        List<PlanUserRole> roles = this.planFilter.getPlanUserSubQuery() != null ? this.planFilter.getPlanUserSubQuery().getUserRoles() : null;
+        if (roles != null && !roles.isEmpty() && lookup.getPlanUserSubQuery() != null) lookup.getPlanUserSubQuery().setUserRoles(roles);
+    }
+
+    /** Copies the panel's narrowing sub-queries onto the dashboard's description lookup; nothing that widens it. */
+    private void applyDescriptionFilter(DescriptionLookup lookup) {
+        if (this.descriptionFilter == null) return;
+        if (this.descriptionFilter.getDescriptionTemplateSubQuery() != null) lookup.setDescriptionTemplateSubQuery(this.descriptionFilter.getDescriptionTemplateSubQuery());
+        if (this.descriptionFilter.getDescriptionTagSubQuery() != null) lookup.setDescriptionTagSubQuery(this.descriptionFilter.getDescriptionTagSubQuery());
+        if (this.descriptionFilter.getDescriptionReferenceSubQuery() != null) lookup.setDescriptionReferenceSubQuery(this.descriptionFilter.getDescriptionReferenceSubQuery());
+
+        PlanLookup filterPlan = this.descriptionFilter.getPlanSubQuery();
+        if (filterPlan == null) return;
+        PlanLookup plan = lookup.getPlanSubQuery();
+        if (plan == null) {
+            plan = new PlanLookup();
+            plan.setIsActive(List.of(IsActive.Active));
+            lookup.setPlanSubQuery(plan);
+        }
+        if (filterPlan.getIds() != null && !filterPlan.getIds().isEmpty()) plan.setIds(filterPlan.getIds());
+        List<PlanUserRole> roles = filterPlan.getPlanUserSubQuery() != null ? filterPlan.getPlanUserSubQuery().getUserRoles() : null;
+        if (roles != null && !roles.isEmpty() && plan.getPlanUserSubQuery() != null) plan.getPlanUserSubQuery().setUserRoles(roles);
+    }
+
+    private void applySortField(Ordering ordering, String field) {
+        if (this.getOrder().getSortDirection() == null) ordering.addDescending(field);
+        else switch (this.getOrder().getSortDirection()){
+            case ASC -> ordering.addAscending(field);
+            case DESC -> ordering.addDescending(field);
+            default -> throw  new IllegalArgumentException("Type not found" + this.getOrder().getSortDirection()) ;
+        }
     }
 
 }

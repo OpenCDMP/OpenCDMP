@@ -48,12 +48,6 @@ export class AnalyticsService {
 	public static Terms: string = 'Terms of Service';
 	public static UserGuideContent: string = 'User Guide Content';
 	public static UserProfile: string = 'User Profile';
-	public static NotificationTempplateEditor: string = 'Admin: Notification Tempplates';
-    public static PlanStatusListing: string = 'Plan Status Listing';
-    public static PlanStatusEditor: string = 'Plan Status Editor';
-    public static DescriptionStatusListing: string = 'Description Status Listing';
-    public static DescriptionStatusEditor: string = 'Description Status Editor';
-	public static SupportiveMaterialEditor: string = 'SupportiveMaterialEditor';
 
 	//#endregion
 
@@ -71,7 +65,7 @@ export class AnalyticsService {
 	trackPageView(customTitle?: string): void {
         if(!this.consentService.currentConsents()?.categories?.includes(ConsentType.Analytics)){ return; }
 		const analytics: AnalyticsProviders = this.configurationService.analyticsProviders;
-		for (let provider of analytics.providers) {
+		for (const provider of analytics.providers) {
 			switch (provider.type) {
 				case (AnalyticsProviderType.Matomo):
 					this.matomoService.trackPageView(provider, customTitle);
@@ -84,7 +78,7 @@ export class AnalyticsService {
         if(!this.consentService.currentConsents()?.categories?.includes(ConsentType.Analytics)){ return; }
 		const analytics: AnalyticsProviders = this.configurationService.analyticsProviders;
 
-		for (let provider of analytics.providers) {
+		for (const provider of analytics.providers) {
 			switch (provider.type) {
 				case (AnalyticsProviderType.Matomo):
 					this.matomoService.trackSiteSearch(keyword, category, resultsCount);
@@ -97,7 +91,7 @@ export class AnalyticsService {
         if(!this.consentService.currentConsents()?.categories?.includes(ConsentType.Analytics)){ return; }
 		const analytics: AnalyticsProviders = this.configurationService.analyticsProviders;
 
-		for (let provider of analytics.providers) {
+		for (const provider of analytics.providers) {
 			switch (provider.type) {
 				case (AnalyticsProviderType.Matomo):
 					this.matomoService.trackDownload(category, type, id);

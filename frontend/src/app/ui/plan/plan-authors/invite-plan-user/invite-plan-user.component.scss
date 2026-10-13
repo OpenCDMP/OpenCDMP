@@ -1,0 +1,37 @@
+@use '@angular/material' as mat;
+
+.invite {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+
+    .button-toggle {
+        @include mat.button-toggle-overrides((
+            height: 30px,
+            label-text-size: var(--mat-sys-label-large-size),
+        ));
+        box-shadow: none;
+        background: var(--mat-sys-surface);
+        padding: 0.25rem;
+        border-radius: 8px;
+        border: 1px solid var(--mat-sys-outline-variant);
+        margin-bottom: 0.25rem;
+        .mat-button-toggle{
+            border-radius: 8px;
+            flex: 1;
+            color: var(--mat-sys-on-surface);
+            border-left: 0;
+            border-right: 0;
+            mat-icon {
+                transform: scale(0.8);
+                color: var(--mat-sys-on-surface);
+            }
+            &.mat-button-toggle-checked{
+                color: var(--mat-sys-on-primary-container) !important;
+                mat-icon {
+                        color: var(--mat-sys-on-primary-container) !important;
+                }
+            }
+        }
+    }
+}

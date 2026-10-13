@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
 import { ActivatedRoute, ParamMap, Router } from '@angular/router';
 import { IsActive } from '@app/core/common/enum/is-active.enum';
@@ -12,18 +12,21 @@ import { FormService } from '@common/forms/form-service';
 import { ConfirmationDialogComponent } from '@common/modules/confirmation-dialog/confirmation-dialog.component';
 import { HttpErrorHandlingService } from '@common/modules/errors/error-handling/http-error-handling.service';
 import { Guid } from '@common/types/guid';
-import { TranslateService } from '@ngx-translate/core';
+import { TranslateService, TranslatePipe } from '@ngx-translate/core';
 import { NotificationInAppTracking } from '@notification-service/core/enum/notification-inapp-tracking.enum';
 import { InAppNotification } from '@notification-service/core/model/inapp-notification.model';
 import { InAppNotificationService } from '@notification-service/services/http/inapp-notification.service';
 import { map, takeUntil } from 'rxjs/operators';
 import { nameof } from 'ts-simple-nameof';
+import { MatCard, MatCardTitle, MatCardContent } from '@angular/material/card';
+import { MatButton } from '@angular/material/button';
 
 @Component({
     selector: 'app-inapp-notification-editor',
     templateUrl: './inapp-notification-editor.component.html',
     styleUrls: ['./inapp-notification-editor.component.scss'],
-    standalone: false
+    changeDetection: ChangeDetectionStrategy.Eager,
+    imports: [MatCard, MatCardTitle, MatCardContent, MatButton, TranslatePipe]
 })
 export class InAppNotificationEditorComponent extends BaseComponent implements OnInit {
 
@@ -98,7 +101,6 @@ export class InAppNotificationEditorComponent extends BaseComponent implements O
 		if (value.id) {
 			const dialogRef = this.dialog.open(ConfirmationDialogComponent, {
 				maxWidth: '300px',
-				restoreFocus: false,
 				data: {
 					message: this.language.instant('GENERAL.CONFIRMATION-DIALOG.DELETE-ITEM'),
 					confirmButton: this.language.instant('GENERAL.CONFIRMATION-DIALOG.ACTIONS.CONFIRM'),

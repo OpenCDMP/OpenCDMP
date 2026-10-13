@@ -3,18 +3,34 @@ package org.opencdmp.controllers;
 import gr.cite.commons.web.authz.service.AuthorizationService;
 import gr.cite.tools.auditing.AuditService;
 import gr.cite.tools.logging.LoggerService;
+import gr.cite.tools.validation.ValidationFilterAnnotation;
 import jakarta.transaction.Transactional;
 import org.opencdmp.audit.AuditableAction;
 import org.opencdmp.authorization.Permission;
+import org.opencdmp.model.maintenance.DatabaseMigrationInfo;
+import org.opencdmp.model.maintenance.InstallationInfo;
+import org.opencdmp.model.maintenance.MaintenanceRun;
+import org.opencdmp.model.maintenance.MaintenanceTaskRun;
+import org.opencdmp.model.persist.InstallationPersist;
+import org.opencdmp.model.persist.MaintenanceRunPersist;
 import org.opencdmp.service.elastic.ElasticService;
+import org.opencdmp.service.maintenance.DatabaseMigrationService;
+import org.opencdmp.service.maintenance.InstallationService;
+import org.opencdmp.service.maintenance.MaintenanceRunService;
 import org.opencdmp.service.maintenance.MaintenanceService;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.management.InvalidApplicationException;
+import java.util.AbstractMap;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 
 @RestController
 @RequestMapping(path = "api/maintenance")
@@ -29,16 +45,107 @@ public class MaintenanceController {
     private final AuditService auditService;
 
     private final MaintenanceService maintenanceService;
+
+    private final MaintenanceRunService maintenanceRunService;
+
+    private final DatabaseMigrationService databaseMigrationService;
+
+    private final InstallationService installationService;
     @Autowired
     public MaintenanceController(
 		    AuthorizationService authorizationService,
 		    ElasticService elasticService,
-		    AuditService auditService, 
-            MaintenanceService maintenanceService) {
+		    AuditService auditService,
+            MaintenanceService maintenanceService,
+            MaintenanceRunService maintenanceRunService,
+            DatabaseMigrationService databaseMigrationService,
+            InstallationService installationService) {
         this.authorizationService = authorizationService;
         this.elasticService = elasticService;
         this.auditService = auditService;
 	    this.maintenanceService = maintenanceService;
+        this.maintenanceRunService = maintenanceRunService;
+        this.databaseMigrationService = databaseMigrationService;
+        this.installationService = installationService;
+    }
+
+    @RequestMapping(method = RequestMethod.POST, value = "/runs")
+    @ValidationFilterAnnotation(validator = MaintenanceRunPersist.MaintenanceRunPersistValidator.ValidatorName, argumentName = "model")
+    public MaintenanceRun startRun(@RequestBody MaintenanceRunPersist model) throws InvalidApplicationException {
+        logger.debug("start maintenance run");
+
+        MaintenanceRun run = this.maintenanceRunService.start(model);
+
+        this.auditService.track(AuditableAction.Maintenance_StartRun, Map.ofEntries(
+                new AbstractMap.SimpleEntry<String, Object>("model", model)
+        ));
+        return run;
+    }
+
+    @RequestMapping(method = RequestMethod.GET, value = "/runs/latest")
+    public MaintenanceRun latestRun() {
+        logger.debug("latest maintenance run");
+
+        MaintenanceRun run = this.maintenanceRunService.latest();
+
+        this.auditService.track(AuditableAction.Maintenance_LatestRun);
+        return run;
+    }
+
+    @RequestMapping(method = RequestMethod.POST, value = "/runs/{id}/stop")
+    public MaintenanceRun stopRun(@PathVariable("id") UUID id) {
+        logger.debug("stop maintenance run {}", id);
+
+        MaintenanceRun run = this.maintenanceRunService.stop(id);
+
+        this.auditService.track(AuditableAction.Maintenance_StopRun, Map.ofEntries(
+                new AbstractMap.SimpleEntry<String, Object>("id", id)
+        ));
+        return run;
+    }
+
+    @RequestMapping(method = RequestMethod.GET, value = "/tasks/last-runs")
+    public List<MaintenanceTaskRun> lastTaskRuns() {
+        logger.debug("last run of each maintenance task");
+
+        List<MaintenanceTaskRun> runs = this.maintenanceRunService.lastTaskRuns();
+
+        this.auditService.track(AuditableAction.Maintenance_LastTaskRuns);
+        return runs;
+    }
+
+    @RequestMapping(method = RequestMethod.GET, value = "/database-migrations")
+    public DatabaseMigrationInfo databaseMigrations() {
+        logger.debug("database migrations");
+
+        DatabaseMigrationInfo info = this.databaseMigrationService.info();
+
+        this.auditService.track(AuditableAction.Maintenance_DatabaseMigrations);
+        return info;
+    }
+
+    @RequestMapping(method = RequestMethod.GET, value = "/installation")
+    public InstallationInfo installation() {
+        logger.debug("installation info");
+
+        InstallationInfo info = this.installationService.info();
+
+        this.auditService.track(AuditableAction.Maintenance_Installation);
+        return info;
+    }
+
+    @RequestMapping(method = RequestMethod.POST, value = "/installation")
+    @Transactional
+    @ValidationFilterAnnotation(validator = InstallationPersist.InstallationPersistValidator.ValidatorName, argumentName = "model")
+    public InstallationInfo persistInstallation(@RequestBody InstallationPersist model) throws InvalidApplicationException {
+        logger.debug("persist installation");
+
+        InstallationInfo info = this.installationService.persist(model);
+
+        this.auditService.track(AuditableAction.Maintenance_PersistInstallation, Map.ofEntries(
+                new AbstractMap.SimpleEntry<String, Object>("model", model)
+        ));
+        return info;
     }
 
     @RequestMapping(method = RequestMethod.POST, value = "/index/elastic")
@@ -351,7 +458,7 @@ public class MaintenanceController {
 
     @RequestMapping(method = RequestMethod.POST, value = "/events/indicator-point-plan-blueprint-entry")
     @Transactional
-    public void sendIndicatorPointPlantBlueprintEvents() throws InvalidApplicationException {
+    public void sendIndicatorPointPlanBlueprintEvents() throws InvalidApplicationException {
         logger.debug("send indicator point plan blueprint entry queue events");
         this.authorizationService.authorizeForce(Permission.ManageQueueEvents);
 
@@ -359,6 +466,29 @@ public class MaintenanceController {
 
         this.auditService.track(AuditableAction.Maintenance_SendIndicatorPointPlanBlueprintEntryEvents);
     }
+
+    @RequestMapping(method = RequestMethod.POST, value = "/events/indicator-point-plan-blueprint-type-entry")
+    @Transactional
+    public void sendIndicatorPointPlanBlueprintTypeEvents() throws InvalidApplicationException {
+        logger.debug("send indicator point plan blueprint type entry queue events");
+        this.authorizationService.authorizeForce(Permission.ManageQueueEvents);
+
+        this.maintenanceService.sendIndicatorPointPlanBlueprintTypeEntryEvents();
+
+        this.auditService.track(AuditableAction.Maintenance_SendIndicatorPointPlanBlueprintTypeEntryEvents);
+    }
+
+    @RequestMapping(method = RequestMethod.POST, value = "/events/indicator-point-description-template-type-entry")
+    @Transactional
+    public void sendIndicatorPointDescriptionTemplateTypeEvents() throws InvalidApplicationException {
+        logger.debug("send indicator point plan blueprint type entry queue events");
+        this.authorizationService.authorizeForce(Permission.ManageQueueEvents);
+
+        this.maintenanceService.sendIndicatorPointDescriptionTemplateTypeEntryEvents();
+
+        this.auditService.track(AuditableAction.Maintenance_SendIndicatorPointDescriptionTemplateTypeEntryEvents);
+    }
+
 
     @RequestMapping(method = RequestMethod.POST, value = "/events/indicator-point-description-template-entry")
     @Transactional
@@ -382,14 +512,14 @@ public class MaintenanceController {
         this.auditService.track(AuditableAction.Maintenance_SendIndicatorPointTenantEntryEvents);
     }
 
-    @RequestMapping(method = RequestMethod.POST, value = "/misc-actions/plan-blueprint/set-can-edit-description-templates")
+    @RequestMapping(method = RequestMethod.POST, value = "/events/dashboard-touched-entry")
     @Transactional
-    public void setPlanBlueprintCanEditDescriptionTemplates() throws InvalidApplicationException {
-        logger.debug("set plan blueprint canEditDescriptionTemplates boolean to true");
+    public void sendDashboardTouchedEvents() throws InvalidApplicationException {
+        logger.debug("send dashboard touched entry queue events");
         this.authorizationService.authorizeForce(Permission.ManageQueueEvents);
 
-        this.maintenanceService.setPlanBlueprintCanEditDescriptionTemplates();
+        this.maintenanceService.sendDashboardTouchedEntryEvents();
 
-        this.auditService.track(AuditableAction.Maintenance_SetPlanBlueprintCanEditDescriptionTemplates);
+        this.auditService.track(AuditableAction.Maintenance_SendDashboardTouchedEntryEvents);
     }
 }

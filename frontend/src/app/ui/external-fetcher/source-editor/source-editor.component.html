@@ -1,0 +1,498 @@
+<section class="bp2-card se">
+	@if (showHead()) {
+	<div class="se__head">
+		<mat-form-field subscriptSizing="dynamic" class="se__label">
+			<mat-label>{{'REFERENCE-TYPE-EDITOR.SOURCE.SHOWN-AS' | translate}}</mat-label>
+			<input matInput type="text" [formControl]="ctl('label')" required>
+			@if (ctl('label').hasError('required')) { <mat-error>{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error> }
+			@if (ctl('label').hasError('backendError')) { <mat-error>{{ctl('label').getError('backendError').message}}</mat-error> }
+		</mat-form-field>
+		<mat-form-field subscriptSizing="dynamic" class="se__key">
+			<mat-label>{{'REFERENCE-TYPE-EDITOR.SOURCE.KEY' | translate}}</mat-label>
+			<input matInput type="text" class="se-mono" [formControl]="ctl('key')" required>
+			@if (ctl('key').hasError('required')) { <mat-error>{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error> }
+			@if (ctl('key').hasError('backendError')) { <mat-error>{{ctl('key').getError('backendError').message}}</mat-error> }
+		</mat-form-field>
+		<span class="se__spacer"></span>
+		@if (canEdit()) {
+			<button mat-icon-button type="button" class="bp2-icon-btn-sm" [matMenuTriggerFor]="sourceMenu" [attr.aria-label]="'REFERENCE-TYPE-EDITOR.SOURCE.ACTIONS' | translate"><mat-icon aria-hidden="true">more_vert</mat-icon></button>
+			<mat-menu #sourceMenu="matMenu">
+				<button mat-menu-item type="button" class="se-danger" (click)="remove.emit()"><mat-icon aria-hidden="true">delete</mat-icon>{{'REFERENCE-TYPE-EDITOR.SOURCE.REMOVE' | translate}}</button>
+			</mat-menu>
+		}
+	</div>
+	}
+
+	@if (stepList().length > 1) {
+		<nav class="se__steps" role="tablist" [attr.aria-label]="'REFERENCE-TYPE-EDITOR.SOURCE.STEPS' | translate">
+			@for (step of stepList(); track step; let i = $index) {
+				<button type="button" role="tab" class="bp2-pill" [class.bp2-pill--on]="subTab() === step" [attr.aria-selected]="subTab() === step" (click)="subTab.set(step)">{{i + 1}} · {{stepLabel(step) | translate}}</button>
+			}
+		</nav>
+	}
+
+	<!-- ============================================================ connection -->
+	@if (subTab() === 'connection') {
+		<div class="se__body">
+			<ng-container [ngTemplateOutlet]="connectionTpl" />
+		</div>
+	}
+
+	<!-- ============================================================ 1 · request -->
+	@if (subTab() === 'request') {
+		<div class="se__body">
+			<div class="se-grid se-grid--method">
+				<mat-form-field subscriptSizing="dynamic">
+					<mat-label>{{'REFERENCE-TYPE-EDITOR.REQUEST.METHOD' | translate}}</mat-label>
+					<mat-select [formControl]="ctl('httpMethod')">
+						@for (m of httpMethods; track m) { <mat-option [value]="m">{{enumUtils.toExternalFetcherApiHTTPMethodTypeString(m)}}</mat-option> }
+					</mat-select>
+				</mat-form-field>
+				<div>
+					<mat-form-field subscriptSizing="dynamic" class="se-full">
+						<mat-label>{{'REFERENCE-TYPE-EDITOR.REQUEST.URL' | translate}}</mat-label>
+						<input #urlInput matInput type="text" class="se-mono" [formControl]="ctl('url')">
+						@if (ctl('url').hasError('backendError')) { <mat-error>{{ctl('url').getError('backendError').message}}</mat-error> }
+					</mat-form-field>
+					<div class="se-chips">
+						<span class="bp2-sub">{{'REFERENCE-TYPE-EDITOR.INSERT' | translate}}</span>
+						@for (token of urlTokens; track token) { <button type="button" class="bp2-pill se-mono" [disabled]="!canEdit()" (click)="insertToken('url', token, urlInput)">{{token}}</button> }
+					</div>
+				</div>
+			</div>
+
+			<div class="se-grid se-grid--two">
+				<mat-form-field subscriptSizing="dynamic">
+					<mat-label>{{'REFERENCE-TYPE-EDITOR.REQUEST.FIRST-PAGE' | translate}}</mat-label>
+					<input matInput type="text" inputmode="numeric" [formControl]="ctl('firstPage')">
+					@if (ctl('firstPage').hasError('pattern')) { <mat-error>{{'REFERENCE-TYPE-EDITOR.REQUEST.NUMBER' | translate}}</mat-error> }
+				</mat-form-field>
+				<span class="bp2-sub se-align">{{'REFERENCE-TYPE-EDITOR.REQUEST.FIRST-PAGE-HINT' | translate}}</span>
+			</div>
+
+			@if (ctl('httpMethod').value === HTTP.POST) {
+				<mat-form-field subscriptSizing="dynamic" class="se-full">
+					<mat-label>{{'REFERENCE-TYPE-EDITOR.REQUEST.BODY' | translate}}</mat-label>
+					<textarea matInput rows="4" class="se-mono" [formControl]="ctl('requestBody')"></textarea>
+					<mat-hint>{{'REFERENCE-TYPE-EDITOR.REQUEST.BODY-HINT' | translate}}</mat-hint>
+				</mat-form-field>
+			} @else {
+				<div class="se-note"><mat-icon aria-hidden="true">description</mat-icon><span>{{'REFERENCE-TYPE-EDITOR.REQUEST.NO-BODY' | translate}}</span></div>
+			}
+
+			@if (connectionManaged()) {
+				<div class="se-uses">
+					<mat-icon aria-hidden="true">link</mat-icon>
+					<span>{{'REFERENCE-TYPE-EDITOR.SOURCE.USES-CONNECTION' | translate}}</span>
+					<button mat-button type="button" class="bp2-btn-sm" (click)="openConnection.emit()">{{'REFERENCE-TYPE-EDITOR.SOURCE.CHANGE-CONNECTION' | translate}}</button>
+				</div>
+			} @else {
+				<ng-container [ngTemplateOutlet]="connectionTpl" />
+			}
+		</div>
+	}
+
+	<!-- ============================================================ 2 · search rules -->
+	@if (subTab() === 'rules') {
+		<div class="se__body">
+			@if (filterChoice() || referenceTypes().length) {
+			<div class="se-settings">
+				@if (filterChoice()) {
+				<div class="se-setting">
+					<span class="bp2-field-label" id="se-filter-label">{{'REFERENCE-TYPE-EDITOR.RULES.WHO-FILTERS' | translate}}</span>
+					<mat-button-toggle-group [value]="filtersHere" (change)="setFiltersHere($event.value)" [disabled]="!canEdit()" aria-labelledby="se-filter-label">
+						<mat-button-toggle [value]="false">{{'REFERENCE-TYPE-EDITOR.RULES.THE-API' | translate}}</mat-button-toggle>
+						<mat-button-toggle [value]="true">{{'REFERENCE-TYPE-EDITOR.RULES.HERE' | translate}}</mat-button-toggle>
+					</mat-button-toggle-group>
+					<span class="bp2-sub">{{ (filtersHere ? 'REFERENCE-TYPE-EDITOR.RULES.HERE-HINT' : 'REFERENCE-TYPE-EDITOR.RULES.THE-API-HINT') | translate }}</span>
+				</div>
+				}
+				@if (referenceTypes().length) {
+				<div class="se-setting">
+					<mat-form-field subscriptSizing="dynamic">
+						<mat-label>{{'REFERENCE-TYPE-EDITOR.RULES.DEPENDS-ON' | translate}}</mat-label>
+						<mat-select multiple [formControl]="ctl('referenceTypeDependencyIds')">
+							@for (t of referenceTypes(); track t.id) { <mat-option [value]="t.id">{{t.name}}</mat-option> }
+						</mat-select>
+					</mat-form-field>
+					<span class="bp2-sub">{{'REFERENCE-TYPE-EDITOR.RULES.DEPENDS-ON-HINT' | translate}}</span>
+				</div>
+				}
+			</div>
+			}
+
+			@for (query of arr('queries').controls; track query; let q = $index) {
+				<div class="se-block">
+					<div class="se-block__head">
+						<h3>{{'REFERENCE-TYPE-EDITOR.RULES.FOR' | translate}} <span class="se-tok">{{ tok(query.get('name').value) }}</span></h3>
+						@if (canEdit()) { <button mat-icon-button type="button" class="bp2-icon-btn-sm" (click)="removeAt('queries', q)" [attr.aria-label]="'REFERENCE-TYPE-EDITOR.RULES.REMOVE-PLACEHOLDER' | translate" [matTooltip]="'REFERENCE-TYPE-EDITOR.RULES.REMOVE-PLACEHOLDER' | translate"><mat-icon aria-hidden="true">delete</mat-icon></button> }
+					</div>
+					<div class="se-grid se-grid--two">
+						<mat-form-field subscriptSizing="dynamic">
+							<mat-label>{{'REFERENCE-TYPE-EDITOR.RULES.PLACEHOLDER-NAME' | translate}}</mat-label>
+							<input matInput type="text" class="se-mono" [formControl]="query.get('name')" required>
+							@if (query.get('name').hasError('required')) { <mat-error>{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error> }
+						</mat-form-field>
+						<span class="bp2-sub se-align">{{'REFERENCE-TYPE-EDITOR.RULES.PLACEHOLDER-HINT' | translate: { token: tok(query.get('name').value) } }}</span>
+					</div>
+					<p class="bp2-help">{{'REFERENCE-TYPE-EDITOR.RULES.ORDER-HINT' | translate}}</p>
+					<div class="se-rules">
+						@for (rule of query.get('cases').controls; track rule; let c = $index) {
+							@let r = rule.getRawValue();
+							<div class="se-rule">
+								<span class="se-rule__n">{{c + 1}}</span>
+								<div class="se-rule__when">
+									<strong>{{ ruleIntro(r) | translate: { type: dependencyName(r.referenceTypeId), source: r.referenceTypeSourceKey } }}</strong>
+									@if (r.likePattern) { <span class="se-mono bp2-sub">{{r.likePattern}}</span> }
+									@if (r.separator) { <span class="bp2-sub">{{'REFERENCE-TYPE-EDITOR.RULES.SPLIT-ON' | translate: { separator: r.separator === ' ' ? ('REFERENCE-TYPE-EDITOR.RULE.SEP-SPACE' | translate) : r.separator } }}</span> }
+								</div>
+								<code class="se-code">{{r.value}}</code>
+								<button mat-icon-button type="button" (click)="openRule(q, c)" [attr.aria-label]="'REFERENCE-TYPE-EDITOR.RULES.EDIT-RULE' | translate: { n: c + 1 }"><mat-icon aria-hidden="true">{{ canEdit() ? 'edit' : 'visibility' }}</mat-icon></button>
+							</div>
+						}
+						<div class="se-rule se-rule--default">
+							<span class="se-rule__n"></span>
+							<div class="se-rule__when"><strong>{{'REFERENCE-TYPE-EDITOR.RULES.OTHERWISE' | translate}}</strong></div>
+							<mat-form-field subscriptSizing="dynamic">
+								<mat-label>{{'REFERENCE-TYPE-EDITOR.RULES.DEFAULT' | translate}}</mat-label>
+								<input matInput type="text" class="se-mono" [formControl]="query.get('defaultValue')">
+							</mat-form-field>
+							<span></span>
+						</div>
+					</div>
+					@if (canEdit()) { <button mat-button type="button" class="se-start" (click)="openRule(q)"><mat-icon aria-hidden="true">add</mat-icon>{{'REFERENCE-TYPE-EDITOR.RULES.ADD-RULE' | translate}}</button> }
+				</div>
+			} @empty {
+				<div class="se-note"><mat-icon aria-hidden="true">info</mat-icon><span>{{'REFERENCE-TYPE-EDITOR.RULES.NONE' | translate}}</span></div>
+			}
+			@if (canEdit()) { <button mat-stroked-button type="button" class="se-start" (click)="addQuery(arr('queries').length ? '' : 'like')"><mat-icon aria-hidden="true">add</mat-icon>{{'REFERENCE-TYPE-EDITOR.RULES.ADD-PLACEHOLDER' | translate}}</button> }
+
+			@if (arr('queries').length) {
+				<div class="se-try">
+					<mat-form-field subscriptSizing="dynamic">
+						<mat-label>{{'REFERENCE-TYPE-EDITOR.RULES.TRY' | translate}}</mat-label>
+						<input matInput type="text" [value]="tryLike()" (input)="tryLike.set($any($event.target).value)">
+					</mat-form-field>
+					<div class="se-try__out" aria-live="polite">
+						@for (o of tryResult(); track o.name) {
+							<div>
+								<span class="se-tok">{{ tok(o.name) }}</span>
+								{{ (o.ruleIndex >= 0 ? 'REFERENCE-TYPE-EDITOR.RULES.TRY-RULE' : 'REFERENCE-TYPE-EDITOR.RULES.TRY-DEFAULT') | translate: { n: o.ruleIndex + 1 } }}
+								<code class="se-code">{{o.value}}</code>
+							</div>
+						}
+					</div>
+				</div>
+			}
+		</div>
+	}
+
+	<!-- ============================================================ 3 · test and map -->
+	@if (subTab() === 'test') {
+		<div class="se__body">
+			<div class="se-testbar">
+				@if (testOptions(); as options) {
+					<mat-form-field subscriptSizing="dynamic" class="se-testbar__pick">
+						<mat-label>{{ testOptionsLabel() | translate }}</mat-label>
+						<mat-select [value]="testLike()" (selectionChange)="testLike.set($event.value)">
+							@for (o of options; track o.value) { <mat-option [value]="o.value">{{o.label}}</mat-option> }
+						</mat-select>
+						@if (!options.length) { <mat-hint>{{ testOptionsEmpty() | translate }}</mat-hint> }
+					</mat-form-field>
+				} @else {
+					<mat-form-field subscriptSizing="dynamic">
+						<mat-label>{{'REFERENCE-TYPE-EDITOR.TEST.WITH' | translate}}</mat-label>
+						<input matInput type="text" [value]="testLike()" (input)="testLike.set($any($event.target).value)" (keydown.enter)="runTest()">
+					</mat-form-field>
+				}
+				<button mat-flat-button color="primary" type="button" [disabled]="testing() || !canRunTest" (click)="runTest()"><mat-icon aria-hidden="true">play_arrow</mat-icon>{{'REFERENCE-TYPE-EDITOR.TEST.RUN' | translate}}</button>
+				@if (testResult(); as t) {
+					<div class="se-chips" aria-live="polite">
+						@if (t.status != null) { <span class="bp2-tag" [class.bp2-tag--ok]="t.status === 200" [class.bp2-tag--bad]="t.status !== 200">HTTP {{t.status}}</span> }
+						@if (t.results) { <span class="bp2-tag">{{'REFERENCE-TYPE-EDITOR.TEST.RESULTS' | translate: { n: t.results.length } }}</span> }
+						@if (t.total != null) { <span class="bp2-tag">{{'REFERENCE-TYPE-EDITOR.TEST.TOTAL' | translate: { n: t.total } }}</span> }
+						@if (t.durationMs != null) { <span class="bp2-tag">{{t.durationMs}} ms</span> }
+					</div>
+				}
+			</div>
+			@if (!canRunTest) {
+				<div class="bp2-strip"><mat-icon aria-hidden="true">info</mat-icon><span>{{'REFERENCE-TYPE-EDITOR.TEST.NEEDS-REQUEST' | translate}}</span><button mat-button type="button" (click)="subTab.set('request')">{{'REFERENCE-TYPE-EDITOR.TEST.OPEN-REQUEST' | translate}}</button></div>
+			}
+			@if (testResult(); as t) {
+				@if (t.error) { <div class="bp2-strip bp2-strip--bad"><mat-icon aria-hidden="true">error</mat-icon><span>{{t.error}}</span></div> }
+				@if (t.url) { <span class="bp2-sub se-wrap">{{'REFERENCE-TYPE-EDITOR.TEST.SENT' | translate}} <span class="se-mono">{{t.url}}</span></span> }
+				@if (bodyLooksLike() != null && bodyLooksLike() !== (ctl('responseFormat').value ?? FORMAT.JSON)) {
+					<div class="bp2-strip bp2-strip--warn"><mat-icon aria-hidden="true">swap_horiz</mat-icon><span>{{ (bodyLooksLike() === FORMAT.XML ? 'REFERENCE-TYPE-EDITOR.TEST.LOOKS-XML' : 'REFERENCE-TYPE-EDITOR.TEST.LOOKS-JSON') | translate }}</span>
+						@if (canEdit()) { <button mat-button type="button" class="bp2-btn-sm" (click)="setFormat(bodyLooksLike())">{{'REFERENCE-TYPE-EDITOR.TEST.SWITCH' | translate}}</button> }
+					</div>
+				}
+			}
+
+			<div class="se-map">
+				<div class="se-panel">
+					<div class="se-block__head">
+						<h3>{{'REFERENCE-TYPE-EDITOR.TEST.RESPONSE' | translate}}</h3>
+						<mat-button-toggle-group [value]="ctl('responseFormat').value ?? FORMAT.JSON" (change)="setFormat($event.value)" [disabled]="!canEdit()" [attr.aria-label]="'REFERENCE-TYPE-EDITOR.TEST.FORMAT' | translate">
+							<mat-button-toggle [value]="FORMAT.JSON">JSON</mat-button-toggle>
+							<mat-button-toggle [value]="FORMAT.XML">XML</mat-button-toggle>
+						</mat-button-toggle-group>
+					</div>
+					<div class="se-grid se-grid--two">
+						<mat-form-field subscriptSizing="dynamic">
+							<mat-label>{{'REFERENCE-TYPE-EDITOR.TEST.RESULTS-PATH' | translate}}</mat-label>
+							<input matInput type="text" class="se-mono" [formControl]="ctl('results.resultsArrayPath')">
+						</mat-form-field>
+						<mat-form-field subscriptSizing="dynamic">
+							<mat-label>{{'REFERENCE-TYPE-EDITOR.TEST.TOTAL-PATH' | translate}}</mat-label>
+							<input matInput type="text" class="se-mono" [formControl]="ctl('paginationPath')">
+						</mat-form-field>
+					</div>
+					<span class="bp2-sub">{{ ((ctl('responseFormat').value ?? FORMAT.JSON) === FORMAT.XML ? 'REFERENCE-TYPE-EDITOR.TEST.PATHS-XML' : 'REFERENCE-TYPE-EDITOR.TEST.PATHS-JSON') | translate }}</span>
+					@if (ctl('responseFormat').value === FORMAT.XML) {
+						<div class="se-rows">
+							@for (ns of arr('namespaces').controls; track ns; let i = $index) {
+								<div class="se-row se-row--ns">
+									<mat-form-field subscriptSizing="dynamic"><mat-label>{{'REFERENCE-TYPE-EDITOR.TEST.PREFIX' | translate}}</mat-label><input matInput type="text" class="se-mono" [formControl]="ns.get('prefix')" required></mat-form-field>
+									<mat-form-field subscriptSizing="dynamic"><mat-label>{{'REFERENCE-TYPE-EDITOR.TEST.URI' | translate}}</mat-label><input matInput type="text" class="se-mono" [formControl]="ns.get('uri')" required></mat-form-field>
+									@if (canEdit()) { <button mat-icon-button type="button" (click)="removeAt('namespaces', i)" [attr.aria-label]="'REFERENCE-TYPE-EDITOR.TEST.REMOVE-NAMESPACE' | translate"><mat-icon aria-hidden="true">close</mat-icon></button> } @else { <span></span> }
+								</div>
+							}
+							@if (canEdit()) { <button mat-button type="button" class="se-start" (click)="addNamespace()"><mat-icon aria-hidden="true">add</mat-icon>{{'REFERENCE-TYPE-EDITOR.TEST.ADD-NAMESPACE' | translate}}</button> }
+						</div>
+					}
+					@if (!testResult()) {
+						<div class="se-empty-test">
+							<mat-icon aria-hidden="true">play_circle</mat-icon>
+							<strong>{{'REFERENCE-TYPE-EDITOR.TEST.EMPTY-TITLE' | translate}}</strong>
+							<span class="bp2-sub">{{'REFERENCE-TYPE-EDITOR.TEST.EMPTY-HINT' | translate}}</span>
+						</div>
+					} @else if (testResult()?.items?.length) {
+						<div class="se-items-nav">
+							<span class="bp2-sub">{{'REFERENCE-TYPE-EDITOR.TEST.RESULT-N' | translate: { n: itemIndex() + 1, m: testResult().items.length } }}</span>
+							<button mat-icon-button type="button" [disabled]="itemIndex() === 0" (click)="itemIndex.set(itemIndex() - 1)" [attr.aria-label]="'REFERENCE-TYPE-EDITOR.TEST.PREVIOUS' | translate"><mat-icon aria-hidden="true">chevron_left</mat-icon></button>
+							<button mat-icon-button type="button" [disabled]="itemIndex() >= testResult().items.length - 1" (click)="itemIndex.set(itemIndex() + 1)" [attr.aria-label]="'REFERENCE-TYPE-EDITOR.TEST.NEXT' | translate"><mat-icon aria-hidden="true">chevron_right</mat-icon></button>
+						</div>
+						<span class="bp2-sub">{{'REFERENCE-TYPE-EDITOR.TEST.CLICK-HINT' | translate: { field: (codeLabel(mappingRows[activeMappingIndex]?.get('code').value) | translate) } }}</span>
+						<div class="se-json" role="list">
+							@for (line of jsonLines(); track $index) {
+								<div class="se-json__line" role="listitem" [style.padding-left.rem]="line.depth * 1.1">
+									@if (line.key) {
+										<button type="button" class="se-json__pick" [disabled]="!canEdit()" (click)="pickPath(line)" [attr.aria-label]="'REFERENCE-TYPE-EDITOR.TEST.USE-PATH' | translate: { path: line.path }">
+											<span class="se-json__key">{{line.key}}</span>: <span [class.se-json__str]="line.leaf">{{line.preview}}</span>
+										</button>
+									}
+								</div>
+							}
+						</div>
+					} @else if (testResult()?.body) {
+						<pre class="se-raw">{{testResult().body}}</pre>
+						@if (testResult().bodyTruncated) { <span class="bp2-sub">{{'REFERENCE-TYPE-EDITOR.TEST.TRUNCATED' | translate}}</span> }
+					}
+				</div>
+
+				<div class="se-panel">
+					<h3>{{ mapTitle() | translate }}</h3>
+					<span class="bp2-sub">{{ mapHint() | translate }}</span>
+					<div class="se-maprow se-maprow--head" aria-hidden="true">
+						<span>{{'REFERENCE-TYPE-EDITOR.TEST.COL-PATH' | translate}}</span>
+						<span>@if (testResult()) { <span class="bp2-tag bp2-tag--preset">{{'REFERENCE-TYPE-EDITOR.TEST.COL-PREVIEW' | translate: { n: itemIndex() + 1 } }}</span> } @else { {{'REFERENCE-TYPE-EDITOR.TEST.COL-PREVIEW-EMPTY' | translate}} }</span>
+					</div>
+					<div class="se-maprows">
+						@for (row of mappingRows; track row; let i = $index) {
+							@let code = row.get('code').value;
+							<div class="se-maprow" [class.se-maprow--active]="i === activeMappingIndex">
+								<div class="se-maprow__path">
+									@if (freeMapping() && !isSystem(code)) {
+										<div class="se-maprow__named">
+											<mat-form-field subscriptSizing="dynamic">
+												<mat-label>{{'REFERENCE-TYPE-EDITOR.TEST.FIELD-NAME' | translate}}</mat-label>
+												<input matInput type="text" class="se-mono" [formControl]="row.get('code')" (change)="mappingRenamed.emit()" required>
+											</mat-form-field>
+											<mat-form-field subscriptSizing="dynamic">
+												<mat-label>{{'REFERENCE-TYPE-EDITOR.TEST.PATH' | translate}}</mat-label>
+												<input matInput type="text" class="se-mono" [formControl]="row.get('responsePath')" (focus)="activeMappingIndex = i">
+											</mat-form-field>
+											@if (canEdit()) { <button mat-icon-button type="button" class="bp2-icon-btn-sm" (click)="removeMapping(i)" [attr.aria-label]="'REFERENCE-TYPE-EDITOR.TEST.REMOVE-FIELD' | translate: { field: code }"><mat-icon aria-hidden="true">close</mat-icon></button> }
+										</div>
+									} @else {
+										<mat-form-field subscriptSizing="dynamic">
+											<mat-label>{{codeLabel(code) | translate}}</mat-label>
+											<input matInput type="text" class="se-mono" [formControl]="row.get('responsePath')" (focus)="activeMappingIndex = i" [required]="isRequiredCode(code)">
+										</mat-form-field>
+									}
+									<mat-checkbox [checked]="isFirstOnly(row)" (change)="setFirstOnly(row, $event.checked)" [disabled]="!canEdit()">{{'REFERENCE-TYPE-EDITOR.TEST.FIRST-ONLY' | translate}}</mat-checkbox>
+								</div>
+								<span class="se-maprow__sample" aria-live="polite">
+									@if (testResult()) {
+										@let s = sample(code);
+										@if (s.value != null) { <span class="se-maprow__value" [attr.title]="s.value">{{s.value}}</span> } @else { <span class="bp2-tag bp2-tag--todo">{{'REFERENCE-TYPE-EDITOR.TEST.EMPTY' | translate}}</span> }
+										@if (!s.live) { <span class="bp2-sub se-maprow__stale">{{'REFERENCE-TYPE-EDITOR.TEST.FROM-LAST-RUN' | translate}}</span> }
+									} @else { <span class="bp2-sub">—</span> }
+								</span>
+							</div>
+						}
+					</div>
+					@if (freeMapping() && canEdit()) { <button mat-button type="button" class="se-start" (click)="addMapping()"><mat-icon aria-hidden="true">add</mat-icon>{{'REFERENCE-TYPE-EDITOR.TEST.ADD-FIELD' | translate}}</button> }
+					@if (previewEntry; as e) {
+						<div class="se-preview">
+							<span class="bp2-caption">{{'REFERENCE-TYPE-EDITOR.TEST.PREVIEW-CARD' | translate: { n: itemIndex() + 1 } }}</span>
+							<div class="se-card">
+								<strong>{{e['label']}}</strong>
+								@if (e['description']) { <span class="bp2-sub">{{e['description']}}</span> }
+								<span class="se-mono bp2-sub">{{e['reference_id']}}</span>
+							</div>
+						</div>
+					}
+				</div>
+			</div>
+		</div>
+	}
+
+	<!-- ============================================================ entries (fixed list) -->
+	@if (subTab() === 'entries') {
+		<div class="se__body">
+			<span class="bp2-sub">{{'REFERENCE-TYPE-EDITOR.ENTRIES.HINT' | translate}}</span>
+			<div class="se-entries" role="table" [attr.aria-label]="'REFERENCE-TYPE-EDITOR.STEPS.ENTRIES' | translate">
+				<div class="se-entries__row se-entries__row--head" role="row" [style.grid-template-columns]="'repeat(' + codes.length + ', 180px) 44px'">
+					@for (code of codes; track code) { <span role="columnheader">{{codeLabel(code) | translate}}</span> }
+					<span role="columnheader"></span>
+				</div>
+				@for (item of items; track item; let i = $index) {
+					<div class="se-entries__row" role="row" [style.grid-template-columns]="'repeat(' + codes.length + ', 180px) 44px'">
+						@for (code of codes; track code) {
+							@let control = option(item, code);
+							<span role="cell">@if (control) {
+								@let bad = control.hasError('backendError') || (control.touched && !control.value);
+								<input class="se-cell" [class.se-cell--bad]="bad" type="text" [formControl]="$any(control)" [attr.aria-invalid]="bad" [matTooltip]="control.getError('backendError')?.message ?? ''" [attr.aria-label]="('REFERENCE-TYPE-EDITOR.ENTRIES.CELL' | translate: { n: i + 1, field: (codeLabel(code) | translate) })">
+							}</span>
+						}
+						<span role="cell">@if (canEdit()) { <button mat-icon-button type="button" (click)="removeItem.emit(i)" [attr.aria-label]="'REFERENCE-TYPE-EDITOR.ENTRIES.REMOVE' | translate: { n: i + 1 }"><mat-icon aria-hidden="true">close</mat-icon></button> }</span>
+					</div>
+				}
+			</div>
+			@if (canEdit()) { <button mat-button type="button" class="se-start" (click)="addItem.emit()"><mat-icon aria-hidden="true">add</mat-icon>{{'REFERENCE-TYPE-EDITOR.ENTRIES.ADD' | translate}}</button> }
+		</div>
+	}
+
+	<!-- ============================================================ display -->
+	@if (subTab() === 'display') {
+		<div class="se__body">
+			<div class="se-display">
+				<div><strong>{{'REFERENCE-TYPE-EDITOR.DISPLAY.LOGO' | translate}}</strong><span class="bp2-sub">{{'REFERENCE-TYPE-EDITOR.DISPLAY.LOGO-HINT' | translate}}</span></div>
+				<app-file-uploader [storageFileIdControl]="ctl('storageFileId')" [accept]="'image/*'" />
+			</div>
+			<div class="se-display">
+				<div><strong>{{'REFERENCE-TYPE-EDITOR.DISPLAY.LINK' | translate}}</strong><span class="bp2-sub">{{'REFERENCE-TYPE-EDITOR.DISPLAY.LINK-HINT' | translate}}</span></div>
+				<div class="se-stack">
+					<mat-form-field subscriptSizing="dynamic" class="se-full">
+						<mat-label>{{'REFERENCE-TYPE-EDITOR.DISPLAY.LINK-URL' | translate}}</mat-label>
+						<input #navInput matInput type="text" class="se-mono" [formControl]="ctl('navigationUrl')" placeholder="https://orcid.org/{reference_id}">
+						@if (ctl('navigationUrl').hasError('pattern')) { <mat-error>{{'GENERAL.VALIDATION.URL.MESSAGE' | translate}}</mat-error> }
+					</mat-form-field>
+					<div class="se-chips">
+						<span class="bp2-sub">{{'REFERENCE-TYPE-EDITOR.INSERT' | translate}}</span>
+						@for (code of codes; track code) { <button type="button" class="bp2-pill" [disabled]="!canEdit()" (click)="insertToken('navigationUrl', tok(code), navInput)">{{codeLabel(code) | translate}}</button> }
+					</div>
+					@if (resolvedNavigationUrl(); as url) { <span class="bp2-sub se-wrap">{{'REFERENCE-TYPE-EDITOR.DISPLAY.FOR-RESULT' | translate}} <a [href]="url" target="_blank" rel="noopener noreferrer">{{url}}</a></span> }
+				</div>
+			</div>
+			<div class="se-display">
+				<div><strong>{{'REFERENCE-TYPE-EDITOR.DISPLAY.TOOLTIP' | translate}}</strong><span class="bp2-sub">{{'REFERENCE-TYPE-EDITOR.DISPLAY.TOOLTIP-HINT' | translate}}</span></div>
+				<div class="se-stack">
+					<mat-form-field subscriptSizing="dynamic" class="se-full">
+						<mat-label>{{'REFERENCE-TYPE-EDITOR.DISPLAY.TOOLTIP-TEXT' | translate}}</mat-label>
+						<input matInput type="text" [formControl]="ctl('tooltipMessage')">
+						<mat-hint>{{'REFERENCE-TYPE-EDITOR.DISPLAY.TOOLTIP-TEXT-HINT' | translate}}</mat-hint>
+					</mat-form-field>
+					@if (ctl('tooltipMessage').value && (ctl('tooltipMessage').value | translate) !== ctl('tooltipMessage').value) {
+						<span class="bp2-sub">{{'REFERENCE-TYPE-EDITOR.DISPLAY.TRANSLATED' | translate}} “{{ctl('tooltipMessage').value | translate}}”</span>
+					}
+				</div>
+			</div>
+		</div>
+	}
+</section>
+
+<ng-template #connectionTpl>
+	<div class="se-block">
+		<div class="se-block__head"><h3>{{'REFERENCE-TYPE-EDITOR.REQUEST.HEADERS' | translate}}</h3>@if (canEdit()) { <button mat-button type="button" (click)="addHeader()"><mat-icon aria-hidden="true">add</mat-icon>{{'REFERENCE-TYPE-EDITOR.REQUEST.ADD-HEADER' | translate}}</button> }</div>
+		<div class="se-rows">
+			<div class="se-row se-row--header">
+				<span class="se-fixed-name">Content-Type</span>
+				<mat-form-field subscriptSizing="dynamic">
+					<mat-label>{{'REFERENCE-TYPE-EDITOR.REQUEST.VALUE' | translate}}</mat-label>
+					<input matInput type="text" class="se-mono" [formControl]="ctl('contentType')">
+				</mat-form-field>
+				<span></span>
+			</div>
+			@for (header of arr('headers').controls; track header; let i = $index) {
+				<div class="se-row se-row--header">
+					<mat-form-field subscriptSizing="dynamic">
+						<mat-label>{{'REFERENCE-TYPE-EDITOR.REQUEST.HEADER' | translate}}</mat-label>
+						<mat-select [formControl]="header.get('key')">
+							@for (h of headerTypes; track h) { <mat-option [value]="h" [disabled]="headerTaken(h, i)">{{enumUtils.toExternalFetcherApHeaderTypeString(h)}}</mat-option> }
+						</mat-select>
+					</mat-form-field>
+					<mat-form-field subscriptSizing="dynamic">
+						<mat-label>{{'REFERENCE-TYPE-EDITOR.REQUEST.VALUE' | translate}}</mat-label>
+						<input matInput type="text" class="se-mono" [formControl]="header.get('value')" required>
+						@if (header.get('value').hasError('required')) { <mat-error>{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error> }
+					</mat-form-field>
+					@if (canEdit()) { <button mat-icon-button type="button" (click)="removeAt('headers', i)" [attr.aria-label]="'REFERENCE-TYPE-EDITOR.REQUEST.REMOVE-HEADER' | translate"><mat-icon aria-hidden="true">close</mat-icon></button> } @else { <span></span> }
+				</div>
+			}
+		</div>
+		<span class="bp2-sub">{{'REFERENCE-TYPE-EDITOR.REQUEST.HEADERS-HINT' | translate}}</span>
+	</div>
+
+	<div class="se-block">
+		<div class="se-block__head">
+			<h3>{{'REFERENCE-TYPE-EDITOR.AUTH.TITLE' | translate}}</h3>
+			<mat-slide-toggle [formControl]="ctl('auth.enabled')">{{'REFERENCE-TYPE-EDITOR.AUTH.NEEDS-TOKEN' | translate}}</mat-slide-toggle>
+		</div>
+		@if (ctl('auth.enabled').value) {
+			<ol class="se-steps-list">
+				<li>
+					<strong>{{'REFERENCE-TYPE-EDITOR.AUTH.STEP-GET' | translate}}</strong>
+					<div class="se-grid se-grid--method">
+						<mat-form-field subscriptSizing="dynamic">
+							<mat-label>{{'REFERENCE-TYPE-EDITOR.REQUEST.METHOD' | translate}}</mat-label>
+							<mat-select [formControl]="ctl('auth.authMethod')">
+								@for (m of httpMethods; track m) { <mat-option [value]="m">{{enumUtils.toExternalFetcherApiHTTPMethodTypeString(m)}}</mat-option> }
+							</mat-select>
+						</mat-form-field>
+						<mat-form-field subscriptSizing="dynamic">
+							<mat-label>{{'REFERENCE-TYPE-EDITOR.AUTH.URL' | translate}}</mat-label>
+							<input matInput type="text" class="se-mono" [formControl]="ctl('auth.authUrl')">
+						</mat-form-field>
+					</div>
+					<mat-form-field subscriptSizing="dynamic" class="se-full">
+						<mat-label>{{'REFERENCE-TYPE-EDITOR.AUTH.BODY' | translate}}</mat-label>
+						<textarea matInput rows="3" class="se-mono" [formControl]="ctl('auth.authRequestBody')"></textarea>
+						<mat-hint>{{'REFERENCE-TYPE-EDITOR.AUTH.BODY-HINT' | translate}}</mat-hint>
+					</mat-form-field>
+				</li>
+				<li>
+					<strong>{{'REFERENCE-TYPE-EDITOR.AUTH.STEP-READ' | translate}}</strong>
+					<div class="se-grid se-grid--two">
+						<mat-form-field subscriptSizing="dynamic">
+							<mat-label>{{'REFERENCE-TYPE-EDITOR.AUTH.TOKEN-FIELD' | translate}}</mat-label>
+							<input matInput type="text" class="se-mono" [formControl]="ctl('auth.authTokenPath')" placeholder="access_token">
+							<mat-hint>{{'REFERENCE-TYPE-EDITOR.AUTH.TOKEN-FIELD-HINT' | translate}}</mat-hint>
+						</mat-form-field>
+						<mat-form-field subscriptSizing="dynamic">
+							<mat-label>{{'REFERENCE-TYPE-EDITOR.AUTH.TOKEN-TYPE' | translate}}</mat-label>
+							<input matInput type="text" [formControl]="ctl('auth.type')" placeholder="Bearer">
+						</mat-form-field>
+					</div>
+				</li>
+				<li>
+					<strong>{{'REFERENCE-TYPE-EDITOR.AUTH.STEP-SEND' | translate}}</strong>
+					<code class="se-code">Authorization: {{ctl('auth.type').value || 'Bearer'}} &lt;token&gt;</code>
+				</li>
+			</ol>
+		} @else {
+			<span class="bp2-sub">{{'REFERENCE-TYPE-EDITOR.AUTH.NONE' | translate}}</span>
+		}
+	</div>
+</ng-template>

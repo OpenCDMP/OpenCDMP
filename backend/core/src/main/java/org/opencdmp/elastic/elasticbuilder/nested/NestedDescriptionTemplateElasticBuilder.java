@@ -38,6 +38,7 @@ public class NestedDescriptionTemplateElasticBuilder extends BaseElasticBuilder<
             m.setVersionStatus(d.getVersionStatus());
             m.setLabel(d.getLabel());
             m.setGroupId(d.getGroupId());
+            m.setTypeId(d.getTypeId());
             models.add(m);
         }
         this.logger.debug("build {} items", Optional.of(models).map(List::size).orElse(0));

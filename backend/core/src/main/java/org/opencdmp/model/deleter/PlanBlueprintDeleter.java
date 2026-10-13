@@ -1,5 +1,6 @@
 package org.opencdmp.model.deleter;
 
+import gr.cite.tools.exception.MyApplicationException;
 import org.opencdmp.commons.enums.IsActive;
 import org.opencdmp.commons.enums.PlanBlueprintStatus;
 import org.opencdmp.commons.enums.PlanBlueprintVersionStatus;
@@ -8,6 +9,7 @@ import org.opencdmp.commons.enums.kpi.KpiDirectionType;
 import org.opencdmp.commons.enums.kpi.KpiVersionType;
 import org.opencdmp.data.PlanBlueprintEntity;
 import org.opencdmp.data.TenantEntityManagerFactory;
+import org.opencdmp.errorcode.ErrorThesaurusProperties;
 import org.opencdmp.query.PlanBlueprintQuery;
 import gr.cite.tools.data.deleter.Deleter;
 import gr.cite.tools.data.deleter.DeleterFactory;
@@ -16,6 +18,7 @@ import gr.cite.tools.logging.LoggerService;
 import gr.cite.tools.logging.MapLogEntry;
 import org.opencdmp.service.accounting.AccountingService;
 import org.opencdmp.service.kpi.KpiService;
+import org.opencdmp.service.lock.LockService;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
@@ -44,17 +47,23 @@ public class PlanBlueprintDeleter implements Deleter {
 
     protected final KpiService kpiService;
 
+    private final LockService lockService;
+
+    private final ErrorThesaurusProperties errors;
+
     @Autowired
     public PlanBlueprintDeleter(
             TenantEntityManagerFactory tenantEntityManagerFactory,
             QueryFactory queryFactory,
             DeleterFactory deleterFactory,
-            AccountingService accountingService, KpiService kpiService) {
+            AccountingService accountingService, KpiService kpiService, LockService lockService, ErrorThesaurusProperties errors) {
         this.tenantEntityManagerFactory = tenantEntityManagerFactory;
         this.queryFactory = queryFactory;
         this.deleterFactory = deleterFactory;
         this.accountingService = accountingService;
         this.kpiService = kpiService;
+        this.lockService = lockService;
+        this.errors = errors;
     }
 
     public void deleteAndSaveByIds(List<UUID> ids) throws InvalidApplicationException {
@@ -80,6 +89,7 @@ public class PlanBlueprintDeleter implements Deleter {
         Instant now = Instant.now();
 
         for (PlanBlueprintEntity item : data) {
+            if (this.lockService.isLocked(item.getId(), null).getStatus()) throw new MyApplicationException(this.errors.getLockedPlanBlueprint().getCode(), this.errors.getLockedPlanBlueprint().getMessage());
             logger.trace("deleting item {}", item.getId());
             item.setIsActive(IsActive.Inactive);
             item.setUpdatedAt(now);
@@ -87,6 +97,7 @@ public class PlanBlueprintDeleter implements Deleter {
             this.tenantEntityManagerFactory.getInstance().merge(item);
             logger.trace("updated item");
             this.accountingService.decrease(UsageLimitTargetMetric.BLUEPRINT_COUNT.getValue());
+            if (item.getTypeId() != null) this.kpiService.sendIndicatorPointPlanBlueprintPerTypeEntry(KpiDirectionType.Decrease, item.getTypeId());
             if (item.getStatus().equals(PlanBlueprintStatus.Draft)) this.accountingService.decrease(UsageLimitTargetMetric.BLUEPRINT_DRAFT_COUNT.getValue());
             if (item.getStatus().equals(PlanBlueprintStatus.Finalized)) this.accountingService.decrease(UsageLimitTargetMetric.BLUEPRINT_FINALIZED_COUNT.getValue());
             if (item.getVersionStatus().equals(PlanBlueprintVersionStatus.Current)) this.kpiService.sendIndicatorPointPlanBlueprintEntry(KpiDirectionType.Decrease, KpiVersionType.LatestVersion);

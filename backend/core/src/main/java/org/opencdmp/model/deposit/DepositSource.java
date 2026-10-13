@@ -18,6 +18,8 @@ public class DepositSource {
 	public static final String _pdfTransformerId = "pdfTransformerId";
 	private String rdaTransformerId;
 	public static final String _rdaTransformerId = "rdaTransformerId";
+	private Integer maxInMemorySizeInBytes;
+	public static final String _maxInMemorySizeInBytes = "maxInMemorySizeInBytes";
 
 	public String getRepositoryId() {
 		return repositoryId;
@@ -81,5 +83,13 @@ public class DepositSource {
 
 	public void setRdaTransformerId(String rdaTransformerId) {
 		this.rdaTransformerId = rdaTransformerId;
+	}
+
+	public Integer getMaxInMemorySizeInBytes() {
+		return maxInMemorySizeInBytes;
+	}
+
+	public void setMaxInMemorySizeInBytes(Integer maxInMemorySizeInBytes) {
+		this.maxInMemorySizeInBytes = maxInMemorySizeInBytes;
 	}
 }

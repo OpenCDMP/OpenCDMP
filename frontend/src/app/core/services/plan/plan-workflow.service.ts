@@ -4,7 +4,7 @@ import { BaseHttpV2Service } from "../http/base-http-v2.service";
 import { ConfigurationService } from "../configuration/configuration.service";
 import { PlanWorkflowPersist } from "@app/core/model/workflow/plan-workflow-persist";
 import { PlanWorkflow } from "@app/core/model/workflow/plan-workflow";
-import { catchError, map, Observable, of, throwError } from "rxjs";
+import { catchError, Observable, throwError } from "rxjs";
 import { PlanWorkflowLookup } from "@app/core/query/plan-workflow.lookup";
 import { QueryResult } from "@common/model/query-result";
 import { Guid } from "@common/types/guid";

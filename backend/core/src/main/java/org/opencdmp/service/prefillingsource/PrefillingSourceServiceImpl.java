@@ -64,6 +64,7 @@ import org.opencdmp.service.externalfetcher.ExternalFetcherService;
 import org.opencdmp.service.externalfetcher.config.entities.SourceBaseConfiguration;
 import org.opencdmp.service.externalfetcher.criteria.ExternalReferenceCriteria;
 import org.opencdmp.service.externalfetcher.models.ExternalDataResult;
+import org.opencdmp.service.externalfetcher.models.ExternalFetcherTestResult;
 import org.opencdmp.service.reference.ReferenceService;
 import org.opencdmp.service.usagelimit.UsageLimitService;
 import org.slf4j.LoggerFactory;
@@ -249,6 +250,7 @@ public class PrefillingSourceServiceImpl implements PrefillingSourceService {
         data.setHttpMethod(persist.getHttpMethod());
         data.setRequestBody(persist.getRequestBody());
         data.setFilterType(persist.getFilterType());
+        data.setResponseFormat(persist.getResponseFormat());
         if (persist.getAuth() != null) {
             data.setAuth(this.buildAuthConfigEntity(persist.getAuth()));
         }
@@ -265,6 +267,23 @@ public class PrefillingSourceServiceImpl implements PrefillingSourceService {
                 data.getHeaders().add(this.buildExternalFetcherApiHeaderConfigurationEntity((externalFetcherApiHeaderConfigurationPersist)));
             }
         }
+
+        if (!this.conventionService.isListNullOrEmpty(persist.getNamespaces())){
+            data.setNamespaces(new ArrayList<>());
+            for (XmlNamespaceConfigurationPersist xmlNamespaceConfigurationPersist: persist.getNamespaces()){
+                data.getNamespaces().add(this.buildXmlNamespaceConfigurationEntity(xmlNamespaceConfigurationPersist));
+            }
+        }
+
+        return data;
+    }
+
+    private @NotNull XmlNamespaceConfigurationEntity buildXmlNamespaceConfigurationEntity(XmlNamespaceConfigurationPersist persist) {
+        XmlNamespaceConfigurationEntity data = new XmlNamespaceConfigurationEntity();
+        if (persist == null) return data;
+
+        data.setPrefix(persist.getPrefix());
+        data.setUri(persist.getUri());
 
         return data;
     }
@@ -423,6 +442,17 @@ public class PrefillingSourceServiceImpl implements PrefillingSourceService {
         return prefillings;
     }
 
+
+    public ExternalFetcherTestResult testPrefillingSource(PrefillingTestRequest model) {
+        this.authorizationService.authorizeForce(Permission.TestPrefillingSource);
+
+        if(this.conventionService.isListNullOrEmpty(model.getSources()))
+            throw new MyNotFoundException(this.messageSource.getMessage("General_ItemNotFound", new Object[]{model.getSources(), PrefillingSource.class.getSimpleName()}, LocaleContextHolder.getLocale()));
+
+        ExternalReferenceCriteria externalReferenceCriteria = new ExternalReferenceCriteria();
+        externalReferenceCriteria.setLike(model.getLike());
+        return this.externalFetcherService.testSource(model.getSources().getFirst(), externalReferenceCriteria);
+    }
 
     public Description getPrefilledDescription(DescriptionPrefillingRequest model, FieldSet fieldSet) throws JAXBException, ParserConfigurationException, IOException, InstantiationException, IllegalAccessException, SAXException, InvalidApplicationException {
 

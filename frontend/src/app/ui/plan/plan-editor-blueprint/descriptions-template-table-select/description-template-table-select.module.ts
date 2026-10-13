@@ -11,29 +11,29 @@ import {MatChipsModule} from "@angular/material/chips";
 import {MatPaginatorModule} from "@angular/material/paginator";
 import {MatCardModule} from "@angular/material/card";
 import { MatMenuModule } from '@angular/material/menu';
-
+/**
+* @deprecated replaced by plan-new-description
+*/
 @NgModule({
-	imports: [
+    imports: [
         CommonModule,
-		CommonUiModule,
-		TextFilterModule,
-		FormsModule,
-		MatFormFieldModule,
-		MatInputModule,
-		MatAutocompleteModule,
-		ReactiveFormsModule,
-		AsyncPipe,		
-        MatChipsModule,     
+        CommonUiModule,
+        TextFilterModule,
+        FormsModule,
+        MatFormFieldModule,
+        MatInputModule,
+        MatAutocompleteModule,
+        ReactiveFormsModule,
+        AsyncPipe,
+        MatChipsModule,
         MatPaginatorModule,
-		MatCardModule,
-        MatMenuModule
-	],
-	declarations: [
-		DescriptionTemplateTableSelectComponent
-	],
-	exports: [
-		DescriptionTemplateTableSelectComponent
-	]
+        MatCardModule,
+        MatMenuModule,
+        DescriptionTemplateTableSelectComponent
+    ],
+    exports: [
+        DescriptionTemplateTableSelectComponent
+    ]
 })
 export class DescriptionTemplateTableSelectModule {
 }

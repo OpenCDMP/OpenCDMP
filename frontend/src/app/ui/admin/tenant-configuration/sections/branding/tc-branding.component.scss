@@ -1,0 +1,270 @@
+@use "../../shared/tc-section";
+
+$primary: var(--md-sys-color-primary, #1f57c3);
+$outline: var(--md-sys-color-outline-variant, #e1e5ee);
+$muted: var(--md-sys-color-on-surface-variant, #566072);
+$surface: var(--md-sys-color-surface, #fff);
+
+.tc-branding {
+	display: grid;
+	grid-template-columns: minmax(0, 3fr) minmax(360px, 2fr);
+	gap: 20px;
+	align-items: start;
+}
+
+.tc-branding__swatches {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 10px;
+	margin-bottom: 16px;
+}
+
+.tc-branding__swatch {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 40px;
+	height: 40px;
+	padding: 0;
+	border: 2px solid $surface;
+	border-radius: 50%;
+	box-shadow: 0 0 0 1px $outline;
+	color: #fff;
+	cursor: pointer;
+
+	&[aria-pressed="true"] {
+		box-shadow: 0 0 0 2px var(--md-sys-color-on-surface, #1c2230);
+	}
+
+	&:disabled {
+		cursor: default;
+		opacity: 0.6;
+	}
+}
+
+.tc-branding__custom {
+	width: 100%;
+	max-width: 360px;
+}
+
+.tc-branding__picker {
+	margin-right: 8px;
+}
+
+.tc-branding__logo {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 16px;
+	align-items: flex-start;
+}
+
+.tc-branding__logo-frame {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 160px;
+	height: 80px;
+	padding: 8px;
+	border: 1px dashed $outline;
+	border-radius: 8px;
+	background: var(--md-sys-color-surface-container-low, #f7f8fb);
+	color: $muted;
+
+	img {
+		max-width: 100%;
+		max-height: 100%;
+		object-fit: contain;
+	}
+}
+
+.tc-branding__logo-info {
+	flex: 1 1 200px;
+	min-width: 0;
+}
+
+.tc-branding__logo-name {
+	font-size: 14px;
+	font-weight: 700;
+	overflow-wrap: anywhere;
+}
+
+.tc-branding__logo-actions {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+	margin: 10px 0 4px;
+
+	mat-spinner {
+		display: inline-block;
+		margin-right: 6px;
+	}
+}
+
+.tc-branding__file {
+	display: none;
+}
+
+.tc-branding__advanced {
+	summary {
+		font-size: 15px;
+		font-weight: 700;
+		cursor: pointer;
+	}
+
+	&[open] summary {
+		margin-bottom: 8px;
+	}
+}
+
+.tc-branding__json {
+	font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+	font-size: 13px;
+}
+
+.tc-branding__links {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 16px;
+	margin-top: 10px;
+
+	a {
+		color: var(--link-color, #1f57c3);
+	}
+}
+
+.tc-branding__preview {
+	position: sticky;
+	top: 16px;
+	padding: 18px;
+	border: 1px solid $outline;
+	border-radius: 12px;
+	background: $surface;
+
+	h2 {
+		margin: 0;
+		font-size: 16px;
+		font-weight: 800;
+	}
+
+	> .tc-row__hint {
+		margin-bottom: 12px;
+	}
+}
+
+// The preview mock. `--tc-pv-*` are set from the form; the app's own theme is the fallback.
+.tc-pv {
+	--pv-primary: var(--tc-pv-primary, #{$primary});
+	--pv-on-primary: var(--tc-pv-on-primary, var(--md-sys-color-on-primary, #fff));
+	--pv-link: var(--tc-pv-link, var(--link-color, #1f57c3));
+
+	overflow: hidden;
+	border: 1px solid $outline;
+	border-radius: 10px;
+	background: var(--md-sys-color-background, #f6f7fb);
+	font-size: 12px;
+	user-select: none;
+}
+
+.tc-pv__bar {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	height: 40px;
+	padding: 0 12px;
+	border-bottom: 1px solid $outline;
+	background: $surface;
+}
+
+.tc-pv__brand {
+	font-size: 14px;
+	font-weight: 800;
+	color: var(--pv-primary);
+}
+
+.tc-pv__logo {
+	max-width: 90px;
+	max-height: 24px;
+	object-fit: contain;
+}
+
+.tc-pv__avatar {
+	width: 20px;
+	height: 20px;
+	margin-left: auto;
+	border-radius: 50%;
+	background: var(--md-sys-color-surface-variant, #e1e5ee);
+}
+
+.tc-pv__body {
+	display: grid;
+	grid-template-columns: 96px minmax(0, 1fr);
+	min-height: 220px;
+}
+
+.tc-pv__nav {
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+	padding: 10px 8px;
+	border-right: 1px solid $outline;
+	background: $surface;
+
+	span {
+		padding: 5px 8px;
+		border-radius: 6px;
+		color: $muted;
+	}
+}
+
+.tc-pv__nav .tc-pv__nav--active {
+	background: color-mix(in srgb, var(--pv-primary) 14%, transparent);
+	color: var(--pv-primary);
+	font-weight: 700;
+}
+
+.tc-pv__main {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+	padding: 12px;
+}
+
+.tc-pv__main-head {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	font-size: 13px;
+}
+
+.tc-pv__button {
+	padding: 5px 12px;
+	border-radius: 999px;
+	background: var(--pv-primary);
+	color: var(--pv-on-primary);
+	font-weight: 700;
+}
+
+.tc-pv__card {
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+	padding: 10px;
+	border: 1px solid $outline;
+	border-radius: 8px;
+	background: $surface;
+}
+
+.tc-pv__link {
+	color: var(--pv-link);
+	text-decoration: underline;
+}
+
+@media (max-width: 1100px) {
+	.tc-branding {
+		grid-template-columns: minmax(0, 1fr);
+	}
+
+	.tc-branding__preview {
+		position: static;
+	}
+}

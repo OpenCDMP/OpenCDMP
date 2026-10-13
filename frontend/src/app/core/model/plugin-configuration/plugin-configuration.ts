@@ -24,9 +24,14 @@ export interface PluginConfigurationFieldBase {
 }
 
 export interface PluginConfigurationField extends PluginConfigurationFieldBase{
+	secret?: boolean;
+	/** For a secret: whether one is stored. Its value never reaches the browser. */
+	secretSet?: boolean;
 }
 
 export interface PluginConfigurationUserField extends PluginConfigurationFieldBase{
+	/** For a secret: whether one is stored. Its value never reaches the browser. */
+	secretSet?: boolean;
 }
 
 //
@@ -52,9 +57,13 @@ export interface PluginConfigurationFieldPersistBase {
 }
 
 export interface PluginConfigurationFieldPersist extends PluginConfigurationFieldPersistBase{
+	/** For a secret, textValue null keeps the stored value and '' removes it. */
+	secret?: boolean;
 }
 
 export interface PluginConfigurationUserFieldPersist extends PluginConfigurationFieldPersistBase{
+	/** For a secret, textValue null keeps the stored value and '' removes it. */
+	secret?: boolean;
 }
 
 // Configuration Field
@@ -63,6 +72,20 @@ export interface ConfigurationField {
 	type: PluginDataType;
 	label: string;
 	appliesTo: PluginEntityType[];
+	options?: ConfigurationFieldOption[];
+	authInfo?: boolean;
+	/** What the plugin uses when the field is left empty: shown by editors, never stored. */
+	defaultValue?: string;
+	/** Heading editors group the field under; fields keep their declared order within it. */
+	group?: string;
+	description?: string;
+	/** Where more options come from: "referenceTypes" adds one per reference type (value: code). */
+	optionsSource?: string;
+}
+
+export interface ConfigurationFieldOption {
+	label: string;
+	value: string;
 }
 
 // PluginRepositoryConfiguration used to define data type in form group
@@ -71,8 +94,6 @@ export interface PluginRepositoryConfigurationBase {
 	pluginType: PluginType;
 	fields: ConfigurationField[];
 }
-export interface PluginRepositoryConfiguration extends PluginRepositoryConfigurationBase{
-}
+export type PluginRepositoryConfiguration = PluginRepositoryConfigurationBase;
 
-export interface PluginRepositoryUserConfiguration extends PluginRepositoryConfigurationBase{
-}
+export type PluginRepositoryUserConfiguration = PluginRepositoryConfigurationBase;

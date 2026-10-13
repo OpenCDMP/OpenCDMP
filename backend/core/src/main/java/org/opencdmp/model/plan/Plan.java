@@ -91,8 +91,8 @@ public class Plan {
     private List<EntityDoi> entityDois;
     public static final String _entityDois = "entityDois";
 
-    private List<String> authorizationFlags;
-    public static final String _authorizationFlags = "authorizationFlags";
+    private PlanAuthorizationInformation authorizationInformation;
+    public static final String _authorizationInformation = "authorizationInformation";
 
     private List<Plan> otherPlanVersions;
     public static final String _otherPlanVersions = "otherPlanVersions";
@@ -300,12 +300,12 @@ public class Plan {
         this.entityDois = entityDois;
     }
 
-    public List<String> getAuthorizationFlags() {
-        return authorizationFlags;
+    public PlanAuthorizationInformation getAuthorizationInformation() {
+        return authorizationInformation;
     }
 
-    public void setAuthorizationFlags(List<String> authorizationFlags) {
-        this.authorizationFlags = authorizationFlags;
+    public void setAuthorizationInformation(PlanAuthorizationInformation authorizationInformation) {
+        this.authorizationInformation = authorizationInformation;
     }
 
     public Boolean getBelongsToCurrentTenant() {

@@ -1,0 +1,31 @@
+<div class="main-content description-template-library-view">
+    <button mat-button color="secondary" class="back-btn" (click)="back()">
+        <mat-icon aria-hidden="true">arrow_back</mat-icon>
+        {{'DESCRIPTION-OVERVIEW.ACTIONS.BACK' | translate}}
+    </button>
+
+    @if (descriptionTemplate && formGroup) {
+        <div class="template-header">
+            <span class="page-title text-primary">{{descriptionTemplate.label}}</span>
+            <span class="page-subtitle opacity-08">v.{{descriptionTemplate.version ?? 0}}</span>
+        </div>
+        @if (descriptionTemplate.description) {
+            <div class="template-description opacity-08" [innerHTML]="descriptionTemplate.description"></div>
+        }
+        <mat-card appearance="outlined" class="mt-3">
+            <mat-card-content>
+                @if (formGroup.get('properties')) {
+                    <app-description-form
+                        [propertiesFormGroup]="previewPropertiesFormGroup"
+                        [formGroup]="formGroup"
+                        [descriptionTemplate]="descriptionTemplate"
+                        [canAnnotate]="false"
+                        [visibilityRulesService]="visibilityRulesService"
+                        [isNew]="true"
+                        [canEdit]="true"
+                    ></app-description-form>
+                }
+            </mat-card-content>
+        </mat-card>
+    }
+</div>

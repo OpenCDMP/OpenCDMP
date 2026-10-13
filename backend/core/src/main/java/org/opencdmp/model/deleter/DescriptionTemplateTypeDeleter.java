@@ -2,6 +2,7 @@ package org.opencdmp.model.deleter;
 
 import org.opencdmp.commons.enums.IsActive;
 import org.opencdmp.commons.enums.UsageLimitTargetMetric;
+import org.opencdmp.commons.enums.kpi.KpiDirectionType;
 import org.opencdmp.data.DescriptionTemplateEntity;
 import org.opencdmp.data.DescriptionTemplateTypeEntity;
 import org.opencdmp.data.TenantEntityManagerFactory;
@@ -13,6 +14,7 @@ import gr.cite.tools.data.query.QueryFactory;
 import gr.cite.tools.logging.LoggerService;
 import gr.cite.tools.logging.MapLogEntry;
 import org.opencdmp.service.accounting.AccountingService;
+import org.opencdmp.service.kpi.KpiService;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
@@ -39,17 +41,19 @@ public class DescriptionTemplateTypeDeleter implements Deleter {
     protected final DeleterFactory deleterFactory;
 
     protected final AccountingService accountingService;
+    private final KpiService kpiService;
 
     @Autowired
     public DescriptionTemplateTypeDeleter(
             TenantEntityManagerFactory tenantEntityManagerFactory,
             QueryFactory queryFactory,
             DeleterFactory deleterFactory,
-            AccountingService accountingService) {
+            AccountingService accountingService, KpiService kpiService) {
         this.tenantEntityManagerFactory = tenantEntityManagerFactory;
         this.queryFactory = queryFactory;
         this.deleterFactory = deleterFactory;
         this.accountingService = accountingService;
+        this.kpiService = kpiService;
     }
 
     public void deleteAndSaveByIds(List<UUID> ids) throws InvalidApplicationException {
@@ -88,6 +92,7 @@ public class DescriptionTemplateTypeDeleter implements Deleter {
             item.setUpdatedAt(now);
             logger.trace("updating item");
             this.tenantEntityManagerFactory.getInstance().merge(item);
+            this.kpiService.sendIndicatorPointDescriptionTemplateTypeEntry(KpiDirectionType.Decrease);
             logger.trace("updated item");
             this.accountingService.decrease(UsageLimitTargetMetric.DESCRIPTION_TEMPLATE_TYPE_COUNT.getValue());
         }

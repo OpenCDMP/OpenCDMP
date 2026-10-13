@@ -1,0 +1,161 @@
+<ng-template #scopeToggle>
+	@if (canReportInstallation) {
+		<mat-button-toggle-group class="scope-toggle" hideSingleSelectionIndicator [value]="installationWide()" (change)="onInstallationWideChange($event.value)" [attr.aria-label]="'REPORTS.SCOPE.TOGGLE' | translate">
+			<mat-button-toggle [value]="false">{{'REPORTS.SCOPE.THIS-TENANT' | translate}}</mat-button-toggle>
+			<mat-button-toggle [value]="true">{{'REPORTS.SCOPE.EVERY-TENANT' | translate}}</mat-button-toggle>
+		</mat-button-toggle-group>
+	}
+</ng-template>
+
+<div class="reports-page">
+	@if (!hasQuestions()) {
+		<header class="page-header">
+			<h1>{{'REPORTS.TITLE' | translate}}</h1>
+			<p>{{'REPORTS.DESCRIPTION' | translate}}</p>
+			<ng-container [ngTemplateOutlet]="scopeToggle" />
+		</header>
+
+		<section class="start">
+			<h2 class="ask">{{'REPORTS.SEARCH.ASK' | translate}}</h2>
+			<app-report-question-search [installationWide]="installationWide()" (picked)="onPicked($event)" />
+
+			<h3 class="section-label">{{'REPORTS.BROWSE.TITLE' | translate}}</h3>
+			<div class="browse">
+				@if (installationWide()) {
+					<mat-form-field appearance="outline" subscriptSizing="dynamic">
+						<mat-label>{{'REPORTS.SOURCE.TEMPLATE' | translate}}</mat-label>
+						<app-single-auto-complete [formControl]="templateControl" [configuration]="installationTemplateConfiguration"></app-single-auto-complete>
+					</mat-form-field>
+					<mat-form-field appearance="outline" subscriptSizing="dynamic">
+						<mat-label>{{'REPORTS.SOURCE.BLUEPRINT' | translate}}</mat-label>
+						<app-single-auto-complete [formControl]="blueprintControl" [configuration]="installationBlueprintConfiguration"></app-single-auto-complete>
+					</mat-form-field>
+				} @else {
+					<mat-form-field appearance="outline" subscriptSizing="dynamic">
+						<mat-label>{{'REPORTS.SOURCE.TEMPLATE' | translate}}</mat-label>
+						<app-single-auto-complete [formControl]="templateControl" [configuration]="templateConfiguration"></app-single-auto-complete>
+					</mat-form-field>
+					<mat-form-field appearance="outline" subscriptSizing="dynamic">
+						<mat-label>{{'REPORTS.SOURCE.BLUEPRINT' | translate}}</mat-label>
+						<app-single-auto-complete [formControl]="blueprintControl" [configuration]="blueprintConfiguration"></app-single-auto-complete>
+					</mat-form-field>
+				}
+			</div>
+
+			@if (loadingBrowse()) {
+				<mat-spinner diameter="28"></mat-spinner>
+			} @else if (browseOutline(); as outline) {
+				<mat-card appearance="outlined" class="browse-card">
+					<mat-card-content>
+						<div class="browse-head">
+							<span class="browse-title">
+								{{outline.label}}
+								@if (outline.versionCount > 1) {
+									<span class="muted">· {{'REPORTS.SEARCH.VERSIONS' | translate: { count: outline.versionCount } }}</span>
+								}
+							</span>
+							<button mat-flat-button color="primary" type="button" [disabled]="browseSelection().length === 0" (click)="runBrowse()">
+								{{'REPORTS.BROWSE.RUN' | translate: { count: browseSelection().length } }}
+							</button>
+						</div>
+						<app-report-question-picker [outline]="outline" (selectionChanged)="browseSelection.set($event)" />
+					</mat-card-content>
+				</mat-card>
+			}
+
+			@if (startingPoints().length > 0) {
+				<h3 class="section-label">{{'REPORTS.STARTING-POINTS.TITLE' | translate}}</h3>
+				<p class="hint">{{'REPORTS.STARTING-POINTS.HINT' | translate}}</p>
+				<div class="cards">
+					@for (hit of startingPoints(); track hit.subject + hit.semantic) {
+						<button type="button" class="card" (click)="onStartingPoint(hit)">
+							<span class="card-title">{{hit.semantic}}</span>
+							@if (hit.label) {
+								<span class="card-sub">{{'REPORTS.SEARCH.AS-CALLED' | translate: { title: hit.label } }}</span>
+							}
+							<span class="card-meta">
+								{{(hit.subject === subjectTypes.Plan ? 'REPORTS.SUBJECT.PLANS' : 'REPORTS.SUBJECT.ASSETS') | translate}}
+								· {{(hit.groupCount === 1 ? 'REPORTS.SEARCH.ACROSS-GROUPS-ONE' : 'REPORTS.SEARCH.ACROSS-GROUPS') | translate: { count: hit.groupCount } }}
+							</span>
+						</button>
+					}
+				</div>
+			}
+		</section>
+	} @else {
+		<header class="result-head">
+			<div class="title">
+				<h1>
+					@if (questions().length === 1) {
+						@if (firstQuestion().numbering) { <span class="numbering">{{firstQuestion().numbering}}</span> }
+						{{firstQuestion().title}}
+					} @else {
+						{{'REPORTS.ACTIONS.QUESTIONS-COUNT' | translate: { count: questions().length } }}
+					}
+				</h1>
+				@if (questions().length === 1 && firstQuestion().subtitle) {
+					<p class="subtitle">{{'REPORTS.SEARCH.AS-CALLED' | translate: { title: firstQuestion().subtitle } }}</p>
+				}
+				<p class="scope">
+					{{scopeText()}}
+					· <button type="button" class="link" (click)="changeQuestion()">{{'REPORTS.ACTIONS.CHANGE-QUESTION' | translate}}</button>
+				</p>
+			</div>
+			<div class="actions">
+				<ng-container [ngTemplateOutlet]="scopeToggle" />
+				<button mat-stroked-button type="button" (click)="copyLink()">
+					<mat-icon>link</mat-icon>
+					{{'REPORTS.ACTIONS.COPY-LINK' | translate}}
+				</button>
+				<button mat-stroked-button type="button" [disabled]="exporting() || running()" (click)="exportCsv()">
+					@if (exporting()) {
+						<mat-spinner diameter="18"></mat-spinner>
+					} @else {
+						<mat-icon>download</mat-icon>
+					}
+					{{'REPORTS.ACTIONS.EXPORT' | translate}}
+				</button>
+			</div>
+		</header>
+
+		<app-report-filter-bar
+			[subject]="subject()"
+			[filters]="filters()"
+			[breakdown]="breakdown()"
+			[breakdownOptions]="breakdownOptions()"
+			[blueprintIsSource]="blueprintIsSource()"
+			(filtersChange)="onFiltersChange($event)"
+			(breakdownChange)="onBreakdownChange($event)" />
+
+		<section class="result" [attr.aria-busy]="running()" aria-live="polite">
+			@if (running() && report()) {
+				<mat-progress-bar mode="indeterminate" class="refreshing" [attr.aria-label]="'REPORTS.RESULTS.RUNNING' | translate"></mat-progress-bar>
+			}
+			@if (running() && !report()) {
+				<div class="running">
+					<mat-spinner diameter="32"></mat-spinner>
+					<span>{{'REPORTS.RESULTS.RUNNING' | translate}}</span>
+				</div>
+			}
+			@if (report()) {
+				<app-report-results [report]="report()" />
+			}
+		</section>
+
+		<app-report-advanced
+			[subject]="subject()"
+			[questions]="questions()"
+			[latestVersionOnly]="latestVersionOnly()"
+			[includeInactive]="includeInactive()"
+			[dateBucket]="dateBucket()"
+			[showDateBucket]="showDateBucket()"
+			[planOutline]="planOutline()"
+			[loadingPlanOutline]="loadingPlanOutline()"
+			[planQuestions]="planQuestions()"
+			(questionsChange)="onQuestionsChange($event)"
+			(latestVersionOnlyChange)="onLatestVersionOnlyChange($event)"
+			(includeInactiveChange)="onIncludeInactiveChange($event)"
+			(dateBucketChange)="onDateBucketChange($event)"
+			(planQuestionsChange)="onPlanQuestionsChange($event)" />
+	}
+</div>

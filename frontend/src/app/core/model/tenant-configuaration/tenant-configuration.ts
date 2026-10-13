@@ -19,6 +19,18 @@ export interface TenantConfiguration extends BaseEntity{
 	featuredEntities?: FeaturedEntities;
 	defaultPlanBlueprint?: DefaultPlanBlueprintConfiguration;
 	viewPreferences?: ViewPreferencesConfiguration;
+	termsAndConditions?: TermsAndConditionsTenantConfiguration;
+	guidedTours?: GuidedToursTenantConfiguration;
+}
+
+export interface TermsAndConditionsTenantConfiguration {
+	content: string;
+	version: number;
+}
+
+/** Per-tenant switch for the guided ("what's new") tours. No stored configuration means enabled. */
+export interface GuidedToursTenantConfiguration {
+	enabled: boolean;
 }
 
 export interface CssColorsTenantConfiguration{
@@ -34,16 +46,22 @@ export interface DefaultUserLocaleTenantConfiguration{
 
 export interface DepositTenantConfiguration{
 	disableSystemSources: boolean;
+	/** Plugin ids (installation-provided or the tenant's own) switched off for this tenant. */
+	disabledSourceIds?: string[];
 	sources: DepositSource[];
 }
 
 export interface FileTransformerTenantConfiguration{
 	disableSystemSources: boolean;
+	/** Plugin ids (installation-provided or the tenant's own) switched off for this tenant. */
+	disabledSourceIds?: string[];
 	sources: FileTransformerSource[];
 }
 
 export interface EvaluatorTenantConfiguration{
 	disableSystemSources: boolean;
+	/** Plugin ids (installation-provided or the tenant's own) switched off for this tenant. */
+	disabledSourceIds?: string[];
 	sources: EvaluatorSource[];
 
 }
@@ -57,6 +75,7 @@ export interface DepositSource{
     scope: string;
     pdfTransformerId: string;
     rdaTransformerId: string;
+    maxInMemorySizeInBytes: number;
 }
 
 export interface FileTransformerSource{
@@ -115,7 +134,18 @@ export interface TenantConfigurationPersist extends BaseEntityPersist{
 	evaluatorPlugins?: EvaluatorTenantConfigurationPersist;
 	featuredEntities?: FeaturedEntitiesPersist;
 	defaultPlanBlueprint?: DefaultPlanBlueprintConfigurationPersist;
-	viewPreferences?: ViewPreferencesConfigurationPersist
+	viewPreferences?: ViewPreferencesConfigurationPersist;
+	termsAndConditions?: TermsAndConditionsTenantConfigurationPersist;
+	guidedTours?: GuidedToursTenantConfigurationPersist;
+}
+
+export interface TermsAndConditionsTenantConfigurationPersist {
+	content: string;
+	version: number;
+}
+
+export interface GuidedToursTenantConfigurationPersist {
+	enabled: boolean;
 }
 
 export interface CssColorsTenantConfigurationPersist{
@@ -131,16 +161,22 @@ export interface DefaultUserLocaleTenantConfigurationPersist{
 
 export interface DepositTenantConfigurationPersist{
 	disableSystemSources: boolean;
+	/** Plugin ids (installation-provided or the tenant's own) switched off for this tenant. */
+	disabledSourceIds?: string[];
 	sources: DepositSourcePersist[];
 }
 
 export interface FileTransformerTenantConfigurationPersist{
 	disableSystemSources: boolean;
+	/** Plugin ids (installation-provided or the tenant's own) switched off for this tenant. */
+	disabledSourceIds?: string[];
 	sources: FileTransformerSourcePersist[];
 }
 
 export interface EvaluatorTenantConfigurationPersist{
 	disableSystemSources: boolean;
+	/** Plugin ids (installation-provided or the tenant's own) switched off for this tenant. */
+	disabledSourceIds?: string[];
 	sources: EvaluatorSourcePersist[];
 }
 
@@ -153,6 +189,7 @@ export interface DepositSourcePersist{
     scope: string;
     pdfTransformerId: string;
     rdaTransformerId: string;
+    maxInMemorySizeInBytes: number;
 }
 
 export interface FileTransformerSourcePersist{

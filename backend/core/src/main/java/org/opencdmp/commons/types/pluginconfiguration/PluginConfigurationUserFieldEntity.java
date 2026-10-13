@@ -18,6 +18,17 @@ public class PluginConfigurationUserFieldEntity {
     @XmlAttribute(name="textValue")
     private String textValue;
 
+    @XmlAttribute(name="secret")
+    private Boolean secret;
+
+    public Boolean getSecret() {
+        return secret;
+    }
+
+    public void setSecret(Boolean secret) {
+        this.secret = secret;
+    }
+
     public String getCode() {
         return code;
     }

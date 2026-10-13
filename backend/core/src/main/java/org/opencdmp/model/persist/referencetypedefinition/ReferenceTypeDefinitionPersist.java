@@ -28,6 +28,10 @@ public class ReferenceTypeDefinitionPersist {
 
     public static final String _sources = "sources";
 
+    private String labelTemplate;
+
+    public static final String _labelTemplate = "labelTemplate";
+
     public List<ReferenceTypeFieldPersist> getFields() {
         return fields;
     }
@@ -42,6 +46,14 @@ public class ReferenceTypeDefinitionPersist {
 
     public void setSources(List<ExternalFetcherBaseSourceConfigurationPersist> sources) {
         this.sources = sources;
+    }
+
+    public String getLabelTemplate() {
+        return labelTemplate;
+    }
+
+    public void setLabelTemplate(String labelTemplate) {
+        this.labelTemplate = labelTemplate;
     }
 
     @Component(ReferenceTypeDefinitionPersistValidator.ValidatorName)

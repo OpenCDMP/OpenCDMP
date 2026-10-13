@@ -5,5 +5,5 @@ import { RankConfig } from "../evaluator/rank-config";
 export interface EvaluationData {
     evaluatorId: Guid;
     rankConfig: RankConfig;
-    rankResult: RankResultModel;
+    rankResult: RankResultModel[];
 }

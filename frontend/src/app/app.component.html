@@ -1,26 +1,23 @@
 @if (!showOnlyRouterOutlet) {
   <ngx-guided-tour
-    [skipText]="'DASHBOARD.TOUR-GUIDE.LEAVE-TOUR'| translate"
-    [nextText]="'DASHBOARD.TOUR-GUIDE.GOT-IT'| translate"
+    [skipText]="'GUIDED-TOUR.SKIP' | translate"
+    [nextText]="'GUIDED-TOUR.NEXT' | translate"
+    [doneText]="'GUIDED-TOUR.DONE' | translate"
   ></ngx-guided-tour>
 }
 <button class="skip-to-main-content" (click)="skipToMain()" tabindex="0">{{'ALT-TEXT.SKIP-TO-MAIN-CONTENT' | translate}}</button>
 <div id="cookies-consent"></div>
 @if (!showOnlyRouterOutlet) {
   <div class="wrapper">
-    <app-navbar (sidebarToggled)="sidenav.toggle(); toggleNavbar($event);"></app-navbar>
-    <mat-sidenav-container fullscreen class="main-container">
-      <mat-sidenav #sidenav mode="side" opened class="sidenav" [fixedInViewport]="true" [fixedTopGap]="80">
-        <app-sidebar></app-sidebar>
-      </mat-sidenav>
-      <mat-sidenav-content class="sidenav-content">
-        <div id="main-page" tabindex="0">
-          @if (!authentication.appsNotAlreadyUserCreated()) {
-            <router-outlet  (activate)='onActivate($event)' (deactivate)='onDeactivate($event)'></router-outlet>
-          }
-        </div>
-      </mat-sidenav-content>
-    </mat-sidenav-container>
+    <app-navbar class="nav-bar"></app-navbar>
+    <div class="main-container">
+    <app-sidebar class="sidenav" [class.closed]="!sidenavService.isOpen()"></app-sidebar>
+    <main id="main-page" tabindex="-1">
+        @if (!authentication.appsNotAlreadyUserCreated()) {
+        <router-outlet  (activate)='onActivate($event)' (deactivate)='onDeactivate($event)'></router-outlet>
+        }
+    </main>
+    </div>
   </div>
 }
 @if (!showOnlyRouterOutlet && !authentication.appsNotAlreadyUserCreated()) {

@@ -1,5 +1,5 @@
-import {Component, EventEmitter, input, Input, Output} from '@angular/core';
-import {UntypedFormGroup} from '@angular/forms';
+import {Component, EventEmitter, input, Input, Output, ChangeDetectionStrategy} from '@angular/core';
+import { FormGroup, UntypedFormGroup, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import {MatExpansionPanel} from '@angular/material/expansion';
 import {DescriptionTemplate} from '@app/core/model/description-template/description-template';
 import {PlanUser} from '@app/core/model/plan/plan';
@@ -8,23 +8,29 @@ import {ValidationErrorModel} from '@common/forms/validation/error-model/validat
 import {Guid} from '@common/types/guid';
 import {LinkToScroll} from '../table-of-contents/table-of-contents.component';
 import {VisibilityRulesService} from './visibility-rules/visibility-rules.service';
+import { PlanEditorForm } from '@app/ui/plan/plan-editor-blueprint/plan-editor.model';
+import { DescriptionEditorForm } from '../description-editor.model';
+import { FormSectionComponent } from './components/form-section/form-section.component';
 
 @Component({
     selector: 'app-description-form',
     templateUrl: './description-form.component.html',
     styleUrls: ['./description-form.component.scss'],
-    standalone: false
+    changeDetection: ChangeDetectionStrategy.Eager,
+    imports: [FormSectionComponent, FormsModule, ReactiveFormsModule]
 })
 export class DescriptionFormComponent extends BaseComponent {
     descriptionId = input<Guid>(null);
     planId = input<Guid>(null);
 
 	@Input() canAnnotate: boolean = false;
-	@Input() datasetDescription: String;
+	@Input() canEdit: boolean = false;
+	@Input() datasetDescription: string;
 	@Input() linkToScroll: LinkToScroll;
 	@Input() planUsers: PlanUser[] = [];
     @Input() ordinal: string;
     @Input() propertiesFormGroup: UntypedFormGroup;
+    @Input() formGroup: FormGroup<PlanEditorForm | DescriptionEditorForm>;
 	@Input() descriptionTemplate: DescriptionTemplate;
 	@Input() visibilityRulesService: VisibilityRulesService;
     @Input() validationErrorModel: ValidationErrorModel;

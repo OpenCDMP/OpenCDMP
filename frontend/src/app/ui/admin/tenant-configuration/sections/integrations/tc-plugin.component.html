@@ -1,0 +1,141 @@
+<a class="tc-plugin__back" [routerLink]="listUrl">
+	<mat-icon aria-hidden="true">arrow_back</mat-icon>
+	{{ 'TENANT-CONFIGURATION.INTEGRATIONS.PLUGIN.BACK' | translate }}
+</a>
+
+@if (sources.loading()) {
+	<div class="tc-loading"><mat-spinner diameter="32" /></div>
+} @else if (!kind() || !entry()) {
+	<header class="tc-head">
+		<h1>{{ id() }}</h1>
+		<p>{{ 'TENANT-CONFIGURATION.INTEGRATIONS.PLUGIN.NOT-FOUND' | translate }}</p>
+	</header>
+} @else {
+	@let e = entry()!;
+	<header class="tc-head tc-plugin__head">
+		<div>
+			<p class="tc-plugin__kind">{{ e.kind.label | translate }}</p>
+			<h1>{{ e.id }}</h1>
+			<div class="tc-plugin__meta">
+				<span>{{ 'TENANT-CONFIGURATION.INTEGRATIONS.PROVIDER.' + e.provider.toUpperCase() | translate }}</span>
+				<span class="tc-status" [attr.data-status]="e.status">
+					<span class="tc-status__dot" aria-hidden="true"></span>
+					{{ 'TENANT-CONFIGURATION.INTEGRATIONS.STATUS.' + e.status.toUpperCase() | translate }}
+				</span>
+				@for (capability of e.capabilities; track capability) {
+					<span class="tc-plugin__capability">{{ capability === 'preview' ? ('TENANT-CONFIGURATION.INTEGRATIONS.CAPABILITY-PREVIEW' | translate) : capability }}</span>
+				}
+			</div>
+		</div>
+		<mat-slide-toggle [checked]="e.enabled" [disabled]="readOnly()" (change)="toggle($event.checked)">
+			{{ (e.enabled ? 'TENANT-CONFIGURATION.INTEGRATIONS.PLUGIN.ON' : 'TENANT-CONFIGURATION.INTEGRATIONS.PLUGIN.OFF') | translate }}
+		</mat-slide-toggle>
+	</header>
+
+	@if (!e.enabled) {
+		<p class="tc-plugin__notice" role="status">{{ 'TENANT-CONFIGURATION.INTEGRATIONS.PLUGIN.OFF-NOTICE' | translate }}</p>
+	}
+
+	<mat-tab-group class="tc-plugin__tabs" animationDuration="0ms" mat-stretch-tabs="false">
+		<mat-tab [label]="'TENANT-CONFIGURATION.INTEGRATIONS.PLUGIN.SETTINGS' | translate">
+			<section class="tc-card tc-plugin__panel" aria-labelledby="tc-plugin-settings-h">
+				<div class="tc-card__head">
+					<div>
+						<h2 id="tc-plugin-settings-h">{{ 'TENANT-CONFIGURATION.INTEGRATIONS.PLUGIN.SETTINGS' | translate }}</h2>
+						<p>{{ 'TENANT-CONFIGURATION.INTEGRATIONS.PLUGIN.SETTINGS-HINT' | translate }}</p>
+					</div>
+					@if (hasSettings()) {
+						<app-tc-state-tag [changed]="settings.changed()" [inherited]="settings.inherited()" [canCustomise]="section.canEdit" (customiseRequested)="settings.customise()" [canReset]="section.canReset" (resetRequested)="section.confirmReset(settings.reset.bind(settings))" />
+					}
+				</div>
+				@if (settings.loading()) {
+					<div class="tc-loading"><mat-spinner diameter="28" /></div>
+				} @else if (!hasSettings()) {
+					<p class="tc-row__hint">
+						{{ (e.status === 'connected' ? 'TENANT-CONFIGURATION.INTEGRATIONS.PLUGIN.NO-SETTINGS' : 'TENANT-CONFIGURATION.INTEGRATIONS.PLUGIN.SETTINGS-UNAVAILABLE') | translate }}
+					</p>
+				} @else if (grouped() && pluginForm(); as form) {
+					<app-tc-export-settings [pluginCode]="e.id" [pluginForm]="form" [definitions]="definitions()" [fileMap]="fileMap()" [readOnly]="readOnly() || settings.inherited()" [canPreview]="canPreview()" />
+				} @else if (pluginConfigurations(); as array) {
+					<p class="tc-row__hint tc-plugin__shared">{{ 'TENANT-CONFIGURATION.INTEGRATIONS.PLUGIN.SETTINGS-SHARED' | translate }}</p>
+					<app-plugin-editor
+						[formGroup]="array"
+						[onlyPluginCode]="e.id"
+						[fileMap]="fileMap()"
+						[showPluginFieldText]="true"
+						[pluginConfiguration]="repositories()" />
+				}
+			</section>
+		</mat-tab>
+
+		<mat-tab [label]="'TENANT-CONFIGURATION.INTEGRATIONS.PLUGIN.CONNECTION' | translate">
+			<section class="tc-card tc-plugin__panel" aria-labelledby="tc-plugin-connection-h">
+				<div class="tc-card__head">
+					<div>
+						<h2 id="tc-plugin-connection-h">{{ 'TENANT-CONFIGURATION.INTEGRATIONS.PLUGIN.CONNECTION' | translate }}</h2>
+						<p>{{ (e.provider === 'tenant' ? 'TENANT-CONFIGURATION.INTEGRATIONS.PLUGIN.CONNECTION-TENANT' : 'TENANT-CONFIGURATION.INTEGRATIONS.PLUGIN.CONNECTION-INSTALLATION') | translate }}</p>
+					</div>
+				</div>
+
+				@if (e.provider === 'tenant' && connection(); as group) {
+					<app-tc-connection-fields [group]="group" />
+					@if (e.kind.slug === 'deposit') {
+						<div class="tc-plugin__deposit">
+							<mat-form-field>
+								<mat-label>{{ 'TENANT-CONFIGURATION.INTEGRATIONS.CONNECTION.PDF-TRANSFORMER' | translate }}</mat-label>
+								<mat-select [formControl]="control(group, 'pdfTransformerId')" [required]="true">
+									@for (id of transformerIds(); track id) { <mat-option [value]="id">{{ id }}</mat-option> }
+								</mat-select>
+								@if (control(group, 'pdfTransformerId').hasError('required')) { <mat-error>{{ 'GENERAL.VALIDATION.REQUIRED' | translate }}</mat-error> }
+							</mat-form-field>
+							<mat-form-field>
+								<mat-label>{{ 'TENANT-CONFIGURATION.INTEGRATIONS.CONNECTION.RDA-TRANSFORMER' | translate }}</mat-label>
+								<mat-select [formControl]="control(group, 'rdaTransformerId')" [required]="true">
+									@for (id of transformerIds(); track id) { <mat-option [value]="id">{{ id }}</mat-option> }
+								</mat-select>
+								@if (control(group, 'rdaTransformerId').hasError('required')) { <mat-error>{{ 'GENERAL.VALIDATION.REQUIRED' | translate }}</mat-error> }
+							</mat-form-field>
+							<mat-form-field>
+								<mat-label>{{ 'TENANT-CONFIGURATION.INTEGRATIONS.CONNECTION.MAX-SIZE' | translate }}</mat-label>
+								<input matInput type="number" min="1" [formControl]="control(group, 'maxInMemorySizeInBytes')" required>
+								<mat-hint>{{ 'TENANT-CONFIGURATION.INTEGRATIONS.CONNECTION.MAX-SIZE-HINT' | translate }}</mat-hint>
+								@if (control(group, 'maxInMemorySizeInBytes').invalid) { <mat-error>{{ 'GENERAL.VALIDATION.REQUIRED' | translate }}</mat-error> }
+							</mat-form-field>
+						</div>
+					}
+				}
+
+				<div class="tc-plugin__test" aria-live="polite">
+					<button mat-stroked-button type="button" (click)="test()" [disabled]="testing()">
+						{{ 'TENANT-CONFIGURATION.INTEGRATIONS.CONNECTION.TEST' | translate }}
+					</button>
+					@if (testing()) {
+						<mat-spinner diameter="18" />
+					} @else if (testResult(); as r) {
+						<span [class.tc-plugin__ok]="r.success" [class.tc-plugin__fail]="!r.success">
+							@if (r.success) {
+								{{ 'TENANT-CONFIGURATION.INTEGRATIONS.CONNECTION.TEST-OK' | translate }}
+								@if (r.reportedId && r.reportedId !== e.id) {
+									{{ 'TENANT-CONFIGURATION.INTEGRATIONS.CONNECTION.TEST-OTHER-ID' | translate: { id: r.reportedId } }}
+								}
+							} @else {
+								{{ 'TENANT-CONFIGURATION.INTEGRATIONS.CONNECTION.TEST-FAILED' | translate: { message: r.message ?? '' } }}
+							}
+						</span>
+					}
+				</div>
+
+				@if (e.provider === 'tenant' && !readOnly()) {
+					<div class="tc-plugin__danger">
+						<button mat-button color="warn" type="button" (click)="remove()">
+							<mat-icon aria-hidden="true">delete</mat-icon>
+							{{ 'TENANT-CONFIGURATION.INTEGRATIONS.PLUGIN.REMOVE' | translate }}
+						</button>
+					</div>
+				}
+			</section>
+		</mat-tab>
+	</mat-tab-group>
+
+	<app-tc-save-bar [dirtyCount]="section.dirtyCount()" [saving]="section.saving()" [canSave]="section.canEdit" (save)="section.saveAll()" (discard)="section.discardAll()" />
+}

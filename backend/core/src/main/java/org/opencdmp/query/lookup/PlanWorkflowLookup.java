@@ -3,6 +3,7 @@ package org.opencdmp.query.lookup;
 import gr.cite.tools.data.query.Lookup;
 import gr.cite.tools.data.query.QueryFactory;
 import io.swagger.v3.oas.annotations.media.Schema;
+import org.opencdmp.commons.SQLUtils;
 import org.opencdmp.commons.enums.IsActive;
 import org.opencdmp.query.PlanWorkflowQuery;
 import org.opencdmp.query.lookup.swagger.SwaggerHelpers;
@@ -42,7 +43,7 @@ public class PlanWorkflowLookup extends Lookup {
 
     public PlanWorkflowQuery enrich(QueryFactory queryFactory) {
         PlanWorkflowQuery query = queryFactory.query(PlanWorkflowQuery.class);
-        if (this.like != null) query.like(this.like);
+        if (this.like != null) query.like(SQLUtils.toPostgres(this.like));
         if (this.ids != null) query.ids(this.ids);
         if (this.excludedIds != null) query.excludedIds(this.excludedIds);
         if (this.isActive != null) query.isActives(this.isActive);

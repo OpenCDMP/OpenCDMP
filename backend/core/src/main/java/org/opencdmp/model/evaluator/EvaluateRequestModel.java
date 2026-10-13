@@ -9,6 +9,7 @@ public class EvaluateRequestModel {
     private String evaluatorId;
     private String format;
     private List<String> benchmarkIds;
+    private List<String> testIds;
 
     public UUID getId() {
         return id;
@@ -40,5 +41,13 @@ public class EvaluateRequestModel {
 
     public void setBenchmarkIds(List<String> benchmarkIds) {
         this.benchmarkIds = benchmarkIds;
+    }
+
+    public List<String> getTestIds() {
+        return testIds;
+    }
+
+    public void setTestIds(List<String> testIds) {
+        this.testIds = testIds;
     }
 }

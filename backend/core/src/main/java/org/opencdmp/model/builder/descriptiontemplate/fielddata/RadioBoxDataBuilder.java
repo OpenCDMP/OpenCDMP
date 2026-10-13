@@ -2,9 +2,11 @@ package org.opencdmp.model.builder.descriptiontemplate.fielddata;
 
 import org.opencdmp.authorization.AuthorizationFlags;
 import org.opencdmp.commons.types.descriptiontemplate.fielddata.RadioBoxDataEntity;
+import org.opencdmp.commons.types.descriptiontemplate.fielddata.SemanticValueEntity;
 import org.opencdmp.convention.ConventionService;
 import org.opencdmp.model.builder.BaseBuilder;
 import org.opencdmp.model.descriptiontemplate.fielddata.RadioBoxData;
+import org.opencdmp.model.descriptiontemplate.fielddata.SemanticValue;
 import gr.cite.tools.data.builder.BuilderFactory;
 import gr.cite.tools.exception.MyApplicationException;
 import gr.cite.tools.fieldset.FieldSet;
@@ -62,14 +64,29 @@ public class RadioBoxDataBuilder extends BaseFieldDataBuilder<RadioBoxData, Radi
 	        if (fields == null || data == null || fields.isEmpty())
 	            return new ArrayList<>();
 	
+	        FieldSet semanticsFields = fields.extractPrefixed(this.asPrefix(RadioBoxData.RadioBoxOption._semantics));
+
 	        List<RadioBoxData.RadioBoxOption> models = new ArrayList<>();
 	        for (RadioBoxDataEntity.RadioBoxDataOptionEntity d : data) {
 	            RadioBoxData.RadioBoxOption m = new RadioBoxData.RadioBoxOption();
 	            if (fields.hasField(this.asIndexer(RadioBoxData.RadioBoxOption._label))) m.setLabel(d.getLabel());
 	            if (fields.hasField(this.asIndexer(RadioBoxData.RadioBoxOption._value))) m.setValue(d.getValue());
+	            if (fields.hasField(this.asIndexer(RadioBoxData.RadioBoxOption._exportsNothing))) m.setExportsNothing(d.getExportsNothing());
+	            if (!semanticsFields.isEmpty() && d.getSemantics() != null) m.setSemantics(this.buildSemantics(semanticsFields, d.getSemantics()));
 	            models.add(m);
 	        }
 	        this.logger.debug("build {} items", Optional.of(models).map(List::size).orElse(0));
+	        return models;
+	    }
+
+	    private List<SemanticValue> buildSemantics(FieldSet fields, List<SemanticValueEntity> data) {
+	        List<SemanticValue> models = new ArrayList<>();
+	        for (SemanticValueEntity d : data) {
+	            SemanticValue m = new SemanticValue();
+	            if (fields.hasField(this.asIndexer(SemanticValue._key))) m.setKey(d.getKey());
+	            if (fields.hasField(this.asIndexer(SemanticValue._value))) m.setValue(d.getValue());
+	            models.add(m);
+	        }
 	        return models;
 	    }
 	}

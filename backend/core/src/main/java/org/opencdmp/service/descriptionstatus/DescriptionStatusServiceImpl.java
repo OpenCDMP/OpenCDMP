@@ -18,7 +18,6 @@ import org.opencdmp.authorization.Permission;
 import org.opencdmp.authorization.authorizationcontentresolver.AuthorizationContentResolverFactory;
 import org.opencdmp.commons.XmlHandlingService;
 import org.opencdmp.commons.enums.IsActive;
-import org.opencdmp.commons.enums.StorageType;
 import org.opencdmp.commons.enums.UsageLimitTargetMetric;
 import org.opencdmp.commons.scope.tenant.TenantScopeFactory;
 import org.opencdmp.commons.types.descriptionstatus.DescriptionStatusDefinitionAuthorizationEntity;
@@ -30,7 +29,6 @@ import org.opencdmp.convention.ConventionService;
 import org.opencdmp.data.*;
 import org.opencdmp.event.DescriptionStatusTouchedEvent;
 import org.opencdmp.event.EventBroker;
-import org.opencdmp.model.StorageFile;
 import org.opencdmp.model.builder.descriptionstatus.DescriptionStatusBuilder;
 import org.opencdmp.model.deleter.DescriptionStatusDeleter;
 import org.opencdmp.model.description.Description;
@@ -41,11 +39,10 @@ import org.opencdmp.model.persist.descriptionstatus.DescriptionStatusDefinitionP
 import org.opencdmp.model.persist.descriptionstatus.DescriptionStatusPersist;
 import org.opencdmp.query.DescriptionQuery;
 import org.opencdmp.query.DescriptionStatusQuery;
-import org.opencdmp.query.StorageFileQuery;
 import org.opencdmp.service.accounting.AccountingService;
 import org.opencdmp.service.custompolicy.CustomPolicyService;
 import org.opencdmp.service.descriptionworkflow.DescriptionWorkflowService;
-import org.opencdmp.service.storage.StorageFileService;
+import org.opencdmp.service.iconconfiguration.IconConfigurationService;
 import org.opencdmp.service.usagelimit.UsageLimitService;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.MessageSource;
@@ -79,9 +76,9 @@ public class DescriptionStatusServiceImpl implements DescriptionStatusService {
     private final QueryFactory queryFactory;
     private final UsageLimitService usageLimitService;
     private final AccountingService accountingService;
-    private final StorageFileService storageFileService;
+    private final IconConfigurationService iconConfigurationService;
 
-    public DescriptionStatusServiceImpl(BuilderFactory builderFactory, DeleterFactory deleterFactory, AuthorizationService authService, TenantEntityManagerFactory tenantEntityManagerFactory, ConventionService conventionService, MessageSource messageSource, XmlHandlingService xmlHandlingService, EventBroker eventBroker, TenantScopeFactory tenantScopeFactory, DescriptionWorkflowService descriptionWorkflowService, CustomPolicyService customPolicyService, AuthorizationService authorizationService, AuthorizationContentResolverFactory authorizationContentResolverFactory, QueryFactory queryFactory, UsageLimitService usageLimitService, AccountingService accountingService, StorageFileService storageFileService) {
+    public DescriptionStatusServiceImpl(BuilderFactory builderFactory, DeleterFactory deleterFactory, AuthorizationService authService, TenantEntityManagerFactory tenantEntityManagerFactory, ConventionService conventionService, MessageSource messageSource, XmlHandlingService xmlHandlingService, EventBroker eventBroker, TenantScopeFactory tenantScopeFactory, DescriptionWorkflowService descriptionWorkflowService, CustomPolicyService customPolicyService, AuthorizationService authorizationService, AuthorizationContentResolverFactory authorizationContentResolverFactory, QueryFactory queryFactory, UsageLimitService usageLimitService, AccountingService accountingService, IconConfigurationService iconConfigurationService) {
         this.builderFactory = builderFactory;
         this.deleterFactory = deleterFactory;
 
@@ -99,7 +96,7 @@ public class DescriptionStatusServiceImpl implements DescriptionStatusService {
         this.queryFactory = queryFactory;
         this.usageLimitService = usageLimitService;
         this.accountingService = accountingService;
-        this.storageFileService = storageFileService;
+        this.iconConfigurationService = iconConfigurationService;
     }
 
 
@@ -131,7 +128,7 @@ public class DescriptionStatusServiceImpl implements DescriptionStatusService {
         data.setOrdinal(model.getOrdinal());
         data.setInternalStatus(model.getInternalStatus());
         DescriptionStatusDefinitionEntity oldDefinition = this.conventionService.isNullOrEmpty(data.getDefinition()) ? null : this.xmlHandlingService.fromXmlSafe(DescriptionStatusDefinitionEntity.class, data.getDefinition());
-        data.setDefinition(this.xmlHandlingService.toXml(this.buildDescriptionStatusDefinitionEntity(model.getDefinition(), oldDefinition != null ? oldDefinition.getStorageFileId(): null)));
+        data.setDefinition(this.xmlHandlingService.toXml(this.buildDescriptionStatusDefinitionEntity(model.getDefinition(), oldDefinition)));
         data.setUpdatedAt(Instant.now());
 
         if (isUpdate)
@@ -156,28 +153,19 @@ public class DescriptionStatusServiceImpl implements DescriptionStatusService {
         this.deleterFactory.deleter(DescriptionStatusDeleter.class).deleteAndSaveByIds(List.of(id));
     }
 
-    private DescriptionStatusDefinitionEntity buildDescriptionStatusDefinitionEntity(DescriptionStatusDefinitionPersist persist, UUID oldStorageFileId) throws InvalidApplicationException {
+    private DescriptionStatusDefinitionEntity buildDescriptionStatusDefinitionEntity(DescriptionStatusDefinitionPersist persist, DescriptionStatusDefinitionEntity oldValue) throws InvalidApplicationException {
         DescriptionStatusDefinitionEntity data = new DescriptionStatusDefinitionEntity();
         if (persist == null)
             return data;
 
         data.setAuthorization(this.buildDescriptionStatusDefinitionAuthorizationEntity(persist.getAuthorization()));
-        data.setMatIconName(persist.getMatIconName());
-        if (persist.getStorageFileId() != null) {
-            if (!persist.getStorageFileId().equals(oldStorageFileId)) {
-                StorageFileEntity storageFileEntity = this.queryFactory.query(StorageFileQuery.class).disableTracking().ids(persist.getStorageFileId()).firstAs(new BaseFieldSet().ensure(StorageFile._id).ensure(StorageFile._storageType));
-                if (storageFileEntity == null || storageFileEntity.getStorageType().equals(StorageType.Temp)) {
-                    StorageFile storageFile = this.storageFileService.copyToStorage(persist.getStorageFileId(), StorageType.Main, true, new BaseFieldSet().ensure(StorageFile._id));
-                    this.storageFileService.updatePurgeAt(storageFile.getId(), null);
-                    if (oldStorageFileId != null) this.storageFileService.updatePurgeAt(oldStorageFileId, Instant.now().plusSeconds(60));
-                    data.setStorageFileId(storageFile.getId());
-                }
-            } else {
-                data.setStorageFileId(persist.getStorageFileId());
-            }
-        } else {
-            if (oldStorageFileId != null) this.storageFileService.updatePurgeAt(oldStorageFileId, Instant.now().plusSeconds(60));
+
+        UUID oldStorageFileId = null;
+        if (oldValue != null && oldValue.getIconConfiguration() != null && oldValue.getIconConfiguration().getStorageFileId() != null) {
+            oldStorageFileId = oldValue.getIconConfiguration().getStorageFileId();
         }
+        data.setIconConfiguration(this.iconConfigurationService.buildIconConfigurationEntity(persist.getIconConfiguration(), oldStorageFileId));
+
         data.setStatusColor(persist.getStatusColor());
 
         if (!this.conventionService.isListNullOrEmpty(persist.getAvailableActions())) data.setAvailableActions(persist.getAvailableActions());

@@ -19,7 +19,7 @@ public class DescriptionSectionPermissionResolver {
     private UUID planId;
     public static final String _planId = "planId";
 
-    private List<UUID> sectionIds;
+    private List<String> sectionIds;
 
     public static final String _sectionIds = "sectionIds";
 
@@ -35,11 +35,11 @@ public class DescriptionSectionPermissionResolver {
         this.planId = planId;
     }
 
-    public List<UUID> getSectionIds() {
+    public List<String> getSectionIds() {
         return sectionIds;
     }
 
-    public void setSectionIds(List<UUID> sectionIds) {
+    public void setSectionIds(List<String> sectionIds) {
         this.sectionIds = sectionIds;
     }
 

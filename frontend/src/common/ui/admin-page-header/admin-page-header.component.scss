@@ -1,0 +1,47 @@
+.admin-page-header {
+    display: block;
+    margin: 1.5rem 0 1.25rem;
+
+    .admin-page-header__bar {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 1rem;
+        flex-wrap: wrap;
+        margin-top: 0.5rem;
+    }
+
+    .admin-page-header__text {
+        min-width: 0;
+        flex: 1 1 24rem;
+    }
+
+    .admin-page-header__title {
+        margin: 0;
+        font-weight: 700;
+        line-height: 1.25;
+        color: var(--mat-sys-on-surface);
+        text-wrap: balance;
+    }
+
+    .admin-page-header__description {
+        margin: 0.375rem 0 0;
+        max-width: 70ch;
+        line-height: 1.45;
+        color: var(--mat-sys-on-surface-variant);
+    }
+
+    .admin-page-header__actions {
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        // keep the actions visually anchored to the title row, not the description
+        margin-top: 0.125rem;
+
+        // empty projection should not reserve space
+        &:empty {
+            display: none;
+        }
+    }
+}

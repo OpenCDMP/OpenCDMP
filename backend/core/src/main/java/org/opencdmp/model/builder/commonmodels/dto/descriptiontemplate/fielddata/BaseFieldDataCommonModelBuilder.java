@@ -3,7 +3,7 @@ package org.opencdmp.model.builder.commonmodels.dto.descriptiontemplate.fielddat
 import gr.cite.tools.exception.MyApplicationException;
 import gr.cite.tools.logging.LoggerService;
 import org.opencdmp.authorization.AuthorizationFlags;
-import org.opencdmp.commonmodels.models.descriptiotemplate.fielddata.BaseFieldDataModel;
+import org.opencdmp.commonmodels.models.planblueprintdescriptiontemplatefields.fielddata.BaseFieldDataModel;
 import org.opencdmp.commons.enums.FieldType;
 import org.opencdmp.convention.ConventionService;
 import org.opencdmp.model.builder.commonmodels.BaseCommonModelBuilder;
@@ -65,6 +65,8 @@ public abstract class BaseFieldDataCommonModelBuilder<Model extends BaseFieldDat
                 case REFERENCE_TYPES -> m.setFieldType(FieldType.REFERENCE_TYPES);
                 case DATASET_IDENTIFIER -> m.setFieldType(FieldType.DATASET_IDENTIFIER);
                 case VALIDATION -> m.setFieldType(FieldType.VALIDATION);
+                case SYSTEM -> m.setFieldType(FieldType.SYSTEM);
+                case NUMBER -> m.setFieldType(FieldType.NUMBER);
                 default -> throw new MyApplicationException("unrecognized type " + d.getFieldType());
             }
             this.buildChild(d, m);

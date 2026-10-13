@@ -4,6 +4,7 @@ import gr.cite.tools.data.query.Lookup;
 import gr.cite.tools.data.query.QueryFactory;
 import io.swagger.v3.oas.annotations.media.Schema;
 import org.apache.commons.lang3.StringUtils;
+import org.opencdmp.commons.SQLUtils;
 import org.opencdmp.commons.enums.PlanAccessType;
 import org.opencdmp.commons.enums.PlanVersionStatus;
 import org.opencdmp.commons.enums.IsActive;
@@ -173,7 +174,7 @@ public class PlanLookup extends Lookup {
 
     public PlanQuery enrich(QueryFactory queryFactory) {
         PlanQuery query = queryFactory.query(PlanQuery.class);
-        if (this.like != null) query.like(this.like);
+        if (this.like != null) query.like(SQLUtils.toPostgres(this.like));
         if (this.ids != null) query.ids(this.ids);
         if (this.tenantSubQuery != null) query.tenantSubQuery(this.tenantSubQuery.enrich(queryFactory));
         if (this.groupIds != null) query.groupIds(this.groupIds);
@@ -196,20 +197,26 @@ public class PlanLookup extends Lookup {
 
     public PlanElasticQuery enrichElastic(QueryFactory queryFactory) {
         PlanElasticQuery query = queryFactory.query(PlanElasticQuery.class);
-        if (this.like != null) query.like(StringUtils.strip(this.like, "%"));
+        if (this.like != null) query.like(SQLUtils.toLucene(this.like));
         if (this.ids != null) query.ids(this.ids);
         if (this.groupIds != null) query.groupIds(this.groupIds);
         if (this.excludedIds != null) query.excludedIds(this.excludedIds);
         if (this.accessTypes != null) query.accessTypes(this.accessTypes);
-        if (this.statusIds != null) query.statuses(this.statusIds);
         if (this.versions != null) query.versions(this.versions);
         if (this.versionStatuses != null) query.versionStatuses(this.versionStatuses);
         if (this.planDescriptionTemplateSubQuery != null) query.planDescriptionTemplateSubQuery(this.planDescriptionTemplateSubQuery.enrichElasticInner(queryFactory));
         if (this.planUserSubQuery != null) query.planSubQuery(this.planUserSubQuery.enrichElasticInner(queryFactory));
-        if (this.planBlueprintSubQuery != null && this.planBlueprintSubQuery.getIds() != null && !this.planBlueprintSubQuery.getIds().isEmpty()) query.blueprintIds(this.planBlueprintSubQuery.getIds());
+        if (this.planBlueprintSubQuery != null) query.planBlueprintSubQuery(this.planBlueprintSubQuery.enrichElasticInner(queryFactory));
         if (this.planReferenceSubQuery != null) query.referenceSubQuery(this.planReferenceSubQuery.enrichElasticInner(queryFactory));
         if (this.tenantSubQuery != null) throw new UnsupportedOperationException();
         if (this.planStatusSubQuery != null) query.planStatusElasticQuery(this.planStatusSubQuery.enrichElasticInner(queryFactory));
+        if (this.statusIds != null) {
+            if (this.planStatusSubQuery == null) {
+                planStatusSubQuery = new PlanStatusLookup();
+                planStatusSubQuery.setIds(statusIds);
+                query.planStatusElasticQuery(this.planStatusSubQuery.enrichElasticInner(queryFactory));
+            }
+        }
 
         this.enrichCommon(query);
 
@@ -218,20 +225,28 @@ public class PlanLookup extends Lookup {
 
     public InnerObjectPlanElasticQuery enrichElasticInner(QueryFactory queryFactory) {
         InnerObjectPlanElasticQuery query = queryFactory.query(InnerObjectPlanElasticQuery.class);
-        if (this.like != null) query.like(StringUtils.strip(this.like, "%"));
+        if (this.like != null) query.like(SQLUtils.toLucene(this.like));
         if (this.ids != null) query.ids(this.ids);
         if (this.groupIds != null) query.groupIds(this.groupIds);
         if (this.excludedIds != null) query.excludedIds(this.excludedIds);
         if (this.accessTypes != null) query.accessTypes(this.accessTypes);
-        if (this.statusIds != null) query.statusIds(this.statusIds);
         if (this.versions != null) query.versions(this.versions);
         if (this.versionStatuses != null) query.versionStatuses(this.versionStatuses);
         if (this.planDescriptionTemplateSubQuery != null) throw new UnsupportedOperationException("");
         if (this.planUserSubQuery != null) query.planSubQuery(this.planUserSubQuery.enrichElasticInner(queryFactory));
-        if (this.planBlueprintSubQuery != null && this.planBlueprintSubQuery.getIds() != null && !this.planBlueprintSubQuery.getIds().isEmpty()) throw new UnsupportedOperationException("");
+        if (this.planBlueprintSubQuery != null) {
+            query.planBlueprintSubQuery(this.planBlueprintSubQuery.enrichElasticInner(queryFactory));
+        }
         if (this.planReferenceSubQuery != null) throw new UnsupportedOperationException("");
         if (this.tenantSubQuery != null) throw new UnsupportedOperationException();
-        if (this.planStatusSubQuery != null) throw new UnsupportedOperationException();
+        if (this.planStatusSubQuery != null) query.planStatusElasticQuery(this.planStatusSubQuery.enrichElasticInner(queryFactory));
+        if (this.statusIds != null) {
+            if (this.planStatusSubQuery == null) {
+                planStatusSubQuery = new PlanStatusLookup();
+                planStatusSubQuery.setIds(statusIds);
+                query.planStatusElasticQuery(this.planStatusSubQuery.enrichElasticInner(queryFactory));
+            }
+        }
 
         return query;
     }

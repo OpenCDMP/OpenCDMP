@@ -1,41 +1,44 @@
-@if(planUsers()){
-  @for (planUser of planUsers(); track planUser; let i = $index) {
+@if(groupedBasicInfo()?.length){
+  @for (planUser of groupedBasicInfo(); track planUser; let i = $index) {
     <div>
       @if(i < pageSize() || showMore()){
         <div class="d-flex author">
-          <mat-icon class="author-icon">account_circle</mat-icon>
+          <img
+                class="user-logo circle"
+                alt="" aria-hidden="true"
+                [src]="$safeNavigationMigration(planUser.user?.name) | userLogo"
+                appFallbackAvatar
+            >
           <div style="min-width: 0;">
-            @if (!isUserAuthor(planUser.user?.id)) {
-              <span class="author-label">{{ planUser.user?.name }}</span>
-            } @else {
-              @if (username()) {
-                <div class="author-label"> {{ username() }}
-                  <span >
-                    ({{ 'PLAN-OVERVIEW.YOU' | translate }})
-                  </span>
-                </div>
-              }
-            }
+            <span class="author-label">
+                {{ planUser.user?.name }}
+                @if (isCurrentUser($safeNavigationMigration(planUser.user?.id))) {
+                    <span class="opacity-08">({{ 'PLAN-OVERVIEW.YOU' | translate }})</span>
+                }
+            </span>
             <div class="author-role">
-              <span>{{ enumUtils.toPlanUserRoleString(planUser.role) }} - </span>
-              @if (!planUser.sectionId) {
+                @for(role of planUser.roles; track $index; let last = $last){
+                    <span>{{ enumUtils.toPlanUserRoleString(role) }}{{!last ? ', ' : ''}}</span>
+
+                }
+              <!-- @if (!planUser.sectionId) {
                 <span>{{ 'PLAN-OVERVIEW.ROLES.ALL-SECTIONS' | translate}}</span>
               }
               @if (planUser.sectionId) {
                 <span>{{ getSectionNameById(planUser.sectionId) }}</span>
-              }
+              } -->
             </div>
           </div>
-          @if(removeUser() && isAtLeastOnePlanOwner(planUser)){
+          <!-- @if(removeUser() && isAtLeastOnePlanOwner(planUser)){
             <button (click)="removeUserFromPlan(planUser)" mat-mini-fab class="secondary ml-auto" matTooltip="{{ 'PLAN-OVERVIEW.ACTIONS.REMOVE-AUTHOR' | translate}}" matTooltipPosition="above" [attr.aria-label]="'PLAN-OVERVIEW.ACTIONS.REMOVE-AUTHOR' | translate">
-              <mat-icon aria-hidden>delete</mat-icon>
+              <mat-icon aria-hidden="true">delete</mat-icon>
             </button>
-          }
+          } -->
         </div>
       }
     </div>
   }
-  @if (planUsers()?.length > pageSize()) {
+  @if (groupedBasicInfo()?.length > pageSize()) {
     <div class="link-color d-flex justify-content-center show-more" role="button" (click)="toggleShowMore()">
       {{(!showMore() ? 'GENERAL.ACTIONS.SHOW-MORE' : 'GENERAL.ACTIONS.SHOW-LESS') | translate}}
     </div>

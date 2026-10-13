@@ -1,11 +1,21 @@
-import { Component, Inject } from '@angular/core';
-import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
+import { Component, Inject, ChangeDetectionStrategy } from '@angular/core';
+import { MAT_DIALOG_DATA, MatDialogRef, MatDialogTitle, MatDialogContent, MatDialogActions } from '@angular/material/dialog';
+import { MatIconButton, MatButton } from '@angular/material/button';
+import { MatIcon } from '@angular/material/icon';
+import { CdkScrollable } from '@angular/cdk/scrolling';
+import { FileUploadComponent } from '../../../../../library/file-uploader/file-uploader.component';
+import { MatFormField } from '@angular/material/form-field';
+import { ReactiveAsteriskDirective } from '../../../../../../common/forms/reactive-asterisk-directive';
+import { MatInput } from '@angular/material/input';
+import { FormsModule } from '@angular/forms';
+import { TranslatePipe } from '@ngx-translate/core';
 
 
 @Component({
     templateUrl: './import-plan-blueprint.dialog.component.html',
     styleUrls: ['./import-plan-blueprint.dialog.component.scss'],
-    standalone: false
+    changeDetection: ChangeDetectionStrategy.Eager,
+    imports: [MatDialogTitle, MatIconButton, MatIcon, CdkScrollable, MatDialogContent, FileUploadComponent, MatFormField, ReactiveAsteriskDirective, MatInput, FormsModule, MatDialogActions, MatButton, TranslatePipe]
 })
 export class ImportPlanBlueprintDialogComponent {
    
@@ -22,7 +32,7 @@ export class ImportPlanBlueprintDialogComponent {
 
 
 	selectXML(event: File) {
-		let file = event;
+		const file = event;
 		if (!file) return;//no select closed with cancel . no file selected
 		const size: number = file.size;  // Get file size.
 		this.sizeError = size > this.maxFileSize;  // Checks if file size is valid.

@@ -5,7 +5,7 @@
         @if(!field().label){
           @switch(field().category){
             @case(planBlueprintSectionFieldCategoryEnum.System){
-              {{fieldPath()}}. {{enumUtils.toPlanBlueprintSystemFieldTypeString(field().systemFieldType)}}
+              {{fieldPath()}}. {{enumUtils.toSystemFieldTypeString(field().systemFieldType)}}
             }
             @case(planBlueprintSectionFieldCategoryEnum.ReferenceType){
               {{fieldPath()}}. {{referenceType()?.name}}
@@ -15,13 +15,13 @@
           {{fieldPath()}}. {{field().label}}
         }
         @if (field().required) {
-          <span>*</span>
+          <span style="color: var(--mat-sys-error)">*</span>
         }
       </label>
     </div>
     <div class="col-auto link-icon" style="margin-top: 1rem;">
       @if (!isNew()) {
-        <button mat-icon-button type="button" matTooltip="{{ 'PLAN-EDITOR.ACTIONS.COPY-LINK' | translate }}" (click)="copyLink(field()?.id)">
+        <button mat-icon-button type="button" matTooltip="{{ 'PLAN-EDITOR.ACTIONS.COPY-LINK' | translate }}" (click)="copyLink($safeNavigationMigration(field()?.id))">
           <mat-icon>link</mat-icon>
         </button>
       }
@@ -30,12 +30,21 @@
       <div class="ml-auto col-auto" style="margin-top: 1rem;">
         <button mat-icon-button class="col-auto annotation-icon" (click)="showAnnotations.emit(field().id)" matTooltip="{{ 'PLAN-EDITOR.ACTIONS.ANNOTATIONS' | translate }}" [attr.aria-label]="'PLAN-EDITOR.ACTIONS.ANNOTATIONS' | translate">
           <mat-icon
-            [matBadge]="annotationsPerAnchor()?.get(field().id)"
-            [matBadgeHidden]="annotationsPerAnchor()?.get(field().id) <= 0"
+            class="material-symbols-outlined"
+            [matBadge]="$safeNavigationMigration(annotationsPerAnchor()?.get(field().id))"
+            [matBadgeHidden]="$safeNavigationMigration(annotationsPerAnchor()?.get(field().id)) <= 0"
             [attr.aria-label]="(annotationsPerAnchor()?.get(field().id) ?? 0) + ' ' + ('ANNOTATION-DIALOG.TITLE' | translate)"
             [attr.aria-hidden]="false"
-          >comment</mat-icon>
+          >chat_bubble</mat-icon>
         </button>
+      </div>
+    }
+    @if (fieldChange()) {
+      <div class="col-auto" style="margin-top: 1rem;">
+        <app-field-change-badge
+          [fieldChange]="fieldChange()"
+          [readFormValue]="readFieldValue"
+          [writeFormValue]="writeFieldValue"/>
       </div>
     }
   </div>
@@ -43,16 +52,16 @@
     <div class="hint" [innerHTML]="field().description"></div>
   }
   <div class="input-form">
-    @switch(field()?.category){
+    @switch($safeNavigationMigration(field()?.category)){
       @case(planBlueprintSectionFieldCategoryEnum.System){
         @switch(field().systemFieldType){
           @case(planBlueprintSystemFieldTypeEnum.Title){
             <mat-form-field class="w-100">
               <input
                 [id]="fieldPath()" matInput
-                placeholder="{{field().placeholder && field().placeholder != '' ? field().placeholder : field().label && field().label != '' ? field().label : 'PLAN-EDITOR.FIELDS.TITLE' | translate}}"
+                placeholder="{{field().placeholder && field().placeholder !== '' ? field().placeholder : field().label && field().label !== '' ? field().label : 'PLAN-EDITOR.FIELDS.TITLE' | translate}}"
                 type="text" name="label"
-                [formControl]="formGroup()?.get('label')" required
+                [formControl]="$safeNavigationMigration(formGroup()?.get('label'))" required
                 >
                 @if (formGroup()?.get('label')?.hasError('backendError')) {
                   <mat-error>
@@ -65,7 +74,7 @@
               </mat-form-field>
             }
             @case(planBlueprintSystemFieldTypeEnum.Description){
-              <rich-text-editor-component [id]="fieldPath()" [form]="formGroup()?.get('description')" [placeholder]="field().placeholder && field().placeholder != '' ? field().placeholder : 'PLAN-EDITOR.PLACEHOLDER.DESCRIPTION'" [required]="field().required">
+              <rich-text-editor-component [id]="fieldPath()" [form]="$safeNavigationMigration(formGroup()?.get('description'))" [placeholder]="field().placeholder && field().placeholder !== '' ? field().placeholder : 'PLAN-EDITOR.PLACEHOLDER.DESCRIPTION'" [required]="field().required">
               </rich-text-editor-component>
               @if (formGroup()?.get('description')?.touched && formGroup()?.get('description')?.hasError('required')) {
                 <mat-error class="mat-mdc-form-field-subscript-wrapper">{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
@@ -73,7 +82,7 @@
             }
             @case(planBlueprintSystemFieldTypeEnum.Language){
               <mat-form-field class="w-100">
-                <mat-select [id]="fieldPath()" [formControl]="formGroup()?.get('language')" placeholder="{{field().placeholder && field().placeholder != '' ? field().placeholder : 'PLAN-EDITOR.FIELDS.LANGUAGE' | translate}}" required>
+                <mat-select [id]="fieldPath()" [formControl]="$safeNavigationMigration(formGroup()?.get('language'))" placeholder="{{field().placeholder && field().placeholder !== '' ? field().placeholder : 'PLAN-EDITOR.FIELDS.LANGUAGE' | translate}}" required>
                   @for (lang of getLanguageInfos(); track lang) {
                     <mat-option [value]="lang.code">
                       {{ lang.name }}
@@ -96,7 +105,7 @@
                   @for (contact of formGroup()?.get('properties').get('contacts')?.controls; track contact; let contactIndex = $index) {
                     <li
                       cdkDrag
-                      class="d-flex gap-quarter-rem align-items-center pb-1 pr-2"
+                      class="contact-row d-flex flex-wrap gap-half-rem align-items-center pb-1 pr-2"
                       [cdkDragDisabled]="formGroup()?.disabled || !canEdit()"
                       >
                       <button
@@ -108,10 +117,10 @@
                         mat-icon-button aria-labelledby="operation"
                         [class.reorder-mode]="reorderMode"
                         >
-                        <mat-icon aria-hidden>drag_indicator</mat-icon>
+                        <mat-icon aria-hidden="true">drag_indicator</mat-icon>
                       </button>
                       <span class="mb-3 title-size-md">{{contactIndex + 1}}</span>
-                      <mat-form-field class="w-100">
+                      <mat-form-field >
                         <mat-label>{{'PLAN-EDITOR.FIELDS.FIRST-NAME' | translate}}</mat-label>
                         <input id="{{fieldPath()}}{{contactIndex > 0 ? '.' + contactIndex : ''}}" matInput type="text" name="firstName" [formControl]="contact.get('firstName')" required>
                         @if (contact.get('firstName').hasError('backendError')) {
@@ -121,7 +130,7 @@
                           <mat-error>{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
                         }
                       </mat-form-field>
-                      <mat-form-field class="w-100">
+                      <mat-form-field >
                         <mat-label>{{'PLAN-EDITOR.FIELDS.LAST-NAME' | translate}}</mat-label>
                         <input matInput type="text" name="lastName" [formControl]="contact.get('lastName')" required>
                         @if (contact.get('lastName').hasError('backendError')) {
@@ -131,7 +140,7 @@
                           <mat-error>{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
                         }
                       </mat-form-field>
-                      <mat-form-field class="w-100">
+                      <mat-form-field >
                         <mat-label>{{'PLAN-EDITOR.FIELDS.EMAIL' | translate}}</mat-label>
                         <input matInput type="text" name="email" [formControl]="contact.get('email')" required>
                         @if (contact.get('email').hasError('backendError')) {
@@ -146,19 +155,19 @@
                       </mat-form-field>
                       @if(canEdit()){
                         <button mat-icon-button class="action-list-icon mb-3" matTooltip="{{'PLAN-EDITOR.ACTIONS.SEARCH-CONTACT' | translate}}" (click)="searchContact(contactIndex, field)" [disabled]="fieldFormControl?.disabled || !canEdit()" [attr.aria-label]="'PLAN-EDITOR.ACTIONS.SEARCH-CONTACT' | translate">
-                          <mat-icon aria-hidden>search</mat-icon>
+                          <mat-icon aria-hidden="true">search</mat-icon>
                         </button>
                       }
                       @if(canEdit()){
                         <button mat-icon-button class="action-list-icon mb-3" matTooltip="{{'PLAN-EDITOR.ACTIONS.REMOVE-CONTACT' | translate}}" (click)="removeContact(contactIndex)" [disabled]="fieldFormControl?.disabled || !canEdit()" [attr.aria-label]="'PLAN-EDITOR.ACTIONS.REMOVE-CONTACT' | translate">
-                          <mat-icon aria-hidden>delete</mat-icon>
+                          <mat-icon aria-hidden="true">delete</mat-icon>
                         </button>
                       }
                     </li>
                   }
                 </ul>
                 <button mat-icon-button (click)="addContact()" [disabled]="formGroup()?.disabled || !canEdit()" matTooltip="{{'PLAN-EDITOR.ACTIONS.ADD-CONTACT' | translate}}" [attr.aria-label]="'PLAN-EDITOR.ACTIONS.ADD-CONTACT' | translate">
-                  <mat-icon aria-hidden>add</mat-icon>
+                  <mat-icon aria-hidden="true">add</mat-icon>
                 </button>
                 @if (formGroup()?.get('properties').get('contacts')?.hasError('backendError')) {
                   <mat-error>{{formGroup()?.get('properties').get('contacts').getError('backendError').message}}</mat-error>
@@ -170,7 +179,7 @@
             }
             @case(planBlueprintSystemFieldTypeEnum.AccessRights){
               <mat-form-field class="w-100">
-                <mat-select [id]="fieldPath()" [formControl]="formGroup()?.get('accessType')" placeholder="{{ field().placeholder && field().placeholder != '' ? field().placeholder : 'PLAN-EDITOR.FIELDS.ACCESS-TYPE' | translate}}" [required]="field().required">
+                <mat-select [id]="fieldPath()" [formControl]="$safeNavigationMigration(formGroup()?.get('accessType'))" placeholder="{{ field().placeholder && field().placeholder !== '' ? field().placeholder : 'PLAN-EDITOR.FIELDS.ACCESS-TYPE' | translate}}" [required]="field().required">
                   @for (planAccessType of planAccessTypeEnumValues; track planAccessType) {
                     <mat-option [value]="planAccessType">
                       {{enumUtils.toPlanAccessTypeString(planAccessType)}}
@@ -186,17 +195,18 @@
               </mat-form-field>
             }
             @case(planBlueprintSystemFieldTypeEnum.User){
-              <app-plan-user-field-component [form]="formGroup()?.get('users')" [validationErrorModel]="editorModel()?.validationErrorModel" [sections]="sections()" [viewOnly]="formGroup()?.get('accessType')?.disabled || !canEdit()" [isActivePlan]="isActivePlan" [required]="required"></app-plan-user-field-component>
+              <app-plan-user-field-component [form]="$safeNavigationMigration(formGroup()?.get('users'))" [validationErrorModel]="$safeNavigationMigration(editorModel()?.validationErrorModel)" [sections]="sections()" [viewOnly]="formGroup()?.get('accessType')?.disabled || !canEdit()" [isActivePlan]="isActivePlan" [required]="required"></app-plan-user-field-component>
             }
           }
         }
         @case(planBlueprintSectionFieldCategoryEnum.ReferenceType){
           <app-reference-field-component
             [id]="fieldPath()"
-            [form]="field().multipleSelect ? planBlueprintValueControl?.get('references') : planBlueprintValueControl?.get('reference')"
+            [form]="field().multipleSelect ? $safeNavigationMigration(planBlueprintValueControl?.get('references')) : $safeNavigationMigration(planBlueprintValueControl?.get('reference'))"
             [dependencies]="dependencies()"
             [label]="field().label"
-            [placeholder]="field().placeholder && field().placeholder != '' ? field().placeholder : field().label"
+            [hideLabel]="true"
+            [placeholder]="field().placeholder && field().placeholder !== '' ? field().placeholder : field().label"
             [referenceType]="referenceType()"
             [multiple]="field().multipleSelect"
             [required]="field().required"
@@ -207,7 +217,7 @@
             @case(planBlueprintExtraFieldDataTypeEnum.Text){
               <mat-form-field class="w-100">
                 <mat-label>{{field().label}}</mat-label>
-                <input [id]="fieldPath()" matInput placeholder="{{field().placeholder && field().placeholder != '' ? field().placeholder : field().label}}" type="text" name="value" [formControl]="planBlueprintValueControl?.get('fieldValue')" [required]="field().required">
+                <input [id]="fieldPath()" matInput placeholder="{{field().placeholder && field().placeholder !== '' ? field().placeholder : field().label}}" type="text" name="value" [formControl]="$safeNavigationMigration(planBlueprintValueControl?.get('fieldValue'))" [required]="field().required">
                 @if (planBlueprintValueControl?.get('fieldValue')?.hasError('backendError')) {
                   <mat-error>{{planBlueprintValueControl?.get('fieldValue')?.getError('backendError').message}}</mat-error>
                 }
@@ -217,7 +227,7 @@
               </mat-form-field>
             }
             @case(planBlueprintExtraFieldDataTypeEnum.RichText){
-              <rich-text-editor-component [form]="planBlueprintValueControl?.get('fieldValue')" placeholder="{{field().placeholder && field().placeholder != '' ? field().placeholder : field().label}}" [required]="field().required"></rich-text-editor-component>
+              <rich-text-editor-component [form]="$safeNavigationMigration(planBlueprintValueControl?.get('fieldValue'))" placeholder="{{field().placeholder && field().placeholder !== '' ? field().placeholder : field().label}}" [required]="field().required"></rich-text-editor-component>
             }
             @case(planBlueprintExtraFieldDataTypeEnum.Date){
               <mat-form-field class="w-100">
@@ -225,9 +235,9 @@
                 <input
                   [id]="fieldPath()"
                   matInput
-                  placeholder="{{field().placeholder && field().placeholder != '' ? field().placeholder : field().label}}"
+                  placeholder="{{field().placeholder && field().placeholder !== '' ? field().placeholder : field().label}}"
                   name="value"
-                  [formControl]="planBlueprintValueControl?.get('dateValue')"
+                  [formControl]="$safeNavigationMigration(planBlueprintValueControl?.get('dateValue'))"
                   [matDatepicker]="date"
                   [required]="field().required"
                   >
@@ -247,10 +257,10 @@
                   <input
                     [id]="fieldPath()"
                     matInput
-                    placeholder="{{field().placeholder && field().placeholder != '' ? field().placeholder : field().label}}"
+                    placeholder="{{field().placeholder && field().placeholder !== '' ? field().placeholder : field().label}}"
                     type="number"
                     name="value"
-                    [formControl]="planBlueprintValueControl?.get('numberValue')"
+                    [formControl]="$safeNavigationMigration(planBlueprintValueControl?.get('numberValue'))"
                     [required]="field().required"
                     >
                     @if (planBlueprintValueControl?.get('numberValue')?.hasError('backendError')) {

@@ -1,0 +1,82 @@
+<h2 mat-dialog-title class="mt-title">{{ (mode === 'elsewhere' ? 'PLAN-BLUEPRINT-EDITOR.TRANSFER.COPY-TITLE' : (isSection ? 'PLAN-BLUEPRINT-EDITOR.MOVE.TITLE-SECTION' : 'PLAN-BLUEPRINT-EDITOR.MOVE.TITLE-QUESTION')) | translate: { name: data.entry.numbering + ' ' + (data.entry.label || ('PLAN-BLUEPRINT-EDITOR.UNTITLED-QUESTION' | translate)) } }}</h2>
+<mat-dialog-content>
+	<mat-button-toggle-group class="mt-modes" [value]="mode" (change)="setMode($event.value)" [attr.aria-label]="'PLAN-BLUEPRINT-EDITOR.MOVE.DESTINATION' | translate">
+		<mat-button-toggle value="here">{{(data.hereKey || 'PLAN-BLUEPRINT-EDITOR.TRANSFER.HERE') | translate}}</mat-button-toggle>
+		<mat-button-toggle value="elsewhere">{{'PLAN-BLUEPRINT-EDITOR.TRANSFER.ELSEWHERE' | translate}}</mat-button-toggle>
+	</mat-button-toggle-group>
+
+	@if (mode === 'here') {
+		<p class="mt-intro">{{'PLAN-BLUEPRINT-EDITOR.MOVE.INTRO' | translate}}</p>
+		<div class="mt-list" role="radiogroup" [attr.aria-label]="'PLAN-BLUEPRINT-EDITOR.MOVE.DESTINATION' | translate">
+			@for (row of rows; track key(row)) {
+				<button type="button" class="mt-row" role="radio" [attr.aria-checked]="selected === key(row)" [class.mt-row--on]="selected === key(row)" [class.mt-row--off]="!canPick(row)"
+					[disabled]="!canPick(row)" (click)="pick(row)" [style.padding-left.px]="12 + row.depth * 20">
+					<mat-icon aria-hidden="true">{{ selected === key(row) ? 'radio_button_checked' : 'radio_button_unchecked' }}</mat-icon>
+					@if (row.entry) { <span class="mt-num">{{row.entry.numbering}}</span><span class="mt-label">{{ row.entry.label || ('PLAN-BLUEPRINT-EDITOR.UNTITLED-SECTION' | translate) }}</span> }
+					@else { <span class="mt-label">{{'PLAN-BLUEPRINT-EDITOR.MOVE.TOP-LEVEL' | translate}}</span> }
+					@if (row.here) { <span class="bp2-sub mt-why">{{'PLAN-BLUEPRINT-EDITOR.MOVE.HERE-NOW' | translate}}</span> }
+					@else if (row.reason) { <span class="bp2-sub mt-why">{{row.reason}}</span> }
+				</button>
+			}
+		</div>
+		<p class="bp2-help">{{'PLAN-BLUEPRINT-EDITOR.MOVE.AT-END' | translate}}</p>
+	} @else {
+		<p class="mt-intro">{{'PLAN-BLUEPRINT-EDITOR.TRANSFER.PUSH-INTRO' | translate}}</p>
+		@if (!destination) {
+			<mat-form-field class="mt-search" subscriptSizing="dynamic">
+				<mat-label>{{'PLAN-BLUEPRINT-EDITOR.MOVE.DESTINATION' | translate}}</mat-label>
+				<mat-icon matPrefix aria-hidden="true">search</mat-icon>
+				<input matInput type="text" [formControl]="search" [placeholder]="'PLAN-BLUEPRINT-EDITOR.TRANSFER.SEARCH' | translate">
+				<mat-hint>{{'PLAN-BLUEPRINT-EDITOR.TRANSFER.ONLY-DRAFTS' | translate}}</mat-hint>
+			</mat-form-field>
+			<div class="mt-list">
+				@if (destinations === null) { <p class="bp2-help">{{'PLAN-BLUEPRINT-EDITOR.VERSIONS.LOADING' | translate}}</p> }
+				@for (d of destinations; track d.kind + d.id) {
+					<button type="button" class="mt-row" (click)="pickDestination(d)">
+						<mat-icon aria-hidden="true">{{ d.kind === 'template' ? 'inventory_2' : 'description' }}</mat-icon>
+						<span class="mt-label">{{d.label}}</span>
+						<span class="bp2-sub mt-why">{{ (d.kind === 'template' ? 'PLAN-BLUEPRINT-EDITOR.TRANSFER.KIND-TEMPLATE' : 'PLAN-BLUEPRINT-EDITOR.TRANSFER.KIND-BLUEPRINT') | translate }} · {{'PLAN-BLUEPRINT-EDITOR.TRANSFER.DRAFT-V' | translate: { version: d.version } }}</span>
+					</button>
+				} @empty {
+					@if (destinations !== null) { <p class="bp2-help">{{'PLAN-BLUEPRINT-EDITOR.TRANSFER.NO-DRAFTS' | translate}}</p> }
+				}
+			</div>
+		} @else {
+			<div class="mt-dest">
+				<button mat-button type="button" class="bp2-btn-sm" (click)="otherDestination()"><mat-icon aria-hidden="true">arrow_back</mat-icon>{{'PLAN-BLUEPRINT-EDITOR.TRANSFER.OTHER-DESTINATION' | translate}}</button>
+				<strong>{{destination.label}}</strong><span class="bp2-sub">{{'PLAN-BLUEPRINT-EDITOR.TRANSFER.DRAFT-V' | translate: { version: destination.version } }}</span>
+			</div>
+			<div class="bp2-caption">{{'PLAN-BLUEPRINT-EDITOR.TRANSFER.PLACE' | translate}}</div>
+			<div class="mt-list" role="radiogroup" [attr.aria-label]="'PLAN-BLUEPRINT-EDITOR.TRANSFER.PLACE' | translate">
+				@if (places === null) { <p class="bp2-help">{{'PLAN-BLUEPRINT-EDITOR.VERSIONS.LOADING' | translate}}</p> }
+				@for (p of places; track p.id) {
+					<button type="button" class="mt-row" role="radio" [attr.aria-checked]="place === p.id" [class.mt-row--on]="place === p.id" [class.mt-row--off]="!!p.reason" [disabled]="!!p.reason" (click)="pickPlace(p)" [style.padding-left.px]="12 + p.depth * 20">
+						<mat-icon aria-hidden="true">{{ place === p.id ? 'radio_button_checked' : 'radio_button_unchecked' }}</mat-icon>
+						<span class="mt-label">{{ p.id === 'top' ? ('PLAN-BLUEPRINT-EDITOR.TRANSFER.AT-THE-END' | translate) : (isSection ? ('PLAN-BLUEPRINT-EDITOR.TRANSFER.AFTER' | translate: { name: p.label }) : p.label) }}</span>
+						@if (p.reason) { <span class="bp2-sub mt-why">{{p.reason}}</span> }
+					</button>
+				} @empty {
+					@if (places !== null) { <p class="bp2-help">{{ (isSection ? 'PLAN-BLUEPRINT-EDITOR.TRANSFER.EMPTY-SOURCE' : 'PLAN-BLUEPRINT-EDITOR.TRANSFER.NO-PLACE') | translate }}</p> }
+				}
+			</div>
+			@if (droppedRules.length) {
+				<div class="bp2-strip bp2-strip--warn"><mat-icon aria-hidden="true">alt_route</mat-icon>
+					<span>{{'PLAN-BLUEPRINT-EDITOR.TRANSFER.RULES-DROPPED' | bp2Count: droppedRules.length }}
+						@for (r of droppedRules; track $index) { <span class="mt-rule">“{{r.from}}” → {{r.to}}</span> }
+					</span>
+				</div>
+			}
+			<p class="bp2-help">{{'PLAN-BLUEPRINT-EDITOR.TRANSFER.KEEPS' | translate}}</p>
+		}
+	}
+</mat-dialog-content>
+<div class="mt-actions">
+	<button mat-button type="button" (click)="dialogRef.close(null)">{{'GENERAL.CONFIRMATION-DIALOG.ACTIONS.CANCEL' | translate}}</button>
+	<span class="mt-spacer"></span>
+	@if (mode === 'here') {
+		<button mat-stroked-button type="button" [disabled]="!selected" (click)="confirm(true)">{{'PLAN-BLUEPRINT-EDITOR.MOVE.COPY-THERE' | translate}}</button>
+		<button mat-flat-button color="primary" type="button" [disabled]="!selected" (click)="confirm(false)">{{'PLAN-BLUEPRINT-EDITOR.MOVE.MOVE-THERE' | translate}}</button>
+	} @else {
+		<button mat-flat-button color="primary" type="button" [disabled]="!destination || !place" (click)="copyThere()">{{ (data.unsavedChanges ? 'PLAN-BLUEPRINT-EDITOR.TRANSFER.SAVE-COPY-AND-OPEN' : 'PLAN-BLUEPRINT-EDITOR.TRANSFER.COPY-AND-OPEN') | translate}}</button>
+	}
+</div>

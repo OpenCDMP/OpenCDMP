@@ -3,11 +3,11 @@
     @if (!isDialog) {
       <div class="row">
         <div class="col-md-12">
-          <div class="title">{{ 'CONTACT.SUPPORT.TITLE' | translate}}</div>
+          <h1 class="title">{{ 'CONTACT.SUPPORT.TITLE' | translate}}</h1>
         </div>
       </div>
     }
-    <div [ngClass]="{'contact-container': !isDialog}" class="row">
+    <div [class.contact-container]="!isDialog" class="row">
       <div class="col-md-12">
         <mat-form-field class="mat-form-field">
           <input matInput placeholder="{{'CONTACT.SUPPORT.SUBJECT' | translate}}" type="text" name="subject" formControlName="subject" required>

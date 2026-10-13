@@ -1,8 +1,7 @@
-import { Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges } from '@angular/core';
+import { Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges, ChangeDetectionStrategy } from '@angular/core';
 import { FormControl, FormGroup } from '@angular/forms';
 import { IsActive } from '@app/core/common/enum/is-active.enum';
 import { LanguageFilter } from '@app/core/query/language.lookup';
-import { TenantLookup } from '@app/core/query/tenant.lookup';
 import { AuthService } from '@app/core/services/auth/auth.service';
 import { EnumUtils } from '@app/core/services/utilities/enum-utils.service';
 import { BaseComponent } from '@common/base/base.component';
@@ -12,7 +11,7 @@ import { nameof } from 'ts-simple-nameof';
     selector: 'app-language-listing-filters',
     templateUrl: './language-listing-filters.component.html',
     styleUrls: ['./language-listing-filters.component.scss'],
-    standalone: false
+    changeDetection: ChangeDetectionStrategy.Eager
 })
 export class LanguageListingFiltersComponent extends BaseComponent implements OnInit, OnChanges {
 
@@ -22,13 +21,12 @@ export class LanguageListingFiltersComponent extends BaseComponent implements On
 
 	// * State
 	internalFilters: FormGroup<LanguageListingFilters> = new FormGroup({
-        isActive: new FormControl(true),
+        showDeleted: new FormControl<boolean>(false, { nonNullable: true }),
         like: new FormControl(null),
-        viewOnlyTenant: new FormControl(false)
     })
 
     get formIsDirty(){
-        return this.internalFilters.controls.isActive.dirty || this.internalFilters.controls.viewOnlyTenant.dirty;
+        return this.internalFilters.controls.showDeleted.dirty;
     }
     
 	protected appliedFilterCount: number = 0;
@@ -59,18 +57,11 @@ export class LanguageListingFiltersComponent extends BaseComponent implements On
 	}
 
 	protected applyFilters(): void {
-		const { isActive, like, viewOnlyTenant } = this.internalFilters.value ?? {}
-		let tenantSubQuery = null;
-		if (viewOnlyTenant && this.authService.getSelectedTenantId()) {
-			tenantSubQuery = new TenantLookup();
-			tenantSubQuery.ids = [this.authService.getSelectedTenantId()];
-		}
+		const { showDeleted, like } = this.internalFilters.value ?? {}
 		this.filterChange.emit({
+			// search, deleted state and tenant scope live in the listing toolbar and arrive through `filter`
 			...this.filter,
 			like,
-			isActive: isActive ? [IsActive.Active] : [IsActive.Inactive],
-			viewOnlyTenant: viewOnlyTenant,
-			tenantSubQuery: tenantSubQuery
 		})
         this.internalFilters.markAsPristine();
 	}
@@ -78,37 +69,29 @@ export class LanguageListingFiltersComponent extends BaseComponent implements On
 
 	private _parseToInternalFilters(inputFilter: LanguageFilter) {
 		if (!inputFilter) {
-			this._getEmptyFilters();
+			return this._getEmptyFilters();
 		}
 
-		let {  isActive, like, viewOnlyTenant } = inputFilter;
+		const {  isActive, like } = inputFilter;
 
 		this.internalFilters.setValue({
-			isActive: (isActive ?? [])?.includes(IsActive.Active) || !isActive?.length,
+			showDeleted: (isActive ?? []).includes(IsActive.Inactive),
 			like: like ?? null,
-			viewOnlyTenant: viewOnlyTenant ?? null,
 		});
 
 	}
 
 	private _getEmptyFilters() {
 		this.internalFilters.setValue({
-			isActive: true,
+			showDeleted: false,
 			like: null,
-			viewOnlyTenant: false
 		});
 	}
 
 	private _computeAppliedFilters(form: FormGroup<LanguageListingFilters>): number {
 		let count = 0;
         const filters = form.value;
-		if (!filters?.isActive) {
-			count++
-		}
 		if (filters?.like) {
-			count++;
-		}
-		if (filters?.viewOnlyTenant) {
 			count++;
 		}
 
@@ -117,13 +100,11 @@ export class LanguageListingFiltersComponent extends BaseComponent implements On
 
 	clearFilters() {
 		this._getEmptyFilters();
-        this.internalFilters.controls.isActive.markAsDirty();
-        this.internalFilters.controls.viewOnlyTenant.markAsDirty();
+        this.internalFilters.controls.showDeleted.markAsDirty();
 	}
 }
 
 interface LanguageListingFilters {
-	isActive: FormControl<boolean>;
+	showDeleted: FormControl<boolean>;
 	like: FormControl<string>;
-	viewOnlyTenant: FormControl<boolean>;
 }

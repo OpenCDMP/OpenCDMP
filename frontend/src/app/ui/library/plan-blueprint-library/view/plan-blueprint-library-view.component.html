@@ -1,0 +1,13 @@
+<div class="main-content plan-blueprint-library-view">
+    <button mat-button color="secondary" class="back-btn" (click)="back()">
+        <mat-icon aria-hidden="true">arrow_back</mat-icon>
+        {{'PLAN-OVERVIEW.ACTIONS.BACK' | translate}}
+    </button>
+
+    @if (groupId) {
+        <app-plan-blueprints-preview-component
+            [readOnly]="true"
+            [selectedBlueprintId]="groupId"
+        ></app-plan-blueprints-preview-component>
+    }
+</div>

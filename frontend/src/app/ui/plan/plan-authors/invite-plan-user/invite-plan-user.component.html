@@ -1,0 +1,83 @@
+<div class="invite">
+    <mat-button-toggle-group hideSingleSelectionIndicator class="button-toggle horizontal-toggle-group w-100" [formControl]="inviteFormGroup.get('userType')" (change)="userTypeChange($event)" >
+    @for(userType of planUserTypeEnumValues; track userType){
+        <mat-button-toggle [value]="userType">
+            <mat-icon aria-hidden="true">{{userType == planUserTypeEnum.Internal ? 'person_add' : 'mail'}}</mat-icon>
+            {{enumUtils.toPlanUserTypeString(userType)}}
+        </mat-button-toggle>
+    }
+    </mat-button-toggle-group>
+    @if(inviteFormGroup.get('userType').value == planUserTypeEnum.Internal){
+        <mat-form-field class="w-100" subscriptSizing="dynamic">
+            <mat-label>{{'PLAN-EDITOR.FIELDS.USER' | translate}}</mat-label>
+            <app-single-auto-complete [formControl]="inviteFormGroup.get('user')" [configuration]="userService.singleAutoCompletePlanAssociatedUserConfiguration"></app-single-auto-complete>
+            @if (inviteFormGroup.get('user').hasError('backendError')) {
+                <mat-error>{{inviteFormGroup.get('user').getError('backendError').message}}</mat-error>
+            }
+            @if (inviteFormGroup.get('user').hasError('required')) {
+                <mat-error>{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
+            }
+        </mat-form-field>
+    }
+    @if(inviteFormGroup.get('userType').value == planUserTypeEnum.External){
+        <mat-form-field class="w-100" subscriptSizing="dynamic">
+        <mat-label>{{'PLAN-EDITOR.FIELDS.EMAIL' | translate}}</mat-label>
+        <input matInput type="email" name="email" autocomplete="email" inputmode="email" [formControl]="inviteFormGroup.get('email')">
+        @if (inviteFormGroup.get('email').hasError('backendError')) {
+            <mat-error>{{inviteFormGroup.get('email').getError('backendError').message}}</mat-error>
+        }
+        @if (inviteFormGroup.get('email').hasError('required')) {
+            <mat-error>{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
+        }
+    </mat-form-field>
+    }
+    <mat-form-field class="w-100" subscriptSizing="dynamic">
+        <mat-label>{{'PLAN-EDITOR.FIELDS.USER-ROLE' | translate}}</mat-label>
+        <mat-select [formControl]="inviteFormGroup.get('role')">
+            @for (userRole of planUserRoleEnumValues; track userRole) {
+                <mat-option [value]="userRole">{{enumUtils.toPlanUserRoleString(userRole)}}</mat-option>
+            }
+        </mat-select>
+        @if (inviteFormGroup.get('role').hasError('backendError')) {
+            <mat-error>{{inviteFormGroup.get('role').getError('backendError').message}}</mat-error>
+        }
+        @if (inviteFormGroup.get('role').hasError('required')) {
+            <mat-error>{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
+        }
+    </mat-form-field>
+    @if(sections() && inviteFormGroup.get('role').value != planUserRoleEnum.Viewer && inviteFormGroup.get('role').value != planUserRoleEnum.Owner){
+        <mat-form-field class="w-100" subscriptSizing="dynamic">
+            <mat-label>{{'PLAN-EDITOR.FIELDS.SECTIONS' | translate}}</mat-label>
+            @if (inviteFormGroup.get('role').value != planUserRoleEnum.DescriptionContributor && inviteFormGroup.get('role').value != planUserRoleEnum.DataSteward && sections()) {
+                <mat-select [formControl]="inviteFormGroup.get('sectionId')">
+                <mat-option value="">{{'PLAN-EDITOR.FIELDS.ALL-SECTIONS' | translate}}</mat-option>
+                @for (section of sections(); track section) {
+                    <mat-option [value]="section.id">
+                    {{ section.title }}
+                    </mat-option>
+                }
+                </mat-select>
+            }
+            @if ((inviteFormGroup.get('role').value === planUserRoleEnum.DescriptionContributor || inviteFormGroup.get('role').value === planUserRoleEnum.DataSteward) && templateSections()) {
+                <mat-select [formControl]="inviteFormGroup.get('sectionId')">
+                <mat-option value="">{{'PLAN-EDITOR.FIELDS.ALL-SECTIONS' | translate}}</mat-option>
+                @for (section of templateSections(); track section) {
+                    <mat-option [value]="section.id">
+                    {{ section.title }}
+                    </mat-option>
+                }
+                </mat-select>
+            }
+            @if (inviteFormGroup.get('sectionId').hasError('backendError')) {
+                <mat-error>{{inviteFormGroup.get('sectionId').getError('backendError').message}}</mat-error>
+            }
+            @if (inviteFormGroup.get('sectionId').hasError('required')) {
+                <mat-error>{{'GENERAL.VALIDATION.REQUIRED' |translate}}</mat-error>
+            }
+        </mat-form-field>
+    }
+    <div class="d-flex gap-half-rem">
+        <button class="flex-1 cancel-btn" mat-stroked-button (click)="inviteFormGroup.reset(); onClose.emit()">{{'COMMONS.ACTIONS.CANCEL' | translate}}</button>
+        <button class="flex-1" mat-flat-button [disabled]="!inviteFormGroup.valid" (click)="sendInvite()">{{'PLAN-AUTHORS-EDITOR.SEND-INVITE' | translate}}</button>
+    </div>
+</div>

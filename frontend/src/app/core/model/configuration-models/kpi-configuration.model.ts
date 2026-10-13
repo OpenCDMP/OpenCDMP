@@ -1,4 +1,3 @@
-import { V } from "@angular/cdk/keycodes";
 
 export class KpiConfiguration {
 
@@ -25,7 +24,7 @@ export class KpiConfiguration {
     const kpiDashboardObj: KpiConfiguration = new KpiConfiguration();
 
     kpiDashboardObj.dashboards = [];
-    for (let dashboardValue of value.dashboards) {
+    for (const dashboardValue of value.dashboards) {
       const dashboardObj: KpiDashboard = KpiDashboard.parseValue(dashboardValue);
       kpiDashboardObj.dashboards.push(dashboardObj);
     }
@@ -64,7 +63,7 @@ export class KpiDashboard {
 
     set availableToRoles(availableToRoles: string[]) {
       this._availableToRoles = availableToRoles;
-    }    
+    }
 
   public static parseValue(value: any): KpiDashboard {
     const obj: KpiDashboard = new KpiDashboard();

@@ -1,5 +1,5 @@
 import { HttpErrorResponse } from "@angular/common/http";
-import { Component, OnInit } from "@angular/core";
+import { Component, OnInit, ChangeDetectionStrategy } from "@angular/core";
 import { MatDialog } from "@angular/material/dialog";
 import { ActivatedRoute, Router } from "@angular/router";
 import { SnackBarNotificationLevel, UiNotificationService } from '@app/core/services/notification/ui-notification-service';
@@ -8,15 +8,17 @@ import { UserService } from "@app/core/services/user/user.service";
 import { BaseComponent } from '@common/base/base.component';
 import { HttpError, HttpErrorHandlingService } from "@common/modules/errors/error-handling/http-error-handling.service";
 import { Guid } from "@common/types/guid";
-import { TranslateService } from '@ngx-translate/core';
+import { TranslateService, TranslatePipe } from '@ngx-translate/core';
 import { takeUntil } from "rxjs/operators";
 import { MergeEmailLoaderDialogComponent } from "./merge-email-loader-dialog/merge-email-loader-dialog.component";
+import { MatButton } from "@angular/material/button";
 
 @Component({
     selector: 'app-email-confirmation-component',
     templateUrl: './merge-email-confirmation.component.html',
     styleUrls: ['./merge-email-confirmation.component.scss'],
-    standalone: false
+    changeDetection: ChangeDetectionStrategy.Eager,
+    imports: [MatButton, TranslatePipe]
 })
 export class MergeEmailConfirmation extends BaseComponent implements OnInit {
 
@@ -60,7 +62,7 @@ export class MergeEmailConfirmation extends BaseComponent implements OnInit {
 	onConfirm(): void {
 		if (this.showForm === false) return;
 
-		let confirmMergeAccountObservable = this.userService.confirmMergeAccount(this.token);
+		const confirmMergeAccountObservable = this.userService.confirmMergeAccount(this.token);
 
 		const dialogRef = this.dialog.open(MergeEmailLoaderDialogComponent, {
 			maxWidth: '600px', 

@@ -159,7 +159,10 @@ public class DescriptionWorkflowController {
         if (this.tenantScopeFactory.getInstance().isDefaultTenant()) query.tenantIsSet(false);
         else query.tenantIsSet(true).tenantIds(this.tenantScopeFactory.getInstance().getTenant());
 
-        DescriptionWorkflow model = this.builderFactory.builder(DescriptionWorkflowBuilder.class).build(fieldSet, query.firstAs(fieldSet));
+        // Without its own workflow a tenant follows the default tenant's, as DescriptionWorkflowService.getActiveWorkFlowDefinition does.
+        DescriptionWorkflowEntity entity = query.firstAs(fieldSet);
+        if (entity == null && !this.tenantScopeFactory.getInstance().isDefaultTenant()) entity = query.clearTenantIds().tenantIsSet(false).firstAs(fieldSet);
+        DescriptionWorkflow model = this.builderFactory.builder(DescriptionWorkflowBuilder.class).build(fieldSet, entity);
 
         this.auditService.track(AuditableAction.DescriptionWorkflow_Lookup, "fieldSet", fieldSet);
 

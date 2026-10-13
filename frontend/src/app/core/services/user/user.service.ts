@@ -80,7 +80,7 @@ export class UserService {
 
 	exportCSV(hasTenantAdminMode: boolean): Observable<HttpResponse<Blob>> {
 		const url = `${this.apiBase}/export/csv/${hasTenantAdminMode}`;
-		let headerXml: HttpHeaders = this.headers.set('Content-Type', 'application/xml');
+		const headerXml: HttpHeaders = this.headers.set('Content-Type', 'application/xml');
 		const params = new BaseHttpParams();
 		params.interceptorContext = {
 			excludedInterceptors: [InterceptorType.JSONContentType]
@@ -97,6 +97,14 @@ export class UserService {
 		const formData = new FormData();
 		formData.append('file', file, labelSent);
 		return this.http.post(url, formData, { params: params });
+	}
+
+	updateLanguageMine(language: string): Observable<void> {
+		const url = `${this.apiBase}/mine/language/${encodeURIComponent(language)}`;
+
+		return this.http
+			.get<void>(url).pipe(
+				catchError((error: any) => throwError(error)));
 	}
 
 	mergeAccount(item: UserMergeRequestPersist): Observable<boolean> {

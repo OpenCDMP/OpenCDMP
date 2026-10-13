@@ -5,6 +5,7 @@ import gr.cite.tools.validation.specification.Specification;
 import org.opencdmp.commonmodels.models.plan.PlanModel;
 import org.opencdmp.commons.enums.PlanUpdateRequestActionType;
 import org.opencdmp.commons.enums.PlanUpdateRequestStatus;
+import org.opencdmp.commons.enums.rdamadmp.DmpIdType;
 import org.opencdmp.commons.validation.BaseValidator;
 import org.opencdmp.convention.ConventionService;
 import org.opencdmp.errorcode.ErrorThesaurusProperties;
@@ -40,6 +41,12 @@ public class PlanUpdateRequestPersist {
 
     private String sourceCode;
     public static final String _sourceCode = "sourceCode";
+
+    private String externalId;
+    public static final String _externalId = "externalId";
+
+    private DmpIdType externalIdType;
+    public static final String _externalIdType = "externalIdType";
 
     private String hash;
     public static final String _hash = "hash";
@@ -98,6 +105,22 @@ public class PlanUpdateRequestPersist {
 
     public void setSourceCode(String sourceCode) {
         this.sourceCode = sourceCode;
+    }
+
+    public String getExternalId() {
+        return externalId;
+    }
+
+    public void setExternalId(String externalId) {
+        this.externalId = externalId;
+    }
+
+    public DmpIdType getExternalIdType() {
+        return externalIdType;
+    }
+
+    public void setExternalIdType(DmpIdType externalIdType) {
+        this.externalIdType = externalIdType;
     }
 
     public String getHash() {

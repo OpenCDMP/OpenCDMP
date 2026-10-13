@@ -9,9 +9,7 @@ import { CommonUiModule } from '@common/ui/common-ui.module';
     imports: [
         CommonUiModule,
         ContactRoutingModule,
-        ReactiveFormsModule
-    ],
-    declarations: [
+        ReactiveFormsModule,
         ContactContentComponent,
         ContactDialogComponent
     ],

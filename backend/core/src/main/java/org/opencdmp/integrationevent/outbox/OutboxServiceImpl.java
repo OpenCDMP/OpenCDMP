@@ -2,7 +2,6 @@ package org.opencdmp.integrationevent.outbox;
 
 
 import gr.cite.tools.logging.LoggerService;
-import gr.cite.tools.logging.MapLogEntry;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
@@ -24,8 +23,9 @@ public class OutboxServiceImpl implements OutboxService {
 		try {
 			eventPublisher.publishEvent(event);
         } catch (Exception ex) {
-			logger.error(new MapLogEntry(String.format("Could not save message ", event.getMessage())).And("message", event.getMessage()).And("ex", ex));
-			//Still want to skip it from processing
+	        // The event is dropped on the floor here. Log what it was so it can be replayed by hand if needed -
+	        // dumping the serialised exception instead buries the stack trace inside the message field.
+			logger.error("Could not queue {} event for publishing. The event is lost: {}", event.getType(), event.getMessage(), ex);
         }
 
 	}

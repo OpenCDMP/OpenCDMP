@@ -1,17 +1,17 @@
 
 import { HttpErrorResponse } from '@angular/common/http';
-import { computed, inject, Injectable, NgZone, Signal, signal } from '@angular/core';
+import { computed, Injectable, NgZone, Signal, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { AppPermission } from '@app/core/common/enum/permission.enum';
-import { AppAccount } from '@app/core/model/auth/principal';
+import { AppAccount, UserTermsStatus } from '@app/core/model/auth/principal';
 import { SnackBarNotificationLevel, UiNotificationService } from '@app/core/services/notification/ui-notification-service';
 import { BaseService } from '@common/base/base.service';
 import { BaseHttpParams } from '@common/http/base-http-params';
 import { InterceptorType } from '@common/http/interceptors/interceptor-type';
 import { Guid } from '@common/types/guid';
-import { KEYCLOAK_EVENT_SIGNAL, KeycloakEvent, KeycloakEventType, KeycloakEventTypeLegacy, KeycloakService } from 'keycloak-angular';
-import { Observable, Subject, Subscription, forkJoin, from, of, timer } from 'rxjs';
-import { catchError, concatMap, exhaustMap, map, takeUntil, tap } from 'rxjs/operators';
+import { KeycloakEvent, KeycloakService } from 'keycloak-angular';
+import { EMPTY, Observable, Subject, Subscription, forkJoin, from, of, timer } from 'rxjs';
+import { catchError, concatMap, exhaustMap, map, takeUntil } from 'rxjs/operators';
 import { ConfigurationService } from '../configuration/configuration.service';
 import { PrincipalService } from '../http/principal.service';
 import { TenantHandlingService } from '../tenant/tenant-handling.service';
@@ -22,7 +22,7 @@ import { NotificationPrincipalService } from '@notification-service/services/htt
 import { NotificationAccount } from '@notification-service/core/model/principal';
 import { AnnotationAccount } from '@annotation-service/core/model/principal';
 import { AnnotationPrincipalService } from '@annotation-service/services/http/principal.service';
-import { toObservable } from '@angular/core/rxjs-interop';
+import { UserTermsAcceptanceService } from '../http/user-terms-acceptance.service';
 
 export interface ResolutionContext {
 	permissions: AppPermission[];
@@ -54,6 +54,9 @@ export class AuthService extends BaseService {
 	private appUserNotAlreadyCreatedSubscription: Subscription = null;
 	private overlayRef: OverlayRef = null;
 
+	private _termsAcceptanceStatus = signal<UserTermsStatus>(null);
+	public readonly termsAcceptanceStatus = this._termsAcceptanceStatus.asReadonly();
+
 	constructor(
 		private installationConfiguration: ConfigurationService,
 		// private language: TranslateService,
@@ -66,7 +69,8 @@ export class AuthService extends BaseService {
 		private tenantHandlingService: TenantHandlingService,
 		private annotationPrincipalService: AnnotationPrincipalService,
 		private notificationPrincipalService: NotificationPrincipalService,
-        private configurationService: ConfigurationService
+        private configurationService: ConfigurationService,
+        private userTermsAcceptanceService: UserTermsAcceptanceService
 	) {
 		super();
 
@@ -81,6 +85,7 @@ export class AuthService extends BaseService {
 				event.newValue === 'false' &&
 				this._authState
 			) {
+				this.keycloakService.clearToken();
 				this.clear();
 				this.router.navigate(['/unauthorized'], {
 					queryParams: { returnUrl: this.router.url },
@@ -88,10 +93,14 @@ export class AuthService extends BaseService {
 			} else if (
 				event.key &&
 				event.key === 'selectedTenant' &&
-				event.newValue != this.selectedTenant()
+				AuthService.normalizeTenantCode(event.newValue) !== AuthService.normalizeTenantCode(this.selectedTenant())
 			) {
-				this.selectedTenant(event.newValue);
-				window.location.href = this.tenantHandlingService.getCurrentUrlEnrichedWithTenantCode(event.newValue, true);
+				// Do NOT write the value back here: this handler runs in every other tab, and a
+				// write would raise a fresh `storage` event in all of them. The reload below
+				// re-bootstraps the app, which sets the tenant from the URL anyway.
+				// The code is normalized so that a cleared tenant drops the `t/<code>` segments
+				// instead of serializing a literal `t/null` into the URL.
+				window.location.href = this.tenantHandlingService.getCurrentUrlEnrichedWithTenantCode(AuthService.normalizeTenantCode(event.newValue), true);
 			} else if (
 				event.key &&
 				event.key === 'refreshPage' &&
@@ -100,6 +109,18 @@ export class AuthService extends BaseService {
 				window.location.reload();
 			}
 		});
+	}
+
+	/**
+	 * `selectedTenant` has two encodings for "no tenant": the literal `'default'` code that the
+	 * bootstrap derives from a tenant-less URL, and an absent key, which is what `ensureTenant`
+	 * leaves behind when the resolved code is not one of the user's tenants. Both mean the same
+	 * thing everywhere else (`selectedTenant() ?? 'default'`), so cross-tab comparisons must not
+	 * treat a swap between them as a tenant switch — otherwise every page load of a user who is
+	 * not a member of the default tenant reloads all the other tabs, which reload each other back.
+	 */
+	private static normalizeTenantCode(tenantCode: string): string {
+		return tenantCode ? tenantCode : 'default';
 	}
 
 	public selectedTenant(selectedTenant?: string): string {
@@ -132,6 +153,7 @@ export class AuthService extends BaseService {
 		this.accessToken = undefined;
         this.appAccountSignal.set(undefined);
 		this.selectedTenant(null);
+		this._termsAcceptanceStatus.set(null);
 	}
 
 	private authState(authState?: boolean): boolean {
@@ -189,7 +211,7 @@ export class AuthService extends BaseService {
 	public isKeycloakLoggedIn(): boolean {
 		return this.keycloakService.isLoggedIn();
 	}
-	public prepareAuthRequest(observable: Observable<string>, tenantCode: string, httpParams?: Object): Observable<boolean> {
+	public prepareAuthRequest(observable: Observable<string>, tenantCode: string, httpParams?: object): Observable<boolean> {
 		return observable.pipe(
 			map((x) => this.currentAuthenticationToken(x)),
 			concatMap(response => {
@@ -348,6 +370,9 @@ export class AuthService extends BaseService {
 	): void {
         this.appAccountSignal.set(appAccount);
 		this.authState(true);
+		if(appAccount.userTermsStatus) this._termsAcceptanceStatus.set(appAccount.userTermsStatus);
+		else this._termsAcceptanceStatus.set(null);
+		
 	}
 
 	private currentNotificationAccount(
@@ -429,37 +454,19 @@ export class AuthService extends BaseService {
 
 	public authenticate(returnUrl: string): Observable<KeycloakEvent | null> {
 		if (!this.keycloakService.isLoggedIn()) {
+			// keycloak-js navigates to Keycloak and never resolves login(), even with an SSO session, so there is nothing to emit.
 			this.keycloakService.login({
 				scope: this.installationConfiguration.keycloak.scope,
 			})
-				.then(() => {
-					return toObservable(inject(KEYCLOAK_EVENT_SIGNAL)).pipe(
-						tap((e) => {
-							if (
-								e.type === KeycloakEventType.TokenExpired
-							) {
-								this.refreshToken({}).then((isRefreshed) => {
-									if (!isRefreshed) {
-										this.clear();
-									}
-
-									return isRefreshed;
-								}).catch(x => {
-									this.clear();
-									throw x;
-								});
-							}
-						}),
-					);
-				})
 				.catch((error) => this.onAuthenticateError(error));
+			return EMPTY;
 		} else {
 			this.zone.run(() => this.router.navigateByUrl(returnUrl));
             return of();
 		}
 	}
 
-	public refreshToken(httpParams?: Object): Promise<boolean> {
+	public refreshToken(httpParams?: object): Promise<boolean> {
 		return this.keycloakService.updateToken().then((isRefreshed) => {
 			if (!isRefreshed) {
 				return false;
@@ -500,14 +507,13 @@ export class AuthService extends BaseService {
 		this.zone.run(() => this.router.navigateByUrl(returnUrl));
 	}
 
+	// Templates call hasPermission on every change detection; lowercasing the whole list per call dominated admin listings.
+	private permissionSet = computed(() => new Set((this.appAccountSignal()?.permissions || []).map(x => x.toLowerCase())));
+
 	public hasPermission(permission: AppPermission): boolean {
 		// if (!this.installationConfiguration.appServiceEnabled) { return true; } //TODO: maybe reconsider
-		return this.evaluatePermission(this.appAccountSignal()?.permissions || [], permission);
-
-	}
-	private evaluatePermission(availablePermissions: string[], permissionToCheck: string): boolean {
-		if (!permissionToCheck) { return false; }
-		return availablePermissions.map(x => x.toLowerCase()).includes(permissionToCheck.toLowerCase());
+		if (!permission) { return false; }
+		return this.permissionSet().has(permission.toLowerCase());
 	}
 	public hasAnyPermission(permissions: AppPermission[]): boolean {
 		if (!permissions) { return false; }

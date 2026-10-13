@@ -1,0 +1,23 @@
+<h2 mat-dialog-title class="cv-title">{{'PLAN-BLUEPRINT-EDITOR.COMPARE.TITLE' | translate: { current: data.currentVersion, other: data.otherVersion } }}</h2>
+<mat-dialog-content>
+	@if (!changes.length) {
+		<p class="cv-none">{{'PLAN-BLUEPRINT-EDITOR.COMPARE.NONE' | translate: { other: data.otherVersion } }}</p>
+	} @else {
+		<p class="cv-intro">{{'PLAN-BLUEPRINT-EDITOR.COMPARE.INTRO' | translate: { other: data.otherVersion } }}</p>
+		@if (added.length) {
+			<div class="bp2-caption">{{'PLAN-BLUEPRINT-EDITOR.COMPARE.ADDED' | translate}}</div>
+			<ul class="cv-list">@for (c of added; track $index) { <li class="cv-add"><mat-icon aria-hidden="true">add_circle</mat-icon><span><strong>{{c.where}}</strong><span class="bp2-sub">&nbsp;· {{c.what}}</span></span></li> }</ul>
+		}
+		@if (changed.length) {
+			<div class="bp2-caption">{{'PLAN-BLUEPRINT-EDITOR.COMPARE.CHANGED' | translate}}</div>
+			<ul class="cv-list">@for (c of changed; track $index) { <li class="cv-chg"><mat-icon aria-hidden="true">edit</mat-icon><span><strong>{{c.where}}</strong><span class="bp2-sub">&nbsp;· {{c.what}}@if (c.detail) { · {{c.detail}} }</span></span></li> }</ul>
+		}
+		@if (removed.length) {
+			<div class="bp2-caption">{{'PLAN-BLUEPRINT-EDITOR.COMPARE.REMOVED' | translate}}</div>
+			<ul class="cv-list">@for (c of removed; track $index) { <li class="cv-rem"><mat-icon aria-hidden="true">remove_circle</mat-icon><span><strong>{{c.where}}</strong><span class="bp2-sub">&nbsp;· {{c.what}}</span></span></li> }</ul>
+		}
+	}
+</mat-dialog-content>
+<div class="cv-actions">
+	<button mat-flat-button color="primary" type="button" (click)="dialogRef.close()" cdkFocusInitial>{{'PLAN-BLUEPRINT-EDITOR.HEADER.CLOSE' | translate}}</button>
+</div>

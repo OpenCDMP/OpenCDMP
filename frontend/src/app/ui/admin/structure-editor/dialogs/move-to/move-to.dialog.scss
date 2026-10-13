@@ -1,0 +1,23 @@
+@use '../../bp2-shared' as *;
+
+.mt-title { font-size: 1.15rem; }
+.mt-intro { margin: 0 0 .5rem; color: var(--mat-sys-on-surface-variant); font-size: .9rem; }
+.mt-list { display: flex; flex-direction: column; border: 1px solid var(--mat-sys-outline-variant); border-radius: 10px; overflow: hidden; max-height: 50vh; overflow-y: auto; }
+.mt-row {
+	display: flex; align-items: center; gap: .5rem; min-height: 40px; padding: .25rem .75rem; border: none; border-top: 1px solid var(--mat-sys-outline-variant); background: var(--mat-sys-surface); text-align: left; font: inherit; font-size: .875rem; color: var(--mat-sys-on-surface); cursor: pointer;
+	&:first-child { border-top: none; }
+	mat-icon { font-size: 18px; width: 18px; height: 18px; color: var(--mat-sys-primary); flex: none; }
+	&:hover:not([disabled]) { background: var(--mat-sys-surface-container); }
+	&--on { background: var(--mat-sys-primary-container); color: var(--mat-sys-on-primary-container); }
+	&--off { color: var(--mat-sys-on-surface-variant); cursor: default; mat-icon { color: var(--mat-sys-outline); } }
+}
+.mt-num { font-weight: 700; min-width: 2.25rem; }
+.mt-label { flex: 1 1 auto; min-width: 0; }
+.mt-why { margin-left: auto; font-size: .75rem; text-align: right; }
+.mt-actions { display: flex; align-items: center; gap: .5rem; padding: .5rem 1.5rem 1.25rem; }
+.mt-spacer { flex: 1 1 auto; }
+
+.mt-modes { margin-bottom: .75rem; --mat-standard-button-toggle-height: 36px; }
+.mt-search { width: 100%; }
+.mt-dest { display: flex; align-items: center; gap: .625rem; flex-wrap: wrap; margin-bottom: .5rem; }
+.mt-rule { display: block; font-weight: 400; }

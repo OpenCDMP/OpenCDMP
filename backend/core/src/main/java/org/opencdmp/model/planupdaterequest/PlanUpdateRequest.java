@@ -4,6 +4,7 @@ package org.opencdmp.model.planupdaterequest;
 import org.opencdmp.commons.enums.IsActive;
 import org.opencdmp.commons.enums.PlanUpdateRequestActionType;
 import org.opencdmp.commons.enums.PlanUpdateRequestStatus;
+import org.opencdmp.commons.enums.rdamadmp.DmpIdType;
 import org.opencdmp.model.plan.Plan;
 import org.opencdmp.model.user.User;
 
@@ -41,6 +42,15 @@ public class PlanUpdateRequest {
 
     private Instant approvedAt;
     public static final String _approvedAt = "approvedAt";
+
+    private String externalId;
+    public static final String _externalId = "externalId";
+
+    private DmpIdType externalIdType;
+    public static final String _externalIdType = "externalIdType";
+
+    private String appliedData;
+    public static final String _appliedData = "appliedData";
 
     private Instant createdAt;
     public static final String _createdAt = "createdAt";
@@ -159,6 +169,30 @@ public class PlanUpdateRequest {
 
     public void setIsActive(IsActive isActive) {
         this.isActive = isActive;
+    }
+
+    public String getExternalId() {
+        return externalId;
+    }
+
+    public void setExternalId(String externalId) {
+        this.externalId = externalId;
+    }
+
+    public DmpIdType getExternalIdType() {
+        return externalIdType;
+    }
+
+    public void setExternalIdType(DmpIdType externalIdType) {
+        this.externalIdType = externalIdType;
+    }
+
+    public String getAppliedData() {
+        return appliedData;
+    }
+
+    public void setAppliedData(String appliedData) {
+        this.appliedData = appliedData;
     }
 
     public String getHash() {

@@ -13,6 +13,17 @@ public class PluginConfigurationUserField {
     private String textValue;
     public final static String _textValue = "textValue";
 
+    private Boolean secretSet;
+    public final static String _secretSet = "secretSet";
+
+    public Boolean getSecretSet() {
+        return secretSet;
+    }
+
+    public void setSecretSet(Boolean secretSet) {
+        this.secretSet = secretSet;
+    }
+
     public String getCode() {
         return code;
     }

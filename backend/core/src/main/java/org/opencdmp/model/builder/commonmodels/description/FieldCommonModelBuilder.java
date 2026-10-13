@@ -9,7 +9,8 @@ import gr.cite.tools.validation.ValidatorFactory;
 import org.apache.commons.io.FilenameUtils;
 import org.opencdmp.authorization.AuthorizationFlags;
 import org.opencdmp.commonmodels.models.FileEnvelopeModel;
-import org.opencdmp.commonmodels.models.description.FieldModel;
+
+import org.opencdmp.commonmodels.models.plandescriptionfields.FieldModel;
 import org.opencdmp.commonmodels.models.reference.ReferenceModel;
 import org.opencdmp.commons.enums.FieldType;
 import org.opencdmp.commons.enums.StorageType;
@@ -101,6 +102,7 @@ public class FieldCommonModelBuilder extends BaseCommonModelBuilder<FieldModel, 
             if (FieldType.isTextType(fieldType)) m.setTextValue(d.getTextValue());
             if (FieldType.isTagType(fieldType)) m.setTextListValue(d.getTextListValue());
             if (FieldType.isTextListType(fieldType)) m.setTextListValue(d.getTextListValue());
+            if (FieldType.isNumberType(fieldType)) m.setNumberValue(d.getNumberValue());
             if (FieldType.isReferenceType(fieldType)  && referenceItemsMap != null && d.getTextListValue() != null && !d.getTextListValue().isEmpty()) {
                 m.setReferences(new ArrayList<>());
                 for (UUID referenceId : d.getTextListValue().stream().map(UUID::fromString).distinct().toList()){

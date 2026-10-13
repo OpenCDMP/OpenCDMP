@@ -1,9 +1,18 @@
 package org.opencdmp.service.planblueprint;
 
-import org.opencdmp.commons.types.descriptiontemplatetype.DescriptionTemplateTypeImportExport;
+import org.opencdmp.commonmodels.models.planblueprintdescriptiontemplatefields.FieldSetModel;
+import org.opencdmp.commonmodels.models.planblueprintdescriptiontemplatefields.SectionModel;
+import org.opencdmp.commons.types.descriptiontemplate.importexport.DescriptionTemplateSectionImportExport;
+import org.opencdmp.commons.types.planblueprint.DefinitionEntity;
 import org.opencdmp.commons.types.planblueprinttype.PlanBlueprintTypeImportExport;
-import org.opencdmp.model.DescriptionTemplateType;
 import org.opencdmp.model.PlanBlueprintType;
+import org.opencdmp.model.descriptiontemplate.Field;
+import org.opencdmp.model.descriptiontemplate.Rule;
+import org.opencdmp.model.descriptiontemplate.Section;
+import org.opencdmp.model.persist.descriptiontemplatedefinition.SectionPersist;
+import org.opencdmp.model.planblueprint.*;
+import org.opencdmp.service.iconconfiguration.IconConfigurationService;
+import org.opencdmp.service.planblueprintdescriptiontemplatefields.PlanBlueprintDescriptionTemplateFieldsService;
 import tools.jackson.core.JacksonException;
 import gr.cite.commons.web.authz.service.AuthorizationService;
 import gr.cite.tools.data.builder.BuilderFactory;
@@ -29,6 +38,9 @@ import org.opencdmp.commons.enums.*;
 import org.opencdmp.commons.enums.kpi.KpiDirectionType;
 import org.opencdmp.commons.enums.kpi.KpiVersionType;
 import org.opencdmp.commons.scope.tenant.TenantScopeFactory;
+import org.opencdmp.commons.types.descriptiontemplate.FieldSetEntity;
+import org.opencdmp.model.persist.descriptiontemplatedefinition.FieldSetPersist;
+import org.opencdmp.model.persist.descriptiontemplatedefinition.RulePersist;
 import org.opencdmp.commons.types.planblueprint.*;
 import org.opencdmp.commons.types.planblueprint.BlueprintDescriptionTemplateEntity;
 import org.opencdmp.commons.types.planblueprint.importexport.*;
@@ -44,10 +56,6 @@ import org.opencdmp.model.persist.NewVersionPlanBlueprintPersist;
 import org.opencdmp.model.persist.PlanBlueprintPersist;
 import org.opencdmp.model.persist.planblueprintdefinition.*;
 import org.opencdmp.model.persist.pluginconfiguration.PluginConfigurationPersist;
-import org.opencdmp.model.planblueprint.Definition;
-import org.opencdmp.model.planblueprint.Field;
-import org.opencdmp.model.planblueprint.PlanBlueprint;
-import org.opencdmp.model.planblueprint.Section;
 import org.opencdmp.model.pluginconfiguration.PluginConfiguration;
 import org.opencdmp.model.prefillingsource.PrefillingSource;
 import org.opencdmp.model.referencetype.ReferenceType;
@@ -114,6 +122,12 @@ public class PlanBlueprintServiceImpl implements PlanBlueprintService {
 
     private final KpiService kpiService;
 
+    private final IconConfigurationService iconConfigurationService;
+
+    private final org.opencdmp.service.fielddatahelper.FieldDataHelperServiceProvider fieldDataHelperServiceProvider;
+
+    private final PlanBlueprintDescriptionTemplateFieldsService fieldsService;
+
     @Autowired
     public PlanBlueprintServiceImpl(
             TenantEntityManagerFactory tenantEntityManagerFactory,
@@ -126,7 +140,8 @@ public class PlanBlueprintServiceImpl implements PlanBlueprintService {
             XmlHandlingService xmlHandlingService,
             ErrorThesaurusProperties errors,
             PluginConfigurationService pluginConfigurationService,
-            ValidatorFactory validatorFactory, TenantScopeFactory tenantScopeFactory, UsageLimitService usageLimitService, AccountingService accountingService, LockService lockService, StorageFileService storageFileService, KpiService kpiService) {
+            ValidatorFactory validatorFactory, TenantScopeFactory tenantScopeFactory, UsageLimitService usageLimitService, AccountingService accountingService, LockService lockService, StorageFileService storageFileService, KpiService kpiService, IconConfigurationService iconConfigurationService,
+            org.opencdmp.service.fielddatahelper.FieldDataHelperServiceProvider fieldDataHelperServiceProvider, PlanBlueprintDescriptionTemplateFieldsService fieldsService) {
         this.tenantEntityManagerFactory = tenantEntityManagerFactory;
         this.authorizationService = authorizationService;
         this.deleterFactory = deleterFactory;
@@ -145,9 +160,33 @@ public class PlanBlueprintServiceImpl implements PlanBlueprintService {
         this.storageFileService = storageFileService;
         this.pluginConfigurationService = pluginConfigurationService;
         this.kpiService = kpiService;
+        this.iconConfigurationService = iconConfigurationService;
+        this.fieldDataHelperServiceProvider = fieldDataHelperServiceProvider;
+        this.fieldsService = fieldsService;
     }
 
     //region Persist
+
+    /**
+     * Every semantic key the tenant's other blueprints carry, with how many of them (counted by group, so versions of
+     * one blueprint count once). The editors suggest these first, so custom vocabularies stay consistent.
+     */
+    public Map<String, Integer> semanticsInUse(UUID excludeGroupId) {
+        this.authorizationService.authorizeForce(Permission.BrowsePlanBlueprint);
+        List<PlanBlueprintEntity> items = this.queryFactory.query(PlanBlueprintQuery.class).disableTracking().authorize(AuthorizationFlags.AllExceptPublic).isActive(IsActive.Active).collect();
+        Map<String, Set<UUID>> groups = new HashMap<>();
+        for (PlanBlueprintEntity item : items) {
+            if (item.getGroupId() == null || item.getGroupId().equals(excludeGroupId) || this.conventionService.isNullOrEmpty(item.getDefinition())) continue;
+            DefinitionEntity definition = this.xmlHandlingService.fromXmlSafe(DefinitionEntity.class, item.getDefinition());
+            if (definition == null || definition.getSections() == null) continue;
+            // keys on inputs, answer options, questions and sections all count
+            definition.getSections().forEach(section -> section.getAllSemantics().stream().filter(k -> k != null && !k.isBlank())
+                    .forEach(k -> groups.computeIfAbsent(k, x -> new HashSet<>()).add(item.getGroupId())));
+        }
+        Map<String, Integer> result = new LinkedHashMap<>();
+        groups.entrySet().stream().sorted((a, b) -> b.getValue().size() - a.getValue().size()).forEach(e -> result.put(e.getKey(), e.getValue().size()));
+        return result;
+    }
 
     public PlanBlueprint persist(PlanBlueprintPersist model, UUID groupId, FieldSet fields) throws MyForbiddenException, MyValidationException, MyApplicationException, MyNotFoundException, InvalidApplicationException, JAXBException, JacksonException, TransformerException, ParserConfigurationException {
         logger.debug(new MapLogEntry("persisting data").And("model", model).And("fields", fields));
@@ -188,8 +227,9 @@ public class PlanBlueprintServiceImpl implements PlanBlueprintService {
 
         PlanBlueprintStatus previousStatus = data.getStatus();
         PlanBlueprintVersionStatus previousVersionStatus = data.getVersionStatus();
+        UUID previousType = data.getTypeId();
 
-        if (model.getDefinition() != null && model.getDefinition().getSections().stream().noneMatch(SectionPersist::getHasTemplates)) {
+        if (model.getDefinition() != null && model.getDefinition().getSections().stream().noneMatch(RootSectionPersist::getHasTemplates)) {
             throw new MyValidationException(this.errors.getPlanBlueprintHasNoDescriptionTemplates().getCode(), this.errors.getPlanBlueprintHasNoDescriptionTemplates().getMessage());
         }
 
@@ -209,12 +249,19 @@ public class PlanBlueprintServiceImpl implements PlanBlueprintService {
                 this.accountingService.increase(UsageLimitTargetMetric.BLUEPRINT_FINALIZED_COUNT.getValue());
                 this.accountingService.decrease(UsageLimitTargetMetric.BLUEPRINT_DRAFT_COUNT.getValue());
             }
+            if (previousType != null && !previousType.equals(data.getTypeId())) {
+                this.kpiService.sendIndicatorPointPlanBlueprintPerTypeEntry(KpiDirectionType.Decrease, previousType);
+                if (data.getTypeId() != null) this.kpiService.sendIndicatorPointPlanBlueprintPerTypeEntry(KpiDirectionType.Increase, data.getTypeId());
+            } else if (previousType == null && data.getTypeId() != null){
+                this.kpiService.sendIndicatorPointPlanBlueprintPerTypeEntry(KpiDirectionType.Increase, data.getTypeId());
+            }
         } else {
             this.tenantEntityManagerFactory.getInstance().persist(data);
             this.accountingService.increase(UsageLimitTargetMetric.BLUEPRINT_COUNT.getValue());
             this.kpiService.sendIndicatorPointPlanBlueprintEntry(KpiDirectionType.Increase, KpiVersionType.TotalCount);
             if (data.getStatus().equals(PlanBlueprintStatus.Draft)) this.accountingService.increase(UsageLimitTargetMetric.BLUEPRINT_DRAFT_COUNT.getValue());
             if (data.getStatus().equals(PlanBlueprintStatus.Finalized)) this.accountingService.increase(UsageLimitTargetMetric.BLUEPRINT_FINALIZED_COUNT.getValue());
+            if (data.getTypeId() != null) this.kpiService.sendIndicatorPointPlanBlueprintPerTypeEntry(KpiDirectionType.Increase, data.getTypeId());
         }
 
         this.tenantEntityManagerFactory.getInstance().flush();
@@ -277,8 +324,8 @@ public class PlanBlueprintServiceImpl implements PlanBlueprintService {
             return data;
         if (!this.conventionService.isListNullOrEmpty(persist.getSections())) {
             data.setSections(new ArrayList<>());
-            for (SectionPersist sectionPersist : persist.getSections()) {
-                data.getSections().add(this.buildSectionEntity(sectionPersist));
+            for (RootSectionPersist rootSectionPersist : persist.getSections()) {
+                data.getSections().add(this.buildSectionEntity(rootSectionPersist));
             }
         }
 
@@ -288,28 +335,44 @@ public class PlanBlueprintServiceImpl implements PlanBlueprintService {
                 data.getPluginConfigurations().add(this.pluginConfigurationService.buildPluginConfigurationEntity(pluginConfigurationPersist, oldValue != null ? oldValue.getPluginConfigurations(): null));
             }
         }
+
+        data.setPlanCreationConsent(this.buildPlanCreationConsentEntity(persist.getPlanCreationConsent()));
+
+        UUID oldStorageFileId = null;
+        if (oldValue != null && oldValue.getIconConfiguration() != null && oldValue.getIconConfiguration().getStorageFileId() != null) {
+            oldStorageFileId = oldValue.getIconConfiguration().getStorageFileId();
+        }
+        data.setIconConfiguration(this.iconConfigurationService.buildIconConfigurationEntity(persist.getIconConfiguration(), oldStorageFileId));
+
         return data;
     }
 
-    private @NotNull SectionEntity buildSectionEntity(SectionPersist persist) {
-        SectionEntity data = new SectionEntity();
+    private @NotNull RootSectionEntity buildSectionEntity(RootSectionPersist persist) {
+        RootSectionEntity data = new RootSectionEntity();
         if (persist == null)
             return data;
 
         data.setId(persist.getId());
         data.setDescription(persist.getDescription());
-        data.setLabel(persist.getLabel());
         data.setOrdinal(persist.getOrdinal());
+        data.setTitle(persist.getTitle());
+        data.setSemantics(persist.getSemantics());
+
+        if (!this.conventionService.isListNullOrEmpty(persist.getSections())) {
+            data.setSections(new ArrayList<>());
+            for (SectionPersist sectionPersist : persist.getSections()) {
+                data.getSections().add(this.fieldsService.buildSectionEntity(sectionPersist));
+            }
+        }
+
+        if (!this.conventionService.isListNullOrEmpty(persist.getFieldSets())) {
+            data.setFieldSets(this.fieldsService.buildFieldSetEntities(persist.getFieldSets()));
+        }
+
         data.setHasTemplates(persist.getHasTemplates());
         data.setPrefillingSourcesEnabled(persist.getPrefillingSourcesEnabled());
         data.setCanEditDescriptionTemplates(persist.getCanEditDescriptionTemplates());
         data.setPrefillingSourcesIds(persist.getPrefillingSourcesIds());
-        if (!this.conventionService.isListNullOrEmpty(persist.getFields())) {
-            data.setFields(new ArrayList<>());
-            for (FieldPersist fieldPersist : persist.getFields()) {
-                data.getFields().add(this.buildExtraFieldEntity(fieldPersist));
-            }
-        }
 
         if (!this.conventionService.isListNullOrEmpty(persist.getDescriptionTemplates())) {
             data.setDescriptionTemplates(new ArrayList<>());
@@ -333,68 +396,17 @@ public class PlanBlueprintServiceImpl implements PlanBlueprintService {
         return data;
     }
 
-    private @NotNull FieldEntity buildExtraFieldEntity(FieldPersist persist) {
+    private @NotNull PlanCreationConsentEntity buildPlanCreationConsentEntity(PlanCreationConsentPersist persist) {
+        PlanCreationConsentEntity data = new PlanCreationConsentEntity();
         if (persist == null)
-            return new ExtraFieldEntity();
-        FieldEntity data;
-        
-        switch (persist.getCategory()){
-            case Extra -> {
-                ExtraFieldEntity dataTyped = new ExtraFieldEntity();
-                dataTyped.setType(((ExtraFieldPersist) persist).getDataType());
-                data = dataTyped;
-            }
-            case System -> {
-                SystemFieldEntity dataTyped = new SystemFieldEntity();
-                dataTyped.setType(((SystemFieldPersist) persist).getSystemFieldType());
-                data = dataTyped;
-            }
-            case ReferenceType -> {
-                ReferenceTypeFieldEntity dataTyped = new ReferenceTypeFieldEntity();
-                dataTyped.setReferenceTypeId(((ReferenceTypeFieldPersist) persist).getReferenceTypeId());
-                dataTyped.setMultipleSelect(((ReferenceTypeFieldPersist) persist).getMultipleSelect());
-                data = dataTyped;
-            }
-            case Upload -> data = this.buildUploadDataEntity((UploadFieldPersist) persist);
-            default -> throw new  InternalError("unknown type: " + persist.getCategory());
-        }
-        
-        data.setId(persist.getId());
-        data.setCategory(persist.getCategory());
-        data.setLabel(persist.getLabel());
-        data.setPlaceholder(persist.getPlaceholder());
-        data.setDescription(persist.getDescription());
-        data.setSemantics(persist.getSemantics());
-        data.setOrdinal(persist.getOrdinal());
-        data.setRequired(persist.getRequired());
+            return data;
+
+        data.setEnabled(persist.getEnabled());
+        data.setMessage(persist.getMessage());
+        data.setDetails(persist.getDetails());
 
         return data;
     }
-
-    private @NotNull UploadFieldEntity buildUploadDataEntity(UploadFieldPersist persist) {
-        UploadFieldEntity data = new UploadFieldEntity();
-        if (persist == null) return data;
-
-        if (!this.conventionService.isListNullOrEmpty(persist.getTypes())){
-            data.setTypes(new ArrayList<>());
-            for (UploadFieldPersist.UploadOptionPersist uploadOptionPersist: persist.getTypes()) {
-                data.getTypes().add(this.buildOptionEntity(uploadOptionPersist));
-            }
-        }
-        data.setMaxFileSizeInMB(persist.getMaxFileSizeInMB());
-        return data;
-    }
-
-    private @NotNull UploadFieldEntity.UploadOptionEntity buildOptionEntity(UploadFieldPersist.UploadOptionPersist persist){
-        UploadFieldEntity.UploadOptionEntity data = new UploadFieldEntity.UploadOptionEntity();
-        if (persist == null) return data;
-
-        data.setLabel(persist.getLabel());
-        data.setValue(persist.getValue());
-
-        return data;
-    }
-
     //endregion
 
     //region Delete
@@ -430,38 +442,6 @@ public class PlanBlueprintServiceImpl implements PlanBlueprintService {
 
     //endregion
 
-    //region FieldInBlueprint
-
-    public boolean fieldInBlueprint(PlanBlueprintEntity planBlueprintEntity, PlanBlueprintSystemFieldType type) {
-
-        DefinitionEntity definition = this.xmlHandlingService.fromXmlSafe(DefinitionEntity.class, planBlueprintEntity.getDefinition());
-        if (definition == null || definition.getSections() == null)
-            return false;
-
-        for (SectionEntity section : definition.getSections()) {
-            if (section.getFields() == null)
-                continue;
-            for (FieldEntity field : section.getFields()) {
-                if (field.getCategory().equals(PlanBlueprintFieldCategory.System)) {
-                    SystemFieldEntity systemField = (SystemFieldEntity) field;
-                    if (systemField.getType().equals(type)) {
-                        return true;
-                    }
-                }
-            }
-        }
-        return false;
-    }
-
-    public boolean fieldInBlueprint(UUID id, PlanBlueprintSystemFieldType type) throws InvalidApplicationException {
-        PlanBlueprintEntity data = this.tenantEntityManagerFactory.getInstance().find(PlanBlueprintEntity.class, id, true);
-        if (data == null)
-            throw new MyNotFoundException(this.messageSource.getMessage("General_ItemNotFound", new Object[]{id, PlanBlueprint.class.getSimpleName()}, LocaleContextHolder.getLocale()));
-        return this.fieldInBlueprint(data, type);
-    }
-
-    //endregion
-
     //region Clone
 
     public PlanBlueprint buildClone(UUID id, FieldSet fields) throws MyForbiddenException, MyValidationException, MyApplicationException, MyNotFoundException {
@@ -487,9 +467,20 @@ public class PlanBlueprintServiceImpl implements PlanBlueprintService {
         if (model == null)
             return;
 
+        Map<String, String> visibilityRulesMap = new HashMap<>();
+        List<Field> fields = this.getAllFieldByDefinition(model);
+        if (!this.conventionService.isListNullOrEmpty(fields)){
+            for (Field field: fields) {
+                if (!this.conventionService.isListNullOrEmpty(field.getVisibilityRules())){
+                    field.getVisibilityRules().stream().map(x -> x.getTarget()).collect(Collectors.toList()).forEach(y -> {
+                        if (!visibilityRulesMap.containsKey(y)) visibilityRulesMap.put(y, null);
+                    });
+                }
+            }
+        }
         if (model.getSections() != null) {
-            for (Section section : model.getSections()) {
-                this.reassignSection(section);
+            for (RootSection section : model.getSections()) {
+                this.fieldsService.reassignSection(section, visibilityRulesMap);
             }
         }
 
@@ -498,26 +489,47 @@ public class PlanBlueprintServiceImpl implements PlanBlueprintService {
                 this.pluginConfigurationService.reassignPluginConfiguration(pluginConfiguration);
             }
         }
-    }
 
-
-
-    private void reassignSection(Section model) {
-        if (model == null)
-            return;
-        model.setId(UUID.randomUUID());
-
-        if (model.getFields() != null) {
-            for (Field field : model.getFields()) {
-                this.reassignField(field);
+        for (Field field: this.getAllFieldByDefinition(model)) {
+            if (!this.conventionService.isListNullOrEmpty(field.getVisibilityRules())){
+                for (Rule rule: field.getVisibilityRules()) {
+                    if (visibilityRulesMap.containsKey(rule.getTarget())) rule.setTarget(visibilityRulesMap.get(rule.getTarget()));
+                }
             }
+        }
+
+        if (model.getIconConfiguration() != null) {
+            this.iconConfigurationService.reassignIconConfiguration(model.getIconConfiguration());
         }
     }
 
-    private void reassignField(Field model) {
-        if (model == null)
-            return;
-        model.setId(UUID.randomUUID());
+
+    private List<Field> getAllFieldByDefinition(Definition definition){
+        List<Field> fields = new ArrayList<>();
+        if (definition == null) return  fields;
+
+        if (definition.getSections() != null){
+            fields.addAll(this.getAllFieldBySections(definition.getSections()));
+        }
+        return fields;
+    }
+
+
+    private List<Field> getAllFieldBySections(List<? extends Section> sections){
+        List<Field> fields = new ArrayList<>();
+
+        if (sections != null){
+            for (Section section: sections) {
+                if (section.getSections() != null) fields.addAll(this.getAllFieldBySections(section.getSections()));
+                if (section.getFieldSets() != null) {
+                    for (org.opencdmp.model.descriptiontemplate.FieldSet fieldSet: section.getFieldSets()) {
+                        fields.addAll(fieldSet.getFields());
+                    }
+                }
+
+            }
+        }
+        return fields;
     }
 
     //endregion
@@ -561,7 +573,7 @@ public class PlanBlueprintServiceImpl implements PlanBlueprintService {
         data.setId(UUID.randomUUID());
         data.setLabel(model.getLabel());
         data.setDescription(model.getDescription());
-        data.setStatus(PlanBlueprintStatus.Draft);
+        data.setStatus(model.getStatus());
 
         if (!this.conventionService.isListNullOrEmpty(model.getDefinition().getPluginConfigurations())) {
             DefinitionEntity oldDefinition = this.conventionService.isNullOrEmpty(oldPlanBlueprintEntity.getDefinition()) ? null : this.xmlHandlingService.fromXmlSafe(DefinitionEntity.class, oldPlanBlueprintEntity.getDefinition());
@@ -569,6 +581,11 @@ public class PlanBlueprintServiceImpl implements PlanBlueprintService {
                 // reassign new storage files if equals with old
                 this.pluginConfigurationService.reassignNewStorageFilesIfEqualsWithOld(model.getDefinition().getPluginConfigurations(), oldDefinition.getPluginConfigurations());
             }
+        }
+
+        if (model.getDefinition().getIconConfiguration() != null) {
+            // reassign new icon storage file if equals with old
+            this.iconConfigurationService.reassignNewStorageFilesIfEqualsWithOld(model.getDefinition().getIconConfiguration());
         }
         data.setDefinition(this.xmlHandlingService.toXml(this.buildDefinitionEntity(model.getDefinition(), null)));
 
@@ -597,7 +614,7 @@ public class PlanBlueprintServiceImpl implements PlanBlueprintService {
             this.kpiService.sendIndicatorPointPlanBlueprintEntry(KpiDirectionType.Increase, KpiVersionType.LatestVersion);
         }
         this.kpiService.sendIndicatorPointPlanBlueprintEntry(KpiDirectionType.Increase, KpiVersionType.TotalCount);
-
+        if (data.getTypeId() != null) this.kpiService.sendIndicatorPointPlanBlueprintPerTypeEntry(KpiDirectionType.Increase, data.getTypeId());
         return this.builderFactory.builder(PlanBlueprintBuilder.class).authorize(AuthorizationFlags.AllExceptPublic).build(BaseFieldSet.build(fields, PlanBlueprint._id), data);
     }
 
@@ -666,7 +683,7 @@ public class PlanBlueprintServiceImpl implements PlanBlueprintService {
         BlueprintDefinitionImportExport xml = new BlueprintDefinitionImportExport();
         List<BlueprintSectionImportExport> planBlueprintSections = new ArrayList<>();
         if (!this.conventionService.isListNullOrEmpty(entity.getSections())) {
-            for (SectionEntity section : entity.getSections()) {
+            for (RootSectionEntity section : entity.getSections()) {
                 planBlueprintSections.add(this.sectionXmlToExport(section));
             }
         }
@@ -680,51 +697,34 @@ public class PlanBlueprintServiceImpl implements PlanBlueprintService {
             xml.setPluginConfigurations(pluginConfigurations);
         }
 
+        if (entity.getPlanCreationConsent() != null) {
+            xml.setPlanCreationConsent(this.planCreationConsentToExport(entity.getPlanCreationConsent()));
+        }
+
+        if (entity.getIconConfiguration() != null) {
+            xml.setIconConfiguration(this.iconConfigurationService.iconConfigurationXmlToExport(entity.getIconConfiguration()));
+        }
+
 
         return xml;
     }
 
-    private BlueprintSectionImportExport sectionXmlToExport(SectionEntity entity) {
+    private BlueprintSectionImportExport sectionXmlToExport(RootSectionEntity entity) {
+
         BlueprintSectionImportExport xml = new BlueprintSectionImportExport();
-        xml.setId(entity.getId());
-        xml.setLabel(entity.getLabel());
-        xml.setDescription(entity.getDescription());
-        xml.setOrdinal(entity.getOrdinal());
+        DescriptionTemplateSectionImportExport baseSectionXml = this.fieldsService.sectionXmlToExport(entity);
+
+        xml.setId(baseSectionXml.getId());
+        xml.setOrdinal(baseSectionXml.getOrdinal());
+        xml.setFieldSets(baseSectionXml.getFieldSets());
+        xml.setDescription(baseSectionXml.getDescription());
+        xml.setTitle(baseSectionXml.getTitle());
+        xml.setSections(baseSectionXml.getSections());
+        xml.setSemantics(baseSectionXml.getSemantics());
+
         xml.setHasTemplates(entity.getHasTemplates());
         xml.setPrefillingSourcesEnabled(entity.getPrefillingSourcesEnabled());
         xml.setCanEditDescriptionTemplates(entity.getCanEditDescriptionTemplates());
-
-        List<BlueprintSystemFieldImportExport> planBlueprintSystemFieldModels = new LinkedList<>();
-        if (!this.conventionService.isListNullOrEmpty(entity.getFields())) {
-            for (SystemFieldEntity systemField : entity.getFields().stream().filter(x -> x.getCategory() == PlanBlueprintFieldCategory.System).map(x -> (SystemFieldEntity) x).toList()) {
-                planBlueprintSystemFieldModels.add(this.systemFieldXmlToExport(systemField));
-            }
-        }
-        xml.setSystemFields(planBlueprintSystemFieldModels);
-        
-        List<BlueprintExtraFieldImportExport> planBlueprintExtraFieldModels = new LinkedList<>();
-        if (!this.conventionService.isListNullOrEmpty(entity.getFields())) {
-            for (ExtraFieldEntity systemField : entity.getFields().stream().filter(x -> x.getCategory() == PlanBlueprintFieldCategory.Extra).map(x -> (ExtraFieldEntity) x).toList()) {
-                planBlueprintExtraFieldModels.add(this.extraFieldXmlToExport(systemField));
-            }
-        }
-        xml.setExtraFields(planBlueprintExtraFieldModels);
-
-        List<BlueprintUploadFieldImportExport> planBlueprintUploadFieldModels = new LinkedList<>();
-        if (!this.conventionService.isListNullOrEmpty(entity.getFields())) {
-            for (UploadFieldEntity uploadField : entity.getFields().stream().filter(x -> x.getCategory() == PlanBlueprintFieldCategory.Upload).map(x -> (UploadFieldEntity) x).toList()) {
-                planBlueprintUploadFieldModels.add(this.uploadFieldXmlToExport(uploadField));
-            }
-        }
-        xml.setUploadFields(planBlueprintUploadFieldModels);
-
-        List<BlueprintReferenceTypeFieldImportExport> planBlueprintReferenceFieldModels = new LinkedList<>();
-        if (!this.conventionService.isListNullOrEmpty(entity.getFields())) {
-            for (ReferenceTypeFieldEntity referenceTypeFieldEntity : entity.getFields().stream().filter(x -> x.getCategory() == PlanBlueprintFieldCategory.ReferenceType).map(x -> (ReferenceTypeFieldEntity) x).toList()) {
-                planBlueprintReferenceFieldModels.add(this.referenceFieldXmlToExport(referenceTypeFieldEntity));
-            }
-        }
-        xml.setReferenceFields(planBlueprintReferenceFieldModels);
 
         List<BlueprintDescriptionTemplateImportExport> planBlueprintDescriptionTemplates = new LinkedList<>();
         if (!this.conventionService.isListNullOrEmpty(entity.getDescriptionTemplates())) {
@@ -773,79 +773,14 @@ public class PlanBlueprintServiceImpl implements PlanBlueprintService {
         return xml;
     }
 
-    private BlueprintExtraFieldImportExport extraFieldXmlToExport(ExtraFieldEntity entity) {
-        BlueprintExtraFieldImportExport xml = new BlueprintExtraFieldImportExport();
-        xml.setId(entity.getId());
-        xml.setType(entity.getType());
-        xml.setLabel(entity.getLabel());
-        xml.setPlaceholder(entity.getPlaceholder());
-        xml.setDescription(entity.getDescription());
-        xml.setOrdinal(entity.getOrdinal());
-        xml.setRequired(entity.isRequired());
-        xml.setSemantics(entity.getSemantics());
-        return xml;
-    }
-
-    private BlueprintReferenceTypeFieldImportExport referenceFieldXmlToExport(ReferenceTypeFieldEntity entity) {
-        BlueprintReferenceTypeFieldImportExport xml = new BlueprintReferenceTypeFieldImportExport();
-        ReferenceTypeEntity data = this.queryFactory.query(ReferenceTypeQuery.class).disableTracking().ids(entity.getReferenceTypeId()).disableTracking().firstAs(new BaseFieldSet().ensure(ReferenceType._code));
-        if (data == null) throw new MyNotFoundException(this.messageSource.getMessage("General_ItemNotFound", new Object[]{entity.getReferenceTypeId(), ReferenceType.class.getSimpleName()}, LocaleContextHolder.getLocale()));
-
-        xml.setId(entity.getId());
-        xml.setReferenceTypeId(entity.getReferenceTypeId());
-        xml.setReferenceTypeCode(data.getCode());
-        xml.setLabel(entity.getLabel());
-        xml.setPlaceholder(entity.getPlaceholder());
-        xml.setDescription(entity.getDescription());
-        xml.setOrdinal(entity.getOrdinal());
-        xml.setRequired(entity.isRequired());
-        xml.setMultipleSelect(entity.getMultipleSelect());
-        xml.setSemantics(entity.getSemantics());
-        return xml;
-    }
-
-    private BlueprintSystemFieldImportExport systemFieldXmlToExport(SystemFieldEntity entity) {
-        BlueprintSystemFieldImportExport xml = new BlueprintSystemFieldImportExport();
-        xml.setId(entity.getId());
-        xml.setType(entity.getType());
-        xml.setLabel(entity.getLabel());
-        xml.setPlaceholder(entity.getPlaceholder());
-        xml.setDescription(entity.getDescription());
-        xml.setOrdinal(entity.getOrdinal());
-        xml.setRequired(entity.isRequired());
-        xml.setSemantics(entity.getSemantics());
-        return xml;
-    }
-
-    private BlueprintUploadFieldImportExport uploadFieldXmlToExport(UploadFieldEntity entity) {
-        BlueprintUploadFieldImportExport xml = new BlueprintUploadFieldImportExport();
-        xml.setId(entity.getId());
-        xml.setLabel(entity.getLabel());
-        xml.setPlaceholder(entity.getPlaceholder());
-        xml.setDescription(entity.getDescription());
-        xml.setOrdinal(entity.getOrdinal());
-        xml.setRequired(entity.isRequired());
-        xml.setSemantics(entity.getSemantics());
-        xml.setMaxFileSizeInMB(entity.getMaxFileSizeInMB());
-
-        List<BlueprintUploadFieldImportExport.UploadOptionImportExport> types = new LinkedList<>();
-        if (!this.conventionService.isListNullOrEmpty(entity.getTypes())) {
-            for (UploadFieldEntity.UploadOptionEntity type : entity.getTypes()) {
-                types.add(this.uploadOptionXmlToExport(type));
-            }
-        }
-        xml.setTypes(types);
-        return xml;
-    }
-
-    private BlueprintUploadFieldImportExport.UploadOptionImportExport uploadOptionXmlToExport(UploadFieldEntity.UploadOptionEntity entity) {
-        BlueprintUploadFieldImportExport.UploadOptionImportExport xml = new BlueprintUploadFieldImportExport.UploadOptionImportExport();
-        xml.setLabel(entity.getLabel());
-        xml.setValue(entity.getValue());
+    private BlueprintPlanCreationConsentImportExport planCreationConsentToExport(PlanCreationConsentEntity entity) {
+        BlueprintPlanCreationConsentImportExport xml = new BlueprintPlanCreationConsentImportExport();
+        xml.setEnabled(entity.getEnabled());
+        xml.setMessage(entity.getMessage());
+        xml.setDetails(entity.getDetails());
 
         return xml;
     }
-
     //endregion
 
     //region Import
@@ -965,7 +900,7 @@ public class PlanBlueprintServiceImpl implements PlanBlueprintService {
         if (importXml == null)
             return null;
         DefinitionPersist persist = new DefinitionPersist();
-        List<SectionPersist> planBlueprintSections = new ArrayList<>();
+        List<RootSectionPersist> planBlueprintSections = new ArrayList<>();
         if (!this.conventionService.isListNullOrEmpty(importXml.getSections())) {
             for (BlueprintSectionImportExport section : importXml.getSections()) {
                 planBlueprintSections.add(this.xmlSectionToPersist(section));
@@ -982,41 +917,33 @@ public class PlanBlueprintServiceImpl implements PlanBlueprintService {
         }
         persist.setPluginConfigurations(pluginConfigurations);
 
+        if (importXml.getPlanCreationConsent() != null) {
+            persist.setPlanCreationConsent(this.xmlPlanCreationConsentToPersist(importXml.getPlanCreationConsent()));
+        }
+
+        if (importXml.getIconConfiguration() != null) {
+            persist.setIconConfiguration(this.iconConfigurationService.xmlIconConfigurationToPersist(importXml.getIconConfiguration()));
+        }
+
         return persist;
     }
 
-    private SectionPersist xmlSectionToPersist(BlueprintSectionImportExport importXml) {
-        SectionPersist persist = new SectionPersist();
+    private RootSectionPersist xmlSectionToPersist(BlueprintSectionImportExport importXml) {
+        SectionPersist baseSectionPersist = this.fieldsService.xmlSectionToPersist(importXml);
+
+        RootSectionPersist persist = new RootSectionPersist();
         persist.setId(importXml.getId());
-        persist.setLabel(importXml.getLabel());
-        persist.setDescription(importXml.getDescription());
         persist.setOrdinal(importXml.getOrdinal());
+        persist.setTitle(importXml.getTitle());
+        persist.setDescription(importXml.getDescription());
+        persist.setSections(baseSectionPersist.getSections());
+        persist.setFieldSets(baseSectionPersist.getFieldSets());
+        persist.setSemantics(baseSectionPersist.getSemantics());
+
         persist.setHasTemplates(importXml.isHasTemplates());
         persist.setPrefillingSourcesEnabled(importXml.getPrefillingSourcesEnabled());
         persist.setCanEditDescriptionTemplates(importXml.getCanEditDescriptionTemplates());
 
-        List<FieldPersist> planBlueprintFieldModels = new LinkedList<>();
-        if (!this.conventionService.isListNullOrEmpty(importXml.getSystemFields())) {
-            for (BlueprintSystemFieldImportExport systemField : importXml.getSystemFields()) {
-                planBlueprintFieldModels.add(this.xmlSystemFieldToPersist(systemField));
-            }
-        }
-        if (!this.conventionService.isListNullOrEmpty(importXml.getReferenceFields())) {
-            for (BlueprintReferenceTypeFieldImportExport referenceField : importXml.getReferenceFields()) {
-                planBlueprintFieldModels.add(this.xmlReferenceFieldToPersist(referenceField));
-            }
-        }
-        if (!this.conventionService.isListNullOrEmpty(importXml.getExtraFields())) {
-            for (BlueprintExtraFieldImportExport extraField : importXml.getExtraFields()) {
-                planBlueprintFieldModels.add(this.xmlExtraFieldToPersist(extraField));
-            }
-        }
-        if (!this.conventionService.isListNullOrEmpty(importXml.getUploadFields())) {
-            for (BlueprintUploadFieldImportExport uploadField : importXml.getUploadFields()) {
-                planBlueprintFieldModels.add(this.xmlUploadFieldToPersist(uploadField));
-            }
-        }
-        persist.setFields(planBlueprintFieldModels);
         List<BlueprintDescriptionTemplatePersist> planBlueprintDescriptionTemplates = new LinkedList<>();
         if (!this.conventionService.isListNullOrEmpty(importXml.getDescriptionTemplates())) {
             for (BlueprintDescriptionTemplateImportExport descriptionTemplate : importXml.getDescriptionTemplates()) {
@@ -1069,86 +996,14 @@ public class PlanBlueprintServiceImpl implements PlanBlueprintService {
         return data.getId();
     }
 
-    private FieldPersist xmlExtraFieldToPersist(BlueprintExtraFieldImportExport importXml) {
-        ExtraFieldPersist persist = new ExtraFieldPersist();
-        persist.setId(importXml.getId());
-        persist.setCategory(PlanBlueprintFieldCategory.Extra);
-        persist.setDataType(importXml.getType());
-        persist.setLabel(importXml.getLabel());
-        persist.setPlaceholder(importXml.getPlaceholder());
-        persist.setDescription(importXml.getDescription());
-        persist.setOrdinal(importXml.getOrdinal());
-        persist.setRequired(importXml.isRequired());
-        persist.setSemantics(importXml.getSemantics());
-        return persist;
-    }
-
-    private FieldPersist xmlSystemFieldToPersist(BlueprintSystemFieldImportExport importXml) {
-        SystemFieldPersist persist = new SystemFieldPersist();
-        persist.setId(importXml.getId());
-        persist.setCategory(PlanBlueprintFieldCategory.System);
-        persist.setSystemFieldType(importXml.getType());
-        persist.setLabel(importXml.getLabel());
-        persist.setPlaceholder(importXml.getPlaceholder());
-        persist.setDescription(importXml.getDescription());
-        persist.setOrdinal(importXml.getOrdinal());
-        persist.setRequired(importXml.isRequired());
-        persist.setSemantics(importXml.getSemantics());
-        return persist;
-    }
-
-    private FieldPersist xmlReferenceFieldToPersist(BlueprintReferenceTypeFieldImportExport importXml) {
-
-        ReferenceTypeEntity data = importXml.getReferenceTypeId() != null ? this.queryFactory.query(ReferenceTypeQuery.class).disableTracking().ids(importXml.getReferenceTypeId()).disableTracking().firstAs(new BaseFieldSet().ensure(ReferenceType._id)) : null;
-        if (data == null){
-            if (!this.conventionService.isNullOrEmpty(importXml.getReferenceTypeCode())) data = this.queryFactory.query(ReferenceTypeQuery.class).disableTracking().codes(importXml.getReferenceTypeCode()).disableTracking().firstAs(new BaseFieldSet().ensure(ReferenceType._id));
-            if (data == null) throw new MyNotFoundException(this.messageSource.getMessage("General_ItemNotFound", new Object[]{importXml.getReferenceTypeId(), ReferenceType.class.getSimpleName()}, LocaleContextHolder.getLocale()));
-        }
-
-        ReferenceTypeFieldPersist persist = new ReferenceTypeFieldPersist();
-        persist.setId(importXml.getId());
-        persist.setCategory(PlanBlueprintFieldCategory.ReferenceType);
-        persist.setReferenceTypeId(data.getId());
-        persist.setLabel(importXml.getLabel());
-        persist.setPlaceholder(importXml.getPlaceholder());
-        persist.setDescription(importXml.getDescription());
-        persist.setOrdinal(importXml.getOrdinal());
-        persist.setRequired(importXml.isRequired());
-        persist.setMultipleSelect(importXml.getMultipleSelect());
-        persist.setSemantics(importXml.getSemantics());
-        return persist;
-    }
-
-    private UploadFieldPersist xmlUploadFieldToPersist(BlueprintUploadFieldImportExport importXml) {
-        UploadFieldPersist persist = new UploadFieldPersist();
-        persist.setId(importXml.getId());
-        persist.setCategory(PlanBlueprintFieldCategory.Upload);
-        persist.setLabel(importXml.getLabel());
-        persist.setPlaceholder(importXml.getPlaceholder());
-        persist.setDescription(importXml.getDescription());
-        persist.setOrdinal(importXml.getOrdinal());
-        persist.setRequired(importXml.isRequired());
-        persist.setSemantics(importXml.getSemantics());
-        persist.setMaxFileSizeInMB(importXml.getMaxFileSizeInMB());
-
-        List<UploadFieldPersist.UploadOptionPersist> types = new LinkedList<>();
-        if (!this.conventionService.isListNullOrEmpty(importXml.getTypes())) {
-            for (BlueprintUploadFieldImportExport.UploadOptionImportExport type : importXml.getTypes()) {
-                types.add(this.xmlUploadOptionToPersist(type));
-            }
-        }
-        persist.setTypes(types);
-        return persist;
-    }
-
-    private UploadFieldPersist.UploadOptionPersist xmlUploadOptionToPersist(BlueprintUploadFieldImportExport.UploadOptionImportExport importXml) {
-        UploadFieldPersist.UploadOptionPersist persist = new UploadFieldPersist.UploadOptionPersist();
-        persist.setLabel(importXml.getLabel());
-        persist.setValue(importXml.getValue());
+    private PlanCreationConsentPersist xmlPlanCreationConsentToPersist(BlueprintPlanCreationConsentImportExport importXml) {
+        PlanCreationConsentPersist persist = new PlanCreationConsentPersist();
+        persist.setEnabled(importXml.getEnabled());
+        persist.setMessage(importXml.getMessage());
+        persist.setDetails(importXml.getDetails());
 
         return persist;
     }
-
     //endregion
 
     //region Import Common Model 
@@ -1198,9 +1053,9 @@ public class PlanBlueprintServiceImpl implements PlanBlueprintService {
         if (commonModel == null)
             return null;
         DefinitionPersist persist = new DefinitionPersist();
-        List<SectionPersist> planBlueprintSections = new ArrayList<>();
+        List<RootSectionPersist> planBlueprintSections = new ArrayList<>();
         if (!this.conventionService.isListNullOrEmpty(commonModel.getSections())) {
-            for (SectionModel section : commonModel.getSections()) {
+            for (RootSectionModel section : commonModel.getSections()) {
                 planBlueprintSections.add(this.commonModelSectionToPersist(section));
             }
         }
@@ -1208,127 +1063,33 @@ public class PlanBlueprintServiceImpl implements PlanBlueprintService {
         return persist;
     }
 
-    private SectionPersist commonModelSectionToPersist(SectionModel commonModel) {
-        SectionPersist persist = new SectionPersist();
+    private RootSectionPersist commonModelSectionToPersist(RootSectionModel commonModel) {
+        RootSectionPersist persist = new RootSectionPersist();
+
         persist.setId(commonModel.getId());
-        persist.setLabel(commonModel.getLabel());
-        persist.setDescription(commonModel.getDescription());
         persist.setOrdinal(commonModel.getOrdinal());
+        persist.setTitle(commonModel.getTitle());
+        persist.setDescription(commonModel.getDescription());
+        persist.setSemantics(commonModel.getSemantics());
         persist.setHasTemplates(commonModel.getHasTemplates());
-        List<FieldPersist> planBlueprintFieldModels = new LinkedList<>();
-        if (!this.conventionService.isListNullOrEmpty(commonModel.getFields())) {
-            for (SystemFieldModel systemField : commonModel.getFields().stream().filter(x-> org.opencdmp.commonmodels.enums.PlanBlueprintFieldCategory.System.equals(x.getCategory())).map(x-> (SystemFieldModel)x).toList()) {
-                planBlueprintFieldModels.add(this.commonModelSystemFieldToPersist(systemField));
+        persist.setCanEditDescriptionTemplates(commonModel.getCanEditDescriptionTemplates());
+
+        if (!this.conventionService.isListNullOrEmpty(commonModel.getSections())) {
+            List<SectionPersist> sectionsListEntity = new LinkedList<>();
+            for (SectionModel sectionModel : commonModel.getSections()) {
+                sectionsListEntity.add(this.fieldsService.commonModelSectionToPersist(sectionModel));
             }
-            for (ReferenceTypeFieldModel referenceField : commonModel.getFields().stream().filter(x-> org.opencdmp.commonmodels.enums.PlanBlueprintFieldCategory.ReferenceType.equals(x.getCategory())).map(x-> (ReferenceTypeFieldModel)x).toList()) {
-                planBlueprintFieldModels.add(this.commonModelReferenceFieldToPersist(referenceField));
+            persist.setSections(sectionsListEntity);
+        }
+
+        if (!this.conventionService.isListNullOrEmpty(commonModel.getFieldSets())) {
+            List<FieldSetPersist> fieldSetEntity = new LinkedList<>();
+            for (FieldSetModel fieldSetModel : commonModel.getFieldSets()) {
+                fieldSetEntity.add(this.fieldsService.commonModelToFieldSetModel(fieldSetModel));
             }
-            for (ExtraFieldModel extraField : commonModel.getFields().stream().filter(x-> org.opencdmp.commonmodels.enums.PlanBlueprintFieldCategory.Extra.equals(x.getCategory())).map(x-> (ExtraFieldModel)x).toList()) {
-                planBlueprintFieldModels.add(this.commonExtraFieldToPersist(extraField));
-            }
-        }
-        persist.setFields(planBlueprintFieldModels);
-//        List<DescriptionTemplatePersist> dmpBlueprintDescriptionTemplates = new LinkedList<>();
-//        if (!this.conventionService.isListNullOrEmpty(importXml.getDescriptionTemplates())) {
-//            for (BlueprintDescriptionTemplateImportExport descriptionTemplate : importXml.getDescriptionTemplates()) {
-//                dmpBlueprintDescriptionTemplates.add(this.xmlDescriptionTemplateToPersist(descriptionTemplate));
-//            }
-//        }
-//        persist.setDescriptionTemplates(dmpBlueprintDescriptionTemplates);
-//
-//        List<UUID> prefillingSources = new LinkedList<>();
-//        if (!this.conventionService.isListNullOrEmpty(importXml.getPrefillingSources())) {
-//            for (BlueprintPrefillingSourceImportExport prefillingSource : importXml.getPrefillingSources()) {
-//                prefillingSources.add(this.xmlPrefillingSourceToPersist(prefillingSource));
-//            }
-//        }
-//        persist.setPrefillingSourcesIds(prefillingSources);
-        return persist;
-    }
-
-//    private DescriptionTemplatePersist xmlDescriptionTemplateToPersist(BlueprintDescriptionTemplateImportExport importXml) {
-//        org.opencdmp.data.DescriptionTemplateEntity data = importXml.getDescriptionTemplateGroupId() != null ? this.queryFactory.query(DescriptionTemplateQuery.class).disableTracking().groupIds(importXml.getDescriptionTemplateGroupId()).disableTracking().firstAs(new BaseFieldSet().ensure(DescriptionTemplate._groupId)) : null;
-//        if (data == null) throw new MyNotFoundException(this.messageSource.getMessage("General_ItemNotFound", new Object[]{importXml.getDescriptionTemplateGroupId(), DescriptionTemplate.class.getSimpleName()}, LocaleContextHolder.getLocale()));
-//
-//        DescriptionTemplatePersist persist = new DescriptionTemplatePersist();
-//        persist.setDescriptionTemplateGroupId(importXml.getDescriptionTemplateGroupId());
-//        persist.setLabel(importXml.getLabel());
-//        persist.setMinMultiplicity(importXml.getMinMultiplicity());
-//        persist.setMaxMultiplicity(importXml.getMaxMultiplicity());
-//        return persist;
-//    }
-//
-//    private UUID xmlPrefillingSourceToPersist(BlueprintPrefillingSourceImportExport importXml) {
-//        org.opencdmp.data.PrefillingSourceEntity data = importXml.getId() != null ? this.queryFactory.query(PrefillingSourceQuery.class).disableTracking().ids(importXml.getId()).disableTracking().firstAs(new BaseFieldSet().ensure(PrefillingSource._id)) : null;
-//        if (data == null) {
-//            if (!this.conventionService.isNullOrEmpty(importXml.getCode())) data = this.queryFactory.query(PrefillingSourceQuery.class).disableTracking().codes(importXml.getCode()).disableTracking().firstAs(new BaseFieldSet().ensure(PrefillingSource._id));
-//            if (data == null) throw new MyNotFoundException(this.messageSource.getMessage("General_ItemNotFound", new Object[]{importXml.getId(), DescriptionTemplate.class.getSimpleName()}, LocaleContextHolder.getLocale()));
-//        }
-//
-//        return data.getId();
-//    }
-
-    private FieldPersist commonExtraFieldToPersist(ExtraFieldModel commonModel) {
-        ExtraFieldPersist persist = new ExtraFieldPersist();
-        persist.setId(commonModel.getId());
-        persist.setCategory(PlanBlueprintFieldCategory.Extra);
-        switch (commonModel.getDataType()){
-            case Text -> persist.setDataType(PlanBlueprintExtraFieldDataType.Text);
-            case Date -> persist.setDataType(PlanBlueprintExtraFieldDataType.Date);
-            case Number -> persist.setDataType(PlanBlueprintExtraFieldDataType.Number);
-            case RichTex -> persist.setDataType(PlanBlueprintExtraFieldDataType.RichTex);
-            default -> throw new  InternalError("unknown type: " + commonModel.getDataType());
-        }
-        persist.setLabel(commonModel.getLabel());
-        persist.setPlaceholder(commonModel.getPlaceholder());
-        persist.setDescription(commonModel.getDescription());
-        persist.setOrdinal(commonModel.getOrdinal());
-        persist.setRequired(commonModel.getRequired());
-        persist.setSemantics(commonModel.getSemantics());
-        return persist;
-    }
-
-    private FieldPersist commonModelSystemFieldToPersist(SystemFieldModel commonModel) {
-        SystemFieldPersist persist = new SystemFieldPersist();
-        persist.setId(commonModel.getId());
-        persist.setCategory(PlanBlueprintFieldCategory.System);
-        switch (commonModel.getSystemFieldType()){
-            case User -> persist.setSystemFieldType(PlanBlueprintSystemFieldType.User);
-            case AccessRights -> persist.setSystemFieldType(PlanBlueprintSystemFieldType.AccessRights);
-            case Contact -> persist.setSystemFieldType(PlanBlueprintSystemFieldType.Contact);
-            case Description -> persist.setSystemFieldType(PlanBlueprintSystemFieldType.Description);
-            case Language -> persist.setSystemFieldType(PlanBlueprintSystemFieldType.Language);
-            case Title -> persist.setSystemFieldType(PlanBlueprintSystemFieldType.Title);
-            default -> throw new  InternalError("unknown type: " + commonModel.getSystemFieldType());
-        }
-        persist.setLabel(commonModel.getLabel());
-        persist.setPlaceholder(commonModel.getPlaceholder());
-        persist.setDescription(commonModel.getDescription());
-        persist.setOrdinal(commonModel.getOrdinal());
-        persist.setRequired(commonModel.getRequired());
-        persist.setSemantics(commonModel.getSemantics());
-        return persist;
-    }
-
-    private FieldPersist commonModelReferenceFieldToPersist(ReferenceTypeFieldModel commonModel) {
-
-        ReferenceTypeEntity data = commonModel.getReferenceType() != null && commonModel.getReferenceType().getId() != null ? this.queryFactory.query(ReferenceTypeQuery.class).disableTracking().ids(commonModel.getReferenceType().getId()).disableTracking().firstAs(new BaseFieldSet().ensure(ReferenceType._id)) : null;
-        if (data == null){
-            if (commonModel.getReferenceType() != null && !this.conventionService.isNullOrEmpty(commonModel.getReferenceType().getCode())) data = this.queryFactory.query(ReferenceTypeQuery.class).disableTracking().codes(commonModel.getReferenceType().getCode()).disableTracking().firstAs(new BaseFieldSet().ensure(ReferenceType._id));
-            if (data == null) throw new MyNotFoundException(this.messageSource.getMessage("General_ItemNotFound", new Object[]{commonModel.getReferenceType().getCode(), ReferenceType.class.getSimpleName()}, LocaleContextHolder.getLocale()));
+            persist.setFieldSets(fieldSetEntity);
         }
 
-        ReferenceTypeFieldPersist persist = new ReferenceTypeFieldPersist();
-        persist.setId(commonModel.getId());
-        persist.setCategory(PlanBlueprintFieldCategory.ReferenceType);
-        persist.setReferenceTypeId(data.getId());
-        persist.setLabel(commonModel.getLabel());
-        persist.setPlaceholder(commonModel.getPlaceholder());
-        persist.setDescription(commonModel.getDescription());
-        persist.setOrdinal(commonModel.getOrdinal());
-        persist.setRequired(commonModel.getRequired());
-        persist.setMultipleSelect(commonModel.getMultipleSelect());
-        persist.setSemantics(commonModel.getSemantics());
         return persist;
     }
 

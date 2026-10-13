@@ -1,0 +1,43 @@
+package org.opencdmp.integrationevent.outbox.dashboardtouched;
+
+import gr.cite.tools.logging.LoggerService;
+import org.opencdmp.integrationevent.outbox.OutboxIntegrationEvent;
+import org.opencdmp.integrationevent.outbox.OutboxService;
+import org.opencdmp.service.kpi.KpiProperties;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.config.ConfigurableBeanFactory;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Component;
+
+import java.util.UUID;
+
+@Component
+@Scope(value = ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+public class DashboardTouchedEventHandlerImpl implements DashboardTouchedEventHandler {
+
+    private static final LoggerService logger = new LoggerService(LoggerFactory.getLogger(DashboardTouchedEventHandlerImpl.class));
+
+    private final OutboxService outboxService;
+
+    private final KpiProperties kpiProperties;
+
+    @Autowired
+    public DashboardTouchedEventHandlerImpl(OutboxService outboxService, KpiProperties kpiProperties) {
+        this.outboxService = outboxService;
+        this.kpiProperties = kpiProperties;
+    }
+
+    @Override
+    public void handle(DashboardTouchedEvent event) {
+        if (!kpiProperties.getTask().getEnable()) return;
+
+        OutboxIntegrationEvent message = new OutboxIntegrationEvent();
+        message.setMessageId(UUID.randomUUID());
+        message.setType(OutboxIntegrationEvent.DASHBOARD_TOUCHED_ENTRY);
+        message.setEvent(event);
+        message.setTenantId(null);
+
+        this.outboxService.publish(message);
+    }
+}

@@ -31,6 +31,8 @@ public class DepositSourcePersist {
 	public static final String _pdfTransformerId = "pdfTransformerId";
 	private String rdaTransformerId;
 	public static final String _rdaTransformerId = "rdaTransformerId";
+	private Integer maxInMemorySizeInBytes;
+	public static final String _maxInMemorySizeInBytes = "maxInMemorySizeInBytes";
 
 	public String getRepositoryId() {
 		return repositoryId;
@@ -96,6 +98,14 @@ public class DepositSourcePersist {
 		this.rdaTransformerId = rdaTransformerId;
 	}
 
+	public Integer getMaxInMemorySizeInBytes() {
+		return maxInMemorySizeInBytes;
+	}
+
+	public void setMaxInMemorySizeInBytes(Integer maxInMemorySizeInBytes) {
+		this.maxInMemorySizeInBytes = maxInMemorySizeInBytes;
+	}
+
 	@Component(DepositSourcePersistValidator.ValidatorName)
 	@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 	public static class DepositSourcePersistValidator extends BaseValidator<DepositSourcePersist> {
@@ -140,7 +150,10 @@ public class DepositSourcePersist {
 							.failOn(DepositSourcePersist._pdfTransformerId).failWith(messageSource.getMessage("Validation_Required", new Object[]{DepositSourcePersist._pdfTransformerId}, LocaleContextHolder.getLocale())),
 					this.spec()
 							.must(() -> !this.isEmpty(item.getRdaTransformerId()))
-							.failOn(DepositSourcePersist._rdaTransformerId).failWith(messageSource.getMessage("Validation_Required", new Object[]{DepositSourcePersist._rdaTransformerId}, LocaleContextHolder.getLocale()))
+							.failOn(DepositSourcePersist._rdaTransformerId).failWith(messageSource.getMessage("Validation_Required", new Object[]{DepositSourcePersist._rdaTransformerId}, LocaleContextHolder.getLocale())),
+					this.spec()
+							.must(() -> item.getMaxInMemorySizeInBytes() != null && item.getMaxInMemorySizeInBytes() > 0)
+							.failOn(DepositSourcePersist._maxInMemorySizeInBytes).failWith(messageSource.getMessage("Validation_Required", new Object[]{DepositSourcePersist._maxInMemorySizeInBytes}, LocaleContextHolder.getLocale()))
 			);
 		}
 	}

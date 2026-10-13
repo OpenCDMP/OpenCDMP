@@ -1,0 +1,151 @@
+<div class="add-templates-container">
+    <div class="dialog--header">
+        @if(selectedTemplate){
+            <button mat-icon-button (click)="selectedTemplate = null"
+                [matTooltip]="'NEW-DESCRIPTION.ADD-TEMPLATES-DIALOG.BACK'  | translate"
+            >
+                <mat-icon aria-hidden="true">keyboard_arrow_left</mat-icon>
+            </button>
+            <div>
+                <p class="dialog--title">
+                    {{'NEW-DESCRIPTION.ADD-TEMPLATES-DIALOG.SELECTED-TITLE' | translate}}
+                </p>
+                <p class="dialog--hint">
+                    {{'NEW-DESCRIPTION.ADD-TEMPLATES-DIALOG.SELECTED-HINT' | translate}}
+                </p>
+            </div>
+        }@else{
+            <div>
+                <p class="dialog--title">
+                    {{'NEW-DESCRIPTION.ADD-TEMPLATES-DIALOG.TITLE' | translate}}
+                </p>
+                <p class="dialog--hint">
+                    {{'NEW-DESCRIPTION.ADD-TEMPLATES-DIALOG.HINT' | translate}}
+                </p>
+            </div>
+        }
+        <button mat-icon-button class="ml-auto" (click)="onClose.emit()"
+            [attr.aria-label]="'ALT-TEXT.CLOSE-DIALOG'  | translate"
+        >
+            <mat-icon aria-hidden="true">close</mat-icon>
+        </button>
+    </div>
+    <div class="search-area" [class.d-none]="selectedTemplate">
+        <app-text-filter
+            class="w-100 search"
+            [prefixIcon]="'search'"
+            [placeholder]="'NEW-DESCRIPTION.SEARCH'"
+            [(value)]="searchTerm"
+            (valueChange)="getTemplates($event)"
+        />
+    </div>
+    <div class="template-area" [class.d-none]="selectedTemplate" >
+        @if(templates?.length){
+            <ul class="templates--list unstyled-list">
+                @for(template of templates; track template.id){
+                    <li>
+                        <ng-container *ngTemplateOutlet="templateItem; context: {template}"></ng-container>
+                    </li>
+                }
+                @if (templates?.length < count) {
+                    <li class="d-flex justify-content-center pb-1">
+                        <button type="button" mat-button class="padded-shadow-btn load-more" (click)="loadMore()">{{'GENERAL.ACTIONS.LOAD-MORE' | translate}}</button>
+                    </li>
+                }
+            </ul>
+        }@else {
+            @if(initialized){
+                <ng-container *ngTemplateOutlet="noTemplates"></ng-container>
+            }
+        }
+    </div>
+    <div class="footer" [class.d-none]="selectedTemplate" [innerHTML]="'NEW-DESCRIPTION.ADD-TEMPLATES-DIALOG.TEMPLATES-AVAILABLE' | translate :{count: totalCount}">
+    </div>
+    @if(selectedTemplate){
+        <div class="template-area">
+            <ng-container *ngTemplateOutlet="selectedTemplateTemplate"></ng-container>
+        </div>
+        <div class="footer">
+            <button class="w-100" mat-flat-button color="secondary" (click)="onTemplateSelected.emit(selectedTemplate)">
+                {{'NEW-DESCRIPTION.ADD-TEMPLATES-DIALOG.ACTIONS.ADD' | translate}}
+            </button>
+        </div>
+    }
+</div>
+
+<ng-template #templateItem let-template="template" let-editable="editable">
+    <div
+        class="template-container"
+        role="button"
+        (click)="selectedTemplate = template"
+        [attr.aria-label]="'NEW-DESCRIPTION.FROM-TEMPLATE.ACTIONS.PREVIEW-TEMPLATE' | translate :{name: template.label}"
+    >
+        <div class="template-info">
+            <p class="template--title">
+                {{template.label}}
+            </p>
+            @if(template.description){
+                <span class="template--description" [innerHTML]="template.description"></span>
+            }
+            <div class="template--footer">
+                <span>{{'COMMONS.FIELDS.TYPE' | translate}}: {{template.type?.name}}</span>
+                <span>{{fieldCount?.get(template.groupId)}} {{'NEW-DESCRIPTION.FIELDS' | translate}}</span>
+            </div>
+        </div>
+
+        <mat-icon  class="arrow-right" aria-hidden="true">
+            keyboard_arrow_right
+        </mat-icon>
+    </div>
+</ng-template>
+
+<ng-template #noTemplates>
+    <div class="no-templates d-flex flex-column justify-content-center align-items-center gap-1-rem">
+        <mat-icon  class="material-symbols-outlined big-icon" aria-hidden="true">description</mat-icon>
+        @let noTemplatesMsg = noTemplatesMessage;
+        <span class=" opacity-07">{{noTemplatesMsg.key | translate : noTemplatesMsg.params}}</span>
+    </div>
+</ng-template>
+
+<ng-template #selectedTemplateTemplate>
+    <div class="preview--title">
+        {{selectedTemplate.label}}
+    </div>
+    @if(selectedTemplate.description){
+        <div [innerHTML]="selectedTemplate.description"></div>
+    }
+    <div class="template--info">
+        <div class="info-container">
+            <p class="info--title">{{'NEW-DESCRIPTION.TEMPLATE-DETAILS-DIALOG.FIELDS.TYPE' | translate}}</p>
+            <p class="info--content">{{selectedTemplate?.type?.name}}</p>
+        </div>
+        <div class="info-container">
+            <p class="info--title">{{'NEW-DESCRIPTION.TEMPLATE-DETAILS-DIALOG.FIELDS.FIELDS' | translate}}</p>
+            <p class="info--content">{{fieldCount?.get(selectedTemplate.groupId)}}</p>
+        </div>
+    </div>
+    @if(selectedTemplate?.definition?.sections?.length){
+        <p class="structure--title">{{'NEW-DESCRIPTION.TEMPLATE-DETAILS-DIALOG.STRUCTURE' | translate}}</p>
+        <div class="structure--content pl-0">
+            <ul class="section-list">
+                @for(section of selectedTemplate?.definition?.sections; track section.id){
+                    <li>
+                        <ng-container *ngTemplateOutlet="sectionTemplate; context: {section, level: 0}"></ng-container>
+                    </li>
+                }
+            </ul>
+        </div>
+    }
+</ng-template>
+<ng-template #sectionTemplate let-section="section" let-level="level">
+    {{section?.title}}
+    @if(section?.sections?.length){
+        <ul class="section-list" [ngClass]="`level-${level + 1}`">
+            @for(childSection of section.sections; track childSection.id){
+                <li>
+                    <ng-container *ngTemplateOutlet="sectionTemplate; context: {section: childSection, level: level + 1}"></ng-container>
+                </li>
+            }
+        </ul>
+    }
+</ng-template>

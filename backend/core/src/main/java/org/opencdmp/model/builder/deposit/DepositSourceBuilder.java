@@ -73,6 +73,7 @@ public class DepositSourceBuilder extends BaseBuilder<DepositSource, DepositSour
             if (fields.hasField(this.asIndexer(DepositSource._scope))) m.setScope(d.getScope());
             if (fields.hasField(this.asIndexer(DepositSource._pdfTransformerId))) m.setPdfTransformerId(d.getPdfTransformerId());
             if (fields.hasField(this.asIndexer(DepositSource._rdaTransformerId))) m.setRdaTransformerId(d.getRdaTransformerId());
+            if (fields.hasField(this.asIndexer(DepositSource._maxInMemorySizeInBytes))) m.setMaxInMemorySizeInBytes(d.getMaxInMemorySizeInBytes());
             models.add(m);
         }
         this.logger.debug("build {} items", Optional.of(models).map(List::size).orElse(0));

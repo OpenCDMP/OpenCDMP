@@ -1,3 +1,3 @@
 export interface Serializable<T> {
-	fromJSONObject(item: Object): T;
+	fromJSONObject(item: object): T;
 }

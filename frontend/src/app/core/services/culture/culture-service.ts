@@ -62,7 +62,7 @@ export class CultureService {
 		// Set angular locale based on user selection.
 		// This is a very hacky way to map cultures with angular cultures, since there is no mapping. We first try to
 		// use the culture with the specialization (ex en-US), and if not exists we import the base culture (first part).
-		let locale = newCulture.name;
+		const locale = newCulture.name;
 		this.loadLocale(locale);
 	}
 

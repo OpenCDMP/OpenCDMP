@@ -1,5 +1,16 @@
 ﻿<div class="demo-progress-bar-container">
-  <div class="percentage d-flex justify-content-center percentage-info">{{progressSoFar}} {{'GENERAL.PREPOSITIONS.OF' | translate}} {{total}}</div>
-  <mat-progress-bar class="form-progress-bar" mode="determinate" [value]="value" [attr.aria-label]="'ALT-TEXT.PROGRESS-BAR' | translate"></mat-progress-bar>
+    <div class="percentage d-flex align-items-center percentage-info">
+        <span>{{'PLAN-EDITOR.TABLE-OF-CONTENTS.PROGRESS' | translate}}</span>
+        <!-- The total is not fixed: visibility rules can make further fields required once earlier
+             answers are given, so the counter growing as you fill the form is expected, not a bug. -->
+        <mat-icon
+            class="progress-hint-icon"
+            role="note"
+            [matTooltip]="'PLAN-EDITOR.TABLE-OF-CONTENTS.PROGRESS-HINT' | translate"
+            [attr.aria-label]="'PLAN-EDITOR.TABLE-OF-CONTENTS.PROGRESS-HINT' | translate"
+        >info</mat-icon>
+        <span class="ml-auto">{{progressSoFar}} / {{total}}</span>
+    </div>
+    <mat-progress-bar class="form-progress-bar" mode="determinate" [value]="value" [attr.aria-label]="'ALT-TEXT.PROGRESS-BAR' | translate"></mat-progress-bar>
   <!-- <div class="percentage" [ngStyle]="{'padding-left': value ? value - 10 + '%' : 0 + '%' }">{{value}}%</div> -->
 </div>

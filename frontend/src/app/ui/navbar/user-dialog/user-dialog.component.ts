@@ -1,16 +1,20 @@
-import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
+import { Component, Inject, OnDestroy, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { UntypedFormGroup } from '@angular/forms';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../../core/services/auth/auth.service';
 import { Observable, Subscription, fromEvent } from 'rxjs';
 import { RouterUtilsService } from '@app/core/services/router/router-utils.service';
+import { MatActionList, MatListItem, MatDivider } from '@angular/material/list';
+import { MatIcon } from '@angular/material/icon';
+import { TranslatePipe } from '@ngx-translate/core';
 
 @Component({
     selector: 'app-user-dialog-component',
     templateUrl: 'user-dialog.component.html',
     styleUrls: ['user-dialog.component.scss'],
-    standalone: false
+    changeDetection: ChangeDetectionStrategy.Eager,
+    imports: [MatActionList, MatListItem, RouterLink, MatIcon, MatDivider, TranslatePipe]
 })
 export class UserDialogComponent implements OnInit, OnDestroy  {
 	public formGroup: UntypedFormGroup;
@@ -53,13 +57,5 @@ export class UserDialogComponent implements OnInit, OnDestroy  {
 
 	public principalHasAvatar(): boolean {
 		return this.authentication.getUserProfileAvatarUrl() && this.authentication.getUserProfileAvatarUrl().length > 0;
-	}
-
-	public getDefaultAvatar(): string {
-		return 'assets/images/profile-placeholder.png';
-	}
-
-	public applyFallbackAvatar(ev: Event) {
-		(ev.target as HTMLImageElement).src = this.getDefaultAvatar();
 	}
 }

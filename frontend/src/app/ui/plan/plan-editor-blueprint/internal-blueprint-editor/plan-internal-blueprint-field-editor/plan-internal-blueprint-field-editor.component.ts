@@ -1,36 +1,54 @@
-import { Component, computed, effect, input, output } from '@angular/core';
+import { Component, Optional, computed, effect, input, output, ChangeDetectionStrategy } from '@angular/core';
+import { PlanReviewService } from '../../plan-review.service';
 import { PlanAccessType } from '@app/core/common/enum/plan-access-type';
 import { PlanBlueprintFieldCategory } from '@app/core/common/enum/plan-blueprint-field-category';
 import { PlanBlueprintExtraFieldDataType } from '@app/core/common/enum/plan-blueprint-field-type';
-import { PlanBlueprintSystemFieldType } from '@app/core/common/enum/plan-blueprint-system-field-type';
+import { SystemFieldType } from '@app/core/common/enum/system-field-type';
 import { LanguageInfo } from '@app/core/model/language-info';
 import { DragAndDropAccessibilityService } from '@app/core/services/accessibility/drag-and-drop-accessibility.service';
 import { LanguageInfoService } from '@app/core/services/culture/language-info-service';
 import { EnumUtils } from '@app/core/services/utilities/enum-utils.service';
-import { PlanEditorForm, PlanEditorModel } from '../../plan-editor.model';
-import { FormArray, FormControl, FormGroup, UntypedFormGroup, Validators } from '@angular/forms';
+import { PlanContactEditorModel, PlanEditorForm, PlanEditorModel } from '../../plan-editor.model';
+import { ValidationErrorModel } from '@common/forms/validation/error-model/validation-error-model';
+import { FormArray, FormControl, FormGroup, UntypedFormGroup, Validators, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MatDialog } from '@angular/material/dialog';
-import { PlanContactPrefillDialogComponent } from '@app/ui/plan/plan-contact-prefill-dialog/plan-contact-prefill-dialog.component';
-import { ExtraFieldInSection, FieldInSection, FieldInSectionPersist, PlanBlueprintDefinitionSection, ReferenceTypeFieldInSection, SystemFieldInSection } from '@app/core/model/plan-blueprint/plan-blueprint';
+import { PlanContactPrefillDialogComponent } from '@app/ui/plan/plan-contact/plan-contact-prefill-dialog/plan-contact-prefill-dialog.component';
 import { takeUntil } from 'rxjs';
 import { BaseComponent } from '@common/base/base.component';
-import { moveItemInArray } from '@angular/cdk/drag-drop';
+import { moveItemInArray, CdkDropList, CdkDrag, CdkDragHandle } from '@angular/cdk/drag-drop';
 import { PlanAssociatedUser } from '@app/core/model/user/user';
-import { TranslateService } from '@ngx-translate/core';
+import { TranslateService, TranslatePipe } from '@ngx-translate/core';
 import { ReferenceType } from '@app/core/model/reference-type/reference-type';
 import { SnackBarNotificationLevel, UiNotificationService } from '@app/core/services/notification/ui-notification-service';
 import { RouterUtilsService } from '@app/core/services/router/router-utils.service';
 import { Guid } from '@common/types/guid';
+import { BaseField, FieldReferenceTypeData, FieldSystemData } from '@app/core/model/description-template/description-template';
+import { BaseFieldPersist } from '@app/core/model/description-template/description-template-persist';
+import { RootSection } from '@app/core/model/plan-blueprint/plan-blueprint';
+import { MatIconButton } from '@angular/material/button';
+import { MatTooltip } from '@angular/material/tooltip';
+import { MatIcon } from '@angular/material/icon';
+import { MatBadge } from '@angular/material/badge';
+import { FieldChangeBadgeComponent } from '../../field-change-badge/field-change-badge.component';
+import { MatFormField, MatError, MatLabel, MatSuffix } from '@angular/material/form-field';
+import { MatInput } from '@angular/material/input';
+import { RichTextEditorComponent } from '../../../../../library/rich-text-editor/rich-text-editor.component';
+import { MatSelect, MatOption } from '@angular/material/select';
+import { PlanUserFieldComponent } from '../../../plan-user-field/plan-user-field.component';
+import { ReferenceFieldComponent } from '../../../../reference/reference-field/reference-field.component';
+import { MatDatepickerInput, MatDatepickerToggle, MatDatepicker } from '@angular/material/datepicker';
+import { PlanUploadFieldComponent } from '../../plan-upload-field/plan-upload-field.component';
 
 @Component({
-  selector: 'app-plan-internal-blueprint-field-editor',
-  templateUrl: './plan-internal-blueprint-field-editor.component.html',
-  styleUrl: './plan-internal-blueprint-field-editor.component.scss',
-  standalone: false,
-  providers: [DragAndDropAccessibilityService]
+    selector: 'app-plan-internal-blueprint-field-editor',
+    templateUrl: './plan-internal-blueprint-field-editor.component.html',
+    styleUrl: './plan-internal-blueprint-field-editor.component.scss',
+    changeDetection: ChangeDetectionStrategy.Eager,
+    providers: [DragAndDropAccessibilityService],
+    imports: [MatIconButton, MatTooltip, MatIcon, MatBadge, FieldChangeBadgeComponent, MatFormField, MatInput, FormsModule, ReactiveFormsModule, MatError, RichTextEditorComponent, MatSelect, MatOption, CdkDropList, CdkDrag, CdkDragHandle, MatLabel, PlanUserFieldComponent, ReferenceFieldComponent, MatDatepickerInput, MatDatepickerToggle, MatSuffix, MatDatepicker, PlanUploadFieldComponent, TranslatePipe]
 })
 export class PlanInternalBlueprintFieldEditorComponent extends BaseComponent{
-    field = input.required<FieldInSection | FieldInSectionPersist>();
+    field = input.required<BaseField | BaseFieldPersist>();
 
     fieldPath = input<string>();
     formGroup = input<FormGroup<PlanEditorForm>>();
@@ -41,14 +59,14 @@ export class PlanInternalBlueprintFieldEditorComponent extends BaseComponent{
     editorModel = input<PlanEditorModel>();
     
     referenceType = input<ReferenceType>();
-    sections = input<PlanBlueprintDefinitionSection[]>(null);
+    sections = input<RootSection[]>(null);
     annotationsPerAnchor =  input<Map<string, number>>();
     
     reApplyPropertiesValidators = output();
     showAnnotations = output<Guid>();
 
     planBlueprintSectionFieldCategoryEnum = PlanBlueprintFieldCategory;
-    planBlueprintSystemFieldTypeEnum = PlanBlueprintSystemFieldType;
+    planBlueprintSystemFieldTypeEnum = SystemFieldType;
     planBlueprintExtraFieldDataTypeEnum = PlanBlueprintExtraFieldDataType;
     planAccessTypeEnum = PlanAccessType;
     planAccessTypeEnumValues = this.enumUtils.getEnumValues<PlanAccessType>(PlanAccessType);
@@ -74,7 +92,8 @@ export class PlanInternalBlueprintFieldEditorComponent extends BaseComponent{
         private languageInfoService: LanguageInfoService,
         private dragAndDropService: DragAndDropAccessibilityService,
         private dialog: MatDialog,
-        private routerUtils: RouterUtilsService
+        private routerUtils: RouterUtilsService,
+        @Optional() private planReviewService: PlanReviewService | null,
     ){
         super();
     }
@@ -174,17 +193,17 @@ export class PlanInternalBlueprintFieldEditorComponent extends BaseComponent{
         this.formGroup()?.get('properties').get('contacts').markAsDirty();
     }
 
-    searchContact(contactIndex: number, field: FieldInSection): void {
+    searchContact(contactIndex: number, field: BaseField): void {
         const dialogRef = this.dialog.open(PlanContactPrefillDialogComponent, {
             maxWidth: '700px',
             maxHeight: '80vh',
             data: {
-                label: field.label
+                label: field.data?.label
             }
         });
         dialogRef.afterClosed().pipe(takeUntil(this._destroyed)).subscribe((result: PlanAssociatedUser) => {
             if (result) {
-                const contactFormGroup = (this.formGroup()?.get('properties').get('contacts') as FormArray).at(contactIndex);
+                const contactFormGroup = this.formGroup()?.controls?.properties?.controls?.contacts?.at(contactIndex);
                 contactFormGroup.get('firstName').patchValue(result?.name);
                 contactFormGroup.get('lastName').patchValue(null);
                 contactFormGroup.get('email').patchValue(result?.email);

@@ -1,4 +1,4 @@
-import { Injectable, Inject } from '@angular/core';
+import { Injectable } from '@angular/core';
 import { BaseService } from '@common/base/base.service';
 import { BehaviorSubject, Observable, interval } from 'rxjs';
 import { ConfigurationService } from '@app/core/services/configuration/configuration.service';
@@ -15,8 +15,10 @@ export class DepositOauth2DialogService extends BaseService{
 	}
 
 	public getLoginUrl(repo: DepositConfiguration) {
+		// plugins built before they declared their scope expect the one this app always asked for
+		const scope = (repo.oauthScope ?? 'deposit:write deposit:actions user:email').trim().split(/\s+/).filter(x => !!x).join('+');
 		return repo.repositoryAuthorizationUrl + '?client_id=' + repo.repositoryClientId
-			+ '&response_type=code&scope=deposit:write+deposit:actions+user:email&redirect_uri='
+			+ '&response_type=code' + (scope ? '&scope=' + scope : '') + '&redirect_uri='
 			+ repo.redirectUri
 	}
 

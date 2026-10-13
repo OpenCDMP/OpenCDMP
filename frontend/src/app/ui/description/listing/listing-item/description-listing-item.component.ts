@@ -1,11 +1,10 @@
-import { Location } from '@angular/common';
-import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
-import { UntypedFormBuilder, Validators } from '@angular/forms';
+import { Location, NgTemplateOutlet, LowerCasePipe } from '@angular/common';
+import { Component, EventEmitter, Input, OnInit, Output, ChangeDetectionStrategy } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { PlanAccessType } from '@app/core/common/enum/plan-access-type';
 import { IsActive } from '@app/core/common/enum/is-active.enum';
-import { Description, DescriptionPersist, DescriptionPropertyDefinitionPersist } from '@app/core/model/description/description';
+import { Description } from '@app/core/model/description/description';
 import { AuthService } from '@app/core/services/auth/auth.service';
 import { DescriptionService } from '@app/core/services/description/description.service';
 import { PlanService } from '@app/core/services/plan/plan.service';
@@ -15,12 +14,10 @@ import { SnackBarNotificationLevel, UiNotificationService } from '@app/core/serv
 import { ReferenceTypeService } from '@app/core/services/reference-type/reference-type.service';
 import { ReferenceService } from '@app/core/services/reference/reference.service';
 import { EnumUtils } from '@app/core/services/utilities/enum-utils.service';
-import { FileUtils } from '@app/core/services/utilities/file-utils.service';
-import { PlanInvitationDialogComponent } from '@app/ui/plan/invitation/dialog/plan-invitation-dialog.component';
 import { BaseComponent } from '@common/base/base.component';
 import { ConfirmationDialogComponent } from '@common/modules/confirmation-dialog/confirmation-dialog.component';
 import { Guid } from '@common/types/guid';
-import { TranslateService } from '@ngx-translate/core';
+import { TranslateService, TranslatePipe } from '@ngx-translate/core';
 import { takeUntil } from 'rxjs/operators';
 import { DescriptionStatusEnum } from '../../../../core/common/enum/description-status';
 import { CopyDialogReturnParams, DescriptionCopyDialogComponent } from '../../description-copy-dialog/description-copy-dialog.component';
@@ -31,26 +28,28 @@ import { HttpErrorHandlingService } from '@common/modules/errors/error-handling/
 import { RouterUtilsService } from '@app/core/services/router/router-utils.service';
 import { Tenant } from '@app/core/model/tenant/tenant';
 import { DescriptionStatusAvailableActionType } from '@app/core/common/enum/description-status-available-action-type';
-import { DescriptionEditorHelper } from '@app/ui/plan/plan-editor-blueprint/plan-description-editor/plan-description-editor-helper';
-import { DescriptionPropertyDefinitionEditorModel } from '../../editor/description-editor.model';
-import { DomSanitizer, SafeUrl } from '@angular/platform-browser';
-import { StorageFileService } from '@app/core/services/storage-file/storage-file.service';
+import { SafeUrl } from '@angular/platform-browser';
 import {ReferenceType} from "@app/core/model/reference-type/reference-type";
+import { PlanUserRole } from '@app/core/common/enum/plan-user-role';
+import { MatCard, MatCardContent } from '@angular/material/card';
+import { MatIcon } from '@angular/material/icon';
+import { DateTimeFormatPipe } from '../../../../core/pipes/date-time-format.pipe';
 
 @Component({
     selector: 'app-description-listing-item-component',
     templateUrl: './description-listing-item.component.html',
     styleUrls: ['./description-listing-item.component.scss'],
-    standalone: false
+    changeDetection: ChangeDetectionStrategy.Eager,
+    imports: [MatCard, MatCardContent, RouterLink, NgTemplateOutlet, MatIcon, LowerCasePipe, TranslatePipe, DateTimeFormatPipe]
 })
 export class DescriptionListingItemComponent extends BaseComponent implements OnInit {
 
 	@Input() description: Description;
-	@Input() showDivider: boolean = true;
 	@Input() isPublic: boolean = false;
 	@Input() tenants: Tenant[] = [];
     @Input() statusStorageFile: SafeUrl;
 	@Input() orderedDescriptionPreferencesList:ReferenceType[] = [];
+    @Input() compactView: boolean = false;
 	@Output() onClick: EventEmitter<Description> = new EventEmitter();
     @Output() onRefresh: EventEmitter<void> = new EventEmitter();
 
@@ -65,6 +64,14 @@ export class DescriptionListingItemComponent extends BaseComponent implements On
 	canCopy: boolean = false;
 	canInvitePlanUsers: boolean = false;
 	canExport: boolean = false;
+
+    get planOwners(): string {
+        return this.description.plan?.planUsers?.filter(x => x.isActive === IsActive.Active && x.role === PlanUserRole.Owner)?.map(x => x.user?.name).join(', ');
+    }
+
+    get collaboratorCount(): number {
+        return this.description.plan?.planUsers?.filter(x => x.isActive === IsActive.Active)?.length;
+    }
 
 	constructor(
 		public routerUtils: RouterUtilsService,
@@ -87,6 +94,7 @@ export class DescriptionListingItemComponent extends BaseComponent implements On
 	) {
 		super();
 	}
+    
 
 	ngOnInit() {
 		this.analyticsService.trackPageView(AnalyticsService.DescriptionListingItem);
@@ -131,31 +139,29 @@ export class DescriptionListingItemComponent extends BaseComponent implements On
 	}
 
 	getItemLink(): string {
-		return this.isPublic ? this.routerUtils.generateUrl(['/explore-descriptions/overview/public/', this.description.id.toString()]) :
-        this.routerUtils.generateUrl(['/plans/overview/', this.description.plan.id.toString(), '/descriptions/', this.description.id.toString()]);
+		return this.isPublic ? this.routerUtils.generateUrl(['/explore-assets/overview/public/', this.description.id.toString()]) :
+        this.routerUtils.generateUrl(['/plans/overview/', this.description.plan.id.toString(), '/assets/', this.description.id.toString()]);
 	}
 
 	getPlanLink(): string[] {
 		return this.isPublic ? [`/explore-plans/overview/public/${this.description.plan.id}`] : [`/plans/overview/${this.description.plan.id}`];
 	}
 
-	openShareDialog() {
-		// TODO: This is a shared component. Put it in a seperate module.
-		const dialogRef = this.dialog.open(PlanInvitationDialogComponent, {
-			restoreFocus: false,
-			data: {
-				planId: this.description.plan.id,
-				planName: this.description.plan.label,
-				blueprint: this.description.plan.blueprint
-			},
-            minWidth: 'min(65rem, 90vw)'
-		});
-	}
+	// openShareDialog() {
+	// 	const dialogRef = this.dialog.open(PlanInvitationDialogComponent, {
+	// 		restoreFocus: false,
+	// 		data: {
+	// 			planId: this.description.plan.id,
+	// 			planName: this.description.plan.label,
+	// 			blueprint: this.description.plan.blueprint
+	// 		},
+    //         minWidth: 'min(65rem, 90vw)'
+	// 	});
+	// }
 
 	copyToPlan(description: Description) {
 		const dialogRef = this.dialog.open<DescriptionCopyDialogComponent, any, CopyDialogReturnParams>(DescriptionCopyDialogComponent, {
 			width: '500px',
-			restoreFocus: false,
 			data: {
 				description,
 				confirmButton: this.language.instant('DESCRIPTION-LISTING.COPY-DIALOG.COPY'),
@@ -187,7 +193,7 @@ export class DescriptionListingItemComponent extends BaseComponent implements On
 				}
 			},
 		error => {
-			this.router.navigate([this.routerUtils.generateUrl('/descriptions')]);
+			this.router.navigate([this.routerUtils.generateUrl('/assets')]);
 			this.httpErrorHandlingService.handleBackedRequestError(error);
 		});
 	}
@@ -195,7 +201,6 @@ export class DescriptionListingItemComponent extends BaseComponent implements On
 	openDeleteDialog(id: Guid): void {
 		const dialogRef = this.dialog.open(ConfirmationDialogComponent, {
 			maxWidth: '300px',
-			restoreFocus: false,
 			data: {
 				message: this.language.instant('GENERAL.CONFIRMATION-DIALOG.DELETE-ITEM'),
 				confirmButton: this.language.instant('GENERAL.CONFIRMATION-DIALOG.ACTIONS.DELETE'),
@@ -218,7 +223,6 @@ export class DescriptionListingItemComponent extends BaseComponent implements On
 	openLockedByUserDialog() {
 		const dialogRef = this.dialog.open(ConfirmationDialogComponent, {
 			maxWidth: '400px',
-			restoreFocus: false,
 			data: {
 				message: this.language.instant('DESCRIPTION-LISTING.LOCKED')
 			}

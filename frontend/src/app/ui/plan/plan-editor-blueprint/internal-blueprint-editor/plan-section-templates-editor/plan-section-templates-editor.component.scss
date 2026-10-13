@@ -1,0 +1,85 @@
+.info {
+    background-color: var(--mat-sys-surface-container-low);
+    border: 1px solid var(--mat-sys-outline-variant);
+    color: var(--mat-sys-on-surface-variant);
+    padding: 0.625rem 1rem;
+    border-radius: 0.625rem;
+    margin-bottom: 1.5rem;
+    font-size: var(--mat-sys-body-small-size);
+}
+.description{
+    background-color: var(--mat-sys-surface);
+    border: 1px solid var(--mat-sys-outline-variant);
+    padding: 0.625rem 0.75rem;
+    border-radius: 10px;
+    margin-bottom: 0.5rem;
+    display: flex;
+    gap: 0.75rem;
+    align-items: center;
+    transition: background-color 100ms ease, border-color 100ms ease;
+    &:hover{
+        background-color: var(--mat-sys-surface-container-low);
+        border-color: var(--mat-sys-outline);
+    }
+    .description--title{
+        color: var(--mat-sys-on-surface);
+        font-weight: 500;
+    }
+    .description--type-icon{
+        padding: 0.5rem;
+        background-color: var(--mat-sys-surface-container);
+        color: var(--mat-sys-secondary);
+        line-height: 0.8;
+        border-radius: 4px;
+    }
+    .description--template{
+        opacity: 0.8;
+        font-size: var(--mat-sys-label-medium-size);
+    }
+    .description--info{
+        min-width: 0;
+    }
+    // FE-2: right-aligned meta group — status pill, date, delete (all permanent)
+    .description--meta{
+        margin-left: auto;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        flex-shrink: 0;
+    }
+    .description--updated-at{
+        font-size: var(--mat-sys-label-medium-size);
+        opacity: 0.7;
+        white-space: nowrap;
+    }
+    // FE-2: status chip on each linked-description card
+    .description--status{
+        display: inline-flex;
+        align-items: center;
+        gap: 0.25rem;
+        padding: 0.1rem 0.5rem;
+        border-radius: 0.75rem;
+        font-size: 0.65rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.02em;
+        white-space: nowrap;
+        background-color: var(--mat-sys-surface-container-high);
+        color: var(--mat-sys-on-surface-variant);
+    }
+    .description--status-logo{
+        width: 0.9rem;
+        height: 0.9rem;
+        object-fit: contain;
+        border-radius: 2px;
+    }
+    .description--status-icon{
+        font-size: 0.9rem;
+        width: 0.9rem;
+        height: 0.9rem;
+    }
+    // FE-2: delete is now always visible (no longer hover-only) and grouped in .description--meta
+    .description--delete-btn{
+        flex-shrink: 0;
+    }
+}

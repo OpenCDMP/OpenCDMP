@@ -1,0 +1,78 @@
+.tc-notifications__scroll {
+	overflow-x: auto;
+}
+
+.tc-notifications__table {
+	width: 100%;
+	border-collapse: collapse;
+	font-size: 14px;
+
+	th,
+	td {
+		padding: 8px 12px;
+		text-align: left;
+		vertical-align: middle;
+		border-top: 1px solid var(--md-sys-color-outline-variant, #eef1f6);
+	}
+
+	thead th {
+		border-top: 0;
+		font-size: 12px;
+		font-weight: 700;
+		color: var(--md-sys-color-on-surface-variant, #566072);
+	}
+
+	tbody th[scope="row"] {
+		font-weight: 600;
+	}
+}
+
+.tc-notifications__group th {
+	padding-top: 18px;
+	font-size: 11px;
+	font-weight: 800;
+	letter-spacing: 0.06em;
+	text-transform: uppercase;
+	color: var(--md-sys-color-on-surface-variant, #566072);
+	background: var(--md-sys-color-surface-container-low, #f7f8fb);
+}
+
+.tc-notifications__name {
+	min-width: 220px;
+}
+
+.tc-notifications__table .tc-notifications__channel {
+	width: 96px;
+	text-align: center;
+	color: var(--md-sys-color-on-surface-variant, #566072);
+}
+
+.tc-notifications__first {
+	width: 200px;
+}
+
+.tc-notifications__select {
+	width: 180px;
+}
+
+.tc-notifications__only {
+	font-size: 13px;
+	color: var(--md-sys-color-on-surface-variant, #566072);
+}
+
+.tc-notifications__empty {
+	margin: 0;
+	font-size: 14px;
+	color: var(--md-sys-color-on-surface-variant, #566072);
+}
+
+.tc-notifications__sr {
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	margin: -1px;
+	padding: 0;
+	overflow: hidden;
+	clip: rect(0 0 0 0);
+	border: 0;
+}

@@ -102,7 +102,7 @@ export class PlanBlueprintTypeService {
 		};
 	}
 
-	private buildAutocompleteLookup(isActive: IsActive[], like?: string, excludedIds?: Guid[], ids?: Guid[], statuses?: PlanBlueprintTypeStatus[]): PlanBlueprintTypeLookup {
+	public buildAutocompleteLookup(isActive: IsActive[], like?: string, excludedIds?: Guid[], ids?: Guid[], statuses?: PlanBlueprintTypeStatus[]): PlanBlueprintTypeLookup {
 		const lookup: PlanBlueprintTypeLookup = new PlanBlueprintTypeLookup();
 		lookup.page = { size: 100, offset: 0 };
 		if (excludedIds && excludedIds.length > 0) { lookup.excludedIds = excludedIds; }

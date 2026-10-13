@@ -3,10 +3,12 @@ import { User } from "@app/core/model/user/user";
 import { BaseEntity, BaseEntityPersist } from "@common/base/base-entity.model";
 import { Guid } from "@common/types/guid";
 import { AnnotationStatus } from "./annotation-status.model";
+import { AnnotationPermission } from "../enum/permission.enum";
+import { AnnotationEntityType } from "@app/core/common/enum/annotation-entity-type";
 
 export interface Annotation extends BaseEntity {
 	entityId: Guid;
-	entityType: string;
+	entityType: AnnotationEntityType;
 	anchor?: string;
 	payload: string;
 	timeStamp: Date;
@@ -15,6 +17,7 @@ export interface Annotation extends BaseEntity {
 	parent: Annotation;
 	protectionType: AnnotationProtectionType;
 	annotationStatuses: AnnotationStatus[];
+	authorizationFlags?: AnnotationPermission[];
 }
 
 export interface AnnotationPersist extends BaseEntityPersist {

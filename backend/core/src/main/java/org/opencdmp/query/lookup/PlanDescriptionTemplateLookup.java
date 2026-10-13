@@ -23,7 +23,7 @@ public class PlanDescriptionTemplateLookup extends Lookup {
     private List<UUID> descriptionTemplateGroupIds;
 
     @Schema(description = SwaggerHelpers.PlanDescriptionTemplate.sectionIds_description)
-    private List<UUID> sectionIds;
+    private List<String> sectionIds;
 
     @Schema(description = SwaggerHelpers.PlanDescriptionTemplate.excludeIds_description)
     private List<UUID> excludedIds;
@@ -67,11 +67,11 @@ public class PlanDescriptionTemplateLookup extends Lookup {
         return this.descriptionTemplateGroupIds;
     }
 
-    public List<UUID> getSectionIds() {
+    public List<String> getSectionIds() {
         return this.sectionIds;
     }
 
-    public void setSectionIds(List<UUID> sectionIds) {
+    public void setSectionIds(List<String> sectionIds) {
         this.sectionIds = sectionIds;
     }
 

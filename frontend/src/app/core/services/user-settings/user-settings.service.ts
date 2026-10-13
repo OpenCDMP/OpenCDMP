@@ -20,8 +20,8 @@ export class UserSettingsService extends BaseService {
 	static CACHE_SETTINGS_LIFETIME = 7200; // (value is in seconds) 2 hours
 
 	public userSettingUpdated: Subject<string>;
-	private userSettingsMap: Map<String, any> = new Map<String, any>();
-	private userSettingsLastAccessMap: Map<String, Moment> = new Map<String, Moment>();
+	private userSettingsMap: Map<string, any> = new Map<string, any>();
+	private userSettingsLastAccessMap: Map<string, Moment> = new Map<string, Moment>();
 
 	constructor(
 		private userSettingsHttpService: UserSettingsHttpService,
@@ -35,8 +35,8 @@ export class UserSettingsService extends BaseService {
 		this.authService.getAuthenticationStateObservable().pipe(takeUntil(this._destroyed)).subscribe(authenticationState => {
 			if (authenticationState.loginStatus === LoginStatus.LoggedOut) {
 				localStorage.clear();
-				this.userSettingsMap = new Map<String, any>();
-				this.userSettingsLastAccessMap = new Map<String, Moment>();
+				this.userSettingsMap = new Map<string, any>();
+				this.userSettingsLastAccessMap = new Map<string, Moment>();
 			}
 		});
 	}
@@ -46,8 +46,9 @@ export class UserSettingsService extends BaseService {
 	}
 
 	get<T>(userSettingsInformation: UserSettingsInformation<T>): Observable<UserSettings<T>> {
-		if (this.userSettingsLastAccessMap.has(userSettingsInformation.key)) {
-			const lastAccess = this.userSettingsLastAccessMap.get(userSettingsInformation.key);
+		const cacheKey = this.cacheKey(userSettingsInformation.key);
+		if (this.userSettingsLastAccessMap.has(cacheKey)) {
+			const lastAccess = this.userSettingsLastAccessMap.get(cacheKey);
 			const difference = moment.utc().diff(lastAccess, 'seconds');
 
 			if (difference > UserSettingsService.CACHE_SETTINGS_LIFETIME) {
@@ -55,9 +56,9 @@ export class UserSettingsService extends BaseService {
 			}
 		}
 
-		this.userSettingsLastAccessMap.set(userSettingsInformation.key, moment.utc());
+		this.userSettingsLastAccessMap.set(cacheKey, moment.utc());
 
-		if (this.userSettingsMap.has(userSettingsInformation.key)) { return observableOf(this.userSettingsMap.get(userSettingsInformation.key)); }
+		if (this.userSettingsMap.has(cacheKey)) { return observableOf(this.userSettingsMap.get(cacheKey)); }
 
 		return this.loadUserSettings<T>(userSettingsInformation);
 	}
@@ -66,8 +67,9 @@ export class UserSettingsService extends BaseService {
 		const userSetting = this.buildUserSetting(setting, userSettingsInformation.key, isDefault);
 		let userSettings: UserSettings<T> = this.buildUserSettings(userSetting, userSettingsInformation.key);
 
-		if (this.userSettingsMap.has(userSettingsInformation.key)) {
-			userSettings = this.userSettingsMap.get(userSettingsInformation.key);
+		const cacheKey = this.cacheKey(userSettingsInformation.key);
+		if (this.userSettingsMap.has(cacheKey)) {
+			userSettings = this.userSettingsMap.get(cacheKey);
 			if (userSettings == null) { userSettings = this.buildUserSettings(userSetting, userSettingsInformation.key); }
 			const itemIndex = userSettings.settings.findIndex(item => item.id === userSetting.id);
 			if (itemIndex < 0) {
@@ -90,7 +92,7 @@ export class UserSettingsService extends BaseService {
 		});
 
 		this.persistUserSettings(userSettingsInformation.key, userSettings, userSettingsInformation, true);
-		this.userSettingsLastAccessMap.set(userSettingsInformation.key, moment.utc());
+		this.userSettingsLastAccessMap.set(cacheKey, moment.utc());
 	}
 
 	remove<T>(id: Guid, userSettingsInformation: UserSettingsInformation<T> = null) {
@@ -105,7 +107,8 @@ export class UserSettingsService extends BaseService {
 			name: newName,
 			type: userSettings.type,
 			value: JSON.stringify(userSettings.value),
-			hash: null
+			hash: null,
+			entityId: targetId,
 		};
 		return this.userSettingsHttpService.share(userSettingsToPersist, targetId);
 	}
@@ -157,7 +160,7 @@ export class UserSettingsService extends BaseService {
 	}
 
 	private persistUserSettings<T>(key: string, userSettings: UserSettings<T>, userSettingsInformation: UserSettingsInformation<T>, pushChangeToServer: boolean = true) {
-		this.userSettingsMap.set(key, userSettings);
+		this.userSettingsMap.set(this.cacheKey(key), userSettings);
 		this.storeToLocalStorage(key, userSettings);
 
 		if (pushChangeToServer) {
@@ -182,7 +185,8 @@ export class UserSettingsService extends BaseService {
 			name: element.name,
 			type: element.type,
 			value: JSON.stringify(element.value),
-			hash: element.hash
+			hash: element.hash,
+			entityId: this.getUserId(),
 		};
 
 		return userSettingsToPersist;
@@ -200,6 +204,26 @@ export class UserSettingsService extends BaseService {
 	}
 
 	private toTypedUserSettings<T>(userSettings: UserSettingsObject): UserSettings<T> {
+		// The backend returns ONE flat row per key ({id, key, value, entityId, hash, ...}), not the
+		// {key, settings[], defaultSetting} envelope this client was written against. Without this
+		// normalisation the row parsed into an empty list, the cache was cleared after every save and
+		// each save created a new row instead of updating the existing one.
+		const flat = userSettings as unknown as { id: Guid; key: string; value: string; type: UserSettingsType; hash: string; entityId?: Guid; createdAt?: Date; updatedAt?: Date; settings?: unknown };
+		if (flat && flat.settings === undefined && flat.key !== undefined && flat.id !== undefined) {
+			const single: UserSetting<T> = {
+				id: flat.id,
+				key: flat.key,
+				name: 'Default',
+				value: typeof flat.value === 'string' ? JSON.parse(flat.value) : null,
+				userId: flat.entityId,
+				updatedAt: flat.updatedAt,
+				createdAt: flat.createdAt,
+				hash: flat.hash,
+				type: flat.type,
+				isDefault: true,
+			};
+			return { key: flat.key, settings: [single], defaultSetting: single };
+		}
 		const settingsArray: UserSetting<T>[] = [];
 		if (userSettings && userSettings.settings && userSettings.settings.length !== 0) {
 			userSettings.settings.forEach(element => {
@@ -249,7 +273,7 @@ export class UserSettingsService extends BaseService {
 				const result: UserSettings<any>[] = items ? items.map(x => this.toTypedUserSettings<any>(x as UserSettingsObject)) : [];
 				result.forEach(item => {
 					if (item.defaultSetting != null) {
-						this.userSettingsMap.set(item.key, item);
+						this.userSettingsMap.set(this.cacheKey(item.key), item);
 						this.storeToLocalStorage(item.key, item);
 					} else {
 						this.clearSetting(item.key);
@@ -262,8 +286,8 @@ export class UserSettingsService extends BaseService {
 	}
 
 	private clearSetting(key: string) {
-		this.userSettingsMap.delete(key);
-		this.userSettingsLastAccessMap.delete(key);
+		this.userSettingsMap.delete(this.cacheKey(key));
+		this.userSettingsLastAccessMap.delete(this.cacheKey(key));
 		this.deleteFromLocalStorage(key);
 	}
 
@@ -280,7 +304,15 @@ export class UserSettingsService extends BaseService {
 	}
 
 	private generateLocalStorageKey(key: string): string {
-		return `${this.getUserSettingsVersion()}_${this.getUserId()}_${key}`;
+		return `${this.getUserSettingsVersion()}_${this.getUserId()}_${this.cacheKey(key)}`;
+	}
+
+	/**
+	 * Setting rows are tenant-scoped on the server, so a cached row (and its id) must never be reused from
+	 * another tenant: updating it there is rejected as tenant tampering.
+	 */
+	private cacheKey(key: string): string {
+		return `${this.authService.selectedTenant() || 'default'}_${key}`;
 	}
 
 	private getUserId(): Guid {

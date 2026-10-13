@@ -9,8 +9,10 @@ import org.opencdmp.filetransformerbase.interfaces.FileTransformerClient;
 import org.opencdmp.filetransformerbase.interfaces.FileTransformerConfiguration;
 import org.opencdmp.filetransformerbase.models.misc.DescriptionImportModel;
 import org.opencdmp.filetransformerbase.models.misc.PlanImportModel;
+import org.opencdmp.commonmodels.enums.PluginEntityType;
 import org.opencdmp.filetransformerbase.models.misc.PreprocessingDescriptionModel;
 import org.opencdmp.filetransformerbase.models.misc.PreprocessingPlanModel;
+import org.opencdmp.filetransformerbase.models.misc.TemplateValidationResultModel;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -31,6 +33,30 @@ public class FileTransformerRepository implements FileTransformerClient {
         logger.debug(new MapLogEntry("exportPlan").And("format", format).And("planModel", planModel));
         return this.transformerClient.post().uri("/export/plan", uriBuilder -> uriBuilder.queryParam("format", format).build()).bodyValue(planModel)
                 .exchangeToMono(mono ->  mono.statusCode().isError() ? mono.createException().flatMap(Mono::error) : mono.bodyToMono(FileEnvelopeModel.class)).block();
+    }
+
+    /**
+     * The plugin's built-in template, for plugins that offer one ({@code GET /default-template}, outside the file
+     * transformer contract); {@code null} when the plugin does not.
+     */
+    public byte[] getDefaultTemplate(PluginEntityType entityType) {
+        return this.transformerClient.get().uri(uriBuilder -> {
+                    uriBuilder.path("/default-template");
+                    if (entityType != null) uriBuilder.queryParam("entityType", entityType.name());
+                    return uriBuilder.build();
+                })
+                .exchangeToMono(mono -> mono.statusCode().is4xxClientError() ? Mono.<byte[]>empty() : mono.statusCode().isError() ? mono.createException().flatMap(Mono::error) : mono.bodyToMono(byte[].class)).block();
+    }
+
+    @Override
+    public TemplateValidationResultModel validateTemplate(FileEnvelopeModel fileEnvelopeModel, PluginEntityType entityType) {
+        logger.debug(new MapLogEntry("validateTemplate").And("entityType", entityType));
+        return this.transformerClient.post().uri(uriBuilder -> {
+                    uriBuilder.path("/validate-template");
+                    if (entityType != null) uriBuilder.queryParam("entityType", entityType.name());
+                    return uriBuilder.build();
+                }).bodyValue(fileEnvelopeModel)
+                .exchangeToMono(mono ->  mono.statusCode().isError() ? mono.createException().flatMap(Mono::error) : mono.bodyToMono(TemplateValidationResultModel.class)).block();
     }
 
     @Override

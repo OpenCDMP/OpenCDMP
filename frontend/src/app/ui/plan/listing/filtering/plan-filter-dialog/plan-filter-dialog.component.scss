@@ -1,11 +1,22 @@
-.clear-icon {
-	cursor: pointer;
-	color: var(--dark-text);
-	padding: 0.4rem;
+:host {
+    display: block;
+    width: 100%;
+    height: 100%;
 }
-
-.clear-icon:hover {
-	background-color: rgb(0,0,0,0.05) !important;
-	border-radius: 50%;
-	padding: 0.4rem;
+.filters-title{
+    font-size: var(--mat-sys-body-medium-size);
+    padding: 0.5rem 1rem;
+    background-color: var(--mat-sys-surface);
+    color: var(--mat-sys-on-surface);
+    border-bottom: 1px solid var(--mat-sys-outline-variant);
+}
+h2.criteria-title {
+    margin: 0;
+    font-size: var(--mat-sys-title-medium-size);
+    font-weight: inherit;
+}
+.content {
+    color: var(--mat-sys-on-background);
+    height: calc(100vh - 100px);
+    padding: 1rem;
 }

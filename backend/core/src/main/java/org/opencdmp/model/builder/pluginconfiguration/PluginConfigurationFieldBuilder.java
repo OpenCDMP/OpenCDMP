@@ -64,7 +64,10 @@ public class PluginConfigurationFieldBuilder extends BaseBuilder<PluginConfigura
         for (PluginConfigurationFieldEntity d : data) {
             PluginConfigurationField m = new PluginConfigurationField();
             if (fields.hasField(this.asIndexer(PluginConfigurationField._code))) m.setCode(d.getCode());
-            if (fields.hasField(this.asIndexer(PluginConfigurationField._textValue))) m.setTextValue(d.getTextValue());
+            boolean secret = Boolean.TRUE.equals(d.getSecret());
+            if (fields.hasField(this.asIndexer(PluginConfigurationField._textValue)) && !secret) m.setTextValue(d.getTextValue());
+            if (fields.hasField(this.asIndexer(PluginConfigurationField._secret))) m.setSecret(secret);
+            if (fields.hasField(this.asIndexer(PluginConfigurationField._secretSet))) m.setSecretSet(secret && d.getTextValue() != null && !d.getTextValue().isBlank());
             if (!valueFields.isEmpty() && storageFileItemsMap != null && storageFileItemsMap.containsKey(d.getFileValue()))  m.setFileValue(storageFileItemsMap.get(d.getFileValue()));
             models.add(m);
 

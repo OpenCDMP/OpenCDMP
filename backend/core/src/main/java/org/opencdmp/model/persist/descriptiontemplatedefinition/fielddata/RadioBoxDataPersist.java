@@ -74,6 +74,14 @@ public class RadioBoxDataPersist extends BaseFieldDataPersist {
 	
 	    public static final String _value = "value";
 	
+	    private List<SemanticValuePersist> semantics = null;
+	
+	    public static final String _semantics = "semantics";
+	
+	    private Boolean exportsNothing = null;
+	
+	    public static final String _exportsNothing = "exportsNothing";
+	
 	    public String getLabel() {
 	        return label;
 	    }
@@ -90,6 +98,22 @@ public class RadioBoxDataPersist extends BaseFieldDataPersist {
 	        this.value = value;
 	    }
 	
+	    public List<SemanticValuePersist> getSemantics() {
+	        return semantics;
+	    }
+	
+	    public void setSemantics(List<SemanticValuePersist> semantics) {
+	        this.semantics = semantics;
+	    }
+	
+	    public Boolean getExportsNothing() {
+	        return exportsNothing;
+	    }
+	
+	    public void setExportsNothing(Boolean exportsNothing) {
+	        this.exportsNothing = exportsNothing;
+	    }
+	
 	    @Component(RadioBoxOptionPersistValidator.ValidatorName)
 	    @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 	    public static class RadioBoxOptionPersistValidator extends BaseValidator<RadioBoxOptionPersist> {
@@ -98,9 +122,12 @@ public class RadioBoxDataPersist extends BaseFieldDataPersist {
 	
 	        private final MessageSource messageSource;
 	
-	        protected RadioBoxOptionPersistValidator(ConventionService conventionService, ErrorThesaurusProperties errors, MessageSource messageSource) {
+	        private final ValidatorFactory validatorFactory;
+	
+	        protected RadioBoxOptionPersistValidator(ConventionService conventionService, ErrorThesaurusProperties errors, MessageSource messageSource, ValidatorFactory validatorFactory) {
 	            super(conventionService, errors);
 	            this.messageSource = messageSource;
+	            this.validatorFactory = validatorFactory;
 	        }
 	
 	        @Override
@@ -116,7 +143,12 @@ public class RadioBoxDataPersist extends BaseFieldDataPersist {
 	                            .failOn(RadioBoxOptionPersist._label).failWith(messageSource.getMessage("Validation_Required", new Object[]{RadioBoxOptionPersist._label}, LocaleContextHolder.getLocale())),
 	                    this.spec()
 	                            .must(() -> !this.isEmpty(item.getValue()))
-	                            .failOn(RadioBoxOptionPersist._value).failWith(messageSource.getMessage("Validation_Required", new Object[]{RadioBoxOptionPersist._value}, LocaleContextHolder.getLocale()))
+	                            .failOn(RadioBoxOptionPersist._value).failWith(messageSource.getMessage("Validation_Required", new Object[]{RadioBoxOptionPersist._value}, LocaleContextHolder.getLocale())),
+	                    this.navSpec()
+	                            .iff(() -> !this.isListNullOrEmpty(item.getSemantics()))
+	                            .on(RadioBoxOptionPersist._semantics)
+	                            .over(item.getSemantics())
+	                            .using((itm) -> this.validatorFactory.validator(SemanticValuePersist.SemanticValuePersistValidator.class))
 	            );
 	        }
 	    }

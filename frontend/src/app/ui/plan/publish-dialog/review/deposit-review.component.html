@@ -1,0 +1,286 @@
+<div class="deposit-review">
+	@if (missingGroups.length; as count) {
+		<div class="deposit-review__alert" role="status">
+			<mat-icon aria-hidden="true">error</mat-icon>
+			<div class="deposit-review__alert-text">
+				<strong>{{ (count === 1 ? 'PUBLISH-DIALOG.REVIEW.MISSING-ONE' : 'PUBLISH-DIALOG.REVIEW.MISSING-MANY') | translate: { count: count } }}</strong>
+				<span>{{ 'PUBLISH-DIALOG.REVIEW.MISSING-HINT' | translate: { repository: repositoryLabel() } }}</span>
+			</div>
+			@for (group of missingGroups; track group.code) {
+				<button mat-button type="button" (click)="complete(group)">{{ 'PUBLISH-DIALOG.REVIEW.COMPLETE' | translate: { section: groupLabel(group) } }}</button>
+			}
+		</div>
+	}
+
+	<form [formGroup]="formGroup">
+		<section class="deposit-review__summary" aria-labelledby="deposit-review-summary-title">
+			<h3 id="deposit-review-summary-title" class="deposit-review__summary-title">{{ 'PUBLISH-DIALOG.REVIEW.WHAT' | translate }}</h3>
+			@for (group of summaryGroups; track group.code) {
+				@let state = source(group);
+				<div class="deposit-review__row" [class.deposit-review__row--missing]="state === 'missing'" [class.deposit-review__row--open]="isOpen(group)">
+					<div class="deposit-review__row-head">
+						<span class="deposit-review__name">{{ groupLabel(group) }}</span>
+						<span class="deposit-review__value">
+							<span class="deposit-review__text" [title]="summary(group)">{{ summary(group) || ('PUBLISH-DIALOG.REVIEW.EMPTY' | translate) }}</span>
+							@if (state !== 'plan' || summary(group)) {
+								<span class="deposit-review__tag deposit-review__tag--{{ state }}">{{ ('PUBLISH-DIALOG.REVIEW.SOURCE.' + state.toUpperCase()) | translate }}</span>
+							}
+						</span>
+						@if (!isFixed(group)) {
+							<button mat-button type="button" (click)="toggle(group)" [attr.aria-expanded]="isOpen(group)">
+								{{ (isOpen(group) ? 'PUBLISH-DIALOG.REVIEW.DONE' : 'PUBLISH-DIALOG.REVIEW.EDIT') | translate }}<span class="cdk-visually-hidden"> {{ groupLabel(group) }}</span>
+							</button>
+						}
+					</div>
+					@if (isOpen(group)) {
+						<div class="deposit-review__editor">
+							@if (group.repeatable) {
+								<ng-container *ngTemplateOutlet="rowsEditor; context: { $implicit: group }" />
+							} @else {
+								<ng-container *ngTemplateOutlet="fieldsEditor; context: { $implicit: group }" />
+							}
+						</div>
+					}
+				</div>
+			}
+		</section>
+
+		@if (moreGroups.length) {
+			<section class="deposit-review__more">
+				<button type="button" class="deposit-review__more-toggle" (click)="moreOpen = !moreOpen" [attr.aria-expanded]="moreOpen">
+					<span class="deposit-review__more-text">
+						<strong>{{ 'PUBLISH-DIALOG.REVIEW.MORE' | translate: { repository: repositoryLabel() } }}</strong>
+						<span>{{ 'PUBLISH-DIALOG.REVIEW.MORE-HINT' | translate: { count: moreGroups.length } }}</span>
+					</span>
+					<mat-icon aria-hidden="true">{{ moreOpen ? 'expand_less' : 'expand_more' }}</mat-icon>
+				</button>
+				@if (moreOpen) {
+					<div class="deposit-review__more-list">
+						@for (group of moreGroups; track group.code) {
+							<button mat-stroked-button type="button" (click)="add(group)">
+								<mat-icon aria-hidden="true">add</mat-icon>{{ groupLabel(group) }}
+							</button>
+						}
+					</div>
+				}
+			</section>
+		}
+	</form>
+</div>
+
+<ng-template #fieldsEditor let-group>
+	<ng-container [formGroup]="formGroup">
+			<div class="preview-fields">
+				@for (field of group.fields; track field.code) {
+					@if (!isEditable(field)) {
+						<div class="read-only-field">
+							<span class="read-only-label">{{fieldLabel(field)}}</span>
+							<span class="read-only-value">{{readOnlyDisplay(field)}}</span>
+						</div>
+					} @else {
+						<div class="editable-field" [class.full-width]="field.type === previewFieldTypeEnum.TextArea || field.type === previewFieldTypeEnum.Tags || isMultiVocab(field)">
+							@switch (field.type) {
+								@case (previewFieldTypeEnum.TextArea) {
+									@if (isRichText(field)) {
+										<div class="rich-text-field full-width">
+											<span class="rich-text-label">{{fieldLabel(field)}}</span>
+											<rich-text-editor-component [form]="asFormControl(field.code)"></rich-text-editor-component>
+										</div>
+									} @else {
+										<mat-form-field appearance="outline" class="full-width">
+											<mat-label>{{fieldLabel(field)}}</mat-label>
+											<textarea matInput [formControlName]="field.code" rows="4"></textarea>
+											<mat-error>{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
+										</mat-form-field>
+									}
+								}
+								@case (previewFieldTypeEnum.Date) {
+									<mat-form-field appearance="outline">
+										<mat-label>{{fieldLabel(field)}}</mat-label>
+										<input matInput [matDatepicker]="picker" [formControlName]="field.code">
+										<mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
+										<mat-datepicker #picker></mat-datepicker>
+										<mat-error>{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
+									</mat-form-field>
+								}
+								@case (previewFieldTypeEnum.Select) {
+									@if (isMultiVocab(field)) {
+										<mat-form-field appearance="outline" class="full-width">
+											<mat-label>{{fieldLabel(field)}}</mat-label>
+											<mat-chip-grid #multiGrid>
+												@for (val of tags(field); track val) {
+													<mat-chip-row (removed)="removeTag(field, val)">
+														{{chipDisplay(field, val)}}
+														<button matChipRemove type="button">
+															<mat-icon>cancel</mat-icon>
+														</button>
+													</mat-chip-row>
+												}
+												<input #multiInput [matChipInputFor]="multiGrid" [matChipInputSeparatorKeyCodes]="tagSeparatorKeysCodes" (matChipInputTokenEnd)="addCustomChip(field, $event)" [matAutocomplete]="multiAuto" (input)="onVocabInput(field, $event)" [placeholder]="'DEPOSIT-PREVIEW-DIALOG.VOCAB-SEARCH-PLACEHOLDER' | translate">
+											</mat-chip-grid>
+											<mat-autocomplete #multiAuto="matAutocomplete" (optionSelected)="onMultiOptionSelected(field, $event, multiInput)">
+												@for (option of vocabOptionsFor(field); track option.value) {
+													<mat-option [value]="option.value">{{optionLabel(option)}}</mat-option>
+												}
+											</mat-autocomplete>
+											<mat-error>{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
+										</mat-form-field>
+									} @else if (field.vocabSearch) {
+										<mat-form-field appearance="outline">
+											<mat-label>{{fieldLabel(field)}}</mat-label>
+											<input matInput [formControlName]="field.code" [matAutocomplete]="vocabAuto" (input)="onVocabInput(field, $event)" [placeholder]="'DEPOSIT-PREVIEW-DIALOG.VOCAB-SEARCH-PLACEHOLDER' | translate">
+											<mat-autocomplete #vocabAuto="matAutocomplete" [displayWith]="vocabDisplayFn(field)" (optionSelected)="onVocabSelected(field, $event)">
+												@for (option of vocabOptionsFor(field); track option.value) {
+													<mat-option [value]="option.value">{{optionLabel(option)}}</mat-option>
+												}
+											</mat-autocomplete>
+											<mat-error>{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
+										</mat-form-field>
+									} @else {
+										<mat-form-field appearance="outline">
+											<mat-label>{{fieldLabel(field)}}</mat-label>
+											<mat-select [formControlName]="field.code">
+												@for (option of field.options; track option.value) {
+													<mat-option [value]="option.value">{{optionLabel(option)}}</mat-option>
+												}
+											</mat-select>
+											<mat-error>{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
+										</mat-form-field>
+									}
+								}
+								@case (previewFieldTypeEnum.Tags) {
+									@if (field.vocabSearch) {
+										<mat-form-field appearance="outline" class="full-width">
+											<mat-label>{{fieldLabel(field)}}</mat-label>
+											<mat-chip-grid #chipGridVocab>
+												@for (tag of tags(field); track tag) {
+													<mat-chip-row (removed)="removeTag(field, tag)">
+														{{tag}}
+														<button matChipRemove type="button">
+															<mat-icon>cancel</mat-icon>
+														</button>
+													</mat-chip-row>
+												}
+												<input #tagVocabInput [matChipInputFor]="chipGridVocab" [matChipInputSeparatorKeyCodes]="tagSeparatorKeysCodes" (matChipInputTokenEnd)="addTag(field, $event)" [matAutocomplete]="tagsAuto" (input)="onVocabInput(field, $event)">
+											</mat-chip-grid>
+											<mat-autocomplete #tagsAuto="matAutocomplete" (optionSelected)="onTagOptionSelected(field, $event, tagVocabInput)">
+												@for (option of vocabOptionsFor(field); track option.value) {
+													<mat-option [value]="option.value">{{optionLabel(option)}}</mat-option>
+												}
+											</mat-autocomplete>
+											<mat-error>{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
+										</mat-form-field>
+									} @else {
+										<mat-form-field appearance="outline" class="full-width">
+											<mat-label>{{fieldLabel(field)}}</mat-label>
+											<mat-chip-grid #chipGrid>
+												@for (tag of tags(field); track tag) {
+													<mat-chip-row (removed)="removeTag(field, tag)">
+														{{tag}}
+														<button matChipRemove type="button">
+															<mat-icon>cancel</mat-icon>
+														</button>
+													</mat-chip-row>
+												}
+												<input [matChipInputFor]="chipGrid" [matChipInputSeparatorKeyCodes]="tagSeparatorKeysCodes" (matChipInputTokenEnd)="addTag(field, $event)">
+											</mat-chip-grid>
+											<mat-error>{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
+										</mat-form-field>
+									}
+								}
+								@case (previewFieldTypeEnum.Boolean) {
+									<mat-slide-toggle [formControlName]="field.code">{{fieldLabel(field)}}</mat-slide-toggle>
+								}
+								@case (previewFieldTypeEnum.Number) {
+									<mat-form-field appearance="outline">
+										<mat-label>{{fieldLabel(field)}}</mat-label>
+										<input matInput type="number" [formControlName]="field.code">
+										<mat-error>{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
+									</mat-form-field>
+								}
+								@default {
+									<mat-form-field appearance="outline">
+										<mat-label>{{fieldLabel(field)}}</mat-label>
+										<input matInput [formControlName]="field.code">
+										<mat-error>{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
+									</mat-form-field>
+								}
+							}
+							@if (field.previousValue) {
+								<mat-icon class="field-hint-icon conflict" [matTooltip]="previousValueDisplay(field)">history</mat-icon>
+							}
+							@if (field.storedValueApplied) {
+								<mat-icon class="field-hint-icon restored" [matTooltip]="'DEPOSIT-PREVIEW-DIALOG.STORED-VALUE-HINT' | translate">restore</mat-icon>
+							}
+						</div>
+					}
+				}
+			</div>
+	</ng-container>
+</ng-template>
+
+<ng-template #rowsEditor let-group>
+	<ng-container [formGroup]="formGroup">
+		<div class="group-header">
+			@if (group.storedItemsApplied) {
+				<mat-icon class="field-hint-icon restored" [matTooltip]="'DEPOSIT-PREVIEW-DIALOG.STORED-VALUE-HINT' | translate">restore</mat-icon>
+			}
+			<button mat-stroked-button type="button" class="add-row" (click)="addRow(group)">
+				<mat-icon>add</mat-icon>
+				{{'DEPOSIT-PREVIEW-DIALOG.ACTIONS.ADD-ROW' | translate}}
+			</button>
+		</div>
+			@for (row of rows(group)?.controls; track row; let i = $index) {
+				<div class="group-row" [formGroup]="row">
+					<div class="row-fields">
+						@for (field of group.fields; track field.code) {
+							@switch (field.type) {
+								@case (previewFieldTypeEnum.Select) {
+									<mat-form-field appearance="outline">
+										<mat-label>{{fieldLabel(field)}}</mat-label>
+										<mat-select [formControlName]="field.code">
+											@for (option of field.options; track option.value) {
+												<mat-option [value]="option.value">{{optionLabel(option)}}</mat-option>
+											}
+										</mat-select>
+									</mat-form-field>
+								}
+								@case (previewFieldTypeEnum.TextArea) {
+									<mat-form-field appearance="outline" class="row-textarea">
+										<mat-label>{{fieldLabel(field)}}</mat-label>
+										<textarea matInput [formControlName]="field.code" rows="3"></textarea>
+									</mat-form-field>
+								}
+								@default {
+									@if (field.vocabSearch) {
+										<mat-form-field appearance="outline">
+											<mat-label>{{fieldLabel(field)}}</mat-label>
+											<input matInput [formControlName]="field.code" [matAutocomplete]="rowAuto" (input)="onVocabInput(field, $event)">
+											<mat-autocomplete #rowAuto="matAutocomplete">
+												@for (option of vocabOptionsFor(field); track option.value) {
+													<mat-option [value]="option.value">{{optionLabel(option)}}</mat-option>
+												}
+											</mat-autocomplete>
+										</mat-form-field>
+									} @else {
+										<mat-form-field appearance="outline">
+											<mat-label>{{fieldLabel(field)}}</mat-label>
+											<input matInput [formControlName]="field.code">
+										</mat-form-field>
+									}
+								}
+							}
+						}
+					</div>
+					<button mat-icon-button type="button" class="remove-row" (click)="removeRow(group, i)" [matTooltip]="'DEPOSIT-PREVIEW-DIALOG.ACTIONS.REMOVE-ROW' | translate">
+						<mat-icon>delete</mat-icon>
+					</button>
+				</div>
+			}
+			@if (!rows(group)?.length) {
+				<p class="empty-group" [class.required-error]="formInvalid && groupHasMissingRows(group)">
+					{{(formInvalid && groupHasMissingRows(group) ? 'GENERAL.VALIDATION.REQUIRED' : 'DEPOSIT-PREVIEW-DIALOG.EMPTY-GROUP') | translate}}
+				</p>
+			}
+	</ng-container>
+</ng-template>

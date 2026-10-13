@@ -13,28 +13,31 @@ import { PlanListingComponent } from './plan-listing.component';
 import { PlanListingItemComponent } from './listing-item/plan-listing-item.component';
 import { PlanListingRoutingModule } from './plan-listing.routing';
 import { TextFilterModule } from '@common/modules/text-filter/text-filter.module';
+import { ActiveReferenceFiltersComponent } from '@app/ui/reference/reference-usage-filter/active-reference-filters.component';
+import { ReferenceUsageFilterComponent } from '@app/ui/reference/reference-usage-filter/reference-usage-filter.component';
 
 @NgModule({
-	imports: [
-		CommonUiModule,
-		CommonFormsModule,
-		FormattingModule,
-		AutoCompleteModule,
-		ClonePlanDialogModule,
-		NewVersionPlanDialogModule,
-		PlanInvitationDialogModule,
-		PlanListingRoutingModule,
-        TextFilterModule
-	],
-	declarations: [
-		PlanListingComponent,
-		PlanListingItemComponent,
-		PlanFilterDialogComponent,
-		PlanFilterComponent,
-	],
-	exports: [
-		PlanListingItemComponent
-	],
-	providers: [ PlanFilterService ]
+    imports: [
+        CommonUiModule,
+        ReferenceUsageFilterComponent,
+        ActiveReferenceFiltersComponent,
+        CommonFormsModule,
+        FormattingModule,
+        AutoCompleteModule,
+        ClonePlanDialogModule,
+        NewVersionPlanDialogModule,
+        PlanInvitationDialogModule,
+        PlanListingRoutingModule,
+        TextFilterModule,
+        PlanListingComponent,
+        PlanListingItemComponent,
+        PlanFilterDialogComponent,
+        PlanFilterComponent
+    ],
+    exports: [
+        PlanListingItemComponent,
+        PlanFilterDialogComponent
+    ],
+    providers: [PlanFilterService]
 })
 export class PlanListingModule { }

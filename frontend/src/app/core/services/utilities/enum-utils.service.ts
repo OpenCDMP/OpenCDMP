@@ -3,17 +3,18 @@ import { AnnotationProtectionType } from '@app/core/common/enum/annotation-prote
 import { DescriptionStatusEnum } from '@app/core/common/enum/description-status';
 import { DescriptionTemplateExternalSelectAuthType } from '@app/core/common/enum/description-template-external-select-auth-type';
 import { DescriptionTemplateExternalSelectHttpMethodType } from '@app/core/common/enum/description-template-external-select-http-method-type';
-import { DescriptionTemplateFieldDataExternalDatasetType } from '@app/core/common/enum/description-template-field-data-external-dataset-type';
-import { DescriptionTemplateFieldType } from '@app/core/common/enum/description-template-field-type';
+import { FieldDataExternalDatasetType } from '@app/core/common/enum/field-data-external-dataset-type';
+import { FieldType } from '@app/core/common/enum/field-type';
 import { DescriptionTemplateStatus } from '@app/core/common/enum/description-template-status';
 import { DescriptionTemplateTypeStatus } from '@app/core/common/enum/description-template-type-status';
 import { PlanAccessType } from '@app/core/common/enum/plan-access-type';
 import { PlanBlueprintFieldCategory } from '@app/core/common/enum/plan-blueprint-field-category';
 import { PlanBlueprintStatus } from '@app/core/common/enum/plan-blueprint-status';
-import { PlanBlueprintSystemFieldType } from '@app/core/common/enum/plan-blueprint-system-field-type';
+import { SystemFieldType } from '@app/core/common/enum/system-field-type';
 import { PlanUserRole } from '@app/core/common/enum/plan-user-role';
 import { PlanUserType } from '@app/core/common/enum/plan-user-type';
 import { ExternalFetcherApiHTTPMethodType } from '@app/core/common/enum/external-fetcher-api-http-method-type';
+import { ExternalFetcherApiResponseFormatType } from '@app/core/common/enum/external-fetcher-api-response-format-type';
 import { ExternalFetcherSourceType } from '@app/core/common/enum/external-fetcher-source-type';
 import { IsActive } from '@app/core/common/enum/is-active.enum';
 import { LockTargetType } from '@app/core/common/enum/lock-target-type';
@@ -28,14 +29,16 @@ import { TranslateService } from '@ngx-translate/core';
 import { AppRole } from '../../common/enum/app-role';
 import { PlanBlueprintExtraFieldDataType } from '../../common/enum/plan-blueprint-field-type';
 import { PlanStatusEnum } from '../../common/enum/plan-status';
-import { ValidationType } from '../../common/enum/validation-type';
 import { UsageLimitTargetMetric } from '@app/core/common/enum/usage-limit-target-metric';
+import { WebhookDeliveryStatus } from '@app/core/common/enum/webhook-delivery-status.enum';
+import { WebhookEventType } from '@app/core/common/enum/webhook-event-type.enum';
 import { UsageLimitPeriodicityRange } from '@app/core/common/enum/usage-limit-periodicity-range';
 import { PlanStatusAvailableActionType } from '@app/core/common/enum/plan-status-available-action-type';
 import { DescriptionStatusAvailableActionType } from '@app/core/common/enum/description-status-available-action-type';
 import { SuccessStatus } from '@app/core/model/evaluator/evaluator-success-status.model';
 import { ExternalFetcherApiHeaderType } from '@app/core/common/enum/ExternalFetcherApiHeader.enum';
 import { PlanBlueprintTypeStatus } from '@app/core/common/enum/plan-blueprint-type-status';
+import { FieldValidationType } from '@app/core/common/enum/field-validation-type';
 
 @Injectable()
 export class EnumUtils {
@@ -89,10 +92,12 @@ export class EnumUtils {
 		}
 	}
 
-	toDescriptionTemplateFieldValidationTypeString(status: ValidationType): string {
+	toDescriptionTemplateFieldValidationTypeString(status: FieldValidationType): string {
 		switch (status) {
-			case ValidationType.None: return this.language.instant('TYPES.DESCRIPTION-TEMPLATE-FIELD-VALIDATION-TYPE.NONE');
-			case ValidationType.Required: return this.language.instant('TYPES.DESCRIPTION-TEMPLATE-FIELD-VALIDATION-TYPE.REQUIRED');
+			case FieldValidationType.None: return this.language.instant('TYPES.DESCRIPTION-TEMPLATE-FIELD-VALIDATION-TYPE.NONE');
+			case FieldValidationType.Required: return this.language.instant('TYPES.DESCRIPTION-TEMPLATE-FIELD-VALIDATION-TYPE.REQUIRED');
+			case FieldValidationType.Url: return this.language.instant('GENERAL.VALIDATION.URL.LABEL');
+			case FieldValidationType.Email: return this.language.instant('GENERAL.VALIDATION.EMAIL.LABEL');
 		}
 	}
 
@@ -144,14 +149,16 @@ export class EnumUtils {
 	}
 
 
-	toPlanBlueprintSystemFieldTypeString(status: PlanBlueprintSystemFieldType): string {
+	toSystemFieldTypeString(status: SystemFieldType): string {
 		switch (status) {
-			case PlanBlueprintSystemFieldType.Title: return this.language.instant('TYPES.PLAN-BLUEPRINT-SYSTEM-FIELD-TYPE.TITLE');
-			case PlanBlueprintSystemFieldType.Description: return this.language.instant('TYPES.PLAN-BLUEPRINT-SYSTEM-FIELD-TYPE.DESCRIPTION');
-			case PlanBlueprintSystemFieldType.Language: return this.language.instant('TYPES.PLAN-BLUEPRINT-SYSTEM-FIELD-TYPE.LANGUAGE');
-			case PlanBlueprintSystemFieldType.Contact: return this.language.instant('TYPES.PLAN-BLUEPRINT-SYSTEM-FIELD-TYPE.CONTACT');
-			case PlanBlueprintSystemFieldType.AccessRights: return this.language.instant('TYPES.PLAN-BLUEPRINT-SYSTEM-FIELD-TYPE.ACCESS_RIGHTS');
-			case PlanBlueprintSystemFieldType.User: return this.language.instant('TYPES.PLAN-BLUEPRINT-SYSTEM-FIELD-TYPE.USER');
+			case SystemFieldType.PlanTitle: return this.language.instant('TYPES.PLAN-BLUEPRINT-SYSTEM-FIELD-TYPE.TITLE');
+			case SystemFieldType.PlanDescription: return this.language.instant('TYPES.PLAN-BLUEPRINT-SYSTEM-FIELD-TYPE.DESCRIPTION');
+			case SystemFieldType.PlanLanguage: return this.language.instant('TYPES.PLAN-BLUEPRINT-SYSTEM-FIELD-TYPE.LANGUAGE');
+			case SystemFieldType.PlanContact: return this.language.instant('TYPES.PLAN-BLUEPRINT-SYSTEM-FIELD-TYPE.CONTACT');
+			case SystemFieldType.PlanAccessRights: return this.language.instant('TYPES.PLAN-BLUEPRINT-SYSTEM-FIELD-TYPE.ACCESS_RIGHTS');
+			case SystemFieldType.PlanDescriptionDescription: return this.language.instant('TYPES.PLAN-BLUEPRINT-SYSTEM-FIELD-TYPE.DESCRIPTION-DESCRIPTION');
+			case SystemFieldType.PlanDescriptionTitle: return this.language.instant('TYPES.PLAN-BLUEPRINT-SYSTEM-FIELD-TYPE.DESCRIPTION-TITLE');
+            case SystemFieldType.PlanDescriptionTag: return this.language.instant('TYPES.PLAN-BLUEPRINT-SYSTEM-FIELD-TYPE.DESCRIPTION-TAG');
 		}
 	}
 
@@ -164,23 +171,25 @@ export class EnumUtils {
 		}
 	}
 
-	toDescriptionTemplateFieldTypeString(status: DescriptionTemplateFieldType): string {
+	toFieldTypeString(status: FieldType): string {
 		switch (status) {
-			case DescriptionTemplateFieldType.SELECT: return this.language.instant('TYPES.DESCRIPTION-TEMPLATE-FIELD-TYPE.SELECT');
-			case DescriptionTemplateFieldType.BOOLEAN_DECISION: return this.language.instant('TYPES.DESCRIPTION-TEMPLATE-FIELD-TYPE.BOOLEAN-DECISION');
-			case DescriptionTemplateFieldType.RADIO_BOX: return this.language.instant('TYPES.DESCRIPTION-TEMPLATE-FIELD-TYPE.RADIO-BOX');
-			case DescriptionTemplateFieldType.INTERNAL_ENTRIES_PLANS: return this.language.instant('TYPES.DESCRIPTION-TEMPLATE-FIELD-TYPE.INTERNAL-PLAN-ENTITIES-PLANS');
-			case DescriptionTemplateFieldType.INTERNAL_ENTRIES_DESCRIPTIONS: return this.language.instant('TYPES.DESCRIPTION-TEMPLATE-FIELD-TYPE.INTERNAL-PLAN-ENTITIES-DESCRIPTIONS');
-			case DescriptionTemplateFieldType.CHECK_BOX: return this.language.instant('TYPES.DESCRIPTION-TEMPLATE-FIELD-TYPE.CHECKBOX');
-			case DescriptionTemplateFieldType.FREE_TEXT: return this.language.instant('TYPES.DESCRIPTION-TEMPLATE-FIELD-TYPE.FREE-TEXT');
-			case DescriptionTemplateFieldType.TEXT_AREA: return this.language.instant('TYPES.DESCRIPTION-TEMPLATE-FIELD-TYPE.TEXT-AREA');
-			case DescriptionTemplateFieldType.RICH_TEXT_AREA: return this.language.instant('TYPES.DESCRIPTION-TEMPLATE-FIELD-TYPE.RICH-TEXT-AREA');
-			case DescriptionTemplateFieldType.UPLOAD: return this.language.instant('TYPES.DESCRIPTION-TEMPLATE-FIELD-TYPE.UPLOAD');
-			case DescriptionTemplateFieldType.DATE_PICKER: return this.language.instant('TYPES.DESCRIPTION-TEMPLATE-FIELD-TYPE.DATE-PICKER');
-			case DescriptionTemplateFieldType.TAGS: return this.language.instant('TYPES.DESCRIPTION-TEMPLATE-FIELD-TYPE.TAGS');
-			case DescriptionTemplateFieldType.REFERENCE_TYPES: return this.language.instant('TYPES.DESCRIPTION-TEMPLATE-FIELD-TYPE.REFERENCE-TYPES');
-			case DescriptionTemplateFieldType.DATASET_IDENTIFIER: return this.language.instant('TYPES.DESCRIPTION-TEMPLATE-FIELD-TYPE.DATASET-IDENTIFIER');
-			case DescriptionTemplateFieldType.VALIDATION: return this.language.instant('TYPES.DESCRIPTION-TEMPLATE-FIELD-TYPE.VALIDATION');
+			case FieldType.SELECT: return this.language.instant('TYPES.DESCRIPTION-TEMPLATE-FIELD-TYPE.SELECT');
+			case FieldType.BOOLEAN_DECISION: return this.language.instant('TYPES.DESCRIPTION-TEMPLATE-FIELD-TYPE.BOOLEAN-DECISION');
+			case FieldType.RADIO_BOX: return this.language.instant('TYPES.DESCRIPTION-TEMPLATE-FIELD-TYPE.RADIO-BOX');
+			case FieldType.INTERNAL_ENTRIES_PLANS: return this.language.instant('TYPES.DESCRIPTION-TEMPLATE-FIELD-TYPE.INTERNAL-PLAN-ENTITIES-PLANS');
+			case FieldType.INTERNAL_ENTRIES_DESCRIPTIONS: return this.language.instant('TYPES.DESCRIPTION-TEMPLATE-FIELD-TYPE.INTERNAL-PLAN-ENTITIES-DESCRIPTIONS');
+			case FieldType.CHECK_BOX: return this.language.instant('TYPES.DESCRIPTION-TEMPLATE-FIELD-TYPE.CHECKBOX');
+			case FieldType.FREE_TEXT: return this.language.instant('TYPES.DESCRIPTION-TEMPLATE-FIELD-TYPE.FREE-TEXT');
+			case FieldType.TEXT_AREA: return this.language.instant('TYPES.DESCRIPTION-TEMPLATE-FIELD-TYPE.TEXT-AREA');
+			case FieldType.RICH_TEXT_AREA: return this.language.instant('TYPES.DESCRIPTION-TEMPLATE-FIELD-TYPE.RICH-TEXT-AREA');
+			case FieldType.UPLOAD: return this.language.instant('TYPES.DESCRIPTION-TEMPLATE-FIELD-TYPE.UPLOAD');
+			case FieldType.DATE_PICKER: return this.language.instant('TYPES.DESCRIPTION-TEMPLATE-FIELD-TYPE.DATE-PICKER');
+			case FieldType.TAGS: return this.language.instant('TYPES.DESCRIPTION-TEMPLATE-FIELD-TYPE.TAGS');
+			case FieldType.REFERENCE_TYPES: return this.language.instant('TYPES.DESCRIPTION-TEMPLATE-FIELD-TYPE.REFERENCE-TYPES');
+			case FieldType.DATASET_IDENTIFIER: return this.language.instant('TYPES.DESCRIPTION-TEMPLATE-FIELD-TYPE.DATASET-IDENTIFIER');
+			case FieldType.VALIDATION: return this.language.instant('TYPES.DESCRIPTION-TEMPLATE-FIELD-TYPE.VALIDATION');
+			case FieldType.NUMBER: return this.language.instant('TYPES.DESCRIPTION-TEMPLATE-FIELD-TYPE.NUMBER');
+			case FieldType.SYSTEM: return this.language.instant('TYPES.DESCRIPTION-TEMPLATE-FIELD-TYPE.SYSTEM');
 		}
 	}
 
@@ -203,6 +212,13 @@ export class EnumUtils {
 		switch (status) {
 			case ExternalFetcherApiHTTPMethodType.GET: return this.language.instant('TYPES.EXTERNAL-FETCHER-API-HTTP-METHOD-TYPE.GET');
 			case ExternalFetcherApiHTTPMethodType.POST: return this.language.instant('TYPES.EXTERNAL-FETCHER-API-HTTP-METHOD-TYPE.POST');
+		}
+	}
+
+	toExternalFetcherApiResponseFormatTypeString(status: ExternalFetcherApiResponseFormatType): string {
+		switch (status) {
+			case ExternalFetcherApiResponseFormatType.JSON: return this.language.instant('TYPES.EXTERNAL-FETCHER-API-RESPONSE-FORMAT-TYPE.JSON');
+			case ExternalFetcherApiResponseFormatType.XML: return this.language.instant('TYPES.EXTERNAL-FETCHER-API-RESPONSE-FORMAT-TYPE.XML');
 		}
 	}
 
@@ -289,11 +305,11 @@ export class EnumUtils {
 		}
 	}
 
-	public toDescriptionTemplateFieldDataExternalDatasetTypeString(value: DescriptionTemplateFieldDataExternalDatasetType): string {
+	public toFieldDataExternalDatasetTypeString(value: FieldDataExternalDatasetType): string {
 		switch (value) {
-			case DescriptionTemplateFieldDataExternalDatasetType.ReusedDataset: return this.language.instant('TYPES.DESCRIPTION-TEMPLATE-FIELD-EXTERNAL-DATASET-TYPE.REUSED');
-			case DescriptionTemplateFieldDataExternalDatasetType.ProducedDataset: return this.language.instant('TYPES.DESCRIPTION-TEMPLATE-FIELD-EXTERNAL-DATASET-TYPE.PRODUCED');
-			case DescriptionTemplateFieldDataExternalDatasetType.Other: return this.language.instant('TYPES.DESCRIPTION-TEMPLATE-FIELD-EXTERNAL-DATASET-TYPE.OTHER');
+			case FieldDataExternalDatasetType.ReusedDataset: return this.language.instant('TYPES.DESCRIPTION-TEMPLATE-FIELD-EXTERNAL-DATASET-TYPE.REUSED');
+			case FieldDataExternalDatasetType.ProducedDataset: return this.language.instant('TYPES.DESCRIPTION-TEMPLATE-FIELD-EXTERNAL-DATASET-TYPE.PRODUCED');
+			case FieldDataExternalDatasetType.Other: return this.language.instant('TYPES.DESCRIPTION-TEMPLATE-FIELD-EXTERNAL-DATASET-TYPE.OTHER');
 		}
 	}
 
@@ -351,6 +367,25 @@ export class EnumUtils {
 		}
 	}
 
+	public toWebhookEventTypeString(value: WebhookEventType): string {
+		switch (value) {
+			case WebhookEventType.PlanFinalized: return this.language.instant('TYPES.WEBHOOK-EVENT-TYPE.PLAN-FINALIZED');
+			case WebhookEventType.PlanStatusChanged: return this.language.instant('TYPES.WEBHOOK-EVENT-TYPE.PLAN-STATUS-CHANGED');
+			case WebhookEventType.PlanUnfinalized: return this.language.instant('TYPES.WEBHOOK-EVENT-TYPE.PLAN-UNFINALIZED');
+			case WebhookEventType.PlanDeposited: return this.language.instant('TYPES.WEBHOOK-EVENT-TYPE.PLAN-DEPOSITED');
+			case WebhookEventType.DescriptionFinalized: return this.language.instant('TYPES.WEBHOOK-EVENT-TYPE.DESCRIPTION-FINALIZED');
+			case WebhookEventType.Ping: return this.language.instant('TYPES.WEBHOOK-EVENT-TYPE.PING');
+		}
+	}
+
+	public toWebhookDeliveryStatusString(value: WebhookDeliveryStatus): string {
+		switch (value) {
+			case WebhookDeliveryStatus.Pending: return this.language.instant('TYPES.WEBHOOK-DELIVERY-STATUS.PENDING');
+			case WebhookDeliveryStatus.Delivered: return this.language.instant('TYPES.WEBHOOK-DELIVERY-STATUS.DELIVERED');
+			case WebhookDeliveryStatus.Failed: return this.language.instant('TYPES.WEBHOOK-DELIVERY-STATUS.FAILED');
+		}
+	}
+
 	public toUsageLimitTargetMetricString(value: UsageLimitTargetMetric): string {
 		switch (value) {
 			case UsageLimitTargetMetric.USER_COUNT: return this.language.instant('TYPES.USAGE-LIMIT-TARGET-METRIC.USER-COUNT');
@@ -384,6 +419,7 @@ export class EnumUtils {
 		switch (value) {
 			case SuccessStatus.Fail: return this.language.instant('TYPES.EVALUATOR-SUCCESS-STATUS.FAIL');
 			case SuccessStatus.Pass: return this.language.instant('TYPES.EVALUATOR-SUCCESS-STATUS.PASS');
+			case SuccessStatus.NotEvaluated: return this.language.instant('TYPES.EVALUATOR-SUCCESS-STATUS.NOT-EVALUATED');
 			default: return '';
 		}
 	}

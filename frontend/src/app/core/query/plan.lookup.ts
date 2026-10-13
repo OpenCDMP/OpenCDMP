@@ -18,7 +18,7 @@ export class PlanLookup extends Lookup implements PlanFilter {
 	versionStatuses: PlanVersionStatus[];
 	statusIds: Guid[];
 	accessTypes: PlanAccessType[];
-	versions: Number[];
+	versions: number[];
 	groupIds: Guid[];
 	
 	tenantSubQuery: TenantLookup;
@@ -41,7 +41,7 @@ export interface PlanFilter {
 	versionStatuses: PlanVersionStatus[];
 	statusIds: Guid[];
 	accessTypes: PlanAccessType[];
-	versions: Number[];
+	versions: number[];
 	groupIds: Guid[];
 
 	planUserSubQuery: PlanUserLookup;

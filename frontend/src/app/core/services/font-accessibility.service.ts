@@ -1,4 +1,4 @@
-import { computed, Injectable, Signal, signal } from '@angular/core';
+import { Injectable, signal } from '@angular/core';
 import { toggleFontSize } from '@app/ui/misc/theme-helper';
 
 @Injectable()

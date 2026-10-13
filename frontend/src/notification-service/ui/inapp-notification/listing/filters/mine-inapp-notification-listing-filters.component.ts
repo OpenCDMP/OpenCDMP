@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, OnInit, Output, SimpleChanges, OnChanges } from '@angular/core';
+import { Component, EventEmitter, Input, OnInit, Output, SimpleChanges, OnChanges, ChangeDetectionStrategy } from '@angular/core';
 import { BaseComponent } from '@common/base/base.component';
 import { NotificationServiceEnumUtils } from '@notification-service/core/formatting/enum-utils.service';
 import { InAppNotificationFilter } from '@notification-service/core/query/inapp-notification.lookup';
@@ -6,11 +6,14 @@ import { nameof } from 'ts-simple-nameof';
 import { NotificationInAppTracking } from '@notification-service/core/enum/notification-inapp-tracking.enum';
 import { NotificationType } from '@notification-service/core/enum/notification-type.enum';
 import { FormControl, FormGroup } from '@angular/forms';
+import { ListingFilterChipComponent } from '../../../../../common/modules/admin-listing/listing-filter-chip.component';
+import { TranslatePipe } from '@ngx-translate/core';
 @Component({
     selector: 'app-mine-inapp-notification-listing-filters',
     templateUrl: './mine-inapp-notification-listing-filters.component.html',
     styleUrls: ['./mine-inapp-notification-listing-filters.component.scss'],
-    standalone: false
+    changeDetection: ChangeDetectionStrategy.Eager,
+    imports: [ListingFilterChipComponent, TranslatePipe]
 })
 export class MineInAppNotificationListingFiltersComponent extends BaseComponent implements OnInit, OnChanges {
 
@@ -21,6 +24,9 @@ export class MineInAppNotificationListingFiltersComponent extends BaseComponent 
 	notificationTypeEnumValues = this.enumUtils.getEnumValues<NotificationType>(NotificationType);
 
 	// * State
+	protected readonly labelOfType = (value: any): string => this.enumUtils.toNotificationTypeString(value);
+	protected readonly labelOfTrackingState = (value: any): string => this.enumUtils.toNotificationInAppTrackingString(value);
+
 	internalFilters: FormGroup<InAppNotificationListingFilters> = new FormGroup({
         like: new FormControl(null),
         trackingState: new FormControl(null),
@@ -58,7 +64,6 @@ export class MineInAppNotificationListingFiltersComponent extends BaseComponent 
 		const { like, trackingState, type } = this.internalFilters?.value ?? {}
 		this.filterChange.emit({
 			...this.filter,
-			like,
 			trackingState,
 			type
 		});
@@ -68,10 +73,10 @@ export class MineInAppNotificationListingFiltersComponent extends BaseComponent 
 
 	private _parseToInternalFilters(inputFilter: InAppNotificationFilter) {
 		if (!inputFilter) {
-			this._getEmptyFilters();
+			return this._getEmptyFilters();
 		}
 
-		let { like, trackingState, type } = inputFilter;
+		const { like, trackingState, type } = inputFilter;
 
 		this.internalFilters.setValue({
 			like: like ?? null,

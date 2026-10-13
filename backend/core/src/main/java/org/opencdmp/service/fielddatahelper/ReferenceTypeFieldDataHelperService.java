@@ -9,7 +9,7 @@ import gr.cite.tools.fieldset.FieldSet;
 import gr.cite.tools.validation.Validator;
 import gr.cite.tools.validation.ValidatorFactory;
 import org.opencdmp.authorization.AuthorizationFlags;
-import org.opencdmp.commonmodels.models.descriptiotemplate.fielddata.ReferenceTypeDataModel;
+import org.opencdmp.commonmodels.models.planblueprintdescriptiontemplatefields.fielddata.ReferenceTypeDataModel;
 import org.opencdmp.commons.types.descriptiontemplate.fielddata.ReferenceTypeDataEntity;
 import org.opencdmp.commons.types.descriptiontemplate.importexport.fielddata.ReferenceTypeDataImportExport;
 import org.opencdmp.convention.ConventionService;

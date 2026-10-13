@@ -1,5 +1,8 @@
 package org.opencdmp.service.planupdaterequest;
 
+import gr.cite.tools.fieldset.BaseFieldSet;
+import org.opencdmp.service.plan.PlanService;
+import org.xml.sax.SAXException;
 import tools.jackson.core.JacksonException;
 import gr.cite.commons.web.authz.service.AuthorizationService;
 import gr.cite.tools.data.builder.BuilderFactory;
@@ -9,20 +12,21 @@ import gr.cite.tools.exception.MyApplicationException;
 import gr.cite.tools.exception.MyForbiddenException;
 import gr.cite.tools.exception.MyNotFoundException;
 import gr.cite.tools.exception.MyValidationException;
-import gr.cite.tools.fieldset.BaseFieldSet;
 import gr.cite.tools.fieldset.FieldSet;
 import gr.cite.tools.logging.LoggerService;
 import gr.cite.tools.logging.MapLogEntry;
 import jakarta.xml.bind.JAXBException;
 import org.opencdmp.authorization.Permission;
 import org.opencdmp.commonmodels.models.plan.PlanModel;
+import org.opencdmp.model.builder.commonmodels.dto.plan.PlanCommonModelBuilder;
+import org.opencdmp.model.persist.PlanUpdateRequestApply;
+import org.opencdmp.model.plan.Plan;
 import org.opencdmp.commons.JsonHandlingService;
-import org.opencdmp.commons.enums.IsActive;
-import org.opencdmp.commons.enums.PlanUpdateRequestActionType;
-import org.opencdmp.commons.enums.PlanUpdateRequestStatus;
-import org.opencdmp.commons.enums.PlanUserRole;
+import org.opencdmp.commons.enums.*;
+import org.opencdmp.commons.enums.rdamadmp.DmpIdType;
 import org.opencdmp.commons.notification.NotificationProperties;
 import org.opencdmp.commons.scope.tenant.TenantScopeFactory;
+import org.opencdmp.commons.scope.user.UserScopeFactory;
 import org.opencdmp.commons.types.notification.DataType;
 import org.opencdmp.commons.types.notification.FieldInfo;
 import org.opencdmp.commons.types.notification.NotificationFieldData;
@@ -30,14 +34,12 @@ import org.opencdmp.convention.ConventionService;
 import org.opencdmp.data.*;
 import org.opencdmp.errorcode.ErrorThesaurusProperties;
 import org.opencdmp.filetransformerbase.models.misc.PreprocessingPlanModel;
+import org.opencdmp.integrationevent.inbox.dmptouch.DmpTouchedIntegrationEvent;
 import org.opencdmp.integrationevent.outbox.notification.NotifyIntegrationEvent;
 import org.opencdmp.integrationevent.outbox.notification.NotifyIntegrationEventHandler;
-import org.opencdmp.model.builder.commonmodels.dto.plan.PlanCommonModelBuilder;
 import org.opencdmp.model.builder.planupdaterequest.PlanUpdateRequestBuilder;
 import org.opencdmp.model.deleter.PlanUpdateRequestDeleter;
-import org.opencdmp.model.persist.PlanSuggestion;
 import org.opencdmp.model.persist.PlanUpdateRequestPersist;
-import org.opencdmp.model.plan.Plan;
 import org.opencdmp.model.planupdaterequest.PlanUpdateRequest;
 import org.opencdmp.query.PlanQuery;
 import org.opencdmp.query.PlanUpdateRequestQuery;
@@ -54,6 +56,8 @@ import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
 import javax.management.InvalidApplicationException;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.TransformerException;
 import java.io.IOException;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
@@ -83,8 +87,10 @@ public class PlanUpdateRequestServiceImpl implements PlanUpdateRequestService {
     private final NotificationProperties notificationProperties;
     private final TenantScopeFactory tenantScopeFactory;
     private final NotifyIntegrationEventHandler notifyIntegrationEventHandler;
+    private final UserScopeFactory userScopeFactory;
+    private final PlanService planService;
 
-    public PlanUpdateRequestServiceImpl(BuilderFactory builderFactory, DeleterFactory deleterFactory, AuthorizationService authorizationService, ConventionService conventionService, TenantEntityManagerFactory tenantEntityManagerFactory, MessageSource messageSource, ErrorThesaurusProperties errors, JsonHandlingService jsonHandlingService, FileTransformerService fileTransformerService, PlanServiceProperties planServiceProperties, QueryFactory queryFactory, NotificationProperties notificationProperties, TenantScopeFactory tenantScopeFactory, NotifyIntegrationEventHandler notifyIntegrationEventHandler) {
+    public PlanUpdateRequestServiceImpl(BuilderFactory builderFactory, DeleterFactory deleterFactory, AuthorizationService authorizationService, ConventionService conventionService, TenantEntityManagerFactory tenantEntityManagerFactory, MessageSource messageSource, ErrorThesaurusProperties errors, JsonHandlingService jsonHandlingService, FileTransformerService fileTransformerService, PlanServiceProperties planServiceProperties, QueryFactory queryFactory, NotificationProperties notificationProperties, TenantScopeFactory tenantScopeFactory, NotifyIntegrationEventHandler notifyIntegrationEventHandler, UserScopeFactory userScopeFactory, PlanService planService) {
         this.builderFactory = builderFactory;
         this.deleterFactory = deleterFactory;
         this.authorizationService = authorizationService;
@@ -99,6 +105,8 @@ public class PlanUpdateRequestServiceImpl implements PlanUpdateRequestService {
         this.notificationProperties = notificationProperties;
         this.tenantScopeFactory = tenantScopeFactory;
         this.notifyIntegrationEventHandler = notifyIntegrationEventHandler;
+        this.userScopeFactory = userScopeFactory;
+        this.planService = planService;
     }
 
     @Override
@@ -114,11 +122,7 @@ public class PlanUpdateRequestServiceImpl implements PlanUpdateRequestService {
             data = this.tenantEntityManagerFactory.getInstance().find(PlanUpdateRequestEntity.class, model.getId());
             if (data == null) throw new MyNotFoundException(this.messageSource.getMessage("General_ItemNotFound", new Object[]{model.getId(), PlanUpdateRequest.class.getSimpleName()}, LocaleContextHolder.getLocale()));
             if (!this.conventionService.hashValue(data.getUpdatedAt()).equals(model.getHash())) throw new MyValidationException(this.errors.getHashConflict().getCode(), this.errors.getHashConflict().getMessage());
-            if (!data.getActionType().equals(model.getActionType())) throw new MyValidationException("action type can not be update");
-            if (!data.getSubmitterId().equals(model.getSubmitterId())) throw new MyValidationException("submitter can not be update");
-            if (!data.getData().equals(model.getData())) throw new MyValidationException("data can not be update");
         } else {
-
             data = new PlanUpdateRequestEntity();
             data.setId(UUID.randomUUID());
             data.setRequestAt(Instant.now());
@@ -128,12 +132,13 @@ public class PlanUpdateRequestServiceImpl implements PlanUpdateRequestService {
             data.setIsActive(IsActive.Active);
             data.setCreatedAt(Instant.now());
             data.setSourceCode(model.getSourceCode());
+            data.setExternalId(model.getExternalId());
+            data.setExternalIdType(model.getExternalIdType());
             data.setData(this.jsonHandlingService.toJson(model.getData()));
         }
 
         data.setUpdatedAt(Instant.now());
         data.setStatus(model.getStatus());
-        if (data.getStatus().equals(PlanUpdateRequestStatus.Accepted)) data.setApprovedAt(Instant.now());
 
         if (isUpdate) this.tenantEntityManagerFactory.getInstance().merge(data);
         else this.tenantEntityManagerFactory.getInstance().persist(data);
@@ -219,15 +224,89 @@ public class PlanUpdateRequestServiceImpl implements PlanUpdateRequestService {
     }
 
     @Override
-    public Plan buildPlan(PlanSuggestion suggestion) throws InvalidAlgorithmParameterException, JAXBException, NoSuchPaddingException, IllegalBlockSizeException, InvalidApplicationException, NoSuchAlgorithmException, BadPaddingException, IOException, InvalidKeyException {
+    public void persistFromEvent(DmpTouchedIntegrationEvent event) throws MyForbiddenException, MyValidationException, MyApplicationException, MyNotFoundException, InvalidApplicationException, JAXBException, JacksonException {
+        logger.debug(new MapLogEntry("persisting plan update request from event").And("sourceCode", event.getSourceCode()).And("externalId", event.getExternalId()));
 
-        PlanUpdateRequestEntity entity = this.queryFactory.query(PlanUpdateRequestQuery.class).authorize(AllExceptPublic).ids(suggestion.getPlanUpdateRequestId()).isActive(IsActive.Active).first();
-        if (entity == null) throw new MyNotFoundException(this.messageSource.getMessage("General_ItemNotFound", new Object[]{suggestion.getPlanUpdateRequestId(), PlanUpdateRequestEntity.class.getSimpleName()}, LocaleContextHolder.getLocale()));
+        if (event.getExternalId() != null && !event.getExternalId().isBlank() && event.getSourceCode() != null) {
+            PlanUpdateRequestEntity existing = this.queryFactory.query(PlanUpdateRequestQuery.class)
+                    .externalIds(event.getExternalId())
+                    .isActive(IsActive.Active)
+                    .status(PlanUpdateRequestStatus.Pending)
+                    .first();
 
-        PlanModel model = this.fileTransformerService.importPlan(entity.getData().getBytes(), suggestion, this.planServiceProperties.getRdaTransformerId());
-        if (model == null) throw new MyNotFoundException("Plan Import Error");
+            if (existing != null) {
+                existing.setData(this.jsonHandlingService.toJson(event.getData()));
+                existing.setRequestAt(Instant.now());
+                existing.setUpdatedAt(Instant.now());
+                this.tenantEntityManagerFactory.getInstance().merge(existing);
+                this.tenantEntityManagerFactory.getInstance().flush();
+                return;
+            }
+        }
 
-        return this.builderFactory.builder(PlanCommonModelBuilder.class).build(model);
+        PlanUpdateRequestEntity data = new PlanUpdateRequestEntity();
+        data.setId(UUID.randomUUID());
+        data.setRequestAt(Instant.now());
+        data.setCreatedAt(Instant.now());
+        data.setUpdatedAt(Instant.now());
+        data.setIsActive(IsActive.Active);
+        data.setStatus(PlanUpdateRequestStatus.Pending);
+        data.setActionType(event.getActionType());
+        data.setSubmitterId(event.getSubmitterId());
+        data.setSourceCode(event.getSourceCode());
+        data.setExternalId(event.getExternalId());
+        if (event.getExternalIdType() != null) {
+            data.setExternalIdType(DmpIdType.of(event.getExternalIdType()));
+        }
+        data.setData(this.jsonHandlingService.toJson(event.getData()));
+        if (event.getActionType() != null && event.getActionType().equals(PlanUpdateRequestActionType.UpdatePlan)) {
+            data.setPlanId(event.getDmpId());
+        }
+
+        this.tenantEntityManagerFactory.getInstance().persist(data);
+        this.tenantEntityManagerFactory.getInstance().flush();
+
+        this.sendNotification(data);
+    }
+
+    @Override
+    public Plan applyCreate(PlanUpdateRequestApply model, FieldSet fields) throws InvalidAlgorithmParameterException, JAXBException, NoSuchPaddingException, IllegalBlockSizeException, InvalidApplicationException, NoSuchAlgorithmException, BadPaddingException, IOException, InvalidKeyException, ParserConfigurationException, TransformerException, InstantiationException, IllegalAccessException, SAXException {
+        logger.debug(new MapLogEntry("applying create plan update request").And("model", model));
+
+        PlanUpdateRequestEntity entity = this.queryFactory.query(PlanUpdateRequestQuery.class).authorize(AllExceptPublic).ids(model.getPlanUpdateRequestId()).isActive(IsActive.Active).first();
+        if (entity == null) throw new MyNotFoundException(this.messageSource.getMessage("General_ItemNotFound", new Object[]{model.getPlanUpdateRequestId(), PlanUpdateRequestEntity.class.getSimpleName()}, LocaleContextHolder.getLocale()));
+        if (!entity.getStatus().equals(PlanUpdateRequestStatus.Pending)) throw new MyValidationException(this.errors.getPlanUpdateRequestIsCompleted().getCode(), this.errors.getPlanUpdateRequestIsCompleted().getMessage());
+        if (!entity.getActionType().equals(PlanUpdateRequestActionType.CreatePlan)) throw new MyValidationException(this.errors.getPlanUpdateRequestInvalidActionType().getCode(), this.errors.getPlanUpdateRequestInvalidActionType().getMessage());
+        if (model.getSuggestion() == null) throw new MyValidationException("suggestion is required for CreatePlan accept");
+
+        UUID approverId = this.userScopeFactory.getInstance().getUserIdSafe();
+        Instant now = Instant.now();
+
+        if (model.getDecision() == PlanUpdateRequestApplyDecision.Refuse) {
+            entity.setAppliedData(null);
+            entity.setStatus(PlanUpdateRequestStatus.Refused);
+            entity.setApprovedBy(approverId);
+            entity.setApprovedAt(now);
+            entity.setUpdatedAt(now);
+            this.tenantEntityManagerFactory.getInstance().merge(entity);
+            this.tenantEntityManagerFactory.getInstance().flush();
+            return null;
+        }
+
+        PlanModel planModel = this.fileTransformerService.importPlan(entity.getData().getBytes(), model.getSuggestion(), this.planServiceProperties.getRdaTransformerId());
+        if (planModel == null) throw new MyNotFoundException("Plan Import Error");
+
+        this.planService.commonModelPlanToPersist(planModel, planModel.getLabel(), fields);
+
+        entity.setAppliedData(entity.getData());
+        entity.setStatus(PlanUpdateRequestStatus.Accepted);
+        entity.setApprovedBy(approverId);
+        entity.setApprovedAt(now);
+        entity.setUpdatedAt(now);
+        this.tenantEntityManagerFactory.getInstance().merge(entity);
+        this.tenantEntityManagerFactory.getInstance().flush();
+
+        return this.builderFactory.builder(PlanCommonModelBuilder.class).build(planModel);
     }
 
 }

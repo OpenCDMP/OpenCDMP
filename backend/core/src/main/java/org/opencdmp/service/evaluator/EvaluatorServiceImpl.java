@@ -16,6 +16,7 @@ import gr.cite.tools.fieldset.BaseFieldSet;
 import gr.cite.tools.logging.LoggerService;
 import gr.cite.tools.logging.MapLogEntry;
 import gr.cite.tools.validation.ValidatorFactory;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.opencdmp.authorization.AuthorizationFlags;
 import org.opencdmp.authorization.Permission;
@@ -140,6 +141,9 @@ public class EvaluatorServiceImpl implements EvaluatorService {
         this.notificationProperties = notificationProperties;
         this.eventHandler = eventHandler;
     }
+    /** Used when a source declares no response size limit, e.g. one a tenant added through the UI. */
+    private static final int DEFAULT_MAX_IN_MEMORY_SIZE_IN_BYTES = 6554000;
+
     private EvaluatorClientImpl getEvaluatorClient(String repoId) throws InvalidApplicationException, InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
         String repositoryIdByTenant = this.getRepositoryIdByTenant(repoId);
         if (this.clients.containsKey(repositoryIdByTenant)) {
@@ -165,14 +169,14 @@ public class EvaluatorServiceImpl implements EvaluatorService {
             );
 
             EvaluatorClientImpl repository = new EvaluatorClientImpl(
-                    WebClient.builder().baseUrl(source.getUrl() + "/api/evaluator")
+                    WebClient.builder().baseUrl(StringUtils.removeEnd(source.getUrl(), "/") + "/api/evaluator")
                             .filters(exchangeFilterFunctions -> {
                                 exchangeFilterFunctions.add(tokenExchangeFilterFunction);
                                 exchangeFilterFunctions.add(logRequest());
                                 exchangeFilterFunctions.add(logResponse());
                             })
                             .codecs(codecs -> {
-                                codecs.defaultCodecs().maxInMemorySize(source.getMaxInMemorySizeInBytes());
+                                codecs.defaultCodecs().maxInMemorySize(source.getMaxInMemorySizeInBytes() > 0 ? source.getMaxInMemorySizeInBytes() : DEFAULT_MAX_IN_MEMORY_SIZE_IN_BYTES);
                                 codecs.defaultCodecs().jacksonJsonDecoder(new JacksonJsonDecoder(JsonMapper.builder().build()));
                                 codecs.defaultCodecs().jacksonJsonEncoder(new JacksonJsonEncoder(JsonMapper.builder().build()));
                             })
@@ -205,6 +209,7 @@ public class EvaluatorServiceImpl implements EvaluatorService {
                     if (evaluatorTenantConfigurationEntity != null) {
                         if (evaluatorTenantConfigurationEntity.getDisableSystemSources()) evaluatorSourceEntities = new ArrayList<>();
                         evaluatorSourceEntities.addAll(this.buildEvaluatorSourceItems(evaluatorTenantConfigurationEntity.getSources()));
+                        if (evaluatorTenantConfigurationEntity.getDisabledSourceIds() != null) evaluatorSourceEntities.removeIf(x -> evaluatorTenantConfigurationEntity.getDisabledSourceIds().contains(x.getEvaluatorId()));
                     }
                 }
             }
@@ -225,7 +230,7 @@ public class EvaluatorServiceImpl implements EvaluatorService {
                 this.evaluatorConfigurationCacheService.evict(this.evaluatorConfigurationCacheService.buildKey(source.getEvaluatorId(), event.getTenantCode()));
             }
         }
-        this.evaluatorConfigurationCacheService.evict(this.evaluatorSourcesCacheService.buildKey(event.getTenantCode()));
+        this.evaluatorSourcesCacheService.evict(this.evaluatorSourcesCacheService.buildKey(event.getTenantCode()));
     }
 
     private List<EvaluatorSourceEntity> buildEvaluatorSourceItems(List<EvaluatorSourceEntity> sources) throws InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
@@ -240,6 +245,7 @@ public class EvaluatorServiceImpl implements EvaluatorService {
             item.setClientId(source.getClientId());
             if (!this.conventionService.isNullOrEmpty(source.getClientSecret())) item.setClientSecret(this.encryptionService.decryptAES(source.getClientSecret(), this.tenantProperties.getConfigEncryptionAesKey(), this.tenantProperties.getConfigEncryptionAesIv()));
             item.setScope(source.getScope());
+            item.setMaxInMemorySizeInBytes(source.getMaxInMemorySizeInBytes());
             items.add(item);
         }
         return items;
@@ -285,7 +291,7 @@ public class EvaluatorServiceImpl implements EvaluatorService {
     }
 
     @Override
-    public RankResultModel rankPlan(UUID planId, String evaluatorId, String format, List<String> benchmarkIds) throws InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, InvalidApplicationException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException, IOException {
+    public List<RankResultModel> rankPlan(UUID planId, String evaluatorId, String format, List<String> benchmarkIds, List<String> testIds) throws InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, InvalidApplicationException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException, IOException {
         this.authorizationService.authorizeAtLeastOneForce(List.of(this.authorizationContentResolverFactory.getInstance().planAffiliation(planId)), Permission.EvaluatePlan);
         EvaluatorClientImpl repository = this.getEvaluatorClient(evaluatorId);
 
@@ -308,7 +314,7 @@ public class EvaluatorServiceImpl implements EvaluatorService {
         PlanModel evaluatorModel = this.builderFactory.builder(PlanCommonModelBuilder.class).useSharedStorage(repository.getConfiguration().isUseSharedStorage()).setEvaluatorId(repository.getConfiguration().getEvaluatorId()).setRepositoryId(source != null && !this.conventionService.isNullOrEmpty(source.getRdaTransformerId()) ? source.getRdaTransformerId() : null).isPublic(false).setRdaJsonFile(jsonEnvelope).authorize(AuthorizationFlags.All).build(planEntity);
         if(evaluatorModel == null) throw new MyNotFoundException(this.messageSource.getMessage("General_ItemNotFound", new Object[]{planId, Plan.class.getSimpleName()}, LocaleContextHolder.getLocale()));
 
-        RankResultModel rankModel = repository.rankPlan(new PlanEvaluationModel(evaluatorModel,benchmarkIds));
+        List<RankResultModel> rankModel = repository.rankPlan(new PlanEvaluationModel(evaluatorModel,benchmarkIds, testIds));
         this.increaseTargetMetricWithRepositoryId(UsageLimitTargetMetric.EVALUATION_PLAN_EXECUTION_COUNT_FOR, evaluatorId);
 
         this.evaluationService.persistInternal(rankModel, repository.getConfiguration().getRankConfig(), planId, EntityType.Plan , evaluatorId, userScopeFactory.getInstance().getUserId());
@@ -319,7 +325,7 @@ public class EvaluatorServiceImpl implements EvaluatorService {
 
     }
 
-    private void sendPlanNotification(PlanEntity planEntity, String repositoryId, RankResultModel rankModel, RankConfig rankConfig) throws InvalidApplicationException {
+    private void sendPlanNotification(PlanEntity planEntity, String repositoryId, List<RankResultModel> rankModel, RankConfig rankConfig) throws InvalidApplicationException {
         List<PlanUserEntity> planUsers = this.queryFactory.query(PlanUserQuery.class).disableTracking().planIds(planEntity.getId()).isActives(IsActive.Active).collect();
         if (this.conventionService.isListNullOrEmpty(planUsers)){
             throw new MyNotFoundException("Plan does not have Users");
@@ -334,7 +340,7 @@ public class EvaluatorServiceImpl implements EvaluatorService {
         }
     }
 
-    private void createPlanEvaluationNotificationEvent(PlanEntity plan, UserEntity user, String repositoryId, RankResultModel rankModel,  RankConfig rankConfig) throws InvalidApplicationException {
+    private void createPlanEvaluationNotificationEvent(PlanEntity plan, UserEntity user, String repositoryId, List<RankResultModel> rankModel,  RankConfig rankConfig) throws InvalidApplicationException {
         NotifyIntegrationEvent event = new NotifyIntegrationEvent();
         event.setUserId(user.getId());
 
@@ -346,7 +352,7 @@ public class EvaluatorServiceImpl implements EvaluatorService {
         fieldInfoList.add(new FieldInfo("{name}", DataType.String, plan.getLabel()));
         fieldInfoList.add(new FieldInfo("{id}", DataType.String, plan.getId().toString()));
         fieldInfoList.add(new FieldInfo("{evaluatorName}", DataType.String, repositoryId));
-        fieldInfoList.add(new FieldInfo("{result}", DataType.String, this.applyRankResultString(rankConfig, rankModel.getRank())));
+        fieldInfoList.add(new FieldInfo("{result}", DataType.String, this.applyRankResultString(rankConfig, rankModel.stream().map(RankResultModel::getRank).toList())));
         fieldInfoList.add(new FieldInfo("{benchmarks}", DataType.String, this.applyBenchmarkTitle(rankConfig, rankModel)));
 
         if(this.tenantScopeFactory.getInstance().getTenantCode() != null && !this.tenantScopeFactory.getInstance().getTenantCode().equals(this.tenantScopeFactory.getInstance().getDefaultTenantCode())){
@@ -358,22 +364,41 @@ public class EvaluatorServiceImpl implements EvaluatorService {
         this.eventHandler.handle(event);
     }
 
-    private String applyBenchmarkTitle(RankConfig rankConfig, RankResultModel rankModel) {
-        if (rankModel == null || rankModel.getResults() == null || rankModel.getResults().isEmpty())
+    /**
+     * Lists every benchmark the evaluator actually ran, across all rank results, with its
+     * outcome. Deduplicated by title, because a per-description evaluator runs the same
+     * benchmarks once per description, and a benchmark counts as failed if it failed for any
+     * of them.
+     * <p>
+     * Results the evaluator skipped carry no benchmarks. That is not an error, so this
+     * reports that nothing was assessed rather than throwing and losing a notification for
+     * an evaluation we have already stored.
+     */
+    private String applyBenchmarkTitle(RankConfig rankConfig, List<RankResultModel> rankModels) {
+        if (rankModels == null || rankModels.isEmpty())
             throw new MyApplicationException("Rank Model is Missing.");
 
+        Map<String, List<Double>> ranksByBenchmark = new LinkedHashMap<>();
+        for (RankResultModel rankModel : rankModels) {
+            if (rankModel == null || rankModel.getResults() == null) continue;
+            for (EvaluationResultModel benchmark : rankModel.getResults()) {
+                ranksByBenchmark.computeIfAbsent(benchmark.getBenchmarkTitle(), k -> new ArrayList<>()).add(benchmark.getRank());
+            }
+        }
+
+        if (ranksByBenchmark.isEmpty())
+            return this.messageSource.getMessage("rankResult.notEvaluated", new Object[]{}, LocaleContextHolder.getLocale());
+
         StringBuilder sb = new StringBuilder();
-        List<EvaluationResultModel> benchmarks = rankModel.getResults();
         boolean isFirst = true;
-        for(EvaluationResultModel benchmark : benchmarks){
+        for (Map.Entry<String, List<Double>> benchmark : ranksByBenchmark.entrySet()) {
 
-            if(!isFirst) sb.append(", ");
+            if (!isFirst) sb.append(", ");
 
-            sb.append(benchmark.getBenchmarkTitle())
+            sb.append(benchmark.getKey())
                     .append("(")
-                    .append(this.applyRankResultString(rankConfig, benchmark.getRank()))
+                    .append(this.applyRankResultString(rankConfig, benchmark.getValue()))
                     .append(") ");
-
 
             isFirst = false;
         }
@@ -381,38 +406,66 @@ public class EvaluatorServiceImpl implements EvaluatorService {
     }
 
 
-    private String applyRankResultString(RankConfig rankConfig, double rank) {
+    /**
+     * Collapses a set of ranks into one word.
+     * <p>
+     * It passes only when something was actually assessed and every assessed rank passed.
+     * Previously the last rank in the list silently overwrote the verdict of the ones before
+     * it, which was invisible while evaluators returned a single result and wrong as soon as
+     * one of them started returning several. Ranks the evaluator marked as not evaluated are
+     * neither a pass nor a failure, so they do not colour the verdict either way.
+     */
+    private String applyRankResultString(RankConfig rankConfig, List<Double> ranks) {
+
+        boolean anyEvaluated = false;
+        boolean allPassed = true;
 
         if(rankConfig.getRankType().equals(RankType.Selection)){
             SelectionConfiguration selectionConfiguration = rankConfig.getSelectionConfiguration();
 
-            SelectionConfiguration.ValueSet matchedValueSet = selectionConfiguration.getValueSetList().stream()
-                    .filter(x -> x.getKey() == rank)
-                    .findFirst()
-                    .orElse(null);
+            for (Double rank: ranks) {
+                SelectionConfiguration.ValueSet matchedValueSet = selectionConfiguration.getValueSetList().stream()
+                        .filter(x -> x.getKey() == rank)
+                        .findFirst()
+                        .orElse(null);
 
-                    if (matchedValueSet == null) throw new MyApplicationException("Matched Value Missing.");
+                if (matchedValueSet == null) throw new MyApplicationException("Matched Value Missing.");
 
-            return switch (matchedValueSet.getSuccessStatus()) {
-                case Fail ->
-                        this.messageSource.getMessage("rankResult.fail", new Object[]{}, LocaleContextHolder.getLocale());
-                case Pass ->
-                        this.messageSource.getMessage("rankResult.pass", new Object[]{}, LocaleContextHolder.getLocale());
-            };
+                switch (matchedValueSet.getSuccessStatus()) {
+                    case Fail -> {
+                        anyEvaluated = true;
+                        allPassed = false;
+                    }
+                    case Pass -> anyEvaluated = true;
+                    case NotEvaluated -> {
+                        // Skipped: contributes nothing to the verdict.
+                    }
+                }
+            }
+
 
         } else if(rankConfig.getRankType().equals(RankType.ValueRange)){
-            ValueRangeConfiguration valueRangeConfiguration = rankConfig.getValueRangeConfiguration();
-            if(rank >= valueRangeConfiguration.getMinPassValue()){
-                return this.messageSource.getMessage("rankResult.pass", new Object[]{}, LocaleContextHolder.getLocale());
-            }else{
-                return this.messageSource.getMessage("rankResult.fail", new Object[]{}, LocaleContextHolder.getLocale());
+
+            for (Double rank: ranks) {
+                ValueRangeConfiguration valueRangeConfiguration = rankConfig.getValueRangeConfiguration();
+                anyEvaluated = true;
+                if(rank < valueRangeConfiguration.getMinPassValue()){
+                    allPassed = false;
+                }
             }
         }
-        throw new MyApplicationException("Rank Type is Missing.");
+
+        if (!anyEvaluated) {
+            return this.messageSource.getMessage("rankResult.notEvaluated", new Object[]{}, LocaleContextHolder.getLocale());
+        } else if (allPassed) {
+            return this.messageSource.getMessage("rankResult.pass", new Object[]{}, LocaleContextHolder.getLocale());
+        } else {
+            return this.messageSource.getMessage("rankResult.fail", new Object[]{}, LocaleContextHolder.getLocale());
+        }
     }
 
     @Override
-    public RankResultModel rankDescription(UUID descriptionId, String repositoryId, String format, List<String> benchmarkIds, boolean isPublic) throws InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, InvalidApplicationException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException, IOException {
+    public List<RankResultModel> rankDescription(UUID descriptionId, String repositoryId, String format, List<String> benchmarkIds, List<String> testIds, boolean isPublic) throws InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, InvalidApplicationException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException, IOException {
         this.authorizationService.authorizeAtLeastOneForce(List.of(this.authorizationContentResolverFactory.getInstance().descriptionAffiliation(descriptionId)), Permission.EvaluateDescription);
         EvaluatorClientImpl repository = this.getEvaluatorClient(repositoryId);
 
@@ -428,7 +481,7 @@ public class EvaluatorServiceImpl implements EvaluatorService {
         this.increaseTargetMetricWithRepositoryId(UsageLimitTargetMetric.FILE_TRANSFORMER_EXPORT_DESCRIPTIONS_EXECUTION_COUNT_FOR, repositoryId);
 
 
-        RankResultModel rankModel = repository.rankDescription(new DescriptionEvaluationModel(descriptionEvaluatorModel,benchmarkIds));
+        List<RankResultModel> rankModel = repository.rankDescription(new DescriptionEvaluationModel(descriptionEvaluatorModel,benchmarkIds, testIds));
         this.increaseTargetMetricWithRepositoryId(UsageLimitTargetMetric.EVALUATION_DESCRIPTION_EXECUTION_COUNT_FOR, repositoryId);
 
         this.evaluationService.persistInternal(rankModel, repository.getConfiguration().getRankConfig(), descriptionId, EntityType.Description , repositoryId, userScopeFactory.getInstance().getUserId());
@@ -438,8 +491,8 @@ public class EvaluatorServiceImpl implements EvaluatorService {
         return rankModel;
     }
 
-    private void sendDescriptionNotification(DescriptionEntity descriptionEntity, String repositoryId, RankResultModel rankModel, RankConfig rankConfig) throws InvalidApplicationException {
-        List<PlanUserEntity> planUsers = this.queryFactory.query(PlanUserQuery.class).disableTracking().planIds(descriptionEntity.getId()).isActives(IsActive.Active).collect();
+    private void sendDescriptionNotification(DescriptionEntity descriptionEntity, String repositoryId, List<RankResultModel> rankModel, RankConfig rankConfig) throws InvalidApplicationException {
+        List<PlanUserEntity> planUsers = this.queryFactory.query(PlanUserQuery.class).disableTracking().planIds(descriptionEntity.getPlanId()).isActives(IsActive.Active).collect();
         if (this.conventionService.isListNullOrEmpty(planUsers)){
             throw new MyNotFoundException("Plan does not have Users");
         }
@@ -453,11 +506,11 @@ public class EvaluatorServiceImpl implements EvaluatorService {
         }
     }
 
-    private void createDescriptionEvaluationNotificationEvent(DescriptionEntity description, UserEntity user, String repositoryId, RankResultModel rankModel,  RankConfig rankConfig) throws InvalidApplicationException {
+    private void createDescriptionEvaluationNotificationEvent(DescriptionEntity description, UserEntity user, String repositoryId, List<RankResultModel> rankModel,  RankConfig rankConfig) throws InvalidApplicationException {
         NotifyIntegrationEvent event = new NotifyIntegrationEvent();
         event.setUserId(user.getId());
 
-        event.setNotificationType(this.notificationProperties.getPlanEvaluationType());
+        event.setNotificationType(this.notificationProperties.getDescriptionEvaluationType());
         NotificationFieldData data = new NotificationFieldData();
         List<FieldInfo> fieldInfoList = new ArrayList<>();
         fieldInfoList.add(new FieldInfo("{recipient}", DataType.String, user.getName()));
@@ -465,7 +518,7 @@ public class EvaluatorServiceImpl implements EvaluatorService {
         fieldInfoList.add(new FieldInfo("{name}", DataType.String, description.getLabel()));
         fieldInfoList.add(new FieldInfo("{id}", DataType.String, description.getId().toString()));
         fieldInfoList.add(new FieldInfo("{evaluatorName}", DataType.String, repositoryId));
-        fieldInfoList.add(new FieldInfo("{result}", DataType.String, this.applyRankResultString(rankConfig, rankModel.getRank())));
+        fieldInfoList.add(new FieldInfo("{result}", DataType.String, this.applyRankResultString(rankConfig, rankModel.stream().map(RankResultModel::getRank).toList())));
         fieldInfoList.add(new FieldInfo("{benchmarks}", DataType.String, this.applyBenchmarkTitle(rankConfig, rankModel)));
 
         if(this.tenantScopeFactory.getInstance().getTenantCode() != null && !this.tenantScopeFactory.getInstance().getTenantCode().equals(this.tenantScopeFactory.getInstance().getDefaultTenantCode())){

@@ -25,7 +25,7 @@ public class PlanInvitationPersist {
 
     public static final String _planId = "planId";
 
-    private UUID sectionId;
+    private String sectionId;
 
     public static final String _sectionId = "sectionId";
 
@@ -33,7 +33,7 @@ public class PlanInvitationPersist {
 
     public static final String _role = "role";
 
-    public PlanInvitationPersist(String email, UUID planId, UUID sectionId, PlanUserRole role) {
+    public PlanInvitationPersist(String email, UUID planId, String sectionId, PlanUserRole role) {
         this.email = email;
         this.planId = planId;
         this.sectionId = sectionId;
@@ -56,12 +56,12 @@ public class PlanInvitationPersist {
         this.planId = planId;
     }
 
-    public UUID getSectionId() {
+    public String getSectionId() {
         return sectionId;
     }
 
-    public void setSectionId(UUID sectionId) {
-        this.sectionId = sectionId;
+    public void setSectionId(String sectionId) {
+        this.sectionId = (sectionId == null || sectionId.isEmpty()) ? null : sectionId;
     }
 
     public PlanUserRole getRole() {

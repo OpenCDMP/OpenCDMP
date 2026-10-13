@@ -1,0 +1,93 @@
+<div class="container-fluid">
+	<div class="row">
+		<div class="col-md-10 offset-md-1">
+			<app-admin-page-header titleKey="NOTIFICATION-LOG.TITLE" descriptionKey="NOTIFICATION-LOG.DESCRIPTION" />
+
+			<div class="nl">
+				<div class="nl-quick" role="group" [attr.aria-label]="'NOTIFICATION-LOG.QUICK-FILTERS' | translate">
+					@for (filter of quickFilters; track filter) {
+						<button type="button" class="nl-quick__chip nl-quick__chip--{{ filter }}" [class.nl-quick__chip--on]="quick() === filter" [attr.aria-pressed]="quick() === filter" (click)="toggleQuick(filter)">
+							<span class="nl-quick__count">{{ counts()[filter] ?? '–' }}</span>
+							{{ 'NOTIFICATION-LOG.QUICK.' + (filter | uppercase) | translate }}
+						</button>
+					}
+				</div>
+
+				<div class="nl-filters">
+					<mat-form-field class="nl-filters__person" subscriptSizing="dynamic">
+						<mat-label>{{ 'NOTIFICATION-LOG.FILTERS.PERSON' | translate }}</mat-label>
+						<app-single-auto-complete [formControl]="person" [configuration]="userService.singleAutocompleteConfiguration" [required]="false" />
+					</mat-form-field>
+					<mat-form-field subscriptSizing="dynamic">
+						<mat-label>{{ 'NOTIFICATION-LOG.FILTERS.TYPE' | translate }}</mat-label>
+						<mat-select [value]="type()" (selectionChange)="setType($event.value)">
+							<mat-option [value]="null">{{ 'NOTIFICATION-LOG.FILTERS.ANY-TYPE' | translate }}</mat-option>
+							@for (item of types; track item.type) {
+								<mat-option [value]="item.type">{{ item.name }}</mat-option>
+							}
+						</mat-select>
+					</mat-form-field>
+					<mat-form-field subscriptSizing="dynamic">
+						<mat-label>{{ 'NOTIFICATION-LOG.FILTERS.CHANNEL' | translate }}</mat-label>
+						<mat-select [value]="channel()" (selectionChange)="setChannel($event.value)">
+							<mat-option [value]="null">{{ 'NOTIFICATION-LOG.FILTERS.ANY-CHANNEL' | translate }}</mat-option>
+							@for (item of channels; track item) {
+								<mat-option [value]="item">{{ enumUtils.toNotificationContactTypeString(item) }}</mat-option>
+							}
+						</mat-select>
+					</mat-form-field>
+					<mat-form-field subscriptSizing="dynamic">
+						<mat-label>{{ 'NOTIFICATION-LOG.FILTERS.WHEN' | translate }}</mat-label>
+						<mat-select [value]="range()" (selectionChange)="setRange($event.value)">
+							@for (item of ranges; track item) {
+								<mat-option [value]="item">{{ 'NOTIFICATION-LOG.RANGES.' + (item | uppercase) | translate }}</mat-option>
+							}
+						</mat-select>
+					</mat-form-field>
+				</div>
+
+				<div class="nl-table-wrap">
+					<table class="nl-table" [attr.aria-busy]="loading()">
+						<thead>
+							<tr>
+								<th scope="col">{{ 'NOTIFICATION-LOG.COLUMNS.NOTIFICATION' | translate }}</th>
+								<th scope="col">{{ 'NOTIFICATION-LOG.COLUMNS.SENT-TO' | translate }}</th>
+								<th scope="col">{{ 'NOTIFICATION-LOG.COLUMNS.RESULT' | translate }}</th>
+								<th scope="col">{{ 'NOTIFICATION-LOG.COLUMNS.WHEN' | translate }}</th>
+							</tr>
+						</thead>
+						<tbody>
+							@for (item of rows(); track item.id) {
+								<tr class="nl-row" [class.nl-row--selected]="selected()?.id === item.id">
+									<td>
+										<button type="button" class="nl-row__open" (click)="selected.set(item)">{{ enumUtils.toNotificationTypeString(item.type) || item.type }}</button>
+									</td>
+									<td>
+										<span class="nl-person">{{ item.user?.name || ('NOTIFICATION-LOG.UNKNOWN-PERSON' | translate) }}</span>
+										<span class="nl-muted">{{ enumUtils.toNotificationContactTypeString(channelOf(item)) }}</span>
+									</td>
+									<td>
+										<span class="nl-pill nl-pill--{{ resultOf(item) }}">{{ 'NOTIFICATION-LOG.RESULTS.' + (resultOf(item) | uppercase) | translate }}</span>
+									</td>
+									<td class="nl-when">{{ item.createdAt | relativeTime }}</td>
+								</tr>
+							} @empty {
+								@if (!loading()) {
+									<tr>
+										<td colspan="4" class="nl-empty">{{ 'NOTIFICATION-LOG.EMPTY' | translate }}</td>
+									</tr>
+								}
+							}
+						</tbody>
+					</table>
+				</div>
+
+				<mat-paginator [length]="total()" [pageIndex]="pageIndex()" [pageSize]="pageSize()" [pageSizeOptions]="[25, 50, 100]" (page)="onPage($event)" />
+			</div>
+		</div>
+	</div>
+</div>
+
+@if (selected(); as item) {
+	<app-notification-log-drawer [notification]="item" (closed)="selected.set(null)" (changed)="onChanged()" />
+}

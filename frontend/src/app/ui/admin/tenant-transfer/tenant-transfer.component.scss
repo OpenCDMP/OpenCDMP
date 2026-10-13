@@ -1,0 +1,125 @@
+.root {
+	margin-bottom: 2em;
+}
+
+.hint-text {
+	font-size: 0.85em;
+	color: var(--mat-sys-on-surface-variant);
+}
+
+.current-tenant {
+	margin: 0 0 1.5em;
+	padding: 0.75em 1em;
+	border-radius: var(--mat-sys-corner-medium, 12px);
+	background: var(--mat-sys-primary-container);
+	color: var(--mat-sys-on-primary-container);
+}
+
+.tab-body {
+	padding: 1.5em 0 0;
+	max-width: 60em;
+}
+
+.option-groups {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(min(100%, 20em), 1fr));
+	gap: 1.5em;
+}
+
+.option-group {
+	margin: 0;
+	padding: 0;
+	border: 0;
+	min-width: 0;
+
+	legend {
+		font-size: 1rem;
+		font-weight: 600;
+		margin-bottom: 0.5em;
+	}
+}
+
+.checkbox-hint {
+	margin: -0.25em 0 0.25em 2.5em;
+}
+
+.steps {
+	list-style: none;
+	counter-reset: step;
+	margin: 1em 0 0;
+	padding: 0;
+
+	.step {
+		counter-increment: step;
+		position: relative;
+		padding: 0 0 1.5em 3em;
+
+		&::before {
+			content: counter(step);
+			position: absolute;
+			left: 0;
+			top: 0;
+			width: 2em;
+			height: 2em;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			border-radius: 50%;
+			background: var(--mat-sys-primary);
+			color: var(--mat-sys-on-primary);
+			font-weight: 600;
+		}
+	}
+
+	.step-title {
+		font-size: 1rem;
+		font-weight: 600;
+		line-height: 2em;
+		margin: 0 0 0.5em;
+	}
+}
+
+.danger-zone {
+	margin-top: 2em;
+	border: 1px solid var(--mat-sys-error);
+	border-radius: var(--mat-sys-corner-medium, 12px);
+
+	.danger-title {
+		padding: 1em;
+		cursor: pointer;
+		color: var(--mat-sys-error);
+		font-weight: 600;
+	}
+
+	.danger-body {
+		padding: 0 1em 1em;
+	}
+}
+
+.report {
+	.source-tenant {
+		font-size: 0.8em;
+		color: var(--mat-sys-on-surface-variant);
+	}
+
+	.table-scroll {
+		overflow-x: auto;
+	}
+
+	.report-table {
+		width: 100%;
+		border-collapse: collapse;
+
+		th,
+		td {
+			text-align: left;
+			padding: 0.4em 0.8em;
+			border-bottom: 1px solid var(--mat-sys-outline-variant);
+		}
+
+		td.conflict {
+			color: var(--mat-sys-error);
+			font-weight: 600;
+		}
+	}
+}

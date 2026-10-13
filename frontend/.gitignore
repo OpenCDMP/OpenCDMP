@@ -40,6 +40,12 @@ testem.log
 /e2e/*.js
 /e2e/*.map
 
+# accessibility tooling (Playwright + Lighthouse CI)
+/playwright-report
+/test-results
+/e2e-a11y/.auth
+/.lighthouseci
+
 # System Files
 .DS_Store
 Thumbs.db

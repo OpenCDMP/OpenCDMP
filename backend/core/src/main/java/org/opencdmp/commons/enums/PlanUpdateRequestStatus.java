@@ -9,7 +9,8 @@ public enum PlanUpdateRequestStatus implements DatabaseEnum<Short> {
 
     Pending((short) 0),
     Refused((short) 1),
-    Accepted((short) 2);
+    Accepted((short) 2),
+    PartiallyAccepted((short) 3);
 
     private final Short value;
 

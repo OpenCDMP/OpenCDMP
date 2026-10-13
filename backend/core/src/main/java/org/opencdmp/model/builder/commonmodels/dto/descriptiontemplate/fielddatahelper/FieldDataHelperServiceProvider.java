@@ -48,6 +48,12 @@ public class FieldDataHelperServiceProvider {
 				item = this.applicationContext.getBean(ReferenceTypeFieldDataHelperService.class);
 				break;
 			}
+			case NUMBER:
+				item = this.applicationContext.getBean(NumberDataHelperService.class);
+				break;
+			case SYSTEM:
+				item = this.applicationContext.getBean(SystemFieldDataHelperService.class);
+				break;
 			default: throw new RuntimeException("unrecognized builder " + type.getValue());
 		}
 		item.setFieldType(type);

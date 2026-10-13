@@ -1,6 +1,6 @@
-import { DescriptionTemplateFieldDataExternalDatasetType } from "@app/core/common/enum/description-template-field-data-external-dataset-type";
-import { DescriptionTemplateFieldType } from "@app/core/common/enum/description-template-field-type";
-import { DescriptionTemplateFieldValidationType } from "@app/core/common/enum/description-template-field-validation-type";
+import { FieldDataExternalDatasetType } from "@app/core/common/enum/field-data-external-dataset-type";
+import { FieldType } from "@app/core/common/enum/field-type";
+import { FieldValidationType } from "@app/core/common/enum/field-validation-type";
 import { DescriptionTemplateStatus } from "@app/core/common/enum/description-template-status";
 import { UserDescriptionTemplateRole } from "@app/core/common/enum/user-description-template-role";
 import { BaseEntity } from "@common/base/base-entity.model";
@@ -11,6 +11,8 @@ import { User } from "../user/user";
 import { DescriptionTemplateVersionStatus } from "@app/core/common/enum/description-template-version-status";
 import { AppPermission } from "@app/core/common/enum/permission.enum";
 import { PluginConfiguration } from "../plugin-configuration/plugin-configuration";
+import { IconConfiguration } from "../icon-configuration/icon-configuration";
+import { SystemFieldType } from "@app/core/common/enum/system-field-type";
 
 
 export interface DescriptionTemplate extends BaseEntity {
@@ -27,6 +29,7 @@ export interface DescriptionTemplate extends BaseEntity {
 	versionStatus?: DescriptionTemplateVersionStatus;
 	authorizationFlags?: AppPermission[];
 	ordinal?: number;
+	usageCount?: number;
 }
 
 export interface UserDescriptionTemplate extends BaseEntity {
@@ -36,75 +39,76 @@ export interface UserDescriptionTemplate extends BaseEntity {
 }
 
 export interface DescriptionTemplateDefinition {
-	pages?: DescriptionTemplatePage[];
+	sections?: BaseSection[];
 	pluginConfigurations?: PluginConfiguration[];
+	iconConfiguration?: IconConfiguration;
 }
 
 
-export interface DescriptionTemplatePage {
-	id?: string;
-	ordinal?: number;
-	title?: string;
-	sections?: DescriptionTemplateSection[];
-}
-
-export interface DescriptionTemplateSection {
+export interface BaseSection {
 	id?: string;
 	ordinal?: number;
 	title?: string;
 	description?: string;
-	sections?: DescriptionTemplateSection[];
-	fieldSets?: DescriptionTemplateFieldSet[];
+	sections?: BaseSection[];
+	fieldSets?: BaseFieldSet[];
+	/** The object keys the section describes, e.g. `rda.dataset.distribution`. */
+	semantics?: string[];
 }
 
-export interface DescriptionTemplateFieldSet {
+export interface BaseFieldSet {
 	id: string;
 	ordinal: number;
 	title: string;
 	description: string;
 	extendedDescription: string;
 	additionalInformation: string;
-	multiplicity: DescriptionTemplateMultiplicity
+	multiplicity: Multiplicity
 	hasMultiplicity: boolean;
 	hasCommentField: boolean;
-	fields: DescriptionTemplateField[];
+	fields: BaseField[];
+	/** The object keys the question describes, e.g. `rda.dataset.distribution.host`. */
+	semantics?: string[];
 }
 
-export interface DescriptionTemplateField {
+export interface BaseField<T extends BaseFieldData = BaseFieldData> {
 	id: string;
 	ordinal: number;
 	semantics?: string[];
-	defaultValue?: DescriptionTemplateDefaultValue;
-	visibilityRules?: DescriptionTemplateRule[];
-	validations?: DescriptionTemplateFieldValidationType[];
+	defaultValue?: FieldDefaultValue;
+	visibilityRules?: FieldRule[];
+	validations?: FieldValidationType[];
 	includeInExport: boolean;
-	data?: DescriptionTemplateBaseFieldData;
+	data?: T;
 }
 
-export interface DescriptionTemplateDefaultValue {
+export interface FieldDefaultValue {
 	textValue: string;
 	dateValue: Date;
 	booleanValue: boolean;
+    numberValue: number;
 }
 
 
-export interface DescriptionTemplateRule {
+export interface FieldRule {
 	target: string;
 	textValue: string;
 	dateValue: Date;
 	booleanValue: boolean;
+    numberValue: number;
 }
 
-export interface DescriptionTemplateMultiplicity {
+export interface Multiplicity {
 	min: number;
 	max: number;
 	placeholder: string;
 	tableView: boolean;
+	transposedTableView: boolean;
 }
 
-export interface DescriptionTemplateBaseFieldData {
+export interface BaseFieldData {
 	label: string;
-	fieldType: DescriptionTemplateFieldType;
+	fieldType: FieldType;
 	multipleSelect?: boolean;
 }
 
@@ -112,50 +116,69 @@ export interface DescriptionTemplateBaseFieldData {
 //
 // Field Types
 //
-export interface DescriptionTemplateLabelData extends DescriptionTemplateBaseFieldData {
+
+export interface FieldLabelData extends BaseFieldData {
 }
 
-export interface DescriptionTemplateLabelAndMultiplicityData extends DescriptionTemplateBaseFieldData {
+export interface FieldLabelAndMultiplicityData extends BaseFieldData {
 	multipleSelect: boolean;
 }
 
-export interface DescriptionTemplateExternalDatasetData extends DescriptionTemplateLabelAndMultiplicityData {
-	type?: DescriptionTemplateFieldDataExternalDatasetType;
+export interface FieldExternalDatasetData extends FieldLabelAndMultiplicityData {
+	type?: FieldDataExternalDatasetType;
 }
 
-export interface DescriptionTemplateReferenceTypeData extends DescriptionTemplateLabelAndMultiplicityData {
+export interface FieldReferenceTypeData extends FieldLabelAndMultiplicityData {
 	referenceType?: ReferenceType;
 }
 
-export interface DescriptionTemplateRadioBoxData extends DescriptionTemplateBaseFieldData {
-	options: DescriptionTemplateRadioBoxOption[];
+export interface FieldRadioBoxData extends BaseFieldData {
+	options: FieldRadioBoxOption[];
 }
 
-export interface DescriptionTemplateSelectData extends DescriptionTemplateLabelAndMultiplicityData {
-	options: DescriptionTemplateSelectOption[];
+export interface FieldSelectData extends FieldLabelAndMultiplicityData {
+	options: FieldSelectOption[];
 }
 
-export interface DescriptionTemplateUploadData extends DescriptionTemplateBaseFieldData {
-	types: DescriptionTemplateUploadOption[];
+export interface FieldUploadData extends BaseFieldData {
+	types: FieldUploadOption[];
 	maxFileSizeInMB: number;
 }
 
-
+export interface FieldNumberData extends BaseFieldData {
+}
+export interface FieldSystemData extends BaseFieldData {
+    systemFieldType: SystemFieldType;
+}
 //
 // Others
 //
 
-export interface DescriptionTemplateSelectOption {
+export interface FieldSelectOption {
 	label: string;
+	value: string;
+	/** The key values choosing this option stands for, exported as if an input with that key were answered. */
+	semantics?: SemanticValue[];
+	/** Choosing this option means nothing is exported for the question's object. */
+	exportsNothing?: boolean;
+}
+
+export interface FieldRadioBoxOption {
+	label: string;
+	value: string;
+	/** The key values choosing this option stands for, exported as if an input with that key were answered. */
+	semantics?: SemanticValue[];
+	/** Choosing this option means nothing is exported for the question's object. */
+	exportsNothing?: boolean;
+}
+
+/** A semantic key and the value an answer option stands for. */
+export interface SemanticValue {
+	key: string;
 	value: string;
 }
 
-export interface DescriptionTemplateRadioBoxOption {
-	label: string;
-	value: string;
-}
-
-export interface DescriptionTemplateUploadOption {
+export interface FieldUploadOption {
 	label: string;
 	value: string;
 }

@@ -5,6 +5,7 @@ import org.opencdmp.authorization.AuthorizationFlags;
 import org.opencdmp.commons.types.descriptiontemplate.DefinitionEntity;
 import org.opencdmp.convention.ConventionService;
 import org.opencdmp.model.builder.BaseBuilder;
+import org.opencdmp.model.builder.IconConfigurationBuilder;
 import org.opencdmp.model.builder.pluginconfiguration.PluginConfigurationBuilder;
 import org.opencdmp.model.descriptiontemplate.Definition;
 import gr.cite.tools.data.builder.BuilderFactory;
@@ -55,14 +56,16 @@ public class DefinitionBuilder extends BaseBuilder<Definition, DefinitionEntity>
             return new ArrayList<>();
 
         //Not Bulk Build because is XML no interaction with db
-        FieldSet pagesFields = fields.extractPrefixed(this.asPrefix(Definition._pages));
-        FieldSet pluginConfigurationFields = fields.extractPrefixed(this.asPrefix(org.opencdmp.model.planblueprint.Definition._pluginConfigurations));
+        FieldSet sectionFields = fields.extractPrefixed(this.asPrefix(Definition._sections));
+        FieldSet pluginConfigurationFields = fields.extractPrefixed(this.asPrefix(Definition._pluginConfigurations));
+        FieldSet iconConfigurationFields = fields.extractPrefixed(this.asPrefix(Definition._iconConfiguration));
 
         List<Definition> models = new ArrayList<>();
         for (DefinitionEntity d : data) {
             Definition m = new Definition();
             if (!this.isPublic && !pluginConfigurationFields.isEmpty() && d.getPluginConfigurations() != null) m.setPluginConfigurations(this.builderFactory.builder(PluginConfigurationBuilder.class).authorize(this.authorize).build(pluginConfigurationFields, d.getPluginConfigurations()));
-            if (!pagesFields.isEmpty() && d.getPages() != null) m.setPages(this.builderFactory.builder(PageBuilder.class).authorize(this.authorize).build(pagesFields, d.getPages()));
+            if (!sectionFields.isEmpty() && d.getSections() != null) m.setSections(this.builderFactory.builder(SectionBuilder.class).authorize(this.authorize).build(sectionFields, d.getSections()));
+            if (!this.isPublic && !iconConfigurationFields.isEmpty() && d.getIconConfiguration() != null) m.setIconConfiguration(this.builderFactory.builder(IconConfigurationBuilder.class).authorize(this.authorize).build(iconConfigurationFields, d.getIconConfiguration()));
             models.add(m);
         }
         this.logger.debug("build {} items", Optional.of(models).map(List::size).orElse(0));

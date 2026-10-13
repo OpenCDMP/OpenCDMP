@@ -1,10 +1,6 @@
-* {
-
-	&:active,
-	:focus {
-		outline: none !important;
-	}
-}
+// NOTE: the global `* { :focus { outline: none !important } }` rule was removed here
+// (WCAG 2.4.7 Focus Visible). Focus styling now lives in src/styles.scss via
+// :focus-visible. Do not reintroduce a blanket outline reset.
 
 label {
 	margin-bottom: 0;

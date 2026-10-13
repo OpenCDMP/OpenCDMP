@@ -2,17 +2,23 @@ package org.opencdmp.model.persist.planproperties;
 
 import gr.cite.tools.validation.ValidatorFactory;
 import gr.cite.tools.validation.specification.Specification;
-import org.opencdmp.commons.enums.PlanBlueprintFieldCategory;
-import org.opencdmp.commons.enums.PlanBlueprintSystemFieldType;
+import org.opencdmp.commons.enums.FieldType;
+import org.opencdmp.commons.enums.FieldValidationType;
 import org.opencdmp.commons.enums.PlanStatus;
+import org.opencdmp.commons.enums.SystemFieldType;
+import org.opencdmp.commons.types.descriptiontemplate.FieldEntity;
+import org.opencdmp.commons.types.descriptiontemplate.FieldSetEntity;
+import org.opencdmp.commons.types.descriptiontemplate.fielddata.SystemFieldDataEntity;
 import org.opencdmp.commons.types.planblueprint.DefinitionEntity;
-import org.opencdmp.commons.types.planblueprint.FieldEntity;
-import org.opencdmp.commons.types.planblueprint.SectionEntity;
-import org.opencdmp.commons.types.planblueprint.SystemFieldEntity;
+import org.opencdmp.commons.types.planblueprint.RootSectionEntity;
 import org.opencdmp.commons.validation.BaseValidator;
 import org.opencdmp.convention.ConventionService;
 import org.opencdmp.errorcode.ErrorThesaurusProperties;
+import org.opencdmp.model.persist.descriptionproperties.PropertyDefinitionFieldSetPersist;
+import org.opencdmp.model.persist.descriptionproperties.PropertyDefinitionPersist;
 import org.opencdmp.model.persist.validation.StatusAware;
+import org.opencdmp.service.visibility.VisibilityService;
+import org.opencdmp.service.visibility.VisibilityServiceImpl;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.Scope;
@@ -27,20 +33,24 @@ import java.util.stream.Collectors;
 
 public class PlanPropertiesPersist {
 
-    private Map<UUID, PlanBlueprintValuePersist> planBlueprintValues;
+    private Map<String, PropertyDefinitionFieldSetPersist> fieldSets;
 
-    public static final String _planBlueprintValues = "planBlueprintValues";
+    public final static String _fieldSets = "fieldSets";
 
     private List<PlanContactPersist> contacts;
 
     public static final String _contacts = "contacts";
 
-    public Map<UUID, PlanBlueprintValuePersist> getPlanBlueprintValues() {
-        return this.planBlueprintValues;
+    private Boolean includeConsent;
+
+    public static final String _includeConsent = "includeConsent";
+
+    public Map<String, PropertyDefinitionFieldSetPersist> getFieldSets() {
+        return fieldSets;
     }
 
-    public void setPlanBlueprintValues(Map<UUID, PlanBlueprintValuePersist> planBlueprintValues) {
-        this.planBlueprintValues = planBlueprintValues;
+    public void setFieldSets(Map<String, PropertyDefinitionFieldSetPersist> fieldSets) {
+        this.fieldSets = fieldSets;
     }
 
     public List<PlanContactPersist> getContacts() {
@@ -51,6 +61,14 @@ public class PlanPropertiesPersist {
         this.contacts = contacts;
     }
 
+    public Boolean getIncludeConsent() {
+        return includeConsent;
+    }
+
+    public void setIncludeConsent(Boolean includeConsent) {
+        this.includeConsent = includeConsent;
+    }
+
     @Component(PlanPropertiesPersistValidator.ValidatorName)
     @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
     public static class PlanPropertiesPersistValidator extends BaseValidator<PlanPropertiesPersist> implements StatusAware<PlanStatus> {
@@ -59,6 +77,7 @@ public class PlanPropertiesPersist {
 
         private final ValidatorFactory validatorFactory;
         private final MessageSource messageSource;
+        private VisibilityService visibilityService;
 
         private PlanStatus status;
         private DefinitionEntity definition;
@@ -79,11 +98,14 @@ public class PlanPropertiesPersist {
             String contactField = this.getContactFieldLabel();
             return Arrays.asList(
                     this.mapSpec()
-                            .iff(() ->this.status == PlanStatus.Finalized && !this.isNull(item.getPlanBlueprintValues()))
-                            .on(PlanPropertiesPersist._planBlueprintValues)
-                            .over(item.getPlanBlueprintValues())
-                            .mapKey((k) -> ((UUID)k).toString())
-                            .using((itm) -> this.validatorFactory.validator(PlanBlueprintValuePersist.PlanBlueprintValuePersistValidator.class).withDefinition(this.definition)),
+                            .iff(() -> !this.isNull(item.getFieldSets()))
+                            .on(PropertyDefinitionPersist._fieldSets)
+                            .over(item.getFieldSets())
+                            .mapKey((k) -> ((String)k))
+                            .using((itm) -> {
+                                FieldSetEntity fieldSetEntity = this.definition != null ? this.definition.getFieldSetById((String)itm.getKey()).stream().findFirst().orElse(null) : null;
+                                return this.validatorFactory.validator(PropertyDefinitionFieldSetPersist.PersistValidator.class).withFieldSetEntity(fieldSetEntity).withVisibilityService(this.visibilityService).isFinalized(this.status != null && this.status.equals(PlanStatus.Finalized));
+                            }),
                     this.spec()
                             .iff(() -> this.status == PlanStatus.Finalized && contactField != null)
                             .must(() -> !this.isListNullOrEmpty(item.getContacts()))
@@ -110,23 +132,26 @@ public class PlanPropertiesPersist {
         private String getContactFieldLabel(){
             if (this.definition == null || this.isListNullOrEmpty(this.definition.getSections())) return null;
 
-            for (SectionEntity section: this.definition.getSections()) {
-                if (!this.isListNullOrEmpty(section.getFields())) {
-                    List<FieldEntity> fields = section.getFields().stream().filter(x -> x.getCategory().equals(PlanBlueprintFieldCategory.System)).collect(Collectors.toList());
+            for (RootSectionEntity section: this.definition.getSections()) {
+                if (!this.isListNullOrEmpty(section.getAllField())) {
+                    List<FieldEntity> fields = section.getAllField().stream().filter(x -> x.getData() != null && x.getData().getFieldType() != null && x.getData().getFieldType().equals(FieldType.SYSTEM)).collect(Collectors.toList());
                     if (!this.isListNullOrEmpty(fields)){
 
-                        List<SystemFieldEntity> systemFields = (List<SystemFieldEntity>)(List<?>) fields;
-                        if (!this.isListNullOrEmpty(systemFields)){
-                            List<SystemFieldEntity> contactSystemFields = systemFields.stream().filter(x -> x.getType().equals(PlanBlueprintSystemFieldType.Contact) && x.isRequired()).collect(Collectors.toList());
-                            if(!this.isListNullOrEmpty(contactSystemFields)) {
-                                return contactSystemFields.getFirst().getLabel() != null ? contactSystemFields.getFirst().getLabel() : PlanBlueprintSystemFieldType.Contact.name();
+                        for (FieldEntity fieldEntity: fields) {
+                            SystemFieldDataEntity data = (SystemFieldDataEntity) fieldEntity.getData();
+                            if (data != null && data.getSystemFieldType() != null && data.getSystemFieldType().equals(SystemFieldType.PlanContact) && fieldEntity.getValidations() != null && fieldEntity.getValidations().contains(FieldValidationType.Required)) {
+                                return !this.conventionService.isNullOrEmpty(data.getLabel()) ? data.getLabel() : SystemFieldType.PlanContact.name();
                             }
                         }
-
                     }
                 }
             }
             return null;
+        }
+
+        public PlanPropertiesPersist.PlanPropertiesPersistValidator setVisibilityService(org.opencdmp.commons.types.planblueprint.DefinitionEntity definition, PlanPropertiesPersist propertyDefinition) {
+            this.visibilityService = VisibilityServiceImpl.fromPersist(definition.getSections(), propertyDefinition.getFieldSets());
+            return this;
         }
 
     }

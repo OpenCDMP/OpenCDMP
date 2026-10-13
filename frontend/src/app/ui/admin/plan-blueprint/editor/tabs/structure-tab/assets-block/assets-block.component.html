@@ -1,0 +1,94 @@
+<section class="ab bp2-card" [class.ab--on]="enabled">
+	<div class="ab-head">
+		<span class="bp2-tile ab-tile"><mat-icon>inventory_2</mat-icon></span>
+		<div class="ab-head__text">
+			<h2>{{'PLAN-BLUEPRINT-EDITOR.ASSETS.TITLE' | translate}}</h2>
+			<div class="bp2-help">{{ (enabled ? 'PLAN-BLUEPRINT-EDITOR.ASSETS.HINT-ON' : 'PLAN-BLUEPRINT-EDITOR.ASSETS.HINT-OFF') | translate }}</div>
+		</div>
+		@if (readOnly) {
+			<span class="bp2-tag" [class.bp2-tag--ok]="enabled">{{ (enabled ? 'PLAN-BLUEPRINT-EDITOR.READ.ON' : 'PLAN-BLUEPRINT-EDITOR.READ.OFF') | translate }}</span>
+		} @else {
+			<mat-slide-toggle [checked]="enabled" (change)="toggle($event.checked)" [attr.aria-label]="'PLAN-BLUEPRINT-EDITOR.ASSETS.TITLE' | translate"></mat-slide-toggle>
+		}
+	</div>
+
+	@if (enabled) {
+		<div class="ab-body">
+			<div class="bp2-caption" style="margin-top: 0;">{{'PLAN-BLUEPRINT-EDITOR.ASSETS.TEMPLATES' | translate}}</div>
+			@if (!templates.length) {
+				<div class="ab-empty">
+					<strong>{{'PLAN-BLUEPRINT-EDITOR.ASSETS.NO-TEMPLATES' | translate}}</strong>
+					<div class="bp2-help">{{'PLAN-BLUEPRINT-EDITOR.ASSETS.NO-TEMPLATES-HINT' | translate}}</div>
+				</div>
+			}
+			<div class="ab-list" cdkDropList [cdkDropListDisabled]="readOnly" (cdkDropListDropped)="drop($event)">
+				@for (control of templates.controls; track control; let i = $index) {
+					<div class="ab-row" [class.ab-row--bad]="showErrors && control.invalid" cdkDrag [cdkDragDisabled]="readOnly" cdkDragLockAxis="y">
+						@if (!readOnly) { <mat-icon class="ab-row__drag" cdkDragHandle aria-hidden="true">drag_indicator</mat-icon> }
+						<span class="bp2-tile ab-row__tile"><mat-icon>inventory_2</mat-icon></span>
+						<div class="ab-row__text">
+							@if (templateOf(control); as t) {
+								<div class="bp2-row" style="gap: .5rem; flex-wrap: wrap;"><strong>{{t.label}}</strong>@if (t.type?.name) { <span class="bp2-tag bp2-tag--type">{{t.type.name}}</span> }</div>
+								<div class="bp2-sub">@if (t.code) { {{t.code}} · } @if (t.version) { v{{t.version}} }</div>
+							} @else {
+								<strong class="bp2-sub">{{'PLAN-BLUEPRINT-EDITOR.ASSETS.UNKNOWN-TEMPLATE' | translate}}</strong>
+							}
+							@if (control.get('descriptionTemplateGroupId').hasError('backendError')) { <mat-error class="bp2-sub">{{control.get('descriptionTemplateGroupId').getError('backendError').message}}</mat-error> }
+						</div>
+						@if (readOnly) {
+							<span class="bp2-sub ab-row__range">{{ rangeText(control) }}</span>
+						} @else {
+						<div class="ab-row__minmax">
+							<span class="bp2-sub">{{'PLAN-BLUEPRINT-EDITOR.ASSETS.AUTHORS-ADD' | translate}}</span>
+							<input class="ab-num" type="number" min="0" [formControl]="control.get('minMultiplicity')" [placeholder]="'PLAN-BLUEPRINT-EDITOR.ASSETS.ANY' | translate" [attr.aria-label]="'PLAN-BLUEPRINT-EDITOR.ASSETS.MIN' | translate">
+							<span class="bp2-sub">{{'PLAN-BLUEPRINT-EDITOR.ASSETS.TO' | translate}}</span>
+							<input class="ab-num" type="number" [min]="control.get('minMultiplicity').value || 0" [formControl]="control.get('maxMultiplicity')" [placeholder]="'PLAN-BLUEPRINT-EDITOR.ASSETS.ANY' | translate" [attr.aria-label]="'PLAN-BLUEPRINT-EDITOR.ASSETS.MAX' | translate">
+						</div>
+						}
+						<button mat-icon-button type="button" class="bp2-icon-btn-sm" (click)="preview(control)" [disabled]="!templateOf(control)?.id" [matTooltip]="'PLAN-BLUEPRINT-EDITOR.ASSETS.PREVIEW' | translate" [attr.aria-label]="'PLAN-BLUEPRINT-EDITOR.ASSETS.PREVIEW' | translate"><mat-icon aria-hidden="true">visibility</mat-icon></button>
+						@if (!readOnly) { <button mat-icon-button type="button" class="bp2-icon-btn-sm" (click)="remove(i)" [matTooltip]="'PLAN-BLUEPRINT-EDITOR.ASSETS.REMOVE' | translate" [attr.aria-label]="'PLAN-BLUEPRINT-EDITOR.ASSETS.REMOVE' | translate"><mat-icon aria-hidden="true">close</mat-icon></button> }
+					</div>
+				}
+			</div>
+			@if (!readOnly) { <button mat-stroked-button type="button" class="bp2-dashed" (click)="addTemplates()"><mat-icon aria-hidden="true">add</mat-icon>{{'PLAN-BLUEPRINT-EDITOR.ASSETS.ADD' | translate}}</button> }
+			@if (templates.hasError('backendError')) { <mat-error class="bp2-sub">{{templates.getError('backendError').message}}</mat-error> }
+
+			<div class="bp2-divider"></div>
+
+			@if (readOnly) {
+				<dl class="bp2-read">
+					<dt>{{'PLAN-BLUEPRINT-EDITOR.ASSETS.OTHER-TEMPLATES' | translate}}</dt><dd>{{ (canEditTemplates.value ? 'PLAN-BLUEPRINT-EDITOR.RULES.YES' : 'PLAN-BLUEPRINT-EDITOR.RULES.NO') | translate }}</dd>
+					<dt>{{'PLAN-BLUEPRINT-EDITOR.ASSETS.PREFILL' | translate}}</dt>
+					<dd>@if (!prefillEnabled.value) { {{'PLAN-BLUEPRINT-EDITOR.READ.OFF' | translate}} } @else if (isLimited) { {{'PLAN-BLUEPRINT-EDITOR.ASSETS.PREFILL-ONLY' | translate}} {{ selectedSourceNames }} } @else { {{ sourcesHint }} }</dd>
+				</dl>
+			} @else {
+			<div class="bp2-toggle-row">
+				<mat-slide-toggle [formControl]="canEditTemplates" [attr.aria-label]="'PLAN-BLUEPRINT-EDITOR.ASSETS.OTHER-TEMPLATES' | translate"></mat-slide-toggle>
+				<div class="bp2-toggle-row__text"><strong>{{'PLAN-BLUEPRINT-EDITOR.ASSETS.OTHER-TEMPLATES' | translate}}</strong><span class="bp2-help">{{'PLAN-BLUEPRINT-EDITOR.ASSETS.OTHER-TEMPLATES-HINT' | translate}}</span></div>
+			</div>
+
+			<div class="bp2-toggle-row">
+				<mat-slide-toggle [checked]="!!prefillEnabled.value" (change)="togglePrefill($event.checked)" [disabled]="readOnly || (allSources !== null && !allSources.length)" [attr.aria-label]="'PLAN-BLUEPRINT-EDITOR.ASSETS.PREFILL' | translate"></mat-slide-toggle>
+				<div class="bp2-toggle-row__text">
+					<strong>{{'PLAN-BLUEPRINT-EDITOR.ASSETS.PREFILL' | translate}}</strong>
+					<span class="bp2-help">{{'PLAN-BLUEPRINT-EDITOR.ASSETS.PREFILL-INTRO' | translate}} {{ prefillEnabled.value ? sourcesHint : '' }}</span>
+					@if (prefillEnabled.value && allSources?.length) {
+						@if (!limiting && !isLimited) {
+							@if (!readOnly) { <button type="button" class="ab-link" (click)="limiting = true"><mat-icon aria-hidden="true">chevron_right</mat-icon>{{'PLAN-BLUEPRINT-EDITOR.ASSETS.PREFILL-LIMIT' | translate}}</button> }
+						} @else {
+							<div class="ab-sources">
+								<span class="bp2-sub">{{'PLAN-BLUEPRINT-EDITOR.ASSETS.PREFILL-ONLY' | translate}}</span>
+								<mat-form-field class="ab-sources__field" subscriptSizing="dynamic">
+									<app-multiple-auto-complete [formControl]="prefillIds" [configuration]="prefillingSourceService.multipleAutocompleteConfiguration" [placeholder]="'PLAN-BLUEPRINT-EDITOR.ASSETS.PREFILL-PICK' | translate"></app-multiple-auto-complete>
+								</mat-form-field>
+								@if (!readOnly) { <button type="button" class="ab-link" (click)="useAllSources()">{{'PLAN-BLUEPRINT-EDITOR.ASSETS.PREFILL-USE-ALL' | translate}}</button> }
+							</div>
+						}
+					}
+					@if (prefillIds.hasError('backendError')) { <mat-error class="bp2-sub">{{prefillIds.getError('backendError').message}}</mat-error> }
+				</div>
+			</div>
+			}
+		</div>
+	}
+</section>

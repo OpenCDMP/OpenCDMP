@@ -1,10 +1,16 @@
-import { Component, Inject } from '@angular/core';
-import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
+import { Component, Inject, ChangeDetectionStrategy } from '@angular/core';
+import { MAT_DIALOG_DATA, MatDialogRef, MatDialogTitle, MatDialogContent } from '@angular/material/dialog';
+import { MatIconButton } from '@angular/material/button';
+import { MatIcon } from '@angular/material/icon';
+import { CdkScrollable } from '@angular/cdk/scrolling';
+import { DescriptionTemplateTableSelectComponent } from '../descriptions-template-table-select/description-template-table-select.component';
+import { TranslatePipe } from '@ngx-translate/core';
 
 @Component({
-	selector: 'app-description-templates-dialog',
-	templateUrl: './description-templates-dialog.component.html',
-	standalone: false
+    selector: 'app-description-templates-dialog',
+    templateUrl: './description-templates-dialog.component.html',
+    changeDetection: ChangeDetectionStrategy.Eager,
+    imports: [MatDialogTitle, MatIconButton, MatIcon, CdkScrollable, MatDialogContent, DescriptionTemplateTableSelectComponent, TranslatePipe]
 })
 export class DescriptionTemplatesDialogComponent {
 

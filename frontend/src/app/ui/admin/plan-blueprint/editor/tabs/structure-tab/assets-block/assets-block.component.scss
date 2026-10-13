@@ -1,0 +1,21 @@
+@use '../../../../../structure-editor/bp2-shared' as *;
+
+:host { display: block; }
+.ab { padding: 1rem 1.25rem 1.25rem; border-left: 4px solid var(--mat-sys-outline-variant); &--on { border-left-color: var(--bp2-assets); } }
+.ab-head { display: flex; align-items: flex-start; gap: .75rem; &__text { flex: 1 1 0; min-width: 0; h2 { margin: 0; font-size: 1rem; font-weight: 500; } } }
+.ab-tile { background: var(--bp2-assets-bg); color: var(--bp2-assets); width: 40px; height: 40px; }
+.ab-body { display: flex; flex-direction: column; gap: .875rem; margin-top: .875rem; }
+.ab-empty { padding: 1.125rem; border: 1.5px dashed var(--mat-sys-outline-variant); border-radius: 12px; text-align: center; }
+.ab-list { display: flex; flex-direction: column; gap: .5rem; }
+.ab-row {
+	display: flex; align-items: center; gap: .625rem; padding: .625rem .75rem .625rem .5rem; border: 1px solid var(--mat-sys-outline-variant); border-radius: 12px; background: var(--mat-sys-surface);
+	&--bad { border-color: var(--mat-sys-error); }
+	&__drag { color: var(--mat-sys-on-surface-variant); cursor: grab; }
+	&__tile { width: 40px; height: 40px; background: var(--bp2-assets-bg); color: var(--bp2-assets); }
+	&__text { flex: 1 1 0; min-width: 0; }
+	&__minmax { display: flex; align-items: center; gap: .4rem; flex: none; }
+}
+.ab-num { width: 60px; height: 36px; border: 1px solid var(--mat-sys-outline-variant); border-radius: 8px; padding: 0 .5rem; font: inherit; text-align: center; background: var(--mat-sys-surface); color: var(--mat-sys-on-surface); &:focus { outline: 2px solid var(--mat-sys-primary); outline-offset: -1px; } }
+.ab-link { display: inline-flex; align-items: center; gap: .25rem; border: none; background: none; padding: 0; margin-top: .375rem; font: inherit; font-size: .85rem; font-weight: 700; color: var(--mat-sys-primary); cursor: pointer; mat-icon { font-size: 18px; width: 18px; height: 18px; } }
+.ab-sources { display: flex; flex-direction: column; gap: .375rem; margin-top: .5rem; &__field { width: 100%; } }
+@media (max-width: 900px) { .ab-row { flex-wrap: wrap; } .ab-row__minmax { width: 100%; padding-left: 3rem; } }

@@ -15,6 +15,8 @@ import gr.cite.tools.validation.ValidationFilterAnnotation;
 import jakarta.transaction.Transactional;
 import org.opencdmp.audit.AuditableAction;
 import org.opencdmp.authorization.AuthorizationFlags;
+import org.opencdmp.commons.scope.tenant.TenantScopeFactory;
+import org.opencdmp.commons.scope.user.UserScopeFactory;
 import org.opencdmp.data.UserSettingsEntity;
 import org.opencdmp.model.UserSettings;
 import org.opencdmp.model.builder.UserSettingsBuilder;
@@ -33,7 +35,9 @@ import javax.management.InvalidApplicationException;
 import java.util.AbstractMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
+import java.util.UUID;
 
 @RestController
 @RequestMapping(path = "api/user-settings")
@@ -53,6 +57,10 @@ public class UserSettingsController {
 
     private final MessageSource messageSource;
 
+    private final UserScopeFactory userScopeFactory;
+
+    private final TenantScopeFactory tenantScopeFactory;
+
     @Autowired
     public UserSettingsController(
             BuilderFactory builderFactory,
@@ -60,8 +68,12 @@ public class UserSettingsController {
             UserSettingsService settingsService,
             CensorFactory censorFactory,
             QueryFactory queryFactory,
-            MessageSource messageSource) {
+            MessageSource messageSource,
+            UserScopeFactory userScopeFactory,
+            TenantScopeFactory tenantScopeFactory) {
         this.builderFactory = builderFactory;
+        this.userScopeFactory = userScopeFactory;
+        this.tenantScopeFactory = tenantScopeFactory;
         this.auditService = auditService;
         this.settingsService = settingsService;
         this.censorFactory = censorFactory;
@@ -85,7 +97,7 @@ public class UserSettingsController {
 
     @GetMapping("{key}")
     @Transactional
-    public UserSettings Get(@PathVariable("key") String key) throws MyApplicationException, MyForbiddenException, MyNotFoundException {
+    public UserSettings Get(@PathVariable("key") String key) throws MyApplicationException, MyForbiddenException, MyNotFoundException, InvalidApplicationException {
         logger.debug(new MapLogEntry("retrieving" + UserSettings.class.getSimpleName()).And("key", key));
 
         BaseFieldSet fieldSet = new BaseFieldSet();
@@ -96,10 +108,22 @@ public class UserSettingsController {
                 UserSettings._entityId,
                 UserSettings._createdAt,
                 UserSettings._updatedAt,
-                UserSettings._type
+                UserSettings._type,
+                // The client needs the hash to update the row it just read (persist validates it).
+                UserSettings._hash
         ));
+        // Always the caller's own row: without the owner filter an administrator (BrowseUserSettings) would get
+        // whichever user's row came first. The tenant filter also matches tenant-less rows, so prefer the one
+        // in the current tenant; falling back to the tenant-less row carries its values over, and the next
+        // persist forks it into this tenant.
+        UUID currentUserId = this.userScopeFactory.getInstance().getUserIdSafe();
+        UUID currentTenant = this.tenantScopeFactory.getInstance().getTenant();
         UserSettingsQuery query = this.queryFactory.query(UserSettingsQuery.class).disableTracking().authorize(AuthorizationFlags.AllExceptPublic).keys(key);
-        UserSettings model = this.builderFactory.builder(UserSettingsBuilder.class).authorize(AuthorizationFlags.AllExceptPublic).build(fieldSet, query.firstAs(fieldSet));
+        if (currentUserId != null) query.entityIds(currentUserId);
+        List<UserSettingsEntity> rows = query.collect();
+        UserSettingsEntity data = rows.stream().filter(x -> Objects.equals(x.getTenantId(), currentTenant)).findFirst()
+                .orElse(rows.stream().findFirst().orElse(null));
+        UserSettings model = this.builderFactory.builder(UserSettingsBuilder.class).authorize(AuthorizationFlags.AllExceptPublic).build(fieldSet, data);
 
         this.auditService.track(AuditableAction.User_Settings_Lookup, Map.ofEntries(
                 new AbstractMap.SimpleEntry<String, Object>("key", key)

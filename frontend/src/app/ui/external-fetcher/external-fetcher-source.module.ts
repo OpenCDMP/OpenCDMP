@@ -1,24 +1,18 @@
 import { NgModule } from '@angular/core';
-import { FormattingModule } from '@app/core/formatting.module';
-import { AutoCompleteModule } from '@app/library/auto-complete/auto-complete.module';
-import { DescriptionRoutingModule } from '@app/ui/description/description.routing';
-import { CommonFormsModule } from '@common/forms/common-forms.module';
+import { MatDialogModule } from '@angular/material/dialog';
 import { CommonUiModule } from '@common/ui/common-ui.module';
-import { ExternalFetcherSourceComponent } from './external-fetcher-source.component';
+import { FileUploadComponent } from '@app/library/file-uploader/file-uploader.component';
+import { ImportXmlDialogComponent } from './import-xml-dialog/import-xml.dialog.component';
 
 @NgModule({
-	imports: [
-		CommonUiModule,
-		CommonFormsModule,
-		FormattingModule,
-		DescriptionRoutingModule,
-		AutoCompleteModule
-	],
-	declarations: [
-		ExternalFetcherSourceComponent
-	],
-	exports: [
-		ExternalFetcherSourceComponent
-	]
+    imports: [
+        CommonUiModule,
+        FileUploadComponent,
+        MatDialogModule,
+        ImportXmlDialogComponent
+    ],
+    exports: [
+        ImportXmlDialogComponent
+    ]
 })
 export class ExternalFetcherSourceModule { }

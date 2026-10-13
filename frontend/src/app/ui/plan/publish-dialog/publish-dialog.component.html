@@ -1,0 +1,215 @@
+<div class="pd">
+	<div class="pd__head">
+		<h2 mat-dialog-title class="pd__title">{{ 'PUBLISH-DIALOG.TITLE' | translate: { repository: repositoryLabel } }}</h2>
+		<button mat-icon-button type="button" (click)="close()" [attr.aria-label]="'PUBLISH-DIALOG.ACTIONS.CLOSE-DIALOG' | translate"><mat-icon aria-hidden="true">close</mat-icon></button>
+	</div>
+
+	<ol class="pd__steps" [attr.aria-label]="'PUBLISH-DIALOG.STEPS.LABEL' | translate">
+		@for (s of steps; track s; let i = $index) {
+			<li class="pd__step" [class.pd__step--on]="i === stepIndex()" [class.pd__step--done]="i < stepIndex()" [attr.aria-current]="i === stepIndex() ? 'step' : null">
+				<span class="pd__dot" aria-hidden="true">@if (i < stepIndex()) { <mat-icon>check</mat-icon> } @else { {{ i + 1 }} }</span>
+				<span class="pd__step-label">{{ ('PUBLISH-DIALOG.STEPS.' + s.toUpperCase()) | translate }}</span>
+			</li>
+		}
+	</ol>
+
+	<mat-dialog-content class="pd__content">
+		<!-- ======================================================== account -->
+		@if (step() === 'account') {
+			@if (loading()) {
+				<div class="pd__loading"><mat-spinner diameter="32" /></div>
+			} @else if (loadError() || !choices()) {
+				<div class="pd__box pd__box--error" role="alert">
+					<mat-icon aria-hidden="true">error</mat-icon>
+					<span>{{ 'PUBLISH-DIALOG.AS.NONE' | translate: { repository: repositoryLabel } }}</span>
+				</div>
+			} @else if (choices() === 1 && canOrg()) {
+				<div class="pd__box pd__box--info">
+					<mat-icon aria-hidden="true">info</mat-icon>
+					<div><strong>{{ organisationAccountName() ? ('PUBLISH-DIALOG.AS.ONLY-NAMED' | translate: { account: organisationAccountName() }) : ('PUBLISH-DIALOG.AS.ONLY-ORG' | translate: { repository: repositoryLabel }) }}</strong><p>{{ 'PUBLISH-DIALOG.AS.ORG-HINT' | translate: { repository: repositoryLabel } }}</p></div>
+				</div>
+			} @else {
+				<mat-radio-group class="pd__choices" [value]="publishAs()" (change)="publishAs.set($event.value)" [attr.aria-label]="'PUBLISH-DIALOG.AS.LEGEND' | translate">
+					<h3 class="pd__legend">{{ 'PUBLISH-DIALOG.AS.LEGEND' | translate }}</h3>
+					@if (canOrg()) {
+						<div class="pd__card" [class.pd__card--on]="publishAs() === 'org'">
+							<mat-radio-button value="org">
+								<span class="pd__card-title">{{ organisationAccountName() || ('PUBLISH-DIALOG.AS.ORG' | translate: { repository: repositoryLabel }) }} <span class="pd__tag">{{ 'PUBLISH-DIALOG.AS.ORG-TAG' | translate }}</span></span>
+							</mat-radio-button>
+							<p class="pd__card-hint">{{ 'PUBLISH-DIALOG.AS.ORG-HINT' | translate: { repository: repositoryLabel } }}</p>
+						</div>
+					}
+					@if (canOwn()) {
+						<div class="pd__card" [class.pd__card--on]="publishAs() === 'own'">
+							<mat-radio-button value="own">
+								<span class="pd__card-title">{{ 'PUBLISH-DIALOG.AS.OWN' | translate: { repository: repositoryLabel } }}
+									@if (hasSaved() && ownMode() === 'saved') { <span class="pd__tag pd__tag--ok">{{ 'PUBLISH-DIALOG.AS.CONNECTED' | translate }}</span> }
+								</span>
+							</mat-radio-button>
+							<p class="pd__card-hint">{{ 'PUBLISH-DIALOG.AS.OWN-HINT' | translate: { repository: repositoryLabel } }}</p>
+							@if (publishAs() === 'own') {
+								<!-- a typed field's native change event would otherwise bubble into the radio group as a selection -->
+								<div class="pd__own" (change)="$event.stopPropagation()">
+									@switch (ownMode()) {
+										@case ('saved') {
+											<p class="pd__note"><mat-icon aria-hidden="true">key</mat-icon>{{ 'PUBLISH-DIALOG.AS.SAVED' | translate }}</p>
+										}
+										@case ('signin') {
+											<p class="pd__note"><mat-icon aria-hidden="true">open_in_new</mat-icon>{{ 'PUBLISH-DIALOG.AS.SIGN-IN-HINT' | translate: { repository: repositoryLabel } }}</p>
+										}
+										@case ('token') {
+											<form class="pd__credentials" [formGroup]="credentials" (ngSubmit)="continue()">
+												@for (field of credentialFields; track field.code) {
+													<mat-form-field subscriptSizing="dynamic">
+														<mat-label>{{ field.label }}</mat-label>
+														<input matInput [type]="shown().has(field.code) ? 'text' : 'password'" [formControlName]="field.code" autocomplete="off">
+														<button mat-icon-button matSuffix type="button" (click)="toggleShown(field.code)" [attr.aria-label]="(shown().has(field.code) ? 'PUBLISH-DIALOG.AS.HIDE' : 'PUBLISH-DIALOG.AS.SHOW') | translate: { field: field.label }">
+															<mat-icon aria-hidden="true">{{ shown().has(field.code) ? 'visibility_off' : 'visibility' }}</mat-icon>
+														</button>
+														@if (field.description) { <mat-hint>{{ field.description }}</mat-hint> }
+														<mat-error>{{ 'GENERAL.VALIDATION.REQUIRED' | translate }}</mat-error>
+													</mat-form-field>
+												}
+												<mat-checkbox [checked]="saveCredentials()" (change)="saveCredentials.set($event.checked)">{{ 'PUBLISH-DIALOG.AS.SAVE' | translate }}</mat-checkbox>
+											</form>
+										}
+									}
+									<div class="pd__alternatives">
+										@if (ownMode() !== 'signin' && canSignIn()) { <button mat-button type="button" (click)="setOwnMode('signin')">{{ 'PUBLISH-DIALOG.AS.SIGN-IN-INSTEAD' | translate: { repository: repositoryLabel } }}</button> }
+										@if (ownMode() !== 'token' && canToken()) { <button mat-button type="button" (click)="setOwnMode('token')">{{ (hasSaved() ? 'PUBLISH-DIALOG.AS.OTHER-TOKEN' : 'PUBLISH-DIALOG.AS.TOKEN-INSTEAD') | translate }}</button> }
+										@if (ownMode() !== 'saved' && hasSaved()) { <button mat-button type="button" (click)="setOwnMode('saved')">{{ 'PUBLISH-DIALOG.AS.USE-SAVED' | translate }}</button> }
+									</div>
+								</div>
+							}
+						</div>
+					}
+				</mat-radio-group>
+			}
+		}
+
+		<!-- ======================================================== review (kept alive so edits survive a failed attempt) -->
+		@if (reviewLoaded() || step() === 'review') {
+			<div class="pd__review" [hidden]="step() !== 'review'">
+				<div class="pd__as">
+					<span>{{ publishAs() === 'org' && organisationAccountName() ? ('PUBLISH-DIALOG.REVIEW.AS-NAMED' | translate: { account: organisationAccountName() }) : ((publishAs() === 'org' ? 'PUBLISH-DIALOG.REVIEW.AS-ORG' : 'PUBLISH-DIALOG.REVIEW.AS-OWN') | translate: { repository: repositoryLabel }) }}</span>
+					@if (choices() > 1 || canSignIn() || canToken()) {
+						<button mat-button type="button" (click)="step.set('account')">{{ 'PUBLISH-DIALOG.REVIEW.CHANGE' | translate }}</button>
+					}
+				</div>
+				@if (signInCancelled()) {
+					<div class="pd__box pd__box--warn" role="status"><mat-icon aria-hidden="true">warning</mat-icon><span>{{ 'PUBLISH-DIALOG.REVIEW.SIGN-IN-CANCELLED' | translate }}</span></div>
+				}
+				@if (files()?.length) {
+					<section class="pd__files" aria-labelledby="pd-files-title">
+						<h3 id="pd-files-title" class="pd__files-title">{{ 'PUBLISH-DIALOG.FILES.TITLE' | translate: { repository: repositoryLabel } }}</h3>
+						@for (file of files(); track file.kind) {
+							<div class="pd__file">
+								<mat-icon aria-hidden="true">{{ file.kind === fileKinds.PlanDocument ? 'picture_as_pdf' : file.kind === fileKinds.RdaJson ? 'data_object' : 'folder_zip' }}</mat-icon>
+								<div class="pd__file-text">
+									<span class="pd__file-name">{{ file.filename }}</span>
+									<span class="pd__file-kind">{{ ('PUBLISH-DIALOG.FILES.KIND-' + file.kind) | translate }}</span>
+									@if (file.contents?.length) {
+										<details class="pd__file-contents">
+											<summary>{{ 'PUBLISH-DIALOG.FILES.CONTENTS' | translate: { count: file.contents.length } }}</summary>
+											<ul>@for (name of file.contents; track $index) { <li>{{ name }}</li> }</ul>
+										</details>
+									}
+								</div>
+								<button mat-button type="button" (click)="download(file)" [disabled]="downloading() !== null">
+									@if (downloading() === file.kind) { <mat-spinner diameter="16" class="pd__btn-spinner" /> } @else { <mat-icon aria-hidden="true">download</mat-icon> }
+									{{ 'PUBLISH-DIALOG.FILES.DOWNLOAD' | translate }}<span class="cdk-visually-hidden"> {{ file.filename }}</span>
+								</button>
+							</div>
+						}
+					</section>
+				}
+				@if (preview(); as model) {
+					<app-deposit-review [preview]="model" [repositoryId]="repo.repositoryId" [planId]="data.planId" [repositoryLabel]="repositoryLabel" />
+				} @else {
+					<div class="pd__box pd__box--info"><mat-icon aria-hidden="true">info</mat-icon><span>{{ 'PUBLISH-DIALOG.REVIEW.NO-FORM' | translate: { repository: repositoryLabel } }}</span></div>
+				}
+			</div>
+		}
+
+		<!-- ======================================================== done -->
+		@if (step() === 'done') {
+			<div class="pd__done" role="status">
+				<span class="pd__done-icon" aria-hidden="true"><mat-icon>check</mat-icon></span>
+				<h3>{{ 'PUBLISH-DIALOG.DONE.TITLE' | translate: { repository: repositoryLabel } }}</h3>
+				<p>{{ (publishAs() === 'org' ? 'PUBLISH-DIALOG.DONE.ORG' : 'PUBLISH-DIALOG.DONE.OWN') | translate: { repository: repositoryLabel } }}</p>
+			</div>
+			<div class="pd__doi">
+				<span class="pd__doi-label">{{ 'PUBLISH-DIALOG.DONE.DOI' | translate }}</span>
+				<span class="pd__doi-value">{{ doi()?.doi }}</span>
+				@if (copied()) { <span class="pd__copied" role="status">{{ 'PUBLISH-DIALOG.DONE.COPIED' | translate }}</span> }
+				<button mat-icon-button type="button" [cdkCopyToClipboard]="$safeNavigationMigration(doi()?.doi)" (cdkCopyToClipboardCopied)="copied.set($event)" [attr.aria-label]="'PUBLISH-DIALOG.DONE.COPY' | translate"><mat-icon aria-hidden="true">{{ copied() ? 'check' : 'content_copy' }}</mat-icon></button>
+			</div>
+		}
+
+		<!-- ======================================================== failed -->
+		@if (step() === 'failed') {
+			<div class="pd__box pd__box--error pd__failed" role="alert">
+				<mat-icon aria-hidden="true">error</mat-icon>
+				<div>
+					<strong>{{ (failure() === 'sign-in' ? 'PUBLISH-DIALOG.FAILED.SIGN-IN' : failure() === 'credentials' ? 'PUBLISH-DIALOG.FAILED.CREDENTIALS' : 'PUBLISH-DIALOG.FAILED.TITLE') | translate: { repository: repositoryLabel } }}</strong>
+					<p>{{ (publishAs() === 'own' ? 'PUBLISH-DIALOG.FAILED.HINT-OWN' : 'PUBLISH-DIALOG.FAILED.HINT') | translate }}</p>
+					@if (error() && failure() === 'other') {
+						<details><summary>{{ 'PUBLISH-DIALOG.FAILED.DETAILS' | translate }}</summary><p class="pd__error-detail">{{ error() }}</p></details>
+					}
+				</div>
+			</div>
+		}
+
+		@if (step() === 'review-failed') {
+			<div class="pd__box pd__box--error pd__failed" role="alert">
+				<mat-icon aria-hidden="true">error</mat-icon>
+				<div>
+					<strong>{{ 'PUBLISH-DIALOG.REVIEW-FAILED.TITLE' | translate }}</strong>
+					<p>{{ 'PUBLISH-DIALOG.REVIEW-FAILED.HINT' | translate: { repository: repositoryLabel } }}</p>
+					@if (error()) {
+						<details><summary>{{ 'PUBLISH-DIALOG.FAILED.DETAILS' | translate }}</summary><p class="pd__error-detail">{{ error() }}</p></details>
+					}
+				</div>
+			</div>
+		}
+	</mat-dialog-content>
+
+	<mat-dialog-actions class="pd__actions">
+		@switch (step()) {
+			@case ('account') {
+				<button mat-button type="button" (click)="close()">{{ 'PUBLISH-DIALOG.ACTIONS.CANCEL' | translate }}</button>
+				<button mat-flat-button color="primary" type="button" (click)="continue()" [disabled]="loading() || busy() || loadError() || !choices()">
+					@if (busy()) { <mat-spinner diameter="18" class="pd__btn-spinner" /> }
+					{{ 'PUBLISH-DIALOG.ACTIONS.CONTINUE' | translate }}
+				</button>
+			}
+			@case ('review') {
+				<button mat-button type="button" (click)="step.set('account')" [disabled]="busy()">{{ 'PUBLISH-DIALOG.ACTIONS.BACK' | translate }}</button>
+				<button mat-flat-button color="primary" type="button" (click)="publish()" [disabled]="busy() || !!review()?.missingGroups?.length">
+					@if (busy()) { <mat-spinner diameter="18" class="pd__btn-spinner" /> }
+					{{ (publishAs() === 'own' && ownMode() === 'signin' ? 'PUBLISH-DIALOG.ACTIONS.SIGN-IN-PUBLISH' : 'PUBLISH-DIALOG.ACTIONS.PUBLISH') | translate: { repository: repositoryLabel } }}
+				</button>
+			}
+			@case ('done') {
+				<button mat-button type="button" (click)="close()">{{ 'PUBLISH-DIALOG.ACTIONS.DONE' | translate }}</button>
+				@if (recordUrl(); as url) {
+					<a mat-flat-button color="primary" [href]="url" target="_blank" rel="noopener">{{ 'PUBLISH-DIALOG.DONE.OPEN' | translate: { repository: repositoryLabel } }}<mat-icon iconPositionEnd aria-hidden="true">open_in_new</mat-icon></a>
+				}
+			}
+			@case ('review-failed') {
+				<button mat-button type="button" (click)="close()">{{ 'PUBLISH-DIALOG.ACTIONS.CANCEL' | translate }}</button>
+				<button mat-button type="button" (click)="backToAccount()">{{ 'PUBLISH-DIALOG.ACTIONS.BACK' | translate }}</button>
+				<button mat-flat-button color="primary" type="button" (click)="continue()" [disabled]="busy()">
+					@if (busy()) { <mat-spinner diameter="18" class="pd__btn-spinner" /> }
+					{{ 'PUBLISH-DIALOG.FAILED.RETRY' | translate }}
+				</button>
+			}
+			@case ('failed') {
+				<button mat-button type="button" (click)="close()">{{ 'PUBLISH-DIALOG.ACTIONS.CANCEL' | translate }}</button>
+				@if (reviewLoaded()) { <button mat-button type="button" (click)="backToReview()">{{ 'PUBLISH-DIALOG.FAILED.BACK' | translate }}</button> }
+				@if (publishAs() === 'own' && canOrg()) { <button mat-stroked-button type="button" (click)="useOrganisationAccount()" [disabled]="busy()">{{ 'PUBLISH-DIALOG.FAILED.USE-ORG' | translate }}</button> }
+				<button mat-flat-button color="primary" type="button" (click)="retry()" [disabled]="busy()">{{ 'PUBLISH-DIALOG.FAILED.RETRY' | translate }}</button>
+			}
+		}
+	</mat-dialog-actions>
+</div>

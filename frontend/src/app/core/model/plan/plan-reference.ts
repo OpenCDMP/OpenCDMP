@@ -1,5 +1,5 @@
 import { BaseEntity } from "@common/base/base-entity.model";
-import { BaseReference, Reference } from "../reference/reference";
+import { Reference } from "../reference/reference";
 import { Plan } from "./plan";
 import { Guid } from "@common/types/guid";
 
@@ -11,4 +11,5 @@ export interface PlanReference extends BaseEntity {
 
 export interface PlanReferenceData {
 	blueprintFieldId: Guid;
+    ordinal?: number;
 }

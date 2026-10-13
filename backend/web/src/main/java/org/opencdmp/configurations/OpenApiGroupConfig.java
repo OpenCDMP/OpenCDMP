@@ -21,28 +21,6 @@ public class OpenApiGroupConfig {
     }
 
     @Bean
-    public GroupedOpenApi legacyApi( @Qualifier("securityCustomizer") OpenApiCustomizer securityCustomizer,
-                                     @Qualifier("sortOperations") OpenApiCustomizer sortOperations,
-                                     @Qualifier("sortTags") OpenApiCustomizer sortTags,
-                                     @Qualifier("serverUrlCustomizer") OpenApiCustomizer serverUrlCustomizer
-    ) {
-        if (this.swaggerConfigProperties.getGroup().getLegacyApi() != null) {
-            return GroupedOpenApi.builder()
-                    .group(this.swaggerConfigProperties.getGroup().getLegacyApi().getGroup())
-                    .displayName(this.swaggerConfigProperties.getGroup().getLegacyApi().getDisplayName())
-                    .packagesToScan(this.swaggerConfigProperties.getGroup().getLegacyApi().getPackagesToScan())
-                    .pathsToMatch(this.swaggerConfigProperties.getGroup().getLegacyApi().getPathsToMatch().split(",\\s*"))
-                    .addOpenApiCustomizer(securityCustomizer)
-                    .addOpenApiCustomizer(sortOperations)
-                    .addOpenApiCustomizer(sortTags)
-                    .addOpenApiCustomizer(serverUrlCustomizer)
-                    .build();
-        }
-        return null;
-
-    }
-
-    @Bean
     public GroupedOpenApi currentApi( @Qualifier("securityCustomizer") OpenApiCustomizer securityCustomizer,
                                       @Qualifier("sortOperations") OpenApiCustomizer sortOperations,
                                       @Qualifier("sortTags") OpenApiCustomizer sortTags,

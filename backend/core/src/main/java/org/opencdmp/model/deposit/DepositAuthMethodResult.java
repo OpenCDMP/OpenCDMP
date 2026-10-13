@@ -8,6 +8,24 @@ public class DepositAuthMethodResult {
 
 	private boolean hasMyAccountValue;
 	private List<DepositAuthMethod> depositAuthInfoTypes;
+	private String preselected;
+	private String organisationAccountName;
+
+	public String getPreselected() {
+		return preselected;
+	}
+
+	public void setPreselected(String preselected) {
+		this.preselected = preselected;
+	}
+
+	public String getOrganisationAccountName() {
+		return organisationAccountName;
+	}
+
+	public void setOrganisationAccountName(String organisationAccountName) {
+		this.organisationAccountName = organisationAccountName;
+	}
 
 	public boolean isHasMyAccountValue() {
 		return hasMyAccountValue;

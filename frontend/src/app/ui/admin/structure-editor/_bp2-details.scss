@@ -1,0 +1,15 @@
+// Layout of a Details tab: the cards column and the readiness / preview aside. Both editors' Details tabs import it.
+:host { display: block; }
+.dt { display: grid; grid-template-columns: minmax(0, 1fr) 380px; gap: 1.5rem; align-items: start; }
+.dt-main, .dt-aside { display: flex; flex-direction: column; gap: 1.25rem; min-width: 0; }
+.dt-preview-row {
+	display: flex; gap: .75rem; padding: .75rem; border: 1px solid var(--mat-sys-outline-variant); border-radius: 12px;
+	&__text { min-width: 0; }
+	&__desc { margin-top: .25rem; line-height: 1.45; }
+}
+@media (max-width: 1200px) { .dt { grid-template-columns: 1fr; } }
+
+// buttons drawn in the author preview: a picture of the real card, so full strength rather than disabled
+.dt-fake-btn { display: inline-flex; align-items: center; height: 32px; padding: 0 .875rem; border-radius: 999px; border: 1px solid var(--mat-sys-outline); color: var(--mat-sys-primary); font-size: .82rem; font-weight: 600; white-space: nowrap; user-select: none;
+	&--primary { background: var(--mat-sys-primary); border-color: var(--mat-sys-primary); color: var(--mat-sys-on-primary); }
+}

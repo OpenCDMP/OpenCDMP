@@ -1,0 +1,162 @@
+<header class="tc-head">
+	<h1>{{ 'TENANT-CONFIGURATION.WORKFLOWS.TITLE' | translate }}</h1>
+	<p>{{ 'TENANT-CONFIGURATION.WORKFLOWS.HINT' | translate }}</p>
+</header>
+
+<mat-tab-group class="tc-wf__tabs" [selectedIndex]="selectedTab()" (selectedIndexChange)="selectedTab.set($event)" animationDuration="0ms" mat-stretch-tabs="false" mat-align-tabs="start">
+	@for (tab of tabs; track tab.kind) {
+		<mat-tab>
+			<ng-template mat-tab-label>
+				{{ tab.texts + '.TAB' | translate }}
+				@if (tab.workflow.dirty()) {
+					<span class="tc-wf__dot" aria-hidden="true"></span>
+					<span class="cdk-visually-hidden">{{ 'TENANT-CONFIGURATION.WORKFLOWS.UNSAVED' | translate }}</span>
+				}
+			</ng-template>
+
+			<div class="tc-wf__panel">
+				@if (tab.workflow.loading() || tab.statuses() === null) {
+					<div class="tc-loading"><mat-spinner diameter="32" /></div>
+				} @else if (tab.workflow.form(); as form) {
+					<section class="tc-card" [attr.aria-labelledby]="'tc-wf-' + tab.kind + '-h'">
+						<div class="tc-card__head">
+							<div>
+								<h2 [id]="'tc-wf-' + tab.kind + '-h'">{{ tab.texts + '.CARD' | translate }}</h2>
+								@if (tab.workflow.inherited()) {
+									<p>{{ 'TENANT-CONFIGURATION.WORKFLOWS.INHERITED-HINT' | translate }}</p>
+								} @else if (!tab.workflow.changed()) {
+									<p>{{ tab.texts + '.NONE-HINT' | translate }}</p>
+								}
+							</div>
+							<div class="tc-wf__head-actions">
+								<app-tc-state-tag [changed]="tab.workflow.changed()" [inherited]="tab.workflow.inherited()" [canCustomise]="tab.workflow.canEdit" (customiseRequested)="tab.workflow.customise()" [canReset]="tab.workflow.canReset" (resetRequested)="section.confirmReset(tab.workflow.reset.bind(tab.workflow))" />
+								@if (tab.canEditStatus) {
+									<button mat-stroked-button type="button" (click)="addStatus(tab)">
+										<mat-icon aria-hidden="true">add</mat-icon>{{ 'TENANT-CONFIGURATION.WORKFLOWS.STATUS.ADD' | translate }}
+									</button>
+								}
+							</div>
+						</div>
+
+						<div class="tc-row">
+							<div>
+								<label class="tc-row__label" [for]="'tc-wf-' + tab.kind + '-start'">{{ tab.texts + '.STARTS-AS-LABEL' | translate }}</label>
+								<div class="tc-row__hint">{{ tab.texts + '.STARTS-AS-HINT' | translate }}</div>
+							</div>
+							<mat-form-field class="tc-full" subscriptSizing="dynamic">
+								<mat-label>{{ tab.texts + '.STARTS-AS-LABEL' | translate }}</mat-label>
+								<mat-select [id]="'tc-wf-' + tab.kind + '-start'" [formControl]="asControl(tab.startingStatus())" [required]="true">
+									@for (status of tab.statuses(); track status.id) {
+										<mat-option [value]="status.id">{{ status.name }}</mat-option>
+									}
+								</mat-select>
+								@if (tab.startingStatus()?.hasError('required')) { <mat-error>{{ 'GENERAL.VALIDATION.REQUIRED' | translate }}</mat-error> }
+								@if (tab.startingStatus()?.hasError('backendError')) { <mat-error>{{ tab.startingStatus().getError('backendError').message }}</mat-error> }
+							</mat-form-field>
+						</div>
+
+						@if (tab.layout(); as layout) {
+							@if (layout.nodes.length) {
+								<div class="tc-wf__diagram">
+									<svg [attr.viewBox]="'0 0 ' + layout.width + ' ' + layout.height" [attr.width]="layout.width" [attr.height]="layout.height"
+										[style.min-width.px]="layout.width * 0.75" [style.max-width.px]="layout.width" role="img" [attr.aria-label]="tab.diagramLabel()" preserveAspectRatio="xMinYMid meet">
+										<defs>
+											<marker [attr.id]="'tc-wf-arrow-' + tab.kind" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+												<path class="tc-wf__head" d="M 0 0 L 10 5 L 0 10 z" />
+											</marker>
+											<marker [attr.id]="'tc-wf-arrow-back-' + tab.kind" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+												<path class="tc-wf__head tc-wf__head--back" d="M 0 0 L 10 5 L 0 10 z" />
+											</marker>
+										</defs>
+										@for (edge of layout.edges; track edge.key) {
+											<path [attr.d]="edge.path" class="tc-wf__edge" [class.tc-wf__edge--back]="edge.kind === 'back'" [class.tc-wf__edge--dim]="edgeDimmed(edge)"
+												[attr.marker-end]="'url(#tc-wf-arrow-' + (edge.kind === 'back' ? 'back-' : '') + tab.kind + ')'" />
+										}
+										@for (node of layout.nodes; track node.id) {
+											<g class="tc-wf__node" [class.tc-wf__node--start]="node.start" [class.tc-wf__node--unreachable]="!node.reachable" [class.tc-wf__node--dim]="nodeDimmed(tab, node)"
+												[class.tc-wf__node--open]="editing()?.statusId?.toString().toLowerCase() === node.id" tabindex="0" role="button" [attr.aria-label]="node.name"
+												(click)="openStatus(tab, node)" (keydown.enter)="openStatus(tab, node)" (keydown.space)="$event.preventDefault(); openStatus(tab, node)"
+												(mouseenter)="hovered.set(node.id)" (mouseleave)="hovered.set(null)" (focus)="hovered.set(node.id)" (blur)="hovered.set(null)">
+												<title>{{ node.name }}</title>
+												<rect [attr.x]="node.x" [attr.y]="node.y" [attr.width]="layout.boxWidth" [attr.height]="layout.boxHeight" rx="10" ry="10" />
+												@if (node.start) {
+													<text class="tc-wf__start" [attr.x]="node.x + layout.boxWidth / 2" [attr.y]="node.y + 15" text-anchor="middle">{{ 'TENANT-CONFIGURATION.WORKFLOWS.START' | translate }}</text>
+												}
+												<text class="tc-wf__name" [attr.x]="node.x + layout.boxWidth / 2" [attr.y]="node.y + (node.start ? 34 : 29)" text-anchor="middle">{{ node.label }}</text>
+											</g>
+										}
+									</svg>
+								</div>
+								<ul class="tc-wf__legend" aria-hidden="true">
+									<li><span class="tc-wf__key tc-wf__key--forward"></span>{{ 'TENANT-CONFIGURATION.WORKFLOWS.LEGEND-FORWARD' | translate }}</li>
+									<li><span class="tc-wf__key tc-wf__key--back"></span>{{ 'TENANT-CONFIGURATION.WORKFLOWS.LEGEND-BACK' | translate }}</li>
+									<li><span class="tc-wf__key tc-wf__key--unreachable"></span>{{ 'TENANT-CONFIGURATION.WORKFLOWS.LEGEND-UNREACHABLE' | translate }}</li>
+								</ul>
+							} @else {
+								<p class="tc-row__hint">{{ tab.texts + '.NO-STATUSES' | translate }}</p>
+							}
+						}
+						<p class="tc-row__hint">{{ tab.texts + '.OPEN-HINT' | translate }}</p>
+					</section>
+
+					<section class="tc-card" [attr.aria-labelledby]="'tc-wf-' + tab.kind + '-grid-h'">
+						<div class="tc-card__head">
+							<div>
+								<h2 [id]="'tc-wf-' + tab.kind + '-grid-h'">{{ 'TENANT-CONFIGURATION.WORKFLOWS.ALLOWED-CHANGES' | translate }}</h2>
+								<p>{{ tab.texts + '.GRID-HINT' | translate }}</p>
+							</div>
+						</div>
+
+						@if (tab.gridOrder().length) {
+							<div class="tc-wf__grid-wrap">
+								<table class="tc-wf__grid">
+									<caption class="cdk-visually-hidden">{{ 'TENANT-CONFIGURATION.WORKFLOWS.GRID-CAPTION' | translate }}</caption>
+									<thead>
+										<tr>
+											<th scope="col" class="tc-wf__corner">
+												<span>{{ 'TENANT-CONFIGURATION.WORKFLOWS.FROM' | translate }}</span> / <span>{{ 'TENANT-CONFIGURATION.WORKFLOWS.TO' | translate }}</span>
+											</th>
+											@for (to of tab.gridOrder(); track to.id) {
+												<th scope="col">{{ to.name }}</th>
+											}
+										</tr>
+									</thead>
+									<tbody>
+										@for (from of tab.gridOrder(); track from.id) {
+											<tr>
+												<th scope="row">{{ from.name }}</th>
+												@for (to of tab.gridOrder(); track to.id) {
+													<td>
+														@if (isSame(from, to)) {
+															<span class="tc-wf__self" aria-hidden="true">&mdash;</span>
+														} @else {
+															<mat-checkbox [checked]="tab.workflow.hasTransition(from.id, to.id)" [disabled]="form.disabled"
+																[aria-label]="transitionLabel(from, to)" (change)="tab.workflow.setTransition(from.id, to.id, $event.checked)" />
+														}
+													</td>
+												}
+											</tr>
+										}
+									</tbody>
+								</table>
+							</div>
+						}
+						@if (tab.transitions()?.touched && tab.transitions()?.hasError('required')) {
+							<mat-error class="tc-wf__error">{{ 'TENANT-CONFIGURATION.WORKFLOWS.TRANSITION-REQUIRED' | translate }}</mat-error>
+						}
+						@for (message of transitionErrors(tab); track message) {
+							<mat-error class="tc-wf__error">{{ message }}</mat-error>
+						}
+					</section>
+				}
+			</div>
+		</mat-tab>
+	}
+</mat-tab-group>
+
+@if (editing(); as open) {
+	<app-tc-status-drawer [kind]="open.tab.kind" [statusId]="open.statusId" [statuses]="open.tab.ordered()"
+		[canEdit]="open.tab.canEditStatus" [canDelete]="open.tab.canDeleteStatus" (closed)="editing.set(null)" (changed)="open.tab.reloadStatuses()" />
+}
+
+<app-tc-save-bar [dirtyCount]="section.dirtyCount()" [saving]="section.saving()" [canSave]="canSave" (save)="section.saveAll()" (discard)="section.discardAll()" />

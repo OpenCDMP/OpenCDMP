@@ -10,6 +10,10 @@ management:
     prometheus:
       enabled: true
   metrics:
+    enable:
+      # The Caffeine caches do not record statistics, so the auto-registered cache binder can only export
+      # cache.size and warns about it for every cache on startup. Keep the binder off until stats are wanted.
+      cache: false
     export:
       prometheus:
         enabled: true

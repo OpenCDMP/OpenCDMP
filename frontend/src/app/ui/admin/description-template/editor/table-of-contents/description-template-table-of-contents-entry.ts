@@ -8,13 +8,13 @@ export interface ToCEntry {
 	type: ToCEntryType;
 	form: AbstractControl;
 	numbering: string;
+    root?: boolean;
 
 	validationRootPath: string;
 }
 
 
 export enum ToCEntryType {
-	Page = 0,
 	Section = 1,
 	FieldSet = 2,
 	Field = 3

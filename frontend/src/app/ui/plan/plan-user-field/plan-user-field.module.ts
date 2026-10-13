@@ -7,18 +7,16 @@ import { DragDropModule } from '@angular/cdk/drag-drop';
 import { PlanUserFieldComponent } from './plan-user-field.component';
 
 @NgModule({
-	imports: [
-		CommonUiModule,
-		CommonFormsModule,
-		FormattingModule,
-		DragDropModule,
-		AutoCompleteModule
-	],
-	declarations: [
-		PlanUserFieldComponent
-	],
-	exports: [
-		PlanUserFieldComponent
-	]
+    imports: [
+        CommonUiModule,
+        CommonFormsModule,
+        FormattingModule,
+        DragDropModule,
+        AutoCompleteModule,
+        PlanUserFieldComponent
+    ],
+    exports: [
+        PlanUserFieldComponent
+    ]
 })
 export class PlanUserFieldModule { }

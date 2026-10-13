@@ -1,4 +1,4 @@
-import { Component, effect, input, output, ViewChild } from '@angular/core';
+import { Component, effect, input, output, ViewChild, ChangeDetectionStrategy } from '@angular/core';
 import { FormControl, ReactiveFormsModule, ValidatorFn, Validators } from '@angular/forms';
 import { StorageFileService } from '@app/core/services/storage-file/storage-file.service';
 import { FileUtils } from '@app/core/services/utilities/file-utils.service';
@@ -6,29 +6,29 @@ import { BaseComponent } from '@common/base/base.component';
 import { Guid } from '@common/types/guid';
 import { Subscription, takeUntil } from 'rxjs';
 import { HttpErrorHandlingService } from '@common/modules/errors/error-handling/http-error-handling.service';
-import { SnackBarNotificationLevel, UiNotificationService } from '@citesa/kpi-client/services';
+import { SnackBarNotificationLevel, UiNotificationService } from '@app/core/services/notification/ui-notification-service';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { A11yAnnouncerService } from '@app/core/services/accessibility/a11y-announcer.service';
 
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { nameof } from 'ts-simple-nameof';
 import { StorageFile } from '@app/core/model/storage-file/storage-file';
 import { MatError, MatFormFieldModule } from '@angular/material/form-field';
-import { MatDropzone } from '@ngx-dropzone/material';
-import { FileInputDirective, FileInputValidators, FileInputValue } from '@ngx-dropzone/cdk';
+import { DropzoneComponent, FileInputDirective, FileInputValidators, FileInputValue } from '@ngx-dropzone/cdk';
 import { MatChipsModule } from '@angular/material/chips';
 import FileSaver from 'file-saver';
 
 @Component({
   selector: 'app-file-uploader',
-  imports: [MatDropzone, MatButtonModule, MatIconModule, TranslateModule, MatFormFieldModule, ReactiveFormsModule, MatError, FileInputDirective, MatChipsModule],
+  imports: [DropzoneComponent, MatButtonModule, MatIconModule, TranslateModule, MatFormFieldModule, ReactiveFormsModule, MatError, FileInputDirective, MatChipsModule],
   templateUrl: './file-uploader.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './file-uploader.component.scss'
 })
  
 export class FileUploadComponent extends BaseComponent{
-    //TODO: (mchouliara) remove deprecated ngx-dropzone (3.0.0)
-    @ViewChild(MatDropzone) dropZone: MatDropzone;
+    @ViewChild(DropzoneComponent) dropZone: DropzoneComponent;
     static nextId = 0;
 
     multiple = false; //TODO (mchouliara) check if we want to apply for multiple file uploads
@@ -40,7 +40,7 @@ export class FileUploadComponent extends BaseComponent{
     storageFileIdControl = input<FormControl<string | Guid>>(null);
     initFile = input<StorageFile>();
 
-    accept = input.required<string>();
+    accept = input<string>();
     maxSize = input<number>();
     minSize = input<number>();
     required = input<boolean>(false);
@@ -59,7 +59,8 @@ export class FileUploadComponent extends BaseComponent{
         private fileUtils: FileUtils,
         private httpErrorHandlingService: HttpErrorHandlingService,
         private uiNotificationService: UiNotificationService,
-        private language: TranslateService
+        private language: TranslateService,
+        private announcer: A11yAnnouncerService
     ){
         super();
         effect(() => {
@@ -125,9 +126,11 @@ export class FileUploadComponent extends BaseComponent{
                     .pipe(takeUntil(this._destroyed)).subscribe({
                         next: (response) => {
                             this.storageFileIdControl().patchValue(response[0].id.toString());
+                            this.storageFileIdControl().markAsDirty();
                             this.storageFileIdControl().markAsTouched();
                             this.onChange.emit(fileInput);
-                        }, 
+                            this.announcer.announce(this.language.instant('FILE-UPLOADER.ANNOUNCE.ADDED'), 'polite');
+                        },
                         error: (error) => {
                             this.onCallbackUploadFail(error.error);
                         }
@@ -138,6 +141,7 @@ export class FileUploadComponent extends BaseComponent{
             }
         } else {
             this.storageFileIdControl()?.patchValue(null);
+            this.storageFileIdControl()?.markAsDirty();
             this.onRemove.emit();
         }
 	}
@@ -155,9 +159,12 @@ export class FileUploadComponent extends BaseComponent{
     
     remove(){
         this.fileCtrl.reset(null, {emitEvent: false});
+        this.fileCtrl.markAsTouched();
         this.storageFileIdControl()?.setValue(null);
+        this.storageFileIdControl()?.markAsDirty();
         this.storageFileIdControl()?.markAsTouched();
         this.onRemove.emit();
+        this.announcer.announce(this.language.instant('FILE-UPLOADER.ANNOUNCE.REMOVED'), 'polite');
     }
 
     download(){

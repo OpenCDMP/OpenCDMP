@@ -21,6 +21,8 @@ public interface PluginConfigurationService {
 
     PluginConfigurationEntity buildPluginConfigurationEntity(PluginConfigurationPersist persist, List<PluginConfigurationEntity> oldPlugins) throws InvalidApplicationException;
 
+    PluginConfigurationEntity buildPluginConfigurationEntity(PluginConfigurationPersist persist, List<PluginConfigurationEntity> oldPlugins, List<PluginConfigurationEntity> inheritedPlugins) throws InvalidApplicationException;
+
     void reassignPluginConfiguration(PluginConfiguration model);
 
     void reassignNewStorageFilesIfEqualsWithOld(List<PluginConfigurationPersist> persists, List<PluginConfigurationEntity> entities);

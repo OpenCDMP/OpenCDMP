@@ -246,6 +246,7 @@ public class PlanReferenceQuery extends QueryBase<PlanReferenceEntity> {
         else if (item.match(PlanReference._plan)) return PlanReferenceEntity._planId;
         else if (item.match(PlanReference._reference)) return PlanReferenceEntity._referenceId;
         else if (item.prefix(PlanReference._data)) return PlanReferenceEntity._data;
+        else if (item.match(PlanReference._data)) return PlanReferenceEntity._data;
         else if (item.match(PlanReference._isActive)) return PlanReferenceEntity._isActive;
         else if (item.match(PlanReference._createdAt)) return PlanReferenceEntity._createdAt;
         else if (item.match(PlanReference._updatedAt)) return PlanReferenceEntity._updatedAt;

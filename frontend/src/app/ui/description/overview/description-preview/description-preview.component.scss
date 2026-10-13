@@ -1,3 +1,104 @@
+:host {
+    display: block;
+    container-type: inline-size;
+    container-name: desc-preview;
+}
+// ---- Read-view field rows (Figma two-column: label | value), mirrors plan overview ----
+.field-row {
+    padding: 0.5rem 0;
+    border-bottom: 1px solid var(--mat-sys-outline-variant);
+}
+.field-row--inline {
+    display: grid;
+    grid-template-columns: minmax(140px, 22%) 1fr;
+    gap: 1rem;
+    align-items: start;
+}
+.field-row .field-label {
+    color: var(--mat-sys-on-surface-variant);
+    font-weight: 500;
+}
+.field-row .field-label > .mat-icon {
+    flex: 0 0 24px;
+}
+.field-row .field-value {
+    color: var(--mat-sys-on-surface);
+    word-break: break-word;
+    min-width: 0;
+}
+// Quiet per-field caption shown only inside multi-field field-sets (single-field sets use the
+// field-set title as the label). Groups each value under its field name.
+.field-row .field-value .field-sublabel {
+    font-size: var(--mat-sys-label-medium-size);
+    font-weight: 600;
+    color: var(--mat-sys-on-surface-variant);
+    margin-top: 0.625rem;
+}
+.field-row .field-value .field-sublabel:first-child {
+    margin-top: 0;
+}
+.field-row .field-number {
+    font-weight: 400;
+    white-space: nowrap;
+    opacity: 0.7;
+}
+@container desc-preview (max-width: 768px) {
+    .field-row--inline {
+        grid-template-columns: 1fr;
+        gap: 0.25rem;
+    }
+}
+// Reference values rendered with their configured logo (e.g. ORCID/ROR).
+.reference-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem 0.75rem;
+}
+.reference-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+}
+.reference-logo {
+    width: 1rem;
+    height: 1rem;
+    object-fit: contain;
+    flex-shrink: 0;
+}
+// Wide / transposed tables scroll horizontally instead of being crushed.
+.table-scroll {
+    overflow-x: auto;
+    max-width: 100%;
+}
+.table-scroll table {
+    table-layout: auto !important;
+    width: auto;
+    min-width: 100%;
+}
+.table-scroll th,
+.table-scroll td {
+    min-width: 8rem;
+    white-space: normal;
+}
+
 .text-wrap {
     word-break: break-word;
+}
+.text-truncated {
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.toggle-btn {
+    padding: 0.125rem 0.5rem;
+}
+.mat-expansion-panel.unstyled .mat-expansion-panel-header.expansion-panel-header{
+    padding: 12.75px 1.5725rem;
+    font-size: var(--mat-sys-headline-medium-size);
+    font-weight: bold;
+}
+
+::ng-deep .mat-expansion-panel.unstyled.description-sub-section-expansion-panel {
+    .mat-expansion-panel-header {
+        border-radius: var(--mat-expansion-container-shape, 12px);
+    }
 }

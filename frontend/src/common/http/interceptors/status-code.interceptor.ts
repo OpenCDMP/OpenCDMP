@@ -7,7 +7,7 @@ import { HttpHandler, HttpRequest, HttpEvent } from "@angular/common/http";
 import { Observable } from "rxjs";
 import { Router } from "@angular/router";
 import { ConfigurationService } from '@app/core/services/configuration/configuration.service';
-import { HttpError, HttpErrorHandlingService } from '@common/modules/errors/error-handling/http-error-handling.service';
+import { HttpErrorHandlingService } from '@common/modules/errors/error-handling/http-error-handling.service';
 import { AuthService } from '@app/core/services/auth/auth.service';
 
 @Injectable()

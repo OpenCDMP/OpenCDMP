@@ -21,3 +21,23 @@
     z-index: 5;
   }
 }
+
+.language-name {
+  font-weight: 700;
+}
+
+.language-code {
+  display: block;
+  font-family: var(--app-font-mono);
+  font-size: 0.75rem;
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.language-default {
+  margin-left: 0.5rem;
+  padding: 0.1rem 0.5rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  background: var(--mat-sys-primary-container);
+  color: var(--mat-sys-on-surface);
+}

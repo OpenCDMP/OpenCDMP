@@ -6,12 +6,10 @@ import { CommonUiModule } from '@common/ui/common-ui.module';
 @NgModule({
     imports: [
         CommonUiModule,
+        FormValidationErrorsDialogComponent,
+        FormValidationErrorsDirective,
     ],
     exports: [
-        FormValidationErrorsDialogComponent,
-        FormValidationErrorsDirective
-    ],
-    declarations: [
         FormValidationErrorsDialogComponent,
         FormValidationErrorsDirective
     ],

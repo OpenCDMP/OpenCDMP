@@ -4,15 +4,13 @@ import { CommonUiModule } from '@common/ui/common-ui.module';
 import { FormProgressIndicationComponent } from './form-progress-indication.component';
 
 @NgModule({
-	imports: [
-		CommonUiModule,
-		CommonFormsModule
-	],
-	declarations: [
-		FormProgressIndicationComponent
-	],
-	exports: [
-		FormProgressIndicationComponent
-	]
+    imports: [
+        CommonUiModule,
+        CommonFormsModule,
+        FormProgressIndicationComponent
+    ],
+    exports: [
+        FormProgressIndicationComponent
+    ]
 })
 export class DescriptionFormProgressIndicationModule { }

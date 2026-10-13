@@ -1,0 +1,38 @@
+.active-reference-filters {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 0.5rem;
+	padding-bottom: 1rem;
+}
+
+.active-reference-filters-label {
+	color: var(--mat-sys-on-surface-variant);
+	font-size: 0.875rem;
+}
+
+.active-reference-chip {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.125rem;
+	min-height: 32px;
+	padding: 0 0.125rem 0 0.75rem;
+	border-radius: 8px;
+	background: var(--mat-sys-secondary-container);
+	color: var(--mat-sys-on-secondary-container);
+	font-size: 0.875rem;
+	font-weight: 600;
+}
+
+.active-reference-chip-remove {
+	--mat-icon-button-state-layer-size: 32px;
+	width: 32px;
+	height: 32px;
+	padding: 4px;
+
+	mat-icon {
+		font-size: 18px;
+		width: 18px;
+		height: 18px;
+	}
+}

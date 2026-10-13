@@ -1,0 +1,6 @@
+@use '../../bp2-shared' as *;
+
+:host { display: block; }
+.sk-line { display: flex; align-items: center; justify-content: space-between; gap: .75rem; padding: .75rem 1.125rem; }
+.sk-line__text { display: flex; flex-direction: column; min-width: 0; }
+.sk-line__link { flex: none; border: none; background: none; padding: 0; color: var(--mat-sys-primary); font: inherit; font-size: .85rem; font-weight: 700; cursor: pointer; &:hover { text-decoration: underline; } }

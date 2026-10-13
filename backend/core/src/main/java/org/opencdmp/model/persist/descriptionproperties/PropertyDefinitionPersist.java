@@ -84,7 +84,7 @@ public class PropertyDefinitionPersist {
                             .mapKey((k) -> ((String)k))
                             .using((itm) -> {
                                 FieldSetEntity fieldSetEntity = this.definition != null ? this.definition.getFieldSetById((String)itm.getKey()).stream().findFirst().orElse(null) : null;
-                                return this.validatorFactory.validator(PropertyDefinitionFieldSetPersist.PersistValidator.class).withFieldSetEntity(fieldSetEntity).withVisibilityService(this.visibilityService).setStatus(this.status);
+                                return this.validatorFactory.validator(PropertyDefinitionFieldSetPersist.PersistValidator.class).withFieldSetEntity(fieldSetEntity).withVisibilityService(this.visibilityService).isFinalized(this.status != null && this.status.equals(DescriptionStatus.Finalized));
                             })
             );
         }
@@ -101,7 +101,7 @@ public class PropertyDefinitionPersist {
         }
 
         public PropertyDefinitionPersistValidator setVisibilityService(DefinitionEntity definition, PropertyDefinitionPersist propertyDefinition) {
-            this.visibilityService = new VisibilityServiceImpl(definition, propertyDefinition);
+            this.visibilityService = VisibilityServiceImpl.fromPersist(definition.getSections(), propertyDefinition.getFieldSets());
             return this;
         }
 

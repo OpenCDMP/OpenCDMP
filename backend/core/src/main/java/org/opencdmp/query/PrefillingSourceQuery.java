@@ -10,6 +10,7 @@ import jakarta.persistence.criteria.Predicate;
 import org.opencdmp.authorization.AuthorizationFlags;
 import org.opencdmp.commons.enums.IsActive;
 import org.opencdmp.data.PrefillingSourceEntity;
+import org.opencdmp.data.TenantEntity;
 import org.opencdmp.data.TenantEntityManagerFactory;
 import org.opencdmp.model.prefillingsource.PrefillingSource;
 import org.opencdmp.query.utils.QueryUtilsService;
@@ -32,6 +33,11 @@ public class PrefillingSourceQuery extends QueryBase<PrefillingSourceEntity> {
 
     private Collection<UUID> excludedIds;
     private Collection<String> codes;
+
+    private TenantQuery tenantQuery;
+
+    /** null: any row; false: only rows without a tenant (the default tenant's shared rows); true: only tenant-owned rows. */
+    private Boolean tenantIsSet;
 
     private EnumSet<AuthorizationFlags> authorize = EnumSet.of(AuthorizationFlags.None);
 
@@ -98,6 +104,16 @@ public class PrefillingSourceQuery extends QueryBase<PrefillingSourceEntity> {
 
     public PrefillingSourceQuery excludedIds(UUID... value) {
         this.excludedIds = Arrays.asList(value);
+        return this;
+    }
+
+    public PrefillingSourceQuery tenantIsSet(Boolean value) {
+        this.tenantIsSet = value;
+        return this;
+    }
+
+    public PrefillingSourceQuery tenantSubQuery(TenantQuery tenantQuery) {
+        this.tenantQuery = tenantQuery;
         return this;
     }
 
@@ -171,6 +187,14 @@ public class PrefillingSourceQuery extends QueryBase<PrefillingSourceEntity> {
             for (String item : this.codes)
                 inClause.value(item);
             predicates.add(inClause);
+        }
+        if (this.tenantIsSet != null) {
+            predicates.add(this.tenantIsSet ? queryContext.CriteriaBuilder.isNotNull(queryContext.Root.get(PrefillingSourceEntity._tenantId)) : queryContext.CriteriaBuilder.isNull(queryContext.Root.get(PrefillingSourceEntity._tenantId)));
+        }
+
+        if (this.tenantQuery != null) {
+            QueryContext<TenantEntity, UUID> subQuery = this.applySubQuery(this.tenantQuery, queryContext, UUID.class, tenantEntityRoot -> tenantEntityRoot.get(TenantEntity._id));
+            predicates.add(queryContext.CriteriaBuilder.in(queryContext.Root.get(PrefillingSourceEntity._tenantId)).value(subQuery.Query));
         }
         if (!predicates.isEmpty()) {
             Predicate[] predicatesArray = predicates.toArray(new Predicate[0]);

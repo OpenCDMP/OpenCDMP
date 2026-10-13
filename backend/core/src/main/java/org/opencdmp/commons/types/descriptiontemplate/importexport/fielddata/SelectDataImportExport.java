@@ -26,6 +26,11 @@ public class SelectDataImportExport extends LabelAndMultiplicityDataImportExport
         private String label;
         @XmlAttribute(name = "value")
         private String value;
+        @XmlElementWrapper(name = "semantics")
+        @XmlElement(name = "semantic")
+        private List<SemanticValueImportExport> semantics;
+        @XmlAttribute(name = "exportsNothing")
+        private boolean exportsNothing;
 
         public String getLabel() {
             return label;
@@ -39,6 +44,20 @@ public class SelectDataImportExport extends LabelAndMultiplicityDataImportExport
         }
         public void setValue(String value) {
             this.value = value;
+        }
+
+        public List<SemanticValueImportExport> getSemantics() {
+            return semantics;
+        }
+        public void setSemantics(List<SemanticValueImportExport> semantics) {
+            this.semantics = semantics;
+        }
+
+        public boolean getExportsNothing() {
+            return exportsNothing;
+        }
+        public void setExportsNothing(boolean exportsNothing) {
+            this.exportsNothing = exportsNothing;
         }
 
     }

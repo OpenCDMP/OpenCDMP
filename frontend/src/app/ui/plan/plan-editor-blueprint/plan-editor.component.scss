@@ -1,12 +1,17 @@
 
+@use '@angular/material' as mat;
+.main{
+    background-color: var(--mat-sys-background);
+}
 .editor-header {
-    display: flex;
     z-index: 3;
     min-height: fit-content;
-    background: var(--mat-sys-primary) 0% 0% no-repeat padding-box;
+    color: var(--mat-sys-secondary-fixed);
+    background: var(--mat-sys-on-secondary-fixed);
+    // background: var(--mat-sys-on-surface-variant) 0% 0% no-repeat padding-box;
+    // color: var(--mat-sys-surface);
     box-shadow: 0px 3px 6px #00000029;
-    padding: 0.5rem;
-    padding-top: 0.75rem;
+    padding: 0.65rem 1.5rem;
     border-radius: 0px;
   
     .info {
@@ -14,22 +19,217 @@
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;
+        container-type: inline-size;
 
-        .title {
-            font-weight: 400;
-            font-size: var(--mat-sys-title-small-size);
-            color: var(--mat-sys-on-primary);
-        }
-        
         .subtitle {
-            color: var(--mat-sys-on-primary);
-            font-weight: 700;
-            font-size: var(--mat-sys-title-medium-size);
+            font-size: var(--mat-sys-title-large-size);
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
         }
     }
+    .extra-info{
+        font-size: var(--mat-sys-body-small-size);
+        margin-top: 1.5rem;
+    }
+    // ---- toolbar (single row: title on the left, status + actions on the right) ----
+    --draft-color: #F5B942;
+    --toolbar-line: color-mix(in srgb, var(--mat-sys-secondary-fixed) 35%, transparent);
+    --toolbar-hover: color-mix(in srgb, var(--mat-sys-secondary-fixed) 12%, transparent);
+    --toolbar-active: color-mix(in srgb, var(--mat-sys-secondary-fixed) 24%, transparent);
+    .editor-toolbar {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+    .header-chip {
+        padding: 0.1rem 0.55rem;
+        border-radius: 999px;
+        border: 1px solid var(--toolbar-line);
+        font-size: var(--mat-sys-label-medium-size);
+        opacity: 0.85;
+        white-space: nowrap;
+        flex-shrink: 0;
+        &.header-chip--dirty { color: var(--draft-color); border-color: currentColor; }
+    }
+    // A crowded toolbar leaves too little room for the label: show a dot instead, the label stays for screen readers and the tooltip.
+    @container (max-width: 300px) {
+        .header-chip--dirty {
+            width: 0.75rem;
+            height: 0.75rem;
+            padding: 0;
+            background: currentColor;
+            .header-chip__label {
+                position: absolute;
+                width: 1px;
+                height: 1px;
+                overflow: hidden;
+                clip: rect(0 0 0 0);
+            }
+        }
+    }
+
+    // Status pill: outlined in the configured status colour (amber fallback for Draft) on the dark band.
+    .plan-status {
+        position: relative;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        padding: 0.3rem 0.5rem 0.3rem 0.75rem;
+        border-radius: 999px;
+        border: 1px solid currentColor;
+        background: transparent;
+        color: var(--mat-sys-secondary-fixed);
+        font: inherit;
+        font-size: var(--mat-sys-label-large-size);
+        font-weight: 600;
+        line-height: 1;
+        white-space: nowrap;
+        cursor: default;
+        &[matMenuTriggerFor], &[aria-haspopup] { cursor: pointer; }
+        mat-icon {
+            font-size: 18px;
+            width: 18px;
+            height: 18px;
+        }
+        .status-chip-overlay {
+            position: absolute;
+            inset: 0;
+            border-radius: inherit;
+            background-color: currentColor;
+            opacity: 0.12;
+            pointer-events: none;
+        }
+        .status-logo { height: 18px; width: 18px; }
+    }
+    .plan-draft { color: var(--draft-color); }
+
+    .action-btns {
+        gap: 0.75rem 0.625rem; // room for the badges; groups get an extra beat from the separators
+        .toolbar-sep {
+            width: 1px;
+            height: 24px;
+            margin: 0 0.375rem;
+            background-color: var(--toolbar-line);
+        }
+        .toolbar-tip { display: inline-flex; }
+        // Outlined text buttons (Export / Evaluate / Deposit) on the dark band.
+        .toolbar-btn, ::ng-deep app-plan-deposit-dropdown button.mat-mdc-outlined-button {
+            @include mat.button-overrides((
+                outlined-container-shape: 8px,
+                outlined-container-height: 36px,
+                outlined-label-text-color: var(--mat-sys-secondary-fixed),
+                outlined-outline-color: var(--toolbar-line),
+                outlined-disabled-label-text-color: var(--toolbar-line),
+                outlined-disabled-outline-color: var(--toolbar-line),
+                outlined-state-layer-color: var(--mat-sys-secondary-fixed),
+            ));
+            font-weight: 500;
+            // Beats the global .mat-unthemed outlined rule (white surface) so the button stays transparent on the dark band.
+            &.mat-mdc-outlined-button:not(:disabled) {
+                background-color: transparent;
+                color: var(--mat-sys-secondary-fixed);
+                border-color: var(--toolbar-line);
+            }
+        }
+        ::ng-deep app-plan-deposit-dropdown button.mat-mdc-outlined-button {
+            background-color: transparent;
+            box-shadow: none;
+            color: var(--mat-sys-secondary-fixed);
+            border-color: var(--toolbar-line);
+            &:disabled { color: var(--toolbar-line); border-color: var(--toolbar-line); opacity: 1; }
+        }
+        // Square icon buttons (duplicate / new version / delete / comments / collaborators).
+        .toolbar-icon-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 36px;
+            height: 36px;
+            padding: 0;
+            border-radius: 8px;
+            border: 1px solid var(--toolbar-line);
+            background: transparent;
+            color: inherit;
+            cursor: pointer;
+            transition: background-color 120ms ease;
+            mat-icon { font-size: 20px; width: 20px; height: 20px; }
+            &:hover:not(:disabled) { background-color: var(--toolbar-hover); }
+            &:disabled { color: var(--toolbar-line); cursor: not-allowed; }
+            // Open panel: a stronger translucent tint rather than a solid block, so it reads as pressed, not highlighted.
+            &.active {
+                background-color: var(--toolbar-active);
+                border-color: var(--mat-sys-secondary-fixed);
+                color: var(--mat-sys-secondary-fixed);
+            }
+            &.toolbar-icon-btn--danger:hover:not(:disabled) {
+                color: var(--mat-sys-error);
+                border-color: var(--mat-sys-error);
+            }
+        }
+        .annotations-dialog-btn {
+            @include mat.badge-overrides((
+                background-color: var(--mat-sys-error),
+            ));
+        }
+        .plan-user-btn {
+            @include mat.badge-overrides((
+                background-color: var(--mat-sys-secondary),
+                text-color: var(--mat-sys-on-secondary)
+            ));
+        }
+        .toolbar-cancel {
+            margin-left: 0.25rem;
+            @include mat.button-overrides((
+                text-label-text-color: var(--mat-sys-secondary-fixed),
+                text-container-shape: 8px,
+                text-container-height: 36px,
+            ));
+        }
+        .toolbar-save {
+            @include mat.button-overrides((
+                filled-container-shape: 8px,
+                filled-container-height: 36px,
+                filled-container-color: var(--mat-sys-secondary),
+                filled-label-text-color: var(--mat-sys-on-secondary),
+                filled-disabled-container-color: var(--toolbar-hover),
+                filled-disabled-label-text-color: var(--toolbar-line),
+            ));
+            font-weight: 600;
+        }
+        .toolbar-save-group {
+            display: inline-flex;
+            gap: 1px;
+            .toolbar-save:first-child {
+                border-top-right-radius: 0;
+                border-bottom-right-radius: 0;
+            }
+            .toolbar-save-menu {
+                min-width: 36px;
+                padding: 0 6px;
+                border-top-left-radius: 0;
+                border-bottom-left-radius: 0;
+            }
+        }
+    }
+}
+
+// Status menu (rendered in the CDK overlay, hence ::ng-deep): title row + items with a description line.
+::ng-deep .status-menu-panel {
+    .status-menu--title {
+        padding: 0.6rem 1rem 0.35rem 1rem;
+        font-size: var(--mat-sys-label-medium-size);
+        font-weight: 700;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        color: var(--mat-sys-on-surface-variant);
+    }
+    .status-menu--item .mat-mdc-menu-item-text { display: flex; align-items: center; gap: 0.75rem; }
+    .status-menu--icon { color: var(--mat-sys-on-surface-variant); }
+    .status-menu--logo { width: 24px; height: 24px; flex: none; object-fit: contain; }
+    .status-menu--text { display: flex; flex-direction: column; line-height: 1.3; }
+    .status-menu--label { font-weight: 500; }
+    .status-menu--description { font-size: var(--mat-sys-body-small-size); color: var(--mat-sys-on-surface-variant); }
 }
 
 .breadcrumb-padding {
@@ -54,14 +254,207 @@
 
 .editor-container {
     display: grid;
-    gap: 0.5rem;
     grid-template-columns: 22rem auto;
+    flex: 1;
+    min-height: 0;
+    app-plan-table-of-contents{
+        height: 100%;
+        overflow: hidden;
+    }
+}
+
+.plan-locked-banner {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    padding: 0.75rem 1.5rem;
+    background-color: #fff4e5;
+    color: #663c00;
+    border-bottom: 1px solid #ffdcab;
+
+    .plan-locked-banner-icon {
+        flex-shrink: 0;
+        margin-top: 0.125rem;
+        font-size: 1.5rem;
+        width: 1.5rem;
+        height: 1.5rem;
+        color: #ed6c02;
+    }
+
+    .plan-locked-banner-text {
+        flex: 1;
+        line-height: 1.4;
+    }
+
+    .plan-locked-banner-title {
+        font-weight: 600;
+        margin-bottom: 0.125rem;
+    }
+
+    .plan-locked-banner-message {
+        font-size: var(--mat-sys-body-small-size);
+    }
+
+    .plan-locked-banner-meta {
+        margin-left: 0.5rem;
+        opacity: 0.8;
+    }
+
+    // FE-1: provenance line ("Locked by {name} since …")
+    .plan-locked-banner-owner {
+        margin-top: 0.25rem;
+        font-size: var(--mat-sys-body-small-size);
+        opacity: 0.85;
+    }
+
+    // FE-1: lost-lock variant — a stronger error tone than the read-only "locked by other" amber,
+    // since the user was editing and their work is now at risk.
+    &.plan-locked-banner--lost {
+        background-color: #fdecea;
+        color: #611a15;
+        border-bottom: 1px solid #f5c6cb;
+
+        .plan-locked-banner-icon {
+            color: #d32f2f;
+        }
+    }
+}
+
+// FE-2: header context band — names the active entity (plan section / description) + its state.
+.context-band {
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+    gap: 0.5rem;
+    padding: 0.4rem 1rem;
+    background-color: var(--mat-sys-surface-container-low);
+    border-bottom: 1px solid var(--mat-sys-outline-variant);
+    font-size: var(--mat-sys-body-small-size);
+
+    &.context-band--description {
+        background-color: var(--mat-sys-surface-container);
+    }
+
+    .context-band--kind {
+        text-transform: uppercase;
+        font-size: 0.65rem;
+        font-weight: 700;
+        letter-spacing: 0.04em;
+        opacity: 0.7;
+    }
+    .context-band--numbering {
+        font-weight: 600;
+        opacity: 0.8;
+    }
+    .context-band--label {
+        font-weight: 600;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        max-width: min(40vw, 28rem);
+    }
+    .context-band--status {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.25rem;
+        padding: 0.1rem 0.5rem;
+        border-radius: 0.75rem;
+        font-size: 0.65rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.02em;
+        white-space: nowrap;
+        background-color: var(--mat-sys-surface-container-high);
+        color: var(--mat-sys-on-surface-variant);
+    }
+    // FE-2: status logo (uploaded) / icon (configured or fallback) inside the chip
+    .context-band--status-logo {
+        width: 0.9rem;
+        height: 0.9rem;
+        object-fit: contain;
+        border-radius: 2px;
+    }
+    .context-band--status-icon {
+        font-size: 0.9rem;
+        width: 0.9rem;
+        height: 0.9rem;
+    }
+    // FE-2: actionable status chip (merged description status-change control)
+    .context-band--status-action {
+        border: none;
+        cursor: pointer;
+        padding-right: 0.3rem;
+
+        &:disabled {
+            cursor: default;
+            opacity: 0.6;
+        }
+        .context-band--status-caret {
+            font-size: 1rem;
+            width: 1rem;
+            height: 1rem;
+        }
+    }
+    .context-band--unsaved {
+        margin-left: 0.25rem;
+        font-style: italic;
+        opacity: 0.8;
+    }
+    .context-band--lock {
+        font-size: 1.1rem;
+        width: 1.1rem;
+        height: 1.1rem;
+        color: #ed6c02;
+
+        &.context-band--lock-lost {
+            color: #d32f2f;
+        }
+    }
+    // FE-2: per-description actions (discard + delete), pushed to the right edge of the band
+    .context-band--actions {
+        margin-left: auto;
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+        flex-shrink: 0;
+    }
+    .context-band--delete {
+        flex-shrink: 0;
+    }
+    .context-band--discard {
+        flex-shrink: 0;
+        // compact stroked button to fit the slim band
+        line-height: 1.8;
+        padding: 0 0.6rem;
+        min-width: 0;
+    }
+}
+.blueprint-editor, .description-editor, .new-description-editor{
+    flex: 1;
+    background-color: var(--mat-sys-surface);
+    overflow: auto;
+}
+
+#editor-form{
+    // FE-2: column so the context band is a full-width bar on top and the panels row fills the rest.
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+}
+
+// FE-2: the panels (blueprint/description/new-description) + slide-in side dialogs stay in a row,
+// as before — only now nested under the context band.
+.editor-panels {
+    display: flex;
+    flex: 1;
+    min-height: 0;
+    width: 100%;
 }
 
 .form {
     flex: 1;
     overflow-y: auto;
-    height: calc(100vh - 13rem);
+    min-height: 0;
 }
   
 mat-icon.size-16 {
@@ -85,81 +478,81 @@ a:hover {
     color: var(--mat-sys-primary);
 }
 
-.section-info {
-    background-color: var(--mat-sys-surface);
-    padding: 1rem 0.5rem;
+// .section-info {
+//     background-color: var(--mat-sys-surface);
+//     padding: 2rem;
     
-    .section-title, .heading, .hint {
-        color: var(--mat-sys-on-surface);
-        opacity: 0.81;
-    }
-    .section-title {
-        font-size: var(--mat-sys-headline-large-size);
-        font-weight: 700;
-    }
+//     .section-title, .heading, .hint {
+//         color: var(--mat-sys-on-surface);
+//         opacity: 0.81;
+//     }
+//     .section-title {
+//         font-size: var(--mat-sys-headline-large-size);
+//         font-weight: 700;
+//     }
 
-    .heading {
-		text-align: left;
-        font-weight: 700;
-		font-size: var(--mat-sys-headline-medium-size);
-		margin-top: 1.625rem;
-		margin-bottom: 0.625rem;
-	}
+//     .heading {
+// 		text-align: left;
+//         font-weight: 700;
+// 		font-size: var(--mat-sys-headline-medium-size);
+// 		margin-top: 1.625rem;
+// 		margin-bottom: 0.625rem;
+// 	}
 
-    .hint {
-		text-align: left;
-		font-weight: 400;
-		font-size: var(--mat-sys-body-medium-size);
-		margin-bottom: 2.125rem;
-	}
+//     .hint {
+// 		text-align: left;
+// 		font-weight: 400;
+// 		font-size: var(--mat-sys-body-medium-size);
+// 		margin-bottom: 2.125rem;
+// 	}
     
-    .link-icon {
-        margin-top: 1rem;
-        visibility: hidden;
-    }      
+//     .link-icon {
+//         margin-top: 1rem;
+//         visibility: hidden;
+//     }      
 
-    .heading-wrapper:hover {
-        & > .link-icon {
-          visibility: visible;
-        }
-    } 
+//     .heading-wrapper:hover {
+//         & > .link-icon {
+//           visibility: visible;
+//         }
+//     } 
 
 
-    .input-form {
-		text-align: left;
-		font-weight: 400;
-		font-size: var(--mat-sys-body-medium-size);
-		letter-spacing: 0.15px;
-		margin-bottom: 1rem;
-        opacity: 1;
-	}
+//     .input-form {
+// 		text-align: left;
+// 		font-weight: 400;
+// 		font-size: var(--mat-sys-body-medium-size);
+// 		letter-spacing: 0.15px;
+// 		margin-bottom: 1rem;
+//         opacity: 1;
+// 	}
 
-    .not-found-template {
-        font-size: var(--mat-sys-title-small-size);
-        font-weight: 400;
-        padding: 0rem 0.5rem 0rem 0rem;
-        color: var(--dark-text);
-    }
+//     .not-found-template {
+//         font-size: var(--mat-sys-title-small-size);
+//         font-weight: 400;
+//         padding: 0rem 0.5rem 0rem 0rem;
+//         color: var(--dark-text);
+//     }
 
-    .disabled-toggle {
-        font-size: var(--mat-sys-body-medium-size);
-        font-weight: 400;
-        padding: 0rem 0.5rem 0rem 0rem;
-        color: #e0e0e0 !important;
-        text-decoration: none;
-    }
+//     .disabled-toggle {
+//         font-size: var(--mat-sys-body-medium-size);
+//         font-weight: 400;
+//         padding: 0rem 0.5rem 0rem 0rem;
+//         color: #e0e0e0 !important;
+//         text-decoration: none;
+//     }
 
-    .input-btn {
-        border: none;
-        color: var(--gray);
-        background-color: #ffffff00;
-        cursor: pointer;
-    }
+//     .input-btn {
+//         border: none;
+//         color: var(--gray);
+//         background-color: #ffffff00;
+//         cursor: pointer;
+//     }
 
-    .input-btn :hover {
-        color: var(--mat-sys-primary) !important;
-    }
-}
+//     .input-btn :hover {
+//         color: var(--mat-sys-primary) !important;
+//     }
+// }
 
 .drag-handle {
 	cursor: move; 
@@ -173,30 +566,26 @@ a:hover {
 .mat-mdc-raised-button:not(:disabled) {
     color: var(--mat-sys-on-surface);
 }
+.info-btn.mdc-icon-button.mat-mdc-icon-button{
+    color: var(--mat-sys-surface);
+    opacity: 0.8;
+}
+.mat-mdc-raised-button:disabled {
+    color: var(--mat-sys-on-surface);
+    background-color: var(--mat-sys-surface);
+    opacity: 0.5;
+}
 
 .title-size-md {
     font-size: var(--mat-sys-headline-medium-size)
 }
 
-.action-btns {
-    row-gap: 0.5rem;
-    .save-btn-container {
-        display: flex;
-        background-color: var(--mat-sys-surface);
-        border-radius: var(--mat-button-protected-container-shape);
-        .main-save-btn {
-            border-top-right-radius: 0;
-            border-bottom-right-radius: 0;
-        }
-        .save-menu-btn {
-            border-top-left-radius: 0;
-            border-bottom-left-radius: 0;
-            mat-icon {
-                font-size: 1.5rem;
-                line-height: 1rem;
-            }
-        }
-    }
+.evaluator-logo {
+    width: 35px;
+    height: 35px;
+    object-fit: contain;
+    flex-shrink: 0;
+    margin-right: 16px;
 }
 
 
@@ -204,14 +593,24 @@ a:hover {
 .reorder-mode:focus {
     border: 1px solid var(--mat-sys-primary)
 }
-
-
-
-@container main-page (inline-size < 600px){
-    .editor-container {
-        display: block;
+.plan-annotations{
+    min-width: 450px;
+    max-width: 450px;
+    position: sticky;
+    top: 0;
+    border-left: 1px solid var(--mat-sys-outline-variant);
+    &.plan-annotations--hidden{
+        display: none;
     }
-    .form {
-        height: auto;
+}
+.slide-in {
+    animation: slide-in 300ms;
+}
+@keyframes slide-in {
+    from {
+        transform: translateX(450px);
+    }
+    to {
+        transform: translateX(0);
     }
 }

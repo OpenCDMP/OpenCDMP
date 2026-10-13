@@ -1,0 +1,214 @@
+<div class="al" [class.al--compact]="density === 'compact'">
+
+	<!-- Tenant scope: the tenant's own rows, the default tenant's shared rows, or both -->
+	@if (scope) {
+		<div class="al-scope" role="tablist" [attr.aria-label]="'ADMIN-LISTING.SCOPE.LABEL' | translate">
+			<button type="button" role="tab" class="al-tab" [class.al-tab--on]="scope === 'own'" [attr.aria-selected]="scope === 'own'" (click)="setScope('own')">
+				{{ 'ADMIN-LISTING.SCOPE.OWN' | translate: { tenant: tenantName || ('ADMIN-LISTING.SCOPE.THIS-TENANT' | translate) } }}
+				@if (scopeCounts?.own != null) { <span class="al-count">{{ scopeCounts.own }}</span> }
+			</button>
+			<button type="button" role="tab" class="al-tab" [class.al-tab--on]="scope === 'shared'" [attr.aria-selected]="scope === 'shared'" (click)="setScope('shared')">
+				{{ 'ADMIN-LISTING.SCOPE.SHARED' | translate }}
+				@if (scopeCounts?.shared != null) { <span class="al-count">{{ scopeCounts.shared }}</span> }
+			</button>
+			<button type="button" role="tab" class="al-tab" [class.al-tab--on]="scope === 'all'" [attr.aria-selected]="scope === 'all'" (click)="setScope('all')">
+				{{ 'ADMIN-LISTING.SCOPE.ALL' | translate }}
+				@if (scopeCounts?.all != null) { <span class="al-count">{{ scopeCounts.all }}</span> }
+			</button>
+		</div>
+	}
+
+	<!-- Toolbar: search, the page's own filter chips, the deleted toggle, saved views, columns, density -->
+	<div class="al-toolbar">
+		@if (showSearch) {
+			<label class="al-search" [matTooltip]="'ADMIN-LISTING.SEARCH-SHORTCUT' | translate" matTooltipShowDelay="800">
+				<mat-icon class="al-search__icon" aria-hidden="true">search</mat-icon>
+				<input #searchInput type="search" class="al-search__input" [value]="searchTerm ?? ''" (input)="onSearchInput($any($event.target).value)" (keydown)="onSearchKeydown($event)" [placeholder]="searchPlaceholderKey | translate" [attr.aria-label]="searchPlaceholderKey | translate">
+				@if (searchTerm) {
+					<button type="button" class="al-search__clear" (click)="clearSearch()" [attr.aria-label]="'ADMIN-LISTING.CLEAR-SEARCH' | translate"><mat-icon aria-hidden="true">close</mat-icon></button>
+				}
+			</label>
+		}
+		<div class="al-toolbar__filters">
+			<ng-content select="[listing-filters]" />
+		</div>
+		@if (showDeleted !== null) {
+			<button type="button" class="al-chip" [class.al-chip--on]="showDeleted" [attr.aria-pressed]="showDeleted" (click)="toggleDeleted()">
+				<span class="al-switch" aria-hidden="true"><span class="al-switch__knob"></span></span>
+				{{ 'COMMONS.LISTING-COMPONENT.SHOW-DELETED' | translate }}
+			</button>
+		}
+		<div class="al-toolbar__spacer"></div>
+		<ng-content select="[user-preference-settings]" />
+		@if (availableColumns.length) {
+			<button type="button" mat-icon-button [matMenuTriggerFor]="columnsMenu" [attr.aria-label]="'HYBRID-LISTING.DISPLAY-SETTINGS' | translate" [matTooltip]="'HYBRID-LISTING.DISPLAY-SETTINGS' | translate">
+				<mat-icon class="material-symbols-outlined" aria-hidden="true">view_column</mat-icon>
+			</button>
+			<mat-menu #columnsMenu="matMenu">
+				<div class="al-columns" (click)="$event.stopPropagation()">
+					<div class="al-columns__title">{{ 'HYBRID-LISTING.DISPLAY-SETTINGS' | translate }}</div>
+					@for (column of availableColumns; track column.property) {
+						<mat-checkbox [checked]="columnSelections.has(column.property)" (change)="onColumnSelectionChange($event, column.property)">{{ column.name }}</mat-checkbox>
+					}
+				</div>
+			</mat-menu>
+		}
+		<button type="button" mat-icon-button (click)="toggleDensity()" [attr.aria-pressed]="density === 'compact'" [attr.aria-label]="'ADMIN-LISTING.DENSITY' | translate" [matTooltip]="'ADMIN-LISTING.DENSITY' | translate">
+			<mat-icon class="material-symbols-outlined" aria-hidden="true">{{ density === 'compact' ? 'density_medium' : 'density_small' }}</mat-icon>
+		</button>
+		<ng-content select="[download-listing-report]" />
+	</div>
+
+	<!-- Deleted mode is a labelled state with a way back, not a hidden filter -->
+	@if (showDeleted) {
+		<div class="al-strip al-strip--deleted" role="status">
+			<mat-icon class="material-symbols-outlined" aria-hidden="true">delete</mat-icon>
+			<span>{{ 'ADMIN-LISTING.DELETED-STRIP' | translate }}</span>
+			<button type="button" class="al-strip__action" (click)="toggleDeleted()">{{ 'ADMIN-LISTING.BACK-TO-ACTIVE' | translate }}</button>
+		</div>
+	}
+
+	<section class="al-table" [class.al-table--deleted]="showDeleted" [class.al-table--scope-shared]="scope === 'shared'" [style.--al-columns]="gridTemplate" [attr.aria-busy]="loadingIndicator">
+		<div class="al-row al-row--head" role="row">
+			@for (column of displayColumns; track $index) {
+				<div class="al-th" role="columnheader" [class.al-th--actions]="column.actions" [attr.aria-sort]="sortIndicator(column)">
+					@if (column.sortable) {
+						<button type="button" class="al-th__sort" (click)="sortBy(column.prop)">
+							{{ column.name }}
+							@if (sortIndicator(column); as indicator) {
+								<mat-icon aria-hidden="true">{{ indicator === 'ascending' ? 'arrow_upward' : 'arrow_downward' }}</mat-icon>
+							} @else {
+								<mat-icon class="al-th__sort-hint" aria-hidden="true">unfold_more</mat-icon>
+							}
+						</button>
+					} @else {
+						<span>{{ column.name }}</span>
+					}
+				</div>
+			}
+		</div>
+
+		@if (showSkeleton) {
+			<div class="al-skeleton" aria-hidden="true">
+				@for (row of skeletonRows; track $index) {
+					<div class="al-skeleton__row">
+						<span class="al-skeleton__bar" style="width: 34%"></span>
+						<span class="al-skeleton__bar" style="width: 16%"></span>
+						<span class="al-skeleton__bar" style="width: 12%"></span>
+						<span class="al-skeleton__bar" style="width: 18%"></span>
+					</div>
+				}
+			</div>
+			<span class="al-sr-only" role="status">{{ 'HYBRID-LISTING.LOADING' | translate }}</span>
+		} @else if (showEmpty) {
+			<div class="al-empty" role="status">
+				@if (showDeleted) {
+					<mat-icon class="al-empty__icon material-symbols-outlined" aria-hidden="true">delete_sweep</mat-icon>
+					<div class="al-empty__title">{{ 'ADMIN-LISTING.EMPTY-DELETED.TITLE' | translate }}</div>
+					<div class="al-empty__message">{{ 'ADMIN-LISTING.EMPTY-DELETED.MESSAGE' | translate }}</div>
+					<div class="al-empty__actions">
+						<button mat-stroked-button type="button" (click)="toggleDeleted()">{{ 'ADMIN-LISTING.BACK-TO-ACTIVE' | translate }}</button>
+					</div>
+				} @else if (hasActiveFilters || searchTerm) {
+					<mat-icon class="al-empty__icon material-symbols-outlined" aria-hidden="true">search_off</mat-icon>
+					<div class="al-empty__title">{{ 'HYBRID-LISTING.NO-RESULTS.TITLE' | translate }}</div>
+					<div class="al-empty__message">{{ 'HYBRID-LISTING.NO-RESULTS.MESSAGE' | translate }}</div>
+					@if (matchesElsewhere.length) {
+						<div class="al-empty__elsewhere">
+							<span>{{ 'ADMIN-LISTING.MATCHES-ELSEWHERE' | translate }}</span>
+							@for (other of matchesElsewhere; track other.scope) {
+								<button type="button" class="al-chip" (click)="setScope(other.scope)">
+									{{ scopeLabelKey(other.scope) | translate: { tenant: tenantName || ('ADMIN-LISTING.SCOPE.THIS-TENANT' | translate) } }}
+									<span class="al-count">{{ other.count }}</span>
+								</button>
+							}
+						</div>
+					}
+					<div class="al-empty__actions">
+						<button mat-stroked-button type="button" (click)="clearSearch(); clearFilters.emit()">
+							<mat-icon aria-hidden="true">filter_alt_off</mat-icon>
+							{{ 'HYBRID-LISTING.NO-RESULTS.CLEAR' | translate }}
+						</button>
+					</div>
+				} @else if (scope === 'own' && sharedCount > 0) {
+					<mat-icon class="al-empty__icon material-symbols-outlined" aria-hidden="true">{{ emptyIcon }}</mat-icon>
+					<div class="al-empty__title">{{ 'ADMIN-LISTING.EMPTY-OWN.TITLE' | translate: { tenant: tenantName || ('ADMIN-LISTING.SCOPE.THIS-TENANT' | translate) } }}</div>
+					<div class="al-empty__message">{{ emptyOwnMessageKey | translate: { count: sharedCount } }}</div>
+					<div class="al-empty__actions">
+						@if (showCreate) {
+							<a mat-flat-button color="accent" class="padded-shadow-btn" [routerLink]="createRoute"><mat-icon aria-hidden="true">add</mat-icon>{{ createLabelKey | translate }}</a>
+						}
+						<ng-content select="[listing-empty-actions]" />
+						<button mat-stroked-button type="button" (click)="setScope('shared')">
+							{{ 'ADMIN-LISTING.SHOW-SHARED' | translate: { count: sharedCount } }}
+							<mat-icon iconPositionEnd aria-hidden="true">chevron_right</mat-icon>
+						</button>
+					</div>
+				} @else {
+					<mat-icon class="al-empty__icon material-symbols-outlined" aria-hidden="true">{{ emptyIcon }}</mat-icon>
+					<div class="al-empty__title">{{ emptyTitleKey | translate }}</div>
+					<div class="al-empty__message">{{ emptyMessageKey | translate }}</div>
+					@if (showCreate) {
+						<div class="al-empty__actions">
+							<a mat-flat-button color="accent" class="padded-shadow-btn" [routerLink]="createRoute"><mat-icon aria-hidden="true">add</mat-icon>{{ createLabelKey | translate }}</a>
+						</div>
+					}
+				}
+			</div>
+		} @else {
+			@for (row of rows; track trackBy(row)) {
+				<div class="al-row" role="row" [class.al-row--clickable]="rowsAreClickable" [class.al-row--busy]="loadingIndicator"
+					[attr.tabindex]="rowsAreClickable ? 0 : null" (click)="activate(row, $event)" (keydown.enter)="activate(row, $event)">
+					@for (column of displayColumns; track $index) {
+						<div class="al-td" role="cell" [class.al-td--primary]="column.primary" [class.al-td--actions]="column.actions" [attr.data-label]="column.primary || column.actions ? null : column.name">
+							@if (column.actions) {
+								<div class="al-actions">
+									@if (rowOpenIcon && rowsAreClickable) {
+										@let editable = isEditable(row);
+										<button type="button" mat-icon-button class="al-actions__open" (click)="$event.stopPropagation(); activate(row, $event)"
+											[attr.aria-label]="(editable ? 'COMMONS.ACTIONS.EDIT' : 'COMMONS.TENANT-SHARED.VIEW') | translate"
+											[matTooltip]="(editable ? 'COMMONS.ACTIONS.EDIT' : 'COMMONS.TENANT-SHARED.VIEW') | translate">
+											<mat-icon class="material-symbols-outlined" aria-hidden="true">{{ editable ? 'edit' : 'visibility' }}</mat-icon>
+										</button>
+									}
+									@if (column.cellTemplate) {
+										<ng-container *ngTemplateOutlet="column.cellTemplate; context: { $implicit: row, row: row, value: null, column: column.definition }" />
+									}
+								</div>
+							} @else if (column.primary && rowLink && rowsAreClickable && linkFor(row)) {
+								<a class="al-title-link" [routerLink]="linkFor(row)" (click)="onTitleClick(row, $event)" tabindex="-1">
+									@if (column.cellTemplate) {
+										<ng-container *ngTemplateOutlet="column.cellTemplate; context: { $implicit: row, row: row, value: cellValue(row, column), column: column.definition }" />
+									} @else {
+										<span class="al-td__value">{{ cellValue(row, column) }}</span>
+									}
+								</a>
+							} @else if (column.cellTemplate) {
+								<ng-container *ngTemplateOutlet="column.cellTemplate; context: { $implicit: row, row: row, value: cellValue(row, column), column: column.definition }" />
+							} @else if (column.date) {
+								@let date = dateCell(row, column);
+								<span class="al-td__value" [matTooltip]="date.value">{{ date.relative }}</span>
+							} @else {
+								<span class="al-td__value">{{ cellValue(row, column) }}</span>
+							}
+						</div>
+					}
+				</div>
+			}
+		}
+
+		@if (showSharedHint) {
+			<div class="al-strip al-strip--shared">
+				<mat-icon class="material-symbols-outlined" aria-hidden="true">info</mat-icon>
+				<span>{{ 'ADMIN-LISTING.SHARED-HINT' | translate: { count: sharedCount } }}</span>
+				<button type="button" class="al-strip__action" (click)="setScope('shared')">{{ 'ADMIN-LISTING.SHOW-SHARED-SHORT' | translate }}</button>
+			</div>
+		}
+
+		@if (count) {
+			<div class="al-footer">
+				<mat-paginator [length]="count" [pageSize]="limit" [pageIndex]="offset" [pageSizeOptions]="pageSizeOptions" (page)="onPage($event)" />
+			</div>
+		}
+	</section>
+</div>

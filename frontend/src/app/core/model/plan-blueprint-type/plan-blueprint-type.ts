@@ -4,11 +4,13 @@ import { BaseEntity, BaseEntityPersist } from "@common/base/base-entity.model";
 export interface PlanBlueprintType extends BaseEntity {
 	name: string;
 	code: string;
+	ordinal: number;
 	status: PlanBlueprintTypeStatus;
 }
 
 export interface PlanBlueprintTypePersist extends BaseEntityPersist {
 	name: string;
 	code: string;
+	ordinal: number;
 	status: PlanBlueprintTypeStatus;
 }

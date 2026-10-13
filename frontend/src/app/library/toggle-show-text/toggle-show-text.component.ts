@@ -1,11 +1,12 @@
 
-import { Component, Input } from '@angular/core';
+import { Component, Input, ChangeDetectionStrategy } from '@angular/core';
 import { TranslateModule } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-toggle-show-text',
   imports: [TranslateModule],
   templateUrl: './toggle-show-text.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './toggle-show-text.component.scss'
 })
 export class ToggleShowTextComponent {

@@ -18,16 +18,11 @@ import org.opencdmp.authorization.AuthorizationFlags;
 import org.opencdmp.authorization.Permission;
 import org.opencdmp.authorization.authorizationcontentresolver.AuthorizationContentResolverFactory;
 import org.opencdmp.commonmodels.models.description.*;
-import org.opencdmp.commonmodels.models.descriptiotemplate.DescriptionTemplateModel;
-import org.opencdmp.commonmodels.models.descriptiotemplate.fielddata.ReferenceTypeDataModel;
-import org.opencdmp.commonmodels.models.reference.ReferenceFieldModel;
-import org.opencdmp.commonmodels.models.reference.ReferenceModel;
 import org.opencdmp.commons.JsonHandlingService;
 import org.opencdmp.commons.XmlHandlingService;
 import org.opencdmp.commons.enums.*;
 import org.opencdmp.commons.enums.DescriptionStatus;
 import org.opencdmp.commons.enums.kpi.KpiDirectionType;
-import org.opencdmp.commons.enums.kpi.KpiVersionType;
 import org.opencdmp.commons.notification.NotificationProperties;
 import org.opencdmp.commons.scope.tenant.TenantScopeFactory;
 import org.opencdmp.commons.scope.user.UserScopeFactory;
@@ -37,15 +32,14 @@ import org.opencdmp.commons.types.descriptionreference.DescriptionReferenceDataE
 import org.opencdmp.commons.types.descriptiontemplate.FieldSetEntity;
 import org.opencdmp.commons.types.descriptiontemplate.fielddata.ReferenceTypeDataEntity;
 import org.opencdmp.commons.types.descriptiontemplate.fielddata.UploadDataEntity;
-import org.opencdmp.commons.types.descriptiontemplate.importexport.DescriptionTemplateFieldImportExport;
-import org.opencdmp.commons.types.descriptiontemplate.importexport.DescriptionTemplateImportExport;
-import org.opencdmp.commons.types.descriptiontemplate.importexport.fielddata.ReferenceTypeDataImportExport;
 import org.opencdmp.commons.types.notification.DataType;
 import org.opencdmp.commons.types.notification.FieldInfo;
 import org.opencdmp.commons.types.notification.NotificationFieldData;
 import org.opencdmp.commons.types.planblueprint.BlueprintDescriptionTemplateEntity;
-import org.opencdmp.commons.types.planblueprint.SectionEntity;
+import org.opencdmp.commons.types.planblueprint.RootSectionEntity;
 import org.opencdmp.commons.types.reference.DefinitionEntity;
+import org.opencdmp.commons.types.reference.importexport.ReferenceImportExport;
+import org.opencdmp.commons.types.reference.importexport.ReferenceTypeImportExport;
 import org.opencdmp.convention.ConventionService;
 import org.opencdmp.data.*;
 import org.opencdmp.errorcode.ErrorThesaurusProperties;
@@ -83,9 +77,11 @@ import org.opencdmp.service.elastic.ElasticService;
 import org.opencdmp.service.filetransformer.FileTransformerService;
 import org.opencdmp.service.kpi.KpiService;
 import org.opencdmp.service.lock.LockService;
+import org.opencdmp.service.plandescriptionfields.PlanDescriptionFieldsService;
 import org.opencdmp.service.responseutils.ResponseUtilsService;
 import org.opencdmp.service.storage.StorageFileProperties;
 import org.opencdmp.service.storage.StorageFileService;
+import org.opencdmp.service.webhook.WebhookService;
 import org.opencdmp.service.tag.TagService;
 import org.opencdmp.service.usagelimit.UsageLimitService;
 import org.opencdmp.service.visibility.VisibilityService;
@@ -160,6 +156,8 @@ public class DescriptionServiceImpl implements DescriptionService {
     private final LockService lockService;
     private final PlanTouchedIntegrationEventHandler planTouchedIntegrationEventHandler;
     private final KpiService kpiService;
+    private final WebhookService webhookService;
+    private final PlanDescriptionFieldsService fieldsService;
     @Autowired
     public DescriptionServiceImpl(
             TenantEntityManagerFactory tenantEntityManagerFactory,
@@ -173,7 +171,7 @@ public class DescriptionServiceImpl implements DescriptionService {
             QueryFactory queryFactory,
             JsonHandlingService jsonHandlingService,
             UserScopeFactory userScopeFactory,
-            XmlHandlingService xmlHandlingService, NotifyIntegrationEventHandler eventHandler, NotificationProperties notificationProperties, FileTransformerService fileTransformerService, ElasticService elasticService, ValidatorFactory validatorFactory, StorageFileProperties storageFileConfig, StorageFileService storageFileService, AuthorizationContentResolverFactory authorizationContentResolverFactory, AnnotationEntityTouchedIntegrationEventHandler annotationEntityTouchedIntegrationEventHandler, AnnotationEntityRemovalIntegrationEventHandler annotationEntityRemovalIntegrationEventHandler, TenantScopeFactory tenantScopeFactory, ResponseUtilsService responseUtilsService, DescriptionTemplateService descriptionTemplateService, TagService tagService, UsageLimitService usageLimitService, AccountingService accountingService, DescriptionWorkflowService descriptionWorkflowService, CustomPolicyService customPolicyService, LockService lockService, PlanTouchedIntegrationEventHandler planTouchedIntegrationEventHandler, KpiService kpiService) {
+            XmlHandlingService xmlHandlingService, NotifyIntegrationEventHandler eventHandler, NotificationProperties notificationProperties, FileTransformerService fileTransformerService, ElasticService elasticService, ValidatorFactory validatorFactory, StorageFileProperties storageFileConfig, StorageFileService storageFileService, AuthorizationContentResolverFactory authorizationContentResolverFactory, AnnotationEntityTouchedIntegrationEventHandler annotationEntityTouchedIntegrationEventHandler, AnnotationEntityRemovalIntegrationEventHandler annotationEntityRemovalIntegrationEventHandler, TenantScopeFactory tenantScopeFactory, ResponseUtilsService responseUtilsService, DescriptionTemplateService descriptionTemplateService, TagService tagService, UsageLimitService usageLimitService, AccountingService accountingService, DescriptionWorkflowService descriptionWorkflowService, CustomPolicyService customPolicyService, LockService lockService, PlanTouchedIntegrationEventHandler planTouchedIntegrationEventHandler, KpiService kpiService, PlanDescriptionFieldsService fieldsService, WebhookService webhookService) {
         this.tenantEntityManagerFactory = tenantEntityManagerFactory;
         this.authorizationService = authorizationService;
         this.deleterFactory = deleterFactory;
@@ -207,16 +205,18 @@ public class DescriptionServiceImpl implements DescriptionService {
         this.lockService = lockService;
         this.planTouchedIntegrationEventHandler = planTouchedIntegrationEventHandler;
         this.kpiService = kpiService;
+        this.fieldsService = fieldsService;
+        this.webhookService = webhookService;
     }
 
     @Override
-    public Map<UUID, List<String>> getDescriptionSectionPermissions(DescriptionSectionPermissionResolver model)  {
+    public Map<String, List<String>> getDescriptionSectionPermissions(DescriptionSectionPermissionResolver model)  {
         logger.debug(new MapLogEntry("get description section permissions").And("model", model));
 
-        Map<UUID, List<String>> response = new HashMap<>();
+        Map<String, List<String>> response = new HashMap<>();
         
-        Map<UUID, AffiliatedResource> affiliatedResourceMap = this.authorizationContentResolverFactory.getInstance().descriptionsAffiliationBySections(model.getPlanId(), model.getSectionIds());
-        for (UUID sectionId : model.getSectionIds().stream().distinct().toList()){
+        Map<String, AffiliatedResource> affiliatedResourceMap = this.authorizationContentResolverFactory.getInstance().descriptionsAffiliationBySections(model.getPlanId(), model.getSectionIds());
+        for (String sectionId : model.getSectionIds().stream().distinct().toList()){
             AffiliatedResource affiliatedResource = affiliatedResourceMap.getOrDefault(sectionId, null);
             response.put(sectionId, new ArrayList<>());
             for (String permission : model.getPermissions()){
@@ -255,11 +255,19 @@ public class DescriptionServiceImpl implements DescriptionService {
             if (!data.getPlanId().equals(model.getPlanId())) throw new MyValidationException(this.errors.getPlanCanNotChange().getCode(), this.errors.getPlanCanNotChange().getMessage());
             if (!data.getPlanDescriptionTemplateId().equals(model.getPlanDescriptionTemplateId())) throw new MyValidationException(this.errors.getPlanDescriptionTemplateCanNotChange().getCode(), this.errors.getPlanDescriptionTemplateCanNotChange().getMessage());
             if (model.getStatusId() != null && !model.getStatusId().equals(data.getStatusId())) {
+                UUID oldStatusId = data.getStatusId();
+                if (this.descriptionWorkflowService.getActiveWorkFlowDefinition().getStatusTransitions().stream().noneMatch(x -> x.getFromStatusId().equals(oldStatusId) && x.getToStatusId().equals(model.getStatusId()))) throw new MyValidationException(this.errors.getStatusTransitionNotAllowed().getCode(), this.errors.getStatusTransitionNotAllowed().getMessage());
                 this.kpiService.sendIndicatorPointDescriptionPerTemplateEntry(KpiDirectionType.Decrease, data.getId());
                 data.setStatusId(model.getStatusId());
                 newDescriptionStatusEntity = this.tenantEntityManagerFactory.getInstance().find(DescriptionStatusEntity.class, model.getStatusId(), true);
                 if (newDescriptionStatusEntity == null) throw new MyNotFoundException(this.messageSource.getMessage("General_ItemNotFound", new Object[]{model.getStatusId(), org.opencdmp.model.descriptionstatus.DescriptionStatus.class.getSimpleName()}, LocaleContextHolder.getLocale()));
-                if (newDescriptionStatusEntity.getInternalStatus() != null && newDescriptionStatusEntity.getInternalStatus().equals(DescriptionStatus.Finalized)) data.setFinalizedAt(Instant.now());
+                if (newDescriptionStatusEntity.getInternalStatus() != null && newDescriptionStatusEntity.getInternalStatus().equals(DescriptionStatus.Finalized)) {
+                    data.setFinalizedAt(Instant.now());
+                    this.webhookService.enqueueEvent(WebhookEventType.DescriptionFinalized, Map.of(
+                            "descriptionId", data.getId(),
+                            "label", data.getLabel() != null ? data.getLabel() : "",
+                            "planId", data.getPlanId()));
+                }
                 this.kpiService.sendIndicatorPointDescriptionPerTemplateEntry(KpiDirectionType.Increase, data.getId());
             }
         } else {
@@ -319,8 +327,8 @@ public class DescriptionServiceImpl implements DescriptionService {
         this.tenantEntityManagerFactory.getInstance().flush();
 
         org.opencdmp.commons.types.descriptiontemplate.DefinitionEntity definition =  this.xmlHandlingService.fromXmlSafe(org.opencdmp.commons.types.descriptiontemplate.DefinitionEntity.class, descriptionTemplateEntity.getDefinition());
-        VisibilityService visibilityService = new VisibilityServiceImpl(definition, model.getProperties());
-        Map<String, List<UUID>> fieldToReferenceMap = this.patchAndSaveReferences(this.buildDescriptionReferencePersists(visibilityService, model.getProperties()), data.getId(), definition);
+        VisibilityService visibilityService = VisibilityServiceImpl.fromPersist(definition.getSections(), model.getProperties().getFieldSets());
+        Map<String, List<UUID>> fieldToReferenceMap = this.patchAndSaveReferences(this.buildDescriptionReferencePersists(visibilityService, model.getProperties()), data.getId(), data.getPlanId(), definition);
 
         this.tenantEntityManagerFactory.getInstance().flush();
         
@@ -351,7 +359,33 @@ public class DescriptionServiceImpl implements DescriptionService {
             descriptions.add(this.persist(descriptionPersist, fields));
         }
 
+        this.closePlanUpdateRequestIfPresent(model.getPlanUpdateRequestApply());
+
         return descriptions;
+    }
+
+    private void closePlanUpdateRequestIfPresent(PlanUpdateRequestApply apply) throws InvalidApplicationException {
+        if (apply == null || apply.getPlanUpdateRequestId() == null) return;
+
+        PlanUpdateRequestEntity request = this.tenantEntityManagerFactory.getInstance().find(PlanUpdateRequestEntity.class, apply.getPlanUpdateRequestId());
+        if (request == null) throw new MyNotFoundException(this.messageSource.getMessage("General_ItemNotFound", new Object[]{apply.getPlanUpdateRequestId(), PlanUpdateRequestEntity.class.getSimpleName()}, LocaleContextHolder.getLocale()));
+        this.authorizationService.authorizeAtLeastOneForce(List.of(this.authorizationContentResolverFactory.getInstance().planAffiliation(request.getPlanId())), Permission.EditPlan);
+        if (!PlanUpdateRequestStatus.Pending.equals(request.getStatus())) return;
+
+        Instant now = Instant.now();
+        request.setStatus(this.deriveRequestStatus(apply.getDecision()));
+        request.setApprovedBy(this.userScopeFactory.getInstance().getUserIdSafe());
+        request.setApprovedAt(now);
+        request.setAppliedData(this.jsonHandlingService.toJsonSafe(apply));
+        request.setUpdatedAt(now);
+        this.tenantEntityManagerFactory.getInstance().merge(request);
+        this.tenantEntityManagerFactory.getInstance().flush();
+    }
+
+    private PlanUpdateRequestStatus deriveRequestStatus(PlanUpdateRequestApplyDecision decision) {
+        if (decision == PlanUpdateRequestApplyDecision.Accept) return PlanUpdateRequestStatus.Accepted;
+        if (decision == PlanUpdateRequestApplyDecision.Refuse) return PlanUpdateRequestStatus.Refused;
+        return PlanUpdateRequestStatus.PartiallyAccepted;
     }
 
     private boolean isDescriptionTemplateMaxMultiplicityValid(PlanBlueprintEntity planBlueprintEntity, UUID planId, UUID planDescriptionTemplateId, Boolean isUpdate){
@@ -363,7 +397,7 @@ public class DescriptionServiceImpl implements DescriptionService {
 
         List<DescriptionEntity> descriptionEntities = this.queryFactory.query(DescriptionQuery.class).disableTracking().planIds(planId).planDescriptionTemplateIds(planDescriptionTemplateId).isActive(IsActive.Active).collect();
 
-        for (SectionEntity section: definition.getSections()) {
+        for (RootSectionEntity section: definition.getSections()) {
             if (planDescriptionTemplateEntity.getSectionId().equals(section.getId()) && section.getHasTemplates() && !this.conventionService.isListNullOrEmpty(section.getDescriptionTemplates())){
                 int descriptionsCount;
                 if (isUpdate) descriptionsCount = -1;
@@ -466,35 +500,7 @@ public class DescriptionServiceImpl implements DescriptionService {
             for (String key: data.getFieldSets().keySet()) {
                 FieldSetEntity fieldSetEntity = definition != null ? definition.getFieldSetById(key).stream().findFirst().orElse(null) : null;
                 if (fieldSetEntity != null){
-                    cleanData.getFieldSets().put(key, this.cleanPropertyDefinitionFieldSetEntity(data.getFieldSets().get(key), fieldSetEntity));
-                }
-            }
-        }
-        return cleanData;
-    }
-
-    private @NotNull PropertyDefinitionFieldSetEntity cleanPropertyDefinitionFieldSetEntity(PropertyDefinitionFieldSetEntity persist, FieldSetEntity fieldSetEntity) {
-        PropertyDefinitionFieldSetEntity cleanData = new PropertyDefinitionFieldSetEntity();
-        if (persist == null) return cleanData;
-        if (!this.conventionService.isListNullOrEmpty(persist.getItems())){
-            cleanData.setItems(new ArrayList<>());
-            for (PropertyDefinitionFieldSetItemEntity itemsPersist: persist.getItems()) {
-                cleanData.getItems().add(this.cleanPropertyDefinitionFieldSetItemEntity(itemsPersist, fieldSetEntity));
-            }
-        }
-        return cleanData;
-    }
-
-    private @NotNull PropertyDefinitionFieldSetItemEntity cleanPropertyDefinitionFieldSetItemEntity(PropertyDefinitionFieldSetItemEntity data, FieldSetEntity fieldSetEntity) {
-        PropertyDefinitionFieldSetItemEntity cleanData = new PropertyDefinitionFieldSetItemEntity();
-        if (data == null) return cleanData;
-        if (data.getFields() != null && !data.getFields().isEmpty()){
-            cleanData.setOrdinal(data.getOrdinal());
-            cleanData.setFields(new HashMap<>());
-            for (String key: data.getFields().keySet()) {
-                org.opencdmp.commons.types.descriptiontemplate.FieldEntity fieldEntity = fieldSetEntity != null ? fieldSetEntity.getFieldById(key).stream().findFirst().orElse(null) : null;
-                if (fieldEntity != null){
-                    cleanData.getFields().put(key,data.getFields().get(key));
+                    cleanData.getFieldSets().put(key, this.fieldsService.cleanPropertyDefinitionFieldSetEntity(data.getFieldSets().get(key), fieldSetEntity));
                 }
             }
         }
@@ -552,6 +558,7 @@ public class DescriptionServiceImpl implements DescriptionService {
 
         if (!this.conventionService.hashValue(data.getUpdatedAt()).equals(model.getHash())) throw new MyValidationException(this.errors.getHashConflict().getCode(), this.errors.getHashConflict().getMessage());
         if (!data.getStatusId().equals(model.getStatusId())){
+            if (this.descriptionWorkflowService.getActiveWorkFlowDefinition().getStatusTransitions().stream().noneMatch(x -> x.getFromStatusId().equals(data.getStatusId()) && x.getToStatusId().equals(model.getStatusId()))) throw new MyValidationException(this.errors.getStatusTransitionNotAllowed().getCode(), this.errors.getStatusTransitionNotAllowed().getMessage());
             DescriptionStatusEntity oldStatusEntity = this.queryFactory.query(DescriptionStatusQuery.class).disableTracking().ids(data.getStatusId()).isActive(IsActive.Active).firstAs(new BaseFieldSet().ensure(org.opencdmp.model.descriptionstatus.DescriptionStatus._id).ensure(org.opencdmp.model.descriptionstatus.DescriptionStatus._name).ensure(org.opencdmp.model.descriptionstatus.DescriptionStatus._internalStatus));
             if (oldStatusEntity == null) throw new MyNotFoundException(this.messageSource.getMessage("General_ItemNotFound", new Object[]{data.getStatusId(), DescriptionStatusEntity.class.getSimpleName()}, LocaleContextHolder.getLocale()));
             if (oldStatusEntity.getInternalStatus() != null && oldStatusEntity.getInternalStatus().equals(DescriptionStatus.Finalized)){
@@ -711,138 +718,9 @@ public class DescriptionServiceImpl implements DescriptionService {
             data.setFieldSets(new HashMap<>());
             for (String key: persist.getFieldSets().keySet()) {
                 FieldSetEntity fieldSetEntity = definition != null ? definition.getFieldSetById(key).stream().findFirst().orElse(null) : null;
-                data.getFieldSets().put(key, this.buildPropertyDefinitionFieldSetEntity(persist.getFieldSets().get(key), fieldSetEntity, fieldToReferenceMap, visibilityService));
+                data.getFieldSets().put(key, this.fieldsService.buildPropertyDefinitionFieldSetEntity(persist.getFieldSets().get(key), fieldSetEntity, fieldToReferenceMap, visibilityService));
             }
         }
-        return data;
-    }
-
-    private @NotNull PropertyDefinitionFieldSetEntity buildPropertyDefinitionFieldSetEntity(PropertyDefinitionFieldSetPersist persist, FieldSetEntity fieldSetEntity,  Map<String, List<UUID>> fieldToReferenceMap, VisibilityService visibilityService) throws InvalidApplicationException {
-        PropertyDefinitionFieldSetEntity data = new PropertyDefinitionFieldSetEntity();
-        if (persist == null) return data;
-        data.setComment(persist.getComment());
-        if (!this.conventionService.isListNullOrEmpty(persist.getItems())){
-            data.setItems(new ArrayList<>());
-            for (PropertyDefinitionFieldSetItemPersist itemsPersist: persist.getItems()) {
-                data.getItems().add(this.buildPropertyDefinitionFieldSetItemEntity(itemsPersist, fieldSetEntity, fieldToReferenceMap, visibilityService));
-            }
-        }
-        return data;
-    }
-
-    private @NotNull PropertyDefinitionFieldSetItemEntity buildPropertyDefinitionFieldSetItemEntity(PropertyDefinitionFieldSetItemPersist persist, FieldSetEntity fieldSetEntity,  Map<String, List<UUID>> fieldToReferenceMap, VisibilityService visibilityService) throws InvalidApplicationException {
-        PropertyDefinitionFieldSetItemEntity data = new PropertyDefinitionFieldSetItemEntity();
-        if (persist == null) return data;
-        if (persist.getFields() != null && !persist.getFields().isEmpty()){
-            data.setOrdinal(persist.getOrdinal());
-            data.setFields(new HashMap<>());
-            for (String key: persist.getFields().keySet()) {
-                org.opencdmp.commons.types.descriptiontemplate.FieldEntity fieldEntity = fieldSetEntity != null ? fieldSetEntity.getFieldById(key).stream().findFirst().orElse(null) : null;
-                boolean isVisible = fieldEntity != null ? visibilityService.isVisible(fieldEntity.getId(), persist.getOrdinal()) : false;
-                data.getFields().put(key, this.buildFieldEntity(persist.getFields().get(key), fieldEntity, fieldToReferenceMap, persist.getOrdinal(), isVisible));
-            }
-        }
-        return data;
-    }
-    
-    private @NotNull FieldEntity buildFieldEntity(FieldPersist persist, org.opencdmp.commons.types.descriptiontemplate.FieldEntity fieldEntity,  Map<String, List<UUID>> fieldToReferenceMap, int ordinal, boolean isVisible) throws InvalidApplicationException {
-        FieldType fieldType = fieldEntity != null && fieldEntity.getData() != null ? fieldEntity.getData().getFieldType() :  FieldType.FREE_TEXT;
-        FieldEntity data = new FieldEntity();
-        if (persist == null || !isVisible) return data;
-
-        if (FieldType.isTextType(fieldType)) {
-            if (FieldType.UPLOAD.equals(fieldType)){
-                UUID newFileId = this.conventionService.isValidUUID(persist.getTextValue()) ? UUID.fromString(persist.getTextValue()) : null;
-                if (newFileId != null){
-                    StorageFileEntity storageFileEntity = this.queryFactory.query(StorageFileQuery.class).disableTracking().ids(newFileId).firstAs(new BaseFieldSet().ensure(StorageFile._id).ensure(StorageFile._storageType));
-                    if (storageFileEntity == null || storageFileEntity.getStorageType().equals(StorageType.Temp)){
-                        StorageFile storageFile = this.storageFileService.copyToStorage(newFileId, StorageType.Main, true, new BaseFieldSet().ensure(StorageFile._id));
-                        this.storageFileService.updatePurgeAt(storageFile.getId(), null);
-                        data.setTextValue(storageFile.getId().toString());
-                    } else {
-                        if (storageFileEntity.getId() != null){
-                            //DO NOT Remove we can not be sure uf the description is copied
-                            //this.storageFileService.updatePurgeAt(existingFileId,  Instant.now().minusSeconds(60));
-                        }
-                        data.setTextValue(newFileId.toString());
-                    }
-                } else {
-                    data.setTextValue(null);
-                }
-            } else {
-                data.setTextValue(persist.getTextValue());
-            }
-        }
-        else if (FieldType.isTextListType(fieldType)) {
-            List<UUID> ids = new ArrayList<>();
-            if (FieldType.INTERNAL_ENTRIES_PLANS.equals(fieldType)) {
-                if (!this.conventionService.isListNullOrEmpty(persist.getTextListValue())) ids = persist.getTextListValue().stream().map(UUID::fromString).toList();
-                else if (!this.conventionService.isNullOrEmpty(persist.getTextValue())) ids.add(UUID.fromString(persist.getTextValue()));
-
-                if (!ids.isEmpty()){
-                    Set<UUID> existingIds = this.queryFactory.query(PlanQuery.class).disableTracking().ids(ids).collectAs(new BaseFieldSet().ensure(Plan._id)).stream().map(PlanEntity::getId).collect(Collectors.toSet());
-                    for (UUID id : ids){
-                        if (!existingIds.contains(id)) throw new MyNotFoundException(this.messageSource.getMessage("General_ItemNotFound", new Object[]{id, Plan.class.getSimpleName()}, LocaleContextHolder.getLocale()));
-                    }
-                }
-
-            } if (FieldType.INTERNAL_ENTRIES_DESCRIPTIONS.equals(fieldType)){
-                if ( !this.conventionService.isListNullOrEmpty(persist.getTextListValue())) ids = persist.getTextListValue().stream().map(UUID::fromString).toList();
-                else if (!this.conventionService.isNullOrEmpty(persist.getTextValue())) ids.add(UUID.fromString(persist.getTextValue()));
-
-                if (!ids.isEmpty()) {
-                    Set<UUID> existingIds = this.queryFactory.query(DescriptionQuery.class).disableTracking().ids(ids).collectAs(new BaseFieldSet().ensure(Description._id)).stream().map(DescriptionEntity::getId).collect(Collectors.toSet());
-                    for (UUID id : ids){
-                        if (!existingIds.contains(id)) throw new MyNotFoundException(this.messageSource.getMessage("General_ItemNotFound", new Object[]{id, Description.class.getSimpleName()}, LocaleContextHolder.getLocale()));
-                    }
-                }
-            }
-            if (!ids.isEmpty()){
-                if (ids.size() > 1) data.setTextListValue(persist.getTextListValue());
-                else if (!this.conventionService.isNullOrEmpty(persist.getTextValue())) data.setTextListValue(List.of(persist.getTextValue()));
-                else if (!this.conventionService.isListNullOrEmpty(persist.getTextListValue())) data.setTextListValue(persist.getTextListValue());
-            }else{
-                data.setTextListValue(persist.getTextListValue());
-            }
-            if (fieldType.equals(FieldType.SELECT) && this.conventionService.isListNullOrEmpty(persist.getTextListValue()) && !this.conventionService.isNullOrEmpty(persist.getTextValue())){
-                data.setTextListValue(List.of(persist.getTextValue()));
-            } else if (fieldType.equals(FieldType.SELECT)){
-                data.setTextListValue(persist.getTextListValue());
-            }
-        } else if (FieldType.isReferenceType(fieldType) && fieldEntity != null ) {
-            String key = this.fieldToReferenceMapKey(fieldEntity.getId(), ordinal);
-            List<UUID> referenceIds = fieldToReferenceMap.getOrDefault(key, null);
-            if (referenceIds != null) data.setTextListValue(referenceIds.stream().map(UUID::toString).toList());
-        } else if (FieldType.isTagType(fieldType)) {
-            
-            if (!this.conventionService.isListNullOrEmpty(persist.getTags())){
-                List<TagEntity> existingTags = this.queryFactory.query(TagQuery.class).authorize(AuthorizationFlags.AllExceptPublic).disableTracking().tags(persist.getTags().stream().distinct().toList()).collectAs(new BaseFieldSet().ensure(Tag._id).ensure(Tag._label));
-                
-                List<String> values = new ArrayList<>();
-                for (String tag : persist.getTags().stream().distinct().toList()){
-                    TagEntity existingTag = existingTags.stream().filter(x-> x.getLabel().equalsIgnoreCase(tag)).findFirst().orElse(null);
-                    if (existingTag == null) {
-                        TagPersist tagPersist = new TagPersist();
-                        tagPersist.setLabel(tag);
-                        values.add(this.tagService.persist(tagPersist, new BaseFieldSet().ensure(Tag._id)).getId().toString());
-                    } else values.add(existingTag.getId().toString());
-                }
-                if (!this.conventionService.isListNullOrEmpty(values)) data.setTextListValue(values);
-            }
-        }
-        else if (FieldType.isDateType(fieldType))  data.setDateValue(persist.getDateValue());
-        else if (FieldType.isBooleanType(fieldType))  data.setBooleanValue(persist.getBooleanValue());
-        else if (FieldType.isExternalIdentifierType(fieldType) && persist.getExternalIdentifier() != null)  data.setExternalIdentifier(this.buildExternalIdentifierEntity(persist.getExternalIdentifier()));
-       
-        return data;
-    }
-
-    private @NotNull ExternalIdentifierEntity buildExternalIdentifierEntity(ExternalIdentifierPersist persist){
-        ExternalIdentifierEntity data = new ExternalIdentifierEntity();
-        if (persist == null) return data;
-
-        data.setIdentifier(persist.getIdentifier());
-        data.setType(persist.getType());
         return data;
     }
 
@@ -886,7 +764,7 @@ public class DescriptionServiceImpl implements DescriptionService {
         }
     }
 
-    private Map<String, List<UUID>> patchAndSaveReferences(List<DescriptionReferencePersist> models, UUID descriptionId, org.opencdmp.commons.types.descriptiontemplate.DefinitionEntity definition) throws InvalidApplicationException {
+    private Map<String, List<UUID>> patchAndSaveReferences(List<DescriptionReferencePersist> models, UUID descriptionId, UUID planId, org.opencdmp.commons.types.descriptiontemplate.DefinitionEntity definition) throws InvalidApplicationException {
         if (models == null) models = new ArrayList<>();
         
         Map<String, List<UUID>> fieldToReferenceMap = new HashMap<>();
@@ -918,7 +796,9 @@ public class DescriptionServiceImpl implements DescriptionService {
                 ReferenceTypeDataEntity fieldEntity = definition.getFieldById(model.getData().getFieldId()).stream().filter(x-> x.getData() != null && x.getData().getFieldType().equals(FieldType.REFERENCE_TYPES)).map(x-> (ReferenceTypeDataEntity)x.getData()).findFirst().orElse(null);
                 if (fieldEntity == null) throw new MyNotFoundException(this.messageSource.getMessage("General_ItemNotFound", new Object[]{model.getData().getFieldId(), ReferenceTypeDataEntity.class.getSimpleName()}, LocaleContextHolder.getLocale()));
 
-                referenceEntity = this.queryFactory.query(ReferenceQuery.class).sourceTypes(referencePersist.getSourceType()).typeIds(fieldEntity.getReferenceTypeId()).sources(referencePersist.getSource()).isActive(IsActive.Active).references(referencePersist.getReference()).first();
+                // Manual references are never shared through a matching code: every new one gets its own row.
+                referenceEntity = referencePersist.getSourceType() == ReferenceSourceType.Internal ? null
+                        : this.queryFactory.query(ReferenceQuery.class).sourceTypes(referencePersist.getSourceType()).typeIds(fieldEntity.getReferenceTypeId()).sources(referencePersist.getSource()).isActive(IsActive.Active).references(referencePersist.getReference()).first();
                 if (referenceEntity == null){
                     this.usageLimitService.checkIncrease(UsageLimitTargetMetric.REFERENCE_COUNT);
                     referenceEntity = new ReferenceEntity();
@@ -935,6 +815,7 @@ public class DescriptionServiceImpl implements DescriptionService {
                     referenceEntity.setAbbreviation(referencePersist.getAbbreviation());
                     referenceEntity.setSource(referencePersist.getSource());
                     referenceEntity.setSourceType(referencePersist.getSourceType());
+                    if (referenceEntity.getSourceType() == ReferenceSourceType.Internal) referenceEntity.setCreatedById(this.userScopeFactory.getInstance().getUserIdSafe());
                     try {
                         ReferenceTypeEntity referenceType = this.queryFactory.query(ReferenceTypeQuery.class).ids(fieldEntity.getReferenceTypeId()).firstAs(new BaseFieldSet().ensure(ReferenceType._id).ensure(ReferenceType._code).ensure(ReferenceTypeEntity._tenantId));
                         if (referenceType == null) throw new MyNotFoundException(this.messageSource.getMessage("General_ItemNotFound", new Object[]{fieldEntity.getReferenceTypeId(), ReferenceType.class.getSimpleName()}, LocaleContextHolder.getLocale()));
@@ -995,7 +876,7 @@ public class DescriptionServiceImpl implements DescriptionService {
             if (isUpdate) this.tenantEntityManagerFactory.getInstance().merge(data);
             else {
                 this.tenantEntityManagerFactory.getInstance().persist(data);
-                this.kpiService.sendIndicatorPointReferenceEntry(KpiDirectionType.Increase, data.getReferenceId());
+                this.kpiService.sendIndicatorPointReferenceEntry(KpiDirectionType.Increase, data.getReferenceId(), planId);
             }
         }
         List<DescriptionReferenceEntity> toDelete = descriptionReferences.stream().filter(x-> updatedCreatedIds.stream().noneMatch(y-> y.equals(x.getId()))).collect(Collectors.toList());
@@ -1097,6 +978,19 @@ public class DescriptionServiceImpl implements DescriptionService {
         this.deleterFactory.deleter(DescriptionDeleter.class).deleteAndSaveByIds(List.of(id), false);
 
         this.annotationEntityRemovalIntegrationEventHandler.handleDescription(id);
+    }
+
+    @Override
+    public void deleteAndSave(DescriptionDeletePersist model) throws MyForbiddenException, InvalidApplicationException, IOException {
+        logger.debug("deleting description: {}", model.getId());
+
+        this.authorizationService.authorizeAtLeastOneForce(List.of(this.authorizationContentResolverFactory.getInstance().descriptionAffiliation(model.getId())), Permission.DeleteDescription);
+
+        this.deleterFactory.deleter(DescriptionDeleter.class).deleteAndSaveByIds(List.of(model.getId()), false);
+
+        this.annotationEntityRemovalIntegrationEventHandler.handleDescription(model.getId());
+
+        this.closePlanUpdateRequestIfPresent(model.getPlanUpdateRequestApply());
     }
     
     //endregion 
@@ -1226,13 +1120,13 @@ public class DescriptionServiceImpl implements DescriptionService {
             persist.setFieldSets(new HashMap<>());
             for (String key: data.getFieldSets().keySet()) {
                 FieldSetEntity fieldSetEntity = definition != null ? definition.getFieldSetById(key).stream().findFirst().orElse(null) : null;
-                persist.getFieldSets().put(key, this.buildPropertyDefinitionFieldSetPersist(data.getFieldSets().get(key), fieldSetEntity, references));
+                persist.getFieldSets().put(key, this.fieldsService.buildPropertyDefinitionFieldSetPersist(data.getFieldSets().get(key), fieldSetEntity, references));
             }
         }
         return persist;
     }
 
-    private List<UUID> calculateAllReferenceIdsFromData(PropertyDefinitionEntity data, org.opencdmp.commons.types.descriptiontemplate.DefinitionEntity definition){
+    public List<UUID> calculateAllReferenceIdsFromData(PropertyDefinitionEntity data, org.opencdmp.commons.types.descriptiontemplate.DefinitionEntity definition){
         List<String> referenceIds = new ArrayList<>();
 
         if (data.getFieldSets() != null && !data.getFieldSets().isEmpty()){
@@ -1260,101 +1154,6 @@ public class DescriptionServiceImpl implements DescriptionService {
         }
 
         return null;
-    }
-
-    private @NotNull PropertyDefinitionFieldSetPersist buildPropertyDefinitionFieldSetPersist(PropertyDefinitionFieldSetEntity data, FieldSetEntity fieldSetEntity, List<ReferenceEntity> references){
-        PropertyDefinitionFieldSetPersist persist = new PropertyDefinitionFieldSetPersist();
-        if (data == null) return persist;
-        persist.setComment(data.getComment());
-        if (!this.conventionService.isListNullOrEmpty(data.getItems())){
-            persist.setItems(new ArrayList<>());
-            for (PropertyDefinitionFieldSetItemEntity itemsPersist: data.getItems()) {
-                persist.getItems().add(this.buildPropertyDefinitionFieldSetItemPersist(itemsPersist, fieldSetEntity, references));
-            }
-        }
-        return persist;
-    }
-
-    private @NotNull PropertyDefinitionFieldSetItemPersist buildPropertyDefinitionFieldSetItemPersist(PropertyDefinitionFieldSetItemEntity data, FieldSetEntity fieldSetEntity, List<ReferenceEntity> references){
-        PropertyDefinitionFieldSetItemPersist persist = new PropertyDefinitionFieldSetItemPersist();
-        if (data == null) return persist;
-        if (data.getFields() != null && !data.getFields().isEmpty()){
-            persist.setOrdinal(data.getOrdinal());
-            persist.setFields(new HashMap<>());
-            for (String key: data.getFields().keySet()) {
-                org.opencdmp.commons.types.descriptiontemplate.FieldEntity fieldEntity = fieldSetEntity != null ? fieldSetEntity.getFieldById(key).stream().findFirst().orElse(null) : null;
-                persist.getFields().put(key, this.buildFieldPersist(data.getFields().get(key), fieldEntity, references));
-            }
-        }
-        return persist;
-    }
-
-    private @NotNull FieldPersist buildFieldPersist(FieldEntity data, org.opencdmp.commons.types.descriptiontemplate.FieldEntity fieldEntity, List<ReferenceEntity> references) {
-        FieldType fieldType = fieldEntity != null && fieldEntity.getData() != null ? fieldEntity.getData().getFieldType() :  FieldType.FREE_TEXT;
-
-        FieldPersist persist = new FieldPersist();
-        if (data == null) return persist;
-
-        if (FieldType.isTextType(fieldType)) persist.setTextValue(data.getTextValue());
-        else if (FieldType.isTextListType(fieldType)) persist.setTextListValue(data.getTextListValue());
-        else if (FieldType.isDateType(fieldType))  persist.setDateValue(data.getDateValue());
-        else if (FieldType.isBooleanType(fieldType))  persist.setBooleanValue(data.getBooleanValue());
-        else if (FieldType.isExternalIdentifierType(fieldType) && data.getExternalIdentifier() != null)  persist.setExternalIdentifier(this.buildExternalIdentifierPersist(data.getExternalIdentifier()));
-        else if (FieldType.isReferenceType(fieldType) && fieldEntity != null ) {
-            if (!this.conventionService.isListNullOrEmpty(data.getTextListValue()) && !this.conventionService.isListNullOrEmpty(references)){
-                List<UUID> referenceIdsInField = data.getTextListValue().stream().filter(x -> this.conventionService.isValidGuid(UUID.fromString(x))).toList().stream().map(UUID::fromString).collect(Collectors.toList());
-                if (!this.conventionService.isListNullOrEmpty(referenceIdsInField)){
-                    List<ReferenceEntity> referencesInField = references.stream().filter(x -> referenceIdsInField.contains(x.getId())).collect(Collectors.toList());
-                    if (!this.conventionService.isListNullOrEmpty(referencesInField)){
-                        persist.setReferences(this.buildReferencePersist(referencesInField));
-                    }
-                }
-            }
-        }
-        else if (FieldType.isTagType(fieldType) && fieldEntity != null ) {
-            if (!this.conventionService.isListNullOrEmpty(data.getTextListValue())){
-                List<UUID> tagIdsInField = data.getTextListValue().stream().filter(x -> this.conventionService.isValidGuid(UUID.fromString(x))).toList().stream().map(UUID::fromString).collect(Collectors.toList());
-                if (!this.conventionService.isListNullOrEmpty(tagIdsInField)){
-                    List<TagEntity> tagsInField = this.queryFactory.query(TagQuery.class).isActive(IsActive.Active).ids(tagIdsInField).disableTracking().authorize(AuthorizationFlags.All).collect();
-                    if (!this.conventionService.isListNullOrEmpty(tagsInField)){
-                        persist.setTags(tagsInField.stream().map(TagEntity::getLabel).toList());
-                    }
-                }
-            }
-        }
-        
-
-        return persist;
-    }
-
-    private @NotNull ExternalIdentifierPersist buildExternalIdentifierPersist(ExternalIdentifierEntity data){
-        ExternalIdentifierPersist persist = new ExternalIdentifierPersist();
-        if (data == null) return persist;
-
-        persist.setIdentifier(data.getIdentifier());
-        persist.setType(data.getType());
-        return persist;
-    }
-
-    private @NotNull List<ReferencePersist> buildReferencePersist(List<ReferenceEntity> referenceEntities){
-        List<ReferencePersist> referencesPersist = new ArrayList<>();
-        if (this.conventionService.isListNullOrEmpty(referenceEntities)) return referencesPersist;
-
-        for (ReferenceEntity entity: referenceEntities) {
-            ReferencePersist persist = new ReferencePersist();
-            persist.setId(entity.getId());
-            persist.setLabel(entity.getLabel());
-            persist.setDescription(entity.getDescription());
-            persist.setReference(entity.getReference());
-            persist.setSource(entity.getSource());
-            persist.setSourceType(entity.getSourceType());
-            persist.setTypeId(entity.getTypeId());
-            persist.setAbbreviation(entity.getAbbreviation());
-
-            referencesPersist.add(persist);
-        }
-
-        return referencesPersist;
     }
 
     //region Export
@@ -1452,11 +1251,11 @@ public class DescriptionServiceImpl implements DescriptionService {
             Map<UUID, ReferenceEntity> referenceEntityMap = references == null ? new HashMap<>() : references.stream().collect(Collectors.toMap(ReferenceEntity::getId, x-> x));
             List<ReferenceTypeEntity> referenceTypes = references == null ? new ArrayList<>() : this.queryFactory.query(ReferenceTypeQuery.class).disableTracking().ids(references.stream().map(ReferenceEntity::getTypeId).distinct().toList()).authorize(AuthorizationFlags.All).isActive(IsActive.Active).collect();
             Map<UUID, ReferenceTypeEntity> referenceTypeEntityMap = referenceTypes == null ? new HashMap<>() : referenceTypes.stream().collect(Collectors.toMap(ReferenceTypeEntity::getId, x-> x));
-            List<DescriptionReferenceImportExport> descriptionReferenceImportExports = new LinkedList<>();
+            List<ReferenceImportExport> referenceImportExports = new LinkedList<>();
             for (DescriptionReferenceEntity descriptionReferenceEntity : planReferences) {
-                descriptionReferenceImportExports.add(this.descriptionReferenceToExport(descriptionReferenceEntity, referenceEntityMap, referenceTypeEntityMap));
+                referenceImportExports.add(this.descriptionReferenceToExport(descriptionReferenceEntity, referenceEntityMap, referenceTypeEntityMap));
             }
-            xml.setReferences(descriptionReferenceImportExports);
+            xml.setReferences(referenceImportExports);
         }
         return xml;
     }
@@ -1472,8 +1271,8 @@ public class DescriptionServiceImpl implements DescriptionService {
         return xml;
     }
 
-    private DescriptionReferenceImportExport descriptionReferenceToExport(DescriptionReferenceEntity entity, Map<UUID, ReferenceEntity> referenceEntityMap, Map<UUID, ReferenceTypeEntity> referenceTypeEntityMap) {
-        DescriptionReferenceImportExport xml = new DescriptionReferenceImportExport();
+    private ReferenceImportExport descriptionReferenceToExport(DescriptionReferenceEntity entity, Map<UUID, ReferenceEntity> referenceEntityMap, Map<UUID, ReferenceTypeEntity> referenceTypeEntityMap) {
+        ReferenceImportExport xml = new ReferenceImportExport();
         if (entity == null) return xml;
         DescriptionReferenceDataEntity referenceData = this.jsonHandlingService.fromJsonSafe(DescriptionReferenceDataEntity.class, entity.getData());
         if (referenceData != null){
@@ -1487,12 +1286,13 @@ public class DescriptionServiceImpl implements DescriptionService {
             xml.setLabel(reference.getLabel());
             xml.setReference(reference.getReference());
             xml.setSource(reference.getSource());
+            xml.setSourceType(reference.getSourceType());
             ReferenceTypeEntity referenceType = referenceTypeEntityMap.getOrDefault(reference.getTypeId(), null);
             if (referenceType != null) xml.setType(this.descriptionReferenceTypeToExport(referenceType));
             if (reference.getDefinition() != null) {
                 DefinitionEntity definitionEntity = this.xmlHandlingService.fromXmlSafe(DefinitionEntity.class, reference.getDefinition());
                 if (definitionEntity != null && !this.conventionService.isListNullOrEmpty(definitionEntity.getFields())){
-                    List<DescriptionReferenceImportExport.ReferenceFieldImportExport> referenceFieldImportExports = new LinkedList<>();
+                    List<ReferenceImportExport.ReferenceFieldImportExport> referenceFieldImportExports = new LinkedList<>();
                     for (org.opencdmp.commons.types.reference.FieldEntity fieldEntity : definitionEntity.getFields()) {
                         referenceFieldImportExports.add(this.referenceFieldToExport(fieldEntity));
                     }
@@ -1504,8 +1304,8 @@ public class DescriptionServiceImpl implements DescriptionService {
         return xml;
     }
 
-    private DescriptionReferenceImportExport.ReferenceFieldImportExport referenceFieldToExport(org.opencdmp.commons.types.reference.FieldEntity entity) {
-        DescriptionReferenceImportExport.ReferenceFieldImportExport xml = new DescriptionReferenceImportExport.ReferenceFieldImportExport();
+    private ReferenceImportExport.ReferenceFieldImportExport referenceFieldToExport(org.opencdmp.commons.types.reference.FieldEntity entity) {
+        ReferenceImportExport.ReferenceFieldImportExport xml = new ReferenceImportExport.ReferenceFieldImportExport();
         if (entity == null) return xml;
         xml.setCode(entity.getCode());
         xml.setValue(entity.getValue());
@@ -1514,8 +1314,8 @@ public class DescriptionServiceImpl implements DescriptionService {
         return xml;
     }
 
-    private DescriptionReferenceTypeImportExport descriptionReferenceTypeToExport(ReferenceTypeEntity entity) {
-        DescriptionReferenceTypeImportExport xml = new DescriptionReferenceTypeImportExport();
+    private ReferenceTypeImportExport descriptionReferenceTypeToExport(ReferenceTypeEntity entity) {
+        ReferenceTypeImportExport xml = new ReferenceTypeImportExport();
         if (entity == null) return xml;
         xml.setId(entity.getId());
         xml.setCode(entity.getCode());
@@ -1536,99 +1336,12 @@ public class DescriptionServiceImpl implements DescriptionService {
 
             List<DescriptionPropertyDefinitionFieldSetImportExport> exports = new LinkedList<>();
             for (Map.Entry<String, PropertyDefinitionFieldSetEntity> fieldSetEntityEntry : entity.getFieldSets().entrySet()) {
-                exports.add(this.descriptionPropertyDefinitionFieldSetToExport(fieldSetEntityEntry.getValue(), fieldSetEntityEntry.getKey(), definition, tagEntityMap));
+                exports.add(this.fieldsService.descriptionPropertyDefinitionFieldSetToExport(fieldSetEntityEntry.getValue(), fieldSetEntityEntry.getKey(), definition.getSections(), tagEntityMap));
             }
             xml.setFieldSets(exports);
         }
 
         return xml;
-    }
-
-    private DescriptionPropertyDefinitionFieldSetImportExport descriptionPropertyDefinitionFieldSetToExport(PropertyDefinitionFieldSetEntity entity, String fieldSetId, org.opencdmp.commons.types.descriptiontemplate.DefinitionEntity definition, Map<UUID, TagEntity> tagEntityMap) {
-        DescriptionPropertyDefinitionFieldSetImportExport xml = new DescriptionPropertyDefinitionFieldSetImportExport();
-        xml.setFieldSetId(fieldSetId);
-        if (entity == null) return xml;
-
-        xml.setComment(entity.getComment());
-        if (entity.getItems() != null && !entity.getItems().isEmpty()) {
-            List<DescriptionPropertyDefinitionFieldSetItemImportExport> exports = new LinkedList<>();
-            for (PropertyDefinitionFieldSetItemEntity propertyDefinitionFieldSetItemEntity : entity.getItems()) {
-                exports.add(this.descriptionPropertyDefinitionFieldSetItemToExport(propertyDefinitionFieldSetItemEntity, definition, tagEntityMap));
-            }
-            xml.setItems(exports);
-        }
-
-        return xml;
-    }
-
-    private DescriptionPropertyDefinitionFieldSetItemImportExport descriptionPropertyDefinitionFieldSetItemToExport(PropertyDefinitionFieldSetItemEntity entity, org.opencdmp.commons.types.descriptiontemplate.DefinitionEntity definition, Map<UUID, TagEntity> tagEntityMap) {
-        DescriptionPropertyDefinitionFieldSetItemImportExport xml = new DescriptionPropertyDefinitionFieldSetItemImportExport();
-        if (entity == null) return xml;
-
-        xml.setOrdinal(entity.getOrdinal());
-        if (entity.getFields() != null && !entity.getFields().isEmpty()) {
-            List<DescriptionFieldImportExport> exports = new LinkedList<>();
-            for (Map.Entry<String, FieldEntity> fieldSetEntityEntry : entity.getFields().entrySet()) {
-                exports.add(this.descriptionFieldImportExportToExport(fieldSetEntityEntry.getValue(), fieldSetEntityEntry.getKey(), definition, tagEntityMap));
-            }
-            xml.setFields(exports);
-        }
-
-        return xml;
-    }
-
-    private DescriptionFieldImportExport descriptionFieldImportExportToExport(FieldEntity entity, String fieldId, org.opencdmp.commons.types.descriptiontemplate.DefinitionEntity definition, Map<UUID, TagEntity> tagEntityMap) {
-        DescriptionFieldImportExport xml = new DescriptionFieldImportExport();
-        xml.setFieldId(fieldId);
-        if (entity == null) return xml;
-
-        org.opencdmp.commons.types.descriptiontemplate.FieldEntity fieldEntity = definition.getFieldById(fieldId).stream().findFirst().orElse(null);
-        if (fieldEntity == null) return xml;
-
-        if (fieldEntity.getData().getFieldType().equals(FieldType.UPLOAD)){
-            if (entity.getTextValue() != null){
-                xml.setStorageFile(this.storageFileService.storageFileXmlToExport(UUID.fromString(entity.getTextValue())));
-            }
-        } else if (fieldEntity.getData().getFieldType().equals(FieldType.TAGS)){
-            List<String> descriptionTagImportExports = new LinkedList<>();
-            if (entity.getTextListValue() != null){
-                for (String value : entity.getTextListValue()) {
-                    descriptionTagImportExports.add(this.descriptionTagToExport(UUID.fromString(value), tagEntityMap));
-                }
-            } else if (entity.getTextValue() != null) descriptionTagImportExports.add(this.descriptionTagToExport(UUID.fromString(entity.getTextValue()), tagEntityMap));
-            xml.setTags(descriptionTagImportExports);
-        }
-        else{
-            xml.setDateValue(entity.getDateValue());
-            xml.setBooleanValue(entity.getBooleanValue());
-            xml.setTextValue(entity.getTextValue());
-            xml.setTextListValue(entity.getTextListValue());
-
-            if (entity.getExternalIdentifier() != null) {
-                xml.setExternalIdentifier(this.descriptionExternalIdentifierToExport(entity.getExternalIdentifier()));
-            }
-        }
-
-        return xml;
-    }
-
-    private DescriptionExternalIdentifierImportExport descriptionExternalIdentifierToExport(ExternalIdentifierEntity entity) {
-        DescriptionExternalIdentifierImportExport xml = new DescriptionExternalIdentifierImportExport();
-        if (entity == null) return xml;
-
-        xml.setIdentifier(entity.getIdentifier());
-        xml.setType(entity.getType());
-
-        return xml;
-    }
-
-    private String descriptionTagToExport(UUID tagId, Map<UUID, TagEntity> tagEntityMap) {
-        if (tagId == null) return null;
-
-        TagEntity tag = tagEntityMap.getOrDefault(tagId, null);
-
-        if (tag != null) return tag.getLabel();
-        return null;
     }
 
     //endregion
@@ -1706,10 +1419,10 @@ public class DescriptionServiceImpl implements DescriptionService {
         PropertyDefinitionPersist persist = new PropertyDefinitionPersist();
 
         Map<String, PropertyDefinitionFieldSetPersist> fieldSetsMap = new HashMap<>();
-        if (!this.conventionService.isListNullOrEmpty(descriptionXml.getDescriptionTemplate().getPages())) {
+        if (!this.conventionService.isListNullOrEmpty(descriptionXml.getDescriptionTemplate().getSections())) {
             if (descriptionXml.getProperties() != null && !this.conventionService.isListNullOrEmpty(descriptionXml.getProperties().getFieldSets())){
                 for (DescriptionPropertyDefinitionFieldSetImportExport fieldSet: descriptionXml.getProperties().getFieldSets()){
-                    fieldSetsMap.put(fieldSet.getFieldSetId(), this.xmlPropertyDefinitionFieldSetToPersist(fieldSet, descriptionXml.getReferences(), descriptionXml.getDescriptionTemplate()));
+                    fieldSetsMap.put(fieldSet.getFieldSetId(), this.fieldsService.xmlPropertyDefinitionFieldSetToPersist(fieldSet, descriptionXml.getReferences(), descriptionXml.getDescriptionTemplate().getSections()));
                 }
             }
         }
@@ -1719,155 +1432,6 @@ public class DescriptionServiceImpl implements DescriptionService {
         return persist;
     }
 
-    private PropertyDefinitionFieldSetPersist xmlPropertyDefinitionFieldSetToPersist(DescriptionPropertyDefinitionFieldSetImportExport importXml, List<DescriptionReferenceImportExport> references, DescriptionTemplateImportExport descriptionTemplate) {
-
-        if (importXml == null)
-            return null;
-
-        PropertyDefinitionFieldSetPersist persist = new PropertyDefinitionFieldSetPersist();
-        persist.setComment(importXml.getComment());
-        if (!this.conventionService.isListNullOrEmpty(importXml.getItems())){
-            List<PropertyDefinitionFieldSetItemPersist> items = new ArrayList<>();
-            for (DescriptionPropertyDefinitionFieldSetItemImportExport fieldSetItem: importXml.getItems()) {
-                items.add(this.xmlPropertyDefinitionFieldSetItemToPersist(fieldSetItem, references, descriptionTemplate));
-            }
-            persist.setItems(items);
-            return persist;
-
-        }
-        return null;
-    }
-
-    private PropertyDefinitionFieldSetItemPersist xmlPropertyDefinitionFieldSetItemToPersist(DescriptionPropertyDefinitionFieldSetItemImportExport importXml, List<DescriptionReferenceImportExport> references, DescriptionTemplateImportExport descriptionTemplate) {
-        if (importXml == null)
-            return null;
-
-        PropertyDefinitionFieldSetItemPersist persist = new PropertyDefinitionFieldSetItemPersist();
-        persist.setOrdinal(importXml.getOrdinal());
-
-        Map<String, FieldPersist> fields = new HashMap<>();
-
-        if (!this.conventionService.isListNullOrEmpty(importXml.getFields())){
-            for (DescriptionFieldImportExport field: importXml.getFields()) {
-                fields.put(field.getFieldId(), this.xmlFieldToPersist(field, importXml.getOrdinal(), references, descriptionTemplate));
-            }
-        }
-
-        persist.setFields(fields);
-
-        return persist;
-    }
-
-    private FieldPersist xmlFieldToPersist(DescriptionFieldImportExport importXml, int ordinal, List<DescriptionReferenceImportExport> references, DescriptionTemplateImportExport descriptionTemplate) {
-        if (importXml == null || descriptionTemplate == null)
-            return null;
-
-        DescriptionTemplateFieldImportExport descriptionTemplateField = descriptionTemplate.getFieldById(importXml.getFieldId()).stream().findFirst().orElse(null);
-        if (descriptionTemplateField == null){
-            return null;
-        }
-
-        FieldPersist persist = new FieldPersist();
-
-        if (!this.conventionService.isListNullOrEmpty(references) && descriptionTemplateField.getData().getFieldType().equals(FieldType.REFERENCE_TYPES)){
-            ReferenceTypeDataImportExport referenceTypeDataImportExport = (ReferenceTypeDataImportExport) descriptionTemplateField.getData();
-            if (referenceTypeDataImportExport != null){
-                ReferenceTypeEntity referenceTypeEntity = this.queryFactory.query(ReferenceTypeQuery.class).ids(referenceTypeDataImportExport.getReferenceTypeId()).first();//TODO: optimize
-                if (referenceTypeEntity == null) referenceTypeEntity = this.queryFactory.query(ReferenceTypeQuery.class).codes(referenceTypeDataImportExport.getReferenceTypeCode()).first();
-                if (referenceTypeEntity == null) throw new MyNotFoundException(this.messageSource.getMessage("General_ItemNotFound", new Object[]{referenceTypeDataImportExport.getReferenceTypeCode(), ReferenceType.class.getSimpleName()}, LocaleContextHolder.getLocale()));
-
-                List<DescriptionReferenceImportExport> referencesByField = references.stream().filter(x -> x.getOrdinal() == ordinal && x.getFieldId().equals(importXml.getFieldId())).collect(Collectors.toList());
-                if (!this.conventionService.isListNullOrEmpty(referencesByField)){
-                    if (referenceTypeDataImportExport.getMultipleSelect()){
-                        List<ReferencePersist> referencePersists = new ArrayList<>();
-                        for (DescriptionReferenceImportExport referenceImportExport: referencesByField) {
-                            referencePersists.add(this.xmlDescriptionReferenceToPersist(referenceImportExport, referenceTypeEntity));
-                        }
-                        persist.setReferences(referencePersists);
-                    }else {
-                        persist.setReference(this.xmlDescriptionReferenceToPersist(referencesByField.stream().findFirst().orElse(null), referenceTypeEntity));
-                    }
-                }
-            }
-        } else {
-            persist.setBooleanValue(importXml.getBooleanValue());
-            persist.setDateValue(importXml.getDateValue());
-            persist.setTextValue(importXml.getTextValue());
-            persist.setTextListValue(importXml.getTextListValue());
-            persist.setTags(importXml.getTags());
-
-            try {
-                UUID fileId = this.storageFileService.xmlUploadFieldToPersist(importXml.getStorageFile());
-                if(fileId != null) persist.setTextValue(fileId.toString());
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-
-            if (importXml.getExternalIdentifier() != null){
-                persist.setExternalIdentifier(this.xmlExternalIdentifierToPersist(importXml.getExternalIdentifier()));
-            }
-        }
-
-        return persist;
-    }
-
-    private ReferencePersist xmlDescriptionReferenceToPersist(DescriptionReferenceImportExport importXml, ReferenceTypeEntity referenceTypeEntity) {
-        if (importXml == null)
-            return null;
-
-        if (!referenceTypeEntity.getCode().equals(importXml.getType().getCode())) throw new MyApplicationException(this.errors.getInvalidReferenceTypeImportXml().getCode(), this.errors.getInvalidReferenceTypeImportXml().getMessage());
-
-        ReferenceEntity referenceEntity = this.queryFactory.query(ReferenceQuery.class).ids(importXml.getId()).first(); //TODO: optimize
-        if (referenceEntity == null) referenceEntity = this.queryFactory.query(ReferenceQuery.class).references(importXml.getReference()).typeIds(referenceTypeEntity.getId()).sources(importXml.getSource()).first();
-
-        ReferencePersist persist = new ReferencePersist();
-
-        persist.setTypeId(referenceTypeEntity.getId());
-        if (referenceEntity == null) {
-            persist.setLabel(importXml.getLabel());
-            persist.setReference(importXml.getReference());
-            persist.setSource("internal");
-            persist.setSourceType(ReferenceSourceType.Internal);
-
-            if (!this.conventionService.isListNullOrEmpty(importXml.getFields())) {
-                DefinitionPersist definitionPersist = new DefinitionPersist();
-                List<org.opencdmp.model.persist.referencedefinition.FieldPersist> fieldPersists = new LinkedList<>();
-                for (DescriptionReferenceImportExport.ReferenceFieldImportExport fieldImportExport : importXml.getFields()) {
-                    fieldPersists.add(this.xmlReferenceFieldToPersist(fieldImportExport));
-                }
-                definitionPersist.setFields(fieldPersists);
-                persist.setDefinition(definitionPersist);
-            }
-        } else {
-            persist.setId(referenceEntity.getId());
-        }
-
-        return persist;
-    }
-
-    private org.opencdmp.model.persist.referencedefinition.FieldPersist xmlReferenceFieldToPersist(DescriptionReferenceImportExport.ReferenceFieldImportExport importXml) {
-        if (importXml == null)
-            return null;
-
-        org.opencdmp.model.persist.referencedefinition.FieldPersist persist = new org.opencdmp.model.persist.referencedefinition.FieldPersist();
-        persist.setCode(importXml.getCode());
-        persist.setValue(importXml.getValue());
-        persist.setDataType(importXml.getDataType());
-
-        return persist;
-    }
-
-    private ExternalIdentifierPersist xmlExternalIdentifierToPersist(DescriptionExternalIdentifierImportExport importXml) {
-        if (importXml == null)
-            return null;
-
-        ExternalIdentifierPersist persist = new ExternalIdentifierPersist();
-
-        persist.setType(importXml.getType());
-        persist.setIdentifier(importXml.getIdentifier());
-
-        return persist;
-    }
 
     //endregion
 
@@ -1938,166 +1502,16 @@ public class DescriptionServiceImpl implements DescriptionService {
         PropertyDefinitionPersist persist = new PropertyDefinitionPersist();
 
         Map<String, PropertyDefinitionFieldSetPersist> fieldSetsMap = new HashMap<>();
-        if (commonModel.getDescriptionTemplate() != null && commonModel.getDescriptionTemplate().getDefinition() != null && !this.conventionService.isListNullOrEmpty(commonModel.getDescriptionTemplate().getDefinition().getPages())) {
+        if (commonModel.getDescriptionTemplate() != null && commonModel.getDescriptionTemplate().getDefinition() != null && !this.conventionService.isListNullOrEmpty(commonModel.getDescriptionTemplate().getDefinition().getSections())) {
             if (commonModel.getProperties() != null && commonModel.getProperties().getFieldSets() != null && !commonModel.getProperties().getFieldSets().isEmpty()){
                 for (String fieldSetId: commonModel.getProperties().getFieldSets().keySet()){
-                    PropertyDefinitionFieldSetPersist fieldSetPersist = this.commonModelPropertyDefinitionFieldSetToPersist(commonModel.getProperties().getFieldSets().get(fieldSetId), commonModel.getDescriptionTemplate());
+                    PropertyDefinitionFieldSetPersist fieldSetPersist = this.fieldsService.commonModelPropertyDefinitionFieldSetToPersist(commonModel.getProperties().getFieldSets().get(fieldSetId), commonModel.getDescriptionTemplate().getDefinition().getSections());
                     if (fieldSetPersist != null && !this.conventionService.isListNullOrEmpty(fieldSetPersist.getItems())) fieldSetsMap.put(fieldSetId, fieldSetPersist);
                 }
             }
         }
 
         persist.setFieldSets(fieldSetsMap);
-
-        return persist;
-    }
-
-    private PropertyDefinitionFieldSetPersist commonModelPropertyDefinitionFieldSetToPersist(PropertyDefinitionFieldSetModel commonModel, DescriptionTemplateModel descriptionTemplate) {
-
-        if (commonModel == null)
-            return null;
-
-        PropertyDefinitionFieldSetPersist persist = new PropertyDefinitionFieldSetPersist();
-        persist.setComment(commonModel.getComment());
-        if (!this.conventionService.isListNullOrEmpty(commonModel.getItems())){
-            List<PropertyDefinitionFieldSetItemPersist> items = new ArrayList<>();
-            for (PropertyDefinitionFieldSetItemModel fieldSetItem: commonModel.getItems()) {
-                PropertyDefinitionFieldSetItemPersist fieldSetItemPersist = this.commonModelPropertyDefinitionFieldSetItemToPersist(fieldSetItem, descriptionTemplate);
-                if (fieldSetItemPersist != null && !fieldSetItemPersist.getFields().isEmpty()) items.add(fieldSetItemPersist);
-            }
-            persist.setItems(items);
-            return persist;
-
-        }
-        return null;
-    }
-
-    private PropertyDefinitionFieldSetItemPersist commonModelPropertyDefinitionFieldSetItemToPersist(PropertyDefinitionFieldSetItemModel commonModel, DescriptionTemplateModel descriptionTemplate) {
-        if (commonModel == null)
-            return null;
-
-        PropertyDefinitionFieldSetItemPersist persist = new PropertyDefinitionFieldSetItemPersist();
-
-        persist.setOrdinal(commonModel.getOrdinal());
-
-        Map<String, FieldPersist> fields = new HashMap<>();
-
-        if (commonModel.getFields() != null && !commonModel.getFields().isEmpty()){
-            for (String fieldId: commonModel.getFields().keySet()) {
-                fields.put(fieldId, this.commonModelFieldToPersist(commonModel.getFields().get(fieldId), descriptionTemplate));
-            }
-        }
-
-        persist.setFields(fields);
-
-        return persist;
-    }
-
-    private FieldPersist commonModelFieldToPersist(FieldModel model, DescriptionTemplateModel descriptionTemplate) {
-        if (model == null || descriptionTemplate == null)
-            return null;
-
-        org.opencdmp.commonmodels.models.descriptiotemplate.FieldModel descriptionTemplateField = descriptionTemplate.getDefinition().getFieldById(model.getId()).stream().findFirst().orElse(null);
-        if (descriptionTemplateField == null){
-            return null;
-        }
-
-        FieldPersist persist = new FieldPersist();
-
-        if (descriptionTemplateField.getData().getFieldType().equals(org.opencdmp.commonmodels.enums.FieldType.REFERENCE_TYPES)) {
-            ReferenceTypeDataModel referenceTypeDataModel = (ReferenceTypeDataModel) descriptionTemplateField.getData();
-            if (referenceTypeDataModel != null) {
-                if (!this.conventionService.isListNullOrEmpty(model.getReferences())){
-                    ReferenceTypeEntity referenceTypeEntity = this.queryFactory.query(ReferenceTypeQuery.class).ids(referenceTypeDataModel.getReferenceType().getId()).first();//TODO: optimize
-                    if (referenceTypeEntity == null) referenceTypeEntity = this.queryFactory.query(ReferenceTypeQuery.class).codes(referenceTypeDataModel.getReferenceType().getCode()).first();
-                    if (referenceTypeEntity == null) throw new MyNotFoundException(this.messageSource.getMessage("General_ItemNotFound", new Object[]{referenceTypeDataModel.getReferenceType().getCode(), ReferenceType.class.getSimpleName()}, LocaleContextHolder.getLocale()));
-
-                    if (referenceTypeDataModel.getMultipleSelect()) {
-                        List<ReferencePersist> referencePersists = new ArrayList<>();
-                        for (ReferenceModel referenceModel : model.getReferences()) {
-                            referencePersists.add(this.commonReferenceToPersist(referenceModel, referenceTypeEntity));
-                        }
-                        persist.setReferences(referencePersists);
-                    } else {
-                        persist.setReference(this.commonReferenceToPersist(model.getReferences().stream().findFirst().orElse(null), referenceTypeEntity));
-                    }
-            }
-        }
-        } else {
-            persist.setBooleanValue(model.getBooleanValue());
-            persist.setDateValue(model.getDateValue());
-            persist.setTextValue(model.getTextValue());
-            persist.setTextListValue(model.getTextListValue());
-
-            if (model.getExternalIdentifier() != null){
-                persist.setExternalIdentifier(this.commonModelExternalIdentifierToPersist(model.getExternalIdentifier()));
-            }
-        }
-
-        return persist;
-    }
-
-    private ReferencePersist commonReferenceToPersist(ReferenceModel model, ReferenceTypeEntity referenceTypeEntity) {
-        if (model == null)
-            return null;
-
-        if (!referenceTypeEntity.getCode().equals(model.getType().getCode())) throw new MyApplicationException("Invalid reference for field " + model.getId());
-
-        ReferenceEntity referenceEntity = model.getId() != null ? this.queryFactory.query(ReferenceQuery.class).ids(model.getId()).first(): null; //TODO: optimize
-        if (referenceEntity == null && !this.conventionService.isNullOrEmpty(model.getReference())) {
-            List<ReferenceEntity> referenceEntities = this.queryFactory.query(ReferenceQuery.class).references(model.getReference()).typeIds(referenceTypeEntity.getId()).collect();
-            if (referenceEntities != null && referenceEntities.size() == 1) referenceEntity = referenceEntities.getFirst();
-        }
-
-        ReferencePersist persist = new ReferencePersist();
-
-        persist.setTypeId(referenceTypeEntity.getId());
-        if (referenceEntity == null) {
-            persist.setReference(!this.conventionService.isNullOrEmpty(model.getReference()) ? model.getReference() : UUID.randomUUID().toString());
-            persist.setLabel(!this.conventionService.isNullOrEmpty(model.getLabel()) ? model.getLabel() : persist.getReference());
-            persist.setSource("internal");
-            persist.setSourceType(ReferenceSourceType.Internal);
-
-            if (model.getDefinition() != null && !this.conventionService.isListNullOrEmpty(model.getDefinition().getFields())) {
-                DefinitionPersist definitionPersist = new DefinitionPersist();
-                List<org.opencdmp.model.persist.referencedefinition.FieldPersist> fieldPersists = new LinkedList<>();
-                for (ReferenceFieldModel fieldModel : model.getDefinition().getFields()) {
-                    fieldPersists.add(this.commonModelReferenceFieldToPersist(fieldModel));
-                }
-                definitionPersist.setFields(fieldPersists);
-                persist.setDefinition(definitionPersist);
-            }
-        } else {
-            persist.setId(referenceEntity.getId());
-        }
-        return persist;
-    }
-
-    private org.opencdmp.model.persist.referencedefinition.FieldPersist commonModelReferenceFieldToPersist(ReferenceFieldModel commonModel) {
-        if (commonModel == null)
-            return null;
-
-        org.opencdmp.model.persist.referencedefinition.FieldPersist persist = new org.opencdmp.model.persist.referencedefinition.FieldPersist();
-        persist.setCode(commonModel.getCode());
-        persist.setValue(commonModel.getValue());
-        switch (commonModel.getDataType()){
-            case Text -> persist.setDataType(ReferenceFieldDataType.Text);
-            case Date -> persist.setDataType(ReferenceFieldDataType.Date);
-            case null -> persist.setDataType(null);
-            default -> throw new MyApplicationException("unrecognized type " + commonModel.getDataType());
-        }
-
-        return persist;
-    }
-
-    private ExternalIdentifierPersist commonModelExternalIdentifierToPersist(ExternalIdentifierModel commonModel) {
-        if (commonModel == null)
-            return null;
-
-        ExternalIdentifierPersist persist = new ExternalIdentifierPersist();
-
-        persist.setType(commonModel.getType());
-        persist.setIdentifier(commonModel.getIdentifier());
 
         return persist;
     }

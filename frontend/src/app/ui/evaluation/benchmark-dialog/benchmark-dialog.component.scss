@@ -1,8 +1,78 @@
-.benchmark-select {
-	padding-bottom: 20px;
+@use '@angular/material' as mat;
+
+.dialog-title {
+	display: flex;
+	flex-direction: column;
+	gap: 0.25rem;
+
+	.dialog-subtitle {
+		font-size: var(--mat-sys-body-medium-size);
+		font-weight: 400;
+		color: var(--mat-sys-on-surface-variant);
+	}
 }
 
-.confirm-btn {
-    min-width: 101px;
-	height: 43px;
+.benchmark-select {
+	padding-top: 1rem;
+	padding-bottom: 0.5rem;
+	min-width: min(28rem, 80vw);
+}
+
+.type-toggle {
+	margin-bottom: 1.25rem;
+	@include mat.button-toggle-overrides((
+		background-color: var(--mat-sys-surface-container-high),
+		shape: 999px,
+		divider-color: transparent,
+		height: 36px,
+		selected-state-background-color: var(--mat-sys-secondary),
+		selected-state-text-color: var(--mat-sys-on-secondary),
+		label-text-size: var(--mat-sys-label-large-size)
+	));
+
+	.mat-button-toggle {
+		border-radius: 999px;
+		font-weight: 500;
+	}
+}
+
+.option-list {
+	display: flex;
+	flex-direction: column;
+	gap: 0.5rem;
+	// Cap the list so long benchmark sets scroll instead of growing the dialog;
+	// the title, toggle and actions stay visible. Padding leaves room for the
+	// scrollbar and the selected card's border/outline.
+	max-height: min(360px, 50vh);
+	overflow-y: auto;
+	padding: 2px;
+}
+
+// Each benchmark/test rendered as a selectable bordered card (the whole
+// checkbox + label is the control, so it stays keyboard accessible).
+.option-card.mat-mdc-checkbox {
+	display: block;
+	border: 1px solid var(--mat-sys-outline-variant);
+	border-radius: 10px;
+	padding: 0.125rem 0.5rem;
+	margin: 0;
+	transition: border-color 150ms ease, background-color 150ms ease;
+
+	&:hover {
+		background-color: var(--mat-sys-surface-container-low);
+	}
+
+	&.selected {
+		border-color: var(--mat-sys-primary);
+		background-color: var(--mat-sys-primary-container);
+	}
+
+	::ng-deep .mdc-form-field {
+		width: 100%;
+	}
+}
+
+.dialog-actions {
+	gap: 0.5rem;
+	padding-top: 0.5rem;
 }

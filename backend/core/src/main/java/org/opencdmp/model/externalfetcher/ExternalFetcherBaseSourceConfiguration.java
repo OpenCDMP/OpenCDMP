@@ -1,6 +1,7 @@
 package org.opencdmp.model.externalfetcher;
 
 import org.opencdmp.commons.enums.ExternalFetcherSourceType;
+import org.opencdmp.model.StorageFile;
 import org.opencdmp.model.referencetype.ReferenceType;
 
 import java.util.List;
@@ -22,6 +23,15 @@ public abstract class ExternalFetcherBaseSourceConfiguration {
 
     public final static String _referenceTypeDependencies = "referenceTypeDependencies";
     private List<ReferenceType> referenceTypeDependencies;
+
+    public final static String _storageFile = "storageFile";
+    private StorageFile storageFile;
+
+    public final static String _navigationUrl = "navigationUrl";
+    private String navigationUrl;
+
+    public final static String _tooltipMessage = "tooltipMessage";
+    private String tooltipMessage;
 
     public ExternalFetcherSourceType getType() {
         return type;
@@ -61,5 +71,29 @@ public abstract class ExternalFetcherBaseSourceConfiguration {
 
     public void setReferenceTypeDependencies(List<ReferenceType> referenceTypeDependencies) {
         this.referenceTypeDependencies = referenceTypeDependencies;
+    }
+
+    public StorageFile getStorageFile() {
+        return storageFile;
+    }
+
+    public void setStorageFile(StorageFile storageFile) {
+        this.storageFile = storageFile;
+    }
+
+    public String getNavigationUrl() {
+        return navigationUrl;
+    }
+
+    public void setNavigationUrl(String navigationUrl) {
+        this.navigationUrl = navigationUrl;
+    }
+
+    public String getTooltipMessage() {
+        return tooltipMessage;
+    }
+
+    public void setTooltipMessage(String tooltipMessage) {
+        this.tooltipMessage = tooltipMessage;
     }
 }

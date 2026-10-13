@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { ActivatedRoute, Params } from '@angular/router';
 import { BaseComponent } from '@common/base/base.component';
 import { takeUntil } from 'rxjs/operators';
@@ -6,8 +6,7 @@ import { takeUntil } from 'rxjs/operators';
 @Component({
     selector: 'app-deposit-oauth2-dialog',
     templateUrl: './deposit-oauth2-dialog.component.html',
-    styleUrls: ['./deposit-oauth2-dialog.component.scss'],
-    standalone: false
+    changeDetection: ChangeDetectionStrategy.Eager
 })
 export class DepositOauth2DialogComponent extends BaseComponent implements OnInit{
 

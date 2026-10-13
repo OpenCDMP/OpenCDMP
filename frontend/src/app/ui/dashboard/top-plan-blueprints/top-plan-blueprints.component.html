@@ -6,9 +6,15 @@
         <ol class="carousel-indicators">
           @for (blueprint of planBlueprints; track blueprint; let i = $index) {
             <li
+              role="button"
+              tabindex="0"
               [attr.data-slide-to]="i"
+              [attr.aria-label]="blueprint?.label"
+              [attr.aria-current]="i == activeItem ? 'true' : null"
               [class.active]="i == activeItem"
               (click)="activeItem = i"
+              (keydown.enter)="activeItem = i"
+              (keydown.space)="$event.preventDefault(); activeItem = i"
             ></li>
           }
         </ol>
@@ -23,7 +29,8 @@
                   }
                   <mat-accordion multi>
                     @for(section of blueprint?.definition?.sections; track $index; let sectionI=$index){
-                      @if ((section.fields && section.fields.length > 0) || section.hasTemplates) {
+                      @let sectionFields = getSectionFields(section);
+                      @if ((sectionFields.length > 0) || section.hasTemplates) {
                         <mat-expansion-panel class="section-expansion-panel unstyled"  [id]="'collapseSection-' + i + '-' + sectionI" [togglePosition]="'before'">
                           <mat-expansion-panel-header>
                             <mat-panel-title>
@@ -33,12 +40,12 @@
                             </mat-panel-title>
                           </mat-expansion-panel-header>
                           <div>
-                            @for (field of section.fields; track field; let last = $last) {
+                            @for (field of sectionFields; track field; let last = $last) {
                               <div class="field-label" [class.pb-2]="!last || section.hasTemplates">
                                 @if(!field.label){
                                   @switch(field.category){
                                     @case(planBlueprintSectionFieldCategoryEnum.System){
-                                      {{enumUtils.toPlanBlueprintSystemFieldTypeString(field.systemFieldType)}}
+                                      {{enumUtils.toSystemFieldTypeString(field.systemFieldType)}}
                                     }
                                     @case(planBlueprintSectionFieldCategoryEnum.ReferenceType){
                                       {{field.referenceType?.name}}
@@ -71,7 +78,7 @@
                           </div>
                         </mat-expansion-panel>
                       }
-                      @if ((!section.fields || section.fields.length == 0) && !section.hasTemplates) {
+                      @if ((!sectionFields || sectionFields.length == 0) && !section.hasTemplates) {
                         <div class="section-label pl-1 d-flex align-items-center  justify-content-lg-start">
                         {{section.label}}</div>
                         @if (section.description) {
@@ -96,7 +103,7 @@
       </a>-->
     </div>
     <div class="m-2 pb-2 text-center d-flex align-items-center justify-content-center ">
-      <a routerLink="/plans/new"
+      <a [routerLink]="routerUtils.generateUrl('/plans/new')"
         class=" padded-shadow-btn mdc-button mdc-button--unelevated mat-mdc-unelevated-button mat-primary mat-mdc-button-base">
       {{'PLAN-BLUEPRINT-PREVIEW.TOP-PLAN-BLUEPRINTS.VIEW-ALL' | translate}}</a>
     </div>

@@ -1,7 +1,150 @@
-.remove-border-bottom ::ng-deep .mat-tab-header {
-	border-bottom: none;
+// ---- Pill filter design (kept in sync with plan-listing / My Plans) ----
+$pill-bg: #ffffff;
+$pill-border: var(--mat-sys-outline, #d1d5db);
+$pill-radius: 12px;
+$pill-height: 40px;
+$icon-muted: var(--mat-sys-on-surface-variant, #5f6368);
+
+.filters {
+    row-gap: 0.75rem;
 }
 
+// Search field: pill-shaped, outlined
+::ng-deep .search-form .mat-mdc-text-field-wrapper {
+    background-color: $pill-bg !important;
+    border-radius: $pill-radius !important;
+    padding: 0 1rem !important;
+}
+::ng-deep .search-form .mdc-notched-outline__leading {
+    border-radius: $pill-radius 0 0 $pill-radius !important;
+    border-color: $pill-border !important;
+    width: 1.25rem !important;
+}
+::ng-deep .search-form .mdc-notched-outline__trailing {
+    border-radius: 0 $pill-radius $pill-radius 0 !important;
+    border-color: $pill-border !important;
+}
+::ng-deep .search-form .mdc-notched-outline__notch {
+    border-color: $pill-border !important;
+}
+::ng-deep .search-form .mat-mdc-form-field-flex {
+    height: $pill-height;
+    align-items: center;
+}
+::ng-deep .search-form .mat-mdc-form-field-infix {
+    padding-top: 0.5rem !important;
+    padding-bottom: 0.5rem !important;
+    min-height: auto !important;
+}
+::ng-deep .search-form .mat-mdc-form-field-icon-prefix {
+    color: $icon-muted;
+}
+::ng-deep .search-form:focus-within .mdc-notched-outline__leading,
+::ng-deep .search-form:focus-within .mdc-notched-outline__notch,
+::ng-deep .search-form:focus-within .mdc-notched-outline__trailing {
+    border-color: var(--mat-sys-primary) !important;
+}
+
+// View toggle: pill-shaped segmented control
+::ng-deep .filters mat-button-toggle-group {
+    border-radius: $pill-radius !important;
+    overflow: hidden;
+    border: 1px solid $pill-border;
+    height: $pill-height;
+    background-color: $pill-bg;
+}
+::ng-deep .filters mat-button-toggle {
+    border: none !important;
+    background: transparent;
+}
+::ng-deep .filters mat-button-toggle .mat-button-toggle-button,
+::ng-deep .filters mat-button-toggle .mat-button-toggle-label-content {
+    height: $pill-height;
+    line-height: $pill-height;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+// Sort pill: outlined rounded container holding icon + dropdown + direction button
+.sort-pill {
+    display: flex;
+    align-items: center;
+    background-color: $pill-bg;
+    border: 1px solid $pill-border;
+    border-radius: $pill-radius;
+    padding: 0 0.25rem 0 0.875rem;
+    height: $pill-height;
+    gap: 0.25rem;
+}
+.sort-pill:focus-within {
+    border-color: var(--mat-sys-primary);
+    border-width: 2px;
+}
+
+// Decorative leading icon — small + muted so it does not look interactive
+.sort-pill-icon {
+    color: $icon-muted;
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
+    line-height: 18px;
+    flex-shrink: 0;
+    opacity: 0.75;
+    margin-right: 0.5rem;
+}
+
+// Strip the inner select's outline so it blends into the pill
+::ng-deep .sort-pill .sort-form {
+    min-width: 110px;
+}
+::ng-deep .sort-pill .sort-form .mat-mdc-text-field-wrapper {
+    background-color: transparent !important;
+    padding: 0 !important;
+}
+// The mat-form-field draws its own notched outline + wrapper background with rounded corners,
+// which sits on top of the .sort-pill border and leaves a white rounded gap at the top. Hide the
+// whole outline and flatten the wrapper/flex/infix backgrounds so only the .sort-pill border shows.
+::ng-deep .sort-pill .sort-form .mdc-notched-outline {
+    display: none !important;
+}
+::ng-deep .sort-pill .sort-form .mat-mdc-text-field-wrapper,
+::ng-deep .sort-pill .sort-form .mat-mdc-form-field-flex,
+::ng-deep .sort-pill .sort-form .mat-mdc-form-field-infix {
+    background: transparent !important;
+    border: none !important;
+    border-radius: 0 !important;
+}
+::ng-deep .sort-pill .sort-form .mat-mdc-form-field-infix {
+    padding-top: 0.5rem !important;
+    padding-bottom: 0.5rem !important;
+    min-height: auto !important;
+    width: auto;
+}
+
+// Full-height vertical divider between dropdown and direction button
+.sort-divider {
+    width: 1px;
+    align-self: stretch;
+    background-color: $pill-border;
+    flex-shrink: 0;
+    margin-left: 0.5rem;
+}
+
+.sort-direction-btn {
+    width: 32px;
+    height: 32px;
+    line-height: 32px;
+    border: none;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+.ascending-icon {
+    -webkit-transform:  scale(1, -1);
+    -moz-transform:  scale(1, -1);
+    -o-transform:  scale(1, -1);
+    transform:  scale(1, -1);
+}
 input[type="text"] {
 	background: #fafafa 0% 0% no-repeat padding-box;
 	border: 1px solid #d1d1d1;
@@ -67,13 +210,13 @@ input[type="text"] {
 
 .search-form {
 	text-align: left;
-	width: 20rem;
-	min-width: 100%;
+	flex: 1;
+    min-width: 250px;
 }
 
-.search-form mat-icon {
-	color: var(--mat-sys-primary);
-}
+// .search-form mat-icon {
+// 	color: var(--mat-sys-primary);
+// }
 
 ::ng-deep .search-form .mat-form-field-wrapper {
 	background-color: white !important;
@@ -98,3 +241,89 @@ input[type="text"] {
 	opacity: 0.6;
   }
 
+.button-size-text{
+    font-size: var(--mat-sys-headline-small-size);
+    white-space: nowrap;
+}
+.status-btn{
+    padding: 0 1rem;
+    white-space: nowrap;
+    text-align: center;
+    line-height: normal;
+}
+
+::ng-deep .no-bottom-border .plan-card, ::ng-deep .no-bottom-border .description-card{
+    border-bottom: 0;
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+}
+::ng-deep .no-top-border .plan-card, ::ng-deep .no-top-border .description-card{
+    border-top-left-radius: 0;
+    border-top-right-radius: 0;
+}
+// Empty-tab guidance: quiet, centred prose that reads as help rather than as a result.
+.empty-state {
+	margin: 2.5rem auto 1rem;
+	max-width: 36rem;
+	text-align: center;
+	color: var(--mat-sys-on-surface-variant);
+	font-size: var(--mat-sys-body-large-size);
+	line-height: 1.5;
+}
+
+.filter-btn {
+    --mdc-outlined-button-container-shape: #{$pill-radius};
+    height: $pill-height;
+    border-radius: $pill-radius !important;
+    background-color: $pill-bg;
+    box-shadow: none;
+    font-weight: 500;
+    padding: 0 1rem;
+    mat-icon {
+        height: 20px;
+        width: 20px;
+        font-size: 20px;
+        color: $icon-muted;
+    }
+}
+::ng-deep .filter-btn.mat-badge-large .mat-badge-content {
+    width: 22px;
+    height: 22px;
+    line-height: 22px;
+    font-size: var(--mat-sys-body-small-size);
+    top: 8px;
+    left: calc(100% - 3px);
+}
+
+// Same size and look as the My Plans filter panel, sliding in over the right edge below the app header.
+.filters-drawer {
+    position: fixed;
+    top: 80px;
+    right: 0;
+    z-index: 1000;
+    display: flex;
+    width: min(400px, 100vw);
+    height: calc(100vh - 80px);
+    box-sizing: border-box;
+    background: var(--mat-sys-background);
+    border-left: 1px solid var(--mat-sys-outline-variant);
+    animation: filters-drawer-in 250ms ease-out;
+    > * {
+        flex: 1;
+        min-width: 0;
+    }
+}
+.filters-drawer-backdrop {
+    position: fixed;
+    inset: 80px 0 0 0;
+    z-index: 999;
+    background: #00000014;
+}
+@keyframes filters-drawer-in {
+    from { transform: translateX(100%); }
+}
+@media (prefers-reduced-motion: reduce) {
+    .filters-drawer {
+        animation: none;
+    }
+}

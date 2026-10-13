@@ -1,12 +1,15 @@
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
-import { PlanBlueprintEditorComponent } from './editor/plan-blueprint-editor.component';
 import { PlanBlueprintListingComponent } from './listing/plan-blueprint-listing.component';
 import { AppPermission } from '@app/core/common/enum/permission.enum';
 import { AuthGuard } from '@app/core/auth-guard.service';
 import { BreadcrumbService } from '@app/ui/misc/breadcrumb/breadcrumb.service';
 import { PendingChangesGuard } from '@common/forms/pending-form-changes/pending-form-changes-guard.service';
 import { PlanBlueprintEditorResolver } from './editor/plan-blueprint-editor.resolver';
+import { PlanBlueprintEditorComponent } from './editor/plan-blueprint-editor.component';
+import { Bp2VersionHistoryComponent } from '../structure-editor/version-history/version-history.component';
+import { VersionHistorySource } from '../structure-editor/version-history/version-history-source';
+import { BlueprintVersionSource } from './editor/blueprint-version-source';
 
 const routes: Routes = [
 	{
@@ -16,10 +19,11 @@ const routes: Routes = [
 	},
 	{
 		path: 'versions/:groupid',
-		component: PlanBlueprintListingComponent,
 		canActivate: [AuthGuard],
+		component: Bp2VersionHistoryComponent,
+		providers: [{ provide: VersionHistorySource, useClass: BlueprintVersionSource }],
 		data: {
-			mode: 'versions-listing'
+			...BreadcrumbService.generateRouteDataConfiguration({ skipNavigation: true })
 		}
 	},
 	{
@@ -28,14 +32,8 @@ const routes: Routes = [
 		component: PlanBlueprintEditorComponent,
 		canDeactivate: [PendingChangesGuard],
 		data: {
-			authContext: {
-				permissions: [AppPermission.EditPlanBlueprint]
-			},
-			...BreadcrumbService.generateRouteDataConfiguration({
-				title: 'BREADCRUMBS.NEW-PLAN-BLUEPRINT'
-			}),
-			getFromTitleService: true,
-			usePrefix: false
+			authContext: { permissions: [AppPermission.EditPlanBlueprint] },
+			...BreadcrumbService.generateRouteDataConfiguration({ title: 'BREADCRUMBS.NEW-PLAN-BLUEPRINT' })
 		}
 	},
 	{
@@ -43,18 +41,10 @@ const routes: Routes = [
 		canActivate: [AuthGuard],
 		component: PlanBlueprintEditorComponent,
 		canDeactivate: [PendingChangesGuard],
-		resolve: {
-			'entity': PlanBlueprintEditorResolver
-		},
+		resolve: { 'entity': PlanBlueprintEditorResolver },
 		data: {
-			...BreadcrumbService.generateRouteDataConfiguration({
-				skipNavigation: true
-			}),
-			authContext: {
-				permissions: [AppPermission.EditPlanBlueprint]
-			},
-			getFromTitleService: true,
-			usePrefix: false,
+			...BreadcrumbService.generateRouteDataConfiguration({ skipNavigation: true }),
+			authContext: { permissions: [AppPermission.EditPlanBlueprint] },
 			action: 'clone'
 		}
 	},
@@ -63,18 +53,10 @@ const routes: Routes = [
 		canActivate: [AuthGuard],
 		component: PlanBlueprintEditorComponent,
 		canDeactivate: [PendingChangesGuard],
-		resolve: {
-			'entity': PlanBlueprintEditorResolver
-		},
+		resolve: { 'entity': PlanBlueprintEditorResolver },
 		data: {
-			...BreadcrumbService.generateRouteDataConfiguration({
-				skipNavigation: true
-			}),
-			authContext: {
-				permissions: [AppPermission.EditPlanBlueprint]
-			},
-			getFromTitleService: true,
-			usePrefix: false,
+			...BreadcrumbService.generateRouteDataConfiguration({ skipNavigation: true }),
+			authContext: { permissions: [AppPermission.EditPlanBlueprint] },
 			action: 'new-version'
 		}
 	},
@@ -83,17 +65,11 @@ const routes: Routes = [
 		canActivate: [AuthGuard],
 		component: PlanBlueprintEditorComponent,
 		canDeactivate: [PendingChangesGuard],
-		resolve: {
-			'entity': PlanBlueprintEditorResolver
-		},
+		resolve: { 'entity': PlanBlueprintEditorResolver },
 		data: {
-			authContext: {
-				permissions: [AppPermission.EditPlanBlueprint]
-			},
-			getFromTitleService: true,
-			usePrefix: false
+			...BreadcrumbService.generateRouteDataConfiguration({ skipNavigation: true }),
+			authContext: { permissions: [AppPermission.EditPlanBlueprint] }
 		}
-
 	},
 	{ path: '**', loadComponent: () => import('@common/modules/page-not-found/page-not-found.component').then(m => m.PageNotFoundComponent)},
 ];

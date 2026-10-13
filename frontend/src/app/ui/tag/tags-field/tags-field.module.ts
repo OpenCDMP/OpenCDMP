@@ -6,17 +6,15 @@ import { TagsComponent } from './tags-field.component';
 import { AutoCompleteModule } from '@app/library/auto-complete/auto-complete.module';
 
 @NgModule({
-	imports: [
-		CommonUiModule,
-		CommonFormsModule,
-		FormattingModule,
-        AutoCompleteModule
-	],
-	declarations: [
-		TagsComponent
-	],
-	exports: [
-		TagsComponent
-	]
+    imports: [
+        CommonUiModule,
+        CommonFormsModule,
+        FormattingModule,
+        AutoCompleteModule,
+        TagsComponent
+    ],
+    exports: [
+        TagsComponent
+    ]
 })
 export class TagsFieldModule { }

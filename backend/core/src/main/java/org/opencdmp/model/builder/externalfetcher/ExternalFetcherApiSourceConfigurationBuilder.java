@@ -46,6 +46,7 @@ public class ExternalFetcherApiSourceConfigurationBuilder extends ExternalFetche
         FieldSet authFields = fields.extractPrefixed(this.asPrefix(ExternalFetcherApiSourceConfiguration._auth));
         FieldSet queriesFields = fields.extractPrefixed(this.asPrefix(ExternalFetcherApiSourceConfiguration._queries));
         FieldSet headerFields = fields.extractPrefixed(this.asPrefix(ExternalFetcherApiSourceConfiguration._headers));
+        FieldSet namespaceFields = fields.extractPrefixed(this.asPrefix(ExternalFetcherApiSourceConfiguration._namespaces));
         if(!this.authorizationService.authorize(Permission.EditReferenceType)) return m;
         
         if (fields.hasField(this.asIndexer(ExternalFetcherApiSourceConfiguration._url))) m.setUrl(d.getUrl());
@@ -59,6 +60,7 @@ public class ExternalFetcherApiSourceConfigurationBuilder extends ExternalFetche
         if (fields.hasField(this.asIndexer(ExternalFetcherApiSourceConfiguration._httpMethod))) m.setHttpMethod(d.getHttpMethod());
         if (fields.hasField(this.asIndexer(ExternalFetcherApiSourceConfiguration._requestBody))) m.setRequestBody(d.getRequestBody());
         if (fields.hasField(this.asIndexer(ExternalFetcherApiSourceConfiguration._filterType))) m.setFilterType(d.getFilterType());
+        if (fields.hasField(this.asIndexer(ExternalFetcherApiSourceConfiguration._responseFormat))) m.setResponseFormat(d.getResponseFormat());
         if (!authFields.isEmpty() && d.getAuth() != null) {
             m.setAuth(this.builderFactory.builder(AuthenticationConfigurationBuilder.class).authorize(this.authorize).build(authFields, d.getAuth()));
         }
@@ -67,6 +69,9 @@ public class ExternalFetcherApiSourceConfigurationBuilder extends ExternalFetche
         }
         if (!headerFields.isEmpty() && d.getQueries() != null){
             m.setHeaders(this.builderFactory.builder(ExternalFetcherApiHeaderConfigurationBuilder.class).authorize(this.authorize).build(headerFields, d.getHeaders()));
+        }
+        if (!namespaceFields.isEmpty() && d.getNamespaces() != null){
+            m.setNamespaces(this.builderFactory.builder(XmlNamespaceConfigurationBuilder.class).authorize(this.authorize).build(namespaceFields, d.getNamespaces()));
         }
 
         return m;

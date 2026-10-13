@@ -1,68 +1,171 @@
-<div class="description-card">
-  <a [routerLink]="getItemLink()" class="pointer" [attr.aria-label]="('ALT-TEXT.OPEN-DESCRIPTION-OVERVIEW-FOR' | translate) + ' ' + description?.label">
-    <div class="d-flex flex-direction-row flex-wrap">
-      <div class="col-auto description-label">{{'DESCRIPTION-LISTING.DESCRIPTION' | translate}}</div>
-      <div class="col-auto ml-auto">
-        <div class="row align-items-center">
-          @if (description.tenantId) {
-            <div  class="col-auto edited-date">{{getTenantName(description.tenantId)}}</div>
-            <div class="col-auto edited-date p-0 mb-2" style="font-weight: 700;">.</div>
-          }
-          @if (!isPublic) {
-            <div class="col-auto edited-date">{{'DESCRIPTION-LISTING.STATES.EDITED' | translate}}: {{description.updatedAt | dateTimeFormatter: 'short'}}</div>
-          }
-          @if (isPublic) {
-            <div class="col-auto edited-date">{{'DESCRIPTION-LISTING.STATES.PUBLISHED' | translate}}: {{description.plan?.finalizedAt | dateTimeFormatter: 'short'}}</div>
-          }
-        </div>
-      </div>
-    </div>
-    <div [ngClass]="{'description-title': !isDraft, 'description-title-draft': isDraft}" class="col-auto description-title" [ngStyle]="{'color': description.status?.definition?.statusColor}">
-      {{description.label}}
-    </div>
-    <div class="description-subtitle">
-      @if (isUserPlanRelated()) {
-        <span class="col-auto">{{ enumUtils.toPlanUserRolesString(planService.getCurrentUserRolesInPlan(description?.plan?.planUsers, isDeleted)) }}</span>
-      }
-      @if (isUserPlanRelated()) {
-        <span>.</span>
-      }
-      <span class="col-auto">
-        @if(description.status?.internalStatus === descriptionStatusEnum.Finalized && description.plan.accessType === planAccessTypeEnum.Public){
-          <span class="material-icons icon-align">public</span>{{'DESCRIPTION-LISTING.STATES.PUBLIC' | translate}}
-        } @else {
-          <ng-container *ngTemplateOutlet="statusTemplate; context: {status: description.status}"></ng-container>
-        }
-      </span>
-    </div>
-    @for (referenceConfig of orderedDescriptionPreferencesList;  track $index; let last = $last; let index = $index) {
-      @if (referenceService.getReferencesForTypes(description?.plan?.planReferences, !isDeleted, [referenceConfig.id])?.length > 0) {
-        <div class="description-subtitle d-flex align-items-start">
-          <span class="col-2 text-bold"> {{referenceConfig.name}}:</span>
-          <span class="col-10">
-            @for (planReference of referenceService.getReferencesForTypes(description?.plan?.planReferences, !isDeleted, [referenceConfig.id]); track $index; let last = $last; let index = $index) {
-              <span >{{planReference?.reference?.label}}@if (!last) {
-                <span>,&nbsp;</span>
-              }</span>
+<mat-card class="description-card" appearance="outlined">
+    <mat-card-content>
+        <a
+            [routerLink]="getItemLink()"
+            [attr.aria-label]="('ALT-TEXT.OPEN-DESCRIPTION-OVERVIEW-FOR' | translate) + ' ' + description?.label"
+            class="d-flex flex-column gap-half-rem"
+        >
+            <span class="mat-mdc-button-persistent-ripple mdc-button__ripple item-overlay" aria-hidden="true"></span>
+
+            <div class="d-flex flex-wrap align-items-center gap-half-rem">
+                <div class="description-label">
+                    {{description.descriptionTemplate?.type?.name ?? ('DESCRIPTION-LISTING.DESCRIPTION' | translate)}}
+                </div>
+                <div class="description-title">{{description.label}}</div>
+                @if(compactView){
+                    <span class="description-subtitle ml-auto">{{(description.updatedAt ?? description.createdAt) | dateTimeFormatter: 'mediumDate'}}</span>
+                }
+                @if(description.status){
+                    <div class="description-status"
+                        [class.description-draft]="isDraft"
+                        [class.ml-auto]="!compactView"
+                        [style.color]="description.status?.definition?.statusColor ?? ''"
+                    >
+                        <span class="status-chip-overlay" aria-hidden="true" [style.background]="description.status?.definition?.statusColor ?? ''"></span>
+                        <ng-container *ngTemplateOutlet="statusIconTemplate; context: {status: description.status}"></ng-container>
+                        <span>{{ description.status.action?.length > 0 ? description.status.action : description.status.name }}</span>
+                    </div>
+                }
+            </div>
+            @if(!compactView){
+                <!-- @if(description.description){
+                    <div class="overflow-hidden pl-2 pr-2">
+                        <div class="description-subtitle" [innerHTML]="description.description"></div>
+                    </div>
+                } -->
+                <div>
+                    @if(description.descriptionTemplate){
+                        <div class="item-row">
+                            @if(description.descriptionTemplate.label){
+                                <span class="description-subtitle">
+                                    {{'DESCRIPTION-EDITOR.BASE-INFO.FIELDS.DESCRIPTION-TEMPLATE' | translate}}: 
+                                </span>
+                                <span class="description-subtitle" style="opacity: 1">{{description.descriptionTemplate.label}}</span>
+                            }
+                            @if(description.descriptionTemplate.type?.name){
+                                <div class="pl-2 pr-2" aria-hidden="true" style="color: var(--mat-sys-primary)">&#8226;</div>
+                                <span class="description-subtitle">
+                                    {{'DESCRIPTION-TEMPLATES-TABLE-LIST.FIELDS.TYPE' | translate}}: 
+                                </span>
+                                <span class="description-subtitle" style="opacity: 1">{{description.descriptionTemplate.type.name}}</span>
+                            }
+                        </div>
+                    }
+                    @if(collaboratorCount){
+                        <div class="item-row">
+                            @if(planOwners){
+                                <span class="description-subtitle">
+                                    {{'DESCRIPTION-LISTING.OWNERS' | translate}}: 
+                                </span>
+                                <span class="description-subtitle" style="opacity: 1">{{planOwners}}</span>
+                                <div class="pl-2 pr-2" aria-hidden="true" style="color: var(--mat-sys-primary)">&#8226;</div>
+                            }
+                            @if(collaboratorCount){
+                                <span class="description-subtitle" style="opacity: 1">{{collaboratorCount}} </span>
+                                <span class="description-subtitle">
+                                    {{'PLAN-OVERVIEW.COLLABORATORS' | translate | lowercase}}
+                                </span>
+                            }
+                        </div>
+                    }
+                    @for (referenceConfig of orderedDescriptionPreferencesList;  track $index; let last = $last; let index = $index) {
+                        @if (referenceService.getReferencesForTypes($safeNavigationMigration(description?.descriptionReferences), !isDeleted, [referenceConfig.id])?.length > 0) {
+                            <div class="item-row">
+                                <span class="description-subtitle">{{referenceConfig.name}}: </span>
+                                <span class="description-subtitle" style="opacity: 1">
+                                    @for (planReference of referenceService.getReferencesForTypes($safeNavigationMigration(description?.descriptionReferences), !isDeleted, [referenceConfig.id]); track $index; let last = $last; let index = $index) {
+                                        {{planReference?.reference?.label}}{{!last ? ', ' : ''}}
+                                    }
+                                </span>
+                            </div>
+                        }
+                    }
+                    <div class="item-row">
+                        <span class="description-subtitle">
+                            {{'DESCRIPTION-LISTING.CREATED' | translate}}: 
+                        </span>
+                        <span class="description-subtitle" style="opacity: 1">{{description.createdAt | dateTimeFormatter: 'mediumDate'}}</span>
+                        @if(description.updatedAt){
+                            <div class="pl-2 pr-2" aria-hidden="true" style="color: var(--mat-sys-primary)">&#8226;</div>
+                            <span class="description-subtitle">
+                                {{'DESCRIPTION-LISTING.UPDATED' | translate}}: 
+                            </span>
+                            <span class="description-subtitle" style="opacity: 1">{{description.updatedAt | dateTimeFormatter: 'mediumDate'}}</span>
+                        }
+                    </div>
+                </div>
+                @if(description.plan?.label){
+                    <div class="item-row">
+                        <span class="description-subtitle">{{'DESCRIPTION-LISTING.USED-IN-PLAN' | translate}}:</span>
+                        <div class="plan-chip">{{description.plan.label}}</div>
+                    </div>
+                }
             }
-          </span>
-        </div>
-      }
-    }
-    <div class="d-flex flex-direction-row flex-wrap pt-3 pb-3">
-      <div class="col-auto description-subtitle pr-0">{{'DESCRIPTION-LISTING.PART-OF' | translate}}
-        <div class="col-auto plan-label ml-3">{{'DESCRIPTION-LISTING.PLAN' | translate}}</div>
-      </div>
-      <div class="col-auto plan-title">{{description.plan?.label}}</div>
-    </div>
-  </a>
-  <div class="description-card-actions">
+      
+          <!-- <div class="d-flex flex-direction-row flex-wrap">
+            <div class="col-auto description-label">{{'DESCRIPTION-LISTING.DESCRIPTION' | translate}}</div>
+            <div class="col-auto ml-auto">
+              <div class="row align-items-center">
+                @if (description.tenantId) {
+                  <div  class="col-auto edited-date">{{getTenantName(description.tenantId)}}</div>
+                  <div class="col-auto edited-date p-0 mb-2" style="font-weight: 700;">.</div>
+                }
+                @if (!isPublic) {
+                  <div class="col-auto edited-date">{{'DESCRIPTION-LISTING.STATES.EDITED' | translate}}: {{description.updatedAt | dateTimeFormatter: 'short'}}</div>
+                }
+                @if (isPublic) {
+                  <div class="col-auto edited-date">{{'DESCRIPTION-LISTING.STATES.PUBLISHED' | translate}}: {{description.plan?.finalizedAt | dateTimeFormatter: 'short'}}</div>
+                }
+              </div>
+            </div>
+          </div>
+          <div [ngClass]="{'description-title': !isDraft, 'description-title-draft': isDraft}" class="col-auto description-title" [ngStyle]="{'color': description.status?.definition?.statusColor}">
+            {{description.label}}
+          </div>
+          <div class="description-subtitle">
+            @if (isUserPlanRelated()) {
+              <span class="col-auto">{{ enumUtils.toPlanUserRolesString(planService.getCurrentUserRolesInPlan(description?.plan?.planUsers, isDeleted)) }}</span>
+            }
+            @if (isUserPlanRelated()) {
+              <span>.</span>
+            }
+            <span class="col-auto">
+              @if(description.status?.internalStatus === descriptionStatusEnum.Finalized && description.plan.accessType === planAccessTypeEnum.Public){
+                <span class="material-icons icon-align">public</span>{{'DESCRIPTION-LISTING.STATES.PUBLIC' | translate}}
+              } @else {
+                <ng-container *ngTemplateOutlet="statusTemplate; context: {status: description.status}"></ng-container>
+              }
+            </span>
+          </div>
+          @for (referenceConfig of orderedDescriptionPreferencesList;  track $index; let last = $last; let index = $index) {
+            @if (referenceService.getReferencesForTypes(description?.plan?.planReferences, !isDeleted, [referenceConfig.id])?.length > 0) {
+              <div class="description-subtitle d-flex align-items-start">
+                <span class="col-2 text-bold"> {{referenceConfig.name}}:</span>
+                <span class="col-10">
+                  @for (planReference of referenceService.getReferencesForTypes(description?.plan?.planReferences, !isDeleted, [referenceConfig.id]); track $index; let last = $last; let index = $index) {
+                    <span >{{planReference?.reference?.label}}@if (!last) {
+                      <span>,&nbsp;</span>
+                    }</span>
+                  }
+                </span>
+              </div>
+            }
+          }
+          <div class="d-flex flex-direction-row flex-wrap pt-3 pb-3">
+            <div class="col-auto description-subtitle pr-0">{{'DESCRIPTION-LISTING.PART-OF' | translate}}
+              <div class="col-auto plan-label ml-3">{{'DESCRIPTION-LISTING.PLAN' | translate}}</div>
+            </div>
+            <div class="col-auto plan-title">{{description.plan?.label}}</div>
+          </div> -->
+        </a>
+    </mat-card-content>
+  <!-- <div class="description-card-actions">
     @if (canExport && fileTransformerService.availableFormatsFor(fileTransformerEntityTypeEnum.Description)?.length > 0) {
       <div role="button"
         class="col-auto description-action pointer d-flex align-items-center gap-quarter-rem"
         [matMenuTriggerFor]="exportMenu"
         >
-        <mat-icon class="material-icons icon-align pr-2" aria-hidden>open_in_new</mat-icon>
+        <mat-icon class="material-icons icon-align pr-2" aria-hidden="true">open_in_new</mat-icon>
         {{'DESCRIPTION-LISTING.ACTIONS.EXPORT' | translate}}
       </div>
     }
@@ -71,7 +174,7 @@
         class="col-auto description-action pointer d-flex align-items-center gap-quarter-rem"
         (click)="openShareDialog()"
         >
-        <mat-icon class="material-icons icon-align pr-2" aria-hidden>group_add</mat-icon>{{'DESCRIPTION-LISTING.ACTIONS.INVITE-SHORT' | translate}}
+        <mat-icon class="material-icons icon-align pr-2" aria-hidden="true">group_add</mat-icon>{{'DESCRIPTION-LISTING.ACTIONS.INVITE-SHORT' | translate}}
       </div>
     }
     @if (canCopy) {
@@ -79,7 +182,7 @@
         class="col-auto description-action pointer d-flex align-items-center gap-quarter-rem"
         (click)="copyToPlan(description)"
         >
-        <mat-icon class="material-icons icon-align pr-2" aria-hidden>file_copy</mat-icon>{{'DESCRIPTION-LISTING.ACTIONS.COPY-DESCRIPTION' | translate}}
+        <mat-icon class="material-icons icon-align pr-2" aria-hidden="true">file_copy</mat-icon>{{'DESCRIPTION-LISTING.ACTIONS.COPY-DESCRIPTION' | translate}}
       </div>
     }
     @if (canDelete) {
@@ -87,11 +190,11 @@
         class="col-auto pointer d-flex align-items-center gap-quarter-rem"
         (click)="deleteClicked(description.id)"
         >
-        <mat-icon class="material-icons icon-align pr-2" aria-hidden>delete</mat-icon>{{ 'DESCRIPTION-LISTING.ACTIONS.DELETE' | translate }}
+        <mat-icon class="material-icons icon-align pr-2" aria-hidden="true">delete</mat-icon>{{ 'DESCRIPTION-LISTING.ACTIONS.DELETE' | translate }}
       </div>
     }
-  </div>
-  <mat-menu #actionsMenu="matMenu">
+  </div> -->
+  <!-- <mat-menu #actionsMenu="matMenu">
     @if (isAuthenticated()) {
       <button mat-menu-item (click)="copyToPlan(description)" class="menu-item">
         <mat-icon>file_copy</mat-icon>{{'DESCRIPTION-LISTING.ACTIONS.COPY-DESCRIPTION' | translate}}
@@ -99,7 +202,7 @@
     }
     @if (canDelete) {
       <button mat-menu-item (click)="deleteClicked(description.id)" class="menu-item">
-        <mat-icon aria-hidden>delete</mat-icon>{{ 'DESCRIPTION-LISTING.ACTIONS.DELETE' | translate }}
+        <mat-icon aria-hidden="true">delete</mat-icon>{{ 'DESCRIPTION-LISTING.ACTIONS.DELETE' | translate }}
       </button>
     }
   </mat-menu>
@@ -116,26 +219,25 @@
         </button>
       }
     }
-  </mat-menu>
-</div>
+  </mat-menu> -->
+</mat-card>
 
-<ng-template #statusTemplate let-status="status">
-  <div class="d-flex align-items-center gap-quarter-rem" [ngStyle]="{'color': status?.definition?.statusColor}">
-    @if(status.definition?.storageFile?.id && statusStorageFile) {
-      <img class="status-logo" [src]="statusStorageFile" aria-hidden>
-      }@else if(status.definition?.matIconName) {
-      <mat-icon >{{status.definition.matIconName}}</mat-icon>
-      }@else {
-      @switch(status.internalStatus){
-        @case(descriptionStatusEnum.Finalized){
-          <mat-icon>check</mat-icon>
-          }@case(descriptionStatusEnum.Draft){
-          <mat-icon>edit</mat-icon>
-          }@default {
-          <mat-icon>arrow_forward</mat-icon>
+<ng-template #statusIconTemplate let-status="status">
+    @if(status.definition?.iconConfiguration?.storageFile?.id && statusStorageFile) {
+      <img class="status-logo" [src]="statusStorageFile" alt="" aria-hidden="true">
+    }@else if(status.definition?.iconConfiguration?.matIconName) {
+        <mat-icon aria-hidden="true">{{status.definition.iconConfiguration.matIconName}}</mat-icon>
+    }@else {
+        @switch(status.internalStatus){
+            @case(descriptionStatusEnum.Finalized){
+                <mat-icon aria-hidden="true">check</mat-icon>
+            }
+            @case(descriptionStatusEnum.Draft){
+                <mat-icon aria-hidden="true">edit</mat-icon>
+            }
+            @default {
+                <mat-icon aria-hidden="true">arrow_forward</mat-icon>
+            }
         }
-      }
     }
-    <span>{{ status.action?.length > 0 ? status.action : status.name }}</span>
-  </div>
 </ng-template>

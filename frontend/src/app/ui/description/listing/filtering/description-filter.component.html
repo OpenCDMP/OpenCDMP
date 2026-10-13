@@ -1,135 +1,106 @@
 
-<div class="plan-criteria">
-  <div class="filters container-fluid">
-    <div class="row justify-content-center">
-      <div class="col-10">
-        <h6 class="criteria-title">{{'DESCRIPTION-LISTING.FILTERS.NAME'| translate}}</h6>
-      </div>
-    </div>
+<div class="filters w-100">
     @if (formGroup) {
-      <div class="row justify-content-center">
-        <!-- Status Filter-->
-        @if (!isPublic) {
-          <div class="col-10">
-            <h6 class="category-title">{{ 'DESCRIPTION-LISTING.FILTERS.STATUS.NAME' | translate}}</h6>
-            <mat-form-field class="w-100">
-              <mat-label>{{'DESCRIPTION-LISTING.FILTERS.STATUS.PLACEHOLDER' | translate }}</mat-label>
-              <app-single-auto-complete [formControl]="formGroup.get('statusId')" [configuration]="descriptionStatusAutocompleteConfiguration"></app-single-auto-complete>
-            </mat-form-field>
-            <hr>
-            </div>
-          }
-          <!-- End of Status Filter-->
-          <!-- IsActive Filter -->
-          <div class="col-10">
-            <mat-slide-toggle [formControl]="formGroup.get('isActive')">{{ 'DESCRIPTION-LISTING.FILTERS.IS-ACTIVE' | translate }}</mat-slide-toggle>
-            <hr>
-            </div>
-              <!-- Related Dataset Templates Filters -->
-              <div class="col-10">
-                <h6 class="category-title">{{'DESCRIPTION-LISTING.FILTERS.RELATED-DESCRIPTION-TEMPLATES.NAME' | translate}}</h6>
-                <mat-form-field class="w-100">
-                  <mat-label>{{'DESCRIPTION-LISTING.FILTERS.RELATED-DESCRIPTION-TEMPLATES.PLACEHOLDER' | translate }}</mat-label>
-                  <app-multiple-auto-complete [formControl]="formGroup.get('descriptionTemplates')" [configuration]="descriptionTemplateAutoCompleteConfiguration"></app-multiple-auto-complete>
-                </mat-form-field>
-                <hr>
+        <div class="d-flex flex-column w-100" style="justify-content: center;">
+            @if (!embedded) {
+                <!-- IsActive Filter -->
+                <div class="mb-2">
+                    <mat-slide-toggle [formControl]="formGroup.get('isActive')">{{ 'DESCRIPTION-LISTING.FILTERS.IS-ACTIVE' | translate }}</mat-slide-toggle>
                 </div>
-                <!-- End of Related Dataset Templates Filters -->
-                <!-- Related Plan Filters -->
-                <div class="col-10">
-                  <h6 class="category-title">{{'DESCRIPTION-LISTING.FILTERS.ASSOCIATED-PLANS.NAME' | translate}}</h6>
-                  <mat-form-field class="w-100">
-                    <mat-label>{{'DESCRIPTION-LISTING.FILTERS.ASSOCIATED-PLANS.PLACEHOLDER' | translate }}</mat-label>
-                    <app-multiple-auto-complete [formControl]="formGroup.get('associatedPlanIds')" [configuration]="planAutoCompleteConfiguration"></app-multiple-auto-complete>
-                  </mat-form-field>
-                  <hr>
-                  </div>
+                <!-- End of IsActive Filter -->
+            }
+            <!-- Status Filter-->
+            @if (!isPublic && !embedded) {
+                <h3 class="category-title">{{ 'DESCRIPTION-LISTING.FILTERS.STATUS.NAME' | translate}}</h3>
+                <mat-form-field class="w-100">
+                    <mat-label>{{'DESCRIPTION-LISTING.FILTERS.STATUS.PLACEHOLDER' | translate }}</mat-label>
+                    <app-single-auto-complete [formControl]="formGroup.get('statusId')" [configuration]="descriptionStatusAutocompleteConfiguration"></app-single-auto-complete>
+                </mat-form-field>
+            }
+            <!-- End of Status Filter-->
+            <!-- Type Filter -->
+            <h3 class="category-title">{{'DESCRIPTION-LISTING.FILTERS.TYPE.NAME' | translate }}</h3>
+            <mat-form-field class="w-100">
+                <mat-label>{{'DESCRIPTION-LISTING.FILTERS.TYPE.PLACEHOLDER' | translate }}</mat-label>
+                <app-multiple-auto-complete [formControl]="formGroup.get('descriptionTemplateTypes')" [configuration]="descriptionTemplateTypeAutoCompleteConfiguration"></app-multiple-auto-complete>
+            </mat-form-field>
+            <!-- Related Dataset Templates Filters -->
+            <h3 class="category-title">{{'DESCRIPTION-LISTING.FILTERS.RELATED-DESCRIPTION-TEMPLATES.NAME' | translate}}</h3>
+            <mat-form-field class="w-100">
+                <mat-label>{{'DESCRIPTION-LISTING.FILTERS.RELATED-DESCRIPTION-TEMPLATES.PLACEHOLDER' | translate }}</mat-label>
+                <app-multiple-auto-complete [formControl]="formGroup.get('descriptionTemplates')" [configuration]="descriptionTemplateAutoCompleteConfiguration"></app-multiple-auto-complete>
+            </mat-form-field>
+            <!-- End of Related Dataset Templates Filters -->
+            <!-- Related Plan Filters -->
+            <h3 class="category-title">{{'DESCRIPTION-LISTING.FILTERS.ASSOCIATED-PLANS.NAME' | translate}}</h3>
+            <mat-form-field class="w-100">
+                <mat-label>{{'DESCRIPTION-LISTING.FILTERS.ASSOCIATED-PLANS.PLACEHOLDER' | translate }}</mat-label>
+                <app-multiple-auto-complete [formControl]="formGroup.get('associatedPlanIds')" [configuration]="planAutoCompleteConfiguration"></app-multiple-auto-complete>
+            </mat-form-field>
                   <!-- End of Related Plan Filters -->
                   <!-- All Versions Filter-->
                   <!-- TODO -->
                   <!-- <div class="col-10" *ngIf="!isPublic">
-                  <h6 class="category-title">{{'DESCRIPTION-LISTING.FILTERS.ALL-VERSIONS'| translate}}</h6>
+                  <div class="category-title">{{'DESCRIPTION-LISTING.FILTERS.ALL-VERSIONS'| translate}}</div>
                   <mat-slide-toggle [formControl]="formGroup.get('showAllVersions')"></mat-slide-toggle>
-                  <hr>
                   </div> -->
                   <!-- End of All Versions Filter-->
                   <!-- Role Filter -->
-                  @if (isAuthenticated()) {
-                    <div class="col-10">
-                      <h6 class="category-title">{{'DESCRIPTION-LISTING.FILTERS.ROLE.NAME' | translate }}</h6>
-                      <mat-radio-group aria-label="{{'ALT-TEXT.SELECT-OPTION' | translate}}" [formControl]="formGroup.get('role')" class="row">
-                        <mat-radio-button [value]="null" [checked]="formGroup.get('role').value == null" class="col-12">{{ 'DESCRIPTION-LISTING.FILTERS.ROLE.TYPES.ANY' | translate }}</mat-radio-button>
-                        <mat-radio-button [value]="planRole.Owner" class="col-12">{{ 'DESCRIPTION-LISTING.FILTERS.ROLE.TYPES.OWNER' | translate }}</mat-radio-button>
-                        <mat-radio-button [value]="planRole.Viewer" class="col-12">{{ 'DESCRIPTION-LISTING.FILTERS.ROLE.TYPES.VIEWER' | translate }}</mat-radio-button>
-                        <mat-radio-button [value]="planRole.DescriptionContributor" class="col-12">{{ 'DESCRIPTION-LISTING.FILTERS.ROLE.TYPES.DESCRIPTION-CONTRIBUTOR' | translate }}</mat-radio-button>
-                        <mat-radio-button [value]="planRole.Reviewer" class="col-12">{{ 'DESCRIPTION-LISTING.FILTERS.ROLE.TYPES.REVIEWER' | translate }}</mat-radio-button>
-                        <mat-radio-button [value]="planRole.DataSteward" class="col-12">{{ 'DESCRIPTION-LISTING.FILTERS.ROLE.TYPES.DATA-STEWARD' | translate }}</mat-radio-button>
-                        <mat-radio-button [value]="planRole.DataPrivacyOfficer" class="col-12">{{ 'DESCRIPTION-LISTING.FILTERS.ROLE.TYPES.DATA-PRIVACY-OFFICER' | translate }}</mat-radio-button>
-                        <mat-radio-button [value]="planRole.EthicsReviewer" class="col-12">{{ 'DESCRIPTION-LISTING.FILTERS.ROLE.TYPES.ETHICS-REVIEWER' | translate }}</mat-radio-button>
-                      </mat-radio-group>
-                      <hr>
-                      </div>
-                    }
-                    <!-- End of Role Filter -->
-                    <!-- Tags Filter -->
-                    <div class="col-10">
-                      <h6 class="category-title">{{'DESCRIPTION-LISTING.FILTERS.TAGS.NAME' | translate }}</h6>
-                      <mat-form-field class="w-100 mb-4">
-                        <mat-label>{{'DESCRIPTION-LISTING.FILTERS.TAGS.PLACEHOLDER' | translate}}</mat-label>
-                        <app-multiple-auto-complete [formControl]="formGroup.get('tags')" [configuration]="tagAutoCompleteConfiguration">
-                        </app-multiple-auto-complete>
-                      </mat-form-field>
-                    </div>
-                    <!-- End of Tags Filter -->
-                    <!-- Reference Types -->
-                    <div class="col-10 mb-1">
-                      <h6 class="category-title">{{'DESCRIPTION-LISTING.FILTERS.REFERENCE-TYPES.NAME' | translate }}</h6>
-                      @for (referenceForm of formGroup.get('references')?.controls; track referenceForm; let i = $index) {
-                        <div class="row">
-                          <div class="col-12">
-                            @if (referenceForm.get('referenceTypeId')) {
-                              <mat-form-field class="w-100">
-                                <mat-label>{{'DESCRIPTION-LISTING.FILTERS.REFERENCE-TYPES.REFERENCE-TYPE' | translate}}</mat-label>
-                                <app-single-auto-complete [formControl]="referenceForm.get('referenceTypeId')" [configuration]="referenceTypeAutocompleteConfiguration">
-                                </app-single-auto-complete>
-                              </mat-form-field>
-                            }
-                          </div>
-                        </div>
-                        @if (referenceForm.get('referenceTypeId')?.value && selectReferenceAutocompleteConfiguration(referenceForm.get('referenceTypeId').value)) {
-                          <div class="row">
-                            <div class="col-12">
-                              <mat-form-field class="w-100 mb-2">
-                                <mat-label>{{'DESCRIPTION-LISTING.FILTERS.REFERENCE-TYPES.REFERENCE' | translate}}</mat-label>
-                                <app-multiple-auto-complete [formControl]="referenceForm.get('referenceIds')" [configuration]="selectReferenceAutocompleteConfiguration(referenceForm.get('referenceTypeId').value)">
-                                </app-multiple-auto-complete>
-                              </mat-form-field>
-                            </div>
-                          </div>
+            @if (isAuthenticated()) {
+                <h3 class="category-title">{{'DESCRIPTION-LISTING.FILTERS.ROLE.NAME' | translate }}</h3>
+                <mat-form-field class="w-100">
+                    <mat-label>{{'USER-PROFILE.SETTINGS.SELECT-ROLE' | translate}}</mat-label>
+                    <mat-select multiple [formControl]="formGroup.get('roles')">
+                        <!-- <mat-option [value]="null">
+                            {{ 'PLAN-LISTING.FILTERS.ROLE.TYPE.ANY' | translate }}
+                        </mat-option> -->
+                        @for(role of roleArray; track $index){
+                            <mat-option [value]="role">
+                                {{enumUtils.toPlanUserRoleString(role)}}
+                            </mat-option>
                         }
-                        <button mat-icon-button class="col-auto" (click)="deleteRow(i)" type="button" [attr.aria-label]="'COMMONS.ACTIONS.REMOVE' | translate">
-                          <mat-icon aria-hidden>delete</mat-icon>
-                        </button>
-                      }
-                      <div class="col-10">
-                        <div class="row align-items-center">
-                          <button mat-button color="primary" [disabled]="false" (click)="addReferenceType()">
-                            <mat-icon>add_circle</mat-icon>
-                            <span class="mt-1">{{'DESCRIPTION-LISTING.ACTIONS.ADD-REFERENCE-TYPE' | translate}}</span>
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                    <!-- End of Reference Types -->
-                    <div class="col-10 d-flex justify-content-between mb-4">
-                      <button mat-stroked-button color="primary" class="padded-shadow-btn" (click)="resetFilters()">
-                        {{'DESCRIPTION-LISTING.FILTERS.RESET-FILTERS' | translate}}
-                      </button>
-                      <button mat-flat-button color="primary" class="padded-shadow-btn" (click)="controlModified()">
-                        {{'DESCRIPTION-LISTING.FILTERS.APPLY-FILTERS' | translate}}
-                      </button>
-                    </div>
-                  </div>
-                }
-              </div>
+                    </mat-select>
+                </mat-form-field>
+                <!-- <div class="category-title">{{'DESCRIPTION-LISTING.FILTERS.ROLE.NAME' | translate }}</div>
+                <mat-radio-group aria-label="{{'ALT-TEXT.SELECT-OPTION' | translate}}" [formControl]="formGroup.get('roles')" class="row">
+                <mat-radio-button [value]="null" [checked]="formGroup.get('roles').value == null" class="col-12">{{ 'DESCRIPTION-LISTING.FILTERS.ROLE.TYPES.ANY' | translate }}</mat-radio-button>
+                <mat-radio-button [value]="planRole.Owner" class="col-12">{{ 'DESCRIPTION-LISTING.FILTERS.ROLE.TYPES.OWNER' | translate }}</mat-radio-button>
+                <mat-radio-button [value]="planRole.Viewer" class="col-12">{{ 'DESCRIPTION-LISTING.FILTERS.ROLE.TYPES.VIEWER' | translate }}</mat-radio-button>
+                <mat-radio-button [value]="planRole.DescriptionContributor" class="col-12">{{ 'DESCRIPTION-LISTING.FILTERS.ROLE.TYPES.DESCRIPTION-CONTRIBUTOR' | translate }}</mat-radio-button>
+                <mat-radio-button [value]="planRole.Reviewer" class="col-12">{{ 'DESCRIPTION-LISTING.FILTERS.ROLE.TYPES.REVIEWER' | translate }}</mat-radio-button>
+                <mat-radio-button [value]="planRole.DataSteward" class="col-12">{{ 'DESCRIPTION-LISTING.FILTERS.ROLE.TYPES.DATA-STEWARD' | translate }}</mat-radio-button>
+                <mat-radio-button [value]="planRole.DataPrivacyOfficer" class="col-12">{{ 'DESCRIPTION-LISTING.FILTERS.ROLE.TYPES.DATA-PRIVACY-OFFICER' | translate }}</mat-radio-button>
+                <mat-radio-button [value]="planRole.EthicsReviewer" class="col-12">{{ 'DESCRIPTION-LISTING.FILTERS.ROLE.TYPES.ETHICS-REVIEWER' | translate }}</mat-radio-button>
+                </mat-radio-group> -->
+            }
+            <!-- End of Role Filter -->
+            <!-- Tags Filter -->
+            <h3 class="category-title">{{'DESCRIPTION-LISTING.FILTERS.TAGS.NAME' | translate }}</h3>
+            <mat-form-field class="w-100">
+                <mat-label>{{'DESCRIPTION-LISTING.FILTERS.TAGS.PLACEHOLDER' | translate}}</mat-label>
+                <app-multiple-auto-complete [formControl]="formGroup.get('tags')" [configuration]="tagAutoCompleteConfiguration">
+                </app-multiple-auto-complete>
+            </mat-form-field>
+            <!-- End of Tags Filter -->
+            <!-- Reference Types -->
+            <h3 class="category-title">{{'DESCRIPTION-LISTING.FILTERS.REFERENCE-TYPES.NAME' | translate }}</h3>
+            <app-reference-usage-filter
+                class="mb-3"
+                [entityType]="ReferenceUsageEntityType.Description"
+                [featuredTypes]="featuredReferenceTypes"
+                [expandTypeId]="expandReferenceTypeId"
+                [selectedIds]="selectedReferenceIds"
+                (selectionChange)="onReferencesChanged($event)"
+            ></app-reference-usage-filter>
+            <!-- End of Reference Types -->
+            <div class="d-flex mb-2 gap-half-rem">
+                <button type="button" mat-stroked-button color="primary" class="padded-shadow-btn flex-1" (click)="resetFilters()" >
+                    {{'DESCRIPTION-LISTING.FILTERS.RESET-FILTERS' | translate}}
+                </button>
+                <button type="button" mat-flat-button color="primary" class="padded-shadow-btn flex-1" (click)="controlModified()">
+                    {{'DESCRIPTION-LISTING.FILTERS.APPLY-FILTERS' | translate}}
+                </button>
             </div>
+        </div>
+    }
+</div>

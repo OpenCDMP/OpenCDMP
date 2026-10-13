@@ -8,7 +8,7 @@ import { Guid } from "@common/types/guid";
 export class PlanCloneDialogEditorModel implements ClonePlanPersist {
 	id: Guid;
 	label: string;
-	description: String;
+	description: string;
 	descriptions: Guid[] = [];
 
 	public validationErrorModel: ValidationErrorModel = new ValidationErrorModel();

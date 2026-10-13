@@ -1,7 +1,7 @@
 <div class="p-3">
 	<div mat-dialog-title class="row d-flex align-items-center gap-half-rem">
 		<span class="title">{{'DASHBOARD.SELECT-PLAN' | translate}}</span>
-		<button mat-icon-button (click)="close()" class="ml-auto" [attr.aria-label]="'ALT-TEXT.CLOSE-DIALOG'  | translate"><mat-icon aria-hidden>close</mat-icon></button>
+		<button mat-icon-button (click)="close()" class="ml-auto" [attr.aria-label]="'ALT-TEXT.CLOSE-DIALOG'  | translate"><mat-icon aria-hidden="true">close</mat-icon></button>
 	</div>
     <div mat-dialog-content>
         <div class="row">
@@ -13,7 +13,7 @@
         </div>
         <div class="row mt-2">
             <div class="col-auto">
-                <span>{{'DASHBOARD.ADD-NEW-DESCRIPTION.OPTIONS-NOT-ENOUGH' | translate}}</span>&nbsp;<span class="new-plan" (click)="startNewPlan()">{{'DASHBOARD.ADD-NEW-DESCRIPTION.START-NEW-PLAN' | translate}}</span>
+                <span>{{'DASHBOARD.ADD-NEW-DESCRIPTION.OPTIONS-NOT-ENOUGH' | translate}}</span>&nbsp;<a class="new-plan" (click)="dialogRef.close()" [routerLink]="routerUtils.generateUrl(['plans/', 'new'])">{{'DASHBOARD.ADD-NEW-DESCRIPTION.START-NEW-PLAN' | translate}}</a>
             </div>
         </div>
     </div>

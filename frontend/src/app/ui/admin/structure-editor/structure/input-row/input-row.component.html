@@ -1,0 +1,140 @@
+<div class="ir" [class.ir--bad]="showErrors && fieldForm.invalid">
+	<!-- kind, preset, pills -->
+	<div class="ir-head">
+		@if (count > 1) { <span class="bp2-sub ir-index">{{'PLAN-BLUEPRINT-EDITOR.INPUT.INPUT-N' | translate: { n: index + 1 } }}</span> }
+		<mat-form-field class="ir-type" subscriptSizing="dynamic">
+			<mat-select [value]="kind" (selectionChange)="onKindChange($event.value)" [disabled]="readOnly" [placeholder]="'PLAN-BLUEPRINT-EDITOR.INPUT.TYPE' | translate" [attr.aria-label]="'PLAN-BLUEPRINT-EDITOR.INPUT.TYPE' | translate" panelClass="ir-type-panel">
+				<mat-select-trigger><span class="ir-type__trigger"><mat-icon aria-hidden="true">{{ kind === 'single' && isDropdown ? 'arrow_drop_down_circle' : kindIcon(kind) }}</mat-icon>{{ kind ? (kindLabelKey(kind) | translate) : ('PLAN-BLUEPRINT-EDITOR.INPUT.TYPE' | translate) }}</span></mat-select-trigger>
+				<mat-option value="preset" [disabled]="!presetOptions.length"><span class="ir-kind"><mat-icon aria-hidden="true">bookmark</mat-icon><span class="ir-kind__text"><span>{{'PLAN-BLUEPRINT-EDITOR.TYPES.PRESET' | translate}}</span><span class="bp2-sub">{{editor.term('PLAN-BLUEPRINT-EDITOR.TYPES.PRESET-HINT') | translate}}</span></span></span></mat-option>
+				@for (group of kindGroups; track group.key) {
+					<mat-optgroup [label]="('PLAN-BLUEPRINT-EDITOR.TYPES.GROUP-' + group.key) | translate">
+						@for (k of group.kinds; track k) {
+							<mat-option [value]="k"><span class="ir-kind"><mat-icon aria-hidden="true">{{kindIcon(k)}}</mat-icon><span class="ir-kind__text"><span>{{kindLabelKey(k) | translate}}</span><span class="bp2-sub">{{kindHintKey(k) | translate}}</span></span></span></mat-option>
+						}
+					</mat-optgroup>
+				}
+			</mat-select>
+		</mat-form-field>
+		@if (isPreset) {
+			<mat-form-field class="ir-preset" subscriptSizing="dynamic">
+				<mat-select [value]="preset" (selectionChange)="onPresetChange($event.value)" [disabled]="readOnly" [placeholder]="'PLAN-BLUEPRINT-EDITOR.INPUT.PRESET-PICK' | translate" [attr.aria-label]="'PLAN-BLUEPRINT-EDITOR.INPUT.PRESET-PICK' | translate">
+					@for (p of presetOptions; track p) { <mat-option [value]="p">{{presetName(p)}}</mat-option> }
+				</mat-select>
+			</mat-form-field>
+		}
+		<span class="ir-spacer"></span>
+		<div class="ir-pills" role="group" [attr.aria-label]="'PLAN-BLUEPRINT-EDITOR.INPUT.VALIDATIONS' | translate">
+			@if (forcedRequired) {
+				<span class="bp2-pill bp2-pill--lock" [matTooltip]="'PLAN-BLUEPRINT-EDITOR.INPUT.PRESET-ALWAYS-REQUIRED' | translate"><mat-icon aria-hidden="true">lock</mat-icon>{{'PLAN-BLUEPRINT-EDITOR.INPUT.REQUIRED' | translate}}</span>
+			} @else {
+				<button type="button" class="bp2-pill" [class.bp2-pill--on]="isRequired" (click)="togglePill(FieldValidationType.Required)" [disabled]="readOnly" [attr.aria-pressed]="isRequired">@if (isRequired) { <mat-icon aria-hidden="true">check</mat-icon> }{{'PLAN-BLUEPRINT-EDITOR.INPUT.REQUIRED' | translate}}</button>
+			}
+			@if (canUrlEmail) {
+				<button type="button" class="bp2-pill" [class.bp2-pill--on]="isUrl" (click)="togglePill(FieldValidationType.Url)" [disabled]="readOnly" [attr.aria-pressed]="isUrl" [matTooltip]="'PLAN-BLUEPRINT-EDITOR.INPUT.URL-HINT' | translate">@if (isUrl) { <mat-icon aria-hidden="true">check</mat-icon> }URL</button>
+				<button type="button" class="bp2-pill" [class.bp2-pill--on]="isEmail" (click)="togglePill(FieldValidationType.Email)" [disabled]="readOnly" [attr.aria-pressed]="isEmail" [matTooltip]="'PLAN-BLUEPRINT-EDITOR.INPUT.EMAIL-HINT' | translate">@if (isEmail) { <mat-icon aria-hidden="true">check</mat-icon> }Email</button>
+			}
+		</div>
+		@if (!readOnly && count > 1) {
+			<button mat-icon-button type="button" class="bp2-icon-btn-sm" (click)="move.emit(-1)" [disabled]="index === 0" [attr.aria-label]="'PLAN-BLUEPRINT-EDITOR.MOVE-UP' | translate"><mat-icon aria-hidden="true">arrow_upward</mat-icon></button>
+			<button mat-icon-button type="button" class="bp2-icon-btn-sm" (click)="move.emit(1)" [disabled]="index === count - 1" [attr.aria-label]="'PLAN-BLUEPRINT-EDITOR.MOVE-DOWN' | translate"><mat-icon aria-hidden="true">arrow_downward</mat-icon></button>
+			<button mat-icon-button type="button" class="bp2-icon-btn-sm" (click)="remove.emit()" [attr.aria-label]="'PLAN-BLUEPRINT-EDITOR.INPUT.DELETE' | translate" [matTooltip]="'PLAN-BLUEPRINT-EDITOR.INPUT.DELETE' | translate"><mat-icon aria-hidden="true">delete</mat-icon></button>
+		}
+	</div>
+
+	@if (showErrors && data?.get('fieldType')?.invalid) { <div class="bp2-strip bp2-strip--bad"><mat-icon aria-hidden="true">error</mat-icon><span>{{'PLAN-BLUEPRINT-EDITOR.PROBLEMS.INPUT-NO-TYPE' | translate}}</span></div> }
+	@if (showErrors && isPreset && data?.get('systemFieldType')?.invalid) { <div class="bp2-strip bp2-strip--bad"><mat-icon aria-hidden="true">error</mat-icon><span>{{'PLAN-BLUEPRINT-EDITOR.PROBLEMS.INPUT-NO-PRESET' | translate}}</span></div> }
+
+	<!-- only the settings this kind needs -->
+	@if (kind && !isPreset) {
+		<div class="ir-settings">
+			@switch (kind) {
+				@case ('single') { <app-bp2-options-editor [fieldForm]="fieldForm" [rootPath]="rootPath" [single]="true" [scope]="scope" [showKeys]="editor.answerKeysShown(entry)" (dropdownChange)="setDropdown($event)" /> }
+				@case ('multiple') { <app-bp2-options-editor [fieldForm]="fieldForm" [rootPath]="rootPath" [single]="false" [scope]="scope" [showKeys]="editor.answerKeysShown(entry)" /> }
+				@case ('reference') {
+					<mat-form-field class="ir-grow" subscriptSizing="dynamic">
+						<mat-label>{{'PLAN-BLUEPRINT-EDITOR.INPUT.REFERENCE-TYPE' | translate}}</mat-label>
+						<app-single-auto-complete [required]="true" [formControl]="data.get('referenceTypeId')" [configuration]="referenceTypeService.singleAutocompleteConfiguration" [placeholder]="'PLAN-BLUEPRINT-EDITOR.INPUT.REFERENCE-TYPE' | translate"></app-single-auto-complete>
+						<mat-hint>{{'PLAN-BLUEPRINT-EDITOR.INPUT.REFERENCE-TYPE-HINT' | translate}}</mat-hint>
+						@if (data.get('referenceTypeId').hasError('required')) { <mat-error>{{'PLAN-BLUEPRINT-EDITOR.PROBLEMS.INPUT-NO-REFERENCE-TYPE' | translate}}</mat-error> }
+						@if (data.get('referenceTypeId').hasError('backendError')) { <mat-error>{{data.get('referenceTypeId').getError('backendError').message}}</mat-error> }
+					</mat-form-field>
+					<mat-slide-toggle [checked]="multiple" (change)="setMultiple($event.checked)" [disabled]="readOnly">{{'PLAN-BLUEPRINT-EDITOR.INPUT.PICK-MORE' | translate}}</mat-slide-toggle>
+				}
+				@case ('internal') {
+					<div class="ir-inline">
+						<span class="bp2-field-label" style="margin: 0;">{{'PLAN-BLUEPRINT-EDITOR.INPUT.LINK-TO' | translate}}</span>
+						<mat-button-toggle-group [value]="linksAssets" (change)="setLinkTo($event.value)" [disabled]="readOnly" [attr.aria-label]="'PLAN-BLUEPRINT-EDITOR.INPUT.LINK-TO' | translate" class="ir-toggle">
+							<mat-button-toggle [value]="false">{{'PLAN-BLUEPRINT-EDITOR.INPUT.LINK-PLANS' | translate}}</mat-button-toggle>
+							<mat-button-toggle [value]="true">{{'PLAN-BLUEPRINT-EDITOR.INPUT.LINK-ASSETS' | translate}}</mat-button-toggle>
+						</mat-button-toggle-group>
+					</div>
+					<mat-slide-toggle [checked]="multiple" (change)="setMultiple($event.checked)" [disabled]="readOnly">{{'PLAN-BLUEPRINT-EDITOR.INPUT.LINK-MORE' | translate}}</mat-slide-toggle>
+				}
+				@case ('identifier') {
+					<mat-slide-toggle [checked]="validatesIdentifier" (change)="setValidateIdentifier($event.checked)" [disabled]="readOnly">{{'PLAN-BLUEPRINT-EDITOR.INPUT.VALIDATE-ID' | translate}}</mat-slide-toggle>
+					<div class="bp2-help" style="margin-top: 0;">{{'PLAN-BLUEPRINT-EDITOR.INPUT.VALIDATE-ID-HINT' | translate}}</div>
+				}
+				@case ('upload') { <app-bp2-upload-settings [fieldForm]="fieldForm" [rootPath]="rootPath" /> }
+			}
+			@if (!(kind === 'single' && !isDropdown)) {
+				<mat-form-field class="ir-grow" subscriptSizing="dynamic">
+					<mat-label>{{labelKey | translate}} ({{'PLAN-BLUEPRINT-EDITOR.OPTIONAL' | translate}})</mat-label>
+					<input matInput type="text" [formControl]="data.get('label')">
+					@if (data.get('label').hasError('backendError')) { <mat-error>{{data.get('label').getError('backendError').message}}</mat-error> }
+				</mat-form-field>
+			}
+		</div>
+	}
+
+	<!-- chips: mapping, download, default, conditions -->
+	@if (kind) {
+		<div class="ir-chips" role="group" [attr.aria-label]="'PLAN-BLUEPRINT-EDITOR.INPUT.SETTINGS' | translate">
+			<button type="button" class="ir-chip" [class.ir-chip--set]="semantics.length" [class.ir-chip--warn]="problems.length" [class.ir-chip--open]="showSemantics" (click)="showSemantics = !showSemantics" [attr.aria-expanded]="showSemantics">
+				<mat-icon aria-hidden="true">{{ problems.length ? 'warning' : 'sell' }}</mat-icon>
+				@if (semantics.length) { <span class="ir-chip__keys">@for (s of semantics; track $index) { <span class="ir-key" [attr.title]="shown(s) !== s ? s : null">@if (shown(s) !== s) { <span>{{shown(s)}}</span> } @else { <span><b>{{prefix(s)}}</b>@if (rest(s)) {.{{rest(s)}}}</span> }</span> }</span> }
+				@else { {{'PLAN-BLUEPRINT-EDITOR.INPUT.ADD-SEMANTICS' | translate}} }
+			</button>
+			<button type="button" class="ir-chip" [class.ir-chip--set]="includeInExport" (click)="toggleExport()" [disabled]="readOnly" [attr.aria-pressed]="includeInExport" [matTooltip]="editor.term('PLAN-BLUEPRINT-EDITOR.INPUT.DOWNLOAD-HINT') | translate">
+				<mat-icon aria-hidden="true">{{ includeInExport ? 'download' : 'file_download_off' }}</mat-icon>{{ (includeInExport ? 'PLAN-BLUEPRINT-EDITOR.INPUT.IN-DOWNLOADS' : 'PLAN-BLUEPRINT-EDITOR.INPUT.NOT-IN-DOWNLOADS') | translate }}
+			</button>
+			@if (canDefault && !isPreset) {
+				<button type="button" class="ir-chip" [class.ir-chip--set]="defaultText" [class.ir-chip--open]="showDefault" (click)="showDefault = !showDefault" [attr.aria-expanded]="showDefault"><mat-icon aria-hidden="true">flag</mat-icon>{{ defaultText ? ('PLAN-BLUEPRINT-EDITOR.INPUT.DEFAULT-IS' | translate: { value: defaultText }) : ('PLAN-BLUEPRINT-EDITOR.INPUT.DEFAULT' | translate) }}</button>
+			}
+			@if (canRules && !isPreset) {
+				<button type="button" class="ir-chip" [class.ir-chip--set]="ruleCount" [class.ir-chip--open]="showRules" (click)="openRules()" [attr.aria-expanded]="showRules"><mat-icon aria-hidden="true">alt_route</mat-icon>{{ rulesChipText || ('PLAN-BLUEPRINT-EDITOR.INPUT.RULES' | translate) }}</button>
+			}
+		</div>
+	}
+
+	@if (checks.length) {
+		<ul class="ir-checks">
+			@for (c of checks; track $index) { <li [class.ir-checks__notice]="c.notice"><mat-icon aria-hidden="true">{{ c.notice ? 'info' : 'warning' }}</mat-icon><span>{{ ('PLAN-BLUEPRINT-EDITOR.CHECKS.' + c.message) | translate: c.params }}</span></li> }
+		</ul>
+	}
+
+	@if (showSemantics) {
+		<div class="ir-panel">
+			<div class="ir-panel__title">{{'PLAN-BLUEPRINT-EDITOR.SEMANTICS.TITLE-FOR' | translate: { name: inputLabel || ('PLAN-BLUEPRINT-EDITOR.UNTITLED-QUESTION' | translate) } }}</div>
+			<div class="bp2-help" style="margin: 0 0 .5rem;">{{'PLAN-BLUEPRINT-EDITOR.SEMANTICS.HINT' | translate}}</div>
+			<app-bp2-semantics-picker [control]="fieldForm.get('semantics')" [inputLabel]="inputLabel" [scope]="scope" />
+			@if (scope.length) { <div class="bp2-help ir-scope">{{'PLAN-BLUEPRINT-EDITOR.SEMANTICS.SHORTENED' | translate: { object: scope[0] } }}</div> }
+			@if (fieldForm.get('semantics').hasError('backendError')) { <mat-error class="bp2-sub">{{fieldForm.get('semantics').getError('backendError').message}}</mat-error> }
+		</div>
+	}
+
+	@if (showDefault && canDefault && !isPreset) {
+		<div class="ir-panel">
+			<div class="ir-panel__title">{{'PLAN-BLUEPRINT-EDITOR.INPUT.DEFAULT-TITLE' | translate}}</div>
+			<app-description-template-editor-default-value-component [fieldType]="type" [form]="$safeNavigationMigration(fieldForm.get('defaultValue')?.get(defaultControlName))" [formArrayOptions]="$safeNavigationMigration(data?.get('options'))" [placeHolder]="'PLAN-BLUEPRINT-EDITOR.INPUT.DEFAULT-TITLE' | translate" required="false"></app-description-template-editor-default-value-component>
+			<div class="bp2-help">{{'PLAN-BLUEPRINT-EDITOR.INPUT.DEFAULT-HINT' | translate}}</div>
+		</div>
+	}
+
+	@if (showRules && canRules && !isPreset) {
+		<div class="ir-panel">
+			<div class="ir-panel__title">{{'PLAN-BLUEPRINT-EDITOR.RULES.TITLE' | translate}}</div>
+			<div class="bp2-help" style="margin: 0 0 .5rem;">{{'PLAN-BLUEPRINT-EDITOR.RULES.HINT' | translate}}</div>
+			<app-bp2-rules-editor [fieldForm]="fieldForm" [entry]="entry" [rootPath]="rootPath" />
+		</div>
+	}
+</div>

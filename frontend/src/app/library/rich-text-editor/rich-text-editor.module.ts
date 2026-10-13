@@ -5,16 +5,14 @@ import {AngularEditorModule} from "@kolkov/angular-editor";
 import {RichTextEditorComponent} from "@app/library/rich-text-editor/rich-text-editor.component";
 
 @NgModule({
-	imports: [
-		CommonUiModule,
-		CommonFormsModule,
-		AngularEditorModule
-	],
-	declarations: [
-		RichTextEditorComponent
-	],
-	exports: [
-		RichTextEditorComponent
-	]
+    imports: [
+        CommonUiModule,
+        CommonFormsModule,
+        AngularEditorModule,
+        RichTextEditorComponent
+    ],
+    exports: [
+        RichTextEditorComponent
+    ]
 })
 export class RichTextEditorModule { }

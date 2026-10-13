@@ -1,0 +1,66 @@
+@if (!outline()) {
+	<div class="empty-hint">{{'REPORTS.QUESTIONS.PICK-SOURCE-FIRST' | translate}}</div>
+} @else if (sections().length === 0) {
+	<div class="empty-hint">{{'REPORTS.QUESTIONS.NO-QUESTIONS' | translate}}</div>
+} @else {
+	<div class="picker">
+		<ng-container *ngTemplateOutlet="sectionList; context: { $implicit: sections(), depth: 0 }"></ng-container>
+	</div>
+}
+
+<ng-template #sectionList let-list let-depth="depth">
+	@for (section of list; track section.id) {
+		<div class="section" [style.margin-left.px]="depth * 12">
+			<button type="button" class="section-header" (click)="toggleSection(section.id)"
+				[attr.aria-expanded]="!isCollapsed(section.id)">
+				<mat-icon>{{isCollapsed(section.id) ? 'chevron_right' : 'expand_more'}}</mat-icon>
+				<span class="numbering">{{section.numbering}}</span>
+				<span class="title">{{section.title}}</span>
+			</button>
+
+			@if (!isCollapsed(section.id)) {
+				@for (fieldSet of section.fieldSets; track fieldSet.id) {
+					<div class="field-set">
+						<div class="field-set-row">
+							<mat-checkbox
+								[checked]="isFieldSetFullySelected(fieldSet)"
+								[indeterminate]="isFieldSetPartiallySelected(fieldSet)"
+								(change)="toggleFieldSet(fieldSet, $event.checked)">
+								<span class="numbering">{{fieldSet.numbering}}</span>
+								<span class="title">{{fieldSet.title}}</span>
+								@if (fieldSet.hasMultiplicity) {
+									<mat-icon class="hint-icon" [matTooltip]="'REPORTS.QUESTIONS.MULTIPLE-ENTRIES' | translate">repeat</mat-icon>
+								}
+							</mat-checkbox>
+							@if (fieldSet.fields.length > 1) {
+								<button type="button" class="fields-toggle" (click)="toggleFields(fieldSet.id)" [attr.aria-expanded]="fieldsShown(fieldSet.id)">
+									{{'REPORTS.QUESTIONS.FIELDS' | translate: { count: fieldSet.fields.length } }}
+								</button>
+							}
+						</div>
+
+						@if (fieldsShown(fieldSet.id)) {
+							<div class="fields">
+								@for (field of fieldSet.fields; track field.id) {
+									<mat-checkbox
+										[checked]="isSelected(fieldSet.id, field.id)"
+										(change)="toggleField(fieldSet, field.id, $event.checked)">
+										<span class="field-label">{{field.label || ('REPORTS.ADVANCED.UNNAMED-FIELD' | translate)}}</span>
+										<span class="field-type">{{typeWord(field) | translate}}</span>
+										@if (isExcludedControl(fieldSet, field)) {
+											<span class="control-chip" [matTooltip]="'REPORTS.QUESTIONS.CONTROL-FIELD-HINT' | translate">
+												{{'REPORTS.QUESTIONS.CONTROL-FIELD' | translate}}
+											</span>
+										}
+									</mat-checkbox>
+								}
+							</div>
+						}
+					</div>
+				}
+
+				<ng-container *ngTemplateOutlet="sectionList; context: { $implicit: section.sections, depth: depth + 1 }"></ng-container>
+			}
+		</div>
+	}
+</ng-template>

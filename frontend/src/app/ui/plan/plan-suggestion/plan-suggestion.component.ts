@@ -1,4 +1,4 @@
-import {Component, computed, OnInit, signal, ViewChild} from "@angular/core";
+import {Component, computed, OnInit, ViewChild, ChangeDetectionStrategy} from "@angular/core";
 import {PlanBlueprintService} from "@app/core/services/plan/plan-blueprint.service";
 import {map, takeUntil} from "rxjs/operators";
 import {BaseComponent} from "@common/base/base.component";
@@ -7,15 +7,16 @@ import {HttpErrorHandlingService} from "@common/modules/errors/error-handling/ht
 import { EnumUtils } from "@app/core/services/utilities/enum-utils.service";
 import { ActivatedRoute, Router } from "@angular/router";
 import { PlanUpdateRequestService } from "@app/core/services/plan/plan-update-request.service";
-import { PlanSuggestion, PlanUpdateRequest } from "@app/core/model/plan-update-request/plan-update-request";
-import { HttpError, SnackBarNotificationLevel, UiNotificationService } from "@citesa/kpi-client/services";
+import { PlanSuggestion, PlanUpdateRequest, PlanUpdateRequestApply } from "@app/core/model/plan-update-request/plan-update-request";
+import { PlanUpdateRequestApplyDecision } from "@app/core/common/enum/plan-update-request-apply-decision.enum";
+import { SnackBarNotificationLevel, UiNotificationService } from "@app/core/services/notification/ui-notification-service";
 import { HttpErrorResponse } from "@angular/common/http";
 import { RouterUtilsService } from "@app/core/services/router/router-utils.service";
 import { PlanSuggestionModel } from "./plan-suggestion.model";
-import { UntypedFormArray, UntypedFormGroup } from "@angular/forms";
+import { UntypedFormArray, UntypedFormGroup, FormsModule, ReactiveFormsModule } from "@angular/forms";
 import { DescriptionTemplatePreviewDialogComponent } from "@app/ui/admin/description-template/description-template-preview/description-template-preview-dialog.component";
 import { MatDialog } from "@angular/material/dialog";
-import { PlanBlueprint, PlanBlueprintDefinitionSection } from "@app/core/model/plan-blueprint/plan-blueprint";
+import { PlanBlueprint, RootSection } from "@app/core/model/plan-blueprint/plan-blueprint";
 import { DescriptionTemplate } from "@app/core/model/description-template/description-template";
 import { SingleAutoCompleteConfiguration } from "@app/library/auto-complete/single/single-auto-complete-configuration";
 import { DescriptionTemplateVersionStatus } from "@app/core/common/enum/description-template-version-status";
@@ -24,15 +25,20 @@ import { FormService } from "@common/forms/form-service";
 import { EnqueueService } from "@app/core/services/enqueue.service";
 import { PlanDescriptionEditorComponent } from "../plan-editor-blueprint/plan-description-editor/plan-description-editor.component";
 import { PlanTableOfContentsComponent } from "../plan-editor-blueprint/plan-table-of-contents/plan-table-of-contents.component";
-import { PlanService } from "@app/core/services/plan/plan.service";
-import { TranslateService } from "@ngx-translate/core";
+import { TranslateService, TranslatePipe } from "@ngx-translate/core";
+import { MatCard, MatCardContent, MatCardActions } from "@angular/material/card";
+import { MatFormField, MatLabel, MatError } from "@angular/material/form-field";
+import { SingleAutoCompleteComponent } from "../../../library/auto-complete/single/single-auto-complete.component";
+import { MatIcon } from "@angular/material/icon";
+import { MatSelect, MatOption } from "@angular/material/select";
+import { MatButton } from "@angular/material/button";
 
 @Component({
-	selector: 'app-plan-suggestion-component',
-	templateUrl: './plan-suggestion.component.html',
-	styleUrls: ['./plan-suggestion.component.scss'],
-	standalone: false
-
+    selector: 'app-plan-suggestion-component',
+    templateUrl: './plan-suggestion.component.html',
+    styleUrls: ['./plan-suggestion.component.scss'],
+    changeDetection: ChangeDetectionStrategy.Eager,
+    imports: [MatCard, MatCardContent, FormsModule, ReactiveFormsModule, MatFormField, MatLabel, SingleAutoCompleteComponent, MatIcon, MatError, MatSelect, MatOption, MatCardActions, MatButton, TranslatePipe]
 })
 
 export class PlanSuggestionComponent extends BaseComponent implements OnInit{
@@ -42,7 +48,7 @@ export class PlanSuggestionComponent extends BaseComponent implements OnInit{
 
 	planBlueprints: any[] = [];
 	formGroup: UntypedFormGroup;
-	selectedBlueprintSections: PlanBlueprintDefinitionSection[];
+	selectedBlueprintSections: RootSection[];
 
 	descriptionTemplateSingleAutocompleteConfiguration: SingleAutoCompleteConfiguration = {
 		initialItems: (data?: any) => this.descriptionTemplateService.query(this.descriptionTemplateService.buildAutocompleteLookup(null, null, null, [DescriptionTemplateVersionStatus.Current], [DescriptionTemplateStatus.Finalized])).pipe(map(x => x.items)),
@@ -61,7 +67,6 @@ export class PlanSuggestionComponent extends BaseComponent implements OnInit{
 		private dialog: MatDialog,
 		private router: Router,
 		private routerUtils: RouterUtilsService,
-		private planService: PlanService,
         private planUpdateRequestService: PlanUpdateRequestService,
 		private route: ActivatedRoute,
 		private uiNotificationService: UiNotificationService,
@@ -106,7 +111,6 @@ export class PlanSuggestionComponent extends BaseComponent implements OnInit{
 		const dialogRef = this.dialog.open(DescriptionTemplatePreviewDialogComponent, {
 			width: '590px',
 			minHeight: '200px',
-			restoreFocus: false,
 			data: {
 				descriptionTemplateId: event.id
 			},
@@ -124,10 +128,15 @@ export class PlanSuggestionComponent extends BaseComponent implements OnInit{
 		this.formService.touchAllFormFields(this.formGroup);
 		if (this.formGroup.valid){
 			const planSuggestion = this.formService.getValue(this.formGroup.value) as PlanSuggestion;
-			this.planService.createPlanFromRequest(planSuggestion)
+			const apply: PlanUpdateRequestApply = {
+				planUpdateRequestId: planSuggestion.planUpdateRequestId,
+				decision: PlanUpdateRequestApplyDecision.Accept,
+				suggestion: planSuggestion,
+			};
+			this.planUpdateRequestService.applyCreate(apply)
 				.subscribe(result => {
 					this.uiNotificationService.snackBarNotification(this.language.instant('PLAN-UPLOAD.UPLOAD-SUCCESS'), SnackBarNotificationLevel.Success);
-					
+
                     this.router.navigateByUrl('/reload', { skipLocationChange: true }).then(() => {
                         setTimeout(() => this.router.navigate([this.routerUtils.generateUrl('/plans')]));
                     });

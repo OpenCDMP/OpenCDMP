@@ -35,6 +35,9 @@ public class FieldSet {
 	public final static String _fields = "fields";
 	private List<Field> fields;
 
+	public final static String _semantics = "semantics";
+	private List<String> semantics;
+
 	public String getId() {
 		return this.id;
 	}
@@ -113,6 +116,14 @@ public class FieldSet {
 
 	public void setFields(List<Field> fields) {
 		this.fields = fields;
+	}
+
+	public List<String> getSemantics() {
+		return this.semantics;
+	}
+
+	public void setSemantics(List<String> semantics) {
+		this.semantics = semantics;
 	}
 
 }

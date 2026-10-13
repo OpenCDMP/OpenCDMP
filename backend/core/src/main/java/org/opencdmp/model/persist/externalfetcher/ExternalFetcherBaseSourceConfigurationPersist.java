@@ -16,6 +16,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
+import java.util.regex.Pattern;
 
 @JsonTypeInfo(
         use = JsonTypeInfo.Id.NAME,
@@ -47,6 +48,15 @@ public abstract class ExternalFetcherBaseSourceConfigurationPersist implements S
     private List<UUID> referenceTypeDependencyIds;
 
     public static final String _referenceTypeDependencyIds = "referenceTypeDependencyIds";
+
+    public final static String _storageFileId = "storageFileId";
+    private UUID storageFileId;
+
+    public final static String _navigationUrl = "navigationUrl";
+    private String navigationUrl;
+
+    public final static String _tooltipMessage = "tooltipMessage";
+    private String tooltipMessage;
 
     public String getKey() {
         return key;
@@ -88,11 +98,39 @@ public abstract class ExternalFetcherBaseSourceConfigurationPersist implements S
         this.referenceTypeDependencyIds = referenceTypeDependencyIds;
     }
 
+    public UUID getStorageFileId() {
+        return storageFileId;
+    }
+
+    public void setStorageFileId(UUID storageFileId) {
+        this.storageFileId = storageFileId;
+    }
+
+    public String getNavigationUrl() {
+        return navigationUrl;
+    }
+
+    public void setNavigationUrl(String navigationUrl) {
+        this.navigationUrl = navigationUrl;
+    }
+
+    public String getTooltipMessage() {
+        return tooltipMessage;
+    }
+
+    public void setTooltipMessage(String tooltipMessage) {
+        this.tooltipMessage = tooltipMessage;
+    }
+
     public static abstract class ExternalFetcherBaseSourceConfigurationPersistValidator<T extends ExternalFetcherBaseSourceConfigurationPersist> extends BaseValidator<T> {
 
         protected final MessageSource messageSource;
 
         protected final ValidatorFactory validatorFactory;
+
+        private static final Pattern URL_WITH_MAPPINGS_PATTERN = Pattern.compile(
+                "^(https?:\\/\\/)[\\w.-]+(?:\\.[\\w.-]+)+(?:\\/(?:[\\w\\-._~%!$&'()*+,;=:@]|\\{[a-zA-Z0-9_-]+\\})*)*(?:\\?(?:[\\w\\-._~%!$&'()*+,;=:@/?]|\\{[a-zA-Z0-9_-]+\\})*)?(?:#(?:[\\w\\-._~%!$&'()*+,;=:@/?]|\\{[a-zA-Z0-9_-]+\\})*)?$"
+        );
 
         protected ExternalFetcherBaseSourceConfigurationPersistValidator(ConventionService conventionService, ErrorThesaurusProperties errors, MessageSource messageSource, ValidatorFactory validatorFactory) {
             super(conventionService, errors);
@@ -114,9 +152,21 @@ public abstract class ExternalFetcherBaseSourceConfigurationPersist implements S
                             .failOn(ExternalFetcherBaseSourceConfigurationPersist._ordinal).failWith(messageSource.getMessage("Validation_Required", new Object[]{ExternalFetcherBaseSourceConfigurationPersist._ordinal}, LocaleContextHolder.getLocale())),
                     this.spec()
                             .must(() -> !this.isNull(item.getType()))
-                            .failOn(ExternalFetcherBaseSourceConfigurationPersist._type).failWith(messageSource.getMessage("Validation_Required", new Object[]{ExternalFetcherBaseSourceConfigurationPersist._type}, LocaleContextHolder.getLocale()))
-            ));
+                            .failOn(ExternalFetcherBaseSourceConfigurationPersist._type).failWith(messageSource.getMessage("Validation_Required", new Object[]{ExternalFetcherBaseSourceConfigurationPersist._type}, LocaleContextHolder.getLocale())),
+                    this.spec()
+                            .iff(()-> !this.isEmpty(item.getNavigationUrl()))
+                            .must(() -> this.isValidURLWithFieldMapping(item.getNavigationUrl()))
+                            .failOn(ExternalFetcherBaseSourceConfigurationPersist._navigationUrl).failWith(this.messageSource.getMessage("Validation_UrlRequired", new Object[]{ExternalFetcherBaseSourceConfigurationPersist._navigationUrl}, LocaleContextHolder.getLocale()))
+
+                    ));
             return specifications;
+        }
+
+        boolean isValidURLWithFieldMapping(String url){
+            if (url == null || url.isBlank()) {
+                return false;
+            }
+            return URL_WITH_MAPPINGS_PATTERN.matcher(url).matches();
         }
 
     }

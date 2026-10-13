@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { ActivatedRouteSnapshot, RouterStateSnapshot } from '@angular/router';
 import { ReferenceType } from '@app/core/model/reference-type/reference-type';
-import { Definition, Field, Reference } from '@app/core/model/reference/reference';
+import { ReferenceDefinition, ReferenceField, Reference } from '@app/core/model/reference/reference';
 import { ReferenceService } from '@app/core/services/reference/reference.service';
 import { BreadcrumbService } from '@app/ui/misc/breadcrumb/breadcrumb.service';
 import { BaseEditorResolver } from '@common/base/base-editor.resolver';
@@ -29,9 +29,9 @@ export class ReferenceEditorResolver extends BaseEditorResolver {
 			nameof<Reference>(x => x.sourceType),
 			nameof<Reference>(x => x.createdAt),
 			nameof<Reference>(x => x.updatedAt),
-			[nameof<Reference>(x => x.definition), nameof<Definition>(x => x.fields), nameof<Field>(x => x.code)].join('.'),
-			[nameof<Reference>(x => x.definition), nameof<Definition>(x => x.fields), nameof<Field>(x => x.dataType)].join('.'),
-			[nameof<Reference>(x => x.definition), nameof<Definition>(x => x.fields), nameof<Field>(x => x.value)].join('.'),
+			[nameof<Reference>(x => x.definition), nameof<ReferenceDefinition>(x => x.fields), nameof<ReferenceField>(x => x.code)].join('.'),
+			[nameof<Reference>(x => x.definition), nameof<ReferenceDefinition>(x => x.fields), nameof<ReferenceField>(x => x.dataType)].join('.'),
+			[nameof<Reference>(x => x.definition), nameof<ReferenceDefinition>(x => x.fields), nameof<ReferenceField>(x => x.value)].join('.'),
 			nameof<Reference>(x => x.hash),
 			nameof<Reference>(x => x.isActive)
 		]

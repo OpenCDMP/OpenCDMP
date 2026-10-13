@@ -64,6 +64,7 @@ public class RuleBuilder extends BaseBuilder<Rule, RuleEntity> {
             if (fields.hasField(this.asIndexer(Rule._dateValue))) m.setDateValue(d.getDateValue());
             if (fields.hasField(this.asIndexer(Rule._booleanValue))) m.setBooleanValue(d.getBooleanValue());
             if (fields.hasField(this.asIndexer(Rule._textValue))) m.setTextValue(d.getTextValue());
+            if (fields.hasField(this.asIndexer(Rule._numberValue))) m.setNumberValue(d.getNumberValue());
             models.add(m);
         }
         this.logger.debug("build {} items", Optional.of(models).map(List::size).orElse(0));

@@ -54,8 +54,8 @@ public class DefinitionCommonModelBuilder extends BaseCommonModelBuilder<Definit
         List<CommonModelBuilderItemResponse<Definition, DefinitionModel>> models = new ArrayList<>();
         for (DefinitionModel d : data) {
             Definition m = new Definition();
-            if (d.getPages() != null) {
-                m.setPages(this.builderFactory.builder(PageCommonModelBuilder.class).authorize(this.authorize).build(d.getPages()));
+            if (d.getSections() != null) {
+                m.setSections(this.builderFactory.builder(RootSectionCommonModelBuilder.class).authorize(this.authorize).build(d.getSections()));
             }
             m.setPluginConfigurations(this.builderFactory.builder(PluginCommonModelBuilder.class).authorize(this.authorize).build(d.getPlugins()));
 

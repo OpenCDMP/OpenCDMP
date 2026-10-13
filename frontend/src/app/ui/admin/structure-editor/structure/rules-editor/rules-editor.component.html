@@ -1,0 +1,58 @@
+<div class="re">
+	@for (rule of rules.controls; track rule; let i = $index) {
+		<div class="re-row">
+			<span class="re-word">{{ (i === 0 ? 'PLAN-BLUEPRINT-EDITOR.RULES.WHEN' : 'PLAN-BLUEPRINT-EDITOR.RULES.OR-WHEN') | translate }}</span>
+
+			<!-- the answer, in the control that matches the input -->
+			@if (hasOptions) {
+				<mat-form-field class="re-field" subscriptSizing="dynamic">
+					<mat-select [formControl]="rule.get('textValue')" [placeholder]="'PLAN-BLUEPRINT-EDITOR.RULES.PICK-ANSWER' | translate" [attr.aria-label]="'PLAN-BLUEPRINT-EDITOR.RULES.ANSWER' | translate">
+						@for (o of options; track o.value) { <mat-option [value]="o.value">{{ o.label || o.value }}</mat-option> }
+					</mat-select>
+				</mat-form-field>
+			} @else if (isBoolean) {
+				<mat-form-field class="re-field" subscriptSizing="dynamic">
+					<mat-select [formControl]="rule.get('booleanValue')" [placeholder]="'PLAN-BLUEPRINT-EDITOR.RULES.PICK-ANSWER' | translate" [attr.aria-label]="'PLAN-BLUEPRINT-EDITOR.RULES.ANSWER' | translate">
+						<mat-option [value]="true">{{'PLAN-BLUEPRINT-EDITOR.RULES.YES' | translate}}</mat-option>
+						<mat-option [value]="false">{{'PLAN-BLUEPRINT-EDITOR.RULES.NO' | translate}}</mat-option>
+					</mat-select>
+				</mat-form-field>
+			} @else if (isDate) {
+				<input class="re-in" type="date" [value]="dateString(rule)" (change)="setDate(rule, $any($event.target).value)" [disabled]="readOnly" [attr.aria-label]="'PLAN-BLUEPRINT-EDITOR.RULES.ANSWER' | translate">
+			} @else if (isNumber) {
+				<input class="re-in" type="number" [formControl]="rule.get('numberValue')" [attr.aria-label]="'PLAN-BLUEPRINT-EDITOR.RULES.ANSWER' | translate">
+			} @else {
+				<input class="re-in" type="text" [formControl]="rule.get('textValue')" [placeholder]="'PLAN-BLUEPRINT-EDITOR.RULES.TYPE-ANSWER' | translate" [attr.aria-label]="'PLAN-BLUEPRINT-EDITOR.RULES.ANSWER' | translate">
+			}
+
+			<span class="re-word">{{'PLAN-BLUEPRINT-EDITOR.RULES.SHOW' | translate}}</span>
+
+			<mat-form-field class="re-field re-field--target" subscriptSizing="dynamic">
+				<mat-select [formControl]="rule.get('target')" (openedChange)="$event && computeTargets()" (selectionChange)="onTargetChange()" [placeholder]="'PLAN-BLUEPRINT-EDITOR.RULES.PICK-TARGET' | translate" [attr.aria-label]="'PLAN-BLUEPRINT-EDITOR.RULES.TARGET' | translate" panelClass="re-panel">
+					<mat-select-trigger>{{ targetLabel(rule.get('target').value) }}</mat-select-trigger>
+					<mat-optgroup [label]="'PLAN-BLUEPRINT-EDITOR.RULES.QUESTIONS' | translate">
+						@for (t of questionTargets; track t.id) {
+							<mat-option [value]="t.id" [disabled]="t.disabled"><span class="re-opt">{{t.label}}@if (t.reason) { <span class="re-opt__why">{{t.reason}}</span> }</span></mat-option>
+						}
+					</mat-optgroup>
+					@if (inputTargets.length) {
+						<mat-optgroup [label]="'PLAN-BLUEPRINT-EDITOR.RULES.INPUTS' | translate">
+							@for (t of inputTargets; track t.id) {
+								<mat-option [value]="t.id" [disabled]="t.disabled"><span class="re-opt">{{t.label}}@if (t.reason) { <span class="re-opt__why">{{t.reason}}</span> }</span></mat-option>
+							}
+						</mat-optgroup>
+					}
+				</mat-select>
+				@if (showErrors && rule.get('target').hasError('required')) { <mat-error>{{'PLAN-BLUEPRINT-EDITOR.RULES.TARGET-REQUIRED' | translate}}</mat-error> }
+				@if (rule.get('target').hasError('backendError')) { <mat-error>{{rule.get('target').getError('backendError').message}}</mat-error> }
+			</mat-form-field>
+
+			@if (!readOnly) {
+				<button mat-icon-button type="button" class="bp2-icon-btn-sm" (click)="removeRule(i)" [attr.aria-label]="'PLAN-BLUEPRINT-EDITOR.RULES.REMOVE' | translate" [matTooltip]="'PLAN-BLUEPRINT-EDITOR.RULES.REMOVE' | translate"><mat-icon aria-hidden="true">close</mat-icon></button>
+			}
+		</div>
+	}
+	@if (!readOnly) {
+		<button mat-button type="button" class="re-add" (click)="addRule()"><mat-icon aria-hidden="true">add</mat-icon>{{'PLAN-BLUEPRINT-EDITOR.RULES.ADD' | translate}}</button>
+	}
+</div>

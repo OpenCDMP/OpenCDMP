@@ -14,7 +14,7 @@ export class NotificationPrincipalService {
 		private http: BaseHttpV2Service
 	) { }
 
-	public me(options?: Object): Observable<NotificationAccount> {
+	public me(options?: object): Observable<NotificationAccount> {
 		const url = `${this.apiBase}/me`;
 		return this.http.get<NotificationAccount>(url, options);
 	}

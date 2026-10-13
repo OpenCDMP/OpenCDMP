@@ -7,10 +7,11 @@ export interface UsageLimit extends BaseEntity {
 	targetMetric: UsageLimitTargetMetric;
 	value: number;
 	definition: UsageLimitDefinition;
+	currentValue?: number;
 }
 
 export interface UsageLimitDefinition {
-	hasPeriodicity: Boolean;
+	hasPeriodicity: boolean;
 	periodicityRange: UsageLimitPeriodicityRange
 }
 
@@ -24,6 +25,6 @@ export interface UsageLimitPersist extends BaseEntityPersist {
 }
 
 export interface UsageLimitDefinitionPersist {
-	hasPeriodicity: Boolean;
+	hasPeriodicity: boolean;
 	periodicityRange: UsageLimitPeriodicityRange
 }

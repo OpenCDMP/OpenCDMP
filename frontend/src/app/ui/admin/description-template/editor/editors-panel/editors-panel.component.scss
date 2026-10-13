@@ -1,0 +1,17 @@
+@use '../../../structure-editor/bp2-shared' as *;
+
+:host { display: block; height: 100%; }
+.ep { display: flex; flex-direction: column; height: 100%; }
+.ep-head { display: flex; align-items: flex-start; justify-content: space-between; padding: 1rem .75rem 0 1.5rem; }
+.ep-title { margin: 0; padding: 0 !important; }
+.ep-body { flex: 1 1 auto; display: flex !important; flex-direction: column; gap: .875rem; max-height: none !important; padding-top: 1rem !important; }
+.ep-search { width: 100%; }
+.ep-list { display: flex; flex-direction: column; }
+.ep-row { display: flex; align-items: center; gap: .75rem; padding: .625rem 0; border-top: 1px solid var(--mat-sys-outline-variant); &__text { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; gap: .125rem; } }
+.ep-you { font-weight: 400; color: var(--mat-sys-on-surface-variant); }
+.ep-email { display: inline-flex; align-items: center; gap: .25rem; overflow-wrap: anywhere; mat-icon { font-size: 14px; width: 14px; height: 14px; flex: none; } }
+.ep-role { flex: none; }
+.ep-avatar { flex: none; width: 34px; height: 34px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: .75rem; font-weight: 700; background: var(--mat-sys-secondary-container); color: var(--mat-sys-on-secondary-container); }
+.ep-roles { margin: 0; }
+.ep-actions { display: flex; justify-content: flex-end; padding: .75rem 1.5rem 1rem; border-top: 1px solid var(--mat-sys-outline-variant); }
+.bp2-danger { color: var(--mat-sys-error) !important; }

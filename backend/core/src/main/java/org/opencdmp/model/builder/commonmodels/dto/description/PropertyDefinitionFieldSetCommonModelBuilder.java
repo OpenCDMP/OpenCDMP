@@ -4,7 +4,7 @@ import gr.cite.tools.data.builder.BuilderFactory;
 import gr.cite.tools.exception.MyApplicationException;
 import gr.cite.tools.logging.LoggerService;
 import org.opencdmp.authorization.AuthorizationFlags;
-import org.opencdmp.commonmodels.models.description.PropertyDefinitionFieldSetModel;
+import org.opencdmp.commonmodels.models.plandescriptionfields.PropertyDefinitionFieldSetModel;
 import org.opencdmp.convention.ConventionService;
 import org.opencdmp.model.builder.commonmodels.BaseCommonModelBuilder;
 import org.opencdmp.model.builder.commonmodels.CommonModelBuilderItemResponse;
@@ -25,7 +25,7 @@ import java.util.Optional;
 public class PropertyDefinitionFieldSetCommonModelBuilder extends BaseCommonModelBuilder<PropertyDefinitionFieldSet, PropertyDefinitionFieldSetModel> {
     private final BuilderFactory builderFactory;
     private EnumSet<AuthorizationFlags> authorize = EnumSet.of(AuthorizationFlags.None);
-    private org.opencdmp.commonmodels.models.descriptiotemplate.FieldSetModel fieldSetModel;
+    private org.opencdmp.commonmodels.models.planblueprintdescriptiontemplatefields.FieldSetModel fieldSetModel;
     @Autowired
     public PropertyDefinitionFieldSetCommonModelBuilder(
 		    ConventionService conventionService,  BuilderFactory builderFactory
@@ -40,7 +40,7 @@ public class PropertyDefinitionFieldSetCommonModelBuilder extends BaseCommonMode
     }
 
 
-    public PropertyDefinitionFieldSetCommonModelBuilder withFieldSetModel(org.opencdmp.commonmodels.models.descriptiotemplate.FieldSetModel fieldSetModel) {
+    public PropertyDefinitionFieldSetCommonModelBuilder withFieldSetModel(org.opencdmp.commonmodels.models.planblueprintdescriptiontemplatefields.FieldSetModel fieldSetModel) {
         this.fieldSetModel = fieldSetModel;
         return this;
     }

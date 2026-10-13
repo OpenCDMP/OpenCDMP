@@ -3,12 +3,12 @@
     <div mat-dialog-title class="d-flex align-items-center">
       <div>{{'PLAN-USER-INVITATION-DIALOG.TITLE' | translate}}</div>
       <div class="ml-auto">
-        <button mat-icon-button (click)="closeDialog()" [attr.aria-label]="'ALT-TEXT.CLOSE-DIALOG'  | translate"><mat-icon aria-hidden>close</mat-icon></button>
+        <button mat-icon-button (click)="closeDialog()" [attr.aria-label]="'ALT-TEXT.CLOSE-DIALOG'  | translate"><mat-icon aria-hidden="true">close</mat-icon></button>
       </div>
     </div>
     <div mat-dialog-content>
       <div class="p-2">
-        <app-plan-user-field-component [form]="formGroup.get('users')" [validationErrorModel]="editorModel.validationErrorModel" [sections]="selectedBlueprint?.definition?.sections" [viewOnly]="false" [initializeUsers]="true" [enableSorting]="false"></app-plan-user-field-component>
+        <app-plan-user-field-component [form]="formGroup.get('users')" [validationErrorModel]="editorModel.validationErrorModel" [sections]="$safeNavigationMigration(selectedBlueprint?.definition?.sections)" [viewOnly]="false" [initializeUsers]="true" [enableSorting]="false"></app-plan-user-field-component>
       </div>
     </div>
     <div mat-dialog-actions>

@@ -1,0 +1,84 @@
+<div class="container-fluid">
+	<div class="row">
+		<div class="col-md-10 offset-md-1 quotas">
+			<app-admin-page-header titleKey="USAGE-LIMIT-LISTING.TITLE" descriptionKey="QUOTAS.DESCRIPTION">
+				<ng-container actions>
+					@if (canEdit) {
+						<button mat-flat-button color="accent" class="padded-shadow-btn" type="button" (click)="add()">
+							<mat-icon>add</mat-icon>{{ 'QUOTAS.ADD' | translate }}
+						</button>
+					}
+				</ng-container>
+			</app-admin-page-header>
+
+			@if (loading()) {
+				<mat-progress-bar mode="indeterminate" />
+			} @else {
+				@if (usageUnavailable()) {
+					<p class="q-note" role="note">{{ 'QUOTAS.USAGE-UNAVAILABLE' | translate }}</p>
+				}
+				<div class="q-list">
+					@for (quota of quotas(); track quota.key) {
+						<section class="q-card" [attr.aria-label]="quota.label || ('QUOTAS.NEW' | translate)">
+							@if (quota.shared) {
+								<div class="q-sentence">
+									<span>{{ 'QUOTAS.SENTENCE-START' | translate }}</span>
+									<b>{{ quota.value }}</b>
+									<b>{{ enumUtils.toUsageLimitTargetMetricString(quota.metric) }}</b>
+									<span>{{ ('QUOTAS.PERIOD.' + (quota.period | uppercase)) | translate }}</span>
+									<app-tenant-shared-chip [item]="{ belongsToCurrentTenant: false }" />
+								</div>
+							} @else {
+								<div class="q-sentence">
+									<span>{{ 'QUOTAS.SENTENCE-START' | translate }}</span>
+									<input class="q-input q-input--number" type="number" min="1" [value]="quota.value" [readonly]="!canEdit"
+										(input)="update(quota, { value: $any($event.target).valueAsNumber || null })" [attr.aria-label]="'QUOTAS.LIMIT' | translate">
+									<select class="q-input" [disabled]="!canEdit" (change)="update(quota, { metric: $any($event.target).value })" [attr.aria-label]="'QUOTAS.WHAT' | translate">
+										@if (!quota.metric) {
+											<option value="" selected disabled>{{ 'QUOTAS.CHOOSE-WHAT' | translate }}</option>
+										}
+										@for (metric of metrics; track metric) {
+											<option [value]="metric" [selected]="quota.metric === metric" [disabled]="metricTaken(quota, metric)">{{ enumUtils.toUsageLimitTargetMetricString(metric) }}</option>
+										}
+									</select>
+									<select class="q-input" [disabled]="!canEdit" (change)="update(quota, { period: $any($event.target).value })" [attr.aria-label]="'QUOTAS.PERIOD-LABEL' | translate">
+										<option value="total" [selected]="quota.period === 'total'">{{ 'QUOTAS.PERIOD.TOTAL' | translate }}</option>
+										<option value="month" [selected]="quota.period === 'month'">{{ 'QUOTAS.PERIOD.MONTH' | translate }}</option>
+										<option value="year" [selected]="quota.period === 'year'">{{ 'QUOTAS.PERIOD.YEAR' | translate }}</option>
+									</select>
+								</div>
+								<mat-form-field appearance="outline" class="q-label" subscriptSizing="dynamic">
+									<mat-label>{{ 'QUOTAS.NAME' | translate }}</mat-label>
+									<input matInput [value]="quota.label" [readonly]="!canEdit" maxlength="250" (input)="update(quota, { label: $any($event.target).value })">
+									<mat-hint>{{ 'QUOTAS.NAME-HINT' | translate }}</mat-hint>
+								</mat-form-field>
+							}
+
+							@if (quota.id && quota.currentValue != null && !quota.dirty) {
+								<div class="q-usage">
+									<span class="q-bar" aria-hidden="true"><span class="q-bar__fill" [class.q-bar__fill--warn]="percent(quota) > 80" [class.q-bar__fill--full]="quota.currentValue >= quota.value" [style.width.%]="percent(quota)"></span></span>
+									<span class="q-usage__text" [class.q-usage__text--full]="quota.currentValue >= quota.value">
+										{{ (quota.currentValue >= quota.value ? 'QUOTAS.USAGE-FULL' : 'QUOTAS.USAGE') | translate: { used: quota.currentValue, limit: quota.value } }}
+									</span>
+								</div>
+							}
+
+							@if (!quota.shared && (canEdit || canDelete)) {
+								<div class="q-actions">
+									@if (canDelete || !quota.id) {
+										<button mat-button type="button" class="q-remove" [disabled]="busyKey() === quota.key" (click)="remove(quota)">{{ 'QUOTAS.REMOVE' | translate }}</button>
+									}
+									@if (canEdit) {
+										<button mat-stroked-button type="button" [disabled]="!quota.dirty || !valid(quota) || busyKey() === quota.key" (click)="save(quota)">{{ 'QUOTAS.SAVE' | translate }}</button>
+									}
+								</div>
+							}
+						</section>
+					} @empty {
+						<p class="q-empty">{{ 'QUOTAS.EMPTY' | translate }}</p>
+					}
+				</div>
+			}
+		</div>
+	</div>
+</div>

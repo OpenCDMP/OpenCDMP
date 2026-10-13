@@ -21,8 +21,7 @@
             ],
 						"assets": [
 							"src/assets",
-							"src/favicon.ico",
-							{ "glob": "**/*", "input": "node_modules/tinymce", "output": "/tinymce/" }
+							"src/favicon.ico"
 						],
 						"styles": [
 							"node_modules/bootstrap/dist/css/bootstrap.min.css",
@@ -30,7 +29,6 @@
 							"node_modules/vanilla-cookieconsent/dist/cookieconsent.css"
 						],
 						"scripts": [
-							"node_modules/tinymce/tinymce.min.js"
             ],
             "extractLicenses": false,
 						"sourceMap": true,
@@ -88,7 +86,8 @@
 				"serve": {
 					"builder": "@angular/build:dev-server",
           "options": {
-            "buildTarget": "frontend:build"
+            "buildTarget": "frontend:build",
+            "port": 4200
 					},
 					"configurations": {
             "production": {
@@ -102,25 +101,12 @@
             "buildTarget": "frontend:build"
 					}
 				},
-				"test": {
-					"builder": "@angular/build:karma",
+				"lint": {
+					"builder": "@angular-eslint/builder:lint",
 					"options": {
-						"main": "src/test.ts",
-						"karmaConfig": "./karma.conf.js",
-						"polyfills": "src/polyfills.ts",
-						"tsConfig": "src/tsconfig.spec.json",
-						"scripts": [],
-						"styles": [
-                            "src/assets/scss/material-dashboard.scss",
-							"src/styles.scss",
-							"node_modules/tinymce/tinymce.min.js"
-						],
-						"assets": [
-							"src/assets",
-							"src/favicon.ico",
-							{ "glob": "**/*", "input": "node_modules/tinymce/skins", "output": "/tinymce/skins/" },
-   							{ "glob": "**/*", "input": "node_modules/tinymce/themes", "output": "/tinymce/themes/" },
-   							{ "glob": "**/*", "input": "node_modules/tinymce/plugins", "output": "/tinymce/plugins/" }
+						"lintFilePatterns": [
+							"src/**/*.ts",
+							"src/**/*.html"
 						]
 					}
 				}

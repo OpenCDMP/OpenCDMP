@@ -1,0 +1,79 @@
+<div class="version-diff-dialog">
+	<div mat-dialog-title class="d-flex align-items-center gap-half-rem">
+		<mat-icon aria-hidden="true">difference</mat-icon>
+		<span>{{ 'PLAN-VERSION-DIFF.TITLE' | translate }}</span>
+		@if (diff(); as d) {
+			<span class="version-range">{{ 'PLAN-VERSION-DIFF.VERSION' | translate }} {{ d.fromVersion }} <mat-icon class="arrow" aria-hidden="true">arrow_forward</mat-icon> {{ 'PLAN-VERSION-DIFF.VERSION' | translate }} {{ d.toVersion }}</span>
+		}
+	</div>
+	<div mat-dialog-content>
+		@if (loading()) {
+			<div class="state-container">
+				<mat-progress-spinner mode="indeterminate" diameter="40"/>
+			</div>
+		} @else if (failed()) {
+			<div class="state-container">{{ 'PLAN-VERSION-DIFF.LOAD-FAILED' | translate }}</div>
+		} @else if (!hasChanges) {
+			<div class="state-container">{{ 'PLAN-VERSION-DIFF.NO-CHANGES' | translate }}</div>
+		} @else if (diff(); as d) {
+			@if (d.blueprintChanged) {
+				<div class="drift-notice">
+					<mat-icon aria-hidden="true">info</mat-icon>
+					<span>{{ 'PLAN-VERSION-DIFF.BLUEPRINT-CHANGED' | translate }}</span>
+				</div>
+			}
+			@if (d.planFieldChanges?.length) {
+				<h3 class="group-title">{{ 'PLAN-VERSION-DIFF.PLAN-CHANGES' | translate }}</h3>
+				<ul class="change-list">
+					@for (change of d.planFieldChanges; track change.changeId) {
+						<li class="change-row">
+							<span class="field-label">{{ fieldLabel(change) }}</span>
+							<span class="value from" [class.empty]="!change.currentValue">{{ valueText(change.currentValue) }}</span>
+							<mat-icon class="arrow" aria-hidden="true">arrow_forward</mat-icon>
+							<span class="value to" [class.empty]="!change.incomingValue">{{ valueText(change.incomingValue) }}</span>
+						</li>
+					}
+				</ul>
+			}
+			@if (d.descriptionChanges?.length) {
+				<h3 class="group-title">{{ 'PLAN-VERSION-DIFF.ASSET-CHANGES' | translate }}</h3>
+				@for (descriptionChange of d.descriptionChanges; track $index) {
+					<div class="description-change">
+						<div class="description-header">
+							<span class="description-label">{{ descriptionTitle(descriptionChange) }}</span>
+							@switch (descriptionChange.kind) {
+								@case (descriptionChangeKind.Add) {
+									<span class="kind-chip added">{{ 'PLAN-VERSION-DIFF.ADDED' | translate }}</span>
+								}
+								@case (descriptionChangeKind.Delete) {
+									<span class="kind-chip removed">{{ 'PLAN-VERSION-DIFF.REMOVED' | translate }}</span>
+								}
+								@default {
+									<span class="kind-chip changed">{{ 'PLAN-VERSION-DIFF.CHANGED' | translate }}</span>
+								}
+							}
+							@if (descriptionChange.templateChanged) {
+								<span class="kind-chip template">{{ 'PLAN-VERSION-DIFF.TEMPLATE-CHANGED' | translate }}</span>
+							}
+						</div>
+						@if (descriptionChange.fieldChanges?.length) {
+							<ul class="change-list">
+								@for (change of descriptionChange.fieldChanges; track change.changeId) {
+									<li class="change-row">
+										<span class="field-label">{{ fieldLabel(change) }}</span>
+										<span class="value from" [class.empty]="!change.currentValue">{{ valueText(change.currentValue) }}</span>
+										<mat-icon class="arrow" aria-hidden="true">arrow_forward</mat-icon>
+										<span class="value to" [class.empty]="!change.incomingValue">{{ valueText(change.incomingValue) }}</span>
+									</li>
+								}
+							</ul>
+						}
+					</div>
+				}
+			}
+		}
+	</div>
+	<div mat-dialog-actions class="justify-content-end">
+		<button mat-button (click)="close()">{{ 'PLAN-VERSION-DIFF.ACTIONS.CLOSE' | translate }}</button>
+	</div>
+</div>

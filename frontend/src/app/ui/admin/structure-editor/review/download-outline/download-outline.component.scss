@@ -1,0 +1,13 @@
+@use '../../bp2-shared' as *;
+
+:host { display: block; }
+.rv-preview { padding: 1rem 1.25rem; }
+.rv-download { display: flex; flex-direction: column; gap: .5rem;
+	&__head { display: flex; align-items: center; gap: .75rem; padding-bottom: .5rem; border-bottom: 1px solid var(--mat-sys-outline-variant); mat-icon { color: var(--mat-sys-primary); } }
+}
+.rv-dl-section { display: flex; flex-direction: column; gap: .15rem; padding-top: .375rem; &__title { font-weight: 700; } }
+.rv-dl-q { display: flex; align-items: center; gap: .5rem; padding: .2rem 0 .2rem .75rem; font-size: .875rem;
+	&__num { min-width: 2.75rem; color: var(--mat-sys-on-surface-variant); font-size: .8rem; mat-icon { font-size: 16px; width: 16px; height: 16px; } }
+	&__title { flex: 0 1 auto; }
+	&--out { color: var(--mat-sys-on-surface-variant); .rv-dl-q__title { text-decoration: line-through; } }
+}

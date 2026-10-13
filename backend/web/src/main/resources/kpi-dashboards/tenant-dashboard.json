@@ -1,0 +1,1682 @@
+{
+  "id": "dmp_dashboard",
+  "type": "tabbed",
+  "tabs": [
+    {
+      "name": "Overview",
+      "languageName": "KPI-DASHBOARDS.TABS.OVERVIEW",
+      "chartGroups": [
+        {
+          "type": "gauge",
+          "name": "Overview",
+          "languageName": "KPI-DASHBOARDS.TENANT.GROUPS.OVERVIEW",
+          "gauges": [
+            {
+              "type": "value_card",
+              "chartId": "tenant-gauge-plans",
+              "labelOverride": "Plans",
+              "labelOverrideLanguage": "KPI-DASHBOARDS.GAUGES.PLANS",
+              "indicatorId": "{{indicator_id}}",
+              "staticFilters": {
+                "keywordsFilters": [
+                  { "field": "entity_type", "value": ["plan"] },
+                  { "field": "metric_type", "value": ["overtime"] }
+                ]
+              },
+              "metrics": [
+                { "field": "value", "type": "Sum" }
+              ],
+              "series": [
+                {
+                  "label": { "labelKey": "entity_type" },
+                  "values": {
+                    "valueKey": "value",
+                    "tests": [
+                      { "aggregateType": "Sum" },
+                      { "field": "value" }
+                    ],
+                    "formatter": { "type": "number", "decimalAccuracy": 0 }
+                  }
+                }
+              ]
+            },
+            {
+              "type": "value_card",
+              "chartId": "tenant-gauge-descriptions",
+              "labelOverride": "Descriptions",
+              "labelOverrideLanguage": "KPI-DASHBOARDS.GAUGES.DESCRIPTIONS",
+              "indicatorId": "{{indicator_id}}",
+              "staticFilters": {
+                "keywordsFilters": [
+                  { "field": "entity_type", "value": ["description"] },
+                  { "field": "metric_type", "value": ["overtime"] }
+                ]
+              },
+              "metrics": [
+                { "field": "value", "type": "Sum" }
+              ],
+              "series": [
+                {
+                  "label": { "labelKey": "entity_type" },
+                  "values": {
+                    "valueKey": "value",
+                    "tests": [
+                      { "aggregateType": "Sum" },
+                      { "field": "value" }
+                    ],
+                    "formatter": { "type": "number", "decimalAccuracy": 0 }
+                  }
+                }
+              ]
+            },
+            {
+              "type": "value_card",
+              "chartId": "tenant-gauge-references",
+              "labelOverride": "References",
+              "labelOverrideLanguage": "KPI-DASHBOARDS.GAUGES.REFERENCES",
+              "indicatorId": "{{indicator_id}}",
+              "staticFilters": {
+                "keywordsFilters": [
+                  { "field": "entity_type", "value": ["reference"] },
+                  { "field": "metric_type", "value": ["overtime"] }
+                ]
+              },
+              "metrics": [
+                { "field": "value", "type": "Sum" }
+              ],
+              "series": [
+                {
+                  "label": { "labelKey": "entity_type" },
+                  "values": {
+                    "valueKey": "value",
+                    "tests": [
+                      { "aggregateType": "Sum" },
+                      { "field": "value" }
+                    ],
+                    "formatter": { "type": "number", "decimalAccuracy": 0 }
+                  }
+                }
+              ]
+            },
+            {
+              "type": "value_card",
+              "chartId": "tenant-gauge-users",
+              "labelOverride": "Users",
+              "labelOverrideLanguage": "KPI-DASHBOARDS.GAUGES.USERS",
+              "indicatorId": "{{indicator_id}}",
+              "staticFilters": {
+                "keywordsFilters": [
+                  { "field": "entity_type", "value": ["user"] },
+                  { "field": "metric_type", "value": ["overtime"] }
+                ]
+              },
+              "metrics": [
+                { "field": "value", "type": "Sum" }
+              ],
+              "series": [
+                {
+                  "label": { "labelKey": "entity_type" },
+                  "values": {
+                    "valueKey": "value",
+                    "tests": [
+                      { "aggregateType": "Sum" },
+                      { "field": "value" }
+                    ],
+                    "formatter": { "type": "number", "decimalAccuracy": 0 }
+                  }
+                }
+              ]
+            },
+            {
+              "type": "value_card",
+              "chartId": "tenant-gauge-blueprints",
+              "labelOverride": "Plan Blueprints",
+              "labelOverrideLanguage": "KPI-DASHBOARDS.GAUGES.PLAN-BLUEPRINTS",
+              "indicatorId": "{{indicator_id}}",
+              "staticFilters": {
+                "keywordsFilters": [
+                  { "field": "entity_type", "value": ["planBlueprint"] },
+                  { "field": "metric_type", "value": ["overtime"] },
+                  { "field": "latest_version", "value": ["totalCount"] }
+                ]
+              },
+              "metrics": [
+                { "field": "value", "type": "Sum" }
+              ],
+              "series": [
+                {
+                  "label": { "labelKey": "entity_type" },
+                  "values": {
+                    "valueKey": "value",
+                    "tests": [
+                      { "aggregateType": "Sum" },
+                      { "field": "value" }
+                    ],
+                    "formatter": { "type": "number", "decimalAccuracy": 0 }
+                  }
+                }
+              ]
+            },
+            {
+              "type": "value_card",
+              "chartId": "tenant-gauge-templates",
+              "labelOverride": "Description Templates",
+              "labelOverrideLanguage": "KPI-DASHBOARDS.GAUGES.DESCRIPTION-TEMPLATES",
+              "indicatorId": "{{indicator_id}}",
+              "staticFilters": {
+                "keywordsFilters": [
+                  { "field": "entity_type", "value": ["descriptionTemplate"] },
+                  { "field": "metric_type", "value": ["overtime"] },
+                  { "field": "latest_version", "value": ["totalCount"] }
+                ]
+              },
+              "metrics": [
+                { "field": "value", "type": "Sum" }
+              ],
+              "series": [
+                {
+                  "label": { "labelKey": "entity_type" },
+                  "values": {
+                    "valueKey": "value",
+                    "tests": [
+                      { "aggregateType": "Sum" },
+                      { "field": "value" }
+                    ],
+                    "formatter": { "type": "number", "decimalAccuracy": 0 }
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "chartgroup",
+          "name": "Plans over time",
+          "languageName": "KPI-DASHBOARDS.GROUPS.PLANS-OVER-TIME",
+          "descriptionLanguage": "KPI-DASHBOARDS.HELP.PLANS-OVER-TIME",
+          "width": "wide",
+          "charts": [
+            {
+              "chartId": "tenant-plans-per-month",
+              "indicatorId": "{{indicator_id}}",
+              "type": "bar",
+              "tags": { "attachedTags": [] },
+              "labelSortKey": "created_at",
+              "labelsTransform": { "type": "date", "params": "MMMM yyyy" },
+              "series": [
+                {
+                  "splitSeries": [],
+                  "label": {
+                    "labelKey": "created_at",
+                    "name": "plans",
+                    "languageName": "KPI-DASHBOARDS.SERIES.PLANS",
+                    "show": false
+                  },
+                  "values": {
+                    "valueKey": "value",
+                    "tests": [
+                      { "aggregateType": "Sum" },
+                      { "field": "value" }
+                    ],
+                    "groupTests": [],
+                    "formatter": { "type": "number", "decimalAccuracy": 0 }
+                  },
+                  "nested": {}
+                }
+              ],
+              "chartDownloadJson": {},
+              "bucket": {
+                "type": "DateHistogram",
+                "field": "created_at",
+                "metrics": [
+                  { "field": "value", "type": "Sum" }
+                ],
+                "interval": "Month"
+              },
+              "staticFilters": {
+                "keywordsFilters": [
+                  { "field": "entity_type", "value": ["plan"] },
+                  { "field": "metric_type", "value": ["overtime"] }
+                ]
+              },
+              "xAxis": { "name": "time", "languageName": "KPI-DASHBOARDS.AXIS.TIME" },
+              "yAxis": [
+                { "name": "plans", "languageName": "KPI-DASHBOARDS.AXIS.PLANS" }
+              ],
+              "horizontal": false,
+              "tooltip": {},
+              "dataZoom": { "inside": true, "slider": true },
+              "viewLanguageName": "KPI-DASHBOARDS.VIEWS.NEW-PER-MONTH"
+            },
+            {
+              "chartId": "tenant-plans-running-total",
+              "indicatorId": "{{indicator_id}}",
+              "type": "line",
+              "tags": { "attachedTags": [] },
+              "labelSortKey": "created_at",
+              "labelsTransform": { "type": "date", "params": "MMMM yyyy" },
+              "series": [
+                {
+                  "splitSeries": [],
+                  "label": {
+                    "labelKey": "created_at",
+                    "name": "plans",
+                    "languageName": "KPI-DASHBOARDS.SERIES.PLANS",
+                    "show": false
+                  },
+                  "values": {
+                    "valueKey": "value",
+                    "tests": [
+                      { "aggregateType": "Sum" },
+                      { "field": "value" },
+                      { "pipelineType": "CumulativeSum" }
+                    ],
+                    "groupTests": [],
+                    "formatter": { "type": "number", "decimalAccuracy": 0 }
+                  },
+                  "nested": {}
+                }
+              ],
+              "chartDownloadJson": {},
+              "bucket": {
+                "type": "DateHistogram",
+                "field": "created_at",
+                "metrics": [
+                  { "field": "value", "type": "Sum", "pipelines": ["CumulativeSum"] }
+                ],
+                "interval": "Month"
+              },
+              "staticFilters": {
+                "keywordsFilters": [
+                  { "field": "entity_type", "value": ["plan"] },
+                  { "field": "metric_type", "value": ["overtime"] }
+                ]
+              },
+              "xAxis": { "name": "time", "languageName": "KPI-DASHBOARDS.AXIS.TIME" },
+              "yAxis": [
+                { "name": "plans", "languageName": "KPI-DASHBOARDS.AXIS.PLANS" }
+              ],
+              "horizontal": false,
+              "areaStyle": null,
+              "tooltip": {},
+              "dataZoom": { "inside": true, "slider": true },
+              "viewLanguageName": "KPI-DASHBOARDS.VIEWS.RUNNING-TOTAL"
+            }
+          ]
+        },
+        {
+          "type": "chartgroup",
+          "name": "Plan status and visibility",
+          "languageName": "KPI-DASHBOARDS.GROUPS.PLAN-STATUS-AND-VISIBILITY",
+          "descriptionLanguage": "KPI-DASHBOARDS.HELP.PLAN-STATUS-AND-VISIBILITY",
+          "width": "third",
+          "charts": [
+            {
+              "chartId": "tenant-plans-status-mix",
+              "chartShare": {},
+              "indicatorId": "{{indicator_id}}",
+              "type": "pie",
+              "doughnut": true,
+              "radius": ["40%", "70%"],
+              "legend": {},
+              "chartDownloadJson": {},
+              "chartDownloadImage": {},
+              "bucket": {
+                "type": "Composite",
+                "field": "plan_status",
+                "sources": [
+                  { "field": "plan_status" }
+                ],
+                "metrics": [
+                  { "field": "value", "type": "Sum" }
+                ]
+              },
+              "staticFilters": {
+                "keywordsFilters": [
+                  { "field": "entity_type", "value": ["planPerBlueprint"] },
+                  { "field": "metric_type", "value": ["overtime"] }
+                ]
+              },
+              "callbackFnKey": "plan_status_id",
+              "series": [
+                {
+                  "label": { "labelKey": "plan_status" },
+                  "values": {
+                    "valueKey": "value",
+                    "tests": [
+                      { "aggregateType": "Sum" },
+                      { "field": "value" }
+                    ],
+                    "formatter": { "type": "number", "decimalAccuracy": 0 }
+                  }
+                }
+              ],
+              "viewLanguageName": "KPI-DASHBOARDS.VIEWS.BY-STATUS"
+            },
+            {
+              "chartId": "tenant-plans-visibility-mix",
+              "chartShare": {},
+              "indicatorId": "{{indicator_id}}",
+              "type": "pie",
+              "doughnut": true,
+              "radius": ["40%", "70%"],
+              "legend": {},
+              "chartDownloadJson": {},
+              "chartDownloadImage": {},
+              "bucket": {
+                "type": "Composite",
+                "field": "plan_visibility",
+                "sources": [
+                  { "field": "plan_visibility" }
+                ],
+                "metrics": [
+                  { "field": "value", "type": "Sum" }
+                ]
+              },
+              "staticFilters": {
+                "keywordsFilters": [
+                  { "field": "entity_type", "value": ["planPerBlueprint"] },
+                  { "field": "metric_type", "value": ["overtime"] }
+                ]
+              },
+              "callbackFnKey": "plan_visibility",
+              "series": [
+                {
+                  "label": { "labelKey": "plan_visibility" },
+                  "values": {
+                    "valueKey": "value",
+                    "tests": [
+                      { "aggregateType": "Sum" },
+                      { "field": "value" }
+                    ],
+                    "formatter": { "type": "number", "decimalAccuracy": 0 }
+                  }
+                }
+              ],
+              "viewLanguageName": "KPI-DASHBOARDS.VIEWS.BY-VISIBILITY"
+            }
+          ]
+        },
+        {
+          "type": "chartgroup",
+          "name": "Most used plan blueprints",
+          "languageName": "KPI-DASHBOARDS.GROUPS.MOST-USED-PLAN-BLUEPRINTS",
+          "descriptionLanguage": "KPI-DASHBOARDS.HELP.MOST-USED-PLAN-BLUEPRINTS",
+          "width": "half",
+          "charts": [
+            {
+              "chartId": "tenant-top-plan-blueprints",
+              "chartShare": {},
+              "indicatorId": "{{indicator_id}}",
+              "type": "bar",
+              "horizontal": true,
+              "legend": {},
+              "name": "",
+              "xAxis": { "name": "plan blueprints", "languageName": "KPI-DASHBOARDS.AXIS.PLAN-BLUEPRINTS" },
+              "yAxis": [
+                { "name": "plans", "languageName": "KPI-DASHBOARDS.AXIS.PLANS" }
+              ],
+              "chartDownloadJson": {},
+              "chartDownloadImage": {},
+              "bucket": {
+                "type": "Composite",
+                "field": "blueprint_group_id",
+                "sources": [
+                  { "field": "blueprint_group_id" }
+                ],
+                "metrics": [
+                  { "field": "value", "type": "Sum" }
+                ],
+                "bucketSort": {
+                  "sortFields": [
+                    { "field": "value", "metricAggregateType": "Sum", "order": "DESC" }
+                  ],
+                  "paging": { "offset": 0, "size": 10 }
+                }
+              },
+              "staticFilters": {
+                "keywordsFilters": [
+                  { "field": "entity_type", "value": ["planPerBlueprint"] },
+                  { "field": "metric_type", "value": ["overtime"] }
+                ]
+              },
+              "callbackFnKey": "blueprint_group_id",
+              "series": [
+                {
+                  "label": { "labelKey": "blueprint_group_id" },
+                  "values": {
+                    "valueKey": "value",
+                    "tests": [
+                      { "aggregateType": "Sum" },
+                      { "field": "value" }
+                    ],
+                    "formatter": { "type": "number", "decimalAccuracy": 0 }
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "chartgroup",
+          "name": "Most used asset templates",
+          "languageName": "KPI-DASHBOARDS.GROUPS.MOST-USED-DESCRIPTION-TEMPLATES",
+          "descriptionLanguage": "KPI-DASHBOARDS.HELP.MOST-USED-DESCRIPTION-TEMPLATES",
+          "width": "half",
+          "charts": [
+            {
+              "chartId": "tenant-top-description-templates",
+              "chartShare": {},
+              "indicatorId": "{{indicator_id}}",
+              "type": "bar",
+              "horizontal": true,
+              "legend": {},
+              "name": "",
+              "xAxis": {
+                "name": "description templates",
+                "languageName": "KPI-DASHBOARDS.AXIS.DESCRIPTION-TEMPLATES"
+              },
+              "yAxis": [
+                { "name": "descriptions", "languageName": "KPI-DASHBOARDS.AXIS.DESCRIPTIONS" }
+              ],
+              "chartDownloadJson": {},
+              "chartDownloadImage": {},
+              "bucket": {
+                "type": "Composite",
+                "field": "template_group_id",
+                "sources": [
+                  { "field": "template_group_id" }
+                ],
+                "metrics": [
+                  { "field": "value", "type": "Sum" }
+                ],
+                "bucketSort": {
+                  "sortFields": [
+                    { "field": "value", "metricAggregateType": "Sum", "order": "DESC" }
+                  ],
+                  "paging": { "offset": 0, "size": 10 }
+                }
+              },
+              "staticFilters": {
+                "keywordsFilters": [
+                  { "field": "entity_type", "value": ["descriptionPerTemplate"] },
+                  { "field": "metric_type", "value": ["overtime"] }
+                ]
+              },
+              "callbackFnKey": "template_group_id",
+              "series": [
+                {
+                  "label": { "labelKey": "template_group_id" },
+                  "values": {
+                    "valueKey": "value",
+                    "tests": [
+                      { "aggregateType": "Sum" },
+                      { "field": "value" }
+                    ],
+                    "formatter": { "type": "number", "decimalAccuracy": 0 }
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "chartgroup",
+          "name": "Assets over time",
+          "languageName": "KPI-DASHBOARDS.GROUPS.DESCRIPTIONS-OVER-TIME",
+          "descriptionLanguage": "KPI-DASHBOARDS.HELP.DESCRIPTIONS-OVER-TIME",
+          "width": "half",
+          "charts": [
+            {
+              "chartId": "tenant-descriptions-per-month",
+              "indicatorId": "{{indicator_id}}",
+              "type": "bar",
+              "tags": { "attachedTags": [] },
+              "labelSortKey": "created_at",
+              "labelsTransform": { "type": "date", "params": "MMMM yyyy" },
+              "series": [
+                {
+                  "splitSeries": [],
+                  "label": {
+                    "labelKey": "created_at",
+                    "name": "descriptions",
+                    "languageName": "KPI-DASHBOARDS.SERIES.DESCRIPTIONS",
+                    "show": false
+                  },
+                  "values": {
+                    "valueKey": "value",
+                    "tests": [
+                      { "aggregateType": "Sum" },
+                      { "field": "value" }
+                    ],
+                    "groupTests": [],
+                    "formatter": { "type": "number", "decimalAccuracy": 0 }
+                  },
+                  "nested": {}
+                }
+              ],
+              "bucket": {
+                "type": "DateHistogram",
+                "field": "created_at",
+                "metrics": [
+                  { "field": "value", "type": "Sum" }
+                ],
+                "interval": "Month"
+              },
+              "staticFilters": {
+                "keywordsFilters": [
+                  { "field": "entity_type", "value": ["description"] },
+                  { "field": "metric_type", "value": ["overtime"] }
+                ]
+              },
+              "xAxis": { "name": "time", "languageName": "KPI-DASHBOARDS.AXIS.TIME" },
+              "yAxis": [
+                { "name": "descriptions", "languageName": "KPI-DASHBOARDS.AXIS.DESCRIPTIONS" }
+              ],
+              "horizontal": false,
+              "tooltip": {},
+              "dataZoom": { "inside": true, "slider": true },
+              "chartDownloadJson": {},
+              "viewLanguageName": "KPI-DASHBOARDS.VIEWS.NEW-PER-MONTH"
+            },
+            {
+              "chartId": "tenant-descriptions-running-total",
+              "indicatorId": "{{indicator_id}}",
+              "type": "line",
+              "tags": { "attachedTags": [] },
+              "labelSortKey": "created_at",
+              "labelsTransform": { "type": "date", "params": "MMMM yyyy" },
+              "series": [
+                {
+                  "splitSeries": [],
+                  "label": {
+                    "labelKey": "created_at",
+                    "name": "descriptions",
+                    "languageName": "KPI-DASHBOARDS.SERIES.DESCRIPTIONS",
+                    "show": false
+                  },
+                  "values": {
+                    "valueKey": "value",
+                    "tests": [
+                      { "aggregateType": "Sum" },
+                      { "field": "value" },
+                      { "pipelineType": "CumulativeSum" }
+                    ],
+                    "groupTests": [],
+                    "formatter": { "type": "number", "decimalAccuracy": 0 }
+                  },
+                  "nested": {}
+                }
+              ],
+              "bucket": {
+                "type": "DateHistogram",
+                "field": "created_at",
+                "metrics": [
+                  { "field": "value", "type": "Sum", "pipelines": ["CumulativeSum"] }
+                ],
+                "interval": "Month"
+              },
+              "staticFilters": {
+                "keywordsFilters": [
+                  { "field": "entity_type", "value": ["description"] },
+                  { "field": "metric_type", "value": ["overtime"] }
+                ]
+              },
+              "xAxis": { "name": "time", "languageName": "KPI-DASHBOARDS.AXIS.TIME" },
+              "yAxis": [
+                { "name": "descriptions", "languageName": "KPI-DASHBOARDS.AXIS.DESCRIPTIONS" }
+              ],
+              "horizontal": false,
+              "areaStyle": null,
+              "tooltip": {},
+              "dataZoom": { "inside": true, "slider": true },
+              "chartDownloadJson": {},
+              "viewLanguageName": "KPI-DASHBOARDS.VIEWS.RUNNING-TOTAL"
+            }
+          ]
+        },
+        {
+          "type": "chartgroup",
+          "name": "References by type",
+          "languageName": "KPI-DASHBOARDS.GROUPS.REFERENCES-BY-TYPE",
+          "descriptionLanguage": "KPI-DASHBOARDS.HELP.REFERENCES-BY-TYPE",
+          "width": "half",
+          "charts": [
+            {
+              "chartId": "tenant-references-by-type",
+              "chartShare": {},
+              "indicatorId": "{{indicator_id}}",
+              "type": "line",
+              "horizontal": false,
+              "dataZoom": { "inside": true, "slider": true },
+              "legend": {},
+              "name": "",
+              "labelSortKey": "created_at",
+              "labelsTransform": { "type": "date", "params": "MMMM yyyy" },
+              "chartDownloadJson": {},
+              "chartDownloadImage": {},
+              "bucket": {
+                "type": "Composite",
+                "field": "reference_type_id",
+                "sources": [
+                  { "field": "reference_type_id" }
+                ],
+                "bucket": {
+                  "type": "DateHistogram",
+                  "field": "created_at",
+                  "metrics": [
+                    { "field": "value", "type": "Sum", "pipelines": ["CumulativeSum"] }
+                  ],
+                  "interval": "Month"
+                }
+              },
+              "series": [
+                {
+                  "splitSeries": [
+                    { "key": "reference_type_id", "callbackFnKey": "reference_type_id" }
+                  ],
+                  "label": {
+                    "labelKey": "created_at",
+                    "name": "Time",
+                    "languageName": "KPI-DASHBOARDS.SERIES.TIME"
+                  },
+                  "values": {
+                    "valueKey": "value",
+                    "tests": [
+                      { "aggregateType": "Sum" },
+                      { "field": "value" },
+                      { "pipelineType": "CumulativeSum" }
+                    ],
+                    "formatter": { "type": "number", "decimalAccuracy": 0 }
+                  }
+                }
+              ],
+              "staticFilters": {
+                "keywordsFilters": [
+                  { "field": "entity_type", "value": ["reference"] },
+                  { "field": "metric_type", "value": ["overtime"] }
+                ]
+              },
+              "xAxis": { "name": "time", "languageName": "KPI-DASHBOARDS.AXIS.TIME" },
+              "yAxis": [
+                { "name": "references", "languageName": "KPI-DASHBOARDS.AXIS.REFERENCES" }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Plans",
+      "languageName": "KPI-DASHBOARDS.TABS.PLANS",
+      "chartGroups": [
+        {
+          "type": "chartgroup",
+          "name": "Plans by status",
+          "languageName": "KPI-DASHBOARDS.GROUPS.PLANS-BY-STATUS",
+          "descriptionLanguage": "KPI-DASHBOARDS.HELP.PLANS-BY-STATUS",
+          "width": "half",
+          "charts": [
+            {
+              "chartId": "tenant-plans-by-status",
+              "chartShare": {},
+              "indicatorId": "{{indicator_id}}",
+              "type": "line",
+              "dataZoom": { "inside": true, "slider": true },
+              "legend": {},
+              "name": "",
+              "xAxis": { "name": "time", "languageName": "KPI-DASHBOARDS.AXIS.TIME" },
+              "yAxis": [
+                { "name": "plans", "languageName": "KPI-DASHBOARDS.AXIS.PLANS" }
+              ],
+              "chartDownloadJson": {},
+              "chartDownloadImage": {},
+              "bucket": {
+                "type": "Composite",
+                "field": "plan_status",
+                "sources": [
+                  { "field": "plan_status" }
+                ],
+                "bucket": {
+                  "type": "DateHistogram",
+                  "field": "created_at",
+                  "metrics": [
+                    { "field": "value", "type": "Sum", "pipelines": ["CumulativeSum"] }
+                  ],
+                  "interval": "Month"
+                }
+              },
+              "staticFilters": {
+                "keywordsFilters": [
+                  { "field": "entity_type", "value": ["planPerBlueprint"] },
+                  { "field": "metric_type", "value": ["overtime"] }
+                ]
+              },
+              "labelSortKey": "created_at",
+              "labelsTransform": { "type": "date", "params": "MMMM yyyy" },
+              "series": [
+                {
+                  "splitSeries": [
+                    { "key": "plan_status", "callbackFnKey": "plan_status_id" }
+                  ],
+                  "stack": "plan_status",
+                  "label": {
+                    "name": "Time",
+                    "languageName": "KPI-DASHBOARDS.SERIES.TIME",
+                    "labelKey": "created_at"
+                  },
+                  "values": {
+                    "valueKey": "value",
+                    "tests": [
+                      { "aggregateType": "Sum" },
+                      { "field": "value" },
+                      { "pipelineType": "CumulativeSum" }
+                    ],
+                    "groupTests": [],
+                    "formatter": { "type": "number", "decimalAccuracy": 0 }
+                  }
+                }
+              ],
+              "areaStyle": {}
+            }
+          ]
+        },
+        {
+          "type": "chartgroup",
+          "name": "Plans by visibility",
+          "languageName": "KPI-DASHBOARDS.GROUPS.PLANS-BY-VISIBILITY",
+          "descriptionLanguage": "KPI-DASHBOARDS.HELP.PLANS-BY-VISIBILITY",
+          "width": "half",
+          "charts": [
+            {
+              "chartId": "tenant-plans-by-visibility",
+              "chartShare": {},
+              "indicatorId": "{{indicator_id}}",
+              "type": "line",
+              "dataZoom": { "inside": true, "slider": true },
+              "legend": {},
+              "name": "",
+              "xAxis": { "name": "time", "languageName": "KPI-DASHBOARDS.AXIS.TIME" },
+              "yAxis": [
+                { "name": "plans", "languageName": "KPI-DASHBOARDS.AXIS.PLANS" }
+              ],
+              "chartDownloadJson": {},
+              "chartDownloadImage": {},
+              "bucket": {
+                "type": "Composite",
+                "field": "plan_visibility",
+                "sources": [
+                  { "field": "plan_visibility" }
+                ],
+                "bucket": {
+                  "type": "DateHistogram",
+                  "field": "created_at",
+                  "metrics": [
+                    { "field": "value", "type": "Sum", "pipelines": ["CumulativeSum"] }
+                  ],
+                  "interval": "Month"
+                }
+              },
+              "staticFilters": {
+                "keywordsFilters": [
+                  { "field": "entity_type", "value": ["planPerBlueprint"] },
+                  { "field": "metric_type", "value": ["overtime"] }
+                ]
+              },
+              "labelSortKey": "created_at",
+              "labelsTransform": { "type": "date", "params": "MMMM yyyy" },
+              "series": [
+                {
+                  "splitSeries": [
+                    { "key": "plan_visibility", "callbackFnKey": "plan_visibility" }
+                  ],
+                  "label": {
+                    "name": "Time",
+                    "languageName": "KPI-DASHBOARDS.SERIES.TIME",
+                    "labelKey": "created_at"
+                  },
+                  "values": {
+                    "valueKey": "value",
+                    "tests": [
+                      { "aggregateType": "Sum" },
+                      { "field": "value" },
+                      { "pipelineType": "CumulativeSum" }
+                    ],
+                    "groupTests": [],
+                    "formatter": { "type": "number", "decimalAccuracy": 0 }
+                  }
+                }
+              ],
+              "areaStyle": {}
+            }
+          ]
+        },
+        {
+          "type": "chartgroup",
+          "name": "Plans per blueprint",
+          "languageName": "KPI-DASHBOARDS.GROUPS.PLANS-PER-BLUEPRINT",
+          "descriptionLanguage": "KPI-DASHBOARDS.HELP.PLANS-PER-BLUEPRINT",
+          "width": "full",
+          "charts": [
+            {
+              "chartId": "tenant-plans-per-blueprint",
+              "chartShare": {},
+              "indicatorId": "{{indicator_id}}",
+              "type": "line",
+              "dataZoom": { "inside": true, "slider": true },
+              "legend": {},
+              "name": "",
+              "filters": [
+                {
+                  "type": "select",
+                  "name": "Plan Status",
+                  "languageName": "KPI-DASHBOARDS.FILTERS.PLAN-STATUS",
+                  "fieldCode": "plan_status",
+                  "callbackFnKey": "plan_status_id",
+                  "indicatorFilterType": "keyword",
+                  "required": true,
+                  "valueToAssignOnInitialLoad": "{{plan_status_default}}"
+                }
+              ],
+              "xAxis": { "name": "time", "languageName": "KPI-DASHBOARDS.AXIS.TIME" },
+              "yAxis": [
+                { "name": "plans", "languageName": "KPI-DASHBOARDS.AXIS.PLANS" }
+              ],
+              "chartDownloadJson": {},
+              "chartDownloadImage": {},
+              "bucket": {
+                "type": "Composite",
+                "field": "blueprint_group_id",
+                "sources": [
+                  { "field": "blueprint_group_id" }
+                ],
+                "metrics": [
+                  { "type": "Sum", "field": "value" }
+                ],
+                "bucket": {
+                  "type": "DateHistogram",
+                  "field": "created_at",
+                  "metrics": [
+                    { "field": "value", "type": "Sum", "pipelines": ["CumulativeSum"] }
+                  ],
+                  "interval": "Month"
+                },
+                "bucketSort": {
+                  "sortFields": [
+                    { "field": "value", "metricAggregateType": "Sum", "order": "DESC" }
+                  ]
+                }
+              },
+              "staticFilters": {
+                "keywordsFilters": [
+                  { "field": "entity_type", "value": ["planPerBlueprint"] },
+                  { "field": "metric_type", "value": ["overtime"] }
+                ]
+              },
+              "labelSortKey": "created_at",
+              "labelsTransform": { "type": "date", "params": "MMMM yyyy" },
+              "series": [
+                {
+                  "splitSeries": [
+                    { "key": "blueprint_group_id", "callbackFnKey": "blueprint_group_id" }
+                  ],
+                  "label": {
+                    "name": "Time",
+                    "languageName": "KPI-DASHBOARDS.SERIES.TIME",
+                    "labelKey": "created_at"
+                  },
+                  "values": {
+                    "formatter": { "type": "number", "decimalAccuracy": 0 },
+                    "valueKey": "value",
+                    "tests": [
+                      { "aggregateType": "Sum" },
+                      { "field": "value" },
+                      { "pipelineType": "CumulativeSum" }
+                    ]
+                  }
+                }
+              ],
+              "areaStyle": {}
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Assets",
+      "languageName": "KPI-DASHBOARDS.TABS.DESCRIPTIONS",
+      "chartGroups": [
+        {
+          "type": "chartgroup",
+          "name": "Assets by status",
+          "languageName": "KPI-DASHBOARDS.GROUPS.DESCRIPTIONS-BY-STATUS",
+          "descriptionLanguage": "KPI-DASHBOARDS.HELP.DESCRIPTIONS-BY-STATUS",
+          "width": "half",
+          "charts": [
+            {
+              "chartId": "tenant-descriptions-by-status",
+              "chartShare": {},
+              "indicatorId": "{{indicator_id}}",
+              "type": "line",
+              "dataZoom": { "inside": true, "slider": true },
+              "legend": {},
+              "name": "",
+              "xAxis": { "name": "time", "languageName": "KPI-DASHBOARDS.AXIS.TIME" },
+              "yAxis": [
+                { "name": "descriptions", "languageName": "KPI-DASHBOARDS.AXIS.DESCRIPTIONS" }
+              ],
+              "chartDownloadJson": {},
+              "chartDownloadImage": {},
+              "bucket": {
+                "type": "Composite",
+                "field": "description_status",
+                "sources": [
+                  { "field": "description_status" }
+                ],
+                "bucket": {
+                  "type": "DateHistogram",
+                  "field": "created_at",
+                  "metrics": [
+                    { "field": "value", "type": "Sum", "pipelines": ["CumulativeSum"] }
+                  ],
+                  "interval": "Month"
+                }
+              },
+              "staticFilters": {
+                "keywordsFilters": [
+                  { "field": "entity_type", "value": ["descriptionPerTemplate"] },
+                  { "field": "metric_type", "value": ["overtime"] }
+                ]
+              },
+              "labelSortKey": "created_at",
+              "labelsTransform": { "type": "date", "params": "MMMM yyyy" },
+              "series": [
+                {
+                  "splitSeries": [
+                    { "key": "description_status", "callbackFnKey": "description_status_id" }
+                  ],
+                  "label": {
+                    "name": "Time",
+                    "languageName": "KPI-DASHBOARDS.SERIES.TIME",
+                    "labelKey": "created_at"
+                  },
+                  "values": {
+                    "valueKey": "value",
+                    "tests": [
+                      { "aggregateType": "Sum" },
+                      { "field": "value" },
+                      { "pipelineType": "CumulativeSum" }
+                    ],
+                    "groupTests": [],
+                    "formatter": { "type": "number", "decimalAccuracy": 0 }
+                  }
+                }
+              ],
+              "areaStyle": {}
+            }
+          ]
+        },
+        {
+          "type": "chartgroup",
+          "name": "Assets per template",
+          "languageName": "KPI-DASHBOARDS.GROUPS.DESCRIPTIONS-PER-TEMPLATE",
+          "descriptionLanguage": "KPI-DASHBOARDS.HELP.DESCRIPTIONS-PER-TEMPLATE",
+          "width": "half",
+          "charts": [
+            {
+              "chartId": "tenant-descriptions-per-template",
+              "chartShare": {},
+              "indicatorId": "{{indicator_id}}",
+              "type": "line",
+              "dataZoom": { "inside": true, "slider": true },
+              "legend": {},
+              "name": "",
+              "filters": [
+                {
+                  "type": "select",
+                  "name": "Description Status",
+                  "languageName": "KPI-DASHBOARDS.FILTERS.DESCRIPTION-STATUS",
+                  "fieldCode": "description_status",
+                  "callbackFnKey": "description_status_id",
+                  "indicatorFilterType": "keyword",
+                  "required": true,
+                  "valueToAssignOnInitialLoad": "{{description_status_default}}"
+                }
+              ],
+              "xAxis": { "name": "time", "languageName": "KPI-DASHBOARDS.AXIS.TIME" },
+              "yAxis": [
+                { "name": "descriptions", "languageName": "KPI-DASHBOARDS.AXIS.DESCRIPTIONS" }
+              ],
+              "chartDownloadJson": {},
+              "chartDownloadImage": {},
+              "bucket": {
+                "type": "Composite",
+                "field": "template_group_id",
+                "sources": [
+                  { "field": "template_group_id" }
+                ],
+                "metrics": [
+                  { "type": "Sum", "field": "value" }
+                ],
+                "bucketSort": {
+                  "sortFields": [
+                    { "field": "value", "metricAggregateType": "Sum", "order": "DESC" }
+                  ]
+                },
+                "bucket": {
+                  "type": "DateHistogram",
+                  "field": "created_at",
+                  "metrics": [
+                    { "field": "value", "type": "Sum", "pipelines": ["CumulativeSum"] }
+                  ],
+                  "interval": "Month"
+                }
+              },
+              "staticFilters": {
+                "keywordsFilters": [
+                  { "field": "entity_type", "value": ["descriptionPerTemplate"] },
+                  { "field": "metric_type", "value": ["overtime"] }
+                ]
+              },
+              "labelSortKey": "created_at",
+              "labelsTransform": { "type": "date", "params": "MMMM yyyy" },
+              "series": [
+                {
+                  "splitSeries": [
+                    { "key": "template_group_id", "callbackFnKey": "template_group_id" }
+                  ],
+                  "label": {
+                    "name": "Time",
+                    "languageName": "KPI-DASHBOARDS.SERIES.TIME",
+                    "labelKey": "created_at"
+                  },
+                  "values": {
+                    "formatter": { "type": "number", "decimalAccuracy": 0 },
+                    "valueKey": "value",
+                    "tests": [
+                      { "aggregateType": "Sum" },
+                      { "field": "value" },
+                      { "pipelineType": "CumulativeSum" }
+                    ]
+                  }
+                }
+              ],
+              "areaStyle": {}
+            }
+          ]
+        },
+        {
+          "type": "chartgroup",
+          "name": "Assets per plan blueprint",
+          "languageName": "KPI-DASHBOARDS.GROUPS.DESCRIPTIONS-PER-BLUEPRINT",
+          "descriptionLanguage": "KPI-DASHBOARDS.HELP.DESCRIPTIONS-PER-BLUEPRINT",
+          "width": "half",
+          "charts": [
+            {
+              "chartId": "tenant-descriptions-per-blueprint",
+              "chartShare": {},
+              "indicatorId": "{{indicator_id}}",
+              "type": "line",
+              "dataZoom": { "inside": true, "slider": true },
+              "legend": {},
+              "name": "",
+              "xAxis": { "name": "time", "languageName": "KPI-DASHBOARDS.AXIS.TIME" },
+              "yAxis": [
+                { "name": "descriptions", "languageName": "KPI-DASHBOARDS.AXIS.DESCRIPTIONS" }
+              ],
+              "chartDownloadJson": {},
+              "chartDownloadImage": {},
+              "bucket": {
+                "type": "Composite",
+                "field": "plan_blueprint_id",
+                "sources": [
+                  { "field": "plan_blueprint_id" }
+                ],
+                "bucket": {
+                  "type": "DateHistogram",
+                  "field": "created_at",
+                  "metrics": [
+                    { "field": "value", "type": "Sum", "pipelines": ["CumulativeSum"] }
+                  ],
+                  "interval": "Month"
+                }
+              },
+              "staticFilters": {
+                "keywordsFilters": [
+                  { "field": "entity_type", "value": ["descriptionPerTemplate"] },
+                  { "field": "metric_type", "value": ["overtime"] }
+                ]
+              },
+              "labelSortKey": "created_at",
+              "labelsTransform": { "type": "date", "params": "MMMM yyyy" },
+              "series": [
+                {
+                  "splitSeries": [
+                    { "key": "plan_blueprint_id", "callbackFnKey": "blueprint_group_id" }
+                  ],
+                  "label": {
+                    "name": "Time",
+                    "languageName": "KPI-DASHBOARDS.SERIES.TIME",
+                    "labelKey": "created_at"
+                  },
+                  "values": {
+                    "valueKey": "value",
+                    "tests": [
+                      { "aggregateType": "Sum" },
+                      { "field": "value" },
+                      { "pipelineType": "CumulativeSum" }
+                    ],
+                    "groupTests": [],
+                    "formatter": { "type": "number", "decimalAccuracy": 0 }
+                  }
+                }
+              ],
+              "areaStyle": {}
+            }
+          ]
+        },
+        {
+          "type": "chartgroup",
+          "name": "Assets per plan",
+          "languageName": "KPI-DASHBOARDS.GROUPS.DESCRIPTIONS-PER-PLAN",
+          "descriptionLanguage": "KPI-DASHBOARDS.HELP.DESCRIPTIONS-PER-PLAN",
+          "width": "half",
+          "charts": [
+            {
+              "chartId": "tenant-descriptions-per-plan",
+              "chartShare": {},
+              "indicatorId": "{{indicator_id}}",
+              "type": "bar",
+              "horizontal": true,
+              "legend": {},
+              "name": "",
+              "xAxis": { "name": "plans", "languageName": "KPI-DASHBOARDS.AXIS.PLANS" },
+              "yAxis": [
+                { "name": "descriptions", "languageName": "KPI-DASHBOARDS.AXIS.DESCRIPTIONS" }
+              ],
+              "chartDownloadJson": {},
+              "chartDownloadImage": {},
+              "bucket": {
+                "type": "Composite",
+                "field": "plan_id",
+                "sources": [
+                  { "field": "plan_id" }
+                ],
+                "metrics": [
+                  { "field": "value", "type": "Sum" }
+                ],
+                "bucketSort": {
+                  "sortFields": [
+                    { "field": "value", "metricAggregateType": "Sum", "order": "DESC" }
+                  ],
+                  "paging": { "offset": 0, "size": 10 }
+                }
+              },
+              "staticFilters": {
+                "keywordsFilters": [
+                  { "field": "entity_type", "value": ["descriptionPerTemplate"] },
+                  { "field": "metric_type", "value": ["overtime"] }
+                ]
+              },
+              "callbackFnKey": "plan_id",
+              "series": [
+                {
+                  "label": { "labelKey": "plan_id" },
+                  "values": {
+                    "valueKey": "value",
+                    "tests": [
+                      { "aggregateType": "Sum" },
+                      { "field": "value" }
+                    ],
+                    "formatter": { "type": "number", "decimalAccuracy": 0 }
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Templates and blueprints",
+      "languageName": "KPI-DASHBOARDS.TABS.TEMPLATES-AND-BLUEPRINTS",
+      "chartGroups": [
+        {
+          "type": "chartgroup",
+          "name": "Plan blueprints count",
+          "languageName": "KPI-DASHBOARDS.GROUPS.PLAN-BLUEPRINTS-COUNT",
+          "descriptionLanguage": "KPI-DASHBOARDS.HELP.PLAN-BLUEPRINTS-COUNT",
+          "width": "half",
+          "charts": [
+            {
+              "chartId": "tenant-plan-blueprints-count",
+              "indicatorId": "{{indicator_id}}",
+              "type": "line",
+              "legend": {},
+              "tags": { "attachedTags": [] },
+              "labelSortKey": "created_at",
+              "labelsTransform": { "type": "date", "params": "MMMM yyyy" },
+              "series": [
+                {
+                  "splitSeries": [
+                    { "key": "latest_version", "callbackFnKey": "latest_version" }
+                  ],
+                  "label": {
+                    "labelKey": "created_at",
+                    "name": "plan blueprints",
+                    "languageName": "KPI-DASHBOARDS.SERIES.PLAN-BLUEPRINTS",
+                    "show": false
+                  },
+                  "values": {
+                    "valueKey": "value",
+                    "tests": [
+                      { "aggregateType": "Sum" },
+                      { "field": "value" },
+                      { "pipelineType": "CumulativeSum" }
+                    ],
+                    "groupTests": [],
+                    "formatter": { "type": "number", "decimalAccuracy": 0 }
+                  },
+                  "nested": {}
+                }
+              ],
+              "bucket": {
+                "type": "Composite",
+                "field": "latest_version",
+                "sources": [
+                  { "field": "latest_version" }
+                ],
+                "bucket": {
+                  "type": "DateHistogram",
+                  "field": "created_at",
+                  "metrics": [
+                    { "field": "value", "type": "Sum", "pipelines": ["CumulativeSum"] }
+                  ],
+                  "interval": "Month"
+                }
+              },
+              "staticFilters": {
+                "keywordsFilters": [
+                  { "field": "entity_type", "value": ["planBlueprint"] },
+                  { "field": "metric_type", "value": ["overtime"] }
+                ]
+              },
+              "xAxis": { "name": "time", "languageName": "KPI-DASHBOARDS.AXIS.TIME" },
+              "yAxis": [
+                { "name": "plan blueprints", "languageName": "KPI-DASHBOARDS.AXIS.PLAN-BLUEPRINTS" }
+              ],
+              "horizontal": false,
+              "areaStyle": null,
+              "tooltip": {},
+              "dataZoom": { "inside": true, "slider": true },
+              "chartDownloadJson": {}
+            }
+          ]
+        },
+        {
+          "type": "chartgroup",
+          "name": "Asset templates count",
+          "languageName": "KPI-DASHBOARDS.GROUPS.DESCRIPTION-TEMPLATES-COUNT",
+          "descriptionLanguage": "KPI-DASHBOARDS.HELP.DESCRIPTION-TEMPLATES-COUNT",
+          "width": "half",
+          "charts": [
+            {
+              "chartId": "tenant-description-templates-count",
+              "indicatorId": "{{indicator_id}}",
+              "type": "line",
+              "legend": {},
+              "tags": { "attachedTags": [] },
+              "labelSortKey": "created_at",
+              "labelsTransform": { "type": "date", "params": "MMMM yyyy" },
+              "series": [
+                {
+                  "splitSeries": [
+                    { "key": "latest_version", "callbackFnKey": "latest_version" }
+                  ],
+                  "label": {
+                    "labelKey": "created_at",
+                    "name": "description template",
+                    "languageName": "KPI-DASHBOARDS.SERIES.DESCRIPTION-TEMPLATE",
+                    "show": false
+                  },
+                  "values": {
+                    "valueKey": "value",
+                    "tests": [
+                      { "aggregateType": "Sum" },
+                      { "field": "value" },
+                      { "pipelineType": "CumulativeSum" }
+                    ],
+                    "groupTests": [],
+                    "formatter": { "type": "number", "decimalAccuracy": 0 }
+                  },
+                  "nested": {}
+                }
+              ],
+              "bucket": {
+                "type": "Composite",
+                "field": "latest_version",
+                "sources": [
+                  { "field": "latest_version" }
+                ],
+                "bucket": {
+                  "type": "DateHistogram",
+                  "field": "created_at",
+                  "metrics": [
+                    { "field": "value", "type": "Sum", "pipelines": ["CumulativeSum"] }
+                  ],
+                  "interval": "Month"
+                }
+              },
+              "staticFilters": {
+                "keywordsFilters": [
+                  { "field": "entity_type", "value": ["descriptionTemplate"] },
+                  { "field": "metric_type", "value": ["overtime"] }
+                ]
+              },
+              "xAxis": { "name": "time", "languageName": "KPI-DASHBOARDS.AXIS.TIME" },
+              "yAxis": [
+                {
+                  "name": "description template",
+                  "languageName": "KPI-DASHBOARDS.AXIS.DESCRIPTION-TEMPLATE"
+                }
+              ],
+              "horizontal": false,
+              "areaStyle": null,
+              "tooltip": {},
+              "dataZoom": { "inside": true, "slider": true },
+              "chartDownloadJson": {}
+            }
+          ]
+        },
+        {
+          "type": "chartgroup",
+          "name": "Plan blueprints per type",
+          "languageName": "KPI-DASHBOARDS.GROUPS.PLAN-BLUEPRINTS-PER-TYPE",
+          "descriptionLanguage": "KPI-DASHBOARDS.HELP.PLAN-BLUEPRINTS-PER-TYPE",
+          "width": "half",
+          "charts": [
+            {
+              "chartId": "tenant-plan-blueprints-per-type",
+              "chartShare": {},
+              "indicatorId": "{{indicator_id}}",
+              "type": "line",
+              "dataZoom": { "inside": true, "slider": true },
+              "legend": {},
+              "name": "",
+              "xAxis": { "name": "time", "languageName": "KPI-DASHBOARDS.AXIS.TIME" },
+              "yAxis": [
+                { "name": "plan blueprints", "languageName": "KPI-DASHBOARDS.AXIS.PLAN-BLUEPRINTS" }
+              ],
+              "chartDownloadJson": {},
+              "chartDownloadImage": {},
+              "bucket": {
+                "type": "Composite",
+                "field": "plan_blueprint_type_id",
+                "sources": [
+                  { "field": "plan_blueprint_type_id" }
+                ],
+                "metrics": [
+                  { "type": "Sum", "field": "value" }
+                ],
+                "bucket": {
+                  "type": "DateHistogram",
+                  "field": "created_at",
+                  "metrics": [
+                    { "field": "value", "type": "Sum", "pipelines": ["CumulativeSum"] }
+                  ],
+                  "interval": "Month"
+                },
+                "bucketSort": {
+                  "sortFields": [
+                    { "field": "value", "metricAggregateType": "Sum", "order": "DESC" }
+                  ]
+                }
+              },
+              "staticFilters": {
+                "keywordsFilters": [
+                  { "field": "entity_type", "value": ["planBlueprintPerType"] },
+                  { "field": "metric_type", "value": ["overtime"] }
+                ]
+              },
+              "labelSortKey": "created_at",
+              "labelsTransform": { "type": "date", "params": "MMMM yyyy" },
+              "series": [
+                {
+                  "splitSeries": [
+                    { "key": "plan_blueprint_type_id", "callbackFnKey": "plan_blueprint_type_id" }
+                  ],
+                  "label": {
+                    "name": "Time",
+                    "languageName": "KPI-DASHBOARDS.SERIES.TIME",
+                    "labelKey": "created_at"
+                  },
+                  "values": {
+                    "formatter": { "type": "number", "decimalAccuracy": 0 },
+                    "valueKey": "value",
+                    "tests": [
+                      { "aggregateType": "Sum" },
+                      { "field": "value" },
+                      { "pipelineType": "CumulativeSum" }
+                    ]
+                  }
+                }
+              ],
+              "areaStyle": {}
+            }
+          ]
+        },
+        {
+          "type": "chartgroup",
+          "name": "Asset templates per type",
+          "languageName": "KPI-DASHBOARDS.GROUPS.DESCRIPTION-TEMPLATES-PER-TYPE",
+          "descriptionLanguage": "KPI-DASHBOARDS.HELP.DESCRIPTION-TEMPLATES-PER-TYPE",
+          "width": "half",
+          "charts": [
+            {
+              "chartId": "tenant-description-templates-per-type",
+              "chartShare": {},
+              "indicatorId": "{{indicator_id}}",
+              "type": "line",
+              "dataZoom": { "inside": true, "slider": true },
+              "legend": {},
+              "name": "",
+              "xAxis": { "name": "time", "languageName": "KPI-DASHBOARDS.AXIS.TIME" },
+              "yAxis": [
+                {
+                  "name": "description templates",
+                  "languageName": "KPI-DASHBOARDS.AXIS.DESCRIPTION-TEMPLATES"
+                }
+              ],
+              "chartDownloadJson": {},
+              "chartDownloadImage": {},
+              "bucket": {
+                "type": "Composite",
+                "field": "description_template_type_id",
+                "sources": [
+                  { "field": "description_template_type_id" }
+                ],
+                "metrics": [
+                  { "type": "Sum", "field": "value" }
+                ],
+                "bucket": {
+                  "type": "DateHistogram",
+                  "field": "created_at",
+                  "metrics": [
+                    { "field": "value", "type": "Sum", "pipelines": ["CumulativeSum"] }
+                  ],
+                  "interval": "Month"
+                },
+                "bucketSort": {
+                  "sortFields": [
+                    { "field": "value", "metricAggregateType": "Sum", "order": "DESC" }
+                  ]
+                }
+              },
+              "staticFilters": {
+                "keywordsFilters": [
+                  { "field": "entity_type", "value": ["descriptionTemplatePerType"] },
+                  { "field": "metric_type", "value": ["overtime"] }
+                ]
+              },
+              "labelSortKey": "created_at",
+              "labelsTransform": { "type": "date", "params": "MMMM yyyy" },
+              "series": [
+                {
+                  "splitSeries": [
+                    {
+                      "key": "description_template_type_id",
+                      "callbackFnKey": "description_template_type_id"
+                    }
+                  ],
+                  "label": {
+                    "name": "Time",
+                    "languageName": "KPI-DASHBOARDS.SERIES.TIME",
+                    "labelKey": "created_at"
+                  },
+                  "values": {
+                    "formatter": { "type": "number", "decimalAccuracy": 0 },
+                    "valueKey": "value",
+                    "tests": [
+                      { "aggregateType": "Sum" },
+                      { "field": "value" },
+                      { "pipelineType": "CumulativeSum" }
+                    ]
+                  }
+                }
+              ],
+              "areaStyle": {}
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "References and users",
+      "languageName": "KPI-DASHBOARDS.TABS.REFERENCES-AND-USERS",
+      "chartGroups": [
+        {
+          "type": "chartgroup",
+          "name": "References per plan",
+          "languageName": "KPI-DASHBOARDS.GROUPS.REFERENCES-PER-PLAN",
+          "descriptionLanguage": "KPI-DASHBOARDS.HELP.REFERENCES-PER-PLAN",
+          "width": "half",
+          "charts": [
+            {
+              "chartId": "tenant-references-per-plan",
+              "chartShare": {},
+              "indicatorId": "{{indicator_id}}",
+              "type": "bar",
+              "horizontal": true,
+              "legend": {},
+              "name": "",
+              "xAxis": { "name": "plans", "languageName": "KPI-DASHBOARDS.AXIS.PLANS" },
+              "yAxis": [
+                { "name": "references", "languageName": "KPI-DASHBOARDS.AXIS.REFERENCES" }
+              ],
+              "chartDownloadJson": {},
+              "chartDownloadImage": {},
+              "bucket": {
+                "type": "Composite",
+                "field": "plan_id",
+                "sources": [
+                  { "field": "plan_id" }
+                ],
+                "metrics": [
+                  { "field": "value", "type": "Sum" }
+                ],
+                "bucketSort": {
+                  "sortFields": [
+                    { "field": "value", "metricAggregateType": "Sum", "order": "DESC" }
+                  ],
+                  "paging": { "offset": 0, "size": 10 }
+                }
+              },
+              "staticFilters": {
+                "keywordsFilters": [
+                  { "field": "entity_type", "value": ["reference"] },
+                  { "field": "metric_type", "value": ["overtime"] }
+                ]
+              },
+              "callbackFnKey": "plan_id",
+              "series": [
+                {
+                  "label": { "labelKey": "plan_id" },
+                  "values": {
+                    "valueKey": "value",
+                    "tests": [
+                      { "aggregateType": "Sum" },
+                      { "field": "value" }
+                    ],
+                    "formatter": { "type": "number", "decimalAccuracy": 0 }
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "chartgroup",
+          "name": "Users count",
+          "languageName": "KPI-DASHBOARDS.GROUPS.USERS-COUNT",
+          "descriptionLanguage": "KPI-DASHBOARDS.HELP.USERS-COUNT",
+          "width": "half",
+          "charts": [
+            {
+              "chartId": "tenant-users-count",
+              "indicatorId": "{{indicator_id}}",
+              "type": "line",
+              "tags": { "attachedTags": [] },
+              "labelSortKey": "created_at",
+              "labelsTransform": { "type": "date", "params": "MMMM yyyy" },
+              "series": [
+                {
+                  "splitSeries": [],
+                  "label": {
+                    "labelKey": "created_at",
+                    "name": "users",
+                    "languageName": "KPI-DASHBOARDS.SERIES.USERS",
+                    "show": false
+                  },
+                  "values": {
+                    "valueKey": "value",
+                    "tests": [
+                      { "aggregateType": "Sum" },
+                      { "field": "value" },
+                      { "pipelineType": "CumulativeSum" }
+                    ],
+                    "groupTests": [],
+                    "formatter": { "type": "number", "decimalAccuracy": 0 }
+                  },
+                  "nested": {}
+                }
+              ],
+              "bucket": {
+                "type": "DateHistogram",
+                "field": "created_at",
+                "metrics": [
+                  { "field": "value", "type": "Sum", "pipelines": ["CumulativeSum"] }
+                ],
+                "interval": "Month"
+              },
+              "staticFilters": {
+                "keywordsFilters": [
+                  { "field": "entity_type", "value": ["user"] },
+                  { "field": "metric_type", "value": ["overtime"] }
+                ]
+              },
+              "xAxis": { "name": "time", "languageName": "KPI-DASHBOARDS.AXIS.TIME" },
+              "yAxis": [
+                { "name": "users", "languageName": "KPI-DASHBOARDS.AXIS.USERS" }
+              ],
+              "horizontal": false,
+              "areaStyle": null,
+              "tooltip": {},
+              "dataZoom": { "inside": true, "slider": true },
+              "chartDownloadJson": {}
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -5,6 +5,7 @@ import org.opencdmp.commons.enums.PlanAccessType;
 import org.opencdmp.commons.enums.PlanStatus;
 import org.opencdmp.commons.enums.PlanVersionStatus;
 import org.opencdmp.elastic.data.nested.*;
+import org.opencdmp.elastic.query.InnerObjectPlanBlueprintElasticQuery;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.elasticsearch.annotations.*;
 
@@ -50,9 +51,9 @@ public class PlanElasticEntity {
 	private String language;
 	public final static String _language = "language";
 
-	@Field(value = PlanElasticEntity._blueprintId, type = FieldType.Keyword)
-	private UUID blueprintId;
-	public final static String _blueprintId = "blueprintId";
+	@Field(value = PlanElasticEntity._blueprint, type = FieldType.Object)
+	private NestedPlanBlueprintElasticEntity blueprint;
+	public final static String _blueprint = "blueprint";
 
 	@Field(value = PlanElasticEntity._groupId, type = FieldType.Keyword)
 	private UUID groupId;
@@ -154,14 +155,6 @@ public class PlanElasticEntity {
 		this.language = language;
 	}
 
-	public UUID getBlueprintId() {
-		return this.blueprintId;
-	}
-
-	public void setBlueprintId(UUID blueprintId) {
-		this.blueprintId = blueprintId;
-	}
-
 	public UUID getGroupId() {
 		return this.groupId;
 	}
@@ -240,5 +233,13 @@ public class PlanElasticEntity {
 
 	public void setUpdatedAt(Date updatedAt) {
 		this.updatedAt = updatedAt;
+	}
+
+	public void setPlanBlueprint(NestedPlanBlueprintElasticEntity nestedPlanBlueprintElasticEntity) {
+		this.blueprint = nestedPlanBlueprintElasticEntity;
+	}
+
+	public NestedPlanBlueprintElasticEntity getPlanBlueprint() {
+		return this.blueprint;
 	}
 }

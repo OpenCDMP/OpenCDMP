@@ -2,7 +2,7 @@ import { HttpErrorResponse, HttpHandler, HttpHeaderResponse, HttpProgressEvent, 
 import { Injectable } from '@angular/core';
 import { Router } from '@angular/router';
 import { Observable, from, throwError } from 'rxjs';
-import { catchError, filter, mergeMap, tap } from 'rxjs/operators';
+import { catchError, filter, mergeMap } from 'rxjs/operators';
 import { AuthService } from '../../../app/core/services/auth/auth.service';
 import { BaseInterceptor } from './base.interceptor';
 import { InterceptorType } from './interceptor-type';
@@ -58,7 +58,7 @@ export class UnauthorizedResponseInterceptor extends BaseInterceptor {
 	}
 
 	private repeatRequest(originalRequest: HttpRequest<any>, next: HttpHandler) {
-		const newAuthenticationToken: String = this.authService.currentAuthenticationToken();
+		const newAuthenticationToken: string = this.authService.currentAuthenticationToken();
 		const newRequest = originalRequest.clone({
 			setHeaders: {
 				Authorization: `Bearer ${newAuthenticationToken}`
@@ -70,7 +70,7 @@ export class UnauthorizedResponseInterceptor extends BaseInterceptor {
 	private handleUnauthorized() {
 		if (!this.isLoginRoute() && !this.isSignupRoute()) {
 			this.authService.clear();
-			this.router.navigate(['/unauthorized', { queryParams: { returnUrl: this.router.url } }]);
+			this.router.navigate(['/unauthorized'], { queryParams: { returnUrl: this.router.url } });
 		}
 	}
 

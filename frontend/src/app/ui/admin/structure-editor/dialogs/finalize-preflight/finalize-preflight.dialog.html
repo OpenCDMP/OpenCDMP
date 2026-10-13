@@ -1,0 +1,34 @@
+<h2 mat-dialog-title class="pf-title">{{'PLAN-BLUEPRINT-EDITOR.FINALIZE.TITLE' | translate: { name: data.name } }}</h2>
+<mat-dialog-content>
+	<p class="pf-intro">{{(data.introKey || 'PLAN-BLUEPRINT-EDITOR.FINALIZE.INTRO') | translate}}</p>
+	<div class="pf-list">
+		@for (p of blockers; track p.id) {
+			<div class="bp2-check">
+				<span class="bp2-check__dot bp2-check__dot--bad"><mat-icon aria-hidden="true">priority_high</mat-icon></span>
+				<div class="bp2-check__text"><div>{{p.message}}</div><div class="bp2-sub">{{p.where}}</div></div>
+				<button mat-stroked-button type="button" class="bp2-btn-sm" (click)="fix(p)">{{ (p.action === 'add-presets' ? 'PLAN-BLUEPRINT-EDITOR.PROBLEMS.ADD' : 'PLAN-BLUEPRINT-EDITOR.PROBLEMS.FIX') | translate }}</button>
+			</div>
+		}
+		@for (p of oks; track p.id) {
+			<div class="bp2-check">
+				<span class="bp2-check__dot bp2-check__dot--ok"><mat-icon aria-hidden="true">check</mat-icon></span>
+				<div class="bp2-check__text">{{p.message}}</div>
+			</div>
+		}
+		@for (p of optionals; track p.id) {
+			<div class="bp2-check">
+				<span class="bp2-check__dot bp2-check__dot--opt"><mat-icon aria-hidden="true">info</mat-icon></span>
+				<div class="bp2-check__text"><div>{{'PLAN-BLUEPRINT-EDITOR.FINALIZE.OPTIONAL' | translate}} {{p.message}}</div></div>
+				<button mat-button type="button" class="bp2-btn-sm" (click)="fix(p)">{{'PLAN-BLUEPRINT-EDITOR.PROBLEMS.OPEN' | translate}}</button>
+			</div>
+		}
+	</div>
+</mat-dialog-content>
+<mat-dialog-actions class="pf-actions">
+	<span class="bp2-sub pf-foot">
+		@if (blockers.length) { {{'PLAN-BLUEPRINT-EDITOR.FINALIZE.BLOCKED' | translate: { count: blockers.length } }} }
+		@else { {{'PLAN-BLUEPRINT-EDITOR.FINALIZE.READY' | translate: { tenant: data.tenantName } }} }
+	</span>
+	<button mat-button type="button" (click)="cancel()">{{'GENERAL.CONFIRMATION-DIALOG.ACTIONS.CANCEL' | translate}}</button>
+	<button mat-flat-button color="primary" type="button" [disabled]="blockers.length > 0" (click)="finalize()"><mat-icon aria-hidden="true">rocket_launch</mat-icon>{{'PLAN-BLUEPRINT-EDITOR.FINALIZE.CONFIRM' | translate: { version: data.version } }}</button>
+</mat-dialog-actions>

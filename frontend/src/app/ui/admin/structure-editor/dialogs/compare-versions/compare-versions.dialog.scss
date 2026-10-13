@@ -1,0 +1,12 @@
+@use '../../bp2-shared' as *;
+
+.cv-title { font-size: 1.15rem; }
+.cv-intro, .cv-none { margin: 0 0 .5rem; color: var(--mat-sys-on-surface-variant); font-size: .9rem; }
+.cv-list {
+	list-style: none; margin: 0 0 .5rem; padding: 0; display: flex; flex-direction: column; gap: .3rem;
+	li { display: flex; align-items: flex-start; gap: .5rem; font-size: .875rem; mat-icon { font-size: 18px; width: 18px; height: 18px; flex: none; margin-top: 1px; } }
+}
+.cv-add mat-icon { color: var(--bp2-ok); }
+.cv-chg mat-icon { color: var(--mat-sys-primary); }
+.cv-rem mat-icon { color: var(--mat-sys-error); }
+.cv-actions { display: flex; justify-content: flex-end; padding: .5rem 1.5rem 1.25rem; }

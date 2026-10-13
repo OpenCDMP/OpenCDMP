@@ -7,6 +7,8 @@ import { catchError } from 'rxjs/operators';
 import { ConfigurationService } from '../configuration/configuration.service';
 import { BaseHttpV2Service } from '../http/base-http-v2.service';
 import { FileTransformerConfiguration } from '@app/core/model/file/file-transformer-configuration.model';
+import { TemplateValidationResult } from '@app/core/model/file/template-validation-result.model';
+import { PluginEntityType } from '@app/core/common/enum/plugin-entity-type';
 
 @Injectable()
 export class FileTransformerHttpService extends BaseService {
@@ -25,23 +27,28 @@ export class FileTransformerHttpService extends BaseService {
 		return this.http.get<FileTransformerConfiguration[]>(url).pipe(catchError((error: any) => throwError(error)));
 	}
 
-	exportPlan(planId: Guid, repositoryId: string, format: string): Observable<any> {
+	validateTemplate(fileId: Guid | string, repositoryId: string, entityType: PluginEntityType): Observable<TemplateValidationResult> {
+		const url = `${this.apiBase}/validate-template`;
+		return this.http.post<TemplateValidationResult>(url, {fileId: fileId, repositoryId: repositoryId, entityType: entityType}).pipe(catchError((error: any) => throwError(error)));
+	}
+
+	exportPlan(planId: Guid, repositoryId: string, format: string, options?: { [code: string]: string }): Observable<any> {
 		const url = `${this.apiBase}/export-plan`;
-		return this.http.post<any>(url, {id: planId, repositoryId: repositoryId, format: format}, {responseType: 'blob', observe: 'response'}).pipe(catchError((error: any) => throwError(error)));
+		return this.http.post<any>(url, {id: planId, repositoryId: repositoryId, format: format, options: options}, {responseType: 'blob', observe: 'response'}).pipe(catchError((error: any) => throwError(error)));
 	}
 
-	exportPublicPlan(planId: Guid, repositoryId: string, format: string): Observable<any> {
+	exportPublicPlan(planId: Guid, repositoryId: string, format: string, options?: { [code: string]: string }): Observable<any> {
 		const url = `${this.apiBase}/export-public-plan`;
-		return this.http.post<any>(url, {id: planId, repositoryId: repositoryId, format: format}, {responseType: 'blob', observe: 'response'}).pipe(catchError((error: any) => throwError(error)));
+		return this.http.post<any>(url, {id: planId, repositoryId: repositoryId, format: format, options: options}, {responseType: 'blob', observe: 'response'}).pipe(catchError((error: any) => throwError(error)));
 	}
 
-	exportDescription(id: Guid, repositoryId: string, format: string): Observable<any> {
+	exportDescription(id: Guid, repositoryId: string, format: string, options?: { [code: string]: string }): Observable<any> {
 		const url = `${this.apiBase}/export-description`;
-		return this.http.post<any>(url, {id: id, repositoryId: repositoryId, format: format}, {responseType: 'blob', observe: 'response'}).pipe(catchError((error: any) => throwError(error)));
+		return this.http.post<any>(url, {id: id, repositoryId: repositoryId, format: format, options: options}, {responseType: 'blob', observe: 'response'}).pipe(catchError((error: any) => throwError(error)));
 	}
 
-	exportPublicDescription(id: Guid, repositoryId: string, format: string): Observable<any> {
+	exportPublicDescription(id: Guid, repositoryId: string, format: string, options?: { [code: string]: string }): Observable<any> {
 		const url = `${this.apiBase}/export-public-description`;
-		return this.http.post<any>(url, {id: id, repositoryId: repositoryId, format: format}, {responseType: 'blob', observe: 'response'}).pipe(catchError((error: any) => throwError(error)));
+		return this.http.post<any>(url, {id: id, repositoryId: repositoryId, format: format, options: options}, {responseType: 'blob', observe: 'response'}).pipe(catchError((error: any) => throwError(error)));
 	}
 }

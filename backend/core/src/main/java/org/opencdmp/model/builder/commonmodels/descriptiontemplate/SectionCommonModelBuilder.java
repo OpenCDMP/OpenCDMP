@@ -4,7 +4,7 @@ import gr.cite.tools.data.builder.BuilderFactory;
 import gr.cite.tools.exception.MyApplicationException;
 import gr.cite.tools.logging.LoggerService;
 import org.opencdmp.authorization.AuthorizationFlags;
-import org.opencdmp.commonmodels.models.descriptiotemplate.SectionModel;
+import org.opencdmp.commonmodels.models.planblueprintdescriptiontemplatefields.SectionModel;
 import org.opencdmp.commons.types.descriptiontemplate.SectionEntity;
 import org.opencdmp.convention.ConventionService;
 import org.opencdmp.model.builder.commonmodels.BaseCommonModelBuilder;
@@ -51,6 +51,7 @@ public class SectionCommonModelBuilder extends BaseCommonModelBuilder<SectionMod
             m.setOrdinal(d.getOrdinal());
             m.setTitle(d.getTitle());
             m.setExtendedDescription(d.getExtendedDescription());
+            m.setSemantics(d.getSemantics());
             if (d.getSections() != null) m.setSections(this.builderFactory.builder(SectionCommonModelBuilder.class).authorize(this.authorize).build(d.getSections()));
             if (d.getFieldSets() != null) m.setFieldSets(this.builderFactory.builder(FieldSetCommonModelBuilder.class).authorize(this.authorize).build(d.getFieldSets()));
             models.add(new CommonModelBuilderItemResponse<>(m, d));

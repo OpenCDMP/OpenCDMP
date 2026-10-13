@@ -1,0 +1,292 @@
+<div class="container-fluid">
+  <div class="row root">
+    <div class="col-md-10 offset-md-1">
+      <app-admin-page-header
+        titleKey="TENANT-TRANSFER.TITLE"
+        descriptionKey="TENANT-TRANSFER.DESCRIPTION" />
+
+      <p class="current-tenant" [innerHTML]="language.instant('TENANT-TRANSFER.CURRENT-TENANT', { tenantName: currentTenantName, tenantCode: currentTenantCode })"></p>
+
+      <mat-tab-group class="transfer-tabs" animationDuration="0ms" mat-stretch-tabs="false" mat-align-tabs="start">
+        <mat-tab [label]="language.instant('TENANT-TRANSFER.SECTIONS.EXPORT.TITLE')">
+          <form [formGroup]="exportForm" class="tab-body">
+            <p class="hint-text">{{language.instant('TENANT-TRANSFER.SECTIONS.EXPORT.DESCRIPTION')}}</p>
+            <div class="option-groups">
+              <fieldset class="option-group">
+                <legend>{{language.instant('TENANT-TRANSFER.SECTIONS.EXPORT.CONFIGURATION-TITLE')}}</legend>
+                <div class="d-flex flex-column gap-1">
+                  <mat-checkbox formControlName="includeAllReferenceTypes">{{language.instant('TENANT-TRANSFER.SECTIONS.EXPORT.FIELDS.ALL-REFERENCE-TYPES')}}</mat-checkbox>
+                  <mat-checkbox formControlName="includeAllPrefillingSources">{{language.instant('TENANT-TRANSFER.SECTIONS.EXPORT.FIELDS.ALL-PREFILLING-SOURCES')}}</mat-checkbox>
+                  <mat-checkbox formControlName="includeAllDescriptionTemplateTypes">{{language.instant('TENANT-TRANSFER.SECTIONS.EXPORT.FIELDS.ALL-DESCRIPTION-TEMPLATE-TYPES')}}</mat-checkbox>
+                  <mat-checkbox formControlName="includeAllPlanBlueprintTypes">{{language.instant('TENANT-TRANSFER.SECTIONS.EXPORT.FIELDS.ALL-PLAN-BLUEPRINT-TYPES')}}</mat-checkbox>
+                  <mat-checkbox formControlName="includeAllStatusesAndWorkflows">{{language.instant('TENANT-TRANSFER.SECTIONS.EXPORT.FIELDS.ALL-STATUSES-WORKFLOWS')}}</mat-checkbox>
+                  <mat-checkbox formControlName="includeAllLanguages">{{language.instant('TENANT-TRANSFER.SECTIONS.EXPORT.FIELDS.ALL-LANGUAGES')}}</mat-checkbox>
+                  <mat-checkbox formControlName="includeSupportiveMaterial">{{language.instant('TENANT-TRANSFER.SECTIONS.EXPORT.FIELDS.SUPPORTIVE-MATERIAL')}}</mat-checkbox>
+                </div>
+              </fieldset>
+              <fieldset class="option-group">
+                <legend>{{language.instant('TENANT-TRANSFER.SECTIONS.EXPORT.CONTENT-TITLE')}}</legend>
+                <div class="d-flex flex-column gap-1">
+                  <mat-checkbox formControlName="includeAllDescriptionTemplates">{{language.instant('TENANT-TRANSFER.SECTIONS.EXPORT.FIELDS.ALL-DESCRIPTION-TEMPLATES')}}</mat-checkbox>
+                  @if (!exportForm.get('includeAllDescriptionTemplates').value) {
+                    <mat-form-field class="w-100">
+                      <mat-label>{{language.instant('TENANT-TRANSFER.SECTIONS.EXPORT.FIELDS.DESCRIPTION-TEMPLATES')}}</mat-label>
+                      <app-multiple-auto-complete [formControl]="exportForm.get('descriptionTemplateIds')" [configuration]="descriptionTemplateService.multipleAutocompleteConfiguration" />
+                    </mat-form-field>
+                  }
+                  <mat-checkbox formControlName="includeAllPlanBlueprints">{{language.instant('TENANT-TRANSFER.SECTIONS.EXPORT.FIELDS.ALL-PLAN-BLUEPRINTS')}}</mat-checkbox>
+                  @if (!exportForm.get('includeAllPlanBlueprints').value) {
+                    <mat-form-field class="w-100">
+                      <mat-label>{{language.instant('TENANT-TRANSFER.SECTIONS.EXPORT.FIELDS.PLAN-BLUEPRINTS')}}</mat-label>
+                      <app-multiple-auto-complete [formControl]="exportForm.get('planBlueprintIds')" [configuration]="planBlueprintService.multipleAutocompleteConfiguration" />
+                    </mat-form-field>
+                  }
+                  <mat-checkbox formControlName="includeAllPlans" aria-describedby="tenant-transfer-all-plans-hint">{{language.instant('TENANT-TRANSFER.SECTIONS.EXPORT.FIELDS.ALL-PLANS')}}</mat-checkbox>
+                  <p id="tenant-transfer-all-plans-hint" class="hint-text checkbox-hint">{{language.instant('TENANT-TRANSFER.SECTIONS.EXPORT.FIELDS.ALL-PLANS-HINT')}}</p>
+                  @if (!exportForm.get('includeAllPlans').value) {
+                    <mat-form-field class="w-100">
+                      <mat-label>{{language.instant('TENANT-TRANSFER.SECTIONS.EXPORT.FIELDS.PLANS')}}</mat-label>
+                      <app-multiple-auto-complete [formControl]="exportForm.get('planIds')" [configuration]="planService.multipleAutocompleteConfiguration" />
+                    </mat-form-field>
+                  }
+                </div>
+              </fieldset>
+            </div>
+            <p class="mt-3 hint-text">{{language.instant('TENANT-TRANSFER.SECTIONS.EXPORT.HINT')}}</p>
+            <div class="mt-2">
+              <button mat-flat-button color="primary" class="padded-shadow-btn" [disabled]="exportInProgress" (click)="export($event)">
+                {{language.instant('TENANT-TRANSFER.SECTIONS.EXPORT.ACTIONS.EXPORT')}}
+              </button>
+            </div>
+          </form>
+        </mat-tab>
+
+        <mat-tab [label]="language.instant('TENANT-TRANSFER.SECTIONS.IMPORT.TITLE')">
+          <div class="tab-body">
+            <p class="hint-text">{{language.instant('TENANT-TRANSFER.SECTIONS.IMPORT.DESCRIPTION')}}</p>
+            <ol class="steps">
+              <li class="step">
+                <h3 class="step-title">{{language.instant('TENANT-TRANSFER.SECTIONS.IMPORT.STEPS.CHOOSE')}}</h3>
+                <app-file-uploader
+                  [accept]="'.zip, application/zip'"
+                  [placeholder]="language.instant('TENANT-TRANSFER.SECTIONS.IMPORT.UPLOAD-PLACEHOLDER')"
+                  (onChange)="selectFile($event)"
+                  (onRemove)="onRemoveFile()" />
+              </li>
+              <li class="step">
+                <h3 class="step-title">{{language.instant('TENANT-TRANSFER.SECTIONS.IMPORT.STEPS.CHECK')}}</h3>
+                <p class="hint-text">{{language.instant('TENANT-TRANSFER.SECTIONS.IMPORT.HINT')}}</p>
+                <button mat-stroked-button class="mb-1" [disabled]="!importFile || analyzeInProgress || importInProgress" (click)="analyze($event)">
+                  {{language.instant('TENANT-TRANSFER.SECTIONS.IMPORT.ACTIONS.ANALYZE')}}
+                </button>
+
+                @if (report) {
+                  <div class="mt-3 report">
+                    <h4>
+                      {{language.instant(report.applied ? 'TENANT-TRANSFER.SECTIONS.IMPORT.REPORT.APPLIED-TITLE' : 'TENANT-TRANSFER.SECTIONS.IMPORT.REPORT.DRY-RUN-TITLE')}}
+                      @if (report.sourceTenantCode) {
+                        <span class="source-tenant">({{language.instant('TENANT-TRANSFER.SECTIONS.IMPORT.REPORT.SOURCE-TENANT')}}: {{report.sourceTenantCode}})</span>
+                      }
+                    </h4>
+                    <div class="table-scroll">
+                      <table class="report-table">
+                        <thead>
+                          <tr>
+                            <th>{{language.instant('TENANT-TRANSFER.SECTIONS.IMPORT.REPORT.COLUMNS.ENTITY-TYPE')}}</th>
+                            <th>{{language.instant('TENANT-TRANSFER.SECTIONS.IMPORT.REPORT.COLUMNS.TOTAL')}}</th>
+                            <th>{{language.instant(report.applied ? 'TENANT-TRANSFER.SECTIONS.IMPORT.REPORT.COLUMNS.CREATED' : 'TENANT-TRANSFER.SECTIONS.IMPORT.REPORT.COLUMNS.TO-CREATE')}}</th>
+                            <th>{{language.instant('TENANT-TRANSFER.SECTIONS.IMPORT.REPORT.COLUMNS.MATCHED-BY-ID')}}</th>
+                            <th>{{language.instant('TENANT-TRANSFER.SECTIONS.IMPORT.REPORT.COLUMNS.MATCHED-BY-KEY')}}</th>
+                            <th>{{language.instant('TENANT-TRANSFER.SECTIONS.IMPORT.REPORT.COLUMNS.CONFLICTS')}}</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          @for (type of report.types; track type.entityType) {
+                            <tr>
+                              <td>{{type.entityType}}</td>
+                              <td>{{type.total}}</td>
+                              <td>{{type.toCreate}}</td>
+                              <td>{{type.matchedById}}</td>
+                              <td>{{type.matchedByKey}}</td>
+                              <td [class.conflict]="type.conflicts > 0">{{type.conflicts}}</td>
+                            </tr>
+                          }
+                        </tbody>
+                      </table>
+                    </div>
+                    @if (reportHasMessages()) {
+                      <h5 class="mt-3">{{language.instant('TENANT-TRANSFER.SECTIONS.IMPORT.REPORT.MESSAGES-TITLE')}}</h5>
+                      <ul>
+                        @for (type of report.types; track type.entityType) {
+                          @for (message of type.messages; track $index) {
+                            <li><strong>{{type.entityType}}:</strong> {{message}}</li>
+                          }
+                        }
+                      </ul>
+                    }
+                    @if (report.warnings?.length > 0) {
+                      <h5 class="mt-3">{{language.instant('TENANT-TRANSFER.SECTIONS.IMPORT.REPORT.WARNINGS-TITLE')}}</h5>
+                      <ul>
+                        @for (warning of report.warnings; track $index) {
+                          <li>{{warning}}</li>
+                        }
+                      </ul>
+                    }
+                  </div>
+                }
+              </li>
+              <li class="step">
+                <h3 class="step-title">{{language.instant('TENANT-TRANSFER.SECTIONS.IMPORT.STEPS.IMPORT')}}</h3>
+                <button mat-flat-button color="warn" class="mb-1 padded-shadow-btn" [disabled]="!importFile || !report || analyzeInProgress || importInProgress" (click)="import($event)">
+                  {{language.instant('TENANT-TRANSFER.SECTIONS.IMPORT.ACTIONS.IMPORT', { tenantName: currentTenantName })}}
+                </button>
+              </li>
+            </ol>
+          </div>
+        </mat-tab>
+
+        <mat-tab [label]="language.instant('TENANT-TRANSFER.SECTIONS.COPY.TITLE')">
+          <form [formGroup]="copyForm" class="tab-body">
+            <p class="hint-text">{{language.instant('TENANT-TRANSFER.SECTIONS.COPY.DESCRIPTION')}}</p>
+            <mat-form-field class="w-100 source-field">
+              <mat-label>{{language.instant('TENANT-TRANSFER.SECTIONS.COPY.FIELDS.SOURCE-TENANT')}}</mat-label>
+              <input matInput formControlName="sourceTenantCode" autocomplete="off" />
+              <mat-hint>{{language.instant('TENANT-TRANSFER.SECTIONS.COPY.FIELDS.SOURCE-TENANT-HINT')}}</mat-hint>
+            </mat-form-field>
+            <div class="d-flex flex-column gap-1 mt-2">
+              <mat-checkbox formControlName="includeAllPlans">{{language.instant('TENANT-TRANSFER.SECTIONS.EXPORT.FIELDS.ALL-PLANS')}}</mat-checkbox>
+              <mat-checkbox formControlName="includeAllDescriptionTemplates">{{language.instant('TENANT-TRANSFER.SECTIONS.EXPORT.FIELDS.ALL-DESCRIPTION-TEMPLATES')}}</mat-checkbox>
+              <mat-checkbox formControlName="includeAllPlanBlueprints">{{language.instant('TENANT-TRANSFER.SECTIONS.EXPORT.FIELDS.ALL-PLAN-BLUEPRINTS')}}</mat-checkbox>
+              <mat-checkbox formControlName="includeAllReferenceTypes">{{language.instant('TENANT-TRANSFER.SECTIONS.EXPORT.FIELDS.ALL-REFERENCE-TYPES')}}</mat-checkbox>
+              <mat-checkbox formControlName="includeAllPrefillingSources">{{language.instant('TENANT-TRANSFER.SECTIONS.EXPORT.FIELDS.ALL-PREFILLING-SOURCES')}}</mat-checkbox>
+              <mat-checkbox formControlName="includeAllDescriptionTemplateTypes">{{language.instant('TENANT-TRANSFER.SECTIONS.EXPORT.FIELDS.ALL-DESCRIPTION-TEMPLATE-TYPES')}}</mat-checkbox>
+              <mat-checkbox formControlName="includeAllPlanBlueprintTypes">{{language.instant('TENANT-TRANSFER.SECTIONS.EXPORT.FIELDS.ALL-PLAN-BLUEPRINT-TYPES')}}</mat-checkbox>
+              <mat-checkbox formControlName="includeAllStatusesAndWorkflows">{{language.instant('TENANT-TRANSFER.SECTIONS.EXPORT.FIELDS.ALL-STATUSES-WORKFLOWS')}}</mat-checkbox>
+            </div>
+            <p class="mt-3 hint-text">{{language.instant('TENANT-TRANSFER.SECTIONS.COPY.HINT')}}</p>
+            <div class="mt-2">
+              <button mat-stroked-button class="mb-1 mr-1" [disabled]="!copySourceValid || copyAnalyzeInProgress || copyInProgress" (click)="analyzeCopy($event)">
+                {{language.instant('TENANT-TRANSFER.SECTIONS.COPY.ACTIONS.ANALYZE')}}
+              </button>
+              <button mat-flat-button color="primary" class="mb-1 mr-1 padded-shadow-btn" [disabled]="!copySourceValid || !copyReport || copyAnalyzeInProgress || copyInProgress" (click)="copy($event)">
+                {{language.instant('TENANT-TRANSFER.SECTIONS.COPY.ACTIONS.COPY', { tenantName: currentTenantName })}}
+              </button>
+            </div>
+            @if (copyReport) {
+              <div class="mt-3 report">
+                <h3>
+                  {{language.instant(copyReport.applied ? 'TENANT-TRANSFER.SECTIONS.COPY.REPORT.APPLIED-TITLE' : 'TENANT-TRANSFER.SECTIONS.COPY.REPORT.DRY-RUN-TITLE')}}
+                  @if (copyReport.sourceTenantCode) {
+                    <span class="source-tenant">({{language.instant('TENANT-TRANSFER.SECTIONS.IMPORT.REPORT.SOURCE-TENANT')}}: {{copyReport.sourceTenantCode}})</span>
+                  }
+                </h3>
+                <div class="table-scroll">
+                  <table class="report-table">
+                    <thead>
+                      <tr>
+                        <th>{{language.instant('TENANT-TRANSFER.SECTIONS.IMPORT.REPORT.COLUMNS.ENTITY-TYPE')}}</th>
+                        <th>{{language.instant('TENANT-TRANSFER.SECTIONS.IMPORT.REPORT.COLUMNS.TOTAL')}}</th>
+                        <th>{{language.instant(copyReport.applied ? 'TENANT-TRANSFER.SECTIONS.COPY.REPORT.COLUMNS.COPIED' : 'TENANT-TRANSFER.SECTIONS.COPY.REPORT.COLUMNS.TO-COPY')}}</th>
+                        <th>{{language.instant('TENANT-TRANSFER.SECTIONS.COPY.REPORT.COLUMNS.SHARED')}}</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      @for (type of copyReport.types; track type.entityType) {
+                        <tr>
+                          <td>{{type.entityType}}</td>
+                          <td>{{type.total}}</td>
+                          <td>{{type.toCreate}}</td>
+                          <td>{{type.matchedById}}</td>
+                        </tr>
+                      }
+                    </tbody>
+                  </table>
+                </div>
+                @if (copyReport.warnings?.length > 0) {
+                  <h4 class="mt-3">{{language.instant('TENANT-TRANSFER.SECTIONS.IMPORT.REPORT.WARNINGS-TITLE')}}</h4>
+                  <ul>
+                    @for (warning of copyReport.warnings; track $index) {
+                      <li>{{warning}}</li>
+                    }
+                  </ul>
+                }
+              </div>
+            }
+          </form>
+        </mat-tab>
+      </mat-tab-group>
+
+      @if (canPurge) {
+        <details class="danger-zone">
+          <summary class="danger-title">{{language.instant('TENANT-TRANSFER.SECTIONS.PURGE.TITLE', { tenantName: currentTenantName })}}</summary>
+          <form [formGroup]="purgeForm" class="danger-body">
+            <p>{{language.instant('TENANT-TRANSFER.SECTIONS.PURGE.DESCRIPTION')}}</p>
+            <p class="hint-text">{{language.instant('TENANT-TRANSFER.SECTIONS.PURGE.HINT')}}</p>
+            <div class="d-flex flex-column gap-1">
+              <mat-checkbox formControlName="deletePlans">{{language.instant('TENANT-TRANSFER.SECTIONS.PURGE.FIELDS.PLANS')}}</mat-checkbox>
+              <mat-checkbox formControlName="deleteReferences">{{language.instant('TENANT-TRANSFER.SECTIONS.PURGE.FIELDS.REFERENCES')}}</mat-checkbox>
+              <mat-checkbox formControlName="deleteTags">{{language.instant('TENANT-TRANSFER.SECTIONS.PURGE.FIELDS.TAGS')}}</mat-checkbox>
+              <mat-checkbox formControlName="deleteDescriptionTemplates">{{language.instant('TENANT-TRANSFER.SECTIONS.PURGE.FIELDS.DESCRIPTION-TEMPLATES')}}</mat-checkbox>
+              <mat-checkbox formControlName="deletePlanBlueprints">{{language.instant('TENANT-TRANSFER.SECTIONS.PURGE.FIELDS.PLAN-BLUEPRINTS')}}</mat-checkbox>
+              <mat-checkbox formControlName="deleteReferenceTypes">{{language.instant('TENANT-TRANSFER.SECTIONS.PURGE.FIELDS.REFERENCE-TYPES')}}</mat-checkbox>
+              <mat-checkbox formControlName="deletePrefillingSources">{{language.instant('TENANT-TRANSFER.SECTIONS.PURGE.FIELDS.PREFILLING-SOURCES')}}</mat-checkbox>
+              <mat-checkbox formControlName="deleteStatusesAndWorkflows">{{language.instant('TENANT-TRANSFER.SECTIONS.PURGE.FIELDS.STATUSES-WORKFLOWS')}}</mat-checkbox>
+              <mat-checkbox formControlName="deleteBlueprintTypes">{{language.instant('TENANT-TRANSFER.SECTIONS.PURGE.FIELDS.BLUEPRINT-TYPES')}}</mat-checkbox>
+              <mat-checkbox formControlName="deleteTemplateTypes">{{language.instant('TENANT-TRANSFER.SECTIONS.PURGE.FIELDS.TEMPLATE-TYPES')}}</mat-checkbox>
+              <mat-checkbox formControlName="deleteStorageFiles">{{language.instant('TENANT-TRANSFER.SECTIONS.PURGE.FIELDS.STORAGE-FILES')}}</mat-checkbox>
+            </div>
+            <div class="mt-3">
+              <button mat-stroked-button class="mb-1 mr-1" [disabled]="purgeSelectionEmpty || purgeAnalyzeInProgress || purgeInProgress" (click)="analyzePurge($event)">
+                {{language.instant('TENANT-TRANSFER.SECTIONS.PURGE.ACTIONS.ANALYZE')}}
+              </button>
+            </div>
+            @if (purgeReport) {
+              <div class="mt-3 report">
+                <h3>{{language.instant(purgeReport.applied ? 'TENANT-TRANSFER.SECTIONS.PURGE.REPORT.APPLIED-TITLE' : 'TENANT-TRANSFER.SECTIONS.PURGE.REPORT.DRY-RUN-TITLE')}}</h3>
+                <div class="table-scroll">
+                  <table class="report-table">
+                    <thead>
+                      <tr>
+                        <th>{{language.instant('TENANT-TRANSFER.SECTIONS.IMPORT.REPORT.COLUMNS.ENTITY-TYPE')}}</th>
+                        <th>{{language.instant(purgeReport.applied ? 'TENANT-TRANSFER.SECTIONS.PURGE.REPORT.COLUMNS.DELETED' : 'TENANT-TRANSFER.SECTIONS.PURGE.REPORT.COLUMNS.TO-DELETE')}}</th>
+                        <th>{{language.instant('TENANT-TRANSFER.SECTIONS.PURGE.REPORT.COLUMNS.KEPT')}}</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      @for (type of purgeReport.types; track type.entityType) {
+                        <tr>
+                          <td>{{type.entityType}}</td>
+                          <td>{{type.toDelete}}</td>
+                          <td>{{type.kept}}</td>
+                        </tr>
+                      }
+                    </tbody>
+                  </table>
+                </div>
+                @if (purgeReport.warnings?.length > 0) {
+                  <h4 class="mt-3">{{language.instant('TENANT-TRANSFER.SECTIONS.IMPORT.REPORT.WARNINGS-TITLE')}}</h4>
+                  <ul>
+                    @for (warning of purgeReport.warnings; track $index) {
+                      <li>{{warning}}</li>
+                    }
+                  </ul>
+                }
+              </div>
+            }
+            @if (purgeReport && !purgeReport.applied) {
+              <div class="mt-3">
+                <mat-form-field class="w-100">
+                  <mat-label>{{language.instant('TENANT-TRANSFER.SECTIONS.PURGE.CONFIRM-INPUT', { tenantCode: currentTenantCode })}}</mat-label>
+                  <input matInput [(ngModel)]="purgeConfirmationText" [ngModelOptions]="{standalone: true}" autocomplete="off" />
+                </mat-form-field>
+                <button mat-flat-button color="warn" class="padded-shadow-btn" [disabled]="purgeConfirmationText !== currentTenantCode || purgeInProgress || purgeAnalyzeInProgress" (click)="purge($event)">
+                  {{language.instant('TENANT-TRANSFER.SECTIONS.PURGE.ACTIONS.PURGE')}}
+                </button>
+              </div>
+            }
+          </form>
+        </details>
+      }
+    </div>
+  </div>
+</div>

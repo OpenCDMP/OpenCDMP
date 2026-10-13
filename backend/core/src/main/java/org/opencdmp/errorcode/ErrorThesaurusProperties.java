@@ -804,4 +804,145 @@ public class ErrorThesaurusProperties {
     public void setCannotMergeAccountWithSameEmail(ErrorDescription cannotMergeAccountWithSameEmail) {
         this.cannotMergeAccountWithSameEmail = cannotMergeAccountWithSameEmail;
     }
+
+    private ErrorDescription transferBundleInvalid;
+
+    public ErrorDescription getTransferBundleInvalid() {
+        return transferBundleInvalid;
+    }
+
+    public void setTransferBundleInvalid(ErrorDescription transferBundleInvalid) {
+        this.transferBundleInvalid = transferBundleInvalid;
+    }
+
+    private ErrorDescription transferDbVersionMismatch;
+
+    public ErrorDescription getTransferDbVersionMismatch() {
+        return transferDbVersionMismatch;
+    }
+
+    public void setTransferDbVersionMismatch(ErrorDescription transferDbVersionMismatch) {
+        this.transferDbVersionMismatch = transferDbVersionMismatch;
+    }
+
+    private ErrorDescription reportQuestionNotFound;
+
+    public ErrorDescription getReportQuestionNotFound() {
+        return reportQuestionNotFound;
+    }
+
+    public void setReportQuestionNotFound(ErrorDescription reportQuestionNotFound) {
+        this.reportQuestionNotFound = reportQuestionNotFound;
+    }
+
+    private ErrorDescription reportSubjectCapExceeded;
+
+    public ErrorDescription getReportSubjectCapExceeded() {
+        return reportSubjectCapExceeded;
+    }
+
+    public void setReportSubjectCapExceeded(ErrorDescription reportSubjectCapExceeded) {
+        this.reportSubjectCapExceeded = reportSubjectCapExceeded;
+    }
+
+    private ErrorDescription reportSubjectNotSupported;
+
+    public ErrorDescription getReportSubjectNotSupported() {
+        return reportSubjectNotSupported;
+    }
+
+    public void setReportSubjectNotSupported(ErrorDescription reportSubjectNotSupported) {
+        this.reportSubjectNotSupported = reportSubjectNotSupported;
+    }
+
+    private ErrorDescription maintenanceRunInProgress;
+
+    public ErrorDescription getMaintenanceRunInProgress() {
+        return maintenanceRunInProgress;
+    }
+
+    public void setMaintenanceRunInProgress(ErrorDescription maintenanceRunInProgress) {
+        this.maintenanceRunInProgress = maintenanceRunInProgress;
+    }
+
+    private ErrorDescription depositCredentialsMissing;
+
+    public ErrorDescription getDepositCredentialsMissing() {
+        return depositCredentialsMissing;
+    }
+
+    public void setDepositCredentialsMissing(ErrorDescription depositCredentialsMissing) {
+        this.depositCredentialsMissing = depositCredentialsMissing;
+    }
+
+    private ErrorDescription depositWayNotAllowed;
+
+    public ErrorDescription getDepositWayNotAllowed() {
+        return depositWayNotAllowed;
+    }
+
+    public void setDepositWayNotAllowed(ErrorDescription depositWayNotAllowed) {
+        this.depositWayNotAllowed = depositWayNotAllowed;
+    }
+
+    private ErrorDescription depositSignInFailed;
+
+    public ErrorDescription getDepositSignInFailed() {
+        return depositSignInFailed;
+    }
+
+    public void setDepositSignInFailed(ErrorDescription depositSignInFailed) {
+        this.depositSignInFailed = depositSignInFailed;
+    }
+
+    private ErrorDescription internalPlanEntryNotFound;
+
+    public ErrorDescription getInternalPlanEntryNotFound() {
+        return internalPlanEntryNotFound;
+    }
+
+    public void setInternalPlanEntryNotFound(ErrorDescription internalPlanEntryNotFound) {
+        this.internalPlanEntryNotFound = internalPlanEntryNotFound;
+    }
+
+    private ErrorDescription internalDescriptionEntryNotFound;
+
+    public ErrorDescription getInternalDescriptionEntryNotFound() {
+        return internalDescriptionEntryNotFound;
+    }
+
+    public void setInternalDescriptionEntryNotFound(ErrorDescription internalDescriptionEntryNotFound) {
+        this.internalDescriptionEntryNotFound = internalDescriptionEntryNotFound;
+    }
+
+    private ErrorDescription cannotRemoveOwnAdminRole;
+
+    public ErrorDescription getCannotRemoveOwnAdminRole() {
+        return cannotRemoveOwnAdminRole;
+    }
+
+    public void setCannotRemoveOwnAdminRole(ErrorDescription cannotRemoveOwnAdminRole) {
+        this.cannotRemoveOwnAdminRole = cannotRemoveOwnAdminRole;
+    }
+
+    private ErrorDescription lastTenantAdmin;
+
+    public ErrorDescription getLastTenantAdmin() {
+        return lastTenantAdmin;
+    }
+
+    public void setLastTenantAdmin(ErrorDescription lastTenantAdmin) {
+        this.lastTenantAdmin = lastTenantAdmin;
+    }
+
+    private ErrorDescription statusTransitionNotAllowed;
+
+    public ErrorDescription getStatusTransitionNotAllowed() {
+        return statusTransitionNotAllowed;
+    }
+
+    public void setStatusTransitionNotAllowed(ErrorDescription statusTransitionNotAllowed) {
+        this.statusTransitionNotAllowed = statusTransitionNotAllowed;
+    }
+
 }

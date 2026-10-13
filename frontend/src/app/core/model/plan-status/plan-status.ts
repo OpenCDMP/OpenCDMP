@@ -3,7 +3,7 @@ import { PlanStatusEnum } from "@app/core/common/enum/plan-status";
 import { PlanStatusAvailableActionType } from "@app/core/common/enum/plan-status-available-action-type";
 import { PlanUserRole } from "@app/core/common/enum/plan-user-role";
 import { BaseEntity } from "@common/base/base-entity.model";
-import { StorageFile } from "../storage-file/storage-file";
+import { IconConfiguration } from "../icon-configuration/icon-configuration";
 
 export interface PlanStatus extends BaseEntity{
     name: string;
@@ -17,8 +17,7 @@ export interface PlanStatus extends BaseEntity{
 export interface PlanStatusDefinition {
     authorization: PlanStatusDefinitionAuthorization
     availableActions: PlanStatusAvailableActionType[]
-    matIconName: string;
-    storageFile: StorageFile;
+    iconConfiguration?: IconConfiguration;
     statusColor: string;
 }
 

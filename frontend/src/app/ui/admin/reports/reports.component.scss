@@ -1,0 +1,219 @@
+.reports-page {
+	padding: 1rem;
+	max-width: 76rem;
+	margin: 0 auto;
+}
+
+:host {
+	--report-muted: #5b6470;
+	--report-link: var(--mat-sys-primary);
+}
+
+// Sits beside the stroked Copy link / Export buttons, so it takes their pill shape, 32px
+// height (30px plus the group's border) and outline; selected reads like the page's other tints.
+.scope-toggle {
+	--mat-button-toggle-shape: 9999px;
+	--mat-button-toggle-height: 30px;
+	--mat-button-toggle-divider-color: var(--mat-sys-outline);
+	--mat-button-toggle-selected-state-background-color: var(--mat-sys-primary-container);
+	--mat-button-toggle-selected-state-text-color: var(--mat-sys-on-surface);
+	border-color: var(--mat-sys-outline);
+	font-size: 0.8125rem;
+
+	.mat-button-toggle-checked {
+		font-weight: 500;
+	}
+}
+
+.page-header {
+	margin-bottom: 1.5rem;
+
+	.scope-toggle {
+		margin-top: 0.75rem;
+	}
+
+	h1 {
+		font-size: 1.5rem;
+		margin: 0 0 0.25rem;
+	}
+
+	p {
+		margin: 0;
+		color: var(--report-muted, #5b6470);
+	}
+}
+
+.ask {
+	font-size: 1.25rem;
+	font-weight: 600;
+	margin: 0 0 0.75rem;
+}
+
+.section-label {
+	font-size: 0.6875rem;
+	text-transform: uppercase;
+	letter-spacing: 0.06em;
+	color: var(--report-muted, #5b6470);
+	margin: 2rem 0 0.5rem;
+}
+
+.hint {
+	margin: 0 0 0.75rem;
+	font-size: 0.8125rem;
+	color: var(--report-muted, #5b6470);
+}
+
+.browse {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+	gap: 1rem;
+
+	mat-form-field {
+		width: 100%;
+	}
+}
+
+.browse-card {
+	margin-top: 1rem;
+}
+
+.browse-head {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	justify-content: space-between;
+	gap: 0.5rem;
+	margin-bottom: 0.5rem;
+}
+
+.browse-title {
+	font-weight: 600;
+}
+
+.muted {
+	font-weight: 400;
+	color: var(--report-muted, #5b6470);
+}
+
+.cards {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
+	gap: 0.75rem;
+}
+
+.card {
+	display: flex;
+	flex-direction: column;
+	gap: 0.25rem;
+	text-align: left;
+	padding: 0.875rem 1rem;
+	border: 1px solid var(--mat-sys-outline-variant, rgba(0, 0, 0, 0.12));
+	border-radius: 0.625rem;
+	background: var(--mat-sys-surface, transparent);
+	color: inherit;
+	font: inherit;
+	cursor: pointer;
+
+	&:hover,
+	&:focus-visible {
+		border-color: var(--mat-sys-primary, #3f51b5);
+	}
+}
+
+.card-title {
+	font-weight: 600;
+}
+
+.card-sub {
+	font-size: 0.8125rem;
+	color: var(--report-muted, #5b6470);
+}
+
+.card-meta {
+	font-size: 0.75rem;
+	color: var(--report-muted, #5b6470);
+	margin-top: 0.25rem;
+}
+
+.result-head {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: flex-start;
+	justify-content: space-between;
+	gap: 1rem;
+	margin-bottom: 1rem;
+
+	.title {
+		flex: 1 1 24rem;
+		min-width: 0;
+	}
+
+	h1 {
+		font-size: 1.375rem;
+		margin: 0;
+	}
+}
+
+.numbering {
+	font-variant-numeric: tabular-nums;
+	color: var(--report-muted, #5b6470);
+	margin-right: 0.5rem;
+}
+
+.subtitle {
+	margin: 0.25rem 0 0;
+	font-size: 0.9375rem;
+}
+
+.scope {
+	margin: 0.25rem 0 0;
+	font-size: 0.8125rem;
+	color: var(--report-muted, #5b6470);
+}
+
+.link {
+	background: none;
+	border: none;
+	padding: 0;
+	font: inherit;
+	color: var(--report-link, #0a6f6b);
+	cursor: pointer;
+	text-decoration: underline dotted;
+}
+
+.actions {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 0.5rem;
+
+	mat-spinner {
+		display: inline-block;
+		margin-right: 0.5rem;
+	}
+}
+
+.result {
+	position: relative;
+	margin-top: 1.25rem;
+}
+
+/* A re-run keeps the previous numbers readable; the bar says they are being refreshed. */
+.refreshing {
+	position: absolute;
+	top: -0.75rem;
+	left: 0;
+	right: 0;
+}
+
+.running {
+	display: flex;
+	align-items: center;
+	gap: 0.75rem;
+	padding: 2rem 0;
+	color: var(--report-muted, #5b6470);
+}
+
+app-report-advanced {
+	display: block;
+	margin-top: 1.5rem;
+}

@@ -108,10 +108,7 @@ public class LanguagePersist {
                     this.spec()
                             .iff(() -> !this.isEmpty(item.getCode()))
                             .must(() -> this.lessEqualLength(item.getCode(), LanguageEntity._codeLength))
-                            .failOn(LanguagePersist._code).failWith(messageSource.getMessage("Validation_MaxLength", new Object[]{LanguagePersist._code}, LocaleContextHolder.getLocale())),
-                    this.spec()
-                            .must(() -> !this.isNull(item.getOrdinal()))
-                            .failOn(LanguagePersist._ordinal).failWith(messageSource.getMessage("Validation_Required", new Object[]{LanguagePersist._ordinal}, LocaleContextHolder.getLocale()))
+                            .failOn(LanguagePersist._code).failWith(messageSource.getMessage("Validation_MaxLength", new Object[]{LanguagePersist._code}, LocaleContextHolder.getLocale()))
             );
         }
     }

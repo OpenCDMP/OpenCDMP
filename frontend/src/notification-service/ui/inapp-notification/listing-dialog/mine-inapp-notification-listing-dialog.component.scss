@@ -1,25 +1,98 @@
 
-.dropdown-top {
-  width: 0rem;
-  border-bottom: 0.625rem solid #FFFFFF;
-  border-left: 0.625rem solid transparent;
-  border-right: 0.625rem solid transparent;
-  position: fixed;
-  transform:translate(15.8rem, -0.6rem);
-}
+// .dropdown-top {
+//     width: 0rem;
+//     border-bottom: 0.625rem solid #FFFFFF;
+//     border-left: 0.625rem solid transparent;
+//     border-right: 0.625rem solid transparent;
+//     position: fixed;
+//     transform: translate(34.5rem, -0.6rem);
+// }
 
 .notification-popup-wrapper {
-	margin: 0.5rem 1.0rem;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    .notifications {
+        overflow: auto;
+        flex: 1;
+    }
+    .title-container {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 1rem;
+        gap: 1rem;
+        border-bottom: 1px solid var(--mat-sys-outline-variant);
+
+        .title {
+            font-weight: bold;
+            font-size: var(--mat-sys-body-large-size);
+        }
+
+        .unread {
+            opacity: 0.8;
+            font-size: var(--mat-sys-label-large-size)
+        }
+    }
+
+    .view-all-btn {
+        color: var(--mat-sys-primary);
+        display: flex;
+        justify-content: center;
+        height: 100px;
+        border-radius: 0;
+        border-top: 1px solid var(--mat-sys-outline-variant);
+    }
+
+    .notification-item {
+        height: fit-content;
+        mat-icon {
+            color: var(--mat-sys-primary);
+        }
+        .notification-item-container {
+            padding: 1rem 0.25rem;
+            width: 100%;
+        }
+        .unread-badge {
+            display: none;
+        }
+        &.unread {
+            background-color: var(--mat-sys-primary-container);
+            .unread-badge {
+                display: block;
+                border-radius: 99px;
+                height: 10px;
+                width: 10px;
+                background-color: var(--mat-sys-primary);
+            }
+        }
+
+        .no-shrink{
+            flex-shrink: 0;
+        }
+        .notification-subject {
+            overflow: hidden;
+            text-wrap: wrap;
+            font-weight: bold;
+            padding-bottom: 0.25rem;
+        }
+    }
 }
 
 .inapp-notification-listing-dialog {
-	padding-top: 0em;
+    padding-top: 0em;
 
-	.unread{
-		font-weight:bold
-	}
+    .unread {
+        font-weight: bold
+    }
 
-	.secondary-text {
-		color: rgba(0, 0, 0, 0.54);
-	}
+    .secondary-text {
+        color: rgba(0, 0, 0, 0.54);
+    }
+}
+
+
+::ng-deep .notification-body * {
+    overflow: hidden;
+    text-overflow: ellipsis;
 }

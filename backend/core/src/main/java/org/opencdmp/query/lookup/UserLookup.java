@@ -3,6 +3,7 @@ package org.opencdmp.query.lookup;
 import gr.cite.tools.data.query.Lookup;
 import gr.cite.tools.data.query.QueryFactory;
 import io.swagger.v3.oas.annotations.media.Schema;
+import org.opencdmp.commons.SQLUtils;
 import org.opencdmp.commons.enums.IsActive;
 import org.opencdmp.query.UserQuery;
 import org.opencdmp.query.lookup.swagger.SwaggerHelpers;
@@ -92,7 +93,7 @@ public class UserLookup extends Lookup {
     public UserQuery enrich(QueryFactory queryFactory) {
         UserQuery query = queryFactory.query(UserQuery.class);
         if (this.like != null)
-            query.like(this.like);
+            query.like(SQLUtils.toPostgres(this.like));
         if (this.ids != null)
             query.ids(this.ids);
         if (this.emails != null)

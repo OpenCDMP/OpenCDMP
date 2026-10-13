@@ -1,57 +1,93 @@
 @if (plan) {
   <div class="container-fluid plan-overview">
-    <app-navigation-breadcrumb/>
-    <div class="row pt-1">
-      <div class="col-12 ">
-        <div class="d-flex gap-half-rem flex-wrap">
-          <span class="plan-logo mt-2">{{ 'PLAN-OVERVIEW.TITLE' | translate }}</span>
-          <div class="plan-label mt-auto" [ngClass]="isDraft?'draft-color':''" [ngStyle]="{'color': plan.status?.definition?.statusColor}">{{ plan.label }}</div>
-          <div class="ml-auto d-flex gap-quarter-rem">
-            @if (!isPublicView) {
-              <app-plan-active-users [item]="plan" [skipNavigation]="true"/>
-              <span class="fit-content" [matTooltip]="'PLAN-OVERVIEW.DISABLED-TOOLTIP.NEW-VERSION' | translate" [matTooltipDisabled]="canCreateNewVersion()">
-                <button mat-icon-button
-                  [disabled]="!canCreateNewVersion()"
-                  [attr.aria-label]="'PLAN-OVERVIEW.ACTIONS.NEW-VERSION' | translate"
-                  [matTooltip]="'PLAN-OVERVIEW.ACTIONS.NEW-VERSION' | translate"
-                  (click)="newVersionClicked()"
-                  >
-                  <mat-icon aria-hidden>add_circle_outline</mat-icon>
-                </button>
-              </span>
+    <!-- <app-navigation-breadcrumb/> -->
+    <div class="overview-header">
+        <div class="d-flex gap-1-rem flex-wrap align-items-center">
+            <span class="plan-logo">{{ 'PLAN-OVERVIEW.TITLE' | translate }}</span>
+            <div class="plan-label">{{ plan.label }}</div>
+            @if(!isPublicView){
+                <div
+                    class="plan-status"
+                    data-tour="plan-overview-status"
+                    [class.plan-draft]="isDraft"
+                    [style.color]="plan.status?.definition?.statusColor ?? ''"
+                >
+                    <span class="status-chip-overlay" [style.background]="plan.status?.definition?.statusColor ?? ''"></span>
+                    <ng-container *ngTemplateOutlet="statusIconTemplate; context: {status: plan.status}"></ng-container>
+                    <span>{{ plan.status.action?.length > 0 ? plan.status.action : plan.status.name }}</span>
+                </div>
             }
             <button
-              mat-button
-              class="primary-container-btn"
-              [disabled]="!otherPlanVersions?.length|| !isActive"
-              [matMenuTriggerFor]="versionsMenu"
-              [attr.aria-label]="('ALT.TEXT.OPEN-MENU-FOR' | translate) + ' ' + ('PLAN-OVERVIEW.VERSIONS' | translate)"
-              >
-              <div class="d-flex align-items-center gap-quarter-rem">
-                <span>{{ 'PLAN-OVERVIEW.VERSION' | translate }} {{ selectedPlanVersion }}</span>
-                @if (otherPlanVersions?.length) {
-                  <mat-icon aria-hidden>arrow_drop_down</mat-icon>
-                }
-              </div>
-              <mat-menu #versionsMenu="matMenu">
-                @for (version of plan.otherPlanVersions; track version) {
-                  <button mat-menu-item (click)="versionChanged(version.id)" [disabled]="version.version === plan.version">
-                    {{ 'PLAN-OVERVIEW.VERSION' | translate }} {{ version.version }}
-                  </button>
-                }
-              </mat-menu>
+                class="version-btn"
+                data-tour="plan-overview-versions"
+                mat-stroked-button
+                [disabled]="!otherPlanVersions?.length|| !isActive"
+                [matMenuTriggerFor]="versionsMenu"
+                [attr.aria-label]="('ALT-TEXT.OPEN-MENU-FOR' | translate) + ' ' + ('PLAN-OVERVIEW.VERSIONS' | translate)"
+                >
+                <div class="d-flex align-items-center gap-quarter-rem">
+                    <span>{{ 'PLAN-OVERVIEW.VERSION' | translate }} {{ selectedPlanVersion }}</span>
+                    @if (otherPlanVersions?.length) {
+                    <mat-icon aria-hidden="true">arrow_drop_down</mat-icon>
+                    }
+                </div>
+                <mat-menu #versionsMenu="matMenu">
+                    @for (version of plan.otherPlanVersions; track version) {
+                    <button mat-menu-item (click)="versionChanged(version.id)" [disabled]="version.version === plan.version">
+                        {{ 'PLAN-OVERVIEW.VERSION' | translate }} {{ version.version }}
+                    </button>
+                    }
+                </mat-menu>
             </button>
-          </div>
-          <div class="quick-actions-mobile">
-            <ng-container *ngTemplateOutlet="actionsTemplate"/>
-          </div>
-          @if (isAuthenticated) {
-            <div class="d-flex flex-wrap gap-half-rem quick-actions">
-              <ng-container *ngTemplateOutlet="actionsTemplate"/>
+            @if(!isPublicView && canCreateNewVersion()){
+                <button mat-icon-button class="new-version-inline-btn"
+                    [attr.aria-label]="'PLAN-OVERVIEW.ACTIONS.NEW-VERSION' | translate"
+                    [matTooltip]="'PLAN-OVERVIEW.ACTIONS.NEW-VERSION' | translate"
+                    (click)="newVersionClicked()">
+                    <mat-icon aria-hidden="true">add_circle_outline</mat-icon>
+                </button>
+            }
+            @if(!isPublicView && otherPlanVersions?.length && isActive){
+                <button mat-icon-button class="new-version-inline-btn"
+                    [attr.aria-label]="'PLAN-VERSION-DIFF.COMPARE' | translate"
+                    [matTooltip]="'PLAN-VERSION-DIFF.COMPARE' | translate"
+                    [matMenuTriggerFor]="compareVersionsMenu">
+                    <mat-icon aria-hidden="true">difference</mat-icon>
+                </button>
+                <mat-menu #compareVersionsMenu="matMenu">
+                    @for (version of otherPlanVersions; track version.id) {
+                        <button mat-menu-item (click)="compareVersionClicked(version.id)">
+                            {{ 'PLAN-VERSION-DIFF.COMPARE-WITH' | translate }} {{ 'PLAN-OVERVIEW.VERSION' | translate }} {{ version.version }}
+                        </button>
+                    }
+                </mat-menu>
+            }
+            @if(!isActive){
+                <div class="deleted-item">
+                    {{ 'PLAN-OVERVIEW.DELETED' | translate }}
+                </div>
+            }
+            @if(annotationCount){
+                <div class="annotation-count">
+                    <mat-icon class="material-symbols-outlined" aria-hidden="true">chat_bubble</mat-icon>
+                    {{annotationCount}}
+                </div>
+            }
+            <div class="ml-auto d-flex gap-quarter-rem">
+                @if (!isPublicView) {
+                <app-plan-active-users [item]="plan" [skipNavigation]="true"/>
+                }
             </div>
-          }
+            @if (isAuthenticated) {
+                <div class="quick-actions-mobile">
+                    <ng-container *ngTemplateOutlet="actionsTemplate"/>
+                </div>
+                <div class="d-flex flex-wrap gap-half-rem quick-actions">
+                    <ng-container *ngTemplateOutlet="actionsTemplate"/>
+                </div>
+            }
         </div>
-        <div class="d-flex align-items-center gap-half-rem secondary-info pt-2 pb-4">
+        <!-- <div class="d-flex align-items-center gap-half-rem secondary-info pt-2 pb-4">
           <div class="current-status">
             <ng-container *ngTemplateOutlet="statusTemplate; context: {status: plan.status}"></ng-container>
           </div>
@@ -69,223 +105,717 @@
               }
             </div>
           }
-        </div>
+        </div> -->
         @if (plan.otherPlanVersions?.length > 1 && plan.otherPlanVersions[plan.otherPlanVersions.length - 1].version != plan.version) {
-          <div class="alert alert-warning">
+          <div class="alert alert-warning mb-0 mt-3">
             {{ 'PLAN-OVERVIEW.VERSION-NOTICE-PART1' | translate }} <a class="link"  style="cursor:pointer;" (click)="versionChanged(plan.otherPlanVersions[plan.otherPlanVersions.length -1].id)">{{ 'PLAN-OVERVIEW.VERSION-NOTICE-LINK' | translate }}</a> {{ 'PLAN-OVERVIEW.VERSION-NOTICE-PART2' | translate }}
           </div>
         }
         @if (canViewBlueprintVersionMessage()) {
-          <div class="alert alert-warning">{{ 'PLAN-OVERVIEW.BLUEPRINT-NEW-VERSION' | translate }}</div>
+          <div class="alert alert-warning mb-0 mt-3">{{ 'PLAN-OVERVIEW.BLUEPRINT-NEW-VERSION' | translate }}</div>
         }
-      </div>
     </div>
     <div class="row pt-1">
-      <div class="col-12 col-lg-8 main-body">
-        @if (selectedBlueprint) {
-          <mat-accordion multi>
-            @for (section of selectedBlueprint.definition.sections; track section; let sectionI = $index) {
-              @if ((section.fields && section.fields.length > 0) || section.hasTemplates) {
-                <mat-expansion-panel
-                  [id]="'blueprint-section-' + sectionI"
-                  class="unstyled"
-                  [hideToggle]="!section.fields?.length && !section.hasTemplates"
-                  [togglePosition]="'before'"
-                  [expanded]="true"
-                  #baseExpansionPanel
-                  >
-                  <mat-expansion-panel-header
-                    [class.align-items-start]="section.description && section.label != section.description">
-                    <mat-panel-title class="d-block">
-                      <div [id]="'blueprint-section-' + sectionI + '-title'">
-                        <div class="sectionLabel">
-                          {{ section.label }}
-                        </div>
-                        @if (section.description && section.label != section.description) {
-                          <div class="sectionDescription font-italic pl-2"
+      <div class="col-12 col-xl-9 col-lg-6 main-body">
+        <mat-card appearance="outlined">
+            <mat-card-content class="p-0">
+                <div class="toggle-btn d-flex justify-content-end">
+                    <button  mat-button (click)="toggleExpand()">
+                        {{(showExpand ? 'PLAN-OVERVIEW.ACTIONS.EXPAND-ALL' : 'PLAN-OVERVIEW.ACTIONS.COLLAPSE-ALL') | translate}}
+                    </button>
+                </div>
+                <mat-divider class="mb-0 mt-0"></mat-divider>
+                <mat-accordion multi #blueprintAccordion="matAccordion">
+                    @for (section of selectedBlueprint.definition.sections; track section.id; let sectionI = $index; let last = $last) {
+                        @if(visibilityRulesService.isVisibleMap[section.id]){
+                        <mat-expansion-panel
+                            [id]="'blueprint-section-' + sectionI"
+                            class="unstyled mb-0 section-expansion-panel"
+                            [class.pb-3]="last"
+                            [togglePosition]="'before'"
+                            [expanded]="true"
+                            #blueprintExpansionPanel="matExpansionPanel"
+                        >
+                            <mat-expansion-panel-header
+                                [class.align-items-start]="section.description && section.title != section.description"
+                                class="expansion-panel-header"
                             >
-                            {{ section.description }}
-                          </div>
-                        }
-                      </div>
-                    </mat-panel-title>
-                  </mat-expansion-panel-header>
-                  @if (section.fields?.length) {
-                    <table class="table">
-                      <tbody>
-                        @for (field of section.fields; track field) {
-                          <tr
-                            class="fieldLabel" [style]="(field.category == planBlueprintSectionFieldCategoryEnum.System && field.systemFieldType == planBlueprintSystemFieldType.User)?'display:none;':''">
-                            <td class="font-weight-bold w-25">
-                              @if (!field.label) {
-                                @switch (field.category) {
-                                  @case (planBlueprintSectionFieldCategoryEnum.System) {
-                                    {{ enumUtils.toPlanBlueprintSystemFieldTypeString(field.systemFieldType) }}
-                                  }
-                                  @case (planBlueprintSectionFieldCategoryEnum.ReferenceType) {
-                                    {{ field.referenceType?.name }}
-                                  }
-                                }
-                              } @else {
-                                {{ field.label }}
-                              }
-                            </td>
-                            <td class="w-75">
-                              @switch (field.category) {
-                                @case (planBlueprintSectionFieldCategoryEnum.System) {
-                                  @switch (field.systemFieldType) {
-                                    @case (planBlueprintSystemFieldType.Description) {
-                                      @if (plan.description) {
-                                        <div class="description">
-                                          <span class="desc-txt" id="description-text" [innerHTML]="showLongDescription() ? plan.description : minimizedDescription"></span>
-                                          @if (minimizedDescription?.length) {
-                                            <div class="link-color d-flex justify-content-center show-more" role="button" (click)="toggleShowDescription()">
-                                              {{ (!showLongDescription() ? 'GENERAL.ACTIONS.SHOW-MORE' : 'GENERAL.ACTIONS.SHOW-LESS') | translate | lowercase }}
-                                            </div>
-                                          }
-                                        </div>
-                                      }
-                                    }
-                                    @case (planBlueprintSystemFieldType.Title) {
-                                      {{ plan.label }}
-                                    }
-                                    @case (planBlueprintSystemFieldType.Language) {
-                                      {{ getLanguageInfo(plan.language) }}
-                                    }
-                                    @case (planBlueprintSystemFieldType.Contact) {
-                                      @for (contact of plan.properties.contacts; track $index; let last = $last; let index = $index) {
-                                        <span>{{ contact.firstName }} {{ contact.lastName }}@if (!last) {
-                                          <span>,&nbsp;</span>
-                                        }</span>
-                                      }
-                                    }
-                                    @case (planBlueprintSystemFieldType.AccessRights) {
-                                      {{ enumUtils.toPlanAccessTypeString(plan.accessType) }}
-                                    }
-                                    @case (planBlueprintSystemFieldType.User) {
-                                      @for (planUser of plan.planUsers; track $index; let last = $last; let index = $index) {
-                                        <span>{{ planUser.user.name }}@if (!last) {
-                                          <span>,&nbsp;</span>
-                                        }</span>
-                                      }
-                                    }
-                                  }
-                                }
-                                @case (planBlueprintSectionFieldCategoryEnum.Extra) {
-                                  @let planBlueprintValue = getBlueprintValue(field.id);
-                                  @switch (field.dataType) {
-                                    @case (planBlueprintExtraFieldDataTypeEnum.Text) {
-                                      {{ planBlueprintValue?.fieldValue }}
-                                    }
-                                    @case (planBlueprintExtraFieldDataTypeEnum.RichText) {
-                                      @if (planBlueprintValue?.fieldValue) {
-                                        <div [innerHTML]="planBlueprintValue.fieldValue"></div>
-                                      }
-                                    }
-                                    @case (planBlueprintExtraFieldDataTypeEnum.Date) {
-                                      {{ planBlueprintValue?.dateValue  | dateTimeFormatter: 'shortDate' }}
-                                    }
-                                    @case (planBlueprintExtraFieldDataTypeEnum.Number) {
-                                      {{ planBlueprintValue?.numberValue }}
-                                    }
-                                  }
-                                }
-                                @case (planBlueprintSectionFieldCategoryEnum.ReferenceType) {
-                                  @if (this.referenceTypeService.getResearcherReferenceType() == field.referenceType.id) {
-                                    <div class="researchers">
-                                      @if (researchers?.length) {
-                                        <div class="d-flex flex-wrap">
-                                          @for (planReference of researchers; track $index; let last = $last; let index = $index) {
-                                            @if (index < RESARCHER_PAGE_SIZE || showMoreResearchers()) {
-                                              @if (isOrcid(planReference.reference)) {
-                                                <a href="{{ getOrcidPathForResearcher(planReference.reference?.reference) }}" target="blank" class="researcher align-items-center">
-                                                  <span class="id-btn" [matTooltip]="unauthorizedTootipText" matTooltipPosition="below">&nbsp;</span>
-                                                  <span>{{ planReference.reference?.label }}@if (!last) {
-                                                    <span>,&nbsp;</span>
-                                                  }</span>
-                                                </a>
-                                              } @else {
-                                                <span>{{ planReference.reference?.label }}@if (!last) {
-                                                  <span>,&nbsp;</span>
-                                                }</span>
-                                              }
-                                            }
-                                          }
-                                          @if (researchers?.length > RESARCHER_PAGE_SIZE) {
-                                            <span class="link-color d-flex justify-content-center show-more" role="button" (click)="toggleShowMoreResearchers()">
-                                              {{ (!showMoreResearchers() ? 'GENERAL.ACTIONS.SHOW-MORE' : 'GENERAL.ACTIONS.SHOW-LESS') | translate | lowercase }}
-                                            </span>
-                                          }
-                                        </div>
-                                      } @else {
-                                        <mat-icon>horizontal_rule</mat-icon>
-                                      }
+                                <mat-panel-title class="d-block">
+                                    <div [id]="'blueprint-section-' + sectionI + '-title'">
+                                    <div class="sectionLabel">
+                                        <span class="section-number">{{ sectionI + 1 }}.</span> {{ section.title }}
                                     </div>
-                                  } @else {
-                                    @if (referenceService.getReferencesForTypes(plan?.planReferences, isActive, [field.referenceType.id])?.length > 0) {
-                                      @for (PlanReference of referenceService.getReferencesForTypes(plan?.planReferences, isActive, [field.referenceType.id]); track $index; let last = $last; let index = $index) {
-                                        <span>{{ PlanReference.reference?.label }}@if (!last) {
-                                          <span>,&nbsp;</span>
-                                        }</span>
-                                      }
-                                    } @else {
-                                      <mat-icon>horizontal_rule</mat-icon>
+                                    @if (section.description && section.title != section.description) {
+                                        <div class="sectionDescription font-italic pl-2"
+                                        >
+                                            <span [innerHTML]="section.description"></span>
+                                        </div>
                                     }
-                                  }
-                                }
-                                @case (planBlueprintSectionFieldCategoryEnum.Upload) {
-                                  @let planBlueprintValue = getBlueprintValue(field.id);
-                                  @if (planBlueprintValue?.fieldValue != null && !isAuthenticated) {
-                                    <span style="font-style: italic;">{{ 'PLAN-OVERVIEW.VIEW-FILE-MESSAGE-FOR-ANONYMOUS-USERS' | translate }}</span>
-                                    }@else {
-                                    <span>{{planBlueprintValue?.fieldValue | fileAsync | async}}</span>
-                                  }
-                                }
-                              }
-                            </td>
-                          </tr>
+                                    </div>
+                                </mat-panel-title>
+                            </mat-expansion-panel-header>
+                            @if(section.sections?.length){
+                                <ng-container *ngTemplateOutlet="sectionTemplate; context:{sections: section.sections, path: `${sectionI + 1}`}"></ng-container>
+                            }
+                            @if(section.hasTemplates){
+                                <ng-container *ngTemplateOutlet="descTemplatesTemplate; context: {section}"></ng-container>
+                            }
+                            @if(section.fieldSets?.length) {
+                                @for (field of section.fieldSets; track field; let fieldIndex = $index) {
+                                    <div class="p-1">
+                                        @if(visibilityRulesService.isVisibleMap[field.id] ?? true){
+                                            <ng-container
+                                                *ngTemplateOutlet="sectionFieldSetTemplate; context: { fieldSet: field, path: (sectionI + 1) + '.' + (fieldIndex + 1) }"
+                                            ></ng-container>
+                                        }
+                                    </div>
+                                 }
+                            }
+                        </mat-expansion-panel>
                         }
-                      </tbody>
-                    </table>
-                  }
-                  @if (section.hasTemplates && (section.descriptionTemplates?.length || plan.descriptions?.length)) {
-                    <div class="descriptions d-flex flex-column gap-quarter-rem">
-                      <b>
-                        {{ 'PLAN-OVERVIEW.DESCRIPTIONS' | translate }}
-                      </b>
-                      @for (description of plan.descriptions; track $index; ) {
-                        @if (description.planDescriptionTemplate?.sectionId == section.id) {
-                          <div class="col-12 col-lg-10">
-                            <a class="w-100 description-btn"
-                              [routerLink]="isPublicView ? routerUtils.generateUrl(['/explore-descriptions/overview/public/', description.id]) : routerUtils.generateUrl(['/plans/overview/' + plan.id + '/descriptions/' + description.id])"
-                              target="_blank"
-                              aria-label="{{('ALT-TEXT.OPEN-DESCRIPTION-OVERVIEW-FOR' | translate) + ' ' + description?.label}}"
-                              [ngStyle]="{'background-color': description.status?.definition?.statusColor}">
-                              <span class="overlay"></span>
-                              <div
-                                class="w-100 d-flex align-items-center justify-content-between pl-3 pr-3">
-                                <div
-                                  class="description-btn-label">{{ description.label }}
-                                </div>
-                                <mat-icon aria-hidden>launch</mat-icon>
-                              </div>
-                            </a>
-                          </div>
-                        }
-                      }
-                      @if (!plan.descriptions || plan.descriptions.length == 0) {
-                        <div class="pl-1 pr-1">
-                          <span>{{'HYBRID-LISTING.NO-DATA-TO-DISPLAY' | translate}}</span>
-                        </div>
-                      }
+                    }
+                </mat-accordion>
+            </mat-card-content>
+        </mat-card>
+      </div>
+      <div class="col-12 col-xl-3 col-lg-6 side-actions">
+        <mat-card appearance="outlined" class="p-0">
+            <mat-card-content class="p-0">
+                <div class="p-3">
+                    <div class="info-title">{{'GENERAL.TITLES.ABOUT' | translate | uppercase}}</div>
+                    <div class="info-row">
+                        <div class="opacity-08">{{'PLAN-LISTING.CREATED' | translate}}</div>
+                        <div><b>{{plan.createdAt | dateTimeFormatter :'d MMM y'}}</b></div>
                     </div>
-                  }
+                    <div class="info-row">
+                        <div class="opacity-08">{{'PLAN-LISTING.UPDATED' | translate}}</div>
+                        <div><b>{{plan.updatedAt | dateTimeFormatter :'d MMM y'}}</b></div>
+                    </div>
+                    <div class="info-row">
+                        <div class="opacity-08">{{'PLAN-EDITOR.FIELDS.BLUEPRINT' | translate}}</div>
+                        <div><b>{{plan.blueprint.label}}</b></div>
+                    </div>
+                    @if(planOwner){
+                        <div class="info-row">
+                            <span class="opacity-08">
+                                {{'TYPES.PLAN-USER-ROLE.OWNER' | translate}}
+                            </span>
+                            <span><b>{{planOwner}}</b></span>
+                        </div>
+                    }
+                    <mat-divider class="info-divider"></mat-divider>
+                    <div class="info-row mb-0">
+                        <div class="opacity-08">PID</div>
+                        <div><b>
+                            @if(plan.entityDois?.length){
+                                @for (entityDoi of plan.entityDois; track entityDoi; let last = $last) {
+                                    <ng-container *ngTemplateOutlet="entityDoiTemplate; context: {entityDoi: entityDoi}"></ng-container>
+                                    @if (!last) {
+                                        <span>,&nbsp;</span>
+                                    }
+                                }
+                            }@else {
+                                -
+                            }
+                        </b></div>
+                    </div>
+                    @if(canShowPidFinalizeMessage()){
+                        <div class="pid-finalize-message">
+                            {{ (canDepositPlan() ? 'PLAN-OVERVIEW.PID-PUBLISH-MESSAGE' : 'PLAN-OVERVIEW.PID-FINALIZE-MESSAGE') | translate }}
+                        </div>
+                    }
+                </div>
+                @if(plan.planUsers?.length || (canInvitePlanUsers && canAssignPlanUsers)){
+                    <mat-divider class="mt-0 mb-0"></mat-divider>
+                    <div class="p-3">
+                        <div class="info-title d-flex align-items-center justify-content-between" data-tour="plan-overview-collaborators">
+                            <span>{{'PLAN-OVERVIEW.COLLABORATORS' | translate | uppercase}}</span>
+                            @if (!isPublicView && (canAssignPlanUsers || canInvitePlanUsers)) {
+                                <button mat-icon-button class="manage-icon-btn"
+                                    (click)="planAuthors.openManageUsers()"
+                                    [matTooltip]="'PLAN-OVERVIEW.ACTIONS.MANAGE-USERS' | translate"
+                                    [attr.aria-label]="'PLAN-OVERVIEW.ACTIONS.MANAGE-USERS' | translate">
+                                    <mat-icon aria-hidden="true">group_add</mat-icon>
+                                </button>
+                            }
+                        </div>
+                        <app-plan-authors #planAuthors
+                            [plan]="plan"
+                            [isPublicView]="isPublicView"
+                            (usersChanged)="onUsersChanged($event)"
+                        />
+                    </div>
+                }
+                @let hasEvaluations = $safeNavigationMigration(planEvaluations?.length);
+                @let showEvaluator = availableEvaluators?.length && !isPublicView && canEvaluatePlan();
+                @if (hasEvaluations || showEvaluator) {
+                    <mat-divider class="mt-0 mb-0"></mat-divider>
+                    <div class="p-3">
+                        <div class="info-title">{{ 'PLAN-OVERVIEW.EVALUATION' | translate | uppercase}}</div>
+                        @if (showEvaluator){         
+                            <div class="evaluation--tab-selection d-flex gap-half-rem">
+                                <button mat-button class="evaluation-button" [disabled]="showEvaluationHistory" (click)="showEvaluationHistory = true">
+                                    {{'PLAN-OVERVIEW.EVALUATION-HISTORY' | translate}}
+                                </button>
+                                <button mat-button class="evaluation-button" [disabled]="!showEvaluationHistory" (click)="showEvaluationHistory = false">
+                                    {{'PLAN-OVERVIEW.ACTIONS.EVALUATE' | translate}}
+                                </button>
+                            </div>
+                        }
+                        <div class="evaluation-content">
+                            <div class="history-wrapper" [class.d-none]="!showEvaluationHistory">
+                                <app-plan-evaluation-history [evaluations]="planEvaluations" [planId]="isPublicView ? null : plan.id"/>
+                            </div>
+                            @if(showEvaluator){
+                                <div class="evaluate-wrapper" [class.d-none]="showEvaluationHistory">
+                                    @for(evaluator of availableEvaluators; track evaluator){
+                                        <button class="evaluator-btn"
+                                            (click)="onEvaluatePlan(plan.id, evaluator.evaluatorId, evaluator.format, evaluator.rankConfig, evaluator.availableBenchmarks, evaluator.availableTests, isPublicView)"
+                                        >
+                                            @if (evaluator.hasLogo && logos.has(evaluator.evaluatorId)) {
+                                                <img alt="" class="evaluator-logo" [src]="logos.get(evaluator.evaluatorId)" aria-hidden="true">
+                                            }
+                                            @else {
+                                                <img alt="" class="evaluator-logo" src="assets/images/repository-placeholder.png" aria-hidden="true">
+                                            }
+                                            <div>
+                                                <div class="evaluator-id ">{{'GENERAL.EVALUATOR.' + $safeNavigationMigration(evaluator.evaluatorId?.toUpperCase()) + '.TITLE' | translate }}</div>
+                                                <div class="evaluator-subtitle" [innerHTML]="'GENERAL.EVALUATOR.' + $safeNavigationMigration(evaluator.evaluatorId?.toUpperCase()) + '.DESCRIPTION' | translate"></div>
+                                            </div>
+                                        </button>
+                                    }
+                                </div>
+                            }
+                        </div>
+                    </div>
+                }
+            </mat-card-content>
+        </mat-card>
+        </div>
+      </div>
+    </div>
+  }
+
+<ng-template #descTemplatesTemplate let-section="section">
+    @let sectionDescriptions = getSectionDescriptions(section) ?? [];
+    <div class="descriptions pb-2">
+        <div class="mb-2">
+            <b>
+                {{ 'PLAN-OVERVIEW.DESCRIPTIONS' | translate }}
+            </b>
+        </div>
+        @if (sectionDescriptions.length) {
+            @for (description of sectionDescriptions; track description.id; ) {
+                <mat-expansion-panel 
+                    #descriptionExpansionPanel="matExpansionPanel"
+                    class="description-expansion-panel mb-2"
+                    [togglePosition]="'before'"
+                    [expanded]="false"
+                >
+                    <mat-expansion-panel-header class="description-expansion-panel--header">
+                        <mat-panel-title class="description-panel-title">
+                            <div class="desc-title">{{description.label}}</div>
+                            <div class="opacity-08"><small>
+                                {{description.descriptionTemplate?.label}}
+                            </small></div>
+                        </mat-panel-title>
+                    </mat-expansion-panel-header>
+                    <div class="description-expansion-panel--body">
+                        <app-description-preview [description]="description"/>
+                    </div>
                 </mat-expansion-panel>
-              }
             }
-          </mat-accordion>
         }
-        @if (!selectedBlueprint) {
+        @else {
+            <div class="p-1">
+                <span>{{ 'PLAN-OVERVIEW.EMPTY-DESCRIPTIONS' | translate }}</span>
+            </div>
+        }
+    </div>
+</ng-template>
+
+<ng-template #statusTemplate let-status="status">
+<div>{{ status.action?.length > 0 ? status.action : status.name }}</div>
+</ng-template>
+
+<ng-template #actionsTemplate>
+@if (!isPublicView) {
+    @if ((!hasDoi() || moreDeposit()) && inputRepos?.length && canDepositPlan()) {
+        <app-plan-deposit-dropdown
+        [inputRepos]="inputRepos"
+        [plan]="plan"
+        (outputReposEmitter)="afterDeposit($event)"
+        [disabled]="!canDepositPlan()"
+        [outputRepos]="plan.entityDois?.length > 0 ? plan.entityDois: []"
+        class="deposit-btn"
+        data-tour="plan-overview-publish"
+        ></app-plan-deposit-dropdown>
+    }
+    <!-- @if (canEditStatus) {
+        @if (plan.availableStatuses.length > 1) {
+        <button mat-button class="primary-container-btn" [matMenuTriggerFor]="statusesMenu">
+            <div class="d-flex align-items-center gap-quarter-rem">
+            <span>{{ 'PLAN-OVERVIEW.ACTIONS.CHANGE-STATUS' | translate }}</span>
+            <mat-icon aria-hidden="true">arrow_drop_down</mat-icon>
+            </div>
+        </button>
+        <mat-menu #statusesMenu="matMenu">
+            @for (status of plan.availableStatuses; track status) {
+            <button mat-menu-item [disabled]="isLoading()" (click)="persistStatus(status)" [attr.aria-label]="status.action?.length > 0 ? status.action : status.name">
+                <ng-container *ngTemplateOutlet="statusTemplate; context: {status: status}"></ng-container>
+            </button>
+            }
+        </mat-menu>
+        } @else {
+        @let status = plan.availableStatuses[0];
+        <button mat-button class="primary-container-btn" [disabled]="isLoading()" (click)="persistStatus(status)" [attr.aria-label]="status.action?.length > 0 ? status.action : status.name">
+            <ng-container *ngTemplateOutlet="statusTemplate; context: {status}"></ng-container>
+        </button>
+        }
+    } -->
+    <button mat-flat-button data-tour="plan-overview-edit" (click)="editClicked()">
+        <mat-icon  class="material-symbols-outlined" aria-hidden="true">{{isActive && canEditPlan && !isLocked ? 'edit_square' : 'visibility'}}</mat-icon>
+        {{(isActive && canEditPlan && !isLocked ? 'PLAN-OVERVIEW.ACTIONS.EDIT' : 'PLAN-OVERVIEW.ACTIONS.PREVIEW' ) | translate }}
+    </button>
+}
+@if (!isPublicView || (canExportPlan && fileTransformerService.availableFormatsFor(fileTransformerEntityTypeEnum.Plan)?.length > 0) || canClonePlan || (canDeletePlan && !isLocked)) {
+    <button mat-icon-button class="primary-container-btn" [matMenuTriggerFor]="moreActionsMenu" [attr.aria-label]="'ALT-TEXT.MORE-ACTIONS' | translate">
+    <mat-icon>more_horiz</mat-icon>
+    </button>
+}
+<mat-menu #moreActionsMenu="matMenu" xPosition="before">
+    @if (!isPublicView) {
+    <button mat-menu-item
+        disabledInteractive
+        [disabled]="!canCreateNewVersion()"
+        [matTooltip]="newVersionDisabledReason() | translate"
+        [matTooltipDisabled]="canCreateNewVersion()"
+        (click)="newVersionClicked()"
+    >
+        <div class="d-flex align-items-center gap-quarter-rem">
+            <mat-icon aria-hidden="true">add_circle_outline</mat-icon>
+            <span>{{ 'PLAN-OVERVIEW.ACTIONS.NEW-VERSION' | translate }}</span>
+        </div>
+    </button>
+    }
+    @if (canExportPlan && fileTransformerService.availableFormatsFor(fileTransformerEntityTypeEnum.Plan).length > 0) {
+    <button mat-menu-item [attr.aria-label]="'ALT-TEXT.OPEN-MENU' | translate" [matMenuTriggerFor]="exportMenu">
+        <div class="d-flex align-items-center mr-2">
+        <mat-icon class="material-symbols-outlined">download</mat-icon>
+        {{ 'PLAN-OVERVIEW.ACTIONS.EXPORT' | translate }}
+        </div>
+    </button>
+    <mat-menu #exportMenu="matMenu" xPosition="after">
+        @for(fileTransformer of fileTransformerService.availableFormatsFor(fileTransformerEntityTypeEnum.Plan); track $index; let i = $index) {
+        @for (fileFormat of fileTransformer.exportVariants; track $index; let j = $index) {
+            <button mat-menu-item  (click)="exportPlanAs(fileTransformer.fileTransformerId, fileFormat.format)">
+            <i class="fa pr-2" [ngClass]="fileFormat.icon ? fileFormat.icon : 'fa-file-o'"></i>
+            @if (fileFormat?.format?.toUpperCase() === 'JSON') {
+                <span>{{ 'GENERAL.FILE-TRANSFORMER.' + $safeNavigationMigration(fileTransformer?.fileTransformerId?.toUpperCase()) + '-' + $safeNavigationMigration(fileFormat?.format?.toUpperCase()) | translate }}</span>
+            } @else {
+                <span>{{ 'GENERAL.FILE-TRANSFORMER.' + $safeNavigationMigration(fileFormat?.format?.toUpperCase()) | translate }}</span>
+            }
+            </button>
+        }
+        }
+    </mat-menu>
+    }
+    @if (canClonePlan) {
+    <button mat-menu-item (click)="cloneClicked()">
+        <div class="d-flex align-items-center gap-quarter-rem">
+        <mat-icon class="material-symbols-outlined" aria-hidden="true">stack</mat-icon>
+        <span>{{ 'PLAN-OVERVIEW.ACTIONS.DUPLICATE' | translate }}</span>
+        </div>
+    </button>
+    }
+    @if (canDeletePlan) {
+        <mat-divider class="mt-1 mb-1"></mat-divider>
+        <button class="mat-warn" mat-menu-item 
+            (click)="isLocked ? null : deleteClicked()"
+            [disabled]="isLocked"
+            [matTooltip]="'PLAN-EDITOR.LOCKED-DIALOG.PLAN-LOCKED' | translate"
+            [matTooltipDisabled]="!isLocked"
+        >
+            <div class="d-flex align-items-center gap-quarter-rem">
+            <mat-icon aria-hidden="true">delete</mat-icon>
+            <span>{{ 'PLAN-OVERVIEW.ACTIONS.DELETE' | translate }}</span>
+            </div>
+        </button>
+    }
+</mat-menu>
+</ng-template>
+
+<ng-template #statusIconTemplate let-status="status">
+    @if(status.definition?.iconConfiguration?.storageFile?.id && statuslogos.has(status.definition.iconConfiguration.storageFile.id)) {
+      <img alt="" class="status-logo" [src]="statuslogos.get(status.definition.iconConfiguration.storageFile.id)" aria-hidden="true">
+    }@else if(status.definition?.iconConfiguration?.matIconName) {
+        <mat-icon >{{status.definition.iconConfiguration.matIconName}}</mat-icon>
+    }@else {
+        @switch(status.internalStatus){
+            @case(planStatusEnum.Finalized){
+                <mat-icon>check</mat-icon>
+            }
+            @case(planStatusEnum.Draft){
+                <mat-icon>edit</mat-icon>
+            }
+            @default {
+                <mat-icon>arrow_forward</mat-icon>
+            }
+        }
+    }
+</ng-template>
+
+<ng-template #entityDoiTemplate let-entityDoi="entityDoi">
+    @let href = createDoiLink(entityDoi);
+    @if(href){
+        <a (click)="$event.stopPropagation()" [href]="createDoiLink(entityDoi)" target="_blank" rel="noopener noreferrer" [attr.aria-label]="'PLAN-OVERVIEW.ACTIONS.VISIT-WEBSITE' | translate">
+            {{ entityDoi.doi }}
+        </a>
+    }@else {
+        <span >{{ entityDoi.doi }}</span>
+    }
+    <mat-icon class="material-symbols-outlined small" [matTooltip]="entityDoi.repositoryId">info</mat-icon>
+</ng-template>
+
+<ng-template #sectionTemplate let-path="path" let-sections="sections">
+  @for (section of sections ; track section; let sectionIndex = $index) {
+    @if(visibilityRulesService.isVisibleMap[section.id]){
+        <mat-accordion multi #templateSectionAccordion="matAccordion">
+            <mat-expansion-panel #templateSectionExpansionPanel="matExpansionPanel" class="unstyled description-sub-section-expansion-panel" [togglePosition]="'before'" [expanded]="expanded">
+                <mat-expansion-panel-header>
+                <mat-panel-title>
+                    <div>{{(path? path + '.' : '') + (sectionIndex + 1) + '. ' + section.title}} </div>
+                </mat-panel-title>
+                </mat-expansion-panel-header>
+                @if (section.description) {
+                <small class="p-1"
+                    [innerHTML]="section.description">
+                </small>
+                }
+                @for (field of section.fieldSets ; track field; let fieldIndex = $index) {
+                    <div>
+                        @if(visibilityRulesService.isVisibleMap[field.id] ?? true){
+                            <ng-container
+                                *ngTemplateOutlet="sectionFieldSetTemplate; context: { fieldSet: field, path: (path? path + '.' : '')  + (sectionIndex + 1) + '.' + (fieldIndex + 1) }"
+                            ></ng-container>
+                        }
+                    </div>
+                }
+                @if (section.sections) {
+                    <ng-container
+                        *ngTemplateOutlet="sectionTemplate; context: { path: (path? path + '.' : '')  + (sectionIndex + 1), sections: section.sections }"
+                    ></ng-container>
+                }
+            </mat-expansion-panel>
+        </mat-accordion>
+    }
+  }
+</ng-template>
+
+<ng-template #sectionFieldSetTemplate let-fieldSet="fieldSet" let-path="path">
+    @let fieldValueMapArray = $safeNavigationMigration(fieldSetValueMap?.get(fieldSet.id));
+    @let properties = $safeNavigationMigration(plan.properties?.fieldSets?.[fieldSet.id]);
+    <div class="field-row" [class.field-row--inline]="!fieldSet.hasMultiplicity">
+        <div class="field-set-title field-label align-items-center d-flex gap-1-rem">
+            <span><span class="field-number">{{ path }}.</span> {{ fieldSet.title }}</span>
+            @if (fieldSet.additionalInformation) {
+            <mat-icon class="info-icon" matTooltip="{{fieldSet.additionalInformation}}">info</mat-icon>
+            }
+        </div>
+        <div class="field-value">
+    @if(!fieldSet.hasMultiplicity){
+        @for (field of fieldSet.fields; track field.id; let i = $index) {
+            @let planRefs = getFieldReferences(field.id);
+            @let fieldValues = $safeNavigationMigration(fieldValueMapArray?.get(field.id));
+            @if (fieldSet.fields.length > 1 && field.data?.label && (planRefs.length > 0 || hasRenderableValue(fieldValues))) {
+                <div class="field-sublabel">{{ field.data.label }}</div>
+            }
+            @if (planRefs.length) {
+                <div class="reference-list">
+                    @for (planRef of planRefs; track planRef.id) {
+                        <ng-container *ngTemplateOutlet="referenceChipTemplate; context: { ref: planRef.reference }"></ng-container>
+                    }
+                </div>
+            } @else {
+                @if (fieldValues?.length && (visibilityRulesService?.isVisibleMap[field.id + '_' + (properties?.items?.[0]?.ordinal ?? 0)] ?? true)) {
+                    @for(fieldValue of fieldValues; track $index){
+                        @if(fieldValue != null && fieldValue !== ''){
+                            <div>
+                                @if(
+                                    field?.data?.fieldType == FieldType.RICH_TEXT_AREA ||
+                                    (field?.data?.fieldType == FieldType.SYSTEM && (
+                                        field?.data?.systemFieldType == SystemFieldType.PlanDescription ||
+                                        field?.data?.systemFieldType == SystemFieldType.PlanDescriptionDescription
+                                    ))
+                                ){
+                                    <span [innerHTML]="fieldValue"></span>
+                                } @else {
+                                    {{ fieldValue }}
+                                }
+                            </div>
+                        } @else if (fieldSet.fields.length === 1) {
+                            <div>—</div>
+                        }
+                    }
+                }
+            }
+        }
+    }@else{
+        @if(!fieldSet.multiplicity?.tableView){
+            @for(item of properties?.items ?? []; track $index; let j = $index){
+                <div class="mb-2">
+                    @for(field of fieldSet?.fields; track field.id){
+                        @let fieldValue = $safeNavigationMigration(fieldValueMapArray?.get(field.id)?.[j]);
+                        <div class="text-wrap table-field text-truncated">
+                            @if (fieldValue && visibilityRulesService && (visibilityRulesService.isVisibleMap[field.id + '_' + item.ordinal] ?? true)) {
+                                @if(
+                                field?.data?.fieldType == FieldType.RICH_TEXT_AREA || 
+                                    (field?.data?.fieldType == FieldType.SYSTEM && (
+                                        field?.data?.systemFieldType == SystemFieldType.PlanDescription ||
+                                        field?.data?.systemFieldType == SystemFieldType.PlanDescriptionDescription
+                                    ))
+                                ){
+                                    <span [innerHTML]="fieldValue"></span>
+                                } @else {
+                                    {{ fieldValue }}
+                                }
+                            }
+                        </div>
+                    }
+                </div>
+            }
+            <!-- @for (item of properties?.items; track item; let i = $index) {
+                @if (visibilityRulesService && visibilityRulesService.isVisibleMap[fieldSet.id + '_' + item.ordinal] ?? true)) {
+                    <div class="pl-2 d-flex flex-column gap-half-rem">
+                    @for (field of fieldSet.fields; track field.id; let i = $index) {
+                        @if (visibilityRulesService && (visibilityRulesService.isVisibleMap[field.id + '_' + item.ordinal] ?? true)) {
+                        <div >
+                            <ng-container
+                                *ngTemplateOutlet="formFieldValueTemplate; context: { path: path + '.' + i, properties: item.fields, field: field, fieldSet}"
+                            ></ng-container>
+                        </div>
+                        }
+                    }
+                    </div>
+                }
+            } -->
+        } @else if (fieldSet.multiplicity?.tableView && !fieldSet.multiplicity?.transposedTableView) {
+            <div class="table-scroll">
+            <table class="table table-bordered" id="field-table">
+            <tr>
+                @for (field of fieldSet.fields; track field.id; let i = $index) {
+                    <th class="text-truncated">
+                        @if (field?.data?.fieldType !== FieldType.REFERENCE_TYPES) {
+                            {{field.data?.label}}
+                        } @else {
+                            {{field.data?.label != null && field.data?.label !== '' ? field.data?.label: field.data?.referenceType?.name }}
+                        }
+                    </th>
+                }
+            </tr>
+            @if(properties?.items?.length){
+                @for(item of properties?.items ?? []; track $index; let j = $index){
+                    <tr>
+                        @for(field of fieldSet?.fields; track field.id){
+                            @let fieldValue = $safeNavigationMigration(fieldValueMapArray?.get(field.id)?.[j]);
+                            <td class="text-wrap table-field text-truncated">
+                                @if (fieldValue && visibilityRulesService && (visibilityRulesService.isVisibleMap[field.id + '_' + item.ordinal] ?? true)) {
+                                    @if(
+                                    field?.data?.fieldType == FieldType.RICH_TEXT_AREA || 
+                                        (field?.data?.fieldType == FieldType.SYSTEM && (
+                                            field?.data?.systemFieldType == SystemFieldType.PlanDescription ||
+                                            field?.data?.systemFieldType == SystemFieldType.PlanDescriptionDescription
+                                        ))
+                                    ){
+                                        <span [innerHTML]="fieldValue"></span>
+                                    } @else {
+                                        {{ fieldValue }}
+                                    }
+                                }
+                            </td>
+                        }
+                    </tr>
+                }
+            }
+            </table>
+            </div>
+        } @else if (fieldSet.multiplicity?.tableView && fieldSet.multiplicity?.transposedTableView) {
+            <div class="table-scroll">
+            <table class="table table-bordered" id="field-table-transposed">
+                <tr>
+                    <th class="text-truncated">{{'DESCRIPTION-EDITOR.FIELDS.TRANSPOSED-TABLE-FIELD-NAME' | translate}}</th>
+                    @if(properties?.items?.length){
+                        @for(item of properties?.items ?? []; track $index; let j = $index){
+                            <th></th>
+                        }
+                    }
+                </tr>
+                @for (field of fieldSet.fields; track field.id) {
+                    <tr>
+                        <td class="text-truncated">
+                            @if (field?.data?.fieldType !== FieldType.REFERENCE_TYPES) {
+                                {{field.data?.label}}
+                            } @else {
+                                {{field.data?.label != null && field.data?.label !== '' ? field.data?.label : field.data?.referenceType?.name}}
+                            }
+                        </td>
+                        @if(properties?.items?.length){
+                            @for(item of properties?.items ?? []; track $index; let j = $index){
+                                @let fieldValue = $safeNavigationMigration(fieldValueMapArray?.get(field.id)?.[j]);
+                                <td class="text-wrap table-field text-truncated">
+                                    @if (fieldValue && visibilityRulesService && (visibilityRulesService.isVisibleMap[field.id + '_' + item.ordinal] ?? true)) {
+                                        @if(
+                                            field?.data?.fieldType == FieldType.RICH_TEXT_AREA ||
+                                            (field?.data?.fieldType == FieldType.SYSTEM && (
+                                                field?.data?.systemFieldType == SystemFieldType.PlanDescription ||
+                                                field?.data?.systemFieldType == SystemFieldType.PlanDescriptionDescription
+                                            ))
+                                        ){
+                                            <span [innerHTML]="fieldValue"></span>
+                                        } @else {
+                                            {{ fieldValue }}
+                                        }
+                                    }
+                                </td>
+                            }
+                        }
+                    </tr>
+                }
+            </table>
+            </div>
+        }
+    }
+        </div>
+    </div>
+</ng-template>
+
+<ng-template #referenceChipTemplate let-ref="ref">
+    <app-reference-card [reference]="ref" [referenceType]="ref.type" [compact]="true"></app-reference-card>
+</ng-template>
+
+<!-- <ng-template #formFieldValueTemplate let-properties="properties" let-path="path" let-field="field" let-fieldSet="fieldSet">
+  @let values = properties?.[field.id];
+  @if (field.data?.label) {
+    <div>
+      <small class="mb-2">{{field.data.label}}</small>
+    </div>
+  }
+  @switch(field.data?.fieldType){
+    @case(FieldType.SELECT){
+      @if(field.data.multipleSelect){
+        {{values?.textListValue?.join(', ') ?? '-'}}
+        }@else{
+        {{values?.textValue ?? '-'}}
+      }
+    }
+    @case(FieldType.REFERENCE_TYPES){
+      {{getLabels(values?.references) ?? '-'}}
+    }
+    @case(FieldType.INTERNAL_ENTRIES_DESCRIPTIONS){
+      @if (!isAuthenticated()) {
+        <span style="font-style: italic;">{{ 'DESCRIPTION-OVERVIEW.VIEW-INTERNAL-DESCRIPTION-MESSAGE-FOR-ANONYMOUS-USERS' | translate }}</span>
+        }@else if(field.data.multipleSelect){
+        @for(id of values?.textListValue; track $index; let last = $last){
+          {{(id | descriptionAsync | async)?.label}}
+          @if(!last){
+            <br/>
+          }
+        }
+        }@else{
+        {{values?.textValue | descriptionAsync | async}}?.label
+      }
+    }
+    @case(FieldType.INTERNAL_ENTRIES_PLANS){
+      @if (!isAuthenticated()) {
+        <span style="font-style: italic;">{{ 'DESCRIPTION-OVERVIEW.VIEW-INTERNAL-PLAN-MESSAGE-FOR-ANONYMOUS-USERS' | translate }}</span>
+        }@else if(field.data.multipleSelect){
+        @for(id of values?.textListValue; track $index; let last = $last){
+          {{(id | planAsync | async)?.label}}
+          @if(!last){
+            <br/>
+          }
+        }
+        }@else{
+        {{values?.textValue | planAsync | async}}?.label
+      }
+    }
+    @case(FieldType.CHECK_BOX){
+      {{('COMMONS.ACTIONS.BOOLEAN.' + values?.booleanValue ? 'YES' : 'NO') | translate}}
+    }
+    @case(FieldType.BOOLEAN_DECISION){
+      {{('COMMONS.ACTIONS.BOOLEAN.' + values?.booleanValue ? 'YES' : 'NO') | translate}}
+    }
+    @case(FieldType.RICH_TEXT_AREA){
+      <span [innerHTML]="values?.textValue"></span>
+    }
+    @case(FieldType.UPLOAD){
+      @if (values?.textValue != null && !isAuthenticated()) {
+        <span style="font-style: italic;">{{ 'DESCRIPTION-OVERVIEW.VIEW-FILE-MESSAGE-FOR-ANONYMOUS-USERS' | translate }}</span>
+        }@else {
+        <span>{{values?.textValue | fileAsync | async}}</span>
+      }
+    }
+    @case(FieldType.DATE_PICKER){
+      {{values?.dateValue ? (values.dateValue | dateTimeFormatter: 'shortDate')  : '-'}}
+    }
+    @case(FieldType.TAGS){
+      {{getLabels(values?.tags) ?? '-'}}
+    }
+    @case(FieldType.DATASET_IDENTIFIER){
+      {{values?.externalIdentifier?.identifier}} [{{values?.externalIdentifier?.type}}]
+    }
+    @case(FieldType.VALIDATION){
+      {{values?.externalIdentifier?.identifier}} [{{values?.externalIdentifier?.type}}]
+    }
+    @case(FieldType.SYSTEM){
+        @switch(field.data?.systemFieldType){
+            @case(SystemFieldType.PlanTitle){
+                {{plan?.label}}
+            }
+            @case(SystemFieldType.PlanDescription){
+                <span [innerHTML]="plan?.description"></span>
+            }
+            @case(SystemFieldType.PlanLanguage){
+                {{ getLanguageInfo(plan.language)  ?? '-'}}
+            }
+            @case(SystemFieldType.PlanContact){
+                @for (contact of plan.properties?.contacts; track $index; let last = $last; let index = $index) {
+                    <span>{{ contact.firstName }} {{ contact.lastName }}@if (!last) {
+                        <span>,&nbsp;</span>
+                    }</span>
+                }
+                @if(!plan.properties?.contacts?.length){
+                    -
+                }
+            }
+            @case(SystemFieldType.PlanAccessRights){
+                {{ plan.accessType ? enumUtils.toPlanAccessTypeString(plan.accessType) : '-' }}
+            }
+        }
+    }
+    @case(FieldType.NUMBER){
+        {{values?.numberValue != null ? values.numberValue : '-'}}
+    }
+    @default{
+      {{values?.textValue ?? '-'}}
+    }
+  }
+</ng-template> -->
+
+<!-- @case (planBlueprintSystemFieldType.Language) {
+    {{ getLanguageInfo(plan.language) }}
+}
+@case (planBlueprintSystemFieldType.Contact) {
+    @for (contact of plan.properties.contacts; track $index; let last = $last; let index = $index) {
+    <span>{{ contact.firstName }} {{ contact.lastName }}@if (!last) {
+        <span>,&nbsp;</span>
+    }</span>
+    }
+}
+@case (planBlueprintSystemFieldType.AccessRights) {
+    {{ enumUtils.toPlanAccessTypeString(plan.accessType) }}
+} -->
+        <!-- @if (!selectedBlueprint) {
           @if (plan.description) {
             <div class="description">
               <span class="desc-txt" id="description-text" [innerHTML]="showLongDescription() ? plan.description : minimizedDescription"></span>
@@ -296,7 +826,7 @@
               }
             </div>
           }
-          @if(referenceService.hasRerefenceOfTypes(plan?.planReferences, isActive, [referenceTypeService.getGrantReferenceType()])){
+          @if(referenceService.hasReferenceOfTypes(plan?.planReferences, isActive, [referenceTypeService.getGrantReferenceType()])){
             <div class="grant">
               <div class="header">
                 {{'PLAN-OVERVIEW.GRANT' | translate}}
@@ -347,14 +877,14 @@
                 @for (description of plan.descriptions; track description) {
                   <div class="col-12 col-lg-10">
                     <a class="w-100 description-btn"
-                      [routerLink]="isPublicView ? routerUtils.generateUrl(['/explore-descriptions/overview/public/', description.id]) : routerUtils.generateUrl(['/plans/overview/' + plan.id + '/descriptions/' + description.id])"
+                      [routerLink]="isPublicView ? routerUtils.generateUrl(['/explore-assets/overview/public/', description.id]) : routerUtils.generateUrl(['/plans/overview/' + plan.id + '/assets/' + description.id])"
                       target="_blank" aria-label="{{('ALT-TEXT.OPEN-DESCRIPTION-OVERVIEW-FOR' | translate) + ' ' + description?.label}}"
                       [ngStyle]="{'background-color': description.status?.definition?.statusColor}"
                       >
                       <span class="overlay"></span>
                       <div class="w-100 d-flex align-items-center justify-content-between pl-3 pr-3">
                         <div class="description-btn-label">{{ description.label }}</div>
-                        <mat-icon aria-hidden>launch</mat-icon>
+                        <mat-icon aria-hidden="true">launch</mat-icon>
                       </div>
                     </a>
                   </div>
@@ -364,10 +894,8 @@
               <mat-icon>horizontal_rule</mat-icon>
             }
           </div>
-        }
-      </div>
-      <div class="col-12 col-lg-4 side-actions">
-        @if (plan.entityDois || (inputRepos?.length && !isPublicView && isActive)) {
+        } -->
+        <!-- @if (plan.entityDois || (inputRepos?.length && !isPublicView && isActive)) {
           <mat-tab-group class="frame">
             <mat-tab [label]="'PLAN-OVERVIEW.DOI.TITLE' | translate" >
               <div class="tab-body">
@@ -407,28 +935,10 @@
               </div>
             </mat-tab>
           </mat-tab-group>
-        }
-        @if (plan.planUsers?.length > 0) {
+        } -->
+        <!-- @if (plan.planUsers?.length > 0) {
           <mat-tab-group class="frame">
-            @if (plan.planUsers) {
-              <mat-tab [label]="'PLAN-OVERVIEW.PLAN-AUTHORS' | translate">
-                <div class="tab-body d-block">
-                  <app-plan-authors
-                    [planUsers]="plan.planUsers"
-                    [planBlueprint]="plan.blueprint"
-                    [username]="userName"
-                    [removeUser]="canAssignPlanUsers(plan)"
-                    (deleteAuthor)="removeUserFromPlanDialog($event)"
-                    />
-                    @if (!isPublicView && canInvitePlanUsers()) {
-                      <button class="mt-2" mat-flat-button (click)="openShareDialog(plan.id,plan.label)">
-                        <mat-icon aria-hidden>group_add</mat-icon>
-                        {{ 'PLAN-OVERVIEW.ACTIONS.INVITE-SHORT' | translate }}
-                      </button>
-                    }
-                  </div>
-                </mat-tab>
-              }
+
               @if (planEvaluations?.length || (availableEvaluators?.length && !isPublicView)) {
                 <mat-tab [label]="'PLAN-OVERVIEW.EVALUATION' | translate">
                   <div class="tab-body">
@@ -436,7 +946,7 @@
                       {{ 'PLAN-OVERVIEW.EVALUATION-HISTORY' | translate }}
                     </div>
                     <div class="history">
-                      <app-plan-evaluation-history [evaluations]="planEvaluations"/>
+                      <app-plan-evaluation-history [evaluations]="planEvaluations" [planId]="isPublicView ? null : plan.id"/>
                     </div>
                     @if (!isPublicView && availableEvaluators?.length > 0 && isActive) {
                       <span class="fit-content" [matTooltip]="'PLAN-OVERVIEW.DISABLED-TOOLTIP.EVALUATION' | translate" [matTooltipDisabled]="canEvaluatePlan()">
@@ -446,18 +956,18 @@
                           [matMenuTriggerFor]="rankMenu"
                           >
                           {{ 'PLAN-OVERVIEW.ACTIONS.EVALUATE' | translate }}
-                          <mat-icon aria-hidden iconPositionEnd>arrow_drop_down</mat-icon>
+                          <mat-icon  iconPositionEnd aria-hidden="true">arrow_drop_down</mat-icon>
                         </button>
                       </span>
                       <mat-menu #rankMenu="matMenu" xPosition="before">
                         @for(evaluator of availableEvaluators; track evaluator){
                           <button mat-menu-item class="p-0 pt-2"
-                            (click)="onEvaluatePlan(plan.id, evaluator.evaluatorId, evaluator.format, evaluator.rankConfig, evaluator.availableBenchmarks, isPublicView)">
+                            (click)="onEvaluatePlan(plan.id, evaluator.evaluatorId, evaluator.format, evaluator.rankConfig, evaluator.availableBenchmarks, evaluator.availableTests, isPublicView)">
                             @if (evaluator.hasLogo) {
-                              <img class="evaluator-logo" [src]="logos.get(evaluator.evaluatorId)">
+                              <img alt="" class="evaluator-logo" [src]="logos.get(evaluator.evaluatorId)" aria-hidden="true">
                             }
                             @if (!evaluator.hasLogo) {
-                              <img class="evaluator-logo" src="assets/images/repository-placeholder.png">
+                              <img alt="" class="evaluator-logo" src="assets/images/repository-placeholder.png" aria-hidden="true">
                             }
                             <span class="evaluator-id pr-2">{{'GENERAL.EVALUATOR.' + evaluator.evaluatorId?.toUpperCase() + '.TITLE' | translate }}</span>
                           </button>
@@ -469,95 +979,4 @@
                 </mat-tab>
               }
             </mat-tab-group>
-          }
-        </div>
-      </div>
-    </div>
-  }
-
-  <ng-template #statusTemplate let-status="status">
-    <div>{{ status.action?.length > 0 ? status.action : status.name }}</div>
-  </ng-template>
-
-  <ng-template #actionsTemplate>
-    @if (!isPublicView) {
-      <button mat-flat-button color="primary" (click)="editClicked()">
-        <div class="d-flex align-items-center gap-quarter-rem">
-          @if (isActive && canEditPlan && !lockStatus) {
-            <mat-icon aria-hidden class="mat-mini-fab-icon">create</mat-icon>
-            <span>{{ 'PLAN-OVERVIEW.ACTIONS.EDIT' | translate }}</span>
-          } @else {
-            <mat-icon aria-hidden class="mat-mini-fab-icon">visibility</mat-icon>
-            <span>{{ 'PLAN-OVERVIEW.ACTIONS.PREVIEW' | translate }}</span>
-          }
-        </div>
-      </button>
-      @if (canEditStatus) {
-        @if (plan.availableStatuses.length > 1) {
-          <button mat-button class="primary-container-btn" [matMenuTriggerFor]="statusesMenu">
-            <div class="d-flex align-items-center gap-quarter-rem">
-              <span>{{ 'PLAN-OVERVIEW.ACTIONS.CHANGE-STATUS' | translate }}</span>
-              <mat-icon aria-hidden>arrow_drop_down</mat-icon>
-            </div>
-          </button>
-          <mat-menu #statusesMenu="matMenu">
-            @for (status of plan.availableStatuses; track status) {
-              <button mat-menu-item (click)="persistStatus(status)" [attr.aria-label]="status.action?.length > 0 ? status.action : status.name">
-                <ng-container *ngTemplateOutlet="statusTemplate; context: {status: status}"></ng-container>
-              </button>
-            }
-          </mat-menu>
-        } @else {
-          @let status = plan.availableStatuses[0];
-          <button mat-button class="primary-container-btn" (click)="persistStatus(status)" [attr.aria-label]="status.action?.length > 0 ? status.action : status.name">
-            <ng-container *ngTemplateOutlet="statusTemplate; context: {status}"></ng-container>
-          </button>
-        }
-      }
-    }
-    @if (((canExportPlan && fileTransformerService.availableFormatsFor(fileTransformerEntityTypeEnum.Plan)?.length > 0) || canClonePlan || (canDeletePlan && !isLocked))) {
-      <button mat-icon-button class="primary-container-btn" [matMenuTriggerFor]="moreActionsMenu" [attr.aria-label]="'ALT-TEXT.MORE-ACTIONS' | translate">
-        <mat-icon>more_horiz</mat-icon>
-      </button>
-    }
-    <mat-menu #moreActionsMenu="matMenu" xPosition="before">
-      @if (canExportPlan && fileTransformerService.availableFormatsFor(fileTransformerEntityTypeEnum.Plan).length > 0) {
-        <button mat-menu-item [attr.aria-label]="'ALT-TEXT.OPEN-MENU' | translate" [matMenuTriggerFor]="exportMenu">
-          <div class="d-flex align-items-center mr-2">
-            <mat-icon class="mat-mini-fab-icon">download</mat-icon>
-            {{ 'PLAN-OVERVIEW.ACTIONS.EXPORT' | translate }}
-          </div>
-        </button>
-        <mat-menu #exportMenu="matMenu" xPosition="after">
-          @for(fileTransformer of fileTransformerService.availableFormatsFor(fileTransformerEntityTypeEnum.Plan); track $index; let i = $index) {
-            @for (fileFormat of fileTransformer.exportVariants; track $index; let j = $index) {
-              <button mat-menu-item  (click)="fileTransformerService.exportPlan(plan.id, fileTransformer.fileTransformerId, fileFormat.format, isPublicView)">
-                <i class="fa pr-2" [ngClass]="fileFormat.icon ? fileFormat.icon : 'fa-file-o'"></i>
-                @if (fileFormat?.format?.toUpperCase() === 'JSON') {
-                  <span>{{ 'GENERAL.FILE-TRANSFORMER.' + fileTransformer?.fileTransformerId?.toUpperCase() + '-' + fileFormat?.format?.toUpperCase() | translate }}</span>
-                } @else {
-                  <span>{{ 'GENERAL.FILE-TRANSFORMER.' + fileFormat?.format?.toUpperCase() | translate }}</span>
-                }
-              </button>
-            }
-          }
-        </mat-menu>
-      }
-      @if (canClonePlan) {
-        <button mat-menu-item (click)="cloneClicked()">
-          <div class="d-flex align-items-center gap-quarter-rem">
-            <mat-icon class="mat-mini-fab-icon" aria-hidden>content_copy</mat-icon>
-            <span>{{ 'PLAN-OVERVIEW.ACTIONS.DUPLICATE' | translate }}</span>
-          </div>
-        </button>
-      }
-      @if (canDeletePlan && !isLocked) {
-        <button mat-menu-item (click)="deleteClicked()">
-          <div class="d-flex align-items-center gap-quarter-rem">
-            <mat-icon class="mat-mini-fab-icon" aria-hidden>delete</mat-icon>
-            <span>{{ 'PLAN-OVERVIEW.ACTIONS.DELETE' | translate }}</span>
-          </div>
-        </button>
-      }
-    </mat-menu>
-  </ng-template>
+          } -->

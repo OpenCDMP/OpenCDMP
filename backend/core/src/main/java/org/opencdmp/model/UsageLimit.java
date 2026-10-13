@@ -39,6 +39,9 @@ public class UsageLimit {
     private Boolean belongsToCurrentTenant;
     public static final String _belongsToCurrentTenant = "belongsToCurrentTenant";
 
+    private Integer currentValue;
+    public static final String _currentValue = "currentValue";
+
     public UUID getId() {
         return id;
     }
@@ -117,5 +120,13 @@ public class UsageLimit {
 
     public void setBelongsToCurrentTenant(Boolean belongsToCurrentTenant) {
         this.belongsToCurrentTenant = belongsToCurrentTenant;
+    }
+
+    public Integer getCurrentValue() {
+        return currentValue;
+    }
+
+    public void setCurrentValue(Integer currentValue) {
+        this.currentValue = currentValue;
     }
 }

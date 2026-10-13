@@ -1,6 +1,6 @@
 package org.opencdmp.model.builder.commonmodels.descriptiontemplate.fielddata;
 
-import org.opencdmp.commonmodels.models.descriptiotemplate.fielddata.LabelAndMultiplicityDataModel;
+import org.opencdmp.commonmodels.models.planblueprintdescriptiontemplatefields.fielddata.LabelAndMultiplicityDataModel;
 import org.opencdmp.commons.types.descriptiontemplate.fielddata.LabelAndMultiplicityDataEntity;
 import org.opencdmp.convention.ConventionService;
 import gr.cite.tools.logging.LoggerService;

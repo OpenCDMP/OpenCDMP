@@ -55,6 +55,11 @@ public class DescriptionTemplateQuery extends QueryBase<DescriptionTemplateEntit
 
     private PlanDescriptionTemplateQuery planDescriptionTemplateQuery;
 
+    private TenantQuery tenantQuery;
+
+    /** null: any row; false: only rows without a tenant (the default tenant's shared rows); true: only tenant-owned rows. */
+    private Boolean tenantIsSet;
+
     private EnumSet<AuthorizationFlags> authorize = EnumSet.of(AuthorizationFlags.None);
 
     private Collection<String> codes;
@@ -246,6 +251,16 @@ public class DescriptionTemplateQuery extends QueryBase<DescriptionTemplateEntit
         return this;
     }
 
+    public DescriptionTemplateQuery tenantIsSet(Boolean value) {
+        this.tenantIsSet = value;
+        return this;
+    }
+
+    public DescriptionTemplateQuery tenantSubQuery(TenantQuery tenantQuery) {
+        this.tenantQuery = tenantQuery;
+        return this;
+    }
+
     public DescriptionTemplateQuery authorize(EnumSet<AuthorizationFlags> values) {
         this.authorize = values;
         return this;
@@ -426,6 +441,14 @@ public class DescriptionTemplateQuery extends QueryBase<DescriptionTemplateEntit
             QueryContext<PlanDescriptionTemplateEntity, UUID> subQuery = this.applySubQuery(this.planDescriptionTemplateQuery, queryContext, UUID.class, planDescriptionTemplateEntityRoot -> planDescriptionTemplateEntityRoot.get(PlanDescriptionTemplateEntity._descriptionTemplateGroupId));
             predicates.add(queryContext.CriteriaBuilder.in(queryContext.Root.get(DescriptionTemplateEntity._groupId)).value(subQuery.Query));
         }
+        if (this.tenantIsSet != null) {
+            predicates.add(this.tenantIsSet ? queryContext.CriteriaBuilder.isNotNull(queryContext.Root.get(DescriptionTemplateEntity._tenantId)) : queryContext.CriteriaBuilder.isNull(queryContext.Root.get(DescriptionTemplateEntity._tenantId)));
+        }
+
+        if (this.tenantQuery != null) {
+            QueryContext<TenantEntity, UUID> subQuery = this.applySubQuery(this.tenantQuery, queryContext, UUID.class, tenantEntityRoot -> tenantEntityRoot.get(TenantEntity._id));
+            predicates.add(queryContext.CriteriaBuilder.in(queryContext.Root.get(DescriptionTemplateEntity._tenantId)).value(subQuery.Query));
+        }
 
         if (!predicates.isEmpty()) {
             Predicate[] predicatesArray = predicates.toArray(new Predicate[0]);
@@ -479,6 +502,8 @@ public class DescriptionTemplateQuery extends QueryBase<DescriptionTemplateEntit
         else if (item.match(DescriptionTemplate._language))
             return DescriptionTemplateEntity._language;
         else if (item.prefix(DescriptionTemplate._type))
+            return DescriptionTemplateEntity._typeId;
+        else if (item.match(DescriptionTemplate._type))
             return DescriptionTemplateEntity._typeId;
         else if (item.match(DescriptionTemplate._createdAt))
             return DescriptionTemplateEntity._createdAt;

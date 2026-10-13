@@ -20,12 +20,23 @@ public class DescriptionMultiplePersist {
     private List<DescriptionPersist> descriptions;
     public static final String _descriptions = "descriptions";
 
+    private PlanUpdateRequestApply planUpdateRequestApply;
+    public static final String _planUpdateRequestApply = "planUpdateRequestApply";
+
     public List<DescriptionPersist> getDescriptions() {
         return descriptions;
     }
 
     public void setDescriptions(List<DescriptionPersist> descriptions) {
         this.descriptions = descriptions;
+    }
+
+    public PlanUpdateRequestApply getPlanUpdateRequestApply() {
+        return planUpdateRequestApply;
+    }
+
+    public void setPlanUpdateRequestApply(PlanUpdateRequestApply planUpdateRequestApply) {
+        this.planUpdateRequestApply = planUpdateRequestApply;
     }
 
     @Component(DescriptionMultiplePersistValidator.ValidatorName)
@@ -61,7 +72,12 @@ public class DescriptionMultiplePersist {
                             .iff(() -> !this.isListNullOrEmpty(item.getDescriptions()))
                             .on(DescriptionMultiplePersist._descriptions)
                             .over(item.getDescriptions())
-                            .using((itm) -> this.validatorFactory.validator(DescriptionPersist.DescriptionPersistValidator.class))
+                            .using((itm) -> this.validatorFactory.validator(DescriptionPersist.DescriptionPersistValidator.class)),
+                    this.refSpec()
+                            .iff(() -> item.getPlanUpdateRequestApply() != null)
+                            .on(DescriptionMultiplePersist._planUpdateRequestApply)
+                            .over(item.getPlanUpdateRequestApply())
+                            .using(() -> this.validatorFactory.validator(PlanUpdateRequestApply.PlanUpdateRequestApplyValidator.class))
                     );
         }
 

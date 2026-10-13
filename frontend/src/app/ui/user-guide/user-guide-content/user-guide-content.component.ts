@@ -1,5 +1,5 @@
 import { HttpClient } from '@angular/common/http';
-import { Component, ElementRef, Input, OnInit, ViewChild } from '@angular/core';
+import { Component, ElementRef, Input, OnInit, ViewChild, ChangeDetectionStrategy } from '@angular/core';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { Router } from '@angular/router';
 import { SupportiveMaterialFieldType } from '@app/core/common/enum/supportive-material-field-type';
@@ -10,7 +10,7 @@ import { AnalyticsService } from '@app/core/services/matomo/analytics-service';
 import { RouterUtilsService } from '@app/core/services/router/router-utils.service';
 import { SupportiveMaterialService } from '@app/core/services/supportive-material/supportive-material.service';
 import { BaseComponent } from '@common/base/base.component';
-import { LangChangeEvent, TranslateService } from '@ngx-translate/core';
+import { LangChangeEvent, TranslateService, TranslatePipe } from '@ngx-translate/core';
 import { Subject, interval } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 
@@ -18,7 +18,8 @@ import { takeUntil } from 'rxjs/operators';
     selector: 'app-user-guide-content',
     templateUrl: './user-guide-content.component.html',
     styleUrls: ['./user-guide-content.component.scss'],
-    standalone: false
+    changeDetection: ChangeDetectionStrategy.Eager,
+    imports: [TranslatePipe]
 })
 export class UserGuideContentComponent extends BaseComponent implements OnInit {
     @Input() isDialog: boolean;

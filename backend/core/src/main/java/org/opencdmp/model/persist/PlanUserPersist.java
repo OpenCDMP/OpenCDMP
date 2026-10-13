@@ -24,7 +24,7 @@ public class PlanUserPersist {
     private String email;
     public static final String _email = "email";
 
-    private UUID sectionId;
+    private String sectionId;
     public static final String _sectionId = "sectionId";
 
     private Integer ordinal;
@@ -42,12 +42,12 @@ public class PlanUserPersist {
         this.user = user;
     }
 
-    public UUID getSectionId() {
+    public String getSectionId() {
         return sectionId;
     }
 
-    public void setSectionId(UUID sectionId) {
-        this.sectionId = sectionId;
+    public void setSectionId(String sectionId) {
+        this.sectionId = (sectionId == null || sectionId.isEmpty()) ? null : sectionId;
     }
 
     public Integer getOrdinal() {
@@ -106,11 +106,7 @@ public class PlanUserPersist {
                     this.spec()
                             .must(() -> !this.isNull(item.getRole()))
                             .failOn(PlanUserPersist._role).failWith(messageSource.getMessage("Validation_Required", new Object[]{PlanUserPersist._role}, LocaleContextHolder.getLocale())),
-                    this.spec()
-                            .iff(() -> !this.isNull(item.getSectionId()))
-                            .must(() -> this.isValidGuid(item.getSectionId()))
-                            .failOn(PlanUserPersist._sectionId).failWith(messageSource.getMessage("Validation_Required", new Object[]{PlanUserPersist._sectionId}, LocaleContextHolder.getLocale())),
-                    this.spec()
+                   this.spec()
                             .iff(() -> !this.isEmpty(item.getEmail()))
                             .must(() -> this.isValidEmail(item.getEmail()))
                             .failOn(PlanUserPersist._email).failWith(messageSource.getMessage("Validation_UnexpectedValue", new Object[]{PlanUserPersist._email}, LocaleContextHolder.getLocale()))

@@ -9,11 +9,17 @@
   }
 }
 @if(showPreview && !isExpanded){
-  <span role="button" class="expand-btn" (click)="isExpanded = !isExpanded">
+  <span role="button" tabindex="0" class="expand-btn" [attr.aria-expanded]="isExpanded"
+        (click)="isExpanded = !isExpanded"
+        (keydown.enter)="isExpanded = !isExpanded"
+        (keydown.space)="$event.preventDefault(); isExpanded = !isExpanded">
     {{ 'DESCRIPTION-EDITOR.ACTIONS.VIEW-MORE' | translate}}
   </span>
   }@else{
-  <div role="button" class="expand-btn" (click)="isExpanded = !isExpanded">
+  <div role="button" tabindex="0" class="expand-btn" [attr.aria-expanded]="isExpanded"
+       (click)="isExpanded = !isExpanded"
+       (keydown.enter)="isExpanded = !isExpanded"
+       (keydown.space)="$event.preventDefault(); isExpanded = !isExpanded">
     {{( isExpanded ? 'DESCRIPTION-EDITOR.ACTIONS.VIEW-LESS' : 'DESCRIPTION-EDITOR.ACTIONS.VIEW-MORE') | translate}}
   </div>
 }

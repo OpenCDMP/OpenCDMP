@@ -29,3 +29,43 @@
     flex-shrink: 0;
     object-fit: cover;
 }
+
+.scope-toggle {
+	--mat-button-toggle-shape: 9999px;
+	--mat-button-toggle-height: 36px;
+	--mat-button-toggle-divider-color: var(--mat-sys-outline);
+	--mat-button-toggle-selected-state-background-color: var(--mat-sys-primary-container);
+	--mat-button-toggle-selected-state-text-color: var(--mat-sys-on-surface);
+	border-color: var(--mat-sys-outline);
+	font-size: 0.8125rem;
+
+	.mat-button-toggle-checked {
+		font-weight: 500;
+	}
+}
+
+.user-email {
+	font-size: 0.8125rem;
+	color: var(--mat-sys-on-surface-variant);
+	overflow-wrap: anywhere;
+}
+
+.user-roles {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 6px;
+}
+
+.user-role-chip {
+	padding: 2px 10px;
+	border-radius: 999px;
+	background: var(--mat-sys-primary-container);
+	color: var(--mat-sys-on-primary-container);
+	font-size: 0.75rem;
+	font-weight: 700;
+}
+
+.user-role-chip--none {
+	background: var(--mat-sys-secondary-container);
+	color: var(--mat-sys-on-secondary-container);
+}

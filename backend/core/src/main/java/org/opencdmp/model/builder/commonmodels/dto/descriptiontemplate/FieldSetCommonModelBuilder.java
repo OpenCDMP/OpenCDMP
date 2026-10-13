@@ -4,7 +4,7 @@ import gr.cite.tools.data.builder.BuilderFactory;
 import gr.cite.tools.exception.MyApplicationException;
 import gr.cite.tools.logging.LoggerService;
 import org.opencdmp.authorization.AuthorizationFlags;
-import org.opencdmp.commonmodels.models.descriptiotemplate.FieldSetModel;
+import org.opencdmp.commonmodels.models.planblueprintdescriptiontemplatefields.FieldSetModel;
 import org.opencdmp.convention.ConventionService;
 import org.opencdmp.model.builder.commonmodels.BaseCommonModelBuilder;
 import org.opencdmp.model.builder.commonmodels.CommonModelBuilderItemResponse;
@@ -51,6 +51,7 @@ public class FieldSetCommonModelBuilder extends BaseCommonModelBuilder<FieldSet,
             m.setTitle(d.getTitle());
             m.setDescription(d.getDescription());
             m.setExtendedDescription(d.getExtendedDescription());
+            m.setSemantics(d.getSemantics());
             m.setAdditionalInformation(d.getAdditionalInformation());
             m.setHasMultiplicity(d.isHasMultiplicity());
             if (d.getMultiplicity() != null) m.setMultiplicity(this.builderFactory.builder(MultiplicityCommonModelBuilder.class).authorize(this.authorize).build(d.getMultiplicity()));

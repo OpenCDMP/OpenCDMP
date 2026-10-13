@@ -1,0 +1,27 @@
+@if (chips().length) {
+	<div class="active-reference-filters" role="group" [attr.aria-label]="'REFERENCE-USAGE-FILTER.FILTERED-BY' | translate">
+		<span class="active-reference-filters-label" aria-hidden="true">{{ 'REFERENCE-USAGE-FILTER.FILTERED-BY' | translate }}</span>
+		@for (chip of chips(); track chip.id) {
+			<span class="active-reference-chip">
+				<span>
+					@if (chip.typeName) {
+						{{ chip.typeName }}:
+					}
+					{{ chip.label }}
+				</span>
+				<button
+					type="button"
+					mat-icon-button
+					class="active-reference-chip-remove"
+					[attr.aria-label]="'REFERENCE-USAGE-FILTER.REMOVE' | translate: { name: chip.label }"
+					(click)="removed.emit(chip.id)"
+				>
+					<mat-icon aria-hidden="true">close</mat-icon>
+				</button>
+			</span>
+		}
+		<button type="button" mat-button class="active-reference-filters-clear" (click)="cleared.emit()">
+			{{ 'REFERENCE-USAGE-FILTER.CLEAR-ALL' | translate }}
+		</button>
+	</div>
+}

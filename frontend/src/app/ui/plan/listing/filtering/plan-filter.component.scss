@@ -1,99 +1,154 @@
-.plan-criteria {
-  mat-form-field {
-    padding-bottom: 5px;
+// .plan-criteria {
+//   mat-form-field {
+//     padding-bottom: 5px;
+//     width: 100%;
+//   }
+
+//   mat-card {
+//     padding-bottom: 0px;
+//   }
+
+//   .criteria-title {
+// 	color: black;
+// 	font-weight: 500;
+// 	text-transform: none;
+//     font-size: var(--mat-sys-headline-medium-size);
+//     margin-bottom: 1.5em;
+//     opacity: 0.8;
+//   }
+
+//   .hidden {
+//     display: none;
+//   }
+
+//   .uploadButton {
+//     float: right;
+//   }
+// }
+
+
+// .search ::ng-deep.mat-form-field-infix {
+//   margin-left: 1em;
+// }
+
+:host {
+    display: block;
     width: 100%;
-  }
-
-  mat-card {
-    padding-bottom: 0px;
-  }
-
-  .criteria-title {
-	color: black;
-	font-weight: 500;
-	text-transform: none;
-    font-size: var(--mat-sys-headline-medium-size);
-    margin-bottom: 1.5em;
-    opacity: 0.8;
-  }
-
-  .hidden {
-    display: none;
-  }
-
-  .uploadButton {
-    float: right;
-  }
 }
-
-.search ::ng-deep.mat-form-field-infix {
-  margin-left: 1em;
-}
-
 .category-title {
-  color: black;
-  margin-top: 8px;
-  margin-bottom: 12px;
-  text-transform: none;
-  font-weight: 400;
+  font-size: var(--mat-sys-label-large-size);
+  font-weight: 500;
+  margin-bottom: 0.5rem;
+}
+h3.category-title {
+  margin-top: 1rem;
+  margin-bottom: 0.5rem;
+  font-weight: 500;
 }
 
-
-
-.filters-title {
-  width: 93px;
-  color: var(--mat-sys-primary);
-  background-color: white;
-  padding: 0px 20px;
-  margin-top: -10px;
-  margin-left: 20px;
-  text-transform: uppercase;
+// Reference types: each selected type is grouped into its own card so the
+// "reference type" + "reference" autocomplete pair reads as one unit and the
+// remove action clearly applies to the whole group.
+.reference-type-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    margin-bottom: 0.5rem;
+}
+.reference-type-card {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    padding: 0.5rem 0.75rem 0.75rem;
+    border: 1px solid var(--mat-sys-outline-variant);
+    border-radius: 10px;
+    background-color: var(--mat-sys-surface);
+}
+.reference-type-card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+.reference-type-card-index {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 1.5rem;
+    height: 1.5rem;
+    padding: 0 0.4rem;
+    border-radius: 999px;
+    font-size: var(--mat-sys-label-large-size);
+    font-weight: 500;
+    line-height: 1;
+    color: var(--mat-sys-on-primary);
+    background-color: var(--mat-sys-primary);
 }
 
-.style-icon {
-  color: #adadad;
+.reference-type-hint {
+    margin: 0;
+    font-size: var(--mat-sys-label-medium-size);
+    color: var(--mat-sys-on-surface-variant);
+}
+.add-reference-type-btn{
+    font-size: var(--mat-sys-body-medium-size);
+    padding: 0.5rem;
+    width: fit-content;
 }
 
-::ng-deep .mat-checkbox .mat-checkbox-frame {
-  border: 1px solid var(--light-gray);
-}
+// .filters-title {
+//   width: 93px;
+//   color: var(--mat-sys-primary);
+//   background-color: white;
+//   padding: 0px 20px;
+//   margin-top: -10px;
+//   margin-left: 20px;
+//   text-transform: uppercase;
+// }
+
+// .style-icon {
+//   color: #adadad;
+// }
+
+// ::ng-deep .mat-checkbox .mat-checkbox-frame {
+//   border: 1px solid var(--light-gray);
+// }
 
 
-::ng-deep .mat-ripple-element {
-  background-color: #2e74b649 !important;
-}
+// ::ng-deep .mat-ripple-element {
+//   background-color: #2e74b649 !important;
+// }
 
-::ng-deep .mat-radio-container {
-  border-radius: 1em;
-  background: white;
-}
+// ::ng-deep .mat-radio-container {
+//   border-radius: 1em;
+//   background: white;
+// }
 
-::ng-deep .mat-radio-button .mat-radio-outer-circle {
-  border: 1px solid var(--light-gray);
-}
+// ::ng-deep .mat-radio-button .mat-radio-outer-circle {
+//   border: 1px solid var(--light-gray);
+// }
 
-::ng-deep .mat-radio-button.mat-accent.mat-radio-checked .mat-radio-outer-circle {
-  border-color: #777777;
-}
+// ::ng-deep .mat-radio-button.mat-accent.mat-radio-checked .mat-radio-outer-circle {
+//   border-color: #777777;
+// }
 
-::ng-deep .mat-radio-button.mat-accent .mat-radio-inner-circle {
-  color: #777777;
-  background-color: #777777;
-}
+// ::ng-deep .mat-radio-button.mat-accent .mat-radio-inner-circle {
+//   color: #777777;
+//   background-color: #777777;
+// }
 
-.mat-radio-button.mat-accent .mat-radio-ripple .mat-ripple-element {
-  background-color: #2e74b649;
-}
+// .mat-radio-button.mat-accent .mat-radio-ripple .mat-ripple-element {
+//   background-color: #2e74b649;
+// }
 
-:host ::ng-deep .mat-form-field-wrapper {
-	background-color: white !important;
-	padding-bottom: 0 !important;
-}
+// :host ::ng-deep .mat-form-field-wrapper {
+// 	background-color: white !important;
+// 	padding-bottom: 0 !important;
+// }
 
-::ng-deep .mat-form-field-appearance-outline .mat-form-field-infix {
-	padding: 0.3rem 0rem 0.6rem 0rem !important;
-}
+// ::ng-deep .mat-form-field-appearance-outline .mat-form-field-infix {
+// 	padding: 0.3rem 0rem 0.6rem 0rem !important;
+// }
 
-::ng-deep label {
-  margin: 0;
-}
+// ::ng-deep label {
+//   margin: 0;
+// }

@@ -7,7 +7,8 @@ import { SingleAutoCompleteConfiguration } from '@app/library/auto-complete/sing
 import { QueryResult } from '@common/model/query-result';
 import { FilterService } from '@common/modules/text-filter/filter-service';
 import { Guid } from '@common/types/guid';
-import { Observable, throwError } from 'rxjs';
+import { TranslationObject } from '@ngx-translate/core';
+import { Observable, of, throwError } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
 import { nameof } from 'ts-simple-nameof';
 import { ConfigurationService } from '../configuration/configuration.service';
@@ -15,6 +16,9 @@ import { BaseHttpV2Service } from '../http/base-http-v2.service';
 import { InterceptorType } from '@common/http/interceptors/interceptor-type';
 import { BaseHttpParams } from '@common/http/base-http-params';
 import { HttpParamsOptions } from '@angular/common/http';
+
+// Matches the files in src/assets/i18n.
+export const BUNDLED_LANGUAGE_CODES = ['en', 'gr', 'es', 'de', 'tr', 'sk', 'sr', 'pt', 'hr', 'pl', 'baq', 'fr', 'it', 'nl', 'ro', 'cs', 'fi'];
 
 @Injectable()
 export class LanguageHttpService {
@@ -38,12 +42,12 @@ export class LanguageHttpService {
 				catchError((error: any) => throwError(error)));
 	}
 
-	getSingleWithCode(code: string, tenantCode: string | null, reqFields: string[] = [], overrideFromFile: boolean = false): Observable<Language> {
+	getSingleWithCode(code: string, tenantCode: string | null, reqFields: string[] = []): Observable<Language> {
 		let url = `${this.apiBase}/public/code/${code}`;
 		if (tenantCode) url += `/${tenantCode}`;
-		const options: HttpParamsOptions = { fromObject: { f: reqFields,  overrideFromFile: overrideFromFile} };
+		const options: HttpParamsOptions = { fromObject: { f: reqFields } };
 
-		let params: BaseHttpParams = new BaseHttpParams(options);
+		const params: BaseHttpParams = new BaseHttpParams(options);
 		params.interceptorContext = {
 			excludedInterceptors: [InterceptorType.AuthToken,
 			]
@@ -54,8 +58,15 @@ export class LanguageHttpService {
 				catchError((error: any) => throwError(error)));
 	}
 
-	queryAvailableCodes(q: LanguageLookup): Observable<QueryResult<string>> {
-		const url = `${this.apiBase}/public/available-languages`;
+	// A language without a bundled file is built from its overrides on top of English.
+	getBundledTranslations(code: string): Observable<TranslationObject> {
+		const file = BUNDLED_LANGUAGE_CODES.includes(code) ? code : 'en';
+		return this.http.get<TranslationObject>(`./assets/i18n/${file}.json`).pipe(catchError(() => of({})));
+	}
+
+	queryAvailableCodes(q: LanguageLookup, tenantCode: string | null = null): Observable<QueryResult<string>> {
+		let url = `${this.apiBase}/public/available-languages`;
+		if (tenantCode) url += `/${tenantCode}`;
 		const params = new BaseHttpParams();
 		params.interceptorContext = {
 			excludedInterceptors: [InterceptorType.AuthToken,
@@ -115,7 +126,7 @@ export class LanguageHttpService {
 				nameof<Language>(x => x.code)
 			]
 		};
-		lookup.order = { items: [nameof<Language>(x => x.ordinal)] };
+		lookup.order = { items: [nameof<Language>(x => x.code)] };
 		if (like) { lookup.like = this.filterService.transformLike(like); }
 		return lookup;
 	}

@@ -102,6 +102,7 @@ public class FieldBuilder extends BaseBuilder<Field, FieldEntity> {
                     m.setTextListValue(d.getTextListValue());
                 }
             }
+            if (fields.hasField(this.asIndexer(Field._numberValue)) && FieldType.isNumberType(fieldType)) m.setNumberValue(d.getNumberValue());
             if (!referenceFields.isEmpty() &&  FieldType.isReferenceType(fieldType)  && referenceItemsMap != null && d.getTextListValue() != null && !d.getTextListValue().isEmpty()) {
                 m.setReferences(new ArrayList<>());
                 for (UUID referenceId : d.getTextListValue().stream().map(UUID::fromString).distinct().toList()){

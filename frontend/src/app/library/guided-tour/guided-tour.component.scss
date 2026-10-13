@@ -14,14 +14,14 @@ ngx-guided-tour {
 	.guided-tour-spotlight-overlay {
 		position: fixed;
 		box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.7), 0 0 1.5rem rgba(0, 0, 0, 0.5);
-		border-radius: 44px; /*custom add*/
+		border-radius: 9px; /*custom add*/
 	}
 
 	.tour-step {
 		position: fixed;
 		&.page-tour-step {
-			max-width: 1043px; /*custom add*/
-			width: 50%;
+			max-width: 440px; /*custom add*/
+			width: min(440px, 90vw);
 			left: 50%;
 			top: 50%;
 			border-radius: 5px;
@@ -56,8 +56,8 @@ ngx-guided-tour {
 		&.tour-top {
 			.tour-arrow::before {
 				/*custom add*/
-				transform: scale(2);
-				left: 494px;
+				transform: translateX(-50%) scale(2);
+				left: 50%;
 			}
 			/*custom add*/
 			margin-top: 20px;
@@ -105,37 +105,102 @@ ngx-guided-tour {
 			}
 		}
 
+		// One-time "what's new" intro: a banded, slightly larger card. The band is a soft gradient of the
+		// theme colours with a sparkle glyph; everything else stays the compact card.
+		&.tour-step--intro {
+			max-width: 520px;
+			width: min(520px, 92vw);
+			overflow: hidden;
+			border-radius: 12px;
+			.tour-intro-band {
+				position: relative;
+				display: flex;
+				align-items: center;
+				gap: 8px;
+				padding: 14px 20px;
+				color: var(--mat-sys-on-primary);
+				background: linear-gradient(120deg, var(--mat-sys-primary) 0%, var(--mat-sys-secondary) 100%);
+				overflow: hidden;
+			}
+			.tour-intro-band--glow {
+				position: absolute;
+				right: -40px;
+				top: -60px;
+				width: 180px;
+				height: 180px;
+				border-radius: 50%;
+				background: radial-gradient(circle, rgba(255, 255, 255, 0.35) 0%, rgba(255, 255, 255, 0) 70%);
+			}
+			.tour-intro-band--icon {
+				font-size: 1.25rem;
+				width: 1.25rem;
+				height: 1.25rem;
+			}
+			.tour-intro-band--eyebrow {
+				font-size: var(--mat-sys-label-medium-size);
+				font-weight: 700;
+				letter-spacing: 0.08em;
+				text-transform: uppercase;
+			}
+			.tour-block {
+				padding: 18px 20px 14px;
+			}
+			.tour-title {
+				font-size: var(--mat-sys-title-large-size);
+				margin-bottom: 8px;
+			}
+			.tour-buttons {
+				margin-top: 16px;
+			}
+		}
+
+		// Compact callout: title + one or two sentences + a counter and two quiet buttons. No illustration,
+		// so it reads as a tooltip that knows more rather than a dialog that interrupts.
 		.tour-block {
-			/*custom add*/
-			padding: 15px 25px 15px 0px;
-			max-height: 348px;
-			border-radius: 5px;
+			padding: 14px 16px 10px;
+			border-radius: 8px;
+			text-align: left;
 		}
 
 		.tour-title {
-			/*custom add*/
-			font-weight: lighter !important;
-			font-size: var(--mat-sys-body-medium-size) !important;
-			padding: 28px 5px 25px 65px;
-			overflow: auto;
-			text-align: left;
+			margin: 0 0 4px;
+			padding: 0;
+			font-size: var(--mat-sys-title-small-size);
+			font-weight: 600;
+			line-height: 1.4;
 			color: var(--dark-text);
-			line-height: 26px;
+			text-align: left;
+		}
+		h2.tour-title {
+			font-size: var(--mat-sys-title-medium-size);
+		}
+
+		.tour-content {
+			margin: 0;
+			font-size: var(--mat-sys-body-medium-size);
+			line-height: 1.5;
+			color: var(--dark-text);
 			white-space: pre-line;
 		}
 
-		h3.tour-title {
-			font-size: 20px;
-		}
-		h2.tour-title {
-			font-size: 30px;
-		}
-
 		.tour-buttons {
-			overflow: hidden; // clearfix
-			padding: 10px 70px 18px 65px; /*custom add*/
 			display: flex;
-			justify-content: space-between;
+			align-items: center;
+			justify-content: flex-end;
+			gap: 4px;
+			margin-top: 10px;
+			.tour-progress {
+				margin-right: auto;
+				font-size: var(--mat-sys-body-small-size);
+				color: var(--mat-sys-on-surface-variant);
+			}
+			.tour-skip {
+				color: var(--mat-sys-on-surface-variant);
+			}
+			.tour-next {
+				--mdc-filled-button-container-color: var(--mat-sys-secondary);
+				--mdc-filled-button-label-text-color: var(--mat-sys-on-secondary);
+			}
 		}
 	}
 }

@@ -1,7 +1,7 @@
 import { HttpClient, HttpHeaders, HttpResponse } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { IsActive } from '@app/core/common/enum/is-active.enum';
-import { DescriptionTemplatesInSection, PlanBlueprint, PlanBlueprintDefinition, PlanBlueprintDefinitionSection, PlanBlueprintPersist, NewVersionPlanBlueprintPersist } from '@app/core/model/plan-blueprint/plan-blueprint';
+import { DescriptionTemplatesInSection, PlanBlueprint, PlanBlueprintDefinition, PlanBlueprintPersist, NewVersionPlanBlueprintPersist, RootSection } from '@app/core/model/plan-blueprint/plan-blueprint';
 import { PlanBlueprintLookup } from '@app/core/query/plan-blueprint.lookup';
 import { MultipleAutoCompleteConfiguration } from '@app/library/auto-complete/multiple/multiple-auto-complete-configuration';
 import { SingleAutoCompleteConfiguration } from '@app/library/auto-complete/single/single-auto-complete-configuration';
@@ -16,7 +16,6 @@ import { nameof } from 'ts-simple-nameof';
 import { ConfigurationService } from '../configuration/configuration.service';
 import { BaseHttpV2Service } from '../http/base-http-v2.service';
 import { PlanBlueprintStatus } from '@app/core/common/enum/plan-blueprint-status';
-import { error } from 'console';
 import { PlanBlueprintVersionStatus } from '@app/core/common/enum/plan-blueprint-version-status';
 import { TranslateService } from '@ngx-translate/core';
 import { DescriptionTemplate } from '@app/core/model/description-template/description-template';
@@ -46,6 +45,13 @@ export class PlanBlueprintService {
 				catchError((error: any) => throwError(error)));
 	}
 
+	/** Semantic keys the tenant's other blueprints carry, with how many use each (versions of one count once). */
+	semanticsInUse(excludeGroupId?: Guid): Observable<Record<string, number>> {
+		const url = `${this.apiBase}/semantics-in-use`;
+		const options = excludeGroupId ? { params: { excludeGroupId: excludeGroupId.toString() } } : {};
+		return this.http.get<Record<string, number>>(url, options).pipe(catchError((error: any) => throwError(error)));
+	}
+
 	persist(item: PlanBlueprintPersist): Observable<PlanBlueprint> {
 		const url = `${this.apiBase}/persist`;
 
@@ -73,7 +79,7 @@ export class PlanBlueprintService {
 
 	newVersion(item: NewVersionPlanBlueprintPersist, reqFields: string[] = []): Observable<PlanBlueprint> {
 		const url = `${this.apiBase}/new-version`;
-		const options = { params: { f: reqFields } };
+		const _options = { params: { f: reqFields } };
 
 		return this.http
 			.post<PlanBlueprint>(url, item).pipe(
@@ -82,7 +88,7 @@ export class PlanBlueprintService {
 
 	downloadXML(id: Guid): Observable<HttpResponse<Blob>> {
 		const url = `${this.apiBase}/xml/export/${id}`;
-		let headerXml: HttpHeaders = this.headers.set('Content-Type', 'application/xml');
+		const headerXml: HttpHeaders = this.headers.set('Content-Type', 'application/xml');
 		const params = new BaseHttpParams();
 		params.interceptorContext = {
 			excludedInterceptors: [InterceptorType.JSONContentType]
@@ -167,10 +173,10 @@ export class PlanBlueprintService {
 				nameof<PlanBlueprint>(x => x.id),
 				nameof<PlanBlueprint>(x => x.label),
 				nameof<PlanBlueprint>(x => x.version),
-				[nameof<PlanBlueprint>(x => x.definition), nameof<PlanBlueprintDefinition>(x => x.sections), nameof<PlanBlueprintDefinitionSection>(x => x.id)].join('.'),
-				[nameof<PlanBlueprint>(x => x.definition), nameof<PlanBlueprintDefinition>(x => x.sections), nameof<PlanBlueprintDefinitionSection>(x => x.label)].join('.'),
-				[nameof<PlanBlueprint>(x => x.definition), nameof<PlanBlueprintDefinition>(x => x.sections), nameof<PlanBlueprintDefinitionSection>(x => x.hasTemplates)].join('.'),
-				[nameof<PlanBlueprint>(x => x.definition), nameof<PlanBlueprintDefinition>(x => x.sections), nameof<PlanBlueprintDefinitionSection>(x => x.descriptionTemplates), nameof<DescriptionTemplatesInSection>(x => x.descriptionTemplate), nameof<DescriptionTemplate>(x => x.groupId)].join('.'),
+				[nameof<PlanBlueprint>(x => x.definition), nameof<PlanBlueprintDefinition>(x => x.sections), nameof<RootSection>(x => x.id)].join('.'),
+				[nameof<PlanBlueprint>(x => x.definition), nameof<PlanBlueprintDefinition>(x => x.sections), nameof<RootSection>(x => x.title)].join('.'),
+				[nameof<PlanBlueprint>(x => x.definition), nameof<PlanBlueprintDefinition>(x => x.sections), nameof<RootSection>(x => x.hasTemplates)].join('.'),
+				[nameof<PlanBlueprint>(x => x.definition), nameof<PlanBlueprintDefinition>(x => x.sections), nameof<RootSection>(x => x.descriptionTemplates), nameof<DescriptionTemplatesInSection>(x => x.descriptionTemplate), nameof<DescriptionTemplate>(x => x.groupId)].join('.'),
 			]
 		};
 		lookup.order = { items: [nameof<PlanBlueprint>(x => x.label)] };
@@ -247,15 +253,5 @@ export class PlanBlueprintService {
 		lookup.order = { items: [nameof<PlanBlueprint>(x => x.label)] };
 		if (like) { lookup.like = this.filterService.transformLike(like); }
 		return lookup;
-	}
-
-	//
-	//
-	// UI Helpers
-	//
-	//
-
-	getSection(PlanBlueprint: PlanBlueprint, sectionId: Guid): PlanBlueprintDefinitionSection {
-		return PlanBlueprint?.definition?.sections?.find(x => x.id === sectionId);
 	}
 }

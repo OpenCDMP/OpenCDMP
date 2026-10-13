@@ -1,5 +1,19 @@
 package org.opencdmp.service.plan;
 
+import org.opencdmp.commons.types.plan.PlanPropertiesConsentEntity;
+import org.opencdmp.commons.types.description.PropertyDefinitionFieldSetEntity;
+import org.opencdmp.commons.types.description.PropertyDefinitionFieldSetItemEntity;
+import org.opencdmp.commons.types.description.importexport.DescriptionPropertyDefinitionFieldSetImportExport;
+import org.opencdmp.commons.types.description.importexport.DescriptionPropertyDefinitionImportExport;
+import org.opencdmp.commons.types.descriptiontemplate.FieldSetEntity;
+import org.opencdmp.commons.types.descriptiontemplate.fielddata.ReferenceTypeDataEntity;
+import org.opencdmp.commons.types.reference.importexport.ReferenceImportExport;
+import org.opencdmp.commons.types.reference.importexport.ReferenceTypeImportExport;
+import org.opencdmp.model.persist.descriptionproperties.PropertyDefinitionFieldSetItemPersist;
+import org.opencdmp.model.persist.descriptionproperties.PropertyDefinitionFieldSetPersist;
+import org.opencdmp.service.plandescriptionfields.PlanDescriptionFieldsService;
+import org.opencdmp.service.visibility.VisibilityService;
+import org.opencdmp.service.visibility.VisibilityServiceImpl;
 import tools.jackson.core.JacksonException;
 import tools.jackson.databind.ObjectMapper;
 import gr.cite.commons.web.authz.service.AuthorizationService;
@@ -24,16 +38,10 @@ import org.opencdmp.authorization.AuthorizationFlags;
 import org.opencdmp.authorization.Permission;
 import org.opencdmp.authorization.authorizationcontentresolver.AuthorizationContentResolverFactory;
 import org.opencdmp.commonmodels.models.description.DescriptionModel;
-import org.opencdmp.commonmodels.models.plan.PlanBlueprintValueModel;
 import org.opencdmp.commonmodels.models.plan.PlanContactModel;
 import org.opencdmp.commonmodels.models.plan.PlanModel;
 import org.opencdmp.commonmodels.models.plan.PlanPropertiesModel;
-import org.opencdmp.commonmodels.models.planblueprint.ExtraFieldModel;
-import org.opencdmp.commonmodels.models.planblueprint.FieldModel;
-import org.opencdmp.commonmodels.models.planblueprint.ReferenceTypeFieldModel;
-import org.opencdmp.commonmodels.models.planblueprint.SectionModel;
 import org.opencdmp.commonmodels.models.plandescriptiontemplate.PlanDescriptionTemplateModel;
-import org.opencdmp.commonmodels.models.planreference.PlanReferenceModel;
 import org.opencdmp.commonmodels.models.reference.ReferenceFieldModel;
 import org.opencdmp.commonmodels.models.reference.ReferenceModel;
 import org.opencdmp.commons.JsonHandlingService;
@@ -47,18 +55,15 @@ import org.opencdmp.commons.scope.user.UserScopeFactory;
 import org.opencdmp.commons.types.actionconfirmation.PlanInvitationEntity;
 import org.opencdmp.commons.types.description.importexport.DescriptionImportExport;
 import org.opencdmp.commons.types.notification.*;
-import org.opencdmp.commons.types.plan.PlanBlueprintValueEntity;
+import org.opencdmp.commons.enums.WebhookEventType;
+import org.opencdmp.commons.types.description.DescriptionAdditionalInfoEntity;
+import org.opencdmp.commons.types.plan.PlanAdditionalInfoEntity;
+import org.opencdmp.service.webhook.WebhookService;
 import org.opencdmp.commons.types.plan.PlanContactEntity;
 import org.opencdmp.commons.types.plan.PlanPropertiesEntity;
 import org.opencdmp.commons.types.plan.importexport.*;
 import org.opencdmp.commons.types.planblueprint.BlueprintDescriptionTemplateEntity;
-import org.opencdmp.commons.types.planblueprint.ExtraFieldEntity;
-import org.opencdmp.commons.types.planblueprint.ReferenceTypeFieldEntity;
-import org.opencdmp.commons.types.planblueprint.SectionEntity;
-import org.opencdmp.commons.types.planblueprint.importexport.BlueprintExtraFieldImportExport;
-import org.opencdmp.commons.types.planblueprint.importexport.BlueprintReferenceTypeFieldImportExport;
-import org.opencdmp.commons.types.planblueprint.importexport.BlueprintSectionImportExport;
-import org.opencdmp.commons.types.planblueprint.importexport.BlueprintUploadFieldImportExport;
+import org.opencdmp.commons.types.planblueprint.RootSectionEntity;
 import org.opencdmp.commons.types.planreference.PlanReferenceDataEntity;
 import org.opencdmp.commons.types.reference.DefinitionEntity;
 import org.opencdmp.commons.types.reference.FieldEntity;
@@ -86,7 +91,6 @@ import org.opencdmp.model.descriptiontemplate.DescriptionTemplate;
 import org.opencdmp.model.file.FileEnvelope;
 import org.opencdmp.model.persist.*;
 import org.opencdmp.model.persist.actionconfirmation.PlanInvitationPersist;
-import org.opencdmp.model.persist.planproperties.PlanBlueprintValuePersist;
 import org.opencdmp.model.persist.planproperties.PlanContactPersist;
 import org.opencdmp.model.persist.planproperties.PlanPropertiesPersist;
 import org.opencdmp.model.persist.planreference.PlanReferenceDataPersist;
@@ -94,7 +98,6 @@ import org.opencdmp.model.persist.referencedefinition.DefinitionPersist;
 import org.opencdmp.model.persist.referencedefinition.FieldPersist;
 import org.opencdmp.model.plan.Plan;
 import org.opencdmp.model.planblueprint.PlanBlueprint;
-import org.opencdmp.model.planreference.PlanReferenceData;
 import org.opencdmp.model.reference.Reference;
 import org.opencdmp.model.referencetype.ReferenceType;
 import org.opencdmp.query.*;
@@ -209,6 +212,8 @@ public class PlanServiceImpl implements PlanService {
     private final PlanTouchedIntegrationEventHandler planTouchedIntegrationEventHandler;
     private final PlanServiceProperties planServiceProperties;
     private final KpiService kpiService;
+    private final PlanDescriptionFieldsService fieldsService;
+    private final WebhookService webhookService;
 
     @Autowired
     public PlanServiceImpl(
@@ -231,7 +236,7 @@ public class PlanServiceImpl implements PlanService {
             FileTransformerService fileTransformerService,
             ValidatorFactory validatorFactory,
             ElasticService elasticService, DescriptionTemplateService descriptionTemplateService,
-            AnnotationEntityTouchedIntegrationEventHandler annotationEntityTouchedIntegrationEventHandler, AnnotationEntityRemovalIntegrationEventHandler annotationEntityRemovalIntegrationEventHandler, AuthorizationContentResolverFactory authorizationContentResolverFactory, TenantScopeFactory tenantScopeFactory, ResponseUtilsService responseUtilsService, PlanBlueprintService planBlueprintService, UsageLimitService usageLimitService, AccountingService accountingService, DescriptionWorkflowService descriptionWorkflowService, PlanWorkflowService planWorkflowService, CustomPolicyService customPolicyService, UsersProperties usersProperties, LockService lockService, StorageFileService storageFileService, UserTouchedIntegrationEventHandler userTouchedIntegrationEventHandler, IndicatorAccessEventHandlerImpl indicatorAccessEventHandler, KeycloakService keycloakService, AuthorizationConfiguration authorizationConfiguration, PlanTouchedIntegrationEventHandler planTouchedIntegrationEventHandler, PlanServiceProperties planServiceProperties, KpiService kpiService) {
+            AnnotationEntityTouchedIntegrationEventHandler annotationEntityTouchedIntegrationEventHandler, AnnotationEntityRemovalIntegrationEventHandler annotationEntityRemovalIntegrationEventHandler, AuthorizationContentResolverFactory authorizationContentResolverFactory, TenantScopeFactory tenantScopeFactory, ResponseUtilsService responseUtilsService, PlanBlueprintService planBlueprintService, UsageLimitService usageLimitService, AccountingService accountingService, DescriptionWorkflowService descriptionWorkflowService, PlanWorkflowService planWorkflowService, CustomPolicyService customPolicyService, UsersProperties usersProperties, LockService lockService, StorageFileService storageFileService, UserTouchedIntegrationEventHandler userTouchedIntegrationEventHandler, IndicatorAccessEventHandlerImpl indicatorAccessEventHandler, KeycloakService keycloakService, AuthorizationConfiguration authorizationConfiguration, PlanTouchedIntegrationEventHandler planTouchedIntegrationEventHandler, PlanServiceProperties planServiceProperties, KpiService kpiService, PlanDescriptionFieldsService fieldsService, WebhookService webhookService) {
         this.tenantEntityManagerFactory = tenantEntityManagerFactory;
         this.authorizationService = authorizationService;
         this.deleterFactory = deleterFactory;
@@ -273,10 +278,12 @@ public class PlanServiceImpl implements PlanService {
         this.planTouchedIntegrationEventHandler = planTouchedIntegrationEventHandler;
         this.planServiceProperties = planServiceProperties;
         this.kpiService = kpiService;
+        this.fieldsService = fieldsService;
+        this.webhookService = webhookService;
     }
 
     public Plan persist(PlanPersist model, FieldSet fields) throws MyForbiddenException, MyValidationException, MyApplicationException, MyNotFoundException, InvalidApplicationException, JAXBException, IOException {
-        
+
         Boolean isUpdate = this.conventionService.isValidGuid(model.getId());
         if (isUpdate) this.authorizationService.authorizeAtLeastOneForce(List.of(this.authorizationContentResolverFactory.getInstance().planAffiliation(model.getId())), Permission.EditPlan);
         else {
@@ -284,15 +291,13 @@ public class PlanServiceImpl implements PlanService {
             this.usageLimitService.checkIncrease(UsageLimitTargetMetric.PLAN_COUNT);
             this.kpiService.sendIndicatorPointPlanEntry(KpiDirectionType.Increase);
         }
-        
+
         PlanEntity data = this.patchAndSave(model);
 
         PlanBlueprintEntity blueprintEntity = this.tenantEntityManagerFactory.getInstance().find(PlanBlueprintEntity.class, data.getBlueprintId(), true);
         if (blueprintEntity == null) throw new MyNotFoundException(this.messageSource.getMessage("General_ItemNotFound", new Object[]{data.getBlueprintId(), PlanBlueprint.class.getSimpleName()}, LocaleContextHolder.getLocale()));
         org.opencdmp.commons.types.planblueprint.DefinitionEntity definition = this.xmlHandlingService.fromXmlSafe(org.opencdmp.commons.types.planblueprint.DefinitionEntity.class, blueprintEntity.getDefinition());
         if (definition == null) throw new MyNotFoundException(this.messageSource.getMessage("General_ItemNotFound", new Object[]{data.getBlueprintId(), org.opencdmp.commons.types.planblueprint.DefinitionEntity.class.getSimpleName()}, LocaleContextHolder.getLocale()));
-        
-        this.patchAndSaveReferences(this.buildPlanReferencePersists(model.getProperties()), data.getId(), definition);
 
         if (isUpdate) this.checkIfDescriptionTemplateIsUse(model.getDescriptionTemplates(), model.getId());
 
@@ -316,7 +321,54 @@ public class PlanServiceImpl implements PlanService {
         this.annotationEntityTouchedIntegrationEventHandler.handlePlan(data.getId());
         this.planTouchedIntegrationEventHandler.handlePlan(List.of(data.getId()));
 
+        // When a plan update request review drove this persist, close out the request row.
+        // No value merging happens here — the frontend has already patched accepted values into
+        // the form, so model.* already reflects the user's intent.
+        this.closePlanUpdateRequestIfPresent(model);
+
         return this.builderFactory.builder(PlanBuilder.class).authorize(AuthorizationFlags.AllExceptPublic).build(BaseFieldSet.build(fields, Plan._id, Plan._hash), data);
+    }
+
+    private void closePlanUpdateRequestIfPresent(PlanPersist model) throws InvalidApplicationException {
+        PlanUpdateRequestApply apply = model.getPlanUpdateRequestApply();
+        if (apply == null || apply.getPlanUpdateRequestId() == null) return;
+
+        PlanUpdateRequestEntity request = this.tenantEntityManagerFactory.getInstance().find(PlanUpdateRequestEntity.class, apply.getPlanUpdateRequestId());
+        if (request == null) throw new MyNotFoundException(this.messageSource.getMessage("General_ItemNotFound", new Object[]{apply.getPlanUpdateRequestId(), PlanUpdateRequestEntity.class.getSimpleName()}, LocaleContextHolder.getLocale()));
+        this.authorizationService.authorizeAtLeastOneForce(List.of(this.authorizationContentResolverFactory.getInstance().planAffiliation(request.getPlanId())), Permission.EditPlan);
+        if (!PlanUpdateRequestStatus.Pending.equals(request.getStatus())) return;
+
+        Instant now = Instant.now();
+        request.setStatus(this.deriveRequestStatus(apply.getDecision()));
+        request.setApprovedBy(this.userScopeFactory.getInstance().getUserIdSafe());
+        request.setApprovedAt(now);
+        request.setAppliedData(this.jsonHandlingService.toJsonSafe(apply));
+        request.setUpdatedAt(now);
+        this.tenantEntityManagerFactory.getInstance().merge(request);
+        this.tenantEntityManagerFactory.getInstance().flush();
+    }
+
+    private PlanUpdateRequestStatus deriveRequestStatus(PlanUpdateRequestApplyDecision decision) {
+        if (decision == PlanUpdateRequestApplyDecision.Accept) return PlanUpdateRequestStatus.Accepted;
+        if (decision == PlanUpdateRequestApplyDecision.Refuse) return PlanUpdateRequestStatus.Refused;
+        return PlanUpdateRequestStatus.PartiallyAccepted;
+    }
+
+    private void checkIfCanEditDescriptionTemplates (List<PlanDescriptionTemplatePersist> descriptionTemplates, org.opencdmp.commons.types.planblueprint.DefinitionEntity definition){
+
+        for (RootSectionEntity section : definition.getSections()) {
+            if (section.getHasTemplates() && !section.getCanEditDescriptionTemplates() && !conventionService.isListNullOrEmpty(section.getDescriptionTemplates())) {
+                List<UUID> requiredGroups = section.getDescriptionTemplates().stream().map(BlueprintDescriptionTemplateEntity::getDescriptionTemplateGroupId).distinct().sorted().toList();
+                List<UUID> modelGroups = (descriptionTemplates == null ? List.<PlanDescriptionTemplatePersist>of() : descriptionTemplates).stream().filter(x -> x.getSectionId().equals(section.getId())).map(PlanDescriptionTemplatePersist::getDescriptionTemplateGroupId).distinct().sorted().toList();
+
+                if (!requiredGroups.equals(modelGroups)) {
+                    List<DescriptionTemplateEntity> descriptionTemplateEntities = this.queryFactory.query(DescriptionTemplateQuery.class).disableTracking().groupIds(section.getDescriptionTemplates().stream().map(BlueprintDescriptionTemplateEntity::getDescriptionTemplateGroupId).distinct().toList()).isActive(IsActive.Active).versionStatuses(DescriptionTemplateVersionStatus.Current).statuses(DescriptionTemplateStatus.Finalized).collectAs(new BaseFieldSet().ensure(DescriptionTemplate._label));
+                    if (!this.conventionService.isListNullOrEmpty(descriptionTemplateEntities)) {
+                        this.buildCannotEditDescriptionError(section.getTitle(), descriptionTemplateEntities.stream().map(DescriptionTemplateEntity::getLabel).toList());
+                    }
+                }
+            }
+        }
     }
 
     private void checkIfDescriptionTemplateIsUse (List<PlanDescriptionTemplatePersist> descriptionTemplates, UUID id){
@@ -492,6 +544,7 @@ public class PlanServiceImpl implements PlanService {
         newPlan.setLanguage(oldPlanEntity.getLanguage());
         newPlan.setStatusId(startingPlanStatusEntity.getId());
         newPlan.setProperties(this.reassignPlanProperties(oldPlanEntity));
+        newPlan.setAdditionalInfo(this.buildClonedFromPlanAdditionalInfo(oldPlanEntity.getId()));
         newPlan.setBlueprintId(model.getBlueprintId());
         newPlan.setAccessType(oldPlanEntity.getAccessType());
         newPlan.setCreatorId(this.userScopeFactory.getInstance().getUserId());
@@ -545,7 +598,7 @@ public class PlanServiceImpl implements PlanService {
             newReference.setIsActive(IsActive.Active);
 
             this.tenantEntityManagerFactory.getInstance().persist(newReference);
-            this.kpiService.sendIndicatorPointReferenceEntry(KpiDirectionType.Increase, newReference.getReferenceId());
+            this.kpiService.sendIndicatorPointReferenceEntry(KpiDirectionType.Increase, newReference.getReferenceId(), newReference.getPlanId());
         }
 
         this.tenantEntityManagerFactory.getInstance().flush();
@@ -587,10 +640,10 @@ public class PlanServiceImpl implements PlanService {
         }
 
         List<PlanDescriptionTemplateEntity> newPlanDescriptionTemplateEntitiesEntities = this.queryFactory.query(PlanDescriptionTemplateQuery.class).disableTracking().planIds(newPlan.getId()).isActive(IsActive.Active).collect();
-        List<SectionEntity> sections = definition.getSections().stream().filter(SectionEntity::getHasTemplates).collect(Collectors.toList());
+        List<RootSectionEntity> sections = definition.getSections().stream().filter(RootSectionEntity::getHasTemplates).collect(Collectors.toList());
         if (!this.conventionService.isListNullOrEmpty(oldPlanDescriptionTemplates)) {
             for (PlanDescriptionTemplateEntity oldPlanDescriptionTemplate : oldPlanDescriptionTemplates) {
-                for (SectionEntity section : sections) {
+                for (RootSectionEntity section : sections) {
                     if (section.getId().equals(oldPlanDescriptionTemplate.getSectionId())) {
                         PlanDescriptionTemplateEntity oldDescriptionTemplateEntity = oldPlanDescriptionTemplates.stream().filter(x -> x.getSectionId().equals(section.getId()) && x.getDescriptionTemplateGroupId().equals(oldPlanDescriptionTemplate.getDescriptionTemplateGroupId())).findFirst().orElse(null);
 
@@ -622,7 +675,7 @@ public class PlanServiceImpl implements PlanService {
         if (!oldPlanEntity.getBlueprintId().equals(blueprintEntity.getId())){
             // add description templates if exists in new blueprint
             if (!this.conventionService.isListNullOrEmpty(sections)){
-                for (SectionEntity section: sections) {
+                for (RootSectionEntity section: sections) {
                     if (!this.conventionService.isListNullOrEmpty(section.getDescriptionTemplates()) && section.getHasTemplates()){
 
                         if (!section.getCanEditDescriptionTemplates() && !this.conventionService.isListNullOrEmpty(model.getDescriptions())) {
@@ -634,7 +687,7 @@ public class PlanServiceImpl implements PlanService {
                                     if (validDescription == null) {
                                         List<DescriptionTemplateEntity> descriptionTemplateEntities = this.queryFactory.query(DescriptionTemplateQuery.class).disableTracking().groupIds(section.getDescriptionTemplates().stream().map(BlueprintDescriptionTemplateEntity::getDescriptionTemplateGroupId).distinct().toList()).isActive(IsActive.Active).versionStatuses(DescriptionTemplateVersionStatus.Current).statuses(DescriptionTemplateStatus.Finalized).collectAs(new BaseFieldSet().ensure(DescriptionTemplate._label));
                                         if (!this.conventionService.isListNullOrEmpty(descriptionTemplateEntities)) {
-                                            this.buildCannotEditDescriptionError(section.getLabel(), descriptionTemplateEntities.stream().map(DescriptionTemplateEntity::getLabel).toList());
+                                            this.buildCannotEditDescriptionError(section.getTitle(), descriptionTemplateEntities.stream().map(DescriptionTemplateEntity::getLabel).toList());
                                         }
                                     }
                                 }
@@ -697,7 +750,7 @@ public class PlanServiceImpl implements PlanService {
         Map<String, String> errorMessage = new HashMap<>();
         errorMessage.put("section", section);
         errorMessage.put("descriptionTemplates", String.join(", ", descriptionTemplates));
-        throw new MyApplicationException(this.errors.getCannotEditDescriptionTemplates().getCode(), new ObjectMapper().writeValueAsString(errorMessage));
+        throw new MyValidationException(this.errors.getCannotEditDescriptionTemplates().getCode(), new ObjectMapper().writeValueAsString(errorMessage));
     }
 
 
@@ -722,6 +775,7 @@ public class PlanServiceImpl implements PlanService {
         newDescription.setDescription(existing.getDescription());
         newDescription.setStatusId(this.descriptionWorkflowService.getActiveWorkFlowDefinition().getStartingStatusId());
         newDescription.setProperties(this.descriptionService.reassignDescriptionProperties(existing));
+        newDescription.setAdditionalInfo(this.buildClonedFromDescriptionAdditionalInfo(existing.getId()));
         newDescription.setPlanId(planId);
         if (newPlanDescriptionTemplateId == null && planDescriptionTemplateRemap != null) newDescription.setPlanDescriptionTemplateId(planDescriptionTemplateRemap.get(existing.getPlanDescriptionTemplateId()));
         else newDescription.setPlanDescriptionTemplateId(newPlanDescriptionTemplateId);
@@ -754,7 +808,7 @@ public class PlanServiceImpl implements PlanService {
             newReference.setIsActive(IsActive.Active);
 
             this.tenantEntityManagerFactory.getInstance().persist(newReference);
-            this.kpiService.sendIndicatorPointReferenceEntry(KpiDirectionType.Increase, newReference.getReferenceId());
+            this.kpiService.sendIndicatorPointReferenceEntry(KpiDirectionType.Increase, newReference.getReferenceId(), null);
         }
 
         for(DescriptionTagEntity descriptionTag : descriptionTags) {
@@ -851,6 +905,7 @@ public class PlanServiceImpl implements PlanService {
             newDescription.setDescription(existing.getDescription());
             newDescription.setStatusId(this.descriptionWorkflowService.getActiveWorkFlowDefinition().getStartingStatusId());
             newDescription.setProperties(this.descriptionService.reassignDescriptionProperties(existing));
+        newDescription.setAdditionalInfo(this.buildClonedFromDescriptionAdditionalInfo(existing.getId()));
             newDescription.setPlanId(planId);
             if (planDescriptionTemplateRemap != null) newDescription.setPlanDescriptionTemplateId(planDescriptionTemplateRemap.get(existing.getPlanDescriptionTemplateId()));
             newDescription.setDescriptionTemplateId(existing.getDescriptionTemplateId());
@@ -903,7 +958,7 @@ public class PlanServiceImpl implements PlanService {
                             newDescriptionReference.setIsActive(IsActive.Active);
 
                             this.tenantEntityManagerFactory.getInstance().persist(newDescriptionReference);
-                            this.kpiService.sendIndicatorPointReferenceEntry(KpiDirectionType.Increase, newDescriptionReference.getReferenceId());
+                            this.kpiService.sendIndicatorPointReferenceEntry(KpiDirectionType.Increase, newDescriptionReference.getReferenceId(), newDescription.getPlanId());
                         }
 
                     }
@@ -1034,6 +1089,7 @@ public class PlanServiceImpl implements PlanService {
         newPlan.setLanguage(existingPlanEntity.getLanguage());
         newPlan.setStatusId(this.planWorkflowService.getActiveWorkFlowDefinition().getStartingStatusId());
         newPlan.setProperties(this.reassignPlanProperties(existingPlanEntity));
+        newPlan.setAdditionalInfo(this.buildClonedFromPlanAdditionalInfo(existingPlanEntity.getId()));
         newPlan.setBlueprintId(existingPlanEntity.getBlueprintId());
         newPlan.setAccessType(existingPlanEntity.getAccessType());
         newPlan.setCreatorId(this.userScopeFactory.getInstance().getUserId());
@@ -1095,7 +1151,7 @@ public class PlanServiceImpl implements PlanService {
             newReference.setIsActive(IsActive.Active);
 
             this.tenantEntityManagerFactory.getInstance().persist(newReference);
-            this.kpiService.sendIndicatorPointReferenceEntry(KpiDirectionType.Increase, newReference.getReferenceId());
+            this.kpiService.sendIndicatorPointReferenceEntry(KpiDirectionType.Increase, newReference.getReferenceId(), newReference.getPlanId());
         }
 
         Map<UUID, UUID> planDescriptionTemplateRemap = new HashMap<>();
@@ -1238,6 +1294,7 @@ public class PlanServiceImpl implements PlanService {
                 newPlan.setLanguage(existingPlanEntity.getLanguage());
                 newPlan.setStatusId(this.planWorkflowService.getActiveWorkFlowDefinition().getStartingStatusId());
                 newPlan.setProperties(this.reassignPlanProperties(existingPlanEntity));
+        newPlan.setAdditionalInfo(this.buildClonedFromPlanAdditionalInfo(existingPlanEntity.getId()));
                 newPlan.setBlueprintId(blueprintEntityByTenant.getId());
                 newPlan.setAccessType(existingPlanEntity.getAccessType());
                 newPlan.setCreatorId(this.userScopeFactory.getInstance().getUserId());
@@ -1288,7 +1345,7 @@ public class PlanServiceImpl implements PlanService {
                             newPlanReference.setIsActive(IsActive.Active);
 
                             this.tenantEntityManagerFactory.getInstance().persist(newPlanReference);
-                            this.kpiService.sendIndicatorPointReferenceEntry(KpiDirectionType.Increase, newPlanReference.getReferenceId());
+                            this.kpiService.sendIndicatorPointReferenceEntry(KpiDirectionType.Increase, newPlanReference.getReferenceId(), newPlanReference.getPlanId());
                         }
 
                     }
@@ -1357,6 +1414,18 @@ public class PlanServiceImpl implements PlanService {
         return this.builderFactory.builder(PlanBuilder.class).build(fields, existingPlanEntity);
     }
 
+    private String buildClonedFromPlanAdditionalInfo(UUID sourcePlanId) {
+        PlanAdditionalInfoEntity additionalInfo = new PlanAdditionalInfoEntity();
+        additionalInfo.setClonedFromPlanId(sourcePlanId);
+        return this.jsonHandlingService.toJsonSafe(additionalInfo);
+    }
+
+    private String buildClonedFromDescriptionAdditionalInfo(UUID sourceDescriptionId) {
+        DescriptionAdditionalInfoEntity additionalInfo = new DescriptionAdditionalInfoEntity();
+        additionalInfo.setClonedFromDescriptionId(sourceDescriptionId);
+        return this.jsonHandlingService.toJsonSafe(additionalInfo);
+    }
+
     private String reassignPlanProperties(PlanEntity existingPlanEntity) throws InvalidApplicationException {
 
         if (existingPlanEntity == null) return null;
@@ -1364,31 +1433,40 @@ public class PlanServiceImpl implements PlanService {
         PlanPropertiesEntity properties = this.jsonHandlingService.fromJsonSafe(PlanPropertiesEntity.class, existingPlanEntity.getProperties());
         if (properties == null) return null;
 
-        if (!this.conventionService.isListNullOrEmpty(properties.getPlanBlueprintValues())) {
-            PlanBlueprintEntity existingBlueprintEntity = this.queryFactory.query(PlanBlueprintQuery.class).disableTracking()
-                    .ids(existingPlanEntity.getBlueprintId())
-                    .first();
+        //make consent null for plan clone
+        properties.setConsent(null);
 
-            if (existingBlueprintEntity == null) throw new MyNotFoundException(this.messageSource.getMessage("General_ItemNotFound", new Object[]{existingPlanEntity.getBlueprintId(), PlanBlueprint.class.getSimpleName()}, LocaleContextHolder.getLocale()));
-            org.opencdmp.commons.types.planblueprint.DefinitionEntity definition =  this.xmlHandlingService.fromXmlSafe(org.opencdmp.commons.types.planblueprint.DefinitionEntity.class, existingBlueprintEntity.getDefinition());
-            if (definition != null) {
-                StorageFileQuery storageFileQuery = this.queryFactory.query(StorageFileQuery.class).disableTracking();
-                FieldSet storageFileFields = new BaseFieldSet().ensure(StorageFile._id).ensure(StorageFile._name).ensure(StorageFile._extension).ensure(StorageFile._mimeType);
-                List<StorageFile> storageFiles = this.builderFactory.builder(StorageFileBuilder.class).authorize(AuthorizationFlags.AllExceptPublic).build(storageFileFields, storageFileQuery.collectAs(storageFileFields));
+        PlanBlueprintEntity existingBlueprintEntity = this.queryFactory.query(PlanBlueprintQuery.class).disableTracking()
+                .ids(existingPlanEntity.getBlueprintId())
+                .first();
 
-                for (PlanBlueprintValueEntity value : properties.getPlanBlueprintValues()) {
-                    List<org.opencdmp.commons.types.planblueprint.FieldEntity> fieldEntities = definition.getFieldById(value.getFieldId());
+        if (existingBlueprintEntity == null) throw new MyNotFoundException(this.messageSource.getMessage("General_ItemNotFound", new Object[]{existingPlanEntity.getBlueprintId(), PlanBlueprint.class.getSimpleName()}, LocaleContextHolder.getLocale()));
+        org.opencdmp.commons.types.planblueprint.DefinitionEntity definition =  this.xmlHandlingService.fromXmlSafe(org.opencdmp.commons.types.planblueprint.DefinitionEntity.class, existingBlueprintEntity.getDefinition());
 
-                    if(!this.conventionService.isListNullOrEmpty(fieldEntities)){
-                        org.opencdmp.commons.types.planblueprint.FieldEntity fieldEntity = fieldEntities.getFirst();
-                        if (fieldEntity != null && fieldEntity.getCategory().equals(PlanBlueprintFieldCategory.Upload) && value.getValue() != null) {
-                            StorageFile oldstorageFile = storageFiles.stream().filter(x -> x.getId().toString().equals(value.getValue())).findFirst().orElse(null);
-                            if (oldstorageFile != null) {
-                                StorageFile newTempStorageFile = this.storageFileService.cloneStorageFile(oldstorageFile);
-                                if (newTempStorageFile != null && newTempStorageFile.getId() != null) {
-                                    StorageFile newMainStorageFile = this.storageFileService.copyToStorage(newTempStorageFile.getId(), StorageType.Main, true, new BaseFieldSet().ensure(StorageFile._id));
-                                    this.storageFileService.updatePurgeAt(newMainStorageFile.getId(), null);
-                                    value.setValue(newMainStorageFile.getId().toString());
+        if (definition != null && properties.getFieldSets() != null && !properties.getFieldSets().isEmpty()) {
+            StorageFileQuery storageFileQuery = this.queryFactory.query(StorageFileQuery.class).disableTracking();
+            FieldSet storageFileFields = new BaseFieldSet().ensure(StorageFile._id).ensure(StorageFile._name).ensure(StorageFile._extension).ensure(StorageFile._mimeType);
+            List<StorageFile> storageFiles = this.builderFactory.builder(StorageFileBuilder.class).authorize(AuthorizationFlags.AllExceptPublic).build(storageFileFields, storageFileQuery.collectAs(storageFileFields));
+
+            for (String filedSetKey : properties.getFieldSets().keySet()) {
+                if (properties.getFieldSets().get(filedSetKey).getItems() != null) {
+                    for (PropertyDefinitionFieldSetItemEntity fieldSetItem : properties.getFieldSets().get(filedSetKey).getItems()) {
+                        if (fieldSetItem.getFields() != null) {
+                            for (String fieldKey : fieldSetItem.getFields().keySet()) {
+                                if (!definition.getFieldById(fieldKey).isEmpty()) {
+                                    org.opencdmp.commons.types.descriptiontemplate.FieldEntity fieldEntity = definition.getFieldById(fieldKey).getFirst();
+                                    // check if we have an upload value and clone the file
+                                    if (fieldEntity.getData().getFieldType().equals(FieldType.UPLOAD) && fieldSetItem.getFields().get(fieldKey).getTextValue() != null) {
+                                        StorageFile oldstorageFile = storageFiles.stream().filter(x -> x.getId().toString().equals(fieldSetItem.getFields().get(fieldKey).getTextValue())).findFirst().orElse(null);
+                                        if (oldstorageFile != null) {
+                                            StorageFile newTempStorageFile = this.storageFileService.cloneStorageFile(oldstorageFile);
+                                            if (newTempStorageFile != null && newTempStorageFile.getId() != null) {
+                                                StorageFile newMainStorageFile = this.storageFileService.copyToStorage(newTempStorageFile.getId(), StorageType.Main, true, new BaseFieldSet().ensure(StorageFile._id));
+                                                this.storageFileService.updatePurgeAt(newMainStorageFile.getId(), null);
+                                                fieldSetItem.getFields().get(fieldKey).setTextValue(newMainStorageFile.getId().toString());
+                                            }
+                                        }
+                                    }
                                 }
                             }
                         }
@@ -1797,25 +1875,25 @@ public class PlanServiceImpl implements PlanService {
 
         org.opencdmp.commons.types.planblueprint.DefinitionEntity definition =  this.xmlHandlingService.fromXmlSafe(org.opencdmp.commons.types.planblueprint.DefinitionEntity.class, planBlueprintEntity.getDefinition());
 
-        if (model.getDescriptionTemplates() != null) {
-            for (SectionEntity section : definition.getSections()) {
-                if (section.getHasTemplates() && !section.getCanEditDescriptionTemplates() && !conventionService.isListNullOrEmpty(section.getDescriptionTemplates())) {
-                    List<UUID> requiredGroups = section.getDescriptionTemplates().stream().map(BlueprintDescriptionTemplateEntity::getDescriptionTemplateGroupId).sorted().toList();
-                    List<UUID> modelGroups = model.getDescriptionTemplates().stream().filter(x -> x.getSectionId().equals(section.getId())).map(PlanDescriptionTemplatePersist::getDescriptionTemplateGroupId).sorted().toList();
+        this.checkIfCanEditDescriptionTemplates(model.getDescriptionTemplates(), definition);
 
-                    if (!requiredGroups.equals(modelGroups)) {
-                        List<DescriptionTemplateEntity> descriptionTemplateEntities = this.queryFactory.query(DescriptionTemplateQuery.class).disableTracking().groupIds(section.getDescriptionTemplates().stream().map(BlueprintDescriptionTemplateEntity::getDescriptionTemplateGroupId).distinct().toList()).isActive(IsActive.Active).versionStatuses(DescriptionTemplateVersionStatus.Current).statuses(DescriptionTemplateStatus.Finalized).collectAs(new BaseFieldSet().ensure(DescriptionTemplate._label));
-                        if (!this.conventionService.isListNullOrEmpty(descriptionTemplateEntities)) {
-                            this.buildCannotEditDescriptionError(section.getLabel(), descriptionTemplateEntities.stream().map(DescriptionTemplateEntity::getLabel).toList());
-                        }
-                    }
-                }
+        PlanPropertiesEntity existingPlanProperties = this.jsonHandlingService.fromJsonSafe(PlanPropertiesEntity.class, data.getProperties());
+        if (isUpdate && definition.getPlanCreationConsent() != null && Boolean.TRUE.equals(definition.getPlanCreationConsent().getEnabled())) {
+
+            boolean consentAccepted = existingPlanProperties != null && existingPlanProperties.getConsent() != null && existingPlanProperties.getConsent().getConsentBy() != null && existingPlanProperties.getConsent().getConsentAt() != null;
+            boolean includeConsent = model.getProperties() != null && Boolean.TRUE.equals(model.getProperties().getIncludeConsent());
+
+            if (!consentAccepted && !includeConsent) {
+                throw new MyValidationException("plan consent is not accepted yet");
             }
+
         }
 
         data.setLabel(model.getLabel());
         data.setLanguage(model.getLanguage());
-        data.setProperties(this.jsonHandlingService.toJson(this.buildPlanPropertiesEntity(model.getProperties(), definition)));
+
+        VisibilityService visibilityService = VisibilityServiceImpl.fromPersist(definition.getSections(), model.getProperties().getFieldSets());
+
         data.setDescription(model.getDescription());
         data.setAccessType(model.getAccessType());
         data.setUpdatedAt(Instant.now());
@@ -1844,6 +1922,11 @@ public class PlanServiceImpl implements PlanService {
 
         this.tenantEntityManagerFactory.getInstance().flush();
 
+        Map<String, List<UUID>> fieldToReferenceMap = this.patchAndSaveReferences(this.buildPlanReferencePersists(visibilityService, model.getProperties()), data.getId(), definition);
+
+        data.setProperties(this.jsonHandlingService.toJson(this.buildPlanPropertiesEntity(visibilityService, model.getProperties(), definition, fieldToReferenceMap, existingPlanProperties)));
+        this.tenantEntityManagerFactory.getInstance().merge(data);
+
 //        this.updateVersionStatusAndSave(data, previousStatus, data.getStatus());
 
         this.tenantEntityManagerFactory.getInstance().flush();
@@ -1852,7 +1935,7 @@ public class PlanServiceImpl implements PlanService {
         return data;
     }
 
-    private @NotNull PlanPropertiesEntity buildPlanPropertiesEntity(PlanPropertiesPersist persist, org.opencdmp.commons.types.planblueprint.DefinitionEntity definition) throws InvalidApplicationException {
+    private @NotNull PlanPropertiesEntity buildPlanPropertiesEntity(VisibilityService visibilityService, PlanPropertiesPersist persist, org.opencdmp.commons.types.planblueprint.DefinitionEntity definition, Map<String, List<UUID>> fieldToReferenceMap, PlanPropertiesEntity existingPlanProperties) throws InvalidApplicationException {
         PlanPropertiesEntity data = new PlanPropertiesEntity();
         if (persist == null) return data;
         if (!this.conventionService.isListNullOrEmpty(persist.getContacts())){
@@ -1861,11 +1944,20 @@ public class PlanServiceImpl implements PlanService {
                 data.getContacts().add(this.buildPlanContactEntity(contactPersist));
             }
         }
-        if (persist.getPlanBlueprintValues() != null && !persist.getPlanBlueprintValues().isEmpty()){
-            data.setPlanBlueprintValues(new ArrayList<>());
-            for (PlanBlueprintValuePersist fieldValuePersist: persist.getPlanBlueprintValues().values()) {
-                if (!this.conventionService.isNullOrEmpty(fieldValuePersist.getFieldValue()) || fieldValuePersist.getDateValue() != null || fieldValuePersist.getNumberValue() != null) data.getPlanBlueprintValues().add(this.buildPlanBlueprintValueEntity(fieldValuePersist, definition));
+        if (persist.getFieldSets() != null && !persist.getFieldSets().isEmpty()){
+            data.setFieldSets(new HashMap<>());
+            for (String key: persist.getFieldSets().keySet()) {
+                FieldSetEntity fieldSetEntity = definition != null ? definition.getFieldSetById(key).stream().findFirst().orElse(null) : null;
+                data.getFieldSets().put(key, this.fieldsService.buildPropertyDefinitionFieldSetEntity(persist.getFieldSets().get(key), fieldSetEntity, fieldToReferenceMap, visibilityService));
             }
+        }
+        if (persist.getIncludeConsent() != null && persist.getIncludeConsent().equals(true) && definition.getPlanCreationConsent() != null && Boolean.TRUE.equals(definition.getPlanCreationConsent().getEnabled())) {
+            if (existingPlanProperties == null || existingPlanProperties.getConsent() == null) {
+                data.setConsent(new PlanPropertiesConsentEntity(this.userScopeFactory.getInstance().getUserId(), Instant.now()));
+            } else {
+                data.setConsent(existingPlanProperties.getConsent());
+            }
+
         }
         return data;
     }
@@ -1880,59 +1972,19 @@ public class PlanServiceImpl implements PlanService {
         return data;
     }
 
-    private @NotNull PlanBlueprintValueEntity buildPlanBlueprintValueEntity(PlanBlueprintValuePersist persist, org.opencdmp.commons.types.planblueprint.DefinitionEntity definition) throws InvalidApplicationException {
-        PlanBlueprintValueEntity data = new PlanBlueprintValueEntity();
-        if (persist == null || definition == null) return data;
-
-        org.opencdmp.commons.types.planblueprint.FieldEntity fieldEntity = definition.getFieldById(persist.getFieldId()).stream().findFirst().orElse(null);
-        if (fieldEntity == null) return data;
-
-        if (fieldEntity.getCategory().equals(PlanBlueprintFieldCategory.Extra)) {
-            ExtraFieldEntity extraFieldEntity = (ExtraFieldEntity) fieldEntity;
-	        if (PlanBlueprintExtraFieldDataType.isDateType(extraFieldEntity.getType())){
-                data.setDateValue(persist.getDateValue());
-            } else if (PlanBlueprintExtraFieldDataType.isNumberType(extraFieldEntity.getType())){
-                data.setNumberValue(persist.getNumberValue());
-            } else {
-                data.setValue(persist.getFieldValue());
-            }
-            data.setFieldId(persist.getFieldId());
-        }
-        if (fieldEntity.getCategory().equals(PlanBlueprintFieldCategory.Upload)) {
-            UUID newFileId = this.conventionService.isValidUUID(persist.getFieldValue()) ? UUID.fromString(persist.getFieldValue()) : null;
-            if (newFileId != null){
-                StorageFileEntity storageFileEntity = this.queryFactory.query(StorageFileQuery.class).disableTracking().ids(newFileId).firstAs(new BaseFieldSet().ensure(StorageFile._id).ensure(StorageFile._storageType));
-                if (storageFileEntity == null || storageFileEntity.getStorageType().equals(StorageType.Temp)){
-                    StorageFile storageFile = this.storageFileService.copyToStorage(newFileId, StorageType.Main, true, new BaseFieldSet().ensure(StorageFile._id));
-                    this.storageFileService.updatePurgeAt(storageFile.getId(), null);
-                    data.setValue(storageFile.getId().toString());
-                } else {
-                    data.setValue(newFileId.toString());
-                }
-            } else {
-                data.setValue(null);
-            }
-            data.setFieldId(persist.getFieldId());
-        }
-
-        return data;
-    }
-
-    private @NotNull  List<PlanReferencePersist> buildPlanReferencePersists(PlanPropertiesPersist persist){
+    private @NotNull  List<PlanReferencePersist> buildPlanReferencePersists(VisibilityService visibilityService, PlanPropertiesPersist persist){
         List<PlanReferencePersist> planReferencePersists = new ArrayList<>();
-        if (persist != null && persist.getPlanBlueprintValues() != null && !persist.getPlanBlueprintValues().isEmpty()){
-            for (PlanBlueprintValuePersist fieldValuePersist: persist.getPlanBlueprintValues().values()) {
-                if (fieldValuePersist.getReference() != null) {
-                    if (fieldValuePersist.getReferences() == null) fieldValuePersist.setReferences(new ArrayList<>());
-                    fieldValuePersist.getReferences().add(fieldValuePersist.getReference());
-                }
-                if (this.conventionService.isNullOrEmpty(fieldValuePersist.getFieldValue()) && fieldValuePersist.getDateValue() == null && fieldValuePersist.getNumberValue() == null &&  !this.conventionService.isListNullOrEmpty( fieldValuePersist.getReferences())) {
-                    for (ReferencePersist referencePersist : fieldValuePersist.getReferences()) {
-                        PlanReferencePersist planReferencePersist = new PlanReferencePersist();
-                        planReferencePersist.setData(new PlanReferenceDataPersist());
-                        planReferencePersist.getData().setBlueprintFieldId(fieldValuePersist.getFieldId());
-                        planReferencePersist.setReference(referencePersist);
-                        planReferencePersists.add(planReferencePersist);
+        if (persist.getFieldSets() != null && !persist.getFieldSets().isEmpty()){
+            for (PropertyDefinitionFieldSetPersist propertyDefinitionFieldSetPersist: persist.getFieldSets().values()) {
+                if (!this.conventionService.isListNullOrEmpty( propertyDefinitionFieldSetPersist.getItems())) {
+                    for (PropertyDefinitionFieldSetItemPersist fieldSetItemPersist : propertyDefinitionFieldSetPersist.getItems()) {
+                        if (fieldSetItemPersist.getFields() != null && !fieldSetItemPersist.getFields().isEmpty()) {
+                            for (String key : fieldSetItemPersist.getFields().keySet()) {
+                                org.opencdmp.model.persist.descriptionproperties.FieldPersist fieldPersist = fieldSetItemPersist.getFields().get(key);
+                                boolean isVisible = visibilityService.isVisible(key, fieldSetItemPersist.getOrdinal());
+                                if (isVisible) this.BuildPlanReferencePersist(key, fieldSetItemPersist.getOrdinal(), fieldPersist, planReferencePersists);
+                            }
+                        }
                     }
                 }
             }
@@ -1940,8 +1992,30 @@ public class PlanServiceImpl implements PlanService {
         return planReferencePersists;
     }
 
-    private void patchAndSaveReferences(List<PlanReferencePersist> models, UUID planId, org.opencdmp.commons.types.planblueprint.DefinitionEntity blueprintDefinition) throws InvalidApplicationException {
+    private void BuildPlanReferencePersist(String fieldId, int ordinal, org.opencdmp.model.persist.descriptionproperties.FieldPersist fieldPersist, List<PlanReferencePersist> descriptionReferencePersists) {
+        if (fieldPersist.getReference() != null) {
+            if (fieldPersist.getReferences() == null) fieldPersist.setReferences(new ArrayList<>());
+            fieldPersist.getReferences().add(fieldPersist.getReference());
+        }
+        if (!this.conventionService.isListNullOrEmpty(fieldPersist.getReferences())) {
+            List<UUID> usedReferences = new ArrayList<>();
+            for (ReferencePersist referencePersist : fieldPersist.getReferences()) {
+                if (referencePersist.getId() != null && usedReferences.contains(referencePersist.getId())) continue;
+                if (referencePersist.getId() != null) usedReferences.add(referencePersist.getId());
+                PlanReferencePersist planReferencePersist = new PlanReferencePersist();
+                planReferencePersist.setData(new PlanReferenceDataPersist());
+                planReferencePersist.getData().setBlueprintFieldId(fieldId);
+                planReferencePersist.getData().setOrdinal(ordinal);
+                planReferencePersist.setReference(referencePersist);
+                descriptionReferencePersists.add(planReferencePersist);
+            }
+        }
+    }
+
+    private Map<String, List<UUID>> patchAndSaveReferences(List<PlanReferencePersist> models, UUID planId, org.opencdmp.commons.types.planblueprint.DefinitionEntity blueprintDefinition) throws InvalidApplicationException {
         if (models == null) models = new ArrayList<>();
+
+        Map<String, List<UUID>> fieldToReferenceMap = new HashMap<>();
 
         List<PlanReferenceEntity> planReferences = this.queryFactory.query(PlanReferenceQuery.class).planIds(planId).isActives(IsActive.Active).collect();
         Map<UUID, List<PlanReferenceEntity>> planReferenceEntityByReferenceId = new HashMap<>();
@@ -1967,10 +2041,12 @@ public class PlanServiceImpl implements PlanService {
                 referenceEntity = this.tenantEntityManagerFactory.getInstance().find(ReferenceEntity.class, referencePersist.getId());
                 if (referenceEntity == null) throw new MyNotFoundException(this.messageSource.getMessage("General_ItemNotFound", new Object[]{referencePersist.getId(), Reference.class.getSimpleName()}, LocaleContextHolder.getLocale()));
             } else {
-                ReferenceTypeFieldEntity fieldEntity = blueprintDefinition.getFieldById(model.getData().getBlueprintFieldId()).stream().filter(x-> x.getCategory().equals(PlanBlueprintFieldCategory.ReferenceType)).map(x-> (ReferenceTypeFieldEntity)x).findFirst().orElse(null);
-                if (fieldEntity == null) throw new MyNotFoundException(this.messageSource.getMessage("General_ItemNotFound", new Object[]{model.getData().getBlueprintFieldId(), ReferenceTypeFieldEntity.class.getSimpleName()}, LocaleContextHolder.getLocale()));
-                
-                referenceEntity = this.queryFactory.query(ReferenceQuery.class).sourceTypes(referencePersist.getSourceType()).typeIds(fieldEntity.getReferenceTypeId()).sources(referencePersist.getSource()).isActive(IsActive.Active).references(referencePersist.getReference()).first();
+                ReferenceTypeDataEntity fieldEntity = blueprintDefinition.getFieldById(model.getData().getBlueprintFieldId()).stream().filter(x-> x.getData() != null && x.getData().getFieldType().equals(FieldType.REFERENCE_TYPES)).map(x-> (ReferenceTypeDataEntity)x.getData()).findFirst().orElse(null);
+                if (fieldEntity == null) throw new MyNotFoundException(this.messageSource.getMessage("General_ItemNotFound", new Object[]{model.getData().getBlueprintFieldId(), ReferenceTypeDataEntity.class.getSimpleName()}, LocaleContextHolder.getLocale()));
+
+                // Manual references are never shared through a matching code: every new one gets its own row.
+                referenceEntity = referencePersist.getSourceType() == ReferenceSourceType.Internal ? null
+                        : this.queryFactory.query(ReferenceQuery.class).sourceTypes(referencePersist.getSourceType()).typeIds(fieldEntity.getReferenceTypeId()).sources(referencePersist.getSource()).isActive(IsActive.Active).references(referencePersist.getReference()).first();
                 if (referenceEntity == null){
                     this.usageLimitService.checkIncrease(UsageLimitTargetMetric.REFERENCE_COUNT);
 
@@ -1988,6 +2064,7 @@ public class PlanServiceImpl implements PlanService {
                     referenceEntity.setAbbreviation(referencePersist.getAbbreviation());
                     referenceEntity.setSource(referencePersist.getSource());
                     referenceEntity.setSourceType(referencePersist.getSourceType());
+                    if (referenceEntity.getSourceType() == ReferenceSourceType.Internal) referenceEntity.setCreatedById(this.userScopeFactory.getInstance().getUserIdSafe());
                     try {
                         ReferenceTypeEntity referenceType = this.queryFactory.query(ReferenceTypeQuery.class).ids(fieldEntity.getReferenceTypeId()).firstAs(new BaseFieldSet().ensure(ReferenceType._id).ensure(ReferenceType._code).ensure(ReferenceTypeEntity._tenantId));
                         if (referenceType == null) throw new MyNotFoundException(this.messageSource.getMessage("General_ItemNotFound", new Object[]{fieldEntity.getReferenceTypeId(), ReferenceType.class.getSimpleName()}, LocaleContextHolder.getLocale()));
@@ -2019,7 +2096,7 @@ public class PlanServiceImpl implements PlanService {
             List<PlanReferenceEntity> planReferenceEntities = planReferenceEntityByReferenceId.getOrDefault(referenceEntity.getId(), new ArrayList<>());
             for (PlanReferenceEntity planReferenceEntity : planReferenceEntities){
                 PlanReferenceDataEntity planReferenceDataEntity = planReferenceDataEntityMap.getOrDefault(planReferenceEntity.getId(), new PlanReferenceDataEntity());
-                if (Objects.equals(planReferenceDataEntity.getBlueprintFieldId(), model.getData().getBlueprintFieldId())){
+                if (Objects.equals(planReferenceDataEntity.getBlueprintFieldId(), model.getData().getBlueprintFieldId()) && Objects.equals(planReferenceDataEntity.getOrdinal(), model.getData().getOrdinal())){
                     data = planReferenceEntity;
                     break;
                 }
@@ -2037,17 +2114,29 @@ public class PlanServiceImpl implements PlanService {
             }
             updatedCreatedIds.add(data.getId());
 
+            if (model.getData() != null){
+                String key = this.fieldToReferenceMapKey(model.getData().getBlueprintFieldId(), model.getData().getOrdinal());
+                if (!fieldToReferenceMap.containsKey(key)) fieldToReferenceMap.put(key, new ArrayList<>());
+                fieldToReferenceMap.get(key).add(referenceEntity.getId());
+            }
+
             data.setUpdatedAt(Instant.now());
 
             if (isUpdate) this.tenantEntityManagerFactory.getInstance().merge(data);
             else {
                 this.tenantEntityManagerFactory.getInstance().persist(data);
-                this.kpiService.sendIndicatorPointReferenceEntry(KpiDirectionType.Increase, data.getReferenceId());
+                this.kpiService.sendIndicatorPointReferenceEntry(KpiDirectionType.Increase, data.getReferenceId(), data.getPlanId());
             }
         }
         List<PlanReferenceEntity> toDelete = planReferences.stream().filter(x-> updatedCreatedIds.stream().noneMatch(y-> y.equals(x.getId()))).collect(Collectors.toList());
         this.deleterFactory.deleter(PlanReferenceDeleter.class).delete(toDelete);
         this.tenantEntityManagerFactory.getInstance().flush();
+
+        return fieldToReferenceMap;
+    }
+
+    private String fieldToReferenceMapKey(String fieldId, int ordinal){
+        return fieldId + "_" + ordinal;
     }
 
     private void patchAndSaveTemplates(UUID id, List<PlanDescriptionTemplatePersist> models) throws InvalidApplicationException {
@@ -2092,6 +2181,7 @@ public class PlanServiceImpl implements PlanService {
         PlanReferenceDataEntity data = new PlanReferenceDataEntity();
         if (persist == null) return data;
         data.setBlueprintFieldId(persist.getBlueprintFieldId());
+        data.setOrdinal(persist.getOrdinal());
         return data;
     }
 
@@ -2123,6 +2213,7 @@ public class PlanServiceImpl implements PlanService {
         if (entityDoiQuery.count() > 0) throw new MyApplicationException("Plan is deposited");
 
         if (plan.getStatusId().equals(newStatusId)) throw new MyApplicationException("Old status equals with new");
+        if (this.planWorkflowService.getActiveWorkFlowDefinition().getStatusTransitions().stream().noneMatch(x -> x.getFromStatusId().equals(plan.getStatusId()) && x.getToStatusId().equals(newStatusId))) throw new MyValidationException(this.errors.getStatusTransitionNotAllowed().getCode(), this.errors.getStatusTransitionNotAllowed().getMessage());
 
         PlanStatusEntity oldPlanStatusEntity = this.tenantEntityManagerFactory.getInstance().find(PlanStatusEntity.class, plan.getStatusId(), true);
         if (oldPlanStatusEntity == null) throw new MyNotFoundException(this.messageSource.getMessage("General_ItemNotFound", new Object[]{plan.getStatusId(), PlanStatusEntity.class.getSimpleName()}, LocaleContextHolder.getLocale()));
@@ -2132,10 +2223,13 @@ public class PlanServiceImpl implements PlanService {
 
         this.kpiService.sendIndicatorPointPlanPerBlueprintEntry(KpiDirectionType.Decrease, id);
 
+        WebhookEventType webhookEventType;
         if (oldPlanStatusEntity.getInternalStatus() != null && oldPlanStatusEntity.getInternalStatus().equals(PlanStatus.Finalized)) {
             this.undoFinalize(plan, oldPlanStatusEntity, newPlanStatusEntity);
+            webhookEventType = WebhookEventType.PlanUnfinalized;
         } else if (newPlanStatusEntity.getInternalStatus() != null && newPlanStatusEntity.getInternalStatus().equals(PlanStatus.Finalized)) {
             this.finalize(plan, descriptionIds ,oldPlanStatusEntity, newPlanStatusEntity);
+            webhookEventType = WebhookEventType.PlanFinalized;
         } else {
             plan.setStatusId(newPlanStatusEntity.getId());
             plan.setUpdatedAt(Instant.now());
@@ -2143,7 +2237,15 @@ public class PlanServiceImpl implements PlanService {
             this.tenantEntityManagerFactory.getInstance().merge(plan);
             this.tenantEntityManagerFactory.getInstance().flush();
             this.sendNotification(plan);
+            webhookEventType = WebhookEventType.PlanStatusChanged;
         }
+        this.webhookService.enqueueEvent(webhookEventType, Map.of(
+                "planId", plan.getId(),
+                "label", plan.getLabel() != null ? plan.getLabel() : "",
+                "groupId", plan.getGroupId(),
+                "version", plan.getVersion(),
+                "statusId", newPlanStatusEntity.getId(),
+                "statusName", newPlanStatusEntity.getName() != null ? newPlanStatusEntity.getName() : ""));
         this.kpiService.sendIndicatorPointPlanPerBlueprintEntry(KpiDirectionType.Increase, id);
 
         if (!oldPlanStatusEntity.getId().equals(newPlanStatusEntity.getId())) {
@@ -2270,7 +2372,7 @@ public class PlanServiceImpl implements PlanService {
     private void undoFinalize(PlanEntity plan, PlanStatusEntity oldPlanStatusEntity, PlanStatusEntity newPlanStatusEntity) throws MyForbiddenException, MyValidationException, MyApplicationException, MyNotFoundException, InvalidApplicationException {
         this.authorizationService.authorizeAtLeastOneForce(List.of(this.authorizationContentResolverFactory.getInstance().planAffiliation(plan.getId())), Permission.UndoFinalizePlan, this.customPolicyService.getPlanStatusCanEditStatusPermission(newPlanStatusEntity.getId()));
 
-        if (oldPlanStatusEntity.getInternalStatus() == null && !oldPlanStatusEntity.getInternalStatus().equals(PlanStatus.Finalized)) throw new MyApplicationException("Plan is already non finalized");
+        if (oldPlanStatusEntity.getInternalStatus() == null || !oldPlanStatusEntity.getInternalStatus().equals(PlanStatus.Finalized)) throw new MyApplicationException("Plan is already non finalized");
 
         plan.setStatusId(newPlanStatusEntity.getId());
         plan.setUpdatedAt(Instant.now());
@@ -2350,8 +2452,6 @@ public class PlanServiceImpl implements PlanService {
             }
         }
 
-	    List<PlanReferenceEntity> planReferenceEntities = this.queryFactory.query(PlanReferenceQuery.class).disableTracking().authorize(AuthorizationFlags.AllExceptPublic).planIds(data.getId()).isActives(IsActive.Active).collect();
-
         org.opencdmp.commons.types.planblueprint.DefinitionEntity definition =  this.xmlHandlingService.fromXmlSafe(org.opencdmp.commons.types.planblueprint.DefinitionEntity.class, planBlueprintEntity.getDefinition());
 
         List<PlanDescriptionTemplateEntity> planDescriptionTemplateEntities = this.queryFactory.query(PlanDescriptionTemplateQuery.class).disableTracking().authorize(AuthorizationFlags.AllExceptPublic).planIds(data.getId()).isActive(IsActive.Active).collect();
@@ -2361,12 +2461,12 @@ public class PlanServiceImpl implements PlanService {
                 persist.getDescriptionTemplates().add(this.buildPlanDescriptionTemplatePersists(descriptionTemplateEntity));
             }
         }
-	    persist.setProperties(this.buildPlanPropertyDefinitionPersist( this.jsonHandlingService.fromJsonSafe(PlanPropertiesEntity.class, data.getProperties()), planReferenceEntities, definition.getSections()));
+	    persist.setProperties(this.buildPlanPropertyDefinitionPersist( this.jsonHandlingService.fromJsonSafe(PlanPropertiesEntity.class, data.getProperties()), definition));
 
         return persist;
     }
 
-    private @NotNull PlanPropertiesPersist buildPlanPropertyDefinitionPersist(PlanPropertiesEntity data, List<PlanReferenceEntity> planReferenceEntities, List<SectionEntity> sectionEntities){
+    private @NotNull PlanPropertiesPersist buildPlanPropertyDefinitionPersist(PlanPropertiesEntity data, org.opencdmp.commons.types.planblueprint.DefinitionEntity definition){
         PlanPropertiesPersist persist = new PlanPropertiesPersist();
         if (data == null) return persist;
         if (!this.conventionService.isListNullOrEmpty(data.getContacts())){
@@ -2376,58 +2476,51 @@ public class PlanServiceImpl implements PlanService {
             }
         }
 
-        List<ReferenceEntity> referencesFromAllFields = new ArrayList<>();
-        if (!this.conventionService.isListNullOrEmpty(planReferenceEntities)) {
-            referencesFromAllFields = this.queryFactory.query(ReferenceQuery.class).disableTracking().authorize(AuthorizationFlags.AllExceptPublic).ids(planReferenceEntities.stream().map(PlanReferenceEntity::getReferenceId).collect(Collectors.toList())).isActive(IsActive.Active).collect();
+        List<UUID> referenceIds = this.calculateAllReferenceIdsFromData(data, definition);
+        List<ReferenceEntity> references = null;
+        if (!this.conventionService.isListNullOrEmpty(referenceIds)){
+            references = this.queryFactory.query(ReferenceQuery.class).disableTracking().ids(referenceIds).collect();
         }
 
-        Map<UUID, PlanBlueprintValuePersist> planBlueprintValues = new HashMap<>();
-        if (!this.conventionService.isListNullOrEmpty(sectionEntities)){
-            for (SectionEntity sectionEntity: sectionEntities) {
-                if (!this.conventionService.isListNullOrEmpty(sectionEntity.getFields())){
-                    for (org.opencdmp.commons.types.planblueprint.FieldEntity fieldEntity: sectionEntity.getFields()) {
+        if (data.getFieldSets() != null && !data.getFieldSets().isEmpty()){
+            persist.setFieldSets(new HashMap<>());
+            for (String key: data.getFieldSets().keySet()) {
+                FieldSetEntity fieldSetEntity = definition != null ? definition.getFieldSetById(key).stream().findFirst().orElse(null) : null;
+                persist.getFieldSets().put(key, this.fieldsService.buildPropertyDefinitionFieldSetPersist(data.getFieldSets().get(key), fieldSetEntity, references));
+            }
+        }
 
-                        if (!this.conventionService.isListNullOrEmpty(planReferenceEntities) && fieldEntity.getCategory().equals(PlanBlueprintFieldCategory.ReferenceType)) {
-                            List<ReferencePersist> referencePersists = new ArrayList<>();
-                            for (PlanReferenceEntity planReferenceEntity : planReferenceEntities) {
-                                PlanReferenceData referenceData = this.jsonHandlingService.fromJsonSafe(PlanReferenceData.class, planReferenceEntity.getData());
+        return persist;
+    }
 
-                                ReferenceEntity reference = referencesFromAllFields.stream().filter(x -> x.getId().equals(planReferenceEntity.getReferenceId())).toList().getFirst();
-                                if (referenceData.getBlueprintFieldId().equals(fieldEntity.getId()) && reference != null) {
-                                    referencePersists.add(this.buildReferencePersist(reference));
-                                }
-                                // put references
-                                planBlueprintValues.put(fieldEntity.getId(), this.buildPlanBlueprintValuePersist(fieldEntity.getId(), null, null, null, referencePersists, ((ReferenceTypeFieldEntity)fieldEntity).getMultipleSelect()));
-                            }
-                        } else if (!this.conventionService.isListNullOrEmpty(data.getPlanBlueprintValues())) {
-                            for (PlanBlueprintValueEntity value : data.getPlanBlueprintValues()) {
-                                if (value.getFieldId().equals(fieldEntity.getId())) {
-                                    if (value.getDateValue() != null) {
-                                        planBlueprintValues.put(fieldEntity.getId(), this.buildPlanBlueprintValuePersist(fieldEntity.getId(), null, value.getDateValue(), null, null,null));
-                                    } else if (value.getNumberValue() != null) {
-                                        planBlueprintValues.put(fieldEntity.getId(), this.buildPlanBlueprintValuePersist(fieldEntity.getId(), null, null, value.getNumberValue(), null,null));
-                                    } else if (!this.conventionService.isNullOrEmpty(value.getValue())) {
-                                        planBlueprintValues.put(fieldEntity.getId(), this.buildPlanBlueprintValuePersist(fieldEntity.getId(), value.getValue(), null,null,null,null));
-                                    } else {
-                                        planBlueprintValues.put(fieldEntity.getId(), null);
+    private List<UUID> calculateAllReferenceIdsFromData(PlanPropertiesEntity data, org.opencdmp.commons.types.planblueprint.DefinitionEntity definition){
+        List<String> referenceIds = new ArrayList<>();
+
+        if (data.getFieldSets() != null && !data.getFieldSets().isEmpty()){
+            for (PropertyDefinitionFieldSetEntity fieldSet: data.getFieldSets().values()) {
+                if (!this.conventionService.isListNullOrEmpty(fieldSet.getItems())){
+                    for (PropertyDefinitionFieldSetItemEntity item: fieldSet.getItems()) {
+                        if (item.getFields() != null && !item.getFields().isEmpty()) {
+                            for (String key : item.getFields().keySet()) {
+                                if (definition.getFieldById(key).getFirst() != null && FieldType.isReferenceType(definition.getFieldById(key).getFirst().getData().getFieldType())) {
+                                    if (!this.conventionService.isListNullOrEmpty(item.getFields().get(key).getTextListValue())) {
+                                        referenceIds.addAll(item.getFields().get(key).getTextListValue());
                                     }
                                 }
                             }
                         }
-
-                        // fill fields with no values
-                        if (planBlueprintValues.get(fieldEntity.getId()) == null){
-                            planBlueprintValues.put(fieldEntity.getId(), this.buildPlanBlueprintValuePersist(fieldEntity.getId(), null, null, null,null,null));
-                        }
-
                     }
                 }
-
             }
-            persist.setPlanBlueprintValues(planBlueprintValues);
         }
 
-        return persist;
+        if (!this.conventionService.isListNullOrEmpty(referenceIds)) {
+            referenceIds = referenceIds.stream().distinct().collect(Collectors.toList());
+            return referenceIds.stream().filter(x -> this.conventionService.isValidGuid(UUID.fromString(x))).toList().stream().map(UUID::fromString).collect(Collectors.toList());
+
+        }
+
+        return null;
     }
 
     private @NotNull PlanContactPersist buildPlanContactPersist(PlanContactEntity data){
@@ -2462,42 +2555,6 @@ public class PlanServiceImpl implements PlanService {
         return persist;
     }
 
-    private @NotNull ReferencePersist buildReferencePersist(ReferenceEntity data){
-        ReferencePersist persist = new ReferencePersist();
-        if (data == null) return persist;
-
-        persist.setLabel(data.getLabel());
-        persist.setReference(data.getReference());
-        persist.setAbbreviation(data.getAbbreviation());
-        persist.setDescription(data.getDescription());
-        persist.setSource(data.getSource());
-        persist.setSourceType(data.getSourceType());
-        persist.setReference(data.getReference());
-        persist.setTypeId(data.getTypeId());
-
-        return persist;
-    }
-
-    private @NotNull PlanBlueprintValuePersist buildPlanBlueprintValuePersist(UUID fieldId, String fieldValue, Instant dateValue, Double numberValue, List<ReferencePersist> referencePersists, Boolean multipleSelect){
-        PlanBlueprintValuePersist persist = new PlanBlueprintValuePersist();
-
-        persist.setFieldId(fieldId);
-
-        if (!this.conventionService.isListNullOrEmpty(referencePersists) && multipleSelect){
-            persist.setReferences(referencePersists);
-        }else if (!this.conventionService.isListNullOrEmpty(referencePersists)){
-            persist.setReference(referencePersists.getFirst());
-        }else if (!this.conventionService.isNullOrEmpty(fieldValue)){
-            persist.setFieldValue(fieldValue);
-        } else if (numberValue != null){
-            persist.setNumberValue(numberValue);
-        } else if (dateValue != null){
-            persist.setDateValue(dateValue);
-        }
-
-        return persist;
-    }
-
     //  invites
     public void inviteUserOrAssignUsers(UUID id, List<PlanUserPersist> users) throws InvalidApplicationException, JAXBException, IOException {
        this.inviteUserOrAssignUsers(id, users, true);
@@ -2515,7 +2572,6 @@ public class PlanServiceImpl implements PlanService {
         if (plan == null){
             throw new InvalidApplicationException("Plan does not exist!");
         }
-
         List<PlanUserEntity> existingUsers = this.queryFactory.query(PlanUserQuery.class).disableTracking()
                 .planIds(plan.getId())
                 .isActives(IsActive.Active)
@@ -2539,7 +2595,7 @@ public class PlanServiceImpl implements PlanService {
             if (userId != null){
                 user.setUser(userId);
                 usersToAssign.add(user);
-                if (this.userScopeFactory.getInstance().getUserId() != userId && !existingUsers.stream().map(PlanUserEntity::getUserId).toList().contains(userId)){
+                if (!userId.equals(this.userScopeFactory.getInstance().getUserId()) &&!existingUsers.stream().map(PlanUserEntity::getUserId).toList().contains(userId)){
                     this.sendPlanInvitationExistingUser(user.getUser(), plan, user.getRole());
                 }
             }else if (user.getEmail() != null) {
@@ -2602,7 +2658,7 @@ public class PlanServiceImpl implements PlanService {
         }
     }
 
-    private void sendPlanInvitationExternalUser(String email, PlanEntity plan, PlanUserRole role, UUID sectionId) throws JAXBException, InvalidApplicationException {
+    private void sendPlanInvitationExternalUser(String email, PlanEntity plan, PlanUserRole role, String sectionId) throws JAXBException, InvalidApplicationException {
         String token = this.createActionConfirmation(email, plan, role, sectionId);
 
         NotifyIntegrationEvent event = new NotifyIntegrationEvent();
@@ -2627,7 +2683,7 @@ public class PlanServiceImpl implements PlanService {
 	    this.eventHandler.handle(event);
     }
 
-    private String createActionConfirmation(String email, PlanEntity plan, PlanUserRole role, UUID sectionId) throws JAXBException, InvalidApplicationException {
+    private String createActionConfirmation(String email, PlanEntity plan, PlanUserRole role, String sectionId) throws JAXBException, InvalidApplicationException {
         ActionConfirmationPersist persist = new ActionConfirmationPersist();
         persist.setType(ActionConfirmationType.PlanInvitation);
         persist.setStatus(ActionConfirmationStatus.Requested);
@@ -2848,7 +2904,9 @@ public class PlanServiceImpl implements PlanService {
         xml.setUsers(this.planUsersToExport(data, isPublic));
         xml.setBlueprint(this.planBlueprintService.getExportXmlEntity(blueprintEntity.getId(), true));
         xml.setDescriptionTemplates(this.planDescriptionTemplatesToExport(data));
-        xml.setBlueprintValues(this.planBlueprintValuesToExport(propertiesEntity, blueprintEntity));
+
+        org.opencdmp.commons.types.planblueprint.DefinitionEntity definition =  this.xmlHandlingService.fromXmlSafe(org.opencdmp.commons.types.planblueprint.DefinitionEntity.class, blueprintEntity.getDefinition());
+        xml.setProperties(this.planBlueprintValuesToExport(propertiesEntity, definition));
         xml.setReferences(this.planReferencesToExport(data));
         xml.setDescriptions(this.descriptionsToExport(data, isPublic));
         
@@ -2889,14 +2947,14 @@ public class PlanServiceImpl implements PlanService {
         return null;
     }
 
-    private List<PlanReferenceImportExport> planReferencesToExport(PlanEntity data){
+    private List<ReferenceImportExport> planReferencesToExport(PlanEntity data){
         List<PlanReferenceEntity> planReferences = this.queryFactory.query(PlanReferenceQuery.class).disableTracking().planIds(data.getId()).authorize(AuthorizationFlags.All).isActives(IsActive.Active).collect();
         if (!this.conventionService.isListNullOrEmpty(planReferences)) {
             List<ReferenceEntity> references = this.queryFactory.query(ReferenceQuery.class).disableTracking().ids(planReferences.stream().map(PlanReferenceEntity::getReferenceId).distinct().toList()).authorize(AuthorizationFlags.All).isActive(IsActive.Active).collect();
             Map<UUID, ReferenceEntity> referenceEntityMap = references == null ? new HashMap<>() : references.stream().collect(Collectors.toMap(ReferenceEntity::getId, x-> x));
             List<ReferenceTypeEntity> referenceTypes = references == null ? new ArrayList<>() : this.queryFactory.query(ReferenceTypeQuery.class).disableTracking().ids(references.stream().map(ReferenceEntity::getTypeId).distinct().toList()).authorize(AuthorizationFlags.AllExceptPublic).isActive(IsActive.Active).collect();
             Map<UUID, ReferenceTypeEntity> referenceTypeEntityMap = referenceTypes == null ? new HashMap<>() : referenceTypes.stream().collect(Collectors.toMap(ReferenceTypeEntity::getId, x-> x));
-            List<PlanReferenceImportExport> planReferenceImportExports = new LinkedList<>();
+            List<ReferenceImportExport> planReferenceImportExports = new LinkedList<>();
             for (PlanReferenceEntity descriptionTemplateEntity : planReferences) {
                 planReferenceImportExports.add(this.planReferenceToExport(descriptionTemplateEntity, referenceEntityMap, referenceTypeEntityMap));
             }
@@ -2905,11 +2963,14 @@ public class PlanServiceImpl implements PlanService {
         return null;
     }
 
-    private PlanReferenceImportExport planReferenceToExport(PlanReferenceEntity entity, Map<UUID, ReferenceEntity> referenceEntityMap, Map<UUID, ReferenceTypeEntity> referenceTypeEntityMap) {
-        PlanReferenceImportExport xml = new PlanReferenceImportExport();
+    private ReferenceImportExport planReferenceToExport(PlanReferenceEntity entity, Map<UUID, ReferenceEntity> referenceEntityMap, Map<UUID, ReferenceTypeEntity> referenceTypeEntityMap) {
+        ReferenceImportExport xml = new ReferenceImportExport();
         if (entity == null) return xml;
         PlanReferenceDataEntity referenceData = this.jsonHandlingService.fromJsonSafe(PlanReferenceDataEntity.class, entity.getData());
-        if (referenceData != null) xml.setFieldId(referenceData.getBlueprintFieldId());
+        if (referenceData != null) {
+            if (referenceData.getBlueprintFieldId() != null) xml.setFieldId(referenceData.getBlueprintFieldId());
+            xml.setOrdinal(referenceData.getOrdinal());
+        }
         ReferenceEntity reference = referenceEntityMap.getOrDefault(entity.getReferenceId(), null);
 
         if (reference != null){
@@ -2923,7 +2984,7 @@ public class PlanServiceImpl implements PlanService {
             if (reference.getDefinition() != null) {
                 DefinitionEntity definitionEntity = this.xmlHandlingService.fromXmlSafe(DefinitionEntity.class, reference.getDefinition());
                 if (definitionEntity != null && !this.conventionService.isListNullOrEmpty(definitionEntity.getFields())){
-                    List<PlanReferenceImportExport.ReferenceFieldImportExport> referenceFieldImportExports = new LinkedList<>();
+                    List<ReferenceImportExport.ReferenceFieldImportExport> referenceFieldImportExports = new LinkedList<>();
                     for (FieldEntity fieldEntity : definitionEntity.getFields()) {
                         referenceFieldImportExports.add(this.referenceFieldToExport(fieldEntity));
                     }
@@ -2935,8 +2996,8 @@ public class PlanServiceImpl implements PlanService {
         return xml;
     }
 
-    private PlanReferenceImportExport.ReferenceFieldImportExport referenceFieldToExport(FieldEntity entity) {
-        PlanReferenceImportExport.ReferenceFieldImportExport xml = new PlanReferenceImportExport.ReferenceFieldImportExport();
+    private ReferenceImportExport.ReferenceFieldImportExport referenceFieldToExport(FieldEntity entity) {
+        ReferenceImportExport.ReferenceFieldImportExport xml = new ReferenceImportExport.ReferenceFieldImportExport();
         if (entity == null) return xml;
         xml.setCode(entity.getCode());
         xml.setValue(entity.getValue());
@@ -2945,8 +3006,8 @@ public class PlanServiceImpl implements PlanService {
         return xml;
     }
 
-    private PlanReferenceTypeImportExport planReferenceTypeToExport(ReferenceTypeEntity entity) {
-        PlanReferenceTypeImportExport xml = new PlanReferenceTypeImportExport();
+    private ReferenceTypeImportExport planReferenceTypeToExport(ReferenceTypeEntity entity) {
+        ReferenceTypeImportExport xml = new ReferenceTypeImportExport();
         if (entity == null) return xml;
         xml.setId(entity.getId());
         xml.setCode(entity.getCode());
@@ -2955,39 +3016,18 @@ public class PlanServiceImpl implements PlanService {
         return xml;
     }
 
-    private List<PlanBlueprintValueImportExport> planBlueprintValuesToExport(PlanPropertiesEntity propertiesEntity, PlanBlueprintEntity blueprintEntity){
-        if (propertiesEntity != null && !this.conventionService.isListNullOrEmpty(propertiesEntity.getPlanBlueprintValues())) {
-            List<PlanBlueprintValueImportExport> planBlueprintValueImportExports = new LinkedList<>();
-            org.opencdmp.commons.types.planblueprint.DefinitionEntity definition =  this.xmlHandlingService.fromXmlSafe(org.opencdmp.commons.types.planblueprint.DefinitionEntity.class, blueprintEntity.getDefinition());
-            for (PlanBlueprintValueEntity planBlueprintValueEntity : propertiesEntity.getPlanBlueprintValues()) {
-                planBlueprintValueImportExports.add(this.planBlueprintValueToExport(planBlueprintValueEntity, definition));
-            }
-            return planBlueprintValueImportExports;
-        }
-        return null;
-    }
+    private DescriptionPropertyDefinitionImportExport planBlueprintValuesToExport(PlanPropertiesEntity entity,  org.opencdmp.commons.types.planblueprint.DefinitionEntity definition){
 
-    private PlanBlueprintValueImportExport planBlueprintValueToExport(PlanBlueprintValueEntity entity, org.opencdmp.commons.types.planblueprint.DefinitionEntity definition) {
-        PlanBlueprintValueImportExport xml = new PlanBlueprintValueImportExport();
+        DescriptionPropertyDefinitionImportExport xml = new DescriptionPropertyDefinitionImportExport();
         if (entity == null) return xml;
 
-        org.opencdmp.commons.types.planblueprint.FieldEntity fieldEntity = definition.getFieldById(entity.getFieldId()).stream().findFirst().orElse(null);
-        if (fieldEntity == null) return xml;
+        if (entity.getFieldSets() != null && !entity.getFieldSets().isEmpty()) {
 
-        if (fieldEntity.getCategory().equals(PlanBlueprintFieldCategory.Extra)) {
-            ExtraFieldEntity extraFieldEntity = (ExtraFieldEntity) fieldEntity;
-            if (PlanBlueprintExtraFieldDataType.isDateType(extraFieldEntity.getType())){
-                xml.setDateValue(entity.getDateValue());
-            } else if (PlanBlueprintExtraFieldDataType.isNumberType(extraFieldEntity.getType())){
-                xml.setNumberValue(entity.getNumberValue());
-            } else {
-                xml.setValue(entity.getValue());
+            List<DescriptionPropertyDefinitionFieldSetImportExport> exports = new LinkedList<>();
+            for (Map.Entry<String, PropertyDefinitionFieldSetEntity> fieldSetEntityEntry : entity.getFieldSets().entrySet()) {
+                exports.add(this.fieldsService.descriptionPropertyDefinitionFieldSetToExport(fieldSetEntityEntry.getValue(), fieldSetEntityEntry.getKey(), definition != null ? definition.getSections(): new ArrayList<>(), null));
             }
-            xml.setFieldId(entity.getFieldId());
-        }
-        if (fieldEntity.getCategory().equals(PlanBlueprintFieldCategory.Upload)) {
-            if (entity.getValue() != null) xml.setStorageFile(this.storageFileService.storageFileXmlToExport(UUID.fromString(entity.getValue())));
-            xml.setFieldId(entity.getFieldId());
+            xml.setFieldSets(exports);
         }
 
         return xml;
@@ -3161,62 +3201,26 @@ public class PlanServiceImpl implements PlanService {
 
         PlanPropertiesPersist persist = new PlanPropertiesPersist();
         persist.setContacts(this.xmlToPlanContactPersist(importXml));
-        persist.setPlanBlueprintValues(this.xmlToPlanBlueprintValuePersist(importXml));
+        persist.setFieldSets(this.xmlToPlanBlueprintValuePersist(importXml));
 
         return persist;
     }
 
-    private Map<UUID, PlanBlueprintValuePersist> xmlToPlanBlueprintValuePersist(PlanImportExport importXml){
-        if (importXml.getBlueprint() != null && importXml.getBlueprint().getPlanBlueprintDefinition() != null && !this.conventionService.isListNullOrEmpty(importXml.getBlueprint().getPlanBlueprintDefinition().getSections())) {
-            Map<UUID, PlanBlueprintValuePersist> planBlueprintValues = new HashMap<>();
-            List<BlueprintSectionImportExport> sections = importXml.getBlueprint().getPlanBlueprintDefinition().getSections();
-            if (!this.conventionService.isListNullOrEmpty(sections)){
-                for (BlueprintSectionImportExport section : importXml.getBlueprint().getPlanBlueprintDefinition().getSections()) {
-                    this.xmlToPlanBlueprintExtraFieldValuePersist(importXml, section, planBlueprintValues);
-                    this.xmlToPlanBlueprintReferenceFieldValuePersist(importXml, section, planBlueprintValues);
-                    this.xmlToPlanBlueprintUploadFieldValuePersist(importXml, section, planBlueprintValues);
-                }
-            }
-            return planBlueprintValues;
-        }
-        return null;
-    }
+    private Map<String, PropertyDefinitionFieldSetPersist> xmlToPlanBlueprintValuePersist(PlanImportExport importXml){
+        if (importXml == null)
+            return null;
 
-    private void xmlToPlanBlueprintExtraFieldValuePersist(PlanImportExport importXml, BlueprintSectionImportExport section, Map<UUID, PlanBlueprintValuePersist> planBlueprintValues){
-        if (!this.conventionService.isListNullOrEmpty(section.getExtraFields()) && !this.conventionService.isListNullOrEmpty(importXml.getBlueprintValues())){
-            for (PlanBlueprintValueImportExport value : importXml.getBlueprintValues()) {
-                if (value.getFieldId() != null ) {
-	                section.getExtraFields().stream().filter(x -> x.getId().equals(value.getFieldId())).findFirst().ifPresent(extraFieldImportExport -> planBlueprintValues.put(value.getFieldId(), this.xmlPlanBlueprintValueToPersist(value, extraFieldImportExport)));
-                }
-            }
-        }
-    }
-    
-    private void xmlToPlanBlueprintReferenceFieldValuePersist(PlanImportExport importXml, BlueprintSectionImportExport section, Map<UUID, PlanBlueprintValuePersist> planBlueprintValues){
-        if (!this.conventionService.isListNullOrEmpty(section.getReferenceFields()) && !this.conventionService.isListNullOrEmpty(importXml.getReferences())){
-            for (BlueprintReferenceTypeFieldImportExport blueprintReferenceTypeField : section.getReferenceFields()) {
-                List<PlanReferenceImportExport> planReferencesByField = importXml.getReferences().stream().filter(x -> x.getFieldId().equals(blueprintReferenceTypeField.getId())).collect(Collectors.toList());
-                if (!this.conventionService.isListNullOrEmpty(planReferencesByField)){
-                    planBlueprintValues.put(blueprintReferenceTypeField.getId(), this.xmlReferenceFieldToPlanBlueprintValuePersist(blueprintReferenceTypeField, planReferencesByField));
-                }
-            }
-        }
-    }
 
-    private void xmlToPlanBlueprintUploadFieldValuePersist(PlanImportExport importXml, BlueprintSectionImportExport section, Map<UUID, PlanBlueprintValuePersist> planBlueprintValues){
-        if (!this.conventionService.isListNullOrEmpty(section.getUploadFields()) && !this.conventionService.isListNullOrEmpty(importXml.getBlueprintValues())){
-            for (PlanBlueprintValueImportExport value : importXml.getBlueprintValues()) {
-                if (value.getFieldId() != null ) {
-                    section.getUploadFields().stream().filter(x -> x.getId().equals(value.getFieldId())).findFirst().ifPresent(uploadFieldImportExport -> {
-                        try {
-                            planBlueprintValues.put(value.getFieldId(), this.xmlPlanBlueprintValueToPersist(value, uploadFieldImportExport));
-                        } catch (IOException e) {
-                            throw new RuntimeException(e);
-                        }
-                    });
+        Map<String, PropertyDefinitionFieldSetPersist> fieldSetsMap = new HashMap<>();
+        if (!this.conventionService.isListNullOrEmpty(importXml.getBlueprint().getPlanBlueprintDefinition().getSections())) {
+            if (importXml.getProperties() != null && !this.conventionService.isListNullOrEmpty(importXml.getProperties().getFieldSets())){
+                for (DescriptionPropertyDefinitionFieldSetImportExport fieldSet: importXml.getProperties().getFieldSets()){
+                    fieldSetsMap.put(fieldSet.getFieldSetId(), this.fieldsService.xmlPropertyDefinitionFieldSetToPersist(fieldSet, importXml.getReferences(), importXml.getBlueprint().getPlanBlueprintDefinition().getSections()));
                 }
             }
         }
+
+        return fieldSetsMap;
     }
 
     private List<PlanContactPersist> xmlToPlanContactPersist(PlanImportExport importXml){
@@ -3230,105 +3234,6 @@ public class PlanServiceImpl implements PlanService {
         return null;
     }
 
-    private PlanBlueprintValuePersist xmlReferenceFieldToPlanBlueprintValuePersist(BlueprintReferenceTypeFieldImportExport blueprintReferenceTypeFieldImportXml, List<PlanReferenceImportExport> planReferencesImportXml) {
-        if (blueprintReferenceTypeFieldImportXml == null || this.conventionService.isListNullOrEmpty(planReferencesImportXml))
-            return null;
-
-        ReferenceTypeEntity referenceTypeEntity = this.queryFactory.query(ReferenceTypeQuery.class).ids(blueprintReferenceTypeFieldImportXml.getReferenceTypeId()).first();//TODO: optimize
-        if (referenceTypeEntity == null) referenceTypeEntity = this.queryFactory.query(ReferenceTypeQuery.class).codes(blueprintReferenceTypeFieldImportXml.getReferenceTypeCode()).first();
-        if (referenceTypeEntity == null) throw new MyNotFoundException(this.messageSource.getMessage("General_ItemNotFound", new Object[]{blueprintReferenceTypeFieldImportXml.getReferenceTypeCode(), ReferenceType.class.getSimpleName()}, LocaleContextHolder.getLocale()));
-        
-        PlanBlueprintValuePersist persist = new PlanBlueprintValuePersist();
-
-        persist.setFieldId(blueprintReferenceTypeFieldImportXml.getId());
-        if (blueprintReferenceTypeFieldImportXml.getMultipleSelect()){
-            List<ReferencePersist> references = new ArrayList<>();
-            for (PlanReferenceImportExport planReference : planReferencesImportXml) {
-                references.add(this.xmlPlanReferenceToReferencePersist(planReference, referenceTypeEntity));
-            }
-            persist.setReferences(references);
-        } else {
-            persist.setReference(this.xmlPlanReferenceToReferencePersist(planReferencesImportXml.stream().findFirst().orElse(null), referenceTypeEntity));
-        }
-
-        return persist;
-    }
-
-    private ReferencePersist xmlPlanReferenceToReferencePersist(PlanReferenceImportExport importXml, ReferenceTypeEntity referenceTypeEntity) {
-        if (importXml == null)
-            return null;
-        
-        if (!referenceTypeEntity.getCode().equals(importXml.getType().getCode())) throw new MyApplicationException(this.errors.getInvalidReferenceTypeImportXml().getCode(), this.errors.getInvalidReferenceTypeImportXml().getMessage());
-
-        ReferenceEntity referenceEntity = this.queryFactory.query(ReferenceQuery.class).ids(importXml.getId()).first(); //TODO: optimize
-        if (referenceEntity == null) referenceEntity = this.queryFactory.query(ReferenceQuery.class).references(importXml.getReference()).typeIds(referenceTypeEntity.getId()).sources(importXml.getSource()).first();
-        
-        ReferencePersist persist = new ReferencePersist();
-        
-        persist.setTypeId(referenceTypeEntity.getId());
-        if (referenceEntity == null) {
-            persist.setLabel(importXml.getLabel());
-            persist.setReference(importXml.getReference());
-            persist.setSource("internal");
-            persist.setSourceType(ReferenceSourceType.Internal);
-
-            if (!this.conventionService.isListNullOrEmpty(importXml.getFields())) {
-                DefinitionPersist definitionPersist = new DefinitionPersist();
-                List<FieldPersist> fieldPersists = new LinkedList<>();
-                for (PlanReferenceImportExport.ReferenceFieldImportExport fieldImportExport : importXml.getFields()) {
-                    fieldPersists.add(this.xmlFieldToPersist(fieldImportExport));
-                }
-                definitionPersist.setFields(fieldPersists);
-                persist.setDefinition(definitionPersist);
-            }
-        } else {
-            persist.setId(referenceEntity.getId());
-        }
-
-        return persist;
-    }
-
-    private FieldPersist xmlFieldToPersist(PlanReferenceImportExport.ReferenceFieldImportExport importXml) {
-        if (importXml == null)
-            return null;
-
-        FieldPersist persist = new FieldPersist();
-        persist.setCode(importXml.getCode());
-        persist.setValue(importXml.getValue());
-        persist.setDataType(importXml.getDataType());
-
-        return persist;
-    }
-
-    private PlanBlueprintValuePersist xmlPlanBlueprintValueToPersist(PlanBlueprintValueImportExport importXml, BlueprintExtraFieldImportExport extraFieldImportExport) {
-        if (importXml == null || extraFieldImportExport == null)
-            return null;
-
-        PlanBlueprintValuePersist persist = new PlanBlueprintValuePersist();
-
-        persist.setFieldId(importXml.getFieldId());
-        switch (extraFieldImportExport.getType()){
-            case Date ->  persist.setDateValue(importXml.getDateValue());
-            case Number ->  persist.setNumberValue(importXml.getNumberValue());
-            case Text, RichTex ->  persist.setFieldValue(importXml.getValue());
-            default -> throw new MyApplicationException("unrecognized type " + extraFieldImportExport.getType());
-        }
-
-        return persist;
-    }
-
-    private PlanBlueprintValuePersist xmlPlanBlueprintValueToPersist(PlanBlueprintValueImportExport importXml, BlueprintUploadFieldImportExport uploadFieldImportExport) throws IOException {
-        if (importXml == null || uploadFieldImportExport == null)
-            return null;
-
-        PlanBlueprintValuePersist persist = new PlanBlueprintValuePersist();
-
-        persist.setFieldId(importXml.getFieldId());
-        UUID fileId = this.storageFileService.xmlUploadFieldToPersist(importXml.getStorageFile());
-        if(fileId != null) persist.setFieldValue(fileId.toString());
-        return persist;
-    }
-
     private  List<PlanDescriptionTemplatePersist> xmlPlanDescriptionTemplatesToPersist(PlanImportExport planXml, UUID blueprintId) throws InvalidApplicationException {
         if (!this.conventionService.isListNullOrEmpty(planXml.getDescriptionTemplates())) {
             List<PlanDescriptionTemplatePersist> descriptionTemplates = new ArrayList<>();
@@ -3340,8 +3245,8 @@ public class PlanServiceImpl implements PlanService {
                 PlanBlueprintEntity blueprintEntity = this.tenantEntityManagerFactory.getInstance().find(PlanBlueprintEntity.class, blueprintId, true);
                 if (blueprintEntity == null) throw new MyNotFoundException(this.messageSource.getMessage("General_ItemNotFound", new Object[]{planXml.getBlueprint().getId(), PlanBlueprint.class.getSimpleName()}, LocaleContextHolder.getLocale()));
                 org.opencdmp.commons.types.planblueprint.DefinitionEntity definition =  this.xmlHandlingService.fromXmlSafe(org.opencdmp.commons.types.planblueprint.DefinitionEntity.class, blueprintEntity.getDefinition());
-                List<SectionEntity> sections = definition.getSections().stream().filter(SectionEntity::getHasTemplates).collect(Collectors.toList());
-                for (SectionEntity section: sections) {
+                List<RootSectionEntity> sections = definition.getSections().stream().filter(RootSectionEntity::getHasTemplates).collect(Collectors.toList());
+                for (RootSectionEntity section: sections) {
                     if (section.getHasTemplates() && !this.conventionService.isListNullOrEmpty(section.getDescriptionTemplates())){
                         for (BlueprintDescriptionTemplateEntity descriptionTemplateEntity: section.getDescriptionTemplates()){
                             if (descriptionTemplates.stream().filter(x -> x.getDescriptionTemplateGroupId().equals(descriptionTemplateEntity.getDescriptionTemplateGroupId()) && x.getSectionId().equals(section.getId())).findFirst().orElse(null) == null) {
@@ -3408,33 +3313,6 @@ public class PlanServiceImpl implements PlanService {
         return this.fileTransformerService.preprocessingPlan(fileId, repositoryId);
     }
 
-    public Plan createPlanFromRequest(PlanSuggestion suggestion, FieldSet fields) throws MyForbiddenException, MyNotFoundException, JAXBException, InvalidApplicationException, IOException, InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException, ParserConfigurationException, TransformerException, InstantiationException, IllegalAccessException, SAXException {
-        logger.debug(new MapLogEntry("create plan from update request").And("planSuggestion", suggestion).And("fields", fields));
-
-        this.authorizationService.authorizeForce(Permission.NewPlan);
-
-        PlanUpdateRequestEntity entity = this.queryFactory.query(PlanUpdateRequestQuery.class).authorize(AllExceptPublic).ids(suggestion.getPlanUpdateRequestId()).isActive(IsActive.Active).first();
-        if (entity == null) throw new MyNotFoundException(this.messageSource.getMessage("General_ItemNotFound", new Object[]{suggestion.getPlanUpdateRequestId(), PlanUpdateRequestEntity.class.getSimpleName()}, LocaleContextHolder.getLocale()));
-        if (!entity.getStatus().equals(PlanUpdateRequestStatus.Pending)) throw new MyValidationException(this.errors.getPlanUpdateRequestIsCompleted().getCode(), this.errors.getPlanUpdateRequestIsCompleted().getMessage());
-        if (!entity.getActionType().equals(PlanUpdateRequestActionType.CreatePlan)) throw new MyValidationException(this.errors.getPlanUpdateRequestInvalidActionType().getCode(), this.errors.getPlanUpdateRequestInvalidActionType().getMessage());
-
-        PlanModel model = this.fileTransformerService.importPlan(entity.getData().getBytes(), suggestion, this.planServiceProperties.getRdaTransformerId());
-        if (model == null) throw new MyNotFoundException("Plan Import Error");
-
-        Plan plan = this.commonModelPlanToPersist(model, model.getLabel(), fields);
-
-        entity.setStatus(PlanUpdateRequestStatus.Accepted);
-        entity.setApprovedAt(Instant.now());
-        entity.setUpdatedAt(Instant.now());
-        entity.setApprovedBy(this.userScopeFactory.getInstance().getUserId());
-        entity.setPlanId(plan.getId());
-
-        this.tenantEntityManagerFactory.getInstance().merge(entity);
-        this.tenantEntityManagerFactory.getInstance().flush();
-
-        return plan;
-    }
-
     public Plan importJson(PlanCommonModelConfig planCommonModelConfig, FieldSet fields) throws MyForbiddenException, MyNotFoundException, JAXBException, InvalidApplicationException, IOException, InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException, ParserConfigurationException, TransformerException, InstantiationException, IllegalAccessException, SAXException {
         logger.debug(new MapLogEntry("import data").And("file id", planCommonModelConfig.getFileId()).And("label", planCommonModelConfig.getLabel()).And("fields", fields));
 
@@ -3444,7 +3322,7 @@ public class PlanServiceImpl implements PlanService {
         return this.commonModelPlanToPersist(model, planCommonModelConfig.getLabel(), fields);
     }
 
-    private Plan commonModelPlanToPersist(PlanModel model, String label, FieldSet fields) throws InvalidApplicationException, JAXBException, ParserConfigurationException, IOException, TransformerException, InstantiationException, IllegalAccessException, SAXException {
+    public Plan commonModelPlanToPersist(PlanModel model, String label, FieldSet fields) throws InvalidApplicationException, JAXBException, ParserConfigurationException, IOException, TransformerException, InstantiationException, IllegalAccessException, SAXException {
         PlanPersist persist = new PlanPersist();
 
         persist.setLabel(label);
@@ -3484,34 +3362,36 @@ public class PlanServiceImpl implements PlanService {
     }
 
     private  List<PlanDescriptionTemplatePersist> commonModelPlanDescriptionTemplatesToPersist(PlanModel commonModel) throws InvalidApplicationException {
+        // a file without templates (e.g. RAiD) still needs the blueprint's, or fixed-template sections refuse the plan
+        List<PlanDescriptionTemplatePersist> descriptionTemplates = new ArrayList<>();
         if (!this.conventionService.isListNullOrEmpty(commonModel.getDescriptionTemplates())) {
-            List<PlanDescriptionTemplatePersist> descriptionTemplates = new ArrayList<>();
             for (PlanDescriptionTemplateModel descriptionTemplate : commonModel.getDescriptionTemplates()) {
-                descriptionTemplates.add(this.commonModelPlanDescriptionTemplateToPersist(descriptionTemplate));
+                PlanDescriptionTemplatePersist persist = this.commonModelPlanDescriptionTemplateToPersist(descriptionTemplate);
+                // the RDA transformer emits one entry per dataset, so a template shared by two datasets arrives twice
+                if (persist != null && descriptionTemplates.stream().noneMatch(x -> Objects.equals(x.getDescriptionTemplateGroupId(), persist.getDescriptionTemplateGroupId()) && Objects.equals(x.getSectionId(), persist.getSectionId()))) descriptionTemplates.add(persist);
             }
-            // add description templates from blueprint
-            if (commonModel.getPlanBlueprint() != null && commonModel.getPlanBlueprint().getId() != null) {
-                PlanBlueprintEntity blueprintEntity = this.tenantEntityManagerFactory.getInstance().find(PlanBlueprintEntity.class, commonModel.getPlanBlueprint().getId(), true);
-                if (blueprintEntity == null) throw new MyNotFoundException(this.messageSource.getMessage("General_ItemNotFound", new Object[]{commonModel.getPlanBlueprint().getId(), PlanBlueprint.class.getSimpleName()}, LocaleContextHolder.getLocale()));
-                org.opencdmp.commons.types.planblueprint.DefinitionEntity definition =  this.xmlHandlingService.fromXmlSafe(org.opencdmp.commons.types.planblueprint.DefinitionEntity.class, blueprintEntity.getDefinition());
-                List<SectionEntity> sections = definition.getSections().stream().filter(SectionEntity::getHasTemplates).collect(Collectors.toList());
-                for (SectionEntity section: sections) {
-                    if (section.getHasTemplates() && !this.conventionService.isListNullOrEmpty(section.getDescriptionTemplates())){
-                        for (BlueprintDescriptionTemplateEntity descriptionTemplateEntity: section.getDescriptionTemplates()){
-                            if (descriptionTemplates.stream().filter(x -> x.getDescriptionTemplateGroupId().equals(descriptionTemplateEntity.getDescriptionTemplateGroupId()) && x.getSectionId().equals(section.getId())).findFirst().orElse(null) == null) {
-                                PlanDescriptionTemplateModel model = new PlanDescriptionTemplateModel();
-                                model.setDescriptionTemplateGroupId(descriptionTemplateEntity.getDescriptionTemplateGroupId());
-                                model.setSectionId(section.getId());
-                                descriptionTemplates.add(this.commonModelPlanDescriptionTemplateToPersist(model));
-                            }
+        }
+        // add description templates from blueprint
+        if (commonModel.getPlanBlueprint() != null && commonModel.getPlanBlueprint().getId() != null) {
+            PlanBlueprintEntity blueprintEntity = this.tenantEntityManagerFactory.getInstance().find(PlanBlueprintEntity.class, commonModel.getPlanBlueprint().getId(), true);
+            if (blueprintEntity == null) throw new MyNotFoundException(this.messageSource.getMessage("General_ItemNotFound", new Object[]{commonModel.getPlanBlueprint().getId(), PlanBlueprint.class.getSimpleName()}, LocaleContextHolder.getLocale()));
+            org.opencdmp.commons.types.planblueprint.DefinitionEntity definition =  this.xmlHandlingService.fromXmlSafe(org.opencdmp.commons.types.planblueprint.DefinitionEntity.class, blueprintEntity.getDefinition());
+            List<RootSectionEntity> sections = definition.getSections().stream().filter(RootSectionEntity::getHasTemplates).collect(Collectors.toList());
+            for (RootSectionEntity section: sections) {
+                if (section.getHasTemplates() && !this.conventionService.isListNullOrEmpty(section.getDescriptionTemplates())){
+                    for (BlueprintDescriptionTemplateEntity descriptionTemplateEntity: section.getDescriptionTemplates()){
+                        if (descriptionTemplates.stream().filter(x -> x.getDescriptionTemplateGroupId().equals(descriptionTemplateEntity.getDescriptionTemplateGroupId()) && x.getSectionId().equals(section.getId())).findFirst().orElse(null) == null) {
+                            PlanDescriptionTemplateModel model = new PlanDescriptionTemplateModel();
+                            model.setDescriptionTemplateGroupId(descriptionTemplateEntity.getDescriptionTemplateGroupId());
+                            model.setSectionId(section.getId());
+                            descriptionTemplates.add(this.commonModelPlanDescriptionTemplateToPersist(model));
                         }
                     }
                 }
-
             }
-            return descriptionTemplates.stream().filter(Objects::nonNull).toList();
+
         }
-        return null;
+        return descriptionTemplates.stream().filter(Objects::nonNull).toList();
     }
 
     private PlanDescriptionTemplatePersist commonModelPlanDescriptionTemplateToPersist(PlanDescriptionTemplateModel commonModel) {
@@ -3545,7 +3425,18 @@ public class PlanServiceImpl implements PlanService {
 
         PlanPropertiesPersist persist = new PlanPropertiesPersist();
         persist.setContacts(this.commonModelToPlanContactPersist(commonModel.getProperties()));
-        persist.setPlanBlueprintValues(this.commonModelToPlanBlueprintValuePersist(commonModel));
+
+        Map<String, PropertyDefinitionFieldSetPersist> fieldSetsMap = new HashMap<>();
+        if (commonModel.getPlanBlueprint() != null && commonModel.getPlanBlueprint().getDefinition() != null && !this.conventionService.isListNullOrEmpty(commonModel.getPlanBlueprint().getDefinition().getSections())) {
+            if (commonModel.getProperties() != null && commonModel.getProperties().getFieldSets() != null && !commonModel.getProperties().getFieldSets().isEmpty()){
+                for (String fieldSetId: commonModel.getProperties().getFieldSets().keySet()){
+                    PropertyDefinitionFieldSetPersist fieldSetPersist = this.fieldsService.commonModelPropertyDefinitionFieldSetToPersist(commonModel.getProperties().getFieldSets().get(fieldSetId), commonModel.getPlanBlueprint().getDefinition().getSections());
+                    if (fieldSetPersist != null && !this.conventionService.isListNullOrEmpty(fieldSetPersist.getItems())) fieldSetsMap.put(fieldSetId, fieldSetPersist);
+                }
+            }
+        }
+
+        persist.setFieldSets(fieldSetsMap);
 
         return persist;
     }  
@@ -3561,130 +3452,6 @@ public class PlanServiceImpl implements PlanService {
         return null;
     }
 
-    private Map<UUID, PlanBlueprintValuePersist> commonModelToPlanBlueprintValuePersist(PlanModel commonModel){
-        if (commonModel.getPlanBlueprint() != null && commonModel.getPlanBlueprint().getDefinition() != null && !this.conventionService.isListNullOrEmpty(commonModel.getPlanBlueprint().getDefinition().getSections())) {
-            Map<UUID, PlanBlueprintValuePersist> planBlueprintValues = new HashMap<>();
-            List<SectionModel> sections = commonModel.getPlanBlueprint().getDefinition().getSections();
-            if (!this.conventionService.isListNullOrEmpty(sections)){
-                for (SectionModel section : sections) {
-                    if (!this.conventionService.isListNullOrEmpty(section.getFields())){
-                        for (FieldModel field : section.getFields()) {
-                            // reference
-                            if (field.getCategory().equals(org.opencdmp.commonmodels.enums.PlanBlueprintFieldCategory.ReferenceType) && commonModel.getReferences() != null){
-                                ReferenceTypeFieldModel referenceField = (ReferenceTypeFieldModel) field;
-                                List<PlanReferenceModel> planReferencesByField = commonModel.getReferences().stream().filter(x -> x.getData() != null && x.getData().getBlueprintFieldId().equals(referenceField.getId())).collect(Collectors.toList());
-                                if (!this.conventionService.isListNullOrEmpty(planReferencesByField)){
-                                    planBlueprintValues.put(referenceField.getId(), this.commonModelPlanReferenceFieldToPlanBlueprintValuePersist(referenceField, planReferencesByField));
-                                }
-                            } else {
-                                // custom fields
-                                if (field.getCategory().equals(org.opencdmp.commonmodels.enums.PlanBlueprintFieldCategory.Extra) && commonModel.getProperties() != null && !this.conventionService.isListNullOrEmpty(commonModel.getProperties().getPlanBlueprintValues())){
-                                    PlanBlueprintValueModel planBlueprintValueModel = commonModel.getProperties().getPlanBlueprintValues().stream().filter(x -> x.getFieldId().equals(field.getId())).findFirst().orElse(null);
-                                    ExtraFieldModel extraFieldModel = (ExtraFieldModel) field;
-                                    if (planBlueprintValueModel != null) planBlueprintValues.put(planBlueprintValueModel.getFieldId(), this.commonModelPlanBlueprintValueToPersist(planBlueprintValueModel, extraFieldModel));
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-            return planBlueprintValues;
-        }
-        return null;
-    }
-    
-    private PlanBlueprintValuePersist commonModelPlanReferenceFieldToPlanBlueprintValuePersist(ReferenceTypeFieldModel model, List<PlanReferenceModel> planReferences) {
-        if (model == null || this.conventionService.isListNullOrEmpty(planReferences) || model.getReferenceType() == null)
-            return null;
-
-        ReferenceTypeEntity referenceTypeEntity = this.queryFactory.query(ReferenceTypeQuery.class).ids(model.getReferenceType().getId()).first();//TODO: optimize
-        if (referenceTypeEntity == null) referenceTypeEntity = this.queryFactory.query(ReferenceTypeQuery.class).codes(model.getReferenceType().getCode()).first();
-        if (referenceTypeEntity == null) throw new MyNotFoundException(this.messageSource.getMessage("General_ItemNotFound", new Object[]{model.getReferenceType().getCode(), ReferenceType.class.getSimpleName()}, LocaleContextHolder.getLocale()));
-
-        PlanBlueprintValuePersist persist = new PlanBlueprintValuePersist();
-
-        persist.setFieldId(model.getId());
-        if (model.getMultipleSelect()){
-            List<ReferencePersist> references = new ArrayList<>();
-            for (PlanReferenceModel planReference : planReferences) {
-                references.add(this.commonPlanReferenceToReferencePersist(planReference.getReference(), referenceTypeEntity));
-            }
-            persist.setReferences(references);
-        } else {
-            persist.setReference(this.commonPlanReferenceToReferencePersist(planReferences.getFirst().getReference(), referenceTypeEntity));
-        }
-
-        return persist;
-    }
-
-    private ReferencePersist commonPlanReferenceToReferencePersist(ReferenceModel model, ReferenceTypeEntity referenceTypeEntity) {
-        if (!referenceTypeEntity.getCode().equals(model.getType().getCode())) throw new MyApplicationException("Invalid reference for field " + model.getId());
-
-        if (this.conventionService.isNullOrEmpty(model.getLabel()) && this.conventionService.isNullOrEmpty(model.getReference())) throw new MyApplicationException("Plan Reference without label and reference id ");
-
-        ReferenceEntity referenceEntity = model.getId() != null ? this.queryFactory.query(ReferenceQuery.class).ids(model.getId()).first(): null; //TODO: optimize
-        if (referenceEntity == null && !this.conventionService.isNullOrEmpty(model.getReference())) {
-            List<ReferenceEntity> referenceEntities = this.queryFactory.query(ReferenceQuery.class).references(model.getReference()).typeIds(referenceTypeEntity.getId()).collect();
-            if (referenceEntities != null && referenceEntities.size() == 1) referenceEntity = referenceEntities.getFirst();
-        }
-
-        ReferencePersist persist = new ReferencePersist();
-
-        persist.setTypeId(referenceTypeEntity.getId());
-        if (referenceEntity == null) {
-            persist.setReference(!this.conventionService.isNullOrEmpty(model.getReference()) ? model.getReference() : UUID.randomUUID().toString());
-            persist.setLabel(!this.conventionService.isNullOrEmpty(model.getLabel()) ? model.getLabel() : persist.getReference());
-            persist.setSource("internal");
-            persist.setSourceType(ReferenceSourceType.Internal);
-
-            if (model.getDefinition() != null && !this.conventionService.isListNullOrEmpty(model.getDefinition().getFields())) {
-                DefinitionPersist definitionPersist = new DefinitionPersist();
-                List<FieldPersist> fieldPersists = new LinkedList<>();
-                for (ReferenceFieldModel fieldModel : model.getDefinition().getFields()) {
-                    fieldPersists.add(this.commonModelReferenceFieldToPersist(fieldModel));
-                }
-                definitionPersist.setFields(fieldPersists);
-                persist.setDefinition(definitionPersist);
-            }
-        } else {
-            persist.setId(referenceEntity.getId());
-        }
-        return persist;
-    }
-
-    private FieldPersist commonModelReferenceFieldToPersist(ReferenceFieldModel commonModel) {
-        if (commonModel == null)
-            return null;
-
-        FieldPersist persist = new FieldPersist();
-        persist.setCode(commonModel.getCode());
-        persist.setValue(commonModel.getValue());
-        switch (commonModel.getDataType()){
-            case Text -> persist.setDataType(ReferenceFieldDataType.Text);
-            case Date -> persist.setDataType(ReferenceFieldDataType.Date);
-            case null -> persist.setDataType(null);
-            default -> throw new MyApplicationException("unrecognized type " + commonModel.getDataType());
-        }
-
-        return persist;
-    }
-
-    private PlanBlueprintValuePersist commonModelPlanBlueprintValueToPersist(PlanBlueprintValueModel commonModel, ExtraFieldModel extraFieldModel) {
-        if (commonModel == null || extraFieldModel == null)
-            return null;
-        PlanBlueprintValuePersist persist = new PlanBlueprintValuePersist();
-
-        persist.setFieldId(commonModel.getFieldId());
-        switch (extraFieldModel.getDataType()){
-            case Date ->  persist.setDateValue(commonModel.getDateValue());
-            case Number ->  persist.setNumberValue(commonModel.getNumberValue());
-            case Text, RichTex ->  persist.setFieldValue(commonModel.getValue());
-            default -> throw new MyApplicationException("unrecognized type " + extraFieldModel.getDataType());
-        }
-
-        return persist;
-    }
-
     private PlanContactPersist commonModelPlanContactToPersist(PlanContactModel commonModel) {
         if (commonModel == null)
             return null;
@@ -3698,4 +3465,44 @@ public class PlanServiceImpl implements PlanService {
         return persist;
     }
 
+    //region Update description templates
+
+    public Plan updatePlanDescriptionTemplate(UpdatePlanDescriptionTemplate model, FieldSet fields) throws MyForbiddenException, MyValidationException, MyApplicationException, MyNotFoundException, InvalidApplicationException, JAXBException, IOException {
+
+        PlanEntity data = this.tenantEntityManagerFactory.getInstance().find(PlanEntity.class, model.getId());
+        if (data == null) throw new MyNotFoundException(this.messageSource.getMessage("General_ItemNotFound", new Object[]{model.getId(), Plan.class.getSimpleName()}, LocaleContextHolder.getLocale()));
+        if (this.lockService.isLocked(data.getId(), null).getStatus()) throw new MyApplicationException(this.errors.getLockedPlan().getCode(), this.errors.getLockedPlan().getMessage());
+        if (!this.conventionService.hashValue(data.getUpdatedAt()).equals(model.getHash())) throw new MyValidationException(this.errors.getHashConflict().getCode(), this.errors.getHashConflict().getMessage());
+
+        PlanStatusEntity statusEntity = this.tenantEntityManagerFactory.getInstance().find(PlanStatusEntity.class, data.getStatusId(), true);
+        if (statusEntity == null) throw new MyNotFoundException(this.messageSource.getMessage("General_ItemNotFound", new Object[]{data.getStatusId(), PlanStatusEntity.class.getSimpleName()}, LocaleContextHolder.getLocale()));
+        if (statusEntity.getInternalStatus() != null && statusEntity.getInternalStatus().equals(PlanStatus.Finalized)) throw new MyValidationException(this.errors.getPlanIsFinalized().getCode(), this.errors.getPlanIsFinalized().getMessage());
+
+        PlanBlueprintEntity planBlueprintEntity = this.tenantEntityManagerFactory.getInstance().find(PlanBlueprintEntity.class, data.getBlueprintId(), true);
+        if (planBlueprintEntity == null) throw new MyNotFoundException(this.messageSource.getMessage("General_ItemNotFound", new Object[]{data.getBlueprintId(), PlanBlueprint.class.getSimpleName()}, LocaleContextHolder.getLocale()));
+
+        org.opencdmp.commons.types.planblueprint.DefinitionEntity definition =  this.xmlHandlingService.fromXmlSafe(org.opencdmp.commons.types.planblueprint.DefinitionEntity.class, planBlueprintEntity.getDefinition());
+
+        this.checkIfCanEditDescriptionTemplates(model.getDescriptionTemplates(), definition);
+        this.checkIfDescriptionTemplateIsUse(model.getDescriptionTemplates(), model.getId());
+        this.patchAndSaveTemplates(data.getId(), model.getDescriptionTemplates());
+
+        this.eventBroker.emit(new PlanTouchedEvent(data.getId()));
+        this.elasticService.persistPlan(data);
+        this.tenantEntityManagerFactory.getInstance().flush();
+
+        return this.builderFactory.builder(PlanBuilder.class).authorize(AuthorizationFlags.AllExceptPublic).build(BaseFieldSet.build(fields, Plan._id, Plan._hash), data);
+    }
+
+    //endregion
+
+    @Override
+    public List<PlanUser> getUsers(UUID id, FieldSet fields) {
+        this.authorizationService.authorizeAtLeastOneForce(List.of(this.authorizationContentResolverFactory.getInstance().planAffiliation(id)), Permission.BrowsePlanUser);
+
+        PlanUserQuery query = this.queryFactory.query(PlanUserQuery.class).authorize(AuthorizationFlags.AllExceptPublic).disableTracking().planIds(id).isActives(IsActive.Active);
+        return this.builderFactory.builder(PlanUserBuilder.class).authorize(AuthorizationFlags.AllExceptPublic).build(BaseFieldSet.build(fields, PlanUser._id, PlanUser._hash), query.collect());
+    }
+
+    //endregion
 }

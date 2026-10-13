@@ -3,7 +3,7 @@ package org.opencdmp.model.builder.commonmodels.dto.descriptiontemplate;
 import gr.cite.tools.exception.MyApplicationException;
 import gr.cite.tools.logging.LoggerService;
 import org.opencdmp.authorization.AuthorizationFlags;
-import org.opencdmp.commonmodels.models.descriptiotemplate.DefaultValueModel;
+import org.opencdmp.commonmodels.models.planblueprintdescriptiontemplatefields.DefaultValueModel;
 import org.opencdmp.convention.ConventionService;
 import org.opencdmp.model.builder.commonmodels.BaseCommonModelBuilder;
 import org.opencdmp.model.builder.commonmodels.CommonModelBuilderItemResponse;
@@ -45,6 +45,7 @@ public class DefaultValueCommonModelBuilder extends BaseCommonModelBuilder<Defau
             m.setDateValue(d.getDateValue());
             m.setBooleanValue(d.getBooleanValue());
             m.setTextValue(d.getTextValue());
+            m.setNumberValue(d.getNumberValue());
 
             models.add(new CommonModelBuilderItemResponse<>(m, d));
         }

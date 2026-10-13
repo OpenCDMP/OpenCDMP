@@ -8,7 +8,7 @@ import { BehaviorSubject, Observable, takeUntil, tap } from 'rxjs';
 import { nameof } from 'ts-simple-nameof';
 import { TenantConfigurationService } from '../tenant-configuration/tenant-configuration.service';
 import { generateDynamicTheme, overrideCss } from '@app/ui/misc/theme-helper';
-import { DefaultPlanBlueprintEditorResolver } from '@app/ui/admin/tenant-configuration/editor/default-plan-blueprint/default-plan-blueprint-editor.resolver';
+import { DefaultPlanBlueprintEditorResolver } from '@app/ui/admin/tenant-configuration/models/default-plan-blueprint/default-plan-blueprint-editor.resolver';
 
 @Injectable()
 export class TenantHandlingService extends BaseService {

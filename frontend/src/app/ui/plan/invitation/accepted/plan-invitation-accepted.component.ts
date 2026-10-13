@@ -1,5 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { AuthService } from '@app/core/services/auth/auth.service';
 import { SnackBarNotificationLevel, UiNotificationService } from '@app/core/services/notification/ui-notification-service';
@@ -12,8 +12,8 @@ import { takeUntil } from 'rxjs/operators';
 
 @Component({
     selector: 'app-plan-invitation-accepted-component',
-    templateUrl: 'plan-invitation-accepted.component.html',
-    standalone: false
+    template: '',
+    changeDetection: ChangeDetectionStrategy.Eager
 })
 export class InvitationAcceptedComponent extends BaseComponent implements OnInit {
 	constructor(
@@ -45,7 +45,7 @@ export class InvitationAcceptedComponent extends BaseComponent implements OnInit
 					},
 					error => this.onCallbackError(error));
 				}else{
-					let returnUrl = `plans/invitation/${token}`;
+					const returnUrl = `plans/invitation/${token}`;
 					this.router.navigate([this.routerUtils.generateUrl('login')], {queryParams:{returnUrl: this.routerUtils.generateUrl(returnUrl)}});
 				}
 			});

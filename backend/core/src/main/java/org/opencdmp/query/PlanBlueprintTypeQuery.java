@@ -11,6 +11,7 @@ import org.opencdmp.authorization.AuthorizationFlags;
 import org.opencdmp.commons.enums.IsActive;
 import org.opencdmp.commons.enums.PlanBlueprintTypeStatus;
 import org.opencdmp.data.PlanBlueprintTypeEntity;
+import org.opencdmp.data.TenantEntity;
 import org.opencdmp.data.TenantEntityManagerFactory;
 import org.opencdmp.model.PlanBlueprintType;
 import org.opencdmp.query.utils.QueryUtilsService;
@@ -36,6 +37,11 @@ public class PlanBlueprintTypeQuery extends QueryBase<PlanBlueprintTypeEntity> {
     private Collection<String> codes;
 
     private Collection<UUID> excludedIds;
+
+    private TenantQuery tenantQuery;
+
+    /** null: any row; false: only rows without a tenant (the default tenant's shared rows); true: only tenant-owned rows. */
+    private Boolean tenantIsSet;
 
     private EnumSet<AuthorizationFlags> authorize = EnumSet.of(AuthorizationFlags.None);
 
@@ -119,6 +125,16 @@ public class PlanBlueprintTypeQuery extends QueryBase<PlanBlueprintTypeEntity> {
         return this;
     }
 
+    public PlanBlueprintTypeQuery tenantIsSet(Boolean value) {
+        this.tenantIsSet = value;
+        return this;
+    }
+
+    public PlanBlueprintTypeQuery tenantSubQuery(TenantQuery tenantQuery) {
+        this.tenantQuery = tenantQuery;
+        return this;
+    }
+
     public PlanBlueprintTypeQuery authorize(EnumSet<AuthorizationFlags> values) {
         this.authorize = values;
         return this;
@@ -196,6 +212,14 @@ public class PlanBlueprintTypeQuery extends QueryBase<PlanBlueprintTypeEntity> {
                 notInClause.value(item);
             predicates.add(notInClause.not());
         }
+        if (this.tenantIsSet != null) {
+            predicates.add(this.tenantIsSet ? queryContext.CriteriaBuilder.isNotNull(queryContext.Root.get(PlanBlueprintTypeEntity._tenantId)) : queryContext.CriteriaBuilder.isNull(queryContext.Root.get(PlanBlueprintTypeEntity._tenantId)));
+        }
+
+        if (this.tenantQuery != null) {
+            QueryContext<TenantEntity, UUID> subQuery = this.applySubQuery(this.tenantQuery, queryContext, UUID.class, tenantEntityRoot -> tenantEntityRoot.get(TenantEntity._id));
+            predicates.add(queryContext.CriteriaBuilder.in(queryContext.Root.get(PlanBlueprintTypeEntity._tenantId)).value(subQuery.Query));
+        }
         if (!predicates.isEmpty()) {
             Predicate[] predicatesArray = predicates.toArray(new Predicate[0]);
             return queryContext.CriteriaBuilder.and(predicatesArray);
@@ -211,6 +235,7 @@ public class PlanBlueprintTypeQuery extends QueryBase<PlanBlueprintTypeEntity> {
         item.setTenantId(QueryBase.convertSafe(tuple, columns, PlanBlueprintTypeEntity._tenantId, UUID.class));
         item.setCode(QueryBase.convertSafe(tuple, columns, PlanBlueprintTypeEntity._code, String.class));
         item.setName(QueryBase.convertSafe(tuple, columns, PlanBlueprintTypeEntity._name, String.class));
+        item.setOrdinal(QueryBase.convertSafe(tuple, columns, PlanBlueprintTypeEntity._ordinal, Integer.class));
         item.setCreatedAt(QueryBase.convertSafe(tuple, columns, PlanBlueprintTypeEntity._createdAt, Instant.class));
         item.setUpdatedAt(QueryBase.convertSafe(tuple, columns, PlanBlueprintTypeEntity._updatedAt, Instant.class));
         item.setIsActive(QueryBase.convertSafe(tuple, columns, PlanBlueprintTypeEntity._isActive, IsActive.class));
@@ -223,6 +248,7 @@ public class PlanBlueprintTypeQuery extends QueryBase<PlanBlueprintTypeEntity> {
         if (item.match(PlanBlueprintType._id)) return PlanBlueprintTypeEntity._id;
         else if (item.match(PlanBlueprintType._code)) return PlanBlueprintTypeEntity._code;
         else if (item.match(PlanBlueprintType._name)) return PlanBlueprintTypeEntity._name;
+        else if (item.match(PlanBlueprintType._ordinal)) return PlanBlueprintTypeEntity._ordinal;
         else if (item.match(PlanBlueprintType._createdAt)) return PlanBlueprintTypeEntity._createdAt;
         else if (item.match(PlanBlueprintType._updatedAt)) return PlanBlueprintTypeEntity._updatedAt;
         else if (item.match(PlanBlueprintType._hash)) return PlanBlueprintTypeEntity._updatedAt;

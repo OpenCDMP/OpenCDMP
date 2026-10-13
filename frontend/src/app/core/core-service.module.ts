@@ -28,6 +28,7 @@ import { LanguageService } from './services/language/language.service';
 import { LockService } from './services/lock/lock.service';
 import { LoggingService } from './services/logging/logging-service';
 import { MaintenanceService } from './services/maintenance/maintenance.service';
+import { TenantTransferService } from './services/tenant-transfer/tenant-transfer.service';
 import { UiNotificationService } from './services/notification/ui-notification-service';
 import { PlanBlueprintService } from './services/plan/plan-blueprint.service';
 import { PlanStatusService } from './services/plan/plan-status.service';
@@ -47,6 +48,8 @@ import { TenantHandlingService } from './services/tenant/tenant-handling.service
 import { TenantService } from './services/tenant/tenant.service';
 import { TimezoneService } from './services/timezone/timezone-service';
 import { UsageLimitService } from './services/usage-limit/usage.service';
+import { WebhookService } from './services/webhook/webhook.service';
+import { ReportService } from './services/report/report.service';
 import { UserSettingsHttpService } from './services/user-settings/user-settings-http.service';
 import { UserSettingsService } from './services/user-settings/user-settings.service';
 import { UserService } from './services/user/user.service';
@@ -59,6 +62,8 @@ import { PluginConfigurationService } from './services/plugin/plugin-configurati
 import { PlanUpdateRequestService } from './services/plan/plan-update-request.service';
 import { PlanBlueprintTypeService } from './services/plan-blueprint-type/plan-blueprint-type.service';
 import { PrincipalHttpService } from './services/http/principal.http..service';
+import { UserTermsAcceptanceService } from './services/http/user-terms-acceptance.service';
+import { UIStatisticsService } from './services/statistics/ui-statistics.service';
 
 //
 //
@@ -117,6 +122,7 @@ export class CoreServiceModule {
 				PlanService,
 				DescriptionService,
 				MaintenanceService,
+				TenantTransferService,
 				TagService,
 				CanDeactivateGuard,
 				FileTransformerService,
@@ -130,6 +136,8 @@ export class CoreServiceModule {
 				TenantHandlingService,
 				RouterUtilsService,
 				UsageLimitService,
+				WebhookService,
+				ReportService,
 				PlanStatusService,
 				DescriptionStatusService,
 				PlanWorkflowService,
@@ -137,7 +145,9 @@ export class CoreServiceModule {
 				// FontAccessibilityService,
 				AccountingAuthGuard,
 				PluginConfigurationService,
-				PlanUpdateRequestService
+				PlanUpdateRequestService,
+				UserTermsAcceptanceService,
+                UIStatisticsService
 			],
 		};
 	}

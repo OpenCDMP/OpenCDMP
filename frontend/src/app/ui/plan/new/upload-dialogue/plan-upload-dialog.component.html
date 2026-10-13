@@ -1,116 +1,149 @@
-<div mat-dialog-title class="d-flex align-items-center">
-  <div>
-    {{'PLAN-UPLOAD.TITLE' | translate}}
-  </div>
-  <button mat-icon-button (click)="close()" class="ml-auto"  [attr.aria-label]="'ALT-TEXT.CLOSE-DIALOG'  | translate">
-    <mat-icon aria-hidden>close</mat-icon>
-  </button>
-</div>
-<mat-dialog-content class="confirmation-dialog">
-  <div class="d-flex gap-half-rem mb-3">
-    <div>
-      <mat-icon class="material-icons-outlined" aria-hidden>info</mat-icon>
-    </div>
-    <div>
-      <b>{{'START-NEW-PLAN-DIALOG.IMPORT' | translate }}</b> {{'START-NEW-PLAN-DIALOG.FUNCTION-SUPPORTS' | translate }}
-      <b>{{'START-NEW-PLAN-DIALOG.XML' | translate }}</b> {{'START-NEW-PLAN-DIALOG.AND' | translate }}
-      <b>{{'START-NEW-PLAN-DIALOG.JSON' | translate }}</b> {{'START-NEW-PLAN-DIALOG.FILES' | translate }}.
-      {{'START-NEW-PLAN-DIALOG.NOTE' | translate }}
-      <b><a href="https://github.com/RDA-DMP-Common/RDA-DMP-Common-Standard" target="_blank">{{'START-NEW-PLAN-DIALOG.RDA' | translate }}</a></b>
-      {{'START-NEW-PLAN-DIALOG.SPECIFICATIONS' | translate }}.
-    </div>
-  </div>
-  <div class="row">
-    <div class="upload-form col-12">
-      @if (file?.type.includes('/xml')) {
-        <mat-form-field class="w-100">
-          <input [(ngModel)]="planTitle" matInput placeholder="{{'PLAN-UPLOAD.PLACEHOLDER' | translate}}">
-        </mat-form-field>
-      }
-    </div>
-    <div class="col-12">
-      <app-file-uploader
-        [accept]="'text/xml, application/json'"
-        [placeholder]="(hasFile() ? 'GENERAL.START-NEW-PLAN-DIALOG.REPLACE-FILE' : 'GENERAL.START-NEW-PLAN-DIALOG.UPLOAD-FILE') | translate"
-        (onChange)="uploadFile($event)"
-        (onRemove)="onRemove()"
-        />
-      </div>
-      @if (file?.type?.includes('/json')) {
-        <div class="upload-form col-12">
-          @if (fileTransformerWithJson?.length > 1) {
-            <mat-form-field class="w-100">
-              <mat-label>{{'PLAN-UPLOAD.SELECT-FILE-TRANSFORMER-SCHEMA' | translate}}</mat-label>
-              <mat-select (selectionChange)="repoChanged($event.value)">
-                @for (fileTransformer of fileTransformerWithJson; track fileTransformer) {
-                  <mat-option [value]="fileTransformer.fileTransformerId">
-                    {{ 'GENERAL.FILE-TRANSFORMER.' + fileTransformer?.fileTransformerId?.toUpperCase() + '-JSON' | translate }}
-                  </mat-option>
-                }
-              </mat-select>
-            </mat-form-field>
-          }
+<div class="d-flex flex-column h-100">
+    <div class="dialog-header">
+        <mat-icon class="header-icon">upload</mat-icon>
+        <div>
+            <div class="title">{{'PLAN-UPLOAD.TITLE' | translate}}</div>
+            <div class="hint">{{'PLAN-UPLOAD.IMPORT-PLAN-HINT' | translate}}</div>
         </div>
-        @if (formGroup == null && loadSpiner) {
-          <div class="upload-form col-12">
-            {{ 'PLAN-UPLOAD.ANALYZING-FILE' | translate }}
-            <b class="fa fa-spinner fa-spin" ></b>
-          </div>
-        }
-        @if (formGroup) {
-          <div class="upload-form col-12">
-            <mat-form-field class="w-100">
-              <input [formControl]="formGroup.get('label')" matInput required="true" placeholder="{{'PLAN-UPLOAD.PLACEHOLDER' | translate}}">
-            </mat-form-field>
-            <mat-form-field class="w-100">
-              <app-single-auto-complete [required]="true" [formControl]="formGroup.get('blueprintId')" placeholder="{{'PLAN-UPLOAD.FIELDS.BLUEPRINT-PLACEHOLDER' | translate}}" [configuration]="planBlueprintService.singleAutocompleteBlueprintConfiguration" (optionSelected)="selectedBlueprintChanged($event)">
-              </app-single-auto-complete>
-            </mat-form-field>
-            @if (formGroup.get('blueprintId').value) {
-              @for (description of formGroup.get('descriptions').controls; track description; let descriptionIndex = $index) {
-                <div class="row mb-3">
-                  <div class="col-12">
-                    @if (description.get('label').value) {
-                      <span  style="font-size: 1rem;">
-                        {{ description.get('label').value }}
-                      </span>
-                    }
-                  </div>
-                  <div class="col-12">
-                    <mat-form-field class="w-100">
-                      <mat-label>{{'PLAN-UPLOAD.FIELDS.DESCRIPTION-TEMPLATE' | translate}}</mat-label>
-                      <app-single-auto-complete required="true" placeholder="{{'PLAN-UPLOAD.FIELDS.DESCRIPTION-TEMPLATE-PLACHOLDER' | translate}}" [formControl]="description.get('templateId')" (optionActionClicked)="onPreviewDescriptionTemplate($event, descriptionIndex)" [configuration]="descriptionTemplateSingleAutocompleteConfiguration"></app-single-auto-complete>
-                      @if (description.get('templateId').hasError('backendError')) {
-                        <mat-error>{{description.get('templateId').getError('backendError').message}}</mat-error>
-                      }
-                      @if (description.get('templateId').hasError('required')) {
-                        <mat-error>{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
-                      }
-                    </mat-form-field>
-                  </div>
-                  <div class="col-12">
-                    <mat-form-field class="w-100">
-                      <mat-label>{{'PLAN-UPLOAD.FIELDS.SECTION' | translate}}</mat-label>
-                      <mat-select [formControl]="description.get('sectionId')" placeholder="{{'PLAN-UPLOAD.FIELDS.SECTION-PLACEHOLDER' | translate}}" required="true">
-                        @for (section of selectedBlueprintSections; track section) {
-                          <mat-option [value]="section.id">
-                            <span style="font-size: 1rem;">
-                              {{ section.label }}
-                            </span>
-                          </mat-option>
-                        }
-                      </mat-select>
-                    </mat-form-field>
-                  </div>
-                </div>
-              }
-            }
-          </div>
-        }
-      }
+        <button mat-icon-button (click)="close()" class="ml-auto" id="plan-upload-close-button"  [attr.aria-label]="'ALT-TEXT.CLOSE-DIALOG'  | translate">
+            <mat-icon aria-hidden="true">close</mat-icon>
+        </button>
     </div>
-  </mat-dialog-content>
-  <div mat-dialog-actions class="d-flex justify-content-between gap-half-rem">
-    <button mat-stroked-button type="button" class="padded-shadow-btn" (click)="cancel()">{{'PLAN-UPLOAD.ACTIONS.CANCEL' | translate}}</button>
-    <button mat-stroked-button color="primary" type="button" (click)="confirm()" [disabled]="disableConfirmButton()" class="padded-shadow-btn primary-inverted-hover">{{'PLAN-UPLOAD.ACTIONS.IMPORT' | translate}}</button>
-  </div>
+    <div class="confirmation-dialog">
+        <div class="confirmation-dialog--content">
+            <div class="info mb-4">
+              <div>
+                <mat-icon class="material-icons-outlined" aria-hidden="true">info</mat-icon>
+              </div>
+              <div>
+                <div class="hint mb-2">{{'PLAN-UPLOAD.SUPPORTED-FORMATS-TITLE' | translate}}</div>
+                <div [innerHTML]="'PLAN-UPLOAD.SUPPORTED-FORMATS-MESSAGE' | translate:{ formats: supportedFormatsMessage }"></div>
+                <!-- <b>{{'START-NEW-PLAN-DIALOG.IMPORT' | translate }}</b> {{'START-NEW-PLAN-DIALOG.FUNCTION-SUPPORTS' | translate }}
+                <b>{{'START-NEW-PLAN-DIALOG.XML' | translate }}</b> {{'START-NEW-PLAN-DIALOG.AND' | translate }}
+                <b>{{'START-NEW-PLAN-DIALOG.JSON' | translate }}</b> {{'START-NEW-PLAN-DIALOG.FILES' | translate }}.
+                {{'START-NEW-PLAN-DIALOG.NOTE' | translate }} -->
+                <div class="mt-1">
+                    <!--TODO: AMentis Make dynamic -->
+                    {{'START-NEW-PLAN-DIALOG.NOTE' | translate }}
+                    @if (hasRDAMadmpJsonFormat){
+                        <b><a href="https://github.com/RDA-DMP-Common/RDA-DMP-Common-Standard" target="_blank" rel="noopener noreferrer">{{'START-NEW-PLAN-DIALOG.RDA' | translate }}</a></b>
+                    }
+                    {{'START-NEW-PLAN-DIALOG.SPECIFICATIONS' | translate }}.
+                </div>
+              </div>
+            </div>
+            <div class="row">
+                @if (file?.type.includes('/xml')) {
+                    <div class="upload-form col-12">
+                        <mat-form-field class="w-100">
+                            <mat-label>{{'COMMONS.FIELDS.NAME' | translate}}</mat-label>
+                            <input [(ngModel)]="planTitle" matInput placeholder="{{'PLAN-UPLOAD.PLACEHOLDER' | translate}}">
+                        </mat-form-field>
+                    </div>
+                }
+                @if (file?.type?.includes('/json')) {
+                    <div class="upload-form col-12">
+                        @if (fileTransformerWithJson?.length > 1) {
+                        <mat-form-field class="w-100">
+                            <mat-label>{{'PLAN-UPLOAD.SELECT-FILE-TRANSFORMER-SCHEMA' | translate}}</mat-label>
+                            <mat-select (selectionChange)="repoChanged($event.value)">
+                            @for (fileTransformer of fileTransformerWithJson; track fileTransformer) {
+                                <mat-option [value]="fileTransformer.fileTransformerId">
+                                {{ 'GENERAL.FILE-TRANSFORMER.' + $safeNavigationMigration(fileTransformer?.fileTransformerId?.toUpperCase()) + '-JSON' | translate }}
+                                </mat-option>
+                            }
+                            </mat-select>
+                        </mat-form-field>
+                        }
+                    </div>
+                    @if (formGroup == null && loadSpiner) {
+                        <div class="upload-form col-12 mb-2">
+                            {{ 'PLAN-UPLOAD.ANALYZING-FILE' | translate }}
+                            <b class="fa fa-spinner fa-spin" ></b>
+                        </div>
+                    }
+                    @if (formGroup) {
+                        <div class="upload-form col-12">
+                        <mat-form-field class="w-100">
+                            <input [formControl]="formGroup.get('label')" matInput required="true" placeholder="{{'PLAN-UPLOAD.PLACEHOLDER' | translate}}">
+                        </mat-form-field>
+                        <mat-form-field class="w-100">
+                            <app-single-auto-complete [required]="true" [formControl]="formGroup.get('blueprintId')" placeholder="{{'PLAN-UPLOAD.FIELDS.BLUEPRINT-PLACEHOLDER' | translate}}" [configuration]="planBlueprintService.singleAutocompleteBlueprintConfiguration" (optionSelected)="selectedBlueprintChanged($event)">
+                            </app-single-auto-complete>
+                        </mat-form-field>
+                        @if (formGroup.get('blueprintId').value) {
+                            @for (description of formGroup.get('descriptions').controls; track description; let descriptionIndex = $index) {
+                            <div class="row mb-3">
+                                @if (description.get('label').value) {
+                                    <div class="col-12 mb-2" style="font-size: 1rem;">
+                                        <b>{{ description.get('label').value }}</b>
+                                    </div>
+                                }
+                                <div class="col-12">
+                                    <mat-form-field class="w-100">
+                                        <mat-label>{{'PLAN-UPLOAD.FIELDS.DESCRIPTION-TEMPLATE' | translate}}</mat-label>
+                                        <app-single-auto-complete required="true" placeholder="{{'PLAN-UPLOAD.FIELDS.DESCRIPTION-TEMPLATE-PLACHOLDER' | translate}}" [formControl]="description.get('templateId')" (optionActionClicked)="onPreviewDescriptionTemplate($event, descriptionIndex)" [configuration]="descriptionTemplateSingleAutocompleteConfiguration"></app-single-auto-complete>
+                                        @if (description.get('templateId').hasError('backendError')) {
+                                            <mat-error>{{description.get('templateId').getError('backendError').message}}</mat-error>
+                                        }
+                                        @if (description.get('templateId').hasError('required')) {
+                                            <mat-error>{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
+                                        }
+                                    </mat-form-field>
+                                </div>
+                                <div class="col-12">
+                                    <mat-form-field class="w-100">
+                                        <mat-label>{{'PLAN-UPLOAD.FIELDS.SECTION' | translate}}</mat-label>
+                                        <mat-select [formControl]="description.get('sectionId')" placeholder="{{'PLAN-UPLOAD.FIELDS.SECTION-PLACEHOLDER' | translate}}" required="true">
+                                        @for (section of selectedBlueprintSections; track section) {
+                                            <mat-option [value]="section.id">
+                                                <span style="font-size: 1rem;">
+                                                    {{ section.title }}
+                                                </span>
+                                            </mat-option>
+                                        }
+                                        </mat-select>
+                                    </mat-form-field>
+                                </div>
+                            </div>
+                            }
+                        }
+                        </div>
+                    }
+                }
+                <div class="col-12">
+                    <app-file-uploader
+                        [accept]="hasJsonFormats ? 'text/xml, application/json' : 'text/xml'"
+                        [required]="true"
+                        [placeholder]="(hasFile() ? 'GENERAL.START-NEW-PLAN-DIALOG.REPLACE-FILE' : 'GENERAL.START-NEW-PLAN-DIALOG.UPLOAD-FILE') | translate"
+                        (onChange)="uploadFile($event)"
+                        (onRemove)="onRemove()"
+                    />
+                </div>
+                <div class="col-12 mt-4">
+                    <div class="mb-3">{{'PLAN-UPLOAD.IMPORT-INSTRUCTIONS.TITLE' | translate}}</div>
+                    <ul class="unstyled-list instructions-list">
+                        @if (hasJsonFormats) {
+                             <li class="d-flex gap-half-rem">
+                                <div class="instructions--number-chip">1</div>
+                                <div class="instructions--content" [innerHTML]="'PLAN-UPLOAD.IMPORT-INSTRUCTIONS.1' | translate:{ formats: availableJsonFormatsText }"></div>
+                            </li>
+                        }
+                        <li class="d-flex gap-half-rem">
+                            <div class="instructions--number-chip">{{ hasJsonFormats ? 2 : 1 }}</div>
+                            <div class="instructions--content" [innerHTML]="'PLAN-UPLOAD.IMPORT-INSTRUCTIONS.2' | translate"></div>
+                        </li>
+                        <li class="d-flex gap-half-rem">
+                            <div class="instructions--number-chip">{{ hasJsonFormats ? 3 : 2 }}</div>
+                            <div class="instructions--content" [innerHTML]="'PLAN-UPLOAD.IMPORT-INSTRUCTIONS.3' | translate"></div>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="actions">
+        <button mat-stroked-button type="button" class="flex-1" (click)="cancel()">{{'PLAN-UPLOAD.ACTIONS.CANCEL' | translate}}</button>
+        <button mat-flat-button  (click)="confirm()" [disabled]="disableConfirmButton()" class="flex-1">{{'PLAN-UPLOAD.ACTIONS.IMPORT' | translate}}</button>
+    </div>
+</div>

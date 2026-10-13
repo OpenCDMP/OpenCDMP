@@ -1,4 +1,4 @@
-import { Component, Inject } from '@angular/core';
+import { Component, Inject, ChangeDetectionStrategy } from '@angular/core';
 import { MAT_SNACK_BAR_DATA } from '@angular/material/snack-bar';
 import { SnackBarNotification } from '../../../core/services/notification/ui-notification-service';
 
@@ -6,7 +6,7 @@ import { SnackBarNotification } from '../../../core/services/notification/ui-not
     selector: 'app-snack-bar-notification',
     templateUrl: './snack-bar-notification.component.html',
     styleUrls: ['./snack-bar-notification.component.scss'],
-    standalone: false
+    changeDetection: ChangeDetectionStrategy.Eager
 })
 
 export class SnackBarNotificationComponent {

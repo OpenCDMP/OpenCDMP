@@ -1,4 +1,4 @@
-﻿import { Component, Input, OnChanges, OnInit, SimpleChanges } from '@angular/core';
+﻿import { Component, Input, OnChanges, OnInit, SimpleChanges, ChangeDetectionStrategy } from '@angular/core';
 import { AbstractControl, UntypedFormArray, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 import { VisibilityRulesService } from '@app/ui/description/editor/description-form/visibility-rules/visibility-rules.service';
 import { BaseComponent } from '@common/base/base.component';
@@ -6,12 +6,15 @@ import { MarkedValidatorFn } from '@common/forms/validation/custom-validator';
 import { takeUntil } from 'rxjs/operators';
 import { nameof } from 'ts-simple-nameof';
 import { DescriptionEditorModel } from '../description-editor.model';
+import { MatProgressBar } from '@angular/material/progress-bar';
+import { TranslatePipe } from '@ngx-translate/core';
 
 @Component({
     selector: 'app-form-progress-indication',
     templateUrl: './form-progress-indication.component.html',
     styleUrls: ['./form-progress-indication.component.scss'],
-    standalone: false
+    changeDetection: ChangeDetectionStrategy.Eager,
+    imports: [MatProgressBar, TranslatePipe]
 })
 export class FormProgressIndicationComponent extends BaseComponent implements OnInit, OnChanges {
 	@Input() formGroup: UntypedFormGroup;
@@ -21,7 +24,7 @@ export class FormProgressIndicationComponent extends BaseComponent implements On
 	progressSoFar: number;
 	total: number;
 	percent: number;
-	fieldTypes: string[] = ['dateValue', 'booleanValue', 'externalIdentifier.identifier', 'externalIdentifier.type', 'reference', 'references', 'tags', 'textListValue', 'textValue'];
+	fieldTypes: string[] = ['dateValue', 'booleanValue', 'numberValue', 'externalIdentifier.identifier', 'externalIdentifier.type', 'reference', 'references', 'tags', 'textListValue', 'textValue'];
 
 	constructor(private visibilityRulesService: VisibilityRulesService) { super(); }
 
@@ -85,11 +88,11 @@ export class FormProgressIndicationComponent extends BaseComponent implements On
 	countRequiredFieldsByFieldset(ordinal: number, fieldsFormGroup: UntypedFormGroup, filterValid: boolean = false): number {
 		let fieldsCount: number = 0;
 		const fieldSetNames = Object.keys(fieldsFormGroup.controls);
-		for (let item of fieldSetNames) {
+		for (const item of fieldSetNames) {
 			if (!this.checkVisibility || this.visibilityRulesService.isVisible(item, ordinal)) {
 				const fieldControl = fieldsFormGroup.get(item);
 				const fieldNames = Object.keys((fieldControl as UntypedFormGroup).controls);
-				for (let fieldType of fieldNames) {
+				for (const fieldType of fieldNames) {
 					const typedControl = fieldControl.get(fieldType);
 					let controlFilter: boolean = this.controlRequired(typedControl) && this.controlEnabled(typedControl);
 					if (filterValid) controlFilter = controlFilter && typedControl.valid;

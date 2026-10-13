@@ -21,6 +21,9 @@ public class DefaultValueEntity {
     @XmlElement(name = "booleanValue")
     private Boolean booleanValue;
 
+    @XmlElement(name = "numberValue")
+    private Double numberValue;
+
     public String getTextValue() {
         return this.textValue;
     }
@@ -43,6 +46,14 @@ public class DefaultValueEntity {
 
     public void setBooleanValue(Boolean booleanValue) {
         this.booleanValue = booleanValue;
+    }
+
+    public Double getNumberValue() {
+        return numberValue;
+    }
+
+    public void setNumberValue(Double numberValue) {
+        this.numberValue = numberValue;
     }
 }
 

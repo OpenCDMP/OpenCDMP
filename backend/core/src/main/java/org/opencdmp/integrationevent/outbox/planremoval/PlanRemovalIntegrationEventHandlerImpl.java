@@ -1,8 +1,7 @@
 package org.opencdmp.integrationevent.outbox.planremoval;
 
-import gr.cite.tools.data.builder.BuilderFactory;
-import gr.cite.tools.data.query.QueryFactory;
 import gr.cite.tools.logging.LoggerService;
+import org.opencdmp.commons.configuration.integration.IntegrationProperties;
 import org.opencdmp.integrationevent.outbox.OutboxIntegrationEvent;
 import org.opencdmp.integrationevent.outbox.OutboxService;
 import org.slf4j.LoggerFactory;
@@ -21,14 +20,11 @@ public class PlanRemovalIntegrationEventHandlerImpl implements PlanRemovalIntegr
 
     private final OutboxService outboxService;
 
-    private final QueryFactory queryFactory;
+    private final IntegrationProperties integrationProperties;
 
-    private final BuilderFactory builderFactory;
-
-    public PlanRemovalIntegrationEventHandlerImpl(OutboxService outboxService, QueryFactory queryFactory, BuilderFactory builderFactory) {
+    public PlanRemovalIntegrationEventHandlerImpl(OutboxService outboxService, IntegrationProperties integrationProperties) {
         this.outboxService = outboxService;
-	    this.queryFactory = queryFactory;
-        this.builderFactory = builderFactory;
+        this.integrationProperties = integrationProperties;
     }
 
     private void handle(PlanRemovalIntegrationEvent event)  {
@@ -41,6 +37,7 @@ public class PlanRemovalIntegrationEventHandlerImpl implements PlanRemovalIntegr
 
     @Override
     public void handlePlan(List<UUID> planIds) {
+        if (this.integrationProperties.getEnabled() == null || !this.integrationProperties.getEnabled()) return;
         if (planIds == null || planIds.isEmpty()) return;
 
         PlanRemovalIntegrationEvent event = new PlanRemovalIntegrationEvent();

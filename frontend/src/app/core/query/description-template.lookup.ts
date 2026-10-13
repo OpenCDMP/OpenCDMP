@@ -3,6 +3,7 @@ import { Guid } from '@common/types/guid';
 import { DescriptionTemplateStatus } from '../common/enum/description-template-status';
 import { IsActive } from '../common/enum/is-active.enum';
 import { DescriptionTemplateVersionStatus } from '../common/enum/description-template-version-status';
+import { TenantLookup } from './tenant.lookup';
 
 export class DescriptionTemplateLookup extends Lookup implements DescriptionTemplateFilter {
 	ids: Guid[];
@@ -16,6 +17,9 @@ export class DescriptionTemplateLookup extends Lookup implements DescriptionTemp
 	versionStatuses: DescriptionTemplateVersionStatus[];
 	languages: string[];
 	onlyCanEdit: boolean;
+	tenantSubQuery: TenantLookup;
+	/** false: only the default tenant's shared rows; true: only tenant-owned rows; absent: both. */
+	tenantIsSet?: boolean;
 	constructor() {
 		super();
 	}
@@ -33,5 +37,5 @@ export interface DescriptionTemplateFilter {
 	versionStatuses: DescriptionTemplateVersionStatus[];
 	languages: string[];
 	onlyCanEdit: boolean;
-
+	tenantSubQuery: TenantLookup;
 }

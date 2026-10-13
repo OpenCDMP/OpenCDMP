@@ -4,8 +4,7 @@ import { ConfirmationDialogComponent } from '@common/modules/confirmation-dialog
 import { CommonUiModule } from '@common/ui/common-ui.module';
 
 @NgModule({
-    imports: [CommonUiModule, FormsModule],
-    declarations: [ConfirmationDialogComponent],
+    imports: [CommonUiModule, FormsModule, ConfirmationDialogComponent],
     exports: [ConfirmationDialogComponent]
 })
 export class ConfirmationDialogModule {

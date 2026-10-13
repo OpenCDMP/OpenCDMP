@@ -22,7 +22,7 @@ export class PlanImportRdaConfigEditorModel implements PlanCommonModelConfig{
 		this.fileId = fileId;
 		this.repositoryId = repositoryId
 		if (item){
-			this.label = item.label + '.json';
+			this.label = item.label;
 			if (item.preprocessingDescriptionModels?.length > 0) {
 				item.preprocessingDescriptionModels.forEach(x => {
 					this.descriptions.push(new DescriptionImportRdaConfigEditorModel(this.validationErrorModel).fromModel(x));
@@ -97,7 +97,8 @@ export class DescriptionImportRdaConfigEditorModel implements DescriptionCommonM
 		disabled?: boolean,
 		rootPath?: string
 	}): UntypedFormGroup {
-		let { context = null, disabled = false, rootPath } = params ?? {}
+		const { disabled = false, rootPath } = params ?? {};
+		let { context = null } = params ?? {};
 		if (context == null) {
 			context = DescriptionImportRdaConfigEditorModel.createValidationContext({
 				validationErrorModel: this.validationErrorModel,

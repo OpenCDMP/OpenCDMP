@@ -6,9 +6,8 @@ import { CommonUiModule } from '@common/ui/common-ui.module';
 import { PlanFinalizeDialogComponent } from './plan-finalize-dialog.component';
 
 @NgModule({
-	imports: [CommonUiModule, FormsModule, ReactiveFormsModule, AutoCompleteModule, RichTextEditorModule],
-	declarations: [PlanFinalizeDialogComponent],
-	exports: [PlanFinalizeDialogComponent]
+    imports: [CommonUiModule, FormsModule, ReactiveFormsModule, AutoCompleteModule, RichTextEditorModule, PlanFinalizeDialogComponent],
+    exports: [PlanFinalizeDialogComponent]
 })
 export class PlanFinalizeDialogModule {
 	constructor() { }

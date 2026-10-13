@@ -10,21 +10,19 @@ import { UserInviteConfirmation } from './user-invite-confirmation/user-invite-c
 import { MergeEmailLoaderDialogComponent } from './merge-email-confirmation/merge-email-loader-dialog/merge-email-loader-dialog.component';
 
 @NgModule({
-	imports: [
-		CommonUiModule,
-		CommonFormsModule,
-		LoginRoutingModule,
-	],
-	declarations: [
-		LoginComponent,
-		MergeEmailConfirmation,
-		UnlinkEmailConfirmation,
-		UserInviteConfirmation,
-		MergeEmailLoaderDialogComponent,
-	],
-	exports: [
-		LoginComponent
-	],
-	providers: [LoginService]
+    imports: [
+        CommonUiModule,
+        CommonFormsModule,
+        LoginRoutingModule,
+        LoginComponent,
+        MergeEmailConfirmation,
+        UnlinkEmailConfirmation,
+        UserInviteConfirmation,
+        MergeEmailLoaderDialogComponent,
+    ],
+    exports: [
+        LoginComponent
+    ],
+    providers: [LoginService]
 })
 export class LoginModule { }

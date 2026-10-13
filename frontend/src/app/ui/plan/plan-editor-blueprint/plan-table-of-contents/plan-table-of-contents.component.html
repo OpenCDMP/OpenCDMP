@@ -1,183 +1,471 @@
 @if (plan() && formGroup()) {
-  <div class="side-panel">
-    <div class="stepper-options">
-      <ul class="stepper-list mr-2"  tabindex="0">
-        @if(selectedBlueprint()?.definition){
-          @for (section of selectedBlueprint()?.definition?.sections; track section; let i = $index) {
-            <li class="d-flex flex-column">
-              <button
-                class="flex-1 label selectable main-section"
-                (click)="changePlanStep({section: i + 1, sectionId: section.id})"
-                            [ngClass]="{
-                                'active': step() === (i + 1), 
-                                'text-danger': showSectionErrors(section.id)
-                            }" 
-                tabindex="0"
-                >
-                <!-- toggleExpand(i); -->
-                {{i+1}}
-                <span class="expanded-text">. {{section.label}}
-                  @if(section.description){
-                    <mat-icon class="ml-1 w-auto h-auto" style="font-size: 1rem;" [matTooltip]="section.description" [attr.aria-label]="section.description" role="note">info</mat-icon>
-                  }
-                </span>
-                @if(countAnnotationsPerSection()?.get(section.id) > 0 && step() != (i+1)){
-                  <mat-icon
-                    class="ml-3"
-                    [matBadge]="countAnnotationsPerSection()?.get(section.id)"
-                    [attr.aria-label]="(countAnnotationsPerSection()?.get(section.id) ?? 0) + ' ' + ('ANNOTATION-DIALOG.TITLE' | translate)"
-                    [attr.aria-hidden]="false"
-                  >comment</mat-icon>
-                }
-              </button>
-              @if (section.fields?.length && step() === (i+1)) {
-                <ul class="flex-1 section-fields">
-                  <!-- && expandChildrenMap?.get(i+1) -->
-                  @for(field of section.fields; track field; let j = $index){
-                    <li>
-                      <button
-                        class="label selectable section-field-label"
-                        (click)="changePlanStep({section: i+1, sectionId: section.id, fieldId: field.id})"
-                        [class.active]="selectedFieldId === field.id"
-                        [class.text-danger]="showFieldError(section.id, field.id)"
-                        >
-                        {{i+1}}.{{j+1}}.
-                        <span class="expanded-text">
-                          @if(!field.label){
-                            @switch(field.category){
-                              @case(planBlueprintSectionFieldCategoryEnum.System){
-                                {{enumUtils.toPlanBlueprintSystemFieldTypeString(field.systemFieldType)}}
-                              }
-                              @case(planBlueprintSectionFieldCategoryEnum.ReferenceType){
-                                {{field.referenceType.name}}
-                              }
-                            }
-                            }@else {
-                            {{field.label}}
-                          }
-                        </span>
-                        @if(annotationsPerAnchor()?.get(field.id) > 0){
-                          <a  class="col-auto "  (click)="showAnnotations.emit(field.id)" matTooltip="{{ 'PLAN-EDITOR.ACTIONS.ANNOTATIONS' | translate }}" [attr.aria-label]="'PLAN-EDITOR.ACTIONS.ANNOTATIONS' | translate">
-                            <mat-icon
-                              [matBadge]="annotationsPerAnchor()?.get(field.id)"
-                              [matBadgeHidden]="annotationsPerAnchor()?.get(field.id) <= 0"
-                              [attr.aria-label]="(annotationsPerAnchor()?.get(field.id) ?? 0) + ' ' + ('ANNOTATION-DIALOG.TITLE' | translate)"
-                              [attr.aria-hidden]="false"
-                            >comment</mat-icon>
-                          </a>
-                        }
-                      </button>
-                    </li>
-                  }
-                </ul>
-              }
-              @if (section.hasTemplates && hasDescriptionTemplates(section)) {
-                <ul class="section-descriptions">
-                  @for(descInfo of descriptionsInSection().get(section.id); track $index; let descriptionIndex = $index;){
-                    <li>
-                      <div class="plan-description">
-                        <button
-                          (click)="changePlanStep({section: i + 1, sectionId: section.id, descriptionId: descInfo.lastPersist.id});"
-                          class= "label selectable desc-label"
-                          [matTooltip]="descInfo.formGroup?.getRawValue()?.label"
-                          [class.active-description]="selectedDescription() === descInfo.lastPersist.id"
-                          [class.text-danger]="showDescriptionErrors().has(descInfo.lastPersist.id) && invalidDescription(descInfo)"
-                          >
-                          <span [id]="descInfo.lastPersist.id + '-label'">
-                            {{descriptionOrdinal(section, descInfo.ordinal)}}. {{ descInfo.formGroup?.getRawValue()?.label }}
-                          </span>
-                        </button>
-                        <!--descInfo.lastPersist.status?.internalStatus !== descriptionStatusEnum.Finalized -->
-                        @if (descInfo.lastPersist.status?.internalStatus === descriptionStatusEnum.Finalized) {
-                          <mat-icon
-                            color="success"
-                            class="finalized-desc-icon"
-                            matTooltip="{{'TYPES.DESCRIPTION-STATUS.FINALIZED' | translate}}"
-                            [attr.aria-label]="'TYPES.DESCRIPTION-STATUS.FINALIZED' | translate"
-                            >
-                            check
-                          </mat-icon>
-                        }
-                        @if(canDeleteInSection(section.id)){
-                          <button mat-mini-fab type="button" color="warn"
-                            (click)="$event.stopPropagation(); onRemoveDescription.emit(descInfo)"
-                            class="remove-description"
-                            matTooltip="{{'PLAN-EDITOR.ACTIONS.DELETE' | translate}}"
-                            matTooltipPosition="right"
-                            [attr.aria-label]="'PLAN-EDITOR.ACTIONS.DELETE' | translate"
-                            >
-                            <mat-icon mat-mini-fab-icon aria-hidden class="mr-0 ml-0">delete</mat-icon>
-                          </button>
-                        }
-                        @if(annotationsPerDescription.get(descInfo.lastPersist.id)> 0){
-                          <mat-icon
-                            [matBadge]="annotationsPerDescription.get(descInfo.lastPersist.id)"
-                            [attr.aria-label]="5 + ' ' + ('ANNOTATION-DIALOG.TITLE' | translate)"
-                            [attr.aria-hidden]="false"
-                          >comment</mat-icon>
-                        }
-                      </div>
-                      <div class="ml-2  mr-2" [class.d-none]="selectedDescription() != descInfo.lastPersist.id">
-                        <app-table-of-contents
-                          #descriptionToC
-                          stickyThing
-                          [selectedFieldId]="selectedDescription() ? selectedFieldId : null"
-                          [descriptionId]="descInfo.lastPersist?.id"
-                          (entrySelected)="changeDescriptionStep($event.entry, $event.execute)"
-                          (onPublishAction)="publishDescriptionAction($event)"
-                          [showErrors]="showDescriptionErrors()?.has(descInfo.lastPersist.id)"
-                          [ordinal]="descriptionOrdinal(section, descInfo.ordinal)"
-                          [isVisible]="selectedDescription() === descInfo.lastPersist.id"
-                        ></app-table-of-contents>
-                        <!--showDescriptionErrors().has(descInfo.lastPersist.id) -->
-                      </div>
-                    </li>
-                  }
-                  @if (canEditInSection(section.id)) {
-                    <li
-                      class="d-flex"
-                      [matTooltipDisabled]="hasValidMultiplicity(section) && !descTemplatesTouched(section)"
-                      [matTooltip]="(!descTemplatesTouched(section) ? 'PLAN-EDITOR.DESCRIPTION-TEMPLATES.MAX-MULTIPLICITY' : 'PLAN-EDITOR.DESCRIPTION-TEMPLATES.TEMPLATES-TOUCHED') | translate"
-                      >
-                      <button mat-button
-                        class="add-description-btn"
-                        [disabled]="!hasValidMultiplicity(section) || descTemplatesTouched(section)"
-                        [attr.aria-label]="'PLAN-EDITOR.ACTIONS.ADD-DESCRIPTION-IN-SECTION' | translate"
-                        (click)="onAddDescription.emit(section)"
-                        >
-                        <mat-icon aria-hidden>add</mat-icon>
-                        @let descriptionType = getAddDescriptionText(section);
-                        <span class="expanded-text">{{ descriptionType ? ('COMMONS.ACTIONS.NEW' | translate) + ' ' + descriptionType : ('PLAN-EDITOR.ACTIONS.ADD-DESCRIPTION' | translate)}}</span>
-                      </button>
-                    </li>
-                  }
-                </ul>
-              }
-            </li>
-          }
-        }
-      </ul>
+  <div class="side-panel" cdkVirtualScrollingElement>
+    <div class="side-panel--header">
+        <div class="expand-options d-flex align-items-center" role="group" [attr.aria-label]="'PLAN-EDITOR.TABLE-OF-CONTENTS.EXPAND-OPTIONS' | translate">
+            <span class="opacity-08" aria-hidden="true">{{'PLAN-EDITOR.TABLE-OF-CONTENTS.EXPAND' | translate}}:</span>
+            <button mat-stroked-button
+                class="ml-2 expand-items"
+                style="border-right: 0; border-top-right-radius: 0; border-bottom-right-radius: 0"
+                (click)="expandAll()"
+                [attr.aria-label]="'PLAN-EDITOR.TABLE-OF-CONTENTS.EXPAND-ALL' | translate"
+            >
+                {{'PLAN-EDITOR.TABLE-OF-CONTENTS.ALL' | translate}}
+            </button>
+            <button
+                mat-stroked-button
+                class="expand-items"
+                style="border-right: 0; border-radius: 0"
+                (click)="expandL1()"
+                [attr.aria-label]="'PLAN-EDITOR.TABLE-OF-CONTENTS.EXPAND-LEVEL-1' | translate"
+            >
+                {{'PLAN-EDITOR.TABLE-OF-CONTENTS.LEVEL-1' | translate}}
+            </button>
+            <button mat-stroked-button
+                class="mr-2 expand-items" style="border-top-left-radius: 0; border-bottom-left-radius: 0"
+                (click)="expandL2()"
+                [attr.aria-label]="'PLAN-EDITOR.TABLE-OF-CONTENTS.EXPAND-LEVEL-2' | translate"
+            >
+                {{'PLAN-EDITOR.TABLE-OF-CONTENTS.LEVEL-2' | translate}}
+            </button>
+            <button mat-stroked-button
+                class="ml-auto"
+                (click)="collapseAll()"
+                [attr.aria-label]="'PLAN-EDITOR.TABLE-OF-CONTENTS.COLLAPSE-ALL' | translate"
+            >
+                {{'PLAN-EDITOR.TABLE-OF-CONTENTS.COLLAPSE' | translate}}
+            </button>
+        </div>
+        <h2 class="title" id="plan-toc-title">{{'PLAN-EDITOR.TABLE-OF-CONTENTS.TITLE' | translate}}</h2>
     </div>
-    <div class="navigation">
-      <ul class="horizontal-list justify-content-between progress-btns">
-        <li class="mb-1">
-          <button mat-stroked-button type="button" class="padded-shadow-btn stepper mr-2" [disabled]="reachedToCBeginning" (click)="previousStep()">
-            <span class="material-icons">chevron_left</span>
-            <div>{{'PLAN-EDITOR.ACTIONS.PREVIOUS-STEP' | translate}}</div>
-          </button>
-        </li>
-        <li class="mb-1">
-          <button mat-flat-button color="primary" type="button" class="padded-shadow-btn stepper" [disabled]="reachedToCEnd" (click)="nextStep()">
-            <div>{{'PLAN-EDITOR.ACTIONS.NEXT-STEP' | translate}}</div>
-            <span class="material-icons" iconPositionEnd>chevron_right</span>
-          </button>
-        </li>
-      </ul>
-      <div [ngClass]="formGroup() && !formGroup().disabled && canEdit() ? 'progress-indication-bar' : 'progress-indication-bar-disabled'">
-        @if(formGroup() && !formGroup().disabled && canEdit()){
-          <app-plan-form-progress-indication [formGroup]="formGroup()"></app-plan-form-progress-indication>
+    <nav class="stepper-options" aria-labelledby="plan-toc-title">
+        @if(tocEntries()?.length){
+            <mat-accordion class="stepper-list" multi #sectionAccordion="matAccordion">
+                @for(entry of tocEntries(); track entry; let idx = $index){
+                    @if(visibilityRulesService().isVisibleMap[entry.visibilityRuleKey] !== false){
+                        <mat-expansion-panel
+                            class="unstyled section-expansion-panel mb-1"
+                            #expansionPanel="matExpansionPanel"
+                            [togglePosition]="'before'"
+                            [expanded]="selected?.entry?.pathToEntry?.includes(entry.id) || selected?.entry?.id == entry.id"
+                        >
+                            <mat-expansion-panel-header [class.active]="isOrContainsSelected(entry.id)">
+                                <ng-container *ngTemplateOutlet="rootEntryTemplate; context: {entry, idx}"></ng-container>
+                            </mat-expansion-panel-header>
+                            <ng-template matExpansionPanelContent>
+                                <div class="internal-table">
+                                    <!-- [class.d-none]="!expandChildren[idx]" -->
+                                        <!--TODO: annotationsPerAnchor is wrong, should create annotationsperEntry item -->
+                                        <!-- selected is wrong-->
+                                    <table-of-contents-internal
+                                        class="plan-section-toc"
+                                        [id]="`${entry.id}-entries`"
+                                        #internalTable
+                                        [level]="0"
+                                        [tocentries]="entry.subEntries ?? []"
+                                        (entrySelected)="onEntrySelected($event)"
+                                        [selected]="$safeNavigationMigration(selected?.entry)"
+                                        [visibilityRulesService]="visibilityRulesService()"
+                                        [showErrors]="showPlanErrors"
+                                        [numbering]="''"
+                                        [annotationsPerEntry]="annotationsPerAnchor()"
+                                        [planId]="plan().id"
+                                    >
+                                    </table-of-contents-internal>
+                                    @if (entry.hasTemplates && hasDescriptionTemplates(entry)) {
+                                        <mat-accordion class="section-descriptions" multi #descriptionAccordion="matAccordion">
+                                            @for(descEntry of entry.descriptions; track descEntry.id){
+                                                @let descInfo = $safeNavigationMigration(this.planTempStorage.descriptions()?.get(descEntry.id.toString()));            
+                                                <mat-expansion-panel 
+                                                    class="unstyled"
+                                                    [togglePosition]="'before'" 
+                                                    #expansionPanel="matExpansionPanel"
+                                                    [expanded]="selected?.entry?.pathToEntry?.includes(descEntry.id) || selected?.entry?.id == descEntry.id"
+                                                >
+                                                    <mat-expansion-panel-header
+                                                        class="plan-description"
+                                                        [class.active-description]="selectedDescription() == descEntry.id"
+                                                        [class.text-danger]="showDescriptionErrors().has(descInfo.lastPersist.id) && invalidDescription(descInfo)"
+                                                    >
+                                                        <div class="w-100 d-flex align-items-center">
+                                                            <button
+                                                                (click)="onDescriptionSelected(descEntry);"
+                                                                class= "label selectable select-description-btn"
+                                                                [attr.data-tour]="selectedDescription() == descEntry.id ? 'plan-editor-toc-asset' : null"
+                                                            >
+                                                                <span 
+                                                                    [id]="descInfo.lastPersist.id + '-label'"
+                                                                    class="description-label"
+                                                                >
+                                                                    <span class="numbering">
+                                                                        {{descEntry.numbering}}. 
+                                                                    </span>
+                                                                    <ng-container *ngTemplateOutlet="descriptionTemplateIconTemplate; context: {
+                                                                        iconConfiguration: $safeNavigationMigration(descInfo.lastPersist.descriptionTemplate?.definition?.iconConfiguration),
+                                                                        label: descInfo.lastPersist.descriptionTemplate.label
+                                                                    }"></ng-container>
+                                                                    <span class="description-label--text" [matTooltip]="$safeNavigationMigration(descInfo.formGroup?.get('label')?.value)">
+                                                                        {{ descInfo.formGroup?.get('label')?.value }}
+                                                                    </span>
+                                                                </span>
+                                                            </button>
+                                                            <!-- FE-2: status + unsaved + lock indicators, right-aligned.
+                                                                 Delete was moved out of the TOC (to the context band) to free real estate. -->
+                                                            <div class="d-flex align-items-center ml-auto toc-desc-indicators">
+                                                                @let descStatus = descriptionStatusInfo(descEntry.id);
+                                                                @if (descStatus?.name) {
+                                                                    <span class="toc-status-chip"
+                                                                        [class.toc-status-chip--finalized]="descStatus.internalStatus === descriptionStatusEnum.Finalized"
+                                                                        [class.toc-status-chip--canceled]="descStatus.internalStatus === descriptionStatusEnum.Canceled"
+                                                                        [style.background-color]="descStatus.statusColor || null"
+                                                                        [style.color]="statusContrastColor(descStatus.statusColor)"
+                                                                        [matTooltip]="descStatus.name"
+                                                                    >{{ descStatus.name }}</span>
+                                                                }
+                                                                @if (isDescriptionDirty(descEntry.id)) {
+                                                                    <span class="toc-unsaved-dot"
+                                                                        [matTooltip]="'PLAN-EDITOR.UNSAVED-CHANGES' | translate"
+                                                                        [attr.aria-label]="'PLAN-EDITOR.UNSAVED-CHANGES' | translate"
+                                                                    ></span>
+                                                                }
+                                                                @let descLock = descriptionLockState(descEntry.id);
+                                                                @if (descLock === 'held-by-other' || descLock === 'lost') {
+                                                                    <mat-icon class="toc-lock-icon material-symbols-outlined"
+                                                                        [class.toc-lock-icon--lost]="descLock === 'lost'"
+                                                                        [matTooltip]="(descLock === 'lost' ? 'DESCRIPTION-EDITOR.LOCK-LOST.TITLE' : 'DESCRIPTION-EDITOR.LOCKED-DIALOG.DESCRIPTION-LOCKED') | translate"
+                                                                        aria-hidden="false"
+                                                                    >{{ descLock === 'lost' ? 'lock_reset' : 'lock' }}</mat-icon>
+                                                                }
+                                                                @if(annotationsPerDescription()?.get(descInfo.lastPersist.id)?.length > 0){
+                                                                    <span class="annotation-chip" [attr.aria-label]="annotationsPerDescription().get(descInfo.lastPersist.id).length + ' ' + ('ANNOTATION-DIALOG.TITLE' | translate)">
+                                                                        <mat-icon
+                                                                            class="annotation-chip--icon material-symbols-outlined" aria-hidden="true"
+                                                                        >chat_bubble</mat-icon>
+                                                                        {{annotationsPerDescription().get(descInfo.lastPersist.id).length}}
+                                                                    </span>
+                                                                }
+                                                                <!-- FE-2: description has pending required / invalid fields (proactive, subtle).
+                                                                     Always the LAST indicator so it lines up with the section chips above. -->
+                                                                @if(isDescriptionIncomplete(descEntry.id)){
+                                                                    @let descPending = pendingDescriptionItems(descEntry);
+                                                                    @let descPendingText = pendingTooltip(descPending);
+                                                                    <span class="toc-incomplete-chip" [matTooltip]="descPendingText" [attr.aria-label]="descPendingText">
+                                                                        <mat-icon class="toc-incomplete-chip--icon material-symbols-outlined" aria-hidden="true">error</mat-icon>
+                                                                        @if(descPending.count){
+                                                                            {{descPending.count}}
+                                                                        }
+                                                                    </span>
+                                                                }
+                                                            </div>
+                                                        </div>
+                                                    </mat-expansion-panel-header>
+                                                    <app-description-table-of-contents
+                                                        [id]="`${descEntry.id}-entries`"
+                                                        class="description-toc"
+                                                        #descriptionToC
+                                                        [tocEntries]="descEntry.subEntries"
+                                                        [selected]="$safeNavigationMigration(selected?.entry)"
+                                                        [descriptionId]="$safeNavigationMigration(descEntry?.id)"
+                                                        [showErrors]="$safeNavigationMigration(showDescriptionErrors()?.has(descEntry.id))"
+                                                        [numbering]="descEntry.numbering"
+                                                        [isVisible]="selectedDescription() == descEntry.id"
+                                                        [annotationsPerEntry]="annotationsPerAnchor()"
+                                                        (entrySelected)="onDescriptionEntrySelected($event.entry, descEntry.id, $event.execute)"
+                                                    ></app-description-table-of-contents>
+                                                </mat-expansion-panel>
+                                            }
+                                        </mat-accordion>
+                                    }
+                                </div>
+                            </ng-template>
+                        </mat-expansion-panel>
+                        <!-- Add-description button lives OUTSIDE the expansion panel content so it stays
+                             visible whether the section is collapsed (sits under the header) or expanded
+                             (sits at the bottom of the section, under the description list). -->
+                        @if (entry.hasTemplates && canEditInSection(entry.id)) {
+                            <div
+                                class="d-flex add-description-row"
+                                [matTooltipDisabled]="hasValidMultiplicity(entry) && !descTemplatesTouched(entry)"
+                                [matTooltip]="(!descTemplatesTouched(entry) ? 'PLAN-EDITOR.DESCRIPTION-TEMPLATES.MAX-MULTIPLICITY' : 'PLAN-EDITOR.DESCRIPTION-TEMPLATES.TEMPLATES-TOUCHED') | translate"
+                            >
+                                <button mat-button
+                                    class="add-description-btn"
+                                    data-tour="plan-editor-add-asset"
+                                    [disabled]="!hasValidMultiplicity(entry) || descTemplatesTouched(entry)"
+                                    [attr.aria-label]="'PLAN-EDITOR.ACTIONS.ADD-DESCRIPTION-IN-SECTION' | translate"
+                                    (click)="addDescription(entry)"
+                                >
+                                    <mat-icon aria-hidden="true">add</mat-icon>
+                                    <span class="expanded-text">{{ 'PLAN-EDITOR.ACTIONS.ADD-NEW-DESCRIPTION' | translate }}</span>
+                                </button>
+                            </div>
+                        }
+                    }
+                }
+            </mat-accordion>
         }
-      </div>
+        <!-- @if(selectedBlueprint()?.definition){
+            <mat-accordion class="stepper-list" multi #sectionAccordion="matAccordion">
+                @for (section of selectedBlueprint()?.definition?.sections; track section; let i = $index) {
+                    <mat-expansion-panel
+                        class="unstyled section-expansion-panel mb-1"
+                        #sectionExpansionPanel="matExpansionPanel"
+                        [togglePosition]="'before'"
+                    >
+                        <mat-expansion-panel-header [class.active]="step() === (i + 1)">
+                            <button
+                                class="flex-1 label selectable main-section"
+                                (click)="changePlanStep({section: i + 1, sectionId: section.id})"
+                                [class.text-danger]="showSectionErrors(section.id)"
+                                tabindex="0"
+                            >
+                                <span class="expanded-text">{{section.label}}
+                                    @if(section.description){
+                                        <mat-icon class="ml-1 w-auto h-auto" style="font-size: 1rem;" [matTooltip]="section.description" [attr.aria-label]="section.description" role="note">info</mat-icon>
+                                    }
+                                </span>
+                                @let sectionAnnotations = countAnnotationsPerSection()?.get(section.id) + descriptionAnnotationsPerSection()?.get(section.id);
+                                @if(sectionAnnotations > 0){
+                                    <span class="annotation-chip" [attr.aria-label]="sectionAnnotations + ' ' + ('ANNOTATION-DIALOG.TITLE' | translate)">
+                                        <mat-icon
+                                            class="annotation-chip--icon material-symbols-outlined" aria-hidden="true">chat_bubble</mat-icon>
+                                        {{sectionAnnotations}}
+                                    </span>
+                                }
+                            </button>
+                        </mat-expansion-panel-header>
+                        <ng-template matExpansionPanelContent>
+                            @let sectionFields = getSectionFields(section);
+                            @if (sectionFields.length) {
+                                <ul class="flex-1 unstyled-list section-fields">
+                                    @for(field of sectionFields; track field; let j = $index){
+                                        <li>
+                                            <button
+                                                class="label selectable section-field-label"
+                                                (click)="changePlanStep({section: i+1, sectionId: section.id, fieldId: field.id})"
+                                                [class.active]="selectedFieldId === field.id"
+                                                [class.text-danger]="showFieldError(section.id, field.id)"
+                                            >
+                                                <span class="opacity-08">{{i+1}}.{{j+1}}.</span>
+                                                <span class="expanded-text">
+                                                    @if(!field.label){
+                                                        @switch(field.category){
+                                                        @case(planBlueprintSectionFieldCategoryEnum.System){
+                                                            {{enumUtils.toSystemFieldTypeString(field.systemFieldType)}}
+                                                        }
+                                                        @case(planBlueprintSectionFieldCategoryEnum.ReferenceType){
+                                                            {{field.referenceType.name}}
+                                                        }
+                                                        }
+                                                        }@else {
+                                                        {{field.label}}
+                                                    }
+                                                </span>
+                                                @if(annotationsPerAnchor()?.get(field.id) > 0){
+                                                    <a (click)="showAnnotations.emit(field.id)" class="annotation-chip annotation-chip--neutral" [attr.aria-label]="annotationsPerAnchor().get(field.id) + ' ' + ('ANNOTATION-DIALOG.TITLE' | translate)">
+                                                        <mat-icon
+                                                            class="annotation-chip--icon material-symbols-outlined" aria-hidden="true">chat_bubble</mat-icon>
+                                                        {{annotationsPerAnchor().get(field.id)}}
+                                                    </a>
+                                                }
+                                            </button>
+                                        </li>
+                                    }
+                                </ul>
+                            }
+                            @if (section.hasTemplates && hasDescriptionTemplates(section)) {
+                                <mat-accordion class="section-descriptions" multi #descriptionAccordion="matAccordion">
+                                    @for(descInfo of descriptionsInSection().get(section.id); track $index; let descriptionIndex = $index;){
+                                            <mat-expansion-panel class="unstyled" [togglePosition]="'before'"  #descriptionExpansionPanel="matExpansionPanel">
+                                                <mat-expansion-panel-header
+                                                    class="plan-description"
+                                                    [class.active-description]="selectedDescription() === descInfo.lastPersist.id"
+                                                    [class.text-danger]="showDescriptionErrors().has(descInfo.lastPersist.id) && invalidDescription(descInfo)"
+                                                >
+                                                    <div class="w-100 d-flex align-items-center">
+                                                        <button
+                                                            (click)="changePlanStep({section: i + 1, sectionId: section.id, descriptionId: descInfo.lastPersist.id});"
+                                                            class= "label selectable desc-label"
+                                                            [matTooltip]="descInfo.formGroup?.get('label')?.value"
+                                                        >
+                                                            <span [id]="descInfo.lastPersist.id + '-label'">
+                                                                {{descriptionOrdinal(section, descInfo.ordinal)}}. {{ descInfo.formGroup?.get('label')?.value }}
+                                                            </span>
+                                                            @if (descInfo.lastPersist.status?.internalStatus === descriptionStatusEnum.Finalized) {
+                                                                <mat-icon
+                                                                    color="success"
+                                                                    class="finalized-desc-icon"
+                                                                    matTooltip="{{'TYPES.DESCRIPTION-STATUS.FINALIZED' | translate}}"
+                                                                    [attr.aria-label]="'TYPES.DESCRIPTION-STATUS.FINALIZED' | translate"
+                                                                    >
+                                                                    check
+                                                                </mat-icon>
+                                                            }
+                                                        </button>
+                                                        <div class="d-flex align-items-center ml-auto">
+                                                            @if(canDeleteInSection(section.id)){
+                                                                <button mat-mini-fab type="button" color="warn"
+                                                                    (click)="$event.stopPropagation(); onRemoveDescription.emit(descInfo)"
+                                                                    class="remove-description"
+                                                                    matTooltip="{{'PLAN-EDITOR.ACTIONS.DELETE' | translate}}"
+                                                                    matTooltipPosition="above"
+                                                                    [attr.aria-label]="'PLAN-EDITOR.ACTIONS.DELETE' | translate"
+                                                                >
+                                                                    <mat-icon mat-mini-fab-icon  class="mr-0 ml-0 material-symbols-outlined" aria-hidden="true">close</mat-icon>
+                                                                </button>
+                                                            }
+                                                            @if(annotationsPerDescription()?.get(descInfo.lastPersist.id)?.length > 0){
+                                                                <span class="annotation-chip mr-2" [attr.aria-label]="annotationsPerDescription().get(descInfo.lastPersist.id).length + ' ' + ('ANNOTATION-DIALOG.TITLE' | translate)">
+                                                                    <mat-icon
+                                                                        class="annotation-chip--icon material-symbols-outlined" aria-hidden="true">chat_bubble</mat-icon>
+                                                                    {{annotationsPerDescription().get(descInfo.lastPersist.id).length}}
+                                                                </span>
+                                                            }
+                                                        </div>
+                                                    </div>
+                                                </mat-expansion-panel-header>
+                                                @let isCurrentlySelected = selectedDescription() === descInfo.lastPersist.id;
+                                                <app-table-of-contents
+                                                    class="description-toc"
+                                                    #descriptionToC
+                                                    [selectedFieldId]="isCurrentlySelected ? selectedFieldId : null"
+                                                    [descriptionId]="descInfo.lastPersist?.id"
+                                                    (entrySelected)="changeDescriptionStep(section, descInfo, $event.entry, $event.execute)"
+                                                    (onPublishAction)="publishDescriptionAction($event)"
+                                                    [showErrors]="showDescriptionErrors()?.has(descInfo.lastPersist.id)"
+                                                    [ordinal]="descriptionOrdinal(section, descInfo.ordinal)"
+                                                    [isVisible]="selectedDescription() === descInfo.lastPersist.id"
+                                                ></app-table-of-contents>
+                                            </mat-expansion-panel>
+                                    }
+                                </mat-accordion>
+                                @if (canEditInSection(section.id)) {
+                                    <div
+                                        class="d-flex"
+                                        [matTooltipDisabled]="hasValidMultiplicity(section) && !descTemplatesTouched(section)"
+                                        [matTooltip]="(!descTemplatesTouched(section) ? 'PLAN-EDITOR.DESCRIPTION-TEMPLATES.MAX-MULTIPLICITY' : 'PLAN-EDITOR.DESCRIPTION-TEMPLATES.TEMPLATES-TOUCHED') | translate"
+                                    >
+                                        <button mat-button
+                                            class="add-description-btn"
+                                            [disabled]="!hasValidMultiplicity(section) || descTemplatesTouched(section)"
+                                            [attr.aria-label]="'PLAN-EDITOR.ACTIONS.ADD-DESCRIPTION-IN-SECTION' | translate"
+                                            (click)="onAddDescription.emit(section)"
+                                        >
+                                            <mat-icon aria-hidden="true">add</mat-icon>
+                                            @let descriptionType = getAddDescriptionText(section);
+                                            <span class="expanded-text">{{ descriptionType ? ('COMMONS.ACTIONS.NEW' | translate) + ' ' + descriptionType : ('PLAN-EDITOR.ACTIONS.ADD-DESCRIPTION' | translate)}}</span>
+                                        </button>
+                                    </div>
+                                }
+                            }
+                        </ng-template>
+                    </mat-expansion-panel>
+                }
+            </mat-accordion>
+        } -->
+    </nav>
+    <div class="navigation">
+        <div class="mb-2" [ngClass]="formGroup() && !formGroup().disabled && !isLocked() ? 'progress-indication-bar' : 'progress-indication-bar-disabled'">
+            <app-plan-form-progress-indication [formGroup]="formGroup()"></app-plan-form-progress-indication>
+        </div>
+        <ul class="horizontal-list justify-content-between progress-btns">
+            <li class="mb-1">
+            <button mat-stroked-button type="button" class="stepper mr-2" [disabled]="reachedToCBeginning" (click)="previousStep()">
+                <mat-icon aria-hidden="true" class="material-symbols-outlined">chevron_left</mat-icon>
+                <div>{{'PLAN-EDITOR.ACTIONS.PREVIOUS-STEP' | translate}}</div>
+            </button>
+            </li>
+            <li class="mb-1">
+            <button mat-stroked-button type="button" class="stepper" [disabled]="reachedToCEnd" (click)="nextStep()">
+                <div>{{'PLAN-EDITOR.ACTIONS.NEXT-STEP' | translate}}</div>
+                <mat-icon aria-hidden="true" class="material-symbols-outlined" iconPositionEnd>chevron_right</mat-icon>
+            </button>
+            </li>
+        </ul>
     </div>
   </div>
 }
+
+<ng-template #rootEntryTemplate let-entry="entry" let-idx="idx">
+    <button
+        class="flex-1 label selectable main-section"
+        data-tour="plan-editor-toc-section"
+        (click)="onEntrySelected(entry)"
+        [class.text-danger]="showSectionErrors(entry)"
+    >
+        <span class="expanded-text"><span class="section-number">{{entry.numbering}}.</span> {{entry.label}}
+            @if(entry.description){
+                <mat-icon
+                    aria-hidden="false"
+                    class="ml-1 w-auto h-auto" style="font-size: 1rem;"
+                    [matTooltip]="entry.description"
+                    [attr.aria-label]="entry.description"
+                >info</mat-icon>
+            }
+        </span>
+        @let sectionAnnotations = (countAnnotationsPerSection()?.get(entry.id) ?? 0) + (descriptionAnnotationsPerSection()?.get(entry.id) ?? 0);
+        <span class="toc-section-chips">
+            <!-- FE-2: section has unsaved changes (its own fields, or a description it contains) -->
+            @if(isSectionDirty(entry)){
+                <span class="toc-unsaved-dot"
+                    [matTooltip]="'PLAN-EDITOR.UNSAVED-CHANGES' | translate"
+                    [attr.aria-label]="'PLAN-EDITOR.UNSAVED-CHANGES' | translate"
+                ></span>
+            }
+            @if(entry.hasTemplates && entry.descriptions?.length){
+                <span class="annotation-chip annotation-chip--neutral" [attr.aria-label]="entry.descriptions.length + ' ' + ('PLAN-OVERVIEW.DESCRIPTIONS' | translate)" [matTooltip]="('PLAN-OVERVIEW.DESCRIPTIONS' | translate)">
+                    <mat-icon class="annotation-chip--icon material-symbols-outlined" aria-hidden="true">description</mat-icon>
+                    {{entry.descriptions.length}}
+                </span>
+            }
+            @if(sectionAnnotations > 0){
+                <span class="annotation-chip" [attr.aria-label]="sectionAnnotations + ' ' + ('ANNOTATION-DIALOG.TITLE' | translate)">
+                    <mat-icon
+                        class="annotation-chip--icon material-symbols-outlined" aria-hidden="true"
+                    >chat_bubble</mat-icon>
+                    {{sectionAnnotations}}
+                </span>
+            }
+            <!-- FE-2: section has pending required / invalid fields (proactive, subtle). The chip counts
+                 them and the tooltip names them, so the user knows which rows below need input.
+                 Always the LAST indicator so the pending chips line up on the right across all rows. -->
+            @if(isSectionIncomplete(entry)){
+                @let pending = pendingItems(entry);
+                @let pendingText = pendingTooltip(pending);
+                <span class="toc-incomplete-chip" [matTooltip]="pendingText" [attr.aria-label]="pendingText">
+                    <mat-icon class="toc-incomplete-chip--icon material-symbols-outlined" aria-hidden="true">error</mat-icon>
+                    @if(pending.count){
+                        {{pending.count}}
+                    }
+                </span>
+            }
+        </span>
+    </button>
+    <!-- <div class="select-entry-btn" role="button" (click)="onEntrySelected(entry);">
+        <span [class.text-danger]="!isTocEntryValid(entry) && showErrors" [id]="entry.id + '-label'">
+            {{entry.numbering}}. {{entry.label}}
+        </span>
+    </div>
+    @if( annotationsPerEntry && annotationsPerEntry[entry.id] > 0){
+        <span role="button" (click)="showAnnotations(entry.id)" class="annotation-chip annotation-chip--neutral" [attr.aria-label]="annotationsPerEntry[entry.id] + ' ' + ('ANNOTATION-DIALOG.TITLE' | translate)">
+            <mat-icon
+                class="annotation-chip--icon material-symbols-outlined" aria-hidden="true">chat_bubble</mat-icon>
+            {{annotationsPerEntry[entry.id]}}
+        </span>
+    } -->
+</ng-template>
+
+<ng-template #descriptionTemplateIconTemplate let-iconConfiguration="iconConfiguration" let-label="label">
+    <span class="template-icon-container" 
+        [matTooltip]="`${'DESCRIPTION-EDITOR.BASE-INFO.FIELDS.DESCRIPTION-TEMPLATE' | translate}: ${label}`"
+        [matTooltipDisabled]="!label"
+    >
+        @if(iconConfiguration?.storageFile?.id) {
+            @let statusStorageFile = storageFileMap.get(iconConfiguration.storageFile.id.toString());
+            <img [src]="statusStorageFile" alt="" aria-hidden="true">
+        }@else if(iconConfiguration?.matIconName) {
+            <mat-icon aria-hidden="true">{{iconConfiguration.matIconName}}</mat-icon>
+        }@else {
+            <mat-icon class="material-symbols-outlined" aria-hidden="true">assignment</mat-icon>
+        }
+    </span>
+</ng-template>

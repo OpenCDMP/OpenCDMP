@@ -14,23 +14,21 @@ import { NgModule } from "@angular/core";
 
 //
 @NgModule({
-	imports: [
-		CommonFormattingModule,
-	],
-	declarations: [
-		IsActiveTypePipe,
-		InternalStatusTypePipe
-	],
-	exports: [
-		CommonFormattingModule,
-		IsActiveTypePipe,
-		InternalStatusTypePipe,
-	],
-	providers: [
-		PipeService,
-		IsActiveTypePipe,
-		InternalStatusTypePipe,
-		AnnotationServiceEnumUtils
-	]
+    imports: [
+        CommonFormattingModule,
+        IsActiveTypePipe,
+        InternalStatusTypePipe,
+    ],
+    exports: [
+        CommonFormattingModule,
+        IsActiveTypePipe,
+        InternalStatusTypePipe,
+    ],
+    providers: [
+        PipeService,
+        IsActiveTypePipe,
+        InternalStatusTypePipe,
+        AnnotationServiceEnumUtils
+    ]
 })
 export class AnnotationServiceFormattingModule { }

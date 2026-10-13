@@ -13,6 +13,8 @@ public class DefaultValue {
 	private Boolean booleanValue;
 	public static final String _booleanValue = "booleanValue";
 
+	private Double numberValue;
+	public static final String _numberValue = "numberValue";
 
 	public String getTextValue() {
 		return this.textValue;
@@ -38,4 +40,11 @@ public class DefaultValue {
 		this.booleanValue = booleanValue;
 	}
 
+	public Double getNumberValue() {
+		return numberValue;
+	}
+
+	public void setNumberValue(Double numberValue) {
+		this.numberValue = numberValue;
+	}
 }

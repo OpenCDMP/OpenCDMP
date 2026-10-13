@@ -1,0 +1,98 @@
+<div class="info">{{'PLAN-EDITOR.TEMPLATES-SECTION.INFO' | translate}}</div>
+<div class="d-flex justify-content-between align-items-center gap-1-rem mb-3" >
+    <span>{{'PLAN-EDITOR.TEMPLATES-SECTION.LINKED-DESCRIPTIONS' | translate}}</span>
+    <div class="d-flex align-items-center gap-1-rem">
+        @if(canManageTemplates()){
+            <button mat-button color="secondary" (click)="manageTemplates.emit()">
+                <mat-icon aria-hidden="true">settings</mat-icon>
+                {{'PLAN-EDITOR.TEMPLATES-SECTION.ACTIONS.MANAGE-TEMPLATES' | translate}}
+            </button>
+        }
+        @if(canEdit()){
+            <span
+                [matTooltipDisabled]="canAddDescription()"
+                [matTooltip]="addDescriptionDisabledReason() | translate"
+            >
+                <button mat-stroked-button color="secondary" [disabled]="!canAddDescription()" (click)="addDescription.emit()">
+                    <mat-icon aria-hidden="true">add</mat-icon>
+                    {{'PLAN-EDITOR.TEMPLATES-SECTION.ACTIONS.CREATE-NEW' | translate}}
+                </button>
+            </span>
+        }
+    </div>
+</div>
+@if(!descriptions()?.length){
+    <span class="d-flex justify-content-center">{{'PLAN-EDITOR.TEMPLATES-SECTION.NO-LINKED-DESCRIPTIONS' | translate}}</span>
+}@else {
+    <ul class="unstyled-list">
+        @for(description of descriptions(); track description.lastPersist.id){
+            <li 
+                class="description" 
+                role="button"
+                [class.removable]="canDelete() && !descriptionLocked(description.lastPersist.id)"
+                [attr.aria-label]="'PLAN-EDITOR.TEMPLATES-SECTION.ACTIONS.GO-TO-DESCRIPTION' | translate :{name: description.formGroup?.get('label')?.value ?? ''}"
+                (click)="navigateToDescription.emit(description.lastPersist.id)" 
+            >
+                <div class="description--type-icon">
+                    <ng-container *ngTemplateOutlet="iconTemplate; context: {template: $safeNavigationMigration(description.lastPersist?.descriptionTemplate)}"></ng-container>
+                </div>
+                <div class="description--info">
+                    <div class="description--title">
+                        {{description.formGroup?.get('label')?.value}}
+                    </div>
+                    <div class="description--template">
+                        {{description.lastPersist?.descriptionTemplate?.label}}
+                    </div>
+                </div>
+                <!-- FE-2: status pill + date + (permanent) delete grouped on the right -->
+                <div class="description--meta">
+                    @let status = $safeNavigationMigration(description.lastPersist?.status);
+                    @if (status?.name) {
+                        <span class="description--status"
+                            [style.background-color]="status.definition?.statusColor || null"
+                            [style.color]="statusContrastColor($safeNavigationMigration(status.definition?.statusColor))"
+                        >
+                            <ng-container *ngTemplateOutlet="statusIconTemplate; context: { status }"></ng-container>
+                            <span>{{ status.name }}</span>
+                        </span>
+                    }
+                    <span class="description--updated-at">
+                        {{description.lastPersist?.updatedAt ?? description.lastPersist?.createdAt ?? '' | date: 'MMM d y'}}
+                    </span>
+                    @if(canDelete() && !descriptionLocked(description.lastPersist.id)){
+                        <button
+                            mat-icon-button
+                            class="description--delete-btn"
+                            matTooltip="{{'PLAN-EDITOR.ACTIONS.DELETE' | translate}}"
+                            matTooltipPosition="above"
+                            [attr.aria-label]="'PLAN-EDITOR.ACTIONS.DELETE' | translate"
+                            (click)="$event.stopPropagation(); removeDescription.emit(description)"
+                        >
+                            <mat-icon class="material-symbols-outlined" color="warn" aria-hidden="true">delete</mat-icon>
+                        </button>
+                    }
+                </div>
+            </li>
+        }
+    </ul>
+}
+<ng-template #iconTemplate let-template="template">
+    @if(template.definition?.iconConfiguration?.storageFile?.id && storageFileMap.has(template.definition.iconConfiguration.storageFile.id)) {
+      <img alt=""  class="template-logo" [src]="storageFileMap.get(template.definition.iconConfiguration.storageFile.id)" aria-hidden="true">
+    }@else if(template.definition?.iconConfiguration?.matIconName) {
+        <mat-icon  class="material-symbols-outlined" aria-hidden="true">{{template.definition.iconConfiguration.matIconName}}</mat-icon>
+    }@else {
+        <mat-icon  class="material-symbols-outlined" aria-hidden="true">description</mat-icon>
+    }
+</ng-template>
+
+<!-- FE-2: status logo / configured icon / fallback by internal status (0=Draft,1=Finalized,2=Canceled) -->
+<ng-template #statusIconTemplate let-status="status">
+    @if(status.definition?.iconConfiguration?.storageFile?.id && storageFileMap.has(status.definition.iconConfiguration.storageFile.id)) {
+        <img alt="" class="description--status-logo" [src]="storageFileMap.get(status.definition.iconConfiguration.storageFile.id)" aria-hidden="true">
+    }@else if(status.definition?.iconConfiguration?.matIconName) {
+        <mat-icon class="description--status-icon" aria-hidden="true">{{status.definition.iconConfiguration.matIconName}}</mat-icon>
+    }@else {
+        <mat-icon class="description--status-icon material-symbols-outlined" aria-hidden="true">{{ status.internalStatus === 1 ? 'check' : (status.internalStatus === 0 ? 'edit' : 'arrow_forward') }}</mat-icon>
+    }
+</ng-template>

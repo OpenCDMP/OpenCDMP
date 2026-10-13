@@ -91,7 +91,8 @@ public class PrincipalController {
                     Account._permissions,
                     BaseFieldSet.asIndexer(Account._selectedTenant, Tenant._id),
                     BaseFieldSet.asIndexer(Account._selectedTenant, Tenant._name),
-                    BaseFieldSet.asIndexer(Account._selectedTenant, Tenant._code));
+                    BaseFieldSet.asIndexer(Account._selectedTenant, Tenant._code),
+                    Account._userTermsStatus);
         }
 
         MyPrincipal principal = this.currentPrincipalResolverFactory.getInstance().currentPrincipal();

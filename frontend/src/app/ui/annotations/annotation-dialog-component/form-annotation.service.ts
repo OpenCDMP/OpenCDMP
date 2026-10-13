@@ -11,6 +11,8 @@ import { takeUntil } from 'rxjs/operators';
 import { nameof } from 'ts-simple-nameof';
 
 import { InjectionToken } from '@angular/core';
+import { IsActive } from '@annotation-service/core/enum/is-active.enum';
+import { AnnotationEntityType } from '@app/core/common/enum/annotation-entity-type';
 
 export const MULTI_FORM_ANNOTATION_SERVICE_TOKEN = new InjectionToken<FormAnnotationService>('FormAnnotationService');
 @Injectable({
@@ -19,7 +21,7 @@ export const MULTI_FORM_ANNOTATION_SERVICE_TOKEN = new InjectionToken<FormAnnota
 export class FormAnnotationService extends BaseService {
 
 	private entityId: Guid;
-	private entityType: string;
+	private entityType: AnnotationEntityType;
 	private annotationsPerAnchor: Map<string, number>;
 	private annotationCountSubject: BehaviorSubject<Map<string, number>> = new BehaviorSubject<Map<string, number>>(null);
 	private openAnnotationSubject: Subject<any> = new Subject<any>();
@@ -32,7 +34,7 @@ export class FormAnnotationService extends BaseService {
 		super();
 	}
 
-	init(entityId: Guid, entityType: string) {
+	init(entityId: Guid, entityType: AnnotationEntityType) {
 		this.entityId = entityId;
 		this.entityType = entityType;
 		this.refreshAnnotations();
@@ -46,7 +48,7 @@ export class FormAnnotationService extends BaseService {
 		return this.openAnnotationSubject.asObservable();
 	}
 
-	public οpenAnnotationDialog(next: any): void {
+	public openAnnotationDialog(next: any): void {
 		this.openAnnotationSubject.next(next);
 	}
 
@@ -58,6 +60,7 @@ export class FormAnnotationService extends BaseService {
 			fields: [
 				nameof<Annotation>(x => x.id),
 				nameof<Annotation>(x => x.anchor),
+				nameof<Annotation>(x => x.isActive),
 			]
 		};
 
@@ -65,6 +68,10 @@ export class FormAnnotationService extends BaseService {
 			.pipe(takeUntil(this._destroyed))
 			.subscribe(
 				data => {
+					if (data?.items?.length > 0) {
+						data.items = data?.items?.filter(x => x.isActive === IsActive.Active);
+						data.count = data?.items?.length ?? 0;
+					};
 					this.annotationsPerAnchor = new Map();
 					for (const item of data.items) {
 						if (!this.annotationsPerAnchor.has(item.anchor)) {

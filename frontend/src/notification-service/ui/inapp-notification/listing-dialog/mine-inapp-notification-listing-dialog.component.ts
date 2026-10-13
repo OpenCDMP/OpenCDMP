@@ -1,5 +1,5 @@
 import { fromEvent, Observable, Subscription } from "rxjs";
-import { Component, EventEmitter, Inject, OnDestroy, OnInit } from '@angular/core';
+import { Component, EventEmitter, Inject, OnDestroy, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { Router } from '@angular/router';
 import { AuthService } from '@app/core/services/auth/auth.service';
@@ -15,18 +15,29 @@ import { NotificationInAppTracking } from "@notification-service/core/enum/notif
 import { InAppNotification } from "@notification-service/core/model/inapp-notification.model";
 import { RouterUtilsService } from "@app/core/services/router/router-utils.service";
 import { CommonFormattingModule } from "@common/formatting/common-formatting.module";
-import { CommonModule } from "@angular/common";
+import { LowerCasePipe } from "@angular/common";
 import { TranslateModule } from "@ngx-translate/core";
 import { MatDividerModule } from "@angular/material/divider";
 import { MatButtonModule } from "@angular/material/button";
 import { MatListModule } from "@angular/material/list";
 import { MatIconModule } from "@angular/material/icon";
+import { RelativeTimeFormatPipe } from "@app/core/pipes/relative-time.pipe";
 
 @Component({
     selector: 'app-mine-inapp-notification-listing-dialog',
     templateUrl: './mine-inapp-notification-listing-dialog.component.html',
     styleUrls: ['./mine-inapp-notification-listing-dialog.component.scss'],
-    imports: [CommonFormattingModule, CommonModule, TranslateModule, MatDividerModule, MatButtonModule, MatListModule, MatIconModule]
+    changeDetection: ChangeDetectionStrategy.Eager,
+    imports: [
+        CommonFormattingModule,
+        TranslateModule,
+        MatDividerModule,
+        MatButtonModule,
+        MatListModule,
+        MatIconModule,
+        RelativeTimeFormatPipe,
+        LowerCasePipe
+    ]
 })
 export class MineInAppNotificationListingDialogComponent extends BaseComponent implements OnInit, OnDestroy {
    
@@ -38,9 +49,11 @@ export class MineInAppNotificationListingDialogComponent extends BaseComponent i
 	resizeSubscription: Subscription;
 	onReadAll = new EventEmitter();
 
+    unreadCount: number;
+
 	constructor(
 		public dialogRef: MatDialogRef<MineInAppNotificationListingDialogComponent>,
-		@Inject(MAT_DIALOG_DATA) public data: any,
+		@Inject(MAT_DIALOG_DATA) public data: {unreadCount?: number},
 		private inappNotificationService: InAppNotificationService,
 		private router: Router,
 		private routerUtils: RouterUtilsService,
@@ -49,6 +62,7 @@ export class MineInAppNotificationListingDialogComponent extends BaseComponent i
 		public authService: AuthService,
 	) {
 		super();
+        this.unreadCount = data.unreadCount ?? 0;
 	}
 
 	ngOnInit() {
@@ -102,6 +116,7 @@ export class MineInAppNotificationListingDialogComponent extends BaseComponent i
 					const lookup: InAppNotificationLookup = this.getLookup();
 					this.fetchNotifications(lookup);
 					this.onReadAll.emit();
+                    this.unreadCount = 0;
 				} 
 			},
 		);	
@@ -113,6 +128,7 @@ export class MineInAppNotificationListingDialogComponent extends BaseComponent i
 			fields: [
 				nameof<InAppNotification>(x => x.id),
 				nameof<InAppNotification>(x => x.subject),
+				nameof<InAppNotification>(x => x.body),
 				nameof<InAppNotification>(x => x.createdAt),
 				nameof<InAppNotification>(x => x.trackingState),
 			]

@@ -35,7 +35,9 @@ import java.util.List;
         @JsonSubTypes.Type(value = UploadDataPersist.class, name = FieldType.Names.Upload),
         @JsonSubTypes.Type(value = LabelDataPersist.class, name = FieldType.Names.Validation),
         @JsonSubTypes.Type(value = LabelDataPersist.class, name = FieldType.Names.DatasetIdentifier),
-        @JsonSubTypes.Type(value = SelectDataPersist.class, name = FieldType.Names.Select)
+        @JsonSubTypes.Type(value = SelectDataPersist.class, name = FieldType.Names.Select),
+        @JsonSubTypes.Type(value = NumberDataPersist.class, name = FieldType.Names.Number),
+        @JsonSubTypes.Type(value = SystemFieldDataPersist.class, name = FieldType.Names.System)
 })
 public abstract class BaseFieldDataPersist {
 

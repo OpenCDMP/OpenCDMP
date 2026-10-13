@@ -1,0 +1,39 @@
+@use '../../bp2-shared' as *;
+
+:host { display: block; }
+.ir { display: flex; flex-direction: column; gap: .625rem; padding: .75rem .875rem; border: 1px solid var(--mat-sys-outline-variant); border-radius: 12px; background: var(--mat-sys-surface-container-low); &--bad { border-color: var(--mat-sys-error); } }
+.ir-head { display: flex; align-items: center; gap: .5rem; flex-wrap: wrap; }
+.ir-index { font-weight: 700; }
+.ir-type { width: 220px; ::ng-deep .mat-mdc-text-field-wrapper { background: var(--mat-sys-surface); } &__trigger { display: inline-flex; align-items: center; gap: .4rem; mat-icon { font-size: 18px; width: 18px; height: 18px; color: var(--mat-sys-on-surface-variant); } } }
+.ir-preset { width: 200px; ::ng-deep .mat-mdc-text-field-wrapper { background: var(--mat-sys-surface); } }
+.ir-spacer { flex: 1 1 0; }
+.ir-pills { display: flex; gap: .375rem; flex-wrap: wrap; }
+.ir-settings { display: flex; flex-direction: column; gap: .75rem; ::ng-deep .mat-mdc-form-field { width: 100%; } }
+.ir-chips { display: flex; gap: .5rem; flex-wrap: wrap; }
+.ir-chip {
+	display: inline-flex; align-items: center; gap: .35rem; min-height: 28px; padding: 0 .625rem; border-radius: 8px; border: 1px dashed var(--mat-sys-outline-variant); background: transparent; color: var(--mat-sys-on-surface-variant); font: inherit; font-size: .8rem; font-weight: 600; cursor: pointer;
+	&--set { border-style: solid; background: var(--mat-sys-surface-container-high); color: var(--mat-sys-on-surface); }
+	&--open { border-color: var(--mat-sys-primary); }
+	&[disabled] { cursor: default; opacity: .7; }
+	mat-icon { font-size: 16px; width: 16px; height: 16px; }
+	&__keys { display: inline-flex; gap: .35rem; flex-wrap: wrap; }
+}
+.ir-key { padding: 0 .35rem; border-radius: 6px; background: var(--bp2-preset-bg); color: var(--mat-sys-primary); font-family: ui-monospace, Consolas, monospace; font-size: .75rem; b { font-weight: 700; } }
+.ir-panel { padding: .75rem .875rem; border: 1px solid var(--mat-sys-outline-variant); border-radius: 10px; background: var(--mat-sys-surface); display: flex; flex-direction: column; gap: .375rem; &__title { font-weight: 700; font-size: .9rem; } }
+.ir-grow { width: 100%; }
+::ng-deep .ir-type-panel mat-icon { font-size: 18px; width: 18px; height: 18px; margin-right: .5rem; color: var(--mat-sys-on-surface-variant); vertical-align: middle; }
+.ir-inline { display: flex; align-items: center; gap: .75rem; flex-wrap: wrap; }
+.ir-toggle { --mat-standard-button-toggle-height: 34px; }
+// kind picker entries: a name and a one-line hint, so admins can pick without knowing the technical type
+::ng-deep .ir-type-panel {
+	.mat-mdc-option { min-height: 52px; }
+	.ir-kind { display: flex; align-items: center; gap: .625rem; mat-icon { margin: 0; flex: none; } }
+	.ir-kind__text { display: flex; flex-direction: column; line-height: 1.25; .bp2-sub { font-size: .75rem; } }
+}
+.ir-chip--warn { background: var(--bp2-todo-bg); color: var(--bp2-todo-fg); border-color: transparent; }
+.ir-scope { margin: .375rem 0 0; }
+.ir-checks { margin: .375rem 0 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: .25rem; font-size: .8rem; color: var(--bp2-todo-fg);
+	li { display: flex; align-items: flex-start; gap: .375rem; overflow-wrap: anywhere; }
+	mat-icon { flex: none; font-size: 16px; width: 16px; height: 16px; }
+	&__notice { color: var(--mat-sys-on-surface-variant); }
+}

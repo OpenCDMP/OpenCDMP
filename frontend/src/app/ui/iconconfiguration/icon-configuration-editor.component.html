@@ -1,0 +1,35 @@
+@if(formGroup) {
+  <div >
+      <div class="d-flex justify-content-end">
+          <button mat-button color="primary" type="button" (click)="toggleInputMethod()" [disabled]="formGroup.disabled">
+             <mat-icon>{{ isUsingDropzone ? 'edit' : 'upload' }}</mat-icon>
+            <span class="switch-input">@if(!isUsingDropzone){ {{ 'PLAN-STATUS-EDITOR.FIELDS.MAT-ICON-UPLOAD' | translate }}} @else { {{"PLAN-STATUS-EDITOR.FIELDS.MAT-ICON-INPUT" | translate }}}</span>
+          </button>
+      </div>
+      @if(!isUsingDropzone){
+          <mat-form-field class="w-100">
+              <mat-label>{{'PLAN-STATUS-EDITOR.FIELDS.MAT-ICON-NAME' | translate}}</mat-label>
+							@if (isKnownIcon(formGroup.controls.matIconName.value)) {
+								<mat-icon matPrefix aria-hidden="true">{{ formGroup.controls.matIconName.value }}</mat-icon>
+							}
+							<input matInput type="text" autocomplete="off" [formControl]="formGroup.controls.matIconName" [matAutocomplete]="iconAutocomplete" #iconTrigger="matAutocompleteTrigger" (blur)="iconTrigger.panelOpen || clearUnknownIcon()" />
+							<mat-autocomplete #iconAutocomplete="matAutocomplete" (closed)="clearUnknownIcon()">
+								@for (option of filteredIcons; track option) {
+									<mat-option [value]="option"><mat-icon aria-hidden="true">{{ option }}</mat-icon>{{ option }}</mat-option>
+								}
+							</mat-autocomplete>
+                 @if (formGroup.controls.matIconName.hasError('backendError')) {
+                   <mat-error>{{formGroup.controls.matIconName.getError('backendError').message}}</mat-error>
+                }
+                 @if (formGroup.controls.matIconName.hasError('required')) {
+                  <mat-error>{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
+                 }
+          </mat-form-field>
+      }@else{
+          <app-file-uploader
+              [accept]="'image/*'"
+              [storageFileIdControl]="formGroup.controls.storageFileId"
+            />
+        }
+  </div>
+}

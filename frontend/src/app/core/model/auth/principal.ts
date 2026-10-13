@@ -9,6 +9,7 @@ export interface AppAccount {
 	principal: AppPrincipalInfo;
 	profile: UserProfileInfo;
 	selectedTenant: Tenant;
+	userTermsStatus: UserTermsStatus;
 }
 
 export interface AppPrincipalInfo {
@@ -29,4 +30,9 @@ export interface UserProfileInfo {
 	timezone: string;
 	avatarUrl: string;
 	email: string;
+}
+
+export interface UserTermsStatus {
+	termsOfServiceAcceptanceRequired: boolean;
+	content: string;
 }

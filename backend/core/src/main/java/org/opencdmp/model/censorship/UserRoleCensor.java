@@ -38,7 +38,7 @@ public class UserRoleCensor extends BaseCensor {
         logger.debug(new DataLogEntry("censoring fields", fields));
         if (fields == null || fields.isEmpty())
             return;
-        this.authService.authorizeAtLeastOneForce(userId != null ? List.of(new OwnedResource(userId)) : null, Permission.BrowseUser);
+        this.authService.authorizeAtLeastOneForce(userId != null ? List.of(new OwnedResource(userId)) : null, Permission.BrowseUser, Permission.DeferredAffiliation);
 
         FieldSet userFields = fields.extractPrefixed(this.asIndexerPrefix(UserRole._user));
         this.censorFactory.censor(UserCensor.class).censor(userFields, userId);

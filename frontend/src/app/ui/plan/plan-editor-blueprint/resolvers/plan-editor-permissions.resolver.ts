@@ -6,7 +6,7 @@ import { DescriptionService } from '@app/core/services/description/description.s
 import { PlanService } from '@app/core/services/plan/plan.service';
 import { BaseEditorResolver } from '@common/base/base-editor.resolver';
 import { Guid } from '@common/types/guid';
-import { mergeMap, takeUntil, tap } from 'rxjs/operators';
+import { mergeMap, takeUntil } from 'rxjs/operators';
 import { Plan } from '@app/core/model/plan/plan';
 import { nameof } from 'ts-simple-nameof';
 import { PlanBlueprint, PlanBlueprintDefinition, PlanBlueprintDefinitionSection } from '@app/core/model/plan-blueprint/plan-blueprint';
@@ -37,7 +37,7 @@ export class PlanEditorPermissionsResolver extends BaseEditorResolver {
 			return this.planService
 				.getSingle(Guid.parse(id), fields)
 				.pipe(mergeMap( data => {
-					let descriptionSectionPermissionResolverModel: DescriptionSectionPermissionResolver = {
+					const descriptionSectionPermissionResolverModel: DescriptionSectionPermissionResolver = {
 						planId: data.id,
 						sectionIds: data?.blueprint?.definition?.sections?.map(x => x.id),
 						permissions: [AppPermission.EditDescription, AppPermission.DeleteDescription, AppPermission.AnnotatePlan]

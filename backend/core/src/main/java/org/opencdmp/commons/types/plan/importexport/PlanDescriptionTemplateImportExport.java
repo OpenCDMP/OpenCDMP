@@ -16,7 +16,7 @@ public class PlanDescriptionTemplateImportExport {
     private String descriptionTemplateCode;
 
     @XmlElement(name = "sectionId")
-    private UUID  sectionId;
+    private String  sectionId;
 
     public UUID getDescriptionTemplateGroupId() {
         return this.descriptionTemplateGroupId;
@@ -26,12 +26,12 @@ public class PlanDescriptionTemplateImportExport {
         this.descriptionTemplateGroupId = descriptionTemplateGroupId;
     }
 
-    public UUID getSectionId() {
+    public String getSectionId() {
         return this.sectionId;
     }
 
-    public void setSectionId(UUID sectionId) {
-        this.sectionId = sectionId;
+    public void setSectionId(String sectionId) {
+        this.sectionId = (sectionId == null || sectionId.isEmpty()) ? null : sectionId;
     }
 
     public String getDescriptionTemplateCode() {

@@ -1,38 +1,57 @@
-<div class="dynamic-form-section" [id]="section.id">
-  <div class="toc-section-header" [id]="path">
-    <div class='panel-title'>{{path}}. {{section.title}}</div>
-    @if (section.description) {
-      <div class='panel-desc' [innerHTML]="section.description"></div>
+<div class="dynamic-form-section" [id]="section().id">
+  <div class="toc-section-header" [id]="path()">
+    <div class='panel-title' [class.child--panel-title]="isChild()"><span class="path">{{path() ? path() + '.' : ''}}</span> {{section().title}}</div>
+    @if (section().description) {
+      <div class='panel-desc' [innerHTML]="section().description"></div>
+    }
+    <!-- Legend shown once per top-level section; nested sub-sections inherit it. -->
+    @if (!isChild() && hasRequiredFields()) {
+      <p class="panel-required-hint">{{'COMMONS.VALIDATION.REQUIRED-FIELDS-HINT' | translate}}</p>
     }
     <div class="field-sets">
-      @for (fieldSet of section.fieldSets; track fieldSet; let i = $index) {
+      @for (fieldSet of section().fieldSets; track fieldSet.id; let i = $index) {
         <div [id]="fieldSet.id" (click)="onAskedToScroll($event, fieldSet.id)">
-          @if(visibilityRulesService.isVisibleMap[fieldSet.id] ?? true){
-            <app-description-form-field-set class="align-self-center"
-              [propertiesFormGroup]="propertiesFormGroup.get('fieldSets')?.get(fieldSet.id)"
+          @if(visibilityRulesService().isVisibleMap[fieldSet.id] ?? true){
+            <app-form-field-set class="align-self-center"
+              [propertiesFormGroup]="$safeNavigationMigration(propertiesFormGroup().get('fieldSets')?.get(fieldSet.id))"
+              [formGroup]="formGroup()"
               [fieldSet]="fieldSet"
-              [descriptionId]="descriptionId"
-              [planId]="planId"
-              [path]="path + '.' + (i+1)"
-              [numbering]="path + '.' + (i+1)"
-              [visibilityRulesService]="visibilityRulesService"
-              [validationErrorModel]="validationErrorModel"
+              [descriptionId]="descriptionId()"
+              [planId]="planId()"
+              [path]="(path() ? path() + '.' : '') + (i+1)"
+              [numbering]="(path() ? path() + '.' : '') + (i+1)"
+              [visibilityRulesService]="visibilityRulesService()"
+              [validationErrorModel]="validationErrorModel()"
               [isChild]="false"
-              [isNew]="isNew"
-              [canAnnotate]="canAnnotate"
-              [planUsers]="planUsers"
-            ></app-description-form-field-set>
+              [isNew]="isNew()"
+              [canAnnotate]="canAnnotate()"
+            ></app-form-field-set>
           }
         </div>
       }
     </div>
 
-    @if (section?.sections?.length > 0) {
+    @if (section()?.sections?.length > 0) {
       <div>
-        @for (innerSection of section.sections; track innerSection; let j = $index) {
-          @if (visibilityRulesService.isVisibleMap[innerSection.id]) {
+        @for (innerSection of section().sections; track innerSection.id; let j = $index) {
+          @if (visibilityRulesService().isVisibleMap[innerSection.id]) {
             <div>
-              <app-description-form-section [section]="innerSection" [canAnnotate]="canAnnotate" [isNew]="isNew" [path]="path+'.'+(j+1)" [pathName]="pathName+'.sections.'+j" (askedToScroll)="onAskedToScroll(null, $event)" [propertiesFormGroup]="propertiesFormGroup" [descriptionId]="descriptionId" [planId]="planId" [visibilityRulesService]="visibilityRulesService" [linkToScroll]="subsectionLinkToScroll"></app-description-form-section>
+              <app-form-section
+                [section]="innerSection"
+                [canAnnotate]="canAnnotate()"
+                [isNew]="isNew()"
+                [isChild]="true"
+                [canEdit]="canEdit()"
+                [path]="(path() ? path() + '.' : '') + (j+1)"
+                [pathName]="pathName()+'.sections.'+j"
+                [propertiesFormGroup]="propertiesFormGroup()"
+                [formGroup]="formGroup()"
+                [descriptionId]="descriptionId()"
+                [planId]="planId()"
+                [visibilityRulesService]="visibilityRulesService()"
+                [linkToScroll]="subsectionLinkToScroll"
+                (askedToScroll)="onAskedToScroll(null, $event)"
+            ></app-form-section>
             </div>
           }
         }

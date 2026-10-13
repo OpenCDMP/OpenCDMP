@@ -1,7 +1,7 @@
 package org.opencdmp.model.builder.commonmodels.description;
 
 import org.opencdmp.authorization.AuthorizationFlags;
-import org.opencdmp.commonmodels.models.description.PropertyDefinitionFieldSetModel;
+import org.opencdmp.commonmodels.models.plandescriptionfields.PropertyDefinitionFieldSetModel;
 import org.opencdmp.commons.types.description.PropertyDefinitionFieldSetEntity;
 import org.opencdmp.commons.types.descriptiontemplate.FieldSetEntity;
 import org.opencdmp.convention.ConventionService;

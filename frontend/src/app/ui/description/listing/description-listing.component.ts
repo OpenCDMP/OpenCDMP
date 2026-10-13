@@ -1,17 +1,16 @@
-import { Component, OnInit, ViewChild } from '@angular/core';
-import { FormBuilder, UntypedFormBuilder, Validators } from '@angular/forms';
-import { MatDialog, MatDialogRef } from '@angular/material/dialog';
+import { Component, OnInit, ViewChild, AfterContentChecked, inject, ChangeDetectionStrategy } from '@angular/core';
+import { FormBuilder, UntypedFormBuilder, Validators, FormsModule } from '@angular/forms';
+import { MatDialog } from '@angular/material/dialog';
 import { MatPaginator } from '@angular/material/paginator';
 import { MatSort } from '@angular/material/sort';
-import { ActivatedRoute, Params, Router } from '@angular/router';
+import { ActivatedRoute, Params, Router, RouterLink } from '@angular/router';
 import { IsActive } from '@app/core/common/enum/is-active.enum';
 import { AppPermission } from '@app/core/common/enum/permission.enum';
 import { RecentActivityOrder } from '@app/core/common/enum/recent-activity-order';
 import { DescriptionTemplate } from '@app/core/model/description-template/description-template';
-import { BaseDescription, Description } from '@app/core/model/description/description';
-import { PlanBlueprint, PlanBlueprintDefinition, PlanBlueprintDefinitionSection } from '@app/core/model/plan-blueprint/plan-blueprint';
+import { BaseDescription, Description, DescriptionReference } from '@app/core/model/description/description';
+import { PlanBlueprint, PlanBlueprintDefinition, RootSection } from '@app/core/model/plan-blueprint/plan-blueprint';
 import { Plan, PlanDescriptionTemplate, PlanUser } from '@app/core/model/plan/plan';
-import { PlanReference } from '@app/core/model/plan/plan-reference';
 import { ReferenceType } from '@app/core/model/reference-type/reference-type';
 import { Reference } from '@app/core/model/reference/reference';
 import { DescriptionLookup, ReferencesWithType } from '@app/core/query/description.lookup';
@@ -19,17 +18,15 @@ import { AuthService } from '@app/core/services/auth/auth.service';
 import { DescriptionService } from '@app/core/services/description/description.service';
 import { AnalyticsService } from '@app/core/services/matomo/analytics-service';
 import { EnumUtils } from '@app/core/services/utilities/enum-utils.service';
-import { GuidedTour, Orientation } from '@app/library/guided-tour/guided-tour.constants';
-import { GuidedTourService } from '@app/library/guided-tour/guided-tour.service';
-import { StartNewPlanDialogComponent } from '@app/ui/plan/new/start-new-plan-dialogue/start-new-plan-dialog.component';
+import { TourStateService } from '@app/library/guided-tour/tour-state.service';
+import { descriptionListingPageTour } from './description-listing.tour';
 import { HttpErrorHandlingService } from '@common/modules/errors/error-handling/http-error-handling.service';
-import { PageLoadEvent, SortDirection } from '@common/modules/hybrid-listing/hybrid-listing.component';
-import { LangChangeEvent, TranslateService } from '@ngx-translate/core';
-import { debounceTime, takeUntil, tap } from 'rxjs/operators';
+import { PageLoadEvent } from '@common/modules/admin-listing/listing.types';
+import { TranslateService, TranslatePipe } from '@ngx-translate/core';
+import { takeUntil, tap } from 'rxjs/operators';
 import { nameof } from 'ts-simple-nameof';
 import { StartNewDescriptionDialogComponent } from '../start-new-description-dialog/start-new-description-dialog.component';
 import { RouterUtilsService } from '@app/core/services/router/router-utils.service';
-import { DescriptionFilterDialogComponent } from './filtering/description-filter-dialogue/description-filter-dialog.component';
 import { BaseListingComponent } from '@common/base/base-listing-component';
 import { QueryResult } from '@common/model/query-result';
 import { Observable } from 'rxjs';
@@ -42,31 +39,46 @@ import { BaseHttpParams } from '@common/http/base-http-params';
 import { InterceptorType } from '@common/http/interceptors/interceptor-type';
 import { PrincipalService } from '@app/core/services/http/principal.service';
 import { DescriptionListingFilters } from './filtering/description-filter.component';
-import { MatSelectChange } from '@angular/material/select';
+import { MatSelectChange, MatSelect, MatOption } from '@angular/material/select';
 import { DescriptionStatus, DescriptionStatusDefinition } from '@app/core/model/description-status/description-status';
 import { PlanStatus } from '@app/core/model/plan-status/plan-status';
 import { StorageFile } from '@app/core/model/storage-file/storage-file';
-import {EntityDoi} from "@app/core/model/entity-doi/entity-doi";
 import {TenantConfigurationType} from "@app/core/common/enum/tenant-configuration-type";
-import {ViewPreferencesEditorResolver} from "@app/ui/admin/tenant-configuration/editor/view-preferences/view-preferences-editor.resolver";
+import {ViewPreferencesEditorResolver} from "@app/ui/admin/tenant-configuration/models/view-preferences/view-preferences-editor.resolver";
 import {TenantConfigurationService} from "@app/core/services/tenant-configuration/tenant-configuration.service";
+import { DescriptionTemplateType } from '@app/core/model/description-template-type/description-template-type';
+import { IconConfiguration } from '@app/core/model/icon-configuration/icon-configuration';
+import { DomSanitizer, SafeUrl } from '@angular/platform-browser';
+import { StorageFileService } from '@app/core/services/storage-file/storage-file.service';
+import { MatButton, MatIconButton } from '@angular/material/button';
+import { TextFilterComponent } from '../../../../common/modules/text-filter/text-filter.component';
+import { MatButtonToggleGroup, MatButtonToggle } from '@angular/material/button-toggle';
+import { MatTooltip } from '@angular/material/tooltip';
+import { MatIcon } from '@angular/material/icon';
+import { MatFormField } from '@angular/material/form-field';
+import { ReactiveAsteriskDirective } from '../../../../common/forms/reactive-asterisk-directive';
+import { MatBadge } from '@angular/material/badge';
+import { ActiveReferenceFiltersComponent } from '../../reference/reference-usage-filter/active-reference-filters.component';
+import { DescriptionListingItemComponent } from './listing-item/description-listing-item.component';
+import { DescriptionFilterDialogComponent } from './filtering/description-filter-dialogue/description-filter-dialog.component';
 
 @Component({
     selector: 'app-description-listing-component',
     templateUrl: 'description-listing.component.html',
     styleUrls: ['./description-listing.component.scss'],
-    standalone: false
+    changeDetection: ChangeDetectionStrategy.Eager,
+    imports: [RouterLink, MatButton, TextFilterComponent, MatButtonToggleGroup, MatButtonToggle, MatTooltip, MatIcon, MatFormField, MatSelect, ReactiveAsteriskDirective, FormsModule, MatOption, MatIconButton, MatBadge, ActiveReferenceFiltersComponent, DescriptionListingItemComponent, DescriptionFilterDialogComponent, TranslatePipe]
 })
-export class DescriptionListingComponent extends BaseListingComponent<BaseDescription, DescriptionLookup> implements OnInit {
+export class DescriptionListingComponent extends BaseListingComponent<BaseDescription, DescriptionLookup> implements OnInit, AfterContentChecked {
 
 	userSettingsKey = { key: 'DescriptionListingUserSettings' };
 
 	@ViewChild(MatPaginator, { static: true }) _paginator: MatPaginator;
 	@ViewChild(MatSort) sort: MatSort;
 
-	titlePrefix: String;
+	titlePrefix: string;
 	planId: string;
-	status: Number;
+	status: number;
 	totalCount: number;
 	plansearchEnabled = true;
 	listingItems: any[] = [];
@@ -78,27 +90,27 @@ export class DescriptionListingComponent extends BaseListingComponent<BaseDescri
 	pageSize: number = 5;
 	lookup: DescriptionLookup;
 	referenceFilters: ReferencesWithType[];
+	/** Reference type whose filter section opens on arrival (`?referenceType=<id>`). */
+	expandReferenceTypeId: Guid = null;
 
 	tenants: Tenant[] = [];
+
+    compactView: boolean = false;
 
 	scrollbar: boolean;
 
 	RecentActivityOrder = RecentActivityOrder;
 	sortBy: RecentActivityOrder;
 
-	planText: string;
-	descriptionText: string;
 	orderedDescriptionPreferencesList:ReferenceType[];
 
-	get isAscending(): boolean {
+	get isDescending(): boolean {
 		return this.lookup?.order?.items?.[0].startsWith("-");
 	}
-	get isDescending(): boolean {
-		return this.lookup?.order?.items?.[0].startsWith("+");
-	}
+
 
 	get sortingTooltipText(): string {
-		return this.isAscending ? this.language.instant('DESCRIPTION-LISTING.ACTIONS.TOGGLE-ΑSCENDING') : this.language.instant('DESCRIPTION-LISTING.ACTIONS.TOGGLE-DESCENDING');
+		return this.isDescending ? this.language.instant('DESCRIPTION-LISTING.ACTIONS.TOGGLE-ASCENDING') : this.language.instant('DESCRIPTION-LISTING.ACTIONS.TOGGLE-DESCENDING');
 	}
 	get hasListingItems(): boolean {
 		return this.listingItems != null && this.listingItems.length > 0;
@@ -116,18 +128,19 @@ export class DescriptionListingComponent extends BaseListingComponent<BaseDescri
 		protected uiNotificationService: UiNotificationService,
 		protected httpErrorHandlingService: HttpErrorHandlingService,
 		protected queryParamsService: QueryParamsService,
+		protected authService: AuthService,
 		public routerUtils: RouterUtilsService,
 		private descriptionService: DescriptionService,
 		public dialog: MatDialog,
 		private language: TranslateService,
-		private authService: AuthService,
 		public enumUtils: EnumUtils,
-		private guidedTourService: GuidedTourService,
 		private analyticsService: AnalyticsService,
 		private fb: UntypedFormBuilder,
 		protected formBuilder: FormBuilder,
 		private principalService: PrincipalService,
-		private tenantConfigurationService: TenantConfigurationService
+		private tenantConfigurationService: TenantConfigurationService,
+        private storageFileService: StorageFileService,
+        private sanitizer: DomSanitizer
 	) {
 		super(router, route, uiNotificationService, httpErrorHandlingService, queryParamsService);
 	}
@@ -137,7 +150,12 @@ export class DescriptionListingComponent extends BaseListingComponent<BaseDescri
 		this.isPublic = this.route.snapshot.data['isPublic'] ?? false;
 
 		if (!this.isPublic && !this.authService.currentAccountIsAuthenticated()) {
-			this.router.navigateByUrl("/explore-descriptions");
+			this.router.navigateByUrl("/explore-assets");
+		}
+		if (!this.isPublic) {
+			// "What's new" tour for the 2.0.0 listing; TourStateService waits for the first card to render.
+			this.tourState.registerPageTour(this.pageTour);
+			this.tourState.startIfUnseen(this.pageTour);
 		}
 
 		this.route.queryParamMap
@@ -154,6 +172,12 @@ export class DescriptionListingComponent extends BaseListingComponent<BaseDescri
 					this.filtersCount = this._countFilters(this.lookup);
 				}
 				else if (!this.lookup) this.lookup = this.initializeLookup();
+
+				const referenceType = queryParams['referenceType'];
+				if (referenceType && !this.isPublic && !this.expandReferenceTypeId) {
+					this.expandReferenceTypeId = Guid.parse(referenceType);
+					this.filtersDialogOpen = true;
+				}
 
 				this.sortBy = this._getRecentActivityOrder(this.lookup.order.items[0]?.substring(1));
 				this.onPageLoad({ offset: this.lookup.page.offset / this.lookup.page.size } as PageLoadEvent);
@@ -190,6 +214,7 @@ export class DescriptionListingComponent extends BaseListingComponent<BaseDescri
 					this.totalCount = result.count;
 					if (this.lookup?.page?.offset === 0) this.listingItems = [];
 					this.listingItems.push(...result.items);
+                    this.downloadStorageFiles(this.listingItems.map((x: Plan) => x.status?.definition?.iconConfiguration?.storageFile?.id)?.filter((x) => x) ?? [])
 				}));
 		} else {
 			return this.descriptionService.query(this.lookup).pipe(takeUntil(this._destroyed))
@@ -199,9 +224,24 @@ export class DescriptionListingComponent extends BaseListingComponent<BaseDescri
 					this.totalCount = result.count;
 					if (this.lookup?.page?.offset === 0) this.listingItems = [];
 					this.listingItems.push(...result.items);
+                    this.downloadStorageFiles(this.listingItems.map((x: Plan) => x.status?.definition?.iconConfiguration?.storageFile?.id)?.filter((x) => x) ?? [])
 				}));
 		}
 	}
+
+    protected storageFileMap = new Map<Guid, SafeUrl>([]);
+    protected downloadStorageFiles(storageFileIds: Guid[]){
+        const newIds = new Set(storageFileIds.filter((id) => !this.storageFileMap.has(id)));
+        newIds.forEach((id) => {
+            this.storageFileService.download(id).pipe(takeUntil(this._destroyed))
+            .subscribe({
+                next: response => {
+                    this.storageFileMap.set(id, this.sanitizer.bypassSecurityTrustUrl(URL.createObjectURL(response.body)));
+                },
+                error: error => this.onCallbackError(error)
+            });
+        })
+    }
 
 	protected initializeLookup(): DescriptionLookup {
 		const lookup = new DescriptionLookup();
@@ -209,7 +249,7 @@ export class DescriptionListingComponent extends BaseListingComponent<BaseDescri
 		lookup.page = { offset: 0, size: this.ITEMS_PER_PAGE };
 		lookup.isActive = [IsActive.Active];
 
-		let recentActivityOrder = this.isPublic ? this.toDescSortField(nameof<Description>(x => x.finalizedAt)) : this.toDescSortField(nameof<Description>(x => x.updatedAt));
+		const recentActivityOrder = this.isPublic ? this.toDescSortField(nameof<Description>(x => x.finalizedAt)) : this.toDescSortField(nameof<Description>(x => x.updatedAt));
 		lookup.order = { items: [recentActivityOrder] };
 
 		this.updateOrderUiFields(lookup.order);
@@ -223,25 +263,13 @@ export class DescriptionListingComponent extends BaseListingComponent<BaseDescri
 
 	protected setupColumns() { }
 
-	public dashboardTour: GuidedTour = {
-		tourId: 'plan-description-tour',
-		useOrb: true,
-		steps: [
-			{
-				selector: '.plan-tour',
-				content: 'Step 1',
-				orientation: Orientation.Right,
-				isStepUnique: false
-			},
-			{
-				selector: '.description-tour',
-				content: 'Step 2',
-				orientation: Orientation.Right,
-				isStepUnique: false,
-				useHighlightPadding: true
-			}
-		]
-	};
+	private readonly tourState = inject(TourStateService);
+	private readonly pageTour = descriptionListingPageTour(inject(TranslateService));
+
+	override ngOnDestroy(): void {
+		this.tourState.unregisterPageTour(this.pageTour);
+		super.ngOnDestroy();
+	}
 
 	public isAuthenticated(): boolean {
 		return this.authService.currentAccountIsAuthenticated();
@@ -260,23 +288,23 @@ export class DescriptionListingComponent extends BaseListingComponent<BaseDescri
 
 	orderByChanged($event: MatSelectChange) {
 		const value = $event.value as RecentActivityOrder;
-		const directionPrefix = this.isAscending ? '-' : '+';
+		const directionPrefix = this.isDescending ? '-' : '+';
 
 		switch (value) {
 			case RecentActivityOrder.Status: {
-				this.lookup.order = { items: [directionPrefix + nameof<Plan>(x => x.status)] };
+				this.lookup.order = { items: [directionPrefix + nameof<Description>(x => x.status)] };
 				break;
 			}
 			case RecentActivityOrder.Label: {
-				this.lookup.order = { items: [directionPrefix + nameof<Plan>(x => x.label)] };
+				this.lookup.order = { items: [directionPrefix + nameof<Description>(x => x.label)] };
 				break;
 			}
 			case RecentActivityOrder.PublishedAt: {
-				this.lookup.order = { items: [directionPrefix + nameof<Plan>(x => x.finalizedAt)] };
+				this.lookup.order = { items: [directionPrefix + nameof<Description>(x => x.finalizedAt)] };
 				break;
 			}
 			default: {
-				this.lookup.order = { items: [directionPrefix + nameof<Plan>(x => x.updatedAt)] };
+				this.lookup.order = { items: [directionPrefix + nameof<Description>(x => x.updatedAt)] };
 				break;
 			}
 		};
@@ -284,28 +312,37 @@ export class DescriptionListingComponent extends BaseListingComponent<BaseDescri
 		this.filterChanged(this.lookup);
 	}
 
-	openFiltersDialog(): void {
-		const dialogRef: MatDialogRef<DescriptionFilterDialogComponent, DescriptionListingFilters> = this.dialog.open(DescriptionFilterDialogComponent, {
-			width: '456px',
-			height: '100%',
-			id: 'filters',
-			restoreFocus: false,
-			position: { right: '0px;' },
-			panelClass: 'dialog-side-panel',
-			data: {
-				isPublic: this.isPublic ?? true,
-				hasSelectedTenant: this.authService.selectedTenant() != 'default',
-				lookup: this.lookup,
-				referencesWithTypeItems: this.referenceFilters ?? [],
-			}
-		});
+    filtersDialogOpen: boolean = false;
+    toggleFilters(): void {
+        this.filtersDialogOpen = !this.filtersDialogOpen;
+        // let dialogRef: MatDialogRef<DescriptionFilterDialogComponent, DescriptionListingFilters> = this.dialog.open(DescriptionFilterDialogComponent, {
+        // 	width: '400px',
+        // 	height: '100%',
+        // 	id: 'filters',
+        // 	restoreFocus: false,
+        // 	position: { right: '0px;' },
+        // 	panelClass: 'dialog-side-panel',
+        // 	data: {
+        // 		isPublic: this.isPublic ?? true,
+        // 		hasSelectedTenant: this.authService.selectedTenant() != 'default',
+        //         lookup: this.lookup,
+        // 		//filterForm: this._buildFormFromLookup(this.lookup),
+        // 		referencesWithTypeItems: this.referenceFilters ?? [],
+        // 	}
+        // });
 
-		dialogRef.afterClosed().pipe(takeUntil(this._destroyed)).subscribe(result => {
-			if (!result) return;
+        // dialogRef.afterClosed().pipe(takeUntil(this._destroyed)).subscribe(result => {
+        //     this.filtersDialogOpen = false;
+        // 	if (!result) return;
 
-			this.updateDataFn(result);
-		});
-	}
+        // 	this.updateDataFn(result);
+        // });
+    }
+
+    onFiltersChanged(filters: DescriptionListingFilters){
+        this.filtersDialogOpen = false;
+        this.updateDataFn(filters);
+    }
 
 	updateDataFn(filters: DescriptionListingFilters): void {
 		this.referenceFilters = this._patchReferenceFilters(filters);
@@ -319,41 +356,25 @@ export class DescriptionListingComponent extends BaseListingComponent<BaseDescri
 		return document.getElementById("main-page").scrollHeight > document.documentElement.clientHeight
 	}
 
+	/** In-page "Take a tour" prompt; Support > Take a tour uses the same replay. */
 	public restartTour(): void {
-		this.setDashboardTourPlanText();
-		this.setDashboardTourDescriptionText();
-		this.guidedTourService.startTour(this.dashboardTour);
+		this.tourState.startPageTour();
 	}
 
-	public setDashboardTourPlanText(): void {
-		this.planText = this.language.instant('PLAN-LISTING.TEXT-INFO') + '\n\n' +
-			this.language.instant('PLAN-LISTING.TEXT-INFO-QUESTION') + ' ' +
-			this.language.instant('PLAN-LISTING.LINK-ZENODO') + ' ' +
-			this.language.instant('PLAN-LISTING.GET-IDEA');
-		this.dashboardTour.steps[0].title = this.planText;
-	}
-
-	public setDashboardTourDescriptionText(): void {
-		this.descriptionText = this.language.instant('DESCRIPTION-LISTING.TEXT-INFO') + '\n\n' +
-			this.language.instant('DESCRIPTION-LISTING.TEXT-INFO-QUESTION') + ' ' +
-			this.language.instant('DESCRIPTION-LISTING.GET-IDEA');
-		this.dashboardTour.steps[1].title = this.descriptionText;
-	}
-
-	openNewPlanDialog() {
-		if (this.dialog.openDialogs.length > 0) {
-			this.dialog.closeAll();
-		}
-		else {
-			const dialogRef = this.dialog.open(StartNewPlanDialogComponent, {
-				disableClose: false,
-				data: {
-					isDialog: true
-				},
-                maxWidth: 'min(95vw, 33rem)'
-			});
-		}
-	}
+	// openNewPlanDialog() {
+	// 	if (this.dialog.openDialogs.length > 0) {
+	// 		this.dialog.closeAll();
+	// 	}
+	// 	else {
+	// 		const dialogRef = this.dialog.open(StartNewPlanDialogComponent, {
+	// 			disableClose: false,
+	// 			data: {
+	// 				isDialog: true
+	// 			},
+    //             maxWidth: 'min(95vw, 33rem)'
+	// 		});
+	// 	}
+	// }
 
 	addNewDescription() {
 		const formGroup = this.fb.group({
@@ -362,7 +383,6 @@ export class DescriptionListingComponent extends BaseListingComponent<BaseDescri
 
 		const dialogRef = this.dialog.open(StartNewDescriptionDialogComponent, {
 			disableClose: false,
-			restoreFocus: false,
 			data: {
 				startNewPlan: false,
 				formGroup: formGroup,
@@ -370,12 +390,8 @@ export class DescriptionListingComponent extends BaseListingComponent<BaseDescri
             maxWidth: '600px'
 		});
 		dialogRef.afterClosed().pipe(takeUntil(this._destroyed)).subscribe(result => {
-			if (result) {
-				if (result.startNewPlan) {
-					this.openNewPlanDialog();
-				} else {
-					this.router.navigate([this.routerUtils.generateUrl(['/plans/', 'edit/', result.formGroup.get('planId').value])]);
-				}
+			if (result?.formGroup) {
+				this.router.navigate([this.routerUtils.generateUrl(['/plans/', 'edit/', result.formGroup.get('planId').value])]);
 			}
 		});
 	}
@@ -386,7 +402,7 @@ export class DescriptionListingComponent extends BaseListingComponent<BaseDescri
 
 	toggleSortDirection(): void {
 		const orderBy = this.lookup?.order?.items[0]?.substring(1) ?? nameof<Description>(x => x.updatedAt);
-		const sortDirection = this.isAscending ? '+' : '-';
+		const sortDirection = this.isDescending ? '+' : '-';
 		this.lookup.order.items = [`${sortDirection}${orderBy}`];
 		this.filterChanged(this.lookup);
 	}
@@ -401,7 +417,7 @@ export class DescriptionListingComponent extends BaseListingComponent<BaseDescri
 	}
 
 	private _parseLookupFromParams(params: Params): DescriptionLookup {
-		let lookup: DescriptionLookup = JSON.parse(params['lookup']);
+		const lookup: DescriptionLookup = JSON.parse(params['lookup']);
 
 		if (!lookup) return this.initializeLookup();
 		lookup.like = lookup.like ?? null;
@@ -435,72 +451,34 @@ export class DescriptionListingComponent extends BaseListingComponent<BaseDescri
 	}
 
 	_patchLookupFromFilters(filters: DescriptionListingFilters): DescriptionLookup {
-		this.lookup.statusIds = filters?.statusId != null ? [filters?.statusId] : null;
-		this.lookup.isActive = filters?.isActive ? [IsActive.Active] : [IsActive.Inactive];
+		const tenant = this.tenants?.find(t => t.code && t.code?.toString() == this.authService.selectedTenant());
+		return DescriptionFilterService.patchLookup(this.lookup, filters, { tenantCode: tenant?.code ?? null, principalId: this.authService.userId() });
+	}
 
-		// Description Templates
-		let descriptionTemplates = filters?.descriptionTemplates ?? null;
-		if (descriptionTemplates && descriptionTemplates?.length > 0) {
-			this.lookup.descriptionTemplateSubQuery = DescriptionFilterService.initializeDescriptionTemplateLookup();
-			this.lookup.descriptionTemplateSubQuery.groupIds = descriptionTemplates;
-		} else this.lookup.descriptionTemplateSubQuery = null;
+	/** Drops one reference from the active reference filter (the chip's remove button). */
+	removeReferenceFilter(referenceId: Guid): void {
+		const remaining = (this.lookup.descriptionReferenceSubQuery?.referenceIds ?? []).filter(x => x?.toString() !== referenceId?.toString());
+		this._setReferenceFilter(remaining);
+	}
 
-		// Plans
-		if (filters?.role || filters?.associatedPlanIds?.length) {
-			this.lookup.planSubQuery = DescriptionFilterService.initializePlanLookup();
-			this.lookup.planSubQuery.isActive = filters.isActive == true ? [IsActive.Active] : [IsActive.Active, IsActive.Inactive];
-			if (filters?.associatedPlanIds?.length) this.lookup.planSubQuery.ids = filters?.associatedPlanIds ?? null;
+	clearReferenceFilters(): void {
+		this._setReferenceFilter([]);
+	}
 
-			if (filters?.role) {
-				this.lookup.planSubQuery.planUserSubQuery = DescriptionFilterService.initializePlanUserLookup();
-				this.lookup.planSubQuery.planUserSubQuery.isActive = filters.isActive == true ? [IsActive.Active] : [IsActive.Active, IsActive.Inactive];
-				const principalId: Guid = this.authService.userId();
-				if (principalId) this.lookup.planSubQuery.planUserSubQuery.userIds = [principalId];
-				this.lookup.planSubQuery.planUserSubQuery.userRoles = [filters?.role];
-			}
-		} else this.lookup.planSubQuery = null;
-
-		// Tags
-		let tags = filters?.tags ?? null;
-		if (tags && tags?.length > 0) {
-			this.lookup.descriptionTagSubQuery = DescriptionFilterService.initializeTagLookup();
-			this.lookup.descriptionTagSubQuery.isActive = filters.isActive == true ? [IsActive.Active] : [IsActive.Inactive];
-			this.lookup.descriptionTagSubQuery.tagIds = tags;
-		} else this.lookup.descriptionTagSubQuery = null;
-
-		// References
-		let references: Guid[] = filters?.references
-				?.filter((reference: ReferencesWithType) => reference.referenceTypeId != null && reference.referenceIds?.length > 0)
-				?.flatMap((referencesWithType: ReferencesWithType) => referencesWithType.referenceIds) as Guid[];
-
-		if (references && references?.length > 0) {
-			this.lookup.descriptionReferenceSubQuery = DescriptionFilterService.initializeReferenceLookup();
-			this.lookup.descriptionReferenceSubQuery.isActive = filters.isActive == true ? [IsActive.Active] : [IsActive.Inactive];
-			this.lookup.descriptionReferenceSubQuery.referenceIds = references;
-		} else this.lookup.descriptionReferenceSubQuery = null;
-
-		return this.lookup;
+	private _setReferenceFilter(referenceIds: Guid[]): void {
+		DescriptionFilterService.setReferenceIds(this.lookup, referenceIds);
+		this.referenceFilters = referenceIds.length ? [{ referenceTypeId: null, referenceIds }] : null;
+		this.filtersCount = this._countFilters(this.lookup);
+		this.lookup.page = { size: this.pageSize, offset: 0 };
+		this.filterChanged(this.lookup);
 	}
 
 	_patchReferenceFilters(filters: DescriptionListingFilters): ReferencesWithType[] {
-		return filters?.references?.filter(( referencesWithType: ReferencesWithType ) => referencesWithType.referenceTypeId != null && referencesWithType.referenceIds?.length > 0) ?? null;
+		return filters?.references?.filter(( referencesWithType: ReferencesWithType ) => referencesWithType?.referenceIds?.length > 0) ?? null;
 	}
 
 	private _countFilters(lookup: DescriptionLookup): number {
-		let count = 0;
-
-		if (lookup.statusIds) count += lookup.statusIds.length;
-		if (lookup.isActive[0] == IsActive.Inactive) count += lookup.isActive.length;
-		if (lookup.tenantSubQuery) count += 1;
-		if (lookup.descriptionTemplateSubQuery) count += lookup.descriptionTemplateSubQuery.groupIds?.length;
-		if (lookup.descriptionTagSubQuery) count += lookup.descriptionTagSubQuery.tagIds?.length;
-		if (lookup.planSubQuery) {
-			if (lookup.planSubQuery.ids) count += lookup.planSubQuery.ids?.length;
-			if (lookup.planSubQuery.planUserSubQuery) count += lookup.planSubQuery.planUserSubQuery.userRoles?.length;
-		}
-		if (lookup.descriptionReferenceSubQuery) count += lookup.descriptionReferenceSubQuery.referenceIds?.length;
-
-		return count;
+		return DescriptionFilterService.countFilters(lookup);
 	}
 
 	private get _lookupFields(): string[] {
@@ -514,9 +492,10 @@ export class DescriptionListingComponent extends BaseListingComponent<BaseDescri
 			[nameof<Description>(x => x.status), nameof<DescriptionStatus>(x => x.internalStatus)].join('.'),
 			[nameof<Description>(x => x.status), nameof<DescriptionStatus>(x => x.definition), nameof<DescriptionStatusDefinition>(x => x.availableActions)].join('.'),
 			[nameof<Description>(x => x.status), nameof<DescriptionStatus>(x => x.definition), nameof<DescriptionStatusDefinition>(x => x.statusColor)].join('.'),
-                    [nameof<Plan>(x => x.status), nameof<PlanStatus>(x => x.definition), nameof<DescriptionStatusDefinition>(x => x.matIconName)].join('.'),
-                    [nameof<Plan>(x => x.status), nameof<PlanStatus>(x => x.definition), nameof<DescriptionStatusDefinition>(x => x.storageFile), nameof<StorageFile>(x => x.id)].join('.'),
+            [nameof<Description>(x => x.status), nameof<DescriptionStatus>(x => x.definition), nameof<DescriptionStatusDefinition>(x => x.iconConfiguration), nameof<IconConfiguration>(x => x.matIconName)].join('.'),
+            [nameof<Description>(x => x.status), nameof<DescriptionStatus>(x => x.definition), nameof<DescriptionStatusDefinition>(x => x.iconConfiguration), nameof<IconConfiguration>(x => x.storageFile), nameof<StorageFile>(x => x.id)].join('.'),
 
+			nameof<Description>(x => x.createdAt),
 			nameof<Description>(x => x.updatedAt),
 			nameof<Description>(x => x.belongsToCurrentTenant),
 			nameof<Description>(x => x.finalizedAt),
@@ -529,6 +508,14 @@ export class DescriptionListingComponent extends BaseListingComponent<BaseDescri
 			[nameof<Description>(x => x.descriptionTemplate), nameof<DescriptionTemplate>(x => x.id)].join('.'),
 			[nameof<Description>(x => x.descriptionTemplate), nameof<DescriptionTemplate>(x => x.label)].join('.'),
 			[nameof<Description>(x => x.descriptionTemplate), nameof<DescriptionTemplate>(x => x.groupId)].join('.'),
+            [nameof<Description>(x => x.descriptionTemplate), nameof<DescriptionTemplate>(x => x.type), nameof<DescriptionTemplateType>(x => x.id)].join('.'),
+            [nameof<Description>(x => x.descriptionTemplate), nameof<DescriptionTemplate>(x => x.type), nameof<DescriptionTemplateType>(x => x.name)].join('.'),
+			[nameof<Description>(x => x.descriptionReferences), nameof<DescriptionReference>(x => x.id)].join('.'),
+			[nameof<Description>(x => x.descriptionReferences), nameof<DescriptionReference>(x => x.reference), nameof<Reference>(x => x.id)].join('.'),
+			[nameof<Description>(x => x.descriptionReferences), nameof<DescriptionReference>(x => x.reference), nameof<Reference>(x => x.label)].join('.'),
+			[nameof<Description>(x => x.descriptionReferences), nameof<DescriptionReference>(x => x.reference), nameof<Reference>(x => x.type), nameof<ReferenceType>(x => x.id)].join('.'),
+			[nameof<Description>(x => x.descriptionReferences), nameof<DescriptionReference>(x => x.reference), nameof<Reference>(x => x.reference)].join('.'),
+			[nameof<Description>(x => x.descriptionReferences), nameof<DescriptionReference>(x => x.isActive)].join('.'),
 			[nameof<Description>(x => x.plan), nameof<Plan>(x => x.id)].join('.'),
 			[nameof<Description>(x => x.plan), nameof<Plan>(x => x.label)].join('.'),
 			[nameof<Description>(x => x.plan), nameof<Plan>(x => x.status), nameof<PlanStatus>(x => x.id)].join('.'),
@@ -538,19 +525,15 @@ export class DescriptionListingComponent extends BaseListingComponent<BaseDescri
 			[nameof<Description>(x => x.plan), nameof<Plan>(x => x.finalizedAt)].join('.'),
 			[nameof<Description>(x => x.plan), nameof<Plan>(x => x.blueprint), nameof<PlanBlueprint>(x => x.id)].join('.'),
 			[nameof<Description>(x => x.plan), nameof<Plan>(x => x.blueprint), nameof<PlanBlueprint>(x => x.label)].join('.'),
-			[nameof<Description>(x => x.plan), nameof<Plan>(x => x.blueprint), nameof<PlanBlueprint>(x => x.definition), nameof<PlanBlueprintDefinition>(x => x.sections), nameof<PlanBlueprintDefinitionSection>(x => x.id)].join('.'),
-			[nameof<Description>(x => x.plan), nameof<Plan>(x => x.blueprint), nameof<PlanBlueprint>(x => x.definition), nameof<PlanBlueprintDefinition>(x => x.sections), nameof<PlanBlueprintDefinitionSection>(x => x.label)].join('.'),
-			[nameof<Description>(x => x.plan), nameof<Plan>(x => x.blueprint), nameof<PlanBlueprint>(x => x.definition), nameof<PlanBlueprintDefinition>(x => x.sections), nameof<PlanBlueprintDefinitionSection>(x => x.hasTemplates)].join('.'),
+			[nameof<Description>(x => x.plan), nameof<Plan>(x => x.blueprint), nameof<PlanBlueprint>(x => x.definition), nameof<PlanBlueprintDefinition>(x => x.sections), nameof<RootSection>(x => x.id)].join('.'),
+			[nameof<Description>(x => x.plan), nameof<Plan>(x => x.blueprint), nameof<PlanBlueprint>(x => x.definition), nameof<PlanBlueprintDefinition>(x => x.sections), nameof<RootSection>(x => x.title)].join('.'),
+			[nameof<Description>(x => x.plan), nameof<Plan>(x => x.blueprint), nameof<PlanBlueprint>(x => x.definition), nameof<PlanBlueprintDefinition>(x => x.sections), nameof<RootSection>(x => x.sections)].join('.'),
+			[nameof<Description>(x => x.plan), nameof<Plan>(x => x.blueprint), nameof<PlanBlueprint>(x => x.definition), nameof<PlanBlueprintDefinition>(x => x.sections), nameof<RootSection>(x => x.hasTemplates)].join('.'),
 			[nameof<Description>(x => x.plan), nameof<Plan>(x => x.planUsers), nameof<PlanUser>(x => x.id)].join('.'),
 			[nameof<Description>(x => x.plan), nameof<Plan>(x => x.planUsers), nameof<PlanUser>(x => x.user.id)].join('.'),
+			[nameof<Description>(x => x.plan), nameof<Plan>(x => x.planUsers), nameof<PlanUser>(x => x.user.name)].join('.'),
 			[nameof<Description>(x => x.plan), nameof<Plan>(x => x.planUsers), nameof<PlanUser>(x => x.role)].join('.'),
 			[nameof<Description>(x => x.plan), nameof<Plan>(x => x.planUsers), nameof<PlanUser>(x => x.isActive)].join('.'),
-			[nameof<Description>(x => x.plan), nameof<Plan>(x => x.planReferences), nameof<PlanReference>(x => x.id)].join('.'),
-			[nameof<Description>(x => x.plan), nameof<Plan>(x => x.planReferences), nameof<PlanReference>(x => x.reference), nameof<Reference>(x => x.id)].join('.'),
-			[nameof<Description>(x => x.plan), nameof<Plan>(x => x.planReferences), nameof<PlanReference>(x => x.reference), nameof<Reference>(x => x.label)].join('.'),
-			[nameof<Description>(x => x.plan), nameof<Plan>(x => x.planReferences), nameof<PlanReference>(x => x.reference), nameof<Reference>(x => x.type), nameof<ReferenceType>(x => x.id)].join('.'),
-			[nameof<Description>(x => x.plan), nameof<Plan>(x => x.planReferences), nameof<PlanReference>(x => x.reference), nameof<Reference>(x => x.reference)].join('.'),
-			[nameof<Description>(x => x.plan), nameof<Plan>(x => x.planReferences), nameof<PlanReference>(x => x.isActive)].join('.'),
 			[nameof<Description>(x => x.planDescriptionTemplate), nameof<PlanDescriptionTemplate>(x => x.id)].join('.'),
 			[nameof<Description>(x => x.planDescriptionTemplate), nameof<PlanDescriptionTemplate>(x => x.plan), nameof<Plan>(x => x.id)].join('.'),
 			[nameof<Description>(x => x.planDescriptionTemplate), nameof<PlanDescriptionTemplate>(x => x.descriptionTemplateGroupId)].join('.'),

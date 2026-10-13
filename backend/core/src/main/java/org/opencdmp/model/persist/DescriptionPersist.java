@@ -8,7 +8,7 @@ import org.opencdmp.commons.enums.DescriptionStatus;
 import org.opencdmp.commons.enums.IsActive;
 import org.opencdmp.commons.types.descriptiontemplate.DefinitionEntity;
 import org.opencdmp.commons.types.planblueprint.BlueprintDescriptionTemplateEntity;
-import org.opencdmp.commons.types.planblueprint.SectionEntity;
+import org.opencdmp.commons.types.planblueprint.RootSectionEntity;
 import org.opencdmp.commons.validation.BaseValidator;
 import org.opencdmp.convention.ConventionService;
 import org.opencdmp.data.*;
@@ -222,7 +222,6 @@ public class DescriptionPersist {
                             .must(() -> this.isValidGuid(item.getStatusId()))
                             .failOn(DescriptionPersist._statusId).failWith(this.messageSource.getMessage("Validation_Required", new Object[]{DescriptionPersist._statusId}, LocaleContextHolder.getLocale())),
                     this.spec()
-                            .iff(() -> finalStatusEntity != null && finalStatusEntity.getInternalStatus() != null && finalStatusEntity.getInternalStatus() == DescriptionStatus.Finalized)
                             .must(() -> !this.isNull(item.getProperties()))
                             .failOn(DescriptionPersist._properties).failWith(this.messageSource.getMessage("Validation_Required", new Object[]{DescriptionPersist._properties}, LocaleContextHolder.getLocale())),
                     this.spec()
@@ -251,7 +250,7 @@ public class DescriptionPersist {
 
             List<DescriptionEntity> descriptionEntities = this.queryFactory.query(DescriptionQuery.class).disableTracking().planIds(planId).planDescriptionTemplateIds(planDescriptionTemplateId).isActive(IsActive.Active).collect();
 
-            for (SectionEntity section: definition.getSections()) {
+            for (RootSectionEntity section: definition.getSections()) {
                 if (planDescriptionTemplateEntity.getSectionId().equals(section.getId()) && section.getHasTemplates() && !this.isListNullOrEmpty(section.getDescriptionTemplates())){
                     int descriptionsCount;
                     if (isUpdate) descriptionsCount = -1;

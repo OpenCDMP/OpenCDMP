@@ -34,6 +34,7 @@ public class ElasticConfiguration extends AbstractElasticConfiguration {
 						new IsActiveToShortConverter(),
 						new PlanVersionStatusToShortConverter(),
 						new PlanAccessTypeToShortConverter(),
+						new PlanBlueprintVersionStatusToShortConverter(),
 
 						new ShortToPlanStatusConverter(),
 						new ShortToPlanUserRoleConverter(),
@@ -42,7 +43,8 @@ public class ElasticConfiguration extends AbstractElasticConfiguration {
 						new ShortToDescriptionStatusConverter(),
 						new ShortToIsActiveConverter(),
 						new ShortToPlanVersionStatusConverter(),
-						new ShortToPlanAccessTypeConverter()
+						new ShortToPlanAccessTypeConverter(),
+						new ShortToPlanBlueprintVersionStatusConverter()
 				));
 	}
 }

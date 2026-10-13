@@ -38,7 +38,18 @@
 	"kpi_service": {
 		"enabled": "${KPI_SERVICE_ENABLED}",
 		"address": "${KPI_SERVICE_ADDRESS}",
-		"dashboards": []
+		"dashboards": [
+			{
+				"dashboardId": "dmp_dashboard",
+				"keywordFilter": "tenant_code",
+				"availableToRoles": ["Admin", "InstallationAdmin", "TenantAdmin"]
+			},
+			{
+				"dashboardId": "dmp_admin_dashboard",
+				"keywordFilter": null,
+				"availableToRoles": ["Admin", "InstallationAdmin"]
+			}
+		]
 	},
 	"accounting_service": {
 		"enabled": "${ACCOUNTING_SERVICE_ENABLED}"
@@ -51,7 +62,6 @@
 		"providers": []
 	},
 	"lockInterval": 60000,
-	"orcidPath": "https://orcid.org/",
 	"maxFileSizeInMB": 10,
 	"authProviders": {
 		"defaultAuthProvider": {
@@ -73,7 +83,6 @@
 	},
 	"referenceTypes": {
 		"researcherId": "5a2112e7-ea99-4cfe-98a1-68665e26726e",
-		"grantId": "5b9c284f-f041-4995-96cc-fad7ad13289c",
 		"organizationId": "7eeffb98-58fb-4921-82ec-e27f32f8e738"
 	},
     "userWay": {

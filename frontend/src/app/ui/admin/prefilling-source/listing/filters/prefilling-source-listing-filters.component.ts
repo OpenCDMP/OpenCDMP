@@ -1,7 +1,8 @@
-import { Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges } from '@angular/core';
+import { Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges, ChangeDetectionStrategy } from '@angular/core';
 import { FormControl, FormGroup } from '@angular/forms';
 import { IsActive } from '@app/core/common/enum/is-active.enum';
 import { PrefillingSourceFilter } from '@app/core/query/prefilling-source.lookup';
+import { AuthService } from '@app/core/services/auth/auth.service';
 import { EnumUtils } from '@app/core/services/utilities/enum-utils.service';
 import { BaseComponent } from '@common/base/base.component';
 import { nameof } from 'ts-simple-nameof';
@@ -10,23 +11,29 @@ import { nameof } from 'ts-simple-nameof';
     selector: 'app-prefilling-source-listing-filters',
     templateUrl: './prefilling-source-listing-filters.component.html',
     styleUrls: ['./prefilling-source-listing-filters.component.scss'],
-    standalone: false
+    changeDetection: ChangeDetectionStrategy.Eager
 })
 export class PrefillingSourceListingFiltersComponent extends BaseComponent implements OnInit, OnChanges {
 
 	@Input() readonly filter: PrefillingSourceFilter;
+	@Input() hasSelectedTenant: boolean = false;
 	@Output() filterChange = new EventEmitter<PrefillingSourceFilter>();
 
 	// * State
 	internalFilters: FormGroup<PrefillingSourceListingFilters> = new FormGroup({
-        isActive: new FormControl(true),
-        like: new FormControl(null),
+        showDeleted: new FormControl<boolean>(false, { nonNullable: true }),
+        like: new FormControl<string | null>(null),
     });
-    
+
+    get formIsDirty(): boolean {
+        return this.internalFilters.controls.showDeleted.dirty;
+    }
+
 	protected appliedFilterCount: number = 0;
-    
+
 	constructor(
 		public enumUtils: EnumUtils,
+		private authService: AuthService,
 	) { super(); }
 
 	ngOnInit() {
@@ -51,11 +58,10 @@ export class PrefillingSourceListingFiltersComponent extends BaseComponent imple
 	}
 
 	protected applyFilters(): void {
-		const { isActive, like } = this.internalFilters?.value ?? {}
+		const { showDeleted, like } = this.internalFilters?.value ?? {}
 		this.filterChange.emit({
+			// search, deleted state and tenant scope live in the listing toolbar and arrive through `filter`
 			...this.filter,
-			like,
-			isActive: isActive ? [IsActive.Active] : [IsActive.Inactive]
 		});
         this.internalFilters.markAsPristine();
 	}
@@ -63,21 +69,21 @@ export class PrefillingSourceListingFiltersComponent extends BaseComponent imple
 
 	private _parseToInternalFilters(inputFilter: PrefillingSourceFilter) {
 		if (!inputFilter) {
-			this._getEmptyFilters();
+			return this._getEmptyFilters();
 		}
 
-		let { isActive, like } = inputFilter;
+		const { isActive, like } = inputFilter;
 
 		this.internalFilters.setValue({
-			isActive: (isActive ?? [])?.includes(IsActive.Active) || !isActive?.length,
-			like: like ?? null
+			showDeleted: (isActive ?? []).includes(IsActive.Inactive),
+			like: like ?? null,
 		});
 
 	}
 
 	private _getEmptyFilters() {
 		this.internalFilters.setValue({
-			isActive: true,
+			showDeleted: false,
 			like: null,
 		});
 	}
@@ -85,9 +91,6 @@ export class PrefillingSourceListingFiltersComponent extends BaseComponent imple
 	private _computeAppliedFilters(formGroup: FormGroup<PrefillingSourceListingFilters>): number {
 		const filters = formGroup?.value;
         let count = 0;
-		if (!filters?.isActive) {
-			count++;
-		}
 		if (filters?.like) {
 			count++;
 		}
@@ -97,11 +100,11 @@ export class PrefillingSourceListingFiltersComponent extends BaseComponent imple
 
 	clearFilters() {
 		this._getEmptyFilters();
-        this.internalFilters.markAsDirty();
+        this.internalFilters.controls.showDeleted.markAsDirty();
 	}
 }
 
 interface PrefillingSourceListingFilters {
-	isActive: FormControl<boolean>;
-	like: FormControl<string>;
+	showDeleted: FormControl<boolean>;
+	like: FormControl<string | null>;
 }

@@ -10,7 +10,7 @@ import { Guid } from "@common/types/guid";
 export class PlanNewVersionDialogEditorModel implements NewVersionPlanPersist {
 	id: Guid;
 	label: string;
-	description: String;
+	description: string;
 	blueprintId: Guid;
 	descriptions: NewVersionPlanDescriptionEditorModel[] = [];
 	hash?: string;
@@ -39,7 +39,7 @@ export class PlanNewVersionDialogEditorModel implements NewVersionPlanPersist {
 				if (item.planDescriptionTemplates?.length > 0 && blueprint.id === item.blueprint.id) { // plan's first blueprint
 					item.descriptions.forEach(description => {
                         const isActive = description.isActive === IsActive.Active;
-						this.descriptions.push(new NewVersionPlanDescriptionEditorModel(this.validationErrorModel).fromModel(description.id, isActive ? description.planDescriptionTemplate.sectionId : null));
+						this.descriptions.push(new NewVersionPlanDescriptionEditorModel(this.validationErrorModel).fromModel(description.id, isActive ? Guid.parse(description.planDescriptionTemplate.sectionId) : null));
 					})
 				} else { // in case the user changes the blueprint from the dropdown and the new blueprint has prefilled templates
 					const selectedBlueprintSections = blueprint.definition?.sections?.filter(x => x.hasTemplates) || null;
@@ -47,7 +47,7 @@ export class PlanNewVersionDialogEditorModel implements NewVersionPlanPersist {
 						item.descriptions.forEach(description => {
                             const isActive = description.isActive === IsActive.Active;
 							const matchingSection = selectedBlueprintSections.find(blueprintSection => blueprintSection.descriptionTemplates != null && blueprintSection.descriptionTemplates.map(y => y.descriptionTemplate?.groupId).includes(description.descriptionTemplate?.groupId)) || null;
-							this.descriptions.push(new NewVersionPlanDescriptionEditorModel(this.validationErrorModel).fromModel(description.id, matchingSection != null && isActive ? matchingSection.id : null));
+							this.descriptions.push(new NewVersionPlanDescriptionEditorModel(this.validationErrorModel).fromModel(description.id, matchingSection != null && isActive ? Guid.parse(matchingSection.id) : null));
 						})
 					}
 				}

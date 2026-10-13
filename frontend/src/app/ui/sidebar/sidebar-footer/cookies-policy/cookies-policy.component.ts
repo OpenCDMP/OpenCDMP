@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { SupportiveMaterialFieldType } from '@app/core/common/enum/supportive-material-field-type';
 import { AuthService } from '@app/core/services/auth/auth.service';
@@ -11,7 +11,7 @@ import { takeUntil } from 'rxjs';
     selector: 'app-cookies-policy',
     templateUrl: './cookies-policy.component.html',
     styleUrls: ['./cookies-policy.component.scss'],
-    standalone: false
+    changeDetection: ChangeDetectionStrategy.Eager
 })
 export class CookiesPolicyComponent extends BaseComponent implements OnInit {
 

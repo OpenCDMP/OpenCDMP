@@ -1,0 +1,12 @@
+report:
+  # Above this many matching items a report is refused rather than truncated, so a number
+  # a funder is given is never quietly partial
+  maxSubjects: ${REPORT_MAX_SUBJECTS:20000}
+  # The same across every tenant; items are read in batches, so the bound is time, not memory
+  maxSubjectsInstallation: ${REPORT_MAX_SUBJECTS_INSTALLATION:100000}
+  maxQuestions: ${REPORT_MAX_QUESTIONS:10}
+  maxDimensions: ${REPORT_MAX_DIMENSIONS:3}
+  # Distinct free-text answers reported before the tail is summarised as other text
+  textTopN: ${REPORT_TEXT_TOP_N:20}
+  # How long the parsed question index of a tenant is kept for the question search; 0 disables the cache
+  searchCacheSeconds: ${REPORT_SEARCH_CACHE_SECONDS:60}

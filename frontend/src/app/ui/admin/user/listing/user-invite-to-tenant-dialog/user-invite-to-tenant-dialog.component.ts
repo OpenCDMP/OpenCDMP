@@ -1,27 +1,35 @@
 
 import { COMMA, ENTER } from '@angular/cdk/keycodes';
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, computed, HostBinding, Inject, OnInit } from '@angular/core';
-import { UntypedFormArray, UntypedFormGroup } from '@angular/forms';
-import { MatDialogRef } from '@angular/material/dialog';
+import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { UntypedFormArray, FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { MatDialogRef, MatDialogTitle, MatDialogContent, MatDialogActions } from '@angular/material/dialog';
 import { ActivatedRoute, Router } from '@angular/router';
 import { SnackBarNotificationLevel, UiNotificationService } from '@app/core/services/notification/ui-notification-service';
 import { EnumUtils } from '@app/core/services/utilities/enum-utils.service';
 import { BaseComponent } from '@common/base/base.component';
 import { FormService } from '@common/forms/form-service';
 import { HttpError, HttpErrorHandlingService } from '@common/modules/errors/error-handling/http-error-handling.service';
-import { TranslateService } from '@ngx-translate/core';
+import { TranslateService, TranslatePipe } from '@ngx-translate/core';
 import { takeUntil } from 'rxjs/operators';
 import { UserInviteToTenantRequestEditorModel, UserTenantUsersInviteRequestEditorModel } from './user-invite-to-tenant-dialog-editor.model';
 import { UserTenantUsersInviteRequest } from '@app/core/model/user/user';
 import { UserService } from '@app/core/services/user/user.service';
 import { AppRole } from '@app/core/common/enum/app-role';
+import { MatIconButton, MatButton } from '@angular/material/button';
+import { MatIcon } from '@angular/material/icon';
+import { CdkScrollable } from '@angular/cdk/scrolling';
+import { MatFormField, MatLabel, MatError } from '@angular/material/form-field';
+import { MatInput } from '@angular/material/input';
+import { MatSelect, MatOption } from '@angular/material/select';
+import { MatTooltip } from '@angular/material/tooltip';
 
 @Component({
     selector: 'app-user-invite-to-tenant-dialog.component',
     templateUrl: 'user-invite-to-tenant-dialog.component.html',
     styleUrls: ['./user-invite-to-tenant-dialog.component.scss'],
-    standalone: false
+    changeDetection: ChangeDetectionStrategy.Eager,
+    imports: [MatDialogTitle, MatIconButton, MatIcon, CdkScrollable, MatDialogContent, MatFormField, MatLabel, MatInput, FormsModule, ReactiveFormsModule, MatError, MatSelect, MatOption, MatTooltip, MatDialogActions, MatButton, TranslatePipe]
 })
 export class UserInviteToTenantDialogComponent extends BaseComponent implements OnInit {
    
@@ -98,7 +106,7 @@ export class UserInviteToTenantDialogComponent extends BaseComponent implements 
 
 	onCallbackError(errorResponse: HttpErrorResponse) {
 		this.inProgressSendButton = false;
-		let errorOverrides = new Map<number, string>();
+		const errorOverrides = new Map<number, string>();
 		errorOverrides.set(-1, this.language.instant('USER-INVITE-TO-TENANT-DIALOG.ERROR'));
 		this.httpErrorHandlingService.handleBackedRequestError(errorResponse, errorOverrides, SnackBarNotificationLevel.Error);
 

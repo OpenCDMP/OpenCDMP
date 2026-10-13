@@ -1,76 +1,190 @@
-<div mat-dialog-title class="row d-flex align-items-center gap-half-rem">
-  @if (isSelectionRankType && selectionRankResult) {
-    <span>
-      {{ 'PLAN-EVALUATE-DIALOG.HEADER' | translate }}: {{enumUtils.toSuccessStatusString(selectionRankResult)}}
-    </span>
-  }
-  <button class="ml-auto" mat-icon-button (click)="close()"  [attr.aria-label]="'ALT-TEXT.CLOSE-DIALOG'  | translate">
-    <mat-icon aria-hidden>close</mat-icon>
+<div mat-dialog-title class="dialog-title">
+  <div class="title-main">
+    <span>{{ 'PLAN-EVALUATE-DIALOG.HEADER' | translate }}</span>
+  </div>
+  <button class="ml-auto" mat-icon-button (click)="close()" [attr.aria-label]="'ALT-TEXT.CLOSE-DIALOG' | translate">
+    <mat-icon aria-hidden="true">close</mat-icon>
   </button>
 </div>
+
 <div mat-dialog-content class="dialog-content">
   @if(evaluatorId){
-    <small class="pb-3" [innerHTML]="'GENERAL.EVALUATOR.' + evaluatorId.toUpperCase() + '.RESULTS-DESCRIPTION' | translate"></small>
-  }
-  @if(data.rankData.details){
-    <mat-card>
-      <mat-card-header>
-        <mat-card-title>{{'PLAN-EVALUATE-DIALOG.DETAILS-SUB-HEADER' | translate}}</mat-card-title>
-      </mat-card-header>
-      <mat-form-field appearance="fill">
-        <mat-label>{{'PLAN-EVALUATE-DIALOG.DETAILS-BODY' | translate}}</mat-label>
-        <textarea matInput [value]="data.rankData.details" rows="4" disabled></textarea>
-      </mat-form-field>
-    </mat-card>
+    <div class="results-description" [innerHTML]="'GENERAL.EVALUATOR.' + evaluatorId.toUpperCase() + '.RESULTS-DESCRIPTION' | translate"></div>
   }
 
-  @if(data.rankData.results){
-    <div class="d-flex flex-column gap-half-rem">
-      @let indexing = data.rankData.results.length > 1;
-      @for(result of data.rankData.results; track $index; let j = $index) {
-        <mat-card>
-          @if (result.benchmarkTitle?.length > 0) {
-            <mat-card-header>
-              <mat-card-title>{{indexing ? (j+1 + '.') : ''}} {{result.benchmarkTitle}}</mat-card-title>
-            </mat-card-header>
+  @if (hasResultTabs) {
+    <div class="rank-tabs" role="tablist" [attr.aria-label]="'PLAN-EVALUATE-DIALOG.RESULTS-TABLIST-LABEL' | translate">
+      @for(rankResult of rankResults; track $index; let k = $index) {
+        @let tabStatus = selectionRankResultFor(rankResult);
+        @let tabPassed = isSelectionRankType && tabStatus === SuccessStatus.Pass;
+        @let tabSkipped = isSelectionRankType && tabStatus === SuccessStatus.NotEvaluated;
+        @let tabFailed = isSelectionRankType && tabStatus === SuccessStatus.Fail;
+        @let tabLabel = targetLabelFor(rankResult);
+        <button type="button" role="tab"
+          class="rank-tab"
+          [id]="'evaluation-result-tab-' + k"
+          [class.selected]="k === selectedIndex"
+          [class.passed]="tabPassed"
+          [class.failed]="tabFailed"
+          [class.skipped]="tabSkipped"
+          [attr.aria-selected]="k === selectedIndex"
+          [attr.aria-controls]="'evaluation-result-panel-' + k"
+          [attr.tabindex]="k === selectedIndex ? 0 : -1"
+          [attr.title]="tabLabel"
+          (click)="select(k)"
+          (keydown)="onTabsKeydown($event, k)">
+          @if (tabPassed || tabFailed || tabSkipped) {
+            <mat-icon class="rank-tab-icon" aria-hidden="true">{{ tabPassed ? 'check_circle' : (tabSkipped ? 'remove_circle' : 'cancel') }}</mat-icon>
           }
-          <mat-card-content>
-            <div>@if (result.benchmarkDetails) {
-              <span> {{result.benchmarkDetails}}</span>
-            }</div>
+          <span class="rank-tab-label">
+            @if (tabLabel) {
+              {{ tabLabel }}
+            } @else {
+              {{ 'PLAN-EVALUATE-DIALOG.RESULT-SUB-HEADER' | translate }} {{ k + 1 }}
+            }
+          </span>
+          @if (tabPassed || tabFailed || tabSkipped) {
+            <span class="sr-only">{{ enumUtils.toSuccessStatusString(tabStatus) }}</span>
+          }
+        </button>
+      }
+    </div>
+  }
+
+  @if (selectedRankResult) {
+    <div [attr.role]="hasResultTabs ? 'tabpanel' : null"
+      [attr.id]="hasResultTabs ? ('evaluation-result-panel-' + selectedIndex) : null"
+      [attr.aria-labelledby]="hasResultTabs ? ('evaluation-result-tab-' + selectedIndex) : null"
+      [attr.tabindex]="hasResultTabs ? 0 : null">
+      <ng-container *ngTemplateOutlet="rankResultBody; context: { $implicit: selectedRankResult }"></ng-container>
+    </div>
+  }
+</div>
+
+<!-- One rank result: what it covers, then a card per benchmark. -->
+<ng-template #rankResultBody let-rankResult>
+  @let selectionRankResult = selectionRankResultFor(rankResult);
+  @let notEvaluated = isNotEvaluated(rankResult);
+  @let targetLabel = targetLabelFor(rankResult);
+  @let targetUrl = targetUrlFor(rankResult);
+  <div class="d-flex flex-column gap-half-rem rank-result-block">
+    @if (targetLabel) {
+      <div class="rank-result-target">
+        @if (isAssetTarget(rankResult)) {
+          <div class="rank-result-target-type">{{ 'PLAN-EVALUATE-DIALOG.TARGET-TYPE.ASSET' | translate }}</div>
+        }
+        <div class="rank-result-target-name">
+          <span>{{ targetLabel }}</span>
+          @if (targetUrl) {
+            <!-- New tab, so following the link does not throw away the report behind it. -->
+            <a class="rank-result-target-link" [href]="targetUrl" target="_blank" rel="noopener"
+              [attr.aria-label]="('PLAN-EVALUATE-DIALOG.OPEN-TARGET' | translate) + ': ' + targetLabel">
+              <mat-icon aria-hidden="true">open_in_new</mat-icon>
+              <span>{{ 'PLAN-EVALUATE-DIALOG.OPEN-TARGET' | translate }}</span>
+            </a>
+          }
+        </div>
+      </div>
+    }
+
+    @if ((isSelectionRankType && selectionRankResult) || rankResult.results?.length) {
+      <div class="rank-result-head">
+        @if (isSelectionRankType && selectionRankResult) {
+          <span class="result-chip"
+            [class.passed]="selectionRankResult === SuccessStatus.Pass"
+            [class.failed]="selectionRankResult === SuccessStatus.Fail"
+            [class.skipped]="notEvaluated">
+            {{ enumUtils.toSuccessStatusString(selectionRankResult) }}
+          </span>
+        }
+        @if(rankResult.results?.length){
+          <div class="results-summary">
+            <span class="summary-passed">{{ passedCountFor(rankResult) }} {{ 'TYPES.EVALUATOR-SUCCESS-STATUS.PASS' | translate | lowercase }}</span>
+            <span class="summary-sep">&#8226;</span>
+            <span class="summary-failed">{{ failedCountFor(rankResult) }} {{ 'TYPES.EVALUATOR-SUCCESS-STATUS.FAIL' | translate | lowercase }}</span>
+          </div>
+        }
+      </div>
+    }
+
+    @if(notEvaluated || showDetailsFor(rankResult)){
+      @if (notEvaluated) {
+        <!-- Nothing was assessed, so the evaluator's reason is the result. -->
+        <div class="skip-notice">
+          <mat-icon class="skip-notice-icon" aria-hidden="true">info</mat-icon>
+          <div>
+            <div class="skip-notice-title">{{ 'PLAN-EVALUATE-DIALOG.NOT-EVALUATED-SUB-HEADER' | translate }}</div>
+            <div class="result-body">{{ rankResult.details }}</div>
+          </div>
+        </div>
+      } @else {
+        <div class="result-card">
+          <div class="result-card-title">{{'PLAN-EVALUATE-DIALOG.DETAILS-SUB-HEADER' | translate}}</div>
+          <div class="result-body">{{ rankResult.details }}</div>
+        </div>
+      }
+    }
+
+    @if(rankResult.results){
+      <div class="d-flex flex-column gap-half-rem">
+        @let indexing = rankResult.results.length > 1;
+        @for(result of rankResult.results; track $index; let j = $index) {
+          @let passed = resultPassed(result);
+          <div class="result-card" [class.passed]="passed === true" [class.failed]="passed === false">
+            <div class="result-card-head">
+              @if (result.benchmarkTitle?.length > 0) {
+                <div class="result-card-title">{{indexing ? (j + 1 + '. ') : ''}}{{result.benchmarkTitle}}</div>
+              }
+              @if (passed !== null) {
+                <span class="result-chip" [class.passed]="passed" [class.failed]="!passed">
+                  {{ (passed ? 'TYPES.EVALUATOR-SUCCESS-STATUS.PASS' : 'TYPES.EVALUATOR-SUCCESS-STATUS.FAIL') | translate }}
+                </span>
+              }
+            </div>
+
+            @if (result.benchmarkDetails) {
+              <div class="result-body">{{ result.benchmarkDetails }}</div>
+            }
+
             @if(result.metrics?.length > 0){
               @for(metric of result.metrics; track $index; let i = $index) {
-                <div>@if (metric.metricTitle?.length > 0) {
-                  <span> {{metric.metricTitle}}</span>
-                }</div>
-                <div>@if (metric.metricDetails?.length > 0) {
-                  <span> {{metric.metricDetails}}</span>
-                }</div>
-                <div>@if (metric.rank == 0) {
-                  <span>{{ 'PLAN-EVALUATE-DIALOG.METRIC-RESULT' | translate }}:<strong> {{'TYPES.EVALUATOR-SUCCESS-STATUS.FAIL' | translate}} </strong></span>
-                }</div>
-                <div>@if (metric.rank == 1) {
-                  <span>{{ 'PLAN-EVALUATE-DIALOG.METRIC-RESULT' | translate }}:<strong> {{'TYPES.EVALUATOR-SUCCESS-STATUS.PASS' | translate}} </strong></span>
-                }</div>
-                <div>
-                  <ul>
-                    @for (message of metric.messages; track message; let i = $index) {
-                      <li>
-                        @if (message.title?.length > 0) {
-                          <strong>{{ message.title }}:</strong> {{ message.message }}
-                        } @else {
+                @let metricStatus = metricPassed(metric);
+                <div class="metric">
+                  @if (result.metrics.length > 1) {
+                    <div class="metric-head">
+                      @if (metric.metricTitle?.length > 0) {
+                        <span class="metric-title">{{ metric.metricTitle }}</span>
+                      }
+                      @if (metricStatus !== null) {
+                        <span class="result-chip small" [class.passed]="metricStatus" [class.failed]="!metricStatus">
+                          {{ (metricStatus ? 'TYPES.EVALUATOR-SUCCESS-STATUS.PASS' : 'TYPES.EVALUATOR-SUCCESS-STATUS.FAIL') | translate }}
+                        </span>
+                      }
+                    </div>
+                  }
+
+                  @if (metric.messages?.length > 0) {
+                    <ul class="metric-messages">
+                      @for (message of metric.messages; track $index) {
+                        <li>
+                          @if (message.title?.length > 0) {
+                            <strong>{{ message.title }}:</strong>
+                          }
                           {{ message.message }}
-                        }
-                      </li>
-                    }
-                  </ul>
+                        </li>
+                      }
+                    </ul>
+                  }
+
+                  @if (metric.metricDetails?.length > 0) {
+                    <pre class="output-block">{{ metric.metricDetails }}</pre>
+                  }
                 </div>
               }
             }
-          </mat-card-content>
-        </mat-card>
-      }
-    </div>
-
-  }
-</div>
+          </div>
+        }
+      </div>
+    }
+  </div>
+</ng-template>

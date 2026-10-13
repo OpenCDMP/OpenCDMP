@@ -1,5 +1,6 @@
 package org.opencdmp.model.persist.descriptiontemplatedefinition;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import gr.cite.tools.validation.ValidatorFactory;
 import gr.cite.tools.validation.specification.Specification;
 import org.opencdmp.commons.validation.BaseValidator;
@@ -11,6 +12,7 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.stereotype.Component;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -39,6 +41,10 @@ public class SectionPersist {
     private List<FieldSetPersist> fieldSets;
 
     public static final String _fieldSets = "fieldSets";
+
+    private List<String> semantics;
+
+    public static final String _semantics = "semantics";
 
     public String getId() {
         return this.id;
@@ -86,6 +92,44 @@ public class SectionPersist {
 
     public void setFieldSets(List<FieldSetPersist> fieldSets) {
         this.fieldSets = fieldSets;
+    }
+
+    public List<String> getSemantics() {
+        return this.semantics;
+    }
+
+    public void setSemantics(List<String> semantics) {
+        this.semantics = semantics;
+    }
+
+    @JsonIgnore
+    public List<FieldPersist> getAllField(){
+        List<FieldPersist> fieldPersists = new ArrayList<>();
+        if (this.getFieldSets() != null){
+            for (FieldSetPersist fieldSetPersist: this.getFieldSets()) {
+                fieldPersists.addAll(fieldSetPersist.getAllField());
+            }
+        }
+        if (this.getSections() != null){
+            for (SectionPersist sectionPersist: this.getSections()) {
+                fieldPersists.addAll(sectionPersist.getAllField());
+            }
+        }
+        return fieldPersists;
+    }
+
+    @JsonIgnore
+    public List<FieldSetPersist> getAllFieldSets(){
+        List<FieldSetPersist> fieldSetEntities = new ArrayList<>();
+        if (this.getFieldSets() != null){
+            fieldSetEntities.addAll(this.getFieldSets());
+        }
+        if (this.getSections() != null){
+            for (SectionPersist sectionEntity: this.getSections()) {
+                fieldSetEntities.addAll(sectionEntity.getAllFieldSets());
+            }
+        }
+        return fieldSetEntities;
     }
 
     @Component(SectionPersistValidator.ValidatorName)

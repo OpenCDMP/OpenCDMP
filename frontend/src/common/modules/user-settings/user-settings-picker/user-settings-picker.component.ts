@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges } from '@angular/core';
+import { Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges, ChangeDetectionStrategy } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
 import { UserSettingsInformation } from '@app/core/model/user-settings/user-settings.model';
 import { UserSetting, UserSettingsService } from '@app/core/services/user-settings/user-settings.service';
@@ -6,15 +6,13 @@ import { BaseComponent } from '@common/base/base.component';
 import { ConfirmationDialogComponent } from '@common/modules/confirmation-dialog/confirmation-dialog.component';
 import { Guid } from '@common/types/guid';
 import { TranslateService } from '@ngx-translate/core';
-import { isNullOrUndefined } from '@swimlane/ngx-datatable';
 import { takeUntil } from 'rxjs/operators';
 import { nameof } from 'ts-simple-nameof';
 
 @Component({
     selector: 'app-user-settings-picker',
-    templateUrl: './user-settings-picker.component.html',
-    styleUrls: ['./user-settings-picker.component.scss'],
-    standalone: false
+    template: '',
+    changeDetection: ChangeDetectionStrategy.Eager
 })
 export class UserSettingsPickerComponent extends BaseComponent implements OnInit, OnChanges {
 
@@ -94,7 +92,7 @@ export class UserSettingsPickerComponent extends BaseComponent implements OnInit
 	}
 
 	getSettingName(setting: UserSetting<any>) {
-		return !isNullOrUndefined(setting?.name) ? setting.name : 'Default';
+		return setting.name ?? 'Default';
 	}
 
 	settingSelected(event: UserSetting<any>) {
@@ -120,7 +118,6 @@ export class UserSettingsPickerComponent extends BaseComponent implements OnInit
 		if (value) {
 			const dialogRef = this.dialog.open(ConfirmationDialogComponent, {
 				maxWidth: '400px',
-				restoreFocus: false,
 				data: {
 					message: this.language.instant('GENERAL.CONFIRMATION-DIALOG.DELETE-USER-SETTING-PROFILE'),
 					confirmButton: this.language.instant('GENERAL.CONFIRMATION-DIALOG.ACTIONS.CONFIRMATION'),

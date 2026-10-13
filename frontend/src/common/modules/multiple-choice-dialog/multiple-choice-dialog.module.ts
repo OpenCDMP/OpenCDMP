@@ -6,9 +6,8 @@ import { MultipleChoiceDialogComponent } from './multiple-choice-dialog.componen
 
 
 @NgModule({
-	imports: [CommonUiModule, FormsModule],
-	declarations: [MultipleChoiceDialogComponent],
-	exports: [MultipleChoiceDialogComponent]
+    imports: [CommonUiModule, FormsModule, MultipleChoiceDialogComponent],
+    exports: [MultipleChoiceDialogComponent]
 })
 export class MultipleChoiceDialogModule { 
 	constructor() { }

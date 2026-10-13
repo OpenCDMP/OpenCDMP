@@ -9,18 +9,18 @@
       }
       <div class="col-auto justify-content-end">
         <button mat-icon-button (click)="close()"  [attr.aria-label]="'ALT-TEXT.CLOSE-DIALOG'  | translate">
-          <mat-icon aria-hidden>close</mat-icon>
+          <mat-icon aria-hidden="true">close</mat-icon>
         </button>
       </div>
     </div>
   }
 
   <div class="row align-items-center">
-    <div class="col message pl-3">{{ data.message }}</div>
+    <div mat-dialog-title class="col message pl-3">{{ data.message }}</div>
     @if (!data.icon) {
       <div class="col-auto justify-content-end">
         <button mat-icon-button (click)="close()"  [attr.aria-label]="'ALT-TEXT.CLOSE-DIALOG'  | translate">
-          <mat-icon aria-hidden>close</mat-icon>
+          <mat-icon aria-hidden="true">close</mat-icon>
         </button>
       </div>
     }
@@ -48,9 +48,8 @@
     </div>
   }
   @for (title of data.titles; track title; let i = $index) {
-    <span [matTooltip]="title.matTooltipDisabledMessage" [matTooltipDisabled]="!title.buttonDisabled" >
+    <span [matTooltip]="title.matTooltipDisabledMessage" [matTooltipDisabled]="!title.buttonDisabled">
       <button
-        [ngClass]="{'col-12 mb-2': data.titles?.length > 2}"
         mat-flat-button
         color="primary"
         [disabled]="title.buttonDisabled"

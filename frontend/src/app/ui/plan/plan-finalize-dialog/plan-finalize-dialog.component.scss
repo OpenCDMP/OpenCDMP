@@ -65,3 +65,44 @@
 	font-style: italic;
 	color: rgba(0, 0, 0, 0.26);
 }
+
+// FE-3: explicit exclusion warning + jump-to-error
+.exclusion-warning {
+	display: flex;
+	align-items: flex-start;
+	gap: 0.5rem;
+	margin: 1rem 0.5rem 0;
+	padding: 0.75rem 1rem;
+	background-color: #fff4e5;
+	color: #663c00;
+	border: 1px solid #ffdcab;
+	border-radius: 0.5rem;
+
+	.exclusion-warning--icon {
+		flex-shrink: 0;
+		color: #ed6c02;
+	}
+	.exclusion-warning--title {
+		font-weight: 600;
+	}
+	.exclusion-warning--list {
+		margin: 0.25rem 0 0;
+		padding-left: 1.25rem;
+	}
+}
+
+.fix-fields-btn {
+	margin-top: 0.5rem;
+}
+
+// FE-2: "sections needing input" list in the finalize dialog
+.sections-needing-input {
+	.section-needing-input-row {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 0.5rem;
+		padding: 0.25rem 0;
+		.fix-fields-btn { margin-top: 0; }
+	}
+}

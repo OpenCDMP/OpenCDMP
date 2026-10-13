@@ -16,6 +16,7 @@ import { ConfigurationService } from '../configuration/configuration.service';
 import { BaseHttpV2Service } from '../http/base-http-v2.service';
 import { PrefillingTestRequest } from '@app/core/model/prefilling-source/prefilling-source-test';
 import { ExternalFetcherBaseSourceConfigurationPersist } from '@app/core/model/external-fetcher/external-fetcher';
+import { ReferenceSourceTestResult } from '@app/core/model/reference/reference';
 
 @Injectable()
 export class PrefillingSourceService {
@@ -43,11 +44,12 @@ export class PrefillingSourceService {
 				catchError((error: any) => throwError(error)));
 	}
 
-	persist(item: PrefillingSourcePersist): Observable<PrefillingSource> {
+	persist(item: PrefillingSourcePersist, reqFields: string[] = []): Observable<PrefillingSource> {
 		const url = `${this.apiBase}/persist`;
+		const options = { params: { f: reqFields } };
 
 		return this.http
-			.post<PrefillingSource>(url, item).pipe(
+			.post<PrefillingSource>(url, item, options).pipe(
 				catchError((error: any) => throwError(error)));
 	}
 
@@ -72,6 +74,14 @@ export class PrefillingSourceService {
 
 		return this.http
 			.post<Prefilling[]>(url, item).pipe(
+				catchError((error: any) => throwError(error)));
+	}
+
+	testSource(item: PrefillingTestRequest): Observable<ReferenceSourceTestResult> {
+		const url = `${this.apiBase}/test-source`;
+
+		return this.http
+			.post<ReferenceSourceTestResult>(url, item).pipe(
 				catchError((error: any) => throwError(error)));
 	}
 

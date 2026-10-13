@@ -2,6 +2,7 @@ import { Lookup } from '@common/model/lookup';
 import { Guid } from '@common/types/guid';
 import { IsActive } from '../common/enum/is-active.enum';
 import { ReferenceSourceType } from '../common/enum/reference-source-type';
+import { TenantLookup } from './tenant.lookup';
 
 export class ReferenceLookup extends Lookup implements ReferenceFilter {
 	ids: Guid[];
@@ -10,6 +11,11 @@ export class ReferenceLookup extends Lookup implements ReferenceFilter {
 	isActive: IsActive[];
 	sourceTypes: ReferenceSourceType[];
 	typeIds: Guid[];
+	tenantSubQuery: TenantLookup;
+	/** false: only the default tenant's shared rows; true: only tenant-owned rows; absent: both. */
+	tenantIsSet?: boolean;
+	/** true: only entries a current plan or asset uses. */
+	isUsed?: boolean;
 
 	constructor() {
 		super();
@@ -45,4 +51,5 @@ export interface ReferenceFilter {
 	isActive: IsActive[];
 	sourceTypes: ReferenceSourceType[];
 	typeIds: Guid[];
+	tenantSubQuery: TenantLookup | null;
 }

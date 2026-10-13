@@ -18,6 +18,9 @@ public class PlanBlueprintType {
     public final static String _name = "name";
     private String name;
 
+    public static final String _ordinal = "ordinal";
+    private Integer ordinal;
+
     public final static String _createdAt = "createdAt";
     private Instant createdAt;
 
@@ -61,6 +64,14 @@ public class PlanBlueprintType {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public Integer getOrdinal() {
+        return ordinal;
+    }
+
+    public void setOrdinal(Integer ordinal) {
+        this.ordinal = ordinal;
     }
 
     public Instant getCreatedAt() {

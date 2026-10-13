@@ -1,0 +1,76 @@
+<div class="dt">
+	<div class="dt-main">
+		<!-- ------------------------------------------------ about -->
+		<app-se2-about-card [typeConfiguration]="editor.planBlueprintTypeConfiguration" [typeName]="$safeNavigationMigration(editor.item?.type?.name)" />
+
+		<!-- ------------------------------------------------ consent -->
+		<section class="bp2-card">
+			<div class="bp2-card__head">
+				<div>
+					<div class="bp2-card__title"><h2>{{'PLAN-BLUEPRINT-EDITOR.CONSENT.TITLE' | translate}}</h2></div>
+					<div class="bp2-card__desc">{{'PLAN-BLUEPRINT-EDITOR.CONSENT.HINT' | translate}}</div>
+				</div>
+				@if (editor.readOnly) {
+					<span class="bp2-tag" [class.bp2-tag--ok]="consentEnabled">{{ (consentEnabled ? 'PLAN-BLUEPRINT-EDITOR.READ.ON' : 'PLAN-BLUEPRINT-EDITOR.READ.OFF') | translate }}</span>
+				} @else {
+					<mat-slide-toggle class="dt-consent__switch" [checked]="consentEnabled" (change)="editor.onConsentEnabledChange($event.checked)" labelPosition="before">{{'PLAN-BLUEPRINT-EDITOR.CONSENT.ASK' | translate}}</mat-slide-toggle>
+				}
+			</div>
+			@if (consentEnabled && editor.readOnly) {
+				<div class="bp2-card__body">
+					<dl class="bp2-read">
+						<dt>{{'PLAN-BLUEPRINT-EDITOR.CONSENT.MESSAGE' | translate}}</dt><dd>{{ consent.get('message').value || '—' }}</dd>
+						<dt>{{'PLAN-BLUEPRINT-EDITOR.CONSENT.DETAILS' | translate}}</dt>
+						<dd>@if (consent.get('details').value) { <div class="bp2-read__rich" [innerHTML]="consent.get('details').value"></div> } @else { — }</dd>
+					</dl>
+				</div>
+			} @else if (consentEnabled) {
+				<div class="bp2-card__body dt-consent__body">
+					<mat-form-field class="dt-full" subscriptSizing="dynamic">
+						<mat-label>{{'PLAN-BLUEPRINT-EDITOR.CONSENT.MESSAGE' | translate}}</mat-label>
+						<input matInput type="text" [formControl]="consent.get('message')" required>
+						<mat-hint>{{'PLAN-BLUEPRINT-EDITOR.CONSENT.MESSAGE-HINT' | translate}}</mat-hint>
+						@if (consent.get('message').hasError('backendError')) { <mat-error>{{consent.get('message').getError('backendError').message}}</mat-error> }
+						@if (consent.get('message').hasError('required')) { <mat-error>{{'PLAN-BLUEPRINT-EDITOR.PROBLEMS.CONSENT-MESSAGE' | translate}}</mat-error> }
+					</mat-form-field>
+					<div class="bp2-rich-field">
+						<label class="bp2-field-label" for="bp2-consent-details" [appFor]="'bp2-consent-details'">{{'PLAN-BLUEPRINT-EDITOR.CONSENT.DETAILS' | translate}} <span class="bp2-sub">({{'PLAN-BLUEPRINT-EDITOR.OPTIONAL' | translate}})</span></label>
+						<rich-text-editor-component [id]="'bp2-consent-details'" [form]="consent.get('details')" [placeholder]="'PLAN-BLUEPRINT-EDITOR.CONSENT.DETAILS-PLACEHOLDER'"></rich-text-editor-component>
+						<div class="bp2-help">{{'PLAN-BLUEPRINT-EDITOR.CONSENT.DETAILS-HINT' | translate}}</div>
+						@if (consent.get('details').hasError('backendError')) { <mat-error>{{consent.get('details').getError('backendError').message}}</mat-error> }
+					</div>
+				</div>
+			}
+		</section>
+
+		<!-- ------------------------------------------------ export template -->
+		@if (hasPlugins) {
+			<app-se2-export-card [pluginsForm]="definition.get('pluginConfigurations')" [pluginConfiguration]="editor.pluginRepositoryConfigurations" />
+		}
+	</div>
+
+	<aside class="dt-aside">
+		<!-- ------------------------------------------------ author preview -->
+		<section class="bp2-card">
+			<div class="bp2-card__head"><div class="bp2-card__title"><h2>{{'PLAN-BLUEPRINT-EDITOR.PREVIEW.TITLE' | translate}}</h2></div></div>
+			<div class="bp2-card__body">
+				<div class="bp2-caption" style="margin: 0;">{{'PLAN-BLUEPRINT-EDITOR.PREVIEW.IN-LIBRARY' | translate}}</div>
+				<div class="dt-preview-row">
+					<span class="bp2-tile">@if (iconForm.get('matIconName')?.value) { <mat-icon>{{iconForm.get('matIconName').value}}</mat-icon> } @else { <mat-icon>description</mat-icon> }</span>
+					<div class="dt-preview-row__text">
+						<div class="bp2-row" style="gap: .5rem;"><strong>{{ form.get('label').value || ('PLAN-BLUEPRINT-EDITOR.HEADER.NEW-BLUEPRINT' | translate) }}</strong>@if (editor.item?.type?.name) { <span class="bp2-tag bp2-tag--type">{{editor.item.type.name}}</span> }</div>
+						<div class="bp2-sub dt-preview-row__desc">{{ descriptionSnippet() || ('PLAN-BLUEPRINT-EDITOR.PREVIEW.NO-DESCRIPTION' | translate) }}</div>
+					</div>
+				</div>
+				@if (consentEnabled) {
+					<div class="bp2-caption" style="margin-bottom: 0;">{{'PLAN-BLUEPRINT-EDITOR.PREVIEW.BEFORE-CREATE' | translate}}</div>
+					<div class="dt-preview-consent">
+						<strong>{{ consent.get('message').value || ('PLAN-BLUEPRINT-EDITOR.CONSENT.MESSAGE' | translate) }}</strong>
+						@if (consent.get('details').value) { <div class="bp2-sub dt-preview-consent__details" [innerHTML]="consent.get('details').value"></div> }
+						<div class="bp2-row" style="margin-top: .625rem; gap: .5rem;"><span class="dt-fake-btn dt-fake-btn--primary" aria-hidden="true">{{'PLAN-BLUEPRINT-EDITOR.PREVIEW.ACCEPT' | translate}}</span></div>
+					</div>
+				}
+			</div>
+		</section>
+	</aside>
+</div>

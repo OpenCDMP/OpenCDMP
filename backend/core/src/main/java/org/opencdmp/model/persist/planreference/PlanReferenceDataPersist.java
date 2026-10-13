@@ -16,16 +16,28 @@ import java.util.UUID;
 
 public class PlanReferenceDataPersist {
 
-    private UUID blueprintFieldId;
+    private String blueprintFieldId;
 
     public static final String _blueprintFieldId = "blueprintFieldId";
 
-    public UUID getBlueprintFieldId() {
+    private Integer ordinal;
+
+    public static final String _ordinal = "ordinal";
+
+    public String getBlueprintFieldId() {
         return blueprintFieldId;
     }
 
-    public void setBlueprintFieldId(UUID blueprintFieldId) {
+    public void setBlueprintFieldId(String blueprintFieldId) {
         this.blueprintFieldId = blueprintFieldId;
+    }
+
+    public Integer getOrdinal() {
+        return ordinal;
+    }
+
+    public void setOrdinal(Integer ordinal) {
+        this.ordinal = ordinal;
     }
 
     @Component(PlanReferenceDataPersistValidator.ValidatorName)
@@ -50,7 +62,11 @@ public class PlanReferenceDataPersist {
             return Arrays.asList(
                     this.spec()
                             .must(() -> !this.isNull(item.getBlueprintFieldId()))
-                            .failOn(PlanReferenceDataPersist._blueprintFieldId).failWith(messageSource.getMessage("Validation_Required", new Object[]{PlanReferenceDataPersist._blueprintFieldId}, LocaleContextHolder.getLocale()))
+                            .failOn(PlanReferenceDataPersist._blueprintFieldId).failWith(messageSource.getMessage("Validation_Required", new Object[]{PlanReferenceDataPersist._blueprintFieldId}, LocaleContextHolder.getLocale())),
+                    this.spec()
+                            .must(() -> !this.isNull(item.getOrdinal()))
+                            .failOn(PlanReferenceDataPersist._ordinal).failWith(this.messageSource.getMessage("Validation_Required", new Object[]{PlanReferenceDataPersist._ordinal}, LocaleContextHolder.getLocale()))
+
             );
         }
     }

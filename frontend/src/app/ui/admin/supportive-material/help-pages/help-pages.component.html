@@ -1,0 +1,91 @@
+<div class="container-fluid">
+	<div class="row">
+		<div class="col-md-10 offset-md-1">
+			<app-admin-page-header titleKey="HELP-PAGES.TITLE" descriptionKey="HELP-PAGES.DESCRIPTION" />
+
+			<p class="hp-note">
+				{{ 'HELP-PAGES.ONBOARDING-NOTE' | translate }}
+				<a [routerLink]="onboardingUrl">{{ 'HELP-PAGES.ONBOARDING-LINK' | translate }}</a>
+			</p>
+
+			@if (selectedLanguage(); as language) {
+				<mat-form-field appearance="outline" subscriptSizing="dynamic" class="hp-language">
+					<mat-label>{{ 'HELP-PAGES.LANGUAGE' | translate }}</mat-label>
+					<mat-select [value]="language.code" (selectionChange)="selectLanguage($event.value)">
+						@for (option of languages(); track option.code) {
+							<mat-option [value]="option.code">{{ option.name }}@if (customisedIn(option.code)) { · {{ 'HELP-PAGES.STATE.CUSTOMISED' | translate }}}</mat-option>
+						}
+					</mat-select>
+				</mat-form-field>
+
+				<ul class="hp-list" [attr.aria-label]="'HELP-PAGES.GRID-LABEL' | translate">
+					@for (row of rows; track row.type) {
+						@let state = cellState(row.type, language.code);
+						<li class="hp-row">
+							<span class="hp-row__text">
+								<span class="hp-page">{{ row.name }}</span>
+								<a class="hp-open" [routerLink]="row.url" target="_blank" rel="noopener">
+									{{ 'HELP-PAGES.OPEN-PAGE' | translate }}
+									<mat-icon aria-hidden="true">open_in_new</mat-icon>
+								</a>
+							</span>
+							<button type="button" class="hp-cell" [class.hp-cell--custom]="state !== 'BUILT-IN'"
+								[class.hp-cell--active]="openCell()?.row.type === row.type && openCell()?.language.code === language.code"
+								[attr.aria-label]="row.name + ', ' + language.name + ': ' + ('HELP-PAGES.STATE.' + state | translate)"
+								(click)="open(row, language)">
+								{{ 'HELP-PAGES.STATE.' + state | translate }}
+							</button>
+						</li>
+					}
+				</ul>
+			}
+		</div>
+	</div>
+</div>
+
+@if (openCell(); as cell) {
+	<button type="button" class="hp-scrim" tabindex="-1" [attr.aria-label]="'HELP-PAGES.ACTIONS.CLOSE' | translate" (click)="close()"></button>
+	<aside class="hp-drawer" role="dialog" aria-modal="true" aria-labelledby="hp-drawer-title">
+		<div class="hp-drawer__head">
+			<div class="hp-drawer__title">
+				<h2 id="hp-drawer-title">{{ cell.row.name }} · {{ cell.language.name }}</h2>
+				@if (dirty()) {
+					<span class="hp-badge hp-badge--dirty">{{ 'HELP-PAGES.STATE.UNSAVED' | translate }}</span>
+				} @else {
+					<span class="hp-badge" [class.hp-badge--custom]="state() !== 'BUILT-IN'">{{ 'HELP-PAGES.STATE.' + state() | translate }}</span>
+				}
+			</div>
+			<button mat-icon-button type="button" (click)="close()" [attr.aria-label]="'HELP-PAGES.ACTIONS.CLOSE' | translate">
+				<mat-icon aria-hidden="true">close</mat-icon>
+			</button>
+		</div>
+
+		@if (editing()) {
+			<div class="hp-body">
+				<rich-text-editor-component [form]="payload" [includeAllConfig]="true" />
+			</div>
+		} @else {
+			<div class="hp-readonly">
+				<p class="hp-note">{{ (state() === 'SHARED' ? 'HELP-PAGES.SHARED-NOTE' : 'HELP-PAGES.BUILT-IN-NOTE') | translate }}</p>
+				@if (canEdit) {
+					<button mat-flat-button color="primary" type="button" (click)="customise()">{{ 'HELP-PAGES.ACTIONS.CUSTOMISE' | translate }}</button>
+				}
+			</div>
+			<iframe class="hp-body hp-frame" sandbox="" [srcdoc]="readOnlyHtml()" [title]="cell.row.name"></iframe>
+		}
+
+		<div class="hp-actions">
+			@if (canEdit && canDelete && state() === 'CUSTOMISED') {
+				<button mat-button type="button" class="hp-reset" [disabled]="busy()" (click)="reset()">{{ 'HELP-PAGES.ACTIONS.RESET' | translate }}</button>
+			} @else {
+				<span></span>
+			}
+			<div class="hp-actions__main">
+				<a mat-stroked-button [routerLink]="cell.row.url" target="_blank" rel="noopener">{{ 'HELP-PAGES.ACTIONS.PREVIEW' | translate }}</a>
+				@if (canEdit && editing()) {
+					<button mat-flat-button color="primary" type="button" [disabled]="busy() || !dirty()" (click)="save()">{{ 'HELP-PAGES.ACTIONS.SAVE' | translate }}</button>
+				}
+			</div>
+		</div>
+	</aside>
+}

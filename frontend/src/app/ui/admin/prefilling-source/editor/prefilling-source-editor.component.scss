@@ -1,18 +1,83 @@
-.prefilling-source-editor {
+// Frame of the redesigned prefilling source editor, matching the redesigned reference type, blueprint and template editors.
+@use '../../structure-editor/bp2-shared' as *;
 
-  .remove {
-	background-color: white;
-    color: black;
-  }
+:host { display: block; }
 
-  .add {
-	background-color: white;
-    color: #009700;
-  }
+.pf2 { display: flex; flex-direction: column; min-height: calc(100vh - 80px); }
+
+.pf2-header {
+	background: var(--mat-sys-surface);
+	border-bottom: 1px solid var(--mat-sys-outline-variant);
+	padding: 0 1.5rem;
+	&__row { display: flex; align-items: center; justify-content: space-between; gap: 1rem; min-height: 56px; }
+	&__row > app-navigation-breadcrumb { flex: 1 1 0; min-width: 0; overflow: hidden;
+		::ng-deep .row { flex-wrap: nowrap; }
+		::ng-deep .breadcrumb-container:last-child { flex: 0 1 auto; min-width: 0; max-width: none; text-overflow: ellipsis; }
+	}
+	&__actions { display: flex; align-items: center; gap: .5rem; flex: none; justify-content: flex-end; }
+	&__title { display: flex; align-items: center; gap: .875rem; padding: .75rem 0 .5rem; }
+	&__name { min-width: 0; h1 { margin: 0; font-size: 1.5rem; font-weight: 500; overflow-wrap: anywhere; } }
+	app-tenant-readonly-banner { display: block; margin-bottom: .5rem; }
 }
 
-::ng-deep .mdc-form-field {
-	label {
-		margin: 0;
-	}
+.pf2-saved { font-size: .8rem; color: var(--mat-sys-on-surface-variant); &--dirty { color: var(--mat-sys-tertiary); font-weight: 600; } }
+.pf2-more { width: 32px !important; height: 32px !important; padding: 0 !important; mat-icon { font-size: 20px; width: 20px; height: 20px; } }
+.pf2-danger { color: var(--mat-sys-error) !important; }
+.pf2-mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: .85rem; }
+.pf2-ellipsis { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; max-width: 100%; }
+.pf2-start { align-self: flex-start; }
+
+.pf2-tabs { display: flex; align-items: center; gap: .25rem; flex-wrap: wrap; }
+.pf2-tab {
+	display: inline-flex; align-items: center; gap: .5rem; height: 46px; padding: 0 .875rem; border: none; background: transparent; font: inherit; font-weight: 600; color: var(--mat-sys-on-surface-variant); border-bottom: 3px solid transparent; margin-bottom: -1px; cursor: pointer;
+	mat-icon { font-size: 18px; width: 18px; height: 18px; }
+	&--on { color: var(--mat-sys-primary); border-bottom-color: var(--mat-sys-primary); .pf2-step { background: var(--mat-sys-primary); color: var(--mat-sys-on-primary); } }
+	&:hover { color: var(--mat-sys-on-surface); }
+}
+.pf2-step { display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; border-radius: 50%; background: var(--mat-sys-surface-container-high); color: var(--mat-sys-on-surface); font-size: .75rem; font-weight: 800; }
+
+.pf2-main { flex: 1 1 0; padding: 1.25rem 1.5rem 2rem; min-width: 0; .bp2-card__head > button { flex: none; white-space: nowrap; } }
+.pf2-stack { display: flex; flex-direction: column; gap: 1.25rem; }
+.pf2-split { display: flex; gap: 1.25rem; align-items: flex-start; @media (max-width: 1100px) { flex-direction: column; align-items: stretch; } }
+.pf2-grow { flex: 1 1 0; min-width: 0; }
+.pf2-aside { width: 340px; flex: none; display: flex; flex-direction: column; gap: 1.25rem; @media (max-width: 1100px) { width: auto; } }
+.pf2-next { display: flex; justify-content: flex-end; }
+
+.pf2-about { display: grid !important; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); gap: 1rem !important; align-items: start; mat-form-field { width: 100%; } @media (max-width: 700px) { grid-template-columns: 1fr; } }
+
+.pf2-section { display: flex; flex-direction: column; gap: .75rem;
+	&__head { display: flex; flex-direction: column; gap: .125rem; h2 { margin: 0; font-size: 1.1rem; font-weight: 500; } }
+}
+
+.pf2-codes { display: flex; flex-wrap: wrap; gap: .375rem; }
+.pf2-code { font-family: ui-monospace, Menlo, Consolas, monospace; font-size: .8rem; padding: .25rem .5rem; border-radius: 6px; background: var(--mat-sys-surface-container-high); }
+
+// ---- fill rules
+.pf2-rules { border: 1px solid var(--mat-sys-outline-variant); border-radius: 10px; overflow: hidden; }
+.pf2-rule {
+	display: grid; grid-template-columns: minmax(0, 1fr) 24px minmax(0, 1.4fr) 36px; gap: .75rem; align-items: center; padding: .625rem .875rem; border-top: 1px solid var(--mat-sys-outline-variant);
+	&--head { border-top: 0; background: var(--mat-sys-surface-container-low); font-size: .75rem; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; color: var(--mat-sys-on-surface-variant); }
+	&--warn { background: color-mix(in srgb, var(--bp2-todo-bg) 45%, transparent); }
+	&__from { display: flex; flex-direction: column; min-width: 0; gap: 2px; > .pf2-mono { overflow-wrap: anywhere; } }
+	&__arrow { color: var(--mat-sys-on-surface-variant); font-size: 20px; width: 20px; height: 20px; }
+	&__to { display: flex; flex-wrap: wrap; gap: .375rem; min-width: 0; }
+}
+.pf2-empty { display: flex; flex-direction: column; align-items: center; gap: .375rem; padding: 2rem 1rem; border: 1.5px dashed var(--mat-sys-outline-variant); border-radius: 10px; text-align: center;
+	mat-icon { font-size: 36px; width: 36px; height: 36px; color: var(--mat-sys-primary); }
+	.bp2-sub { max-width: 440px; line-height: 1.45; }
+}
+
+// ---- try it
+.pf2-try { display: grid; grid-template-columns: minmax(0, 420px) minmax(0, 1fr); gap: 1.25rem; align-items: start; @media (max-width: 1000px) { grid-template-columns: 1fr; } }
+.pf2-try__search { display: flex; gap: .75rem; align-items: center; mat-form-field { flex: 1 1 0; } }
+.pf2-clamp { display: -webkit-box; -webkit-line-clamp: 5; line-clamp: 5; -webkit-box-orient: vertical; overflow: hidden; }
+.pf2-picks { display: flex; flex-direction: column; border: 1px solid var(--mat-sys-outline-variant); border-radius: 10px; overflow: auto; max-height: 520px; }
+.pf2-pick { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; padding: .625rem .875rem; border: 0; border-top: 1px solid var(--mat-sys-outline-variant); background: var(--mat-sys-surface); font: inherit; color: inherit; text-align: left; cursor: pointer; min-width: 0;
+	&:first-child { border-top: 0; }
+	&:hover { background: var(--mat-sys-surface-container-low); }
+	&--on { background: var(--mat-sys-primary-container); color: var(--mat-sys-on-primary-container); .bp2-sub { color: inherit; } }
+}
+.pf2-outcome { display: flex; flex-direction: column; border: 1px solid var(--mat-sys-outline-variant); border-radius: 10px; overflow: hidden;
+	&__row { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.8fr) minmax(0, 200px); gap: .75rem; padding: .5rem .875rem; border-top: 1px solid var(--mat-sys-outline-variant); align-items: start; font-size: .9rem; &:first-child { border-top: 0; } > .bp2-sub { text-align: right; overflow-wrap: anywhere; } }
+	&__value { overflow-wrap: anywhere; display: -webkit-box; -webkit-line-clamp: 4; line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden; }
 }

@@ -3,6 +3,8 @@ package org.opencdmp.commons.types.descriptiontemplate;
 import jakarta.xml.bind.annotation.*;
 import org.opencdmp.commons.enums.FieldValidationType;
 import org.opencdmp.commons.types.descriptiontemplate.fielddata.*;
+import org.opencdmp.commons.types.descriptiontemplate.fielddata.NumberDataEntity;
+import org.opencdmp.commons.types.descriptiontemplate.fielddata.SystemFieldDataEntity;
 
 import java.util.List;
 
@@ -22,12 +24,14 @@ public class FieldEntity {
     private List<RuleEntity> visibilityRules;
 
     @XmlElements({
+            @XmlElement(name = SystemFieldDataEntity.XmlElementName, type = SystemFieldDataEntity.class),
             @XmlElement(name = LabelDataEntity.XmlElementName, type = LabelDataEntity.class),
             @XmlElement(name = LabelAndMultiplicityDataEntity.XmlElementName, type = LabelAndMultiplicityDataEntity.class),
             @XmlElement(name = UploadDataEntity.XmlElementName, type = UploadDataEntity.class),
             @XmlElement(name = RadioBoxDataEntity.XmlElementName, type = RadioBoxDataEntity.class),
             @XmlElement(name = SelectDataEntity.XmlElementName, type = SelectDataEntity.class),
-            @XmlElement(name = ReferenceTypeDataEntity.XmlElementName, type = ReferenceTypeDataEntity.class)
+            @XmlElement(name = ReferenceTypeDataEntity.XmlElementName, type = ReferenceTypeDataEntity.class),
+            @XmlElement(name = NumberDataEntity.XmlElementName, type = NumberDataEntity.class)
     })
     private BaseFieldDataEntity data;
     @XmlElementWrapper(name = "validations")

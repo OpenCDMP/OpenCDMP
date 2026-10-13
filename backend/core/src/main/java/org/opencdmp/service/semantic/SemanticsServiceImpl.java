@@ -2,8 +2,12 @@ package org.opencdmp.service.semantic;
 
 
 import org.opencdmp.authorization.Permission;
+import org.opencdmp.commons.enums.PluginType;
 import org.opencdmp.commons.JsonHandlingService;
 import org.opencdmp.query.lookup.SemanticsLookup;
+import org.opencdmp.service.deposit.DepositService;
+import org.opencdmp.service.evaluator.EvaluatorService;
+import org.opencdmp.service.filetransformer.FileTransformerService;
 import org.opencdmp.service.storage.StorageFileService;
 import gr.cite.commons.web.authz.service.AuthorizationService;
 import gr.cite.tools.logging.LoggerService;
@@ -31,15 +35,27 @@ public class SemanticsServiceImpl implements SemanticsService {
 
     private final JsonHandlingService jsonHandlingService;
 
+    private final FileTransformerService fileTransformerService;
+
+    private final DepositService depositService;
+
+    private final EvaluatorService evaluatorService;
+
 
     @Autowired
     public SemanticsServiceImpl(
             AuthorizationService authorizationService,
             StorageFileService storageFileService,
-            JsonHandlingService jsonHandlingService) {
+            JsonHandlingService jsonHandlingService,
+            FileTransformerService fileTransformerService,
+            DepositService depositService,
+            EvaluatorService evaluatorService) {
         this.authorizationService = authorizationService;
         this.storageFileService = storageFileService;
         this.jsonHandlingService = jsonHandlingService;
+        this.fileTransformerService = fileTransformerService;
+        this.depositService = depositService;
+        this.evaluatorService = evaluatorService;
     }
 
 
@@ -63,6 +79,33 @@ public class SemanticsServiceImpl implements SemanticsService {
             this.loadSemantics();
         }
         return semantics;
+    }
+
+    @Override
+    public List<PluginSemantics> getPluginSemantics() {
+        this.authorizationService.authorizeForce(Permission.BrowseDescriptionTemplate);
+
+        // a plugin family that cannot be reached leaves the others listed
+        List<PluginSemantics> result = new ArrayList<>();
+        try {
+            result.addAll(this.fileTransformerService.getSemanticsManifests());
+        } catch (Exception e) {
+            logger.error(e.getMessage(), e);
+        }
+        try {
+            result.addAll(this.depositService.getSemanticsManifests());
+        } catch (Exception e) {
+            logger.error(e.getMessage(), e);
+        }
+        try {
+            this.evaluatorService.getAvailableEvaluators().stream()
+                    .filter(x -> x != null && x.getSemantics() != null)
+                    .map(x -> new PluginSemantics(PluginType.Evaluation, x.getEvaluatorId(), x.getSemantics()))
+                    .forEach(result::add);
+        } catch (Exception e) {
+            logger.error(e.getMessage(), e);
+        }
+        return result;
     }
 
     private void loadSemantics() throws IOException {

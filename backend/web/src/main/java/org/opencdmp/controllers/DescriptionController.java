@@ -35,6 +35,7 @@ import org.opencdmp.controllers.swagger.annotation.Swagger400;
 import org.opencdmp.controllers.swagger.annotation.Swagger404;
 import org.opencdmp.controllers.swagger.annotation.SwaggerCommonErrorResponses;
 import org.opencdmp.convention.ConventionService;
+import org.opencdmp.data.TenantEntityManagerFactory;
 import org.opencdmp.model.DescriptionValidationResult;
 import org.opencdmp.model.builder.description.DescriptionBuilder;
 import org.opencdmp.model.censorship.PublicDescriptionCensor;
@@ -93,6 +94,8 @@ public class DescriptionController {
 
     private final FieldSetExpanderService fieldSetExpanderService;
 
+    private final TenantEntityManagerFactory tenantEntityManagerFactory;
+
     public DescriptionController(
             BuilderFactory builderFactory,
             AuditService auditService,
@@ -100,7 +103,7 @@ public class DescriptionController {
             CensorFactory censorFactory,
             QueryFactory queryFactory,
             MessageSource messageSource,
-            ElasticQueryHelperService elasticQueryHelperService, StorageFileService storageFileService, ConventionService conventionService, FieldSetExpanderService fieldSetExpanderService) {
+            ElasticQueryHelperService elasticQueryHelperService, StorageFileService storageFileService, ConventionService conventionService, FieldSetExpanderService fieldSetExpanderService, TenantEntityManagerFactory tenantEntityManagerFactory) {
         this.builderFactory = builderFactory;
         this.auditService = auditService;
         this.descriptionService = descriptionService;
@@ -111,6 +114,7 @@ public class DescriptionController {
         this.storageFileService = storageFileService;
         this.conventionService = conventionService;
         this.fieldSetExpanderService = fieldSetExpanderService;
+        this.tenantEntityManagerFactory = tenantEntityManagerFactory;
     }
 
     @PostMapping("public/query")
@@ -130,14 +134,22 @@ public class DescriptionController {
                     value = SwaggerHelpers.Description.endpoint_public_query_response_example
             ))),
             extensions = @Extension(name = "x-order", properties = @ExtensionProperty(name = "value", value = "2")))
-    public QueryResult<Description> publicQuery(@RequestBody DescriptionLookup lookup) throws MyApplicationException, MyForbiddenException {
+    public QueryResult<Description> publicQuery(@RequestBody DescriptionLookup lookup) throws MyApplicationException, MyForbiddenException, InvalidApplicationException {
         logger.debug("querying {}", Description.class.getSimpleName());
 
         this.censorFactory.censor(PublicDescriptionCensor.class).censor(lookup.getProject());
 
-        QueryResult<Description> queryResult = this.elasticQueryHelperService.collectPublic(lookup, EnumSet.of(Public), null);
+        QueryResult<Description> queryResult;
+        try {
+            this.tenantEntityManagerFactory.getInstance().disableTenantFilters();
 
-        this.auditService.track(AuditableAction.Description_PublicQuery, "lookup", lookup);
+           queryResult = this.elasticQueryHelperService.collectPublic(lookup, EnumSet.of(Public), null);
+
+            this.auditService.track(AuditableAction.Description_PublicQuery, "lookup", lookup);
+
+        } finally {
+            this.tenantEntityManagerFactory.getInstance().reloadTenantFilters();
+        }
 
         return queryResult;
     }
@@ -150,23 +162,30 @@ public class DescriptionController {
                     ))
             ),
             extensions = @Extension(name = "x-order", properties = @ExtensionProperty(name = "value", value = "4")))
-    public Description publicGet(@PathVariable("id") UUID id, @Parameter(name = "f", description = SwaggerHelpers.Commons.fieldset_description, required = true, style = ParameterStyle.FORM, explode = Explode.TRUE, schema = @Schema(type = "array", example = SwaggerHelpers.Description.endpoint_field_set_example)) FieldSet fieldSet) throws MyApplicationException, MyForbiddenException, MyNotFoundException {
+    public Description publicGet(@PathVariable("id") UUID id, @Parameter(name = "f", description = SwaggerHelpers.Commons.fieldset_description, required = true, style = ParameterStyle.FORM, explode = Explode.TRUE, schema = @Schema(type = "array", example = SwaggerHelpers.Description.endpoint_field_set_example)) FieldSet fieldSet) throws MyApplicationException, MyForbiddenException, MyNotFoundException, InvalidApplicationException {
         logger.debug(new MapLogEntry("retrieving" + Description.class.getSimpleName()).And("id", id).And("fields", fieldSet));
         fieldSet = this.fieldSetExpanderService.expand(fieldSet);
 
         this.censorFactory.censor(PublicDescriptionCensor.class).censor(fieldSet);
 
-        PlanStatusQuery statusQuery = this.queryFactory.query(PlanStatusQuery.class).disableTracking().internalStatuses(PlanStatus.Finalized).isActives(IsActive.Active);
-        DescriptionQuery query = this.queryFactory.query(DescriptionQuery.class).disableTracking().authorize(EnumSet.of(Public)).ids(id).planSubQuery(this.queryFactory.query(PlanQuery.class).isActive(IsActive.Active).planStatusSubQuery(statusQuery).accessTypes(PlanAccessType.Public));
+        Description model;
+        try {
+            this.tenantEntityManagerFactory.getInstance().disableTenantFilters();
+            PlanStatusQuery statusQuery = this.queryFactory.query(PlanStatusQuery.class).disableTracking().internalStatuses(PlanStatus.Finalized).isActives(IsActive.Active);
+            DescriptionQuery query = this.queryFactory.query(DescriptionQuery.class).disableTracking().authorize(EnumSet.of(Public)).ids(id).planSubQuery(this.queryFactory.query(PlanQuery.class).isActive(IsActive.Active).planStatusSubQuery(statusQuery).accessTypes(PlanAccessType.Public));
 
-        Description model = this.builderFactory.builder(DescriptionBuilder.class).authorize(EnumSet.of(Public)).isPublic(true).build(fieldSet, query.firstAs(fieldSet));
-        if (model == null)
-            throw new MyNotFoundException(this.messageSource.getMessage("General_ItemNotFound", new Object[]{id, Description.class.getSimpleName()}, LocaleContextHolder.getLocale()));
+            model = this.builderFactory.builder(DescriptionBuilder.class).authorize(EnumSet.of(Public)).isPublic(true).build(fieldSet, query.firstAs(fieldSet));
+            if (model == null)
+                throw new MyNotFoundException(this.messageSource.getMessage("General_ItemNotFound", new Object[]{id, Description.class.getSimpleName()}, LocaleContextHolder.getLocale()));
 
-        this.auditService.track(AuditableAction.Description_PublicLookup, Map.ofEntries(
-                new AbstractMap.SimpleEntry<String, Object>("id", id),
-                new AbstractMap.SimpleEntry<String, Object>("fields", fieldSet)
-        ));
+            this.auditService.track(AuditableAction.Description_PublicLookup, Map.ofEntries(
+                    new AbstractMap.SimpleEntry<String, Object>("id", id),
+                    new AbstractMap.SimpleEntry<String, Object>("fields", fieldSet)
+            ));
+
+        } finally {
+            this.tenantEntityManagerFactory.getInstance().reloadTenantFilters();
+        }
 
         return model;
     }
@@ -357,9 +376,9 @@ public class DescriptionController {
     @OperationWithTenantHeader(summary = "Fetch the section specific user permissions")
     @Hidden
     @ValidationFilterAnnotation(validator = DescriptionSectionPermissionResolver.DescriptionSectionPermissionResolverPersistValidator.ValidatorName, argumentName = "model")
-    public Map<UUID, List<String>> getDescriptionSectionPermissions(@RequestBody DescriptionSectionPermissionResolver model) {
+    public Map<String, List<String>> getDescriptionSectionPermissions(@RequestBody DescriptionSectionPermissionResolver model) {
         logger.debug(new MapLogEntry("persisting" + Description.class.getSimpleName()).And("model", model));
-        Map<UUID, List<String>> persisted = this.descriptionService.getDescriptionSectionPermissions(model);
+        Map<String, List<String>> persisted = this.descriptionService.getDescriptionSectionPermissions(model);
 
         this.auditService.track(AuditableAction.Description_GetDescriptionSectionPermissions, Map.ofEntries(
                 new AbstractMap.SimpleEntry<String, Object>("model", model)
@@ -399,6 +418,24 @@ public class DescriptionController {
         this.descriptionService.deleteAndSave(id);
 
         this.auditService.track(AuditableAction.Description_Delete, "id", id);
+    }
+
+    @PostMapping("delete")
+    @OperationWithTenantHeader(summary = "Delete a description with optional plan update request apply", description = "",
+            responses = @ApiResponse(description = "OK", responseCode = "200"),
+            extensions = @Extension(name = "x-order", properties = @ExtensionProperty(name = "value", value = "7")))
+    @Swagger400
+    @Swagger404
+    @Transactional
+    @ValidationFilterAnnotation(validator = DescriptionDeletePersist.DescriptionDeletePersistValidator.ValidatorName, argumentName = "model")
+    public void deleteWithApply(
+            @RequestBody DescriptionDeletePersist model
+    ) throws MyForbiddenException, InvalidApplicationException, IOException {
+        logger.debug(new MapLogEntry("deleting" + Description.class.getSimpleName()).And("model", model));
+
+        this.descriptionService.deleteAndSave(model);
+
+        this.auditService.track(AuditableAction.Description_Delete, "id", model.getId());
     }
 
     @PostMapping("update-description-template")

@@ -7,8 +7,21 @@ import { PlanEditorComponent } from './plan-editor.component';
 import { PlanEditorEntityResolver } from './resolvers/plan-editor-enitity.resolver';
 import { PlanEditorPermissionsResolver } from './resolvers/plan-editor-permissions.resolver';
 import { BreadcrumbService } from '@app/ui/misc/breadcrumb/breadcrumb.service';
+import { PlanSuggestionComponent } from '../plan-suggestion/plan-suggestion.component';
 
 const routes: Routes = [
+	{
+		path: 'suggestion/:planUpdateRequestId',
+		component: PlanSuggestionComponent,
+		canActivate: [AuthGuard],
+		data: {
+			breadcrumb: true,
+			...BreadcrumbService.generateRouteDataConfiguration({
+				title: 'PLAN-EDITOR.TITLE-NEW'
+			}),
+			title: 'PLAN-EDITOR.TITLE-NEW'
+		}
+	},
 	{
 		path: '',
 		component: PlanEditorComponent,
@@ -31,9 +44,7 @@ const routes: Routes = [
 			'permissions': PlanEditorPermissionsResolver
 		},
 		data: {
-			breadcrumb: true,
-			getFromTitleService: true,
-			usePrefix: false
+			breadcrumb: true
 		}
 	},
 	{
@@ -47,16 +58,12 @@ const routes: Routes = [
 		},
 		data: {
 			breadcrumbs: true,
-			getFromTitleService: true,
-			usePrefix: false,
 			...BreadcrumbService.generateRouteDataConfiguration({
 				skipNavigation: true,
 			}),
-			title: 'PLAN-EDITOR.TITLE-EDIT',
 			scrollToField: true,
 		}
 	},
-	,
 	{
 		path: ':id/f/:fieldId/annotation',
 		canActivate: [AuthGuard],
@@ -64,16 +71,13 @@ const routes: Routes = [
 		canDeactivate: [PendingChangesGuard],
 		resolve: {
 			'entity': PlanEditorEntityResolver,
-			'permissions': PlanEditorPermissionsResolver,
+			// 'permissions': PlanEditorPermissionsResolver,
 		},
 		data: {
 			breadcrumbs: true,
-			getFromTitleService: true,
-			usePrefix: false,
 			...BreadcrumbService.generateRouteDataConfiguration({
 				skipNavigation: true,
 			}),
-			title: 'DESCRIPTION-EDITOR.TITLE-EDIT-DESCRIPTION',
 			openAnnotation: true,
 		}
 	},
@@ -88,12 +92,9 @@ const routes: Routes = [
 		},
 		data: {
 			breadcrumbs: true,
-			getFromTitleService: true,
-			usePrefix: false,
 			...BreadcrumbService.generateRouteDataConfiguration({
 				skipNavigation: true,
 			}),
-			title: 'PLAN-EDITOR.TITLE-EDIT',
 			scrollToDescriptionField: true,
 		}
 	},
@@ -108,35 +109,33 @@ const routes: Routes = [
 		},
 		data: {
 			breadcrumbs: true,
-			getFromTitleService: true,
-			usePrefix: false,
 			...BreadcrumbService.generateRouteDataConfiguration({
 				skipNavigation: true,
 			}),
-			title: 'PLAN-EDITOR.TITLE-EDIT',
 			openDescriptionAnnotation: true,
 		}
 	},
-    {
-		path: ':id/d/:descriptionId/finalize',
-		canActivate: [AuthGuard],
-		component: PlanEditorComponent,
-		canDeactivate: [PendingChangesGuard],
-		resolve: {
-			'entity': PlanEditorEntityResolver,
-			'permissions': PlanEditorPermissionsResolver,
-		},
-		data: {
-			breadcrumbs: true,
-			getFromTitleService: true,
-			usePrefix: false,
-			...BreadcrumbService.generateRouteDataConfiguration({
-				skipNavigation: true,
-			}),
-			title: 'PLAN-EDITOR.TITLE-EDIT',
-            finalizeDescription: true
-		}
-	},
+    /** @deprecated not in use anymore, change description status in editor*/
+    // {
+	// 	path: ':id/d/:descriptionId/finalize',
+	// 	canActivate: [AuthGuard],
+	// 	component: PlanEditorComponent,
+	// 	canDeactivate: [PendingChangesGuard],
+	// 	resolve: {
+	// 		'entity': PlanEditorEntityResolver,
+	// 		'permissions': PlanEditorPermissionsResolver,
+	// 	},
+	// 	data: {
+	// 		breadcrumbs: true,
+	// 		getFromTitleService: true,
+	// 		usePrefix: false,
+	// 		...BreadcrumbService.generateRouteDataConfiguration({
+	// 			skipNavigation: true,
+	// 		}),
+	// 		title: 'PLAN-EDITOR.TITLE-EDIT',
+    //         finalizeDescription: true
+	// 	}
+	// }
 	{ path: '**', loadComponent: () => import('@common/modules/page-not-found/page-not-found.component').then(m => m.PageNotFoundComponent)}
 ];
 

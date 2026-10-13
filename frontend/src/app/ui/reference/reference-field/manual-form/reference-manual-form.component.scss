@@ -1,0 +1,136 @@
+.reference-manual-form {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    min-height: 0;
+}
+
+.reference-manual-form--body {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+    padding-top: 0.25rem;
+}
+
+.reference-manual-form--header {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+}
+
+.reference-manual-form--tile {
+    width: 44px;
+    height: 44px;
+    flex-shrink: 0;
+    border-radius: 12px;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--mat-sys-primary-container);
+    color: var(--mat-sys-on-primary-container);
+
+    img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        background: var(--mat-sys-surface);
+    }
+}
+
+.reference-manual-form--heading {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+// mat-dialog-title brings its own padding; inside this header it only needs the typography.
+.reference-manual-form--title.mat-mdc-dialog-title {
+    margin: 0;
+    padding: 0;
+}
+
+.reference-manual-form--title::before {
+    display: none;
+}
+
+.reference-manual-form--intro {
+    margin: 0;
+    color: var(--mat-sys-on-surface-variant);
+}
+
+.reference-manual-form--close {
+    margin: -0.5rem -0.5rem 0 0;
+}
+
+.reference-manual-form--notice {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.625rem;
+    padding: 0.75rem 0.875rem;
+    border-radius: 12px;
+    background: var(--mat-sys-secondary-container);
+    color: var(--mat-sys-on-secondary-container);
+
+    mat-icon {
+        flex-shrink: 0;
+    }
+}
+
+.reference-manual-form--section {
+    display: flex;
+    flex-direction: column;
+    gap: 0.625rem;
+}
+
+.reference-manual-form--section-title {
+    margin: 0;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--mat-sys-on-surface-variant);
+}
+
+// The type's fields are configured per tenant, so they flow into as many columns as fit.
+.reference-manual-form--fields {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 1rem;
+    // Stretching would grow the input box of whichever field has the shorter hint.
+    align-items: start;
+
+    // The global dialog fix (mat-dialog-content mat-form-field:first-of-type) would offset only the first column.
+    mat-form-field {
+        margin-top: 0;
+    }
+}
+
+// Lines the button's icon up with the fields' left edge.
+app-reference-card.is-empty ::ng-deep .reference-card--label {
+    color: var(--mat-sys-on-surface-variant);
+    font-weight: 400;
+    font-style: italic;
+}
+
+.reference-manual-form--add-description {
+    align-self: flex-start;
+    margin-left: -0.75rem;
+}
+
+.reference-manual-form--actions {
+    flex: 0 0 auto;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 0.5rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--mat-sys-outline-variant);
+    margin-top: 0.5rem;
+}

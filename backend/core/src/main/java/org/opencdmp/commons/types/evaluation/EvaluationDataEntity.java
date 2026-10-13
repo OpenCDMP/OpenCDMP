@@ -5,6 +5,8 @@ import jakarta.xml.bind.annotation.XmlAccessorType;
 import jakarta.xml.bind.annotation.XmlElement;
 import jakarta.xml.bind.annotation.XmlRootElement;
 
+import java.util.List;
+
 
 @XmlRootElement(name = "data")
 @XmlAccessorType(XmlAccessType.FIELD)
@@ -19,7 +21,7 @@ public class EvaluationDataEntity {
     public static final String _rankConfig = "rankConfig";
 
     @XmlElement(name = "rankModel")
-    private RankResultEntity rankResult;
+    private List<RankResultEntity> rankResult;
     public static final String _rankResult = "rankResult";
 
     public String getEvaluatorId() {
@@ -39,12 +41,11 @@ public class EvaluationDataEntity {
         this.rankConfig = evaluatorConfig;
     }
 
-    public RankResultEntity getRankResult() {
+    public List<RankResultEntity> getRankResult() {
         return rankResult;
     }
 
-
-    public void setRankResult(RankResultEntity rankResult) {
+    public void setRankResult(List<RankResultEntity> rankResult) {
         this.rankResult = rankResult;
     }
 }

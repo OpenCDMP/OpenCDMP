@@ -21,6 +21,8 @@ public class EvaluatorTenantConfigurationPersist {
     public static final String _sources = "sources";
     private Boolean disableSystemSources;
     public static final String _disableSystemSources = "disableSystemSources";
+    private List<String> disabledSourceIds;
+    public static final String _disabledSourceIds = "disabledSourceIds";
 
     public List<EvaluatorSourcePersist> getSources() {
         return sources;
@@ -36,6 +38,14 @@ public class EvaluatorTenantConfigurationPersist {
 
     public void setDisableSystemSources(Boolean disableSystemSources) {
         this.disableSystemSources = disableSystemSources;
+    }
+
+    public List<String> getDisabledSourceIds() {
+        return disabledSourceIds;
+    }
+
+    public void setDisabledSourceIds(List<String> disabledSourceIds) {
+        this.disabledSourceIds = disabledSourceIds;
     }
 
     @Component(EvaluatorTenantConfigurationPersistValidator.ValidatorName)
@@ -63,9 +73,6 @@ public class EvaluatorTenantConfigurationPersist {
                     this.spec()
                             .must(() -> !this.isNull(item.getDisableSystemSources()))
                             .failOn(EvaluatorTenantConfigurationPersist._disableSystemSources).failWith(messageSource.getMessage("Validation_Required", new Object[]{EvaluatorTenantConfigurationPersist._disableSystemSources}, LocaleContextHolder.getLocale())),
-                    this.spec()
-                            .must(() -> !this.isListNullOrEmpty(item.getSources()))
-                            .failOn(EvaluatorTenantConfigurationPersist._sources).failWith(messageSource.getMessage("Validation_Required", new Object[]{EvaluatorTenantConfigurationPersist._sources}, LocaleContextHolder.getLocale())),
                     this.navSpec()
                             .iff(() -> !this.isListNullOrEmpty(item.getSources()))
                             .on(EvaluatorTenantConfigurationPersist._sources)

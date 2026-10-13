@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { PopupNotification, SnackBarNotification, SnackBarNotificationLevel, UiNotificationService, UiNotificationType } from '@app/core/services/notification/ui-notification-service';
@@ -11,7 +11,7 @@ import { takeUntil } from 'rxjs/operators';
     selector: 'app-notification',
     templateUrl: './notification.component.html',
     styleUrls: ['./notification.component.scss'],
-    standalone: false
+    changeDetection: ChangeDetectionStrategy.Eager
 })
 export class NotificationComponent extends BaseComponent implements OnInit {
 
@@ -31,7 +31,12 @@ export class NotificationComponent extends BaseComponent implements OnInit {
 					this.snackBar.openFromComponent(SnackBarNotificationComponent, {
 						data: snackBarNotification,
 						duration: snackBarNotification.duration,
-						panelClass: [this.getSnackBarLevelClass(snackBarNotification.level)]
+						panelClass: [this.getSnackBarLevelClass(snackBarNotification.level)],
+						// Announce to screen readers (WCAG 4.1.3). openFromComponent does NOT
+						// auto-announce projected content, so pass announcementMessage explicitly.
+						// Errors/warnings interrupt (assertive); success/info are polite.
+						announcementMessage: snackBarNotification.message,
+						politeness: this.getSnackBarPoliteness(snackBarNotification.level)
 					});
 					break;
 				case UiNotificationType.Popup:
@@ -52,5 +57,15 @@ export class NotificationComponent extends BaseComponent implements OnInit {
 			default: return 'snack-bar-notification--info';
 		}
 
+	}
+
+	private getSnackBarPoliteness(level: SnackBarNotificationLevel): 'assertive' | 'polite' {
+		switch (level) {
+			case SnackBarNotificationLevel.Error:
+			case SnackBarNotificationLevel.Warning:
+				return 'assertive';
+			default:
+				return 'polite';
+		}
 	}
 }

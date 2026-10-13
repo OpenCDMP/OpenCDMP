@@ -4,6 +4,7 @@ import gr.cite.tools.data.query.QueryFactory;
 import gr.cite.tools.fieldset.BaseFieldSet;
 import org.opencdmp.authorization.AuthorizationFlags;
 import org.opencdmp.commons.XmlHandlingService;
+import org.opencdmp.commons.enums.IsActive;
 import org.opencdmp.commons.scope.tenant.TenantScopeFactory;
 import org.opencdmp.commons.types.planblueprint.DefinitionEntity;
 import org.opencdmp.convention.ConventionService;
@@ -11,13 +12,17 @@ import org.opencdmp.data.PlanBlueprintEntity;
 import org.opencdmp.model.PlanBlueprintType;
 import org.opencdmp.model.builder.BaseBuilder;
 import org.opencdmp.model.builder.PlanBlueprintTypeBuilder;
+import org.opencdmp.model.builder.plan.PlanBuilder;
+import org.opencdmp.model.plan.Plan;
 import org.opencdmp.model.planblueprint.PlanBlueprint;
 import gr.cite.tools.data.builder.BuilderFactory;
 import gr.cite.tools.exception.MyApplicationException;
 import gr.cite.tools.fieldset.FieldSet;
 import gr.cite.tools.logging.DataLogEntry;
 import gr.cite.tools.logging.LoggerService;
+import org.opencdmp.query.PlanBlueprintQuery;
 import org.opencdmp.query.PlanBlueprintTypeQuery;
+import org.opencdmp.query.PlanQuery;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
@@ -77,6 +82,7 @@ public class PlanBlueprintBuilder extends BaseBuilder<PlanBlueprint, PlanBluepri
         FieldSet planBlueprintTypeFields = fields.extractPrefixed(this.asPrefix(PlanBlueprint._type));
         Map<UUID, PlanBlueprintType> planBlueprintTypeMap = this.collectPlanBlueprintTypes(planBlueprintTypeFields, data);
 
+        Map<UUID, Long> usageCountsMap = this.collectUsageCounts(fields, data);
 
         FieldSet definitionFields = fields.extractPrefixed(this.asPrefix(PlanBlueprint._definition));
         List<PlanBlueprint> models = new ArrayList<>();
@@ -116,6 +122,9 @@ public class PlanBlueprintBuilder extends BaseBuilder<PlanBlueprint, PlanBluepri
             if (!this.isPublic && fields.hasField(this.asIndexer(PlanBlueprint._ordinal)) && this.featuredOrdinalMap != null && this.featuredOrdinalMap.containsKey(d.getGroupId())) {
                 m.setOrdinal(this.featuredOrdinalMap.get(d.getGroupId()));
             }
+            if (!this.isPublic && fields.hasField(this.asIndexer(PlanBlueprint._usageCount)) && usageCountsMap != null && usageCountsMap.containsKey(d.getId())) {
+                m.setUsageCount(usageCountsMap.get(d.getId()));
+            }
             models.add(m);
         }
         this.logger.debug("build {} items", Optional.of(models).map(List::size).orElse(0));
@@ -146,6 +155,27 @@ public class PlanBlueprintBuilder extends BaseBuilder<PlanBlueprint, PlanBluepri
             itemMap.values().stream().filter(Objects::nonNull).forEach(x -> {
                 x.setId(null);
             });
+        }
+
+        return itemMap;
+    }
+
+    private Map<UUID, Long> collectUsageCounts(FieldSet fields, List<PlanBlueprintEntity> data) throws MyApplicationException {
+        if (fields.isEmpty() || !fields.hasField(this.asIndexer(PlanBlueprint._usageCount)) || data.isEmpty() || this.isPublic)
+            return null;
+        this.logger.debug("calculating usages - {}", PlanBlueprintEntity.class.getSimpleName());
+
+        Map<UUID, Long> itemMap = null;
+
+        PlanBlueprintQuery subQuery = this.queryFactory.query(PlanBlueprintQuery.class).disableTracking().ids(data.stream().map(PlanBlueprintEntity::getId).distinct().toList());
+        BaseFieldSet planFields = new BaseFieldSet(List.of(String.join(".", Plan._blueprint, PlanBlueprint._id)));
+        List<Plan> plans = this.builderFactory.builder(PlanBuilder.class).authorize(this.authorize).build(planFields, this.queryFactory.query(PlanQuery.class).disableTracking().isActive(IsActive.Active).planBlueprintSubQuery(subQuery).collectAs(planFields));
+
+        if (plans != null && !plans.isEmpty()) {
+            itemMap = plans.stream().collect(Collectors.groupingBy(
+                    plan -> plan.getBlueprint().getId(),
+                    Collectors.counting()
+            ));
         }
 
         return itemMap;

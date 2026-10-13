@@ -9,6 +9,7 @@ import { ConfigurationService } from '../configuration/configuration.service';
 import { BaseHttpV2Service } from '../http/base-http-v2.service';
 import { BaseHttpParams } from '@common/http/base-http-params';
 import { InterceptorType } from '@common/http/interceptors/interceptor-type';
+import { QueryResult } from '@common/model/query-result';
 
 @Injectable()
 export class DashboardService {
@@ -23,9 +24,9 @@ export class DashboardService {
 
 	private get apiBase(): string { return `${this.configurationService.server}dashboard`; }
 
-	getMyRecentActivityItems(q: RecentActivityItemLookup): Observable<RecentActivityItem[]> {
+	getMyRecentActivityItems(q: RecentActivityItemLookup): Observable<QueryResult<RecentActivityItem>> {
 		const url = `${this.apiBase}/mine/recent-activity`;
-		return this.http.post<RecentActivityItem[]>(url, q).pipe(catchError((error: any) => throwError(error)));
+		return this.http.post<QueryResult<RecentActivityItem>>(url, q).pipe(catchError((error: any) => throwError(error)));
 	}
 
 	getMyDashboardStatistics(): Observable<DashboardStatistics> {

@@ -6,7 +6,7 @@ import gr.cite.tools.exception.MyApplicationException;
 import gr.cite.tools.logging.LoggerService;
 import org.opencdmp.authorization.AuthorizationFlags;
 import org.opencdmp.commonmodels.enums.FieldType;
-import org.opencdmp.commonmodels.models.description.FieldModel;
+import org.opencdmp.commonmodels.models.plandescriptionfields.FieldModel;
 import org.opencdmp.convention.ConventionService;
 import org.opencdmp.model.builder.commonmodels.BaseCommonModelBuilder;
 import org.opencdmp.model.builder.commonmodels.CommonModelBuilderItemResponse;
@@ -26,7 +26,7 @@ public class FieldCommonModelBuilder extends BaseCommonModelBuilder<Field, Field
     private final BuilderFactory builderFactory;
     private final QueryFactory queryFactory;
     private EnumSet<AuthorizationFlags> authorize = EnumSet.of(AuthorizationFlags.None);
-    private org.opencdmp.commonmodels.models.descriptiotemplate.FieldModel fieldModel;
+    private org.opencdmp.commonmodels.models.planblueprintdescriptiontemplatefields.FieldModel fieldModel;
     @Autowired
     public FieldCommonModelBuilder(
 		    ConventionService conventionService, BuilderFactory builderFactory, QueryFactory queryFactory
@@ -40,7 +40,7 @@ public class FieldCommonModelBuilder extends BaseCommonModelBuilder<Field, Field
         this.authorize = values;
         return this;
     }
-    public FieldCommonModelBuilder withFieldModel(org.opencdmp.commonmodels.models.descriptiotemplate.FieldModel fieldModel) {
+    public FieldCommonModelBuilder withFieldModel(org.opencdmp.commonmodels.models.planblueprintdescriptiontemplatefields.FieldModel fieldModel) {
         this.fieldModel = fieldModel;
         return this;
     }
@@ -59,6 +59,7 @@ public class FieldCommonModelBuilder extends BaseCommonModelBuilder<Field, Field
             if (this.isTextListType(fieldType)) m.setTextListValue(d.getTextListValue());
             if (this.isDateType(fieldType)) m.setDateValue(d.getDateValue());
             if (this.isBooleanType(fieldType)) m.setBooleanValue(d.getBooleanValue());
+            if (this.isNumberType(fieldType)) m.setNumberValue(d.getNumberValue());
             if (this.isReferenceType(fieldType)) m.setReferences(this.builderFactory.builder(ReferenceCommonModelBuilder.class).authorize(this.authorize).build(d.getReferences()));
             if (this.isExternalIdentifierType(fieldType)) m.setExternalIdentifier(this.builderFactory.builder(ExternalIdentifierCommonModelBuilder.class).authorize(this.authorize).build(d.getExternalIdentifier()));
             if (this.isTagType(fieldType)) m.setTextListValue(d.getTextListValue());
@@ -100,6 +101,10 @@ public class FieldCommonModelBuilder extends BaseCommonModelBuilder<Field, Field
 
     private boolean isExternalIdentifierType(FieldType fieldType){
         return  fieldType.equals(FieldType.VALIDATION) ||  fieldType.equals(FieldType.DATASET_IDENTIFIER) ;
+    }
+
+    private boolean isNumberType(FieldType fieldType){
+        return fieldType.equals(FieldType.NUMBER);
     }
 
 

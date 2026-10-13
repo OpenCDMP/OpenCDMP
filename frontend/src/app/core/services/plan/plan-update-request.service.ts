@@ -5,10 +5,12 @@ import { Observable, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { ConfigurationService } from '../configuration/configuration.service';
 import { BaseHttpV2Service } from '../http/base-http-v2.service';
-import { PlanSuggestion, PlanUpdateRequest, PlanUpdateRequestPersist } from '@app/core/model/plan-update-request/plan-update-request';
+import { PlanUpdateRequest, PlanUpdateRequestApply, PlanUpdateRequestPersist } from '@app/core/model/plan-update-request/plan-update-request';
 import { PlanUpdateRequestLookup } from '@app/core/query/plan-update-request.lookup';
+import { PlanUpdatePreview } from '@app/core/model/plan-update-request/plan-update-preview';
 import { PreprocessingPlanModel } from '@app/core/model/plan/plan-import';
 import { Plan } from '@app/core/model/plan/plan';
+import { Description, DescriptionPersist } from '@app/core/model/description/description';
 
 @Injectable()
 export class PlanUpdateRequestService {
@@ -59,11 +61,26 @@ export class PlanUpdateRequestService {
 				catchError((error: any) => throwError(error)));
 	}
 
-	buildPlan(item: PlanSuggestion): Observable<Plan> {
-		const url = `${this.apiBase}/build-plan`;
+	preview(id: Guid): Observable<PlanUpdatePreview> {
+		const url = `${this.apiBase}/${id}/preview`;
 
 		return this.http
-			.post<Plan>(url, item).pipe(
+			.get<PlanUpdatePreview>(url).pipe(
+				catchError((error: any) => throwError(error)));
+	}
+
+	descriptionFromPreview(id: Guid, datasetId: string, planDescriptionTemplateId: Guid): Observable<Description> {
+		const url = `${this.apiBase}/${id}/description`;
+		const options = { params: { datasetId, planDescriptionTemplateId: planDescriptionTemplateId.toString() } };
+		return this.http.get<Description>(url, options).pipe(catchError((error: any) => throwError(error)));
+	}
+
+	applyCreate(model: PlanUpdateRequestApply, reqFields: string[] = []): Observable<Plan> {
+		const url = `${this.apiBase}/apply-create`;
+		const options = { params: { f: reqFields } };
+
+		return this.http
+			.post<Plan>(url, model, options).pipe(
 				catchError((error: any) => throwError(error)));
 	}
 }

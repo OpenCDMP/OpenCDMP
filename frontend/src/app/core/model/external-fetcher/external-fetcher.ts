@@ -1,8 +1,10 @@
 import { ExternalFetcherApiHTTPMethodType } from "@app/core/common/enum/external-fetcher-api-http-method-type";
+import { ExternalFetcherApiResponseFormatType } from "@app/core/common/enum/external-fetcher-api-response-format-type";
 import { ReferenceType } from "../reference-type/reference-type";
 import { ExternalFetcherSourceType } from "@app/core/common/enum/external-fetcher-source-type";
 import { Guid } from "@common/types/guid";
 import { ExternalFetcherApiHeaderType } from "@app/core/common/enum/ExternalFetcherApiHeader.enum";
+import { StorageFile } from "../storage-file/storage-file";
 
 export interface ExternalFetcherBaseSourceConfiguration extends ExternalFetcherApiSourceConfiguration, ExternalFetcherStaticOptionSourceConfiguration {
 	type: ExternalFetcherSourceType;
@@ -10,6 +12,9 @@ export interface ExternalFetcherBaseSourceConfiguration extends ExternalFetcherA
 	label: string;
 	ordinal: number;
 	referenceTypeDependencies?: ReferenceType[];
+	storageFile: StorageFile;
+	navigationUrl: string;
+	tooltipMessage: string;
 }
 
 export interface ExternalFetcherApiSourceConfiguration {
@@ -21,9 +26,16 @@ export interface ExternalFetcherApiSourceConfiguration {
 	httpMethod: ExternalFetcherApiHTTPMethodType;
 	requestBody?: string;
 	filterType?: string;
+	responseFormat?: ExternalFetcherApiResponseFormatType;
 	auth: AuthenticationConfiguration;
 	queries?: QueryConfig[];
 	headers?: HeaderConfig[];
+	namespaces?: XmlNamespaceConfig[];
+}
+
+export interface XmlNamespaceConfig {
+	prefix: string;
+	uri: string;
 }
 
 export interface ResultsConfiguration {
@@ -88,6 +100,9 @@ export interface ExternalFetcherBaseSourceConfigurationPersist extends ExternalF
 	label: string;
 	ordinal: number;
 	referenceTypeDependencyIds?: Guid[];
+	storageFileId: Guid;
+	navigationUrl: string;
+	tooltipMessage: string;
 }
 
 export interface ExternalFetcherApiSourceConfigurationPersist {
@@ -99,9 +114,16 @@ export interface ExternalFetcherApiSourceConfigurationPersist {
 	httpMethod: ExternalFetcherApiHTTPMethodType;
 	requestBody?: string;
 	filterType?: string;
+	responseFormat?: ExternalFetcherApiResponseFormatType;
 	auth: AuthenticationConfigurationPersist;
 	queries?: QueryConfigPersist[];
 	headers?: HeadersConfigPersist[];
+	namespaces?: XmlNamespaceConfigPersist[];
+}
+
+export interface XmlNamespaceConfigPersist {
+	prefix: string;
+	uri: string;
 }
 
 export interface ResultsConfigurationPersist {

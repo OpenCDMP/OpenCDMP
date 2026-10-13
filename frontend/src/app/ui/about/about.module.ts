@@ -4,12 +4,10 @@ import { AboutRoutingModule } from '@app/ui/about/about.routing';
 import { CommonUiModule } from '@common/ui/common-ui.module';
 
 @NgModule({
-	imports: [
-		CommonUiModule,
-		AboutRoutingModule
-	],
-	declarations: [
-		AboutComponent
-	]
+    imports: [
+        CommonUiModule,
+        AboutRoutingModule,
+        AboutComponent
+    ]
 })
 export class AboutModule { }

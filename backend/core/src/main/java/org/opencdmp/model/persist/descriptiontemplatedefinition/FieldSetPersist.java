@@ -1,16 +1,19 @@
 package org.opencdmp.model.persist.descriptiontemplatedefinition;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import gr.cite.tools.validation.ValidatorFactory;
 import gr.cite.tools.validation.specification.Specification;
 import org.opencdmp.commons.validation.BaseValidator;
 import org.opencdmp.convention.ConventionService;
 import org.opencdmp.errorcode.ErrorThesaurusProperties;
+import org.opencdmp.model.persist.descriptiontemplatedefinition.fielddata.SystemFieldDataPersist;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.Scope;
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.stereotype.Component;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -41,7 +44,7 @@ public class FieldSetPersist {
     private MultiplicityPersist multiplicity;
     public static final String _multiplicity = "multiplicity";
 
-    private Boolean hasMultiplicity;
+    private boolean hasMultiplicity = false;
     public static final String _hasMultiplicity = "hasMultiplicity";
     
 
@@ -50,6 +53,10 @@ public class FieldSetPersist {
     private List<FieldPersist> fields;
 
     public static final String _fields = "fields";
+
+    private List<String> semantics;
+
+    public static final String _semantics = "semantics";
 
     public String getId() {
         return this.id;
@@ -131,6 +138,24 @@ public class FieldSetPersist {
         this.hasMultiplicity = hasMultiplicity;
     }
 
+    public List<String> getSemantics() {
+        return this.semantics;
+    }
+
+    public void setSemantics(List<String> semantics) {
+        this.semantics = semantics;
+    }
+
+    @JsonIgnore
+    public List<FieldPersist> getAllField() {
+        return this.getFields() == null ? new ArrayList<>() : this.getFields();
+    }
+
+    @JsonIgnore
+    public List<FieldPersist> getFieldById(String id) {
+        return this.getAllField().stream().filter(x-> id.equals(x.getId())).toList();
+    }
+
     @Component(FieldSetPersistValidator.ValidatorName)
     @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
     public static class FieldSetPersistValidator extends BaseValidator<FieldSetPersist> {
@@ -167,6 +192,9 @@ public class FieldSetPersist {
                     this.spec()
                             .must(() -> !this.isEmpty(item.getTitle()))
                             .failOn(FieldSetPersist._title).failWith(this.messageSource.getMessage("Validation_Required", new Object[]{FieldSetPersist._title}, LocaleContextHolder.getLocale())),
+                    this.spec()
+                            .must(() -> this.canHasMultiplicity(item))
+                            .failOn(FieldSetPersist._title).failWith(this.messageSource.getMessage("Validation_UnexpectedValue", new Object[]{FieldSetPersist._hasMultiplicity}, LocaleContextHolder.getLocale())),
                     this.refSpec()
                             .iff(() -> !this.isNull(item.getMultiplicity()))
                             .on(FieldSetPersist._multiplicity)
@@ -178,6 +206,20 @@ public class FieldSetPersist {
                             .over(item.getFields())
                             .using((itm) -> this.validatorFactory.validator(FieldPersist.FieldPersistValidator.class).withFieldSetId(item.getId()))
             );
+        }
+
+        private boolean canHasMultiplicity(FieldSetPersist item) {
+            if (item == null || item.getAllField() == null || item.getHasMultiplicity().equals(false)) return true;
+
+            for (FieldPersist field : item.getAllField()) {
+                if (field == null) continue;
+
+                if (field.getData() instanceof SystemFieldDataPersist) {
+                    return false;
+                }
+            }
+
+            return true;
         }
     }
 

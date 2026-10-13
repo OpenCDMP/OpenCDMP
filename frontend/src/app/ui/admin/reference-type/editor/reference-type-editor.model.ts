@@ -1,11 +1,11 @@
-import { FormArray, FormControl, FormGroup, UntypedFormArray, UntypedFormBuilder, UntypedFormGroup, Validators } from "@angular/forms";
+import { FormControl, UntypedFormArray, UntypedFormBuilder, UntypedFormGroup, Validators } from "@angular/forms";
 import { ReferenceFieldDataType } from "@app/core/common/enum/reference-field-data-type";
 import { ReferenceType, ReferenceTypeDefinition, ReferenceTypeDefinitionPersist, ReferenceTypeField, ReferenceTypeFieldPersist, ReferenceTypePersist } from "@app/core/model/reference-type/reference-type";
 import { BaseEditorModel } from "@common/base/base-form-editor-model";
 import { BackendErrorValidator } from "@common/forms/validation/custom-validator";
 import { ValidationErrorModel } from "@common/forms/validation/error-model/validation-error-model";
 import { Validation, ValidationContext } from "@common/forms/validation/validation-context";
-import { ExternalFetcherBaseSourceConfigurationEditorModel, QueryCaseConfigEditorModel, QueryConfigEditorModel, ResultFieldsMappingConfigurationEditorModel, StaticOptionEditorModel } from "@app/ui/external-fetcher/external-fetcher-source-editor.model";
+import { ExternalFetcherBaseSourceConfigurationEditorModel, ResultFieldsMappingConfigurationEditorModel } from "@app/ui/external-fetcher/external-fetcher-source-editor.model";
 
 export class ReferenceTypeEditorModel extends BaseEditorModel implements ReferenceTypePersist {
 	name: string;
@@ -108,6 +108,7 @@ export class ReferenceTypeEditorModel extends BaseEditorModel implements Referen
 export class ReferenceTypeDefinitionEditorModel implements ReferenceTypeDefinitionPersist {
 	fields: ReferenceTypeFieldEditorModel[] = [];
 	sources: ExternalFetcherBaseSourceConfigurationEditorModel[] = [];
+	labelTemplate: string;
 
 	protected formBuilder: UntypedFormBuilder = new UntypedFormBuilder();
 
@@ -119,6 +120,7 @@ export class ReferenceTypeDefinitionEditorModel implements ReferenceTypeDefiniti
 		if (item) {
 			if (item.fields) { item.fields.map(x => this.fields.push(new ReferenceTypeFieldEditorModel(this.validationErrorModel).fromModel(x))); }
 			if (item.sources) { item.sources.map(x => this.sources.push(new ExternalFetcherBaseSourceConfigurationEditorModel(this.validationErrorModel).fromModel(x))); }
+			this.labelTemplate = item.labelTemplate;
 		}
 		return this;
 	}
@@ -152,7 +154,8 @@ export class ReferenceTypeDefinitionEditorModel implements ReferenceTypeDefiniti
 						disabled: disabled
 					})
 				), context.getValidation('sources').validators
-			)
+			),
+			labelTemplate: [{ value: this.labelTemplate, disabled: disabled }, context.getValidation('labelTemplate').validators]
 		});
 	}
 
@@ -166,6 +169,7 @@ export class ReferenceTypeDefinitionEditorModel implements ReferenceTypeDefiniti
 		const baseValidationArray: Validation[] = new Array<Validation>();
 		baseValidationArray.push({ key: 'fields', validators: [BackendErrorValidator(validationErrorModel, `${rootPath}fields`)] });
 		baseValidationArray.push({ key: 'sources', validators: [Validators.required, BackendErrorValidator(validationErrorModel, `${rootPath}sources`)] });
+		baseValidationArray.push({ key: 'labelTemplate', validators: [BackendErrorValidator(validationErrorModel, `${rootPath}labelTemplate`)] });
 
 		baseContext.validation = baseValidationArray;
 		return baseContext;

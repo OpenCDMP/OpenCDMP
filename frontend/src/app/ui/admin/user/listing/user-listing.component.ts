@@ -1,10 +1,11 @@
-import { Component, OnInit, TemplateRef, ViewChild } from '@angular/core';
+import { Component, OnInit, TemplateRef, ViewChild, ChangeDetectionStrategy } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
 import { ActivatedRoute, Router } from '@angular/router';
 import { IsActive } from '@app/core/common/enum/is-active.enum';
-import { User, UserAdditionalInfo, UserContactInfo, UserRole } from '@app/core/model/user/user';
+import { User, UserAdditionalInfo, UserContactInfo, UserCredential, UserRole } from '@app/core/model/user/user';
 import { UserLookup } from '@app/core/query/user.lookup';
 import { AuthService } from '@app/core/services/auth/auth.service';
+import { RouterUtilsService } from '@app/core/services/router/router-utils.service';
 import { SnackBarNotificationLevel, UiNotificationService } from '@app/core/services/notification/ui-notification-service';
 import { UserService } from '@app/core/services/user/user.service';
 import { EnumUtils } from '@app/core/services/utilities/enum-utils.service';
@@ -13,35 +14,45 @@ import { QueryParamsService } from '@app/core/services/utilities/query-params.se
 import { BaseListingComponent } from '@common/base/base-listing-component';
 import { PipeService } from '@common/formatting/pipe.service';
 import { DataTableDateTimeFormatPipe } from '@app/core/pipes/date-time-format.pipe';
-import { IsActiveTypePipe } from '@common/formatting/pipes/is-active-type.pipe';
 import { QueryResult } from '@common/model/query-result';
 import { ConfirmationDialogComponent } from '@common/modules/confirmation-dialog/confirmation-dialog.component';
 import { HttpErrorHandlingService } from '@common/modules/errors/error-handling/http-error-handling.service';
-import { ColumnDefinition, ColumnsChangedEvent, HybridListingComponent, PageLoadEvent, RowActivateEvent } from '@common/modules/hybrid-listing/hybrid-listing.component';
+import { ColumnDefinition, ColumnsChangedEvent, PageLoadEvent, RowActivateEvent } from '@common/modules/admin-listing/listing.types';
 import { Guid } from '@common/types/guid';
-import { TranslateService } from '@ngx-translate/core';
+import { TranslateService, TranslatePipe } from '@ngx-translate/core';
 import * as FileSaver from 'file-saver';
 import { Observable } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { nameof } from 'ts-simple-nameof';
 import { UserInviteToTenantDialogComponent } from './user-invite-to-tenant-dialog/user-invite-to-tenant-dialog.component';
 import { AppPermission } from '@app/core/common/enum/permission.enum';
+import { AppRole } from '@app/core/common/enum/app-role';
 import { TenantUserLookup } from '@app/core/query/tenant-user.lookup';
+import { AdminPageHeaderComponent } from '../../../../../common/ui/admin-page-header/admin-page-header.component';
+import { MatButtonToggleGroup, MatButtonToggle } from '@angular/material/button-toggle';
+import { MatButton } from '@angular/material/button';
+import { MatIcon } from '@angular/material/icon';
+import { AdminListingComponent } from '../../../../../common/modules/admin-listing/admin-listing.component';
+import { UserListingFiltersComponent } from './filters/user-listing-filters.component';
+import { UserSettingsPickerComponent } from '../../../../../common/modules/user-settings/user-settings-picker/user-settings-picker.component';
+import { UserDrawerComponent } from './user-drawer/user-drawer.component';
 
 @Component({
     templateUrl: './user-listing.component.html',
     styleUrls: ['./user-listing.component.scss'],
-    standalone: false
+    changeDetection: ChangeDetectionStrategy.Eager,
+    imports: [AdminPageHeaderComponent, MatButtonToggleGroup, MatButtonToggle, MatButton, MatIcon, AdminListingComponent, UserListingFiltersComponent, UserSettingsPickerComponent, UserDrawerComponent, TranslatePipe]
 })
 export class UserListingComponent extends BaseListingComponent<User, UserLookup> implements OnInit {
 	publish = false;
 	userSettingsKey = { key: 'UserListingUserSettings' };
+	/** Admins browse: a longer page than the author-facing listings. */
+	protected override ITEMS_PER_PAGE = 25;
 	propertiesAvailableForOrder: ColumnDefinition[];
 	isTenantAdminMode: boolean;
 
 	@ViewChild('roleCellTemplate', { static: true }) roleCellTemplate?: TemplateRef<any>;
 	@ViewChild('nameCellTemplate', { static: true }) nameCellTemplate?: TemplateRef<any>;
-	@ViewChild(HybridListingComponent, { static: true }) hybridListingComponent: HybridListingComponent;
 
 	private readonly lookupFields: string[] = [
 		nameof<User>(x => x.id),
@@ -54,8 +65,10 @@ export class UserListingComponent extends BaseListingComponent<User, UserLookup>
 		[nameof<User>(x => x.tenantRoles), nameof<UserRole>(x => x.id)].join('.'),
 		[nameof<User>(x => x.tenantRoles), nameof<UserRole>(x => x.role)].join('.'),
 		[nameof<User>(x => x.additionalInfo), nameof<UserAdditionalInfo>(x => x.avatarUrl)].join('.'),
-		nameof<User>(x => x.updatedAt),
+		[nameof<User>(x => x.credentials), nameof<UserCredential>(x => x.id)].join('.'),
+		[nameof<User>(x => x.credentials), nameof<UserCredential>(x => x.externalId)].join('.'),
 		nameof<User>(x => x.createdAt),
+		nameof<User>(x => x.updatedAt),
 		nameof<User>(x => x.hash),
 		nameof<User>(x => x.isActive)
 	];
@@ -75,7 +88,8 @@ export class UserListingComponent extends BaseListingComponent<User, UserLookup>
 		public enumUtils: EnumUtils,
 		private language: TranslateService,
 		private dialog: MatDialog,
-		private fileUtils: FileUtils
+		private fileUtils: FileUtils,
+		private routerUtils: RouterUtilsService
 	) {
 		super(router, route, uiNotificationService, httpErrorHandlingService, queryParamsService);
 		// Lookup setup
@@ -88,8 +102,53 @@ export class UserListingComponent extends BaseListingComponent<User, UserLookup>
 		super.ngOnInit();
 	}
 
+	/** Whether a search term or non-default filter is currently applied (drives the "no results" empty state). */
+	public get hasActiveFilters(): boolean {
+		return !!this.lookup?.like
+			|| (this.lookup?.userRoleSubQuery?.roles?.length ?? 0) > 0
+			|| this.lookup?.isActive?.[0] === IsActive.Inactive;
+	}
+
+	/** Reset search & filters to their defaults while preserving column selection, ordering and page size. */
+	public clearAllFilters(): void {
+		const fresh = this.initializeLookup();
+		fresh.order = this.lookup.order;
+		fresh.project = this.lookup.project;
+		fresh.page = { offset: 0, size: this.lookup.page.size };
+		this.lookup = fresh;
+		this.filterChanged(this.lookup);
+	}
+
 	protected get hasTenantAdminMode(): boolean {
 		return this.isTenantAdminMode && this.authService.hasPermission(AppPermission.ViewTenantUserPage);
+	}
+
+	protected openedUser: User | null = null;
+
+	protected rolesOf(user: User): AppRole[] {
+		const tenant = (user?.tenantRoles ?? []).map(x => x.role as AppRole);
+		return this.hasTenantAdminMode ? tenant : [...(user?.globalRoles ?? []).map(x => x.role as AppRole), ...tenant];
+	}
+
+	// An account gets its identity-provider id at the first sign-in; until then the backend refuses role changes.
+	protected hasSignedIn(user: User): boolean {
+		return (user?.credentials ?? []).some(x => !!x.externalId);
+	}
+
+	protected emailOf(user: User): string {
+		return (user?.contacts ?? []).map(x => x.value).filter(x => !!x).join(', ');
+	}
+
+	protected get canSwitchScope(): boolean {
+		return this.authService.hasPermission(AppPermission.ViewTenantUserPage) && this.authService.hasPermission(AppPermission.ViewUserPage);
+	}
+
+	protected switchScope(tenantOnly: boolean): void {
+		this.router.navigate([this.routerUtils.generateUrl(tenantOnly ? '/tenant-users' : '/users')]);
+	}
+
+	protected get descriptionKey(): string {
+		return this.hasTenantAdminMode ? 'USER-LISTING.TENANT-ADMIN-DESCRIPTION' : 'USER-LISTING.DESCRIPTION';
 	}
 
 	protected initializeLookup(): UserLookup {
@@ -139,12 +198,6 @@ export class UserListingComponent extends BaseListingComponent<User, UserLookup>
 			maxWidth: 300,
 			cellTemplate: this.roleCellTemplate
 		},
-		{
-			prop: nameof<User>(x => x.isActive),
-			sortable: false,
-			languageName: 'USER-LISTING.FIELDS.IS-ACTIVE',
-			pipe: this.pipeService.getPipe<IsActiveTypePipe>(IsActiveTypePipe)
-		},
 		]);
 		this.propertiesAvailableForOrder = this.gridColumns.filter(x => x.sortable);
 	}
@@ -160,11 +213,9 @@ export class UserListingComponent extends BaseListingComponent<User, UserLookup>
 	private onColumnsChangedInternal(columns: string[]) {
 		// Here are defined the projection fields that always requested from the api.
 		const fields = new Set(this.lookupFields);
-		this.gridColumns.map(x => x.prop)
-			.filter(x => !columns?.includes(x as string))
-			.forEach(item => {
-				fields.delete(item as string)
-			});
+		this.gridColumns.map(x => x.prop).filter(x => x != null).forEach(prop => {
+			if (columns?.includes(prop as string)) { fields.add(prop as string); } else { fields.delete(prop as string); }
+		});
 		this.lookup.project = { fields: [...fields] };
 		this.onPageLoad({ offset: 0 } as PageLoadEvent);
 	}
@@ -241,7 +292,6 @@ export class UserListingComponent extends BaseListingComponent<User, UserLookup>
 
 	invite() {
 		const dialogRef = this.dialog.open(UserInviteToTenantDialogComponent, {
-			restoreFocus: false,
 		});
 	}
 

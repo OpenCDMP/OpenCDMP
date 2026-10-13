@@ -3,6 +3,7 @@ package org.opencdmp.model.deposit;
 import org.opencdmp.commonmodels.models.ConfigurationField;
 import org.opencdmp.commons.enums.PluginType;
 import org.opencdmp.depositbase.enums.DepositAuthMethod;
+import org.opencdmp.depositbase.enums.DepositFileKind;
 import org.opencdmp.depositbase.enums.DepositType;
 
 import java.util.List;
@@ -23,6 +24,8 @@ public class DepositConfiguration {
     public static final String _redirectUri = "redirectUri";
     private boolean hasLogo;
     public static final String _hasLogo = "hasLogo";
+    private boolean supportsPreview;
+    public static final String _supportsPreview = "supportsPreview";
     private List<ConfigurationField> configurationFields;
     public static final String _configurationFields = "configurationFields";
     private List<ConfigurationField> userConfigurationFields;
@@ -31,6 +34,10 @@ public class DepositConfiguration {
     public static final String _pluginType = "pluginType";
     private List<DepositAuthMethod> authMethods;
     public static final String _authMethods = "authMethods";
+    private List<DepositFileKind> uploadedFiles;
+    public static final String _uploadedFiles = "uploadedFiles";
+    private String oauthScope;
+    public static final String _oauthScope = "oauthScope";
 
     public DepositType getDepositType() {
         return depositType;
@@ -44,6 +51,13 @@ public class DepositConfiguration {
     }
     public void setRepositoryId(String repositoryId) {
         this.repositoryId = repositoryId;
+    }
+
+    public boolean isSupportsPreview() {
+        return supportsPreview;
+    }
+    public void setSupportsPreview(boolean supportsPreview) {
+        this.supportsPreview = supportsPreview;
     }
 
     public String getRepositoryAuthorizationUrl() {
@@ -107,6 +121,20 @@ public class DepositConfiguration {
     }
     public void setAuthMethods(List<DepositAuthMethod> authMethods) {
         this.authMethods = authMethods;
+    }
+
+    public List<DepositFileKind> getUploadedFiles() {
+        return uploadedFiles;
+    }
+    public void setUploadedFiles(List<DepositFileKind> uploadedFiles) {
+        this.uploadedFiles = uploadedFiles;
+    }
+
+    public String getOauthScope() {
+        return oauthScope;
+    }
+    public void setOauthScope(String oauthScope) {
+        this.oauthScope = oauthScope;
     }
 }
 

@@ -1,15 +1,21 @@
-import { Component, Input, OnDestroy, OnInit } from "@angular/core";
-import { FormBuilder, FormControl, Validators } from "@angular/forms";
+import { Component, Input, OnDestroy, OnInit, ChangeDetectionStrategy } from "@angular/core";
+import { FormBuilder, FormControl, Validators, FormsModule, ReactiveFormsModule } from "@angular/forms";
 import { PlanUser } from "@app/core/model/plan/plan";
-import { ChoiceWithIndices } from "ngx-mentions";
+import { ChoiceWithIndices, NgxMentionsModule, TextInputAutocompleteModule } from "ngx-mentions";
 import { Observable, Subscription } from "rxjs";
+import { MatFormField, MatLabel, MatError } from "@angular/material/form-field";
+import { MatInput } from "@angular/material/input";
+import { TextareaAutoresizeDirective } from "../../../../common/forms/textarea-autoresize-directive";
+import { CdkOverlayOrigin, CdkConnectedOverlay } from "@angular/cdk/overlay";
+import { TranslatePipe } from "@ngx-translate/core";
 
 
 @Component({
     selector: 'text-area-with-mentions',
     templateUrl: './text-area-with-mentions.component.html',
     styleUrls: ['./text-area-with-mentions.component.scss'],
-    standalone: false
+    changeDetection: ChangeDetectionStrategy.Eager,
+    imports: [MatFormField, MatLabel, MatInput, FormsModule, TextareaAutoresizeDirective, ReactiveFormsModule, NgxMentionsModule, MatError, CdkOverlayOrigin, CdkConnectedOverlay, TextInputAutocompleteModule, TranslatePipe]
 })
 export class TextAreaWithMentionsComponent implements OnInit, OnDestroy {
   USER_TRIGGER_CHARACTER: string = '@'
@@ -18,6 +24,9 @@ export class TextAreaWithMentionsComponent implements OnInit, OnDestroy {
   @Input() planUsers: PlanUser[];
   @Input() clearCommentObservable: Observable<any>;
   @Input() threadId: string;
+  @Input() placeholder: string;
+  @Input() label: string;
+  @Input() initialPayload: string;
 
   internalFormSubscription: Subscription;
   clearInputSubscription: Subscription;
@@ -34,6 +43,7 @@ export class TextAreaWithMentionsComponent implements OnInit, OnDestroy {
     }
   ];
   mentions: ChoiceWithIndices[] = [];
+  preselectedMentions: ChoiceWithIndices[] = [];
   searchRegexp = new RegExp('^([-&.\\w]+ *){0,3}$');
 
   constructor(
@@ -45,6 +55,13 @@ export class TextAreaWithMentionsComponent implements OnInit, OnDestroy {
     this.internalFormSubscription = this.internalForm.valueChanges.subscribe(value => {
       this.form.setValue(this._formatTextWithSelections(value, this.mentions));
     });
+
+    if (this.initialPayload) {
+      const { text, mentions } = this._parsePayload(this.initialPayload);
+      this.mentions = mentions;
+      this.preselectedMentions = mentions;
+      this.internalForm.setValue(text);
+    }
 
     if (this.clearCommentObservable) {
       this.clearCommentObservable.subscribe(threadIdToClear => {
@@ -118,5 +135,23 @@ export class TextAreaWithMentionsComponent implements OnInit, OnDestroy {
     formattedContent = formattedContent?.replace(/\n/g, '<br>');
 
     return formattedContent;
-  }  
+  }
+
+  // The reverse of _formatTextWithSelections, so an edited comment keeps its mentions; unknown users stay as raw tokens.
+  private _parsePayload(payload: string): { text: string, mentions: ChoiceWithIndices[] } {
+    const source = payload.replace(/<br\s*\/?>/gi, '\n');
+    const mentions: ChoiceWithIndices[] = [];
+    let text = '';
+    let last = 0;
+    for (const match of source.matchAll(/@\{\{userid:([a-zA-Z0-9-]+)\}\}/g)) {
+      text += source.substring(last, match.index);
+      last = match.index + match[0].length;
+      const planUser = this.planUsers?.find(u => u.id?.toString() === match[1]);
+      if (!planUser) { text += match[0]; continue; }
+      const label = this.mentionsConfig[0].getChoiceLabel(planUser);
+      mentions.push({ choice: planUser, indices: { start: text.length, end: text.length + label.length, triggerCharacter: this.USER_TRIGGER_CHARACTER } });
+      text += label;
+    }
+    return { text: text + source.substring(last), mentions };
+  }
 }

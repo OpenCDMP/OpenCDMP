@@ -12,5 +12,10 @@ public class KpiSchemaFieldCodes {
 	public static final String TemplateGroupId = "template_group_id";
 	public static final String DescriptionStatus = "description_status";
 	public static final String LatestVersion = "latest_version";
-
+	public static final String PlanVisibility = "plan_visibility";
+	public static final String PlanBlueprintId = "plan_blueprint_id";
+	public static final String PlanId = "plan_id";
+	public static final String ReferenceId = "reference_id";
+	public static final String PlanBlueprintTypeId = "plan_blueprint_type_id";
+	public static final String DescriptionTemplateTypeId = "description_template_type_id";
 }

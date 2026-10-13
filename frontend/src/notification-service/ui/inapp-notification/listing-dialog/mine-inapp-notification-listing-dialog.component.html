@@ -1,34 +1,39 @@
-<div class="dropdown-top"></div>
+<!-- <div class="dropdown-top"></div> -->
 <div class="notification-popup-wrapper">
-  <div class="row">
-    <div class="col-12">
-      <mat-action-list class="inapp-notification-listing-dialog unset-font-size">
-        @for (inappNotification of inappNotifications; track inappNotification; let last = $last) {
-          <button mat-list-item (click)="goToNotification(inappNotification)">
-            <div class="row justify-content-between">
-              <div class="col-auto">
-                @if (inappNotification.trackingState === notificationInAppTrackingEnum.Delivered) {
-                  <mat-icon mat-list-icon>drafts</mat-icon>
-                }
-                @if (inappNotification.trackingState === notificationInAppTrackingEnum.Stored) {
-                  <mat-icon mat-list-icon>mail</mat-icon>
-                }
-              </div>
-              <div class="col mt-1 pl-0" style="overflow: hidden; text-overflow: ellipsis;">
-                <span mat-line>{{ inappNotification.subject }}</span>
-              </div>
-              <div class="col-auto mt-1">
-                <span mat-line class="secondary-text">{{ inappNotification.createdAt | date : 'short'}}</span>
-              </div>
-            </div>
-          </button>
-          <mat-divider></mat-divider>
+    <div class="title-container">
+        <div class="title">{{'SIDE-BAR.NOTIFICATIONS' | translate}}</div>
+        @if(unreadCount){
+            <div class="unread">{{unreadCount}} {{'TYPES.NOTIFICATION-INAPP-TRACKING.STORED' | translate | lowercase}}</div>
         }
-        @if(authService.hasPermission(authService.permissionEnum.ViewMineInAppNotificationPage)){
-          <button  mat-list-item (click)="goToNotifications()">{{'NAV-BAR.INAPP-NOTIFICATIONS' | translate}}</button>
-          <button  mat-list-item (click)="readAllNotifications()">{{'NAV-BAR.READ-ALL-INAPP-NOTIFICATIONS' | translate}}</button>
-        }
-      </mat-action-list>
     </div>
-  </div>
+    <div class="notifications">
+        <mat-action-list class="inapp-notification-listing-dialog unset-font-size pb-0">
+            @for (inappNotification of inappNotifications; track inappNotification; let last = $last) {
+            <button class="notification-item" mat-list-item (click)="goToNotification(inappNotification)" [class.unread]="inappNotification.trackingState === notificationInAppTrackingEnum.Stored">
+                <div class="notification-item-container d-flex  gap-1-rem">
+                    <mat-icon class="material-symbols-outlined no-shrink" mat-list-icon aria-hidden="true">mail</mat-icon>
+                    <div class="overflow-hidden">
+                        <div class="d-flex gap-1-rem">
+                            <div class="overflow-hidden">
+                                <div  class="notification-subject">
+                                    {{ inappNotification.subject }}
+                                </div>
+                                <div class="notification-body" [innerHTML]="inappNotification.body"></div>
+                            </div>
+                            <div class="unread-badge no-shrink ml-auto"></div>
+                        </div>
+                        <span mat-line class="secondary-text">{{ inappNotification.createdAt | relativeTime}}</span>
+                    </div>
+                </div>
+            </button>
+            <mat-divider></mat-divider>
+            }
+        </mat-action-list>
+    </div>
+    @if(authService.hasPermission(authService.permissionEnum.ViewMineInAppNotificationPage)){
+        <button mat-button class="view-all-btn" (click)="goToNotifications()">
+            {{'NAV-BAR.INAPP-NOTIFICATIONS' | translate}}
+        </button>
+    <!-- <button  mat-list-item (click)="readAllNotifications()">{{'NAV-BAR.READ-ALL-INAPP-NOTIFICATIONS' | translate}}</button> -->
+    }
 </div>

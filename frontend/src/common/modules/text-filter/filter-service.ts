@@ -13,10 +13,10 @@ export class FilterService {
 		} else {
 			// We replace * with %. We also escape the _ operator. If % or _ is found in the query, we suppose that the user entered it on purpose.
 			// Otherwise we append the % operator at the end.
-			let transformedValue = value.split('*').join('%');
-			if (!transformedValue.includes('%')) { transformedValue = transformedValue + '%'; }
-			transformedValue = transformedValue.split('_').join('\_');
-			return transformedValue;
+			// let transformedValue = value.split('*').join('%');
+			// if (!transformedValue.includes('%')) { transformedValue = transformedValue + '%'; }
+			// transformedValue = transformedValue.split('_').join('\_');
+			return value;
 		}
 	}
 
@@ -24,9 +24,9 @@ export class FilterService {
 		if (!value) {
 			return undefined;
 		} else {
-			let transformedValue = this.replaceAll(value, '\\_', '_');
-			if (transformedValue.endsWith('%')) { transformedValue = transformedValue.substring(0, transformedValue.length - 1); }
-			return transformedValue;
+			// let transformedValue = this.replaceAll(value, '\\_', '_');
+			// if (transformedValue.endsWith('%')) { transformedValue = transformedValue.substring(0, transformedValue.length - 1); }
+			return value;
 		}
 	}
 

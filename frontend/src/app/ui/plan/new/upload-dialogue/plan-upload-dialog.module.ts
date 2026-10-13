@@ -9,20 +9,18 @@ import { DescriptionTemplatePreviewDialogModule } from '@app/ui/admin/descriptio
 import { FileUploadComponent } from '@app/library/file-uploader/file-uploader.component';
 
 @NgModule({
-	imports: [
-		CommonUiModule,
-		CommonFormsModule,
-		FormattingModule,
-		ReactiveFormsModule, 
-		AutoCompleteModule,
-		DescriptionTemplatePreviewDialogModule,
-        FileUploadComponent
-	],
-	declarations: [
-		PlanUploadDialogComponent,
-	],
-	exports: [
-		PlanUploadDialogComponent,
-	]
+    imports: [
+        CommonUiModule,
+        CommonFormsModule,
+        FormattingModule,
+        ReactiveFormsModule,
+        AutoCompleteModule,
+        DescriptionTemplatePreviewDialogModule,
+        FileUploadComponent,
+        PlanUploadDialogComponent
+    ],
+    exports: [
+        PlanUploadDialogComponent,
+    ]
 })
 export class PlanUploadDialogModule { }

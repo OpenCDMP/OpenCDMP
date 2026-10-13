@@ -1,0 +1,30 @@
+@use '../../bp2-shared' as *;
+
+:host { display: block; flex: none; }
+
+// The icon tile is sized like a form field row so it lines up with the Name field beside it.
+.dt-icon {
+	display: flex; flex-direction: column; align-items: center; gap: .375rem; flex: none; width: 72px;
+	&__tile {
+		width: 56px; height: 56px; border-radius: 10px; border: 1px dashed var(--mat-sys-outline); background: var(--mat-sys-surface-container-low); color: var(--mat-sys-on-surface-variant);
+		display: inline-flex; align-items: center; justify-content: center; cursor: pointer; padding: 0; transition: border-color .15s, background .15s;
+		mat-icon { font-size: 28px; width: 28px; height: 28px; }
+		&:hover:not([disabled]) { border-color: var(--mat-sys-primary); }
+		&--set { border-style: solid; border-color: var(--mat-sys-outline-variant); background: var(--mat-sys-primary-container); color: var(--mat-sys-on-primary-container); }
+		&[disabled] { cursor: default; }
+	}
+	&__empty { color: var(--mat-sys-on-surface-variant); }
+	&__link { border: none; background: none; color: var(--mat-sys-primary); font: inherit; font-size: .75rem; font-weight: 700; cursor: pointer; padding: 0; white-space: nowrap; }
+}
+
+// Popover attached to the tile: the existing icon editor, made compact.
+.dt-icon-pop {
+	width: min(420px, 92vw); padding: .875rem 1rem 1rem; border-radius: 12px; background: var(--mat-sys-surface); border: 1px solid var(--mat-sys-outline-variant);
+	box-shadow: 0 8px 24px rgba(0, 0, 0, .14); display: flex; flex-direction: column; gap: .5rem;
+	&__head { display: flex; flex-direction: column; gap: .125rem; strong { font-size: .9rem; } }
+	&__actions { display: flex; justify-content: flex-end; gap: .5rem; }
+	::ng-deep {
+		ngx-dropzone { padding: 14px; .upload-file-icon { display: none; } .hint-large { font-size: .85rem; } .mt-3 { margin-top: .5rem !important; } }
+		.mat-mdc-form-field { width: 100%; }
+	}
+}

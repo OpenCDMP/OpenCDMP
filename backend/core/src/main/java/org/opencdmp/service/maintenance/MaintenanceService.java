@@ -61,7 +61,12 @@ public interface MaintenanceService {
 
 	void sendIndicatorPointDescriptionTemplateEntryEvents() throws InvalidApplicationException;
 
+	void sendIndicatorPointPlanBlueprintTypeEntryEvents() throws InvalidApplicationException;
+
+	void sendIndicatorPointDescriptionTemplateTypeEntryEvents() throws InvalidApplicationException;
+
 	void sendIndicatorPointTenantEntryEvents() throws InvalidApplicationException;
 
-	void setPlanBlueprintCanEditDescriptionTemplates() throws InvalidApplicationException;
+	void sendDashboardTouchedEntryEvents() throws InvalidApplicationException;
+
 }

@@ -6,40 +6,54 @@
     display: none;
 }
 
-@media(max-width: 992px) { //col-lg
-    .quick-actions-mobile {
-        display: flex;
-        gap: 0.5rem;
-    }
-    .quick-actions {
-        display: none !important;
-    }
-    .description-label {
-        min-width: fit-content;
-    }
-}
+// @media(max-width: 992px) { //col-lg
+//     .quick-actions-mobile {
+//         display: flex;
+//         gap: 0.5rem;
+//     }
+//     .quick-actions {
+//         display: none !important;
+//     }
+//     .description-label {
+//         min-width: fit-content;
+//     }
+// }
 
 .main-body, .side-actions{
     display: flex;
     flex-direction: column;
     gap: 1rem;
     padding-bottom: 0.5rem;
+    margin-top: 2rem;
 }
-
-.description-label,
-.header {
-	font-size: var(--mat-sys-headline-medium-size);
-    margin-bottom: 0.25rem;
+.item-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.25rem;
 }
 
 .description-label {
+    font-size: var(--mat-sys-headline-large-size);
+    margin-bottom: 1rem;
 	font-weight: bold;
     word-break: break-word;
     flex: 1;
     max-width: fit-content;
-    margin: 0;
 }
-
+.description {
+    font-size: var(--mat-sys-headline-medium-size);
+    opacity: 0.8;
+    .show-more {
+        font-size: var(--mat-sys-body-medium-size);
+    }
+}
+.usage {
+    mat-card-title{
+        font-size: var(--mat-sys-headline-medium-size);
+    }
+    padding: 1.0625rem 1.59rem;
+}
 .frame{
 	background: var(--mat-sys-surface);
 	box-shadow: 0px 1px 5px #00000026;
@@ -114,17 +128,14 @@
 }
 
 .plan-btn {
-    min-height: 2.3em;
-    background-color: var(--mat-sys-primary);
-    color: var(--mat-sys-on-primary);
-    border-radius: 4px;
-    border: none;
-    width: min(40rem, 100%);
+    border-radius: var(--mat-card-elevated-container-shape, var(--mat-sys-corner-medium));
+    color: var(--mat-sys-on-surface);
+    padding: 0.79rem;
     &:hover {
-        background-color: hsl(from var(--mat-sys-primary) h s calc(l + 2));
+        background-color: var(--mat-menu-item-hover-state-layer-color, color-mix(in srgb, var(--mat-sys-on-surface) calc(var(--mat-sys-hover-state-layer-opacity) * 100%), transparent));
     }
     .plan-btn-label {
-        margin-right: 1em;
+        margin-left: 0.5rem;
         overflow: hidden;
         white-space: nowrap;
         text-overflow: ellipsis;
@@ -138,15 +149,63 @@
 
 // ********TEXT********
 
-.description-logo {
-  width: 6em;
-  min-width: fit-content;
-  height: 2.6em;
-  padding: 0 0.5rem;
-  background: var(--mat-sys-tertiary);
-  color: var(--mat-sys-on-tertiary);
-  border-radius: 4px;
-  font-size: var(--mat-sys-title-small-size);
+.description-chip {
+    display: flex;
+    align-items: center;
+    padding: 0.25rem 0.75rem;
+    background: var(--mat-sys-secondary);
+    color: var(--mat-sys-on-secondary);
+    border-radius: 999px;
+}
+.description-type-chip{
+        display: flex;
+    align-items: center;
+    padding: 0.25rem 0.75rem;
+    background: var(--mat-sys-secondary-fixed);
+    color: var(--mat-sys-secondary);
+    border-radius: 999px;
+}
+
+.description-status-chip {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    border-radius: 999px;
+    position: relative;
+    // transform: scale(0.85);
+    color: var(--mat-sys-on-background);
+    padding: 0.25rem 0.75rem;
+    mat-icon {
+        font-size: var(--mat-sys-label-large-size);
+        width: var(--mat-sys-label-large-size);
+        height: var(--mat-sys-label-large-size);
+        margin-top: 0.125rem;
+    }
+    .status-chip-overlay{
+        background-color: var(--mat-sys-on-background);
+        opacity: 0.2;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        position: absolute;
+        pointer-events: none;
+        border-radius: inherit;
+    }
+}
+.description-draft {
+    color: var(--draft-color);
+    .status-chip-overlay{
+        background-color: var(--draft-color);
+    }
+}
+.plan-chip {
+    padding: 0.125rem 0.75rem;
+    font-size: var(--mat-sys-body-small-size);
+	background: var(--mat-sys-primary) 0% 0% no-repeat padding-box;
+	border-radius: var(--mat-button-text-container-shape);
+	color: var(--mat-sys-on-primary);
+	align-content: center;
 }
 
 .evaluator-logo {

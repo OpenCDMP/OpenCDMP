@@ -11,6 +11,7 @@ import org.opencdmp.authorization.AuthorizationFlags;
 import org.opencdmp.commons.enums.IsActive;
 import org.opencdmp.data.ReferenceEntity;
 import org.opencdmp.data.ReferenceTypeEntity;
+import org.opencdmp.data.TenantEntity;
 import org.opencdmp.data.TenantEntityManagerFactory;
 import org.opencdmp.model.referencetype.ReferenceType;
 import org.opencdmp.query.utils.QueryUtilsService;
@@ -34,6 +35,11 @@ public class ReferenceTypeQuery extends QueryBase<ReferenceTypeEntity> {
     private Collection<String> codes;
 
     private Collection<UUID> excludedIds;
+
+    private TenantQuery tenantQuery;
+
+    /** null: any row; false: only rows without a tenant (the default tenant's shared rows); true: only tenant-owned rows. */
+    private Boolean tenantIsSet;
 
     private EnumSet<AuthorizationFlags> authorize = EnumSet.of(AuthorizationFlags.None);
 
@@ -99,6 +105,16 @@ public class ReferenceTypeQuery extends QueryBase<ReferenceTypeEntity> {
 
     public ReferenceTypeQuery excludedIds(UUID... value) {
         this.excludedIds = Arrays.asList(value);
+        return this;
+    }
+
+    public ReferenceTypeQuery tenantIsSet(Boolean value) {
+        this.tenantIsSet = value;
+        return this;
+    }
+
+    public ReferenceTypeQuery tenantSubQuery(TenantQuery tenantQuery) {
+        this.tenantQuery = tenantQuery;
         return this;
     }
 
@@ -172,6 +188,14 @@ public class ReferenceTypeQuery extends QueryBase<ReferenceTypeEntity> {
             for (UUID item : this.excludedIds)
                 notInClause.value(item);
             predicates.add(notInClause.not());
+        }
+        if (this.tenantIsSet != null) {
+            predicates.add(this.tenantIsSet ? queryContext.CriteriaBuilder.isNotNull(queryContext.Root.get(ReferenceTypeEntity._tenantId)) : queryContext.CriteriaBuilder.isNull(queryContext.Root.get(ReferenceTypeEntity._tenantId)));
+        }
+
+        if (this.tenantQuery != null) {
+            QueryContext<TenantEntity, UUID> subQuery = this.applySubQuery(this.tenantQuery, queryContext, UUID.class, tenantEntityRoot -> tenantEntityRoot.get(TenantEntity._id));
+            predicates.add(queryContext.CriteriaBuilder.in(queryContext.Root.get(ReferenceTypeEntity._tenantId)).value(subQuery.Query));
         }
         if (!predicates.isEmpty()) {
             Predicate[] predicatesArray = predicates.toArray(new Predicate[0]);

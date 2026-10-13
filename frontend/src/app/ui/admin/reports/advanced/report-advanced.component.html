@@ -1,0 +1,88 @@
+<button type="button" class="fold" (click)="toggle()" [attr.aria-expanded]="open()">
+	<mat-icon>{{open() ? 'expand_more' : 'chevron_right'}}</mat-icon>
+	<span class="fold-title">{{'REPORTS.ADVANCED.TITLE' | translate}}</span>
+	@if (!open()) {
+		<span class="fold-summary">
+			@if (summary().total > 0) {
+				{{'REPORTS.ADVANCED.SUMMARY-FIELDS' | translate: { counted: summary().counted, total: summary().total } }} ·
+			}
+			{{(latestVersionOnly() ? 'REPORTS.ADVANCED.SUMMARY-LATEST' : 'REPORTS.ADVANCED.SUMMARY-ALL-VERSIONS') | translate}}
+			@if (includeInactive()) { · {{'REPORTS.FILTERS.INCLUDE-INACTIVE' | translate}} }
+		</span>
+	}
+</button>
+
+@if (open()) {
+	<div class="panels">
+		@for (question of fieldSetQuestions(); track question.fieldSetId) {
+			<section class="panel">
+				<h3>{{'REPORTS.ADVANCED.FIELDS-COUNTED' | translate: { question: label(question) } }}</h3>
+				@for (field of question.allFields; track field.id) {
+					<div class="field-row">
+						<mat-checkbox [checked]="isCounted(question, field)" (change)="toggleField(question, field, $event.checked)">
+							<span class="field-label">{{field.label || ('REPORTS.ADVANCED.UNNAMED-FIELD' | translate)}}</span>
+							<span class="field-type">{{typeWord(field) | translate}}</span>
+						</mat-checkbox>
+						@if (isExcludedControl(question, field)) {
+							<span class="pill" [matTooltip]="'REPORTS.QUESTIONS.CONTROL-FIELD-HINT' | translate">{{'REPORTS.QUESTIONS.CONTROL-FIELD' | translate}}</span>
+						}
+					</div>
+				}
+				<p class="hint">{{'REPORTS.ADVANCED.FIELDS-HINT' | translate}}</p>
+			</section>
+		}
+
+		@for (question of semanticQuestions(); track question.semantic) {
+			<section class="panel">
+				<h3>{{'REPORTS.ADVANCED.SEMANTIC-TITLE' | translate: { question: question.semantic } }}</h3>
+				@if (question.titles?.length) {
+					<p class="hint">{{(question.titles.length === 1 ? 'REPORTS.ADVANCED.SEMANTIC-TITLES-ONE' : 'REPORTS.ADVANCED.SEMANTIC-TITLES') | translate: { count: question.titles.length } }}</p>
+					<ul class="groups wordings">
+						@for (title of question.titles; track title) {
+							<li>{{title}}</li>
+						}
+					</ul>
+				}
+				<p class="hint">{{((question.groupCount ?? question.groupLabels?.length) === 1 ? 'REPORTS.ADVANCED.SEMANTIC-GROUPS-ONE' : 'REPORTS.ADVANCED.SEMANTIC-GROUPS') | translate: { count: question.groupCount ?? question.groupLabels?.length ?? 0 } }}</p>
+				<ul class="groups">
+					@for (group of question.groupLabels ?? []; track group) {
+						<li>{{group}}</li>
+					}
+				</ul>
+			</section>
+		}
+
+		<section class="panel">
+			<h3>{{'REPORTS.ADVANCED.SCOPE' | translate}}</h3>
+			<mat-checkbox [checked]="latestVersionOnly()" (change)="latestVersionOnlyChange.emit($event.checked)">
+				{{'REPORTS.FILTERS.LATEST-VERSION-ONLY' | translate}}
+				<span class="sub">{{'REPORTS.FILTERS.LATEST-VERSION-ONLY-HINT' | translate}}</span>
+			</mat-checkbox>
+			<mat-checkbox [checked]="includeInactive()" (change)="includeInactiveChange.emit($event.checked)">
+				{{'REPORTS.FILTERS.INCLUDE-INACTIVE' | translate}}
+			</mat-checkbox>
+
+			@if (showDateBucket()) {
+				<mat-form-field appearance="outline" subscriptSizing="dynamic" class="bucket">
+					<mat-label>{{'REPORTS.FILTERS.DATE-BUCKET' | translate}}</mat-label>
+					<mat-select [value]="dateBucket()" (valueChange)="dateBucketChange.emit($event)">
+						<mat-option [value]="dateBuckets.Year">{{'REPORTS.FILTERS.DATE-BUCKET-YEAR' | translate}}</mat-option>
+						<mat-option [value]="dateBuckets.Month">{{'REPORTS.FILTERS.DATE-BUCKET-MONTH' | translate}}</mat-option>
+					</mat-select>
+				</mat-form-field>
+			}
+		</section>
+
+		@if (isAssetSubject() && (planOutline() || loadingPlanOutline())) {
+			<section class="panel wide">
+				<h3>{{'REPORTS.PLAN-QUESTIONS.TITLE' | translate}}</h3>
+				<p class="hint">{{'REPORTS.PLAN-QUESTIONS.HINT' | translate}}</p>
+				@if (loadingPlanOutline()) {
+					<mat-spinner diameter="24"></mat-spinner>
+				} @else {
+					<app-report-question-picker [outline]="planOutline()" [initialSelection]="planQuestions()" (selectionChanged)="planQuestionsChange.emit($event)" />
+				}
+			</section>
+		}
+	</div>
+}

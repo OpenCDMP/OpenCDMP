@@ -1,7 +1,7 @@
 package org.opencdmp.model.builder.commonmodels.description;
 
 import org.opencdmp.authorization.AuthorizationFlags;
-import org.opencdmp.commonmodels.models.description.VisibilityStateModel;
+import org.opencdmp.commonmodels.models.plandescriptionfields.VisibilityStateModel;
 import org.opencdmp.convention.ConventionService;
 import org.opencdmp.model.builder.commonmodels.BaseCommonModelBuilder;
 import org.opencdmp.model.builder.commonmodels.CommonModelBuilderItemResponse;

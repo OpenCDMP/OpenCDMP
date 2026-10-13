@@ -3,6 +3,7 @@ package org.opencdmp.query.lookup;
 import gr.cite.tools.data.query.Lookup;
 import gr.cite.tools.data.query.QueryFactory;
 import io.swagger.v3.oas.annotations.media.Schema;
+import org.opencdmp.commons.SQLUtils;
 import org.opencdmp.commons.enums.LockTargetType;
 import org.opencdmp.query.LockQuery;
 import org.opencdmp.query.lookup.swagger.SwaggerHelpers;
@@ -29,6 +30,11 @@ public class LockLookup extends Lookup {
 
     @Schema(description = SwaggerHelpers.Lock.userIds_description)
     private List<UUID> userIds;
+
+    private TenantLookup tenantSubQuery;
+
+    /** false: only the default tenant's shared rows (no tenant); true: only tenant-owned rows; null: both. */
+    private Boolean tenantIsSet;
 
     public String getLike() {
         return like;
@@ -78,10 +84,16 @@ public class LockLookup extends Lookup {
         this.userIds = userIds;
     }
 
+    public Boolean getTenantIsSet() { return tenantIsSet; }
+    public void setTenantIsSet(Boolean tenantIsSet) { this.tenantIsSet = tenantIsSet; }
+
+    public TenantLookup getTenantSubQuery() { return tenantSubQuery; }
+    public void setTenantSubQuery(TenantLookup tenantSubQuery) { this.tenantSubQuery = tenantSubQuery; }
+
     public LockQuery enrich(QueryFactory queryFactory) {
         LockQuery query = queryFactory.query(LockQuery.class);
         if (this.like != null)
-            query.like(this.like);
+            query.like(SQLUtils.toPostgres(this.like));
         if (this.ids != null)
             query.ids(this.ids);
         if (this.targetIds != null)
@@ -92,6 +104,10 @@ public class LockLookup extends Lookup {
             query.excludedIds(this.excludedIds);
         if (this.userIds != null)
             query.userIds(this.userIds);
+        if (this.tenantIsSet != null)
+            query.tenantIsSet(this.tenantIsSet);
+        if (this.tenantSubQuery != null)
+            query.tenantSubQuery(this.tenantSubQuery.enrich(queryFactory));
 
         this.enrichCommon(query);
 

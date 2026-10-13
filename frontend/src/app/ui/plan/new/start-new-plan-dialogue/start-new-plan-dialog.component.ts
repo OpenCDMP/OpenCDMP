@@ -1,24 +1,28 @@
 import { HttpClient } from '@angular/common/http';
-import { Component, computed, HostBinding, Inject } from '@angular/core';
-import { MAT_DIALOG_DATA, MatDialog, MatDialogRef } from '@angular/material/dialog';
+import { Component, Inject, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { MAT_DIALOG_DATA, MatDialog, MatDialogRef, MatDialogTitle, MatDialogContent } from '@angular/material/dialog';
 import { Router } from '@angular/router';
 import { PlanService } from '@app/core/services/plan/plan.service';
 import { SnackBarNotificationLevel, UiNotificationService } from '@app/core/services/notification/ui-notification-service';
 import { BaseComponent } from '@common/base/base.component';
-import { TranslateService } from '@ngx-translate/core';
+import { TranslateService, TranslatePipe } from '@ngx-translate/core';
 import { takeUntil } from 'rxjs/operators';
 import { PlanUploadDialogComponent } from '../upload-dialogue/plan-upload-dialog.component';
 import { AnalyticsService } from '@app/core/services/matomo/analytics-service';
 import { RouterUtilsService } from '@app/core/services/router/router-utils.service';
 import { HttpErrorHandlingService } from '@common/modules/errors/error-handling/http-error-handling.service';
+import { MatIconButton, MatButton } from '@angular/material/button';
+import { MatIcon } from '@angular/material/icon';
+import { CdkScrollable } from '@angular/cdk/scrolling';
 
 @Component({
     selector: 'app-start-new-plan',
     templateUrl: './start-new-plan-dialog.component.html',
     styleUrls: ['./start-new-plan-dialog.component.scss'],
-    standalone: false
+    changeDetection: ChangeDetectionStrategy.Eager,
+    imports: [MatDialogTitle, MatIconButton, MatIcon, CdkScrollable, MatDialogContent, MatButton, TranslatePipe]
 })
-export class StartNewPlanDialogComponent extends BaseComponent {
+export class StartNewPlanDialogComponent extends BaseComponent implements OnInit {
    
 
 	public isDialog: boolean = false;

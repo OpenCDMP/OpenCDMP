@@ -7,14 +7,12 @@ import { DescriptionCopyDialogComponent } from './description-copy-dialog.compon
 import { RouterModule } from '@angular/router';
 
 @NgModule({
-	imports: [
-		CommonUiModule,
-		CommonFormsModule,
-		AutoCompleteModule,
-		RouterModule
-	],
-	declarations: [
-		DescriptionCopyDialogComponent
-	]
+    imports: [
+        CommonUiModule,
+        CommonFormsModule,
+        AutoCompleteModule,
+        RouterModule,
+        DescriptionCopyDialogComponent
+    ]
 })
 export class DescriptionCopyDialogModule { }

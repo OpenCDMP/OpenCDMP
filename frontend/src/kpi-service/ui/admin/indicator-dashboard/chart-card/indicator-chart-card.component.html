@@ -1,0 +1,20 @@
+<section class="chart-card">
+	<div class="chart-card-header">
+		<h2 class="chart-card-title">{{ title() }}</h2>
+		<div class="chart-card-actions">
+			@if (charts().length > 1) {
+				<mat-button-toggle-group class="view-toggle" hideSingleSelectionIndicator="true" [attr.aria-label]="'INDICATOR-DASHBOARD.CHART-CARD.VIEWS' | translate" [value]="selectedIndex()" (change)="selectedIndex.set($event.value)">
+					@for (chart of charts(); track $index) {
+						<mat-button-toggle [value]="$index">{{ chart.viewLanguageName | translate }}</mat-button-toggle>
+					}
+				</mat-button-toggle-group>
+			}
+			@if (help()) {
+				<button mat-icon-button class="help-button" type="button" [matTooltip]="help() | translate" [attr.aria-label]="'INDICATOR-DASHBOARD.CHART-CARD.ABOUT' | translate">
+					<mat-icon aria-hidden="true">info_outline</mat-icon>
+				</button>
+			}
+		</div>
+	</div>
+	<kpi-dashboard-chart [chartConfig]="chartConfig()" [indicatorQueryParams]="queryParams()" chartHeight="320px" />
+</section>

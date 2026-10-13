@@ -3,6 +3,7 @@ package org.opencdmp.commons.types.description.importexport;
 import jakarta.xml.bind.annotation.*;
 import jakarta.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 import org.opencdmp.commons.types.descriptiontemplate.importexport.DescriptionTemplateImportExport;
+import org.opencdmp.commons.types.reference.importexport.ReferenceImportExport;
 import org.opencdmp.commons.xmladapter.InstantXmlAdapter;
 
 import java.time.Instant;
@@ -30,7 +31,7 @@ public class DescriptionImportExport {
     private Instant finalizedAt;
 
     @XmlElement(name = "sectionId")
-    private UUID  sectionId;
+    private String  sectionId;
 
     @XmlElementWrapper(name = "tags")
     @XmlElement(name = "tag")
@@ -41,7 +42,7 @@ public class DescriptionImportExport {
 
     @XmlElementWrapper(name = "references")
     @XmlElement(name = "reference")
-    private List<DescriptionReferenceImportExport> references;
+    private List<ReferenceImportExport> references;
 
     @XmlElement(name = "properties")
     private DescriptionPropertyDefinitionImportExport properties;
@@ -86,12 +87,12 @@ public class DescriptionImportExport {
         this.finalizedAt = finalizedAt;
     }
 
-    public UUID getSectionId() {
+    public String getSectionId() {
         return this.sectionId;
     }
 
-    public void setSectionId(UUID sectionId) {
-        this.sectionId = sectionId;
+    public void setSectionId(String sectionId) {
+        this.sectionId = (sectionId == null || sectionId.isEmpty()) ? null : sectionId;
     }
 
     public DescriptionTemplateImportExport getDescriptionTemplate() {
@@ -102,11 +103,11 @@ public class DescriptionImportExport {
         this.descriptionTemplate = descriptionTemplate;
     }
 
-    public List<DescriptionReferenceImportExport> getReferences() {
+    public List<ReferenceImportExport> getReferences() {
         return this.references;
     }
 
-    public void setReferences(List<DescriptionReferenceImportExport> references) {
+    public void setReferences(List<ReferenceImportExport> references) {
         this.references = references;
     }
 

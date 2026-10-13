@@ -6,14 +6,20 @@ import gr.cite.tools.exception.MyNotFoundException;
 import gr.cite.tools.exception.MyValidationException;
 import gr.cite.tools.fieldset.FieldSet;
 import jakarta.xml.bind.JAXBException;
+import org.jetbrains.annotations.NotNull;
 import org.opencdmp.commonmodels.models.description.DescriptionModel;
+import org.opencdmp.commons.types.description.FieldEntity;
+import org.opencdmp.commons.types.description.PropertyDefinitionEntity;
 import org.opencdmp.commons.types.description.importexport.DescriptionImportExport;
 import org.opencdmp.data.DescriptionEntity;
+import org.opencdmp.data.ReferenceEntity;
 import org.opencdmp.data.StorageFileEntity;
 import org.opencdmp.model.DescriptionValidationResult;
 import org.opencdmp.model.StorageFile;
 import org.opencdmp.model.description.Description;
 import org.opencdmp.model.persist.*;
+import org.opencdmp.model.persist.descriptionproperties.FieldPersist;
+import org.opencdmp.model.persist.descriptionproperties.PropertyDefinitionPersist;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.multipart.MultipartFile;
 import org.xml.sax.SAXException;
@@ -34,7 +40,7 @@ import java.util.UUID;
 
 public interface DescriptionService {
 
-	Map<UUID, List<String>> getDescriptionSectionPermissions(DescriptionSectionPermissionResolver model);
+	Map<String, List<String>> getDescriptionSectionPermissions(DescriptionSectionPermissionResolver model);
 
 	Description persist(DescriptionPersist model, FieldSet fields) throws MyForbiddenException, MyValidationException, MyApplicationException, MyNotFoundException, InvalidApplicationException, IOException;
     List<Description> persistMultiple(DescriptionMultiplePersist model, FieldSet fields) throws MyForbiddenException, MyValidationException, MyApplicationException, MyNotFoundException, InvalidApplicationException, IOException;
@@ -42,6 +48,8 @@ public interface DescriptionService {
     Description buildClone(UUID id, FieldSet fields) throws MyForbiddenException, MyValidationException, MyApplicationException, MyNotFoundException, InvalidApplicationException, IOException;
 
     void deleteAndSave(UUID id) throws MyForbiddenException, InvalidApplicationException, IOException;
+
+    void deleteAndSave(DescriptionDeletePersist model) throws MyForbiddenException, InvalidApplicationException, IOException;
 
     String reassignDescriptionProperties(DescriptionEntity existingDescriptionEntity) throws InvalidApplicationException;
 
@@ -53,7 +61,9 @@ public interface DescriptionService {
     StorageFileEntity getFieldFile(UUID descriptionId, UUID storageFileId);
 	void updateDescriptionTemplate(UpdateDescriptionTemplatePersist model) throws InvalidApplicationException, IOException, JAXBException;
 
-	DescriptionImportExport exportXmlEntity(UUID id, boolean ignoreAuthorize, boolean isPublic) throws MyForbiddenException, MyNotFoundException, JAXBException, ParserConfigurationException, IOException, InstantiationException, IllegalAccessException, SAXException, InvalidApplicationException;
+    List<UUID> calculateAllReferenceIdsFromData(PropertyDefinitionEntity data, org.opencdmp.commons.types.descriptiontemplate.DefinitionEntity definition);
+
+    DescriptionImportExport exportXmlEntity(UUID id, boolean ignoreAuthorize, boolean isPublic) throws MyForbiddenException, MyNotFoundException, JAXBException, ParserConfigurationException, IOException, InstantiationException, IllegalAccessException, SAXException, InvalidApplicationException;
 
 	ResponseEntity<byte[]> exportXml(UUID id) throws MyForbiddenException, MyNotFoundException, JAXBException, ParserConfigurationException, IOException, InstantiationException, IllegalAccessException, SAXException, InvalidApplicationException;
 

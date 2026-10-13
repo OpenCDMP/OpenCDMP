@@ -6,3 +6,38 @@
 .title {
     font-size:  var(--mat-sys-title-large-size);
 }
+
+.pluginConfiguration {
+    label {
+        display: block;
+        margin-top: 1rem;
+        margin-bottom: 0.5rem;
+    }
+
+    app-file-uploader {
+        display: block;
+        margin-bottom: 1rem;
+    }
+}
+
+.template-validation {
+	margin-top: 0.25rem;
+
+	.template-validation-issue {
+		display: flex;
+		align-items: center;
+		gap: 0.35rem;
+		font-size: 0.85rem;
+		color: #8a6d00;
+
+		&.template-validation-error {
+			color: #b00020;
+		}
+
+		mat-icon {
+			font-size: 1rem;
+			height: 1rem;
+			width: 1rem;
+		}
+	}
+}

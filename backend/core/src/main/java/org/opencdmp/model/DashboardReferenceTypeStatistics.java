@@ -9,6 +9,12 @@ public class DashboardReferenceTypeStatistics {
     private PublicReferenceType referenceType;
 
     public static final String _referenceType = "referenceType";
+
+    /** Whether one of the reference type's sources has a logo (served by {@code GET api/reference-type/public/{id}/logo}). */
+    private boolean hasLogo;
+
+    public static final String _hasLogo = "hasLogo";
+
     public long getCount() {
         return count;
     }
@@ -23,5 +29,13 @@ public class DashboardReferenceTypeStatistics {
 
     public void setReferenceType(PublicReferenceType referenceType) {
         this.referenceType = referenceType;
+    }
+
+    public boolean getHasLogo() {
+        return hasLogo;
+    }
+
+    public void setHasLogo(boolean hasLogo) {
+        this.hasLogo = hasLogo;
     }
 }

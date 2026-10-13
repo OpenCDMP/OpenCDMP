@@ -6,25 +6,23 @@ import { ReactiveAsteriskDirective } from './reactive-asterisk-directive';
 import { TextareaAutoresizeDirective } from './textarea-autoresize-directive';
 
 @NgModule({
-	imports: [
-		FormsModule,
-		ReactiveFormsModule,
-	],
-	declarations:[
-		ReactiveAsteriskDirective,
-		TextareaAutoresizeDirective
-	],
-	exports: [
-		FormsModule,
-		ReactiveFormsModule,
-		ReactiveAsteriskDirective,
-		TextareaAutoresizeDirective
-	],
-	providers: [
-		FormService,
-		PendingChangesGuard,
-		ReactiveAsteriskDirective,
-		TextareaAutoresizeDirective
-	]
+    imports: [
+        FormsModule,
+        ReactiveFormsModule,
+        ReactiveAsteriskDirective,
+        TextareaAutoresizeDirective,
+    ],
+    exports: [
+        FormsModule,
+        ReactiveFormsModule,
+        ReactiveAsteriskDirective,
+        TextareaAutoresizeDirective
+    ],
+    providers: [
+        FormService,
+        PendingChangesGuard,
+        ReactiveAsteriskDirective,
+        TextareaAutoresizeDirective
+    ]
 })
 export class CommonFormsModule { }

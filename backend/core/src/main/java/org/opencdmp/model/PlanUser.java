@@ -29,7 +29,7 @@ public class PlanUser {
 
     public static final String _role = "role";
 
-    private UUID sectionId;
+    private String sectionId;
     public static final String _sectionId = "sectionId";
 
     private Integer ordinal;
@@ -81,12 +81,12 @@ public class PlanUser {
         this.role = role;
     }
 
-    public UUID getSectionId() {
+    public String getSectionId() {
         return sectionId;
     }
 
-    public void setSectionId(UUID sectionId) {
-        this.sectionId = sectionId;
+    public void setSectionId(String sectionId) {
+        this.sectionId = (sectionId == null || sectionId.isEmpty()) ? null : sectionId;
     }
 
     public Integer getOrdinal() {

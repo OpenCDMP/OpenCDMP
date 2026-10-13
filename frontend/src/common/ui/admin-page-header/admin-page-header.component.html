@@ -1,0 +1,18 @@
+<header class="admin-page-header">
+    @if (showBreadcrumb) {
+        <app-navigation-breadcrumb />
+    }
+
+    <div class="admin-page-header__bar">
+        <div class="admin-page-header__text">
+            <h1 class="page-title admin-page-header__title">{{ titleKey | translate }}</h1>
+            @if (descriptionKey) {
+                <p class="page-subtitle admin-page-header__description">{{ descriptionKey | translate }}</p>
+            }
+        </div>
+
+        <div class="admin-page-header__actions">
+            <ng-content select="[actions]" />
+        </div>
+    </div>
+</header>

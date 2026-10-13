@@ -60,7 +60,9 @@ import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @Service
@@ -200,7 +202,7 @@ public class TenantServiceImpl implements TenantService {
             this.tenantEntityManagerFactory.getInstance().reloadTenantFilters();
         }
 
-        List<String> keycloakIdsToAddToTenantGroup = new ArrayList<>();
+        Map<String, String> keycloakIdsToAddToTenantGroup = new LinkedHashMap<>();
         try {
             this.tenantScopeFactory.getInstance().setTempTenant(this.tenantEntityManagerFactory.getInstance(), tenant.getId(), tenant.getCode());
             for (UUID userId : existingItems.stream().map(UserRoleEntity::getUserId).distinct().toList()) {
@@ -230,7 +232,7 @@ public class TenantServiceImpl implements TenantService {
                 }
                 item.setCreatedAt(Instant.now());
                 this.tenantEntityManagerFactory.getInstance().persist(item);
-                keycloakIdsToAddToTenantGroup.add(userCredential.getExternalId());
+                keycloakIdsToAddToTenantGroup.put(userCredential.getExternalId(), item.getRole());
 
                 this.eventBroker.emit(new UserCredentialTouchedEvent(userCredential.getId(), userCredential.getExternalId()));
             }
@@ -241,16 +243,17 @@ public class TenantServiceImpl implements TenantService {
         }
 
         boolean atLeastOneKeycloakIdAdded = false;
-        for (String externalId : keycloakIdsToAddToTenantGroup) {
+        for (Map.Entry<String, String> entry : keycloakIdsToAddToTenantGroup.entrySet()) {
+            String externalId = entry.getKey();
             try {
-                this.keycloakService.addUserToTenantRoleGroup(externalId, tenant.getCode(), this.authorizationConfiguration.getAuthorizationProperties().getTenantAdminRole());
+                this.keycloakService.addUserToTenantRoleGroup(externalId, tenant.getCode(), entry.getValue());
                 atLeastOneKeycloakIdAdded = true;
             } catch (Exception e) {
                 logger.error("Cannot add user to tenant group for tenant code " + tenant.getCode() + "and credential " + externalId + ". Skipping:" + e.getMessage());
             }
         }
 
-        if (!atLeastOneKeycloakIdAdded) throw new MyApplicationException("Cannot create a new tenant without a valid tenant admin");
+        if (!atLeastOneKeycloakIdAdded) throw new MyApplicationException("Cannot create a new tenant: none of the auto-assigned administrators could be added to its Keycloak groups");
 
         for (UUID userId : existingItems.stream().map(UserRoleEntity::getUserId).distinct().toList()) {
             this.userTouchedIntegrationEventHandler.handle(userId);

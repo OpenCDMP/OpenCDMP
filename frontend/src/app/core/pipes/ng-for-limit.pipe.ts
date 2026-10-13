@@ -1,9 +1,6 @@
 import { Pipe, PipeTransform } from '@angular/core';
 
-@Pipe({
-    name: 'limitTo',
-    standalone: false
-})
+@Pipe({ name: 'limitTo' })
 export class NgForLimitPipe implements PipeTransform {
 	transform(items: any[], limit: number) {
 		if (items.length > limit) {

@@ -1,0 +1,161 @@
+<div class="bar" role="toolbar" [attr.aria-label]="'REPORTS.FILTERS.TITLE' | translate">
+	<span class="bar-label">{{'REPORTS.FILTERS.REFINE' | translate}}</span>
+
+	@for (chip of chips(); track chip.key) {
+		<span class="chip" [class.active]="editor()?.kind === chip.editor.kind && editor()?.referenceType?.id === chip.editor.referenceType?.id">
+			<button type="button" class="chip-body" (click)="openChip(chip)" [matTooltip]="'REPORTS.FILTERS.EDIT' | translate">
+				{{chip.label}}: <strong>{{chip.value}}</strong>
+			</button>
+			<button type="button" mat-icon-button class="chip-remove" (click)="removeChip(chip)"
+				[attr.aria-label]="'REPORTS.FILTERS.REMOVE' | translate: { filter: chip.label }">
+				<mat-icon>close</mat-icon>
+			</button>
+		</span>
+	}
+
+	<button type="button" mat-stroked-button class="add" [matMenuTriggerFor]="addMenu">
+		<mat-icon>add</mat-icon>
+		{{'REPORTS.FILTERS.ADD' | translate}}
+	</button>
+
+	<span class="bar-label spaced">{{'REPORTS.BREAKDOWN.TITLE' | translate}}</span>
+
+	@for (chip of breakdownChips(); track chip.token) {
+		<span class="chip">
+			<span class="chip-body static"><strong>{{chip.label}}</strong></span>
+			<button type="button" mat-icon-button class="chip-remove" (click)="removeBreakdown(chip.token)"
+				[attr.aria-label]="'REPORTS.FILTERS.REMOVE' | translate: { filter: chip.label }">
+				<mat-icon>close</mat-icon>
+			</button>
+		</span>
+	}
+
+	@if (breakdown().length < maxBreakdowns() && availableBreakdowns().length > 0) {
+		<button type="button" mat-stroked-button class="add" [matMenuTriggerFor]="byMenu">
+			<mat-icon>add</mat-icon>
+			{{(breakdown().length === 0 ? 'REPORTS.BREAKDOWN.CHOOSE' : 'REPORTS.BREAKDOWN.ADD-LEVEL') | translate}}
+		</button>
+	}
+</div>
+
+<mat-menu #addMenu="matMenu" class="report-filter-menu">
+	<div class="menu-heading" mat-menu-item disabled>{{'REPORTS.FILTERS.ABOUT-PLAN' | translate}}</div>
+	<button mat-menu-item (click)="open('planStatus')">{{'REPORTS.FILTERS.PLAN-STATUS' | translate}}</button>
+	<button mat-menu-item (click)="open('access')">{{'REPORTS.FILTERS.PLAN-ACCESS' | translate}}</button>
+	@if (!blueprintIsSource()) {
+		<button mat-menu-item (click)="open('blueprint')">{{'REPORTS.FILTERS.PLAN-BLUEPRINT' | translate}}</button>
+	}
+	@if (referenceTypes().length > 0) {
+		<button mat-menu-item [matMenuTriggerFor]="planReferenceMenu">{{'REPORTS.FILTERS.PLAN-REFERENCE' | translate}}</button>
+	}
+
+	@if (isAssetSubject()) {
+		<div class="menu-heading" mat-menu-item disabled>{{'REPORTS.FILTERS.ABOUT-ASSET' | translate}}</div>
+		<button mat-menu-item (click)="open('descriptionStatus')">{{'REPORTS.FILTERS.ASSET-STATUS' | translate}}</button>
+		<button mat-menu-item (click)="open('created')">{{'REPORTS.FILTERS.CREATED' | translate}}</button>
+		@if (referenceTypes().length > 0) {
+			<button mat-menu-item [matMenuTriggerFor]="assetReferenceMenu">{{'REPORTS.FILTERS.ASSET-REFERENCE' | translate}}</button>
+		}
+	}
+</mat-menu>
+
+<mat-menu #planReferenceMenu="matMenu" class="report-filter-menu">
+	@for (type of referenceTypes(); track type.id) {
+		<button mat-menu-item (click)="open('planReference', type)">{{type.name}}</button>
+	}
+</mat-menu>
+
+<mat-menu #assetReferenceMenu="matMenu" class="report-filter-menu">
+	@for (type of referenceTypes(); track type.id) {
+		<button mat-menu-item (click)="open('descriptionReference', type)">{{type.name}}</button>
+	}
+</mat-menu>
+
+<mat-menu #byMenu="matMenu" class="report-filter-menu">
+	@for (option of availableBreakdowns(); track option.token) {
+		<button mat-menu-item (click)="addBreakdown(option.token)">{{option.label}}</button>
+	}
+</mat-menu>
+
+@if (editor(); as current) {
+	<div class="editor" role="group">
+		<div class="editor-head">
+			<span class="editor-title">
+				@switch (current.kind) {
+					@case ('descriptionStatus') { {{'REPORTS.FILTERS.ASSET-STATUS' | translate}} }
+					@case ('planStatus') { {{'REPORTS.FILTERS.PLAN-STATUS' | translate}} }
+					@case ('access') { {{'REPORTS.FILTERS.PLAN-ACCESS' | translate}} }
+					@case ('blueprint') { {{'REPORTS.FILTERS.PLAN-BLUEPRINT' | translate}} }
+					@case ('created') { {{'REPORTS.FILTERS.CREATED' | translate}} }
+					@default { {{current.referenceType?.name}} }
+				}
+			</span>
+			<button type="button" class="link" (click)="close()">{{'REPORTS.FILTERS.DONE' | translate}}</button>
+		</div>
+
+		@switch (current.kind) {
+			@case ('descriptionStatus') {
+				<mat-form-field appearance="outline" subscriptSizing="dynamic">
+					<mat-label>{{'REPORTS.FILTERS.ASSET-STATUS' | translate}}</mat-label>
+					<mat-select multiple [value]="filters().descriptionStatusIds" (valueChange)="setDescriptionStatuses($event)">
+						@for (status of descriptionStatuses(); track status.id) {
+							<mat-option [value]="status.id">{{status.name}}</mat-option>
+						}
+					</mat-select>
+				</mat-form-field>
+			}
+			@case ('planStatus') {
+				<mat-form-field appearance="outline" subscriptSizing="dynamic">
+					<mat-label>{{'REPORTS.FILTERS.PLAN-STATUS' | translate}}</mat-label>
+					<mat-select multiple [value]="filters().planStatusIds" (valueChange)="setPlanStatuses($event)">
+						@for (status of planStatuses(); track status.id) {
+							<mat-option [value]="status.id">{{status.name}}</mat-option>
+						}
+					</mat-select>
+				</mat-form-field>
+			}
+			@case ('access') {
+				<mat-form-field appearance="outline" subscriptSizing="dynamic">
+					<mat-label>{{'REPORTS.FILTERS.PLAN-ACCESS' | translate}}</mat-label>
+					<mat-select multiple [value]="filters().accessTypes" (valueChange)="setAccessTypes($event)">
+						@for (access of accessTypeOptions; track access) {
+							<mat-option [value]="access">{{accessTypeLabel(access)}}</mat-option>
+						}
+					</mat-select>
+				</mat-form-field>
+			}
+			@case ('blueprint') {
+				<mat-form-field appearance="outline" subscriptSizing="dynamic">
+					<mat-label>{{'REPORTS.FILTERS.PLAN-BLUEPRINT' | translate}}</mat-label>
+					<app-single-auto-complete [formControl]="blueprintControl" [configuration]="blueprintConfiguration"></app-single-auto-complete>
+				</mat-form-field>
+				<p class="editor-hint">{{'REPORTS.FILTERS.PLAN-BLUEPRINT-HINT' | translate}}</p>
+			}
+			@case ('created') {
+				<div class="date-range">
+					<mat-form-field appearance="outline" subscriptSizing="dynamic">
+						<mat-label>{{'REPORTS.FILTERS.CREATED-AFTER' | translate}}</mat-label>
+						<input matInput [matDatepicker]="afterPicker" [value]="filters().createdAfter" (dateChange)="setCreatedAfter($event.value)">
+						<mat-datepicker-toggle matIconSuffix [for]="afterPicker"></mat-datepicker-toggle>
+						<mat-datepicker #afterPicker></mat-datepicker>
+					</mat-form-field>
+					<mat-form-field appearance="outline" subscriptSizing="dynamic">
+						<mat-label>{{'REPORTS.FILTERS.CREATED-BEFORE' | translate}}</mat-label>
+						<input matInput [matDatepicker]="beforePicker" [value]="filters().createdBefore" (dateChange)="setCreatedBefore($event.value)">
+						<mat-datepicker-toggle matIconSuffix [for]="beforePicker"></mat-datepicker-toggle>
+						<mat-datepicker #beforePicker></mat-datepicker>
+					</mat-form-field>
+				</div>
+			}
+			@default {
+				@if (referenceConfiguration()) {
+					<mat-form-field appearance="outline" subscriptSizing="dynamic">
+						<mat-label>{{current.referenceType?.name}}</mat-label>
+						<app-multiple-auto-complete [formControl]="referenceControl" [configuration]="referenceConfiguration()"></app-multiple-auto-complete>
+					</mat-form-field>
+					<p class="editor-hint">{{'REPORTS.FILTERS.REFERENCE-ANY-HINT' | translate}}</p>
+				}
+			}
+		}
+	</div>
+}

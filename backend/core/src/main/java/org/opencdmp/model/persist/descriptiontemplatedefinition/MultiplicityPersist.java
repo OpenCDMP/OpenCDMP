@@ -26,6 +26,8 @@ public class MultiplicityPersist {
 
     private Boolean tableView = null;
 
+    private Boolean transposedTableView = null;
+
     public Integer getMin() {
         return min;
     }
@@ -56,6 +58,14 @@ public class MultiplicityPersist {
 
     public void setTableView(Boolean tableView) {
         this.tableView = tableView;
+    }
+
+    public Boolean getTransposedTableView() {
+        return transposedTableView;
+    }
+
+    public void setTransposedTableView(Boolean transposedTableView) {
+        this.transposedTableView = transposedTableView;
     }
 
     @Component(MultiplicityValidator.ValidatorName)

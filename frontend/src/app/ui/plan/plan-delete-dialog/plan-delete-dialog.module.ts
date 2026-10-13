@@ -4,8 +4,7 @@ import { CommonUiModule } from '@common/ui/common-ui.module';
 import { PlanDeleteDialogComponent } from './plan-delete-dialog.component';
 
 @NgModule({
-    imports: [CommonUiModule, FormsModule],
-    declarations: [PlanDeleteDialogComponent],
+    imports: [CommonUiModule, FormsModule, PlanDeleteDialogComponent],
     exports: [PlanDeleteDialogComponent]
 })
 export class PlanDeleteDialogModule {

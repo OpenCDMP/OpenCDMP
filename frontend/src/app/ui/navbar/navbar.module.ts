@@ -6,6 +6,8 @@ import { CommonUiModule } from '@common/ui/common-ui.module';
 import { LanguageModule } from '../language/language.module';
 import { UserDialogComponent } from './user-dialog/user-dialog.component';
 import { TenantModule } from '../tenant/tenant.module';
+import { UserLogoPipe } from '@common/http/image/user-logo.pipe';
+import { FallbackAvatarDirective } from '@common/http/image/fallback-avatar.directive';
 
 @NgModule({
     imports: [
@@ -13,11 +15,11 @@ import { TenantModule } from '../tenant/tenant.module';
         CommonFormsModule,
         RouterModule,
         LanguageModule,
-        TenantModule
-    ],
-    declarations: [
+        TenantModule,
+        UserLogoPipe,
+        FallbackAvatarDirective,
         NavbarComponent,
-		UserDialogComponent
+        UserDialogComponent
     ],
     exports: [NavbarComponent]
 })

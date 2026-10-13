@@ -1,0 +1,172 @@
+@if (e.formGroup) {
+<div class="bp2" [class.bp2--problems-open]="e.showProblems">
+	<!-- ============================================================ header -->
+	<header class="bp2-header">
+		<div class="bp2-header__row">
+			<app-navigation-breadcrumb />
+			<div class="bp2-header__actions">
+				<span class="bp2-saved" [class.bp2-saved--dirty]="e.dirty" aria-live="polite">
+					@if (e.saving) { {{'PLAN-BLUEPRINT-EDITOR.HEADER.SAVING' | translate}} }
+					@else if (e.dirty) { {{'PLAN-BLUEPRINT-EDITOR.HEADER.UNSAVED' | translate}} }
+					@else if (!e.isTransient) { {{'PLAN-BLUEPRINT-EDITOR.HEADER.SAVED' | translate}} }
+				</span>
+				<button mat-stroked-button type="button" (click)="e.close()">{{'PLAN-BLUEPRINT-EDITOR.HEADER.CLOSE' | translate}}</button>
+				@if (!e.readOnly) {
+					<button mat-stroked-button type="button" (click)="e.save()" [disabled]="e.isLocked || e.saving">{{'PLAN-BLUEPRINT-EDITOR.HEADER.SAVE' | translate}}</button>
+					@if (!e.isFinalized || e.isNewVersion) {
+						<button mat-flat-button color="primary" type="button" (click)="e.openPreflight()" [disabled]="e.isLocked || e.saving" [matTooltip]="'PLAN-BLUEPRINT-EDITOR.HEADER.FINALIZE-TOOLTIP' | translate">{{'PLAN-BLUEPRINT-EDITOR.HEADER.FINALIZE' | translate}}</button>
+					}
+				}
+				@if (e.readOnly && e.canCreateNewVersion) {
+					<a mat-flat-button color="primary" [routerLink]="e.newVersionUrl($safeNavigationMigration(e.item?.id))">{{'PLAN-BLUEPRINT-EDITOR.HEADER.NEW-VERSION' | translate}}</a>
+				}
+				@if (e.canDownloadXML || e.canClone || e.canDelete) {
+					<button mat-icon-button type="button" class="bp2-header__more" [matMenuTriggerFor]="moreMenu" [attr.aria-label]="'ALT-TEXT.MORE-ACTIONS' | translate"><mat-icon aria-hidden="true">more_vert</mat-icon></button>
+					<mat-menu #moreMenu="matMenu">
+						@if (e.canDownloadXML) { <button mat-menu-item type="button" (click)="e.downloadXML()"><mat-icon aria-hidden="true">download</mat-icon>{{e.term('PLAN-BLUEPRINT-LISTING.ACTIONS.DOWNLOAD-XML') | translate}}</button> }
+						@if (e.canClone) { <a mat-menu-item [routerLink]="e.cloneUrl($safeNavigationMigration(e.item?.id))"><mat-icon aria-hidden="true">content_copy</mat-icon>{{e.term('PLAN-BLUEPRINT-LISTING.ACTIONS.CLONE') | translate}}</a> }
+						@if (e.canDelete) { <button mat-menu-item type="button" class="bp2-danger" (click)="e.delete()"><mat-icon aria-hidden="true">delete</mat-icon>{{e.term('PLAN-BLUEPRINT-LISTING.ACTIONS.DELETE') | translate}}</button> }
+					</mat-menu>
+				}
+			</div>
+		</div>
+
+		<div class="bp2-header__title">
+			<span class="bp2-tile" aria-hidden="true">
+				@if (e.iconName) { <mat-icon>{{e.iconName}}</mat-icon> } @else { <mat-icon>{{defaultIcon}}</mat-icon> }
+			</span>
+			<div class="bp2-header__name">
+				<div class="bp2-header__name-row">
+					<h1>{{ e.formGroup.get('label').value || (e.term('PLAN-BLUEPRINT-EDITOR.HEADER.NEW-BLUEPRINT') | translate) }}</h1>
+					<span class="bp2-tag" [class.bp2-tag--draft]="!e.isFinalized || e.isNewVersion" [class.bp2-tag--final]="e.isFinalized && !e.isNewVersion">{{ statusKey(e.isFinalized && !e.isNewVersion) | translate }}</span>
+					@if (e.item?.type?.name) { <span class="bp2-tag bp2-tag--type">{{e.item.type.name}}</span> }
+					@if (e.isShared) { <span class="bp2-tag bp2-tag--opt">{{'COMMONS.TENANT-SHARED.CHIP' | translate}}</span> }
+					<ng-content select="[se2HeaderChips]" />
+					@if (e.currentVersion != null || e.isNewVersion) {
+						<button type="button" class="bp2-pill bp2-pill--tag" [matMenuTriggerFor]="versionsMenu" [attr.aria-label]="'PLAN-BLUEPRINT-EDITOR.VERSIONS.LABEL' | translate">
+							v{{ e.nextVersionNumber }} <mat-icon aria-hidden="true">expand_more</mat-icon>
+						</button>
+						<mat-menu #versionsMenu="matMenu" class="bp2-versions-menu">
+							<div class="bp2-versions">
+								<div class="bp2-versions__head">
+									<strong>{{e.term('PLAN-BLUEPRINT-EDITOR.VERSIONS.TITLE') | translate}}</strong>
+									@if (e.currentPublishedVersion && (!e.isFinalized || e.isNewVersion)) { <span class="bp2-sub">{{'PLAN-BLUEPRINT-EDITOR.VERSIONS.AUTHORS-GET' | translate: { version: e.currentPublishedVersion.version } }}</span> }
+									@else if (e.isCurrent && !e.isNewVersion) { <span class="bp2-sub">{{'PLAN-BLUEPRINT-EDITOR.VERSIONS.THIS-IS-CURRENT' | translate}}</span> }
+								</div>
+								@if (e.isNewVersion) { <div class="bp2-versions__row bp2-versions__row--this"><strong>v{{e.nextVersionNumber}}</strong><span class="bp2-tag bp2-tag--draft">{{statusKey(false) | translate}}</span><span class="bp2-sub">{{'PLAN-BLUEPRINT-EDITOR.VERSIONS.EDITING' | translate}}</span></div> }
+								@for (v of e.versions; track v.id) {
+									<button type="button" class="bp2-versions__row" [class.bp2-versions__row--this]="isOpen(v)" (click)="e.openVersion(v)">
+										<strong>v{{v.version}}</strong>
+										<span class="bp2-tag" [class.bp2-tag--draft]="!e.isFinalizedVersion(v)" [class.bp2-tag--final]="e.isCurrentVersion(v)" [class.bp2-tag--opt]="e.isFinalizedVersion(v) && !e.isCurrentVersion(v)">
+											{{ (!e.isFinalizedVersion(v) ? statusKey(false) : (e.isCurrentVersion(v) ? 'PLAN-BLUEPRINT-EDITOR.VERSIONS.CURRENT' : 'PLAN-BLUEPRINT-EDITOR.VERSIONS.PREVIOUS')) | translate }}
+										</span>
+										@if (v.usageCount != null) { <span class="bp2-sub">{{e.term('PLAN-BLUEPRINT-EDITOR.VERSIONS.PLANS') | bp2Count: v.usageCount }}</span> }
+										@if (isOpen(v)) { <span class="bp2-sub">{{'PLAN-BLUEPRINT-EDITOR.VERSIONS.OPEN-NOW' | translate}}</span> }
+									</button>
+								}
+								@if (e.versions === null) { <div class="bp2-sub bp2-versions__row">{{'PLAN-BLUEPRINT-EDITOR.VERSIONS.LOADING' | translate}}</div> }
+								@if (e.item?.groupId) { <a class="bp2-versions__foot" [routerLink]="e.versionsUrl(e.item.groupId)" [queryParams]="{ belongsToCurrentTenant: e.item.belongsToCurrentTenant }">{{'PLAN-BLUEPRINT-EDITOR.HEADER.VERSION-HISTORY' | translate}}</a> }
+							</div>
+						</mat-menu>
+					}
+				</div>
+				<div class="bp2-sub">
+					@if (e.formGroup.get('code').getRawValue()) { {{'PLAN-BLUEPRINT-EDITOR.DETAILS.CODE' | translate}} <strong>{{e.formGroup.get('code').getRawValue()}}</strong> }
+					@if (!e.isNew && e.nextVersionNumber != null) { · {{'PLAN-BLUEPRINT-EDITOR.HEADER.VERSION' | translate: { version: e.nextVersionNumber } }} }
+					<ng-content select="[se2HeaderMeta]" />
+					@if (e.isFinalized && !e.isNewVersion && e.usageCount != null) { · {{e.term('PLAN-BLUEPRINT-EDITOR.HEADER.USED-BY') | bp2Count: e.usageCount}} }
+					@if (e.item?.updatedAt && !e.isTransient) { · <span [matTooltip]="e.item.updatedAt | dateTimeFormatter: 'short'">{{'PLAN-BLUEPRINT-EDITOR.HEADER.SAVED-AGO' | translate: { time: (e.item.updatedAt | relativeTime) } }}</span> }
+					@if (e.sectionCount) {
+						· {{'PLAN-BLUEPRINT-EDITOR.REVIEW.SECTIONS-COUNT' | bp2Count: e.sectionCount}}
+						· {{'PLAN-BLUEPRINT-EDITOR.REVIEW.QUESTIONS-COUNT' | bp2Count: e.questionCount : { required: e.requiredInputCount } }}
+						@if (e.ruleCount) { · {{'PLAN-BLUEPRINT-EDITOR.REVIEW.RULES-COUNT' | bp2Count: e.ruleCount}} }
+					}
+				</div>
+			</div>
+		</div>
+
+		<!-- mode banners -->
+		@if (e.isLocked) {
+			<div class="bp2-banner bp2-banner--warn"><mat-icon aria-hidden="true">lock_clock</mat-icon><div><strong>{{ e.lockedByName ? (e.term('PLAN-BLUEPRINT-EDITOR.BANNERS.LOCKED-BY-TITLE') | translate: { name: e.lockedByName }) : (e.term('PLAN-BLUEPRINT-EDITOR.BANNERS.LOCKED-TITLE') | translate) }}</strong> {{'PLAN-BLUEPRINT-EDITOR.BANNERS.LOCKED-TIMEOUT' | bp2Count: e.lockMinutes : { minutes: e.lockMinutes } }}</div>@if (e.canTakeOver) { <button mat-stroked-button type="button" class="bp2-btn-sm" (click)="e.takeOver()"><mat-icon aria-hidden="true">lock_open</mat-icon>{{'PLAN-BLUEPRINT-EDITOR.BANNERS.TAKE-OVER' | translate}}</button> }</div>
+		} @else if (e.isDraftVersion && e.compareWith) {
+			<div class="bp2-banner bp2-banner--info"><mat-icon aria-hidden="true">info</mat-icon><div><strong>{{'PLAN-BLUEPRINT-EDITOR.BANNERS.DRAFT-VERSION-TITLE' | translate: { version: e.currentVersion } }}</strong> {{'PLAN-BLUEPRINT-EDITOR.BANNERS.DRAFT-VERSION' | translate: { current: e.compareWith.version } }}</div><button mat-stroked-button type="button" class="bp2-btn-sm" (click)="e.openCompare()"><mat-icon aria-hidden="true">compare_arrows</mat-icon>{{'PLAN-BLUEPRINT-EDITOR.COMPARE.BUTTON' | translate: { version: e.compareWith.version } }}</button></div>
+		} @else if (e.isNewVersion) {
+			<div class="bp2-banner bp2-banner--info"><mat-icon aria-hidden="true">info</mat-icon><div><strong>{{'PLAN-BLUEPRINT-EDITOR.BANNERS.NEW-VERSION-TITLE' | translate}}</strong> {{e.term('PLAN-BLUEPRINT-EDITOR.BANNERS.NEW-VERSION') | translate: { version: e.currentVersion } }}</div><button mat-stroked-button type="button" class="bp2-btn-sm" (click)="e.openCompare()"><mat-icon aria-hidden="true">compare_arrows</mat-icon>{{'PLAN-BLUEPRINT-EDITOR.COMPARE.BUTTON' | translate: { version: e.currentVersion } }}</button></div>
+		} @else if (e.isClone) {
+			<div class="bp2-banner bp2-banner--info"><mat-icon aria-hidden="true">content_copy</mat-icon><div><strong>{{'PLAN-BLUEPRINT-EDITOR.BANNERS.CLONE-TITLE' | translate}}</strong> {{'PLAN-BLUEPRINT-EDITOR.BANNERS.CLONE' | translate}}</div></div>
+		} @else if (e.isShared) {
+			<div class="bp2-banner bp2-banner--info"><mat-icon aria-hidden="true">public</mat-icon><div><strong>{{'PLAN-BLUEPRINT-EDITOR.BANNERS.SHARED-TITLE' | translate}}</strong> {{e.term('PLAN-BLUEPRINT-EDITOR.BANNERS.SHARED') | translate}}</div>@if (e.canClone) { <a mat-stroked-button [routerLink]="e.cloneUrl($safeNavigationMigration(e.item?.id))">{{'PLAN-BLUEPRINT-EDITOR.BANNERS.CLONE-FOR-TENANT' | translate: { tenant: e.authService.getSelectedTenantName() } }}</a> }</div>
+		} @else if (e.isDeleted) {
+			<div class="bp2-banner bp2-banner--muted"><mat-icon aria-hidden="true">delete</mat-icon><div><strong>{{e.term('PLAN-BLUEPRINT-EDITOR.BANNERS.DELETED-TITLE') | translate}}</strong> {{e.term('PLAN-BLUEPRINT-EDITOR.BANNERS.DELETED') | translate}}</div></div>
+		} @else if (e.isFinalized) {
+			<div class="bp2-banner bp2-banner--muted"><mat-icon aria-hidden="true">lock</mat-icon><div><strong>{{e.term('PLAN-BLUEPRINT-EDITOR.BANNERS.FINALIZED-TITLE') | translate}}</strong> {{e.term('PLAN-BLUEPRINT-EDITOR.BANNERS.FINALIZED') | translate}}</div></div>
+		}
+
+		<!-- tabs -->
+		<nav class="bp2-tabs" role="tablist">
+			<button type="button" role="tab" class="bp2-tab" [class.bp2-tab--on]="e.tab === 'details'" [attr.aria-selected]="e.tab === 'details'" (click)="e.setTab('details')">
+				{{'PLAN-BLUEPRINT-EDITOR.TABS.DETAILS' | translate}}
+				@if (e.attemptedSubmit && (e.blockers | bp2ProblemsIn: 'details').length) { <span class="bp2-count bp2-count--bad">{{(e.blockers | bp2ProblemsIn: 'details').length}}</span> }
+			</button>
+			<button type="button" role="tab" class="bp2-tab" [class.bp2-tab--on]="e.tab === 'structure'" [attr.aria-selected]="e.tab === 'structure'" (click)="e.setTab('structure')">
+				{{'PLAN-BLUEPRINT-EDITOR.TABS.STRUCTURE' | translate}} <span class="bp2-count">{{'PLAN-BLUEPRINT-EDITOR.TABS.SECTIONS' | bp2Count: e.sectionCount }}</span>
+				@if (e.attemptedSubmit && (e.blockers | bp2ProblemsIn: 'structure').length) { <span class="bp2-count bp2-count--bad">{{(e.blockers | bp2ProblemsIn: 'structure').length}}</span> }
+			</button>
+			<button type="button" role="tab" class="bp2-tab" [class.bp2-tab--on]="e.tab === 'review'" [attr.aria-selected]="e.tab === 'review'" (click)="e.setTab('review')">{{'PLAN-BLUEPRINT-EDITOR.TABS.REVIEW' | translate}}</button>
+			<span class="bp2-tabs__spacer"></span>
+			@if (!e.readOnly) {
+				<button type="button" class="bp2-ready" [class.bp2-ready--ok]="!e.blockers.length" [class.bp2-ready--todo]="e.blockers.length" (click)="e.showProblems = !e.showProblems" [attr.aria-expanded]="e.showProblems">
+					@if (e.blockers.length) { <span class="bp2-count bp2-count--todo">{{e.blockers.length}}</span>{{'PLAN-BLUEPRINT-EDITOR.READY.TODO' | translate}} }
+					@else { <mat-icon aria-hidden="true">check_circle</mat-icon>{{'PLAN-BLUEPRINT-EDITOR.READY.OK' | translate}} }
+					<mat-icon aria-hidden="true">{{ e.showProblems ? 'expand_less' : 'expand_more' }}</mat-icon>
+				</button>
+			}
+		</nav>
+	</header>
+
+	<!-- ============================================================ body -->
+	<div class="bp2-body">
+		<main class="bp2-main" [attr.aria-busy]="e.saving">
+			<ng-content />
+		</main>
+
+		@if (e.showProblems) {
+			<aside class="bp2-problems" role="complementary" (keydown.escape)="e.showProblems = false" [attr.aria-label]="'PLAN-BLUEPRINT-EDITOR.PROBLEMS.TITLE' | translate">
+				<div class="bp2-problems__head">
+					<strong>{{ e.blockers.length ? ('PLAN-BLUEPRINT-EDITOR.PROBLEMS.COUNT' | translate: { count: e.blockers.length }) : ('PLAN-BLUEPRINT-EDITOR.PROBLEMS.NONE' | translate) }}</strong>
+					<button mat-icon-button type="button" (click)="e.showProblems = false" [attr.aria-label]="'PLAN-BLUEPRINT-EDITOR.PROBLEMS.CLOSE' | translate"><mat-icon aria-hidden="true">close</mat-icon></button>
+				</div>
+				<p class="bp2-help">{{ e.blockers.length ? ('PLAN-BLUEPRINT-EDITOR.PROBLEMS.HINT' | translate) : ('PLAN-BLUEPRINT-EDITOR.PROBLEMS.NONE-HINT' | translate) }}</p>
+				@for (p of e.blockers; track p.id) {
+					<div class="bp2-problem">
+						<mat-icon class="bp2-problem__icon bp2-problem__icon--bad" aria-hidden="true">error</mat-icon>
+						<div class="bp2-problem__body"><div>{{p.message}}</div><div class="bp2-sub">{{p.where}}</div></div>
+						<button mat-stroked-button type="button" class="bp2-btn-sm" (click)="e.goToProblem(p)">{{ (p.action === 'add-presets' ? 'PLAN-BLUEPRINT-EDITOR.PROBLEMS.ADD' : 'PLAN-BLUEPRINT-EDITOR.PROBLEMS.FIX') | translate }}</button>
+					</div>
+				}
+				@if (e.optionalProblems.length) {
+					<div class="bp2-caption">{{'PLAN-BLUEPRINT-EDITOR.PROBLEMS.OPTIONAL' | translate}}</div>
+					@for (p of e.optionalProblems; track p.id) {
+						<div class="bp2-problem">
+							<mat-icon class="bp2-problem__icon bp2-problem__icon--opt" aria-hidden="true">info</mat-icon>
+							<div class="bp2-problem__body"><div>{{p.message}}</div><div class="bp2-sub">{{p.where}}</div></div>
+							<button mat-button type="button" class="bp2-btn-sm" (click)="e.goToProblem(p)">{{'PLAN-BLUEPRINT-EDITOR.PROBLEMS.OPEN' | translate}}</button>
+						</div>
+					}
+				}
+				@if (passed.length) {
+					<details class="bp2-passed">
+						<summary>{{ 'PLAN-BLUEPRINT-EDITOR.PROBLEMS.PASSED' | bp2Count: passed.length }}</summary>
+						@for (p of passed; track p.id) {
+							<div class="bp2-problem">
+								<mat-icon class="bp2-problem__icon bp2-problem__icon--ok" aria-hidden="true">check_circle</mat-icon>
+								<div class="bp2-problem__body"><div>{{p.message}}</div></div>
+							</div>
+						}
+					</details>
+				}
+			</aside>
+		}
+	</div>
+</div>
+}

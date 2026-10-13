@@ -7,9 +7,7 @@ import { GlossaryRoutingModule } from './glossary.routing';
 @NgModule({
     imports: [
         CommonUiModule,
-        GlossaryRoutingModule
-    ],
-    declarations: [
+        GlossaryRoutingModule,
         GlossaryContentComponent,
         GlossaryDialogComponent
     ],

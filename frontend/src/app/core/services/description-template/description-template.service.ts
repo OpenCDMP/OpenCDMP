@@ -2,7 +2,7 @@ import { HttpClient, HttpHeaders, HttpResponse } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { IsActive } from '@app/core/common/enum/is-active.enum';
 import { DescriptionTemplate } from '@app/core/model/description-template/description-template';
-import { DescriptionTemplatePersist, NewVersionDescriptionTemplatePersist } from '@app/core/model/description-template/description-template-persist';
+import { DescriptionTemplatePersist, NewVersionDescriptionTemplatePersist, UserDescriptionTemplatePersist } from '@app/core/model/description-template/description-template-persist';
 import { DescriptionTemplateLookup } from '@app/core/query/description-template.lookup';
 import { MultipleAutoCompleteConfiguration } from '@app/library/auto-complete/multiple/multiple-auto-complete-configuration';
 import { SingleAutoCompleteConfiguration } from '@app/library/auto-complete/single/single-auto-complete-configuration';
@@ -24,275 +24,292 @@ import { DescriptionTemplateType } from '@app/core/model/description-template-ty
 @Injectable()
 export class DescriptionTemplateService {
 
-	private headers = new HttpHeaders();
+    private headers = new HttpHeaders();
 
-	constructor(private http: BaseHttpV2Service, private httpClient: HttpClient, private configurationService: ConfigurationService, private filterService: FilterService) {
-	}
+    constructor(private http: BaseHttpV2Service, private httpClient: HttpClient, private configurationService: ConfigurationService, private filterService: FilterService) {
+    }
 
-	private get apiBase(): string { return `${this.configurationService.server}description-template`; }
+    private get apiBase(): string { return `${this.configurationService.server}description-template`; }
 
-	query(q: DescriptionTemplateLookup): Observable<QueryResult<DescriptionTemplate>> {
-		const url = `${this.apiBase}/query`;
-		return this.http.post<QueryResult<DescriptionTemplate>>(url, q).pipe(catchError((error: any) => throwError(error)));
-	}
+    query(q: DescriptionTemplateLookup): Observable<QueryResult<DescriptionTemplate>> {
+        const url = `${this.apiBase}/query`;
+        return this.http.post<QueryResult<DescriptionTemplate>>(url, q).pipe(catchError((error: any) => throwError(error)));
+    }
 
-	getSingle(id: Guid, reqFields: string[] = []): Observable<DescriptionTemplate> {
-		const url = `${this.apiBase}/${id}`;
-		const options = { params: { f: reqFields } };
+    getSingle(id: Guid, reqFields: string[] = []): Observable<DescriptionTemplate> {
+        const url = `${this.apiBase}/${id}`;
+        const options = { params: { f: reqFields } };
 
-		return this.http
-			.get<DescriptionTemplate>(url, options).pipe(
-				catchError((error: any) => throwError(error)));
-	}
+        return this.http
+            .get<DescriptionTemplate>(url, options).pipe(
+                catchError((error: any) => throwError(error)));
+    }
 
-	persist(item: DescriptionTemplatePersist): Observable<DescriptionTemplate> {
-		const url = `${this.apiBase}/persist`;
+    /** Semantic keys the tenant's other items carry, with how many use each (versions of one count once). */
+    semanticsInUse(excludeGroupId?: Guid): Observable<Record<string, number>> {
+        const url = `${this.apiBase}/semantics-in-use`;
+        const options = excludeGroupId ? { params: { excludeGroupId: excludeGroupId.toString() } } : {};
+        return this.http.get<Record<string, number>>(url, options).pipe(catchError((error: any) => throwError(error)));
+    }
 
-		return this.http
-			.post<DescriptionTemplate>(url, item).pipe(
-				catchError((error: any) => throwError(error)));
-	}
+    persist(item: DescriptionTemplatePersist): Observable<DescriptionTemplate> {
+        const url = `${this.apiBase}/persist`;
 
-	delete(id: Guid): Observable<DescriptionTemplate> {
-		const url = `${this.apiBase}/${id}`;
+        return this.http
+            .post<DescriptionTemplate>(url, item).pipe(
+                catchError((error: any) => throwError(error)));
+    }
 
-		return this.http
-			.delete<DescriptionTemplate>(url).pipe(
-				catchError((error: any) => throwError(error)));
-	}
+    /** The template's editors, saved on their own: the template itself is not touched. */
+    assignUsers(id: Guid, users: UserDescriptionTemplatePersist[], reqFields: string[] = []): Observable<DescriptionTemplate> {
+        const url = `${this.apiBase}/${id}/assign-users`;
+        const options = { params: { f: reqFields } };
 
-	clone(id: Guid, reqFields: string[] = []): Observable<DescriptionTemplate> {
-		const url = `${this.apiBase}/clone/${id}`;
-		const options = { params: { f: reqFields } };
+        return this.http
+            .post<DescriptionTemplate>(url, users, options).pipe(
+                catchError((error: any) => throwError(error)));
+    }
 
-		return this.http
-			.get<DescriptionTemplate>(url, options).pipe(
-				catchError((error: any) => throwError(error)));
-	}
+    delete(id: Guid): Observable<DescriptionTemplate> {
+        const url = `${this.apiBase}/${id}`;
 
-	newVersion(item: NewVersionDescriptionTemplatePersist, reqFields: string[] = []): Observable<DescriptionTemplate> {
-		const url = `${this.apiBase}/new-version`;
-		const options = { params: { f: reqFields } };
+        return this.http
+            .delete<DescriptionTemplate>(url).pipe(
+                catchError((error: any) => throwError(error)));
+    }
 
-		return this.http
-			.post<DescriptionTemplate>(url, item).pipe(
-				catchError((error: any) => throwError(error)));
-	}
+    clone(id: Guid, reqFields: string[] = []): Observable<DescriptionTemplate> {
+        const url = `${this.apiBase}/clone/${id}`;
+        const options = { params: { f: reqFields } };
 
-	downloadXML(id: Guid): Observable<HttpResponse<Blob>> {
-		const url = `${this.apiBase}/xml/export/${id}`;
-		let headerXml: HttpHeaders = this.headers.set('Content-Type', 'application/xml');
-		const params = new BaseHttpParams();
-		params.interceptorContext = {
-			excludedInterceptors: [InterceptorType.JSONContentType]
-		};
-		return this.httpClient.get(url, { params: params, responseType: 'blob', observe: 'response', headers: headerXml });
-	}
+        return this.http
+            .get<DescriptionTemplate>(url, options).pipe(
+                catchError((error: any) => throwError(error)));
+    }
 
-	uploadFile(file: File, labelSent: string, reqFields: string[] = []): Observable<DescriptionTemplate> {
-		const url = `${this.apiBase}/xml/import`;
-		const params = new BaseHttpParams();
-		params.interceptorContext = {
-			excludedInterceptors: [InterceptorType.JSONContentType]
-		};
-		const formData = new FormData();
-		formData.append('file', file, labelSent);
-		return this.http.post(url, formData, { params: params });
-	}
+    newVersion(item: NewVersionDescriptionTemplatePersist, reqFields: string[] = []): Observable<DescriptionTemplate> {
+        const url = `${this.apiBase}/new-version`;
+        const _options = { params: { f: reqFields } };
 
-	//
-	// Autocomplete Commons
-	//
-	// tslint:disable-next-line: member-ordering
-	singleAutocompleteConfiguration: SingleAutoCompleteConfiguration = {
-		initialItems: (data?: any) => this.query(this.buildAutocompleteLookup()).pipe(map(x => x.items)),
-		filterFn: (searchQuery: string, data?: any) => this.query(this.buildAutocompleteLookup(searchQuery)).pipe(map(x => x.items)),
-		getSelectedItem: (selectedItem: any) => this.query(this.buildAutocompleteLookup(null, null, [selectedItem])).pipe(map(x => x.items[0])),
-		displayFn: (item: DescriptionTemplate) => item.label,
-		titleFn: (item: DescriptionTemplate) => item.label,
-		subtitleFn: (item: DescriptionTemplate) => item.description,
-		valueAssign: (item: DescriptionTemplate) => item.id,
-		popupItemActionIcon: 'visibility'
-	};
+        return this.http
+            .post<DescriptionTemplate>(url, item).pipe(
+                catchError((error: any) => throwError(error)));
+    }
 
-	// tslint:disable-next-line: member-ordering
-	multipleAutocompleteConfiguration: MultipleAutoCompleteConfiguration = {
-		initialItems: (excludedItems: any[], data?: any) => this.query(this.buildAutocompleteLookup(null, excludedItems ? excludedItems : null)).pipe(map(x => x.items)),
-		filterFn: (searchQuery: string, excludedItems: any[]) => this.query(this.buildAutocompleteLookup(searchQuery, excludedItems)).pipe(map(x => x.items)),
-		getSelectedItems: (selectedItems: any[]) => this.query(this.buildAutocompleteLookup(null, null, selectedItems)).pipe(map(x => x.items)),
-		displayFn: (item: DescriptionTemplate) => item.label,
-		titleFn: (item: DescriptionTemplate) => item.label,
-		subtitleFn: (item: DescriptionTemplate) => item.description,
-		valueAssign: (item: DescriptionTemplate) => item.id,
-		popupItemActionIcon: 'visibility'
-	};
-	
-	public buildMultipleAutocompleteConfiguration(preview: boolean = false): MultipleAutoCompleteConfiguration {
-		return {
-			initialItems: (excludedItems: any[], data?: any) => this.query(this.buildAutocompleteLookup(null, excludedItems ? excludedItems : null)).pipe(map(x => x.items)),
-			filterFn: (searchQuery: string, excludedItems: any[]) => this.query(this.buildAutocompleteLookup(searchQuery, excludedItems)).pipe(map(x => x.items)),
-			getSelectedItems: (selectedItems: any[]) => this.query(this.buildAutocompleteLookup(null, null, selectedItems)).pipe(map(x => x.items)),
-			displayFn: (item: DescriptionTemplate) => item.label,
-			titleFn: (item: DescriptionTemplate) => item.label,
-			subtitleFn: (item: DescriptionTemplate) => item.description,
-			valueAssign: (item: DescriptionTemplate) => item.id,
-			popupItemActionIcon: preview ? 'visibility' : null,
-		};
-	}
+    downloadXML(id: Guid): Observable<HttpResponse<Blob>> {
+        const url = `${this.apiBase}/xml/export/${id}`;
+        const headerXml: HttpHeaders = this.headers.set('Content-Type', 'application/xml');
+        const params = new BaseHttpParams();
+        params.interceptorContext = {
+            excludedInterceptors: [InterceptorType.JSONContentType]
+        };
+        return this.httpClient.get(url, { params: params, responseType: 'blob', observe: 'response', headers: headerXml });
+    }
 
-	public buildAutocompleteLookup(like?: string, excludedIds?: Guid[], ids?: Guid[], versionStatuses?: DescriptionTemplateVersionStatus[], statuses?: DescriptionTemplateStatus[]): DescriptionTemplateLookup {
-		const lookup: DescriptionTemplateLookup = new DescriptionTemplateLookup();
-		lookup.page = { size: 100, offset: 0 };
-		if (excludedIds && excludedIds.length > 0) { lookup.excludedIds = excludedIds; }
-		if (ids && ids.length > 0) { lookup.ids = ids; }
-		if (versionStatuses && versionStatuses.length > 0) { lookup.versionStatuses = versionStatuses; }
-		if (statuses && statuses.length > 0) { lookup.statuses = statuses; }
+    uploadFile(file: File, labelSent: string, reqFields: string[] = []): Observable<DescriptionTemplate> {
+        const url = `${this.apiBase}/xml/import`;
+        const params = new BaseHttpParams();
+        params.interceptorContext = {
+            excludedInterceptors: [InterceptorType.JSONContentType]
+        };
+        const formData = new FormData();
+        formData.append('file', file, labelSent);
+        return this.http.post(url, formData, { params: params });
+    }
 
-		lookup.isActive = [IsActive.Active];
-		lookup.project = {
-			fields: [
-				nameof<DescriptionTemplate>(x => x.id),
-				nameof<DescriptionTemplate>(x => x.label),
-				nameof<DescriptionTemplate>(x => x.description),
-			]
-		};
-		lookup.order = { items: [nameof<DescriptionTemplate>(x => x.label)] };
-		if (like) { lookup.like = this.filterService.transformLike(like); }
-		return lookup;
-	}
+    //
+    // Autocomplete Commons
+    //
+    // tslint:disable-next-line: member-ordering
+    singleAutocompleteConfiguration: SingleAutoCompleteConfiguration = {
+        initialItems: (data?: any) => this.query(this.buildAutocompleteLookup()).pipe(map(x => x.items)),
+        filterFn: (searchQuery: string, data?: any) => this.query(this.buildAutocompleteLookup(searchQuery)).pipe(map(x => x.items)),
+        getSelectedItem: (selectedItem: any) => this.query(this.buildAutocompleteLookup(null, null, [selectedItem])).pipe(map(x => x.items[0])),
+        displayFn: (item: DescriptionTemplate) => item.label,
+        titleFn: (item: DescriptionTemplate) => item.label,
+        subtitleFn: (item: DescriptionTemplate) => item.description,
+        valueAssign: (item: DescriptionTemplate) => item.id,
+        popupItemActionIcon: 'visibility'
+    };
 
-	//
-	// Description Tempalte Group Autocomplete Commons
-	//
-	// tslint:disable-next-line: member-ordering
-	descriptionTemplateGroupAutocompleteConfiguration: SingleAutoCompleteConfiguration = {
-		initialItems: (data?: any) => this.query(this.buildDescriptionTemplateGroupAutocompleteLookup({
-            isActive: [IsActive.Active]})).pipe(map(x => x.items)),
-		filterFn: (searchQuery: string, data?: any) => this.query(this.buildDescriptionTemplateGroupAutocompleteLookup({
+    // tslint:disable-next-line: member-ordering
+    multipleAutocompleteConfiguration: MultipleAutoCompleteConfiguration = {
+        initialItems: (excludedItems: any[], data?: any) => this.query(this.buildAutocompleteLookup(null, excludedItems ? excludedItems : null)).pipe(map(x => x.items)),
+        filterFn: (searchQuery: string, excludedItems: any[]) => this.query(this.buildAutocompleteLookup(searchQuery, excludedItems)).pipe(map(x => x.items)),
+        getSelectedItems: (selectedItems: any[]) => this.query(this.buildAutocompleteLookup(null, null, selectedItems)).pipe(map(x => x.items)),
+        displayFn: (item: DescriptionTemplate) => item.label,
+        titleFn: (item: DescriptionTemplate) => item.label,
+        subtitleFn: (item: DescriptionTemplate) => item.description,
+        valueAssign: (item: DescriptionTemplate) => item.id,
+        popupItemActionIcon: 'visibility'
+    };
+
+    public buildMultipleAutocompleteConfiguration(preview: boolean = false): MultipleAutoCompleteConfiguration {
+        return {
+            initialItems: (excludedItems: any[], data?: any) => this.query(this.buildAutocompleteLookup(null, excludedItems ? excludedItems : null)).pipe(map(x => x.items)),
+            filterFn: (searchQuery: string, excludedItems: any[]) => this.query(this.buildAutocompleteLookup(searchQuery, excludedItems)).pipe(map(x => x.items)),
+            getSelectedItems: (selectedItems: any[]) => this.query(this.buildAutocompleteLookup(null, null, selectedItems)).pipe(map(x => x.items)),
+            displayFn: (item: DescriptionTemplate) => item.label,
+            titleFn: (item: DescriptionTemplate) => item.label,
+            subtitleFn: (item: DescriptionTemplate) => item.description,
+            valueAssign: (item: DescriptionTemplate) => item.id,
+            popupItemActionIcon: preview ? 'visibility' : null,
+        };
+    }
+
+    public buildAutocompleteLookup(like?: string, excludedIds?: Guid[], ids?: Guid[], versionStatuses?: DescriptionTemplateVersionStatus[], statuses?: DescriptionTemplateStatus[]): DescriptionTemplateLookup {
+        const lookup: DescriptionTemplateLookup = new DescriptionTemplateLookup();
+        lookup.page = { size: 100, offset: 0 };
+        if (excludedIds && excludedIds.length > 0) { lookup.excludedIds = excludedIds; }
+        if (ids && ids.length > 0) { lookup.ids = ids; }
+        if (versionStatuses && versionStatuses.length > 0) { lookup.versionStatuses = versionStatuses; }
+        if (statuses && statuses.length > 0) { lookup.statuses = statuses; }
+
+        lookup.isActive = [IsActive.Active];
+        lookup.project = {
+            fields: [
+                nameof<DescriptionTemplate>(x => x.id),
+                nameof<DescriptionTemplate>(x => x.label),
+                nameof<DescriptionTemplate>(x => x.description),
+            ]
+        };
+        lookup.order = { items: [nameof<DescriptionTemplate>(x => x.label)] };
+        if (like) { lookup.like = this.filterService.transformLike(like); }
+        return lookup;
+    }
+
+    //
+    // Description Tempalte Group Autocomplete Commons
+    //
+    // tslint:disable-next-line: member-ordering
+    descriptionTemplateGroupAutocompleteConfiguration: SingleAutoCompleteConfiguration = {
+        initialItems: (data?: any) => this.query(this.buildDescriptionTemplateGroupAutocompleteLookup({
+            isActive: [IsActive.Active]
+        })).pipe(map(x => x.items)),
+        filterFn: (searchQuery: string, data?: any) => this.query(this.buildDescriptionTemplateGroupAutocompleteLookup({
             isActive: [IsActive.Active],
             like: searchQuery
         })).pipe(map(x => x.items)),
-		getSelectedItem: (selectedItem: any) => this.query(this.buildDescriptionTemplateGroupAutocompleteLookup({
+        getSelectedItem: (selectedItem: any) => this.query(this.buildDescriptionTemplateGroupAutocompleteLookup({
             isActive: [IsActive.Active, IsActive.Inactive],
             groupIds: [selectedItem]
         })).pipe(map(x => x.items[0])),
-		displayFn: (item: DescriptionTemplate) => item.label,
-		titleFn: (item: DescriptionTemplate) => item.label,
-		subtitleFn: (item: DescriptionTemplate) => item.description,
-		valueAssign: (item: DescriptionTemplate) => item.groupId,
-		popupItemActionIcon: 'visibility'
-	};
+        displayFn: (item: DescriptionTemplate) => item.label,
+        titleFn: (item: DescriptionTemplate) => item.label,
+        subtitleFn: (item: DescriptionTemplate) => item.description,
+        valueAssign: (item: DescriptionTemplate) => item.groupId,
+        popupItemActionIcon: 'visibility'
+    };
 
-	// tslint:disable-next-line: member-ordering
-	descriptionTemplateGroupMultipleAutocompleteConfiguration: MultipleAutoCompleteConfiguration = {
-		initialItems: (excludedItems: any[], data?: any) => this.query(this.buildDescriptionTemplateGroupAutocompleteLookup({
+    // tslint:disable-next-line: member-ordering
+    descriptionTemplateGroupMultipleAutocompleteConfiguration: MultipleAutoCompleteConfiguration = {
+        initialItems: (excludedItems: any[], data?: any) => this.query(this.buildDescriptionTemplateGroupAutocompleteLookup({
             isActive: [IsActive.Active],
             excludedIds: excludedItems ? excludedItems : null
         })).pipe(map(x => x.items)),
-		filterFn: (searchQuery: string, excludedItems: any[]) => this.query(this.buildDescriptionTemplateGroupAutocompleteLookup({
-            isActive: [IsActive.Active], 
-            like: searchQuery, 
+        filterFn: (searchQuery: string, excludedItems: any[]) => this.query(this.buildDescriptionTemplateGroupAutocompleteLookup({
+            isActive: [IsActive.Active],
+            like: searchQuery,
             excludedIds: excludedItems
         })).pipe(map(x => x.items)),
-		getSelectedItems: (selectedItems: any[]) => this.query(this.buildDescriptionTemplateGroupAutocompleteLookup({
-            isActive: [IsActive.Active, IsActive.Inactive], 
+        getSelectedItems: (selectedItems: any[]) => this.query(this.buildDescriptionTemplateGroupAutocompleteLookup({
+            isActive: [IsActive.Active, IsActive.Inactive],
             groupIds: selectedItems
         })).pipe(map(x => x.items)),
-		displayFn: (item: DescriptionTemplate) => item.label,
-		titleFn: (item: DescriptionTemplate) => item.label,
-		subtitleFn: (item: DescriptionTemplate) => item.description,
-		valueAssign: (item: DescriptionTemplate) => item.groupId,
-		popupItemActionIcon: 'visibility'
-	};
+        displayFn: (item: DescriptionTemplate) => item.label,
+        titleFn: (item: DescriptionTemplate) => item.label,
+        subtitleFn: (item: DescriptionTemplate) => item.description,
+        valueAssign: (item: DescriptionTemplate) => item.groupId,
+        popupItemActionIcon: 'visibility'
+    };
 
-	public buildDescriptionTempalteGroupMultipleAutocompleteConfiguration(preview: boolean = false): MultipleAutoCompleteConfiguration {
+    public buildDescriptionTempalteGroupMultipleAutocompleteConfiguration(preview: boolean = false): MultipleAutoCompleteConfiguration {
 
-		return {
-			initialItems: (excludedItems: any[], data?: any) => this.query(this.buildDescriptionTemplateGroupAutocompleteLookup({
-                isActive: [IsActive.Active], 
+        return {
+            initialItems: (excludedItems: any[], data?: any) => this.query(this.buildDescriptionTemplateGroupAutocompleteLookup({
+                isActive: [IsActive.Active],
                 excludedIds: excludedItems ? excludedItems : null
             })).pipe(map(x => x.items)),
-			filterFn: (searchQuery: string, excludedItems: any[]) => this.query(this.buildDescriptionTemplateGroupAutocompleteLookup({
-                isActive: [IsActive.Active], 
-                like: searchQuery, 
+            filterFn: (searchQuery: string, excludedItems: any[]) => this.query(this.buildDescriptionTemplateGroupAutocompleteLookup({
+                isActive: [IsActive.Active],
+                like: searchQuery,
                 excludedIds: excludedItems
             })).pipe(map(x => x.items)),
-			getSelectedItems: (selectedItems: any[]) => this.query(this.buildDescriptionTemplateGroupAutocompleteLookup({
-                isActive: [IsActive.Active, IsActive.Inactive], 
+            getSelectedItems: (selectedItems: any[]) => this.query(this.buildDescriptionTemplateGroupAutocompleteLookup({
+                isActive: [IsActive.Active, IsActive.Inactive],
                 groupIds: selectedItems
             })).pipe(map(x => x.items)),
-			displayFn: (item: DescriptionTemplate) => item.label,
-			titleFn: (item: DescriptionTemplate) => item.label,
-			subtitleFn: (item: DescriptionTemplate) => item.description,
-			valueAssign: (item: DescriptionTemplate) => item.groupId,
-			popupItemActionIcon: preview ? 'visibility' : null,
-		};
-	}
+            displayFn: (item: DescriptionTemplate) => item.label,
+            titleFn: (item: DescriptionTemplate) => item.label,
+            subtitleFn: (item: DescriptionTemplate) => item.description,
+            valueAssign: (item: DescriptionTemplate) => item.groupId,
+            popupItemActionIcon: preview ? 'visibility' : null,
+        };
+    }
 
     //isActive: IsActive[], like?: string, excludedIds?: Guid[], groupIds?: Guid[], excludedGroupIds?: Guid[]
-	public buildDescriptionTemplateGroupAutocompleteLookup(
+    public buildDescriptionTemplateGroupAutocompleteLookup(
         params: {
-            isActive: IsActive[], 
-            like?: string, 
-            excludedIds?: Guid[], 
-            groupIds?: Guid[], 
+            isActive: IsActive[],
+            like?: string,
+            excludedIds?: Guid[],
+            groupIds?: Guid[],
             excludedGroupIds?: Guid[]
             lookupFields?: string[]
         }
     ): DescriptionTemplateLookup {
-        const {isActive, like, excludedIds, excludedGroupIds, groupIds, lookupFields} = params;
-		const lookup: DescriptionTemplateLookup = new DescriptionTemplateLookup();
-		lookup.page = { size: 100, offset: 0 };
-		if (excludedIds && excludedIds.length > 0) { lookup.excludedIds = excludedIds; }
-		if (groupIds && groupIds.length > 0) { lookup.groupIds = groupIds; }
-		if (excludedGroupIds && excludedGroupIds.length > 0) { lookup.excludedGroupIds = excludedGroupIds; }
+        const { isActive, like, excludedIds, excludedGroupIds, groupIds, lookupFields } = params;
+        const lookup: DescriptionTemplateLookup = new DescriptionTemplateLookup();
+        lookup.page = { size: 100, offset: 0 };
+        if (excludedIds && excludedIds.length > 0) { lookup.excludedIds = excludedIds; }
+        if (groupIds && groupIds.length > 0) { lookup.groupIds = groupIds; }
+        if (excludedGroupIds && excludedGroupIds.length > 0) { lookup.excludedGroupIds = excludedGroupIds; }
 
-		lookup.isActive = isActive;
-		lookup.versionStatuses = [DescriptionTemplateVersionStatus.Current, DescriptionTemplateVersionStatus.NotFinalized];
-		lookup.statuses = [DescriptionTemplateStatus.Finalized];
-		lookup.project = {
-			fields: lookupFields ?? [
-				nameof<DescriptionTemplate>(x => x.id),
-				nameof<DescriptionTemplate>(x => x.label),
-				nameof<DescriptionTemplate>(x => x.groupId),
-				nameof<DescriptionTemplate>(x => x.description),
-			]
-		};
-		lookup.order = { items: [nameof<DescriptionTemplate>(x => x.label)] };
-		if (like) { lookup.like = this.filterService.transformLike(like); }
-		return lookup;
-	}
-
-    buildLookup(params?: Partial<DescriptionTemplateLookup>): DescriptionTemplateLookup {
-        const {metadata, page, isActive, statuses, versionStatuses, order, project, like, typeIds, languages, groupIds} = params ?? {};
-        const lookup = new DescriptionTemplateLookup();
-		lookup.metadata = metadata ?? {countAll: true};
-		lookup.page = page ?? {offset: 0, size: 100};
-		lookup.isActive = isActive ?? [IsActive.Active];
-		lookup.statuses = statuses ?? [DescriptionTemplateStatus.Finalized];
-		lookup.versionStatuses = versionStatuses ?? [DescriptionTemplateVersionStatus.Current];
-		lookup.order = order ?? {items: ['-' + (nameof<DescriptionTemplate>(x => x.updatedAt))]};
-		lookup.project = project ?? {
-			fields: [
-            ...DescriptionTemplateEditorResolver.baseLookupFields(), 
-            nameof<DescriptionTemplate>(x => x.language),
-            [nameof<DescriptionTemplate>(x => x.type), nameof<DescriptionTemplateType>(x => x.id)].join('.'),
-            [nameof<DescriptionTemplate>(x => x.type), nameof<DescriptionTemplateType>(x => x.name)].join('.')
-        ]
-		};
-		if (like) {
-			lookup.like = like;
-		}
-		if (typeIds) {
-			lookup.typeIds = typeIds;
-		}
-		if (languages) {
-			lookup.languages = languages;
-		}
-		if(groupIds){
-			lookup.groupIds = groupIds;
-		}
-		return lookup;
+        lookup.isActive = isActive;
+        lookup.versionStatuses = [DescriptionTemplateVersionStatus.Current, DescriptionTemplateVersionStatus.NotFinalized];
+        lookup.statuses = [DescriptionTemplateStatus.Finalized];
+        lookup.project = {
+            fields: lookupFields ?? [
+                nameof<DescriptionTemplate>(x => x.id),
+                nameof<DescriptionTemplate>(x => x.label),
+                nameof<DescriptionTemplate>(x => x.groupId),
+                nameof<DescriptionTemplate>(x => x.description),
+            ]
+        };
+        lookup.order = { items: [nameof<DescriptionTemplate>(x => x.label)] };
+        if (like) { lookup.like = this.filterService.transformLike(like); }
+        return lookup;
     }
 
+    buildLookup(params?: Partial<DescriptionTemplateLookup>): DescriptionTemplateLookup {
+        const { metadata, page, isActive, statuses, versionStatuses, order, project, like, typeIds, languages, groupIds } = params ?? {};
+        const lookup = new DescriptionTemplateLookup();
+        lookup.metadata = metadata ?? { countAll: true };
+        lookup.page = page ?? { offset: 0, size: 100 };
+        lookup.isActive = isActive ?? [IsActive.Active];
+        lookup.statuses = statuses ?? [DescriptionTemplateStatus.Finalized];
+        lookup.versionStatuses = versionStatuses ?? [DescriptionTemplateVersionStatus.Current];
+        lookup.order = order ?? { items: ['-' + (nameof<DescriptionTemplate>(x => x.updatedAt))] };
+        lookup.project = project ?? {
+            fields: [
+                ...DescriptionTemplateEditorResolver.baseLookupFields(),
+                nameof<DescriptionTemplate>(x => x.language),
+                [nameof<DescriptionTemplate>(x => x.type), nameof<DescriptionTemplateType>(x => x.id)].join('.'),
+                [nameof<DescriptionTemplate>(x => x.type), nameof<DescriptionTemplateType>(x => x.name)].join('.')
+            ]
+        };
+        if (like) {
+            lookup.like = like;
+        }
+        if (typeIds) {
+            lookup.typeIds = typeIds;
+        }
+        if (languages) {
+            lookup.languages = languages;
+        }
+        if (groupIds) {
+            lookup.groupIds = groupIds;
+        }
+        return lookup;
+    }
 }

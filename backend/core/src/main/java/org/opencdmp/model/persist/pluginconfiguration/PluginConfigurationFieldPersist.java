@@ -26,6 +26,17 @@ public class PluginConfigurationFieldPersist {
     private String textValue;
     public static final String _textValue = "textValue";
 
+    private Boolean secret;
+    public static final String _secret = "secret";
+
+    public Boolean getSecret() {
+        return secret;
+    }
+
+    public void setSecret(Boolean secret) {
+        this.secret = secret;
+    }
+
     public String getCode() {
         return code;
     }

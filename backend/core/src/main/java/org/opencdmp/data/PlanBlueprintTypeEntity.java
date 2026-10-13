@@ -31,6 +31,10 @@ public class PlanBlueprintTypeEntity extends TenantScopedBaseEntity {
 
     public static final String _name = "name";
 
+    @Column(name = "\"ordinal\"", nullable = false)
+    private Integer ordinal;
+    public static final String _ordinal = "ordinal";
+
     @Column(name = "created_at", nullable = false)
     private Instant createdAt;
 
@@ -75,6 +79,14 @@ public class PlanBlueprintTypeEntity extends TenantScopedBaseEntity {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public Integer getOrdinal() {
+        return ordinal;
+    }
+
+    public void setOrdinal(Integer ordinal) {
+        this.ordinal = ordinal;
     }
 
     public Instant getCreatedAt() {

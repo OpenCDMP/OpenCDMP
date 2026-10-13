@@ -13,6 +13,7 @@ import org.opencdmp.convention.ConventionService;
 import org.opencdmp.data.UsageLimitEntity;
 import org.opencdmp.model.UsageLimit;
 import org.opencdmp.model.builder.usagelimit.DefinitionBuilder;
+import org.opencdmp.service.accounting.AccountingService;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
@@ -28,17 +29,19 @@ public class UsageLimitBuilder extends BaseBuilder<UsageLimit, UsageLimitEntity>
     private final TenantScopeFactory tenantScopeFactory;
     private final XmlHandlingService xmlHandlingService;
     private final BuilderFactory builderFactory;
+    private final AccountingService accountingService;
 
     private EnumSet<AuthorizationFlags> authorize = EnumSet.of(AuthorizationFlags.None);
 
     @Autowired
     public UsageLimitBuilder(
             ConventionService conventionService,
-            TenantScopeFactory tenantScopeFactory, XmlHandlingService xmlHandlingService, BuilderFactory builderFactory) {
+            TenantScopeFactory tenantScopeFactory, XmlHandlingService xmlHandlingService, BuilderFactory builderFactory, AccountingService accountingService) {
         super(conventionService, new LoggerService(LoggerFactory.getLogger(UsageLimitBuilder.class)));
 	    this.tenantScopeFactory = tenantScopeFactory;
         this.xmlHandlingService = xmlHandlingService;
         this.builderFactory = builderFactory;
+        this.accountingService = accountingService;
     }
 
     public UsageLimitBuilder authorize(EnumSet<AuthorizationFlags> values) {
@@ -78,11 +81,23 @@ public class UsageLimitBuilder extends BaseBuilder<UsageLimit, UsageLimitEntity>
                 DefinitionEntity definition = this.xmlHandlingService.fromXmlSafe(DefinitionEntity.class, d.getDefinition());
                 m.setDefinition(this.builderFactory.builder(DefinitionBuilder.class).authorize(this.authorize).build(definitionFields, definition));
             }
+            if (fields.hasField(this.asIndexer(UsageLimit._currentValue))) m.setCurrentValue(this.currentValue(d));
             if (fields.hasField(this.asIndexer(UsageLimit._belongsToCurrentTenant))) m.setBelongsToCurrentTenant(this.getBelongsToCurrentTenant(d, this.tenantScopeFactory.getInstance()));
 
             models.add(m);
         }
         this.logger.debug("build {} items", Optional.of(models).map(List::size).orElse(0));
         return models;
+    }
+
+    private Integer currentValue(UsageLimitEntity d) {
+        if (d.getTargetMetric() == null) return null;
+        try {
+            return this.accountingService.getCurrentMetricValue(d.getTargetMetric().getValue(), this.xmlHandlingService.fromXmlSafe(DefinitionEntity.class, d.getDefinition()));
+        } catch (Exception e) {
+            // An unreachable accounting service leaves the usage blank instead of failing the listing.
+            this.logger.warn("could not read the current value of usage limit {}: {}", d.getId(), e.getMessage());
+            return null;
+        }
     }
 }

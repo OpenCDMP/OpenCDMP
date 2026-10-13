@@ -82,7 +82,6 @@ public class QueryUtilsServiceImpl implements QueryUtilsService {
                                         ): cb.or(), //Creates a false query
                                         userId != null ?
                                                 cb.or(
-                                                        cb.equal(subQueryRoot.get(DescriptionEntity._createdById), userId),
                                                         cb.in(subQueryRoot.get(DescriptionEntity._planId)).value(this.buildPlanUserAuthZSubQuery(query, criteriaBuilder, userId, IsActive.Active))
                                                 ) : cb.or(), //Creates a false query
                                         userId != null ?

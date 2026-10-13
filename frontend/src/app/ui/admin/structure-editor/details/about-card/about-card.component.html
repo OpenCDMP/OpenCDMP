@@ -1,0 +1,59 @@
+<section class="bp2-card">
+	<div class="bp2-card__head">
+		<div>
+			<div class="bp2-card__title"><h2>{{t('PLAN-BLUEPRINT-EDITOR.DETAILS.ABOUT') | translate}}</h2></div>
+			<div class="bp2-card__desc">{{t('PLAN-BLUEPRINT-EDITOR.DETAILS.ABOUT-HINT') | translate}}</div>
+		</div>
+	</div>
+	<div class="bp2-card__body">
+		<div class="dt-identity">
+			<app-se2-icon-picker [iconForm]="iconForm" [readOnly]="editor.readOnly" />
+			@if (editor.readOnly) {
+				<dl class="bp2-read dt-read">
+					<dt>{{'PLAN-BLUEPRINT-EDITOR.DETAILS.NAME' | translate}}</dt><dd>{{ form.get('label').value || '—' }}</dd>
+					<dt>{{'PLAN-BLUEPRINT-EDITOR.DETAILS.CODE' | translate}}</dt><dd><code>{{ form.get('code').getRawValue() || '—' }}</code></dd>
+					<dt>{{'PLAN-BLUEPRINT-EDITOR.DETAILS.TYPE' | translate}}</dt><dd>{{ typeName || '—' }}</dd>
+					<ng-content select="[se2AboutRead]" />
+					<dt>{{'PLAN-BLUEPRINT-EDITOR.DETAILS.DESCRIPTION' | translate}}</dt>
+					<dd>@if (form.get('description').value) { <div class="bp2-read__rich" [innerHTML]="form.get('description').value"></div> } @else { — }</dd>
+				</dl>
+			} @else {
+			<div class="dt-fields">
+				<div class="dt-fields__row">
+					<mat-form-field class="dt-grow">
+						<mat-label>{{'PLAN-BLUEPRINT-EDITOR.DETAILS.NAME' | translate}}</mat-label>
+						<input matInput type="text" [formControl]="form.get('label')" required>
+						@if (form.get('label').hasError('backendError')) { <mat-error>{{form.get('label').getError('backendError').message}}</mat-error> }
+						@if (form.get('label').hasError('required')) { <mat-error>{{t('PLAN-BLUEPRINT-EDITOR.PROBLEMS.NAME-REQUIRED') | translate}}</mat-error> }
+					</mat-form-field>
+					<mat-form-field class="dt-code" subscriptSizing="dynamic">
+						<mat-label>{{'PLAN-BLUEPRINT-EDITOR.DETAILS.CODE' | translate}}</mat-label>
+						<input matInput type="text" [formControl]="form.get('code')" [required]="!codeLocked">
+						@if (codeLocked) { <mat-icon matSuffix [matTooltip]="t('PLAN-BLUEPRINT-EDITOR.DETAILS.CODE-LOCKED') | translate">lock</mat-icon> }
+						<mat-hint>{{ (codeLocked ? t('PLAN-BLUEPRINT-EDITOR.DETAILS.CODE-LOCKED') : 'PLAN-BLUEPRINT-EDITOR.DETAILS.CODE-HINT') | translate }}</mat-hint>
+						@if (form.get('code').hasError('backendError')) { <mat-error>{{form.get('code').getError('backendError').message}}</mat-error> }
+						@if (form.get('code').hasError('required')) { <mat-error>{{t('PLAN-BLUEPRINT-EDITOR.PROBLEMS.CODE-REQUIRED') | translate}}</mat-error> }
+					</mat-form-field>
+				</div>
+				<mat-form-field class="dt-full" subscriptSizing="dynamic">
+					<mat-label>{{'PLAN-BLUEPRINT-EDITOR.DETAILS.TYPE' | translate}}</mat-label>
+					<app-single-auto-complete [required]="typeRequired" [formControl]="form.get('type')" [placeholder]="'PLAN-BLUEPRINT-EDITOR.DETAILS.TYPE-PLACEHOLDER' | translate" [configuration]="typeConfiguration"></app-single-auto-complete>
+					<mat-hint>{{t('PLAN-BLUEPRINT-EDITOR.DETAILS.TYPE-HINT') | translate}}</mat-hint>
+					@if (form.get('type').hasError('backendError')) { <mat-error>{{form.get('type').getError('backendError').message}}</mat-error> }
+					@if (form.get('type').hasError('required')) { <mat-error>{{t('PLAN-BLUEPRINT-EDITOR.PROBLEMS.TYPE-REQUIRED') | translate}}</mat-error> }
+				</mat-form-field>
+				<ng-content select="[se2AboutFields]" />
+			</div>
+			}
+		</div>
+		@if (!editor.readOnly) {
+		<div class="bp2-rich-field">
+			<label class="bp2-field-label" for="bp2-description" [appFor]="'bp2-description'">{{'PLAN-BLUEPRINT-EDITOR.DETAILS.DESCRIPTION' | translate}}@if (descriptionRequired) { <span aria-hidden="true"> *</span> }</label>
+			<rich-text-editor-component [id]="'bp2-description'" [form]="form.get('description')" [placeholder]="t('PLAN-BLUEPRINT-EDITOR.DETAILS.DESCRIPTION-PLACEHOLDER')" [wrapperClasses]="'dt-rich'"></rich-text-editor-component>
+			<div class="bp2-help">{{t('PLAN-BLUEPRINT-EDITOR.DETAILS.DESCRIPTION-HINT') | translate}}</div>
+			@if (form.get('description').hasError('backendError')) { <mat-error>{{form.get('description').getError('backendError').message}}</mat-error> }
+			@if (showErrors && form.get('description').hasError('required')) { <mat-error>{{'PLAN-BLUEPRINT-EDITOR.PROBLEMS.DESCRIPTION-REQUIRED' | translate}}</mat-error> }
+		</div>
+		}
+	</div>
+</section>

@@ -27,6 +27,8 @@ export interface UserSettingPersist {
 	value: string;
 	hash: string;
 	isDefault: boolean;
+	/** Owner of the setting (the current user's id); required by the backend validator. */
+	entityId: Guid;
 }
 
 export interface UserSettingsKey {

@@ -1,0 +1,73 @@
+<div class="qr">
+	@if (form.get('description').value || form.get('extendedDescription').value || form.get('additionalInformation').value) {
+		<dl class="qr-help">
+			@if (form.get('description').value) { <dt>{{'PLAN-BLUEPRINT-EDITOR.HELP.SHORT' | translate}}</dt><dd [innerHTML]="form.get('description').value"></dd> }
+			@if (form.get('extendedDescription').value) { <dt>{{'PLAN-BLUEPRINT-EDITOR.HELP.LONG' | translate}}</dt><dd [innerHTML]="form.get('extendedDescription').value"></dd> }
+			@if (form.get('additionalInformation').value) { <dt>{{'PLAN-BLUEPRINT-EDITOR.HELP.TOOLTIP' | translate}}</dt><dd>{{form.get('additionalInformation').value}}</dd> }
+		</dl>
+	}
+
+	@for (f of fields; track f.get('id').value; let i = $index) {
+		<div class="qr-input">
+			<div class="qr-input__head">
+				<mat-icon aria-hidden="true">{{kindIcon(kind(f))}}</mat-icon>
+				<strong>{{ kind(f) === 'preset' ? presetName(f) : (kindLabelKey(kind(f)) | translate) }}</strong>
+				@if (fields.length > 1) { <span class="bp2-sub">{{'PLAN-BLUEPRINT-EDITOR.INPUT.INPUT-N' | translate: { n: i + 1 } }}</span> }
+				<span class="qr-spacer"></span>
+				<span class="bp2-tag" [class.bp2-tag--ok]="required(f)">{{ (required(f) ? 'PLAN-BLUEPRINT-EDITOR.INPUT.REQUIRED' : 'PLAN-BLUEPRINT-EDITOR.INPUT.OPTIONAL') | translate }}</span>
+				@if (url(f)) { <span class="bp2-tag">URL</span> }
+				@if (email(f)) { <span class="bp2-tag">Email</span> }
+			</div>
+			<dl class="qr-facts">
+				@if (data(f)?.get('label')?.value && kind(f) !== 'preset') { <dt>{{'PLAN-BLUEPRINT-EDITOR.INPUT.PLACEHOLDER' | translate}}</dt><dd>{{data(f).get('label').value}}</dd> }
+				@switch (kind(f)) {
+					@case ('single') {
+						<dt>{{'PLAN-BLUEPRINT-EDITOR.OPTIONS.TITLE' | translate}}</dt>
+						<dd><span class="bp2-sub">{{ (type(f) === 'select' ? 'PLAN-BLUEPRINT-EDITOR.OPTIONS.DROPDOWN-ON' : 'PLAN-BLUEPRINT-EDITOR.OPTIONS.DROPDOWN-OFF') | translate }}</span>
+							<ul class="qr-options">@for (o of options(f); track $index) { <li>{{o.label}} <code>{{o.value}}</code>@if (isDefault(f, o.value)) { <span class="bp2-tag bp2-tag--ok">{{'PLAN-BLUEPRINT-EDITOR.OPTIONS.DEFAULT' | translate}}</span> }</li> }</ul></dd>
+					}
+					@case ('multiple') {
+						<dt>{{'PLAN-BLUEPRINT-EDITOR.OPTIONS.TITLE' | translate}}</dt>
+						<dd><ul class="qr-options">@for (o of options(f); track $index) { <li>{{o.label}} <code>{{o.value}}</code>@if (isDefault(f, o.value)) { <span class="bp2-tag bp2-tag--ok">{{'PLAN-BLUEPRINT-EDITOR.OPTIONS.DEFAULT' | translate}}</span> }</li> }</ul></dd>
+					}
+					@case ('reference') {
+						<dt>{{'PLAN-BLUEPRINT-EDITOR.INPUT.REFERENCE-TYPE' | translate}}</dt><dd>{{ referenceName(f) || '—' }}@if (data(f).get('multipleSelect').value) { · {{'PLAN-BLUEPRINT-EDITOR.INPUT.PICK-MORE' | translate}} }</dd>
+					}
+					@case ('internal') {
+						<dt>{{'PLAN-BLUEPRINT-EDITOR.INPUT.LINK-TO' | translate}}</dt><dd>{{ (type(f) === 'internalEntitiesDescriptions' ? 'PLAN-BLUEPRINT-EDITOR.INPUT.LINK-ASSETS' : 'PLAN-BLUEPRINT-EDITOR.INPUT.LINK-PLANS') | translate }}@if (data(f).get('multipleSelect').value) { · {{'PLAN-BLUEPRINT-EDITOR.INPUT.LINK-MORE' | translate}} }</dd>
+					}
+					@case ('identifier') {
+						@if (type(f) === 'validation') { <dt>{{'PLAN-BLUEPRINT-EDITOR.INPUT.VALIDATE-ID' | translate}}</dt><dd>{{'PLAN-BLUEPRINT-EDITOR.RULES.YES' | translate}}</dd> }
+					}
+					@case ('upload') {
+						<dt>{{'PLAN-BLUEPRINT-EDITOR.UPLOAD.TYPES' | translate}}</dt><dd>@for (t of types(f); track $index) { <span class="bp2-tag">{{t.label}}</span> } · {{'PLAN-BLUEPRINT-EDITOR.UPLOAD.MAX-SIZE' | translate}} {{data(f).get('maxFileSizeInMB').value}} MB</dd>
+					}
+				}
+				@if (defaultText(f)) { <dt>{{'PLAN-BLUEPRINT-EDITOR.INPUT.DEFAULT' | translate}}</dt><dd>{{defaultText(f)}}</dd> }
+				@if (semantics(f).length) {
+					<dt>{{'PLAN-BLUEPRINT-EDITOR.SEMANTICS.TITLE' | translate}}</dt>
+					<dd class="qr-keys">@for (s of semantics(f); track $index) { <span class="qr-key"><span><b>{{prefix(s)}}</b>@if (rest(s)) {.{{rest(s)}}}</span></span> }</dd>
+				}
+				<dt>{{'PLAN-BLUEPRINT-EDITOR.INPUT.DOWNLOADS' | translate}}</dt><dd>{{ (f.get('includeInExport').value ? 'PLAN-BLUEPRINT-EDITOR.INPUT.IN-DOWNLOADS' : 'PLAN-BLUEPRINT-EDITOR.INPUT.NOT-IN-DOWNLOADS') | translate }}</dd>
+				@if (rules(f).length) {
+					<dt>{{'PLAN-BLUEPRINT-EDITOR.RULES.TITLE' | translate}}</dt>
+					<dd><ul class="qr-rules">@for (r of rules(f); track $index) { <li>{{ (r.value ? 'PLAN-BLUEPRINT-EDITOR.RULES.SENTENCE' : 'PLAN-BLUEPRINT-EDITOR.RULES.SENTENCE-ANY') | translate: { value: r.value, target: r.targetNumbering + ' ' + (r.targetTitle || '') } }}</li> }</ul></dd>
+				}
+			</dl>
+		</div>
+	}
+
+	@if (repeatable || form.get('hasCommentField').value || into.length) {
+		<dl class="qr-facts qr-facts--question">
+			@if (repeatable) {
+				<dt>{{'PLAN-BLUEPRINT-EDITOR.REPEAT.TITLE' | translate}}</dt>
+				<dd>{{'PLAN-BLUEPRINT-EDITOR.REPEAT.RANGE' | translate: { min: multiplicity.get('min').value ?? 0, max: multiplicity.get('max').value ?? '∞' } }}@if (multiplicity.get('placeholder').value) { · “{{multiplicity.get('placeholder').value}}” }@if (multiplicity.get('tableView').value) { · {{'PLAN-BLUEPRINT-EDITOR.REPEAT.TABLE' | translate}} }</dd>
+			}
+			@if (form.get('hasCommentField').value) { <dt>{{'PLAN-BLUEPRINT-EDITOR.COMMENT.TITLE' | translate}}</dt><dd>{{'PLAN-BLUEPRINT-EDITOR.RULES.YES' | translate}}</dd> }
+			@if (into.length) {
+				<dt>{{'PLAN-BLUEPRINT-EDITOR.RULES.CONDITIONAL' | translate}}</dt>
+				<dd>@for (r of into; track $index) { <div>{{ (r.value ? 'PLAN-BLUEPRINT-EDITOR.RULES.SHOWN-WHEN' : 'PLAN-BLUEPRINT-EDITOR.RULES.SHOWN-BY') | translate: { source: r.sourceNumbering, value: r.value } }}</div> }</dd>
+			}
+		</dl>
+	}
+</div>

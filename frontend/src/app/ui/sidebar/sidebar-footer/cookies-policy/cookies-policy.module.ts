@@ -4,12 +4,10 @@ import { CookiesPolicyRoutingModule } from '@app/ui/sidebar/sidebar-footer/cooki
 import { CommonUiModule } from '@common/ui/common-ui.module';
 
 @NgModule({
-	imports: [
-		CommonUiModule,
-		CookiesPolicyRoutingModule
-	],
-	declarations: [
-		CookiesPolicyComponent
-	],
+    imports: [
+        CommonUiModule,
+        CookiesPolicyRoutingModule,
+        CookiesPolicyComponent
+    ],
 })
 export class CookiesPolicyModule { }

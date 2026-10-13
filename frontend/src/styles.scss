@@ -2,12 +2,10 @@
 @use '../node_modules/@citesa/kpi-client/src/theme.scss' as kpiTheme;
 
 // @use "@covalent/core/theming/all-theme";
-@use '../node_modules/@swimlane/ngx-datatable/themes/material.scss';
-@use '../node_modules/@swimlane/ngx-datatable/assets/icons.css';
 
 
 // Guided Tour style
-@use '../node_modules/ngx-guided-tour/scss/guided-tour-base-theme.scss';
+@use 'app/library/guided-tour/guided-tour-base-theme';
 
 // Be sure that you only ever include this mixin once!
 // (included in material-theme)
@@ -15,7 +13,7 @@
 
 @use './assets/scss/material-theme.scss';
 @use './assets/scss/material-theme-overrides.scss';
- 
+
 $primary: green;
 $accent: #53cfab;
 @include kpiTheme.theme-kpi-client($primary, $accent);
@@ -25,13 +23,18 @@ html * {
 -webkit-font-smoothing: antialiased;
 -moz-osx-font-smoothing: grayscale;
 }
-//<!-- assets/core/boostrap-material.scss --> 
-* {
-
-	&:active,
-	:focus {
-		outline: none !important;
-	}
+//<!-- assets/core/boostrap-material.scss -->
+// Focus visibility (WCAG 2.4.7). Do NOT globally remove outlines — that hides the
+// keyboard focus indicator app-wide. Suppress the ring only for mouse/touch
+// (:focus that is not :focus-visible) and keep a clear, contrast-safe ring for
+// keyboard users. Material components ship their own :focus-visible rings; this
+// is the fallback for plain elements (links, custom controls).
+:focus:not(:focus-visible) {
+	outline: none;
+}
+:focus-visible {
+	outline: 2px solid var(--mat-sys-primary);
+	outline-offset: 2px;
 }
 
 label {
@@ -51,10 +54,10 @@ body {
     border-radius: 8px !important;
 }
 .mat-button-toggle-group.mat-button-toggle-group-appearance-standard{
-    border-radius: 4px;
-    .mat-button-toggle-label-content{
-        padding: 3px 12px;
-    }
+    // border-radius: 4px;
+    // .mat-button-toggle-label-content{
+    //     padding: 3px 12px;
+    // }
     .mat-button-toggle .mat-pseudo-checkbox{
         padding-right: 8px;
     }
@@ -81,11 +84,15 @@ body {
     border-color: var(--mat-sys-outline);
     background-color: var(--mat-sys-surface);
 }
+.mat-secondary.mat-mdc-outlined-button:not(:disabled) {
+    color: var(--mat-sys-secondary);
+    border-color: var(--mat-sys-secondary);
+}
 .mat-divider.mat-divider-vertical{
-    border-right-color: rgba(0, 0, 0, .12) !important;
+    border-right-color: rgba(0, 0, 0, .12);
 }
 .mat-divider:not(.mat-divider-vertical){
-    border-top-color: rgba(0, 0, 0, .12) !important;
+    border-top-color: rgba(0, 0, 0, .12);
 }
 .mdc-switch.mdc-switch--checked{
     .mdc-switch__handle {
@@ -105,25 +112,6 @@ body {
     color: var(--mat-form-field-outlined-disabled-input-text-color, color-mix(in srgb, var(--mat-sys-on-surface) 38%, transparent)) !important; //because it refuses to override the correct way
 }
 
-.ngx-datatable, .ngx-datatable.material .datatable-header .datatable-header-cell {
-    background-color: var(--mat-sys-surface) !important;
-    color: var(--mat-sys-on-surface);
-}
-
-.ngx-datatable.material .datatable-body .datatable-body-row .datatable-body-cell {
-    color: var(--mat-sys-on-surface);
-}
-
-.ngx-datatable.material .datatable-header .datatable-header-cell {
-    color: var(--mat-sys-on-surface);
-}
-
-.ngx-datatable.material .datatable-body .datatable-body-row .datatable-body-cell{
-    font-size: var(--mat-sys-body-medium-size);
-}
-.ngx-datatable.material .datatable-header .datatable-header-cell{
-    font-size: var(--mat-sys-label-medium-size);
-}
 
 //<!--------   m3 styles overwrites end ------------>
 
@@ -184,39 +172,6 @@ a {
 // <!--------------------------- ------------------->
 
 
-//TODO: angular update @import '../node_modules/dragula/dist/dragula.css';
-/* in-flight clone */
-.gu-mirror {
-	position: fixed !important;
-	margin: 0 !important;
-	z-index: 9999 !important;
-	opacity: 1;
-	-ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=80)";
-	filter: alpha(opacity=80);
-	pointer-events: none;
-}
-
-/* high-performance display:none; helper */
-.gu-hide {
-	left: -9999px !important;
-}
-
-/* added to mirrorContainer (default = body) while dragging */
-.gu-unselectable {
-	-webkit-user-select: none !important;
-	-moz-user-select: none !important;
-	-ms-user-select: none !important;
-	user-select: none !important;
-}
-
-/* added to the source element while its mirror is dragged */
-.gu-transit {
-	opacity: 0;
-	border: 1px dashed var(--mat-sys-error);
-	-ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=20)";
-	filter: alpha(opacity=20);
-}
-
 .cc-btn {
 	background-color: var(--mat-sys-primary) !important;
 }
@@ -239,6 +194,9 @@ a {
 .text-success {
     color: #109204
 }
+.text-primary {
+    color: var(--mat-sys-primary) !important;
+}
 
 .listing {
 	.mat-card {
@@ -253,12 +211,34 @@ a {
 
 
 .main-content {
-	background-color: var(--mat-sys-background);
-	padding-bottom: 3rem;
-	padding-left: 1rem;
+	// background-color: var(--mat-sys-background);
+    padding: 1.5rem;
 	margin: 0;
-	display: flex;
 	flex-grow: 1;
+}
+
+.page-title {
+    font-size: var(--mat-sys-title-large-size);
+}
+.page-subtitle {
+    font-size: var(--mat-sys-title-medium-size);
+}
+.opacity-0 {
+    opacity: 0;
+}
+@for $i from 1 through 9 {
+  .opacity-0#{$i} {
+    opacity: calc($i / 10);
+  }
+}
+
+
+.opacity-1 {
+    opacity: 1;
+}
+
+.flex-1 {
+    flex: 1;
 }
 
 .mat-form-field-wrapper {
@@ -337,10 +317,23 @@ angular-editor {
         pointer-events: none;
     }
     &:not(.disabled){
+        &.error {
+            .angular-editor {
+                border: 1px solid var(--mat-sys-error) !important;
+            }
+            .angular-editor:focus-within {
+                border: 2px solid var(--mat-sys-error) !important;
+            }
+        }
         .angular-editor {
             border: 1px solid var(--mat-sys-outline) !important;
             &:focus-within {
                 border: 2px solid var(--mat-sys-primary) !important;
+            }
+            // The 2px focus-within border above is the focus indicator; without this the global
+            // :focus-visible ring is drawn on the inner contenteditable too, giving two mismatched rings.
+            &:focus-visible, .angular-editor-textarea:focus-visible {
+                outline: none;
             }
         }
     }
@@ -426,7 +419,7 @@ angular-editor {
 }
 
 .dense-10 {
-	@include mat.all-component-densities(-10); 
+	@include mat.all-component-densities(-10);
 }
 
 .listing-filters {
@@ -436,6 +429,15 @@ angular-editor {
 }
 .listing-filters-container {
     padding: 0.5rem 1rem;
+}
+/* Filter chips projected into the admin listing toolbar sit in a wrapping row. */
+.al-filters { display: flex; flex-wrap: wrap; align-items: center; gap: .625rem; }
+
+// One-line explanation under a listing filter toggle
+.listing-filter-hint {
+    font-size: var(--mat-sys-body-small-size);
+    color: var(--mat-sys-on-surface-variant);
+    margin-top: 0.25rem;
 }
 
 button.mdc-button, .mat-mdc-button, .md-button, .mat-mdc-button:not(:disabled) {
@@ -468,17 +470,17 @@ button.mdc-button, .mat-mdc-button, .md-button, .mat-mdc-button:not(:disabled) {
     &.stepper {
         width: 9rem;
     }
-    
+
 
     &.load-more {
         border: 2px solid #212121;
         min-width: 132px;
-        margin-top: 2rem;
-        color: black;
-        
+        margin-top: 1.5rem;
+        color: var(--mat-sys-on-surface);
+
         &:hover {
-            background-color: black;
-            color: white;
+            background-color: var(--mat-sys-on-surface);
+            color: var(--mat-sys-surface);
         }
     }
 
@@ -494,12 +496,18 @@ button.mdc-button, .mat-mdc-button, .md-button, .mat-mdc-button:not(:disabled) {
             border: 1px solid var(--mat-sys-primary);
             color: var(--mat-sys-primary);
         }
-    
+
         &.attach-file.mdc-button-disabled, &.attach-file.mdc-button-disabled:hover {
             opacity: 0.7;
         }
     }
-
+    &:not(:disabled).mat-secondary{
+        color: var(--mat-sys-secondary);
+    }
+    &.mat-mdc-unelevated-button:not(:disabled).mat-secondary{
+        background-color: var(--mat-sys-secondary);
+        color: var(--mat-sys-on-secondary);
+    }
 
 }
 
@@ -521,7 +529,7 @@ button.mdc-button, .mat-mdc-button, .md-button, .mat-mdc-button:not(:disabled) {
     &.mat-accent:not(:hover) {
         background: var(--mat-sys-tertiary);
         color: var(--mat-sys-on-tertiary)
-    } 
+    }
     &.mat-accent:hover{
         background-color: hsl(from var(--mat-sys-tertiary) h s calc(l + 4));
         color: var(--mat-sys-on-tertiary)
@@ -536,8 +544,22 @@ button.mdc-button, .mat-mdc-button, .md-button, .mat-mdc-button:not(:disabled) {
 	font-size: var(--mat-sys-label-medium-size);
 }
 .status-chip-finalized, .user-role.tenant-plan-manager {
-    color: #235727;
-    background: #cee9d0  0% 0% no-repeat padding-box;
+    color: var(--app-on-success-container);
+    background: var(--app-success-container) 0% 0% no-repeat padding-box;
+}
+
+// Retired / deactivated records — muted, theme-driven so it stays legible under any tenant theme
+.status-chip-inactive {
+    color: var(--mat-sys-on-surface-variant);
+    background: var(--mat-sys-surface-container-high) 0% 0% no-repeat padding-box;
+}
+
+// Default-tenant rows shown on another tenant (read-only there)
+.status-chip-shared {
+    display: inline-block;
+    margin-left: 0.5rem;
+    color: var(--mat-sys-on-secondary-container);
+    background: var(--mat-sys-secondary-container) 0% 0% no-repeat padding-box;
 }
 
 .status-chip-draft, .user-role.user, .user-role.tenant-user {
@@ -553,6 +575,74 @@ button.mdc-button, .mat-mdc-button, .md-button, .mat-mdc-button:not(:disabled) {
 .user-role.tenant-config-manager{
     color: #8100a1;
     background: #fbdeff  0% 0% no-repeat padding-box;
+}
+
+
+/* ============================================================
+   Admin listing filter bar — pill toolbar
+   Restyles the shared filter-bar structure (.listing-filters
+   wrapper, .filter-button, app-expandable-search-field) to match
+   the redesigned user-facing listings. Global on purpose: the
+   filter components use emulated encapsulation but expose these
+   plain class names in the DOM. Only borders/colours/radius are
+   touched, so the search field's expand/collapse animation
+   (opacity + width) keeps working.
+   ============================================================ */
+.listing-filters {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+
+    .filter-button {
+        height: 40px;
+        min-height: 40px;
+        padding-top: 0;
+        padding-bottom: 0;
+        padding-left: 1rem;
+        padding-right: 1rem;
+        border-radius: 999px;
+        background-color: var(--mat-sys-surface);
+        border: 1px solid var(--mat-sys-outline-variant);
+        font-weight: 500;
+        color: var(--mat-sys-on-surface-variant);
+
+        &:hover {
+            background-color: var(--mat-sys-surface-container-low);
+        }
+
+        mat-icon {
+            color: var(--mat-sys-on-surface-variant);
+        }
+    }
+
+    // Expandable search field rendered as a pill (when expanded)
+    app-expandable-search-field {
+        .mat-mdc-form-field-flex {
+            align-items: center;
+        }
+
+        .mdc-notched-outline__leading {
+            border-radius: 999px 0 0 999px !important;
+            border-color: var(--mat-sys-outline-variant) !important;
+            width: 1rem !important;
+        }
+        .mdc-notched-outline__notch {
+            border-color: var(--mat-sys-outline-variant) !important;
+        }
+        .mdc-notched-outline__trailing {
+            border-radius: 0 999px 999px 0 !important;
+            border-color: var(--mat-sys-outline-variant) !important;
+        }
+
+        &:focus-within {
+            .mdc-notched-outline__leading,
+            .mdc-notched-outline__notch,
+            .mdc-notched-outline__trailing {
+                border-color: var(--mat-sys-primary) !important;
+            }
+        }
+    }
 }
 
 
@@ -595,9 +685,9 @@ button.mdc-button, .mat-mdc-button, .md-button, .mat-mdc-button:not(:disabled) {
 	}
 }
 ////////*////////
-/// 
-/// 
-/// 
+///
+///
+///
 ///
 
 
@@ -666,6 +756,9 @@ button { //remove bootstrap styling !
 
     background-color: var(--mat-sys-background);
 
+    // WCAG 2.4.11 Focus Not Obscured: keep keyboard-focused elements from being
+    // hidden under the fixed navbar when scrolled into view.
+    scroll-padding-top: 5rem;
 }
 
 .padded-container {
@@ -703,13 +796,91 @@ button { //remove bootstrap styling !
     clip: rect(0 0 0 0);
 }
 
+.inline-link-button {
+    padding: 0;
+    color: var(--mat-sys-primary);
+
+    &:hover {
+        opacity: 0.8;
+    }
+}
+
 // bootstrap overrides
 .table-bordered, .table-bordered td, .table-bordered th {
     border: 1px solid hsl(from var(--mat-sys-outline) h s calc(l + 10));
 }
 
-//userway overrides 
+// Wide / transposed tables scroll horizontally instead of being crushed.
+.table-scroll {
+    overflow-x: auto;
+    max-width: 100%;
+}
+.table-scroll table {
+    table-layout: auto !important;
+    width: auto;
+    min-width: 100%;
+}
+.table-scroll th:not(.actions),
+.table-scroll td:not(.actions) {
+    min-width: 8rem;
+    white-space: normal;
+}
+
+//userway overrides
 body .uwy.userway_p1 .userway_buttons_wrapper {
     top: auto !important;
     bottom: 13px !important;
 }
+
+img.circle{
+    border-radius: 50%;
+}
+
+.user-logo{
+    width: 2rem;
+    height: 2rem;
+}
+.template-logo{
+    max-height: 24px;
+}
+
+// Sort dropdown panel — wider than the trigger so option labels are not truncated
+.sort-select-panel.mat-mdc-select-panel {
+    min-width: 180px;
+}
+
+// ---------------------------------------------------------------------------
+// Accessibility: respect user OS preferences (WCAG 2.3.3 Animation from
+// Interactions; supports 2.2.2). Near-instant animations/transitions for users
+// who request reduced motion. Note: Angular @trigger animations driven by the
+// animation player are not fully stopped by CSS — gate those in TS where needed.
+// ---------------------------------------------------------------------------
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+}
+
+// Windows High Contrast / forced-colors: keep the keyboard focus indicator
+// visible using a system color (WCAG 1.4.11 / 2.4.7 robustness).
+@media (forced-colors: active) {
+    :focus-visible {
+        outline: 2px solid CanvasText;
+        outline-offset: 2px;
+    }
+}
+
+// Fix cut-off outline form field label when it's the first element in a dialog (Angular Material bug. See https://github.com/angular/components/issues/26352.)
+mat-dialog-content mat-form-field:first-of-type {
+  margin-top: 4px;
+}
+
+// Plan blueprint editor v2: the versions popover is wider than a default menu panel
+.bp2-versions-menu.mat-mdc-menu-panel { max-width: 420px; overflow-x: hidden; .mat-mdc-menu-content { padding: 0; } }
+// side panel of the v2 description template editor (Editors): full height, flush with the right edge
+.dt2-side-panel .mat-mdc-dialog-surface { border-radius: 0; }

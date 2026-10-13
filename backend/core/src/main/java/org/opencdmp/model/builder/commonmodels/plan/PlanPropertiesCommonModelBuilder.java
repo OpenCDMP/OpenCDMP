@@ -2,6 +2,7 @@ package org.opencdmp.model.builder.commonmodels.plan;
 
 import org.opencdmp.authorization.AuthorizationFlags;
 import org.opencdmp.commonmodels.models.plan.PlanPropertiesModel;
+import org.opencdmp.commons.types.descriptiontemplate.FieldSetEntity;
 import org.opencdmp.commons.types.plan.PlanPropertiesEntity;
 import org.opencdmp.commons.types.planblueprint.DefinitionEntity;
 import org.opencdmp.convention.ConventionService;
@@ -10,16 +11,14 @@ import org.opencdmp.model.builder.commonmodels.CommonModelBuilderItemResponse;
 import gr.cite.tools.data.builder.BuilderFactory;
 import gr.cite.tools.exception.MyApplicationException;
 import gr.cite.tools.logging.LoggerService;
+import org.opencdmp.model.builder.commonmodels.description.PropertyDefinitionFieldSetCommonModelBuilder;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
-import java.util.EnumSet;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 @Component
 @Scope(value = ConfigurableBeanFactory.SCOPE_PROTOTYPE)
@@ -59,7 +58,14 @@ public class PlanPropertiesCommonModelBuilder extends BaseCommonModelBuilder<Pla
         List<CommonModelBuilderItemResponse<PlanPropertiesModel, PlanPropertiesEntity>> models = new ArrayList<>();
         for (PlanPropertiesEntity d : data) {
             PlanPropertiesModel m = new PlanPropertiesModel();
-            if (d.getPlanBlueprintValues() != null) m.setPlanBlueprintValues(this.builderFactory.builder(PlanBlueprintValueCommonModelBuilder.class).useSharedStorage(useSharedStorage).withDefinition(definition).authorize(this.authorize).build(d.getPlanBlueprintValues()));
+
+            m.setFieldSets(new HashMap<>());
+            if (d.getFieldSets() != null) {
+                for (String key : d.getFieldSets().keySet()){
+                    FieldSetEntity fieldSetEntity = definition != null ? definition.getFieldSetById(key).stream().findFirst().orElse(null) : null;
+                    m.getFieldSets().put(key, this.builderFactory.builder(PropertyDefinitionFieldSetCommonModelBuilder.class).useSharedStorage(useSharedStorage).authorize(this.authorize).withFieldSetEntity(fieldSetEntity).build(d.getFieldSets().get(key)));
+                }
+            }
             if (d.getContacts() != null) m.setContacts(this.builderFactory.builder(PlanContactCommonModelBuilder.class).authorize(this.authorize).build(d.getContacts()));
 
             models.add(new CommonModelBuilderItemResponse<>(m, d));

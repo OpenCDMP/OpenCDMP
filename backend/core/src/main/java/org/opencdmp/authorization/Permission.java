@@ -19,11 +19,17 @@ public final class Permission {
 	public static String ManageElastic = "ManageElastic";
 	//Queue Events
 	public static String ManageQueueEvents = "ManageQueueEvents";
+	//Tenant Transfer
+	public static String TransferTenantData = "TransferTenantData";
+	public static String PurgeTenantData = "PurgeTenantData";
 
 
 	//Deposit
 	public static String BrowseDeposit = "BrowseDeposit";
-	public static String EditDeposit = "BrowseDeposit";
+	public static String EditDeposit = "EditDeposit";
+
+	//Statistics
+	public static String QueryStatistics = "QueryStatistics";
 
 
 	//Language
@@ -211,6 +217,18 @@ public final class Permission {
 	public static String EditTenantConfiguration = "EditTenantConfiguration";
 	public static String DeleteTenantConfiguration = "DeleteTenantConfiguration";
 
+	//Report
+	public static String BrowseReport = "BrowseReport";
+	public static String ExportReport = "ExportReport";
+	public static String BrowseInstallationReport = "BrowseInstallationReport";
+	public static String ExportInstallationReport = "ExportInstallationReport";
+
+	//WebhookSubscription
+	public static String BrowseWebhookSubscription = "BrowseWebhookSubscription";
+	public static String EditWebhookSubscription = "EditWebhookSubscription";
+	public static String DeleteWebhookSubscription = "DeleteWebhookSubscription";
+	public static String ViewWebhooksPage = "ViewWebhooksPage";
+
 	//TenantUser
 	public static String BrowseTenantUser = "BrowseTenantUser";
 	public static String EditTenantUser = "EditTenantUser";
@@ -277,7 +295,11 @@ public final class Permission {
 	public static String ViewStatusPage = "ViewStatusPage";
 	public static String ViewPlanStatusPage = "ViewPlanStatusPage";
 	public static String ViewPlanWorkflowPage = "ViewPlanWorkflowPage";
-	public static String ViewDescriptionStatusPage = "ViewPlanStatusPage";
+	public static String ViewDescriptionStatusPage = "ViewDescriptionStatusPage";
 	public static String ViewIndicatorDashboardPage = "ViewIndicatorDashboardPage";
+	public static String ViewPlanBlueprintLibraryPage = "ViewPlanBlueprintLibraryPage";
+	public static String ViewDescriptionTemplateLibraryPage = "ViewDescriptionTemplateLibraryPage";
+	public static String ViewTenantTransferPage = "ViewTenantTransferPage";
+	public static String ViewReportsPage = "ViewReportsPage";
 
 }

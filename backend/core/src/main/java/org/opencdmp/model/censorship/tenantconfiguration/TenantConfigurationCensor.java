@@ -56,6 +56,11 @@ public class TenantConfigurationCensor extends BaseCensor {
 
         FieldSet logoFields = fields.extractPrefixed(this.asIndexerPrefix(TenantConfiguration._logo));
         this.censorFactory.censor(LogoTenantConfigurationCensor.class).censor(logoFields, userId);
+
+        FieldSet termsAndConditionsFields = fields.extractPrefixed(this.asIndexerPrefix(TenantConfiguration._termsAndConditions));
+        this.censorFactory.censor(TermsAndConditionsTenantConfigurationCensor.class).censor(termsAndConditionsFields, userId);
+        FieldSet guidedToursFields = fields.extractPrefixed(this.asIndexerPrefix(TenantConfiguration._guidedTours));
+        this.censorFactory.censor(GuidedToursTenantConfigurationCensor.class).censor(guidedToursFields, userId);
     }
 
 }

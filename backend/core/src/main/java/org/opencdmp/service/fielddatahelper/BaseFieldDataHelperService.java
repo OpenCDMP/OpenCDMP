@@ -2,15 +2,20 @@ package org.opencdmp.service.fielddatahelper;
 
 import gr.cite.tools.fieldset.FieldSet;
 import org.opencdmp.authorization.AuthorizationFlags;
-import org.opencdmp.commonmodels.models.descriptiotemplate.fielddata.BaseFieldDataModel;
+import org.opencdmp.commonmodels.models.planblueprintdescriptiontemplatefields.fielddata.BaseFieldDataModel;
+import org.opencdmp.commonmodels.models.planblueprintdescriptiontemplatefields.fielddata.SemanticValueModel;
 import org.opencdmp.commons.enums.FieldType;
 import org.opencdmp.commons.types.descriptiontemplate.fielddata.BaseFieldDataEntity;
+import org.opencdmp.commons.types.descriptiontemplate.fielddata.SemanticValueEntity;
 import org.opencdmp.commons.types.descriptiontemplate.importexport.fielddata.BaseFieldDataImportExport;
+import org.opencdmp.commons.types.descriptiontemplate.importexport.fielddata.SemanticValueImportExport;
 import org.opencdmp.model.descriptiontemplate.fielddata.BaseFieldData;
 import org.opencdmp.model.persist.descriptiontemplatedefinition.fielddata.BaseFieldDataPersist;
+import org.opencdmp.model.persist.descriptiontemplatedefinition.fielddata.SemanticValuePersist;
 
 import java.util.EnumSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 public abstract class BaseFieldDataHelperService<M extends BaseFieldData, PM extends BaseFieldDataPersist, D extends BaseFieldDataEntity, IE extends BaseFieldDataImportExport, CM extends BaseFieldDataModel> implements FieldDataHelperService {
@@ -123,5 +128,44 @@ public abstract class BaseFieldDataHelperService<M extends BaseFieldData, PM ext
 	@Override
 	public List<BaseFieldData> build(FieldSet fieldSet, List<BaseFieldDataEntity> data, EnumSet<AuthorizationFlags> authorizationFlags) {
 		return this.buildInternal(fieldSet, data.stream().map(x-> (D) x).collect(Collectors.toList()), authorizationFlags).stream().map(x-> (M)x).collect(Collectors.toList());
+	}
+	protected List<SemanticValueEntity> buildSemanticValueEntities(List<SemanticValuePersist> persists) {
+		if (persists == null || persists.isEmpty()) return null;
+		return persists.stream().filter(Objects::nonNull).map(persist -> {
+			SemanticValueEntity data = new SemanticValueEntity();
+			data.setKey(persist.getKey());
+			data.setValue(persist.getValue());
+			return data;
+		}).collect(Collectors.toList());
+	}
+
+	protected List<SemanticValuePersist> importExportSemanticValuesToPersist(List<SemanticValueImportExport> data) {
+		if (data == null || data.isEmpty()) return null;
+		return data.stream().filter(Objects::nonNull).map(xml -> {
+			SemanticValuePersist persist = new SemanticValuePersist();
+			persist.setKey(xml.getKey());
+			persist.setValue(xml.getValue());
+			return persist;
+		}).collect(Collectors.toList());
+	}
+
+	protected List<SemanticValuePersist> commonModelSemanticValuesToPersist(List<SemanticValueModel> data) {
+		if (data == null || data.isEmpty()) return null;
+		return data.stream().filter(Objects::nonNull).map(model -> {
+			SemanticValuePersist persist = new SemanticValuePersist();
+			persist.setKey(model.getKey());
+			persist.setValue(model.getValue());
+			return persist;
+		}).collect(Collectors.toList());
+	}
+
+	protected List<SemanticValueImportExport> semanticValuesToImportExport(List<SemanticValueEntity> data) {
+		if (data == null || data.isEmpty()) return null;
+		return data.stream().filter(Objects::nonNull).map(entity -> {
+			SemanticValueImportExport xml = new SemanticValueImportExport();
+			xml.setKey(entity.getKey());
+			xml.setValue(entity.getValue());
+			return xml;
+		}).collect(Collectors.toList());
 	}
 }

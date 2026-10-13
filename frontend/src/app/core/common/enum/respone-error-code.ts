@@ -81,6 +81,13 @@ export enum ResponseErrorCode {
   planBlueprintTypeImportNotFound = 185,
   planBlueprintTypeImportDraft = 186,
   cannotMergeAccountWithSameEmail = 187,
+  depositCredentialsMissing = 194,
+  depositSignInFailed = 195,
+  internalPlanEntryNotFound = 197,
+  internalDescriptionEntryNotFound = 198,
+  cannotRemoveOwnAdminRole = 199,
+  // 200-208 belong to the notification and annotation services below
+  lastTenantAdmin = 209,
 
   // Notification & Annotation Errors
   InvalidApiKey = 200,
@@ -271,6 +278,10 @@ export class ResponseErrorCodeHelper {
 		return language.instant("GENERAL.BACKEND-ERRORS.PLAN-BLUEPRINT-TYPE-IMPORT-DRAFT");
 	  case ResponseErrorCode.cannotMergeAccountWithSameEmail:
 		return language.instant("GENERAL.BACKEND-ERRORS.CANNOT-MERGE-ACCOUNT-WITH-SAME-EMAIL");
+	  case ResponseErrorCode.cannotRemoveOwnAdminRole:
+		return language.instant("GENERAL.BACKEND-ERRORS.CANNOT-REMOVE-OWN-ADMIN-ROLE");
+	  case ResponseErrorCode.lastTenantAdmin:
+		return language.instant("GENERAL.BACKEND-ERRORS.LAST-TENANT-ADMIN");
   	  default:
   	  	return language.instant("GENERAL.SNACK-BAR.NOT-FOUND");
   	}

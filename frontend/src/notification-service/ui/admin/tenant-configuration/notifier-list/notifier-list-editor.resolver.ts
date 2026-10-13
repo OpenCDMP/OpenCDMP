@@ -4,7 +4,7 @@ import { BaseEditorResolver } from '@common/base/base-editor.resolver';
 import { TenantConfigurationType } from '@notification-service/core/enum/tenant-configuration-type';
 import { NotifierListTenantConfiguration, TenantConfiguration } from '@notification-service/core/model/tenant-configuration';
 import { TenantConfigurationService } from '@notification-service/services/http/tenant-configuration.service';
-import { takeUntil, tap } from 'rxjs/operators';
+import { takeUntil } from 'rxjs/operators';
 import { nameof } from 'ts-simple-nameof';
 
 @Injectable()

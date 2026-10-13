@@ -48,6 +48,7 @@ public class MultiplicityBuilder extends BaseBuilder<Multiplicity, MultiplicityE
             if (fields.hasField(this.asIndexer(Multiplicity._max))) m.setMax(d.getMax());
             if (fields.hasField(this.asIndexer(Multiplicity._placeholder))) m.setPlaceholder(d.getPlaceholder());
             if (fields.hasField(this.asIndexer(Multiplicity._tableView))) m.setTableView(d.getTableView());
+            if (fields.hasField(this.asIndexer(Multiplicity._transposedTableView))) m.setTransposedTableView(d.isTransposedTableView());
             
             models.add(m);
         }

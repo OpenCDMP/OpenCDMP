@@ -1,0 +1,21 @@
+<div class="dt-icon" cdkOverlayOrigin #iconOrigin="cdkOverlayOrigin">
+	<button type="button" class="dt-icon__tile" [class.dt-icon__tile--set]="hasIcon" (click)="open = !open" [disabled]="readOnly" [attr.aria-label]="(hasIcon ? 'PLAN-BLUEPRINT-EDITOR.DETAILS.CHANGE-ICON' : 'PLAN-BLUEPRINT-EDITOR.DETAILS.ADD-ICON') | translate" [attr.aria-expanded]="open" aria-haspopup="dialog">
+		@if (iconForm.get('matIconName')?.value) { <mat-icon>{{iconForm.get('matIconName').value}}</mat-icon> }
+		@else if (iconForm.get('storageFileId')?.value) { <mat-icon>image</mat-icon> }
+		@else { <mat-icon class="dt-icon__empty">add_photo_alternate</mat-icon> }
+	</button>
+	@if (!readOnly) { <button type="button" class="dt-icon__link" (click)="open = !open" tabindex="-1" aria-hidden="true">{{ (hasIcon ? 'PLAN-BLUEPRINT-EDITOR.DETAILS.CHANGE-ICON' : 'PLAN-BLUEPRINT-EDITOR.DETAILS.ADD-ICON') | translate }}</button> }
+</div>
+<ng-template cdkConnectedOverlay [cdkConnectedOverlayOrigin]="iconOrigin" [cdkConnectedOverlayOpen]="open" [cdkConnectedOverlayHasBackdrop]="true" cdkConnectedOverlayBackdropClass="cdk-overlay-transparent-backdrop" [cdkConnectedOverlayPositions]="positions" (backdropClick)="open = false" (overlayKeydown)="onKeydown($event)">
+	<div class="dt-icon-pop" role="dialog" [attr.aria-label]="'PLAN-BLUEPRINT-EDITOR.DETAILS.ICON' | translate">
+		<div class="dt-icon-pop__head">
+			<strong>{{'PLAN-BLUEPRINT-EDITOR.DETAILS.ICON' | translate}}</strong>
+			<span class="bp2-sub">{{'PLAN-BLUEPRINT-EDITOR.DETAILS.ICON-HINT' | translate}}</span>
+		</div>
+		<app-icon-configuration-editor [formGroup]="iconForm"></app-icon-configuration-editor>
+		<div class="dt-icon-pop__actions">
+			@if (hasIcon) { <button mat-button type="button" (click)="remove()">{{'PLAN-BLUEPRINT-EDITOR.DETAILS.REMOVE-ICON' | translate}}</button> }
+			<button mat-flat-button color="primary" type="button" (click)="open = false">{{'PLAN-BLUEPRINT-EDITOR.DETAILS.ICON-DONE' | translate}}</button>
+		</div>
+	</div>
+</ng-template>

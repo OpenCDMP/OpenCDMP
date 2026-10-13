@@ -396,6 +396,8 @@ public class UserServiceImpl implements UserService {
         if (userCredentials.getFirst().getExternalId() == null)
             throw new MyApplicationException(this.errors.getUserProfileInactive().getCode(), this.errors.getUserProfileInactive().getMessage());
 
+        this.checkAdminRoleChanges(data.getId(), model);
+
         if (!model.getHasTenantAdminMode()) this.applyGlobalRoles(data.getId(), model);
         
         this.applyTenantRoles(data.getId(), model);
@@ -415,6 +417,39 @@ public class UserServiceImpl implements UserService {
         return this.builderFactory.builder(UserBuilder.class).authorize(AuthorizationFlags.AllExceptPublic).build(BaseFieldSet.build(fields, User._id), data);
     }
     
+    // Runs before any role changes, since Keycloak is synced along the way and does not roll back.
+    private void checkAdminRoleChanges(UUID userId, UserRolePatchPersist model) throws InvalidApplicationException {
+        String adminRole = this.authorizationConfiguration.getAuthorizationProperties().getAdminRole();
+        String tenantAdminRole = this.authorizationConfiguration.getAuthorizationProperties().getTenantAdminRole();
+        UUID currentUserId = this.userScopeFactory.getInstance().getUserIdSafe();
+        boolean self = userId.equals(currentUserId);
+
+        if (!model.getHasTenantAdminMode()) {
+            boolean holdsAdmin = this.queryFactory.query(UserRoleQuery.class).userIds(userId).tenantIsSet(false).roles(adminRole).count() > 0;
+            boolean keepsAdmin = model.getRoles().contains(adminRole);
+            if (holdsAdmin != keepsAdmin && this.queryFactory.query(UserRoleQuery.class).userIds(currentUserId).tenantIsSet(false).roles(adminRole).count() == 0)
+                throw new MyForbiddenException(this.errors.getForbidden().getCode(), this.errors.getForbidden().getMessage());
+            if (self && holdsAdmin && !keepsAdmin)
+                throw new MyValidationException(this.errors.getCannotRemoveOwnAdminRole().getCode(), this.errors.getCannotRemoveOwnAdminRole().getMessage());
+        }
+
+        List<UserRoleEntity> tenantAdmins = this.tenantRoleQuery().roles(tenantAdminRole).collect();
+        boolean holdsTenantAdmin = tenantAdmins.stream().anyMatch(x -> x.getUserId().equals(userId));
+        if (holdsTenantAdmin && !model.getRoles().contains(tenantAdminRole)) {
+            if (self) throw new MyValidationException(this.errors.getCannotRemoveOwnAdminRole().getCode(), this.errors.getCannotRemoveOwnAdminRole().getMessage());
+            if (tenantAdmins.stream().noneMatch(x -> !x.getUserId().equals(userId)))
+                throw new MyValidationException(this.errors.getLastTenantAdmin().getCode(), this.errors.getLastTenantAdmin().getMessage());
+        }
+    }
+
+    // Roles held in the current tenant, stored without a tenant in the default one.
+    private UserRoleQuery tenantRoleQuery() throws InvalidApplicationException {
+        UserRoleQuery query = this.queryFactory.query(UserRoleQuery.class);
+        if (this.tenantScopeFactory.getInstance().isDefaultTenant()) query.tenantIsSet(false);
+        else query.tenantIsSet(true).tenantIds(this.tenantScopeFactory.getInstance().getTenant());
+        return query;
+    }
+
     private void applyGlobalRoles(UUID userId, UserRolePatchPersist model) throws InvalidApplicationException {
         try {
             this.tenantEntityManagerFactory.getInstance().disableTenantFilters();
@@ -500,7 +535,8 @@ public class UserServiceImpl implements UserService {
         if (this.tenantScopeFactory.getInstance().isDefaultTenant()) return;
 
         TenantUserEntity tenantUser = this.queryFactory.query(TenantUserQuery.class).isActive(IsActive.Active).userIds(userId).tenantIds(this.tenantScopeFactory.getInstance().getTenant()).first();
-        if (tenantUser == null) throw new MyApplicationException("tenant user not found");
+        // Not a member of this tenant (an installation-roles change from the all-organisations view): nothing to remove.
+        if (tenantUser == null) return;
 
         this.deleterFactory.deleter(TenantUserDeleter.class).delete(List.of(tenantUser));
     }

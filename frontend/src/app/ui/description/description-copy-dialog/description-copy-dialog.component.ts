@@ -1,11 +1,11 @@
 
-import { Component, Inject } from "@angular/core";
-import { FormControl, FormGroup, Validators } from "@angular/forms";
-import { MAT_DIALOG_DATA, MatDialogRef } from "@angular/material/dialog";
+import { Component, Inject, OnInit, ChangeDetectionStrategy } from "@angular/core";
+import { FormControl, FormGroup, Validators, FormsModule, ReactiveFormsModule } from "@angular/forms";
+import { MAT_DIALOG_DATA, MatDialogRef, MatDialogTitle, MatDialogContent, MatDialogActions } from "@angular/material/dialog";
 import { IsActive } from '@app/core/common/enum/is-active.enum';
 import { PlanStatusEnum } from '@app/core/common/enum/plan-status';
 import { Description } from "@app/core/model/description/description";
-import { DescriptionTemplatesInSection, PlanBlueprint, PlanBlueprintDefinition, PlanBlueprintDefinitionSection } from '@app/core/model/plan-blueprint/plan-blueprint';
+import { DescriptionTemplatesInSection, PlanBlueprint, PlanBlueprintDefinition, RootSection } from '@app/core/model/plan-blueprint/plan-blueprint';
 import { Plan, PlanDescriptionTemplate } from '@app/core/model/plan/plan';
 import { Tenant } from '@app/core/model/tenant/tenant';
 import { PlanDescriptionTemplateLookup } from '@app/core/query/plan-description-template.lookup';
@@ -18,21 +18,29 @@ import { PlanService } from '@app/core/services/plan/plan.service';
 import { SingleAutoCompleteConfiguration } from '@app/library/auto-complete/single/single-auto-complete-configuration';
 import { FilterService } from '@common/modules/text-filter/filter-service';
 import { Guid } from '@common/types/guid';
-import { TranslateService } from "@ngx-translate/core";
+import { TranslateService, TranslatePipe } from "@ngx-translate/core";
 import { map } from 'rxjs/operators';
 import { nameof } from 'ts-simple-nameof';
 import { DescriptionTemplate } from "@app/core/model/description-template/description-template";
+import { MatIconButton, MatButton } from "@angular/material/button";
+import { MatIcon } from "@angular/material/icon";
+import { CdkScrollable } from "@angular/cdk/scrolling";
+import { MatFormField, MatLabel } from "@angular/material/form-field";
+import { ReactiveAsteriskDirective } from "../../../../common/forms/reactive-asterisk-directive";
+import { SingleAutoCompleteComponent } from "../../../library/auto-complete/single/single-auto-complete.component";
+import { MatSelect, MatOption } from "@angular/material/select";
 
 @Component({
     selector: 'description-copy-dialog-component',
     templateUrl: 'description-copy-dialog.component.html',
     styleUrls: ['./description-copy-dialog.component.scss'],
-    standalone: false
+    changeDetection: ChangeDetectionStrategy.Eager,
+    imports: [MatDialogTitle, MatIconButton, MatIcon, CdkScrollable, MatDialogContent, MatFormField, ReactiveAsteriskDirective, SingleAutoCompleteComponent, FormsModule, ReactiveFormsModule, MatLabel, MatSelect, MatOption, MatDialogActions, MatButton, TranslatePipe]
 })
-export class DescriptionCopyDialogComponent {
+export class DescriptionCopyDialogComponent implements OnInit {
 
-	sections: PlanBlueprintDefinitionSection[] = [];
-	descriptionDescriptionTemplateLabel: String;
+	sections: RootSection[] = [];
+	descriptionDescriptionTemplateLabel: string;
 	planAutoCompleteConfiguration: SingleAutoCompleteConfiguration = {
 		initialItems: (data?: any) => this.planService.query(this.buildPlanLookup(null, null, null, this.planDescriptionTemplateLookup)).pipe(map(x => x.items)),
 		filterFn: (searchQuery: string, data?: any) => this.planService.query(this.buildPlanLookup(searchQuery, null, null, this.planDescriptionTemplateLookup)).pipe(map(x => x.items)),
@@ -61,11 +69,12 @@ export class DescriptionCopyDialogComponent {
 				[nameof<Plan>(x => x.planDescriptionTemplates), nameof<PlanDescriptionTemplate>(x => x.sectionId)].join('.'),
 				[nameof<Plan>(x => x.planDescriptionTemplates), nameof<PlanDescriptionTemplate>(x => x.descriptionTemplateGroupId)].join('.'),
 				[nameof<Plan>(x => x.planDescriptionTemplates), nameof<PlanDescriptionTemplate>(x => x.isActive)].join('.'),
-				[nameof<Plan>(x => x.blueprint), nameof<PlanBlueprint>(x => x.definition), nameof<PlanBlueprintDefinition>(x => x.sections), nameof<PlanBlueprintDefinitionSection>(x => x.id)].join('.'),
-				[nameof<Plan>(x => x.blueprint), nameof<PlanBlueprint>(x => x.definition), nameof<PlanBlueprintDefinition>(x => x.sections), nameof<PlanBlueprintDefinitionSection>(x => x.label)].join('.'),
-				[nameof<Plan>(x => x.blueprint), nameof<PlanBlueprint>(x => x.definition), nameof<PlanBlueprintDefinition>(x => x.sections), nameof<PlanBlueprintDefinitionSection>(x => x.ordinal)].join('.'),
-				[nameof<Plan>(x => x.blueprint), nameof<PlanBlueprint>(x => x.definition), nameof<PlanBlueprintDefinition>(x => x.sections), nameof<PlanBlueprintDefinitionSection>(x => x.hasTemplates)].join('.'),
-				[nameof<Plan>(x => x.blueprint), nameof<PlanBlueprint>(x => x.definition), nameof<PlanBlueprintDefinition>(x => x.sections), nameof<PlanBlueprintDefinitionSection>(x => x.descriptionTemplates), nameof<DescriptionTemplatesInSection>(x => x.descriptionTemplate), nameof<DescriptionTemplate>(x => x.groupId)].join('.'),
+				[nameof<Plan>(x => x.blueprint), nameof<PlanBlueprint>(x => x.definition), nameof<PlanBlueprintDefinition>(x => x.sections), nameof<RootSection>(x => x.id)].join('.'),
+				[nameof<Plan>(x => x.blueprint), nameof<PlanBlueprint>(x => x.definition), nameof<PlanBlueprintDefinition>(x => x.sections), nameof<RootSection>(x => x.title)].join('.'),
+				[nameof<Plan>(x => x.blueprint), nameof<PlanBlueprint>(x => x.definition), nameof<PlanBlueprintDefinition>(x => x.sections), nameof<RootSection>(x => x.sections)].join('.'),
+				[nameof<Plan>(x => x.blueprint), nameof<PlanBlueprint>(x => x.definition), nameof<PlanBlueprintDefinition>(x => x.sections), nameof<RootSection>(x => x.ordinal)].join('.'),
+				[nameof<Plan>(x => x.blueprint), nameof<PlanBlueprint>(x => x.definition), nameof<PlanBlueprintDefinition>(x => x.sections), nameof<RootSection>(x => x.hasTemplates)].join('.'),
+				[nameof<Plan>(x => x.blueprint), nameof<PlanBlueprint>(x => x.definition), nameof<PlanBlueprintDefinition>(x => x.sections), nameof<RootSection>(x => x.descriptionTemplates), nameof<DescriptionTemplatesInSection>(x => x.descriptionTemplate), nameof<DescriptionTemplate>(x => x.groupId)].join('.'),
 
 			]
 		};
@@ -90,7 +99,7 @@ export class DescriptionCopyDialogComponent {
 
     formGroup = new FormGroup({
         planId: new FormControl<Guid>(null, Validators.required),
-        sectionId: new FormControl<Guid>(null, Validators.required),
+        sectionId: new FormControl<string>(null, Validators.required),
     })
     description: Description;
     planDescriptionTemplates: PlanDescriptionTemplate[] = null;

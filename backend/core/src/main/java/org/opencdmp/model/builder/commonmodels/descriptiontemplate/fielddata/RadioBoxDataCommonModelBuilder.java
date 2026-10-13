@@ -1,7 +1,8 @@
 package org.opencdmp.model.builder.commonmodels.descriptiontemplate.fielddata;
 
 import org.opencdmp.authorization.AuthorizationFlags;
-import org.opencdmp.commonmodels.models.descriptiotemplate.fielddata.RadioBoxDataModel;
+import org.opencdmp.commonmodels.models.planblueprintdescriptiontemplatefields.fielddata.RadioBoxDataModel;
+import org.opencdmp.commonmodels.models.planblueprintdescriptiontemplatefields.fielddata.SemanticValueModel;
 import org.opencdmp.commons.types.descriptiontemplate.fielddata.RadioBoxDataEntity;
 import org.opencdmp.convention.ConventionService;
 import org.opencdmp.model.builder.commonmodels.BaseCommonModelBuilder;
@@ -19,6 +20,7 @@ import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Component
 @Scope(value = ConfigurableBeanFactory.SCOPE_PROTOTYPE)
@@ -68,6 +70,8 @@ public class RadioBoxDataCommonModelBuilder extends BaseFieldDataCommonModelBuil
                 RadioBoxDataModel.RadioBoxOptionModel m = new RadioBoxDataModel.RadioBoxOptionModel();
                 m.setLabel(d.getLabel());
                 m.setValue(d.getValue());
+                if (d.getSemantics() != null) m.setSemantics(d.getSemantics().stream().map(x -> new SemanticValueModel(x.getKey(), x.getValue())).collect(Collectors.toList()));
+                m.setExportsNothing(d.getExportsNothing());
                 models.add(new CommonModelBuilderItemResponse<>(m, d));
             }
 

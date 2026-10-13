@@ -2,9 +2,9 @@ package org.opencdmp.commons.types.planstatus;
 
 import jakarta.xml.bind.annotation.*;
 import org.opencdmp.commons.enums.PlanStatusAvailableActionType;
+import org.opencdmp.commons.types.iconconfiguration.IconConfigurationEntity;
 
 import java.util.List;
-import java.util.UUID;
 
 @XmlRootElement(name = "definition")
 @XmlAccessorType(XmlAccessType.FIELD)
@@ -17,11 +17,8 @@ public class PlanStatusDefinitionEntity {
     @XmlElement(name = "action")
     private List<PlanStatusAvailableActionType> availableActions;
 
-    @XmlElement(name = "matIconName")
-    private String matIconName;
-
-    @XmlElement(name = "storageFileId")
-    private UUID storageFileId;
+    @XmlElement(name = "iconconfiguration")
+    private IconConfigurationEntity iconConfiguration;
 
     @XmlElement(name = "statusColor")
     private String statusColor;
@@ -40,20 +37,12 @@ public class PlanStatusDefinitionEntity {
         this.availableActions = availableActions;
     }
 
-    public String getMatIconName() {
-        return matIconName;
+    public IconConfigurationEntity getIconConfiguration() {
+        return iconConfiguration;
     }
 
-    public void setMatIconName(String matIconName) {
-        this.matIconName = matIconName;
-    }
-
-    public UUID getStorageFileId() {
-        return storageFileId;
-    }
-
-    public void setStorageFileId(UUID storageFileId) {
-        this.storageFileId = storageFileId;
+    public void setIconConfiguration(IconConfigurationEntity iconConfiguration) {
+        this.iconConfiguration = iconConfiguration;
     }
 
     public String getStatusColor() {

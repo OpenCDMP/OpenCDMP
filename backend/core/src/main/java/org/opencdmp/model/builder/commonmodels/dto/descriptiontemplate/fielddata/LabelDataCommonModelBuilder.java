@@ -1,7 +1,7 @@
 package org.opencdmp.model.builder.commonmodels.dto.descriptiontemplate.fielddata;
 
 import gr.cite.tools.logging.LoggerService;
-import org.opencdmp.commonmodels.models.descriptiotemplate.fielddata.LabelDataModel;
+import org.opencdmp.commonmodels.models.planblueprintdescriptiontemplatefields.fielddata.LabelDataModel;
 import org.opencdmp.convention.ConventionService;
 import org.opencdmp.model.descriptiontemplate.fielddata.LabelData;
 import org.slf4j.LoggerFactory;

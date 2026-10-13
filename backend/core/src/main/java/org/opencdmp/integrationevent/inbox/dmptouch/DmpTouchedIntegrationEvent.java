@@ -17,6 +17,10 @@ public class DmpTouchedIntegrationEvent extends TrackedEvent {
 
     private String sourceCode;
 
+    private String externalId;
+
+    private String externalIdType;
+
     public UUID getDmpId() {
         return dmpId;
     }
@@ -55,5 +59,21 @@ public class DmpTouchedIntegrationEvent extends TrackedEvent {
 
     public void setSourceCode(String sourceCode) {
         this.sourceCode = sourceCode;
+    }
+
+    public String getExternalId() {
+        return externalId;
+    }
+
+    public void setExternalId(String externalId) {
+        this.externalId = externalId;
+    }
+
+    public String getExternalIdType() {
+        return externalIdType;
+    }
+
+    public void setExternalIdType(String externalIdType) {
+        this.externalIdType = externalIdType;
     }
 }

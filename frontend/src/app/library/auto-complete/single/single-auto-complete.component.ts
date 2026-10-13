@@ -1,15 +1,23 @@
 import { FocusMonitor } from '@angular/cdk/a11y';
 import { ENTER } from '@angular/cdk/keycodes';
-import { ChangeDetectorRef, Component, DoCheck, ElementRef, EventEmitter, Input, OnChanges, OnDestroy, OnInit, Optional, Output, Self, SimpleChanges, TemplateRef, ViewChild } from '@angular/core';
-import { ControlValueAccessor, FormGroupDirective, NgControl, NgForm } from '@angular/forms';
+import { ChangeDetectorRef, Component, DoCheck, ElementRef, EventEmitter, Input, OnChanges, OnDestroy, OnInit, Optional, Output, Self, SimpleChanges, TemplateRef, ViewChild, ChangeDetectionStrategy } from '@angular/core';
+import { ControlValueAccessor, FormGroupDirective, NgControl, NgForm, FormsModule } from '@angular/forms';
 import { MatAutocomplete, MatAutocompleteSelectedEvent, MatAutocompleteTrigger } from '@angular/material/autocomplete';
 import { ErrorStateMatcher, _ErrorStateTracker } from '@angular/material/core';
-import { MatFormFieldControl } from '@angular/material/form-field';
+import { MatFormFieldControl, MatSuffix } from '@angular/material/form-field';
 import { AutoCompleteGroup } from '@app/library/auto-complete/auto-complete-group';
 import { SingleAutoCompleteConfiguration } from '@app/library/auto-complete/single/single-auto-complete-configuration';
 import { BaseComponent } from '@common/base/base.component';
 import { Observable, Subject, Subscription, of as observableOf, of } from 'rxjs';
-import { catchError, debounceTime, distinctUntilChanged, map, mergeMap, startWith, switchMap, takeUntil, tap } from 'rxjs/operators';
+import { catchError, debounceTime, distinctUntilChanged, map, mergeMap, startWith, takeUntil } from 'rxjs/operators';
+import { MatChipGrid, MatChipRow, MatChipRemove } from '@angular/material/chips';
+import { NgTemplateOutlet, AsyncPipe } from '@angular/common';
+import { MatIconButton } from '@angular/material/button';
+import { MatIcon } from '@angular/material/icon';
+import { MatInput } from '@angular/material/input';
+import { MatOptgroup, MatOption } from '@angular/material/select';
+import { TranslatePipe } from '@ngx-translate/core';
+import { RemoveHtmlTagsPipe } from '../../../core/pipes/remove-html-tags.pipe';
 
 
 export class CustomComponentBase extends BaseComponent {
@@ -48,12 +56,15 @@ export class CustomComponentBase extends BaseComponent {
     templateUrl: './single-auto-complete.component.html',
     styleUrls: ['./single-auto-complete.component.scss'],
     providers: [{ provide: MatFormFieldControl, useExisting: SingleAutoCompleteComponent }],
-    standalone: false
+    changeDetection: ChangeDetectionStrategy.Eager,
+    imports: [MatChipGrid, FormsModule, MatChipRow, NgTemplateOutlet, MatIconButton, MatIcon, MatChipRemove, MatInput, MatAutocompleteTrigger, MatSuffix, MatAutocomplete, MatOptgroup, MatOption, AsyncPipe, TranslatePipe, RemoveHtmlTagsPipe]
 })
 export class SingleAutoCompleteComponent extends CustomComponentBase implements OnInit, MatFormFieldControl<string>, ControlValueAccessor, OnDestroy, DoCheck, OnChanges {
 
 	isMouseOverPanel: boolean = false;
 	panelClosedSubscription: Subscription;
+	private _panelMousedownListener: (() => void) | null = null;
+	private _panelMouseupListener: (() => void) | null = null;
 
 	static nextId = 0;
 	@ViewChild('autocomplete', { static: true }) autocomplete: MatAutocomplete;
@@ -62,6 +73,9 @@ export class SingleAutoCompleteComponent extends CustomComponentBase implements 
 
 	@Input() initialSelectedData: any;
     @Input({required: false}) id: string = `single-autocomplete-${SingleAutoCompleteComponent.nextId++}`;
+
+	@Input()
+	separatorKeysCodes: number[] = [];
 
 	@Input()
 	get configuration(): SingleAutoCompleteConfiguration { return this._configuration; }
@@ -156,9 +170,40 @@ export class SingleAutoCompleteComponent extends CustomComponentBase implements 
 	}
 
 	ngOnInit() {
-		this.panelClosedSubscription = this.autocomplete.closed.subscribe((next) => {
+		this.panelClosedSubscription = this.autocomplete.closed.subscribe(() => {
 			this.isMouseOverPanel = false;
+			this._removePanelListeners();
 		});
+
+		this.autocomplete.opened.subscribe(() => {
+			// Use setTimeout to let the panel element render before attaching listeners
+			setTimeout(() => this._attachPanelListeners());
+		});
+	}
+
+	private _attachPanelListeners() {
+		const panel = this.autocomplete.panel?.nativeElement as HTMLElement;
+		if (!panel) { return; }
+
+		// mousedown fires before blur — set flag so focus loss doesn't close the panel
+		this._panelMousedownListener = () => { this.isMouseOverPanel = true; };
+		// mouseup on document resets the flag after scrollbar drag ends
+		this._panelMouseupListener = () => { this.isMouseOverPanel = false; };
+
+		panel.addEventListener('mousedown', this._panelMousedownListener);
+		document.addEventListener('mouseup', this._panelMouseupListener);
+	}
+
+	private _removePanelListeners() {
+		const panel = this.autocomplete.panel?.nativeElement as HTMLElement;
+		if (panel && this._panelMousedownListener) {
+			panel.removeEventListener('mousedown', this._panelMousedownListener);
+		}
+		if (this._panelMouseupListener) {
+			document.removeEventListener('mouseup', this._panelMouseupListener);
+		}
+		this._panelMousedownListener = null;
+		this._panelMouseupListener = null;
 	}
 
 	ngDoCheck(): void {
@@ -283,14 +328,18 @@ export class SingleAutoCompleteComponent extends CustomComponentBase implements 
 	public onKeyUp(event) {
 		this.inputValue = event.target.value;
 		// prevent filtering results if arrow were pressed
-		if (event.keyCode !== ENTER && (event.keyCode < 37 || event.keyCode > 40)) {
+		if (event.keyCode !== ENTER && (event.keyCode < 37 || event.keyCode > 40) && !this.separatorKeysCodes?.includes(event.keyCode)) {
 			if (this.inputValue.length === 0 && this.value != null) {
 				this.clearValue();
 				this._onInputFocus();
 				return;
 			}
 			this._inputSubject.next(this.inputValue);
-		} else if(this.popupSelectedItemActionIcon){
+		} else if(this.separatorKeysCodes?.includes(event.keyCode) && this.inputValue){
+			this.optionSelectedInternal(this.inputValue);
+			//to prevent onContainerClick from re-opening menu
+			setTimeout(() => this.autocompleteTrigger?.closePanel())
+		} else if(event.keyCode !== ENTER && this.popupSelectedItemActionIcon){
 			// use chip functions when popupSelectedItemActionIcon is enabled
             this._addItem(this.inputValue);
         }
@@ -366,6 +415,7 @@ export class SingleAutoCompleteComponent extends CustomComponentBase implements 
 	}
 
 	ngOnDestroy() {
+		this._removePanelListeners();
 		this.panelClosedSubscription?.unsubscribe();
 		this.stateChanges?.complete();
 		this.fm?.stopMonitoring(this.elRef?.nativeElement);

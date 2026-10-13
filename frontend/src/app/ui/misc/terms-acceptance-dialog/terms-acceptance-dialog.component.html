@@ -1,0 +1,14 @@
+<h2 mat-dialog-title class="terms-title">{{'TERMS-ACCEPTANCE-DIALOG.TITLE' | translate}}</h2>
+<mat-dialog-content class="terms-dialog-content">
+  <div class="terms-body" [innerHTML]="safeContent"></div>
+</mat-dialog-content>
+<mat-dialog-actions class="terms-footer">
+  <div class="terms-checkbox">
+    <mat-checkbox [(ngModel)]="accepted">
+      {{'TERMS-ACCEPTANCE-DIALOG.ACCEPT-LABEL' | translate}}
+    </mat-checkbox>
+  </div>
+  <button mat-flat-button color="primary" [disabled]="!accepted" (click)="confirm()">
+    {{'TERMS-ACCEPTANCE-DIALOG.PROCEED' | translate}}
+  </button>
+</mat-dialog-actions>

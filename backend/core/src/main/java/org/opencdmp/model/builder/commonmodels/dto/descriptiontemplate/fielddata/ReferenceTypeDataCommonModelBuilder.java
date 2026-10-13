@@ -3,7 +3,7 @@ package org.opencdmp.model.builder.commonmodels.dto.descriptiontemplate.fielddat
 import gr.cite.tools.data.builder.BuilderFactory;
 import gr.cite.tools.data.query.QueryFactory;
 import gr.cite.tools.logging.LoggerService;
-import org.opencdmp.commonmodels.models.descriptiotemplate.fielddata.ReferenceTypeDataModel;
+import org.opencdmp.commonmodels.models.planblueprintdescriptiontemplatefields.fielddata.ReferenceTypeDataModel;
 import org.opencdmp.convention.ConventionService;
 import org.opencdmp.model.builder.commonmodels.dto.referencetype.ReferenceTypeCommonModelBuilder;
 import org.opencdmp.model.descriptiontemplate.fielddata.ReferenceTypeData;

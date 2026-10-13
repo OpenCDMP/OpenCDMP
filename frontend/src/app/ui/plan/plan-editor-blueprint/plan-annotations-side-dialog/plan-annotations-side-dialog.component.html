@@ -1,0 +1,78 @@
+<div class="d-flex flex-column h-100">
+    <div class="filters-title">
+        <div class="d-flex align-items-center gap-half-rem mb-2">
+            <mat-icon class="material-symbols-outlined"  color="primary" aria-hidden="true">chat_bubble</mat-icon>
+            <h2 class="criteria-title">{{'ANNOTATION-DIALOG.TITLE' | translate}}</h2>
+            @if(annotationCount()){
+                <div class="annotation-count-chip">{{annotationCount()}}</div>
+            }
+            <button mat-icon-button class="ml-auto" (click)="onEditorClose.emit({})"  [attr.aria-label]="'ALT-TEXT.CLOSE-DIALOG'  | translate"><mat-icon aria-hidden="true">close</mat-icon></button>
+        </div>
+        <mat-button-toggle-group class="annotations-button-toggle w-100" hideSingleSelectionIndicator [(ngModel)]="selectedArea">
+            <mat-button-toggle [value]="null" >
+                <mat-icon aria-hidden="true">list</mat-icon>
+                <span class="mat-button-toggle--content">{{'ANNOTATION-DIALOG.ALL-COMMENTS' | translate}}</span>
+            </mat-button-toggle>
+            @if(context()){
+                <mat-button-toggle [value]="context().anchor" class="mat-button-toggle--context">
+                <mat-icon class="material-symbols-outlined" aria-hidden="true">filter_alt</mat-icon>
+                    <span class="mat-button-toggle--content">{{context().label ?? context().anchor}}</span>
+                </mat-button-toggle>
+            }
+        </mat-button-toggle-group>
+    </div>
+    <div class="content flex-1 overflow-auto">
+        <div [class.d-none]="selectedArea" class="pb-3">
+            @for(item of annotationsByAnchor(); track item.anchor; let index = $index){
+                <div class="anchor-header d-flex">
+                    <div class="anchor-name" role="button" (click)="navigateToItem(item)">{{item.label || ('ANNOTATION-DIALOG.GENERAL-COMMENTS' | translate)}}</div>
+                    <div class="anchor-comments">{{item.annotations.length}} {{'ANNOTATION-DIALOG.TITLE' | translate | lowercase}}</div>
+                </div>
+                @let canAnnotateArea = canAnnotate | invokeMemoized :item.anchor :item.entityId :item.entityType;
+                <app-annotation-dialog
+                    [annotations]="item.annotations"
+                    [planUserMap]="planGroupedUsers()"
+                    [canAnnotate]="canAnnotateArea"
+                    [entityId]="item.entityId"
+                    [entityType]="item.entityType"
+                    [anchor]="item.anchor"
+                    (onChanges)="refreshAnnotations()"
+                ></app-annotation-dialog>
+            }
+            @if(!annotationsByAnchor()?.length){
+                <ng-container *ngTemplateOutlet="noCommentsTemplate"></ng-container>
+            }
+        </div>
+        @if(context()){
+            <div [class.d-none]="!selectedArea" class="h-100 pt-3 pb-3">
+                @let canAnnotateArea = canAnnotate | invokeMemoized :context().anchor :context().entityId :context().entityType;
+                <app-annotation-dialog
+                    [annotations]="contextAnnotations()"
+                    [planUserMap]="planGroupedUsers()"
+                    [canAnnotate]="canAnnotateArea"
+                    [entityId]="context().entityId"
+                    [entityType]="context().entityType"
+                    [anchor]="context().anchor"
+                    (onChanges)="refreshAnnotations()"
+                    [canCreateComment]="true"
+                ></app-annotation-dialog>
+            </div>
+        }
+    </div>
+    <!-- @if(selectedArea ){
+        <div class="comment-area">
+            <text-area-with-mentions
+                [form]="threadFormGroup.get('text')"
+                [planUsers]="planUsers"
+                [clearCommentObservable]="clearCommentSubject.asObservable()"
+                [threadId]="ROOT_COMMENT"
+            ></text-area-with-mentions>
+        </div>
+    } -->
+</div>
+<ng-template #noCommentsTemplate>
+    <div class="w-100 d-flex flex-column justify-content-center align-items-center gap-1-rem" style="padding-top: 4rem">
+        <mat-icon class="big-bg-icon material-symbols-outlined" aria-hidden="true">chat_bubble</mat-icon>
+        <div>{{'ANNOTATION-DIALOG.NO-COMMENTS' | translate}}</div>
+    </div>
+</ng-template>

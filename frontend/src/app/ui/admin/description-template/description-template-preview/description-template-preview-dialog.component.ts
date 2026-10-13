@@ -1,6 +1,6 @@
-import {Component, computed, HostBinding, Inject, Input, OnInit} from '@angular/core';
-import { UntypedFormGroup } from '@angular/forms';
-import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
+import {Component, Inject, OnInit, ChangeDetectionStrategy} from '@angular/core';
+import { UntypedFormGroup, FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { MAT_DIALOG_DATA, MatDialogRef, MatDialogTitle, MatDialogContent, MatDialogActions } from '@angular/material/dialog';
 import { DescriptionTemplate } from '@app/core/model/description-template/description-template';
 import { Description } from '@app/core/model/description/description';
 import { DescriptionTemplateService } from '@app/core/services/description-template/description-template.service';
@@ -8,20 +8,27 @@ import { LoggingService } from '@app/core/services/logging/logging-service';
 import { SnackBarNotificationLevel, UiNotificationService } from '@app/core/services/notification/ui-notification-service';
 import { ProgressIndicationService } from '@app/core/services/progress-indication/progress-indication-service';
 import { DescriptionEditorModel } from '@app/ui/description/editor/description-editor.model';
-import { DescriptionFormService } from '@app/ui/description/editor/description-form/components/services/description-form.service';
+import { FormScrollService } from '@app/ui/description/editor/description-form/components/services/form-scroll.service';
 import { VisibilityRulesService } from '@app/ui/description/editor/description-form/visibility-rules/visibility-rules.service';
 import { BaseComponent } from '@common/base/base.component';
 import { HttpErrorHandlingService } from '@common/modules/errors/error-handling/http-error-handling.service';
-import { TranslateService } from '@ngx-translate/core';
+import { TranslateService, TranslatePipe } from '@ngx-translate/core';
 import { takeUntil } from 'rxjs/operators';
 import { DescriptionEditorHelper } from '@app/ui/plan/plan-editor-blueprint/plan-description-editor/plan-description-editor-helper';
+import { MatTooltip } from '@angular/material/tooltip';
+import { MatIconButton, MatButton } from '@angular/material/button';
+import { MatIcon } from '@angular/material/icon';
+import { CdkScrollable } from '@angular/cdk/scrolling';
+import { MatProgressBar } from '@angular/material/progress-bar';
+import { DescriptionFormComponent } from '../../../description/editor/description-form/description-form.component';
 
 @Component({
     selector: 'app-description-template-preview-dialog-component',
     templateUrl: 'description-template-preview-dialog.component.html',
     styleUrls: ['./description-template-preview-dialog.component.scss'],
-    providers: [DescriptionFormService],
-    standalone: false
+    providers: [FormScrollService],
+    changeDetection: ChangeDetectionStrategy.Eager,
+    imports: [MatDialogTitle, MatTooltip, MatIconButton, MatIcon, CdkScrollable, MatDialogContent, MatProgressBar, DescriptionFormComponent, FormsModule, ReactiveFormsModule, MatDialogActions, MatButton, TranslatePipe]
 })
 export class DescriptionTemplatePreviewDialogComponent extends BaseComponent implements OnInit {
    	showSelect: boolean = true;
@@ -82,7 +89,7 @@ export class DescriptionTemplatePreviewDialogComponent extends BaseComponent imp
 	}
 
 	buildForm() {
-		this.formGroup = this.editorModel.buildForm(null, true, this.visibilityRulesService);
+		this.formGroup = this.editorModel.buildForm(null, false, this.visibilityRulesService);
 		this.previewPropertiesFormGroup = this.editorModel.properties.buildForm({visibilityRulesService: this.visibilityRulesService}) as UntypedFormGroup;
 		this.visibilityRulesService.setContext(this.descriptionTemplate.definition, this.previewPropertiesFormGroup);
 	}

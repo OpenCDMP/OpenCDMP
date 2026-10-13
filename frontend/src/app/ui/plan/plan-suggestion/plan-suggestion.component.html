@@ -60,7 +60,7 @@
                       required="true">
                       @for (section of selectedBlueprintSections; track section) {
                         <mat-option [value]="section.id">
-                          <span class="section-option-label">{{ section.label }}</span>
+                          <span class="section-option-label">{{ section.title }}</span>
                         </mat-option>
                       }
                     </mat-select>

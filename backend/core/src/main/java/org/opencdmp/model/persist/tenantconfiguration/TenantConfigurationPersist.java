@@ -66,6 +66,14 @@ public class TenantConfigurationPersist {
 
     public static final String _viewPreferences = "viewPreferences";
 
+    private TermsAndConditionsTenantConfigurationPersist termsAndConditions;
+
+    public static final String _termsAndConditions = "termsAndConditions";
+
+    private GuidedToursTenantConfigurationPersist guidedTours;
+
+    public static final String _guidedTours = "guidedTours";
+
     private String hash;
 
     public static final String _hash = "hash";
@@ -156,6 +164,22 @@ public class TenantConfigurationPersist {
 
     public void setViewPreferences(ViewPreferencesConfigurationPersist viewPreferences) {
         this.viewPreferences = viewPreferences;
+    }
+
+    public TermsAndConditionsTenantConfigurationPersist getTermsAndConditions() {
+        return termsAndConditions;
+    }
+
+    public void setTermsAndConditions(TermsAndConditionsTenantConfigurationPersist termsAndConditions) {
+        this.termsAndConditions = termsAndConditions;
+    }
+
+    public GuidedToursTenantConfigurationPersist getGuidedTours() {
+        return guidedTours;
+    }
+
+    public void setGuidedTours(GuidedToursTenantConfigurationPersist guidedTours) {
+        this.guidedTours = guidedTours;
     }
 
     public String getHash() {
@@ -290,7 +314,29 @@ public class TenantConfigurationPersist {
                             .iff(() -> !this.isNull(item.getViewPreferences()) && TenantConfigurationType.ViewPreferences.equals(item.getType()))
                             .on(TenantConfigurationPersist._viewPreferences)
                             .over(item.getViewPreferences())
-                            .using(() -> this.validatorFactory.validator(ViewPreferencesConfigurationPersist.ViewPreferencesConfigurationPersistValidator.class))
+                            .using(() -> this.validatorFactory.validator(ViewPreferencesConfigurationPersist.ViewPreferencesConfigurationPersistValidator.class)),
+
+                    this.spec()
+                            .iff(() -> !this.isNull(item.getType()) && TenantConfigurationType.TermsAndConditions.equals(item.getType()))
+                            .must(() -> !this.isNull(item.getTermsAndConditions()))
+                            .failOn(TenantConfigurationPersist._termsAndConditions).failWith(messageSource.getMessage("Validation_Required", new Object[]{TenantConfigurationPersist._termsAndConditions}, LocaleContextHolder.getLocale())),
+
+                    this.refSpec()
+                            .iff(() -> !this.isNull(item.getTermsAndConditions()) && TenantConfigurationType.TermsAndConditions.equals(item.getType()))
+                            .on(TenantConfigurationPersist._termsAndConditions)
+                            .over(item.getTermsAndConditions())
+                            .using(() -> this.validatorFactory.validator(TermsAndConditionsTenantConfigurationPersist.TermsAndConditionsTenantConfigurationPersistValidator.class)),
+
+                    this.spec()
+                            .iff(() -> !this.isNull(item.getType()) && TenantConfigurationType.GuidedTours.equals(item.getType()))
+                            .must(() -> !this.isNull(item.getGuidedTours()))
+                            .failOn(TenantConfigurationPersist._guidedTours).failWith(messageSource.getMessage("Validation_Required", new Object[]{TenantConfigurationPersist._guidedTours}, LocaleContextHolder.getLocale())),
+
+                    this.refSpec()
+                            .iff(() -> !this.isNull(item.getGuidedTours()) && TenantConfigurationType.GuidedTours.equals(item.getType()))
+                            .on(TenantConfigurationPersist._guidedTours)
+                            .over(item.getGuidedTours())
+                            .using(() -> this.validatorFactory.validator(GuidedToursTenantConfigurationPersist.GuidedToursTenantConfigurationPersistValidator.class))
             );
         }
     }

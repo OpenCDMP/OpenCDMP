@@ -5,10 +5,7 @@ import { BasePipe } from '@common/base/base.pipe';
 import { Observable } from 'rxjs';
 import { map, takeUntil } from 'rxjs/operators';
 
-@Pipe({
-    name: 'secureImage',
-    standalone: false
-})
+@Pipe({ name: 'secureImage' })
 export class SecureImagePipe extends BasePipe implements PipeTransform {
 
 	constructor(private http: HttpClient, private sanitizer: DomSanitizer) { super(); }

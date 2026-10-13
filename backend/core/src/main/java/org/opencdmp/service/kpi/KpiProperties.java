@@ -9,6 +9,7 @@ public class KpiProperties {
 	private int maxIndicatorPointsPerRequest;
 	private KpiTaskProperties task;
 	private IndicatorProperties indicator;
+	private DashboardDefaultsProperties dashboardDefaults;
 
 	public void setMaxIndicatorPointsPerRequest(int maxIndicatorPointsPerRequest) {
 		this.maxIndicatorPointsPerRequest = maxIndicatorPointsPerRequest;
@@ -36,5 +37,13 @@ public class KpiProperties {
 
 	public void setIndicator(IndicatorProperties indicator) {
 		this.indicator = indicator;
+	}
+
+	public DashboardDefaultsProperties getDashboardDefaults() {
+		return dashboardDefaults;
+	}
+
+	public void setDashboardDefaults(DashboardDefaultsProperties dashboardDefaults) {
+		this.dashboardDefaults = dashboardDefaults;
 	}
 }

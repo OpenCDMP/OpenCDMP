@@ -26,6 +26,7 @@ public class RankResultModelBuilder extends BaseBuilder<RankResultModel, RankRes
         public static final String _rank = "rank";
         public static final String _results = "results";
         public static final String _details = "details";
+        public static final String _target = "target";
     }
 
     private final BuilderFactory builderFactory;
@@ -51,6 +52,7 @@ public class RankResultModelBuilder extends BaseBuilder<RankResultModel, RankRes
             return new ArrayList<>();
 
         FieldSet evaluationResultFields = fields.extractPrefixed(this.asPrefix(RankModelKnownFields._results));
+        FieldSet targetFields = fields.extractPrefixed(this.asPrefix(RankModelKnownFields._target));
 
         List<RankResultModel> models = new ArrayList<>();
         for (RankResultEntity d : data) {
@@ -58,6 +60,7 @@ public class RankResultModelBuilder extends BaseBuilder<RankResultModel, RankRes
             if (fields.hasField(this.asIndexer(RankModelKnownFields._rank))) m.setRank(d.getRank());
             if (fields.hasField(this.asIndexer(RankModelKnownFields._details))) m.setDetails(d.getDetails());
             if (!evaluationResultFields.isEmpty() && d.getResults() != null) m.setResults(this.builderFactory.builder(EvaluationResultBuilder.class).authorize(this.authorize).build(evaluationResultFields, d.getResults()));
+            if (!targetFields.isEmpty() && d.getTarget() != null) m.setTarget(this.builderFactory.builder(EvaluationTargetBuilder.class).authorize(this.authorize).build(targetFields, d.getTarget()));
 
             models.add(m);
         }

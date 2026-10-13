@@ -1,6 +1,6 @@
 
 
-import { Component, Input } from '@angular/core';
+import { Component, Input, ChangeDetectionStrategy } from '@angular/core';
 import { UntypedFormGroup } from '@angular/forms';
 import { MatDialog } from "@angular/material/dialog";
 import { FieldInSection, UploadFieldInSection } from '@app/core/model/plan-blueprint/plan-blueprint';
@@ -15,6 +15,7 @@ import { Observable } from 'rxjs';
 	selector: 'app-plan-upload-field',
 	templateUrl: './plan-upload-field.component.html',
 	styleUrls: ['./plan-upload-field.component.scss'],
+    changeDetection: ChangeDetectionStrategy.Eager,
     imports: [FileUploadComponent]
 })
 export class PlanUploadFieldComponent extends BaseComponent {
@@ -35,12 +36,12 @@ export class PlanUploadFieldComponent extends BaseComponent {
 		super();
 	}
 
-    get maxFileSize(): number { 
+    get maxFileSize(): number {
         const data = this.field as UploadFieldInSection;
         return data.maxFileSizeInMB ? data.maxFileSizeInMB * 1048576 : null; //from MB to bytes
     }
 
     typesToString() {
-		return (this.field as UploadFieldInSection)?.types?.map(type => type.value)?.toString();
+		return (this.field as UploadFieldInSection)?.types?.map(type => type.value)?.join(', ');
 	}
 }

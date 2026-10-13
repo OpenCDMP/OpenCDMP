@@ -1,0 +1,193 @@
+<header class="tc-head">
+	<h1>{{ 'TENANT-CONFIGURATION.CONTENT-DEFAULTS.TITLE' | translate }}</h1>
+	<p>{{ 'TENANT-CONFIGURATION.CONTENT-DEFAULTS.HINT' | translate }}</p>
+</header>
+
+<span class="tc-cd__sr-only" aria-live="polite">{{ announcement() }}</span>
+<span id="tc-cd-chip-hint" class="tc-cd__sr-only">{{ 'TENANT-CONFIGURATION.CONTENT-DEFAULTS.CHIP-KEYBOARD-HINT' | translate }}</span>
+
+@if (!ready()) {
+	<div class="tc-loading"><mat-spinner diameter="32" /></div>
+} @else {
+	<!-- Blueprint for new plans -->
+	<section class="tc-card" aria-labelledby="tc-cd-blueprint-h">
+		<div class="tc-card__head">
+			<div>
+				<h2 id="tc-cd-blueprint-h">{{ 'TENANT-CONFIGURATION.CONTENT-DEFAULTS.BLUEPRINT-TITLE' | translate }}</h2>
+				<p>{{ 'TENANT-CONFIGURATION.CONTENT-DEFAULTS.BLUEPRINT-HINT' | translate }}</p>
+			</div>
+			<app-tc-state-tag [changed]="blueprint.changed()" [inherited]="blueprint.inherited()" [canCustomise]="section.canEdit" (customiseRequested)="blueprint.customise()" [canReset]="section.canReset" (resetRequested)="section.confirmReset(blueprint.reset.bind(blueprint))" />
+		</div>
+		<mat-form-field class="tc-full tc-cd__blueprint" subscriptSizing="dynamic">
+			<mat-label>{{ 'TENANT-CONFIGURATION.CONTENT-DEFAULTS.BLUEPRINT' | translate }}</mat-label>
+			<app-single-auto-complete [required]="true" [formControl]="blueprintGroupId()" [configuration]="defaultBlueprintConfiguration" />
+			@if (blueprintGroupId().hasError('required')) { <mat-error>{{ 'GENERAL.VALIDATION.REQUIRED' | translate }}</mat-error> }
+			@if (blueprintGroupId().hasError('backendError')) { <mat-error>{{ blueprintGroupId().getError('backendError').message }}</mat-error> }
+		</mat-form-field>
+	</section>
+
+	<!-- Featured blueprints and asset templates: one stored record, so one state tag for both cards -->
+	<section class="tc-card" aria-labelledby="tc-cd-featured-h">
+		<div class="tc-card__head">
+			<h2 id="tc-cd-featured-h">{{ 'TENANT-CONFIGURATION.CONTENT-DEFAULTS.FEATURED-TITLE' | translate }}</h2>
+			<app-tc-state-tag [changed]="featured.changed()" [inherited]="featured.inherited()" [canCustomise]="section.canEdit" (customiseRequested)="featured.customise()" [canReset]="section.canReset" (resetRequested)="section.confirmReset(featured.reset.bind(featured))" />
+		</div>
+
+		<div class="tc-cd__pair">
+			<ng-container *ngTemplateOutlet="featuredCard; context: {
+				list: 'blueprints',
+				rows: blueprintRows(),
+				title: 'TENANT-CONFIGURATION.CONTENT-DEFAULTS.FEATURED-BLUEPRINTS',
+				hint: 'TENANT-CONFIGURATION.CONTENT-DEFAULTS.FEATURED-BLUEPRINTS-HINT',
+				empty: 'TENANT-CONFIGURATION.CONTENT-DEFAULTS.NO-FEATURED-BLUEPRINTS'
+			}" />
+			<ng-container *ngTemplateOutlet="featuredCard; context: {
+				list: 'templates',
+				rows: templateRows(),
+				title: 'TENANT-CONFIGURATION.CONTENT-DEFAULTS.FEATURED-TEMPLATES',
+				hint: 'TENANT-CONFIGURATION.CONTENT-DEFAULTS.FEATURED-TEMPLATES-HINT',
+				empty: 'TENANT-CONFIGURATION.CONTENT-DEFAULTS.NO-FEATURED-TEMPLATES'
+			}" />
+		</div>
+	</section>
+
+	<ng-template #featuredCard let-list="list" let-rows="rows" let-title="title" let-hint="hint" let-empty="empty">
+		<section class="tc-cd__half" [attr.aria-labelledby]="'tc-cd-' + list + '-h'">
+			<div class="tc-card__head">
+				<div>
+					<h3 [id]="'tc-cd-' + list + '-h'">{{ title | translate }}</h3>
+					<p>{{ hint | translate }}</p>
+				</div>
+			</div>
+
+			@if (rows.length === 0) {
+				<p class="tc-cd__empty">{{ empty | translate }}</p>
+			} @else {
+				<ol class="tc-cd__rows" cdkDropList [cdkDropListDisabled]="!featuredEditable()" (cdkDropListDropped)="drop(list, $event)" [attr.aria-labelledby]="'tc-cd-' + list + '-h'">
+					@for (row of rows; track row.key; let index = $index; let first = $first; let last = $last) {
+						<li class="tc-cd__row" cdkDrag>
+							@if (featuredEditable()) {
+								<mat-icon class="tc-cd__handle" cdkDragHandle aria-hidden="true">drag_indicator</mat-icon>
+							}
+							<span class="tc-cd__position" aria-hidden="true">{{ index + 1 }}</span>
+							<span class="tc-cd__name">{{ row.label }}</span>
+							@if (featuredEditable()) {
+								<span class="tc-cd__row-actions">
+									<button mat-icon-button type="button" [id]="moveButtonId(list, row, -1)" [disabled]="first"
+										[attr.aria-label]="'TENANT-CONFIGURATION.CONTENT-DEFAULTS.MOVE-UP' | translate: { item: row.label }"
+										(click)="moveBy(list, index, -1, row)">
+										<mat-icon aria-hidden="true">arrow_upward</mat-icon>
+									</button>
+									<button mat-icon-button type="button" [id]="moveButtonId(list, row, 1)" [disabled]="last"
+										[attr.aria-label]="'TENANT-CONFIGURATION.CONTENT-DEFAULTS.MOVE-DOWN' | translate: { item: row.label }"
+										(click)="moveBy(list, index, 1, row)">
+										<mat-icon aria-hidden="true">arrow_downward</mat-icon>
+									</button>
+									<button mat-icon-button type="button"
+										[attr.aria-label]="'TENANT-CONFIGURATION.CONTENT-DEFAULTS.REMOVE' | translate: { item: row.label }"
+										(click)="remove(list, index)">
+										<mat-icon aria-hidden="true">delete</mat-icon>
+									</button>
+								</span>
+							}
+						</li>
+					}
+				</ol>
+			}
+
+			@if (featuredEditable()) {
+				@if (list === 'blueprints') {
+					<mat-form-field class="tc-full tc-cd__picker" subscriptSizing="dynamic">
+						<mat-label>{{ 'TENANT-CONFIGURATION.CONTENT-DEFAULTS.ADD-BLUEPRINT' | translate }}</mat-label>
+						<app-single-auto-complete #blueprintPicker [configuration]="blueprintPickerConfiguration" (optionSelected)="addBlueprint($event)" />
+					</mat-form-field>
+				} @else {
+					<mat-form-field class="tc-full tc-cd__picker" subscriptSizing="dynamic">
+						<mat-label>{{ 'TENANT-CONFIGURATION.CONTENT-DEFAULTS.ADD-TEMPLATE' | translate }}</mat-label>
+						<app-single-auto-complete #templatePicker [configuration]="templatePickerConfiguration" (optionSelected)="addTemplate($event)" (optionActionClicked)="previewTemplate($event)" />
+					</mat-form-field>
+				}
+			}
+		</section>
+	</ng-template>
+
+	<!-- References shown in lists -->
+	<section class="tc-card" aria-labelledby="tc-cd-refs-h">
+		<div class="tc-card__head">
+			<div>
+				<h2 id="tc-cd-refs-h">{{ 'TENANT-CONFIGURATION.CONTENT-DEFAULTS.REFERENCES-TITLE' | translate }}</h2>
+				<p>{{ 'TENANT-CONFIGURATION.CONTENT-DEFAULTS.REFERENCES-HINT' | translate }}</p>
+			</div>
+			<app-tc-state-tag [changed]="views.changed()" [inherited]="views.inherited()" [canCustomise]="section.canEdit" (customiseRequested)="views.customise()" [canReset]="section.canReset" (resetRequested)="section.confirmReset(views.reset.bind(views))" />
+		</div>
+
+		<div class="tc-cd__refs">
+			<div class="tc-cd__ref-groups">
+				<ng-container *ngTemplateOutlet="referenceGroup; context: { list: 'planRefs', rows: planRefRows(), title: 'TENANT-CONFIGURATION.CONTENT-DEFAULTS.PLAN-LISTS' }" />
+				<ng-container *ngTemplateOutlet="referenceGroup; context: { list: 'assetRefs', rows: assetRefRows(), title: 'TENANT-CONFIGURATION.CONTENT-DEFAULTS.ASSET-LISTS' }" />
+			</div>
+
+			<figure class="tc-cd__preview" aria-labelledby="tc-cd-preview-h">
+				<figcaption id="tc-cd-preview-h" class="tc-cd__preview-label">{{ 'TENANT-CONFIGURATION.CONTENT-DEFAULTS.PREVIEW' | translate }}</figcaption>
+				<div class="tc-cd__sample">
+					<div class="tc-cd__sample-title">{{ 'TENANT-CONFIGURATION.CONTENT-DEFAULTS.SAMPLE-PLAN' | translate }}</div>
+					@if (previewPills().length > 0) {
+						<ul class="tc-cd__pills">
+							@for (pill of previewPills(); track $index) {
+								<li class="tc-cd__pill">{{ pill }} · …</li>
+							}
+						</ul>
+					} @else {
+						<div class="tc-row__hint">{{ 'TENANT-CONFIGURATION.CONTENT-DEFAULTS.PREVIEW-EMPTY' | translate }}</div>
+					}
+				</div>
+			</figure>
+		</div>
+	</section>
+
+	<ng-template #referenceGroup let-list="list" let-rows="rows" let-title="title">
+		<div class="tc-cd__ref-group" role="group" [attr.aria-labelledby]="'tc-cd-' + list + '-h'">
+			<h3 class="tc-row__label" [id]="'tc-cd-' + list + '-h'">{{ title | translate }}</h3>
+			@if (rows.length === 0) {
+				<p class="tc-cd__empty">{{ 'TENANT-CONFIGURATION.CONTENT-DEFAULTS.NO-REFERENCES' | translate }}</p>
+			} @else {
+				<ol class="tc-cd__chips" cdkDropList cdkDropListOrientation="mixed" [cdkDropListDisabled]="!viewsEditable()" (cdkDropListDropped)="drop(list, $event)" [attr.aria-labelledby]="'tc-cd-' + list + '-h'">
+					@for (row of rows; track row.key; let index = $index) {
+						<li class="tc-cd__chip" cdkDrag [class.tc-cd__chip--inactive]="row.inactive"
+							[id]="'tc-cd-' + list + '-' + row.key"
+							[attr.tabindex]="viewsEditable() ? 0 : null"
+							[attr.aria-describedby]="viewsEditable() ? 'tc-cd-chip-hint' : null"
+							(keydown)="viewsEditable() && onChipKeydown($event, list, index, row)">
+							<span>{{ row.label }}</span>
+							@if (row.inactive) {
+								<span class="tc-cd__chip-note">({{ 'TENANT-CONFIGURATION.CONTENT-DEFAULTS.INACTIVE' | translate }})</span>
+							}
+							@if (viewsEditable()) {
+								<button type="button" class="tc-cd__chip-remove"
+									[attr.aria-label]="'TENANT-CONFIGURATION.CONTENT-DEFAULTS.REMOVE' | translate: { item: row.label }"
+									(click)="remove(list, index)">
+									<mat-icon aria-hidden="true">close</mat-icon>
+								</button>
+							}
+						</li>
+					}
+				</ol>
+			}
+			@if (viewsEditable()) {
+				@if (list === 'planRefs') {
+					<mat-form-field class="tc-full tc-cd__picker" subscriptSizing="dynamic">
+						<mat-label>{{ 'TENANT-CONFIGURATION.CONTENT-DEFAULTS.ADD-REFERENCE-TYPE' | translate }}</mat-label>
+						<app-single-auto-complete #planRefPicker [configuration]="planRefPickerConfiguration" (optionSelected)="addReference('planRefs', $event)" />
+					</mat-form-field>
+				} @else {
+					<mat-form-field class="tc-full tc-cd__picker" subscriptSizing="dynamic">
+						<mat-label>{{ 'TENANT-CONFIGURATION.CONTENT-DEFAULTS.ADD-REFERENCE-TYPE' | translate }}</mat-label>
+						<app-single-auto-complete #assetRefPicker [configuration]="assetRefPickerConfiguration" (optionSelected)="addReference('assetRefs', $event)" />
+					</mat-form-field>
+				}
+			}
+		</div>
+	</ng-template>
+
+	<app-tc-save-bar [dirtyCount]="section.dirtyCount()" [saving]="section.saving()" [canSave]="section.canEdit" (save)="section.saveAll()" (discard)="section.discardAll()" />
+}

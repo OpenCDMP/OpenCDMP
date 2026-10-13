@@ -1,7 +1,6 @@
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
 import { DescriptionOverviewComponent } from './description-overview.component';
-import { BreadcrumbService } from '@app/ui/misc/breadcrumb/breadcrumb.service';
 
 const routes: Routes = [
 	{
@@ -17,7 +16,8 @@ const routes: Routes = [
 		component: DescriptionOverviewComponent,
 		data: {
 			breadcrumb: true,
-			title: 'GENERAL.TITLES.DESCRIPTION-OVERVIEW'
+			title: 'GENERAL.TITLES.DESCRIPTION-OVERVIEW',
+			isPublic: true
 		},
 	},
 	{ path: '**', loadComponent: () => import('@common/modules/page-not-found/page-not-found.component').then(m => m.PageNotFoundComponent)}

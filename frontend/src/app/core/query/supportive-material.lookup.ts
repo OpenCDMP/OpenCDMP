@@ -13,6 +13,8 @@ export class SupportiveMaterialLookup extends Lookup implements SupportiveMateri
     languageCodes: string[];
 	tenantIds: Guid[];
 	tenantSubQuery: TenantLookup;
+	/** false: only the default tenant's shared rows; true: only tenant-owned rows; absent: both. */
+	tenantIsSet?: boolean;
 
 	constructor() {
 		super();
@@ -27,6 +29,5 @@ export interface SupportiveMaterialFilter {
 	types: SupportiveMaterialFieldType[];
     languageCodes: string[];
 	tenantIds: Guid[];
-	viewOnlyTenant?: boolean;
 	tenantSubQuery: TenantLookup;
 }

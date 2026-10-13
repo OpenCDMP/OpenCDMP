@@ -1,4 +1,4 @@
-import { Directive, effect, ElementRef, HostListener, input, Input } from '@angular/core';
+import { Directive, effect, ElementRef, HostListener, input } from '@angular/core';
 
 @Directive({
   selector: '[appFor]',
@@ -15,7 +15,7 @@ export class FormFocusDirective {
         if(this.appFor) {
             document.getElementById(this.appFor())?.focus();
             (document.getElementById(this.appFor())?.querySelector(".angular-editor-textarea") as HTMLElement)?.focus(); //for rich-text-editor 
-            document.getElementById(`${this.appFor}-input`)?.focus(); //for any mat component that nests the <input> 
+            document.getElementById(`${this.appFor()}-input`)?.focus(); //for any mat component that nests the <input>
         }
     }
 }

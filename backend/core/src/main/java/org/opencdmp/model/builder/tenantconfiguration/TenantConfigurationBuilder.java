@@ -63,6 +63,8 @@ public class TenantConfigurationBuilder extends BaseBuilder<TenantConfiguration,
         FieldSet featuredEntitiesFields = fields.extractPrefixed(this.asPrefix(TenantConfiguration._featuredEntities));
         FieldSet defaultPlanBlueprintFields = fields.extractPrefixed(this.asPrefix(TenantConfiguration._defaultPlanBlueprint));
         FieldSet viewPreferenceFields = fields.extractPrefixed(this.asPrefix(TenantConfiguration._viewPreferences));
+        FieldSet termsAndConditionsFields = fields.extractPrefixed(this.asPrefix(TenantConfiguration._termsAndConditions));
+        FieldSet guidedToursFields = fields.extractPrefixed(this.asPrefix(TenantConfiguration._guidedTours));
 
         List<TenantConfiguration> models = new ArrayList<>();
         for (TenantConfigurationEntity d : data) {
@@ -108,6 +110,14 @@ public class TenantConfigurationBuilder extends BaseBuilder<TenantConfiguration,
             if (!viewPreferenceFields.isEmpty() && !this.conventionService.isNullOrEmpty(d.getValue()) && TenantConfigurationType.ViewPreferences.equals(d.getType())) {
                 ViewPreferencesConfigurationEntity valueTyped = this.jsonHandlingService.fromJsonSafe(ViewPreferencesConfigurationEntity.class, d.getValue());
                 m.setViewPreferences(this.builderFactory.builder(ViewPreferencesConfigurationBuilder.class).authorize(this.authorize).build(viewPreferenceFields, valueTyped));
+            }
+            if (!termsAndConditionsFields.isEmpty() && !this.conventionService.isNullOrEmpty(d.getValue()) && TenantConfigurationType.TermsAndConditions.equals(d.getType())) {
+                TermsAndConditionsTenantConfigurationEntity valueTyped = this.jsonHandlingService.fromJsonSafe(TermsAndConditionsTenantConfigurationEntity.class, d.getValue());
+                m.setTermsAndConditions(this.builderFactory.builder(TermsAndConditionsTenantConfigurationBuilder.class).authorize(this.authorize).build(termsAndConditionsFields, valueTyped));
+            }
+            if (!guidedToursFields.isEmpty() && !this.conventionService.isNullOrEmpty(d.getValue()) && TenantConfigurationType.GuidedTours.equals(d.getType())) {
+                GuidedToursTenantConfigurationEntity valueTyped = this.jsonHandlingService.fromJsonSafe(GuidedToursTenantConfigurationEntity.class, d.getValue());
+                m.setGuidedTours(this.builderFactory.builder(GuidedToursTenantConfigurationBuilder.class).authorize(this.authorize).build(guidedToursFields, valueTyped));
             }
             if (fields.hasField(this.asIndexer(TenantConfiguration._createdAt))) m.setCreatedAt(d.getCreatedAt());
             if (fields.hasField(this.asIndexer(TenantConfiguration._updatedAt))) m.setUpdatedAt(d.getUpdatedAt());

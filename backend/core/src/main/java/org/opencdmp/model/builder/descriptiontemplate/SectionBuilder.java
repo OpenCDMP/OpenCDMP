@@ -55,6 +55,7 @@ public class SectionBuilder extends BaseBuilder<Section, SectionEntity> {
             if (fields.hasField(this.asIndexer(Section._ordinal))) m.setOrdinal(d.getOrdinal());
             if (fields.hasField(this.asIndexer(Section._title))) m.setTitle(d.getTitle());
             if (fields.hasField(this.asIndexer(Section._extendedDescription))) m.setExtendedDescription(d.getExtendedDescription());
+            if (fields.hasField(this.asIndexer(Section._semantics))) m.setSemantics(d.getSemantics());
             if (d.getSections() != null) m.setSections(this.builderFactory.builder(SectionBuilder.class).authorize(this.authorize).build(fields, d.getSections()));
             if (!fieldSetsFields.isEmpty() && d.getFieldSets() != null) m.setFieldSets(this.builderFactory.builder(FieldSetBuilder.class).authorize(this.authorize).build(fieldSetsFields, d.getFieldSets()));
             models.add(m);

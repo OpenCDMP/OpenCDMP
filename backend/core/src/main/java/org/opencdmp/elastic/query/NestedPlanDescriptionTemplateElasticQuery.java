@@ -21,7 +21,7 @@ public class NestedPlanDescriptionTemplateElasticQuery extends ElasticNestedQuer
 	private Collection<UUID> excludedIds;
 	private Collection<UUID> descriptionTemplateGroupIds;
 	private Collection<UUID> planIds;
-	private Collection<UUID> sectionIds;
+	private Collection<String> sectionIds;
 	
 	private String nestedPath;
 
@@ -85,17 +85,17 @@ public class NestedPlanDescriptionTemplateElasticQuery extends ElasticNestedQuer
 		return this;
 	}
 
-	public NestedPlanDescriptionTemplateElasticQuery sectionIds(UUID value) {
+	public NestedPlanDescriptionTemplateElasticQuery sectionIds(String value) {
 		this.sectionIds = List.of(value);
 		return this;
 	}
 
-	public NestedPlanDescriptionTemplateElasticQuery sectionIds(UUID... value) {
+	public NestedPlanDescriptionTemplateElasticQuery sectionIds(String... value) {
 		this.sectionIds = Arrays.asList(value);
 		return this;
 	}
 
-	public NestedPlanDescriptionTemplateElasticQuery sectionIds(Collection<UUID> values) {
+	public NestedPlanDescriptionTemplateElasticQuery sectionIds(Collection<String> values) {
 		this.sectionIds = values;
 		return this;
 	}
@@ -144,7 +144,7 @@ public class NestedPlanDescriptionTemplateElasticQuery extends ElasticNestedQuer
 		}
 
 		if (this.sectionIds != null) {
-			predicates.add(this.containsUUID(this.elasticFieldOf(NestedPlanDescriptionTemplateElasticEntity._sectionId), this.sectionIds)._toQuery());
+			predicates.add(this.containsString(this.elasticFieldOf(NestedPlanDescriptionTemplateElasticEntity._sectionId), this.sectionIds)._toQuery());
 		}
 
 		if (this.planIds != null) {

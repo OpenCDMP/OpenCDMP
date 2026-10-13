@@ -14,10 +14,17 @@ export class EvaluatorConfiguration{
     configurationFields?: ConfigurationField[];
     userConfigurationFields?: ConfigurationField[];
     availableBenchmarks: BenchmarkConfiguration[];
+    availableTests: TestConfiguration[];
     pluginType?: PluginType;
 }
 
 export class BenchmarkConfiguration{
+    id: string;
+    label: string;
+    appliesTo: PluginEntityType[];
+}
+
+export class TestConfiguration{
     id: string;
     label: string;
     appliesTo: PluginEntityType[];

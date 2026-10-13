@@ -18,6 +18,13 @@ public abstract class ExternalFetcherBaseSourceConfigurationEntity implements So
     private ExternalFetcherSourceType type;
 
     private List<UUID> referenceTypeDependencyIds;
+
+    private UUID storageFileId;
+
+    private String navigationUrl;
+
+    private String tooltipMessage;
+
     public ExternalFetcherSourceType getType() {
         return type;
     }
@@ -62,5 +69,32 @@ public abstract class ExternalFetcherBaseSourceConfigurationEntity implements So
     @XmlElement(name = "referenceTypeDependencyIds")
     public void setReferenceTypeDependencyIds(List<UUID> referenceTypeDependencyIds) {
         this.referenceTypeDependencyIds = referenceTypeDependencyIds;
+    }
+
+    public UUID getStorageFileId() {
+        return storageFileId;
+    }
+
+    @XmlElement(name = "storageFileId")
+    public void setStorageFileId(UUID storageFileId) {
+        this.storageFileId = storageFileId;
+    }
+
+    public String getNavigationUrl() {
+        return navigationUrl;
+    }
+
+    @XmlElement(name = "navigationUrl")
+    public void setNavigationUrl(String navigationUrl) {
+        this.navigationUrl = navigationUrl;
+    }
+
+    public String getTooltipMessage() {
+        return tooltipMessage;
+    }
+
+    @XmlElement(name = "tooltipMessage")
+    public void setTooltipMessage(String tooltipMessage) {
+        this.tooltipMessage = tooltipMessage;
     }
 }

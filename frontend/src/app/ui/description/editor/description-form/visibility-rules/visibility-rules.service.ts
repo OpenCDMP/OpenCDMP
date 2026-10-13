@@ -1,24 +1,25 @@
-import { Injectable, booleanAttribute } from '@angular/core';
+import { Injectable } from '@angular/core';
 import { AbstractControl } from '@angular/forms';
 import { Observable, Subject } from 'rxjs';
-import { DescriptionTemplateDefinition, DescriptionTemplateField, DescriptionTemplateFieldSet, DescriptionTemplatePage, DescriptionTemplateSection } from '@app/core/model/description-template/description-template';
+import { DescriptionTemplateDefinition, BaseField, BaseFieldSet, BaseSection } from '@app/core/model/description-template/description-template';
 import { RuleWithTarget } from './models/rule';
 import { FormService } from '@common/forms/form-service';
-import { DescriptionFieldPersist, DescriptionPropertyDefinition, DescriptionPropertyDefinitionFieldSetPersist, DescriptionPropertyDefinitionPersist } from '@app/core/model/description/description';
-import { DescriptionTemplateFieldType } from '@app/core/common/enum/description-template-field-type';
+import { FieldPersist, PropertyDefinition, PropertyDefinitionFieldSetPersist, PropertyDefinitionPersist } from '@app/core/model/description/description';
+import { FieldType } from '@app/core/common/enum/field-type';
+import { PlanBlueprintDefinition, RootSection } from '@app/core/model/plan-blueprint/plan-blueprint';
 
 @Injectable()
 export class VisibilityRulesService {
-    private propertyDefinition: DescriptionPropertyDefinition;
+    private propertyDefinition: PropertyDefinition;
     private propertyDefinitionForm: AbstractControl;
-	private definition: DescriptionTemplateDefinition;
+	private definition: DescriptionTemplateDefinition | PlanBlueprintDefinition;
 	private rulesBySources: Map<string, RuleWithTarget[]> ;
 	private rulesByTarget: Map<string, RuleWithTarget[]> ;
 	public isVisibleMap: { [key: string]: boolean } = {};
 	private _isVisibleMap: { [key: string]: boolean } = null;
 
-	private allDescriptionTemplateFields: DescriptionTemplateField[] = null;
-	private allDescriptionTemplateFieldSets: DescriptionTemplateFieldSet[] = null;
+	private allFields: BaseField[] = null;
+	private allFieldSets: BaseFieldSet[] = null;
 
 	public rulesChangedSubject: Subject<{ [key: string]: boolean }>;
 
@@ -32,12 +33,16 @@ export class VisibilityRulesService {
 		return this.rulesChangedSubject.asObservable();
 	}
 
-	public setContext(definition: DescriptionTemplateDefinition, propertyDefinitionForm?: AbstractControl, propertyDefinition?: DescriptionPropertyDefinition) {
+	public setContext(
+        definition: DescriptionTemplateDefinition | PlanBlueprintDefinition,
+        propertyDefinitionForm?: AbstractControl,
+        propertyDefinition?: PropertyDefinition
+    ) {
 		this.definition = definition;
         this.propertyDefinitionForm = propertyDefinitionForm;
 		this.propertyDefinition =  propertyDefinition;
-		this.allDescriptionTemplateFields = null;
-		this.allDescriptionTemplateFieldSets = null;
+		this.allFields = null;
+		this.allFieldSets = null;
 		this.rulesBySources = null;
 		this.rulesByTarget = null;
 		this._isVisibleMap = null;
@@ -72,12 +77,90 @@ export class VisibilityRulesService {
 		this.rulesByTarget = null;
 		this._isVisibleMap = null;
 		this.calculateVisibility();
+		// FE-V (clear-on-save policy): we intentionally do NOT clear hidden field values here on edit.
+		// Values are preserved in the form while editing — toggling a controlling field off and back on
+		// restores the prior answer — and hidden values are stripped from the payload at save time
+		// instead (see stripHiddenFieldValues, called from the plan/description persist paths). Chain
+		// gating (isChainParentVisible) means a retained value on a now-hidden source can't mis-fire a
+		// downstream rule, so keeping values during editing is safe.
+		//
+		// FE-V: visibility just changed, so the required-ness enforced by
+		// RequiredWithVisibilityRulesValidator changed too. Re-run validators on the affected controls
+		// so a field that became hidden drops its now-stale `required` error and one that became
+		// visible regains it. Without this, isVisibleMap is updated but control.errors is not, leaving
+		// stale validation state (e.g. a hidden field still blocking finalize).
+		this.revalidateVisibilityDependentControls();
+	}
+
+	/** Value-bearing control names a field form group may carry (see DescriptionEditorModel.getFieldValueControlName). */
+	private static readonly VALUE_PROP_NAMES = [
+		'textValue', 'textListValue', 'dateValue', 'booleanValue', 'numberValue',
+		'references', 'reference', 'tags', 'externalIdentifier', 'contacts',
+	];
+
+	/**
+	 * FE-V (clear-on-save): null out the value of every currently-hidden field in a raw property
+	 * definition object (e.g. `plan/description getRawValue().properties`). Mutates the passed object,
+	 * which is a getRawValue() copy — the live form is untouched, so answers stay intact while editing
+	 * and are only removed from what gets persisted. Call this on the persist payload immediately
+	 * before sending.
+	 */
+	public stripHiddenFieldValues(propertyDefinition: { fieldSets?: { [id: string]: { items?: any[] } } } | null | undefined): void {
+		if (!propertyDefinition?.fieldSets) return;
+		this.calculateVisibility();
+		if (!this._isVisibleMap) return;
+		Object.keys(propertyDefinition.fieldSets).forEach((fieldSetId) => {
+			const items = propertyDefinition.fieldSets[fieldSetId]?.items ?? [];
+			for (const item of items) {
+				const ordinal = item?.ordinal;
+				const fields = item?.fields;
+				if (!fields) continue;
+				Object.keys(fields).forEach((fieldId) => {
+					const key = this.buildVisibilityKey(fieldId, ordinal);
+					if (this._isVisibleMap[key] === false) {
+						this.clearFieldValueObject(fields[fieldId]);
+					}
+				});
+			}
+		});
+	}
+
+	private clearFieldValueObject(fieldValue: { [k: string]: any } | null | undefined): void {
+		if (!fieldValue) return;
+		VisibilityRulesService.VALUE_PROP_NAMES.forEach((prop) => {
+			if (prop in fieldValue) {
+				fieldValue[prop] = Array.isArray(fieldValue[prop]) ? [] : null;
+			}
+		});
+	}
+
+	/**
+	 * FE-V: re-run validators on every field control after a visibility recompute. Mirrors the walk in
+	 * clearHiddenFieldValues. `emitEvent:false` avoids re-triggering the visibility recompute loop
+	 * (form-field.component subscribes to valueChanges). updateValueAndValidity bubbles up by default,
+	 * so ancestor groups / the multiplicity items array (ValidateIfVisible minLength) re-validate too.
+	 */
+	private revalidateVisibilityDependentControls() {
+		const fieldSetsGroup = this.propertyDefinitionForm?.get('fieldSets');
+		const fieldSetControls = (fieldSetsGroup as any)?.controls;
+		if (!fieldSetControls) return;
+		Object.keys(fieldSetControls).forEach((fieldSetId) => {
+			const itemControls = (fieldSetControls[fieldSetId]?.get('items') as any)?.controls ?? [];
+			for (const itemControl of itemControls) {
+				const fieldControls = (itemControl?.get('fields') as any)?.controls;
+				if (!fieldControls) continue;
+				Object.keys(fieldControls).forEach((fieldId) => {
+					const control: AbstractControl = fieldControls[fieldId];
+					control?.updateValueAndValidity({ emitEvent: false });
+				});
+			}
+		});
 	}
 
 	private calculateVisibility(){
 		if (this._isVisibleMap != null) return;
 		if (this.definition == null || (this.propertyDefinitionForm == null && this.propertyDefinition == null)) return;
-        const propertyDefinition = this.propertyDefinitionForm ? this.formService.getValue(this.propertyDefinitionForm.getRawValue()) : this.propertyDefinition;
+        const propertyDefinition = this.propertyDefinitionForm ? this.propertyDefinitionForm.getRawValue() : this.propertyDefinition;
 		this.initRules();
 		this.buildTargetVisibility(propertyDefinition);
 		this.expandVisibilityToChildren(propertyDefinition);
@@ -95,7 +178,7 @@ export class VisibilityRulesService {
 		this.rulesBySources = new Map();
 		this.rulesByTarget = new Map();
 
-		const fields: DescriptionTemplateField[] = this.getAllDescriptionTemplateDefinitionFields(this.definition);
+		const fields: BaseField[] = this.getAllDefinitionFields(this.definition);
 		for (let i = 0; i < fields.length; i++) {
 			const fieldEntity = fields[i];
 			if (fieldEntity.visibilityRules != null && fieldEntity.visibilityRules.length > 0) {
@@ -112,112 +195,109 @@ export class VisibilityRulesService {
 		}
 	}
 
-	private getDescriptionTemplateDefinitionFieldById(definition: DescriptionTemplateDefinition, fieldId: string): DescriptionTemplateField[] {
-		const fields: DescriptionTemplateField[] = this.getAllDescriptionTemplateDefinitionFields(definition);
+	private getDefinitionFieldById(definition: DescriptionTemplateDefinition | PlanBlueprintDefinition, fieldId: string): BaseField[] {
+		const fields: BaseField[] = this.getAllDefinitionFields(definition);
 		return fields.filter(x=> x.id == fieldId);
 	}
 
-	private getAllDescriptionTemplateDefinitionFields(definition: DescriptionTemplateDefinition): DescriptionTemplateField[] {
-		if (this.allDescriptionTemplateFields != null) return this.allDescriptionTemplateFields;
+	private getAllDefinitionFields(definition: DescriptionTemplateDefinition | PlanBlueprintDefinition): BaseField[] {
+		if (this.allFields != null) return this.allFields;
 
-		let fields: DescriptionTemplateField[] = [];
-		if (definition.pages == null) return fields;
-		for (let i = 0; i < definition.pages.length; i++) {
-			const item = definition.pages[i];
-			fields = [...fields, ...this.getAllDescriptionTemplatePageFields(item)];
-		}
-		this.allDescriptionTemplateFields = fields;
-		return this.allDescriptionTemplateFields;
-	}
-
-	private getAllDescriptionTemplatePageFields(definition: DescriptionTemplatePage): DescriptionTemplateField[] {
-		let fields: DescriptionTemplateField[] = [];
+		let fields: BaseField[] = [];
 		if (definition.sections == null) return fields;
 		for (let i = 0; i < definition.sections.length; i++) {
 			const item = definition.sections[i];
-			fields = [...fields, ...this.getAllDescriptionTemplateSectionFields(item)];
+			fields = [...fields, ...this.getAllSectionFields(item)];
 		}
-		return fields;
+		this.allFields = fields;
+		return this.allFields;
 	}
 
-	private getAllDescriptionTemplateSectionFields(definition: DescriptionTemplateSection): DescriptionTemplateField[] {
-		let fields: DescriptionTemplateField[] = [];
+	// private getAllDescriptionTemplatePageFields(definition: DescriptionTemplatePage): DescriptionTemplateField[] {
+	// 	let fields: DescriptionTemplateField[] = [];
+	// 	if (definition.sections == null) return fields;
+	// 	for (let i = 0; i < definition.sections.length; i++) {
+	// 		const item = definition.sections[i];
+	// 		fields = [...fields, ...this.getAllDescriptionTemplateSectionFields(item)];
+	// 	}
+	// 	return fields;
+	// }
+
+	private getAllSectionFields(definition: BaseSection | RootSection): BaseField[] {
+		let fields: BaseField[] = [];
 		if (definition.sections != null) {
 			for (let i = 0; i < definition.sections.length; i++) {
 				const item = definition.sections[i];
-				fields = [...fields, ...this.getAllDescriptionTemplateSectionFields(item)];
+				fields = [...fields, ...this.getAllSectionFields(item)];
 			}
 		}
 		if (definition.fieldSets != null) {
 			for (let i = 0; i < definition.fieldSets.length; i++) {
 				const item = definition.fieldSets[i];
-				fields = [...fields, ...this.getAllDescriptionTemplateFieldSetFields(item)];
+				fields = [...fields, ...this.getAllFieldSetFields(item)];
 			}
 		}
 		return fields;
 	}
 
-	private getAllDescriptionTemplateFieldSetFields(definition: DescriptionTemplateFieldSet): DescriptionTemplateField[] {
+	private getAllFieldSetFields(definition: BaseFieldSet): BaseField[] {
 		return definition.fields == null ? [] : definition.fields;
 	}
 
-	private getDescriptionTemplateDefinitionFieldSetById(definition: DescriptionTemplateDefinition, fieldSetId: string): DescriptionTemplateFieldSet[] {
-		const fieldSets: DescriptionTemplateFieldSet[] = this.getAllDescriptionTemplateDefinitionFieldSets(definition);
+	private getDefinitionFieldSetById(definition: DescriptionTemplateDefinition | PlanBlueprintDefinition, fieldSetId: string): BaseFieldSet[] {
+		const fieldSets: BaseFieldSet[] = this.getAllDefinitionFieldSets(definition);
 		return fieldSets.filter(x=> x.id == fieldSetId);
 	}
 
-	private getAllDescriptionTemplateDefinitionFieldSets(definition: DescriptionTemplateDefinition): DescriptionTemplateFieldSet[] {
-		if (this.allDescriptionTemplateFieldSets != null) return this.allDescriptionTemplateFieldSets;
-		let fieldSets: DescriptionTemplateFieldSet[] = [];
-		if (definition.pages == null) return fieldSets;
-		for (let i = 0; i < definition.pages.length; i++) {
-			const item = definition.pages[i];
-			fieldSets = [...fieldSets, ...this.getAllDescriptionTemplatePageFieldSets(item)];
-		}
-		this.allDescriptionTemplateFieldSets = fieldSets;
-		return this.allDescriptionTemplateFieldSets;
-	}
-
-	private getAllDescriptionTemplatePageFieldSets(definition: DescriptionTemplatePage): DescriptionTemplateFieldSet[] {
-		let fieldSets: DescriptionTemplateFieldSet[] = [];
+	private getAllDefinitionFieldSets(definition: DescriptionTemplateDefinition | PlanBlueprintDefinition): BaseFieldSet[] {
+		if (this.allFieldSets != null) return this.allFieldSets;
+		let fieldSets: BaseFieldSet[] = [];
 		if (definition.sections == null) return fieldSets;
 		for (let i = 0; i < definition.sections.length; i++) {
 			const item = definition.sections[i];
-			fieldSets = [...fieldSets, ...this.getAllDescriptionTemplateSectionFieldSets(item)];
+			fieldSets = [...fieldSets, ...this.getAllSectionFieldSets(item)];
 		}
-		return fieldSets;
+		this.allFieldSets = fieldSets;
+		return this.allFieldSets;
 	}
 
-	private getAllDescriptionTemplateSectionFieldSets(definition: DescriptionTemplateSection): DescriptionTemplateFieldSet[] {
-		let fieldSets: DescriptionTemplateFieldSet[] = [];
+	// private getAllDescriptionTemplatePageFieldSets(definition: DescriptionTemplatePage): DescriptionTemplateFieldSet[] {
+	// 	let fieldSets: DescriptionTemplateFieldSet[] = [];
+	// 	if (definition.sections == null) return fieldSets;
+	// 	for (let i = 0; i < definition.sections.length; i++) {
+	// 		const item = definition.sections[i];
+	// 		fieldSets = [...fieldSets, ...this.getAllDescriptionTemplateSectionFieldSets(item)];
+	// 	}
+	// 	return fieldSets;
+	// }
+
+	private getAllSectionFieldSets(definition: BaseSection | RootSection): BaseFieldSet[] {
+		let fieldSets: BaseFieldSet[] = [];
 		if (definition.sections != null) {
 			for (let i = 0; i < definition.sections.length; i++) {
 				const item = definition.sections[i];
-				fieldSets = [...fieldSets, ...this.getAllDescriptionTemplateSectionFieldSets(item)];
+				fieldSets = [...fieldSets, ...this.getAllSectionFieldSets(item)];
 			}
 		}
 		if (definition.fieldSets != null) {
-			for (let i = 0; i < definition.fieldSets.length; i++) {
-				const item = definition.fieldSets[i];
-				fieldSets = [...fieldSets, ...definition.fieldSets];
-			}
+			fieldSets = [...fieldSets, ...definition.fieldSets];
 		}
 		return fieldSets;
 	}
 
-	private buildTargetVisibility(propertyDefinition: DescriptionPropertyDefinitionPersist | DescriptionPropertyDefinition){
+	private buildTargetVisibility(propertyDefinition: PropertyDefinitionPersist | PropertyDefinition){
 		this._isVisibleMap = {};
 		this.rulesBySources.forEach((ruleForSource: RuleWithTarget[], ruleForSourceKey: string) => {
 			for (let i = 0; i < ruleForSource.length; i++) {
 				const rule = ruleForSource[i];
 				if (propertyDefinition.fieldSets != null) {
-					new Map(Object.entries(propertyDefinition.fieldSets)).forEach((propertyDefinitionFieldSet: DescriptionPropertyDefinitionFieldSetPersist, propertyDefinitionFieldSetKey: string) => {
+					new Map(Object.entries(propertyDefinition.fieldSets)).forEach((propertyDefinitionFieldSet: PropertyDefinitionFieldSetPersist, propertyDefinitionFieldSetKey: string) => {
 						if (propertyDefinitionFieldSet.items != null && propertyDefinitionFieldSet.items.length > 0) {
 							for (let j = 0; j < propertyDefinitionFieldSet.items.length; j++) {
 								const definitionFieldSetItem = propertyDefinitionFieldSet.items[j];
 								if (definitionFieldSetItem?.fields != null) {
 									const fieldsMap = new Map(Object.entries(definitionFieldSetItem.fields));
-									fieldsMap.forEach((field: DescriptionFieldPersist, key: string) => {
+									fieldsMap.forEach((field: FieldPersist, key: string) => {
 										if (rule.source == key){
 											const rulesForParentKey: RuleWithTarget[] = this.getChainParentRules(rule);
 
@@ -226,7 +306,7 @@ export class VisibilityRulesService {
 												const fieldKey = this.buildVisibilityKey(rule.target, definitionFieldSetItem.ordinal);
 												const currentState = this._isVisibleMap[fieldKey] ?? false;
 												this._isVisibleMap[fieldKey] = parentIsVisible && (currentState || this.ruleIsTrue(rule, field));
-											} else if (this.getDescriptionTemplateDefinitionFieldById(this.definition, rule.target).length > 0 || this.getDescriptionTemplateDefinitionFieldSetById(this.definition, rule.target).length > 0) { //Rule applies to different fieldset, so we apply for all multiple items
+											} else if (this.getDefinitionFieldById(this.definition, rule.target).length > 0 || this.getDefinitionFieldSetById(this.definition, rule.target).length > 0) { //Rule applies to different fieldset, so we apply for all multiple items
 												const ordinals: number[] = this.getKeyOrdinals(rule.target, propertyDefinition);
 												for (let k = 0; k < ordinals.length; k++) {
 													const ordinal = ordinals[k];
@@ -250,7 +330,7 @@ export class VisibilityRulesService {
 		});
 	}
 
-	private isChainParentVisible(rulesForParentKey: RuleWithTarget[], propertyDefinition: DescriptionPropertyDefinitionPersist | DescriptionPropertyDefinition, fieldsMap: Map<string, DescriptionFieldPersist>, ordinal: number): boolean {
+	private isChainParentVisible(rulesForParentKey: RuleWithTarget[], propertyDefinition: PropertyDefinitionPersist | PropertyDefinition, fieldsMap: Map<string, FieldPersist>, ordinal: number): boolean {
 		let isVisible = false;
 		if (rulesForParentKey == null || rulesForParentKey.length == 0) return false;
 
@@ -259,7 +339,7 @@ export class VisibilityRulesService {
 
 			if (ruleForParentKey.source == ruleForParentKey.target) continue; //Invalid rule where source and target are equal
 			
-			const field: DescriptionFieldPersist = fieldsMap.get(ruleForParentKey.source);
+			const field: FieldPersist = fieldsMap.get(ruleForParentKey.source);
 
 			const rulesForGrandParentKey: RuleWithTarget[] = this.getChainParentRules(ruleForParentKey);
 
@@ -269,7 +349,7 @@ export class VisibilityRulesService {
 				isVisible = isVisible || currentState || this.ruleIsTrue(ruleForParentKey, field);
 				if (rulesForGrandParentKey != null && rulesForGrandParentKey.length > 0) isVisible = isVisible || this.isChainParentVisible(rulesForGrandParentKey, propertyDefinition, fieldsMap, ordinal);
 
-			} else if (this.getDescriptionTemplateDefinitionFieldById(this.definition, ruleForParentKey.target).length > 0 || this.getDescriptionTemplateDefinitionFieldSetById(this.definition, ruleForParentKey.target).length > 0) { //Rule applies to different fieldset, so we apply for all multiple items
+			} else if (this.getDefinitionFieldById(this.definition, ruleForParentKey.target).length > 0 || this.getDefinitionFieldSetById(this.definition, ruleForParentKey.target).length > 0) { //Rule applies to different fieldset, so we apply for all multiple items
 				const ordinals: number[] = this.getKeyOrdinals(ruleForParentKey.target, propertyDefinition);
 				for (let k = 0; k < ordinals.length; k++) {
 					const curentOrdinal = ordinals[k];
@@ -295,10 +375,10 @@ export class VisibilityRulesService {
 		return this.rulesByTarget?.get(rule.source)?.filter(x=> x != null);
 	}
 
-	private getKeyOrdinals(key: string, propertyDefinition: DescriptionPropertyDefinitionPersist | DescriptionPropertyDefinition): number[]{
+	private getKeyOrdinals(key: string, propertyDefinition: PropertyDefinitionPersist | PropertyDefinition): number[]{
 		let ordinals = [];
 		if (propertyDefinition.fieldSets != null) {
-			new Map(Object.entries(propertyDefinition.fieldSets)).forEach((propertyDefinitionFieldSet: DescriptionPropertyDefinitionFieldSetPersist, propertyDefinitionFieldSetKey: string) => {
+			new Map(Object.entries(propertyDefinition.fieldSets)).forEach((propertyDefinitionFieldSet: PropertyDefinitionFieldSetPersist, propertyDefinitionFieldSetKey: string) => {
 				if (propertyDefinitionFieldSetKey == key) {
 					ordinals = propertyDefinitionFieldSet.items?.map(x => x.ordinal) ?? [];
 					return ordinals;
@@ -307,7 +387,7 @@ export class VisibilityRulesService {
 					for (let i = 0; i < propertyDefinitionFieldSet.items.length; i++) {
 						const definitionFieldSetItem = propertyDefinitionFieldSet.items[i];
 						if (definitionFieldSetItem?.fields != null) {
-							new Map(Object.entries(definitionFieldSetItem.fields)).forEach((field: DescriptionFieldPersist, fieldKey: string) => {
+							new Map(Object.entries(definitionFieldSetItem.fields)).forEach((field: FieldPersist, fieldKey: string) => {
 								if (fieldKey == key) ordinals = propertyDefinitionFieldSet.items?.map(x=> x.ordinal) ?? [];
 							});
 							if (ordinals != null && ordinals.length > 0) return ordinals;
@@ -319,10 +399,10 @@ export class VisibilityRulesService {
 		return ordinals;
 	}
 
-	private getKeyFields(key: string, ordinal: number, propertyDefinition: DescriptionPropertyDefinitionPersist | DescriptionPropertyDefinition): Map<string, DescriptionFieldPersist>{
-		let fields: Map<string, DescriptionFieldPersist>;
+	private getKeyFields(key: string, ordinal: number, propertyDefinition: PropertyDefinitionPersist | PropertyDefinition): Map<string, FieldPersist>{
+		let fields: Map<string, FieldPersist>;
 		if (propertyDefinition.fieldSets != null) {
-			new Map(Object.entries(propertyDefinition.fieldSets)).forEach((propertyDefinitionFieldSet: DescriptionPropertyDefinitionFieldSetPersist, propertyDefinitionFieldSetKey: string) => {
+			new Map(Object.entries(propertyDefinition.fieldSets)).forEach((propertyDefinitionFieldSet: PropertyDefinitionFieldSetPersist, propertyDefinitionFieldSetKey: string) => {
 				if (propertyDefinitionFieldSetKey == key) {
 					fields = propertyDefinitionFieldSet.items?.find(x => x.ordinal == ordinal)?.fields;
 					return fields;
@@ -331,7 +411,7 @@ export class VisibilityRulesService {
 					for (let i = 0; i < propertyDefinitionFieldSet.items.length; i++) {
 						const definitionFieldSetItem = propertyDefinitionFieldSet.items[i];
 						if (definitionFieldSetItem?.fields != null) {
-							new Map(Object.entries(definitionFieldSetItem.fields)).forEach((field: DescriptionFieldPersist, fieldKey: string) => {
+							new Map(Object.entries(definitionFieldSetItem.fields)).forEach((field: FieldPersist, fieldKey: string) => {
 								if (fieldKey == key) fields = propertyDefinitionFieldSet.items?.find(x => x.ordinal == ordinal)?.fields;
 							});
 							if (fields != null && fields.size > 0) return fields;
@@ -340,68 +420,69 @@ export class VisibilityRulesService {
 				}
 			});
 		}
-		return fields ? new Map<string, DescriptionFieldPersist>(Object.entries(fields)) : new Map<string, DescriptionFieldPersist>();
+		return fields ? new Map<string, FieldPersist>(Object.entries(fields)) : new Map<string, FieldPersist>();
 	}
 
-	private ruleIsTrue(rule: RuleWithTarget, field: DescriptionFieldPersist) :boolean{
+	private ruleIsTrue(rule: RuleWithTarget, field: FieldPersist) :boolean{
 		if (field != null){
-			const fieldType: DescriptionTemplateFieldType = rule.field != null && rule.field.data != null ? rule.field.data.fieldType :  DescriptionTemplateFieldType.FREE_TEXT;
-			if ([DescriptionTemplateFieldType.FREE_TEXT, DescriptionTemplateFieldType.RADIO_BOX, DescriptionTemplateFieldType.TEXT_AREA,
-				DescriptionTemplateFieldType.RICH_TEXT_AREA].includes(fieldType) && field.textValue != null && field.textValue.length > 0) {
-				if (DescriptionTemplateFieldType.UPLOAD == fieldType){
+			const fieldType: FieldType = rule.field != null && rule.field.data != null ? rule.field.data.fieldType :  FieldType.FREE_TEXT;
+			if ([FieldType.FREE_TEXT, FieldType.RADIO_BOX, FieldType.TEXT_AREA,
+				FieldType.RICH_TEXT_AREA].includes(fieldType) && field.textValue != null && field.textValue.length > 0) {
+				if (FieldType.UPLOAD == fieldType){
 					return false; //not apply visibility logic
 				} else {
 					return field.textValue == rule.textValue;
 				}
 			}
-			else if ([DescriptionTemplateFieldType.SELECT].includes(fieldType) && field.textValue != null && field.textValue.length > 0) {
+			else if ([FieldType.SELECT].includes(fieldType) && field.textValue != null && field.textValue.length > 0) {
 				return rule.textValue != null && rule.textValue.length > 0 && field.textValue == rule.textValue;
 			}
-			else if ([DescriptionTemplateFieldType.SELECT].includes(fieldType) && field.textListValue != null && field.textListValue.length > 0) {
+			else if ([FieldType.SELECT].includes(fieldType) && field.textListValue != null && field.textListValue.length > 0) {
 				return field.textListValue.includes(rule.textValue);
 			}
-			else if ([DescriptionTemplateFieldType.REFERENCE_TYPES, DescriptionTemplateFieldType.UPLOAD, DescriptionTemplateFieldType.TAGS, DescriptionTemplateFieldType.INTERNAL_ENTRIES_PLANS,
-				DescriptionTemplateFieldType.INTERNAL_ENTRIES_DESCRIPTIONS, DescriptionTemplateFieldType.VALIDATION, DescriptionTemplateFieldType.DATASET_IDENTIFIER].includes(fieldType)) {
+			else if ([FieldType.REFERENCE_TYPES, FieldType.UPLOAD, FieldType.TAGS, FieldType.INTERNAL_ENTRIES_PLANS,
+				FieldType.INTERNAL_ENTRIES_DESCRIPTIONS, FieldType.VALIDATION, FieldType.DATASET_IDENTIFIER].includes(fieldType)) {
 				return false; //not implemented visibility logic
 			}
-			else if ([DescriptionTemplateFieldType.CHECK_BOX, DescriptionTemplateFieldType.BOOLEAN_DECISION].includes(fieldType)) {
+			else if ([FieldType.CHECK_BOX, FieldType.BOOLEAN_DECISION].includes(fieldType)) {
 				return field.booleanValue == rule.booleanValue;
 			}
-			else if (DescriptionTemplateFieldType.DATE_PICKER == fieldType && field.dateValue != null) return field.dateValue == rule.dateValue;
+			else if (FieldType.DATE_PICKER == fieldType && field.dateValue != null) return field.dateValue == rule.dateValue;
+            else if(FieldType.NUMBER == fieldType && field.numberValue != null) return field.numberValue == rule.numberValue;
 		}
 		return false;
 	}
 
-	private expandVisibilityToChildren(propertyDefinition: DescriptionPropertyDefinitionPersist | DescriptionPropertyDefinition){
-		if (this.definition?.pages == null) return;
-		for (let i = 0; i < this.definition?.pages.length; i++) {
-			const pageEntity = this.definition?.pages[i];
+	private expandVisibilityToChildren(propertyDefinition: PropertyDefinitionPersist | PropertyDefinition){
+		if (this.definition?.sections == null) return;
+		for (let i = 0; i < this.definition?.sections.length; i++) {
+			const pageEntity = this.definition?.sections[i];
 			const fieldKey = this.buildVisibilityKey(pageEntity.id, null);
 			const currentValue: boolean | null = this._isVisibleMap[fieldKey] ?? null;
-			this.expandPageVisibility(pageEntity, propertyDefinition, currentValue);
+			this.expandSectionVisibility(pageEntity, propertyDefinition, currentValue);
 		}
 	}
 
-	private expandPageVisibility(pageEntity : DescriptionTemplatePage, propertyDefinition: DescriptionPropertyDefinitionPersist | DescriptionPropertyDefinition, parentVisibility : boolean | null){
-		if (pageEntity.sections == null) return;
-		for (let i = 0; i < pageEntity.sections.length; i++) {
-			const sectionEntity = pageEntity.sections[i];
-			const fieldKey = this.buildVisibilityKey(sectionEntity.id, null);
-			const currentValue: boolean | null = this._isVisibleMap[fieldKey] ?? null;
-			if (currentValue != null){
-				if (parentVisibility != null && !parentVisibility) { //Parent is hidden so all childs should be hidden
-					this._isVisibleMap[fieldKey] = false;
-					this.expandSectionVisibility(sectionEntity, propertyDefinition, currentValue);
-				} else {
-					this.expandSectionVisibility(sectionEntity, propertyDefinition, currentValue);
-				}
-			} else {
-				if (parentVisibility != null) this._isVisibleMap[fieldKey] = parentVisibility;
-				this.expandSectionVisibility(sectionEntity, propertyDefinition, parentVisibility);
-			}
-		}
-	}
-	private expandSectionVisibility(sectionEntity: DescriptionTemplateSection, propertyDefinition: DescriptionPropertyDefinitionPersist | DescriptionPropertyDefinition, parentVisibility : boolean | null){
+	// private expandPageVisibility(pageEntity : DescriptionTemplatePage, propertyDefinition: DescriptionPropertyDefinitionPersist | DescriptionPropertyDefinition, parentVisibility : boolean | null){
+	// 	if (pageEntity.sections == null) return;
+	// 	for (let i = 0; i < pageEntity.sections.length; i++) {
+	// 		const sectionEntity = pageEntity.sections[i];
+	// 		const fieldKey = this.buildVisibilityKey(sectionEntity.id, null);
+	// 		const currentValue: boolean | null = this._isVisibleMap[fieldKey] ?? null;
+	// 		if (currentValue != null){
+	// 			if (parentVisibility != null && !parentVisibility) { //Parent is hidden so all childs should be hidden
+	// 				this._isVisibleMap[fieldKey] = false;
+	// 				this.expandSectionVisibility(sectionEntity, propertyDefinition, currentValue);
+	// 			} else {
+	// 				this.expandSectionVisibility(sectionEntity, propertyDefinition, currentValue);
+	// 			}
+	// 		} else {
+	// 			if (parentVisibility != null) this._isVisibleMap[fieldKey] = parentVisibility;
+	// 			this.expandSectionVisibility(sectionEntity, propertyDefinition, parentVisibility);
+	// 		}
+	// 	}
+	// }
+	private expandSectionVisibility(sectionEntity: BaseSection, propertyDefinition: PropertyDefinitionPersist | PropertyDefinition, parentVisibility : boolean | null){
 		if (sectionEntity.sections != null) {
 			for (let i = 0; i < sectionEntity.sections.length; i++) {
 				const subSectionEntity = sectionEntity.sections[i];
@@ -450,7 +531,7 @@ export class VisibilityRulesService {
 		}
 	}
 
-	private expandFieldSetVisibility(fieldSetEntity: DescriptionTemplateFieldSet, parentVisibility: boolean | null, ordinal: number){
+	private expandFieldSetVisibility(fieldSetEntity: BaseFieldSet, parentVisibility: boolean | null, ordinal: number){
 		if (fieldSetEntity.fields != null) {
 			for (let i = 0; i < fieldSetEntity.fields.length; i++) {
 				const fieldEntity = fieldSetEntity.fields[i];
@@ -467,31 +548,31 @@ export class VisibilityRulesService {
 		}
 	}
 
-	private setDefaultVisibilityForNotCaclucted(propertyDefinition: DescriptionPropertyDefinitionPersist | DescriptionPropertyDefinition) {
-		if (this.definition?.pages == null) return;
-		for (let i = 0; i < this.definition?.pages.length; i++) {
-			const pageEntity = this.definition?.pages[i];
+	private setDefaultVisibilityForNotCaclucted(propertyDefinition: PropertyDefinitionPersist | PropertyDefinition) {
+		if (this.definition?.sections == null) return;
+		for (let i = 0; i < this.definition?.sections.length; i++) {
+			const pageEntity = this.definition?.sections[i];
 			const fieldKey = this.buildVisibilityKey(pageEntity.id, null);
 			const currentValue: boolean | null = this._isVisibleMap[fieldKey] ?? null;
 			if (currentValue == null) this._isVisibleMap[fieldKey] = true;
-			this.setDefaultPageVisibility(pageEntity, propertyDefinition);
+			this.setDefaultSectionVisibility(pageEntity, propertyDefinition);
 		}
 	}
 
-	private setDefaultPageVisibility(pageEntity: DescriptionTemplatePage, propertyDefinition: DescriptionPropertyDefinitionPersist | DescriptionPropertyDefinition) {
-		if (pageEntity.sections == null) return;
-		for (let i = 0; i < pageEntity.sections.length; i++) {
-			const sectionEntity = pageEntity.sections[i];
-			const fieldKey = this.buildVisibilityKey(sectionEntity.id, null);
-			const currentValue: boolean | null = this._isVisibleMap[fieldKey] ?? null;
-			if (currentValue == null){
-				this._isVisibleMap[fieldKey] = true;
-				this.setDefaultSectionVisibility(sectionEntity, propertyDefinition);
-			}
-		}
-	}
+	// private setDefaultPageVisibility(pageEntity: DescriptionTemplatePage, propertyDefinition: DescriptionPropertyDefinitionPersist | DescriptionPropertyDefinition) {
+	// 	if (pageEntity.sections == null) return;
+	// 	for (let i = 0; i < pageEntity.sections.length; i++) {
+	// 		const sectionEntity = pageEntity.sections[i];
+	// 		const fieldKey = this.buildVisibilityKey(sectionEntity.id, null);
+	// 		const currentValue: boolean | null = this._isVisibleMap[fieldKey] ?? null;
+	// 		if (currentValue == null){
+	// 			this._isVisibleMap[fieldKey] = true;
+	// 			this.setDefaultSectionVisibility(sectionEntity, propertyDefinition);
+	// 		}
+	// 	}
+	// }
 
-	private setDefaultSectionVisibility(sectionEntity: DescriptionTemplateSection, propertyDefinition: DescriptionPropertyDefinitionPersist | DescriptionPropertyDefinition) {
+	private setDefaultSectionVisibility(sectionEntity: BaseSection, propertyDefinition: PropertyDefinitionPersist | PropertyDefinition) {
 		if (sectionEntity.sections != null) {
 			for (let i = 0; i < sectionEntity.sections.length; i++) {
 				const subSectionEntity = sectionEntity.sections[i];
@@ -520,12 +601,19 @@ export class VisibilityRulesService {
 							}
 						}
 					}
-				}
+				}else {
+                    const fieldKey = this.buildVisibilityKey(fieldSetEntity.id, 0);
+                    const currentValue: boolean | null = this._isVisibleMap[fieldKey] ?? null;
+                    if (currentValue == null){
+                        this._isVisibleMap[fieldKey] = true;
+                        this.setDefaultFieldSetVisibility(fieldSetEntity, 0);
+                    }
+                }
 			}
 		}
 	}
 
-	private setDefaultFieldSetVisibility(fieldSetEntity: DescriptionTemplateFieldSet, ordinal: number){
+	private setDefaultFieldSetVisibility(fieldSetEntity: BaseFieldSet, ordinal: number){
 		if (fieldSetEntity.fields != null) {
 			for (let i = 0; i < fieldSetEntity.fields.length; i++) {
 				const fieldEntity = fieldSetEntity.fields[i];
@@ -538,12 +626,12 @@ export class VisibilityRulesService {
 		}
 	}
 
-	private hideParentIfAllChildrenAreHidden(propertyDefinition: DescriptionPropertyDefinitionPersist | DescriptionPropertyDefinition) {
-		if (this.definition?.pages == null || this.definition?.pages.length  == 0) return;
-		for (let i = 0; i < this.definition?.pages.length; i++) {
-			const pageEntity = this.definition?.pages[i];
+	private hideParentIfAllChildrenAreHidden(propertyDefinition: PropertyDefinitionPersist | PropertyDefinition) {
+		if (this.definition?.sections == null || this.definition?.sections.length  == 0) return;
+		for (let i = 0; i < this.definition?.sections.length; i++) {
+			const pageEntity = this.definition?.sections[i];
 			const fieldKey = this.buildVisibilityKey(pageEntity.id, null);
-			const isCurrentHidden = this.isHiddenPageVisibilityIfAllChildrenIsHidden(pageEntity, propertyDefinition);
+			const isCurrentHidden = this.isHiddenSectionIfAllChildrenIsHidden(pageEntity, propertyDefinition);
 
 			if (isCurrentHidden && (this._isVisibleMap[fieldKey] ?? true)) {
 				this._isVisibleMap[fieldKey] = false;
@@ -551,22 +639,22 @@ export class VisibilityRulesService {
 		}
 	}
 
-	private isHiddenPageVisibilityIfAllChildrenIsHidden(pageEntity: DescriptionTemplatePage, propertyDefinition: DescriptionPropertyDefinitionPersist | DescriptionPropertyDefinition): boolean{
-		let isHidden = true;
-		if (pageEntity?.sections == null || pageEntity?.sections.length == 0) return false;
-		for (let i = 0; i < pageEntity.sections.length; i++) {
-			const sectionEntity = pageEntity.sections[i];
-			const fieldKey = this.buildVisibilityKey(sectionEntity.id, null);
-			const isCurrentHidden = this.isHiddenSectionIfAllChildrenIsHidden(sectionEntity, propertyDefinition);
-			if (isCurrentHidden && (this._isVisibleMap[fieldKey] ?? true)) {
-				this._isVisibleMap[fieldKey] = false;
-			}
-			isHidden = isHidden && isCurrentHidden;
-		}
-		return isHidden;
-	}
+	// private isHiddenPageVisibilityIfAllChildrenIsHidden(pageEntity: DescriptionTemplatePage, propertyDefinition: DescriptionPropertyDefinitionPersist | DescriptionPropertyDefinition): boolean{
+	// 	let isHidden = true;
+	// 	if (pageEntity?.sections == null || pageEntity?.sections.length == 0) return false;
+	// 	for (let i = 0; i < pageEntity.sections.length; i++) {
+	// 		const sectionEntity = pageEntity.sections[i];
+	// 		const fieldKey = this.buildVisibilityKey(sectionEntity.id, null);
+	// 		const isCurrentHidden = this.isHiddenSectionIfAllChildrenIsHidden(sectionEntity, propertyDefinition);
+	// 		if (isCurrentHidden && (this._isVisibleMap[fieldKey] ?? true)) {
+	// 			this._isVisibleMap[fieldKey] = false;
+	// 		}
+	// 		isHidden = isHidden && isCurrentHidden;
+	// 	}
+	// 	return isHidden;
+	// }
 
-	private isHiddenSectionIfAllChildrenIsHidden(sectionEntity: DescriptionTemplateSection, propertyDefinition: DescriptionPropertyDefinitionPersist | DescriptionPropertyDefinition): boolean {
+	private isHiddenSectionIfAllChildrenIsHidden(sectionEntity: BaseSection, propertyDefinition: PropertyDefinitionPersist | PropertyDefinition): boolean {
 		let isHidden = true;
 		if ((sectionEntity.sections == null || sectionEntity?.sections.length == 0) && (sectionEntity.fieldSets == null || sectionEntity?.fieldSets.length == 0)) return false;
 		if (sectionEntity.sections != null) {
@@ -597,13 +685,20 @@ export class VisibilityRulesService {
 							isHidden = isHidden && isCurrentHidden;
 						}
 					}
-				}
+				}else {
+                    const fieldKey = this.buildVisibilityKey(fieldSetEntity.id, 0);
+                    const isCurrentHidden = this.isHiddenFieldSetIfAllChildrenIsHidden(fieldSetEntity, 0);
+                    if (isCurrentHidden && (this._isVisibleMap[fieldKey] ?? true)) {
+                        this._isVisibleMap[fieldKey] = false;
+                    }
+                    isHidden = isHidden && isCurrentHidden;
+                }
 			}
 		}
 		return isHidden;
 	}
 
-	private isHiddenFieldSetIfAllChildrenIsHidden(fieldSetEntity: DescriptionTemplateFieldSet, ordinal: number): boolean{
+	private isHiddenFieldSetIfAllChildrenIsHidden(fieldSetEntity: BaseFieldSet, ordinal: number): boolean{
 		let isHidden = true;
 		if (fieldSetEntity?.fields == null || fieldSetEntity?.fields.length == 0) return false;
 		for (let i = 0; i < fieldSetEntity.fields.length; i++) {
@@ -615,23 +710,23 @@ export class VisibilityRulesService {
 		return isHidden;
 	}
 
-	private ensureFieldSetVisibility(propertyDefinition: DescriptionPropertyDefinitionPersist | DescriptionPropertyDefinition) {
-		if (this.definition?.pages == null) return;
-		for (let i = 0; i < this.definition?.pages.length; i++) {
-			const pageEntity = this.definition?.pages[i];
-			this.ensurePageFieldSetVisibility(pageEntity, propertyDefinition);
+	private ensureFieldSetVisibility(propertyDefinition: PropertyDefinitionPersist | PropertyDefinition) {
+		if (this.definition?.sections == null) return;
+		for (let i = 0; i < this.definition?.sections.length; i++) {
+			const pageEntity = this.definition?.sections[i];
+			this.ensureSectionFieldSetVisibility(pageEntity, propertyDefinition);
 		}
 	}
 
-	private ensurePageFieldSetVisibility(pageEntity: DescriptionTemplatePage, propertyDefinition: DescriptionPropertyDefinitionPersist | DescriptionPropertyDefinition){
-		if (pageEntity?.sections == null) return;
-		for (let i = 0; i < pageEntity.sections.length; i++) {
-			const sectionEntity = pageEntity.sections[i];
-			this.ensureSectionFieldSetVisibility(sectionEntity, propertyDefinition);
-		}
-	}
+	// private ensurePageFieldSetVisibility(pageEntity: DescriptionTemplatePage, propertyDefinition: DescriptionPropertyDefinitionPersist | DescriptionPropertyDefinition){
+	// 	if (pageEntity?.sections == null) return;
+	// 	for (let i = 0; i < pageEntity.sections.length; i++) {
+	// 		const sectionEntity = pageEntity.sections[i];
+	// 		this.ensureSectionFieldSetVisibility(sectionEntity, propertyDefinition);
+	// 	}
+	// }
 
-	private ensureSectionFieldSetVisibility(sectionEntity: DescriptionTemplateSection, propertyDefinition: DescriptionPropertyDefinitionPersist | DescriptionPropertyDefinition){
+	private ensureSectionFieldSetVisibility(sectionEntity: BaseSection, propertyDefinition: PropertyDefinitionPersist | PropertyDefinition){
 		if (sectionEntity.sections != null) {
 			for (let i = 0; i < sectionEntity.sections.length; i++) {
 				const subSectionEntity = sectionEntity.sections[i];
@@ -653,10 +748,19 @@ export class VisibilityRulesService {
 							isHidden = isHidden && isCurrentHidden;
 						}
 					}
-				}
+				}else {
+                    const fieldKey = this.buildVisibilityKey(fieldSetEntity.id, 0);
+                    const isCurrentHidden = !this._isVisibleMap[fieldKey];
+                    isHidden = isHidden && isCurrentHidden;
+                }
 				const globalFieldSetKey = this.buildVisibilityKey(fieldSetEntity.id, null);
 				this._isVisibleMap[globalFieldSetKey] = !isHidden;
 			}
 		}
 	}
+
+    ngOnDelete(){
+        this.rulesChangedSubject.complete();
+        this.rulesChangedSubject.unsubscribe();
+    }
 }

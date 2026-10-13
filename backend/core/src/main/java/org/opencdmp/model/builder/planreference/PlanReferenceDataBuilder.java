@@ -47,6 +47,8 @@ public class PlanReferenceDataBuilder extends BaseBuilder<PlanReferenceData, Pla
         for (PlanReferenceDataEntity d : data) {
             PlanReferenceData m = new PlanReferenceData();
             if (fields.hasField(this.asIndexer(PlanReferenceData._blueprintFieldId))) m.setBlueprintFieldId(d.getBlueprintFieldId());
+            if (fields.hasField(this.asIndexer(PlanReferenceData._ordinal))) m.setOrdinal(d.getOrdinal());
+
             models.add(m);
         }
         this.logger.debug("build {} items", Optional.of(models).map(List::size).orElse(0));

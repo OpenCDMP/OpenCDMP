@@ -1,0 +1,101 @@
+@if (formGroup) {
+  <form [formGroup]="formGroup" class="reference-manual-form">
+    <div class="reference-manual-form--body">
+      @if (!referenceType) {
+        <div class="text-center py-5">
+          <mat-spinner diameter="48" class="mx-auto mb-3"></mat-spinner>
+          <p class="text-muted">{{'REFERENCE-FIELD.REFERENCE-DIALOG-EDITOR.LOADING' | translate}}</p>
+        </div>
+      }
+      @if (referenceType) {
+        <div class="reference-manual-form--header">
+          <span class="reference-manual-form--tile" aria-hidden="true">
+            @if (logoUrl && !reference) {
+              <img [src]="logoUrl" alt="" (error)="logoUrl = null">
+            } @else {
+              <mat-icon class="material-symbols-outlined">{{ reference ? 'edit' : 'add_link' }}</mat-icon>
+            }
+          </span>
+          <div class="reference-manual-form--heading">
+            @if (title) {
+              <h2 mat-dialog-title class="reference-manual-form--title">{{title}}</h2>
+            }
+            <p class="reference-manual-form--intro">
+              @if (reference) {
+                {{reference.label}}
+              } @else if (sourceNames) {
+                {{'REFERENCE-FIELD.REFERENCE-DIALOG-EDITOR.SUBTITLE' | translate: {Sources: sourceNames} }}
+              } @else {
+                {{'REFERENCE-FIELD.REFERENCE-DIALOG-EDITOR.SUBTITLE-NO-SOURCES' | translate}}
+              }
+            </p>
+          </div>
+          @if (title) {
+            <button mat-icon-button type="button" class="reference-manual-form--close" (click)="cancel()" [attr.aria-label]="'ALT-TEXT.CLOSE-DIALOG' | translate">
+              <mat-icon aria-hidden="true">close</mat-icon>
+            </button>
+          }
+        </div>
+        @if (reference) {
+          <div class="reference-manual-form--notice" role="note">
+            <mat-icon aria-hidden="true">info</mat-icon>
+            <span>{{'REFERENCE-FIELD.REFERENCE-DIALOG-EDITOR.EDIT-HINT' | translate}}</span>
+          </div>
+        }
+        @if (!labelTemplate) {
+        <mat-form-field class="w-100" subscriptSizing="dynamic" floatLabel="always">
+          <mat-label>{{'REFERENCE-FIELD.REFERENCE-DIALOG-EDITOR.LABEL' | translate}}</mat-label>
+          <input matInput type="text" name="label" [formControl]="formGroup.get('label')" required>
+          <mat-hint>{{'REFERENCE-FIELD.REFERENCE-DIALOG-EDITOR.NAME-HINT' | translate}}</mat-hint>
+          @if (formGroup.get('label').hasError('required')) {
+            <mat-error>{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
+          }
+        </mat-form-field>
+        }
+        @if (hasReferenceTypeFields) {
+          <div class="reference-manual-form--section">
+            <h3 class="reference-manual-form--section-title">{{'REFERENCE-FIELD.REFERENCE-DIALOG-EDITOR.DETAILS' | translate}}</h3>
+            <div class="reference-manual-form--fields">
+              @for (field of referenceType.definition.fields; track field.code) {
+                <mat-form-field subscriptSizing="dynamic" floatLabel="always">
+                  <mat-label>{{field.label}}</mat-label>
+                  <input matInput type="text" [name]="field.code" [formControl]="formGroup.get(field.code)" [required]="isRequired(formGroup.get(field.code))">
+                  @if (fieldHint(field); as hint) {
+                    <mat-hint>{{hint}}</mat-hint>
+                  }
+                  @if (formGroup.get(field.code).hasError('required')) {
+                    <mat-error>{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
+                  }
+                </mat-form-field>
+              }
+            </div>
+          </div>
+        }
+        @if (showDescription) {
+          <mat-form-field class="w-100" subscriptSizing="dynamic" floatLabel="always">
+            <mat-label>{{'REFERENCE-FIELD.REFERENCE-DIALOG-EDITOR.DESCRIPTION' | translate}}</mat-label>
+            <textarea matInput name="description" [formControl]="formGroup.get('description')" rows="3"></textarea>
+            <mat-hint>{{'REFERENCE-FIELD.REFERENCE-DIALOG-EDITOR.DESCRIPTION-HINT' | translate}}</mat-hint>
+          </mat-form-field>
+        } @else {
+          <button mat-button type="button" class="reference-manual-form--add-description" (click)="showDescription = true">
+            <mat-icon aria-hidden="true">add</mat-icon>
+            {{'REFERENCE-FIELD.REFERENCE-DIALOG-EDITOR.ADD-DESCRIPTION' | translate}}
+          </button>
+        }
+        @if (preview) {
+          <div class="reference-manual-form--section">
+            <h3 class="reference-manual-form--section-title">{{'REFERENCE-FIELD.REFERENCE-DIALOG-EDITOR.PREVIEW' | translate}}</h3>
+            <app-reference-card [class.is-empty]="previewEmpty" [reference]="preview" [referenceType]="referenceType" [showDescription]="true" [expandable]="false"></app-reference-card>
+          </div>
+        }
+      }
+    </div>
+    <div class="reference-manual-form--actions">
+      <button mat-button type="button" (click)="cancel()">{{'COMMONS.ACTIONS.CANCEL' | translate}}</button>
+      <button mat-flat-button color="primary" type="button" (click)="send()">
+        {{(reference ? 'REFERENCE-FIELD.REFERENCE-DIALOG-EDITOR.SAVE-FOR-PLAN' : 'REFERENCE-FIELD.REFERENCE-DIALOG-EDITOR.ADD') | translate}}
+      </button>
+    </div>
+  </form>
+}

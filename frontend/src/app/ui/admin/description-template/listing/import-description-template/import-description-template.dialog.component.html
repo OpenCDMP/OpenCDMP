@@ -5,17 +5,19 @@
 		</div>
 		<div class="ml-auto">
             <button mat-icon-button (click)="cancel()" [attr.aria-label]="'ALT-TEXT.CLOSE-DIALOG'  | translate">
-                <mat-icon aria-hidden>close</mat-icon>
+                <mat-icon aria-hidden="true">close</mat-icon>
             </button>
 		</div>
 	</div>
 	<div mat-dialog-content>
-        <app-file-uploader 
-            [accept]="'text/xml'"
-            [placeholder]="(hasBlueprint() ? 'DESCRIPTION-TEMPLATE-LISTING.IMPORT.REPLACE-FILE' : 'DESCRIPTION-TEMPLATE-LISTING.IMPORT.UPLOAD-FILE') | translate"
-            (onChange)="selectXML($event)"
-            (onRemove)="onRemove()"
-        />
+		<p>
+			<app-file-uploader
+					[accept]="'text/xml'"
+					[placeholder]="(hasBlueprint() ? 'DESCRIPTION-TEMPLATE-LISTING.IMPORT.REPLACE-FILE' : 'DESCRIPTION-TEMPLATE-LISTING.IMPORT.UPLOAD-FILE') | translate"
+					(onChange)="selectXML($event)"
+					(onRemove)="onRemove()"
+			/>
+		</p>
 		<div class="row">
 			<mat-form-field class="col-12">
 				<input matInput placeholder="{{'DESCRIPTION-TEMPLATE-LISTING.IMPORT.UPLOAD-XML-NAME'| translate}}" name="descriptionBlueprintName" [(ngModel)]="data.name">

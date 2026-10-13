@@ -1,53 +1,64 @@
-.search ::ng-deep.mat-form-field-infix {
-	margin-left: 1em;
+:host {
+    display: block;
+    width: 100%;
 }
-
 .category-title {
-	color: black;
-	margin-top: 8px;
-	margin-bottom: 12px;
-	text-transform: none;
-	font-size: var(--mat-sys-body-medium-size);
-	font-weight: 400;
+  font-size: var(--mat-sys-label-large-size);
+  font-weight: 500;
+  margin-bottom: 0.5rem;
+  margin-top: 1rem;
+}
+h3.category-title {
+  margin-top: 1rem;
+  margin-bottom: 0.5rem;
+  font-weight: 500;
 }
 
-.import {
-	margin: 10px;
-	padding: 0px;
-} 
-
-.criteria-title {
-	color: black;
-	font-weight: 500;
-	text-transform: none;
-	font-size: var(--mat-sys-headline-medium-size);
-	margin-bottom: 1.5em;
-	opacity: 0.8;
+// Reference types: each selected type is grouped into its own card so the
+// "reference type" + "reference" autocomplete pair reads as one unit and the
+// remove action clearly applies to the whole group.
+.reference-type-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    margin-bottom: 0.5rem;
+}
+.reference-type-card {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    padding: 0.5rem 0.75rem 0.75rem;
+    border: 1px solid var(--mat-sys-outline-variant);
+    border-radius: 10px;
+    background-color: var(--mat-sys-surface);
+}
+.reference-type-card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+.reference-type-card-index {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 1.5rem;
+    height: 1.5rem;
+    padding: 0 0.4rem;
+    border-radius: 999px;
+    font-size: var(--mat-sys-label-large-size);
+    font-weight: 500;
+    line-height: 1;
+    color: var(--mat-sys-on-primary);
+    background-color: var(--mat-sys-primary);
 }
 
-.filters-title {
-	width: 93px;
-	color: var(--mat-sys-primary);
-	background-color: white;
-	padding: 0px 20px;
-	margin-top: -10px;
-	margin-left: 20px;
-	text-transform: uppercase;
+.reference-type-hint {
+    margin: 0;
+    font-size: var(--mat-sys-label-medium-size);
+    color: var(--mat-sys-on-surface-variant);
 }
-
-.style-icon {
-	color: #adadad;
-}
-
-::ng-deep .search-form .mat-form-field-wrapper {
-	background-color: white !important;
-	padding-bottom: 0 !important;
-}
-
-::ng-deep .mat-form-field-appearance-outline .mat-form-field-infix {
-	padding: 0.3rem 0rem 0.6rem 0rem !important;
-}
-
-::ng-deep label {
-	margin: 0;
+.add-reference-type-btn{
+    font-size: var(--mat-sys-body-medium-size);
+    padding: 0.5rem;
+    width: fit-content;
 }

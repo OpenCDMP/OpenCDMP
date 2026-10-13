@@ -1,5 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { AuthService } from '@app/core/services/auth/auth.service';
 import { SnackBarNotificationLevel } from '@app/core/services/notification/ui-notification-service';
@@ -8,13 +8,14 @@ import { UserService } from '@app/core/services/user/user.service';
 import { BaseComponent } from '@common/base/base.component';
 import { HttpError, HttpErrorHandlingService } from '@common/modules/errors/error-handling/http-error-handling.service';
 import { Guid } from '@common/types/guid';
-import { TranslateService } from '@ngx-translate/core';
+import { TranslateService, TranslatePipe } from '@ngx-translate/core';
 import { takeUntil } from "rxjs/operators";
 
 @Component({
     selector: 'app-user-invite-confirmation-component',
     templateUrl: './user-invite-confirmation.component.html',
-    standalone: false
+    changeDetection: ChangeDetectionStrategy.Eager,
+    imports: [TranslatePipe]
 })
 export class UserInviteConfirmation extends BaseComponent implements OnInit {
 	private token: Guid;
@@ -58,7 +59,7 @@ export class UserInviteConfirmation extends BaseComponent implements OnInit {
 			},
 			error => this.onCallbackError(error));
 		} else {
-			let returnUrl = `login/invitation/confirmation/${this.token}`;
+			const returnUrl = `login/invitation/confirmation/${this.token}`;
 			this.router.navigate([this.routerUtils.generateUrl('login')], {queryParams:{returnUrl: this.routerUtils.generateUrl(returnUrl)}});	
 		}
 		
@@ -79,7 +80,7 @@ export class UserInviteConfirmation extends BaseComponent implements OnInit {
 
 	onCallbackError(errorResponse: HttpErrorResponse) {
 
-		let errorOverrides = new Map<number, string>();
+		const errorOverrides = new Map<number, string>();
 		errorOverrides.set(302, this.language.instant('EMAIL-CONFIRMATION.EMAIL-FOUND'));
 		errorOverrides.set(-1, this.language.instant('EMAIL-CONFIRMATION.EXPIRED-EMAIL'));
 		this.httpErrorHandlingService.handleBackedRequestError(errorResponse, errorOverrides, SnackBarNotificationLevel.Error)

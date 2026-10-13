@@ -12,8 +12,15 @@
 	}
 	.panel-title
 	{
-        font-size: var(--mat-sys-headline-medium-size);
-        margin: 0.5rem 0;
+        font-size: var(--mat-sys-title-large-size);
+        &.child--panel-title{
+            font-size: var(--mat-sys-title-medium-size);
+        }
+        font-weight: 500;
+        margin: 0.625rem 0;
+        .path {
+            opacity: 0.7;
+        }
 	}
 
 	.panel-desc {
@@ -21,10 +28,17 @@
 		text-transform: none;
 		margin-top: .5rem;
 	}
+
+	// Legend for the required asterisks shown on the field headings of this section.
+	.panel-required-hint {
+		margin: 0.25rem 0 0;
+		font-size: var(--mat-sys-body-small-size);
+		color: var(--mat-sys-on-surface-variant);
+	}
     .field-sets {
-        margin-left: 0.5rem;
-        padding-left: 1rem;
-        border-left: 2px solid var(--mat-sys-primary);
+        //margin-left: 0.5rem;
+        // padding-left: 1rem;
+        // border-left: 2px solid var(--mat-sys-primary);
     }
 }
 .styleBorder {

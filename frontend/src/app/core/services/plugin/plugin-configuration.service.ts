@@ -32,7 +32,7 @@ export class PluginConfigurationService extends BaseService {
         const deposits = this.depositService.availableDeposits();
         
         if(!authenticated || !fileTranformerRepositories || !evaluators || !deposits) { return; }
-        let res = [];
+        const res = [];
 		fileTranformerRepositories?.forEach(x => {
 			if (x.fileTransformerId && x.configurationFields?.length > 0) {
 				res.push( {
@@ -67,10 +67,11 @@ export class PluginConfigurationService extends BaseService {
 
 	public getPluginRepositoryConfigurationFor(pluginType: PluginType, entityTypes: PluginEntityType[]) {
 		let pluginRepositoryConfiguration = JSON.parse(JSON.stringify(this.pluginRepositoryConfiguration()));
-		if (this.pluginRepositoryConfiguration() && pluginType) pluginRepositoryConfiguration = pluginRepositoryConfiguration.filter(x => x.pluginType == pluginType);
+		// FileTransformer is 0, so compare with null rather than test truthiness
+		if (this.pluginRepositoryConfiguration() && pluginType != null) pluginRepositoryConfiguration = pluginRepositoryConfiguration.filter(x => x.pluginType == pluginType);
 		if (this.pluginRepositoryConfiguration() && entityTypes?.length > 0) {
 			pluginRepositoryConfiguration.forEach(plugin => {
-				plugin.fields = plugin.fields?.filter(x => x.appliesTo.some(x => entityTypes.includes(x)))
+				plugin.fields = plugin.fields?.filter(x => x.appliesTo?.some(x => entityTypes.includes(x)))
 			})
 		}
 		return pluginRepositoryConfiguration;
@@ -83,7 +84,7 @@ export class PluginConfigurationService extends BaseService {
 		const plugins = [];
 		this.pluginRepositoryConfiguration().forEach( repo => {
 			if (repo.fields?.length > 0) {
-				let pluginFields: PluginConfigurationField[] = [];
+				const pluginFields: PluginConfigurationField[] = [];
 				repo?.fields?.forEach(configField => {
 					pluginFields.push({
 						code: configField.code,
@@ -105,13 +106,13 @@ export class PluginConfigurationService extends BaseService {
 
 	public getAvailablePluginsFor(pluginType: PluginType, entityTypes: PluginEntityType[]) {
         let availablePlugins = [];
-		if (this.availablePlugins() && pluginType && !entityTypes){
+		if (this.availablePlugins() && pluginType != null && !entityTypes){
             availablePlugins = this.availablePlugins().filter(x => x.pluginType == pluginType)
         }else if (this.availablePlugins() && entityTypes) {
 			const pluginRepositoriesConfiguration = this.getPluginRepositoryConfigurationFor(pluginType, entityTypes);
 			pluginRepositoriesConfiguration?.forEach( repo => {
 				if (repo.fields?.length > 0) {
-					let pluginFields: PluginConfigurationField[] = [];
+					const pluginFields: PluginConfigurationField[] = [];
 					repo?.fields?.forEach(configField => {
 						pluginFields.push({
 							code: configField.code,
@@ -145,7 +146,7 @@ export class PluginConfigurationService extends BaseService {
         const deposits = this.depositService.availableDeposits();
         
         if(!authenticated || !fileTranformerRepositories || !evaluators || !deposits) { return; }
-        let res = [];
+        const res = [];
 		fileTranformerRepositories?.forEach(x => {
 			if (x.fileTransformerId && x.userConfigurationFields?.length > 0) {
 				res.push( {
@@ -185,7 +186,7 @@ export class PluginConfigurationService extends BaseService {
 		const plugins: PluginConfigurationUser[] = [];
 		this.pluginRepositoryUserConfiguration().forEach( repo => {
 			if (repo.fields?.length > 0) {
-				let pluginFields: PluginConfigurationUserField[] = [];
+				const pluginFields: PluginConfigurationUserField[] = [];
 				repo?.fields?.forEach(configField => {
 					pluginFields.push({
 						code: configField.code,

@@ -1,0 +1,28 @@
+<h2 mat-dialog-title class="tp-title">{{'PLAN-BLUEPRINT-EDITOR.PICKER.TITLE' | translate}}</h2>
+<mat-dialog-content class="tp-content">
+	<p class="bp2-help tp-intro">{{'PLAN-BLUEPRINT-EDITOR.PICKER.HINT' | translate}}</p>
+	<mat-form-field class="tp-search" subscriptSizing="dynamic">
+		<mat-icon matPrefix aria-hidden="true">search</mat-icon>
+		<input matInput type="search" [formControl]="search" [placeholder]="'PLAN-BLUEPRINT-EDITOR.PICKER.SEARCH' | translate" [attr.aria-label]="'PLAN-BLUEPRINT-EDITOR.PICKER.SEARCH' | translate">
+	</mat-form-field>
+	<div class="tp-list" role="listbox" aria-multiselectable="true">
+		@if (items === null) { <p class="bp2-help">{{'PLAN-BLUEPRINT-EDITOR.PICKER.LOADING' | translate}}</p> }
+		@else if (!items.length) { <p class="bp2-help">{{'PLAN-BLUEPRINT-EDITOR.PICKER.EMPTY' | translate}}</p> }
+		@for (item of items; track item.id) {
+			<label class="tp-item" [class.tp-item--on]="isSelected(item)">
+				<input type="checkbox" class="tp-item__check" [checked]="isSelected(item)" (change)="toggle(item)">
+				<span class="bp2-tile tp-item__tile"><mat-icon>inventory_2</mat-icon></span>
+				<span class="tp-item__text">
+					<span class="bp2-row" style="gap: .5rem; flex-wrap: wrap;"><strong>{{item.label}}</strong>@if (item.type?.name) { <span class="bp2-tag bp2-tag--type">{{item.type.name}}</span> }@if (item.belongsToCurrentTenant === false) { <span class="bp2-tag bp2-tag--opt">{{'COMMONS.TENANT-SHARED.CHIP' | translate}}</span> }</span>
+					<span class="bp2-sub tp-item__meta">@if (item.code) { {{item.code}} · } @if (item.version) { v{{item.version}} } @if (snippet(item)) { · {{snippet(item)}} }</span>
+				</span>
+				<button mat-button type="button" class="bp2-btn-sm" (click)="preview(item, $event)">{{'PLAN-BLUEPRINT-EDITOR.ASSETS.PREVIEW' | translate}}</button>
+			</label>
+		}
+	</div>
+</mat-dialog-content>
+<mat-dialog-actions class="tp-actions">
+	<span class="bp2-sub tp-foot">{{'PLAN-BLUEPRINT-EDITOR.PICKER.SELECTED' | translate: { count: selected.size } }}</span>
+	<button mat-button type="button" (click)="cancel()">{{'GENERAL.CONFIRMATION-DIALOG.ACTIONS.CANCEL' | translate}}</button>
+	<button mat-flat-button color="primary" type="button" [disabled]="!selected.size" (click)="confirm()">{{'PLAN-BLUEPRINT-EDITOR.PICKER.ADD' | translate: { count: selected.size } }}</button>
+</mat-dialog-actions>

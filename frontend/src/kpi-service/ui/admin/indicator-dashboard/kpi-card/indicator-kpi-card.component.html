@@ -1,0 +1,23 @@
+<div class="kpi-card">
+	<span class="kpi-label">{{ gauge().labelOverrideLanguage ? (gauge().labelOverrideLanguage | translate) : gauge().labelOverride }}</span>
+	@if (data(); as data) {
+		@if (data.error) {
+			<span class="kpi-value" aria-hidden="true">–</span>
+			<span class="kpi-change">{{ 'INDICATOR-DASHBOARD.KPI-CARD.UNAVAILABLE' | translate }}</span>
+		} @else {
+			<span class="kpi-value">{{ data.total | number }}</span>
+			<span class="kpi-change">
+				@if (data.recent !== 0) {
+					<mat-icon aria-hidden="true">{{ data.recent > 0 ? 'arrow_upward' : 'arrow_downward' }}</mat-icon>
+				}
+				{{ 'INDICATOR-DASHBOARD.KPI-CARD.CHANGE' | translate: { count: (data.recent > 0 ? '+' : '') + (data.recent | number) } }}
+			</span>
+			<svg class="kpi-sparkline" viewBox="0 0 100 32" preserveAspectRatio="none" aria-hidden="true">
+				<polygon class="sparkline-area" [attr.points]="data.sparklineArea" />
+				<polyline class="sparkline-line" [attr.points]="data.sparkline" />
+			</svg>
+		}
+	} @else {
+		<mat-spinner diameter="24" class="my-3" />
+	}
+</div>

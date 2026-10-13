@@ -9,10 +9,17 @@ import gr.cite.tools.logging.MapLogEntry;
 import org.opencdmp.authorization.AuthorizationFlags;
 import org.opencdmp.authorization.OwnedResource;
 import org.opencdmp.authorization.Permission;
+import org.opencdmp.commons.JsonHandlingService;
+import org.opencdmp.commons.XmlHandlingService;
 import org.opencdmp.commons.enums.*;
 import org.opencdmp.commons.scope.tenant.TenantScopeFactory;
 import org.opencdmp.commons.scope.user.UserScopeFactory;
 import org.opencdmp.commons.types.dashborad.RecentActivityItemEntity;
+import org.opencdmp.commons.types.referencetype.ReferenceTypeDefinitionEntity;
+import org.opencdmp.commons.types.tenantconfiguration.ViewPreferencesConfigurationEntity;
+import org.opencdmp.commons.types.viewpreference.ViewPreferenceEntity;
+import org.opencdmp.data.ReferenceTypeEntity;
+import org.opencdmp.data.TenantConfigurationEntity;
 import org.opencdmp.convention.ConventionService;
 import org.opencdmp.model.*;
 import org.opencdmp.model.builder.PublicReferenceTypeBuilder;
@@ -26,6 +33,7 @@ import org.opencdmp.query.lookup.PlanLookup;
 import org.opencdmp.service.elastic.ElasticQueryHelperService;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import javax.management.InvalidApplicationException;
@@ -44,7 +52,8 @@ public class DashboardServiceImpl implements DashboardService {
     private final QueryFactory queryFactory;
     private final UserScopeFactory userScopeFactory;
     private final TenantScopeFactory tenantScopeFactory;
-    private final DashboardServiceProperties config;
+    private final JsonHandlingService jsonHandlingService;
+    private final XmlHandlingService xmlHandlingService;
     private final ElasticQueryHelperService elasticQueryHelperService;
     private final DashboardStatisticsCacheService dashboardStatisticsCacheService;
     @Autowired
@@ -54,23 +63,25 @@ public class DashboardServiceImpl implements DashboardService {
 		    QueryFactory queryFactory,
             UserScopeFactory userScopeFactory,
             TenantScopeFactory tenantScopeFactory,
-		    DashboardServiceProperties config, ElasticQueryHelperService elasticQueryHelperService, DashboardStatisticsCacheService dashboardStatisticsCacheService) {
+		    JsonHandlingService jsonHandlingService, XmlHandlingService xmlHandlingService, ElasticQueryHelperService elasticQueryHelperService, DashboardStatisticsCacheService dashboardStatisticsCacheService) {
 	    this.conventionService = conventionService;
 	    this.authorizationService = authorizationService;
         this.builderFactory = builderFactory;
         this.queryFactory = queryFactory;
         this.userScopeFactory = userScopeFactory;
         this.tenantScopeFactory = tenantScopeFactory;
-	    this.config = config;
+	    this.jsonHandlingService = jsonHandlingService;
+	    this.xmlHandlingService = xmlHandlingService;
 	    this.elasticQueryHelperService = elasticQueryHelperService;
         this.dashboardStatisticsCacheService = dashboardStatisticsCacheService;
     }
 
     @Override
-    public List<RecentActivityItem> getMyRecentActivityItems(RecentActivityItemLookup model) throws InvalidApplicationException {
+    public QueryResult<RecentActivityItem> getMyRecentActivityItems(RecentActivityItemLookup model) throws InvalidApplicationException {
         logger.debug(new MapLogEntry("collecting recent activity").And("model", model));
         model.setUserIds(List.of(this.userScopeFactory.getInstance().getUserId()));
-        
+
+        long count = 0;
         List<RecentActivityItemEntity> recentActivityItemEntities = new ArrayList<>();
         DescriptionLookup descriptionLookup = model.asDescriptionLookup();
         if (descriptionLookup != null) {
@@ -81,6 +92,7 @@ public class DashboardServiceImpl implements DashboardService {
             if (!this.conventionService.isListNullOrEmpty(descriptions.getItems())) {
                 for (Description description : descriptions.getItems()) recentActivityItemEntities.add(new RecentActivityItemEntity(RecentActivityItemType.Description, description.getId(), description.getUpdatedAt(), description.getLabel(), description.getStatus().getId()));
             }
+            count = count + this.elasticQueryHelperService.count(descriptionLookup, AuthorizationFlags.AllExceptPublic);
         }
         
         PlanLookup planLookup = model.asPlanLookup();
@@ -92,24 +104,30 @@ public class DashboardServiceImpl implements DashboardService {
             if (!this.conventionService.isListNullOrEmpty(plans.getItems())) {
                 for (Plan plan : plans.getItems()) recentActivityItemEntities.add(new RecentActivityItemEntity(RecentActivityItemType.Plan, plan.getId(), plan.getUpdatedAt(), plan.getLabel(), plan.getStatus().getId()));
             }
+            count = count + this.elasticQueryHelperService.count(planLookup, AuthorizationFlags.AllExceptPublic);
         }
 
         Comparator<RecentActivityItemEntity> comparator = Comparator.comparing(RecentActivityItemEntity::getUpdatedAt);
         
-        if (model.getOrderField() != null) {
-            switch (model.getOrderField()){
+        if (model.getOrder() != null && model.getOrder().getOrderField() != null) {
+            switch (model.getOrder().getOrderField()){
                 case Label -> comparator = Comparator.comparing(RecentActivityItemEntity::getLabel).thenComparing(RecentActivityItemEntity::getUpdatedAt);
                 case UpdatedAt -> comparator = Comparator.comparing(RecentActivityItemEntity::getUpdatedAt);
                 case Status -> comparator = Comparator.comparing(RecentActivityItemEntity::getStatusId).thenComparing(RecentActivityItemEntity::getUpdatedAt);
-                default -> throw  new IllegalArgumentException("Type not found" + model.getOrderField()) ;
+                default -> throw  new IllegalArgumentException("Type not found" + model.getOrder().getOrderField()) ;
             }
         }
-        recentActivityItemEntities = recentActivityItemEntities.stream().sorted(comparator).toList().reversed();
+
+        // Dynamic ASC/DESC
+        if (model.getOrder() != null && model.getOrder().getSortDirection() != null && model.getOrder().getSortDirection() == Sort.Direction.DESC) {
+            comparator = comparator.reversed();
+        }
+        recentActivityItemEntities = recentActivityItemEntities.stream().sorted(comparator).toList();
 
         if (model.getPage() != null){
             recentActivityItemEntities = recentActivityItemEntities.stream().skip(model.getPage().getOffset()).limit(model.getPage().getSize()).toList();
         }
-        return this.builderFactory.builder(RecentActivityItemBuilder.class).authorize(AuthorizationFlags.AllExceptPublic).build(BaseFieldSet.build(model.getProject()), recentActivityItemEntities);
+        return new QueryResult<>(this.builderFactory.builder(RecentActivityItemBuilder.class).authorize(AuthorizationFlags.AllExceptPublic).build(BaseFieldSet.build(model.getProject()), recentActivityItemEntities), count);
     }
 
     @Override
@@ -119,22 +137,23 @@ public class DashboardServiceImpl implements DashboardService {
         DashboardStatisticsCacheService.DashboardStatisticsCacheValue cacheValue = this.dashboardStatisticsCacheService.lookup(this.dashboardStatisticsCacheService.buildKey(DashboardStatisticsCacheService.publicKey));
         if (cacheValue == null || cacheValue.getDashboardStatistics() == null) {
             PlanStatusQuery planStatusQuery = this.queryFactory.query(PlanStatusQuery.class).disableTracking().internalStatuses(PlanStatus.Finalized).isActives(IsActive.Active);
-            PlanQuery planQuery = this.queryFactory.query(PlanQuery.class).disableTracking().isActive(IsActive.Active).versionStatuses(PlanVersionStatus.Current).planStatusSubQuery(planStatusQuery).accessTypes(PlanAccessType.Public);
+            PlanQuery planQuery = this.queryFactory.query(PlanQuery.class).disableTracking().isActive(IsActive.Active).planStatusSubQuery(planStatusQuery).accessTypes(PlanAccessType.Public);
             DashboardStatistics statistics = new DashboardStatistics();
             statistics.setPlanCount(planQuery.authorize(EnumSet.of(Public)).count());
             DescriptionStatusQuery descriptionStatusQuery = this.queryFactory.query(DescriptionStatusQuery.class).disableTracking().internalStatuses(DescriptionStatus.Finalized).isActive(IsActive.Active);
             statistics.setDescriptionCount(this.queryFactory.query(DescriptionQuery.class).disableTracking().isActive(IsActive.Active).planSubQuery(planQuery).descriptionStatusSubQuery(descriptionStatusQuery).authorize(EnumSet.of(Public)).count());
 
+            // One counter per featured plan reference type of the default tenant (its view preferences),
+            // the installation baseline, since these statistics span every tenant's public plans.
             statistics.setReferenceTypeStatistics(new ArrayList<>());
-            if (!this.conventionService.isListNullOrEmpty(this.config.getReferenceTypeCounters())){
-                for (UUID typeId : this.config.getReferenceTypeCounters()){
-                    DashboardReferenceTypeStatistics referenceTypeStatistics = new DashboardReferenceTypeStatistics();
-                    referenceTypeStatistics.setCount(this.queryFactory.query(ReferenceQuery.class).disableTracking().isActive(IsActive.Active).typeIds(typeId).authorize(EnumSet.of(Public))
-                            .planReferenceSubQuery(this.queryFactory.query(PlanReferenceQuery.class).disableTracking().isActives(IsActive.Active)
-                                    .planSubQuery(planQuery)).count());
-                    referenceTypeStatistics.setReferenceType(this.builderFactory.builder(PublicReferenceTypeBuilder.class).build(new BaseFieldSet().ensure(PublicReferenceType._id), this.queryFactory.query(ReferenceTypeQuery.class).disableTracking().ids(typeId).first()));
-                    statistics.getReferenceTypeStatistics().add(referenceTypeStatistics);
-                }
+            for (ReferenceTypeEntity referenceType : this.featuredPlanReferenceTypes()) {
+                DashboardReferenceTypeStatistics referenceTypeStatistics = new DashboardReferenceTypeStatistics();
+                referenceTypeStatistics.setCount(this.queryFactory.query(ReferenceQuery.class).disableTracking().isActive(IsActive.Active).typeIds(referenceType.getId()).authorize(EnumSet.of(Public))
+                        .planReferenceSubQuery(this.queryFactory.query(PlanReferenceQuery.class).disableTracking().isActives(IsActive.Active)
+                                .planSubQuery(planQuery)).count());
+                referenceTypeStatistics.setReferenceType(this.builderFactory.builder(PublicReferenceTypeBuilder.class).build(new BaseFieldSet().ensure(PublicReferenceType._id).ensure(PublicReferenceType._name), referenceType));
+                referenceTypeStatistics.setHasLogo(this.hasLogo(referenceType));
+                statistics.getReferenceTypeStatistics().add(referenceTypeStatistics);
             }
             
             cacheValue = new DashboardStatisticsCacheService.DashboardStatisticsCacheValue();
@@ -155,28 +174,48 @@ public class DashboardServiceImpl implements DashboardService {
             planUserLookup.userIds(this.userScopeFactory.getInstance().getUserId());
             planUserLookup.isActives(IsActive.Active);
 
-            PlanQuery planQuery = this.queryFactory.query(PlanQuery.class).disableTracking().isActive(IsActive.Active).planUserSubQuery(planUserLookup).versionStatuses(List.of(PlanVersionStatus.Current, PlanVersionStatus.NotFinalized));
+            PlanQuery planQuery = this.queryFactory.query(PlanQuery.class).disableTracking().isActive(IsActive.Active).planUserSubQuery(planUserLookup);
             
             DashboardStatistics statistics = new DashboardStatistics();
             statistics.setPlanCount(planQuery.authorize(AuthorizationFlags.AllExceptPublic).count());
             statistics.setDescriptionCount(this.queryFactory.query(DescriptionQuery.class).disableTracking().isActive(IsActive.Active).planSubQuery(planQuery).authorize(AuthorizationFlags.AllExceptPublic).count());
 
+            // Signed-in users count their featured reference types through POST api/reference/usage instead.
             statistics.setReferenceTypeStatistics(new ArrayList<>());
-            if (!this.conventionService.isListNullOrEmpty(this.config.getReferenceTypeCounters())){
-                for (UUID typeId : this.config.getReferenceTypeCounters()){
-                    DashboardReferenceTypeStatistics referenceTypeStatistics = new DashboardReferenceTypeStatistics();
-                    referenceTypeStatistics.setCount(this.queryFactory.query(ReferenceQuery.class).disableTracking().isActive(IsActive.Active).typeIds(typeId).authorize(AuthorizationFlags.AllExceptPublic)
-                            .planReferenceSubQuery(this.queryFactory.query(PlanReferenceQuery.class).disableTracking().isActives(IsActive.Active)
-                                    .planSubQuery(planQuery)).count());
-                    referenceTypeStatistics.setReferenceType(this.builderFactory.builder(PublicReferenceTypeBuilder.class).build(new BaseFieldSet().ensure(PublicReferenceType._id), this.queryFactory.query(ReferenceTypeQuery.class).disableTracking().ids(typeId).first()));
-                    statistics.getReferenceTypeStatistics().add(referenceTypeStatistics);
-                }
-            }
+
+            statistics.setPlanBlueprintsCount(this.queryFactory.query(PlanBlueprintQuery.class).disableTracking().isActive(IsActive.Active).statuses(PlanBlueprintStatus.Finalized).versionStatuses(List.of(PlanBlueprintVersionStatus.Current)).authorize(AuthorizationFlags.AllExceptPublic).count());
+            statistics.setDescriptionTemplatesCount(this.queryFactory.query(DescriptionTemplateQuery.class).disableTracking().isActive(IsActive.Active).statuses(DescriptionTemplateStatus.Finalized).versionStatuses(List.of(DescriptionTemplateVersionStatus.Current)).authorize(AuthorizationFlags.AllExceptPublic).count());
+
             cacheValue = new DashboardStatisticsCacheService.DashboardStatisticsCacheValue(this.userScopeFactory.getInstance().getUserId(), this.tenantScopeFactory.getInstance().getTenantCode());
             cacheValue.setPublic(false);
             cacheValue.setDashboardStatistics(statistics);
             this.dashboardStatisticsCacheService.put(cacheValue);
         }
         return cacheValue.getDashboardStatistics();
+    }
+
+    /** The active reference types the default tenant features on plans (view preferences), in their configured order. */
+    private List<ReferenceTypeEntity> featuredPlanReferenceTypes() {
+        TenantConfigurationEntity configuration = this.queryFactory.query(TenantConfigurationQuery.class).disableTracking()
+                .isActive(IsActive.Active).types(TenantConfigurationType.ViewPreferences).tenantIsSet(false).first();
+        if (configuration == null || this.conventionService.isNullOrEmpty(configuration.getValue())) return List.of();
+
+        ViewPreferencesConfigurationEntity preferences = this.jsonHandlingService.fromJsonSafe(ViewPreferencesConfigurationEntity.class, configuration.getValue());
+        if (preferences == null || this.conventionService.isListNullOrEmpty(preferences.getPlanPreferences())) return List.of();
+
+        List<UUID> typeIds = preferences.getPlanPreferences().stream()
+                .filter(x -> x.getReferenceTypeId() != null)
+                .sorted(Comparator.comparing(ViewPreferenceEntity::getOrdinal, Comparator.nullsLast(Comparator.naturalOrder())))
+                .map(ViewPreferenceEntity::getReferenceTypeId).distinct().toList();
+        if (typeIds.isEmpty()) return List.of();
+
+        Map<UUID, ReferenceTypeEntity> types = new HashMap<>();
+        for (ReferenceTypeEntity type : this.queryFactory.query(ReferenceTypeQuery.class).disableTracking().ids(typeIds).isActive(IsActive.Active).collect()) types.put(type.getId(), type);
+        return typeIds.stream().filter(types::containsKey).map(types::get).toList();
+    }
+
+    private boolean hasLogo(ReferenceTypeEntity referenceType) {
+        ReferenceTypeDefinitionEntity definition = this.xmlHandlingService.fromXmlSafe(ReferenceTypeDefinitionEntity.class, referenceType.getDefinition());
+        return definition != null && definition.getSources() != null && definition.getSources().stream().anyMatch(x -> x != null && x.getStorageFileId() != null);
     }
 }

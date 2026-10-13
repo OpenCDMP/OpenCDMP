@@ -1,8 +1,9 @@
-import { Component } from "@angular/core";
+import { Component, ChangeDetectionStrategy } from "@angular/core";
 
 @Component({
+    selector: 'app-reload-helper',
     template: "",
-    standalone: false
+    changeDetection: ChangeDetectionStrategy.Eager
 })
 export class ReloadHelperComponent {
 

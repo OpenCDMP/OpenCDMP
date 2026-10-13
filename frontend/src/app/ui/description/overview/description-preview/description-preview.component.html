@@ -1,87 +1,248 @@
-@if(description()?.descriptionTemplate?.definition?.pages?.length){
-  <div class="row">
-    <div class="col-12 header">
-      {{'DESCRIPTION-OVERVIEW.ACTIONS.PREVIEW' | translate}}
-    </div>
-    <div class="col-12">
-      @for (page of description().descriptionTemplate.definition?.pages; track page; let pageIndex = $index) {
-        <div class="templateContainer" [id]="'blueprint-section-' +sectionIndex +'-template-'+templateIndex+ '-page-'+pageIndex">
-          <mat-expansion-panel class="unstyled" [togglePosition]="'before'" [expanded]="false">
-            <mat-expansion-panel-header>
-              <mat-panel-title>
-                <h5 class="page-title pb-0">
-                  {{(pageIndex + 1) + '. ' + page.title}}
-                </h5>
-              </mat-panel-title>
-            </mat-expansion-panel-header>
-            <ng-container *ngTemplateOutlet="descriptionSectionTemplate; context: { path:(pageIndex + 1) , sections: page.sections }"></ng-container>
-          </mat-expansion-panel>
-        </div>
-      }
-    </div>
-  </div>
+@if(description()?.descriptionTemplate?.definition?.sections?.length){
+    <mat-card appearance="outlined">
+        <mat-card-content class="p-0">
+            <div class="toggle-btn d-flex justify-content-end">
+                <button  mat-button color="secondary" (click)="toggleExpand()">
+                    {{(showExpand ? 'PLAN-OVERVIEW.ACTIONS.EXPAND-ALL' : 'PLAN-OVERVIEW.ACTIONS.COLLAPSE-ALL') | translate}}
+                </button>
+            </div>
+            <mat-accordion multi #templateAccordion="matAccordion">
+                <!-- @for (section of description().descriptionTemplate.definition?.sections; track section; let sectionIndex = $index) { -->
+                  <!-- <div class="templateContainer" [id]="'blueprint-section-' +sectionIndex +'-template-'+templateIndex+ '-page-'+pageIndex"> -->
+                    <!-- <mat-expansion-panel #templateExpansionPanel="matExpansionPanel" class="unstyled description-section-expansion-panel" [togglePosition]="'before'" [expanded]="expanded">
+                      <mat-expansion-panel-header class="expansion-panel-header">
+                        <mat-panel-title>
+                            {{(pageIndex + 1) + '. ' + page.title}}
+                        </mat-panel-title>
+                      </mat-expansion-panel-header> -->
+                      <ng-container *ngTemplateOutlet="descriptionSectionTemplate; context: { sections: $safeNavigationMigration(description().descriptionTemplate.definition?.sections) }"></ng-container>
+                    <!-- </mat-expansion-panel> -->
+                  <!-- </div> -->
+                <!-- } -->
+            </mat-accordion>
+        </mat-card-content>
+    </mat-card>
+
 }
 
 <ng-template #descriptionSectionTemplate let-path="path" let-sections="sections">
   @for (section of sections ; track section; let sectionIndex = $index) {
-    <div class="p-1 page-section">
-      @if(visibilityRulesService.isVisibleMap[section.id]){
-        <mat-expansion-panel class="unstyled" [togglePosition]="'before'" [expanded]="false">
-          <mat-expansion-panel-header>
-            <mat-panel-title>
-              <div>{{path + '.' + (sectionIndex + 1) + '. ' + section.title}} </div>
-            </mat-panel-title>
-          </mat-expansion-panel-header>
-          @if (section.description) {
-            <small class="p-1"
-              [innerHTML]="section.description">
-            </small>
-          }
-          @for (field of section.fieldSets ; track field; let fieldIndex = $index) {
-            <div class="p-1">
-              @if(visibilityRulesService.isVisibleMap[field.id] ?? true){
-                <ng-container
-                  *ngTemplateOutlet="sectionFieldSetTemplate; context: { fieldSet: field, path: path + '.' + (sectionIndex + 1) + '.' + (fieldIndex + 1) }"
-                ></ng-container>
-              }
-            </div>
-          }
-          @if (section.sections) {
-            <ng-container
-              *ngTemplateOutlet="descriptionSectionTemplate; context: { path: path + '.' + (sectionIndex + 1), sections: section.sections }"
-            ></ng-container>
-          }
-        </mat-expansion-panel>
-      }
-    </div>
+    @if(visibilityRulesService.isVisibleMap[section.id]){
+        <mat-accordion multi #templateSectionAccordion="matAccordion">
+            <mat-expansion-panel #templateSectionExpansionPanel="matExpansionPanel" class="unstyled description-sub-section-expansion-panel" [togglePosition]="'before'" [expanded]="expanded">
+                <mat-expansion-panel-header>
+                <mat-panel-title>
+                    <div>{{(path? path + '.' : '') + (sectionIndex + 1) + '. ' + section.title}} </div>
+                </mat-panel-title>
+                </mat-expansion-panel-header>
+                @if (section.description) {
+                <small
+                    [innerHTML]="section.description">
+                </small>
+                }
+                @for (field of section.fieldSets ; track field; let fieldIndex = $index) {
+                <div>
+                    @if(visibilityRulesService.isVisibleMap[field.id] ?? true){
+                        <ng-container
+                            *ngTemplateOutlet="sectionFieldSetTemplate; context: { fieldSet: field, path: (path? path + '.' : '')  + (sectionIndex + 1) + '.' + (fieldIndex + 1) }"
+                        ></ng-container>
+                    }
+                </div>
+                }
+                @if (section.sections) {
+                    <ng-container
+                        *ngTemplateOutlet="descriptionSectionTemplate; context: { path: (path? path + '.' : '')  + (sectionIndex + 1), sections: section.sections }"
+                    ></ng-container>
+                }
+            </mat-expansion-panel>
+        </mat-accordion>
+    }
   }
 </ng-template>
 
 <ng-template #sectionFieldSetTemplate let-fieldSet="fieldSet" let-path="path">
-  <div class="field-set-title align-items-center d-flex gap-1-rem">
-    <div  class="font-weight-bold">{{path + '. ' + fieldSet.title}} </div>
-    @if (fieldSet.additionalInformation) {
-      <mat-icon class="info-icon" matTooltip="{{fieldSet.additionalInformation}}">info</mat-icon>
+    @let fieldValueMapArray = $safeNavigationMigration(fieldSetValueMap?.get(fieldSet.id));
+    @let properties = $safeNavigationMigration(description()?.properties?.fieldSets?.[fieldSet.id]);
+    <div class="field-row" [class.field-row--inline]="!fieldSet.hasMultiplicity">
+        <div class="field-set-title field-label align-items-center d-flex gap-1-rem">
+            <span><span class="field-number">{{ path }}.</span> {{ fieldSet.title }}</span>
+            @if (fieldSet.additionalInformation) {
+                <mat-icon class="info-icon" matTooltip="{{fieldSet.additionalInformation}}">info</mat-icon>
+            }
+        </div>
+        <div class="field-value">
+    @if(!fieldSet.hasMultiplicity){
+        @for (field of fieldSet.fields; track field.id; let i = $index) {
+            @let descRefs = getFieldReferences(field.id);
+            @let fieldValues = $safeNavigationMigration(fieldValueMapArray?.get(field.id));
+            @if (fieldSet.fields.length > 1 && field.data?.label && (descRefs.length > 0 || hasRenderableValue(fieldValues))) {
+                <div class="field-sublabel">{{ field.data.label }}</div>
+            }
+            @if (descRefs.length) {
+                <div class="reference-list">
+                    @for (descRef of descRefs; track descRef.id) {
+                        <ng-container *ngTemplateOutlet="referenceChipTemplate; context: { ref: descRef.reference }"></ng-container>
+                    }
+                </div>
+            } @else {
+                @if (fieldValues?.length && (visibilityRulesService?.isVisibleMap[field.id + '_' + (properties?.items?.[0]?.ordinal ?? 0)] ?? true)) {
+                    @for(fieldValue of fieldValues; track $index){
+                        @if(fieldValue != null && fieldValue !== ''){
+                            <div>
+                                @if(
+                                    field?.data?.fieldType == FieldType.RICH_TEXT_AREA ||
+                                    (field?.data?.fieldType == FieldType.SYSTEM && (
+                                        field?.data?.systemFieldType == SystemFieldType.PlanDescription ||
+                                        field?.data?.systemFieldType == SystemFieldType.PlanDescriptionDescription
+                                    ))
+                                ){
+                                    <span [innerHTML]="fieldValue"></span>
+                                } @else {
+                                    {{ fieldValue }}
+                                }
+                            </div>
+                        } @else if (fieldSet.fields.length === 1) {
+                            <div>—</div>
+                        }
+                    }
+                }
+            }
+        }
+    }@else{
+        @if(!fieldSet.multiplicity?.tableView){
+            @for(item of properties?.items ?? []; track $index; let j = $index){
+                <div class="mb-2">
+                    @for(field of fieldSet?.fields; track field.id){
+                        @let fieldValue = $safeNavigationMigration(fieldValueMapArray?.get(field.id)?.[j]);
+                        <div class="text-wrap table-field text-truncated">
+                            @if (fieldValue && visibilityRulesService && (visibilityRulesService.isVisibleMap[field.id + '_' + item.ordinal] ?? true)) {
+                                @if(
+                                field?.data?.fieldType == FieldType.RICH_TEXT_AREA ||
+                                    (field?.data?.fieldType == FieldType.SYSTEM && (
+                                        field?.data?.systemFieldType == SystemFieldType.PlanDescription ||
+                                        field?.data?.systemFieldType == SystemFieldType.PlanDescriptionDescription
+                                    ))
+                                ){
+                                    <span [innerHTML]="fieldValue"></span>
+                                } @else {
+                                    {{ fieldValue }}
+                                }
+                            }
+                        </div>
+                    }
+                </div>
+            }
+            <!-- @for (item of properties?.items; track item; let i = $index) {
+                @if (visibilityRulesService && visibilityRulesService.isVisibleMap[fieldSet.id + '_' + item.ordinal] ?? true) {
+                    <div class="pl-2 d-flex flex-column gap-half-rem">
+                    @for (field of fieldSet.fields; track field.id; let i = $index) {
+                        @if (visibilityRulesService && visibilityRulesService.isVisibleMap[field.id + '_' + item.ordinal] ?? true) {
+                        <div >
+                            <ng-container
+                                *ngTemplateOutlet="formFieldValueTemplate; context: { path: path + '.' + i, properties: item.fields, field: field, fieldSet}"
+                            ></ng-container>
+                        </div>
+                        }
+                    }
+                    </div>
+                }
+            } -->
+        }@else if (fieldSet.multiplicity?.tableView && !fieldSet.multiplicity?.transposedTableView) {
+            <div class="table-scroll">
+            <table class="table table-bordered" id="field-table">
+            <tr>
+                @for (field of fieldSet.fields; track field.id; let i = $index) {
+                    <th class="text-truncated">
+                        @if (field?.data?.fieldType !== FieldType.REFERENCE_TYPES) {
+                            {{field.data?.label}}
+                        } @else {
+                            {{field.data?.label != null && field.data?.label !== '' ? field.data?.label: field.data?.referenceType?.name }}
+                        }
+                    </th>
+                }
+            </tr>
+            @if(properties?.items?.length){
+                @for(item of properties?.items ?? []; track $index; let j = $index){
+                    <tr>
+                        @for(field of fieldSet?.fields; track field.id){
+                            @let fieldValue = $safeNavigationMigration(fieldValueMapArray?.get(field.id)?.[j]);
+                            <td class="text-wrap table-field text-truncated">
+                                @if (fieldValue && visibilityRulesService && (visibilityRulesService.isVisibleMap[field.id + '_' + item.ordinal] ?? true)) {
+                                    @if(
+                                    field?.data?.fieldType == FieldType.RICH_TEXT_AREA ||
+                                        (field?.data?.fieldType == FieldType.SYSTEM && (
+                                            field?.data?.systemFieldType == SystemFieldType.PlanDescription ||
+                                            field?.data?.systemFieldType == SystemFieldType.PlanDescriptionDescription
+                                        ))
+                                    ){
+                                        <span [innerHTML]="fieldValue"></span>
+                                    } @else {
+                                        {{ fieldValue }}
+                                    }
+                                }
+                            </td>
+                        }
+                    </tr>
+                }
+            }
+            </table>
+            </div>
+        } @else if (fieldSet.multiplicity?.tableView && fieldSet.multiplicity?.transposedTableView) {
+            <div class="table-scroll">
+            <table class="table table-bordered" id="field-table-transposed">
+                <tr>
+                    <th class="text-truncated">{{'DESCRIPTION-EDITOR.FIELDS.TRANSPOSED-TABLE-FIELD-NAME' | translate}}</th>
+                    @if(properties?.items?.length){
+                        @for(item of properties?.items ?? []; track $index; let j = $index){
+                            <th></th>
+                        }
+                    }
+                </tr>
+                @for (field of fieldSet.fields; track field.id) {
+                    <tr>
+                        <td class="text-truncated">
+                            @if (field?.data?.fieldType !== FieldType.REFERENCE_TYPES) {
+                                {{field.data?.label}}
+                            } @else {
+                                {{field.data?.label != null && field.data?.label !== '' ? field.data?.label : field.data?.referenceType?.name}}
+                            }
+                        </td>
+                        @if(properties?.items?.length){
+                            @for(item of properties?.items ?? []; track $index; let j = $index){
+                                @let fieldValue = $safeNavigationMigration(fieldValueMapArray?.get(field.id)?.[j]);
+                                <td class="text-wrap table-field text-truncated">
+                                    @if (fieldValue && visibilityRulesService && (visibilityRulesService.isVisibleMap[field.id + '_' + item.ordinal] ?? true)) {
+                                        @if(
+                                            field?.data?.fieldType == FieldType.RICH_TEXT_AREA ||
+                                            (field?.data?.fieldType == FieldType.SYSTEM && (
+                                                field?.data?.systemFieldType == SystemFieldType.PlanDescription ||
+                                                field?.data?.systemFieldType == SystemFieldType.PlanDescriptionDescription
+                                            ))
+                                        ){
+                                            <span [innerHTML]="fieldValue"></span>
+                                        } @else {
+                                            {{ fieldValue }}
+                                        }
+                                    }
+                                </td>
+                            }
+                        }
+                    </tr>
+                }
+            </table>
+            </div>
+        }
     }
-  </div>
-  <div class="d-flex flex-column p-1">
-    @if (fieldSet.description) {
-      <small
-        [innerHTML]="fieldSet.description">
-      </small>
-    }
-    @if (fieldSet.extendedDescription) {
-      <small><app-toggle-show-text [innerHTML]="fieldSet.extendedDescription" [showPreview]="false"/></small>
-    }
-  </div>
-  @let properties = description().properties.fieldSets[fieldSet.id];
+        </div>
+    </div>
+  <!-- @let properties = description().properties?.fieldSets?.[fieldSet.id];
   @if(!fieldSet.multiplicity?.tableView){
-    @for (item of properties.items; track item; let i = $index) {
+    @for (item of properties?.items; track item; let i = $index) {
       @if (visibilityRulesService && visibilityRulesService.isVisibleMap[fieldSet.id + '_' + item.ordinal] ?? true) {
         <div class="pl-2 d-flex flex-column gap-half-rem">
           @for (field of fieldSet.fields; track field; let i = $index) {
-            @if (visibilityRulesService && visibilityRulesService.isVisibleMap[field.id + '_' + item.ordinal.value] ?? true) {
-              <div >
+            @if (visibilityRulesService && visibilityRulesService.isVisibleMap[field.id + '_' + item.ordinal] ?? true) {
+              <div>
                 <ng-container
                   *ngTemplateOutlet="formFieldValueTemplate; context: { path: path + '.' + i, properties: item.fields, field: field, fieldSet}"
                 ></ng-container>
@@ -92,52 +253,52 @@
       }
     }
     }@else {
-    <table class="table table-bordered" id="field-table" style="table-layout: fixed">
-      <tr>
-        @for (field of fieldSet.fields; track field; let i = $index) {
-          <th class="text-truncated">
-            @if (field?.data?.fieldType !== descriptionTemplateFieldType.REFERENCE_TYPES) {
-              {{field.data?.label}}
-            } @else {
-              {{field.data?.label != null && field.data?.label != '' ? field.data?.label: field.data?.referenceType?.name }}
+        <table class="table table-bordered" id="field-table" style="table-layout: fixed">
+        <tr>
+            @for (field of fieldSet.fields; track field; let i = $index) {
+            <th class="text-truncated">
+                @if (field?.data?.fieldType !== descriptionTemplateFieldType.REFERENCE_TYPES) {
+                    {{field.data?.label}}
+                } @else {
+                    {{field.data?.label != null && field.data?.label != '' ? field.data?.label: field.data?.referenceType?.name }}
+                }
+            </th>
             }
-          </th>
-        }
-      </tr>
-      @if(properties?.items?.length){
-        @let fieldValueMapArray = initFieldSetValues | invokeMemoized: fieldSet | async;
-        @for(item of properties.items; track $index; let j = $index){
-          @if (visibilityRulesService && visibilityRulesService.isVisibleMap[fieldSet.id + '_' + item.ordinal] ?? true) {
-            <tr
-              >
-              @let fieldValueMap = fieldValueMapArray[j];
-              @for(field of fieldSet?.fields; track field.id){
-                <td class="text-wrap table-field">
-                  @if (fieldValueMap && visibilityRulesService && visibilityRulesService.isVisibleMap[field.id + '_' + item.ordinal] ?? true) {
-                    @if(field?.data?.fieldType == descriptionTemplateFieldType.RICH_TEXT_AREA){
-                      <span [innerHTML]="fieldValueMap.get(field.id)"></span>
-                    } @else {
-                      {{ fieldValueMap.get(field.id) }}
+        </tr>
+        @if(properties?.items?.length){
+            @let fieldValueMapArray = initFieldSetValues | invokeMemoized: fieldSet | async;
+            @for(item of properties?.items ?? []; track $index; let j = $index){
+            @if (visibilityRulesService && visibilityRulesService.isVisibleMap[fieldSet.id + '_' + item.ordinal] ?? true) {
+                <tr
+                >
+                @let fieldValueMap = fieldValueMapArray[j];
+                @for(field of fieldSet?.fields; track field.id){
+                    <td class="text-wrap table-field">
+                    @if (fieldValueMap && visibilityRulesService && visibilityRulesService.isVisibleMap[field.id + '_' + item.ordinal] ?? true) {
+                        @if(field?.data?.fieldType == descriptionTemplateFieldType.RICH_TEXT_AREA){
+                        <span [innerHTML]="fieldValueMap.get(field.id)"></span>
+                        } @else {
+                        {{ fieldValueMap.get(field.id) }}
+                        }
                     }
-                  }
-                </td>
-              }
-            </tr>
-          }
+                    </td>
+                }
+                </tr>
+            }
+            }
         }
-      }
-    </table>
-  }
+        </table>
+  } -->
 </ng-template>
 
 <ng-template #formFieldValueTemplate let-properties="properties" let-path="path" let-field="field" let-fieldSet="fieldSet">
-  @let values = properties?.[field.id];
+  @let values = $safeNavigationMigration(properties?.[field.id]);
   @if (field.data?.label) {
     <div>
       <small class="mb-2">{{field.data.label}}</small>
     </div>
   }
-  @switch(field.data?.fieldType){
+  @switch($safeNavigationMigration(field.data?.fieldType)){
     @case(descriptionTemplateFieldType.SELECT){
       @if(field.data.multipleSelect){
         {{values?.textListValue?.join(', ') ?? '-'}}
@@ -146,7 +307,7 @@
       }
     }
     @case(descriptionTemplateFieldType.REFERENCE_TYPES){
-      {{getLabels(values?.references) ?? '-'}}
+      {{getLabels($safeNavigationMigration(values?.references)) ?? '-'}}
     }
     @case(descriptionTemplateFieldType.INTERNAL_ENTRIES_DESCRIPTIONS){
       @if (!isAuthenticated()) {
@@ -159,7 +320,7 @@
           }
         }
         }@else{
-        {{values?.textValue | descriptionAsync | async}}?.label
+        {{$safeNavigationMigration(values?.textValue) | descriptionAsync | async}}?.label
       }
     }
     @case(descriptionTemplateFieldType.INTERNAL_ENTRIES_PLANS){
@@ -173,7 +334,7 @@
           }
         }
         }@else{
-        {{values?.textValue | planAsync | async}}?.label
+        {{$safeNavigationMigration(values?.textValue) | planAsync | async}}?.label
       }
     }
     @case(descriptionTemplateFieldType.CHECK_BOX){
@@ -183,20 +344,20 @@
       {{('COMMONS.ACTIONS.BOOLEAN.' + values?.booleanValue ? 'YES' : 'NO') | translate}}
     }
     @case(descriptionTemplateFieldType.RICH_TEXT_AREA){
-      <span [innerHTML]="values?.textValue"></span>
+      <span [innerHTML]="$safeNavigationMigration(values?.textValue)"></span>
     }
     @case(descriptionTemplateFieldType.UPLOAD){
       @if (values?.textValue != null && !isAuthenticated()) {
         <span style="font-style: italic;">{{ 'DESCRIPTION-OVERVIEW.VIEW-FILE-MESSAGE-FOR-ANONYMOUS-USERS' | translate }}</span>
         }@else {
-        <span>{{values?.textValue | fileAsync | async}}</span>
+        <span>{{$safeNavigationMigration(values?.textValue) | fileAsync | async}}</span>
       }
     }
     @case(descriptionTemplateFieldType.DATE_PICKER){
       {{values?.dateValue ? (values.dateValue | dateTimeFormatter: 'shortDate')  : '-'}}
     }
     @case(descriptionTemplateFieldType.TAGS){
-      {{getLabels(values?.tags) ?? '-'}}
+      {{getLabels($safeNavigationMigration(values?.tags)) ?? '-'}}
     }
     @case(descriptionTemplateFieldType.DATASET_IDENTIFIER){
       {{values?.externalIdentifier?.identifier}} [{{values?.externalIdentifier?.type}}]
@@ -204,8 +365,28 @@
     @case(descriptionTemplateFieldType.VALIDATION){
       {{values?.externalIdentifier?.identifier}} [{{values?.externalIdentifier?.type}}]
     }
+    @case(descriptionTemplateFieldType.SYSTEM){
+        @switch($safeNavigationMigration(field.data?.systemFieldType)){
+            @case(SystemFieldType.PlanDescriptionTitle){
+                {{description()?.label}}
+            }
+            @case(SystemFieldType.PlanDescriptionDescription){
+                <span [innerHTML]="$safeNavigationMigration(description()?.description)"></span>
+            }
+            @case(SystemFieldType.PlanDescriptionTag){
+                {{descriptionTags()}}
+            }
+        }
+    }
+    @case(descriptionTemplateFieldType.NUMBER){
+        {{values?.numberValue != null ? values.numberValue : '-'}}
+    }
     @default{
       {{values?.textValue ?? '-'}}
     }
   }
+</ng-template>
+
+<ng-template #referenceChipTemplate let-ref="ref">
+    <app-reference-card [reference]="ref" [referenceType]="ref.type" [compact]="true"></app-reference-card>
 </ng-template>

@@ -20,6 +20,8 @@ import org.opencdmp.model.builder.commonmodels.CommonModelBuilderItemResponse;
 import org.opencdmp.model.persist.StorageFilePersist;
 import org.opencdmp.query.StorageFileQuery;
 import org.opencdmp.service.storage.StorageFileProperties;
+import org.opencdmp.service.encryption.EncryptionService;
+import org.opencdmp.service.tenant.TenantProperties;
 import org.opencdmp.service.storage.StorageFileService;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,11 +42,13 @@ public class PluginFieldCommonModelBuilder extends BaseCommonModelBuilder<Plugin
     private final UserScopeFactory userScopeFactory;
     private final ValidatorFactory validatorFactory;
     private final StorageFileProperties storageFileProperties;
+    private final EncryptionService encryptionService;
+    private final TenantProperties tenantProperties;
 
     private EnumSet<AuthorizationFlags> authorize = EnumSet.of(AuthorizationFlags.None);
     @Autowired
     public PluginFieldCommonModelBuilder(
-            ConventionService conventionService, StorageFileService storageFileService, QueryFactory queryFactory, UserScopeFactory userScopeFactory, ValidatorFactory validatorFactory, StorageFileProperties storageFileProperties
+            ConventionService conventionService, StorageFileService storageFileService, QueryFactory queryFactory, UserScopeFactory userScopeFactory, ValidatorFactory validatorFactory, StorageFileProperties storageFileProperties, EncryptionService encryptionService, TenantProperties tenantProperties
     ) {
         super(conventionService, new LoggerService(LoggerFactory.getLogger(PluginFieldCommonModelBuilder.class)));
         this.storageFileService = storageFileService;
@@ -52,6 +56,17 @@ public class PluginFieldCommonModelBuilder extends BaseCommonModelBuilder<Plugin
         this.userScopeFactory = userScopeFactory;
         this.validatorFactory = validatorFactory;
         this.storageFileProperties = storageFileProperties;
+        this.encryptionService = encryptionService;
+        this.tenantProperties = tenantProperties;
+    }
+
+    private String decrypt(String value) {
+        if (this.conventionService.isNullOrEmpty(value)) return value;
+        try {
+            return this.encryptionService.decryptAES(value, this.tenantProperties.getConfigEncryptionAesKey(), this.tenantProperties.getConfigEncryptionAesIv());
+        } catch (Exception e) {
+            throw new MyApplicationException(e.getMessage());
+        }
     }
 
     public PluginFieldCommonModelBuilder authorize(EnumSet<AuthorizationFlags> values) {
@@ -74,7 +89,7 @@ public class PluginFieldCommonModelBuilder extends BaseCommonModelBuilder<Plugin
         for (PluginConfigurationFieldEntity d : data) {
             PluginFieldModel m = new PluginFieldModel();
             m.setCode(d.getCode());
-            m.setTextValue(d.getTextValue());
+            m.setTextValue(Boolean.TRUE.equals(d.getSecret()) ? this.decrypt(d.getTextValue()) : d.getTextValue());
 
             if (d.getFileValue() != null) {
                 try {

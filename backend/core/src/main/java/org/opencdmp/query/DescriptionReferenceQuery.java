@@ -12,7 +12,9 @@ import org.opencdmp.authorization.AuthorizationFlags;
 import org.opencdmp.authorization.Permission;
 import org.opencdmp.commons.enums.IsActive;
 import org.opencdmp.commons.scope.user.UserScopeFactory;
+import org.opencdmp.data.DescriptionEntity;
 import org.opencdmp.data.DescriptionReferenceEntity;
+import org.opencdmp.data.ReferenceEntity;
 import org.opencdmp.data.TenantEntityManagerFactory;
 import org.opencdmp.model.descriptionreference.DescriptionReference;
 import org.opencdmp.query.utils.QueryUtilsService;
@@ -36,6 +38,10 @@ public class DescriptionReferenceQuery extends QueryBase<DescriptionReferenceEnt
     private Collection<UUID> descriptionIds;
 
     private Collection<UUID> referenceIds;
+
+    private DescriptionQuery descriptionQuery;
+
+    private ReferenceQuery referenceQuery;
 
     private EnumSet<AuthorizationFlags> authorize = EnumSet.of(AuthorizationFlags.None);
 
@@ -125,6 +131,16 @@ public class DescriptionReferenceQuery extends QueryBase<DescriptionReferenceEnt
         return this;
     }
 
+    public DescriptionReferenceQuery descriptionSubQuery(DescriptionQuery value) {
+        this.descriptionQuery = value;
+        return this;
+    }
+
+    public DescriptionReferenceQuery referenceSubQuery(ReferenceQuery value) {
+        this.referenceQuery = value;
+        return this;
+    }
+
     public DescriptionReferenceQuery authorize(EnumSet<AuthorizationFlags> values) {
         this.authorize = values;
         return this;
@@ -152,7 +168,9 @@ public class DescriptionReferenceQuery extends QueryBase<DescriptionReferenceEnt
                         this.isEmpty(this.isActives) ||
                         this.isEmpty(this.excludedIds) ||
                         this.isEmpty(this.descriptionIds) ||
-                        this.isEmpty(this.referenceIds);
+                        this.isEmpty(this.referenceIds) ||
+                        this.isFalseQuery(this.descriptionQuery) ||
+                        this.isFalseQuery(this.referenceQuery);
     }
 
     @Override
@@ -219,6 +237,14 @@ public class DescriptionReferenceQuery extends QueryBase<DescriptionReferenceEnt
             for (UUID item : this.referenceIds)
                 inClause.value(item);
             predicates.add(inClause);
+        }
+        if (this.descriptionQuery != null) {
+            QueryContext<DescriptionEntity, UUID> subQuery = this.applySubQuery(this.descriptionQuery, queryContext, UUID.class, root -> root.get(DescriptionEntity._id));
+            predicates.add(queryContext.CriteriaBuilder.in(queryContext.Root.get(DescriptionReferenceEntity._descriptionId)).value(subQuery.Query));
+        }
+        if (this.referenceQuery != null) {
+            QueryContext<ReferenceEntity, UUID> subQuery = this.applySubQuery(this.referenceQuery, queryContext, UUID.class, root -> root.get(ReferenceEntity._id));
+            predicates.add(queryContext.CriteriaBuilder.in(queryContext.Root.get(DescriptionReferenceEntity._referenceId)).value(subQuery.Query));
         }
         if (!predicates.isEmpty()) {
             Predicate[] predicatesArray = predicates.toArray(new Predicate[0]);

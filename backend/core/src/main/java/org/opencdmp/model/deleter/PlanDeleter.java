@@ -10,6 +10,7 @@ import gr.cite.tools.logging.MapLogEntry;
 import org.opencdmp.commons.enums.*;
 import org.opencdmp.commons.enums.kpi.KpiDirectionType;
 import org.opencdmp.data.*;
+import org.opencdmp.errorcode.ErrorThesaurusProperties;
 import org.opencdmp.integrationevent.outbox.planremoval.PlanRemovalIntegrationEventHandlerImpl;
 import org.opencdmp.model.PlanDescriptionTemplate;
 import org.opencdmp.model.description.Description;
@@ -19,6 +20,7 @@ import org.opencdmp.query.*;
 import org.opencdmp.service.accounting.AccountingService;
 import org.opencdmp.service.elastic.ElasticService;
 import org.opencdmp.service.kpi.KpiService;
+import org.opencdmp.service.lock.LockService;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
@@ -47,6 +49,8 @@ public class PlanDeleter implements Deleter {
     protected final ElasticService elasticService;
     protected final AccountingService accountingService;
     protected final PlanRemovalIntegrationEventHandlerImpl planRemovalIntegrationEventHandler;
+    protected final LockService lockService;
+    protected final ErrorThesaurusProperties errors;
 
     @Autowired
     public PlanDeleter(
@@ -54,7 +58,7 @@ public class PlanDeleter implements Deleter {
             QueryFactory queryFactory,
             DeleterFactory deleterFactory,
             ElasticService elasticService,
-            AccountingService accountingService, PlanRemovalIntegrationEventHandlerImpl planRemovalIntegrationEventHandler) {
+            AccountingService accountingService, PlanRemovalIntegrationEventHandlerImpl planRemovalIntegrationEventHandler, LockService lockService, ErrorThesaurusProperties errors) {
         this.tenantEntityManagerFactory = tenantEntityManagerFactory;
         this.kpiService = kpiService;
         this.queryFactory = queryFactory;
@@ -62,6 +66,8 @@ public class PlanDeleter implements Deleter {
         this.elasticService = elasticService;
         this.accountingService = accountingService;
         this.planRemovalIntegrationEventHandler = planRemovalIntegrationEventHandler;
+        this.lockService = lockService;
+        this.errors = errors;
     }
 
     public void deleteAndSaveByIds(List<UUID> ids, boolean disableElastic) throws InvalidApplicationException, IOException {
@@ -115,6 +121,7 @@ public class PlanDeleter implements Deleter {
         List<PlanStatusEntity> planStatusEntities = this.queryFactory.query(PlanStatusQuery.class).collectAs(new BaseFieldSet().ensure(PlanStatus._id).ensure(PlanStatus._name));
 
         for (PlanEntity item : data) {
+            if (this.lockService.isLocked(item.getId(), null).getStatus()) throw new MyApplicationException(this.errors.getLockedPlan().getCode(), this.errors.getLockedPlan().getMessage());
             this.kpiService.sendIndicatorPointPlanPerBlueprintEntry(KpiDirectionType.Decrease, item.getId());
             this.kpiService.sendIndicatorPointPlanEntry(KpiDirectionType.Decrease);
             logger.trace("deleting item {}", item.getId());

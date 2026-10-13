@@ -5,7 +5,7 @@
     <appender name="TROUBLESHOOTING" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <file>${LOGGING_PATH}/logging.log</file>
         <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
-            <fileNamePattern>logs/logging.%d{yyyy-MM-dd}.%i.log</fileNamePattern>
+            <fileNamePattern>${LOGGING_PATH}/logging.%d{yyyy-MM-dd}.%i.log</fileNamePattern>
             <maxFileSize>100MB</maxFileSize>
             <maxHistory>15</maxHistory>
         </rollingPolicy>
@@ -17,7 +17,7 @@
     <appender name="AUDITING" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <file>${LOGGING_PATH}/auditing.log</file>
         <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
-            <fileNamePattern>logs/auditing.%d{yyyy-MM-dd}.%i.log</fileNamePattern>
+            <fileNamePattern>${LOGGING_PATH}/auditing.%d{yyyy-MM-dd}.%i.log</fileNamePattern>
             <maxFileSize>100MB</maxFileSize>
             <maxHistory>15</maxHistory>
         </rollingPolicy>
@@ -36,6 +36,15 @@
         <appender-ref ref="TROUBLESHOOTING"/>
     </logger>
     <logger name="org.springframework.data.elasticsearch.client.WIRE" level="${LOGGING_DEFAULT_LOG_LEVEL}" additivity="false">
+        <appender-ref ref="TROUBLESHOOTING"/>
+    </logger>
+    <logger name="co.elastic.clients" level="${LOGGING_DEFAULT_LOG_LEVEL}" additivity="false">
+        <appender-ref ref="TROUBLESHOOTING"/>
+    </logger>
+    <logger name="org.apache.hc.client5.http.wire" level="${LOGGING_DEFAULT_LOG_LEVEL}" additivity="false">
+        <appender-ref ref="TROUBLESHOOTING"/>
+    </logger>
+    <logger name="org.apache.hc.client5.http.headers" level="${LOGGING_DEFAULT_LOG_LEVEL}" additivity="false">
         <appender-ref ref="TROUBLESHOOTING"/>
     </logger>
     <logger name="audit" level="INFO" additivity="false">

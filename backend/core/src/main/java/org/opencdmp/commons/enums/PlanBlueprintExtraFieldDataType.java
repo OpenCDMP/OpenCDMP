@@ -5,6 +5,10 @@ import org.opencdmp.data.converters.enums.DatabaseEnum;
 
 import java.util.Map;
 
+/**
+ * @deprecated Kept for migration tool backward compat.
+ */
+@Deprecated
 public enum PlanBlueprintExtraFieldDataType implements DatabaseEnum<Short> {
 
     Text((short) 0),

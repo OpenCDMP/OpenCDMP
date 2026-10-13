@@ -50,6 +50,9 @@ public class FieldPersist {
     private ExternalIdentifierPersist externalIdentifier;
     public static final String _externalIdentifier = "externalIdentifier";
 
+    private Double numberValue;
+    public static final String _numberValue = "numberValue";
+
     public String getTextValue() {
         return this.textValue;
     }
@@ -114,6 +117,14 @@ public class FieldPersist {
         this.tags = tags;
     }
 
+    public Double getNumberValue() {
+        return numberValue;
+    }
+
+    public void setNumberValue(Double numberValue) {
+        this.numberValue = numberValue;
+    }
+
     @Component(PersistValidator.ValidatorName)
     @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
     public static class PersistValidator extends BaseValidator<FieldPersist> {
@@ -123,7 +134,7 @@ public class FieldPersist {
 
         private final MessageSource messageSource;
         private FieldEntity fieldEntity;
-        private DescriptionStatus status;
+        private boolean finalized;
         private VisibilityService visibilityService;
         private Integer ordinal;
 
@@ -143,38 +154,43 @@ public class FieldPersist {
             FieldType fieldType = this.fieldEntity != null && this.fieldEntity.getData() != null ? this.fieldEntity.getData().getFieldType() :  FieldType.FREE_TEXT;
 	        boolean required = this.fieldEntity != null && this.fieldEntity.getValidations() != null ? this.fieldEntity.getValidations().contains(FieldValidationType.Required) : false;
             boolean isUrlRequired = this.fieldEntity != null && this.fieldEntity.getValidations() != null ? this.fieldEntity.getValidations().contains(FieldValidationType.Url) : false;
+            boolean isEmailRequired = this.fieldEntity != null && this.fieldEntity.getValidations() != null ? this.fieldEntity.getValidations().contains(FieldValidationType.Email) : false;
             boolean isVisible =  this.fieldEntity != null ? this.visibilityService.isVisible(this.fieldEntity.getId(), this.ordinal) : true;
             return Arrays.asList(
                     this.spec()
-                            .iff(()-> FieldType.isTextType(fieldType) && DescriptionStatus.Finalized.equals(this.status) && isVisible && required)
+                            .iff(()-> FieldType.isTextType(fieldType) && this.finalized && isVisible && required)
                             .must(() -> !this.isEmpty(item.getTextValue()))
                             .failOn(FieldPersist._textValue).failWith(this.messageSource.getMessage("Validation_Required", new Object[]{FieldPersist._textValue}, LocaleContextHolder.getLocale())),
                     this.spec()
-                            .iff(()-> fieldType.equals(FieldType.FREE_TEXT) && DescriptionStatus.Finalized.equals(this.status) && isVisible && isUrlRequired && (required || !this.isEmpty(item.getTextValue())))
+                            .iff(()-> fieldType.equals(FieldType.FREE_TEXT) && this.finalized && isVisible && isUrlRequired && (required || !this.isEmpty(item.getTextValue())))
                             .must(() -> this.isValidURL(item.getTextValue()))
                             .failOn(FieldPersist._textValue).failWith(this.messageSource.getMessage("Validation_UrlRequired", new Object[]{FieldPersist._textValue}, LocaleContextHolder.getLocale())),
                     this.spec()
-                            .iff(()-> FieldType.isDateType(fieldType) && DescriptionStatus.Finalized.equals(this.status) && isVisible && required)
+                            .iff(()-> fieldType.equals(FieldType.FREE_TEXT) && this.finalized && isVisible && isEmailRequired && (required || !this.isEmpty(item.getTextValue())))
+                            .must(() -> this.isValidEmail(item.getTextValue()))
+                            .failOn(FieldPersist._textValue).failWith(this.messageSource.getMessage("Validation_EmailRequired", new Object[]{FieldPersist._textValue}, LocaleContextHolder.getLocale())),
+                    this.spec()
+                            .iff(()-> FieldType.isDateType(fieldType) && this.finalized && isVisible && required)
                             .must(() -> !this.isNull(item.getDateValue()))
                             .failOn(FieldPersist._dateValue).failWith(this.messageSource.getMessage("Validation_Required", new Object[]{FieldPersist._dateValue}, LocaleContextHolder.getLocale())),
                     this.spec()
-                            .iff(()-> FieldType.isBooleanType(fieldType) && DescriptionStatus.Finalized.equals(this.status) && isVisible && required)
+                            .iff(()-> FieldType.isBooleanType(fieldType) && this.finalized && isVisible && required)
                             .must(() -> !this.isNull(item.getBooleanValue()))
                             .failOn(FieldPersist._booleanValue).failWith(this.messageSource.getMessage("Validation_Required", new Object[]{FieldPersist._booleanValue}, LocaleContextHolder.getLocale())),
                     this.spec()
-                            .iff(()-> FieldType.isExternalIdentifierType(fieldType) && DescriptionStatus.Finalized.equals(this.status) && isVisible  && required)
+                            .iff(()-> FieldType.isExternalIdentifierType(fieldType) && this.finalized && isVisible  && required)
                             .must(() -> !this.isNull(item.getExternalIdentifier()))
                             .failOn(FieldPersist._externalIdentifier).failWith(this.messageSource.getMessage("Validation_Required", new Object[]{FieldPersist._externalIdentifier}, LocaleContextHolder.getLocale())),
                     this.spec()
-                            .iff(()-> FieldType.isTextListType(fieldType) && DescriptionStatus.Finalized.equals(this.status) && isVisible && required)
+                            .iff(()-> FieldType.isTextListType(fieldType) && this.finalized && isVisible && required)
                             .must(() -> !this.isListNullOrEmpty(item.getTextListValue()) || !this.isEmpty(item.getTextValue()))
                             .failOn(FieldPersist._textListValue).failWith(this.messageSource.getMessage("Validation_Required", new Object[]{FieldPersist._textListValue}, LocaleContextHolder.getLocale())),
                     this.spec()
-                            .iff(()-> FieldType.isTagType(fieldType) && DescriptionStatus.Finalized.equals(this.status) && isVisible && required)
+                            .iff(()-> FieldType.isTagType(fieldType) && this.finalized && isVisible && required)
                             .must(() -> !this.isListNullOrEmpty(item.getTags()))
                             .failOn(FieldPersist._textListValue).failWith(this.messageSource.getMessage("Validation_Required", new Object[]{FieldPersist._textListValue}, LocaleContextHolder.getLocale())),
                     this.spec()
-                            .iff(()->  FieldType.isReferenceType(fieldType) && DescriptionStatus.Finalized.equals(this.status) && isVisible && required)
+                            .iff(()->  FieldType.isReferenceType(fieldType) && this.finalized && isVisible && required)
                             .must(() -> !this.isListNullOrEmpty(item.getReferences()) || !this.isNull(item.getReference()))
                             .failOn(FieldPersist._textListValue).failWith(this.messageSource.getMessage("Validation_Required", new Object[]{FieldPersist._textListValue}, LocaleContextHolder.getLocale())),
                     this.spec()
@@ -192,11 +208,16 @@ public class FieldPersist {
                             .over(item.getReference())
                             .using(() -> this.validatorFactory.validator(ReferencePersist.ReferenceWithoutTypePersistValidator.class)),
                     this.refSpec()
-                            .iff(() -> FieldType.isExternalIdentifierType(fieldType) && !this.isNull(item.getExternalIdentifier()) && DescriptionStatus.Finalized.equals(this.status) && isVisible && required)
+                            .iff(() -> FieldType.isExternalIdentifierType(fieldType) && !this.isNull(item.getExternalIdentifier()) && this.finalized && isVisible && required)
                             .on(FieldPersist._externalIdentifier)
                             .over(item.getExternalIdentifier())
-                            .using(() -> this.validatorFactory.validator(ExternalIdentifierPersist.PersistValidator.class))
-            );
+                            .using(() -> this.validatorFactory.validator(ExternalIdentifierPersist.PersistValidator.class)),
+                    this.spec()
+                            .iff(()-> FieldType.isNumberType(fieldType) && this.finalized && isVisible && required)
+                            .must(() -> !this.isNull(item.getNumberValue()))
+                            .failOn(FieldPersist._numberValue).failWith(this.messageSource.getMessage("Validation_Required", new Object[]{FieldPersist._numberValue}, LocaleContextHolder.getLocale()))
+
+                    );
         }
 
         public PersistValidator withFieldEntity(FieldEntity fieldEntity) {
@@ -204,8 +225,8 @@ public class FieldPersist {
             return this;
         }
 
-        public PersistValidator setStatus(DescriptionStatus status) {
-            this.status = status;
+        public PersistValidator isFinalized(boolean isFinalized) {
+            this.finalized = isFinalized;
             return this;
         }
 

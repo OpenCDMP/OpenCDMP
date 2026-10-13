@@ -4,6 +4,8 @@ export interface Tenant extends BaseEntity{
 	name?: string;
 	code?: string;
 	description?: string;
+	memberCount?: number;
+	planCount?: number;
 }
 
 //persist

@@ -22,6 +22,9 @@ public class ReferenceTypeDefinitionEntity {
 	})
 	private List<ExternalFetcherBaseSourceConfigurationEntity> sources;
 
+	@XmlElement(name = "labelTemplate")
+	private String labelTemplate;
+
 	public List<ReferenceTypeFieldEntity> getFields() {
 		return fields;
 	}
@@ -36,5 +39,13 @@ public class ReferenceTypeDefinitionEntity {
 
 	public void setSources(List<ExternalFetcherBaseSourceConfigurationEntity> sources) {
 		this.sources = sources;
+	}
+
+	public String getLabelTemplate() {
+		return labelTemplate;
+	}
+
+	public void setLabelTemplate(String labelTemplate) {
+		this.labelTemplate = labelTemplate;
 	}
 }

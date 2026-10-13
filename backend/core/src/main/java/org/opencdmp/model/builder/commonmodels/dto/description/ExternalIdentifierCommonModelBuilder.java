@@ -3,7 +3,7 @@ package org.opencdmp.model.builder.commonmodels.dto.description;
 import gr.cite.tools.exception.MyApplicationException;
 import gr.cite.tools.logging.LoggerService;
 import org.opencdmp.authorization.AuthorizationFlags;
-import org.opencdmp.commonmodels.models.description.ExternalIdentifierModel;
+import org.opencdmp.commonmodels.models.plandescriptionfields.ExternalIdentifierModel;
 import org.opencdmp.convention.ConventionService;
 import org.opencdmp.model.builder.commonmodels.BaseCommonModelBuilder;
 import org.opencdmp.model.builder.commonmodels.CommonModelBuilderItemResponse;

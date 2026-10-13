@@ -26,6 +26,9 @@ public class Section {
 	public final static String _fieldSets = "fieldSets";
 	private List<FieldSet> fieldSets;
 
+	public final static String _semantics = "semantics";
+	private List<String> semantics;
+
 	public String getId() {
 		return this.id;
 	}
@@ -34,11 +37,11 @@ public class Section {
 		this.id = id;
 	}
 
-	public int getOrdinal() {
+	public Integer getOrdinal() {
 		return this.ordinal;
 	}
 
-	public void setOrdinal(int ordinal) {
+	public void setOrdinal(Integer ordinal) {
 		this.ordinal = ordinal;
 	}
 
@@ -80,6 +83,14 @@ public class Section {
 
 	public void setFieldSets(List<FieldSet> fieldSets) {
 		this.fieldSets = fieldSets;
+	}
+
+	public List<String> getSemantics() {
+		return this.semantics;
+	}
+
+	public void setSemantics(List<String> semantics) {
+		this.semantics = semantics;
 	}
 }
 

@@ -1,0 +1,20 @@
+<h2 mat-dialog-title class="uc-title">{{'PLAN-BLUEPRINT-EDITOR.UNSAVED.TITLE' | translate}}</h2>
+<mat-dialog-content>
+	<p class="uc-intro">{{'PLAN-BLUEPRINT-EDITOR.UNSAVED.INTRO' | translate}}</p>
+	<ul class="uc-list">
+		@if (data.details) { <li><mat-icon aria-hidden="true">tune</mat-icon>{{'PLAN-BLUEPRINT-EDITOR.UNSAVED.DETAILS' | translate}}</li> }
+		@if (data.sections) { <li><mat-icon aria-hidden="true">create_new_folder</mat-icon>{{'PLAN-BLUEPRINT-EDITOR.UNSAVED.SECTIONS' | bp2Count: data.sections}}</li> }
+		@if (data.questionsAdded) { <li><mat-icon aria-hidden="true">add_circle</mat-icon>{{'PLAN-BLUEPRINT-EDITOR.UNSAVED.QUESTIONS-ADDED' | bp2Count: data.questionsAdded}}</li> }
+		@if (data.questions) { <li><mat-icon aria-hidden="true">edit_note</mat-icon>{{'PLAN-BLUEPRINT-EDITOR.UNSAVED.QUESTIONS' | bp2Count: data.questions}}</li> }
+		@if (!data.details && !data.sections && !data.questions && !data.questionsAdded) { <li><mat-icon aria-hidden="true">edit</mat-icon>{{'PLAN-BLUEPRINT-EDITOR.UNSAVED.OTHER' | translate}}</li> }
+	</ul>
+	@if (!data.canSave) {
+		<div class="bp2-strip bp2-strip--bad"><mat-icon aria-hidden="true">error</mat-icon><span>{{'PLAN-BLUEPRINT-EDITOR.UNSAVED.CANNOT-SAVE' | translate}}</span></div>
+	}
+</mat-dialog-content>
+<div class="uc-actions">
+	<button mat-button type="button" class="uc-discard" (click)="close('discard')">{{'PLAN-BLUEPRINT-EDITOR.UNSAVED.DISCARD' | translate}}</button>
+	<span class="uc-spacer"></span>
+	<button mat-stroked-button type="button" (click)="close(null)" cdkFocusInitial>{{'PLAN-BLUEPRINT-EDITOR.UNSAVED.KEEP' | translate}}</button>
+	@if (data.canSave) { <button mat-flat-button color="primary" type="button" (click)="close('save')">{{'PLAN-BLUEPRINT-EDITOR.UNSAVED.SAVE' | translate}}</button> }
+</div>

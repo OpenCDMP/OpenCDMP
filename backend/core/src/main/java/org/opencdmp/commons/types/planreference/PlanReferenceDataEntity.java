@@ -1,15 +1,25 @@
 package org.opencdmp.commons.types.planreference;
 
-import java.util.UUID;
 
 public class PlanReferenceDataEntity {
-	private UUID blueprintFieldId;
+	private String blueprintFieldId;
 
-	public UUID getBlueprintFieldId() {
+	//ordinal is added after blueprint description templates fields merge
+	private int ordinal;
+
+	public String getBlueprintFieldId() {
 		return this.blueprintFieldId;
 	}
 
-	public void setBlueprintFieldId(UUID blueprintFieldId) {
+	public void setBlueprintFieldId(String blueprintFieldId) {
 		this.blueprintFieldId = blueprintFieldId;
+	}
+
+	public int getOrdinal() {
+		return ordinal;
+	}
+
+	public void setOrdinal(int ordinal) {
+		this.ordinal = ordinal;
 	}
 }

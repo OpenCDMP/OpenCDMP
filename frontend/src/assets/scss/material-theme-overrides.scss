@@ -1,57 +1,104 @@
 :root {
+    // ---- App font tokens: single source of truth, tenant-overridable at runtime via overrideCss ----
+    // (The M3 SCSS path bakes each per-level *-font token to a literal family, so we re-point them
+    //  at these vars here — overriding any of the three re-fonts the whole app from one place.)
+    --app-font-heading: 'Ubuntu', 'Roboto', sans-serif;
+    --app-font-body: 'Nunito Sans', 'Roboto', sans-serif;
+    --app-font-mono: 'JetBrains Mono', 'Roboto Mono', monospace;
+
+    // Brand family (headings) -> Ubuntu
+    --mat-sys-display-large-font: var(--app-font-heading);
+    --mat-sys-display-medium-font: var(--app-font-heading);
+    --mat-sys-display-small-font: var(--app-font-heading);
+    --mat-sys-headline-large-font: var(--app-font-heading);
+    --mat-sys-headline-medium-font: var(--app-font-heading);
+    --mat-sys-headline-small-font: var(--app-font-heading);
+    --mat-sys-title-large-font: var(--app-font-heading);
+
+    // Plain family (body/labels) -> Nunito Sans
+    --mat-sys-body-large-font: var(--app-font-body);
+    --mat-sys-body-medium-font: var(--app-font-body);
+    --mat-sys-body-small-font: var(--app-font-body);
+    --mat-sys-label-large-font: var(--app-font-body);
+    --mat-sys-label-medium-font: var(--app-font-body);
+    --mat-sys-label-small-font: var(--app-font-body);
+    --mat-sys-title-medium-font: var(--app-font-body);
+    --mat-sys-title-small-font: var(--app-font-body);
+
     --mat-sys-primary-hover: hsl(from var(--mat-sys-primary) h calc(s - 10) calc(l + 6));
     --mat-sys-surface: #ffffff;
 
+    // Success/positive tokens — M3 ships `error` but no `success`, so we expose our own
+    // tenant-overridable trio (parallel to --mat-sys-error*). Used by pass/success states.
+    --app-success: #2e7d32;
+    --app-success-container: #cee9d0;
+    --app-on-success-container: #235727;
+
 ////////////////////////////////////////////
 
-    --mat-sys-headline-large-size: 1.5rem; //!!!!!
-    --mat-sys-headline-large-line-height: 2.5rem;
+    // Tightened type scale (~14px body base) to match the Figma redesign density.
+    --mat-sys-headline-large-size: 1.375rem;   // 22px - page titles / dialog subhead
+    --mat-sys-headline-large-line-height: 1.75rem;
 
-    --mat-sys-headline-medium-size: 1.25rem; //!!!
-    --mat-sys-headline-medium-line-height: 2.25rem;
+    --mat-sys-headline-medium-size: 1.125rem;  // 18px
+    --mat-sys-headline-medium-line-height: 1.5rem;
 
-    --mat-sys-headline-small-size: 0.93rem; //!!!!!!
-    --mat-sys-headline-small-line-height: 2rem;
+    --mat-sys-headline-small-size: 0.875rem;   // 14px
+    --mat-sys-headline-small-line-height: 1.25rem;
 ////////////////////////////////////////////
 
-    --mat-sys-title-large-size: 1.312rem; //!!!!!
-    --mat-sys-title-large-line-height: 1.75rem;
+    --mat-sys-title-large-size: 1.125rem;      // 18px
+    --mat-sys-title-large-line-height: 1.5rem;
     --mat-sys-title-large-weight: 500;
 
-    --mat-sys-title-medium-size: 1.125rem;
-    --mat-sys-title-medium-line-height: 1.125rem;
+    --mat-sys-title-medium-size: 0.9375rem;    // 15px - list item titles
+    --mat-sys-title-medium-line-height: 1.25rem;
 
-    --mat-sys-title-small-size: 0.875rem;
-    --mat-sys-title-small-line-height: 1.25rem;
+    --mat-sys-title-small-size: 0.8125rem;     // 13px - subtitles
+    --mat-sys-title-small-line-height: 1.125rem;
 ////////////////////////////////////////
 
-    // --mat-sys-body-large: 400 1rem / 1.5rem Roboto, sans-serif;
-    // --mat-sys-body-large-weight: 400;
-    --mat-sys-body-large-size: 1.125rem; //!!!!
-    --mat-sys-body-large-line-height: 1.125rem;
+    --mat-sys-body-large-size: 1rem;           // 16px
+    --mat-sys-body-large-line-height: 1.5rem;
 
-    --mat-sys-body-medium-size: 1rem;
+    --mat-sys-body-medium-size: 0.875rem;      // 14px - base body
     --mat-sys-body-medium-line-height: 1.25rem;
 
-    --mat-sys-body-small-size: 0.85rem; //!!!!
-    --mat-sys-body-small-line-height: 1rem;
-    --mat-sys-body-small-tracking: 0.025rem;
+    --mat-sys-body-small-size: 0.8125rem;      // 13px
+    --mat-sys-body-small-line-height: 1.125rem;
+    --mat-sys-body-small-tracking: 0.0125rem;
 ////////////////////////////////////////////
 
-    --mat-sys-label-large-size: 0.87rem; //!!!!
-    --mat-sys-label-large-line-height: 1.25rem; //!!!!
+    --mat-sys-label-large-size: 0.8125rem;     // 13px
+    --mat-sys-label-large-line-height: 1.125rem;
     --mat-sys-label-large-weight-prominent: 700;
 
-    --mat-sys-label-medium-size:  0.8rem;  //!!!!
+    --mat-sys-label-medium-size: 0.75rem;      // 12px - chips / badges
     --mat-sys-label-medium-line-height: 1rem;
 
     --mat-sys-label-medium-weight-prominent: 700;
 
-    --mat-sys-label-small-size: 0.688rem;
+    --mat-sys-label-small-size: 0.6875rem;     // 11px
     --mat-sys-label-small-line-height: 1rem;
 
 
     --mat-standard-button-toggle-label-text-size: var(--mat-sys-body-medium-size);
     --mat-menu-item-label-text-size: var(--mat-sys-body-medium-size);
     --mat-badge-small-size-text-size: var(--mat-sys-label-small-size);
+}
+
+code, pre, kbd, samp, .mono {
+    font-family: var(--app-font-mono);
+}
+
+// All heading text uses the brand (heading) font — not just semantic h1–h6, but any element acting
+// as a heading: Material dialog/card/panel/section titles (.mat-*-title) and the app's custom
+// "*title*" / "*heading*" classes. Subtitles are excluded (they read as secondary/body text), and
+// "*header*" container classes are intentionally not matched (they'd re-font their whole contents).
+// Body, labels, menus, breadcrumbs, and form fields keep --app-font-body (Nunito).
+h1, h2, h3, h4, h5, h6,
+.sectionLabel,
+[class*="title" i]:not([class*="subtitle" i]),
+[class*="heading" i] {
+    font-family: var(--app-font-heading);
 }

@@ -5,11 +5,9 @@ import { TenantSwitchComponent } from './tenant-switch/tenant-switch.component';
 
 
 @NgModule({
-    declarations: [
-        TenantSwitchComponent,
-    ],
     imports: [
-        CommonUiModule
+        CommonUiModule,
+        TenantSwitchComponent
     ],
     exports: [
         TenantSwitchComponent,

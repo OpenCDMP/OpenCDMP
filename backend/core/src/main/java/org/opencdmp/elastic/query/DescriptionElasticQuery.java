@@ -15,12 +15,18 @@ import gr.cite.tools.elastic.query.ElasticNestedQuery;
 import gr.cite.tools.elastic.query.ElasticQuery;
 import org.opencdmp.authorization.AuthorizationFlags;
 import org.opencdmp.authorization.Permission;
+import org.opencdmp.commons.enums.DescriptionStatus;
 import org.opencdmp.commons.enums.PlanAccessType;
+import org.opencdmp.commons.enums.PlanStatus;
+import org.opencdmp.data.DescriptionStatusEntity;
+import org.opencdmp.data.PlanStatusEntity;
 import org.opencdmp.commons.scope.tenant.TenantScopeFactory;
 import org.opencdmp.commons.scope.user.UserScopeFactory;
 import org.opencdmp.elastic.data.DescriptionElasticEntity;
 import org.opencdmp.elastic.data.PlanElasticEntity;
 import org.opencdmp.elastic.data.nested.NestedPlanElasticEntity;
+import org.opencdmp.query.DescriptionStatusQuery;
+import org.opencdmp.query.PlanStatusQuery;
 import org.opencdmp.service.elastic.AppElasticConfiguration;
 import org.opencdmp.service.elastic.ElasticService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,7 +43,7 @@ import java.util.*;
 @Component
 //Like in C# make it Transient
 @Scope(BeanDefinition.SCOPE_PROTOTYPE)
-public class DescriptionElasticQuery extends ElasticQuery<DescriptionElasticEntity, UUID> {
+public class DescriptionElasticQuery extends TenantElasticQuery<DescriptionElasticEntity, UUID> {
 
 	private Collection<UUID> ids;
 	private String like;
@@ -49,7 +55,8 @@ public class DescriptionElasticQuery extends ElasticQuery<DescriptionElasticEnti
 	private Collection<UUID> excludedIds;
 	private Collection<UUID> tenantIds;
 	private Collection<UUID> statusIds;
-	private NestedDescriptionTemplateElasticQuery descriptionTemplateSubQuery;
+	private InnerObjectDescriptionTemplateElasticQuery descriptionTemplateSubQuery;
+	//NestedDescriptionTemplateElasticQuery
 	private NestedReferenceElasticQuery referenceSubQuery;
 	private NestedTagElasticQuery tagSubQuery;
 	private EnumSet<AuthorizationFlags> authorize = EnumSet.of(AuthorizationFlags.None);
@@ -146,7 +153,7 @@ public class DescriptionElasticQuery extends ElasticQuery<DescriptionElasticEnti
 		return this;
 	}
 
-	public DescriptionElasticQuery descriptionTemplateSubQuery(NestedDescriptionTemplateElasticQuery subQuery) {
+	public DescriptionElasticQuery descriptionTemplateSubQuery(InnerObjectDescriptionTemplateElasticQuery subQuery) {
 		this.descriptionTemplateSubQuery = subQuery;
 		return this;
 	}
@@ -170,16 +177,14 @@ public class DescriptionElasticQuery extends ElasticQuery<DescriptionElasticEnti
 	private final AppElasticConfiguration appElasticConfiguration;
 	private final ElasticService elasticService;
 	private final UserScopeFactory userScopeFactory;
-	private final TenantScopeFactory tenantScopeFactory;
 	private final AuthorizationService authService;
 	@Autowired
 	public DescriptionElasticQuery(ElasticsearchTemplate elasticsearchTemplate, ElasticProperties elasticProperties, QueryFactory queryFactory, AppElasticConfiguration appElasticConfiguration, ElasticService elasticService, UserScopeFactory userScopeFactory, TenantScopeFactory tenantScopeFactory, AuthorizationService authService) {
-		super(elasticsearchTemplate, elasticProperties);
+		super(elasticsearchTemplate, elasticProperties,tenantScopeFactory);
 		this.queryFactory = queryFactory;
 		this.appElasticConfiguration = appElasticConfiguration;
 		this.elasticService = elasticService;
 		this.userScopeFactory = userScopeFactory;
-		this.tenantScopeFactory = tenantScopeFactory;
 		this.authService = authService;
 	}
 
@@ -195,28 +200,6 @@ public class DescriptionElasticQuery extends ElasticQuery<DescriptionElasticEnti
 		return DescriptionElasticEntity.class;
 	}
 
-	private Query applyTenant(List<Query> predicates){
-		if (this.tenantScopeFactory.getInstance().isSet()){
-			Query tenantQuery;
-			if (this.tenantScopeFactory.getInstance().isDefaultTenant()){
-				tenantQuery = this.fieldNotExists(this.elasticFieldOf(DescriptionElasticEntity._tenantId))._toQuery();
-			}
-			else {
-				try {
-					tenantQuery = this.or(this.fieldNotExists(this.elasticFieldOf(DescriptionElasticEntity._tenantId))._toQuery(),
-							this.equals(this.elasticFieldOf(DescriptionElasticEntity._tenantId), this.tenantScopeFactory.getInstance().getTenant()))._toQuery();
-				} catch (InvalidApplicationException e) {
-					throw new RuntimeException(e);
-				}
-			}
-			if (predicates == null) return tenantQuery;
-			else return this.and(tenantQuery, this.or(predicates)._toQuery());
-		} else {
-			if (predicates != null) return this.or(predicates)._toQuery();
-		}
-		return null;
-	}
-
 	@Override
 	protected Query applyAuthZ() {
 		if (this.authorize.contains(AuthorizationFlags.None)) return this.applyTenant(null);
@@ -227,8 +210,13 @@ public class DescriptionElasticQuery extends ElasticQuery<DescriptionElasticEnti
 
 		List<Query> predicates = new ArrayList<>();
 		if (usePublic ) {
+			// Same rule as the database path: a finalized description of a finalized, public plan.
+			List<UUID> finalizedDescriptionStatusIds = this.queryFactory.query(DescriptionStatusQuery.class).disableTracking().internalStatuses(DescriptionStatus.Finalized).collect().stream().map(DescriptionStatusEntity::getId).toList();
+			List<UUID> finalizedPlanStatusIds = this.queryFactory.query(PlanStatusQuery.class).disableTracking().internalStatuses(PlanStatus.Finalized).collect().stream().map(PlanStatusEntity::getId).toList();
 			predicates.add(this.and(
-					this.equals(new ElasticField(DescriptionElasticEntity._plan + "." + PlanElasticEntity._accessType, this.entityClass()).disableInfer(true), PlanAccessType.Public.getValue())
+					this.equals(new ElasticField(DescriptionElasticEntity._plan + "." + PlanElasticEntity._accessType, this.entityClass()).disableInfer(true), PlanAccessType.Public.getValue()),
+					this.containsUUID(this.elasticFieldOf(DescriptionElasticEntity._statusId), finalizedDescriptionStatusIds)._toQuery(),
+					this.containsUUID(new ElasticField(DescriptionElasticEntity._plan + "." + NestedPlanElasticEntity._statusId, this.entityClass()).disableInfer(true), finalizedPlanStatusIds)._toQuery()
 			));
 		}
 		if (userId != null) {
@@ -238,6 +226,7 @@ public class DescriptionElasticQuery extends ElasticQuery<DescriptionElasticEnti
 		}
 
 		if (!predicates.isEmpty()) {
+			if (usePublic && userId == null) return this.or(predicates)._toQuery();
 			return this.applyTenant(predicates);
 		} else {
 			return this.equals(this.elasticFieldOf(DescriptionElasticEntity._id), UUID.randomUUID());
@@ -248,8 +237,8 @@ public class DescriptionElasticQuery extends ElasticQuery<DescriptionElasticEnti
 	protected Query applyFilters() {
 		List<Query> predicates = new ArrayList<>();
 		if (this.like != null && !this.like.isBlank()) {
-			if (!this.like.startsWith("*")) this.like = "*" + this.like;
-			if (!this.like.endsWith("*")) this.like = this.like + "*";
+			//if (!this.like.startsWith("*")) this.like = "*" + this.like;
+			//if (!this.like.endsWith("*")) this.like = this.like + "*";
 			ElasticFields elasticFields = this.elasticFieldsOf();
 			elasticFields.add("*", null, true);
 			
@@ -300,7 +289,7 @@ public class DescriptionElasticQuery extends ElasticQuery<DescriptionElasticEnti
 			predicates.add(this.planSubQuery.innerPath(DescriptionElasticEntity._plan).applyFilters());
 		}
 		if (this.descriptionTemplateSubQuery != null) {
-			predicates.add(this.nestedQuery( this.descriptionTemplateSubQuery.nestedPath(DescriptionElasticEntity._descriptionTemplate)).build()._toQuery());
+			predicates.add(this.descriptionTemplateSubQuery.innerPath(DescriptionElasticEntity._descriptionTemplate).applyFilters());
 		}
 		if (this.referenceSubQuery != null) {
 			predicates.add(this.nestedQuery( this.referenceSubQuery.nestedPath(DescriptionElasticEntity._references)).build()._toQuery());

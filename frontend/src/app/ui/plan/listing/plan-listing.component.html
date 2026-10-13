@@ -1,112 +1,180 @@
-<div class="main-content listing-main-container h-100">
-  <div class="container-fluid">
-    <div class="row">
-      @if (!isLoading && !hasListingItems) {
-        <div class="col-12 card mt-0">
-          <div class="card-content info-text mb-0">
-            <p>{{'PLAN-LISTING.TEXT-INFO' | translate}}</p>
-            <p class="mt-4 pt-2">{{'PLAN-LISTING.TEXT-INFO-QUESTION' | translate}} <a class="zenodo-link" href="https://zenodo.org/communities/liber-plan-cat/?page=1&size=20" target="_blank">{{'PLAN-LISTING.LINK-ZENODO' | translate}}</a> {{'PLAN-LISTING.GET-IDEA' | translate}}</p>
-            <div class="d-none d-lg-flex tour-prompt">
-              @if (!isPublic) {
-                <div class="col left-content" (click)="restartTour()">{{ 'GENERAL.ACTIONS.TAKE-A-TOUR'| translate }}</div>
-              }
-              <img class="col-auto ml-auto laptop-img"  alt="colorful art of a person working on an oversized computer" src="../../../assets/images/dashboard-popup.png">
-            </div>
-          </div>
-        </div>
-      }
-      <div class="col-12">
-        <app-navigation-breadcrumb />
-      </div>
-      @if (!versionsModeEnabled && (isLoading || hasListingItems || hasFilters) && !isPublic) {
-        <div class="filter-btn" [class.right]="dialog.getDialogById('filters')" [style.width]="listingItems.length > 2 ? '57px' : '37px'" (click)="openFiltersDialog()">
-          <button mat-raised-button class="p-0 squared-btn badge-accent badge-lg" [matBadge]="filtersCount" [matBadgeHidden]="filtersCount === 0" matBadgePosition="before" [attr.aria-label]="'ALT-TEXT.OPEN-FILTERS' | translate">
-            <mat-icon class="mr-3 filter-icon">filter_alt</mat-icon>
-          </button>
-        </div>
-      }
-    </div>
-    <div>
-      <div class="listing row pb-2">
-        <div class="col-md-12">
-          <div class="row pt-4">
-            <!-- Sort by -->
-            <div class="col-auto d-flex align-items-center order-1">
-              <span class="mb-1 mb-xl-4">{{'PLAN-LISTING.SORT-BY' | translate}}:</span>
-            </div>
-            <div class="col-12 col-xl-auto order-3 order-xl-2">
-              <mat-form-field class="sort-form w-100">
-                <mat-select placeholder="{{'GENERAL.CRITERIA.LIKE'| translate}}" [(ngModel)]="sortBy" (selectionChange)="orderByChanged($event)">
-                  @if (!isPublic) {
-                    <mat-option [value]="RecentActivityOrder.UpdatedAt">{{enumUtils.toRecentActivityOrderString(RecentActivityOrder.UpdatedAt)}}</mat-option>
-                  }
-                  @if (isPublic) {
-                    <mat-option [value]="RecentActivityOrder.PublishedAt">{{enumUtils.toRecentActivityOrderString(RecentActivityOrder.PublishedAt)}}</mat-option>
-                  }
-                  <mat-option [value]="RecentActivityOrder.Label">{{enumUtils.toRecentActivityOrderString(RecentActivityOrder.Label)}}</mat-option>
-                  @if (!isPublic) {
-                    <mat-option [value]="RecentActivityOrder.Status">{{enumUtils.toRecentActivityOrderString(RecentActivityOrder.Status)}}</mat-option>
-                  }
-                </mat-select>
-              </mat-form-field>
-            </div>
-            <div class="col-auto order-2 order-xl-3 mb-1 pl-0 mt-2">
-              <button mat-icon-button (click)="toggleSortDirection()" [matTooltip]="sortingTooltipText" [attr.aria-label]="sortingTooltipText">
-                @if (isAscending) {
-                  <mat-icon>keyboard_double_arrow_up</mat-icon>
-                }
-                @if (isDescending) {
-                  <mat-icon>keyboard_double_arrow_down</mat-icon>
-                }
-              </button>
-            </div>
-            <div class="col-12 col-xl-auto ml-auto order-4">
-              <div class="row">
-                <div class="col-12 col-xl-auto d-none d-lg-flex align-items-center tour-prompt">
-                  @if (!isPublic) {
-                    <span class="center-content" (click)="restartTour()">{{ 'GENERAL.ACTIONS.TAKE-A-TOUR'| translate }}</span>
-                  }
+<div class="plan-listing">
+    <div class="listing-container">
+        <!-- TODO handle this in new design -->
+        <!-- @if (!isLoading && !listingItems?.length && !hasFilters) {
+            <div class="card">
+                <div class="card-content info-text mb-0">
+                <p>{{'PLAN-LISTING.TEXT-INFO' | translate}}</p>
+                <p class="mt-4 pt-2">{{'PLAN-LISTING.TEXT-INFO-QUESTION' | translate}} <a class="zenodo-link" href="https://zenodo.org/communities/liber-plan-cat/?page=1&size=20" target="_blank" rel="noopener noreferrer">{{'PLAN-LISTING.LINK-ZENODO' | translate}}<span class="visually-hidden"> ({{'ALT-TEXT.OPENS-IN-NEW-TAB' | translate}})</span></a> {{'PLAN-LISTING.GET-IDEA' | translate}}</p>
+                <div class="d-none d-lg-flex tour-prompt">
+                    @if (!isPublic) {
+                        <button type="button" class="col left-content" (click)="restartTour()">{{ 'GENERAL.ACTIONS.TAKE-A-TOUR'| translate }}</button>
+                    }
+                    <img class="col-auto ml-auto laptop-img" alt="{{'ALT-TEXT.DASHBOARD-POPUP-IMAGE' | translate}}" src="../../../assets/images/dashboard-popup.png">
                 </div>
-                <div class="col-12 col-xl-auto">
-                  <app-text-filter suffixIcon="search" floatLabel="never" placeholder="{{'GENERAL.CRITERIA.LIKE'| translate}}" [(value)]=lookup.like (valueChange)="controlModified()"></app-text-filter>
                 </div>
-              </div>
             </div>
-          </div>
+        } -->
+        <h1 class="page-title mb-1">
+            {{(isPublic ? 'GENERAL.TITLES.EXPLORE-PLANS' : 'GENERAL.TITLES.PLANS') | translate}}
+        </h1>
+        <p class="page-subtitle opacity-08">
+            {{(isPublic ? 'PLAN-LISTING.PUBLIC-HINT' : 'PLAN-LISTING.HINT') | translate}}
+        </p>
+        <!-- FILTERS -->
+        <div class="filters d-flex flex-wrap align-items-center gap-1-rem pt-4 pb-4">
+            <div class="flex-1 d-flex flex-wrap gap-1-rem">
+                <!-- Search Filter-->
+                <app-text-filter 
+                    class="search-form" 
+                    prefixIcon="search" 
+                    floatLabel="never" 
+                    placeholder="{{'PLAN-LISTING.FILTERS.LIKE'| translate}}" 
+                    [(value)]=lookup.like 
+                    (valueChange)="controlModified()"
+                ></app-text-filter>
+                <!-- view type -->
+                <mat-button-toggle-group hideSingleSelectionIndicator data-tour="plan-listing-views" (change)="compactView = $event.value;" [attr.aria-label]="'DASHBOARD.RECENT-EDITED-ACTIVITY.VIEW-OPTION.LABEL' | translate">
+                    <mat-button-toggle
+                        [matTooltip]="'DASHBOARD.RECENT-EDITED-ACTIVITY.VIEW-OPTION.COMPACT' | translate"
+                        [aria-label]="'DASHBOARD.RECENT-EDITED-ACTIVITY.VIEW-OPTION.COMPACT' | translate"
+                        [checked]="compactView"
+                        [value]="true"
+                    >
+                        <mat-icon class="material-symbols-outlined" aria-hidden="true">view_list</mat-icon>
+                    </mat-button-toggle>
+                    <mat-button-toggle
+                        [matTooltip]="'DASHBOARD.RECENT-EDITED-ACTIVITY.VIEW-OPTION.FULL' | translate"
+                        [aria-label]="'DASHBOARD.RECENT-EDITED-ACTIVITY.VIEW-OPTION.FULL' | translate"
+                        [checked]="!compactView"
+                        [value]="false"
+                    >
+                        <mat-icon class="material-symbols-outlined" aria-hidden="true">view_cozy</mat-icon>
+                    </mat-button-toggle>
+                </mat-button-toggle-group>
+                <!-- Sort by -->
+                <div class="sort-pill">
+                    <mat-icon class="sort-pill-icon" aria-hidden="true">sort</mat-icon>
+                    <mat-form-field appearance="outline" class="sort-form" subscriptSizing="dynamic">
+                        <mat-select id="plan-listing-sort-select" panelClass="sort-select-panel" [attr.aria-labelledby]="'plan-listing-sort-label'" placeholder="{{'PLAN-LISTING.SORT-BY'| translate}}" [(ngModel)]="sortBy" (selectionChange)="orderByChanged($event)">
+                            @if (!isPublic) {
+                                <mat-option [value]="RecentActivityOrder.UpdatedAt">{{enumUtils.toRecentActivityOrderString(RecentActivityOrder.UpdatedAt)}}</mat-option>
+                            }
+                            @if (isPublic) {
+                                <mat-option [value]="RecentActivityOrder.PublishedAt">{{enumUtils.toRecentActivityOrderString(RecentActivityOrder.PublishedAt)}}</mat-option>
+                            }
+                            <mat-option [value]="RecentActivityOrder.Label">{{enumUtils.toRecentActivityOrderString(RecentActivityOrder.Label)}}</mat-option>
+                            @if (!isPublic) {
+                                <mat-option [value]="RecentActivityOrder.Status">{{enumUtils.toRecentActivityOrderString(RecentActivityOrder.Status)}}</mat-option>
+                            }
+                        </mat-select>
+                    </mat-form-field>
+                    <div class="sort-divider" aria-hidden="true"></div>
+                    <!-- Ascending / Descending -->
+                    <button
+                        mat-icon-button
+                        class="sort-direction-btn"
+                        [matTooltip]="(!isDescending ? 'PLAN-LISTING.ACTIONS.TOGGLE-DESCENDING' : 'PLAN-LISTING.ACTIONS.TOGGLE-ASCENDING') | translate"
+                        [attr.aria-label]="(!isDescending ? 'PLAN-LISTING.ACTIONS.TOGGLE-DESCENDING' : 'PLAN-LISTING.ACTIONS.TOGGLE-ASCENDING') | translate"
+                        (click)="toggleSortDirection()"
+                    >
+                        @if (isDescending) {
+                            <mat-icon aria-hidden="true">keyboard_arrow_up</mat-icon>
+                        }
+                        @else {
+                            <mat-icon aria-hidden="true">keyboard_arrow_down</mat-icon>
+                        }
+                    </button>
+                </div>
+            </div>
+            @if (!versionsModeEnabled && (isLoading || listingItems?.length || hasFilters) && !isPublic) {
+                <button
+                    class="filter-btn"
+                    data-tour="plan-listing-filters"
+                    mat-stroked-button
+                    (click)="toggleFilters()"
+                    [attr.aria-label]="'ALT-TEXT.OPEN-FILTERS' | translate"
+                    [attr.aria-expanded]="filtersDialogOpen"
+                    aria-controls="plan-listing-filters-panel"
+                    [matBadge]="filtersCount"
+                    [matBadgeHidden]="!filtersCount"
+                    matBadgePosition="after"
+                    matBadgeSize="large"
+                    matBadgeOverlap="true"
+                >
+                    <div class="d-flex gap-quarter-rem align-items-center">
+                        {{'PLAN-LISTING.FILTERS.NAME' | translate}}
+                        <mat-icon aria-hidden="true">{{filtersDialogOpen ? 'keyboard_arrow_left' : 'keyboard_arrow_right'}}</mat-icon>
+                    </div>
+                </button>
+            }
         </div>
-        <div class="col-md-12 col-sm-12 col-md-9">
-          @for (item of listingItems; track item; let i = $index) {
-            <div>
-              <app-plan-listing-item-component
-                [orderedPlanPreferencesList] = orderedPlanPreferencesList
-                [showAllVersionsAction]="!isVersionsListing"
-                [showDivider]="i != (listingItems.length - 1)"
-                [plan]="item"
-                [isPublic]="isPublic"
-                [tenants]="tenants"
-                [statusStorageFile]="storageFileMap.get(item.status?.definition?.storageFile?.id)"
-                (onRefresh)="refresh()"
-              ></app-plan-listing-item-component>
-            </div>
-          }
-          @if (hasListingItems && lookup?.page?.offset < totalCount - 1 && pageSize < totalCount - 1) {
+        @if (!isPublic) {
+            <app-active-reference-filters
+                [referenceIds]="$safeNavigationMigration(lookup?.planReferenceSubQuery?.referenceIds)"
+                (removed)="removeReferenceFilter($event)"
+                (cleared)="clearReferenceFilters()"
+            ></app-active-reference-filters>
+        }
+        <ul class="listing pb-2" [attr.aria-label]="'GENERAL.TITLES.PLANS' | translate">
+            @for (item of listingItems; track item; let i = $index; let last = $last) {
+                <li>
+                    <app-plan-listing-item-component
+                        [attr.data-tour]="i === 0 ? 'plan-listing-item' : null"
+                        [class.no-top-border]="i > 0"
+                        [class.no-bottom-border]="!last"
+                        [orderedPlanPreferencesList] = orderedPlanPreferencesList
+                        [showAllVersionsAction]="!isVersionsListing"
+                        [showDivider]="i !== (listingItems.length - 1)"
+                        [plan]="item"
+                        [isPublic]="isPublic"
+                        [tenants]="tenants"
+                        [statusStorageFile]="storageFileMap.get($safeNavigationMigration(item.status?.definition?.iconConfiguration?.storageFile?.id))"
+                        [compactView]="compactView"
+                        (onRefresh)="refresh()"
+                    ></app-plan-listing-item-component>
+                </li>
+            }
+        </ul>
+        @if(totalCount){
+            <div class="mt-3 opacity-08" aria-live="polite" aria-atomic="true">{{('PLAN-LISTING.PLANS-SHOWN' | translate :{currentCount: listingItems?.length ?? 0, totalCount: totalCount})}}</div>
+        }
+        @if (listingItems.length && listingItems?.length < totalCount) {
             <div class="d-flex justify-content-center pb-1">
-              <button type="button" mat-button class="padded-shadow-btn load-more" (click)="loadMore()">{{'GENERAL.ACTIONS.LOAD-MORE' | translate}}</button>
+                <button type="button" mat-button class="padded-shadow-btn load-more mt-0" (click)="loadMore()">{{'GENERAL.ACTIONS.LOAD-MORE' | translate}}</button>
             </div>
-          }
-        </div>
-        @if (!hasListingItems && !hasFilters) {
-          <div class="col-md-12 d-flex justify-content-center pt-4 mt-4 mb-4 pb-4">
-            <span class="empty-list">{{'PLAN-LISTING.EMPTY-LIST' | translate}}</span>
-          </div>
         }
-        @if (!hasListingItems && hasFilters) {
-          <div class="col-md-12 d-flex justify-content-center pt-4 mt-4 mb-4 pb-4">
-            <span class="empty-list">{{'PLAN-LISTING.FILTERS.NO-ITEMS-FOUND' | translate}}</span>
-          </div>
+        @if(!listingItems?.length){
+            @if (!hasFilters) {
+                <div class="col-md-12 d-flex justify-content-center pt-4 mt-4 mb-4 pb-4" role="status">
+                    <span class="empty-list">{{'PLAN-LISTING.EMPTY-LIST' | translate}}</span>
+                </div>
+            }
+            @else {
+                <div class="col-md-12 d-flex justify-content-center pt-4 mt-4 mb-4 pb-4" role="status">
+                    <span class="empty-list">{{'PLAN-LISTING.FILTERS.NO-ITEMS-FOUND' | translate}}</span>
+                </div>
+            }
         }
-      </div>
-
     </div>
-  </div>
+    <aside
+        id="plan-listing-filters-panel"
+        class="listing-filters"
+        [class.open]="filtersDialogOpen"
+        [attr.aria-hidden]="!filtersDialogOpen"
+        [attr.inert]="filtersDialogOpen ? null : ''"
+        [attr.aria-label]="'PLAN-LISTING.FILTERS.NAME' | translate"
+    >
+        <app-plan-filter-dialog
+            [lookup]="lookup"
+            [isPublic]="isPublic ?? true"
+		    [hasSelectedTenant]="authService.selectedTenant() !== 'default'"
+		    [referencesWithTypeItems]="referenceFilters ?? []"
+            [featuredReferenceTypes]="orderedPlanPreferencesList ?? []"
+            [expandReferenceTypeId]="expandReferenceTypeId"
+            [isOpen]="filtersDialogOpen"
+            (closed)="filtersDialogOpen = false"
+            (filtersChanged)="onFiltersChanged($event)"
+        ></app-plan-filter-dialog>
+    </aside>
 </div>

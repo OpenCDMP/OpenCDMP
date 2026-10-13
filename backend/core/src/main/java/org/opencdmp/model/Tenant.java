@@ -30,6 +30,12 @@ public class Tenant {
     public final static String _updatedAt = "updatedAt";
 
     public final static String _hash = "hash";
+
+    private Long memberCount;
+    public final static String _memberCount = "memberCount";
+
+    private Long planCount;
+    public final static String _planCount = "planCount";
     private String hash;
     public UUID getId() {
         return id;
@@ -93,5 +99,21 @@ public class Tenant {
 
     public void setHash(String hash) {
         this.hash = hash;
+    }
+
+    public Long getMemberCount() {
+        return memberCount;
+    }
+
+    public void setMemberCount(Long memberCount) {
+        this.memberCount = memberCount;
+    }
+
+    public Long getPlanCount() {
+        return planCount;
+    }
+
+    public void setPlanCount(Long planCount) {
+        this.planCount = planCount;
     }
 }

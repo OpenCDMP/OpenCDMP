@@ -52,6 +52,8 @@ public class PlanBlueprintTypeBuilder extends BaseBuilder<PlanBlueprintType, Pla
                 m.setCode(d.getCode());
             if (fields.hasField(this.asIndexer(PlanBlueprintType._name)))
                 m.setName(d.getName());
+            if (fields.hasField(this.asIndexer(PlanBlueprintType._ordinal)))
+                m.setOrdinal(d.getOrdinal());
             if (fields.hasField(this.asIndexer(PlanBlueprintType._createdAt)))
                 m.setCreatedAt(d.getCreatedAt());
             if (fields.hasField(this.asIndexer(PlanBlueprintType._updatedAt)))

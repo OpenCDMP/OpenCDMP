@@ -38,6 +38,19 @@ import org.opencdmp.model.persist.referencedefinition.DefinitionPersist;
 import org.opencdmp.model.persist.referencedefinition.FieldPersist;
 import org.opencdmp.model.reference.Reference;
 import org.opencdmp.model.reference.ReferenceExist;
+import org.opencdmp.model.reference.ReferenceUsage;
+import org.opencdmp.model.result.QueryResult;
+import org.opencdmp.commons.SQLUtils;
+import org.opencdmp.commons.enums.ReferenceUsageEntityType;
+import org.opencdmp.data.DescriptionReferenceEntity;
+import org.opencdmp.data.PlanReferenceEntity;
+import org.opencdmp.model.descriptionreference.DescriptionReference;
+import org.opencdmp.model.planreference.PlanReference;
+import org.opencdmp.query.DescriptionQuery;
+import org.opencdmp.query.DescriptionReferenceQuery;
+import org.opencdmp.query.PlanQuery;
+import org.opencdmp.query.PlanReferenceQuery;
+import org.opencdmp.query.lookup.ReferenceUsageLookup;
 import org.opencdmp.model.referencetype.ReferenceType;
 import org.opencdmp.query.ReferenceQuery;
 import org.opencdmp.query.ReferenceTypeQuery;
@@ -48,6 +61,7 @@ import org.opencdmp.service.externalfetcher.ExternalFetcherService;
 import org.opencdmp.service.externalfetcher.config.entities.SourceBaseConfiguration;
 import org.opencdmp.service.externalfetcher.criteria.ExternalReferenceCriteria;
 import org.opencdmp.service.externalfetcher.models.ExternalDataResult;
+import org.opencdmp.service.externalfetcher.models.ExternalFetcherTestResult;
 import org.opencdmp.service.usagelimit.UsageLimitService;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.MessageSource;
@@ -272,6 +286,18 @@ public class ReferenceServiceImpl implements ReferenceService {
         return models;
     }
 
+    @Override
+    public ExternalFetcherTestResult testReferenceSource(ReferenceTestLookup lookup) {
+        // the reply body goes back to the caller, so this is limited to those who configure sources
+        this.authorizationService.authorizeForce(Permission.EditReferenceType);
+        if (this.conventionService.isListNullOrEmpty(lookup.getSources()))
+            throw new MyValidationException(this.errors.getInvalidReferenceTypeDefinitionSource().getCode(), this.errors.getInvalidReferenceTypeDefinitionSource().getMessage());
+
+        String like = this.conventionService.isNullOrEmpty(lookup.getLike()) ? null : lookup.getLike().replaceAll("%", "");
+        ExternalReferenceCriteria externalReferenceCriteria = new ExternalReferenceCriteria(like, lookup.getDependencyReferences());
+        return this.externalFetcherService.testSource(lookup.getSources().getFirst(), externalReferenceCriteria);
+    }
+
     private List<Reference> getReferences(ExternalDataResult remoteRepos, String data, String lookup, BaseFieldSet fieldSet) {
         List<Reference> models = new ArrayList<>();
         if (remoteRepos != null && !this.conventionService.isListNullOrEmpty(remoteRepos.getResults())){
@@ -339,5 +365,70 @@ public class ReferenceServiceImpl implements ReferenceService {
         return results;
     }
 
+
+    //region usage
+
+    @Override
+    public QueryResult<ReferenceUsage> usage(ReferenceUsageLookup lookup) throws MyApplicationException, MyForbiddenException {
+        logger.debug(new MapLogEntry("counting reference usage").And("lookup", lookup));
+
+        Collection<UUID> typeIds = this.resolveUsageTypeIds(lookup);
+        if (typeIds != null && typeIds.isEmpty()) return new QueryResult<>(new ArrayList<>(), 0);
+
+        ReferenceQuery referenceQuery = this.queryFactory.query(ReferenceQuery.class).disableTracking().isActive(IsActive.Active);
+        if (typeIds != null) referenceQuery.typeIds(typeIds);
+        if (!this.conventionService.isNullOrEmpty(lookup.getLike())) referenceQuery.like(SQLUtils.toPostgres(lookup.getLike()));
+
+        // reference id -> ids of the visible plans (or descriptions) that link to it
+        Map<UUID, Set<UUID>> usages = new HashMap<>();
+        if (lookup.getEntityType() == ReferenceUsageEntityType.Description) {
+            DescriptionQuery descriptionQuery = this.queryFactory.query(DescriptionQuery.class).disableTracking().isActive(IsActive.Active).authorize(AuthorizationFlags.AllExceptPublic);
+            List<DescriptionReferenceEntity> links = this.queryFactory.query(DescriptionReferenceQuery.class).disableTracking().isActive(IsActive.Active)
+                    .descriptionSubQuery(descriptionQuery).referenceSubQuery(referenceQuery).authorize(AuthorizationFlags.AllExceptPublic)
+                    .collectAs(new BaseFieldSet().ensure(DescriptionReference._description).ensure(DescriptionReference._reference));
+            for (DescriptionReferenceEntity link : links) usages.computeIfAbsent(link.getReferenceId(), k -> new HashSet<>()).add(link.getDescriptionId());
+        } else {
+            PlanQuery planQuery = this.queryFactory.query(PlanQuery.class).disableTracking().isActive(IsActive.Active).authorize(AuthorizationFlags.AllExceptPublic);
+            List<PlanReferenceEntity> links = this.queryFactory.query(PlanReferenceQuery.class).disableTracking().isActives(IsActive.Active)
+                    .planSubQuery(planQuery).referenceSubQuery(referenceQuery).authorize(AuthorizationFlags.AllExceptPublic)
+                    .collectAs(new BaseFieldSet().ensure(PlanReference._plan).ensure(PlanReference._reference));
+            for (PlanReferenceEntity link : links) usages.computeIfAbsent(link.getReferenceId(), k -> new HashSet<>()).add(link.getPlanId());
+        }
+        if (usages.isEmpty()) return new QueryResult<>(new ArrayList<>(), 0);
+
+        // order by usage, then label, before paging, so the most used references come first
+        Map<UUID, String> labels = this.queryFactory.query(ReferenceQuery.class).disableTracking().ids(usages.keySet())
+                .collectAs(new BaseFieldSet().ensure(Reference._id).ensure(Reference._label))
+                .stream().collect(Collectors.toMap(ReferenceEntity::getId, x -> x.getLabel() == null ? "" : x.getLabel(), (a, b) -> a));
+        List<UUID> ordered = usages.keySet().stream().filter(labels::containsKey)
+                .sorted(Comparator.<UUID>comparingInt(x -> usages.get(x).size()).reversed().thenComparing(x -> labels.get(x), String.CASE_INSENSITIVE_ORDER))
+                .toList();
+
+        int offset = lookup.getPage() != null ? Math.max(lookup.getPage().getOffset(), 0) : 0;
+        int size = lookup.getPage() != null && lookup.getPage().getSize() > 0 ? lookup.getPage().getSize() : ordered.size();
+        List<UUID> pageIds = ordered.stream().skip(offset).limit(size).toList();
+        if (pageIds.isEmpty()) return new QueryResult<>(new ArrayList<>(), ordered.size());
+
+        FieldSet referenceFields = lookup.getProject() == null ? new BaseFieldSet() : lookup.getProject().extractPrefixed(this.conventionService.asPrefix(ReferenceUsage._reference));
+        referenceFields = referenceFields.ensure(Reference._id);
+        List<ReferenceEntity> entities = this.queryFactory.query(ReferenceQuery.class).disableTracking().ids(pageIds).collectAs(referenceFields);
+        Map<UUID, Reference> models = this.builderFactory.builder(ReferenceBuilder.class).authorize(AuthorizationFlags.AllExceptPublic).build(referenceFields, entities)
+                .stream().collect(Collectors.toMap(Reference::getId, x -> x, (a, b) -> a));
+
+        List<ReferenceUsage> items = pageIds.stream().filter(models::containsKey)
+                .map(x -> new ReferenceUsage(models.get(x), (long) usages.get(x).size())).toList();
+        return new QueryResult<>(items, ordered.size());
+    }
+
+    private Collection<UUID> resolveUsageTypeIds(ReferenceUsageLookup lookup) {
+        if (lookup.getExcludedTypeIds() == null || lookup.getExcludedTypeIds().isEmpty()) return lookup.getTypeIds();
+
+        Collection<UUID> candidates = lookup.getTypeIds() != null ? lookup.getTypeIds()
+                : this.queryFactory.query(ReferenceTypeQuery.class).disableTracking().isActive(IsActive.Active)
+                        .collectAs(new BaseFieldSet().ensure(ReferenceType._id)).stream().map(ReferenceTypeEntity::getId).toList();
+        return candidates.stream().filter(x -> !lookup.getExcludedTypeIds().contains(x)).toList();
+    }
+
+    //endregion
 
 }

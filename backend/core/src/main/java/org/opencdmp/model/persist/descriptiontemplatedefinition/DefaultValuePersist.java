@@ -24,6 +24,9 @@ public class DefaultValuePersist {
     private Boolean booleanValue;
     public static final String _booleanValue = "booleanValue";
 
+    private Double numberValue;
+    public static final String _numberValue = "numberValue";
+
     public String getTextValue() {
         return this.textValue;
     }
@@ -49,10 +52,17 @@ public class DefaultValuePersist {
     }
 
     public Boolean isNullOrEmpty(){
-        if ((this.textValue == null || this.textValue.isEmpty()) && this.dateValue == null && this.booleanValue == null) return true;
+        if ((this.textValue == null || this.textValue.isEmpty()) && this.dateValue == null && this.booleanValue == null && this.numberValue == null) return true;
         return false;
     }
 
+    public Double getNumberValue() {
+        return numberValue;
+    }
+
+    public void setNumberValue(Double numberValue) {
+        this.numberValue = numberValue;
+    }
 
     @Component(DefaultValuePersistValidator.ValidatorName)
     @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)

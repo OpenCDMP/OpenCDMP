@@ -1,0 +1,59 @@
+@if (reference()) {
+    <div class="reference-card" [class.compact]="compact()" [class.dense]="dense()" [class.no-chrome]="!bordered()">
+        <div class="reference-card--main">
+            @if (logoUrl()) {
+                <img class="reference-card--logo" [src]="logoUrl()" alt="" aria-hidden="true">
+            } @else {
+                <mat-icon class="reference-card--icon material-symbols-outlined" aria-hidden="true">{{ isInternal() ? 'edit_note' : 'public' }}</mat-icon>
+            }
+            <div class="reference-card--text">
+                <span class="reference-card--label" [matTooltip]="reference().label" [matTooltipDisabled]="displayName() === reference().label">{{ displayName() }}</span>
+                <span class="reference-card--meta">
+                    @if (displayId()) {
+                        @if (navigationUrl()) {
+                            <a class="reference-card--id reference-card--id-link" [href]="navigationUrl()" target="_blank" rel="noopener noreferrer" (click)="$event.stopPropagation()">{{ displayId() }}</a>
+                        } @else {
+                            <span class="reference-card--id">{{ displayId() }}</span>
+                        }
+                    }
+                    @if (sourceLabel()) {
+                        <span class="reference-card--source-badge" [class.internal]="isInternal()" [matTooltip]="(sourceConfig()?.tooltipMessage ?? '') | translate" [matTooltipDisabled]="!sourceConfig()?.tooltipMessage">{{ isInternal() ? ('REFERENCE-FIELD.ADDED-MANUALLY' | translate) : sourceLabel() }}</span>
+                    }
+                </span>
+                @if (showDescription() && descriptionText()) {
+                    <span class="reference-card--description" [matTooltip]="descriptionText()">{{ descriptionText() }}</span>
+                }
+            </div>
+            <div class="reference-card--actions">
+                @if (!compact() && expandable() && fields().length) {
+                    <button mat-button type="button" class="reference-card--toggle" (click)="expanded.set(!expanded()); $event.stopPropagation()" [attr.aria-label]="'GENERAL.ACTIONS.DETAILS' | translate">
+                        @if (!expanded()) {
+                            <span class="reference-card--field-count">{{ fields().length }}</span>
+                        }
+                        <mat-icon aria-hidden="true" iconPositionEnd>{{ expanded() ? 'expand_less' : 'expand_more' }}</mat-icon>
+                    </button>
+                }
+                @if (canEdit() && isInternal()) {
+                    <button mat-icon-button type="button" class="reference-card--edit" (click)="edit.emit(); $event.stopPropagation()" [attr.aria-label]="'COMMONS.ACTIONS.EDIT' | translate" [matTooltip]="'COMMONS.ACTIONS.EDIT' | translate">
+                        <mat-icon aria-hidden="true">edit</mat-icon>
+                    </button>
+                }
+                @if (canRemove()) {
+                    <button mat-icon-button type="button" class="reference-card--remove" (click)="remove.emit()" [attr.aria-label]="'COMMONS.ACTIONS.REMOVE' | translate">
+                        <mat-icon aria-hidden="true">close</mat-icon>
+                    </button>
+                }
+            </div>
+        </div>
+        @if (!compact() && expanded() && fields().length) {
+            <div class="reference-card--fields">
+                @for (f of fields(); track f.label) {
+                    <div class="reference-card--field">
+                        <span class="reference-card--field-label">{{ f.label }}</span>
+                        <span class="reference-card--field-value">{{ f.value }}</span>
+                    </div>
+                }
+            </div>
+        }
+    </div>
+}

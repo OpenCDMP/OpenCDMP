@@ -2,6 +2,8 @@ package org.opencdmp.data;
 
 import jakarta.persistence.*;
 import org.opencdmp.commons.enums.*;
+import org.opencdmp.commons.enums.rdamadmp.DmpIdType;
+import org.opencdmp.data.converters.enums.DmpIdTypeConverter;
 import org.opencdmp.data.converters.enums.IsActiveConverter;
 import org.opencdmp.data.converters.enums.PlanUpdateRequestActionTypeConverter;
 import org.opencdmp.data.converters.enums.PlanUpdateRequestStatusConverter;
@@ -56,6 +58,19 @@ public class PlanUpdateRequestEntity extends TenantScopedBaseEntity {
 	@Column(name = "approved_at", nullable = true)
 	private Instant approvedAt;
 	public static final String _approvedAt = "approvedAt";
+
+	@Column(name = "external_id", nullable = true)
+	private String externalId;
+	public static final String _externalId = "externalId";
+
+	@Column(name = "external_id_type", nullable = true)
+	@Convert(converter = DmpIdTypeConverter.class)
+	private DmpIdType externalIdType;
+	public static final String _externalIdType = "externalIdType";
+
+	@Column(name = "applied_data", nullable = true, columnDefinition = "text")
+	private String appliedData;
+	public static final String _appliedData = "appliedData";
 
 	@Column(name = "created_at", nullable = false)
 	private Instant createdAt;
@@ -173,5 +188,29 @@ public class PlanUpdateRequestEntity extends TenantScopedBaseEntity {
 
 	public void setIsActive(IsActive isActive) {
 		this.isActive = isActive;
+	}
+
+	public String getExternalId() {
+		return externalId;
+	}
+
+	public void setExternalId(String externalId) {
+		this.externalId = externalId;
+	}
+
+	public DmpIdType getExternalIdType() {
+		return externalIdType;
+	}
+
+	public void setExternalIdType(DmpIdType externalIdType) {
+		this.externalIdType = externalIdType;
+	}
+
+	public String getAppliedData() {
+		return appliedData;
+	}
+
+	public void setAppliedData(String appliedData) {
+		this.appliedData = appliedData;
 	}
 }

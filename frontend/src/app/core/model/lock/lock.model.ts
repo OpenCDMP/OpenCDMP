@@ -6,12 +6,13 @@ import { BaseEntityPersist } from '@common/base/base-entity.model';
 export interface Lock {
 	id: Guid;
 	target: Guid;
+	targetLabel?: string;
 	targetType: LockTargetType;
 	lockedBy: User;
 	lockedAt: Date;
 	touchedAt: Date;
 	belongsToCurrentTenant?: boolean;
-	hash: String;
+	hash: string;
 }
 
 

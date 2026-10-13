@@ -1,5 +1,18 @@
-<mat-button-toggle-group class="tenant-menu w-100" vertical (change)="onTenantSelected($event)" [value]="currentTenant">
-	@for(tenant of (tenants | async); track tenant){
-		<mat-button-toggle class="no-borders" [value]="tenant.code">{{ tenant.name }}</mat-button-toggle>
-    }
+<mat-button-toggle-group class="tenant-menu w-100" vertical (change)="onTenantSelected($event)" [value]="currentTenant" hideSingleSelectionIndicator>
+  @for(tenant of tenants; track tenant.code; let index = $index){
+    <mat-button-toggle class="no-borders" [value]="tenant.code">
+      <span class="tenant-container" >
+        <div class="selection-indicator" [ngClass]="`background-color-${index % indicatorColorCount}`"></div>
+        <div class="tenant-details">
+          <div class="tenant-name" [class.selected]="tenant.code === currentTenant">{{ tenant.name }}</div>
+          @if(tenant.description){
+            <div class="tenant-description">{{tenant.description}}</div>
+          }
+        </div>
+        @if (tenant.code === currentTenant) {
+          <mat-icon class="ml-auto"  aria-hidden="true">check</mat-icon>
+        }
+      </span>
+    </mat-button-toggle>
+  }
 </mat-button-toggle-group>

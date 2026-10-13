@@ -1,0 +1,88 @@
+<div class="copy-panel">
+	<div class="copy-panel--toolbar">
+		<h3 class="copy-panel--title">{{ 'NEW-DESCRIPTION.COPY.TITLE' | translate }}</h3>
+		<div class="copy-panel--controls">
+			@if (canClone && canClonePublic) {
+				<mat-button-toggle-group hideSingleSelectionIndicator class="pill-toggle" [value]="publicView()" (change)="publicView.set($event.value)"
+					[attr.aria-label]="'NEW-DESCRIPTION.COPY.SCOPE' | translate"
+				>
+					<mat-button-toggle [value]="false">
+						<mat-icon class="material-symbols-outlined" aria-hidden="true">person</mat-icon>
+						{{ 'NEW-DESCRIPTION.COPY.MY-ASSETS' | translate }}
+					</mat-button-toggle>
+					<mat-button-toggle [value]="true">
+						<mat-icon aria-hidden="true">language</mat-icon>
+						{{ 'NEW-DESCRIPTION.COPY.PUBLIC-ASSETS' | translate }}
+					</mat-button-toggle>
+				</mat-button-toggle-group>
+			}
+			<app-text-filter class="copy-panel--search" [prefixIcon]="'search'" [placeholder]="'NEW-DESCRIPTION.COPY.SEARCH'"
+				[value]="searchTerm" (valueChange)="onSearch($event)"
+			/>
+		</div>
+	</div>
+
+	@let items = publicView() ? publicDescriptions() : descriptions();
+	@let total = publicView() ? publicTotalCount() : totalCount();
+
+	@if (loading() && !items.length) {
+		<mat-progress-bar mode="indeterminate" [attr.aria-label]="'ALT-TEXT.PROGRESS-BAR' | translate" />
+	} @else if (items.length) {
+		<ul class="copy-list unstyled-list">
+			@for (description of items; track description.id) {
+				@let state = isDisabled(description);
+				@let type = $safeNavigationMigration(description.descriptionTemplate?.type);
+				<li [matTooltip]="state.reason | translate" [matTooltipDisabled]="!state.disabled">
+					<button type="button" class="copy-row" [disabled]="state.disabled" (click)="copyDescription.emit(description)"
+						[attr.aria-label]="'NEW-DESCRIPTION.COPY.ACTIONS.COPY' | translate: { name: description.label }"
+					>
+						<span class="copy-row--info">
+							<span class="copy-row--heading">
+								<span class="copy-row--title">{{ description.label }}</span>
+								@if (type?.name) {
+									@let style = typeStyle(type);
+									<span class="type-chip" [style.background-color]="style.background" [style.color]="style.color">{{ type.name }}</span>
+								}
+							</span>
+							<span class="copy-row--template">{{ 'NEW-DESCRIPTION.COPY.TEMPLATE' | translate: { name: $safeNavigationMigration(description.descriptionTemplate?.label) } }}</span>
+							<span class="copy-row--meta">
+								<mat-icon aria-hidden="true">schedule</mat-icon>
+								{{ (description.updatedAt ?? description.createdAt) | date: 'd MMM y' }}
+							</span>
+						</span>
+						<mat-icon class="material-symbols-outlined copy-row--icon" aria-hidden="true">content_copy</mat-icon>
+					</button>
+				</li>
+			}
+			@if (items.length < total) {
+				<li class="copy-list--more">
+					<button mat-stroked-button type="button" (click)="loadMore()" [disabled]="loading()">
+						{{ 'GENERAL.ACTIONS.LOAD-MORE' | translate }}
+					</button>
+				</li>
+			}
+		</ul>
+	} @else if (initialized()) {
+		<div class="no-descriptions" role="status">
+			<mat-icon class="material-symbols-outlined no-descriptions--icon" aria-hidden="true">description</mat-icon>
+			@let message = emptyMessage;
+			<p>
+				<span>{{ message.key | translate: message.params }}</span>
+				@if (!hasSectionTemplates) {
+					<br />
+					@if (canEditTemplateList()) {
+						<span>
+							{{ 'NEW-DESCRIPTION.FROM-TEMPLATE.NO-RECOMMENDED-TEMPLATES.OWNER.HINT.START' | translate }}
+							<button type="button" class="inline-link-button" (click)="navigateToParentSection.emit()">
+								{{ 'NEW-DESCRIPTION.FROM-TEMPLATE.NO-RECOMMENDED-TEMPLATES.OWNER.HINT.LINK-TEXT' | translate }}
+							</button>
+							{{ 'NEW-DESCRIPTION.FROM-TEMPLATE.NO-RECOMMENDED-TEMPLATES.OWNER.HINT.END' | translate }}
+						</span>
+					} @else {
+						<span>{{ 'NEW-DESCRIPTION.FROM-TEMPLATE.NO-RECOMMENDED-TEMPLATES.CONTRIBUTOR.HINT' | translate }}</span>
+					}
+				}
+			</p>
+		</div>
+	}
+</div>

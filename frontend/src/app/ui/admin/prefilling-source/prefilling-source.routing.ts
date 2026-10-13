@@ -20,14 +20,8 @@ const routes: Routes = [
 		component: PrefillingSourceEditorComponent,
 		canDeactivate: [PendingChangesGuard],
 		data: {
-			authContext: {
-				permissions: [AppPermission.EditPrefillingSource]
-			},
-			...BreadcrumbService.generateRouteDataConfiguration({
-				title: 'BREADCRUMBS.NEW-PREFILLING-SOURCE'
-			}),
-			getFromTitleService: true,
-			usePrefix: false
+			authContext: { permissions: [AppPermission.EditPrefillingSource] },
+			...BreadcrumbService.generateRouteDataConfiguration({ title: 'BREADCRUMBS.NEW-PREFILLING-SOURCE' })
 		}
 	},
 	{
@@ -35,17 +29,11 @@ const routes: Routes = [
 		canActivate: [AuthGuard],
 		component: PrefillingSourceEditorComponent,
 		canDeactivate: [PendingChangesGuard],
-		resolve: {
-			'entity': PrefillingSourceEditorResolver
-		},
+		resolve: { 'entity': PrefillingSourceEditorResolver },
 		data: {
-			authContext: {
-				permissions: [AppPermission.EditPrefillingSource]
-			},
-			getFromTitleService: true,
-			usePrefix: false
+			...BreadcrumbService.generateRouteDataConfiguration({ skipNavigation: true }),
+			authContext: { permissions: [AppPermission.EditPrefillingSource] }
 		}
-
 	},
 	{ path: '**', loadComponent: () => import('@common/modules/page-not-found/page-not-found.component').then(m => m.PageNotFoundComponent)},
 ];

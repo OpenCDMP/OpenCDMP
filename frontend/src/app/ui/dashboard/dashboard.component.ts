@@ -1,40 +1,46 @@
 
-import { Component, OnInit, ViewChild, ViewEncapsulation } from '@angular/core';
-import { UntypedFormBuilder, Validators } from '@angular/forms';
+import { Component, computed, effect, inject, OnInit, AfterViewInit, OnDestroy, ChangeDetectionStrategy, forwardRef } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
 import { ActivatedRoute, Router } from '@angular/router';
-import { DashboardStatistics } from '@app/core/model/dashboard/dashboard-statistics';
 import { AuthService } from '@app/core/services/auth/auth.service';
 import { ConfigurationService } from '@app/core/services/configuration/configuration.service';
 import { DashboardService } from '@app/core/services/dashboard/dashboard.service';
 import { ReferenceTypeService } from '@app/core/services/reference-type/reference-type.service';
-import { GuidedTour, Orientation } from '@app/library/guided-tour/guided-tour.constants';
-import { GuidedTourService } from '@app/library/guided-tour/guided-tour.service';
+import { TourStateService } from '@app/library/guided-tour/tour-state.service';
 import { BaseComponent } from '@common/base/base.component';
-import { TranslateService } from '@ngx-translate/core';
+import { TranslateService, TranslatePipe } from '@ngx-translate/core';
 import moment from 'moment';
 import { CookieService } from 'ngx-cookie-service';
 import { takeUntil } from 'rxjs/operators';
-import { StartNewDescriptionDialogComponent } from '../description/start-new-description-dialog/start-new-description-dialog.component';
 import { StartNewPlanDialogComponent } from '../plan/new/start-new-plan-dialogue/start-new-plan-dialog.component';
 import { AnalyticsService } from '@app/core/services/matomo/analytics-service';
 import { RouterUtilsService } from '@app/core/services/router/router-utils.service';
 import { ReferenceType } from '@app/core/model/reference-type/reference-type';
-import { ViewPreferencesEditorResolver } from '../admin/tenant-configuration/editor/view-preferences/view-preferences-editor.resolver';
+import { ViewPreferencesEditorResolver } from '../admin/tenant-configuration/models/view-preferences/view-preferences-editor.resolver';
 import { TenantConfigurationService } from '@app/core/services/tenant-configuration/tenant-configuration.service';
 import { TenantConfigurationType } from '@app/core/common/enum/tenant-configuration-type';
 import { IsActive } from '@notification-service/core/enum/is-active.enum';
 import { ConsentType, CookieConsentService } from '@app/core/services/cookie-consent/cookieconsent.service';
+import { UIStatisticsService } from '@app/core/services/statistics/ui-statistics.service';
+import { dashboardPageTour } from './dashboard.tour';
+import { MatTabGroup, MatTab } from '@angular/material/tabs';
+import { RecentEditedActivityComponent } from './recent-edited-activity/recent-edited-activity.component';
+import { DashboardOverviewComponent } from './dashboard-overview/dashboard-overview.component';
+import { NgTemplateOutlet } from '@angular/common';
+import { MatIconButton } from '@angular/material/button';
+import { MatIcon } from '@angular/material/icon';
+import { MatCard, MatCardContent } from '@angular/material/card';
 
 
 @Component({
     selector: 'app-dashboard',
     templateUrl: './dashboard.component.html',
     styleUrls: ['./dashboard.component.scss'],
-    standalone: false
+    changeDetection: ChangeDetectionStrategy.Eager,
+    imports: [MatTabGroup, MatTab, forwardRef(() => RecentEditedActivityComponent), DashboardOverviewComponent, NgTemplateOutlet, MatIconButton, MatIcon, MatCard, MatCardContent, TranslatePipe]
 })
-export class DashboardComponent extends BaseComponent implements OnInit {
-	public dashboardStatistics: DashboardStatistics;
+export class DashboardComponent extends BaseComponent implements OnInit, AfterViewInit, OnDestroy {
+	public dashboardStatistics = this.statisticsService.dashboardStatistics;
 	public grantCount = 0;
 	public organizationCount = 0;
 	newReleaseNotificationVisible = false;
@@ -44,6 +50,9 @@ export class DashboardComponent extends BaseComponent implements OnInit {
 	orderedPlanPreferencesList:ReferenceType[];
 	orderedDescriptionPreferencesList:ReferenceType[];
 
+	private readonly tourState = inject(TourStateService);
+	private readonly pageTour = dashboardPageTour(inject(TranslateService));
+
 	constructor(
 		public routerUtils: RouterUtilsService,
 		private router: Router,
@@ -51,62 +60,69 @@ export class DashboardComponent extends BaseComponent implements OnInit {
 		private dashboardService: DashboardService,
 		private authentication: AuthService,
 		private dialog: MatDialog,
-		private language: TranslateService,
-		private guidedTourService: GuidedTourService,
 		private analyticsService: AnalyticsService,
 		public referenceTypeService: ReferenceTypeService,
-		private fb: UntypedFormBuilder,
 		private cookieService: CookieService,
 		private tenantConfigurationService: TenantConfigurationService,
 		public configurationService: ConfigurationService,
-        private cookieConsentService: CookieConsentService
+        private cookieConsentService: CookieConsentService,
+        private statisticsService: UIStatisticsService
 	) {
 		super();
+		// A user with nothing yet has no activity list, so the tour can start as soon as the overview card is up.
+		effect(() => {
+			if (this.dashboardStatistics() && !this.hasPlans()) { this.requestTour(); }
+		});
+	}
+
+	/** The activity list is the last thing the page renders; the first-visit tour waits for it (see `onActivityLoaded`). */
+	private tourRequested = false;
+
+	onActivityLoaded(): void {
+		this.requestTour();
+	}
+
+	private requestTour(): void {
+		if (this.tourRequested || !this.isAuthenticated()) { return; }
+		this.tourRequested = true;
+		this.tourState.startIfUnseen(this.pageTour);
 	}
 
 
 	ngOnInit() {
 		this.analyticsService.trackPageView(AnalyticsService.Dashboard);
 
-		if (!this.isAuthenticated()) {
-			this.dashboardService.getPublicDashboardStatistics()
-				.pipe(takeUntil(this._destroyed))
-				.subscribe(results => {
-					this.dashboardStatistics = results;
-					this.grantCount = this.dashboardStatistics.referenceTypeStatistics.filter(x => x.referenceType.id == this.referenceTypeService.getGrantReferenceType())?.find(Boolean).count;
-					this.organizationCount = this.dashboardStatistics.referenceTypeStatistics.filter(x => x.referenceType.id == this.referenceTypeService.getOrganizationReferenceType())?.find(Boolean).count;
-				});
-		} else {
-			this.dashboardService.getMyDashboardStatistics()
-				.pipe(takeUntil(this._destroyed))
-				.subscribe(results => {
-					this.dashboardStatistics = results;
-					this.grantCount = this.dashboardStatistics.referenceTypeStatistics.filter(x => x.referenceType.id == this.referenceTypeService.getGrantReferenceType())?.find(Boolean).count;
-					this.organizationCount = this.dashboardStatistics.referenceTypeStatistics.filter(x => x.referenceType.id == this.referenceTypeService.getOrganizationReferenceType())?.find(Boolean).count;
 
-					if (this.dashboardStatistics && this.dashboardStatistics.planCount === 0 && window.innerWidth > 990) {
-						this.openDashboardTour();
-					}
-				});
+
+		if (this.isAuthenticated()) {
+			// "What's new" tour for the 2.0.0 dashboard; started once the page has laid out (requestTour).
+			this.tourState.registerPageTour(this.pageTour);
+
 			this.tenantConfigurationService.getActiveType(TenantConfigurationType.ViewPreferences, ViewPreferencesEditorResolver.lookupFields())
-				.pipe(takeUntil(this._destroyed)).subscribe(
+				.pipe(takeUntil(this._destroyed))
+                .subscribe(
 					data => {
 						this.orderedPlanPreferencesList = data?.viewPreferences?.planPreferences?.filter(x => x.referenceType?.isActive === IsActive.Active)?.map(x => x.referenceType) || [];
 						this.orderedDescriptionPreferencesList = data?.viewPreferences?.descriptionPreferences?.filter(x => x.referenceType?.isActive === IsActive.Active)?.map(x => x.referenceType) || [];
-						},
-						error => {
-							this.orderedPlanPreferencesList = []
-						}
+                    },
+                    error => {
+                        this.orderedPlanPreferencesList = []
+                    }
 				);
 		}
 
 		this.newReleaseNotificationVisible = this.isNewReleaseNotificationVisible();
 	}
 
+	override ngOnDestroy(): void {
+		this.tourState.unregisterPageTour(this.pageTour);
+		super.ngOnDestroy();
+	}
+
     initTab: number = 0;
     ngAfterViewInit(){
         this.route.queryParams.pipe(takeUntil(this._destroyed)).subscribe(params => {
-			let type = params['type'] as ActivityListingType;
+			const type = params['type'] as ActivityListingType;
             if(type){
                 switch(type){
                     case ActivityListingType.Drafts: {
@@ -149,109 +165,20 @@ export class DashboardComponent extends BaseComponent implements OnInit {
 		}
 	}
 
-	public hasPlans(): boolean {
-		if (this.dashboardStatistics) {
-			return this.dashboardStatistics.planCount !== 0
-				|| this.dashboardStatistics.descriptionCount !== 0
-				|| this.dashboardStatistics.referenceTypeStatistics.length !== 0
+	public hasPlans = computed(() => {
+		if (this.dashboardStatistics()) {
+			return [
+                this.dashboardStatistics().planCount,
+                this.dashboardStatistics().descriptionCount,
+				this.dashboardStatistics().referenceTypeStatistics?.length,
+                this.dashboardStatistics().publicPlanCount,
+                this.dashboardStatistics().publicDescriptionCount,
+				this.dashboardStatistics().publicReferenceTypeStatistics?.length,
+            ].some(x => !!x)
 		} else {
 			return false;
 		}
-	}
-
-	addNewDescription(addDescription: boolean): void {
-		if (addDescription == false) return;
-
-		const formGroup = this.fb.group({
-			planId: this.fb.control(null, Validators.required),
-		})
-
-		const dialogRef = this.dialog.open(StartNewDescriptionDialogComponent, {
-			disableClose: false,
-			restoreFocus: false,
-			data: {
-				startNewPlan: false,
-				formGroup: formGroup
-			},
-            maxWidth: '600px'
-		});
-		dialogRef.afterClosed().pipe(takeUntil(this._destroyed)).subscribe(result => {
-			if (result) {
-				if (result.startNewPlan) {
-					this.openNewPlanDialog();
-				} else {
-					this.router.navigate([this.routerUtils.generateUrl(['/plans/', 'edit/', result.formGroup.get('planId').value])]);
-				}
-			}
-		});
-	}
-
-	public dashboardTour: GuidedTour = {
-		tourId: 'dashboard-tour',
-		useOrb: true,
-		steps: [
-			{
-				selector: '.start-new-plan-btn',
-				content: 'Step 1',
-				orientation: Orientation.BottomRight,
-				isStepUnique: false,
-				highlightPadding: 10,
-				closeAction: () => this.openNewPlanDialog()
-			},
-			{
-				selector: '.import-file',
-				content: 'Step 2',
-				orientation: Orientation.Bottom,
-				isStepUnique: false,
-				highlightPadding: 10
-			},
-			{
-				selector: '.start-wizard',
-				content: 'Step 3',
-				orientation: Orientation.Bottom,
-				isStepUnique: false,
-				highlightPadding: 10,
-				closeAction: () => this.dialog.closeAll()
-			},
-			{
-				selector: '.new-description-tour',
-				content: 'Step 4',
-				orientation: Orientation.BottomLeft,
-				isStepUnique: false,
-				highlightPadding: 10
-			}
-		]
-	};
-
-	public setDashboardTourPlanText(): void {
-		const planText = this.language.instant('DASHBOARD.TOUR-GUIDE.PLAN') + '\n\n' +
-			this.language.instant('DASHBOARD.TOUR-GUIDE.START-NEW');
-		this.dashboardTour.steps[0].title = planText;
-	}
-
-	public setDashboardImportFileText(): void {
-		const importFileText = this.language.instant('DASHBOARD.TOUR-GUIDE.IMPORT-PLAN');
-		this.dashboardTour.steps[1].title = importFileText;
-	}
-
-	public setDashboardStartWizardText(): void {
-		const startWizardText = this.language.instant('DASHBOARD.TOUR-GUIDE.START-NEW-PLAN');
-		this.dashboardTour.steps[2].title = startWizardText;
-	}
-
-	public setDescriptionText(): void {
-		const descriptionText = this.language.instant('DASHBOARD.TOUR-GUIDE.DESCRIPTION') + '\n\n' +
-			this.language.instant('DASHBOARD.TOUR-GUIDE.NEW-DESCRIPTION');
-		this.dashboardTour.steps[3].title = descriptionText;
-	}
-
-	openDashboardTour() {
-		this.setDashboardTourPlanText();
-		this.setDashboardImportFileText();
-		this.setDashboardStartWizardText();
-		this.setDescriptionText();
-		this.guidedTourService.startTour(this.dashboardTour);
-	}
+    })
 
 	dismissIntroCard() {
 		this.isIntroCardVisible = false;

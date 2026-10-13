@@ -5,10 +5,11 @@ import { CommonModule } from '@angular/common';
 import { WindowRefService } from './windowref.service';
 import { TranslateModule } from '@ngx-translate/core';
 import { MatButtonModule } from '@angular/material/button';
+import { MatIconModule } from '@angular/material/icon';
+import { A11yModule } from '@angular/cdk/a11y';
 
 @NgModule({
-    declarations: [GuidedTourComponent],
-    imports: [CommonModule, TranslateModule, MatButtonModule],
+    imports: [CommonModule, TranslateModule, MatButtonModule, MatIconModule, A11yModule, GuidedTourComponent],
     providers: [WindowRefService],
     exports: [GuidedTourComponent]
 })

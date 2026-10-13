@@ -10,24 +10,27 @@ import { PlanListingModule } from '../plan/listing/plan-listing.module';
 import { StartNewPlanDialogModule } from '../plan/new/start-new-plan-dialogue/start-new-plan-dialog.module';
 import { RecentEditedActivityComponent } from './recent-edited-activity/recent-edited-activity.component';
 import {TopPlanBlueprintsComponent} from "@app/ui/dashboard/top-plan-blueprints/top-plan-blueprints.component";
+import { DashboardOverviewComponent } from './dashboard-overview/dashboard-overview.component';
+import { ActiveReferenceFiltersComponent } from '@app/ui/reference/reference-usage-filter/active-reference-filters.component';
+import { A11yModule } from '@angular/cdk/a11y';
 
 @NgModule({
-	imports: [
-		CommonUiModule,
-		FormattingModule,
-		DashboardRoutingModule,
-		ConfirmationDialogModule,
-		FormsModule,
-		ReactiveFormsModule,
-
-		PlanListingModule,
-		DescriptionListingModule,
-		StartNewPlanDialogModule
-	],
-	declarations: [
-		DashboardComponent,
+    imports: [
+        CommonUiModule,
+        ActiveReferenceFiltersComponent,
+        A11yModule,
+        FormattingModule,
+        DashboardRoutingModule,
+        ConfirmationDialogModule,
+        FormsModule,
+        ReactiveFormsModule,
+        PlanListingModule,
+        DescriptionListingModule,
+        StartNewPlanDialogModule,
+        DashboardOverviewComponent,
+        DashboardComponent,
         RecentEditedActivityComponent,
-		TopPlanBlueprintsComponent,
-	]
+        TopPlanBlueprintsComponent
+    ]
 })
 export class DashboardModule { }

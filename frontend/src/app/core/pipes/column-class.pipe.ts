@@ -1,9 +1,6 @@
 import {Pipe, PipeTransform} from "@angular/core";
 
-@Pipe({
-    name: 'columnClass',
-    standalone: false
-})
+@Pipe({ name: 'columnClass' })
 export class ColumnClassPipe implements PipeTransform{
 
 	transform(value: number): any {

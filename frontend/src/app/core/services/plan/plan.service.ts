@@ -1,6 +1,5 @@
 import { HttpClient, HttpHeaders, HttpParamsOptions, HttpResponse } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { PlanStatusEnum } from '@app/core/common/enum/plan-status';
 import { PlanUserRole } from '@app/core/common/enum/plan-user-role';
 import { IsActive } from '@app/core/common/enum/is-active.enum';
 import { PlanDescriptionTemplateLookup } from '@app/core/query/plan-description-template.lookup';
@@ -15,7 +14,7 @@ import { catchError, map } from 'rxjs/operators';
 import { nameof } from 'ts-simple-nameof';
 import { BaseHttpParams } from '../../../../common/http/base-http-params';
 import { InterceptorType } from '../../../../common/http/interceptors/interceptor-type';
-import { ClonePlanPersist, Plan, PlanPersist, PlanUser, PlanUserInvitePersist, PlanUserPersist, PlanUserRemovePersist, NewVersionPlanPersist, PlanInvitationResult } from '../../model/plan/plan';
+import { ClonePlanPersist, Plan, PlanPersist, PlanUser, PlanUserInvitePersist, PlanUserPersist, PlanUserRemovePersist, NewVersionPlanPersist, PlanInvitationResult, PlanWithDescriptionsPersist } from '../../model/plan/plan';
 import { AuthService } from '../auth/auth.service';
 import { ConfigurationService } from '../configuration/configuration.service';
 import { BaseHttpV2Service } from '../http/base-http-v2.service';
@@ -23,6 +22,8 @@ import { PlanValidationResult } from '@app/ui/plan/plan-finalize-dialog/plan-fin
 import { PlanCommonModelConfig, PreprocessingPlanModel } from '@app/core/model/plan/plan-import';
 import { PlanSuggestion } from '@app/core/model/plan-update-request/plan-update-request';
 import { User } from '@app/core/model/user/user';
+import { UpdatePlanDescriptionTemplate } from '@app/core/model/plan/update-plan-description-template';
+import { PlanVersionDiff } from '@app/core/model/plan/plan-version-diff';
 
 @Injectable()
 export class PlanService {
@@ -67,12 +68,20 @@ export class PlanService {
 				catchError((error: any) => throwError(error)));
 	}
 
+	versionDiff(id: Guid, otherId: Guid): Observable<PlanVersionDiff> {
+		const url = `${this.apiBase}/${id}/version-diff/${otherId}`;
+
+		return this.http
+			.get<PlanVersionDiff>(url).pipe(
+				catchError((error: any) => throwError(error)));
+	}
+
 	getPublicSingle(id: Guid, reqFields: string[] = []): Observable<Plan> {
 		const url = `${this.apiBase}/public/${id}`;
 
 		const options: HttpParamsOptions = { fromObject: { f: reqFields } };
 
-		let params: BaseHttpParams = new BaseHttpParams(options);
+		const params: BaseHttpParams = new BaseHttpParams(options);
 		if (!this.authService.currentAccountIsAuthenticated) {
 			params.interceptorContext = {
 				excludedInterceptors:  [InterceptorType.AuthToken, 
@@ -94,6 +103,17 @@ export class PlanService {
 				catchError((error: any) => throwError(error)));
 	}
 
+	// FE-4: persist a plan and its edited descriptions in a single backend transaction
+	// (atomic — no partial commit). Backend: PlanController.PersistWithDescriptions.
+	persistWithDescriptions(item: PlanWithDescriptionsPersist, reqFields: string[] = []): Observable<Plan> {
+		const url = `${this.apiBase}/persist-with-descriptions`;
+		const options = { params: { f: reqFields } };
+
+		return this.http
+			.post<Plan>(url, item, options).pipe(
+				catchError((error: any) => throwError(error)));
+	}
+
 	delete(id: Guid): Observable<Plan> {
 		const url = `${this.apiBase}/${id}`;
 
@@ -102,11 +122,11 @@ export class PlanService {
 				catchError((error: any) => throwError(error)));
 	}
 
-	setStatus(id: Guid, newStatusId: Guid, descriptionIds: Guid[] = []): Observable<Boolean> {
+	setStatus(id: Guid, newStatusId: Guid, descriptionIds: Guid[] = []): Observable<boolean> {
 		const url = `${this.apiBase}/set-status/${id}/${newStatusId}`;
 
 		return this.http
-			.post<Boolean>(url, {descriptionIds: descriptionIds}).pipe(
+			.post<boolean>(url, {descriptionIds: descriptionIds}).pipe(
 				catchError((error: any) => throwError(error)));
 	}
 
@@ -145,12 +165,11 @@ export class PlanService {
 				catchError((error: any) => throwError(error)));
 	}
 
-	assignUsers(id: Guid, items: PlanUserPersist[], reqFields: string[] = []): Observable<PlanUser> {
+	assignUsers(id: Guid, items: PlanUserPersist[], reqFields: string[] = []): Observable<QueryResult<PlanUser>> {
 		const url = `${this.apiBase}/${id}/assign-users`;
-		const options = { params: { f: reqFields } };
-
+        const options = { params: { f: reqFields } };
 		return this.http
-			.post<PlanUser>(url, items).pipe(
+			.post<QueryResult<PlanUser>>(url, items, options).pipe(
 				catchError((error: any) => throwError(error)));
 	}
 
@@ -171,6 +190,14 @@ export class PlanService {
 				catchError((error: any) => throwError(error)));
 	}
 
+    getUsers(planId: Guid, reqFields: string[]): Observable<PlanUser[]> {
+        const url = `${this.apiBase}/get-users/${planId}`;
+        const options = { params: { f: reqFields } };
+        return this.http
+			.get<PlanUser[]>(url, options).pipe(
+			catchError((error: any) => throwError(error)));
+    }
+
 	acceptInvitation(token: string): Observable<PlanInvitationResult> {
 		const url = `${this.apiBase}/token/${token}/invite-accept`;
 
@@ -179,7 +206,7 @@ export class PlanService {
 
 	downloadXML(id: Guid): Observable<HttpResponse<Blob>> {
 		const url = `${this.apiBase}/xml/export/${id}`;
-		let headerXml: HttpHeaders = this.headers.set('Content-Type', 'application/xml');
+		const headerXml: HttpHeaders = this.headers.set('Content-Type', 'application/xml');
 		const params = new BaseHttpParams();
 		params.interceptorContext = {
 			excludedInterceptors: [InterceptorType.JSONContentType]
@@ -189,7 +216,7 @@ export class PlanService {
 
 	downloadPublicXML(id: Guid): Observable<HttpResponse<Blob>> {
 		const url = `${this.apiBase}/xml/export-public/${id}`;
-		let headerXml: HttpHeaders = this.headers.set('Content-Type', 'application/xml');
+		const headerXml: HttpHeaders = this.headers.set('Content-Type', 'application/xml');
 		const params = new BaseHttpParams();
 		params.interceptorContext = {
 			excludedInterceptors: [InterceptorType.JSONContentType]
@@ -207,7 +234,7 @@ export class PlanService {
 		formData.append('file', file);
 		formData.append('label', label);
 		if (reqFields.length > 0){
-			for (var i = 0; i < reqFields.length; i++) {
+			for (let i = 0; i < reqFields.length; i++) {
 				formData.append('field[]', reqFields[i]);
 			}
 		}
@@ -237,17 +264,19 @@ export class PlanService {
 
 	}
 
-	createPlanFromRequest(item: PlanSuggestion, reqFields: string[] = []): Observable<Plan> {
-		const url = `${this.apiBase}/create-from-request`;
-
-		return this.http.post<Plan>(url, item).pipe(catchError((error: any) => throwError(error)));
-
-	}
-
 	getActiveUsers(id: Guid): Observable<User[]> {
 		const url = `${this.apiBase}/active-users/${id}`;
 
 		return this.http.get<User[]>(url).pipe(catchError((error: any) => throwError(error)));
+	}
+
+	updateDescriptionTemplates(item: UpdatePlanDescriptionTemplate, reqFields: string[] = []): Observable<Plan> {
+		const url = `${this.apiBase}/update-plan-description-templates`;
+		const options = { params: { f: reqFields } };
+
+		return this.http
+			.post<Plan>(url, item, options).pipe(
+				catchError((error: any) => throwError(error)));
 	}
 
 	//

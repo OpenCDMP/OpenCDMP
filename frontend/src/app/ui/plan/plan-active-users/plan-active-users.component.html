@@ -9,7 +9,12 @@
                     </span>
 
                 }@else{
-                    <span role="button" (click)="navigateToPosition(userInfo)" [attr.aria-label]="'PLAN-EDITOR.ACTIONS.GO-TO-USER-POSITION' | translate">
+                    <span 
+                        role="button"
+                        [ngClass]="'active-user-' + index"
+                        (click)="navigateToPosition(userInfo)" 
+                        [attr.aria-label]="'PLAN-EDITOR.ACTIONS.GO-TO-USER-POSITION' | translate"
+                    >
                         <ng-container *ngTemplateOutlet="userLogoTemplate; context: {userInfo}"></ng-container>
                     </span>
                 }
@@ -23,9 +28,11 @@
 }
 
 <ng-template #userLogoTemplate let-userInfo="userInfo">
-    <img 
+    <img
         class="user-logo circle"
-        [src]="userInfo.user | userLogoAsync | async" 
+        [src]="$safeNavigationMigration(userInfo.user?.name) | userLogo"
+        appFallbackAvatar
+        [alt]="$safeNavigationMigration(userInfo.user?.name)"
         [matTooltip]="getTooltipInfo(userInfo)"
         matTooltipClass="wrap-tooltip"
     >

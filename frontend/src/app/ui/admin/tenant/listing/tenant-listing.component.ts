@@ -1,4 +1,5 @@
-import { Component, OnInit, TemplateRef, ViewChild } from '@angular/core';
+import { Component, OnInit, TemplateRef, ViewChild, ChangeDetectionStrategy } from '@angular/core';
+import { ConfigurationService } from '@app/core/services/configuration/configuration.service';
 import { MatDialog } from '@angular/material/dialog';
 import { ActivatedRoute, Router } from '@angular/router';
 import { IsActive } from '@app/core/common/enum/is-active.enum';
@@ -15,40 +16,60 @@ import { DataTableDateTimeFormatPipe } from '@app/core/pipes/date-time-format.pi
 import { QueryResult } from '@common/model/query-result';
 import { ConfirmationDialogComponent } from '@common/modules/confirmation-dialog/confirmation-dialog.component';
 import { HttpErrorHandlingService } from '@common/modules/errors/error-handling/http-error-handling.service';
-import { ColumnDefinition, ColumnsChangedEvent, HybridListingComponent, PageLoadEvent } from '@common/modules/hybrid-listing/hybrid-listing.component';
+import { ColumnDefinition, ColumnsChangedEvent, PageLoadEvent } from '@common/modules/admin-listing/listing.types';
 import { Guid } from '@common/types/guid';
-import { TranslateService } from '@ngx-translate/core';
+import { TranslateService, TranslatePipe } from '@ngx-translate/core';
 import { Observable } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { nameof } from 'ts-simple-nameof';
-import { IsActiveTypePipe } from '@common/formatting/pipes/is-active-type.pipe';
 import { RouterUtilsService } from '@app/core/services/router/router-utils.service';
 import { AppPermission } from '@app/core/common/enum/permission.enum';
+import { PrincipalService } from '@app/core/services/http/principal.service';
+import { TenantHandlingService } from '@app/core/services/tenant/tenant-handling.service';
+import { BaseHttpParams } from '@common/http/base-http-params';
+import { InterceptorType } from '@common/http/interceptors/interceptor-type';
+import { AdminPageHeaderComponent } from '../../../../../common/ui/admin-page-header/admin-page-header.component';
+import { MatButton, MatIconButton } from '@angular/material/button';
+import { MatIcon } from '@angular/material/icon';
+import { AdminListingComponent } from '../../../../../common/modules/admin-listing/admin-listing.component';
+import { TenantListingFiltersComponent } from './filters/tenant-listing-filters.component';
+import { UserSettingsPickerComponent } from '../../../../../common/modules/user-settings/user-settings-picker/user-settings-picker.component';
+import { TenantDrawerComponent } from './tenant-drawer/tenant-drawer.component';
+import { MatMenuTrigger, MatMenu, MatMenuItem } from '@angular/material/menu';
+import { NullifyValuePipe } from '../../../../../common/modules/admin-listing/pipes/nullify-value.pipe';
 
 @Component({
     templateUrl: './tenant-listing.component.html',
     styleUrls: ['./tenant-listing.component.scss'],
-    standalone: false
+    changeDetection: ChangeDetectionStrategy.Eager,
+    imports: [AdminPageHeaderComponent, MatButton, MatIcon, AdminListingComponent, TenantListingFiltersComponent, UserSettingsPickerComponent, TenantDrawerComponent, MatIconButton, MatMenuTrigger, MatMenu, MatMenuItem, TranslatePipe, NullifyValuePipe]
 })
 export class TenantListingComponent extends BaseListingComponent<Tenant, TenantLookup> implements OnInit {
 	publish = false;
 	userSettingsKey = { key: 'TenantListingUserSettings' };
+	/** Admins browse: a longer page than the author-facing listings. */
+	protected override ITEMS_PER_PAGE = 25;
 	propertiesAvailableForOrder: ColumnDefinition[];
 
 	@ViewChild('actions', { static: true }) actions?: TemplateRef<any>;
-	@ViewChild(HybridListingComponent, { static: true }) hybridListingComponent: HybridListingComponent;
+	@ViewChild('nameCell', { static: true }) nameCell?: TemplateRef<any>;
 
 	private readonly lookupFields: string[] = [
 		nameof<Tenant>(x => x.id),
 		nameof<Tenant>(x => x.name),
 		nameof<Tenant>(x => x.code),
+		nameof<Tenant>(x => x.memberCount),
+		nameof<Tenant>(x => x.planCount),
 		nameof<Tenant>(x => x.updatedAt),
-		nameof<Tenant>(x => x.createdAt),
 		nameof<Tenant>(x => x.hash),
 		nameof<Tenant>(x => x.isActive)
 	];
 
 	rowIdentity = x => x.id;
+
+	/** The drawer's organisation: undefined while closed, null for a new one. */
+	protected openedTenant: Guid | null | undefined = undefined;
+	private memberOf = new Set<string>();
 
 	constructor(
 		public routerUtils: RouterUtilsService,
@@ -62,7 +83,10 @@ export class TenantListingComponent extends BaseListingComponent<Tenant, TenantL
 		private pipeService: PipeService,
 		public enumUtils: EnumUtils,
 		private language: TranslateService,
-		private dialog: MatDialog
+		private dialog: MatDialog,
+		private principalService: PrincipalService,
+		private tenantHandlingService: TenantHandlingService,
+		protected configurationService: ConfigurationService
 	) {
 		super(router, route, uiNotificationService, httpErrorHandlingService, queryParamsService);
 		// Lookup setup
@@ -72,6 +96,40 @@ export class TenantListingComponent extends BaseListingComponent<Tenant, TenantL
 
 	ngOnInit() {
 		super.ngOnInit();
+		const params = new BaseHttpParams();
+		params.interceptorContext = { excludedInterceptors: [InterceptorType.TenantHeaderInterceptor] };
+		this.principalService.myTenants({ params }).pipe(takeUntil(this._destroyed))
+			.subscribe(tenants => this.memberOf = new Set((tenants ?? []).map(x => x.code)));
+	}
+
+	/** Switching only works into organisations the signed-in account belongs to. */
+	protected canSwitch(tenant: Tenant): boolean {
+		return tenant?.isActive === IsActive.Active && this.memberOf.has(tenant.code);
+	}
+
+	protected openTenant(tenant: Tenant): void {
+		if (this.canEdit(tenant)) this.openedTenant = tenant.id;
+	}
+
+	protected switchTo(tenant: Tenant, path: string): void {
+		this.authService.selectedTenant(tenant.code);
+		window.location.href = this.tenantHandlingService.getBaseUrl() + this.tenantHandlingService.getUrlEnrichedWithTenantCode(path, tenant.code).substring(1);
+	}
+
+	/** Whether a search term or non-default filter is currently applied (drives the "no results" empty state). */
+	public get hasActiveFilters(): boolean {
+		return !!this.lookup?.like
+			|| this.lookup?.isActive?.[0] === IsActive.Inactive;
+	}
+
+	/** Reset search & filters to their defaults while preserving column selection, ordering and page size. */
+	public clearAllFilters(): void {
+		const fresh = this.initializeLookup();
+		fresh.order = this.lookup.order;
+		fresh.project = this.lookup.project;
+		fresh.page = { offset: 0, size: this.lookup.page.size };
+		this.lookup = fresh;
+		this.filterChanged(this.lookup);
 	}
 
 	protected canEdit(tenant: Tenant): boolean {
@@ -101,17 +159,23 @@ export class TenantListingComponent extends BaseListingComponent<Tenant, TenantL
 		this.gridColumns.push(...[{
 			prop: nameof<Tenant>(x => x.name),
 			sortable: true,
-			languageName: 'TENANT-LISTING.FIELDS.NAME'
-		}, {
-			prop: nameof<Tenant>(x => x.code),
-			sortable: true,
-			languageName: 'TENANT-LISTING.FIELDS.CODE',
-		},
-		{
+			languageName: 'TENANT-LISTING.FIELDS.NAME',
+			cellTemplate: this.nameCell
+		},		{
 			prop: nameof<Tenant>(x => x.createdAt),
 			sortable: true,
 			languageName: 'TENANT-LISTING.FIELDS.CREATED-AT',
 			pipe: this.pipeService.getPipe<DataTableDateTimeFormatPipe>(DataTableDateTimeFormatPipe).withFormat('short')
+		},
+		{
+			prop: nameof<Tenant>(x => x.memberCount),
+			sortable: false,
+			languageName: 'TENANT-LISTING.FIELDS.MEMBERS'
+		},
+		{
+			prop: nameof<Tenant>(x => x.planCount),
+			sortable: false,
+			languageName: 'TENANT-LISTING.FIELDS.PLANS'
 		},
 		{
 			prop: nameof<Tenant>(x => x.updatedAt),
@@ -120,13 +184,8 @@ export class TenantListingComponent extends BaseListingComponent<Tenant, TenantL
 			pipe: this.pipeService.getPipe<DataTableDateTimeFormatPipe>(DataTableDateTimeFormatPipe).withFormat('short')
 		},
 		{
-			prop: nameof<Tenant>(x => x.isActive),
-			sortable: false,
-			languageName: 'TENANT-LISTING.FIELDS.IS-ACTIVE',
-			pipe: this.pipeService.getPipe<IsActiveTypePipe>(IsActiveTypePipe)
-		},
-		{
 			alwaysShown: true,
+			sortable: false,
 			cellTemplate: this.actions,
 			maxWidth: 120
 		}
@@ -150,11 +209,9 @@ export class TenantListingComponent extends BaseListingComponent<Tenant, TenantL
 	private onColumnsChangedInternal(columns: string[]) {
 		// Here are defined the projection fields that always requested from the api.
 		const fields = new Set(this.lookupFields);
-		this.gridColumns.map(x => x.prop)
-			.filter(x => !columns?.includes(x as string))
-			.forEach(item => {
-				fields.delete(item as string)
-			});
+		this.gridColumns.map(x => x.prop).filter(x => x != null).forEach(prop => {
+			if (columns?.includes(prop as string)) { fields.add(prop as string); } else { fields.delete(prop as string); }
+		});
 		this.lookup.project = { fields: [...fields] };
 		this.onPageLoad({ offset: 0 } as PageLoadEvent);
 	}

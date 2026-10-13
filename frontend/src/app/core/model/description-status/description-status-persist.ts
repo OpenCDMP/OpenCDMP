@@ -1,8 +1,8 @@
 import { DescriptionStatusEnum } from "@app/core/common/enum/description-status";
 import { BaseEntityPersist } from "@common/base/base-entity.model";
-import { DescriptionStatusDefinition, DescriptionStatusDefinitionAuthorization } from "./description-status";
+import { DescriptionStatusDefinitionAuthorization } from "./description-status";
 import { DescriptionStatusAvailableActionType } from "@app/core/common/enum/description-status-available-action-type";
-import { Guid } from "@common/types/guid";
+import { IconConfigurationPersist } from "../icon-configuration/icon-configuration";
 
 export interface DescriptionStatusPersist extends BaseEntityPersist {
     name: string;
@@ -16,7 +16,6 @@ export interface DescriptionStatusPersist extends BaseEntityPersist {
 export interface DescriptionStatusDefinitionPersist {
     authorization: DescriptionStatusDefinitionAuthorization
     availableActions: DescriptionStatusAvailableActionType[]
-    matIconName: string;
-    storageFileId: Guid;
+    iconConfiguration?: IconConfigurationPersist;
     statusColor: string;
 }

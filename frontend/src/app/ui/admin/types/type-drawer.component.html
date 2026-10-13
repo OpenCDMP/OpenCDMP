@@ -1,0 +1,58 @@
+<button type="button" class="tdr-scrim" tabindex="-1" [attr.aria-label]="'TYPES-PAGE.CLOSE' | translate" (click)="close()"></button>
+<aside class="tdr" role="dialog" aria-modal="true" aria-labelledby="tdr-title">
+	<div class="tdr-head">
+		<h2 id="tdr-title">{{ item() ? item().name : ('TYPES-PAGE.NEW' | translate) }}</h2>
+		<button mat-icon-button type="button" (click)="close()" [attr.aria-label]="'TYPES-PAGE.CLOSE' | translate"><mat-icon aria-hidden="true">close</mat-icon></button>
+	</div>
+
+	<form class="tdr-form" [formGroup]="form" (ngSubmit)="save()">
+		<mat-form-field appearance="outline">
+			<mat-label>{{ 'TYPES-PAGE.NAME' | translate }}</mat-label>
+			<input matInput formControlName="name" required [placeholder]="'TYPES-PAGE.NAME-PLACEHOLDER' | translate">
+			@if (form.controls.name.hasError('required')) {
+				<mat-error>{{ 'GENERAL.VALIDATION.REQUIRED' | translate }}</mat-error>
+			}
+		</mat-form-field>
+
+		<mat-form-field appearance="outline">
+			<mat-label>{{ 'TYPES-PAGE.CODE' | translate }}</mat-label>
+			<input matInput class="tdr-code" formControlName="code" required [placeholder]="'TYPES-PAGE.CODE-PLACEHOLDER' | translate">
+			<mat-hint>{{ 'TYPES-PAGE.CODE-HINT' | translate }}</mat-hint>
+			@if (form.controls.code.hasError('required')) {
+				<mat-error>{{ 'GENERAL.VALIDATION.REQUIRED' | translate }}</mat-error>
+			}
+		</mat-form-field>
+
+		<mat-checkbox formControlName="available">
+			<span class="tdr-option"><b>{{ 'TYPES-PAGE.AVAILABLE' | translate }}</b><span class="tdr-muted">{{ 'TYPES-PAGE.AVAILABLE-HINT' | translate }}</span></span>
+		</mat-checkbox>
+
+		@if (item()) {
+			<p class="tdr-muted">{{ item().uses ? (config().usesKey | translate: { count: item().uses }) : ('TYPES-PAGE.UNUSED' | translate) }}</p>
+		}
+
+		@if (confirmingDelete()) {
+			<div class="tdr-confirm" role="alertdialog" aria-labelledby="tdr-confirm-text">
+				<p id="tdr-confirm-text">{{ 'TYPES-PAGE.DELETE-CONFIRM' | translate: { name: item().name } }}</p>
+				<div class="tdr-actions">
+					<button mat-stroked-button type="button" (click)="confirmingDelete.set(false)">{{ 'GENERAL.CONFIRMATION-DIALOG.ACTIONS.CANCEL' | translate }}</button>
+					<button mat-flat-button color="warn" type="button" [disabled]="busy()" (click)="delete()">{{ 'TYPES-PAGE.DELETE' | translate }}</button>
+				</div>
+			</div>
+		} @else if (config().canEdit || config().canDelete) {
+			<div class="tdr-actions tdr-actions--split">
+				@if (item() && config().canDelete && item().uses === 0) {
+					<button mat-button type="button" class="tdr-delete" (click)="confirmingDelete.set(true)">{{ 'TYPES-PAGE.DELETE' | translate }}</button>
+				} @else {
+					<span></span>
+				}
+				@if (config().canEdit) {
+					<button mat-flat-button color="primary" type="submit" [disabled]="busy()">{{ 'TYPES-PAGE.SAVE' | translate }}</button>
+				}
+			</div>
+			@if (item()?.uses > 0 && config().canDelete) {
+				<span class="tdr-muted">{{ 'TYPES-PAGE.IN-USE' | translate }}</span>
+			}
+		}
+	</form>
+</aside>

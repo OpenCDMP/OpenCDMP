@@ -1,0 +1,9 @@
+@use '../../../../structure-editor/bp2-shared' as *;
+@use '../../../../structure-editor/bp2-details' as *;
+
+.dt-full { width: 100%; }
+.dt-consent__switch { flex: none; margin-top: -.25rem; font-weight: 700; }
+.dt-preview-consent {
+	padding: .875rem; border: 1px solid var(--mat-sys-outline-variant); border-radius: 12px; background: var(--mat-sys-surface-container-low);
+	&__details { margin-top: .25rem; max-height: 6rem; overflow: hidden; }
+}

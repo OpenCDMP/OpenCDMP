@@ -14,12 +14,14 @@ import org.opencdmp.commons.enums.UsageLimitTargetMetric;
 import org.opencdmp.commons.enums.kpi.KpiDirectionType;
 import org.opencdmp.commons.enums.kpi.KpiVersionType;
 import org.opencdmp.data.*;
+import org.opencdmp.errorcode.ErrorThesaurusProperties;
 import org.opencdmp.model.description.Description;
 import org.opencdmp.query.DescriptionQuery;
 import org.opencdmp.query.DescriptionTemplateQuery;
 import org.opencdmp.query.UserDescriptionTemplateQuery;
 import org.opencdmp.service.accounting.AccountingService;
 import org.opencdmp.service.kpi.KpiService;
+import org.opencdmp.service.lock.LockService;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
@@ -49,17 +51,23 @@ public class DescriptionTemplateDeleter implements Deleter {
 
     protected final AccountingService accountingService;
 
+    private final LockService lockService;
+
+    private final ErrorThesaurusProperties errors;
+
     @Autowired
     public DescriptionTemplateDeleter(
             TenantEntityManagerFactory tenantEntityManagerFactory, KpiService kpiService,
             QueryFactory queryFactory,
             DeleterFactory deleterFactory,
-            AccountingService accountingService) {
+            AccountingService accountingService, LockService lockService, ErrorThesaurusProperties errors) {
         this.tenantEntityManagerFactory = tenantEntityManagerFactory;
         this.kpiService = kpiService;
         this.queryFactory = queryFactory;
         this.deleterFactory = deleterFactory;
         this.accountingService = accountingService;
+        this.lockService = lockService;
+        this.errors = errors;
     }
 
     public void deleteAndSaveByIds(List<UUID> ids) throws InvalidApplicationException {
@@ -95,6 +103,8 @@ public class DescriptionTemplateDeleter implements Deleter {
         Instant now = Instant.now();
 
         for (DescriptionTemplateEntity item : data) {
+            if (this.lockService.isLocked(item.getId(), null).getStatus()) throw new MyApplicationException(this.errors.getLockedDescriptionTemplate().getCode(), this.errors.getLockedDescriptionTemplate().getMessage());
+
             if (activeDescriptions.stream().map(DescriptionEntity::getDescriptionTemplateId).anyMatch(x-> x.equals(item.getId()))) throw new MyApplicationException("template " + item.getCode() + " used by descriptions");
             logger.trace("deleting item {}", item.getId());
             item.setIsActive(IsActive.Inactive);
@@ -110,6 +120,7 @@ public class DescriptionTemplateDeleter implements Deleter {
             this.tenantEntityManagerFactory.getInstance().merge(item);
             logger.trace("updated item");
             this.accountingService.decrease(UsageLimitTargetMetric.DESCRIPTION_TEMPLATE_COUNT.getValue());
+            if(item.getTypeId() != null) this.kpiService.sendIndicatorPointDescriptionTemplatePerTypeEntry(KpiDirectionType.Decrease, item.getTypeId());
             if (item.getStatus().equals(DescriptionTemplateStatus.Draft)) this.accountingService.decrease(UsageLimitTargetMetric.DESCRIPTION_TEMPLATE_DRAFT_COUNT.getValue());
             if (item.getStatus().equals(DescriptionTemplateStatus.Finalized)) this.accountingService.decrease(UsageLimitTargetMetric.DESCRIPTION_TEMPLATE_FINALIZED_COUNT.getValue());
             if (oldVersionStatus.equals(DescriptionTemplateVersionStatus.Current)) this.kpiService.sendIndicatorPointDescriptionTemplateEntry(KpiDirectionType.Decrease, KpiVersionType.LatestVersion);

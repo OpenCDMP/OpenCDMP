@@ -1,5 +1,7 @@
 package org.opencdmp.service.filetransformer;
 
+import org.apache.commons.lang3.StringUtils;
+import org.opencdmp.service.semantic.PluginSemantics;
 import org.springframework.http.codec.json.JacksonJsonDecoder;
 import org.springframework.http.codec.json.JacksonJsonEncoder;
 import tools.jackson.databind.ObjectMapper;
@@ -19,7 +21,12 @@ import jakarta.transaction.Transactional;
 import jakarta.xml.bind.JAXBException;
 import org.opencdmp.authorization.AuthorizationFlags;
 import org.opencdmp.authorization.Permission;
+import org.opencdmp.commonmodels.enums.PluginEntityType;
 import org.opencdmp.commonmodels.models.FileEnvelopeModel;
+import org.opencdmp.commonmodels.models.plugin.PluginUserFieldModel;
+import org.opencdmp.commonmodels.models.plugin.PluginUserModel;
+import org.opencdmp.commonmodels.models.user.UserAdditionalInfoModel;
+import org.opencdmp.commonmodels.models.user.UserModel;
 import org.opencdmp.commonmodels.models.description.DescriptionModel;
 import org.opencdmp.commonmodels.models.descriptiotemplate.DescriptionTemplateModel;
 import org.opencdmp.commonmodels.models.plan.PlanModel;
@@ -37,6 +44,7 @@ import org.opencdmp.event.TenantConfigurationTouchedEvent;
 import org.opencdmp.filetransformerbase.models.misc.DescriptionImportModel;
 import org.opencdmp.filetransformerbase.models.misc.PlanImportModel;
 import org.opencdmp.filetransformerbase.models.misc.PreprocessingPlanModel;
+import org.opencdmp.filetransformerbase.models.misc.TemplateValidationResultModel;
 import org.opencdmp.model.StorageFile;
 import org.opencdmp.model.builder.commonmodels.description.DescriptionCommonModelBuilder;
 import org.opencdmp.model.builder.commonmodels.descriptiontemplate.DescriptionTemplateCommonModelBuilder;
@@ -132,6 +140,9 @@ public class FileTransformerServiceImpl implements FileTransformerService {
         this.clients = new HashMap<>();
     }
     
+    /** Used when a source declares no response size limit, e.g. one a tenant added through the UI. */
+    private static final int DEFAULT_MAX_IN_MEMORY_SIZE_IN_BYTES = 6554000;
+
     private FileTransformerRepository getRepository(String repoId) throws InvalidApplicationException, InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
         String repositoryIdByTenant = this.getRepositoryIdByTenant(repoId);
         if (this.clients.containsKey(repositoryIdByTenant)) return this.clients.get(repositoryIdByTenant);
@@ -141,12 +152,12 @@ public class FileTransformerServiceImpl implements FileTransformerService {
         if (source != null) {
             TokenExchangeModel tokenExchangeModel = new TokenExchangeModel("file_transformer:" + repositoryIdByTenant, source.getIssuerUrl(), source.getClientId(), source.getClientSecret(), source.getScope());
             TokenExchangeFilterFunction tokenExchangeFilterFunction = new TokenExchangeFilterFunction(this.tokenExchangeCacheService, tokenExchangeModel);
-            FileTransformerRepository repository = new FileTransformerRepository(WebClient.builder().baseUrl(source.getUrl() + "/api/file-transformer").filters(exchangeFilterFunctions -> {
+            FileTransformerRepository repository = new FileTransformerRepository(WebClient.builder().baseUrl(StringUtils.removeEnd(source.getUrl(), "/") + "/api/file-transformer").filters(exchangeFilterFunctions -> {
                 exchangeFilterFunctions.add(tokenExchangeFilterFunction);
                 exchangeFilterFunctions.add(logRequest());
                 exchangeFilterFunctions.add(logResponse());
             }).codecs(codecs -> {
-                        codecs.defaultCodecs().maxInMemorySize(source.getMaxInMemorySizeInBytes());
+                        codecs.defaultCodecs().maxInMemorySize(source.getMaxInMemorySizeInBytes() > 0 ? source.getMaxInMemorySizeInBytes() : DEFAULT_MAX_IN_MEMORY_SIZE_IN_BYTES);
                         codecs.defaultCodecs().jacksonJsonDecoder(new JacksonJsonDecoder(JsonMapper.builder().build()));
                         codecs.defaultCodecs().jacksonJsonEncoder(new JacksonJsonEncoder(JsonMapper.builder().build()));
                     }
@@ -156,6 +167,11 @@ public class FileTransformerServiceImpl implements FileTransformerService {
             return repository;
         }
         return null;
+    }
+
+    @Override
+    public boolean isAvailable(String repositoryId) throws InvalidApplicationException, InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
+        return repositoryId != null && this.getFileTransformerSources().stream().anyMatch(x -> repositoryId.equals(x.getTransformerId()));
     }
 
     private List<FileTransformerSourceEntity> getFileTransformerSources() throws InvalidApplicationException, InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
@@ -174,6 +190,7 @@ public class FileTransformerServiceImpl implements FileTransformerService {
                     if (fileTransformerTenantConfigurationEntity != null) {
                         if (fileTransformerTenantConfigurationEntity.getDisableSystemSources()) fileTransformerSourceEntities = new ArrayList<>();
                         fileTransformerSourceEntities.addAll(this.buildFileTransformerSourceItems(fileTransformerTenantConfigurationEntity.getSources()));
+                        if (fileTransformerTenantConfigurationEntity.getDisabledSourceIds() != null) fileTransformerSourceEntities.removeIf(x -> fileTransformerTenantConfigurationEntity.getDisabledSourceIds().contains(x.getTransformerId()));
                     }
                 }
             }
@@ -208,6 +225,7 @@ public class FileTransformerServiceImpl implements FileTransformerService {
             item.setClientId(source.getClientId());
             if (!this.conventionService.isNullOrEmpty(source.getClientSecret())) item.setClientSecret(this.encryptionService.decryptAES(source.getClientSecret(), this.tenantProperties.getConfigEncryptionAesKey(), this.tenantProperties.getConfigEncryptionAesIv()));
             item.setScope(source.getScope());
+            item.setMaxInMemorySizeInBytes(source.getMaxInMemorySizeInBytes());
             items.add(item);
         }
         return items;
@@ -231,6 +249,14 @@ public class FileTransformerServiceImpl implements FileTransformerService {
                     configuration.getImportVariants(), configuration.getImportEntityTypes(), configuration.getConfigurationFields(), configuration.getUserConfigurationFields(), PluginType.FileTransformer));
         }
         return formats;
+    }
+
+    @Override
+    public List<PluginSemantics> getSemanticsManifests() throws InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, InvalidApplicationException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
+        return this.getAvailableConfigurations().stream()
+                .filter(x -> x != null && x.getSemantics() != null)
+                .map(x -> new PluginSemantics(PluginType.FileTransformer, x.getFileTransformerId(), x.getSemantics()))
+                .toList();
     }
 
     private List<org.opencdmp.filetransformerbase.interfaces.FileTransformerConfiguration> getAvailableConfigurations() throws InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, InvalidApplicationException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
@@ -264,6 +290,12 @@ public class FileTransformerServiceImpl implements FileTransformerService {
     @Override
     @Transactional
     public org.opencdmp.model.file.FileEnvelope exportPlan(UUID planId, String repositoryId, String format, boolean isPublic) throws InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, InvalidApplicationException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
+        return this.exportPlan(planId, repositoryId, format, isPublic, null);
+    }
+
+    @Override
+    @Transactional
+    public org.opencdmp.model.file.FileEnvelope exportPlan(UUID planId, String repositoryId, String format, boolean isPublic, Map<String, String> options) throws InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, InvalidApplicationException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
         this.authorizationService.authorizeForce(Permission.ExportPlan);
         //GK: First get the right client
         FileTransformerRepository repository = this.getRepository(repositoryId);
@@ -288,17 +320,85 @@ public class FileTransformerServiceImpl implements FileTransformerService {
         PlanModel planFileTransformerModel = this.builderFactory.builder(PlanCommonModelBuilder.class).useSharedStorage(repository.getConfiguration().isUseSharedStorage()).setRepositoryId(repository.getConfiguration().getFileTransformerId()).isPublic(isPublic).authorize(isPublic ? AuthorizationFlags.All: AuthorizationFlags.AllExceptPublic).build(entity);
         if (planFileTransformerModel == null) throw new MyNotFoundException(this.messageSource.getMessage("General_ItemNotFound", new Object[]{planId, Plan.class.getSimpleName()}, LocaleContextHolder.getLocale()));
 
+        this.applyExportOptions(planFileTransformerModel, repository.getConfiguration().getFileTransformerId(), options);
+
         FileEnvelopeModel fileEnvelope = repository.exportPlan(planFileTransformerModel, format);
         org.opencdmp.model.file.FileEnvelope result = new org.opencdmp.model.file.FileEnvelope();
-        
+
         byte[] data = repository.getConfiguration().isUseSharedStorage() ? this.storageFileService.readByFileRefAsBytesSafe(fileEnvelope.getFileRef(), StorageType.Transformer) : fileEnvelope.getFile();
         result.setFile(data);
         result.setFilename(fileEnvelope.getFilename());
+        result.setMimeType(fileEnvelope.getMimeType());
 
         this.accountingService.increase(UsageLimitTargetMetric.FILE_TRANSFORMER_EXPORT_PLAN_EXECUTION_COUNT.getValue());
         this.increaseTargetMetricWithRepositoryId(UsageLimitTargetMetric.FILE_TRANSFORMER_EXPORT_PLAN_EXECUTION_COUNT_FOR, repositoryId);
 
         return result;
+    }
+
+    @Override
+    @Transactional
+    public org.opencdmp.model.file.FileEnvelope previewWithSettings(org.opencdmp.model.file.PluginSettingsPreviewRequest request) throws InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, InvalidApplicationException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
+        this.authorizationService.authorizeForce(Permission.EditTenantConfiguration);
+        if (request == null || this.conventionService.isNullOrEmpty(request.getRepositoryId()) || (request.getPlanId() == null && request.getDescriptionId() == null))
+            throw new MyApplicationException("repositoryId and a plan or asset are required");
+
+        List<org.opencdmp.commons.types.pluginconfiguration.PluginConfigurationEntity> stored = this.storedTenantPluginConfigurations();
+        org.opencdmp.commons.types.pluginconfiguration.PluginConfigurationEntity storedOwn = stored.stream().filter(x -> request.getRepositoryId().equals(x.getPluginCode())).findFirst().orElse(null);
+
+        // the edited settings, without the storage side effects of saving: a file stays the saved one until saved
+        org.opencdmp.commons.types.pluginconfiguration.PluginConfigurationEntity edited = new org.opencdmp.commons.types.pluginconfiguration.PluginConfigurationEntity();
+        edited.setPluginCode(request.getRepositoryId());
+        edited.setPluginType(PluginType.FileTransformer);
+        edited.setFields(new ArrayList<>());
+        if (request.getFields() != null) {
+            for (org.opencdmp.model.persist.pluginconfiguration.PluginConfigurationFieldPersist field : request.getFields()) {
+                org.opencdmp.commons.types.pluginconfiguration.PluginConfigurationFieldEntity item = new org.opencdmp.commons.types.pluginconfiguration.PluginConfigurationFieldEntity();
+                item.setCode(field.getCode());
+                item.setTextValue(field.getTextValue());
+                if (storedOwn != null && storedOwn.getFields() != null) {
+                    storedOwn.getFields().stream().filter(x -> Objects.equals(x.getCode(), field.getCode())).findFirst().ifPresent(x -> item.setFileValue(x.getFileValue()));
+                }
+                edited.getFields().add(item);
+            }
+        }
+        List<org.opencdmp.commons.types.pluginconfiguration.PluginConfigurationEntity> override = new ArrayList<>(stored.stream().filter(x -> !request.getRepositoryId().equals(x.getPluginCode())).toList());
+        override.add(edited);
+
+        return org.opencdmp.model.builder.commonmodels.plugin.PluginConfigurationPreview.with(override, () -> {
+            try {
+                return request.getDescriptionId() != null
+                        ? this.exportDescriptionInternal(request.getDescriptionId(), request.getRepositoryId(), "pdf")
+                        : this.exportPlanInternal(request.getPlanId(), request.getRepositoryId(), "pdf");
+            } catch (RuntimeException e) {
+                throw e;
+            } catch (Exception e) {
+                throw new MyApplicationException(e.getMessage());
+            }
+        });
+    }
+
+    @Override
+    public byte[] getDefaultTemplate(String repositoryId, PluginEntityType entityType) throws InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, InvalidApplicationException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
+        this.authorizationService.authorizeAtLeastOneForce(List.of(), Permission.EditTenantConfiguration, Permission.EditPlanBlueprint, Permission.EditDescriptionTemplate);
+        FileTransformerRepository repository = this.getRepository(repositoryId);
+        if (repository == null) throw new MyNotFoundException(this.messageSource.getMessage("General_ItemNotFound", new Object[]{repositoryId, FileTransformerRepository.class.getSimpleName()}, LocaleContextHolder.getLocale()));
+        return repository.getDefaultTemplate(entityType);
+    }
+
+    /** The tenant's stored plugin configuration, falling back to the default tenant's, as exports resolve it. */
+    private List<org.opencdmp.commons.types.pluginconfiguration.PluginConfigurationEntity> storedTenantPluginConfigurations() throws InvalidApplicationException {
+        TenantConfigurationQuery query = this.queryFactory.query(TenantConfigurationQuery.class).disableTracking().isActive(IsActive.Active).types(TenantConfigurationType.PluginConfiguration);
+        if (this.tenantScopeFactory.getInstance().isDefaultTenant()) query.tenantIsSet(false);
+        else query.tenantIsSet(true).tenantIds(this.tenantScopeFactory.getInstance().getTenant());
+        TenantConfigurationEntity entity = query.firstAs(new BaseFieldSet().ensure(TenantConfiguration._pluginConfiguration));
+        if (entity == null && !this.tenantScopeFactory.getInstance().isDefaultTenant()) {
+            entity = this.queryFactory.query(TenantConfigurationQuery.class).disableTracking().isActive(IsActive.Active).types(TenantConfigurationType.PluginConfiguration).tenantIsSet(false)
+                    .firstAs(new BaseFieldSet().ensure(TenantConfiguration._pluginConfiguration));
+        }
+        if (entity == null || this.conventionService.isNullOrEmpty(entity.getValue())) return List.of();
+        org.opencdmp.commons.types.tenantconfiguration.PluginTenantConfigurationEntity value = this.jsonHandlingService.fromJsonSafe(org.opencdmp.commons.types.tenantconfiguration.PluginTenantConfigurationEntity.class, entity.getValue());
+        return value != null && value.getPluginConfigurations() != null ? value.getPluginConfigurations() : List.of();
     }
 
     @Override
@@ -320,6 +420,7 @@ public class FileTransformerServiceImpl implements FileTransformerService {
         byte[] data = repository.getConfiguration().isUseSharedStorage() ? this.storageFileService.readByFileRefAsBytesSafe(fileEnvelope.getFileRef(), StorageType.Transformer) : fileEnvelope.getFile();
         result.setFile(data);
         result.setFilename(fileEnvelope.getFilename());
+        result.setMimeType(fileEnvelope.getMimeType());
 
         return result;
     }
@@ -327,6 +428,12 @@ public class FileTransformerServiceImpl implements FileTransformerService {
     @Override
     @Transactional
     public org.opencdmp.model.file.FileEnvelope exportDescription(UUID descriptionId, String repositoryId, String format, boolean isPublic) throws InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, InvalidApplicationException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
+        return this.exportDescription(descriptionId, repositoryId, format, isPublic, null);
+    }
+
+    @Override
+    @Transactional
+    public org.opencdmp.model.file.FileEnvelope exportDescription(UUID descriptionId, String repositoryId, String format, boolean isPublic, Map<String, String> options) throws InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, InvalidApplicationException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
         this.authorizationService.authorizeForce(Permission.ExportDescription);
         //GK: First get the right client
         FileTransformerRepository repository = this.getRepository(repositoryId);
@@ -351,17 +458,90 @@ public class FileTransformerServiceImpl implements FileTransformerService {
 
         DescriptionModel descriptionFileTransformerModel = this.builderFactory.builder(DescriptionCommonModelBuilder.class).setRepositoryId(repository.getConfiguration().getFileTransformerId()).useSharedStorage(repository.getConfiguration().isUseSharedStorage()).isPublic(isPublic).authorize(isPublic ? AuthorizationFlags.All: AuthorizationFlags.AllExceptPublic).build(entity);
         if (descriptionFileTransformerModel == null) throw new MyNotFoundException(this.messageSource.getMessage("General_ItemNotFound", new Object[]{descriptionId, Description.class.getSimpleName()}, LocaleContextHolder.getLocale()));
-        
-        FileEnvelopeModel fileEnvelope = repository.exportDescription(descriptionFileTransformerModel, format); 
+
+        this.applyExportOptions(descriptionFileTransformerModel.getPlan(), repository.getConfiguration().getFileTransformerId(), options);
+
+        FileEnvelopeModel fileEnvelope = repository.exportDescription(descriptionFileTransformerModel, format);
         org.opencdmp.model.file.FileEnvelope result = new org.opencdmp.model.file.FileEnvelope();
         byte[] data = repository.getConfiguration().isUseSharedStorage() ? this.storageFileService.readByFileRefAsBytesSafe(fileEnvelope.getFileRef(), StorageType.Transformer) : fileEnvelope.getFile(); //TODO: shared storage should be per repository
         result.setFile(data);
         result.setFilename(fileEnvelope.getFilename());
+        result.setMimeType(fileEnvelope.getMimeType());
 
         this.accountingService.increase(UsageLimitTargetMetric.FILE_TRANSFORMER_EXPORT_DESCRIPTIONS_EXECUTION_COUNT.getValue());
         this.increaseTargetMetricWithRepositoryId(UsageLimitTargetMetric.FILE_TRANSFORMER_EXPORT_DESCRIPTIONS_EXECUTION_COUNT_FOR, repositoryId);
 
         return result;
+    }
+
+    @Override
+    public FileEnvelope exportDescriptionInternal(UUID descriptionId, String repositoryId, String format) throws InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, InvalidApplicationException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
+        //GK: First get the right client
+        FileTransformerRepository repository = this.getRepository(repositoryId);
+        if (repository == null) throw new MyNotFoundException(this.messageSource.getMessage("General_ItemNotFound", new Object[]{format, FileTransformerRepository.class.getSimpleName()}, LocaleContextHolder.getLocale()));
+
+        DescriptionEntity entity = this.queryFactory.query(DescriptionQuery.class).disableTracking().ids(descriptionId).first();
+
+        if (entity == null) throw new MyNotFoundException(this.messageSource.getMessage("General_ItemNotFound", new Object[]{descriptionId, Description.class.getSimpleName()}, LocaleContextHolder.getLocale()));
+
+        DescriptionModel descriptionFileTransformerModel = this.builderFactory.builder(DescriptionCommonModelBuilder.class).setRepositoryId(repository.getConfiguration().getFileTransformerId()).useSharedStorage(repository.getConfiguration().isUseSharedStorage()).isPublic(false).build(entity);
+        if (descriptionFileTransformerModel == null) throw new MyNotFoundException(this.messageSource.getMessage("General_ItemNotFound", new Object[]{descriptionId, Description.class.getSimpleName()}, LocaleContextHolder.getLocale()));
+
+        FileEnvelopeModel fileEnvelope = repository.exportDescription(descriptionFileTransformerModel, format);
+        org.opencdmp.model.file.FileEnvelope result = new org.opencdmp.model.file.FileEnvelope();
+
+        byte[] data = repository.getConfiguration().isUseSharedStorage() ? this.storageFileService.readByFileRefAsBytesSafe(fileEnvelope.getFileRef(), StorageType.Transformer) : fileEnvelope.getFile();
+        result.setFile(data);
+        result.setFilename(fileEnvelope.getFilename());
+        result.setMimeType(fileEnvelope.getMimeType());
+
+        return result;
+    }
+
+    /**
+     * Threads per-export options into the common model as user plugin-configuration values for
+     * the target transformer (overriding the exporting user's stored preferences), so plugins
+     * consume them through the exact same mechanism as static user configuration — no wire or
+     * plugin contract change.
+     */
+    private void applyExportOptions(PlanModel planModel, String transformerId, Map<String, String> options) {
+        if (options == null || options.isEmpty() || planModel == null || transformerId == null) return;
+
+        UserModel creator = planModel.getCreator();
+        if (creator == null) {
+            creator = new UserModel();
+            planModel.setCreator(creator);
+        }
+        UserAdditionalInfoModel additionalInfo = creator.getAdditionalInfo();
+        if (additionalInfo == null) {
+            additionalInfo = new UserAdditionalInfoModel();
+            creator.setAdditionalInfo(additionalInfo);
+        }
+        List<PluginUserModel> plugins = additionalInfo.getPluginConfigurations();
+        if (plugins == null) {
+            plugins = new ArrayList<>();
+            additionalInfo.setPluginConfigurations(plugins);
+        }
+        PluginUserModel plugin = plugins.stream().filter(x -> transformerId.equals(x.getCode()) && org.opencdmp.commonmodels.enums.PluginType.FileTransformer.equals(x.getType())).findFirst().orElse(null);
+        if (plugin == null) {
+            plugin = new PluginUserModel();
+            plugin.setCode(transformerId);
+            plugin.setType(org.opencdmp.commonmodels.enums.PluginType.FileTransformer);
+            plugin.setFields(new ArrayList<>());
+            plugins.add(plugin);
+        }
+        if (plugin.getFields() == null) plugin.setFields(new ArrayList<>());
+
+        for (Map.Entry<String, String> option : options.entrySet()) {
+            if (option.getKey() == null || option.getKey().isBlank() || option.getValue() == null || option.getValue().isBlank()) continue;
+            PluginUserFieldModel field = plugin.getFields().stream().filter(x -> option.getKey().equals(x.getCode())).findFirst().orElse(null);
+            if (field == null) {
+                field = new PluginUserFieldModel();
+                field.setCode(option.getKey());
+                plugin.getFields().add(field);
+            }
+            field.setTextValue(option.getValue());
+        }
     }
 
     private static ExchangeFilterFunction logRequest() {
@@ -421,6 +601,37 @@ public class FileTransformerServiceImpl implements FileTransformerService {
         this.increaseTargetMetricWithRepositoryId(UsageLimitTargetMetric.FILE_TRANSFORMER_IMPORT_PLAN_EXECUTION_COUNT_FOR, planCommonModelConfig.getRepositoryId());
 
         return repository.importPlan(this.buildPlanImportModel(planCommonModelConfig.getBlueprintId(), planCommonModelConfig.getDescriptions(), fileEnvelope));
+    }
+
+    @Override
+    public TemplateValidationResultModel validateTemplate(UUID fileId, String repositoryId, PluginEntityType entityType) throws InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, InvalidApplicationException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException, IOException {
+        StorageFileEntity tempFile = this.queryFactory.query(StorageFileQuery.class).disableTracking().authorize(AuthorizationFlags.All).ids(fileId).first();
+        if (tempFile == null) throw new MyNotFoundException(this.messageSource.getMessage("General_ItemNotFound", new Object[]{fileId, StorageFile.class.getSimpleName()}, LocaleContextHolder.getLocale()));
+
+        FileTransformerRepository repository = this.getRepository(repositoryId);
+        if (repository == null) throw new MyNotFoundException(this.messageSource.getMessage("General_ItemNotFound", new Object[]{repositoryId, FileTransformerRepository.class.getSimpleName()}, LocaleContextHolder.getLocale()));
+
+        String originalFileName = tempFile.getName() + (tempFile.getExtension().startsWith(".") ? "" : ".") + tempFile.getExtension();
+        String mimeType = URLConnection.guessContentTypeFromName(originalFileName);
+
+        FileEnvelopeModel fileEnvelope = new FileEnvelopeModel();
+        fileEnvelope.setFile(this.storageFileService.readAsBytesSafe(fileId));
+        fileEnvelope.setMimeType(mimeType);
+        fileEnvelope.setFilename(originalFileName);
+
+        if (repository.getConfiguration() != null && repository.getConfiguration().isUseSharedStorage()){
+            StorageFilePersist storageFilePersist = new StorageFilePersist();
+            storageFilePersist.setName(tempFile.getName());
+            storageFilePersist.setExtension(tempFile.getExtension());
+            storageFilePersist.setMimeType(mimeType);
+            storageFilePersist.setOwnerId(this.userScopeFactory.getInstance().getUserIdSafe());
+            storageFilePersist.setStorageType(StorageType.Transformer);
+
+            StorageFile storageFile = this.storageFileService.persistBytes(storageFilePersist, fileEnvelope.getFile(), new BaseFieldSet(StorageFile._id, StorageFile._fileRef, StorageFile._mimeType, StorageFile._extension, StorageFile._name));
+            fileEnvelope.setFileRef(storageFile.getFileRef());
+        }
+
+        return repository.validateTemplate(fileEnvelope, entityType);
     }
 
     @Override
@@ -502,6 +713,37 @@ public class FileTransformerServiceImpl implements FileTransformerService {
         fileEnvelope.setFile(data);
 
         return repository.importPlan(this.buildPlanImportModel(suggestion.getBlueprintId(), suggestion.getDescriptions(), fileEnvelope));
+    }
+
+    @Override
+    public PlanModel importPlanPreview(byte[] data, PlanSuggestion suggestion, String repositoryId) throws InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, InvalidApplicationException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException, IOException, JAXBException {
+        // Read-only mapping for preview / apply. Skips Permission.NewPlan; caller is
+        // expected to have authorized the PlanUpdateRequest and the target Plan already.
+        FileTransformerRepository repository = this.getRepository(repositoryId);
+        if (repository == null) throw new MyNotFoundException(this.messageSource.getMessage("General_ItemNotFound", new Object[]{repositoryId, FileTransformerRepository.class.getSimpleName()}, LocaleContextHolder.getLocale()));
+
+        FileEnvelopeModel fileEnvelope = new FileEnvelopeModel();
+        fileEnvelope.setFile(data);
+
+        return repository.importPlan(this.buildPlanImportModel(suggestion.getBlueprintId(), suggestion.getDescriptions(), fileEnvelope));
+    }
+
+    @Override
+    public PreprocessingPlanModel preprocessingPlanPreview(byte[] data, String repositoryId) throws InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, InvalidApplicationException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
+        // Read-only preprocessing for preview. Skips Permission.NewPlan; caller is
+        // expected to have authorized the PlanUpdateRequest already.
+        FileTransformerRepository repository = this.getRepository(repositoryId);
+        if (repository == null) throw new MyNotFoundException(this.messageSource.getMessage("General_ItemNotFound", new Object[]{repositoryId, FileTransformerRepository.class.getSimpleName()}, LocaleContextHolder.getLocale()));
+
+        FileEnvelopeModel fileEnvelope = new FileEnvelopeModel();
+        fileEnvelope.setFile(data);
+
+        try {
+            return repository.preprocessingPlan(fileEnvelope);
+        } catch (Exception e) {
+            logger.warn("Preprocessing plan (preview) failed: {}", e.getMessage());
+            return null;
+        }
     }
 
     private PlanImportModel buildPlanImportModel(UUID blueprintId, List<DescriptionCommonModelConfig> descriptions, FileEnvelopeModel fileEnvelope) {

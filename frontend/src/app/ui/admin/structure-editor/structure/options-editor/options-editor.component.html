@@ -1,0 +1,87 @@
+<div class="oe">
+	<div class="oe-head">
+		<strong>{{'PLAN-BLUEPRINT-EDITOR.OPTIONS.TITLE' | translate}}</strong>
+		@if (single) {
+			<span class="oe-spacer"></span>
+			<mat-slide-toggle [checked]="isDropdown" (change)="dropdownChange.emit($event.checked)" [disabled]="readOnly" labelPosition="before">{{'PLAN-BLUEPRINT-EDITOR.OPTIONS.DROPDOWN' | translate}}</mat-slide-toggle>
+			<span class="bp2-sub">{{ (isDropdown ? 'PLAN-BLUEPRINT-EDITOR.OPTIONS.DROPDOWN-ON' : 'PLAN-BLUEPRINT-EDITOR.OPTIONS.DROPDOWN-OFF') | translate }}</span>
+		}
+	</div>
+	@if (options.length) {
+		<div class="oe-grid oe-grid--head" aria-hidden="true">
+			<span>{{'PLAN-BLUEPRINT-EDITOR.OPTIONS.LABEL' | translate}}</span>
+			<span>{{'PLAN-BLUEPRINT-EDITOR.OPTIONS.VALUE' | translate}}</span>
+			<span></span><span>@if (showKeys) { {{'PLAN-BLUEPRINT-EDITOR.OPTIONS.STANDS-FOR' | translate}} }</span><span></span>
+		</div>
+	}
+	@for (option of options.controls; track option; let i = $index) {
+		<div class="oe-grid">
+			<input class="oe-in" type="text" [id]="inputId(i, 'label')" [formControl]="option.get('label')" (blur)="onLabelBlur(option)" [readonly]="readOnly"
+				[class.oe-in--bad]="showErrors && option.get('label').invalid" [placeholder]="'PLAN-BLUEPRINT-EDITOR.OPTIONS.LABEL-PLACEHOLDER' | translate"
+				[attr.aria-label]="('PLAN-BLUEPRINT-EDITOR.OPTIONS.LABEL' | translate) + ' ' + (i + 1)">
+			<input class="oe-in oe-in--mono" type="text" [id]="inputId(i, 'value')" [formControl]="option.get('value')" (focus)="onValueFocus(option)" (change)="onValueChange(option)" [readonly]="readOnly"
+				[class.oe-in--bad]="showErrors && option.get('value').invalid" [placeholder]="'PLAN-BLUEPRINT-EDITOR.OPTIONS.VALUE-PLACEHOLDER' | translate"
+				[attr.aria-label]="('PLAN-BLUEPRINT-EDITOR.OPTIONS.VALUE' | translate) + ' ' + (i + 1)">
+			<button type="button" class="oe-default" [class.oe-default--on]="isDefault(option)" (click)="toggleDefault(option)" [disabled]="readOnly || !option.get('value').value"
+				[attr.aria-pressed]="isDefault(option)" [matTooltip]="'PLAN-BLUEPRINT-EDITOR.OPTIONS.DEFAULT-HINT' | translate">
+				{{ (isDefault(option) ? 'PLAN-BLUEPRINT-EDITOR.OPTIONS.DEFAULT' : 'PLAN-BLUEPRINT-EDITOR.OPTIONS.MAKE-DEFAULT') | translate }}
+			</button>
+			@if (showKeys) {
+			<button type="button" class="oe-keys" [class.oe-keys--set]="keyCount(option)" [class.oe-keys--none]="exportsNothing(option)" [class.oe-keys--bad]="showErrors && keysOf(option)?.invalid" (click)="toggleKeys(option)" [attr.aria-expanded]="openKeys.has(option)" [disabled]="readOnly && !keyCount(option) && !exportsNothing(option)">
+				<mat-icon aria-hidden="true">{{ exportsNothing(option) ? 'block' : 'sell' }}</mat-icon>
+				@if (exportsNothing(option)) { {{ objectName ? ('PLAN-BLUEPRINT-EDITOR.ANSWER-KEYS.NO-OBJECT' | translate: { object: objectName }) : ('PLAN-BLUEPRINT-EDITOR.ANSWER-KEYS.NOTHING' | translate) }} }
+				@else if (keyCount(option)) { {{'PLAN-BLUEPRINT-EDITOR.ANSWER-KEYS.COUNT' | bp2Count: keyCount(option) }} }
+				@else { {{'PLAN-BLUEPRINT-EDITOR.ANSWER-KEYS.ADD' | translate}} }
+			</button>
+			} @else { <span></span> }
+			@if (!readOnly) {
+				<button mat-icon-button type="button" class="bp2-icon-btn-sm" (click)="removeOption(i)" [attr.aria-label]="'PLAN-BLUEPRINT-EDITOR.OPTIONS.REMOVE' | translate" [matTooltip]="'PLAN-BLUEPRINT-EDITOR.OPTIONS.REMOVE' | translate"><mat-icon aria-hidden="true">close</mat-icon></button>
+			} @else { <span></span> }
+		</div>
+		@if (showKeys && openKeys.has(option)) {
+			<div class="oe-keys-panel">
+				<div class="oe-keys-panel__title">{{'PLAN-BLUEPRINT-EDITOR.ANSWER-KEYS.TITLE' | translate: { answer: option.get('label').value || option.get('value').value || ('PLAN-BLUEPRINT-EDITOR.ANSWER-KEYS.THIS-ANSWER' | translate) } }}</div>
+				<div class="bp2-help">{{'PLAN-BLUEPRINT-EDITOR.ANSWER-KEYS.HINT' | translate}}@if (scope.length) { {{'PLAN-BLUEPRINT-EDITOR.ANSWER-KEYS.SHORTENED' | translate: { object: scope[0] } }} }</div>
+				@if (keysOf(option)?.length) {
+					<div class="oe-kv oe-kv--head" aria-hidden="true"><span>{{'PLAN-BLUEPRINT-EDITOR.ANSWER-KEYS.KEY' | translate}}</span><span>{{'PLAN-BLUEPRINT-EDITOR.ANSWER-KEYS.VALUE' | translate}}</span><span></span></div>
+				}
+				@for (row of keysOf(option)?.controls ?? []; track row; let j = $index) {
+					<div class="oe-kv">
+						<div class="oe-kv__key" [class.oe-kv__key--bad]="showErrors && row.get('key').invalid">
+							<app-bp2-semantics-picker [control]="row.get('key')" [single]="true" [scope]="scope" [ariaLabel]="('PLAN-BLUEPRINT-EDITOR.ANSWER-KEYS.KEY' | translate) + ' ' + (j + 1)" />
+							@if (labelFor(row.get('key').value)) { <span class="bp2-sub">{{labelFor(row.get('key').value)}}</span> }
+							@if (showErrors && row.get('key').hasError('required')) { <span class="oe-kv__error">{{'PLAN-BLUEPRINT-EDITOR.ANSWER-KEYS.KEY-REQUIRED' | translate}}</span> }
+							@if (row.get('key').hasError('backendError')) { <span class="oe-kv__error">{{row.get('key').getError('backendError').message}}</span> }
+						</div>
+						@if (valuesFor(row.get('key').value); as values) {
+							@if (values.length) {
+								<select class="oe-in" [formControl]="row.get('value')" [attr.aria-label]="('PLAN-BLUEPRINT-EDITOR.ANSWER-KEYS.VALUE' | translate) + ' ' + (j + 1)">
+									<option [ngValue]="null">{{'PLAN-BLUEPRINT-EDITOR.ANSWER-KEYS.PICK-VALUE' | translate}}</option>
+									@for (v of values; track v) { <option [ngValue]="v">{{v}}</option> }
+									@if (row.get('value').value && !values.includes(row.get('value').value)) { <option [ngValue]="row.get('value').value">{{row.get('value').value}}</option> }
+								</select>
+							} @else {
+								<input class="oe-in" type="text" [formControl]="row.get('value')" [readonly]="readOnly" [placeholder]="'PLAN-BLUEPRINT-EDITOR.ANSWER-KEYS.VALUE-PLACEHOLDER' | translate" [attr.aria-label]="('PLAN-BLUEPRINT-EDITOR.ANSWER-KEYS.VALUE' | translate) + ' ' + (j + 1)">
+							}
+						}
+						@if (!readOnly) { <button mat-icon-button type="button" class="bp2-icon-btn-sm" (click)="removeKey(option, j)" [attr.aria-label]="'PLAN-BLUEPRINT-EDITOR.ANSWER-KEYS.REMOVE' | translate"><mat-icon aria-hidden="true">close</mat-icon></button> } @else { <span></span> }
+					</div>
+				}
+				@if (!readOnly) { <button mat-button type="button" class="oe-add" (click)="addKey(option, i)"><mat-icon aria-hidden="true">add</mat-icon>{{'PLAN-BLUEPRINT-EDITOR.ANSWER-KEYS.ADD-KEY' | translate}}</button> }
+				<div class="bp2-toggle-row">
+					<mat-slide-toggle [checked]="exportsNothing(option)" (change)="setExportsNothing(option, $event.checked)" [disabled]="readOnly" [attr.aria-label]="'PLAN-BLUEPRINT-EDITOR.ANSWER-KEYS.EXPORTS-NOTHING' | translate"></mat-slide-toggle>
+					<div class="bp2-toggle-row__text"><strong>{{'PLAN-BLUEPRINT-EDITOR.ANSWER-KEYS.EXPORTS-NOTHING' | translate}}</strong><span class="bp2-help">{{ (objectName ? 'PLAN-BLUEPRINT-EDITOR.ANSWER-KEYS.EXPORTS-NOTHING-HINT' : 'PLAN-BLUEPRINT-EDITOR.ANSWER-KEYS.EXPORTS-NOTHING-NO-OBJECT') | translate: { object: scope[0] } }}</span></div>
+				</div>
+			</div>
+		}
+	}
+	@if (showErrors && options.hasError('required')) {
+		<div class="bp2-strip bp2-strip--bad"><mat-icon aria-hidden="true">error</mat-icon><span>{{'PLAN-BLUEPRINT-EDITOR.PROBLEMS.INPUT-OPTIONS' | translate}}</span></div>
+	}
+	@if (showErrors && options.invalid && !options.hasError('required')) {
+		<div class="bp2-strip bp2-strip--bad"><mat-icon aria-hidden="true">error</mat-icon><span>{{'PLAN-BLUEPRINT-EDITOR.OPTIONS.INCOMPLETE' | translate}}</span></div>
+	}
+	@if (!readOnly) {
+		<button mat-button type="button" class="oe-add" (click)="addOption()"><mat-icon aria-hidden="true">add</mat-icon>{{'PLAN-BLUEPRINT-EDITOR.OPTIONS.ADD' | translate}}</button>
+	}
+</div>

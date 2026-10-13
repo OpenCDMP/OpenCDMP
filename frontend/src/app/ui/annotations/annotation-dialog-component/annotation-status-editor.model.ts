@@ -4,7 +4,6 @@ import { AnnotationStatus, AnnotationStatusPersist } from '@annotation-service/c
 import { Annotation } from '@annotation-service/core/model/annotation.model';
 import { Status } from '@annotation-service/core/model/status.model';
 import { IsActive } from '@app/core/common/enum/is-active.enum';
-import { BaseEditorModel } from '@common/base/base-form-editor-model';
 import { BackendErrorValidator } from '@common/forms/validation/custom-validator';
 import { ValidationErrorModel } from '@common/forms/validation/error-model/validation-error-model';
 import { Validation, ValidationContext } from '@common/forms/validation/validation-context';

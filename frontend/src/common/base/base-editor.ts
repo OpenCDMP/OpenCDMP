@@ -1,5 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy, computed, inject, ChangeDetectionStrategy } from '@angular/core';
 import { UntypedFormGroup } from '@angular/forms';
 import { MatDialog } from '@angular/material/dialog';
 import { ActivatedRoute, ParamMap, Router } from '@angular/router';
@@ -7,6 +7,7 @@ import { LockTargetType } from '@app/core/common/enum/lock-target-type';
 import { ResponseErrorCode } from '@app/core/common/enum/respone-error-code';
 import { AuthService } from '@app/core/services/auth/auth.service';
 import { ConfigurationService } from '@app/core/services/configuration/configuration.service';
+import { EnqueueService } from '@app/core/services/enqueue.service';
 import { LockService } from '@app/core/services/lock/lock.service';
 import { SnackBarNotificationLevel, UiNotificationService } from '@app/core/services/notification/ui-notification-service';
 import { QueryParamsService } from '@app/core/services/utilities/query-params.service';
@@ -17,8 +18,7 @@ import { FormService } from '@common/forms/form-service';
 import { HttpError, HttpErrorHandlingService } from '@common/modules/errors/error-handling/http-error-handling.service';
 import { FilterService } from '@common/modules/text-filter/filter-service';
 import { TranslateService } from '@ngx-translate/core';
-import { isNullOrUndefined } from '@swimlane/ngx-datatable';
-import { Observable, interval } from 'rxjs';
+import { Observable, Subscription, interval } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { nameof } from 'ts-simple-nameof';
 import { Guid } from '../types/guid';
@@ -27,14 +27,15 @@ import { BaseEditorModel } from './base-form-editor-model';
 @Component({
     selector: 'app-base-editor-component',
     template: '',
+    changeDetection: ChangeDetectionStrategy.Eager,
     standalone: false
 })
-export abstract class BaseEditor<EditorModelType extends BaseEditorModel, EntityType> extends BasePendingChangesComponent implements OnInit {
+export abstract class BaseEditor<EditorModelType extends BaseEditorModel, EntityType> extends BasePendingChangesComponent implements OnInit, OnDestroy {
 
 	isNew = true;
 	isDeleted = false;
-	isLocked: Boolean = false;
-	isLockedByUser: Boolean = false;
+	isLocked: boolean = false;
+	isLockedByUser: boolean = false;
 	formGroup: UntypedFormGroup = null;
 	lookupParams: any;
 
@@ -43,6 +44,9 @@ export abstract class BaseEditor<EditorModelType extends BaseEditorModel, Entity
 	set editorModel(value: EditorModelType) { this._editorModel = value; }
 	private _editorModel: EditorModelType;
 	protected lv = 0;
+
+	protected enqueueService = inject(EnqueueService);
+	isLoading = computed(() => this.enqueueService.exhaustPipelineBusy());
 
 
 	abstract getItem(itemId: Guid, successFunction: (item: EntityType) => void): void;
@@ -163,6 +167,7 @@ export abstract class BaseEditor<EditorModelType extends BaseEditorModel, Entity
 	// Lock
 	//
 	//
+    touchLock$: Subscription;
 	protected checkLock(itemId: Guid, targetType: LockTargetType, title: string, message: string) {
 		if (itemId != null) {
 			this.isNew = false;
@@ -179,27 +184,52 @@ export abstract class BaseEditor<EditorModelType extends BaseEditorModel, Entity
 					});
 				}
 
-				if (!this.isLocked && !isNullOrUndefined(this.authService.currentAccountIsAuthenticated())) {
+				if (!this.isLocked) {
 					// lock it.
-					this.lockService.lock(itemId, targetType).pipe(takeUntil(this._destroyed)).subscribe(async result => { //TODO HANDLE-ERRORS
-						this.isLockedByUser = true;
-						interval(this.configurationService.lockInterval).pipe(takeUntil(this._destroyed)).subscribe(() => this.touchLock(itemId));
-					});
+					this.lockService.lock(itemId, targetType).pipe(takeUntil(this._destroyed)).subscribe({
+                        next: (result) => {
+						    this.isLockedByUser = true;
+						    this.touchLock$ = interval(this.configurationService.lockInterval).pipe(takeUntil(this._destroyed)).subscribe(() => this.touchLock(itemId));
+					    },
+                        error: (error) => {
+                            this.isLockedByUser = false;
+                            this.touchLock$?.unsubscribe();
+                            this.touchLock$ = null;
+
+                            this.formGroup.disable();
+                            this.dialog.open(PopupNotificationDialogComponent, {
+                                data: {
+                                    title: this.language.instant(title),
+                                    message: this.language.instant(message)
+                                }, maxWidth: '30em'
+                            })
+                        }
+                    });
 				}
 			});
 		}
 	}
 
-	private unlockTarget(targetId: Guid) {
-		this.lockService.unlockTarget(targetId).pipe(takeUntil(this._destroyed)).subscribe(async result => { }); //TODO HANDLE-ERRORS
+	protected unlockTarget(targetId: Guid) {
+		this.lockService.unlockTarget(targetId).pipe(takeUntil(this._destroyed)).subscribe(result => {
+            this.isLockedByUser = false;
+            this.touchLock$?.unsubscribe();
+            this.touchLock$ = null;
+        })
 	}
 
 	protected touchLock(targetId: Guid) {
-		this.lockService.touchLock(targetId).pipe(takeUntil(this._destroyed)).subscribe(async result => { }); //TODO HANDLE-ERRORS
+		this.lockService.touchLock(targetId).pipe(takeUntil(this._destroyed)).subscribe({
+            complete:() => {},
+            error:(error) => {
+                this.isLockedByUser = false;
+                this.touchLock$?.unsubscribe();
+                this.touchLock$ = null;
+            }
+        });
 	}
 
 	ngOnDestroy(): void {
 		super.ngOnDestroy();
-		if (this.isLockedByUser) this.unlockTarget(this.editorModel.id);
 	}
 }

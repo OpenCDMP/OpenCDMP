@@ -3,7 +3,7 @@ package org.opencdmp.model.censorship.planblueprint;
 import org.opencdmp.authorization.Permission;
 import org.opencdmp.convention.ConventionService;
 import org.opencdmp.model.censorship.BaseCensor;
-import org.opencdmp.model.planblueprint.Section;
+import org.opencdmp.model.planblueprint.RootSection;
 import gr.cite.commons.web.authz.service.AuthorizationService;
 import gr.cite.tools.data.censor.CensorFactory;
 import gr.cite.tools.fieldset.FieldSet;
@@ -39,9 +39,9 @@ public class SectionCensor extends BaseCensor {
             return;
 
         this.authService.authorizeForce(Permission.BrowsePlanBlueprint);
-        FieldSet fieldsFields = fields.extractPrefixed(this.asIndexerPrefix(Section._fields));
-        this.censorFactory.censor(FieldCensor.class).censor(fieldsFields, userId);
-        FieldSet descriptionTemplatesFields = fields.extractPrefixed(this.asIndexerPrefix(Section._descriptionTemplates));
+        FieldSet fieldsFields = fields.extractPrefixed(this.asIndexerPrefix(RootSection._fieldSets));
+        this.censorFactory.censor(FieldSetCensor.class).censor(fieldsFields, userId);
+        FieldSet descriptionTemplatesFields = fields.extractPrefixed(this.asIndexerPrefix(RootSection._descriptionTemplates));
         this.censorFactory.censor(DescriptionTemplatesCensor.class).censor(descriptionTemplatesFields, userId);
     }
 

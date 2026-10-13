@@ -1,0 +1,38 @@
+@if (hasPlugins) {
+	<section class="bp2-card">
+		<div class="bp2-card__head">
+			<div>
+				<div class="bp2-card__title"><h2>{{'PLAN-BLUEPRINT-EDITOR.EXPORT.TITLE' | translate}}</h2><span class="bp2-tag bp2-tag--opt">{{'PLAN-BLUEPRINT-EDITOR.OPTIONAL' | translate}}</span></div>
+				<div class="bp2-card__desc">{{t('PLAN-BLUEPRINT-EDITOR.EXPORT.HINT') | translate}}</div>
+			</div>
+			@if (!editor.readOnly) {
+			<button mat-stroked-button type="button" class="bp2-btn-sm dt-export__toggle" (click)="open = !open" [attr.aria-expanded]="open">
+				<mat-icon aria-hidden="true">{{ open ? 'expand_less' : 'tune' }}</mat-icon>{{ (open ? 'PLAN-BLUEPRINT-EDITOR.EXPORT.HIDE' : 'PLAN-BLUEPRINT-EDITOR.EXPORT.CUSTOMIZE') | translate }}
+			</button>
+			}
+		</div>
+		@if (editor.readOnly && settings.length) {
+			<div class="bp2-card__body">
+				<dl class="bp2-read">
+					@for (s of settings; track s.label) { <dt>{{s.label}}</dt><dd>@if (s.color) { <span class="dt-swatch" [style.background]="s.value"></span> }{{s.value}}</dd> }
+				</dl>
+			</div>
+		} @else if (open && !editor.readOnly) {
+			<div class="bp2-card__body dt-export">
+				@for (plugin of plugins; track plugin.code) {
+					@if (plugin.grouped) {
+						<!-- plugins that describe their settings in groups get the same editor as the organisation settings -->
+						<app-tc-export-settings [pluginCode]="plugin.code" [pluginForm]="plugin.form" [definitions]="plugin.definitions" [fileMap]="editor.fileMap" [inheritedValues]="tenantValues[plugin.code] ?? {}" />
+					} @else {
+						<app-plugin-editor [formGroup]="pluginsForm" [onlyPluginCode]="plugin.code" [fileMap]="editor.fileMap" [pluginConfiguration]="pluginConfiguration" [showPluginFieldText]="true"></app-plugin-editor>
+					}
+				}
+			</div>
+		} @else {
+			<div class="bp2-card__body dt-export__summary">
+				<mat-icon aria-hidden="true">{{ customizedCount ? 'check_circle' : 'description' }}</mat-icon>
+				<span>{{ (customizedCount ? 'PLAN-BLUEPRINT-EDITOR.EXPORT.SUMMARY-CUSTOM' : t('PLAN-BLUEPRINT-EDITOR.EXPORT.SUMMARY-DEFAULT')) | translate: { count: customizedCount } }}</span>
+			</div>
+		}
+	</section>
+}

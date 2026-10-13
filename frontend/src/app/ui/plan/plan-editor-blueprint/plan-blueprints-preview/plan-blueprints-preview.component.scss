@@ -1,64 +1,245 @@
-.plan-blueprints-preview {
-    display: grid;
-    grid-template-columns: 25rem auto;
-    gap: 0.5rem;
+@use '../../../../../assets/scss/variables.scss';
+.plan-blueprints-container {
     height: 100%;
-    margin: 0.5rem 1rem 0 1rem;
+    display: flex;
+    flex-direction: column;
+    background-color: var(--mat-sys-background);
+}
+.plan-blueprints-header{
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    color: var(--mat-sys-secondary-fixed);
+    background: var(--mat-sys-on-secondary-fixed);
+    // background-color: var(--mat-sys-on-surface-variant);
+    // color: var(--mat-sys-surface);
+    flex-wrap: wrap;
+    justify-content: space-between;
+    padding: 0.79rem 1.5625rem;
+    .hint {
+        margin-top: auto;
+    }
+    .fake-stepper{
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 1rem;
+        .select{
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            .number-chip{
+                width: 29.75px;
+                height: 29.75px;
+                background-color: var(--mat-sys-primary);
+                color: var(--mat-sys-on-primary);
+                border-radius: 999px;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                // line-height: 2;
+            }
+            &.disabled{
+                opacity: 0.8;
+                .number-chip{
+                    background-color: hsl(from var(--mat-sys-on-surface-variant) h s calc(l + 12))
+                }
+            }
+        }
+        .connect-line {
+            width: 3rem;
+            opacity: 0.6;
+            border-bottom: 1px solid var(--mat-sys-on-secondary);
+        }
+    }
+    .back-btn{
+        color: var(--mat-sys-on-secondary);
+        opacity: 0.8;
+        width: fit-content;
+        &:hover, &:focus {
+            opacity: 1;
+        }
+    }
+}
+.plan-blueprints-preview {
+    display: flex;
+    gap: 2rem;
+    min-height: 0;
+    padding: 2.125rem 1.585rem;
+    flex: 1;
 }
 .blueprint-label {
     overflow: hidden;
     text-overflow: ellipsis;
-    max-width: 17rem;
+    text-wrap: nowrap;
 }
-.description-template-header, .blueprint-select-btn {
+.blueprint-description{
+    overflow: hidden;
+    text-overflow: ellipsis;
+    text-wrap: nowrap;
+    font-size: var(--mat-sys-body-small-size);
+    opacity: 0.8;
+}
+.description-template-header {
     border-radius: 8px;
+    font-size: var(--mat-sys-body-medium-size);
 }
 .blueprint-select-btn{
-    padding: 1rem;
+    padding: 0.75rem;
+    margin:  0.5rem 0;
     margin-right: 1rem;
+    border-radius: 10px;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    &:hover {
-        background-color: #0000000f;
+    border: 2px solid var(--mat-sys-outline-variant);
+    background-color: var(--mat-sys-surface);
+    &:not(.selected):hover, &:not(.selected):focus {
+        box-shadow: rgba(60, 64, 67, 0.3) 0px 1px 2px 0px, rgba(60, 64, 67, 0.15) 0px 1px 3px 1px;
     }
-    &.default {
-        font-weight: bold;
-    }
-    &.primaryContainer{
-        background-color: var(--mat-sys-primary);
-        color: var(--mat-sys-on-primary);
+
+    &.selected{
+        border-color: var(--mat-sys-primary);
+        background-color: var(--mat-sys-primary-container);
+        box-shadow: 0px 3px 6px #0000001a;
     }
 }
 .blueprint-selection {
-    display: flex;
-    flex-direction: column;
-    max-height: calc(100vh - 9rem);
+    min-width: 23.75rem;
+    width: 23.75rem;
+    // display: flex;
+    // flex-direction: column;
+    overflow-y: auto;
     .selection-header {
-        flex: 0;
+        // flex: 0;
+        margin-bottom: 0.5rem;
+        .selection-header--title {
+            font-size: var(--mat-sys-title-medium-size);
+            font-weight: 700;
+            margin-bottom: 0.75rem;
+        }
+        .selection-header--divider {
+            display: flex;
+            align-items: center;
+            text-align: center;
+            opacity: 0.6;
+            font-size: var(--mat-sys-body-small-size);
+            margin: 1rem 0;
+            &::before, &::after {
+                content: '';
+                flex: 1;
+                border-bottom: 1px solid var(--mat-sys-outline-variant);
+            }
+            span {
+                padding: 0 0.75rem;
+            }
+        }
+    }
+    .import-plan-btn {
+        padding: 0.75rem;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        cursor: pointer;
+        border: 2px solid var(--mat-sys-primary);
+        background-color: var(--mat-sys-primary-container);
+        &:hover, &:focus {
+            box-shadow: rgba(60, 64, 67, 0.3) 0px 1px 2px 0px, rgba(60, 64, 67, 0.15) 0px 1px 3px 1px;
+        }
+        .import-plan-btn--icon {
+            background-color: var(--mat-sys-primary);
+            color: var(--mat-sys-on-primary);
+        }
+        .blueprint-label, .blueprint-description {
+            text-wrap: wrap;
+            overflow: visible;
+            text-overflow: unset;
+        }
     }
     .blueprint-list{
-        flex: 1;
-        overflow-y: auto;
-        scrollbar-width: thin;
+        // flex: 1;
+        // overflow-y: auto;
+        // scrollbar-width: thin;
+        .blueprint-type-title{
+            font-size: var(--mat-sys-body-small-size);
+        }
     }
 }
 .blueprint-preview  {
+    flex: 1;
+    max-height: fit-content;
+    box-shadow: 0px 3px 6px #0000001a;
+    .blueprint-preview--header{
+        flex-direction: column;
+        padding: 1.075rem 1.585rem;
+        border-bottom: 1px solid var(--mat-sys-outline-variant);
+        .tools {
+            width: 100%;
+            .tool-btn {
+                display: flex;
+                gap: 0.25rem;
+                align-items: center;
+                font-size: var(--mat-sys-body-small-size);
+                color: var(--mat-sys-on-surface);
+                opacity: 0.75;
+                &:hover, &:focus{
+                    opacity: 1;
+                }
+            }
+        }
+        .blueprint-preview--hint{
+            margin: 1rem 0;
+            display: flex;
+            line-height: 2;
+            padding: 0.65rem;
+            gap: 0.25rem;
+            font-size: var(--mat-sys-label-medium-size);
+            border: 1px solid var(--mat-sys-secondary-fixed-dim);
+            background-color: var(--mat-sys-secondary-fixed);
+            border-radius: 10px;
+            .info-icon {
+                transform: scale(0.8);
+                margin-right: 0.125rem;
+                color: var(--mat-sys-secondary);
+            }
+        }
+    }
     .blueprint-preview-wrapper {
-        height: calc(100vh - 14rem);
         display: flex;
         flex-direction: column;
-        padding-right: 0;
+        min-height: 0;
+        padding: 0;
         .blueprint-preview-content {
             flex: 1;
             overflow-y: auto;
+            .blueprint-section--expansion-panel{
+                border-bottom: 1px solid var(--mat-sys-outline-variant);
+                margin-bottom: 0;
+                mat-expansion-panel-header{
+                    padding: 0.75rem 1.585rem;
+                }
+                .description-template{
+                    mat-expansion-panel-header{
+                        padding: 0.525rem 1rem;
+                    }
+                }
+            }
+            .blueprint-section--fieldset, .blueprint-section--sections {
+                padding-left: 1rem;
+                .blueprint-section--field{
+                    padding-left: 1.5rem;
+                }
+            }
         }
-        .tools {
-            flex: 0;
-            margin-left: auto;
-        }
+
         .select-button {
             flex: 0;
+            margin: 1.25rem;
+            button {
+                padding-top: 1.325rem;
+                padding-bottom: 1.325rem;
+            }
         }
     }
 }
@@ -66,18 +247,11 @@
     font-size: var(--mat-sys-title-large-size);
     font-weight: bold;
 }
-
-.description-template-header, .description-template-header *{
-  background-color: var(--mat-sys-tertiary) !important;
-  color: var(--mat-sys-on-tertiary) !important;
-}
-::ng-deep .description-template > .mat-expansion-panel-header > .mat-expansion-indicator > svg {
-    fill: var(--mat-sys-on-tertiary) !important;
+.blueprint-preview-description{
+    font-size: var(--mat-sys-body-medium-size);
+    font-weight: normal;
 }
 
-.list-group-item.activeItem{
-	background-color: var(--md-sys-color-secondary-container);
-}
 
 .list-group-item{
 	border-right: 0;
@@ -91,19 +265,17 @@ li.list-group-item:not(:last-child) {
 	border-bottom: 0 !important;
 }
 
-.blueprintLabel{
-	font-size: var(--mat-sys-display-small-size);
-}
 
 .sectionLabel{
 	font-size: var(--mat-sys-title-medium-size);
 }
-.sectionDescription, .page-section, .sectionFieldsHeader, .sectionTemplatesHeader{
-	font-size: var(---mat-sys-title-small-size);
+.sectionDescription, .sectionFieldsHeader, .sectionTemplatesHeader{
+	font-size: var(---mat-sys-body-medium-size);
 }
-.fieldLabel {
-    margin-bottom: 0.35rem;
+.page-section {
+    font-size: var(--mat-sys-title-small-size);
 }
+
 .sectionDescription, .descriptionTemplateLabel, .page-label, .fieldLabel{
 	font-size: var(--mat-sys-body-medium-size);
 
@@ -118,13 +290,9 @@ li.list-group-item:not(:last-child) {
 	color: var(--mat-sys-on-tertiary);
 }
 
-.templateContainer{
-	border-left:2px solid var(--mat-sys-tertiary);
-}
 
-.templates-dialog {
-    background-color: #129d9811;
-}
+
+
 .templates-dialog-btn {
     color: var(--link-color);
     &:hover {
@@ -134,4 +302,82 @@ li.list-group-item:not(:last-child) {
 
 .show-more:hover {
 	color: var(--mat-sys-primary) !important;
+}
+.mat-icon-fab {
+    background-color: rgba(11, 34, 112, 0.125);
+    color: var(--mat-sys-secondary);
+    border-radius: 10px;
+    margin: 0.25rem 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 34px;
+    height: 34px;
+    mat-icon{
+        transform: scale(0.9);
+    }
+    img {
+        max-width: 30px;
+        max-height: 30px;
+    }
+    &.mat-icon-fab--large{
+        width: 42.5px;
+        height: 42.5px;
+        img {
+            max-width: 38.5px;
+            max-height: 38.5px;
+        }
+        mat-icon{
+            transform: scale(1.125);
+        }
+    }
+}
+mat-icon, .mat-icon-fab  {
+    flex-shrink: 0;
+}
+.template-chip{
+    font-size: var(--mat-sys-label-medium-size);
+    padding: 0.1rem 0.25rem;
+    border-radius: 4px;
+    //colors directly from design, as rgb: html2canvas (the PDF download) cannot parse oklch()
+    background-color: rgb(254, 243, 198);
+    color: rgb(151, 60, 0);
+    mat-icon{
+        width: var(--mat-sys-label-medium-size);
+        height: var(--mat-sys-label-medium-size);
+        font-size: var(--mat-sys-label-medium-size);
+        line-height: 1.2;
+    }
+}
+.import-dialog-overlay.cdk-overlay-backdrop.cdk-overlay-dark-backdrop.cdk-overlay-backdrop-showing{
+    z-index: 1;
+    animation: opacity .3s;
+}
+.import-plan-dialog-container{
+    position: fixed;
+    top: variables.$navbar-height;
+    bottom: 0;
+    right: -100vw;
+	width: 500px;
+	height: calc(100vh - variables.$navbar-height);
+    animation: slide .3s forwards;
+    background-color: var(--mat-sys-surface);
+    z-index: 3;
+    box-shadow: variables.$default-box-shadow;
+}
+
+// Read-only view (library): hide the wizard chrome, show only the selected blueprint full-width.
+.readonly-view {
+    height: auto !important;
+}
+.readonly-view .plan-blueprints-header,
+.readonly-view .blueprint-selection,
+.readonly-view .select-button {
+    display: none !important;
+}
+.readonly-view .plan-blueprints-preview {
+    display: block;
+}
+.readonly-view .blueprint-preview {
+    width: 100%;
 }

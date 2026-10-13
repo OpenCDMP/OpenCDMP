@@ -1,15 +1,21 @@
+// WCAG 1.4.3: white text needs ≥4.5:1. #4CAF50 fails (~2.8:1) so success is
+// darkened to #2e7d32 (~4.5:1); #B13636 passes (~6:1). Text pinned white explicitly.
 .snack-bar-notification--success {
-	background-color: #4CAF50 !important;
+	background-color: #2e7d32 !important;
+	color: #ffffff !important;
 }
 
 .snack-bar-notification--error {
 	background-color: #B13636 !important;
+	color: #ffffff !important;
 }
 
 .snack-bar-notification--warning {
 	background-color: #B13636 !important;
+	color: #ffffff !important;
 }
 
 .snack-bar-notification--info {
 	background-color: #B13636 !important;
+	color: #ffffff !important;
 }

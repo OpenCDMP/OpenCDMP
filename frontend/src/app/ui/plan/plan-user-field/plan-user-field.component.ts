@@ -1,6 +1,6 @@
-import { CdkDragDrop, moveItemInArray } from '@angular/cdk/drag-drop';
-import { Component, computed, Input, OnInit } from '@angular/core';
-import { FormArray } from '@angular/forms';
+import { moveItemInArray, CdkDropList, CdkDrag, CdkDragHandle } from '@angular/cdk/drag-drop';
+import { Component, computed, Input, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { FormArray, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { PlanUserRole } from '@app/core/common/enum/plan-user-role';
 import { PlanUserType } from '@app/core/common/enum/plan-user-type';
 import { PlanBlueprintDefinitionSection } from '@app/core/model/plan-blueprint/plan-blueprint';
@@ -10,16 +10,25 @@ import { MultipleAutoCompleteConfiguration } from '@app/library/auto-complete/mu
 import { BaseComponent } from '@common/base/base.component';
 import { ValidationErrorModel } from '@common/forms/validation/error-model/validation-error-model';
 import { PlanEditorModel, PlanUserEditorModel } from '../plan-editor-blueprint/plan-editor.model';
-import { MatButtonToggleChange } from '@angular/material/button-toggle';
+import { MatButtonToggleChange, MatButtonToggleGroup, MatButtonToggle } from '@angular/material/button-toggle';
 import { DragAndDropAccessibilityService } from '@app/core/services/accessibility/drag-and-drop-accessibility.service';
-import { TranslateService } from '@ngx-translate/core';
+import { TranslateService, TranslatePipe } from '@ngx-translate/core';
+import { NgTemplateOutlet } from '@angular/common';
+import { MatIconButton } from '@angular/material/button';
+import { MatIcon } from '@angular/material/icon';
+import { MatError, MatFormField, MatLabel } from '@angular/material/form-field';
+import { SingleAutoCompleteComponent } from '../../../library/auto-complete/single/single-auto-complete.component';
+import { MatInput } from '@angular/material/input';
+import { MatSelect, MatOption } from '@angular/material/select';
+import { MatTooltip } from '@angular/material/tooltip';
 
 @Component({
     selector: 'app-plan-user-field-component',
     templateUrl: 'plan-user-field.component.html',
     styleUrls: ['./plan-user-field.component.scss'],
-    standalone: false,
-    providers: [DragAndDropAccessibilityService]
+    changeDetection: ChangeDetectionStrategy.Eager,
+    providers: [DragAndDropAccessibilityService],
+    imports: [CdkDropList, CdkDrag, NgTemplateOutlet, MatIconButton, MatIcon, MatError, CdkDragHandle, MatButtonToggleGroup, FormsModule, ReactiveFormsModule, MatButtonToggle, MatFormField, MatLabel, SingleAutoCompleteComponent, MatInput, MatSelect, MatOption, MatTooltip, TranslatePipe]
 })
 export class PlanUserFieldComponent extends BaseComponent implements OnInit {
 	@Input() form: FormArray;

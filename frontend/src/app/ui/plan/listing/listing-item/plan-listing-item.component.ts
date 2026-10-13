@@ -1,9 +1,9 @@
-import { Location } from '@angular/common';
-import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
+import { Location, NgTemplateOutlet, NgClass, LowerCasePipe } from '@angular/common';
+import { Component, EventEmitter, Input, OnInit, Output, ChangeDetectionStrategy } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { PlanAccessType } from '@app/core/common/enum/plan-access-type';
-import { NewVersionPlanPersist, Plan } from '@app/core/model/plan/plan';
+import { Plan } from '@app/core/model/plan/plan';
 import { PlanService } from '@app/core/services/plan/plan.service';
 import { FileTransformerService } from '@app/core/services/file-transformer/file-transformer.service';
 import { LockService } from '@app/core/services/lock/lock.service';
@@ -14,12 +14,11 @@ import { EnumUtils } from '@app/core/services/utilities/enum-utils.service';
 import { BaseComponent } from '@common/base/base.component';
 import { ConfirmationDialogComponent } from '@common/modules/confirmation-dialog/confirmation-dialog.component';
 import { Guid } from '@common/types/guid';
-import { TranslateService } from '@ngx-translate/core';
-import { catchError, switchMap, takeUntil } from 'rxjs/operators';
+import { TranslateService, TranslatePipe } from '@ngx-translate/core';
+import { takeUntil } from 'rxjs/operators';
 import { PlanStatusEnum } from '../../../../core/common/enum/plan-status';
 import { AuthService } from '../../../../core/services/auth/auth.service';
 import { ClonePlanDialogComponent } from '../../clone-dialog/plan-clone-dialog.component';
-import { PlanInvitationDialogComponent } from '../../invitation/dialog/plan-invitation-dialog.component';
 import { NewVersionPlanDialogComponent } from '../../new-version-dialog/plan-new-version-dialog.component';
 import { AppPermission } from '@app/core/common/enum/permission.enum';
 import { FileTransformerEntityType } from '@app/core/common/enum/file-transformer-entity-type';
@@ -31,31 +30,33 @@ import { RouterUtilsService } from '@app/core/services/router/router-utils.servi
 import { Tenant } from '@app/core/model/tenant/tenant';
 import { PlanStatusAvailableActionType } from '@app/core/common/enum/plan-status-available-action-type';
 import { IsActive } from '@notification-service/core/enum/is-active.enum';
-import { PlanEditorEntityResolver } from '../../plan-editor-blueprint/resolvers/plan-editor-enitity.resolver';
-import { of } from 'rxjs';
-import { DomSanitizer, SafeResourceUrl, SafeUrl } from '@angular/platform-browser';
-import { StorageFileService } from '@app/core/services/storage-file/storage-file.service';
-import {TenantConfigurationService} from "@app/core/services/tenant-configuration/tenant-configuration.service";
-import {TenantConfigurationType} from "@app/core/common/enum/tenant-configuration-type";
-import {ViewPreferencesEditorResolver} from "@app/ui/admin/tenant-configuration/editor/view-preferences/view-preferences-editor.resolver";
-import {TenantConfigurationEditorModel} from "@app/ui/admin/tenant-configuration/editor/view-preferences/view-preferences-editor.model";
+import { SafeUrl } from '@angular/platform-browser';
 import {ReferenceType} from "@app/core/model/reference-type/reference-type";
+import { PlanUserRole } from '@app/core/common/enum/plan-user-role';
+import { ConfigurationService } from '@app/core/services/configuration/configuration.service';
+import { DepositService } from '@app/core/services/deposit/deposit.service';
+import { DepositConfiguration } from '@app/core/model/deposit/deposit-configuration';
+import { MatCard, MatCardContent } from '@angular/material/card';
+import { MatMenu, MatMenuItem } from '@angular/material/menu';
+import { MatIcon } from '@angular/material/icon';
+import { DateTimeFormatPipe } from '../../../../core/pipes/date-time-format.pipe';
 
 @Component({
     selector: 'app-plan-listing-item-component',
     templateUrl: './plan-listing-item.component.html',
     styleUrls: ['./plan-listing-item.component.scss'],
-    standalone: false
+    changeDetection: ChangeDetectionStrategy.Eager,
+    imports: [MatCard, MatCardContent, RouterLink, NgTemplateOutlet, MatMenu, MatMenuItem, NgClass, MatIcon, LowerCasePipe, TranslatePipe, DateTimeFormatPipe]
 })
 export class PlanListingItemComponent extends BaseComponent implements OnInit {
 
 	@Input() plan: Plan;
-	@Input() showDivider: boolean = true;
 	@Input() showAllVersionsAction: boolean = true;
 	@Input() isPublic: boolean;
 	@Input() tenants: Tenant[] = [];
     @Input() statusStorageFile: SafeUrl;
 	@Input() orderedPlanPreferencesList:ReferenceType[] = [];
+    @Input() compactView: boolean = false;
 	@Output() onClick: EventEmitter<Plan> = new EventEmitter();
     @Output() onRefresh: EventEmitter<void> = new EventEmitter();
 
@@ -66,20 +67,20 @@ export class PlanListingItemComponent extends BaseComponent implements OnInit {
 	planStatusEnum = PlanStatusEnum;
 	fileTransformerEntityTypeEnum = FileTransformerEntityType;
 
-	get canEditPlan(): boolean {
-		return (this.isDraft) && (this.plan.authorizationFlags?.some(x => x === AppPermission.EditPlan) || this.authentication.hasPermission(AppPermission.EditPlan)) && !this.isDeleted && !this.isPublic && this.plan.belongsToCurrentTenant != false;
-	}
+	// get canEditPlan(): boolean {
+	// 	return (this.isDraft) && (this.plan.authorizationInformation?.globalAuthorizationFlags?.some(x => x === AppPermission.EditPlan) || this.authentication.hasPermission(AppPermission.EditPlan)) && !this.isDeleted && !this.isPublic && this.plan.belongsToCurrentTenant != false;
+	// }
 
 	get canCreateNewVersion(): boolean {
-		return (this.plan.authorizationFlags?.some(x => x === AppPermission.CreateNewVersionPlan) || this.authentication.hasPermission(AppPermission.CreateNewVersionPlan)) && !this.isDeleted && this.plan.versionStatus === PlanVersionStatus.Current && !this.isPublic &&  this.plan.belongsToCurrentTenant != false;
+		return (this.plan.authorizationInformation?.globalAuthorizationFlags?.some(x => x === AppPermission.CreateNewVersionPlan) || this.authentication.hasPermission(AppPermission.CreateNewVersionPlan)) && !this.isDeleted && this.plan.versionStatus === PlanVersionStatus.Current && !this.isPublic &&  this.plan.belongsToCurrentTenant != false;
 	}
 
 	get canDeletePlan(): boolean {
-		return (this.plan.authorizationFlags?.some(x => x === AppPermission.DeletePlan) || this.authentication.hasPermission(AppPermission.DeletePlan)) && !this.isPublic && !this.isDeleted &&this.plan.belongsToCurrentTenant != false && this.isNotFinalizedPlan;
+		return (this.plan.authorizationInformation?.globalAuthorizationFlags?.some(x => x === AppPermission.DeletePlan) || this.authentication.hasPermission(AppPermission.DeletePlan)) && !this.isPublic && !this.isDeleted &&this.plan.belongsToCurrentTenant != false && this.isNotFinalizedPlan;
 	}
 
 	get canClonePlan(): boolean {
-		const authorizationFlags = !this.isPublic ? (this.plan as Plan).authorizationFlags : [];
+		const authorizationFlags = !this.isPublic ? (this.plan as Plan).authorizationInformation?.globalAuthorizationFlags : [];
 		return (
             (authorizationFlags?.some(x => x === AppPermission.ClonePlan) ||
             this.authentication.hasPermission(AppPermission.ClonePlan) ||
@@ -88,20 +89,20 @@ export class PlanListingItemComponent extends BaseComponent implements OnInit {
 	}
 
 	get canFinalizePlan(): boolean {
-		return (this.plan.authorizationFlags?.some(x => x === AppPermission.FinalizePlan) || this.authentication.hasPermission(AppPermission.FinalizePlan)) && !this.isDeleted && !this.isPublic &&  this.plan.belongsToCurrentTenant != false;
+		return (this.plan.authorizationInformation?.globalAuthorizationFlags?.some(x => x === AppPermission.FinalizePlan) || this.authentication.hasPermission(AppPermission.FinalizePlan)) && !this.isDeleted && !this.isPublic &&  this.plan.belongsToCurrentTenant != false;
 	}
 
 	get canExportPlan(): boolean {
-		return (this.plan.authorizationFlags?.some(x => x === AppPermission.ExportPlan) || this.authentication.hasPermission(AppPermission.ExportPlan)) && !this.isDeleted &&
+		return (this.plan.authorizationInformation?.globalAuthorizationFlags?.some(x => x === AppPermission.ExportPlan) || this.authentication.hasPermission(AppPermission.ExportPlan)) && !this.isDeleted &&
 		this.plan.status?.definition?.availableActions?.filter(x => x === PlanStatusAvailableActionType.Export).length > 0;;
 	}
 
 	get canInvitePlanUsers(): boolean {
-		return (this.plan.authorizationFlags?.some(x => x === AppPermission.InvitePlanUsers) || this.authentication.hasPermission(AppPermission.InvitePlanUsers)) && !this.isDeleted && !this.isPublic &&  this.plan.belongsToCurrentTenant != false;
+		return (this.plan.authorizationInformation?.globalAuthorizationFlags?.some(x => x === AppPermission.InvitePlanUsers) || this.authentication.hasPermission(AppPermission.InvitePlanUsers)) && !this.isDeleted && !this.isPublic &&  this.plan.belongsToCurrentTenant != false;
 	}
 
 	get canAssignPlanUsers(): boolean {
-		return (this.plan.authorizationFlags?.some(x => x === AppPermission.AssignPlanUsers) || this.authentication.hasPermission(AppPermission.AssignPlanUsers)) && !this.isDeleted && !this.isPublic &&  this.plan.belongsToCurrentTenant != false;
+		return (this.plan.authorizationInformation?.globalAuthorizationFlags?.some(x => x === AppPermission.AssignPlanUsers) || this.authentication.hasPermission(AppPermission.AssignPlanUsers)) && !this.isDeleted && !this.isPublic &&  this.plan.belongsToCurrentTenant != false;
 	}
 
 	get showActionsMenu(): boolean {
@@ -111,6 +112,14 @@ export class PlanListingItemComponent extends BaseComponent implements OnInit {
 	get isNotFinalizedPlan(): boolean {
 		return (this.plan.status?.internalStatus == null || this.plan.status?.internalStatus != PlanStatusEnum.Finalized) && !this.isDeleted;
 	}
+
+    get planOwners(): string {
+        return this.plan.planUsers?.filter(x => x.isActive === IsActive.Active && x.role === PlanUserRole.Owner)?.map(x => x.user?.name).join(', ');
+    }
+
+    get collaboratorCount(): number {
+        return this.plan.planUsers?.filter(x => x.isActive === IsActive.Active)?.length;
+    }
 
 	constructor(
 		public routerUtils: RouterUtilsService,
@@ -127,7 +136,9 @@ export class PlanListingItemComponent extends BaseComponent implements OnInit {
 		public referenceTypeService: ReferenceTypeService,
 		public fileTransformerService: FileTransformerService,
 		private analyticsService: AnalyticsService,
-		private httpErrorHandlingService: HttpErrorHandlingService
+		private httpErrorHandlingService: HttpErrorHandlingService,
+        private configurationService: ConfigurationService,
+        private depositService: DepositService
 	) {
 		super();
 	}
@@ -172,34 +183,36 @@ export class PlanListingItemComponent extends BaseComponent implements OnInit {
 		return this.tenants?.find(t => t?.id == id)?.name;
 	}
 
-	inviteToPlan() {
-		const dialogRef = this.dialog.open(PlanInvitationDialogComponent, {
-			restoreFocus: false,
-			data: {
-				planId: this.plan.id,
-				planName: this.plan.label,
-				blueprint: this.plan.blueprint
-			},
-            minWidth: 'min(65rem, 90vw)'
-		});
-	}
+	// inviteToPlan() {
+	// 	const dialogRef = this.dialog.open(PlanInvitationDialogComponent, {
+	// 		restoreFocus: false,
+	// 		data: {
+	// 			planId: this.plan.id,
+	// 			planName: this.plan.label,
+	// 			blueprint: this.plan.blueprint
+	// 		},
+    //         minWidth: 'min(65rem, 90vw)'
+	// 	});
+	// }
 
 	viewVersions(plan: Plan) {
-		if (plan.accessType == PlanAccessType.Public && plan.status?.internalStatus == PlanStatusEnum.Finalized && !this.plan.authorizationFlags?.some(x => x === AppPermission.EditPlan)) {
-			let url = this.router.createUrlTree(['/explore-plans/versions/', plan.groupId]);
+		if (plan.accessType == PlanAccessType.Public && plan.status?.internalStatus == PlanStatusEnum.Finalized 
+            && !this.plan.authorizationInformation?.globalAuthorizationFlags?.some(x => x === AppPermission.EditPlan)) {
+			const url = this.router.createUrlTree(['/explore-plans/versions/', plan.groupId]);
 			window.open(url.toString(), '_blank');
 		} else {
-			let url = this.router.createUrlTree(['/plans/versions/', plan.groupId]);
+			const url = this.router.createUrlTree(['/plans/versions/', plan.groupId]);
 			window.open(url.toString(), '_blank');
 		}
 	}
 
 	viewVersionsUrl(plan: Plan): string {
-		if (plan.accessType == PlanAccessType.Public && plan.status?.internalStatus == PlanStatusEnum.Finalized && !this.plan.authorizationFlags?.some(x => x === AppPermission.EditPlan)) {
-			let url = this.router.createUrlTree(['/explore-plans/versions/', plan.groupId]);
+		if (plan.accessType == PlanAccessType.Public && plan.status?.internalStatus == PlanStatusEnum.Finalized 
+            && !this.plan.authorizationInformation?.globalAuthorizationFlags?.some(x => x === AppPermission.EditPlan)) {
+			const url = this.router.createUrlTree(['/explore-plans/versions/', plan.groupId]);
 			return url.toString();
 		} else {
-			let url = this.router.createUrlTree(['/plans/versions/', plan.groupId]);
+			const url = this.router.createUrlTree(['/plans/versions/', plan.groupId]);
 			return url.toString();
 		}
 	}
@@ -268,7 +281,6 @@ export class PlanListingItemComponent extends BaseComponent implements OnInit {
 		} else {
 			dialogRef = this.dialog.open(ConfirmationDialogComponent, {
 				maxWidth: '300px',
-				restoreFocus: false,
 				data: {
 					message: this.language.instant('GENERAL.CONFIRMATION-DIALOG.DELETE-ITEM'),
 					confirmButton: this.language.instant('GENERAL.CONFIRMATION-DIALOG.ACTIONS.DELETE'),
@@ -293,9 +305,8 @@ export class PlanListingItemComponent extends BaseComponent implements OnInit {
 	openLockedByUserDialog() {
 		const dialogRef = this.dialog.open(ConfirmationDialogComponent, {
 			maxWidth: '400px',
-			restoreFocus: false,
 			data: {
-				message: this.language.instant('PLAN-EDITOR.ACTIONS.LOCK')
+				message: this.language.instant('PLAN-EDITOR.LOCKED-DIALOG.PLAN-LOCKED')
 			}
 		});
 	}
@@ -311,5 +322,14 @@ export class PlanListingItemComponent extends BaseComponent implements OnInit {
 
 	onDeleteCallbackError(error) {
 		this.uiNotificationService.snackBarNotification(error.error.message ? error.error.message : this.language.instant('GENERAL.SNACK-BAR.UNSUCCESSFUL-DELETE'), SnackBarNotificationLevel.Error);
+	}
+
+    get depositRepos(): DepositConfiguration[] {
+        return this.depositService.availableDeposits();
+    }
+
+    createDoiLink(doiModel: any): string {
+		const repository = this.depositRepos?.find(r => r.repositoryId == doiModel.repositoryId);
+		return repository?.repositoryRecordUrl?.replace(this.configurationService.depositRecordUrlIdPlaceholder, doiModel.doi) ?? null;
 	}
 }

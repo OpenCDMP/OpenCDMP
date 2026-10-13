@@ -1,27 +1,25 @@
 import { PlanAccessType } from '@app/core/common/enum/plan-access-type';
-import { PlanStatusEnum } from '@app/core/common/enum/plan-status';
 import { PlanUserRole } from '@app/core/common/enum/plan-user-role';
 import { PlanVersionStatus } from '@app/core/common/enum/plan-version-status';
 import { BaseEntity, BaseEntityPersist } from '@common/base/base-entity.model';
 import { Guid } from '@common/types/guid';
 import { DescriptionTemplate } from '../description-template/description-template';
-import { BaseDescription, Description } from '../description/description';
+import { BaseDescription, Description, DescriptionPersist, PropertyDefinitionPersist } from '../description/description';
 import { PlanBlueprint } from '../plan-blueprint/plan-blueprint';
 import { EntityDoi } from '../entity-doi/entity-doi';
+import { PlanUpdateRequestApply } from '../plan-update-request/plan-update-request';
 import { ReferencePersist } from '../reference/reference';
 import { User } from "../user/user";
 import { PlanReference } from './plan-reference';
-import { IsActive } from '@app/core/common/enum/is-active.enum';
 import { AppPermission } from '@app/core/common/enum/permission.enum';
-import { EntityType } from '@app/core/common/enum/entity-type';
 import { PlanStatus } from '../plan-status/plan-status';
 import { PlanStatusPermission } from '@app/core/common/enum/plan-status-permission.enum';
-
+import { PropertyDefinition } from '../description/description';
 export interface BasePlan extends BaseEntity {
     label?: string;
 	version?: number;
-	groupId?: String;
-	description?: String;
+	groupId?: string;
+	description?: string;
 	publishedAt?: Date;
 	finalizedAt?: Date;
 	accessType?: PlanAccessType;
@@ -36,20 +34,30 @@ export interface Plan extends BasePlan {
 	properties?: PlanProperties;
 	creator?: User;
 	blueprint?: PlanBlueprint;
-	language?: String;
+	language?: string;
 	publicAfter?: Date;
 	planUsers?: PlanUser[];
 	descriptions?: Description[];
 	planDescriptionTemplates?: PlanDescriptionTemplate[];
 	otherPlanVersions?: Plan[];
 	availableStatuses?: PlanStatus[];
-	authorizationFlags?: AppPermission[];
+    authorizationInformation?: PlanAuthorizationInformation;
 	statusAuthorizationFlags?: PlanStatusPermission[];
 }
 
-export interface PlanProperties {
-	planBlueprintValues: PlanBlueprintValue[];
+export interface PlanAuthorizationInformation {
+    globalAuthorizationFlags: AppPermission[];
+    authorizationInformationPerSections: PlanAuthorizationInformationPerSection[];
+}
+export interface PlanAuthorizationInformationPerSection {
+    sectionId: string;
+    authorizationFlags: AppPermission[]
+}
+export interface PlanProperties extends PropertyDefinition{
+    //TODO: remove planBlueprintValues
+	// planBlueprintValues: PlanBlueprintValue[];
 	contacts: PlanContact[];
+	consent: PlanPropertiesConsent;
 }
 
 export interface PlanBlueprintValue {
@@ -65,6 +73,11 @@ export interface PlanContact {
 	email: string;
 }
 
+export interface PlanPropertiesConsent {
+	consentBy: User[];
+	consentAt: Date;
+}
+
 export interface BasePlanUser extends BaseEntity {
     user: User;
     role: PlanUserRole;
@@ -72,7 +85,7 @@ export interface BasePlanUser extends BaseEntity {
 
 export interface PlanUser extends BasePlanUser {
 	plan: Plan;
-	sectionId: Guid;
+	sectionId: string;
 	ordinal: number;
 }
 
@@ -82,7 +95,7 @@ export interface PlanDescriptionTemplate extends BaseEntity {
 	currentDescriptionTemplate?: DescriptionTemplate;
 	descriptionTemplates?: DescriptionTemplate[];
 	descriptionTemplateGroupId?: Guid;
-	sectionId?: Guid;
+	sectionId?: string;
 }
 
 //
@@ -92,27 +105,27 @@ export interface PlanPersist extends BaseEntityPersist {
 	label: string;
 	statusId: Guid;
 	properties: PlanPropertiesPersist;
-	description: String;
-	language: String;
+	description: string;
+	language: string;
 	blueprint: Guid;
 	accessType: PlanAccessType;
 	descriptionTemplates: PlanDescriptionTemplatePersist[];
 	users: PlanUserPersist[];
+	planUpdateRequestApply?: PlanUpdateRequestApply;
 }
 
-export interface PlanPropertiesPersist {
-	planBlueprintValues: Map<Guid, PlanBlueprintValuePersist>;
+export interface PlanPropertiesPersist extends PropertyDefinitionPersist{
 	contacts: PlanContactPersist[];
+	includeConsent: Boolean;
 }
 
-export interface PlanBlueprintValuePersist {
-	fieldId: Guid;
-	fieldValue: string;
-	dateValue: Date;
-	numberValue: number;
-	references: PlanReferencePersist[];
-	reference: PlanReferencePersist;
+// FE-4: payload for the atomic plan/persist-with-descriptions endpoint (plan + its edited descriptions
+// saved in one backend transaction).
+export interface PlanWithDescriptionsPersist {
+	plan: PlanPersist;
+	descriptions: DescriptionPersist[];
 }
+
 
 export interface PlanContactPersist {
 	firstName: string;
@@ -120,31 +133,22 @@ export interface PlanContactPersist {
 	email: string;
 }
 
-export interface PlanReferencePersist {
-	reference?: ReferencePersist;
-	data?: PlanReferenceDataPersist;
-}
-
-export interface PlanReferenceDataPersist {
-	blueprintFieldId: Guid;
-}
-
 export interface PlanDescriptionTemplatePersist {
 	descriptionTemplateGroupId: Guid;
-	sectionId: Guid;
+	sectionId: string;
 }
 
 export interface ClonePlanPersist {
 	id: Guid;
 	label: string;
-	description: String;
+	description: string;
 	descriptions: Guid[];
 }
 
 export interface NewVersionPlanPersist {
 	id: Guid;
 	label: string;
-	description: String;
+	description: string;
 	blueprintId: Guid;
 	descriptions: NewVersionPlanDescriptionPersist[];
 	hash?: string;

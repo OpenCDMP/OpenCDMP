@@ -27,18 +27,18 @@ export class EvaluatorHttpService extends BaseService {
 		return this.http.get<EvaluatorFormat[]>(url).pipe(catchError((error: any) => throwError(error)));
 	}
 
-	rankPlan(id: Guid, evaluatorId: string, format: string, benchmarkIds: string[] = []): Observable<HttpResponse<RankResultModel>> {
+	rankPlan(id: Guid, evaluatorId: string, format: string, benchmarkIds: string[] = [], testIds: string[] = []): Observable<HttpResponse<RankResultModel[]>> {
 		const url = `${this.apiBase}/rank-plan`;
-		return this.http.post<HttpResponse<RankResultModel>>(url, {id: id, evaluatorId: evaluatorId, format: format, benchmarkIds: benchmarkIds}, {responseType: 'json', observe: 'response'}).pipe(catchError((error: any) => throwError(error)));
+		return this.http.post<HttpResponse<RankResultModel[]>>(url, {id: id, evaluatorId: evaluatorId, format: format, benchmarkIds: benchmarkIds, testIds: testIds}, {responseType: 'json', observe: 'response'}).pipe(catchError((error: any) => throwError(error)));
 	}
 
-	rankDescription(id: Guid, evaluatorId: string, format: string, benchmarkIds: string[] = []): Observable<HttpResponse<RankResultModel>> {
+	rankDescription(id: Guid, evaluatorId: string, format: string, benchmarkIds: string[] = [], testIds: string[] = []): Observable<HttpResponse<RankResultModel[]>> {
 		const url = `${this.apiBase}/rank-description`;
-		return this.http.post<HttpResponse<RankResultModel>>(url, {id: id, evaluatorId: evaluatorId, format: format, benchmarkIds: benchmarkIds}, {responseType: 'json', observe: 'response'}).pipe(catchError((error: any) => throwError(error)));
+		return this.http.post<HttpResponse<RankResultModel[]>>(url, {id: id, evaluatorId: evaluatorId, format: format, benchmarkIds: benchmarkIds, testIds: testIds}, {responseType: 'json', observe: 'response'}).pipe(catchError((error: any) => throwError(error)));
 	}
 
 	getLogo(evaluatorId: string): Observable<HttpResponse<string>>{
 		const url = `${this.apiBase}/${evaluatorId}/logo`;
-		return this.http.get(url, { responseType: 'string', observe: 'response' });
+		return this.http.get(url, { responseType: 'text', observe: 'response' });
 	}
 }

@@ -18,6 +18,7 @@ import org.opencdmp.commons.enums.EntityType;
 import org.opencdmp.commons.enums.IsActive;
 import org.opencdmp.commons.scope.tenant.TenantScopeFactory;
 import org.opencdmp.commons.scope.user.UserScopeFactory;
+import org.opencdmp.commons.types.descriptiontemplate.SectionEntity;
 import org.opencdmp.commons.types.plan.PlanPropertiesEntity;
 import org.opencdmp.commons.types.planblueprint.DefinitionEntity;
 import org.opencdmp.convention.ConventionService;
@@ -35,6 +36,7 @@ import org.opencdmp.model.builder.planreference.PlanReferenceBuilder;
 import org.opencdmp.model.builder.planstatus.PlanStatusBuilder;
 import org.opencdmp.model.description.Description;
 import org.opencdmp.model.plan.Plan;
+import org.opencdmp.model.plan.PlanAuthorizationInformation;
 import org.opencdmp.model.planblueprint.PlanBlueprint;
 import org.opencdmp.model.planreference.PlanReference;
 import org.opencdmp.model.planstatus.PlanStatus;
@@ -50,6 +52,7 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Component
@@ -140,8 +143,13 @@ public class PlanBuilder extends BaseBuilder<Plan, PlanEntity> {
         FieldSet planPropertiesFields = fields.extractPrefixed(this.asPrefix(Plan._properties));
         Map<UUID, DefinitionEntity> definitionEntityMap = !planPropertiesFields.isEmpty() ? this.collectPlanBlueprintDefinitions(data) : null;
 
-        Set<String> authorizationFlags = this.extractAuthorizationFlags(fields, Plan._authorizationFlags, this.authorizationContentResolverFactory.getInstance().getPermissionNames());
-        Map<UUID, AffiliatedResource>  affiliatedResourceMap = authorizationFlags == null || authorizationFlags.isEmpty() ? null : this.authorizationContentResolverFactory.getInstance().plansAffiliation(data.stream().map(PlanEntity::getId).collect(Collectors.toList()));
+        Map<UUID, AffiliatedResource> affiliatedGlobalResourceMap = null;
+        Map<UUID, Map<String, List<String>>> affiliatedResourcePerSectionMap = null;
+        FieldSet authorizationInformationFields = fields.extractPrefixed(this.asPrefix(Plan._authorizationInformation));
+        if (!authorizationInformationFields.isEmpty() && !data.isEmpty()) {
+            affiliatedGlobalResourceMap = this.extractGlobalPlanIAuthorizationInformation(authorizationInformationFields, data);
+            affiliatedResourcePerSectionMap = this.extractPlanIAuthorizationInformationPerSections(authorizationInformationFields.extractPrefixed(this.asPrefix(PlanAuthorizationInformation._authorizationInformationPerSections)), data);
+        }
 
         FieldSet statusAuthorizationFlags = fields.extractPrefixed(this.asPrefix(Plan._statusAuthorizationFlags));
         for (PlanEntity d : data) {
@@ -179,7 +187,9 @@ public class PlanBuilder extends BaseBuilder<Plan, PlanEntity> {
                 PlanPropertiesEntity propertyDefinition = this.jsonHandlingService.fromJsonSafe(PlanPropertiesEntity.class, d.getProperties());
                 m.setProperties(this.builderFactory.builder(PlanPropertiesBuilder.class).withDefinition(definitionEntityMap != null ? definitionEntityMap.getOrDefault(d.getBlueprintId(), null) : null).authorize(this.authorize).build(planPropertiesFields, propertyDefinition));
             }
-            if (!this.isPublic && affiliatedResourceMap != null && !authorizationFlags.isEmpty()) m.setAuthorizationFlags(this.evaluateAuthorizationFlags(this.authorizationService, authorizationFlags, affiliatedResourceMap.getOrDefault(d.getId(), null)));
+            if (!this.isPublic && !authorizationInformationFields.isEmpty()) {
+                m.setAuthorizationInformation(this.buildPlanAuthorizationInformation(d.getId(), authorizationInformationFields, affiliatedGlobalResourceMap, affiliatedResourcePerSectionMap));
+            }
             if (!this.isPublic && !statusAuthorizationFlags.isEmpty() && !this.conventionService.isListNullOrEmpty(m.getAvailableStatuses())) {
                 m.setStatusAuthorizationFlags(this.evaluateStatusAuthorizationFlags(this.authorizationService, statusAuthorizationFlags, d));
             }
@@ -459,6 +469,88 @@ public class PlanBuilder extends BaseBuilder<Plan, PlanEntity> {
         }
 
         return allowed;
+    }
+
+    private Map<UUID, AffiliatedResource> extractGlobalPlanIAuthorizationInformation(FieldSet fields, List<PlanEntity> data) {
+        if (fields.isEmpty() || data.isEmpty()) return null;
+
+        Set<String> authorizationFlags = this.extractAuthorizationFlags(fields, PlanAuthorizationInformation._globalAuthorizationFlags, this.authorizationContentResolverFactory.getInstance().getPermissionNames());
+        return authorizationFlags == null || authorizationFlags.isEmpty() ? null : this.authorizationContentResolverFactory.getInstance().plansAffiliation(data.stream().map(PlanEntity::getId).collect(Collectors.toList()));
+    }
+
+    private Map<UUID, Map<String, List<String>>> extractPlanIAuthorizationInformationPerSections(FieldSet fields, List<PlanEntity> data) {
+        if (fields.isEmpty() || data.isEmpty()) return null;
+
+        Set<String> authorizationFlags = this.extractAuthorizationFlags(fields, PlanAuthorizationInformation.PlanAuthorizationInformationPerSection._authorizationFlags, this.authorizationContentResolverFactory.getInstance().getPermissionNames());
+
+        if (authorizationFlags == null || authorizationFlags.isEmpty()) return null;
+
+        List<PlanEntity> planEntities = this.queryFactory.query(PlanQuery.class).disableTracking().ids(data.stream().map(PlanEntity::getId).collect(Collectors.toList())).collectAs(new BaseFieldSet().ensure(Plan._id).ensure(Plan._blueprint));
+        List<PlanBlueprintEntity> planBlueprintEntities = this.queryFactory.query(PlanBlueprintQuery.class).disableTracking().ids(planEntities.stream().map(PlanEntity::getBlueprintId).collect(Collectors.toList())).collectAs(new BaseFieldSet().ensure(PlanBlueprint._id).ensure(PlanBlueprint._definition));
+
+        Map<UUID, PlanBlueprintEntity> blueprintByBlueprintId = planBlueprintEntities.stream()
+                        .collect(Collectors.toMap(
+                                PlanBlueprintEntity::getId,
+                                Function.identity()
+                        ));
+
+        Map<UUID, PlanBlueprintEntity> blueprintByPlanId = planEntities.stream()
+                        .collect(Collectors.toMap(
+                                PlanEntity::getId,
+                                plan -> blueprintByBlueprintId.get(plan.getBlueprintId())
+                        ));
+
+        Map<UUID, Map<String, List<String>>> response = new HashMap<>();
+
+        for (UUID planId: blueprintByPlanId.keySet()) {
+            PlanBlueprintEntity blueprintEntity = blueprintByPlanId.get(planId);
+            DefinitionEntity definition = this.xmlHandlingService.fromXmlSafe(DefinitionEntity.class, blueprintEntity.getDefinition());
+            List<String> sectionIds = definition.getSections().stream().map(SectionEntity::getId).toList();
+
+            Map<String, List<String>> sectionResponse = new HashMap<>();
+
+            Map<String, AffiliatedResource> affiliatedResourceMap = this.authorizationContentResolverFactory.getInstance().descriptionsAffiliationBySections(planId, sectionIds);
+            for (String sectionId : sectionIds){
+                AffiliatedResource affiliatedResource = affiliatedResourceMap.getOrDefault(sectionId, null);
+                sectionResponse.put(sectionId, new ArrayList<>());
+                for (String permission : authorizationFlags){
+                    if (this.authorizationService.authorizeAtLeastOne(List.of(affiliatedResource), permission)) sectionResponse.get(sectionId).add(permission);
+                }
+            }
+
+            response.put(planId, sectionResponse);
+        }
+
+        return response;
+    }
+
+
+    private PlanAuthorizationInformation buildPlanAuthorizationInformation(UUID planId, FieldSet authorizationInformationFields, Map<UUID, AffiliatedResource> affiliatedGlobalResourceMap, Map<UUID, Map<String, List<String>>> affiliatedResourcePerSectionMap) {
+        if (affiliatedGlobalResourceMap == null && affiliatedResourcePerSectionMap == null) return null;
+        if (planId == null) return null;
+
+        PlanAuthorizationInformation authorizationInformation = new PlanAuthorizationInformation();
+
+        if (affiliatedGlobalResourceMap != null) {
+            Set<String> authorizationFlags = this.extractAuthorizationFlags(authorizationInformationFields, PlanAuthorizationInformation._globalAuthorizationFlags, this.authorizationContentResolverFactory.getInstance().getPermissionNames());
+            if (!authorizationFlags.isEmpty()) authorizationInformation.setGlobalAuthorizationFlags(this.evaluateAuthorizationFlags(this.authorizationService, authorizationFlags, affiliatedGlobalResourceMap.getOrDefault(planId, null)));
+        }
+
+        if (affiliatedResourcePerSectionMap != null) {
+            Map<String, List<String>> sectionsMap = affiliatedResourcePerSectionMap.get(planId);
+            if (sectionsMap != null) {
+                List<PlanAuthorizationInformation.PlanAuthorizationInformationPerSection> authorizationInformationPerSections = new ArrayList<>();
+                for (String sectionId: sectionsMap.keySet()) {
+                    PlanAuthorizationInformation.PlanAuthorizationInformationPerSection authorizationInformationPerSection = new PlanAuthorizationInformation.PlanAuthorizationInformationPerSection();
+                    authorizationInformationPerSection.setSectionId(sectionId);
+                    authorizationInformationPerSection.setAuthorizationFlags(sectionsMap.get(sectionId));
+                    authorizationInformationPerSections.add(authorizationInformationPerSection);
+                }
+                authorizationInformation.setAuthorizationInformationPerSections(authorizationInformationPerSections);
+            }
+        }
+
+        return authorizationInformation;
     }
 
 }

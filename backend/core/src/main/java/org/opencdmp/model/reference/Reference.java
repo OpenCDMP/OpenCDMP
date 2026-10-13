@@ -60,6 +60,12 @@ public class Reference {
     private Boolean belongsToCurrentTenant;
     public static final String _belongsToCurrentTenant = "belongsToCurrentTenant";
 
+    private Long planCount;
+    public static final String _planCount = "planCount";
+
+    private Long descriptionCount;
+    public static final String _descriptionCount = "descriptionCount";
+
     public UUID getId() {
         return id;
     }
@@ -186,5 +192,21 @@ public class Reference {
 
     public void setBelongsToCurrentTenant(Boolean belongsToCurrentTenant) {
         this.belongsToCurrentTenant = belongsToCurrentTenant;
+    }
+
+    public Long getPlanCount() {
+        return planCount;
+    }
+
+    public void setPlanCount(Long planCount) {
+        this.planCount = planCount;
+    }
+
+    public Long getDescriptionCount() {
+        return descriptionCount;
+    }
+
+    public void setDescriptionCount(Long descriptionCount) {
+        this.descriptionCount = descriptionCount;
     }
 }

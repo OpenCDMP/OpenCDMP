@@ -1,15 +1,15 @@
 .description-base-fields-editor {
-
+    padding: 0 1rem;
 	.intro {
         color: var(--mat-sys-on-surface);
         opacity: 0.85;
-		margin: 2rem 0rem 1rem 0rem;
+		margin-bottom: 1rem;
 	}
 
 	.heading {
 		text-align: left;
-		font-weight: 700;
-        font-size: var(--mat-sys-headline-medium-size);
+		font-weight: 500;
+        font-size: var(--mat-sys-title-large-size);
 		letter-spacing: 0px;
 		opacity: 0.81;
 		margin-top: 1.625rem;

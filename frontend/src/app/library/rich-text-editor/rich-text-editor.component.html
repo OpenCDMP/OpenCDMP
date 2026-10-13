@@ -1,0 +1,17 @@
+@if (!form()?.disabled) {
+	<div class="w-100 d-flex align-items-end mb-1">
+		@if (label()?.length) {
+			<span class="rich-text-editor-label">{{ label() | translate }}</span>
+		}
+		<button type="button" class="toggle-toolbar-btn" mat-button (click)="toggleToolbar()">
+			<mat-icon aria-hidden>title</mat-icon>
+			{{ (editorConfig.showToolbar ? "RICH-TEXT-EDITOR.PLAIN-TEXT" : "RICH-TEXT-EDITOR.RICH-TEXT") | translate }}
+		</button>
+	</div>
+}
+<div class="editor-wrapper" [class]="wrapperClasses()" [id]="id()">
+	<angular-editor class="full-width editor" [class.disabled]="form()?.disabled" [class.error]="form()?.touched && form()?.invalid" [config]="editorConfig" [formControl]="form()" [required]="required()" [attr.aria-labelledby]="id() + '-label'" [attr.aria-required]="required()" [attr.aria-invalid]="form()?.touched && form()?.invalid" placeholder="{{ (placeholder() ? (placeholder() | translate) : '') + (required() && showRequiredMarker() ? ' *' : '') }}" (paste)="pasteWithoutFormatting($event)"></angular-editor>
+	@if (form()?.value && !form()?.disabled && editorConfig.showToolbar) {
+		<mat-icon (click)="form().patchValue('')" class="clear">close</mat-icon>
+	}
+</div>

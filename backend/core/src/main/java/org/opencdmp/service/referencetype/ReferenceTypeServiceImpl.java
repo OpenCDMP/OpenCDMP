@@ -19,6 +19,7 @@ import org.opencdmp.authorization.Permission;
 import org.opencdmp.commons.XmlHandlingService;
 import org.opencdmp.commons.enums.ExternalFetcherSourceType;
 import org.opencdmp.commons.enums.IsActive;
+import org.opencdmp.commons.enums.StorageType;
 import org.opencdmp.commons.enums.UsageLimitTargetMetric;
 import org.opencdmp.commons.types.externalfetcher.*;
 import org.opencdmp.commons.types.referencetype.ReferenceTypeDefinitionEntity;
@@ -27,6 +28,7 @@ import org.opencdmp.convention.ConventionService;
 import org.opencdmp.data.ReferenceTypeEntity;
 import org.opencdmp.data.TenantEntityManagerFactory;
 import org.opencdmp.errorcode.ErrorThesaurusProperties;
+import org.opencdmp.model.StorageFile;
 import org.opencdmp.model.builder.referencetype.ReferenceTypeBuilder;
 import org.opencdmp.model.deleter.ReferenceTypeDeleter;
 import org.opencdmp.model.persist.ReferenceTypePersist;
@@ -34,8 +36,13 @@ import org.opencdmp.model.persist.externalfetcher.*;
 import org.opencdmp.model.persist.referencetypedefinition.ReferenceTypeDefinitionPersist;
 import org.opencdmp.model.persist.referencetypedefinition.ReferenceTypeFieldPersist;
 import org.opencdmp.model.referencetype.ReferenceType;
+import org.opencdmp.model.referencetype.ReferenceTypeLogo;
+import org.opencdmp.data.StorageFileEntity;
+import org.opencdmp.query.StorageFileQuery;
+import gr.cite.tools.fieldset.BaseFieldSet;
 import org.opencdmp.query.ReferenceTypeQuery;
 import org.opencdmp.service.accounting.AccountingService;
+import org.opencdmp.service.storage.StorageFileService;
 import org.opencdmp.service.usagelimit.UsageLimitService;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.MessageSource;
@@ -64,11 +71,12 @@ public class ReferenceTypeServiceImpl implements ReferenceTypeService {
     private final QueryFactory queryFactory;
     private final UsageLimitService usageLimitService;
     private final AccountingService accountingService;
+    private final StorageFileService storageFileService;
 
     public ReferenceTypeServiceImpl(
             TenantEntityManagerFactory tenantEntityManagerFactory, AuthorizationService authorizationService, DeleterFactory deleterFactory, BuilderFactory builderFactory,
             ConventionService conventionService, MessageSource messageSource,
-            XmlHandlingService xmlHandlingService, ErrorThesaurusProperties errors, QueryFactory queryFactory, UsageLimitService usageLimitService, AccountingService accountingService) {
+            XmlHandlingService xmlHandlingService, ErrorThesaurusProperties errors, QueryFactory queryFactory, UsageLimitService usageLimitService, AccountingService accountingService, StorageFileService storageFileService) {
         this.tenantEntityManagerFactory = tenantEntityManagerFactory;
         this.authorizationService = authorizationService;
         this.deleterFactory = deleterFactory;
@@ -80,6 +88,7 @@ public class ReferenceTypeServiceImpl implements ReferenceTypeService {
 	    this.queryFactory = queryFactory;
         this.usageLimitService = usageLimitService;
         this.accountingService = accountingService;
+        this.storageFileService = storageFileService;
     }
 
 
@@ -107,7 +116,8 @@ public class ReferenceTypeServiceImpl implements ReferenceTypeService {
 
         data.setName(model.getName());
         data.setCode(model.getCode());
-        data.setDefinition(this.xmlHandlingService.toXmlSafe(this.buildDefinitionEntity(model.getDefinition())));
+        ReferenceTypeDefinitionEntity oldDefinition = this.conventionService.isNullOrEmpty(data.getDefinition()) ? null : this.xmlHandlingService.fromXmlSafe(ReferenceTypeDefinitionEntity.class, data.getDefinition());
+        data.setDefinition(this.xmlHandlingService.toXmlSafe(this.buildDefinitionEntity(model.getDefinition(), oldDefinition)));
         data.setUpdatedAt(Instant.now());
 
         if (isUpdate) this.tenantEntityManagerFactory.getInstance().merge(data);
@@ -131,9 +141,10 @@ public class ReferenceTypeServiceImpl implements ReferenceTypeService {
         return this.builderFactory.builder(ReferenceTypeBuilder.class).authorize(AuthorizationFlags.AllExceptPublic).build(BaseFieldSet.build(fields, ReferenceType._id), data);
     }
 
-    private @NotNull ReferenceTypeDefinitionEntity buildDefinitionEntity(ReferenceTypeDefinitionPersist persist){
+    private @NotNull ReferenceTypeDefinitionEntity buildDefinitionEntity(ReferenceTypeDefinitionPersist persist, ReferenceTypeDefinitionEntity oldDefinition) throws InvalidApplicationException {
         ReferenceTypeDefinitionEntity data = new ReferenceTypeDefinitionEntity();
         if (persist == null) return data;
+        data.setLabelTemplate(this.conventionService.isNullOrEmpty(persist.getLabelTemplate()) ? null : persist.getLabelTemplate().trim());
         if (!this.conventionService.isListNullOrEmpty(persist.getFields())){
             data.setFields(new ArrayList<>());
             for (ReferenceTypeFieldPersist fieldPersist: persist.getFields()) {
@@ -143,7 +154,7 @@ public class ReferenceTypeServiceImpl implements ReferenceTypeService {
         if (!this.conventionService.isListNullOrEmpty(persist.getSources())){
             data.setSources(new ArrayList<>());
             for (ExternalFetcherBaseSourceConfigurationPersist sourceBaseConfigPersist: persist.getSources()) {
-                data.getSources().add(this.buildSourceBaseConfigEntity(sourceBaseConfigPersist));
+                data.getSources().add(this.buildSourceBaseConfigEntity(sourceBaseConfigPersist, oldDefinition));
             }
         }
 
@@ -164,7 +175,7 @@ public class ReferenceTypeServiceImpl implements ReferenceTypeService {
         return data;
     }
 
-    private @NotNull ExternalFetcherBaseSourceConfigurationEntity buildSourceBaseConfigEntity(ExternalFetcherBaseSourceConfigurationPersist persist){
+    private @NotNull ExternalFetcherBaseSourceConfigurationEntity buildSourceBaseConfigEntity(ExternalFetcherBaseSourceConfigurationPersist persist, ReferenceTypeDefinitionEntity oldDefinition) throws InvalidApplicationException {
         if (persist == null) return new ExternalFetcherApiSourceConfigurationEntity();
 
         ExternalFetcherBaseSourceConfigurationEntity data;
@@ -182,6 +193,7 @@ public class ReferenceTypeServiceImpl implements ReferenceTypeService {
             apiEntity.setHttpMethod(((ExternalFetcherApiSourceConfigurationPersist) persist).getHttpMethod());
             apiEntity.setRequestBody(((ExternalFetcherApiSourceConfigurationPersist) persist).getRequestBody());
             apiEntity.setFilterType(((ExternalFetcherApiSourceConfigurationPersist) persist).getFilterType());
+            apiEntity.setResponseFormat(((ExternalFetcherApiSourceConfigurationPersist) persist).getResponseFormat());
             if (((ExternalFetcherApiSourceConfigurationPersist) persist).getAuth() != null) {
                 apiEntity.setAuth(this.buildAuthConfigEntity(((ExternalFetcherApiSourceConfigurationPersist) persist).getAuth()));
             }
@@ -195,6 +207,12 @@ public class ReferenceTypeServiceImpl implements ReferenceTypeService {
                 apiEntity.setHeaders(new ArrayList<>());
                 for (ExternalFetcherApiHeaderConfigurationPersist externalFetcherApiHeaderConfigurationPersist: ((ExternalFetcherApiSourceConfigurationPersist) persist).getHeaders()) {
                     apiEntity.getHeaders().add(this.buildExternalFetcherApiHeaderConfigurationEntity(externalFetcherApiHeaderConfigurationPersist));
+                }
+            }
+            if (!this.conventionService.isListNullOrEmpty(((ExternalFetcherApiSourceConfigurationPersist) persist).getNamespaces())){
+                apiEntity.setNamespaces(new ArrayList<>());
+                for (XmlNamespaceConfigurationPersist xmlNamespaceConfigurationPersist: ((ExternalFetcherApiSourceConfigurationPersist) persist).getNamespaces()) {
+                    apiEntity.getNamespaces().add(this.buildXmlNamespaceConfigurationEntity(xmlNamespaceConfigurationPersist));
                 }
             }
 
@@ -217,6 +235,31 @@ public class ReferenceTypeServiceImpl implements ReferenceTypeService {
         data.setLabel(persist.getLabel());
         data.setOrdinal(persist.getOrdinal());
         data.setReferenceTypeDependencyIds(persist.getReferenceTypeDependencyIds());
+        data.setNavigationUrl(persist.getNavigationUrl());
+        data.setTooltipMessage(persist.getTooltipMessage());
+
+        UUID existingFileId = null;
+        if (oldDefinition != null && oldDefinition.getSources() != null) {
+            ExternalFetcherBaseSourceConfigurationEntity externalFetcherBaseSourceConfigurationEntity = oldDefinition.getSources().stream().filter(x -> x.getKey().equals(data.getKey())).findFirst().orElse(null);
+            if (externalFetcherBaseSourceConfigurationEntity != null) {
+                existingFileId = externalFetcherBaseSourceConfigurationEntity.getStorageFileId();
+            }
+        }
+        data.setStorageFileId(persist.getStorageFileId());
+
+        if (persist.getStorageFileId() != null){
+            if (!persist.getStorageFileId().equals(existingFileId)) {
+                StorageFile storageFile = this.storageFileService.copyToStorage(persist.getStorageFileId(), StorageType.Main, true, new BaseFieldSet().ensure(StorageFile._id));
+                this.storageFileService.updatePurgeAt(storageFile.getId(), null);
+                if (existingFileId != null) this.storageFileService.updatePurgeAt(existingFileId,  Instant.now().plusSeconds(60));
+                data.setStorageFileId(storageFile.getId());
+            } else {
+                data.setStorageFileId(existingFileId);
+            }
+        } else {
+            if (existingFileId != null) this.storageFileService.updatePurgeAt(existingFileId,  Instant.now().plusSeconds(60));
+            data.setStorageFileId(null);
+        }
 
         return data;
     }
@@ -267,6 +310,16 @@ public class ReferenceTypeServiceImpl implements ReferenceTypeService {
 
         data.setKey(persist.getKey());
         data.setValue(persist.getValue());
+
+        return data;
+    }
+
+    private @NotNull XmlNamespaceConfigurationEntity buildXmlNamespaceConfigurationEntity(XmlNamespaceConfigurationPersist persist) {
+        XmlNamespaceConfigurationEntity data = new XmlNamespaceConfigurationEntity();
+        if (persist == null) return data;
+
+        data.setPrefix(persist.getPrefix());
+        data.setUri(persist.getUri());
 
         return data;
     }
@@ -332,5 +385,23 @@ public class ReferenceTypeServiceImpl implements ReferenceTypeService {
         this.authorizationService.authorizeForce(Permission.DeleteReferenceType);
 
         this.deleterFactory.deleter(ReferenceTypeDeleter.class).deleteAndSaveByIds(List.of(id));
+    }
+
+    @Override
+    public ReferenceTypeLogo getLogo(UUID referenceTypeId) {
+        ReferenceTypeEntity referenceType = this.queryFactory.query(ReferenceTypeQuery.class).disableTracking().ids(referenceTypeId).isActive(IsActive.Active).first();
+        if (referenceType == null) return null;
+
+        ReferenceTypeDefinitionEntity definition = this.xmlHandlingService.fromXmlSafe(ReferenceTypeDefinitionEntity.class, referenceType.getDefinition());
+        if (definition == null || definition.getSources() == null) return null;
+
+        for (ExternalFetcherBaseSourceConfigurationEntity source : definition.getSources()) {
+            if (source == null || source.getStorageFileId() == null) continue;
+            byte[] content = this.storageFileService.readAsBytesSafe(source.getStorageFileId());
+            if (content == null) continue;
+            StorageFileEntity file = this.queryFactory.query(StorageFileQuery.class).disableTracking().ids(source.getStorageFileId()).firstAs(new BaseFieldSet().ensure(StorageFile._mimeType));
+            return new ReferenceTypeLogo(content, file != null ? file.getMimeType() : null);
+        }
+        return null;
     }
 }

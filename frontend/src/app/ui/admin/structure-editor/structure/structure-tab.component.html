@@ -1,0 +1,26 @@
+<div class="st">
+	<!-- preset bar -->
+	<div class="st-presets" role="group" [attr.aria-label]="'PLAN-BLUEPRINT-EDITOR.PRESETS.TITLE' | translate">
+		<mat-icon class="st-presets__icon" aria-hidden="true">bookmark</mat-icon>
+		<strong>{{'PLAN-BLUEPRINT-EDITOR.PRESETS.TITLE' | translate}}</strong>
+		<div class="st-presets__chips">
+			@for (preset of requiredPresets; track preset) {
+				@if (isPresent(preset)) {
+					<span class="bp2-tag bp2-tag--ok"><mat-icon aria-hidden="true">check</mat-icon>{{editor.enumUtils.toSystemFieldTypeString(preset)}}</span>
+				} @else {
+					<button type="button" class="bp2-tag bp2-tag--todo st-presets__add" (click)="editor.addPreset(preset)" [disabled]="editor.readOnly" [matTooltip]="'PLAN-BLUEPRINT-EDITOR.PRESETS.ADD-ONE' | translate: { name: editor.enumUtils.toSystemFieldTypeString(preset), section: targetName }"><mat-icon aria-hidden="true">add</mat-icon>{{editor.enumUtils.toSystemFieldTypeString(preset)}}</button>
+				}
+			}
+		</div>
+		@if (optionalMissing.length) { <span class="bp2-sub">{{'PLAN-BLUEPRINT-EDITOR.PRESETS.OPTIONAL' | translate}}: @for (p of optionalMissing; track p) { {{editor.enumUtils.toSystemFieldTypeString(p)}} }</span> }
+		@if (missing.length > 1 && !editor.readOnly) {
+			<button mat-stroked-button type="button" class="bp2-btn-sm" (click)="editor.addMissingPresets()"><mat-icon aria-hidden="true">add</mat-icon>{{'PLAN-BLUEPRINT-EDITOR.PRESETS.ADD-MISSING' | translate: { section: targetName } }}</button>
+		}
+		<button mat-icon-button type="button" class="bp2-icon-btn-sm" [matTooltip]="editor.term('PLAN-BLUEPRINT-EDITOR.PRESETS.WHAT') | translate" [attr.aria-label]="'PLAN-BLUEPRINT-EDITOR.PRESETS.WHAT-LABEL' | translate"><mat-icon aria-hidden="true">info</mat-icon></button>
+	</div>
+
+	<div class="st-body">
+		<app-bp2-outline class="st-outline" />
+		<app-bp2-section-pane class="st-pane" />
+	</div>
+</div>

@@ -1,9 +1,12 @@
 <mat-form-field subscriptSizing="dynamic" [floatLabel]="floatLabel" class="w-100">
+  @if (prefixIcon) {
+    <mat-icon matIconPrefix>{{prefixIcon}}</mat-icon>
+  }
   @if (suffixIcon) {
     <mat-icon matSuffix>{{suffixIcon}}</mat-icon>
   }
   @if (label) {
-    <mat-label>{{label}}</mat-label>
+    <mat-label>{{label | translate}}</mat-label>
   }
-  <input autocomplete="off" matInput class="search-box" [placeholder]="textPlaceholder" [(ngModel)]="inputValue">
+  <input autocomplete="off" matInput class="search-box" [placeholder]="textPlaceholder | translate" [(ngModel)]="inputValue">
 </mat-form-field>

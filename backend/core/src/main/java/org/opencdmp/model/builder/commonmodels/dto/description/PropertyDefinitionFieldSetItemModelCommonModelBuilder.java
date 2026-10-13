@@ -4,11 +4,12 @@ import gr.cite.tools.data.builder.BuilderFactory;
 import gr.cite.tools.exception.MyApplicationException;
 import gr.cite.tools.logging.LoggerService;
 import org.opencdmp.authorization.AuthorizationFlags;
-import org.opencdmp.commonmodels.models.description.PropertyDefinitionFieldSetItemModel;
-import org.opencdmp.commonmodels.models.descriptiotemplate.FieldModel;
+import org.opencdmp.commonmodels.models.planblueprintdescriptiontemplatefields.FieldModel;
+import org.opencdmp.commonmodels.models.plandescriptionfields.PropertyDefinitionFieldSetItemModel;
 import org.opencdmp.convention.ConventionService;
 import org.opencdmp.model.builder.commonmodels.BaseCommonModelBuilder;
 import org.opencdmp.model.builder.commonmodels.CommonModelBuilderItemResponse;
+import org.opencdmp.model.description.Field;
 import org.opencdmp.model.description.PropertyDefinitionFieldSetItem;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,7 +24,7 @@ import java.util.*;
 public class PropertyDefinitionFieldSetItemModelCommonModelBuilder extends BaseCommonModelBuilder<PropertyDefinitionFieldSetItem, PropertyDefinitionFieldSetItemModel> {
     private final BuilderFactory builderFactory;
     private EnumSet<AuthorizationFlags> authorize = EnumSet.of(AuthorizationFlags.None);
-    private org.opencdmp.commonmodels.models.descriptiotemplate.FieldSetModel fieldSetModel;
+    private org.opencdmp.commonmodels.models.planblueprintdescriptiontemplatefields.FieldSetModel fieldSetModel;
     @Autowired
     public PropertyDefinitionFieldSetItemModelCommonModelBuilder(
 		    ConventionService conventionService,  BuilderFactory builderFactory
@@ -38,7 +39,7 @@ public class PropertyDefinitionFieldSetItemModelCommonModelBuilder extends BaseC
     }
 
 
-    public PropertyDefinitionFieldSetItemModelCommonModelBuilder withFieldSetModel(org.opencdmp.commonmodels.models.descriptiotemplate.FieldSetModel fieldSetModel) {
+    public PropertyDefinitionFieldSetItemModelCommonModelBuilder withFieldSetModel(org.opencdmp.commonmodels.models.planblueprintdescriptiontemplatefields.FieldSetModel fieldSetModel) {
         this.fieldSetModel = fieldSetModel;
         return this;
     }
@@ -54,12 +55,17 @@ public class PropertyDefinitionFieldSetItemModelCommonModelBuilder extends BaseC
             PropertyDefinitionFieldSetItem m = new PropertyDefinitionFieldSetItem();
 
             m.setOrdinal(d.getOrdinal());
+            m.setFields(new HashMap<>());
             if (d.getFields() != null && !d.getFields().isEmpty()) {
-                m.setFields(new HashMap<>());
                 for (String key : d.getFields().keySet()){
                     FieldModel fieldModel = this.fieldSetModel != null ? this.fieldSetModel.getFieldById(key).stream().findFirst().orElse(null) : null;
                     m.getFields().put(key, this.builderFactory.builder(FieldCommonModelBuilder.class).authorize(this.authorize).withFieldModel(fieldModel).build(d.getFields().get(key)));
                 }
+            } else if (this.fieldSetModel != null && fieldSetModel.getFields() != null) {
+                for (FieldModel fieldModel: fieldSetModel.getFields()) {
+                    m.getFields().put(fieldModel.getId(), new Field());
+                }
+
             }
             models.add(new CommonModelBuilderItemResponse<>(m, d));
         }

@@ -7,9 +7,8 @@ import { DescriptionTemplateTableSelectModule } from '../descriptions-template-t
 
 
 @NgModule({
-	imports: [CommonUiModule, FormsModule, DescriptionTemplateTableSelectModule],
-	declarations: [DescriptionTemplatesDialogComponent],
-	exports: [DescriptionTemplatesDialogComponent]
+    imports: [CommonUiModule, FormsModule, DescriptionTemplateTableSelectModule, DescriptionTemplatesDialogComponent],
+    exports: [DescriptionTemplatesDialogComponent]
 })
 export class DescriptionTemplatesDialogModule {
 	constructor() { }

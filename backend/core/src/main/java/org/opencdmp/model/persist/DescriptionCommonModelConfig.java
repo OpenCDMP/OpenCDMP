@@ -18,7 +18,7 @@ public class DescriptionCommonModelConfig {
 
     private String id;
     public static final String _id = "id";
-    private UUID sectionId;
+    private String sectionId;
     public static final String _sectionId = "_sectionId";
     private UUID templateId;
     public static final String _templateId = "templateId";
@@ -31,11 +31,11 @@ public class DescriptionCommonModelConfig {
         this.id = id;
     }
 
-    public UUID getSectionId() {
+    public String getSectionId() {
         return sectionId;
     }
 
-    public void setSectionId(UUID sectionId) {
+    public void setSectionId(String sectionId) {
         this.sectionId = sectionId;
     }
 
@@ -73,7 +73,7 @@ public class DescriptionCommonModelConfig {
                             .must(() -> !this.isEmpty(item.getId()))
                             .failOn(DescriptionCommonModelConfig._id).failWith(this.messageSource.getMessage("Validation_Required", new Object[]{DescriptionCommonModelConfig._id}, LocaleContextHolder.getLocale())),
                     this.spec()
-                            .must(() -> this.isValidGuid(item.getSectionId()))
+                            .must(() -> !this.isEmpty(item.getSectionId()))
                             .failOn(DescriptionCommonModelConfig._sectionId).failWith(this.messageSource.getMessage("Validation_Required", new Object[]{DescriptionCommonModelConfig._sectionId}, LocaleContextHolder.getLocale())),
                     this.spec()
                             .must(() -> this.isValidGuid(item.getTemplateId()))

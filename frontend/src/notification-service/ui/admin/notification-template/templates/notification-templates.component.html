@@ -1,0 +1,166 @@
+<div class="container-fluid">
+	<div class="row">
+		<div class="col-md-10 offset-md-1">
+			<app-admin-page-header titleKey="NOTIFICATION-TEMPLATES.TITLE" descriptionKey="NOTIFICATION-TEMPLATES.DESCRIPTION" />
+
+			<div class="nt">
+				<section class="nt-types" [attr.aria-label]="'NOTIFICATION-TEMPLATES.TYPES-LABEL' | translate">
+					<div class="nt-counts">
+						<span class="nt-badge nt-badge--custom">{{ 'NOTIFICATION-TEMPLATES.CUSTOMISED-COUNT' | translate: { count: customisedCount() } }}</span>
+						<span class="nt-badge">{{ 'NOTIFICATION-TEMPLATES.BUILT-IN-COUNT' | translate: { count: typeCount() - customisedCount() } }}</span>
+					</div>
+					@for (group of rows(); track group.group) {
+						<h2 class="nt-group">{{ 'TENANT-CONFIGURATION.NOTIFICATIONS.GROUPS.' + group.group | translate }}</h2>
+						@for (row of group.rows; track row.type) {
+							<button type="button" class="nt-type" [class.nt-type--active]="row.type === selectedType()" [attr.aria-pressed]="row.type === selectedType()" (click)="select(row)">
+								<span class="nt-type__name">{{ row.name }}</span>
+								@if (row.customised) {
+									<span class="nt-badge nt-badge--custom">{{ 'NOTIFICATION-TEMPLATES.STATE.CUSTOMISED' | translate }}</span>
+								}
+							</button>
+						}
+					}
+				</section>
+
+				@if (selectedRow(); as row) {
+					<section class="nt-editor" [attr.aria-label]="'NOTIFICATION-TEMPLATES.EDITOR-LABEL' | translate">
+						<div class="nt-editor__head">
+							<h2 class="nt-editor__title">{{ row.name }}</h2>
+							@if (dirty()) {
+								<span class="nt-badge nt-badge--dirty">{{ 'NOTIFICATION-TEMPLATES.STATE.UNSAVED' | translate }}</span>
+							} @else if (record()) {
+								<span class="nt-badge nt-badge--custom">{{ (record().belongsToCurrentTenant === false ? 'NOTIFICATION-TEMPLATES.STATE.SHARED' : 'NOTIFICATION-TEMPLATES.STATE.CUSTOMISED-HERE') | translate }}</span>
+							} @else {
+								<span class="nt-badge">{{ 'NOTIFICATION-TEMPLATES.STATE.BUILT-IN-TEXT' | translate }}</span>
+							}
+						</div>
+
+						<div class="nt-pickers">
+							@if (row.channels.length > 1) {
+								<mat-button-toggle-group class="nt-channel" hideSingleSelectionIndicator [value]="channel()" (change)="selectChannel($event.value)" [attr.aria-label]="'NOTIFICATION-TEMPLATES.CHANNEL' | translate">
+									@for (option of row.channels; track option) {
+										<mat-button-toggle [value]="option">{{ enumUtils.toNotificationTemplateChannelString(option) }}</mat-button-toggle>
+									}
+								</mat-button-toggle-group>
+							} @else {
+								<span class="nt-channel-only">{{ enumUtils.toNotificationTemplateChannelString(channel()) }}</span>
+							}
+							<mat-form-field class="nt-language" subscriptSizing="dynamic">
+								<mat-label>{{ 'NOTIFICATION-TEMPLATES.LANGUAGE' | translate }}</mat-label>
+								<mat-select [value]="languageCode()" (selectionChange)="selectLanguage($event.value)">
+									@for (item of languages(); track item.id) {
+										<mat-option [value]="item.code">{{ item.code }}</mat-option>
+									}
+								</mat-select>
+							</mat-form-field>
+						</div>
+
+						@if (!record() && builtIn()?.fallbackLanguage) {
+							<p class="nt-note">{{ 'NOTIFICATION-TEMPLATES.FALLBACK-LANGUAGE' | translate }}</p>
+						}
+						@if (!defaultsSupported()) {
+							<p class="nt-note">{{ 'NOTIFICATION-TEMPLATES.NO-DEFAULTS' | translate }}</p>
+						}
+
+						<form class="nt-body" [formGroup]="form" (ngSubmit)="save()">
+							<div class="nt-columns">
+								<div class="nt-fields">
+									<mat-form-field subscriptSizing="dynamic">
+										<mat-label>{{ 'NOTIFICATION-TEMPLATES.FIELDS.SUBJECT' | translate }}</mat-label>
+										<input matInput formControlName="subjectText" required />
+										@if (form.controls.subjectText.hasError('required')) {
+											<mat-error>{{ 'GENERAL.VALIDATION.REQUIRED' | translate }}</mat-error>
+										}
+									</mat-form-field>
+									<mat-form-field subscriptSizing="dynamic">
+										<mat-label>{{ 'NOTIFICATION-TEMPLATES.FIELDS.MESSAGE' | translate }}</mat-label>
+										<textarea #bodyField matInput class="nt-code" formControlName="bodyText" rows="14" required></textarea>
+										<mat-hint>{{ 'NOTIFICATION-TEMPLATES.FIELDS.MESSAGE-HINT' | translate }}</mat-hint>
+										@if (form.controls.bodyText.hasError('required')) {
+											<mat-error>{{ 'GENERAL.VALIDATION.REQUIRED' | translate }}</mat-error>
+										}
+									</mat-form-field>
+									@if (chips().length > 0) {
+										<div class="nt-chips">
+											<span class="nt-label">{{ 'NOTIFICATION-TEMPLATES.INSERT' | translate }}</span>
+											<div class="nt-chips__list">
+												@for (chip of chips(); track chip.key) {
+													<button type="button" class="nt-chip" [class.nt-chip--missing]="chip.missing" [disabled]="!canEdit" (click)="insert(chip)" [matTooltip]="chip.key">
+														+ {{ chip.label }}
+														@if (chip.missing) {
+															<span class="nt-chip__flag">{{ 'NOTIFICATION-TEMPLATES.NOT-USED' | translate }}</span>
+														}
+													</button>
+												}
+											</div>
+											<span class="nt-hint">{{ 'NOTIFICATION-TEMPLATES.INSERT-HINT' | translate }}</span>
+										</div>
+									}
+								</div>
+
+								<div class="nt-preview">
+									<span class="nt-label">{{ 'NOTIFICATION-TEMPLATES.PREVIEW' | translate }}</span>
+									<div class="nt-preview__frame">
+										<div class="nt-preview__subject">{{ previewSubject() }}</div>
+										<iframe class="nt-preview__body" sandbox="" [srcdoc]="previewBody()" [title]="'NOTIFICATION-TEMPLATES.PREVIEW' | translate"></iframe>
+									</div>
+								</div>
+							</div>
+
+							@if (channel() === channelEnum.Email) {
+								<details class="nt-more">
+									<summary>{{ 'NOTIFICATION-TEMPLATES.MORE-OPTIONS' | translate }}</summary>
+									<div class="nt-more__grid">
+										<mat-form-field subscriptSizing="dynamic">
+											<mat-label>{{ 'NOTIFICATION-TEMPLATES.FIELDS.CC' | translate }}</mat-label>
+											<input matInput formControlName="cc" />
+											<mat-hint>{{ 'NOTIFICATION-TEMPLATES.FIELDS.EMAILS-HINT' | translate }}</mat-hint>
+										</mat-form-field>
+										<mat-form-field subscriptSizing="dynamic">
+											<mat-label>{{ 'NOTIFICATION-TEMPLATES.FIELDS.CC-MODE' | translate }}</mat-label>
+											<mat-select formControlName="ccMode">
+												@for (mode of overrideModes; track mode) {
+													<mat-option [value]="mode">{{ enumUtils.toEmailOverrideModeString(mode) }}</mat-option>
+												}
+											</mat-select>
+										</mat-form-field>
+										<mat-form-field subscriptSizing="dynamic">
+											<mat-label>{{ 'NOTIFICATION-TEMPLATES.FIELDS.BCC' | translate }}</mat-label>
+											<input matInput formControlName="bcc" />
+											<mat-hint>{{ 'NOTIFICATION-TEMPLATES.FIELDS.EMAILS-HINT' | translate }}</mat-hint>
+										</mat-form-field>
+										<mat-form-field subscriptSizing="dynamic">
+											<mat-label>{{ 'NOTIFICATION-TEMPLATES.FIELDS.BCC-MODE' | translate }}</mat-label>
+											<mat-select formControlName="bccMode">
+												@for (mode of overrideModes; track mode) {
+													<mat-option [value]="mode">{{ enumUtils.toEmailOverrideModeString(mode) }}</mat-option>
+												}
+											</mat-select>
+										</mat-form-field>
+										<mat-checkbox formControlName="allowAttachments">{{ 'NOTIFICATION-TEMPLATES.FIELDS.ATTACHMENTS' | translate }}</mat-checkbox>
+									</div>
+								</details>
+							}
+
+							@if (canEdit) {
+								<div class="nt-actions">
+									@if (record() && record().belongsToCurrentTenant !== false && canDelete) {
+										<button mat-button type="button" class="nt-reset" [disabled]="busy()" (click)="reset()">{{ 'NOTIFICATION-TEMPLATES.ACTIONS.RESET' | translate }}</button>
+									} @else {
+										<span></span>
+									}
+									<div class="nt-actions__main">
+										@if (defaultsSupported()) {
+											<button mat-stroked-button type="button" [disabled]="busy()" (click)="sendTest()">{{ 'NOTIFICATION-TEMPLATES.ACTIONS.TEST' | translate }}</button>
+										}
+										<button mat-flat-button color="primary" type="submit" [disabled]="busy() || !dirty()">{{ 'NOTIFICATION-TEMPLATES.ACTIONS.SAVE' | translate }}</button>
+									</div>
+								</div>
+							}
+						</form>
+					</section>
+				}
+			</div>
+		</div>
+	</div>
+</div>

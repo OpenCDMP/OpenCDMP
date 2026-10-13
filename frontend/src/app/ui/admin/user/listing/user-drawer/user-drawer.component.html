@@ -1,0 +1,67 @@
+<button type="button" class="ud-scrim" tabindex="-1" [attr.aria-label]="'USER-LISTING.DRAWER.CLOSE' | translate" (click)="close()"></button>
+<aside class="ud" role="dialog" aria-modal="true" aria-labelledby="ud-title">
+	<div class="ud-head">
+		<button mat-icon-button type="button" (click)="close()" [attr.aria-label]="'USER-LISTING.DRAWER.CLOSE' | translate">
+			<mat-icon aria-hidden="true">close</mat-icon>
+		</button>
+	</div>
+
+	<div class="ud-person">
+		<img alt="" class="ud-avatar" [src]="user().additionalInfo?.avatarUrl || 'assets/images/profile-placeholder.png'" aria-hidden="true">
+		<div class="ud-person__text">
+			<h2 id="ud-title">{{ user().name }}</h2>
+			@for (email of emails(); track email) {
+				<span class="ud-email">{{ email }}</span>
+			} @empty {
+				<span class="ud-muted">{{ 'USER-LISTING.DRAWER.NO-EMAIL' | translate }}</span>
+			}
+			@if (user().createdAt) {
+				<span class="ud-muted">{{ 'USER-LISTING.DRAWER.JOINED' | translate: { date: (user().createdAt | date: 'longDate') } }}</span>
+			}
+		</div>
+	</div>
+
+	@if (signedIn()) {
+		@if (!tenantMode()) {
+			<fieldset class="ud-group">
+				<legend>{{ 'USER-LISTING.DRAWER.INSTALLATION-ROLES' | translate }}</legend>
+				@for (option of globalRoles; track option.role) {
+					<mat-checkbox [checked]="has(option.role)" [disabled]="!!lockReason(option.role)" (change)="toggle(option.role, $event.checked)">
+						<span class="ud-role"><b>{{ enumUtils.toAppRoleString(option.role) }}</b><span class="ud-muted">{{ option.hintKey | translate }}</span>@if (lockReason(option.role); as reason) { <span class="ud-lock">{{ reason | translate }}</span> }</span>
+					</mat-checkbox>
+				}
+			</fieldset>
+		}
+
+		<fieldset class="ud-group">
+			<legend>
+				@if (tenantName()) {
+					{{ 'USER-LISTING.DRAWER.ORGANISATION-ROLES-IN' | translate: { name: tenantName() } }}
+				} @else {
+					{{ 'USER-LISTING.DRAWER.ORGANISATION-ROLES' | translate }}
+				}
+			</legend>
+			@for (option of tenantRoles; track option.role) {
+				<mat-checkbox [checked]="has(option.role)" [disabled]="!!lockReason(option.role)" (change)="toggle(option.role, $event.checked)">
+					<span class="ud-role"><b>{{ enumUtils.toAppRoleString(option.role) }}</b><span class="ud-muted">{{ option.hintKey | translate }}</span>@if (lockReason(option.role); as reason) { <span class="ud-lock">{{ reason | translate }}</span> }</span>
+				</mat-checkbox>
+			}
+		</fieldset>
+
+		@if (confirming()) {
+			<div class="ud-confirm" role="alertdialog" aria-labelledby="ud-confirm-text">
+				<p id="ud-confirm-text">{{ confirmText() }} {{ 'USER-LISTING.DRAWER.CONFIRM-NEXT' | translate }}</p>
+				<div class="ud-confirm__actions">
+					<button mat-stroked-button type="button" (click)="confirming.set(false)">{{ 'USER-LISTING.DRAWER.CANCEL' | translate }}</button>
+					<button mat-flat-button color="primary" type="button" [disabled]="busy()" (click)="confirm()">{{ 'USER-LISTING.DRAWER.CHANGE-ROLES' | translate }}</button>
+				</div>
+			</div>
+		} @else {
+			<div class="ud-actions">
+				<button mat-flat-button color="primary" type="button" [disabled]="!changedRoles().any" (click)="askToSave()">{{ 'USER-LISTING.DRAWER.SAVE' | translate }}</button>
+			</div>
+		}
+	} @else {
+		<p class="ud-note">{{ 'USER-LISTING.DRAWER.NOT-SIGNED-IN' | translate: { name: user().name || emails()[0] } }}</p>
+	}
+</aside>

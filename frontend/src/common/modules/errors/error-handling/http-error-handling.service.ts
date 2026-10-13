@@ -39,6 +39,10 @@ export class HttpErrorHandlingService {
 				this.uiNotificationService.snackBarNotification(this.language.instant('GENERAL.BACKEND-ERRORS.DESCRIPTION-TEMPLATE-TYPE-IMPORT-DRAFT', { 'descriptionTemplateTypeCode': errorResponse.error.error }), SnackBarNotificationLevel.Error);
 			} else if (errorResponse.error.code === ResponseErrorCode.planBlueprintImportDraft){
 				this.uiNotificationService.snackBarNotification(this.language.instant('GENERAL.BACKEND-ERRORS.PLAN-BLUEPRINT-IMPORT-DRAFT', { 'planBlueprintCode': errorResponse.error.error }), SnackBarNotificationLevel.Error);
+			} else if (errorResponse.error.code === ResponseErrorCode.internalPlanEntryNotFound){
+				this.uiNotificationService.snackBarNotification(this.language.instant('GENERAL.BACKEND-ERRORS.INTERNAL-PLAN-ENTRY-NOT-FOUND', { 'id': errorResponse.error.error }), SnackBarNotificationLevel.Error);
+			} else if (errorResponse.error.code === ResponseErrorCode.internalDescriptionEntryNotFound){
+				this.uiNotificationService.snackBarNotification(this.language.instant('GENERAL.BACKEND-ERRORS.INTERNAL-DESCRIPTION-ENTRY-NOT-FOUND', { 'id': errorResponse.error.error }), SnackBarNotificationLevel.Error);
 			} else if (errorResponse.error.code === ResponseErrorCode.lockedDescription && errorResponse.error.error){
 				this.uiNotificationService.snackBarNotification(this.language.instant('GENERAL.BACKEND-ERRORS.LOCKED-DESCRIPTION', { 'descriptionLabel': errorResponse.error.error }), SnackBarNotificationLevel.Error);
 			} else if (errorResponse.error.code === ResponseErrorCode.cannotPlanDeposit && errorResponse.error.error){

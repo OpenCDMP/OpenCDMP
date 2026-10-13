@@ -1,15 +1,14 @@
 import {
-	AfterViewInit,
-	Component,
-	computed,
-	effect,
-	Inject,
-	input,
-	OnDestroy,
-	OnInit,
-	output,
-	Signal,
-	ViewChild
+  Component,
+  computed,
+  effect,
+  Inject,
+  input,
+  OnDestroy,
+  output,
+  Signal,
+  ViewChild,
+  ChangeDetectionStrategy
 } from '@angular/core';
 import { AppPermission } from '@app/core/common/enum/permission.enum';
 import { Description, DescriptionPersist, DescriptionStatusPersist } from '@app/core/model/description/description';
@@ -17,14 +16,14 @@ import { DescriptionService } from '@app/core/services/description/description.s
 import { Guid } from '@common/types/guid';
 import { HttpErrorResponse } from '@angular/common/http';
 import { HttpError, HttpErrorHandlingService } from '@common/modules/errors/error-handling/http-error-handling.service';
-import { catchError, EMPTY, interval, Observable, of, Subscription, take, takeUntil, tap} from 'rxjs';
+import { catchError, EMPTY, of, takeUntil, tap} from 'rxjs';
 import { BaseComponent } from '@common/base/base.component';
 import { DescriptionEditorForm, DescriptionEditorModel } from '@app/ui/description/editor/description-editor.model';
 import { IsActive } from '@notification-service/core/enum/is-active.enum';
 import { DescriptionStatusEnum } from '@app/core/common/enum/description-status';
-import { TranslateService } from '@ngx-translate/core';
+import { TranslateService, TranslatePipe } from '@ngx-translate/core';
 import { SnackBarNotificationLevel, UiNotificationService } from '@app/core/services/notification/ui-notification-service';
-import { AbstractControl, FormGroup, UntypedFormArray, UntypedFormGroup } from '@angular/forms';
+import { AbstractControl, FormGroup, UntypedFormArray, UntypedFormGroup, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { Plan } from '@app/core/model/plan/plan';
 import { VisibilityRulesService } from '@app/ui/description/editor/description-form/visibility-rules/visibility-rules.service';
 import { PlanStatusEnum } from '@app/core/common/enum/plan-status';
@@ -32,60 +31,81 @@ import { DescriptionFormComponent } from '@app/ui/description/editor/description
 import { DescriptionStatus } from '@app/core/model/description-status/description-status';
 import { FormService } from '@common/forms/form-service';
 import { MatDialog } from '@angular/material/dialog';
-import { DescriptionFormService } from '@app/ui/description/editor/description-form/components/services/description-form.service';
+import { FormScrollService } from '@app/ui/description/editor/description-form/components/services/form-scroll.service';
 import { FormValidationErrorsDialogComponent } from '@common/forms/form-validation-errors-dialog/form-validation-errors-dialog.component';
 import { ConfirmationDialogComponent } from '@common/modules/confirmation-dialog/confirmation-dialog.component';
 import { DescriptionStatusPermission } from '@app/core/common/enum/description-status-permission.enum';
-import { LockTargetType } from '@app/core/common/enum/lock-target-type';
-import { LockService } from '@app/core/services/lock/lock.service';
-import { PopupNotificationDialogComponent } from '@app/library/notification/popup/popup-notification.component';
-import { isNullOrUndefined } from '@swimlane/ngx-datatable';
 import { ConfigurationService } from '@app/core/services/configuration/configuration.service';
 import { AuthService } from '@app/core/services/auth/auth.service';
 import { DescriptionEditorHelper } from './plan-description-editor-helper';
 import { ValidationErrorModel } from '@common/forms/validation/error-model/validation-error-model';
 import { PlanTempStorageService } from '../plan-temp-storage.service';
-import { UnlockMultipleTargetsPersist } from '@app/core/model/lock/lock.model';
-import { ActivatedRoute, Params } from '@angular/router';
-import {
-	FormAnnotationService,
-	MULTI_FORM_ANNOTATION_SERVICE_TOKEN
-} from '@app/ui/annotations/annotation-dialog-component/form-annotation.service';
-import { AnnotationEntityType } from '@app/core/common/enum/annotation-entity-type';
-import { DescriptionTemplate } from '@app/core/model/description-template/description-template';
+import { ActivatedRoute } from '@angular/router';
+import { BaseField, BaseSection, DescriptionTemplate, FieldSystemData } from '@app/core/model/description-template/description-template';
 import { DescriptionFinalizeDialogOutput, FinalizeDescriptionDialogComponent } from './finalize-description-dialog/finalize-description-dialog.component';
-import { RouterUtilsService } from '@app/core/services/router/router-utils.service';
-import { AnnotationDialogComponent } from '@app/ui/annotations/annotation-dialog-component/annotation-dialog.component';
 import { EnqueueService } from '@app/core/services/enqueue.service';
+import { DescriptionContextService } from './description-context.service';
+import { FormAnnotationService, MULTI_FORM_ANNOTATION_SERVICE_TOKEN } from '@app/ui/annotations/annotation-dialog-component/form-annotation.service';
+import { PlanAnnotationService } from '../plan-annotation.service';
+import { SystemFieldType } from '@app/core/common/enum/system-field-type';
+import { FieldType } from '@app/core/common/enum/field-type';
+import { PlanLockService } from '../plan-lock.service';
+import { LockTargetType } from '@app/core/common/enum/lock-target-type';
+import { StorageFileService } from '@app/core/services/storage-file/storage-file.service';
+import { DomSanitizer, SafeUrl } from '@angular/platform-browser';
+import { DescriptionBaseFieldsEditorComponent } from '../../../description/editor/description-base-fields-editor/description-base-fields-editor.component';
+import { DescriptionFormComponent as DescriptionFormComponent_1 } from '../../../description/editor/description-form/description-form.component';
+import { MatIcon } from '@angular/material/icon';
 @Component({
     selector: 'app-plan-description-editor',
     templateUrl: './plan-description-editor.component.html',
     styleUrl: './plan-description-editor.component.scss',
-    providers: [FormAnnotationService],
-    standalone: false
+    providers: [FormAnnotationService, DescriptionContextService],
+    changeDetection: ChangeDetectionStrategy.Eager,
+    imports: [DescriptionBaseFieldsEditorComponent, DescriptionFormComponent_1, FormsModule, ReactiveFormsModule, MatIcon, TranslatePipe]
 })
-export class PlanDescriptionEditorComponent extends BaseComponent implements AfterViewInit, OnDestroy{
+export class PlanDescriptionEditorComponent extends BaseComponent implements OnDestroy{
     @ViewChild("descriptionForm") descriptionEditorForm: DescriptionFormComponent;
     plan = input<Plan>();
     id = input<Guid>();
-    atBaseEditor = input<boolean>();
+    permissionsPerSection = input<{[key: string]: AppPermission[]}>({});
+
     descriptionChanged = output<{description: Description, isNew?: boolean}>();
-    showErrors = output<Guid>();
+    showErrors = output<string>();
 
     descriptionInfo = computed(() => this.id()? this.planTempStorage.descriptions().get(this.id().toString()) : null);
-    section = computed(() => this.plan()?.blueprint?.definition?.sections?.find((x) => x.id === this.descriptionInfo().lastPersist?.planDescriptionTemplate?.sectionId)); 
-    ordinal = computed(() => `${this.section().ordinal}.${this.section().fields?.length ? (this.section().fields?.length + 1 + '.') : ''}${this.descriptionInfo().ordinal}`)
+    section = computed(() => this.id() ?
+        this.plan()?.blueprint?.definition?.sections?.find((x) =>
+            x.id === this.descriptionInfo()?.lastPersist?.planDescriptionTemplate?.sectionId
+        ) : null
+    );
+    ordinal = computed(() => {
+        if(!this.id()){ return; }
+        // Prefer the single-source numbering published by the table-of-contents; fall back to the
+        // local computation only if it hasn't been published yet.
+        const shared = this.planTempStorage.descriptionNumbering().get(this.id().toString());
+        if(shared){ return shared; }
+        const sec = this.section();
+        const sections = this.plan()?.blueprint?.definition?.sections ?? [];
+        const sectionNumber = sections.findIndex(s => s.id === sec?.id) + 1;
+        // Descriptions are numbered after the section's own fields, mirroring the TOC.
+        const allFields = (sec?.fieldSets ?? []).flatMap(fs => fs.fields ?? []);
+        const descNumber = allFields.length + Number(this.descriptionInfo()?.ordinal ?? 0);
+        return sectionNumber > 0 ? `${sectionNumber}.${descNumber}` : `${descNumber}`;
+    })
 
     protected planNotFinalized = computed(() => {
 		return this.plan()?.status?.internalStatus != PlanStatusEnum.Finalized;
-	}) 
+	})
 
     protected formGroup: Signal<FormGroup<DescriptionEditorForm>> = computed(() => this.descriptionInfo()?.formGroup);
 
-    protected description: Signal<Description > = computed(() => this.descriptionInfo()?.lastPersist);
+
     protected visibilityRulesService: Signal<VisibilityRulesService > = computed(() => this.descriptionInfo()?.visibilityRulesService);
     protected validationErrorModel: Signal<ValidationErrorModel > = computed(() => this.descriptionInfo()?.validationErrorModel);
-    
+
+    templateMissingSystemFields = computed(() => this.getMissingTemplateFields(this.descriptionInfo()?.lastPersist?.descriptionTemplate))
+
     protected isNew: Signal<boolean> = computed(() => {
         return this.descriptionInfo()?.isNew;
     });
@@ -99,27 +119,54 @@ export class PlanDescriptionEditorComponent extends BaseComponent implements Aft
 		return this.descriptionInfo()?.formGroup?.get('label')?.valid && this.formGroup()?.get('descriptionTemplateId')?.valid;
 
     });
-    protected viewOnly: Signal<boolean> = computed(() => {
-        const hasEditPermission = this.descriptionInfo()?.lastPersist?.authorizationFlags?.some(x => x === AppPermission.EditDescription);
-        return this.isDeleted() || !this.description()?.belongsToCurrentTenant || !hasEditPermission;
-    });
+
+    descriptionIsEditable = computed(() => this.descriptionInfo()?.isNew || (!this.isDeleted() && !this.isFinalized() && this.descriptionInfo()?.lastPersist?.belongsToCurrentTenant));
+
+    canEditEntireDescription = computed(() =>
+        this.descriptionIsEditable() && (
+            this.authService.hasPermission(AppPermission.EditPlan) ||  this.authService.hasPermission(AppPermission.EditDescription) ||
+            this.plan()?.authorizationInformation?.globalAuthorizationFlags?.some((x) => x === AppPermission.EditDescription || x === AppPermission.EditPlan) ||
+            this.descriptionInfo()?.lastPersist?.authorizationFlags?.some(x => x === AppPermission.EditDescription)
+        )
+    )
+
+    canEdit = computed(() => {
+        if(!this.section()){ return; }
+        return this.descriptionIsEditable() && (
+            this.canEditEntireDescription() ||
+            [AppPermission.EditDescription, AppPermission.EditPlan].some(x =>
+                this.permissionsPerSection()?.[this.section().id]?.includes(x)
+            )
+        );
+    })
     protected canAnnotate: Signal<boolean> = computed(() => {
         const hasAnnotatePermission = this.descriptionInfo()?.lastPersist?.authorizationFlags?.some(x => x === AppPermission.AnnotateDescription);
-        return this.description().belongsToCurrentTenant && !this.isNew() && !this.isDeleted() && hasAnnotatePermission;
+        return this.descriptionInfo()?.lastPersist?.belongsToCurrentTenant && !this.isNew() && !this.isDeleted() && hasAnnotatePermission;
     });
-    protected canEditStatus: Signal<boolean> = computed(() => {
-        return this.description().belongsToCurrentTenant && this.descriptionInfo()?.lastPersist?.statusAuthorizationFlags?.some(x => x.toLowerCase() === DescriptionStatusPermission.Edit.toLowerCase());
+
+    // public so the plan editor's context band can host the status control (merged from the panel).
+    canEditStatus: Signal<boolean> = computed(() => {
+        const canEdit = !this.isDeleted() && this.descriptionInfo()?.lastPersist?.belongsToCurrentTenant && (
+            this.canEditEntireDescription() ||
+            [AppPermission.EditDescription, AppPermission.EditPlan].some(x =>
+                this.permissionsPerSection()?.[this.section().id]?.includes(x)
+            )
+        );
+        return !this.isNew() && !this.isLocked() && canEdit &&
+            this.descriptionInfo()?.lastPersist?.statusAuthorizationFlags?.some(x => x.toLowerCase() === DescriptionStatusPermission.Edit.toLowerCase()) &&
+            this.descriptionInfo()?.lastPersist?.availableStatuses?.length &&
+            this.planNotFinalized();
     });
+
     protected descriptionTemplate: Signal<DescriptionTemplate> = computed (() => this.planTempStorage.getDescriptionTemplate(this.formGroup()?.controls?.descriptionTemplateId?.getRawValue()))
 
     private oldStatusId: Guid;
-    
-    isLocked: boolean = false;
-    
+    DescriptionStatusEnum = DescriptionStatusEnum;
+
+    isLocked = computed(() => this.id() && this.planLockService.externalLockIds()?.includes(this.id()?.toString()))
+
     isLoading = computed(() => this.enqueueService.exhaustPipelineBusy());
 
-    private openAnnotation$: Subscription;
-	private formAnnotationService: FormAnnotationService;
     constructor(
         private route: ActivatedRoute,
         private descriptionService: DescriptionService,
@@ -128,205 +175,225 @@ export class PlanDescriptionEditorComponent extends BaseComponent implements Aft
         private uiNotificationService: UiNotificationService,
         private formService: FormService,
         private dialog: MatDialog,
-        private descriptionFormService: DescriptionFormService,
-        private lockService: LockService,
+        private descriptionFormService: FormScrollService,
         private authService: AuthService,
         private configurationService: ConfigurationService,
         private planTempStorage: PlanTempStorageService,
-        private routerUtils: RouterUtilsService,
         private enqueueService: EnqueueService,
 	    @Inject(MULTI_FORM_ANNOTATION_SERVICE_TOKEN) private formAnnotationServices: FormAnnotationService[],
+        private descriptionContextService: DescriptionContextService,
+        private planAnnotationService: PlanAnnotationService,
+        private planLockService: PlanLockService,
+        private storageFileService: StorageFileService,
+        private sanitizer: DomSanitizer
     ){
         super();
+        effect(() => {
+            this.descriptionContextService.setDescriptionId(this.id() ?? null);
+            this.descriptionContextService.setDescriptionLabel(this.descriptionInfo()?.lastPersist?.label ?? null);
+        });
         effect(() => {
             const descInfo = this.descriptionInfo();
             if(!descInfo || descInfo.isNew){return;}
             const id = descInfo.lastPersist.id;
-            this.openAnnotation$?.unsubscribe();
-            
-            this.formAnnotationService = this.formAnnotationServices.find(service => service.getEntityId() === id);
-            this.openAnnotation$ = this.formAnnotationService?.getOpenAnnotationSubjectObservable().pipe(takeUntil(this._destroyed)).subscribe((anchorFieldsetId: string) => {
-                if (anchorFieldsetId){
-                    this.showAnnotations(anchorFieldsetId);
-                }
-            });
-        
+
             this.visibilityRulesService().reloadVisibility();
-            if(!this.lockSubscriptionMap.has(id) && !this.isFinalized() && !this.viewOnly()){
-                this.lockService.checkLockStatus(id).pipe(takeUntil(this._destroyed))
-                .subscribe((lockStatus) => {
-                   this.isLocked = lockStatus.status;
-                   if(this.isLocked){
-                        this.onItemLocked(id);
-                   } else {
-                       this.lockOnFormChange();
-                   }
-                })
-            }
-            if(this.anchorFieldId){
-                if(this.openDescAnnotation){
-                    this.openAnnotation(this.anchorFieldId);
-                } 
-                this.anchorFieldId = null;
-            }
             this.oldStatusId = this.formGroup().get('statusId').value;
-            if(this.finalizeDescription){
-                this.finalize();
-                this.finalizeDescription = false;
+            // if(!this.lockSubscriptionMap.has(id) && !this.isFinalized() && this.canEdit()){
+            //     this.checkLock(id);
+            // }
+            // if(this.anchorFieldId){
+            //     if(this.openDescAnnotation){
+            //         this.planAnnotationService.setContext({
+            //             anchor: this.anchorFieldId,
+            //             entityId: id,
+            //             entityType: AnnotationEntityType.Description
+            //         })
+            //     }
+            //     this.anchorFieldId = null;
+            // }
+            //if(this.finalizeDescription){
+            //     this.finalize();
+            //     this.finalizeDescription = false;
+            // }
+            this.loadStatusLogos(this.descriptionInfo()?.lastPersist);
+        })
+        effect(() => {
+            if(!this.canEdit() && this.formGroup()){
+                this.formGroup().disable();
             }
         })
     }
-    
-    anchorFieldId: string;
-    openDescAnnotation: boolean;
-    scrollToDescField: boolean;
-    finalizeDescription: boolean;
-    ngAfterViewInit(): void {
-        this.route.params
-        .pipe(takeUntil(this._destroyed))
-        .subscribe((params: Params) => {
-            this.anchorFieldId = params['fieldId'];
-            if (this.anchorFieldId) {
-                this.openDescAnnotation = this.route.snapshot.data['openDescriptionAnnotation'];
-                this.scrollToDescField = this.openDescAnnotation || this.route.snapshot.data['scrollToDescriptionField'];
-            }
-            this.finalizeDescription = this.route.snapshot.data['finalizeDescription'];
-        });
-    }
-// **** ANNOTATIONS ****
-    public openAnnotation(anchorFieldsetId: string){
-        this.descriptionFormService.queryIncludesAnnotation = true;
-        this.showAnnotations(anchorFieldsetId);
-    }
 
-    showAnnotations(fieldSetId: string) {
-        const dialogRef = this.dialog.open(AnnotationDialogComponent, {
-            width: '40rem',
-            maxWidth: '90vw',
-            maxHeight: '90vh',
-            data: {
-                entityId: this.id(),
-                anchor: fieldSetId,
-                entityType: AnnotationEntityType.Description,
-                planUsers: this.plan().planUsers,
-                canAnnotate: this.canAnnotate(),
-                generateLink: (anchor: string, entityId: Guid) => {
-                    let currentPath = window.location.pathname;
-                    const rgx = /\/f\/|\/d\/|\/annotation/;
-                    currentPath = currentPath.split(rgx)?.[0]; //get base of route, remove any descriptionid, fieldId, or annotation it might contain
-                    return this.routerUtils.generateUrl([currentPath, 'd', entityId, 'f', anchor, 'annotation'].join('/'));
-                }
-            }
-        });
-        dialogRef.afterClosed().pipe(takeUntil(this._destroyed)).subscribe(changesMade => {
-            if (changesMade) {
-                this.formAnnotationService.refreshAnnotations();
-            }
-        });
-    }
+    // anchorFieldId: string;
+    // openDescAnnotation: boolean;
+    // scrollToDescField: boolean;
+    // finalizeDescription: boolean;
+
+    /** route not in use anymore:
+     * change description status within editor
+     * scroll to field via plan-editor
+     * */
+    // ngAfterViewInit(): void {
+    //     this.route.params
+    //     .pipe(takeUntil(this._destroyed))
+    //     .subscribe((params: Params) => {
+    //         this.anchorFieldId = params['fieldId'];
+    //         if (this.anchorFieldId) {
+    //             this.openDescAnnotation = this.route.snapshot.data['openDescriptionAnnotation'];
+    //             this.scrollToDescField = this.openDescAnnotation || this.route.snapshot.data['scrollToDescriptionField'];
+    //         }
+    //         this.finalizeDescription = this.route.snapshot.data['finalizeDescription'];
+    //     });
+    // }
+// **** ANNOTATIONS ****
+    // public openAnnotation(anchorFieldsetId: string){
+    //     this.descriptionFormService.queryIncludesAnnotation = true;
+    //     this.showAnnotations(anchorFieldsetId);
+    // }
+
+    //showAnnotations(fieldSetId: string) {
+        // const dialogRef = this.dialog.open(AnnotationDialogComponent, {
+        //     width: '40rem',
+        //     maxWidth: '90vw',
+        //     maxHeight: '90vh',
+        //     data: {
+        //         entityId: this.id(),
+        //         anchor: fieldSetId,
+        //         entityType: AnnotationEntityType.Description,
+        //         planUsers: this.plan().planUsers,
+        //         canAnnotate: this.canAnnotate(),
+        //         generateLink: (anchor: string, entityId: Guid) => {
+        //             let currentPath = window.location.pathname;
+        //             const rgx = /\/f\/|\/d\/|\/annotation/;
+        //             currentPath = currentPath.split(rgx)?.[0]; //get base of route, remove any descriptionid, fieldId, or annotation it might contain
+        //             return this.routerUtils.generateUrl([currentPath, 'd', entityId, 'f', anchor, 'annotation'].join('/'));
+        //         }
+        //     }
+        // });
+        // dialogRef.afterClosed().pipe(takeUntil(this._destroyed)).subscribe(changesMade => {
+        //     if (changesMade) {
+        //         // this.formAnnotationService.refreshAnnotations();
+        //     }
+        // });
+    //}
 
 
 
 // **** LOCK AND UNLOCK ****
 
-    private lockSubscriptionMap = new Map<Guid, Subscription>([]);
-    public get lockedIds(): Guid[] {
-        return Array.from(this.lockSubscriptionMap.keys());
-    }
+    // private lockSubscriptionMap = new Map<Guid, Subscription>([]);
+    // public get lockedIds(): Guid[] {
+    //     return Array.from(this.lockSubscriptionMap.keys());
+    // }
 
-    public lockedDescriptionIds(): Guid[] {
-        return Array.from(this.lockSubscriptionMap.keys() ?? []);
-    }
+    // public lockedDescriptionIds(): Guid[] {
+    //     return Array.from(this.lockSubscriptionMap.keys() ?? []);
+    // }
 
-    protected checkAndLock(targetId: Guid, targetType: LockTargetType) {
-		if (targetId && !isNullOrUndefined(this.authService.currentAccountIsAuthenticated())) {
-			this.lockService.checkAndLock(targetId, targetType).pipe(takeUntil(this._destroyed))
-            .subscribe((lockedByUser) => {
-                this.isLocked = !lockedByUser;
-                if(this.isLocked){
-                    this.onItemLocked(targetId);
-                } else {
-                    this.onItemLockedByUser(targetId);
-                }
-            })
-		}
-	}
+    // public checkLock(targetId: Guid) {
+    //     this.lockService.checkLockStatus(targetId).pipe(takeUntil(this._destroyed))
+    //     .subscribe((lockStatus) => {
+    //         this.isLocked = lockStatus.status;
+    //         if(this.isLocked){
+    //             this.onItemLocked(targetId);
+    //         } else {
+    //             this.lockOnFormChange();
+    //         }
+    //     })
+    // }
+    // protected checkAndLock(targetId: Guid, targetType: LockTargetType) {
+	// 	if (targetId) {
+	// 		this.lockService.checkAndLock(targetId, targetType).pipe(takeUntil(this._destroyed))
+    //         .subscribe((lockedByUser) => {
+    //             this.isLocked = !lockedByUser;
+    //             if(this.isLocked){
+    //                 this.onItemLocked(targetId);
+    //             } else {
+    //                 this.onItemLockedByUser(targetId);
+    //             }
+    //         })
+	// 	}
+	// }
 
-    private touchLock(targetId: Guid) {
-		this.lockService.touchLock(targetId).pipe(takeUntil(this._destroyed)).subscribe(async result => { console.log() }); //TODO HANDLE-ERRORS
-	}
+    // private touchLock(targetId: Guid) {
+	// 	this.lockService.touchLock(targetId).pipe(takeUntil(this._destroyed)).subscribe(async result => { console.log() }); //TODO HANDLE-ERRORS
+	// }
 
-    public unlock(id: Guid, relock: boolean = false){
-        const subscription = this.lockSubscriptionMap.get(id);
-        if(!subscription){
-            return;
-        }
-        subscription.unsubscribe();
-        this.lockService.unlockTarget(id).pipe(takeUntil(this._destroyed))
-        .subscribe({
-            complete: () => {
-                this.lockSubscriptionMap.delete(id);
-                if(relock){
-                    this.lockOnFormChange();
-                }
-            }
-        })
-    }
+    // public unlock(id: Guid, relock: boolean = false){
+    //     const subscription = this.lockSubscriptionMap.get(id);
+    //     if(!subscription){
+    //         return;
+    //     }
+    //     subscription.unsubscribe();
+    //     this.lockService.unlockTarget(id).pipe(takeUntil(this._destroyed))
+    //     .subscribe({
+    //         complete: () => {
+    //             this.lockSubscriptionMap.delete(id);
+    //             if(relock){
+    //                 this.lockOnFormChange();
+    //             }
+    //         }
+    //     })
+    // }
 
-    public unlockAll(): Observable<boolean>{
-        if(!this.lockSubscriptionMap?.size){ return of(null); }
-        const data: UnlockMultipleTargetsPersist = {
-            targetIds: Array.from(this.lockSubscriptionMap.keys())
-        }
-        return this.lockService.unlockTargetMultiple(data).pipe(
-            takeUntil(this._destroyed),
-            tap((result) => {
-                this.lockSubscriptionMap.forEach((sub) => sub.unsubscribe());
-                this.lockSubscriptionMap.clear();
-                return result;
-            }),
-            catchError((error) => {
-                this.onCallbackError(error); 
-                throw(error)
-            })
-        )
-    }
+    // public unlockAll(): Observable<boolean>{
+    //     if(!this.lockSubscriptionMap?.size){ return of(null); }
+    //     const data: UnlockMultipleTargetsPersist = {
+    //         targetIds: Array.from(this.lockSubscriptionMap.keys())
+    //     }
+    //     return this.lockService.unlockTargetMultiple(data).pipe(
+    //         takeUntil(this._destroyed),
+    //         tap((result) => {
+    //             this.lockSubscriptionMap.forEach((sub) => sub.unsubscribe());
+    //             this.lockSubscriptionMap.clear();
+    //             return result;
+    //         }),
+    //         catchError((error) => {
+    //             this.onCallbackError(error);
+    //             throw(error)
+    //         })
+    //     )
+    // }
 
-    private lockOnFormChange(){
-        const id = this.id();
-        this.formGroup()?.valueChanges
-        .pipe(take(1)).subscribe(() => 
-            this.checkAndLock(id, LockTargetType.Description)
-        )
-    }
+    // formChange$: Subscription;
+    // protected lockOnFormChange(){
+    //     this.formChange$?.unsubscribe();
 
-    private onItemLockedByUser(id: Guid){
-        if(id !== this.id()) { return; }
-        if(this.formGroup().disabled){
-            this.enableForm();
-        }
-        const touchLock$ = interval(this.configurationService.lockInterval).pipe(takeUntil(this._destroyed)).subscribe(() => {console.log('touch' + id); this.touchLock(id)});
-        this.lockSubscriptionMap.set(id, touchLock$);
-    }
+    //     this.formChange$ = this.formGroup().valueChanges
+    //     .pipe(take(1)).subscribe((change) => {
+    //         this.planLockService.lockOnEdit(this.id(), LockTargetType.Description)
+    //     })
+    // }
 
-    private onItemLocked(id: Guid){
-        if(id !== this.id()) { return; }
-        this.formGroup().disable();
-        this.lockSubscriptionMap.get(id)?.unsubscribe();
-        this.lockSubscriptionMap.delete(id);
-        this.dialog.open(PopupNotificationDialogComponent, {
-            data: {
-                title: this.language.instant('DESCRIPTION-EDITOR.LOCKED-DIALOG.TITLE'),
-                message: this.language.instant('DESCRIPTION-EDITOR.LOCKED-DIALOG.MESSAGE')
-            }, maxWidth: '30em'
-        });
-    }
+    // private onItemLockedByUser(id: Guid){
+    //     if(id.toString() != this.id().toString()) { return; }
+    //     if(this.formGroup().disabled){
+    //         this.enableForm();
+    //     }
+    //     const touchLock$ = interval(this.configurationService.lockInterval).pipe(takeUntil(this._destroyed)).subscribe(() => {console.log('touch' + id); this.touchLock(id)});
+    //     this.lockSubscriptionMap.set(id, touchLock$);
+    // }
+
+    // private onItemLocked(id: Guid){
+    //     if(id?.toString() !== this.id().toString()) { return; }
+    //     this.formGroup().disable();
+    //     this.lockSubscriptionMap.get(id)?.unsubscribe();
+    //     this.lockSubscriptionMap.delete(id);
+    //     this.dialog.open(PopupNotificationDialogComponent, {
+    //         data: {
+    //             title: this.language.instant('DESCRIPTION-EDITOR.LOCKED-DIALOG.TITLE'),
+    //             message: this.language.instant('DESCRIPTION-EDITOR.LOCKED-DIALOG.MESSAGE')
+    //         }, maxWidth: '30em'
+    //     });
+    // }
 
     enableForm(){
         const description = this.descriptionInfo()?.lastPersist;
-        const canEdit = description.isActive === IsActive.Active && description.status?.internalStatus != DescriptionStatusEnum.Finalized && description.authorizationFlags?.includes(AppPermission.EditDescription);
+        if(!description){ return; }
+        const canEdit = this.canEdit() && description.isActive === IsActive.Active && description.status?.internalStatus != DescriptionStatusEnum.Finalized && description.authorizationFlags?.includes(AppPermission.EditDescription);
         if(canEdit){
-            this.formGroup().enable;
+            this.formGroup().enable();
             if(!this.descriptionInfo().isNew){
                 this.formGroup().controls.descriptionTemplateId.disable();
             }
@@ -335,11 +402,11 @@ export class PlanDescriptionEditorComponent extends BaseComponent implements Aft
 ////// *****
 
 
-//// **** BACK END CHANGES ****   
+//// **** BACK END CHANGES ****
     changeStatus(status: DescriptionStatus) {
 		if (status?.internalStatus === DescriptionStatusEnum.Finalized) {
 			this.finalize(status.id);
-		} else if (status?.internalStatus != null && this.description().status.internalStatus === DescriptionStatusEnum.Finalized){
+		} else if (status?.internalStatus != null && this.descriptionInfo().lastPersist.status.internalStatus === DescriptionStatusEnum.Finalized){
 			this.reverse(status.id);
 		} else {
 			// other statuses
@@ -356,7 +423,6 @@ export class PlanDescriptionEditorComponent extends BaseComponent implements Aft
 		this.descriptionFormService.detectChanges(true);
 
 		const dialogRef = this.dialog.open(FinalizeDescriptionDialogComponent, {
-			restoreFocus: false,
 			data: {
 				formGroup: this.formGroup(),
 			}
@@ -364,13 +430,13 @@ export class PlanDescriptionEditorComponent extends BaseComponent implements Aft
 		dialogRef.afterClosed().pipe(takeUntil(this._destroyed)).subscribe((result: DescriptionFinalizeDialogOutput) => {
 			if (result) {
                 if(!result.isValid){
-                    this.showErrors.emit(this.id());
-        
+                    this.showErrors.emit(this.id().toString());
+
                     this.formService.touchAllFormFields(this.formGroup());
                     return;
                 }
                 else if (!result.cancelled){
-                    const status = statusId ?? (this.description().availableStatuses?.find(x => x.internalStatus === DescriptionStatusEnum.Finalized)?.id || null);
+                    const status = statusId ?? (this.descriptionInfo().lastPersist.availableStatuses?.find(x => x.internalStatus === DescriptionStatusEnum.Finalized)?.id || null);
                     this.formGroup().get('statusId').setValue(status);
                     this.persistStatus();
                 }
@@ -380,7 +446,6 @@ export class PlanDescriptionEditorComponent extends BaseComponent implements Aft
 
 	private reverse(statusId: Guid) {
 		const dialogRef = this.dialog.open(ConfirmationDialogComponent, {
-			restoreFocus: false,
 			data: {
 				message: this.language.instant('DESCRIPTION-EDITOR.ACTIONS.UNDO-FINALIZATION-QUESTION'),
 				confirmButton: this.language.instant('DESCRIPTION-EDITOR.ACTIONS.CONFIRM'),
@@ -409,7 +474,7 @@ export class PlanDescriptionEditorComponent extends BaseComponent implements Aft
 
     protected attemptStatusPersist(){
         this.formService.removeAllBackEndErrors(this.formGroup());
-		if (!DescriptionEditorModel.baseFieldsAreInvalid(this.formGroup())) 
+		if (!DescriptionEditorModel.baseFieldsAreInvalid(this.formGroup()))
         {
 			this.persistStatus();
 		} else {
@@ -419,8 +484,8 @@ export class PlanDescriptionEditorComponent extends BaseComponent implements Aft
     }
 
     private persistStatus() {
-		const formData = this.formGroup()?.getRawValue() as DescriptionPersist;
-		const finalizedStatus = this.description()?.availableStatuses?.find(x => x.internalStatus === DescriptionStatusEnum.Finalized) || null;
+		const formData = this.formGroup()?.getRawValue() as unknown as DescriptionPersist;
+		const finalizedStatus = this.descriptionInfo()?.lastPersist?.availableStatuses?.find(x => x.internalStatus === DescriptionStatusEnum.Finalized) || null;
         this.enqueueService.enqueueExhaustChannel(
             this.descriptionService.persist(formData, DescriptionEditorHelper.DescriptionLookupFields())
             .pipe(
@@ -440,9 +505,9 @@ export class PlanDescriptionEditorComponent extends BaseComponent implements Aft
     }
 
     private onPersistSuccess(desc: Description){
-        this.unlock(this.id(), true);
+        // this.unlock(this.id(), true);
         // const newFormGroup = new DescriptionEditorModel().fromModel(desc, desc.descriptionTemplate).buildForm(
-        //     null, 
+        //     null,
         //     DescriptionEditorModel.isViewOnlyDescription(desc),
         //     this.descriptionInfo().visibilityRulesService
         // );
@@ -460,7 +525,7 @@ export class PlanDescriptionEditorComponent extends BaseComponent implements Aft
         console.log(error);
 	}
 
-    
+
     private _buildSemiFormErrorMessages(): string[] {
 		const errmess: string[] = [];
 		Object.keys(this.formGroup().controls).forEach(controlName => {
@@ -552,7 +617,6 @@ export class PlanDescriptionEditorComponent extends BaseComponent implements Aft
 		if (errmess) {
 			const dialogRef = this.dialog.open(FormValidationErrorsDialogComponent, {
 				disableClose: true,
-				restoreFocus: false,
 				data: {
 					errorMessages: errmess,
 				},
@@ -560,7 +624,6 @@ export class PlanDescriptionEditorComponent extends BaseComponent implements Aft
 		} else {
 			const dialogRef = this.dialog.open(FormValidationErrorsDialogComponent, {
 				disableClose: true,
-				restoreFocus: false,
 				data: {
 					formGroup: this.formGroup,
 				},
@@ -570,33 +633,33 @@ export class PlanDescriptionEditorComponent extends BaseComponent implements Aft
 
 ////// ******
 
-    onDescriptionTemplateChange(descriptionTemplateId?: Guid){
-        if(descriptionTemplateId){ //change from UI selector
-            const descriptionTemplate = this.planTempStorage.getDescriptionTemplate(descriptionTemplateId);
-            const planDescriptionTemplate = Array.from(this.planTempStorage.planDescriptionTemplates?.values() ?? []).find((x) => x.currentDescriptionTemplate?.id === descriptionTemplateId);
-            this.descriptionChanged.emit({
-                description: {
-                    ...this.description(),
-                    label: this.formGroup()?.value?.label,
-                    description: this.formGroup()?.value?.description,
-                    properties: null,
-                    descriptionTemplate,
-                    planDescriptionTemplate
-                }, 
-                isNew: true
-            });
-        } else { // update to latest version
-            this.descriptionService.getSingle(this.id(), [...DescriptionEditorHelper.BaseDescriptionLookupFields(), ...DescriptionEditorHelper.DescriptionTemplateInDescriptionLookupFields()])
-            .pipe(takeUntil(this._destroyed))
-            .subscribe({
-                next: (description) => {
-                    description.plan = this.plan(); 
-                    this.descriptionChanged.emit({description});
-                },
-                error: (error) => this.onCallbackError(error)
-            })
-        }
-    }
+    // onDescriptionTemplateChange(descriptionTemplateId?: Guid){
+    //     if(descriptionTemplateId){ //change from UI selector
+    //         const descriptionTemplate = this.planTempStorage.getDescriptionTemplate(descriptionTemplateId);
+    //         const planDescriptionTemplate = Array.from(this.planTempStorage.planDescriptionTemplates?.values() ?? []).find((x) => x.currentDescriptionTemplate?.id === descriptionTemplateId);
+    //         this.descriptionChanged.emit({
+    //             description: {
+    //                 ...this.description(),
+    //                 label: this.formGroup()?.value?.label,
+    //                 description: this.formGroup()?.value?.description,
+    //                 properties: null,
+    //                 descriptionTemplate,
+    //                 planDescriptionTemplate
+    //             },
+    //             isNew: true
+    //         });
+    //     } else { // update to latest version
+    //         this.descriptionService.getSingle(this.id(), [...DescriptionEditorHelper.BaseDescriptionLookupFields(), ...DescriptionEditorHelper.DescriptionTemplateInDescriptionLookupFields()])
+    //         .pipe(takeUntil(this._destroyed))
+    //         .subscribe({
+    //             next: (description) => {
+    //                 description.plan = this.plan();
+    //                 this.descriptionChanged.emit({description});
+    //             },
+    //             error: (error) => this.onCallbackError(error)
+    //         })
+    //     }
+    // }
 
     discardChanges() {
 		let messageText = "";
@@ -617,7 +680,6 @@ export class PlanDescriptionEditorComponent extends BaseComponent implements Aft
 
 
 		const dialogRef = this.dialog.open(ConfirmationDialogComponent, {
-			restoreFocus: false,
 			data: {
 				message: messageText,
 				confirmButton: confirmButtonText,
@@ -630,7 +692,10 @@ export class PlanDescriptionEditorComponent extends BaseComponent implements Aft
 				setTimeout(x => {
                     this._reverseForm();
                     if(!this.isNew()){
-                        this.unlock(this.id(), true);
+                        this.planLockService.discardEdit(this.id());
+                        if(this.planLockService.transientLockId() == this.id().toString()){
+                            this.planLockService.lockOnFormChange(this.formGroup(), this.id(), LockTargetType.Description);
+                        }
                     }
 				});
 			}
@@ -640,14 +705,14 @@ export class PlanDescriptionEditorComponent extends BaseComponent implements Aft
 
     private _reverseForm(){
         // const editorModel = new DescriptionEditorModel()
-        // const formGroup = editorModel.fromModel(this.description(), this.description().descriptionTemplate)
+        // const formGroup = editorModel.fromModel(this.description(), this.descriptionInfo().lastPersist.descriptionTemplate)
         //     .buildForm(null, DescriptionEditorModel.isViewOnlyDescription(this.description()), this.visibilityRulesService());
         // const newDescriptionInfo: DescriptionInfo = {
         //     ...this.descriptionInfo(),
         //     formGroup,
         //     validationErrorModel: editorModel.validationErrorModel
         // }
-        this.descriptionChanged.emit({description:this.description()});
+        this.descriptionChanged.emit({description:this.descriptionInfo()?.lastPersist});
     }
 
     private _resetFields(): void {
@@ -662,10 +727,34 @@ export class PlanDescriptionEditorComponent extends BaseComponent implements Aft
 		formGroup().markAsPristine();
 	}
 
-    ngOnDestroy(): void {
-        this.unlockAll();
-        this.openAnnotation$?.unsubscribe();
-        this.openAnnotation$ = null;
+
+    getMissingTemplateFields(descTemplate: DescriptionTemplate): SystemFieldType[] {
+        const fields = descTemplate.definition?.sections?.flatMap((section) => this.getSectionFields(section));
+        const existingSystemFields = fields?.filter(x => x.data.fieldType == FieldType.SYSTEM)?.map((x) => (x.data as FieldSystemData).systemFieldType) ?? [];
+        return [SystemFieldType.PlanDescriptionTitle, SystemFieldType.PlanDescriptionDescription, SystemFieldType.PlanDescriptionTag].filter((type) => !existingSystemFields.includes(type))
+    }
+    getSectionFields(section: BaseSection): BaseField[] {
+        const res = [];
+        if(section.sections){
+            section.sections.forEach((x) => res.push(...this.getSectionFields(x)))
+        }else if(section.fieldSets){
+            section.fieldSets.forEach((fieldSet) => res.push(...fieldSet.fields))
+        }
+        return res;
+    }
+
+    /** Uploaded status images by storage file id: the current status and the ones the asset can move to. */
+    statusLogos = new Map<string, SafeUrl>();
+    private loadStatusLogos(description: Description): void {
+        [description?.status, ...(description?.availableStatuses ?? [])]
+            .map(status => status?.definition?.iconConfiguration?.storageFile?.id)
+            .filter(id => !!id && !this.statusLogos.has(id.toString()))
+            .forEach(id => {
+                this.storageFileService.download(id).pipe(takeUntil(this._destroyed))
+                .subscribe({
+                    next: response => this.statusLogos.set(id.toString(), this.sanitizer.bypassSecurityTrustUrl(URL.createObjectURL(response.body)))
+                });
+            });
     }
 
 }

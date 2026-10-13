@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges } from '@angular/core';
+import { Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges, ChangeDetectionStrategy } from '@angular/core';
 import { FormControl, FormGroup } from '@angular/forms';
 import { AppRole } from '@app/core/common/enum/app-role';
 import { IsActive } from '@app/core/common/enum/is-active.enum';
@@ -7,12 +7,15 @@ import { UserFilter } from '@app/core/query/user.lookup';
 import { EnumUtils } from '@app/core/services/utilities/enum-utils.service';
 import { BaseComponent } from '@common/base/base.component';
 import { nameof } from 'ts-simple-nameof';
+import { ListingFilterChipComponent } from '../../../../../../common/modules/admin-listing/listing-filter-chip.component';
+import { TranslatePipe } from '@ngx-translate/core';
 
 @Component({
     selector: 'app-user-listing-filters',
     templateUrl: './user-listing-filters.component.html',
     styleUrls: ['./user-listing-filters.component.scss'],
-    standalone: false
+    changeDetection: ChangeDetectionStrategy.Eager,
+    imports: [ListingFilterChipComponent, TranslatePipe]
 })
 export class UserListingFiltersComponent extends BaseComponent implements OnInit, OnChanges {
 
@@ -25,8 +28,15 @@ export class UserListingFiltersComponent extends BaseComponent implements OnInit
 	appRoleEnumValues = this.enumUtils.getEnumValues<AppRole>(AppRole);
 
 	// * State
+	/** Roles offered by the chip: tenant roles always, platform roles only outside tenant-admin mode. */
+	protected get roleOptions(): AppRole[] {
+		const tenantRoles = [AppRole.TenantAdmin, AppRole.TenantPlanManager, AppRole.TenantConfigManager, AppRole.TenantUser];
+		return this.hasTenantAdminMode ? tenantRoles : [AppRole.Admin, AppRole.InstallationAdmin, AppRole.User, ...tenantRoles];
+	}
+	protected readonly labelOfRoles = (value: AppRole): string => this.enumUtils.toAppRoleString(value);
+
 	internalFilters: FormGroup<UserListingFilters> = new FormGroup({
-        isActive: new FormControl(true),
+        showDeleted: new FormControl<boolean>(false, { nonNullable: true }),
         like: new FormControl(null),
         roles: new FormControl(null)
     });
@@ -59,11 +69,9 @@ export class UserListingFiltersComponent extends BaseComponent implements OnInit
 	}
 
 	protected applyFilters(): void {
-		const { isActive, like, roles } = this.internalFilters?.value ?? {};
-		let filter = {
+		const { showDeleted, like, roles } = this.internalFilters?.value ?? {};
+		const filter = {
 			...this.filter,
-			like,
-			isActive: isActive ? [IsActive.Active] : [IsActive.Inactive],
             userRoleSubQuery: roles?.length ? {...new UserRoleLookup(), roles} : null
 		}
 		this.filterChange.emit(filter);
@@ -73,13 +81,13 @@ export class UserListingFiltersComponent extends BaseComponent implements OnInit
 
 	private _parseToInternalFilters(inputFilter: UserFilter) {
 		if (!inputFilter) {
-			this._getEmptyFilters();
+			return this._getEmptyFilters();
 		}
 
-		let { isActive, like, userRoleSubQuery } = inputFilter;
+		const { isActive, like, userRoleSubQuery } = inputFilter;
 
 		this.internalFilters.setValue({
-			isActive: (isActive ?? [])?.includes(IsActive.Active) || !isActive?.length,
+			showDeleted: (isActive ?? []).includes(IsActive.Inactive),
 			like: like ?? null,
 			roles: userRoleSubQuery?.roles ?? null
 		});
@@ -88,7 +96,7 @@ export class UserListingFiltersComponent extends BaseComponent implements OnInit
 
 	private _getEmptyFilters() {
 		this.internalFilters.setValue({
-			isActive: true,
+			showDeleted: false,
 			like: null,
 			roles: null
 		});
@@ -97,9 +105,6 @@ export class UserListingFiltersComponent extends BaseComponent implements OnInit
 	private _computeAppliedFilters(formGroup: FormGroup<UserListingFilters>): number {
 		const filters = formGroup?.value;
         let count = 0;
-		if (!filters?.isActive) {
-			count++
-		}
 		if (filters?.like) {
 			count++;
 		}
@@ -117,7 +122,7 @@ export class UserListingFiltersComponent extends BaseComponent implements OnInit
 }
 
 interface UserListingFilters {
-	isActive: FormControl<boolean>;
+	showDeleted: FormControl<boolean>;
 	like: FormControl<string>;
 	roles: FormControl<string[]>;
 }

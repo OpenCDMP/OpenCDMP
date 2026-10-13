@@ -41,7 +41,7 @@ export class OpenCDMPCustomTranslationCompiler implements TranslateCompiler {
 						searchRegex.lastIndex++;
 					}
 					const searchKey = matches[1];
-					if (masterLanguageFile.hasOwnProperty(searchKey)) {
+					if (Object.prototype.hasOwnProperty.call(masterLanguageFile, searchKey)) {
 						// Replace the full translate syntax with the translated value
 						currentTranslations[key] = currentTranslations[key].replace(replaceRegex, masterLanguageFile[searchKey]);
 					} else {

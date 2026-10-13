@@ -1,0 +1,46 @@
+<button type="button" class="td-scrim" tabindex="-1" [attr.aria-label]="'TENANT-LISTING.DRAWER.CLOSE' | translate" (click)="close()"></button>
+<aside class="td" role="dialog" aria-modal="true" aria-labelledby="td-title">
+	<div class="td-head">
+		<h2 id="td-title">{{ (tenantId() ? 'TENANT-LISTING.DRAWER.RENAME-TITLE' : 'TENANT-LISTING.DRAWER.NEW-TITLE') | translate }}</h2>
+		<button mat-icon-button type="button" (click)="close()" [attr.aria-label]="'TENANT-LISTING.DRAWER.CLOSE' | translate">
+			<mat-icon aria-hidden="true">close</mat-icon>
+		</button>
+	</div>
+
+	@if (loading()) {
+		<mat-progress-bar mode="indeterminate" />
+	} @else {
+		<form class="td-form" [formGroup]="form" (ngSubmit)="save()">
+			<mat-form-field appearance="outline">
+				<mat-label>{{ 'TENANT-EDITOR.FIELDS.NAME' | translate }}</mat-label>
+				<input matInput formControlName="name" required>
+				@if (form.controls.name.hasError('required')) {
+					<mat-error>{{ 'GENERAL.VALIDATION.REQUIRED' | translate }}</mat-error>
+				}
+			</mat-form-field>
+
+			<mat-form-field appearance="outline">
+				<mat-label>{{ 'TENANT-EDITOR.FIELDS.CODE' | translate }}</mat-label>
+				<input matInput class="td-code" formControlName="code" required>
+				<mat-hint>{{ (tenantId() ? 'TENANT-LISTING.DRAWER.CODE-FIXED' : 'TENANT-LISTING.DRAWER.CODE-HINT') | translate }}</mat-hint>
+				@if (form.controls.code.hasError('required')) {
+					<mat-error>{{ 'GENERAL.VALIDATION.REQUIRED' | translate }}</mat-error>
+				} @else if (form.controls.code.hasError('pattern')) {
+					<mat-error>{{ 'TENANT-LISTING.DRAWER.CODE-PATTERN' | translate }}</mat-error>
+				}
+			</mat-form-field>
+
+			<mat-form-field appearance="outline">
+				<mat-label>{{ 'TENANT-EDITOR.FIELDS.DESCRIPTION' | translate }}</mat-label>
+				<textarea matInput formControlName="description" rows="4" required [placeholder]="'TENANT-EDITOR.FIELDS.DESCRIPTION-PLACEHOLDER' | translate"></textarea>
+				@if (form.controls.description.hasError('required')) {
+					<mat-error>{{ 'GENERAL.VALIDATION.REQUIRED' | translate }}</mat-error>
+				}
+			</mat-form-field>
+
+			<div class="td-actions">
+				<button mat-flat-button color="primary" type="submit" [disabled]="busy()">{{ 'TENANT-EDITOR.ACTIONS.SAVE' | translate }}</button>
+			</div>
+		</form>
+	}
+</aside>

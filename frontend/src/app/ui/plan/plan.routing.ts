@@ -31,18 +31,6 @@ const routes: Routes = [
 		}
 	},
 	{
-		path: 'new/suggestion/:planUpdateRequestId',
-		canActivate:[AuthGuard],
-		data: {
-			breadcrumb: true,
-			...BreadcrumbService.generateRouteDataConfiguration({
-				title: 'PLAN-EDITOR.TITLE-NEW'
-			}),
-			title: 'PLAN-EDITOR.TITLE-NEW'
-		},
-		component: PlanSuggestionComponent
-	},
-	{
 		path: 'edit',
 		loadChildren: () => import('./plan-editor-blueprint/plan-editor.module').then(m => m.PlanEditorModule),
 		canActivate:[AuthGuard],

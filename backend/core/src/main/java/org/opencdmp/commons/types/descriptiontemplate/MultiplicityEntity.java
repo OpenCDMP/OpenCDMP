@@ -15,6 +15,8 @@ public class MultiplicityEntity {
     private String placeholder;
     @XmlAttribute(name="tableView")
     private boolean tableView;
+    @XmlAttribute(name="transposedTableView")
+    private boolean transposedTableView;
 
     public Integer getMin() {
         return min;
@@ -46,5 +48,13 @@ public class MultiplicityEntity {
 
     public void setTableView(boolean tableView) {
         this.tableView = tableView;
+    }
+
+    public boolean isTransposedTableView() {
+        return transposedTableView;
+    }
+
+    public void setTransposedTableView(boolean transposedTableView) {
+        this.transposedTableView = transposedTableView;
     }
 }

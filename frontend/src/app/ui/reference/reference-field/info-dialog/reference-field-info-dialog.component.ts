@@ -1,20 +1,23 @@
-import { Component, Inject, OnInit } from '@angular/core';
-import { MAT_DIALOG_DATA, MatDialog, MatDialogRef } from "@angular/material/dialog";
+import { Component, Inject, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { MAT_DIALOG_DATA, MatDialog, MatDialogRef, MatDialogTitle, MatDialogActions } from "@angular/material/dialog";
 import { ExternalFetcherBaseSourceConfiguration } from '@app/core/model/external-fetcher/external-fetcher';
 import { ReferenceTypeFieldInSection } from '@app/core/model/plan-blueprint/plan-blueprint';
 import { ReferenceType, ReferenceTypeDefinition, ReferenceTypeField } from '@app/core/model/reference-type/reference-type';
 import { Reference } from '@app/core/model/reference/reference';
 import { ReferenceTypeService } from '@app/core/services/reference-type/reference-type.service';
 import { BaseComponent } from '@common/base/base.component';
-import { TranslateService } from '@ngx-translate/core';
+import { TranslateService, TranslatePipe } from '@ngx-translate/core';
 import { takeUntil } from 'rxjs';
 import { nameof } from 'ts-simple-nameof';
+import { MatIconButton, MatButton } from '@angular/material/button';
+import { MatIcon } from '@angular/material/icon';
 
 @Component({
     selector: 'app-reference-field-info-dialog',
     templateUrl: './reference-field-info-dialog.component.html',
     styleUrls: ['./reference-field-info-dialog.component.scss'],
-    standalone: false
+    changeDetection: ChangeDetectionStrategy.Eager,
+    imports: [MatDialogTitle, MatIconButton, MatIcon, MatDialogActions, MatButton, TranslatePipe]
 })
 
 export class ReferenceFieldInfoDialogComponent extends BaseComponent implements OnInit{

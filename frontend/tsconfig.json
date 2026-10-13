@@ -1,8 +1,12 @@
 {
 	"compileOnSave": false,
+	"angularCompilerOptions": {
+    "strictTemplates": false
+  },
 	"compilerOptions": {
-    "baseUrl": "./src",
     "outDir": "./dist/out-tsc",
+    "strict": false,
+    "noUncheckedSideEffectImports": false,
     "esModuleInterop": true,
     "sourceMap": true,
     "declaration": false,
@@ -17,16 +21,19 @@
     ],
     "paths": {
       "@app/*": [
-        "./app/*"
+        "./src/app/*"
       ],
       "@common/*": [
-        "./common/*"
+        "./src/common/*"
       ],
       "@annotation-service/*": [
-        "./annotation-service/*"
+        "./src/annotation-service/*"
       ],
       "@notification-service/*": [
-        "./notification-service/*"
+        "./src/notification-service/*"
+      ],
+      "kpi-service/*": [
+        "./src/kpi-service/*"
       ]
     },
     "useDefineForClassFields": false

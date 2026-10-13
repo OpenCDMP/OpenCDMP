@@ -50,7 +50,7 @@ public class PropertyDefinitionFieldSetPersist {
         private final ValidatorFactory validatorFactory;
         private final MessageSource messageSource;
         private FieldSetEntity fieldSetEntity;
-        private DescriptionStatus status;
+        private boolean finalized;
         private VisibilityService visibilityService;
         protected PersistValidator(ConventionService conventionService, ErrorThesaurusProperties errors, ValidatorFactory validatorFactory, MessageSource messageSource, MessageSource messageSource1) {
             super(conventionService, errors);
@@ -74,13 +74,13 @@ public class PropertyDefinitionFieldSetPersist {
                             .iff(() -> !this.isNull(item.getItems()))
                             .on(PropertyDefinitionFieldSetPersist._items)
                             .over(item.getItems())
-                            .using((itm) -> this.validatorFactory.validator(PropertyDefinitionFieldSetItemPersist.PersistValidator.class).withFieldSetEntity(this.fieldSetEntity).withVisibilityService(this.visibilityService).setStatus(this.status)),
+                            .using((itm) -> this.validatorFactory.validator(PropertyDefinitionFieldSetItemPersist.PersistValidator.class).withFieldSetEntity(this.fieldSetEntity).withVisibilityService(this.visibilityService).isFinalized(this.finalized)),
                     this.spec()
-                            .iff(() -> DescriptionStatus.Finalized.equals(this.status) && isVisible && fieldSetEntity.getHasMultiplicity())
+                            .iff(() -> this.finalized && isVisible && fieldSetEntity.getHasMultiplicity())
                             .must(() -> !this.isListNullOrEmpty(item.getItems()) && min <= item.getItems().size())
                             .failOn(PropertyDefinitionFieldSetPersist._items).failWith(messageSource.getMessage("Validation.LargerThenEqual", new Object[]{PropertyDefinitionFieldSetPersist._items, min}, LocaleContextHolder.getLocale())),
                     this.spec()
-                            .iff(() -> DescriptionStatus.Finalized.equals(this.status) && isVisible && fieldSetEntity.getHasMultiplicity())
+                            .iff(() -> this.finalized && isVisible && fieldSetEntity.getHasMultiplicity())
                             .must(() -> !this.isListNullOrEmpty(item.getItems()) && max >= item.getItems().size())
                             .failOn(PropertyDefinitionFieldSetPersist._items).failWith(messageSource.getMessage("Validation.LessThenEqual", new Object[]{PropertyDefinitionFieldSetPersist._items, max}, LocaleContextHolder.getLocale()))
                     );
@@ -96,8 +96,8 @@ public class PropertyDefinitionFieldSetPersist {
             return this;
         }
 
-        public PropertyDefinitionFieldSetPersist.PersistValidator setStatus(DescriptionStatus status) {
-            this.status = status;
+        public PersistValidator isFinalized(boolean isFinalized) {
+            this.finalized = isFinalized;
             return this;
         }
 

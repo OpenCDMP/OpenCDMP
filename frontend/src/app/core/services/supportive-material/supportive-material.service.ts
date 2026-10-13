@@ -1,13 +1,11 @@
 import { HttpResponse } from "@angular/common/http";
 import { Injectable } from "@angular/core";
-import { IsActive } from "@app/core/common/enum/is-active.enum";
 import { SupportiveMaterial, SupportiveMaterialPersist } from "@app/core/model/supportive-material/supportive-material";
 import { SupportiveMaterialLookup } from "@app/core/query/supportive-material.lookup";
 import { QueryResult } from "@common/model/query-result";
 import { Guid } from "@common/types/guid";
 import { Observable, throwError } from "rxjs";
 import { catchError } from "rxjs/operators";
-import { nameof } from "ts-simple-nameof";
 import { ConfigurationService } from "../configuration/configuration.service";
 import { BaseHttpV2Service } from "../http/base-http-v2.service";
 import { SupportiveMaterialFieldType } from "@app/core/common/enum/supportive-material-field-type";
@@ -43,7 +41,7 @@ export class SupportiveMaterialService {
 		const url = `${this.apiBase}/get-payload-from-file/${type}/${language}`;
 
 		const params = new BaseHttpParams();
-		return this.http.get(url, { params: params, responseType: 'string', observe: 'response' });
+		return this.http.get(url, { params: params, responseType: 'text', observe: 'response' });
 	}
 
 	query(q: SupportiveMaterialLookup): Observable<QueryResult<SupportiveMaterial>> {
@@ -79,28 +77,5 @@ export class SupportiveMaterialService {
 
 
 	// LOOKUP
-
-	public getDefaultSupportiveMaterialLookup(): SupportiveMaterialLookup {
-		const lookup = new SupportiveMaterialLookup();
-
-		lookup.project = {
-			fields: [
-				nameof<SupportiveMaterial>(x => x.id),
-				nameof<SupportiveMaterial>(x => x.type),
-				nameof<SupportiveMaterial>(x => x.languageCode),
-				nameof<SupportiveMaterial>(x => x.payload),
-				nameof<SupportiveMaterial>(x => x.createdAt),
-				nameof<SupportiveMaterial>(x => x.updatedAt),
-				nameof<SupportiveMaterial>(x => x.isActive),
-				nameof<SupportiveMaterial>(x => x.hash)
-			]
-		};
-		lookup.order = { items: [nameof<SupportiveMaterial>(x => x.type)] };
-		lookup.page = { offset: 0, size: 10 };
-		lookup.isActive = [IsActive.Active];
-		const tenantId = this.authService.getSelectedTenantId();
-		if (tenantId != null) lookup.tenantIds = [tenantId];
-		return lookup;
-	}
 
 }

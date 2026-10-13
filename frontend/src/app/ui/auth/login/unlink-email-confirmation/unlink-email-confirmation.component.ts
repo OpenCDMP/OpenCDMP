@@ -1,5 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { AuthService } from '@app/core/services/auth/auth.service';
 import { RouterUtilsService } from '@app/core/services/router/router-utils.service';
@@ -7,13 +7,15 @@ import { UserService } from '@app/core/services/user/user.service';
 import { BaseComponent } from '@common/base/base.component';
 import { HttpError, HttpErrorHandlingService } from '@common/modules/errors/error-handling/http-error-handling.service';
 import { Guid } from '@common/types/guid';
-import { TranslateService } from '@ngx-translate/core';
+import { TranslateService, TranslatePipe } from '@ngx-translate/core';
 import { takeUntil } from "rxjs/operators";
+import { MatButton } from '@angular/material/button';
 
 @Component({
     selector: 'app-unlink-email-confirmation-component',
     templateUrl: './unlink-email-confirmation.component.html',
-    standalone: false
+    changeDetection: ChangeDetectionStrategy.Eager,
+    imports: [MatButton, TranslatePipe]
 })
 export class UnlinkEmailConfirmation extends BaseComponent implements OnInit {
 	private token: Guid;
@@ -42,7 +44,7 @@ export class UnlinkEmailConfirmation extends BaseComponent implements OnInit {
 					this.token = token;
 				}
 				if(!this.authentication.currentAccountIsAuthenticated()){
-					let returnUrl = `login/unlink/confirmation/${this.token}`;
+					const returnUrl = `login/unlink/confirmation/${this.token}`;
 					this.router.navigate([this.routerUtils.generateUrl('login')], {queryParams:{returnUrl: this.routerUtils.generateUrl(returnUrl)}});	
 				}
 			});
@@ -71,7 +73,7 @@ export class UnlinkEmailConfirmation extends BaseComponent implements OnInit {
 
 	onCallbackError(errorResponse: HttpErrorResponse) {
 
-		let errorOverrides = new Map<number, string>();
+		const errorOverrides = new Map<number, string>();
 		errorOverrides.set(302, this.language.instant('EMAIL-CONFIRMATION.EMAIL-FOUND'));
 		errorOverrides.set(-1, this.language.instant('EMAIL-CONFIRMATION.EXPIRED-EMAIL'));
 		this.httpErrorHandlingService.handleBackedRequestError(errorResponse, errorOverrides)

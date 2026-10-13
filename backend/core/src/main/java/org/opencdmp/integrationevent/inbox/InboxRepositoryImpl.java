@@ -144,7 +144,7 @@ public class InboxRepositoryImpl implements InboxRepository {
 
                 transaction.commit();
             } catch (Exception ex) {
-                logger.error("Problem executing purge. rolling back any db changes and marking error. Continuing...", ex);
+                logger.error("Problem deciding whether queue inbox {} should be omitted. Rolling back and continuing...", candidate.getId(), ex);
                 if (transaction != null)
                     transaction.rollback();
                 success = false;
@@ -153,7 +153,7 @@ public class InboxRepositoryImpl implements InboxRepository {
                 if (tenantEntityManagerFactory != null) tenantEntityManagerFactory.getInstance().reloadTenantFilters();
             }
         } catch (Exception ex) {
-            logger.error("Problem executing purge. rolling back any db changes and marking error. Continuing...", ex);
+            logger.error("Problem deciding whether queue inbox {} should be omitted. Continuing...", candidate.getId(), ex);
         }
         return success;
     }
@@ -195,7 +195,7 @@ public class InboxRepositoryImpl implements InboxRepository {
                 }
                 transaction.commit();
             } catch (Exception ex) {
-                logger.error("Problem executing purge. rolling back any db changes and marking error. Continuing...", ex);
+                logger.error("Problem deciding whether queue inbox {} should wait before a retry. Rolling back and continuing...", candidate.getId(), ex);
                 if (transaction != null)
                     transaction.rollback();
                 success = false;
@@ -204,7 +204,7 @@ public class InboxRepositoryImpl implements InboxRepository {
                 if (tenantEntityManagerFactory != null) tenantEntityManagerFactory.getInstance().reloadTenantFilters();
             }
         } catch (Exception ex) {
-            logger.error("Problem executing purge. rolling back any db changes and marking error. Continuing...", ex);
+            logger.error("Problem deciding whether queue inbox {} should wait before a retry. Continuing...", candidate.getId(), ex);
         }
         return success;
     }
@@ -241,7 +241,7 @@ public class InboxRepositoryImpl implements InboxRepository {
                 success = true;
             } catch (Exception ex) {
                 success = false;
-                logger.error("Problem executing purge. rolling back any db changes and marking error. Continuing...", ex);
+                logger.error("Could not store inbox message from routing key {}. The message will not be processed", inboxCreatorParams.getRoutingKey(), ex);
                 if (transaction != null) transaction.rollback();
             } finally {
                 if (entityManager != null) entityManager.close();
@@ -249,7 +249,7 @@ public class InboxRepositoryImpl implements InboxRepository {
             }
         } catch (Exception ex) {
             success = false;
-            logger.error("Problem executing purge. rolling back any db changes and marking error. Continuing...", ex);
+            logger.error("Could not store inbox message from routing key {}. The message will not be processed", inboxCreatorParams.getRoutingKey(), ex);
         }
         return success ? queueMessage : null;
     }
@@ -334,7 +334,7 @@ public class InboxRepositoryImpl implements InboxRepository {
 
                     transaction.commit();
                 } catch (Exception ex) {
-                    logger.error("Problem executing purge. rolling back any db changes and marking error. Continuing...", ex);
+                    logger.error("Problem processing queue inbox {}. Rolling back and marking error. Continuing...", candidateInfo.getId(), ex);
                     if (transaction != null)
                         transaction.rollback();
                     success = false;
@@ -343,7 +343,7 @@ public class InboxRepositoryImpl implements InboxRepository {
                     if (tenantEntityManagerFactory != null) tenantEntityManagerFactory.getInstance().reloadTenantFilters();
                 }
             } catch (Exception ex) {
-                logger.error("Problem executing purge. rolling back any db changes and marking error. Continuing...", ex);
+                logger.error("Problem processing queue inbox {}. Rolling back and marking error. Continuing...", candidateInfo.getId(), ex);
             }
 
         }
@@ -378,14 +378,14 @@ public class InboxRepositoryImpl implements InboxRepository {
                     default: transaction.commit();  break;
                 }
             } catch (Exception ex) {
-                logger.error("Problem executing purge. rolling back any db changes and marking error. Continuing...", ex);
+                logger.error("Problem processing queue inbox {} from routing key {}. Continuing...", queueInboxMessage.getId(), queueInboxMessage.getRoute(), ex);
                 if (transaction != null)
                     transaction.rollback();
             } finally {
                 if (entityManager != null) entityManager.close();
             }
         } catch (Exception ex) {
-            logger.error("Problem executing purge. rolling back any db changes and marking error. Continuing...", ex);
+            logger.error("Problem processing queue inbox {} from routing key {}. Continuing...", queueInboxMessage.getId(), queueInboxMessage.getRoute(), ex);
         }
         return status;
     }

@@ -1,4 +1,4 @@
-import { catchError, map, Observable, of } from "rxjs";
+import { catchError, Observable, of } from "rxjs";
 import { Description } from "../model/description/description";
 import { DescriptionService } from "../services/description/description.service";
 import { nameof } from "ts-simple-nameof";

@@ -29,9 +29,9 @@ public class DescriptionTemplateImportExport {
     private Short version;
     @XmlElement(name = "groupId")
     private UUID groupId;
-    @XmlElementWrapper(name = "pages")
-    @XmlElement(name = "page")
-    private List<DescriptionTemplatePageImportExport> pages;
+    @XmlElementWrapper(name = "sections")
+    @XmlElement(name = "section")
+    private List<DescriptionTemplateSectionImportExport> sections;
 
     @XmlElementWrapper(name = "pluginConfigurations")
     @XmlElement(name = "pluginConfiguration")
@@ -61,12 +61,12 @@ public class DescriptionTemplateImportExport {
         this.code = code;
     }
 
-    public List<DescriptionTemplatePageImportExport> getPages() {
-        return this.pages;
+    public List<DescriptionTemplateSectionImportExport> getSections() {
+        return sections;
     }
 
-    public void setPages(List<DescriptionTemplatePageImportExport> pages) {
-        this.pages = pages;
+    public void setSections(List<DescriptionTemplateSectionImportExport> sections) {
+        this.sections = sections;
     }
 
     public List<PluginConfigurationImportExport> getPluginConfigurations() {
@@ -121,9 +121,9 @@ public class DescriptionTemplateImportExport {
 
     public List<DescriptionTemplateFieldSetImportExport> getAllFieldSets(){
         List<DescriptionTemplateFieldSetImportExport> fieldSets = new ArrayList<>();
-        if (this.getPages() != null){
-            for (DescriptionTemplatePageImportExport page: this.getPages()) {
-                fieldSets.addAll(page.getAllFieldSets());
+        if (this.getSections() != null){
+            for (DescriptionTemplateSectionImportExport section: this.getSections()) {
+                fieldSets.addAll(section.getAllFieldSets());
             }
         }
         return fieldSets;
@@ -131,9 +131,9 @@ public class DescriptionTemplateImportExport {
 
     public List<DescriptionTemplateFieldImportExport> getAllField(){
         List<DescriptionTemplateFieldImportExport> fields = new ArrayList<>();
-        if (this.getPages() != null){
-            for (DescriptionTemplatePageImportExport page: this.getPages()) {
-                fields.addAll(page.getAllField());
+        if (this.getSections() != null){
+            for (DescriptionTemplateSectionImportExport section: this.getSections()) {
+                fields.addAll(section.getAllField());
             }
         }
         return fields;

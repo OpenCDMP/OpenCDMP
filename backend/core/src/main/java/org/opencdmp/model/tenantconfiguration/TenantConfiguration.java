@@ -60,6 +60,14 @@ public class TenantConfiguration {
 
     public static final String _viewPreferences = "viewPreferences";
 
+    private TermsAndConditionsTenantConfiguration termsAndConditions;
+
+    public static final String _termsAndConditions = "termsAndConditions";
+
+    private GuidedToursTenantConfiguration guidedTours;
+
+    public static final String _guidedTours = "guidedTours";
+
     private Instant updatedAt;
 
     public static final String _updatedAt = "updatedAt";
@@ -209,5 +217,21 @@ public class TenantConfiguration {
 
     public void setViewPreferences(ViewPreferencesConfiguration viewPreferences) {
         this.viewPreferences = viewPreferences;
+    }
+
+    public TermsAndConditionsTenantConfiguration getTermsAndConditions() {
+        return termsAndConditions;
+    }
+
+    public void setTermsAndConditions(TermsAndConditionsTenantConfiguration termsAndConditions) {
+        this.termsAndConditions = termsAndConditions;
+    }
+
+    public GuidedToursTenantConfiguration getGuidedTours() {
+        return guidedTours;
+    }
+
+    public void setGuidedTours(GuidedToursTenantConfiguration guidedTours) {
+        this.guidedTours = guidedTours;
     }
 }

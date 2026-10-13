@@ -149,7 +149,7 @@ public class OutboxRepositoryImpl implements OutboxRepository {
 
                 transaction.commit();
             } catch (Exception ex) {
-                logger.error("Problem executing purge. rolling back any db changes and marking error. Continuing...", ex);
+                logger.error("Problem deciding whether queue outbox {} should be omitted. Rolling back and continuing...", candidate.getId(), ex);
                 if (transaction != null)
                     transaction.rollback();
                 success = false;
@@ -158,7 +158,7 @@ public class OutboxRepositoryImpl implements OutboxRepository {
                 if (tenantEntityManagerFactory != null) tenantEntityManagerFactory.getInstance().reloadTenantFilters();
             }
         } catch (Exception ex) {
-            logger.error("Problem executing purge. rolling back any db changes and marking error. Continuing...", ex);
+            logger.error("Problem deciding whether queue outbox {} should be omitted. Continuing...", candidate.getId(), ex);
         }
         return success;
     }
@@ -199,7 +199,7 @@ public class OutboxRepositoryImpl implements OutboxRepository {
                 }
                 transaction.commit();
             } catch (Exception ex) {
-                logger.error("Problem executing purge. rolling back any db changes and marking error. Continuing...", ex);
+                logger.error("Problem deciding whether queue outbox {} should wait before a retry. Rolling back and continuing...", candidate.getId(), ex);
                 if (transaction != null)
                     transaction.rollback();
                 success = false;
@@ -208,7 +208,7 @@ public class OutboxRepositoryImpl implements OutboxRepository {
                 if (tenantEntityManagerFactory != null) tenantEntityManagerFactory.getInstance().reloadTenantFilters();
             }
         } catch (Exception ex) {
-            logger.error("Problem executing purge. rolling back any db changes and marking error. Continuing...", ex);
+            logger.error("Problem deciding whether queue outbox {} should wait before a retry. Continuing...", candidate.getId(), ex);
         }
         return success;
     }
@@ -258,7 +258,7 @@ public class OutboxRepositoryImpl implements OutboxRepository {
 
                 transaction.commit();
             } catch (Exception ex) {
-                logger.error("Problem executing purge. rolling back any db changes and marking error. Continuing...", ex);
+                logger.error("Problem publishing queue outbox {}. Rolling back and marking error. Continuing...", candidateInfo.getId(), ex);
                 if (transaction != null)
                     transaction.rollback();
                 success = false;
@@ -267,7 +267,7 @@ public class OutboxRepositoryImpl implements OutboxRepository {
                 if (tenantEntityManagerFactory != null) tenantEntityManagerFactory.getInstance().reloadTenantFilters();
             }
         } catch (Exception ex) {
-            logger.error("Problem executing purge. rolling back any db changes and marking error. Continuing...", ex);
+            logger.error("Problem publishing queue outbox {}. Continuing...", candidateInfo.getId(), ex);
         }
         return success;
     }
@@ -286,13 +286,13 @@ public class OutboxRepositoryImpl implements OutboxRepository {
                 this.handleConfirmWithRetries(entityManager, confirmedMessages);
                 
             } catch (Exception ex) {
-                logger.error("Problem executing purge. rolling back any db changes and marking error. Continuing...", ex);
+                logger.error("Problem confirming published messages {}. They stay unconfirmed and will be retried. Continuing...", confirmedMessages.stream().map(UUID::toString).collect(Collectors.joining(",")), ex);
             } finally {
                 if (entityManager != null) entityManager.close();
                 if (tenantEntityManagerFactory != null) tenantEntityManagerFactory.getInstance().reloadTenantFilters();
             }
         } catch (Exception ex) {
-            logger.error("Problem executing purge. rolling back any db changes and marking error. Continuing...", ex);
+            logger.error("Problem confirming published messages {}. They stay unconfirmed and will be retried. Continuing...", confirmedMessages.stream().map(UUID::toString).collect(Collectors.joining(",")), ex);
         }
     }
 
@@ -326,7 +326,7 @@ public class OutboxRepositoryImpl implements OutboxRepository {
                 if (transaction != null) transaction.rollback();
                 Thread.sleep(this.outboxProperties.getHandleAckWaitInMilliSeconds());
             } catch (Exception ex) {
-                logger.error("Problem executing purge. rolling back any db changes and marking error. Continuing...", ex);
+                logger.error("Problem confirming published messages {}. Rolling back and giving up on this batch", confirmedMessages.stream().map(UUID::toString).collect(Collectors.joining(",")), ex);
                 if (transaction != null) transaction.rollback();
                 return;
             }
@@ -346,13 +346,13 @@ public class OutboxRepositoryImpl implements OutboxRepository {
 
                 this.handleNackWithRetries(entityManager, nackedMessages);
             } catch (Exception ex) {
-                logger.error("Problem executing purge. rolling back any db changes and marking error. Continuing...", ex);
+                logger.error("Problem marking messages {} as not delivered. They stay in flight and will be retried. Continuing...", nackedMessages.stream().map(UUID::toString).collect(Collectors.joining(",")), ex);
             } finally {
                 if (entityManager != null) entityManager.close();
                 if (tenantEntityManagerFactory != null) tenantEntityManagerFactory.getInstance().reloadTenantFilters();
             }
         } catch (Exception ex) {
-            logger.error("Problem executing purge. rolling back any db changes and marking error. Continuing...", ex);
+            logger.error("Problem marking messages {} as not delivered. They stay in flight and will be retried. Continuing...", nackedMessages.stream().map(UUID::toString).collect(Collectors.joining(",")), ex);
         }
     }
 
@@ -397,7 +397,7 @@ public class OutboxRepositoryImpl implements OutboxRepository {
                 if (transaction != null) transaction.rollback();
                 Thread.sleep(this.outboxProperties.getHandleNackWaitInMilliSeconds());
             } catch (Exception ex) {
-                logger.error("Problem executing purge. rolling back any db changes and marking error. Continuing...", ex);
+                logger.error("Problem marking messages {} as not delivered. Rolling back and giving up on this batch", nackedMessages.stream().map(UUID::toString).collect(Collectors.joining(",")), ex);
                 if (transaction != null) transaction.rollback();
                 return;
             }
@@ -423,7 +423,7 @@ public class OutboxRepositoryImpl implements OutboxRepository {
                 success = true;
             } catch (Exception ex) {
                 success = false;
-                logger.error("Problem executing purge. rolling back any db changes and marking error. Continuing...", ex);
+                logger.error("Could not store outbox message for event {}. The event will not be published", item.getType(), ex);
             } finally {
                 if (tenantEntityManagerFactory != null && tenantEntityManagerFactory.getInstance().isTenantFiltersDisabled() && !isTenantFiltersDisabled) {
                     try {
@@ -465,6 +465,10 @@ public class OutboxRepositoryImpl implements OutboxRepository {
             }
             case OutboxIntegrationEvent.INDICATOR_ACCESS_ENTRY: {
                 routingKey = this.outboxProperties.getIndicatorAccessTopic();
+                break;
+            }
+            case OutboxIntegrationEvent.DASHBOARD_TOUCHED_ENTRY: {
+                routingKey = this.outboxProperties.getDashboardTouchedTopic();
                 break;
             }
             case OutboxIntegrationEvent.TENANT_USER_INVITE: {

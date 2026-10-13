@@ -8,7 +8,7 @@ import gr.cite.tools.exception.MyValidationException;
 import gr.cite.tools.fieldset.FieldSet;
 import jakarta.xml.bind.JAXBException;
 import org.opencdmp.commonmodels.models.planblueprint.PlanBlueprintModel;
-import org.opencdmp.commons.enums.PlanBlueprintSystemFieldType;
+import org.opencdmp.commons.enums.SystemFieldType;
 import org.opencdmp.commons.types.planblueprint.importexport.BlueprintImportExport;
 import org.opencdmp.data.PlanBlueprintEntity;
 import org.opencdmp.model.planblueprint.PlanBlueprint;
@@ -25,12 +25,11 @@ import java.util.UUID;
 
 public interface PlanBlueprintService {
 
+    java.util.Map<String, Integer> semanticsInUse(UUID excludeGroupId);
+
     PlanBlueprint persist(PlanBlueprintPersist model, UUID groupId, FieldSet fields) throws MyForbiddenException, MyValidationException, MyApplicationException, MyNotFoundException, InvalidApplicationException, JAXBException, JacksonException, TransformerException, ParserConfigurationException;
 
     void deleteAndSave(UUID id) throws MyForbiddenException, InvalidApplicationException;
-    boolean fieldInBlueprint(PlanBlueprintEntity planBlueprintEntity, PlanBlueprintSystemFieldType type);
-
-    boolean fieldInBlueprint(UUID id, PlanBlueprintSystemFieldType type) throws InvalidApplicationException;
 
     PlanBlueprint buildClone(UUID id, FieldSet fields) throws MyForbiddenException, MyValidationException, MyApplicationException, MyNotFoundException;
 

@@ -1,0 +1,124 @@
+<div class="new-asset">
+	<header class="new-asset--header">
+		<div class="new-asset--heading">
+			<div class="new-asset--title-row">
+				<h2 class="new-asset--title">{{ 'NEW-DESCRIPTION.TITLE' | translate }}</h2>
+				<button mat-icon-button type="button" class="new-asset--info"
+					[matTooltip]="'NEW-DESCRIPTION.WHAT-IS-BODY' | translate" matTooltipClass="new-asset-tooltip"
+					[attr.aria-label]="'NEW-DESCRIPTION.WHAT-IS-TITLE' | translate"
+				>
+					<mat-icon class="material-symbols-outlined" aria-hidden="true">info</mat-icon>
+				</button>
+			</div>
+			<p class="new-asset--hint">{{ 'NEW-DESCRIPTION.HINT' | translate }}</p>
+		</div>
+		<button mat-icon-button type="button" class="new-asset--close" (click)="closed.emit()" [attr.aria-label]="'COMMONS.ACTIONS.CANCEL' | translate">
+			<mat-icon aria-hidden="true">close</mat-icon>
+		</button>
+	</header>
+
+	@if (busy()) {
+		<mat-progress-bar mode="indeterminate" class="new-asset--progress" [attr.aria-label]="'ALT-TEXT.PROGRESS-BAR' | translate" />
+	}
+
+	<div class="new-asset--body">
+		<section class="wizard">
+			@if (step() > 1) {
+				<button type="button" class="back-link" (click)="back()">
+					<mat-icon aria-hidden="true">chevron_left</mat-icon>
+					{{ 'NEW-DESCRIPTION.BACK' | translate }}
+				</button>
+			}
+			<p class="step-eyebrow">{{ 'NEW-DESCRIPTION.STEP' | translate: { current: step(), total: totalSteps() } }}</p>
+
+			@switch (view()) {
+				@case ('approach') {
+					<h3 class="step-title">{{ 'NEW-DESCRIPTION.APPROACH.TITLE' | translate }}</h3>
+					<p class="step-hint">{{ 'NEW-DESCRIPTION.APPROACH.HINT' | translate }}</p>
+					<div class="approach-cards" role="group" [attr.aria-label]="'NEW-DESCRIPTION.APPROACH.TITLE' | translate">
+						<button type="button" class="approach-card"
+							[attr.aria-pressed]="approach() === 'manual'" [class.approach-card--selected]="approach() === 'manual'"
+							(click)="selectApproach('manual')"
+						>
+							<span class="approach-card--top">
+								<span class="approach-card--icon approach-card--icon-manual"><mat-icon class="material-symbols-outlined" aria-hidden="true">edit</mat-icon></span>
+								<span class="approach-card--badge">{{ 'NEW-DESCRIPTION.APPROACH.MANUAL-BADGE' | translate }}</span>
+							</span>
+							<span class="approach-card--title">{{ 'NEW-DESCRIPTION.APPROACH.MANUAL-TITLE' | translate }}</span>
+							<span class="approach-card--hint">{{ 'NEW-DESCRIPTION.APPROACH.MANUAL-HINT' | translate }}</span>
+						</button>
+						@if (importAvailable()) {
+							<button type="button" class="approach-card"
+								[attr.aria-pressed]="approach() === 'import'" [class.approach-card--selected]="approach() === 'import'"
+								(click)="selectApproach('import')"
+							>
+								<span class="approach-card--top">
+									<span class="approach-card--icon approach-card--icon-import"><mat-icon class="material-symbols-outlined" aria-hidden="true">download</mat-icon></span>
+								</span>
+								<span class="approach-card--title">{{ 'NEW-DESCRIPTION.APPROACH.IMPORT-TITLE' | translate }}</span>
+								<span class="approach-card--hint">{{ 'NEW-DESCRIPTION.APPROACH.IMPORT-HINT' | translate }}</span>
+							</button>
+						}
+						@if (canClone) {
+							<button type="button" class="approach-card"
+								[attr.aria-pressed]="approach() === 'copy'" [class.approach-card--selected]="approach() === 'copy'"
+								(click)="selectApproach('copy')"
+							>
+								<span class="approach-card--top">
+									<span class="approach-card--icon approach-card--icon-copy"><mat-icon class="material-symbols-outlined" aria-hidden="true">content_copy</mat-icon></span>
+								</span>
+								<span class="approach-card--title">{{ 'NEW-DESCRIPTION.APPROACH.COPY-TITLE' | translate }}</span>
+								<span class="approach-card--hint">{{ 'NEW-DESCRIPTION.APPROACH.COPY-HINT' | translate }}</span>
+							</button>
+						}
+					</div>
+					@if (approach() === 'copy') {
+						<app-new-description-from-clone
+							class="copy-panel"
+							[sectionTemplateGroupIds]="attachedTemplateIds()"
+							[maxMultiplicityIds]="excludedGroupIds()"
+							[canEditTemplateList]="canEditTemplateList()"
+							(copyDescription)="onCopy($event)"
+							(navigateToParentSection)="onNavigateToParentSection()"
+						/>
+					}
+				}
+				@case ('template') {
+					<h3 class="step-title">{{ 'NEW-DESCRIPTION.FROM-TEMPLATE.STEP-TITLE' | translate }}</h3>
+					<p class="step-hint">{{ 'NEW-DESCRIPTION.FROM-TEMPLATE.STEP-HINT' | translate }}</p>
+					<app-new-description-from-template
+						[templates]="templates()"
+						[loading]="templatesLoading()"
+						[maxMultiplicityIds]="excludedGroupIds()"
+						[canEditTemplateList]="canEditTemplateList()"
+						(useTemplate)="onUseTemplate($event)"
+						(previewTemplate)="onPreviewTemplate($event)"
+						(navigateToParentSection)="onNavigateToParentSection()"
+					/>
+				}
+				@case ('import') {
+					<h3 class="step-title">{{ 'NEW-DESCRIPTION.IMPORT.STEP-TITLE' | translate }}</h3>
+					<p class="step-hint">{{ 'NEW-DESCRIPTION.IMPORT.STEP-HINT' | translate }}</p>
+					<app-new-description-import
+						[section]="section()"
+						[templates]="templates()"
+						[maxMultiplicityIds]="excludedGroupIds()"
+						(imported)="onImported($event)"
+						(busyChange)="busy.set($event)"
+					/>
+				}
+				@case ('name') {
+					<h3 class="step-title">{{ 'NEW-DESCRIPTION.NAME-STEP.TITLE' | translate }}</h3>
+					<p class="step-hint">{{ nameHintKey() | translate }}</p>
+					<app-new-description-name-step
+						[label]="draft()?.label ?? ''"
+						[description]="draft()?.description ?? ''"
+						[banner]="banner()"
+						[busy]="busy()"
+						(submitted)="onNameSubmitted($event)"
+					/>
+				}
+			}
+		</section>
+	</div>
+</div>

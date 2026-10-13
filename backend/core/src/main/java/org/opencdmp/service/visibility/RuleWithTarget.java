@@ -11,6 +11,7 @@ public class RuleWithTarget{
 	private final String textValue;
 	private final Instant dateValue;
 	private final Boolean booleanValue;
+	private final Double numberValue;
 	private final FieldEntity fieldEntity;
 
 	public RuleWithTarget(String source, RuleEntity rule, FieldEntity fieldEntity) {
@@ -20,6 +21,7 @@ public class RuleWithTarget{
 		this.textValue = rule.getTextValue();
 		this.dateValue = rule.getDateValue();
 		this.booleanValue = rule.getBooleanValue();
+		this.numberValue = rule.getNumberValue();
 	}
 
 	public String getTarget() {
@@ -44,5 +46,9 @@ public class RuleWithTarget{
 
 	public FieldEntity getFieldEntity() {
 		return this.fieldEntity;
+	}
+
+	public Double getNumberValue() {
+		return numberValue;
 	}
 }

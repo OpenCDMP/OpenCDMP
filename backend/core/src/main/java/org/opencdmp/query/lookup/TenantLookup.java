@@ -1,6 +1,7 @@
 package org.opencdmp.query.lookup;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import org.opencdmp.commons.SQLUtils;
 import org.opencdmp.commons.enums.IsActive;
 import org.opencdmp.query.TenantQuery;
 import gr.cite.tools.data.query.Lookup;
@@ -63,7 +64,7 @@ public class TenantLookup extends Lookup {
 
     public TenantQuery enrich(QueryFactory queryFactory) {
         TenantQuery query = queryFactory.query(TenantQuery.class);
-        if (this.like != null) query.like(this.like);
+        if (this.like != null) query.like(SQLUtils.toPostgres(this.like));
         if (this.isActive != null) query.isActive(this.isActive);
         if (this.ids != null) query.ids(this.ids);
         if (this.codes != null) query.codes(this.codes);

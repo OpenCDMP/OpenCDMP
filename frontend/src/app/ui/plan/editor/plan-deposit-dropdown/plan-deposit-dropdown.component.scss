@@ -41,3 +41,15 @@
 	max-width: 24px;
 	max-height: 24px;
 }
+
+// the menu panel renders in an overlay, outside this component's view
+::ng-deep .deposit-menu {
+	.deposit-menu__heading { padding: .5rem 1rem .25rem; font-size: .6875rem; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: var(--mat-sys-on-surface-variant); }
+	.deposit-menu__item { height: auto; min-height: 56px; }
+	.deposit-menu__text { display: inline-flex; flex-direction: column; line-height: 1.25; }
+	.deposit-menu__name { font-weight: 600; }
+	.deposit-menu__sub { font-size: .75rem; color: var(--mat-sys-on-surface-variant); }
+	.deposit-menu__item--done .logo { opacity: .5; }
+	.deposit-menu__item--done .deposit-menu__name { color: var(--mat-sys-on-surface-variant); }
+	.deposit-menu__open { margin: 0 0 0 .75rem; font-size: 18px; width: 18px; height: 18px; }
+}

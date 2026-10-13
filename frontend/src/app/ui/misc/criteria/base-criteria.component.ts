@@ -6,7 +6,7 @@ import { ValidationErrorModel } from '@common/forms/validation/error-model/valid
 @Directive()
 export class BaseCriteriaComponent<T extends { [K in keyof T]: AbstractControl<any, any>; }> extends BaseComponent implements OnInit {
 
-	public refreshCallback: Function = null;
+	public refreshCallback: (...args: any[]) => any = null;
 	public formGroup: FormGroup<T> = null;
 
 	constructor(
@@ -73,7 +73,7 @@ export class BaseCriteriaComponent<T extends { [K in keyof T]: AbstractControl<a
 		}
 	}
 
-	setRefreshCallback(callback: Function): void {
+	setRefreshCallback(callback: (...args: any[]) => any): void {
 		this.refreshCallback = callback;
 	}
 

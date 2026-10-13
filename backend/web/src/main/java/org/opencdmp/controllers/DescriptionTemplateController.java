@@ -13,6 +13,7 @@ import gr.cite.tools.fieldset.FieldSet;
 import gr.cite.tools.logging.LoggerService;
 import gr.cite.tools.logging.MapLogEntry;
 import gr.cite.tools.validation.ValidationFilterAnnotation;
+import io.swagger.v3.oas.annotations.Hidden;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.enums.Explode;
 import io.swagger.v3.oas.annotations.enums.ParameterStyle;
@@ -40,6 +41,7 @@ import org.opencdmp.model.descriptiontemplate.DescriptionTemplate;
 import org.opencdmp.model.planblueprint.PlanBlueprint;
 import org.opencdmp.model.persist.DescriptionTemplatePersist;
 import org.opencdmp.model.persist.NewVersionDescriptionTemplatePersist;
+import org.opencdmp.model.persist.UserDescriptionTemplatePersist;
 import org.opencdmp.model.result.QueryResult;
 import org.opencdmp.query.DescriptionTemplateQuery;
 import org.opencdmp.query.lookup.DescriptionTemplateLookup;
@@ -99,6 +101,14 @@ public class DescriptionTemplateController {
         this.queryFactory = queryFactory;
         this.messageSource = messageSource;
         this.fieldSetExpanderService = fieldSetExpanderService;
+    }
+
+    @GetMapping("semantics-in-use")
+    @OperationWithTenantHeader(summary = "Semantic keys in use across the tenant's description templates", description = "")
+    @Hidden
+    public Map<String, Integer> semanticsInUse(@RequestParam(value = "excludeGroupId", required = false) UUID excludeGroupId) {
+        logger.debug(new MapLogEntry("semantics in use").And("excludeGroupId", excludeGroupId));
+        return this.descriptionTemplateTypeService.semanticsInUse(excludeGroupId);
     }
 
     @PostMapping("query")
@@ -245,6 +255,35 @@ public class DescriptionTemplateController {
         ));
 
         return model;
+    }
+
+    @PostMapping("{id}/assign-users")
+    @OperationWithTenantHeader(summary = "Set the editors of a description template by id", description = "",
+            responses = @ApiResponse(description = "OK", responseCode = "200", content = @Content(
+                    schema = @Schema(
+                            implementation = DescriptionTemplate.class
+                    ))
+            ))
+    @Swagger404
+    @Transactional
+    @ValidationFilterAnnotation(validator = UserDescriptionTemplatePersist.UserDescriptionTemplatePersistValidator.ValidatorName, argumentName = "model")
+    @Hidden
+    public DescriptionTemplate assignUsers(
+            @PathVariable("id") UUID id,
+            @RequestBody List<UserDescriptionTemplatePersist> model,
+            FieldSet fieldSet
+    ) throws MyApplicationException, MyForbiddenException, MyNotFoundException, InvalidApplicationException {
+        logger.debug(new MapLogEntry("assigning users to " + DescriptionTemplate.class.getSimpleName()).And("id", id).And("model", model).And("fieldSet", fieldSet));
+        fieldSet = this.fieldSetExpanderService.expand(fieldSet);
+        DescriptionTemplate persisted = this.descriptionTemplateTypeService.assignUsers(id, model, fieldSet);
+
+        this.auditService.track(AuditableAction.DescriptionTemplate_AssignUsers, Map.ofEntries(
+                new AbstractMap.SimpleEntry<String, Object>("id", id),
+                new AbstractMap.SimpleEntry<String, Object>("model", model),
+                new AbstractMap.SimpleEntry<String, Object>("fields", fieldSet)
+        ));
+
+        return persisted;
     }
 
     @PostMapping("new-version")

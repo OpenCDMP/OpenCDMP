@@ -1,59 +1,85 @@
 @if(formGroup()){
-
-  @for (section of blueprint()?.definition?.sections; track section; let i = $index) {
     <div [hidden]="hideEditor()">
-      <div class="section-info" [hidden]="!showAllSections() && step() !== (i + 1)">
-        @if (section.fields?.length > 0 || section.hasTemplates) {
-          <div class="col-12">
-            <div class="section-title">{{i+1}}. {{section.label}}</div>
-            <small class="pl-2">{{'COMMONS.VALIDATION.REQUIRED-FIELDS-HINT' | translate}}</small>
-            @for (field of section.fields; track field; let j = $index) {
-              <div [id]="field.id">
-                <div class="input-form">
-                  <app-plan-internal-blueprint-field-editor
-                    [field]="field"
-                    [formGroup]="formGroup()"
-                    [fieldPath]="(i + 1) + '.' + (j + 1)"
-                    [canEdit]="canEditPlan()"
-                    [isNew]="isNew()"
-                    [isActivePlan]="!isDeleted"
-                    [editorModel]="editorModel()"
-                    [referenceType]="field.referenceType"
-                    [sections]="blueprint().definition.sections"
-                    [annotationsPerAnchor]="annotationsPerAnchor()"
-                    (reApplyPropertiesValidators)="reApplyPropertiesValidators()"
-                    (showAnnotations)="showAnnotations.emit($event)"
-                    />
-                  </div>
-                </div>
-              }
-            </div>
-          }
-          @if (section.hasTemplates) {
-            <div class="col-12">
-              <div class="row">
-                <div class="col-12">
-                  <label class="heading">{{'PLAN-EDITOR.FIELDS.DESCRIPTION-TEMPLATES' | translate}} *</label>
-                  <div class="hint">{{'PLAN-EDITOR.FIELDS.DESCRIPTION-TEMPLATES-HINT' | translate}}</div>
-                  @let templateControl = formGroup()?.get('descriptionTemplates').get(section.id.toString());
-                  <app-description-template-table-select
-                    [descTemplatesControl]="templateControl"
-                    [onlyShowSelections]="!section.canEditDescriptionTemplates"
-                    [templatesInUse]="descTemplatesInUseMap()?.get(section.id)"
-                    [descriptionTemplateTypes]="descriptionTemplateSelectData?.types"
-                    [initialData]="descriptionTemplateSelectData?.descTemplates"
-                    [previewOnly]="templateControl.disabled"
-                    />
-                    @if (section.canEditDescriptionTemplates) {
-                      <div class="col pl-0 pt-2 pb-0 d-flex">
-                        <span class="not-found-template">{{'PLAN-EDITOR.NO-TEMPLATE-MESSAGE' | translate}}</span>
-                      </div>
+        @for (section of blueprint()?.definition?.sections; track section; let i = $index) {
+            <div class="section-info" [hidden]="!showAllSections() && !isOrContainsSelected(section.id)">
+                @if(visibilityRulesService().isVisibleMap[section.id]){
+                    <app-form-section
+                        #formSection
+                        [section]="section"
+                        [canAnnotate]="canAnnotateSection(section.id) ?? false"
+                        [canEdit]="canEditSection(section.id) ?? false"
+                        [isNew]="isNew()"
+                        [pathName]="'sections.'+i"
+                        [propertiesFormGroup]="$safeNavigationMigration(formGroup()?.controls?.properties)"
+                        [formGroup]="formGroup()"
+                        [planId]="$safeNavigationMigration(editorModel()?.id)"
+                        [visibilityRulesService]="visibilityRulesService()"
+                        [validationErrorModel]="validationErrorModel()"
+                    ></app-form-section>
+                    <!-- @let sectionFields = getSectionFields(section);
+                    @if (sectionFields.length > 0 || section.hasTemplates) {
+                        <div class="col-12">
+                            <div class="section-title">{{i+1}}. {{section.label}}</div>
+                            <small class="pl-2">{{'COMMONS.VALIDATION.REQUIRED-FIELDS-HINT' | translate}}</small>
+                            @for (field of sectionFields; track field; let j = $index) {
+                        <div [id]="field.id">
+                            <div class="input-form">
+                            <app-plan-internal-blueprint-field-editor
+                                [field]="field"
+                                [formGroup]="formGroup()"
+                                [fieldPath]="(i + 1) + '.' + (j + 1)"
+                                [canEdit]="canEditPlan()"
+                                [isNew]="isNew()"
+                                [isActivePlan]="!isDeleted"
+                                [editorModel]="editorModel()"
+                                [referenceType]="field.referenceType"
+                                [sections]="blueprint().definition.sections"
+                                [annotationsPerAnchor]="annotationsPerAnchor()"
+                                (reApplyPropertiesValidators)="reApplyPropertiesValidators()"
+                                (showAnnotations)="showAnnotations.emit($event)"
+                                />
+                            </div>
+                            </div>
+                        }
+                        </div>
+                    } -->
+                    @if (section.hasTemplates) {
+                        @let descriptions = $safeNavigationMigration(descriptionsInSection()?.get(section.id));
+                        <div class="col-12 mt-3">
+                            <app-plan-section-templates-editor
+                                [descriptions]="descriptions"
+                                (addDescription)="onAddDescription.emit(section.id)"
+                                (navigateToDescription)="onNavigateToDescription.emit($event)"
+                                (removeDescription)="onRemoveDescription.emit($event)"
+                                (manageTemplates)="openManageTemplates(section)"
+                                [canEdit]="canEditSectionDescriptions(section.id)"
+                                [canDelete]="canDeleteSectionDescriptions(section.id)"
+                                [canManageTemplates]="canManageTemplates(section)"
+                                [canAddDescription]="canAddDescription(section)"
+                                [addDescriptionDisabledReason]="!descTemplatesTouched(section) ? 'PLAN-EDITOR.DESCRIPTION-TEMPLATES.MAX-MULTIPLICITY' : 'PLAN-EDITOR.DESCRIPTION-TEMPLATES.TEMPLATES-TOUCHED'"
+                            />
+                        </div>
+                        <!-- <div class="col-12">
+                            <label class="heading">{{'PLAN-EDITOR.FIELDS.DESCRIPTION-TEMPLATES' | translate}} *</label>
+                            <div class="hint">{{'PLAN-EDITOR.FIELDS.DESCRIPTION-TEMPLATES-HINT' | translate}}</div>
+                            @let templateControl = formGroup()?.get('descriptionTemplates').get(section.id.toString());
+                                <app-description-template-table-select
+                                    [descTemplatesControl]="templateControl"
+                                    [onlyShowSelections]="!section.canEditDescriptionTemplates"
+                                    [templatesInUse]="descTemplatesInUseMap()?.get(section.id)"
+                                    [descriptionTemplateTypes]="descriptionTemplateSelectData?.types"
+                                    [initialData]="descriptionTemplateSelectData?.descTemplates"
+                                    [previewOnly]="templateControl.disabled"
+                                />
+                            @if (section.canEditDescriptionTemplates) {
+                                <div class="d-flex">
+                                    <span class="not-found-template">{{'PLAN-EDITOR.NO-TEMPLATE-MESSAGE' | translate}}</span>
+                                </div>
+                            }
+                        </div> -->
                     }
-                  </div>
-                </div>
-              </div>
-            }
-          </div>
-        </div>
-      }
-    }
+                }
+            </div>
+        }
+    </div>
+}

@@ -251,3 +251,46 @@ error-thesaurus:
   cannotMergeAccountWithSameEmail:
     code: 187
     message: Can not merge account with same email
+  transfer-bundle-invalid:
+    code: 188
+    message: The transfer bundle is not valid or was created by an incompatible version
+  transfer-db-version-mismatch:
+    code: 189
+    message: The transfer bundle was exported from an installation with a different database version
+  report-question-not-found:
+    code: 190
+    message: The request does not name a question that exists in the selected template
+  report-subject-cap-exceeded:
+    code: 191
+    message: Too many items match to count their answers. Narrow the filters and try again
+  report-subject-not-supported:
+    code: 192
+    message: Answers of this kind of item cannot be counted yet
+  maintenance-run-in-progress:
+    code: 193
+    message: Another maintenance run is in progress. Wait for it to finish, or stop it
+  deposit-credentials-missing:
+    code: 194
+    message: Your own account was chosen, but no credentials for this repository were given or saved in your profile
+  deposit-sign-in-failed:
+    code: 195
+    message: The repository did not accept the sign-in. Nothing was published
+  deposit-way-not-allowed:
+    code: 196
+    message: Your organisation does not allow publishing to this repository under this account
+  internal-plan-entry-not-found:
+    code: 197
+    message: A field references a plan that does not exist in this installation
+  internal-description-entry-not-found:
+    code: 198
+    message: A field references a description that does not exist in this installation
+  cannot-remove-own-admin-role:
+    code: 199
+    message: You cannot take an admin role away from yourself
+  # 200-208 are used by the notification and annotation services
+  last-tenant-admin:
+    code: 209
+    message: An organisation needs at least one Organisation Admin
+  status-transition-not-allowed:
+    code: 210
+    message: The workflow does not allow this status change

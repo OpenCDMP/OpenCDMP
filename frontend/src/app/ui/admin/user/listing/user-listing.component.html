@@ -1,71 +1,54 @@
 <div class="container-fluid">
   <div class="row user-listing">
     <div class="col-md-10 offset-md-1">
-      <div class="row mb-4 mt-4">
-        <div class="col">
-          <app-navigation-breadcrumb />
-
-        </div>
-        <div class="col-auto">
+      <app-admin-page-header
+        titleKey="USER-LISTING.TITLE"
+        [descriptionKey]="descriptionKey">
+        <ng-container actions>
+          @if (canSwitchScope) {
+            <mat-button-toggle-group class="scope-toggle" hideSingleSelectionIndicator [value]="hasTenantAdminMode" (change)="switchScope($event.value)" [attr.aria-label]="'USER-LISTING.SCOPE.LABEL' | translate">
+              <mat-button-toggle [value]="true">{{'USER-LISTING.SCOPE.TENANT' | translate}}</mat-button-toggle>
+              <mat-button-toggle [value]="false">{{'USER-LISTING.SCOPE.ALL' | translate}}</mat-button-toggle>
+            </mat-button-toggle-group>
+          }
           @if (hasTenantAdminMode) {
             <button mat-flat-button color="primary" class="padded-shadow-btn" (click)="invite()">
               {{'USER-LISTING.ACTIONS.INVITE' | translate}}
             </button>
           }
-        </div>
-        <div class="col-auto">
           @if (authService.hasPermission(authService.permissionEnum.ExportUsers)) {
             <button mat-flat-button color="accent" class="padded-shadow-btn" (click)="export()">
               <mat-icon>download</mat-icon>
               {{'USER-LISTING.ACTIONS.EXPORT' | translate}}
             </button>
           }
-        </div>
-      </div>
+        </ng-container>
+      </app-admin-page-header>
 
-      <app-hybrid-listing [rows]="gridRows" [columns]="gridColumns" [visibleColumns]="visibleColumns" [count]="totalElements" [offset]="currentPageNumber" [limit]="lookup.page.size" [defaultSort]="lookup.order?.items" [externalSorting]="true" (rowActivated)="onUserRowActivated($event)" (pageLoad)="alterPage($event)" (columnSort)="onColumnSort($event)" (columnsChanged)="onColumnsChanged($event)" [listItemTemplate]="listItemTemplate">
+      <app-admin-listing [rows]="gridRows" [columns]="gridColumns" [visibleColumns]="visibleColumns" [count]="totalElements" [offset]="currentPageNumber" [limit]="lookup.page.size" [defaultSort]="$safeNavigationMigration(lookup.order?.items)" [loadingIndicator]="isListingLoading" [hasActiveFilters]="hasActiveFilters" (clearFilters)="clearAllFilters()" (pageLoad)="alterPage($event)" (columnSort)="onColumnSort($event)" (columnsChanged)="onColumnsChanged($event)" [scope]="scope" [scopeCounts]="scopeCounts" (scopeChange)="onScopeChange($event)" [showDeleted]="showDeleted" (showDeletedChange)="onShowDeletedChange($event)" [tenantName]="tenantName" [searchTerm]="lookup.like" (searchChange)="onSearchChange($event)" [rowEditable]="rowEditable" (rowActivated)="openedUser = $event.row">
 
-        <app-user-listing-filters hybrid-listing-filters [(filter)]="lookup" (filterChange)="filterChanged($event)" [hasTenantAdminMode]="hasTenantAdminMode"/>
+        <app-user-listing-filters listing-filters [(filter)]="lookup" (filterChange)="filterChanged($event)" [hasTenantAdminMode]="hasTenantAdminMode"/>
 
         <app-user-settings-picker [key]="userSettingsKey" [userPreference]="lookup" (onSettingSelected)="changeSetting($event)" [autoSelectUserSettings]="autoSelectUserSettings" user-preference-settings />
-      </app-hybrid-listing>
+      </app-admin-listing>
     </div>
   </div>
 </div>
 
-<ng-template #listItemTemplate let-item="item" let-isColumnSelected="isColumnSelected">
 
-  <div class="d-flex align-items-center p-3 gap-1-rem">
-    <div class="row">
-      @if (isColumnSelected('name')) {
-        <a class="buttonLinkClass" [routerLink]="routerUtils.generateUrl('./' + item?.id)" class="col-12" (click)="$event.stopPropagation()">{{item?.name | nullifyValue}}</a>
-        <br />
-      }
-
-      @if (isColumnSelected('createdAt')) {
-        <span class="col-12">
-          {{'USER-LISTING.FIELDS.CREATED-AT' | translate}}:
-          <small>
-            {{item?.createdAt | dateTimeFormatter : 'short' | nullifyValue}}
-          </small>
-        </span>
-        <br>
-        }
-        @if (isColumnSelected('updatedAt')) {
-          <span class="col-12">
-            {{'USER-LISTING.FIELDS.UPDATED-AT' | translate}}:
-            <small>
-              {{item?.updatedAt | dateTimeFormatter : 'short' | nullifyValue}}
-            </small>
-          </span>
-        }
-      </div>
-    </div>
-  </ng-template>
+  @if (openedUser) {
+    <app-user-drawer [user]="openedUser" [tenantMode]="hasTenantAdminMode" [tenantName]="tenantName" (closed)="openedUser = null" (saved)="refresh()" />
+  }
 
   <ng-template #roleCellTemplate let-row="row" let-item>
     <div class="row">
-      <app-user-role-editor-component style="width: 100%;" [item]="row" [hasTenantAdminMode]="hasTenantAdminMode"></app-user-role-editor-component>
+      <span class="user-roles">
+        @for (role of rolesOf(row); track role) {
+          <span class="user-role-chip">{{ enumUtils.toAppRoleString(role) }}</span>
+        } @empty {
+          <span class="user-role-chip user-role-chip--none">{{ (hasSignedIn(row) ? 'USER-LISTING.NO-ROLE' : 'USER-LISTING.NOT-SIGNED-IN') | translate }}</span>
+        }
+      </span>
     </div>
   </ng-template>
 
@@ -73,13 +56,16 @@
     <div class="row align-items-center">
       <div class="col-auto">
         @if (row?.additionalInfo?.avatarUrl) {
-          <img class="user-avatar" [src]="row?.additionalInfo?.avatarUrl" (error)="setDefaultAvatar($event)" aria-hidden>
+          <img alt="" class="user-avatar" [src]="$safeNavigationMigration(row?.additionalInfo?.avatarUrl)" (error)="setDefaultAvatar($event)" aria-hidden="true">
         }
         @if (!row?.additionalInfo?.avatarUrl) {
-          <img class="user-avatar" [src]="'assets/images/profile-placeholder.png'" aria-hidden>
+          <img alt="" class="user-avatar" [src]="'assets/images/profile-placeholder.png'" aria-hidden="true">
         }
       </div>
-      <div class="col">{{row.name}}</div>
+      <div class="col">
+        <div>{{row.name}}</div>
+        <div class="user-email">{{ emailOf(row) }}</div>
+      </div>
 
     </div>
   </ng-template>

@@ -19,7 +19,6 @@ import java.util.UUID;
 public interface StorageFileService extends ApplicationListener<ApplicationReadyEvent> {
 	StorageFile persistBytes(StorageFilePersist model, byte[] payload, FieldSet fields) throws IOException;
 	StorageFile persistString(StorageFilePersist model, String payload, FieldSet fields, Charset charset) throws IOException;
-	StorageFile moveToStorage(UUID fileId, StorageType storageType, boolean replaceDestination, FieldSet fields);
 	StorageFile copyToStorage(UUID fileId, StorageType storageType, boolean replaceDestination, FieldSet fields);
 	StorageFile cloneStorageFile(StorageFile model);
 
@@ -33,6 +32,8 @@ public interface StorageFileService extends ApplicationListener<ApplicationReady
 	byte[] readAsBytesSafe(UUID fileId);
 	String readByFileRefAsTextSafe(String fileRef, StorageType storageType, Charset charset);
 	byte[] readByFileRefAsBytesSafe(String fileRef, StorageType storageType);
+	boolean writeBytesByFileRef(String fileRef, StorageType storageType, byte[] payload);
+	boolean deletePhysicalFileByRefSafe(String fileRef, StorageType storageType);
 
 	byte[] getSemanticsFile();
 

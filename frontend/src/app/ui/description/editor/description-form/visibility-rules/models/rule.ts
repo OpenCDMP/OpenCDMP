@@ -1,4 +1,4 @@
-import { DescriptionTemplateField, DescriptionTemplateRule } from "@app/core/model/description-template/description-template";
+import { BaseField, FieldRule } from "@app/core/model/description-template/description-template";
 
 export class RuleWithTarget {
 	source: string;
@@ -6,14 +6,16 @@ export class RuleWithTarget {
 	textValue: string;
 	dateValue: Date;
 	booleanValue: boolean;
-	field: DescriptionTemplateField;
+    numberValue: number;
+	field: BaseField;
 
-	public constructor(source: string, rule: DescriptionTemplateRule , fieldEntity: DescriptionTemplateField) {
+	public constructor(source: string, rule: FieldRule , fieldEntity: BaseField) {
 		this.target = rule.target;
 		this.source = source;
 		this.field = fieldEntity;
 		this.textValue = rule.textValue;
 		this.dateValue = rule.dateValue;
 		this.booleanValue = rule.booleanValue;
+		this.numberValue = rule.numberValue;
 	}
 }

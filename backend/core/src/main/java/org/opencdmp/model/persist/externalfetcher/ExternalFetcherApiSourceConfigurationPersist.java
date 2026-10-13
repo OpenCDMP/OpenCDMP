@@ -1,6 +1,7 @@
 package org.opencdmp.model.persist.externalfetcher;
 
 import org.opencdmp.commons.enums.ExternalFetcherApiHTTPMethodType;
+import org.opencdmp.commons.enums.ExternalFetcherApiResponseFormatType;
 import org.opencdmp.convention.ConventionService;
 import org.opencdmp.errorcode.ErrorThesaurusProperties;
 import gr.cite.tools.validation.ValidatorFactory;
@@ -46,6 +47,10 @@ public class ExternalFetcherApiSourceConfigurationPersist extends ExternalFetche
 
     private String filterType;
 
+    private ExternalFetcherApiResponseFormatType responseFormat;
+
+    public static final String _responseFormat = "responseFormat";
+
     private AuthenticationConfigurationPersist auth;
 
     public static final String _auth = "auth";
@@ -57,6 +62,10 @@ public class ExternalFetcherApiSourceConfigurationPersist extends ExternalFetche
     private List<QueryConfigPersist> queries;
 
     public static final String _queries = "queries";
+
+    private List<XmlNamespaceConfigurationPersist> namespaces;
+
+    public static final String _namespaces = "namespaces";
 
     public String getUrl() {
         return url;
@@ -122,6 +131,14 @@ public class ExternalFetcherApiSourceConfigurationPersist extends ExternalFetche
         this.filterType = filterType;
     }
 
+    public ExternalFetcherApiResponseFormatType getResponseFormat() {
+        return responseFormat;
+    }
+
+    public void setResponseFormat(ExternalFetcherApiResponseFormatType responseFormat) {
+        this.responseFormat = responseFormat;
+    }
+
     public AuthenticationConfigurationPersist getAuth() {
         return auth;
     }
@@ -146,6 +163,14 @@ public class ExternalFetcherApiSourceConfigurationPersist extends ExternalFetche
         this.queries = queries;
     }
 
+    public List<XmlNamespaceConfigurationPersist> getNamespaces() {
+        return namespaces;
+    }
+
+    public void setNamespaces(List<XmlNamespaceConfigurationPersist> namespaces) {
+        this.namespaces = namespaces;
+    }
+
     @Component(ExternalFetcherApiSourceConfigurationPersistValidator.ValidatorName)
     @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
     public static class ExternalFetcherApiSourceConfigurationPersistValidator extends ExternalFetcherBaseSourceConfigurationPersistValidator<ExternalFetcherApiSourceConfigurationPersist> {
@@ -168,9 +193,6 @@ public class ExternalFetcherApiSourceConfigurationPersist extends ExternalFetche
                     this.spec()
                             .must(() -> !this.isEmpty(item.getUrl()))
                             .failOn(ExternalFetcherApiSourceConfigurationPersist._url).failWith(messageSource.getMessage("Validation_Required", new Object[]{ExternalFetcherApiSourceConfigurationPersist._url}, LocaleContextHolder.getLocale())),
-                    this.spec()
-                            .must(() -> !this.isEmpty(item.getPaginationPath()))
-                            .failOn(ExternalFetcherApiSourceConfigurationPersist._paginationPath).failWith(messageSource.getMessage("Validation_Required", new Object[]{ExternalFetcherApiSourceConfigurationPersist._paginationPath}, LocaleContextHolder.getLocale())),
                     this.spec()
                             .must(() -> !this.isEmpty(item.getContentType()))
                             .failOn(ExternalFetcherApiSourceConfigurationPersist._contentType).failWith(messageSource.getMessage("Validation_Required", new Object[]{ExternalFetcherApiSourceConfigurationPersist._contentType}, LocaleContextHolder.getLocale())),
@@ -203,7 +225,12 @@ public class ExternalFetcherApiSourceConfigurationPersist extends ExternalFetche
                             .iff(() -> !this.isListNullOrEmpty(item.getHeaders()))
                             .on(ExternalFetcherApiSourceConfigurationPersist._headers)
                             .over(item.getHeaders())
-                            .using((itm) -> this.validatorFactory.validator(ExternalFetcherApiHeaderConfigurationPersist.ExternalFetcherApiHeaderConfigurationPersistValidator.class))
+                            .using((itm) -> this.validatorFactory.validator(ExternalFetcherApiHeaderConfigurationPersist.ExternalFetcherApiHeaderConfigurationPersistValidator.class)),
+                    this.navSpec()
+                            .iff(() -> !this.isListNullOrEmpty(item.getNamespaces()))
+                            .on(ExternalFetcherApiSourceConfigurationPersist._namespaces)
+                            .over(item.getNamespaces())
+                            .using((itm) -> this.validatorFactory.validator(XmlNamespaceConfigurationPersist.XmlNamespaceConfigurationPersistValidator.class))
             ));
             return specifications;
         }

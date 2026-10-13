@@ -6,10 +6,12 @@ import gr.cite.tools.fieldset.FieldSet;
 import gr.cite.tools.logging.DataLogEntry;
 import gr.cite.tools.logging.LoggerService;
 import org.opencdmp.authorization.AuthorizationFlags;
+import org.opencdmp.commons.types.descriptiontemplate.FieldSetEntity;
 import org.opencdmp.commons.types.plan.PlanPropertiesEntity;
 import org.opencdmp.commons.types.planblueprint.DefinitionEntity;
 import org.opencdmp.convention.ConventionService;
 import org.opencdmp.model.builder.BaseBuilder;
+import org.opencdmp.model.builder.description.PropertyDefinitionFieldSetBuilder;
 import org.opencdmp.model.plan.PlanProperties;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -52,14 +54,22 @@ public class PlanPropertiesBuilder extends BaseBuilder<PlanProperties, PlanPrope
             return new ArrayList<>();
 
         //Not Bulk Build because is XML no interaction with db
-        FieldSet planBlueprintValuesFields = fields.extractPrefixed(this.asPrefix(PlanProperties._planBlueprintValues));
+        FieldSet fieldsFields = fields.extractPrefixed(this.asPrefix(PlanProperties._fieldSets));
         FieldSet contactsFields = fields.extractPrefixed(this.asPrefix(PlanProperties._contacts));
+        FieldSet consentFields = fields.extractPrefixed(this.asPrefix(PlanProperties._consent));
 
         List<PlanProperties> models = new ArrayList<>();
         for (PlanPropertiesEntity d : data) {
             PlanProperties m = new PlanProperties();
-            if (!planBlueprintValuesFields.isEmpty() && d.getPlanBlueprintValues() != null) m.setPlanBlueprintValues(this.builderFactory.builder(PlanBlueprintValueBuilder.class).withDefinition(definition).authorize(this.authorize).build(planBlueprintValuesFields, d.getPlanBlueprintValues()));
+            if (!fieldsFields.isEmpty() && d.getFieldSets() != null && !d.getFieldSets().isEmpty()) {
+                m.setFieldSets(new HashMap<>());
+                for (String key : d.getFieldSets().keySet()){
+                    FieldSetEntity fieldSetEntity = this.definition != null ? this.definition.getFieldSetById(key).stream().findFirst().orElse(null) : null;
+                    m.getFieldSets().put(key, this.builderFactory.builder(PropertyDefinitionFieldSetBuilder.class).authorize(this.authorize).withFieldSetEntity(fieldSetEntity).build(fieldsFields, d.getFieldSets().get(key)));
+                }
+            }
             if (!contactsFields.isEmpty() && d.getContacts() != null) m.setContacts(this.builderFactory.builder(PlanContactBuilder.class).authorize(this.authorize).build(contactsFields, d.getContacts()));
+            if (!consentFields.isEmpty() && d.getConsent() != null) m.setConsent(this.builderFactory.builder(PlanPropertiesConsentBuilder.class).authorize(this.authorize).build(consentFields, d.getConsent()));
             models.add(m);
         }
         this.logger.debug("build {} items", Optional.of(models).map(List::size).orElse(0));

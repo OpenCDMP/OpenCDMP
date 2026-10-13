@@ -2,7 +2,7 @@
   @if(!isValid){
     <span class="title">{{'GENERAL.FORM-VALIDATION-DISPLAY-DIALOG.WARNING' | translate}}</span>
   }
-  <button mat-icon-button (click)="onClose()" class="ml-auto" [attr.aria-label]="'ALT-TEXT.CLOSE-DIALOG'  | translate"><mat-icon aria-hidden>close</mat-icon></button>
+  <button mat-icon-button (click)="onClose()" class="ml-auto" [attr.aria-label]="'ALT-TEXT.CLOSE-DIALOG'  | translate"><mat-icon aria-hidden="true">close</mat-icon></button>
 </div>
 <div mat-dialog-content>
   @if(isValid){

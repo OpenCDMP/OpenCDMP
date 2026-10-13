@@ -1,29 +1,38 @@
-import { Component, EventEmitter, OnInit, Output } from '@angular/core';
-import { MatButtonToggleChange } from '@angular/material/button-toggle';
+import { Component, EventEmitter, OnInit, Output, ChangeDetectionStrategy } from '@angular/core';
+import { MatButtonToggleChange, MatButtonToggleGroup, MatButtonToggle } from '@angular/material/button-toggle';
 import { Router } from '@angular/router';
 import { AuthService } from '@app/core/services/auth/auth.service';
 import { LanguageService } from '@app/core/services/language/language.service';
 import { UserService } from '@app/core/services/user/user.service';
 import { BaseComponent } from '@common/base/base.component';
+import { HttpErrorHandlingService } from '@common/modules/errors/error-handling/http-error-handling.service';
+import { takeUntil } from 'rxjs/operators';
+import { MatIcon } from '@angular/material/icon';
 
 @Component({
     selector: 'app-language',
     templateUrl: './language.component.html',
     styleUrls: ['./language.component.scss'],
-    standalone: false
+    changeDetection: ChangeDetectionStrategy.Eager,
+    imports: [MatButtonToggleGroup, MatButtonToggle, MatIcon]
 })
 export class LanguageComponent extends BaseComponent implements OnInit {
 
 	@Output() languageChange: EventEmitter<any> = new EventEmitter();
-	languages: string[] = [];
 
 	constructor(
 		private router: Router,
 		private authentication: AuthService,
-		private languageService: LanguageService
+		protected languageService: LanguageService,
+		private userService: UserService,
+		private httpErrorHandlingService: HttpErrorHandlingService
 	) {
 		super();
-		this.languages = this.languageService.getAvailableLanguagesCodes();
+	}
+
+	// Read on each render: the names it sorts by are only known once the translations have loaded.
+	get languages(): string[] {
+		return this.languageService.getAvailableLanguagesCodes();
 	}
 
 	ngOnInit() {
@@ -35,20 +44,22 @@ export class LanguageComponent extends BaseComponent implements OnInit {
 	}
 
 	public getCurrentLanguage(): string {
-		const lang = this.languages.find(lang => lang === this.languageService.getCurrentLanguage());
-		return lang;
+		return this.currentLanguageOf(this.languages);
+	}
+
+	protected currentLanguageOf(languages: string[]): string {
+		return languages.find(lang => lang === this.languageService.getCurrentLanguage());
 	}
 
 	onLanguageSelected(selectedLanguage: MatButtonToggleChange) {
+		// signed in, the choice is the profile's language, which every later visit and e-mail uses
 		if (this.isAuthenticated()) {
-			const langMap = new Map<string, string>();
-			langMap.set('language', selectedLanguage.value);
-			this.languageService.changeLanguage(selectedLanguage.value);
-			this.router.navigateByUrl(this.router.url);
-		} else {
-			this.languageService.changeLanguage(selectedLanguage.value);
-			this.router.navigateByUrl(this.router.url);
+			this.userService.updateLanguageMine(selectedLanguage.value)
+				.pipe(takeUntil(this._destroyed))
+				.subscribe({ error: error => this.httpErrorHandlingService.handleBackedRequestError(error) });
 		}
+		this.languageService.changeLanguage(selectedLanguage.value);
+		this.router.navigateByUrl(this.router.url);
 		this.languageChange.emit(selectedLanguage.value);
 	}
 

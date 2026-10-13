@@ -1,14 +1,19 @@
-﻿import { Component, Input, OnChanges, OnInit, SimpleChanges } from '@angular/core';
+﻿import { Component, Input, OnChanges, OnInit, SimpleChanges, ChangeDetectionStrategy } from '@angular/core';
 import { AbstractControl, UntypedFormArray, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 import { VisibilityRulesService } from '@app/ui/description/editor/description-form/visibility-rules/visibility-rules.service';
 import { BaseComponent } from '@common/base/base.component';
 import { takeUntil } from 'rxjs/operators';
+import { MatIcon } from '@angular/material/icon';
+import { MatTooltip } from '@angular/material/tooltip';
+import { MatProgressBar } from '@angular/material/progress-bar';
+import { TranslatePipe } from '@ngx-translate/core';
 
 @Component({
     selector: 'app-plan-form-progress-indication',
     templateUrl: './plan-form-progress-indication.component.html',
     styleUrls: ['./plan-form-progress-indication.component.scss'],
-    standalone: false
+    changeDetection: ChangeDetectionStrategy.Eager,
+    imports: [MatIcon, MatTooltip, MatProgressBar, TranslatePipe]
 })
 export class PlanFormProgressIndicationComponent extends BaseComponent implements OnInit, OnChanges {
 	@Input() formGroup: UntypedFormGroup;

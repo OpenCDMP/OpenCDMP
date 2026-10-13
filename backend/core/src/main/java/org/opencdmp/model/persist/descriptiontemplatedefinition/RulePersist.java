@@ -32,6 +32,9 @@ public class RulePersist {
     private Boolean booleanValue;
     public static final String _booleanValue = "booleanValue";
 
+    private Double numberValue;
+    public static final String _numberValue = "numberValue";
+
     private List<ReferencePersist> references;
     public static final String _references = "references";
 
@@ -73,6 +76,14 @@ public class RulePersist {
 
     public void setReferences(List<ReferencePersist> references) {
         this.references = references;
+    }
+
+    public Double getNumberValue() {
+        return numberValue;
+    }
+
+    public void setNumberValue(Double numberValue) {
+        this.numberValue = numberValue;
     }
 
     @Component(RulePersistValidator.ValidatorName)
@@ -140,6 +151,11 @@ public class RulePersist {
                             .iff(()-> FieldType.isBooleanType(fieldType))
                             .must(() -> !this.isNull(item.getBooleanValue()))
                             .failOn(RulePersist._booleanValue).failWith(this.messageSource.getMessage("Validation_Required", new Object[]{RulePersist._booleanValue}, LocaleContextHolder.getLocale())),
+                    this.spec()
+                            .iff(()-> FieldType.isNumberType(fieldType))
+                            .must(() -> !this.isNull(item.getNumberValue()))
+                            .failOn(RulePersist._numberValue).failWith(this.messageSource.getMessage("Validation_Required", new Object[]{RulePersist._numberValue}, LocaleContextHolder.getLocale())),
+
                     this.navSpec()
                             .iff(() -> FieldType.isReferenceType(fieldType) &&  !this.isListNullOrEmpty(item.getReferences()))
                             .on(RulePersist._references)

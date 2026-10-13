@@ -5,10 +5,7 @@ import 'moment-timezone';
 import { CultureService } from '../services/culture/culture-service';
 import { TimezoneService } from '../services/timezone/timezone-service';
 
-@Pipe({
-    name: 'dateTimeFormatter',
-    standalone: false
-})
+@Pipe({ name: 'dateTimeFormatter' })
 export class DateTimeFormatPipe implements PipeTransform {
 
 	constructor(private datePipe: DatePipe, private timezoneService: TimezoneService, private cultureService: CultureService) {
@@ -19,17 +16,14 @@ export class DateTimeFormatPipe implements PipeTransform {
 
 		// using timezone set in timezoneService by default. can be overwritten with pipe arguments
 		const timezoneToUse = timezone ? timezone : moment(value).tz(this.timezoneService.getCurrentTimezone()).format('Z');
-		let localeToUse = locale ? locale : this.cultureService.getCurrentCulture().name;
+		const localeToUse = locale ? locale : this.cultureService.getCurrentCulture().name;
 
 		return this.datePipe.transform(value, format, timezoneToUse, localeToUse);
 	}
 }
 
 
-@Pipe({
-    name: 'dataTableDateTimeFormatter',
-    standalone: false
-})
+@Pipe({ name: 'dataTableDateTimeFormatter' })
 // This is only used for the DataTable Column definition.
 // It's a hacky way to apply format to the pipe because it only supports passing a pipe instance and calls transform in it without params.
 export class DataTableDateTimeFormatPipe extends DateTimeFormatPipe implements PipeTransform {

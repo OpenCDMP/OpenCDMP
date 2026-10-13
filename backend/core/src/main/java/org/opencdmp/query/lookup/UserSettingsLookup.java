@@ -1,5 +1,6 @@
 package org.opencdmp.query.lookup;
 
+import org.opencdmp.commons.SQLUtils;
 import org.opencdmp.commons.enums.UserSettingsType;
 import org.opencdmp.query.UserSettingsQuery;
 import gr.cite.tools.data.query.Lookup;
@@ -40,7 +41,7 @@ public class UserSettingsLookup extends Lookup {
 
     public UserSettingsQuery enrich(QueryFactory queryFactory) {
         UserSettingsQuery query = queryFactory.query(UserSettingsQuery.class);
-        if (this.like != null) query.like(this.like);
+        if (this.like != null) query.like(SQLUtils.toPostgres(this.like));
         if (this.ids != null) query.ids(this.ids);
         if (this.userSettingsTypes != null) query.userSettingsTypes(this.userSettingsTypes);
 

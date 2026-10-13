@@ -8,6 +8,8 @@ public class FileTransformerTenantConfigurationEntity {
 
 	private List<FileTransformerSourceEntity> sources;
 	private boolean disableSystemSources;
+	/** Sources (installation-provided or the tenant's own) switched off for this tenant, by plugin id. */
+	private List<String> disabledSourceIds;
 
 	public List<FileTransformerSourceEntity> getSources() {
 		return sources;
@@ -23,5 +25,12 @@ public class FileTransformerTenantConfigurationEntity {
 
 	public void setDisableSystemSources(boolean disableSystemSources) {
 		this.disableSystemSources = disableSystemSources;
+	}
+	public List<String> getDisabledSourceIds() {
+		return disabledSourceIds;
+	}
+
+	public void setDisabledSourceIds(List<String> disabledSourceIds) {
+		this.disabledSourceIds = disabledSourceIds;
 	}
 }

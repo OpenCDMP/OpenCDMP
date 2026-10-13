@@ -1,10 +1,8 @@
-import { AsyncPipe, CommonModule } from '@angular/common';
-import { Component, EventEmitter, HostListener, Input, Output } from '@angular/core';
+import { NgClass, NgTemplateOutlet } from '@angular/common';
+import { Component, EventEmitter, Input, Output, OnInit, OnDestroy, ChangeDetectionStrategy } from '@angular/core';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { IsActive } from '@app/core/common/enum/is-active.enum';
-import { PlanBlueprintFieldCategory } from '@app/core/common/enum/plan-blueprint-field-category';
 import { WSActionType } from '@app/core/common/enum/ws-action-type';
-import { ExtraFieldInSection, PlanBlueprintDefinitionSection, ReferenceTypeFieldInSection, SystemFieldInSection, UploadFieldInSection } from '@app/core/model/plan-blueprint/plan-blueprint';
 import { Plan } from '@app/core/model/plan/plan';
 import { User } from '@app/core/model/user/user';
 import { UserActionPayload, WSMessage } from '@app/core/model/websocket/ws-message.model';
@@ -15,21 +13,29 @@ import { PlanWebSocketService } from '@app/core/services/websocket/plan-websocke
 import { BaseComponent } from '@common/base/base.component';
 import { CommonFormattingModule } from '@common/formatting/common-formatting.module';
 import { UserLogoPipe } from '@common/http/image/user-logo.pipe';
+import { FallbackAvatarDirective } from '@common/http/image/fallback-avatar.directive';
 import { HttpErrorHandlingService } from '@common/modules/errors/error-handling/http-error-handling.service';
 import { Guid } from '@common/types/guid';
 import { TranslateModule } from '@ngx-translate/core';
 import { Client, StompSubscription } from '@stomp/stompjs';
 import { Observable, takeUntil } from 'rxjs';
 import { DescriptionInfo } from '../plan-editor-blueprint/plan-temp-storage.service';
+import { BaseField, FieldReferenceTypeData, FieldSystemData } from '@app/core/model/description-template/description-template';
+import { FieldType } from '@app/core/common/enum/field-type';
+import { ToCEntry } from '@app/ui/description/editor/table-of-contents/models/toc-entry';
+import { RootToCEntry } from '../plan-editor-blueprint/plan-table-of-contents/plan-table-of-contents.component';
+import { TableOfContentsHelper } from '@app/ui/description/editor/table-of-contents/helpers/table-of-contents.helper';
 
 @Component({
     selector: 'app-plan-active-users',
-    imports: [CommonModule, TranslateModule, AsyncPipe, UserLogoPipe, CommonFormattingModule, MatTooltipModule],
+    imports: [TranslateModule, UserLogoPipe, FallbackAvatarDirective, CommonFormattingModule, MatTooltipModule, NgClass, NgTemplateOutlet],
     templateUrl: './plan-active-users.component.html',
+    changeDetection: ChangeDetectionStrategy.Eager,
     styleUrl: './plan-active-users.component.scss'
 })
-export class PlanActiveUsersComponent extends BaseComponent {
+export class PlanActiveUsersComponent extends BaseComponent implements OnInit, OnDestroy {
     @Input() item: Plan;
+    @Input() tocEntries: RootToCEntry[] = [];
     @Input() skipNavigation: boolean = false; 
     @Input() registerSelf: boolean = true; 
     @Output() onNavigate = new EventEmitter<UserActionPayload>;
@@ -91,9 +97,9 @@ export class PlanActiveUsersComponent extends BaseComponent {
                 .pipe(takeUntil(this._destroyed))
                 .subscribe(
                     (result) => {
-                        let validUsers = new Set(result?.filter(x => this.isValidPlanUser(x.id))?.map(x => x.id) ?? []); //Remove duplicates
+                        const validUsers = new Set(result?.filter(x => this.isValidPlanUser(x.id))?.map(x => x.id) ?? []); //Remove duplicates
                         validUsers.forEach((userId) => {
-                            let user = result.find(x => x.id === userId);
+                            const user = result.find(x => x.id === userId);
                             if(user){
                                 this.activeUsersMap.set(userId, {user, payload: null});
                             }
@@ -112,7 +118,7 @@ export class PlanActiveUsersComponent extends BaseComponent {
                                         }
                                         if (response?.actionType == WSActionType.PlanJoin) {
                                             // add user
-                                            let user = response.producer as User;
+                                            const user = response.producer as User;
                                             this.activeUsersMap.set(user.id, {user, payload: null});
                                         } else if (response?.actionType == WSActionType.PlanLeave) {
                                             // remove user
@@ -153,49 +159,63 @@ export class PlanActiveUsersComponent extends BaseComponent {
         }
     }
 
-    private planSections(): PlanBlueprintDefinitionSection[] {
-        return this.item?.blueprint?.definition?.sections
-    }
-
     private parsePosition(payload: UserActionPayload): ParsedPosition {
-        let descriptionPosition = '';
-        let planPosition = '';
-        if(payload?.blueprintSectionId){
-            let sections = this.planSections();
-
-            let section = sections?.find(x => x.id == payload.blueprintSectionId);
-            let step = section?.ordinal ?? null;
-
-            if(section) {
-                let field;
-                if(payload.blueprintFieldId){
-                    field = section?.fields?.find(x => x.id == payload.blueprintFieldId) ?? null;
-                }
-                planPosition = field ? `${step}.${field.ordinal}. ${this.getFieldLabel(field)}` : `${step}. ${section.label}`
-            }
-
+        if(!payload){ return; }
+        if(payload.descriptionId){
+            const parentEntry: ToCEntry = TableOfContentsHelper.findTocEntryById(payload.descriptionId.toString(), this.tocEntries);
+            const entries: ToCEntry[] = parentEntry?.subEntries ?? [];
+            const anchor = payload.fieldSetId ?? payload.sectionId;
+            const entry = TableOfContentsHelper.findTocEntryById(anchor, entries);
+            return {descriptionPosition:
+                (parentEntry?.numbering ? parentEntry?.numbering + '.' : '' ) + (entry?.numbering ?? '') + ' ' + (entry?.label ?? '')
+            };
+        } else {
+            const anchor = payload.fieldSetId ?? payload.sectionId;
+            const entry = TableOfContentsHelper.findTocEntryById(anchor?.toString(), this.tocEntries);
+            return {planPosition:
+                (entry?.numbering ?? '') + ' ' + (entry?.label ?? '')
+            };
         }
-        if(payload?.descriptionId){
-            let keyId = payload.descriptionFieldSetId ?? payload.descriptionSectionId ?? payload.descriptionPageId ?? payload.descriptionId;
-            let element = document.getElementById(keyId + '-label');
-            descriptionPosition = element?.textContent ?? null;
-        }
-        return {
-            descriptionPosition,
-            planPosition
-        }
+        // let descriptionPosition = '';
+        // let planPosition = '';
+        // if(payload?.blueprintSectionId){
+        //     let blueprintSectionId = payload.blueprintSectionId.toString();
+        //     let blueprintFieldId = payload.blueprintFieldId.toString();
+        //     let sections = this.planSections();
+
+        //     let section = sections?.find(x => x.id == blueprintSectionId);
+        //     let step = section?.ordinal ?? null;
+
+        //     if(section) {
+        //         let field;
+        //         if(payload.blueprintFieldId){
+        //             field = (section?.fieldSets ?? []).flatMap(fs => fs.fields ?? []).find(x => x.id == blueprintFieldId) ?? null;
+        //         }
+        //         planPosition = field ? `${step}.${field.ordinal}. ${this.getFieldLabel(field)}` : `${step}. ${section.title}`
+        //     }
+
+        // }
+        // if(payload?.descriptionId){
+        //     let keyId = payload.descriptionFieldSetId ?? payload.descriptionSectionId ?? payload.descriptionPageId ?? payload.descriptionId;
+        //     let element = document.getElementById(keyId + '-label');
+        //     descriptionPosition = element?.textContent ?? null;
+        // }
+        // return {
+        //     descriptionPosition,
+        //     planPosition
+        // }
     }
 
-    private getFieldLabel(field: SystemFieldInSection | ExtraFieldInSection | ReferenceTypeFieldInSection | UploadFieldInSection): string {
-        if(!field.label){
-            switch(field.category){
-                case(PlanBlueprintFieldCategory.System):
-                    return this.enumUtils.toPlanBlueprintSystemFieldTypeString((field as SystemFieldInSection).systemFieldType)
-                case(PlanBlueprintFieldCategory.ReferenceType):
-                    return (field as ReferenceTypeFieldInSection).referenceType.name
+    private getFieldLabel(field: BaseField): string {
+        if(!field.data?.label){
+            switch(field.data.fieldType){
+                case(FieldType.SYSTEM):
+                    return this.enumUtils.toSystemFieldTypeString((field.data as FieldSystemData).systemFieldType)
+                case(FieldType.REFERENCE_TYPES):
+                    return (field.data as FieldReferenceTypeData).referenceType.name
             }
         } else {
-            return field.label;
+            return field.data.label;
         }
     }
 
@@ -204,7 +224,7 @@ export class PlanActiveUsersComponent extends BaseComponent {
     }
 
     getTooltipInfo(user: ActiveUserInfo): string {
-        let position = this.parsePosition(user?.payload);
+        const position = this.parsePosition(user?.payload);
         return `${user.user.name} \n\n` +
         (position?.descriptionPosition?.length ? position.descriptionPosition : (position?.planPosition ?? '')) + ' \n'
     }
@@ -215,7 +235,7 @@ export class PlanActiveUsersComponent extends BaseComponent {
     }
 
     destroyWebsocket(){
-        if (this.item?.id) {
+        if (this.item?.id && this.item.isActive === IsActive.Active) {
             this.stompClient$.subscribe(stompClient => {
                 if (stompClient && stompClient.connected && this.stompSubscription) {
                     this.stompSubscription.unsubscribe();
@@ -236,8 +256,8 @@ export class PlanActiveUsersComponent extends BaseComponent {
 }
 
 interface ParsedPosition {
-    planPosition: string;
-    descriptionPosition: string;
+    planPosition?: string;
+    descriptionPosition?: string;
 }
 
 interface ActiveUserInfo {

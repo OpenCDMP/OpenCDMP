@@ -20,9 +20,9 @@ export class DefaultUserLocaleService {
 		let timezones = of(moment.tz.names().sort((x, y) => x.localeCompare(y)));
 
 		if (q.like) {
-			let likeValue = q.like.toLowerCase();
+			const likeValue = q.like.toLowerCase();
 			timezones = timezones.pipe(map((items: string[]) => {
-				let filteredItems: string[] = items.filter(i => this.timezoneInfoDisplayPipe.transform(i).toLowerCase().includes(likeValue));
+				const filteredItems: string[] = items.filter(i => this.timezoneInfoDisplayPipe.transform(i).toLowerCase().includes(likeValue));
 				if (filteredItems != null && filteredItems?.length > 0) return filteredItems;
 				else return null;
 			}));
@@ -30,7 +30,7 @@ export class DefaultUserLocaleService {
 
 		if (q.selectedItem) {
 			timezones = timezones.pipe(map((items: string[]) => {
-				let filteredItem: string = items.find(i => i === q.selectedItem);
+				const filteredItem: string = items.find(i => i === q.selectedItem);
 				if (filteredItem != null) return [filteredItem];
 				else return null;
 			}));
@@ -43,9 +43,9 @@ export class DefaultUserLocaleService {
 		let cultures = of(this.cultureService.getCultureValues().sort((x, y) => x.displayName.localeCompare(y.displayName)));
 
 		if (q.like) {
-			let likeValue = q.like.toLowerCase();
+			const likeValue = q.like.toLowerCase();
 			cultures = cultures.pipe(map((items: CultureInfo[]) => {
-				let filteredItems = items.filter(i => {
+				const filteredItems = items.filter(i => {
 					const displayValue = `${i?.displayName} - ${i?.name}`;
 					if (displayValue.toLowerCase().includes(likeValue)) {
 						return true;
@@ -59,9 +59,9 @@ export class DefaultUserLocaleService {
 		}
 
 		if (q.selectedItem) {
-			let selectedItemValue = q.selectedItem.toLowerCase();
+			const selectedItemValue = q.selectedItem.toLowerCase();
 			cultures = cultures.pipe(map((items: CultureInfo[]) => {
-				let selected = items.find(i => {
+				const selected = items.find(i => {
 					if (i.name.toLowerCase().includes(selectedItemValue)) {
 						return true;
 					} else {

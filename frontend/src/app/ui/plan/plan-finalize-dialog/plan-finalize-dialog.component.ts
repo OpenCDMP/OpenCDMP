@@ -1,5 +1,5 @@
-import { Component, computed, HostBinding, Inject, OnInit } from '@angular/core';
-import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
+import { Component, Inject, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { MAT_DIALOG_DATA, MatDialogRef, MatDialogTitle, MatDialogContent, MatDialogActions } from '@angular/material/dialog';
 import { Router } from '@angular/router';
 import { DescriptionStatusEnum } from '@app/core/common/enum/description-status';
 import { PlanAccessType } from '@app/core/common/enum/plan-access-type';
@@ -14,13 +14,23 @@ import { takeUntil } from 'rxjs/operators';
 import { DescriptionInfo } from '../plan-editor-blueprint/plan-temp-storage.service';
 import { DescriptionEditorHelper } from '../plan-editor-blueprint/plan-description-editor/plan-description-editor-helper';
 import { FormService } from '@common/forms/form-service';
+import { MatIconButton, MatButton } from '@angular/material/button';
+import { MatIcon } from '@angular/material/icon';
+import { CdkScrollable } from '@angular/cdk/scrolling';
+import { MatAccordion, MatExpansionPanel, MatExpansionPanelHeader, MatExpansionPanelTitle, MatExpansionPanelDescription } from '@angular/material/expansion';
+import { MatTooltip } from '@angular/material/tooltip';
+import { MatSelectionList, MatListOption } from '@angular/material/list';
+import { FormsModule } from '@angular/forms';
+import { TitleCasePipe } from '@angular/common';
+import { TranslatePipe } from '@ngx-translate/core';
 
 
 @Component({
     selector: 'app-plan-finalize-dialog-component',
     templateUrl: 'plan-finalize-dialog.component.html',
     styleUrls: ['./plan-finalize-dialog.component.scss'],
-    standalone: false
+    changeDetection: ChangeDetectionStrategy.Eager,
+    imports: [MatDialogTitle, MatIconButton, MatIcon, CdkScrollable, MatDialogContent, MatAccordion, MatExpansionPanel, MatExpansionPanelHeader, MatExpansionPanelTitle, MatTooltip, MatButton, MatExpansionPanelDescription, MatSelectionList, FormsModule, MatListOption, MatDialogActions, TitleCasePipe, TranslatePipe]
 })
 export class PlanFinalizeDialogComponent extends BaseComponent implements OnInit {
    
@@ -28,6 +38,8 @@ export class PlanFinalizeDialogComponent extends BaseComponent implements OnInit
 	plan: Plan;
     descriptions: Description[];
     descriptionMetadata: DescriptionInfo[];
+    // FE-2: plan sections with pending required/invalid fields (guidance + jump-to).
+    incompleteSections: { id: string; label: string; numbering: string }[] = [];
 	isPlanValid: boolean;
 	planErrors: string[];
 	planAccessTypeEnum = PlanAccessType;
@@ -50,6 +62,7 @@ export class PlanFinalizeDialogComponent extends BaseComponent implements OnInit
 		super();
 		this.plan = data.plan;
         this.descriptionMetadata = data.descriptionMetadata;
+        this.incompleteSections = data.incompleteSections ?? [];
         this.descriptions = this.descriptionMetadata ? this.descriptionMetadata.map((x) => x.lastPersist) : this.plan.descriptions;
         this.dialogRef.backdropClick().subscribe(() => this.dialogRef.close({
             planValid: this.isPlanValid,
@@ -112,7 +125,9 @@ export class PlanFinalizeDialogComponent extends BaseComponent implements OnInit
                 this.formService.touchAllFormFields(draft.formGroup);
                 this.formService.validateAllFormFields(draft.formGroup);
 
-                const isValid = draft.formGroup.valid
+                // theoretically we shouldn't get to this point with a disabled form
+                // but because of locks, it can potentially happen
+                const isValid = draft.formGroup.disabled || draft.formGroup.valid
                 this.draftDescriptionValidationOutputMap.set(draft.lastPersist.id, isValid ? DescriptionValidationOutput.Valid : DescriptionValidationOutput.Invalid);
 
                 if(!isValid){
@@ -149,6 +164,41 @@ export class PlanFinalizeDialogComponent extends BaseComponent implements OnInit
 		if (!this.descriptions) return [];
 		return this.descriptions.filter(x => x.status.internalStatus === DescriptionStatusEnum.Draft && this.draftDescriptionValidationOutputMap.get(x.id) === DescriptionValidationOutput.Valid);
 	}
+
+	// FE-3: drafts that will NOT be finalized (invalid ones, or valid ones the user didn't select).
+	// Per the "at least one finalized" policy the plan can still finalize, but these descriptions are
+	// dropped from the finalized plan and become uneditable — so we surface them explicitly rather
+	// than silently excluding them.
+	get excludedDraftDescriptions(): Description[] {
+		if (!this.descriptions) return [];
+		return this.descriptions.filter(x =>
+			x.status?.internalStatus === DescriptionStatusEnum.Draft &&
+			!this.descriptionsToBeFinalized?.some(id => id?.toString() === x.id?.toString())
+		);
+	}
+
+	get willBeFinalizedCount(): number {
+		return this.getFinalizedDescriptions().length + (this.descriptionsToBeFinalized?.length ?? 0);
+	}
+
+	// FE-3: close the dialog asking the editor to navigate to this description so the user can fix its
+	// missing fields, instead of having to cancel and hunt for it manually.
+	fixDescription(descriptionId: Guid) {
+		this.dialogRef.close({
+			cancelled: true,
+			planValid: this.isPlanValid,
+			navigateToDescriptionId: descriptionId
+		} as PlanFinalizeDialogOutput);
+	}
+
+	// FE-2: jump to a plan section with pending required fields.
+	fixSection(sectionId: string) {
+		this.dialogRef.close({
+			cancelled: true,
+			planValid: this.isPlanValid,
+			navigateToSectionId: sectionId
+		} as PlanFinalizeDialogOutput);
+	}
 }
 
 export interface DescriptionValidationResult {
@@ -178,4 +228,8 @@ export interface PlanFinalizeDialogOutput {
 	cancelled?: boolean;
     planValid?: boolean
 	descriptionsToBeFinalized?: Guid[];
+	// FE-3: when set, the editor should navigate to this description so the user can fix it.
+	navigateToDescriptionId?: Guid;
+	// FE-2: when set, the editor should navigate to this plan section so the user can fix it.
+	navigateToSectionId?: string;
 }

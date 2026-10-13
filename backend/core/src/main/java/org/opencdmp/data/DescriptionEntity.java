@@ -34,6 +34,13 @@ public class DescriptionEntity extends TenantScopedBaseEntity  {
 
 	public static final String _properties = "properties";
 
+	// Server-owned metadata (DescriptionAdditionalInfoEntity JSON): clone provenance etc.
+	// Never rebuilt from client persist models — set only by backend flows.
+	@Column(name = "additional_info")
+	private String additionalInfo;
+
+	public static final String _additionalInfo = "additionalInfo";
+
 	@Column(name = "status", nullable = false)
 	private UUID statusId;
 	public static final String _statusId = "statusId";
@@ -105,6 +112,14 @@ public class DescriptionEntity extends TenantScopedBaseEntity  {
 
 	public void setProperties(String properties) {
 		this.properties = properties;
+	}
+
+	public String getAdditionalInfo() {
+		return this.additionalInfo;
+	}
+
+	public void setAdditionalInfo(String additionalInfo) {
+		this.additionalInfo = additionalInfo;
 	}
 
 	public String getDescription() {

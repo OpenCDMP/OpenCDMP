@@ -10,7 +10,14 @@
     display: flex;
     align-items: center;
 }
-
+.table-card{
+    width: fit-content;
+}
+td{
+    max-width: 10rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
 ::ng-deep .mat-mdc-paginator-container{
     .mat-mdc-paginator-page-size{
         display: none;

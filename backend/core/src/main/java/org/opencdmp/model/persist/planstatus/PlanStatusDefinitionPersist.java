@@ -6,6 +6,7 @@ import org.opencdmp.commons.enums.PlanStatusAvailableActionType;
 import org.opencdmp.commons.validation.BaseValidator;
 import org.opencdmp.convention.ConventionService;
 import org.opencdmp.errorcode.ErrorThesaurusProperties;
+import org.opencdmp.model.persist.iconconfiguration.IconConfigurationPersist;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.Scope;
@@ -15,7 +16,6 @@ import org.springframework.validation.Errors;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.UUID;
 
 public class PlanStatusDefinitionPersist {
     public final static String _authorization = "authorization";
@@ -24,11 +24,8 @@ public class PlanStatusDefinitionPersist {
     public final static String _availableActions = "availableActions";
     private List<PlanStatusAvailableActionType> availableActions;
 
-    public final static String _matIconName = "matIconName";
-    private  String matIconName;
-
-    public final static String _storageFileId = "storageFileId";
-    private UUID storageFileId;
+    private IconConfigurationPersist iconConfiguration;
+    public static final String _iconConfiguration = "iconConfiguration";
 
     public final static String _statusColor = "statusColor";
     private  String statusColor;
@@ -45,20 +42,12 @@ public class PlanStatusDefinitionPersist {
         this.availableActions = availableActions;
     }
 
-    public String getMatIconName() {
-        return matIconName;
+    public IconConfigurationPersist getIconConfiguration() {
+        return iconConfiguration;
     }
 
-    public void setMatIconName(String matIconName) {
-        this.matIconName = matIconName;
-    }
-
-    public UUID getStorageFileId() {
-        return storageFileId;
-    }
-
-    public void setStorageFileId(UUID storageFileId) {
-        this.storageFileId = storageFileId;
+    public void setIconConfiguration(IconConfigurationPersist iconConfiguration) {
+        this.iconConfiguration = iconConfiguration;
     }
 
     public String getStatusColor() {
@@ -98,14 +87,11 @@ public class PlanStatusDefinitionPersist {
                             .on(PlanStatusDefinitionPersist._authorization)
                             .over(item.getAuthorization())
                             .using(() -> this.validatorFactory.validator(PlanStatusDefinitionAuthorizationPersist.PlanStatusDefinitionAuthorizationPersistValidator.class)),
-                    this.spec()
-                            .iff(() -> !this.isEmpty(item.getMatIconName()))
-                            .must(() -> this.isNull(item.getStorageFileId()))
-                            .failOn(PlanStatusDefinitionPersist._storageFileId).failWith(messageSource.getMessage("Validation_UnexpectedValue", new Object[]{PlanStatusDefinitionPersist._storageFileId}, LocaleContextHolder.getLocale())),
-                    this.spec()
-                            .iff(() -> !this.isNull(item.getStorageFileId()))
-                            .must(() -> this.isEmpty(item.getMatIconName()))
-                            .failOn(PlanStatusDefinitionPersist._matIconName).failWith(messageSource.getMessage("Validation_UnexpectedValue", new Object[]{PlanStatusDefinitionPersist._matIconName}, LocaleContextHolder.getLocale()))
+                    this.refSpec()
+                            .iff(() -> !this.isNull(item.getIconConfiguration()))
+                            .on(PlanStatusDefinitionPersist._iconConfiguration)
+                            .over(item.getIconConfiguration())
+                            .using(() -> this.validatorFactory.validator(IconConfigurationPersist.IconConfigurationPersistValidator.class))
 
             );
         }

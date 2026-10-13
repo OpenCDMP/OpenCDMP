@@ -1,0 +1,22 @@
+@if (!groups.length) {
+	<p class="bp2-help kv-empty">{{'PLAN-BLUEPRINT-EDITOR.KEYS-VIEW.EMPTY' | translate}}</p>
+}
+@for (g of groups; track g.id) {
+	<div class="kv-group">
+		<div class="kv-group__head"><strong>{{g.label}}</strong>@if (g.object) { <code class="kv-object" [title]="g.object">@for (part of g.object | bp2KeyParts; track $index) {<span>{{part}}</span><wbr>}</code> }</div>
+		@for (k of g.keys; track k.key) {
+			<div class="kv-row">
+				<code class="kv-key" [title]="k.key">@for (part of shortKey(k.key, g.object) | bp2KeyParts; track $index) {<span>{{part}}</span><wbr>}</code>
+				<span class="kv-refs">@for (q of k.questions; track q.id) { <button type="button" class="kv-ref" (click)="open(q)" [title]="q.title" [attr.aria-label]="'PLAN-BLUEPRINT-EDITOR.KEYS-VIEW.OPEN' | translate: { numbering: q.numbering, key: k.key }">{{q.numbering}}</button> }</span>
+			</div>
+		}
+	</div>
+}
+@if (unmapped.length) {
+	<button type="button" class="kv-unmapped-toggle" (click)="showUnmapped = !showUnmapped" [attr.aria-expanded]="showUnmapped">
+		<mat-icon aria-hidden="true">{{ showUnmapped ? 'expand_less' : 'expand_more' }}</mat-icon>{{'PLAN-BLUEPRINT-EDITOR.KEYS-VIEW.UNMAPPED' | bp2Count: unmapped.length}}
+	</button>
+	@if (showUnmapped) {
+		<div class="kv-unmapped">@for (q of unmapped; track q.id) { <button type="button" class="kv-chip" (click)="open(q)">{{q.numbering}} {{ q.title || ('PLAN-BLUEPRINT-EDITOR.UNTITLED-QUESTION' | translate) }}</button> }</div>
+	}
+}

@@ -3,10 +3,7 @@ import { Pipe, PipeTransform, inject } from '@angular/core';
 import { CultureService } from '@app/core/services/culture/culture-service';
 import 'moment-timezone';
 
-@Pipe({
-    name: 'dateOnly',
-    standalone: false
-})
+@Pipe({ name: 'dateOnly' })
 export class DateOnlyPipe implements PipeTransform {
 
 
@@ -23,10 +20,7 @@ export class DateOnlyPipe implements PipeTransform {
 	}
 }
 
-@Pipe({
-    name: 'dataTableDateOnlyFormatter',
-    standalone: false
-})
+@Pipe({ name: 'dataTableDateOnlyFormatter' })
 // This is only used for the DataTable Column definition.
 // It's a hacky way to apply format to the pipe because it only supports passing a pipe instance and calls transform in it without params.
 export class DataTableDateOnlyFormatPipe extends DateOnlyPipe implements PipeTransform {

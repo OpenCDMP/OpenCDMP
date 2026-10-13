@@ -1,18 +1,16 @@
 
-import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
-import { FormArray, FormControl, FormGroup, UntypedFormGroup } from '@angular/forms';
+import { Component, EventEmitter, Input, OnInit, Output, ChangeDetectionStrategy } from '@angular/core';
+import { FormControl, FormGroup, UntypedFormGroup, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { DescriptionStatusEnum } from '@app/core/common/enum/description-status';
 import { PlanUserRole } from '@app/core/common/enum/plan-user-role';
+import { ReferenceUsageEntityType } from '@app/core/common/enum/reference-usage-entity-type';
 import { ReferenceType } from '@app/core/model/reference-type/reference-type';
-import { Reference } from '@app/core/model/reference/reference';
 import { ReferencesWithType } from '@app/core/query/description.lookup';
-import { ReferenceLookup } from '@app/core/query/reference.lookup';
 import { AuthService } from '@app/core/services/auth/auth.service';
 import { DescriptionStatusService } from '@app/core/services/description-status/description-status.service';
+import { DescriptionTemplateTypeService } from '@app/core/services/description-template-type/description-template-type.service';
 import { DescriptionTemplateService } from '@app/core/services/description-template/description-template.service';
 import { PlanService } from '@app/core/services/plan/plan.service';
-import { ReferenceTypeService } from '@app/core/services/reference-type/reference-type.service';
-import { ReferenceService } from '@app/core/services/reference/reference.service';
 import { TagService } from '@app/core/services/tag/tag.service';
 import { EnumUtils } from '@app/core/services/utilities/enum-utils.service';
 import { MultipleAutoCompleteConfiguration } from '@app/library/auto-complete/multiple/multiple-auto-complete-configuration';
@@ -20,20 +18,33 @@ import { SingleAutoCompleteConfiguration } from '@app/library/auto-complete/sing
 import { BaseCriteriaComponent } from '@app/ui/misc/criteria/base-criteria.component';
 import { ValidationErrorModel } from '@common/forms/validation/error-model/validation-error-model';
 import { Guid } from '@common/types/guid';
-import { IsActive } from '@notification-service/core/enum/is-active.enum';
-import { map, takeUntil } from 'rxjs/operators';
-import { nameof } from 'ts-simple-nameof';
+import { MatSlideToggle } from '@angular/material/slide-toggle';
+import { MatFormField, MatLabel } from '@angular/material/form-field';
+import { ReactiveAsteriskDirective } from '../../../../../common/forms/reactive-asterisk-directive';
+import { SingleAutoCompleteComponent } from '../../../../library/auto-complete/single/single-auto-complete.component';
+import { MultipleAutoCompleteComponent } from '../../../../library/auto-complete/multiple/multiple-auto-complete.component';
+import { MatSelect, MatOption } from '@angular/material/select';
+import { ReferenceUsageFilterComponent } from '../../../reference/reference-usage-filter/reference-usage-filter.component';
+import { MatButton } from '@angular/material/button';
+import { TranslatePipe } from '@ngx-translate/core';
 
 @Component({
     selector: 'app-description-filter-component',
     templateUrl: './description-filter.component.html',
     styleUrls: ['./description-filter.component.scss'],
-    standalone: false
+    changeDetection: ChangeDetectionStrategy.Eager,
+    imports: [MatSlideToggle, FormsModule, ReactiveFormsModule, MatFormField, MatLabel, ReactiveAsteriskDirective, SingleAutoCompleteComponent, MultipleAutoCompleteComponent, MatSelect, MatOption, ReferenceUsageFilterComponent, MatButton, TranslatePipe]
 })
 export class DescriptionFilterComponent extends BaseCriteriaComponent<DescriptionListingFilterForm> implements OnInit {
 
 	@Input() isPublic: boolean;
 	@Input() hasSelectedTenant: boolean;
+	/** Reference types shown as their own filter sections (the tenant's description view preferences). */
+	@Input() featuredReferenceTypes: ReferenceType[] = [];
+	/** A reference type whose section opens straight away. */
+	@Input() expandReferenceTypeId: Guid = null;
+	/** Hosted outside its listing (the dashboard): hides the deleted-items toggle and the status field. */
+	@Input() embedded = false;
 
 	private _filters: DescriptionListingFilters;
 	@Input() set filters(v: DescriptionListingFilters) {
@@ -51,25 +62,26 @@ export class DescriptionFilterComponent extends BaseCriteriaComponent<Descriptio
 	public criteria: any;
 	public filteringTagsAsync = false;
 
+	ReferenceUsageEntityType = ReferenceUsageEntityType;
+	selectedReferenceIds: Guid[] = [];
 	statuses = DescriptionStatusEnum;
-	planRole = PlanUserRole;
+	role = PlanUserRole;
+    roleArray = this.enumUtils.getEnumValues<PlanUserRole>(PlanUserRole);
 	options: UntypedFormGroup;
 
 	descriptionTemplateAutoCompleteConfiguration: MultipleAutoCompleteConfiguration = this.descriptionTemplateService.buildDescriptionTempalteGroupMultipleAutocompleteConfiguration();
+    descriptionTemplateTypeAutoCompleteConfiguration: MultipleAutoCompleteConfiguration = this.descriptionTemplateTypeService.multipleAutocompleteConfiguration;
 	planAutoCompleteConfiguration: MultipleAutoCompleteConfiguration = this.planService.multipleAutocompleteConfiguration;
 	tagAutoCompleteConfiguration: MultipleAutoCompleteConfiguration = this.tagService.multipleAutocompleteConfiguration;
-	referenceTypeAutocompleteConfiguration: SingleAutoCompleteConfiguration = this.getReferenceTypeAutocompleteConfiguration();
 	descriptionStatusAutocompleteConfiguration: SingleAutoCompleteConfiguration = this.descriptionStatusService.singleAutocompleteConfiguration;
-	referenceAutocompleteConfiguration: Map<Guid, MultipleAutoCompleteConfiguration>;
 
 	constructor(
 		public enumUtils: EnumUtils,
 		private authentication: AuthService,
 		private descriptionTemplateService: DescriptionTemplateService,
+        private descriptionTemplateTypeService: DescriptionTemplateTypeService,
 		private planService: PlanService,
 		private tagService: TagService,
-		private referenceService: ReferenceService,
-		private referenceTypeService: ReferenceTypeService,
 		private descriptionStatusService: DescriptionStatusService
 	) {
 		super(new ValidationErrorModel());
@@ -83,32 +95,15 @@ export class DescriptionFilterComponent extends BaseCriteriaComponent<Descriptio
 		this.formGroup = new FormGroup<DescriptionListingFilterForm>({
 			statusId: new FormControl(filters?.statusId),
 			isActive: new FormControl(filters?.isActive),
-			role: new FormControl(filters.role),
+			viewOnlyTenant: new FormControl(filters.viewOnlyTenant),
+			roles: new FormControl(filters.roles),
 			descriptionTemplates: new FormControl(filters.descriptionTemplates),
+            descriptionTemplateTypes: new FormControl(filters.descriptionTemplateTypes),
 			associatedPlanIds: new FormControl(filters.associatedPlanIds),
 			tags: new FormControl(filters.tags),
-			references: new FormArray([])
+			references: new FormControl(filters?.references ?? [])
 		});
-
-		this.referenceAutocompleteConfiguration = new Map<Guid, MultipleAutoCompleteConfiguration>();
-
-		filters?.references?.forEach((item: ReferencesWithType) => {
-	
-			if (item.referenceTypeId) {
-				this.addReferenceType(item.referenceTypeId, item.referenceIds);
-			}
-			else if (item.referenceIds && item.referenceIds?.length > 0) {
-				this.referenceService.query(this._referenceLookup(item.referenceIds)).pipe(takeUntil(this._destroyed), map((x) => x.items))
-				.subscribe((references: Reference[]) => {
-					const types = new Set(references.map((x) => x.type.id));
-
-					types.forEach((typeId) => {
-						const referenceIds = references.filter((x) => x.type.id === typeId).map(x => x.id);
-						this.addReferenceType(typeId, referenceIds);
-					});
-				});
-			}
-		});
+		this.selectedReferenceIds = this._flattenReferenceIds(filters?.references);
 	}
 
 	resetFilters() {
@@ -116,36 +111,14 @@ export class DescriptionFilterComponent extends BaseCriteriaComponent<Descriptio
 		this.formGroup.patchValue({
 			statusId: null,
 			isActive: true,
-			role: null,
+			viewOnlyTenant: null,
+			roles: null,
 			descriptionTemplates: null,
 			associatedPlanIds: null,
 			tags: null,
 			references: null
 		});
-		this.referenceAutocompleteConfiguration.clear();
-	}
-
-	addReferenceType(referenceTypeId: Guid = null, referenceIds: Guid[] = null): void {
-		const referenceForm = new FormGroup<DescriptionListingFilterReferencesForm>({
-			referenceTypeId: new FormControl(referenceTypeId),
-			referenceIds: new FormControl(referenceIds ? referenceIds : []),
-		});
-
-		if (referenceTypeId && referenceIds?.length) {
-			let referenceAutocomplete = this.getReferenceAutocompleteConfiguration(referenceTypeId);
-			this.referenceAutocompleteConfiguration.set(referenceTypeId, referenceAutocomplete);
-		}		
-
-		this._registerReferenceTypeListener(referenceForm);
-		this._registerReferencesListener(referenceForm);
-		
-		this.formGroup.controls.references.push(referenceForm);
-	}
-
-	deleteRow(index: number): void {
-		const formArray = this.formGroup.controls.references;
-
-		formArray.removeAt(index);
+		this.selectedReferenceIds = [];
 	}
 
 	controlModified(): void {
@@ -157,66 +130,23 @@ export class DescriptionFilterComponent extends BaseCriteriaComponent<Descriptio
 		return this.authentication.currentAccountIsAuthenticated();
 	}
 
-	getReferenceTypeAutocompleteConfiguration(): SingleAutoCompleteConfiguration {
-		return this.referenceTypeService.getSingleAutocompleteConfiguration();
-	};
-
-	selectReferenceAutocompleteConfiguration(referenceTypeId: Guid): MultipleAutoCompleteConfiguration {
-		return this.referenceAutocompleteConfiguration.get(referenceTypeId);
-	};
-
-	getReferenceAutocompleteConfiguration(referenceTypeId: Guid): MultipleAutoCompleteConfiguration {
-		let autocomplete = this.referenceService.getMultipleAutoCompleteQueryConfiguration([referenceTypeId]);
-		return autocomplete;
-	};
-
-	private _referenceLookup(ids: Guid[]): ReferenceLookup {
-		const lookup: ReferenceLookup = new ReferenceLookup();
-		lookup.page = { size: 100, offset: 0 };
-		if (ids && ids.length > 0) { lookup.ids = ids; }
-		lookup.isActive = [IsActive.Active];
-		lookup.project = {
-			fields: [
-				nameof<Reference>(x => x.id),
-				nameof<Reference>(x => x.label),
-				[nameof<Reference>(x => x.type), nameof<ReferenceType>(x => x.id)].join('.'),
-				[nameof<Reference>(x => x.type), nameof<ReferenceType>(x => x.name)].join('.'),
-			]
-		};
-		lookup.order = { items: [nameof<Reference>(x => x.label)] };
-		return lookup;
+	onReferencesChanged(references: ReferencesWithType[]): void {
+		this.formGroup.controls.references.setValue(references ?? []);
+		this.selectedReferenceIds = this._flattenReferenceIds(references);
 	}
 
-	private _registerReferenceTypeListener(formGroup: FormGroup<DescriptionListingFilterReferencesForm>) {
-		formGroup.controls.referenceTypeId?.valueChanges.pipe(takeUntil(this._destroyed))
-			.subscribe((referenceTypeId: Guid) => {
-				this.referenceTypeAutocompleteConfiguration = this.getReferenceTypeAutocompleteConfiguration();
-				formGroup.controls.referenceIds?.reset();
-
-				if (referenceTypeId) {
-					let referenceAutocomplete = this.getReferenceAutocompleteConfiguration(referenceTypeId);
-					this.referenceAutocompleteConfiguration.set(referenceTypeId, referenceAutocomplete);
-				}
-			});
-	}
-
-	private _registerReferencesListener(formGroup: FormGroup<DescriptionListingFilterReferencesForm>) {
-		formGroup.controls.referenceIds?.valueChanges.pipe(takeUntil(this._destroyed))
-			.subscribe(references => {
-				let referenceTypeId = formGroup.controls.referenceTypeId.value;
-				if (!referenceTypeId) return;
-				
-				let referenceAutocomplete = this.getReferenceAutocompleteConfiguration(referenceTypeId);
-				this.referenceAutocompleteConfiguration.set(referenceTypeId, referenceAutocomplete);
-			});
+	private _flattenReferenceIds(references: ReferencesWithType[]): Guid[] {
+		return (references ?? []).flatMap(x => x?.referenceIds ?? []).filter(x => x != null);
 	}
 }
 
 export interface DescriptionListingFilters {
 	statusId: Guid,
 	isActive: boolean,
-	role: Guid,
+	viewOnlyTenant: boolean,
+	roles: PlanUserRole[],
 	descriptionTemplates: Guid[],
+    descriptionTemplateTypes: Guid[],
 	associatedPlanIds: Guid[],
 	tags: Guid[],
 	references: ReferencesWithType[]
@@ -225,14 +155,11 @@ export interface DescriptionListingFilters {
 interface DescriptionListingFilterForm {
 	statusId: FormControl<Guid>,
 	isActive: FormControl<boolean>,
-	role: FormControl<Guid>,
+	viewOnlyTenant: FormControl<boolean>,
+	roles: FormControl<PlanUserRole[]>,
 	descriptionTemplates: FormControl<Guid[]>,
+    descriptionTemplateTypes: FormControl<Guid[]>,
 	associatedPlanIds: FormControl<Guid[]>,
 	tags: FormControl<Guid[]>,
-	references: FormArray<FormGroup<DescriptionListingFilterReferencesForm>>
-}
-
-interface DescriptionListingFilterReferencesForm {
-	referenceTypeId: FormControl<Guid>,
-	referenceIds: FormControl<Guid[]>
+	references: FormControl<ReferencesWithType[]>
 }

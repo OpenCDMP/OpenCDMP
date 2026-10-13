@@ -2,8 +2,10 @@ package org.opencdmp.controllers;
 
 import org.opencdmp.audit.AuditableAction;
 import org.opencdmp.commons.scope.user.UserScopeFactory;
+import org.opencdmp.data.TenantEntityManagerFactory;
 import org.opencdmp.model.*;
 import org.opencdmp.model.censorship.*;
+import org.opencdmp.model.result.QueryResult;
 import org.opencdmp.model.user.User;
 import org.opencdmp.service.dashborad.DashboardService;
 import gr.cite.tools.auditing.AuditService;
@@ -32,27 +34,31 @@ public class DashboardController {
     private final CensorFactory censorFactory;
 
     private final UserScopeFactory userScopeFactory;
+
+    private final TenantEntityManagerFactory tenantEntityManagerFactory;
+
     public DashboardController(
             AuditService auditService,
-            DashboardService dashboardService, 
+            DashboardService dashboardService,
             CensorFactory censorFactory,
-            UserScopeFactory userScopeFactory) {
+            UserScopeFactory userScopeFactory, TenantEntityManagerFactory tenantEntityManagerFactory) {
         this.auditService = auditService;
         this.dashboardService = dashboardService;
         this.censorFactory = censorFactory;
         this.userScopeFactory = userScopeFactory;
+        this.tenantEntityManagerFactory = tenantEntityManagerFactory;
     }
 
 
 
     @PostMapping("mine/recent-activity")
-    public List<RecentActivityItem> getMyRecentActivityItems(@RequestBody RecentActivityItemLookup lookup) throws InvalidApplicationException {
+    public QueryResult<RecentActivityItem> getMyRecentActivityItems(@RequestBody RecentActivityItemLookup lookup) throws InvalidApplicationException {
         logger.debug(new MapLogEntry("retrieving" + User.class.getSimpleName()).And("lookup", lookup));
 
         this.censorFactory.censor(RecentActivityItemCensor.class).censor(lookup.getProject(), this.userScopeFactory.getInstance().getUserId());
         
         lookup.setUserIds(List.of(this.userScopeFactory.getInstance().getUserId()));
-        List<RecentActivityItem> models = this.dashboardService.getMyRecentActivityItems(lookup);
+        QueryResult<RecentActivityItem> models = this.dashboardService.getMyRecentActivityItems(lookup);
 
         this.auditService.track(AuditableAction.Dashboard_MyRecentActivityItems, Map.ofEntries(
                 new AbstractMap.SimpleEntry<String, Object>("lookup", lookup)
@@ -76,14 +82,21 @@ public class DashboardController {
     }
 
     @GetMapping("public/get-statistics")
-    public DashboardStatistics getPublicDashboardStatistics() throws MyApplicationException, MyForbiddenException, MyNotFoundException {
+    public DashboardStatistics getPublicDashboardStatistics() throws MyApplicationException, MyForbiddenException, MyNotFoundException, InvalidApplicationException {
         logger.debug(new MapLogEntry("retrieving public statistics"));
 
         this.censorFactory.censor(PublicDashboardStatisticsCensor.class).censor(null);
 
-        DashboardStatistics model = this.dashboardService.getPublicDashboardStatistics();
+        DashboardStatistics model;
+        try {
+            this.tenantEntityManagerFactory.getInstance().disableTenantFilters();
+
+            model = this.dashboardService.getPublicDashboardStatistics();
         
-        this.auditService.track(AuditableAction.Dashboard_PublicDashboardStatistics);
+            this.auditService.track(AuditableAction.Dashboard_PublicDashboardStatistics);
+        } finally {
+            this.tenantEntityManagerFactory.getInstance().reloadTenantFilters();
+        }
 
         return model;
     }

@@ -1,8 +1,12 @@
 <mat-action-list class="profile-settings p-2 unset-font-size">
-    <a mat-list-item class="profile pl-3 pr-3 w-100" [routerLink]="routerUtils.generateUrl('/profile')" (click)="dialogRef.close()">{{'USER-DIALOG.USER-PROFILE-SETTINGS' | translate}}</a>
-    <a mat-list-item class="profile pl-3 pr-3 w-100" [routerLink]="routerUtils.generateUrl('/plans')" (click)="dialogRef.close()">{{'USER-PROFILE.ASSOCIATED-PLANS' | translate}}</a>
+    <a mat-list-item class="profile" [routerLink]="routerUtils.generateUrl('/profile')" (click)="dialogRef.close()">
+        <mat-icon class="material-symbols-outlined" aria-hidden="true">person</mat-icon>
+        {{'USER-DIALOG.USER-PROFILE' | translate}}
+    </a>
+    <!-- <a mat-list-item class="profile pl-3 pr-3 w-100" [routerLink]="routerUtils.generateUrl('/plans')" (click)="dialogRef.close()">{{'USER-PROFILE.ASSOCIATED-PLANS' | translate}}</a> -->
     <mat-divider></mat-divider>
-    <button mat-list-item class="logout pl-3 pr-3 w-100" (click)="logout()">
+    <button mat-list-item class="logout" (click)="logout()">
+        <mat-icon class="material-symbols-outlined" aria-hidden="true">logout</mat-icon>
         {{ 'USER-DIALOG.LOG-OUT' | translate }}
     </button>
 </mat-action-list>

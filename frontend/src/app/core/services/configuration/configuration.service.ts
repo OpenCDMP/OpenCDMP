@@ -2,8 +2,8 @@ import { Injectable } from '@angular/core';
 import { BaseHttpParams } from '@common/http/base-http-params';
 import { InterceptorType } from '@common/http/interceptors/interceptor-type';
 import { BaseComponent } from '@common/base/base.component';
-import { catchError, combineLatestWith, takeUntil } from 'rxjs/operators';
-import { combineLatest, Observable, of, throwError } from 'rxjs';
+import { catchError, takeUntil } from 'rxjs/operators';
+import { combineLatest, of, throwError } from 'rxjs';
 import { Logging } from '@app/core/model/configuration-models/logging.model';
 import { HttpClient } from '@angular/common/http';
 import { KeycloakConfiguration } from '@app/core/model/configuration-models/keycloak-configuration.model';
@@ -54,11 +54,6 @@ export class ConfigurationService extends BaseComponent {
 	private _lockInterval: number;
 	get lockInterval(): number {
 		return this._lockInterval;
-	}
-
-	private _orcidPath: string;
-	get orcidPath(): string {
-		return this._orcidPath;
 	}
 
 	private _maxFileSizeInMB: number;
@@ -152,11 +147,7 @@ export class ConfigurationService extends BaseComponent {
 		return this._researcherId;
 	}
 
-	private _grantId: any;
-	get grantId(): boolean {
-		return this._grantId;
-	}
-
+	/** Reference type of the user profile's organisation field. */
 	private _organizationId: any;
 	get organizationId(): boolean {
 		return this._organizationId;
@@ -225,8 +216,7 @@ export class ConfigurationService extends BaseComponent {
             .pipe(takeUntil(this._destroyed))
             .subscribe({
                 next: ([content, overrides]) => {
-                    const objectType = typeof(new Object());
-                    let response = this.overrideValues(content, overrides);
+                    const response = this.overrideValues(content, overrides);
                     this.parseResponse(response);
                     r(this);
                 },
@@ -236,7 +226,7 @@ export class ConfigurationService extends BaseComponent {
 	}
 
     private overrideValues(content: any, override: any){
-        let nullSet = new Set([null, undefined]);
+        const nullSet = new Set([null, undefined]);
         let response = {}
         const objectType = typeof(new Object());
         if(nullSet.has(content)){ return override; }
@@ -260,7 +250,6 @@ export class ConfigurationService extends BaseComponent {
 		this._logging = Logging.parseValue(config.logging);
 		this._lockInterval = config.lockInterval;
 		this._navLogoExtension = config.navLogoExtension;
-		this._orcidPath = config.orcidPath;
 		this._maxFileSizeInMB = config.maxFileSizeInMB;
 		this._userSettingsVersion = config.userSettingsVersion;
 		if (config.notification_service) {
@@ -283,7 +272,6 @@ export class ConfigurationService extends BaseComponent {
 		this._sidebar = Sidebar.parseValue(config.sidebar);
 		this._mergeAccountDelayInSeconds = config.mergeAccountDelayInSeconds;
 		this._researcherId = config.referenceTypes.researcherId;
-		this._grantId = config.referenceTypes.grantId;
 		this._organizationId = config.referenceTypes.organizationId;
 		this._depositRecordUrlIdPlaceholder = config.deposit.recordUrlIdPlaceholder;
 

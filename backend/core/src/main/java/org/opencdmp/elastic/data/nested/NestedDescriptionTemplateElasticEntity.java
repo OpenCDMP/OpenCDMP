@@ -29,6 +29,10 @@ public class NestedDescriptionTemplateElasticEntity {
 	private DescriptionTemplateVersionStatus versionStatus;
 	public final static String _versionStatus = "versionStatus";
 
+	@Field(value = NestedDescriptionTemplateElasticEntity._typeId, type = FieldType.Keyword)
+	private UUID typeId;
+	public final static String _typeId = "typeId";
+
 	public UUID getId() {
 		return this.id;
 	}
@@ -59,5 +63,13 @@ public class NestedDescriptionTemplateElasticEntity {
 
 	public void setVersionStatus(DescriptionTemplateVersionStatus versionStatus) {
 		this.versionStatus = versionStatus;
+	}
+
+	public UUID getTypeId() {
+		return typeId;
+	}
+
+	public void setTypeId(UUID typeId) {
+		this.typeId = typeId;
 	}
 }

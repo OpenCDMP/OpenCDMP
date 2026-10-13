@@ -11,6 +11,7 @@ export interface ReferenceType extends BaseEntity{
 export interface ReferenceTypeDefinition{
     fields: ReferenceTypeField[];
 	sources: ExternalFetcherBaseSourceConfiguration[];
+	labelTemplate?: string;
 }
 
 export interface ReferenceTypeField {
@@ -35,6 +36,7 @@ export interface ReferenceTypePersist extends BaseEntityPersist{
 export interface ReferenceTypeDefinitionPersist{
     fields?: ReferenceTypeFieldPersist[];
 	sources: ExternalFetcherBaseSourceConfigurationPersist[];
+	labelTemplate?: string;
 }
 
 export interface ReferenceTypeFieldPersist {

@@ -1,0 +1,167 @@
+<header class="tc-head">
+	<h1>{{ 'TENANT-CONFIGURATION.BRANDING.TITLE' | translate }}</h1>
+	<p>{{ 'TENANT-CONFIGURATION.BRANDING.HINT' | translate }}</p>
+</header>
+
+@if (loading()) {
+	<div class="tc-loading"><mat-spinner diameter="32" /></div>
+} @else {
+	<div class="tc-branding">
+		<div class="tc-branding__form">
+			@if (colorsForm()) {
+				<section class="tc-card" aria-labelledby="tc-branding-colour-h">
+					<div class="tc-card__head">
+						<div>
+							<h2 id="tc-branding-colour-h">{{ 'TENANT-CONFIGURATION.BRANDING.MAIN-COLOUR' | translate }}</h2>
+							<p>{{ 'TENANT-CONFIGURATION.BRANDING.MAIN-COLOUR-HINT' | translate }}</p>
+						</div>
+						<app-tc-state-tag [changed]="colors.changed()" [inherited]="colors.inherited()" [canCustomise]="section.canEdit" (customiseRequested)="colors.customise()" [canReset]="section.canReset" (resetRequested)="resetColors()" />
+					</div>
+
+					<div class="tc-branding__swatches" role="group" [attr.aria-label]="'TENANT-CONFIGURATION.BRANDING.PRESETS' | translate">
+						@for (preset of presets; track preset.color) {
+							<button
+								type="button"
+								class="tc-branding__swatch"
+								[style.background-color]="preset.color"
+								[attr.aria-pressed]="selectedPreset() === preset.color.toLowerCase()"
+								[attr.aria-label]="'TENANT-CONFIGURATION.BRANDING.PRESET-LABEL' | translate: { name: ('TENANT-CONFIGURATION.BRANDING.PRESET-NAMES.' + preset.name | translate), color: preset.color }"
+								[matTooltip]="'TENANT-CONFIGURATION.BRANDING.PRESET-NAMES.' + preset.name | translate"
+								[disabled]="primaryColor().disabled"
+								(click)="selectPreset(preset.color)">
+								@if (selectedPreset() === preset.color.toLowerCase()) {
+									<mat-icon aria-hidden="true">check</mat-icon>
+								}
+							</button>
+						}
+					</div>
+
+					<mat-form-field class="tc-branding__custom" subscriptSizing="dynamic">
+						<mat-label>{{ 'TENANT-CONFIGURATION.BRANDING.CUSTOM-COLOUR' | translate }}</mat-label>
+						<input matInput [formControl]="primaryColorInput()" autocomplete="off" spellcheck="false" />
+						<ngx-colors
+							matSuffix
+							ngx-colors-trigger
+							class="tc-branding__picker"
+							[attr.aria-label]="'TENANT-CONFIGURATION.BRANDING.OPEN-PICKER' | translate"
+							[formControl]="primaryColor()"
+						></ngx-colors>
+						<mat-hint>{{ 'TENANT-CONFIGURATION.BRANDING.CUSTOM-COLOUR-HINT' | translate }}</mat-hint>
+						@if (primaryColorInput().hasError('invalidColor') || primaryColor().hasError('invalidColor')) {
+							<mat-error>{{ 'GENERAL.VALIDATION.INVALID-COLOR' | translate }}</mat-error>
+						}
+						@if (primaryColor().hasError('backendError')) { <mat-error>{{ primaryColor().getError('backendError').message }}</mat-error> }
+					</mat-form-field>
+				</section>
+			}
+
+			@if (logo.form()) {
+				<section class="tc-card" aria-labelledby="tc-branding-logo-h">
+					<div class="tc-card__head">
+						<div>
+							<h2 id="tc-branding-logo-h">{{ 'TENANT-CONFIGURATION.BRANDING.LOGO' | translate }}</h2>
+							<p>{{ 'TENANT-CONFIGURATION.BRANDING.LOGO-HINT' | translate }}</p>
+						</div>
+						<app-tc-state-tag [changed]="logo.changed()" [inherited]="logo.inherited()" [canCustomise]="section.canEdit" (customiseRequested)="logo.customise()" [canReset]="section.canReset" (resetRequested)="resetLogo()" />
+					</div>
+
+					<div class="tc-branding__logo">
+						<div class="tc-branding__logo-frame">
+							@if (logoUrl(); as url) {
+								<img [src]="url" [alt]="'TENANT-CONFIGURATION.BRANDING.LOGO-ALT' | translate" />
+							} @else {
+								<mat-icon class="material-symbols-outlined" aria-hidden="true">image</mat-icon>
+							}
+						</div>
+						<div class="tc-branding__logo-info">
+							<div class="tc-branding__logo-name">{{ logoName() ?? ('TENANT-CONFIGURATION.BRANDING.NO-LOGO' | translate) }}</div>
+							@if (logoPending()) {
+								<div class="tc-row__hint">{{ 'TENANT-CONFIGURATION.BRANDING.LOGO-PENDING' | translate }}</div>
+							}
+							@if (storageFileId()?.hasError('backendError')) {
+								<mat-error>{{ storageFileId().getError('backendError').message }}</mat-error>
+							}
+							@if (storageFileId()?.touched && storageFileId()?.hasError('required')) {
+								<mat-error>{{ 'GENERAL.VALIDATION.REQUIRED' | translate }}</mat-error>
+							}
+							@if (logoEditable()) {
+								<div class="tc-branding__logo-actions">
+									<input #logoInput type="file" accept="image/*" class="tc-branding__file" tabindex="-1" aria-hidden="true" (change)="onLogoSelected($event)" />
+									<button mat-stroked-button type="button" [disabled]="uploading()" (click)="logoInput.click()">
+										@if (uploading()) {
+											<mat-spinner diameter="16" aria-hidden="true" />
+										} @else {
+											<mat-icon aria-hidden="true">upload</mat-icon>
+										}
+										{{ (logoName() ? 'TENANT-CONFIGURATION.BRANDING.REPLACE' : 'TENANT-CONFIGURATION.BRANDING.UPLOAD') | translate }}
+									</button>
+									@if (canRemoveLogo()) {
+										<button mat-button type="button" [disabled]="uploading()" (click)="removeLogo()">
+											<mat-icon aria-hidden="true">delete</mat-icon>
+											{{ 'TENANT-CONFIGURATION.BRANDING.REMOVE' | translate }}
+										</button>
+									}
+								</div>
+								<div class="tc-row__hint">{{ 'TENANT-CONFIGURATION.BRANDING.LOGO-FORMATS' | translate }}</div>
+							}
+						</div>
+					</div>
+				</section>
+			}
+
+			@if (colorsForm()) {
+				<details class="tc-card tc-branding__advanced">
+					<summary>{{ 'TENANT-CONFIGURATION.BRANDING.ADVANCED' | translate }}</summary>
+					<p class="tc-row__hint">{{ 'TENANT-CONFIGURATION.BRANDING.ADVANCED-HINT' | translate: { example: overrideExample } }}</p>
+					<mat-form-field class="tc-full" subscriptSizing="dynamic">
+						<mat-label>{{ 'TENANT-CONFIGURATION.BRANDING.CSS-OVERRIDE' | translate }}</mat-label>
+						<textarea matInput class="tc-branding__json" rows="8" spellcheck="false" autocomplete="off" [formControl]="cssOverride()"></textarea>
+						@if (cssOverride().hasError('invalidJson')) { <mat-error>{{ 'TENANT-CONFIGURATION.BRANDING.INVALID-JSON' | translate }}</mat-error> }
+						@if (cssOverride().hasError('backendError')) { <mat-error>{{ cssOverride().getError('backendError').message }}</mat-error> }
+					</mat-form-field>
+					<p class="tc-row__hint tc-branding__links">
+						<a [href]="themingUrl" target="_blank" rel="noopener">{{ 'TENANT-CONFIGURATION.BRANDING.VARIABLES-LINK' | translate }}<span class="cdk-visually-hidden"> {{ 'TENANT-CONFIGURATION.BRANDING.NEW-TAB' | translate }}</span></a>
+						<a href="https://material-foundation.github.io/material-theme-builder/" target="_blank" rel="noopener">{{ 'TENANT-CONFIGURATION.BRANDING.THEME-BUILDER' | translate }}<span class="cdk-visually-hidden"> {{ 'TENANT-CONFIGURATION.BRANDING.NEW-TAB' | translate }}</span></a>
+					</p>
+				</details>
+			}
+		</div>
+
+		<aside class="tc-branding__preview" aria-labelledby="tc-branding-preview-h">
+			<h2 id="tc-branding-preview-h">{{ 'TENANT-CONFIGURATION.BRANDING.PREVIEW' | translate }}</h2>
+			<p class="tc-row__hint">{{ 'TENANT-CONFIGURATION.BRANDING.PREVIEW-HINT' | translate }}</p>
+			<div class="tc-pv" [style]="previewStyle()" aria-hidden="true" inert>
+				<div class="tc-pv__bar">
+					<span class="tc-pv__brand">{{ 'APP_NAME' | translate }}</span>
+					@if (logoUrl(); as url) {
+						<img class="tc-pv__logo" [src]="url" alt="" />
+					}
+					<span class="tc-pv__avatar"></span>
+				</div>
+				<div class="tc-pv__body">
+					<div class="tc-pv__nav">
+						<span>{{ 'TENANT-CONFIGURATION.BRANDING.PREVIEW-NAV.HOME' | translate }}</span>
+						<span class="tc-pv__nav--active">{{ 'TENANT-CONFIGURATION.BRANDING.PREVIEW-NAV.PLANS' | translate }}</span>
+						<span>{{ 'TENANT-CONFIGURATION.BRANDING.PREVIEW-NAV.ASSETS' | translate }}</span>
+					</div>
+					<div class="tc-pv__main">
+						<div class="tc-pv__main-head">
+							<strong>{{ 'TENANT-CONFIGURATION.BRANDING.PREVIEW-NAV.PLANS' | translate }}</strong>
+							<span class="tc-pv__button">{{ 'TENANT-CONFIGURATION.BRANDING.PREVIEW-NEW-PLAN' | translate }}</span>
+						</div>
+						<div class="tc-pv__card">
+							<strong>{{ 'TENANT-CONFIGURATION.BRANDING.PREVIEW-PLAN-1' | translate }}</strong>
+							<span class="tc-pv__link">{{ 'TENANT-CONFIGURATION.BRANDING.PREVIEW-OPEN' | translate }}</span>
+						</div>
+						<div class="tc-pv__card">
+							<strong>{{ 'TENANT-CONFIGURATION.BRANDING.PREVIEW-PLAN-2' | translate }}</strong>
+							<span class="tc-pv__link">{{ 'TENANT-CONFIGURATION.BRANDING.PREVIEW-OPEN' | translate }}</span>
+						</div>
+					</div>
+				</div>
+			</div>
+		</aside>
+	</div>
+
+	<app-tc-save-bar [dirtyCount]="section.dirtyCount()" [saving]="section.saving()" [canSave]="section.canEdit" (save)="section.saveAll()" (discard)="section.discardAll()" />
+}

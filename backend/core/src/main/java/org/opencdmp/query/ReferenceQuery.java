@@ -8,9 +8,12 @@ import jakarta.persistence.EntityManager;
 import jakarta.persistence.Tuple;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.Predicate;
+import jakarta.persistence.criteria.Root;
+import jakarta.persistence.criteria.Subquery;
 import org.opencdmp.authorization.AuthorizationFlags;
 import org.opencdmp.authorization.Permission;
 import org.opencdmp.commons.enums.IsActive;
+import org.opencdmp.commons.enums.PlanVersionStatus;
 import org.opencdmp.commons.enums.ReferenceSourceType;
 import org.opencdmp.commons.scope.user.UserScopeFactory;
 import org.opencdmp.data.*;
@@ -47,6 +50,13 @@ public class ReferenceQuery extends QueryBase<ReferenceEntity> {
     private Instant after;
 
     private PlanReferenceQuery planReferenceQuery;
+
+    private TenantQuery tenantQuery;
+
+    /** null: any row; false: only rows without a tenant (the default tenant's shared rows); true: only tenant-owned rows. */
+    private Boolean tenantIsSet;
+
+    private Boolean isUsed;
 
     private EnumSet<AuthorizationFlags> authorize = EnumSet.of(AuthorizationFlags.None);
 
@@ -167,6 +177,21 @@ public class ReferenceQuery extends QueryBase<ReferenceEntity> {
 
     public ReferenceQuery planReferenceSubQuery(PlanReferenceQuery value) {
         this.planReferenceQuery = value;
+        return this;
+    }
+
+    public ReferenceQuery tenantIsSet(Boolean value) {
+        this.tenantIsSet = value;
+        return this;
+    }
+
+    public ReferenceQuery isUsed(Boolean value) {
+        this.isUsed = value;
+        return this;
+    }
+
+    public ReferenceQuery tenantSubQuery(TenantQuery tenantQuery) {
+        this.tenantQuery = tenantQuery;
         return this;
     }
 
@@ -318,6 +343,40 @@ public class ReferenceQuery extends QueryBase<ReferenceEntity> {
         if (this.planReferenceQuery != null) {
             QueryContext<PlanReferenceEntity, UUID> subQuery = this.applySubQuery(this.planReferenceQuery, queryContext, UUID.class, root -> root.get(PlanReferenceEntity._referenceId));
             predicates.add(queryContext.CriteriaBuilder.in(queryContext.Root.get(PlanReferenceEntity._id)).value(subQuery.Query));
+        }
+        if (Boolean.TRUE.equals(this.isUsed)) {
+            // the same plans the builder's usage counts look at: active, and not a superseded version
+            CriteriaBuilder cb = queryContext.CriteriaBuilder;
+            Subquery<Integer> planUse = queryContext.Query.subquery(Integer.class);
+            Root<PlanReferenceEntity> planReference = planUse.from(PlanReferenceEntity.class);
+            Root<PlanEntity> plan = planUse.from(PlanEntity.class);
+            planUse.select(cb.literal(1)).where(
+                    cb.equal(planReference.get(PlanReferenceEntity._referenceId), queryContext.Root.get(ReferenceEntity._id)),
+                    cb.equal(planReference.get(PlanReferenceEntity._isActive), IsActive.Active),
+                    cb.equal(plan.get(PlanEntity._id), planReference.get(PlanReferenceEntity._planId)),
+                    cb.equal(plan.get(PlanEntity._isActive), IsActive.Active),
+                    cb.notEqual(plan.get(PlanEntity._versionStatus), PlanVersionStatus.Previous));
+            Subquery<Integer> descriptionUse = queryContext.Query.subquery(Integer.class);
+            Root<DescriptionReferenceEntity> descriptionReference = descriptionUse.from(DescriptionReferenceEntity.class);
+            Root<DescriptionEntity> description = descriptionUse.from(DescriptionEntity.class);
+            Root<PlanEntity> descriptionPlan = descriptionUse.from(PlanEntity.class);
+            descriptionUse.select(cb.literal(1)).where(
+                    cb.equal(descriptionReference.get(DescriptionReferenceEntity._referenceId), queryContext.Root.get(ReferenceEntity._id)),
+                    cb.equal(descriptionReference.get(DescriptionReferenceEntity._isActive), IsActive.Active),
+                    cb.equal(description.get(DescriptionEntity._id), descriptionReference.get(DescriptionReferenceEntity._descriptionId)),
+                    cb.equal(description.get(DescriptionEntity._isActive), IsActive.Active),
+                    cb.equal(descriptionPlan.get(PlanEntity._id), description.get(DescriptionEntity._planId)),
+                    cb.equal(descriptionPlan.get(PlanEntity._isActive), IsActive.Active),
+                    cb.notEqual(descriptionPlan.get(PlanEntity._versionStatus), PlanVersionStatus.Previous));
+            predicates.add(cb.or(cb.exists(planUse), cb.exists(descriptionUse)));
+        }
+        if (this.tenantIsSet != null) {
+            predicates.add(this.tenantIsSet ? queryContext.CriteriaBuilder.isNotNull(queryContext.Root.get(ReferenceEntity._tenantId)) : queryContext.CriteriaBuilder.isNull(queryContext.Root.get(ReferenceEntity._tenantId)));
+        }
+
+        if (this.tenantQuery != null) {
+            QueryContext<TenantEntity, UUID> subQuery = this.applySubQuery(this.tenantQuery, queryContext, UUID.class, tenantEntityRoot -> tenantEntityRoot.get(TenantEntity._id));
+            predicates.add(queryContext.CriteriaBuilder.in(queryContext.Root.get(ReferenceEntity._tenantId)).value(subQuery.Query));
         }
         if (!predicates.isEmpty()) {
             Predicate[] predicatesArray = predicates.toArray(new Predicate[0]);

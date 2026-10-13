@@ -1,5 +1,5 @@
 # stage1 as builder
-FROM node:20-alpine AS builder
+FROM node:24-alpine AS builder
 
 # copy the package.json to install dependencies
 COPY package.json ./

@@ -469,7 +469,7 @@
 					<mat-form-field subscriptSizing="dynamic" class="se-full">
 						<mat-label>{{'REFERENCE-TYPE-EDITOR.AUTH.BODY' | translate}}</mat-label>
 						<textarea matInput rows="3" class="se-mono" [formControl]="ctl('auth.authRequestBody')"></textarea>
-						<mat-hint>{{'REFERENCE-TYPE-EDITOR.AUTH.BODY-HINT' | translate}}</mat-hint>
+						<mat-hint>{{(ctl('auth.authRequestBodySet')?.value ? 'REFERENCE-TYPE-EDITOR.AUTH.BODY-STORED' : 'REFERENCE-TYPE-EDITOR.AUTH.BODY-HINT') | translate}}</mat-hint>
 					</mat-form-field>
 				</li>
 				<li>

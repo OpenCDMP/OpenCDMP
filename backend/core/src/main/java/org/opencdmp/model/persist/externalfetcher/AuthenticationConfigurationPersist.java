@@ -1,5 +1,6 @@
 package org.opencdmp.model.persist.externalfetcher;
 
+import gr.cite.tools.logging.annotation.LogSensitive;
 import org.opencdmp.commons.enums.ExternalFetcherApiHTTPMethodType;
 import org.opencdmp.commons.validation.BaseValidator;
 import gr.cite.tools.validation.specification.Specification;
@@ -33,6 +34,7 @@ public class AuthenticationConfigurationPersist implements AuthenticationConfigu
 
     public static final String _authTokenPath = "authTokenPath";
 
+    @LogSensitive
     private String authRequestBody;
 
     public static final String _authRequestBody = "authRequestBody";
@@ -125,10 +127,6 @@ public class AuthenticationConfigurationPersist implements AuthenticationConfigu
                             .iff(item::getEnabled)
                             .must(() -> !this.isEmpty(item.getAuthTokenPath()))
                             .failOn(AuthenticationConfigurationPersist._authTokenPath).failWith(messageSource.getMessage("Validation_Required", new Object[]{AuthenticationConfigurationPersist._authTokenPath}, LocaleContextHolder.getLocale())),
-                    this.spec()
-                            .iff(item::getEnabled)
-                            .must(() -> !this.isEmpty(item.getAuthRequestBody()))
-                            .failOn(AuthenticationConfigurationPersist._authRequestBody).failWith(messageSource.getMessage("Validation_Required", new Object[]{AuthenticationConfigurationPersist._authRequestBody}, LocaleContextHolder.getLocale())),
                     this.spec()
                             .iff(item::getEnabled)
                             .must(() -> !this.isEmpty(item.getType()))

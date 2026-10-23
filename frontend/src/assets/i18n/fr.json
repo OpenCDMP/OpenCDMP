@@ -9,6 +9,10 @@
 	},
 	"APP_NAME": "OpenCDMP",
 	"APP_NAME_CAPS": "OpenCDMP",
+	"TEST-INSTALLATION-MESSAGE": {
+		"TITLE": "Ceci est un environnement de test.",
+		"TEXT": "Les plans publiés ici sont envoyés vers un dépôt de test, leurs PID ne peuvent donc pas être cités. Ne l'utilisez pas pour un travail réel."
+	},
 	"PUBLISH-DIALOG": {
 		"TITLE": "Publier sur {{repository}}",
 		"STEPS": {
@@ -36,7 +40,16 @@
 			"TOKEN-INSTEAD": "Saisir plutôt un jeton d’accès",
 			"OTHER-TOKEN": "Utiliser d’autres identifiants",
 			"USE-SAVED": "Utiliser les identifiants enregistrés dans votre profil",
-			"NONE": "Aucun moyen de publier sur {{repository}} n’est configuré. Contactez votre administrateur."
+			"NONE": "Aucun moyen de publier sur {{repository}} n’est configuré. Contactez votre administrateur.",
+			"PREVIOUS-VERSION": "La version {{version}} de ce plan est déjà sur {{repository}}, celle-ci est donc publiée comme sa nouvelle version. Utilisez le même compte {{repository}} que celui qui a publié la version {{version}}, sinon {{repository}} la refusera.",
+			"PREVIOUS-VERSION-ORG": "La version {{version}} de ce plan a été publiée sur {{repository}} avec le compte de l’organisation, celle-ci est donc publiée comme sa nouvelle version. Publiez-la à nouveau avec le compte de l’organisation, sinon {{repository}} la refusera.",
+			"PREVIOUS-VERSION-ORG-NAMED": "La version {{version}} de ce plan a été publiée sur {{repository}} avec {{account}}, celle-ci est donc publiée comme sa nouvelle version. Publiez-la à nouveau avec {{account}}, sinon {{repository}} la refusera.",
+			"PREVIOUS-VERSION-YOU": "Vous avez publié la version {{version}} de ce plan sur {{repository}} avec votre propre compte, celle-ci est donc publiée comme sa nouvelle version. Utilisez à nouveau ce même compte {{repository}}, sinon {{repository}} la refusera.",
+			"PREVIOUS-VERSION-USER": "{{name}} a publié la version {{version}} de ce plan sur {{repository}} avec son propre compte, celle-ci est donc publiée comme sa nouvelle version. Seul ce compte {{repository}} peut la publier, demandez donc à {{name}} de publier cette version.",
+			"PREVIOUS-VERSION-OTHER-USER": "Un autre utilisateur a publié la version {{version}} de ce plan sur {{repository}} avec son propre compte, celle-ci est donc publiée comme sa nouvelle version. Seul ce compte {{repository}} peut la publier.",
+			"PREVIOUS-VERSION-YOU-NAMED": "Vous avez publié la version {{version}} de ce plan sur {{repository}} avec le compte {{account}}, celle-ci est donc publiée comme sa nouvelle version. Utilisez à nouveau {{account}}, sinon {{repository}} la refusera.",
+			"PREVIOUS-VERSION-USER-NAMED": "{{name}} a publié la version {{version}} de ce plan sur {{repository}} avec le compte {{account}}, celle-ci est donc publiée comme sa nouvelle version. Seul {{account}} peut la publier, demandez donc à {{name}} de publier cette version.",
+			"PREVIOUS-VERSION-OTHER-USER-NAMED": "La version {{version}} de ce plan a été publiée sur {{repository}} avec le compte {{account}}, celle-ci est donc publiée comme sa nouvelle version. Seul {{account}} peut la publier."
 		},
 		"REVIEW": {
 			"AS-ORG": "Publication sous le compte {{repository}} de l’organisation",
@@ -85,6 +98,7 @@
 			"CREDENTIALS": "Vos identifiants {{repository}} sont manquants",
 			"HINT": "Rien n’a été publié et votre plan n’a pas été modifié.",
 			"HINT-OWN": "Rien n’a été publié et votre plan n’a pas été modifié. Le compte de l’organisation n’a pas été utilisé à la place.",
+			"PREVIOUS-VERSION": "{{repository}} n’accepte une nouvelle version que depuis le compte qui a publié la version {{version}}. Choisissez ce compte et réessayez.",
 			"DETAILS": "Détails",
 			"BACK": "Retour à la vérification",
 			"USE-ORG": "Utiliser le compte de l’organisation",
@@ -1239,6 +1253,7 @@
 				"ISSUER": "Adresse de l'émetteur de jetons",
 				"CLIENT-ID": "Identifiant client",
 				"CLIENT-SECRET": "Secret client",
+				"CLIENT-SECRET-STORED": "Enregistré chiffré. Laissez vide pour le conserver.",
 				"SHOW-SECRET": "Afficher le secret client",
 				"HIDE-SECRET": "Masquer le secret client",
 				"SCOPE": "Portée",
@@ -3393,6 +3408,7 @@
 			"CONFIRM": "Importer",
 			"CANCEL": "Annuler",
 			"SUCCESS": "Définition importée. Vérifiez les modifications et enregistrez pour les conserver.",
+			"SUCCESS-AUTH": "Définition importée. Les corps de connexion ne sont jamais exportés : saisissez-les de nouveau avant d'enregistrer.",
 			"INVALID-FILE": "The selected file could not be read as a valid definition export."
 		},
 		"ABOUT": {
@@ -3482,6 +3498,7 @@
 			"URL": "URL du jeton",
 			"BODY": "Corps de la requête",
 			"BODY-HINT": "Envoyé au format JSON.",
+			"BODY-STORED": "Enregistré chiffré. Laissez vide pour le conserver.",
 			"STEP-READ": "Lire le jeton dans la réponse",
 			"TOKEN-FIELD": "Champ du jeton",
 			"TOKEN-FIELD-HINT": "Un champ de premier niveau de la réponse, pas un chemin.",
@@ -3677,6 +3694,7 @@
 			"CONFIRM": "Importer",
 			"CANCEL": "Annuler",
 			"SUCCESS": "Définition importée. Vérifiez les modifications et enregistrez pour les conserver.",
+			"SUCCESS-AUTH": "Définition importée. Les corps de connexion ne sont jamais exportés : saisissez-les de nouveau avant d'enregistrer.",
 			"INVALID-FILE": "The selected file could not be read as a valid definition export."
 		},
 		"HEADER": {
@@ -3902,6 +3920,7 @@
 			"SECTION-TITLE": "Donnez un nom à la section.",
 			"SECTION-EMPTY": "La section a besoin d'au moins une question, une sous-section ou des modèles de ressource.",
 			"TEMPLATE-ROW": "Une ligne de modèle de ressource est incomplète.",
+			"TEMPLATES-REQUIRED": "Ajoutez au moins un modèle de ressource ou autorisez les auteurs à ajouter d'autres modèles.",
 			"QUESTION-TITLE": "Donnez un titre à la question. Les auteurs le voient comme libellé.",
 			"QUESTION-NO-INPUT": "La question n'a aucune saisie.",
 			"INPUT-NO-TYPE": "Choisissez un type pour la saisie",
@@ -5441,6 +5460,10 @@
 				"TITLE": "Commencez depuis la barre latérale",
 				"CONTENT": "Nouveau plan et Nouvelle ressource se trouvent dans la barre latérale, sous Mes plans et Mes ressources, pour en démarrer un depuis n'importe quelle page."
 			},
+			"RECOMMENDATIONS": {
+				"TITLE": "Recommandé pour vous",
+				"CONTENT": "Les Plan Blueprints et Modèles de ressource que votre organisation recommande. Démarrez un plan directement depuis un blueprint, ou ouvrez-en un pour voir les questions qu'il pose."
+			},
 			"ACTIVITY": {
 				"TITLE": "Votre activité récente",
 				"CONTENT": "Les plans et ressources sur lesquels vous avez travaillé récemment, les plus récents en premier. Les onglets limitent la liste aux seuls plans ou aux seules ressources."
@@ -5465,6 +5488,26 @@
 				"TITLE": "Aide, langue et votre compte",
 				"CONTENT": "Assistance contient le guide d'utilisation, la FAQ et le glossaire, et permet de relancer cette visite. À côté, vous pouvez changer de langue. Dans le menu de l'organisation, vous pouvez changer d'organisation si vous appartenez à plusieurs, chacune ayant ses propres plans, ressources et blueprints. La cloche affiche vos notifications, et à côté se trouve votre profil."
 			}
+		},
+		"RECOMMENDATIONS": {
+			"FROM": "De {{tenant}}",
+			"TITLE": "Blueprints et modèles recommandés",
+			"SUMMARY": "{{count}} blueprints et modèles recommandés",
+			"RANGE": "{{start}}–{{end}} sur {{count}}",
+			"SHOW": "Afficher",
+			"HIDE": "Masquer",
+			"PREVIOUS": "Recommandations précédentes",
+			"NEXT": "Recommandations suivantes",
+			"PLAN-BLUEPRINT": "Plan Blueprint",
+			"DESCRIPTION-TEMPLATE": "Modèle de ressource",
+			"TYPE": "Type : {{type}}",
+			"VERSION": "Version {{version}}",
+			"USED-IN-PLAN": "Utilisé dans {{count}} plan",
+			"USED-IN-PLANS": "Utilisé dans {{count}} plans",
+			"USED-IN-DESCRIPTION": "Utilisé dans {{count}} ressource",
+			"USED-IN-DESCRIPTIONS": "Utilisé dans {{count}} ressources",
+			"START-PLAN": "Démarrer un plan avec",
+			"SEE-DETAILS": "Voir les détails"
 		},
 		"GRANTS": "Subventions",
 		"TITLE": "Qu'est-ce que {{ APP_NAME_CAPS }} ?",

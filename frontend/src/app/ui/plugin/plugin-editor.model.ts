@@ -37,7 +37,8 @@ export class PluginConfigurationEditorModel implements PluginConfigurationPersis
 		disabled?: boolean,
 		rootPath?: string
 	}): UntypedFormGroup {
-		let {context = null, disabled = false, rootPath } = params ?? {}
+		const { disabled = false, rootPath } = params ?? {};
+		let { context = null } = params ?? {};
 		if (context == null) {
 			context = PluginConfigurationEditorModel.createValidationContext({
 				validationErrorModel: this.validationErrorModel,
@@ -135,6 +136,8 @@ export class PluginConfigurationFieldEditorModel implements PluginConfigurationF
 			this.type = field?.type ?? PluginDataType.String;
 			this.secret = !!field?.authInfo;
 		}
+		// a stored secret is never sent back: null keeps it
+		if (this.secret) this.textValue = null;
 		return this;
 	}
 
@@ -143,7 +146,8 @@ export class PluginConfigurationFieldEditorModel implements PluginConfigurationF
 		disabled?: boolean,
 		rootPath?: string
 	}): UntypedFormGroup {
-		let { context = null, disabled = false, rootPath } = params ?? {}
+		const { disabled = false, rootPath } = params ?? {};
+		let { context = null } = params ?? {};
 		if (context == null) {
 			context = PluginConfigurationFieldEditorModel.createValidationContext({
 				validationErrorModel: this.validationErrorModel,

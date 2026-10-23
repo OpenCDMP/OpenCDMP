@@ -14,7 +14,9 @@ import gr.cite.tools.logging.MapLogEntry;
 import org.opencdmp.authorization.AuthorizationFlags;
 import org.opencdmp.authorization.Permission;
 import org.opencdmp.commons.enums.EntityType;
+import org.opencdmp.commons.JsonHandlingService;
 import org.opencdmp.commons.enums.IsActive;
+import org.opencdmp.commons.types.entitydoi.EntityDoiMetadataEntity;
 import org.opencdmp.convention.ConventionService;
 import org.opencdmp.data.EntityDoiEntity;
 import org.opencdmp.data.TenantEntityManagerFactory;
@@ -57,6 +59,8 @@ public class EntityDoiServiceImpl implements EntityDoiService {
 
     private final EventBroker eventBroker;
 
+    private final JsonHandlingService jsonHandlingService;
+
     @Autowired
     public EntityDoiServiceImpl(
             TenantEntityManagerFactory tenantEntityManagerFactory,
@@ -66,7 +70,8 @@ public class EntityDoiServiceImpl implements EntityDoiService {
             ConventionService conventionService,
             ErrorThesaurusProperties errors,
             MessageSource messageSource,
-            EventBroker eventBroker) {
+            EventBroker eventBroker,
+            JsonHandlingService jsonHandlingService) {
         this.tenantEntityManagerFactory = tenantEntityManagerFactory;
         this.authorizationService = authorizationService;
         this.deleterFactory = deleterFactory;
@@ -75,9 +80,14 @@ public class EntityDoiServiceImpl implements EntityDoiService {
         this.errors = errors;
         this.messageSource = messageSource;
         this.eventBroker = eventBroker;
+        this.jsonHandlingService = jsonHandlingService;
     }
 
     public EntityDoi persist(EntityDoiPersist model, boolean disableAuthorization, FieldSet fields) throws MyForbiddenException, MyValidationException, MyApplicationException, MyNotFoundException, InvalidApplicationException {
+        return this.persist(model, null, disableAuthorization, fields);
+    }
+
+    public EntityDoi persist(EntityDoiPersist model, EntityDoiMetadataEntity metadata, boolean disableAuthorization, FieldSet fields) throws MyForbiddenException, MyValidationException, MyApplicationException, MyNotFoundException, InvalidApplicationException {
         logger.debug(new MapLogEntry("persisting data EntityDoi").And("model", model).And("fields", fields));
 
         if (!disableAuthorization) this.authorizationService.authorizeForce(Permission.EditEntityDoi);
@@ -100,6 +110,7 @@ public class EntityDoiServiceImpl implements EntityDoiService {
         data.setEntityId(model.getEntityId());
         data.setRepositoryId(model.getRepositoryId());
         data.setDoi(model.getDoi());
+        if (metadata != null) data.setMetadata(this.jsonHandlingService.toJsonSafe(metadata));
         data.setUpdatedAt(Instant.now());
         if (isUpdate)
             this.tenantEntityManagerFactory.getInstance().merge(data);

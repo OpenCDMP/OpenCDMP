@@ -9,6 +9,7 @@
               <div class="page-subtitle opacity-08 mb-2">
                 {{'DASHBOARD.LATEST-ACTIVITY' | translate}}
               </div>
+              <app-dashboard-recommendations></app-dashboard-recommendations>
               <mat-tab-group
                 #tabGroup="matTabGroup"
                 dynamicHeight
@@ -50,6 +51,8 @@
               </mat-tab>
             </mat-tab-group>
           </div>
+        } @else {
+          <app-dashboard-recommendations></app-dashboard-recommendations>
         }
       </section>
       <!-- Right Sidebar -->

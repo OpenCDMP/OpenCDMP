@@ -44,7 +44,7 @@
                                 <mat-icon class="material-symbols-outlined">sell</mat-icon>
                             }
                         </div>
-                        <div class="overview-item-title">{{row.name}}</div>
+                        <div class="overview-item-title">{{row.type | referenceTypeName}}</div>
                         <div class="ml-auto">{{row.count ?? '-'}}</div>
                         <mat-icon class="overview-chevron" aria-hidden="true">chevron_right</mat-icon>
                     </a>

@@ -45,6 +45,21 @@ function buildNode(tagName: string, value: JsonValue): string {
 	return `<${tagName} type="string">${escapeXmlText(String(value))}</${tagName}>`;
 }
 
+// The sign-in body is a secret, so it is left out of exports and has to be typed again after an import.
+export function withoutAuthRequestBodies(value: JsonValue): JsonValue {
+	if (Array.isArray(value)) return value.map(item => withoutAuthRequestBodies(item));
+	if (!isPlainObject(value)) return value;
+	const result: { [key: string]: JsonValue } = {};
+	Object.keys(value).filter(key => key !== 'authRequestBody' && key !== 'authRequestBodySet').forEach(key => result[key] = withoutAuthRequestBodies(value[key]));
+	return result;
+}
+
+export function hasEnabledAuth(value: JsonValue): boolean {
+	if (Array.isArray(value)) return value.some(item => hasEnabledAuth(item));
+	if (!isPlainObject(value)) return false;
+	return Object.keys(value).some(key => (key === 'auth' && isPlainObject(value[key]) && value[key]['enabled'] === true) || hasEnabledAuth(value[key]));
+}
+
 export function toXmlString(data: JsonValue): string {
 	const body = buildNode(ROOT_TAG, data);
 	return `<?xml version="1.0" encoding="UTF-8"?>\n${body}`;

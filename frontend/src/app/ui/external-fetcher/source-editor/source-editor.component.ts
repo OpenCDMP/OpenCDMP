@@ -74,6 +74,8 @@ export class Rt2SourceEditorComponent {
 	readonly systemCodes = input<string[]>(['reference_id', 'label', 'description']);
 	readonly validationRootPath = input<string>(null);
 	readonly testFn = input<(lookup: ReferenceTestLookup) => Observable<ReferenceSourceTestResult>>(null);
+	/** The saved reference type, so a test can use its stored sign-in body. */
+	readonly referenceTypeId = input<Guid>(null);
 	/** Test with one of these values instead of free text, e.g. a record picked in another step's test. */
 	readonly testOptions = input<{ value: string, label: string }[]>(null);
 	readonly testOptionsLabel = input('REFERENCE-TYPE-EDITOR.TEST.WITH');
@@ -239,6 +241,7 @@ export class Rt2SourceEditorComponent {
 		lookup.key = this.ctl('key').value;
 		lookup.sources = [JSON.parse(JSON.stringify(this.formGroup().getRawValue()))];
 		lookup.dependencyReferences = [];
+		lookup.referenceTypeId = this.referenceTypeId();
 		this.testing.set(true);
 		(this.testFn() ?? (l => this.referenceService.testSource(l)))(lookup).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
 			next: result => { this.testResult.set(result); this.itemIndex.set(0); this.testing.set(false); this.tested.emit(result); },

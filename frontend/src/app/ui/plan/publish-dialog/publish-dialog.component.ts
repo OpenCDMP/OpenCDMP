@@ -18,7 +18,13 @@ import { ResponseErrorCode } from '@app/core/common/enum/respone-error-code';
 import { DepositConfiguration } from '@app/core/model/deposit/deposit-configuration';
 import { DepositPreviewModel, DepositPreviewResult } from '@app/core/model/deposit/deposit-preview';
 import { DepositRequest } from '@app/core/model/deposit/deposit-request';
-import { EntityDoi } from '@app/core/model/entity-doi/entity-doi';
+import { EntityDoi, EntityDoiMetadata } from '@app/core/model/entity-doi/entity-doi';
+import { IsActive } from '@app/core/common/enum/is-active.enum';
+import { Plan, PlanUser } from '@app/core/model/plan/plan';
+import { User } from '@app/core/model/user/user';
+import { AuthService } from '@app/core/services/auth/auth.service';
+import { PlanLookup } from '@app/core/query/plan.lookup';
+import { PlanService } from '@app/core/services/plan/plan.service';
 import { ConfigurationService } from '@app/core/services/configuration/configuration.service';
 import { DepositHttpService } from '@app/core/services/deposit/deposit.http.service';
 import { DepositOauth2DialogService } from '@app/ui/misc/deposit-oauth2-dialog/service/deposit-oauth2-dialog.service';
@@ -31,6 +37,7 @@ import { DepositReviewComponent } from './review/deposit-review.component';
 export interface PublishDialogData {
 	repo: DepositConfiguration;
 	planId: Guid;
+	planGroupId: Guid;
 	repositoryLabel: string;
 }
 
@@ -65,6 +72,8 @@ export class PublishDialogComponent implements OnInit {
 	private depositHttpService = inject(DepositHttpService);
 	private oauth2DialogService = inject(DepositOauth2DialogService);
 	private configurationService = inject(ConfigurationService);
+	private planService = inject(PlanService);
+	private authService = inject(AuthService);
 	private destroyRef = inject(DestroyRef);
 
 	readonly repo = this.data.repo;
@@ -92,6 +101,26 @@ export class PublishDialogComponent implements OnInit {
 	readonly failure = signal<'sign-in' | 'credentials' | 'other'>('other');
 	readonly shown = signal<Set<string>>(new Set());
 	readonly saveCredentials = signal(true);
+	readonly publishedVersion = signal<number>(null);
+	readonly publishedBy = signal<EntityDoiMetadata>(null);
+	readonly publishedByName = signal<string>(null);
+	// Deposits made before EntityDoi.metadata existed fall back to the message that doesn't name the account.
+	readonly previousVersionMessage = computed<{ key: string, params: Record<string, unknown> }>(() => {
+		const version = this.publishedVersion();
+		if (version === null) return null;
+		const metadata = this.publishedBy();
+		if (!metadata) return { key: 'PUBLISH-DIALOG.AS.PREVIOUS-VERSION', params: { repository: this.repositoryLabel, version } };
+		// the organisation's account is named only as the admin labelled it for "Publish as", never by its repository identity
+		if (metadata.depositMethod === DepositAuthMethod.PluginDefault) {
+			const label = this.organisationAccountName();
+			return { key: label ? 'PUBLISH-DIALOG.AS.PREVIOUS-VERSION-ORG-NAMED' : 'PUBLISH-DIALOG.AS.PREVIOUS-VERSION-ORG', params: { repository: this.repositoryLabel, version, account: label } };
+		}
+		const account = metadata.accountName || metadata.accountId;
+		const params = { repository: this.repositoryLabel, version, account, name: this.publishedByName() };
+		const named = account ? '-NAMED' : '';
+		if (metadata.userId?.toString() === this.authService.userId()?.toString()) return { key: 'PUBLISH-DIALOG.AS.PREVIOUS-VERSION-YOU' + named, params };
+		return { key: (this.publishedByName() ? 'PUBLISH-DIALOG.AS.PREVIOUS-VERSION-USER' : 'PUBLISH-DIALOG.AS.PREVIOUS-VERSION-OTHER-USER') + named, params };
+	});
 
 	readonly review = viewChild(DepositReviewComponent);
 
@@ -123,9 +152,51 @@ export class PublishDialogComponent implements OnInit {
 				this.publishAs.set(own || !this.canOrg() ? 'own' : 'org');
 				this.ownMode.set(this.hasSaved() ? 'saved' : this.canSignIn() ? 'signin' : 'token');
 				this.loading.set(false);
+				this.preselectPreviousOrganisation();
 			},
 			error: () => { this.loadError.set(true); this.loading.set(false); }
 		});
+		this.loadPublishedVersion();
+	}
+
+	// The backend deposits as a new version of the latest other version with a DOI here, and the repository only accepts that from the account that published it.
+	private loadPublishedVersion(): void {
+		const lookup = new PlanLookup();
+		lookup.groupIds = [this.data.planGroupId];
+		lookup.excludedIds = [this.data.planId];
+		lookup.isActive = [IsActive.Active];
+		lookup.page = { offset: 0, size: 100 };
+		lookup.order = { items: ['-' + nameof<Plan>(x => x.version)] };
+		lookup.project = {
+			fields: [
+				nameof<Plan>(x => x.id),
+				nameof<Plan>(x => x.version),
+				[nameof<Plan>(x => x.entityDois), nameof<EntityDoi>(x => x.repositoryId)].join('.'),
+				[nameof<Plan>(x => x.entityDois), nameof<EntityDoi>(x => x.isActive)].join('.'),
+				[nameof<Plan>(x => x.entityDois), nameof<EntityDoi>(x => x.metadata), nameof<EntityDoiMetadata>(x => x.depositMethod)].join('.'),
+				[nameof<Plan>(x => x.entityDois), nameof<EntityDoi>(x => x.metadata), nameof<EntityDoiMetadata>(x => x.userId)].join('.'),
+				[nameof<Plan>(x => x.entityDois), nameof<EntityDoi>(x => x.metadata), nameof<EntityDoiMetadata>(x => x.accountId)].join('.'),
+				[nameof<Plan>(x => x.entityDois), nameof<EntityDoi>(x => x.metadata), nameof<EntityDoiMetadata>(x => x.accountName)].join('.'),
+				[nameof<Plan>(x => x.planUsers), nameof<PlanUser>(x => x.user), nameof<User>(x => x.id)].join('.'),
+				[nameof<Plan>(x => x.planUsers), nameof<PlanUser>(x => x.user), nameof<User>(x => x.name)].join('.'),
+			]
+		};
+		this.planService.query(lookup).pipe(takeUntilDestroyed(this.destroyRef)).subscribe(result => {
+			const isHere = (doi: EntityDoi) => doi.repositoryId === this.repo.repositoryId && doi.isActive === IsActive.Active;
+			const published = result.items?.find(plan => plan.entityDois?.some(isHere));
+			const metadata = published?.entityDois.find(isHere).metadata ?? null;
+			this.publishedVersion.set(published?.version ?? null);
+			this.publishedBy.set(metadata);
+			this.publishedByName.set(published?.planUsers?.find(planUser => planUser.user?.id?.toString() === metadata?.userId?.toString())?.user.name ?? null);
+			this.preselectPreviousOrganisation();
+		});
+	}
+
+	// A version published under the organisation's account usually takes its new version only from that account, so start there;
+	// runs after whichever of the two loads finishes last, and wins over the usual starting choice.
+	private preselectPreviousOrganisation(): void {
+		if (this.loading() || this.publishedBy()?.depositMethod !== DepositAuthMethod.PluginDefault || !this.canOrg()) return;
+		this.publishAs.set('org');
 	}
 
 	setOwnMode(mode: OwnAccountMode): void {

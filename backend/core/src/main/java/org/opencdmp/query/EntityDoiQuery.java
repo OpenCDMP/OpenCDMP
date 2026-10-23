@@ -300,6 +300,7 @@ public class EntityDoiQuery extends QueryBase<EntityDoiEntity> {
         item.setCreatedAt(QueryBase.convertSafe(tuple, columns, EntityDoiEntity._createdAt, Instant.class));
         item.setUpdatedAt(QueryBase.convertSafe(tuple, columns, EntityDoiEntity._updatedAt, Instant.class));
         item.setIsActive(QueryBase.convertSafe(tuple, columns, EntityDoiEntity._isActive, IsActive.class));
+        item.setMetadata(QueryBase.convertSafe(tuple, columns, EntityDoiEntity._metadata, String.class));
         return item;
     }
 
@@ -325,6 +326,8 @@ public class EntityDoiQuery extends QueryBase<EntityDoiEntity> {
             return EntityDoiEntity._isActive;
         else if (item.match(EntityDoi._belongsToCurrentTenant))
             return EntityDoiEntity._tenantId;
+        else if (item.prefix(EntityDoi._metadata))
+            return EntityDoiEntity._metadata;
         else
             return null;
     }

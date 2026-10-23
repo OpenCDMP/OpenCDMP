@@ -9,6 +9,10 @@
 	},
 	"APP_NAME": "OpenCDMP",
 	"APP_NAME_CAPS": "OpenCDMP",
+	"TEST-INSTALLATION-MESSAGE": {
+		"TITLE": "To jest środowisko testowe.",
+		"TEXT": "Plany opublikowane tutaj trafiają do repozytorium testowego, więc ich identyfikatorów PID nie można cytować. Nie używaj go do prawdziwej pracy."
+	},
 	"PUBLISH-DIALOG": {
 		"TITLE": "Opublikuj w {{repository}}",
 		"STEPS": {
@@ -36,7 +40,16 @@
 			"TOKEN-INSTEAD": "Zamiast tego wprowadź token dostępu",
 			"OTHER-TOKEN": "Użyj innych danych uwierzytelniających",
 			"USE-SAVED": "Użyj danych uwierzytelniających zapisanych w profilu",
-			"NONE": "Nie skonfigurowano żadnego sposobu publikacji w {{repository}}. Skontaktuj się z administratorem."
+			"NONE": "Nie skonfigurowano żadnego sposobu publikacji w {{repository}}. Skontaktuj się z administratorem.",
+			"PREVIOUS-VERSION": "Wersja {{version}} tego planu jest już w {{repository}}, więc ta zostanie opublikowana jako jej nowa wersja. Użyj tego samego konta w {{repository}}, z którego opublikowano wersję {{version}}, w przeciwnym razie {{repository}} ją odrzuci.",
+			"PREVIOUS-VERSION-ORG": "Wersja {{version}} tego planu została opublikowana w {{repository}} z konta organizacji, więc ta zostanie opublikowana jako jej nowa wersja. Opublikuj ją ponownie z konta organizacji, w przeciwnym razie {{repository}} ją odrzuci.",
+			"PREVIOUS-VERSION-ORG-NAMED": "Wersja {{version}} tego planu została opublikowana w {{repository}} z konta {{account}}, więc ta zostanie opublikowana jako jej nowa wersja. Opublikuj ją ponownie z konta {{account}}, w przeciwnym razie {{repository}} ją odrzuci.",
+			"PREVIOUS-VERSION-YOU": "Opublikowałeś wersję {{version}} tego planu w {{repository}} z własnego konta, więc ta zostanie opublikowana jako jej nowa wersja. Użyj ponownie tego samego konta w {{repository}}, w przeciwnym razie {{repository}} ją odrzuci.",
+			"PREVIOUS-VERSION-USER": "{{name}} opublikował(a) wersję {{version}} tego planu w {{repository}} z własnego konta, więc ta zostanie opublikowana jako jej nowa wersja. Tylko to konto w {{repository}} może ją opublikować, więc poproś {{name}} o opublikowanie tej wersji.",
+			"PREVIOUS-VERSION-OTHER-USER": "Inny użytkownik opublikował wersję {{version}} tego planu w {{repository}} z własnego konta, więc ta zostanie opublikowana jako jej nowa wersja. Tylko to konto w {{repository}} może ją opublikować.",
+			"PREVIOUS-VERSION-YOU-NAMED": "Opublikowałeś wersję {{version}} tego planu w {{repository}} z konta {{account}}, więc ta zostanie opublikowana jako jej nowa wersja. Użyj ponownie konta {{account}}, w przeciwnym razie {{repository}} ją odrzuci.",
+			"PREVIOUS-VERSION-USER-NAMED": "{{name}} opublikował(a) wersję {{version}} tego planu w {{repository}} z konta {{account}}, więc ta zostanie opublikowana jako jej nowa wersja. Tylko konto {{account}} może ją opublikować, więc poproś {{name}} o opublikowanie tej wersji.",
+			"PREVIOUS-VERSION-OTHER-USER-NAMED": "Wersja {{version}} tego planu została opublikowana w {{repository}} z konta {{account}}, więc ta zostanie opublikowana jako jej nowa wersja. Tylko konto {{account}} może ją opublikować."
 		},
 		"REVIEW": {
 			"AS-ORG": "Publikacja na koncie organizacji w {{repository}}",
@@ -85,6 +98,7 @@
 			"CREDENTIALS": "Brak Twoich danych uwierzytelniających dla {{repository}}",
 			"HINT": "Nic nie zostało opublikowane, a plan pozostał bez zmian.",
 			"HINT-OWN": "Nic nie zostało opublikowane, a plan pozostał bez zmian. Konto organizacji nie zostało użyte zamiast Twojego.",
+			"PREVIOUS-VERSION": "{{repository}} przyjmuje nową wersję tylko z konta, które opublikowało wersję {{version}}. Zmień konto na to i spróbuj ponownie.",
 			"DETAILS": "Szczegóły",
 			"BACK": "Wróć do przeglądu",
 			"USE-ORG": "Użyj konta organizacji",
@@ -1239,6 +1253,7 @@
 				"ISSUER": "Adres wystawcy tokenów",
 				"CLIENT-ID": "Identyfikator klienta",
 				"CLIENT-SECRET": "Klucz tajny klienta",
+				"CLIENT-SECRET-STORED": "Zapisany w postaci zaszyfrowanej. Pozostaw puste, aby go zachować.",
 				"SHOW-SECRET": "Pokaż klucz tajny klienta",
 				"HIDE-SECRET": "Ukryj klucz tajny klienta",
 				"SCOPE": "Zakres",
@@ -3393,6 +3408,7 @@
 			"CONFIRM": "Importuj",
 			"CANCEL": "Anuluj",
 			"SUCCESS": "Definicja została zaimportowana. Przejrzyj zmiany i zapisz, aby je zachować.",
+			"SUCCESS-AUTH": "Definicja zaimportowana. Treści logowania nigdy nie są eksportowane, więc wpisz je ponownie przed zapisaniem.",
 			"INVALID-FILE": "The selected file could not be read as a valid definition export."
 		},
 		"ABOUT": {
@@ -3482,6 +3498,7 @@
 			"URL": "URL tokena",
 			"BODY": "Treść żądania",
 			"BODY-HINT": "Wysyłane jako JSON.",
+			"BODY-STORED": "Zapisana w postaci zaszyfrowanej. Pozostaw puste, aby ją zachować.",
 			"STEP-READ": "Odczytaj token z odpowiedzi",
 			"TOKEN-FIELD": "Pole tokena",
 			"TOKEN-FIELD-HINT": "Pole najwyższego poziomu odpowiedzi, nie ścieżka.",
@@ -3677,6 +3694,7 @@
 			"CONFIRM": "Importuj",
 			"CANCEL": "Anuluj",
 			"SUCCESS": "Definicja została zaimportowana. Przejrzyj zmiany i zapisz, aby je zachować.",
+			"SUCCESS-AUTH": "Definicja zaimportowana. Treści logowania nigdy nie są eksportowane, więc wpisz je ponownie przed zapisaniem.",
 			"INVALID-FILE": "The selected file could not be read as a valid definition export."
 		},
 		"HEADER": {
@@ -3902,6 +3920,7 @@
 			"SECTION-TITLE": "Nadaj sekcji nazwę.",
 			"SECTION-EMPTY": "Sekcja potrzebuje co najmniej jednego pytania, podsekcji lub szablonów zasobów.",
 			"TEMPLATE-ROW": "Wiersz szablonu zasobu jest niekompletny.",
+			"TEMPLATES-REQUIRED": "Dodaj co najmniej jeden szablon zasobu lub pozwól autorom dodawać inne szablony.",
 			"QUESTION-TITLE": "Nadaj pytaniu tytuł. Autorzy widzą go jako etykietę.",
 			"QUESTION-NO-INPUT": "Pytanie nie ma żadnego pola wejściowego.",
 			"INPUT-NO-TYPE": "Wybierz typ pola wejściowego",
@@ -5441,6 +5460,10 @@
 				"TITLE": "Zacznij z panelu bocznego",
 				"CONTENT": "Nowy DMP i Nowy zasób znajdują się w panelu bocznym pod Moje DMPs i Moje Zasoby, więc możesz zacząć z dowolnej strony."
 			},
+			"RECOMMENDATIONS": {
+				"TITLE": "Polecane dla Ciebie",
+				"CONTENT": "DMP Blueprints i Szablony Zasobów polecane przez Twoją organizację. Zacznij plan bezpośrednio z blueprintu albo otwórz go, aby zobaczyć, o co pyta."
+			},
 			"ACTIVITY": {
 				"TITLE": "Twoja ostatnia aktywność",
 				"CONTENT": "Plany i zasoby, nad którymi ostatnio pracowałeś, najnowsze na początku. Zakładki zawężają listę tylko do planów lub tylko do zasobów."
@@ -5465,6 +5488,26 @@
 				"TITLE": "Pomoc, język i Twoje konto",
 				"CONTENT": "W menu Wsparcie znajdziesz podręcznik użytkownika, często zadawane pytania i słownik, a także możesz ponownie uruchomić ten przewodnik. Obok możesz zmienić język. W menu organizacji możesz zmienić organizację, jeśli należysz do więcej niż jednej, ponieważ każda ma własne plany, zasoby i blueprinty. Dzwonek pokazuje Twoje powiadomienia, a obok znajduje się Twój profil."
 			}
+		},
+		"RECOMMENDATIONS": {
+			"FROM": "Od {{tenant}}",
+			"TITLE": "Polecane blueprinty i szablony",
+			"SUMMARY": "Polecane blueprinty i szablony: {{count}}",
+			"RANGE": "{{start}}–{{end}} z {{count}}",
+			"SHOW": "Pokaż",
+			"HIDE": "Ukryj",
+			"PREVIOUS": "Poprzednie polecenia",
+			"NEXT": "Następne polecenia",
+			"PLAN-BLUEPRINT": "DMP Blueprint",
+			"DESCRIPTION-TEMPLATE": "Szablon Zasobu",
+			"TYPE": "Typ: {{type}}",
+			"VERSION": "Wersja {{version}}",
+			"USED-IN-PLAN": "Użyty w {{count}} planie",
+			"USED-IN-PLANS": "Użyty w {{count}} planach",
+			"USED-IN-DESCRIPTION": "Użyty w {{count}} zasobie",
+			"USED-IN-DESCRIPTIONS": "Użyty w {{count}} zasobach",
+			"START-PLAN": "Zacznij plan z tym blueprintem",
+			"SEE-DETAILS": "Zobacz szczegóły"
 		},
 		"GRANTS": "Dotacje",
 		"TITLE": "Co to jest {{ APP_NAME_CAPS }}?",

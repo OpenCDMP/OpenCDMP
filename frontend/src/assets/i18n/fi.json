@@ -9,6 +9,10 @@
 	},
 	"APP_NAME": "OpenCDMP",
 	"APP_NAME_CAPS": "OpenCDMP",
+	"TEST-INSTALLATION-MESSAGE": {
+		"TITLE": "Tämä on testiympäristö.",
+		"TEXT": "Täällä julkaistut suunnitelmat menevät testirepositorioon, joten niiden PID-tunnisteisiin ei voi viitata. Älä käytä tätä oikeaan työhön."
+	},
 	"PUBLISH-DIALOG": {
 		"TITLE": "Julkaise palvelussa {{repository}}",
 		"STEPS": {
@@ -36,7 +40,16 @@
 			"TOKEN-INSTEAD": "Syötä sen sijaan käyttöoikeustunnus",
 			"OTHER-TOKEN": "Käytä muita tunnistetietoja",
 			"USE-SAVED": "Käytä profiiliisi tallennettuja tunnistetietoja",
-			"NONE": "Julkaisemista palveluun {{repository}} ei ole määritetty. Ota yhteyttä ylläpitäjään."
+			"NONE": "Julkaisemista palveluun {{repository}} ei ole määritetty. Ota yhteyttä ylläpitäjään.",
+			"PREVIOUS-VERSION": "Tämän suunnitelman versio {{version}} on jo palvelussa {{repository}}, joten tämä julkaistaan sen uutena versiona. Käytä samaa {{repository}}-tiliä, jolla versio {{version}} julkaistiin, tai {{repository}} hylkää sen.",
+			"PREVIOUS-VERSION-ORG": "Tämän suunnitelman versio {{version}} julkaistiin palvelussa {{repository}} organisaation tilillä, joten tämä julkaistaan sen uutena versiona. Julkaise se uudelleen organisaation tilillä, tai {{repository}} hylkää sen.",
+			"PREVIOUS-VERSION-ORG-NAMED": "Tämän suunnitelman versio {{version}} julkaistiin palvelussa {{repository}} tilillä {{account}}, joten tämä julkaistaan sen uutena versiona. Julkaise se uudelleen tilillä {{account}}, tai {{repository}} hylkää sen.",
+			"PREVIOUS-VERSION-YOU": "Julkaisit tämän suunnitelman version {{version}} palvelussa {{repository}} omalla tililläsi, joten tämä julkaistaan sen uutena versiona. Käytä samaa {{repository}}-tiliä uudelleen, tai {{repository}} hylkää sen.",
+			"PREVIOUS-VERSION-USER": "{{name}} julkaisi tämän suunnitelman version {{version}} palvelussa {{repository}} omalla tilillään, joten tämä julkaistaan sen uutena versiona. Vain tämä {{repository}}-tili voi julkaista sen, joten pyydä käyttäjää {{name}} julkaisemaan tämä versio.",
+			"PREVIOUS-VERSION-OTHER-USER": "Toinen käyttäjä julkaisi tämän suunnitelman version {{version}} palvelussa {{repository}} omalla tilillään, joten tämä julkaistaan sen uutena versiona. Vain tämä {{repository}}-tili voi julkaista sen.",
+			"PREVIOUS-VERSION-YOU-NAMED": "Julkaisit tämän suunnitelman version {{version}} palvelussa {{repository}} tilillä {{account}}, joten tämä julkaistaan sen uutena versiona. Käytä tiliä {{account}} uudelleen, tai {{repository}} hylkää sen.",
+			"PREVIOUS-VERSION-USER-NAMED": "{{name}} julkaisi tämän suunnitelman version {{version}} palvelussa {{repository}} tilillä {{account}}, joten tämä julkaistaan sen uutena versiona. Vain tili {{account}} voi julkaista sen, joten pyydä käyttäjää {{name}} julkaisemaan tämä versio.",
+			"PREVIOUS-VERSION-OTHER-USER-NAMED": "Tämän suunnitelman versio {{version}} julkaistiin palvelussa {{repository}} tilillä {{account}}, joten tämä julkaistaan sen uutena versiona. Vain tili {{account}} voi julkaista sen."
 		},
 		"REVIEW": {
 			"AS-ORG": "Julkaistaan organisaation {{repository}}-tilillä",
@@ -85,6 +98,7 @@
 			"CREDENTIALS": "{{repository}}-tunnistetietosi puuttuvat",
 			"HINT": "Mitään ei julkaistu, eikä suunnitelmaasi muutettu.",
 			"HINT-OWN": "Mitään ei julkaistu, eikä suunnitelmaasi muutettu. Organisaation tiliä ei käytetty sen sijaan.",
+			"PREVIOUS-VERSION": "{{repository}} hyväksyy uuden version vain tililtä, joka julkaisi version {{version}}. Vaihda tiliksi se ja yritä uudelleen.",
 			"DETAILS": "Tiedot",
 			"BACK": "Takaisin tarkistukseen",
 			"USE-ORG": "Käytä organisaation tiliä",
@@ -1239,6 +1253,7 @@
 				"ISSUER": "Tunnuksen myöntäjän osoite",
 				"CLIENT-ID": "Asiakastunniste",
 				"CLIENT-SECRET": "Asiakassalaisuus",
+				"CLIENT-SECRET-STORED": "Tallennettu salattuna. Jätä tyhjäksi säilyttääksesi sen.",
 				"SHOW-SECRET": "Näytä asiakassalaisuus",
 				"HIDE-SECRET": "Piilota asiakassalaisuus",
 				"SCOPE": "Laajuus",
@@ -3393,6 +3408,7 @@
 			"CONFIRM": "Tuo",
 			"CANCEL": "Peruuta",
 			"SUCCESS": "Määritelmä tuotu. Tarkista muutokset ja tallenna säilyttääksesi ne.",
+			"SUCCESS-AUTH": "Määritys tuotu. Kirjautumisen runkoja ei koskaan viedä, joten kirjoita ne uudelleen ennen tallentamista.",
 			"INVALID-FILE": "The selected file could not be read as a valid definition export."
 		},
 		"ABOUT": {
@@ -3482,6 +3498,7 @@
 			"URL": "Tokenin URL",
 			"BODY": "Pyynnön runko",
 			"BODY-HINT": "Lähetetään JSON-muodossa.",
+			"BODY-STORED": "Tallennettu salattuna. Jätä tyhjäksi säilyttääksesi sen.",
 			"STEP-READ": "Lue token vastauksesta",
 			"TOKEN-FIELD": "Tokenin kenttä",
 			"TOKEN-FIELD-HINT": "Vastauksen ylimmän tason kenttä, ei polku.",
@@ -3677,6 +3694,7 @@
 			"CONFIRM": "Tuo",
 			"CANCEL": "Peruuta",
 			"SUCCESS": "Määritelmä tuotu. Tarkista muutokset ja tallenna säilyttääksesi ne.",
+			"SUCCESS-AUTH": "Määritys tuotu. Kirjautumisen runkoja ei koskaan viedä, joten kirjoita ne uudelleen ennen tallentamista.",
 			"INVALID-FILE": "The selected file could not be read as a valid definition export."
 		},
 		"HEADER": {
@@ -3902,6 +3920,7 @@
 			"SECTION-TITLE": "Anna osiolle nimi.",
 			"SECTION-EMPTY": "Osio tarvitsee vähintään yhden kysymyksen, aliosion tai aineistopohjia.",
 			"TEMPLATE-ROW": "Aineistopohjan rivi on puutteellinen.",
+			"TEMPLATES-REQUIRED": "Lisää vähintään yksi aineistopohja tai salli tekijöiden lisätä muita pohjia.",
 			"QUESTION-TITLE": "Anna kysymykselle otsikko. Kirjoittajat näkevät sen nimikkeenä.",
 			"QUESTION-NO-INPUT": "Kysymyksellä ei ole syötteitä.",
 			"INPUT-NO-TYPE": "Valitse syötteen tyyppi",
@@ -5441,6 +5460,10 @@
 				"TITLE": "Aloita sivupalkista",
 				"CONTENT": "Uusi suunnitelma ja Uusi aineisto löytyvät sivupalkista kohdista Omat suunnitelmat ja Omat aineistot, joten voit aloittaa miltä tahansa sivulta."
 			},
+			"RECOMMENDATIONS": {
+				"TITLE": "Suositeltu sinulle",
+				"CONTENT": "Organisaatiosi suosittelemat Plan Blueprintit ja aineistopohjat. Aloita suunnitelma suoraan blueprintista tai avaa se nähdäksesi, mitä siinä kysytään."
+			},
 			"ACTIVITY": {
 				"TITLE": "Viimeisin toimintasi",
 				"CONTENT": "Suunnitelmat ja aineistot, joita olet viimeksi työstänyt, uusimmat ensin. Välilehdet rajaavat luettelon vain suunnitelmiin tai vain aineistoihin."
@@ -5465,6 +5488,26 @@
 				"TITLE": "Ohjeet, kieli ja tilisi",
 				"CONTENT": "Tuki-valikosta löydät käyttöoppaan, UKK:n ja sanaston, ja voit katsoa tämän esittelykierroksen uudelleen. Sen vieressä voit vaihtaa kieltä. Organisaatiovalikosta voit vaihtaa organisaatiota, jos kuulut useampaan, sillä jokaisella on omat suunnitelmansa, aineistonsa ja blueprintinsä. Kello näyttää ilmoituksesi, ja sen vieressä on profiilisi."
 			}
+		},
+		"RECOMMENDATIONS": {
+			"FROM": "{{tenant}} suosittelee",
+			"TITLE": "Suositellut blueprintit ja pohjat",
+			"SUMMARY": "{{count}} suositeltua blueprintia ja pohjaa",
+			"RANGE": "{{start}}–{{end}} / {{count}}",
+			"SHOW": "Näytä",
+			"HIDE": "Piilota",
+			"PREVIOUS": "Edelliset suositukset",
+			"NEXT": "Seuraavat suositukset",
+			"PLAN-BLUEPRINT": "Plan Blueprint",
+			"DESCRIPTION-TEMPLATE": "Aineistopohja",
+			"TYPE": "Tyyppi: {{type}}",
+			"VERSION": "Versio {{version}}",
+			"USED-IN-PLAN": "Käytössä {{count}} suunnitelmassa",
+			"USED-IN-PLANS": "Käytössä {{count}} suunnitelmassa",
+			"USED-IN-DESCRIPTION": "Käytössä {{count}} aineistossa",
+			"USED-IN-DESCRIPTIONS": "Käytössä {{count}} aineistossa",
+			"START-PLAN": "Aloita suunnitelma tällä",
+			"SEE-DETAILS": "Näytä tiedot"
 		},
 		"GRANTS": "Apurahat",
 		"TITLE": "Mikä on {{ APP_NAME_CAPS }}?",

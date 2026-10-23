@@ -1,0 +1,78 @@
+@if (items().length) {
+<section class="recommendations" [class.collapsed]="!expanded()" aria-labelledby="dashboard-recommendations-title" data-tour="dashboard-recommendations">
+    <div class="recommendations-header">
+        @if (tenantName()) {
+            <mat-icon class="material-symbols-outlined" aria-hidden="true">domain</mat-icon>
+            <h2 id="dashboard-recommendations-title" class="recommendations-title">{{'DASHBOARD.RECOMMENDATIONS.FROM' | translate: {tenant: tenantName()} }}</h2>
+        } @else {
+            <h2 id="dashboard-recommendations-title" class="recommendations-title recommendations-subtitle">{{'DASHBOARD.RECOMMENDATIONS.TITLE' | translate}}</h2>
+        }
+        @if (!expanded() && tenantName()) {
+            <span class="recommendations-summary">{{'DASHBOARD.RECOMMENDATIONS.SUMMARY' | translate: {count: items().length} }}</span>
+        }
+        <div class="ml-auto d-flex align-items-center gap-half-rem">
+            @if (expanded() && pageCount() > 1) {
+                <span class="recommendations-range" aria-live="polite">{{'DASHBOARD.RECOMMENDATIONS.RANGE' | translate: {start: rangeStart(), end: rangeEnd(), count: items().length} }}</span>
+            }
+            <button mat-button type="button" aria-controls="dashboard-recommendations-content" [attr.aria-expanded]="expanded()" (click)="toggle()">
+                {{(expanded() ? 'DASHBOARD.RECOMMENDATIONS.HIDE' : 'DASHBOARD.RECOMMENDATIONS.SHOW') | translate}}
+                <mat-icon iconPositionEnd aria-hidden="true">{{expanded() ? 'keyboard_arrow_up' : 'keyboard_arrow_down'}}</mat-icon>
+            </button>
+        </div>
+    </div>
+    @if (expanded()) {
+        <div id="dashboard-recommendations-content">
+            @if (tenantName()) {
+                <div class="recommendations-subtitle">{{'DASHBOARD.RECOMMENDATIONS.TITLE' | translate}}</div>
+            }
+            <div class="recommendations-carousel">
+                @if (pageCount() > 1) {
+                    <button mat-icon-button type="button" class="carousel-btn carousel-btn--previous" [disabled]="page() === 0" [attr.aria-label]="'DASHBOARD.RECOMMENDATIONS.PREVIOUS' | translate" (click)="previous()">
+                        <mat-icon aria-hidden="true">chevron_left</mat-icon>
+                    </button>
+                }
+                <ul class="recommendations-list unstyled-list">
+                    @for (item of pageItems(); track item.id) {
+                        <li class="recommendation-card">
+                            <span class="recommendation-chip" [class.recommendation-chip--template]="!item.isBlueprint">
+                                <mat-icon class="material-symbols-outlined" aria-hidden="true">{{item.isBlueprint ? 'article' : 'assignment'}}</mat-icon>
+                                {{(item.isBlueprint ? 'DASHBOARD.RECOMMENDATIONS.PLAN-BLUEPRINT' : 'DASHBOARD.RECOMMENDATIONS.DESCRIPTION-TEMPLATE') | translate}}
+                            </span>
+                            <h3 class="recommendation-label">{{item.label}}</h3>
+                            <div class="recommendation-meta">
+                                @if (item.typeName) {
+                                    {{'DASHBOARD.RECOMMENDATIONS.TYPE' | translate: {type: item.typeName} }}
+                                    <span aria-hidden="true">•</span>
+                                }
+                                {{'DASHBOARD.RECOMMENDATIONS.VERSION' | translate: {version: item.version} }}
+                                <span aria-hidden="true">•</span>
+                                @if (item.isBlueprint) {
+                                    {{(item.usageCount === 1 ? 'DASHBOARD.RECOMMENDATIONS.USED-IN-PLAN' : 'DASHBOARD.RECOMMENDATIONS.USED-IN-PLANS') | translate: {count: item.usageCount} }}
+                                } @else {
+                                    {{(item.usageCount === 1 ? 'DASHBOARD.RECOMMENDATIONS.USED-IN-DESCRIPTION' : 'DASHBOARD.RECOMMENDATIONS.USED-IN-DESCRIPTIONS') | translate: {count: item.usageCount} }}
+                                }
+                            </div>
+                            @if (item.description && item.description !== item.label) {
+                                <div class="recommendation-description" [innerHTML]="item.description"></div>
+                            }
+                            <div class="recommendation-actions">
+                                @if (item.isBlueprint) {
+                                    <a mat-flat-button color="primary" [routerLink]="routerUtils.generateUrl('/plans/new')" [queryParams]="{blueprintId: item.groupId}">{{'DASHBOARD.RECOMMENDATIONS.START-PLAN' | translate}}</a>
+                                    <a mat-button [routerLink]="routerUtils.generateUrl(['/plan-blueprint-library', item.groupId], '/')">{{'DASHBOARD.RECOMMENDATIONS.SEE-DETAILS' | translate}}</a>
+                                } @else {
+                                    <a mat-button [routerLink]="routerUtils.generateUrl(['/asset-template-library', item.id], '/')">{{'DASHBOARD.RECOMMENDATIONS.SEE-DETAILS' | translate}}</a>
+                                }
+                            </div>
+                        </li>
+                    }
+                </ul>
+                @if (pageCount() > 1) {
+                    <button mat-icon-button type="button" class="carousel-btn carousel-btn--next" [disabled]="page() === pageCount() - 1" [attr.aria-label]="'DASHBOARD.RECOMMENDATIONS.NEXT' | translate" (click)="next()">
+                        <mat-icon aria-hidden="true">chevron_right</mat-icon>
+                    </button>
+                }
+            </div>
+        </div>
+    }
+</section>
+}

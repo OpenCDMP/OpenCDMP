@@ -5,6 +5,7 @@ import org.opencdmp.model.persist.externalfetcher.ExternalFetcherBaseSourceConfi
 import org.opencdmp.model.reference.Reference;
 
 import java.util.List;
+import java.util.UUID;
 
 public class ReferenceTestLookup extends Lookup {
 
@@ -15,6 +16,8 @@ public class ReferenceTestLookup extends Lookup {
     private List<Reference> dependencyReferences;
 
     private List<ExternalFetcherBaseSourceConfigurationPersist> sources;
+
+    private UUID referenceTypeId;
 
     public String getLike() {
         return like;
@@ -46,5 +49,13 @@ public class ReferenceTestLookup extends Lookup {
 
     public void setSources(List<ExternalFetcherBaseSourceConfigurationPersist> sources) {
         this.sources = sources;
+    }
+
+    public UUID getReferenceTypeId() {
+        return referenceTypeId;
+    }
+
+    public void setReferenceTypeId(UUID referenceTypeId) {
+        this.referenceTypeId = referenceTypeId;
     }
 }

@@ -153,7 +153,8 @@ public class PrefillingSourceServiceImpl implements PrefillingSourceService {
 
         data.setCode(model.getCode());
         data.setLabel(model.getLabel());
-        data.setDefinition(this.xmlHandlingService.toXml(this.buildDefinitionEntity(model.getDefinition())));
+        PrefillingSourceDefinitionEntity oldDefinition = this.conventionService.isNullOrEmpty(data.getDefinition()) ? null : this.xmlHandlingService.fromXmlSafe(PrefillingSourceDefinitionEntity.class, data.getDefinition());
+        data.setDefinition(this.xmlHandlingService.toXml(this.buildDefinitionEntity(model.getDefinition(), oldDefinition)));
         data.setUpdatedAt(Instant.now());
 
         if (isUpdate) this.tenantEntityManagerFactory.getInstance().merge(data);
@@ -178,7 +179,7 @@ public class PrefillingSourceServiceImpl implements PrefillingSourceService {
         return this.builderFactory.builder(PrefillingSourceBuilder.class).authorize(AuthorizationFlags.AllExceptPublic).build(BaseFieldSet.build(fields, PrefillingSource._id), data);
     }
 
-    private @NotNull PrefillingSourceDefinitionEntity buildDefinitionEntity(PrefillingSourceDefinitionPersist persist) {
+    private @NotNull PrefillingSourceDefinitionEntity buildDefinitionEntity(PrefillingSourceDefinitionPersist persist, PrefillingSourceDefinitionEntity oldDefinition) {
         PrefillingSourceDefinitionEntity data = new PrefillingSourceDefinitionEntity();
         if (persist == null)
             return data;
@@ -195,10 +196,10 @@ public class PrefillingSourceServiceImpl implements PrefillingSourceService {
             }
         }
         if (persist.getSearchConfiguration() != null ) {
-            data.setSearchConfiguration(this.buildExternalFetcherApiConfigEntity(persist.getSearchConfiguration()));
+            data.setSearchConfiguration(this.buildExternalFetcherApiConfigEntity(persist.getSearchConfiguration(), oldDefinition != null ? oldDefinition.getSearchConfiguration() : null));
         }
         if (persist.getGetConfiguration() != null && persist.getGetEnabled()) {
-            data.setGetConfiguration(this.buildExternalFetcherApiConfigEntity(persist.getGetConfiguration()));
+            data.setGetConfiguration(this.buildExternalFetcherApiConfigEntity(persist.getGetConfiguration(), oldDefinition != null ? oldDefinition.getGetConfiguration() : null));
         }
 
         return data;
@@ -230,7 +231,7 @@ public class PrefillingSourceServiceImpl implements PrefillingSourceService {
         return data;
     }
 
-    private @NotNull ExternalFetcherApiSourceConfigurationEntity buildExternalFetcherApiConfigEntity(ExternalFetcherApiSourceConfigurationPersist persist) {
+    private @NotNull ExternalFetcherApiSourceConfigurationEntity buildExternalFetcherApiConfigEntity(ExternalFetcherApiSourceConfigurationPersist persist, ExternalFetcherApiSourceConfigurationEntity old) {
         ExternalFetcherApiSourceConfigurationEntity data = new ExternalFetcherApiSourceConfigurationEntity();
         if (persist == null)
             return data;
@@ -252,7 +253,7 @@ public class PrefillingSourceServiceImpl implements PrefillingSourceService {
         data.setFilterType(persist.getFilterType());
         data.setResponseFormat(persist.getResponseFormat());
         if (persist.getAuth() != null) {
-            data.setAuth(this.buildAuthConfigEntity(persist.getAuth()));
+            data.setAuth(this.buildAuthConfigEntity(persist.getAuth(), old != null ? old.getAuth() : null));
         }
         if (!this.conventionService.isListNullOrEmpty(persist.getQueries())){
             data.setQueries(new ArrayList<>());
@@ -314,14 +315,14 @@ public class PrefillingSourceServiceImpl implements PrefillingSourceService {
         return data;
     }
 
-    private @NotNull AuthenticationConfigurationEntity buildAuthConfigEntity(AuthenticationConfigurationPersist persist){
+    private @NotNull AuthenticationConfigurationEntity buildAuthConfigEntity(AuthenticationConfigurationPersist persist, AuthenticationConfigurationEntity old){
         AuthenticationConfigurationEntity data = new AuthenticationConfigurationEntity();
         if (persist == null) return data;
 
         data.setEnabled(persist.getEnabled());
         data.setAuthUrl(persist.getAuthUrl());
         data.setAuthMethod(persist.getAuthMethod());
-        data.setAuthRequestBody(persist.getAuthRequestBody());
+        data.setAuthRequestBody(this.externalFetcherService.authRequestBodyToStore(persist, old));
         data.setType(persist.getType());
         data.setAuthTokenPath(persist.getAuthTokenPath());
 
@@ -421,6 +422,7 @@ public class PrefillingSourceServiceImpl implements PrefillingSourceService {
 
         List<Prefilling> prefillings = new ArrayList<>();
 
+        this.useStoredAuthRequestBodies(model.getPrefillingSourceId(), model.getSources());
         ExternalDataResult externalData = this.externalFetcherService.getExternalData(model.getSources().stream().map(x -> (SourceBaseConfiguration)x).collect(Collectors.toList()), externalReferenceCriteria,  model.getKey(), true);
         if (externalData == null || this.conventionService.isListNullOrEmpty(externalData.getResults())) {
             return prefillings;
@@ -451,7 +453,20 @@ public class PrefillingSourceServiceImpl implements PrefillingSourceService {
 
         ExternalReferenceCriteria externalReferenceCriteria = new ExternalReferenceCriteria();
         externalReferenceCriteria.setLike(model.getLike());
+        this.useStoredAuthRequestBodies(model.getPrefillingSourceId(), model.getSources());
         return this.externalFetcherService.testSource(model.getSources().getFirst(), externalReferenceCriteria);
+    }
+
+    private void useStoredAuthRequestBodies(UUID prefillingSourceId, List<ExternalFetcherBaseSourceConfigurationPersist> sources) {
+        if (prefillingSourceId == null) return;
+        PrefillingSourceEntity prefillingSourceEntity = this.queryFactory.query(PrefillingSourceQuery.class).disableTracking().ids(prefillingSourceId).first();
+        if (prefillingSourceEntity == null) return;
+        PrefillingSourceDefinitionEntity definition = this.xmlHandlingService.fromXmlSafe(PrefillingSourceDefinitionEntity.class, prefillingSourceEntity.getDefinition());
+        if (definition == null) return;
+        List<ExternalFetcherBaseSourceConfigurationEntity> stored = new ArrayList<>();
+        if (definition.getSearchConfiguration() != null) stored.add(definition.getSearchConfiguration());
+        if (definition.getGetConfiguration() != null) stored.add(definition.getGetConfiguration());
+        this.externalFetcherService.useStoredAuthRequestBodies(sources, stored);
     }
 
     public Description getPrefilledDescription(DescriptionPrefillingRequest model, FieldSet fieldSet) throws JAXBException, ParserConfigurationException, IOException, InstantiationException, IllegalAccessException, SAXException, InvalidApplicationException {

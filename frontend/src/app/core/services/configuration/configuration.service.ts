@@ -173,6 +173,11 @@ export class ConfigurationService extends BaseComponent {
 		return this._accountingServiceEnabled;
 	}
 
+	private _testInstallationMessageEnabled: boolean;
+	get testInstallationMessageEnabled(): boolean {
+		return this._testInstallationMessageEnabled;
+	}
+
     private _userWay: {id: string}
     get userWayId(): string {
         return this._userWay?.id;
@@ -288,6 +293,10 @@ export class ConfigurationService extends BaseComponent {
 
 		if (config.accounting_service) {
 			this._accountingServiceEnabled = config.accounting_service.enabled === true || config.accounting_service.enabled === "true";
+		}
+
+		if (config.testInstallationMessage) {
+			this._testInstallationMessageEnabled = config.testInstallationMessage.enabled === true || config.testInstallationMessage.enabled === "true";
 		}
 
         if(config.userWay){

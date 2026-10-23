@@ -72,6 +72,7 @@ import org.opencdmp.service.fielddatahelper.FieldDataHelperServiceProvider;
 import org.opencdmp.service.kpi.KpiService;
 import org.opencdmp.service.lock.LockService;
 import org.opencdmp.service.pluginconfiguration.PluginConfigurationService;
+import org.opencdmp.service.pluginintegration.PluginIntegrationService;
 import org.opencdmp.service.responseutils.ResponseUtilsService;
 import org.opencdmp.service.storage.StorageFileService;
 import org.opencdmp.service.usagelimit.UsageLimitService;
@@ -138,6 +139,7 @@ public class DescriptionTemplateServiceImpl implements DescriptionTemplateServic
     private final StorageFileService storageFileService;
 
     private final PluginConfigurationService pluginConfigurationService;
+    private final PluginIntegrationService pluginIntegrationService;
 
     private final KpiService kpiService;
 
@@ -161,7 +163,7 @@ public class DescriptionTemplateServiceImpl implements DescriptionTemplateServic
             JsonHandlingService jsonHandlingService,
             NotifyIntegrationEventHandler eventHandler,
             NotificationProperties notificationProperties,
-            ValidatorFactory validatorFactory, DescriptionTemplateTypeService descriptionTemplateTypeService, AuthorizationContentResolverFactory authorizationContentResolverFactory, UsageLimitService usageLimitService, AccountingService accountingService, LockService lockService, StorageFileService storageFileService, PluginConfigurationService pluginConfigurationService, KpiService kpiService, IconConfigurationService iconConfigurationService, PlanBlueprintDescriptionTemplateFieldsService fieldsService) {
+            ValidatorFactory validatorFactory, DescriptionTemplateTypeService descriptionTemplateTypeService, AuthorizationContentResolverFactory authorizationContentResolverFactory, UsageLimitService usageLimitService, AccountingService accountingService, LockService lockService, StorageFileService storageFileService, PluginConfigurationService pluginConfigurationService, PluginIntegrationService pluginIntegrationService, KpiService kpiService, IconConfigurationService iconConfigurationService, PlanBlueprintDescriptionTemplateFieldsService fieldsService) {
         this.tenantEntityManagerFactory = tenantEntityManagerFactory;
         this.userScopeFactory = userScopeFactory;
         this.authorizationService = authorizationService;
@@ -186,6 +188,7 @@ public class DescriptionTemplateServiceImpl implements DescriptionTemplateServic
         this.lockService = lockService;
         this.storageFileService = storageFileService;
         this.pluginConfigurationService = pluginConfigurationService;
+        this.pluginIntegrationService = pluginIntegrationService;
         this.kpiService = kpiService;
         this.iconConfigurationService = iconConfigurationService;
         this.fieldsService = fieldsService;
@@ -239,7 +242,7 @@ public class DescriptionTemplateServiceImpl implements DescriptionTemplateServic
         data.setUpdatedAt(Instant.now());
 
         DefinitionEntity oldDefinition = this.conventionService.isNullOrEmpty(data.getDefinition()) ? null : this.xmlHandlingService.fromXmlSafe(DefinitionEntity.class, data.getDefinition());
-        data.setDefinition(this.xmlHandlingService.toXml(this.buildDefinitionEntity(model.getDefinition(), oldDefinition)));
+        data.setDefinition(this.xmlHandlingService.toXml(this.buildDefinitionEntity(model.getDefinition(), oldDefinition, null)));
 
         if (isUpdate) {
             this.tenantEntityManagerFactory.getInstance().merge(data);
@@ -422,7 +425,7 @@ public class DescriptionTemplateServiceImpl implements DescriptionTemplateServic
 	    this.eventHandler.handle(event);
     }
 
-    private @NotNull DefinitionEntity buildDefinitionEntity(DefinitionPersist persist, DefinitionEntity oldValue) throws InvalidApplicationException {
+    private @NotNull DefinitionEntity buildDefinitionEntity(DefinitionPersist persist, DefinitionEntity oldValue, List<PluginConfigurationEntity> inheritedPlugins) throws InvalidApplicationException {
         DefinitionEntity data = new DefinitionEntity();
         if (persist == null)
             return data;
@@ -437,7 +440,7 @@ public class DescriptionTemplateServiceImpl implements DescriptionTemplateServic
         if (!this.conventionService.isListNullOrEmpty(persist.getPluginConfigurations())) {
             data.setPluginConfigurations(new ArrayList<>());
             for (PluginConfigurationPersist pluginConfigurationPersist : persist.getPluginConfigurations()) {
-                data.getPluginConfigurations().add(this.pluginConfigurationService.buildPluginConfigurationEntity(pluginConfigurationPersist, oldValue != null ? oldValue.getPluginConfigurations(): null));
+                data.getPluginConfigurations().add(this.pluginConfigurationService.buildPluginConfigurationEntity(pluginConfigurationPersist, oldValue != null ? oldValue.getPluginConfigurations(): null, inheritedPlugins, this.pluginIntegrationService.secretFieldCodes(pluginConfigurationPersist.getPluginType(), pluginConfigurationPersist.getPluginCode())));
             }
         }
 
@@ -642,7 +645,9 @@ public class DescriptionTemplateServiceImpl implements DescriptionTemplateServic
             this.iconConfigurationService.reassignNewStorageFilesIfEqualsWithOld(model.getDefinition().getIconConfiguration());
         }
 
-        data.setDefinition(this.xmlHandlingService.toXml(this.buildDefinitionEntity(model.getDefinition(), null)));
+        // the new version keeps the previous one's secrets, which the editor never receives
+        DefinitionEntity previousDefinition = this.conventionService.isNullOrEmpty(oldDescriptionTemplateEntity.getDefinition()) ? null : this.xmlHandlingService.fromXmlSafe(DefinitionEntity.class, oldDescriptionTemplateEntity.getDefinition());
+        data.setDefinition(this.xmlHandlingService.toXml(this.buildDefinitionEntity(model.getDefinition(), null, previousDefinition != null ? previousDefinition.getPluginConfigurations() : null)));
 
         this.tenantEntityManagerFactory.getInstance().persist(data);
 

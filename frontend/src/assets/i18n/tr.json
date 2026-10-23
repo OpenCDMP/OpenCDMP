@@ -9,6 +9,10 @@
 	},
 	"APP_NAME": "OpenCDMP",
 	"APP_NAME_CAPS": "OpenCDMP",
+	"TEST-INSTALLATION-MESSAGE": {
+		"TITLE": "Bu bir test ortamıdır.",
+		"TEXT": "Burada yayımlanan planlar bir test deposuna gider, bu nedenle PID'lerine atıf yapılamaz. Gerçek çalışmalar için kullanmayın."
+	},
 	"PUBLISH-DIALOG": {
 		"TITLE": "{{repository}} deposunda yayınla",
 		"STEPS": {
@@ -36,7 +40,16 @@
 			"TOKEN-INSTEAD": "Bunun yerine erişim belirteci gir",
 			"OTHER-TOKEN": "Farklı kimlik bilgileri kullan",
 			"USE-SAVED": "Profilinizde kayıtlı kimlik bilgilerini kullan",
-			"NONE": "{{repository}} deposunda yayınlamak için ayarlanmış bir yöntem yok. Yöneticinizle iletişime geçin."
+			"NONE": "{{repository}} deposunda yayınlamak için ayarlanmış bir yöntem yok. Yöneticinizle iletişime geçin.",
+			"PREVIOUS-VERSION": "Bu planın {{version}}. sürümü zaten {{repository}} üzerinde, bu nedenle bu sürüm onun yeni sürümü olarak yayınlanır. {{version}}. sürümü yayınlayan {{repository}} hesabının aynısını kullanın, aksi halde {{repository}} bunu reddeder.",
+			"PREVIOUS-VERSION-ORG": "Bu planın {{version}}. sürümü {{repository}} üzerinde kurumun hesabıyla yayınlandı, bu nedenle bu sürüm onun yeni sürümü olarak yayınlanır. Yeniden kurumun hesabıyla yayınlayın, aksi halde {{repository}} bunu reddeder.",
+			"PREVIOUS-VERSION-ORG-NAMED": "Bu planın {{version}}. sürümü {{repository}} üzerinde {{account}} hesabıyla yayınlandı, bu nedenle bu sürüm onun yeni sürümü olarak yayınlanır. Yeniden {{account}} hesabıyla yayınlayın, aksi halde {{repository}} bunu reddeder.",
+			"PREVIOUS-VERSION-YOU": "Bu planın {{version}}. sürümünü {{repository}} üzerinde kendi hesabınızla yayınladınız, bu nedenle bu sürüm onun yeni sürümü olarak yayınlanır. Aynı {{repository}} hesabını yeniden kullanın, aksi halde {{repository}} bunu reddeder.",
+			"PREVIOUS-VERSION-USER": "{{name}}, bu planın {{version}}. sürümünü {{repository}} üzerinde kendi hesabıyla yayınladı, bu nedenle bu sürüm onun yeni sürümü olarak yayınlanır. Bunu yalnızca o {{repository}} hesabı yayınlayabilir, bu yüzden bu sürümü yayınlamasını {{name}} kişisinden isteyin.",
+			"PREVIOUS-VERSION-OTHER-USER": "Başka bir kullanıcı bu planın {{version}}. sürümünü {{repository}} üzerinde kendi hesabıyla yayınladı, bu nedenle bu sürüm onun yeni sürümü olarak yayınlanır. Bunu yalnızca o {{repository}} hesabı yayınlayabilir.",
+			"PREVIOUS-VERSION-YOU-NAMED": "Bu planın {{version}}. sürümünü {{repository}} üzerinde {{account}} hesabıyla yayınladınız, bu nedenle bu sürüm onun yeni sürümü olarak yayınlanır. {{account}} hesabını yeniden kullanın, aksi halde {{repository}} bunu reddeder.",
+			"PREVIOUS-VERSION-USER-NAMED": "{{name}}, bu planın {{version}}. sürümünü {{repository}} üzerinde {{account}} hesabıyla yayınladı, bu nedenle bu sürüm onun yeni sürümü olarak yayınlanır. Bunu yalnızca {{account}} yayınlayabilir, bu yüzden bu sürümü yayınlamasını {{name}} kişisinden isteyin.",
+			"PREVIOUS-VERSION-OTHER-USER-NAMED": "Bu planın {{version}}. sürümü {{repository}} üzerinde {{account}} hesabıyla yayınlandı, bu nedenle bu sürüm onun yeni sürümü olarak yayınlanır. Bunu yalnızca {{account}} yayınlayabilir."
 		},
 		"REVIEW": {
 			"AS-ORG": "Kurumun {{repository}} hesabı altında yayınlanıyor",
@@ -85,6 +98,7 @@
 			"CREDENTIALS": "{{repository}} kimlik bilgileriniz eksik",
 			"HINT": "Hiçbir şey yayınlanmadı ve planınız değişmedi.",
 			"HINT-OWN": "Hiçbir şey yayınlanmadı ve planınız değişmedi. Bunun yerine kurumun hesabı kullanılmadı.",
+			"PREVIOUS-VERSION": "{{repository}} yeni bir sürümü yalnızca {{version}}. sürümü yayınlayan hesaptan kabul eder. Hesabı o hesapla değiştirip yeniden deneyin.",
 			"DETAILS": "Ayrıntılar",
 			"BACK": "İncelemeye dön",
 			"USE-ORG": "Kurumun hesabını kullan",
@@ -1239,6 +1253,7 @@
 				"ISSUER": "Token sağlayıcı adresi",
 				"CLIENT-ID": "İstemci Kimliği",
 				"CLIENT-SECRET": "İstemci Gizli Anahtarı",
+				"CLIENT-SECRET-STORED": "Şifrelenmiş olarak saklanıyor. Korumak için boş bırakın.",
 				"SHOW-SECRET": "İstemci gizli anahtarını göster",
 				"HIDE-SECRET": "İstemci gizli anahtarını gizle",
 				"SCOPE": "Kapsam",
@@ -3393,6 +3408,7 @@
 			"CONFIRM": "İçe Aktar",
 			"CANCEL": "İptal",
 			"SUCCESS": "Tanım içe aktarıldı. Değişiklikleri gözden geçirin ve korumak için kaydedin.",
+			"SUCCESS-AUTH": "Tanım içe aktarıldı. Oturum açma gövdeleri asla dışa aktarılmaz, bu yüzden kaydetmeden önce yeniden yazın.",
 			"INVALID-FILE": "The selected file could not be read as a valid definition export."
 		},
 		"ABOUT": {
@@ -3482,6 +3498,7 @@
 			"URL": "Token URL'si",
 			"BODY": "İstek gövdesi",
 			"BODY-HINT": "JSON olarak gönderilir.",
+			"BODY-STORED": "Şifrelenmiş olarak saklanıyor. Korumak için boş bırakın.",
 			"STEP-READ": "Token'ı yanıttan oku",
 			"TOKEN-FIELD": "Token alanı",
 			"TOKEN-FIELD-HINT": "Yanıtın üst düzey bir alanı, yol değil.",
@@ -3677,6 +3694,7 @@
 			"CONFIRM": "İçe Aktar",
 			"CANCEL": "İptal",
 			"SUCCESS": "Tanım içe aktarıldı. Değişiklikleri gözden geçirin ve korumak için kaydedin.",
+			"SUCCESS-AUTH": "Tanım içe aktarıldı. Oturum açma gövdeleri asla dışa aktarılmaz, bu yüzden kaydetmeden önce yeniden yazın.",
 			"INVALID-FILE": "The selected file could not be read as a valid definition export."
 		},
 		"HEADER": {
@@ -3902,6 +3920,7 @@
 			"SECTION-TITLE": "Bölüme bir ad verin.",
 			"SECTION-EMPTY": "Bölümün en az bir soruya, bir alt bölüme veya varlık şablonlarına ihtiyacı var.",
 			"TEMPLATE-ROW": "Bir varlık şablonu satırı eksik.",
+			"TEMPLATES-REQUIRED": "En az bir varlık şablonu ekleyin veya yazarların başka şablonlar eklemesine izin verin.",
 			"QUESTION-TITLE": "Soruya bir başlık verin. Yazarlar bunu etiket olarak görür.",
 			"QUESTION-NO-INPUT": "Sorunun hiç girdisi yok.",
 			"INPUT-NO-TYPE": "Girdi için bir tür seçin",
@@ -5441,6 +5460,10 @@
 				"TITLE": "Kenar çubuğundan başlayın",
 				"CONTENT": "Yeni VYP ve Yeni Varlık, kenar çubuğunda VYP'larım ve Varlıklarım altında bulunur; böylece herhangi bir sayfadan başlayabilirsiniz."
 			},
+			"RECOMMENDATIONS": {
+				"TITLE": "Sizin için önerilenler",
+				"CONTENT": "Kuruluşunuzun önerdiği DMP Blueprints ve Varlık Şablonları. Doğrudan bir blueprint ile plan başlatın veya ne sorduğunu görmek için birini açın."
+			},
 			"ACTIVITY": {
 				"TITLE": "Son etkinliğiniz",
 				"CONTENT": "En son üzerinde çalıştığınız planlar ve varlıklar, en yeniler önce. Sekmeler listeyi yalnızca planlara veya yalnızca varlıklara daraltır."
@@ -5465,6 +5488,26 @@
 				"TITLE": "Yardım, dil ve hesabınız",
 				"CONTENT": "Destek menüsünde kullanım kılavuzu, SSS ve sözlük bulunur; bu turu buradan yeniden başlatabilirsiniz. Yanında dili değiştirebilirsiniz. Birden fazla kuruluşa üyeyseniz kuruluş menüsünden kuruluş değiştirebilirsiniz; her kuruluşun kendi planları, varlıkları ve blueprint'leri vardır. Zil bildirimlerinizi gösterir, yanında da profiliniz yer alır."
 			}
+		},
+		"RECOMMENDATIONS": {
+			"FROM": "{{tenant}} tarafından",
+			"TITLE": "Önerilen blueprintler ve şablonlar",
+			"SUMMARY": "{{count}} önerilen blueprint ve şablon",
+			"RANGE": "{{start}}–{{end}} / {{count}}",
+			"SHOW": "Göster",
+			"HIDE": "Gizle",
+			"PREVIOUS": "Önceki öneriler",
+			"NEXT": "Sonraki öneriler",
+			"PLAN-BLUEPRINT": "DMP Blueprint",
+			"DESCRIPTION-TEMPLATE": "Varlık Şablonu",
+			"TYPE": "Tür: {{type}}",
+			"VERSION": "Sürüm {{version}}",
+			"USED-IN-PLAN": "{{count}} planda kullanıldı",
+			"USED-IN-PLANS": "{{count}} planda kullanıldı",
+			"USED-IN-DESCRIPTION": "{{count}} varlıkta kullanıldı",
+			"USED-IN-DESCRIPTIONS": "{{count}} varlıkta kullanıldı",
+			"START-PLAN": "Bununla plan başlat",
+			"SEE-DETAILS": "Ayrıntıları gör"
 		},
 		"GRANTS": "Hibeler",
 		"TITLE": "{{ APP_NAME_CAPS }} Nedir?",

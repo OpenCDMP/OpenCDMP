@@ -1,5 +1,6 @@
 package org.opencdmp.model.persist.filetransformer;
 
+import gr.cite.tools.logging.annotation.LogSensitive;
 import org.opencdmp.commons.validation.BaseValidator;
 import org.opencdmp.convention.ConventionService;
 import org.opencdmp.errorcode.ErrorThesaurusProperties;
@@ -23,6 +24,7 @@ public class FileTransformerSourcePersist {
 	public static final String _issuerUrl = "issuerUrl";
 	private String clientId;
 	public static final String _clientId = "clientId";
+	@LogSensitive
 	private String clientSecret;
 	public static final String _clientSecret = "clientSecret";
 	private String scope;
@@ -109,9 +111,6 @@ public class FileTransformerSourcePersist {
 					this.spec()
 							.must(() -> !this.isEmpty(item.getClientId()))
 							.failOn(FileTransformerSourcePersist._clientId).failWith(messageSource.getMessage("Validation_Required", new Object[]{FileTransformerSourcePersist._clientId}, LocaleContextHolder.getLocale())),
-					this.spec()
-							.must(() -> !this.isEmpty(item.getClientSecret()))
-							.failOn(FileTransformerSourcePersist._clientSecret).failWith(messageSource.getMessage("Validation_Required", new Object[]{FileTransformerSourcePersist._clientSecret}, LocaleContextHolder.getLocale())),
 					this.spec()
 							.must(() -> !this.isEmpty(item.getScope()))
 							.failOn(FileTransformerSourcePersist._scope).failWith(messageSource.getMessage("Validation_Required", new Object[]{FileTransformerSourcePersist._scope}, LocaleContextHolder.getLocale()))

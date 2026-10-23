@@ -104,6 +104,23 @@ export class PluginConfigurationService extends BaseService {
     });
 
 
+	/** Stored plugin settings, completed with what the plugins declare now: a plugin or a setting added since the save shows up empty. */
+	public completeWithAvailable(stored: PluginConfiguration[], available: PluginConfiguration[]): PluginConfiguration[] {
+		const same = (x: PluginConfiguration, y: PluginConfiguration) => x.pluginCode === y.pluginCode && x.pluginType === y.pluginType;
+		const merged: PluginConfiguration[] = available.map(declared => {
+			const saved = stored.find(x => same(x, declared));
+			if (!saved) return declared;
+			const fields = [...(saved.fields ?? [])];
+			for (const field of declared.fields ?? []) {
+				if (!fields.some(x => x.code === field.code)) fields.push(field);
+			}
+			return { ...saved, fields };
+		});
+		// settings of plugins that are not reachable right now are kept as they are
+		merged.push(...stored.filter(x => !available.some(y => same(x, y))));
+		return merged;
+	}
+
 	public getAvailablePluginsFor(pluginType: PluginType, entityTypes: PluginEntityType[]) {
         let availablePlugins = [];
 		if (this.availablePlugins() && pluginType != null && !entityTypes){

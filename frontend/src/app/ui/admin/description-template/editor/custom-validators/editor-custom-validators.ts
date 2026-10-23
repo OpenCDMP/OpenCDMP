@@ -72,6 +72,17 @@ export class EditorCustomValidators {
 			return { [EditorCustomValidatorsEnum.sectionMustHaveOneChildOrTemplate]: true };
 		}
     }
+
+    // Mirrors RootSectionPersist: assets that authors can't extend need at least one listed template.
+    static sectionTemplatesRequired(): ValidatorFn {
+        return (control: FormGroup<PlanBlueprintRootSectionForm>): ValidationErrors | null => {
+            if (control.get('hasTemplates')?.value !== true || control.get('canEditDescriptionTemplates')?.value !== false) {
+                return null;
+            }
+            const templates = control.get('descriptionTemplates') as UntypedFormArray;
+            return templates?.length ? null : { [EditorCustomValidatorsEnum.sectionTemplatesRequired]: true };
+        }
+    }
 }
 
 
@@ -79,6 +90,7 @@ export class EditorCustomValidators {
 export enum EditorCustomValidatorsEnum {
 	sectionMustHaveOneChildOrTemplate = "sectionMustHaveOneChildOrTemplate",
 	sectionMustHaveOneChild = "sectionMustHaveOneChild",
+	sectionTemplatesRequired = "sectionTemplatesRequired",
 	atLeastOneSectionInPage = 'atLeastOneSectionInPage',
 	emptyArray = "emptyArray"
 }

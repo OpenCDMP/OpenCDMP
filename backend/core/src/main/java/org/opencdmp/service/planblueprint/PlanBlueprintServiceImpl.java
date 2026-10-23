@@ -64,6 +64,7 @@ import org.opencdmp.service.accounting.AccountingService;
 import org.opencdmp.service.kpi.KpiService;
 import org.opencdmp.service.lock.LockService;
 import org.opencdmp.service.pluginconfiguration.PluginConfigurationService;
+import org.opencdmp.service.pluginintegration.PluginIntegrationService;
 import org.opencdmp.service.responseutils.ResponseUtilsService;
 import org.opencdmp.service.storage.StorageFileService;
 import org.opencdmp.service.usagelimit.UsageLimitService;
@@ -119,6 +120,7 @@ public class PlanBlueprintServiceImpl implements PlanBlueprintService {
     private final StorageFileService storageFileService;
 
     private final PluginConfigurationService pluginConfigurationService;
+    private final PluginIntegrationService pluginIntegrationService;
 
     private final KpiService kpiService;
 
@@ -139,7 +141,7 @@ public class PlanBlueprintServiceImpl implements PlanBlueprintService {
             ResponseUtilsService responseUtilsService,
             XmlHandlingService xmlHandlingService,
             ErrorThesaurusProperties errors,
-            PluginConfigurationService pluginConfigurationService,
+            PluginConfigurationService pluginConfigurationService, PluginIntegrationService pluginIntegrationService,
             ValidatorFactory validatorFactory, TenantScopeFactory tenantScopeFactory, UsageLimitService usageLimitService, AccountingService accountingService, LockService lockService, StorageFileService storageFileService, KpiService kpiService, IconConfigurationService iconConfigurationService,
             org.opencdmp.service.fielddatahelper.FieldDataHelperServiceProvider fieldDataHelperServiceProvider, PlanBlueprintDescriptionTemplateFieldsService fieldsService) {
         this.tenantEntityManagerFactory = tenantEntityManagerFactory;
@@ -159,6 +161,7 @@ public class PlanBlueprintServiceImpl implements PlanBlueprintService {
         this.lockService = lockService;
         this.storageFileService = storageFileService;
         this.pluginConfigurationService = pluginConfigurationService;
+        this.pluginIntegrationService = pluginIntegrationService;
         this.kpiService = kpiService;
         this.iconConfigurationService = iconConfigurationService;
         this.fieldDataHelperServiceProvider = fieldDataHelperServiceProvider;
@@ -240,7 +243,7 @@ public class PlanBlueprintServiceImpl implements PlanBlueprintService {
         data.setTypeId(model.getType());
 
         DefinitionEntity oldDefinition = this.conventionService.isNullOrEmpty(data.getDefinition()) ? null : this.xmlHandlingService.fromXmlSafe(DefinitionEntity.class, data.getDefinition());
-        data.setDefinition(this.xmlHandlingService.toXml(this.buildDefinitionEntity(model.getDefinition(), oldDefinition)));
+        data.setDefinition(this.xmlHandlingService.toXml(this.buildDefinitionEntity(model.getDefinition(), oldDefinition, null)));
         data.setDescription(model.getDescription());
 
         if (isUpdate) {
@@ -318,7 +321,7 @@ public class PlanBlueprintServiceImpl implements PlanBlueprintService {
 
     }
 
-    private @NotNull DefinitionEntity buildDefinitionEntity(DefinitionPersist persist, DefinitionEntity oldValue) throws InvalidApplicationException {
+    private @NotNull DefinitionEntity buildDefinitionEntity(DefinitionPersist persist, DefinitionEntity oldValue, List<PluginConfigurationEntity> inheritedPlugins) throws InvalidApplicationException {
         DefinitionEntity data = new DefinitionEntity();
         if (persist == null)
             return data;
@@ -332,7 +335,7 @@ public class PlanBlueprintServiceImpl implements PlanBlueprintService {
         if (!this.conventionService.isListNullOrEmpty(persist.getPluginConfigurations())) {
             data.setPluginConfigurations(new ArrayList<>());
             for (PluginConfigurationPersist pluginConfigurationPersist : persist.getPluginConfigurations()) {
-                data.getPluginConfigurations().add(this.pluginConfigurationService.buildPluginConfigurationEntity(pluginConfigurationPersist, oldValue != null ? oldValue.getPluginConfigurations(): null));
+                data.getPluginConfigurations().add(this.pluginConfigurationService.buildPluginConfigurationEntity(pluginConfigurationPersist, oldValue != null ? oldValue.getPluginConfigurations(): null, inheritedPlugins, this.pluginIntegrationService.secretFieldCodes(pluginConfigurationPersist.getPluginType(), pluginConfigurationPersist.getPluginCode())));
             }
         }
 
@@ -587,7 +590,9 @@ public class PlanBlueprintServiceImpl implements PlanBlueprintService {
             // reassign new icon storage file if equals with old
             this.iconConfigurationService.reassignNewStorageFilesIfEqualsWithOld(model.getDefinition().getIconConfiguration());
         }
-        data.setDefinition(this.xmlHandlingService.toXml(this.buildDefinitionEntity(model.getDefinition(), null)));
+        // the new version keeps the previous one's secrets, which the editor never receives
+        DefinitionEntity previousDefinition = this.conventionService.isNullOrEmpty(oldPlanBlueprintEntity.getDefinition()) ? null : this.xmlHandlingService.fromXmlSafe(DefinitionEntity.class, oldPlanBlueprintEntity.getDefinition());
+        data.setDefinition(this.xmlHandlingService.toXml(this.buildDefinitionEntity(model.getDefinition(), null, previousDefinition != null ? previousDefinition.getPluginConfigurations() : null)));
 
         data.setGroupId(oldPlanBlueprintEntity.getGroupId());
         data.setCode(oldPlanBlueprintEntity.getCode());

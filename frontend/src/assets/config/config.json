@@ -54,6 +54,9 @@
 	"accounting_service": {
 		"enabled": "${ACCOUNTING_SERVICE_ENABLED}"
 	},
+	"testInstallationMessage": {
+		"enabled": "${TEST_INSTALLATION_MESSAGE_ENABLED}"
+	},
 	"logging": {
 		"enabled": "${LOGGING_ENABLED}",
 		"logLevels": ["debug", "info", "warning", "error"]

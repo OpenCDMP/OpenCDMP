@@ -1,6 +1,10 @@
 package org.opencdmp.model.builder;
 
+import gr.cite.tools.data.builder.BuilderFactory;
 import org.opencdmp.authorization.AuthorizationFlags;
+import org.opencdmp.commons.JsonHandlingService;
+import org.opencdmp.commons.types.entitydoi.EntityDoiMetadataEntity;
+import org.opencdmp.model.builder.entitydoi.EntityDoiMetadataBuilder;
 import org.opencdmp.commons.scope.tenant.TenantScopeFactory;
 import org.opencdmp.convention.ConventionService;
 import org.opencdmp.data.EntityDoiEntity;
@@ -22,14 +26,18 @@ import java.util.*;
 public class EntityDoiBuilder extends BaseBuilder<EntityDoi, EntityDoiEntity> {
 
     private final TenantScopeFactory tenantScopeFactory;
+    private final BuilderFactory builderFactory;
+    private final JsonHandlingService jsonHandlingService;
     private EnumSet<AuthorizationFlags> authorize = EnumSet.of(AuthorizationFlags.None);
     private boolean isPublic;
 
     @Autowired
     public EntityDoiBuilder(
-		    ConventionService conventionService, TenantScopeFactory tenantScopeFactory) {
+		    ConventionService conventionService, TenantScopeFactory tenantScopeFactory, BuilderFactory builderFactory, JsonHandlingService jsonHandlingService) {
         super(conventionService, new LoggerService(LoggerFactory.getLogger(EntityDoiBuilder.class)));
 	    this.tenantScopeFactory = tenantScopeFactory;
+        this.builderFactory = builderFactory;
+        this.jsonHandlingService = jsonHandlingService;
     }
 
     public EntityDoiBuilder authorize(EnumSet<AuthorizationFlags> values) {
@@ -48,6 +56,8 @@ public class EntityDoiBuilder extends BaseBuilder<EntityDoi, EntityDoiEntity> {
         this.logger.trace(new DataLogEntry("requested fields", fields));
         if (fields == null || data == null || fields.isEmpty())
             return new ArrayList<>();
+
+        FieldSet metadataFields = fields.extractPrefixed(this.asPrefix(EntityDoi._metadata));
 
         List<EntityDoi> models = new ArrayList<>();
         for (EntityDoiEntity d : data) {
@@ -71,6 +81,10 @@ public class EntityDoiBuilder extends BaseBuilder<EntityDoi, EntityDoiEntity> {
             if (!this.isPublic && fields.hasField(this.asIndexer(EntityDoi._hash)))
                 m.setHash(hashValue(d.getUpdatedAt()));
             if (!this.isPublic && fields.hasField(this.asIndexer(EntityDoi._belongsToCurrentTenant))) m.setBelongsToCurrentTenant(this.getBelongsToCurrentTenant(d, this.tenantScopeFactory.getInstance()));
+            if (!this.isPublic && !metadataFields.isEmpty() && d.getMetadata() != null) {
+                EntityDoiMetadataEntity metadata = this.jsonHandlingService.fromJsonSafe(EntityDoiMetadataEntity.class, d.getMetadata());
+                m.setMetadata(this.builderFactory.builder(EntityDoiMetadataBuilder.class).authorize(this.authorize).build(metadataFields, metadata));
+            }
             models.add(m);
         }
         this.logger.debug("build {} items", Optional.of(models).map(List::size).orElse(0));

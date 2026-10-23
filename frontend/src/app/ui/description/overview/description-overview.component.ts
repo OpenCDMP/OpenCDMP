@@ -31,6 +31,7 @@ import { AuthService } from '@app/core/services/auth/auth.service';
 import { ConfigurationService } from '@app/core/services/configuration/configuration.service';
 import { DescriptionService } from '@app/core/services/description/description.service';
 import { EvaluatorService } from '@app/core/services/evaluator/evaluator.service';
+import { EnqueueService } from '@app/core/services/enqueue.service';
 import { FileTransformerService } from '@app/core/services/file-transformer/file-transformer.service';
 import { LockService } from '@app/core/services/lock/lock.service';
 import { LoggingService } from '@app/core/services/logging/logging-service';
@@ -178,7 +179,8 @@ export class DescriptionOverviewComponent extends BaseComponent implements OnIni
 		private logger: LoggingService,
 		private sanitizer: DomSanitizer,
 		private storageFileService: StorageFileService,
-        private evaluationService: EvaluationService
+        private evaluationService: EvaluationService,
+		private enqueueService: EnqueueService
 	) {
 		super();
 		effect(() => {
@@ -421,7 +423,7 @@ export class DescriptionOverviewComponent extends BaseComponent implements OnIni
 	}
 
 	private rankDescription(descriptionId: Guid, evaluatorId: string, format: string, rankConfig: RankConfig, benchmarkIds: string[] | null, testIds: string[] | null) {
-		this.evaluatorService.rankDescription(descriptionId, evaluatorId, format, benchmarkIds ?? undefined, testIds ?? undefined).subscribe(
+		this.enqueueService.enqueueExhaustChannel(this.evaluatorService.rankDescription(descriptionId, evaluatorId, format, benchmarkIds ?? undefined, testIds ?? undefined)).pipe(takeUntil(this._destroyed)).subscribe(
 			(response: RankResultModel[]) => {
 				const dialogRef = this.dialog.open(EvaluateDialogComponent, {
 					maxWidth: '90vw',
@@ -711,6 +713,7 @@ export class DescriptionOverviewComponent extends BaseComponent implements OnIni
 			[nameof<Description>(x => x.status), nameof<DescriptionStatus>(x => x.id)].join('.'),
 			[nameof<Description>(x => x.status), nameof<DescriptionStatus>(x => x.name)].join('.'),
 			[nameof<Description>(x => x.status), nameof<DescriptionStatus>(x => x.internalStatus)].join('.'),
+			[nameof<Description>(x => x.status), nameof<DescriptionStatus>(x => x.action)].join('.'),
 			[nameof<Description>(x => x.status), nameof<DescriptionStatus>(x => x.definition), nameof<DescriptionStatusDefinition>(x => x.availableActions)].join('.'),
 			[nameof<Description>(x => x.status), nameof<DescriptionStatus>(x => x.definition), nameof<DescriptionStatusDefinition>(x => x.iconConfiguration), nameof<IconConfiguration>(x => x.matIconName)].join('.'),
 			[nameof<Description>(x => x.status), nameof<DescriptionStatus>(x => x.definition), nameof<DescriptionStatusDefinition>(x => x.statusColor)].join('.'),
@@ -763,6 +766,8 @@ export class DescriptionOverviewComponent extends BaseComponent implements OnIni
             [nameof<Description>(x => x.descriptionReferences), nameof<DescriptionReference>(x => x.data), nameof<DescriptionReferenceData>(x => x.ordinal)].join('.'),
             [nameof<Description>(x => x.descriptionReferences), nameof<DescriptionReference>(x => x.reference), nameof<Reference>(x => x.source)].join('.'),
             [nameof<Description>(x => x.descriptionReferences), nameof<DescriptionReference>(x => x.reference), nameof<Reference>(x => x.type), nameof<ReferenceType>(x => x.definition), nameof<ReferenceTypeDefinition>(x => x.sources), nameof<ExternalFetcherBaseSourceConfiguration>(x => x.key)].join('.'),
+            [nameof<Description>(x => x.descriptionReferences), nameof<DescriptionReference>(x => x.reference), nameof<Reference>(x => x.type), nameof<ReferenceType>(x => x.definition), nameof<ReferenceTypeDefinition>(x => x.sources), nameof<ExternalFetcherBaseSourceConfiguration>(x => x.label)].join('.'),
+            [nameof<Description>(x => x.descriptionReferences), nameof<DescriptionReference>(x => x.reference), nameof<Reference>(x => x.type), nameof<ReferenceType>(x => x.definition), nameof<ReferenceTypeDefinition>(x => x.sources), nameof<ExternalFetcherBaseSourceConfiguration>(x => x.navigationUrl)].join('.'),
             [nameof<Description>(x => x.descriptionReferences), nameof<DescriptionReference>(x => x.reference), nameof<Reference>(x => x.type), nameof<ReferenceType>(x => x.definition), nameof<ReferenceTypeDefinition>(x => x.sources), nameof<ExternalFetcherBaseSourceConfiguration>(x => x.storageFile), nameof<StorageFile>(x => x.id)].join('.'),
             [nameof<Description>(x => x.descriptionReferences), nameof<DescriptionReference>(x => x.reference), nameof<Reference>(x => x.type), nameof<ReferenceType>(x => x.definition), nameof<ReferenceTypeDefinition>(x => x.sources), nameof<ExternalFetcherBaseSourceConfiguration>(x => x.tooltipMessage)].join('.'),
 			[nameof<Description>(x => x.plan), nameof<Plan>(x => x.planReferences), nameof<PlanReference>(x => x.id)].join('.'),

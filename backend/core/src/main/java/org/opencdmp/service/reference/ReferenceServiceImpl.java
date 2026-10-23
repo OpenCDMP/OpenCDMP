@@ -53,6 +53,7 @@ import org.opencdmp.query.PlanReferenceQuery;
 import org.opencdmp.query.lookup.ReferenceUsageLookup;
 import org.opencdmp.model.referencetype.ReferenceType;
 import org.opencdmp.query.ReferenceQuery;
+import org.opencdmp.model.persist.externalfetcher.ExternalFetcherBaseSourceConfigurationPersist;
 import org.opencdmp.query.ReferenceTypeQuery;
 import org.opencdmp.query.lookup.ReferenceSearchLookup;
 import org.opencdmp.query.lookup.ReferenceTestLookup;
@@ -260,6 +261,8 @@ public class ReferenceServiceImpl implements ReferenceService {
 
     @Override
     public List<Reference> testReferenceData(ReferenceTestLookup lookup) throws MyNotFoundException {
+        // the sources come from the caller and are fetched with server-side {env:} substitution
+        this.authorizationService.authorizeForce(Permission.EditReferenceType);
         if (this.conventionService.isListNullOrEmpty(lookup.getSources()))
             throw new MyValidationException(this.errors.getInvalidReferenceTypeDefinitionSource().getCode(), this.errors.getInvalidReferenceTypeDefinitionSource().getMessage());
 
@@ -276,8 +279,11 @@ public class ReferenceServiceImpl implements ReferenceService {
             like = null;
         }
         ExternalReferenceCriteria externalReferenceCriteria = new ExternalReferenceCriteria(like, lookup.getDependencyReferences());
+        // serialized for the log before the stored sign-in body is filled in
+        String lookupJson = this.jsonHandlingService.toJsonSafe(lookup);
+        this.useStoredAuthRequestBodies(lookup.getReferenceTypeId(), lookup.getSources());
         ExternalDataResult remoteRepos = this.externalFetcherService.getExternalData(lookup.getSources().stream().map(x -> (SourceBaseConfiguration)x).collect(Collectors.toList()), externalReferenceCriteria,  lookup.getKey(), true);
-        List<Reference> models = this.getReferences(remoteRepos, null, this.jsonHandlingService.toJsonSafe(lookup), lookup.getProject());
+        List<Reference> models = this.getReferences(remoteRepos, null, lookupJson, lookup.getProject());
 
         if (lookup.getPage() != null && !lookup.getPage().isEmpty()){
             models = models.stream().skip(initialOffset).limit(lookup.getPage().getSize()).toList();
@@ -295,7 +301,16 @@ public class ReferenceServiceImpl implements ReferenceService {
 
         String like = this.conventionService.isNullOrEmpty(lookup.getLike()) ? null : lookup.getLike().replaceAll("%", "");
         ExternalReferenceCriteria externalReferenceCriteria = new ExternalReferenceCriteria(like, lookup.getDependencyReferences());
+        this.useStoredAuthRequestBodies(lookup.getReferenceTypeId(), lookup.getSources());
         return this.externalFetcherService.testSource(lookup.getSources().getFirst(), externalReferenceCriteria);
+    }
+
+    private void useStoredAuthRequestBodies(UUID referenceTypeId, List<ExternalFetcherBaseSourceConfigurationPersist> sources) {
+        if (referenceTypeId == null) return;
+        ReferenceTypeEntity referenceType = this.queryFactory.query(ReferenceTypeQuery.class).disableTracking().ids(referenceTypeId).first();
+        if (referenceType == null) return;
+        ReferenceTypeDefinitionEntity definition = this.xmlHandlingService.fromXmlSafe(ReferenceTypeDefinitionEntity.class, referenceType.getDefinition());
+        if (definition != null) this.externalFetcherService.useStoredAuthRequestBodies(sources, definition.getSources());
     }
 
     private List<Reference> getReferences(ExternalDataResult remoteRepos, String data, String lookup, BaseFieldSet fieldSet) {

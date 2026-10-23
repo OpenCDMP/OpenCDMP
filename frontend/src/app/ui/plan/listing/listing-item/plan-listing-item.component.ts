@@ -15,6 +15,7 @@ import { BaseComponent } from '@common/base/base.component';
 import { ConfirmationDialogComponent } from '@common/modules/confirmation-dialog/confirmation-dialog.component';
 import { Guid } from '@common/types/guid';
 import { TranslateService, TranslatePipe } from '@ngx-translate/core';
+import { ReferenceTypeNamePipe } from '@app/core/pipes/reference-type-name.pipe';
 import { takeUntil } from 'rxjs/operators';
 import { PlanStatusEnum } from '../../../../core/common/enum/plan-status';
 import { AuthService } from '../../../../core/services/auth/auth.service';
@@ -46,7 +47,7 @@ import { DateTimeFormatPipe } from '../../../../core/pipes/date-time-format.pipe
     templateUrl: './plan-listing-item.component.html',
     styleUrls: ['./plan-listing-item.component.scss'],
     changeDetection: ChangeDetectionStrategy.Eager,
-    imports: [MatCard, MatCardContent, RouterLink, NgTemplateOutlet, MatMenu, MatMenuItem, NgClass, MatIcon, LowerCasePipe, TranslatePipe, DateTimeFormatPipe]
+    imports: [MatCard, MatCardContent, RouterLink, NgTemplateOutlet, MatMenu, MatMenuItem, NgClass, MatIcon, LowerCasePipe, TranslatePipe, DateTimeFormatPipe, ReferenceTypeNamePipe]
 })
 export class PlanListingItemComponent extends BaseComponent implements OnInit {
 

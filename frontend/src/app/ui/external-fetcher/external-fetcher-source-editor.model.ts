@@ -78,7 +78,8 @@ export class ExternalFetcherBaseSourceConfigurationEditorModel implements Extern
 		disabled?: boolean,
 		rootPath?: string
 	}): UntypedFormGroup {
-		let { context = null, disabled = false, rootPath } = params ?? {}
+		const { disabled = false, rootPath } = params ?? {};
+		let { context = null } = params ?? {};
 		if (context == null) {
 			context = ExternalFetcherBaseSourceConfigurationEditorModel.createValidationContext({
 				validationErrorModel: this.validationErrorModel,
@@ -280,7 +281,8 @@ export class ResultsConfigurationEditorModel implements ResultsConfigurationPers
 		disabled?: boolean,
 		rootPath?: string
 	}): UntypedFormGroup {
-		let { context = null, disabled = false, rootPath } = params ?? {}
+		const { disabled = false, rootPath } = params ?? {};
+		let { context = null } = params ?? {};
 		if (context == null) {
 			context = ResultsConfigurationEditorModel.createValidationContext({
 				validationErrorModel: this.validationErrorModel,
@@ -368,7 +370,8 @@ export class ResultFieldsMappingConfigurationEditorModel implements ResultFields
 		disabled?: boolean,
 		rootPath?: string
 	}): UntypedFormGroup {
-		let { context = null, disabled = false, rootPath } = params ?? {}
+		const { disabled = false, rootPath } = params ?? {};
+		let { context = null } = params ?? {};
 		if (context == null) {
 			context = ResultFieldsMappingConfigurationEditorModel.createValidationContext({
 				validationErrorModel: this.validationErrorModel,
@@ -423,6 +426,7 @@ export class AuthenticationConfigurationEditorModel implements AuthenticationCon
 	public authMethod: ExternalFetcherApiHTTPMethodType;
 	public authTokenPath: string;
 	public authRequestBody: string;
+	public authRequestBodySet: boolean = false;
 	public type: string;
 
 	protected formBuilder: UntypedFormBuilder = new UntypedFormBuilder();
@@ -436,7 +440,8 @@ export class AuthenticationConfigurationEditorModel implements AuthenticationCon
 		this.authUrl = item.authUrl;
 		this.authMethod = item.authMethod;
 		this.authTokenPath = item.authTokenPath;
-		this.authRequestBody = item.authRequestBody;
+		// the server never sends a stored body, only whether one is set
+		this.authRequestBodySet = !!item.authRequestBodySet;
 		this.type = item.type;
 
 		return this;
@@ -447,7 +452,8 @@ export class AuthenticationConfigurationEditorModel implements AuthenticationCon
 		disabled?: boolean,
 		rootPath?: string
 	}): UntypedFormGroup {
-		let { context = null, disabled = false, rootPath } = params ?? {}
+		const { disabled = false, rootPath } = params ?? {};
+		let { context = null } = params ?? {};
 		if (context == null) {
 			context = AuthenticationConfigurationEditorModel.createValidationContext({
 				validationErrorModel: this.validationErrorModel,
@@ -461,6 +467,7 @@ export class AuthenticationConfigurationEditorModel implements AuthenticationCon
 			authMethod: [{ value: this.authMethod, disabled: disabled }, context.getValidation('authMethod').validators],
 			authTokenPath: [{ value: this.authTokenPath, disabled: disabled }, context.getValidation('authTokenPath').validators],
 			authRequestBody: [{ value: this.authRequestBody, disabled: disabled }, context.getValidation('authRequestBody').validators],
+			authRequestBodySet: [{ value: this.authRequestBodySet, disabled: disabled }],
 			type: [{ value: this.type, disabled: disabled }, context.getValidation('type').validators],
 		});
 	}
@@ -528,7 +535,8 @@ export class QueryConfigEditorModel implements QueryConfigPersist {
 		disabled?: boolean,
 		rootPath?: string
 	}): UntypedFormGroup {
-		let { context = null, disabled = false, rootPath } = params ?? {}
+		const { disabled = false, rootPath } = params ?? {};
+		let { context = null } = params ?? {};
 		if (context == null) {
 			context = QueryConfigEditorModel.createValidationContext({
 				validationErrorModel: this.validationErrorModel,
@@ -624,7 +632,8 @@ export class QueryCaseConfigEditorModel implements QueryCaseConfigPersist {
 		disabled?: boolean,
 		rootPath?: string
 	}): UntypedFormGroup {
-		let { context = null, disabled = false, rootPath } = params ?? {}
+		const { disabled = false, rootPath } = params ?? {};
+		let { context = null } = params ?? {};
 		if (context == null) {
 			context = QueryCaseConfigEditorModel.createValidationContext({
 				validationErrorModel: this.validationErrorModel,
@@ -703,7 +712,8 @@ export class HeaderConfigEditorModel implements HeadersConfigPersist {
 		disabled?: boolean,
 		rootPath?: string
 	}): UntypedFormGroup {
-		let { context = null, disabled = false, rootPath } = params ?? {}
+		const { disabled = false, rootPath } = params ?? {};
+		let { context = null } = params ?? {};
 		if (context == null) {
 			context = HeaderConfigEditorModel.createValidationContext({
 				validationErrorModel: this.validationErrorModel,
@@ -776,7 +786,8 @@ export class XmlNamespaceConfigEditorModel implements XmlNamespaceConfigPersist 
 		disabled?: boolean,
 		rootPath?: string
 	}): UntypedFormGroup {
-		let { context = null, disabled = false, rootPath } = params ?? {}
+		const { disabled = false, rootPath } = params ?? {};
+		let { context = null } = params ?? {};
 		if (context == null) {
 			context = XmlNamespaceConfigEditorModel.createValidationContext({
 				validationErrorModel: this.validationErrorModel,
@@ -851,7 +862,8 @@ export class StaticEditorModel implements StaticPersist {
 		disabled?: boolean,
 		rootPath?: string
 	}): UntypedFormGroup {
-		let { context = null, disabled = false, rootPath } = params ?? {}
+		const { disabled = false, rootPath } = params ?? {};
+		let { context = null } = params ?? {};
 		if (context == null) {
 			context = StaticEditorModel.createValidationContext({
 				validationErrorModel: this.validationErrorModel,
@@ -925,7 +937,8 @@ export class StaticOptionEditorModel implements StaticOptionPersist {
 		disabled?: boolean,
 		rootPath?: string
 	}): UntypedFormGroup {
-		let { context = null, disabled = false, rootPath } = params ?? {}
+		const { disabled = false, rootPath } = params ?? {};
+		let { context = null } = params ?? {};
 		if (context == null) {
 			context = StaticOptionEditorModel.createValidationContext({
 				validationErrorModel: this.validationErrorModel,

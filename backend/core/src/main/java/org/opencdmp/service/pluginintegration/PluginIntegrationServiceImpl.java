@@ -9,6 +9,7 @@ import gr.cite.tools.exception.MyValidationException;
 import gr.cite.tools.fieldset.BaseFieldSet;
 import gr.cite.tools.logging.LoggerService;
 import org.opencdmp.authorization.Permission;
+import org.opencdmp.commonmodels.models.ConfigurationField;
 import org.opencdmp.commons.JsonHandlingService;
 import org.opencdmp.commons.enums.IsActive;
 import org.opencdmp.commons.enums.PluginType;
@@ -46,6 +47,7 @@ import tools.jackson.databind.json.JsonMapper;
 
 import java.time.Duration;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 public class PluginIntegrationServiceImpl implements PluginIntegrationService {
@@ -143,6 +145,26 @@ public class PluginIntegrationServiceImpl implements PluginIntegrationService {
             logger.error("Could not check which " + type + " plugins are reachable", e);
         }
         return ids;
+    }
+
+    @Override
+    public Set<String> secretFieldCodes(PluginType pluginType, String pluginCode) {
+        List<ConfigurationField> fields;
+        try {
+            fields = switch (pluginType) {
+                case Deposit -> this.depositService.getAvailableConfigurations(new BaseFieldSet(DepositConfiguration._repositoryId, DepositConfiguration._configurationFields)).stream()
+                        .filter(x -> Objects.equals(x.getRepositoryId(), pluginCode)).findFirst().map(x -> x.getConfigurationFields() != null ? x.getConfigurationFields() : List.<ConfigurationField>of()).orElse(null);
+                case Evaluation -> this.evaluatorService.getAvailableEvaluators().stream()
+                        .filter(x -> Objects.equals(x.getEvaluatorId(), pluginCode)).findFirst().map(x -> x.getConfigurationFields() != null ? x.getConfigurationFields() : List.<ConfigurationField>of()).orElse(null);
+                case FileTransformer -> this.fileTransformerService.getAvailableExportFileFormats().stream()
+                        .filter(x -> Objects.equals(x.getFileTransformerId(), pluginCode)).findFirst().map(x -> x.getConfigurationFields() != null ? x.getConfigurationFields() : List.<ConfigurationField>of()).orElse(null);
+            };
+        } catch (Exception e) {
+            logger.error("Could not read the settings of " + pluginType + " plugin " + pluginCode, e);
+            return null;
+        }
+        if (fields == null) return null;
+        return fields.stream().filter(ConfigurationField::isAuthInfo).map(ConfigurationField::getCode).collect(Collectors.toSet());
     }
 
     //endregion

@@ -22,10 +22,11 @@ import { MatCard, MatCardContent } from '@angular/material/card';
 import { RouterLink } from '@angular/router';
 import { MatIcon } from '@angular/material/icon';
 import { TranslatePipe } from '@ngx-translate/core';
+import { ReferenceTypeNamePipe } from '@app/core/pipes/reference-type-name.pipe';
 
 interface ReferenceRow {
     id: string;
-    name: string;
+    type: ReferenceType;
     count: number;
     hasLogo: boolean;
 }
@@ -35,7 +36,7 @@ interface ReferenceRow {
     templateUrl: './dashboard-overview.component.html',
     styleUrl: './dashboard-overview.component.scss',
     changeDetection: ChangeDetectionStrategy.Eager,
-    imports: [MatCard, MatCardContent, RouterLink, MatIcon, TranslatePipe]
+    imports: [MatCard, MatCardContent, RouterLink, MatIcon, TranslatePipe, ReferenceTypeNamePipe]
 })
 export class DashboardOverviewComponent extends BaseComponent{
     dashboardStatistics = input<MergedDashboardStatistics>();
@@ -61,13 +62,13 @@ export class DashboardOverviewComponent extends BaseComponent{
         const rows: ReferenceRow[] = this.authService.currentAccountIsAuthenticated()
             ? (this.featuredReferenceTypes() ?? []).filter(x => x?.id).map(type => ({
                 id: type.id.toString(),
-                name: type.name,
+                type,
                 count: this.referenceCounts()[type.id.toString()],
                 hasLogo: !!this.referenceLogos()[type.id.toString()],
             }))
             : (this.dashboardStatistics()?.publicReferenceTypeStatistics ?? []).filter(x => x?.referenceType?.id).map(x => ({
                 id: x.referenceType.id.toString(),
-                name: x.referenceType.name,
+                type: x.referenceType,
                 count: x.count,
                 hasLogo: !!x.hasLogo,
             }));

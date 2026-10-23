@@ -33,6 +33,7 @@ import org.opencdmp.commons.scope.tenant.TenantScopeFactory;
 import org.opencdmp.commons.scope.user.UserScopeFactory;
 import org.opencdmp.commons.types.deposit.DepositSourceEntity;
 import org.opencdmp.commons.types.description.PropertyDefinitionEntity;
+import org.opencdmp.commons.types.entitydoi.EntityDoiMetadataEntity;
 import org.opencdmp.commons.types.description.PropertyDefinitionFieldSetItemEntity;
 import org.opencdmp.commons.types.descriptiontemplate.FieldEntity;
 import org.opencdmp.commons.types.notification.DataType;
@@ -56,6 +57,7 @@ import org.opencdmp.commonmodels.models.deposit.PreviewGroupValuesModel;
 import org.opencdmp.commonmodels.models.deposit.StoredPreviewFieldModel;
 import org.opencdmp.commons.types.deposit.DepositMetadataPayloadEntity;
 import org.opencdmp.depositbase.repository.AuthInfo;
+import org.opencdmp.depositbase.repository.DepositAccount;
 import org.opencdmp.depositbase.repository.DepositClient;
 import org.opencdmp.depositbase.repository.DepositConfiguration;
 import org.opencdmp.depositbase.repository.PlanDepositModel;
@@ -453,6 +455,17 @@ public class DepositServiceImpl implements DepositService {
         doiPersist.setRepositoryId(planDepositModel.getRepositoryId());
         doiPersist.setDoi(doi);
         doiPersist.setEntityId(planEntity.getId());
+        EntityDoiMetadataEntity doiMetadata = new EntityDoiMetadataEntity();
+        doiMetadata.setDepositMethod(planDepositModel.getDepositAuthInfoType());
+        doiMetadata.setUserId(this.userScopeFactory.getInstance().getUserIdSafe());
+        // the organisation's account stays private: users are only told to publish under it again
+        if (!planDepositModel.getDepositAuthInfoType().equals(DepositAuthMethod.PluginDefault)) {
+            DepositAccount account = this.depositAccount(depositClient, authInfo, depositModel, planEntity.getId(), planDepositModel.getRepositoryId());
+            if (account != null) {
+                doiMetadata.setAccountId(account.getId());
+                doiMetadata.setAccountName(account.getName());
+            }
+        }
         this.sendNotification(planEntity, planDepositModel.getRepositoryId());
         this.webhookService.enqueueEvent(WebhookEventType.PlanDeposited, Map.of(
                 "planId", planEntity.getId(),
@@ -471,7 +484,7 @@ public class DepositServiceImpl implements DepositService {
                 this.accountingService.increase(UsageLimitTargetMetric.DESCRIPTION_DOIED_COUNT.getValue());
             }
         }
-        return this.doiService.persist(doiPersist, true, planDepositModel.getProject());
+        return this.doiService.persist(doiPersist, doiMetadata, true, planDepositModel.getProject());
     }
 
     @Override
@@ -564,6 +577,23 @@ public class DepositServiceImpl implements DepositService {
         } catch (Exception e) {
             // saving the credentials for next time must never fail a successful deposit
             logger.error("failed to save the deposit credentials of " + repositoryId + " to the user's profile", e);
+        }
+    }
+
+    /** The repository account the deposit used, or null when the plugin can't tell or predates the account endpoint. */
+    private DepositAccount depositAccount(DepositClient depositClient, AuthInfo authInfo, PlanModel depositModel, UUID planId, String repositoryId) {
+        try {
+            // the plugin needs only the credentials and the plan's plugin settings, not the plan or its files
+            PlanModel settingsOnly = new PlanModel();
+            settingsOnly.setPlanBlueprint(depositModel.getPlanBlueprint());
+            PlanDepositModel request = new PlanDepositModel();
+            request.setAuthInfo(authInfo);
+            request.setPlanModel(settingsOnly);
+            return depositClient.account(request);
+        } catch (Exception e) {
+            // the DOI is already minted, so a missing account name must never fail the deposit
+            logger.warn("could not read the deposit account for plan " + planId + " / " + repositoryId + ": " + e.getMessage());
+            return null;
         }
     }
 
@@ -971,10 +1001,11 @@ public class DepositServiceImpl implements DepositService {
     private static ExchangeFilterFunction logResponse() {
         return ExchangeFilterFunction.ofResponseProcessor(response -> {
             if (response.statusCode().isError()) {
-                return response.mutate().build().bodyToMono(String.class)
-                        .flatMap(body -> {
+                // reading the body consumes it, so the response passed on gets it back for the client to read the plugin's error
+                return response.bodyToMono(String.class).defaultIfEmpty("")
+                        .map(body -> {
                             logger.error(new MapLogEntry("Response").And("method", response.request().getMethod().toString()).And("url", response.request().getURI()).And("status", response.statusCode().toString()).And("body", body));
-                            return Mono.just(response);
+                            return response.mutate().body(body).build();
                         });
             }
             return Mono.just(response);

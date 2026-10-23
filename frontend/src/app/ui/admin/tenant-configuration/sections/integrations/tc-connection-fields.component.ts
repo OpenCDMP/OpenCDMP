@@ -33,12 +33,13 @@ import { CommonUiModule } from '@common/ui/common-ui.module';
 				</mat-form-field>
 				<mat-form-field>
 					<mat-label>{{ 'TENANT-CONFIGURATION.INTEGRATIONS.CONNECTION.CLIENT-SECRET' | translate }}</mat-label>
-					<input matInput [type]="showSecret() ? 'text' : 'password'" [formControl]="control('clientSecret')" required autocomplete="new-password">
+					<input matInput [type]="showSecret() ? 'text' : 'password'" [formControl]="control('clientSecret')" [required]="!secretSet()" autocomplete="new-password">
 					<button mat-icon-button matSuffix type="button" (click)="showSecret.set(!showSecret())"
 						[attr.aria-label]="(showSecret() ? 'TENANT-CONFIGURATION.INTEGRATIONS.CONNECTION.HIDE-SECRET' : 'TENANT-CONFIGURATION.INTEGRATIONS.CONNECTION.SHOW-SECRET') | translate"
 						[attr.aria-pressed]="showSecret()">
 						<mat-icon aria-hidden="true">{{ showSecret() ? 'visibility_off' : 'visibility' }}</mat-icon>
 					</button>
+					@if (secretSet()) { <mat-hint>{{ 'TENANT-CONFIGURATION.INTEGRATIONS.CONNECTION.CLIENT-SECRET-STORED' | translate }}</mat-hint> }
 					<ng-container *ngTemplateOutlet="errors; context: { $implicit: control('clientSecret') }" />
 				</mat-form-field>
 			</div>
@@ -69,5 +70,9 @@ export class TcConnectionFieldsComponent {
 
 	protected control(name: string): UntypedFormControl {
 		return this.group().get(name) as UntypedFormControl;
+	}
+
+	protected secretSet(): boolean {
+		return !!this.group().get('clientSecretSet')?.value;
 	}
 }

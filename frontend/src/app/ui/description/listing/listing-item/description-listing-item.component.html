@@ -71,7 +71,7 @@
                     @for (referenceConfig of orderedDescriptionPreferencesList;  track $index; let last = $last; let index = $index) {
                         @if (referenceService.getReferencesForTypes($safeNavigationMigration(description?.descriptionReferences), !isDeleted, [referenceConfig.id])?.length > 0) {
                             <div class="item-row">
-                                <span class="description-subtitle">{{referenceConfig.name}}: </span>
+                                <span class="description-subtitle">{{referenceConfig | referenceTypeName}}: </span>
                                 <span class="description-subtitle" style="opacity: 1">
                                     @for (planReference of referenceService.getReferencesForTypes($safeNavigationMigration(description?.descriptionReferences), !isDeleted, [referenceConfig.id]); track $index; let last = $last; let index = $index) {
                                         {{planReference?.reference?.label}}{{!last ? ', ' : ''}}
@@ -140,7 +140,7 @@
           @for (referenceConfig of orderedDescriptionPreferencesList;  track $index; let last = $last; let index = $index) {
             @if (referenceService.getReferencesForTypes(description?.plan?.planReferences, !isDeleted, [referenceConfig.id])?.length > 0) {
               <div class="description-subtitle d-flex align-items-start">
-                <span class="col-2 text-bold"> {{referenceConfig.name}}:</span>
+                <span class="col-2 text-bold"> {{referenceConfig | referenceTypeName}}:</span>
                 <span class="col-10">
                   @for (planReference of referenceService.getReferencesForTypes(description?.plan?.planReferences, !isDeleted, [referenceConfig.id]); track $index; let last = $last; let index = $index) {
                     <span >{{planReference?.reference?.label}}@if (!last) {

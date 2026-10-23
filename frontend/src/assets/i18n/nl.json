@@ -9,6 +9,10 @@
 	},
 	"APP_NAME": "OpenCDMP",
 	"APP_NAME_CAPS": "OpenCDMP",
+	"TEST-INSTALLATION-MESSAGE": {
+		"TITLE": "Dit is een testomgeving.",
+		"TEXT": "Plannen die hier worden gepubliceerd gaan naar een testrepository, dus hun PID's kunnen niet worden geciteerd. Gebruik deze omgeving niet voor echt werk."
+	},
 	"PUBLISH-DIALOG": {
 		"TITLE": "Publiceren naar {{repository}}",
 		"STEPS": {
@@ -36,7 +40,16 @@
 			"TOKEN-INSTEAD": "In plaats daarvan een toegangstoken invoeren",
 			"OTHER-TOKEN": "Andere inloggegevens gebruiken",
 			"USE-SAVED": "De inloggegevens uit uw profiel gebruiken",
-			"NONE": "Er is geen manier ingesteld om naar {{repository}} te publiceren. Neem contact op met uw beheerder."
+			"NONE": "Er is geen manier ingesteld om naar {{repository}} te publiceren. Neem contact op met uw beheerder.",
+			"PREVIOUS-VERSION": "Versie {{version}} van dit plan staat al op {{repository}}, dus deze wordt gepubliceerd als nieuwe versie daarvan. Gebruik hetzelfde {{repository}}-account waarmee versie {{version}} is gepubliceerd, anders weigert {{repository}} deze.",
+			"PREVIOUS-VERSION-ORG": "Versie {{version}} van dit plan is op {{repository}} gepubliceerd met het account van de organisatie, dus deze wordt gepubliceerd als nieuwe versie daarvan. Publiceer deze opnieuw met het account van de organisatie, anders weigert {{repository}} deze.",
+			"PREVIOUS-VERSION-ORG-NAMED": "Versie {{version}} van dit plan is op {{repository}} gepubliceerd met {{account}}, dus deze wordt gepubliceerd als nieuwe versie daarvan. Publiceer deze opnieuw met {{account}}, anders weigert {{repository}} deze.",
+			"PREVIOUS-VERSION-YOU": "U hebt versie {{version}} van dit plan op {{repository}} gepubliceerd met uw eigen account, dus deze wordt gepubliceerd als nieuwe versie daarvan. Gebruik opnieuw hetzelfde {{repository}}-account, anders weigert {{repository}} deze.",
+			"PREVIOUS-VERSION-USER": "{{name}} heeft versie {{version}} van dit plan op {{repository}} gepubliceerd met een eigen account, dus deze wordt gepubliceerd als nieuwe versie daarvan. Alleen dat {{repository}}-account kan deze publiceren, dus vraag {{name}} om deze versie te publiceren.",
+			"PREVIOUS-VERSION-OTHER-USER": "Een andere gebruiker heeft versie {{version}} van dit plan op {{repository}} gepubliceerd met een eigen account, dus deze wordt gepubliceerd als nieuwe versie daarvan. Alleen dat {{repository}}-account kan deze publiceren.",
+			"PREVIOUS-VERSION-YOU-NAMED": "U hebt versie {{version}} van dit plan op {{repository}} gepubliceerd met het account {{account}}, dus deze wordt gepubliceerd als nieuwe versie daarvan. Gebruik opnieuw {{account}}, anders weigert {{repository}} deze.",
+			"PREVIOUS-VERSION-USER-NAMED": "{{name}} heeft versie {{version}} van dit plan op {{repository}} gepubliceerd met het account {{account}}, dus deze wordt gepubliceerd als nieuwe versie daarvan. Alleen {{account}} kan deze publiceren, dus vraag {{name}} om deze versie te publiceren.",
+			"PREVIOUS-VERSION-OTHER-USER-NAMED": "Versie {{version}} van dit plan is op {{repository}} gepubliceerd met het account {{account}}, dus deze wordt gepubliceerd als nieuwe versie daarvan. Alleen {{account}} kan deze publiceren."
 		},
 		"REVIEW": {
 			"AS-ORG": "Publiceren onder het {{repository}}-account van de organisatie",
@@ -85,6 +98,7 @@
 			"CREDENTIALS": "Uw inloggegevens voor {{repository}} ontbreken",
 			"HINT": "Er is niets gepubliceerd en uw plan is ongewijzigd.",
 			"HINT-OWN": "Er is niets gepubliceerd en uw plan is ongewijzigd. Het account van de organisatie is niet in de plaats daarvan gebruikt.",
+			"PREVIOUS-VERSION": "{{repository}} accepteert een nieuwe versie alleen van het account dat versie {{version}} heeft gepubliceerd. Kies dat account en probeer het opnieuw.",
 			"DETAILS": "Details",
 			"BACK": "Terug naar de controle",
 			"USE-ORG": "Account van de organisatie gebruiken",
@@ -1239,6 +1253,7 @@
 				"ISSUER": "Adres van de tokenuitgever",
 				"CLIENT-ID": "Client-Id",
 				"CLIENT-SECRET": "Client-Secret",
+				"CLIENT-SECRET-STORED": "Versleuteld opgeslagen. Laat leeg om het te behouden.",
 				"SHOW-SECRET": "Client-Secret tonen",
 				"HIDE-SECRET": "Client-Secret verbergen",
 				"SCOPE": "Scope",
@@ -3393,6 +3408,7 @@
 			"CONFIRM": "Importeren",
 			"CANCEL": "Annuleren",
 			"SUCCESS": "Definitie geïmporteerd. Controleer de wijzigingen en sla op om ze te behouden.",
+			"SUCCESS-AUTH": "Definitie geïmporteerd. Aanmeldbodies worden nooit geëxporteerd, dus typ ze opnieuw voordat u opslaat.",
 			"INVALID-FILE": "The selected file could not be read as a valid definition export."
 		},
 		"ABOUT": {
@@ -3482,6 +3498,7 @@
 			"URL": "Token-URL",
 			"BODY": "Aanvraagtekst",
 			"BODY-HINT": "Wordt als JSON verzonden.",
+			"BODY-STORED": "Versleuteld opgeslagen. Laat leeg om het te behouden.",
 			"STEP-READ": "Het token uit het antwoord lezen",
 			"TOKEN-FIELD": "Tokenveld",
 			"TOKEN-FIELD-HINT": "Een veld op het hoogste niveau van het antwoord, geen pad.",
@@ -3677,6 +3694,7 @@
 			"CONFIRM": "Importeren",
 			"CANCEL": "Annuleren",
 			"SUCCESS": "Definitie geïmporteerd. Controleer de wijzigingen en sla op om ze te behouden.",
+			"SUCCESS-AUTH": "Definitie geïmporteerd. Aanmeldbodies worden nooit geëxporteerd, dus typ ze opnieuw voordat u opslaat.",
 			"INVALID-FILE": "The selected file could not be read as a valid definition export."
 		},
 		"HEADER": {
@@ -3902,6 +3920,7 @@
 			"SECTION-TITLE": "Geef de sectie een naam.",
 			"SECTION-EMPTY": "De sectie heeft minstens één vraag, een subsectie of hulpbronsjablonen nodig.",
 			"TEMPLATE-ROW": "Een rij met een hulpbronsjabloon is onvolledig.",
+			"TEMPLATES-REQUIRED": "Voeg minstens één hulpbronsjabloon toe of laat auteurs andere sjablonen toevoegen.",
 			"QUESTION-TITLE": "Geef de vraag een titel. Auteurs zien die als label.",
 			"QUESTION-NO-INPUT": "De vraag heeft geen invoer.",
 			"INPUT-NO-TYPE": "Kies een type voor de invoer",
@@ -5441,6 +5460,10 @@
 				"TITLE": "Begin vanuit de zijbalk",
 				"CONTENT": "Nieuw plan en Nieuwe hulpbron staan in de zijbalk onder Mijn Plannen en Mijn Hulpbronnen, zodat u er vanaf elke pagina een kunt starten."
 			},
+			"RECOMMENDATIONS": {
+				"TITLE": "Aanbevolen voor u",
+				"CONTENT": "De Plan Blueprints en Hulpbronsjablonen die uw organisatie aanbeveelt. Start een plan direct vanuit een blueprint, of open er een om te zien wat erin gevraagd wordt."
+			},
 			"ACTIVITY": {
 				"TITLE": "Uw recente activiteit",
 				"CONTENT": "De plannen en hulpbronnen waaraan u het laatst hebt gewerkt, nieuwste eerst. De tabbladen beperken de lijst tot alleen plannen of alleen hulpbronnen."
@@ -5465,6 +5488,26 @@
 				"TITLE": "Hulp, taal en uw account",
 				"CONTENT": "Onder Ondersteuning vindt u de gebruikershandleiding, de veelgestelde vragen en de woordenlijst, en kunt u deze rondleiding opnieuw bekijken. Daarnaast kunt u de taal wijzigen. In het organisatiemenu kunt u van organisatie wisselen als u bij meer dan één hoort, want elke organisatie heeft eigen plannen, hulpbronnen en blueprints. De bel toont uw meldingen, en daarnaast staat uw profiel."
 			}
+		},
+		"RECOMMENDATIONS": {
+			"FROM": "Van {{tenant}}",
+			"TITLE": "Aanbevolen blueprints en sjablonen",
+			"SUMMARY": "{{count}} aanbevolen blueprints en sjablonen",
+			"RANGE": "{{start}}–{{end}} van {{count}}",
+			"SHOW": "Tonen",
+			"HIDE": "Verbergen",
+			"PREVIOUS": "Vorige aanbevelingen",
+			"NEXT": "Volgende aanbevelingen",
+			"PLAN-BLUEPRINT": "Plan Blueprint",
+			"DESCRIPTION-TEMPLATE": "Hulpbronsjabloon",
+			"TYPE": "Type: {{type}}",
+			"VERSION": "Versie {{version}}",
+			"USED-IN-PLAN": "Gebruikt in {{count}} plan",
+			"USED-IN-PLANS": "Gebruikt in {{count}} plannen",
+			"USED-IN-DESCRIPTION": "Gebruikt in {{count}} hulpbron",
+			"USED-IN-DESCRIPTIONS": "Gebruikt in {{count}} hulpbronnen",
+			"START-PLAN": "Start hiermee een plan",
+			"SEE-DETAILS": "Details bekijken"
 		},
 		"GRANTS": "Subsidies",
 		"TITLE": "Wat is {{ APP_NAME_CAPS }}?",

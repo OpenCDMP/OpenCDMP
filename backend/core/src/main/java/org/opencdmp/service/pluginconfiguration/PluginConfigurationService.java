@@ -16,12 +16,11 @@ import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.util.List;
+import java.util.Set;
 
 public interface PluginConfigurationService {
 
-    PluginConfigurationEntity buildPluginConfigurationEntity(PluginConfigurationPersist persist, List<PluginConfigurationEntity> oldPlugins) throws InvalidApplicationException;
-
-    PluginConfigurationEntity buildPluginConfigurationEntity(PluginConfigurationPersist persist, List<PluginConfigurationEntity> oldPlugins, List<PluginConfigurationEntity> inheritedPlugins) throws InvalidApplicationException;
+    PluginConfigurationEntity buildPluginConfigurationEntity(PluginConfigurationPersist persist, List<PluginConfigurationEntity> oldPlugins, List<PluginConfigurationEntity> inheritedPlugins, Set<String> secretCodes) throws InvalidApplicationException;
 
     void reassignPluginConfiguration(PluginConfiguration model);
 

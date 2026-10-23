@@ -9,6 +9,10 @@
 	},
 	"APP_NAME": "OpenCDMP",
 	"APP_NAME_CAPS": "OpenCDMP",
+	"TEST-INSTALLATION-MESSAGE": {
+		"TITLE": "Este é um ambiente de testes.",
+		"TEXT": "Os PGDs publicados aqui vão para um repositório de testes, pelo que os seus PIDs não podem ser citados. Não o utilize para trabalho real."
+	},
 	"PUBLISH-DIALOG": {
 		"TITLE": "Publicar em {{repository}}",
 		"STEPS": {
@@ -36,7 +40,16 @@
 			"TOKEN-INSTEAD": "Em alternativa, introduzir um token de acesso",
 			"OTHER-TOKEN": "Utilizar credenciais diferentes",
 			"USE-SAVED": "Utilizar as credenciais guardadas no seu perfil",
-			"NONE": "Não existe nenhuma forma configurada para publicar em {{repository}}. Contacte o seu administrador."
+			"NONE": "Não existe nenhuma forma configurada para publicar em {{repository}}. Contacte o seu administrador.",
+			"PREVIOUS-VERSION": "A versão {{version}} deste plano já está no {{repository}}, pelo que esta é publicada como a sua nova versão. Utilize a mesma conta {{repository}} que publicou a versão {{version}}, caso contrário o {{repository}} irá recusá-la.",
+			"PREVIOUS-VERSION-ORG": "A versão {{version}} deste plano foi publicada no {{repository}} com a conta da organização, pelo que esta é publicada como a sua nova versão. Publique-a novamente com a conta da organização, caso contrário o {{repository}} irá recusá-la.",
+			"PREVIOUS-VERSION-ORG-NAMED": "A versão {{version}} deste plano foi publicada no {{repository}} com {{account}}, pelo que esta é publicada como a sua nova versão. Publique-a novamente com {{account}}, caso contrário o {{repository}} irá recusá-la.",
+			"PREVIOUS-VERSION-YOU": "Publicou a versão {{version}} deste plano no {{repository}} com a sua própria conta, pelo que esta é publicada como a sua nova versão. Utilize novamente a mesma conta {{repository}}, caso contrário o {{repository}} irá recusá-la.",
+			"PREVIOUS-VERSION-USER": "{{name}} publicou a versão {{version}} deste plano no {{repository}} com a sua própria conta, pelo que esta é publicada como a sua nova versão. Só essa conta {{repository}} a pode publicar, por isso peça a {{name}} que publique esta versão.",
+			"PREVIOUS-VERSION-OTHER-USER": "Outro utilizador publicou a versão {{version}} deste plano no {{repository}} com a sua própria conta, pelo que esta é publicada como a sua nova versão. Só essa conta {{repository}} a pode publicar.",
+			"PREVIOUS-VERSION-YOU-NAMED": "Publicou a versão {{version}} deste plano no {{repository}} com a conta {{account}}, pelo que esta é publicada como a sua nova versão. Utilize novamente {{account}}, caso contrário o {{repository}} irá recusá-la.",
+			"PREVIOUS-VERSION-USER-NAMED": "{{name}} publicou a versão {{version}} deste plano no {{repository}} com a conta {{account}}, pelo que esta é publicada como a sua nova versão. Só {{account}} a pode publicar, por isso peça a {{name}} que publique esta versão.",
+			"PREVIOUS-VERSION-OTHER-USER-NAMED": "A versão {{version}} deste plano foi publicada no {{repository}} com a conta {{account}}, pelo que esta é publicada como a sua nova versão. Só {{account}} a pode publicar."
 		},
 		"REVIEW": {
 			"AS-ORG": "A publicar na conta {{repository}} da organização",
@@ -85,6 +98,7 @@
 			"CREDENTIALS": "Faltam as suas credenciais de {{repository}}",
 			"HINT": "Nada foi publicado e o seu plano não foi alterado.",
 			"HINT-OWN": "Nada foi publicado e o seu plano não foi alterado. A conta da organização não foi utilizada em alternativa.",
+			"PREVIOUS-VERSION": "O {{repository}} só aceita uma nova versão a partir da conta que publicou a versão {{version}}. Mude para essa conta e tente novamente.",
 			"DETAILS": "Detalhes",
 			"BACK": "Voltar à revisão",
 			"USE-ORG": "Utilizar a conta da organização",
@@ -1239,6 +1253,7 @@
 				"ISSUER": "Endereço do emissor de tokens",
 				"CLIENT-ID": "ID do Cliente",
 				"CLIENT-SECRET": "Chave Privada do Cliente",
+				"CLIENT-SECRET-STORED": "Guardada de forma cifrada. Deixe em branco para a manter.",
 				"SHOW-SECRET": "Mostrar chave privada do cliente",
 				"HIDE-SECRET": "Ocultar chave privada do cliente",
 				"SCOPE": "Âmbito",
@@ -3393,6 +3408,7 @@
 			"CONFIRM": "Importar",
 			"CANCEL": "Cancelar",
 			"SUCCESS": "Definição importada. Reveja as alterações e guarde para as manter.",
+			"SUCCESS-AUTH": "Definição importada. Os corpos de autenticação nunca são exportados, por isso escreva-os novamente antes de guardar.",
 			"INVALID-FILE": "The selected file could not be read as a valid definition export."
 		},
 		"ABOUT": {
@@ -3482,6 +3498,7 @@
 			"URL": "URL do token",
 			"BODY": "Corpo do pedido",
 			"BODY-HINT": "Enviado como JSON.",
+			"BODY-STORED": "Guardado de forma cifrada. Deixe em branco para o manter.",
 			"STEP-READ": "Ler o token da resposta",
 			"TOKEN-FIELD": "Campo do token",
 			"TOKEN-FIELD-HINT": "Um campo de nível superior da resposta, não um caminho.",
@@ -3677,6 +3694,7 @@
 			"CONFIRM": "Importar",
 			"CANCEL": "Cancelar",
 			"SUCCESS": "Definição importada. Reveja as alterações e guarde para as manter.",
+			"SUCCESS-AUTH": "Definição importada. Os corpos de autenticação nunca são exportados, por isso escreva-os novamente antes de guardar.",
 			"INVALID-FILE": "The selected file could not be read as a valid definition export."
 		},
 		"HEADER": {
@@ -3902,6 +3920,7 @@
 			"SECTION-TITLE": "Dê um nome à secção.",
 			"SECTION-EMPTY": "A secção precisa de pelo menos uma questão, uma subsecção ou modelos de recurso.",
 			"TEMPLATE-ROW": "Uma linha de modelo de recurso está incompleta.",
+			"TEMPLATES-REQUIRED": "Adicione pelo menos um modelo de recurso ou permita que os autores adicionem outros modelos.",
 			"QUESTION-TITLE": "Dê um título à questão. Os autores veem-no como etiqueta.",
 			"QUESTION-NO-INPUT": "A questão não tem nenhuma entrada.",
 			"INPUT-NO-TYPE": "Escolha um tipo para a entrada",
@@ -5441,6 +5460,10 @@
 				"TITLE": "Comece a partir da barra lateral",
 				"CONTENT": "Novo PGD e Novo recurso estão na barra lateral, em Os meus PGDs e Os meus recursos, pelo que pode iniciar um a partir de qualquer página."
 			},
+			"RECOMMENDATIONS": {
+				"TITLE": "Recomendado para si",
+				"CONTENT": "Os Blueprints e Modelos de recurso que a sua organização recomenda. Inicie um plano diretamente a partir de um blueprint, ou abra um para ver o que pede."
+			},
 			"ACTIVITY": {
 				"TITLE": "A sua atividade recente",
 				"CONTENT": "Os planos e recursos em que trabalhou mais recentemente, os mais recentes primeiro. Os separadores limitam a lista apenas a planos ou apenas a recursos."
@@ -5465,6 +5488,26 @@
 				"TITLE": "Ajuda, idioma e a sua conta",
 				"CONTENT": "Em Suporte encontra o guia do utilizador, as Perguntas Frequentes e o glossário, e pode repetir esta visita. Ao lado pode mudar o idioma. No menu da organização pode mudar de organização se pertencer a mais do que uma, já que cada uma tem os seus próprios planos, recursos e blueprints. O sino mostra as suas notificações, e ao lado está o seu perfil."
 			}
+		},
+		"RECOMMENDATIONS": {
+			"FROM": "De {{tenant}}",
+			"TITLE": "Blueprints e modelos recomendados",
+			"SUMMARY": "{{count}} blueprints e modelos recomendados",
+			"RANGE": "{{start}}–{{end}} de {{count}}",
+			"SHOW": "Mostrar",
+			"HIDE": "Ocultar",
+			"PREVIOUS": "Recomendações anteriores",
+			"NEXT": "Recomendações seguintes",
+			"PLAN-BLUEPRINT": "Blueprint",
+			"DESCRIPTION-TEMPLATE": "Modelo de recurso",
+			"TYPE": "Tipo: {{type}}",
+			"VERSION": "Versão {{version}}",
+			"USED-IN-PLAN": "Usado em {{count}} plano",
+			"USED-IN-PLANS": "Usado em {{count}} planos",
+			"USED-IN-DESCRIPTION": "Usado em {{count}} recurso",
+			"USED-IN-DESCRIPTIONS": "Usado em {{count}} recursos",
+			"START-PLAN": "Iniciar um plano com este",
+			"SEE-DETAILS": "Ver detalhes"
 		},
 		"GRANTS": "Projetos",
 		"TITLE": "O que é o {{ APP_NAME_CAPS }}?",

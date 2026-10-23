@@ -10,6 +10,9 @@
 @if (!showOnlyRouterOutlet) {
   <div class="wrapper">
     <app-navbar class="nav-bar"></app-navbar>
+    @if (testInstallationMessageEnabled) {
+      <div class="alert alert-warning mb-0 rounded-0 test-installation-message"><strong>{{'TEST-INSTALLATION-MESSAGE.TITLE' | translate}}</strong> {{'TEST-INSTALLATION-MESSAGE.TEXT' | translate}}</div>
+    }
     <div class="main-container">
     <app-sidebar class="sidenav" [class.closed]="!sidenavService.isOpen()"></app-sidebar>
     <main id="main-page" tabindex="-1">

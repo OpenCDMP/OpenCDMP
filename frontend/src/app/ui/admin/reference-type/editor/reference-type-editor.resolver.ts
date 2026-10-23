@@ -57,7 +57,7 @@ export class ReferenceTypeEditorResolver extends BaseEditorResolver {
 			[nameof<ReferenceType>(x => x.definition), nameof<ReferenceTypeDefinition>(x => x.sources), nameof<ExternalFetcherBaseSourceConfiguration>(x => x.auth),nameof<AuthenticationConfiguration>(x => x.authUrl)].join('.'),
 			[nameof<ReferenceType>(x => x.definition), nameof<ReferenceTypeDefinition>(x => x.sources), nameof<ExternalFetcherBaseSourceConfiguration>(x => x.auth),nameof<AuthenticationConfiguration>(x => x.authMethod)].join('.'),
 			[nameof<ReferenceType>(x => x.definition), nameof<ReferenceTypeDefinition>(x => x.sources), nameof<ExternalFetcherBaseSourceConfiguration>(x => x.auth),nameof<AuthenticationConfiguration>(x => x.authTokenPath)].join('.'),
-			[nameof<ReferenceType>(x => x.definition), nameof<ReferenceTypeDefinition>(x => x.sources), nameof<ExternalFetcherBaseSourceConfiguration>(x => x.auth),nameof<AuthenticationConfiguration>(x => x.authRequestBody)].join('.'),
+			[nameof<ReferenceType>(x => x.definition), nameof<ReferenceTypeDefinition>(x => x.sources), nameof<ExternalFetcherBaseSourceConfiguration>(x => x.auth),nameof<AuthenticationConfiguration>(x => x.authRequestBodySet)].join('.'),
 			[nameof<ReferenceType>(x => x.definition), nameof<ReferenceTypeDefinition>(x => x.sources), nameof<ExternalFetcherBaseSourceConfiguration>(x => x.auth),nameof<AuthenticationConfiguration>(x => x.type)].join('.'),
 
 			[nameof<ReferenceType>(x => x.definition), nameof<ReferenceTypeDefinition>(x => x.sources), nameof<ExternalFetcherBaseSourceConfiguration>(x => x.queries),nameof<QueryConfig>(x => x.name)].join('.'),

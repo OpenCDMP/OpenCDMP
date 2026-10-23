@@ -65,6 +65,12 @@ else
    find '/usr/share/nginx/html/assets/config' -name 'config.json' -exec sed -i -e 's,${ACCOUNTING_SERVICE_ENABLED},false,g' {} \;
 fi
 
+if [[ ! -z "${TEST_INSTALLATION_MESSAGE_ENABLED}" ]]; then
+	find '/usr/share/nginx/html/assets/config' -name 'config.json' -exec sed -i -e 's,${TEST_INSTALLATION_MESSAGE_ENABLED},'"$TEST_INSTALLATION_MESSAGE_ENABLED"',g' {} \;
+else
+   find '/usr/share/nginx/html/assets/config' -name 'config.json' -exec sed -i -e 's,${TEST_INSTALLATION_MESSAGE_ENABLED},false,g' {} \;
+fi
+
 if [[ ! -z "${LOGGING_ENABLED}" ]]; then
 	find '/usr/share/nginx/html/assets/config' -name 'config.json' -exec sed -i -e 's,${LOGGING_ENABLED},'"$LOGGING_ENABLED"',g' {} \;
 else

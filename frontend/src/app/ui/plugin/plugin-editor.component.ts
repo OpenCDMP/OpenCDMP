@@ -1,5 +1,5 @@
 
-import { Component, Input, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { Component, Input, ChangeDetectionStrategy } from '@angular/core';
 import { AbstractControl, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MatDialog } from '@angular/material/dialog';
 import { UiNotificationService } from '@app/core/services/notification/ui-notification-service';
@@ -26,6 +26,7 @@ import { MatIcon } from '@angular/material/icon';
 import { FileUploadComponent } from '../../library/file-uploader/file-uploader.component';
 import { MatSlideToggle } from '@angular/material/slide-toggle';
 import { MatSelect, MatOption } from '@angular/material/select';
+import { MatButton } from '@angular/material/button';
 import { NgxColorsModule } from 'ngx-colors';
 
 
@@ -34,9 +35,9 @@ import { NgxColorsModule } from 'ngx-colors';
     templateUrl: 'plugin-editor.component.html',
     styleUrls: ['./plugin-editor.component.scss'],
     changeDetection: ChangeDetectionStrategy.Eager,
-    imports: [MatListSubheaderCssMatStyler, MatFormField, MatLabel, ReactiveAsteriskDirective, MatInput, FormsModule, ReactiveFormsModule, MatIcon, MatSuffix, MatHint, MatError, FileUploadComponent, MatSlideToggle, MatSelect, MatOption, NgxColorsModule, TranslatePipe]
+    imports: [MatListSubheaderCssMatStyler, MatFormField, MatLabel, ReactiveAsteriskDirective, MatInput, FormsModule, ReactiveFormsModule, MatIcon, MatSuffix, MatHint, MatError, FileUploadComponent, MatSlideToggle, MatSelect, MatOption, MatButton, NgxColorsModule, TranslatePipe]
 })
-export class PluginEditorComponent extends BaseComponent implements OnInit {
+export class PluginEditorComponent extends BaseComponent {
 
 	@Input() formGroup: PluginConfigurationForm = null;
 	@Input() data: PluginConfiguration[] = [];
@@ -66,17 +67,14 @@ export class PluginEditorComponent extends BaseComponent implements OnInit {
 		super();
 	}
 
-	ngOnInit(): void {
-	}
-
-	getConfigurationFieldLabel(pluginCode: string, fieldCode: string): String{
+	getConfigurationFieldLabel(pluginCode: string, fieldCode: string): string {
 		const translationKey = `PLUGIN-EDITOR.ADMIN-CONFIGURATION.${pluginCode.toUpperCase()}.${fieldCode.toUpperCase()}`;
 		const translated = this.language.instant(translationKey);
 		if (translated !== translationKey) return translated;
 		return this.pluginConfiguration?.find(x => x.repositoryId === pluginCode)?.fields?.find(x => x.code === fieldCode)?.label ?? fieldCode;
 	}
 
-	getConfigurationUserFieldLabel(pluginCode: string, fieldCode: string): String{
+	getConfigurationUserFieldLabel(pluginCode: string, fieldCode: string): string {
 		const translationKey = `PLUGIN-EDITOR.USER-CONFIGURATION.${pluginCode.toUpperCase()}.${fieldCode.toUpperCase()}`;
 		const translated = this.language.instant(translationKey);
 		if (translated !== translationKey) return translated;
@@ -138,6 +136,35 @@ export class PluginEditorComponent extends BaseComponent implements OnInit {
 	isSecretField(pluginCode: string, fieldCode: string, userField: boolean): boolean {
 		const field = this.fieldDefinition(pluginCode, fieldCode, userField);
 		return field == null || field.authInfo === true;
+	}
+
+	// a stored secret never reaches the browser: textValue null keeps it, '' removes it, anything else replaces it
+	private replacing = new Set<AbstractControl>();
+
+	secretState(field: AbstractControl): 'stored' | 'removed' | 'editing' {
+		if (!field.get('secretSet')?.value || this.replacing.has(field)) return 'editing';
+		return field.get('textValue').value === '' ? 'removed' : 'stored';
+	}
+
+	replaceSecret(field: AbstractControl): void {
+		this.replacing.add(field);
+		this.setSecretText(field, '');
+	}
+
+	removeSecret(field: AbstractControl): void {
+		this.replacing.delete(field);
+		this.setSecretText(field, '');
+	}
+
+	keepSecret(field: AbstractControl): void {
+		this.replacing.delete(field);
+		this.setSecretText(field, null);
+	}
+
+	private setSecretText(field: AbstractControl, value: string | null): void {
+		const control = field.get('textValue');
+		control.markAsDirty();
+		control.setValue(value);
 	}
 
 	toggleVisibility(pluginIndex: number, fieldIndex: number): void {

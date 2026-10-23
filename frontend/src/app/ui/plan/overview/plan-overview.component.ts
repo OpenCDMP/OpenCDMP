@@ -18,7 +18,7 @@ import { PlanUserRole } from '@app/core/common/enum/plan-user-role';
 import { PlanVersionStatus } from '@app/core/common/enum/plan-version-status';
 import { DepositConfiguration } from '@app/core/model/deposit/deposit-configuration';
 import { DescriptionStatus, DescriptionStatusDefinition } from '@app/core/model/description-status/description-status';
-import { BaseField, BaseFieldData, BaseFieldSet, BaseSection, DescriptionTemplate, Multiplicity, FieldSystemData, FieldReferenceTypeData, FieldRule } from '@app/core/model/description-template/description-template';
+import { BaseField, BaseFieldData, BaseFieldSet, BaseSection, DescriptionTemplate, Multiplicity, FieldSystemData, FieldReferenceTypeData, FieldRule, FieldSelectData, FieldSelectOption } from '@app/core/model/description-template/description-template';
 import { Description, DescriptionExternalIdentifier, DescriptionSectionPermissionResolver, PropertyDefinitionField, PropertyDefinitionFieldSet, PropertyDefinitionFieldSetItem } from '@app/core/model/description/description';
 import { EntityDoi } from '@app/core/model/entity-doi/entity-doi';
 import { RankResultModel } from '@app/core/model/evaluator/evaluator-plan-model.model';
@@ -38,7 +38,7 @@ import {
 } from '@app/core/model/plan/plan';
 import { PlanReference, PlanReferenceData } from '@app/core/model/plan/plan-reference';
 import { ReferenceType, ReferenceTypeDefinition } from '@app/core/model/reference-type/reference-type';
-import { Reference } from '@app/core/model/reference/reference';
+import { Reference, ReferenceDefinition, ReferenceField } from '@app/core/model/reference/reference';
 import { User, UserContactInfo } from '@app/core/model/user/user';
 import { AuthService } from '@app/core/services/auth/auth.service';
 import { ConfigurationService } from '@app/core/services/configuration/configuration.service';
@@ -542,7 +542,7 @@ export class PlanOverviewComponent extends BaseComponent implements OnInit {
 	}
 
 	private rankPlan(planId: Guid, evaluatorId: string, format: string, rankConfig: RankConfig, benchmarkIds: string[] | null, testIds: string[] | null) {
-		this.evaluatorService.rankPlan(planId, evaluatorId, format, benchmarkIds ?? undefined, testIds ?? undefined).subscribe(
+		this.enqueueService.enqueueExhaustChannel(this.evaluatorService.rankPlan(planId, evaluatorId, format, benchmarkIds ?? undefined, testIds ?? undefined)).pipe(takeUntil(this._destroyed)).subscribe(
 			(response: RankResultModel[]) => {
 				const dialogRef = this.dialog.open(EvaluateDialogComponent, {
 					maxWidth: '90vw',
@@ -1064,6 +1064,7 @@ export class PlanOverviewComponent extends BaseComponent implements OnInit {
 			[nameof<Plan>(x => x.status), nameof<PlanStatus>(x => x.id)].join('.'),
 			[nameof<Plan>(x => x.status), nameof<PlanStatus>(x => x.name)].join('.'),
 			[nameof<Plan>(x => x.status), nameof<PlanStatus>(x => x.internalStatus)].join('.'),
+			[nameof<Plan>(x => x.status), nameof<PlanStatus>(x => x.action)].join('.'),
 			[nameof<Plan>(x => x.status), nameof<PlanStatus>(x => x.definition), nameof<PlanStatusDefinition>(x => x.availableActions)].join('.'),
 			[nameof<Plan>(x => x.status), nameof<PlanStatus>(x => x.definition), nameof<PlanStatusDefinition>(x => x.iconConfiguration), nameof<IconConfiguration>(x => x.matIconName)].join('.'),
 			[nameof<Plan>(x => x.status), nameof<PlanStatus>(x => x.definition), nameof<PlanStatusDefinition>(x => x.statusColor)].join('.'),
@@ -1126,6 +1127,12 @@ export class PlanOverviewComponent extends BaseComponent implements OnInit {
 			[nameof<Plan>(x => x.planReferences), nameof<PlanReference>(x => x.reference), nameof<Reference>(x => x.label)].join('.'),
 			[nameof<Plan>(x => x.planReferences), nameof<PlanReference>(x => x.reference), nameof<Reference>(x => x.type), nameof<ReferenceType>(x => x.id)].join('.'),
 			[nameof<Plan>(x => x.planReferences), nameof<PlanReference>(x => x.reference), nameof<Reference>(x => x.source)].join('.'),
+			[nameof<Plan>(x => x.planReferences), nameof<PlanReference>(x => x.reference), nameof<Reference>(x => x.sourceType)].join('.'),
+			[nameof<Plan>(x => x.planReferences), nameof<PlanReference>(x => x.reference), nameof<Reference>(x => x.description)].join('.'),
+			[nameof<Plan>(x => x.planReferences), nameof<PlanReference>(x => x.reference), nameof<Reference>(x => x.definition), nameof<ReferenceDefinition>(x => x.fields), nameof<ReferenceField>(x => x.code)].join('.'),
+			[nameof<Plan>(x => x.planReferences), nameof<PlanReference>(x => x.reference), nameof<Reference>(x => x.definition), nameof<ReferenceDefinition>(x => x.fields), nameof<ReferenceField>(x => x.value)].join('.'),
+			[nameof<Plan>(x => x.planReferences), nameof<PlanReference>(x => x.reference), nameof<Reference>(x => x.type), nameof<ReferenceType>(x => x.definition), nameof<ReferenceTypeDefinition>(x => x.sources), nameof<ExternalFetcherBaseSourceConfiguration>(x => x.key)].join('.'),
+			[nameof<Plan>(x => x.planReferences), nameof<PlanReference>(x => x.reference), nameof<Reference>(x => x.type), nameof<ReferenceType>(x => x.definition), nameof<ReferenceTypeDefinition>(x => x.sources), nameof<ExternalFetcherBaseSourceConfiguration>(x => x.label)].join('.'),
 			[nameof<Plan>(x => x.planReferences), nameof<PlanReference>(x => x.reference), nameof<Reference>(x => x.type), nameof<ReferenceType>(x => x.definition), nameof<ReferenceTypeDefinition>(x => x.sources), nameof<ExternalFetcherBaseSourceConfiguration>(x => x.navigationUrl)].join('.'),
 			[nameof<Plan>(x => x.planReferences), nameof<PlanReference>(x => x.reference), nameof<Reference>(x => x.type), nameof<ReferenceType>(x => x.definition), nameof<ReferenceTypeDefinition>(x => x.sources), nameof<ExternalFetcherBaseSourceConfiguration>(x => x.storageFile), nameof<StorageFile>(x => x.id)].join('.'),
 			[nameof<Plan>(x => x.planReferences), nameof<PlanReference>(x => x.reference), nameof<Reference>(x => x.type), nameof<ReferenceType>(x => x.definition), nameof<ReferenceTypeDefinition>(x => x.sources), nameof<ExternalFetcherBaseSourceConfiguration>(x => x.tooltipMessage)].join('.'),
@@ -1171,6 +1178,9 @@ export class PlanOverviewComponent extends BaseComponent implements OnInit {
 			[nameof<Plan>(x => x.blueprint), nameof<PlanBlueprint>(x => x.definition), nameof<PlanBlueprintDefinition>(x => x.sections), nameof<RootSection>(x => x.fieldSets), nameof<BaseFieldSet>(x => x.fields), nameof<BaseField>(x => x.data), nameof<BaseFieldData>(x => x.label)].join('.'),
 			[nameof<Plan>(x => x.blueprint), nameof<PlanBlueprint>(x => x.definition), nameof<PlanBlueprintDefinition>(x => x.sections), nameof<RootSection>(x => x.fieldSets), nameof<BaseFieldSet>(x => x.fields), nameof<BaseField>(x => x.data), nameof<BaseFieldData>(x => x.fieldType)].join('.'),
 			[nameof<Plan>(x => x.blueprint), nameof<PlanBlueprint>(x => x.definition), nameof<PlanBlueprintDefinition>(x => x.sections), nameof<RootSection>(x => x.fieldSets), nameof<BaseFieldSet>(x => x.fields), nameof<BaseField>(x => x.data), nameof<FieldSystemData>(x => x.systemFieldType)].join('.'),
+			[nameof<Plan>(x => x.blueprint), nameof<PlanBlueprint>(x => x.definition), nameof<PlanBlueprintDefinition>(x => x.sections), nameof<RootSection>(x => x.fieldSets), nameof<BaseFieldSet>(x => x.fields), nameof<BaseField>(x => x.data), nameof<FieldSelectData>(x => x.multipleSelect)].join('.'),
+			[nameof<Plan>(x => x.blueprint), nameof<PlanBlueprint>(x => x.definition), nameof<PlanBlueprintDefinition>(x => x.sections), nameof<RootSection>(x => x.fieldSets), nameof<BaseFieldSet>(x => x.fields), nameof<BaseField>(x => x.data), nameof<FieldSelectData>(x => x.options), nameof<FieldSelectOption>(x => x.label)].join('.'),
+			[nameof<Plan>(x => x.blueprint), nameof<PlanBlueprint>(x => x.definition), nameof<PlanBlueprintDefinition>(x => x.sections), nameof<RootSection>(x => x.fieldSets), nameof<BaseFieldSet>(x => x.fields), nameof<BaseField>(x => x.data), nameof<FieldSelectData>(x => x.options), nameof<FieldSelectOption>(x => x.value)].join('.'),
 			[nameof<Plan>(x => x.blueprint), nameof<PlanBlueprint>(x => x.definition), nameof<PlanBlueprintDefinition>(x => x.sections), nameof<RootSection>(x => x.fieldSets), nameof<BaseFieldSet>(x => x.fields), nameof<BaseField>(x => x.data), nameof<FieldReferenceTypeData>(x => x.referenceType), nameof<ReferenceType>(x => x.id)].join('.'),
 			[nameof<Plan>(x => x.blueprint), nameof<PlanBlueprint>(x => x.definition), nameof<PlanBlueprintDefinition>(x => x.sections), nameof<RootSection>(x => x.fieldSets), nameof<BaseFieldSet>(x => x.fields), nameof<BaseField>(x => x.data), nameof<FieldReferenceTypeData>(x => x.referenceType), nameof<ReferenceType>(x => x.name)].join('.'),
 			[nameof<Plan>(x => x.blueprint), nameof<PlanBlueprint>(x => x.definition), nameof<PlanBlueprintDefinition>(x => x.sections), nameof<RootSection>(x => x.hasTemplates)].join('.'),

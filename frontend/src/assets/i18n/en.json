@@ -9,6 +9,10 @@
 	},
 	"APP_NAME": "OpenCDMP",
 	"APP_NAME_CAPS": "OpenCDMP",
+	"TEST-INSTALLATION-MESSAGE": {
+		"TITLE": "This is a test environment.",
+		"TEXT": "Plans published here go to a test repository, so their PIDs can’t be cited. Don’t use it for real work."
+	},
 	"PUBLISH-DIALOG": {
 		"TITLE": "Publish to {{repository}}",
 		"STEPS": {
@@ -36,7 +40,16 @@
 			"TOKEN-INSTEAD": "Enter an access token instead",
 			"OTHER-TOKEN": "Use different credentials",
 			"USE-SAVED": "Use the credentials saved in your profile",
-			"NONE": "There is no way set up to publish to {{repository}}. Contact your administrator."
+			"NONE": "There is no way set up to publish to {{repository}}. Contact your administrator.",
+			"PREVIOUS-VERSION": "Version {{version}} of this plan is already on {{repository}}, so this one is published as its new version. Use the same {{repository}} account that published version {{version}}, or {{repository}} will refuse it.",
+			"PREVIOUS-VERSION-ORG": "Version {{version}} of this plan was published to {{repository}} under the organisation’s account, so this one is published as its new version. Publish it under the organisation’s account again, or {{repository}} will refuse it.",
+			"PREVIOUS-VERSION-ORG-NAMED": "Version {{version}} of this plan was published to {{repository}} under {{account}}, so this one is published as its new version. Publish it under {{account}} again, or {{repository}} will refuse it.",
+			"PREVIOUS-VERSION-YOU": "You published version {{version}} of this plan to {{repository}} with your own account, so this one is published as its new version. Use that same {{repository}} account again, or {{repository}} will refuse it.",
+			"PREVIOUS-VERSION-USER": "{{name}} published version {{version}} of this plan to {{repository}} with their own account, so this one is published as its new version. Only that {{repository}} account can publish it, so ask {{name}} to publish this version.",
+			"PREVIOUS-VERSION-OTHER-USER": "Another user published version {{version}} of this plan to {{repository}} with their own account, so this one is published as its new version. Only that {{repository}} account can publish it.",
+			"PREVIOUS-VERSION-YOU-NAMED": "You published version {{version}} of this plan to {{repository}} with the account {{account}}, so this one is published as its new version. Use {{account}} again, or {{repository}} will refuse it.",
+			"PREVIOUS-VERSION-USER-NAMED": "{{name}} published version {{version}} of this plan to {{repository}} with the account {{account}}, so this one is published as its new version. Only {{account}} can publish it, so ask {{name}} to publish this version.",
+			"PREVIOUS-VERSION-OTHER-USER-NAMED": "Version {{version}} of this plan was published to {{repository}} with the account {{account}}, so this one is published as its new version. Only {{account}} can publish it."
 		},
 		"REVIEW": {
 			"AS-ORG": "Publishing under the organisation’s {{repository}} account",
@@ -85,6 +98,7 @@
 			"CREDENTIALS": "Your {{repository}} credentials are missing",
 			"HINT": "Nothing was published, and your plan is unchanged.",
 			"HINT-OWN": "Nothing was published, and your plan is unchanged. The organisation’s account was not used instead.",
+			"PREVIOUS-VERSION": "{{repository}} only accepts a new version from the account that published version {{version}}. Change the account to that one and try again.",
 			"DETAILS": "Details",
 			"BACK": "Back to the review",
 			"USE-ORG": "Use the organisation’s account",
@@ -1239,6 +1253,7 @@
 				"ISSUER": "Token issuer address",
 				"CLIENT-ID": "Client id",
 				"CLIENT-SECRET": "Client secret",
+				"CLIENT-SECRET-STORED": "Stored encrypted. Leave empty to keep it.",
 				"SHOW-SECRET": "Show client secret",
 				"HIDE-SECRET": "Hide client secret",
 				"SCOPE": "Scope",
@@ -3393,6 +3408,7 @@
 			"CONFIRM": "Import",
 			"CANCEL": "Cancel",
 			"SUCCESS": "Definition imported. Review the changes and save to keep them.",
+			"SUCCESS-AUTH": "Definition imported. Sign-in bodies are never exported, so type them again before saving.",
 			"INVALID-FILE": "The selected file could not be read as a valid definition download."
 		},
 		"ABOUT": {
@@ -3482,6 +3498,7 @@
 			"URL": "Token URL",
 			"BODY": "Request body",
 			"BODY-HINT": "Sent as JSON.",
+			"BODY-STORED": "Stored encrypted. Leave empty to keep it.",
 			"STEP-READ": "Read the token from the reply",
 			"TOKEN-FIELD": "Token field",
 			"TOKEN-FIELD-HINT": "A top-level field of the reply, not a path.",
@@ -3677,6 +3694,7 @@
 			"CONFIRM": "Import",
 			"CANCEL": "Cancel",
 			"SUCCESS": "Definition imported. Review the changes and save to keep them.",
+			"SUCCESS-AUTH": "Definition imported. Sign-in bodies are never exported, so type them again before saving.",
 			"INVALID-FILE": "The selected file could not be read as a valid definition download."
 		},
 		"HEADER": {
@@ -3902,6 +3920,7 @@
 			"SECTION-TITLE": "Give the section a name.",
 			"SECTION-EMPTY": "The section needs at least one question, a subsection, or asset templates.",
 			"TEMPLATE-ROW": "An asset template row is incomplete.",
+			"TEMPLATES-REQUIRED": "Add at least one asset template, or let authors add other templates.",
 			"QUESTION-TITLE": "Give the question a title. Authors see it as the label.",
 			"QUESTION-NO-INPUT": "The question has no input.",
 			"INPUT-NO-TYPE": "Pick a type for the input",
@@ -5441,6 +5460,10 @@
 				"TITLE": "Start from the sidebar",
 				"CONTENT": "New plan and New asset live under My plans and My assets in the sidebar, so you can start one from any page."
 			},
+			"RECOMMENDATIONS": {
+				"TITLE": "Recommended for you",
+				"CONTENT": "The blueprints and asset templates your organisation recommends. Start a plan straight from a blueprint, or open one to see what it asks for."
+			},
 			"ACTIVITY": {
 				"TITLE": "Your latest activity",
 				"CONTENT": "The plans and assets you worked on most recently, newest first. The tabs narrow the list to plans only or assets only."
@@ -5465,6 +5488,26 @@
 				"TITLE": "Help, language and your account",
 				"CONTENT": "Support has the user guide, the FAQ and the glossary, and replays this tour. Next to it you can change the language. In the organisation menu you can switch organisation if you belong to more than one, since each has its own plans, assets and blueprints. The bell shows your notifications, and next to it is your profile."
 			}
+		},
+		"RECOMMENDATIONS": {
+			"FROM": "From {{tenant}}",
+			"TITLE": "Recommended blueprints and templates",
+			"SUMMARY": "{{count}} recommended blueprints and templates",
+			"RANGE": "{{start}}–{{end}} of {{count}}",
+			"SHOW": "Show",
+			"HIDE": "Hide",
+			"PREVIOUS": "Previous recommendations",
+			"NEXT": "Next recommendations",
+			"PLAN-BLUEPRINT": "Plan Blueprint",
+			"DESCRIPTION-TEMPLATE": "Asset Template",
+			"TYPE": "Type: {{type}}",
+			"VERSION": "Version {{version}}",
+			"USED-IN-PLAN": "Used in {{count}} plan",
+			"USED-IN-PLANS": "Used in {{count}} plans",
+			"USED-IN-DESCRIPTION": "Used in {{count}} asset",
+			"USED-IN-DESCRIPTIONS": "Used in {{count}} assets",
+			"START-PLAN": "Start a plan with it",
+			"SEE-DETAILS": "See details"
 		},
 		"GRANTS": "Grants",
 		"TITLE": "What is {{ APP_NAME_CAPS }}?",

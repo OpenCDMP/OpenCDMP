@@ -745,13 +745,11 @@ public class DescriptionServiceImpl implements DescriptionService {
     }
 
     private void BuildDescriptionReferencePersist(String fieldId, int ordinal, FieldPersist fieldPersist, List<DescriptionReferencePersist> descriptionReferencePersists) {
-        if (fieldPersist.getReference() != null) {
-            if (fieldPersist.getReferences() == null) fieldPersist.setReferences(new ArrayList<>());
-            fieldPersist.getReferences().add(fieldPersist.getReference());
-        }
-        if (!this.conventionService.isListNullOrEmpty(fieldPersist.getReferences())) {
+        List<ReferencePersist> references = fieldPersist.getReferences() != null ? new ArrayList<>(fieldPersist.getReferences()) : new ArrayList<>();
+        if (fieldPersist.getReference() != null) references.add(fieldPersist.getReference());
+        if (!this.conventionService.isListNullOrEmpty(references)) {
             List<UUID> usedReferences = new ArrayList<>();
-            for (ReferencePersist referencePersist : fieldPersist.getReferences()) {
+            for (ReferencePersist referencePersist : references) {
                 if (referencePersist.getId() != null && usedReferences.contains(referencePersist.getId())) continue;
                 if (referencePersist.getId() != null) usedReferences.add(referencePersist.getId());
                 DescriptionReferencePersist descriptionReferencePersist = new DescriptionReferencePersist();

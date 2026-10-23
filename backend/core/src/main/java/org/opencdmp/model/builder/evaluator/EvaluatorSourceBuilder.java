@@ -9,8 +9,6 @@ import org.opencdmp.commons.types.evaluator.EvaluatorSourceEntity;
 import org.opencdmp.convention.ConventionService;
 import org.opencdmp.model.builder.BaseBuilder;
 import org.opencdmp.model.evaluator.EvaluatorSource;
-import org.opencdmp.service.encryption.EncryptionService;
-import org.opencdmp.service.tenant.TenantProperties;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
@@ -23,25 +21,15 @@ import java.util.*;
 @Scope(value = ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 public class EvaluatorSourceBuilder extends BaseBuilder<EvaluatorSource, EvaluatorSourceEntity> {
     private EnumSet<AuthorizationFlags> authorize = EnumSet.of(AuthorizationFlags.None);
-    private final EncryptionService encryptionService;
-    private final TenantProperties tenantProperties;
-    private boolean encrypted;
 
     @Autowired
     public EvaluatorSourceBuilder(
-            ConventionService conventionService, EncryptionService encryptionService, TenantProperties tenantProperties) {
+            ConventionService conventionService) {
         super(conventionService, new LoggerService(LoggerFactory.getLogger(EvaluatorSourceBuilder.class)));
-        this.encryptionService = encryptionService;
-        this.tenantProperties = tenantProperties;
     }
 
     public  EvaluatorSourceBuilder authorize(EnumSet<AuthorizationFlags> values){
         this.authorize = values;
-        return this;
-    }
-
-    public EvaluatorSourceBuilder encrypted(boolean encrypted) {
-        this.encrypted = encrypted;
         return this;
     }
 
@@ -58,17 +46,7 @@ public class EvaluatorSourceBuilder extends BaseBuilder<EvaluatorSource, Evaluat
             if (fields.hasField(this.asIndexer(EvaluatorSource._url))) m.setUrl(d.getUrl());
             if (fields.hasField(this.asIndexer(EvaluatorSource._issuerUrl))) m.setIssuerUrl(d.getIssuerUrl());
             if (fields.hasField(this.asIndexer(EvaluatorSource._clientId))) m.setClientId(d.getClientId());
-            if (fields.hasField(this.asIndexer(EvaluatorSource._clientSecret))){
-                if (encrypted) {
-                    try {
-                        if (!this.conventionService.isNullOrEmpty(d.getClientSecret())) m.setClientSecret(this.encryptionService.decryptAES(d.getClientSecret(), tenantProperties.getConfigEncryptionAesKey(), tenantProperties.getConfigEncryptionAesIv()));
-                    } catch (Exception e) {
-                        throw new RuntimeException(e);
-                    }
-                } else {
-                    m.setClientSecret(d.getClientSecret());
-                }
-            }
+            if (fields.hasField(this.asIndexer(EvaluatorSource._clientSecretSet))) m.setClientSecretSet(!this.conventionService.isNullOrEmpty(d.getClientSecret()));
             if (fields.hasField(this.asIndexer(EvaluatorSource._scope))) m.setScope(d.getScope());
             models.add(m);
         }

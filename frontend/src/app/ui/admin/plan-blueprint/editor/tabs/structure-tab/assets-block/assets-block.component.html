@@ -51,6 +51,9 @@
 				}
 			</div>
 			@if (!readOnly) { <button mat-stroked-button type="button" class="bp2-dashed" (click)="addTemplates()"><mat-icon aria-hidden="true">add</mat-icon>{{'PLAN-BLUEPRINT-EDITOR.ASSETS.ADD' | translate}}</button> }
+			@if (showErrors && form.hasError('sectionTemplatesRequired')) {
+				<div class="bp2-strip bp2-strip--bad"><mat-icon aria-hidden="true">error</mat-icon><span>{{'PLAN-BLUEPRINT-EDITOR.PROBLEMS.TEMPLATES-REQUIRED' | translate}}</span></div>
+			}
 			@if (templates.hasError('backendError')) { <mat-error class="bp2-sub">{{templates.getError('backendError').message}}</mat-error> }
 
 			<div class="bp2-divider"></div>

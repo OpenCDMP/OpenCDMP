@@ -91,7 +91,8 @@ export class EvaluatorTenantConfigurationEditorModel implements EvaluatorTenantC
         disabled?: boolean,
         rootPath?: string
     }): UntypedFormGroup {
-        let{ context = null, disabled = false, rootPath} = params?? {}
+        const { disabled = false, rootPath } = params ?? {};
+        let { context = null } = params ?? {};
         if(context == null){
             context = EvaluatorTenantConfigurationEditorModel.createValidationContext({
                 validationErrorModel: this.validationErrorModel,
@@ -150,6 +151,7 @@ export class EvaluatorSourceEditorModel implements EvaluatorSourcePersist{
 	issuerUrl: string;
 	clientId: string;
 	clientSecret: string;
+	clientSecretSet: boolean = false;
 	scope: string;
 	pdfTransformerId: string;
 	rdaTransformerId: string;
@@ -160,13 +162,15 @@ export class EvaluatorSourceEditorModel implements EvaluatorSourcePersist{
         public validationErrorModel: ValidationErrorModel = new ValidationErrorModel()
     ) {}
 
-    public fromModel(item: EvaluatorSource): EvaluatorSourceEditorModel{
+    public fromModel(item: EvaluatorSource | EvaluatorSourcePersist): EvaluatorSourceEditorModel{
         if (item){
             this.evaluatorId = item.evaluatorId;
 			this.url = item.url;
 			this.issuerUrl = item.issuerUrl;
 			this.clientId = item.clientId;
-			this.clientSecret = item.clientSecret;
+			// the server never sends a stored secret, only whether one is set; a new one comes from the add dialog
+			if ('clientSecret' in item) this.clientSecret = item.clientSecret;
+			if ('clientSecretSet' in item) this.clientSecretSet = !!item.clientSecretSet;
 			this.scope = item.scope;
         }
         return this;
@@ -177,11 +181,13 @@ export class EvaluatorSourceEditorModel implements EvaluatorSourcePersist{
 		disabled?: boolean,
 		rootPath?: string
 	}): UntypedFormGroup {
-		let { context = null, disabled = false, rootPath } = params ?? {}
+		const { disabled = false, rootPath } = params ?? {};
+		let { context = null } = params ?? {};
 		if (context == null) {
 			context = EvaluatorSourceEditorModel.createValidationContext({
 				validationErrorModel: this.validationErrorModel,
-				rootPath
+				rootPath,
+				clientSecretSet: this.clientSecretSet
 			});
 		}
 
@@ -190,6 +196,7 @@ export class EvaluatorSourceEditorModel implements EvaluatorSourcePersist{
 			issuerUrl: [{ value: this.issuerUrl, disabled: disabled }, context.getValidation('issuerUrl').validators],
 			clientId: [{ value: this.clientId, disabled: disabled }, context.getValidation('clientId').validators],
 			clientSecret: [{ value: this.clientSecret, disabled: disabled }, context.getValidation('clientSecret').validators],
+			clientSecretSet: [{ value: this.clientSecretSet, disabled: disabled }],
 			scope: [{ value: this.scope, disabled: disabled }, context.getValidation('scope').validators],
 			evaluatorId: [{ value: this.evaluatorId, disabled: disabled }, context.getValidation('evaluatorId').validators],
 		});
@@ -197,9 +204,10 @@ export class EvaluatorSourceEditorModel implements EvaluatorSourcePersist{
 
     static createValidationContext(params: {
 		rootPath?: string,
-		validationErrorModel: ValidationErrorModel
+		validationErrorModel: ValidationErrorModel,
+		clientSecretSet?: boolean
 	}): ValidationContext {
-		const { rootPath = '', validationErrorModel } = params;
+		const { rootPath = '', validationErrorModel, clientSecretSet = false } = params;
 
 		const baseContext: ValidationContext = new ValidationContext();
 		const baseValidationArray: Validation[] = new Array<Validation>();
@@ -207,7 +215,8 @@ export class EvaluatorSourceEditorModel implements EvaluatorSourcePersist{
 		baseValidationArray.push({ key: 'evaluatorId', validators: [Validators.required, BackendErrorValidator(validationErrorModel, `${rootPath}evaluatorId`)] });
 		baseValidationArray.push({ key: 'issuerUrl', validators: [Validators.required, BackendErrorValidator(validationErrorModel, `${rootPath}issuerUrl`)] });
 		baseValidationArray.push({ key: 'clientId', validators: [Validators.required, BackendErrorValidator(validationErrorModel, `${rootPath}clientId`)] });
-		baseValidationArray.push({ key: 'clientSecret', validators: [Validators.required, BackendErrorValidator(validationErrorModel, `${rootPath}clientSecret`)] });
+		// an empty secret keeps the stored one
+		baseValidationArray.push({ key: 'clientSecret', validators: clientSecretSet ? [BackendErrorValidator(validationErrorModel, `${rootPath}clientSecret`)] : [Validators.required, BackendErrorValidator(validationErrorModel, `${rootPath}clientSecret`)] });
 		baseValidationArray.push({ key: 'scope', validators: [Validators.required, BackendErrorValidator(validationErrorModel, `${rootPath}scope`)] });
 
 		baseContext.validation = baseValidationArray;
@@ -223,7 +232,8 @@ export class EvaluatorSourceEditorModel implements EvaluatorSourcePersist{
 		const { formGroup, rootPath, validationErrorModel } = params;
 		const context = EvaluatorSourceEditorModel.createValidationContext({
 			rootPath,
-			validationErrorModel
+			validationErrorModel,
+			clientSecretSet: formGroup?.get('clientSecretSet')?.value
 		});
 
 		['url', 'evaluatorId', 'issuerUrl', 'clientId', 'clientSecret', 'scope'].forEach(keyField => {

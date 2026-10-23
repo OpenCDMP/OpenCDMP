@@ -20,7 +20,7 @@ import { SemanticsService } from '@app/core/services/semantic/semantics.service'
 import { EnumUtils } from '@app/core/services/utilities/enum-utils.service';
 import { QueryParamsService } from '@app/core/services/utilities/query-params.service';
 import { StaticEditorModel, StaticOptionEditorModel } from '@app/ui/external-fetcher/external-fetcher-source-editor.model';
-import { fromXmlString, toXmlString } from '@app/ui/external-fetcher/external-fetcher-xml.util';
+import { fromXmlString, hasEnabledAuth, toXmlString, withoutAuthRequestBodies } from '@app/ui/external-fetcher/external-fetcher-xml.util';
 import { ImportXmlDialogComponent, ImportXmlDialogData } from '@app/ui/external-fetcher/import-xml-dialog/import-xml.dialog.component';
 import { BaseEditor } from '@common/base/base-editor';
 import { FormService } from '@common/forms/form-service';
@@ -347,7 +347,7 @@ export class ReferenceTypeEditorComponent extends BaseEditor<ReferenceTypeEditor
 	openReferenceTestDialog(): void {
 		const sources = (this.sourcesArray as FormArray<UntypedFormGroup>).getRawValue();
 		this.dialog.open(ReferenceTypeTestDialogComponent, {
-			data: { sources: JSON.parse(JSON.stringify(sources)) as ExternalFetcherBaseSourceConfigurationPersist[], key: null, label: this.formGroup.get('name').value },
+			data: { sources: JSON.parse(JSON.stringify(sources)) as ExternalFetcherBaseSourceConfigurationPersist[], key: null, label: this.formGroup.get('name').value, referenceTypeId: this.editorModel.id },
 			maxHeight: 'min(650px, 100vh)',
 		});
 	}
@@ -379,7 +379,7 @@ export class ReferenceTypeEditorComponent extends BaseEditor<ReferenceTypeEditor
 
 	exportDefinitionToXml(): void {
 		const definition = this.definition.getRawValue() as ReferenceTypeDefinitionPersist;
-		FileSaver.saveAs(new Blob([toXmlString(definition as any)], { type: 'application/xml' }), `${this.formGroup.get('code')?.value || 'reference-type'}-definition.xml`);
+		FileSaver.saveAs(new Blob([toXmlString(withoutAuthRequestBodies(definition as any))], { type: 'application/xml' }), `${this.formGroup.get('code')?.value || 'reference-type'}-definition.xml`);
 	}
 
 	openImportXmlDialog(): void {
@@ -403,7 +403,8 @@ export class ReferenceTypeEditorComponent extends BaseEditor<ReferenceTypeEditor
 				this.definition.markAsDirty();
 				this.syncedCodes = this.fieldsArray.getRawValue().map(x => x.code);
 				this.selectedSourceIndex = 0;
-				this.uiNotificationService.snackBarNotification(this.language.instant('REFERENCE-TYPE-EDITOR.IMPORT.SUCCESS'), SnackBarNotificationLevel.Success);
+				if (hasEnabledAuth(definition as any)) this.uiNotificationService.snackBarNotification(this.language.instant('REFERENCE-TYPE-EDITOR.IMPORT.SUCCESS-AUTH'), SnackBarNotificationLevel.Warning);
+				else this.uiNotificationService.snackBarNotification(this.language.instant('REFERENCE-TYPE-EDITOR.IMPORT.SUCCESS'), SnackBarNotificationLevel.Success);
 			} catch (error) {
 				this.logger.error('Could not parse imported reference type definition XML: ' + error);
 				this.uiNotificationService.snackBarNotification(this.language.instant('REFERENCE-TYPE-EDITOR.IMPORT.INVALID-FILE'), SnackBarNotificationLevel.Error);

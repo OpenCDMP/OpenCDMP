@@ -48,7 +48,7 @@ public class AuthenticationConfigurationBuilder extends BaseBuilder<Authenticati
             if (fields.hasField(this.asIndexer(AuthenticationConfiguration._authUrl))) m.setAuthUrl(d.getAuthUrl());
             if (fields.hasField(this.asIndexer(AuthenticationConfiguration._authMethod))) m.setAuthMethod(d.getAuthMethod());
             if (fields.hasField(this.asIndexer(AuthenticationConfiguration._authTokenPath))) m.setAuthTokenPath(d.getAuthTokenPath());
-            if (fields.hasField(this.asIndexer(AuthenticationConfiguration._authRequestBody))) m.setAuthRequestBody(d.getAuthRequestBody());
+            if (fields.hasField(this.asIndexer(AuthenticationConfiguration._authRequestBodySet))) m.setAuthRequestBodySet(!this.conventionService.isNullOrEmpty(d.getAuthRequestBody()));
             if (fields.hasField(this.asIndexer(AuthenticationConfiguration._type))) m.setType(d.getType());
 
             models.add(m);

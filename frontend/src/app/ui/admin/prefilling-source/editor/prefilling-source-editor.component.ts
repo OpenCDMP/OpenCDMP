@@ -19,7 +19,7 @@ import { RouterUtilsService } from '@app/core/services/router/router-utils.servi
 import { EnumUtils } from '@app/core/services/utilities/enum-utils.service';
 import { QueryParamsService } from '@app/core/services/utilities/query-params.service';
 import { HeaderConfigEditorModel, QueryCaseConfigEditorModel, QueryConfigEditorModel, ResultFieldsMappingConfigurationEditorModel } from '@app/ui/external-fetcher/external-fetcher-source-editor.model';
-import { fromXmlString, toXmlString } from '@app/ui/external-fetcher/external-fetcher-xml.util';
+import { fromXmlString, hasEnabledAuth, toXmlString, withoutAuthRequestBodies } from '@app/ui/external-fetcher/external-fetcher-xml.util';
 import { ImportXmlDialogComponent, ImportXmlDialogData } from '@app/ui/external-fetcher/import-xml-dialog/import-xml.dialog.component';
 import { BaseEditor } from '@common/base/base-editor';
 import { FormService } from '@common/forms/form-service';
@@ -309,7 +309,7 @@ export class PrefillingSourceEditorComponent extends BaseEditor<PrefillingSource
 		return (this.searchTest()?.results ?? []).filter(x => !!x['reference_id']).map(x => ({ value: x['reference_id'], label: `${x['label'] ?? ''} · ${x['reference_id']}` }));
 	}
 
-	readonly testSearchFn = (lookup: ReferenceTestLookup): Observable<ReferenceSourceTestResult> => this.prefillingSourceService.testSource({ like: lookup.like, key: lookup.key, sources: lookup.sources });
+	readonly testSearchFn = (lookup: ReferenceTestLookup): Observable<ReferenceSourceTestResult> => this.prefillingSourceService.testSource({ like: lookup.like, key: lookup.key, sources: lookup.sources, prefillingSourceId: this.editorModel.id });
 
 	// ---------------------------------------------------------------- fill rules
 
@@ -392,7 +392,7 @@ export class PrefillingSourceEditorComponent extends BaseEditor<PrefillingSource
 		this.tryError.set(null);
 		this.tryPicked.set(null);
 		this.tryRecord.set(null);
-		this.prefillingSourceService.testSource({ like: this.tryLike() || null, key: this.searchConfig.get('key').value, sources: [JSON.parse(JSON.stringify(this.searchConfig.getRawValue()))] })
+		this.prefillingSourceService.testSource({ like: this.tryLike() || null, key: this.searchConfig.get('key').value, sources: [JSON.parse(JSON.stringify(this.searchConfig.getRawValue()))], prefillingSourceId: this.editorModel.id })
 			.pipe(takeUntil(this._destroyed)).subscribe({
 				next: result => { this.tryRunning.set(false); this.tryError.set(result.error ?? null); this.tryResults.set(result.results ?? []); },
 				error: error => { this.tryRunning.set(false); this.httpErrorHandlingService.handleBackedRequestError(error); }
@@ -405,7 +405,7 @@ export class PrefillingSourceEditorComponent extends BaseEditor<PrefillingSource
 		if (!this.recordEnabled) { this.tryRecord.set(result); return; }
 		this.copyConnectionToRecord();
 		this.tryRunning.set(true);
-		this.prefillingSourceService.testSource({ like: result['reference_id'], key: this.recordSourceConfig.get('key').value, sources: [JSON.parse(JSON.stringify(this.recordSourceConfig.getRawValue()))] })
+		this.prefillingSourceService.testSource({ like: result['reference_id'], key: this.recordSourceConfig.get('key').value, sources: [JSON.parse(JSON.stringify(this.recordSourceConfig.getRawValue()))], prefillingSourceId: this.editorModel.id })
 			.pipe(takeUntil(this._destroyed)).subscribe({
 				next: record => { this.tryRunning.set(false); this.tryError.set(record.error ?? null); this.tryRecord.set(record.results?.[0] ?? {}); },
 				error: error => { this.tryRunning.set(false); this.httpErrorHandlingService.handleBackedRequestError(error); }
@@ -439,7 +439,7 @@ export class PrefillingSourceEditorComponent extends BaseEditor<PrefillingSource
 
 	exportDefinitionToXml(): void {
 		const definition = this.definition.getRawValue() as PrefillingSourceDefinitionPersist;
-		FileSaver.saveAs(new Blob([toXmlString(definition as any)], { type: 'application/xml' }), `${this.formGroup.get('code')?.value || 'prefilling-source'}-definition.xml`);
+		FileSaver.saveAs(new Blob([toXmlString(withoutAuthRequestBodies(definition as any))], { type: 'application/xml' }), `${this.formGroup.get('code')?.value || 'prefilling-source'}-definition.xml`);
 	}
 
 	openImportXmlDialog(): void {
@@ -462,7 +462,8 @@ export class PrefillingSourceEditorComponent extends BaseEditor<PrefillingSource
 				this.formGroup.setControl('definition', this.editorModel.definition.buildForm({ rootPath: 'definition.' }));
 				PICK_CODES.forEach(code => this.ensureMapping(this.searchConfig, 'searchConfiguration', code));
 				this.definition.markAsDirty();
-				this.uiNotificationService.snackBarNotification(this.language.instant('PREFILLING-SOURCE-EDITOR.IMPORT.SUCCESS'), SnackBarNotificationLevel.Success);
+				if (hasEnabledAuth(definition as any)) this.uiNotificationService.snackBarNotification(this.language.instant('PREFILLING-SOURCE-EDITOR.IMPORT.SUCCESS-AUTH'), SnackBarNotificationLevel.Warning);
+				else this.uiNotificationService.snackBarNotification(this.language.instant('PREFILLING-SOURCE-EDITOR.IMPORT.SUCCESS'), SnackBarNotificationLevel.Success);
 			} catch (error) {
 				this.logger.error('Could not parse imported prefilling source definition XML: ' + error);
 				this.uiNotificationService.snackBarNotification(this.language.instant('PREFILLING-SOURCE-EDITOR.IMPORT.INVALID-FILE'), SnackBarNotificationLevel.Error);

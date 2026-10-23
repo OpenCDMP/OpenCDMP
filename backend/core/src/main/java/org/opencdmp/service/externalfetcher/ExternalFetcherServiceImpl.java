@@ -16,13 +16,21 @@ import org.opencdmp.commons.JsonHandlingService;
 import org.opencdmp.commons.enums.ExternalFetcherApiHeaderType;
 import org.opencdmp.commons.enums.ExternalFetcherApiResponseFormatType;
 import org.opencdmp.commons.enums.ExternalFetcherSourceType;
+import org.opencdmp.commons.types.externalfetcher.AuthenticationConfigurationEntity;
+import org.opencdmp.commons.types.externalfetcher.ExternalFetcherApiSourceConfigurationEntity;
+import org.opencdmp.commons.types.externalfetcher.ExternalFetcherBaseSourceConfigurationEntity;
 import org.opencdmp.commons.types.externalfetcher.StaticOptionEntity;
 import org.opencdmp.convention.ConventionService;
 import org.opencdmp.data.ReferenceEntity;
+import org.opencdmp.model.persist.externalfetcher.AuthenticationConfigurationPersist;
+import org.opencdmp.model.persist.externalfetcher.ExternalFetcherApiSourceConfigurationPersist;
+import org.opencdmp.model.persist.externalfetcher.ExternalFetcherBaseSourceConfigurationPersist;
 import org.opencdmp.model.persist.externalfetcher.StaticOptionPersist;
 import org.opencdmp.model.reference.Field;
 import org.opencdmp.model.reference.Reference;
+import org.opencdmp.service.encryption.EncryptionService;
 import org.opencdmp.service.externalfetcher.config.entities.*;
+import org.opencdmp.service.tenant.TenantProperties;
 import org.opencdmp.service.externalfetcher.criteria.ExternalReferenceCriteria;
 import org.opencdmp.service.externalfetcher.models.ExternalDataResult;
 import org.opencdmp.service.externalfetcher.models.ExternalFetcherTestResult;
@@ -79,12 +87,16 @@ public class ExternalFetcherServiceImpl implements ExternalFetcherService {
 	private final ConventionService conventionService;
     private final JsonHandlingService jsonHandlingService;
     private final ExternalFetcherProperties externalFetcherProperties;
+    private final EncryptionService encryptionService;
+    private final TenantProperties tenantProperties;
 
     @Autowired
-    public ExternalFetcherServiceImpl(ConventionService conventionService, JsonHandlingService jsonHandlingService, ExternalFetcherProperties externalFetcherProperties) {
+    public ExternalFetcherServiceImpl(ConventionService conventionService, JsonHandlingService jsonHandlingService, ExternalFetcherProperties externalFetcherProperties, EncryptionService encryptionService, TenantProperties tenantProperties) {
 	    this.conventionService = conventionService;
         this.jsonHandlingService = jsonHandlingService;
         this.externalFetcherProperties = externalFetcherProperties;
+        this.encryptionService = encryptionService;
+        this.tenantProperties = tenantProperties;
     }
 
     private WebClient getWebClient()  {
@@ -208,6 +220,40 @@ public class ExternalFetcherServiceImpl implements ExternalFetcherService {
         testResult.setBody(body.length() > TEST_BODY_MAX_LENGTH ? body.substring(0, TEST_BODY_MAX_LENGTH) : body);
     }
 
+    @Override
+    public String authRequestBodyToStore(AuthenticationConfigurationPersist persist, AuthenticationConfigurationEntity old) {
+        // the editor never receives the body, so an empty one keeps the stored value
+        if (this.conventionService.isNullOrEmpty(persist.getAuthRequestBody())) return old != null ? old.getAuthRequestBody() : null;
+        try {
+            return this.encryptionService.encryptAES(persist.getAuthRequestBody(), this.tenantProperties.getConfigEncryptionAesKey(), this.tenantProperties.getConfigEncryptionAesIv());
+        } catch (Exception e) {
+            throw new MyApplicationException(e.getMessage());
+        }
+    }
+
+    @Override
+    public void useStoredAuthRequestBodies(List<ExternalFetcherBaseSourceConfigurationPersist> sources, List<ExternalFetcherBaseSourceConfigurationEntity> stored) {
+        if (this.conventionService.isListNullOrEmpty(sources) || this.conventionService.isListNullOrEmpty(stored)) return;
+        for (ExternalFetcherBaseSourceConfigurationPersist source : sources) {
+            if (!(source instanceof ExternalFetcherApiSourceConfigurationPersist)) continue;
+            AuthenticationConfigurationPersist auth = ((ExternalFetcherApiSourceConfigurationPersist) source).getAuth();
+            if (auth == null || !this.conventionService.isNullOrEmpty(auth.getAuthRequestBody())) continue;
+            ExternalFetcherBaseSourceConfigurationEntity match = stored.stream().filter(x -> x != null && Objects.equals(x.getKey(), source.getKey())).findFirst().orElse(null);
+            if (match instanceof ExternalFetcherApiSourceConfigurationEntity && ((ExternalFetcherApiSourceConfigurationEntity) match).getAuth() != null) {
+                auth.setAuthRequestBody(this.decrypt(((ExternalFetcherApiSourceConfigurationEntity) match).getAuth().getAuthRequestBody()));
+            }
+        }
+    }
+
+    private String decrypt(String value) {
+        if (this.conventionService.isNullOrEmpty(value)) return value;
+        try {
+            return this.encryptionService.decryptAES(value, this.tenantProperties.getConfigEncryptionAesKey(), this.tenantProperties.getConfigEncryptionAesIv());
+        } catch (Exception e) {
+            throw new MyApplicationException(e.getMessage());
+        }
+    }
+
     private ExternalDataResult queryExternalData(List<SourceBaseConfiguration> sources, ExternalReferenceCriteria externalReferenceCriteria, boolean isTestMode) {
 
         ExternalDataResult results = new ExternalDataResult();
@@ -283,10 +329,13 @@ public class ExternalFetcherServiceImpl implements ExternalFetcherService {
             default -> throw new MyApplicationException("unrecognized type " + authenticationConfiguration.getAuthMethod());
         }
 
+        // a stored source holds the body encrypted; a test sends it as typed
+        String body = authenticationConfiguration instanceof AuthenticationConfigurationEntity ? this.decrypt(authenticationConfiguration.getAuthRequestBody()) : authenticationConfiguration.getAuthRequestBody();
+
         logger.debug(new MapLogEntry("Authentication").And("url", authenticationConfiguration.getAuthUrl()));
         Map<String, Object> response = this.getWebClient().method(method).uri(authenticationConfiguration.getAuthUrl())
                 .contentType(MediaType.APPLICATION_JSON)
-                .bodyValue(this.parseBodyString(authenticationConfiguration.getAuthRequestBody()))
+                .bodyValue(this.parseBodyString(body))
                 .exchangeToMono(mono -> mono.statusCode().isError() ?
                         mono.createException().flatMap(Mono::error) : mono.bodyToMono(new ParameterizedTypeReference<Map<String, Object>>() {}))
                 .block();

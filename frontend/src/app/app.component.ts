@@ -54,6 +54,8 @@ export class AppComponent extends BaseComponent implements OnInit, AfterViewInit
 
     private languageSignal = this.language.getCurrentLanguageSignal();
 
+	get testInstallationMessageEnabled(): boolean { return this.configurationService.testInstallationMessageEnabled; }
+
 	constructor(
 		private router: Router,
 		private route: ActivatedRoute,

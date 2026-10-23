@@ -71,7 +71,7 @@ export interface DepositSource{
 	url: string;
 	issuerUrl: string;
     clientId: string;
-	clientSecret: string;
+	clientSecretSet?: boolean;
     scope: string;
     pdfTransformerId: string;
     rdaTransformerId: string;
@@ -83,7 +83,7 @@ export interface FileTransformerSource{
 	url: string;
 	issuerUrl: string;
     clientId: string;
-	clientSecret: string;
+	clientSecretSet?: boolean;
     scope: string;
 }
 
@@ -92,7 +92,7 @@ export interface EvaluatorSource{
 	url: string;
 	issuerUrl: string;
     clientId: string;
-	clientSecret: string;
+	clientSecretSet?: boolean;
     scope: string;
 }
 export interface LogoTenantConfiguration{

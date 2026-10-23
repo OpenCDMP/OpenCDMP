@@ -10,8 +10,8 @@ public class FileTransformerSource {
 	public static final String _issuerUrl = "issuerUrl";
 	private String clientId;
 	public static final String _clientId = "clientId";
-	private String clientSecret;
-	public static final String _clientSecret = "clientSecret";
+	private Boolean clientSecretSet;
+	public static final String _clientSecretSet = "clientSecretSet";
 	private String scope;
 	public static final String _scope = "scope";
 
@@ -47,12 +47,12 @@ public class FileTransformerSource {
 		this.clientId = clientId;
 	}
 
-	public String getClientSecret() {
-		return clientSecret;
+	public Boolean getClientSecretSet() {
+		return clientSecretSet;
 	}
 
-	public void setClientSecret(String clientSecret) {
-		this.clientSecret = clientSecret;
+	public void setClientSecretSet(Boolean clientSecretSet) {
+		this.clientSecretSet = clientSecretSet;
 	}
 
 	public String getScope() {

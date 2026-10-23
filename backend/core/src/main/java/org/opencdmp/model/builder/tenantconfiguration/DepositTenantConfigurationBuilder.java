@@ -53,7 +53,7 @@ public class DepositTenantConfigurationBuilder extends BaseBuilder<DepositTenant
             if (fields.hasField(this.asIndexer(DepositTenantConfiguration._disableSystemSources))) m.setDisableSystemSources(d.getDisableSystemSources());
             if (fields.hasField(this.asIndexer(DepositTenantConfiguration._disabledSourceIds))) m.setDisabledSourceIds(d.getDisabledSourceIds() != null ? d.getDisabledSourceIds() : new ArrayList<>());
             if (!sourcesFields.isEmpty() && d.getSources() != null){
-                m.setSources(this.builderFactory.builder(DepositSourceBuilder.class).encrypted(true).authorize(this.authorize).build(sourcesFields, d.getSources()));
+                m.setSources(this.builderFactory.builder(DepositSourceBuilder.class).authorize(this.authorize).build(sourcesFields, d.getSources()));
             }
             models.add(m);
         }

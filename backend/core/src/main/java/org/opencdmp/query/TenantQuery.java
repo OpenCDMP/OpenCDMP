@@ -201,6 +201,7 @@ public class TenantQuery extends QueryBase<TenantEntity> {
         else if (item.match(Tenant._createdAt)) return TenantEntity._createdAt;
         else if (item.match(Tenant._updatedAt)) return TenantEntity._updatedAt;
         else if (item.match(Tenant._isActive)) return TenantEntity._isActive;
+        else if (item.match(Tenant._hash)) return TenantEntity._updatedAt;
         else return null;
     }
 

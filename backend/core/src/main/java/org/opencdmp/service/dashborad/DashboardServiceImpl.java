@@ -151,7 +151,7 @@ public class DashboardServiceImpl implements DashboardService {
                 referenceTypeStatistics.setCount(this.queryFactory.query(ReferenceQuery.class).disableTracking().isActive(IsActive.Active).typeIds(referenceType.getId()).authorize(EnumSet.of(Public))
                         .planReferenceSubQuery(this.queryFactory.query(PlanReferenceQuery.class).disableTracking().isActives(IsActive.Active)
                                 .planSubQuery(planQuery)).count());
-                referenceTypeStatistics.setReferenceType(this.builderFactory.builder(PublicReferenceTypeBuilder.class).build(new BaseFieldSet().ensure(PublicReferenceType._id).ensure(PublicReferenceType._name), referenceType));
+                referenceTypeStatistics.setReferenceType(this.builderFactory.builder(PublicReferenceTypeBuilder.class).build(new BaseFieldSet().ensure(PublicReferenceType._id).ensure(PublicReferenceType._name).ensure(PublicReferenceType._code), referenceType));
                 referenceTypeStatistics.setHasLogo(this.hasLogo(referenceType));
                 statistics.getReferenceTypeStatistics().add(referenceTypeStatistics);
             }

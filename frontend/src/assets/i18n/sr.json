@@ -9,6 +9,10 @@
 	},
 	"APP_NAME": "OpenCDMP",
 	"APP_NAME_CAPS": "OpenCDMP",
+	"TEST-INSTALLATION-MESSAGE": {
+		"TITLE": "Ovo je testno okruženje.",
+		"TEXT": "Planovi objavljeni ovde idu u testni repozitorijum, pa se njihovi PID-ovi ne mogu citirati. Ne koristite ga za pravi rad."
+	},
 	"PUBLISH-DIALOG": {
 		"TITLE": "Objavi u {{repository}}",
 		"STEPS": {
@@ -36,7 +40,16 @@
 			"TOKEN-INSTEAD": "Umesto toga unesi pristupni token",
 			"OTHER-TOKEN": "Koristi druge akreditive",
 			"USE-SAVED": "Koristi akreditive sačuvane u vašem profilu",
-			"NONE": "Nije podešen nijedan način objavljivanja u {{repository}}. Kontaktirajte administratora."
+			"NONE": "Nije podešen nijedan način objavljivanja u {{repository}}. Kontaktirajte administratora.",
+			"PREVIOUS-VERSION": "Verzija {{version}} ovog plana je već na {{repository}}, pa se ova objavljuje kao njena nova verzija. Koristite isti {{repository}} nalog kojim je objavljena verzija {{version}}, inače će je {{repository}} odbiti.",
+			"PREVIOUS-VERSION-ORG": "Verzija {{version}} ovog plana objavljena je na {{repository}} nalogom organizacije, pa se ova objavljuje kao njena nova verzija. Ponovo je objavite nalogom organizacije, inače će je {{repository}} odbiti.",
+			"PREVIOUS-VERSION-ORG-NAMED": "Verzija {{version}} ovog plana objavljena je na {{repository}} nalogom {{account}}, pa se ova objavljuje kao njena nova verzija. Ponovo je objavite nalogom {{account}}, inače će je {{repository}} odbiti.",
+			"PREVIOUS-VERSION-YOU": "Verziju {{version}} ovog plana objavili ste na {{repository}} sopstvenim nalogom, pa se ova objavljuje kao njena nova verzija. Ponovo koristite isti {{repository}} nalog, inače će je {{repository}} odbiti.",
+			"PREVIOUS-VERSION-USER": "{{name}} je objavio/la verziju {{version}} ovog plana na {{repository}} sopstvenim nalogom, pa se ova objavljuje kao njena nova verzija. Samo taj {{repository}} nalog može da je objavi, pa zamolite {{name}} da objavi ovu verziju.",
+			"PREVIOUS-VERSION-OTHER-USER": "Drugi korisnik je objavio verziju {{version}} ovog plana na {{repository}} sopstvenim nalogom, pa se ova objavljuje kao njena nova verzija. Samo taj {{repository}} nalog može da je objavi.",
+			"PREVIOUS-VERSION-YOU-NAMED": "Verziju {{version}} ovog plana objavili ste na {{repository}} nalogom {{account}}, pa se ova objavljuje kao njena nova verzija. Ponovo koristite nalog {{account}}, inače će je {{repository}} odbiti.",
+			"PREVIOUS-VERSION-USER-NAMED": "{{name}} je objavio/la verziju {{version}} ovog plana na {{repository}} nalogom {{account}}, pa se ova objavljuje kao njena nova verzija. Samo nalog {{account}} može da je objavi, pa zamolite {{name}} da objavi ovu verziju.",
+			"PREVIOUS-VERSION-OTHER-USER-NAMED": "Verzija {{version}} ovog plana objavljena je na {{repository}} nalogom {{account}}, pa se ova objavljuje kao njena nova verzija. Samo nalog {{account}} može da je objavi."
 		},
 		"REVIEW": {
 			"AS-ORG": "Objavljuje se pod {{repository}} nalogom organizacije",
@@ -85,6 +98,7 @@
 			"CREDENTIALS": "Nedostaju vaši akreditivi za {{repository}}",
 			"HINT": "Ništa nije objavljeno i vaš plan je nepromenjen.",
 			"HINT-OWN": "Ništa nije objavljeno i vaš plan je nepromenjen. Nalog organizacije nije korišćen umesto toga.",
+			"PREVIOUS-VERSION": "{{repository}} prihvata novu verziju samo sa naloga koji je objavio verziju {{version}}. Promenite nalog na taj i pokušajte ponovo.",
 			"DETAILS": "Detalji",
 			"BACK": "Nazad na pregled",
 			"USE-ORG": "Koristi nalog organizacije",
@@ -1239,6 +1253,7 @@
 				"ISSUER": "Adresa izdavaoca tokena",
 				"CLIENT-ID": "ID klijenta",
 				"CLIENT-SECRET": "Tajna klijenta",
+				"CLIENT-SECRET-STORED": "Sačuvano šifrovano. Ostavite prazno da biste je zadržali.",
 				"SHOW-SECRET": "Prikaži tajnu klijenta",
 				"HIDE-SECRET": "Sakrij tajnu klijenta",
 				"SCOPE": "Opseg",
@@ -3393,6 +3408,7 @@
 			"CONFIRM": "Uvezi",
 			"CANCEL": "Otkaži",
 			"SUCCESS": "Definicija je uvezena. Pregledajte izmene i sačuvajte da biste ih zadržali.",
+			"SUCCESS-AUTH": "Definicija je uvezena. Tela prijave se nikada ne izvoze, pa ih ponovo unesite pre čuvanja.",
 			"INVALID-FILE": "The selected file could not be read as a valid definition export."
 		},
 		"ABOUT": {
@@ -3482,6 +3498,7 @@
 			"URL": "URL tokena",
 			"BODY": "Telo zahteva",
 			"BODY-HINT": "Šalje se kao JSON.",
+			"BODY-STORED": "Sačuvano šifrovano. Ostavite prazno da biste ga zadržali.",
 			"STEP-READ": "Pročitaj token iz odgovora",
 			"TOKEN-FIELD": "Polje tokena",
 			"TOKEN-FIELD-HINT": "Polje najvišeg nivoa u odgovoru, ne putanja.",
@@ -3677,6 +3694,7 @@
 			"CONFIRM": "Uvezi",
 			"CANCEL": "Otkaži",
 			"SUCCESS": "Definicija je uvezena. Pregledajte izmene i sačuvajte da biste ih zadržali.",
+			"SUCCESS-AUTH": "Definicija je uvezena. Tela prijave se nikada ne izvoze, pa ih ponovo unesite pre čuvanja.",
 			"INVALID-FILE": "The selected file could not be read as a valid definition export."
 		},
 		"HEADER": {
@@ -3902,6 +3920,7 @@
 			"SECTION-TITLE": "Dajte sekciji naziv.",
 			"SECTION-EMPTY": "Sekciji je potrebno bar jedno pitanje, podsekcija ili šabloni resursa.",
 			"TEMPLATE-ROW": "Red šablona resursa je nepotpun.",
+			"TEMPLATES-REQUIRED": "Dodajte bar jedan šablon resursa ili dozvolite autorima da dodaju druge šablone.",
 			"QUESTION-TITLE": "Dajte pitanju naslov. Autori ga vide kao oznaku.",
 			"QUESTION-NO-INPUT": "Pitanje nema nijedan unos.",
 			"INPUT-NO-TYPE": "Izaberite tip unosa",
@@ -5441,6 +5460,10 @@
 				"TITLE": "Započnite iz bočne trake",
 				"CONTENT": "Novi plan i Novi resurs nalaze se u bočnoj traci pod Moji Planovi i Moji resursi, pa ih možete pokrenuti sa bilo koje stranice."
 			},
+			"RECOMMENDATIONS": {
+				"TITLE": "Preporučeno za vas",
+				"CONTENT": "DMP Blueprints i Šabloni resursa koje preporučuje vaša organizacija. Započnite plan direktno iz blueprinta ili ga otvorite da vidite šta traži."
+			},
 			"ACTIVITY": {
 				"TITLE": "Vaša najnovija aktivnost",
 				"CONTENT": "Planovi i resursi na kojima ste nedavno radili, najnoviji prvi. Kartice sužavaju listu samo na planove ili samo na resurse."
@@ -5465,6 +5488,26 @@
 				"TITLE": "Pomoć, jezik i vaš nalog",
 				"CONTENT": "Podrška sadrži korisničko uputstvo, česta pitanja i rečnik pojmova i ponovo pokreće ovaj obilazak. Pored nje možete promeniti jezik. U meniju organizacije možete promeniti organizaciju ako pripadate više njih, jer svaka ima sopstvene planove, resurse i blueprinte. Zvono prikazuje vaša obaveštenja, a pored njega je vaš profil."
 			}
+		},
+		"RECOMMENDATIONS": {
+			"FROM": "Od {{tenant}}",
+			"TITLE": "Preporučeni blueprintovi i šabloni",
+			"SUMMARY": "Preporučeni blueprintovi i šabloni: {{count}}",
+			"RANGE": "{{start}}–{{end}} od {{count}}",
+			"SHOW": "Prikaži",
+			"HIDE": "Sakrij",
+			"PREVIOUS": "Prethodne preporuke",
+			"NEXT": "Sledeće preporuke",
+			"PLAN-BLUEPRINT": "DMP Blueprint",
+			"DESCRIPTION-TEMPLATE": "Šablon resursa",
+			"TYPE": "Tip: {{type}}",
+			"VERSION": "Verzija {{version}}",
+			"USED-IN-PLAN": "Korišćeno u {{count}} planu",
+			"USED-IN-PLANS": "Korišćeno u {{count}} planova",
+			"USED-IN-DESCRIPTION": "Korišćeno u {{count}} resursu",
+			"USED-IN-DESCRIPTIONS": "Korišćeno u {{count}} resursa",
+			"START-PLAN": "Započni plan sa ovim",
+			"SEE-DETAILS": "Pogledaj detalje"
 		},
 		"GRANTS": "Grantovi",
 		"TITLE": "Šta je {{ APP_NAME_CAPS }}?",

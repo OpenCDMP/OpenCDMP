@@ -57,6 +57,7 @@ function compute(params: { sections: UntypedFormArray, entries: ToCEntry[], requ
 			if (form.hasError('sectionMustHaveOneChildOrTemplate') || form.hasError('sectionMustHaveOneChild')) problems.push({ id: `empty-${entry.id}`, severity: 'blocker', blocksSave: true, tab: 'structure', entryId: entry.id, where, message: t('PLAN-BLUEPRINT-EDITOR.PROBLEMS.SECTION-EMPTY') });
 			const templates = form.get('descriptionTemplates') as UntypedFormArray;
 			if (form.get('hasTemplates')?.value && templates?.controls?.some(c => c.invalid)) problems.push({ id: `templates-${entry.id}`, severity: 'blocker', blocksSave: true, tab: 'structure', entryId: entry.id, where, message: t('PLAN-BLUEPRINT-EDITOR.PROBLEMS.TEMPLATE-ROW') });
+			if (form.hasError('sectionTemplatesRequired')) problems.push({ id: `templates-required-${entry.id}`, severity: 'blocker', blocksSave: true, tab: 'structure', entryId: entry.id, where, message: t('PLAN-BLUEPRINT-EDITOR.PROBLEMS.TEMPLATES-REQUIRED') });
 			entry.subEntries?.forEach(child => visit(child, entry));
 			return;
 		}

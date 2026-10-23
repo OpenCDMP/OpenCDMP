@@ -1,5 +1,6 @@
 package org.opencdmp.model.persist.deposit;
 
+import gr.cite.tools.logging.annotation.LogSensitive;
 import org.opencdmp.commons.validation.BaseValidator;
 import org.opencdmp.convention.ConventionService;
 import org.opencdmp.errorcode.ErrorThesaurusProperties;
@@ -23,6 +24,7 @@ public class DepositSourcePersist {
 	public static final String _issuerUrl = "issuerUrl";
 	private String clientId;
 	public static final String _clientId = "clientId";
+	@LogSensitive
 	private String clientSecret;
 	public static final String _clientSecret = "clientSecret";
 	private String scope;
@@ -139,9 +141,6 @@ public class DepositSourcePersist {
 					this.spec()
 							.must(() -> !this.isEmpty(item.getClientId()))
 							.failOn(DepositSourcePersist._clientId).failWith(messageSource.getMessage("Validation_Required", new Object[]{DepositSourcePersist._clientId}, LocaleContextHolder.getLocale())),
-					this.spec()
-							.must(() -> !this.isEmpty(item.getClientSecret()))
-							.failOn(DepositSourcePersist._clientSecret).failWith(messageSource.getMessage("Validation_Required", new Object[]{DepositSourcePersist._clientSecret}, LocaleContextHolder.getLocale())),
 					this.spec()
 							.must(() -> !this.isEmpty(item.getScope()))
 							.failOn(DepositSourcePersist._scope).failWith(messageSource.getMessage("Validation_Required", new Object[]{DepositSourcePersist._scope}, LocaleContextHolder.getLocale())),

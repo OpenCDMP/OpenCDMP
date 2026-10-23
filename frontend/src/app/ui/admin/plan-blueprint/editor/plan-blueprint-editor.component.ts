@@ -141,7 +141,7 @@ export class PlanBlueprintEditorComponent extends StructureEditorBase<PlanBluepr
 			if (data == null) {
 				data = { status: PlanBlueprintStatus.Draft, definition: { pluginConfigurations, sections: [] } };
 			} else {
-				if (!data?.definition?.pluginConfigurations) data.definition.pluginConfigurations = pluginConfigurations;
+				data.definition.pluginConfigurations = data?.definition?.pluginConfigurations ? this.pluginConfigurationService.completeWithAvailable(data.definition.pluginConfigurations, pluginConfigurations) : pluginConfigurations;
 				data.definition.pluginConfigurations?.forEach(x => x.fields?.forEach(field => { if (field.fileValue) this.fileMap.set(field.fileValue.id, field.fileValue); }));
 			}
 			this.item = data;

@@ -42,6 +42,7 @@ import org.opencdmp.query.StorageFileQuery;
 import gr.cite.tools.fieldset.BaseFieldSet;
 import org.opencdmp.query.ReferenceTypeQuery;
 import org.opencdmp.service.accounting.AccountingService;
+import org.opencdmp.service.externalfetcher.ExternalFetcherService;
 import org.opencdmp.service.storage.StorageFileService;
 import org.opencdmp.service.usagelimit.UsageLimitService;
 import org.slf4j.LoggerFactory;
@@ -53,6 +54,7 @@ import javax.management.InvalidApplicationException;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 
 
@@ -72,11 +74,12 @@ public class ReferenceTypeServiceImpl implements ReferenceTypeService {
     private final UsageLimitService usageLimitService;
     private final AccountingService accountingService;
     private final StorageFileService storageFileService;
+    private final ExternalFetcherService externalFetcherService;
 
     public ReferenceTypeServiceImpl(
             TenantEntityManagerFactory tenantEntityManagerFactory, AuthorizationService authorizationService, DeleterFactory deleterFactory, BuilderFactory builderFactory,
             ConventionService conventionService, MessageSource messageSource,
-            XmlHandlingService xmlHandlingService, ErrorThesaurusProperties errors, QueryFactory queryFactory, UsageLimitService usageLimitService, AccountingService accountingService, StorageFileService storageFileService) {
+            XmlHandlingService xmlHandlingService, ErrorThesaurusProperties errors, QueryFactory queryFactory, UsageLimitService usageLimitService, AccountingService accountingService, StorageFileService storageFileService, ExternalFetcherService externalFetcherService) {
         this.tenantEntityManagerFactory = tenantEntityManagerFactory;
         this.authorizationService = authorizationService;
         this.deleterFactory = deleterFactory;
@@ -89,6 +92,7 @@ public class ReferenceTypeServiceImpl implements ReferenceTypeService {
         this.usageLimitService = usageLimitService;
         this.accountingService = accountingService;
         this.storageFileService = storageFileService;
+        this.externalFetcherService = externalFetcherService;
     }
 
 
@@ -195,7 +199,9 @@ public class ReferenceTypeServiceImpl implements ReferenceTypeService {
             apiEntity.setFilterType(((ExternalFetcherApiSourceConfigurationPersist) persist).getFilterType());
             apiEntity.setResponseFormat(((ExternalFetcherApiSourceConfigurationPersist) persist).getResponseFormat());
             if (((ExternalFetcherApiSourceConfigurationPersist) persist).getAuth() != null) {
-                apiEntity.setAuth(this.buildAuthConfigEntity(((ExternalFetcherApiSourceConfigurationPersist) persist).getAuth()));
+                ExternalFetcherBaseSourceConfigurationEntity oldSource = oldDefinition == null || oldDefinition.getSources() == null ? null : oldDefinition.getSources().stream().filter(x -> Objects.equals(x.getKey(), persist.getKey())).findFirst().orElse(null);
+                AuthenticationConfigurationEntity oldAuth = oldSource instanceof ExternalFetcherApiSourceConfigurationEntity ? ((ExternalFetcherApiSourceConfigurationEntity) oldSource).getAuth() : null;
+                apiEntity.setAuth(this.buildAuthConfigEntity(((ExternalFetcherApiSourceConfigurationPersist) persist).getAuth(), oldAuth));
             }
             if (!this.conventionService.isListNullOrEmpty(((ExternalFetcherApiSourceConfigurationPersist) persist).getQueries())){
                 apiEntity.setQueries(new ArrayList<>());
@@ -290,14 +296,14 @@ public class ReferenceTypeServiceImpl implements ReferenceTypeService {
         return data;
     }
 
-    private @NotNull AuthenticationConfigurationEntity buildAuthConfigEntity(AuthenticationConfigurationPersist persist){
+    private @NotNull AuthenticationConfigurationEntity buildAuthConfigEntity(AuthenticationConfigurationPersist persist, AuthenticationConfigurationEntity old){
         AuthenticationConfigurationEntity data = new AuthenticationConfigurationEntity();
         if (persist == null) return data;
 
         data.setEnabled(persist.getEnabled());
         data.setAuthUrl(persist.getAuthUrl());
         data.setAuthMethod(persist.getAuthMethod());
-        data.setAuthRequestBody(persist.getAuthRequestBody());
+        data.setAuthRequestBody(this.externalFetcherService.authRequestBodyToStore(persist, old));
         data.setType(persist.getType());
         data.setAuthTokenPath(persist.getAuthTokenPath());
 

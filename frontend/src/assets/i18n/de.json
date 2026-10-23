@@ -9,6 +9,10 @@
 	},
 	"APP_NAME": "OpenCDMP",
 	"APP_NAME_CAPS": "OpenCDMP",
+	"TEST-INSTALLATION-MESSAGE": {
+		"TITLE": "Dies ist eine Testumgebung.",
+		"TEXT": "Hier veröffentlichte DMPs gehen in ein Test-Repository, daher können ihre PIDs nicht zitiert werden. Nicht für echte Arbeit verwenden."
+	},
 	"PUBLISH-DIALOG": {
 		"TITLE": "In {{repository}} veröffentlichen",
 		"STEPS": {
@@ -36,7 +40,16 @@
 			"TOKEN-INSTEAD": "Stattdessen ein Zugriffstoken eingeben",
 			"OTHER-TOKEN": "Andere Zugangsdaten verwenden",
 			"USE-SAVED": "Die in Ihrem Profil gespeicherten Zugangsdaten verwenden",
-			"NONE": "Für die Veröffentlichung in {{repository}} ist nichts eingerichtet. Wenden Sie sich an Ihren Administrator."
+			"NONE": "Für die Veröffentlichung in {{repository}} ist nichts eingerichtet. Wenden Sie sich an Ihren Administrator.",
+			"PREVIOUS-VERSION": "Version {{version}} dieses Plans ist bereits auf {{repository}}, daher wird diese als neue Version davon veröffentlicht. Verwenden Sie dasselbe {{repository}}-Konto, mit dem Version {{version}} veröffentlicht wurde, sonst lehnt {{repository}} sie ab.",
+			"PREVIOUS-VERSION-ORG": "Version {{version}} dieses Plans wurde unter dem Konto der Organisation auf {{repository}} veröffentlicht, daher wird diese als neue Version davon veröffentlicht. Veröffentlichen Sie sie erneut unter dem Konto der Organisation, sonst lehnt {{repository}} sie ab.",
+			"PREVIOUS-VERSION-ORG-NAMED": "Version {{version}} dieses Plans wurde unter {{account}} auf {{repository}} veröffentlicht, daher wird diese als neue Version davon veröffentlicht. Veröffentlichen Sie sie erneut unter {{account}}, sonst lehnt {{repository}} sie ab.",
+			"PREVIOUS-VERSION-YOU": "Sie haben Version {{version}} dieses Plans mit Ihrem eigenen Konto auf {{repository}} veröffentlicht, daher wird diese als neue Version davon veröffentlicht. Verwenden Sie wieder dasselbe {{repository}}-Konto, sonst lehnt {{repository}} sie ab.",
+			"PREVIOUS-VERSION-USER": "{{name}} hat Version {{version}} dieses Plans mit dem eigenen Konto auf {{repository}} veröffentlicht, daher wird diese als neue Version davon veröffentlicht. Nur dieses {{repository}}-Konto kann sie veröffentlichen, bitten Sie daher {{name}}, diese Version zu veröffentlichen.",
+			"PREVIOUS-VERSION-OTHER-USER": "Ein anderer Benutzer hat Version {{version}} dieses Plans mit dem eigenen Konto auf {{repository}} veröffentlicht, daher wird diese als neue Version davon veröffentlicht. Nur dieses {{repository}}-Konto kann sie veröffentlichen.",
+			"PREVIOUS-VERSION-YOU-NAMED": "Sie haben Version {{version}} dieses Plans mit dem Konto {{account}} auf {{repository}} veröffentlicht, daher wird diese als neue Version davon veröffentlicht. Verwenden Sie wieder {{account}}, sonst lehnt {{repository}} sie ab.",
+			"PREVIOUS-VERSION-USER-NAMED": "{{name}} hat Version {{version}} dieses Plans mit dem Konto {{account}} auf {{repository}} veröffentlicht, daher wird diese als neue Version davon veröffentlicht. Nur {{account}} kann sie veröffentlichen, bitten Sie daher {{name}}, diese Version zu veröffentlichen.",
+			"PREVIOUS-VERSION-OTHER-USER-NAMED": "Version {{version}} dieses Plans wurde mit dem Konto {{account}} auf {{repository}} veröffentlicht, daher wird diese als neue Version davon veröffentlicht. Nur {{account}} kann sie veröffentlichen."
 		},
 		"REVIEW": {
 			"AS-ORG": "Veröffentlichung unter dem {{repository}}-Konto der Organisation",
@@ -85,6 +98,7 @@
 			"CREDENTIALS": "Ihre {{repository}}-Zugangsdaten fehlen",
 			"HINT": "Es wurde nichts veröffentlicht, und Ihr Plan ist unverändert.",
 			"HINT-OWN": "Es wurde nichts veröffentlicht, und Ihr Plan ist unverändert. Das Konto der Organisation wurde nicht ersatzweise verwendet.",
+			"PREVIOUS-VERSION": "{{repository}} akzeptiert eine neue Version nur von dem Konto, das Version {{version}} veröffentlicht hat. Wechseln Sie zu diesem Konto und versuchen Sie es erneut.",
 			"DETAILS": "Details",
 			"BACK": "Zurück zur Überprüfung",
 			"USE-ORG": "Konto der Organisation verwenden",
@@ -1239,6 +1253,7 @@
 				"ISSUER": "Adresse des Token-Ausstellers",
 				"CLIENT-ID": "Client-Id",
 				"CLIENT-SECRET": "Client-Secret",
+				"CLIENT-SECRET-STORED": "Verschlüsselt gespeichert. Leer lassen, um es beizubehalten.",
 				"SHOW-SECRET": "Client-Secret anzeigen",
 				"HIDE-SECRET": "Client-Secret ausblenden",
 				"SCOPE": "Scope",
@@ -3393,6 +3408,7 @@
 			"CONFIRM": "Importieren",
 			"CANCEL": "Abbrechen",
 			"SUCCESS": "Definition importiert. Überprüfen Sie die Änderungen und speichern Sie, um sie zu behalten.",
+			"SUCCESS-AUTH": "Definition importiert. Anmelde-Bodies werden nie exportiert, geben Sie sie daher vor dem Speichern erneut ein.",
 			"INVALID-FILE": "The selected file could not be read as a valid definition export."
 		},
 		"ABOUT": {
@@ -3482,6 +3498,7 @@
 			"URL": "Token-URL",
 			"BODY": "Request-Body",
 			"BODY-HINT": "Wird als JSON gesendet.",
+			"BODY-STORED": "Verschlüsselt gespeichert. Leer lassen, um ihn beizubehalten.",
 			"STEP-READ": "Token aus der Antwort lesen",
 			"TOKEN-FIELD": "Token-Feld",
 			"TOKEN-FIELD-HINT": "Ein Feld der obersten Ebene der Antwort, kein Pfad.",
@@ -3677,6 +3694,7 @@
 			"CONFIRM": "Importieren",
 			"CANCEL": "Abbrechen",
 			"SUCCESS": "Definition importiert. Überprüfen Sie die Änderungen und speichern Sie, um sie zu behalten.",
+			"SUCCESS-AUTH": "Definition importiert. Anmelde-Bodies werden nie exportiert, geben Sie sie daher vor dem Speichern erneut ein.",
 			"INVALID-FILE": "The selected file could not be read as a valid definition export."
 		},
 		"HEADER": {
@@ -3902,6 +3920,7 @@
 			"SECTION-TITLE": "Geben Sie dem Abschnitt einen Namen.",
 			"SECTION-EMPTY": "Der Abschnitt braucht mindestens eine Frage, einen Unterabschnitt oder Ressourcenvorlagen.",
 			"TEMPLATE-ROW": "Eine Ressourcenvorlagen-Zeile ist unvollständig.",
+			"TEMPLATES-REQUIRED": "Fügen Sie mindestens eine Ressourcenvorlage hinzu oder erlauben Sie Autoren, weitere Vorlagen hinzuzufügen.",
 			"QUESTION-TITLE": "Geben Sie der Frage einen Titel. Autoren sehen ihn als Beschriftung.",
 			"QUESTION-NO-INPUT": "Die Frage hat keine Eingabe.",
 			"INPUT-NO-TYPE": "Wählen Sie einen Typ für die Eingabe",
@@ -5441,6 +5460,10 @@
 				"TITLE": "Aus der Seitenleiste starten",
 				"CONTENT": "Neuer DMP und Neue Ressource befinden sich in der Seitenleiste unter Meine DMPs und Meine Ressourcen, sodass Sie von jeder Seite aus starten können."
 			},
+			"RECOMMENDATIONS": {
+				"TITLE": "Empfehlungen für Sie",
+				"CONTENT": "Die DMP Blueprints und Ressourcenvorlagen, die Ihre Organisation empfiehlt. Starten Sie einen Plan direkt aus einem Blueprint, oder öffnen Sie einen, um zu sehen, was er abfragt."
+			},
 			"ACTIVITY": {
 				"TITLE": "Ihre letzte Aktivität",
 				"CONTENT": "Die Pläne und Ressourcen, an denen Sie zuletzt gearbeitet haben, neueste zuerst. Die Reiter beschränken die Liste auf nur Pläne oder nur Ressourcen."
@@ -5465,6 +5488,26 @@
 				"TITLE": "Hilfe, Sprache und Ihr Konto",
 				"CONTENT": "Unter Support finden Sie das Benutzerhandbuch, die FAQ und das Glossar, und Sie können diesen Rundgang erneut starten. Daneben können Sie die Sprache ändern. Im Organisationsmenü können Sie die Organisation wechseln, wenn Sie mehreren angehören, da jede ihre eigenen Pläne, Ressourcen und Blueprints hat. Die Glocke zeigt Ihre Benachrichtigungen, daneben finden Sie Ihr Profil."
 			}
+		},
+		"RECOMMENDATIONS": {
+			"FROM": "Von {{tenant}}",
+			"TITLE": "Empfohlene Blueprints und Vorlagen",
+			"SUMMARY": "{{count}} empfohlene Blueprints und Vorlagen",
+			"RANGE": "{{start}}–{{end}} von {{count}}",
+			"SHOW": "Anzeigen",
+			"HIDE": "Ausblenden",
+			"PREVIOUS": "Vorherige Empfehlungen",
+			"NEXT": "Nächste Empfehlungen",
+			"PLAN-BLUEPRINT": "DMP Blueprint",
+			"DESCRIPTION-TEMPLATE": "Ressourcenvorlage",
+			"TYPE": "Typ: {{type}}",
+			"VERSION": "Version {{version}}",
+			"USED-IN-PLAN": "In {{count}} Plan verwendet",
+			"USED-IN-PLANS": "In {{count}} Plänen verwendet",
+			"USED-IN-DESCRIPTION": "In {{count}} Ressource verwendet",
+			"USED-IN-DESCRIPTIONS": "In {{count}} Ressourcen verwendet",
+			"START-PLAN": "Plan damit starten",
+			"SEE-DETAILS": "Details ansehen"
 		},
 		"GRANTS": "Förderungen",
 		"TITLE": "Was ist {{ APP_NAME_CAPS }}?",

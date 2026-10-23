@@ -8,28 +8,51 @@
         }
         @if (plugin.get('fields')){
           @for(field of plugin.get('fields')?.controls; track field; let fieldIndex=$index; let lastFieldIndex=$last){
-            @if (field.get('type').value == pluginDataTypeEnum.String) {
+            @if (field.get('type').value === pluginDataTypeEnum.String) {
               @let secret = isSecretField(plugin.get('pluginCode').value, field.get('code').value, false);
-              <mat-form-field class="col-12">
-                <mat-label>{{ getConfigurationFieldLabel(plugin.get('pluginCode').value, field.get('code').value) }}</mat-label>
-                <input [id]="fieldIndex" matInput	class="col-md-12" [formControl]="field.get('textValue')" [type]="!secret || hideStates[i + '_' + fieldIndex] ? 'text' : 'password'" >
-                @if (secret) {
-                  <mat-icon matSuffix (click)="toggleVisibility(i, fieldIndex)" > {{ hideStates[i + '_' + fieldIndex] ? 'visibility_off' : 'visibility' }} </mat-icon>
+              @let state = secret ? secretState(field) : 'editing';
+              @let label = getConfigurationFieldLabel(plugin.get('pluginCode').value, field.get('code').value);
+              @if (state !== 'editing') {
+                <div class="col-12 plugin-secret">
+                  <mat-icon aria-hidden="true">{{ state === 'stored' ? 'lock' : 'lock_open' }}</mat-icon>
+                  <span class="plugin-secret__text">{{ label }} · {{ (state === 'stored' ? 'TENANT-CONFIGURATION.SECRET.SET' : 'TENANT-CONFIGURATION.SECRET.REMOVED') | translate }}</span>
+                  @if (field.enabled) {
+                    @if (state === 'stored') {
+                      <button mat-stroked-button type="button" (click)="replaceSecret(field)">{{ 'TENANT-CONFIGURATION.SECRET.REPLACE' | translate }}<span class="cdk-visually-hidden"> {{ label }}</span></button>
+                      <button mat-button type="button" (click)="removeSecret(field)">{{ 'TENANT-CONFIGURATION.SECRET.REMOVE' | translate }}<span class="cdk-visually-hidden"> {{ label }}</span></button>
+                    } @else {
+                      <button mat-button type="button" (click)="keepSecret(field)">{{ 'TENANT-CONFIGURATION.SECRET.UNDO' | translate }}<span class="cdk-visually-hidden"> {{ label }}</span></button>
+                    }
+                  }
+                </div>
+              } @else {
+                <mat-form-field class="col-12">
+                  <mat-label>{{ label }}</mat-label>
+                  <input [id]="fieldIndex" matInput	class="col-md-12" [formControl]="field.get('textValue')" [type]="!secret || hideStates[i + '_' + fieldIndex] ? 'text' : 'password'" [attr.autocomplete]="secret ? 'off' : null">
+                  @if (secret) {
+                    <mat-icon matSuffix (click)="toggleVisibility(i, fieldIndex)" > {{ hideStates[i + '_' + fieldIndex] ? 'visibility_off' : 'visibility' }} </mat-icon>
+                    <mat-hint>{{ 'TENANT-CONFIGURATION.SECRET.HINT' | translate }}</mat-hint>
+                  }
+                  @if (!secret && defaultValue(plugin.get('pluginCode').value, field.get('code').value, false); as fallback) {
+                    <mat-hint>{{ 'PLUGIN-EDITOR.DEFAULT-VALUE-HINT' | translate: { value: fallback } }}</mat-hint>
+                  }
+                  @if (field.get('textValue').hasError('backendError')) {
+                    <mat-error>{{field.get('textValue').getError('backendError').message}}</mat-error>
+                  }
+                  @if (field.get('textValue').hasError('required')) {
+                    <mat-error>{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
+                  }
+                </mat-form-field>
+                @if (secret && field.get('secretSet')?.value) {
+                  <div class="col-12 plugin-secret__keep">
+                    <button mat-button type="button" (click)="keepSecret(field)">{{ 'TENANT-CONFIGURATION.SECRET.KEEP' | translate }}</button>
+                  </div>
                 }
-                @if (!secret && defaultValue(plugin.get('pluginCode').value, field.get('code').value, false); as fallback) {
-                  <mat-hint>{{ 'PLUGIN-EDITOR.DEFAULT-VALUE-HINT' | translate: { value: fallback } }}</mat-hint>
-                }
-                @if (field.get('textValue').hasError('backendError')) {
-                  <mat-error>{{field.get('textValue').getError('backendError').message}}</mat-error>
-                }
-                @if (field.get('textValue').hasError('required')) {
-                  <mat-error>{{'GENERAL.VALIDATION.REQUIRED' | translate}}</mat-error>
-                }
-              </mat-form-field>
+              }
             }
-            @if (field.get('type').value == pluginDataTypeEnum.File){
+            @if (field.get('type').value === pluginDataTypeEnum.File){
               @if (showPluginFieldText) {
-                <label>{{ getConfigurationFieldLabel(plugin.get('pluginCode').value, field.get('code').value) }}</label>
+                <div class="plugin-field-label">{{ getConfigurationFieldLabel(plugin.get('pluginCode').value, field.get('code').value) }}</div>
               }
               <div class="col-12">
                 <app-file-uploader
@@ -51,14 +74,14 @@
                   </div>
                 }
               }
-              @if (field.get('type').value == pluginDataTypeEnum.Boolean) {
+              @if (field.get('type').value === pluginDataTypeEnum.Boolean) {
                 <div class="col-12 pt-2 pb-2">
                   <mat-slide-toggle [checked]="isBooleanFieldChecked(field)" (change)="setBooleanField(field, $event.checked)">
                     {{ getConfigurationFieldLabel(plugin.get('pluginCode').value, field.get('code').value) }}
                   </mat-slide-toggle>
                 </div>
               }
-              @if (field.get('type').value == pluginDataTypeEnum.Select) {
+              @if (field.get('type').value === pluginDataTypeEnum.Select) {
                 <mat-form-field class="col-12">
                   <mat-label>{{ getConfigurationFieldLabel(plugin.get('pluginCode').value, field.get('code').value) }}</mat-label>
                   <mat-select [formControl]="field.get('textValue')">
@@ -72,7 +95,7 @@
                   }
                 </mat-form-field>
               }
-              @if (field.get('type').value == pluginDataTypeEnum.Color) {
+              @if (field.get('type').value === pluginDataTypeEnum.Color) {
                 <mat-form-field class="col-12">
                   <mat-label>{{ getConfigurationFieldLabel(plugin.get('pluginCode').value, field.get('code').value) }}</mat-label>
                   <input matInput [formControl]="field.get('textValue')" />
@@ -94,7 +117,7 @@
                   }
                 </mat-form-field>
               }
-              @if (field.get('type').value == pluginDataTypeEnum.Number) {
+              @if (field.get('type').value === pluginDataTypeEnum.Number) {
                 <mat-form-field class="col-12">
                   <mat-label>{{ getConfigurationFieldLabel(plugin.get('pluginCode').value, field.get('code').value) }}</mat-label>
                   <input matInput type="number" [formControl]="field.get('textValue')">
@@ -110,7 +133,7 @@
               <div class="title col-auto" mat-subheader>{{ plugin.get('pluginCode').value }}</div>
             }
             @for(field of plugin.get('userFields')?.controls; track field; let fieldIndex=$index; let lastFieldIndex=$last){
-              @if (field.get('type').value == pluginDataTypeEnum.String) {
+              @if (field.get('type').value === pluginDataTypeEnum.String) {
                 @let secret = isSecretField(plugin.get('pluginCode').value, field.get('code').value, true);
                 <mat-form-field class="col-12">
                   <mat-label>{{ getConfigurationUserFieldLabel(plugin.get('pluginCode').value, field.get('code').value) }}</mat-label>
@@ -129,9 +152,9 @@
                   }
                 </mat-form-field>
               }
-              @if (field.get('type').value == pluginDataTypeEnum.File){
+              @if (field.get('type').value === pluginDataTypeEnum.File){
                 @if (showPluginFieldText) {
-                  <label class="col-12">{{ getConfigurationFieldLabel(plugin.get('pluginCode').value, field.get('code').value) }}</label>
+                  <div class="col-12 plugin-field-label">{{ getConfigurationFieldLabel(plugin.get('pluginCode').value, field.get('code').value) }}</div>
                 }
                 <div class="col-12">
                   <app-file-uploader
@@ -153,14 +176,14 @@
                     </div>
                   }
                 }
-                @if (field.get('type').value == pluginDataTypeEnum.Boolean) {
+                @if (field.get('type').value === pluginDataTypeEnum.Boolean) {
                   <div class="col-12 pt-2 pb-2">
                     <mat-slide-toggle [checked]="isBooleanFieldChecked(field)" (change)="setBooleanField(field, $event.checked)">
                       {{ getConfigurationUserFieldLabel(plugin.get('pluginCode').value, field.get('code').value) }}
                     </mat-slide-toggle>
                   </div>
                 }
-                @if (field.get('type').value == pluginDataTypeEnum.Select) {
+                @if (field.get('type').value === pluginDataTypeEnum.Select) {
                   <mat-form-field class="col-12">
                     <mat-label>{{ getConfigurationUserFieldLabel(plugin.get('pluginCode').value, field.get('code').value) }}</mat-label>
                     <mat-select [formControl]="field.get('textValue')">
@@ -174,7 +197,7 @@
                     }
                   </mat-form-field>
                 }
-                @if (field.get('type').value == pluginDataTypeEnum.Color) {
+                @if (field.get('type').value === pluginDataTypeEnum.Color) {
                   <mat-form-field class="col-12">
                     <mat-label>{{ getConfigurationUserFieldLabel(plugin.get('pluginCode').value, field.get('code').value) }}</mat-label>
                     <input matInput [formControl]="field.get('textValue')" />
@@ -196,7 +219,7 @@
                     }
                   </mat-form-field>
                 }
-                @if (field.get('type').value == pluginDataTypeEnum.Number) {
+                @if (field.get('type').value === pluginDataTypeEnum.Number) {
                   <mat-form-field class="col-12">
                     <mat-label>{{ getConfigurationUserFieldLabel(plugin.get('pluginCode').value, field.get('code').value) }}</mat-label>
                     <input matInput type="number" [formControl]="field.get('textValue')">

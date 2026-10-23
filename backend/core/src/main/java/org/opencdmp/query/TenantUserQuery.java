@@ -185,7 +185,7 @@ public class TenantUserQuery extends QueryBase<TenantUserEntity> {
 			predicates.add(inClause);
 		}
 		if (this.userQuery != null) {
-			QueryContext<UserEntity, UUID> subQuery = this.applySubQuery(this.userQuery, queryContext, UUID.class, root -> root.get(TenantUserEntity._userId));
+			QueryContext<UserEntity, UUID> subQuery = this.applySubQuery(this.userQuery, queryContext, UUID.class, root -> root.get(UserEntity._id));
 			predicates.add(queryContext.CriteriaBuilder.in(queryContext.Root.get(TenantUserEntity._userId)).value(subQuery.Query));
 		}
 		if (predicates.size() > 0) {

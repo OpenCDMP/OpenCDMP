@@ -1,7 +1,7 @@
 <h1 class="header m-0">{{'REFERENCE-TYPE-EDITOR.DIALOG.RESULTS' | translate}}</h1>
 @if(sources.length > 0){
     <ng-container class="test">
-        <app-reference-field-component class="reference-field" [sources]="sources"  [definitionSourcekey]="key"[multiple]="false" [label]="label"  (selectedReference)="selectedOption($event)"  ></app-reference-field-component>
+        <app-reference-field-component class="reference-field" [sources]="sources" [testReferenceTypeId]="referenceTypeId" [definitionSourcekey]="key"[multiple]="false" [label]="label"  (selectedReference)="selectedOption($event)"  ></app-reference-field-component>
     </ng-container>
     @if(referenceSelected){
         <div class="info-grid pl-4 pr-4 pb-4">

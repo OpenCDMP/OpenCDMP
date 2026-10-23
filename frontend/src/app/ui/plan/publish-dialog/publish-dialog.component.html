@@ -16,6 +16,12 @@
 	<mat-dialog-content class="pd__content">
 		<!-- ======================================================== account -->
 		@if (step() === 'account') {
+			@if (!loading() && previousVersionMessage(); as message) {
+				<div class="pd__box pd__box--info">
+					<mat-icon aria-hidden="true">info</mat-icon>
+					<span>{{ message.key | translate: message.params }}</span>
+				</div>
+			}
 			@if (loading()) {
 				<div class="pd__loading"><mat-spinner diameter="32" /></div>
 			} @else if (loadError() || !choices()) {
@@ -153,6 +159,9 @@
 				<div>
 					<strong>{{ (failure() === 'sign-in' ? 'PUBLISH-DIALOG.FAILED.SIGN-IN' : failure() === 'credentials' ? 'PUBLISH-DIALOG.FAILED.CREDENTIALS' : 'PUBLISH-DIALOG.FAILED.TITLE') | translate: { repository: repositoryLabel } }}</strong>
 					<p>{{ (publishAs() === 'own' ? 'PUBLISH-DIALOG.FAILED.HINT-OWN' : 'PUBLISH-DIALOG.FAILED.HINT') | translate }}</p>
+					@if (failure() === 'other' && previousVersionMessage(); as message) {
+						<p>{{ (publishedBy() ? message.key : 'PUBLISH-DIALOG.FAILED.PREVIOUS-VERSION') | translate: message.params }}</p>
+					}
 					@if (error() && failure() === 'other') {
 						<details><summary>{{ 'PUBLISH-DIALOG.FAILED.DETAILS' | translate }}</summary><p class="pd__error-detail">{{ error() }}</p></details>
 					}

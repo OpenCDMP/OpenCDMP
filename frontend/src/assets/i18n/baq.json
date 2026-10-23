@@ -9,6 +9,10 @@
 	},
 	"APP_NAME": "OpenCDMP",
 	"APP_NAME_CAPS": "OpenCDMP",
+	"TEST-INSTALLATION-MESSAGE": {
+		"TITLE": "Proba-ingurune bat da hau.",
+		"TEXT": "Hemen argitaratutako DPKak proba-biltegi batera doaz, beraz haien PIDak ezin dira aipatu. Ez erabili benetako lanerako."
+	},
 	"PUBLISH-DIALOG": {
 		"TITLE": "Argitaratu {{repository}}-n",
 		"STEPS": {
@@ -36,7 +40,16 @@
 			"TOKEN-INSTEAD": "Sartu sarbide-token bat horren ordez",
 			"OTHER-TOKEN": "Erabili beste kredentzial batzuk",
 			"USE-SAVED": "Erabili zure profilean gordetako kredentzialak",
-			"NONE": "Ez dago {{repository}}-n argitaratzeko modurik konfiguratuta. Jarri harremanetan zure administratzailearekin."
+			"NONE": "Ez dago {{repository}}-n argitaratzeko modurik konfiguratuta. Jarri harremanetan zure administratzailearekin.",
+			"PREVIOUS-VERSION": "Plan honen {{version}}. bertsioa {{repository}}-n dago jada, beraz hau bertsio berri gisa argitaratuko da. Erabili {{version}}. bertsioa argitaratu zuen {{repository}} kontu bera, bestela {{repository}}-k ukatu egingo du.",
+			"PREVIOUS-VERSION-ORG": "Plan honen {{version}}. bertsioa {{repository}}-n argitaratu zen erakundearen kontuarekin, beraz hau bertsio berri gisa argitaratuko da. Argitaratu berriro erakundearen kontuarekin, bestela {{repository}}-k ukatu egingo du.",
+			"PREVIOUS-VERSION-ORG-NAMED": "Plan honen {{version}}. bertsioa {{repository}}-n argitaratu zen {{account}} kontuarekin, beraz hau bertsio berri gisa argitaratuko da. Argitaratu berriro {{account}} kontuarekin, bestela {{repository}}-k ukatu egingo du.",
+			"PREVIOUS-VERSION-YOU": "Zuk argitaratu zenuen plan honen {{version}}. bertsioa {{repository}}-n zure kontuarekin, beraz hau bertsio berri gisa argitaratuko da. Erabili {{repository}} kontu bera berriro, bestela {{repository}}-k ukatu egingo du.",
+			"PREVIOUS-VERSION-USER": "{{name}}-k argitaratu zuen plan honen {{version}}. bertsioa {{repository}}-n bere kontuarekin, beraz hau bertsio berri gisa argitaratuko da. {{repository}} kontu horrek bakarrik argitara dezake, beraz eskatu {{name}}-ri bertsio hau argitaratzeko.",
+			"PREVIOUS-VERSION-OTHER-USER": "Beste erabiltzaile batek argitaratu zuen plan honen {{version}}. bertsioa {{repository}}-n bere kontuarekin, beraz hau bertsio berri gisa argitaratuko da. {{repository}} kontu horrek bakarrik argitara dezake.",
+			"PREVIOUS-VERSION-YOU-NAMED": "Zuk argitaratu zenuen plan honen {{version}}. bertsioa {{repository}}-n {{account}} kontuarekin, beraz hau bertsio berri gisa argitaratuko da. Erabili {{account}} berriro, bestela {{repository}}-k ukatu egingo du.",
+			"PREVIOUS-VERSION-USER-NAMED": "{{name}}-k argitaratu zuen plan honen {{version}}. bertsioa {{repository}}-n {{account}} kontuarekin, beraz hau bertsio berri gisa argitaratuko da. {{account}} kontuak bakarrik argitara dezake, beraz eskatu {{name}}-ri bertsio hau argitaratzeko.",
+			"PREVIOUS-VERSION-OTHER-USER-NAMED": "Plan honen {{version}}. bertsioa {{repository}}-n argitaratu zen {{account}} kontuarekin, beraz hau bertsio berri gisa argitaratuko da. {{account}} kontuak bakarrik argitara dezake."
 		},
 		"REVIEW": {
 			"AS-ORG": "Erakundearen {{repository}} kontuarekin argitaratzen",
@@ -85,6 +98,7 @@
 			"CREDENTIALS": "Zure {{repository}} kredentzialak falta dira",
 			"HINT": "Ez da ezer argitaratu, eta zure plana ez da aldatu.",
 			"HINT-OWN": "Ez da ezer argitaratu, eta zure plana ez da aldatu. Ez da erakundearen kontua erabili horren ordez.",
+			"PREVIOUS-VERSION": "{{repository}}-k {{version}}. bertsioa argitaratu zuen kontutik soilik onartzen ditu bertsio berriak. Aldatu kontua horretara eta saiatu berriro.",
 			"DETAILS": "Xehetasunak",
 			"BACK": "Itzuli berrikuspenera",
 			"USE-ORG": "Erabili erakundearen kontua",
@@ -1239,6 +1253,7 @@
 				"ISSUER": "Token-igorlearen helbidea",
 				"CLIENT-ID": "Bezeroaren IDa",
 				"CLIENT-SECRET": "Bezeroaren sekretua",
+				"CLIENT-SECRET-STORED": "Zifratuta gordeta. Utzi hutsik mantentzeko.",
 				"SHOW-SECRET": "Erakutsi bezeroaren sekretua",
 				"HIDE-SECRET": "Ezkutatu bezeroaren sekretua",
 				"SCOPE": "Esparrua",
@@ -3393,6 +3408,7 @@
 			"CONFIRM": "Inportatu",
 			"CANCEL": "Utzi",
 			"SUCCESS": "Definizioa inportatu da. Berrikusi aldaketak eta gorde mantentzeko.",
+			"SUCCESS-AUTH": "Definizioa inportatu da. Saioa hasteko gorputzak ez dira inoiz esportatzen; idatzi berriro gorde aurretik.",
 			"INVALID-FILE": "The selected file could not be read as a valid definition export."
 		},
 		"ABOUT": {
@@ -3482,6 +3498,7 @@
 			"URL": "Tokenaren URLa",
 			"BODY": "Eskaeraren gorputza",
 			"BODY-HINT": "JSON gisa bidaltzen da.",
+			"BODY-STORED": "Zifratuta gordeta. Utzi hutsik mantentzeko.",
 			"STEP-READ": "Irakurri tokena erantzunetik",
 			"TOKEN-FIELD": "Tokenaren eremua",
 			"TOKEN-FIELD-HINT": "Erantzunaren goi-mailako eremu bat, ez bide bat.",
@@ -3677,6 +3694,7 @@
 			"CONFIRM": "Inportatu",
 			"CANCEL": "Utzi",
 			"SUCCESS": "Definizioa inportatu da. Berrikusi aldaketak eta gorde mantentzeko.",
+			"SUCCESS-AUTH": "Definizioa inportatu da. Saioa hasteko gorputzak ez dira inoiz esportatzen; idatzi berriro gorde aurretik.",
 			"INVALID-FILE": "The selected file could not be read as a valid definition export."
 		},
 		"HEADER": {
@@ -3902,6 +3920,7 @@
 			"SECTION-TITLE": "Eman izen bat atalari.",
 			"SECTION-EMPTY": "Atalak galdera bat, azpiatal bat edo baliabide-txantiloiak behar ditu gutxienez.",
 			"TEMPLATE-ROW": "Baliabide-txantiloi baten errenkada osatu gabe dago.",
+			"TEMPLATES-REQUIRED": "Gehitu gutxienez baliabide-txantiloi bat, edo utzi egileei beste txantiloi batzuk gehitzen.",
 			"QUESTION-TITLE": "Eman izenburu bat galderari. Egileek etiketa gisa ikusten dute.",
 			"QUESTION-NO-INPUT": "Galderak ez du sarrerarik.",
 			"INPUT-NO-TYPE": "Hautatu sarreraren mota",
@@ -5441,6 +5460,10 @@
 				"TITLE": "Hasi alboko barratik",
 				"CONTENT": "DKP berria eta Baliabide berria alboko barrako Nire DPKak eta Nire baliabideak ataletan daude, beraz edozein orritatik has dezakezu bat."
 			},
+			"RECOMMENDATIONS": {
+				"TITLE": "Zuretzat gomendatuak",
+				"CONTENT": "Zure erakundeak gomendatzen dituen Blueprint-ak eta Baliabide-txantiloiak. Hasi plan bat zuzenean Blueprint batetik, edo ireki bat zer eskatzen duen ikusteko."
+			},
 			"ACTIVITY": {
 				"TITLE": "Zure azken jarduera",
 				"CONTENT": "Azkenaldian landu dituzun planak eta baliabideak, berrienak lehenik. Fitxek zerrenda planetara edo baliabideetara soilik mugatzen dute."
@@ -5465,6 +5488,26 @@
 				"TITLE": "Laguntza, hizkuntza eta zure kontua",
 				"CONTENT": "Laguntzan erabiltzailearen gida, ohiko galderak eta glosarioa daude, eta bisita hau berriro ikus dezakezu. Ondoan hizkuntza alda dezakezu. Erakundearen menuan erakundez alda dezakezu bat baino gehiagotako kide bazara, bakoitzak bere plan, baliabide eta blueprintak baititu. Kanpaiak zure jakinarazpenak erakusten ditu, eta ondoan zure profila dago."
 			}
+		},
+		"RECOMMENDATIONS": {
+			"FROM": "{{tenant}} erakundetik",
+			"TITLE": "Gomendatutako Blueprint-ak eta txantiloiak",
+			"SUMMARY": "{{count}} Blueprint eta txantiloi gomendatu",
+			"RANGE": "{{start}}–{{end}} / {{count}}",
+			"SHOW": "Erakutsi",
+			"HIDE": "Ezkutatu",
+			"PREVIOUS": "Aurreko gomendioak",
+			"NEXT": "Hurrengo gomendioak",
+			"PLAN-BLUEPRINT": "Plan Blueprint",
+			"DESCRIPTION-TEMPLATE": "Baliabide-txantiloia",
+			"TYPE": "Mota: {{type}}",
+			"VERSION": "{{version}}. bertsioa",
+			"USED-IN-PLAN": "{{count}} planetan erabilia",
+			"USED-IN-PLANS": "{{count}} planetan erabilia",
+			"USED-IN-DESCRIPTION": "{{count}} baliabidetan erabilia",
+			"USED-IN-DESCRIPTIONS": "{{count}} baliabidetan erabilia",
+			"START-PLAN": "Hasi plan bat honekin",
+			"SEE-DETAILS": "Ikusi xehetasunak"
 		},
 		"GRANTS": "Diru-laguntzak",
 		"TITLE": "Zer da {{ APP_NAME_CAPS }}?",

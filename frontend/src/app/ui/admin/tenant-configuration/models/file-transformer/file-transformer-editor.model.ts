@@ -90,7 +90,8 @@ export class FileTransformerTenantConfigurationEditorModel implements FileTransf
 		disabled?: boolean,
 		rootPath?: string
 	}): UntypedFormGroup {
-		let { context = null, disabled = false, rootPath } = params ?? {}
+		const { disabled = false, rootPath } = params ?? {};
+		let { context = null } = params ?? {};
 		if (context == null) {
 			context = FileTransformerTenantConfigurationEditorModel.createValidationContext({
 				validationErrorModel: this.validationErrorModel,
@@ -151,6 +152,7 @@ export class FileTransformerSourceEditorModel implements FileTransformerSourcePe
 	issuerUrl: string;
 	clientId: string;
 	clientSecret: string;
+	clientSecretSet: boolean = false;
 	scope: string;
 	pdfTransformerId: string;
 	rdaTransformerId: string;
@@ -161,13 +163,15 @@ export class FileTransformerSourceEditorModel implements FileTransformerSourcePe
 		public validationErrorModel: ValidationErrorModel = new ValidationErrorModel()
 	) { }
 
-	public fromModel(item: FileTransformerSource): FileTransformerSourceEditorModel {
+	public fromModel(item: FileTransformerSource | FileTransformerSourcePersist): FileTransformerSourceEditorModel {
 		if (item) {
 			this.transformerId = item.transformerId;
 			this.url = item.url;
 			this.issuerUrl = item.issuerUrl;
 			this.clientId = item.clientId;
-			this.clientSecret = item.clientSecret;
+			// the server never sends a stored secret, only whether one is set; a new one comes from the add dialog
+			if ('clientSecret' in item) this.clientSecret = item.clientSecret;
+			if ('clientSecretSet' in item) this.clientSecretSet = !!item.clientSecretSet;
 			this.scope = item.scope;
 		}
 		return this;
@@ -178,11 +182,13 @@ export class FileTransformerSourceEditorModel implements FileTransformerSourcePe
 		disabled?: boolean,
 		rootPath?: string
 	}): UntypedFormGroup {
-		let { context = null, disabled = false, rootPath } = params ?? {}
+		const { disabled = false, rootPath } = params ?? {};
+		let { context = null } = params ?? {};
 		if (context == null) {
 			context = FileTransformerSourceEditorModel.createValidationContext({
 				validationErrorModel: this.validationErrorModel,
-				rootPath
+				rootPath,
+				clientSecretSet: this.clientSecretSet
 			});
 		}
 
@@ -191,6 +197,7 @@ export class FileTransformerSourceEditorModel implements FileTransformerSourcePe
 			issuerUrl: [{ value: this.issuerUrl, disabled: disabled }, context.getValidation('issuerUrl').validators],
 			clientId: [{ value: this.clientId, disabled: disabled }, context.getValidation('clientId').validators],
 			clientSecret: [{ value: this.clientSecret, disabled: disabled }, context.getValidation('clientSecret').validators],
+			clientSecretSet: [{ value: this.clientSecretSet, disabled: disabled }],
 			scope: [{ value: this.scope, disabled: disabled }, context.getValidation('scope').validators],
 			transformerId: [{ value: this.transformerId, disabled: disabled }, context.getValidation('transformerId').validators],
 		});
@@ -198,9 +205,10 @@ export class FileTransformerSourceEditorModel implements FileTransformerSourcePe
 
 	static createValidationContext(params: {
 		rootPath?: string,
-		validationErrorModel: ValidationErrorModel
+		validationErrorModel: ValidationErrorModel,
+		clientSecretSet?: boolean
 	}): ValidationContext {
-		const { rootPath = '', validationErrorModel } = params;
+		const { rootPath = '', validationErrorModel, clientSecretSet = false } = params;
 
 		const baseContext: ValidationContext = new ValidationContext();
 		const baseValidationArray: Validation[] = new Array<Validation>();
@@ -208,7 +216,8 @@ export class FileTransformerSourceEditorModel implements FileTransformerSourcePe
 		baseValidationArray.push({ key: 'transformerId', validators: [Validators.required, BackendErrorValidator(validationErrorModel, `${rootPath}transformerId`)] });
 		baseValidationArray.push({ key: 'issuerUrl', validators: [Validators.required, BackendErrorValidator(validationErrorModel, `${rootPath}issuerUrl`)] });
 		baseValidationArray.push({ key: 'clientId', validators: [Validators.required, BackendErrorValidator(validationErrorModel, `${rootPath}clientId`)] });
-		baseValidationArray.push({ key: 'clientSecret', validators: [Validators.required, BackendErrorValidator(validationErrorModel, `${rootPath}clientSecret`)] });
+		// an empty secret keeps the stored one
+		baseValidationArray.push({ key: 'clientSecret', validators: clientSecretSet ? [BackendErrorValidator(validationErrorModel, `${rootPath}clientSecret`)] : [Validators.required, BackendErrorValidator(validationErrorModel, `${rootPath}clientSecret`)] });
 		baseValidationArray.push({ key: 'scope', validators: [Validators.required, BackendErrorValidator(validationErrorModel, `${rootPath}scope`)] });
 
 		baseContext.validation = baseValidationArray;
@@ -224,7 +233,8 @@ export class FileTransformerSourceEditorModel implements FileTransformerSourcePe
 		const { formGroup, rootPath, validationErrorModel } = params;
 		const context = FileTransformerSourceEditorModel.createValidationContext({
 			rootPath,
-			validationErrorModel
+			validationErrorModel,
+			clientSecretSet: formGroup?.get('clientSecretSet')?.value
 		});
 
 		['url', 'transformerId', 'issuerUrl', 'clientId', 'clientSecret', 'scope'].forEach(keyField => {

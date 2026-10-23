@@ -2,6 +2,7 @@ import { Component, Inject, ChangeDetectionStrategy } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialog, MatDialogRef } from "@angular/material/dialog";
 import { ExternalFetcherBaseSourceConfigurationPersist, ResultFieldsMappingConfigurationPersist } from '@app/core/model/external-fetcher/external-fetcher';
 import { Reference } from '@app/core/model/reference/reference';
+import { Guid } from '@common/types/guid';
 import { TranslateService, TranslatePipe } from '@ngx-translate/core';
 import { ReferenceFieldComponent } from '../../../reference/reference-field/reference-field.component';
 
@@ -18,6 +19,7 @@ export class ReferenceTypeTestDialogComponent {
     sources: ExternalFetcherBaseSourceConfigurationPersist[] = [];
     key: string
     label: string
+    referenceTypeId: Guid
     referenceSelected: Reference 
     
 
@@ -31,6 +33,7 @@ export class ReferenceTypeTestDialogComponent {
       this.sources = data.sources;    
       this.key = data.key;
       this.label = data.label;
+      this.referenceTypeId = data.referenceTypeId;
     } 
 
     selectedOption(selectedOption: Reference){

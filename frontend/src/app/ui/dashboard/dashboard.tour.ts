@@ -3,8 +3,8 @@ import { GuidedTour, Orientation, TourStep } from '@app/library/guided-tour/guid
 import { PageTour } from '@app/library/guided-tour/tour-state.service';
 
 /**
- * "What's new on the Dashboard" (2.0.0): seven stops — start a plan or asset from the sidebar, the
- * activity tabs, the search/view/sort toolbar, the usage overview, the getting-started card, the
+ * "What's new on the Dashboard" (2.0.1): eight stops — start a plan or asset from the sidebar, the
+ * organisation's recommended blueprints and templates, the activity tabs, the search/view/sort toolbar, the usage overview, the getting-started card, the
  * Library and Explore sidebar groups, and the support/language/organisation/account controls.
  * Anchors are `data-tour` attributes; steps whose anchor is absent (collapsed sidebar, a user with
  * nothing yet so the activity tabs are not rendered) are dropped by TourStateService.
@@ -12,10 +12,11 @@ import { PageTour } from '@app/library/guided-tour/tour-state.service';
  * Bump DASHBOARD_TOUR_VERSION when the steps change materially: users who dismissed the previous
  * version see the new one once.
  */
-export const DASHBOARD_TOUR_VERSION = '2.0.0';
+export const DASHBOARD_TOUR_VERSION = '2.0.1';
 
 const STEPS: { key: string; selector: string; orientation: string; highlightSelectors?: string[] }[] = [
 	{ key: 'NEW-PLAN', selector: '[data-tour="sidebar-new-plan"]', orientation: Orientation.Right },
+	{ key: 'RECOMMENDATIONS', selector: '[data-tour="dashboard-recommendations"]', orientation: Orientation.Bottom },
 	// The tab strip only: the tab group's box would also cover the whole list underneath.
 	{ key: 'ACTIVITY', selector: '[data-tour="dashboard-activity"] .mat-mdc-tab-header', orientation: Orientation.Bottom },
 	{ key: 'FILTERS', selector: '[data-tour="dashboard-activity-filters"]', orientation: Orientation.Bottom },

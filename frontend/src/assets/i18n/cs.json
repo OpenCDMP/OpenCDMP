@@ -9,6 +9,10 @@
 	},
 	"APP_NAME": "OpenCDMP",
 	"APP_NAME_CAPS": "OpenCDMP",
+	"TEST-INSTALLATION-MESSAGE": {
+		"TITLE": "Toto je testovací prostředí.",
+		"TEXT": "Plány zde publikované se ukládají do testovacího repozitáře, takže jejich PID nelze citovat. Nepoužívejte jej pro skutečnou práci."
+	},
 	"PUBLISH-DIALOG": {
 		"TITLE": "Publikovat v {{repository}}",
 		"STEPS": {
@@ -36,7 +40,16 @@
 			"TOKEN-INSTEAD": "Místo toho zadat přístupový token",
 			"OTHER-TOKEN": "Použít jiné přihlašovací údaje",
 			"USE-SAVED": "Použít přihlašovací údaje uložené ve vašem profilu",
-			"NONE": "Pro publikování v {{repository}} není nic nastaveno. Obraťte se na svého správce."
+			"NONE": "Pro publikování v {{repository}} není nic nastaveno. Obraťte se na svého správce.",
+			"PREVIOUS-VERSION": "Verze {{version}} tohoto plánu už je v {{repository}}, takže tato bude publikována jako její nová verze. Použijte stejný účet v {{repository}}, kterým byla publikována verze {{version}}, jinak ji {{repository}} odmítne.",
+			"PREVIOUS-VERSION-ORG": "Verze {{version}} tohoto plánu byla publikována v {{repository}} pod účtem organizace, takže tato bude publikována jako její nová verze. Publikujte ji znovu pod účtem organizace, jinak ji {{repository}} odmítne.",
+			"PREVIOUS-VERSION-ORG-NAMED": "Verze {{version}} tohoto plánu byla publikována v {{repository}} pod účtem {{account}}, takže tato bude publikována jako její nová verze. Publikujte ji znovu pod účtem {{account}}, jinak ji {{repository}} odmítne.",
+			"PREVIOUS-VERSION-YOU": "Verzi {{version}} tohoto plánu jste publikovali v {{repository}} svým vlastním účtem, takže tato bude publikována jako její nová verze. Použijte znovu stejný účet v {{repository}}, jinak ji {{repository}} odmítne.",
+			"PREVIOUS-VERSION-USER": "{{name}} publikoval(a) verzi {{version}} tohoto plánu v {{repository}} svým vlastním účtem, takže tato bude publikována jako její nová verze. Publikovat ji může jen tento účet v {{repository}}, proto požádejte {{name}} o publikování této verze.",
+			"PREVIOUS-VERSION-OTHER-USER": "Jiný uživatel publikoval verzi {{version}} tohoto plánu v {{repository}} svým vlastním účtem, takže tato bude publikována jako její nová verze. Publikovat ji může jen tento účet v {{repository}}.",
+			"PREVIOUS-VERSION-YOU-NAMED": "Verzi {{version}} tohoto plánu jste publikovali v {{repository}} účtem {{account}}, takže tato bude publikována jako její nová verze. Použijte znovu účet {{account}}, jinak ji {{repository}} odmítne.",
+			"PREVIOUS-VERSION-USER-NAMED": "{{name}} publikoval(a) verzi {{version}} tohoto plánu v {{repository}} účtem {{account}}, takže tato bude publikována jako její nová verze. Publikovat ji může jen účet {{account}}, proto požádejte {{name}} o publikování této verze.",
+			"PREVIOUS-VERSION-OTHER-USER-NAMED": "Verze {{version}} tohoto plánu byla publikována v {{repository}} účtem {{account}}, takže tato bude publikována jako její nová verze. Publikovat ji může jen účet {{account}}."
 		},
 		"REVIEW": {
 			"AS-ORG": "Publikování pod účtem organizace v {{repository}}",
@@ -85,6 +98,7 @@
 			"CREDENTIALS": "Chybí vaše přihlašovací údaje do {{repository}}",
 			"HINT": "Nic nebylo publikováno a váš plán zůstal beze změny.",
 			"HINT-OWN": "Nic nebylo publikováno a váš plán zůstal beze změny. Účet organizace nebyl místo toho použit.",
+			"PREVIOUS-VERSION": "{{repository}} přijímá novou verzi pouze z účtu, který publikoval verzi {{version}}. Změňte účet na tento a zkuste to znovu.",
 			"DETAILS": "Podrobnosti",
 			"BACK": "Zpět na kontrolu",
 			"USE-ORG": "Použít účet organizace",
@@ -1239,6 +1253,7 @@
 				"ISSUER": "Adresa vydavatele tokenů",
 				"CLIENT-ID": "Id klienta",
 				"CLIENT-SECRET": "Tajný klíč klienta",
+				"CLIENT-SECRET-STORED": "Uloženo šifrovaně. Ponechte prázdné, chcete-li jej zachovat.",
 				"SHOW-SECRET": "Zobrazit tajný klíč klienta",
 				"HIDE-SECRET": "Skrýt tajný klíč klienta",
 				"SCOPE": "Rozsah",
@@ -3393,6 +3408,7 @@
 			"CONFIRM": "Importovat",
 			"CANCEL": "Zrušit",
 			"SUCCESS": "Definice byla importována. Zkontrolujte změny a uložením je zachovejte.",
+			"SUCCESS-AUTH": "Definice importována. Těla přihlášení se nikdy neexportují, zadejte je proto před uložením znovu.",
 			"INVALID-FILE": "The selected file could not be read as a valid definition export."
 		},
 		"ABOUT": {
@@ -3482,6 +3498,7 @@
 			"URL": "URL tokenu",
 			"BODY": "Tělo požadavku",
 			"BODY-HINT": "Odesílá se jako JSON.",
+			"BODY-STORED": "Uloženo šifrovaně. Ponechte prázdné, chcete-li je zachovat.",
 			"STEP-READ": "Načíst token z odpovědi",
 			"TOKEN-FIELD": "Pole tokenu",
 			"TOKEN-FIELD-HINT": "Pole nejvyšší úrovně odpovědi, nikoli cesta.",
@@ -3677,6 +3694,7 @@
 			"CONFIRM": "Importovat",
 			"CANCEL": "Zrušit",
 			"SUCCESS": "Definice byla importována. Zkontrolujte změny a uložením je zachovejte.",
+			"SUCCESS-AUTH": "Definice importována. Těla přihlášení se nikdy neexportují, zadejte je proto před uložením znovu.",
 			"INVALID-FILE": "The selected file could not be read as a valid definition export."
 		},
 		"HEADER": {
@@ -3902,6 +3920,7 @@
 			"SECTION-TITLE": "Zadejte název sekce.",
 			"SECTION-EMPTY": "Sekce potřebuje alespoň jednu otázku, podsekci nebo šablony výstupů.",
 			"TEMPLATE-ROW": "Řádek šablony výstupu je neúplný.",
+			"TEMPLATES-REQUIRED": "Přidejte alespoň jednu šablonu výstupu, nebo povolte autorům přidávat další šablony.",
 			"QUESTION-TITLE": "Zadejte název otázky. Autoři ho vidí jako popisek.",
 			"QUESTION-NO-INPUT": "Otázka nemá žádný vstup.",
 			"INPUT-NO-TYPE": "Zvolte typ vstupu",
@@ -5441,6 +5460,10 @@
 				"TITLE": "Začněte z postranního panelu",
 				"CONTENT": "Nový plán a Nový zdroj najdete v postranním panelu pod Moje Plány a Moje Zdroje, takže je můžete založit z kterékoli stránky."
 			},
+			"RECOMMENDATIONS": {
+				"TITLE": "Doporučeno pro vás",
+				"CONTENT": "Blueprinty a Šablony zdrojů, které doporučuje vaše organizace. Založte plán přímo z blueprintu, nebo jej otevřete a podívejte se, na co se ptá."
+			},
 			"ACTIVITY": {
 				"TITLE": "Vaše poslední aktivita",
 				"CONTENT": "Plány a zdroje, na kterých jste naposledy pracovali, nejnovější první. Záložky zúží seznam jen na plány nebo jen na zdroje."
@@ -5465,6 +5488,26 @@
 				"TITLE": "Nápověda, jazyk a váš účet",
 				"CONTENT": "V nabídce Podpora najdete uživatelskou příručku, FAQ a glosář a můžete si znovu spustit tuto prohlídku. Vedle ní můžete změnit jazyk. V nabídce organizace můžete přepnout organizaci, pokud patříte do více než jedné, protože každá má vlastní plány, zdroje a blueprinty. Zvonek zobrazuje vaše oznámení a vedle něj je váš profil."
 			}
+		},
+		"RECOMMENDATIONS": {
+			"FROM": "Od {{tenant}}",
+			"TITLE": "Doporučené blueprinty a šablony",
+			"SUMMARY": "Doporučené blueprinty a šablony: {{count}}",
+			"RANGE": "{{start}}–{{end}} z {{count}}",
+			"SHOW": "Zobrazit",
+			"HIDE": "Skrýt",
+			"PREVIOUS": "Předchozí doporučení",
+			"NEXT": "Další doporučení",
+			"PLAN-BLUEPRINT": "Plan Blueprint",
+			"DESCRIPTION-TEMPLATE": "Šablona zdroje",
+			"TYPE": "Typ: {{type}}",
+			"VERSION": "Verze {{version}}",
+			"USED-IN-PLAN": "Použito v {{count}} plánu",
+			"USED-IN-PLANS": "Použito v {{count}} plánech",
+			"USED-IN-DESCRIPTION": "Použito v {{count}} zdroji",
+			"USED-IN-DESCRIPTIONS": "Použito v {{count}} zdrojích",
+			"START-PLAN": "Založit plán z tohoto blueprintu",
+			"SEE-DETAILS": "Zobrazit podrobnosti"
 		},
 		"GRANTS": "Granty",
 		"TITLE": "Co je {{ APP_NAME_CAPS }}?",

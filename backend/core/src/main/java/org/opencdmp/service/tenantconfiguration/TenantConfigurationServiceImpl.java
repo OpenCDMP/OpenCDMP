@@ -56,6 +56,7 @@ import org.opencdmp.model.tenantconfiguration.TenantConfiguration;
 import org.opencdmp.query.TenantConfigurationQuery;
 import org.opencdmp.service.encryption.EncryptionService;
 import org.opencdmp.service.pluginconfiguration.PluginConfigurationService;
+import org.opencdmp.service.pluginintegration.PluginIntegrationService;
 import org.opencdmp.service.storage.StorageFileService;
 import org.opencdmp.service.tenant.TenantProperties;
 import org.slf4j.LoggerFactory;
@@ -74,6 +75,7 @@ import java.security.NoSuchAlgorithmException;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 
 @Service
@@ -109,6 +111,7 @@ public class TenantConfigurationServiceImpl implements TenantConfigurationServic
     private final TenantDefaultLocaleRemovalIntegrationEventHandler tenantDefaultLocaleRemovalIntegrationEventHandler;
 
     private final PluginConfigurationService pluginConfigurationService;
+    private final PluginIntegrationService pluginIntegrationService;
 
     @Autowired
     public TenantConfigurationServiceImpl(
@@ -118,7 +121,7 @@ public class TenantConfigurationServiceImpl implements TenantConfigurationServic
             BuilderFactory builderFactory,
             ConventionService conventionService,
             ErrorThesaurusProperties errors,
-            MessageSource messageSource, JsonHandlingService jsonHandlingService, EncryptionService encryptionService, TenantProperties tenantProperties, StorageFileService storageFileService, QueryFactory queryFactory, EventBroker eventBroker, TenantScopeFactory tenantScopeFactory, TenantDefaultLocaleTouchedIntegrationEventHandler tenantDefaultLocaleTouchedIntegrationEventHandler, TenantDefaultLocaleRemovalIntegrationEventHandler tenantDefaultLocaleRemovalIntegrationEventHandler, PluginConfigurationService pluginConfigurationService) {
+            MessageSource messageSource, JsonHandlingService jsonHandlingService, EncryptionService encryptionService, TenantProperties tenantProperties, StorageFileService storageFileService, QueryFactory queryFactory, EventBroker eventBroker, TenantScopeFactory tenantScopeFactory, TenantDefaultLocaleTouchedIntegrationEventHandler tenantDefaultLocaleTouchedIntegrationEventHandler, TenantDefaultLocaleRemovalIntegrationEventHandler tenantDefaultLocaleRemovalIntegrationEventHandler, PluginConfigurationService pluginConfigurationService, PluginIntegrationService pluginIntegrationService) {
         this.tenantEntityManagerFactory = tenantEntityManagerFactory;
         this.authorizationService = authorizationService;
         this.deleterFactory = deleterFactory;
@@ -136,6 +139,7 @@ public class TenantConfigurationServiceImpl implements TenantConfigurationServic
 	    this.tenantDefaultLocaleTouchedIntegrationEventHandler = tenantDefaultLocaleTouchedIntegrationEventHandler;
 	    this.tenantDefaultLocaleRemovalIntegrationEventHandler = tenantDefaultLocaleRemovalIntegrationEventHandler;
         this.pluginConfigurationService = pluginConfigurationService;
+        this.pluginIntegrationService = pluginIntegrationService;
     }
 
     public TenantConfiguration persist(TenantConfigurationPersist model, FieldSet fields) throws MyForbiddenException, MyValidationException, MyApplicationException, MyNotFoundException, InvalidApplicationException, JacksonException, InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
@@ -167,9 +171,18 @@ public class TenantConfigurationServiceImpl implements TenantConfigurationServic
         switch (data.getType()){
             case CssColors -> data.setValue(this.jsonHandlingService.toJson(this.buildCssColorsTenantConfigurationEntity(model.getCssColors())));
             case DefaultUserLocale -> data.setValue(this.jsonHandlingService.toJson(this.buildDefaultUserLocaleTenantConfigurationEntity(model.getDefaultUserLocale())));
-            case DepositPlugins -> data.setValue(this.jsonHandlingService.toJson(this.buildDepositTenantConfigurationEntity(model.getDepositPlugins())));
-            case EvaluatorPlugins -> data.setValue(this.jsonHandlingService.toJson(this.buildEvaluatorTenantConfigurationEntity(model.getEvaluatorPlugins())));
-            case FileTransformerPlugins -> data.setValue(this.jsonHandlingService.toJson(this.buildFileTransformerTenantConfigurationEntity(model.getFileTransformerPlugins())));
+            case DepositPlugins -> {
+                DepositTenantConfigurationEntity oldValue = this.conventionService.isNullOrEmpty(data.getValue()) ? null : this.jsonHandlingService.fromJsonSafe(DepositTenantConfigurationEntity.class, data.getValue());
+                data.setValue(this.jsonHandlingService.toJson(this.buildDepositTenantConfigurationEntity(model.getDepositPlugins(), oldValue)));
+            }
+            case EvaluatorPlugins -> {
+                EvaluatorTenantConfigurationEntity oldValue = this.conventionService.isNullOrEmpty(data.getValue()) ? null : this.jsonHandlingService.fromJsonSafe(EvaluatorTenantConfigurationEntity.class, data.getValue());
+                data.setValue(this.jsonHandlingService.toJson(this.buildEvaluatorTenantConfigurationEntity(model.getEvaluatorPlugins(), oldValue)));
+            }
+            case FileTransformerPlugins -> {
+                FileTransformerTenantConfigurationEntity oldValue = this.conventionService.isNullOrEmpty(data.getValue()) ? null : this.jsonHandlingService.fromJsonSafe(FileTransformerTenantConfigurationEntity.class, data.getValue());
+                data.setValue(this.jsonHandlingService.toJson(this.buildFileTransformerTenantConfigurationEntity(model.getFileTransformerPlugins(), oldValue)));
+            }
             case Logo -> {
                 LogoTenantConfigurationEntity oldValue = this.conventionService.isNullOrEmpty(data.getValue()) ? null : this.jsonHandlingService.fromJsonSafe(LogoTenantConfigurationEntity.class, data.getValue());
                 data.setValue(this.jsonHandlingService.toJson(this.buildLogoTenantConfigurationEntity(model.getLogo(), oldValue)));
@@ -215,7 +228,7 @@ public class TenantConfigurationServiceImpl implements TenantConfigurationServic
         return this.builderFactory.builder(TenantConfigurationBuilder.class).authorize(AuthorizationFlags.AllExceptPublic).build(BaseFieldSet.build(fields, TenantConfiguration._id), data);
     }
 
-    private @NotNull DepositTenantConfigurationEntity buildDepositTenantConfigurationEntity(DepositTenantConfigurationPersist persist) throws InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
+    private @NotNull DepositTenantConfigurationEntity buildDepositTenantConfigurationEntity(DepositTenantConfigurationPersist persist, DepositTenantConfigurationEntity oldValue) throws InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
         DepositTenantConfigurationEntity data = new DepositTenantConfigurationEntity();
         if (persist == null) return data;
         data.setDisableSystemSources(Boolean.TRUE.equals(persist.getDisableSystemSources()));
@@ -223,15 +236,18 @@ public class TenantConfigurationServiceImpl implements TenantConfigurationServic
         data.setSources(new ArrayList<>());
         if (this.conventionService.isListNullOrEmpty(persist.getSources())) return data;
         for (DepositSourcePersist depositSourcePersist : persist.getSources()) {
-            data.getSources().add(this.buildDepositSourceEntity(depositSourcePersist));
+            DepositSourceEntity oldSource = oldValue == null || oldValue.getSources() == null ? null : oldValue.getSources().stream().filter(x -> Objects.equals(x.getRepositoryId(), depositSourcePersist.getRepositoryId())).findFirst().orElse(null);
+            data.getSources().add(this.buildDepositSourceEntity(depositSourcePersist, oldSource));
         }
         return data;
     }
 
-    private DepositSourceEntity buildDepositSourceEntity(DepositSourcePersist depositSourcePersist) throws InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
+    private DepositSourceEntity buildDepositSourceEntity(DepositSourcePersist depositSourcePersist, DepositSourceEntity oldSource) throws InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
         DepositSourceEntity depositSourceEntity = new DepositSourceEntity();
         depositSourceEntity.setClientId(depositSourcePersist.getClientId());
+        // the editor never receives the secret, so an empty one keeps the stored value
         if (!this.conventionService.isNullOrEmpty(depositSourcePersist.getClientSecret())) depositSourceEntity.setClientSecret(this.encryptionService.encryptAES(depositSourcePersist.getClientSecret(), this.tenantProperties.getConfigEncryptionAesKey(), this.tenantProperties.getConfigEncryptionAesIv()));
+        else if (oldSource != null) depositSourceEntity.setClientSecret(oldSource.getClientSecret());
         depositSourceEntity.setRepositoryId(depositSourcePersist.getRepositoryId());
         depositSourceEntity.setUrl(depositSourcePersist.getUrl());
         depositSourceEntity.setIssuerUrl(depositSourcePersist.getIssuerUrl());
@@ -242,7 +258,7 @@ public class TenantConfigurationServiceImpl implements TenantConfigurationServic
         return depositSourceEntity;
     }
 
-    private @NotNull EvaluatorTenantConfigurationEntity buildEvaluatorTenantConfigurationEntity(EvaluatorTenantConfigurationPersist persist) throws InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
+    private @NotNull EvaluatorTenantConfigurationEntity buildEvaluatorTenantConfigurationEntity(EvaluatorTenantConfigurationPersist persist, EvaluatorTenantConfigurationEntity oldValue) throws InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
         EvaluatorTenantConfigurationEntity data = new EvaluatorTenantConfigurationEntity();
         if (persist == null) return data;
         data.setDisableSystemSources(Boolean.TRUE.equals(persist.getDisableSystemSources()));
@@ -250,15 +266,17 @@ public class TenantConfigurationServiceImpl implements TenantConfigurationServic
         data.setSources(new ArrayList<>());
         if (this.conventionService.isListNullOrEmpty(persist.getSources())) return data;
         for (EvaluatorSourcePersist sourcePersist : persist.getSources()) {
-            data.getSources().add(this.buildEvaluatorSourceEntity(sourcePersist));
+            EvaluatorSourceEntity oldSource = oldValue == null || oldValue.getSources() == null ? null : oldValue.getSources().stream().filter(x -> Objects.equals(x.getEvaluatorId(), sourcePersist.getEvaluatorId())).findFirst().orElse(null);
+            data.getSources().add(this.buildEvaluatorSourceEntity(sourcePersist, oldSource));
         }
         return data;
     }
 
-    private EvaluatorSourceEntity buildEvaluatorSourceEntity(EvaluatorSourcePersist sourcePersist) throws InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
+    private EvaluatorSourceEntity buildEvaluatorSourceEntity(EvaluatorSourcePersist sourcePersist, EvaluatorSourceEntity oldSource) throws InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
         EvaluatorSourceEntity sourceEntity = new EvaluatorSourceEntity();
         sourceEntity.setClientId(sourcePersist.getClientId());
         if (!this.conventionService.isNullOrEmpty(sourcePersist.getClientSecret())) sourceEntity.setClientSecret(this.encryptionService.encryptAES(sourcePersist.getClientSecret(), this.tenantProperties.getConfigEncryptionAesKey(), this.tenantProperties.getConfigEncryptionAesIv()));
+        else if (oldSource != null) sourceEntity.setClientSecret(oldSource.getClientSecret());
         sourceEntity.setUrl(sourcePersist.getUrl());
         sourceEntity.setIssuerUrl(sourcePersist.getIssuerUrl());
         sourceEntity.setScope(sourcePersist.getScope());
@@ -266,7 +284,7 @@ public class TenantConfigurationServiceImpl implements TenantConfigurationServic
         return sourceEntity;
     }
 
-    private @NotNull FileTransformerTenantConfigurationEntity buildFileTransformerTenantConfigurationEntity(FileTransformerTenantConfigurationPersist persist) throws InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
+    private @NotNull FileTransformerTenantConfigurationEntity buildFileTransformerTenantConfigurationEntity(FileTransformerTenantConfigurationPersist persist, FileTransformerTenantConfigurationEntity oldValue) throws InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
         FileTransformerTenantConfigurationEntity data = new FileTransformerTenantConfigurationEntity();
         if (persist == null) return data;
         data.setDisableSystemSources(Boolean.TRUE.equals(persist.getDisableSystemSources()));
@@ -274,15 +292,17 @@ public class TenantConfigurationServiceImpl implements TenantConfigurationServic
         data.setSources(new ArrayList<>());
         if (this.conventionService.isListNullOrEmpty(persist.getSources())) return data;
         for (FileTransformerSourcePersist depositSourcePersist : persist.getSources()) {
-            data.getSources().add(this.buildFileTransformerSourceEntity(depositSourcePersist));
+            FileTransformerSourceEntity oldSource = oldValue == null || oldValue.getSources() == null ? null : oldValue.getSources().stream().filter(x -> Objects.equals(x.getTransformerId(), depositSourcePersist.getTransformerId())).findFirst().orElse(null);
+            data.getSources().add(this.buildFileTransformerSourceEntity(depositSourcePersist, oldSource));
         }
         return data;
     }
 
-    private FileTransformerSourceEntity buildFileTransformerSourceEntity(FileTransformerSourcePersist depositSourcePersist) throws InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
+    private FileTransformerSourceEntity buildFileTransformerSourceEntity(FileTransformerSourcePersist depositSourcePersist, FileTransformerSourceEntity oldSource) throws InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
         FileTransformerSourceEntity depositSourceEntity = new FileTransformerSourceEntity();
         depositSourceEntity.setClientId(depositSourcePersist.getClientId());
         if (!this.conventionService.isNullOrEmpty(depositSourcePersist.getClientSecret())) depositSourceEntity.setClientSecret(this.encryptionService.encryptAES(depositSourcePersist.getClientSecret(), this.tenantProperties.getConfigEncryptionAesKey(), this.tenantProperties.getConfigEncryptionAesIv()));
+        else if (oldSource != null) depositSourceEntity.setClientSecret(oldSource.getClientSecret());
         depositSourceEntity.setUrl(depositSourcePersist.getUrl());
         depositSourceEntity.setIssuerUrl(depositSourcePersist.getIssuerUrl());
         depositSourceEntity.setScope(depositSourcePersist.getScope());
@@ -336,7 +356,7 @@ public class TenantConfigurationServiceImpl implements TenantConfigurationServic
         if (!this.conventionService.isListNullOrEmpty(persist.getPluginConfigurations())) {
             data.setPluginConfigurations(new ArrayList<>());
             for (PluginConfigurationPersist pluginConfigurationPersist : persist.getPluginConfigurations()) {
-                data.getPluginConfigurations().add(this.pluginConfigurationService.buildPluginConfigurationEntity(pluginConfigurationPersist, oldValue != null ? oldValue.getPluginConfigurations(): null, inheritedValue != null ? inheritedValue.getPluginConfigurations() : null));
+                data.getPluginConfigurations().add(this.pluginConfigurationService.buildPluginConfigurationEntity(pluginConfigurationPersist, oldValue != null ? oldValue.getPluginConfigurations(): null, inheritedValue != null ? inheritedValue.getPluginConfigurations() : null, this.pluginIntegrationService.secretFieldCodes(pluginConfigurationPersist.getPluginType(), pluginConfigurationPersist.getPluginCode())));
             }
         }
 

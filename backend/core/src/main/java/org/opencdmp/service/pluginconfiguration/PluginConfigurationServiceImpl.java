@@ -76,12 +76,9 @@ public class PluginConfigurationServiceImpl implements PluginConfigurationServic
     }
 
 
-    public PluginConfigurationEntity buildPluginConfigurationEntity(PluginConfigurationPersist persist, List<PluginConfigurationEntity> oldPlugins) throws InvalidApplicationException {
-        return this.buildPluginConfigurationEntity(persist, oldPlugins, null);
-    }
-
-    // inheritedPlugins: the record a first save copies (the default tenant's); only its secrets are kept, since the editor never receives them
-    public PluginConfigurationEntity buildPluginConfigurationEntity(PluginConfigurationPersist persist, List<PluginConfigurationEntity> oldPlugins, List<PluginConfigurationEntity> inheritedPlugins) throws InvalidApplicationException {
+    // inheritedPlugins: the record a first save copies (the default tenant's, or the previous version's); only its secrets are kept, since the editor never receives them
+    // secretCodes: the settings the plugin marks as credentials, null when it could not be asked
+    public PluginConfigurationEntity buildPluginConfigurationEntity(PluginConfigurationPersist persist, List<PluginConfigurationEntity> oldPlugins, List<PluginConfigurationEntity> inheritedPlugins, Set<String> secretCodes) throws InvalidApplicationException {
         PluginConfigurationEntity data = new PluginConfigurationEntity();
         if (persist == null)
             return data;
@@ -93,7 +90,7 @@ public class PluginConfigurationServiceImpl implements PluginConfigurationServic
             data.setFields(new ArrayList<>());
             PluginConfigurationEntity inheritedPlugin = !this.conventionService.isListNullOrEmpty(inheritedPlugins) ? inheritedPlugins.stream().filter(x->x.getPluginCode().equals(persist.getPluginCode())).findFirst().orElse(null): null;
             for (PluginConfigurationFieldPersist pluginConfigurationFieldPersist : persist.getFields()) {
-                data.getFields().add(this.buildPluginConfigurationFieldEntity(pluginConfigurationFieldPersist, !this.conventionService.isListNullOrEmpty(oldPlugins) ? oldPlugins.stream().filter(x->x.getPluginCode().equals(persist.getPluginCode())).findFirst().orElse(null): null, inheritedPlugin));
+                data.getFields().add(this.buildPluginConfigurationFieldEntity(pluginConfigurationFieldPersist, !this.conventionService.isListNullOrEmpty(oldPlugins) ? oldPlugins.stream().filter(x->x.getPluginCode().equals(persist.getPluginCode())).findFirst().orElse(null): null, inheritedPlugin, secretCodes));
             }
         }
 
@@ -101,15 +98,19 @@ public class PluginConfigurationServiceImpl implements PluginConfigurationServic
     }
 
 
-    private @NotNull PluginConfigurationFieldEntity buildPluginConfigurationFieldEntity(PluginConfigurationFieldPersist persist, PluginConfigurationEntity oldPlugin, PluginConfigurationEntity inheritedPlugin) throws InvalidApplicationException {
+    private @NotNull PluginConfigurationFieldEntity buildPluginConfigurationFieldEntity(PluginConfigurationFieldPersist persist, PluginConfigurationEntity oldPlugin, PluginConfigurationEntity inheritedPlugin, Set<String> secretCodes) throws InvalidApplicationException {
         PluginConfigurationFieldEntity data = new PluginConfigurationFieldEntity();
         if (persist == null)
             return data;
 
         data.setCode(persist.getCode());
-        if (Boolean.TRUE.equals(persist.getSecret())) {
+        PluginConfigurationEntity storedPlugin = oldPlugin != null ? oldPlugin : inheritedPlugin;
+        boolean storedSecret = storedPlugin != null && storedPlugin.getFields() != null && storedPlugin.getFields().stream().anyMatch(x -> persist.getCode().equals(x.getCode()) && Boolean.TRUE.equals(x.getSecret()));
+        // a setting stored as a secret stays one, so no save turns it back into plain text
+        boolean secret = storedSecret || (secretCodes != null ? secretCodes.contains(persist.getCode()) : Boolean.TRUE.equals(persist.getSecret()));
+        if (secret) {
             data.setSecret(true);
-            data.setTextValue(this.secretValue(persist, oldPlugin != null ? oldPlugin : inheritedPlugin));
+            data.setTextValue(this.secretValue(persist, storedPlugin));
         } else {
             data.setTextValue(persist.getTextValue());
         }
@@ -253,7 +254,8 @@ public class PluginConfigurationServiceImpl implements PluginConfigurationServic
 
         PluginConfigurationFieldImportExport xml = new PluginConfigurationFieldImportExport();
         xml.setCode(entity.getCode());
-        xml.setTextValue(entity.getTextValue());
+        // a secret is never exported; the importing side sets it again
+        if (!Boolean.TRUE.equals(entity.getSecret())) xml.setTextValue(entity.getTextValue());
         xml.setStorageFile(this.storageFileService.storageFileXmlToExport(entity.getFileValue()));
 
         return xml;

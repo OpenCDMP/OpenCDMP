@@ -18,6 +18,7 @@ import { BaseComponent } from '@common/base/base.component';
 import { ConfirmationDialogComponent } from '@common/modules/confirmation-dialog/confirmation-dialog.component';
 import { Guid } from '@common/types/guid';
 import { TranslateService, TranslatePipe } from '@ngx-translate/core';
+import { ReferenceTypeNamePipe } from '@app/core/pipes/reference-type-name.pipe';
 import { takeUntil } from 'rxjs/operators';
 import { DescriptionStatusEnum } from '../../../../core/common/enum/description-status';
 import { CopyDialogReturnParams, DescriptionCopyDialogComponent } from '../../description-copy-dialog/description-copy-dialog.component';
@@ -40,7 +41,7 @@ import { DateTimeFormatPipe } from '../../../../core/pipes/date-time-format.pipe
     templateUrl: './description-listing-item.component.html',
     styleUrls: ['./description-listing-item.component.scss'],
     changeDetection: ChangeDetectionStrategy.Eager,
-    imports: [MatCard, MatCardContent, RouterLink, NgTemplateOutlet, MatIcon, LowerCasePipe, TranslatePipe, DateTimeFormatPipe]
+    imports: [MatCard, MatCardContent, RouterLink, NgTemplateOutlet, MatIcon, LowerCasePipe, TranslatePipe, DateTimeFormatPipe, ReferenceTypeNamePipe]
 })
 export class DescriptionListingItemComponent extends BaseComponent implements OnInit {
 

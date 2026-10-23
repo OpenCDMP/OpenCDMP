@@ -196,10 +196,10 @@ export class ReferenceService {
 		return lookup;
 	}
 
-	public getSingleAutocompleteTestSearchConfiguration( dependencyReferences: Reference[],  key: string, sources: ExternalFetcherBaseSourceConfigurationPersist[]): SingleAutoCompleteConfiguration {
+	public getSingleAutocompleteTestSearchConfiguration( dependencyReferences: Reference[],  key: string, sources: ExternalFetcherBaseSourceConfigurationPersist[], referenceTypeId?: Guid): SingleAutoCompleteConfiguration {
 		return {
-			initialItems: (data?: any) => this.testDefinition(this.buildAutocompleteTestSearchLookup( dependencyReferences, key, sources, null)).pipe(map(x => x)),
-			filterFn: (searchQuery: string, data?: any) => this.testDefinition(this.buildAutocompleteTestSearchLookup( dependencyReferences, key, sources, searchQuery)).pipe(map(x => x)),
+			initialItems: (data?: any) => this.testDefinition(this.buildAutocompleteTestSearchLookup(dependencyReferences, key, sources, null, referenceTypeId)).pipe(map(x => x)),
+			filterFn: (searchQuery: string, data?: any) => this.testDefinition(this.buildAutocompleteTestSearchLookup(dependencyReferences, key, sources, searchQuery, referenceTypeId)).pipe(map(x => x)),
 			displayFn: (item: Reference) => item.label,
 			subtitleFn: (item: Reference) => item?.sourceType === ReferenceSourceType.External ? this.language.instant('REFERENCE-FIELD-COMPONENT.EXTERNAL-SOURCE') + ': ' + item.source : this.language.instant('REFERENCE-FIELD-COMPONENT.INTERNAL-SOURCE'),
 			titleFn: (item: Reference) => item.label,
@@ -208,10 +208,10 @@ export class ReferenceService {
 		};
 	};
 
-	public getMultipleAutoCompleteTestSearchConfiguration( dependencyReferences: Reference[],  key: string, sources: ExternalFetcherBaseSourceConfigurationPersist[]): MultipleAutoCompleteConfiguration {
+	public getMultipleAutoCompleteTestSearchConfiguration( dependencyReferences: Reference[],  key: string, sources: ExternalFetcherBaseSourceConfigurationPersist[], referenceTypeId?: Guid): MultipleAutoCompleteConfiguration {
 		return {
-			initialItems: (excludedItems: any[], data?: any) => this.testDefinition(this.buildAutocompleteTestSearchLookup(dependencyReferences, key, sources, null)).pipe(map(x => x)),
-			filterFn: (searchQuery: string, excludedItems: any[]) => this.testDefinition(this.buildAutocompleteTestSearchLookup( dependencyReferences, key, sources, searchQuery)).pipe(map(x => x)),
+			initialItems: (excludedItems: any[], data?: any) => this.testDefinition(this.buildAutocompleteTestSearchLookup(dependencyReferences, key, sources, null, referenceTypeId)).pipe(map(x => x)),
+			filterFn: (searchQuery: string, excludedItems: any[]) => this.testDefinition(this.buildAutocompleteTestSearchLookup(dependencyReferences, key, sources, searchQuery, referenceTypeId)).pipe(map(x => x)),
 			displayFn: (item: Reference) => item.label,
 			titleFn: (item: Reference) => item.label,
 			subtitleFn: (item: Reference) => item?.sourceType === ReferenceSourceType.External ? this.language.instant('REFERENCE-FIELD-COMPONENT.EXTERNAL-SOURCE') + ': ' + item.source : this.language.instant('REFERENCE-FIELD-COMPONENT.INTERNAL-SOURCE'),
@@ -220,10 +220,11 @@ export class ReferenceService {
 		};
 	}
 
-	private buildAutocompleteTestSearchLookup(dependencyReferences: Reference[], key: string, sources: ExternalFetcherBaseSourceConfigurationPersist[], like?: string ): ReferenceTestLookup {
+	private buildAutocompleteTestSearchLookup(dependencyReferences: Reference[], key: string, sources: ExternalFetcherBaseSourceConfigurationPersist[], like?: string, referenceTypeId?: Guid): ReferenceTestLookup {
 		const lookup: ReferenceTestLookup = new ReferenceTestLookup();
 		lookup.key = key;
 		lookup.sources = sources;
+		lookup.referenceTypeId = referenceTypeId;
 		lookup.page = { size: 100, offset: 0 };
 		lookup.project = {
 			fields: [

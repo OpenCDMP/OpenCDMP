@@ -656,6 +656,8 @@ export class PlanEditorComponent extends BaseEditor<PlanEditorModel, Plan> imple
         // an existing plan the editor tour. Creating the plan navigates to /plans/edit/:id, which
         // rebuilds this component, so the wizard tour is unregistered on the way out.
         this.tourState.registerPageTour(this.isNew ? this.newPlanTour : this.pageTour);
+        // The blueprint wizard reads it on init; parseQueryParams runs too late and waits for ToC entries a new plan doesn't have.
+        if (this.isNew) this.selectedBlueprintId = this.route.snapshot.queryParamMap.get('blueprintId');
 		// if (this.isNew === false && this.step() === 0) this.nextStep();
 
         // if(this.item?.id){

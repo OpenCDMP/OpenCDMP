@@ -26,3 +26,7 @@ backend/**/target/
 
 # Other
 deployment/storage/
+
+# Claude Code: share skills, keep settings and working notes local
+**/.claude/*
+!**/.claude/skills/

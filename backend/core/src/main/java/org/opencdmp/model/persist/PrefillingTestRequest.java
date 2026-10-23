@@ -3,6 +3,7 @@ package org.opencdmp.model.persist;
 import org.opencdmp.model.persist.externalfetcher.ExternalFetcherBaseSourceConfigurationPersist;
 
 import java.util.List;
+import java.util.UUID;
 
 public class PrefillingTestRequest {
 
@@ -11,6 +12,8 @@ public class PrefillingTestRequest {
     private String key;
 
     private List<ExternalFetcherBaseSourceConfigurationPersist> sources;
+
+    private UUID prefillingSourceId;
 
     public String getLike() {
         return like;
@@ -34,6 +37,14 @@ public class PrefillingTestRequest {
 
     public void setSources(List<ExternalFetcherBaseSourceConfigurationPersist> sources) {
         this.sources = sources;
+    }
+
+    public UUID getPrefillingSourceId() {
+        return prefillingSourceId;
+    }
+
+    public void setPrefillingSourceId(UUID prefillingSourceId) {
+        this.prefillingSourceId = prefillingSourceId;
     }
 }
 

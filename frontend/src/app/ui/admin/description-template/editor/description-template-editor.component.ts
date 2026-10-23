@@ -139,6 +139,8 @@ export class DescriptionTemplateEditorComponent extends StructureEditorBase<Desc
 				copy = { status: DescriptionTemplateStatus.Draft, definition: { pluginConfigurations: this.plugins, sections: [] } } as DescriptionTemplate;
 			} else if (!copy.definition?.pluginConfigurations) {
 				copy.definition = { ...(copy.definition ?? {}), pluginConfigurations: this.plugins } as any;
+			} else {
+				copy.definition.pluginConfigurations = this.pluginConfigurationService.completeWithAvailable(copy.definition.pluginConfigurations, this.plugins);
 			}
 			copy.definition?.pluginConfigurations?.forEach(x => x.fields?.forEach(field => { if (field.fileValue) this.fileMap.set(field.fileValue.id, field.fileValue); }));
 			if (this.isClone) copy.belongsToCurrentTenant = true;

@@ -26,6 +26,7 @@ import { dashboardPageTour } from './dashboard.tour';
 import { MatTabGroup, MatTab } from '@angular/material/tabs';
 import { RecentEditedActivityComponent } from './recent-edited-activity/recent-edited-activity.component';
 import { DashboardOverviewComponent } from './dashboard-overview/dashboard-overview.component';
+import { DashboardRecommendationsComponent } from './dashboard-recommendations/dashboard-recommendations.component';
 import { NgTemplateOutlet } from '@angular/common';
 import { MatIconButton } from '@angular/material/button';
 import { MatIcon } from '@angular/material/icon';
@@ -37,7 +38,7 @@ import { MatCard, MatCardContent } from '@angular/material/card';
     templateUrl: './dashboard.component.html',
     styleUrls: ['./dashboard.component.scss'],
     changeDetection: ChangeDetectionStrategy.Eager,
-    imports: [MatTabGroup, MatTab, forwardRef(() => RecentEditedActivityComponent), DashboardOverviewComponent, NgTemplateOutlet, MatIconButton, MatIcon, MatCard, MatCardContent, TranslatePipe]
+    imports: [MatTabGroup, MatTab, forwardRef(() => RecentEditedActivityComponent), DashboardOverviewComponent, DashboardRecommendationsComponent, NgTemplateOutlet, MatIconButton, MatIcon, MatCard, MatCardContent, TranslatePipe]
 })
 export class DashboardComponent extends BaseComponent implements OnInit, AfterViewInit, OnDestroy {
 	public dashboardStatistics = this.statisticsService.dashboardStatistics;

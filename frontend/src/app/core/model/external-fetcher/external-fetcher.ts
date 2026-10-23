@@ -54,7 +54,7 @@ export interface AuthenticationConfiguration {
 	authUrl: string;
 	authMethod: ExternalFetcherApiHTTPMethodType;
 	authTokenPath: string;
-	authRequestBody: string;
+	authRequestBodySet?: boolean;
 	type: string;
 }
 

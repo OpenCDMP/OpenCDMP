@@ -163,6 +163,11 @@ fieldSetExpander:
         - descriptions.descriptionReferences.reference.label
         - descriptions.descriptionReferences.reference.description
         - descriptions.descriptionReferences.reference.type.id
+        - descriptions.descriptionReferences.reference.type.definition.sources.key
+        - descriptions.descriptionReferences.reference.type.definition.sources.label
+        - descriptions.descriptionReferences.reference.type.definition.sources.navigationUrl
+        - descriptions.descriptionReferences.reference.type.definition.sources.storageFile.id
+        - descriptions.descriptionReferences.reference.type.definition.sources.tooltipMessage
         - descriptions.descriptionReferences.reference.reference
         - descriptions.descriptionReferences.reference.source
         - descriptions.descriptionReferences.reference.sourceType

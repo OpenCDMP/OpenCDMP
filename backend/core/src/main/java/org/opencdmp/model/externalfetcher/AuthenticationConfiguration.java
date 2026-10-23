@@ -16,8 +16,8 @@ public class AuthenticationConfiguration {
     public final static String _authTokenPath = "authTokenPath";
     private String authTokenPath;
 
-    public final static String _authRequestBody = "authRequestBody";
-    private String authRequestBody;
+    public final static String _authRequestBodySet = "authRequestBodySet";
+    private Boolean authRequestBodySet;
 
     public final static String _type = "type";
     private String type;
@@ -57,13 +57,13 @@ public class AuthenticationConfiguration {
         this.authTokenPath = authTokenPath;
     }
 
-    public String getAuthRequestBody() {
-        return authRequestBody;
+    public Boolean getAuthRequestBodySet() {
+        return authRequestBodySet;
     }
 
 
-    public void setAuthRequestBody(String authRequestBody) {
-        this.authRequestBody = authRequestBody;
+    public void setAuthRequestBodySet(Boolean authRequestBodySet) {
+        this.authRequestBodySet = authRequestBodySet;
     }
 
     public String getType() {

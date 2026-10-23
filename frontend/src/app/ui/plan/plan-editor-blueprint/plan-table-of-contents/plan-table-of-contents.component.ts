@@ -23,7 +23,7 @@ import { IsActive } from '@notification-service/core/enum/is-active.enum';
 import { AppPermission } from '@app/core/common/enum/permission.enum';
 import { PlanStatusEnum } from '@app/core/common/enum/plan-status';
 import { DescriptionStatusEnum } from '@app/core/common/enum/description-status';
-import { debounceTime, distinctUntilChanged, filter, mergeMap, Observable, skip, takeUntil, tap } from 'rxjs';
+import { debounceTime, distinctUntilChanged, filter, mergeMap, Observable, takeUntil, tap } from 'rxjs';
 import { toObservable } from '@angular/core/rxjs-interop';
 import { ToCEntry } from '@app/ui/description/editor/table-of-contents/models/toc-entry';
 import { DescriptionInfo, PlanTempStorageService } from '../plan-temp-storage.service';
@@ -170,13 +170,14 @@ export class PlanTableOfContentsComponent extends BaseComponent{
             }
         })
         // Re-acquire the lock for the current selection on subsequent planLockService.initialize()
-        // bumps (e.g., save → refreshData → reset → initialize). skip(1) drops the initial bump —
-        // the first lock is acquired via the navigation flow in plan-editor. filter(v > 0) ignores
-        // the version=0 emission that reset() produces before the next bump. The synchronous
-        // tocEntries() guard handles the rare case where version bumps before the ToC has built.
+        // bumps (e.g., save → refreshData → reset → initialize). The initial bump is dropped —
+        // the first lock is acquired via the navigation flow in plan-editor — unless that navigation
+        // took no lock because the plan opened read-only (e.g. finalized, then Undo Finalisation).
+        // filter(v > 0) ignores the version=0 emission that reset() produces before the next bump.
+        // The synchronous tocEntries() guard handles the rare case where version bumps before the ToC has built.
         toObservable(this.planLockService.initializeVersion).pipe(
             filter(v => v > 0),
-            skip(1),
+            filter((_, index) => index > 0 || this.loadLockTaken === false),
             takeUntil(this._destroyed),
         ).subscribe(() => {
             if(this.tocEntries()?.length){
@@ -1141,17 +1142,23 @@ export class PlanTableOfContentsComponent extends BaseComponent{
         return this.planLockService?.externalLockIds()?.includes(id?.toString());
     }
     
+    private loadLockTaken: boolean = null;
     private lockSelected(){
         this.planLockService.unlockTransient().subscribe(() => {
             if(this.selectedDescription()){
                 const canEditDescription = !this.descriptionInfo().isNew &&
-                    this.canEditInSection(this.descriptionInfo().lastPersist.planDescriptionTemplate?.sectionId) && 
+                    this.canEditInSection(this.descriptionInfo().lastPersist.planDescriptionTemplate?.sectionId) &&
                     this.descriptionIsEditable(this.selectedDescription());
+                this.loadLockTaken ??= canEditDescription;
                 if(!canEditDescription){ return; }
                 const formGroup = this.descriptionInfo().formGroup;
                 this.planLockService.checkAndLock(this.selectedDescription(), LockTargetType.Description, formGroup);
-            }else if(this.plan()?.id && this.canEditPlan()){
-                this.planLockService.checkAndLock(this.plan().id, LockTargetType.Plan, this.formGroup());
+            }else {
+                const canLockPlan = !!this.plan()?.id && this.canEditPlan();
+                this.loadLockTaken ??= canLockPlan;
+                if(canLockPlan){
+                    this.planLockService.checkAndLock(this.plan().id, LockTargetType.Plan, this.formGroup());
+                }
             }
         })
     }

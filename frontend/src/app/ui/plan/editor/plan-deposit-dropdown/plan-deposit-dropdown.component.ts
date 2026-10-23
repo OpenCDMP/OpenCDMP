@@ -8,6 +8,7 @@ import { ConfigurationService } from '@app/core/services/configuration/configura
 import { DepositService } from '@app/core/services/deposit/deposit.service';
 import { PublishDialogComponent, PublishDialogData } from '@app/ui/plan/publish-dialog/publish-dialog.component';
 import { BaseComponent } from '@common/base/base.component';
+import { Guid } from '@common/types/guid';
 import { TranslateService, TranslatePipe } from '@ngx-translate/core';
 import { takeUntil } from 'rxjs/operators';
 import { MatMenuItem, MatMenuTrigger, MatMenu } from '@angular/material/menu';
@@ -59,7 +60,7 @@ export class PlanDepositDropdown extends BaseComponent implements OnInit {
 	}
 
 	deposit(repo: DepositConfiguration) {
-		const data: PublishDialogData = { repo, planId: this.plan.id, repositoryLabel: this.getRepostioryDepositSourceLabel(repo.repositoryId) };
+		const data: PublishDialogData = { repo, planId: this.plan.id, planGroupId: Guid.parse(this.plan.groupId), repositoryLabel: this.getRepostioryDepositSourceLabel(repo.repositoryId) };
 		this.dialog.open<PublishDialogComponent, PublishDialogData, EntityDoi>(PublishDialogComponent, { width: 'min(680px, 95vw)', maxWidth: '95vw', autoFocus: 'dialog', data })
 			.afterClosed().pipe(takeUntil(this._destroyed)).subscribe(doi => {
 				if (!doi) return;

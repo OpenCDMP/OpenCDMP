@@ -23,11 +23,13 @@ export class ViewPreferencesEditorResolver extends BaseEditorResolver {
 
 			[nameof<TenantConfiguration>(x => x.viewPreferences), nameof<ViewPreferencesConfiguration>(x => x.planPreferences), nameof<ViewPreference>(x => x.referenceType), nameof<ReferenceType>(x => x.id)].join('.'),
 			[nameof<TenantConfiguration>(x => x.viewPreferences), nameof<ViewPreferencesConfiguration>(x => x.planPreferences), nameof<ViewPreference>(x => x.referenceType), nameof<ReferenceType>(x => x.name)].join('.'),
+			[nameof<TenantConfiguration>(x => x.viewPreferences), nameof<ViewPreferencesConfiguration>(x => x.planPreferences), nameof<ViewPreference>(x => x.referenceType), nameof<ReferenceType>(x => x.code)].join('.'),
 			[nameof<TenantConfiguration>(x => x.viewPreferences), nameof<ViewPreferencesConfiguration>(x => x.planPreferences), nameof<ViewPreference>(x => x.referenceType), nameof<ReferenceType>(x => x.isActive)].join('.'),
 			[nameof<TenantConfiguration>(x => x.viewPreferences), nameof<ViewPreferencesConfiguration>(x => x.planPreferences), nameof<ViewPreference>(x => x.ordinal)].join('.'),
 
 			[nameof<TenantConfiguration>(x => x.viewPreferences), nameof<ViewPreferencesConfiguration>(x => x.descriptionPreferences), nameof<ViewPreference>(x => x.referenceType), nameof<ReferenceType>(x => x.id)].join('.'),
 			[nameof<TenantConfiguration>(x => x.viewPreferences), nameof<ViewPreferencesConfiguration>(x => x.descriptionPreferences), nameof<ViewPreference>(x => x.referenceType), nameof<ReferenceType>(x => x.name)].join('.'),
+			[nameof<TenantConfiguration>(x => x.viewPreferences), nameof<ViewPreferencesConfiguration>(x => x.descriptionPreferences), nameof<ViewPreference>(x => x.referenceType), nameof<ReferenceType>(x => x.code)].join('.'),
 			[nameof<TenantConfiguration>(x => x.viewPreferences), nameof<ViewPreferencesConfiguration>(x => x.descriptionPreferences), nameof<ViewPreference>(x => x.referenceType), nameof<ReferenceType>(x => x.isActive)].join('.'),
 			[nameof<TenantConfiguration>(x => x.viewPreferences), nameof<ViewPreferencesConfiguration>(x => x.descriptionPreferences), nameof<ViewPreference>(x => x.ordinal)].join('.'),
 

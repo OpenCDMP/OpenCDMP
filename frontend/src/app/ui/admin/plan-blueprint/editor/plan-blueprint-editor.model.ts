@@ -300,6 +300,7 @@ export class PlanBlueprintRootSectionEditorModel extends TemplateSectionEditorMo
 		formGroup.setControl('prefillingSourcesIds', new FormControl({ value: this.prefillingSourcesIds, disabled: disabled }, context.getValidation('prefillingSourcesIds').validators));
         formGroup.removeValidators(EditorCustomValidators.sectionHasAtLeastOneChildOf('fieldSets', 'sections'));
         formGroup.addValidators(EditorCustomValidators.sectionHasTemplatesOrChildOf('fieldSets', 'sections'));
+        formGroup.addValidators(EditorCustomValidators.sectionTemplatesRequired());
         return formGroup;
 	}
 

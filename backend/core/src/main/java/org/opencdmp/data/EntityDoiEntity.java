@@ -57,6 +57,11 @@ public class EntityDoiEntity extends TenantScopedBaseEntity {
 
     public static final String _entityId = "entityId";
 
+    @Column(name = "metadata")
+    private String metadata;
+
+    public static final String _metadata = "metadata";
+
     public UUID getId() {
         return id;
     }
@@ -119,5 +124,13 @@ public class EntityDoiEntity extends TenantScopedBaseEntity {
 
     public void setEntityId(UUID entityId) {
         this.entityId = entityId;
+    }
+
+    public String getMetadata() {
+        return metadata;
+    }
+
+    public void setMetadata(String metadata) {
+        this.metadata = metadata;
     }
 }

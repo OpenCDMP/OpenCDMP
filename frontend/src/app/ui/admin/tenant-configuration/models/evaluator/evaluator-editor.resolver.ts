@@ -22,7 +22,7 @@ export class EvaluatorEditorResolver extends BaseEditorResolver{
 			nameof<TenantConfiguration>(x => x.type),
 
 			[nameof<TenantConfiguration>(x => x.evaluatorPlugins), nameof<EvaluatorTenantConfiguration>(x => x.sources), nameof<EvaluatorSource>(x => x.clientId)].join('.'),
-			[nameof<TenantConfiguration>(x => x.evaluatorPlugins), nameof<EvaluatorTenantConfiguration>(x => x.sources), nameof<EvaluatorSource>(x => x.clientSecret)].join('.'),
+			[nameof<TenantConfiguration>(x => x.evaluatorPlugins), nameof<EvaluatorTenantConfiguration>(x => x.sources), nameof<EvaluatorSource>(x => x.clientSecretSet)].join('.'),
 			[nameof<TenantConfiguration>(x => x.evaluatorPlugins), nameof<EvaluatorTenantConfiguration>(x => x.sources), nameof<EvaluatorSource>(x => x.issuerUrl)].join('.'),
 			[nameof<TenantConfiguration>(x => x.evaluatorPlugins), nameof<EvaluatorTenantConfiguration>(x => x.sources), nameof<EvaluatorSource>(x => x.evaluatorId)].join('.'),
 			[nameof<TenantConfiguration>(x => x.evaluatorPlugins), nameof<EvaluatorTenantConfiguration>(x => x.sources), nameof<EvaluatorSource>(x => x.scope)].join('.'),

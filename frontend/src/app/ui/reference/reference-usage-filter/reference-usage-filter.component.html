@@ -1,7 +1,7 @@
 @for (type of sections(); track type.id) {
 	<app-reference-usage-section
-		[title]="type.name"
-		[searchLabel]="searchLabelFor(type)"
+		[title]="type | referenceTypeName"
+		[searchLabel]="searchLabelFor(type | referenceTypeName)"
 		[entityType]="entityType()"
 		[typeIds]="[type.id]"
 		[selected]="selectedFor(type.id)"

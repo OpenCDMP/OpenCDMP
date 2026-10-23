@@ -2,6 +2,7 @@ package org.opencdmp.model;
 
 import org.opencdmp.commons.enums.EntityType;
 import org.opencdmp.commons.enums.IsActive;
+import org.opencdmp.model.entitydoi.EntityDoiMetadata;
 
 import java.time.Instant;
 import java.util.Date;
@@ -47,6 +48,17 @@ public class EntityDoi {
 
     private Boolean belongsToCurrentTenant;
     public static final String _belongsToCurrentTenant = "belongsToCurrentTenant";
+
+    private EntityDoiMetadata metadata;
+    public static final String _metadata = "metadata";
+
+    public EntityDoiMetadata getMetadata() {
+        return metadata;
+    }
+
+    public void setMetadata(EntityDoiMetadata metadata) {
+        this.metadata = metadata;
+    }
 
     public UUID getId() {
         return id;

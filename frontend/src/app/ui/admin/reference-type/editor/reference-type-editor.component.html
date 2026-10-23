@@ -234,6 +234,7 @@
 						[sourceKeysMap]="sourceKeysMap"
 						[canEdit]="canSave"
 						[validationErrorModel]="editorModel.validationErrorModel"
+						[referenceTypeId]="editorModel.id"
 						(remove)="removeSource(selectedSourceIndex)"
 						(addItem)="addStaticItem(selectedSourceIndex)"
 						(removeItem)="removeStaticItem(selectedSourceIndex, $event)" />

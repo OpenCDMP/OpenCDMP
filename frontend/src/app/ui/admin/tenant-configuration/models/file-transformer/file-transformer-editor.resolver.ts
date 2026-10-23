@@ -21,7 +21,7 @@ export class FileTransformerEditorResolver extends BaseEditorResolver {
 			nameof<TenantConfiguration>(x => x.type),
 
 			[nameof<TenantConfiguration>(x => x.fileTransformerPlugins), nameof<FileTransformerTenantConfiguration>(x => x.sources), nameof<FileTransformerSource>(x => x.clientId)].join('.'),
-			[nameof<TenantConfiguration>(x => x.fileTransformerPlugins), nameof<FileTransformerTenantConfiguration>(x => x.sources), nameof<FileTransformerSource>(x => x.clientSecret)].join('.'),
+			[nameof<TenantConfiguration>(x => x.fileTransformerPlugins), nameof<FileTransformerTenantConfiguration>(x => x.sources), nameof<FileTransformerSource>(x => x.clientSecretSet)].join('.'),
 			[nameof<TenantConfiguration>(x => x.fileTransformerPlugins), nameof<FileTransformerTenantConfiguration>(x => x.sources), nameof<FileTransformerSource>(x => x.issuerUrl)].join('.'),
 			[nameof<TenantConfiguration>(x => x.fileTransformerPlugins), nameof<FileTransformerTenantConfiguration>(x => x.sources), nameof<FileTransformerSource>(x => x.transformerId)].join('.'),
 			[nameof<TenantConfiguration>(x => x.fileTransformerPlugins), nameof<FileTransformerTenantConfiguration>(x => x.sources), nameof<FileTransformerSource>(x => x.scope)].join('.'),

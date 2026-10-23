@@ -9,6 +9,10 @@
 	},
 	"APP_NAME": "OpenCDMP",
 	"APP_NAME_CAPS": "OpenCDMP",
+	"TEST-INSTALLATION-MESSAGE": {
+		"TITLE": "Acesta este un mediu de testare.",
+		"TEXT": "Planurile publicate aici ajung într-un depozit de test, așa că PID-urile lor nu pot fi citate. Nu îl folosiți pentru lucru real."
+	},
 	"PUBLISH-DIALOG": {
 		"TITLE": "Publică în {{repository}}",
 		"STEPS": {
@@ -36,7 +40,16 @@
 			"TOKEN-INSTEAD": "Introduceți un token de acces în schimb",
 			"OTHER-TOKEN": "Folosește alte acreditări",
 			"USE-SAVED": "Folosește acreditările salvate în profilul dvs.",
-			"NONE": "Nu este configurată nicio modalitate de publicare în {{repository}}. Contactați administratorul."
+			"NONE": "Nu este configurată nicio modalitate de publicare în {{repository}}. Contactați administratorul.",
+			"PREVIOUS-VERSION": "Versiunea {{version}} a acestui plan este deja pe {{repository}}, așa că aceasta se publică drept noua sa versiune. Folosiți același cont {{repository}} cu care a fost publicată versiunea {{version}}, altfel {{repository}} o va refuza.",
+			"PREVIOUS-VERSION-ORG": "Versiunea {{version}} a acestui plan a fost publicată pe {{repository}} cu contul organizației, așa că aceasta se publică drept noua sa versiune. Publicați-o din nou cu contul organizației, altfel {{repository}} o va refuza.",
+			"PREVIOUS-VERSION-ORG-NAMED": "Versiunea {{version}} a acestui plan a fost publicată pe {{repository}} cu {{account}}, așa că aceasta se publică drept noua sa versiune. Publicați-o din nou cu {{account}}, altfel {{repository}} o va refuza.",
+			"PREVIOUS-VERSION-YOU": "Ați publicat versiunea {{version}} a acestui plan pe {{repository}} cu propriul cont, așa că aceasta se publică drept noua sa versiune. Folosiți din nou același cont {{repository}}, altfel {{repository}} o va refuza.",
+			"PREVIOUS-VERSION-USER": "{{name}} a publicat versiunea {{version}} a acestui plan pe {{repository}} cu propriul cont, așa că aceasta se publică drept noua sa versiune. Doar acel cont {{repository}} o poate publica, așa că rugați-l pe {{name}} să publice această versiune.",
+			"PREVIOUS-VERSION-OTHER-USER": "Un alt utilizator a publicat versiunea {{version}} a acestui plan pe {{repository}} cu propriul cont, așa că aceasta se publică drept noua sa versiune. Doar acel cont {{repository}} o poate publica.",
+			"PREVIOUS-VERSION-YOU-NAMED": "Ați publicat versiunea {{version}} a acestui plan pe {{repository}} cu contul {{account}}, așa că aceasta se publică drept noua sa versiune. Folosiți din nou {{account}}, altfel {{repository}} o va refuza.",
+			"PREVIOUS-VERSION-USER-NAMED": "{{name}} a publicat versiunea {{version}} a acestui plan pe {{repository}} cu contul {{account}}, așa că aceasta se publică drept noua sa versiune. Doar {{account}} o poate publica, așa că rugați-l pe {{name}} să publice această versiune.",
+			"PREVIOUS-VERSION-OTHER-USER-NAMED": "Versiunea {{version}} a acestui plan a fost publicată pe {{repository}} cu contul {{account}}, așa că aceasta se publică drept noua sa versiune. Doar {{account}} o poate publica."
 		},
 		"REVIEW": {
 			"AS-ORG": "Se publică în contul {{repository}} al organizației",
@@ -85,6 +98,7 @@
 			"CREDENTIALS": "Lipsesc acreditările dvs. pentru {{repository}}",
 			"HINT": "Nu s-a publicat nimic, iar planul dvs. a rămas neschimbat.",
 			"HINT-OWN": "Nu s-a publicat nimic, iar planul dvs. a rămas neschimbat. Contul organizației nu a fost folosit în schimb.",
+			"PREVIOUS-VERSION": "{{repository}} acceptă o versiune nouă doar din contul care a publicat versiunea {{version}}. Schimbați contul cu acela și încercați din nou.",
 			"DETAILS": "Detalii",
 			"BACK": "Înapoi la revizuire",
 			"USE-ORG": "Folosește contul organizației",
@@ -1239,6 +1253,7 @@
 				"ISSUER": "Adresa emitentului de token",
 				"CLIENT-ID": "Client Id",
 				"CLIENT-SECRET": "Client Secret",
+				"CLIENT-SECRET-STORED": "Stocat criptat. Lăsați gol pentru a-l păstra.",
 				"SHOW-SECRET": "Afișează Client Secret",
 				"HIDE-SECRET": "Ascunde Client Secret",
 				"SCOPE": "Domeniu",
@@ -3393,6 +3408,7 @@
 			"CONFIRM": "Importă",
 			"CANCEL": "Anulează",
 			"SUCCESS": "Definiție importată. Verificați modificările și salvați pentru a le păstra.",
+			"SUCCESS-AUTH": "Definiție importată. Corpurile de autentificare nu sunt exportate niciodată, așa că introduceți-le din nou înainte de salvare.",
 			"INVALID-FILE": "The selected file could not be read as a valid definition export."
 		},
 		"ABOUT": {
@@ -3482,6 +3498,7 @@
 			"URL": "URL token",
 			"BODY": "Corpul cererii",
 			"BODY-HINT": "Trimis ca JSON.",
+			"BODY-STORED": "Stocat criptat. Lăsați gol pentru a-l păstra.",
 			"STEP-READ": "Citește token-ul din răspuns",
 			"TOKEN-FIELD": "Câmpul token-ului",
 			"TOKEN-FIELD-HINT": "Un câmp de nivel superior al răspunsului, nu o cale.",
@@ -3677,6 +3694,7 @@
 			"CONFIRM": "Importă",
 			"CANCEL": "Anulează",
 			"SUCCESS": "Definiție importată. Verificați modificările și salvați pentru a le păstra.",
+			"SUCCESS-AUTH": "Definiție importată. Corpurile de autentificare nu sunt exportate niciodată, așa că introduceți-le din nou înainte de salvare.",
 			"INVALID-FILE": "The selected file could not be read as a valid definition export."
 		},
 		"HEADER": {
@@ -3902,6 +3920,7 @@
 			"SECTION-TITLE": "Dă un nume secțiunii.",
 			"SECTION-EMPTY": "Secțiunea are nevoie de cel puțin o întrebare, o subsecțiune sau șabloane de resursă.",
 			"TEMPLATE-ROW": "Un rând de șablon de resursă este incomplet.",
+			"TEMPLATES-REQUIRED": "Adăugați cel puțin un șablon de resursă sau permiteți autorilor să adauge alte șabloane.",
 			"QUESTION-TITLE": "Dă un titlu întrebării. Autorii îl văd ca etichetă.",
 			"QUESTION-NO-INPUT": "Întrebarea nu are nicio intrare.",
 			"INPUT-NO-TYPE": "Alege un tip pentru intrare",
@@ -5441,6 +5460,10 @@
 				"TITLE": "Începeți din bara laterală",
 				"CONTENT": "Plan nou și Resursă nouă se află în bara laterală, sub Planurile mele și Resursele mele, astfel încât puteți începe de pe orice pagină."
 			},
+			"RECOMMENDATIONS": {
+				"TITLE": "Recomandate pentru dvs.",
+				"CONTENT": "Plan Blueprints și Șabloanele de resursă recomandate de organizația dvs. Porniți un plan direct dintr-un blueprint sau deschideți unul pentru a vedea ce întrebări conține."
+			},
 			"ACTIVITY": {
 				"TITLE": "Activitatea dvs. recentă",
 				"CONTENT": "Planurile și resursele la care ați lucrat cel mai recent, cele mai noi primele. Filele restrâng lista doar la planuri sau doar la resurse."
@@ -5465,6 +5488,26 @@
 				"TITLE": "Ajutor, limbă și contul dvs.",
 				"CONTENT": "La Asistență găsiți ghidul de utilizare, întrebările frecvente și glosarul și puteți relua acest tur. Alături puteți schimba limba. În meniul organizației puteți schimba organizația dacă aparțineți mai multora, deoarece fiecare are propriile planuri, resurse și blueprints. Clopoțelul afișează notificările dvs., iar lângă el se află profilul dvs."
 			}
+		},
+		"RECOMMENDATIONS": {
+			"FROM": "De la {{tenant}}",
+			"TITLE": "Blueprint-uri și șabloane recomandate",
+			"SUMMARY": "{{count}} blueprint-uri și șabloane recomandate",
+			"RANGE": "{{start}}–{{end}} din {{count}}",
+			"SHOW": "Afișează",
+			"HIDE": "Ascunde",
+			"PREVIOUS": "Recomandările anterioare",
+			"NEXT": "Recomandările următoare",
+			"PLAN-BLUEPRINT": "Plan Blueprint",
+			"DESCRIPTION-TEMPLATE": "Șablon de resursă",
+			"TYPE": "Tip: {{type}}",
+			"VERSION": "Versiunea {{version}}",
+			"USED-IN-PLAN": "Folosit în {{count}} plan",
+			"USED-IN-PLANS": "Folosit în {{count}} planuri",
+			"USED-IN-DESCRIPTION": "Folosit în {{count}} resursă",
+			"USED-IN-DESCRIPTIONS": "Folosit în {{count}} resurse",
+			"START-PLAN": "Porniți un plan cu acesta",
+			"SEE-DETAILS": "Vedeți detaliile"
 		},
 		"GRANTS": "Granturi",
 		"TITLE": "Ce este {{ APP_NAME_CAPS }}?",

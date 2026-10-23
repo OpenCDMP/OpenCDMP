@@ -357,7 +357,14 @@ public class FileTransformerServiceImpl implements FileTransformerService {
                 item.setCode(field.getCode());
                 item.setTextValue(field.getTextValue());
                 if (storedOwn != null && storedOwn.getFields() != null) {
-                    storedOwn.getFields().stream().filter(x -> Objects.equals(x.getCode(), field.getCode())).findFirst().ifPresent(x -> item.setFileValue(x.getFileValue()));
+                    storedOwn.getFields().stream().filter(x -> Objects.equals(x.getCode(), field.getCode())).findFirst().ifPresent(x -> {
+                        item.setFileValue(x.getFileValue());
+                        // the editor never receives a stored secret, so an empty one previews with the saved value
+                        if (field.getTextValue() == null && Boolean.TRUE.equals(x.getSecret())) {
+                            item.setSecret(true);
+                            item.setTextValue(x.getTextValue());
+                        }
+                    });
                 }
                 edited.getFields().add(item);
             }

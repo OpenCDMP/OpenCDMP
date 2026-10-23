@@ -38,6 +38,7 @@ export class ReferenceFieldComponent extends BaseComponent {
 	referenceType = input<ReferenceType>();
 	multiple = input<boolean>(true);
 	definitionSourcekey = input<string>();
+	testReferenceTypeId = input<Guid>();
 
 	@Input() form: UntypedFormGroup = null;
 	@Input() label: string = null;
@@ -70,8 +71,9 @@ export class ReferenceFieldComponent extends BaseComponent {
             const referenceType = this.referenceType();
             const sources = this.sources();
             const dependencies = this.dependencies();
-            const multiple = this.multiple();
-            const definitionSourcekey = this.definitionSourcekey();
+            // read so the effect runs again when they change
+            this.multiple();
+            this.definitionSourcekey();
 
             if(!referenceType && !sources){ return; }
             if(referenceType){
@@ -97,7 +99,7 @@ export class ReferenceFieldComponent extends BaseComponent {
         if (this.multiple()) { 
             this.singleAutoCompleteSearchConfiguration = null;
             this.multipleAutoCompleteSearchConfiguration = this.sources()?.length ? 
-                this.referenceService.getMultipleAutoCompleteTestSearchConfiguration(this.referenceToUse, this.definitionSourcekey(), this.sources()) :
+                this.referenceService.getMultipleAutoCompleteTestSearchConfiguration(this.referenceToUse, this.definitionSourcekey(), this.sources(), this.testReferenceTypeId()) :
                 this.referenceService.getMultipleAutoCompleteSearchConfiguration(this.referenceType().id, this.referenceToUse);
             // Selected references render as expandable cards below the input (see template), so the
             // autocomplete's own chips are hidden via CSS. Dropdown options keep the rich card.
@@ -107,7 +109,7 @@ export class ReferenceFieldComponent extends BaseComponent {
         } else {
             this.multipleAutoCompleteSearchConfiguration = null;
             this.singleAutoCompleteSearchConfiguration = this.sources()?.length ? 
-                this.referenceService.getSingleAutocompleteTestSearchConfiguration(this.referenceToUse, this.definitionSourcekey(), this.sources()) :
+                this.referenceService.getSingleAutocompleteTestSearchConfiguration(this.referenceToUse, this.definitionSourcekey(), this.sources(), this.testReferenceTypeId()) :
                 this.referenceService.getSingleAutocompleteSearchConfiguration(this.referenceType().id, this.referenceToUse);
             if (this.singleAutoCompleteSearchConfiguration) {
                 this.singleAutoCompleteSearchConfiguration.optionTemplate = this.optionCardTemplate;

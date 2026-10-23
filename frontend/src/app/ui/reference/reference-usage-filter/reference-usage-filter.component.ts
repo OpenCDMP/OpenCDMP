@@ -11,6 +11,7 @@ import { ReferenceTypeService } from '@app/core/services/reference-type/referenc
 import { ReferenceService } from '@app/core/services/reference/reference.service';
 import { Guid } from '@common/types/guid';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { ReferenceTypeNamePipe } from '@app/core/pipes/reference-type-name.pipe';
 import { nameof } from 'ts-simple-nameof';
 import { ReferenceToggle, ReferenceUsageSectionComponent } from './reference-usage-section.component';
 
@@ -26,7 +27,7 @@ import { ReferenceToggle, ReferenceUsageSectionComponent } from './reference-usa
 	selector: 'app-reference-usage-filter',
 	templateUrl: './reference-usage-filter.component.html',
 	changeDetection: ChangeDetectionStrategy.OnPush,
-	imports: [ReferenceUsageSectionComponent, TranslateModule]
+	imports: [ReferenceUsageSectionComponent, TranslateModule, ReferenceTypeNamePipe]
 })
 export class ReferenceUsageFilterComponent {
 	private readonly referenceService = inject(ReferenceService);
@@ -103,8 +104,8 @@ export class ReferenceUsageFilterComponent {
 		this.expanded.update(x => ({ ...x, [key]: value }));
 	}
 
-	protected searchLabelFor(type: ReferenceType): string {
-		return this.language.instant('REFERENCE-USAGE-FILTER.SEARCH-TYPE', { name: type?.name ?? '' });
+	protected searchLabelFor(name: string): string {
+		return this.language.instant('REFERENCE-USAGE-FILTER.SEARCH-TYPE', { name: name ?? '' });
 	}
 
 	protected onToggle(toggle: ReferenceToggle): void {
@@ -156,7 +157,7 @@ export class ReferenceUsageFilterComponent {
 		lookup.ids = [typeId];
 		lookup.isActive = [IsActive.Active];
 		lookup.page = { offset: 0, size: 1 };
-		lookup.project = { fields: [nameof<ReferenceType>(x => x.id), nameof<ReferenceType>(x => x.name)] };
+		lookup.project = { fields: [nameof<ReferenceType>(x => x.id), nameof<ReferenceType>(x => x.name), nameof<ReferenceType>(x => x.code)] };
 		lookup.order = { items: [nameof<ReferenceType>(x => x.name)] };
 		this.referenceTypeService.query(lookup).pipe(takeUntilDestroyed(this.destroyRef)).subscribe(result => {
 			const type = result?.items?.[0];

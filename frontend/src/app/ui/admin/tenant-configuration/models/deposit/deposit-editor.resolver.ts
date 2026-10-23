@@ -21,7 +21,7 @@ export class DepositEditorResolver extends BaseEditorResolver {
 			nameof<TenantConfiguration>(x => x.type),
 
 			[nameof<TenantConfiguration>(x => x.depositPlugins), nameof<DepositTenantConfiguration>(x => x.sources), nameof<DepositSource>(x => x.clientId)].join('.'),
-			[nameof<TenantConfiguration>(x => x.depositPlugins), nameof<DepositTenantConfiguration>(x => x.sources), nameof<DepositSource>(x => x.clientSecret)].join('.'),
+			[nameof<TenantConfiguration>(x => x.depositPlugins), nameof<DepositTenantConfiguration>(x => x.sources), nameof<DepositSource>(x => x.clientSecretSet)].join('.'),
 			[nameof<TenantConfiguration>(x => x.depositPlugins), nameof<DepositTenantConfiguration>(x => x.sources), nameof<DepositSource>(x => x.issuerUrl)].join('.'),
 			[nameof<TenantConfiguration>(x => x.depositPlugins), nameof<DepositTenantConfiguration>(x => x.sources), nameof<DepositSource>(x => x.repositoryId)].join('.'),
 			[nameof<TenantConfiguration>(x => x.depositPlugins), nameof<DepositTenantConfiguration>(x => x.sources), nameof<DepositSource>(x => x.scope)].join('.'),

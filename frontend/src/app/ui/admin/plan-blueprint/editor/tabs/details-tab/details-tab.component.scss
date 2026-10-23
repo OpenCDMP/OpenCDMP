@@ -2,6 +2,11 @@
 @use '../../../../structure-editor/bp2-details' as *;
 
 .dt-full { width: 100%; }
+.dt-editors { gap: .5rem !important; }
+.dt-editors__people { display: flex; align-items: center; gap: .875rem; }
+.dt-editors__text { display: flex; flex-direction: column; gap: .125rem; min-width: 0; }
+.dt-avatars { display: flex; flex: none; }
+.dt-avatar { width: 34px; height: 34px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: .75rem; font-weight: 700; background: var(--mat-sys-secondary-container); color: var(--mat-sys-on-secondary-container); border: 2px solid var(--mat-sys-surface); & + & { margin-left: -8px; } &--more { background: var(--mat-sys-surface-container-high); color: var(--mat-sys-on-surface); } }
 .dt-consent__switch { flex: none; margin-top: -.25rem; font-weight: 700; }
 .dt-preview-consent {
 	padding: .875rem; border: 1px solid var(--mat-sys-outline-variant); border-radius: 12px; background: var(--mat-sys-surface-container-low);

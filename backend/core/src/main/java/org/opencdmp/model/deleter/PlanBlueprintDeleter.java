@@ -9,8 +9,10 @@ import org.opencdmp.commons.enums.kpi.KpiDirectionType;
 import org.opencdmp.commons.enums.kpi.KpiVersionType;
 import org.opencdmp.data.PlanBlueprintEntity;
 import org.opencdmp.data.TenantEntityManagerFactory;
+import org.opencdmp.data.UserPlanBlueprintEntity;
 import org.opencdmp.errorcode.ErrorThesaurusProperties;
 import org.opencdmp.query.PlanBlueprintQuery;
+import org.opencdmp.query.UserPlanBlueprintQuery;
 import gr.cite.tools.data.deleter.Deleter;
 import gr.cite.tools.data.deleter.DeleterFactory;
 import gr.cite.tools.data.query.QueryFactory;
@@ -30,6 +32,7 @@ import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Component
 @Scope(value = ConfigurableBeanFactory.SCOPE_PROTOTYPE)
@@ -85,6 +88,14 @@ public class PlanBlueprintDeleter implements Deleter {
         logger.debug("will delete {} items", Optional.ofNullable(data).map(List::size).orElse(0));
         if (data == null || data.isEmpty())
             return;
+
+        List<UUID> ids = data.stream().map(PlanBlueprintEntity::getId).distinct().collect(Collectors.toList());
+        {
+            logger.debug("checking related - {}", UserPlanBlueprintEntity.class.getSimpleName());
+            List<UserPlanBlueprintEntity> items = this.queryFactory.query(UserPlanBlueprintQuery.class).planBlueprintIds(ids).collect();
+            UserPlanBlueprintDeleter deleter = this.deleterFactory.deleter(UserPlanBlueprintDeleter.class);
+            deleter.delete(items);
+        }
 
         Instant now = Instant.now();
 

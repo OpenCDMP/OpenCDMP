@@ -6,6 +6,7 @@ import gr.cite.commons.web.authz.policy.AuthorizationRequirement;
 import gr.cite.commons.web.oidc.principal.MyPrincipal;
 import org.opencdmp.commons.enums.PlanUserRole;
 import org.opencdmp.commons.enums.UserDescriptionTemplateRole;
+import org.opencdmp.commons.enums.UserPlanBlueprintRole;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -39,13 +40,15 @@ public class AffiliatedAuthorizationHandler extends AuthorizationHandler<Affilia
 		int hits = 0;
 		HashSet<PlanUserRole> planUserRoles = rs != null && rs.getPlanUserRoles() != null ? rs.getPlanUserRoles() : null;
 		HashSet<UserDescriptionTemplateRole> userDescriptionTemplateRoles = rs != null && rs.getUserDescriptionTemplateRoles() != null ? rs.getUserDescriptionTemplateRoles() : null;
+		HashSet<UserPlanBlueprintRole> userPlanBlueprintRoles = rs != null && rs.getUserPlanBlueprintRoles() != null ? rs.getUserPlanBlueprintRoles() : null;
 
 		for (String permission : req.getRequiredPermissions()) {
 			CustomPermissionAttributesProperties.MyPermission policy = this.myConfiguration.getMyPolicies().get(permission);
 			boolean hasPlanPermission = policy != null && this.hasPermission(policy.getPlan(), planUserRoles);
 			boolean hasDescriptionTemplatePermission = policy != null && this.hasPermission(policy.getDescriptionTemplate(), userDescriptionTemplateRoles);
+			boolean hasPlanBlueprintPermission = policy != null && this.hasPermission(policy.getPlanBlueprint(), userPlanBlueprintRoles);
 
-			if (hasPlanPermission || hasDescriptionTemplatePermission) hits += 1;
+			if (hasPlanPermission || hasDescriptionTemplatePermission || hasPlanBlueprintPermission) hits += 1;
 		}
 		if ((req.getMatchAll() && req.getRequiredPermissions().size() == hits) || (!req.getMatchAll() && hits > 0))
 			return ACCESS_GRANTED;
@@ -59,6 +62,18 @@ public class AffiliatedAuthorizationHandler extends AuthorizationHandler<Affilia
 		if (descriptionTemplateRole == null || descriptionTemplateRole.getRoles() == null)
 			return Boolean.FALSE;
 		for (UserDescriptionTemplateRole role : descriptionTemplateRole.getRoles()) {
+			if (roles.contains(role))
+				return Boolean.TRUE;
+		}
+		return Boolean.FALSE;
+	}
+
+	private Boolean hasPermission(PlanBlueprintRole planBlueprintRole, HashSet<UserPlanBlueprintRole> roles) {
+		if (roles == null)
+			return Boolean.FALSE;
+		if (planBlueprintRole == null || planBlueprintRole.getRoles() == null)
+			return Boolean.FALSE;
+		for (UserPlanBlueprintRole role : planBlueprintRole.getRoles()) {
 			if (roles.contains(role))
 				return Boolean.TRUE;
 		}

@@ -32,12 +32,19 @@ import jakarta.xml.bind.JAXBException;
 import org.jetbrains.annotations.NotNull;
 import org.opencdmp.authorization.AuthorizationFlags;
 import org.opencdmp.authorization.Permission;
+import org.opencdmp.authorization.authorizationcontentresolver.AuthorizationContentResolverFactory;
 import org.opencdmp.commonmodels.models.planblueprint.*;
+import org.opencdmp.commons.JsonHandlingService;
 import org.opencdmp.commons.XmlHandlingService;
 import org.opencdmp.commons.enums.*;
 import org.opencdmp.commons.enums.kpi.KpiDirectionType;
 import org.opencdmp.commons.enums.kpi.KpiVersionType;
+import org.opencdmp.commons.notification.NotificationProperties;
 import org.opencdmp.commons.scope.tenant.TenantScopeFactory;
+import org.opencdmp.commons.scope.user.UserScopeFactory;
+import org.opencdmp.commons.types.notification.DataType;
+import org.opencdmp.commons.types.notification.FieldInfo;
+import org.opencdmp.commons.types.notification.NotificationFieldData;
 import org.opencdmp.commons.types.descriptiontemplate.FieldSetEntity;
 import org.opencdmp.model.persist.descriptiontemplatedefinition.FieldSetPersist;
 import org.opencdmp.model.persist.descriptiontemplatedefinition.RulePersist;
@@ -49,16 +56,21 @@ import org.opencdmp.commons.types.pluginconfiguration.importexport.PluginConfigu
 import org.opencdmp.convention.ConventionService;
 import org.opencdmp.data.*;
 import org.opencdmp.errorcode.ErrorThesaurusProperties;
+import org.opencdmp.integrationevent.outbox.notification.NotifyIntegrationEvent;
+import org.opencdmp.integrationevent.outbox.notification.NotifyIntegrationEventHandler;
 import org.opencdmp.model.builder.planblueprint.PlanBlueprintBuilder;
 import org.opencdmp.model.deleter.PlanBlueprintDeleter;
+import org.opencdmp.model.deleter.UserPlanBlueprintDeleter;
 import org.opencdmp.model.descriptiontemplate.DescriptionTemplate;
 import org.opencdmp.model.persist.NewVersionPlanBlueprintPersist;
 import org.opencdmp.model.persist.PlanBlueprintPersist;
+import org.opencdmp.model.persist.UserPlanBlueprintPersist;
 import org.opencdmp.model.persist.planblueprintdefinition.*;
 import org.opencdmp.model.persist.pluginconfiguration.PluginConfigurationPersist;
 import org.opencdmp.model.pluginconfiguration.PluginConfiguration;
 import org.opencdmp.model.prefillingsource.PrefillingSource;
 import org.opencdmp.model.referencetype.ReferenceType;
+import org.opencdmp.model.user.User;
 import org.opencdmp.query.*;
 import org.opencdmp.service.accounting.AccountingService;
 import org.opencdmp.service.kpi.KpiService;
@@ -130,6 +142,16 @@ public class PlanBlueprintServiceImpl implements PlanBlueprintService {
 
     private final PlanBlueprintDescriptionTemplateFieldsService fieldsService;
 
+    private final AuthorizationContentResolverFactory authorizationContentResolverFactory;
+
+    private final UserScopeFactory userScopeFactory;
+
+    private final JsonHandlingService jsonHandlingService;
+
+    private final NotifyIntegrationEventHandler eventHandler;
+
+    private final NotificationProperties notificationProperties;
+
     @Autowired
     public PlanBlueprintServiceImpl(
             TenantEntityManagerFactory tenantEntityManagerFactory,
@@ -143,7 +165,8 @@ public class PlanBlueprintServiceImpl implements PlanBlueprintService {
             ErrorThesaurusProperties errors,
             PluginConfigurationService pluginConfigurationService, PluginIntegrationService pluginIntegrationService,
             ValidatorFactory validatorFactory, TenantScopeFactory tenantScopeFactory, UsageLimitService usageLimitService, AccountingService accountingService, LockService lockService, StorageFileService storageFileService, KpiService kpiService, IconConfigurationService iconConfigurationService,
-            org.opencdmp.service.fielddatahelper.FieldDataHelperServiceProvider fieldDataHelperServiceProvider, PlanBlueprintDescriptionTemplateFieldsService fieldsService) {
+            org.opencdmp.service.fielddatahelper.FieldDataHelperServiceProvider fieldDataHelperServiceProvider, PlanBlueprintDescriptionTemplateFieldsService fieldsService,
+            AuthorizationContentResolverFactory authorizationContentResolverFactory, UserScopeFactory userScopeFactory, JsonHandlingService jsonHandlingService, NotifyIntegrationEventHandler eventHandler, NotificationProperties notificationProperties) {
         this.tenantEntityManagerFactory = tenantEntityManagerFactory;
         this.authorizationService = authorizationService;
         this.deleterFactory = deleterFactory;
@@ -166,6 +189,11 @@ public class PlanBlueprintServiceImpl implements PlanBlueprintService {
         this.iconConfigurationService = iconConfigurationService;
         this.fieldDataHelperServiceProvider = fieldDataHelperServiceProvider;
         this.fieldsService = fieldsService;
+        this.authorizationContentResolverFactory = authorizationContentResolverFactory;
+        this.userScopeFactory = userScopeFactory;
+        this.jsonHandlingService = jsonHandlingService;
+        this.eventHandler = eventHandler;
+        this.notificationProperties = notificationProperties;
     }
 
     //region Persist
@@ -194,9 +222,9 @@ public class PlanBlueprintServiceImpl implements PlanBlueprintService {
     public PlanBlueprint persist(PlanBlueprintPersist model, UUID groupId, FieldSet fields) throws MyForbiddenException, MyValidationException, MyApplicationException, MyNotFoundException, InvalidApplicationException, JAXBException, JacksonException, TransformerException, ParserConfigurationException {
         logger.debug(new MapLogEntry("persisting data").And("model", model).And("fields", fields));
 
-        this.authorizationService.authorizeForce(Permission.EditPlanBlueprint);
-
         Boolean isUpdate = this.conventionService.isValidGuid(model.getId());
+        if (isUpdate) this.authorizationService.authorizeAtLeastOneForce(List.of(this.authorizationContentResolverFactory.getInstance().planBlueprintAffiliation(model.getId())), Permission.EditPlanBlueprint);
+        else this.authorizationService.authorizeForce(Permission.EditPlanBlueprint);
 
         PlanBlueprintEntity data;
         if (isUpdate) {
@@ -267,6 +295,8 @@ public class PlanBlueprintServiceImpl implements PlanBlueprintService {
             if (data.getTypeId() != null) this.kpiService.sendIndicatorPointPlanBlueprintPerTypeEntry(KpiDirectionType.Increase, data.getTypeId());
         }
 
+        this.persistUsers(data.getId(), model.getUsers());
+
         this.tenantEntityManagerFactory.getInstance().flush();
 
         if (!isUpdate) {
@@ -288,6 +318,89 @@ public class PlanBlueprintServiceImpl implements PlanBlueprintService {
         }
 
         return this.builderFactory.builder(PlanBlueprintBuilder.class).authorize(AuthorizationFlags.AllExceptPublic).build(BaseFieldSet.build(fields, PlanBlueprint._id), data);
+    }
+
+    /**
+     * The blueprint's editors, saved on their own like the asset template's: the blueprint itself (and its hash) is left
+     * untouched, so a draft being edited elsewhere does not conflict with it.
+     */
+    public PlanBlueprint assignUsers(UUID id, List<UserPlanBlueprintPersist> users, FieldSet fields) throws MyForbiddenException, MyApplicationException, MyNotFoundException, InvalidApplicationException {
+        logger.debug(new MapLogEntry("assigning users to planBlueprint").And("id", id).And("users", users));
+
+        this.authorizationService.authorizeAtLeastOneForce(List.of(this.authorizationContentResolverFactory.getInstance().planBlueprintAffiliation(id)), Permission.EditPlanBlueprint);
+
+        PlanBlueprintEntity data = this.tenantEntityManagerFactory.getInstance().find(PlanBlueprintEntity.class, id);
+        if (data == null || data.getIsActive() != IsActive.Active)
+            throw new MyNotFoundException(this.messageSource.getMessage("General_ItemNotFound", new Object[]{id, PlanBlueprint.class.getSimpleName()}, LocaleContextHolder.getLocale()));
+        if (this.lockService.isLocked(data.getId(), null).getStatus()) throw new MyApplicationException(this.errors.getLockedPlanBlueprint().getCode(), this.errors.getLockedPlanBlueprint().getMessage());
+
+        this.persistUsers(data.getId(), users);
+        this.tenantEntityManagerFactory.getInstance().flush();
+
+        return this.builderFactory.builder(PlanBlueprintBuilder.class).authorize(AuthorizationFlags.AllExceptPublic).build(BaseFieldSet.build(fields, PlanBlueprint._id), data);
+    }
+
+    private void persistUsers(UUID id, List<UserPlanBlueprintPersist> users) throws InvalidApplicationException {
+        if (users == null)
+            users = new ArrayList<>();
+        List<UserPlanBlueprintEntity> items = this.queryFactory.query(UserPlanBlueprintQuery.class).disableTracking().isActive(IsActive.Active).planBlueprintIds(id).collect();
+        List<UUID> updatedCreatedIds = new ArrayList<>();
+        for (UserPlanBlueprintPersist user : users) {
+            // one row per person: a changed role updates the row instead of adding a second one next to it
+            UserPlanBlueprintEntity data = items.stream().filter(x -> x.getUserId().equals(user.getUserId())).findFirst().orElse(null);
+            if (data != null && !data.getRole().equals(user.getRole())) {
+                data.setRole(user.getRole());
+                data.setUpdatedAt(Instant.now());
+                this.tenantEntityManagerFactory.getInstance().merge(data);
+            }
+            if (data == null) {
+                data = new UserPlanBlueprintEntity();
+                data.setId(UUID.randomUUID());
+                data.setIsActive(IsActive.Active);
+                data.setCreatedAt(Instant.now());
+                data.setUpdatedAt(Instant.now());
+                data.setPlanBlueprintId(id);
+                data.setUserId(user.getUserId());
+                data.setRole(user.getRole());
+                this.tenantEntityManagerFactory.getInstance().persist(data);
+                if (!this.userScopeFactory.getInstance().getUserId().equals(user.getUserId())) {
+                    PlanBlueprintEntity planBlueprint = this.queryFactory.query(PlanBlueprintQuery.class).disableTracking().isActive(IsActive.Active).ids(data.getPlanBlueprintId()).first();
+                    if (planBlueprint == null) {
+                        throw new MyNotFoundException(this.messageSource.getMessage("General_ItemNotFound", new Object[]{data.getPlanBlueprintId(), PlanBlueprint.class.getSimpleName()}, LocaleContextHolder.getLocale()));
+                    }
+                    this.sendPlanBlueprintInvitationEvent(data, planBlueprint);
+                }
+            }
+            updatedCreatedIds.add(data.getUserId());
+        }
+        List<UserPlanBlueprintEntity> toDelete = items.stream().filter(x -> updatedCreatedIds.stream().noneMatch(y -> y.equals(x.getUserId()))).collect(Collectors.toList());
+
+        this.deleterFactory.deleter(UserPlanBlueprintDeleter.class).delete(toDelete);
+    }
+
+    private void sendPlanBlueprintInvitationEvent(UserPlanBlueprintEntity userPlanBlueprint, PlanBlueprintEntity planBlueprint) throws InvalidApplicationException {
+        NotifyIntegrationEvent event = new NotifyIntegrationEvent();
+
+        UserEntity user = this.tenantEntityManagerFactory.getInstance().find(UserEntity.class, userPlanBlueprint.getUserId(), true);
+        if (user == null) {
+            throw new MyNotFoundException(this.messageSource.getMessage("General_ItemNotFound", new Object[]{userPlanBlueprint.getUserId(), User.class.getSimpleName()}, LocaleContextHolder.getLocale()));
+        }
+
+        if (user.getIsActive().equals(IsActive.Inactive)) throw new MyValidationException(this.errors.getPlanBlueprintInactiveUser().getCode(), this.errors.getPlanBlueprintInactiveUser().getMessage());
+
+        event.setUserId(user.getId());
+        event.setNotificationType(this.notificationProperties.getPlanBlueprintInvitationType());
+        NotificationFieldData data = new NotificationFieldData();
+        List<FieldInfo> fieldInfoList = new ArrayList<>();
+        fieldInfoList.add(new FieldInfo("{recipient}", DataType.String, user.getName()));
+        fieldInfoList.add(new FieldInfo("{blueprintName}", DataType.String, planBlueprint.getLabel()));
+        fieldInfoList.add(new FieldInfo("{blueprintID}", DataType.String, planBlueprint.getId().toString()));
+        if (this.tenantScopeFactory.getInstance().getTenantCode() != null && !this.tenantScopeFactory.getInstance().getTenantCode().equals(this.tenantScopeFactory.getInstance().getDefaultTenantCode())) {
+            fieldInfoList.add(new FieldInfo("{tenant-url-path}", DataType.String, String.format("/t/%s", this.tenantScopeFactory.getInstance().getTenantCode())));
+        }
+        data.setFields(fieldInfoList);
+        event.setData(this.jsonHandlingService.toJsonSafe(data));
+        this.eventHandler.handle(event);
     }
 
     private void updateVersionStatusAndSave(PlanBlueprintEntity data, PlanBlueprintStatus previousStatus, PlanBlueprintStatus newStatus) throws InvalidApplicationException {
@@ -605,6 +718,8 @@ public class PlanBlueprintServiceImpl implements PlanBlueprintService {
 
         this.tenantEntityManagerFactory.getInstance().persist(data);
 
+        this.persistUsers(data.getId(), model.getUsers());
+
         this.tenantEntityManagerFactory.getInstance().flush();
 
         this.updateVersionStatusAndSave(data, PlanBlueprintStatus.Draft, data.getStatus());
@@ -632,7 +747,7 @@ public class PlanBlueprintServiceImpl implements PlanBlueprintService {
     public BlueprintImportExport getExportXmlEntity(UUID id, boolean ignoreAuthorize) throws MyForbiddenException, MyNotFoundException, JAXBException, ParserConfigurationException, IOException, InstantiationException, IllegalAccessException, SAXException, InvalidApplicationException {
         logger.debug(new MapLogEntry("export xml").And("id", id));
 
-        if (!ignoreAuthorize) this.authorizationService.authorizeForce(Permission.ExportPlanBlueprint);
+        if (!ignoreAuthorize) this.authorizationService.authorizeAtLeastOneForce(List.of(this.authorizationContentResolverFactory.getInstance().planBlueprintAffiliation(id)), Permission.ExportPlanBlueprint);
         PlanBlueprintEntity data = this.queryFactory.query(PlanBlueprintQuery.class).disableTracking().ids(id).authorize(AuthorizationFlags.AllExceptPublic).first();
         if (data == null) throw new MyNotFoundException(this.messageSource.getMessage("General_ItemNotFound", new Object[]{id, PlanBlueprint.class.getSimpleName()}, LocaleContextHolder.getLocale()));
 

@@ -3,6 +3,7 @@ package org.opencdmp.model.censorship.planblueprint;
 import org.opencdmp.authorization.Permission;
 import org.opencdmp.convention.ConventionService;
 import org.opencdmp.model.censorship.BaseCensor;
+import org.opencdmp.model.censorship.UserPlanBlueprintCensor;
 import org.opencdmp.model.planblueprint.PlanBlueprint;
 import gr.cite.commons.web.authz.service.AuthorizationService;
 import gr.cite.tools.data.censor.CensorFactory;
@@ -41,6 +42,8 @@ public class PlanBlueprintCensor extends BaseCensor {
         this.authService.authorizeForce(Permission.BrowsePlanBlueprint);
         FieldSet definitionFields = fields.extractPrefixed(this.asIndexerPrefix(PlanBlueprint._definition));
         this.censorFactory.censor(DefinitionCensor.class).censor(definitionFields, userId);
+        FieldSet usersFields = fields.extractPrefixed(this.asIndexerPrefix(PlanBlueprint._users));
+        this.censorFactory.censor(UserPlanBlueprintCensor.class).censor(usersFields, userId);
     }
 
 }

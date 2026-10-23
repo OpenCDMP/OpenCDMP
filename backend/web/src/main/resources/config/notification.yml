@@ -16,6 +16,7 @@ notification:
   removeCredentialConfirmationType: C9BC3F16-057E-4BBA-8A5F-36BD835E5604
   planDepositType: 55736F7A-83AB-4190-AF43-9D031A6F9612
   descriptionTemplateInvitationType: 223BB607-EFA1-4CE7-99EC-4BEABFEF9A8B
+  planBlueprintInvitationType: 6B6915C6-6483-4677-BACA-2D5E73333DA3
   contactSupportType: 5B1D6C52-88F9-418B-9B8A-6F1F963D9EAD
   publicContactSupportType: B542B606-ACC6-4629-ADEF-4D8EE2F01222
   tenantSpecificInvitationExternalUserType: 497dada5-eccc-4bc0-9e0b-63e22b4eb0be

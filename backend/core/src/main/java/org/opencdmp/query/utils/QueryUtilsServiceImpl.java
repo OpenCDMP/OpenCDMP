@@ -68,6 +68,21 @@ public class QueryUtilsServiceImpl implements QueryUtilsService {
     }
 
     @Override
+    public Subquery<UUID> buildUserPlanBlueprintEntityAuthZSubQuery(AbstractQuery<?> query, CriteriaBuilder criteriaBuilder, UUID userId){
+        return this.buildSubQuery(new BuildSubQueryInput<>(new BuildSubQueryInput.Builder<>(UserPlanBlueprintEntity.class, UUID.class)
+                .query(query)
+                .criteriaBuilder(criteriaBuilder)
+                .keyPathFunc((subQueryRoot) -> subQueryRoot.get(UserPlanBlueprintEntity._planBlueprintId))
+                .filterFunc((subQueryRoot, cb) ->
+                        userId != null ? cb.and(
+                                cb.equal(subQueryRoot.get(UserPlanBlueprintEntity._userId), userId),
+                                cb.equal(subQueryRoot.get(UserPlanBlueprintEntity._isActive), IsActive.Active)
+                        ) : cb.or() //Creates a false query
+                )
+        ));
+    }
+
+    @Override
     public Subquery<UUID> buildDescriptionAuthZSubQuery(AbstractQuery<?> query, CriteriaBuilder criteriaBuilder, UUID userId, Boolean usePublic) {
         return this.buildSubQuery(new BuildSubQueryInput<>(
                 new BuildSubQueryInput.Builder<>(DescriptionEntity.class, UUID.class)
@@ -93,9 +108,9 @@ public class QueryUtilsServiceImpl implements QueryUtilsService {
                                                                 this.buildSubQuery(new BuildSubQueryInput<>(new BuildSubQueryInput.Builder<>(PlanEntity.class, UUID.class)
                                                                         .query(query)
                                                                         .criteriaBuilder(criteriaBuilder)
-                                                                        .keyPathFunc((subQueryRoot2) -> subQueryRoot.get(PlanEntity._id))
+                                                                        .keyPathFunc((subQueryRoot2) -> subQueryRoot2.get(PlanEntity._id))
                                                                         .filterFunc((subQueryRoot2, cb2) ->
-                                                                                cb2.equal(subQueryRoot.get(PlanEntity._isActive), IsActive.Inactive)
+                                                                                cb2.equal(subQueryRoot2.get(PlanEntity._isActive), IsActive.Inactive)
                                                                         )
                                                                 ))
                                                         )

@@ -120,6 +120,9 @@ public class AccountBuilder {
             if (!permissions.contains(org.opencdmp.authorization.Permission.ViewDescriptionTemplatePage)){
                 if (this.authorizationContentResolverFactory.getInstance().hasAtLeastOneDescriptionTemplateAffiliation()) permissions.add(org.opencdmp.authorization.Permission.ViewDescriptionTemplatePage);
             }
+            if (!permissions.contains(org.opencdmp.authorization.Permission.ViewPlanBlueprintPage)){
+                if (this.authorizationContentResolverFactory.getInstance().hasAtLeastOnePlanBlueprintAffiliation()) permissions.add(org.opencdmp.authorization.Permission.ViewPlanBlueprintPage);
+            }
             model.setPermissions(new ArrayList<>(permissions));
         }
 

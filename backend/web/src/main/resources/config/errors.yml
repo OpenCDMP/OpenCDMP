@@ -294,3 +294,6 @@ error-thesaurus:
   status-transition-not-allowed:
     code: 210
     message: The workflow does not allow this status change
+  plan-blueprint-inactive-user:
+    code: 211
+    message: user dont exist

@@ -23,6 +23,7 @@ public class AuditableAction {
     public static final EventId PlanBlueprint_PersistNewVersion = new EventId(3005, "PlanBlueprint_PersistNewVersion");
     public static final EventId PlanBlueprint_GetXml = new EventId(3006, "PlanBlueprint_GetXml");
     public static final EventId PlanBlueprint_Import = new EventId(3007, "PlanBlueprint_Import");
+    public static final EventId PlanBlueprint_AssignUsers = new EventId(3012, "PlanBlueprint_AssignUsers");
 
     public static final EventId PlanBlueprintType_Query = new EventId(3008, "PlanBlueprintType_Query");
     public static final EventId PlanBlueprintType_Lookup = new EventId(3009, "PlanBlueprintType_Lookup");

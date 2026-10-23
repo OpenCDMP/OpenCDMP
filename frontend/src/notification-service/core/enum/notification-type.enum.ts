@@ -16,6 +16,7 @@ export enum NotificationType {
 	removeCredentialConfirmationType = 'c9bc3f16-057e-4bba-8a5f-36bd835e5604',
 	planDepositType = '55736f7a-83ab-4190-af43-9d031a6f9612',
 	descriptionTemplateInvitationType = '223bb607-efa1-4ce7-99ec-4beabfef9a8b',
+	planBlueprintInvitationType = '6b6915c6-6483-4677-baca-2d5e73333da3',
 	contactSupportType = '5b1d6c52-88f9-418b-9b8a-6f1f963d9ead',
 	publicContactSupportType = 'b542b606-acc6-4629-adef-4d8ee2f01222',
 	tenantSpecificInvitationExternalUserType = '497dada5-eccc-4bc0-9e0b-63e22b4eb0be',

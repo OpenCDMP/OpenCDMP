@@ -25,6 +25,7 @@ import { ReferenceSourceType } from '@app/core/common/enum/reference-source-type
 import { RoleOrganizationType } from '@app/core/common/enum/role-organization-type';
 import { SupportiveMaterialFieldType } from '@app/core/common/enum/supportive-material-field-type';
 import { UserDescriptionTemplateRole } from '@app/core/common/enum/user-description-template-role';
+import { UserPlanBlueprintRole } from '@app/core/common/enum/user-plan-blueprint-role';
 import { TranslateService } from '@ngx-translate/core';
 import { AppRole } from '../../common/enum/app-role';
 import { PlanBlueprintExtraFieldDataType } from '../../common/enum/plan-blueprint-field-type';
@@ -237,6 +238,13 @@ export class EnumUtils {
 		switch (status) {
 			case UserDescriptionTemplateRole.Member: return this.language.instant('TYPES.USER-DESCRIPTION-TEMPLATE-ROLE.MEMBER');
 			case UserDescriptionTemplateRole.Owner: return this.language.instant('TYPES.USER-DESCRIPTION-TEMPLATE-ROLE.OWNER');
+		}
+	}
+
+	toUserPlanBlueprintRoleString(status: UserPlanBlueprintRole): string {
+		switch (status) {
+			case UserPlanBlueprintRole.Member: return this.language.instant('TYPES.USER-PLAN-BLUEPRINT-ROLE.MEMBER');
+			case UserPlanBlueprintRole.Owner: return this.language.instant('TYPES.USER-PLAN-BLUEPRINT-ROLE.OWNER');
 		}
 	}
 

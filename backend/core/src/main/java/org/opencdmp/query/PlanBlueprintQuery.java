@@ -8,14 +8,19 @@ import jakarta.persistence.EntityManager;
 import jakarta.persistence.Tuple;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.Predicate;
+import jakarta.persistence.criteria.Subquery;
 import org.opencdmp.authorization.AuthorizationFlags;
+import org.opencdmp.authorization.Permission;
 import org.opencdmp.commons.enums.PlanBlueprintStatus;
 import org.opencdmp.commons.enums.PlanBlueprintVersionStatus;
 import org.opencdmp.commons.enums.IsActive;
+import org.opencdmp.commons.scope.user.UserScopeFactory;
 import org.opencdmp.data.PlanBlueprintEntity;
 import org.opencdmp.data.TenantEntity;
 import org.opencdmp.data.TenantEntityManagerFactory;
+import org.opencdmp.data.UserPlanBlueprintEntity;
 import org.opencdmp.model.planblueprint.PlanBlueprint;
+import org.opencdmp.query.utils.BuildSubQueryInput;
 import org.opencdmp.query.utils.QueryUtilsService;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
@@ -54,6 +59,8 @@ public class PlanBlueprintQuery extends QueryBase<PlanBlueprintEntity> {
 
     /** null: any row; false: only rows without a tenant (the default tenant's shared rows); true: only tenant-owned rows. */
     private Boolean tenantIsSet;
+
+    private Boolean onlyCanEdit;
 
     private EnumSet<AuthorizationFlags> authorize = EnumSet.of(AuthorizationFlags.None);
 
@@ -212,6 +219,11 @@ public class PlanBlueprintQuery extends QueryBase<PlanBlueprintEntity> {
         return this;
     }
 
+    public PlanBlueprintQuery onlyCanEdit(Boolean onlyCanEdit) {
+        this.onlyCanEdit = onlyCanEdit;
+        return this;
+    }
+
     public PlanBlueprintQuery tenantIsSet(Boolean value) {
         this.tenantIsSet = value;
         return this;
@@ -242,11 +254,15 @@ public class PlanBlueprintQuery extends QueryBase<PlanBlueprintEntity> {
         return this.tenantEntityManagerFactory.getInstance().getEntityManager();
     }
 
+    private final AuthorizationService authService;
+    private final UserScopeFactory userScopeFactory;
     private final QueryUtilsService queryUtilsService;
     private final TenantEntityManagerFactory tenantEntityManagerFactory;
     public PlanBlueprintQuery(
-		    AuthorizationService authService, QueryUtilsService queryUtilsService, TenantEntityManagerFactory tenantEntityManagerFactory
+		    AuthorizationService authService, UserScopeFactory userScopeFactory, QueryUtilsService queryUtilsService, TenantEntityManagerFactory tenantEntityManagerFactory
     ) {
+	    this.authService = authService;
+	    this.userScopeFactory = userScopeFactory;
 	    this.queryUtilsService = queryUtilsService;
 	    this.tenantEntityManagerFactory = tenantEntityManagerFactory;
     }
@@ -342,6 +358,26 @@ public class PlanBlueprintQuery extends QueryBase<PlanBlueprintEntity> {
             predicates.add(inClause);
         }
 
+        if (this.onlyCanEdit != null) {
+            boolean canEdit = this.authService.authorize(Permission.EditPlanBlueprint);
+            if (!canEdit){
+                UUID userId = this.userScopeFactory.getInstance().getUserIdSafe();
+                if (userId == null){
+                    predicates.add(queryContext.CriteriaBuilder.or()); //Creates a false query
+                } else {
+                    Subquery<UUID> subquery = this.queryUtilsService.buildSubQuery(new BuildSubQueryInput<>(
+                            new BuildSubQueryInput.Builder<>(UserPlanBlueprintEntity.class, UUID.class, queryContext)
+                                    .keyPathFunc((subQueryRoot) -> subQueryRoot.get(UserPlanBlueprintEntity._planBlueprintId))
+                                    .filterFunc((subQueryRoot, cb) -> cb.and(
+                                            cb.equal(subQueryRoot.get(UserPlanBlueprintEntity._userId), userId),
+                                            cb.equal(subQueryRoot.get(UserPlanBlueprintEntity._isActive), IsActive.Active)
+                                    ))
+                    ));
+                    predicates.add(queryContext.CriteriaBuilder.in(queryContext.Root.get(PlanBlueprintEntity._id)).value(subquery));
+                }
+            }
+        }
+
         if (this.tenantIsSet != null) {
             predicates.add(this.tenantIsSet ? queryContext.CriteriaBuilder.isNotNull(queryContext.Root.get(PlanBlueprintEntity._tenantId)) : queryContext.CriteriaBuilder.isNull(queryContext.Root.get(PlanBlueprintEntity._tenantId)));
         }
@@ -396,6 +432,8 @@ public class PlanBlueprintQuery extends QueryBase<PlanBlueprintEntity> {
             return PlanBlueprintEntity._typeId;
         else if (item.match(PlanBlueprint._type))
             return PlanBlueprintEntity._typeId;
+        else if (item.prefix(PlanBlueprint._users))
+            return PlanBlueprintEntity._id;
         else if (item.match(PlanBlueprint._status))
             return PlanBlueprintEntity._status;
         else if (item.match(PlanBlueprint._groupId))

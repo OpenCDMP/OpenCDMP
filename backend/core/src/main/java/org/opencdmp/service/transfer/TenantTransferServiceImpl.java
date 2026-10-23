@@ -676,6 +676,7 @@ public class TenantTransferServiceImpl implements TenantTransferService {
             this.analyzePlain(bundle, context, report, TransferEntityType.DescriptionTag, x -> ((DescriptionTagEntity) x).getId(), ids -> this.queryFactory.query(DescriptionTagQuery.class).disableTracking().ids(ids).collect(), x -> ((DescriptionTagEntity) x).getId());
             this.analyzePlain(bundle, context, report, TransferEntityType.EntityDoi, x -> ((EntityDoiEntity) x).getId(), ids -> this.queryFactory.query(EntityDoiQuery.class).disableTracking().ids(ids).collect(), x -> ((EntityDoiEntity) x).getId());
             this.analyzePlain(bundle, context, report, TransferEntityType.UserDescriptionTemplate, x -> ((UserDescriptionTemplateEntity) x).getId(), ids -> this.queryFactory.query(UserDescriptionTemplateQuery.class).disableTracking().ids(ids).collect(), x -> ((UserDescriptionTemplateEntity) x).getId());
+            this.analyzePlain(bundle, context, report, TransferEntityType.UserPlanBlueprint, x -> ((UserPlanBlueprintEntity) x).getId(), ids -> this.queryFactory.query(UserPlanBlueprintQuery.class).disableTracking().ids(ids).collect(), x -> ((UserPlanBlueprintEntity) x).getId());
 
             Map<String, String> remapStrings = new HashMap<>();
             for (Map.Entry<UUID, UUID> entry : context.idRemap.entrySet()) {
@@ -1184,6 +1185,11 @@ public class TenantTransferServiceImpl implements TenantTransferService {
                 userTemplate.setUserId(context.remap(userTemplate.getUserId()));
                 userTemplate.setDescriptionTemplateId(context.remap(userTemplate.getDescriptionTemplateId()));
             }
+            case UserPlanBlueprint -> {
+                UserPlanBlueprintEntity userBlueprint = (UserPlanBlueprintEntity) item;
+                userBlueprint.setUserId(context.remap(userBlueprint.getUserId()));
+                userBlueprint.setPlanBlueprintId(context.remap(userBlueprint.getPlanBlueprintId()));
+            }
         }
         if (item instanceof TenantScopedBaseEntity tenantScoped) {
             tenantScoped.setTenantId(targetTenantId);
@@ -1602,6 +1608,7 @@ public class TenantTransferServiceImpl implements TenantTransferService {
             case DescriptionReference -> ((DescriptionReferenceEntity) item).setId(newId);
             case DescriptionTag -> ((DescriptionTagEntity) item).setId(newId);
             case UserDescriptionTemplate -> ((UserDescriptionTemplateEntity) item).setId(newId);
+            case UserPlanBlueprint -> ((UserPlanBlueprintEntity) item).setId(newId);
             default -> {
             }
         }
@@ -1629,6 +1636,7 @@ public class TenantTransferServiceImpl implements TenantTransferService {
         if (item instanceof DescriptionTemplateEntity entity) return entity.getId();
         if (item instanceof PlanBlueprintEntity entity) return entity.getId();
         if (item instanceof UserDescriptionTemplateEntity entity) return entity.getId();
+        if (item instanceof UserPlanBlueprintEntity entity) return entity.getId();
         throw new MyApplicationException("unsupported copy entity " + item.getClass().getSimpleName());
     }
 

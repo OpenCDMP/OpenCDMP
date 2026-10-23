@@ -174,6 +174,7 @@ public class UserQuery extends QueryBase<UserEntity> {
         if (this.authorize.contains(AuthorizationFlags.Owner)) userId = this.userScopeFactory.getInstance().getUserIdSafe();
         if (this.authorize.contains(AuthorizationFlags.PlanAssociated)) userId = this.userScopeFactory.getInstance().getUserIdSafe();
         if (this.authorize.contains(AuthorizationFlags.DescriptionTemplateAssociated)) userId = this.userScopeFactory.getInstance().getUserIdSafe();
+        if (this.authorize.contains(AuthorizationFlags.PlanBlueprintAssociated)) userId = this.userScopeFactory.getInstance().getUserIdSafe();
 
         List<Predicate> predicates = new ArrayList<>();
         boolean usePublic = this.authorize.contains(AuthorizationFlags.Public);
@@ -195,6 +196,14 @@ public class UserQuery extends QueryBase<UserEntity> {
                             .keyPathFunc((subQueryRoot) -> subQueryRoot.get(UserDescriptionTemplateEntity._userId))
                             .filterFunc((subQueryRoot, cb) ->
                                     cb.in(subQueryRoot.get(UserDescriptionTemplateEntity._descriptionTemplateId)).value(this.queryUtilsService.buildUserDescriptionTemplateEntityAuthZSubQuery(queryContext.Query, queryContext.CriteriaBuilder, finalUserId))
+                            )
+                    ))),
+                    queryContext.CriteriaBuilder.in(queryContext.Root.get(UserEntity._id)).value(this.queryUtilsService.buildSubQuery(new BuildSubQueryInput<>(new BuildSubQueryInput.Builder<>(UserPlanBlueprintEntity.class, UUID.class)
+                            .query(queryContext.Query)
+                            .criteriaBuilder(queryContext.CriteriaBuilder)
+                            .keyPathFunc((subQueryRoot) -> subQueryRoot.get(UserPlanBlueprintEntity._userId))
+                            .filterFunc((subQueryRoot, cb) ->
+                                    cb.in(subQueryRoot.get(UserPlanBlueprintEntity._planBlueprintId)).value(this.queryUtilsService.buildUserPlanBlueprintEntityAuthZSubQuery(queryContext.Query, queryContext.CriteriaBuilder, finalUserId))
                             )
                     )))
             ));

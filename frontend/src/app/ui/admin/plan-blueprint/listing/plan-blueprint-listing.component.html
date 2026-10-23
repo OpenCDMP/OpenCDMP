@@ -5,11 +5,13 @@
         titleKey="PLAN-BLUEPRINT-LISTING.TITLE"
         descriptionKey="PLAN-BLUEPRINT-LISTING.DESCRIPTION">
         <ng-container actions>
-          <button mat-button class="padded-shadow-btn import" (click)="import()">
-            <span class="button-text">
-              {{'PLAN-BLUEPRINT-LISTING.IMPORT.UPLOAD-XML' | translate}}
-            </span>
-          </button>
+          @if (authService.hasPermission(authService.permissionEnum.ImportPlanBlueprint)) {
+            <button mat-button class="padded-shadow-btn import" (click)="import()">
+              <span class="button-text">
+                {{'PLAN-BLUEPRINT-LISTING.IMPORT.UPLOAD-XML' | translate}}
+              </span>
+            </button>
+          }
 
           @if (authService.hasPermission(authService.permissionEnum.EditPlanBlueprint)) {
             <button mat-flat-button color="accent" class="padded-shadow-btn" [routerLink]="routerUtils.generateUrl(['/plan-blueprints/new'])">
@@ -25,8 +27,12 @@
         <app-plan-blueprint-listing-filters listing-filters [(filter)]="lookup" (filterChange)="filterChanged($event)" [hasSelectedTenant]="authService.selectedTenant() !== 'default'" />
 
         <ng-container listing-empty-actions>
-          <button mat-flat-button color="accent" class="padded-shadow-btn" [routerLink]="routerUtils.generateUrl(['/plan-blueprints/new'])"><mat-icon aria-hidden="true">add</mat-icon>{{'ADMIN-LISTING.EMPTY-OWN.CREATE' | translate}}</button>
-          <button mat-stroked-button class="padded-shadow-btn" type="button" (click)="import()"><mat-icon aria-hidden="true">upload</mat-icon>{{'ADMIN-LISTING.EMPTY-OWN.IMPORT' | translate}}</button>
+          @if (authService.hasPermission(authService.permissionEnum.EditPlanBlueprint)) {
+            <button mat-flat-button color="accent" class="padded-shadow-btn" [routerLink]="routerUtils.generateUrl(['/plan-blueprints/new'])"><mat-icon aria-hidden="true">add</mat-icon>{{'ADMIN-LISTING.EMPTY-OWN.CREATE' | translate}}</button>
+          }
+          @if (authService.hasPermission(authService.permissionEnum.ImportPlanBlueprint)) {
+            <button mat-stroked-button class="padded-shadow-btn" type="button" (click)="import()"><mat-icon aria-hidden="true">upload</mat-icon>{{'ADMIN-LISTING.EMPTY-OWN.IMPORT' | translate}}</button>
+          }
         </ng-container>
         <app-user-settings-picker [key]="userSettingsKey" [userPreference]="lookup" (onSettingSelected)="changeSetting($event)" [autoSelectUserSettings]="autoSelectUserSettings" user-preference-settings />
       </app-admin-listing>
@@ -49,7 +55,7 @@
 
   <ng-template #actions let-row="row" let-item>
     <div class="d-inline-block" tabindex="-1" (click)="$event.stopPropagation()" (keydown)="$event.stopPropagation()">
-      @if (!canEdit(row)) {
+      @if (!canEdit(row) && canClone(row)) {
         <a mat-icon-button class="al-actions__clone" [routerLink]="routerUtils.generateUrl(['/plan-blueprints/clone/', row.id])" [matTooltip]="'PLAN-BLUEPRINT-LISTING.ACTIONS.CLONE' | translate" [attr.aria-label]="'PLAN-BLUEPRINT-LISTING.ACTIONS.CLONE' | translate">
           <mat-icon class="material-symbols-outlined" aria-hidden="true">content_copy</mat-icon>
         </a>
@@ -78,10 +84,12 @@
             <mat-icon aria-hidden="true">queue</mat-icon>{{'PLAN-BLUEPRINT-LISTING.ACTIONS.NEW-VERSION' | translate}}
           </a>
         }
-        <a mat-menu-item [routerLink]="routerUtils.generateUrl(['/plan-blueprints/clone/', row.id])">
-          <mat-icon aria-hidden="true">content_copy</mat-icon>{{'PLAN-BLUEPRINT-LISTING.ACTIONS.CLONE' | translate}}
-        </a>
-        @if (row.isActive === isActive.Active) {
+        @if (canClone(row)) {
+          <a mat-menu-item [routerLink]="routerUtils.generateUrl(['/plan-blueprints/clone/', row.id])">
+            <mat-icon aria-hidden="true">content_copy</mat-icon>{{'PLAN-BLUEPRINT-LISTING.ACTIONS.CLONE' | translate}}
+          </a>
+        }
+        @if (canViewVersions(row)) {
           <a mat-menu-item [routerLink]="routerUtils.generateUrl(['/plan-blueprints/versions/', row.groupId])" [queryParams]="{ belongsToCurrentTenant: row.belongsToCurrentTenant }">
             <mat-icon aria-hidden="true">library_books</mat-icon>
             {{'PLAN-BLUEPRINT-LISTING.ACTIONS.VIEW-VERSIONS' | translate}}

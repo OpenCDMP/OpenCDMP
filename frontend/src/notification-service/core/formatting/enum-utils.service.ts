@@ -45,6 +45,7 @@ export class NotificationServiceEnumUtils extends BaseEnumUtilsService {
 			case NotificationType.removeCredentialConfirmationType: return this.language.instant('TYPES.NOTIFICATION-TEMPLATE-NOTIFICATION-TYPE.REMOVE-CREDENTIAL-CONFIRMATION');
 			case NotificationType.planDepositType: return this.language.instant('TYPES.NOTIFICATION-TEMPLATE-NOTIFICATION-TYPE.PLAN-DEPOSIT');
 			case NotificationType.descriptionTemplateInvitationType: return this.language.instant('TYPES.NOTIFICATION-TEMPLATE-NOTIFICATION-TYPE.DESCRIPTION-TEMPLATE-INVITATION');
+			case NotificationType.planBlueprintInvitationType: return this.language.instant('TYPES.NOTIFICATION-TEMPLATE-NOTIFICATION-TYPE.PLAN-BLUEPRINT-INVITATION');
 			case NotificationType.contactSupportType: return this.language.instant('TYPES.NOTIFICATION-TEMPLATE-NOTIFICATION-TYPE.CONTACT-SUPPORT');
 			case NotificationType.publicContactSupportType: return this.language.instant('TYPES.NOTIFICATION-TEMPLATE-NOTIFICATION-TYPE.PUBLIC-CONTACT-SUPPORT');
 			case NotificationType.tenantSpecificInvitationExternalUserType: return this.language.instant('TYPES.NOTIFICATION-TEMPLATE-NOTIFICATION-TYPE.TENANT-SPECIFIC-INVITATION-EXTERNAL-USER');

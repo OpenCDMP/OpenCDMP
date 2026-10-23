@@ -67,8 +67,7 @@ const routes: Routes = [
 		canDeactivate: [PendingChangesGuard],
 		resolve: { 'entity': PlanBlueprintEditorResolver },
 		data: {
-			...BreadcrumbService.generateRouteDataConfiguration({ skipNavigation: true }),
-			authContext: { permissions: [AppPermission.EditPlanBlueprint] }
+			...BreadcrumbService.generateRouteDataConfiguration({ skipNavigation: true })
 		}
 	},
 	{ path: '**', loadComponent: () => import('@common/modules/page-not-found/page-not-found.component').then(m => m.PageNotFoundComponent)},

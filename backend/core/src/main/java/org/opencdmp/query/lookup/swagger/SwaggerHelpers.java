@@ -273,6 +273,8 @@ public final class SwaggerHelpers {
 
         public static final String versionStatuses_description ="<li> This is a list and determines which records we want to include in the response, based on their version status. The status can be <i>Current</i>, <i>Previous</i> or <i>NotFinalized</i>. We add 0, 1 or 2 to the list respectively. <br/>If not present, every record is included. <li/>";
 
+        public static final String onlyCanEdit_description = "<li> This is a boolean and determines whether to fetch only the blueprints the user can edit or every one. <br/>If not present, every record is included. <li/> ";
+
 
     }
 

@@ -19,6 +19,12 @@ public interface AuthorizationContentResolver {
 
 	boolean hasAtLeastOneDescriptionTemplateAffiliation();
 
+	AffiliatedResource planBlueprintAffiliation(UUID id);
+
+	Map<UUID, AffiliatedResource> planBlueprintAffiliation(List<UUID> ids);
+
+	boolean hasAtLeastOnePlanBlueprintAffiliation();
+
 	AffiliatedResource descriptionAffiliation(UUID id);
 
 	Map<UUID, AffiliatedResource> descriptionsAffiliation(List<UUID> ids);

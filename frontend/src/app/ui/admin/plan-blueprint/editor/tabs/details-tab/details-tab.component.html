@@ -3,6 +3,35 @@
 		<!-- ------------------------------------------------ about -->
 		<app-se2-about-card [typeConfiguration]="editor.planBlueprintTypeConfiguration" [typeName]="$safeNavigationMigration(editor.item?.type?.name)" />
 
+		<!-- ------------------------------------------------ editors -->
+		<section class="bp2-card">
+			<div class="bp2-card__head">
+				<div>
+					<div class="bp2-card__title"><h2>{{'PLAN-BLUEPRINT-EDITOR.EDITORS.TITLE' | translate}}</h2><span class="bp2-tag bp2-tag--opt">{{'PLAN-BLUEPRINT-EDITOR.EDITORS.PEOPLE' | bp2Count: editor.usersArray.length }}</span></div>
+					<div class="bp2-card__desc">{{ (editor.editorsSaveOnTheirOwn ? 'PLAN-BLUEPRINT-EDITOR.EDITORS.HINT' : 'PLAN-BLUEPRINT-EDITOR.EDITORS.HINT-NEW') | translate}}</div>
+				</div>
+			</div>
+			<div class="bp2-card__body dt-editors">
+				@if (rows.length) {
+					<div class="dt-editors__people">
+						<div class="dt-avatars" aria-hidden="true">
+							@for (r of rows.slice(0, 4); track r.userId) { <span class="dt-avatar">{{ initials(r.name) }}</span> }
+							@if (rows.length > 4) { <span class="dt-avatar dt-avatar--more">+{{rows.length - 4}}</span> }
+						</div>
+						<div class="dt-editors__text">
+							<strong>{{ namesSentence }}</strong>
+							<span class="bp2-sub">{{ rolesSummary }}</span>
+						</div>
+					</div>
+				} @else {
+					<p class="bp2-help" style="margin: 0;">{{'PLAN-BLUEPRINT-EDITOR.EDITORS.NONE' | translate}}</p>
+				}
+				@if (editor.canManageEditors) {
+					<div><button mat-stroked-button type="button" class="bp2-btn-sm" (click)="openEditors()"><mat-icon aria-hidden="true">manage_accounts</mat-icon>{{'PLAN-BLUEPRINT-EDITOR.EDITORS.MANAGE' | translate}}</button></div>
+				}
+			</div>
+		</section>
+
 		<!-- ------------------------------------------------ consent -->
 		<section class="bp2-card">
 			<div class="bp2-card__head">

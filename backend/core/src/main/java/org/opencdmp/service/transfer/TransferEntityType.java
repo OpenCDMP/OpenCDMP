@@ -33,7 +33,8 @@ public enum TransferEntityType {
     DescriptionReference(DescriptionReferenceEntity.class, DescriptionReferenceEntity[].class),
     DescriptionTag(DescriptionTagEntity.class, DescriptionTagEntity[].class),
     EntityDoi(EntityDoiEntity.class, EntityDoiEntity[].class),
-    UserDescriptionTemplate(UserDescriptionTemplateEntity.class, UserDescriptionTemplateEntity[].class);
+    UserDescriptionTemplate(UserDescriptionTemplateEntity.class, UserDescriptionTemplateEntity[].class),
+    UserPlanBlueprint(UserPlanBlueprintEntity.class, UserPlanBlueprintEntity[].class);
 
     private final Class<?> entityClass;
     private final Class<?> arrayClass;

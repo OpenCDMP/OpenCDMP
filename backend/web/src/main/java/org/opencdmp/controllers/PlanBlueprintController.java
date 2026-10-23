@@ -40,6 +40,7 @@ import org.opencdmp.model.censorship.planblueprint.PlanBlueprintCensor;
 import org.opencdmp.model.persist.DescriptionTemplatePersist;
 import org.opencdmp.model.persist.NewVersionPlanBlueprintPersist;
 import org.opencdmp.model.persist.PlanBlueprintPersist;
+import org.opencdmp.model.persist.UserPlanBlueprintPersist;
 import org.opencdmp.model.planblueprint.PlanBlueprint;
 import org.opencdmp.model.result.QueryResult;
 import org.opencdmp.query.PlanBlueprintQuery;
@@ -203,6 +204,35 @@ public class PlanBlueprintController {
         PlanBlueprint persisted = this.planBlueprintService.persist(model, null, fieldSet);
 
         this.auditService.track(AuditableAction.PlanBlueprint_Persist, Map.ofEntries(
+                new AbstractMap.SimpleEntry<String, Object>("model", model),
+                new AbstractMap.SimpleEntry<String, Object>("fields", fieldSet)
+        ));
+
+        return persisted;
+    }
+
+    @PostMapping("{id}/assign-users")
+    @OperationWithTenantHeader(summary = "Set the editors of a plan blueprint by id", description = "",
+            responses = @ApiResponse(description = "OK", responseCode = "200", content = @Content(
+                    schema = @Schema(
+                            implementation = PlanBlueprint.class
+                    ))
+            ))
+    @Swagger404
+    @Transactional
+    @ValidationFilterAnnotation(validator = UserPlanBlueprintPersist.UserPlanBlueprintPersistValidator.ValidatorName, argumentName = "model")
+    @Hidden
+    public PlanBlueprint assignUsers(
+            @PathVariable("id") UUID id,
+            @RequestBody List<UserPlanBlueprintPersist> model,
+            FieldSet fieldSet
+    ) throws MyApplicationException, MyForbiddenException, MyNotFoundException, InvalidApplicationException {
+        logger.debug(new MapLogEntry("assigning users to " + PlanBlueprint.class.getSimpleName()).And("id", id).And("model", model).And("fieldSet", fieldSet));
+        fieldSet = this.fieldSetExpanderService.expand(fieldSet);
+        PlanBlueprint persisted = this.planBlueprintService.assignUsers(id, model, fieldSet);
+
+        this.auditService.track(AuditableAction.PlanBlueprint_AssignUsers, Map.ofEntries(
+                new AbstractMap.SimpleEntry<String, Object>("id", id),
                 new AbstractMap.SimpleEntry<String, Object>("model", model),
                 new AbstractMap.SimpleEntry<String, Object>("fields", fieldSet)
         ));

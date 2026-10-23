@@ -267,7 +267,8 @@ public class LockController {
         AffiliatedResource affiliatedResourcePlan = this.authorizationContentResolverFactory.getInstance().planAffiliation(targetId);
         AffiliatedResource affiliatedResourceDescription = this.authorizationContentResolverFactory.getInstance().descriptionAffiliation(targetId);
         AffiliatedResource affiliatedResourceDescriptionTemplate = this.authorizationContentResolverFactory.getInstance().descriptionTemplateAffiliation(targetId);
-        this.authService.authorizeAtLeastOneForce(List.of(affiliatedResourcePlan, affiliatedResourceDescription, affiliatedResourceDescriptionTemplate), Permission.EditLock);
+        AffiliatedResource affiliatedResourcePlanBlueprint = this.authorizationContentResolverFactory.getInstance().planBlueprintAffiliation(targetId);
+        this.authService.authorizeAtLeastOneForce(List.of(affiliatedResourcePlan, affiliatedResourceDescription, affiliatedResourceDescriptionTemplate, affiliatedResourcePlanBlueprint), Permission.EditLock);
 
         this.lockService.lock(targetId, LockTargetType.of((short) targetType));
         this.auditService.track(AuditableAction.Lock_Locked, Map.ofEntries(
@@ -292,7 +293,8 @@ public class LockController {
         AffiliatedResource affiliatedResourcePlan = this.authorizationContentResolverFactory.getInstance().planAffiliation(targetId);
         AffiliatedResource affiliatedResourceDescription = this.authorizationContentResolverFactory.getInstance().descriptionAffiliation(targetId);
         AffiliatedResource affiliatedResourceDescriptionTemplate = this.authorizationContentResolverFactory.getInstance().descriptionTemplateAffiliation(targetId);
-        this.authService.authorizeAtLeastOneForce(List.of(affiliatedResourcePlan, affiliatedResourceDescription, affiliatedResourceDescriptionTemplate), Permission.EditLock);
+        AffiliatedResource affiliatedResourcePlanBlueprint = this.authorizationContentResolverFactory.getInstance().planBlueprintAffiliation(targetId);
+        this.authService.authorizeAtLeastOneForce(List.of(affiliatedResourcePlan, affiliatedResourceDescription, affiliatedResourceDescriptionTemplate, affiliatedResourcePlanBlueprint), Permission.EditLock);
 
         boolean result = this.lockService.checkLock(targetId, LockTargetType.of((short) targetType));
         this.auditService.track(AuditableAction.Lock_CheckLock, Map.ofEntries(
@@ -316,7 +318,8 @@ public class LockController {
         AffiliatedResource affiliatedResourcePlan = this.authorizationContentResolverFactory.getInstance().planAffiliation(targetId);
         AffiliatedResource affiliatedResourceDescription = this.authorizationContentResolverFactory.getInstance().descriptionAffiliation(targetId);
         AffiliatedResource affiliatedResourceDescriptionTemplate = this.authorizationContentResolverFactory.getInstance().descriptionTemplateAffiliation(targetId);
-        this.authService.authorizeAtLeastOneForce(List.of(affiliatedResourcePlan, affiliatedResourceDescription, affiliatedResourceDescriptionTemplate), Permission.EditLock);
+        AffiliatedResource affiliatedResourcePlanBlueprint = this.authorizationContentResolverFactory.getInstance().planBlueprintAffiliation(targetId);
+        this.authService.authorizeAtLeastOneForce(List.of(affiliatedResourcePlan, affiliatedResourceDescription, affiliatedResourceDescriptionTemplate, affiliatedResourcePlanBlueprint), Permission.EditLock);
 
         this.lockService.touch(targetId);
         this.auditService.track(AuditableAction.Lock_Touched, Map.ofEntries(
@@ -340,7 +343,8 @@ public class LockController {
         AffiliatedResource affiliatedResourcePlan = this.authorizationContentResolverFactory.getInstance().planAffiliation(targetId);
         AffiliatedResource affiliatedResourceDescription = this.authorizationContentResolverFactory.getInstance().descriptionAffiliation(targetId);
         AffiliatedResource affiliatedResourceDescriptionTemplate = this.authorizationContentResolverFactory.getInstance().descriptionTemplateAffiliation(targetId);
-        this.authService.authorizeAtLeastOneForce(List.of(affiliatedResourcePlan, affiliatedResourceDescription, affiliatedResourceDescriptionTemplate), Permission.EditLock);
+        AffiliatedResource affiliatedResourcePlanBlueprint = this.authorizationContentResolverFactory.getInstance().planBlueprintAffiliation(targetId);
+        this.authService.authorizeAtLeastOneForce(List.of(affiliatedResourcePlan, affiliatedResourceDescription, affiliatedResourceDescriptionTemplate, affiliatedResourcePlanBlueprint), Permission.EditLock);
 
         this.lockService.unlock(targetId);
         this.auditService.track(AuditableAction.Lock_UnLocked, Map.ofEntries(

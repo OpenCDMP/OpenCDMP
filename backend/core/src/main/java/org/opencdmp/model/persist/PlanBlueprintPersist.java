@@ -54,6 +54,10 @@ public class PlanBlueprintPersist {
 
     public static final String _description = "description";
 
+    private List<UserPlanBlueprintPersist> users;
+
+    public static final String _users = "users";
+
     public UUID getId() {
         return this.id;
     }
@@ -118,6 +122,14 @@ public class PlanBlueprintPersist {
         this.description = description;
     }
 
+    public List<UserPlanBlueprintPersist> getUsers() {
+        return users;
+    }
+
+    public void setUsers(List<UserPlanBlueprintPersist> users) {
+        this.users = users;
+    }
+
     @Component(PlanBlueprintPersistValidator.ValidatorName)
     @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
     public static class PlanBlueprintPersistValidator extends BaseValidator<PlanBlueprintPersist> {
@@ -175,7 +187,12 @@ public class PlanBlueprintPersist {
                             .iff(() -> !this.isNull(item.getDefinition()))
                             .on(PlanBlueprintPersist._definition)
                             .over(item.getDefinition())
-                            .using(() -> this.validatorFactory.validator(DefinitionPersist.DefinitionPersistValidator.class))
+                            .using(() -> this.validatorFactory.validator(DefinitionPersist.DefinitionPersistValidator.class)),
+                    this.navSpec()
+                            .iff(() -> !this.isListNullOrEmpty(item.getUsers()))
+                            .on(PlanBlueprintPersist._users)
+                            .over(item.getUsers())
+                            .using((itm) -> this.validatorFactory.validator(UserPlanBlueprintPersist.UserPlanBlueprintPersistValidator.class))
             );
         }
     }

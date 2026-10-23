@@ -286,6 +286,16 @@ public class ErrorThesaurusProperties {
         this.descriptionTemplateInactiveUser = descriptionTemplateInactiveUser;
     }
 
+    private ErrorDescription planBlueprintInactiveUser;
+
+    public ErrorDescription getPlanBlueprintInactiveUser() {
+        return this.planBlueprintInactiveUser;
+    }
+
+    public void setPlanBlueprintInactiveUser(ErrorDescription planBlueprintInactiveUser) {
+        this.planBlueprintInactiveUser = planBlueprintInactiveUser;
+    }
+
     private ErrorDescription descriptionTemplateMissingUserContactInfo;
 
     public ErrorDescription getDescriptionTemplateMissingUserContactInfo() {

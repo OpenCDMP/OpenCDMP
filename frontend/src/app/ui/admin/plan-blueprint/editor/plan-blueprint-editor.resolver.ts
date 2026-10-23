@@ -1,7 +1,9 @@
 import { Injectable } from '@angular/core';
 import { ActivatedRouteSnapshot, RouterStateSnapshot } from '@angular/router';
 import { IsActive } from '@app/core/common/enum/is-active.enum';
-import { DescriptionTemplatesInSection, PlanBlueprint, PlanBlueprintDefinition, RootSection, PlanCreationConsent } from '@app/core/model/plan-blueprint/plan-blueprint';
+import { DescriptionTemplatesInSection, PlanBlueprint, PlanBlueprintDefinition, RootSection, PlanCreationConsent, UserPlanBlueprint } from '@app/core/model/plan-blueprint/plan-blueprint';
+import { AppPermission } from '@app/core/common/enum/permission.enum';
+import { User } from '@app/core/model/user/user';
 import { BaseFieldData, FieldDefaultValue, Multiplicity, FieldRule, BaseFieldSet, BaseField, FieldExternalDatasetData, FieldLabelAndMultiplicityData, FieldReferenceTypeData, FieldSelectData, FieldSelectOption, SemanticValue, FieldSystemData, FieldUploadData, FieldUploadOption, BaseSection } from '@app/core/model/description-template/description-template';
 import { PluginConfiguration, PluginConfigurationField } from '@app/core/model/plugin-configuration/plugin-configuration';
 import { DescriptionTemplate } from '@app/core/model/description-template/description-template';
@@ -131,6 +133,15 @@ export class PlanBlueprintEditorResolver extends BaseEditorResolver {
 			[nameof<PlanBlueprint>(x => x.definition), nameof<PlanBlueprintDefinition>(x => x.planCreationConsent), nameof<PlanCreationConsent>(x => x.enabled)].join('.'),
 			[nameof<PlanBlueprint>(x => x.definition), nameof<PlanBlueprintDefinition>(x => x.planCreationConsent), nameof<PlanCreationConsent>(x => x.message)].join('.'),
 			[nameof<PlanBlueprint>(x => x.definition), nameof<PlanBlueprintDefinition>(x => x.planCreationConsent), nameof<PlanCreationConsent>(x => x.details)].join('.'),
+
+			[nameof<PlanBlueprint>(x => x.authorizationFlags), AppPermission.EditPlanBlueprint].join('.'),
+			[nameof<PlanBlueprint>(x => x.authorizationFlags), AppPermission.ExportPlanBlueprint].join('.'),
+
+			[nameof<PlanBlueprint>(x => x.users), nameof<UserPlanBlueprint>(x => x.planBlueprint), nameof<PlanBlueprint>(x => x.id)].join('.'),
+			[nameof<PlanBlueprint>(x => x.users), nameof<UserPlanBlueprint>(x => x.user), nameof<User>(x => x.id)].join('.'),
+			[nameof<PlanBlueprint>(x => x.users), nameof<UserPlanBlueprint>(x => x.user), nameof<User>(x => x.name)].join('.'),
+			[nameof<PlanBlueprint>(x => x.users), nameof<UserPlanBlueprint>(x => x.role)].join('.'),
+			[nameof<PlanBlueprint>(x => x.users), nameof<UserPlanBlueprint>(x => x.isActive)].join('.'),
 
 			nameof<PlanBlueprint>(x => x.createdAt),
 			nameof<PlanBlueprint>(x => x.hash),

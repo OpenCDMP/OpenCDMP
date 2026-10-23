@@ -90,7 +90,8 @@ public class LockServiceImpl implements LockService {
         AffiliatedResource affiliatedResourcePlan = this.authorizationContentResolverFactory.getInstance().planAffiliation(model.getTarget());
         AffiliatedResource affiliatedResourceDescription = this.authorizationContentResolverFactory.getInstance().descriptionAffiliation(model.getTarget());
         AffiliatedResource affiliatedResourceDescriptionTemplate = this.authorizationContentResolverFactory.getInstance().descriptionTemplateAffiliation(model.getTarget());
-        this.authorizationService.authorizeAtLeastOneForce(List.of(affiliatedResourcePlan, affiliatedResourceDescription, affiliatedResourceDescriptionTemplate), Permission.EditLock);
+        AffiliatedResource affiliatedResourcePlanBlueprint = this.authorizationContentResolverFactory.getInstance().planBlueprintAffiliation(model.getTarget());
+        this.authorizationService.authorizeAtLeastOneForce(List.of(affiliatedResourcePlan, affiliatedResourceDescription, affiliatedResourceDescriptionTemplate, affiliatedResourcePlanBlueprint), Permission.EditLock);
 
         Boolean isUpdate = this.conventionService.isValidGuid(model.getId());
 
@@ -187,7 +188,8 @@ public class LockServiceImpl implements LockService {
         AffiliatedResource affiliatedResourcePlan = this.authorizationContentResolverFactory.getInstance().planAffiliation(target);
         AffiliatedResource affiliatedResourceDescription = this.authorizationContentResolverFactory.getInstance().descriptionAffiliation(target);
         AffiliatedResource affiliatedResourceDescriptionTemplate = this.authorizationContentResolverFactory.getInstance().descriptionTemplateAffiliation(target);
-        this.authorizationService.authorizeAtLeastOneForce(List.of(affiliatedResourcePlan, affiliatedResourceDescription, affiliatedResourceDescriptionTemplate), Permission.DeleteLock);
+        AffiliatedResource affiliatedResourcePlanBlueprint = this.authorizationContentResolverFactory.getInstance().planBlueprintAffiliation(target);
+        this.authorizationService.authorizeAtLeastOneForce(List.of(affiliatedResourcePlan, affiliatedResourceDescription, affiliatedResourceDescriptionTemplate, affiliatedResourcePlanBlueprint), Permission.DeleteLock);
 
         // row lock first: a concurrent unlock waits here until the first commits and then finds the row gone, instead of failing the deleter's flush
         LockEntity lockedRow = this.tenantEntityManagerFactory.getInstance().getEntityManager().find(LockEntity.class, lock.getId(), LockModeType.PESSIMISTIC_WRITE);
@@ -201,7 +203,8 @@ public class LockServiceImpl implements LockService {
             AffiliatedResource affiliatedResourcePlan = this.authorizationContentResolverFactory.getInstance().planAffiliation(target);
             AffiliatedResource affiliatedResourceDescription = this.authorizationContentResolverFactory.getInstance().descriptionAffiliation(target);
             AffiliatedResource affiliatedResourceDescriptionTemplate = this.authorizationContentResolverFactory.getInstance().descriptionTemplateAffiliation(target);
-            this.authorizationService.authorizeAtLeastOneForce(List.of(affiliatedResourcePlan, affiliatedResourceDescription, affiliatedResourceDescriptionTemplate), Permission.DeleteLock);
+            AffiliatedResource affiliatedResourcePlanBlueprint = this.authorizationContentResolverFactory.getInstance().planBlueprintAffiliation(target);
+            this.authorizationService.authorizeAtLeastOneForce(List.of(affiliatedResourcePlan, affiliatedResourceDescription, affiliatedResourceDescriptionTemplate, affiliatedResourcePlanBlueprint), Permission.DeleteLock);
         }
 
         List<LockEntity> locks = this.queryFactory.query(LockQuery.class).authorize(AuthorizationFlags.AllExceptPublic).targetIds(model.getTargetIds()).collect();
@@ -221,7 +224,8 @@ public class LockServiceImpl implements LockService {
         AffiliatedResource affiliatedResourcePlan = this.authorizationContentResolverFactory.getInstance().planAffiliation(target);
         AffiliatedResource affiliatedResourceDescription = this.authorizationContentResolverFactory.getInstance().descriptionAffiliation(target);
         AffiliatedResource affiliatedResourceDescriptionTemplate = this.authorizationContentResolverFactory.getInstance().descriptionTemplateAffiliation(target);
-        this.authorizationService.authorizeAtLeastOneForce(List.of(affiliatedResourcePlan, affiliatedResourceDescription, affiliatedResourceDescriptionTemplate), Permission.DeleteLock);
+        AffiliatedResource affiliatedResourcePlanBlueprint = this.authorizationContentResolverFactory.getInstance().planBlueprintAffiliation(target);
+        this.authorizationService.authorizeAtLeastOneForce(List.of(affiliatedResourcePlan, affiliatedResourceDescription, affiliatedResourceDescriptionTemplate, affiliatedResourcePlanBlueprint), Permission.DeleteLock);
 
         this.deleterFactory.deleter(LockDeleter.class).deleteAndSaveByIds(List.of(id));
     }

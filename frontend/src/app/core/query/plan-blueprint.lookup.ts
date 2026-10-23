@@ -15,6 +15,7 @@ export class PlanBlueprintLookup extends Lookup implements PlanBlueprintFilter {
 	groupIds: Guid[];
 	versionStatuses: PlanBlueprintVersionStatus[];
 	typeIds:  Guid[];
+	onlyCanEdit: boolean;
 	tenantSubQuery: TenantLookup;
 	/** false: only the default tenant's shared rows; true: only tenant-owned rows; absent: both. */
 	tenantIsSet?: boolean;
@@ -32,5 +33,6 @@ export interface PlanBlueprintFilter {
 	isActive: IsActive[];
 	statuses: PlanBlueprintStatus[];
 	versionStatuses: PlanBlueprintVersionStatus[];
+	onlyCanEdit: boolean;
 	tenantSubQuery: TenantLookup | null;
 }

@@ -115,7 +115,10 @@ public class TenantPurgeServiceImpl implements TenantPurgeService {
                 candidates.put("UserDescriptionTemplate", this.queryFactory.query(UserDescriptionTemplateQuery.class).collect());
                 candidates.put("DescriptionTemplate", this.queryFactory.query(DescriptionTemplateQuery.class).collect());
             }
-            if (this.isTrue(normalized.getDeletePlanBlueprints())) candidates.put("PlanBlueprint", this.queryFactory.query(PlanBlueprintQuery.class).collect());
+            if (this.isTrue(normalized.getDeletePlanBlueprints())) {
+                candidates.put("UserPlanBlueprint", this.queryFactory.query(UserPlanBlueprintQuery.class).collect());
+                candidates.put("PlanBlueprint", this.queryFactory.query(PlanBlueprintQuery.class).collect());
+            }
             if (this.isTrue(normalized.getDeletePrefillingSources())) candidates.put("PrefillingSource", this.queryFactory.query(PrefillingSourceQuery.class).collect());
             if (this.isTrue(normalized.getDeleteReferenceTypes())) candidates.put("ReferenceType", this.queryFactory.query(ReferenceTypeQuery.class).collect());
             if (this.isTrue(normalized.getDeleteStatusesAndWorkflows())) {
@@ -328,6 +331,7 @@ public class TenantPurgeServiceImpl implements TenantPurgeService {
         if (item instanceof ReferenceEntity entity) return entity.getId();
         if (item instanceof TagEntity entity) return entity.getId();
         if (item instanceof UserDescriptionTemplateEntity entity) return entity.getId();
+        if (item instanceof UserPlanBlueprintEntity entity) return entity.getId();
         if (item instanceof DescriptionTemplateEntity entity) return entity.getId();
         if (item instanceof PlanBlueprintEntity entity) return entity.getId();
         if (item instanceof PrefillingSourceEntity entity) return entity.getId();

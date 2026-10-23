@@ -24,6 +24,7 @@ public class NotificationProperties {
 	private UUID removeCredentialConfirmationType;
 	private UUID planDepositType;
 	private UUID descriptionTemplateInvitationType;
+	private UUID planBlueprintInvitationType;
 	private UUID contactSupportType;
 	private UUID publicContactSupportType;
 	private UUID tenantSpecificInvitationExternalUserType;
@@ -158,6 +159,14 @@ public class NotificationProperties {
 
 	public void setDescriptionTemplateInvitationType(UUID descriptionTemplateInvitationType) {
 		this.descriptionTemplateInvitationType = descriptionTemplateInvitationType;
+	}
+
+	public UUID getPlanBlueprintInvitationType() {
+		return this.planBlueprintInvitationType;
+	}
+
+	public void setPlanBlueprintInvitationType(UUID planBlueprintInvitationType) {
+		this.planBlueprintInvitationType = planBlueprintInvitationType;
 	}
 
 	public UUID getContactSupportType() {

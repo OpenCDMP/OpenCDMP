@@ -963,6 +963,12 @@ public class UserServiceImpl implements UserService {
                 this.tenantEntityManagerFactory.getInstance().merge(userDescriptionTemplate);
             }
 
+            List<UserPlanBlueprintEntity> userPlanBlueprints = this.queryFactory.query(UserPlanBlueprintQuery.class).userIds(oldUser.getId()).collect();
+            for (UserPlanBlueprintEntity userPlanBlueprint : userPlanBlueprints) {
+                userPlanBlueprint.setUserId(newUser.getId());
+                this.tenantEntityManagerFactory.getInstance().merge(userPlanBlueprint);
+            }
+
             List<PlanEntity> plans = this.queryFactory.query(PlanQuery.class).creatorIds(oldUser.getId()).collect();
             for (PlanEntity plan : plans) {
                 plan.setCreatorId(newUser.getId());

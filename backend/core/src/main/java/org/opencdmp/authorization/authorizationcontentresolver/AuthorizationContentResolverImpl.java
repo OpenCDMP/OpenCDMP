@@ -13,11 +13,13 @@ import org.opencdmp.data.*;
 import org.opencdmp.model.PlanDescriptionTemplate;
 import org.opencdmp.model.PlanUser;
 import org.opencdmp.model.UserDescriptionTemplate;
+import org.opencdmp.model.UserPlanBlueprint;
 import org.opencdmp.model.description.Description;
 import org.opencdmp.query.DescriptionQuery;
 import org.opencdmp.query.PlanDescriptionTemplateQuery;
 import org.opencdmp.query.PlanUserQuery;
 import org.opencdmp.query.UserDescriptionTemplateQuery;
+import org.opencdmp.query.UserPlanBlueprintQuery;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -144,6 +146,71 @@ public class AuthorizationContentResolverImpl implements AuthorizationContentRes
 		try {
 			this.tenantEntityManagerFactory.getInstance().loadExplicitTenantFilters();
 			hasAny = this.queryFactory.query(UserDescriptionTemplateQuery.class).disableTracking().userIds(userId).isActive(IsActive.Active).count() > 0;
+		} catch (InvalidApplicationException e) {
+			log.error(e.getMessage(), e);
+			throw new MyApplicationException(e.getMessage());
+		} finally {
+			try {
+				this.tenantEntityManagerFactory.getInstance().reloadTenantFilters();
+			} catch (InvalidApplicationException e) {
+				log.error(e.getMessage(), e);
+				throw new MyApplicationException(e.getMessage());
+			}
+		}
+		
+		return hasAny;
+	}
+
+	@Override
+	public AffiliatedResource planBlueprintAffiliation(UUID id) {
+		return this.planBlueprintAffiliation(List.of(id)).getOrDefault(id, new AffiliatedResource());
+	}
+
+	@Override
+	public Map<UUID, AffiliatedResource> planBlueprintAffiliation(List<UUID> ids){
+		UUID userId = this.userScopeFactory.getInstance().getUserIdSafe();
+		Map<UUID, AffiliatedResource> affiliatedResources = new HashMap<>();
+		for (UUID id : ids){
+			affiliatedResources.put(id, new AffiliatedResource());
+		}
+		if (userId == null || !this.userScopeFactory.getInstance().isSet()) return affiliatedResources;
+
+		List<UUID> idsToResolve = this.getAffiliatedFromCache(ids, userId, affiliatedResources, PlanBlueprintEntity.class.getSimpleName());
+		if (idsToResolve.isEmpty()) return affiliatedResources;
+
+		List<UserPlanBlueprintEntity> userPlanBlueprints;
+		try {
+			this.tenantEntityManagerFactory.getInstance().loadExplicitTenantFilters();
+			userPlanBlueprints = this.queryFactory.query(UserPlanBlueprintQuery.class).disableTracking().planBlueprintIds(ids).userIds(userId).isActive(IsActive.Active).collectAs(new BaseFieldSet().ensure(UserPlanBlueprint._role).ensure(UserPlanBlueprint._planBlueprint));
+		} catch (InvalidApplicationException e) {
+			log.error(e.getMessage(), e);
+			throw new MyApplicationException(e.getMessage());
+		} finally {
+			try {
+				this.tenantEntityManagerFactory.getInstance().reloadTenantFilters();
+			} catch (InvalidApplicationException e) {
+				log.error(e.getMessage(), e);
+				throw new MyApplicationException(e.getMessage());
+			}
+		}
+
+		for (UserPlanBlueprintEntity userPlanBlueprint : userPlanBlueprints){
+			affiliatedResources.get(userPlanBlueprint.getPlanBlueprintId()).getUserPlanBlueprintRoles().add(userPlanBlueprint.getRole());
+		}
+
+		this.ensureAffiliatedInCache(idsToResolve, userId, affiliatedResources, PlanBlueprintEntity.class.getSimpleName());
+		return affiliatedResources;
+	}
+
+	@Override
+	public boolean hasAtLeastOnePlanBlueprintAffiliation(){
+		UUID userId = this.userScopeFactory.getInstance().getUserIdSafe();
+		if (userId == null || !this.userScopeFactory.getInstance().isSet()) return false;
+
+		boolean hasAny;
+		try {
+			this.tenantEntityManagerFactory.getInstance().loadExplicitTenantFilters();
+			hasAny = this.queryFactory.query(UserPlanBlueprintQuery.class).disableTracking().userIds(userId).isActive(IsActive.Active).count() > 0;
 		} catch (InvalidApplicationException e) {
 			log.error(e.getMessage(), e);
 			throw new MyApplicationException(e.getMessage());

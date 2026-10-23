@@ -79,7 +79,9 @@ export class PlanBlueprintListingComponent extends BaseListingComponent<PlanBlue
 		nameof<PlanBlueprint>(x => x.updatedAt),
 		nameof<PlanBlueprint>(x => x.hash),
 		nameof<PlanBlueprint>(x => x.isActive),
-		nameof<PlanBlueprint>(x => x.belongsToCurrentTenant)
+		nameof<PlanBlueprint>(x => x.belongsToCurrentTenant),
+		[nameof<PlanBlueprint>(x => x.authorizationFlags), AppPermission.EditPlanBlueprint].join('.'),
+		[nameof<PlanBlueprint>(x => x.authorizationFlags), AppPermission.ExportPlanBlueprint].join('.'),
 	];
 
 	rowIdentity = x => x.id;
@@ -133,12 +135,24 @@ export class PlanBlueprintListingComponent extends BaseListingComponent<PlanBlue
 		return blueprint?.status == PlanBlueprintStatus.Finalized;
 	}
 
+    protected hasPermission(permission: AppPermission, blueprint: PlanBlueprint): boolean {
+        return this.authService.hasPermission(permission) || blueprint?.authorizationFlags?.some(x => x === permission);
+    }
+
     protected canEdit(blueprint: PlanBlueprint): boolean {
-        return this.authService.hasPermission(AppPermission.EditPlanBlueprint) && blueprint?.belongsToCurrentTenant && !this.isFinalized(blueprint) && (blueprint?.isActive === IsActive.Active);
+        return this.hasPermission(AppPermission.EditPlanBlueprint, blueprint) && blueprint?.belongsToCurrentTenant && !this.isFinalized(blueprint) && (blueprint?.isActive === IsActive.Active);
     }
 
     protected canCreateNewVersion(blueprint: PlanBlueprint): boolean {
-        return blueprint?.status === PlanBlueprintStatus.Finalized && blueprint?.versionStatus == PlanBlueprintVersionStatus.Current && blueprint?.belongsToCurrentTenant != false && blueprint?.isActive === IsActive.Active;
+        return blueprint?.status === PlanBlueprintStatus.Finalized && blueprint?.versionStatus == PlanBlueprintVersionStatus.Current && blueprint?.belongsToCurrentTenant != false && blueprint?.isActive === IsActive.Active && this.authService.hasPermission(AppPermission.CreateNewVersionPlanBlueprint);
+    }
+
+    protected canClone(blueprint: PlanBlueprint): boolean {
+        return this.authService.hasPermission(AppPermission.ClonePlanBlueprint);
+    }
+
+    protected canViewVersions(blueprint: PlanBlueprint): boolean {
+        return blueprint?.isActive === IsActive.Active && this.authService.hasPermission(AppPermission.EditPlanBlueprint);
     }
 
     protected canDelete(blueprint: PlanBlueprint): boolean {
@@ -146,7 +160,7 @@ export class PlanBlueprintListingComponent extends BaseListingComponent<PlanBlue
     }
 
     protected canDownloadXML(blueprint: PlanBlueprint): boolean {
-        return this.authService.hasPermission(AppPermission.ExportPlanBlueprint);
+        return this.hasPermission(AppPermission.ExportPlanBlueprint, blueprint);
     }
 
 	protected initializeLookup(): PlanBlueprintLookup {
@@ -235,6 +249,7 @@ export class PlanBlueprintListingComponent extends BaseListingComponent<PlanBlue
 	}
 
 	protected loadListing(): Observable<QueryResult<PlanBlueprint>> {
+		this.lookup.onlyCanEdit = true;
 		return this.planBlueprintService.query(this.lookup).pipe(
 			takeUntil(this._destroyed)
 		);

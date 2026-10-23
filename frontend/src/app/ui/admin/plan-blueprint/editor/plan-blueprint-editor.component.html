@@ -1,6 +1,9 @@
 <ng-template #assetsBlock let-section><app-bp2-assets-block [section]="section" /></ng-template>
 @if (formGroup) {
 	<app-se2-editor-shell>
+		@if (usersArray.length) {
+			<button se2HeaderChips type="button" class="bp2-pill bp2-pill--tag" (click)="setTab('details')"><mat-icon aria-hidden="true">group</mat-icon>{{'PLAN-BLUEPRINT-EDITOR.EDITORS.COUNT' | bp2Count: usersArray.length }}</button>
+		}
 		@switch (tab) {
 			@case ('details') { <app-bp2-details-tab /> }
 			@case ('structure') { <app-bp2-structure-tab /> }

@@ -71,7 +71,7 @@ public class CustomPermissionAttributesConfiguration {
         for (UUID statusId: map.keySet()) {
             PlanStatusDefinitionEntity definition = map.get(statusId);
             if (definition != null && definition.getAuthorization() != null && definition.getAuthorization().getEdit() != null) {
-                CustomPermissionAttributesProperties.MyPermission myPermission = new CustomPermissionAttributesProperties.MyPermission(new PlanRole(new HashSet<>(definition.getAuthorization().getEdit().getPlanRoles())), null);
+                CustomPermissionAttributesProperties.MyPermission myPermission = new CustomPermissionAttributesProperties.MyPermission(new PlanRole(new HashSet<>(definition.getAuthorization().getEdit().getPlanRoles())), null, null);
                 affiliatedCustomPermissions.put(this.customPolicyService.getPlanStatusCanEditStatusPermission(statusId), myPermission);
             }
         }
@@ -85,7 +85,7 @@ public class CustomPermissionAttributesConfiguration {
         for (UUID statusId: map.keySet()) {
             DescriptionStatusDefinitionEntity definition = map.get(statusId);
             if (definition != null && definition.getAuthorization() != null && definition.getAuthorization().getEdit() != null) {
-                CustomPermissionAttributesProperties.MyPermission myPermission = new CustomPermissionAttributesProperties.MyPermission(new PlanRole(new HashSet<>(definition.getAuthorization().getEdit().getPlanRoles())), null);
+                CustomPermissionAttributesProperties.MyPermission myPermission = new CustomPermissionAttributesProperties.MyPermission(new PlanRole(new HashSet<>(definition.getAuthorization().getEdit().getPlanRoles())), null, null);
                 affiliatedCustomPermissions.put(this.customPolicyService.getDescriptionStatusCanEditStatusPermission(statusId), myPermission);
             }
         }

@@ -25,11 +25,13 @@ public class CustomPermissionAttributesProperties {
 
 		private final PlanRole plan;
 		private final DescriptionTemplateRole descriptionTemplate;
+		private final PlanBlueprintRole planBlueprint;
 
 		@ConstructorBinding
-		public MyPermission(PlanRole plan, DescriptionTemplateRole descriptionTemplate) {
+		public MyPermission(PlanRole plan, DescriptionTemplateRole descriptionTemplate, PlanBlueprintRole planBlueprint) {
 			this.plan = plan;
 			this.descriptionTemplate = descriptionTemplate;
+			this.planBlueprint = planBlueprint;
 		}
 
 
@@ -39,6 +41,10 @@ public class CustomPermissionAttributesProperties {
 
 		public DescriptionTemplateRole getDescriptionTemplate() {
 			return this.descriptionTemplate;
+		}
+
+		public PlanBlueprintRole getPlanBlueprint() {
+			return this.planBlueprint;
 		}
 	}
 

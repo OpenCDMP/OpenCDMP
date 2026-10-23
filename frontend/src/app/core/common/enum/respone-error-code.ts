@@ -99,6 +99,7 @@ export enum ResponseErrorCode {
   IncompatibleTenantConfigurationTypes = 206,
   MissingTotpToken = 207,
   OverlappingTenantConfigurationNotifierList = 208,
+  PlanBlueprintInactiveUser = 211,
 }
 
 export class ResponseErrorCodeHelper {
@@ -160,6 +161,8 @@ export class ResponseErrorCodeHelper {
   	  	return language.instant("GENERAL.BACKEND-ERRORS.PLAN-NEW-VERSION-ALREADY-CREATED-DRAFT");
 	  case ResponseErrorCode.DescriptionTemplateInactiveUser:
   	  	return language.instant("GENERAL.BACKEND-ERRORS.DESCRIPTION-TEMPLATE-INACTIVE-USER");
+	  case ResponseErrorCode.PlanBlueprintInactiveUser:
+  	  	return language.instant("GENERAL.BACKEND-ERRORS.PLAN-BLUEPRINT-INACTIVE-USER");
 	  case ResponseErrorCode.DescriptionTemplateMissingUserContactInfo:
 		return language.instant("GENERAL.BACKEND-ERRORS.DESCRIPTION-TEMPLATE-MISSING-USER-CONTACT-INFO");
 	  case ResponseErrorCode.PlanInactiveUser:

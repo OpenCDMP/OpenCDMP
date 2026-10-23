@@ -1,0 +1,49 @@
+<div class="ep">
+	<div class="ep-head">
+		<div>
+			<h2 mat-dialog-title class="ep-title">{{'PLAN-BLUEPRINT-EDITOR.EDITORS.TITLE' | translate}}</h2>
+			<div class="bp2-sub">{{'PLAN-BLUEPRINT-EDITOR.EDITORS.PANEL-COUNT' | bp2Count: editor.usersArray.length }}</div>
+		</div>
+		<button mat-icon-button type="button" (click)="dialogRef.close()" [attr.aria-label]="'PLAN-BLUEPRINT-EDITOR.PROBLEMS.CLOSE' | translate"><mat-icon aria-hidden="true">close</mat-icon></button>
+	</div>
+	<mat-dialog-content class="ep-body">
+		<mat-form-field class="ep-search" subscriptSizing="dynamic">
+			<mat-label>{{'PLAN-BLUEPRINT-EDITOR.EDITORS.ADD' | translate}}</mat-label>
+			<app-single-auto-complete [required]="false" [formControl]="search" (optionSelected)="add($event)" [placeholder]="'PLAN-BLUEPRINT-EDITOR.EDITORS.SEARCH' | translate" [configuration]="peopleConfiguration" ></app-single-auto-complete>
+			<mat-hint>{{'PLAN-BLUEPRINT-EDITOR.EDITORS.ADD-HINT' | translate}}</mat-hint>
+		</mat-form-field>
+
+		<div class="ep-list" [attr.aria-busy]="editor.editorsSaving">
+			@for (u of editor.usersArray.controls; track u.get('userId').value; let i = $index) {
+				<div class="ep-row">
+					<span class="ep-avatar" aria-hidden="true">{{ initials(editor.userName(u.get('userId').value)) }}</span>
+					<div class="ep-row__text">
+						<strong>{{ editor.userName(u.get('userId').value) || '—' }}@if (editor.isMe(u.get('userId').value)) { <span class="ep-you"> ({{'PLAN-BLUEPRINT-EDITOR.EDITORS.YOU' | translate}})</span> }</strong>
+						@if (email(u.get('userId').value)) { <span class="bp2-sub ep-email"><mat-icon aria-hidden="true">mail</mat-icon>{{ email(u.get('userId').value) }}</span> }
+					</div>
+					<button mat-stroked-button type="button" class="bp2-btn-sm ep-role" [matMenuTriggerFor]="roleMenu" [matMenuTriggerData]="{ i: i, role: u.get('role').value }" [disabled]="editor.editorsSaving" [attr.aria-label]="'PLAN-BLUEPRINT-EDITOR.EDITORS.ROLE-FOR' | translate: { name: editor.userName(u.get('userId').value) }">
+						{{ editor.enumUtils.toUserPlanBlueprintRoleString(u.get('role').value) }}<mat-icon iconPositionEnd aria-hidden="true">expand_more</mat-icon>
+					</button>
+				</div>
+			} @empty {
+				<p class="bp2-help">{{'PLAN-BLUEPRINT-EDITOR.EDITORS.NONE' | translate}}</p>
+			}
+		</div>
+
+		<div class="bp2-strip ep-note"><mat-icon aria-hidden="true">info</mat-icon>
+			<span>{{ (editor.editorsSaveOnTheirOwn ? 'PLAN-BLUEPRINT-EDITOR.EDITORS.SAVES-NOW' : 'PLAN-BLUEPRINT-EDITOR.EDITORS.SAVED-WITH') | translate }}</span>
+		</div>
+		<p class="bp2-help ep-roles">{{'PLAN-BLUEPRINT-EDITOR.EDITORS.ROLES' | translate}}</p>
+	</mat-dialog-content>
+	<div class="ep-actions">
+		<button mat-flat-button color="primary" type="button" (click)="dialogRef.close()">{{'PLAN-BLUEPRINT-EDITOR.DETAILS.ICON-DONE' | translate}}</button>
+	</div>
+</div>
+
+<mat-menu #roleMenu="matMenu">
+	<ng-template matMenuContent let-i="i" let-role="role">
+		<button mat-menu-item type="button" [disabled]="role === Role.Owner" (click)="editor.setUserRole(i, Role.Owner)"><mat-icon aria-hidden="true">shield_person</mat-icon>{{'PLAN-BLUEPRINT-EDITOR.EDITORS.MAKE-OWNER' | translate}}</button>
+		<button mat-menu-item type="button" [disabled]="role === Role.Member" (click)="editor.setUserRole(i, Role.Member)"><mat-icon aria-hidden="true">person</mat-icon>{{'PLAN-BLUEPRINT-EDITOR.EDITORS.MAKE-MEMBER' | translate}}</button>
+		<button mat-menu-item type="button" class="bp2-danger" (click)="confirmRemove(i)"><mat-icon aria-hidden="true">person_remove</mat-icon>{{'PLAN-BLUEPRINT-EDITOR.EDITORS.REMOVE-FROM' | translate}}</button>
+	</ng-template>
+</mat-menu>

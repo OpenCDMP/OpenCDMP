@@ -49,6 +49,9 @@ public class PlanBlueprintLookup extends Lookup {
     /** false: only the default tenant's shared rows (no tenant); true: only tenant-owned rows; null: both. */
     private Boolean tenantIsSet;
 
+    @Schema(description = SwaggerHelpers.PlanBlueprint.onlyCanEdit_description)
+    private Boolean onlyCanEdit;
+
     public String getLike() {
         return like;
     }
@@ -124,6 +127,9 @@ public class PlanBlueprintLookup extends Lookup {
     public Boolean getTenantIsSet() { return tenantIsSet; }
     public void setTenantIsSet(Boolean tenantIsSet) { this.tenantIsSet = tenantIsSet; }
 
+    public Boolean getOnlyCanEdit() { return onlyCanEdit; }
+    public void setOnlyCanEdit(Boolean onlyCanEdit) { this.onlyCanEdit = onlyCanEdit; }
+
     public TenantLookup getTenantSubQuery() { return tenantSubQuery; }
     public void setTenantSubQuery(TenantLookup tenantSubQuery) { this.tenantSubQuery = tenantSubQuery; }
 
@@ -148,6 +154,7 @@ public class PlanBlueprintLookup extends Lookup {
         if (this.versionStatuses != null)
             query.versionStatuses(this.versionStatuses);
         if (this.tenantIsSet != null) query.tenantIsSet(this.tenantIsSet);
+        if (this.onlyCanEdit != null) query.onlyCanEdit(this.onlyCanEdit);
         if (this.tenantSubQuery != null) query.tenantSubQuery(this.tenantSubQuery.enrich(queryFactory));
 
         this.enrichCommon(query);
@@ -168,6 +175,7 @@ public class PlanBlueprintLookup extends Lookup {
             throw new UnsupportedOperationException("");
         if (this.statuses != null) throw new UnsupportedOperationException("");
         if (this.typeIds != null) query.typeIds(this.typeIds);
+        if (this.onlyCanEdit != null) throw new UnsupportedOperationException("");
         this.enrichCommon(query);
 
         return query;

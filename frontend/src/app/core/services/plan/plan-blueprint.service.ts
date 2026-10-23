@@ -1,7 +1,7 @@
 import { HttpClient, HttpHeaders, HttpResponse } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { IsActive } from '@app/core/common/enum/is-active.enum';
-import { DescriptionTemplatesInSection, PlanBlueprint, PlanBlueprintDefinition, PlanBlueprintPersist, NewVersionPlanBlueprintPersist, RootSection } from '@app/core/model/plan-blueprint/plan-blueprint';
+import { DescriptionTemplatesInSection, PlanBlueprint, PlanBlueprintDefinition, PlanBlueprintPersist, NewVersionPlanBlueprintPersist, RootSection, UserPlanBlueprintPersist } from '@app/core/model/plan-blueprint/plan-blueprint';
 import { PlanBlueprintLookup } from '@app/core/query/plan-blueprint.lookup';
 import { MultipleAutoCompleteConfiguration } from '@app/library/auto-complete/multiple/multiple-auto-complete-configuration';
 import { SingleAutoCompleteConfiguration } from '@app/library/auto-complete/single/single-auto-complete-configuration';
@@ -57,6 +57,16 @@ export class PlanBlueprintService {
 
 		return this.http
 			.post<PlanBlueprint>(url, item).pipe(
+				catchError((error: any) => throwError(error)));
+	}
+
+	/** The blueprint's editors, saved on their own: the blueprint itself is not touched. */
+	assignUsers(id: Guid, users: UserPlanBlueprintPersist[], reqFields: string[] = []): Observable<PlanBlueprint> {
+		const url = `${this.apiBase}/${id}/assign-users`;
+		const options = { params: { f: reqFields } };
+
+		return this.http
+			.post<PlanBlueprint>(url, users, options).pipe(
 				catchError((error: any) => throwError(error)));
 	}
 

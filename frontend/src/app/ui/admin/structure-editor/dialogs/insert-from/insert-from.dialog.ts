@@ -61,8 +61,9 @@ export function findStructures(templates: DescriptionTemplateService, blueprints
 		blueprintLookup.statuses = [0];
 	}
 	if (sources) {
-		// the same rules as the admin listings: templates you can edit, and the tenant scope tabs
+		// the same rules as the admin listings: templates and blueprints you can edit, and the tenant scope tabs
 		templateLookup.onlyCanEdit = true;
+		blueprintLookup.onlyCanEdit = true;
 		const tenantIsSet = sources.scope === 'own' && sources.tenantSelected ? true : sources.scope === 'shared' ? false : undefined;
 		templateLookup.tenantIsSet = tenantIsSet;
 		blueprintLookup.tenantIsSet = tenantIsSet;

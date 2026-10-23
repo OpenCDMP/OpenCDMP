@@ -15,6 +15,8 @@ public interface QueryUtilsService {
 
     Subquery<UUID> buildUserDescriptionTemplateEntityAuthZSubQuery(AbstractQuery<?> query, CriteriaBuilder criteriaBuilder, UUID userId);
 
+    Subquery<UUID> buildUserPlanBlueprintEntityAuthZSubQuery(AbstractQuery<?> query, CriteriaBuilder criteriaBuilder, UUID userId);
+
     Subquery<UUID> buildDescriptionAuthZSubQuery(AbstractQuery<?> query, CriteriaBuilder criteriaBuilder, UUID userId, Boolean usePublic);
 
     Subquery<UUID> buildPublicPlanAuthZSubQuery(AbstractQuery<?> query,

@@ -4,8 +4,10 @@ import org.opencdmp.commons.enums.PlanBlueprintStatus;
 import org.opencdmp.commons.enums.PlanBlueprintVersionStatus;
 import org.opencdmp.commons.enums.IsActive;
 import org.opencdmp.model.PlanBlueprintType;
+import org.opencdmp.model.UserPlanBlueprint;
 
 import java.time.Instant;
+import java.util.List;
 import java.util.UUID;
 
 public class PlanBlueprint {
@@ -74,6 +76,12 @@ public class PlanBlueprint {
 
     private Long usageCount;
     public static final String _usageCount = "usageCount";
+
+    private List<UserPlanBlueprint> users;
+    public static final String _users = "users";
+
+    private List<String> authorizationFlags;
+    public static final String _authorizationFlags = "authorizationFlags";
 
     public UUID getId() {
         return id;
@@ -209,5 +217,21 @@ public class PlanBlueprint {
 
     public void setUsageCount(Long usageCount) {
         this.usageCount = usageCount;
+    }
+
+    public List<UserPlanBlueprint> getUsers() {
+        return users;
+    }
+
+    public void setUsers(List<UserPlanBlueprint> users) {
+        this.users = users;
+    }
+
+    public List<String> getAuthorizationFlags() {
+        return authorizationFlags;
+    }
+
+    public void setAuthorizationFlags(List<String> authorizationFlags) {
+        this.authorizationFlags = authorizationFlags;
     }
 }

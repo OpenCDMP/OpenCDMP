@@ -14,6 +14,7 @@ import org.opencdmp.data.PlanBlueprintEntity;
 import org.opencdmp.model.planblueprint.PlanBlueprint;
 import org.opencdmp.model.persist.PlanBlueprintPersist;
 import org.opencdmp.model.persist.NewVersionPlanBlueprintPersist;
+import org.opencdmp.model.persist.UserPlanBlueprintPersist;
 import org.springframework.http.ResponseEntity;
 import org.xml.sax.SAXException;
 
@@ -21,11 +22,14 @@ import javax.management.InvalidApplicationException;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.TransformerException;
 import java.io.IOException;
+import java.util.List;
 import java.util.UUID;
 
 public interface PlanBlueprintService {
 
     java.util.Map<String, Integer> semanticsInUse(UUID excludeGroupId);
+
+    PlanBlueprint assignUsers(UUID id, List<UserPlanBlueprintPersist> users, FieldSet fields) throws MyForbiddenException, MyApplicationException, MyNotFoundException, InvalidApplicationException;
 
     PlanBlueprint persist(PlanBlueprintPersist model, UUID groupId, FieldSet fields) throws MyForbiddenException, MyValidationException, MyApplicationException, MyNotFoundException, InvalidApplicationException, JAXBException, JacksonException, TransformerException, ParserConfigurationException;
 

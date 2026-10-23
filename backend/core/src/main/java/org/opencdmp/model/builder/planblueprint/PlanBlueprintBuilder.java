@@ -1,8 +1,11 @@
 package org.opencdmp.model.builder.planblueprint;
 
+import gr.cite.commons.web.authz.service.AuthorizationService;
 import gr.cite.tools.data.query.QueryFactory;
 import gr.cite.tools.fieldset.BaseFieldSet;
+import org.opencdmp.authorization.AffiliatedResource;
 import org.opencdmp.authorization.AuthorizationFlags;
+import org.opencdmp.authorization.authorizationcontentresolver.AuthorizationContentResolverFactory;
 import org.opencdmp.commons.XmlHandlingService;
 import org.opencdmp.commons.enums.IsActive;
 import org.opencdmp.commons.scope.tenant.TenantScopeFactory;
@@ -10,8 +13,10 @@ import org.opencdmp.commons.types.planblueprint.DefinitionEntity;
 import org.opencdmp.convention.ConventionService;
 import org.opencdmp.data.PlanBlueprintEntity;
 import org.opencdmp.model.PlanBlueprintType;
+import org.opencdmp.model.UserPlanBlueprint;
 import org.opencdmp.model.builder.BaseBuilder;
 import org.opencdmp.model.builder.PlanBlueprintTypeBuilder;
+import org.opencdmp.model.builder.UserPlanBlueprintBuilder;
 import org.opencdmp.model.builder.plan.PlanBuilder;
 import org.opencdmp.model.plan.Plan;
 import org.opencdmp.model.planblueprint.PlanBlueprint;
@@ -23,6 +28,7 @@ import gr.cite.tools.logging.LoggerService;
 import org.opencdmp.query.PlanBlueprintQuery;
 import org.opencdmp.query.PlanBlueprintTypeQuery;
 import org.opencdmp.query.PlanQuery;
+import org.opencdmp.query.UserPlanBlueprintQuery;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
@@ -41,6 +47,8 @@ public class PlanBlueprintBuilder extends BaseBuilder<PlanBlueprint, PlanBluepri
 
     private final XmlHandlingService xmlHandlingService;
     private final TenantScopeFactory tenantScopeFactory;
+    private final AuthorizationService authorizationService;
+    private final AuthorizationContentResolverFactory authorizationContentResolverFactory;
 
     private EnumSet<AuthorizationFlags> authorize = EnumSet.of(AuthorizationFlags.None);
     private Map<UUID, Integer> featuredOrdinalMap;
@@ -49,12 +57,14 @@ public class PlanBlueprintBuilder extends BaseBuilder<PlanBlueprint, PlanBluepri
     @Autowired
     public PlanBlueprintBuilder(
             ConventionService conventionService,
-            BuilderFactory builderFactory, QueryFactory queryFactory, XmlHandlingService xmlHandlingService, TenantScopeFactory tenantScopeFactory) {
+            BuilderFactory builderFactory, QueryFactory queryFactory, XmlHandlingService xmlHandlingService, TenantScopeFactory tenantScopeFactory, AuthorizationService authorizationService, AuthorizationContentResolverFactory authorizationContentResolverFactory) {
         super(conventionService, new LoggerService(LoggerFactory.getLogger(PlanBlueprintBuilder.class)));
         this.builderFactory = builderFactory;
         this.queryFactory = queryFactory;
         this.xmlHandlingService = xmlHandlingService;
 	    this.tenantScopeFactory = tenantScopeFactory;
+        this.authorizationService = authorizationService;
+        this.authorizationContentResolverFactory = authorizationContentResolverFactory;
     }
 
     public PlanBlueprintBuilder authorize(EnumSet<AuthorizationFlags> values) {
@@ -81,6 +91,12 @@ public class PlanBlueprintBuilder extends BaseBuilder<PlanBlueprint, PlanBluepri
 
         FieldSet planBlueprintTypeFields = fields.extractPrefixed(this.asPrefix(PlanBlueprint._type));
         Map<UUID, PlanBlueprintType> planBlueprintTypeMap = this.collectPlanBlueprintTypes(planBlueprintTypeFields, data);
+
+        FieldSet usersFields = fields.extractPrefixed(this.asPrefix(PlanBlueprint._users));
+        Map<UUID, List<UserPlanBlueprint>> usersMap = this.collectUserPlanBlueprints(usersFields, data);
+
+        Set<String> authorizationFlags = this.extractAuthorizationFlags(fields, PlanBlueprint._authorizationFlags, this.authorizationContentResolverFactory.getInstance().getPermissionNames());
+        Map<UUID, AffiliatedResource> affiliatedResourceMap = authorizationFlags == null || authorizationFlags.isEmpty() ? null : this.authorizationContentResolverFactory.getInstance().planBlueprintAffiliation(data.stream().map(PlanBlueprintEntity::getId).collect(Collectors.toList()));
 
         Map<UUID, Long> usageCountsMap = this.collectUsageCounts(fields, data);
 
@@ -119,6 +135,9 @@ public class PlanBlueprintBuilder extends BaseBuilder<PlanBlueprint, PlanBluepri
             }
             if (!this.isPublic && !planBlueprintTypeFields.isEmpty() && planBlueprintTypeMap != null && planBlueprintTypeMap.containsKey(d.getTypeId()))
                 m.setType(planBlueprintTypeMap.get(d.getTypeId()));
+            if (!this.isPublic && !usersFields.isEmpty() && usersMap != null && usersMap.containsKey(d.getId()))
+                m.setUsers(usersMap.get(d.getId()));
+            if (!this.isPublic && affiliatedResourceMap != null && !authorizationFlags.isEmpty()) m.setAuthorizationFlags(this.evaluateAuthorizationFlags(this.authorizationService, authorizationFlags, affiliatedResourceMap.getOrDefault(d.getId(), null)));
             if (!this.isPublic && fields.hasField(this.asIndexer(PlanBlueprint._ordinal)) && this.featuredOrdinalMap != null && this.featuredOrdinalMap.containsKey(d.getGroupId())) {
                 m.setOrdinal(this.featuredOrdinalMap.get(d.getGroupId()));
             }
@@ -157,6 +176,24 @@ public class PlanBlueprintBuilder extends BaseBuilder<PlanBlueprint, PlanBluepri
             });
         }
 
+        return itemMap;
+    }
+
+    private Map<UUID, List<UserPlanBlueprint>> collectUserPlanBlueprints(FieldSet fields, List<PlanBlueprintEntity> data) throws MyApplicationException {
+        if (fields.isEmpty() || data.isEmpty() || this.isPublic)
+            return null;
+        this.logger.debug("checking related - {}", UserPlanBlueprint.class.getSimpleName());
+
+        Map<UUID, List<UserPlanBlueprint>> itemMap;
+        FieldSet clone = new BaseFieldSet(fields.getFields()).ensure(this.asIndexer(UserPlanBlueprint._planBlueprint, PlanBlueprint._id));
+        UserPlanBlueprintQuery query = this.queryFactory.query(UserPlanBlueprintQuery.class).disableTracking().authorize(this.authorize).planBlueprintIds(data.stream().map(PlanBlueprintEntity::getId).distinct().collect(Collectors.toList()));
+        itemMap = this.builderFactory.builder(UserPlanBlueprintBuilder.class).authorize(this.authorize).asMasterKey(query, clone, x -> x.getPlanBlueprint().getId());
+
+        if (!fields.hasField(this.asIndexer(UserPlanBlueprint._planBlueprint, PlanBlueprint._id))) {
+            itemMap.values().stream().flatMap(List::stream).filter(x -> x != null && x.getPlanBlueprint() != null).forEach(x -> {
+                x.getPlanBlueprint().setId(null);
+            });
+        }
         return itemMap;
     }
 

@@ -1,6 +1,6 @@
 import { Component, forwardRef, OnInit, TemplateRef, ViewChild, ChangeDetectionStrategy } from '@angular/core';
 import { toObservable } from '@angular/core/rxjs-interop';
-import { FormGroup, UntypedFormArray, UntypedFormGroup, Validators } from '@angular/forms';
+import { FormArray, FormGroup, UntypedFormArray, UntypedFormGroup, Validators } from '@angular/forms';
 import { MatDialog } from '@angular/material/dialog';
 import { ActivatedRoute, Router } from '@angular/router';
 import { IsActive } from '@app/core/common/enum/is-active.enum';
@@ -11,9 +11,11 @@ import { PlanBlueprintTypeStatus } from '@app/core/common/enum/plan-blueprint-ty
 import { PlanBlueprintVersionStatus } from '@app/core/common/enum/plan-blueprint-version-status';
 import { PluginEntityType } from '@app/core/common/enum/plugin-entity-type';
 import { PluginType } from '@app/core/common/enum/plugin-type';
+import { UserPlanBlueprintRole } from '@app/core/common/enum/user-plan-blueprint-role';
 import { BaseField, BaseFieldSet, BaseSection, DescriptionTemplate, DescriptionTemplateDefinition, FieldSelectData, FieldSelectOption, SemanticValue } from '@app/core/model/description-template/description-template';
 import { NewVersionPlanBlueprintPersist, PlanBlueprint, PlanBlueprintPersist } from '@app/core/model/plan-blueprint/plan-blueprint';
 import { PluginRepositoryConfiguration } from '@app/core/model/plugin-configuration/plugin-configuration';
+import { User } from '@app/core/model/user/user';
 import { AuthService } from '@app/core/services/auth/auth.service';
 import { ConfigurationService } from '@app/core/services/configuration/configuration.service';
 import { DescriptionTemplateService } from '@app/core/services/description-template/description-template.service';
@@ -40,7 +42,7 @@ import { TranslateService } from '@ngx-translate/core';
 import { Observable } from 'rxjs';
 import { map, takeUntil } from 'rxjs/operators';
 import { nameof } from 'ts-simple-nameof';
-import { PlanBlueprintEditorModel, PlanBlueprintForm, PlanBlueprintRootSectionEditorModel } from '../editor/plan-blueprint-editor.model';
+import { PlanBlueprintEditorModel, PlanBlueprintForm, PlanBlueprintRootSectionEditorModel, UserPlanBlueprintEditorModel } from '../editor/plan-blueprint-editor.model';
 import { PlanBlueprintEditorResolver } from '../editor/plan-blueprint-editor.resolver';
 import { PlanBlueprintEditorService } from '../editor/plan-blueprint-editor.service';
 import { BlueprintProblemsHelper } from './blueprint-problems.helper';
@@ -49,6 +51,8 @@ import { EditorShellComponent } from '../../structure-editor/shell/editor-shell.
 import { Bp2DetailsTabComponent } from './tabs/details-tab/details-tab.component';
 import { Bp2StructureTabComponent } from '../../structure-editor/structure/structure-tab.component';
 import { Bp2ReviewTabComponent } from './tabs/review-tab/review-tab.component';
+import { MatIcon } from '@angular/material/icon';
+import { Bp2CountPipe } from '../../structure-editor/count.pipe';
 
 export type { EditorTab };
 
@@ -62,7 +66,7 @@ export type { EditorTab };
     styleUrls: ['./plan-blueprint-editor.component.scss'],
     providers: [PlanBlueprintEditorService, { provide: StructureEditorBase, useExisting: forwardRef(() => PlanBlueprintEditorComponent) }],
     changeDetection: ChangeDetectionStrategy.Eager,
-    imports: [forwardRef(() => Bp2AssetsBlockComponent), EditorShellComponent, forwardRef(() => Bp2DetailsTabComponent), Bp2StructureTabComponent, forwardRef(() => Bp2ReviewTabComponent)]
+    imports: [forwardRef(() => Bp2AssetsBlockComponent), EditorShellComponent, MatIcon, forwardRef(() => Bp2DetailsTabComponent), Bp2StructureTabComponent, forwardRef(() => Bp2ReviewTabComponent), Bp2CountPipe]
 })
 export class PlanBlueprintEditorComponent extends StructureEditorBase<PlanBlueprintEditorModel, PlanBlueprint> implements OnInit {
 	declare formGroup: FormGroup<PlanBlueprintForm>;
@@ -72,6 +76,8 @@ export class PlanBlueprintEditorComponent extends StructureEditorBase<PlanBluepr
 
 	/** Templates referenced by the sections, by group id, so rows and the preview can show names. */
 	descriptionTemplateMap = new Map<string, DescriptionTemplate>();
+	/** People on the Editors card, by id, so rows can show names. */
+	usersMap = new Map<string, User>();
 	private attachedUseByGroup = new Map<string, AttachedUse>();
 
 	readonly urlBase = '/plan-blueprints';
@@ -146,6 +152,8 @@ export class PlanBlueprintEditorComponent extends StructureEditorBase<PlanBluepr
 			}
 			this.item = data;
 			this.editorModel = new PlanBlueprintEditorModel().fromModel(data, this.pluginRepositoryConfigurations);
+			this.usersMap.clear();
+			(data.users ?? []).forEach(u => { if (u.user?.id) this.usersMap.set(u.user.id.toString(), u.user); });
 			this.isDeleted = data.isActive === IsActive.Inactive;
 			this.belongsToCurrentTenant = this.isNew || this.isClone || data.belongsToCurrentTenant !== false;
 			this.buildForm();
@@ -248,20 +256,112 @@ export class PlanBlueprintEditorComponent extends StructureEditorBase<PlanBluepr
 
 	protected detailsDirty(): boolean {
 		const definition = this.formGroup.controls.definition;
-		return ['label', 'code', 'description', 'type'].some(k => this.formGroup.get(k)?.dirty)
+		return ['label', 'code', 'description', 'type', 'users'].some(k => this.formGroup.get(k)?.dirty)
 			|| ['planCreationConsent', 'iconConfiguration', 'pluginConfigurations'].some(k => definition.get(k)?.dirty);
 	}
 
 	// ---------------------------------------------------------------- state & guards
 
+	/** A blueprint's editors may take over its lock, like admins (the backend grants DeleteLock to both). */
+	protected takeOverAllowed(): boolean { return super.takeOverAllowed() || this.hasPermission(AppPermission.EditPlanBlueprint); }
+
+	/** A global permission, or one granted on this blueprint (an editor listed on it). */
+	hasPermission(permission: AppPermission): boolean {
+		return this.authService.hasPermission(permission) || !!this.editorModel?.permissions?.includes(permission) || !!this.item?.authorizationFlags?.some(x => x === permission);
+	}
 	/** Read-only: locked by someone else, or for good (deleted, finalized, shared, no permission). A new version is editable. */
 	get readOnly(): boolean {
-		return this.isLocked || ((this.isDeleted || this.isFinalized || !this.authService.hasPermission(AppPermission.EditPlanBlueprint) || !this.belongsToCurrentTenant) && !this.isNewVersion);
+		return this.isLocked || ((this.isDeleted || this.isFinalized || !this.hasPermission(AppPermission.EditPlanBlueprint) || !this.belongsToCurrentTenant) && !this.isNewVersion);
 	}
 	get canDelete(): boolean { return !this.isDeleted && !this.isTransient && this.belongsToCurrentTenant && this.authService.hasPermission(AppPermission.DeletePlanBlueprint); }
-	get canCreateNewVersion(): boolean { return this.isFinalized && !this.isTransient && this.item?.versionStatus == PlanBlueprintVersionStatus.Current && this.belongsToCurrentTenant; }
+	get canCreateNewVersion(): boolean { return this.isFinalized && !this.isTransient && this.item?.versionStatus == PlanBlueprintVersionStatus.Current && this.belongsToCurrentTenant && this.authService.hasPermission(AppPermission.CreateNewVersionPlanBlueprint); }
 	get canClone(): boolean { return !this.isTransient && this.authService.hasPermission(AppPermission.EditPlanBlueprint); }
 	get sectionsArray(): UntypedFormArray { return this.formGroup?.controls?.definition?.controls?.sections as unknown as UntypedFormArray; }
+
+	// ---------------------------------------------------------------- editors
+
+	get usersArray(): FormArray { return this.formGroup.get('users') as FormArray; }
+	userName(userId: Guid | string): string { return this.usersMap.get(userId?.toString())?.name ?? ''; }
+	isMe(userId: Guid | string): boolean { return !!userId && userId?.toString() === this.authService.userId()?.toString(); }
+	editorRows(): { userId: Guid, name: string, role: UserPlanBlueprintRole }[] {
+		return this.usersArray.controls.map(c => ({ userId: c.get('userId').value, name: this.userName(c.get('userId').value), role: c.get('role').value }));
+	}
+	/** Editors can be managed whenever the blueprint may be changed at all, finalized or not: they are not part of a version. */
+	get canManageEditors(): boolean {
+		return !this.isDeleted && !this.isLocked && this.belongsToCurrentTenant && this.hasPermission(AppPermission.EditPlanBlueprint);
+	}
+	/** A saved blueprint's editors are saved on their own, like plan collaborators; a new one's go in with its first save. */
+	get editorsSaveOnTheirOwn(): boolean { return !this.isTransient && !!this.item?.id; }
+	editorsSaving = false;
+	get ownerCount(): number { return this.usersArray.controls.filter(c => c.get('role').value === UserPlanBlueprintRole.Owner).length; }
+	get memberCount(): number { return this.usersArray.length - this.ownerCount; }
+	get myRole(): UserPlanBlueprintRole { return this.usersArray.controls.find(c => this.isMe(c.get('userId').value))?.get('role').value ?? null; }
+	/** "Maria, Nikos and Eleni", in the reader's language. */
+	nameList(names: string[]): string {
+		try { return new Intl.ListFormat(this.language.currentLang || 'en', { style: 'long', type: 'conjunction' }).format(names); } catch { return names.join(', '); }
+	}
+
+	/** Adds a person to the blueprint, as a member unless said otherwise. */
+	addUser(user: User, role: UserPlanBlueprintRole = UserPlanBlueprintRole.Member): void {
+		if (!user?.id || this.usersArray.controls.some(c => c.get('userId').value?.toString() === user.id.toString())) return;
+		this.usersMap.set(user.id.toString(), user);
+		const before = this.usersArray.getRawValue();
+		this.usersArray.push(this.userForm(user.id, role, this.usersArray.length));
+		this.usersChanged(before, 'PLAN-BLUEPRINT-EDITOR.EDITORS.ADDED', { name: user.name, role: this.enumUtils.toUserPlanBlueprintRoleString(role) });
+	}
+
+	setUserRole(index: number, role: UserPlanBlueprintRole): void {
+		const control = this.usersArray.at(index)?.get('role');
+		if (!control || control.value === role) return;
+		const before = this.usersArray.getRawValue();
+		control.setValue(role);
+		this.usersChanged(before, 'PLAN-BLUEPRINT-EDITOR.EDITORS.ROLE-CHANGED', { name: this.userName(this.usersArray.at(index).get('userId').value), role: this.enumUtils.toUserPlanBlueprintRoleString(role) });
+	}
+
+	removeUser(index: number): void {
+		const before = this.usersArray.getRawValue();
+		const name = this.userName(this.usersArray.at(index)?.get('userId').value);
+		this.usersArray.removeAt(index);
+		this.reapplyValidators();
+		this.usersChanged(before, 'PLAN-BLUEPRINT-EDITOR.EDITORS.REMOVED', { name });
+	}
+
+	private userForm(userId: Guid, role: UserPlanBlueprintRole, index: number) {
+		const model = new UserPlanBlueprintEditorModel(this.editorModel.validationErrorModel);
+		model.userId = userId;
+		model.role = role;
+		return model.buildForm({ rootPath: `users[${index}].` });
+	}
+
+	private setUsers(users: { userId: Guid, role: UserPlanBlueprintRole }[]): void {
+		while (this.usersArray.length) this.usersArray.removeAt(0);
+		users.forEach((u, i) => this.usersArray.push(this.userForm(u.userId, u.role, i)));
+	}
+
+	/** Saves the editors right away when the blueprint exists; otherwise they wait for the blueprint's first save. */
+	private usersChanged(before: { userId: Guid, role: UserPlanBlueprintRole }[], messageKey: string, params: object): void {
+		if (!this.editorsSaveOnTheirOwn) { this.usersArray.markAsDirty(); return; }
+		this.editorsSaving = true;
+		const users = this.usersArray.getRawValue();
+		const fields = [nameof<PlanBlueprint>(x => x.id), ...['user.id', 'user.name', 'role', 'isActive'].map(f => `users.${f}`)];
+		this.planBlueprintService.assignUsers(this.item.id, users, fields).pipe(takeUntil(this._destroyed)).subscribe({
+			next: saved => {
+				this.editorsSaving = false;
+				const active = (saved?.users ?? []).filter(u => u.isActive === IsActive.Active);
+				active.forEach(u => { if (u.user?.id) this.usersMap.set(u.user.id.toString(), u.user); });
+				this.setUsers(active.map(u => ({ userId: u.user?.id, role: u.role })));
+				this.item = { ...this.item, users: saved?.users };
+				this.usersArray.markAsPristine();
+				this.uiNotificationService.snackBarNotification(this.language.instant(messageKey, params), SnackBarNotificationLevel.Success);
+			},
+			error: error => {
+				this.editorsSaving = false;
+				this.setUsers(before);
+				this.usersArray.markAsPristine();
+				this.httpErrorHandlingService.handleBackedRequestError(error);
+			}
+		});
+	}
 
 	// ---------------------------------------------------------------- consent
 

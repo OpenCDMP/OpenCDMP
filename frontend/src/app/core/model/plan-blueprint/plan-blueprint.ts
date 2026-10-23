@@ -12,6 +12,9 @@ import { PluginConfiguration, PluginConfigurationPersist } from "../plugin-confi
 import { DescriptionTemplate } from "../description-template/description-template";
 import { PlanBlueprintType } from "../plan-blueprint-type/plan-blueprint-type";
 import { IconConfiguration, IconConfigurationPersist } from "../icon-configuration/icon-configuration";
+import { UserPlanBlueprintRole } from "@app/core/common/enum/user-plan-blueprint-role";
+import { AppPermission } from "@app/core/common/enum/permission.enum";
+import { User } from "../user/user";
 import { BaseFieldDataPersist, DefaultValuePersist, MultiplicityPersist, RulePersist, SectionPersist } from "../description-template/description-template-persist";
 
 
@@ -27,6 +30,14 @@ export interface PlanBlueprint extends BaseEntity {
 	groupId?: Guid;
 	ordinal?: number;
 	usageCount?: number;
+	users?: UserPlanBlueprint[];
+	authorizationFlags?: AppPermission[];
+}
+
+export interface UserPlanBlueprint extends BaseEntity {
+	planBlueprint?: PlanBlueprint;
+	role?: UserPlanBlueprintRole;
+	user?: User;
 }
 
 export interface PlanBlueprintDefinition {
@@ -140,12 +151,19 @@ export interface PlanBlueprintPersist extends BaseEntityPersist {
 	code: string;
 	definition: PlanBlueprintDefinitionPersist;
 	status: PlanBlueprintStatus;
+	users: UserPlanBlueprintPersist[];
 }
 
 export interface NewVersionPlanBlueprintPersist {
 	label: string;
 	definition: PlanBlueprintDefinitionPersist;
 	status: PlanBlueprintStatus;
+	users: UserPlanBlueprintPersist[];
+}
+
+export interface UserPlanBlueprintPersist {
+	userId?: Guid;
+	role?: UserPlanBlueprintRole;
 }
 
 export interface PlanBlueprintDefinitionPersist {

@@ -2,7 +2,8 @@ import { FormArray, FormControl, FormGroup, UntypedFormBuilder, UntypedFormGroup
 import { IsActive } from "@app/core/common/enum/is-active.enum";
 import { PlanBlueprintStatus } from "@app/core/common/enum/plan-blueprint-status";
 import { PlanBlueprintVersionStatus } from "@app/core/common/enum/plan-blueprint-version-status";
-import { DescriptionTemplatesInSection, DescriptionTemplatesInSectionPersist, PlanBlueprint, PlanBlueprintDefinition, PlanBlueprintDefinitionPersist, PlanBlueprintPersist, RootSection, RootSectionPersist, PlanCreationConsentPersist, PlanCreationConsent } from "@app/core/model/plan-blueprint/plan-blueprint";
+import { UserPlanBlueprintRole } from "@app/core/common/enum/user-plan-blueprint-role";
+import { DescriptionTemplatesInSection, DescriptionTemplatesInSectionPersist, PlanBlueprint, PlanBlueprintDefinition, PlanBlueprintDefinitionPersist, PlanBlueprintPersist, RootSection, RootSectionPersist, PlanCreationConsentPersist, PlanCreationConsent, UserPlanBlueprint, UserPlanBlueprintPersist } from "@app/core/model/plan-blueprint/plan-blueprint";
 import { PluginRepositoryConfiguration } from "@app/core/model/plugin-configuration/plugin-configuration";
 import { IconConfigurationEditorModel, IconConfigurationForm } from "@app/ui/iconconfiguration/icon-configuration-editor.model";
 import { PluginConfigurationEditorModel, PluginConfigurationForm } from "@app/ui/plugin/plugin-editor.model";
@@ -24,6 +25,7 @@ export class PlanBlueprintEditorModel extends BaseEditorModel implements PlanBlu
 	status: PlanBlueprintStatus = PlanBlueprintStatus.Draft;
 	versionStatus: PlanBlueprintVersionStatus = PlanBlueprintVersionStatus.Current;
 	description: string;
+	users: UserPlanBlueprintEditorModel[] = [];
 	permissions: string[];
 
 	public validationErrorModel: ValidationErrorModel = new ValidationErrorModel();
@@ -42,6 +44,7 @@ export class PlanBlueprintEditorModel extends BaseEditorModel implements PlanBlu
 			this.status = item.status;
 			this.versionStatus = item.versionStatus;
 			this.definition = new PlanBlueprintDefinitionEditorModel(this.validationErrorModel).fromModel(item.definition, configuration);
+			if (item.users) { item.users.filter(x => x.isActive === IsActive.Active).map(x => this.users.push(new UserPlanBlueprintEditorModel(this.validationErrorModel).fromModel(x))); }
 		}
 		return this;
 	}
@@ -61,6 +64,13 @@ export class PlanBlueprintEditorModel extends BaseEditorModel implements PlanBlu
 				rootPath: `definition.`,
 				disabled
 			}),
+			users: this.formBuilder.array(
+				(this.users ?? []).map(
+					(item, index) => item.buildForm({
+						rootPath: `users[${index}].`
+					})
+				), context.getValidation('users').validators
+			),
 			hash: [{ value: this.hash, disabled }, context.getValidation('hash').validators]
 		});
         return formGroup;
@@ -75,6 +85,7 @@ export class PlanBlueprintEditorModel extends BaseEditorModel implements PlanBlu
 		baseValidationArray.push({ key: 'type', validators: [BackendErrorValidator(this.validationErrorModel, 'type')] });
 		baseValidationArray.push({ key: 'code', validators: [Validators.required, BackendErrorValidator(this.validationErrorModel, 'code')] });
 		baseValidationArray.push({ key: 'status', validators: [Validators.required, BackendErrorValidator(this.validationErrorModel, 'status')] });
+		baseValidationArray.push({ key: 'users', validators: [BackendErrorValidator(this.validationErrorModel, 'users')] });
 		baseValidationArray.push({ key: 'hash', validators: [] });
 
 		baseContext.validation = baseValidationArray;
@@ -112,6 +123,13 @@ export class PlanBlueprintEditorModel extends BaseEditorModel implements PlanBlu
             rootPath: `definition.`,
             validationErrorModel: validationErrorModel
         });
+		formGroup.controls.users.controls?.forEach(
+			(control, index) => UserPlanBlueprintEditorModel.reapplyValidators({
+				formGroup: control as UntypedFormGroup,
+				rootPath: `users[${index}].`,
+				validationErrorModel: validationErrorModel
+			})
+		);
 		formGroup.updateValueAndValidity();
 	}
 
@@ -937,7 +955,86 @@ export interface PlanBlueprintForm {
 	status: FormControl<PlanBlueprintStatus>;
 	versionStatus: FormControl<PlanBlueprintVersionStatus>;
 	description: FormControl<string>;
+	users: FormArray<FormGroup<UserPlanBlueprintForm>>;
 	permissions: FormControl<string[]>;
+}
+
+export interface UserPlanBlueprintForm {
+    userId: FormControl<Guid>;
+    role: FormControl<UserPlanBlueprintRole>;
+}
+
+export class UserPlanBlueprintEditorModel implements UserPlanBlueprintPersist {
+	userId?: Guid;
+	role?: UserPlanBlueprintRole;
+
+	protected formBuilder: UntypedFormBuilder = new UntypedFormBuilder();
+
+	constructor(
+		public validationErrorModel: ValidationErrorModel = new ValidationErrorModel()
+	) { }
+
+	public fromModel(item: UserPlanBlueprint): UserPlanBlueprintEditorModel {
+		if (item) {
+			this.userId = item.user?.id;
+			this.role = item.role;
+		}
+		return this;
+	}
+
+	buildForm(params?: {
+		context?: ValidationContext,
+		disabled?: boolean,
+		rootPath?: string
+	}): FormGroup<UserPlanBlueprintForm> {
+		const { disabled = false, rootPath } = params ?? {};
+		let { context = null } = params ?? {};
+		if (context == null) {
+			context = UserPlanBlueprintEditorModel.createValidationContext({
+				validationErrorModel: this.validationErrorModel,
+				rootPath
+			});
+		}
+
+		return this.formBuilder.group({
+			userId: [{ value: this.userId, disabled: disabled }, context.getValidation('userId').validators],
+			role: [{ value: this.role, disabled: disabled }, context.getValidation('role').validators],
+		});
+	}
+
+	static createValidationContext(params: {
+		rootPath?: string,
+		validationErrorModel: ValidationErrorModel
+	}): ValidationContext {
+		const { rootPath = '', validationErrorModel } = params;
+
+		const baseContext: ValidationContext = new ValidationContext();
+		const baseValidationArray: Validation[] = new Array<Validation>();
+		baseValidationArray.push({ key: 'userId', validators: [BackendErrorValidator(validationErrorModel, `${rootPath}userId`)] });
+		baseValidationArray.push({ key: 'role', validators: [Validators.required, BackendErrorValidator(validationErrorModel, `${rootPath}role`)] });
+
+		baseContext.validation = baseValidationArray;
+		return baseContext;
+	}
+
+	static reapplyValidators(params: {
+		formGroup: UntypedFormGroup,
+		validationErrorModel: ValidationErrorModel,
+		rootPath: string
+	}): void {
+
+		const { formGroup, rootPath, validationErrorModel } = params;
+		const context = UserPlanBlueprintEditorModel.createValidationContext({
+			rootPath,
+			validationErrorModel
+		});
+
+		['userId', 'role'].forEach(keyField => {
+			const control = formGroup?.get(keyField);
+			control?.clearValidators();
+			control?.addValidators(context.getValidation(keyField).validators);
+		})
+	}
 }
 
 export interface PlanBlueprintDefinitionForm {

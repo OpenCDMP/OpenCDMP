@@ -24,6 +24,9 @@ spring:
       maximum-pool-size: 10
       idle-timeout: 600000
       max-lifetime: 1800000
+      # The authorization subqueries make PostgreSQL estimate most queries as expensive, so it JIT-compiles them for
+      # far longer than they take to run.
+      connection-init-sql: SET jit = off
   flyway:
     table: DBMigrationHistory
     # The schema is shared with the notification, annotation and KPI services, so a non-empty schema says nothing

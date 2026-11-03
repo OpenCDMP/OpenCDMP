@@ -109,6 +109,9 @@ export class ReferenceTypeDefinitionEditorModel implements ReferenceTypeDefiniti
 	fields: ReferenceTypeFieldEditorModel[] = [];
 	sources: ExternalFetcherBaseSourceConfigurationEditorModel[] = [];
 	labelTemplate: string;
+	referenceIdSemantics: string[];
+	labelSemantics: string[];
+	descriptionSemantics: string[];
 
 	protected formBuilder: UntypedFormBuilder = new UntypedFormBuilder();
 
@@ -121,6 +124,9 @@ export class ReferenceTypeDefinitionEditorModel implements ReferenceTypeDefiniti
 			if (item.fields) { item.fields.map(x => this.fields.push(new ReferenceTypeFieldEditorModel(this.validationErrorModel).fromModel(x))); }
 			if (item.sources) { item.sources.map(x => this.sources.push(new ExternalFetcherBaseSourceConfigurationEditorModel(this.validationErrorModel).fromModel(x))); }
 			this.labelTemplate = item.labelTemplate;
+			this.referenceIdSemantics = item.referenceIdSemantics;
+			this.labelSemantics = item.labelSemantics;
+			this.descriptionSemantics = item.descriptionSemantics;
 		}
 		return this;
 	}
@@ -155,7 +161,10 @@ export class ReferenceTypeDefinitionEditorModel implements ReferenceTypeDefiniti
 					})
 				), context.getValidation('sources').validators
 			),
-			labelTemplate: [{ value: this.labelTemplate, disabled: disabled }, context.getValidation('labelTemplate').validators]
+			labelTemplate: [{ value: this.labelTemplate, disabled: disabled }, context.getValidation('labelTemplate').validators],
+			referenceIdSemantics: [{ value: this.referenceIdSemantics, disabled: disabled }, context.getValidation('referenceIdSemantics').validators],
+			labelSemantics: [{ value: this.labelSemantics, disabled: disabled }, context.getValidation('labelSemantics').validators],
+			descriptionSemantics: [{ value: this.descriptionSemantics, disabled: disabled }, context.getValidation('descriptionSemantics').validators]
 		});
 	}
 
@@ -170,6 +179,9 @@ export class ReferenceTypeDefinitionEditorModel implements ReferenceTypeDefiniti
 		baseValidationArray.push({ key: 'fields', validators: [BackendErrorValidator(validationErrorModel, `${rootPath}fields`)] });
 		baseValidationArray.push({ key: 'sources', validators: [Validators.required, BackendErrorValidator(validationErrorModel, `${rootPath}sources`)] });
 		baseValidationArray.push({ key: 'labelTemplate', validators: [BackendErrorValidator(validationErrorModel, `${rootPath}labelTemplate`)] });
+		baseValidationArray.push({ key: 'referenceIdSemantics', validators: [BackendErrorValidator(validationErrorModel, `${rootPath}referenceIdSemantics`)] });
+		baseValidationArray.push({ key: 'labelSemantics', validators: [BackendErrorValidator(validationErrorModel, `${rootPath}labelSemantics`)] });
+		baseValidationArray.push({ key: 'descriptionSemantics', validators: [BackendErrorValidator(validationErrorModel, `${rootPath}descriptionSemantics`)] });
 
 		baseContext.validation = baseValidationArray;
 		return baseContext;

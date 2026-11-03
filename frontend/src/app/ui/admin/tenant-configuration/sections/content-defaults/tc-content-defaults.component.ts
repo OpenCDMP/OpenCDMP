@@ -3,11 +3,13 @@ import { ChangeDetectionStrategy, Component, Injector, Signal, afterNextRender, 
 import { takeUntilDestroyed, toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { ReactiveFormsModule, UntypedFormArray, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 import { MatDialog } from '@angular/material/dialog';
+import { RouterLink } from '@angular/router';
 import { TenantConfigurationType } from '@app/core/common/enum/tenant-configuration-type';
 import { DescriptionTemplate } from '@app/core/model/description-template/description-template';
 import { PlanBlueprint } from '@app/core/model/plan-blueprint/plan-blueprint';
 import { ReferenceType } from '@app/core/model/reference-type/reference-type';
 import { DescriptionTemplateService } from '@app/core/services/description-template/description-template.service';
+import { RouterUtilsService } from '@app/core/services/router/router-utils.service';
 import { PlanBlueprintService } from '@app/core/services/plan/plan-blueprint.service';
 import { ReferenceTypeService } from '@app/core/services/reference-type/reference-type.service';
 import { TenantHandlingService } from '@app/core/services/tenant/tenant-handling.service';
@@ -51,7 +53,7 @@ type TcListId = 'blueprints' | 'templates' | 'planRefs' | 'assetRefs';
 	selector: 'app-tc-content-defaults',
 	standalone: true,
 	changeDetection: ChangeDetectionStrategy.OnPush,
-	imports: [CommonUiModule, ReactiveFormsModule, AutoCompleteModule, DragDropModule, DescriptionTemplatePreviewDialogModule, TcSaveBarComponent, TcStateTagComponent],
+	imports: [CommonUiModule, ReactiveFormsModule, AutoCompleteModule, DragDropModule, DescriptionTemplatePreviewDialogModule, RouterLink, TcSaveBarComponent, TcStateTagComponent],
 	providers: [TcSectionService],
 	templateUrl: './tc-content-defaults.component.html',
 	styleUrl: './tc-content-defaults.component.scss',
@@ -65,10 +67,13 @@ export class TcContentDefaultsComponent {
 	private readonly language = inject(TranslateService);
 	private readonly dialog = inject(MatDialog);
 	private readonly injector = inject(Injector);
+	private readonly routerUtils = inject(RouterUtilsService);
 
 	protected readonly blueprint = this.section.part(TenantConfigurationType.DefaultPlanBlueprint, DefaultPlanBlueprintEditorResolver.lookupFields(), () => new DefaultPlanBlueprintEditorModel());
 	protected readonly featured = this.section.part(TenantConfigurationType.FeaturedEntities, FeaturedEntitiesEditorResolver.lookupFields(), () => new FeaturedEntitiesEditorModel());
 	protected readonly views = this.section.part(TenantConfigurationType.ViewPreferences, ViewPreferencesEditorResolver.lookupFields(), () => new ViewPreferencesEditorModel());
+
+	protected readonly onboardingUrl = this.routerUtils.generateUrl('/tenant-configuration/onboarding');
 
 	protected readonly ready = computed(() => !!this.blueprint.form() && !!this.featured.form() && !!this.views.form());
 

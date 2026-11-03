@@ -1,0 +1,31 @@
+<div class="dcs">
+	<div class="dcs__body">
+		<h3 class="dcs__title">{{ title() }}</h3>
+		<div #textElement class="dcs__text" [innerHTML]="text()"></div>
+		@if (showButton() || (readMoreEnabled() && cut())) {
+			<div class="dcs__actions">
+				@if (showButton()) {
+					@if (isEmail()) {
+						<a mat-flat-button color="primary" [href]="href()">
+							{{ buttonText() }}
+							<mat-icon iconPositionEnd aria-hidden="true">mail</mat-icon>
+						</a>
+					} @else {
+						<a mat-flat-button color="primary" [href]="href()" target="_blank" rel="noopener noreferrer">
+							{{ buttonText() }}<span class="cdk-visually-hidden"> ({{ 'ALT-TEXT.OPENS-IN-NEW-TAB' | translate }})</span>
+							<mat-icon iconPositionEnd aria-hidden="true">open_in_new</mat-icon>
+						</a>
+					}
+				}
+				@if (readMoreEnabled() && cut()) {
+					<button mat-button type="button" [attr.aria-label]="'DASHBOARD.SLIDES.READ-MORE-LABEL' | translate: { title: title() }" (click)="readMore.emit()">
+						{{ 'DASHBOARD.SLIDES.READ-MORE' | translate }}
+					</button>
+				}
+			</div>
+		}
+	</div>
+	@if (imageUrl(); as url) {
+		<img class="dcs__image" [class.dcs__image--fit]="fitImage()" [src]="url" alt="" />
+	}
+</div>

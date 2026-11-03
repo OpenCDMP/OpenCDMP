@@ -18,7 +18,8 @@ public enum TenantConfigurationType implements DatabaseEnum<Short> {
     PluginConfiguration((short) 8),
     ViewPreferences((short) 9),
     TermsAndConditions((short) 10),
-    GuidedTours((short) 11);
+    GuidedTours((short) 11),
+    DashboardSlides((short) 12);
 
     private final Short value;
 

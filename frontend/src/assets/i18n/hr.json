@@ -1392,7 +1392,12 @@
 			"MOVE-UP": "Pomakni {{item}} gore",
 			"MOVE-DOWN": "Pomakni {{item}} dolje",
 			"REMOVE": "Ukloni {{item}}",
-			"CHIP-KEYBOARD-HINT": "Povucite za promjenu redoslijeda ili pritisnite Alt s lijevom ili desnom strelicom."
+			"CHIP-KEYBOARD-HINT": "Povucite za promjenu redoslijeda ili pritisnite Alt s lijevom ili desnom strelicom.",
+			"DASHBOARD-NOTE": {
+				"TITLE": "I na Početku",
+				"TEXT": "Da bi se ove stavke prikazivale i na Početku članova, dodajte slajd „Preporučeni blueprintovi i predlošci” u odjeljku",
+				"LINK": "Korisnici i uvođenje"
+			}
 		},
 		"NOTIFICATIONS": {
 			"TITLE": "Obavijesti",
@@ -1416,7 +1421,94 @@
 		},
 		"ONBOARDING": {
 			"TITLE": "Korisnici i uvođenje",
-			"HINT": "Što korisnici vide pri prvoj prijavi.",
+			"HINT": "Što korisnici vide pri prvoj prijavi i informacije na njihovom Početku.",
+			"SLIDES": {
+				"TITLE": "Informacije na Početku",
+				"HINT": "Slajdovi koje svi članovi ove organizacije vide na vrhu svog Početka, jedan po jedan.",
+				"ADD": "Dodaj slajd",
+				"EMPTY": "Još nema slajdova",
+				"EMPTY-HINT": "Odaberite „Dodaj slajd” da biste dodali prvi.",
+				"EMPTY-FALLBACK": "Do tada članovi vide slajdove zadane organizacije.",
+				"CONTENT": {
+					"TITLE": "Slajd sa sadržajem",
+					"HINT": "Vaš vlastiti naslov i tekst, uz sliku i gumb ako želite."
+				},
+				"RECOMMENDED": {
+					"TITLE": "Preporučeni blueprintovi i predlošci",
+					"HINT": "Blueprintovi i predlošci odabrani u Zadanom sadržaju, 3 na svakom slajdu. Može se dodati jednom.",
+					"ALREADY-ADDED": "Već dodano",
+					"ITEMS": "Stavke iz Zadanog sadržaja: {{count}}",
+					"ITEMS-AND-SLIDES": "Stavke iz Zadanog sadržaja: {{count}} · slajdovi na Početku: {{slides}}",
+					"NO-ITEMS": "U Zadanom sadržaju još nisu odabrane stavke",
+					"NOT-SHOWN": "Ne prikazuje se: nema stavki",
+					"CHANGE-ITEMS": "Promijeni stavke"
+				},
+				"COLUMNS": {
+					"ORDER": "Redoslijed",
+					"SLIDE": "Slajd",
+					"LANGUAGES": "Jezici",
+					"WHEN": "Kada",
+					"ON-DASHBOARD": "Na Početku",
+					"ACTIONS": "Radnje"
+				},
+				"ALWAYS": "Uvijek",
+				"UNTIL": "Do {{date}}",
+				"ENDED": "Završeno {{date}}",
+				"FROM": "Od {{date}}",
+				"FROM-UNTIL": "Od {{from}} do {{until}}",
+				"STATE-ON": "Uključeno",
+				"STATE-OFF": "Isključeno",
+				"STATE-ENDED": "Završeno",
+				"EDIT": "Uredi",
+				"DUPLICATE": "Dupliciraj",
+				"MOVE-UP": "Pomakni gore",
+				"MOVE-DOWN": "Pomakni dolje",
+				"DELETE": "Briši",
+				"DELETE-CONFIRM": "Izbrisati slajd „{{name}}”? Članovi ga više neće vidjeti.",
+				"FOOTNOTE": "Povucite slajd da biste promijenili redoslijed. Završeni slajdovi ostaju na popisu dok ih ne izbrišete.",
+				"EDITOR": {
+					"NEW-TITLE": "Novi slajd",
+					"EDIT-TITLE": "Uredi slajd",
+					"CLOSE": "Zatvori",
+					"LANGUAGES": "Jezici",
+					"ADD-LANGUAGE": "Dodaj jezik",
+					"REMOVE-LANGUAGE": "Ukloni {{language}}",
+					"DEFAULT-LANGUAGE": "(zadano)",
+					"DEFAULT-LANGUAGE-HINT": "Zadani jezik je obavezan. Članovi čiji jezik nema tekst vide ovaj.",
+					"OTHER-LANGUAGE-HINT": "Neobavezno. Ostavite prazno da bi se prikazao tekst zadanog jezika.",
+					"PREVIEW-IN": "Izgled slajda · {{language}}",
+					"TEXTS-TITLE": "Tekst na svakom jeziku",
+					"TEXTS-HINT": "Naslov, tekst i tekst gumba. Svaki jezik ima svoje.",
+					"SHARED-TITLE": "Za sve jezike",
+					"SHARED-HINT": "Slika, gumb i datumi isti su na svim jezicima.",
+					"SLIDE-TITLE": "Naslov",
+					"TITLE-NEEDED": "Dodajte naslov za ovaj jezik ili izbrišite njegov tekst.",
+					"TEXT": "Tekst",
+					"TEXT-HINT": "Slajd prikazuje prve retke; dulji tekstovi dobivaju „Pročitaj više”.",
+					"IMAGE": "Slika (neobavezno)",
+					"IMAGE-HINT": "Prikazuje se desno od teksta. Bez slike tekst zauzima cijelu širinu.",
+					"NO-IMAGE": "Nema slike",
+					"ADD-IMAGE": "Dodaj sliku",
+					"REPLACE-IMAGE": "Zamijeni",
+					"REMOVE-IMAGE": "Ukloni",
+					"IMAGE-DISPLAY": "Prikaz slike",
+					"IMAGE-FILL": "Ispuni",
+					"IMAGE-FIT": "Prilagodi",
+					"IMAGE-DISPLAY-HINT": "Ispuni pokriva cijelo područje i može obrezati sliku. Prilagodi prikazuje cijelu sliku, na primjer logotip.",
+					"BUTTON": "Gumb (neobavezno)",
+					"URL": "URL",
+					"EMAIL": "E-mail",
+					"BUTTON-HINT": "Poveznica na web-stranicu ili adresa e-pošte. Odaberite je ponovno da biste uklonili gumb.",
+					"BUTTON-TEXT": "Tekst gumba",
+					"LINK": "Poveznica",
+					"EMAIL-ADDRESS": "Adresa e-pošte",
+					"SHOW-FROM": "Prikaži od",
+					"SHOW-UNTIL": "Prikaži do",
+					"UNTIL-BEFORE-FROM": "Mora biti na datum početka ili nakon njega.",
+					"DATES-HINT": "Neobavezno. Za vijesti ili događaje: slajd se sam pojavljuje i nestaje.",
+					"SAVE": "Spremi"
+				}
+			},
 			"TERMS": {
 				"TITLE": "Uvjeti i pravila",
 				"HINT": "Prikazuju se prije prvog korištenja. Poveznice na vaše uvjete korištenja i pravila privatnosti su dobrodošle.",
@@ -3375,6 +3467,9 @@
 			"LABEL": "Oznaka",
 			"REQUIRED": "Obavezno",
 			"SEMANTICS": "Semantika",
+			"REFERENCE-ID-SEMANTICS": "Semantika ID-a reference",
+			"LABEL-SEMANTICS": "Semantika naziva",
+			"DESCRIPTION-SEMANTICS": "Semantika opisa",
 			"ADD": "Dodaj polje",
 			"REMOVE": "Ukloni polje",
 			"TITLE": "Polja",
@@ -4251,7 +4346,7 @@
 			"YES": "Da",
 			"NO": "Ne",
 			"CONTAINS-THIS": "sadrži ovaj unos",
-			"SAME-QUESTION": "u istom pitanju",
+			"THIS-INPUT": "samo polje",
 			"SHOWS-THIS": "već prikazuje ovo pitanje",
 			"SHOWS-WHEN": "Prikazuje {{target}} kada „{{value}}“",
 			"SHOWS": "Prikazuje {{target}}",
@@ -5503,8 +5598,8 @@
 				"CONTENT": "Novi plan i Novi resurs nalaze se u bočnoj traci pod Moji Planovi i Moji resursi, pa ih možete pokrenuti s bilo koje stranice."
 			},
 			"RECOMMENDATIONS": {
-				"TITLE": "Preporučeno za vas",
-				"CONTENT": "DMP Blueprints i Predlošci resursa koje preporučuje vaša organizacija. Započnite plan izravno iz blueprinta ili ga otvorite da vidite što traži."
+				"TITLE": "Od vaše organizacije",
+				"CONTENT": "Vijesti, poveznice te blueprintovi i predlošci resursa koje preporučuje vaša organizacija. Odaberite Sakrij da biste ga saželi u jedan redak; ponovno se otvara kada se doda nešto novo."
 			},
 			"ACTIVITY": {
 				"TITLE": "Vaša najnovija aktivnost",
@@ -5531,15 +5626,22 @@
 				"CONTENT": "Podrška sadrži korisnički priručnik, česta pitanja i pojmovnik te ponovno pokreće ovaj obilazak. Pokraj nje možete promijeniti jezik. U izborniku organizacije možete promijeniti organizaciju ako pripadate više njih, jer svaka ima vlastite planove, resurse i blueprinte. Zvono prikazuje vaše obavijesti, a pokraj njega je vaš profil."
 			}
 		},
-		"RECOMMENDATIONS": {
+		"SLIDES": {
 			"FROM": "Od {{tenant}}",
-			"TITLE": "Preporučeni blueprintovi i predlošci",
-			"SUMMARY": "Preporučeni blueprintovi i predlošci: {{count}}",
-			"RANGE": "{{start}}–{{end}} od {{count}}",
+			"FROM-DEFAULT": "Od {{ APP_NAME }}",
+			"ONE-SLIDE": "1 slajd",
+			"SLIDES": "Slajdova: {{count}}",
+			"POSITION": "{{index}} od {{count}}",
 			"SHOW": "Prikaži",
 			"HIDE": "Sakrij",
-			"PREVIOUS": "Prethodne preporuke",
-			"NEXT": "Sljedeće preporuke",
+			"PREVIOUS": "Prethodni slajd",
+			"NEXT": "Sljedeći slajd",
+			"GO-TO": "Idi na slajd {{index}} od {{count}}",
+			"READ-MORE": "Pročitaj više",
+			"READ-MORE-LABEL": "Pročitaj više: {{title}}"
+		},
+		"RECOMMENDATIONS": {
+			"TITLE": "Preporučeni blueprintovi i predlošci",
 			"PLAN-BLUEPRINT": "DMP Blueprint",
 			"DESCRIPTION-TEMPLATE": "Predložak resursa",
 			"TYPE": "Vrsta: {{type}}",

@@ -1392,7 +1392,12 @@
 			"MOVE-UP": "Posunout {{item}} nahoru",
 			"MOVE-DOWN": "Posunout {{item}} dolů",
 			"REMOVE": "Odebrat {{item}}",
-			"CHIP-KEYBOARD-HINT": "Přetažením změníte pořadí, nebo stiskněte Alt se šipkou vlevo či vpravo."
+			"CHIP-KEYBOARD-HINT": "Přetažením změníte pořadí, nebo stiskněte Alt se šipkou vlevo či vpravo.",
+			"DASHBOARD-NOTE": {
+				"TITLE": "Také na domovské stránce",
+				"TEXT": "Chcete-li tyto položky zobrazit i na domovské stránce členů, přidejte snímek \"Doporučené blueprinty a šablony\" v sekci",
+				"LINK": "Uživatelé a zaškolení"
+			}
 		},
 		"NOTIFICATIONS": {
 			"TITLE": "Oznámení",
@@ -1416,7 +1421,94 @@
 		},
 		"ONBOARDING": {
 			"TITLE": "Uživatelé a zaškolení",
-			"HINT": "Co lidé uvidí při prvním přihlášení.",
+			"HINT": "Co lidé uvidí při prvním přihlášení a informace na jejich domovské stránce.",
+			"SLIDES": {
+				"TITLE": "Informace na domovské stránce",
+				"HINT": "Snímky, které všichni členové této organizace vidí nahoře na své domovské stránce, jeden po druhém.",
+				"ADD": "Přidat snímek",
+				"EMPTY": "Zatím žádné snímky",
+				"EMPTY-HINT": "Vyberte \"Přidat snímek\" a přidejte první.",
+				"EMPTY-FALLBACK": "Do té doby členové vidí snímky výchozí organizace.",
+				"CONTENT": {
+					"TITLE": "Obsahový snímek",
+					"HINT": "Vlastní nadpis a text, případně s obrázkem a tlačítkem."
+				},
+				"RECOMMENDED": {
+					"TITLE": "Doporučené blueprinty a šablony",
+					"HINT": "Blueprinty a šablony vybrané ve Výchozím obsahu, 3 na každém snímku. Lze přidat jen jednou.",
+					"ALREADY-ADDED": "Již přidáno",
+					"ITEMS": "Položky z Výchozího obsahu: {{count}}",
+					"ITEMS-AND-SLIDES": "Položky z Výchozího obsahu: {{count}} · snímky na domovské stránce: {{slides}}",
+					"NO-ITEMS": "Ve Výchozím obsahu zatím nejsou vybrány žádné položky",
+					"NOT-SHOWN": "Nezobrazuje se: žádné položky",
+					"CHANGE-ITEMS": "Změnit položky"
+				},
+				"COLUMNS": {
+					"ORDER": "Pořadí",
+					"SLIDE": "Snímek",
+					"LANGUAGES": "Jazyky",
+					"WHEN": "Kdy",
+					"ON-DASHBOARD": "Na domovské stránce",
+					"ACTIONS": "Akce"
+				},
+				"ALWAYS": "Vždy",
+				"UNTIL": "Do {{date}}",
+				"ENDED": "Skončilo {{date}}",
+				"FROM": "Od {{date}}",
+				"FROM-UNTIL": "Od {{from}} do {{until}}",
+				"STATE-ON": "Zapnuto",
+				"STATE-OFF": "Vypnuto",
+				"STATE-ENDED": "Skončeno",
+				"EDIT": "Upravit",
+				"DUPLICATE": "Duplikovat",
+				"MOVE-UP": "Posunout nahoru",
+				"MOVE-DOWN": "Posunout dolů",
+				"DELETE": "Smazat",
+				"DELETE-CONFIRM": "Smazat snímek \"{{name}}\"? Členové jej již neuvidí.",
+				"FOOTNOTE": "Přetažením snímku změníte pořadí. Skončené snímky zůstávají v seznamu, dokud je nesmažete.",
+				"EDITOR": {
+					"NEW-TITLE": "Nový snímek",
+					"EDIT-TITLE": "Upravit snímek",
+					"CLOSE": "Zavřít",
+					"LANGUAGES": "Jazyky",
+					"ADD-LANGUAGE": "Přidat jazyk",
+					"REMOVE-LANGUAGE": "Odebrat {{language}}",
+					"DEFAULT-LANGUAGE": "(výchozí)",
+					"DEFAULT-LANGUAGE-HINT": "Výchozí jazyk je povinný. Členové, pro jejichž jazyk není text k dispozici, uvidí tento.",
+					"OTHER-LANGUAGE-HINT": "Nepovinné. Ponechte prázdné, chcete-li zobrazit text ve výchozím jazyce.",
+					"PREVIEW-IN": "Jak snímek vypadá · {{language}}",
+					"TEXTS-TITLE": "Text v jednotlivých jazycích",
+					"TEXTS-HINT": "Nadpis, text a text tlačítka. Každý jazyk má vlastní.",
+					"SHARED-TITLE": "Pro všechny jazyky",
+					"SHARED-HINT": "Obrázek, tlačítko a data jsou ve všech jazycích stejné.",
+					"SLIDE-TITLE": "Nadpis",
+					"TITLE-NEEDED": "Přidejte nadpis pro tento jazyk, nebo vymažte jeho text.",
+					"TEXT": "Text",
+					"TEXT-HINT": "Snímek zobrazuje první řádky; delší texty mají odkaz „Číst dál“.",
+					"IMAGE": "Obrázek (nepovinné)",
+					"IMAGE-HINT": "Zobrazuje se vpravo od textu. Bez obrázku zabírá text celou šířku.",
+					"NO-IMAGE": "Žádný obrázek",
+					"ADD-IMAGE": "Přidat obrázek",
+					"REPLACE-IMAGE": "Nahradit",
+					"REMOVE-IMAGE": "Odebrat",
+					"IMAGE-DISPLAY": "Zobrazení obrázku",
+					"IMAGE-FILL": "Vyplnit",
+					"IMAGE-FIT": "Přizpůsobit",
+					"IMAGE-DISPLAY-HINT": "Vyplnit pokryje celou plochu a obrázek může oříznout. Přizpůsobit zobrazí celý obrázek, například logo.",
+					"BUTTON": "Tlačítko (nepovinné)",
+					"URL": "URL",
+					"EMAIL": "E-mail",
+					"BUTTON-HINT": "Odkaz na webovou stránku nebo e-mailovou adresu. Opětovným výběrem tlačítko odeberete.",
+					"BUTTON-TEXT": "Text tlačítka",
+					"LINK": "Odkaz",
+					"EMAIL-ADDRESS": "E-mailová adresa",
+					"SHOW-FROM": "Zobrazit od",
+					"SHOW-UNTIL": "Zobrazit do",
+					"UNTIL-BEFORE-FROM": "Musí být v den zahájení nebo později.",
+					"DATES-HINT": "Nepovinné. Pro novinky nebo události: snímek se sám zobrazí a zmizí.",
+					"SAVE": "Uložit"
+				}
+			},
 			"TERMS": {
 				"TITLE": "Podmínky používání",
 				"HINT": "Zobrazují se před prvním použitím. Odkazy na vaše podmínky služby a zásady ochrany osobních údajů jsou vítány.",
@@ -3375,6 +3467,9 @@
 			"LABEL": "Štítek",
 			"REQUIRED": "Povinné",
 			"SEMANTICS": "Sémantika",
+			"REFERENCE-ID-SEMANTICS": "Sémantika ID reference",
+			"LABEL-SEMANTICS": "Sémantika názvu",
+			"DESCRIPTION-SEMANTICS": "Sémantika popisu",
 			"ADD": "Přidat pole",
 			"REMOVE": "Odebrat pole",
 			"TITLE": "Pole",
@@ -4251,7 +4346,7 @@
 			"YES": "Ano",
 			"NO": "Ne",
 			"CONTAINS-THIS": "obsahuje tento vstup",
-			"SAME-QUESTION": "ve stejné otázce",
+			"THIS-INPUT": "samotné pole",
 			"SHOWS-THIS": "již zobrazuje tuto otázku",
 			"SHOWS-WHEN": "Zobrazí {{target}}, když „{{value}}“",
 			"SHOWS": "Zobrazí {{target}}",
@@ -5503,8 +5598,8 @@
 				"CONTENT": "Nový plán a Nový zdroj najdete v postranním panelu pod Moje Plány a Moje Zdroje, takže je můžete založit z kterékoli stránky."
 			},
 			"RECOMMENDATIONS": {
-				"TITLE": "Doporučeno pro vás",
-				"CONTENT": "Blueprinty a Šablony zdrojů, které doporučuje vaše organizace. Založte plán přímo z blueprintu, nebo jej otevřete a podívejte se, na co se ptá."
+				"TITLE": "Od vaší organizace",
+				"CONTENT": "Novinky, odkazy a blueprinty a Šablony zdrojů, které doporučuje vaše organizace. Vyberte Skrýt a sbalíte je do jednoho řádku; znovu se rozbalí, když přibude něco nového."
 			},
 			"ACTIVITY": {
 				"TITLE": "Vaše poslední aktivita",
@@ -5531,15 +5626,22 @@
 				"CONTENT": "V nabídce Podpora najdete uživatelskou příručku, FAQ a glosář a můžete si znovu spustit tuto prohlídku. Vedle ní můžete změnit jazyk. V nabídce organizace můžete přepnout organizaci, pokud patříte do více než jedné, protože každá má vlastní plány, zdroje a blueprinty. Zvonek zobrazuje vaše oznámení a vedle něj je váš profil."
 			}
 		},
-		"RECOMMENDATIONS": {
+		"SLIDES": {
 			"FROM": "Od {{tenant}}",
-			"TITLE": "Doporučené blueprinty a šablony",
-			"SUMMARY": "Doporučené blueprinty a šablony: {{count}}",
-			"RANGE": "{{start}}–{{end}} z {{count}}",
+			"FROM-DEFAULT": "Od {{ APP_NAME }}",
+			"ONE-SLIDE": "1 snímek",
+			"SLIDES": "Snímky: {{count}}",
+			"POSITION": "{{index}} z {{count}}",
 			"SHOW": "Zobrazit",
 			"HIDE": "Skrýt",
-			"PREVIOUS": "Předchozí doporučení",
-			"NEXT": "Další doporučení",
+			"PREVIOUS": "Předchozí snímek",
+			"NEXT": "Další snímek",
+			"GO-TO": "Přejít na snímek {{index}} z {{count}}",
+			"READ-MORE": "Číst dál",
+			"READ-MORE-LABEL": "Číst dál: {{title}}"
+		},
+		"RECOMMENDATIONS": {
+			"TITLE": "Doporučené blueprinty a šablony",
 			"PLAN-BLUEPRINT": "Plan Blueprint",
 			"DESCRIPTION-TEMPLATE": "Šablona zdroje",
 			"TYPE": "Typ: {{type}}",

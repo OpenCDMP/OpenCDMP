@@ -11,4 +11,8 @@
 	ngx-dropzone { padding: 16px; .upload-file-icon { display: none; } }
 	app-file-uploader { margin-bottom: .5rem; }
 }
+// same look as the template check in the settings editor (tc-export-settings)
+.dt-export__validation { display: flex; flex-direction: column; gap: 4px; margin: 8px 0 0; padding: 0; list-style: none; }
+.dt-export__issue { display: flex; align-items: flex-start; gap: 6px; font-size: 12px; line-height: 1.45; color: #7a5a00; mat-icon { flex: none; width: 16px; height: 16px; font-size: 16px; } }
+.dt-export__issue--error { color: var(--md-sys-color-error, #b3261e); }
 .dt-swatch { display: inline-block; width: 14px; height: 14px; border-radius: 4px; border: 1px solid var(--mat-sys-outline-variant); vertical-align: -2px; margin-right: .375rem; }

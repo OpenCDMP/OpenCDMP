@@ -1,0 +1,131 @@
+<section class="tc-card" aria-labelledby="tc-slides-h" [attr.aria-busy]="busy()">
+	<div class="tc-card__head">
+		<div>
+			<h2 id="tc-slides-h">{{ 'TENANT-CONFIGURATION.ONBOARDING.SLIDES.TITLE' | translate }}</h2>
+			<p>{{ 'TENANT-CONFIGURATION.ONBOARDING.SLIDES.HINT' | translate }}</p>
+		</div>
+		@if (canEdit()) {
+			<button mat-flat-button color="primary" type="button" [matMenuTriggerFor]="addMenu" [disabled]="loading() || busy()">
+				<mat-icon aria-hidden="true">add</mat-icon>{{ 'TENANT-CONFIGURATION.ONBOARDING.SLIDES.ADD' | translate }}
+			</button>
+		}
+	</div>
+
+	<mat-menu #addMenu="matMenu" xPosition="before" class="tc-slides__add-menu">
+		<button mat-menu-item type="button" (click)="addContent()">
+			<span class="tc-slides__option">
+				<span class="tc-slides__option-title"><mat-icon class="tc-slides__option-icon" aria-hidden="true">edit</mat-icon>{{ 'TENANT-CONFIGURATION.ONBOARDING.SLIDES.CONTENT.TITLE' | translate }}</span>
+				<span class="tc-slides__option-hint">{{ 'TENANT-CONFIGURATION.ONBOARDING.SLIDES.CONTENT.HINT' | translate }}</span>
+			</span>
+		</button>
+		<button mat-menu-item type="button" [disabled]="hasRecommended()" (click)="addRecommended()">
+			<span class="tc-slides__option">
+				<span class="tc-slides__option-title"><mat-icon class="tc-slides__option-icon" aria-hidden="true">star</mat-icon>{{ 'TENANT-CONFIGURATION.ONBOARDING.SLIDES.RECOMMENDED.TITLE' | translate }}</span>
+				<span class="tc-slides__option-hint">{{ 'TENANT-CONFIGURATION.ONBOARDING.SLIDES.RECOMMENDED.HINT' | translate }}</span>
+				@if (hasRecommended()) {
+					<span class="tc-slides__option-hint tc-slides__option-hint--strong">{{ 'TENANT-CONFIGURATION.ONBOARDING.SLIDES.RECOMMENDED.ALREADY-ADDED' | translate }}</span>
+				}
+			</span>
+		</button>
+	</mat-menu>
+
+	@if (loading()) {
+		<div class="tc-loading"><mat-spinner diameter="32" /></div>
+	} @else if (slides().length === 0) {
+		<div class="tc-slides__empty">
+			<p class="tc-slides__empty-title">{{ 'TENANT-CONFIGURATION.ONBOARDING.SLIDES.EMPTY' | translate }}</p>
+			<p>{{ 'TENANT-CONFIGURATION.ONBOARDING.SLIDES.EMPTY-HINT' | translate }}</p>
+			@if (!isDefaultTenant) {
+				<p class="tc-slides__muted">{{ 'TENANT-CONFIGURATION.ONBOARDING.SLIDES.EMPTY-FALLBACK' | translate }}</p>
+			}
+		</div>
+	} @else {
+		<div class="tc-slides__scroll">
+			<table class="tc-slides__table">
+				<thead>
+					<tr>
+						<th scope="col"><span class="cdk-visually-hidden">{{ 'TENANT-CONFIGURATION.ONBOARDING.SLIDES.COLUMNS.ORDER' | translate }}</span></th>
+						<th scope="col">{{ 'TENANT-CONFIGURATION.ONBOARDING.SLIDES.COLUMNS.SLIDE' | translate }}</th>
+						<th scope="col">{{ 'TENANT-CONFIGURATION.ONBOARDING.SLIDES.COLUMNS.LANGUAGES' | translate }}</th>
+						<th scope="col">{{ 'TENANT-CONFIGURATION.ONBOARDING.SLIDES.COLUMNS.WHEN' | translate }}</th>
+						<th scope="col">{{ 'TENANT-CONFIGURATION.ONBOARDING.SLIDES.COLUMNS.ON-DASHBOARD' | translate }}</th>
+						<th scope="col"><span class="cdk-visually-hidden">{{ 'TENANT-CONFIGURATION.ONBOARDING.SLIDES.COLUMNS.ACTIONS' | translate }}</span></th>
+					</tr>
+				</thead>
+				<tbody cdkDropList [cdkDropListDisabled]="!canEdit() || busy()" (cdkDropListDropped)="drop($event)">
+					@for (slide of slides(); track slide.id; let index = $index; let first = $first; let last = $last) {
+						@let when = whenOf(slide);
+						@let recommended = slide.kind === kinds.Recommended;
+						<tr cdkDrag cdkDragLockAxis="y">
+							<td class="tc-slides__handle-cell">
+								@if (canEdit()) {
+									<mat-icon class="tc-slides__handle" cdkDragHandle aria-hidden="true">drag_indicator</mat-icon>
+								}
+							</td>
+							<td>
+								<div class="tc-slides__name">
+									@if (recommended) { <mat-icon class="tc-slides__star" aria-hidden="true">star</mat-icon> }
+									{{ labelOf(slide) }}
+								</div>
+								@if (recommended) {
+									<div class="tc-slides__muted">
+										@if (featuredCount() === 0) {
+											{{ 'TENANT-CONFIGURATION.ONBOARDING.SLIDES.RECOMMENDED.NO-ITEMS' | translate }}
+										} @else if (recommendedPages() > 1) {
+											{{ 'TENANT-CONFIGURATION.ONBOARDING.SLIDES.RECOMMENDED.ITEMS-AND-SLIDES' | translate: { count: featuredCount(), slides: recommendedPages() } }}
+										} @else {
+											{{ 'TENANT-CONFIGURATION.ONBOARDING.SLIDES.RECOMMENDED.ITEMS' | translate: { count: featuredCount() } }}
+										}
+									</div>
+								}
+							</td>
+							<td>{{ recommended ? '—' : languagesOf(slide) }}</td>
+							<td [class.tc-slides__muted]="when.ended">{{ when.label }}</td>
+							<td>
+								@if (recommended && featuredCount() === 0) {
+									<mat-slide-toggle [checked]="false" [disabled]="true">{{ 'TENANT-CONFIGURATION.ONBOARDING.SLIDES.RECOMMENDED.NOT-SHOWN' | translate }}</mat-slide-toggle>
+								} @else {
+									<mat-slide-toggle [checked]="slide.enabled" [disabled]="!canEdit() || busy()" (change)="toggle(slide, $event.checked)">
+										{{ (when.ended ? 'TENANT-CONFIGURATION.ONBOARDING.SLIDES.STATE-ENDED' : slide.enabled ? 'TENANT-CONFIGURATION.ONBOARDING.SLIDES.STATE-ON' : 'TENANT-CONFIGURATION.ONBOARDING.SLIDES.STATE-OFF') | translate }}
+										<span class="cdk-visually-hidden">, {{ labelOf(slide) }}</span>
+									</mat-slide-toggle>
+								}
+							</td>
+							<td class="tc-slides__actions">
+								@if (canEdit()) {
+									@if (recommended) {
+										<a mat-button [routerLink]="contentDefaultsUrl">
+											{{ 'TENANT-CONFIGURATION.ONBOARDING.SLIDES.RECOMMENDED.CHANGE-ITEMS' | translate }}
+											<mat-icon iconPositionEnd aria-hidden="true">north_east</mat-icon>
+										</a>
+									} @else {
+										<button mat-button type="button" [disabled]="busy()" (click)="edit(slide)">
+											{{ 'TENANT-CONFIGURATION.ONBOARDING.SLIDES.EDIT' | translate }}<span class="cdk-visually-hidden"> {{ labelOf(slide) }}</span>
+										</button>
+									}
+									<button mat-icon-button type="button" [matMenuTriggerFor]="rowMenu" [disabled]="busy()" [attr.aria-label]="('ALT-TEXT.MORE-ACTIONS' | translate) + ': ' + labelOf(slide)">
+										<mat-icon aria-hidden="true">more_vert</mat-icon>
+									</button>
+									<mat-menu #rowMenu="matMenu" xPosition="before">
+										@if (!recommended) {
+											<button mat-menu-item type="button" (click)="duplicate(slide)">{{ 'TENANT-CONFIGURATION.ONBOARDING.SLIDES.DUPLICATE' | translate }}</button>
+										}
+										<button mat-menu-item type="button" [disabled]="first" (click)="moveBy(index, -1)">{{ 'TENANT-CONFIGURATION.ONBOARDING.SLIDES.MOVE-UP' | translate }}</button>
+										<button mat-menu-item type="button" [disabled]="last" (click)="moveBy(index, 1)">{{ 'TENANT-CONFIGURATION.ONBOARDING.SLIDES.MOVE-DOWN' | translate }}</button>
+										<button mat-menu-item type="button" class="tc-slides__danger" (click)="delete(slide)">{{ 'TENANT-CONFIGURATION.ONBOARDING.SLIDES.DELETE' | translate }}</button>
+									</mat-menu>
+								}
+							</td>
+						</tr>
+					}
+				</tbody>
+			</table>
+		</div>
+		<p class="tc-slides__muted tc-slides__foot">{{ 'TENANT-CONFIGURATION.ONBOARDING.SLIDES.FOOTNOTE' | translate }}</p>
+	}
+</section>
+
+@if (editing(); as open) {
+	<app-tc-slide-drawer [slide]="open.slide" [languages]="languages()" [defaultLanguage]="defaultLanguage()" [busy]="busy()"
+		(saved)="onSlideSaved($event)" (closed)="editing.set(null)" />
+}

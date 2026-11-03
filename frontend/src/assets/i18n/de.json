@@ -1392,7 +1392,12 @@
 			"MOVE-UP": "{{item}} nach oben verschieben",
 			"MOVE-DOWN": "{{item}} nach unten verschieben",
 			"REMOVE": "{{item}} entfernen",
-			"CHIP-KEYBOARD-HINT": "Zum Neuordnen ziehen oder Alt mit der Pfeiltaste nach links oder rechts drücken."
+			"CHIP-KEYBOARD-HINT": "Zum Neuordnen ziehen oder Alt mit der Pfeiltaste nach links oder rechts drücken.",
+			"DASHBOARD-NOTE": {
+				"TITLE": "Auch auf der Startseite",
+				"TEXT": "Um diese Einträge auch auf der Startseite der Mitglieder anzuzeigen, fügen Sie die Folie \"Empfohlene Blueprints und Vorlagen\" hinzu unter",
+				"LINK": "Benutzer & Onboarding"
+			}
 		},
 		"NOTIFICATIONS": {
 			"TITLE": "Benachrichtigungen",
@@ -1416,7 +1421,94 @@
 		},
 		"ONBOARDING": {
 			"TITLE": "Benutzer & Onboarding",
-			"HINT": "Was Personen bei der ersten Anmeldung sehen.",
+			"HINT": "Was Personen bei der ersten Anmeldung sehen und die Informationen auf ihrer Startseite.",
+			"SLIDES": {
+				"TITLE": "Informationen auf der Startseite",
+				"HINT": "Folien, die alle Mitglieder dieser Organisation oben auf ihrer Startseite sehen, eine nach der anderen.",
+				"ADD": "Folie hinzufügen",
+				"EMPTY": "Noch keine Folien",
+				"EMPTY-HINT": "Wählen Sie \"Folie hinzufügen\", um die erste hinzuzufügen.",
+				"EMPTY-FALLBACK": "Bis dahin sehen Mitglieder die Folien der Standardorganisation.",
+				"CONTENT": {
+					"TITLE": "Inhaltsfolie",
+					"HINT": "Ihr eigener Titel und Text, auf Wunsch mit Bild und Schaltfläche."
+				},
+				"RECOMMENDED": {
+					"TITLE": "Empfohlene Blueprints und Vorlagen",
+					"HINT": "Die in den Inhaltsvorgaben gewählten Blueprints und Vorlagen, 3 pro Folie. Kann einmal hinzugefügt werden.",
+					"ALREADY-ADDED": "Bereits hinzugefügt",
+					"ITEMS": "{{count}} Einträge aus den Inhaltsvorgaben",
+					"ITEMS-AND-SLIDES": "{{count}} Einträge aus den Inhaltsvorgaben · {{slides}} Folien auf der Startseite",
+					"NO-ITEMS": "Noch keine Einträge in den Inhaltsvorgaben gewählt",
+					"NOT-SHOWN": "Nicht angezeigt: keine Einträge",
+					"CHANGE-ITEMS": "Einträge ändern"
+				},
+				"COLUMNS": {
+					"ORDER": "Reihenfolge",
+					"SLIDE": "Folie",
+					"LANGUAGES": "Sprachen",
+					"WHEN": "Wann",
+					"ON-DASHBOARD": "Auf der Startseite",
+					"ACTIONS": "Aktionen"
+				},
+				"ALWAYS": "Immer",
+				"UNTIL": "Bis {{date}}",
+				"ENDED": "Beendet am {{date}}",
+				"FROM": "Ab {{date}}",
+				"FROM-UNTIL": "Von {{from}} bis {{until}}",
+				"STATE-ON": "An",
+				"STATE-OFF": "Aus",
+				"STATE-ENDED": "Beendet",
+				"EDIT": "Bearbeiten",
+				"DUPLICATE": "Duplizieren",
+				"MOVE-UP": "Nach oben",
+				"MOVE-DOWN": "Nach unten",
+				"DELETE": "Löschen",
+				"DELETE-CONFIRM": "Folie \"{{name}}\" löschen? Mitglieder sehen sie dann nicht mehr.",
+				"FOOTNOTE": "Ziehen Sie eine Folie, um die Reihenfolge zu ändern. Beendete Folien bleiben in der Liste, bis Sie sie löschen.",
+				"EDITOR": {
+					"NEW-TITLE": "Neue Folie",
+					"EDIT-TITLE": "Folie bearbeiten",
+					"CLOSE": "Schließen",
+					"LANGUAGES": "Sprachen",
+					"ADD-LANGUAGE": "Sprache hinzufügen",
+					"REMOVE-LANGUAGE": "{{language}} entfernen",
+					"DEFAULT-LANGUAGE": "(Standard)",
+					"DEFAULT-LANGUAGE-HINT": "Die Standardsprache ist erforderlich. Mitglieder, für deren Sprache kein Text vorhanden ist, sehen diesen.",
+					"OTHER-LANGUAGE-HINT": "Optional. Leer lassen, um den Text der Standardsprache anzuzeigen.",
+					"PREVIEW-IN": "So sieht die Folie aus · {{language}}",
+					"TEXTS-TITLE": "Text in jeder Sprache",
+					"TEXTS-HINT": "Titel, Text und Schaltflächentext. Jede Sprache hat ihre eigenen.",
+					"SHARED-TITLE": "Für alle Sprachen",
+					"SHARED-HINT": "Bild, Schaltfläche und Daten sind in jeder Sprache gleich.",
+					"SLIDE-TITLE": "Titel",
+					"TITLE-NEEDED": "Fügen Sie einen Titel für diese Sprache hinzu oder leeren Sie ihren Text.",
+					"TEXT": "Text",
+					"TEXT-HINT": "Die Folie zeigt die ersten Zeilen; längere Texte erhalten „Weiterlesen“.",
+					"IMAGE": "Bild (optional)",
+					"IMAGE-HINT": "Wird rechts neben dem Text angezeigt. Ohne Bild nimmt der Text die ganze Breite ein.",
+					"NO-IMAGE": "Kein Bild",
+					"ADD-IMAGE": "Bild hinzufügen",
+					"REPLACE-IMAGE": "Ersetzen",
+					"REMOVE-IMAGE": "Entfernen",
+					"IMAGE-DISPLAY": "Darstellung des Bildes",
+					"IMAGE-FILL": "Füllen",
+					"IMAGE-FIT": "Einpassen",
+					"IMAGE-DISPLAY-HINT": "Füllen bedeckt die ganze Fläche und kann das Bild beschneiden. Einpassen zeigt das ganze Bild, zum Beispiel ein Logo.",
+					"BUTTON": "Schaltfläche (optional)",
+					"URL": "URL",
+					"EMAIL": "E-Mail",
+					"BUTTON-HINT": "Ein Link zu einer Webseite oder eine E-Mail-Adresse. Wählen Sie die Option erneut, um die Schaltfläche zu entfernen.",
+					"BUTTON-TEXT": "Schaltflächentext",
+					"LINK": "Link",
+					"EMAIL-ADDRESS": "E-Mail-Adresse",
+					"SHOW-FROM": "Anzeigen ab",
+					"SHOW-UNTIL": "Anzeigen bis",
+					"UNTIL-BEFORE-FROM": "Muss am oder nach dem Startdatum liegen.",
+					"DATES-HINT": "Optional. Für Neuigkeiten oder Veranstaltungen: Die Folie erscheint und verschwindet von selbst.",
+					"SAVE": "Speichern"
+				}
+			},
 			"TERMS": {
 				"TITLE": "Allgemeine Geschäftsbedingungen",
 				"HINT": "Werden vor der ersten Nutzung angezeigt. Links zu Ihren Nutzungsbedingungen und Ihrer Datenschutzerklärung sind willkommen.",
@@ -3375,6 +3467,9 @@
 			"LABEL": "Bezeichnung",
 			"REQUIRED": "Erforderlich",
 			"SEMANTICS": "Semantik",
+			"REFERENCE-ID-SEMANTICS": "Semantik der Referenz-ID",
+			"LABEL-SEMANTICS": "Semantik des Namens",
+			"DESCRIPTION-SEMANTICS": "Semantik der Beschreibung",
 			"ADD": "Feld hinzufügen",
 			"REMOVE": "Feld entfernen",
 			"TITLE": "Felder",
@@ -4251,7 +4346,7 @@
 			"YES": "Ja",
 			"NO": "Nein",
 			"CONTAINS-THIS": "enthält diese Eingabe",
-			"SAME-QUESTION": "in derselben Frage",
+			"THIS-INPUT": "die Eingabe selbst",
 			"SHOWS-THIS": "zeigt diese Frage bereits an",
 			"SHOWS-WHEN": "Zeigt {{target}} bei „{{value}}“",
 			"SHOWS": "Zeigt {{target}}",
@@ -5503,8 +5598,8 @@
 				"CONTENT": "Neuer DMP und Neue Ressource befinden sich in der Seitenleiste unter Meine DMPs und Meine Ressourcen, sodass Sie von jeder Seite aus starten können."
 			},
 			"RECOMMENDATIONS": {
-				"TITLE": "Empfehlungen für Sie",
-				"CONTENT": "Die DMP Blueprints und Ressourcenvorlagen, die Ihre Organisation empfiehlt. Starten Sie einen Plan direkt aus einem Blueprint, oder öffnen Sie einen, um zu sehen, was er abfragt."
+				"TITLE": "Von Ihrer Organisation",
+				"CONTENT": "Neuigkeiten, Links und die DMP Blueprints und Ressourcenvorlagen, die Ihre Organisation empfiehlt. Wählen Sie Ausblenden, um den Bereich auf eine Zeile einzuklappen; er öffnet sich wieder, wenn etwas Neues hinzukommt."
 			},
 			"ACTIVITY": {
 				"TITLE": "Ihre letzte Aktivität",
@@ -5531,15 +5626,22 @@
 				"CONTENT": "Unter Support finden Sie das Benutzerhandbuch, die FAQ und das Glossar, und Sie können diesen Rundgang erneut starten. Daneben können Sie die Sprache ändern. Im Organisationsmenü können Sie die Organisation wechseln, wenn Sie mehreren angehören, da jede ihre eigenen Pläne, Ressourcen und Blueprints hat. Die Glocke zeigt Ihre Benachrichtigungen, daneben finden Sie Ihr Profil."
 			}
 		},
-		"RECOMMENDATIONS": {
+		"SLIDES": {
 			"FROM": "Von {{tenant}}",
-			"TITLE": "Empfohlene Blueprints und Vorlagen",
-			"SUMMARY": "{{count}} empfohlene Blueprints und Vorlagen",
-			"RANGE": "{{start}}–{{end}} von {{count}}",
+			"FROM-DEFAULT": "Von {{ APP_NAME }}",
+			"ONE-SLIDE": "1 Folie",
+			"SLIDES": "{{count}} Folien",
+			"POSITION": "{{index}} von {{count}}",
 			"SHOW": "Anzeigen",
 			"HIDE": "Ausblenden",
-			"PREVIOUS": "Vorherige Empfehlungen",
-			"NEXT": "Nächste Empfehlungen",
+			"PREVIOUS": "Vorherige Folie",
+			"NEXT": "Nächste Folie",
+			"GO-TO": "Zu Folie {{index}} von {{count}}",
+			"READ-MORE": "Weiterlesen",
+			"READ-MORE-LABEL": "Weiterlesen: {{title}}"
+		},
+		"RECOMMENDATIONS": {
+			"TITLE": "Empfohlene Blueprints und Vorlagen",
 			"PLAN-BLUEPRINT": "DMP Blueprint",
 			"DESCRIPTION-TEMPLATE": "Ressourcenvorlage",
 			"TYPE": "Typ: {{type}}",

@@ -1392,7 +1392,12 @@
 			"MOVE-UP": "Monter {{item}}",
 			"MOVE-DOWN": "Descendre {{item}}",
 			"REMOVE": "Retirer {{item}}",
-			"CHIP-KEYBOARD-HINT": "Faites glisser pour réorganiser, ou appuyez sur Alt avec la flèche gauche ou droite."
+			"CHIP-KEYBOARD-HINT": "Faites glisser pour réorganiser, ou appuyez sur Alt avec la flèche gauche ou droite.",
+			"DASHBOARD-NOTE": {
+				"TITLE": "Aussi sur l'Accueil",
+				"TEXT": "Pour afficher aussi ces éléments sur l'Accueil des membres, ajoutez la diapositive « Blueprints et modèles recommandés » dans",
+				"LINK": "Utilisateurs et accueil"
+			}
 		},
 		"NOTIFICATIONS": {
 			"TITLE": "Notifications",
@@ -1416,7 +1421,94 @@
 		},
 		"ONBOARDING": {
 			"TITLE": "Utilisateurs et accueil",
-			"HINT": "Ce que les utilisateurs voient lors de leur première connexion.",
+			"HINT": "Ce que les utilisateurs voient lors de leur première connexion, et les informations sur leur Accueil.",
+			"SLIDES": {
+				"TITLE": "Informations sur l'Accueil",
+				"HINT": "Diapositives que tous les membres de cette organisation voient en haut de leur Accueil, une à la fois.",
+				"ADD": "Ajouter une diapositive",
+				"EMPTY": "Aucune diapositive pour l'instant",
+				"EMPTY-HINT": "Sélectionnez « Ajouter une diapositive » pour ajouter la première.",
+				"EMPTY-FALLBACK": "En attendant, les membres voient les diapositives de l'organisation par défaut.",
+				"CONTENT": {
+					"TITLE": "Diapositive de contenu",
+					"HINT": "Votre propre titre et texte, avec une image et un bouton si vous le souhaitez."
+				},
+				"RECOMMENDED": {
+					"TITLE": "Blueprints et modèles recommandés",
+					"HINT": "Les blueprints et modèles choisis dans Contenu par défaut, 3 par diapositive. Ne peut être ajoutée qu'une fois.",
+					"ALREADY-ADDED": "Déjà ajoutée",
+					"ITEMS": "{{count}} éléments de Contenu par défaut",
+					"ITEMS-AND-SLIDES": "{{count}} éléments de Contenu par défaut · {{slides}} diapositives sur l'Accueil",
+					"NO-ITEMS": "Aucun élément choisi pour l'instant dans Contenu par défaut",
+					"NOT-SHOWN": "Non affichée : aucun élément",
+					"CHANGE-ITEMS": "Modifier les éléments"
+				},
+				"COLUMNS": {
+					"ORDER": "Ordre",
+					"SLIDE": "Diapositive",
+					"LANGUAGES": "Langues",
+					"WHEN": "Quand",
+					"ON-DASHBOARD": "Sur l'Accueil",
+					"ACTIONS": "Actions"
+				},
+				"ALWAYS": "Toujours",
+				"UNTIL": "Jusqu'au {{date}}",
+				"ENDED": "Terminée le {{date}}",
+				"FROM": "À partir du {{date}}",
+				"FROM-UNTIL": "Du {{from}} au {{until}}",
+				"STATE-ON": "Activée",
+				"STATE-OFF": "Désactivée",
+				"STATE-ENDED": "Terminée",
+				"EDIT": "Modifier",
+				"DUPLICATE": "Dupliquer",
+				"MOVE-UP": "Monter",
+				"MOVE-DOWN": "Descendre",
+				"DELETE": "Supprimer",
+				"DELETE-CONFIRM": "Supprimer la diapositive « {{name}} » ? Les membres ne la verront plus.",
+				"FOOTNOTE": "Faites glisser une diapositive pour changer l'ordre. Les diapositives terminées restent dans la liste jusqu'à ce que vous les supprimiez.",
+				"EDITOR": {
+					"NEW-TITLE": "Nouvelle diapositive",
+					"EDIT-TITLE": "Modifier la diapositive",
+					"CLOSE": "Fermer",
+					"LANGUAGES": "Langues",
+					"ADD-LANGUAGE": "Ajouter une langue",
+					"REMOVE-LANGUAGE": "Retirer {{language}}",
+					"DEFAULT-LANGUAGE": "(par défaut)",
+					"DEFAULT-LANGUAGE-HINT": "La langue par défaut est obligatoire. Les membres dont la langue n'a pas de texte voient celle-ci.",
+					"OTHER-LANGUAGE-HINT": "Facultatif. Laissez vide pour afficher le texte de la langue par défaut.",
+					"PREVIEW-IN": "Aperçu de la diapositive · {{language}}",
+					"TEXTS-TITLE": "Texte dans chaque langue",
+					"TEXTS-HINT": "Le titre, le texte et le texte du bouton. Chaque langue a les siens.",
+					"SHARED-TITLE": "Pour toutes les langues",
+					"SHARED-HINT": "L'image, le bouton et les dates sont les mêmes dans toutes les langues.",
+					"SLIDE-TITLE": "Titre",
+					"TITLE-NEEDED": "Ajoutez un titre pour cette langue, ou effacez son texte.",
+					"TEXT": "Texte",
+					"TEXT-HINT": "La diapositive affiche les premières lignes ; les textes plus longs affichent « Lire la suite ».",
+					"IMAGE": "Image (facultatif)",
+					"IMAGE-HINT": "Affichée à droite du texte. Sans image, le texte occupe toute la largeur.",
+					"NO-IMAGE": "Aucune image",
+					"ADD-IMAGE": "Ajouter une image",
+					"REPLACE-IMAGE": "Remplacer",
+					"REMOVE-IMAGE": "Retirer",
+					"IMAGE-DISPLAY": "Affichage de l'image",
+					"IMAGE-FILL": "Remplir",
+					"IMAGE-FIT": "Ajuster",
+					"IMAGE-DISPLAY-HINT": "Remplir couvre toute la zone et peut rogner l'image. Ajuster affiche l'image entière, par exemple un logo.",
+					"BUTTON": "Bouton (facultatif)",
+					"URL": "URL",
+					"EMAIL": "E-mail",
+					"BUTTON-HINT": "Un lien vers une page web ou une adresse e-mail. Sélectionnez-le à nouveau pour retirer le bouton.",
+					"BUTTON-TEXT": "Texte du bouton",
+					"LINK": "Lien",
+					"EMAIL-ADDRESS": "Adresse e-mail",
+					"SHOW-FROM": "Afficher à partir du",
+					"SHOW-UNTIL": "Afficher jusqu'au",
+					"UNTIL-BEFORE-FROM": "Doit être égale ou postérieure à la date de début.",
+					"DATES-HINT": "Facultatif. Pour les actualités ou les événements : la diapositive apparaît et disparaît d'elle-même.",
+					"SAVE": "Enregistrer"
+				}
+			},
 			"TERMS": {
 				"TITLE": "Conditions générales",
 				"HINT": "Affichées avant la première utilisation. Les liens vers vos conditions d'utilisation et votre politique de confidentialité sont bienvenus.",
@@ -3375,6 +3467,9 @@
 			"LABEL": "Libellé",
 			"REQUIRED": "Obligatoire",
 			"SEMANTICS": "Sémantique",
+			"REFERENCE-ID-SEMANTICS": "Sémantique de l'ID de référence",
+			"LABEL-SEMANTICS": "Sémantique du nom",
+			"DESCRIPTION-SEMANTICS": "Sémantique de la description",
 			"ADD": "Ajouter un champ",
 			"REMOVE": "Retirer le champ",
 			"TITLE": "Champs",
@@ -4251,7 +4346,7 @@
 			"YES": "Oui",
 			"NO": "Non",
 			"CONTAINS-THIS": "contient cette saisie",
-			"SAME-QUESTION": "dans la même question",
+			"THIS-INPUT": "le champ lui-même",
 			"SHOWS-THIS": "affiche déjà cette question",
 			"SHOWS-WHEN": "Affiche {{target}} si « {{value}} »",
 			"SHOWS": "Affiche {{target}}",
@@ -5503,8 +5598,8 @@
 				"CONTENT": "Nouveau plan et Nouvelle ressource se trouvent dans la barre latérale, sous Mes plans et Mes ressources, pour en démarrer un depuis n'importe quelle page."
 			},
 			"RECOMMENDATIONS": {
-				"TITLE": "Recommandé pour vous",
-				"CONTENT": "Les Plan Blueprints et Modèles de ressource que votre organisation recommande. Démarrez un plan directement depuis un blueprint, ou ouvrez-en un pour voir les questions qu'il pose."
+				"TITLE": "De votre organisation",
+				"CONTENT": "Actualités, liens, ainsi que les blueprints et modèles de ressource que votre organisation recommande. Sélectionnez Masquer pour le réduire à une ligne ; il se rouvre lorsqu'un nouvel élément est ajouté."
 			},
 			"ACTIVITY": {
 				"TITLE": "Votre activité récente",
@@ -5531,15 +5626,22 @@
 				"CONTENT": "Assistance contient le guide d'utilisation, la FAQ et le glossaire, et permet de relancer cette visite. À côté, vous pouvez changer de langue. Dans le menu de l'organisation, vous pouvez changer d'organisation si vous appartenez à plusieurs, chacune ayant ses propres plans, ressources et blueprints. La cloche affiche vos notifications, et à côté se trouve votre profil."
 			}
 		},
-		"RECOMMENDATIONS": {
+		"SLIDES": {
 			"FROM": "De {{tenant}}",
-			"TITLE": "Blueprints et modèles recommandés",
-			"SUMMARY": "{{count}} blueprints et modèles recommandés",
-			"RANGE": "{{start}}–{{end}} sur {{count}}",
+			"FROM-DEFAULT": "De {{ APP_NAME }}",
+			"ONE-SLIDE": "1 diapositive",
+			"SLIDES": "{{count}} diapositives",
+			"POSITION": "{{index}} sur {{count}}",
 			"SHOW": "Afficher",
 			"HIDE": "Masquer",
-			"PREVIOUS": "Recommandations précédentes",
-			"NEXT": "Recommandations suivantes",
+			"PREVIOUS": "Diapositive précédente",
+			"NEXT": "Diapositive suivante",
+			"GO-TO": "Aller à la diapositive {{index}} sur {{count}}",
+			"READ-MORE": "Lire la suite",
+			"READ-MORE-LABEL": "Lire la suite: {{title}}"
+		},
+		"RECOMMENDATIONS": {
+			"TITLE": "Blueprints et modèles recommandés",
 			"PLAN-BLUEPRINT": "Plan Blueprint",
 			"DESCRIPTION-TEMPLATE": "Modèle de ressource",
 			"TYPE": "Type : {{type}}",

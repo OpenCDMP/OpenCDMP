@@ -429,6 +429,13 @@ export class FormFieldComponent extends BaseComponent implements OnInit {
         return isFieldRequired(this.field);
     }
 
+    get labelAsPlaceholder(): boolean {
+        return [
+            FieldType.FREE_TEXT, FieldType.TEXT_AREA, FieldType.RICH_TEXT_AREA, FieldType.NUMBER, FieldType.DATE_PICKER,
+            FieldType.INTERNAL_ENTRIES_PLANS, FieldType.INTERNAL_ENTRIES_DESCRIPTIONS, FieldType.TAGS, FieldType.REFERENCE_TYPES
+        ].includes(this.field?.data?.fieldType);
+    }
+
 	private applyFieldType() {
 
 		this.propertiesFormGroup.get(this.field.id)?.valueChanges

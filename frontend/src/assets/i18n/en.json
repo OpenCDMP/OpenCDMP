@@ -1392,7 +1392,12 @@
 			"MOVE-UP": "Move {{item}} up",
 			"MOVE-DOWN": "Move {{item}} down",
 			"REMOVE": "Remove {{item}}",
-			"CHIP-KEYBOARD-HINT": "Drag to reorder, or press Alt with the left or right arrow key."
+			"CHIP-KEYBOARD-HINT": "Drag to reorder, or press Alt with the left or right arrow key.",
+			"DASHBOARD-NOTE": {
+				"TITLE": "Also on the Dashboard",
+				"TEXT": "To show these items on members' Dashboard too, add the slide \"Recommended blueprints and templates\" in",
+				"LINK": "Users & onboarding"
+			}
 		},
 		"NOTIFICATIONS": {
 			"TITLE": "Notifications",
@@ -1416,7 +1421,94 @@
 		},
 		"ONBOARDING": {
 			"TITLE": "Users & onboarding",
-			"HINT": "What people see when they sign in for the first time.",
+			"HINT": "What people see when they first sign in, and the information on their Dashboard.",
+			"SLIDES": {
+				"TITLE": "Information on the Dashboard",
+				"HINT": "Slides that all members of this organisation see at the top of their Dashboard, one at a time.",
+				"ADD": "Add slide",
+				"EMPTY": "No slides yet",
+				"EMPTY-HINT": "Select \"Add slide\" to add the first one.",
+				"EMPTY-FALLBACK": "Until then, members see the slides of the Default organisation.",
+				"CONTENT": {
+					"TITLE": "Content slide",
+					"HINT": "Your own title and text, with an image and a button if you want them."
+				},
+				"RECOMMENDED": {
+					"TITLE": "Recommended blueprints and templates",
+					"HINT": "The blueprints and templates chosen in Content defaults, 3 on each slide. Can be added once.",
+					"ALREADY-ADDED": "Already added",
+					"ITEMS": "{{count}} items from Content defaults",
+					"ITEMS-AND-SLIDES": "{{count}} items from Content defaults · {{slides}} slides on the Dashboard",
+					"NO-ITEMS": "No items chosen yet in Content defaults",
+					"NOT-SHOWN": "Not shown: no items",
+					"CHANGE-ITEMS": "Change items"
+				},
+				"COLUMNS": {
+					"ORDER": "Order",
+					"SLIDE": "Slide",
+					"LANGUAGES": "Languages",
+					"WHEN": "When",
+					"ON-DASHBOARD": "On the Dashboard",
+					"ACTIONS": "Actions"
+				},
+				"ALWAYS": "Always",
+				"UNTIL": "Until {{date}}",
+				"ENDED": "Ended {{date}}",
+				"FROM": "From {{date}}",
+				"FROM-UNTIL": "From {{from}} until {{until}}",
+				"STATE-ON": "On",
+				"STATE-OFF": "Off",
+				"STATE-ENDED": "Ended",
+				"EDIT": "Edit",
+				"DUPLICATE": "Duplicate",
+				"MOVE-UP": "Move up",
+				"MOVE-DOWN": "Move down",
+				"DELETE": "Delete",
+				"DELETE-CONFIRM": "Delete the slide \"{{name}}\"? Members will no longer see it.",
+				"FOOTNOTE": "Drag a slide to change the order. Slides that have ended stay in the list until you delete them.",
+				"EDITOR": {
+					"NEW-TITLE": "New slide",
+					"EDIT-TITLE": "Edit slide",
+					"CLOSE": "Close",
+					"LANGUAGES": "Languages",
+					"ADD-LANGUAGE": "Add language",
+					"REMOVE-LANGUAGE": "Remove {{language}}",
+					"DEFAULT-LANGUAGE": "(default)",
+					"DEFAULT-LANGUAGE-HINT": "The default language is required. Members whose language has no text see this one.",
+					"OTHER-LANGUAGE-HINT": "Optional. Leave it empty to show the default language's text.",
+					"PREVIEW-IN": "How the slide looks · {{language}}",
+					"TEXTS-TITLE": "Text in each language",
+					"TEXTS-HINT": "The title, the text and the button text. Each language has its own.",
+					"SHARED-TITLE": "For all languages",
+					"SHARED-HINT": "The image, the button and the dates are the same in every language.",
+					"SLIDE-TITLE": "Title",
+					"TITLE-NEEDED": "Add a title for this language, or clear its text.",
+					"TEXT": "Text",
+					"TEXT-HINT": "The slide shows the first lines; longer texts get \"Read more\".",
+					"IMAGE": "Image (optional)",
+					"IMAGE-HINT": "Shown on the right of the text. Without an image, the text takes the whole width.",
+					"NO-IMAGE": "No image",
+					"ADD-IMAGE": "Add image",
+					"REPLACE-IMAGE": "Replace",
+					"REMOVE-IMAGE": "Remove",
+					"IMAGE-DISPLAY": "How the image is shown",
+					"IMAGE-FILL": "Fill",
+					"IMAGE-FIT": "Fit",
+					"IMAGE-DISPLAY-HINT": "Fill covers the whole area and may crop the image. Fit shows the whole image, for example a logo.",
+					"BUTTON": "Button (optional)",
+					"URL": "URL",
+					"EMAIL": "Email",
+					"BUTTON-HINT": "A link to a web page or an email address. Select it again to remove the button.",
+					"BUTTON-TEXT": "Button text",
+					"LINK": "Link",
+					"EMAIL-ADDRESS": "Email address",
+					"SHOW-FROM": "Show from",
+					"SHOW-UNTIL": "Show until",
+					"UNTIL-BEFORE-FROM": "Must be on or after the start date.",
+					"DATES-HINT": "Optional. For news or events: the slide appears and disappears by itself.",
+					"SAVE": "Save"
+				}
+			},
 			"TERMS": {
 				"TITLE": "Terms and conditions",
 				"HINT": "Shown before first use. Links to your terms of service and privacy policy are welcome.",
@@ -3375,6 +3467,9 @@
 			"LABEL": "Label",
 			"REQUIRED": "Required",
 			"SEMANTICS": "Semantics",
+			"REFERENCE-ID-SEMANTICS": "Reference ID semantics",
+			"LABEL-SEMANTICS": "Name semantics",
+			"DESCRIPTION-SEMANTICS": "Description semantics",
 			"ADD": "Add field",
 			"REMOVE": "Remove field",
 			"TITLE": "Fields",
@@ -4251,7 +4346,7 @@
 			"YES": "Yes",
 			"NO": "No",
 			"CONTAINS-THIS": "contains this input",
-			"SAME-QUESTION": "in the same question",
+			"THIS-INPUT": "the input itself",
 			"SHOWS-THIS": "already shows this question",
 			"SHOWS-WHEN": "Shows {{target}} when “{{value}}”",
 			"SHOWS": "Shows {{target}}",
@@ -5503,8 +5598,8 @@
 				"CONTENT": "New plan and New asset live under My plans and My assets in the sidebar, so you can start one from any page."
 			},
 			"RECOMMENDATIONS": {
-				"TITLE": "Recommended for you",
-				"CONTENT": "The blueprints and asset templates your organisation recommends. Start a plan straight from a blueprint, or open one to see what it asks for."
+				"TITLE": "From your organisation",
+				"CONTENT": "News, links and the blueprints and asset templates your organisation recommends. Select Hide to fold it into one line; it opens again when something new is added."
 			},
 			"ACTIVITY": {
 				"TITLE": "Your latest activity",
@@ -5531,15 +5626,22 @@
 				"CONTENT": "Support has the user guide, the FAQ and the glossary, and replays this tour. Next to it you can change the language. In the organisation menu you can switch organisation if you belong to more than one, since each has its own plans, assets and blueprints. The bell shows your notifications, and next to it is your profile."
 			}
 		},
-		"RECOMMENDATIONS": {
+		"SLIDES": {
 			"FROM": "From {{tenant}}",
-			"TITLE": "Recommended blueprints and templates",
-			"SUMMARY": "{{count}} recommended blueprints and templates",
-			"RANGE": "{{start}}–{{end}} of {{count}}",
+			"FROM-DEFAULT": "From {{ APP_NAME }}",
+			"ONE-SLIDE": "1 slide",
+			"SLIDES": "{{count}} slides",
+			"POSITION": "{{index}} of {{count}}",
 			"SHOW": "Show",
 			"HIDE": "Hide",
-			"PREVIOUS": "Previous recommendations",
-			"NEXT": "Next recommendations",
+			"PREVIOUS": "Previous slide",
+			"NEXT": "Next slide",
+			"GO-TO": "Go to slide {{index}} of {{count}}",
+			"READ-MORE": "Read more",
+			"READ-MORE-LABEL": "Read more: {{title}}"
+		},
+		"RECOMMENDATIONS": {
+			"TITLE": "Recommended blueprints and templates",
 			"PLAN-BLUEPRINT": "Plan Blueprint",
 			"DESCRIPTION-TEMPLATE": "Asset Template",
 			"TYPE": "Type: {{type}}",

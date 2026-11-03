@@ -32,6 +32,12 @@ public class ReferenceTypeDefinitionPersist {
 
     public static final String _labelTemplate = "labelTemplate";
 
+    private List<String> referenceIdSemantics;
+
+    private List<String> labelSemantics;
+
+    private List<String> descriptionSemantics;
+
     public List<ReferenceTypeFieldPersist> getFields() {
         return fields;
     }
@@ -54,6 +60,30 @@ public class ReferenceTypeDefinitionPersist {
 
     public void setLabelTemplate(String labelTemplate) {
         this.labelTemplate = labelTemplate;
+    }
+
+    public List<String> getReferenceIdSemantics() {
+        return referenceIdSemantics;
+    }
+
+    public void setReferenceIdSemantics(List<String> referenceIdSemantics) {
+        this.referenceIdSemantics = referenceIdSemantics;
+    }
+
+    public List<String> getLabelSemantics() {
+        return labelSemantics;
+    }
+
+    public void setLabelSemantics(List<String> labelSemantics) {
+        this.labelSemantics = labelSemantics;
+    }
+
+    public List<String> getDescriptionSemantics() {
+        return descriptionSemantics;
+    }
+
+    public void setDescriptionSemantics(List<String> descriptionSemantics) {
+        this.descriptionSemantics = descriptionSemantics;
     }
 
     @Component(ReferenceTypeDefinitionPersistValidator.ValidatorName)

@@ -2,7 +2,11 @@ import { Component, DestroyRef, inject, Input, OnInit, ChangeDetectionStrategy }
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { UntypedFormArray, UntypedFormGroup, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { TenantConfigurationType } from '@app/core/common/enum/tenant-configuration-type';
+import { PluginDataType } from '@app/core/common/enum/plugin-data-type';
+import { PluginEntityType } from '@app/core/common/enum/plugin-entity-type';
+import { TemplateValidationIssue, TemplateValidationIssueLevel } from '@app/core/model/file/template-validation-result.model';
 import { ConfigurationField, PluginRepositoryConfiguration } from '@app/core/model/plugin-configuration/plugin-configuration';
+import { FileTransformerHttpService } from '@app/core/services/file-transformer/file-transformer.http.service';
 import { TenantConfigurationService } from '@app/core/services/tenant-configuration/tenant-configuration.service';
 import { PluginConfigurationEditorResolver } from '@app/ui/admin/tenant-configuration/models/plugin-configuration/plugin-configuration-editor.resolver';
 import { StructureEditorBase } from '../../structure-editor-base';
@@ -29,8 +33,12 @@ export class ExportCardComponent implements OnInit {
 	open = false;
 	/** The organisation's plugin settings, by plugin and field code: what an empty setting here follows. */
 	tenantValues: Record<string, Record<string, string | null>> = {};
+	/** What the plugin found in each saved template file of the read-only view, by plugin and field code. */
+	templateIssues: Record<string, TemplateValidationIssue[]> = {};
+	issueLevels = TemplateValidationIssueLevel;
 
 	private readonly tenantConfigurationService = inject(TenantConfigurationService);
+	private readonly fileTransformerHttpService = inject(FileTransformerHttpService);
 	private readonly destroyRef = inject(DestroyRef);
 
 	constructor(public editor: StructureEditorBase<any, any>) { }
@@ -49,6 +57,30 @@ export class ExportCardComponent implements OnInit {
 				},
 				error: () => this.tenantValues = {},
 			});
+		// the editable view checks templates in the settings editor; a finalized one still shows why exports fall back
+		if (this.editor.readOnly) this.validateTemplates();
+	}
+
+	private validateTemplates(): void {
+		this.availableControls.forEach(plugin => {
+			const code: string = plugin.get('pluginCode')?.value ?? '';
+			const definitions = this.definitionsOf(code);
+			(plugin.get('fields') as UntypedFormArray)?.controls?.forEach(field => {
+				const fieldCode: string = field.get('code')?.value ?? '';
+				const definition = definitions.find(x => x.code === fieldCode);
+				const fileId = field.get('fileValue')?.value;
+				if (!fileId || definition?.type !== PluginDataType.File || !fieldCode.includes('template')) return;
+				// same entity type rule as the settings editor
+				const entityType = definition.appliesTo?.includes(PluginEntityType.Description) && !definition.appliesTo?.includes(PluginEntityType.Plan) ? PluginEntityType.Description : PluginEntityType.Plan;
+				this.fileTransformerHttpService.validateTemplate(fileId, code, entityType)
+					.pipe(takeUntilDestroyed(this.destroyRef))
+					.subscribe({
+						next: result => { if (result?.issues?.length) this.templateIssues = { ...this.templateIssues, [`${code}.${fieldCode}`]: result.issues }; },
+						// advisory only: a plugin that cannot validate leaves the summary as it is
+						error: () => { },
+					});
+			});
+		});
 	}
 
 	t(key: string): string { return this.editor.term(key); }
@@ -84,8 +116,8 @@ export class ExportCardComponent implements OnInit {
 	}
 
 	/** Export settings that hold a value, as label and value, for the read-only view. */
-	get settings(): { label: string, value: string, color: boolean }[] {
-		const result: { label: string, value: string, color: boolean }[] = [];
+	get settings(): { label: string, value: string, color: boolean, issues?: TemplateValidationIssue[] }[] {
+		const result: { label: string, value: string, color: boolean, issues?: TemplateValidationIssue[] }[] = [];
 		this.availableControls.forEach(plugin => {
 			const code: string = plugin.get('pluginCode')?.value ?? '';
 			const definitions = this.definitionsOf(code);
@@ -99,7 +131,7 @@ export class ExportCardComponent implements OnInit {
 				const text = field.get('textValue')?.value;
 				// select values read as their option labels ("Question above answer", not "stacked")
 				const shown = definition?.options?.find(x => x.value === text)?.label ?? text;
-				if (fileId) result.push({ label, value: this.editor.fileMap.get(fileId)?.name ?? this.editor.language.instant('PLAN-BLUEPRINT-EDITOR.READ.FILE-UPLOADED'), color: false });
+				if (fileId) result.push({ label, value: this.editor.fileMap.get(fileId)?.name ?? this.editor.language.instant('PLAN-BLUEPRINT-EDITOR.READ.FILE-UPLOADED'), color: false, issues: this.templateIssues[`${code}.${fieldCode}`] });
 				else if (text !== null && text !== undefined && text !== '') result.push({ label, value: String(shown), color: /^#[0-9a-f]{3,8}$/i.test(String(text)) });
 			});
 		});

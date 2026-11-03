@@ -1392,7 +1392,12 @@
 			"MOVE-UP": "Przenieś {{item}} w górę",
 			"MOVE-DOWN": "Przenieś {{item}} w dół",
 			"REMOVE": "Usuń {{item}}",
-			"CHIP-KEYBOARD-HINT": "Przeciągnij, aby zmienić kolejność, lub naciśnij Alt ze strzałką w lewo lub w prawo."
+			"CHIP-KEYBOARD-HINT": "Przeciągnij, aby zmienić kolejność, lub naciśnij Alt ze strzałką w lewo lub w prawo.",
+			"DASHBOARD-NOTE": {
+				"TITLE": "Także na stronie głównej",
+				"TEXT": "Aby pokazać te elementy także na stronie głównej członków, dodaj slajd „Polecane blueprinty i szablony” w sekcji",
+				"LINK": "Użytkownicy i wdrażanie"
+			}
 		},
 		"NOTIFICATIONS": {
 			"TITLE": "Powiadomienia",
@@ -1416,7 +1421,94 @@
 		},
 		"ONBOARDING": {
 			"TITLE": "Użytkownicy i wdrażanie",
-			"HINT": "Co użytkownicy widzą przy pierwszym logowaniu.",
+			"HINT": "Co użytkownicy widzą przy pierwszym logowaniu oraz informacje na ich stronie głównej.",
+			"SLIDES": {
+				"TITLE": "Informacje na stronie głównej",
+				"HINT": "Slajdy, które wszyscy członkowie tej organizacji widzą u góry swojej strony głównej, jeden po drugim.",
+				"ADD": "Dodaj slajd",
+				"EMPTY": "Brak slajdów",
+				"EMPTY-HINT": "Wybierz „Dodaj slajd”, aby dodać pierwszy.",
+				"EMPTY-FALLBACK": "Do tego czasu członkowie widzą slajdy organizacji domyślnej.",
+				"CONTENT": {
+					"TITLE": "Slajd z treścią",
+					"HINT": "Własny tytuł i tekst, z obrazem i przyciskiem, jeśli chcesz."
+				},
+				"RECOMMENDED": {
+					"TITLE": "Polecane blueprinty i szablony",
+					"HINT": "Blueprinty i szablony wybrane w sekcji Domyślna zawartość, po 3 na slajdzie. Można dodać tylko raz.",
+					"ALREADY-ADDED": "Już dodany",
+					"ITEMS": "Elementy z sekcji Domyślna zawartość: {{count}}",
+					"ITEMS-AND-SLIDES": "Elementy z sekcji Domyślna zawartość: {{count}} · slajdy na stronie głównej: {{slides}}",
+					"NO-ITEMS": "Nie wybrano jeszcze elementów w sekcji Domyślna zawartość",
+					"NOT-SHOWN": "Niewyświetlany: brak elementów",
+					"CHANGE-ITEMS": "Zmień elementy"
+				},
+				"COLUMNS": {
+					"ORDER": "Kolejność",
+					"SLIDE": "Slajd",
+					"LANGUAGES": "Języki",
+					"WHEN": "Kiedy",
+					"ON-DASHBOARD": "Na stronie głównej",
+					"ACTIONS": "Akcje"
+				},
+				"ALWAYS": "Zawsze",
+				"UNTIL": "Do {{date}}",
+				"ENDED": "Zakończony {{date}}",
+				"FROM": "Od {{date}}",
+				"FROM-UNTIL": "Od {{from}} do {{until}}",
+				"STATE-ON": "Włączony",
+				"STATE-OFF": "Wyłączony",
+				"STATE-ENDED": "Zakończony",
+				"EDIT": "Edytuj",
+				"DUPLICATE": "Duplikuj",
+				"MOVE-UP": "Przenieś w górę",
+				"MOVE-DOWN": "Przenieś w dół",
+				"DELETE": "Usuń",
+				"DELETE-CONFIRM": "Usunąć slajd „{{name}}”? Członkowie nie będą go już widzieć.",
+				"FOOTNOTE": "Przeciągnij slajd, aby zmienić kolejność. Zakończone slajdy pozostają na liście, dopóki ich nie usuniesz.",
+				"EDITOR": {
+					"NEW-TITLE": "Nowy slajd",
+					"EDIT-TITLE": "Edytuj slajd",
+					"CLOSE": "Zamknij",
+					"LANGUAGES": "Języki",
+					"ADD-LANGUAGE": "Dodaj język",
+					"REMOVE-LANGUAGE": "Usuń {{language}}",
+					"DEFAULT-LANGUAGE": "(domyślny)",
+					"DEFAULT-LANGUAGE-HINT": "Język domyślny jest wymagany. Członkowie, dla których języka nie ma tekstu, widzą ten.",
+					"OTHER-LANGUAGE-HINT": "Opcjonalne. Pozostaw puste, aby wyświetlić tekst w języku domyślnym.",
+					"PREVIEW-IN": "Jak wygląda slajd · {{language}}",
+					"TEXTS-TITLE": "Tekst w każdym języku",
+					"TEXTS-HINT": "Tytuł, tekst i tekst przycisku. Każdy język ma własne.",
+					"SHARED-TITLE": "Dla wszystkich języków",
+					"SHARED-HINT": "Obraz, przycisk i daty są takie same w każdym języku.",
+					"SLIDE-TITLE": "Tytuł",
+					"TITLE-NEEDED": "Dodaj tytuł dla tego języka albo wyczyść jego tekst.",
+					"TEXT": "Tekst",
+					"TEXT-HINT": "Slajd pokazuje pierwsze wiersze; dłuższe teksty mają link „Czytaj więcej”.",
+					"IMAGE": "Obraz (opcjonalny)",
+					"IMAGE-HINT": "Wyświetlany po prawej stronie tekstu. Bez obrazu tekst zajmuje całą szerokość.",
+					"NO-IMAGE": "Brak obrazu",
+					"ADD-IMAGE": "Dodaj obraz",
+					"REPLACE-IMAGE": "Zamień",
+					"REMOVE-IMAGE": "Usuń",
+					"IMAGE-DISPLAY": "Sposób wyświetlania obrazu",
+					"IMAGE-FILL": "Wypełnij",
+					"IMAGE-FIT": "Dopasuj",
+					"IMAGE-DISPLAY-HINT": "Wypełnij pokrywa cały obszar i może przyciąć obraz. Dopasuj pokazuje cały obraz, na przykład logo.",
+					"BUTTON": "Przycisk (opcjonalny)",
+					"URL": "URL",
+					"EMAIL": "E-mail",
+					"BUTTON-HINT": "Link do strony internetowej lub adres e-mail. Wybierz go ponownie, aby usunąć przycisk.",
+					"BUTTON-TEXT": "Tekst przycisku",
+					"LINK": "Link",
+					"EMAIL-ADDRESS": "Adres e-mail",
+					"SHOW-FROM": "Pokazuj od",
+					"SHOW-UNTIL": "Pokazuj do",
+					"UNTIL-BEFORE-FROM": "Musi być taka sama jak data rozpoczęcia lub późniejsza.",
+					"DATES-HINT": "Opcjonalne. Dla aktualności lub wydarzeń: slajd pojawia się i znika samoczynnie.",
+					"SAVE": "Zapisz"
+				}
+			},
 			"TERMS": {
 				"TITLE": "Regulamin",
 				"HINT": "Wyświetlany przed pierwszym użyciem. Warto dodać linki do warunków korzystania z usługi i polityki prywatności.",
@@ -3375,6 +3467,9 @@
 			"LABEL": "Etykieta",
 			"REQUIRED": "Wymagane",
 			"SEMANTICS": "Semantyka",
+			"REFERENCE-ID-SEMANTICS": "Semantyka ID referencji",
+			"LABEL-SEMANTICS": "Semantyka nazwy",
+			"DESCRIPTION-SEMANTICS": "Semantyka opisu",
 			"ADD": "Dodaj pole",
 			"REMOVE": "Usuń pole",
 			"TITLE": "Pola",
@@ -4251,7 +4346,7 @@
 			"YES": "Tak",
 			"NO": "Nie",
 			"CONTAINS-THIS": "zawiera to pole",
-			"SAME-QUESTION": "w tym samym pytaniu",
+			"THIS-INPUT": "to samo pole",
 			"SHOWS-THIS": "już pokazuje to pytanie",
 			"SHOWS-WHEN": "Pokazuje {{target}}, gdy „{{value}}”",
 			"SHOWS": "Pokazuje {{target}}",
@@ -5503,8 +5598,8 @@
 				"CONTENT": "Nowy DMP i Nowy zasób znajdują się w panelu bocznym pod Moje DMPs i Moje Zasoby, więc możesz zacząć z dowolnej strony."
 			},
 			"RECOMMENDATIONS": {
-				"TITLE": "Polecane dla Ciebie",
-				"CONTENT": "DMP Blueprints i Szablony Zasobów polecane przez Twoją organizację. Zacznij plan bezpośrednio z blueprintu albo otwórz go, aby zobaczyć, o co pyta."
+				"TITLE": "Od Twojej organizacji",
+				"CONTENT": "Aktualności, linki oraz blueprinty i szablony zasobów polecane przez Twoją organizację. Wybierz Ukryj, aby zwinąć je do jednego wiersza; rozwiną się ponownie, gdy pojawi się coś nowego."
 			},
 			"ACTIVITY": {
 				"TITLE": "Twoja ostatnia aktywność",
@@ -5531,15 +5626,22 @@
 				"CONTENT": "W menu Wsparcie znajdziesz podręcznik użytkownika, często zadawane pytania i słownik, a także możesz ponownie uruchomić ten przewodnik. Obok możesz zmienić język. W menu organizacji możesz zmienić organizację, jeśli należysz do więcej niż jednej, ponieważ każda ma własne plany, zasoby i blueprinty. Dzwonek pokazuje Twoje powiadomienia, a obok znajduje się Twój profil."
 			}
 		},
-		"RECOMMENDATIONS": {
+		"SLIDES": {
 			"FROM": "Od {{tenant}}",
-			"TITLE": "Polecane blueprinty i szablony",
-			"SUMMARY": "Polecane blueprinty i szablony: {{count}}",
-			"RANGE": "{{start}}–{{end}} z {{count}}",
+			"FROM-DEFAULT": "Od {{ APP_NAME }}",
+			"ONE-SLIDE": "1 slajd",
+			"SLIDES": "Slajdy: {{count}}",
+			"POSITION": "{{index}} z {{count}}",
 			"SHOW": "Pokaż",
 			"HIDE": "Ukryj",
-			"PREVIOUS": "Poprzednie polecenia",
-			"NEXT": "Następne polecenia",
+			"PREVIOUS": "Poprzedni slajd",
+			"NEXT": "Następny slajd",
+			"GO-TO": "Przejdź do slajdu {{index}} z {{count}}",
+			"READ-MORE": "Czytaj więcej",
+			"READ-MORE-LABEL": "Czytaj więcej: {{title}}"
+		},
+		"RECOMMENDATIONS": {
+			"TITLE": "Polecane blueprinty i szablony",
 			"PLAN-BLUEPRINT": "DMP Blueprint",
 			"DESCRIPTION-TEMPLATE": "Szablon Zasobu",
 			"TYPE": "Typ: {{type}}",

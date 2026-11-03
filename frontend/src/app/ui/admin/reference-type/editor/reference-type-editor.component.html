@@ -109,8 +109,28 @@
 									<span role="cell">{{enumUtils.toReferenceFieldDataTypeString(dataTypes[0])}}</span>
 									<span role="cell" class="bp2-sub">{{'REFERENCE-TYPE-EDITOR.FIELDS.ALWAYS' | translate}}</span>
 									<span role="cell"><span class="bp2-tag" [class.bp2-tag--ok]="sourcesArray.length && mappedIn('reference_id') === sourcesArray.length" [class.bp2-tag--todo]="mappedIn('reference_id') < sourcesArray.length">{{'REFERENCE-TYPE-EDITOR.FIELDS.N-OF-M' | translate: { n: mappedIn('reference_id'), m: sourcesArray.length } }}</span></span>
-									<span role="cell"></span>
+									<span role="cell">
+										<button mat-icon-button type="button" class="bp2-icon-btn-sm" (click)="toggleField(-1)" [attr.aria-expanded]="expandedFieldIndex === -1" [attr.aria-label]="'REFERENCE-TYPE-EDITOR.FIELDS.DETAILS-OF' | translate: { field: ('REFERENCE-TYPE-EDITOR.FIELDS.BUILT-IN' | translate) }">
+											<mat-icon aria-hidden="true">{{ expandedFieldIndex === -1 ? 'expand_less' : 'expand_more' }}</mat-icon>
+										</button>
+									</span>
 								</div>
+								@if (expandedFieldIndex === -1) {
+									<div class="rt2-field-details">
+										<mat-form-field subscriptSizing="dynamic">
+											<mat-label>{{'REFERENCE-TYPE-EDITOR.FIELDS.REFERENCE-ID-SEMANTICS' | translate}}</mat-label>
+											<app-multiple-auto-complete placeholder="{{'REFERENCE-TYPE-EDITOR.FIELDS.REFERENCE-ID-SEMANTICS' | translate}}" [required]="false" [separatorKeysCodes]="separatorKeysCodes" [formControl]="definition.get('referenceIdSemantics')" [configuration]="semanticsService.multipleAutocompleteConfiguration" />
+										</mat-form-field>
+										<mat-form-field subscriptSizing="dynamic">
+											<mat-label>{{'REFERENCE-TYPE-EDITOR.FIELDS.LABEL-SEMANTICS' | translate}}</mat-label>
+											<app-multiple-auto-complete placeholder="{{'REFERENCE-TYPE-EDITOR.FIELDS.LABEL-SEMANTICS' | translate}}" [required]="false" [separatorKeysCodes]="separatorKeysCodes" [formControl]="definition.get('labelSemantics')" [configuration]="semanticsService.multipleAutocompleteConfiguration" />
+										</mat-form-field>
+										<mat-form-field subscriptSizing="dynamic">
+											<mat-label>{{'REFERENCE-TYPE-EDITOR.FIELDS.DESCRIPTION-SEMANTICS' | translate}}</mat-label>
+											<app-multiple-auto-complete placeholder="{{'REFERENCE-TYPE-EDITOR.FIELDS.DESCRIPTION-SEMANTICS' | translate}}" [required]="false" [separatorKeysCodes]="separatorKeysCodes" [formControl]="definition.get('descriptionSemantics')" [configuration]="semanticsService.multipleAutocompleteConfiguration" />
+										</mat-form-field>
+									</div>
+								}
 								@for (field of fieldsArray.controls; track field; let i = $index) {
 									<div class="rt2-fields-row" role="row" [class.rt2-fields-row--open]="expandedFieldIndex === i">
 										<span role="cell">

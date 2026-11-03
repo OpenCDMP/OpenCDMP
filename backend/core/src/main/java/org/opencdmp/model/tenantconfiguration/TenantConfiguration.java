@@ -68,6 +68,10 @@ public class TenantConfiguration {
 
     public static final String _guidedTours = "guidedTours";
 
+    private DashboardSlidesTenantConfiguration dashboardSlides;
+
+    public static final String _dashboardSlides = "dashboardSlides";
+
     private Instant updatedAt;
 
     public static final String _updatedAt = "updatedAt";
@@ -233,5 +237,13 @@ public class TenantConfiguration {
 
     public void setGuidedTours(GuidedToursTenantConfiguration guidedTours) {
         this.guidedTours = guidedTours;
+    }
+
+    public DashboardSlidesTenantConfiguration getDashboardSlides() {
+        return dashboardSlides;
+    }
+
+    public void setDashboardSlides(DashboardSlidesTenantConfiguration dashboardSlides) {
+        this.dashboardSlides = dashboardSlides;
     }
 }

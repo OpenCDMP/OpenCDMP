@@ -49,6 +49,15 @@
 				empty: 'TENANT-CONFIGURATION.CONTENT-DEFAULTS.NO-FEATURED-TEMPLATES'
 			}" />
 		</div>
+
+		<div class="tc-cd__note" role="note">
+			<mat-icon aria-hidden="true">info</mat-icon>
+			<div>
+				<div class="tc-cd__note-title">{{ 'TENANT-CONFIGURATION.CONTENT-DEFAULTS.DASHBOARD-NOTE.TITLE' | translate }}</div>
+				{{ 'TENANT-CONFIGURATION.CONTENT-DEFAULTS.DASHBOARD-NOTE.TEXT' | translate }}
+				<a [routerLink]="onboardingUrl">{{ 'TENANT-CONFIGURATION.CONTENT-DEFAULTS.DASHBOARD-NOTE.LINK' | translate }}</a>
+			</div>
+		</div>
 	</section>
 
 	<ng-template #featuredCard let-list="list" let-rows="rows" let-title="title" let-hint="hint" let-empty="empty">

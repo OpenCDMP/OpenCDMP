@@ -17,7 +17,7 @@
 			<h3 id="deposit-review-summary-title" class="deposit-review__summary-title">{{ 'PUBLISH-DIALOG.REVIEW.WHAT' | translate }}</h3>
 			@for (group of summaryGroups; track group.code) {
 				@let state = source(group);
-				<div class="deposit-review__row" [class.deposit-review__row--missing]="state === 'missing'" [class.deposit-review__row--open]="isOpen(group)">
+				<div class="deposit-review__row" [id]="'deposit-review-group-' + group.code" [class.deposit-review__row--missing]="state === 'missing'" [class.deposit-review__row--open]="isOpen(group)">
 					<div class="deposit-review__row-head">
 						<span class="deposit-review__name">{{ groupLabel(group) }}</span>
 						<span class="deposit-review__value">

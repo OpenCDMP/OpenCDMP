@@ -55,7 +55,7 @@ export function rt2ReadPath(item: unknown, path: string): { ok: boolean, value: 
 			if (!part.ok) ok = false;
 			return normalize(part.value, first) ?? '';
 		});
-		return { ok, value };
+		return { ok, value: value.trim() };
 	}
 	const read = readParts(item, body);
 	return { ok: read.ok, value: normalize(read.value, first) };

@@ -637,23 +637,28 @@ public class ExternalFetcherServiceImpl implements ExternalFetcherService {
                         while (m.find()) {
                             if (m.groupCount() < 1) continue;
                             String normalizedValue;
-                            if (m.group(1).contains(".first()")) {
-                                String[] responsePathParts = null;
-                                responsePathParts = m.group(1).split(Pattern.quote(".first()"));
-                                normalizedValue = normalizeJsonValue(this.buildJsonPathResponseFromParts(responsePathParts, JsonPath.parse(resultItem)), getFirst);
-                            } else {
-                                Object partValue = JsonPath.parse(resultItem).read(m.group(1));
-                                normalizedValue = normalizeJsonValue(partValue, getFirst);
+                            // a placeholder missing from this result (e.g. an optional version) becomes empty instead of dropping the whole field
+                            try {
+                                if (m.group(1).contains(".first()")) {
+                                    String[] responsePathParts = null;
+                                    responsePathParts = m.group(1).split(Pattern.quote(".first()"));
+                                    normalizedValue = normalizeJsonValue(this.buildJsonPathResponseFromParts(responsePathParts, JsonPath.parse(resultItem)), getFirst);
+                                } else {
+                                    Object partValue = JsonPath.parse(resultItem).read(m.group(1));
+                                    normalizedValue = normalizeJsonValue(partValue, getFirst);
+                                }
+                            } catch (PathNotFoundException e) {
+                                normalizedValue = null;
                             }
 
                             if (normalizedValue != null) value = value.replace("@{{" + m.group(1) + "}}", normalizedValue);
                             else value = value.replace("@{{" + m.group(1) + "}}","");
                         }
-                        map.put(field.getCode(), normalizeJsonValue(value, getFirst));
+                        map.put(field.getCode(), normalizeJsonValue(value.trim(), getFirst));
                     } else {
-                        String[] responsePathParts = null;
-                        if (field.getResponsePath().contains(".first()")) responsePathParts = field.getResponsePath().split(Pattern.quote(".first()"));
-                        if (responsePathParts != null) responsePath = this.buildJsonPathResponseFromParts(responsePathParts, JsonPath.parse(resultItem));
+                        // the trailing .first() is already stripped and applied by normalizeJsonValue; appending [0] for it would
+                        // break filter paths like a[?(@.k=='x')].v, where [0] indexes each v instead of the matches
+                        if (responsePath.contains(".first()")) responsePath = this.buildJsonPathResponseFromParts(responsePath.split(Pattern.quote(".first()")), JsonPath.parse(resultItem));
                         Object value = JsonPath.parse(resultItem).read(responsePath);
                         map.put(field.getCode(), normalizeJsonValue(value, getFirst));
                     }
@@ -1056,7 +1061,9 @@ public class ExternalFetcherServiceImpl implements ExternalFetcherService {
     private static String normalizeJsonValue(Object value, boolean getfirst) {
         if (value instanceof JSONArray jsonArray) {
 	        if (getfirst) {
-                return jsonArray.getFirst().toString();
+                if (jsonArray.isEmpty()) return null;
+                Object first = jsonArray.getFirst();
+                return first != null ? first.toString() : null;
             } else {
                 return value.toString();
             }

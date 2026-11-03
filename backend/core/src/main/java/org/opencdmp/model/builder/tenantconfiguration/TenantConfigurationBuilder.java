@@ -65,6 +65,7 @@ public class TenantConfigurationBuilder extends BaseBuilder<TenantConfiguration,
         FieldSet viewPreferenceFields = fields.extractPrefixed(this.asPrefix(TenantConfiguration._viewPreferences));
         FieldSet termsAndConditionsFields = fields.extractPrefixed(this.asPrefix(TenantConfiguration._termsAndConditions));
         FieldSet guidedToursFields = fields.extractPrefixed(this.asPrefix(TenantConfiguration._guidedTours));
+        FieldSet dashboardSlidesFields = fields.extractPrefixed(this.asPrefix(TenantConfiguration._dashboardSlides));
 
         List<TenantConfiguration> models = new ArrayList<>();
         for (TenantConfigurationEntity d : data) {
@@ -118,6 +119,10 @@ public class TenantConfigurationBuilder extends BaseBuilder<TenantConfiguration,
             if (!guidedToursFields.isEmpty() && !this.conventionService.isNullOrEmpty(d.getValue()) && TenantConfigurationType.GuidedTours.equals(d.getType())) {
                 GuidedToursTenantConfigurationEntity valueTyped = this.jsonHandlingService.fromJsonSafe(GuidedToursTenantConfigurationEntity.class, d.getValue());
                 m.setGuidedTours(this.builderFactory.builder(GuidedToursTenantConfigurationBuilder.class).authorize(this.authorize).build(guidedToursFields, valueTyped));
+            }
+            if (!dashboardSlidesFields.isEmpty() && !this.conventionService.isNullOrEmpty(d.getValue()) && TenantConfigurationType.DashboardSlides.equals(d.getType())) {
+                DashboardSlidesTenantConfigurationEntity valueTyped = this.jsonHandlingService.fromJsonSafe(DashboardSlidesTenantConfigurationEntity.class, d.getValue());
+                m.setDashboardSlides(this.builderFactory.builder(DashboardSlidesTenantConfigurationBuilder.class).authorize(this.authorize).build(dashboardSlidesFields, valueTyped));
             }
             if (fields.hasField(this.asIndexer(TenantConfiguration._createdAt))) m.setCreatedAt(d.getCreatedAt());
             if (fields.hasField(this.asIndexer(TenantConfiguration._updatedAt))) m.setUpdatedAt(d.getUpdatedAt());

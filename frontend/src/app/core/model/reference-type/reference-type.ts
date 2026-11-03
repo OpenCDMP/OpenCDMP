@@ -12,6 +12,9 @@ export interface ReferenceTypeDefinition{
     fields: ReferenceTypeField[];
 	sources: ExternalFetcherBaseSourceConfiguration[];
 	labelTemplate?: string;
+	referenceIdSemantics?: string[];
+	labelSemantics?: string[];
+	descriptionSemantics?: string[];
 }
 
 export interface ReferenceTypeField {
@@ -37,6 +40,9 @@ export interface ReferenceTypeDefinitionPersist{
     fields?: ReferenceTypeFieldPersist[];
 	sources: ExternalFetcherBaseSourceConfigurationPersist[];
 	labelTemplate?: string;
+	referenceIdSemantics?: string[];
+	labelSemantics?: string[];
+	descriptionSemantics?: string[];
 }
 
 export interface ReferenceTypeFieldPersist {

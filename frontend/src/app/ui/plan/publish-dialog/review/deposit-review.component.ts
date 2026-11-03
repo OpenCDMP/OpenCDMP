@@ -1,6 +1,6 @@
 import { COMMA, ENTER } from '@angular/cdk/keycodes';
 import { NgTemplateOutlet } from '@angular/common';
-import { Component, OnInit, inject, input, ChangeDetectionStrategy } from '@angular/core';
+import { Component, Injector, OnInit, afterNextRender, inject, input, ChangeDetectionStrategy } from '@angular/core';
 import { AbstractControl, FormArray, FormControl, FormGroup, ReactiveFormsModule, ValidationErrors, ValidatorFn, Validators } from '@angular/forms';
 import { MatAutocompleteModule, MatAutocompleteSelectedEvent } from '@angular/material/autocomplete';
 import { MatButtonModule } from '@angular/material/button';
@@ -52,6 +52,7 @@ export type DepositReviewSource = 'plan' | 'you' | 'auto' | 'missing';
 export class DepositReviewComponent implements OnInit {
 	private depositService = inject(DepositService);
 	private language = inject(TranslateService);
+	private injector = inject(Injector);
 
 	readonly preview = input.required<DepositPreviewModel>();
 	readonly repositoryId = input.required<string>();
@@ -299,6 +300,7 @@ export class DepositReviewComponent implements OnInit {
 	complete(group: PreviewFieldGroup): void {
 		this.openGroups.add(group.code);
 		this.formGroup.markAllAsTouched();
+		afterNextRender(() => document.getElementById('deposit-review-group-' + group.code)?.scrollIntoView({ behavior: 'smooth', block: 'start' }), { injector: this.injector });
 	}
 
 	source(group: PreviewFieldGroup): DepositReviewSource {

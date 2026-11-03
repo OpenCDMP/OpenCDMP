@@ -1,0 +1,127 @@
+@use "../../shared/tc-section";
+
+.tc-slides__empty {
+	padding: 16px 20px;
+	border: 1px dashed var(--mat-sys-outline-variant);
+	border-radius: 10px;
+
+	p {
+		margin: 0 0 4px;
+		font-size: 0.875rem;
+	}
+}
+
+.tc-slides__empty-title {
+	font-weight: 600;
+}
+
+.tc-slides__muted {
+	font-size: 0.8125rem;
+	color: var(--mat-sys-on-surface-variant);
+}
+
+.tc-slides__scroll {
+	overflow-x: auto;
+}
+
+.tc-slides__table {
+	width: 100%;
+	border-collapse: collapse;
+	font-size: 0.875rem;
+
+	th {
+		padding: 8px;
+		font-size: 0.75rem;
+		font-weight: 600;
+		text-align: left;
+		text-transform: uppercase;
+		letter-spacing: 0.04em;
+		color: var(--mat-sys-on-surface-variant);
+	}
+
+	td {
+		padding: 6px 8px;
+		border-top: 1px solid var(--mat-sys-outline-variant);
+		vertical-align: middle;
+	}
+}
+
+.tc-slides__handle-cell {
+	width: 32px;
+}
+
+.tc-slides__handle {
+	cursor: grab;
+	color: var(--mat-sys-on-surface-variant);
+}
+
+.tc-slides__name {
+	display: flex;
+	align-items: center;
+	gap: 4px;
+	font-weight: 600;
+}
+
+.tc-slides__star {
+	width: 18px;
+	height: 18px;
+	font-size: 18px;
+	color: var(--mat-sys-primary);
+}
+
+.tc-slides__actions {
+	text-align: right;
+	white-space: nowrap;
+}
+
+.tc-slides__danger {
+	color: var(--mat-sys-error);
+}
+
+.tc-slides__foot {
+	margin: 8px 0 0;
+}
+
+.tc-slides__option {
+	display: flex;
+	flex-direction: column;
+	padding: 6px 0;
+	white-space: normal;
+}
+
+.tc-slides__option-title {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	font-weight: 600;
+}
+
+// mat-menu-item sizes and spaces its icons for a leading icon; these sit inline in the title
+.mat-mdc-menu-item .tc-slides__option-icon {
+	width: 18px;
+	height: 18px;
+	margin: 0;
+	font-size: 18px;
+	color: var(--mat-sys-primary);
+}
+
+.tc-slides__option-hint {
+	font-size: 0.8125rem;
+	line-height: 1.35;
+	color: var(--mat-sys-on-surface-variant);
+}
+
+.tc-slides__option-hint--strong {
+	font-weight: 600;
+}
+
+// the dragged row is moved to the body, outside the table
+.cdk-drag-preview {
+	display: table;
+	background: var(--mat-sys-surface);
+	box-shadow: 0 6px 20px rgb(0 0 0 / 12%);
+}
+
+.cdk-drag-placeholder {
+	opacity: 0.3;
+}

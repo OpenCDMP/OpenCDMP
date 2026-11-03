@@ -1392,7 +1392,12 @@
 			"MOVE-UP": "Sposta {{item}} in alto",
 			"MOVE-DOWN": "Sposta {{item}} in basso",
 			"REMOVE": "Rimuovi {{item}}",
-			"CHIP-KEYBOARD-HINT": "Trascina per riordinare, oppure premi Alt con il tasto freccia sinistra o destra."
+			"CHIP-KEYBOARD-HINT": "Trascina per riordinare, oppure premi Alt con il tasto freccia sinistra o destra.",
+			"DASHBOARD-NOTE": {
+				"TITLE": "Anche nella Home",
+				"TEXT": "Per mostrare questi elementi anche nella Home dei membri, aggiungi la slide \"Blueprint e modelli consigliati\" in",
+				"LINK": "Utenti e accoglienza"
+			}
 		},
 		"NOTIFICATIONS": {
 			"TITLE": "Notifiche",
@@ -1416,7 +1421,94 @@
 		},
 		"ONBOARDING": {
 			"TITLE": "Utenti e accoglienza",
-			"HINT": "Ciò che gli utenti vedono al primo accesso.",
+			"HINT": "Ciò che gli utenti vedono al primo accesso, e le informazioni nella loro Home.",
+			"SLIDES": {
+				"TITLE": "Informazioni nella Home",
+				"HINT": "Slide che tutti i membri di questa organizzazione vedono in cima alla loro Home, una alla volta.",
+				"ADD": "Aggiungi slide",
+				"EMPTY": "Ancora nessuna slide",
+				"EMPTY-HINT": "Seleziona \"Aggiungi slide\" per aggiungere la prima.",
+				"EMPTY-FALLBACK": "Fino ad allora, i membri vedono le slide dell'organizzazione predefinita.",
+				"CONTENT": {
+					"TITLE": "Slide di contenuto",
+					"HINT": "Titolo e testo tuoi, con un'immagine e un pulsante se li vuoi."
+				},
+				"RECOMMENDED": {
+					"TITLE": "Blueprint e modelli consigliati",
+					"HINT": "I blueprint e i modelli scelti in Contenuti predefiniti, 3 per ogni slide. Si può aggiungere una sola volta.",
+					"ALREADY-ADDED": "Già aggiunta",
+					"ITEMS": "{{count}} elementi da Contenuti predefiniti",
+					"ITEMS-AND-SLIDES": "{{count}} elementi da Contenuti predefiniti · {{slides}} slide nella Home",
+					"NO-ITEMS": "Nessun elemento ancora scelto in Contenuti predefiniti",
+					"NOT-SHOWN": "Non mostrata: nessun elemento",
+					"CHANGE-ITEMS": "Cambia elementi"
+				},
+				"COLUMNS": {
+					"ORDER": "Ordine",
+					"SLIDE": "Slide",
+					"LANGUAGES": "Lingue",
+					"WHEN": "Quando",
+					"ON-DASHBOARD": "Nella Home",
+					"ACTIONS": "Azioni"
+				},
+				"ALWAYS": "Sempre",
+				"UNTIL": "Fino al {{date}}",
+				"ENDED": "Terminata il {{date}}",
+				"FROM": "Dal {{date}}",
+				"FROM-UNTIL": "Dal {{from}} al {{until}}",
+				"STATE-ON": "Attiva",
+				"STATE-OFF": "Disattivata",
+				"STATE-ENDED": "Terminata",
+				"EDIT": "Modifica",
+				"DUPLICATE": "Duplica",
+				"MOVE-UP": "Sposta su",
+				"MOVE-DOWN": "Sposta giù",
+				"DELETE": "Elimina",
+				"DELETE-CONFIRM": "Eliminare la slide \"{{name}}\"? I membri non la vedranno più.",
+				"FOOTNOTE": "Trascina una slide per cambiare l'ordine. Le slide terminate restano nell'elenco finché non le elimini.",
+				"EDITOR": {
+					"NEW-TITLE": "Nuova slide",
+					"EDIT-TITLE": "Modifica slide",
+					"CLOSE": "Chiudi",
+					"LANGUAGES": "Lingue",
+					"ADD-LANGUAGE": "Aggiungi lingua",
+					"REMOVE-LANGUAGE": "Rimuovi {{language}}",
+					"DEFAULT-LANGUAGE": "(predefinita)",
+					"DEFAULT-LANGUAGE-HINT": "La lingua predefinita è obbligatoria. I membri la cui lingua non ha un testo vedono questa.",
+					"OTHER-LANGUAGE-HINT": "Facoltativo. Lascialo vuoto per mostrare il testo della lingua predefinita.",
+					"PREVIEW-IN": "Come appare la slide · {{language}}",
+					"TEXTS-TITLE": "Testo in ogni lingua",
+					"TEXTS-HINT": "Il titolo, il testo e il testo del pulsante. Ogni lingua ha i propri.",
+					"SHARED-TITLE": "Per tutte le lingue",
+					"SHARED-HINT": "L'immagine, il pulsante e le date sono gli stessi in ogni lingua.",
+					"SLIDE-TITLE": "Titolo",
+					"TITLE-NEEDED": "Aggiungi un titolo per questa lingua, oppure cancellane il testo.",
+					"TEXT": "Testo",
+					"TEXT-HINT": "La slide mostra le prime righe; i testi più lunghi mostrano «Leggi di più».",
+					"IMAGE": "Immagine (facoltativa)",
+					"IMAGE-HINT": "Mostrata a destra del testo. Senza immagine, il testo occupa tutta la larghezza.",
+					"NO-IMAGE": "Nessuna immagine",
+					"ADD-IMAGE": "Aggiungi immagine",
+					"REPLACE-IMAGE": "Sostituisci",
+					"REMOVE-IMAGE": "Rimuovi",
+					"IMAGE-DISPLAY": "Come viene mostrata l'immagine",
+					"IMAGE-FILL": "Riempi",
+					"IMAGE-FIT": "Adatta",
+					"IMAGE-DISPLAY-HINT": "Riempi copre tutta l'area e può ritagliare l'immagine. Adatta mostra l'immagine intera, ad esempio un logo.",
+					"BUTTON": "Pulsante (facoltativo)",
+					"URL": "URL",
+					"EMAIL": "Email",
+					"BUTTON-HINT": "Un link a una pagina web o a un indirizzo email. Selezionalo di nuovo per rimuovere il pulsante.",
+					"BUTTON-TEXT": "Testo del pulsante",
+					"LINK": "Link",
+					"EMAIL-ADDRESS": "Indirizzo email",
+					"SHOW-FROM": "Mostra dal",
+					"SHOW-UNTIL": "Mostra fino al",
+					"UNTIL-BEFORE-FROM": "Deve essere uguale o successiva alla data di inizio.",
+					"DATES-HINT": "Facoltativo. Per notizie o eventi: la slide compare e scompare da sola.",
+					"SAVE": "Salva"
+				}
+			},
 			"TERMS": {
 				"TITLE": "Termini e Condizioni",
 				"HINT": "Mostrati prima del primo utilizzo. Puoi includere link ai tuoi termini di servizio e alla tua informativa sulla privacy.",
@@ -3375,6 +3467,9 @@
 			"LABEL": "Etichetta",
 			"REQUIRED": "Obbligatorio",
 			"SEMANTICS": "Semantica",
+			"REFERENCE-ID-SEMANTICS": "Semantica dell'ID di riferimento",
+			"LABEL-SEMANTICS": "Semantica del nome",
+			"DESCRIPTION-SEMANTICS": "Semantica della descrizione",
 			"ADD": "Aggiungi campo",
 			"REMOVE": "Rimuovi campo",
 			"TITLE": "Campi",
@@ -4251,7 +4346,7 @@
 			"YES": "Sì",
 			"NO": "No",
 			"CONTAINS-THIS": "contiene questo input",
-			"SAME-QUESTION": "nella stessa domanda",
+			"THIS-INPUT": "il campo stesso",
 			"SHOWS-THIS": "mostra già questa domanda",
 			"SHOWS-WHEN": "Mostra {{target}} quando «{{value}}»",
 			"SHOWS": "Mostra {{target}}",
@@ -5503,8 +5598,8 @@
 				"CONTENT": "Nuovo piano e Nuova risorsa si trovano nella barra laterale sotto I miei Piani e Le mie Risorse, così puoi iniziarne uno da qualsiasi pagina."
 			},
 			"RECOMMENDATIONS": {
-				"TITLE": "Consigliati per te",
-				"CONTENT": "I Plan Blueprint e i Modelli di Risorsa consigliati dalla tua organizzazione. Inizia un piano direttamente da un blueprint, o aprine uno per vedere cosa chiede."
+				"TITLE": "Dalla tua organizzazione",
+				"CONTENT": "Notizie, link e i blueprint e modelli di risorsa che la tua organizzazione consiglia. Seleziona Nascondi per ridurli a una riga; si riaprono quando viene aggiunto qualcosa di nuovo."
 			},
 			"ACTIVITY": {
 				"TITLE": "La tua attività recente",
@@ -5531,15 +5626,22 @@
 				"CONTENT": "In Supporto trovi la guida utente, le FAQ e il glossario, e puoi rivedere questo tour. Accanto puoi cambiare la lingua. Nel menu dell'organizzazione puoi cambiare organizzazione se ne fai parte di più di una, perché ognuna ha i propri piani, risorse e blueprint. La campanella mostra le tue notifiche, e accanto c'è il tuo profilo."
 			}
 		},
-		"RECOMMENDATIONS": {
+		"SLIDES": {
 			"FROM": "Da {{tenant}}",
-			"TITLE": "Blueprint e modelli consigliati",
-			"SUMMARY": "{{count}} blueprint e modelli consigliati",
-			"RANGE": "{{start}}–{{end}} di {{count}}",
+			"FROM-DEFAULT": "Da {{ APP_NAME }}",
+			"ONE-SLIDE": "1 slide",
+			"SLIDES": "{{count}} slide",
+			"POSITION": "{{index}} di {{count}}",
 			"SHOW": "Mostra",
 			"HIDE": "Nascondi",
-			"PREVIOUS": "Consigli precedenti",
-			"NEXT": "Consigli successivi",
+			"PREVIOUS": "Slide precedente",
+			"NEXT": "Slide successiva",
+			"GO-TO": "Vai alla slide {{index}} di {{count}}",
+			"READ-MORE": "Leggi di più",
+			"READ-MORE-LABEL": "Leggi di più: {{title}}"
+		},
+		"RECOMMENDATIONS": {
+			"TITLE": "Blueprint e modelli consigliati",
 			"PLAN-BLUEPRINT": "Plan Blueprint",
 			"DESCRIPTION-TEMPLATE": "Modello di Risorsa",
 			"TYPE": "Tipo: {{type}}",

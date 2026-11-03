@@ -1,3 +1,6 @@
+import { DashboardSlideButtonType } from "@app/core/common/enum/dashboard-slide-button-type";
+import { DashboardSlideImageFit } from "@app/core/common/enum/dashboard-slide-image-fit";
+import { DashboardSlideKind } from "@app/core/common/enum/dashboard-slide-kind";
 import { TenantConfigurationType } from "@app/core/common/enum/tenant-configuration-type";
 import { BaseEntity, BaseEntityPersist } from "@common/base/base-entity.model";
 import { StorageFile } from "../storage-file/storage-file";
@@ -21,6 +24,32 @@ export interface TenantConfiguration extends BaseEntity{
 	viewPreferences?: ViewPreferencesConfiguration;
 	termsAndConditions?: TermsAndConditionsTenantConfiguration;
 	guidedTours?: GuidedToursTenantConfiguration;
+	dashboardSlides?: DashboardSlidesTenantConfiguration;
+}
+
+export interface DashboardSlidesTenantConfiguration {
+	slides: DashboardSlide[];
+	version: number;
+}
+
+export interface DashboardSlide {
+	id: Guid;
+	kind: DashboardSlideKind;
+	enabled: boolean;
+	showFrom: string;
+	showUntil: string;
+	storageFile: StorageFile;
+	imageFit: DashboardSlideImageFit;
+	buttonType: DashboardSlideButtonType;
+	buttonTarget: string;
+	translations: DashboardSlideTranslation[];
+}
+
+export interface DashboardSlideTranslation {
+	languageCode: string;
+	title: string;
+	text: string;
+	buttonText: string;
 }
 
 export interface TermsAndConditionsTenantConfiguration {
@@ -137,6 +166,24 @@ export interface TenantConfigurationPersist extends BaseEntityPersist{
 	viewPreferences?: ViewPreferencesConfigurationPersist;
 	termsAndConditions?: TermsAndConditionsTenantConfigurationPersist;
 	guidedTours?: GuidedToursTenantConfigurationPersist;
+	dashboardSlides?: DashboardSlidesTenantConfigurationPersist;
+}
+
+export interface DashboardSlidesTenantConfigurationPersist {
+	slides: DashboardSlidePersist[];
+}
+
+export interface DashboardSlidePersist {
+	id: Guid;
+	kind: DashboardSlideKind;
+	enabled: boolean;
+	showFrom: string;
+	showUntil: string;
+	storageFileId: Guid;
+	imageFit: DashboardSlideImageFit;
+	buttonType: DashboardSlideButtonType;
+	buttonTarget: string;
+	translations: DashboardSlideTranslation[];
 }
 
 export interface TermsAndConditionsTenantConfigurationPersist {

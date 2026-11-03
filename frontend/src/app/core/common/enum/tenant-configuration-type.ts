@@ -10,5 +10,6 @@ export enum TenantConfigurationType {
 	PluginConfiguration = 8,
 	ViewPreferences = 9,
 	TermsAndConditions = 10,
-	GuidedTours = 11
+	GuidedTours = 11,
+	DashboardSlides = 12
 }

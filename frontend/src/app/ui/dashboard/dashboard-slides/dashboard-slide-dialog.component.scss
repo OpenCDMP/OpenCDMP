@@ -1,0 +1,56 @@
+.dsd__head {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 8px;
+	padding: 8px 8px 0 24px;
+}
+
+.dsd__from {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	font-size: 0.8125rem;
+	font-weight: 500;
+	color: var(--mat-sys-primary);
+
+	mat-icon {
+		width: 18px;
+		height: 18px;
+		font-size: 18px;
+	}
+}
+
+.dsd__title {
+	margin: 0;
+	padding-top: 0;
+	font-size: 1.125rem;
+	font-weight: 600;
+}
+
+.dsd__text {
+	overflow-wrap: anywhere;
+	font-size: 0.875rem;
+	line-height: 1.5;
+
+	::ng-deep > :first-child {
+		margin-top: 0;
+	}
+
+	::ng-deep a {
+		color: var(--mat-sys-primary);
+	}
+}
+
+.dsd__actions {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	border-top: 1px solid var(--mat-sys-outline-variant);
+}
+
+.dsd__position {
+	margin-left: auto;
+	font-size: 0.8125rem;
+	color: var(--mat-sys-on-surface-variant);
+}

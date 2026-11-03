@@ -1,0 +1,77 @@
+:host {
+	display: flex;
+	flex-direction: column;
+	height: 100%;
+}
+
+// Stretches to the slide's height on the Dashboard, and to the preview's in the slide editor.
+.dcs {
+	display: flex;
+	flex: 1 1 auto;
+	min-height: 0;
+	overflow: hidden;
+	border: 1px solid var(--mat-sys-outline-variant);
+	border-radius: 12px;
+	background: var(--mat-sys-surface);
+}
+
+.dcs__body {
+	display: flex;
+	flex: 1 1 0;
+	flex-direction: column;
+	min-width: 0;
+	padding: 16px 20px;
+}
+
+.dcs__title {
+	margin: 0 0 6px;
+	font-size: 1rem;
+	font-weight: 600;
+}
+
+// Fixed slide height: a longer text is cut and "Read more" opens the whole slide.
+.dcs__text {
+	display: -webkit-box;
+	-webkit-box-orient: vertical;
+	-webkit-line-clamp: 4;
+	overflow: hidden;
+	overflow-wrap: anywhere;
+	font-size: 0.875rem;
+	line-height: 1.45;
+
+	::ng-deep > :first-child {
+		margin-top: 0;
+	}
+
+	::ng-deep a {
+		color: var(--mat-sys-primary);
+	}
+}
+
+.dcs__actions {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 4px 12px;
+	margin-top: auto;
+	padding-top: 12px;
+}
+
+.dcs__image {
+	flex: 0 0 38%;
+	width: 38%;
+	object-fit: cover;
+}
+
+// the whole image, scaled down and centred, for logos and pictures that must not be cropped
+.dcs__image--fit {
+	box-sizing: border-box;
+	padding: 12px;
+	object-fit: contain;
+}
+
+@media (max-width: 600px) {
+	.dcs__image {
+		display: none;
+	}
+}

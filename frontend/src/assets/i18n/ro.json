@@ -1392,7 +1392,12 @@
 			"MOVE-UP": "Mută {{item}} în sus",
 			"MOVE-DOWN": "Mută {{item}} în jos",
 			"REMOVE": "Elimină {{item}}",
-			"CHIP-KEYBOARD-HINT": "Trageți pentru a reordona sau apăsați Alt împreună cu tasta săgeată stânga sau dreapta."
+			"CHIP-KEYBOARD-HINT": "Trageți pentru a reordona sau apăsați Alt împreună cu tasta săgeată stânga sau dreapta.",
+			"DASHBOARD-NOTE": {
+				"TITLE": "Și pe pagina Acasă",
+				"TEXT": "Pentru a afișa aceste elemente și pe pagina Acasă a membrilor, adăugați slide-ul „Blueprint-uri și șabloane recomandate” în",
+				"LINK": "Utilizatori și integrare"
+			}
 		},
 		"NOTIFICATIONS": {
 			"TITLE": "Notificări",
@@ -1416,7 +1421,94 @@
 		},
 		"ONBOARDING": {
 			"TITLE": "Utilizatori și integrare",
-			"HINT": "Ce văd utilizatorii când se autentifică pentru prima dată.",
+			"HINT": "Ce văd utilizatorii când se autentifică pentru prima dată și informațiile de pe pagina lor Acasă.",
+			"SLIDES": {
+				"TITLE": "Informații pe pagina Acasă",
+				"HINT": "Slide-uri pe care toți membrii acestei organizații le văd în partea de sus a paginii Acasă, câte unul pe rând.",
+				"ADD": "Adaugă slide",
+				"EMPTY": "Încă nu există slide-uri",
+				"EMPTY-HINT": "Selectați „Adaugă slide” pentru a adăuga primul.",
+				"EMPTY-FALLBACK": "Până atunci, membrii văd slide-urile organizației implicite.",
+				"CONTENT": {
+					"TITLE": "Slide de conținut",
+					"HINT": "Titlul și textul dvs., cu o imagine și un buton, dacă doriți."
+				},
+				"RECOMMENDED": {
+					"TITLE": "Blueprint-uri și șabloane recomandate",
+					"HINT": "Blueprint-urile și șabloanele alese în Conținut implicit, câte 3 pe fiecare slide. Poate fi adăugat o singură dată.",
+					"ALREADY-ADDED": "Deja adăugat",
+					"ITEMS": "{{count}} elemente din Conținut implicit",
+					"ITEMS-AND-SLIDES": "{{count}} elemente din Conținut implicit · {{slides}} slide-uri pe pagina Acasă",
+					"NO-ITEMS": "Încă nu s-au ales elemente în Conținut implicit",
+					"NOT-SHOWN": "Nu se afișează: niciun element",
+					"CHANGE-ITEMS": "Schimbă elementele"
+				},
+				"COLUMNS": {
+					"ORDER": "Ordine",
+					"SLIDE": "Slide",
+					"LANGUAGES": "Limbi",
+					"WHEN": "Când",
+					"ON-DASHBOARD": "Pe pagina Acasă",
+					"ACTIONS": "Acțiuni"
+				},
+				"ALWAYS": "Întotdeauna",
+				"UNTIL": "Până la {{date}}",
+				"ENDED": "Încheiat pe {{date}}",
+				"FROM": "De la {{date}}",
+				"FROM-UNTIL": "De la {{from}} până la {{until}}",
+				"STATE-ON": "Activ",
+				"STATE-OFF": "Inactiv",
+				"STATE-ENDED": "Încheiat",
+				"EDIT": "Editează",
+				"DUPLICATE": "Duplică",
+				"MOVE-UP": "Mută în sus",
+				"MOVE-DOWN": "Mută în jos",
+				"DELETE": "Șterge",
+				"DELETE-CONFIRM": "Ștergeți slide-ul „{{name}}”? Membrii nu îl vor mai vedea.",
+				"FOOTNOTE": "Trageți un slide pentru a schimba ordinea. Slide-urile încheiate rămân în listă până când le ștergeți.",
+				"EDITOR": {
+					"NEW-TITLE": "Slide nou",
+					"EDIT-TITLE": "Editează slide-ul",
+					"CLOSE": "Închide",
+					"LANGUAGES": "Limbi",
+					"ADD-LANGUAGE": "Adaugă limbă",
+					"REMOVE-LANGUAGE": "Elimină {{language}}",
+					"DEFAULT-LANGUAGE": "(implicită)",
+					"DEFAULT-LANGUAGE-HINT": "Limba implicită este obligatorie. Membrii a căror limbă nu are text o văd pe aceasta.",
+					"OTHER-LANGUAGE-HINT": "Opțional. Lăsați gol pentru a afișa textul în limba implicită.",
+					"PREVIEW-IN": "Cum arată slide-ul · {{language}}",
+					"TEXTS-TITLE": "Textul în fiecare limbă",
+					"TEXTS-HINT": "Titlul, textul și textul butonului. Fiecare limbă le are pe ale sale.",
+					"SHARED-TITLE": "Pentru toate limbile",
+					"SHARED-HINT": "Imaginea, butonul și datele sunt aceleași în toate limbile.",
+					"SLIDE-TITLE": "Titlu",
+					"TITLE-NEEDED": "Adăugați un titlu pentru această limbă sau ștergeți textul ei.",
+					"TEXT": "Text",
+					"TEXT-HINT": "Slide-ul afișează primele rânduri; textele mai lungi afișează „Citește mai mult”.",
+					"IMAGE": "Imagine (opțional)",
+					"IMAGE-HINT": "Afișată în dreapta textului. Fără imagine, textul ocupă toată lățimea.",
+					"NO-IMAGE": "Nicio imagine",
+					"ADD-IMAGE": "Adaugă imagine",
+					"REPLACE-IMAGE": "Înlocuiește",
+					"REMOVE-IMAGE": "Elimină",
+					"IMAGE-DISPLAY": "Cum este afișată imaginea",
+					"IMAGE-FILL": "Umple",
+					"IMAGE-FIT": "Încadrează",
+					"IMAGE-DISPLAY-HINT": "Umple acoperă toată zona și poate decupa imaginea. Încadrează afișează imaginea întreagă, de exemplu un logo.",
+					"BUTTON": "Buton (opțional)",
+					"URL": "URL",
+					"EMAIL": "E-mail",
+					"BUTTON-HINT": "Un link către o pagină web sau o adresă de e-mail. Selectați-l din nou pentru a elimina butonul.",
+					"BUTTON-TEXT": "Textul butonului",
+					"LINK": "Link",
+					"EMAIL-ADDRESS": "Adresă de e-mail",
+					"SHOW-FROM": "Afișează de la",
+					"SHOW-UNTIL": "Afișează până la",
+					"UNTIL-BEFORE-FROM": "Trebuie să fie în data de început sau după aceasta.",
+					"DATES-HINT": "Opțional. Pentru noutăți sau evenimente: slide-ul apare și dispare singur.",
+					"SAVE": "Salvează"
+				}
+			},
 			"TERMS": {
 				"TITLE": "Termeni și condiții",
 				"HINT": "Afișate înainte de prima utilizare. Linkurile către termenii de utilizare și politica de confidențialitate sunt binevenite.",
@@ -3375,6 +3467,9 @@
 			"LABEL": "Etichetă",
 			"REQUIRED": "Obligatoriu",
 			"SEMANTICS": "Semantică",
+			"REFERENCE-ID-SEMANTICS": "Semantica ID-ului referinței",
+			"LABEL-SEMANTICS": "Semantica numelui",
+			"DESCRIPTION-SEMANTICS": "Semantica descrierii",
 			"ADD": "Adaugă câmp",
 			"REMOVE": "Elimină câmpul",
 			"TITLE": "Câmpuri",
@@ -4251,7 +4346,7 @@
 			"YES": "Da",
 			"NO": "Nu",
 			"CONTAINS-THIS": "conține această intrare",
-			"SAME-QUESTION": "în aceeași întrebare",
+			"THIS-INPUT": "câmpul însuși",
 			"SHOWS-THIS": "afișează deja această întrebare",
 			"SHOWS-WHEN": "Arată {{target}} când „{{value}}”",
 			"SHOWS": "Arată {{target}}",
@@ -5503,8 +5598,8 @@
 				"CONTENT": "Plan nou și Resursă nouă se află în bara laterală, sub Planurile mele și Resursele mele, astfel încât puteți începe de pe orice pagină."
 			},
 			"RECOMMENDATIONS": {
-				"TITLE": "Recomandate pentru dvs.",
-				"CONTENT": "Plan Blueprints și Șabloanele de resursă recomandate de organizația dvs. Porniți un plan direct dintr-un blueprint sau deschideți unul pentru a vedea ce întrebări conține."
+				"TITLE": "De la organizația dvs.",
+				"CONTENT": "Noutăți, linkuri și blueprint-urile și șabloanele de resursă recomandate de organizația dvs. Selectați Ascunde pentru a le restrânge într-un singur rând; se deschide din nou când se adaugă ceva nou."
 			},
 			"ACTIVITY": {
 				"TITLE": "Activitatea dvs. recentă",
@@ -5531,15 +5626,22 @@
 				"CONTENT": "La Asistență găsiți ghidul de utilizare, întrebările frecvente și glosarul și puteți relua acest tur. Alături puteți schimba limba. În meniul organizației puteți schimba organizația dacă aparțineți mai multora, deoarece fiecare are propriile planuri, resurse și blueprints. Clopoțelul afișează notificările dvs., iar lângă el se află profilul dvs."
 			}
 		},
-		"RECOMMENDATIONS": {
+		"SLIDES": {
 			"FROM": "De la {{tenant}}",
-			"TITLE": "Blueprint-uri și șabloane recomandate",
-			"SUMMARY": "{{count}} blueprint-uri și șabloane recomandate",
-			"RANGE": "{{start}}–{{end}} din {{count}}",
+			"FROM-DEFAULT": "De la {{ APP_NAME }}",
+			"ONE-SLIDE": "1 slide",
+			"SLIDES": "{{count}} slide-uri",
+			"POSITION": "{{index}} din {{count}}",
 			"SHOW": "Afișează",
 			"HIDE": "Ascunde",
-			"PREVIOUS": "Recomandările anterioare",
-			"NEXT": "Recomandările următoare",
+			"PREVIOUS": "Slide-ul anterior",
+			"NEXT": "Slide-ul următor",
+			"GO-TO": "Mergeți la slide-ul {{index}} din {{count}}",
+			"READ-MORE": "Citește mai mult",
+			"READ-MORE-LABEL": "Citește mai mult: {{title}}"
+		},
+		"RECOMMENDATIONS": {
+			"TITLE": "Blueprint-uri și șabloane recomandate",
 			"PLAN-BLUEPRINT": "Plan Blueprint",
 			"DESCRIPTION-TEMPLATE": "Șablon de resursă",
 			"TYPE": "Tip: {{type}}",

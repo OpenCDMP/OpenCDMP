@@ -1,0 +1,179 @@
+<button type="button" class="tc-drawer__scrim" tabindex="-1" [attr.aria-label]="'TENANT-CONFIGURATION.ONBOARDING.SLIDES.EDITOR.CLOSE' | translate" (click)="close()"></button>
+<aside class="tc-drawer tc-slide-drawer" role="dialog" aria-modal="true" aria-labelledby="tc-slide-drawer-title">
+	<div class="tc-drawer__head">
+		<h2 id="tc-slide-drawer-title">{{ (slide() ? 'TENANT-CONFIGURATION.ONBOARDING.SLIDES.EDITOR.EDIT-TITLE' : 'TENANT-CONFIGURATION.ONBOARDING.SLIDES.EDITOR.NEW-TITLE') | translate }}</h2>
+		<button mat-icon-button type="button" (click)="close()" [attr.aria-label]="'TENANT-CONFIGURATION.ONBOARDING.SLIDES.EDITOR.CLOSE' | translate">
+			<mat-icon aria-hidden="true">close</mat-icon>
+		</button>
+	</div>
+
+	<form class="tc-drawer__body" [formGroup]="form" (ngSubmit)="save()">
+		<div class="tc-drawer__group">
+			<span class="tc-slide-drawer__label" aria-hidden="true">{{ 'TENANT-CONFIGURATION.ONBOARDING.SLIDES.EDITOR.PREVIEW-IN' | translate: { language: selectedName() } }}</span>
+			<div class="tc-slide-drawer__preview">
+				<app-dashboard-content-slide [title]="preview().title" [text]="preview().text" [imageUrl]="imageUrl()" [imageFit]="preview().imageFit"
+					[buttonType]="preview().buttonType" [buttonTarget]="preview().buttonTarget" [buttonText]="preview().buttonText" />
+			</div>
+		</div>
+
+		<!-- What is translated: one tab per language. -->
+		<section class="tc-slide-drawer__section" aria-labelledby="tc-slide-texts-h">
+			<div>
+				<h3 id="tc-slide-texts-h" class="tc-slide-drawer__section-title">{{ 'TENANT-CONFIGURATION.ONBOARDING.SLIDES.EDITOR.TEXTS-TITLE' | translate }}</h3>
+				<span class="tc-drawer__hint">{{ 'TENANT-CONFIGURATION.ONBOARDING.SLIDES.EDITOR.TEXTS-HINT' | translate }}</span>
+			</div>
+
+			<div class="tc-slide-drawer__languages">
+				<nav mat-tab-nav-bar [tabPanel]="languagePanel" mat-stretch-tabs="false" [attr.aria-label]="'TENANT-CONFIGURATION.ONBOARDING.SLIDES.EDITOR.LANGUAGES' | translate">
+					@for (tab of tabs(); track tab.code) {
+						<button type="button" mat-tab-link [active]="tab.code === selectedCode()" (click)="selectLanguage(tab.code)">
+							{{ tab.name }}
+							@if (tab.code === defaultLanguage()) { {{ 'TENANT-CONFIGURATION.ONBOARDING.SLIDES.EDITOR.DEFAULT-LANGUAGE' | translate }} }
+							@if (texts.controls[tab.code].invalid && texts.controls[tab.code].touched) {
+								<mat-icon class="tc-slide-drawer__tab-error" [attr.aria-label]="'GENERAL.VALIDATION.REQUIRED' | translate">error</mat-icon>
+							}
+						</button>
+					}
+				</nav>
+				@if (addableLanguages().length) {
+					<button mat-button type="button" [matMenuTriggerFor]="addLanguageMenu">
+						<mat-icon aria-hidden="true">add</mat-icon>{{ 'TENANT-CONFIGURATION.ONBOARDING.SLIDES.EDITOR.ADD-LANGUAGE' | translate }}
+					</button>
+					<mat-menu #addLanguageMenu="matMenu">
+						@for (option of addableLanguages(); track option.code) {
+							<button mat-menu-item type="button" (click)="addLanguage(option.code)">{{ option.name }}</button>
+						}
+					</mat-menu>
+				}
+			</div>
+
+			<mat-tab-nav-panel #languagePanel class="tc-drawer__body">
+				<span class="tc-drawer__hint">{{ (selectedCode() === defaultLanguage() ? 'TENANT-CONFIGURATION.ONBOARDING.SLIDES.EDITOR.DEFAULT-LANGUAGE-HINT' : 'TENANT-CONFIGURATION.ONBOARDING.SLIDES.EDITOR.OTHER-LANGUAGE-HINT') | translate }}</span>
+
+				@if (selectedText(); as text) {
+					<ng-container [formGroup]="text">
+						<mat-form-field subscriptSizing="dynamic">
+							<mat-label>{{ 'TENANT-CONFIGURATION.ONBOARDING.SLIDES.EDITOR.SLIDE-TITLE' | translate }}</mat-label>
+							<input #titleField matInput formControlName="title" [required]="selectedCode() === defaultLanguage()" />
+							@if (text.controls.title.hasError('required')) { <mat-error>{{ 'GENERAL.VALIDATION.REQUIRED' | translate }}</mat-error> }
+						</mat-form-field>
+						@if (text.hasError('titleRequired') && text.touched) { <mat-error>{{ 'TENANT-CONFIGURATION.ONBOARDING.SLIDES.EDITOR.TITLE-NEEDED' | translate }}</mat-error> }
+
+						<div class="tc-drawer__group">
+							<rich-text-editor-component
+								[id]="'tc-slide-text-' + selectedCode()"
+								[form]="text.controls.text"
+								[label]="'TENANT-CONFIGURATION.ONBOARDING.SLIDES.EDITOR.TEXT'"
+								[placeholder]="'TENANT-CONFIGURATION.ONBOARDING.SLIDES.EDITOR.TEXT'"
+								[required]="selectedCode() === defaultLanguage()"
+								[includeAllConfig]="true" />
+							@if (text.controls.text.hasError('required') && text.controls.text.touched) { <mat-error>{{ 'GENERAL.VALIDATION.REQUIRED' | translate }}</mat-error> }
+							<span class="tc-drawer__hint">{{ 'TENANT-CONFIGURATION.ONBOARDING.SLIDES.EDITOR.TEXT-HINT' | translate }}</span>
+						</div>
+
+						@if (form.controls.buttonType.value !== null) {
+							<mat-form-field subscriptSizing="dynamic">
+								<mat-label>{{ 'TENANT-CONFIGURATION.ONBOARDING.SLIDES.EDITOR.BUTTON-TEXT' | translate }}</mat-label>
+								<input matInput formControlName="buttonText" [required]="selectedCode() === defaultLanguage()" />
+								@if (text.controls.buttonText.hasError('required')) { <mat-error>{{ 'GENERAL.VALIDATION.REQUIRED' | translate }}</mat-error> }
+							</mat-form-field>
+						}
+
+						@if (selectedCode() !== defaultLanguage()) {
+							<div>
+								<button mat-button type="button" class="tc-drawer__danger" (click)="removeLanguage(selectedCode())">
+									{{ 'TENANT-CONFIGURATION.ONBOARDING.SLIDES.EDITOR.REMOVE-LANGUAGE' | translate: { language: selectedName() } }}
+								</button>
+							</div>
+						}
+					</ng-container>
+				}
+			</mat-tab-nav-panel>
+		</section>
+
+		<!-- What is the same in every language, whichever tab is open. -->
+		<section class="tc-slide-drawer__section" aria-labelledby="tc-slide-shared-h">
+			<div>
+				<h3 id="tc-slide-shared-h" class="tc-slide-drawer__section-title">{{ 'TENANT-CONFIGURATION.ONBOARDING.SLIDES.EDITOR.SHARED-TITLE' | translate }}</h3>
+				<span class="tc-drawer__hint">{{ 'TENANT-CONFIGURATION.ONBOARDING.SLIDES.EDITOR.SHARED-HINT' | translate }}</span>
+			</div>
+
+			<div class="tc-drawer__group">
+				<span class="tc-slide-drawer__label">{{ 'TENANT-CONFIGURATION.ONBOARDING.SLIDES.EDITOR.IMAGE' | translate }}</span>
+				<span class="tc-drawer__hint">{{ 'TENANT-CONFIGURATION.ONBOARDING.SLIDES.EDITOR.IMAGE-HINT' | translate }}</span>
+				<div class="tc-slide-drawer__image">
+					@if (imageUrl(); as url) {
+						<img class="tc-slide-drawer__thumb" [src]="url" alt="" />
+					}
+					<span class="tc-slide-drawer__file-name">{{ imageName() ?? ('TENANT-CONFIGURATION.ONBOARDING.SLIDES.EDITOR.NO-IMAGE' | translate) }}</span>
+					<input #imageInput type="file" accept="image/*" class="tc-slide-drawer__file" tabindex="-1" aria-hidden="true" (change)="onImageSelected($event)" />
+					<button mat-stroked-button type="button" [disabled]="uploading()" (click)="imageInput.click()">
+						{{ (imageName() ? 'TENANT-CONFIGURATION.ONBOARDING.SLIDES.EDITOR.REPLACE-IMAGE' : 'TENANT-CONFIGURATION.ONBOARDING.SLIDES.EDITOR.ADD-IMAGE') | translate }}
+					</button>
+					@if (imageName()) {
+						<button mat-button type="button" [disabled]="uploading()" (click)="removeImage()">{{ 'TENANT-CONFIGURATION.ONBOARDING.SLIDES.EDITOR.REMOVE-IMAGE' | translate }}</button>
+					}
+				</div>
+				@if (imageName()) {
+					<div class="tc-slide-drawer__pills tc-slide-drawer__fit" role="group" [attr.aria-label]="'TENANT-CONFIGURATION.ONBOARDING.SLIDES.EDITOR.IMAGE-DISPLAY' | translate">
+						@for (option of imageFitOptions; track option.fit) {
+							@let on = form.controls.imageFit.value === option.fit;
+							<button type="button" class="tc-slide-drawer__pill" [class.tc-slide-drawer__pill--on]="on" [attr.aria-pressed]="on" (click)="selectImageFit(option.fit)">
+								@if (on) { <mat-icon aria-hidden="true">check</mat-icon> }
+								{{ option.label | translate }}
+							</button>
+						}
+					</div>
+					<span class="tc-drawer__hint">{{ 'TENANT-CONFIGURATION.ONBOARDING.SLIDES.EDITOR.IMAGE-DISPLAY-HINT' | translate }}</span>
+				}
+			</div>
+
+			<fieldset class="tc-drawer__group">
+				<legend>{{ 'TENANT-CONFIGURATION.ONBOARDING.SLIDES.EDITOR.BUTTON' | translate }}</legend>
+				<div class="tc-slide-drawer__pills">
+					@for (option of buttonOptions; track option.type) {
+						@let on = form.controls.buttonType.value === option.type;
+						<button type="button" class="tc-slide-drawer__pill" [class.tc-slide-drawer__pill--on]="on" [attr.aria-pressed]="on" (click)="toggleButtonType(option.type)">
+							@if (on) { <mat-icon aria-hidden="true">check</mat-icon> }
+							{{ option.label | translate }}
+						</button>
+					}
+				</div>
+				<span class="tc-drawer__hint">{{ 'TENANT-CONFIGURATION.ONBOARDING.SLIDES.EDITOR.BUTTON-HINT' | translate }}</span>
+				@if (form.controls.buttonType.value !== null) {
+					<mat-form-field class="tc-slide-drawer__target" subscriptSizing="dynamic">
+						<mat-label>{{ (form.controls.buttonType.value === buttonTypes.Email ? 'TENANT-CONFIGURATION.ONBOARDING.SLIDES.EDITOR.EMAIL-ADDRESS' : 'TENANT-CONFIGURATION.ONBOARDING.SLIDES.EDITOR.LINK') | translate }}</mat-label>
+						<input matInput formControlName="buttonTarget" required [type]="form.controls.buttonType.value === buttonTypes.Email ? 'email' : 'url'" />
+						@if (form.controls.buttonTarget.hasError('required')) { <mat-error>{{ 'GENERAL.VALIDATION.REQUIRED' | translate }}</mat-error> }
+						@if (form.controls.buttonTarget.hasError('pattern')) { <mat-error>{{ 'GENERAL.VALIDATION.URL.MESSAGE' | translate }}</mat-error> }
+						@if (form.controls.buttonTarget.hasError('email')) { <mat-error>{{ 'GENERAL.VALIDATION.EMAIL.MESSAGE' | translate }}</mat-error> }
+					</mat-form-field>
+				}
+			</fieldset>
+
+			<div class="tc-drawer__group">
+				<div class="tc-slide-drawer__pair">
+					<mat-form-field subscriptSizing="dynamic">
+						<mat-label>{{ 'TENANT-CONFIGURATION.ONBOARDING.SLIDES.EDITOR.SHOW-FROM' | translate }}</mat-label>
+						<input matInput [matDatepicker]="fromPicker" formControlName="showFrom" />
+						<mat-datepicker-toggle matIconSuffix [for]="fromPicker" />
+						<mat-datepicker #fromPicker />
+					</mat-form-field>
+					<mat-form-field subscriptSizing="dynamic">
+						<mat-label>{{ 'TENANT-CONFIGURATION.ONBOARDING.SLIDES.EDITOR.SHOW-UNTIL' | translate }}</mat-label>
+						<input matInput [matDatepicker]="untilPicker" formControlName="showUntil" [min]="form.controls.showFrom.value" />
+						<mat-datepicker-toggle matIconSuffix [for]="untilPicker" />
+						<mat-datepicker #untilPicker />
+						@if (form.controls.showUntil.hasError('beforeFrom') || form.controls.showUntil.hasError('matDatepickerMin')) { <mat-error>{{ 'TENANT-CONFIGURATION.ONBOARDING.SLIDES.EDITOR.UNTIL-BEFORE-FROM' | translate }}</mat-error> }
+					</mat-form-field>
+				</div>
+				<span class="tc-drawer__hint">{{ 'TENANT-CONFIGURATION.ONBOARDING.SLIDES.EDITOR.DATES-HINT' | translate }}</span>
+			</div>
+		</section>
+
+		<div class="tc-drawer__actions">
+			<button mat-button type="button" (click)="close()">{{ 'GENERAL.CONFIRMATION-DIALOG.ACTIONS.CANCEL' | translate }}</button>
+			<button mat-flat-button color="primary" type="submit" [disabled]="busy() || uploading()">{{ 'TENANT-CONFIGURATION.ONBOARDING.SLIDES.EDITOR.SAVE' | translate }}</button>
+		</div>
+	</form>
+</aside>

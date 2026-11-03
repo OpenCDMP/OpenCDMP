@@ -25,6 +25,9 @@ export class ReferenceTypeEditorResolver extends BaseEditorResolver {
 			nameof<ReferenceType>(x => x.code),
 
 			[nameof<ReferenceType>(x => x.definition), nameof<ReferenceTypeDefinition>(x => x.labelTemplate)].join('.'),
+			[nameof<ReferenceType>(x => x.definition), nameof<ReferenceTypeDefinition>(x => x.referenceIdSemantics)].join('.'),
+			[nameof<ReferenceType>(x => x.definition), nameof<ReferenceTypeDefinition>(x => x.labelSemantics)].join('.'),
+			[nameof<ReferenceType>(x => x.definition), nameof<ReferenceTypeDefinition>(x => x.descriptionSemantics)].join('.'),
 			[nameof<ReferenceType>(x => x.definition), nameof<ReferenceTypeDefinition>(x => x.fields), nameof<ReferenceTypeField>(x => x.code)].join('.'),
 			[nameof<ReferenceType>(x => x.definition), nameof<ReferenceTypeDefinition>(x => x.fields), nameof<ReferenceTypeField>(x => x.label)].join('.'),
 			[nameof<ReferenceType>(x => x.definition), nameof<ReferenceTypeDefinition>(x => x.fields), nameof<ReferenceTypeField>(x => x.description)].join('.'),

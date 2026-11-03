@@ -1,0 +1,108 @@
+@if (pages().length) {
+<section class="slides" [class.collapsed]="hidden()" aria-labelledby="dashboard-slides-title" data-tour="dashboard-slides">
+    <div class="slides-header">
+        <mat-icon class="material-symbols-outlined" aria-hidden="true">domain</mat-icon>
+        <h2 id="dashboard-slides-title" class="slides-title">
+            @if (fromDefault()) {
+                {{'DASHBOARD.SLIDES.FROM-DEFAULT' | translate}}
+            } @else {
+                {{'DASHBOARD.SLIDES.FROM' | translate: {tenant: tenantName()} }}
+            }
+        </h2>
+        @if (hidden()) {
+            <span class="slides-muted">{{(pages().length === 1 ? 'DASHBOARD.SLIDES.ONE-SLIDE' : 'DASHBOARD.SLIDES.SLIDES') | translate: {count: pages().length} }}</span>
+        }
+        <div class="ml-auto d-flex align-items-center gap-half-rem">
+            @if (!hidden() && pages().length > 1) {
+                <span class="slides-muted" aria-live="polite">{{'DASHBOARD.SLIDES.POSITION' | translate: {index: index() + 1, count: pages().length} }}</span>
+            }
+            <button mat-button type="button" aria-controls="dashboard-slides-content" [attr.aria-expanded]="!hidden()" (click)="toggleHidden()">
+                {{(hidden() ? 'DASHBOARD.SLIDES.SHOW' : 'DASHBOARD.SLIDES.HIDE') | translate}}
+                <mat-icon iconPositionEnd aria-hidden="true">{{hidden() ? 'keyboard_arrow_down' : 'keyboard_arrow_up'}}</mat-icon>
+            </button>
+        </div>
+    </div>
+    @if (!hidden()) {
+        <div id="dashboard-slides-content">
+            <div class="slides-stage">
+                @if (pages().length > 1) {
+                    <button mat-icon-button type="button" class="slides-arrow slides-arrow--previous" [disabled]="index() === 0" [attr.aria-label]="'DASHBOARD.SLIDES.PREVIOUS' | translate" (click)="previous()">
+                        <mat-icon aria-hidden="true">chevron_left</mat-icon>
+                    </button>
+                }
+                <!-- Every slide sits in the same cell, so the slider is as tall as the tallest one and the height never changes. -->
+                <div class="slides-track">
+                    @for (page of pages(); track page.key; let i = $index) {
+                        <div class="slides-slide" [class.slides-slide--hidden]="i !== index()" [attr.inert]="i !== index() ? '' : null" [attr.aria-hidden]="i !== index() ? 'true' : null"
+                            role="group" aria-roledescription="slide" [attr.aria-label]="'DASHBOARD.SLIDES.POSITION' | translate: {index: i + 1, count: pages().length}">
+                            @if (page.kind === 'content') {
+                                <app-dashboard-content-slide [title]="page.title" [text]="page.text" [imageUrl]="imageUrls().get(page.key) ?? null" [imageFit]="page.slide.imageFit"
+                                    [buttonType]="page.slide.buttonType" [buttonTarget]="page.slide.buttonTarget" [buttonText]="page.buttonText"
+                                    [readMoreEnabled]="true" (readMore)="openSlide(page, i)" />
+                            } @else {
+                                <div class="slides-recommended">
+                                    <h3 class="slides-recommended__title"><mat-icon aria-hidden="true">star</mat-icon>{{'DASHBOARD.RECOMMENDATIONS.TITLE' | translate}}</h3>
+                                    <ul class="recommendations-list unstyled-list" [style.grid-template-columns]="'repeat(' + perPage() + ', minmax(0, 1fr))'">
+                                        @for (item of page.items; track item.id) {
+                                            <li class="recommendation-card">
+                                                <span class="recommendation-chip" [class.recommendation-chip--template]="!item.isBlueprint">
+                                                    <mat-icon class="material-symbols-outlined" aria-hidden="true">{{item.isBlueprint ? 'article' : 'assignment'}}</mat-icon>
+                                                    {{(item.isBlueprint ? 'DASHBOARD.RECOMMENDATIONS.PLAN-BLUEPRINT' : 'DASHBOARD.RECOMMENDATIONS.DESCRIPTION-TEMPLATE') | translate}}
+                                                </span>
+                                                <h4 class="recommendation-label" [title]="item.label">{{item.label}}</h4>
+                                                <div class="recommendation-meta">
+                                                    @if (item.typeName) {
+                                                        {{'DASHBOARD.RECOMMENDATIONS.TYPE' | translate: {type: item.typeName} }}
+                                                        <span aria-hidden="true">•</span>
+                                                    }
+                                                    {{'DASHBOARD.RECOMMENDATIONS.VERSION' | translate: {version: item.version} }}
+                                                    <span aria-hidden="true">•</span>
+                                                    @if (item.isBlueprint) {
+                                                        {{(item.usageCount === 1 ? 'DASHBOARD.RECOMMENDATIONS.USED-IN-PLAN' : 'DASHBOARD.RECOMMENDATIONS.USED-IN-PLANS') | translate: {count: item.usageCount} }}
+                                                    } @else {
+                                                        {{(item.usageCount === 1 ? 'DASHBOARD.RECOMMENDATIONS.USED-IN-DESCRIPTION' : 'DASHBOARD.RECOMMENDATIONS.USED-IN-DESCRIPTIONS') | translate: {count: item.usageCount} }}
+                                                    }
+                                                </div>
+                                                @if (item.description && item.description !== item.label) {
+                                                    <div class="recommendation-description" [innerHTML]="item.description"></div>
+                                                }
+                                                <div class="recommendation-actions">
+                                                    @if (item.isBlueprint) {
+                                                        <a mat-flat-button color="primary" [routerLink]="routerUtils.generateUrl('/plans/new')" [queryParams]="{blueprintId: item.groupId}">
+                                                            {{'DASHBOARD.RECOMMENDATIONS.START-PLAN' | translate}}<span class="cdk-visually-hidden">: {{item.label}}</span>
+                                                        </a>
+                                                        <a class="recommendation-link" [routerLink]="routerUtils.generateUrl(['/plan-blueprint-library', item.groupId], '/')">
+                                                            {{'DASHBOARD.RECOMMENDATIONS.SEE-DETAILS' | translate}}<span class="cdk-visually-hidden">: {{item.label}}</span>
+                                                        </a>
+                                                    } @else {
+                                                        <a class="recommendation-link" [routerLink]="routerUtils.generateUrl(['/asset-template-library', item.id], '/')">
+                                                            {{'DASHBOARD.RECOMMENDATIONS.SEE-DETAILS' | translate}}<span class="cdk-visually-hidden">: {{item.label}}</span>
+                                                        </a>
+                                                    }
+                                                </div>
+                                            </li>
+                                        }
+                                    </ul>
+                                </div>
+                            }
+                        </div>
+                    }
+                </div>
+                @if (pages().length > 1) {
+                    <button mat-icon-button type="button" class="slides-arrow slides-arrow--next" [disabled]="index() === pages().length - 1" [attr.aria-label]="'DASHBOARD.SLIDES.NEXT' | translate" (click)="next()">
+                        <mat-icon aria-hidden="true">chevron_right</mat-icon>
+                    </button>
+                }
+            </div>
+            @if (pages().length > 1) {
+                <div class="slides-dots">
+                    @for (dot of pages(); track dot.key; let i = $index) {
+                        <button type="button" class="slides-dot" [class.slides-dot--active]="i === index()" [attr.aria-current]="i === index()"
+                            [attr.aria-label]="'DASHBOARD.SLIDES.GO-TO' | translate: {index: i + 1, count: pages().length}" (click)="goTo(i)"></button>
+                    }
+                </div>
+            }
+        </div>
+    }
+</section>
+}

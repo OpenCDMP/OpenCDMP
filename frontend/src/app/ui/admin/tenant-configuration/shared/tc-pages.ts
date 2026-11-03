@@ -30,7 +30,7 @@ export const TC_PAGES: TcPage[] = [
 	{ path: '/supportive-materials', label: 'TENANT-CONFIGURATION.NAV.SUPPORTIVE-MATERIAL', permissions: [AppPermission.ViewSupportiveMaterialPage], group: 'CONTENT', icon: 'help_center', hint: 'TENANT-CONFIGURATION.OVERVIEW.SUPPORTIVE-MATERIAL' },
 	{ path: '/tenant-configuration/notifications', label: 'TENANT-CONFIGURATION.NAV.NOTIFICATIONS', permissions: TC, group: 'COMMUNICATION', icon: 'notifications', hint: 'TENANT-CONFIGURATION.OVERVIEW.NOTIFICATIONS' },
 	{ path: '/notification-templates', label: 'TENANT-CONFIGURATION.NAV.NOTIFICATION-TEMPLATES', permissions: [AppPermission.ViewNotificationTemplatePage], group: 'COMMUNICATION', icon: 'mail', hint: 'TENANT-CONFIGURATION.OVERVIEW.NOTIFICATION-TEMPLATES' },
-	{ path: '/tenant-configuration/onboarding', label: 'TENANT-CONFIGURATION.NAV.ONBOARDING', permissions: TC, group: 'COMMUNICATION', icon: 'waving_hand', hint: 'TENANT-CONFIGURATION.OVERVIEW.ONBOARDING', types: [TenantConfigurationType.TermsAndConditions, TenantConfigurationType.GuidedTours] },
+	{ path: '/tenant-configuration/onboarding', label: 'TENANT-CONFIGURATION.NAV.ONBOARDING', permissions: TC, group: 'COMMUNICATION', icon: 'waving_hand', hint: 'TENANT-CONFIGURATION.OVERVIEW.ONBOARDING', types: [TenantConfigurationType.DashboardSlides, TenantConfigurationType.TermsAndConditions, TenantConfigurationType.GuidedTours] },
 ];
 
 /** Consecutive pages of the same group, as the menu and the overview show them. */

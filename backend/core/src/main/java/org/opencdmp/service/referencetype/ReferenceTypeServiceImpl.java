@@ -149,6 +149,9 @@ public class ReferenceTypeServiceImpl implements ReferenceTypeService {
         ReferenceTypeDefinitionEntity data = new ReferenceTypeDefinitionEntity();
         if (persist == null) return data;
         data.setLabelTemplate(this.conventionService.isNullOrEmpty(persist.getLabelTemplate()) ? null : persist.getLabelTemplate().trim());
+        data.setReferenceIdSemantics(persist.getReferenceIdSemantics());
+        data.setLabelSemantics(persist.getLabelSemantics());
+        data.setDescriptionSemantics(persist.getDescriptionSemantics());
         if (!this.conventionService.isListNullOrEmpty(persist.getFields())){
             data.setFields(new ArrayList<>());
             for (ReferenceTypeFieldPersist fieldPersist: persist.getFields()) {

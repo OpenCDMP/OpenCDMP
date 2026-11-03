@@ -1,0 +1,26 @@
+<div class="dsd__head">
+	<span class="dsd__from"><mat-icon class="material-symbols-outlined" aria-hidden="true">domain</mat-icon>{{ data.heading }}</span>
+	<button mat-icon-button type="button" mat-dialog-close [attr.aria-label]="'ALT-TEXT.CLOSE-DIALOG' | translate">
+		<mat-icon aria-hidden="true">close</mat-icon>
+	</button>
+</div>
+<h2 mat-dialog-title class="dsd__title">{{ data.title }}</h2>
+<mat-dialog-content>
+	<div class="dsd__text" [innerHTML]="data.text"></div>
+</mat-dialog-content>
+<mat-dialog-actions class="dsd__actions">
+	@if (showButton) {
+		@if (isEmail) {
+			<a mat-flat-button color="primary" [href]="href">
+				{{ data.buttonText }}
+				<mat-icon iconPositionEnd aria-hidden="true">mail</mat-icon>
+			</a>
+		} @else {
+			<a mat-flat-button color="primary" [href]="href" target="_blank" rel="noopener noreferrer">
+				{{ data.buttonText }}<span class="cdk-visually-hidden"> ({{ 'ALT-TEXT.OPENS-IN-NEW-TAB' | translate }})</span>
+				<mat-icon iconPositionEnd aria-hidden="true">open_in_new</mat-icon>
+			</a>
+		}
+	}
+	<span class="dsd__position">{{ data.position }}</span>
+</mat-dialog-actions>

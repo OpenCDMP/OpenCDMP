@@ -1,0 +1,133 @@
+.tc-slide-drawer {
+	width: min(560px, 100vw);
+}
+
+.tc-slide-drawer__section {
+	display: flex;
+	flex-direction: column;
+	gap: 14px;
+	padding: 14px 16px 16px;
+	border: 1px solid var(--mat-sys-outline-variant);
+	border-radius: 12px;
+}
+
+.tc-slide-drawer__section-title {
+	margin: 0 0 2px;
+	font-size: 0.9375rem;
+	font-weight: 600;
+}
+
+.tc-slide-drawer__target {
+	margin-top: 8px;
+}
+
+.tc-slide-drawer__languages {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 4px;
+	margin-bottom: 12px;
+	border-bottom: 1px solid var(--mat-sys-outline-variant);
+
+	nav {
+		flex: 1 1 auto;
+		min-width: 0;
+		border-bottom: 0;
+	}
+}
+
+.tc-slide-drawer__tab-error {
+	width: 18px;
+	height: 18px;
+	margin-left: 4px;
+	font-size: 18px;
+	color: var(--mat-sys-error);
+}
+
+.tc-slide-drawer__label {
+	margin-bottom: 6px;
+	font-size: 0.8125rem;
+	font-weight: 600;
+	color: var(--mat-sys-on-surface-variant);
+}
+
+// the height of a slide on the Dashboard, so the preview cuts long text where members see it cut
+.tc-slide-drawer__preview {
+	height: 16rem;
+}
+
+.tc-slide-drawer__image {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 8px 12px;
+	margin-top: 6px;
+}
+
+.tc-slide-drawer__thumb {
+	width: 64px;
+	height: 40px;
+	border-radius: 6px;
+	object-fit: cover;
+}
+
+.tc-slide-drawer__file-name {
+	flex: 1 1 120px;
+	min-width: 0;
+	overflow-wrap: anywhere;
+	font-size: 0.875rem;
+}
+
+.tc-slide-drawer__file {
+	display: none;
+}
+
+.tc-slide-drawer__pills {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+	margin-bottom: 4px;
+}
+
+.tc-slide-drawer__fit {
+	margin-top: 10px;
+}
+
+.tc-slide-drawer__pill {
+	display: inline-flex;
+	align-items: center;
+	gap: 4px;
+	padding: 6px 16px;
+	border: 1px solid var(--mat-sys-outline);
+	border-radius: 999px;
+	background: var(--mat-sys-surface);
+	color: var(--mat-sys-on-surface);
+	font: inherit;
+	font-size: 0.875rem;
+	font-weight: 500;
+	cursor: pointer;
+
+	&:hover {
+		background: var(--mat-sys-surface-container-low);
+	}
+
+	mat-icon {
+		width: 18px;
+		height: 18px;
+		font-size: 18px;
+	}
+}
+
+.tc-slide-drawer__pill--on,
+.tc-slide-drawer__pill--on:hover {
+	border-color: var(--mat-sys-primary);
+	background: var(--mat-sys-primary-container);
+	color: var(--mat-sys-on-primary-container);
+}
+
+.tc-slide-drawer__pair {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+	gap: 12px;
+	margin-top: 8px;
+}

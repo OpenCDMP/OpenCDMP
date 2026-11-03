@@ -6,6 +6,8 @@
 @if (terms.loading() || tours.loading()) {
 	<div class="tc-loading"><mat-spinner diameter="32" /></div>
 } @else {
+	<app-tc-dashboard-slides class="tc-onboarding__slides" [canEdit]="section.canEdit" />
+
 	<div class="tc-onboarding">
 		<div class="tc-onboarding__main">
 			@if (terms.form()) {

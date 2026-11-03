@@ -25,6 +25,18 @@ public class ReferenceTypeDefinitionEntity {
 	@XmlElement(name = "labelTemplate")
 	private String labelTemplate;
 
+	@XmlElementWrapper(name = "referenceIdSemantics")
+	@XmlElement(name = "semantic")
+	private List<String> referenceIdSemantics;
+
+	@XmlElementWrapper(name = "labelSemantics")
+	@XmlElement(name = "semantic")
+	private List<String> labelSemantics;
+
+	@XmlElementWrapper(name = "descriptionSemantics")
+	@XmlElement(name = "semantic")
+	private List<String> descriptionSemantics;
+
 	public List<ReferenceTypeFieldEntity> getFields() {
 		return fields;
 	}
@@ -47,5 +59,29 @@ public class ReferenceTypeDefinitionEntity {
 
 	public void setLabelTemplate(String labelTemplate) {
 		this.labelTemplate = labelTemplate;
+	}
+
+	public List<String> getReferenceIdSemantics() {
+		return referenceIdSemantics;
+	}
+
+	public void setReferenceIdSemantics(List<String> referenceIdSemantics) {
+		this.referenceIdSemantics = referenceIdSemantics;
+	}
+
+	public List<String> getLabelSemantics() {
+		return labelSemantics;
+	}
+
+	public void setLabelSemantics(List<String> labelSemantics) {
+		this.labelSemantics = labelSemantics;
+	}
+
+	public List<String> getDescriptionSemantics() {
+		return descriptionSemantics;
+	}
+
+	public void setDescriptionSemantics(List<String> descriptionSemantics) {
+		this.descriptionSemantics = descriptionSemantics;
 	}
 }

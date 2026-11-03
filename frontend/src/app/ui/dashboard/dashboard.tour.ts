@@ -16,7 +16,7 @@ export const DASHBOARD_TOUR_VERSION = '2.0.1';
 
 const STEPS: { key: string; selector: string; orientation: string; highlightSelectors?: string[] }[] = [
 	{ key: 'NEW-PLAN', selector: '[data-tour="sidebar-new-plan"]', orientation: Orientation.Right },
-	{ key: 'RECOMMENDATIONS', selector: '[data-tour="dashboard-recommendations"]', orientation: Orientation.Bottom },
+	{ key: 'RECOMMENDATIONS', selector: '[data-tour="dashboard-slides"]', orientation: Orientation.Bottom },
 	// The tab strip only: the tab group's box would also cover the whole list underneath.
 	{ key: 'ACTIVITY', selector: '[data-tour="dashboard-activity"] .mat-mdc-tab-header', orientation: Orientation.Bottom },
 	{ key: 'FILTERS', selector: '[data-tour="dashboard-activity-filters"]', orientation: Orientation.Bottom },

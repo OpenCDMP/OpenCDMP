@@ -1325,6 +1325,10 @@
   },
   {
     "category": "dataverse",
+    "name": "dataverse.dataset.type"
+  },
+  {
+    "category": "dataverse",
     "name": "dataverse.dataset.subject"
   },
   {

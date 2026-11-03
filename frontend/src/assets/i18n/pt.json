@@ -1392,7 +1392,12 @@
 			"MOVE-UP": "Mover {{item}} para cima",
 			"MOVE-DOWN": "Mover {{item}} para baixo",
 			"REMOVE": "Remover {{item}}",
-			"CHIP-KEYBOARD-HINT": "Arraste para reordenar, ou prima Alt com a tecla de seta para a esquerda ou para a direita."
+			"CHIP-KEYBOARD-HINT": "Arraste para reordenar, ou prima Alt com a tecla de seta para a esquerda ou para a direita.",
+			"DASHBOARD-NOTE": {
+				"TITLE": "Também no Início",
+				"TEXT": "Para mostrar estes itens também no Início dos membros, adicione o diapositivo \"Blueprints e modelos recomendados\" em",
+				"LINK": "Utilizadores e acolhimento"
+			}
 		},
 		"NOTIFICATIONS": {
 			"TITLE": "Notificações",
@@ -1416,7 +1421,94 @@
 		},
 		"ONBOARDING": {
 			"TITLE": "Utilizadores e acolhimento",
-			"HINT": "O que as pessoas veem quando iniciam sessão pela primeira vez.",
+			"HINT": "O que as pessoas veem quando iniciam sessão pela primeira vez, e a informação no seu Início.",
+			"SLIDES": {
+				"TITLE": "Informação no Início",
+				"HINT": "Diapositivos que todos os membros desta organização veem no topo do seu Início, um de cada vez.",
+				"ADD": "Adicionar diapositivo",
+				"EMPTY": "Ainda não há diapositivos",
+				"EMPTY-HINT": "Selecione \"Adicionar diapositivo\" para adicionar o primeiro.",
+				"EMPTY-FALLBACK": "Até lá, os membros veem os diapositivos da organização predefinida.",
+				"CONTENT": {
+					"TITLE": "Diapositivo de conteúdo",
+					"HINT": "O seu próprio título e texto, com uma imagem e um botão se quiser."
+				},
+				"RECOMMENDED": {
+					"TITLE": "Blueprints e modelos recomendados",
+					"HINT": "Os Blueprints e modelos escolhidos em Conteúdo predefinido, 3 em cada diapositivo. Só pode ser adicionado uma vez.",
+					"ALREADY-ADDED": "Já adicionado",
+					"ITEMS": "{{count}} itens de Conteúdo predefinido",
+					"ITEMS-AND-SLIDES": "{{count}} itens de Conteúdo predefinido · {{slides}} diapositivos no Início",
+					"NO-ITEMS": "Ainda não foram escolhidos itens em Conteúdo predefinido",
+					"NOT-SHOWN": "Não mostrado: sem itens",
+					"CHANGE-ITEMS": "Alterar itens"
+				},
+				"COLUMNS": {
+					"ORDER": "Ordem",
+					"SLIDE": "Diapositivo",
+					"LANGUAGES": "Idiomas",
+					"WHEN": "Quando",
+					"ON-DASHBOARD": "No Início",
+					"ACTIONS": "Ações"
+				},
+				"ALWAYS": "Sempre",
+				"UNTIL": "Até {{date}}",
+				"ENDED": "Terminou a {{date}}",
+				"FROM": "A partir de {{date}}",
+				"FROM-UNTIL": "De {{from}} até {{until}}",
+				"STATE-ON": "Ativo",
+				"STATE-OFF": "Inativo",
+				"STATE-ENDED": "Terminado",
+				"EDIT": "Editar",
+				"DUPLICATE": "Duplicar",
+				"MOVE-UP": "Mover para cima",
+				"MOVE-DOWN": "Mover para baixo",
+				"DELETE": "Eliminar",
+				"DELETE-CONFIRM": "Eliminar o diapositivo \"{{name}}\"? Os membros deixarão de o ver.",
+				"FOOTNOTE": "Arraste um diapositivo para alterar a ordem. Os diapositivos terminados ficam na lista até os eliminar.",
+				"EDITOR": {
+					"NEW-TITLE": "Novo diapositivo",
+					"EDIT-TITLE": "Editar diapositivo",
+					"CLOSE": "Fechar",
+					"LANGUAGES": "Idiomas",
+					"ADD-LANGUAGE": "Adicionar idioma",
+					"REMOVE-LANGUAGE": "Remover {{language}}",
+					"DEFAULT-LANGUAGE": "(predefinido)",
+					"DEFAULT-LANGUAGE-HINT": "O idioma predefinido é obrigatório. Os membros cujo idioma não tem texto veem este.",
+					"OTHER-LANGUAGE-HINT": "Opcional. Deixe vazio para mostrar o texto do idioma predefinido.",
+					"PREVIEW-IN": "Como fica o diapositivo · {{language}}",
+					"TEXTS-TITLE": "Texto em cada idioma",
+					"TEXTS-HINT": "O título, o texto e o texto do botão. Cada idioma tem os seus.",
+					"SHARED-TITLE": "Para todos os idiomas",
+					"SHARED-HINT": "A imagem, o botão e as datas são iguais em todos os idiomas.",
+					"SLIDE-TITLE": "Título",
+					"TITLE-NEEDED": "Adicione um título para este idioma, ou apague o respetivo texto.",
+					"TEXT": "Texto",
+					"TEXT-HINT": "O diapositivo mostra as primeiras linhas; os textos mais longos mostram «Ler mais».",
+					"IMAGE": "Imagem (opcional)",
+					"IMAGE-HINT": "Mostrada à direita do texto. Sem imagem, o texto ocupa toda a largura.",
+					"NO-IMAGE": "Sem imagem",
+					"ADD-IMAGE": "Adicionar imagem",
+					"REPLACE-IMAGE": "Substituir",
+					"REMOVE-IMAGE": "Remover",
+					"IMAGE-DISPLAY": "Como a imagem é apresentada",
+					"IMAGE-FILL": "Preencher",
+					"IMAGE-FIT": "Ajustar",
+					"IMAGE-DISPLAY-HINT": "Preencher cobre toda a área e pode cortar a imagem. Ajustar mostra a imagem inteira, por exemplo um logótipo.",
+					"BUTTON": "Botão (opcional)",
+					"URL": "URL",
+					"EMAIL": "Email",
+					"BUTTON-HINT": "Uma ligação para uma página web ou um endereço de email. Selecione-o novamente para remover o botão.",
+					"BUTTON-TEXT": "Texto do botão",
+					"LINK": "Ligação",
+					"EMAIL-ADDRESS": "Endereço de email",
+					"SHOW-FROM": "Mostrar a partir de",
+					"SHOW-UNTIL": "Mostrar até",
+					"UNTIL-BEFORE-FROM": "Tem de ser igual ou posterior à data de início.",
+					"DATES-HINT": "Opcional. Para notícias ou eventos: o diapositivo aparece e desaparece sozinho.",
+					"SAVE": "Guardar"
+				}
+			},
 			"TERMS": {
 				"TITLE": "Termos e Condições",
 				"HINT": "Apresentados antes da primeira utilização. É recomendável incluir ligações para os seus termos de serviço e política de privacidade.",
@@ -3375,6 +3467,9 @@
 			"LABEL": "Etiqueta",
 			"REQUIRED": "Obrigatório",
 			"SEMANTICS": "Semânticas",
+			"REFERENCE-ID-SEMANTICS": "Semânticas do ID da referência",
+			"LABEL-SEMANTICS": "Semânticas do nome",
+			"DESCRIPTION-SEMANTICS": "Semânticas da descrição",
 			"ADD": "Adicionar campo",
 			"REMOVE": "Remover campo",
 			"TITLE": "Campos",
@@ -4251,7 +4346,7 @@
 			"YES": "Sim",
 			"NO": "Não",
 			"CONTAINS-THIS": "contém esta entrada",
-			"SAME-QUESTION": "na mesma questão",
+			"THIS-INPUT": "o próprio campo",
 			"SHOWS-THIS": "já mostra esta questão",
 			"SHOWS-WHEN": "Mostra {{target}} quando «{{value}}»",
 			"SHOWS": "Mostra {{target}}",
@@ -5503,8 +5598,8 @@
 				"CONTENT": "Novo PGD e Novo recurso estão na barra lateral, em Os meus PGDs e Os meus recursos, pelo que pode iniciar um a partir de qualquer página."
 			},
 			"RECOMMENDATIONS": {
-				"TITLE": "Recomendado para si",
-				"CONTENT": "Os Blueprints e Modelos de recurso que a sua organização recomenda. Inicie um plano diretamente a partir de um blueprint, ou abra um para ver o que pede."
+				"TITLE": "Da sua organização",
+				"CONTENT": "Notícias, ligações e os Blueprints e modelos de recurso que a sua organização recomenda. Selecione Ocultar para os reduzir a uma linha; voltam a abrir quando é adicionado algo novo."
 			},
 			"ACTIVITY": {
 				"TITLE": "A sua atividade recente",
@@ -5531,15 +5626,22 @@
 				"CONTENT": "Em Suporte encontra o guia do utilizador, as Perguntas Frequentes e o glossário, e pode repetir esta visita. Ao lado pode mudar o idioma. No menu da organização pode mudar de organização se pertencer a mais do que uma, já que cada uma tem os seus próprios planos, recursos e blueprints. O sino mostra as suas notificações, e ao lado está o seu perfil."
 			}
 		},
-		"RECOMMENDATIONS": {
+		"SLIDES": {
 			"FROM": "De {{tenant}}",
-			"TITLE": "Blueprints e modelos recomendados",
-			"SUMMARY": "{{count}} blueprints e modelos recomendados",
-			"RANGE": "{{start}}–{{end}} de {{count}}",
+			"FROM-DEFAULT": "De {{ APP_NAME }}",
+			"ONE-SLIDE": "1 diapositivo",
+			"SLIDES": "{{count}} diapositivos",
+			"POSITION": "{{index}} de {{count}}",
 			"SHOW": "Mostrar",
 			"HIDE": "Ocultar",
-			"PREVIOUS": "Recomendações anteriores",
-			"NEXT": "Recomendações seguintes",
+			"PREVIOUS": "Diapositivo anterior",
+			"NEXT": "Diapositivo seguinte",
+			"GO-TO": "Ir para o diapositivo {{index}} de {{count}}",
+			"READ-MORE": "Ler mais",
+			"READ-MORE-LABEL": "Ler mais: {{title}}"
+		},
+		"RECOMMENDATIONS": {
+			"TITLE": "Blueprints e modelos recomendados",
 			"PLAN-BLUEPRINT": "Blueprint",
 			"DESCRIPTION-TEMPLATE": "Modelo de recurso",
 			"TYPE": "Tipo: {{type}}",

@@ -1392,7 +1392,12 @@
 			"MOVE-UP": "Siirrä {{item}} ylös",
 			"MOVE-DOWN": "Siirrä {{item}} alas",
 			"REMOVE": "Poista {{item}}",
-			"CHIP-KEYBOARD-HINT": "Järjestä vetämällä tai painamalla Alt ja vasenta tai oikeaa nuolinäppäintä."
+			"CHIP-KEYBOARD-HINT": "Järjestä vetämällä tai painamalla Alt ja vasenta tai oikeaa nuolinäppäintä.",
+			"DASHBOARD-NOTE": {
+				"TITLE": "Myös etusivulla",
+				"TEXT": "Jos haluat näyttää nämä kohteet myös jäsenten etusivulla, lisää dia ”Suositellut blueprintit ja pohjat” osiossa",
+				"LINK": "Käyttäjät ja käyttöönotto"
+			}
 		},
 		"NOTIFICATIONS": {
 			"TITLE": "Ilmoitukset",
@@ -1416,7 +1421,94 @@
 		},
 		"ONBOARDING": {
 			"TITLE": "Käyttäjät ja käyttöönotto",
-			"HINT": "Mitä käyttäjät näkevät kirjautuessaan ensimmäistä kertaa.",
+			"HINT": "Mitä käyttäjät näkevät kirjautuessaan ensimmäistä kertaa, ja tiedot heidän etusivullaan.",
+			"SLIDES": {
+				"TITLE": "Tiedot etusivulla",
+				"HINT": "Diat, jotka kaikki tämän organisaation jäsenet näkevät etusivunsa yläosassa yksi kerrallaan.",
+				"ADD": "Lisää dia",
+				"EMPTY": "Ei vielä dioja",
+				"EMPTY-HINT": "Lisää ensimmäinen valitsemalla ”Lisää dia”.",
+				"EMPTY-FALLBACK": "Siihen asti jäsenet näkevät oletusorganisaation diat.",
+				"CONTENT": {
+					"TITLE": "Sisältödia",
+					"HINT": "Oma otsikko ja teksti sekä halutessasi kuva ja painike."
+				},
+				"RECOMMENDED": {
+					"TITLE": "Suositellut blueprintit ja pohjat",
+					"HINT": "Sisällön oletuksissa valitut blueprintit ja pohjat, 3 kullakin dialla. Voidaan lisätä kerran.",
+					"ALREADY-ADDED": "Jo lisätty",
+					"ITEMS": "{{count}} kohdetta sisällön oletuksista",
+					"ITEMS-AND-SLIDES": "{{count}} kohdetta sisällön oletuksista · {{slides}} diaa etusivulla",
+					"NO-ITEMS": "Sisällön oletuksissa ei ole vielä valittu kohteita",
+					"NOT-SHOWN": "Ei näytetä: ei kohteita",
+					"CHANGE-ITEMS": "Muuta kohteita"
+				},
+				"COLUMNS": {
+					"ORDER": "Järjestys",
+					"SLIDE": "Dia",
+					"LANGUAGES": "Kielet",
+					"WHEN": "Milloin",
+					"ON-DASHBOARD": "Etusivulla",
+					"ACTIONS": "Toiminnot"
+				},
+				"ALWAYS": "Aina",
+				"UNTIL": "{{date}} asti",
+				"ENDED": "Päättyi {{date}}",
+				"FROM": "{{date}} alkaen",
+				"FROM-UNTIL": "{{from}} – {{until}}",
+				"STATE-ON": "Päällä",
+				"STATE-OFF": "Pois",
+				"STATE-ENDED": "Päättynyt",
+				"EDIT": "Muokkaa",
+				"DUPLICATE": "Monista",
+				"MOVE-UP": "Siirrä ylös",
+				"MOVE-DOWN": "Siirrä alas",
+				"DELETE": "Poista",
+				"DELETE-CONFIRM": "Poistetaanko dia ”{{name}}”? Jäsenet eivät enää näe sitä.",
+				"FOOTNOTE": "Muuta järjestystä vetämällä diaa. Päättyneet diat pysyvät luettelossa, kunnes poistat ne.",
+				"EDITOR": {
+					"NEW-TITLE": "Uusi dia",
+					"EDIT-TITLE": "Muokkaa diaa",
+					"CLOSE": "Sulje",
+					"LANGUAGES": "Kielet",
+					"ADD-LANGUAGE": "Lisää kieli",
+					"REMOVE-LANGUAGE": "Poista {{language}}",
+					"DEFAULT-LANGUAGE": "(oletus)",
+					"DEFAULT-LANGUAGE-HINT": "Oletuskieli on pakollinen. Jäsenet, joiden kielelle ei ole tekstiä, näkevät tämän.",
+					"OTHER-LANGUAGE-HINT": "Valinnainen. Jätä tyhjäksi, niin näytetään oletuskielen teksti.",
+					"PREVIEW-IN": "Dian ulkoasu · {{language}}",
+					"TEXTS-TITLE": "Teksti kullakin kielellä",
+					"TEXTS-HINT": "Otsikko, teksti ja painikkeen teksti. Jokaisella kielellä on omansa.",
+					"SHARED-TITLE": "Kaikille kielille",
+					"SHARED-HINT": "Kuva, painike ja päivämäärät ovat samat kaikilla kielillä.",
+					"SLIDE-TITLE": "Otsikko",
+					"TITLE-NEEDED": "Lisää otsikko tälle kielelle tai tyhjennä sen teksti.",
+					"TEXT": "Teksti",
+					"TEXT-HINT": "Diassa näytetään ensimmäiset rivit; pidemmissä teksteissä on ”Lue lisää”.",
+					"IMAGE": "Kuva (valinnainen)",
+					"IMAGE-HINT": "Näytetään tekstin oikealla puolella. Ilman kuvaa teksti vie koko leveyden.",
+					"NO-IMAGE": "Ei kuvaa",
+					"ADD-IMAGE": "Lisää kuva",
+					"REPLACE-IMAGE": "Korvaa",
+					"REMOVE-IMAGE": "Poista",
+					"IMAGE-DISPLAY": "Kuvan näyttötapa",
+					"IMAGE-FILL": "Täytä",
+					"IMAGE-FIT": "Sovita",
+					"IMAGE-DISPLAY-HINT": "Täytä peittää koko alueen ja voi rajata kuvaa. Sovita näyttää koko kuvan, esimerkiksi logon.",
+					"BUTTON": "Painike (valinnainen)",
+					"URL": "URL",
+					"EMAIL": "Sähköposti",
+					"BUTTON-HINT": "Linkki verkkosivulle tai sähköpostiosoite. Poista painike valitsemalla se uudelleen.",
+					"BUTTON-TEXT": "Painikkeen teksti",
+					"LINK": "Linkki",
+					"EMAIL-ADDRESS": "Sähköpostiosoite",
+					"SHOW-FROM": "Näytä alkaen",
+					"SHOW-UNTIL": "Näytä asti",
+					"UNTIL-BEFORE-FROM": "Oltava sama tai myöhäisempi kuin alkamispäivä.",
+					"DATES-HINT": "Valinnainen. Uutisille tai tapahtumille: dia tulee näkyviin ja poistuu itsestään.",
+					"SAVE": "Tallenna"
+				}
+			},
 			"TERMS": {
 				"TITLE": "Käyttöehdot",
 				"HINT": "Näytetään ennen ensimmäistä käyttökertaa. Linkit käyttöehtoihisi ja tietosuojaselosteeseesi ovat tervetulleita.",
@@ -3375,6 +3467,9 @@
 			"LABEL": "Otsikko",
 			"REQUIRED": "Pakollinen",
 			"SEMANTICS": "Semantiikka",
+			"REFERENCE-ID-SEMANTICS": "Viitetunnisteen semantiikka",
+			"LABEL-SEMANTICS": "Nimen semantiikka",
+			"DESCRIPTION-SEMANTICS": "Kuvauksen semantiikka",
 			"ADD": "Lisää kenttä",
 			"REMOVE": "Poista kenttä",
 			"TITLE": "Kentät",
@@ -4251,7 +4346,7 @@
 			"YES": "Kyllä",
 			"NO": "Ei",
 			"CONTAINS-THIS": "sisältää tämän syötteen",
-			"SAME-QUESTION": "samassa kysymyksessä",
+			"THIS-INPUT": "kenttä itse",
 			"SHOWS-THIS": "näyttää jo tämän kysymyksen",
 			"SHOWS-WHEN": "Näytetään {{target}}, kun vastaus on \"{{value}}\"",
 			"SHOWS": "Näytetään {{target}}",
@@ -5503,8 +5598,8 @@
 				"CONTENT": "Uusi suunnitelma ja Uusi aineisto löytyvät sivupalkista kohdista Omat suunnitelmat ja Omat aineistot, joten voit aloittaa miltä tahansa sivulta."
 			},
 			"RECOMMENDATIONS": {
-				"TITLE": "Suositeltu sinulle",
-				"CONTENT": "Organisaatiosi suosittelemat Plan Blueprintit ja aineistopohjat. Aloita suunnitelma suoraan blueprintista tai avaa se nähdäksesi, mitä siinä kysytään."
+				"TITLE": "Organisaatioltasi",
+				"CONTENT": "Uutiset, linkit sekä organisaatiosi suosittelemat blueprintit ja aineistopohjat. Valitse Piilota, niin osio tiivistyy yhdeksi riviksi; se avautuu uudelleen, kun jotain uutta lisätään."
 			},
 			"ACTIVITY": {
 				"TITLE": "Viimeisin toimintasi",
@@ -5531,15 +5626,22 @@
 				"CONTENT": "Tuki-valikosta löydät käyttöoppaan, UKK:n ja sanaston, ja voit katsoa tämän esittelykierroksen uudelleen. Sen vieressä voit vaihtaa kieltä. Organisaatiovalikosta voit vaihtaa organisaatiota, jos kuulut useampaan, sillä jokaisella on omat suunnitelmansa, aineistonsa ja blueprintinsä. Kello näyttää ilmoituksesi, ja sen vieressä on profiilisi."
 			}
 		},
-		"RECOMMENDATIONS": {
+		"SLIDES": {
 			"FROM": "{{tenant}} suosittelee",
-			"TITLE": "Suositellut blueprintit ja pohjat",
-			"SUMMARY": "{{count}} suositeltua blueprintia ja pohjaa",
-			"RANGE": "{{start}}–{{end}} / {{count}}",
+			"FROM-DEFAULT": "Lähde: {{ APP_NAME }}",
+			"ONE-SLIDE": "1 dia",
+			"SLIDES": "{{count}} diaa",
+			"POSITION": "{{index}} / {{count}}",
 			"SHOW": "Näytä",
 			"HIDE": "Piilota",
-			"PREVIOUS": "Edelliset suositukset",
-			"NEXT": "Seuraavat suositukset",
+			"PREVIOUS": "Edellinen dia",
+			"NEXT": "Seuraava dia",
+			"GO-TO": "Siirry diaan {{index}} / {{count}}",
+			"READ-MORE": "Lue lisää",
+			"READ-MORE-LABEL": "Lue lisää: {{title}}"
+		},
+		"RECOMMENDATIONS": {
+			"TITLE": "Suositellut blueprintit ja pohjat",
 			"PLAN-BLUEPRINT": "Plan Blueprint",
 			"DESCRIPTION-TEMPLATE": "Aineistopohja",
 			"TYPE": "Tyyppi: {{type}}",

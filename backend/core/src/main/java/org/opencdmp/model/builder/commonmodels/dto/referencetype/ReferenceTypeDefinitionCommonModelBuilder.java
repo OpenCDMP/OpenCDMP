@@ -48,6 +48,9 @@ public class ReferenceTypeDefinitionCommonModelBuilder extends BaseCommonModelBu
         for (ReferenceTypeDefinitionModel d : data) {
             ReferenceTypeDefinition m = new ReferenceTypeDefinition();
             if (d.getFields() != null) m.setFields(this.builderFactory.builder(ReferenceTypeFieldCommonModelBuilder.class).authorize(this.authorize).build(d.getFields()));
+            m.setReferenceIdSemantics(d.getReferenceIdSemantics());
+            m.setLabelSemantics(d.getLabelSemantics());
+            m.setDescriptionSemantics(d.getDescriptionSemantics());
             models.add(new CommonModelBuilderItemResponse<>(m, d));
         }
         this.logger.debug("build {} items", Optional.of(models).map(List::size).orElse(0));

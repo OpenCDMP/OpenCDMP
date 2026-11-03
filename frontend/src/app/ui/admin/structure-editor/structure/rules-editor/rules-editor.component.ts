@@ -52,31 +52,35 @@ export class Bp2RulesEditorComponent {
 		const ownQuestionId: string = this.entry?.form?.get('id')?.value;
 		const ownFieldId: string = this.fieldForm?.get('id')?.value;
 		const questions = questionIndex(this.editor.toCEntries);
-		// questions that already show this one: pointing back at them would make each depend on the other
+		// inputs that already show this one: pointing back at them would make each depend on the other
 		const showsThis = new Set<string>();
 		questions.forEach(q => ((q.fieldSetForm.get('fields') as UntypedFormArray)?.controls ?? []).forEach(f => {
 			((f.get('visibilityRules') as UntypedFormArray)?.controls ?? []).forEach(r => {
 				const t = r.get('target')?.value;
-				if (t && (t === ownQuestionId || t === ownFieldId)) showsThis.add(q.id);
+				if (t && (t === ownQuestionId || t === ownFieldId)) showsThis.add(f.get('id').value);
 			});
 		}));
 		this.questionTargets = []; this.inputTargets = [];
 		questions.forEach(q => {
 			if (BlueprintStructureHelper.isPresetQuestion(q.fieldSetForm)) return;
 			const title = q.title || this.editor.language.instant('PLAN-BLUEPRINT-EDITOR.UNTITLED-QUESTION');
+			const fields = ((q.fieldSetForm.get('fields') as UntypedFormArray)?.controls ?? []) as UntypedFormGroup[];
 			const own = q.id === ownQuestionId;
-			const loop = showsThis.has(q.id);
+			const loop = fields.some(f => showsThis.has(f.get('id').value));
 			this.questionTargets.push({
 				id: q.id, label: `${q.numbering} ${title}`, disabled: own || loop,
 				reason: own ? this.editor.language.instant('PLAN-BLUEPRINT-EDITOR.RULES.CONTAINS-THIS') : loop ? this.editor.language.instant('PLAN-BLUEPRINT-EDITOR.RULES.SHOWS-THIS') : ''
 			});
-			const fields = ((q.fieldSetForm.get('fields') as UntypedFormArray)?.controls ?? []) as UntypedFormGroup[];
+			// an input of the same question is a valid target (the backend and the runtime only reject the input itself)
 			if (fields.length > 1) fields.forEach((f, i) => {
 				if (BlueprintStructureHelper.fieldType(f) === FieldType.SYSTEM) return;
+				const id: string = f.get('id').value;
 				const label = f.get('data')?.get('label')?.value || this.editor.language.instant('PLAN-BLUEPRINT-EDITOR.INPUT.INPUT-N', { n: i + 1 });
+				const self = id === ownFieldId;
+				const inputLoop = showsThis.has(id);
 				this.inputTargets.push({
-					id: f.get('id').value, label: `${q.numbering} › ${label}`, disabled: own || loop,
-					reason: own ? this.editor.language.instant('PLAN-BLUEPRINT-EDITOR.RULES.SAME-QUESTION') : loop ? this.editor.language.instant('PLAN-BLUEPRINT-EDITOR.RULES.SHOWS-THIS') : ''
+					id, label: `${q.numbering} › ${label}`, disabled: self || inputLoop,
+					reason: self ? this.editor.language.instant('PLAN-BLUEPRINT-EDITOR.RULES.THIS-INPUT') : inputLoop ? this.editor.language.instant('PLAN-BLUEPRINT-EDITOR.RULES.SHOWS-THIS') : ''
 				});
 			});
 		});

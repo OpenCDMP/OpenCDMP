@@ -73,10 +73,8 @@ import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.UUID;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 public class TenantConfigurationServiceImpl implements TenantConfigurationService {
@@ -197,6 +195,10 @@ public class TenantConfigurationServiceImpl implements TenantConfigurationServic
             case ViewPreferences -> data.setValue(this.jsonHandlingService.toJson(this.buildViewPreferencesConfigurationEntity(model.getViewPreferences())));
             case TermsAndConditions -> data.setValue(this.jsonHandlingService.toJson(this.buildTermsAndConditionsTenantConfigurationEntity(model.getTermsAndConditions())));
             case GuidedTours -> data.setValue(this.jsonHandlingService.toJson(this.buildGuidedToursTenantConfigurationEntity(model.getGuidedTours())));
+            case DashboardSlides -> {
+                DashboardSlidesTenantConfigurationEntity oldValue = this.conventionService.isNullOrEmpty(data.getValue()) ? null : this.jsonHandlingService.fromJsonSafe(DashboardSlidesTenantConfigurationEntity.class, data.getValue());
+                data.setValue(this.jsonHandlingService.toJson(this.buildDashboardSlidesTenantConfigurationEntity(model.getDashboardSlides(), oldValue)));
+            }
             default -> throw new InternalError("unknown type: " + data.getType());
         }
         data.setUpdatedAt(Instant.now());
@@ -460,6 +462,79 @@ public class TenantConfigurationServiceImpl implements TenantConfigurationServic
         return data;
     }
 
+    private @NotNull DashboardSlidesTenantConfigurationEntity buildDashboardSlidesTenantConfigurationEntity(DashboardSlidesTenantConfigurationPersist persist, DashboardSlidesTenantConfigurationEntity oldValue) throws InvalidApplicationException {
+        DashboardSlidesTenantConfigurationEntity data = new DashboardSlidesTenantConfigurationEntity();
+        List<DashboardSlideEntity> oldSlides = oldValue != null && oldValue.getSlides() != null ? oldValue.getSlides() : new ArrayList<>();
+        Set<UUID> oldFileIds = oldSlides.stream().map(DashboardSlideEntity::getStorageFileId).filter(Objects::nonNull).collect(Collectors.toSet());
+        Map<UUID, UUID> uploadedFileIds = new HashMap<>();
+
+        boolean contentChanged = false;
+        data.setSlides(new ArrayList<>());
+        if (persist != null && !this.conventionService.isListNullOrEmpty(persist.getSlides())) {
+            for (DashboardSlidePersist slidePersist : persist.getSlides()) {
+                DashboardSlideEntity oldSlide = oldSlides.stream().filter(x -> Objects.equals(x.getId(), slidePersist.getId())).findFirst().orElse(null);
+                DashboardSlideEntity slide = this.buildDashboardSlideEntity(slidePersist, oldFileIds, uploadedFileIds);
+                if (oldSlide == null || !this.sameDashboardSlideContent(oldSlide, slide)) contentChanged = true;
+                data.getSlides().add(slide);
+            }
+        }
+
+        Set<UUID> fileIds = data.getSlides().stream().map(DashboardSlideEntity::getStorageFileId).filter(Objects::nonNull).collect(Collectors.toSet());
+        for (UUID oldFileId : oldFileIds) {
+            if (!fileIds.contains(oldFileId)) this.storageFileService.updatePurgeAt(oldFileId, Instant.now().plusSeconds(60));
+        }
+
+        // Members who hid the slides see them again only for a new slide or edited content, not for a reorder, a switch or new dates.
+        int oldVersion = oldValue != null && oldValue.getVersion() != null ? oldValue.getVersion() : 0;
+        data.setVersion(contentChanged ? oldVersion + 1 : oldVersion);
+        return data;
+    }
+
+    private @NotNull DashboardSlideEntity buildDashboardSlideEntity(DashboardSlidePersist persist, Set<UUID> savedFileIds, Map<UUID, UUID> uploadedFileIds) throws InvalidApplicationException {
+        DashboardSlideEntity data = new DashboardSlideEntity();
+        data.setId(this.conventionService.isValidGuid(persist.getId()) ? persist.getId() : UUID.randomUUID());
+        data.setKind(persist.getKind());
+        data.setEnabled(persist.getEnabled());
+        data.setShowFrom(persist.getShowFrom());
+        data.setShowUntil(persist.getShowUntil());
+        data.setButtonType(persist.getButtonType());
+        data.setButtonTarget(persist.getButtonType() != null ? persist.getButtonTarget() : null);
+
+        // A saved image may be shared by a slide and its duplicate; a new one is still in temp storage and is copied once.
+        UUID fileId = persist.getStorageFileId();
+        if (fileId != null && !savedFileIds.contains(fileId)) {
+            if (!uploadedFileIds.containsKey(fileId)) {
+                StorageFile storageFile = this.storageFileService.copyToStorage(fileId, StorageType.Main, true, new BaseFieldSet().ensure(StorageFile._id));
+                this.storageFileService.updatePurgeAt(storageFile.getId(), null);
+                uploadedFileIds.put(fileId, storageFile.getId());
+            }
+            fileId = uploadedFileIds.get(fileId);
+        }
+        data.setStorageFileId(fileId);
+        data.setImageFit(fileId != null ? persist.getImageFit() : null);
+
+        data.setTranslations(new ArrayList<>());
+        if (!this.conventionService.isListNullOrEmpty(persist.getTranslations())) {
+            for (DashboardSlideTranslationPersist translationPersist : persist.getTranslations()) {
+                DashboardSlideTranslationEntity translation = new DashboardSlideTranslationEntity();
+                translation.setLanguageCode(translationPersist.getLanguageCode());
+                translation.setTitle(translationPersist.getTitle());
+                translation.setText(translationPersist.getText());
+                translation.setButtonText(persist.getButtonType() != null ? translationPersist.getButtonText() : null);
+                data.getTranslations().add(translation);
+            }
+        }
+        return data;
+    }
+
+    private boolean sameDashboardSlideContent(DashboardSlideEntity a, DashboardSlideEntity b) {
+        return Objects.equals(a.getStorageFileId(), b.getStorageFileId())
+                && Objects.equals(a.getImageFit(), b.getImageFit())
+                && Objects.equals(a.getButtonType(), b.getButtonType())
+                && Objects.equals(a.getButtonTarget(), b.getButtonTarget())
+                && Objects.equals(this.jsonHandlingService.toJsonSafe(a.getTranslations()), this.jsonHandlingService.toJsonSafe(b.getTranslations()));
+    }
+
     public void deleteAndSave(UUID id) throws MyForbiddenException, InvalidApplicationException {
         logger.debug("deleting dataset: {}", id);
 
@@ -471,6 +546,14 @@ public class TenantConfigurationServiceImpl implements TenantConfigurationServic
         if (data.getType().equals(TenantConfigurationType.Logo)){
             LogoTenantConfigurationEntity oldValue = this.conventionService.isNullOrEmpty(data.getValue()) ? null : this.jsonHandlingService.fromJsonSafe(LogoTenantConfigurationEntity.class, data.getValue());
             if (oldValue != null && oldValue.getStorageFileId() != null) this.storageFileService.updatePurgeAt(oldValue.getStorageFileId(),  Instant.now().plusSeconds(60));
+        }
+        if (data.getType().equals(TenantConfigurationType.DashboardSlides)){
+            DashboardSlidesTenantConfigurationEntity oldValue = this.conventionService.isNullOrEmpty(data.getValue()) ? null : this.jsonHandlingService.fromJsonSafe(DashboardSlidesTenantConfigurationEntity.class, data.getValue());
+            if (oldValue != null && oldValue.getSlides() != null) {
+                for (UUID fileId : oldValue.getSlides().stream().map(DashboardSlideEntity::getStorageFileId).filter(Objects::nonNull).collect(Collectors.toSet())) {
+                    this.storageFileService.updatePurgeAt(fileId, Instant.now().plusSeconds(60));
+                }
+            }
         }
         this.deleterFactory.deleter(TenantConfigurationDeleter.class).deleteAndSaveByIds(List.of(id));
 

@@ -196,6 +196,9 @@ public class MaintenanceServiceImpl implements MaintenanceService {
                     if (planIdsPerTouchRequest.size() >= this.planServiceProperties.getMaxPlanPerRequest()) {
                         this.planTouchedIntegrationEventHandler.handlePlan(planIdsPerTouchRequest);
                         planIdsPerTouchRequest = new ArrayList<>();
+                        // the task is one transaction, so the session would otherwise hold every batch's outbox message until it commits
+                        this.tenantEntityManagerFactory.getInstance().flush();
+                        this.tenantEntityManagerFactory.getInstance().clear();
                     }
                 }
                 else {

@@ -62,6 +62,9 @@ public class ReferenceTypeDefinitionBuilder extends BaseBuilder<ReferenceTypeDef
         for (ReferenceTypeDefinitionEntity d : data) {
             ReferenceTypeDefinition m = new ReferenceTypeDefinition();
             if (fields.hasField(this.asIndexer(ReferenceTypeDefinition._labelTemplate))) m.setLabelTemplate(d.getLabelTemplate());
+            if (fields.hasField(this.asIndexer(ReferenceTypeDefinition._referenceIdSemantics))) m.setReferenceIdSemantics(d.getReferenceIdSemantics());
+            if (fields.hasField(this.asIndexer(ReferenceTypeDefinition._labelSemantics))) m.setLabelSemantics(d.getLabelSemantics());
+            if (fields.hasField(this.asIndexer(ReferenceTypeDefinition._descriptionSemantics))) m.setDescriptionSemantics(d.getDescriptionSemantics());
             if (!fieldsFields.isEmpty() && d.getFields() != null) m.setFields(this.builderFactory.builder(ReferenceTypeFieldBuilder.class).authorize(this.authorize).build(fieldsFields, d.getFields()));
             if (!sourcesFields.isEmpty() && d.getSources() != null) {
                 List<ExternalFetcherApiSourceConfigurationEntity> externalApiConfigEntities = d.getSources().stream().filter(x-> ExternalFetcherSourceType.API.equals(x.getType())).map(x-> (ExternalFetcherApiSourceConfigurationEntity)x).toList();

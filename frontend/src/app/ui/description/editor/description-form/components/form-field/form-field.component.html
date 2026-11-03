@@ -26,13 +26,14 @@
       }
     }
     @if(!hideLabel && field.data?.label && field.data?.fieldType !== FieldTypeEnum.CHECK_BOX && field.data?.fieldType !== FieldTypeEnum.SYSTEM){
-      <label [id]="path + '-label'" class="col-12 field-label" [appFor]="path">{{field.data.label}}@if(isRequired && !hideRequiredMarker){<span class="text-danger" aria-hidden="true"> *</span>}</label>
+      <!-- these inputs show the label as their placeholder instead; kept for screen readers -->
+      <label [id]="path + '-label'" class="col-12 field-label" [class.cdk-visually-hidden]="labelAsPlaceholder" [appFor]="path">{{field.data.label}}@if(isRequired && !hideRequiredMarker){<span class="text-danger" aria-hidden="true"> *</span>}</label>
     }
     @switch($safeNavigationMigration(field?.data?.fieldType)){
       @case(FieldTypeEnum.FREE_TEXT){
         <div class="col-12">
           <mat-form-field class="w-100">
-            <input [id]="path" matInput [formControl]="propertiesFormGroup?.get(field.id).get('textValue')" [required]="isRequired">
+            <input [id]="path" matInput [formControl]="propertiesFormGroup?.get(field.id).get('textValue')" [placeholder]="field.data.label ?? ''" [required]="isRequired">
             @if (propertiesFormGroup?.get(field.id).get('textValue').hasError('backendError')) {
               <mat-error>{{propertiesFormGroup?.get(field.id).get('textValue').getError('backendError').message}}</mat-error>
             }
@@ -60,6 +61,7 @@
               [form]="propertiesFormGroup?.get(field.id).get('references')"
               [label]="field.data.label"
               [hideLabel]="true"
+              [placeholder]="field.data.label"
               [referenceType]="field.data.referenceType"
               [multiple]="true"
               [required]="isRequired"
@@ -71,6 +73,7 @@
               [form]="propertiesFormGroup?.get(field.id).get('reference')"
               [label]="field.data.label"
               [hideLabel]="true"
+              [placeholder]="field.data.label"
               [referenceType]="field.data.referenceType"
               [multiple]="false"
               [required]="isRequired"
@@ -120,7 +123,7 @@
           <div class="row">
             @if(field.data.multipleSelect){
               <mat-form-field class="col-md-12">
-                <app-multiple-auto-complete [id]="path" [formControl]="propertiesFormGroup?.get(field.id).get('textListValue')" [configuration]="descriptionService.multipleAutocompleteConfiguration" [required]="isRequired">
+                <app-multiple-auto-complete [id]="path" [formControl]="propertiesFormGroup?.get(field.id).get('textListValue')" [configuration]="descriptionService.multipleAutocompleteConfiguration" [placeholder]="field.data.label ?? ''" [required]="isRequired">
                 </app-multiple-auto-complete>
                 @if (propertiesFormGroup?.get(field.id).get('textListValue').hasError('backendError')) {
                   <mat-error>{{propertiesFormGroup?.get(field.id).get('textListValue').getError('backendError').message}}</mat-error>
@@ -133,7 +136,7 @@
             }
             @else {
             <mat-form-field class="col-md-12">
-              <app-single-auto-complete [id]="path" [formControl]="propertiesFormGroup?.get(field.id).get('textValue')" [configuration]="descriptionService.singleAutocompleteConfiguration" [required]="isRequired">
+              <app-single-auto-complete [id]="path" [formControl]="propertiesFormGroup?.get(field.id).get('textValue')" [configuration]="descriptionService.singleAutocompleteConfiguration" [placeholder]="field.data.label ?? ''" [required]="isRequired">
               </app-single-auto-complete>
               @if (propertiesFormGroup?.get(field.id).get('textValue').hasError('backendError')) {
                 <mat-error>{{propertiesFormGroup?.get(field.id).get('textValue').getError('backendError').message}}</mat-error>
@@ -152,7 +155,7 @@
         <div class="row">
           @if(field.data.multipleSelect){
             <mat-form-field class="col-md-12">
-              <app-multiple-auto-complete [id]="path" [formControl]="propertiesFormGroup?.get(field.id).get('textListValue')" [configuration]="planService.multipleAutocompleteConfiguration" [required]="isRequired">
+              <app-multiple-auto-complete [id]="path" [formControl]="propertiesFormGroup?.get(field.id).get('textListValue')" [configuration]="planService.multipleAutocompleteConfiguration" [placeholder]="field.data.label ?? ''" [required]="isRequired">
               </app-multiple-auto-complete>
               @if (propertiesFormGroup?.get(field.id).get('textListValue').hasError('backendError')) {
                 <mat-error>{{propertiesFormGroup?.get(field.id).get('textListValue').getError('backendError').message}}</mat-error>
@@ -165,7 +168,7 @@
           }
           @else{
           <mat-form-field class="col-md-12">
-            <app-single-auto-complete [id]="path" [formControl]="propertiesFormGroup?.get(field.id).get('textValue')" [configuration]="planService.singleAutocompleteConfiguration" [required]="isRequired">
+            <app-single-auto-complete [id]="path" [formControl]="propertiesFormGroup?.get(field.id).get('textValue')" [configuration]="planService.singleAutocompleteConfiguration" [placeholder]="field.data.label ?? ''" [required]="isRequired">
             </app-single-auto-complete>
             @if (propertiesFormGroup?.get(field.id).get('textValue').hasError('backendError')) {
               <mat-error>{{propertiesFormGroup?.get(field.id).get('textValue').getError('backendError').message}}</mat-error>
@@ -191,7 +194,7 @@
   @case(FieldTypeEnum.TEXT_AREA){
     <div class="col-12">
       <mat-form-field class="w-100">
-        <textarea [id]="path" matInput class="text-area" [formControl]="propertiesFormGroup?.get(field.id).get('textValue')" matTextareaAutosize matAutosizeMinRows="3" matAutosizeMaxRows="15" [required]="isRequired"></textarea>
+        <textarea [id]="path" matInput class="text-area" [formControl]="propertiesFormGroup?.get(field.id).get('textValue')" [placeholder]="field.data.label ?? ''" matTextareaAutosize matAutosizeMinRows="3" matAutosizeMaxRows="15" [required]="isRequired"></textarea>
         @if (!propertiesFormGroup?.get(field.id).get('textValue').disabled && propertiesFormGroup?.get(field.id).get('textValue').value) {
           <button mat-icon-button
             type="button"
@@ -217,7 +220,7 @@
       <rich-text-editor-component
         [id]="path"
         [form]="propertiesFormGroup?.get(field.id).get('textValue')"
-        [placeholder]="''"
+        [placeholder]="field.data.label ?? ''"
         [required]="isRequired"
         [showRequiredMarker]="!hideRequiredMarker"
                         [wrapperClasses]="'full-width editor ' + ((isRequired && propertiesFormGroup?.get(field.id).get('textValue').touched && propertiesFormGroup?.get(field.id).get('textValue').hasError('required')) ?
@@ -290,7 +293,7 @@
     }
     @case(FieldTypeEnum.DATE_PICKER){
       <mat-form-field class="col-12">
-        <input [id]="path" matInput class="table-input" [matDatepicker]="date" [formControl]="propertiesFormGroup?.get(field.id).get('dateValue')" [required]="isRequired">
+        <input [id]="path" matInput class="table-input" [matDatepicker]="date" [formControl]="propertiesFormGroup?.get(field.id).get('dateValue')" [placeholder]="field.data.label ?? ''" [required]="isRequired">
         <mat-datepicker-toggle matSuffix [for]="date"></mat-datepicker-toggle>
         <mat-datepicker #date></mat-datepicker>
         @if (propertiesFormGroup?.get(field.id).get('dateValue').hasError('backendError')) {
@@ -467,7 +470,7 @@
       @case(FieldTypeEnum.NUMBER){
         <div class="col-12">
           <mat-form-field class="w-100">
-            <input [id]="path" matInput type="number" [formControl]="propertiesFormGroup?.get(field.id).get('numberValue')" [required]="isRequired">
+            <input [id]="path" matInput type="number" [formControl]="propertiesFormGroup?.get(field.id).get('numberValue')" [placeholder]="field.data.label ?? ''" [required]="isRequired">
             @if (propertiesFormGroup?.get(field.id).get('numberValue').hasError('backendError')) {
               <mat-error>{{propertiesFormGroup?.get(field.id).get('numberValue').getError('backendError').message}}</mat-error>
             }

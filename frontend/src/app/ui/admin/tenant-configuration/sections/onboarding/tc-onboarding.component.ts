@@ -12,13 +12,14 @@ import { Observable, of, startWith, switchMap } from 'rxjs';
 import { TcSaveBarComponent } from '../../shared/tc-save-bar.component';
 import { TcSectionService } from '../../shared/tc-section.service';
 import { TcStateTagComponent } from '../../shared/tc-state-tag.component';
+import { TcDashboardSlidesComponent } from './tc-dashboard-slides.component';
 
-/** Users & onboarding: the terms and conditions shown on first sign-in, and the guided page tours. */
+/** Users & onboarding: the slides on the Dashboard, the terms and conditions shown on first sign-in, and the guided page tours. */
 @Component({
 	selector: 'app-tc-onboarding',
 	standalone: true,
 	changeDetection: ChangeDetectionStrategy.OnPush,
-	imports: [CommonUiModule, ReactiveFormsModule, RichTextEditorModule, TcSaveBarComponent, TcStateTagComponent],
+	imports: [CommonUiModule, ReactiveFormsModule, RichTextEditorModule, TcSaveBarComponent, TcStateTagComponent, TcDashboardSlidesComponent],
 	providers: [TcSectionService],
 	templateUrl: './tc-onboarding.component.html',
 	styleUrl: './tc-onboarding.component.scss',

@@ -1392,7 +1392,12 @@
 			"MOVE-UP": "{{item}} omhoog verplaatsen",
 			"MOVE-DOWN": "{{item}} omlaag verplaatsen",
 			"REMOVE": "{{item}} verwijderen",
-			"CHIP-KEYBOARD-HINT": "Sleep om de volgorde te wijzigen, of druk op Alt met de pijltoets links of rechts."
+			"CHIP-KEYBOARD-HINT": "Sleep om de volgorde te wijzigen, of druk op Alt met de pijltoets links of rechts.",
+			"DASHBOARD-NOTE": {
+				"TITLE": "Ook op de startpagina",
+				"TEXT": "Om deze items ook op de startpagina van leden te tonen, voegt u de dia \"Aanbevolen blueprints en sjablonen\" toe in",
+				"LINK": "Gebruikers en onboarding"
+			}
 		},
 		"NOTIFICATIONS": {
 			"TITLE": "Meldingen",
@@ -1416,7 +1421,94 @@
 		},
 		"ONBOARDING": {
 			"TITLE": "Gebruikers en onboarding",
-			"HINT": "Wat gebruikers zien wanneer ze zich voor het eerst aanmelden.",
+			"HINT": "Wat gebruikers zien wanneer ze zich voor het eerst aanmelden, en de informatie op hun startpagina.",
+			"SLIDES": {
+				"TITLE": "Informatie op de startpagina",
+				"HINT": "Dia's die alle leden van deze organisatie bovenaan hun startpagina zien, één tegelijk.",
+				"ADD": "Dia toevoegen",
+				"EMPTY": "Nog geen dia's",
+				"EMPTY-HINT": "Kies \"Dia toevoegen\" om de eerste toe te voegen.",
+				"EMPTY-FALLBACK": "Tot die tijd zien leden de dia's van de standaardorganisatie.",
+				"CONTENT": {
+					"TITLE": "Inhoudsdia",
+					"HINT": "Uw eigen titel en tekst, met een afbeelding en een knop als u dat wilt."
+				},
+				"RECOMMENDED": {
+					"TITLE": "Aanbevolen blueprints en sjablonen",
+					"HINT": "De blueprints en sjablonen die in Standaardinhoud zijn gekozen, 3 per dia. Kan één keer worden toegevoegd.",
+					"ALREADY-ADDED": "Al toegevoegd",
+					"ITEMS": "{{count}} items uit Standaardinhoud",
+					"ITEMS-AND-SLIDES": "{{count}} items uit Standaardinhoud · {{slides}} dia's op de startpagina",
+					"NO-ITEMS": "Nog geen items gekozen in Standaardinhoud",
+					"NOT-SHOWN": "Niet getoond: geen items",
+					"CHANGE-ITEMS": "Items wijzigen"
+				},
+				"COLUMNS": {
+					"ORDER": "Volgorde",
+					"SLIDE": "Dia",
+					"LANGUAGES": "Talen",
+					"WHEN": "Wanneer",
+					"ON-DASHBOARD": "Op de startpagina",
+					"ACTIONS": "Acties"
+				},
+				"ALWAYS": "Altijd",
+				"UNTIL": "Tot {{date}}",
+				"ENDED": "Beëindigd op {{date}}",
+				"FROM": "Vanaf {{date}}",
+				"FROM-UNTIL": "Van {{from}} tot {{until}}",
+				"STATE-ON": "Aan",
+				"STATE-OFF": "Uit",
+				"STATE-ENDED": "Beëindigd",
+				"EDIT": "Bewerken",
+				"DUPLICATE": "Dupliceren",
+				"MOVE-UP": "Omhoog",
+				"MOVE-DOWN": "Omlaag",
+				"DELETE": "Verwijderen",
+				"DELETE-CONFIRM": "De dia \"{{name}}\" verwijderen? Leden zien deze dan niet meer.",
+				"FOOTNOTE": "Sleep een dia om de volgorde te wijzigen. Beëindigde dia's blijven in de lijst staan totdat u ze verwijdert.",
+				"EDITOR": {
+					"NEW-TITLE": "Nieuwe dia",
+					"EDIT-TITLE": "Dia bewerken",
+					"CLOSE": "Sluiten",
+					"LANGUAGES": "Talen",
+					"ADD-LANGUAGE": "Taal toevoegen",
+					"REMOVE-LANGUAGE": "{{language}} verwijderen",
+					"DEFAULT-LANGUAGE": "(standaard)",
+					"DEFAULT-LANGUAGE-HINT": "De standaardtaal is verplicht. Leden voor wier taal geen tekst is, zien deze.",
+					"OTHER-LANGUAGE-HINT": "Optioneel. Laat leeg om de tekst van de standaardtaal te tonen.",
+					"PREVIEW-IN": "Zo ziet de dia eruit · {{language}}",
+					"TEXTS-TITLE": "Tekst per taal",
+					"TEXTS-HINT": "De titel, de tekst en de knoptekst. Elke taal heeft een eigen versie.",
+					"SHARED-TITLE": "Voor alle talen",
+					"SHARED-HINT": "De afbeelding, de knop en de datums zijn in elke taal hetzelfde.",
+					"SLIDE-TITLE": "Titel",
+					"TITLE-NEEDED": "Voeg een titel toe voor deze taal, of wis de tekst.",
+					"TEXT": "Tekst",
+					"TEXT-HINT": "De dia toont de eerste regels; langere teksten krijgen ‘Lees meer’.",
+					"IMAGE": "Afbeelding (optioneel)",
+					"IMAGE-HINT": "Getoond rechts van de tekst. Zonder afbeelding neemt de tekst de volle breedte in.",
+					"NO-IMAGE": "Geen afbeelding",
+					"ADD-IMAGE": "Afbeelding toevoegen",
+					"REPLACE-IMAGE": "Vervangen",
+					"REMOVE-IMAGE": "Verwijderen",
+					"IMAGE-DISPLAY": "Weergave van de afbeelding",
+					"IMAGE-FILL": "Vullen",
+					"IMAGE-FIT": "Passend",
+					"IMAGE-DISPLAY-HINT": "Vullen bedekt het hele vlak en kan de afbeelding bijsnijden. Passend toont de hele afbeelding, bijvoorbeeld een logo.",
+					"BUTTON": "Knop (optioneel)",
+					"URL": "URL",
+					"EMAIL": "E-mail",
+					"BUTTON-HINT": "Een link naar een webpagina of een e-mailadres. Kies het opnieuw om de knop te verwijderen.",
+					"BUTTON-TEXT": "Knoptekst",
+					"LINK": "Link",
+					"EMAIL-ADDRESS": "E-mailadres",
+					"SHOW-FROM": "Tonen vanaf",
+					"SHOW-UNTIL": "Tonen tot",
+					"UNTIL-BEFORE-FROM": "Moet op of na de begindatum liggen.",
+					"DATES-HINT": "Optioneel. Voor nieuws of evenementen: de dia verschijnt en verdwijnt vanzelf.",
+					"SAVE": "Opslaan"
+				}
+			},
 			"TERMS": {
 				"TITLE": "Algemene voorwaarden",
 				"HINT": "Getoond vóór het eerste gebruik. Links naar uw servicevoorwaarden en privacybeleid zijn welkom.",
@@ -3375,6 +3467,9 @@
 			"LABEL": "Label",
 			"REQUIRED": "Verplicht",
 			"SEMANTICS": "Semantiek",
+			"REFERENCE-ID-SEMANTICS": "Semantiek van de referentie-ID",
+			"LABEL-SEMANTICS": "Semantiek van de naam",
+			"DESCRIPTION-SEMANTICS": "Semantiek van de beschrijving",
 			"ADD": "Veld toevoegen",
 			"REMOVE": "Veld verwijderen",
 			"TITLE": "Velden",
@@ -4251,7 +4346,7 @@
 			"YES": "Ja",
 			"NO": "Nee",
 			"CONTAINS-THIS": "bevat deze invoer",
-			"SAME-QUESTION": "in dezelfde vraag",
+			"THIS-INPUT": "het veld zelf",
 			"SHOWS-THIS": "toont deze vraag al",
 			"SHOWS-WHEN": "Toont {{target}} bij \"{{value}}\"",
 			"SHOWS": "Toont {{target}}",
@@ -5503,8 +5598,8 @@
 				"CONTENT": "Nieuw plan en Nieuwe hulpbron staan in de zijbalk onder Mijn Plannen en Mijn Hulpbronnen, zodat u er vanaf elke pagina een kunt starten."
 			},
 			"RECOMMENDATIONS": {
-				"TITLE": "Aanbevolen voor u",
-				"CONTENT": "De Plan Blueprints en Hulpbronsjablonen die uw organisatie aanbeveelt. Start een plan direct vanuit een blueprint, of open er een om te zien wat erin gevraagd wordt."
+				"TITLE": "Van uw organisatie",
+				"CONTENT": "Nieuws, links en de blueprints en hulpbronsjablonen die uw organisatie aanbeveelt. Kies Verbergen om het tot één regel in te klappen; het gaat weer open zodra er iets nieuws wordt toegevoegd."
 			},
 			"ACTIVITY": {
 				"TITLE": "Uw recente activiteit",
@@ -5531,15 +5626,22 @@
 				"CONTENT": "Onder Ondersteuning vindt u de gebruikershandleiding, de veelgestelde vragen en de woordenlijst, en kunt u deze rondleiding opnieuw bekijken. Daarnaast kunt u de taal wijzigen. In het organisatiemenu kunt u van organisatie wisselen als u bij meer dan één hoort, want elke organisatie heeft eigen plannen, hulpbronnen en blueprints. De bel toont uw meldingen, en daarnaast staat uw profiel."
 			}
 		},
-		"RECOMMENDATIONS": {
+		"SLIDES": {
 			"FROM": "Van {{tenant}}",
-			"TITLE": "Aanbevolen blueprints en sjablonen",
-			"SUMMARY": "{{count}} aanbevolen blueprints en sjablonen",
-			"RANGE": "{{start}}–{{end}} van {{count}}",
+			"FROM-DEFAULT": "Van {{ APP_NAME }}",
+			"ONE-SLIDE": "1 dia",
+			"SLIDES": "{{count}} dia's",
+			"POSITION": "{{index}} van {{count}}",
 			"SHOW": "Tonen",
 			"HIDE": "Verbergen",
-			"PREVIOUS": "Vorige aanbevelingen",
-			"NEXT": "Volgende aanbevelingen",
+			"PREVIOUS": "Vorige dia",
+			"NEXT": "Volgende dia",
+			"GO-TO": "Ga naar dia {{index}} van {{count}}",
+			"READ-MORE": "Lees meer",
+			"READ-MORE-LABEL": "Lees meer: {{title}}"
+		},
+		"RECOMMENDATIONS": {
+			"TITLE": "Aanbevolen blueprints en sjablonen",
 			"PLAN-BLUEPRINT": "Plan Blueprint",
 			"DESCRIPTION-TEMPLATE": "Hulpbronsjabloon",
 			"TYPE": "Type: {{type}}",

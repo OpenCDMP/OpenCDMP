@@ -1392,7 +1392,12 @@
 			"MOVE-UP": "{{item}} öğesini yukarı taşı",
 			"MOVE-DOWN": "{{item}} öğesini aşağı taşı",
 			"REMOVE": "{{item}} öğesini kaldır",
-			"CHIP-KEYBOARD-HINT": "Yeniden sıralamak için sürükleyin veya Alt ile birlikte sol ya da sağ ok tuşuna basın."
+			"CHIP-KEYBOARD-HINT": "Yeniden sıralamak için sürükleyin veya Alt ile birlikte sol ya da sağ ok tuşuna basın.",
+			"DASHBOARD-NOTE": {
+				"TITLE": "Ev sayfasında da",
+				"TEXT": "Bu öğeleri üyelerin Ev sayfasında da göstermek için “Önerilen blueprintler ve şablonlar” slaytını şu bölümde ekleyin:",
+				"LINK": "Kullanıcılar ve ilk kullanım"
+			}
 		},
 		"NOTIFICATIONS": {
 			"TITLE": "Bildirimler",
@@ -1416,7 +1421,94 @@
 		},
 		"ONBOARDING": {
 			"TITLE": "Kullanıcılar ve ilk kullanım",
-			"HINT": "Kişilerin ilk kez oturum açtıklarında gördükleri.",
+			"HINT": "Kişilerin ilk kez oturum açtıklarında gördükleri ve Ev sayfalarındaki bilgiler.",
+			"SLIDES": {
+				"TITLE": "Ev sayfasındaki bilgiler",
+				"HINT": "Bu kurumun tüm üyelerinin Ev sayfalarının üst kısmında tek tek gördüğü slaytlar.",
+				"ADD": "Slayt ekle",
+				"EMPTY": "Henüz slayt yok",
+				"EMPTY-HINT": "İlk slaytı eklemek için “Slayt ekle”yi seçin.",
+				"EMPTY-FALLBACK": "O zamana kadar üyeler varsayılan kurumun slaytlarını görür.",
+				"CONTENT": {
+					"TITLE": "İçerik slaytı",
+					"HINT": "Kendi başlığınız ve metniniz; isterseniz bir görsel ve bir düğmeyle."
+				},
+				"RECOMMENDED": {
+					"TITLE": "Önerilen blueprintler ve şablonlar",
+					"HINT": "İçerik varsayılanlarında seçilen blueprintler ve şablonlar, her slaytta 3 tane. Yalnızca bir kez eklenebilir.",
+					"ALREADY-ADDED": "Zaten eklendi",
+					"ITEMS": "İçerik varsayılanlarından {{count}} öğe",
+					"ITEMS-AND-SLIDES": "İçerik varsayılanlarından {{count}} öğe · Ev sayfasında {{slides}} slayt",
+					"NO-ITEMS": "İçerik varsayılanlarında henüz öğe seçilmedi",
+					"NOT-SHOWN": "Gösterilmiyor: öğe yok",
+					"CHANGE-ITEMS": "Öğeleri değiştir"
+				},
+				"COLUMNS": {
+					"ORDER": "Sıra",
+					"SLIDE": "Slayt",
+					"LANGUAGES": "Diller",
+					"WHEN": "Ne zaman",
+					"ON-DASHBOARD": "Ev sayfasında",
+					"ACTIONS": "İşlemler"
+				},
+				"ALWAYS": "Her zaman",
+				"UNTIL": "{{date}} tarihine kadar",
+				"ENDED": "{{date}} tarihinde sona erdi",
+				"FROM": "{{date}} tarihinden itibaren",
+				"FROM-UNTIL": "{{from}} ile {{until}} arası",
+				"STATE-ON": "Açık",
+				"STATE-OFF": "Kapalı",
+				"STATE-ENDED": "Sona erdi",
+				"EDIT": "Düzenle",
+				"DUPLICATE": "Çoğalt",
+				"MOVE-UP": "Yukarı taşı",
+				"MOVE-DOWN": "Aşağı taşı",
+				"DELETE": "Sil",
+				"DELETE-CONFIRM": "“{{name}}” slaytı silinsin mi? Üyeler artık onu görmeyecek.",
+				"FOOTNOTE": "Sırayı değiştirmek için bir slaytı sürükleyin. Sona eren slaytlar siz silene kadar listede kalır.",
+				"EDITOR": {
+					"NEW-TITLE": "Yeni slayt",
+					"EDIT-TITLE": "Slaytı düzenle",
+					"CLOSE": "Kapat",
+					"LANGUAGES": "Diller",
+					"ADD-LANGUAGE": "Dil ekle",
+					"REMOVE-LANGUAGE": "{{language}} dilini kaldır",
+					"DEFAULT-LANGUAGE": "(varsayılan)",
+					"DEFAULT-LANGUAGE-HINT": "Varsayılan dil zorunludur. Dilinde metin olmayan üyeler bunu görür.",
+					"OTHER-LANGUAGE-HINT": "İsteğe bağlı. Varsayılan dildeki metni göstermek için boş bırakın.",
+					"PREVIEW-IN": "Slaytın görünümü · {{language}}",
+					"TEXTS-TITLE": "Her dildeki metin",
+					"TEXTS-HINT": "Başlık, metin ve düğme metni. Her dilin kendine ait metinleri vardır.",
+					"SHARED-TITLE": "Tüm diller için",
+					"SHARED-HINT": "Görsel, düğme ve tarihler her dilde aynıdır.",
+					"SLIDE-TITLE": "Başlık",
+					"TITLE-NEEDED": "Bu dil için bir başlık ekleyin veya metnini temizleyin.",
+					"TEXT": "Metin",
+					"TEXT-HINT": "Slayt ilk satırları gösterir; daha uzun metinlerde “Devamını oku” görünür.",
+					"IMAGE": "Görsel (isteğe bağlı)",
+					"IMAGE-HINT": "Metnin sağında gösterilir. Görsel yoksa metin tüm genişliği kaplar.",
+					"NO-IMAGE": "Görsel yok",
+					"ADD-IMAGE": "Görsel ekle",
+					"REPLACE-IMAGE": "Değiştir",
+					"REMOVE-IMAGE": "Kaldır",
+					"IMAGE-DISPLAY": "Görselin gösterimi",
+					"IMAGE-FILL": "Doldur",
+					"IMAGE-FIT": "Sığdır",
+					"IMAGE-DISPLAY-HINT": "Doldur tüm alanı kaplar ve görseli kırpabilir. Sığdır görselin tamamını gösterir, örneğin bir logo.",
+					"BUTTON": "Düğme (isteğe bağlı)",
+					"URL": "URL",
+					"EMAIL": "E-posta",
+					"BUTTON-HINT": "Bir web sayfasına veya e-posta adresine bağlantı. Düğmeyi kaldırmak için yeniden seçin.",
+					"BUTTON-TEXT": "Düğme metni",
+					"LINK": "Bağlantı",
+					"EMAIL-ADDRESS": "E-posta adresi",
+					"SHOW-FROM": "Gösterim başlangıcı",
+					"SHOW-UNTIL": "Gösterim bitişi",
+					"UNTIL-BEFORE-FROM": "Başlangıç tarihiyle aynı gün veya sonrası olmalıdır.",
+					"DATES-HINT": "İsteğe bağlı. Haberler veya etkinlikler için: slayt kendiliğinden görünür ve kaybolur.",
+					"SAVE": "Kaydet"
+				}
+			},
 			"TERMS": {
 				"TITLE": "Şartlar ve Koşullar",
 				"HINT": "İlk kullanımdan önce gösterilir. Hizmet şartlarınıza ve gizlilik politikanıza bağlantı eklemeniz önerilir.",
@@ -3375,6 +3467,9 @@
 			"LABEL": "Etiket",
 			"REQUIRED": "Gerekli",
 			"SEMANTICS": "Semantik",
+			"REFERENCE-ID-SEMANTICS": "Referans kimliği semantiği",
+			"LABEL-SEMANTICS": "Ad semantiği",
+			"DESCRIPTION-SEMANTICS": "Tanım semantiği",
 			"ADD": "Alan ekle",
 			"REMOVE": "Alanı kaldır",
 			"TITLE": "Alanlar",
@@ -4251,7 +4346,7 @@
 			"YES": "Evet",
 			"NO": "Hayır",
 			"CONTAINS-THIS": "bu girdiyi içerir",
-			"SAME-QUESTION": "aynı soruda",
+			"THIS-INPUT": "alanın kendisi",
 			"SHOWS-THIS": "bu soruyu zaten gösteriyor",
 			"SHOWS-WHEN": "Yanıt \"{{value}}\" olduğunda gösterir: {{target}}",
 			"SHOWS": "Gösterir: {{target}}",
@@ -5503,8 +5598,8 @@
 				"CONTENT": "Yeni VYP ve Yeni Varlık, kenar çubuğunda VYP'larım ve Varlıklarım altında bulunur; böylece herhangi bir sayfadan başlayabilirsiniz."
 			},
 			"RECOMMENDATIONS": {
-				"TITLE": "Sizin için önerilenler",
-				"CONTENT": "Kuruluşunuzun önerdiği DMP Blueprints ve Varlık Şablonları. Doğrudan bir blueprint ile plan başlatın veya ne sorduğunu görmek için birini açın."
+				"TITLE": "Kuruluşunuzdan",
+				"CONTENT": "Kuruluşunuzun önerdiği haberler, bağlantılar, blueprint'ler ve varlık şablonları. Tek satıra daraltmak için Gizle'yi seçin; yeni bir şey eklendiğinde yeniden açılır."
 			},
 			"ACTIVITY": {
 				"TITLE": "Son etkinliğiniz",
@@ -5531,15 +5626,22 @@
 				"CONTENT": "Destek menüsünde kullanım kılavuzu, SSS ve sözlük bulunur; bu turu buradan yeniden başlatabilirsiniz. Yanında dili değiştirebilirsiniz. Birden fazla kuruluşa üyeyseniz kuruluş menüsünden kuruluş değiştirebilirsiniz; her kuruluşun kendi planları, varlıkları ve blueprint'leri vardır. Zil bildirimlerinizi gösterir, yanında da profiliniz yer alır."
 			}
 		},
-		"RECOMMENDATIONS": {
+		"SLIDES": {
 			"FROM": "{{tenant}} tarafından",
-			"TITLE": "Önerilen blueprintler ve şablonlar",
-			"SUMMARY": "{{count}} önerilen blueprint ve şablon",
-			"RANGE": "{{start}}–{{end}} / {{count}}",
+			"FROM-DEFAULT": "{{ APP_NAME }} tarafından",
+			"ONE-SLIDE": "1 slayt",
+			"SLIDES": "{{count}} slayt",
+			"POSITION": "{{index}} / {{count}}",
 			"SHOW": "Göster",
 			"HIDE": "Gizle",
-			"PREVIOUS": "Önceki öneriler",
-			"NEXT": "Sonraki öneriler",
+			"PREVIOUS": "Önceki slayt",
+			"NEXT": "Sonraki slayt",
+			"GO-TO": "{{count}} slayttan {{index}}. slayta git",
+			"READ-MORE": "Devamını oku",
+			"READ-MORE-LABEL": "Devamını oku: {{title}}"
+		},
+		"RECOMMENDATIONS": {
+			"TITLE": "Önerilen blueprintler ve şablonlar",
 			"PLAN-BLUEPRINT": "DMP Blueprint",
 			"DESCRIPTION-TEMPLATE": "Varlık Şablonu",
 			"TYPE": "Tür: {{type}}",

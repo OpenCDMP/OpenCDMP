@@ -74,6 +74,10 @@ public class TenantConfigurationPersist {
 
     public static final String _guidedTours = "guidedTours";
 
+    private DashboardSlidesTenantConfigurationPersist dashboardSlides;
+
+    public static final String _dashboardSlides = "dashboardSlides";
+
     private String hash;
 
     public static final String _hash = "hash";
@@ -180,6 +184,14 @@ public class TenantConfigurationPersist {
 
     public void setGuidedTours(GuidedToursTenantConfigurationPersist guidedTours) {
         this.guidedTours = guidedTours;
+    }
+
+    public DashboardSlidesTenantConfigurationPersist getDashboardSlides() {
+        return dashboardSlides;
+    }
+
+    public void setDashboardSlides(DashboardSlidesTenantConfigurationPersist dashboardSlides) {
+        this.dashboardSlides = dashboardSlides;
     }
 
     public String getHash() {
@@ -336,7 +348,16 @@ public class TenantConfigurationPersist {
                             .iff(() -> !this.isNull(item.getGuidedTours()) && TenantConfigurationType.GuidedTours.equals(item.getType()))
                             .on(TenantConfigurationPersist._guidedTours)
                             .over(item.getGuidedTours())
-                            .using(() -> this.validatorFactory.validator(GuidedToursTenantConfigurationPersist.GuidedToursTenantConfigurationPersistValidator.class))
+                            .using(() -> this.validatorFactory.validator(GuidedToursTenantConfigurationPersist.GuidedToursTenantConfigurationPersistValidator.class)),
+                    this.spec()
+                            .iff(() -> !this.isNull(item.getType()) && TenantConfigurationType.DashboardSlides.equals(item.getType()))
+                            .must(() -> !this.isNull(item.getDashboardSlides()))
+                            .failOn(TenantConfigurationPersist._dashboardSlides).failWith(messageSource.getMessage("Validation_Required", new Object[]{TenantConfigurationPersist._dashboardSlides}, LocaleContextHolder.getLocale())),
+                    this.refSpec()
+                            .iff(() -> !this.isNull(item.getDashboardSlides()) && TenantConfigurationType.DashboardSlides.equals(item.getType()))
+                            .on(TenantConfigurationPersist._dashboardSlides)
+                            .over(item.getDashboardSlides())
+                            .using(() -> this.validatorFactory.validator(DashboardSlidesTenantConfigurationPersist.DashboardSlidesTenantConfigurationPersistValidator.class))
             );
         }
     }

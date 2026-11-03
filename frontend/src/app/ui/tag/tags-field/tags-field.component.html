@@ -2,7 +2,7 @@
 	@if(!hideLabel){
 		<mat-label>{{label}}</mat-label>
 	}
-    <app-multiple-auto-complete [separatorKeysCodes]="separatorKeysCodes" [formControl]="form" [configuration]="multipleAutocompleteConfiguration" [required]="isRequired"></app-multiple-auto-complete>
+    <app-multiple-auto-complete [separatorKeysCodes]="separatorKeysCodes" [formControl]="form" [configuration]="multipleAutocompleteConfiguration" [placeholder]="placeholder" [required]="isRequired"></app-multiple-auto-complete>
 </mat-form-field>
 <!-- <mat-form-field class="w-100">
 	<mat-label>{{label + (required || isRequired ? ' *' : '')}}</mat-label>

@@ -14,7 +14,22 @@
 		@if (editor.readOnly && settings.length) {
 			<div class="bp2-card__body">
 				<dl class="bp2-read">
-					@for (s of settings; track s.label) { <dt>{{s.label}}</dt><dd>@if (s.color) { <span class="dt-swatch" [style.background]="s.value"></span> }{{s.value}}</dd> }
+					@for (s of settings; track s.label) {
+						<dt>{{s.label}}</dt>
+						<dd>
+							@if (s.color) { <span class="dt-swatch" [style.background]="s.value"></span> }{{s.value}}
+							@if (s.issues) {
+								<ul class="dt-export__validation" role="status">
+									@for (issue of s.issues; track $index) {
+										<li class="dt-export__issue" [class.dt-export__issue--error]="issue.level === issueLevels.Error">
+											<mat-icon aria-hidden="true">{{ issue.level === issueLevels.Error ? 'error' : 'warning' }}</mat-icon>
+											<span>{{ issue.message }}</span>
+										</li>
+									}
+								</ul>
+							}
+						</dd>
+					}
 				</dl>
 			</div>
 		} @else if (open && !editor.readOnly) {

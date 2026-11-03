@@ -1392,7 +1392,12 @@
 			"MOVE-UP": "Mugitu {{item}} gora",
 			"MOVE-DOWN": "Mugitu {{item}} behera",
 			"REMOVE": "Kendu {{item}}",
-			"CHIP-KEYBOARD-HINT": "Arrastatu berrantolatzeko, edo sakatu Alt ezkerreko edo eskuineko gezi-teklarekin."
+			"CHIP-KEYBOARD-HINT": "Arrastatu berrantolatzeko, edo sakatu Alt ezkerreko edo eskuineko gezi-teklarekin.",
+			"DASHBOARD-NOTE": {
+				"TITLE": "Aginte-panelean ere",
+				"TEXT": "Elementu hauek kideen aginte-panelean ere erakusteko, gehitu \"Gomendatutako Blueprint-ak eta txantiloiak\" diapositiba hemen:",
+				"LINK": "Erabiltzaileak eta harrera"
+			}
 		},
 		"NOTIFICATIONS": {
 			"TITLE": "Jakinarazpenak",
@@ -1416,7 +1421,94 @@
 		},
 		"ONBOARDING": {
 			"TITLE": "Erabiltzaileak eta harrera",
-			"HINT": "Jendeak lehen aldiz saioa hastean ikusten duena.",
+			"HINT": "Jendeak lehen aldiz saioa hastean ikusten duena, eta haien aginte-paneleko informazioa.",
+			"SLIDES": {
+				"TITLE": "Informazioa aginte-panelean",
+				"HINT": "Erakunde honetako kide guztiek aginte-panelaren goialdean ikusten dituzten diapositibak, banan-banan.",
+				"ADD": "Gehitu diapositiba",
+				"EMPTY": "Oraindik ez dago diapositibarik",
+				"EMPTY-HINT": "Hautatu \"Gehitu diapositiba\" lehenengoa gehitzeko.",
+				"EMPTY-FALLBACK": "Bitartean, kideek erakunde lehenetsiaren diapositibak ikusten dituzte.",
+				"CONTENT": {
+					"TITLE": "Eduki-diapositiba",
+					"HINT": "Zure izenburua eta testua, nahi baduzu irudi eta botoi batekin."
+				},
+				"RECOMMENDED": {
+					"TITLE": "Gomendatutako Blueprint-ak eta txantiloiak",
+					"HINT": "Eduki lehenetsietan aukeratutako Blueprint-ak eta txantiloiak, 3 diapositiba bakoitzean. Behin bakarrik gehi daiteke.",
+					"ALREADY-ADDED": "Dagoeneko gehituta",
+					"ITEMS": "Eduki lehenetsietako {{count}} elementu",
+					"ITEMS-AND-SLIDES": "Eduki lehenetsietako {{count}} elementu · {{slides}} diapositiba aginte-panelean",
+					"NO-ITEMS": "Oraindik ez da elementurik aukeratu Eduki lehenetsietan",
+					"NOT-SHOWN": "Ez da erakusten: elementurik ez",
+					"CHANGE-ITEMS": "Aldatu elementuak"
+				},
+				"COLUMNS": {
+					"ORDER": "Ordena",
+					"SLIDE": "Diapositiba",
+					"LANGUAGES": "Hizkuntzak",
+					"WHEN": "Noiz",
+					"ON-DASHBOARD": "Aginte-panelean",
+					"ACTIONS": "Ekintzak"
+				},
+				"ALWAYS": "Beti",
+				"UNTIL": "{{date}} arte",
+				"ENDED": "Amaitua: {{date}}",
+				"FROM": "{{date}} egunetik aurrera",
+				"FROM-UNTIL": "{{from}} egunetik {{until}} arte",
+				"STATE-ON": "Aktibo",
+				"STATE-OFF": "Inaktibo",
+				"STATE-ENDED": "Amaitua",
+				"EDIT": "Editatu",
+				"DUPLICATE": "Bikoiztu",
+				"MOVE-UP": "Eraman gora",
+				"MOVE-DOWN": "Eraman behera",
+				"DELETE": "Ezabatu",
+				"DELETE-CONFIRM": "\"{{name}}\" diapositiba ezabatu? Kideek ez dute gehiago ikusiko.",
+				"FOOTNOTE": "Arrastatu diapositiba bat ordena aldatzeko. Amaitutako diapositibak zerrendan geratzen dira ezabatu arte.",
+				"EDITOR": {
+					"NEW-TITLE": "Diapositiba berria",
+					"EDIT-TITLE": "Editatu diapositiba",
+					"CLOSE": "Itxi",
+					"LANGUAGES": "Hizkuntzak",
+					"ADD-LANGUAGE": "Gehitu hizkuntza",
+					"REMOVE-LANGUAGE": "Kendu {{language}}",
+					"DEFAULT-LANGUAGE": "(lehenetsia)",
+					"DEFAULT-LANGUAGE-HINT": "Hizkuntza lehenetsia derrigorrezkoa da. Beren hizkuntzan testurik ez duten kideek hau ikusten dute.",
+					"OTHER-LANGUAGE-HINT": "Aukerakoa. Utzi hutsik hizkuntza lehenetsiaren testua erakusteko.",
+					"PREVIEW-IN": "Diapositibaren itxura · {{language}}",
+					"TEXTS-TITLE": "Testua hizkuntza bakoitzean",
+					"TEXTS-HINT": "Izenburua, testua eta botoiaren testua. Hizkuntza bakoitzak berea du.",
+					"SHARED-TITLE": "Hizkuntza guztietarako",
+					"SHARED-HINT": "Irudia, botoia eta datak berdinak dira hizkuntza guztietan.",
+					"SLIDE-TITLE": "Izenburua",
+					"TITLE-NEEDED": "Gehitu izenburu bat hizkuntza honetarako, edo garbitu bere testua.",
+					"TEXT": "Testua",
+					"TEXT-HINT": "Diapositibak lehen lerroak erakusten ditu; testu luzeagoek «Irakurri gehiago» izango dute.",
+					"IMAGE": "Irudia (aukerakoa)",
+					"IMAGE-HINT": "Testuaren eskuinaldean erakusten da. Irudirik gabe, testuak zabalera osoa hartzen du.",
+					"NO-IMAGE": "Irudirik ez",
+					"ADD-IMAGE": "Gehitu irudia",
+					"REPLACE-IMAGE": "Ordeztu",
+					"REMOVE-IMAGE": "Kendu",
+					"IMAGE-DISPLAY": "Nola erakusten den irudia",
+					"IMAGE-FILL": "Bete",
+					"IMAGE-FIT": "Doitu",
+					"IMAGE-DISPLAY-HINT": "Betek eremu osoa betetzen du eta irudia moztu dezake. Doituk irudi osoa erakusten du, adibidez logotipo bat.",
+					"BUTTON": "Botoia (aukerakoa)",
+					"URL": "URL",
+					"EMAIL": "E-posta",
+					"BUTTON-HINT": "Web orri baterako esteka edo helbide elektroniko bat. Hautatu berriro botoia kentzeko.",
+					"BUTTON-TEXT": "Botoiaren testua",
+					"LINK": "Esteka",
+					"EMAIL-ADDRESS": "Helbide elektronikoa",
+					"SHOW-FROM": "Erakutsi noiztik",
+					"SHOW-UNTIL": "Erakutsi noiz arte",
+					"UNTIL-BEFORE-FROM": "Hasiera-dataren egun berean edo ondoren izan behar du.",
+					"DATES-HINT": "Aukerakoa. Berri edo ekitaldietarako: diapositiba berez agertu eta desagertzen da.",
+					"SAVE": "Gorde"
+				}
+			},
 			"TERMS": {
 				"TITLE": "Erabilera baldintzak",
 				"HINT": "Lehen erabileraren aurretik erakusten dira. Zure zerbitzu-baldintzetarako eta pribatutasun-politikarako estekak gomendagarriak dira.",
@@ -3375,6 +3467,9 @@
 			"LABEL": "Etiketa",
 			"REQUIRED": "Derrigorrezkoa",
 			"SEMANTICS": "Semantika",
+			"REFERENCE-ID-SEMANTICS": "Erreferentzia IDaren semantika",
+			"LABEL-SEMANTICS": "Izenaren semantika",
+			"DESCRIPTION-SEMANTICS": "Deskribapenaren semantika",
 			"ADD": "Gehitu eremua",
 			"REMOVE": "Kendu eremua",
 			"TITLE": "Eremuak",
@@ -4251,7 +4346,7 @@
 			"YES": "Bai",
 			"NO": "Ez",
 			"CONTAINS-THIS": "sarrera hau du",
-			"SAME-QUESTION": "galdera berean",
+			"THIS-INPUT": "sarrera bera",
 			"SHOWS-THIS": "galdera hau erakusten du jada",
 			"SHOWS-WHEN": "{{target}} erakusten du \"{{value}}\" denean",
 			"SHOWS": "{{target}} erakusten du",
@@ -5503,8 +5598,8 @@
 				"CONTENT": "DKP berria eta Baliabide berria alboko barrako Nire DPKak eta Nire baliabideak ataletan daude, beraz edozein orritatik has dezakezu bat."
 			},
 			"RECOMMENDATIONS": {
-				"TITLE": "Zuretzat gomendatuak",
-				"CONTENT": "Zure erakundeak gomendatzen dituen Blueprint-ak eta Baliabide-txantiloiak. Hasi plan bat zuzenean Blueprint batetik, edo ireki bat zer eskatzen duen ikusteko."
+				"TITLE": "Zure erakundetik",
+				"CONTENT": "Albisteak, estekak eta zure erakundeak gomendatzen dituen Blueprint-ak eta Baliabide-txantiloiak. Hautatu Ezkutatu lerro bakarrean tolesteko; zerbait berria gehitzen denean berriro irekitzen da."
 			},
 			"ACTIVITY": {
 				"TITLE": "Zure azken jarduera",
@@ -5531,15 +5626,22 @@
 				"CONTENT": "Laguntzan erabiltzailearen gida, ohiko galderak eta glosarioa daude, eta bisita hau berriro ikus dezakezu. Ondoan hizkuntza alda dezakezu. Erakundearen menuan erakundez alda dezakezu bat baino gehiagotako kide bazara, bakoitzak bere plan, baliabide eta blueprintak baititu. Kanpaiak zure jakinarazpenak erakusten ditu, eta ondoan zure profila dago."
 			}
 		},
-		"RECOMMENDATIONS": {
+		"SLIDES": {
 			"FROM": "{{tenant}} erakundetik",
-			"TITLE": "Gomendatutako Blueprint-ak eta txantiloiak",
-			"SUMMARY": "{{count}} Blueprint eta txantiloi gomendatu",
-			"RANGE": "{{start}}–{{end}} / {{count}}",
+			"FROM-DEFAULT": "{{ APP_NAME }}-tik",
+			"ONE-SLIDE": "Diapositiba 1",
+			"SLIDES": "{{count}} diapositiba",
+			"POSITION": "{{index}} / {{count}}",
 			"SHOW": "Erakutsi",
 			"HIDE": "Ezkutatu",
-			"PREVIOUS": "Aurreko gomendioak",
-			"NEXT": "Hurrengo gomendioak",
+			"PREVIOUS": "Aurreko diapositiba",
+			"NEXT": "Hurrengo diapositiba",
+			"GO-TO": "Joan {{index}}. diapositibara ({{count}} guztira)",
+			"READ-MORE": "Irakurri gehiago",
+			"READ-MORE-LABEL": "Irakurri gehiago: {{title}}"
+		},
+		"RECOMMENDATIONS": {
+			"TITLE": "Gomendatutako Blueprint-ak eta txantiloiak",
 			"PLAN-BLUEPRINT": "Plan Blueprint",
 			"DESCRIPTION-TEMPLATE": "Baliabide-txantiloia",
 			"TYPE": "Mota: {{type}}",

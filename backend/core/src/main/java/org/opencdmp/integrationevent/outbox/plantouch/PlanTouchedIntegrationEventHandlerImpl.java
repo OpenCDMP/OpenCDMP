@@ -6,7 +6,6 @@ import gr.cite.tools.logging.LoggerService;
 import org.opencdmp.commonmodels.models.FileEnvelopeModel;
 import org.opencdmp.commonmodels.models.plan.PlanModel;
 import org.opencdmp.commons.configuration.integration.IntegrationProperties;
-import org.opencdmp.convention.ConventionService;
 import org.opencdmp.data.PlanEntity;
 import org.opencdmp.integrationevent.outbox.OutboxIntegrationEvent;
 import org.opencdmp.integrationevent.outbox.OutboxService;
@@ -19,7 +18,6 @@ import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -39,17 +37,14 @@ public class PlanTouchedIntegrationEventHandlerImpl implements PlanTouchedIntegr
 
     private final PlanServiceProperties planServiceProperties;
 
-    private final ConventionService conventionService;
-
     private final IntegrationProperties integrationProperties;
 
-    public PlanTouchedIntegrationEventHandlerImpl(OutboxService outboxService, QueryFactory queryFactory, BuilderFactory builderFactory, FileTransformerService fileTransformerService, PlanServiceProperties planServiceProperties, ConventionService conventionService, IntegrationProperties integrationProperties) {
+    public PlanTouchedIntegrationEventHandlerImpl(OutboxService outboxService, QueryFactory queryFactory, BuilderFactory builderFactory, FileTransformerService fileTransformerService, PlanServiceProperties planServiceProperties, IntegrationProperties integrationProperties) {
         this.outboxService = outboxService;
 	    this.queryFactory = queryFactory;
         this.builderFactory = builderFactory;
         this.fileTransformerService = fileTransformerService;
         this.planServiceProperties = planServiceProperties;
-        this.conventionService = conventionService;
         this.integrationProperties = integrationProperties;
     }
 
@@ -68,8 +63,8 @@ public class PlanTouchedIntegrationEventHandlerImpl implements PlanTouchedIntegr
 
         List<PlanEntity> planEntities = this.queryFactory.query(PlanQuery.class).disableTracking().ids(planIds).collect();
 
-        List<PlanTouchedIntegrationEvent.PlanTouched> planModels = new ArrayList<>();
         for(PlanEntity entity : planEntities){
+            PlanTouchedIntegrationEvent.PlanTouched touched;
             try {
                 FileEnvelopeModel jsonEnvelope = new FileEnvelopeModel();
 
@@ -80,20 +75,19 @@ public class PlanTouchedIntegrationEventHandlerImpl implements PlanTouchedIntegr
 
                 PlanModel plan = this.builderFactory.builder(PlanCommonModelBuilder.class).setRdaJsonFile(jsonEnvelope).build(entity);
 
-                PlanTouchedIntegrationEvent.PlanTouched touched = new PlanTouchedIntegrationEvent.PlanTouched();
+                touched = new PlanTouchedIntegrationEvent.PlanTouched();
                 touched.setPlan(plan);
                 touched.setTenantId(entity.getTenantId());
-
-                planModels.add(touched);
             }catch (Exception e){
                 logger.error(e.getMessage(), e);
+                continue;
             }
+
+            // one message per plan: a message carrying many plans' RDA JSON can pass the 20 MB string limit
+            // the outbox publisher reads it back with, and is then never sent
+            PlanTouchedIntegrationEvent event = new PlanTouchedIntegrationEvent();
+            event.setPlans(List.of(touched));
+            this.handle(event);
         }
-        if (this.conventionService.isListNullOrEmpty(planModels)) return;
-
-        PlanTouchedIntegrationEvent event = new PlanTouchedIntegrationEvent();
-        event.setPlans(planModels);
-
-        this.handle(event);
     }
 }
